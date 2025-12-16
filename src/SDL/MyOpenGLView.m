@@ -1145,7 +1145,7 @@ enum PreferredAppMode
 		
 		if (tempResult != ERROR_SUCCESS)
 		{
-			OOLog(@"gameView.isOutputDisplayHDREnabled", @"Error! Code: %d", HRESULT_FROM_WIN32(tempResult));
+			OOLog(@"gameView.isOutputDisplayHDREnabled", @"Error! Code: %ld", HRESULT_FROM_WIN32(tempResult));
 			return NO;
 		}
 		
@@ -1171,7 +1171,7 @@ enum PreferredAppMode
 		
 		if (tempResult != ERROR_SUCCESS)
 		{
-			OOLog(@"gameView.isOutputDisplayHDREnabled", @"Error! Code: %d", HRESULT_FROM_WIN32(tempResult));
+			OOLog(@"gameView.isOutputDisplayHDREnabled", @"Error! Code: %ld", HRESULT_FROM_WIN32(tempResult));
 			return NO;
 		}
 	
@@ -1195,7 +1195,7 @@ enum PreferredAppMode
 	
 	if (tempResult != ERROR_SUCCESS)
 	{
-		OOLog(@"gameView.isOutputDisplayHDREnabled", @"Error! Code: %d", HRESULT_FROM_WIN32(tempResult));
+		OOLog(@"gameView.isOutputDisplayHDREnabled", @"Error! Code: %ld", HRESULT_FROM_WIN32(tempResult));
 		return NO;
 	}
 
@@ -1252,7 +1252,7 @@ finished:
 		
 		if (tempResult != ERROR_SUCCESS)
 		{
-			OOLog(@"gameView.isOutputDisplayHDREnabled", @"Error! Code: %d", HRESULT_FROM_WIN32(tempResult));
+			OOLog(@"gameView.isOutputDisplayHDREnabled", @"Error! Code: %ld", HRESULT_FROM_WIN32(tempResult));
 			return NO;
 		}
 		
@@ -1268,7 +1268,7 @@ finished:
 		if (tempResult == ERROR_SUCCESS)  isAdvColorInfo2DetectionSuccess = YES;
 		else
 		{
-			OOLogWARN(@"gameView.isOutputDisplayHDREnabled", @"Received 0x%08X while attempting to detect HDR mode using Advanced Color Info 2 API. Retrying detection using legacy API.", HRESULT_FROM_WIN32(tempResult));
+			OOLogWARN(@"gameView.isOutputDisplayHDREnabled", @"Received 0x%08lX while attempting to detect HDR mode using Advanced Color Info 2 API. Retrying detection using legacy API.", HRESULT_FROM_WIN32(tempResult));
 			// no return, just fall through and try again using standard advanced color info api
 		}
 		
@@ -1283,7 +1283,7 @@ finished:
 		
 		if (tempResult != ERROR_SUCCESS)
 		{
-			OOLog(@"gameView.isOutputDisplayHDREnabled", @"Error! Code: %d", HRESULT_FROM_WIN32(tempResult));
+			OOLog(@"gameView.isOutputDisplayHDREnabled", @"Error! Code: %ld", HRESULT_FROM_WIN32(tempResult));
 			return NO;
 		}
 		
@@ -2374,8 +2374,10 @@ finished:
 							[gameController exitAppWithContext:@"Shift-escape pressed"];
 						}
 						else
+						{
 							key_id = 27;
-							special_key = YES; 
+							special_key = YES;
+						}
 						break;
 					default:
 						//OOLog(@"keys.test", @"Unhandled Keydown scancode with unicode = 0: %d", scan_code);
@@ -2686,7 +2688,7 @@ finished:
 						if (!SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL))
 						{
 							dwLastError = GetLastError();
-							OOLog(@"wm_setfocus.message", @"Setting thread priority to time critical failed! (error code: %d)", dwLastError);
+							OOLog(@"wm_setfocus.message", @"Setting thread priority to time critical failed! (error code: %ld)", dwLastError);
 						}
 						break;
 						
@@ -2694,7 +2696,7 @@ finished:
 						if (!SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_NORMAL))
 						{
 							dwLastError = GetLastError();
-							OOLog(@"wm_killfocus.message", @"Setting thread priority to normal failed! (error code: %d)", dwLastError);
+							OOLog(@"wm_killfocus.message", @"Setting thread priority to normal failed! (error code: %ld)", dwLastError);
 						}
 						break;
 						
