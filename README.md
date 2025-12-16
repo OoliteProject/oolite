@@ -48,7 +48,7 @@ dependencies of Oolite that need to be built from source:
 DevEnvironments/Linux/checkout_deps.sh
 ```
 
-Next run this to install required packages, build dependencies and Oolite:
+Next run this to install required packages and build dependencies and Oolite:
 ```bash
 DevEnvironments/Linux/install.sh release
 ```
