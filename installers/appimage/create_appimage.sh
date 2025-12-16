@@ -16,7 +16,7 @@ run_script() {
     cp -rf $PROGDIR/Resources $APPDIR/usr/bin
 
     rm -f linuxdeploy-x86_64.AppImage
-    wget https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
+    curl -L -O https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
     chmod +x linuxdeploy-x86_64.AppImage
 
     case "$CURRENT_DISTRO" in
