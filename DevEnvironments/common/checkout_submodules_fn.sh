@@ -9,6 +9,8 @@ checkout_submodules() {
         echo "Checking out submodules"
         git submodule update --init --recursive
         git checkout -- .gitmodules
+    else
+        echo "Submodules already checked out"
     fi
 
     popd

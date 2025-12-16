@@ -10,6 +10,10 @@ run_script() {
     source ../../DevEnvironments/Linux/install_package_fn.sh
     source ../../DevEnvironments/common/check_rename_fn.sh
 
+    if ! install_package file; then
+        return 1
+    fi
+
     if ! install_package fuse; then
         return 1
     fi

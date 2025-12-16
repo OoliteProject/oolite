@@ -126,6 +126,8 @@ install_package() {
                 arch) PKG_NAME="libx11" ;;
             esac ;;
 
+        "file") PKG_NAME="file" ;;
+
         "fuse") PKG_NAME="fuse3" ;;
 
         *)
