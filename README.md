@@ -23,11 +23,15 @@ guide to the source tree.
 For end-user documentation, see [oolite.space](http://www.oolite.space/) and
 [Elite Wiki](http://wiki.alioth.net/index.php/Oolite_Main_Page).
 
+Please join the [Oolite Bulletin Board](https://bb.oolite.space/), a friendly community of Oolite fans
+and developers!
+
 ## Building from Source
 
 We welcome developers to work on Oolite! If you wish to build the project from source, please follow
 the instructions below. Note that the scripts require sudo for activities like installing dependent 
-libraries built from source and for installing packages on some Linux distros.
+libraries built from source and for installing packages on some Linux distros. If you run into 
+difficulties, you can seek help on the [Oolite Bulletin Board](https://bb.oolite.space/). 
 
 ## Git
 The Oolite source is available from GitHub.
