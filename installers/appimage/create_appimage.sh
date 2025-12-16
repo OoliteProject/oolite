@@ -23,7 +23,7 @@ run_script() {
         debian) SDL2="--library=/usr/lib/x86_64-linux-gnu/libSDL2.so" ;;
         redhat) SDL2="--library=/usr/lib64/libSDL2-2.0.so.0 --library=/usr/lib64/libSDL3.so.0" ;;
         arch) SDL2="--library=usr/lib/libSDL2-2.0.so.0 --library=usr/lib/libSDL3.so.0" ;;
-    esac ;;
+    esac
 
     if ! ./linuxdeploy-x86_64.AppImage \
     --appdir $APPDIR \
