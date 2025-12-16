@@ -37,12 +37,16 @@ install_package() {
 
         "icu-dev")
             case "$CURRENT_DISTRO" in
+                debian) PKG_NAME="libicu-dev" ;;
                 redhat) PKG_NAME="libicu-devel" ;;
+                arch) PKG_NAME="icu" ;;
             esac ;;
 
         "ffi-dev")
             case "$CURRENT_DISTRO" in
+                debian) PKG_NAME="libffi-dev" ;;
                 redhat) PKG_NAME="libffi-devel" ;;
+                arch) PKG_NAME="libffi" ;;
             esac ;;
 
         "xslt-dev")

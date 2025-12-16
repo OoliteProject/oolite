@@ -8,6 +8,9 @@ run_script() {
     if ! checkout_deps; then
     return 1
     fi
+
+    source ../common/checkout_submodules_fn.sh
+    checkout_submodules
     popd
 }
 

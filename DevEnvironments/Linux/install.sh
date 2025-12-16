@@ -23,6 +23,12 @@ run_script() {
     if ! install_package gnutls-dev; then
         return 1
     fi
+    if ! install_package icu-dev; then
+        return 1
+    fi
+    if ! install_package ffi-dev; then
+        return 1
+    fi
     if ! install_package xslt-dev; then
         return 1
     fi
@@ -91,13 +97,6 @@ run_script() {
 
     # Bash
     if [[ ${CURRENT_DISTRO,,} == "redhat" ]]; then
-        if ! install_package icu-dev; then
-            return 1
-        fi
-        if ! install_package ffi-dev; then
-            return 1
-        fi
-
         LIB_PARAM="--with-libdir=lib64"
     else
         LIB_PARAM=""

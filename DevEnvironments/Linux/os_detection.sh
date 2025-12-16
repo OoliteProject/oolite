@@ -16,17 +16,17 @@ if [[ "$OS_FAMILY" == *"debian"* ]]; then
     INSTALL_CMD=(sudo apt-get install -y)
     UPDATE_CMD=(sudo apt-get update)
 
-elif [[ "$OS_FAMILY" == *"arch"* ]]; then
-    # Arch, Manjaro, EndeavourOS
-    CURRENT_DISTRO="arch"
-    INSTALL_CMD=(pacman -S --noconfirm)
-    UPDATE_CMD=(pacman -Syu)
-
 elif [[ "$OS_FAMILY" == *"fedora"* || "$OS_FAMILY" == *"rhel"* ]]; then
     # Fedora, CentOS, RHEL, AlmaLinux
     CURRENT_DISTRO="redhat"
     INSTALL_CMD=(sudo dnf install -y)
     UPDATE_CMD=(sudo dnf check-update) # Returns exit code 100 if updates exist, catch that later
+
+elif [[ "$OS_FAMILY" == *"arch"* ]]; then
+    # Arch, Manjaro, EndeavourOS
+    CURRENT_DISTRO="arch"
+    INSTALL_CMD=(pacman -S --noconfirm --needed)
+    UPDATE_CMD=(pacman -Syu)
 
 else
     echo "❌ Unsupported distribution detected." >&2

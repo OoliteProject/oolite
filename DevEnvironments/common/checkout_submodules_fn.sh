@@ -3,9 +3,11 @@ checkout_submodules() {
     pushd "$SCRIPT_DIR"
 
     cd ../..
-    if [ -z "$(ls -A "deps/Cross-platform-deps")" ]; then
-        echo "Checking out Oolite's submodules"
-        git submodule update --init
+
+    # Run only if any submodule is uninitialized (leading '-')
+    if git submodule status --recursive | grep -qE '^-'; then
+        echo "Checking out submodules"
+        git submodule update --init --recursive
         git checkout -- .gitmodules
     fi
 
