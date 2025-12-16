@@ -178,7 +178,15 @@ int main(int argc, char *argv[])
 							"-verify-oxp [filepath]    "TABS1"Verify OXP at [filepath] *\n"
 							"--xml"TABS3 TABS4"When compiling or exporting\n"TABS3 TABS4"system descriptions, use xml\n"TABS3 TABS4"format *\n"
 							"\n"
-							"Options marked with \"*\" are available only in Test Release configuration.\n\n", processName);
+							"Options marked with \"*\" are available only in Test Release configuration.\n"
+							"Built with "
+#if OOLITE_HAVE_CLANG
+							"Clang version " STRINGIFY(__clang_major__) "." STRINGIFY(__clang_minor__) "." STRINGIFY(__clang_patchlevel__)
+#else
+							"GCC version " STRINGIFY(__GNUC__) "." STRINGIFY(__GNUC_MINOR__) "." STRINGIFY(__GNUC_PATCHLEVEL__)
+#endif	
+							"\n\n", processName
+						);
 				OO_SHOW_MSG(s, processName, MB_OK);
     				OOLog(@"process.args", @"%s option detected, exiting after help page has been displayed.", argv[i]);
 				return 0;
