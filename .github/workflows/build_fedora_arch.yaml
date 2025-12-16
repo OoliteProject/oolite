@@ -6,7 +6,12 @@ on:
 jobs:
   fedora:
     runs-on: ubuntu-latest
-    container: fedora:latest
+    container:
+      image: fedora:latest
+      options: >-
+        --cap-add SYS_ADMIN
+        --device /dev/fuse
+        --security-opt apparmor:unconfined
     steps:
       - name: Update Fedora
         run: |
@@ -25,7 +30,12 @@ jobs:
 
   arch:
     runs-on: ubuntu-latest
-    container: archlinux:latest
+    container:
+      image: archlinux:latest
+      options: >-
+        --cap-add SYS_ADMIN
+        --device /dev/fuse
+        --security-opt apparmor:unconfined
     steps:
       - name: Update Arch
         run: |
