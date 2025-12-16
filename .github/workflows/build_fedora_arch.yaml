@@ -1,4 +1,4 @@
-name: Build Oolite on Fedora and Arch
+name: Build Oolite AppImage on Fedora and Arch
 on:
   push:
   pull_request:
@@ -21,7 +21,7 @@ jobs:
           DevEnvironments/Linux/checkout_deps.sh
       - name: Install packages and build Oolite
         run: |
-          DevEnvironments/Linux/install.sh release
+          DevEnvironments/Linux/install.sh pkg-appimage
 
   arch:
     runs-on: ubuntu-latest
@@ -40,4 +40,4 @@ jobs:
           DevEnvironments/Linux/checkout_deps.sh
       - name: Install packages and build Oolite
         run: |
-          DevEnvironments/Linux/install.sh release
+          DevEnvironments/Linux/install.sh pkg-appimage
