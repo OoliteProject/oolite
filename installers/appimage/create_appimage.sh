@@ -7,6 +7,7 @@ run_script() {
     pushd "$SCRIPT_DIR"
 
     source ../../DevEnvironments/Linux/os_detection.sh
+    source ../../DevEnvironments/Linux/install_package_fn.sh
     source ../../DevEnvironments/common/check_rename_fn.sh
     APPDIR="Oolite.AppDir"
     rm -rf $APPDIR
@@ -18,6 +19,10 @@ run_script() {
     rm -f linuxdeploy-x86_64.AppImage
     curl -L -O https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
     chmod +x linuxdeploy-x86_64.AppImage
+
+    if ! install_package fuse; then
+        return 1
+    fi
 
     case "$CURRENT_DISTRO" in
         debian) SDL2="--library=/usr/lib/x86_64-linux-gnu/libSDL2-2.0.so.0" ;;

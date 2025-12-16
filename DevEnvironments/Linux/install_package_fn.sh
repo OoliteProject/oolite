@@ -122,6 +122,8 @@ install_package() {
                 arch) PKG_NAME="libx11" ;;
             esac ;;
 
+        "fuse") PKG_NAME="fuse3" ;;
+
         *)
             echo "❌ I don't know how to translate '$GENERIC_NAME' for $CURRENT_DISTRO" >&2
             return 1
