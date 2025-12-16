@@ -122,6 +122,13 @@ install_package() {
                 arch) PKG_NAME="libx11" ;;
             esac ;;
 
+        "fuse")
+            case "$CURRENT_DISTRO" in
+                debian) PKG_NAME="fuse2fs" ;;
+                redhat) PKG_NAME="fuse-libs" ;;
+                arch) PKG_NAME="fuse2" ;;
+            esac ;;
+
         "fuse") PKG_NAME="fuse3" ;;
 
         *)
