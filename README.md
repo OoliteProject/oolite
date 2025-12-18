@@ -1,4 +1,4 @@
-[![build-all](https://github.com/OoliteProject/oolite/actions/workflows/build-all.yml/badge.svg)](https://github.com/OoliteProject/oolite/actions/workflows/build-all.yml)
+[![build-all](https://github.com/OoliteProject/oolite/actions/workflows/build-all.yaml/badge.svg)](https://github.com/OoliteProject/oolite/actions/workflows/build-all.yaml)
 
 [![GitHub release](https://img.shields.io/github/release/OoliteProject/Oolite.svg)](https://github.com/OoliteProject/Oolite/releases/latest)
 
