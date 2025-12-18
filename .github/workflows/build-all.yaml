@@ -380,9 +380,9 @@ jobs:
             artifacts/oolite-windows-pkg-win-snapshot/OoliteInstall-*-dev.exe
             artifacts/oolite-windows-pkg-win-deployment/OoliteInstall-*.exe
             artifacts/oolite-windows-pkg-win/OoliteInstall-*.exe
-            artifacts/pkg-posix-nightly/*.run
-            artifacts/pkg-posix/*.run
-            artifacts/pkg-posix-test/*.run
+            artifacts/oolite-linux-pkg-appimage-snapshot/*.Appimage
+            artifacts/oolite-linux-pkg-appimage-deployment/*.Appimage
+            artifacts/oolite-linux-pkg-appimage/*.Appimage
 
       - name: Remove old workflow runs
         if: github.ref == 'refs/heads/master'
