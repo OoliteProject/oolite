@@ -16,7 +16,7 @@ jobs:
           sudo apt -y install libreoffice ttf-mscorefonts-installer
 
       - name: Checkout Oolite
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           path: oolite
           fetch-depth: 0
@@ -54,7 +54,7 @@ jobs:
           zip oolite-doc.zip oolite/Doc/*.pdf oolite/Doc/OOLITE_VERSION.txt
 
       - name: Archive generated documentation
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: oolite-doc
           path: |
@@ -72,27 +72,26 @@ jobs:
     needs: [common-steps]
     strategy:
       matrix:
-        flavour: [pkg-posix-nightly, pkg-posix-test, pkg-posix]
+        flavour: [pkg-appimage-snapshot, pkg-appimage-deployment, pkg-appimage]
     steps:
       ## This is for debugging only and helps developing the workflow.
       # - name: Environment Variables
       #  run: |
       #    printenv | sort
 
-      - name: install all the necessary packages
-        run: |
-          sudo apt update
-          sudo apt -y install git gobjc gnustep-devel make libsdl1.2-dev libvorbis-dev libopenal-dev g++ libespeak-dev libnspr4-dev
-
       - name: Checkout Oolite
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           path: oolite
           fetch-depth: 0
           submodules: true
 
+      - name: Checkout dependencies
+        run: |
+          oolite/DevEnvironments/Linux/checkout_deps.sh
+
       - name: Download artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: oolite-doc
           path: artifacts
@@ -106,11 +105,9 @@ jobs:
         run: |
           find . -not -path "./oolite/deps/Windows-deps/*" -not -path "./oolite/Mac-specific/*" -not -path "./oolite/.git/*"
 
-      - name: compiling up to installer script (.run file)
+      - name: Install packages and build Oolite
         run: |
-          cd oolite
-          source /usr/share/GNUstep/Makefiles/GNUstep.sh
-          make -f Makefile ${{matrix.flavour}} HOST_ARCH=$(uname -m)
+          oolite/DevEnvironments/Linux/install.sh ${{matrix.flavour}}
 
       ## This is for debugging only and helps developing the workflow.
       # - name: show filesystem after build
@@ -123,11 +120,11 @@ jobs:
           find . -not -path "./oolite/Mac-specific/*" -not -path "./oolite/deps/*" -not -path "./oolite/tests/*" -not -path "./oolite/.git/*"
 
       - name: Archive installer
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
-          name: ${{matrix.flavour}}
+          name: oolite-linux-${{matrix.flavour}}
           path: |
-            oolite/installers/posix/OoliteInstall-*.run
+            oolite/installers/appimage/Oolite_*.AppImage
           retention-days: 5
 
 
@@ -144,20 +141,20 @@ jobs:
       #    Get-ChildItem Env: | Sort Name
 
       - name: Checkout DevelopmentEnvironment
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: OoliteProject/oolite-windows-build-env
           path: DevelopmentEnvironment
 
       - name: Checkout Oolite
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           path: oolite
           fetch-depth: 0
           submodules: true
 
       - name: Download artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: oolite-doc
           path: artifacts
@@ -196,7 +193,7 @@ jobs:
           Get-ChildItem -Path "$env:GITHUB_WORKSPACE" –Recurse
 
       - name: Archive build
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: oolite-windows-${{matrix.flavour}}
           path: |
@@ -214,14 +211,14 @@ jobs:
           sudo pip3 install coverxygen
 
       - name: Checkout Oolite
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           path: oolite
           fetch-depth: 0
           submodules: true
 
       - name: Download artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: oolite-doc
           path: artifacts
@@ -313,7 +310,7 @@ jobs:
           find . -not -path "./oolite/deps/*" -not -path "./oolite/Mac-specific/*" -not -path "./oolite/.git/*"
 
       - name: Archive build tar ball
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: oolite-documentation-nightly
           path: |
@@ -335,7 +332,7 @@ jobs:
       #    printenv | sort
 
       - name: Download artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           path: artifacts
 

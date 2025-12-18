@@ -1,0 +1,53 @@
+name: Build Oolite AppImage on Fedora and Arch
+on:
+  push:
+  pull_request:
+
+jobs:
+  fedora:
+    runs-on: ubuntu-latest
+    container:
+      image: fedora:latest
+      options: >-
+        --cap-add SYS_ADMIN
+        --device /dev/fuse
+        --security-opt apparmor:unconfined
+    steps:
+      - name: Update Fedora
+        run: |
+          dnf -y update
+          dnf -y install git
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          submodules: true
+      - name: Checkout dependencies
+        run: |
+          DevEnvironments/Linux/checkout_deps.sh
+      - name: Install packages and build Oolite
+        run: |
+          DevEnvironments/Linux/install.sh pkg-appimage
+
+  arch:
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:latest
+      options: >-
+        --cap-add SYS_ADMIN
+        --device /dev/fuse
+        --security-opt apparmor:unconfined
+    steps:
+      - name: Update Arch
+        run: |
+          pacman -Sy --noconfirm
+          pacman -S --noconfirm --needed git
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          submodules: true
+      - name: Checkout dependencies
+        run: |
+          DevEnvironments/Linux/checkout_deps.sh
+      - name: Install packages and build Oolite
+        run: |
+          DevEnvironments/Linux/install.sh pkg-appimage

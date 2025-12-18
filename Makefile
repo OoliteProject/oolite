@@ -78,14 +78,18 @@ help:
 	@echo "  clean               - removes all generated files"
 	@echo
 	@echo "Packaging Targets:"
-	@echo " Linux (debian):"
-	@echo "  pkg-deb             - builds a release Debian package"
-	@echo "  pkg-debtest         - builds a test release Debian package"
-	@echo "  pkg-debsnapshot     - builds a snapshot release Debian package"
-	@echo "  pkg-debclean        - cleans up after a Debian package build"
+#	@echo " Linux (debian):"
+#	@echo "  pkg-deb             - builds a release Debian package"
+#	@echo "  pkg-debtest         - builds a test release Debian package"
+#	@echo "  pkg-debsnapshot     - builds a snapshot release Debian package"
+#	@echo "  pkg-debclean        - cleans up after a Debian package build"
 	@echo
-	@echo " POSIX Installer (e.g. Linux, FreeBSD etc.):"
-	@echo "  pkg-autopackage     - builds an autopackage (http://autopackage.org) package"
+#	@echo " POSIX Installer (e.g. Linux, FreeBSD etc.):"
+	@echo " Linux Installer:"
+#	@echo "  pkg-autopackage     - builds an autopackage (http://autopackage.org) package"
+	@echo
+	@echo "  pkg-appimage-test   - builds a test-release version"
+	@echo "  pkg-appimage        - builds a release version"
 	@echo
 	@echo "  pkg-posix           - builds a release self-extracting package"
 	@echo "  pkg-posix-test      - builds a test release self-extracting package"
@@ -233,6 +237,21 @@ pkg-debsnapshot: debian/changelog
 .PHONY: pkg-debclean
 pkg-debclean:
 	debuild clean
+
+
+# Here are our AppImage targets
+#
+.PHONY: pkg-appimage
+pkg-appimage: release
+	installers/appimage/create_appimage.sh "$(VER)" "test"
+
+.PHONY: pkg-appimage-deployment
+pkg-appimage-deployment: release-deployment
+	installers/appimage/create_appimage.sh "$(VER)"
+
+.PHONY: pkg-appimage-snapshot
+pkg-appimage-snapshot: release-snapshot
+	installers/appimage/create_appimage.sh "$(VER)" "dev"
 
 # And here are our Windows packager targets
 #
