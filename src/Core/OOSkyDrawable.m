@@ -356,7 +356,7 @@ static OOColor *DebugColor(Vector orientation)
 						 scale:(float)nebulaScale
 {
 	OOSkyQuadDesc		*quads = NULL, *currQuad = NULL;
-	unsigned			i, actualCount = 0, clusters = 0;
+	unsigned			i, actualCount = 0;
 	OOColor				*color;
 	Quaternion			q;
 	Vector				vi, vj, vk;
@@ -426,7 +426,6 @@ static OOColor *DebugColor(Vector orientation)
 			++currQuad;
 			++actualCount;
 		}
-		++clusters;
 	}
 	
 	/*	The above code generates less than _nebulaCount quads, because i is

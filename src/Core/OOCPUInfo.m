@@ -29,9 +29,13 @@ MA 02110-1301, USA.
 #include <sys/sysctl.h>
 #elif (OOLITE_LINUX || OOLITE_WINDOWS)
 // Workaround for clang/glibc incompatibility.
+#if !OOLITE_HAVE_CLANG
 #define __block __glibc_block
+#endif
 #include <unistd.h>
+#if !OOLITE_HAVE_CLANG
 #undef __block
+#endif
 #endif
 
 
@@ -209,7 +213,7 @@ NSString* operatingSystemFullVersion(void)
 	}
 	
 	return [NSString stringWithFormat:@"%lu.%lu.%lu%s %S", 
-			osver.dwMajorVersion, osver.dwMinorVersion, osver.dwBuildNumber, outUBRString, osver.szCSDVersion];
+			osver.dwMajorVersion, osver.dwMinorVersion, osver.dwBuildNumber, outUBRString, (const WCHAR *)osver.szCSDVersion];
 }
 
 /*

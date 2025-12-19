@@ -9045,7 +9045,7 @@ static NSString *SliderString(NSInteger amountIn20ths)
 			[gui setText:message forRow:GUI_ROW(GAME,SPEECH_LANGUAGE) align:GUI_ALIGN_CENTER];
 			OO_SETACCESSCONDITIONFORROW(!startingGame, GUI_ROW(GAME,SPEECH_LANGUAGE));
 
-			message = [NSString stringWithFormat:DESC(voice_gender_m ? @"gameoptions-voice-M" : @"gameoptions-voice-F")];
+			message = [NSString stringWithFormat:@"%@", DESC(voice_gender_m ? @"gameoptions-voice-M" : @"gameoptions-voice-F")];
 			[gui setText:message forRow:GUI_ROW(GAME,SPEECH_GENDER) align:GUI_ALIGN_CENTER];
 			OO_SETACCESSCONDITIONFORROW(!startingGame, GUI_ROW(GAME,SPEECH_GENDER));
 		}

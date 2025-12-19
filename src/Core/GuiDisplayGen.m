@@ -1648,7 +1648,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 				if ([text length] != 0)
 				{
 					isLeftAligned = tabStops[j] >= 0;
-					rowPosition[i].x = labs(tabStops[j]);
+					rowPosition[i].x = llabs(tabStops[j]);
 					
 					// we don't want to highlight leading space(s) or narrow spaces (\037s)
 					NSString	*hilitedText = [text stringByTrimmingCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@" \037"]];

@@ -3603,7 +3603,7 @@ static NSTimeInterval	time_last_frame;
 				{
 					voice_gender_m = m;
 					[UNIVERSE setVoice:voice_no withGenderM:voice_gender_m];
-					NSString *message = [NSString stringWithFormat:DESC(voice_gender_m ? @"gameoptions-voice-M" : @"gameoptions-voice-F")];
+					NSString *message = [NSString stringWithFormat:@"%@", DESC(voice_gender_m ? @"gameoptions-voice-M" : @"gameoptions-voice-F")];
 					[gui setText:message forRow:GUI_ROW(GAME,SPEECH_GENDER) align:GUI_ALIGN_CENTER];
 					if (isSpeechOn == OOSPEECHSETTINGS_ALL)
 					{

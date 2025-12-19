@@ -212,7 +212,7 @@ FAIL:
 	if ([_lock condition] != kConditionQueuedData)
 	{
 		[_lock unlock];
-		return NO;
+		return nil;
 	}
 #else
 	// Mac and Linux can do it properly
