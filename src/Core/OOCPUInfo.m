@@ -208,7 +208,7 @@ NSString* operatingSystemFullVersion(void)
 		}
 	}
 	
-	return [NSString stringWithFormat:@"%d.%d.%d%s %S", 
+	return [NSString stringWithFormat:@"%lu.%lu.%lu%s %S", 
 			osver.dwMajorVersion, osver.dwMinorVersion, osver.dwBuildNumber, outUBRString, osver.szCSDVersion];
 }
 

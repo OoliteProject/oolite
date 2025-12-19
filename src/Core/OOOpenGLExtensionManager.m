@@ -253,7 +253,7 @@ static NSArray *ArrayOfExtensions(NSString *extensionString)
 	[ResourceManager paths];
 	
 	OOLog(@"rendering.opengl.version", @"OpenGL renderer version: %u.%u.%u (\"%s\"). Vendor: \"%@\". Renderer: \"%@\".", major, minor, release, versionString, vendor, renderer);
-	OOLog(@"rendering.opengl.extensions", @"OpenGL extensions (%lu):\n%@", [extensions count], [[extensions allObjects] componentsJoinedByString:@", "]);
+	OOLog(@"rendering.opengl.extensions", @"OpenGL extensions (%llu):\n%@", [extensions count], [[extensions allObjects] componentsJoinedByString:@", "]);
 	
 	if (![self versionIsAtLeastMajor:kMinMajorVersion minor:kMinMinorVersion])
 	{

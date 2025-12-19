@@ -357,7 +357,7 @@ static OOCacheManager *sSingleton = nil;
 		formatVersion = [cache objectForKey:kCacheKeyFormatVersion];
 		if (accept && [formatVersion unsignedIntValue] != kFormatVersionValue)
 		{
-			OOLog(kOOLogDataCacheRebuild, @"Data cache format (%@) is not supported format (%u), rebuilding cache.", formatVersion, kFormatVersionValue);
+			OOLog(kOOLogDataCacheRebuild, @"Data cache format (%@) is not supported format (%llu), rebuilding cache.", formatVersion, kFormatVersionValue);
 			accept = NO;
 		}
 		

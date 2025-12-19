@@ -69,7 +69,7 @@ static NSString * const kOOLogNoteAddShips = @"script.debug.note.addShips";
 	
 	if (count == 0)  return [NSArray array];
 	
-	OOLog(kOOLogNoteAddShips, @"Spawning %ld x '%@' near %@ %d", count, role, [self shortDescription], [self universalID]);
+	OOLog(kOOLogNoteAddShips, @"Spawning %llu x '%@' near %@ %d", count, role, [self shortDescription], [self universalID]);
 	
 	result = [NSMutableArray arrayWithCapacity:count];
 	

@@ -1334,12 +1334,12 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 	{
 		if (!isFlasher)
 		{
-			OOLogERR(@"shipData.load.error.badSubentity", @"the shipdata.plist entry \"%@\" has a broken subentity definition \"%@\" (should have 8 tokens, has %lu).", shipKey, subentityKey, [tokens count]);
+			OOLogERR(@"shipData.load.error.badSubentity", @"the shipdata.plist entry \"%@\" has a broken subentity definition \"%@\" (should have 8 tokens, has %llu).", shipKey, subentityKey, [tokens count]);
 			*outFatalError = YES;
 		}
 		else
 		{
-			OOLogWARN(@"shipData.load.warning.badFlasher", @"the shipdata.plist entry \"%@\" has a broken flasher definition (should have 8 tokens, has %lu). This flasher will be ignored.", shipKey, [tokens count]);
+			OOLogWARN(@"shipData.load.warning.badFlasher", @"the shipdata.plist entry \"%@\" has a broken flasher definition (should have 8 tokens, has %llu). This flasher will be ignored.", shipKey, [tokens count]);
 		}
 		return nil;
 	}

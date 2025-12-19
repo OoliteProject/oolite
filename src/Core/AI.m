@@ -219,7 +219,7 @@ extern void GenerateGraphVizForAIStateMachine(NSDictionary *stateMachine, NSStri
 			while (count--)
 			{
 				OOPreservedAIStateMachine *preservedMachine = [aiStack objectAtIndex:count];
-				OOLog(@"ai.error.stackOverflow.dump", @"%3lu: %@: %@", count, [preservedMachine name], [preservedMachine state]);
+				OOLog(@"ai.error.stackOverflow.dump", @"%3llu: %@: %@", count, [preservedMachine name], [preservedMachine state]);
 			}
 			
 			OOLogOutdent();
