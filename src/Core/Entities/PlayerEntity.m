@@ -1512,7 +1512,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	// Do we have extra passengers?
 	if (passengers && ([passengers count] > max_passengers))
 	{
-		OOLogWARN(@"setCommanderDataFromDictionary.inconsistency.passengers", @"player ship %@ had more passengers (%lu) than passenger berths (%u). Removing extra passengers.", [self name], [passengers count], max_passengers);
+		OOLogWARN(@"setCommanderDataFromDictionary.inconsistency.passengers", @"player ship %@ had more passengers (%llu) than passenger berths (%u). Removing extra passengers.", [self name], [passengers count], max_passengers);
 		for (NSInteger i = (NSInteger)[passengers count] - 1; i >= max_passengers; i--)
 		{
 			[passenger_record removeObjectForKey:[[passengers oo_dictionaryAtIndex:i] oo_stringForKey:PASSENGER_KEY_NAME]];
@@ -4937,9 +4937,9 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 - (NSString *) dial_objinfo
 {
-	NSString *result = [NSString stringWithFormat:@"Entities: %3ld", [UNIVERSE entityCount]];
+	NSString *result = [NSString stringWithFormat:@"Entities: %3llu", [UNIVERSE entityCount]];
 #ifndef NDEBUG
-	result = [NSString stringWithFormat:@"%@ (%d, %zu KiB, avg %lu bytes)", result, gLiveEntityCount, gTotalEntityMemory >> 10, gTotalEntityMemory / gLiveEntityCount];
+	result = [NSString stringWithFormat:@"%@ (%d, %zu KiB, avg %zu bytes)", result, gLiveEntityCount, gTotalEntityMemory >> 10, gTotalEntityMemory / gLiveEntityCount];
 #endif
 	
 	return result;
@@ -10969,7 +10969,7 @@ static NSString *last_outfitting_key=nil;
 	NSString *available = OOPadStringToEms(((available_units > 0) ? (NSString *)[NSString stringWithFormat:@"%d",available_units] : DESC(@"commodity-quantity-none")), 2.5);
 
 	NSUInteger priceDecimal = pricePerUnit % 10;
-	NSString *price = [NSString stringWithFormat:@" %@.%lu ",OOPadStringToEms([NSString stringWithFormat:@"%lu",(unsigned long)(pricePerUnit/10)],2.5),priceDecimal];
+	NSString *price = [NSString stringWithFormat:@" %@.%llu ",OOPadStringToEms([NSString stringWithFormat:@"%lu",(unsigned long)(pricePerUnit/10)],2.5),priceDecimal];
 			
 	// this works with up to 9999 tons of gemstones. Any more than that, they deserve the formatting they get! :)
 			
@@ -13501,7 +13501,7 @@ else _dockTarget = NO_TARGET;
 	OOLog(@"dumpState.playerEntity", @"Missile status: %i", missile_status);
 	OOLog(@"dumpState.playerEntity", @"Energy unit: %@", EnergyUnitTypeToString([self installedEnergyUnitType]));
 	OOLog(@"dumpState.playerEntity", @"Fuel leak rate: %g", fuel_leak_rate);
-	OOLog(@"dumpState.playerEntity", @"Trumble count: %lu", trumbleCount);
+	OOLog(@"dumpState.playerEntity", @"Trumble count: %llu", trumbleCount);
 	
 	flags = [NSMutableArray array];
 	#define ADD_FLAG_IF_SET(x)		if (x) { [flags addObject:@#x]; }

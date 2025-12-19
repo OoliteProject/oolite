@@ -217,7 +217,7 @@ static NSString * const kOOLogEntityVerificationError		= @"entity.linkedList.ver
 	NSUInteger currentSessionID = [UNIVERSE sessionID];
 	if (EXPECT_NOT(mySessionID != currentSessionID))
 	{
-		OOLogERR(@"entity.invalidSession", @"Entity %@ from session %lu cannot be added to universe in session %lu. This is an internal error, please report it.", [self shortDescription], mySessionID, currentSessionID);
+		OOLogERR(@"entity.invalidSession", @"Entity %@ from session %llu cannot be added to universe in session %llu. This is an internal error, please report it.", [self shortDescription], mySessionID, currentSessionID);
 		return NO;
 	}
 	
