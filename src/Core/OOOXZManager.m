@@ -249,6 +249,28 @@ static OOOXZManager *sSingleton = nil;
 	return nil;
 }
 
+/* AddOns folder in game directory */
+- (NSString *) gameDirAddOnsPath
+{
+#if OOLITE_WINDOWS
+		return @"../AddOns";
+#else
+		const char *appimageEnv = SDL_getenv("APPIMAGE");
+		NSString *appPath;
+
+		if (appimageEnv)
+		{
+			// Running an AppImage
+			appPath = [NSString stringWithUTF8String:appimageEnv];
+			return [[appPath stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"AddOns"];
+		}
+		else
+		{
+			return @"AddOns";
+		}
+#endif
+}
+
 
 - (NSString *) extractionBasePathForIdentifier:(NSString *)identifier andVersion:(NSString *)version
 {
