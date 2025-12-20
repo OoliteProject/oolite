@@ -77,6 +77,7 @@ run_script() {
     if ! install_package x11-dev; then
         return 1
     fi
+    # For building AppImage
     if ! install_package file; then
         return 1
     fi
