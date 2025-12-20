@@ -64,6 +64,11 @@ ifeq ($(GNUSTEP_HOST_OS),mingw32)
 else  # Linux only uses modern build
     modern = yes
     COMPILER_TYPE := $(shell $(CC) -dM -E - < /dev/null | grep -q "__clang__" && echo "clang" || echo "gcc")
+    ifeq ($(COMPILER_TYPE),gcc)
+        $(info Detected: GCC build on Linux)
+    else
+        $(info Detected: Clang build on Linux)
+    endif
 
     LIBJS_DIR                    = deps/Linux-deps/x86_64/mozilla
     LIBJS_INC_DIR                = deps/Linux-deps/x86_64/mozilla/include
@@ -91,7 +96,6 @@ else  # Linux only uses modern build
     endif
 
     ifeq ($(COMPILER_TYPE),gcc)
-        @echo "Detected: GNU/GCC build on Linux"
         ADDITIONAL_OBJCFLAGS     += -std=gnu99
     endif
 endif

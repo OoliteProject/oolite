@@ -18,6 +18,7 @@ run_script() {
         TARGET=$1
     fi
 
+    source /usr/local/share/GNUstep/Makefiles/GNUstep.sh
 	if make -f Makefile $TARGET -j$(nproc); then
 		echo "✅ Oolite build completed successfully"
 	else
