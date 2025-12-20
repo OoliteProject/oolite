@@ -105,9 +105,13 @@ jobs:
         run: |
           find . -not -path "./oolite/deps/Windows-deps/*" -not -path "./oolite/Mac-specific/*" -not -path "./oolite/.git/*"
 
-      - name: Install packages and build Oolite
+      - name: Install packages
         run: |
-          oolite/DevEnvironments/Linux/install.sh ${{matrix.flavour}}
+          sudo DevEnvironments/Linux/install_deps_root.sh
+
+      - name: Build Oolite
+        run: |
+          DevEnvironments/Linux/build_oolite.sh ${{matrix.flavour}}
 
       ## This is for debugging only and helps developing the workflow.
       # - name: show filesystem after build

@@ -63,6 +63,7 @@ ifeq ($(GNUSTEP_HOST_OS),mingw32)
     endif
 else  # Linux only uses modern build
     modern = yes
+    COMPILER_TYPE := $(shell $(CC) -dM -E - < /dev/null | grep -q "__clang__" && echo "clang" || echo "gcc")
 
     LIBJS_DIR                    = deps/Linux-deps/x86_64/mozilla
     LIBJS_INC_DIR                = deps/Linux-deps/x86_64/mozilla/include
@@ -76,7 +77,7 @@ else  # Linux only uses modern build
 
     ADDITIONAL_INCLUDE_DIRS      = -I$(LIBJS_INC_DIR) -Isrc/SDL -Isrc/Core -Isrc/BSDCompat -Isrc/Core/Scripting -Isrc/Core/Materials -Isrc/Core/Entities -Isrc/Core/OXPVerifier -Isrc/Core/Debug -Isrc/Core/Tables -Isrc/Core/MiniZip
     ADDITIONAL_OBJC_LIBS         = -lGLU -lGL -lX11 -lSDL -lgnustep-base -L$(LIBJS_DIR) -l$(LIBJS) -lopenal -lz -lvorbisfile -lpng `nspr-config --libs` -lstdc++
-    ADDITIONAL_OBJCFLAGS         = -Wall -std=gnu99 -DLOADSAVEGUI -DLINUX -DXP_UNIX -Wno-import `sdl-config --cflags` `nspr-config --cflags`
+    ADDITIONAL_OBJCFLAGS         = -Wall -DLOADSAVEGUI -DLINUX -DXP_UNIX -Wno-import `sdl-config --cflags` `nspr-config --cflags`
     ADDITIONAL_CFLAGS            = -Wall -DLINUX -DNEED_STRLCPY `sdl-config --cflags` `nspr-config --cflags`
 
     ifeq ($(ESPEAK),yes)
@@ -87,6 +88,11 @@ else  # Linux only uses modern build
 
     ifeq ($(OO_JAVASCRIPT_TRACE),yes)
         ADDITIONAL_OBJCFLAGS     += -DMOZ_TRACE_JSCALLS=1
+    endif
+
+    ifeq ($(COMPILER_TYPE),gcc)
+        @echo "Detected: GNU/GCC build on Linux"
+        ADDITIONAL_OBJCFLAGS     += -std=gnu99
     endif
 endif
 

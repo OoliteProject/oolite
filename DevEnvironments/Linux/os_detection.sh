@@ -13,14 +13,14 @@ fi
 if [[ "$OS_FAMILY" == *"debian"* ]]; then
     # Debian, Ubuntu, Kali, Mint, Pop!_OS
     CURRENT_DISTRO="debian"
-    INSTALL_CMD=(sudo apt-get install -y)
-    UPDATE_CMD=(sudo apt-get update)
+    INSTALL_CMD=(apt-get install -y)
+    UPDATE_CMD=(apt-get update)
 
 elif [[ "$OS_FAMILY" == *"fedora"* || "$OS_FAMILY" == *"rhel"* ]]; then
     # Fedora, CentOS, RHEL, AlmaLinux
     CURRENT_DISTRO="redhat"
-    INSTALL_CMD=(sudo dnf install -y)
-    UPDATE_CMD=(sudo dnf check-update) # Returns exit code 100 if updates exist, catch that later
+    INSTALL_CMD=(dnf install -y)
+    UPDATE_CMD=(dnf check-update) # Returns exit code 100 if updates exist, catch that later
 
 elif [[ "$OS_FAMILY" == *"arch"* ]]; then
     # Arch, Manjaro, EndeavourOS

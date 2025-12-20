@@ -52,9 +52,15 @@ dependencies of Oolite that need to be built from source:
 DevEnvironments/Linux/checkout_deps.sh
 ```
 
-Next run this to install required packages and build dependencies and Oolite:
+Next run the following to install required packages and build dependencies (you can replace sudo
+with other methods that escalate privileges if you prefer):
 ```bash
-DevEnvironments/Linux/install.sh release
+sudo DevEnvironments/Linux/install_deps_root.sh
+```
+
+Next run this to build Oolite:
+```bash
+DevEnvironments/Linux/build_oolite.sh release
 ```
 
 The completed build (executable and games files) can be found in the Oolite.app directory.
