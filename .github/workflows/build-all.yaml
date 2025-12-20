@@ -107,11 +107,11 @@ jobs:
 
       - name: Install packages
         run: |
-          sudo DevEnvironments/Linux/install_deps_root.sh
+          sudo oolite/DevEnvironments/Linux/install_deps_root.sh
 
       - name: Build Oolite
         run: |
-          DevEnvironments/Linux/build_oolite.sh ${{matrix.flavour}}
+          oolite/DevEnvironments/Linux/build_oolite.sh ${{matrix.flavour}}
 
       ## This is for debugging only and helps developing the workflow.
       # - name: show filesystem after build
