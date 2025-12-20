@@ -390,7 +390,7 @@ static NSString *sGlobalTraceContext = nil;
 {
 	if (trace && !_trace)
 	{
-		OOLog(@"texture.allocTrace.begin", @"Started tracing texture %p with retain count %lu.", self, [self retainCount]);
+		OOLog(@"texture.allocTrace.begin", @"Started tracing texture %p with retain count %llu.", self, [self retainCount]);
 	}
 	_trace = trace;
 }
@@ -573,8 +573,8 @@ static NSString *sGlobalTraceContext = nil;
 {
 	if (_trace)
 	{
-		if (context)  OOLog(@"texture.allocTrace.retain", @"Texture %p retained (retain count -> %lu) - %@.", self, [self retainCount] + 1, context);
-		else  OOLog(@"texture.allocTrace.retain", @"Texture %p retained  (retain count -> %lu).", self, [self retainCount] + 1);
+		if (context)  OOLog(@"texture.allocTrace.retain", @"Texture %p retained (retain count -> %llu) - %@.", self, [self retainCount] + 1, context);
+		else  OOLog(@"texture.allocTrace.retain", @"Texture %p retained  (retain count -> %llu).", self, [self retainCount] + 1);
 	}
 	
 	return [super retain];
@@ -585,8 +585,8 @@ static NSString *sGlobalTraceContext = nil;
 {
 	if (_trace)
 	{
-		if (context)  OOLog(@"texture.allocTrace.release", @"Texture %p released (retain count -> %lu) - %@.", self, [self retainCount] - 1, context);
-		else  OOLog(@"texture.allocTrace.release", @"Texture %p released (retain count -> %lu).", self, [self retainCount] - 1);
+		if (context)  OOLog(@"texture.allocTrace.release", @"Texture %p released (retain count -> %llu) - %@.", self, [self retainCount] - 1, context);
+		else  OOLog(@"texture.allocTrace.release", @"Texture %p released (retain count -> %llu).", self, [self retainCount] - 1);
 	}
 	
 	[super release];

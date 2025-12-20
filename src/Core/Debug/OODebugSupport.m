@@ -74,7 +74,7 @@ void OOInitDebugSupport(void)
 	if (debugOXPPath != nil)
 	{
 		// Load plug-in debugging code on platforms where this is supported.
-		sDebugPlugInController = [LoadDebugPlugIn() retain];
+		sDebugPlugInController = [(id)LoadDebugPlugIn() retain];
 		
 		consoleHost = [debugSettings oo_stringForKey:@"console-host"];
 		consolePort = [debugSettings oo_unsignedShortForKey:@"console-port"];

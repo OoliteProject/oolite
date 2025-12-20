@@ -13719,7 +13719,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	//doesn't seem to have any adverse effect for now. - Kaks.
 	if ([shipAI stackDepth] > 3)
 	{
-		OOLog(@"ship.escort.reject", @"%@ rejecting escort %@ because AI stack depth is %lu.",self, other_ship, [shipAI stackDepth]);
+		OOLog(@"ship.escort.reject", @"%@ rejecting escort %@ because AI stack depth is %llu.",self, other_ship, [shipAI stackDepth]);
 		return NO;
 	}
 	
@@ -13762,7 +13762,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		}
 		else
 		{
-			OOLog(@"ship.escort.reject", @"%@ already got max escorts(%ld). Escort rejected: %@.", self, escortCount, other_ship);
+			OOLog(@"ship.escort.reject", @"%@ already got max escorts(%llu). Escort rejected: %@.", self, escortCount, other_ship);
 		}
 	}
 	else
@@ -14511,7 +14511,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 	OOLog(@"dumpState.shipEntity", @"Roles: %@", [self roleSet]);
 	OOLog(@"dumpState.shipEntity", @"Primary role: %@", primaryRole);
 	OOLog(@"dumpState.shipEntity", @"Script: %@", script);
-	OOLog(@"dumpState.shipEntity", @"Subentity count: %lu", [self subEntityCount]);
+	OOLog(@"dumpState.shipEntity", @"Subentity count: %llu", [self subEntityCount]);
 	OOLog(@"dumpState.shipEntity", @"Behaviour: %@", OOStringFromBehaviour(behaviour));
 	id target = [self primaryTarget];
 	if (target == nil)  target = @"<none>";

@@ -2462,7 +2462,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 	OOLog(@"dumpState.stationEntity", @"Scavengers launched: %u", scavengers_launched);
 	OOLog(@"dumpState.stationEntity", @"Docked shuttles: %u", docked_shuttles);
 	OOLog(@"dumpState.stationEntity", @"Docked traders: %u", docked_traders);
-	OOLog(@"dumpState.stationEntity", @"Equivalent tech level: %li", equivalentTechLevel);
+	OOLog(@"dumpState.stationEntity", @"Equivalent tech level: %llu", equivalentTechLevel);
 	OOLog(@"dumpState.stationEntity", @"Equipment price factor: %g", equipmentPriceFactor);
 	
 	flags = [NSMutableArray array];
@@ -2478,7 +2478,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 	// Ships on hold list, only used with moving stations (= carriers)
 	if([_shipsOnHold count] > 0)
 	{
-		OOLog(@"dumpState.stationEntity", @"%li Ships on hold (unsorted):", [_shipsOnHold count]);
+		OOLog(@"dumpState.stationEntity", @"%llu Ships on hold (unsorted):", [_shipsOnHold count]);
 		
 		OOLogIndent();
 		NSEnumerator	*onHoldEnum = [_shipsOnHold objectEnumerator];

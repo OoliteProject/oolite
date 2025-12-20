@@ -146,7 +146,7 @@ static void AppendNewLineAndIndent(NSMutableString *ioString, unsigned indentDep
 	{
 		if (NULL != outErrorDescription)
 		{
-			*outErrorDescription = [NSString stringWithFormat:@"failed to allocate space (%lu bytes) for conversion of NSData to old-school property list representation", dstLength];
+			*outErrorDescription = [NSString stringWithFormat:@"failed to allocate space (%llu bytes) for conversion of NSData to old-school property list representation", dstLength];
 		}
 		return nil;
 	}

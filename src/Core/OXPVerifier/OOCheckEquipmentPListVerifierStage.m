@@ -123,12 +123,12 @@ static NSString * const kStageName	= @"Checking equipment.plist";
 		// Check that the entry has an acceptable number of elements.
 		if (elemCount < 5)
 		{
-			OOLog(@"verifyOXP.equipmentPList.badEntrySize", @"***** ERROR: equipment.plist entry %@ has too few elements (%lu, should be 5 or 6).", entryDesc, elemCount);
+			OOLog(@"verifyOXP.equipmentPList.badEntrySize", @"***** ERROR: equipment.plist entry %@ has too few elements (%llu, should be 5 or 6).", entryDesc, elemCount);
 			continue;
 		}
 		if (6 < elemCount)
 		{
-			OOLog(@"verifyOXP.equipmentPList.badEntrySize", @"----- WARNING: equipment.plist entry %@ has too many elements (%lu, should be 5 or 6).", entryDesc, elemCount);
+			OOLog(@"verifyOXP.equipmentPList.badEntrySize", @"----- WARNING: equipment.plist entry %@ has too many elements (%llu, should be 5 or 6).", entryDesc, elemCount);
 		}
 		
 		/*	Check element types. The numbers are required to be unsigned

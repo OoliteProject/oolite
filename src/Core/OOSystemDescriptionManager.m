@@ -323,7 +323,7 @@ static NSString *kOOSystemLayerProperty = @"layer";
 		NSUInteger index = ([PLAYER galaxyNumber] * OO_SYSTEMS_PER_GALAXY) + s;
 		if (index >= OO_SYSTEM_CACHE_LENGTH)
 		{
-			OOLog(@"system.description.error",@"'%lu' is an invalid system index for the current system. This is an internal error. Please report it.",index);
+			OOLog(@"system.description.error",@"'%llu' is an invalid system index for the current system. This is an internal error. Please report it.",index);
 			return [NSDictionary dictionary];
 		}
 		return propertyCache[index];
@@ -533,7 +533,7 @@ static NSString *kOOSystemLayerProperty = @"layer";
 - (void) updateCacheEntry:(NSUInteger)i
 {
 	NSAssert(i < OO_SYSTEM_CACHE_LENGTH,@"Invalid cache entry number");
-	NSString *key = [NSString stringWithFormat:@"%lu %lu",i/OO_SYSTEMS_PER_GALAXY,i%OO_SYSTEMS_PER_GALAXY];
+	NSString *key = [NSString stringWithFormat:@"%llu %llu",i/OO_SYSTEMS_PER_GALAXY,i%OO_SYSTEMS_PER_GALAXY];
 	NSDictionary *current = [self calculatePropertiesForSystemKey:key];
 
 	[propertyCache[i] removeAllObjects];
@@ -544,7 +544,7 @@ static NSString *kOOSystemLayerProperty = @"layer";
 - (void) updateCacheEntry:(NSUInteger)i forProperty:(NSString *)property
 {
 	NSAssert(i < OO_SYSTEM_CACHE_LENGTH,@"Invalid cache entry number");
-	NSString *key = [NSString stringWithFormat:@"%lu %lu",i/OO_SYSTEMS_PER_GALAXY,i%OO_SYSTEMS_PER_GALAXY];
+	NSString *key = [NSString stringWithFormat:@"%llu %llu",i/OO_SYSTEMS_PER_GALAXY,i%OO_SYSTEMS_PER_GALAXY];
 	id current = [self getProperty:property forSystemKey:key];
 	if (current == nil)
 	{

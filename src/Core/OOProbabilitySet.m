@@ -242,7 +242,7 @@ static void ThrowAbstractionViolationException(id obj)  GCC_ATTR((noreturn));
 
 - (NSString *) descriptionComponents
 {
-	return [NSString stringWithFormat:@"count=%lu", [self count]];
+	return [NSString stringWithFormat:@"count=%llu", [self count]];
 }
 
 
@@ -904,7 +904,7 @@ static OOEmptyProbabilitySet *sOOEmptyProbabilitySetSingleton = nil;
 		if (sum >= target)  return [_objects objectAtIndex:i];
 	}
 	
-	OOLog(@"probabilitySet.broken", @"%s fell off end, returning first object. Nominal sum = %f, target = %f, actual sum = %f, count = %lu. %@", __PRETTY_FUNCTION__, sumOfWeights, target, sum, count,@"This is an internal error, please report it.");
+	OOLog(@"probabilitySet.broken", @"%s fell off end, returning first object. Nominal sum = %f, target = %f, actual sum = %f, count = %llu. %@", __PRETTY_FUNCTION__, sumOfWeights, target, sum, count,@"This is an internal error, please report it.");
 	return [_objects objectAtIndex:0];
 }
 
