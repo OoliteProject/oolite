@@ -10,7 +10,7 @@ run_script() {
     export CC=clang
     export CXX=clang++
 
-    cd ../../oolite
+    cd ../..
 
     if [[ -z "$1" ]]; then
         TARGET=release
