@@ -77,6 +77,12 @@ run_script() {
     if ! install_package x11-dev; then
         return 1
     fi
+    if ! install_package file; then
+        return 1
+    fi
+    if ! install_package fuse; then
+        return 1
+    fi
 
     export CC=clang
     export CXX=clang++
