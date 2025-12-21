@@ -24,7 +24,7 @@ run_script() {
         echo "✅ Oolite build completed successfully"
     else
         echo "❌ Oolite build failed" >&2
-		    return 1
+        return 1
     fi
 
     popd
