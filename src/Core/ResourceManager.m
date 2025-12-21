@@ -191,11 +191,8 @@ static NSMutableDictionary *sStringCache;
 					  [[[[NSBundle mainBundle] bundlePath]
 						 stringByDeletingLastPathComponent]
 					    stringByAppendingPathComponent:@"AddOns"],
-
-#elif OOLITE_WINDOWS
-					  @"../AddOns",
-#else	
-					  @"AddOns",
+#else
+					  [[OOOXZManager sharedManager] gameDirAddOnsPath],
 #endif
 
 #if !OOLITE_WINDOWS

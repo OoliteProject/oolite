@@ -34,8 +34,9 @@ libraries built from source and for installing packages on some Linux distros. I
 difficulties, you can seek help on the [Oolite Bulletin Board](https://bb.oolite.space/). 
 
 ## Git
-The Oolite source is available from GitHub.
-With Git installed, check out the Oolite repository and its submodules:
+The Oolite source is available from GitHub. The first step is to install git if you don't already
+have it installed as it is required to obtain and build Oolite. With Git installed, check out the 
+Oolite repository and its submodules:
 ```bash
 git clone --filter=blob:none --recurse-submodules https://github.com/OoliteProject/oolite.git
 cd oolite
@@ -46,15 +47,21 @@ See the Oolite wiki:
 http://wiki.alioth.net/index.php/Running_Oolite-Windows
 
 ### Linux
-After checking out the Oolite repository and its submodules, run the following to check out the 
-dependencies of Oolite that need to be built from source:
+After installing git and checking out the Oolite repository and its submodules, run the following 
+to check out the dependencies of Oolite that need to be built from source:
 ```bash
 DevEnvironments/Linux/checkout_deps.sh
 ```
 
-Next run this to install required packages and build dependencies and Oolite:
+Next run the following to install required packages and build dependencies (you can replace sudo
+with other methods that escalate privileges if you prefer):
 ```bash
-DevEnvironments/Linux/install.sh release
+sudo DevEnvironments/Linux/install_deps_root.sh
+```
+
+Next run this to build Oolite:
+```bash
+DevEnvironments/Linux/build_oolite.sh release
 ```
 
 The completed build (executable and games files) can be found in the Oolite.app directory.

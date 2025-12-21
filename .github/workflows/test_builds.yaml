@@ -1,9 +1,30 @@
-name: Build Oolite AppImage on Fedora and Arch
+name: Build Oolite package on various platforms
 on:
   push:
   pull_request:
 
 jobs:
+  ubuntu:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Update Ubuntu
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          submodules: true
+      - name: Checkout dependencies
+        run: |
+          DevEnvironments/Linux/checkout_deps.sh
+      - name: Install packages
+        run: |
+          sudo DevEnvironments/Linux/install_deps_root.sh
+      - name: Build Oolite
+        run: |
+          DevEnvironments/Linux/build_oolite.sh pkg-appimage
+
   fedora:
     runs-on: ubuntu-latest
     container:
@@ -24,9 +45,12 @@ jobs:
       - name: Checkout dependencies
         run: |
           DevEnvironments/Linux/checkout_deps.sh
-      - name: Install packages and build Oolite
+      - name: Install packages
         run: |
-          DevEnvironments/Linux/install.sh pkg-appimage
+          DevEnvironments/Linux/install_deps_root.sh
+      - name: Build Oolite
+        run: |
+          DevEnvironments/Linux/build_oolite.sh pkg-appimage
 
   arch:
     runs-on: ubuntu-latest
@@ -48,6 +72,9 @@ jobs:
       - name: Checkout dependencies
         run: |
           DevEnvironments/Linux/checkout_deps.sh
-      - name: Install packages and build Oolite
+      - name: Install packages
         run: |
-          DevEnvironments/Linux/install.sh pkg-appimage
+          DevEnvironments/Linux/install_deps_root.sh
+      - name: Build Oolite
+        run: |
+          DevEnvironments/Linux/build_oolite.sh pkg-appimage

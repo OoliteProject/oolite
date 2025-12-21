@@ -1,9 +1,16 @@
 #!/bin/bash
-# No parameters: build target = release
-# One parameter: build target
+
+# This script must be run as root (for example with sudo).
+
 
 run_script() {
-    # First optional parameter is build target. Default target is release.
+    # If current user ID is NOT 0 (root)
+    if [[ $EUID -ne 0 ]]; then
+        echo "This script requires root to install dependencies. Rerun and escalate privileges (eg. sudo ...)"
+        return 1
+    fi
+
+
     SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
     pushd "$SCRIPT_DIR"
 
@@ -70,6 +77,13 @@ run_script() {
     if ! install_package x11-dev; then
         return 1
     fi
+    # For building AppImage
+    if ! install_package file; then
+        return 1
+    fi
+    if ! install_package fuse; then
+        return 1
+    fi
 
     export CC=clang
     export CXX=clang++
@@ -89,7 +103,7 @@ run_script() {
         echo "❌ libobjc2 cmake build failed!" >&2
         return 1
     fi
-    sudo cmake --install .
+    cmake --install .
     cd ../..
 
     cd tools-make
@@ -107,7 +121,7 @@ run_script() {
         return 1
     fi
     make
-    sudo make install
+    make install
     cd ..
 
     cd libs-base
@@ -121,22 +135,7 @@ run_script() {
         echo "❌ libs-base make failed!" >&2
         return 1
     fi
-    sudo make install
-    cd ..
-
-    cd oolite
-    if [[ -z "$1" ]]; then
-        TARGET=release
-    else
-        TARGET=$1
-    fi
-
-	if make -f Makefile $TARGET -j$(nproc); then
-		echo "✅ Oolite build completed successfully"
-	else
-		echo "❌ Oolite build failed" >&2
-		return 1
-	fi
+    make install
 
 	popd
 }
