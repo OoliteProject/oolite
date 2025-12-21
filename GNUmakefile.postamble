@@ -52,7 +52,11 @@ after-all::
                 ifeq ($(wildcard /usr/local/share/espeak-ng-data),)
                     ifeq ($(wildcard /usr/lib/x86_64-linux-gnu/espeak-ng-data),)
                         ifeq ($(wildcard /usr/share/espeak-ng-data),)
-							$(error espeak-ng-data not found in any known location)
+                            ifeq ($(wildcard /app/share/espeak-ng-data),)
+								$(error espeak-ng-data not found in any known location)
+                            else
+								$(CP) $(CP_FLAGS) /app/share/espeak-ng-data $(PROGDIR)/Resources
+                            endif
                         else
 							$(CP) $(CP_FLAGS) /usr/share/espeak-ng-data $(PROGDIR)/Resources
                         endif
