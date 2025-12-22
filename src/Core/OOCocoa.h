@@ -451,3 +451,9 @@ typedef id instancetype;
 // Defined by makefile/Xcode in debug builds.
 #define OO_DEBUG					0
 #endif
+
+#if OOLITE_WINDOWS
+#ifndef OO_GAME_DATA_TO_USER_FOLDER
+#define OO_GAME_DATA_TO_USER_FOLDER	0
+#endif
+#endif

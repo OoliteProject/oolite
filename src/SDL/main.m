@@ -113,7 +113,11 @@ int main(int argc, char *argv[])
 	SETENVVAR("GNUSTEP_LOCAL_ROOT", currentWorkingDir);
 	SETENVVAR("GNUSTEP_NETWORK_ROOT", currentWorkingDir);
 	SETENVVAR("GNUSTEP_USERS_ROOT", currentWorkingDir);
+#if OO_GAME_DATA_TO_USER_FOLDER
+	SETENVVAR("HOMEPATH", strcat(SDL_getenv("LOCALAPPDATA"), "\\Oolite\\oolite.app"));
+#else
 	SETENVVAR("HOMEPATH", currentWorkingDir);
+#endif
 	
 	SetCurrentDirectory(currentWorkingDir);
 	

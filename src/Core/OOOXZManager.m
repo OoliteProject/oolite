@@ -253,7 +253,11 @@ static OOOXZManager *sSingleton = nil;
 - (NSString *) gameDirAddOnsPath
 {
 #if OOLITE_WINDOWS
+	#if OO_GAME_DATA_TO_USER_FOLDER
+		return [NSString stringWithFormat:@"%s\\Oolite\\AddOns", SDL_getenv("LOCALAPPDATA")];
+	#else
 		return @"../AddOns";
+	#endif
 #else
 		const char *appimageEnv = SDL_getenv("APPIMAGE");
 		NSString *appPath;
