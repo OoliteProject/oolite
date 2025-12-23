@@ -255,7 +255,7 @@ static OOOXZManager *sSingleton = nil;
 #if OOLITE_WINDOWS
 		return @"../AddOns";
 #else
-		const char *appimageEnv = SDL_getenv("APPIMAGE");
+		const char *appimageEnv = SDL_getenv("ARGV0");  // ARGV0 does not resolve symlinks
 		NSString *appPath;
 
 		if (appimageEnv)

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
-  <id>space.oolite.oolite</id>
+  <id>org.ooliteproject.Oolite</id>
   
   <name>Oolite</name>
   <summary>Open-world space opera</summary>
@@ -13,7 +13,7 @@
   <url type="vcs-browser">https://github.com/OoliteProject/oolite</url>
   <url type="faq">https://wiki.alioth.net/index.php/Oolite_FAQ</url>
 
-  <developer id="space.oolite">
+  <developer id="org.ooliteproject">
     <name>Giles Williams, Jens Ayton, and contributors</name>
   </developer>
 
@@ -40,7 +40,7 @@
     <display_length compare="ge">768</display_length>
   </requires>
   
-  <launchable type="desktop-id">space.oolite.oolite.desktop</launchable>
+  <launchable type="desktop-id">org.ooliteproject.Oolite.desktop</launchable>
   <screenshots>
     <screenshot type="default">
       <image>https://addons.oolite.space/i/gallery/basic/large/Station.png</image>
