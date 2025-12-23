@@ -427,6 +427,7 @@ jobs:
             artifacts/oolite-linux-pkg-appimage-snapshot/*.AppImage
             artifacts/oolite-linux-pkg-appimage-deployment/*.AppImage
             artifacts/oolite-linux-pkg-appimage/*.AppImage
+            artifacts/oolite-flatpak/*.flatpak
 
       - name: Remove old workflow runs
         if: github.ref == 'refs/heads/master'
