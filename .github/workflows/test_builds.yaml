@@ -58,11 +58,11 @@ jobs:
       - name: Set flatpak version
         run: |
           release_tag="<release version=\"$(cat Doc/OOLITE_VERSION.txt)\" date=\"$(date -I)\"></release>"
-          sed -i "/<releases>/a $release_tag" installers/flatpak/org.ooliteproject.oolite.metainfo.xml
+          sed -i "/<releases>/a $release_tag" installers/flatpak/org.ooliteproject.Oolite.metainfo.xml
       - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
         with:
-          bundle: org.ooliteproject.oolite.flatpak
-          manifest-path: installers/flatpak/org.ooliteproject.oolite.yaml
+          bundle: org.ooliteproject.Oolite.flatpak
+          manifest-path: installers/flatpak/org.ooliteproject.Oolite.yaml
 
   fedora:
     runs-on: ubuntu-latest
