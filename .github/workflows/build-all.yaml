@@ -156,20 +156,20 @@ jobs:
       - name: Set flatpak version
         run: |
           release_tag="<release version=\"$(cat Doc/OOLITE_VERSION.txt)\" date=\"$(date -I)\"></release>"
-          sed -i "/<releases>/a $release_tag" installers/flatpak/org.ooliteproject.Oolite.metainfo.xml
+          sed -i "/<releases>/a $release_tag" installers/flatpak/space.oolite.Oolite.metainfo.xml
 
       - name: Build flatpak
         uses: flatpak/flatpak-github-actions/flatpak-builder@v6
         with:
-          bundle: org.ooliteproject.Oolite.flatpak
-          manifest-path: installers/flatpak/org.ooliteproject.Oolite.yaml
+          bundle: space.oolite.Oolite.flatpak
+          manifest-path: installers/flatpak/space.oolite.Oolite.yaml
 
       - name: Archive installer
         uses: actions/upload-artifact@v6
         with:
           name: oolite-flatpak
           path: |            
-            org.ooliteproject.Oolite.flatpak
+            space.oolite.Oolite.flatpak
           retention-days: 5
 
   build-windows:

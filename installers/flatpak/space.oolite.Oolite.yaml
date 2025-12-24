@@ -1,4 +1,4 @@
-app-id: org.ooliteproject.Oolite
+app-id: space.oolite.Oolite
 runtime: org.freedesktop.Platform
 runtime-version: "25.08"
 sdk: org.freedesktop.Sdk
@@ -125,10 +125,10 @@ modules:
     build-commands:
       - . /app/share/GNUstep/Makefiles/GNUstep.sh && make -f Makefile release -j$FLATPAK_BUILDER_N_JOBS
       - cp -r oolite.app/* /app/bin
-      - install -D installers/flatpak/org.ooliteproject.Oolite.metainfo.xml /app/share/metainfo/org.ooliteproject.Oolite.metainfo.xml
-      - install -D Oolite-logo3.png /app/share/icons/hicolor/256x256/apps/org.ooliteproject.Oolite.png
-      - install -D installers/FreeDesktop/oolite.desktop /app/share/applications/org.ooliteproject.Oolite.desktop
-      - desktop-file-edit --set-key=Icon --set-value=org.ooliteproject.Oolite /app/share/applications/org.ooliteproject.Oolite.desktop
+      - install -D installers/flatpak/space.oolite.Oolite.metainfo.xml /app/share/metainfo/space.oolite.Oolite.metainfo.xml
+      - install -D Oolite-logo3.png /app/share/icons/hicolor/256x256/apps/space.oolite.Oolite.png
+      - install -D installers/FreeDesktop/oolite.desktop /app/share/applications/space.oolite.Oolite.desktop
+      - desktop-file-edit --set-key=Icon --set-value=space.oolite.Oolite /app/share/applications/space.oolite.Oolite.desktop
     sources:
       - type: dir
         path: ../../
