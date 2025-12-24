@@ -141,6 +141,8 @@ jobs:
       - name: Checkout Oolite
         uses: actions/checkout@v6
         with:
+          path: oolite
+          fetch-depth: 0
           submodules: true
 
       - name: Download artifacts
@@ -155,21 +157,21 @@ jobs:
 
       - name: Set flatpak version
         run: |
-          release_tag="<release version=\"$(cat Doc/OOLITE_VERSION.txt)\" date=\"$(date -I)\"></release>"
-          sed -i "/<releases>/a $release_tag" installers/flatpak/space.oolite.Oolite.metainfo.xml
+          release_tag="<release version=\"$(cat oolite/Doc/OOLITE_VERSION.txt)\" date=\"$(date -I)\"></release>"
+          sed -i "/<releases>/a $release_tag" oolite/installers/flatpak/space.oolite.Oolite.metainfo.xml
 
       - name: Build flatpak
         uses: flatpak/flatpak-github-actions/flatpak-builder@v6
         with:
           bundle: space.oolite.Oolite.flatpak
-          manifest-path: installers/flatpak/space.oolite.Oolite.yaml
+          manifest-path: oolite/installers/flatpak/space.oolite.Oolite.yaml
 
       - name: Archive installer
         uses: actions/upload-artifact@v6
         with:
           name: oolite-flatpak
-          path: |            
-            space.oolite.Oolite.flatpak
+          path: |
+            oolite/space.oolite.Oolite.flatpak
           retention-days: 5
 
   build-windows:
