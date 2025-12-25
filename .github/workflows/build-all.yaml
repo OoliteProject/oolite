@@ -163,7 +163,7 @@ jobs:
       - name: Build flatpak
         uses: flatpak/flatpak-github-actions/flatpak-builder@v6
         with:
-          bundle: space.oolite.Oolite.flatpak
+          bundle: oolite/installers/flatpak/space.oolite.Oolite.flatpak
           manifest-path: oolite/installers/flatpak/space.oolite.Oolite.yaml
           upload-artifact: false
 
@@ -172,7 +172,7 @@ jobs:
         with:
           name: oolite-flatpak
           path: |
-            oolite/space.oolite.Oolite.flatpak
+            oolite/installers/flatpak/space.oolite.Oolite.flatpak
           retention-days: 5
 
   build-windows:
