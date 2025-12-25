@@ -157,7 +157,7 @@ jobs:
 
       - name: Set flatpak version
         run: |
-          release_tag="<release version=\"$(cat oolite/Doc/OOLITE_VERSION.txt)\" date=\"$(date -I)\"></release>"
+          release_tag="<release version=\"$(cat Doc/OOLITE_VERSION.txt)\" date=\"$(date -I)\"></release>"
           sed -i "/<releases>/a $release_tag" oolite/installers/flatpak/space.oolite.Oolite.metainfo.xml
 
       - name: Build flatpak
@@ -165,6 +165,7 @@ jobs:
         with:
           bundle: space.oolite.Oolite.flatpak
           manifest-path: oolite/installers/flatpak/space.oolite.Oolite.yaml
+          upload-artifact: false
 
       - name: Archive installer
         uses: actions/upload-artifact@v6

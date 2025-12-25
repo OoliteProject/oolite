@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
-  <id>org.ooliteproject.Oolite</id>
+  <id>space.oolite.Oolite</id>
   
   <name>Oolite</name>
   <summary>Open-world space opera</summary>
@@ -40,7 +40,7 @@
     <display_length compare="ge">768</display_length>
   </requires>
   
-  <launchable type="desktop-id">org.ooliteproject.Oolite.desktop</launchable>
+  <launchable type="desktop-id">space.oolite.Oolite.desktop</launchable>
   <screenshots>
     <screenshot type="default">
       <image>https://addons.oolite.space/i/gallery/basic/large/Station.png</image>
