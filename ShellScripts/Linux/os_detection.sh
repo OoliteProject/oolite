@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # --- 1. Global Setup & OS Detection ---
 # We detect the OS once at the start to avoid repeating it.
 

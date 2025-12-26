@@ -1,21 +1,12 @@
 include config.make
 
-# Build version string, taking into account that 'VER_REV' may not be set
-VERSION     := $(strip $(shell cat src/Cocoa/oolite-version.xcconfig | cut -d '=' -f 2))
-VER_MAJ     := $(shell echo "${VERSION}" | cut -d '.' -f 1)
-VER_MIN     := $(shell echo "${VERSION}" | cut -d '.' -f 2)
-VER_REV     := $(shell echo "${VERSION}" | cut -d '.' -f 3)
-VER_REV     := $(if ${VER_REV},${VER_REV},0)
-VER_DATE	:= $(shell date +%y%m%d)
-# VER_GITREV: Make sure git is in the command path
-# VER_GITREV is the count of commits since the establishment of the repository on github. Used
-# as replacement for SVN incremental revision number, since we require the version number to be
-# of format X.X.X.X.
-# VER_GITHASH are the first seven digits of the actual hash of the commit being built.
-VER_GITREV	:= $(shell git rev-list --count HEAD)
-VER_GITHASH	:= $(shell git rev-parse --short=7 HEAD)
-VER         := $(shell echo "${VER_MAJ}.${VER_MIN}.${VER_REV}.${VER_GITREV}-${VER_DATE}-${VER_GITHASH}")
-BUILDTIME   := $(shell date "+%Y.%m.%d %H:%M")
+VERSION_SCRIPT := ShellScripts/common/get_version.sh
+
+-include build/version.mk
+
+build/version.mk: $(VERSION_SCRIPT)
+	./$(VERSION_SCRIPT)
+
 DEB_BUILDTIME   := $(shell date "+%a, %d %b %Y %H:%M:%S %z")
 ifeq (${VER_REV},0)
 DEB_VER     := $(shell echo "${VER_MAJ}.${VER_MIN}")

@@ -1,3 +1,5 @@
+#!/bin/bash
+
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
 source $SCRIPT_DIR/os_detection.sh
 
@@ -129,6 +131,8 @@ install_package() {
         "file") PKG_NAME="file" ;;
 
         "fuse") PKG_NAME="fuse3" ;;
+
+        "flatpak") PKG_NAME="flatpak flatpak-builder" ;;
 
         *)
             echo "❌ I don't know how to translate '$GENERIC_NAME' for $CURRENT_DISTRO" >&2

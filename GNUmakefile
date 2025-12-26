@@ -84,6 +84,7 @@ else  # Linux only uses modern build
     ADDITIONAL_OBJC_LIBS         = -lGLU -lGL -lX11 -lSDL -lgnustep-base -L$(LIBJS_DIR) -l$(LIBJS) -lopenal -lz -lvorbisfile -lpng `nspr-config --libs` -lstdc++
     ADDITIONAL_OBJCFLAGS         = -Wall -DLOADSAVEGUI -DLINUX -DXP_UNIX -Wno-import `sdl-config --cflags` `nspr-config --cflags`
     ADDITIONAL_CFLAGS            = -Wall -DLINUX -DNEED_STRLCPY `sdl-config --cflags` `nspr-config --cflags`
+    ADDITIONAL_LDFLAGS           = -fuse-ld=bfd  # Force use of ld (ldd and gold don't work. mold also works)
 
     ifeq ($(ESPEAK),yes)
         ADDITIONAL_OBJC_LIBS     += -lespeak-ng
@@ -106,10 +107,10 @@ ifeq ($(modern),yes)
     ADDITIONAL_OBJCFLAGS     += -DOOLITE_MODERN_BUILD=1 
 #   link time optimizations
     ifeq ($(lto),yes)
-        ADDITIONAL_CFLAGS        += -flto 
-        ADDITIONAL_OBJCFLAGS     += -flto 
-        ADDITIONAL_CCFLAGS       += -flto 
-        ADDITIONAL_LDFLAGS       += -flto 
+        ADDITIONAL_CFLAGS        += -flto
+        ADDITIONAL_OBJCFLAGS     += -flto
+        ADDITIONAL_CCFLAGS       += -flto
+        ADDITIONAL_LDFLAGS       += -flto
     endif
 endif
 
