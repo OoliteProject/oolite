@@ -117,7 +117,7 @@ jobs:
         with:
           name: oolite-flatpak
           path: |
-            oolite/build/space.oolite.Oolite.flatpak
+            oolite/build/space.oolite.Oolite*.flatpak
           retention-days: 5
 
   build-windows:

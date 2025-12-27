@@ -51,7 +51,7 @@ run_script() {
     chmod +x appimagetool
 
     echo "Creating AppImage..."
-    if ! appimagetool $APPDIR; then
+    if ! ./appimagetool $APPDIR; then
         echo "❌ AppImage creation failed!" >&2
         return 1
     fi
