@@ -82,8 +82,8 @@ else  # Linux only uses modern build
 
     ADDITIONAL_INCLUDE_DIRS      = -I$(LIBJS_INC_DIR) -Isrc/SDL -Isrc/Core -Isrc/BSDCompat -Isrc/Core/Scripting -Isrc/Core/Materials -Isrc/Core/Entities -Isrc/Core/OXPVerifier -Isrc/Core/Debug -Isrc/Core/Tables -Isrc/Core/MiniZip
     ADDITIONAL_OBJC_LIBS         = -lGLU -lGL -lX11 -lSDL -lgnustep-base -L$(LIBJS_DIR) -l$(LIBJS) -lopenal -lz -lvorbisfile -lpng `nspr-config --libs` -lstdc++
-    ADDITIONAL_OBJCFLAGS         = -Wall -DLOADSAVEGUI -DLINUX -DXP_UNIX -Wno-import `sdl-config --cflags` `nspr-config --cflags`
-    ADDITIONAL_CFLAGS            = -Wall -DLINUX -DNEED_STRLCPY `sdl-config --cflags` `nspr-config --cflags`
+    ADDITIONAL_OBJCFLAGS         = -DLINUX -DXP_UNIX `sdl-config --cflags`
+    ADDITIONAL_CFLAGS            = -DLINUX `sdl-config --cflags`
     ADDITIONAL_LDFLAGS           = -fuse-ld=bfd  # Force use of ld (ldd and gold don't work. mold also works)
 
     ifeq ($(ESPEAK),yes)
@@ -97,7 +97,8 @@ else  # Linux only uses modern build
     endif
 
     ifeq ($(COMPILER_TYPE),gcc)
-        ADDITIONAL_OBJCFLAGS     += -std=gnu99
+        ADDITIONAL_OBJCFLAGS     += -std=gnu99 -Wall -Wno-import `nspr-config --cflags` -DLOADSAVEGUI
+        ADDITIONAL_CFLAGS        += -Wall `nspr-config --cflags` -DNEED_STRLCPY
     endif
 endif
 
