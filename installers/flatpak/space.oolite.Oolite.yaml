@@ -125,7 +125,7 @@ modules:
     buildsystem: simple
     build-commands:
       - |
-        . /app/share/GNUstep/Makefiles/GNUstep.sh
+        source /app/share/GNUstep/Makefiles/GNUstep.sh
         make -f Makefile release-deployment -j$FLATPAK_BUILDER_N_JOBS
       - cp -r oolite.app/* /app/bin
       - install -D build/space.oolite.Oolite.metainfo.xml /app/share/metainfo/space.oolite.Oolite.metainfo.xml
