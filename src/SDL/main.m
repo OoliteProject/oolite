@@ -31,10 +31,10 @@ MA 02110-1301, USA.
 #import <Foundation/NSString.h>
 #import "GameController.h"
 #import "OOLoggingExtended.h"
+#include <SDL.h>
 
 #if OOLITE_WINDOWS
 #include <locale.h>
-#include <SDL.h>
 // Make sure that a high performance GPU is
 // selected, if more than one are available
 __declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
@@ -109,10 +109,29 @@ int main(int argc, char *argv[])
 	
 	SETENVVAR("GNUSTEP_PATH_HANDLING", "windows");
 	SETENVVAR(pathEnvVar, finalPath);
-	SETENVVAR("GNUSTEP_SYSTEM_ROOT", currentWorkingDir);
-	SETENVVAR("GNUSTEP_LOCAL_ROOT", currentWorkingDir);
-	SETENVVAR("GNUSTEP_NETWORK_ROOT", currentWorkingDir);
-	SETENVVAR("GNUSTEP_USERS_ROOT", currentWorkingDir);
+
+	const char *gnustepRootEnv = SDL_getenv("OO_GNUSTEPDIR");
+    if (gnustepRootEnv)
+    {
+	    SETENVVAR("GNUSTEP_SYSTEM_ROOT", gnustepRootEnv);
+	    SETENVVAR("GNUSTEP_LOCAL_ROOT", gnustepRootEnv);
+	    SETENVVAR("GNUSTEP_NETWORK_ROOT", gnustepRootEnv);
+	    SETENVVAR("GNUSTEP_USERS_ROOT", gnustepRootEnv);
+    }
+    else
+    {
+	    SETENVVAR("GNUSTEP_SYSTEM_ROOT", currentWorkingDir);
+	    SETENVVAR("GNUSTEP_LOCAL_ROOT", currentWorkingDir);
+	    SETENVVAR("GNUSTEP_NETWORK_ROOT", currentWorkingDir);
+	    SETENVVAR("GNUSTEP_USERS_ROOT", currentWorkingDir);
+    }
+
+	const char *gnustepDefaultsEnv = SDL_getenv("OO_GNUSTEPDEFAULTSDIR");
+    if (gnustepDefaultsEnv)
+    {
+	    SETENVVAR("GNUSTEP_USER_DEFAULTS_DIR", gnustepDefaultsEnv);
+    }
+
 #if OO_GAME_DATA_TO_USER_FOLDER
 	SETENVVAR("HOMEPATH", strcat(SDL_getenv("LOCALAPPDATA"), "\\Oolite\\oolite.app"));
 #else
@@ -136,6 +155,28 @@ int main(int argc, char *argv[])
 	#define TABS2	"\t\t\t"
 	#define TABS3	"\t\t\t\t"
 	#define TABS4	"\t"
+
+   	char *envVarString = malloc(512 * sizeof(char));
+	#define SETENVVAR(var, value) do {\
+			sprintf(envVarString, "%s=%s", (var), (value));\
+			SDL_putenv (envVarString);\
+			} while (0);
+	const char *gnustepRootEnv = SDL_getenv("OO_GNUSTEPDIR");
+    if (gnustepRootEnv)
+    {
+	    SETENVVAR("GNUSTEP_SYSTEM_ROOT", gnustepRootEnv);
+	    SETENVVAR("GNUSTEP_LOCAL_ROOT", gnustepRootEnv);
+	    SETENVVAR("GNUSTEP_NETWORK_ROOT", gnustepRootEnv);
+	    SETENVVAR("GNUSTEP_USERS_ROOT", gnustepRootEnv);
+    }
+	const char *gnustepDefaultsEnv = SDL_getenv("OO_GNUSTEPDEFAULTSDIR");
+    if (gnustepDefaultsEnv)
+    {
+	    SETENVVAR("GNUSTEP_USER_DEFAULTS_DIR", gnustepDefaultsEnv);
+    }
+
+	free(envVarString);
+
 #endif
 
 	// Need this because we're not using the default run loop's autorelease
