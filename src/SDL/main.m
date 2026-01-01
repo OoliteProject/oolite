@@ -31,10 +31,10 @@ MA 02110-1301, USA.
 #import <Foundation/NSString.h>
 #import "GameController.h"
 #import "OOLoggingExtended.h"
-#include <SDL.h>
 
 #if OOLITE_WINDOWS
 #include <locale.h>
+#include <SDL.h>
 // Make sure that a high performance GPU is
 // selected, if more than one are available
 __declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
 #if (GNUSTEP_BASE_MAJOR_VERSION == 1 && (GNUSTEP_BASE_MINOR_VERSION == 24 && GNUSTEP_BASE_SUBMINOR_VERSION >= 9) || (GNUSTEP_BASE_MINOR_VERSION > 24)) || (GNUSTEP_BASE_MAJOR_VERSION > 1)
 	[NSDate class]; // See github issue #202
 #endif
-	
+
 #if OOLITE_WINDOWS
 
 	#define OO_SHOW_MSG(ooMsg, ooMsgTitle, ooMsgFlags)	MessageBox(NULL, ooMsg, ooMsgTitle, ooMsgFlags)
@@ -75,17 +75,17 @@ int main(int argc, char *argv[])
 	#define TABS2	"\t\t"
 	#define TABS3	"\t\t\t"
 	#define TABS4	""
- 	
+
  	// Detect current working directory and set up GNUstep environment variables
 	#define MAX_PATH_LEN 256
 	char currentWorkingDir[MAX_PATH_LEN];
 	DWORD bufferSize = MAX_PATH_LEN;
-	
+
 	QueryFullProcessImageName(GetCurrentProcess(), 0, currentWorkingDir, &bufferSize);
 	// Strip the exe filenameb (from last backslash onwards), leave just the path
 	char *probeString = strrchr(currentWorkingDir, '\\');
 	if (probeString)  *probeString = '\0'; // currentWorkingDir now contains the path we need
-	
+
 	// Prepend system PATH env variable with our own executable's path
 	char pathEnvVar[] = "PATH";
 	char *systemPath = SDL_getenv(pathEnvVar);
@@ -106,40 +106,21 @@ int main(int argc, char *argv[])
 			sprintf(envVarString, "%s=%s", (var), (value));\
 			SDL_putenv (envVarString);\
 			} while (0);
-	
+
 	SETENVVAR("GNUSTEP_PATH_HANDLING", "windows");
 	SETENVVAR(pathEnvVar, finalPath);
-
-	const char *gnustepRootEnv = SDL_getenv("OO_GNUSTEPDIR");
-    if (gnustepRootEnv)
-    {
-	    SETENVVAR("GNUSTEP_SYSTEM_ROOT", gnustepRootEnv);
-	    SETENVVAR("GNUSTEP_LOCAL_ROOT", gnustepRootEnv);
-	    SETENVVAR("GNUSTEP_NETWORK_ROOT", gnustepRootEnv);
-	    SETENVVAR("GNUSTEP_USERS_ROOT", gnustepRootEnv);
-    }
-    else
-    {
-	    SETENVVAR("GNUSTEP_SYSTEM_ROOT", currentWorkingDir);
-	    SETENVVAR("GNUSTEP_LOCAL_ROOT", currentWorkingDir);
-	    SETENVVAR("GNUSTEP_NETWORK_ROOT", currentWorkingDir);
-	    SETENVVAR("GNUSTEP_USERS_ROOT", currentWorkingDir);
-    }
-
-	const char *gnustepDefaultsEnv = SDL_getenv("OO_GNUSTEPDEFAULTSDIR");
-    if (gnustepDefaultsEnv)
-    {
-	    SETENVVAR("GNUSTEP_USER_DEFAULTS_DIR", gnustepDefaultsEnv);
-    }
-
+	SETENVVAR("GNUSTEP_SYSTEM_ROOT", currentWorkingDir);
+	SETENVVAR("GNUSTEP_LOCAL_ROOT", currentWorkingDir);
+	SETENVVAR("GNUSTEP_NETWORK_ROOT", currentWorkingDir);
+	SETENVVAR("GNUSTEP_USERS_ROOT", currentWorkingDir);
 #if OO_GAME_DATA_TO_USER_FOLDER
 	SETENVVAR("HOMEPATH", strcat(SDL_getenv("LOCALAPPDATA"), "\\Oolite\\oolite.app"));
 #else
 	SETENVVAR("HOMEPATH", currentWorkingDir);
 #endif
-	
+
 	SetCurrentDirectory(currentWorkingDir);
-	
+
 	free(envVarString);
 	free(finalPath);
 
@@ -155,28 +136,6 @@ int main(int argc, char *argv[])
 	#define TABS2	"\t\t\t"
 	#define TABS3	"\t\t\t\t"
 	#define TABS4	"\t"
-
-   	char *envVarString = malloc(512 * sizeof(char));
-	#define SETENVVAR(var, value) do {\
-			sprintf(envVarString, "%s=%s", (var), (value));\
-			SDL_putenv (envVarString);\
-			} while (0);
-	const char *gnustepRootEnv = SDL_getenv("OO_GNUSTEPDIR");
-    if (gnustepRootEnv)
-    {
-	    SETENVVAR("GNUSTEP_SYSTEM_ROOT", gnustepRootEnv);
-	    SETENVVAR("GNUSTEP_LOCAL_ROOT", gnustepRootEnv);
-	    SETENVVAR("GNUSTEP_NETWORK_ROOT", gnustepRootEnv);
-	    SETENVVAR("GNUSTEP_USERS_ROOT", gnustepRootEnv);
-    }
-	const char *gnustepDefaultsEnv = SDL_getenv("OO_GNUSTEPDEFAULTSDIR");
-    if (gnustepDefaultsEnv)
-    {
-	    SETENVVAR("GNUSTEP_USER_DEFAULTS_DIR", gnustepDefaultsEnv);
-    }
-
-	free(envVarString);
-
 #endif
 
 	// Need this because we're not using the default run loop's autorelease

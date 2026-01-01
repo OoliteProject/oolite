@@ -222,7 +222,7 @@ MA 02110-1301, USA.
 #if OOLITE_SDL
 - (BOOL) chdirToSnapshotPath
 {
-	const char *snapshotEnv = SDL_getenv("OO_SNAPSHOTS");
+	const char *snapshotEnv = SDL_getenv("OO_SNAPSHOTSDIR");
     NSString *savedir;
 
 	if (snapshotEnv)
