@@ -1,22 +1,16 @@
 #!/bin/bash
 
 launch_guarded() {
-    # 1. Run the command and pass all arguments
     ./oolite "$@"
     local EXIT_CODE=$?
 
-    # 2. If the command was successful, just return
     if [ $EXIT_CODE -eq 0 ]; then
         return 0
     fi
 
-    # ---------------- Error Handling ----------------
-
     local APP_NAME="${ARGV0:-Application}"
     local MSG="<b>$APP_NAME failed to start.</b>\n\nExit Code: $EXIT_CODE\n\nRun from terminal to see details."
 
-    # 3. Use the bundled notify-send
-    # We use 'command -v' just in case the bundle failed or we are on a bare system
     if command -v notify-send > /dev/null; then
         notify-send \
             --urgency=critical \
@@ -25,7 +19,7 @@ launch_guarded() {
             "Application Error" \
             "The application exited with code $EXIT_CODE."
     else
-        # 4. Fallback to Console (stderr) if libnotify is somehow missing
+        # Fallback to Console (stderr) if libnotify is missing
         echo "------------------------------------------------" >&2
         echo "ERROR: $APP_NAME exited with code $EXIT_CODE" >&2
         echo "------------------------------------------------" >&2
