@@ -1,11 +1,11 @@
 #!/bin/bash
 
 launch_guarded() {
-    ./oolite "$@"
+    "$@"
     local EXIT_CODE=$?
 
     if [ $EXIT_CODE -eq 0 ]; then
-        return 0
+        exit 0
     fi
 
     local APP_NAME="${ARGV0:-Application}"
@@ -28,30 +28,48 @@ launch_guarded() {
     exit $EXIT_CODE
 }
 
+find_exe_launch() {
+    if [[ -z "$OO_EXECUTABLE" ]]; then
+        HERE="$(dirname "$(readlink -f "$0")")"
+        OO_EXECUTABLE="${HERE}/oolite"
+        if [[ ! -f "$OO_EXECUTABLE" ]]; then
+            OO_EXECUTABLE="${HERE}/oolite.app/oolite"
+        fi
+    fi
+    launch_guarded "$OO_EXECUTABLE" "$@"
+}
+
 # Check if we are running inside a Flatpak
 if [ -f "/.flatpak-info" ]; then
     FLATPAK_ID=$(cat /.flatpak-info | grep "app-id" | cut -d= -f2)
     GAME_DATA="$HOME/.var/app/$FLATPAK_ID"
-# Check if OO_DIRTYPE set
-elif [[ -n "$OO_DIRTYPE" ]]; then
-    if [[ "${OO_DIRTYPE,,}" == "xdg" ]]; then
-        GAME_DATA="$HOME/.local/share"
-    elif [[ "${OO_DIRTYPE,,}" == "legacy" ]]; then
-        launch_guarded "$@"
-    fi
+    OO_EXECUTABLE="/app/bin/oolite"
+
 # Check if we are running inside an AppImage
 elif [[ -n "$APPIMAGE" ]]; then
     # Get the folder containing the AppImage file
     HERE="$(dirname "$APPIMAGE")"
     GAME_DATA="${HERE}/GameData"
+    OO_EXECUTABLE="./usr/bin/oolite"
+
+    if [[ "${OO_DIRTYPE:-}" == "legacy" ]]; then
+        launch_guarded "$OO_EXECUTABLE" "$@"
+    fi
+
+# Check if OO_DIRTYPE set
+elif [[ -n "$OO_DIRTYPE" ]]; then
+    if [[ "${OO_DIRTYPE,,}" == "xdg" ]]; then
+        GAME_DATA="$HOME/.local/share/Oolite"
+    elif [[ "${OO_DIRTYPE,,}" == "legacy" ]]; then
+        find_exe_launch "$@"
+    fi
 else
     # Use script directory
     HERE="$(dirname "$(readlink -f "$0")")"
     GAME_DATA="${HERE}/GameData"
 fi
 
-mkdir "$GAME_DATA"
-cd "$GAME_DATA"
+mkdir -p "$GAME_DATA"
 
 export OO_SAVEDIR="${OO_SAVEDIR:-${GAME_DATA}/SavedGames}"
 mkdir -p "$OO_SAVEDIR"
@@ -99,6 +117,6 @@ echo "GNUSTEP_USER_DEFAULTS_DIR=$OO_GNUSTEPDEFAULTSDIR" >> "$TEMP_CONF"
 
 export GNUSTEP_CONFIG_FILE="$TEMP_CONF"
 
-launch_guarded "$@"
+find_exe_launch "$@"
 rm "$TEMP_CONF"
-popd
+

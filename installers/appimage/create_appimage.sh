@@ -31,6 +31,7 @@ run_script() {
     if ! NO_STRIP=1 ./linuxdeploy \
     --appdir $APPDIR \
     --executable $PROGDIR/oolite \
+    --custom-apprun $PROGDIR/run_oolite.sh \
     --desktop-file ../installers/FreeDesktop/oolite.desktop \
     --icon-file ../installers/FreeDesktop/oolite-icon.png \
     $SDL2; then

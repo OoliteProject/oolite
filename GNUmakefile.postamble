@@ -97,6 +97,8 @@ after-all::
 				$(CP) $(CP_FLAGS) deps/Windows-deps/x86/DLLs/*.dll $(PROGDIR)
             endif
         endif
+    else
+		$(CP) $(CP_FLAGS) ShellScripts/Linux/run_oolite.sh $(PROGDIR)
     endif
     ifeq ($(debug),yes)
 		$(RM) $(PROGDIR)/js32ECMAv5.dll

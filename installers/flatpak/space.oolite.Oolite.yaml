@@ -8,7 +8,7 @@ sdk-extensions:
 build-options:
   append-path: /usr/lib/sdk/llvm21/bin:/usr/lib/sdk/rust-stable/bin
   ldflags: -L/usr/lib/sdk/llvm21/lib
-command: oolite
+command: run_oolite.sh
 finish-args:
   - --socket=wayland
   - --socket=fallback-x11
@@ -19,7 +19,19 @@ finish-args:
   - --persist=.Oolite
   - --persist=GNUstep
   - --persist=oolite-saves
+  - --talk-name=org.freedesktop.Notifications
 modules:
+  - name: libnotify
+    buildsystem: meson
+    config-opts:
+      - "-Dtests=false"
+      - "-Dman=false"
+      - "-Dgtk_doc=false"
+      - "-Dintrospection=enabled"
+    sources:
+      - type: archive
+        url: https://download.gnome.org/sources/libnotify/0.8/libnotify-0.8.7.tar.xz
+        sha256: 4be15202ec4184fce1ac15997ece5530d2be32fe9573875aeb10e3b573858748
   - name: glu
     buildsystem: meson
     sources:
