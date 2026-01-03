@@ -290,7 +290,7 @@ static OOOXZManager *sSingleton = nil;
 		NSString *envStr = [NSString stringWithUTF8String:additionalAddOnsEnv];
 		return [envStr componentsSeparatedByString:@","];
     }
-    return @[];
+    return [];
 }
 
 
