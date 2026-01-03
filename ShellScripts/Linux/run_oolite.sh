@@ -47,14 +47,19 @@ if [ -f "/.flatpak-info" ]; then
 
 # Check if we are running inside an AppImage
 elif [[ -n "$APPIMAGE" ]]; then
-    # Get the folder containing the AppImage file
-    HERE="$(dirname "$APPIMAGE")"
-    GAME_DATA="${HERE}/GameData"
-    OO_EXECUTABLE="/usr/bin/oolite"
+    # Get the folder where AppRun is in the AppImage
+    HERE="$(dirname "$(readlink -f "${0}")")"
+    export LD_LIBRARY_PATH="${HERE}/usr/lib:$LD_LIBRARY_PATH"
+    export PATH="${HERE}/usr/bin:$PATH"
+    OO_EXECUTABLE="${HERE}/usr/bin/oolite"
 
     if [[ "${OO_DIRTYPE:-}" == "legacy" ]]; then
         launch_guarded "$OO_EXECUTABLE" "$@"
     fi
+
+    # Get the folder containing the AppImage file
+    HERE="$(dirname "$APPIMAGE")"
+    GAME_DATA="${HERE}/GameData"
 
 # Check if OO_DIRTYPE set
 elif [[ -n "$OO_DIRTYPE" ]]; then
