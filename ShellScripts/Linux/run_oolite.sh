@@ -40,8 +40,7 @@ find_exe_launch() {
 }
 
 # Check if we are running inside a Flatpak
-if [ -f "/.flatpak-info" ]; then
-    FLATPAK_ID=$(cat /.flatpak-info | grep "app-id" | cut -d= -f2)
+if [[ -n "$FLATPAK_ID" ]]; then
     GAME_DATA="$HOME/.var/app/$FLATPAK_ID"
     OO_EXECUTABLE="/app/bin/oolite"
 
@@ -106,7 +105,7 @@ if [ -z "$ORIGINAL_CONF" ]; then
     ORIGINAL_CONF="/usr/local/etc/GNUstep/GNUstep.conf"
 fi
 
-TEMP_CONF=$(mktemp -t oolite_gnustep_XXXX.conf)
+TEMP_CONF=$(mktemp -t oolite_gnustep_XXXX --suffix=.conf)
 
 # Copy the original config to the temp file (if it exists)
 if [ -f "$ORIGINAL_CONF" ]; then
