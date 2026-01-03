@@ -52,8 +52,12 @@ elif [[ -n "$APPIMAGE" ]]; then
     export PATH="${HERE}/usr/bin:$PATH"
     OO_EXECUTABLE="${HERE}/usr/bin/oolite"
 
-    if [[ "${OO_DIRTYPE:-}" == "legacy" ]]; then
-        launch_guarded "$OO_EXECUTABLE" "$@"
+    if [[ -n "$OO_DIRTYPE" ]]; then
+        if [[ "${OO_DIRTYPE,,}" == "xdg" ]]; then
+            GAME_DATA="$HOME/.local/share/Oolite"
+        elif [[ "${OO_DIRTYPE,,}" == "legacy" ]]; then
+            launch_guarded "$OO_EXECUTABLE" "$@"
+        fi
     fi
 
     # Get the folder containing the AppImage file
