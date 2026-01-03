@@ -16,9 +16,6 @@ finish-args:
   - --share=network
   - --socket=pulseaudio
   - --device=dri
-  - --persist=.Oolite
-  - --persist=GNUstep
-  - --persist=oolite-saves
   - --talk-name=org.freedesktop.Notifications
 modules:
   - name: libnotify

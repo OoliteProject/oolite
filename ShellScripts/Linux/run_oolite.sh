@@ -50,7 +50,7 @@ elif [[ -n "$APPIMAGE" ]]; then
     # Get the folder containing the AppImage file
     HERE="$(dirname "$APPIMAGE")"
     GAME_DATA="${HERE}/GameData"
-    OO_EXECUTABLE="./usr/bin/oolite"
+    OO_EXECUTABLE="/usr/bin/oolite"
 
     if [[ "${OO_DIRTYPE:-}" == "legacy" ]]; then
         launch_guarded "$OO_EXECUTABLE" "$@"
