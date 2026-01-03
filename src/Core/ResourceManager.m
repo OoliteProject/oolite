@@ -180,9 +180,7 @@ static NSMutableDictionary *sStringCache;
 	if (sUserRootPaths == nil)
 	{
 		// the paths are now in order of preference as per yesterday's talk. -- Kaks 2010-05-05
-        NSMutableArray *tempUserRootPaths;
-		tempUserRootPaths = [[NSMutableArray alloc] initWithArray:[[OOOXZManager sharedManager] additionalAddOnsPaths]];
-        [tempUserRootPaths addObjectsFromArray:@[
+		NSArray *defaultAddOnsPaths = [NSArray arrayWithObjects:
 #if OOLITE_MAC_OS_X
 					  [[[[NSHomeDirectory() stringByAppendingPathComponent:@"Library"]
 						 stringByAppendingPathComponent:@"Application Support"]
@@ -195,8 +193,9 @@ static NSMutableDictionary *sStringCache;
 #if !OOLITE_WINDOWS
                       @"AddOns",
 #endif
-					  [[OOOXZManager sharedManager] extractAddOnsPath]]];
-        sUserRootPaths = [[NSArray alloc] initWithArray:tempUserRootPaths];
+					  [[OOOXZManager sharedManager] extractAddOnsPath],
+					  nil];
+        sUserRootPaths = [[[OOOXZManager sharedManager] additionalAddOnsPaths] arrayByAddingObjectsFromArray:defaultAddOnsPaths];
 	}
 	OOLog(@"searchPaths.debug",@"%@",sUserRootPaths);
 	return sUserRootPaths;
