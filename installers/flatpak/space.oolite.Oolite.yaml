@@ -24,7 +24,7 @@ modules:
       - "-Dtests=false"
       - "-Dman=false"
       - "-Dgtk_doc=false"
-      - "-Dintrospection=enabled"
+      - "-Dintrospection=disabled"
     sources:
       - type: archive
         url: https://download.gnome.org/sources/libnotify/0.8/libnotify-0.8.7.tar.xz
