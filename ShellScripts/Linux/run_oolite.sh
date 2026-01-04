@@ -58,11 +58,11 @@ elif [[ -n "$APPIMAGE" ]]; then
         elif [[ "${OO_DIRTYPE,,}" == "legacy" ]]; then
             launch_guarded "$OO_EXECUTABLE" "$@"
         fi
+    else
+        # Get the folder containing the AppImage file
+        HERE="$(dirname "$APPIMAGE")"
+        GAME_DATA="${HERE}/GameData"
     fi
-
-    # Get the folder containing the AppImage file
-    HERE="$(dirname "$APPIMAGE")"
-    GAME_DATA="${HERE}/GameData"
 
 # Check if OO_DIRTYPE set
 elif [[ -n "$OO_DIRTYPE" ]]; then
