@@ -195,7 +195,7 @@ static NSMutableDictionary *sStringCache;
 #endif
 					  [[OOOXZManager sharedManager] extractAddOnsPath],
 					  nil];
-        sUserRootPaths = [[[OOOXZManager sharedManager] additionalAddOnsPaths] arrayByAddingObjectsFromArray:defaultAddOnsPaths];
+        sUserRootPaths = [[[[OOOXZManager sharedManager] additionalAddOnsPaths] arrayByAddingObjectsFromArray:defaultAddOnsPaths] retain];
 	}
 	OOLog(@"searchPaths.debug",@"%@",sUserRootPaths);
 	return sUserRootPaths;

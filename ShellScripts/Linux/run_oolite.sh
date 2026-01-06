@@ -31,9 +31,9 @@ launch_guarded() {
 find_exe_launch() {
     if [[ -z "$OO_EXECUTABLE" ]]; then
         HERE="$(dirname "$(readlink -f "$0")")"
-        OO_EXECUTABLE="${HERE}/oolite"
+        OO_EXECUTABLE="$HERE/oolite"
         if [[ ! -f "$OO_EXECUTABLE" ]]; then
-            OO_EXECUTABLE="${HERE}/oolite.app/oolite"
+            OO_EXECUTABLE="$HERE/oolite.app/oolite"
         fi
     fi
     launch_guarded "$OO_EXECUTABLE" "$@"
@@ -48,9 +48,9 @@ if [[ -n "$FLATPAK_ID" ]]; then
 elif [[ -n "$APPIMAGE" ]]; then
     # Get the folder where AppRun is in the AppImage
     HERE="$(dirname "$(readlink -f "${0}")")"
-    export LD_LIBRARY_PATH="${HERE}/usr/lib:$LD_LIBRARY_PATH"
-    export PATH="${HERE}/usr/bin:$PATH"
-    OO_EXECUTABLE="${HERE}/usr/bin/oolite"
+    export LD_LIBRARY_PATH="$HERE/usr/lib:$LD_LIBRARY_PATH"
+    export PATH="$HERE/usr/bin:$PATH"
+    OO_EXECUTABLE="$HERE/usr/bin/oolite"
 
     if [[ -n "$OO_DIRTYPE" ]]; then
         if [[ "${OO_DIRTYPE,,}" == "xdg" ]]; then
@@ -61,7 +61,7 @@ elif [[ -n "$APPIMAGE" ]]; then
     else
         # Get the folder containing the AppImage file
         HERE="$(dirname "$APPIMAGE")"
-        GAME_DATA="${HERE}/GameData"
+        GAME_DATA="$HERE/GameData"
     fi
 
 # Check if OO_DIRTYPE set
@@ -74,22 +74,33 @@ elif [[ -n "$OO_DIRTYPE" ]]; then
 else
     # Use script directory
     HERE="$(dirname "$(readlink -f "$0")")"
-    GAME_DATA="${HERE}/GameData"
+    GAME_DATA="$HERE/GameData"
 fi
 
 mkdir -p "$GAME_DATA"
 
-export OO_SAVEDIR="${OO_SAVEDIR:-${GAME_DATA}/SavedGames}"
+export OO_SAVEDIR="${OO_SAVEDIR:-$GAME_DATA/SavedGames}"
 mkdir -p "$OO_SAVEDIR"
-export OO_SNAPSHOTSDIR="${OO_SNAPSHOTSDIR:-${GAME_DATA}/Snapshots}"
+export OO_SNAPSHOTSDIR="${OO_SNAPSHOTSDIR:-$GAME_DATA/Snapshots}"
 mkdir -p "$OO_SNAPSHOTSDIR"
-export OO_LOGSDIR="${OO_LOGSDIR:-${GAME_DATA}/.logs}"
+export OO_LOGSDIR="${OO_LOGSDIR:-$GAME_DATA/.logs}"
 mkdir -p "$OO_LOGSDIR"
-export OO_MANAGEDADDONSDIR="${OO_MANAGEDADDONSDIR:-${GAME_DATA}/.ManagedAddOns}"
+export OO_MANAGEDADDONSDIR="${OO_MANAGEDADDONSDIR:-$GAME_DATA/.ManagedAddOns}"
 mkdir -p "$OO_MANAGEDADDONSDIR"
-export OO_ADDONSEXTRACTDIR="${OO_ADDONSEXTRACTDIR:-${GAME_DATA}/AddOns}"
+
+if [[ -z "$OO_ADDONSEXTRACTDIR" ]]; then
+    export OO_ADDONSEXTRACTDIR="${OO_USERADDONSDIR:-$GAME_DATA/AddOns}"
+elif [[ -n "$OO_USERADDONSDIR" ]]; then
+    if [[ ",$OO_ADDITIONALADDONSDIRS," != *",$OO_USERADDONSDIR,"* ]]; then
+        export OO_ADDITIONALADDONSDIRS="${OO_ADDITIONALADDONSDIRS}${OO_ADDITIONALADDONSDIRS:+,}$OO_USERADDONSDIR"
+    fi
+fi
 mkdir -p "$OO_ADDONSEXTRACTDIR"
-OO_GNUSTEPDIR="${OO_GNUSTEPDIR:-${GAME_DATA}/.GNUstep}"
+if [ -n "$OO_ADDITIONALADDONSDIRS" ]; then
+    (IFS=,; mkdir -p $OO_ADDITIONALADDONSDIRS)
+fi
+
+OO_GNUSTEPDIR="${OO_GNUSTEPDIR:-$GAME_DATA/.GNUstep}"
 mkdir -p "$OO_GNUSTEPDIR"
 OO_GNUSTEPDEFAULTSDIR="${OO_GNUSTEPDEFAULTSDIR:-${GAME_DATA}}"
 mkdir -p "$OO_GNUSTEPDEFAULTSDIR"
