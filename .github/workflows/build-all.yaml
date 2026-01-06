@@ -193,7 +193,7 @@ jobs:
           retention-days: 5
 
   build-doxygen:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs: [common-steps]
     steps:
       - name: install all the necessary packages
