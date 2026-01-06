@@ -193,7 +193,7 @@ jobs:
           retention-days: 5
 
   build-doxygen:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     needs: [common-steps]
     steps:
       - name: install all the necessary packages
@@ -234,11 +234,11 @@ jobs:
 
           # A flag to set the download target as latest release
           # The default value is 'false'
-          latest: true
+          latest: false
 
           # The github tag. e.g: v1.0.1
           # Download assets from a specific tag/version
-          # tag: "v1.0.68"
+          tag: "Release_1_15_0"
 
           # The release id to download files from
           # releaseId: ""
