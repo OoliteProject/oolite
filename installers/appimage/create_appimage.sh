@@ -6,20 +6,20 @@ run_script() {
     SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
     pushd "$SCRIPT_DIR"
 
-    source ../../DevEnvironments/Linux/os_detection.sh
-    source ../../DevEnvironments/Linux/install_package_fn.sh
-    source ../../DevEnvironments/common/check_rename_fn.sh
+    mkdir -p ../../build
+    cd ../../build
+    source ../ShellScripts/Linux/os_detection.sh
+    source ../ShellScripts/common/check_rename_fn.sh
 
-    APPDIR="Oolite.AppDir"
+    APPDIR="./Oolite.AppDir"
     rm -rf $APPDIR
     mkdir -p $APPDIR/usr/bin
 
-    PROGDIR="../../oolite.app"
+    PROGDIR="../oolite.app"
     cp -rf $PROGDIR/Resources $APPDIR/usr/bin
 
-    rm -f linuxdeploy-x86_64.AppImage
-    curl -L -O https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
-    chmod +x linuxdeploy-x86_64.AppImage
+    curl -o linuxdeploy -L https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
+    chmod +x linuxdeploy
 
     case "$CURRENT_DISTRO" in
         debian) SDL2="--library=/usr/lib/x86_64-linux-gnu/libSDL2-2.0.so.0" ;;
@@ -28,11 +28,12 @@ run_script() {
     esac
 
     echo "Building AppDir for AppImage..."
-    if ! NO_STRIP=1 ./linuxdeploy-x86_64.AppImage \
+    if ! NO_STRIP=1 ./linuxdeploy \
     --appdir $APPDIR \
     --executable $PROGDIR/oolite \
-    --desktop-file ../FreeDesktop/oolite.desktop \
-    --icon-file ../FreeDesktop/oolite-icon.png \
+    --custom-apprun $PROGDIR/run_oolite.sh \
+    --desktop-file ../installers/FreeDesktop/oolite.desktop \
+    --icon-file ../installers/FreeDesktop/oolite-icon.png \
     $SDL2; then
         echo "❌ AppDir generation failed!" >&2
         return 1
@@ -47,12 +48,11 @@ run_script() {
         -exec strip --strip-unneeded '{}' +   # keeps symbols needed for runtime linking
     fi
 
-    rm -f appimagetool-x86_64.AppImage
-    curl -L -O https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
-    chmod +x appimagetool-x86_64.AppImage
+    curl -o appimagetool -L https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
+    chmod +x appimagetool
 
     echo "Creating AppImage..."
-    if ! ./appimagetool-x86_64.AppImage $APPDIR; then
+    if ! ./appimagetool $APPDIR; then
         echo "❌ AppImage creation failed!" >&2
         return 1
     fi
@@ -66,6 +66,7 @@ run_script() {
     if ! check_rename "Oolite" "Oolite-*" $SUFFIX; then
         return 1
     fi
+    # shellcheck disable=SC2164
     popd
 }
 

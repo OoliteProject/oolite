@@ -231,48 +231,66 @@ static OOOXZManager *sSingleton = nil;
  * location. */
 - (NSString *) installPath
 {
-	NSArray *paths = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory,NSUserDomainMask,YES);
-	NSString *appPath = [paths objectAtIndex:0];
-	if (appPath != nil)
+   	const char *managedAddOnsEnv = SDL_getenv("OO_MANAGEDADDONSDIR");
+
+	if (managedAddOnsEnv)
 	{
-		appPath = [appPath stringByAppendingPathComponent:@"Oolite"];
-#if OOLITE_MAC_OS_X
-		appPath = [appPath stringByAppendingPathComponent:@"Managed AddOns"];
-#else
-		/* GNUStep uses "ApplicationSupport" rather than "Application
-		 * Support" so match convention by not putting a space in the
-		 * path either */
-		appPath = [appPath stringByAppendingPathComponent:@"ManagedAddOns"];
-#endif
-		return appPath;
+		return [NSString stringWithUTF8String:managedAddOnsEnv];
 	}
+    else
+    {
+	    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory,NSUserDomainMask,YES);
+	    NSString *appPath = [paths objectAtIndex:0];
+	    if (appPath != nil)
+	    {
+		    appPath = [appPath stringByAppendingPathComponent:@"Oolite"];
+    #if OOLITE_MAC_OS_X
+		    appPath = [appPath stringByAppendingPathComponent:@"Managed AddOns"];
+    #else
+		    /* GNUStep uses "ApplicationSupport" rather than "Application
+		     * Support" so match convention by not putting a space in the
+		     * path either */
+		    appPath = [appPath stringByAppendingPathComponent:@"ManagedAddOns"];
+    #endif
+		    return appPath;
+	    }
+    }
 	return nil;
 }
 
-/* AddOns folder in game directory */
-- (NSString *) gameDirAddOnsPath
+/* The extract path for OXZs . */
+- (NSString *) extractAddOnsPath
 {
+   	const char *addOnsExtractEnv = SDL_getenv("OO_ADDONSEXTRACTDIR");
+
+	if (addOnsExtractEnv)
+	{
+		return [NSString stringWithUTF8String:addOnsExtractEnv];
+	}
+    else
+    {
 #if OOLITE_WINDOWS
-	#if OO_GAME_DATA_TO_USER_FOLDER
+    #if OO_GAME_DATA_TO_USER_FOLDER
 		return [NSString stringWithFormat:@"%s\\Oolite\\AddOns", SDL_getenv("LOCALAPPDATA")];
 	#else
 		return @"../AddOns";
 	#endif
 #else
-		const char *appimageEnv = SDL_getenv("APPIMAGE");
-		NSString *appPath;
-
-		if (appimageEnv)
-		{
-			// Running an AppImage
-			appPath = [NSString stringWithUTF8String:appimageEnv];
-			return [[appPath stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"AddOns"];
-		}
-		else
-		{
-			return @"AddOns";
-		}
+		return [[NSHomeDirectory() stringByAppendingPathComponent:@".Oolite"] stringByAppendingPathComponent:@"AddOns"];
 #endif
+    }
+}
+
+/* Add additional AddOns paths */
+- (NSArray *) additionalAddOnsPaths
+{
+    const char *additionalAddOnsEnv = SDL_getenv("OO_ADDITIONALADDONSDIRS");
+
+    if (additionalAddOnsEnv) {
+		NSString *envStr = [NSString stringWithUTF8String:additionalAddOnsEnv];
+		return [envStr componentsSeparatedByString:@","];
+    }
+    return [NSArray array];
 }
 
 

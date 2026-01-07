@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
 #if (GNUSTEP_BASE_MAJOR_VERSION == 1 && (GNUSTEP_BASE_MINOR_VERSION == 24 && GNUSTEP_BASE_SUBMINOR_VERSION >= 9) || (GNUSTEP_BASE_MINOR_VERSION > 24)) || (GNUSTEP_BASE_MAJOR_VERSION > 1)
 	[NSDate class]; // See github issue #202
 #endif
-	
+
 #if OOLITE_WINDOWS
 
 	#define OO_SHOW_MSG(ooMsg, ooMsgTitle, ooMsgFlags)	MessageBox(NULL, ooMsg, ooMsgTitle, ooMsgFlags)
@@ -75,17 +75,17 @@ int main(int argc, char *argv[])
 	#define TABS2	"\t\t"
 	#define TABS3	"\t\t\t"
 	#define TABS4	""
- 	
+
  	// Detect current working directory and set up GNUstep environment variables
 	#define MAX_PATH_LEN 256
 	char currentWorkingDir[MAX_PATH_LEN];
 	DWORD bufferSize = MAX_PATH_LEN;
-	
+
 	QueryFullProcessImageName(GetCurrentProcess(), 0, currentWorkingDir, &bufferSize);
 	// Strip the exe filenameb (from last backslash onwards), leave just the path
 	char *probeString = strrchr(currentWorkingDir, '\\');
 	if (probeString)  *probeString = '\0'; // currentWorkingDir now contains the path we need
-	
+
 	// Prepend system PATH env variable with our own executable's path
 	char pathEnvVar[] = "PATH";
 	char *systemPath = SDL_getenv(pathEnvVar);
@@ -106,7 +106,7 @@ int main(int argc, char *argv[])
 			sprintf(envVarString, "%s=%s", (var), (value));\
 			SDL_putenv (envVarString);\
 			} while (0);
-	
+
 	SETENVVAR("GNUSTEP_PATH_HANDLING", "windows");
 	SETENVVAR(pathEnvVar, finalPath);
 	SETENVVAR("GNUSTEP_SYSTEM_ROOT", currentWorkingDir);
@@ -118,9 +118,9 @@ int main(int argc, char *argv[])
 #else
 	SETENVVAR("HOMEPATH", currentWorkingDir);
 #endif
-	
+
 	SetCurrentDirectory(currentWorkingDir);
-	
+
 	free(envVarString);
 	free(finalPath);
 

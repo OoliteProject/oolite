@@ -18,7 +18,13 @@ run_script() {
         TARGET=$1
     fi
 
-    source /usr/local/share/GNUstep/Makefiles/GNUstep.sh
+    if [[ -z "$MINGW_PREFIX" ]]; then
+        SHARE="/usr/local/share"
+    else
+        SHARE="${MINGW_PREFIX}/share"
+    fi
+
+    source "$SHARE/GNUstep/Makefiles/GNUstep.sh"
     make -f Makefile clean
     if make -f Makefile $TARGET -j$(nproc); then
         echo "✅ Oolite build completed successfully"

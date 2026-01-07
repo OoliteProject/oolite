@@ -1,0 +1,150 @@
+app-id: space.oolite.Oolite
+runtime: org.freedesktop.Platform
+runtime-version: "25.08"
+sdk: org.freedesktop.Sdk
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.llvm21
+  - org.freedesktop.Sdk.Extension.rust-stable
+build-options:
+  append-path: /usr/lib/sdk/llvm21/bin:/usr/lib/sdk/rust-stable/bin
+  ldflags: -L/usr/lib/sdk/llvm21/lib
+command: run_oolite.sh
+finish-args:
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --share=ipc
+  - --share=network
+  - --socket=pulseaudio
+  - --device=dri
+  - --talk-name=org.freedesktop.Notifications
+modules:
+  - name: libnotify
+    buildsystem: meson
+    config-opts:
+      - "-Dtests=false"
+      - "-Dman=false"
+      - "-Dgtk_doc=false"
+      - "-Dintrospection=disabled"
+    sources:
+      - type: archive
+        url: https://download.gnome.org/sources/libnotify/0.8/libnotify-0.8.7.tar.xz
+        sha256: 4be15202ec4184fce1ac15997ece5530d2be32fe9573875aeb10e3b573858748
+  - name: glu
+    buildsystem: meson
+    sources:
+      - type: archive
+        url: https://archive.mesa3d.org/glu/glu-9.0.3.tar.xz
+        sha256: bd43fe12f374b1192eb15fe20e45ff456b9bc26ab57f0eee919f96ca0f8a330f
+    cleanup:
+      - /include
+      - /lib/pkgconfig
+      - "/lib/*.a"
+      - "/lib/*.la"
+
+  - name: sdl12-compat
+    buildsystem: cmake-ninja
+    config-opts:
+      - -DCMAKE_BUILD_TYPE=Release
+    sources:
+      - type: git
+        url: https://github.com/libsdl-org/sdl12-compat.git
+        tag: release-1.2.72
+    cleanup:
+      - /bin
+      - /include
+      - /lib/pkgconfig
+      - /share
+
+  - name: pcaudiolib
+    sources:
+      - type: archive
+        url: "https://github.com/espeak-ng/pcaudiolib/archive/refs/tags/1.3.tar.gz"
+        sha256: "86edb75048eec7fcd8d74f9568f051d50b4781982215095b96ba9c2c9c7c159b"
+    cleanup:
+      - "*.la"
+  - name: espeak-ng
+    sources:
+      - type: archive
+        url: "https://github.com/espeak-ng/espeak-ng/archive/refs/tags/1.52.0.tar.gz"
+        sha256: "bb4338102ff3b49a81423da8a1a158b420124b055b60fa76cfb4b18677130a23"
+    cleanup:
+      - "*.la"
+  - name: robin-map
+    buildsystem: cmake-ninja
+    build-options:
+      env:
+        CC: clang
+        CXX: clang++
+        ASM: clang
+    sources:
+      - type: archive
+        url: "https://github.com/Tessil/robin-map/archive/refs/tags/v1.4.1.tar.gz"
+        sha256: "0e3f53a377fdcdc5f9fed7a4c0d4f99e82bbb64175233bd13427fef9a771f4a1"
+    cleanup:
+      - "*.la"
+
+  - name: libobjc2
+    buildsystem: cmake-ninja
+    build-options:
+      env:
+        CC: clang
+        CXX: clang++
+    config-opts:
+      - -DTESTS=on
+      - -DCMAKE_BUILD_TYPE=Release
+      - -DGNUSTEP_INSTALL_TYPE=NONE
+      - -DEMBEDDED_BLOCKS_RUNTIME=ON
+      - -DOLDABI_COMPAT=OFF
+    sources:
+      - type: git
+        url: https://github.com/gnustep/libobjc2.git
+        commit: e5c06e3be8895007bcc7be58cbeccac2a5a89eff
+    cleanup:
+      - "*.la"
+
+
+  - name: gnustep-make
+    build-options:
+      env:
+        CC: clang
+        CXX: clang++
+    config-opts:
+      - --with-library-combo=ng-gnu-gnu
+      - --with-runtime-abi=gnustep-2.2
+    sources:
+      - type: archive
+        url: "https://github.com/gnustep/tools-make/releases/download/make-2_9_3/gnustep-make-2.9.3.tar.gz"
+        sha256: "93ca320b706279ebca53760da89d4c3f2bbc547f4723967140a34346d9f04c24"
+    cleanup:
+      - "*.la"
+
+  - name: gnustep-base
+    build-options:
+      env:
+        CC: clang
+        CXX: clang++
+    sources:
+      - type: git
+        url: https://github.com/gnustep/libs-base.git
+        commit: 2b236ec2c4816e7ff482f07dc973b655a3780122
+    cleanup:
+      - "*.la"
+
+  - name: oolite
+    buildsystem: simple
+    build-commands:
+      - |
+        source /app/share/GNUstep/Makefiles/GNUstep.sh
+        make -f Makefile release-deployment -j$FLATPAK_BUILDER_N_JOBS
+      - cp -r oolite.app/* /app/bin
+      - install -D build/space.oolite.Oolite.metainfo.xml /app/share/metainfo/space.oolite.Oolite.metainfo.xml
+      - install -D Oolite-logo3.png /app/share/icons/hicolor/256x256/apps/space.oolite.Oolite.png
+      - install -D installers/FreeDesktop/oolite.desktop /app/share/applications/space.oolite.Oolite.desktop
+      - desktop-file-edit --set-key=Icon --set-value=space.oolite.Oolite /app/share/applications/space.oolite.Oolite.desktop
+    sources:
+      - type: dir
+        path: ../../
+      - type: file
+        url: https://wiki.alioth.net/img_auth.php/a/a2/Oolite-logo3.png
+        sha256: e1d13be05d665480d034ff5f824ab5463463f16dd411de25f870522e3d3e45b1
+        dest-filename: Oolite-logo3.png

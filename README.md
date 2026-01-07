@@ -50,18 +50,18 @@ http://wiki.alioth.net/index.php/Running_Oolite-Windows
 After installing git and checking out the Oolite repository and its submodules, run the following 
 to check out the dependencies of Oolite that need to be built from source:
 ```bash
-DevEnvironments/Linux/checkout_deps.sh
+ShellScripts/Linux/checkout_deps.sh
 ```
 
 Next run the following to install required packages and build dependencies (you can replace sudo
 with other methods that escalate privileges if you prefer):
 ```bash
-sudo DevEnvironments/Linux/install_deps_root.sh
+sudo ShellScripts/Linux/install_deps_root.sh
 ```
 
 Next run this to build Oolite:
 ```bash
-DevEnvironments/Linux/build_oolite.sh release
+ShellScripts/Linux/build_oolite.sh release
 ```
 
 The completed build (executable and games files) can be found in the Oolite.app directory.
@@ -123,7 +123,7 @@ make -f Makefile release OBJCFLAGS="-fobjc-exceptions -Wno-format-security" -j$(
   - **URLs**:  URLs used for binary dependencies on Mac OS X
   - **Windows-deps**:  Dependencies for Windows on x86 and x86_64 processors
 - **Doc**:  Documentation (including user guides)
-- **DevEnvironments**:  Scripts to build from source on Windows and Linux
+- **ShellScripts**:  Scripts to build from source on Windows and Linux
 - **installers**:  Files used to create various installers
 - **Mac-specific**:  Additional projects used only on Mac OS X
   - **DataFormatters**:  Debugger configurations for Xcode

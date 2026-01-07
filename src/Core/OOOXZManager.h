@@ -89,7 +89,8 @@ typedef enum {
 + (OOOXZManager *) sharedManager;
 
 - (NSString *) installPath;
-- (NSString *) gameDirAddOnsPath;
+- (NSString *) extractAddOnsPath;
+- (NSArray *) additionalAddOnsPaths;
 
 - (BOOL) updateManifests;
 - (BOOL) cancelUpdate;

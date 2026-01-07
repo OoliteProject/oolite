@@ -1,3 +1,5 @@
+#!/bin/bash
+
 check_rename() {
     # Checks file exists and optionally renames it
     # First parameter is package name

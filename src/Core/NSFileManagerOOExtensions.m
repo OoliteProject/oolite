@@ -27,6 +27,7 @@ MA 02110-1301, USA.
 */
 
 #include <stdlib.h>
+#include <SDL.h>
 #import "ResourceManager.h"
 #import "OOPListParsing.h"
 #import "GameController.h"
@@ -86,7 +87,17 @@ MA 02110-1301, USA.
 
 - (NSString *) defaultCommanderPath
 {
-	NSString *savedir = [NSHomeDirectory() stringByAppendingPathComponent:@SAVEDIR];
+	const char *savedirEnv = SDL_getenv("OO_SAVEDIR");
+    NSString *savedir;
+
+	if (savedirEnv)
+	{
+		savedir = [NSString stringWithUTF8String:savedirEnv];
+	}
+	else
+	{
+		savedir = [NSHomeDirectory() stringByAppendingPathComponent:@SAVEDIR];
+	}
 	BOOL pathIsDirectory = NO;
 	
 	// does it exist?
@@ -211,9 +222,19 @@ MA 02110-1301, USA.
 #if OOLITE_SDL
 - (BOOL) chdirToSnapshotPath
 {
-	// SDL: the default path for snapshots is oolite.app/oolite-saves/snapshots
-	NSString *savedir = [[NSHomeDirectory() stringByAppendingPathComponent:@SAVEDIR] stringByAppendingPathComponent:@SNAPSHOTDIR];
-	
+	const char *snapshotEnv = SDL_getenv("OO_SNAPSHOTSDIR");
+    NSString *savedir;
+
+	if (snapshotEnv)
+	{
+		savedir = [NSString stringWithUTF8String:snapshotEnv];
+	}
+	else
+	{
+		// SDL: the default path for snapshots is oolite.app/oolite-saves/snapshots
+		savedir = [[NSHomeDirectory() stringByAppendingPathComponent:@SAVEDIR] stringByAppendingPathComponent:@SNAPSHOTDIR];
+	}
+
 	if (![self changeCurrentDirectoryPath: savedir])
 	{
 	   // it probably doesn't exist.

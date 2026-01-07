@@ -84,11 +84,18 @@ run_script() {
     if ! install_package fuse; then
         return 1
     fi
+    # For building Flatpak
+    if ! install_package flatpak; then
+        return 1
+    fi
 
     export CC=clang
     export CXX=clang++
 
-    cd ../..
+    if ! cd ../../build; then
+        echo "❌ build folder doesn't exist!" >&2
+        return 1
+    fi
 
     cd libobjc2
     rm -rf build

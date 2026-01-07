@@ -29,29 +29,17 @@ jobs:
           cd oolite
           # Build version string,
           # taking into account that we may have just two digits
-          VERSION=$(cat src/Cocoa/oolite-version.xcconfig | cut -d '=' -f 2)
-          VER_MAJ=$(echo ${VERSION} | cut -d. -f1)
-          VER_MIN=$(echo ${VERSION} | cut -d. -f2)
-          VER_REV=$(echo ${VERSION} | cut -d. -f3)
-          if [ "" == "${VER_REV}" ]
-          then
-            VER_REV="0"
-          fi
-          VER_DATE=$(date +%y%m%d)
-          VER_GITREV=$(git rev-list --count HEAD)
-          VER_GITHASH=$(git rev-parse --short=7 HEAD)
-          VER="${VER_MAJ}.${VER_MIN}.${VER_REV}.${VER_GITREV}-${VER_DATE}-${VER_GITHASH}"
-          echo "OOLITE_VERSION=${VER}" >> "$GITHUB_OUTPUT"
-          echo "OOLITE_VERSION=${VER}" >> Doc/OOLITE_VERSION.txt
+          source ShellScripts/common/get_version.sh
+          cat build/OOLITE_VERSION.txt >> "$GITHUB_OUTPUT"
 
       - name: generate PDFs
         run: |
           set
           set -x
-          export OOLITE_VERSION=$(cat oolite/Doc/OOLITE_VERSION.txt | cut -d= -f2)
+          export OOLITE_VERSION=$(cat oolite/build/OOLITE_VERSION.txt | cut -d= -f2)
           pip install ooo-dev-tools
           find oolite/Doc -name "*.odt" -exec sh -c 'python3 oolite/tools/libreoffice.py --load {} --set OOLITE_VERSION=$OOLITE_VERSION --save oolite/Doc/$(basename {} .odt).pdf' \;
-          zip oolite-doc.zip oolite/Doc/*.pdf oolite/Doc/OOLITE_VERSION.txt
+          zip oolite-doc.zip oolite/Doc/*.pdf oolite/build/OOLITE_VERSION.txt
 
       - name: Archive generated documentation
         uses: actions/upload-artifact@v6
@@ -88,49 +76,49 @@ jobs:
 
       - name: Checkout dependencies
         run: |
-          oolite/DevEnvironments/Linux/checkout_deps.sh
-
-      - name: Download artifacts
-        uses: actions/download-artifact@v7
-        with:
-          name: oolite-doc
-          path: artifacts
-
-      - name: Extract PDFs
-        run: |
-          unzip -o artifacts/oolite-doc.zip
-
-      # This is for debugging only and helps developing the workflow.
-      - name: show filesystem before build
-        run: |
-          find . -not -path "./oolite/deps/Windows-deps/*" -not -path "./oolite/Mac-specific/*" -not -path "./oolite/.git/*"
+          oolite/ShellScripts/Linux/checkout_deps.sh
 
       - name: Install packages
         run: |
-          sudo oolite/DevEnvironments/Linux/install_deps_root.sh
+          sudo oolite/ShellScripts/Linux/install_deps_root.sh
 
       - name: Build Oolite
         run: |
-          oolite/DevEnvironments/Linux/build_oolite.sh ${{matrix.flavour}}
-
-      ## This is for debugging only and helps developing the workflow.
-      # - name: show filesystem after build
-      #  run: |
-      #    find . -not -path "./oolite/Mac-specific/*"  -not -path "./oolite/deps/Windows-deps/*" -not -path "./oolite/tests/*" -not -path "./oolite/.git/*" -not -path "./oolite/deps/mozilla/*"
-
-      # This is for debugging only and helps developing the workflow.
-      - name: show filesystem after installer
-        run: |
-          find . -not -path "./oolite/Mac-specific/*" -not -path "./oolite/deps/*" -not -path "./oolite/tests/*" -not -path "./oolite/.git/*"
+          oolite/ShellScripts/common/build_oolite.sh ${{matrix.flavour}}
 
       - name: Archive installer
         uses: actions/upload-artifact@v6
         with:
           name: oolite-linux-${{matrix.flavour}}
           path: |
-            oolite/installers/appimage/Oolite_*.AppImage
+            oolite/build/Oolite_*.AppImage
           retention-days: 5
 
+  build-flatpak:
+    runs-on: ubuntu-latest
+    needs: [common-steps]
+    container:
+      image: ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-25.08
+      options: --privileged
+    steps:
+      - name: Checkout Oolite
+        uses: actions/checkout@v6
+        with:
+          path: oolite
+          fetch-depth: 0
+          submodules: true
+
+      - name: Build flatpak
+        run: |
+          oolite/installers/flatpak/create_flatpak.sh
+
+      - name: Archive installer
+        uses: actions/upload-artifact@v6
+        with:
+          name: oolite-flatpak
+          path: |
+            oolite/build/space.oolite.Oolite*.flatpak
+          retention-days: 5
 
   build-windows:
     runs-on: windows-latest
@@ -234,7 +222,7 @@ jobs:
       - name: set version
         id: version
         run: |
-          OOLITE_VERSION=$(cat oolite/Doc/OOLITE_VERSION.txt | cut -d= -f2)
+          OOLITE_VERSION=$(cat oolite/build/OOLITE_VERSION.txt | cut -d= -f2)
           echo "OOLITE_VERSION=${OOLITE_VERSION}" >> "$GITHUB_OUTPUT"
           sed -i -e "/PROJECT_NUMBER\s*=/ s/=.*/=${OOLITE_VERSION}/" oolite/Doxyfile
 
@@ -246,11 +234,11 @@ jobs:
 
           # A flag to set the download target as latest release
           # The default value is 'false'
-          latest: true
+          latest: false
 
           # The github tag. e.g: v1.0.1
           # Download assets from a specific tag/version
-          # tag: "v1.0.68"
+          tag: "Release_1_15_0"
 
           # The release id to download files from
           # releaseId: ""
@@ -355,7 +343,7 @@ jobs:
       - name: set version
         id: version
         run: |
-          OOLITE_VERSION=$(cat oolite/Doc/OOLITE_VERSION.txt | cut -d= -f2)
+          OOLITE_VERSION=$(cat oolite/build/OOLITE_VERSION.txt | cut -d= -f2)
           echo "OOLITE_VERSION=${OOLITE_VERSION}" >> "$GITHUB_OUTPUT"
 
       - name: Remove old prereleases
@@ -387,6 +375,7 @@ jobs:
             artifacts/oolite-linux-pkg-appimage-snapshot/*.AppImage
             artifacts/oolite-linux-pkg-appimage-deployment/*.AppImage
             artifacts/oolite-linux-pkg-appimage/*.AppImage
+            artifacts/oolite-flatpak/*.flatpak
 
       - name: Remove old workflow runs
         if: github.ref == 'refs/heads/master'

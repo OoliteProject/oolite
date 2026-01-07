@@ -36,6 +36,7 @@ SOFTWARE.
 #include <stdio.h>
 #import "NSThreadOOExtensions.h"
 #import "NSFileManagerOOExtensions.h"
+#include <SDL.h>
 
 
 #undef NSLog		// We need to be able to call the real NSLog.
@@ -572,35 +573,6 @@ static BOOL DirectoryExistCreatingIfNecessary(NSString *path)
 
 
 #if OOLITE_MAC_OS_X
-
-static void ExcludeFromTimeMachine(NSString *path);
-
-
-NSString *OOLogHandlerGetLogBasePath(void)
-{
-	static NSString		*basePath = nil;
-	
-	if (basePath == nil)
-	{
-		// ~/Library
-		basePath = [NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) objectAtIndex:0];
-		
-		// ~/Library/Logs
-		basePath = [basePath stringByAppendingPathComponent:@"Logs"];
-		if (!DirectoryExistCreatingIfNecessary(basePath))  return nil;
-		
-		// ~/Library/Logs/Oolite
-		basePath = [basePath stringByAppendingPathComponent:GetAppName()];
-		if (!DirectoryExistCreatingIfNecessary(basePath))  return nil;
-		ExcludeFromTimeMachine(basePath);
-		
-		[basePath retain];
-	}
-	
-	return basePath;
-}
-
-
 static void ExcludeFromTimeMachine(NSString *path)
 {
 	OSStatus (*CSBackupSetItemExcluded)(NSURL *item, Boolean exclude, Boolean excludeByPath) = NULL;
@@ -615,12 +587,11 @@ static void ExcludeFromTimeMachine(NSString *path)
 	}
 }
 
-
 static NSString *GetAppName(void)
 {
 	static NSString		*appName = nil;
 	NSBundle			*bundle = nil;
-	
+
 	if (appName == nil)
 	{
 		bundle = [NSBundle mainBundle];
@@ -629,58 +600,58 @@ static NSString *GetAppName(void)
 		if (appName == nil)  appName = @"<unknown application>";
 		[appName retain];
 	}
-	
+
 	return appName;
 }
-
-#elif OOLITE_LINUX
-
-NSString *OOLogHandlerGetLogBasePath(void)
-{
-	static NSString		*basePath = nil;
-	
-	if (basePath == nil)
-	{
-		// ~
-		basePath = NSHomeDirectory();
-		
-		// ~/.Oolite
-		basePath = [basePath stringByAppendingPathComponent:@".Oolite"];
-		if (!DirectoryExistCreatingIfNecessary(basePath))  return nil;
-		
-		// ~/.Oolite/Logs
-		basePath = [basePath stringByAppendingPathComponent:@"Logs"];
-		if (!DirectoryExistCreatingIfNecessary(basePath))  return nil;
-		
-		[basePath retain];
-	}
-	
-	return basePath;
-}
-
-#elif OOLITE_WINDOWS
-
-NSString *OOLogHandlerGetLogBasePath(void)
-{
-	static NSString		*basePath = nil;
-	
-	if (basePath == nil)
-	{
-		// <Install path>\Oolite
-		basePath = NSHomeDirectory();
-		
-		// <Install path>\Oolite\Logs
-		basePath = [basePath stringByAppendingPathComponent:@"Logs"];
-		if (!DirectoryExistCreatingIfNecessary(basePath))  return nil;
-		
-		[basePath retain];
-	}
-	
-	return basePath;
-}
-
 #endif
 
+NSString *OOLogHandlerGetLogBasePath(void)
+{
+	static NSString		*basePath = nil;
+
+	if (basePath == nil)
+	{
+		const char *logdirEnv = SDL_getenv("OO_LOGSDIR");
+
+		if (logdirEnv)
+		{
+			basePath = [NSString stringWithUTF8String:logdirEnv];
+		}
+		else
+		{
+#if OOLITE_MAC_OS_X
+			// ~/Library
+			basePath = [NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) objectAtIndex:0];
+#elif OOLITE_LINUX
+			// ~
+			basePath = NSHomeDirectory();
+
+			// ~/.Oolite
+			basePath = [basePath stringByAppendingPathComponent:@".Oolite"];
+			if (!DirectoryExistCreatingIfNecessary(basePath))  return nil;
+#elif OOLITE_WINDOWS
+			// <Install path>\Oolite
+			basePath = NSHomeDirectory();
+#endif
+
+			// .../Logs
+			basePath = [basePath stringByAppendingPathComponent:@"Logs"];
+			if (!DirectoryExistCreatingIfNecessary(basePath))  return nil;
+
+#if OOLITE_MAC_OS_X
+			// ~/Library/Logs/Oolite
+			basePath = [basePath stringByAppendingPathComponent:GetAppName()];
+			if (!DirectoryExistCreatingIfNecessary(basePath))  return nil;
+#endif
+		}
+#if OOLITE_MAC_OS_X
+		ExcludeFromTimeMachine(basePath);
+#endif
+		[basePath retain];
+	}
+
+	return basePath;
+}
 
 #if SET_CRASH_REPORTER_INFO
 

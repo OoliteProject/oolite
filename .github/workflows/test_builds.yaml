@@ -17,13 +17,13 @@ jobs:
           submodules: true
       - name: Checkout dependencies
         run: |
-          DevEnvironments/Linux/checkout_deps.sh
+          ShellScripts/Linux/checkout_deps.sh
       - name: Install packages
         run: |
-          sudo DevEnvironments/Linux/install_deps_root.sh
+          sudo ShellScripts/Linux/install_deps_root.sh
       - name: Build Oolite
         run: |
-          DevEnvironments/Linux/build_oolite.sh pkg-appimage
+          ShellScripts/common/build_oolite.sh pkg-appimage
 
   fedora:
     runs-on: ubuntu-latest
@@ -44,13 +44,13 @@ jobs:
           submodules: true
       - name: Checkout dependencies
         run: |
-          DevEnvironments/Linux/checkout_deps.sh
+          ShellScripts/Linux/checkout_deps.sh
       - name: Install packages
         run: |
-          DevEnvironments/Linux/install_deps_root.sh
+          ShellScripts/Linux/install_deps_root.sh
       - name: Build Oolite
         run: |
-          DevEnvironments/Linux/build_oolite.sh pkg-appimage
+          ShellScripts/common/build_oolite.sh pkg-appimage
 
   arch:
     runs-on: ubuntu-latest
@@ -71,10 +71,10 @@ jobs:
           submodules: true
       - name: Checkout dependencies
         run: |
-          DevEnvironments/Linux/checkout_deps.sh
+          ShellScripts/Linux/checkout_deps.sh
       - name: Install packages
         run: |
-          DevEnvironments/Linux/install_deps_root.sh
+          ShellScripts/Linux/install_deps_root.sh
       - name: Build Oolite
         run: |
-          DevEnvironments/Linux/build_oolite.sh pkg-appimage
+          ShellScripts/common/build_oolite.sh pkg-appimage
