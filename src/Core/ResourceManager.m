@@ -418,7 +418,6 @@ static NSMutableDictionary *sStringCache;
 		while (unzGoToNextFile(uf) == UNZ_OK);
 	}
 	unzClose(uf);
-
 }
 
 
@@ -440,7 +439,6 @@ static NSMutableDictionary *sStringCache;
 			[self preloadFilePathFor:fileName inFolder:subFolder atPath:[subFolderPath stringByAppendingPathComponent:fileName]];
 		}
 	}
-
 }
 
 
@@ -458,7 +456,6 @@ static NSMutableDictionary *sStringCache;
 }
 
 
-
 + (NSArray *)paths
 {
 	if (EXPECT_NOT(sSearchPaths == nil))
@@ -466,6 +463,37 @@ static NSMutableDictionary *sStringCache;
 		sSearchPaths = [[NSMutableArray alloc] init];
 	}
 	return [self pathsWithAddOns];
+}
+
+
++ (NSArray *)maskUserNameInPathArray:(NSArray *)inputPathArray
+{
+	NSString *path = nil;
+	NSMutableArray *maskedArray = [NSMutableArray arrayWithCapacity:[inputPathArray count]];
+	char *userNamePathEnvVar = 
+#if OOLITE_WINDOWS
+		SDL_getenv("USERPROFILE");
+#else
+		SDL_getenv("HOME");
+#endif
+	NSString *userName = [[NSString stringWithFormat:@"%s", userNamePathEnvVar] lastPathComponent];
+	foreach (path, inputPathArray)
+	{
+		path = [self maskUserName:userName inPath:path];
+		[maskedArray addObject:path];
+	}
+	return maskedArray;
+}
+
+
++ (NSString *)maskUserName:(NSString *)name inPath:(NSString *)path
+{
+	NSMutableString *result = [NSMutableString stringWithString:path];
+	if (result && name)  [result replaceOccurrencesOfString:name withString:@"*"
+							options:NSLiteralSearch
+							range:NSMakeRange(0, [result length])
+						 ];
+	return [NSString stringWithString:result];
 }
 
 
