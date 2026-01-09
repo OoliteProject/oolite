@@ -11,9 +11,12 @@ run_script() {
     source ../ShellScripts/common/check_rename_fn.sh
 
     FLATPAK_DIR="../installers/flatpak"
-    install -D $FLATPAK_DIR/space.oolite.Oolite.metainfo.xml space.oolite.Oolite.metainfo.xml
+    cp $FLATPAK_DIR/space.oolite.Oolite.metainfo.xml .
     release_tag="    <release version=\"${VER}\" date=\"$(date -I)\" />"
     sed -i "/<releases>/a \\$release_tag" space.oolite.Oolite.metainfo.xml
+    cp ../installers/FreeDesktop/oolite.desktop ./space.oolite.Oolite.desktop
+    desktop-file-edit --set-key=Exec --set-value=run_oolite.sh ./space.oolite.Oolite.desktop
+    desktop-file-edit --set-key=Icon --set-value=space.oolite.Oolite ./space.oolite.Oolite.desktop
 
     echo "Creating Flatpak..."
     if ! flatpak remote-add \
