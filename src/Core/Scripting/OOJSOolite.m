@@ -146,7 +146,8 @@ static JSBool OoliteGetProperty(JSContext *context, JSObject *this, jsid propID,
 			break;
 			
 		case kOolite_resourcePaths:
-			result = [ResourceManager paths];
+			// user name in displayed paths masked for privacy - remember that the console can be run remotely too
+			result = [ResourceManager maskUserNameInPathArray:[ResourceManager paths]];
 			break;
 			
 		case kOolite_colorSaturation:
