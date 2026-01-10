@@ -63,6 +63,8 @@ typedef enum
 + (NSString *)builtInPath;		// Path for built-in data only.
 + (NSArray *)pathsWithAddOns;	// Root paths + add-on paths.
 + (NSArray *)paths;				// builtInPath or pathsWithAddOns, depending on useAddOns state.
++ (NSArray *)maskUserNameInPathArray:(NSArray *)inputPathArray;		// potential privacy concerns
++ (NSString *)maskUserName:(NSString *)name inPath:(NSString *)path;
 + (NSString *)useAddOns;
 + (NSArray *)OXPsWithMessagesFound;
 + (void)setUseAddOns:(NSString *)useAddOns;
