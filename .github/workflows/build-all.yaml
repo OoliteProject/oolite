@@ -137,11 +137,19 @@ jobs:
       #  run: |
       #    Get-ChildItem Env: | Sort Name
 
-      - name: Checkout DevelopmentEnvironment
-        uses: actions/checkout@v6
+      - uses: actions/checkout@v6
+      - name: Download latest release assets
+        uses: robinraju/release-downloader@v1
         with:
-          repository: OoliteProject/oolite-windows-build-env
-          path: DevelopmentEnvironment
+          repository: OoliteProject/oolite_windeps_build
+          latest: true
+          fileName: "*"
+          out-file-path: ./packages
+
+      - name: Set up MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          update: true
 
       - name: Checkout Oolite
         uses: actions/checkout@v6
@@ -150,51 +158,23 @@ jobs:
           fetch-depth: 0
           submodules: true
 
-      - name: Download artifacts
-        uses: actions/download-artifact@v7
-        with:
-          name: oolite-doc
-          path: artifacts
-
-      - name: Extract PDFs
+      - name: Install packages
+        shell: msys2 {0}
+        env:
+          msystem: UCRT64
         run: |
-          unzip -o artifacts/oolite-doc.zip
+          oolite/ShellScripts/common/install_deps.sh clang
 
-      # check http://aegidian.org/bb/viewtopic.php?p=281821#p281821
-      # this is for debug only; it creates huge logs and takes a long time to execute, yet you never know when you need it
-      - name: check filesystem
+      - name: Build Oolite
         run: |
-          Get-ChildItem -Path "$env:GITHUB_WORKSPACE" –Recurse
+          oolite/ShellScripts/common/build_oolite.sh ${{matrix.flavour}}
 
-      - name: Prepare compile script with flavour
-        shell: cmd
-        run: |
-          echo Want to build flavour ${{matrix.flavour}}
-          mkdir D:\a\oolite\oolite\DevelopmentEnvironment\gcc\Msys_x2\1.0\etc\profile.d
-          echo export FLAVOUR="${{matrix.flavour}}" > D:\a\oolite\oolite\DevelopmentEnvironment\gcc\Msys_x2\1.0\etc\profile.d\flavour.sh
-          cat D:\a\oolite\oolite\DevelopmentEnvironment\gcc\Msys_x2\1.0\etc\profile.d\flavour.sh
-
-      - name: check filesystem after preparation
-        run: |
-          Get-ChildItem -Path "$env:GITHUB_WORKSPACE" –Recurse
-
-      - name: Compile
-        shell: cmd
-        run: |
-          D:\a\oolite\oolite\DevelopmentEnvironment\gcc\Msys_x2\1.0\msys.cmd
-
-      # check http://aegidian.org/bb/viewtopic.php?p=281821#p281821
-      # this is for debug only; it creates huge logs and takes a long time to execute, yet you never know when you need it
-      - name: check filesystem
-        run: |
-          Get-ChildItem -Path "$env:GITHUB_WORKSPACE" –Recurse
-
-      - name: Archive build
+      - name: Archive installer
         uses: actions/upload-artifact@v6
         with:
           name: oolite-windows-${{matrix.flavour}}
           path: |
-            oolite/installers/win32/OoliteInstall*.exe
+            oolite/build/OoliteInstall*.exe
           retention-days: 5
 
   build-doxygen:

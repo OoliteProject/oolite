@@ -33,7 +33,7 @@ the instructions below. Note that the scripts require sudo for activities like i
 libraries built from source and for installing packages on some Linux distros. If you run into 
 difficulties, you can seek help on the [Oolite Bulletin Board](https://bb.oolite.space/). 
 
-## Git
+### Git
 The Oolite source is available from GitHub. The first step is to install git if you don't already
 have it installed as it is required to obtain and build Oolite. With Git installed, check out the 
 Oolite repository and its submodules:
@@ -43,8 +43,16 @@ cd oolite
 ```
 
 ### Windows
-See the Oolite wiki:
-http://wiki.alioth.net/index.php/Running_Oolite-Windows
+After installing git and checking out the Oolite repository and its submodules, double click `Run Me`
+in ShellScripts/Windows or run in a command prompt:
+```cmd
+ShellScripts\Windows\setup.cmd
+```
+
+This will install MSYS2 which provides various MinGW environments. You will need to enter the 
+install location for MSYS2 and whether you want the Clang build (recommended) or GCC build. 
+
+The Clang build uses the UCRT64 environment, while the GCC build uses the MINGW64 environment.
 
 ### Linux
 After installing git and checking out the Oolite repository and its submodules, run the following 
@@ -59,47 +67,56 @@ with other methods that escalate privileges if you prefer):
 sudo ShellScripts/Linux/install_deps_root.sh
 ```
 
-Next run this to build Oolite:
+### Building Oolite
+Next run this in your bash or MSYS2 prompt to build Oolite:
 ```bash
-ShellScripts/Linux/build_oolite.sh release
+ShellScripts/common/build_oolite.sh release
 ```
 
 The completed build (executable and games files) can be found in the Oolite.app directory.
 
-Subsequently you can clean and build as follows:
+Subsequently, you can clean and build as follows:
 ```bash
-source /usr/local/share/GNUstep/Makefiles/GNUstep.sh
 make -f Makefile clean
 make -f Makefile release -j$(nproc)
 ```
 
+On Linux, you will need to run this beforehand: `source /usr/local/share/GNUstep/Makefiles/GNUstep.sh`
+
+On Windows, this is set up be default in the shell: `source $MINGW_PREFIX/share/GNUstep/Makefiles/GNUstep.sh`
+
 Other targets are release-deployment for a production release and release-snapshot for a debug release.
 
-This target builds an AppImage for testing which can be found in installers/appimage: 
+### Other Linux Make Targets
+
+This target builds an AppImage for testing which can be found in build: 
 ```bash
 make -f Makefile pkg-appimage -j$(nproc)
 ```
 
 The target pkg-appimage-deployment is the production release, while pkg-appimage-snapshot is for debugging.
 
-### Mac OS X
-You will need the latest version of Xcode from the App Store.
-Then double click on the Xcode project in the Finder, select one of the Oolite
-targets from the Scheme pop-up, and hit Build and Run (the play button in the
-toolbar).
+This target builds a Flatpak which can be found in build:
+```bash
+make -f Makefile pkg-flatpak -j$(nproc)
+```
 
-#### Troubleshooting
+### Mac OS
+Intel-based Macs can run old builds of Oolite, but current Macs are unsupported. It is hoped that they
+can be supported in future.
+
+### Objective-C
+
+Oolite is written in Objective-C although tehre is also some C and C++ code in the codebase. It was 
+originally coded on Mac, but was ported to Windows and Linux by way of the GNUstep runtime which 
+provides a similar API to what is available on Mac. Objective-C is supported by modern IDEs like 
+CLion and Visual Studio Code. The language can be easily picked up by programmers familiar with C 
+or C++ with which it is interoperable. 
+
+### Troubleshooting
 
 - If you get errors like `fatal error: jsapi.h: No such file or directory`, there was probably an issue with checking 
 out the submodules.
-
-- On Fedora: If you get errors like `gcc: fatal error: environment variable ‘RPM_ARCH’ not defined`, try the following workaround before compiling:
-```bash
-export RPM_ARCH=bla
-export RPM_PACKAGE_RELEASE=bla
-export RPM_PACKAGE_VERSION=bla
-export RPM_PACKAGE_NAME=bla
-```
 
 - If you can't see any textures, try deleting the following files, and compile again although these are
   already excluded from modern builds.

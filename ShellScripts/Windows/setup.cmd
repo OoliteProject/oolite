@@ -44,10 +44,10 @@ set MSYS2_ROOT=%INSTALL_PATH%\msys64
 
 if "%UCRT_CLANG_OR_MINGW_GCC%"=="1" (
     echo === Launch UCRT64 shell, install Oolite dependencies and build Oolite with Clang  ===
-	%MSYS2_ROOT%\msys2_shell.cmd -ucrt64 -defterm -here -no-start -c "../ShellScripts/Windows/install.sh clang; exec bash"
+	%MSYS2_ROOT%\msys2_shell.cmd -ucrt64 -defterm -here -no-start -c "../ShellScripts/Windows/install_deps.sh clang; exec bash"
 ) else (
     echo === Launch MinGW64 shell, install Oolite dependencies and build Oolite with GCC  ===
-	%MSYS2_ROOT%\msys2_shell.cmd -mingw64 -defterm -here -no-start -c "../ShellScripts/Windows/install.sh gcc; exec bash"
+	%MSYS2_ROOT%\msys2_shell.cmd -mingw64 -defterm -here -no-start -c "../ShellScripts/Windows/install_deps.sh gcc; exec bash"
 )
 
 endlocal

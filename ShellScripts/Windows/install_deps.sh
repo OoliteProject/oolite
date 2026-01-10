@@ -21,71 +21,35 @@ install() {
 	# package file eg. mingw-w64-x86_64-libobjc2-2.3-3-any.pkg.tar.zst
     if [ -z "$filename" ]; then
         echo "❌ No file matching $packagename found." >&2
-        exit 1
+        return 1
     fi
 
     if ! pacman -U $filename --noconfirm ; then
 	    echo "❌ $filename install failed!" >&2
-	    exit 1
+	    return 1
 	fi
-}
-
-move_installer() {
-	# First parameter is gcc or clang
-	
-	cd installers/win32
-	read filename fullname <<< "$(check_rename "OoliteInstall" "OoliteInstall-*" $1)"
-	mv $filename ../../../installer/
-	cd ../..
-}
-
-build_oolite() {
-	# First parameter is gcc or clang
-
-	pacman -Q > installer/installed-packages-$1.txt
-	source $MINGW_PREFIX/share/GNUstep/Makefiles/GNUstep.sh
-
-	cd oolite
-	make -f Makefile clean
-	if make -f Makefile release -j$(nproc); then
-		echo "✅ Oolite build completed successfully"
-	else
-		echo "❌ Oolite build failed" >&2
-		exit 1
-	fi
-	make -f Makefile pkg-win
-	move_installer $1
-
-	make -f Makefile clean
-	if make -f Makefile release-deployment -j$(nproc); then
-		echo "✅ Oolite build completed successfully"
-	else
-		echo "❌ Oolite build failed" >&2
-		exit 1
-	fi
-	make -f Makefile pkg-win-deployment
-	move_installer $1
-	cd ..
 }
 
 run_script() {
     SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
     pushd "$SCRIPT_DIR"
 
-    source ../common/check_rename_fn.sh
+    source ../common/checkout_submodules_fn.sh
+    checkout_submodules
+
+    source ../common/build_oolite.sh
 
     pacman -S dos2unix --noconfirm
     pacman -S pactoys --noconfirm
     pacboy -S binutils --noconfirm
     pacboy -S uutils-coreutils --noconfirm
 
-    cd packages
+    cd ../../build/packages
     echo "Installing common libraries"
     package_names=(spidermonkey SDL)
     for packagename in "${package_names[@]}"; do
         install $packagename
     done
-    cd ..
 
     pacman -S git --noconfirm
     pacboy -S libpng --noconfirm
@@ -96,14 +60,11 @@ run_script() {
     pacman -S make --noconfirm
     pacboy -S nsis --noconfirm
 
-    rm -rf installer
-    mkdir installer
-
+    cd packages
     if [[ -z "$1" || "$1" == "clang" ]]; then
         pacboy -S clang --noconfirm
         pacboy -S lld --noconfirm
 
-        cd packages
         echo "Installing GNUStep libraries with clang"
         export cc=$MINGW_PREFIX/bin/clang
         export cxx=$MINGW_PREFIX/bin/clang++
@@ -111,10 +72,8 @@ run_script() {
         for packagename in "${clang_package_names[@]}"; do
             install $packagename clang
         done
-        cd ..
-        build_oolite clang
+    	pacman -Q > installed-packages-clang.txt
     else
-        cd packages
         echo "Installing GNUStep libraries with gcc"
         export cc=$MINGW_PREFIX/bin/gcc
         export cxx=$MINGW_PREFIX/bin/g++
@@ -122,21 +81,30 @@ run_script() {
         for packagename in "${gcc_package_names[@]}"; do
             install $packagename gcc
         done
-        cd ..
-        build_oolite gcc
+    	pacman -Q > installed-packages-gcc.txt
     fi
 
-    echo 'source $MINGW_PREFIX/share/GNUstep/Makefiles/GNUstep.sh' > /etc/profile.d/GNUstep.sh
+    echo "source $MINGW_PREFIX/share/GNUstep/Makefiles/GNUstep.sh" > /etc/profile.d/GNUstep.sh
 
     if ! grep -q "# Custom history settings" ~/.bashrc; then
-      cat >> ~/.bashrc <<'EOF'
-
-    # Custom history settings
-    WIN_HOME=$(cygpath "$USERPROFILE")
-    export HISTFILE=$WIN_HOME/.bash_history
-    export HISTSIZE=5000
-    export HISTFILESIZE=10000
-    shopt -s histappend
-    PROMPT_COMMAND="history -a; $PROMPT_COMMAND"
-    EOF
+        cat >> ~/.bashrc <<'EOF'
+# Custom history settings
+WIN_HOME=$(cygpath "$USERPROFILE")
+export HISTFILE=$WIN_HOME/.bash_history
+export HISTSIZE=5000
+export HISTFILESIZE=10000
+shopt -s histappend
+PROMPT_COMMAND="history -a; $PROMPT_COMMAND"
+EOF
     fi
+    popd
+}
+
+run_script "$@"
+status=$?
+
+
+# Exit only if not sourced
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    exit $status
+fi
