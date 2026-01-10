@@ -137,15 +137,6 @@ jobs:
       #  run: |
       #    Get-ChildItem Env: | Sort Name
 
-      - uses: actions/checkout@v6
-      - name: Download latest release assets
-        uses: robinraju/release-downloader@v1
-        with:
-          repository: OoliteProject/oolite_windeps_build
-          latest: true
-          fileName: "*"
-          out-file-path: ./packages
-
       - name: Set up MSYS2
         uses: msys2/setup-msys2@v2
         with:
@@ -158,16 +149,28 @@ jobs:
           fetch-depth: 0
           submodules: true
 
+      - uses: actions/checkout@v6
+      - name: Download latest release assets
+        uses: robinraju/release-downloader@v1
+        with:
+          repository: OoliteProject/oolite_windeps_build
+          latest: true
+          fileName: "*"
+          out-file-path: ./oolite/packages
+
       - name: Install packages
         shell: msys2 {0}
         env:
           msystem: UCRT64
         run: |
-          oolite/ShellScripts/common/install_deps.sh clang
+          ./oolite/ShellScripts/common/install_deps.sh clang
 
       - name: Build Oolite
+        shell: msys2 {0}
+        env:
+          msystem: UCRT64
         run: |
-          oolite/ShellScripts/common/build_oolite.sh ${{matrix.flavour}}
+          ./oolite/ShellScripts/common/build_oolite.sh ${{matrix.flavour}}
 
       - name: Archive installer
         uses: actions/upload-artifact@v6
