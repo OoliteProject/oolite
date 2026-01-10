@@ -37,8 +37,6 @@ run_script() {
     source ../common/checkout_submodules_fn.sh
     checkout_submodules
 
-    source ../common/build_oolite.sh
-
     pacman -S dos2unix --noconfirm
     pacman -S pactoys --noconfirm
     pacboy -S binutils --noconfirm
@@ -60,7 +58,6 @@ run_script() {
     pacman -S make --noconfirm
     pacboy -S nsis --noconfirm
 
-    cd packages
     if [[ -z "$1" || "$1" == "clang" ]]; then
         pacboy -S clang --noconfirm
         pacboy -S lld --noconfirm
