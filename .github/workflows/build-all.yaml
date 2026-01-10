@@ -155,7 +155,7 @@ jobs:
           repository: OoliteProject/oolite_windeps_build
           latest: true
           fileName: "*"
-          out-file-path: packages
+          out-file-path: oolite/build/packages
 
       - name: Install packages
         shell: msys2 {0}
