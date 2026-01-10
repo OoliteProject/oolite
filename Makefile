@@ -247,7 +247,7 @@ pkg-appimage-snapshot: release-snapshot
 # And here are our Windows packager targets
 #
 ifneq '' '$(MINGW_PREFIX)'
-NSIS=$(MINGW_PREFIX)/bin/makensis
+NSIS=$(MINGW_PREFIX)/bin/makensis -DOUTDIR="../../build"
 else
 NSIS=/nsis/makensis.exe
 endif
