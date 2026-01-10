@@ -46,7 +46,9 @@ run_script() {
     echo "Installing common libraries"
     package_names=(spidermonkey SDL)
     for packagename in "${package_names[@]}"; do
-        install $packagename
+        if ! install $packagename; then
+          return 1
+        fi
     done
 
     pacman -S git --noconfirm
@@ -67,7 +69,9 @@ run_script() {
         export cxx=$MINGW_PREFIX/bin/clang++
         clang_package_names=(libobjc2 gnustep-make gnustep-base)
         for packagename in "${clang_package_names[@]}"; do
-            install $packagename clang
+            if ! install $packagename clang; then
+              return 1
+            fi
         done
     	pacman -Q > installed-packages-clang.txt
     else
@@ -76,7 +80,9 @@ run_script() {
         export cxx=$MINGW_PREFIX/bin/g++
         gcc_package_names=(gnustep-make gnustep-base)
         for packagename in "${gcc_package_names[@]}"; do
-            install $packagename gcc
+            if ! install $packagename gcc; then
+              return 1
+            fi
         done
     	pacman -Q > installed-packages-gcc.txt
     fi
