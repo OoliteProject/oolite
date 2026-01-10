@@ -34,13 +34,14 @@ run_script() {
     SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
     pushd "$SCRIPT_DIR"
 
-    source ../common/checkout_submodules_fn.sh
-    checkout_submodules
-
+    pacman -S git --noconfirm
     pacman -S dos2unix --noconfirm
     pacman -S pactoys --noconfirm
     pacboy -S binutils --noconfirm
     pacboy -S uutils-coreutils --noconfirm
+
+    source ../common/checkout_submodules_fn.sh
+    checkout_submodules
 
     cd ../../build/packages
     echo "Installing common libraries"
@@ -51,7 +52,6 @@ run_script() {
         fi
     done
 
-    pacman -S git --noconfirm
     pacboy -S libpng --noconfirm
     pacboy -S openal --noconfirm
     pacboy -S libvorbis --noconfirm
