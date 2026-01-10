@@ -162,7 +162,7 @@ jobs:
         env:
           msystem: UCRT64
         run: |
-          oolite/ShellScripts/common/install_deps.sh clang
+          oolite/ShellScripts/Windows/install_deps.sh clang
 
       - name: Build Oolite
         shell: msys2 {0}
