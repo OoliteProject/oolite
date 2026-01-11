@@ -1,14 +1,14 @@
 #!/bin/bash
 
 run_script() {
-    # First parameter which is a version with format maj.min.rev.githash (e.g. 1.91.0.7549-231111-cf99a82)
-    # Second parameter is a suffix for the build type eg. test, dev
+    # First parameter is a suffix for the build type eg. test, dev
     SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
     pushd "$SCRIPT_DIR"
 
     mkdir -p ../../build
     cd ../../build
     source ../ShellScripts/Linux/os_detection.sh
+    source ../ShellScripts/common/get_version.sh
     source ../ShellScripts/common/check_rename_fn.sh
 
     APPDIR="./Oolite.AppDir"
@@ -39,7 +39,7 @@ run_script() {
         return 1
     fi
 
-   	if (( $# == 2 )) && [[ $2 == "dev" ]]; then
+   	if [[ $1 == "dev" ]]; then
         echo "Not stripping libs for snapshot AppImage"
    	else
         echo "Stripping libs in AppDir..."
@@ -57,16 +57,16 @@ run_script() {
         return 1
     fi
 
-   	if (( $# == 2 )); then
-        SUFFIX="${2}_${1}"
+   	if (( $# == 1 )); then
+        SUFFIX="${1}_${VER}"
     else
-        SUFFIX="$1"
+        SUFFIX="$VER"
     fi
 
     if ! check_rename "Oolite" "Oolite-*" $SUFFIX; then
         return 1
     fi
-    # shellcheck disable=SC2164
+
     popd
 }
 
