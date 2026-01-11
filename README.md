@@ -107,7 +107,7 @@ can be supported in future.
 
 ### Objective-C
 
-Oolite is written in Objective-C although tehre is also some C and C++ code in the codebase. It was 
+Oolite is written in Objective-C although there is also some C and C++ code in the codebase. It was 
 originally coded on Mac, but was ported to Windows and Linux by way of the GNUstep runtime which 
 provides a similar API to what is available on Mac. Objective-C is supported by modern IDEs like 
 CLion and Visual Studio Code. The language can be easily picked up by programmers familiar with C 
