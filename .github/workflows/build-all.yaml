@@ -302,7 +302,7 @@ jobs:
           path: oolite/doxygen/html
 
   release:
-    needs: [build-linux, build-windows, build-doxygen]
+    needs: [build-linux, build-flatpak, build-windows, build-doxygen]
     runs-on: ubuntu-22.04
     steps:
       ## This is for debugging only and helps developing the workflow.
