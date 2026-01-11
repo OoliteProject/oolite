@@ -39,7 +39,7 @@ run_script() {
         return 1
     fi
 
-   	if (( $# == 2 )) && [[ $2 == "dev" ]]; then
+   	if [[ $1 == "dev" ]]; then
         echo "Not stripping libs for snapshot AppImage"
    	else
         echo "Stripping libs in AppDir..."

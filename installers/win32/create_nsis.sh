@@ -24,10 +24,10 @@ run_script() {
     echo "!define BUILDTIME \"${BUILDTIME}\"" >> OoliteVersions.nsh
     echo "!define BUILDHOST_IS64BIT 1" >> OoliteVersions.nsh
 
-    if [[ -z "$1" ]]; then
-	      echo "!define DEPLOYMENT 1" >> OoliteVersions.nsh
-	  elif [[ "${1,,}" == "dev" ]]; then
-	      echo "!define SNAPSHOT 1" >> OoliteVersions.nsh
+    if [[ "$1" == "dev" ]]; then
+        echo "!define SNAPSHOT 1" >> OoliteVersions.nsh
+    elif [[ "$1" != "test" ]]; then
+        echo "!define DEPLOYMENT 1" >> OoliteVersions.nsh
     fi
 
     if [[ -n "$MINGW_PREFIX" ]]; then

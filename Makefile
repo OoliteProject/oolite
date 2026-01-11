@@ -17,12 +17,12 @@ help:
 	@echo
 	@echo "Packaging Targets:"
 	@echo
-	@echo " Linux Installer:"
+	@echo " Linux AppImage:"
 	@echo "  pkg-appimage            - builds a test-release appimage"
 	@echo "  pkg-appimage-deployment - builds a release appimage"
 	@echo "  pkg-appimage-snapshot   - builds a snapshot appimage"
 	@echo
-	@echo " Windows Installer:"
+	@echo " Windows NSIS Installer:"
 	@echo "  pkg-win                 - builds a test-release version"
 	@echo "  pkg-win-deployment      - builds a release version"
 	@echo "  pkg-win-snapshot        - builds a snapshot version"
@@ -75,7 +75,7 @@ pkg-appimage-deployment: release-deployment
 pkg-appimage-snapshot: release-snapshot
 	installers/appimage/create_appimage.sh "dev"
 
-# And here are our Windows packager targets
+# And here are our NSIS targets
 #
 .PHONY: pkg-win
 pkg-win: release
