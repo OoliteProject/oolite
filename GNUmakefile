@@ -27,12 +27,6 @@ ifeq ($(GNUSTEP_HOST_OS),mingw32)
 
     WIN_DEPS_DIR                 = deps/Windows-deps/x86_64
     JS_INC_DIR                   = $(WIN_DEPS_DIR)/JS32ECMAv5/include
-#     JS_LIB_DIR                   = $(WIN_DEPS_DIR)/JS32ECMAv5/lib
-    ifeq ($(debug),yes)
-        JS_IMPORT_LIBRARY        = js32ECMAv5dbg
-    else
-        JS_IMPORT_LIBRARY        = js32ECMAv5
-    endif
 
     ifeq ($(modern),yes)
         SPEECH_LIBRARY_NAME          = espeak-ng
@@ -45,11 +39,10 @@ ifeq ($(GNUSTEP_HOST_OS),mingw32)
     endif
 
     ADDITIONAL_INCLUDE_DIRS      = -Isrc/SDL -Isrc/Core -Isrc/BSDCompat -Isrc/Core/Scripting -Isrc/Core/Materials -Isrc/Core/Entities -Isrc/Core/OXPVerifier -Isrc/Core/Debug -Isrc/Core/Tables -Isrc/Core/MiniZip -Isrc/SDL/EXRSnapshotSupport
-    ADDITIONAL_OBJC_LIBS         = -lglu32 -lopengl32 -l$(OPENAL_LIBRARY_NAME).dll -l$(LIBPNG_LIBRARY_NAME).dll -lmingw32 -lSDLmain -lSDL -lvorbisfile.dll -lvorbis.dll -lz -lgnustep-base -l$(JS_IMPORT_LIBRARY) -lshlwapi -ldwmapi -lwinmm -mwindows
+    ADDITIONAL_OBJC_LIBS         = -lglu32 -lopengl32 -l$(OPENAL_LIBRARY_NAME).dll -l$(LIBPNG_LIBRARY_NAME).dll -lmingw32 -lSDLmain -lSDL -lvorbisfile.dll -lvorbis.dll -lz -lgnustep-base -lshlwapi -ldwmapi -lwinmm -mwindows
     ADDITIONAL_CFLAGS            = -DWIN32 -DNEED_STRLCPY `sdl-config --cflags` -mtune=generic -DWINVER=0x0601 -D_WIN32_WINNT=0x0601 -DNTDDI_VERSION=0x0A00000F
 # note the vpath stuff above isn't working for me, so adding src/SDL and src/Core explicitly
     ADDITIONAL_OBJCFLAGS         = -DLOADSAVEGUI -DWIN32 -DXP_WIN -Wno-import -std=gnu99 `sdl-config --cflags` -mtune=generic -DWINVER=0x0601 -D_WIN32_WINNT=0x0601 -DNTDDI_VERSION=0x0A00000F
-#     oolite_LIB_DIRS              += -L$(GNUSTEP_LOCAL_ROOT)/lib -L$(WIN_DEPS_DIR)/lib -L$(JS_LIB_DIR)
 
     ifeq ($(ESPEAK),yes)
         ADDITIONAL_OBJC_LIBS     += -l$(SPEECH_LIBRARY_NAME).dll
@@ -57,9 +50,16 @@ ifeq ($(GNUSTEP_HOST_OS),mingw32)
         GNUSTEP_OBJ_DIR_NAME     := $(GNUSTEP_OBJ_DIR_NAME).spk
     endif
 
-    ifneq ($(modern),yes)
+    ifeq ($(modern),yes)
+        ADDITIONAL_OBJC_LIBS     += -ljs -lnspr4
+    else
+        ifeq ($(debug),yes)
+            JS_IMPORT_LIBRARY        = js32ECMAv5dbg
+        else
+            JS_IMPORT_LIBRARY        = js32ECMAv5
+        endif
         ADDITIONAL_INCLUDE_DIRS  += -I$(WIN_DEPS_DIR)/include -I$(JS_INC_DIR)
-        ADDITIONAL_OBJC_LIBS     += -L$(WIN_DEPS_DIR)/lib
+        ADDITIONAL_OBJC_LIBS     += -L$(WIN_DEPS_DIR)/lib -l$(JS_IMPORT_LIBRARY)
     endif
 else  # Linux only uses modern build
     modern = yes

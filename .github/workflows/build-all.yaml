@@ -149,6 +149,16 @@ jobs:
           fetch-depth: 0
           submodules: true
 
+      - name: Download artifacts
+        uses: actions/download-artifact@v7
+        with:
+          name: oolite-doc
+          path: artifacts
+
+      - name: Extract PDFs
+        run: |
+          unzip -o artifacts/oolite-doc.zip
+
       - name: Download latest release assets
         uses: robinraju/release-downloader@v1
         with:
