@@ -1,6 +1,10 @@
 include $(GNUSTEP_MAKEFILES)/common.make
 include config.make
 
+vpath %.m src/SDL:src/Core:src/Core/Entities:src/Core/Materials:src/Core/Scripting:src/Core/OXPVerifier:src/Core/Debug
+vpath %.h src/SDL:src/Core:src/Core/Entities:src/Core/Materials:src/Core/Scripting:src/Core/OXPVerifier:src/Core/Debug:src/Core/MiniZip
+vpath %.c src/SDL:src/Core:src/BSDCompat:src/Core/Debug:src/Core/MiniZip:src/SDL/EXRSnapshotSupport
+vpath %.cpp src/SDL/EXRSnapshotSupport
 GNUSTEP_INSTALLATION_DIR         = $(GNUSTEP_USER_ROOT)
 ifeq ($(GNUSTEP_HOST_OS),mingw32)
     GNUSTEP_OBJ_DIR_NAME         := $(GNUSTEP_OBJ_DIR_NAME).win
@@ -8,6 +12,8 @@ endif
 GNUSTEP_OBJ_DIR_BASENAME         := $(GNUSTEP_OBJ_DIR_NAME)
 
 ifeq ($(GNUSTEP_HOST_OS),mingw32)
+	vpath %.rc src/SDL/OOResourcesWin
+
     # decide whether we are building legacy or modern based on gcc version,
     # which is available to all dev environments
     GCCVERSION                       := $(shell gcc --version | grep ^gcc | sed 's/^.* //g')
