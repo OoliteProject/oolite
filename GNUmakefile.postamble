@@ -96,14 +96,11 @@ after-all::
             else
 				$(CP) $(CP_FLAGS) deps/Windows-deps/x86/DLLs/*.dll $(PROGDIR)
             endif
+			$(RM) $(PROGDIR)/js32ECMAv5.dll
+			$(RM) $(PROGDIR)/js32ECMAv5dbg.dll
         endif
     else
 		$(CP) $(CP_FLAGS) ShellScripts/Linux/run_oolite.sh $(PROGDIR)
-    endif
-    ifeq ($(debug),yes)
-		$(RM) $(PROGDIR)/js32ECMAv5.dll
-    else
-		$(RM) $(PROGDIR)/js32ECMAv5dbg.dll
     endif
 
 after-clean::
