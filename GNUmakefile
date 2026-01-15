@@ -28,7 +28,11 @@ ifeq ($(GNUSTEP_HOST_OS),mingw32)
     WIN_DEPS_DIR                 = deps/Windows-deps/x86_64
     JS_INC_DIR                   = $(WIN_DEPS_DIR)/JS32ECMAv5/include
     JS_LIB_DIR                   = $(WIN_DEPS_DIR)/JS32ECMAv5/lib
-    JS_IMPORT_LIBRARY            = js
+    ifeq ($(debug),yes)
+        JS_IMPORT_LIBRARY            = js32ECMAv5dbg.dll  # to use jsdbg, gcc builds need ADDITIONAL_CFLAGS, ADDITIONAL_OBJCFLAGS: -DSTATIC_JS_API
+    else
+        JS_IMPORT_LIBRARY            = js
+    endif
 
     ifeq ($(modern),yes)
         SPEECH_LIBRARY_NAME          = espeak-ng

@@ -89,7 +89,7 @@ after-all::
     endif
     ifeq ($(GNUSTEP_HOST_OS),mingw32)
         ifeq ($(modern),yes)
-			ldd $(PROGDIR)/oolite.exe | grep $(MINGW_PREFIX) | awk '{print $$3}' | xargs -I {} $(CP) $(CP_FLAGS) {} $(PROGDIR)
+			ldd $(PROGDIR)/$(DEST_BIN) | grep $(MINGW_PREFIX) | awk '{print $$3}' | xargs -I {} $(CP) $(CP_FLAGS) {} $(PROGDIR)
         else
             ifeq ($(GNUSTEP_HOST_CPU),x86_64)
 				$(CP) $(CP_FLAGS) deps/Windows-deps/x86_64/DLLs/*.dll $(PROGDIR)
