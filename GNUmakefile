@@ -32,7 +32,7 @@ ifeq ($(GNUSTEP_HOST_OS),mingw32)
         JS_IMPORT_LIBRARY            = jsdbg
     else
         JS_IMPORT_LIBRARY            = js
-    fi
+    endif
 
     ifeq ($(modern),yes)
         SPEECH_LIBRARY_NAME          = espeak-ng
