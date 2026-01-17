@@ -7,7 +7,7 @@ build:
     - doxygen
     - graphviz
   jobs:
-    post_install:
+    pre_build:
       - ./Documentation/documentation_prebuild.sh
 
 mkdocs:
@@ -15,4 +15,4 @@ mkdocs:
 
 python:
   install:
-    - requirements: build/documentation/requirements.txt
+    - requirements: ./Documentation/requirements.txt
