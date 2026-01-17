@@ -8,7 +8,7 @@ build:
     - graphviz
   jobs:
     pre_build:
-      - ./Documentation/documentation_prebuild.sh
+      - ./Documentation/build_doxygen.sh
 
 mkdocs:
   configuration: build/documentation/mkdocs.yaml
