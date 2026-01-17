@@ -7,7 +7,7 @@ build:
     - doxygen
     - graphviz
   jobs:
-    pre_build:
+    post_install:
       - ./Documentation/documentation_prebuild.sh
 
 mkdocs:
