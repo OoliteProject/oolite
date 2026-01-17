@@ -26,12 +26,11 @@ run_script() {
 
     source "$SHARE/GNUstep/Makefiles/GNUstep.sh"
     make -f Makefile clean
-    if make -f Makefile $TARGET -j$(nproc); then
-        echo "✅ Oolite build completed successfully"
-    else
+    if ! make -f Makefile $TARGET -j$(nproc); then
         echo "❌ Oolite build failed" >&2
         return 1
     fi
+    echo "✅ Oolite build completed successfully"
 
     popd
 }

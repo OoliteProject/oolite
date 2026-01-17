@@ -1,0 +1,18 @@
+# mkdocs.yml
+site_name: Oolite Documentation
+site_url: https://oolite.readthedocs.io/
+
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.sections
+
+plugins:
+  - search
+
+nav:
+  - Home: index.md
+  - API Reference: api/html/index.html  # This points to the Doxygen output
+
+not_in_nav: "api/html/**"

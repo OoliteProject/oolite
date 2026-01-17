@@ -6,58 +6,8 @@ on:
   push:
 
 jobs:
-  common-steps:
-    runs-on: ubuntu-22.04
-    steps:
-      - name: install all the necessary packages
-        run: |
-          sudo apt update
-          echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | sudo debconf-set-selections
-          sudo apt -y install libreoffice ttf-mscorefonts-installer
-
-      - name: Checkout Oolite
-        uses: actions/checkout@v6
-        with:
-          path: oolite
-          fetch-depth: 0
-          submodules: true
-
-      - name: Calculate version number and set OOLITE_VERSION
-        id: version
-        run: |
-          set -x
-          cd oolite
-          # Build version string,
-          # taking into account that we may have just two digits
-          source ShellScripts/common/get_version.sh
-          cat build/OOLITE_VERSION.txt >> "$GITHUB_OUTPUT"
-
-      - name: generate PDFs
-        run: |
-          set
-          set -x
-          export OOLITE_VERSION=$(cat oolite/build/OOLITE_VERSION.txt | cut -d= -f2)
-          pip install ooo-dev-tools
-          find oolite/Doc -name "*.odt" -exec sh -c 'python3 oolite/tools/libreoffice.py --load {} --set OOLITE_VERSION=$OOLITE_VERSION --save oolite/Doc/$(basename {} .odt).pdf' \;
-          zip oolite-doc.zip oolite/Doc/*.pdf oolite/build/OOLITE_VERSION.txt
-
-      - name: Archive generated documentation
-        uses: actions/upload-artifact@v6
-        with:
-          name: oolite-doc
-          path: |
-            oolite-doc.zip
-          retention-days: 5
-
-      - name: Check Javascript with linter
-        run: |
-           npm install eslint
-           npm install --save-dev eslint eslint-plugin-es-x
-           npx eslint . || echo Ignore problems and continue
-
   build-linux:
     runs-on: ubuntu-22.04
-    needs: [common-steps]
     strategy:
       matrix:
         flavour: [pkg-appimage-snapshot, pkg-appimage-deployment, pkg-appimage]
@@ -101,7 +51,6 @@ jobs:
 
   build-flatpak:
     runs-on: ubuntu-latest
-    needs: [common-steps]
     container:
       image: ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-25.08
       options: --privileged
@@ -127,7 +76,6 @@ jobs:
 
   build-windows:
     runs-on: windows-latest
-    needs: [common-steps]
     strategy:
       matrix:
         flavour: [pkg-win-snapshot, pkg-win-deployment, pkg-win]
@@ -189,130 +137,8 @@ jobs:
             oolite/build/OoliteInstall*.exe
           retention-days: 5
 
-  build-doxygen:
-    runs-on: ubuntu-22.04
-    needs: [common-steps]
-    steps:
-      - name: install all the necessary packages
-        run: |
-          sudo apt update
-          sudo apt -y install graphviz lcov
-          sudo pip3 install coverxygen
-
-      - name: Checkout Oolite
-        uses: actions/checkout@v6
-        with:
-          path: oolite
-          fetch-depth: 0
-          submodules: true
-
-      - name: Download artifacts
-        uses: actions/download-artifact@v7
-        with:
-          name: oolite-doc
-          path: artifacts
-
-      - name: Extract artifacts
-        run: |
-          unzip -u artifacts/oolite-doc.zip
-
-      - name: set version
-        id: version
-        run: |
-          OOLITE_VERSION=$(cat oolite/build/OOLITE_VERSION.txt | cut -d= -f2)
-          echo "OOLITE_VERSION=${OOLITE_VERSION}" >> "$GITHUB_OUTPUT"
-          sed -i -e "/PROJECT_NUMBER\s*=/ s/=.*/=${OOLITE_VERSION}/" oolite/Doxyfile
-
-      - name: Download latest Doxygen
-        id: download-doxygen
-        uses: robinraju/release-downloader@v1.8
-        with:
-          repository: "doxygen/doxygen"
-
-          # A flag to set the download target as latest release
-          # The default value is 'false'
-          latest: false
-
-          # The github tag. e.g: v1.0.1
-          # Download assets from a specific tag/version
-          tag: "Release_1_15_0"
-
-          # The release id to download files from
-          # releaseId: ""
-
-          # The name of the file to download.
-          # Use this field only to specify filenames other than tarball or
-          # zipball, if any.
-          # Supports wildcard pattern (eg: '*', '*.deb', '*.zip' etc..)
-          fileName: "doxygen-*.linux.bin.tar.gz"
-
-          # Download the attached tarball (*.tar.gz)
-          tarBall: false
-
-          # Download the attached zipball (*.zip)
-          zipBall: false
-
-          # Relative path under $GITHUB_WORKSPACE to place the downloaded
-          # file(s). It will create the target directory automatically if
-          # not present eg:
-          # out-file-path: "my-downloads"
-          #   => It will create directory $GITHUB_WORKSPACE/my-downloads
-          out-file-path: "doxygen"
-
-          # A flag to set if the downloaded assets are archives and should
-          # be extracted. Checks all downloaded files if they end with zip,
-          # tar or tar.gz and extracts them, if true. Prints a warning if
-          # enabled but file is not an archive - but does not fail.
-          extract: true
-
-      - name: Check filesytem before Doxygen run
-        run: |
-          find . -not -path "./oolite/deps/*" -not -path "./oolite/Mac-specific/*" -not -path "./oolite/.git/*"
-
-      # - name: Run doxygen
-      #   uses: mattnotmitt/doxygen-action@v1.9.5
-      #   with:
-      #     working-directory: oolite
-
-      - name: Run Doxygen
-        run: |
-          echo Downloaded: ${{ fromJson(steps.download-doxygen.outputs.downloaded_files)[0] }}
-          cd oolite
-          ../doxygen/doxygen-*/bin/doxygen
-          python3 -m coverxygen --verbose --xml-dir doxygen/xml --src-dir . --output doxygen/coverxygen.info
-          mkdir -p doxygen/html/coverage
-          genhtml doxygen/coverxygen.info -o doxygen/html/coverage
-
-      # This is for debugging only and helps developing the workflow.
-      - name: Environment Variables 1
-        run: |
-          printenv | sort
-          find . -not -path "./oolite/deps/*" -not -path "./oolite/Mac-specific/*" -not -path "./oolite/.git/*"
-
-      - name: create tar ball
-        run: |
-          tar cvfz oolite-apidoc-${{ steps.version.outputs.OOLITE_VERSION }}.tgz -C oolite doxygen
-
-      # This is for debugging only and helps developing the workflow.
-      - name: Environment Variables 2
-        run: |
-          find . -not -path "./oolite/deps/*" -not -path "./oolite/Mac-specific/*" -not -path "./oolite/.git/*"
-
-      - name: Archive build tar ball
-        uses: actions/upload-artifact@v6
-        with:
-          name: oolite-documentation-nightly
-          path: |
-            oolite-*.tgz
-          retention-days: 5
-
-      - name: Upload github pages artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: oolite/doxygen/html
-
   release:
-    needs: [build-linux, build-flatpak, build-windows, build-doxygen]
+    needs: [build-linux, build-flatpak, build-windows]
     runs-on: ubuntu-22.04
     steps:
       ## This is for debugging only and helps developing the workflow.
@@ -320,28 +146,15 @@ jobs:
       #  run: |
       #    printenv | sort
 
-      - name: Download artifacts
-        uses: actions/download-artifact@v7
-        with:
-          path: artifacts
-
-      # This is for debugging only and helps developing the workflow.
-      - name: show filesystem after download
-        run: |
-          find . -type f | sort
-          echo
-          find . -type f -exec basename {} \; | sort
-
-      - name: Extract artifacts
-        run: |
-          ls -l artifacts
-          unzip -u artifacts/oolite-doc/oolite-doc.zip
-
-      - name: set version
+      - name: Calculate version number and set OOLITE_VERSION
         id: version
         run: |
-          OOLITE_VERSION=$(cat oolite/build/OOLITE_VERSION.txt | cut -d= -f2)
-          echo "OOLITE_VERSION=${OOLITE_VERSION}" >> "$GITHUB_OUTPUT"
+          set -x
+          cd oolite
+          # Build version string,
+          # taking into account that we may have just two digits
+          source ShellScripts/common/get_version.sh
+          cat build/OOLITE_VERSION.txt >> "$GITHUB_OUTPUT"
 
       - name: Remove old prereleases
         if: github.ref == 'refs/heads/master'
@@ -365,7 +178,6 @@ jobs:
           prerelease: true
           title: "Oolite ${{ steps.version.outputs.OOLITE_VERSION }}"
           files: |
-            artifacts/oolite-documentation-nightly/oolite-apidoc-*.tgz
             artifacts/oolite-windows-pkg-win-snapshot/OoliteInstall-*-dev.exe
             artifacts/oolite-windows-pkg-win-deployment/OoliteInstall-*.exe
             artifacts/oolite-windows-pkg-win/OoliteInstall-*.exe
@@ -382,22 +194,3 @@ jobs:
           repository: ${{ github.repository }}
           retain_days: 30
           keep_minimum_runs: 8
-
-  deploySite:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    needs: build-doxygen
-    runs-on: ubuntu-22.04
-    if: github.ref == 'refs/heads/master'
-
-    # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
-
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
