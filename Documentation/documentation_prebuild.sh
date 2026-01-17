@@ -4,6 +4,9 @@ run_script() {
     SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
     pushd "$SCRIPT_DIR"
 
+    set -x
+    echo "Running pre-build steps..."
+
     source ./build_doxygen_fn.sh
 
     if ! build_doxygen; then
@@ -22,4 +25,3 @@ status=$?
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     exit $status
 fi
-
