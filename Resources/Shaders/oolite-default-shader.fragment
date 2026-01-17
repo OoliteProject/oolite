@@ -96,10 +96,10 @@
 // Diffuse model selection - if Oren-Nayar is 1 then it is preferred
 // regardless of the Burley setting. If both 0, then Lambert is used
 #define OODIFFUSE_ORENNAYAR			1
-#define OODIFUSE_BURLEY				0
+#define OODIFFUSE_BURLEY			0
 
 
-#define NEED_EYE_VECTOR (OOSTD_SPECULAR || OOSTD_NORMAL_AND_PARALLAX_MAP || OODIFFUSE_ORENNAYAR || OODIFUSE_BURLEY)
+#define NEED_EYE_VECTOR (OOSTD_SPECULAR || OOSTD_NORMAL_AND_PARALLAX_MAP || OODIFFUSE_ORENNAYAR || OODIFFUSE_BURLEY)
 
 #define HAVE_ILLUMINATION (OOSTD_EMISSION_AND_ILLUMINATION_MAP || OOSTD_ILLUMINATION_MAP)
 
@@ -182,7 +182,7 @@ float diffuseOrenNayar(vec3 lightVector, vec3 eyeVector, vec3 normal, float glos
 #endif
 
 
-#if OODIFUSE_BURLEY
+#if OODIFFUSE_BURLEY
 // See the 2012 white paper "Physically Based Shading at Disney" by Brent Burley,
 // https://media.disneyanimation.com/uploads/production/publication_asset/48/asset/s2012_pbs_disney_brdf_notes_v3.pdf
 
@@ -477,7 +477,7 @@ void main(void)
 
 #if OODIFFUSE_ORENNAYAR
 	diffuseLight.rgb += diffuseOrenNayar(lightVector, eyeVector, normal, gloss, 1.0) * LIGHTSRC_RADIANCE_DIFFUSE.rgb;
-#elif OODIFUSE_BURLEY
+#elif OODIFFUSE_BURLEY
 	diffuseLight.rgb += diffuseBurley(lightVector, eyeVector, normal, halfVector, gloss, 1.0) * LIGHTSRC_RADIANCE_DIFFUSE.rgb;
 #else
 	diffuseLight.rgb += CalcDiffuseLight(lightVector, normal, LIGHTSRC_RADIANCE_DIFFUSE.rgb);

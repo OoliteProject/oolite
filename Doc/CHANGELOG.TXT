@@ -3,21 +3,32 @@ Changes between Oolite 1.90 and Oolite 1.92:
 General:
 ========
 * Default shipset updated to include normal, specular and gloss maps.
-* (Windows build) Oolite now has HDR Support, including the ability to take
-  HDR screenshots.
+* (Windows build) Oolite now has HDR Support, including the ability to
+  take HDR screenshots and to make use of color spaces beyond Rec709,
+  like DCI-P3 and BT-2020. HDR screebshot formats supported are Radiance
+  HDR (.hdr) and OpenEXR (.exr). Default is OpenEXR. This can be changed
+  using  the key "hdr-snapshot-format"="[.exr][.hdr]" in the user defaults
+  file.
 * (Windows build) New shortcut included with installation for starting 
   game in HDR mode.
+* Minimum required OpenGL version is now 3.3.
 * Added bloom effect, which can be toggled on/off with F9 key.
 * Oolite now renders to a framebuffer, which enables post-processing effects, 
   as well as full scene ACES tonemapping and gamma correction, before sending 
   screen to be displayed.
+* Full keyboard configuration now available in game.
 * Added new visual effect when cloaked.
-* Added colourblind support, available in game options screen.
+* Added Tokuyoshi & Kaplanyan specular anti aliasing to reduce specular
+  shimmering as much as possible.
+* Added optional Burley diffuse BRDF, currently dormant. To enable, define
+  OODIFFUSE_ORENANYAR to 0 and OODIFFUSE_BURLEY to 1 in both standard and
+  planet fragment shaders.
+* Added colour blind support, available in game options screen.
 * In colorblind mode, scanner blips of hostile ships are now drawn as X
   shapes instead of squares, to ensure easier recognition and enhance
   accessibility.
-* Full keyboard configuration now available in game.
 * In-game handling of non-US keyboard layouts.
+* (Windows build) JavaScript library is now thread safe.
 * Added ability to assign any key or joystick button to the "activate" or 
   "mode" functions of primable equipment.
 * Added ability to define any key combination for use on a mission screen.
@@ -36,7 +47,7 @@ General:
 * Added "start-script-limit-value" option to GNUstepdefaults file for control
   over startUp script time limit.
 * Brightened up lasers.
-* Improved sun rendering.
+* Improved sun rendering and reduced default sun glare amount.
 * Implemented user-defined planet dark-side illumination color, when an
   illumination map is in use.
 * Added an "update all" option to the Expansion Pack Manager.
@@ -44,10 +55,9 @@ General:
 * Added game paused message to game options when in flight.
 * (Windows/Linux) Physical and available system memory now reported in log header.
 * (Windows) Required minimum OS is now Windows 7.
-* Minimum OpenGL version is now 3.3.
 * Application startup command is now written to the log file.
 * Implemented [-]-help command line option - shows list of available command line
-  switches.
+  switches and compiler used to build the game.
 * Internal framerate cap increased from 200 to 240 fps.
 * OXZ Manager: Implemented filter by category.
 * OXZ Manager: Leading whitespaces in text filters are now ignored for reduced
@@ -55,7 +65,26 @@ General:
 * Updated the wormhole cloud effect.
 * Mouse flight sensitivity made configurable by editing the preferences file.
 * Implemented new ECM visual effect.
+* ECM now counts as a weapon for the purposes of the weapons on/off toggle.
 * Pause and unpause game is now allowed in mission screens while docked.
+* Since the console can be run locally as well as remotely, when the OXP paths are
+  requested we now ensure that potential usernames contained within are masked
+  (replaced by an asterisk).
+* (Windows build) Oolite can now be built in such a way that generated files and
+  folders can be created in the %localappdata% user folder rather than the root
+  game folder. Default is still root game folderm however the alternative is a
+  more modern approach that separates user data from program files in a clean way.
+* (Linux) Oolite is now distributed as AppImage and Flatpak packages.
+* Improved performance accross the board by utilizing modern compilers, libraries
+  and optimizations to build the game binaries.
+* Now using espeak-ng instead of legacy espeak for text-to-speech functionality.
+* (Windows) OXP Verifier: We now identify the default OS app for opening .log
+  files and use that to open the verifier log. We cannoot use Wordpad anymore
+  because it was removed in the latest versions of Windows.
+* Added the -nodust command line option, which skips rendering of space dust.
+* Raised JavaScript runtime memory from 32 to 256 MB.
+* The user defaults file name has been changed from .GNUstepDefaults to
+  OoliteDefaults.plist.
 
 Expansion Pack Development:
 ===========================
@@ -78,11 +107,32 @@ Modified Plists:
 * equipment.plist: default_activate_key and default_mode_key allows a default key
   setting for the activate and mode keys. If, when loading, a conflict with another
   key is encountered, the setting will be ignored.
+* verifyOXP.plist: added missing "exhaust_emissive_color" key.
 
 Scripting:
 ----------
 * Added world event consoleMessageReceived.
 * Added world event guiSelectedRowChanged.
+* Added world event guiSelectedRow.
+* Added ability to select SDR (and, for Windows only, HDR too) tone mappers. To
+  achieve this, the JS properties oolite.sdrToneMapper and oolite.hdrToneMapper
+  are now available. Potential values for oolite.sdrToneMapper are
+  "OOSDR_TONEMAPPER_ACES" (default), "OOSDR_TONEMAPPER_AgX", "OOSDR_TONEMAPPER_UC2",
+  "OOSDR_TONEMAPPER_HEJLDAWSON", "OOSDR_TONEMAPPER_UCHIMURA",
+  "OOSDR_TONEMAPPER_REINHARD" and "OOSDR_TONEMAPPER_NONE". Potential values for
+  oolite.hdrToneMapper (Windows only) are "OOHDR_TONEMAPPER_ACES_APPROX" (default),
+  "OOHDR_TONEMAPPER_DICE", "OOHDR_TONEMAPPER_UCHIMURA", "OOHDR_TONEMAPPER_REINHARD"
+  and "OOHDR_TONEMAPPER_NONE".
+* Added the oolite.postFX JS property. Takes as argument a number from 1 to 8 and
+  applies a specific shader post-processing effect to the output image. Options are
+  protanopia filter, deuteranopia filter, tritanopia filter, cloak effect, FXAA,
+  old movie effect, CRT effect and ECM effect respectively. Set postFX=0 to return
+  to normal state.
+* Added the oolite.colorSaturation JS property, ranging from 0.0 (black and white
+  image) to 2.0 (fully color saturated). Best results are achieved if this is kept
+  below 1.5.
+* Moved the timeAccelerationFactor global object under the oolite JS object. To
+  adjust time acceleration factor via script now use oolite.timeAccelerationFactor.
 * ship.canAwardEquipment now accepts optional additional parameter of "context", 
   enabling checking of any context for the equipment item.
 * Added player.ship.previousSystem property, which contains the system ID of 
@@ -105,24 +155,25 @@ Scripting:
 Bug Fixes:
 ==========
 * Prevented native code exception when too many choices have been defined for a 
-  mission screen that will fit on the current screen size.
+  mission screen than will fit on the current screen size.
+* Fixed crash when attempting to display the planet the player misjumped from in
+  the system information screen.
 * Splinters that have a defined cargo will now spawn with that, instead of 
   defaulting to minerals.
 * Fixed issue where destination ID was not being passed to shipWillEnterWitchspace
   when the player is docked with another vessel.
-* (Mac build) Fixed possible memory leak.
 * Fixed some JS errors in oolite-populator.js and priorityAI.js.
 * Fixed issue where hyperspace destination on the status screen and the witchspace
   destination HUD element were not honouring the system concealment property.
 * Added guard against NaNs in the atmosphere shader with large planets.
 * Fixed "index out of range" error that can occur if a HUD did not define MFD's
   and player tried to select one.
-* Fixed inability to launch Oolite properly from within the Windows command console.
+* Fixed inability to launch Oolite properly from within the Windows command console
+  in recent Windows versions.
 * Fixed missiles for Fer-de-lance in shipyard.plist to match shipdata.plist.
 * Fixed transition to black and white on death when TAF not zero.
-* Fixed some gcc format errors.
 * Fixed issue where escaping a nova would result in the destination system's sun 
-  having the same size of the nova system's sun.
+  having the same size as the nova system's sun.
 * Fixed issue with ships that have forward mining laser refusing mining opportunities.
 * Fixed crash in the tutorial caused by non-retained objects.
 * Fixed issue where weapon spec in shipyard.plist not being applied to new ships.
@@ -133,6 +184,12 @@ Bug Fixes:
 * Fixed issue where viewDirectionChanged event was not firing for "VIEW_GUI_SCREEN".
 * Added extra docking tip in the tutorial, reminding pilots to keep moving towards the
   rear of the docking back, until the auto-dock takes over.
+* Fixed bad memory allocation of environment variable strings during startup under
+  Windows.
+* Mines spawned by script now get their owners properly assigned.
+* Added protection for when addGroup fails to add any ships in the populator script.
+* Fixed bug where misjumping from within a planet's atmosphere would result in death by
+  overheating as soon as the player attempted to move.
 
 -------------------------------------------------------------------------------
 
@@ -421,6 +478,8 @@ Modified Plists:
 * equipment.plist: A "display_color" property has been added, which 
   controls the color used to display this item on the Ship Outfitting and
   Status screens.
+* explosions.plist: Explosion definitions can now specify the 'brightness'
+  property. Default is 1.0 and can be any float higher than 1.0.
   
 Scripting:
 ----------
