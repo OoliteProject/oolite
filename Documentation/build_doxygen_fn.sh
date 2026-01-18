@@ -11,7 +11,7 @@ build_doxygen() {
     cp -r ../../Documentation/* ./
     curl -L https://github.com/jothepro/doxygen-awesome-css/archive/refs/tags/v2.4.1.tar.gz -o ./doxygen.tar.gz
     tar -xvzf doxygen.tar.gz --strip-components=1
-    cd ../..
+    cd ../Documentation
     if ! doxygen; then
         echo "❌ Doxygen build failed" >&2
         return 1
