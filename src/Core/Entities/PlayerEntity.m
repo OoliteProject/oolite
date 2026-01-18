@@ -9537,6 +9537,18 @@ static NSString *last_outfitting_key=nil;
 
 				}
 				
+				// is this item a sell option?
+				if ([self isEquipmentSellOption:eqKey])
+				{
+					//desc = [NSString stringWithFormat:DESC(@"equip-sell-@"), desc]; //Uncomment to add "equip sell" string ("Sell: ") at the beginning to the entry.
+					if (installTime == 0)
+					{
+						installTime = 600 + price;
+					}
+					[gui setColor:[gui colorFromSetting:kGuiEquipmentSellColor defaultValue:[OOColor orangeColor]] forRow:row];
+
+				}
+				
 				NSString *timeString = [UNIVERSE shortTimeDescription:installTime];
 				NSString *priceString = [NSString stringWithFormat:@" %@ ", OOCredits(price)];
 
@@ -9731,7 +9743,13 @@ static NSString *last_outfitting_key=nil;
 			{
 				if([eqKey hasSuffix:@"ENERGY_UNIT"] && ([self hasEquipmentItem:@"EQ_ENERGY_UNIT_DAMAGED"] || [self hasEquipmentItem:@"EQ_ENERGY_UNIT"] || [self hasEquipmentItem:@"EQ_NAVAL_ENERGY_UNIT_DAMAGED"]))
 					desc = [NSString stringWithFormat:DESC(@"@-will-replace-other-energy"), desc];
-				if (weight > 0) desc = [NSString stringWithFormat:DESC(@"upgradeinfo-@-weight-d-of-equipment"), desc, weight];
+				
+				// In case the menu entry is for selling items:
+				if ([self isEquipmentSellOption:eqKey]) {
+					//desc = [NSString stringWithFormat:DESC(@"upgradeinfo-@-price-is-for-refunding"), desc]; //Uncomment to enable "price is for refunding" infotext at the end of the description text.
+					if (weight > 0) desc = [NSString stringWithFormat:DESC(@"upgradeinfo-@-frees-weight-d-of-equipment"), desc, weight];
+				}
+				else if (weight > 0) desc = [NSString stringWithFormat:DESC(@"upgradeinfo-@-weight-d-of-equipment"), desc, weight];
 			}
 			if (formatString) desc = [NSString stringWithFormat:formatString, desc];
 			[gui addLongText:desc startingAtRow:GUI_ROW_EQUIPMENT_DETAIL align:GUI_ALIGN_LEFT];
@@ -10374,7 +10392,7 @@ static NSString *last_outfitting_key=nil;
 	
 	price *= priceFactor;  // increased prices at some stations
 	
-	if (price > credits)
+	if (price > credits && ![self isEquipmentSellOption:eqKey])
 	{
 		return NO;
 	}
@@ -10594,6 +10612,10 @@ static NSString *last_outfitting_key=nil;
 	
 	if ([self canAddEquipment:eqKey inContext:@"purchase"])
 	{
+		if ([self isEquipmentSellOption:eqKey]) {
+			credits += price;
+			return YES;
+		}
 		credits -= price;
 		[self addEquipmentItem:eqKey withValidation:NO inContext:@"purchase"]; // no need to validate twice.
 		if (isRepair)
@@ -11544,6 +11566,19 @@ static NSString *last_outfitting_key=nil;
 	return YES;
 }
 
+- (BOOL) isEquipmentSellOption:(NSString *)equipmentKey
+{
+	return [equipmentKey hasSuffix:@"_SELL"];
+}
+
+- (BOOL) canAddEquipmentSellOption:(NSString *)equipmentKey
+{
+	if ([equipmentKey hasSuffix:@"_SELL"]) {
+		equipmentKey = [equipmentKey substringToIndex:[equipmentKey length] - [@"_SELL" length]];
+		return [self hasEquipmentItem:equipmentKey];
+	}
+	return false;
+}
 
 - (BOOL) addEquipmentItem:(NSString *)equipmentKey inContext:(NSString *)context
 {

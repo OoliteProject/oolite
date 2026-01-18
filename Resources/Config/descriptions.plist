@@ -1843,9 +1843,12 @@
 	"equip-cash-value"				= "Cash: [credits|dcr].";
 	"equip-no-equipment-available-for-purchase" = "No equipment available for purchase.";
 	"equip-repair-@"				= " Repair:%@";
+	"equip-sell-@"					= " Sell:%@";
+	"upgradeinfo-@-price-is-for-refunding" = "%@ (Price will be refunded for the existing system).";
 	"upgradeinfo-@-price-is-for-repairing" = "%@ (Price is for repairing the existing system).";
 	"@-will-replace-other-energy"	="%@ (The installed energy recharge unit will be removed and sold for scrap).";
 	"upgradeinfo-@-weight-d-of-equipment" = "%@\nTakes up %dt of cargo space.";
+	"upgradeinfo-@-frees-weight-d-of-equipment" = "%@\nFrees up %dt of cargo space.";
 	"forward-facing-string"			= " Forward ";
 	"aft-facing-string"				= " Aft ";
 	"port-facing-string"			= " Port ";
