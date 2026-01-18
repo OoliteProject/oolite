@@ -1073,7 +1073,7 @@ FULL_SIDEBAR           = NO
 # files will be copied as-is; there are no commands or markers available.
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
-HTML_EXTRA_FILES       = build/documentation/doxygen-awesome-darkmode-toggle.js
+HTML_EXTRA_FILES       = doxygen-awesome-darkmode-toggle.js
 
 
 # The HTML_COLORSTYLE_HUE tag controls the color of the HTML output. Doxygen
