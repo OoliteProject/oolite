@@ -135,6 +135,11 @@ jobs:
       # - name: Environment Variables
       #  run: |
       #    printenv | sort
+      - name: Checkout Oolite
+        uses: actions/checkout@v6
+        with:
+          path: oolite
+          fetch-depth: 0
 
       - name: Calculate version number and set OOLITE_VERSION
         id: version
