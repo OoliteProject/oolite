@@ -190,6 +190,8 @@ Bug Fixes:
 * Added protection for when addGroup fails to add any ships in the populator script.
 * Fixed bug where misjumping from within a planet's atmosphere would result in death by
   overheating as soon as the player attempted to move.
+* Fixed a bug where loading a game from the command line would result in an extra key
+  press being required before keyboard input started getting processed.
 
 -------------------------------------------------------------------------------
 
