@@ -100,12 +100,14 @@ MA 02110-1301, USA.
 	NSDictionary			*fullscreenDisplayMode;
 	
 	BOOL					stayInFullScreenMode;
+	BOOL					_finishedLaunching;
 #endif
 }
 
 + (GameController *) sharedController;
 
 - (void) applicationDidFinishLaunching:(NSNotification *)notification;
+- (BOOL) finishedLaunching;
 
 - (BOOL) isGamePaused;
 - (void) setGamePaused:(BOOL)value;
