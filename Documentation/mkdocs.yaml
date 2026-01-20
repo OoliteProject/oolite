@@ -2,6 +2,9 @@
 site_name: Oolite Documentation
 site_url: https://oolite.readthedocs.io/
 
+markdown_extensions:
+  - attr_list
+
 theme:
   name: material
   features:
