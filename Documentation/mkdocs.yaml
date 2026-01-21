@@ -5,8 +5,7 @@ site_url: https://oolite.readthedocs.io/
 markdown_extensions:
   - attr_list
   - md_in_html
-  - pymdownx.meta
-  - pymdownx.extra
+  - meta
 
 theme:
   name: material
