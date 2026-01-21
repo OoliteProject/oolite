@@ -1,1 +1,1 @@
-![Reference Sheet](OoliteRS.pdf){ type=application/pdf style="width:100%;height:600px" }
+![Reference Sheet](OoliteRS.pdf#navpanes=0){ type=application/pdf }
