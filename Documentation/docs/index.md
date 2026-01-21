@@ -2,9 +2,12 @@
 
 # Oolite
 
+For end-user documentation, see [oolite.space](http://www.oolite.space/) and
+[Elite Wiki](http://wiki.alioth.net/index.php/Oolite_Main_Page).
+
 ## Installation
 
-## Mac OS X
+### Mac OS X
 
 Oolite requires Mac OS X 10.5 or later
 
@@ -12,13 +15,16 @@ Drag the 'Oolite' folder (containing Oolite, this ReadMe, the License and the 'A
 
 To run the game, double-click on the file 'Oolite.app' (the Oolite icon) in the 'Oolite' folder.
 
-## Windows
+### Windows
 
 A folder called 'Oolite' has been created in Start -> Program Files. This folder has icons for running the game, the reference sheet, the link to the official Oolite website, the Advice for New Commanders guide, this ReadMe and an uninstall program.
 
 To run the game, choose the Oolite icon in the 'Oolite' folder.
 
-## Linux *(oolite.space package)*
+### Linux *(oolite.space package)*
+
+There are tools like [Gear Lever](https://github.com/mijorus/gearlever) you can use to simplify
+managing AppImages including adding icons to your menu.
 
 *(this section is not applicable for installed packages downloaded from Linux repositories)*
 
@@ -48,31 +54,31 @@ system-wide Oolite installation /opt/Oolite/doc/README.TXT
 
 home-folder Oolite installation ~/GNUstep/Applications/Oolite/doc/README.TXT
 
-**Start Menu**
+## Start Menu
 
 When starting Oolite, a menu with six options will be displayed.
 
-## Start New Commander:
+### Start New Commander
 
 Start a new commander. Three starting scenarios are available by default, though expansion packs may add more. New players may wish to start with the Tutorial scenario which introduces the basics of flight and combat. A commander started with the Strict Mode option will never have any expansion packs affecting the game-play, even if these are installed at a later stage.
 
-## Load Commander:
+### Load Commander
 
 Load an existing commander file.
 
-## View Ship Library:
+### View Ship Library
 
 View the specifications and descriptions of the ships and other common space objects.
 
-## Game Options:
+### Game Options
 
 Opens the Game Options screen to allow for game settings to be viewed and changed (See Game Options below for more details).
 
-## Manage Expansion Packs:
+### Manage Expansion Packs
 
 Install and remove mod packs. Not all mod packs can be installed and removed by this method – others, especially older ones, can be found at [https://wiki.alioth.net/index.php/OXP\_List](http://wiki.alioth.net/index.php/OXP_List).
 
-## Exit Game:
+### Exit Game
 
 Exit the game.
 
@@ -86,7 +92,7 @@ Oolite for Windows and Linux can be controlled from the keyboard, joystick or mo
 
 The list below describes the default key settings.
 
-## In Dock Commands:
+### In Dock Commands
 
 ||||||||
 |---|---|---|---|---|---|---|
@@ -169,7 +175,7 @@ The list below describes the default key settings.
 |||||**?**||Changes the commodity filter from “All goods”, “Carried in stock”, “Carried”, “In stock”, “No transport restrictions”, and “Transport restrictions”|
 |||||**/**||Changes the sort from “Default”, “Alphabetical”, “Price”, “Quantity in stock”, “Quantity in hold”, and “Unit mass”.|
 
-## Flight Key Commands:
+### Flight Key Commands
 
 ||||||
 |---|---|---|---|---|
@@ -292,7 +298,7 @@ The list below describes the default key settings.
 
 ## Changing user preferences in Windows / Linux
 
-## The user preferences defaults file .GNUstepDefaults
+### The user preferences defaults file .GNUstepDefaults
 
 The current settings for the following 'Game Options...' menu entries:
 
@@ -316,13 +322,11 @@ The recommended way to change these settings is to use the in-game options menu.
 
 See below a couple of examples on how to directly edit the preferences file for both Windows and Linux. The examples focus in changing from windowed mode to full screen mode at a given resolution, by setting the 'display\_width' and 'display\_height' values, and ensuring the 'fullscreen' property is set to 'YES'.
 
-## Example 1 of 2
+### Example 1 of 2
 
 The following settings will give a full screen display of 800x600, one quarter sound volume, wireframe graphics enabled, and graphics detail with simple shader effects enabled:
 
 *(Note that if the 'fullscreen' property is set to 'NO', Oolite will read the 'window\_height' and 'window\_width' parameter values and will start in a 640x480 window.)*
-
-a. Windows OpenStep format:
 
 {
 
@@ -352,69 +356,9 @@ window\_width = 640;
 
 }
 
-b. Linux XML format:
-
-<?xml version="1.0" encoding="UTF-8"?>
-
-<!DOCTYPE plist PUBLIC "-//GNUstep//DTD plist 0.9//EN" "<http://www.gnustep.org/plist-0_9.xml>">
-
-<plist version="0.9">
-
-<dict>
-
-<key>NSGlobalDomain</key>
-
-<dict>
-
-</dict>
-
-<key>oolite</key>
-
-<dict>
-
-<key>detailLevel</key>
-
-<integer>2</integer>
-
-<key>display\_width</key>
-
-<integer>800</integer>
-
-<key>display\_height</key>
-
-<integer>600</integer>
-
-<key>fullscreen</key>
-
-<string>YES</string>
-
-<key>volume\_control</key>
-
-<real>0.25</real>
-
-<key>window\_height</key>
-
-<integer>480</integer>
-
-<key>window\_width</key>
-
-<integer>640</integer>
-
-<key>wireframe-graphics</key>
-
-<string>YES</string>
-
-</dict>
-
-</dict>
-
-</plist>
-
 ## Example 2 of 2
 
 The following settings will give a full screen display of 1400x1050, full sound volume, wireframe graphics will be replaced by textured surfaces, the Javascript runtime will be set to 64mb (default is 32mb), and extra graphics detail with full effects active:
-
-a. Windows OpenStep format:
 
 {
 
@@ -446,93 +390,15 @@ window\_width = 640;
 
 }
 
-b. Linux XML format:
-
-<?xml version="1.0" encoding="UTF-8"?>
-
-<!DOCTYPE plist PUBLIC "-//GNUstep//DTD plist 0.9//EN" "<http://www.gnustep.org/plist-0_9.xml>">
-
-<plist version="0.9">
-
-<dict>
-
-<key>NSGlobalDomain</key>
-
-<dict>
-
-</dict>
-
-<key>oolite</key>
-
-<dict>
-
-<key>detailLevel</key>
-
-<integer>2</integer>
-
-<key>display\_width</key>
-
-<integer>1400</integer>
-
-<key>display\_height</key>
-
-<integer>1050</integer>
-
-<key>fullscreen</key>
-
-<string>YES</string>
-
-<key>jsruntime-size-mib</key>
-
-<integer>64</integer>
-
-<key>volume\_control</key>
-
-<real>0.25</real>
-
-<key>window\_height</key>
-
-<integer>480</integer>
-
-<key>window\_width</key>
-
-<integer>640</integer>
-
-<key>wireframe-graphics</key>
-
-<string>YES</string>
-
-</dict>
-
-</dict>
-
-</plist>
-
 There are quite a few other settings that can be used inside .GNUstepDefaults and that do not have a relevant Oolite menu entry.
 
 For example:
-
-a. Windows OpenStep format:
 
 "use-texture-lod-bias" = NO;
 
 "splash-screen" = NO;
 
 "mouse-control-in-windowed-mode" = YES;
-
-b. Linux XML format:
-
-<key>use-texture-lod-bias</key>
-
-<string>NO</string>
-
-<key>splash-screen</key>
-
-<string>NO</string>
-
-<key>mouse-control-in-windowed-mode</key>
-
-<string>YES</string>
 
 For more information please refer to [https://wiki.alioth.net/index.php/Hidden\_Settings\_in\_Oolite](http://wiki.alioth.net/index.php/Hidden_Settings_in_Oolite) .
 
@@ -588,11 +454,11 @@ Your feedback is essential to keep improving Oolite.
 
 A lot of effort has been put in making Oolite stable. In the, nowadays rare, event Oolite crashes, it will be highly appreciated if you let us know by raising an issue at <https://github.com/OoliteProject/oolite/issues> or by creating a topic in trhe “Testing and Bug reports” section of the Oolite Bulletin Board, found here: <https://bb.oolite.space/viewforum.php?f=3>. In both cases, attaching the crash log can be very helpful in solving problems. It is located at
 
-Mac OS X: ~/Library/Logs/CrashReporter/Oolite.crash.log
-
 Windows: *<Oolite installation folder>*/oolite.app/Logs/Latest.log
 
 Linux: ~/.Oolite/Logs/Latest.log
+
+Mac OS X: ~/Library/Logs/CrashReporter/Oolite.crash.log
 
 Be encouraged to drop by the Oolite Bulletin Board at https://bb.oolite.space to give feedback and chat about the game. It’s the friendliest place this side of Riedquat!
 

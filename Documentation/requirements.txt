@@ -1,3 +1,4 @@
 mkdocs
 mkdocs-material
 mdx-include
+mkdocs-pdf

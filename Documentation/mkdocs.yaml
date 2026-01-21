@@ -27,6 +27,7 @@ theme:
 
 plugins:
   - search
+  - mkdocs-pdf
 
 nav:
   - Home: index.md
