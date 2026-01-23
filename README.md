@@ -17,14 +17,34 @@ Oolite can be heavily customized via expansions. These modify the gameplay, add 
 
 ![Oolite Customized](https://addons.oolite.space/i/gallery/oxp/large/another_commander_ViperNew02.png)
 
-Oolite for all platforms can be built from this repository. Here is a quick
-guide to the source tree.
-
-For end-user documentation, see [oolite.space](http://www.oolite.space/) and
-[Elite Wiki](http://wiki.alioth.net/index.php/Oolite_Main_Page).
-
 Please join the [Oolite Bulletin Board](https://bb.oolite.space/), a friendly community of Oolite fans
 and developers!
+
+## Installing Oolite
+
+You can download the latest version from [here](https://github.com/OoliteProject/oolite/releases).
+
+### Windows
+
+The Windows NSIS installer is named OoliteInstall-XXX-win.exe where XXX is a version number. 
+Double click the downloaded file to run the installer.
+
+### Linux
+
+Linux has Flatpak and AppImage versions. The Flatpak is named space.oolite.Oolite_XXX.flatpak 
+where XXX is a version number. Many Linux package managers support Flatpak so you should be able to
+double click the downloaded file to install it.
+
+The AppImage is named Oolite_XXX-x86_64.AppImage where XXX is a version number. Download this 
+file to where you would like it stored, make it executable and run, for example by typing 
+
+  chmod +x Oolite_XXX-x86_64.AppImage
+  ./Oolite_XXX-x86_64.AppImage
+
+## Playing Oolite
+
+For more information, see [oolite.space](http://www.oolite.space/) and
+[Elite Wiki](http://wiki.alioth.net/index.php/Oolite_Main_Page).
 
 ## Building from Source
 
@@ -131,6 +151,9 @@ make -f Makefile release OBJCFLAGS="-fobjc-exceptions -Wno-format-security" -j$(
 ```
 
 ## Contents of repository
+Oolite for all platforms can be built from this repository. Here is a quick
+guide to the source tree.
+
 - **debian**:  Files to enable automatic setup under Linux using dpkg (Debian package manager) tools
 - **DebugOXP**:  [Debug.oxp](http://wiki.alioth.net/index.php/Debug_OXP), the expansion pack that enables console support in debug and test release builds
 - **deps**
