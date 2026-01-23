@@ -17,9 +17,6 @@ Oolite can be heavily customized via expansions. These modify the gameplay, add 
 
 ![Oolite Customized](https://addons.oolite.space/i/gallery/oxp/large/another_commander_ViperNew02.png)
 
-Oolite for all platforms can be built from this repository. Here is a quick
-guide to the source tree.
-
 Please join the [Oolite Bulletin Board](https://bb.oolite.space/), a friendly community of Oolite fans
 and developers!
 
@@ -154,6 +151,9 @@ make -f Makefile release OBJCFLAGS="-fobjc-exceptions -Wno-format-security" -j$(
 ```
 
 ## Contents of repository
+Oolite for all platforms can be built from this repository. Here is a quick
+guide to the source tree.
+
 - **debian**:  Files to enable automatic setup under Linux using dpkg (Debian package manager) tools
 - **DebugOXP**:  [Debug.oxp](http://wiki.alioth.net/index.php/Debug_OXP), the expansion pack that enables console support in debug and test release builds
 - **deps**
