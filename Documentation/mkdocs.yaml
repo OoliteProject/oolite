@@ -34,6 +34,7 @@ plugins:
 nav:
   - Home: index.md
   - Reference Sheet: reference.md
+  - Privacy Policy: privacy.md
   - API Reference: api/html/index.html  # This points to the Doxygen output
 
 not_in_nav: "api/html/**"

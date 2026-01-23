@@ -2,9 +2,6 @@
 
 # Oolite
 
-For end-user documentation, see [oolite.space](http://www.oolite.space/) and
-[Elite Wiki](http://wiki.alioth.net/index.php/Oolite_Main_Page).
-
 ## Installation
 
 ### Mac OS X
@@ -22,9 +19,6 @@ A folder called 'Oolite' has been created in Start -> Program Files. This folder
 To run the game, choose the Oolite icon in the 'Oolite' folder.
 
 ### Linux *(oolite.space package)*
-
-There are tools like [Gear Lever](https://github.com/mijorus/gearlever) you can use to simplify
-managing AppImages including adding icons to your menu.
 
 *(this section is not applicable for installed packages downloaded from Linux repositories)*
 
@@ -96,205 +90,174 @@ The list below describes the default key settings.
 
 ||||||||
 |---|---|---|---|---|---|---|
-|**1** or **F1**||**Launch**|||||
-||||Propels your spacecraft from docked station.||||
+|**1** or **F1**|**Launch**|Propels your spacecraft from docked station.||||
 ||||||||
-|**2** or **F2**||**Quick-Save / Save / Load**|||||
-||||Use **up** and **down** cursor keys to select, **Enter** to choose.||||
-|||**Game Options...**|||||
-||||**Autosave**||||
-|||||Use left and right cursor keys to disable/enable the 'Autosave' feature.  When enabled, 'Autosave' will create a saved game every time you launch from a planetary station.|||
-||||**Docking Clearance Protocol**||||
-|||||When enabled, the main Galcop station (and some OXP stations) will use the docking clearance protocol, and docking without clearance will result in a fine.|||
-||||**Source Volume**||||
-|||||Use **left** or **right** cursor keys to adjust the volume for effects and spoken messages.|||
-||||**Spoken Messages**||||
-|||||Use **left** or **right** cursor keys or **Enter** to toggle speech off/on.  Spoken messages uses the default voice chosen in System Preferences on Mac, or a selectable voice on Windows and Linux.|||
-||||**Music**||||
-|||||Use **left** and **right** cursor keys to toggle music off/on. Mac users have the additional option of “iTunes”.|||
-||||**Full Screen Mode**||||
-|||||Use **left** or **right** cursor keys to select screen size and refresh rate.  Changes will only apply the next time you switch into full screen mode.|||
-||||**Play in Full Screen / Play in Window (Windows / Linux only)**||||
-|||||Press **Enter** to toggle between Window and Full Screen game view.|||
-|||||(Mac: Press **⌘-Ctrl-F** during flight to toggle between the two.  All platforms: Press **F12** at any given time during a game session to toggle between the two.)|||
-||||**HDR Max Brightness (nits)**||||
-|||||For HDR-capable systems only. Sets the maximum brightness level the HDR monitor is capable of producing.  Use **left** and **right** cursor keys to adjust the value.|||
-||||**HDR Paper White Brightness (nits)**||||
-|||||For HDR-capable systems only. Controls how bright a paper white surface should be.  Use **left** and **right** cursor keys to adjust the value.|||
-||||**Wireframe Graphics**||||
-|||||Use **left** and **right** cursor keys to deselect/select retro-look wireframe graphics mode.|||
-||||**Graphics Detail**||||
-|||||Use **left** or **right** cursor keys to select the desired level of graphics detail between “Minimal Detail”, “Normal Detail”, “Shaders Enabled” and “Extra Detail”. The number of options available depends on your graphics hardware.|||
-||||**Gamma**||||
-|||||Use **left** or **right** cursor keys to adjust the gamma correction setting if your monitor requires it.|||
-||||**Field Of View**||||
-|||||Adjusts the field of view of your viewscreen. Value range (in degrees) is from 30 to 80. Lower values will limit what you can see, and make objects appear larger. Higher values will increase how much you can see, but make objects appear smaller.  Use **left** or **right** cursor keys to adjust the setting.|||
-||||**Colorblind Mode**||||
-|||||Adjusts the color palette to improve the visibility of the game for colorblind players. Options are “None”, “Protanopia”, “Deuteranopia”, and “Tritanopia”. Use **left** or **right** cursor keys to change the mode.|||
-||||**Joystick Configuration**||||
-|||||Press **Enter** to go to the joystick calibration and configuration screen.|||
-||||**Keyboard Configuration**||||
-|||||Press Enter to go to the keyboard configuration screen to view and change any of the keyboard commands.|||
-||||**Back**||||
-|||||Brings you back to the previous screen.|||
-|||**End Game and Return to Menu**|||||
-||||Press **Enter** to reset the game to the starting menu||||
-|||**Exit Game (Windows / Linux only)**|||||
-||||Press **Enter** to quit the game.||||
+|**2** or **F2**|**Quick-Save / Save / Load**|Use **up** and **down** cursor keys to select, **Enter** to choose.||||
+||**Game Options...**|||||
+|||**Autosave**|Use left and right cursor keys to disable/enable the 'Autosave' feature.  When enabled, 'Autosave' will create a saved game every time you launch from a planetary station.|||
+|||**Docking Clearance Protocol**|When enabled, the main Galcop station (and some OXP stations) will use the docking clearance protocol, and docking without clearance will result in a fine.|||
+|||**Source Volume**|Use **left** or **right** cursor keys to adjust the volume for effects and spoken messages.|||
+|||**Spoken Messages**|Use **left** or **right** cursor keys or **Enter** to toggle speech off/on.  Spoken messages uses the default voice chosen in System Preferences on Mac, or a selectable voice on Windows and Linux.|||
+|||**Music**|Use **left** and **right** cursor keys to toggle music off/on. Mac users have the additional option of “iTunes”.|||
+|||**Full Screen Mode**|Use **left** or **right** cursor keys to select screen size and refresh rate.  Changes will only apply the next time you switch into full screen mode.|||
+|||**Play in Full Screen / Play in Window (Windows / Linux only)**|Press **Enter** to toggle between Window and Full Screen game view.|||
+||||(Mac: Press **⌘-Ctrl-F** during flight to toggle between the two.  All platforms: Press **F12** at any given time during a game session to toggle between the two.)|||
+|||**HDR Max Brightness (nits)**|For HDR-capable systems only. Sets the maximum brightness level the HDR monitor is capable of producing.  Use **left** and **right** cursor keys to adjust the value.|||
+|||**HDR Paper White Brightness (nits)**|For HDR-capable systems only. Controls how bright a paper white surface should be.  Use **left** and **right** cursor keys to adjust the value.|||
+|||**Wireframe Graphics**|Use **left** and **right** cursor keys to deselect/select retro-look wireframe graphics mode.|||
+|||**Graphics Detail**|Use **left** or **right** cursor keys to select the desired level of graphics detail between “Minimal Detail”, “Normal Detail”, “Shaders Enabled” and “Extra Detail”. The number of options available depends on your graphics hardware.|||
+|||**Gamma**|Use **left** or **right** cursor keys to adjust the gamma correction setting if your monitor requires it.|||
+|||**Field Of View**|Adjusts the field of view of your viewscreen. Value range (in degrees) is from 30 to 80. Lower values will limit what you can see, and make objects appear larger. Higher values will increase how much you can see, but make objects appear smaller.  Use **left** or **right** cursor keys to adjust the setting.|||
+|||**Colorblind Mode**|Adjusts the color palette to improve the visibility of the game for colorblind players. Options are “None”, “Protanopia”, “Deuteranopia”, and “Tritanopia”. Use **left** or **right** cursor keys to change the mode.|||
+|||**Joystick Configuration**|Press **Enter** to go to the joystick calibration and configuration screen.|||
+|||**Keyboard Configuration**|Press Enter to go to the keyboard configuration screen to view and change any of the keyboard commands.|||
+|||**Back**|Brings you back to the previous screen.|||
+||**End Game and Return to Menu**|Press **Enter** to reset the game to the starting menu||||
+||**Exit Game**|Press **Enter** to quit the game.||||
 ||||||||
-|**3** or **F3**||**Ship Outfitting** / **Ship Purchase** (toggles between the two)|||||
-|||Use **up** and **down** cursor keys to select, **Enter** to purchase.  Use **left** and **right** cursor keys to move between pages.|||||
-||||||||
-|**4** or **F4**||**Ship and Station Interfaces**|||||
-|||Use **up** and **down** cursor keys to select, **Enter** to open the selected interface.  Use **left** and **right** cursor keys to move between pages.|||||
-||||||||
-|**5** or **F5**||**Status / Ship’s Manifest** (toggles between the two)|||||
-|||Use **left** and **right** cursor keys to move between pages.|||||
-||||||||
-|**6** or **F6**||**Zoomed / Entire range Galactic Chart** (toggles between the two)|||||
-||||Map navigation controls:||||
-||||**Mouse drag**|||Pan|
-||||**PgUp/PgDn** or **mouse wheel up/down**|||Zoom In/Out|
-||||**Cursor keys** or  **Primary mouse button (single-click)**|||Select a hyperdrive target system. When **cursor keys** are used, the map auto-pans when the cursor approaches any map view edge.|
-||||**Primary mouse button (double-click)**|||Data on target system|
-||||**Home**|||Select the current system.|
-||||**^**|||Plots the route from your current system to your target system based on fewest jumps or least time. (requires advanced navigational array).|
-||||**?**|||Highlights systems by economy, government, tech level, or sun color. (requires advanced navigational array).|
-||||**Alt-Left / Right cursor keys**|||Select previous / next system for which information will be shown in the system info screen (F7).|
+|**3** or **F3**|**Ship Outfitting** / **Ship Purchase** (toggles between the two)|Use **up** and **down** cursor keys to select, **Enter** to purchase.  Use **left** and **right** cursor keys to move between pages.|||||
+|**4** or **F4**|**Ship and Station Interfaces**|Use **up** and **down** cursor keys to select, **Enter** to open the selected interface.  Use **left** and **right** cursor keys to move between pages.|||||
+|**5** or **F5**|**Status / Ship’s Manifest** (toggles between the two)|Use **left** and **right** cursor keys to move between pages.|||||
+|**6** or **F6**|**Zoomed / Entire range Galactic Chart** (toggles between the two)|Map navigation controls:||||
+|||**Mouse drag**|Pan|
+|||**PgUp/PgDn** or **mouse wheel up/down**|Zoom In/Out|
+|||**Cursor keys** or  **Primary mouse button (single-click)**|Select a hyperdrive target system. When **cursor keys** are used, the map auto-pans when the cursor approaches any map view edge.|
+|||**Primary mouse button (double-click)**|Data on target system|
+|||**Home**|Select the current system.|
+|||**^**|Plots the route from your current system to your target system based on fewest jumps or least time. (requires advanced navigational array).|
+|||**?**|Highlights systems by economy, government, tech level, or sun color. (requires advanced navigational array).|
+|||**Alt-Left / Right cursor keys**|Select previous / next system for which information will be shown in the system info screen (F7).|
 ||||||||
 ||||On the entire range view only, you may type a system name to locate it.||||
 ||||On the zoomed range view only, '**i**'shows information for each system (economy, government and tech level).||||
 ||||||||
-|**7** or **F7**||**Planetary Database** (shows data on the selected system)|||||
+|**7** or **F7**|**Planetary Database** (shows data on the selected system)|||||
 ||||||||
-|**8** or **F8**||**Commodity Market**|||||
-|||||**up** and **down** cursor keys||Select commodity|
-|||||**right** cursor key||Purchase 1 unit of commodity. Holding **Shift** will purchase as much of the commodity as possible.|
-|||||**left** cursor key||Sell 1 unit of commodity. Holding **Shift** will sell as much of the commodity as possible.|
-|||||**Enter**||If hold contains at least 1 unit of commodity, sells as much of the selected commodity as possible If no units of commodity in hold, buys as much of the selected commodity as possible.|
-|||||**?**||Changes the commodity filter from “All goods”, “Carried in stock”, “Carried”, “In stock”, “No transport restrictions”, and “Transport restrictions”|
-|||||**/**||Changes the sort from “Default”, “Alphabetical”, “Price”, “Quantity in stock”, “Quantity in hold”, and “Unit mass”.|
+|**8** or **F8**|**Commodity Market**|||||
+|||**up** and **down** cursor keys|Select commodity|
+|||**right** cursor key|Purchase 1 unit of commodity. Holding **Shift** will purchase as much of the commodity as possible.|
+|||**left** cursor key|Sell 1 unit of commodity. Holding **Shift** will sell as much of the commodity as possible.|
+|||**Enter**|If hold contains at least 1 unit of commodity, sells as much of the selected commodity as possible If no units of commodity in hold, buys as much of the selected commodity as possible.|
+|||**?**|Changes the commodity filter from “All goods”, “Carried in stock”, “Carried”, “In stock”, “No transport restrictions”, and “Transport restrictions”|
+|||**/**|Changes the sort from “Default”, “Alphabetical”, “Price”, “Quantity in stock”, “Quantity in hold”, and “Unit mass”.|
 
 ### Flight Key Commands
 
 ||||||
-|---|---|---|---|---|
+|---|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---|---|---|
 |**Attitude Controls:**|||||
-|**left** and **right** cursor keys||Roll|||
-|**up** and **down** cursor keys||Pitch|||
-|**,** and **.**||Yaw|||
-|Note: Holding **Ctrl** will make the ship turn more slowly.|||||
+|**left** and **right** cursor keys| Roll|||
+|**up** and **down** cursor keys| Pitch|||
+|**,** and **.**| Yaw|||
+|| Note: Holding **Ctrl** will make the ship turn more slowly.|||||
 ||||||
 |**Drive controls:**|||||
-|**w**||Increase Speed|||
-|**s**||Decrease Speed|||
+|**w**| Increase Speed|||
+|**s**| Decrease Speed|||
 ||||||
 |**Torus drive:**|||||
-|**j**||Toggle the in-system hyperspeed drive ('Torus Jump Drive') on and off.|||
-|||Note: The drive is disabled by nearby mass/gravity effects.|||
+|**j**| Toggle the in-system hyperspeed drive ('Torus Jump Drive') on and off.|Note: The drive is disabled by nearby mass/gravity effects.|||
 ||||||
 |**Hyperdrive:**|||||
-|**h**||Activate the hyperdrive, also known as the witchspace jump drive.|||
-|||Note: The witchspace jump drive must have a target destination selected in one of the charts (**F6** key).|||
-|**g**||Activate the Galactic Hyperdrive (if installed).|||
+|**h**| Activate the hyperdrive, also known as the witchspace jump drive.|Note: The witchspace jump drive must have a target destination selected in one of the charts (**F6** key).|||
+|**g**| Activate the Galactic Hyperdrive (if installed).|||
 ||||||
 |**Fuel Injection:**|||||
-|**i**||Activate the afterburner Witchdrive Fuel Injectors (if installed).|||
+|**i**| Activate the afterburner Witchdrive Fuel Injectors (if installed).|||
 ||||||
 |**Other controls:**|||||
-|**p**||pause / un-pause the game.|||
-|||Note: While paused you can access some elements of the Options menu by pressing **2** or **F2**.  Also, while paused you can press **o** to hide/show the HUD; useful for taking screenshots.|||
+|**p**| pause / un-pause the game.|Note: While paused you can access some elements of the Options menu by pressing **2** or **F2**.  Also, while paused you can press **o** to hide/show the HUD; useful for taking screenshots.|||
 ||||||
 |**Weaponry:**|||||
-|**a**||Fire main weapon for the chosen facing.|||
+|**a**| Fire main weapon for the chosen facing.|||
 |**\_** (underscore)||Toggle weapons lockdown on/off.|||
 ||||||
 |**Missiles, mines and pylon mounted equipment:**|||||
-|**r**||Activate target identification system (deactivating the missile/mine system).|||
-|**t**||Enable targeting for the current missile, or arm the current mine. If the target identification system is active and locked on, then this also locks a missile onto the selected target.|||
-|**y**||Switch to the next missile or mine available (requires Multi-Targeting System).|||
-|**Shift-T**||Immediately target nearest incoming missile.|||
-|**u**||If target identification is active, deactivate it and reactivate the missile/mine system. If missiles are active, clear any targets (places them in safety mode).|||
-|**m**||Launch the current missile or mine (it must be locked on target, or armed first), and switch to the next missile available.|||
+|**r**| Activate target identification system (deactivating the missile/mine system).|||
+|**t**| Enable targeting for the current missile, or arm the current mine. If the target identification system is active and locked on, then this also locks a missile onto the selected target.|||
+|**y**| Switch to the next missile or mine available (requires Multi-Targeting System).|||
+|**Shift-T**| Immediately target nearest incoming missile.|||
+|**u**| If target identification is active, deactivate it and reactivate the missile/mine system. If missiles are active, clear any targets (places them in safety mode).|||
+|**m**| Launch the current missile or mine (it must be locked on target, or armed first), and switch to the next missile available.|||
 ||||||
 ||||||
 |**Selectable Equipment and Multi-function Displays:**|||||
-|**Shift-N**||Next selectable equipment|||
-|**Shift-Ctrl-N**||Previous selectable equipment|||
-|**n**||Activate currently selected equipment|||
-|**b**||Change mode for selectable equipment (not used by allequipment)|||
-|**Tab**||Activate selectable equipment in fast activation slot 1.|||
-|**0**||Activate selectable equipment in fast activation slot 2.|||
-|**;**||Rotate the currently selected multi-function display.|||
-|**:**||Select the next multi-function display, if your HUD has more than one.|||
+|**Shift-N**| Next selectable equipment|||
+|**Shift-Ctrl-N**| Previous selectable equipment|||
+|**n**| Activate currently selected equipment|||
+|**b**| Change mode for selectable equipment (not used by allequipment)|||
+|**Tab**| Activate selectable equipment in fast activation slot 1.|||
+|**0**| Activate selectable equipment in fast activation slot 2.|||
+|**;**| Rotate the currently selected multi-function display.|||
+|**:**| Select the next multi-function display, if your HUD has more than one.|||
 ||||||
 |**Target System Memory Expansion:**|||||
-|**+**||Lock on to next target in memory (if installed)|||
-|**-**||Lock on to the previous target in memory (if installed)|||
+|**+**| Lock on to next target in memory (if installed)|||
+|**-**| Lock on to the previous target in memory (if installed)|||
 ||||||
 |**Anti-Missile ECM:**|||||
-|**e**||Activate anti-missile Electronic Counter-Measures (if installed).|||
+|**e**| Activate anti-missile Electronic Counter-Measures (if installed).|||
 ||||||
 |**Scanner:**|||||
-|**z**||Adjust scanner zoom ratio (only during flight).|||
+|**z**| Adjust scanner zoom ratio (only during flight).|||
 |||This allows you to 'zoom in' to navigate around small, close-to objects.  A small indicator next to the compass indicates the current scanner ratio (from 1:1 to 5:1).|||
-|**Shift-Z**||Zoom out to 1:1 scanner ratio.|||
+|**Shift-Z**| Zoom out to 1:1 scanner ratio.|||
 ||||||
 |**Advanced Space Compass:**|||||
-|**\**||Change compass mode (if the Advanced Space Compass is installed). This toggles your compass between showing the location of the planet, main station (if close enough), sun, your current target, the station beacon, witchpoint buoy, and various additional beacons.|||
-|**|** (vertical bar)||Change compass mode (reverse cycling).|||
+|**\**| Change compass mode (if the Advanced Space Compass is installed). This toggles your compass between showing the location of the planet, main station (if close enough), sun, your current target, the station beacon, witchpoint buoy, and various additional beacons.|||
+|**| ** (vertical bar)||Change compass mode (reverse cycling).|||
 ||||||
 |**Communications:**|||||
-|**`**||View communications log. Allows you to see recent ship-to-ship communications.|||
-|**Shift-L**||Request / Cancel / Renew docking clearance.|||
+|**`**| View communications log. Allows you to see recent ship-to-ship communications.|||
+|**Shift-L**| Request / Cancel / Renew docking clearance.|||
 ||||||
 |**View screens:**|||||
-|**1** or **F1**||View forward|||
-|**2** or **F2**||View aft|||
-|**3** or **F3**||View port|||
-|**4** or **F4**||View starboard|||
-|**5** or **F5**||Status / Ship’s Manifest (see ‘In Dock Commands’ above)|||
-|**6** or **F6**||Zoomed / Entire range Galactic Chart (see ‘In Dock Commands’ above)|||
-|**7** or **F7**||Planetary Database (see ‘In Dock Commands’ above)|||
-|**8** or **F8**||Commodity Market (see ‘In Dock Commands’ above)|||
-|**v**||Toggle between external views|||
-|**Arrow Keys or Mouse with Capslock**||External free-look camera|||
+|**1** or **F1**| View forward|||
+|**2** or **F2**| View aft|||
+|**3** or **F3**| View port|||
+|**4** or **F4**| View starboard|||
+|**5** or **F5**| Status / Ship’s Manifest (see ‘In Dock Commands’ above)|||
+|**6** or **F6**| Zoomed / Entire range Galactic Chart (see ‘In Dock Commands’ above)|||
+|**7** or **F7**| Planetary Database (see ‘In Dock Commands’ above)|||
+|**8** or **F8**| Commodity Market (see ‘In Dock Commands’ above)|||
+|**v**| Toggle between external views|||
+|**Arrow Keys or Mouse with Capslock**| External free-look camera|||
 ||||||
 |**Automated Docking** (requires Docking Computer):|||||
-|**c**||Begin/Abandon automated docking sequence with the main station, or current target. If only one station is in range, no targeting necessary.|||
-|**s**||Toggle docking music off/on.|||
-|**Shift-C**||Fast docking without docking sequence. Advances the game clock by 20 minutes.|||
+|**c**| Begin/Abandon automated docking sequence with the main station, or current target. If only one station is in range, no targeting necessary.|||
+|**s**| Toggle docking music off/on.|||
+|**Shift-C**| Fast docking without docking sequence. Advances the game clock by 20 minutes.|||
 ||||||
 |**Ejecting cargo items:**|||||
-|**Shift-D**||Eject one cargo pod.|||
-|**Shift-R**||Rotate cargo to determine what will be ejected.|||
+|**Shift-D**| Eject one cargo pod.|||
+|**Shift-R**| Rotate cargo to determine what will be ejected.|||
 ||||||
 |**Escape pod:**|||||
-|**Esc-Esc**||Fast double tap the **Esc** (Escape) key to launch the Escape Pod (if installed).|||
+|**Esc-Esc**| Fast double tap the **Esc** (Escape) key to launch the Escape Pod (if installed).|||
 ||||||
 |**Other Commands:**|||||
 |**Mac only:**|||||
-|**⌘-q**||**Quit**|||
-|**⌘-Shift-F**||Switch between full screen / normal size window.|||
+|**⌘-q**| **Quit**|||
+|**⌘-Shift-F**| Switch between full screen / normal size window.|||
 |**⌘-?**||(in windowed mode) Display control keys and license in a Help window.|||
 ||||||
 |**Windows / Linux only:**|||||
-|**Shift-Esc**||Quit|||
+|**Shift-Esc**| Quit|||
 ||||||
 |**All platforms:**|||||
-|**F12**||Switch between full screen and windowed mode.|||
+|**F12**| Switch between full screen and windowed mode.|||
 |**\*** (asterisk)||Take screenshot (writes a '.png' file to the oolite-saves folder under oolite.app).|||
-|**Shift-F**||Toggle FPS display|||
+|**Shift-F**| Toggle FPS display|||
 |**Shift-M**||(in full screen mode only) Toggle mouse control on and off, having mouse left/right (x-axis) mapped to roll.|||
 |**Ctrl-Shift-M**||(in full screen mode only) Toggle mouse control on and off, having mouse left/right (x-axis) mapped to yaw|||
 ||||||
 |||When mouse control is active, the following mouse commands are available:|||
-|||**Mouse left/right**||Roll (Yaw, if mouse control is activated using Ctrl-Shift-M)|
-|||**Mouse forward/back**||Pitch|
-|||**Primary mouse button**||Fire main weapon for the chosen facing.|
-|||**Secondary mouse button**||Center mouse control. Cancel roll/yaw and pitch.|
-|||**Mouse wheel up**||Increase speed.|
-|||**Mouse wheel down**||Decrease speed.|
+|||**Mouse left/right**|Roll (Yaw, if mouse control is activated using Ctrl-Shift-M)|
+|||**Mouse forward/back**|Pitch|
+|||**Primary mouse button**|Fire main weapon for the chosen facing.|
+|||**Secondary mouse button**|Center mouse control. Cancel roll/yaw and pitch.|
+|||**Mouse wheel up**|Increase speed.|
+|||**Mouse wheel down**|Decrease speed.|
 
 ## Changing user preferences in Windows / Linux
 

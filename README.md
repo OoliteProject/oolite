@@ -22,38 +22,40 @@ and developers!
 
 ## Installing Oolite
 
-You can download the latest installer from [here](https://github.com/OoliteProject/oolite/releases).
+You can download the latest version from [here](https://github.com/OoliteProject/oolite/releases).
 
 ### Windows
 
-The Windows NSIS installer is named OoliteInstall-XXX-win.exe where XXX is a version number. 
+The Windows NSIS installer is named OoliteInstall-XXX-win.exe where XXX is a version number.
 Double click the downloaded file to run the installer.
 
 ### Linux
 
-Linux has Flatpak and AppImage versions. The Flatpak is named space.oolite.Oolite_XXX.flatpak 
+Linux has Flatpak and AppImage versions. The Flatpak is named space.oolite.Oolite_XXX.flatpak
 where XXX is a version number. Many Linux package managers support Flatpak so you should be able to
 double click the downloaded file to install it.
 
-The AppImage is named Oolite_XXX-x86_64.AppImage where XXX is a version number. Download this 
-file to where you would like it stored, make it executable and run, for example by typing 
+The AppImage is named Oolite_XXX-x86_64.AppImage where XXX is a version number. Download this
+file to where you would like it stored, make it executable and run, for example by typing
 
-  chmod +x Oolite_XXX-x86_64.AppImage
-  ./Oolite_XXX-x86_64.AppImage
+chmod +x Oolite_XXX-x86_64.AppImage
+./Oolite_XXX-x86_64.AppImage
 
-## getting ST
-More information about the game can be found here.
+## Playing Oolite
+
+For more information, see [oolite.space](http://www.oolite.space/) and
+[Elite Wiki](http://wiki.alioth.net/index.php/Oolite_Main_Page).
 
 ## Building from Source
 
 We welcome developers to work on Oolite! If you wish to build the project from source, please follow
-the instructions below. Note that the scripts require sudo for activities like installing dependent 
-libraries built from source and for installing packages on some Linux distros. If you run into 
-difficulties, you can seek help on the [Oolite Bulletin Board](https://bb.oolite.space/). 
+the instructions below. Note that the scripts require sudo for activities like installing dependent
+libraries built from source and for installing packages on some Linux distros. If you run into
+difficulties, you can seek help on the [Oolite Bulletin Board](https://bb.oolite.space/).
 
 ### Git
 The Oolite source is available from GitHub. The first step is to install git if you don't already
-have it installed as it is required to obtain and build Oolite. With Git installed, check out the 
+have it installed as it is required to obtain and build Oolite. With Git installed, check out the
 Oolite repository and its submodules:
 ```bash
 git clone --filter=blob:none --recurse-submodules https://github.com/OoliteProject/oolite.git
@@ -67,13 +69,13 @@ in ShellScripts/Windows or run in a command prompt:
 ShellScripts\Windows\setup.cmd
 ```
 
-This will install MSYS2 which provides various MinGW environments. You will need to enter the 
-install location for MSYS2 and whether you want the Clang build (recommended) or GCC build. 
+This will install MSYS2 which provides various MinGW environments. You will need to enter the
+install location for MSYS2 and whether you want the Clang build (recommended) or GCC build.
 
 The Clang build uses the UCRT64 environment, while the GCC build uses the MINGW64 environment.
 
 ### Linux
-After installing git and checking out the Oolite repository and its submodules, run the following 
+After installing git and checking out the Oolite repository and its submodules, run the following
 to check out the dependencies of Oolite that need to be built from source:
 ```bash
 ShellScripts/Linux/checkout_deps.sh
@@ -107,7 +109,7 @@ Other targets are release-deployment for a production release and release-snapsh
 
 ### Other Linux Make Targets
 
-This target builds an AppImage for testing which can be found in build: 
+This target builds an AppImage for testing which can be found in build:
 ```bash
 make -f Makefile pkg-appimage -j$(nproc)
 ```
@@ -125,16 +127,16 @@ can be supported in future.
 
 ### Objective-C
 
-Oolite is written in Objective-C although there is also some C and C++ code in the codebase. It was 
-originally coded on Mac, but was ported to Windows and Linux by way of the GNUstep runtime which 
-provides a similar API to what is available on Mac. Objective-C is supported by modern IDEs like 
-CLion and Visual Studio Code. The language can be easily picked up by programmers familiar with C 
-or C++ with which it is interoperable. 
+Oolite is written in Objective-C although there is also some C and C++ code in the codebase. It was
+originally coded on Mac, but was ported to Windows and Linux by way of the GNUstep runtime which
+provides a similar API to what is available on Mac. Objective-C is supported by modern IDEs like
+CLion and Visual Studio Code. The language can be easily picked up by programmers familiar with C
+or C++ with which it is interoperable.
 
 ### Troubleshooting
 
-- If you get errors like `fatal error: jsapi.h: No such file or directory`, there was probably an issue with checking 
-out the submodules.
+- If you get errors like `fatal error: jsapi.h: No such file or directory`, there was probably an issue with checking
+  out the submodules.
 
 - If you can't see any textures, try deleting the following files, and compile again although these are
   already excluded from modern builds.
@@ -149,7 +151,6 @@ make -f Makefile release OBJCFLAGS="-fobjc-exceptions -Wno-format-security" -j$(
 ```
 
 ## Contents of repository
-
 Oolite for all platforms can be built from this repository. Here is a quick
 guide to the source tree.
 
