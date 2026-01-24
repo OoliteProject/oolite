@@ -85,6 +85,9 @@ General:
 * Raised JavaScript runtime memory from 32 to 256 MB.
 * The user defaults file name has been changed from .GNUstepDefaults to
   OoliteDefaults.plist.
+* Savefile filenames can now be passed directly to the command line when starting
+  up, making the -load parameter optional. This enables direct association of the
+  .oolite-save file type with Oolite.
 
 Expansion Pack Development:
 ===========================
