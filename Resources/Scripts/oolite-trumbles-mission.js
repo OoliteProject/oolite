@@ -106,7 +106,7 @@ this.missionScreenOpportunity = function missionScreenOpportunity()
 		mission.runScreen({
 			titleKey: "oolite_trumble_title",
 			messageKey: "oolite_trumble_offer",
-			background: "trumblebox.png",
+			background: {name:"trumblebox.png", height:512},
 			choicesKey: "oolite_trumble_offer_yesno",
 			screenID: "oolite-trumbles"
 		},
