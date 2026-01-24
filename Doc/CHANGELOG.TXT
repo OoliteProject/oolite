@@ -88,7 +88,7 @@ General:
 * Savefile filenames can now be passed directly to the command line when starting
   up, making the -load parameter optional. This enables direct association of the
   .oolite-save file type with Oolite.
-* Replaced trunblebox image with a new high-res one.
+* Replaced trumblebox image with a new high-res one.
 
 Expansion Pack Development:
 ===========================
