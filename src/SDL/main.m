@@ -154,9 +154,12 @@ int main(int argc, char *argv[])
 			if (strcmp("-load", argv[i]) == 0)
 			{
 				i++;
-				if (i < argc)
-					[controller setPlayerFileToLoad: [NSString stringWithCString: argv[i]]];
 			}
+			if (i < argc)
+			{
+				[controller setPlayerFileToLoad: [NSString stringWithCString: argv[i]]];
+			}
+			else  continue;
 
    			if (!strcmp("-help", argv[i]) || !strcmp("--help", argv[i]))
 			{
@@ -169,7 +172,7 @@ int main(int argc, char *argv[])
 #if OOLITE_WINDOWS
 							"-hdr"TABS3"Start up in HDR mode\n"
 #endif
-							"-load [filepath]"TABS2"Load commander from [filepath]\n"
+							"-load [filepath]"TABS2"Load commander from [filepath]\n"TABS3 TABS4"(\"-load\" is optional)\n"
 							"-message [messageString]"TABS1"Display [messageString] at startup\n"
 							"-nodust    "TABS2 TABS4"Do not draw space dust\n"
 							"-noshaders"TABS2 TABS4"Start up with shaders disabled\n"
