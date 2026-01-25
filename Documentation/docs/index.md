@@ -4,49 +4,7 @@
 
 ## Installation
 
-### Mac OS X
-
-Oolite requires Mac OS X 10.5 or later
-
-Drag the 'Oolite' folder (containing Oolite, this ReadMe, the License and the 'AddOns' folder) to any convenient place on your hard drive. If you are upgrading from a previous version of Oolite then drag the Oolite application from this disk's Oolite folder to your own Oolite folder.
-
-To run the game, double-click on the file 'Oolite.app' (the Oolite icon) in the 'Oolite' folder.
-
-### Windows
-
-A folder called 'Oolite' has been created in Start -> Program Files. This folder has icons for running the game, the reference sheet, the link to the official Oolite website, the Advice for New Commanders guide, this ReadMe and an uninstall program.
-
-To run the game, choose the Oolite icon in the 'Oolite' folder.
-
-### Linux *(oolite.space package)*
-
-*(this section is not applicable for installed packages downloaded from Linux repositories)*
-
-For all freedesktop.org-compliant desktops (e.g. GNOME, KDE, etc.) an 'Oolite (oolite.org)' entry has been created, under the 'Games' application category. Note that a plain 'Oolite' entry, instead of 'Oolite (oolite.org)', indicates an Oolite installation performed using a package downloaded from a Linux repository. Linux repositories often lag behind the latest official application releases. It is recommended to download and install the latest Oolite version available at [https://www.oolite.space](http://www.oolite.org/).
-
-To run the game, choose the 'Oolite (oolite.org)' entry.
-
-Oolite may also run from a terminal. For system-wide Oolite installations (i.e. Oolite installed as root), open a terminal and execute
-
-$ oolite
-
-while for home-folder Oolite installations, open a terminal and execute
-
-$ ~/GNUstep/Applications/Oolite/oolite
-
-To remove Oolite, for system-wide installations (i.e. Oolite installed as root), open a terminal and execute
-
-$ /opt/Oolite/uninstall
-
-while for home-folder Oolite installations, open a terminal and execute
-
-$ ~/GNUstep/Applications/Oolite/uninstall
-
-For more information, on the Oolite for Linux installation, check the README.TXT file located in the following folder:
-
-system-wide Oolite installation /opt/Oolite/doc/README.TXT
-
-home-folder Oolite installation ~/GNUstep/Applications/Oolite/doc/README.TXT
+See the [README](https://github.com/OoliteProject/oolite/blob/master/README.md#installing-oolite).
 
 ## Start Menu
 
@@ -80,190 +38,146 @@ Exit the game.
 
 The current keyboard configuration can be edited by selecting “Keyboard Configuration” from the “Game Options” menu.
 
-Oolite for Mac OS X is mostly controlled from the keyboard and joystick, although the mouse can also be used in full screen mode.
-
-Oolite for Windows and Linux can be controlled from the keyboard, joystick or mouse.
+Oolite can be controlled using the keyboard, mouse and/or game controller.
 
 The list below describes the default key settings.
 
 ### In Dock Commands
 
-||||||||
-|---|---|---|---|---|---|---|
-|**1** or **F1**|**Launch**|Propels your spacecraft from docked station.||||
-||||||||
-|**2** or **F2**|**Quick-Save / Save / Load**|Use **up** and **down** cursor keys to select, **Enter** to choose.||||
-||**Game Options...**|||||
-|||**Autosave**|Use left and right cursor keys to disable/enable the 'Autosave' feature.  When enabled, 'Autosave' will create a saved game every time you launch from a planetary station.|||
-|||**Docking Clearance Protocol**|When enabled, the main Galcop station (and some OXP stations) will use the docking clearance protocol, and docking without clearance will result in a fine.|||
-|||**Source Volume**|Use **left** or **right** cursor keys to adjust the volume for effects and spoken messages.|||
-|||**Spoken Messages**|Use **left** or **right** cursor keys or **Enter** to toggle speech off/on.  Spoken messages uses the default voice chosen in System Preferences on Mac, or a selectable voice on Windows and Linux.|||
-|||**Music**|Use **left** and **right** cursor keys to toggle music off/on. Mac users have the additional option of “iTunes”.|||
-|||**Full Screen Mode**|Use **left** or **right** cursor keys to select screen size and refresh rate.  Changes will only apply the next time you switch into full screen mode.|||
-|||**Play in Full Screen / Play in Window (Windows / Linux only)**|Press **Enter** to toggle between Window and Full Screen game view.|||
-||||(Mac: Press **⌘-Ctrl-F** during flight to toggle between the two.  All platforms: Press **F12** at any given time during a game session to toggle between the two.)|||
-|||**HDR Max Brightness (nits)**|For HDR-capable systems only. Sets the maximum brightness level the HDR monitor is capable of producing.  Use **left** and **right** cursor keys to adjust the value.|||
-|||**HDR Paper White Brightness (nits)**|For HDR-capable systems only. Controls how bright a paper white surface should be.  Use **left** and **right** cursor keys to adjust the value.|||
-|||**Wireframe Graphics**|Use **left** and **right** cursor keys to deselect/select retro-look wireframe graphics mode.|||
-|||**Graphics Detail**|Use **left** or **right** cursor keys to select the desired level of graphics detail between “Minimal Detail”, “Normal Detail”, “Shaders Enabled” and “Extra Detail”. The number of options available depends on your graphics hardware.|||
-|||**Gamma**|Use **left** or **right** cursor keys to adjust the gamma correction setting if your monitor requires it.|||
-|||**Field Of View**|Adjusts the field of view of your viewscreen. Value range (in degrees) is from 30 to 80. Lower values will limit what you can see, and make objects appear larger. Higher values will increase how much you can see, but make objects appear smaller.  Use **left** or **right** cursor keys to adjust the setting.|||
-|||**Colorblind Mode**|Adjusts the color palette to improve the visibility of the game for colorblind players. Options are “None”, “Protanopia”, “Deuteranopia”, and “Tritanopia”. Use **left** or **right** cursor keys to change the mode.|||
-|||**Joystick Configuration**|Press **Enter** to go to the joystick calibration and configuration screen.|||
-|||**Keyboard Configuration**|Press Enter to go to the keyboard configuration screen to view and change any of the keyboard commands.|||
-|||**Back**|Brings you back to the previous screen.|||
-||**End Game and Return to Menu**|Press **Enter** to reset the game to the starting menu||||
-||**Exit Game**|Press **Enter** to quit the game.||||
-||||||||
-|**3** or **F3**|**Ship Outfitting** / **Ship Purchase** (toggles between the two)|Use **up** and **down** cursor keys to select, **Enter** to purchase.  Use **left** and **right** cursor keys to move between pages.|||||
-|**4** or **F4**|**Ship and Station Interfaces**|Use **up** and **down** cursor keys to select, **Enter** to open the selected interface.  Use **left** and **right** cursor keys to move between pages.|||||
-|**5** or **F5**|**Status / Ship’s Manifest** (toggles between the two)|Use **left** and **right** cursor keys to move between pages.|||||
-|**6** or **F6**|**Zoomed / Entire range Galactic Chart** (toggles between the two)|Map navigation controls:||||
-|||**Mouse drag**|Pan|
-|||**PgUp/PgDn** or **mouse wheel up/down**|Zoom In/Out|
-|||**Cursor keys** or  **Primary mouse button (single-click)**|Select a hyperdrive target system. When **cursor keys** are used, the map auto-pans when the cursor approaches any map view edge.|
-|||**Primary mouse button (double-click)**|Data on target system|
-|||**Home**|Select the current system.|
-|||**^**|Plots the route from your current system to your target system based on fewest jumps or least time. (requires advanced navigational array).|
-|||**?**|Highlights systems by economy, government, tech level, or sun color. (requires advanced navigational array).|
-|||**Alt-Left / Right cursor keys**|Select previous / next system for which information will be shown in the system info screen (F7).|
-||||||||
-||||On the entire range view only, you may type a system name to locate it.||||
-||||On the zoomed range view only, '**i**'shows information for each system (economy, government and tech level).||||
-||||||||
-|**7** or **F7**|**Planetary Database** (shows data on the selected system)|||||
-||||||||
-|**8** or **F8**|**Commodity Market**|||||
-|||**up** and **down** cursor keys|Select commodity|
-|||**right** cursor key|Purchase 1 unit of commodity. Holding **Shift** will purchase as much of the commodity as possible.|
-|||**left** cursor key|Sell 1 unit of commodity. Holding **Shift** will sell as much of the commodity as possible.|
-|||**Enter**|If hold contains at least 1 unit of commodity, sells as much of the selected commodity as possible If no units of commodity in hold, buys as much of the selected commodity as possible.|
-|||**?**|Changes the commodity filter from “All goods”, “Carried in stock”, “Carried”, “In stock”, “No transport restrictions”, and “Transport restrictions”|
-|||**/**|Changes the sort from “Default”, “Alphabetical”, “Price”, “Quantity in stock”, “Quantity in hold”, and “Unit mass”.|
+| Key | Menu / Action | Sub-Item / Control | Interaction & Details |
+| :--- | :--- | :--- | :--- |
+| <kbd>1</kbd> or <kbd>F1</kbd> | **Launch** | — | Propels your spacecraft from docked station. |
+| <kbd>2</kbd> or <kbd>F2</kbd> | **Quick-Save / Load** | **File Selection** | Use <kbd>↑</kbd> and <kbd>↓</kbd> to select, <kbd>Enter</kbd> to choose. |
+| | **Game Options** | **Autosave** | <kbd>←</kbd> <kbd>→</kbd> to toggle. When enabled, creates a save every time you launch from a planetary station. |
+| | | **Docking Clearance** | <kbd>←</kbd> <kbd>→</kbd> to toggle. If enabled, docking without clearance at Galcop/OXP stations results in a fine. |
+| | | **Audio Settings** | <kbd>←</kbd> <kbd>→</kbd> to adjust **Source Volume** or toggle **Music** (Mac users also have "iTunes" option). |
+| | | **Spoken Messages** | <kbd>←</kbd> <kbd>→</kbd> or <kbd>Enter</kbd> to toggle. Uses selectable voice. |
+| | | **Display Mode** | <kbd>←</kbd> <kbd>→</kbd> to select screen size/refresh rate. <kbd>Enter</kbd> to toggle Window/Full Screen (or use <kbd>F12</kbd> anytime). |
+| | | **HDR Brightness** | <kbd>←</kbd> <kbd>→</kbd> to adjust **Max Brightness** and **Paper White** levels (for HDR-capable systems only). |
+| | | **Graphics / Gamma** | <kbd>←</kbd> <kbd>→</kbd> to toggle **Wireframe** mode, **Gamma** correction, or **Graphics Detail** (Minimal, Normal, Shaders, Extra). |
+| | | **Field Of View** | <kbd>←</kbd> <kbd>→</kbd> to adjust (30°–80°). Lower values make objects appear larger; higher values increase peripheral vision. |
+| | | **Colorblind Mode** | <kbd>←</kbd> <kbd>→</kbd> to select: None, Protanopia, Deuteranopia, or Tritanopia. |
+| | | **Config Screens** | Press <kbd>Enter</kbd> on **Joystick** or **Keyboard** configuration to view/change assignments. |
+| | **System** | **End / Exit** | Press <kbd>Enter</kbd> to **End Game** (return to menu) or **Exit Game** (quit to desktop). |
+| <kbd>3</kbd> or <kbd>F3</kbd> | **Shipyard** | **Outfitting** | <kbd>↑</kbd> <kbd>↓</kbd> to select, <kbd>Enter</kbd> to purchase. <kbd>←</kbd> <kbd>→</kbd> to move between pages. |
+| <kbd>4</kbd> or <kbd>F4</kbd> | **Interfaces** | **Station/Ship** | <kbd>↑</kbd> <kbd>↓</kbd> to select, <kbd>Enter</kbd> to open. <kbd>←</kbd> <kbd>→</kbd> for pages. |
+| <kbd>5</kbd> or <kbd>F5</kbd> | **Manifest** | **Status/Cargo** | Toggles views. Use <kbd>←</kbd> and <kbd>→</kbd> to move between pages. |
+| <kbd>6</kbd> or <kbd>F6</kbd> | **Galactic Chart** | **Navigation** | **Mouse Drag** to pan; **Wheel** or <kbd>PgUp</kbd>/<kbd>PgDn</kbd> to Zoom. |
+| | | **Selection** | <kbd>Click</kbd> or **Cursors** to select. **Double-Click** for System Data. |
+| | | **Home** | <kbd>Home</kbd> selects current system. |
+| | | **Routing** | <kbd>^</kbd> plots route (Fewest Jumps/Time). *Requires advanced navigational array.* |
+| | | **Filters** | <kbd>?</kbd> highlights by economy, government, tech level, or sun color. *Requires advanced navigational array.* |
+| | | **Info History** | <kbd>Alt</kbd> + <kbd>←</kbd> / <kbd>→</kbd> to cycle previous system info screens for the F7 display. |
+| | | **Search / Info** | **Type Name** to find (Entire Chart); <kbd>i</kbd> for tech info (Zoomed). |
+| <kbd>7</kbd> or <kbd>F7</kbd> | **Database** | **System Info** | Shows detailed planetary database for the system selected on the Chart. |
+| <kbd>8</kbd> or <kbd>F8</kbd> | **Market** | **Selection** | Use <kbd>↑</kbd> and <kbd>↓</kbd> to select commodity. |
+| | | **Buying** | <kbd>→</kbd> buys 1 unit. <kbd>Shift</kbd> + <kbd>→</kbd> buys maximum possible. |
+| | | **Selling** | <kbd>←</kbd> sells 1 unit. <kbd>Shift</kbd> + <kbd>←</kbd> sells maximum possible. |
+| | | **Smart Trade** | <kbd>Enter</kbd>: If holding item, sells all. If empty, buys maximum possible. |
+| | | **Filters** | <kbd>?</kbd> cycles: All goods, Carried in stock, Carried, In stock, No transport restrictions, Transport restrictions. |
+| | | **Sorting** | <kbd>/</kbd> cycles: Default, Alphabetical, Price, Quantity in stock, Quantity in hold, Unit mass. |
 
 ### Flight Key Commands
 
-||||||
-|---|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---|---|---|
-|**Attitude Controls:**|||||
-|**left** and **right** cursor keys| Roll|||
-|**up** and **down** cursor keys| Pitch|||
-|**,** and **.**| Yaw|||
-|| Note: Holding **Ctrl** will make the ship turn more slowly.|||||
-||||||
-|**Drive controls:**|||||
-|**w**| Increase Speed|||
-|**s**| Decrease Speed|||
-||||||
-|**Torus drive:**|||||
-|**j**| Toggle the in-system hyperspeed drive ('Torus Jump Drive') on and off.|Note: The drive is disabled by nearby mass/gravity effects.|||
-||||||
-|**Hyperdrive:**|||||
-|**h**| Activate the hyperdrive, also known as the witchspace jump drive.|Note: The witchspace jump drive must have a target destination selected in one of the charts (**F6** key).|||
-|**g**| Activate the Galactic Hyperdrive (if installed).|||
-||||||
-|**Fuel Injection:**|||||
-|**i**| Activate the afterburner Witchdrive Fuel Injectors (if installed).|||
-||||||
-|**Other controls:**|||||
-|**p**| pause / un-pause the game.|Note: While paused you can access some elements of the Options menu by pressing **2** or **F2**.  Also, while paused you can press **o** to hide/show the HUD; useful for taking screenshots.|||
-||||||
-|**Weaponry:**|||||
-|**a**| Fire main weapon for the chosen facing.|||
-|**\_** (underscore)||Toggle weapons lockdown on/off.|||
-||||||
-|**Missiles, mines and pylon mounted equipment:**|||||
-|**r**| Activate target identification system (deactivating the missile/mine system).|||
-|**t**| Enable targeting for the current missile, or arm the current mine. If the target identification system is active and locked on, then this also locks a missile onto the selected target.|||
-|**y**| Switch to the next missile or mine available (requires Multi-Targeting System).|||
-|**Shift-T**| Immediately target nearest incoming missile.|||
-|**u**| If target identification is active, deactivate it and reactivate the missile/mine system. If missiles are active, clear any targets (places them in safety mode).|||
-|**m**| Launch the current missile or mine (it must be locked on target, or armed first), and switch to the next missile available.|||
-||||||
-||||||
-|**Selectable Equipment and Multi-function Displays:**|||||
-|**Shift-N**| Next selectable equipment|||
-|**Shift-Ctrl-N**| Previous selectable equipment|||
-|**n**| Activate currently selected equipment|||
-|**b**| Change mode for selectable equipment (not used by allequipment)|||
-|**Tab**| Activate selectable equipment in fast activation slot 1.|||
-|**0**| Activate selectable equipment in fast activation slot 2.|||
-|**;**| Rotate the currently selected multi-function display.|||
-|**:**| Select the next multi-function display, if your HUD has more than one.|||
-||||||
-|**Target System Memory Expansion:**|||||
-|**+**| Lock on to next target in memory (if installed)|||
-|**-**| Lock on to the previous target in memory (if installed)|||
-||||||
-|**Anti-Missile ECM:**|||||
-|**e**| Activate anti-missile Electronic Counter-Measures (if installed).|||
-||||||
-|**Scanner:**|||||
-|**z**| Adjust scanner zoom ratio (only during flight).|||
-|||This allows you to 'zoom in' to navigate around small, close-to objects.  A small indicator next to the compass indicates the current scanner ratio (from 1:1 to 5:1).|||
-|**Shift-Z**| Zoom out to 1:1 scanner ratio.|||
-||||||
-|**Advanced Space Compass:**|||||
-|**\**| Change compass mode (if the Advanced Space Compass is installed). This toggles your compass between showing the location of the planet, main station (if close enough), sun, your current target, the station beacon, witchpoint buoy, and various additional beacons.|||
-|**| ** (vertical bar)||Change compass mode (reverse cycling).|||
-||||||
-|**Communications:**|||||
-|**`**| View communications log. Allows you to see recent ship-to-ship communications.|||
-|**Shift-L**| Request / Cancel / Renew docking clearance.|||
-||||||
-|**View screens:**|||||
-|**1** or **F1**| View forward|||
-|**2** or **F2**| View aft|||
-|**3** or **F3**| View port|||
-|**4** or **F4**| View starboard|||
-|**5** or **F5**| Status / Ship’s Manifest (see ‘In Dock Commands’ above)|||
-|**6** or **F6**| Zoomed / Entire range Galactic Chart (see ‘In Dock Commands’ above)|||
-|**7** or **F7**| Planetary Database (see ‘In Dock Commands’ above)|||
-|**8** or **F8**| Commodity Market (see ‘In Dock Commands’ above)|||
-|**v**| Toggle between external views|||
-|**Arrow Keys or Mouse with Capslock**| External free-look camera|||
-||||||
-|**Automated Docking** (requires Docking Computer):|||||
-|**c**| Begin/Abandon automated docking sequence with the main station, or current target. If only one station is in range, no targeting necessary.|||
-|**s**| Toggle docking music off/on.|||
-|**Shift-C**| Fast docking without docking sequence. Advances the game clock by 20 minutes.|||
-||||||
-|**Ejecting cargo items:**|||||
-|**Shift-D**| Eject one cargo pod.|||
-|**Shift-R**| Rotate cargo to determine what will be ejected.|||
-||||||
-|**Escape pod:**|||||
-|**Esc-Esc**| Fast double tap the **Esc** (Escape) key to launch the Escape Pod (if installed).|||
-||||||
-|**Other Commands:**|||||
-|**Mac only:**|||||
-|**⌘-q**| **Quit**|||
-|**⌘-Shift-F**| Switch between full screen / normal size window.|||
-|**⌘-?**||(in windowed mode) Display control keys and license in a Help window.|||
-||||||
-|**Windows / Linux only:**|||||
-|**Shift-Esc**| Quit|||
-||||||
-|**All platforms:**|||||
-|**F12**| Switch between full screen and windowed mode.|||
-|**\*** (asterisk)||Take screenshot (writes a '.png' file to the oolite-saves folder under oolite.app).|||
-|**Shift-F**| Toggle FPS display|||
-|**Shift-M**||(in full screen mode only) Toggle mouse control on and off, having mouse left/right (x-axis) mapped to roll.|||
-|**Ctrl-Shift-M**||(in full screen mode only) Toggle mouse control on and off, having mouse left/right (x-axis) mapped to yaw|||
-||||||
-|||When mouse control is active, the following mouse commands are available:|||
-|||**Mouse left/right**|Roll (Yaw, if mouse control is activated using Ctrl-Shift-M)|
-|||**Mouse forward/back**|Pitch|
-|||**Primary mouse button**|Fire main weapon for the chosen facing.|
-|||**Secondary mouse button**|Center mouse control. Cancel roll/yaw and pitch.|
-|||**Mouse wheel up**|Increase speed.|
-|||**Mouse wheel down**|Decrease speed.|
+### Movement & Attitude
+| Key | Action | Notes |
+| :--- | :--- | :--- |
+| <kbd>↑</kbd> <kbd>↓</kbd> | **Pitch** | Nose up and down. |
+| <kbd>←</kbd> <kbd>→</kbd> | **Roll** | Rotate ship along the longitudinal axis. |
+| <kbd>,</kbd> <kbd>.</kbd> | **Yaw** | Turn nose left and right. |
+| <kbd>Ctrl</kbd> | **Precision Mode** | Hold while turning to move more slowly/precisely. |
+| <kbd>w</kbd> / <kbd>s</kbd> | **Speed Control** | <kbd>w</kbd> to Increase Speed; <kbd>s</kbd> to Decrease Speed. |
 
-## Changing user preferences in Windows / Linux
+### Propulsion & Travel
+| Key | Action | Notes |
+| :--- | :--- | :--- |
+| <kbd>j</kbd> | **Torus Jump Drive** | Toggle in-system hyperspeed. Disabled by nearby mass/gravity. |
+| <kbd>h</kbd> | **Hyperdrive** | Activate Witchspace jump. Requires a target selected on <kbd>F6</kbd> chart. |
+| <kbd>g</kbd> | **Galactic Hyperdrive** | Activate the inter-galactic jump drive (if installed). |
+| <kbd>i</kbd> | **Fuel Injection** | Activate afterburners/Witchdrive injectors (if installed). |
 
-### The user preferences defaults file .GNUstepDefaults
+### Weaponry & Combat
+| Key | Action | Notes |
+| :--- | :--- | :--- |
+| <kbd>a</kbd> | **Fire Laser** | Fire main weapon for the current view facing. |
+| <kbd>_</kbd> | **Weapons Lockdown** | Toggle safety lockdown on/off. |
+| <kbd>e</kbd> | **ECM** | Activate Electronic Counter-Measures to destroy incoming missiles. |
+| <kbd>p</kbd> | **Pause** | **Pause/Un-pause.** While paused, press <kbd>2</kbd> or <kbd>F2</kbd> to access Options, or <kbd>o</kbd> to toggle HUD for screenshots. |
 
-The current settings for the following 'Game Options...' menu entries:
+### Missiles & Pylon Equipment
+| Key | Action | Notes |
+| :--- | :--- | :--- |
+| <kbd>r</kbd> | **Identify Target** | Activate ID system (deactivates missile/mine system). |
+| <kbd>t</kbd> | **Target/Arm** | Enable missile targeting or arm mine. Locks missile if ID is active. |
+| <kbd>y</kbd> | **Cycle Missiles** | Switch to next available pylon. *Requires Multi-Targeting System.* |
+| <kbd>Shift</kbd>+<kbd>t</kbd> | **Target Missile** | Immediately target the nearest incoming enemy missile. |
+| <kbd>u</kbd> | **Unarm / Safety** | Deactivate ID or put missiles into safety mode. |
+| <kbd>m</kbd> | **Launch/Drop** | Fire locked missile or drop armed mine. |
+
+### Selectable Equipment & MFDs
+| Key | Action | Notes |
+| :--- | :--- | :--- |
+| <kbd>n</kbd> | **Activate** | Activate currently selected equipment. |
+| <kbd>Shift</kbd>+<kbd>n</kbd> / <kbd>Shift</kbd>+<kbd>Ctrl</kbd>+<kbd>n</kbd> | **Cycle Equipment** | Select Next or Previous equipment in your inventory. |
+| <kbd>b</kbd> | **Mode Change** | Change mode for the selected equipment (if applicable). |
+| <kbd>Tab</kbd> / <kbd>0</kbd> | **Fast Slots** | Activate equipment in Fast Slot 1 (<kbd>Tab</kbd>) or Slot 2 (<kbd>0</kbd>). |
+| <kbd>;</kbd> / <kbd>:</kbd> | **MFD Controls** | <kbd>;</kbd> to rotate current display; <kbd>:</kbd> to select next display area. |
+| <kbd>+</kbd> / <kbd>-</kbd> | **Target Memory** | Lock on to next/previous target in memory expansion (if installed). |
+
+### Sensors & Navigation
+| Key | Action | Notes |
+| :--- | :--- | :--- |
+| <kbd>z</kbd> / <kbd>Shift</kbd>+<kbd>z</kbd> | **Scanner Zoom** | <kbd>z</kbd> cycles zoom (1:1 to 5:1); <kbd>Shift</kbd>+<kbd>z</kbd> resets to 1:1. |
+| <kbd>\\</kbd> | **Compass Mode** | Cycle targets (Planet, Station, Sun, Target, Beacons). |
+| <kbd>\|</kbd> | **Compass Reverse** | Reverse cycle the Compass Mode. |
+| <kbd>`</kbd> (Backtick) | **Comms Log** | View recent ship-to-ship message history. |
+
+### Docking & Utility
+| Key | Action | Notes |
+| :--- | :--- | :--- |
+| <kbd>c</kbd> | **Autodock** | Begin/Abandon docking sequence. *Requires Docking Computer.* |
+| <kbd>Shift</kbd>+<kbd>c</kbd> | **Instant Dock** | Fast docking without the sequence. Advances game clock 20 mins. |
+| <kbd>Shift</kbd>+<kbd>l</kbd> | **Docking Clear** | Request, cancel, or renew docking clearance with a station. |
+| <kbd>s</kbd> | **Docking Music** | Toggle music during the automated docking sequence. |
+| <kbd>Shift</kbd>+<kbd>d</kbd> | **Eject Cargo** | Jettisons one cargo pod into space. |
+| <kbd>Shift</kbd>+<kbd>r</kbd> | **Rotate Cargo** | Choose which cargo type is at the "front" of the eject queue. |
+| <kbd>Esc</kbd> <kbd>Esc</kbd> | **Escape Pod** | Quickly double-tap to abandon ship (if installed). |
+
+### Viewscreens & Systems
+| Key | Action | Notes |
+| :--- | :--- | :--- |
+| <kbd>1</kbd> or <kbd>F1</kbd> | **Forward View** | Look out the front of the ship. |
+| <kbd>2</kbd> or <kbd>F2</kbd> | **Aft View** | Look out the back of the ship. |
+| <kbd>3</kbd> or <kbd>F3</kbd> | **Port View** | Look out the left side of the ship. |
+| <kbd>4</kbd> or <kbd>F4</kbd> | **Starboard View** | Look out the right side of the ship. |
+| <kbd>5</kbd> or <kbd>F5</kbd> | **Status/Manifest** | Toggles between Ship Status and Cargo Manifest. |
+| <kbd>6</kbd> or <kbd>F6</kbd> | **Galactic Chart** | Toggles between Zoomed and Entire range charts. |
+| <kbd>7</kbd> or <kbd>F7</kbd> | **System Data** | Shows the Planetary Database for the selected system. |
+| <kbd>8</kbd> or <kbd>F8</kbd> | **Market** | Access the Commodity Market. |
+| <kbd>v</kbd> | **External View** | Toggle between external free-look views. |
+| <kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd> | **External Camera** | Use arrow keys to rotate the camera in external view. |
+| <kbd>Caps Lock</kbd> + **Mouse** | **External Free-look** | Move the mouse while Caps Lock is on for free-look in external view. || <kbd>*</kbd> (Asterisk) | **Screenshot** | Saves a .png to your `oolite-saves` folder. |
+| <kbd>Shift</kbd>+<kbd>f</kbd> | **FPS Toggle** | Show/hide the frames-per-second counter. |
+| <kbd>F12</kbd> | **Screen Mode** | Toggle between Full Screen and Windowed mode. |
+| <kbd>Shift</kbd>+<kbd>Esc</kbd> | **Quit** | Immediate exit to desktop. |
+
+---
+
+### Mouse Flight Controls
+To enable mouse flight (available in Full Screen mode only), use the following toggles:
+* <kbd>Shift</kbd> + <kbd>M</kbd>: Toggle mouse control (X-axis = **Roll**)
+* <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>M</kbd>: Toggle mouse control (X-axis = **Yaw**)
+
+**Active Mouse Commands:**
+* **Mouse Left/Right**: Roll or Yaw (depending on toggle mode).
+* **Mouse Forward/Back**: Pitch.
+* **Primary Mouse Button**: Fire main weapon.
+* **Secondary Mouse Button**: Center all controls (cancels roll/yaw and pitch).
+* **Mouse Wheel Up/Down**: Increase or Decrease speed.
+
+## Changing user preferences
+
+The user preferences defaults file OoliteDefaults.plist contains the current settings for the following 'Game Options...' menu entries:
 
 * Autosave (Off/On)
 * Sound Volume (Mute to 100% in increments of 5%)
@@ -275,93 +189,14 @@ The current settings for the following 'Game Options...' menu entries:
 * Field Of View (30° to 80° in 20 increments)
 * Javascript Runtime (in mib)
 
-are stored in the file (created after Oolite first execution) .GNUstepDefaults and is stored in the following folder:
+The file is created after Oolite first execution and its parent folder is as follows:
 
-Windows: *<Oolite installation folder>*/oolite.app/GNUstep/Defaults/.GNUstepDefaults
+Windows: `*\<Oolite installation folder\>*/oolite.app/GNUstep/Defaults/`
 
-Linux: ~/GNUstep/Defaults/.GNUstepDefaults *(Note: filenames starting with '.' are considered hidden by default in Linux)*
+Linux AppImage: `*\<AppImage folder\>*/GameData` (or can be configured to use `~/.local/share/Oolite`)
+Linux Flatpak
 
-The recommended way to change these settings is to use the in-game options menu. Troubleshooting or the need to experiment with more advanced options, may lead to directly editing the .GNUstepDefaults file. For the changes to take effect, the .GNUstepDefaults file must be edited and saved before executing Oolite. Windows and Linux differentiate on the file format used. Windows is using the OpenStep format, which is easy to read, while Linux is using the XML format, which is more flexible.
-
-See below a couple of examples on how to directly edit the preferences file for both Windows and Linux. The examples focus in changing from windowed mode to full screen mode at a given resolution, by setting the 'display\_width' and 'display\_height' values, and ensuring the 'fullscreen' property is set to 'YES'.
-
-### Example 1 of 2
-
-The following settings will give a full screen display of 800x600, one quarter sound volume, wireframe graphics enabled, and graphics detail with simple shader effects enabled:
-
-*(Note that if the 'fullscreen' property is set to 'NO', Oolite will read the 'window\_height' and 'window\_width' parameter values and will start in a 640x480 window.)*
-
-{
-
-NSGlobalDomain = {
-
-};
-
-oolite = {
-
-detailLevel = 2;
-
-display\_width = 800;
-
-display\_height = 600;
-
-fullscreen = YES;
-
-volume\_control = 0.25;
-
-window\_height = 480;
-
-window\_width = 640;
-
-"wireframe-graphics" = YES;
-
-};
-
-}
-
-## Example 2 of 2
-
-The following settings will give a full screen display of 1400x1050, full sound volume, wireframe graphics will be replaced by textured surfaces, the Javascript runtime will be set to 64mb (default is 32mb), and extra graphics detail with full effects active:
-
-{
-
-NSGlobalDomain = {
-
-};
-
-oolite = {
-
-detailLevel = 3;
-
-display\_width = 1400;
-
-display\_height = 1050;
-
-fullscreen = YES;
-
-"jsruntime-size-mib" = 64;
-
-volume\_control = 1;
-
-window\_height = 480;
-
-window\_width = 640;
-
-"wireframe-graphics" = NO;
-
-};
-
-}
-
-There are quite a few other settings that can be used inside .GNUstepDefaults and that do not have a relevant Oolite menu entry.
-
-For example:
-
-"use-texture-lod-bias" = NO;
-
-"splash-screen" = NO;
-
-"mouse-control-in-windowed-mode" = YES;
+The recommended way to change these settings is to use the in-game options menu. Troubleshooting or the need to experiment with more advanced options, may lead to directly editing the file. For the changes to take effect, the file must be edited and saved before executing Oolite. 
 
 For more information please refer to [https://wiki.alioth.net/index.php/Hidden\_Settings\_in\_Oolite](http://wiki.alioth.net/index.php/Hidden_Settings_in_Oolite) .
 
@@ -371,25 +206,21 @@ Starting with Oolite 1.77 there are two different versions of the game. A normal
 
 The test builds have the following extra features:
 
-* When pressing **Shift-F**, the FPS display will show additional info, including a TAF indicator.
+* When pressing <kbd>Shift</kbd>+<kbd>F</kbd>, the FPS display will show additional info, including a TAF indicator.
 * A console can be used, to type in JavaScript commands, interfacing directly with the Oolite universe and its entities.
-* The following debugging options are accessible while paused:
 
-**0** Dump a list of all entities in the log-file.
+The following debugging options are accessible while paused:
 
-**b** Enable collision test debugging.
-
-**c** Enables octree debugging.
-
-**d** Enables all debug flags.
-
-**s** Enables shader debug messages.
-
-**x** Enables drawing of bounding boxes around all entities.
-
-**n** Disables all debug flags and displays HUD again.
-
-**left** and r**ight** cursor keys Halves/Doubles Time Acceleration Factor.
+| Key | Action |
+| :--- | :--- |
+| <kbd>0</kbd> | Dump a list of all entities in the log-file. |
+| <kbd>b</kbd> | Enable collision test debugging. |
+| <kbd>c</kbd> | Enables octree debugging. |
+| <kbd>d</kbd> | Enables all debug flags. |
+| <kbd>s</kbd> | Enables shader debug messages. |
+| <kbd>x</kbd> | Enables drawing of bounding boxes around all entities. |
+| <kbd>n</kbd> | Disables all debug flags and displays HUD again. |
+| <kbd>←</kbd> and <kbd>→</kbd> | **Time Acceleration:** Halves or Doubles the Time Acceleration Factor. |
 
 ## Helpful Information
 
@@ -401,7 +232,7 @@ Check the Frequently Asked Questions at [https://wiki.alioth.net/index.php/Oolit
 
 Most Oolite mods, often referred to as OXP’s (Oolite eXpansion Packs) are available at [https://wiki.alioth.net/index.php/OXP](http://wiki.alioth.net/index.php/OXP) , or from the Expansion Manager in the game.
 
-The Oolite Development Project Page (common for Mac OS X, Windows, Linux) is located at <https://github.com/OoliteProject/oolite> .
+The Oolite Development Project Page is located at <https://github.com/OoliteProject/oolite> .
 
 For answers to questions about playing Oolite, customizing Oolite and anything else Oolite related, post to the Oolite Bulletin Boards at [https://bb.oolite.space](https://bb.oolite.space/) .
 
@@ -417,13 +248,11 @@ Your feedback is essential to keep improving Oolite.
 
 A lot of effort has been put in making Oolite stable. In the, nowadays rare, event Oolite crashes, it will be highly appreciated if you let us know by raising an issue at <https://github.com/OoliteProject/oolite/issues> or by creating a topic in trhe “Testing and Bug reports” section of the Oolite Bulletin Board, found here: <https://bb.oolite.space/viewforum.php?f=3>. In both cases, attaching the crash log can be very helpful in solving problems. It is located at
 
-Windows: *<Oolite installation folder>*/oolite.app/Logs/Latest.log
+Windows: *\<Oolite installation folder\>*/oolite.app/Logs/Latest.log
 
 Linux: ~/.Oolite/Logs/Latest.log
 
-Mac OS X: ~/Library/Logs/CrashReporter/Oolite.crash.log
-
-Be encouraged to drop by the Oolite Bulletin Board at https://bb.oolite.space to give feedback and chat about the game. It’s the friendliest place this side of Riedquat!
+Be encouraged to drop by the Oolite Bulletin Board at <https://bb.oolite.space> to give feedback and chat about the game. It’s the friendliest place this side of Riedquat!
 
 **We are immensely grateful to all the people who have been testing Oolite and tediously bringing it towards perfection.**
 
