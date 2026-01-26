@@ -11,8 +11,10 @@
 **Subject:** Advice for New Commanders.
 
 **Notes**:
+
 ■ This information has been archived as it contains valuable advice for independent commanders wanting to
 make their mark on the GCW.
+
 ■ Mr Gimlet’s advice comes from over 40 years of experience of being the Dock Master to the
 busiest station in the Galactic Cooperative of Worlds.
 
