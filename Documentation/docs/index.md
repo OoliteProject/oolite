@@ -32,8 +32,8 @@ details).
 
 ### Manage Expansion Packs
 
-Install and remove expansions packs (OXPs). Not all mod packs can be installed and removed by this method – others, 
-especially older ones, can be found at [https://wiki.alioth.net/index.php/OXP_List](https://wiki.alioth.net/index.php/OXP_List).
+Install and remove Oolite mods, often referred to as OXPs (Oolite eXpansion Packs). Not all mod packs can be installed 
+and removed by this method – others, especially older ones, can be found [here](https://wiki.alioth.net/index.php/OXP_List).
 
 ### Exit Game
 
@@ -185,9 +185,6 @@ To enable mouse flight (available in Full Screen mode only), use the following t
 | <kbd>Shift</kbd> + <kbd>M</kbd>                   | Toggle mouse control (X-axis = **Roll**) |
 | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>M</kbd> | Toggle mouse control (X-axis = **Yaw**)  |
 
-* <kbd>Shift</kbd> + <kbd>M</kbd>: Toggle mouse control (X-axis = **Roll**)
-* <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>M</kbd>: Toggle mouse control (X-axis = **Yaw**)
-
 **Active Mouse Commands:**
 
 | Input                      | Action                                           |
@@ -221,21 +218,22 @@ Using legacy is not recommended.
 
 More intricate setups are possible by specifying individual environment variables for different folders:
 
-| Environment Variable      | Description                              | Default Path (if unset)                  |
-|:--------------------------|:-----------------------------------------|:-----------------------------------------|
-| `OO_SAVEDIR`              | Directory for saved games                | `$GAME_DATA/SavedGames`                  |
-| `OO_SNAPSHOTSDIR`         | Directory for screenshots/snapshots      | `$GAME_DATA/Snapshots`                   |
-| `OO_LOGSDIR`              | Directory for game log files             | `$GAME_DATA/.logs`                       |
-| `OO_MANAGEDADDONSDIR`     | Directory for OXPs managed by the game   | `$GAME_DATA/.ManagedAddOns`              |
-| `OO_USERADDONSDIR`        | User-specified directory for OXPs        | `$GAME_DATA/AddOns`                      |
-| `OO_ADDONSEXTRACTDIR`     | Directory for extracted OXPs             | `${OO_USERADDONSDIR:-$GAME_DATA/AddOns}` |
-| `OO_ADDITIONALADDONSDIRS` | List of extra addon search paths         |                                          |
-| `OO_GNUSTEPDIR`           | GNUstep directory                        | `$GAME_DATA/.GNUstep`                    |
-| `OO_GNUSTEPDEFAULTSDIR`   | User prefereences defaults file location | `$GAME_DATA`                             |
+| Environment Variable      | Description                             | Default Path (if unset)                  |
+|:--------------------------|:----------------------------------------|:-----------------------------------------|
+| `OO_SAVEDIR`              | Directory for saved games               | `$GAME_DATA/SavedGames`                  |
+| `OO_SNAPSHOTSDIR`         | Directory for screenshots/snapshots     | `$GAME_DATA/Snapshots`                   |
+| `OO_LOGSDIR`              | Directory for game log files            | `$GAME_DATA/.logs`                       |
+| `OO_MANAGEDADDONSDIR`     | Directory for OXPs managed by the game  | `$GAME_DATA/.ManagedAddOns`              |
+| `OO_USERADDONSDIR`        | User-specified directory for OXPs       | `$GAME_DATA/AddOns`                      |
+| `OO_ADDONSEXTRACTDIR`     | Directory for extracted OXPs            | `${OO_USERADDONSDIR:-$GAME_DATA/AddOns}` |
+| `OO_ADDITIONALADDONSDIRS` | List of extra addon search paths        |                                          |
+| `OO_GNUSTEPDIR`           | GNUstep directory                       | `$GAME_DATA/.GNUstep`                    |
+| `OO_GNUSTEPDEFAULTSDIR`   | User preferences defaults file location | `$GAME_DATA`                             |
 
 ## Changing user preferences
 
-The user preferences defaults file OoliteDefaults.plist contains the current settings for vaerious 'Game Options...' menu entries:
+The user preferences defaults file OoliteDefaults.plist contains various game settings which will include some of the
+following:
 
 * Autosave (Off/On)
 * Sound Volume (Mute to 100% in increments of 5%)
@@ -247,20 +245,31 @@ The user preferences defaults file OoliteDefaults.plist contains the current set
 * Field Of View (30° to 80° in 20 increments)
 * Javascript Runtime (in mib)
 
-The file is created after Oolite first execution. It is located 
+The file is created after Oolite first execution. It is located in teh game data folder on Linux, while on 
+Windows it is in a subfolder `GNUstep/Defaults/`. 
 
-Windows: `*\<Oolite installation folder\>*/oolite.app/GNUstep/Defaults/`
+The file looks like this:
 
-Linux AppImage: `*\<AppImage folder\>*/GameData` (or can be configured to use `~/.local/share/Oolite`)
-Linux Flatpak
+    {
+        "debug-settings-override" = {
+        };
+        "gamma-value" = 1;
+        "volume_control" = "0.5";
+    }
 
-The recommended way to change these settings is to use the in-game options menu. Troubleshooting or the need to experiment with more advanced options, may lead to directly editing the file. For the changes to take effect, the file must be edited and saved before executing Oolite. 
 
-For more information please refer to [https://wiki.alioth.net/index.php/Hidden\_Settings\_in\_Oolite](http://wiki.alioth.net/index.php/Hidden_Settings_in_Oolite) .
+The recommended way to change these settings is to use the in-game options menu. Troubleshooting or the need to 
+experiment with more advanced options, may lead to directly editing the file. For the changes to take effect, the file 
+must be edited and saved before executing Oolite. 
+
+For more information please refer to [hidden settings in Oolite](http://wiki.alioth.net/index.php/Hidden_Settings_in_Oolite).
 
 ## Test Builds
 
-Starting with Oolite 1.77 there are two different versions of the game. A normal version without debugging tools and a slightly slower version with debugging options that can be used with the console. This test build version will be useful for oxp developers.
+Starting with Oolite 1.77 there are two different versions of the game. A normal version without debugging tools and a 
+slightly slower version with debugging options that can be used with the console. This test build version will be 
+useful for oxp developers. It can be found under [the releases](https://github.com/OoliteProject/oolite/releases) and
+has has `_test` in the name.
 
 The test builds have the following extra features:
 
@@ -284,103 +293,28 @@ The following debugging options are accessible while paused:
 
 For more information on playing Oolite visit [https://www.oolite.space](http://www.oolite.org/).
 
-Browse the Oolite Wiki at [https://wiki.alioth.net/index.php/Oolite\_Main\_Page](http://wiki.alioth.net/index.php/Oolite_Main_Page) .
+Browse the [Oolite Wiki](http://wiki.alioth.net/index.php/Oolite_Main_Page).
 
-Check the Frequently Asked Questions at [https://wiki.alioth.net/index.php/Oolite\_FAQ](http://wiki.alioth.net/index.php/Oolite_FAQ) .
+Check the [Frequently Asked Questions](http://wiki.alioth.net/index.php/Oolite_FAQ).
 
-Most Oolite mods, often referred to as OXP’s (Oolite eXpansion Packs) are available at [https://wiki.alioth.net/index.php/OXP](http://wiki.alioth.net/index.php/OXP) , or from the Expansion Manager in the game.
+Most Oolite mods, often referred to as OXP’s (Oolite eXpansion Packs) are available [here](http://wiki.alioth.net/index.php/OXP) , or from the Expansion Manager in the game.
 
-The Oolite Development Project Page is located at <https://github.com/OoliteProject/oolite> .
+The Oolite Development Project Page is located on [GitHub](https://github.com/OoliteProject/oolite).
 
-For answers to questions about playing Oolite, customizing Oolite and anything else Oolite related, post to the Oolite Bulletin Boards at [https://bb.oolite.space](https://bb.oolite.space/) .
+For answers to questions about playing Oolite, customizing Oolite and anything else Oolite related, post to the [Oolite Bulletin Boards](https://bb.oolite.space/).
+It’s the friendliest place this side of Riedquat!
 
-Oolite is making use of various external open source libraries, some of them modified to fit certain requirements of the game. For more information about where to find the source code of those libraries, as well as information about the modifications required to make them build for Oolite, please refer to the file *ExternalLibrariesSourceCodeChanges.txt*, found inside the Doc folder of the game’s source code distribution.
+Your feedback is essential to keep improving Oolite. A lot of effort has been put in making Oolite stable. In the rare 
+event Oolite crashes, it will be highly appreciated if you let us know by raising an [issue](https://github.com/OoliteProject/oolite/issues) 
+or by creating a topic in the [Testing and Bug reports](https://bb.oolite.space/viewforum.php?f=3) section of the Oolite 
+Bulletin Board. In both cases, attaching the crash log can be very helpful in solving problems. It is located at:
 
-Military laser sound courtesy of user “notyermom”, sourced from <https://freesound.org/people/notyermom/sounds/434834/> under license: <https://creativecommons.org/publicdomain/zero/1.0/>
-
-Mining laser sound courtesy of user “bubaproducer”, sourced from <https://freesound.org/people/bubaproducer/sounds/151022/> under license: <https://creativecommons.org/licenses/by/3.0/>
-
-Beam laser sound courtesy of user “jobro”, sourced from <https://freesound.org/people/jobro/sounds/35677/> under license: <https://creativecommons.org/licenses/by/3.0/>
-
-Your feedback is essential to keep improving Oolite.
-
-A lot of effort has been put in making Oolite stable. In the, nowadays rare, event Oolite crashes, it will be highly appreciated if you let us know by raising an issue at <https://github.com/OoliteProject/oolite/issues> or by creating a topic in trhe “Testing and Bug reports” section of the Oolite Bulletin Board, found here: <https://bb.oolite.space/viewforum.php?f=3>. In both cases, attaching the crash log can be very helpful in solving problems. It is located at
-
-Windows: *\<Oolite installation folder\>*/oolite.app/Logs/Latest.log
-
-Linux: ~/.Oolite/Logs/Latest.log
-
-Be encouraged to drop by the Oolite Bulletin Board at <https://bb.oolite.space> to give feedback and chat about the game. It’s the friendliest place this side of Riedquat!
+| OS      | Log folder location                                       |
+|:--------|:----------------------------------------------------------|
+| Windows | `<Oolite installation folder>/oolite.app/Logs/Latest.log` |
+| Linux   | `$GAME_DATA/.logs/Latest.log`                             |
 
 **We are immensely grateful to all the people who have been testing Oolite and tediously bringing it towards perfection.**
 
 **Thank you all!**
 
-## License
-
-Copyright © 2004-2026 Giles C Williams, Jens Ayton and contributors.
-
-This work is licensed under the GNU General Public License version 2.
-
-This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License along with this program; if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-
-Additionally, all artwork – 3D models, images and sounds – included in the work, as well as configuration files, are also licensed under the Commons Creative Attribution-Non Commercial-Share Alike License version 3.0. This means that these files may be distributed under either license at your discretion.
-
-To view a copy of Attribution-Non Commercial-Share Alike license, visit <http://creativecommons.org/licenses/by-nc-sa/3.0/> or send a letter to Creative Commons, 559 Nathan Abbott Way, Stanford, California 94305, USA.
-
-You are free:
-
-* to Share — to copy, distribute and transmit the work
-* to Remix — to adapt the work
-
-under the following conditions:
-
-* Attribution. You must attribute the work in the manner specified by the author or licensor (but not in any way that suggests that they endorse you or your use of the work).
-* Noncommercial. You may not use this work for commercial purposes.
-* Share Alike. If you alter, transform, or build upon this work, you may distribute the resulting work only under the same or similar license to this one.
-
-For any reuse or distribution, you must make clear to others the license terms of this work.
-
-Any of the above conditions can be waived if you get permission from the copyright holder.
-
-Apart from the remix rights granted under this license, nothing in this license impairs or restricts the author’s moral rights
-
-Your fair dealing and other rights are in no way affected by the above.
-
-This is a human-readable summary of the Legal Code (the full license).
-
-The source code distribution and the Mac OS X version of Oolite contain parts subject to the following license:
-
-VirtualRingBuffer
-
-Copyright © 2002, Kurt Revis. All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-
-* Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-* Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-* Neither the name of Snoize nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS “AS IS” AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-The MiniZip code used is subject to the following license.
-
-License
-
-----------------------------------------------------------
-
-Condition of use and distribution are the same than zlib :
-
-This software is provided 'as-is', without any express or implied warranty. In no event will the authors be held liable for any damages arising from the use of this software.
-
-Permission is granted to anyone to use this software for any purpose, including commercial applications, and to alter it and redistribute it freely, subject to the following restrictions:
-
-1. The origin of this software must not be misrepresented; you must not claim that you wrote the original software. If you use this software in a product, an acknowledgment in the product documentation would be appreciated but is not required.
-2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
-3. This notice may not be removed or altered from any source distribution.
-
-----------------------------------------------------------
