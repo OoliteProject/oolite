@@ -2,16 +2,17 @@
 
 [![GitHub release](https://img.shields.io/github/release/OoliteProject/Oolite.svg)](https://github.com/OoliteProject/Oolite/releases/latest)
 
-| Windows             | Linux               | OSX            |
-|---------------------|---------------------|----------------|
-| [![Github release](https://img.shields.io/github/downloads/OoliteProject/Oolite/latest/Oolite-1.90_x64.exe.svg)](https://github.com/OoliteProject/oolite/releases/latest) | [![Github release](https://img.shields.io/github/downloads/OoliteProject/Oolite/latest/oolite-1.90.linux-x86_64.tgz.svg)](https://github.com/OoliteProject/oolite/releases/latest) | [![Github release](https://img.shields.io/github/downloads/OoliteProject/Oolite/latest/oolite-1.90.zip.svg)](https://github.com/OoliteProject/oolite/releases/latest) |
-[![Github release](https://img.shields.io/github/downloads/OoliteProject/Oolite/latest/Oolite-1.90_x86.exe.svg)](https://github.com/OoliteProject/oolite/releases/latest)| [![Github release](https://img.shields.io/github/downloads/OoliteProject/Oolite/latest/oolite-1.90.linux-x86.tgz.svg)](https://github.com/OoliteProject/oolite/releases/latest) | [![Github release](https://img.shields.io/github/downloads/OoliteProject/Oolite/latest/Oolite-1.90-Mac-TestRelease.zip.svg)](https://github.com/OoliteProject/oolite/releases/latest) |
-| | [![Github release](https://img.shields.io/github/downloads/OoliteProject/Oolite/latest/oolite-1.90-test.linux-x86_64.tgz.svg)](https://github.com/OoliteProject/oolite/releases/latest) | |
-| | [![Github release](https://img.shields.io/github/downloads/OoliteProject/Oolite/latest/oolite-1.90-test.linux-x86.tgz.svg)](https://github.com/OoliteProject/oolite/releases/latest) | |
+| Windows                                                                                                                                                                   | Linux                                                                                                                                                                                   | OSX                                                                                                                                                                                   |
+|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [![Github release](https://img.shields.io/github/downloads/OoliteProject/Oolite/latest/Oolite-1.90_x64.exe.svg)](https://github.com/OoliteProject/oolite/releases/latest) | [![Github release](https://img.shields.io/github/downloads/OoliteProject/Oolite/latest/oolite-1.90.linux-x86_64.tgz.svg)](https://github.com/OoliteProject/oolite/releases/latest)      | [![Github release](https://img.shields.io/github/downloads/OoliteProject/Oolite/latest/oolite-1.90.zip.svg)](https://github.com/OoliteProject/oolite/releases/latest)                 |
+ [![Github release](https://img.shields.io/github/downloads/OoliteProject/Oolite/latest/Oolite-1.90_x86.exe.svg)](https://github.com/OoliteProject/oolite/releases/latest) | [![Github release](https://img.shields.io/github/downloads/OoliteProject/Oolite/latest/oolite-1.90.linux-x86.tgz.svg)](https://github.com/OoliteProject/oolite/releases/latest)         | [![Github release](https://img.shields.io/github/downloads/OoliteProject/Oolite/latest/Oolite-1.90-Mac-TestRelease.zip.svg)](https://github.com/OoliteProject/oolite/releases/latest) |
+|                                                                                                                                                                           | [![Github release](https://img.shields.io/github/downloads/OoliteProject/Oolite/latest/oolite-1.90-test.linux-x86_64.tgz.svg)](https://github.com/OoliteProject/oolite/releases/latest) |                                                                                                                                                                                       |
+|                                                                                                                                                                           | [![Github release](https://img.shields.io/github/downloads/OoliteProject/Oolite/latest/oolite-1.90-test.linux-x86.tgz.svg)](https://github.com/OoliteProject/oolite/releases/latest)    |                                                                                                                                                                                       |
 
 ![Oolite Screenshot](https://addons.oolite.space/i/gallery/oxp/large/another_commander-210210_LeavingCoriolisAgain.png)
 
-Oolite can be heavily customized via expansions. These modify the gameplay, add ships, improve graphics - the possibilities are almost endless:
+Oolite can be heavily customized via expansions. These modify the gameplay, add ships, improve graphics - the
+possibilities are almost endless:
 
 ![Oolite Customized](https://addons.oolite.space/i/gallery/oxp/large/another_commander_ViperNew02.png)
 
@@ -24,16 +25,16 @@ You can download the latest version from [here](https://github.com/OoliteProject
 
 ### Windows
 
-The Windows NSIS installer is named OoliteInstall-XXX-win.exe where XXX is a version number.
+The Windows NSIS installer is named `OoliteInstall-XXX-win.exe` where XXX is a version number.
 Double click the downloaded file to run the installer.
 
 ### Linux
 
-Linux has Flatpak and AppImage versions. The Flatpak is named space.oolite.Oolite_XXX.flatpak
+Linux has Flatpak and AppImage versions. The Flatpak is named `space.oolite.Oolite_XXX.flatpak`
 where XXX is a version number. Many Linux package managers support Flatpak so you should be able to
 double click the downloaded file to install it.
 
-The AppImage is named Oolite_XXX-x86_64.AppImage where XXX is a version number. Download this
+The AppImage is named `Oolite_XXX-x86_64.AppImage` where XXX is a version number. Download this
 file to where you would like it stored, make it executable and run, for example by typing
 
 ```bash
@@ -43,7 +44,9 @@ chmod +x Oolite_XXX-x86_64.AppImage
 
 ## Playing Oolite
 
-For more information, see [oolite.space](http://www.oolite.space/) and
+Information about playing Oolite can be found [here](https://oolite.readthedocs.io/en/latest/).
+
+For more information, see also [oolite.space](http://www.oolite.space/) and
 [Elite Wiki](http://wiki.alioth.net/index.php/Oolite_Main_Page).
 
 ## Building from Source
@@ -52,6 +55,8 @@ We welcome developers to work on Oolite! If you wish to build the project from s
 the instructions below. Note that the scripts require sudo for activities like installing dependent
 libraries built from source and for installing packages on some Linux distros. If you run into
 difficulties, you can seek help on the [Oolite Bulletin Board](https://bb.oolite.space/).
+
+API documentation is available [here](https://oolite.readthedocs.io/en/latest/api/html/).
 
 ### Git
 
@@ -135,7 +140,8 @@ make -f Makefile pkg-flatpak -j$(nproc)
 
 ### Mac OS
 
-Intel-based Macs can run old builds of Oolite, but current Macs are unsupported. It is hoped that they can be supported in future.
+Intel-based Macs can run old builds of Oolite, but current Macs are unsupported. It is hoped that they can be supported
+in future.
 
 ### Objective-C
 
@@ -147,9 +153,11 @@ or C++ with which it is interoperable.
 
 ### Troubleshooting
 
-- If you get errors like `fatal error: jsapi.h: No such file or directory`, there was probably an issue with checking out the submodules.
+- If you get errors like `fatal error: jsapi.h: No such file or directory`, there was probably an issue with checking
+  out the submodules.
 
-- If you can't see any textures, try deleting the following files, and compile again although these are already excluded from modern builds.
+- If you can't see any textures, try deleting the following files, and compile again although these are already excluded
+  from modern builds.
 
 ```bash
 rm deps/Linux-deps/include/png.h
@@ -168,29 +176,31 @@ Oolite for all platforms can be built from this repository. Here is a quick
 guide to the source tree.
 
 - **debian**:  Files to enable automatic setup under Linux using dpkg (Debian package manager) tools
-- **DebugOXP**:  [Debug.oxp](http://wiki.alioth.net/index.php/Debug_OXP), the expansion pack that enables console support in debug and test release builds
+- **DebugOXP**:  [Debug.oxp](http://wiki.alioth.net/index.php/Debug_OXP), the expansion pack that enables console
+  support in debug and test release builds
 - **deps**
-  - **Cocoa-deps**:  Dependencies for Mac OS X
-  - **Cross-platform-deps**:  Dependencies for platforms other than Mac OS X
-  - **Linux-deps**:  Dependencies for Linux on x86 and x86_64 processors
-  - **URLs**:  URLs used for binary dependencies on Mac OS X
-  - **Windows-deps**:  Dependencies for Windows on x86 and x86_64 processors
+    - **Cocoa-deps**:  Dependencies for Mac OS X
+    - **Cross-platform-deps**:  Dependencies for platforms other than Mac OS X
+    - **Linux-deps**:  Dependencies for Linux on x86 and x86_64 processors
+    - **URLs**:  URLs used for binary dependencies on Mac OS X
+    - **Windows-deps**:  Dependencies for Windows on x86 and x86_64 processors
 - **Doc**:  Documentation (including user guides)
 - **ShellScripts**:  Scripts to build from source on Windows and Linux
 - **installers**:  Files used to create various installers
 - **Mac-specific**:  Additional projects used only on Mac OS X
-  - **DataFormatters**:  Debugger configurations for Xcode
-  - **DebugBundle**:  Implements the [Debug menu and in-app console](http://wiki.alioth.net/index.php/Debug_OXP#Mac_OS_X-specific_features)
-  - **OCUnitTest**:  A small number of unit tests
-  - **Oolite-docktile:**  An embedded plug-in which implements the Oolite dock menu when Oolite is not running
-  - **Oolite-importer**:  A Spotlight importer to make saved games and OXPs searchable
+    - **DataFormatters**:  Debugger configurations for Xcode
+    - **DebugBundle**:  Implements
+      the [Debug menu and in-app console](http://wiki.alioth.net/index.php/Debug_OXP#Mac_OS_X-specific_features)
+    - **OCUnitTest**:  A small number of unit tests
+    - **Oolite-docktile:**  An embedded plug-in which implements the Oolite dock menu when Oolite is not running
+    - **Oolite-importer**:  A Spotlight importer to make saved games and OXPs searchable
 - **Oolite.xcodeproj**:  The OS X Xcode project to build Oolite
 - **Resources**:  Game assets and resource files for Mac and GNUstep application bundles
 - **Schemata**:  Plist schema files for the [OXP Verifier](http://wiki.alioth.net/index.php/OXP_howto#OXP_Verifier)
 - **src**:  Objective-C and C sources, incuding header files
-  - **BSDCompat**:  Support for BSDisms that gnu libc doesn't have (strl*)
-  - **Cocoa**:  Files that are only compiled on Mac OS X
-  - **Core**:  Files that are compiled on all platforms
-  - **SDL**:  Files that are only compiled for platforms that use SDL
+    - **BSDCompat**:  Support for BSDisms that gnu libc doesn't have (strl*)
+    - **Cocoa**:  Files that are only compiled on Mac OS X
+    - **Core**:  Files that are compiled on all platforms
+    - **SDL**:  Files that are only compiled for platforms that use SDL
 - **tests**:  A mixed bag of test cases for manual testing and ad-hoc code tests.
 - **tools**:  Various tools for preparing files, builds, releases etc.
