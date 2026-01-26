@@ -17,6 +17,7 @@ make their mark on the GCW.
 busiest station in the Galactic Cooperative of Worlds.
 
 ![](./assets/dockmaster.png){ width="20%" }
+
 ■ The Transcript has been edited for brevity and relevance. The
 original can be source in the Oolite Central Archives (the Oolite Wiki).
 
@@ -30,6 +31,7 @@ me? It ain’t the fastest, and it ain’t the strongest, nor the most killing n
 by a long shot, but a sweet little number in her own right, no error.
 
 ![](./assets/cobra3.png){ width="70%" }
+
 Let’s take a tour around ... Hoo boy, she is mint, ain’t she! I just love that new-ship smell. Take a sniff, go on:
 yeah, well, most of them long-chain monomers is carcinogenic, so don’t you snort too deep ...
 
@@ -38,6 +40,7 @@ life would be gravy! No, there’s more’n enough out there to kill you plenty 
 ship or no.
 
 ![](./assets/jameson.png){ width="70%" }
+
 I see a lot of blanks on this here board ... I’m guessing your ship is, whadda they call it, a basic model, yeah? Legal
 minimum? Uh-huh, I thought so. Man oh man, they shouldn’t oughta let kids out in a machine like this; it’s a sin, is
 what it is. Some bandit takes a pop at you, and what you got to hold your end up with? A Pulse Laser. A Pulse Laser’s
@@ -56,6 +59,7 @@ you can. A warhead’s nasty, but no sense in giving it a kinetic advantage too,
 if you’ve got the energy for it: if the first burst don’t kill it, maybe the next one will.
 
 ![](./assets/witchdrive.png){ width="70%" }
+
 Speaking of running ... over here is where you’d control your Witchdrive Fuel Injectors, if’n you had ’em ... dumps fuel
 straight from the tanks into the drive, and shoots you off like an Oresquan on a hot date. Good for whatever ails ya,
 from pushing past a mass-lock to getting the hell out of town!
@@ -82,6 +86,7 @@ at Zaonce, though, just a wormhole away. Dull kinda burg, Zaonce, but they know 
 Shouldn’t set you back more’n ten, twenty thou.
 
 ![](./assets/leesti.png){ width="70%" }
+
 You got how much? One hundred creds. One ... hundred ... creds. Ayoha. All right then. Let’s break it down. Your problem
 here is financial, not technical. Maybe at bottom it’s psychological, but I’ll give you the benefit.
 
@@ -96,6 +101,7 @@ a head designed for some other guy’s anatomy? And the resale sucks, if’n you
 option.
 
 ![](./assets/zaonce.png){ width="70%" }
+
 Slow money, now, that’s less chancy. You buy up what’s cheap, you take it to where it’s expensive, and you sell it at a
 profit. Rinse and repeat. What’s cheap where, and what’s expensive? Supply and demand, kid. Like the philosopher said,
 “it’s the economy, stupid”. Agricultural worlds produce raw materials like minerals and radioactives, and the
@@ -115,6 +121,7 @@ get a Cargo Bay Expansion to take you up to thirty-five. That extra fifteen tons
 in one good run, if you can fill it up.
 
 ![](./assets/lave.png){ width="70%" }
+
 It ain’t all bulk, though. Watch the board for cheap deals on precious metals and gemstones: they might not offer the
 greatest profits, but they don’t take up any cargo space at all. See this safe over here, behind this bulkhead? You take
 on platinum, or gold, or a sack of gemstones when you’re docked, they go right in here. You can keep ’em here as long as
@@ -126,12 +133,14 @@ mind scraping carbon scoring off the scoop every few jumps. Only don’t, for an
 It’s a tool, not a weapon.
 
 ![](./assets/illegal.png){ width="70%" }
+
 What “other” products? What you winking for, kid? You mean slaves, narcotics and firearms? Why don’t you just damn well
 say so? They ain’t illegal. They’s what we call controlled merchandise. You find ’em out there, you can bring ’em in,
 much as you want, all nice and legal ... what will get you into trouble with the Blues is shipping them out of a main
 system station.
 
 ![](./assets/parcel.png){ width="70%" }
+
 There’s long-range shipping contracts on offer, too, in some stations: F4 will bring ’em up, if there’s any there. You
 buy the deal and then get paid a bonus if you make the delivery on time. They’ll be out your price-range just now, and
 anyway most of ’em call for a bigger cargo-hold than a Cobra can carry. Keep an eye out for any you might be able to do,
