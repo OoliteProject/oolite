@@ -12,9 +12,9 @@ When starting Oolite, a menu with six options will be displayed.
 
 ### Start New Commander
 
-Start a new commander. Three starting scenarios are available by default, though expansion packs may add more. New 
-players may wish to start with the Tutorial scenario which introduces the basics of flight and combat. A commander 
-started with the Strict Mode option will never have any expansion packs affecting the game-play, even if these are 
+Start a new commander. Three starting scenarios are available by default, though expansion packs may add more. New
+players may wish to start with the Tutorial scenario which introduces the basics of flight and combat. A commander
+started with the Strict Mode option will never have any expansion packs affecting the game-play, even if these are
 installed at a later stage.
 
 ### Load Commander
@@ -27,13 +27,14 @@ View the specifications and descriptions of the ships and other common space obj
 
 ### Game Options
 
-Opens the Game Options screen to allow for game settings to be viewed and changed (See Game Options below for more 
+Opens the Game Options screen to allow for game settings to be viewed and changed (See Game Options below for more
 details).
 
 ### Manage Expansion Packs
 
-Install and remove Oolite mods, often referred to as OXPs (Oolite eXpansion Packs). Not all mod packs can be installed 
-and removed by this method – others, especially older ones, can be found [here](https://wiki.alioth.net/index.php/OXP_List).
+Install and remove Oolite mods, often referred to as OXPs (Oolite eXpansion Packs). Not all mod packs can be installed
+and removed by this method – others, especially older ones, can be
+found [here](https://wiki.alioth.net/index.php/OXP_List).
 
 ### Exit Game
 
@@ -245,8 +246,8 @@ following:
 * Field Of View (30° to 80° in 20 increments)
 * Javascript Runtime (in mib)
 
-The file is created after Oolite first execution. It is located in teh game data folder on Linux, while on 
-Windows it is in a subfolder `GNUstep/Defaults/`. 
+The file is created after Oolite first execution. It is located in teh game data folder on Linux, while on
+Windows it is in a subfolder `GNUstep/Defaults/`.
 
 The file looks like this:
 
@@ -257,17 +258,17 @@ The file looks like this:
         "volume_control" = "0.5";
     }
 
+The recommended way to change these settings is to use the in-game options menu. Troubleshooting or the need to
+experiment with more advanced options, may lead to directly editing the file. For the changes to take effect, the file
+must be edited and saved before executing Oolite.
 
-The recommended way to change these settings is to use the in-game options menu. Troubleshooting or the need to 
-experiment with more advanced options, may lead to directly editing the file. For the changes to take effect, the file 
-must be edited and saved before executing Oolite. 
-
-For more information please refer to [hidden settings in Oolite](http://wiki.alioth.net/index.php/Hidden_Settings_in_Oolite).
+For more information please refer
+to [hidden settings in Oolite](http://wiki.alioth.net/index.php/Hidden_Settings_in_Oolite).
 
 ## Test Builds
 
-Starting with Oolite 1.77 there are two different versions of the game. A normal version without debugging tools and a 
-slightly slower version with debugging options that can be used with the console. This test build version will be 
+Starting with Oolite 1.77 there are two different versions of the game. A normal version without debugging tools and a
+slightly slower version with debugging options that can be used with the console. This test build version will be
 useful for oxp developers. It can be found under [the releases](https://github.com/OoliteProject/oolite/releases) and
 has has `_test` in the name.
 
@@ -297,16 +298,19 @@ Browse the [Oolite Wiki](http://wiki.alioth.net/index.php/Oolite_Main_Page).
 
 Check the [Frequently Asked Questions](http://wiki.alioth.net/index.php/Oolite_FAQ).
 
-Most Oolite mods, often referred to as OXP’s (Oolite eXpansion Packs) are available [here](http://wiki.alioth.net/index.php/OXP) , or from the Expansion Manager in the game.
+Most Oolite mods, often referred to as OXP’s (Oolite eXpansion Packs) are
+available [here](http://wiki.alioth.net/index.php/OXP) , or from the Expansion Manager in the game.
 
 The Oolite Development Project Page is located on [GitHub](https://github.com/OoliteProject/oolite).
 
-For answers to questions about playing Oolite, customizing Oolite and anything else Oolite related, post to the [Oolite Bulletin Boards](https://bb.oolite.space/).
+For answers to questions about playing Oolite, customizing Oolite and anything else Oolite related, post to
+the [Oolite Bulletin Boards](https://bb.oolite.space/).
 It’s the friendliest place this side of Riedquat!
 
-Your feedback is essential to keep improving Oolite. A lot of effort has been put in making Oolite stable. In the rare 
-event Oolite crashes, it will be highly appreciated if you let us know by raising an [issue](https://github.com/OoliteProject/oolite/issues) 
-or by creating a topic in the [Testing and Bug reports](https://bb.oolite.space/viewforum.php?f=3) section of the Oolite 
+Your feedback is essential to keep improving Oolite. A lot of effort has been put in making Oolite stable. In the rare
+event Oolite crashes, it will be highly appreciated if you let us know by raising
+an [issue](https://github.com/OoliteProject/oolite/issues)
+or by creating a topic in the [Testing and Bug reports](https://bb.oolite.space/viewforum.php?f=3) section of the Oolite
 Bulletin Board. In both cases, attaching the crash log can be very helpful in solving problems. It is located at:
 
 | OS      | Log folder location                                       |
@@ -314,7 +318,8 @@ Bulletin Board. In both cases, attaching the crash log can be very helpful in so
 | Windows | `<Oolite installation folder>/oolite.app/Logs/Latest.log` |
 | Linux   | `$GAME_DATA/.logs/Latest.log`                             |
 
-**We are immensely grateful to all the people who have been testing Oolite and tediously bringing it towards perfection.**
+**We are immensely grateful to all the people who have been testing Oolite and tediously bringing it towards perfection.
+**
 
 **Thank you all!**
 

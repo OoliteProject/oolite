@@ -4,15 +4,23 @@ Copyright © 2004-2026 Giles C Williams, Jens Ayton and contributors.
 
 This work is licensed under the GNU General Public License version 2.
 
-This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
+This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public
+License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later
+version.
 
-This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License along with this program; if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+You should have received a copy of the GNU General Public License along with this program; if not, write to the Free
+Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-Additionally, all artwork – 3D models, images and sounds – included in the work, as well as configuration files, are also licensed under the Commons Creative Attribution-Non Commercial-Share Alike License version 3.0. This means that these files may be distributed under either license at your discretion.
+Additionally, all artwork – 3D models, images and sounds – included in the work, as well as configuration files, are
+also licensed under the Commons Creative Attribution-Non Commercial-Share Alike License version 3.0. This means that
+these files may be distributed under either license at your discretion.
 
-To view a copy of Attribution-Non Commercial-Share Alike license, visit <http://creativecommons.org/licenses/by-nc-sa/3.0/> or send a letter to Creative Commons, 559 Nathan Abbott Way, Stanford, California 94305, USA.
+To view a copy of Attribution-Non Commercial-Share Alike license,
+visit <http://creativecommons.org/licenses/by-nc-sa/3.0/> or send a letter to Creative Commons, 559 Nathan Abbott Way,
+Stanford, California 94305, USA.
 
 You are free:
 
@@ -21,15 +29,18 @@ You are free:
 
 under the following conditions:
 
-* Attribution. You must attribute the work in the manner specified by the author or licensor (but not in any way that suggests that they endorse you or your use of the work).
+* Attribution. You must attribute the work in the manner specified by the author or licensor (but not in any way that
+  suggests that they endorse you or your use of the work).
 * Noncommercial. You may not use this work for commercial purposes.
-* Share Alike. If you alter, transform, or build upon this work, you may distribute the resulting work only under the same or similar license to this one.
+* Share Alike. If you alter, transform, or build upon this work, you may distribute the resulting work only under the
+  same or similar license to this one.
 
 For any reuse or distribution, you must make clear to others the license terms of this work.
 
 Any of the above conditions can be waived if you get permission from the copyright holder.
 
-Apart from the remix rights granted under this license, nothing in this license impairs or restricts the author’s moral rights
+Apart from the remix rights granted under this license, nothing in this license impairs or restricts the author’s moral
+rights
 
 Your fair dealing and other rights are in no way affected by the above.
 
@@ -41,13 +52,23 @@ VirtualRingBuffer
 
 Copyright © 2002, Kurt Revis. All rights reserved.
 
-Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
+following conditions are met:
 
-* Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-* Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-* Neither the name of Snoize nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+* Redistributions of source code must retain the above copyright notice, this list of conditions and the following
+  disclaimer.
+* Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following
+  disclaimer in the documentation and/or other materials provided with the distribution.
+* Neither the name of Snoize nor the names of its contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS “AS IS” AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS “AS IS” AND ANY EXPRESS OR IMPLIED WARRANTIES,
+INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 The MiniZip code used is subject to the following license.
 
@@ -57,21 +78,33 @@ License
 
 Condition of use and distribution are the same than zlib :
 
-This software is provided 'as-is', without any express or implied warranty. In no event will the authors be held liable for any damages arising from the use of this software.
+This software is provided 'as-is', without any express or implied warranty. In no event will the authors be held liable
+for any damages arising from the use of this software.
 
-Permission is granted to anyone to use this software for any purpose, including commercial applications, and to alter it and redistribute it freely, subject to the following restrictions:
+Permission is granted to anyone to use this software for any purpose, including commercial applications, and to alter it
+and redistribute it freely, subject to the following restrictions:
 
-1. The origin of this software must not be misrepresented; you must not claim that you wrote the original software. If you use this software in a product, an acknowledgment in the product documentation would be appreciated but is not required.
-2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
+1. The origin of this software must not be misrepresented; you must not claim that you wrote the original software. If
+   you use this software in a product, an acknowledgment in the product documentation would be appreciated but is not
+   required.
+2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original
+   software.
 3. This notice may not be removed or altered from any source distribution.
 
 ----------------------------------------------------------
 
-Oolite makes use of various external open source libraries, some of them modified to fit certain requirements of the game. For more information about where to find the source code of those libraries, as well as information about the modifications required to make them build for Oolite, please refer to the file *ExternalLibrariesSourceCodeChanges.txt*, found inside the Doc folder of the game’s source code distribution.
+Oolite makes use of various external open source libraries, some of them modified to fit certain requirements of the
+game. For more information about where to find the source code of those libraries, as well as information about the
+modifications required to make them build for Oolite, please refer to the file *ExternalLibrariesSourceCodeChanges.txt*,
+found inside the Doc folder of the game’s source code distribution.
 
-Military laser sound courtesy of user “notyermom”, sourced from <https://freesound.org/people/notyermom/sounds/434834/> under license: <https://creativecommons.org/publicdomain/zero/1.0/>
+Military laser sound courtesy of user “notyermom”, sourced from <https://freesound.org/people/notyermom/sounds/434834/>
+under license: <https://creativecommons.org/publicdomain/zero/1.0/>
 
-Mining laser sound courtesy of user “bubaproducer”, sourced from <https://freesound.org/people/bubaproducer/sounds/151022/> under license: <https://creativecommons.org/licenses/by/3.0/>
+Mining laser sound courtesy of user “bubaproducer”, sourced
+from <https://freesound.org/people/bubaproducer/sounds/151022/> under
+license: <https://creativecommons.org/licenses/by/3.0/>
 
-Beam laser sound courtesy of user “jobro”, sourced from <https://freesound.org/people/jobro/sounds/35677/> under license: <https://creativecommons.org/licenses/by/3.0/>
+Beam laser sound courtesy of user “jobro”, sourced from <https://freesound.org/people/jobro/sounds/35677/> under
+license: <https://creativecommons.org/licenses/by/3.0/>
 
