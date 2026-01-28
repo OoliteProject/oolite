@@ -210,10 +210,10 @@ Game data such as your saved games and expansion packs are stored in certain loc
 
 The AppImage can be configured to use alternative locations by setting various environment variables:
 
-| Variable   | Value  | Game Folder                    |
-|:-----------|:-------|:-------------------------------|
-| OO_DIRTYPE | xdg    | `$HOME/.local/share/Oolite`    |
-| OO_DIRTYPE | legacy | `$HOME` (old folder structure) |
+| Environment Variable | Value  | Game Folder                    |
+|:---------------------|:-------|:-------------------------------|
+| `OO_DIRTYPE`         | xdg    | `$HOME/.local/share/Oolite`    |
+| `OO_DIRTYPE`         | legacy | `$HOME` (old folder structure) |
 
 Using legacy is not recommended.
 
