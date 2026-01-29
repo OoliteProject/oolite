@@ -15,8 +15,8 @@ fi
 if [[ "$OS_FAMILY" == *"debian"* ]]; then
     # Debian, Ubuntu, Kali, Mint, Pop!_OS
     CURRENT_DISTRO="debian"
-    INSTALL_CMD=(apt install -y)
-    UPDATE_CMD=(apt update)
+    INSTALL_CMD=(apt-get install -y)
+    UPDATE_CMD=(apt-get update)
 
 elif [[ "$OS_FAMILY" == *"fedora"* || "$OS_FAMILY" == *"rhel"* ]]; then
     # Fedora, CentOS, RHEL, AlmaLinux
