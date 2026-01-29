@@ -8,8 +8,8 @@ build:
     - graphviz
   jobs:
     post_install:
-      - apt-get update
-      - apt-get install -y libreoffice  
+      - sudo apt update
+      - sudo apt install -y libreoffice  
     pre_build:
       - ./Documentation/build_doxygen.sh
       - ./Documentation/build_referencesheet.sh
