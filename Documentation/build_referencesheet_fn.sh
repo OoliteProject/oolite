@@ -16,11 +16,6 @@ build_referencesheet() {
     cd build/documentation/
     cp ../../Doc/OoliteRS.odt ./
 
-    unzip -p OoliteRS.odt meta.xml > meta.xml
-    sed -i "s/\(<meta:user-defined meta:name=\"OOLITE_VERSION\">\).*\(<\/meta:user-defined>\)/\1$VER\2/g" meta.xml
-    zip -u OoliteRS.odt meta.xml
-    rm -rf meta.xml
-
     rm -rf docs/OoliteRS.pdf
     if ! soffice --headless --convert-to pdf --outdir ./docs OoliteRS.odt; then
         echo "❌ PDF conversion with soffice failed!" >&2
