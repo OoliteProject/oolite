@@ -5,14 +5,14 @@ run_script() {
     pushd "$SCRIPT_DIR"
 
     rm -rf ../build/documentation
-    source ./build_referencesheet_fn.sh
     source ./build_doxygen_fn.sh
+    source ./build_referencesheet_fn.sh
 
-    if ! build_referencesheet; then
+    if ! build_doxygen; then
         return 1
     fi
 
-    if ! build_doxygen; then
+    if ! build_referencesheet; then
         return 1
     fi
 

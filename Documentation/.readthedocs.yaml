@@ -6,9 +6,11 @@ build:
   apt_packages:
     - doxygen
     - graphviz
+    - libreoffice
   jobs:
     pre_build:
       - ./Documentation/build_doxygen.sh
+      - ./Documentation/build_referencesheet.sh
 
 mkdocs:
   configuration: build/documentation/mkdocs.yaml
