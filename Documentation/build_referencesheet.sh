@@ -4,10 +4,9 @@ run_script() {
     SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
     pushd "$SCRIPT_DIR"
 
-    rm -rf ../build/documentation
-    source ./build_doxygen_fn.sh
+    source ./build_referencesheet_fn.sh
 
-    if ! build_doxygen; then
+    if ! build_referencesheet; then
         return 1
     fi
 

@@ -7,7 +7,7 @@ if [ -f /etc/os-release ]; then
     . /etc/os-release
     OS_FAMILY="${ID} ${ID_LIKE}"
 else
-    echo "❌ /etc/os-release not found. Cannot detect OS." >&2
+    echo "❌ /etc/os-release not found - cannot detect OS!" >&2
     exit 1
 fi
 
@@ -31,7 +31,7 @@ elif [[ "$OS_FAMILY" == *"arch"* ]]; then
     UPDATE_CMD=(pacman -Syu)
 
 else
-    echo "❌ Unsupported distribution detected." >&2
+    echo "❌ Unsupported distribution detected!" >&2
     exit 1
 fi
 
