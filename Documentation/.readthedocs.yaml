@@ -6,10 +6,8 @@ build:
   apt_packages:
     - doxygen
     - graphviz
+    - libreoffice
   jobs:
-    post_install:
-      - sudo apt-get update
-      - sudo apt-get install -y libreoffice  
     pre_build:
       - ./Documentation/build_doxygen.sh
       - ./Documentation/build_referencesheet.sh
