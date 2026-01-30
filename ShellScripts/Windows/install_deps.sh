@@ -20,7 +20,7 @@ install() {
 
 	# package file eg. mingw-w64-x86_64-libobjc2-2.3-3-any.pkg.tar.zst
     if [ -z "$filename" ]; then
-        echo "❌ No file matching $packagename found." >&2
+        echo "❌ No file matching $packagename found!" >&2
         return 1
     fi
 
