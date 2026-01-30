@@ -81,7 +81,7 @@ RequestExecutionLevel user
 
 VIAddVersionKey "ProductName" "Oolite"
 VIAddVersionKey "FileDescription" "A space combat/trading game, inspired by Elite."
-VIAddVersionKey "LegalCopyright" "© 2003-2026 Giles Williams, Jens Ayton and contributors"
+VIAddVersionKey "LegalCopyright" "ï¿½ 2003-2026 Giles Williams, Jens Ayton and contributors"
 VIAddVersionKey "FileVersion" "${VER}"
 VIAddVersionKey "ProductVersion" "${VER}"
 !ifdef SNAPSHOT
@@ -243,9 +243,9 @@ CreateDirectory "$INSTDIR\oolite.app\oolite-saves\snapshots"
 File "Oolite.ico"
 File "Oolite-HDR.ico"
 File "Oolite_Readme.txt"
-File "..\..\Doc\OoliteRS.pdf"
-File "..\..\Doc\AdviceForNewCommanders.pdf"
-File "..\..\Doc\OoliteReadMe.pdf"
+File "OoliteRS.pdf"
+File "AdviceForNewCommanders.pdf"
+File "OoliteReadMe.pdf"
 ${If} ${ADDCHANGELOG} == "1"
   File "..\..\Doc\CHANGELOG.TXT"
 ${EndIf}
