@@ -27,9 +27,18 @@ theme:
         icon: material/weather-night
         name: Switch to light mode
 
+extra_css:
+  - css/extra.css
+
 plugins:
   - search
   - mkdocs-pdf
+  - page-to-pdf: # Note: the internal name is often page-to-pdf
+      exclude:
+        - "reference.md"
+        - "customization.md"
+        - "extensions.md"
+        - "tricks.md"
 
 nav:
   - Home: index.md

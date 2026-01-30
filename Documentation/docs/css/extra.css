@@ -1,0 +1,11 @@
+@media print {
+    /* Prevent a header from being the very last thing on a page */
+    h1, h2, h3 {
+        break-after: avoid;
+    }
+
+    .page-break {
+        clear: both;
+        break-after: page;
+    }
+}

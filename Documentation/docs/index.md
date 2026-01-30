@@ -1,12 +1,10 @@
 ![](./assets/oolite-logo.png){: width="30%" }
 
-# Oolite
-
-## Installation
+# Installation
 
 See the [README](https://github.com/OoliteProject/oolite/blob/master/README.md#installing-oolite).
 
-## Start Menu
+# Start Menu
 
 When starting Oolite, a menu with six options will be displayed.
 
@@ -40,15 +38,16 @@ found [here](https://wiki.alioth.net/index.php/OXP_List).
 
 Exit the game.
 
-## Controls and Commands
+# Controls and Commands
 
 The current keyboard configuration can be edited by selecting “Keyboard Configuration” from the “Game Options” menu.
 
 Oolite can be controlled using the keyboard, mouse and/or game controller.
 
-The list below describes the default key settings.
+The following list describes the default key settings.
 
-### In Dock Commands
+<div class="page-break"></div>
+## In Dock Commands
 
 | Key                           | Menu / Action         | Sub-Item / Control    | Interaction & Details                                                                                                                        |
 |:------------------------------|:----------------------|:----------------------|:---------------------------------------------------------------------------------------------------------------------------------------------|
@@ -83,7 +82,8 @@ The list below describes the default key settings.
 |                               |                       | **Filters**           | <kbd>?</kbd> cycles: All goods, Carried in stock, Carried, In stock, No transport restrictions, Transport restrictions.                      |
 |                               |                       | **Sorting**           | <kbd>/</kbd> cycles: Default, Alphabetical, Price, Quantity in stock, Quantity in hold, Unit mass.                                           |
 
-### Flight Key Commands
+<div class="page-break"></div>
+## Flight Key Commands
 
 ### Movement & Attitude
 
@@ -156,6 +156,7 @@ The list below describes the default key settings.
 | <kbd>Shift</kbd>+<kbd>r</kbd> | **Rotate Cargo**  | Choose which cargo type is at the "front" of the eject queue.   |
 | <kbd>Esc</kbd> <kbd>Esc</kbd> | **Escape Pod**    | Quickly double-tap to abandon ship (if installed).              |
 
+<div class="page-break"></div>
 ### Viewscreens & Systems
 
 | Key                                                 | Action                 | Notes                                                                |
@@ -196,7 +197,7 @@ To enable mouse flight (available in Full Screen mode only), use the following t
 | **Secondary Mouse Button** | Center all controls (cancels roll/yaw and pitch) |
 | **Mouse Wheel Up/Down**    | Increase or Decrease speed                       |
 
-## Game Data
+# Game Data
 
 Game data such as your saved games and expansion packs are stored in certain locations depending upon the setup:
 
@@ -206,16 +207,14 @@ Game data such as your saved games and expansion packs are stored in certain loc
 | Linux   | AppImage | `<AppImage folder>/GameData`              |
 | Linux   | Flatpak  | `$HOME/.var/app/space.oolite.Oolite`      |
 
-### Linux
+## Linux
 
 The AppImage can be configured to use alternative locations by setting various environment variables:
 
-| Environment Variable | Value  | Game Folder                    |
-|:---------------------|:-------|:-------------------------------|
-| `OO_DIRTYPE`         | xdg    | `$HOME/.local/share/Oolite`    |
-| `OO_DIRTYPE`         | legacy | `$HOME` (old folder structure) |
-
-Using legacy is not recommended.
+| Environment Variable | Value  | Game Folder                                      |
+|:---------------------|:-------|:-------------------------------------------------|
+| `OO_DIRTYPE`         | xdg    | `$HOME/.local/share/Oolite`                      |
+| `OO_DIRTYPE`         | legacy | `$HOME` (old folder structure - not recommended) |
 
 More intricate setups are possible by specifying individual environment variables for different folders:
 
@@ -265,7 +264,8 @@ must be edited and saved before executing Oolite.
 For more information please refer
 to [hidden settings in Oolite](http://wiki.alioth.net/index.php/Hidden_Settings_in_Oolite).
 
-## Test Builds
+<div class="page-break"></div>
+# Test Builds
 
 Starting with Oolite 1.77 there are two different versions of the game. A normal version without debugging tools and a
 slightly slower version with debugging options that can be used with the console. This test build version will be
@@ -290,7 +290,8 @@ The following debugging options are accessible while paused:
 | <kbd>n</kbd>                  | Disables all debug flags and displays HUD again.                       |
 | <kbd>←</kbd> and <kbd>→</kbd> | **Time Acceleration:** Halves or Doubles the Time Acceleration Factor. |
 
-## Helpful Information
+<div class="page-break"></div>
+# Helpful Information
 
 For more information on playing Oolite visit [https://www.oolite.space](http://www.oolite.org/).
 
@@ -318,8 +319,6 @@ Bulletin Board. In both cases, attaching the crash log can be very helpful in so
 | Windows | `<Oolite installation folder>/oolite.app/Logs/Latest.log` |
 | Linux   | `$GAME_DATA/.logs/Latest.log`                             |
 
-**We are immensely grateful to all the people who have been testing Oolite and tediously bringing it towards perfection.
-**
+**We are immensely grateful to all the people who have been testing Oolite and tediously bringing it towards perfection.**
 
 **Thank you all!**
-

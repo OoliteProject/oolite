@@ -9,6 +9,7 @@ build:
     - libreoffice
   jobs:
     pre_build:
+      - python3 -m playwright install chromium
       - ./Documentation/build_doxygen.sh
       - ./Documentation/build_referencesheet.sh
 

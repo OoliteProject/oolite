@@ -42,6 +42,9 @@ run_script() {
         echo "❌ Could not install MKDocs requirements!" >&2
         return 1
     fi
+    "$PYTHON_CMD" -m playwright install chromium
+    # If PDF generation fails, run: "$PYTHON_CMD" -m playwright install-deps chromium
+
     if ! mkdocs build --clean; then
         echo "❌ MKDocs build failed!" >&2
         return 1

@@ -23,6 +23,7 @@ busiest station in the Galactic Cooperative of Worlds.
 ■ The Transcript has been edited for brevity and relevance. The
 original can be source in the Oolite Central Archives (the Oolite Wiki).
 
+<div class="page-break"></div>
 All right there! You just got your pilot’s ticket. Can I just say that your zip-clip there doesn’t do you justice?
 You’re itching to get off and out into the big black, I can tell; but we just got a few final once-overs before I can
 stamp that thing legal. Shall we?
@@ -92,6 +93,7 @@ Shouldn’t set you back more’n ten, twenty thou.
 You got how much? One hundred creds. One ... hundred ... creds. Ayoha. All right then. Let’s break it down. Your problem
 here is financial, not technical. Maybe at bottom it’s psychological, but I’ll give you the benefit.
 
+<div class="page-break"></div>
 There’s two types of money, kid: fast, and slow. Fast money comes easy, and slow money comes hard. The slow is sure and
 steady, though, and the fast, well, it might make you wish you had waited. I’ll run you through them both, and you can
 make up your own mind.
@@ -111,6 +113,7 @@ bio-products like food, textiles, booze and furs, too. Industrial planets make f
 and machinery. So you take the produce of one and you sell it on the other, and chances are you’re making money on the
 deal. Politics don’t matter squat: farmers need harvesters and factories need feedstock!
 
+<div class="page-break"></div>
 O’course, money matters: rich Industrials are rich because they’ve got the most efficient processes, so not only do they
 make the cheapest products, their factories are the hungriest and they’ll pay the best prices for raw materials. Poor
 Agriculturals, on the other hand, they’re most desperate for fine articles and will scrape together whatever they can to
@@ -124,6 +127,7 @@ in one good run, if you can fill it up.
 
 ![](./assets/lave.png){ width="70%" }
 
+<div class="page-break"></div>
 It ain’t all bulk, though. Watch the board for cheap deals on precious metals and gemstones: they might not offer the
 greatest profits, but they don’t take up any cargo space at all. See this safe over here, behind this bulkhead? You take
 on platinum, or gold, or a sack of gemstones when you’re docked, they go right in here. You can keep ’em here as long as
@@ -154,11 +158,12 @@ through first to get there.
 That’s slow money, kid: work, save, invest, and work again, that’s what it’s all about! It ain’t pretty but it gets you
 there in the end.
 
+<div class="page-break"></div>
 Huh. Anyhow. I’m a busy frog, I can’t stay here all day filling in every Jameson on what they should have learned in the
 spawning pond. Gimme your ticket, kid, and I’ll stamp it flight-ready, though Giles knows I prob’ly shouldn’t ... there
 ya go. That’s you ready to take on the Witch. Jens help us all ... don’t know enough to keep a level bearing through a
 wormhole ... what they send up here for us to deal with ... pick up the pieces more like …
 
-| *Advice for New Commanders* by Disembodied © 2008-2026.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Screenshots, editing and formatting of this version by cim.<br>Creative Commons – BY – NC – SA 3.0 © 2015<br>*Oolite* created by Giles Williams and contributors © 2003-2026<br>GNU General Public License V2 Creative Commons License: BY - NC - SA 3.0<br>Oolite Website: https://www.oolite.space<br>Oolite Wiki: https://wiki.alioth.net/index.php/Oolite<br>Oolite BBS: https:///bb.oolite.space<br><br>*Oolite* is inspired by the *Elite* computer game series, originally created by Ian Bell and David Braben  This document was originally created using OpenOffice 3.0, Inkscape, Paint.net and IrfanView. |
+| *Advice for New Commanders* by Disembodied © 2008-2026.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Screenshots, editing and formatting of this version by cim.<br>Creative Commons – BY – NC – SA 3.0 © 2015<br>*Oolite* created by Giles Williams and contributors © 2003-2026<br>GNU General Public License V2 Creative Commons License: BY - NC - SA 3.0<br>Oolite Website: https://www.oolite.space<br>Oolite Wiki: https://wiki.alioth.net/index.php/Oolite<br>Oolite BBS: https:///bb.oolite.space<br><br>*Oolite* is inspired by the *Elite* computer game series, originally created by Ian Bell and David Braben<br>This document was originally created using OpenOffice 3.0, Inkscape, Paint.net and IrfanView. |
