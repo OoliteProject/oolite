@@ -246,6 +246,8 @@ File "Oolite_Readme.txt"
 File "OoliteRS.pdf"
 File "AdviceForNewCommanders.pdf"
 File "OoliteReadMe.pdf"
+File "License.pdf"
+File "Privacy.pdf"
 ${If} ${ADDCHANGELOG} == "1"
   File "..\..\Doc\CHANGELOG.TXT"
 ${EndIf}

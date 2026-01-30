@@ -4,4 +4,4 @@ hide:
   - toc
 ---
 
-![Reference Sheet](OoliteRS.pdf){ type=application/pdf style="min-height:70vh;width:100%" }
+![Reference Sheet](reference/reference.pdf){ type=application/pdf style="min-height:70vh;width:100%" }

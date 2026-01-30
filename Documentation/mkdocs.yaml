@@ -42,7 +42,7 @@ plugins:
 
 nav:
   - Home: index.md
-  - Advice: advice.md
+  - Advice For New Commanders: advice.md
   - Reference Sheet: reference.md
   - Privacy Policy: privacy.md
   - License: license.md

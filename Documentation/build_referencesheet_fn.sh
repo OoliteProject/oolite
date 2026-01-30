@@ -12,12 +12,12 @@ build_referencesheet() {
 
     cd ..
     source ShellScripts/common/get_version.sh
-    mkdir -p build/documentation/docs
+    mkdir -p build/documentation/docs/reference
     cd build/documentation/
-    cp ../../Doc/OoliteRS.odt ./
+    cp ../../Doc/OoliteRS.odt ./reference.odt
 
-    rm -rf docs/OoliteRS.pdf
-    if ! soffice --headless --convert-to pdf --outdir ./docs OoliteRS.odt; then
+    rm -rf docs/reference/reference.pdf
+    if ! soffice --headless --convert-to pdf --outdir ./docs/reference reference.odt; then
         echo "❌ PDF conversion with soffice failed!" >&2
         return 1
     fi

@@ -19,8 +19,16 @@ run_script() {
        echo "❌ AdviceForNewCommanders.pdf (advice.pdf) download failed!" >&2
        return 1
     fi
-    if ! curl -o OoliteRS.pdf -L https://oolite.readthedocs.io/en/latest/OoliteRS.pdf; then
-       echo "❌ OoliteRS.pdf download failed!" >&2
+    if ! curl -o OoliteRS.pdf -L https://oolite.readthedocs.io/en/latest/reference/reference.pdf; then
+       echo "❌ OoliteRS.pdf (reference.pdf) download failed!" >&2
+       return 1
+    fi
+    if ! curl -o Privacy.pdf -L https://oolite.readthedocs.io/en/latest/privacy/privacy.pdf; then
+       echo "❌ Privacy.pdf (privacy.pdf) download failed!" >&2
+       return 1
+    fi
+    if ! curl -o License.pdf -L https://oolite.readthedocs.io/en/latest/license/license.pdf; then
+       echo "❌ License.pdf (license.pdf) download failed!" >&2
        return 1
     fi
 
