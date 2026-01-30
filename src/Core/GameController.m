@@ -90,6 +90,7 @@ static GameController *sSharedController = nil;
 	
 	if ((self = [super init]))
 	{
+		_finishedLaunching = NO;
 		last_timeInterval = [NSDate timeIntervalSinceReferenceDate];
 		delta_t = 0.01; // one hundredth of a second 
 		_animationTimerInterval = [[NSUserDefaults standardUserDefaults] oo_doubleForKey:@"animation_timer_interval" defaultValue:MINIMUM_ANIMATION_TICK];
@@ -271,6 +272,8 @@ static GameController *sSharedController = nil;
 #if OO_USE_FULLSCREEN_CONTROLLER
 	[self setFullScreenMode:[[NSUserDefaults standardUserDefaults] boolForKey:@"fullscreen"]];
 #endif
+
+	_finishedLaunching = YES;
 	
 	// Release anything allocated above that is not required.
 	[pool release];
@@ -278,6 +281,12 @@ static GameController *sSharedController = nil;
 #if !OOLITE_MAC_OS_X
 	[[NSRunLoop currentRunLoop] run];
 #endif
+}
+
+
+- (BOOL) finishedLaunching
+{
+	return _finishedLaunching;
 }
 
 

@@ -1655,21 +1655,6 @@ this._addHunterPack = function(pos,home,dest,role,returning)
 		var group = new ShipGroup("hunter group",t[0]);
 		t[0].group = group;
 
-		var hs = this._addShips("hunter",1+Math.floor(Math.random()*4)+Math.floor(Math.random()*4),pos,3E3);
-		for (var i = 0; i<hs.length; i++)
-		{
-			hs[i].group = group;
-			group.addShip(hs[i]);
-			hs[i].bounty = 0;
-			hs[i].fuel = 7;
-			hs[i].homeSystem = t[0].homeSystem;
-			hs[i].destinationSystem = t[0].destinationSystem;
-			this._setWeapons(hs[i],1.5); // mixed weapons
-			if (returning)
-			{
-				this._setMissiles(hs[i],-1);
-			}
-		}
 		if (role == "hunter-heavy")
 		{
 			// occasionally give heavy hunters aft lasers
@@ -1686,6 +1671,23 @@ this._addHunterPack = function(pos,home,dest,role,returning)
 			t[0].switchAI("oolite-bountyHunterLeaderAI.js"); 
 // auto AI will normally get this already but not if the hunter
 // addition used fallback roles
+		}
+
+		var hs = this._addShips("hunter",1+Math.floor(Math.random()*4)+Math.floor(Math.random()*4),pos,3E3);
+		if (!hs) return;
+		for (var i = 0; i<hs.length; i++)
+		{
+			hs[i].group = group;
+			group.addShip(hs[i]);
+			hs[i].bounty = 0;
+			hs[i].fuel = 7;
+			hs[i].homeSystem = t[0].homeSystem;
+			hs[i].destinationSystem = t[0].destinationSystem;
+			this._setWeapons(hs[i],1.5); // mixed weapons
+			if (returning)
+			{
+				this._setMissiles(hs[i],-1);
+			}
 		}
 	}
 }
@@ -2393,8 +2395,10 @@ this._addGroup = function(role,num,pos,spread)
 		for (var i = 0 ; i < num ; i++)
 		{
 			var ship = pos.launchShipWithRole(role);
-			ship.group = group;
-			group.addShip(ship);
+			if (ship) {
+				ship.group = group;
+				group.addShip(ship);
+			}
 		}
 		return group;
 	}

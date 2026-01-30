@@ -997,7 +997,7 @@ static BOOL _refreshStarChart = NO;
 }
 
 
-static OOTexture *TextureForGUITexture(NSDictionary *descriptor)
+static OOTexture *TextureForGUITexture(NSDictionary *descriptor, uint32_t srgbaOption)
 {
 	/*
 		GUI textures like backgrounds, foregrounds etc. are not processed in any way after loading. However, they are
@@ -1008,8 +1008,7 @@ static OOTexture *TextureForGUITexture(NSDictionary *descriptor)
 		
 		Also, remember that if no shaders are in use (as in lower detail levels), then we don't need to declare anything.
 	*/
-	uint32_t srgbaOption = 0UL;
-	if ([UNIVERSE useShaders])  srgbaOption = kOOTextureSRGBA;
+	if (![UNIVERSE useShaders])  srgbaOption = 0;
 	return [OOTexture textureWithName:[descriptor oo_stringForKey:@"name"]
 							 inFolder:@"Images"
 							  options:kOOTextureDefaultOptions | kOOTextureNoShrink | srgbaOption
@@ -1022,12 +1021,12 @@ static OOTexture *TextureForGUITexture(NSDictionary *descriptor)
 	Load a texture sprite given a descriptor. The caller owns a reference to
 	the result.
 */
-static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
+static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor, uint32_t srgbaOption)
 {
 	OOTexture		*texture = nil;
 	NSSize			size;
 	
-	texture = TextureForGUITexture(descriptor);
+	texture = TextureForGUITexture(descriptor, srgbaOption);
 	if (texture == nil)  return nil;
 	
 	double specifiedWidth = [descriptor oo_doubleForKey:@"width" defaultValue:-INFINITY];
@@ -1136,7 +1135,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 {
 	[backgroundSprite autorelease];
 	backgroundSpecial = GUI_BACKGROUND_SPECIAL_NONE; // reset
-	backgroundSprite = NewTextureSpriteWithDescriptor(descriptor);
+	backgroundSprite = NewTextureSpriteWithDescriptor(descriptor, kOOTextureSRGBA);
 	return backgroundSprite != nil;
 }
 
@@ -1144,7 +1143,9 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 - (BOOL) setForegroundTextureDescriptor:(NSDictionary *)descriptor
 {
 	[foregroundSprite autorelease];
-	foregroundSprite = NewTextureSpriteWithDescriptor(descriptor);
+	// FIXME: for some reason passing kOOTextureSRGBA when in SDR results in double gamma correction
+	uint32_t srgbaOption = [[UNIVERSE gameView] hdrOutput] ? kOOTextureSRGBA : 0;
+	foregroundSprite = NewTextureSpriteWithDescriptor(descriptor, srgbaOption);
 	return foregroundSprite != nil;
 }
 
@@ -1163,7 +1164,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 
 - (BOOL) preloadGUITexture:(NSDictionary *)descriptor
 {
-	return TextureForGUITexture(descriptor) != nil;
+	return TextureForGUITexture(descriptor, kOOTextureSRGBA) != nil;
 }
 
 

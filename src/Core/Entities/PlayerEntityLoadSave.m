@@ -796,7 +796,8 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	OOLog(@"load.progress", @"%@", @"Completing JS startup");
 	[self startUpComplete];
 
-	[[UNIVERSE gameView] suppressKeysUntilKeyUp];
+	// if the file was specified in the command line at startup, DO NOT suppress the keys!
+	if ([[UNIVERSE gameController] finishedLaunching])  [[UNIVERSE gameView] suppressKeysUntilKeyUp];
 	gui_screen = GUI_SCREEN_LOAD; // force evaluation of new gui screen on startup
 	[self setGuiToStatusScreen];
 	if (loadedOK) [self doWorldEventUntilMissionScreen:OOJSID("missionScreenOpportunity")];  // trigger missionScreenOpportunity immediately after loading
