@@ -533,8 +533,8 @@
 	"energy-bomb-activated"			= "Energy bomb triggered."; // kept for compatibility with OXPs
 	"weapon-overheat"				= "Weapon system overheated.";
 	"weapon-out-of-juice"			= "Weapon system inactive (no energy left).";
-	"weapons-systems-online"		= "Weapons systems online.";
-	"weapons-systems-offline"		= "Weapons systems offline.";
+	"weapons-systems-online"		= "Weapon systems online.";
+	"weapons-systems-offline"		= "Weapon systems offline.";
 	"escape-sequence"				= "Escape sequence active.";
 	"commodity-ejected"				= "[commodity] ejected.";
 	"ready-to-eject-commodity"		= "Ready to eject [commodity].";
