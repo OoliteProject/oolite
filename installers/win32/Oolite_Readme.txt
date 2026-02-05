@@ -11,19 +11,19 @@ detailed ReadMe document in PDF format and an uninstall program.
 To run the game, choose the Oolite icon in the Oolite folder.
 
 
-The user preferences defaults file .GNUstepDefaults
+The user preferences defaults file OoliteDefaults.plist
 -----------------------------------------------------------------------
 
-The file <installation dir>/oolite.app/GNUstep/Defaults/.GNUstepDefaults
-contains the current settings for fullscreen mode and display resolutions,
-together with the user preference settings for sound volume, reduced
-detail (Yes/No), wireframe graphics display (Yes/No) and the shader
+The file <installation dir>/oolite.app/GNUstep/Defaults/OoliteDefaults.plist
+contains, among others, the current settings for fullscreen mode and display
+resolutions, together with the user preference settings for sound volume,
+reduced detail (Yes/No), wireframe graphics display (Yes/No) and the shader
 effects level (Off, Simple, Full), in case your system supports shaders.
 All these can be changed by either running the game and navigating to the
 Game Options... menu ('F2' or '2' key, then select Game Options...), or
-by directly editing the .GNUstepDefaults file. The recommended way to
+by directly editing the OoliteDefaults.plist file. The recommended way to
 change settings is to use the in-game menu. See below for examples of
-editing the preferences file. Note that .GNUstepDefaults will not be
+editing the preferences file. Note that OoliteDefaults.plist will not be
 present after the game's installation. You will need to run Oolite at
 least once to have it generated.
 
@@ -31,16 +31,16 @@ least once to have it generated.
 Switching between full screen and windowed mode, or changing resolution
 -----------------------------------------------------------------------
 
-If in doubt, delete .GNUstepDefaults and restart the game. That will start
-you in windowed mode.
+If in doubt, delete OoliteDefaults.plist and restart the game. That will
+start you in windowed mode.
 
 To change the full screen mode resolution, you can use the Game Options...
-menu or alternatively edit the .GNUstepDefaults file by changing the
+menu or alternatively edit the OoliteDefaults.plist file by changing the
 display_width and display_height values, and ensuring the fullscreen
-property has a value of <*BY>.
+property has a value of YES.
 
 
-.GNUstepDefaults Editing Examples
+OoliteDefaults.plist Editing Examples
 -----------------------------------------------------------------------
 
 These settings will give a full screen display of 800x600, about one
@@ -48,9 +48,6 @@ third sound volume, reduced detail set to No, wireframe graphics set
 to Yes and shader effects set to Simple:
 
 {
-    NSGlobalDomain = {
-    };
-    oolite.exe = {
     display_width = 800;
     display_height = 600;
     fullscreen = YES;
@@ -58,7 +55,6 @@ to Yes and shader effects set to Simple:
     "shader-effects-level" = 2;
     volume_control = 0.26;
     "wireframe-graphics" = YES;
-    };
 }
 
 And these settings will give a full screen display of 1400x1050,
@@ -66,9 +62,6 @@ full sound volume, reduced detail set to No, wireframe graphics
 set to No and shader effects set to Full:
 
 {
-    NSGlobalDomain = {
-    };
-    oolite.exe = {
     display_width = 1400;
     display_height = 1050;
     fullscreen = YES;
@@ -76,7 +69,6 @@ set to No and shader effects set to Full:
     "shader-effects-level" = 3;
     volume_control = 1;
     "wireframe-graphics" = NO;
-    };
 }
 
 

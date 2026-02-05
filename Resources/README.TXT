@@ -12,4 +12,4 @@ http://wiki.alioth.net/index.php/OXP_howto
 
 Or ask on Oolite's Bulletin Board:
 
-http://aegidian.org/bb/
+https://bb.oolite.space
