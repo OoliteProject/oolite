@@ -18,7 +18,10 @@ run_script() {
     PROGDIR="../oolite.app"
     cp -rf $PROGDIR/Resources $APPDIR/usr/bin
 
-    curl -o linuxdeploy -L https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
+    if ! curl -o linuxdeploy -L https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage; then
+       echo "❌ linuxdeploy download failed!" >&2
+       return 1
+    fi
     chmod +x linuxdeploy
 
     case "$CURRENT_DISTRO" in
@@ -48,7 +51,11 @@ run_script() {
         -exec strip --strip-unneeded '{}' +   # keeps symbols needed for runtime linking
     fi
 
-    curl -o appimagetool -L https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
+    if ! curl -o appimagetool -L https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage; then
+       echo "❌ appimagetool download failed!" >&2
+       return 1
+    fi
+
     chmod +x appimagetool
 
     echo "Creating AppImage..."

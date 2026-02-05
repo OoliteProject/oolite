@@ -11,6 +11,27 @@ run_script() {
 
     cp ../../installers/win32/* ./
 
+    if ! curl -o OoliteReadMe.pdf -L https://oolite.readthedocs.io/en/latest/index.pdf; then
+       echo "❌ OoliteReadMe.pdf (index.pdf) download failed!" >&2
+       return 1
+    fi
+    if ! curl -o AdviceForNewCommanders.pdf -L https://oolite.readthedocs.io/en/latest/advice/advice.pdf; then
+       echo "❌ AdviceForNewCommanders.pdf (advice.pdf) download failed!" >&2
+       return 1
+    fi
+    if ! curl -o OoliteRS.pdf -L https://oolite.readthedocs.io/en/latest/reference/reference.pdf; then
+       echo "❌ OoliteRS.pdf (reference.pdf) download failed!" >&2
+       return 1
+    fi
+    if ! curl -o Privacy.pdf -L https://oolite.readthedocs.io/en/latest/privacy/privacy.pdf; then
+       echo "❌ Privacy.pdf (privacy.pdf) download failed!" >&2
+       return 1
+    fi
+    if ! curl -o License.pdf -L https://oolite.readthedocs.io/en/latest/license/license.pdf; then
+       echo "❌ License.pdf (license.pdf) download failed!" >&2
+       return 1
+    fi
+
     # Passing arguments cause problems with some versions of NSIS.
     # Because of this, we generate them into a separate file and include them.
     echo "; Version Definitions for Oolite" > OoliteVersions.nsh

@@ -12,7 +12,7 @@ check_rename() {
     fi
     filename=$(ls $2 2>/dev/null)
     if [ -z "$filename" ]; then
-        echo "❌ No file matching $2 found." >&2
+        echo "❌ No file matching $2 found!" >&2
         return 1
     fi
     if [ "$3" ]; then

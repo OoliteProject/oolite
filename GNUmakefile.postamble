@@ -1,109 +1,22 @@
-# Oolite-linux
 # GNUmakefile.postamble: Runs after-compilation scripts.
-# These copy all the base data files into where oolite expects them
-# to live (Contents/Resources)
+# These copy all the base data files to where Oolite expects them
 #
-CP_FLAGS                         = -rf
 
-ifeq ($(debug),yes)
-    EXT                          =.dbg
-endif
-
-ifeq ($(findstring -gnu,$(GNUSTEP_HOST_OS)),-gnu)
-    CP_FLAGS                     += -u
-endif
-
-ifeq ($(GNUSTEP_HOST_OS),mingw32)
-    OS_EXT                       = .exe
-    CP_FLAGS                     += -u
-endif
-
-SRC_BIN                          = $(OBJC_PROGRAM_NAME)$(OS_EXT)
-DEST_BIN                         = $(OBJC_PROGRAM_NAME)$(EXT)$(OS_EXT)
-
-MKMANIFEST=tools/mkmanifest.sh
-
-PROGDIR=$(OBJC_PROGRAM_NAME).app
+POST_BUILD_ENV = \
+	OBJC_PROGRAM_NAME="$(OBJC_PROGRAM_NAME)" \
+	GNUSTEP_OBJ_DIR_NAME="$(GNUSTEP_OBJ_DIR_NAME)" \
+	GNUSTEP_HOST_OS="$(GNUSTEP_HOST_OS)" \
+	GNUSTEP_HOST_CPU="$(GNUSTEP_HOST_CPU)" \
+	MINGW_PREFIX="$(MINGW_PREFIX)" \
+	DEBUG="$(debug)" \
+	MODERN="$(modern)" \
+	ESPEAK="$(ESPEAK)" \
+	USE_DEPS="$(use_deps)" \
+	STRIP_BIN="$(strip)" \
+	STRIP="$(STRIP)"
 
 after-all::
-	$(MKDIRS) $(PROGDIR)
-	$(MKDIRS) $(PROGDIR)/Resources
-	$(MKMANIFEST) > $(PROGDIR)/Resources/manifest.plist
-	$(CP) $(CP_FLAGS) Resources/README.TXT $(PROGDIR)/Resources
-	$(CP) $(CP_FLAGS) Resources/InfoPlist.strings $(PROGDIR)/Resources
-	$(CP) $(CP_FLAGS) Resources/AIs $(PROGDIR)/Resources
-	$(CP) $(CP_FLAGS) Resources/Config $(PROGDIR)/Resources
-	$(CP) $(CP_FLAGS) Resources/Scenarios $(PROGDIR)/Resources
-	$(CP) $(CP_FLAGS) Resources/Scripts $(PROGDIR)/Resources
-	$(CP) $(CP_FLAGS) Resources/Shaders $(PROGDIR)/Resources
-	$(CP) $(CP_FLAGS) Resources/Binary/Images $(PROGDIR)/Resources
-	$(CP) $(CP_FLAGS) Resources/Binary/Models $(PROGDIR)/Resources
-	$(CP) $(CP_FLAGS) Resources/Binary/Music $(PROGDIR)/Resources
-	$(CP) $(CP_FLAGS) Resources/Binary/Sounds $(PROGDIR)/Resources
-	$(CP) $(CP_FLAGS) Resources/Binary/Textures $(PROGDIR)/Resources
-	$(CP) $(CP_FLAGS) Schemata $(PROGDIR)/Resources
-	$(CP) $(CP_FLAGS) src/Cocoa/Info-Oolite.plist $(PROGDIR)/Resources/Info-gnustep.plist
-	$(CP) $(CP_FLAGS) $(GNUSTEP_OBJ_DIR_NAME)/$(SRC_BIN) $(PROGDIR)/$(DEST_BIN)
-    ifeq ($(ESPEAK),yes)
-        ifeq ($(modern),yes)
-            ifeq ($(GNUSTEP_HOST_OS),mingw32)
-				$(CP) $(CP_FLAGS) $(MINGW_PREFIX)/share/espeak-ng-data $(PROGDIR)/Resources
-            else
-                ifeq ($(wildcard /usr/local/share/espeak-ng-data),)
-                    ifeq ($(wildcard /usr/lib/x86_64-linux-gnu/espeak-ng-data),)
-                        ifeq ($(wildcard /usr/share/espeak-ng-data),)
-                            ifeq ($(wildcard /app/share/espeak-ng-data),)
-								$(error espeak-ng-data not found in any known location)
-                            else
-								$(CP) $(CP_FLAGS) /app/share/espeak-ng-data $(PROGDIR)/Resources
-                            endif
-                        else
-							$(CP) $(CP_FLAGS) /usr/share/espeak-ng-data $(PROGDIR)/Resources
-                        endif
-                    else
-						$(CP) $(CP_FLAGS) /usr/lib/x86_64-linux-gnu/espeak-ng-data $(PROGDIR)/Resources
-                    endif
-                else
-					$(CP) $(CP_FLAGS) /usr/local/share/espeak-ng-data $(PROGDIR)/Resources
-                endif
-            endif
-
-			# replace f2 voice and set the default voice as well
-			$(RM) $(PROGDIR)/Resources/espeak-ng-data/voices/default
-			$(RM) $(PROGDIR)/Resources/espeak-ng-data/voices/!v/f2
-			# copy required files from the existing cross-platform-deps repo
-			$(CP) $(CP_FLAGS) deps/Cross-platform-deps/espeak-data/voices/!v/f2 $(PROGDIR)/Resources/espeak-ng-data/voices/!v/f2
-			$(CP) $(CP_FLAGS) deps/Cross-platform-deps/espeak-data/voices/default $(PROGDIR)/Resources/espeak-ng-data/voices/default
-        else
-            ifeq ($(GNUSTEP_HOST_OS),mingw32)
-				$(CP) $(CP_FLAGS) deps/Cross-platform-deps/espeak-data $(PROGDIR)/Resources
-            else
-                ifeq ($(use_deps),yes)
-					$(CP) $(CP_FLAGS) deps/Cross-platform-deps/espeak-data $(PROGDIR)/Resources
-                endif
-            endif
-        endif
-    endif
-    ifeq ($(strip),yes)
-		$(STRIP) $(PROGDIR)/$(DEST_BIN)
-    endif
-    ifeq ($(GNUSTEP_HOST_OS),mingw32)
-        ifeq ($(modern),yes)
-			ldd $(PROGDIR)/$(DEST_BIN) | grep $(MINGW_PREFIX) | awk '{print $$3}' | xargs -I {} $(CP) $(CP_FLAGS) {} $(PROGDIR)
-        else
-            ifeq ($(GNUSTEP_HOST_CPU),x86_64)
-				$(CP) $(CP_FLAGS) deps/Windows-deps/x86_64/DLLs/*.dll $(PROGDIR)
-            else
-				$(CP) $(CP_FLAGS) deps/Windows-deps/x86/DLLs/*.dll $(PROGDIR)
-            endif
-            ifeq ($(debug),no)
-				$(RM) $(PROGDIR)/js32ECMAv5dbg.dll
-            endif
-			$(RM) $(PROGDIR)/js32ECMAv5.dll
-        endif
-    else
-		$(CP) $(CP_FLAGS) ShellScripts/Linux/run_oolite.sh $(PROGDIR)
-    endif
+	@$(POST_BUILD_ENV) ShellScripts/common/post_build.sh
 
 after-clean::
 	$(RM) -rf $(GNUSTEP_OBJ_DIR_BASENAME) $(addprefix $(GNUSTEP_OBJ_DIR_BASENAME), .spk .dbg .spk.dbg)
