@@ -48,7 +48,8 @@ modules:
     sources:
       - type: git
         url: https://github.com/libsdl-org/sdl12-compat.git
-        tag: release-1.2.72
+        tag: release-1.2.74
+        commit: 8cb4550f9aff307e3df6ce628c2bb1287c6c105b
     cleanup:
       - /bin
       - /include
