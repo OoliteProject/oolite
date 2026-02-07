@@ -190,7 +190,7 @@ this.name			= "oolite-debug-console";
 this.author			= "Jens Ayton";
 this.copyright		= "© 2007-2020 the Oolite team.";
 this.description	= "Debug console script.";
-this.version		= "1.92";
+this.version		= "1.92.1";
 
 
 (function() {
