@@ -281,6 +281,7 @@ enum PreferredAppMode
 		if (SetPreferredAppMode)  SetPreferredAppMode(AllowDark);
 		FreeLibrary(hUxTheme);
 	}
+	[self refreshDarKOrLightMode];
 #endif
 #endif //OOLITE_WINDOWS
 
