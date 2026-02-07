@@ -36,7 +36,6 @@ run_script() {
       --force-clean \
       --repo=repo \
       --install-deps-from=flathub \
-      --disable-rofiles-fuse \
       build-dir \
       space.oolite.Oolite.yaml; then
         echo "❌ Flatpak build failed!" >&2
