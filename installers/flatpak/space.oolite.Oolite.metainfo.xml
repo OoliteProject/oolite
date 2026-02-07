@@ -65,17 +65,5 @@
   </screenshots>
 
   <releases>
-    <release version="1.90" date="2020-08-30">
-      <url type="details">https://github.com/OoliteProject/oolite/releases/tag/1.90</url>
-      <description>
-        <p>Release description</p>
-          <ul>
-            <li>Extended graphics capabilities for custom planets</li>
-            <li>Improved and configurable planet atmosphere</li>
-            <li>Filmic tone mapping and new universe lighting system</li>
-            <li>Scripting, game experience improvements and bug fixes</li>
-          </ul>
-      </description>
-    </release>
   </releases>
 </component>

@@ -9,14 +9,18 @@ run_script() {
     cd ../../build
     source ../ShellScripts/common/get_version.sh
     source ../ShellScripts/common/check_rename_fn.sh
+    source ../ShellScripts/common/checkout_submodules_fn.sh
 
-    FLATPAK_DIR="../installers/flatpak"
-    cp $FLATPAK_DIR/space.oolite.Oolite.metainfo.xml .
-    release_tag="    <release version=\"${VER}\" date=\"$(date -I)\" />"
-    sed -i "/<releases>/a \\$release_tag" space.oolite.Oolite.metainfo.xml
-    cp ../installers/FreeDesktop/oolite.desktop ./space.oolite.Oolite.desktop
-    desktop-file-edit --set-key=Exec --set-value=run_oolite.sh ./space.oolite.Oolite.desktop
-    desktop-file-edit --set-key=Icon --set-value=space.oolite.Oolite ./space.oolite.Oolite.desktop
+    if ! checkout_submodules; then
+        return 1
+    fi
+
+    cp ../installers/flatpak/space.oolite.Oolite.* ./
+    mkdir -p shared-modules/glu
+    if ! curl -o shared-modules/glu/glu-9.json -L https://github.com/flathub/shared-modules/raw/refs/heads/master/glu/glu-9.json; then
+        echo "❌ Flatpak download of glu shared module failed!" >&2
+        return 1
+    fi
 
     echo "Creating Flatpak..."
     if ! flatpak remote-add \
@@ -34,7 +38,7 @@ run_script() {
       --install-deps-from=flathub \
       --disable-rofiles-fuse \
       build-dir \
-      $FLATPAK_DIR/space.oolite.Oolite.yaml; then
+      space.oolite.Oolite.yaml; then
         echo "❌ Flatpak build failed!" >&2
         return 1
     fi
