@@ -7,7 +7,7 @@ sdk-extensions:
   - org.freedesktop.Sdk.Extension.rust-stable
 build-options:
   append-path: /usr/lib/sdk/llvm21/bin:/usr/lib/sdk/rust-stable/bin
-  ldflags: -L/usr/lib/sdk/llvm21/lib
+  prepend-ld-library-path: /usr/lib/sdk/llvm21/lib
 command: run_oolite.sh
 finish-args:
   - --socket=wayland
@@ -18,29 +18,7 @@ finish-args:
   - --device=dri
   - --talk-name=org.freedesktop.Notifications
 modules:
-  - name: libnotify
-    buildsystem: meson
-    config-opts:
-      - "-Dtests=false"
-      - "-Dman=false"
-      - "-Dgtk_doc=false"
-      - "-Dintrospection=disabled"
-    sources:
-      - type: archive
-        url: https://download.gnome.org/sources/libnotify/0.8/libnotify-0.8.7.tar.xz
-        sha256: 4be15202ec4184fce1ac15997ece5530d2be32fe9573875aeb10e3b573858748
-  - name: glu
-    buildsystem: meson
-    sources:
-      - type: archive
-        url: https://archive.mesa3d.org/glu/glu-9.0.3.tar.xz
-        sha256: bd43fe12f374b1192eb15fe20e45ff456b9bc26ab57f0eee919f96ca0f8a330f
-    cleanup:
-      - /include
-      - /lib/pkgconfig
-      - "/lib/*.a"
-      - "/lib/*.la"
-
+  - shared-modules/glu/glu-9.json
   - name: sdl12-compat
     buildsystem: cmake-ninja
     config-opts:
@@ -48,7 +26,8 @@ modules:
     sources:
       - type: git
         url: https://github.com/libsdl-org/sdl12-compat.git
-        tag: release-1.2.72
+        tag: release-1.2.74
+        commit: 8cb4550f9aff307e3df6ce628c2bb1287c6c105b
     cleanup:
       - /bin
       - /include
@@ -137,12 +116,19 @@ modules:
         source /app/share/GNUstep/Makefiles/GNUstep.sh
         make -f Makefile release-deployment -j$FLATPAK_BUILDER_N_JOBS
       - cp -r oolite.app/* /app/bin
-      - install -D build/space.oolite.Oolite.metainfo.xml /app/share/metainfo/space.oolite.Oolite.metainfo.xml
+      - cp installers/flatpak/space.oolite.Oolite.metainfo.xml .
+      - |
+        source ShellScripts/common/get_version.sh
+        sed -i "/<releases>/a \\    <release version=\"${VER}\" date=\"$(date -I)\" />" space.oolite.Oolite.metainfo.xml
+      - cp installers/FreeDesktop/oolite.desktop ./space.oolite.Oolite.desktop
+      - desktop-file-edit --set-key=Exec --set-value=run_oolite.sh space.oolite.Oolite.desktop
+      - desktop-file-edit --set-key=Icon --set-value=space.oolite.Oolite space.oolite.Oolite.desktop
+      - install -D space.oolite.Oolite.metainfo.xml /app/share/metainfo/space.oolite.Oolite.metainfo.xml
       - install -D Oolite-logo3.png /app/share/icons/hicolor/256x256/apps/space.oolite.Oolite.png
-      - install -D build/space.oolite.Oolite.desktop /app/share/applications/space.oolite.Oolite.desktop
+      - install -D space.oolite.Oolite.desktop /app/share/applications/space.oolite.Oolite.desktop
     sources:
       - type: dir
-        path: ../../
+        path: ../
       - type: file
         url: https://wiki.alioth.net/img_auth.php/a/a2/Oolite-logo3.png
         sha256: e1d13be05d665480d034ff5f824ab5463463f16dd411de25f870522e3d3e45b1

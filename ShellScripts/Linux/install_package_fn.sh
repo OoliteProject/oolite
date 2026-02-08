@@ -135,14 +135,14 @@ install_package() {
         "flatpak") PKG_NAME="flatpak flatpak-builder" ;;
 
         *)
-            echo "❌ I don't know how to translate '$GENERIC_NAME' for $CURRENT_DISTRO" >&2
+            echo "❌ Could not translate '$GENERIC_NAME' for $CURRENT_DISTRO!" >&2
             return 1
             ;;
     esac
 
     # Perform the Installation
     if [ -z "$PKG_NAME" ]; then
-        echo "❌ Could not determine package name for $GENERIC_NAME" >&2
+        echo "❌ Could not determine package name for $GENERIC_NAME!" >&2
         return 1
     else
         echo "--> Installing $GENERIC_NAME ($PKG_NAME)..."

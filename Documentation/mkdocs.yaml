@@ -1,0 +1,51 @@
+# mkdocs.yml
+site_name: Oolite Documentation
+site_url: https://oolite.readthedocs.io/
+
+markdown_extensions:
+  - attr_list
+  - md_in_html
+  - meta
+
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.sections
+  palette:
+    # Palette toggle for light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to dark mode
+
+    # Palette toggle for dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/weather-night
+        name: Switch to light mode
+
+extra_css:
+  - css/extra.css
+
+plugins:
+  - search
+  - mkdocs-pdf
+  - page-to-pdf: # Note: the internal name is often page-to-pdf
+      exclude:
+        - "reference.md"
+        - "customization.md"
+        - "extensions.md"
+        - "tricks.md"
+
+nav:
+  - Home: index.md
+  - Advice For New Commanders: advice.md
+  - Reference Sheet: reference.md
+  - Privacy Policy: privacy.md
+  - License: license.md
+  - API Reference: api/html/index.html  # This points to the Doxygen output
+
+not_in_nav: "api/html/**"
