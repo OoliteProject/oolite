@@ -1,11 +1,15 @@
 #!/bin/bash
 
 cp -r oolite.app/* /app/bin
-source ShellScripts/common/get_version.sh
+
+if [ -z "$FLATPAK_VERSION" ]; then
+    source ShellScripts/common/get_version.sh
+    FLATPAK_VERSION="$VERSION"
+fi
 
 FLATPAK_METAINFO=/app/share/metainfo/space.oolite.Oolite.metainfo.xml
 install -D installers/flatpak/space.oolite.Oolite.metainfo.xml $FLATPAK_METAINFO
-sed -i "/<releases>/a \\    <release version=\"${VER}\" date=\"$(date -I)\" />" $FLATPAK_METAINFO
+sed -i "/<releases>/a \\    <release version=\"${FLATPAK_VERSION}\" date=\"$(date -I)\" />" $FLATPAK_METAINFO
 
 FLATPAK_DESKTOP=/app/share/applications/space.oolite.Oolite.desktop
 install -D installers/FreeDesktop/oolite.desktop $FLATPAK_DESKTOP

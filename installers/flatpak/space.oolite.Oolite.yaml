@@ -16,13 +16,12 @@ finish-args:
   - --share=network
   - --socket=pulseaudio
   - --device=dri
-  - --talk-name=org.freedesktop.Notifications
 cleanup:
   - /include
   - /lib/pkgconfig
   - /share/man
-  - '*.a'
-  - '*.la'
+  - "*.a"
+  - "*.la"
 modules:
   - shared-modules/glu/glu-9.json
   - name: sdl12-compat
@@ -37,7 +36,6 @@ modules:
     cleanup:
       - /bin
       - /share
-
   - name: pcaudiolib
     sources:
       - type: archive
@@ -59,7 +57,6 @@ modules:
       - type: archive
         url: "https://github.com/Tessil/robin-map/archive/refs/tags/v1.4.1.tar.gz"
         sha256: "0e3f53a377fdcdc5f9fed7a4c0d4f99e82bbb64175233bd13427fef9a771f4a1"
-
   - name: libobjc2
     buildsystem: cmake-ninja
     build-options:
@@ -76,8 +73,6 @@ modules:
       - type: git
         url: https://github.com/gnustep/libobjc2.git
         commit: e5c06e3be8895007bcc7be58cbeccac2a5a89eff
-
-
   - name: gnustep-make
     build-options:
       env:
@@ -90,7 +85,6 @@ modules:
       - type: archive
         url: "https://github.com/gnustep/tools-make/releases/download/make-2_9_3/gnustep-make-2.9.3.tar.gz"
         sha256: "93ca320b706279ebca53760da89d4c3f2bbc547f4723967140a34346d9f04c24"
-
   - name: gnustep-base
     build-options:
       env:
@@ -100,18 +94,24 @@ modules:
       - type: git
         url: https://github.com/gnustep/libs-base.git
         commit: 2b236ec2c4816e7ff482f07dc973b655a3780122
-
   - name: oolite
     buildsystem: simple
+    secret-env:
+      - FLATPAK_VERSION
     build-commands:
       - |
         source /app/share/GNUstep/Makefiles/GNUstep.sh
         make -f Makefile release-deployment -j$FLATPAK_BUILDER_N_JOBS
         source installers/flatpak/flatpak_postbuild.sh
     sources:
-      - type: dir
-        path: ../
       - type: file
         url: https://wiki.alioth.net/img_auth.php/a/a2/Oolite-logo3.png
         sha256: e1d13be05d665480d034ff5f824ab5463463f16dd411de25f870522e3d3e45b1
         dest-filename: Oolite-logo3.png
+      - type: dir
+        path: ../
+#      For the FlatHub release, use the lines below instead of the 2 above updating the tag and commit:
+#      - type: git
+#        url: https://github.com/OoliteProject/oolite.git
+#        tag: "1.92"
+#        commit: ca6d91a33b7acd5b80a307a9f12643281a36f423

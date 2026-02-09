@@ -1,5 +1,34 @@
 #!/bin/bash
 
+notify_failure() {
+    if [[ -n "$FLATPAK_ID" ]]; then
+        local MSG="<b>$FLATPAK_ID failed to start!</b>\n\nExit Code: $EXIT_CODE"
+        gdbus call --session \
+            --dest org.freedesktop.portal.Desktop \
+            --object-path /org/freedesktop/portal/desktop \
+            --method org.freedesktop.portal.Notification.AddNotification \
+            "oolite_launch" \
+            "{'title': <'Application Error'>, 'body': <'$MSG'>}"
+    else
+        local APP_NAME="${ARGV0:-Application}"
+        local MSG="<b>$APP_NAME failed to start!</b>\n\nExit Code: $EXIT_CODE\n\nRun from terminal to see details."
+
+        if command -v notify-send > /dev/null; then
+            notify-send \
+                --urgency=critical \
+                --app-name="$APP_NAME" \
+                --icon=dialog-error \
+                "Application Error" \
+                "$MSG"
+        else
+            # Fallback to Console (stderr) if libnotify is missing
+            echo "------------------------------------------------" >&2
+            echo "ERROR: $APP_NAME exited with code $EXIT_CODE" >&2
+            echo "------------------------------------------------" >&2
+        fi
+    fi
+}
+
 launch_guarded() {
     "$@"
     local EXIT_CODE=$?
@@ -8,23 +37,7 @@ launch_guarded() {
         exit 0
     fi
 
-    local APP_NAME="${ARGV0:-Application}"
-    local MSG="<b>$APP_NAME failed to start.</b>\n\nExit Code: $EXIT_CODE\n\nRun from terminal to see details."
-
-    if command -v notify-send > /dev/null; then
-        notify-send \
-            --urgency=critical \
-            --app-name="$APP_NAME" \
-            --icon=dialog-error \
-            "Application Error" \
-            "The application exited with code $EXIT_CODE."
-    else
-        # Fallback to Console (stderr) if libnotify is missing
-        echo "------------------------------------------------" >&2
-        echo "ERROR: $APP_NAME exited with code $EXIT_CODE" >&2
-        echo "------------------------------------------------" >&2
-    fi
-
+    notify_failure
     exit $EXIT_CODE
 }
 
