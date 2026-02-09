@@ -127,16 +127,11 @@ enum PreferredAppMode
 	if (showSplashScreen)
 	{
 #if OOLITE_WINDOWS
-		// Pre setVideoMode adjustments.
-		NSSize tmp = currentWindowSize;
-		ShowWindow(SDL_Window,SW_SHOWMINIMIZED);
 		updateContext = NO;	//don't update the (splash screen) window yet!
 
 		// Initialise the SDL surface. (need custom SDL.dll)
 		surface = SDL_SetVideoMode(firstScreen.width, firstScreen.height, 32, videoModeFlags);
 
-		// Post setVideoMode adjustments.
-		currentWindowSize=tmp;
 #else
 		// Changing the flags can trigger texture bugs.
 		surface = SDL_SetVideoMode(8, 8, 32, videoModeFlags);
@@ -154,8 +149,11 @@ enum PreferredAppMode
 		if (!surface) {
 			return;
 		}
+		
+#if OOLITE_LINUX
 		// blank the surface / go to fullscreen
 		[self initialiseGLWithSize: firstScreen];
+#endif
 	}
 
 	_gamma = 1.0f;
@@ -351,6 +349,10 @@ enum PreferredAppMode
 	// Set up the drawing surface's dimensions.
 	firstScreen= (fullScreen) ? [self modeAsSize: currentSize] : currentWindowSize;
 	viewSize = firstScreen;	// viewSize must be set prior to splash screen initialization
+	
+#if OOLITE_WINDOWS
+	ShowWindow(SDL_Window,SW_SHOWMINIMIZED);
+#endif
 
 	OOLog(@"display.initGL", @"Trying %d-bpcc, 24-bit depth buffer", bitsPerColorComponent);
 	[self createSurface];
@@ -450,9 +452,12 @@ enum PreferredAppMode
 	return self;
 }
 
+
 - (void) endSplashScreen
 {
 #if OOLITE_WINDOWS
+	// we need to get through here even if splash screen has not
+	// been shown - this method also prepares the main game window
 	if ([self hdrOutput] && ![self isOutputDisplayHDREnabled])
 	{
 		if (MessageBox(NULL,	"No primary display in HDR mode was detected.\n\n"
@@ -463,11 +468,6 @@ enum PreferredAppMode
 			exit (1);
 		}
 	}
-#endif // OOLITE_WINDOWS
-	
-	if (!showSplashScreen) return;
-
-#if OOLITE_WINDOWS
 
 	wasFullScreen = !fullScreen;
 	updateContext = YES;
@@ -475,6 +475,7 @@ enum PreferredAppMode
 	[self initialiseGLWithSize: firstScreen];
 
 #else
+	if (!showSplashScreen)  return;
 
 	int videoModeFlags = SDL_HWSURFACE | SDL_OPENGL;
 
@@ -507,8 +508,7 @@ enum PreferredAppMode
 		*/
 	}
 
-
-#endif
+#endif // OOLITE_WINDOWS
 
 	[self updateScreen];
 	[self autoShowMouse];
@@ -1564,7 +1564,7 @@ finished:
 		// window itself must become big enough to accomodate an area
 		// of such size. 
 		if (wasFullScreen)	// this is true when switching from full screen or when starting in windowed mode
-							//after the splash screen has ended
+							// after the splash screen has ended
 		{
 			RECT desiredClientRect;
 			GetWindowRect(SDL_Window, &desiredClientRect);
