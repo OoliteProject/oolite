@@ -2,9 +2,11 @@
 
 cp -r oolite.app/* /app/bin
 
-if [ -z "$FLATPAK_VERSION" ]; then
+if [[ -z "$VERSION_OVERRIDE" ]]; then
     source ShellScripts/common/get_version.sh
     FLATPAK_VERSION="$VERSION"
+else
+    FLATPAK_VERSION="$VERSION_OVERRIDE"
 fi
 
 FLATPAK_METAINFO=/app/share/metainfo/space.oolite.Oolite.metainfo.xml
