@@ -35,7 +35,7 @@ run_script() {
         return 1
     fi
 
-    export FLATPAK_VERSION=$VER
+    export VERSION_OVERRIDE=$VER
     if ! flatpak-builder \
       --user \
       --force-clean \
