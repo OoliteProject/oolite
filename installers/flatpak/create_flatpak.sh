@@ -5,16 +5,20 @@ run_script() {
     SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
     pushd "$SCRIPT_DIR"
 
-    mkdir -p ../../build
-    cd ../../build
-    source ../ShellScripts/common/get_version.sh
-    source ../ShellScripts/common/check_rename_fn.sh
-    source ../ShellScripts/common/checkout_submodules_fn.sh
+    cd ../..
+    # Deleting these prevents odd linking errors
+    rm -rf oolite.app
+    rm -rf obj.spk
+    source ShellScripts/common/get_version.sh
+    source ShellScripts/common/check_rename_fn.sh
+    source ShellScripts/common/checkout_submodules_fn.sh
 
     if ! checkout_submodules; then
         return 1
     fi
 
+    mkdir -p build
+    cd build
     cp ../installers/flatpak/space.oolite.Oolite.* ./
     mkdir -p shared-modules/glu
     if ! curl -o shared-modules/glu/glu-9.json -L https://github.com/flathub/shared-modules/raw/refs/heads/master/glu/glu-9.json; then
