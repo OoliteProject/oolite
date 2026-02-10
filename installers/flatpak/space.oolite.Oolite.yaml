@@ -4,9 +4,8 @@ runtime-version: "25.08"
 sdk: org.freedesktop.Sdk
 sdk-extensions:
   - org.freedesktop.Sdk.Extension.llvm21
-  - org.freedesktop.Sdk.Extension.rust-stable
 build-options:
-  append-path: /usr/lib/sdk/llvm21/bin:/usr/lib/sdk/rust-stable/bin
+  append-path: /usr/lib/sdk/llvm21/bin
   prepend-ld-library-path: /usr/lib/sdk/llvm21/lib
 command: run_oolite.sh
 finish-args:
