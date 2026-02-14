@@ -83,8 +83,6 @@ modules:
         commit: 2b236ec2c4816e7ff482f07dc973b655a3780122
   - name: oolite
     buildsystem: simple
-    secret-env:
-      - VERSION_OVERRIDE
     build-commands:
       - |
         source /app/share/GNUstep/Makefiles/GNUstep.sh
@@ -95,10 +93,10 @@ modules:
         url: https://wiki.alioth.net/img_auth.php/a/a2/Oolite-logo3.png
         sha256: e1d13be05d665480d034ff5f824ab5463463f16dd411de25f870522e3d3e45b1
         dest-filename: Oolite-logo3.png
-      - type: dir
-        path: ../
-#     For the FlatHub release, use the lines below instead of the 2 above updating the tag and commit values:
-#      - type: git
-#        url: https://github.com/OoliteProject/oolite.git
-#        tag: "1.92"
-#        commit: ca6d91a33b7acd5b80a307a9f12643281a36f423
+      # Update tag and commit for FlatHub release. For CI and local builds, create_flatpak.sh replaces git source with:
+      # - type: dir
+      #   path: ../
+      - type: git
+        url: https://github.com/OoliteProject/oolite.git
+        tag: "1.92.0.3"
+        commit: d2a705b05f667e9aa4d18478ff9305dac9183a9a

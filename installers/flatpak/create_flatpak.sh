@@ -20,6 +20,11 @@ run_script() {
     mkdir -p build
     cd build
     cp ../installers/flatpak/space.oolite.Oolite.* ./
+    if ! flatpak run --command=flatpak-builder-lint org.flatpak.Builder manifest space.oolite.Oolite.yaml; then
+        echo "❌ Flatpak manifest lint failed!" >&2
+        return 1
+    fi
+
     mkdir -p shared-modules/glu
     if ! curl -o shared-modules/glu/glu-9.json -L https://github.com/flathub/shared-modules/raw/refs/heads/master/glu/glu-9.json; then
         echo "❌ Flatpak download of glu shared module failed!" >&2
@@ -44,7 +49,15 @@ run_script() {
         return 1
     fi
 
-    export VERSION_OVERRIDE=$VER
+    sed -i "/- name: oolite/a \    build-options:\n      env:\n        VERSION_OVERRIDE: \"$VER\"" \
+        space.oolite.Oolite.yaml
+    TOTAL_LINES=$(wc -l < space.oolite.Oolite.yaml)
+    START_LINE=$((TOTAL_LINES - 3))
+    sed -i "${START_LINE},\$d" space.oolite.Oolite.yaml
+    cat <<EOF >> space.oolite.Oolite.yaml
+      - type: dir
+        path: ../
+EOF
     if ! flatpak-builder \
       --user \
       --force-clean \
