@@ -25,6 +25,15 @@ run_script() {
         echo "❌ Flatpak download of glu shared module failed!" >&2
         return 1
     fi
+    mkdir -p shared-modules/SDL
+    if ! curl -o shared-modules/SDL/sdl12-compat.json -L https://github.com/flathub/shared-modules/raw/refs/heads/master/SDL/sdl12-compat.json; then
+        echo "❌ Flatpak download of SDL shared module failed!" >&2
+        return 1
+    fi
+    if ! curl -o shared-modules/SDL/sdl12-compat-cmake-version.patch -L https://github.com/flathub/shared-modules/raw/refs/heads/master/SDL/sdl12-compat-cmake-version.patch; then
+        echo "❌ Flatpak download of SDL cmake patch failed!" >&2
+        return 1
+    fi
 
     echo "Creating Flatpak..."
     if ! flatpak remote-add \
