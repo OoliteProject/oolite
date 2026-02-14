@@ -21,11 +21,6 @@ run_script() {
     cd build
     cp ../installers/flatpak/space.oolite.Oolite.* ./
 
-    if ! flatpak-builder-lint manifest space.oolite.Oolite.yaml; then
-        echo "❌ Flatpak manifest lint failed!" >&2
-        return 1
-    fi
-
     mkdir -p shared-modules/glu
     if ! curl -o shared-modules/glu/glu-9.json -L https://github.com/flathub/shared-modules/raw/refs/heads/master/glu/glu-9.json; then
         echo "❌ Flatpak download of glu shared module failed!" >&2
@@ -38,6 +33,11 @@ run_script() {
     fi
     if ! curl -o shared-modules/SDL/sdl12-compat-cmake-version.patch -L https://github.com/flathub/shared-modules/raw/refs/heads/master/SDL/sdl12-compat-cmake-version.patch; then
         echo "❌ Flatpak download of SDL cmake patch failed!" >&2
+        return 1
+    fi
+
+    if ! flatpak-builder-lint manifest space.oolite.Oolite.yaml; then
+        echo "❌ Flatpak manifest lint failed!" >&2
         return 1
     fi
 
