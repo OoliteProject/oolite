@@ -20,7 +20,8 @@ run_script() {
     mkdir -p build
     cd build
     cp ../installers/flatpak/space.oolite.Oolite.* ./
-    if ! flatpak run --command=flatpak-builder-lint org.flatpak.Builder manifest space.oolite.Oolite.yaml; then
+
+    if ! flatpak-builder-lint manifest space.oolite.Oolite.yaml; then
         echo "❌ Flatpak manifest lint failed!" >&2
         return 1
     fi
