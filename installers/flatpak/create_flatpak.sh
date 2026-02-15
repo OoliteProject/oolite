@@ -5,21 +5,49 @@ run_script() {
     SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
     pushd "$SCRIPT_DIR"
 
-    mkdir -p ../../build
-    cd ../../build
-    source ../ShellScripts/common/get_version.sh
-    source ../ShellScripts/common/check_rename_fn.sh
-    source ../ShellScripts/common/checkout_submodules_fn.sh
+    cd ../..
+    # Deleting these prevents odd linking errors
+    rm -rf oolite.app
+    rm -rf obj.spk
+    source ShellScripts/common/get_version.sh
+    source ShellScripts/common/check_rename_fn.sh
+    source ShellScripts/common/checkout_submodules_fn.sh
 
     if ! checkout_submodules; then
         return 1
     fi
 
+    mkdir -p build
+    cd build
     cp ../installers/flatpak/space.oolite.Oolite.* ./
+
     mkdir -p shared-modules/glu
     if ! curl -o shared-modules/glu/glu-9.json -L https://github.com/flathub/shared-modules/raw/refs/heads/master/glu/glu-9.json; then
         echo "❌ Flatpak download of glu shared module failed!" >&2
         return 1
+    fi
+    mkdir -p shared-modules/SDL
+    if ! curl -o shared-modules/SDL/sdl12-compat.json -L https://github.com/flathub/shared-modules/raw/refs/heads/master/SDL/sdl12-compat.json; then
+        echo "❌ Flatpak download of SDL shared module failed!" >&2
+        return 1
+    fi
+    if ! curl -o shared-modules/SDL/sdl12-compat-cmake-version.patch -L https://github.com/flathub/shared-modules/raw/refs/heads/master/SDL/sdl12-compat-cmake-version.patch; then
+        echo "❌ Flatpak download of SDL cmake patch failed!" >&2
+        return 1
+    fi
+
+    MANIFEST="space.oolite.Oolite.yaml"
+    if command -v flatpak-builder-lint >/dev/null 2>&1; then
+        if ! flatpak-builder-lint manifest "$MANIFEST"; then
+            echo "❌ Flatpak manifest lint failed!" >&2
+            return 1
+        fi
+    else
+        echo "Native linter not found. Falling back to Flatpak container..."
+        if ! flatpak run --command=flatpak-builder-lint org.flatpak.Builder manifest "$MANIFEST"; then
+            echo "❌ Flatpak manifest lint failed!" >&2
+            return 1
+        fi
     fi
 
     echo "Creating Flatpak..."
@@ -31,6 +59,15 @@ run_script() {
         return 1
     fi
 
+    sed -i "/- name: oolite/a \    build-options:\n      env:\n        VERSION_OVERRIDE: \"$VER\"" \
+        $MANIFEST
+    TOTAL_LINES=$(wc -l < $MANIFEST)
+    START_LINE=$((TOTAL_LINES - 3))
+    sed -i "${START_LINE},\$d" $MANIFEST
+    cat <<EOF >> $MANIFEST
+      - type: dir
+        path: ../
+EOF
     if ! flatpak-builder \
       --user \
       --force-clean \
@@ -38,7 +75,7 @@ run_script() {
       --install-deps-from=flathub \
       --disable-rofiles-fuse \
       build-dir \
-      space.oolite.Oolite.yaml; then
+      $MANIFEST; then
         echo "❌ Flatpak build failed!" >&2
         return 1
     fi
