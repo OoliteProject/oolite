@@ -27,6 +27,7 @@ run_script() {
 
     cd ../build/documentation/
     cp -r ../../Documentation/* ./
+    cp ../../LICENSE.md ./docs/license.md
     VENV_DIR=".venv"
     if [ ! -d "$VENV_DIR" ]; then
         echo "Creating virtual environment..."
