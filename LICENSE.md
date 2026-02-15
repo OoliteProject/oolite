@@ -48,7 +48,9 @@ This is a human-readable summary of the Legal Code (the full license).
 
 The source code distribution and the Mac OS X version of Oolite contain parts subject to the following license:
 
-VirtualRingBuffer
+
+----------------------------------------------------------
+VirtualRingBuffer (Not used after Oolite v1.90)
 
 Copyright © 2002, Kurt Revis. All rights reserved.
 
@@ -70,11 +72,11 @@ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSE
 WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+
+----------------------------------------------------------
 The MiniZip code used is subject to the following license.
 
 License
-
-----------------------------------------------------------
 
 Condition of use and distribution are the same than zlib :
 
@@ -91,12 +93,58 @@ and redistribute it freely, subject to the following restrictions:
    software.
 3. This notice may not be removed or altered from any source distribution.
 
-----------------------------------------------------------
 
-Oolite makes use of various external open source libraries, some of them modified to fit certain requirements of the
-game. For more information about where to find the source code of those libraries, as well as information about the
-modifications required to make them build for Oolite, please refer to the file *ExternalLibrariesSourceCodeChanges.txt*,
-found inside the Doc folder of the game’s source code distribution.
+----------------------------------------------------------
+TinyEXR, used in the HDR snapshot code, is subject to the following license:
+
+Copyright (c) 2014 - 2021, Syoyo Fujita and many contributors.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:     
+Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+
+* Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation
+  and/or other materials provided with the distribution.
+* Neither the name of the Syoyo Fujita nor the names of its contributors may be used to endorse or promote products derived from this software
+  without specific prior written permission.
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+  DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
+  DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+  ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+TinyEXR contains some OpenEXR code, which is licensed under
+
+Copyright (c) 2002, Industrial Light & Magic, a division of LucasDigital Ltd. LLC
+
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are  met:
+
+* Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+* Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer  in the documentation
+  and/or other materials provided with the distribution.
+  Neither the name of Industrial Light & Magic nor the names of its contributors may be used to endorse or promote products derived from this
+  software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+----------------------------------------------------------
 
 Military laser sound courtesy of user “notyermom”, sourced from <https://freesound.org/people/notyermom/sounds/434834/>
 under license: <https://creativecommons.org/publicdomain/zero/1.0/>
@@ -107,4 +155,11 @@ license: <https://creativecommons.org/licenses/by/3.0/>
 
 Beam laser sound courtesy of user “jobro”, sourced from <https://freesound.org/people/jobro/sounds/35677/> under
 license: <https://creativecommons.org/licenses/by/3.0/>
+
+----------------------------------------------------------
+
+Oolite makes use of various external open source libraries, some of them modified to fit certain requirements of the
+game. For more information about where to find the source code of those libraries, as well as information about the
+modifications required to make them build for Oolite, please refer to the file *ExternalLibrariesSourceCodeChanges.txt*,
+found inside the Doc folder of the game’s source code distribution.
 
