@@ -63,7 +63,7 @@ jobs:
     steps:
       - name: Update Arch
         run: |
-          pacman -Sy --noconfirm
+          pacman -Syu --noconfirm
           pacman -S --noconfirm --needed git
       - uses: actions/checkout@v6
         with:
