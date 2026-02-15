@@ -36,9 +36,18 @@ run_script() {
         return 1
     fi
 
-    if ! flatpak-builder-lint manifest space.oolite.Oolite.yaml; then
-        echo "❌ Flatpak manifest lint failed!" >&2
-        return 1
+    MANIFEST="space.oolite.Oolite.yaml"
+    if command -v flatpak-builder-lint >/dev/null 2>&1; then
+        if ! flatpak-builder-lint manifest "$MANIFEST"; then
+            echo "❌ Flatpak manifest lint failed!" >&2
+            return 1
+        fi
+    else
+        echo "Native linter not found. Falling back to Flatpak container..."
+        if ! flatpak run --command=flatpak-builder-lint org.flatpak.Builder manifest "$MANIFEST"; then
+            echo "❌ Flatpak manifest lint failed!" >&2
+            return 1
+        fi
     fi
 
     echo "Creating Flatpak..."
@@ -51,11 +60,11 @@ run_script() {
     fi
 
     sed -i "/- name: oolite/a \    build-options:\n      env:\n        VERSION_OVERRIDE: \"$VER\"" \
-        space.oolite.Oolite.yaml
-    TOTAL_LINES=$(wc -l < space.oolite.Oolite.yaml)
+        $MANIFEST
+    TOTAL_LINES=$(wc -l < $MANIFEST)
     START_LINE=$((TOTAL_LINES - 3))
-    sed -i "${START_LINE},\$d" space.oolite.Oolite.yaml
-    cat <<EOF >> space.oolite.Oolite.yaml
+    sed -i "${START_LINE},\$d" $MANIFEST
+    cat <<EOF >> $MANIFEST
       - type: dir
         path: ../
 EOF
@@ -66,7 +75,7 @@ EOF
       --install-deps-from=flathub \
       --disable-rofiles-fuse \
       build-dir \
-      space.oolite.Oolite.yaml; then
+      $MANIFEST; then
         echo "❌ Flatpak build failed!" >&2
         return 1
     fi
