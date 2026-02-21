@@ -18,8 +18,8 @@
   </developer>
 
   <branding>
-    <color type="primary" scheme_preference="light">#000032</color>
-    <color type="primary" scheme_preference="dark">#000032</color>
+    <color type="primary" scheme_preference="light">#bbbbce</color>
+    <color type="primary" scheme_preference="dark">#1c1a2e</color>
   </branding>
 
   <content_rating type="oars-1.1">
@@ -41,26 +41,31 @@
   </requires>
   
   <launchable type="desktop-id">space.oolite.Oolite.desktop</launchable>
+
   <screenshots>
     <screenshot type="default">
-      <image>https://addons.oolite.space/i/gallery/basic/large/Station.png</image>
-      <caption>Orbital stations provide facilities and protection to pilots.</caption>
+      <image>https://raw.githubusercontent.com/OoliteProject/oolite/1.92-maintenance/installers/flatpak/oolite-999.png</image>
+      <caption>Pick your ship. Forge your career. Explore the galaxy.</caption>
     </screenshot>
     <screenshot>
-      <image>https://addons.oolite.space/i/gallery/basic/large/Tutorial.png</image>
-      <caption>A tutorial introduces the basics of piloting, combat, and travel.</caption>
+      <image>https://raw.githubusercontent.com/OoliteProject/oolite/1.92-maintenance/installers/flatpak/oolite-070A.png</image>
+      <caption>Encounter a diverse range of interstellar craft. </caption>
     </screenshot>
     <screenshot>
-      <image>https://addons.oolite.space/i/gallery/basic/large/Main.png</image>
-      <caption>Oolite's start screen includes an expansion pack manager and quick reference guides.</caption>
+      <image>https://raw.githubusercontent.com/OoliteProject/oolite/1.92-maintenance/installers/flatpak/oolite-064.png</image>
+      <caption>Find safety in massive orbital stations.</caption>
     </screenshot>
     <screenshot>
-      <image>https://addons.oolite.space/i/gallery/basic/large/Contracts.png</image>
-      <caption>A route finder allows long journeys to be planned - great for transport contracts.</caption>
+      <image>https://raw.githubusercontent.com/OoliteProject/oolite/1.92-maintenance/installers/flatpak/oolite-001.png</image>
+      <caption>Access the expansion pack manager and quick reference guides om the start screen.</caption>
     </screenshot>
     <screenshot>
-      <image>https://addons.oolite.space/i/gallery/basic/large/Equipment.png</image>
-      <caption>A wide range of equipment is available to increase your chances of survival.</caption>
+      <image>https://raw.githubusercontent.com/OoliteProject/oolite/1.92-maintenance/installers/flatpak/oolite-002.png</image>
+      <caption>Learn to fly with the tutorial covering piloting, combat, and travel.</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/OoliteProject/oolite/1.92-maintenance/installers/flatpak/oolite-004.png</image>
+      <caption>Fly to Maraus, a wealthy industrial world, one of 2000 systems to be discovered.</caption>
     </screenshot>
   </screenshots>
 

@@ -248,7 +248,12 @@ enum PreferredAppMode
 	NSString *versionString = [NSString stringWithFormat:@"Oolite v%@", [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"]];
 
 	strcpy (windowCaption, [versionString UTF8String]);
-	strcat (windowCaption, " - "__DATE__);
+	strcat(windowCaption, " - ");
+#ifdef BUILD_DATE
+	strcat(windowCaption, BUILD_DATE);
+#else
+	strcat(windowCaption, __DATE__);
+#endif
 	SDL_WM_SetCaption (windowCaption, "Oolite");	// Set window title.
 
 #if OOLITE_WINDOWS
