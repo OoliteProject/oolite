@@ -155,9 +155,10 @@ int main(int argc, char *argv[])
 			{
 				i++;
 			}
-			if (i < argc)
+			NSString *argument = [NSString stringWithCString:argv[i]];
+			if (i < argc && [[argument lowercaseString] hasSuffix:@".oolite-save"])
 			{
-				[controller setPlayerFileToLoad: [NSString stringWithCString: argv[i]]];
+				[controller setPlayerFileToLoad:argument];
 			}
 			else  continue;
 
