@@ -160,7 +160,6 @@ int main(int argc, char *argv[])
 			{
 				[controller setPlayerFileToLoad:argument];
 			}
-			else  continue;
 
    			if (!strcmp("-help", argv[i]) || !strcmp("--help", argv[i]))
 			{
