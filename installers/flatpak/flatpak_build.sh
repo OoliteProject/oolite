@@ -32,4 +32,4 @@ install -D installers/FreeDesktop/oolite.desktop $FLATPAK_DESKTOP
 desktop-file-edit --set-key=Exec --set-value=run_oolite.sh $FLATPAK_DESKTOP
 desktop-file-edit --set-key=Icon --set-value=space.oolite.Oolite $FLATPAK_DESKTOP
 
-install -D installers/flatpak/oolite-logo1.svg /app/share/icons/hicolor/scalable/apps/space.oolite.Oolite.svg
+install -D Resources/Binary/Textures/oolite-logo1.png /app/share/icons/hicolor/256x256/apps/space.oolite.Oolite.png
