@@ -41,7 +41,7 @@ release-deployment:
 
 .PHONY: release-snapshot
 release-snapshot:
-	$(MAKE) -f GNUmakefile SNAPSHOT_BUILD=yes VERSION_STRING=$(VER) debug=no
+	$(MAKE) -f GNUmakefile SNAPSHOT_BUILD=yes debug=no
 	mkdir -p AddOns && rm -rf AddOns/Basic-debug.oxp && cp -rf DebugOXP/Debug.oxp AddOns/Basic-debug.oxp
 
 .PHONY: debug
