@@ -11,6 +11,22 @@ ifeq ($(GNUSTEP_HOST_OS),mingw32)
 endif
 GNUSTEP_OBJ_DIR_BASENAME         := $(GNUSTEP_OBJ_DIR_NAME)
 
+VERSION                          := $(shell cat src/Cocoa/oolite-version.xcconfig | cut -d '=' -f 2)
+VER_MAJ                          := $(shell echo $(VERSION) | cut -d. -f1)
+VER_MIN                          := $(shell echo $(VERSION) | cut -d. -f2)
+VER_REV                          := $(shell echo $(VERSION) | cut -d. -f3)
+ifeq ($(VER_REV),)
+    VER_REV                       = 0
+endif
+VER_DATE                         := $(shell date +%y%m%d)
+VER_GITREV                       := $(shell git rev-list --count HEAD)
+VER_GITHASH                      := $(shell git rev-parse --short=7 HEAD)
+VER_FULL                         := $(VER_MAJ).$(VER_MIN).$(VER_REV).$(VER_GITREV)-$(VER_DATE)-$(VER_GITHASH)
+
+ifeq ($(DEPLOYMENT_RELEASE_CONFIGURATION),)
+DEPLOYMENT_RELEASE_CONFIGURATION := no
+endif
+
 ifeq ($(GNUSTEP_HOST_OS),mingw32)
 	vpath %.rc src/SDL/OOResourcesWin
 
@@ -104,8 +120,8 @@ endif
 
 # add specific flags if building modern
 ifeq ($(modern),yes)
-    ADDITIONAL_CFLAGS        += -DOOLITE_MODERN_BUILD=1 
-    ADDITIONAL_OBJCFLAGS     += -DOOLITE_MODERN_BUILD=1 
+    ADDITIONAL_CFLAGS        += -DOOLITE_MODERN_BUILD=1 -DOO_VERSION_FULL=\"$(VER_FULL)\" 
+    ADDITIONAL_OBJCFLAGS     += -DOOLITE_MODERN_BUILD=1 -DOO_VERSION_FULL=\"$(VER_FULL)\" 
 #   link time optimizations
     ifeq ($(lto),yes)
         ADDITIONAL_CFLAGS        += -flto
