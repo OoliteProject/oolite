@@ -5229,7 +5229,7 @@ static const OOMatrix	starboard_matrix =
 			// should come after the HUD to avoid it being overlapped by it
 			[self drawMessage];
 			
-#if (defined (SNAPSHOT_BUILD)) // && defined (OOLITE_SNAPSHOT_VERSION))
+#if (defined (SNAPSHOT_BUILD))
 			[self drawWatermarkString:@"Development version " @OO_VERSION_FULL];
 #endif
 			
