@@ -23,9 +23,6 @@ VER_GITREV                       := $(shell git rev-list --count HEAD)
 VER_GITHASH                      := $(shell git rev-parse --short=7 HEAD)
 VER_FULL                         := $(VER_MAJ).$(VER_MIN).$(VER_REV).$(VER_GITREV)-$(VER_DATE)-$(VER_GITHASH)
 
-ifeq ($(DEPLOYMENT_RELEASE_CONFIGURATION),)
-DEPLOYMENT_RELEASE_CONFIGURATION := no
-endif
 
 ifeq ($(GNUSTEP_HOST_OS),mingw32)
 	vpath %.rc src/SDL/OOResourcesWin
