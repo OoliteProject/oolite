@@ -9,11 +9,13 @@ POST_BUILD_ENV = \
 	GNUSTEP_HOST_CPU="$(GNUSTEP_HOST_CPU)" \
 	MINGW_PREFIX="$(MINGW_PREFIX)" \
 	DEBUG="$(debug)" \
+	DEPLOYMENT_RELEASE_CONFIGURATION="$(DEPLOYMENT_RELEASE_CONFIGURATION)" \
 	MODERN="$(modern)" \
 	ESPEAK="$(ESPEAK)" \
 	USE_DEPS="$(use_deps)" \
 	STRIP_BIN="$(strip)" \
-	STRIP="$(STRIP)"
+	STRIP="$(STRIP)" \
+	VER_FULL="$(VER_FULL)"
 
 after-all::
 	@$(POST_BUILD_ENV) ShellScripts/common/post_build.sh
