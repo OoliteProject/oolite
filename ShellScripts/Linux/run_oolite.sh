@@ -1,5 +1,8 @@
 #!/bin/bash
 
+
+HERE="$(dirname "$(readlink -f "$0")")"
+
 notify_failure() {
     if [[ -n "$FLATPAK_ID" ]]; then
         local MSG="<b>$FLATPAK_ID failed to start!</b>\n\nExit Code: $EXIT_CODE"
@@ -43,7 +46,6 @@ launch_guarded() {
 
 find_exe_launch() {
     if [[ -z "$OO_EXECUTABLE" ]]; then
-        HERE="$(dirname "$(readlink -f "$0")")"
         OO_EXECUTABLE="$HERE/oolite"
         if [[ ! -f "$OO_EXECUTABLE" ]]; then
             OO_EXECUTABLE="$HERE/oolite.app/oolite"
@@ -54,16 +56,31 @@ find_exe_launch() {
 
 # Check if we are running inside a Flatpak
 if [[ -n "$FLATPAK_ID" ]]; then
+    if [[ "$1" == "packageinfo" ]]; then
+        cat "/app/bin/Resources/manifest.plist"
+        exit 0
+    fi
+
     GAME_DATA="$HOME/.var/app/$FLATPAK_ID"
     OO_EXECUTABLE="/app/bin/oolite"
 
 # Check if we are running inside an AppImage
 elif [[ -n "$APPIMAGE" ]]; then
-    # Get the folder where AppRun is in the AppImage
-    HERE="$(dirname "$(readlink -f "${0}")")"
-    export LD_LIBRARY_PATH="$HERE/usr/lib:$LD_LIBRARY_PATH"
-    export PATH="$HERE/usr/bin:$PATH"
-    OO_EXECUTABLE="$HERE/usr/bin/oolite"
+    MANIFEST="$APPDIR/usr/bin/Resources/manifest.plist"
+    if [[ "$1" == "packageinfo" ]]; then
+        cat "$MANIFEST"
+        exit 0
+    fi
+
+    export LD_LIBRARY_PATH="$APPDIR/usr/lib:$LD_LIBRARY_PATH"
+    export PATH="$APPDIR/usr/bin:$PATH"
+    OO_EXECUTABLE="$APPDIR/usr/bin/oolite"
+
+    DEBUG_OXP=$(grep "debug_functionality_support" "$MANIFEST")
+    if [[ "$DEBUG_OXP" == *"yes"* ]]; then
+        INTERNAL_ADDONS="$APPDIR/usr/bin/AddOns"
+        export OO_ADDITIONALADDONSDIRS="${OO_ADDITIONALADDONSDIRS}${OO_ADDITIONALADDONSDIRS:+,}$INTERNAL_ADDONS"
+    fi
 
     if [[ -n "$OO_DIRTYPE" ]]; then
         if [[ "${OO_DIRTYPE,,}" == "xdg" ]]; then
@@ -76,18 +93,27 @@ elif [[ -n "$APPIMAGE" ]]; then
         HERE="$(dirname "$APPIMAGE")"
         GAME_DATA="$HERE/GameData"
     fi
-
-# Check if OO_DIRTYPE set
-elif [[ -n "$OO_DIRTYPE" ]]; then
-    if [[ "${OO_DIRTYPE,,}" == "xdg" ]]; then
-        GAME_DATA="$HOME/.local/share/Oolite"
-    elif [[ "${OO_DIRTYPE,,}" == "legacy" ]]; then
-        find_exe_launch "$@"
-    fi
 else
-    # Use script directory
-    HERE="$(dirname "$(readlink -f "$0")")"
-    GAME_DATA="$HERE/GameData"
+    if [[ "$1" == "packageinfo" ]]; then
+        if [ -f "$HERE/Resources/manifest.plist" ]; then
+            cat "$HERE/Resources/manifest.plist"
+        else
+            cat "$HERE/oolite.app/Resources/manifest.plist"
+        fi
+        exit 0
+    fi
+
+    # Check if OO_DIRTYPE set
+    if [[ -n "$OO_DIRTYPE" ]]; then
+        if [[ "${OO_DIRTYPE,,}" == "xdg" ]]; then
+            GAME_DATA="$HOME/.local/share/Oolite"
+        elif [[ "${OO_DIRTYPE,,}" == "legacy" ]]; then
+            find_exe_launch "$@"
+        fi
+    else
+        # Use script directory
+        GAME_DATA="$HERE/GameData"
+    fi
 fi
 
 mkdir -p "$GAME_DATA"

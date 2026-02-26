@@ -33,7 +33,7 @@ help:
 .PHONY: release
 release:
 	$(MAKE) -f GNUmakefile debug=no strip=yes lto=yes
-	mkdir -p AddOns && rm -rf AddOns/Basic-debug.oxp && cp -rf DebugOXP/Debug.oxp AddOns/Basic-debug.oxp
+	mkdir -p build/AddOns && rm -rf build/AddOns/Basic-debug.oxp && cp -rf DebugOXP/Debug.oxp build/AddOns/Basic-debug.oxp
 
 .PHONY: release-deployment
 release-deployment:
@@ -41,19 +41,19 @@ release-deployment:
 
 .PHONY: release-snapshot
 release-snapshot:
-	$(MAKE) -f GNUmakefile SNAPSHOT_BUILD=yes VERSION_STRING=$(VER) debug=no
-	mkdir -p AddOns && rm -rf AddOns/Basic-debug.oxp && cp -rf DebugOXP/Debug.oxp AddOns/Basic-debug.oxp
+	$(MAKE) -f GNUmakefile SNAPSHOT_BUILD=yes debug=no
+	mkdir -p build/AddOns && rm -rf build/AddOns/Basic-debug.oxp && cp -rf DebugOXP/Debug.oxp build/AddOns/Basic-debug.oxp
 
 .PHONY: debug
 debug:
 	$(MAKE) -f GNUmakefile debug=yes strip=no
-	mkdir -p AddOns && rm -rf AddOns/Basic-debug.oxp && cp -rf DebugOXP/Debug.oxp AddOns/Basic-debug.oxp
+	mkdir -p build/AddOns && rm -rf build/AddOns/Basic-debug.oxp && cp -rf DebugOXP/Debug.oxp build/AddOns/Basic-debug.oxp
 
 .PHONY: clean
 clean:
 	$(MAKE) -f GNUmakefile clean
 	$(RM) -rf oolite.app
-	$(RM) -rf AddOns 
+	$(RM) -rf build/AddOns
 
 .PHONY: all
 all: release release-deployment release-snapshot debug

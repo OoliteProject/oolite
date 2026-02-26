@@ -10075,7 +10075,7 @@ static NSString *last_outfitting_key=nil;
 			if ([[arguments objectAtIndex:i] isEqual:@"-showversion"])
 			{
 				OOGUIRow ms_start = msgLine;
-				NSString *version = [NSString stringWithFormat:@"Version %@", [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"]];
+				NSString *version = @"Version " @OO_VERSION_FULL;
 				OOGUIRow i = msgLine = [gui addLongText:version startingAtRow:ms_start align:GUI_ALIGN_CENTER];
 				for (i-- ; i >= ms_start; i--)
 				{

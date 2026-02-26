@@ -81,7 +81,7 @@ RequestExecutionLevel user
 
 VIAddVersionKey "ProductName" "Oolite"
 VIAddVersionKey "FileDescription" "A space combat/trading game, inspired by Elite."
-VIAddVersionKey "LegalCopyright" "© 2003-2026 Giles Williams, Jens Ayton and contributors"
+VIAddVersionKey "LegalCopyright" "ï¿½ 2003-2026 Giles Williams, Jens Ayton and contributors"
 VIAddVersionKey "FileVersion" "${VER}"
 VIAddVersionKey "ProductVersion" "${VER}"
 !ifdef SNAPSHOT
@@ -133,7 +133,7 @@ SectionEnd
 Section "Basic-debug.OXP" ooDebugOXP
 ; Do not use any of the Debug OXP files when we are building Deployment
 SetOutPath $INSTDIR
-File /r "..\..\AddOns"
+File /r "..\..\build\AddOns"
 SectionEnd
 
 ; Below are the descriptions of the two component sections

@@ -59,7 +59,7 @@ run_script() {
         return 1
     fi
 
-    sed -i "/- name: oolite/a \    build-options:\n      env:\n        VERSION_OVERRIDE: \"$VER\"" \
+    sed -i "/- name: oolite/a \    build-options:\n      env:\n        VERSION_OVERRIDE: \"$VER_FULL\"" \
         $MANIFEST
     TOTAL_LINES=$(wc -l < $MANIFEST)
     START_LINE=$((TOTAL_LINES - 3))
@@ -89,9 +89,9 @@ EOF
     fi
 
    	if (( $# == 1 )); then
-        SUFFIX="${1}_${VER}"
+        SUFFIX="${1}_${VER_FULL}"
     else
-        SUFFIX="$VER"
+        SUFFIX="$VER_FULL"
     fi
 
     if ! check_rename "space.oolite.Oolite" "space.oolite.Oolite.flatpak" $SUFFIX; then

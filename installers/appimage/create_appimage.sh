@@ -18,6 +18,11 @@ run_script() {
     PROGDIR="../oolite.app"
     cp -rf $PROGDIR/Resources $APPDIR/usr/bin
 
+   	if (( $# == 1 )); then
+        echo "Including Basic-debug.oxp"
+        cp -rf AddOns $APPDIR/usr/bin
+    fi
+
     curl -o linuxdeploy -L https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
     chmod +x linuxdeploy
 
@@ -58,9 +63,9 @@ run_script() {
     fi
 
    	if (( $# == 1 )); then
-        SUFFIX="${1}_${VER}"
+        SUFFIX="${1}_${VER_FULL}"
     else
-        SUFFIX="$VER"
+        SUFFIX="$VER_FULL"
     fi
 
     if ! check_rename "Oolite" "Oolite-*" $SUFFIX; then
