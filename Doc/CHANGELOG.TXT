@@ -1,3 +1,17 @@
+Changes between Oolite 1.92 and Oolite 1.92.1:
+
+* Windows: Fixed game window title bar not respecting system dark mode settings
+  on Windows when launched with the -nosplash cmd line arg.
+* Fixed white flashbang on Windows port startup when the game was started with
+  the -nosplash cmd line argument.
+* Security fix: Download OXZ list using https.
+* Fixed bug where a savefile passed as cmd line argument would not load unless
+  it was the last argument.
+* The full game version is now inlined and reported in the help message and log
+  files.
+
+-------------------------------------------------------------------------------
+
 Changes between Oolite 1.90 and Oolite 1.92:
 
 General:
