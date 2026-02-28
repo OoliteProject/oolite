@@ -49,6 +49,11 @@ GameController* controller;
 uint32_t gDebugFlags = 0;
 #endif
 
+// This macro is normally defined in the build command
+#ifndef OO_VERSION_FULL
+#define OO_VERSION_FULL	"Undefined"
+#endif
+
 /**
  * \ingroup cli
  * Entry point for Linux and Windows systems.
@@ -186,6 +191,7 @@ int main(int argc, char *argv[])
 							"--xml"TABS3 TABS4"When compiling or exporting\n"TABS3 TABS4"system descriptions, use xml\n"TABS3 TABS4"format *\n"
 							"\n"
 							"Options marked with \"*\" are available only in Test Release configuration.\n"
+							"Version "OO_VERSION_FULL"\n"
 							"Built with "
 #if OOLITE_HAVE_CLANG
 							"Clang version " STRINGIFY(__clang_major__) "." STRINGIFY(__clang_minor__) "." STRINGIFY(__clang_patchlevel__)

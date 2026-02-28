@@ -18,7 +18,12 @@ echo "{"
 echo "	title = \"Oolite core\";"
 echo "	identifier = \"org.oolite.oolite\";"
 echo "	"
-echo "	version = \"$OOLITE_VERSION\";"
+echo "	version = \"$VER_FULL\";"
+if [ "$DEPLOYMENT_RELEASE_CONFIGURATION" = "yes" ]; then
+    echo "	debug_functionality_support = no;"
+else
+    echo "	debug_functionality_support = yes;"
+fi
 echo "	required_oolite_version = \"$OOLITE_VERSION\";"
 echo "	"
 echo "	license = \"GPL 2+ / CC-BY-NC-SA 3.0 - see LICENSE.md for details\";"

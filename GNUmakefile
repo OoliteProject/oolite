@@ -104,8 +104,9 @@ endif
 
 # add specific flags if building modern
 ifeq ($(modern),yes)
-    ADDITIONAL_CFLAGS        += -DOOLITE_MODERN_BUILD=1 
-    ADDITIONAL_OBJCFLAGS     += -DOOLITE_MODERN_BUILD=1 
+    VER_FULL := $(shell ./ShellScripts/common/get_version.sh)
+    ADDITIONAL_CFLAGS        += -DOOLITE_MODERN_BUILD=1 -DOO_VERSION_FULL=\"$(VER_FULL)\"
+    ADDITIONAL_OBJCFLAGS     += -DOOLITE_MODERN_BUILD=1 -DOO_VERSION_FULL=\"$(VER_FULL)\"
 #   link time optimizations
     ifeq ($(lto),yes)
         ADDITIONAL_CFLAGS        += -flto

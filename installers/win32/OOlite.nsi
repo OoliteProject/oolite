@@ -133,7 +133,7 @@ SectionEnd
 Section "Basic-debug.OXP" ooDebugOXP
 ; Do not use any of the Debug OXP files when we are building Deployment
 SetOutPath $INSTDIR
-File /r "..\..\AddOns"
+File /r "..\..\build\AddOns"
 SectionEnd
 
 ; Below are the descriptions of the two component sections
