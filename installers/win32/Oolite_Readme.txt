@@ -90,11 +90,11 @@ Links
 -----
 Oolite website at: https://oolite.space
 
-Oolite Message Board at: http://www.aegidian.org/bb
+Oolite Message Board at: https://bb.oolite.space
 
 Oolite Development Project Page at: https://github.com/OoliteProject
 
-Browse the Oolite wiki at: http://wiki.alioth.net/index.php/Oolite_Main_Page
+Browse the Oolite wiki at: https://wiki.alioth.net/index.php/Oolite_Main_Page
 
 Get OXPs at https://oolite.space/oxps/ or use the in-game Expansion Pack Manager
 
