@@ -1,6 +1,7 @@
 # mkdocs.yml
 site_name: Oolite Documentation
 site_url: https://oolite.readthedocs.io/
+strict: true
 
 markdown_extensions:
   - attr_list

@@ -12,6 +12,7 @@ build:
       - python3 -m playwright install chromium
       - ./Documentation/build_doxygen.sh
       - ./Documentation/build_referencesheet.sh
+      - cp ./LICENSE.md ./build/documentation/docs/license.md
 
 mkdocs:
   configuration: build/documentation/mkdocs.yaml
