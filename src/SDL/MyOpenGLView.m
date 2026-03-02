@@ -235,10 +235,26 @@ enum PreferredAppMode
 		return nil;
 	}
 
+   	// Find what the full screen and windowed settings are.
+	fullScreen = NO;
+	[self loadFullscreenSettings];
+	[self loadWindowSize];
+
+
 #if OOLITE_WINDOWS
 	SDL_putenv ("SDL_VIDEO_WINDOW_POS=center");
 #else
-	SDL_putenv ("SDL_VIDEO_WINDOW_POS=0,0");
+	const SDL_VideoInfo* info = SDL_GetVideoInfo();
+	int screen_w = info->current_w;
+	int screen_h = info->current_h;
+
+	int pos_x = (screen_w - currentWindowSize.width) / 2;
+	int pos_y = (screen_h - currentWindowSize.height) / 2;
+
+	static char pos_string[32];
+	sprintf(pos_string, "SDL_VIDEO_WINDOW_POS=%d,%d", pos_x, pos_y);
+
+	SDL_putenv (pos_string);
 #endif
 	[OOJoystickManager setStickHandlerClass:[OOSDLJoystickManager class]];
 	// end TODO
@@ -348,11 +364,6 @@ enum PreferredAppMode
 	OOLog(@"display.mode.list", @"%@", @"CREATING MODE LIST");
 	[self populateFullScreenModelist];
 	currentSize = 0;
-
-	// Find what the full screen and windowed settings are.
-	fullScreen = NO;
-	[self loadFullscreenSettings];
-	[self loadWindowSize];
 
 	// Set up the drawing surface's dimensions.
 	firstScreen= (fullScreen) ? [self modeAsSize: currentSize] : currentWindowSize;
