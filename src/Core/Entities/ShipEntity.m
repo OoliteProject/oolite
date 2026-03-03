@@ -13299,7 +13299,12 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		}
 		if ((energy < maxEnergy *0.125 || (energy < 64 && energy < amount*2)) && [self hasEscapePod] && (ranrot_rand() & 3) == 0)  // 25% chance he gets to an escape pod
 		{
-			[self abandonShip];
+			if ([self abandonShip]) {
+				if (hunter == PLAYER) {
+					NSUInteger kills = [hunter score];
+					[hunter setScore:(kills+1)];
+				}
+			}
 		}
 	}
 }
