@@ -1153,6 +1153,9 @@ typedef enum
 
 - (OOSpeechSettings) isSpeechOn;
 
+- (BOOL) isEquipmentSellOption:(NSString *)equipmentKey;
+- (BOOL) canAddEquipmentSellOption:(NSString *)equipmentKey;
+
 - (void) addEquipmentFromCollection:(id)equipment;	// equipment may be an array, a set, a dictionary whose values are all YES, or a string.
  
 - (void) getFined;
