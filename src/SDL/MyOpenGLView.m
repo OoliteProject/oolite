@@ -74,63 +74,6 @@ enum PreferredAppMode
     Max
 };
 #endif
-#else
-#include <dlfcn.h>
-#define SDL_POS_CENTERED 0x2FFF0000
-
-void UniversalCenterWindow() {
-    void *handle = NULL;
-
-    // --- STEP 1: TRY SDL3 (The Modern Engine) ---
-    handle = dlopen("libSDL3.so.0", RTLD_LAZY | RTLD_GLOBAL);
-    if (!handle) handle = dlopen("libSDL3.so", RTLD_LAZY | RTLD_GLOBAL);
-    
-    if (handle) {
-        typedef void** (*PFN_SDL_GetWindows)(int*);
-        typedef int (*PFN_SDL_SetWindowPosition)(void*, int, int);
-        
-        PFN_SDL_GetWindows getWindows = (PFN_SDL_GetWindows)dlsym(handle, "SDL_GetWindows");
-        PFN_SDL_SetWindowPosition setPos = (PFN_SDL_SetWindowPosition)dlsym(handle, "SDL_SetWindowPosition");
-
-        if (getWindows && setPos) {
-            int count = 0;
-            void** window_list = getWindows(&count);
-            if (count > 0 && window_list) {
-                setPos(window_list[0], SDL_POS_CENTERED, SDL_POS_CENTERED);
-                printf("Centered via SDL3 reach-through.\n");
-                dlclose(handle);
-                return; 
-            }
-        }
-        dlclose(handle);
-    }
-
-    // --- STEP 2: TRY SDL2 (The Standard Compat Layer) ---
-    handle = dlopen("libSDL2-2.0.so.0", RTLD_LAZY | RTLD_GLOBAL);
-    if (!handle) handle = dlopen("libSDL2.so", RTLD_LAZY | RTLD_GLOBAL);
-
-    if (handle) {
-        typedef void* (*PFN_SDL_GetWindowFromID)(unsigned int);
-        typedef void (*PFN_SDL_SetWindowPosition)(void*, int, int);
-
-        PFN_SDL_GetWindowFromID getWin = (PFN_SDL_GetWindowFromID)dlsym(handle, "SDL_GetWindowFromID");
-        PFN_SDL_SetWindowPosition setPos = (PFN_SDL_SetWindowPosition)dlsym(handle, "SDL_SetWindowPosition");
-
-        if (getWin && setPos) {
-            // Check IDs 1 through 10
-            for (unsigned int i = 1; i <= 10; i++) {
-                void* win = getWin(i);
-                if (win) {
-                    setPos(win, SDL_POS_CENTERED, SDL_POS_CENTERED);
-                    printf("Centered via SDL2 reach-through (ID: %u).\n", i);
-                    dlclose(handle);
-                    return;
-                }
-            }
-        }
-        dlclose(handle);
-    }
-}
 #endif //OOLITE_WINDOWS
 
 @interface MyOpenGLView (OOPrivate)
@@ -185,14 +128,10 @@ void UniversalCenterWindow() {
 	{
 #if OOLITE_WINDOWS
 		updateContext = NO;	//don't update the (splash screen) window yet!
-
-		// Initialise the SDL surface. (need custom SDL.dll)
-		surface = SDL_SetVideoMode(firstScreen.width, firstScreen.height, 32, videoModeFlags);
-
-#else
-		// Changing the flags can trigger texture bugs.
-		surface = SDL_SetVideoMode(8, 8, 32, videoModeFlags);
 #endif
+
+		// Initialise the SDL surface
+		surface = SDL_SetVideoMode(firstScreen.width, firstScreen.height, 32, videoModeFlags);
 		if (!surface) {
 			return;
 		}
@@ -292,17 +231,11 @@ void UniversalCenterWindow() {
 		return nil;
 	}
 
-   	// Find what the full screen and windowed settings are.
-	fullScreen = NO;
-	[self loadFullscreenSettings];
-	[self loadWindowSize];
-
-
-#if OOLITE_WINDOWS
 	SDL_putenv ("SDL_VIDEO_WINDOW_POS=center");
-#endif
+
 	[OOJoystickManager setStickHandlerClass:[OOSDLJoystickManager class]];
 	// end TODO
+
 
 	[OOSound setUp];
 	if (![OOSound isSoundOK])  OOLog(@"sound.init", @"%@", @"Sound system disabled.");
@@ -409,6 +342,11 @@ void UniversalCenterWindow() {
 	OOLog(@"display.mode.list", @"%@", @"CREATING MODE LIST");
 	[self populateFullScreenModelist];
 	currentSize = 0;
+
+	// Find what the full screen and windowed settings are.
+	fullScreen = NO;
+	[self loadFullscreenSettings];
+	[self loadWindowSize];
 
 	// Set up the drawing surface's dimensions.
 	firstScreen= (fullScreen) ? [self modeAsSize: currentSize] : currentWindowSize;
@@ -553,7 +491,6 @@ void UniversalCenterWindow() {
 		videoModeFlags |= SDL_RESIZABLE;
 		surface = SDL_SetVideoMode(currentWindowSize.width, currentWindowSize.height, 32, videoModeFlags);
 	}
-    UniversalCenterWindow();
 	SDL_putenv ("SDL_VIDEO_WINDOW_POS=none"); //stop linux from auto centering on resize
 
 	/* MKW 2011.11.11
@@ -905,24 +842,19 @@ void UniversalCenterWindow() {
 	SetWindowLong(SDL_Window,GWL_STYLE,GetWindowLong(SDL_Window,GWL_STYLE) & ~WS_CAPTION & ~WS_THICKFRAME);
 	ShowWindow(SDL_Window,SW_RESTORE);
 	MoveWindow(SDL_Window,dest.x,dest.y,dest.w,dest.h,TRUE);
-
-  #else
-
-	/* MKW 2011.11.11
-	 * According to Marc using the NOFRAME flag causes trouble under Ubuntu 8.04.
-	 *
-	 * The current Ubuntu LTS is 10.04, which doesn't seem to have that problem.
-	 * 12.04 LTS is going to be released soon, also without apparent problems.
-	 * Changed to SDL_NOFRAME, throwing caution to the wind - Kaks 2012.03.23
-	 * Took SDL_NOFRAME out, since it still causes strange problems here - cim 2012.04.09
-	 */
-	 surface = SDL_SetVideoMode(dest.w, dest.h, 32, SDL_HWSURFACE | SDL_OPENGL);
-	 UniversalCenterWindow();
-  #endif
-
 	OOSetOpenGLState(OPENGL_STATE_OVERLAY);
 
 	glViewport( 0, 0, dest.w, dest.h);
+
+  #else
+	surface = SDL_SetVideoMode(firstScreen.width, firstScreen.height, 32, SDL_HWSURFACE | SDL_OPENGL | SDL_NOFRAME);
+	// Calculate how much empty space is on the sides
+	int offsetX = (firstScreen.width - dest.w) / 2;
+	int offsetY = (firstScreen.height - dest.h) / 2;
+	OOSetOpenGLState(OPENGL_STATE_OVERLAY);
+
+	glViewport(offsetX, offsetY, dest.w, dest.h);
+  #endif
 
 	glEnable( GL_TEXTURE_2D );
 	glClearColor( 0.0f, 0.0f, 0.0f, 0.0f );
