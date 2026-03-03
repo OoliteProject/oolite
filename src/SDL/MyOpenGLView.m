@@ -74,6 +74,63 @@ enum PreferredAppMode
     Max
 };
 #endif
+#else
+#include <dlfcn.h>
+#define SDL_POS_CENTERED 0x2FFF0000
+
+void UniversalCenterWindow() {
+    void *handle = NULL;
+
+    // --- STEP 1: TRY SDL3 (The Modern Engine) ---
+    handle = dlopen("libSDL3.so.0", RTLD_LAZY | RTLD_GLOBAL);
+    if (!handle) handle = dlopen("libSDL3.so", RTLD_LAZY | RTLD_GLOBAL);
+    
+    if (handle) {
+        typedef void** (*PFN_SDL_GetWindows)(int*);
+        typedef int (*PFN_SDL_SetWindowPosition)(void*, int, int);
+        
+        PFN_SDL_GetWindows getWindows = (PFN_SDL_GetWindows)dlsym(handle, "SDL_GetWindows");
+        PFN_SDL_SetWindowPosition setPos = (PFN_SDL_SetWindowPosition)dlsym(handle, "SDL_SetWindowPosition");
+
+        if (getWindows && setPos) {
+            int count = 0;
+            void** window_list = getWindows(&count);
+            if (count > 0 && window_list) {
+                setPos(window_list[0], SDL_POS_CENTERED, SDL_POS_CENTERED);
+                printf("Centered via SDL3 reach-through.\n");
+                dlclose(handle);
+                return; 
+            }
+        }
+        dlclose(handle);
+    }
+
+    // --- STEP 2: TRY SDL2 (The Standard Compat Layer) ---
+    handle = dlopen("libSDL2-2.0.so.0", RTLD_LAZY | RTLD_GLOBAL);
+    if (!handle) handle = dlopen("libSDL2.so", RTLD_LAZY | RTLD_GLOBAL);
+
+    if (handle) {
+        typedef void* (*PFN_SDL_GetWindowFromID)(unsigned int);
+        typedef void (*PFN_SDL_SetWindowPosition)(void*, int, int);
+
+        PFN_SDL_GetWindowFromID getWin = (PFN_SDL_GetWindowFromID)dlsym(handle, "SDL_GetWindowFromID");
+        PFN_SDL_SetWindowPosition setPos = (PFN_SDL_SetWindowPosition)dlsym(handle, "SDL_SetWindowPosition");
+
+        if (getWin && setPos) {
+            // Check IDs 1 through 10
+            for (unsigned int i = 1; i <= 10; i++) {
+                void* win = getWin(i);
+                if (win) {
+                    setPos(win, SDL_POS_CENTERED, SDL_POS_CENTERED);
+                    printf("Centered via SDL2 reach-through (ID: %u).\n", i);
+                    dlclose(handle);
+                    return;
+                }
+            }
+        }
+        dlclose(handle);
+    }
+}
 #endif //OOLITE_WINDOWS
 
 @interface MyOpenGLView (OOPrivate)
@@ -243,18 +300,6 @@ enum PreferredAppMode
 
 #if OOLITE_WINDOWS
 	SDL_putenv ("SDL_VIDEO_WINDOW_POS=center");
-#else
-	const SDL_VideoInfo* info = SDL_GetVideoInfo();
-	int screen_w = info->current_w;
-	int screen_h = info->current_h;
-
-	int pos_x = (screen_w - currentWindowSize.width) / 2;
-	int pos_y = (screen_h - currentWindowSize.height) / 2;
-
-	static char pos_string[32];
-	sprintf(pos_string, "SDL_VIDEO_WINDOW_POS=%d,%d", pos_x, pos_y);
-
-	SDL_putenv (pos_string);
 #endif
 	[OOJoystickManager setStickHandlerClass:[OOSDLJoystickManager class]];
 	// end TODO
@@ -508,7 +553,7 @@ enum PreferredAppMode
 		videoModeFlags |= SDL_RESIZABLE;
 		surface = SDL_SetVideoMode(currentWindowSize.width, currentWindowSize.height, 32, videoModeFlags);
 	}
-
+    UniversalCenterWindow();
 	SDL_putenv ("SDL_VIDEO_WINDOW_POS=none"); //stop linux from auto centering on resize
 
 	/* MKW 2011.11.11
@@ -872,7 +917,7 @@ enum PreferredAppMode
 	 * Took SDL_NOFRAME out, since it still causes strange problems here - cim 2012.04.09
 	 */
 	 surface = SDL_SetVideoMode(dest.w, dest.h, 32, SDL_HWSURFACE | SDL_OPENGL);
-
+	 UniversalCenterWindow();
   #endif
 
 	OOSetOpenGLState(OPENGL_STATE_OVERLAY);
