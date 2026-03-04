@@ -236,7 +236,6 @@ enum PreferredAppMode
 	[OOJoystickManager setStickHandlerClass:[OOSDLJoystickManager class]];
 	// end TODO
 
-
 	[OOSound setUp];
 	if (![OOSound isSoundOK])  OOLog(@"sound.init", @"%@", @"Sound system disabled.");
 
@@ -491,6 +490,7 @@ enum PreferredAppMode
 		videoModeFlags |= SDL_RESIZABLE;
 		surface = SDL_SetVideoMode(currentWindowSize.width, currentWindowSize.height, 32, videoModeFlags);
 	}
+
 	SDL_putenv ("SDL_VIDEO_WINDOW_POS=none"); //stop linux from auto centering on resize
 
 	/* MKW 2011.11.11
