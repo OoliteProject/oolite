@@ -847,10 +847,12 @@ enum PreferredAppMode
 	glViewport( 0, 0, dest.w, dest.h);
 
   #else
-	surface = SDL_SetVideoMode(firstScreen.width, firstScreen.height, 32, SDL_HWSURFACE | SDL_OPENGL | SDL_NOFRAME);
+	const SDL_VideoInfo* info = SDL_GetVideoInfo();
+	SDL_SetVideoMode(firstScreen.width, firstScreen.height, 0, SDL_OPENGL | SDL_NOFRAME);
+	surface = SDL_SetVideoMode(info->current_w, info->current_h, 32, SDL_HWSURFACE | SDL_OPENGL | SDL_NOFRAME);
 	// Calculate how much empty space is on the sides
-	int offsetX = (firstScreen.width - dest.w) / 2;
-	int offsetY = (firstScreen.height - dest.h) / 2;
+	int offsetX = (info->current_w - dest.w) / 2;
+	int offsetY = (info->current_h - dest.h) / 2;
 	OOSetOpenGLState(OPENGL_STATE_OVERLAY);
 
 	glViewport(offsetX, offsetY, dest.w, dest.h);
