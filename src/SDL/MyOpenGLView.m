@@ -74,6 +74,9 @@ enum PreferredAppMode
     Max
 };
 #endif
+#else
+#include <dlfcn.h>
+#define SDL_POS_CENTERED 0x2FFF0000
 #endif //OOLITE_WINDOWS
 
 @interface MyOpenGLView (OOPrivate)
@@ -490,6 +493,29 @@ enum PreferredAppMode
 		videoModeFlags |= SDL_RESIZABLE;
 		surface = SDL_SetVideoMode(currentWindowSize.width, currentWindowSize.height, 32, videoModeFlags);
 	}
+    void *handle = dlopen("libSDL2-2.0.so.0", RTLD_LAZY | RTLD_GLOBAL);
+    if (!handle) handle = dlopen("libSDL2.so", RTLD_LAZY | RTLD_GLOBAL);
+
+    if (handle) {
+        typedef void* (*PFN_SDL_GetWindowFromID)(unsigned int);
+        typedef void (*PFN_SDL_SetWindowPosition)(void*, int, int);
+
+        PFN_SDL_GetWindowFromID getWin = (PFN_SDL_GetWindowFromID)dlsym(handle, "SDL_GetWindowFromID");
+        PFN_SDL_SetWindowPosition setPos = (PFN_SDL_SetWindowPosition)dlsym(handle, "SDL_SetWindowPosition");
+
+        if (getWin && setPos) {
+            // Check IDs 1 through 10
+            for (unsigned int i = 1; i <= 10; i++) {
+                void* win = getWin(i);
+                if (win) {
+                    setPos(win, SDL_POS_CENTERED, SDL_POS_CENTERED);
+                    dlclose(handle);
+                    return;
+                }
+            }
+        }
+        dlclose(handle);
+    }
 
 	SDL_putenv ("SDL_VIDEO_WINDOW_POS=none"); //stop linux from auto centering on resize
 
