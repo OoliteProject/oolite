@@ -178,7 +178,9 @@ int SDL_MAJOR = 0;
 	NSString		*imagesDir;
  	NSString		*cmdLineArgsStr = @"Startup command: ";
 
+#if OOLITE_LINUX
 	SDL_MAJOR = SDL_Linked_Version()->major;
+#endif
     // SDL splash screen  settings
 
 	NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
@@ -876,10 +878,7 @@ int SDL_MAJOR = 0;
 
   #else
 	const SDL_VideoInfo* info = SDL_GetVideoInfo();
-	if (SDL_MAJOR != 2)
-	{
-		SDL_SetVideoMode(firstScreen.width, firstScreen.height, 0, SDL_OPENGL | SDL_NOFRAME);
-	}
+	SDL_SetVideoMode(firstScreen.width, firstScreen.height, 0, SDL_OPENGL | SDL_NOFRAME);
 	surface = SDL_SetVideoMode(info->current_w, info->current_h, 32, SDL_HWSURFACE | SDL_OPENGL | SDL_NOFRAME);
 	// Calculate how much empty space is on the sides
 	int offsetX = (info->current_w - dest.w) / 2;
