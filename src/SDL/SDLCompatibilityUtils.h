@@ -14,6 +14,11 @@
 + (BOOL)isUsingSDL12Compat;
 
 /**
+ * Returns YES if the SDL2 library is currently resident in memory.
+ */
++ (BOOL)isUsingSDL2Backend;
+
+/**
  * Returns YES if the SDL3 library is currently resident in memory.
  */
 + (BOOL)isUsingSDL3Backend;

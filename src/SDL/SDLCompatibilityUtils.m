@@ -12,6 +12,25 @@
     return (dlsym(RTLD_DEFAULT, "SDL12COMPAT_GetWindow") != NULL);
 }
 
++ (BOOL)isUsingSDL2Backend {
+    // We check for the common shared object names for SDL2.
+    // RTLD_NOLOAD ensures we only check if it's ALREADY loaded in the
+    // process memory, rather than loading it ourselves.
+    void *sdl2handle = dlopen("libSDL2-2.0.so.0", RTLD_NOLOAD | RTLD_LAZY);
+    if (!sdl2handle) {
+        sdl2handle = dlopen("libSDL2.so", RTLD_NOLOAD | RTLD_LAZY);
+    }
+
+    BOOL found = (sdl2handle != NULL);
+
+    // If found, we must close the handle returned by dlopen
+    if (sdl2handle) {
+        dlclose(sdl2handle);
+    }
+
+    return found;
+}
+
 + (BOOL)isUsingSDL3Backend {
     void *sdl3handle = dlopen("libSDL3.so.0", RTLD_NOLOAD | RTLD_LAZY);
     if (!sdl3handle) {

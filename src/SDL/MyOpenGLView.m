@@ -491,7 +491,7 @@ enum PreferredAppMode
 		surface = SDL_SetVideoMode(currentWindowSize.width, currentWindowSize.height, 32, videoModeFlags);
 	}
 
-	if ([SDLCompatibilityUtils isUsingSDL12Compat] && ![SDLCompatibilityUtils isUsingSDL3Backend])
+	if ([SDLCompatibilityUtils isUsingSDL2Backend] && ![SDLCompatibilityUtils isUsingSDL3Backend])
 	{
 		[SDLCompatibilityUtils attemptSDL2WindowCentering];
 	}
@@ -854,10 +854,6 @@ enum PreferredAppMode
 	const SDL_VideoInfo* info = SDL_GetVideoInfo();
 	SDL_SetVideoMode(firstScreen.width, firstScreen.height, 0, SDL_OPENGL | SDL_NOFRAME);
 	surface = SDL_SetVideoMode(info->current_w, info->current_h, 32, SDL_HWSURFACE | SDL_OPENGL | SDL_NOFRAME);
-   	if ([SDLCompatibilityUtils isUsingSDL12Compat] && ![SDLCompatibilityUtils isUsingSDL3Backend])
-	{
-		[SDLCompatibilityUtils attemptSDL2WindowCentering];
-	}
 
 	// Calculate how much empty space is on the sides
 	int offsetX = (info->current_w - dest.w) / 2;
