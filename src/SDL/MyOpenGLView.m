@@ -491,10 +491,7 @@ enum PreferredAppMode
 		surface = SDL_SetVideoMode(currentWindowSize.width, currentWindowSize.height, 32, videoModeFlags);
 	}
 
-	if ([SDLCompatibilityUtils isUsingSDL2Backend] && ![SDLCompatibilityUtils isUsingSDL3Backend])
-	{
-		[SDLCompatibilityUtils attemptSDL2WindowCentering];
-	}
+	[SDLCompatibilityUtils attemptSDL2WindowCentering];
 	SDL_putenv ("SDL_VIDEO_WINDOW_POS=none"); //stop linux from auto centering on resize
 
 	/* MKW 2011.11.11
