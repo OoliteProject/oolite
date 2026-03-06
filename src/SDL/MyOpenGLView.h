@@ -26,7 +26,7 @@ MA 02110-1301, USA.
 #import "OOOpenGL.h"
 #import "OOMouseInteractionMode.h"
 #import "OOOpenGLMatrixManager.h"
-
+#import "SDLCompatibilityUtils.h"
 
 #include <SDL.h>
 
@@ -234,6 +234,11 @@ extern int debug;
 	float				_hdrMaxBrightness;
 	float				_hdrPaperWhiteBrightness;
 	int					_hdrToneMapper;
+
+#else
+
+	BOOL				onSDL12Compat;
+	BOOL				onSDL2Compat;
 
 #endif
 

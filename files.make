@@ -275,6 +275,7 @@ OOLITE_MISC_FILES = \
     OOShipRegistry.m \
     OOSpatialReference.m \
     OOTrumble.m \
+    SDLCompatibilityUtils.m \
     Universe.m
 
 oolite_OBJC_FILES = \

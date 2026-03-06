@@ -74,10 +74,6 @@ enum PreferredAppMode
     Max
 };
 #endif
-#else
-#include <dlfcn.h>
-#define SDL_POS_CENTERED 0x2FFF0000
-int SDL_MAJOR = 0;
 #endif //OOLITE_WINDOWS
 
 @interface MyOpenGLView (OOPrivate)
@@ -149,7 +145,7 @@ int SDL_MAJOR = 0;
 		if (!surface) {
 			return;
 		}
-		
+
 #if OOLITE_LINUX
 		// blank the surface / go to fullscreen
 		[self initialiseGLWithSize: firstScreen];
@@ -178,10 +174,7 @@ int SDL_MAJOR = 0;
 	NSString		*imagesDir;
  	NSString		*cmdLineArgsStr = @"Startup command: ";
 
-#if OOLITE_LINUX
-	SDL_MAJOR = SDL_Linked_Version()->major;
-#endif
-    // SDL splash screen  settings
+	// SDL splash screen  settings
 
 	NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
 	showSplashScreen = [prefs oo_boolForKey:@"splash-screen" defaultValue:YES];
@@ -214,10 +207,10 @@ int SDL_MAJOR = 0;
 		{
 			showSplashScreen = YES;
 		}
-		
+
 		// if V-sync is disabled at the command line, override the defaults file
 		if ([arg isEqual:@"-novsync"] || [arg isEqual:@"--novsync"])  vSyncPreference = NO;
-		
+
 		if ([arg isEqual: @"-hdr"])  bitsPerColorComponent = 16;
 
   		// build the startup command string so that we can log it
@@ -225,7 +218,7 @@ int SDL_MAJOR = 0;
 	}
 
  	OOLog(@"process.args", @"%@", cmdLineArgsStr);
-	
+
 	matrixManager = [[OOOpenGLMatrixManager alloc] init];
 
 	// TODO: This code up to and including stickHandler really ought
@@ -262,13 +255,13 @@ int SDL_MAJOR = 0;
 #if OOLITE_WINDOWS
 	// needed for enabling system window manager events, which is needed for handling window movement messages
 	SDL_EventState (SDL_SYSWMEVENT, SDL_ENABLE);
-	
+
 	//capture the window handle for later
 	static SDL_SysWMinfo wInfo;
 	SDL_VERSION(&wInfo.version);
 	SDL_GetWMInfo(&wInfo);
 	SDL_Window   = wInfo.window;
-	
+
 	// This must be inited after SDL_Window has been set - we need the main window handle in order to get monitor info
 	if (![self getCurrentMonitorInfo:&monitorInfo])
 	{
@@ -276,7 +269,7 @@ int SDL_MAJOR = 0;
 	}
 
 	atDesktopResolution = YES;
-	
+
 #if USE_UNDOCUMENTED_DARKMODE_API
 	// dark mode stuff - this is mainly for the winodw titlebar's context menu
 	HMODULE hUxTheme = LoadLibraryExW(L"uxtheme.dll", NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
@@ -310,9 +303,9 @@ int SDL_MAJOR = 0;
 	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, bitsPerColorComponent);
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-	
+
 	_colorSaturation = 1.0f;
-	
+
 	_hdrOutput = NO;
 #if OOLITE_WINDOWS
 	_hdrMaxBrightness = [prefs oo_floatForKey:@"hdr-max-brightness" defaultValue:1000.0f];
@@ -325,13 +318,13 @@ int SDL_MAJOR = 0;
 		_hdrOutput = YES;
 	}
 #endif
-	
+
 	_sdrToneMapper = OOSDRToneMapperFromString([prefs oo_stringForKey:@"sdr-tone-mapper" defaultValue:@"OOSDR_TONEMAPPER_ACES"]);
-	
+
 	// V-sync settings - we set here, but can only verify after SDL_SetVideoMode has been called.
 	SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, vSyncPreference);	// V-sync on by default.
 	OOLog(@"display.initGL", @"V-Sync %@requested.", vSyncPreference ? @"" : @"not ");
-	
+
 	/* Multisampling significantly improves graphics quality with
 	 * basically no extra programming effort on our part, especially
 	 * for curved surfaces like the planet, but is also expensive - in
@@ -357,14 +350,14 @@ int SDL_MAJOR = 0;
 	// Set up the drawing surface's dimensions.
 	firstScreen= (fullScreen) ? [self modeAsSize: currentSize] : currentWindowSize;
 	viewSize = firstScreen;	// viewSize must be set prior to splash screen initialization
-	
+
 #if OOLITE_WINDOWS
 	ShowWindow(SDL_Window,SW_SHOWMINIMIZED);
 #endif
 
 	OOLog(@"display.initGL", @"Trying %d-bpcc, 24-bit depth buffer", bitsPerColorComponent);
 	[self createSurface];
-	
+
 	if (surface == NULL)
 	{
 		// Retry with hardcoded 8 bits per color component
@@ -375,7 +368,7 @@ int SDL_MAJOR = 0;
 		SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
 		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
 		[self createSurface];
-		
+
 		if (surface == NULL)
 		{
 			// Still not working? One last go...
@@ -408,7 +401,7 @@ int SDL_MAJOR = 0;
 			}
 		}
 	}
-	
+
 	int testAttrib = -1;
 	OOLog(@"display.initGL", @"%@", @"Achieved color / depth buffer sizes (bits):");
 	SDL_GL_GetAttribute(SDL_GL_RED_SIZE, &testAttrib);
@@ -427,7 +420,7 @@ int SDL_MAJOR = 0;
 
   	OOLog(@"display.initGL", @"Pixel format index: %d", GetPixelFormat(GetDC(SDL_Window)));
 #endif
-	
+
 	// Verify V-sync successfully set - report it if not
 	if (vSyncPreference && SDL_GL_GetAttribute(SDL_GL_SWAP_CONTROL, &vSyncValue) == -1)
 	{
@@ -442,7 +435,7 @@ int SDL_MAJOR = 0;
 
 	virtualJoystickPosition = NSMakePoint(0.0,0.0);
 	mouseWarped = NO;
-	
+
 	_mouseVirtualStickSensitivityFactor = OOClamp_0_1_f([prefs oo_floatForKey:@"mouse-flight-sensitivity" defaultValue:0.95f]);
 	// ensure no chance of a divide by zero later on
 	if (_mouseVirtualStickSensitivityFactor < 0.005f)  _mouseVirtualStickSensitivityFactor = 0.005f;
@@ -452,7 +445,7 @@ int SDL_MAJOR = 0;
 	isAlphabetKeyDown = NO;
 
 	timeIntervalAtLastClick = timeSinceLastMouseWheel = [NSDate timeIntervalSinceReferenceDate];
-	
+
 	_mouseWheelDelta = 0.0f;
 
 	m_glContextInitialized = NO;
@@ -497,29 +490,10 @@ int SDL_MAJOR = 0;
 		videoModeFlags |= SDL_RESIZABLE;
 		surface = SDL_SetVideoMode(currentWindowSize.width, currentWindowSize.height, 32, videoModeFlags);
 	}
-	if (SDL_MAJOR == 2) {
-		void *handle = dlopen("libSDL2-2.0.so.0", RTLD_LAZY | RTLD_GLOBAL);
-		if (!handle) handle = dlopen("libSDL2.so", RTLD_LAZY | RTLD_GLOBAL);
 
-		if (handle) {
-			typedef void* (*PFN_SDL_GetWindowFromID)(unsigned int);
-			typedef void (*PFN_SDL_SetWindowPosition)(void*, int, int);
-
-			PFN_SDL_GetWindowFromID getWin = (PFN_SDL_GetWindowFromID)dlsym(handle, "SDL_GetWindowFromID");
-			PFN_SDL_SetWindowPosition setPos = (PFN_SDL_SetWindowPosition)dlsym(handle, "SDL_SetWindowPosition");
-
-			if (getWin && setPos) {
-				// Check IDs 1 through 10
-				for (unsigned int i = 1; i <= 10; i++) {
-					void* win = getWin(i);
-					if (win) {
-						setPos(win, SDL_POS_CENTERED, SDL_POS_CENTERED);
-						dlclose(handle);
-					}
-				}
-			}
-			dlclose(handle);
-		}
+	if ([SDLCompatibilityUtils isUsingSDL12Compat] && ![SDLCompatibilityUtils isUsingSDL3Backend])
+	{
+		[SDLCompatibilityUtils attemptSDL2WindowCentering];
 	}
 	SDL_putenv ("SDL_VIDEO_WINDOW_POS=none"); //stop linux from auto centering on resize
 
@@ -550,7 +524,7 @@ int SDL_MAJOR = 0;
 {
 	NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
 	// load in our keyboard scancode mappings
-#if OOLITE_WINDOWS	
+#if OOLITE_WINDOWS
 	NSDictionary *kmap = [NSDictionary dictionaryWithDictionary:[ResourceManager dictionaryFromFilesNamed:@"keymappings_windows.plist" inFolder:@"Config" mergeMode:MERGE_BASIC cache:NO]];
 #else
 	NSDictionary *kmap = [NSDictionary dictionaryWithDictionary:[ResourceManager dictionaryFromFilesNamed:@"keymappings_linux.plist" inFolder:@"Config" mergeMode:MERGE_BASIC cache:NO]];
@@ -582,7 +556,7 @@ int SDL_MAJOR = 0;
 
 	if (keyMappings_normal)
 		[keyMappings_normal release];
-	
+
 	if (keyMappings_shifted)
 		[keyMappings_shifted release];
 
