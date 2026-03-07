@@ -204,6 +204,7 @@ Game data such as your saved games and expansion packs are stored in certain loc
 | OS      | Type     | Default Game Data Folder                  |
 |:--------|:---------|:------------------------------------------|
 | Windows | NSIS     | `<Oolite installation folder>/oolite.app` |
+| Windows | MSStore  | `%localappdata%/Packages/OoliteDevTeam.Oolite_x4yhmcdj37sz2/LocalCache/Local/Oolite/oolite.app` |
 | Linux   | AppImage | `<AppImage folder>/GameData`              |
 | Linux   | Flatpak  | `$HOME/.var/app/space.oolite.Oolite`      |
 
@@ -317,6 +318,7 @@ Bulletin Board. In both cases, attaching the crash log can be very helpful in so
 | OS      | Log folder location                                       |
 |:--------|:----------------------------------------------------------|
 | Windows | `<Oolite installation folder>/oolite.app/Logs/Latest.log` |
+| Windows (MSStore) | `%localappdata%/Packages/OoliteDevTeam.Oolite_x4yhmcdj37sz2/LocalCache/Local/Oolite/oolite.app/Logs/Latest.log` |
 | Linux   | `$GAME_DATA/.logs/Latest.log`                             |
 
 **We are immensely grateful to all the people who have been testing Oolite and tediously bringing it towards perfection.**
