@@ -83,6 +83,12 @@ jobs:
         run: |
           oolite/ShellScripts/Linux/checkout_deps.sh
 
+      - name: Check out AppImage dependencies
+        uses: actions/checkout@v6
+        with:
+          repository: mcarans/oolite_appimage_deps
+          path: build/oolite_appimage_deps
+
       - name: Install packages
         run: |
           sudo oolite/ShellScripts/Linux/install_deps_root.sh

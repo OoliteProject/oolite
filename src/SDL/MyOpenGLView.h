@@ -26,7 +26,7 @@ MA 02110-1301, USA.
 #import "OOOpenGL.h"
 #import "OOMouseInteractionMode.h"
 #import "OOOpenGLMatrixManager.h"
-#import "SDLCompatibilityUtils.h"
+
 
 #include <SDL.h>
 
@@ -135,7 +135,7 @@ enum StringInput
 {
 	gvStringInputNo = 0,
 	gvStringInputAlpha = 1,
-	gvStringInputLoadSave = 2,	
+	gvStringInputLoadSave = 2,
 	gvStringInputAll = 3
 };
 
@@ -196,7 +196,7 @@ extern int debug;
 	NSMutableString		*typedString;
 
 	NSPoint				virtualJoystickPosition;
-	
+
 	float				_mouseVirtualStickSensitivityFactor;
 
 	NSSize				viewSize;
@@ -227,7 +227,7 @@ extern int debug;
 	BOOL				updateContext;
 	BOOL				saveSize;
 	BOOL				atDesktopResolution;
-	unsigned			keyboardMap; // *** FLAGGED for deletion 
+	unsigned			keyboardMap; // *** FLAGGED for deletion
 	HWND 				SDL_Window;
 	MONITORINFOEX		monitorInfo;
 	RECT				lastGoodRect;
@@ -235,28 +235,23 @@ extern int debug;
 	float				_hdrPaperWhiteBrightness;
 	int					_hdrToneMapper;
 
-#else
-
-	BOOL				onSDL12Compat;
-	BOOL				onSDL2Compat;
-
 #endif
 
 	int					_sdrToneMapper;
 
 	float				_colorSaturation;
-	
+
 	BOOL				_hdrOutput;
 
 	BOOL				grabMouseStatus;
 
 	NSSize				firstScreen;
-	
+
 	OOOpenGLMatrixManager		*matrixManager;
 
    // Mouse mode indicator (for mouse movement model)
    BOOL					mouseInDeltaMode;
-   
+
    float				_mouseWheelDelta;
 }
 
