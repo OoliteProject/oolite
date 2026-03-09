@@ -13,14 +13,19 @@ run_script() {
 
     APPDIR="./Oolite.AppDir"
     rm -rf $APPDIR
-    mkdir -p "$APPDIR/usr/bin"
+    APPBIN="$APPDIR/usr/bin"
+    APPLIB="$APPDIR/usr/lib"
+    mkdir -p "$APPBIN"
 
     PROGDIR="../oolite.app"
-    cp -rf "$PROGDIR/Resources" "$APPDIR/usr/bin"
+    cp -uf "$PROGDIR/splash-launcher" "$APPBIN"
+    cp -rf "$PROGDIR/Resources" "$APPBIN"
+    cp -uf "../ShellScripts/Linux/GNUstep.conf.template" "$APPBIN/Resources"
+
 
    	if (( $# == 1 )); then
         echo "Including Basic-debug.oxp"
-        cp -rf AddOns "$APPDIR/usr/bin"
+        cp -rf AddOns "$APPBIN"
     fi
 
     curl -o linuxdeploy -L https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
