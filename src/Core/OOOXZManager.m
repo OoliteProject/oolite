@@ -1268,8 +1268,14 @@ static OOOXZManager *sSingleton = nil;
 	case OXZ_STATE_INSTALLING:
 		[gui setTitle:DESC(@"oolite-oxzmanager-title-downloading")];
 
-		[gui addLongText:[NSString stringWithFormat:DESC(@"oolite-oxzmanager-progress-@-is-@-of-@"),_currentDownloadName,[self humanSize:_downloadProgress],[self humanSize:_downloadExpected]] startingAtRow:OXZ_GUI_ROW_PROGRESS align:GUI_ALIGN_LEFT];
-
+		if (_downloadStatus == OXZ_DOWNLOAD_ERROR)
+		{
+			[gui addLongText:OOExpandKey(@"oolite-oxzmanager-progress-error") startingAtRow:OXZ_GUI_ROW_PROGRESS align:GUI_ALIGN_LEFT];
+		}
+		else
+		{
+			[gui addLongText:[NSString stringWithFormat:DESC(@"oolite-oxzmanager-progress-@-is-@-of-@"),_currentDownloadName,[self humanSize:_downloadProgress],[self humanSize:_downloadExpected]] startingAtRow:OXZ_GUI_ROW_PROGRESS align:GUI_ALIGN_LEFT];
+		}
 		[gui addLongText:_progressStatus startingAtRow:OXZ_GUI_ROW_PROGRESS+2 align:GUI_ALIGN_LEFT];
 
 		[gui setText:DESC(@"oolite-oxzmanager-cancel") forRow:OXZ_GUI_ROW_CANCEL align:GUI_ALIGN_CENTER];
