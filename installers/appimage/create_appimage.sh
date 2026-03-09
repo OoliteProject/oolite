@@ -16,7 +16,6 @@ run_script() {
     APPBIN="$APPDIR/usr/bin"
     APPLIB="$APPDIR/usr/lib"
     mkdir -p "$APPBIN"
-    mkdir -p "$APPLIB"
 
     PROGDIR="../oolite.app"
     cp -uf "$PROGDIR/splash-launcher" "$APPBIN"
@@ -48,13 +47,6 @@ run_script() {
     $SDL2; then
         echo "❌ AppDir generation failed!" >&2
         return 1
-    fi
-
-    if [ -d "oolite_appimage_deps" ]; then
-        cp -af oolite_appimage_deps/*.so* "$APPLIB"
-        echo "Using libraries from oolite_appimage_deps folder"
-    else
-        echo "No oolite_appimage_deps folder. Using system default libraries"
     fi
 
    	if [[ $1 == "dev" ]]; then
