@@ -87,7 +87,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           repository: mcarans/oolite_appimage_deps
-          path: build/oolite_appimage_deps
+          path: oolite/build/oolite_appimage_deps
 
       - name: Install packages
         run: |
