@@ -192,6 +192,12 @@ int main(int argc, char *argv[])
 							"\n"
 							"Options marked with \"*\" are available only in Test Release configuration.\n"
 							"Version "OO_VERSION_FULL"\n"
+							"Debug functionality enabled (Test Release): "
+#ifndef NDEBUG
+								"yes\n"
+#else
+								"no\n"
+#endif
 							"Built with "
 #if OOLITE_HAVE_CLANG
 							"Clang version " STRINGIFY(__clang_major__) "." STRINGIFY(__clang_minor__) "." STRINGIFY(__clang_patchlevel__)
