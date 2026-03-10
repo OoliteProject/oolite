@@ -12,7 +12,14 @@ export ADDITIONAL_CFLAGS="-DBUILD_DATE='\"$CPP_DATE\"'"
 export ADDITIONAL_OBJCFLAGS="-DBUILD_DATE='\"$CPP_DATE\"'"
 make -f Makefile release-deployment -j$FLATPAK_BUILDER_N_JOBS
 
-cp -r oolite.app/* /app/bin
+PROGDIR="oolite.app"
+APPBIN="/app/bin"
+
+cp -uf "$PROGDIR/run_oolite.sh" "$APPBIN"
+cp -uf "$PROGDIR/oolite" "$APPBIN"
+cp -uf "$PROGDIR/splash-launcher" "$APPBIN"
+cp -rf "$PROGDIR/Resources" "$APPBIN"
+cp -uf "ShellScripts/Linux/GNUstep.conf.template" "/app/bin/Resources"
 
 if [[ -z "$VERSION_OVERRIDE" ]]; then
     source ShellScripts/common/get_version.sh

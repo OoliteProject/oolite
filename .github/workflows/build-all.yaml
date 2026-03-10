@@ -279,9 +279,6 @@ jobs:
           echo Downloaded: ${{ fromJson(steps.download-doxygen.outputs.downloaded_files)[0] }}
           cd oolite
           ../doxygen/doxygen-*/bin/doxygen
-          python3 -m coverxygen --verbose --xml-dir doxygen/xml --src-dir . --output doxygen/coverxygen.info
-          mkdir -p doxygen/html/coverage
-          genhtml doxygen/coverxygen.info -o doxygen/html/coverage
 
       # This is for debugging only and helps developing the workflow.
       - name: Environment Variables 1

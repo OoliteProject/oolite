@@ -149,7 +149,7 @@ enum PreferredAppMode
 		if (!surface) {
 			return;
 		}
-		
+
 #if OOLITE_LINUX
 		// blank the surface / go to fullscreen
 		[self initialiseGLWithSize: firstScreen];
@@ -211,10 +211,10 @@ enum PreferredAppMode
 		{
 			showSplashScreen = YES;
 		}
-		
+
 		// if V-sync is disabled at the command line, override the defaults file
 		if ([arg isEqual:@"-novsync"] || [arg isEqual:@"--novsync"])  vSyncPreference = NO;
-		
+
 		if ([arg isEqual: @"-hdr"])  bitsPerColorComponent = 16;
 
   		// build the startup command string so that we can log it
@@ -222,7 +222,7 @@ enum PreferredAppMode
 	}
 
  	OOLog(@"process.args", @"%@", cmdLineArgsStr);
-	
+
 	matrixManager = [[OOOpenGLMatrixManager alloc] init];
 
 	// TODO: This code up to and including stickHandler really ought
@@ -259,13 +259,13 @@ enum PreferredAppMode
 #if OOLITE_WINDOWS
 	// needed for enabling system window manager events, which is needed for handling window movement messages
 	SDL_EventState (SDL_SYSWMEVENT, SDL_ENABLE);
-	
+
 	//capture the window handle for later
 	static SDL_SysWMinfo wInfo;
 	SDL_VERSION(&wInfo.version);
 	SDL_GetWMInfo(&wInfo);
 	SDL_Window   = wInfo.window;
-	
+
 	// This must be inited after SDL_Window has been set - we need the main window handle in order to get monitor info
 	if (![self getCurrentMonitorInfo:&monitorInfo])
 	{
@@ -273,7 +273,7 @@ enum PreferredAppMode
 	}
 
 	atDesktopResolution = YES;
-	
+
 #if USE_UNDOCUMENTED_DARKMODE_API
 	// dark mode stuff - this is mainly for the winodw titlebar's context menu
 	HMODULE hUxTheme = LoadLibraryExW(L"uxtheme.dll", NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
@@ -307,9 +307,9 @@ enum PreferredAppMode
 	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, bitsPerColorComponent);
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-	
+
 	_colorSaturation = 1.0f;
-	
+
 	_hdrOutput = NO;
 #if OOLITE_WINDOWS
 	_hdrMaxBrightness = [prefs oo_floatForKey:@"hdr-max-brightness" defaultValue:1000.0f];
@@ -322,13 +322,13 @@ enum PreferredAppMode
 		_hdrOutput = YES;
 	}
 #endif
-	
+
 	_sdrToneMapper = OOSDRToneMapperFromString([prefs oo_stringForKey:@"sdr-tone-mapper" defaultValue:@"OOSDR_TONEMAPPER_ACES"]);
-	
+
 	// V-sync settings - we set here, but can only verify after SDL_SetVideoMode has been called.
 	SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, vSyncPreference);	// V-sync on by default.
 	OOLog(@"display.initGL", @"V-Sync %@requested.", vSyncPreference ? @"" : @"not ");
-	
+
 	/* Multisampling significantly improves graphics quality with
 	 * basically no extra programming effort on our part, especially
 	 * for curved surfaces like the planet, but is also expensive - in
@@ -354,14 +354,14 @@ enum PreferredAppMode
 	// Set up the drawing surface's dimensions.
 	firstScreen= (fullScreen) ? [self modeAsSize: currentSize] : currentWindowSize;
 	viewSize = firstScreen;	// viewSize must be set prior to splash screen initialization
-	
+
 #if OOLITE_WINDOWS
 	ShowWindow(SDL_Window,SW_SHOWMINIMIZED);
 #endif
 
 	OOLog(@"display.initGL", @"Trying %d-bpcc, 24-bit depth buffer", bitsPerColorComponent);
 	[self createSurface];
-	
+
 	if (surface == NULL)
 	{
 		// Retry with hardcoded 8 bits per color component
@@ -372,7 +372,7 @@ enum PreferredAppMode
 		SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
 		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
 		[self createSurface];
-		
+
 		if (surface == NULL)
 		{
 			// Still not working? One last go...
@@ -405,7 +405,7 @@ enum PreferredAppMode
 			}
 		}
 	}
-	
+
 	int testAttrib = -1;
 	OOLog(@"display.initGL", @"%@", @"Achieved color / depth buffer sizes (bits):");
 	SDL_GL_GetAttribute(SDL_GL_RED_SIZE, &testAttrib);
@@ -424,7 +424,7 @@ enum PreferredAppMode
 
   	OOLog(@"display.initGL", @"Pixel format index: %d", GetPixelFormat(GetDC(SDL_Window)));
 #endif
-	
+
 	// Verify V-sync successfully set - report it if not
 	if (vSyncPreference && SDL_GL_GetAttribute(SDL_GL_SWAP_CONTROL, &vSyncValue) == -1)
 	{
@@ -439,7 +439,7 @@ enum PreferredAppMode
 
 	virtualJoystickPosition = NSMakePoint(0.0,0.0);
 	mouseWarped = NO;
-	
+
 	_mouseVirtualStickSensitivityFactor = OOClamp_0_1_f([prefs oo_floatForKey:@"mouse-flight-sensitivity" defaultValue:0.95f]);
 	// ensure no chance of a divide by zero later on
 	if (_mouseVirtualStickSensitivityFactor < 0.005f)  _mouseVirtualStickSensitivityFactor = 0.005f;
@@ -449,7 +449,7 @@ enum PreferredAppMode
 	isAlphabetKeyDown = NO;
 
 	timeIntervalAtLastClick = timeSinceLastMouseWheel = [NSDate timeIntervalSinceReferenceDate];
-	
+
 	_mouseWheelDelta = 0.0f;
 
 	m_glContextInitialized = NO;
@@ -524,7 +524,7 @@ enum PreferredAppMode
 {
 	NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
 	// load in our keyboard scancode mappings
-#if OOLITE_WINDOWS	
+#if OOLITE_WINDOWS
 	NSDictionary *kmap = [NSDictionary dictionaryWithDictionary:[ResourceManager dictionaryFromFilesNamed:@"keymappings_windows.plist" inFolder:@"Config" mergeMode:MERGE_BASIC cache:NO]];
 #else
 	NSDictionary *kmap = [NSDictionary dictionaryWithDictionary:[ResourceManager dictionaryFromFilesNamed:@"keymappings_linux.plist" inFolder:@"Config" mergeMode:MERGE_BASIC cache:NO]];
@@ -556,7 +556,7 @@ enum PreferredAppMode
 
 	if (keyMappings_normal)
 		[keyMappings_normal release];
-	
+
 	if (keyMappings_shifted)
 		[keyMappings_shifted release];
 
@@ -715,9 +715,12 @@ enum PreferredAppMode
 #endif
 	}
 	else
+	{
 		[self initialiseGLWithSize: currentWindowSize];
-
-
+#if OOLITE_LINUX
+		SDL_WM_GrabInput(SDL_GRAB_OFF);
+#endif
+	}
 	// do screen resizing updates
 	if ([PlayerEntity sharedPlayer])
 	{
@@ -1044,17 +1047,17 @@ enum PreferredAppMode
 		//OO_RESET_SDLKEY_MODIFIER(VK_LMENU, KMOD_LALT, SDLK_LALT);
 		//OO_RESET_SDLKEY_MODIFIER(VK_RMENU, KMOD_RALT, SDLK_RALT);
 		//opt =  (modState & KMOD_LALT || modState & KMOD_RALT);
-		
+
 		//Ctrl key
 		OO_RESET_SDLKEY_MODIFIER(VK_LCONTROL, KMOD_LCTRL, SDLK_LCTRL);
 		OO_RESET_SDLKEY_MODIFIER(VK_RCONTROL, KMOD_RCTRL, SDLK_RCTRL);
 		ctrl =  (modState & KMOD_LCTRL || modState & KMOD_RCTRL);
-		
+
 		// Shift key
 		OO_RESET_SDLKEY_MODIFIER(VK_LSHIFT, KMOD_LSHIFT, SDLK_LSHIFT);
 		OO_RESET_SDLKEY_MODIFIER(VK_RSHIFT, KMOD_RSHIFT, SDLK_RSHIFT);
 		shift =  (modState & KMOD_LSHIFT || modState & KMOD_RSHIFT);
-		
+
 		// Caps Lock key state
 		if (GetKeyState(VK_CAPITAL) & 0x0001)
 		{
@@ -1067,7 +1070,7 @@ enum PreferredAppMode
 			keyState[SDLK_CAPSLOCK] = SDL_RELEASED;
 		}
 	}
-	
+
 	SDL_SetModState(modState);
 }
 
@@ -1075,11 +1078,11 @@ enum PreferredAppMode
 - (void) setWindowBorderless:(BOOL)borderless
 {
 	LONG currentWindowStyle = GetWindowLong(SDL_Window, GWL_STYLE);
-	
+
 	// window already has the desired style?
 	if ((!borderless && (currentWindowStyle & WS_CAPTION)) ||
 		(borderless && !(currentWindowStyle & WS_CAPTION)))  return;
-		
+
 	if (borderless)
 	{
 		SetWindowLong(SDL_Window, GWL_STYLE, currentWindowStyle & ~WS_CAPTION & ~WS_THICKFRAME);
@@ -1105,7 +1108,7 @@ enum PreferredAppMode
 {
 	char buffer[4];
 	DWORD bufferSize = sizeof(buffer);
-	
+
 	// reading a REG_DWORD value from the Registry
 	HRESULT resultRegGetValue = RegGetValueW(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
 									L"AppsUseLightTheme", RRF_RT_REG_DWORD, NULL, buffer, &bufferSize);
@@ -1113,10 +1116,10 @@ enum PreferredAppMode
 	{
 		return NO;
 	}
-	
+
 	// get our 4 obtained bytes into integer little endian format
 	int i = (int)(buffer[3] << 24 | buffer[2] << 16 | buffer[1] << 8 | buffer[0]);
-	
+
 	// dark mode is 0, light mode is 1
 	return i == 0;
 }
@@ -1143,18 +1146,18 @@ enum PreferredAppMode
 	LONG tempResult = ERROR_SUCCESS;
 	BOOL isAdvColorInfo2DetectionSuccess = NO;
 	BOOL result = NO;
-	
+
 	do
 	{
 		// determine how many path and mode structures to allocate
 		tempResult = GetDisplayConfigBufferSizes(flags, &pathCount, &modeCount);
-		
+
 		if (tempResult != ERROR_SUCCESS)
 		{
 			OOLog(@"gameView.isOutputDisplayHDREnabled", @"Error! Code: %ld", HRESULT_FROM_WIN32(tempResult));
 			return NO;
 		}
-		
+
 		// allocate the path and mode arrays
 		pPathInfoArray = (DISPLAYCONFIG_PATH_INFO *)malloc(pathCount * sizeof(DISPLAYCONFIG_PATH_INFO));
 		if (!pPathInfoArray)
@@ -1162,7 +1165,7 @@ enum PreferredAppMode
 			OOLog(@"gameView.isOutputDisplayHDREnabled", @"Error! Code: -1");
 			return NO;
 		}
-		
+
 		pModeInfoArray = (DISPLAYCONFIG_MODE_INFO *)malloc(modeCount * sizeof(DISPLAYCONFIG_MODE_INFO));
 		if (!pModeInfoArray)
 		{
@@ -1171,16 +1174,16 @@ enum PreferredAppMode
 			OOLog(@"gameView.isOutputDisplayHDREnabled", @"Error! Code: -1");
 			return NO;
 		}
-		
+
 		// get all active paths and their modes
 		tempResult = QueryDisplayConfig(flags, &pathCount, pPathInfoArray, &modeCount, pModeInfoArray, NULL);
-		
+
 		if (tempResult != ERROR_SUCCESS)
 		{
 			OOLog(@"gameView.isOutputDisplayHDREnabled", @"Error! Code: %ld", HRESULT_FROM_WIN32(tempResult));
 			return NO;
 		}
-	
+
 		// the function may have returned fewer paths/modes than estimated
 		pPathInfoArray = realloc(pPathInfoArray, pathCount * sizeof(DISPLAYCONFIG_PATH_INFO));
 		if (!pPathInfoArray)
@@ -1194,11 +1197,11 @@ enum PreferredAppMode
 			OOLogERR(@"gameView.isOutputDisplayHDREnabled", @"Failed to reallocate pModeInfoArray");
 			exit (1);
 		}
-	
+
 		// it's possible that between the call to GetDisplayConfigBufferSizes and QueryDisplayConfig
 		// that the display state changed, so loop on the case of ERROR_INSUFFICIENT_BUFFER.
 	} while (tempResult == ERROR_INSUFFICIENT_BUFFER);
-	
+
 	if (tempResult != ERROR_SUCCESS)
 	{
 		OOLog(@"gameView.isOutputDisplayHDREnabled", @"Error! Code: %ld", HRESULT_FROM_WIN32(tempResult));
@@ -1242,9 +1245,9 @@ enum PreferredAppMode
 			}
 		}
 	}
-	
+
 finished:
-	
+
 	for (i = 0; i < pathCount; i++)
 	{
 		DISPLAYCONFIG_PATH_INFO *path = &pPathInfoArray[i];
@@ -1255,48 +1258,48 @@ finished:
 		targetName.header.type = DISPLAYCONFIG_DEVICE_INFO_GET_TARGET_NAME;
 		targetName.header.size = sizeof(targetName);
 		tempResult = DisplayConfigGetDeviceInfo(&targetName.header);
-		
+
 		if (tempResult != ERROR_SUCCESS)
 		{
 			OOLog(@"gameView.isOutputDisplayHDREnabled", @"Error! Code: %ld", HRESULT_FROM_WIN32(tempResult));
 			return NO;
 		}
-		
+
 		// find the advanced color information using the more reliable advanced color info 2 api
 		DISPLAYCONFIG_GET_ADVANCED_COLOR_INFO_2 advColorInfo2 = {};
 		advColorInfo2.header.type = DISPLAYCONFIG_DEVICE_INFO_GET_ADVANCED_COLOR_INFO_2;
 		advColorInfo2.header.adapterId = path->targetInfo.adapterId;
 		advColorInfo2.header.id = path->targetInfo.id;
 		advColorInfo2.header.size = sizeof(advColorInfo2);
-		
+
 		tempResult = DisplayConfigGetDeviceInfo(&advColorInfo2.header);
-		
+
 		if (tempResult == ERROR_SUCCESS)  isAdvColorInfo2DetectionSuccess = YES;
 		else
 		{
 			OOLogWARN(@"gameView.isOutputDisplayHDREnabled", @"Received 0x%08lX while attempting to detect HDR mode using Advanced Color Info 2 API. Retrying detection using legacy API.", HRESULT_FROM_WIN32(tempResult));
 			// no return, just fall through and try again using standard advanced color info api
 		}
-		
+
 		// find the advanced color information
 		DISPLAYCONFIG_GET_ADVANCED_COLOR_INFO advColorInfo = {};
 		advColorInfo.header.type = DISPLAYCONFIG_DEVICE_INFO_GET_ADVANCED_COLOR_INFO;
 		advColorInfo.header.adapterId = path->targetInfo.adapterId;
 		advColorInfo.header.id = path->targetInfo.id;
 		advColorInfo.header.size = sizeof(advColorInfo);
-		
+
 		tempResult = DisplayConfigGetDeviceInfo(&advColorInfo.header);
-		
+
 		if (tempResult != ERROR_SUCCESS)
 		{
 			OOLog(@"gameView.isOutputDisplayHDREnabled", @"Error! Code: %ld", HRESULT_FROM_WIN32(tempResult));
 			return NO;
 		}
-		
+
 		BOOL isPrimaryDisplayDevice = !wcscmp(targetName.monitorDevicePath, wcsPrimaryDeviceID);
 		// we are starting om the primary device, so check that one for advanced color support
-		// we also ensure that wide color gamut SDR displays do not get incorrectly detected as supporting HDR 
-		if (isPrimaryDisplayDevice && 
+		// we also ensure that wide color gamut SDR displays do not get incorrectly detected as supporting HDR
+		if (isPrimaryDisplayDevice &&
 			((isAdvColorInfo2DetectionSuccess && advColorInfo2.highDynamicRangeSupported && advColorInfo2.activeColorMode == DISPLAYCONFIG_ADVANCED_COLOR_MODE_HDR) ||
 			(!isAdvColorInfo2DetectionSuccess && advColorInfo.advancedColorSupported && advColorInfo.advancedColorEnabled && !advColorInfo.wideColorEnforced)))
 		{
@@ -1304,9 +1307,9 @@ finished:
 			break;
 		}
 	}
-	
+
 	OOLog(@"gameView.isOutputDisplayHDREnabled", @"HDR display output requested - checking availability: %@", result ? @"YES" : @"NO");
-	
+
 	free (pModeInfoArray);
 	free (pPathInfoArray);
 
@@ -1325,7 +1328,7 @@ finished:
 	if (newMaxBrightness < MIN_HDR_MAXBRIGHTNESS)  newMaxBrightness = MIN_HDR_MAXBRIGHTNESS;
 	if (newMaxBrightness > MAX_HDR_MAXBRIGHTNESS)  newMaxBrightness = MAX_HDR_MAXBRIGHTNESS;
 	_hdrMaxBrightness = newMaxBrightness;
-	
+
 	[[NSUserDefaults standardUserDefaults] setFloat:_hdrMaxBrightness forKey:@"hdr-max-brightness"];
 }
 
@@ -1341,7 +1344,7 @@ finished:
 	if (newPaperWhiteBrightness < MIN_HDR_PAPERWHITE)  newPaperWhiteBrightness = MIN_HDR_PAPERWHITE;
 	if (newPaperWhiteBrightness > MAX_HDR_PAPERWHITE)  newPaperWhiteBrightness = MAX_HDR_PAPERWHITE;
 	_hdrPaperWhiteBrightness = newPaperWhiteBrightness;
-	
+
 	[[NSUserDefaults standardUserDefaults] setFloat:_hdrPaperWhiteBrightness forKey:@"hdr-paperwhite-brightness"];
 }
 
@@ -1435,7 +1438,7 @@ finished:
 	viewSize = v_size;
 	OOLog(@"display.initGL", @"Requested a new surface of %d x %d, %@.", (int)viewSize.width, (int)viewSize.height,(fullScreen ? @"fullscreen" : @"windowed"));
 	SDL_GL_SwapBuffers();	// clear the buffer before resize
-	
+
 #if OOLITE_WINDOWS
 	if (!updateContext) return;
 
@@ -1443,11 +1446,11 @@ finished:
 	settings.dmSize        = sizeof(DEVMODE);
 	settings.dmDriverExtra = 0;
 	EnumDisplaySettings(0, ENUM_CURRENT_SETTINGS, &settings);
-	
+
 	WINDOWPLACEMENT windowPlacement;
 	windowPlacement.length = sizeof(WINDOWPLACEMENT);
 	GetWindowPlacement(SDL_Window, &windowPlacement);
-	
+
 	static BOOL lastWindowPlacementMaximized = NO;
 	if (fullScreen && (windowPlacement.showCmd == SW_SHOWMAXIMIZED))
 	{
@@ -1456,35 +1459,35 @@ finished:
 			lastWindowPlacementMaximized = YES;
 		}
 	}
-	
+
 	if (lastWindowPlacementMaximized)
 	{
 		windowPlacement.showCmd = SW_SHOWMAXIMIZED;
 	}
-	
-	// are we attempting to go to a different screen resolution? Note: this also takes care of secondary monitor situations because 
+
+	// are we attempting to go to a different screen resolution? Note: this also takes care of secondary monitor situations because
 	// by design the only resolution available for fullscreen on a secondary display device is its native one - Nikos 20150605
 	BOOL changingResolution = 	[self isRunningOnPrimaryDisplayDevice] &&
 								((fullScreen && (settings.dmPelsWidth != viewSize.width || settings.dmPelsHeight != viewSize.height)) ||
 								(wasFullScreen && (settings.dmPelsWidth != [[[screenSizes objectAtIndex:0] objectForKey: kOODisplayWidth] intValue]
 								|| settings.dmPelsHeight != [[[screenSizes objectAtIndex:0] objectForKey: kOODisplayHeight] intValue])));
-			
+
 	RECT wDC;
 
 	if (fullScreen)
 	{
 		/*NOTE: If we ever decide to change the default behaviour of launching
-		always on primary monitor to launching on the monitor the program was 
+		always on primary monitor to launching on the monitor the program was
 		started on, all that needs to be done is comment out the line below, as
 		well as the identical one in the else branch further down.
 		Nikos 20141222
 	   */
 	   [self getCurrentMonitorInfo: &monitorInfo];
-		
+
 		settings.dmPelsWidth = viewSize.width;
 		settings.dmPelsHeight = viewSize.height;
 		settings.dmFields = DM_PELSWIDTH | DM_PELSHEIGHT;
-				
+
 		// just before going fullscreen, save the location of the current window. It
 		// may be needed in case of potential attempts to move our fullscreen window
 		// in a maximized state (yes, in Windows this is entirely possible).
@@ -1496,7 +1499,7 @@ finished:
 			SetWindowPlacement(SDL_Window, &windowPlacement);
 		}
 		else  GetWindowRect(SDL_Window, &lastGoodRect);
-		
+
 		// ok, can go fullscreen now
 		SetForegroundWindow(SDL_Window);
 		if (changingResolution)
@@ -1510,14 +1513,14 @@ finished:
 			atDesktopResolution = settings.dmPelsWidth == [[[screenSizes objectAtIndex:0] objectForKey: kOODisplayWidth] intValue]
 								&& settings.dmPelsHeight == [[[screenSizes objectAtIndex:0] objectForKey: kOODisplayHeight] intValue];
 		}
-		
+
 		MoveWindow(SDL_Window, monitorInfo.rcMonitor.left, monitorInfo.rcMonitor.top, (int)viewSize.width, (int)viewSize.height, TRUE);
 		if(!wasFullScreen)
 		{
 			[self setWindowBorderless:YES];
 		}
 	}
-	
+
 	else if ( wasFullScreen )
 	{
 		if (changingResolution)
@@ -1528,9 +1531,9 @@ finished:
 				atDesktopResolution = YES;
 			}
 		}
-		
+
 		/*NOTE: If we ever decide to change the default behaviour of launching
-		always on primary monitor to launching on the monitor the program was 
+		always on primary monitor to launching on the monitor the program was
 		started on, we need to comment out the line below.
 		For now, this line is needed for correct positioning of our window in case
 		we return from a non-native resolution fullscreen and has to come after the
@@ -1538,7 +1541,7 @@ finished:
 		Nikos 20141222
 		*/
 		[self getCurrentMonitorInfo: &monitorInfo];
-		
+
 		if (lastWindowPlacementMaximized)  CopyRect(&windowPlacement.rcNormalPosition, &lastGoodRect);
 		SetWindowPlacement(SDL_Window, &windowPlacement);
 		if (!lastWindowPlacementMaximized)
@@ -1549,13 +1552,13 @@ finished:
 								monitorInfo.rcMonitor.top,
 								(int)viewSize.width, (int)viewSize.height, TRUE);
 		}
-		
+
 		[self setWindowBorderless:NO];
-								
+
 		lastWindowPlacementMaximized = NO;
 		ShowWindow(SDL_Window,SW_SHOW);
 	}
-	
+
 	// stop saveWindowSize from reacting to caption & frame if necessary
 	saveSize = !wasFullScreen;
 
@@ -1567,7 +1570,7 @@ finished:
 		// Resize the game window if needed. When we ask for a W x H
 		// window, we intend that the client area be W x H. The actual
 		// window itself must become big enough to accomodate an area
-		// of such size. 
+		// of such size.
 		if (wasFullScreen)	// this is true when switching from full screen or when starting in windowed mode
 							// after the splash screen has ended
 		{
@@ -1586,7 +1589,7 @@ finished:
 	// Reset bounds and viewSize to current values
 	bounds.size.width = viewSize.width = wDC.right - wDC.left;
 	bounds.size.height = viewSize.height = wDC.bottom - wDC.top;
-	
+
 	if (fullScreen) // bounds on fullscreen coincide with client area, since we are borderless
 	{
 		bounds.origin.x = monitorInfo.rcMonitor.left;
@@ -1732,7 +1735,7 @@ finished:
 	{
 		glReadPixels(0, y, surface->w, 1, GL_RGB, GL_UNSIGNED_BYTE, pixls + off);
 	}
-	
+
 	tmpSurface=SDL_CreateRGBSurfaceFrom(pixls,surface->w,surface->h,24,surface->w*3,0xFF,0xFF00,0xFF0000,0x0);
 #if SNAPSHOTS_PNG_FORMAT
 	if(![self pngSaveSurface:pathToPic withSurface:tmpSurface])
@@ -1749,21 +1752,21 @@ finished:
 #endif
 	SDL_FreeSurface(tmpSurface);
 	free(pixls);
-	
+
 	// if outputting HDR signal, save also either an .exr or a Radiance .hdr snapshot
 	if ([self hdrOutput])
 	{
 		NSString *fileExtension = [[NSUserDefaults standardUserDefaults] oo_stringForKey:@"hdr-snapshot-format" defaultValue:SNAPSHOTHDR_EXTENSION_DEFAULT];
-		
+
 		// we accept file extension with or without a leading dot; if it is without, insert it at the beginning now
 		if (![[fileExtension substringToIndex:1] isEqual:@"."])  fileExtension = [@"." stringByAppendingString:fileExtension];
-		
+
 		if (![fileExtension isEqual:SNAPSHOTHDR_EXTENSION_EXR] && ![fileExtension isEqual:SNAPSHOTHDR_EXTENSION_HDR])
 		{
 			OOLog(@"screenshotHDR", @"Unrecognized HDR file format requested, defaulting to %@", SNAPSHOTHDR_EXTENSION_DEFAULT);
 			fileExtension = SNAPSHOTHDR_EXTENSION_DEFAULT;
 		}
-		
+
 		NSString *pathToPicHDR = [pathToPic stringByReplacingString:@".png" withString:fileExtension];
 		OOLog(@"screenshot", @"Saving screen shot \"%@\" (%u x %u pixels).", pathToPicHDR, surface->w, surface->h);
 		GLfloat *pixlsf = (GLfloat *)malloc(pitch * surface->h * sizeof(GLfloat));
@@ -1771,17 +1774,17 @@ finished:
 		{
 			glReadPixels(0, y, surface->w, 1, GL_RGB, GL_FLOAT, pixlsf + off);
 		}
-		
+
 		if (([fileExtension isEqual:SNAPSHOTHDR_EXTENSION_EXR] && SaveEXRSnapshot([pathToPicHDR cStringUsingEncoding:NSUTF8StringEncoding], surface->w, surface->h, pixlsf) != 0) //TINYEXR_SUCCESS
 			|| ([fileExtension isEqual:SNAPSHOTHDR_EXTENSION_HDR] && !stbi_write_hdr([pathToPicHDR cStringUsingEncoding:NSUTF8StringEncoding], surface->w, surface->h, 3, pixlsf)))
 		{
 			OOLog(@"screenshotHDR", @"Failed to save %@", pathToPicHDR);
 			snapShotOK = NO;
 		}
-		
+
 		free(pixlsf);
 	}
-	
+
 	// return to the previous directory
 	[[NSFileManager defaultManager] changeCurrentDirectoryPath:originalDirectory];
 	return snapShotOK;
@@ -1839,7 +1842,7 @@ finished:
 	}
 
 	png_set_IHDR(pngPtr, infoPtr, surf->w, surf->h, 8, colorType,	PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
-	
+
 	// if we are outputting HDR, our backbuffer is linear, so gamma is 1.0. Make sure our png has this info
 	// note: some image viewers seem to ignore the gAMA chunk; still, this is better than not having it at all
 	if ([self hdrOutput])  png_set_gAMA(pngPtr, infoPtr, 1.0f);
@@ -2130,6 +2133,10 @@ finished:
 	NSTimeInterval			timeNow = [NSDate timeIntervalSinceReferenceDate];
 	Uint16 					key_id;
 	int						scan_code;
+#if OOLITE_LINUX
+    NSSize					newSize;
+	bool					resize_pending = false;
+#endif
 
 	while (SDL_PollEvent(&event))
 	{
@@ -2206,9 +2213,9 @@ finished:
 					}
 					keys[gvMouseLeftButton] = NO;
 				}
-				/* 
+				/*
 				   Mousewheel handling - just note time since last use here and mark as inactive,
-				   if needed, at the end of this method. Note that the mousewheel button up event is 
+				   if needed, at the end of this method. Note that the mousewheel button up event is
 				   kind of special, as in, it is sent at the same time as its corresponding mousewheel
 				   button down one - Nikos 20140809
 				*/
@@ -2304,7 +2311,7 @@ finished:
 				BOOL special_key = NO;
 
 				// translate scancode to unicode equiv
-				switch (kbd_event->keysym.sym) 
+				switch (kbd_event->keysym.sym)
 				{
 					case SDLK_LSHIFT:
 					case SDLK_RSHIFT:
@@ -2317,7 +2324,7 @@ finished:
 						ctrl = YES;
 						modifier_pressed = YES;
 						break;
-						
+
 					case SDLK_LALT:
 					case SDLK_RALT:
 						opt = YES;
@@ -2370,7 +2377,7 @@ finished:
 					case SDLK_F12:
 						key_id = 327;
 						[self toggleScreenMode];
-						special_key = YES; 
+						special_key = YES;
 						break;
 
 					case SDLK_ESCAPE:
@@ -2392,25 +2399,25 @@ finished:
 
 				// the keyup event doesn't give us the unicode value, so store it here so it can be retrieved on keyup
 				// the ctrl key tends to mix up the unicode values, so deal with some special cases
-				// we also need (in most cases) to get the character without the impact of caps lock. 
-				if (((!special_key && (ctrl || key_id == 0)) || ([self isCapsLockOn] && (!special_key && !allowingStringInput))) && !modifier_pressed) //  
+				// we also need (in most cases) to get the character without the impact of caps lock.
+				if (((!special_key && (ctrl || key_id == 0)) || ([self isCapsLockOn] && (!special_key && !allowingStringInput))) && !modifier_pressed) //
 				{
 					// ctrl changes alpha characters to control codes (1-26)
-					if (ctrl && key_id >=1 && key_id <= 26) 
+					if (ctrl && key_id >=1 && key_id <= 26)
 					{
-						if (shift) 
+						if (shift)
 							key_id += 64; // A-Z is from 65, offset by -1 for the scancode start point
 						else
 							key_id += 96; // a-z is from 97, offset by -1 for the scancode start point
-					} 
-					else 
+					}
+					else
 					{
 						key_id = 0; // reset the value here to force a lookup from the keymappings data
 					}
 				}
 
 				// if we get here and we still don't have a key id, grab the unicode value from our keymappings dict
-				if (key_id == 0) 
+				if (key_id == 0)
 				{
 					// get unicode value for keycode from keymappings files
 					// this handles all the non-functional keys. the function keys are handled in the switch above
@@ -2437,11 +2444,11 @@ finished:
 				OOLog(kOOLogKeyDown, @"Keydown scancode = %d, unicode = %i, sym = %i, character = %c, shift = %d, ctrl = %d, alt = %d", scan_code, key_id, kbd_event->keysym.sym, key_id, shift, ctrl, opt);
 				//OOLog(kOOLogKeyDown, @"Keydown scancode = %d, unicode = %i", kbd_event->keysym.scancode, key_id);
 
-				if (key_id > 0 && key_id <= [self numKeys]) 
+				if (key_id > 0 && key_id <= [self numKeys])
 				{
 					keys[key_id] = YES;
 				}
-				else 
+				else
 				{
 					//OOLog(@"keys.test", @"Unhandled Keydown scancode/unicode: %d %i", scan_code, key_id);
 				}
@@ -2467,7 +2474,7 @@ finished:
 					case SDLK_RCTRL:
 						ctrl = NO;
 						break;
-						
+
 					case SDLK_LALT:
 					case SDLK_RALT:
 						opt = NO;
@@ -2477,9 +2484,9 @@ finished:
 				}
 				OOLog(kOOLogKeyUp, @"Keyup scancode = %d, unicode = %i, sym = %i, character = %c, shift = %d, ctrl = %d, alt = %d", scan_code, key_id, kbd_event->keysym.sym, key_id, shift, ctrl, opt);
 				//OOLog(kOOLogKeyUp, @"Keyup scancode = %d, shift = %d, ctrl = %d, alt = %d", scan_code, shift, ctrl, opt);
-				
+
 				// translate scancode to unicode equiv
-				switch (kbd_event->keysym.sym) 
+				switch (kbd_event->keysym.sym)
 				{
 					case SDLK_KP0: key_id = (!allowingStringInput ? gvNumberPadKey0 : gvNumberKey0); break;
 					case SDLK_KP1: key_id = (!allowingStringInput ? gvNumberPadKey1 : gvNumberKey1); break;
@@ -2532,11 +2539,11 @@ finished:
 						;
 				}
 
-				if (key_id > 0 && key_id <= [self numKeys]) 
+				if (key_id > 0 && key_id <= [self numKeys])
 				{
 					keys[key_id] = NO;
 				}
-				else 
+				else
 				{
 					//OOLog(@"keys.test", @"Unhandled Keyup scancode: %d", kbd_event->keysym.scancode);
 				}
@@ -2545,8 +2552,8 @@ finished:
 			case SDL_VIDEORESIZE:
 			{
 				SDL_ResizeEvent *rsevt=(SDL_ResizeEvent *)&event;
-				NSSize newSize=NSMakeSize(rsevt->w, rsevt->h);
 #if OOLITE_WINDOWS
+				NSSize newSize=NSMakeSize(rsevt->w, rsevt->h);
 				if (!fullScreen && updateContext)
 				{
 					if (saveSize == NO)
@@ -2562,8 +2569,8 @@ finished:
 					}
 				}
 #else
-				[self initialiseGLWithSize: newSize];
-				[self saveWindowSize: newSize];
+				newSize=NSMakeSize(rsevt->w, rsevt->h);
+                resize_pending = true;
 #endif
 				// certain gui screens will require an immediate redraw after
 				// a resize event - Nikos 20140129
@@ -2573,7 +2580,7 @@ finished:
 				}
 				break;
 			}
-			
+
 #if OOLITE_WINDOWS
 			// if we minimize the window while in fullscreen (e.g. via
 			// Win+M or Win+DownArrow), restore the non-borderless window
@@ -2582,14 +2589,14 @@ finished:
 			// top in some cases (seen with some Intel gfx chips).
 			// N.B. active event gain of zero means app is iconified
 			case SDL_ACTIVEEVENT:
-			{			
+			{
 				if ((event.active.state & SDL_APPACTIVE) && fullScreen)
 				{
 					[self setWindowBorderless:event.active.gain];
 				}
 				break;
 			}
-			
+
 			// need to track this because the user may move the game window
 			// to a secondary monitor, in which case we must potentially
 			// refresh the information displayed (e.g. Game Options screen)
@@ -2609,11 +2616,11 @@ finished:
 						if (fullScreen)
 						{
 							RECT rDC;
-							
+
 							/* attempting to move our fullscreen window while in maximized state can freak
 							   Windows out and the window may not return to its original position properly.
 							   Solution: if such a move takes place, first change the window placement to
-							   normal, move it normally, then restore its placement to maximized again. 
+							   normal, move it normally, then restore its placement to maximized again.
 							   Additionally, the last good known window position seems to be lost in such
 							   a case. While at it, update also the coordinates of the non-maximized window
 							   so that it can return to its original position - this is why we need lastGoodRect.
@@ -2621,7 +2628,7 @@ finished:
 							WINDOWPLACEMENT wp;
 							wp.length = sizeof(WINDOWPLACEMENT);
 							GetWindowPlacement(SDL_Window, &wp);
-							
+
 							GetWindowRect(SDL_Window, &rDC);
 							if (rDC.left != monitorInfo.rcMonitor.left || rDC.top != monitorInfo.rcMonitor.top)
 							{
@@ -2632,13 +2639,13 @@ finished:
 									wp.showCmd = SW_SHOWNORMAL;
 									SetWindowPlacement(SDL_Window, &wp);
 								}
-			
+
 								if (wp.showCmd != SW_SHOWMINIMIZED && wp.showCmd != SW_MINIMIZE)
 								{
 									MoveWindow(SDL_Window, monitorInfo.rcMonitor.left, monitorInfo.rcMonitor.top,
 													(int)viewSize.width, (int)viewSize.height, TRUE);
 								}
-								
+
 								if (fullScreenMaximized)
 								{
 									GetWindowPlacement(SDL_Window, &wp);
@@ -2664,11 +2671,11 @@ finished:
 						 rectangle. Therefore we must check whether to clip the mouse or not inside the newly
 						 updated rectangle, so just let it fall through
 						*/
-						
+
 					case WM_ACTIVATEAPP:
 						if(grabMouseStatus)  [self grabMouseInsideGameWindow:YES];
 						break;
-						
+
 					case WM_SETTINGCHANGE:
 						// TODO: we really should be checking the status of event.syswm.msg->lParam here and run our
 						// dark / light mode refresh check only if the lParam LPCTSTR matches "ImmersiveColorSet".
@@ -2676,12 +2683,12 @@ finished:
 						// mode refresh check runs every time something changes the Windows Registry while the game
 						// is running. Still, should be OK because our refreshDarKOrLightMode will be transparent in
 						// such cases, plus we would not practically expect too many events doing things to the Registry
-						// while we are running. If in the future we need to respond to a different event which changes 
+						// while we are running. If in the future we need to respond to a different event which changes
 						// system settings in real time, then yes, we will have to find a way to decode lParam properly.
 						// Nikos, 20230805
 						[self refreshDarKOrLightMode];
 						break;
-						
+
 					case WM_SETFOCUS:
 						/*
 	`					make sure that all modifier keys like Shift, Alt, Ctrl and Caps Lock
@@ -2697,7 +2704,7 @@ finished:
 							OOLog(@"wm_setfocus.message", @"Setting thread priority to time critical failed! (error code: %ld)", dwLastError);
 						}
 						break;
-						
+
 					case WM_KILLFOCUS:
 						if (!SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_NORMAL))
 						{
@@ -2705,7 +2712,7 @@ finished:
 							OOLog(@"wm_killfocus.message", @"Setting thread priority to normal failed! (error code: %ld)", dwLastError);
 						}
 						break;
-						
+
 					default:
 						;
 				}
@@ -2727,6 +2734,14 @@ finished:
 	{
 		_mouseWheelDelta = 0.0f;
 	}
+#if OOLITE_LINUX
+	if (resize_pending)
+	{
+		[self initialiseGLWithSize: newSize];
+		[self saveWindowSize: newSize];
+		resize_pending = false;
+	}
+#endif
 }
 
 

@@ -117,6 +117,7 @@ run_script() {
     else
         # Copy Linux-specific wrapper script
         cp -fu ShellScripts/Linux/run_oolite.sh "$PROGDIR"
+        cp -fu ShellScripts/Linux/splash-launcher "$PROGDIR"
     fi
 
     echo "✅ Oolite post-build completed successfully"
