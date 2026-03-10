@@ -2735,7 +2735,8 @@ finished:
 		_mouseWheelDelta = 0.0f;
 	}
 #if OOLITE_LINUX
-	if (resize_pending) {
+	if (resize_pending)
+	{
 		[self initialiseGLWithSize: newSize];
 		[self saveWindowSize: newSize];
 		resize_pending = false;
