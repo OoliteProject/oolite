@@ -114,35 +114,6 @@ enum {
 	OXZ_GUI_ROW_EXIT		= 27
 };
 
-#if OOLITE_LINUX
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <unistd.h>
-
-static BOOL OOIsNetworkAvailable()
-{
-	// Try to connect to a reliable IP (Google DNS) on port 53 (DNS)
-	struct sockaddr_in servaddr;
-	int sockfd = socket(AF_INET, SOCK_STREAM, 0);
-	if (sockfd < 0) return NO;
-
-	bzero(&servaddr, sizeof(servaddr));
-	servaddr.sin_family = AF_INET;
-	servaddr.sin_port = htons(53);
-	inet_pton(AF_INET, "8.8.8.8", &servaddr.sin_addr);
-
-	// Set a very short timeout so the UI doesn't hang
-	struct timeval timeout;
-	timeout.tv_sec = 0;
-	timeout.tv_usec = 500000; // 0.5 seconds
-	setsockopt(sockfd, SOL_SOCKET, SO_SNDTIMEO, (char *)&timeout, sizeof(timeout));
-
-	BOOL reachable = (connect(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr)) == 0);
-	close(sockfd);
-	return reachable;
-}
-#endif
-
 NSComparisonResult oxzSort(id m1, id m2, void *context);
 
 static OOOXZManager *sSingleton = nil;
@@ -666,14 +637,6 @@ static OOOXZManager *sSingleton = nil;
 
 - (BOOL) beginDownload:(NSMutableURLRequest *)request
 {
-#if OOLITE_LINUX
-	if (!OOIsNetworkAvailable())
-	{
-		OOLog(kOOOXZErrorLog, @"Network unreachable. Aborting download.");
-		_downloadStatus = OXZ_DOWNLOAD_ERROR;
-		return NO;
-	}
-#endif
 	NSString *userAgent = [NSString stringWithFormat:@"Oolite/%@", [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"]];
 	[request setValue:userAgent forHTTPHeaderField:@"User-Agent"];
 	[request setHTTPShouldHandleCookies:NO];
