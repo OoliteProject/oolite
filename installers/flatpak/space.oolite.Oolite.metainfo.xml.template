@@ -70,5 +70,20 @@
   </screenshots>
 
   <releases>
+    <release version="@VER@" date="@DATE@">
+      <description>
+        <p>This stable release fixes these bugs:</p>
+        <ul>
+          <li>Centre main window after showing splash.</li>
+          <li>Smooth resizing of game window.</li>
+          <li>Fix for crash when no network.</li>
+        </ul>
+      </description>
+    </release>
+    <release version="1.92" date="2026-02-03">
+      <description>
+        <p>First Flatpak release of Oolite.</p>
+      </description>
+    </release>
   </releases>
 </component>

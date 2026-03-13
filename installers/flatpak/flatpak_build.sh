@@ -29,10 +29,9 @@ else
 fi
 
 FLATPAK_METAINFO=/app/share/metainfo/space.oolite.Oolite.metainfo.xml
-install -D installers/flatpak/space.oolite.Oolite.metainfo.xml $FLATPAK_METAINFO
-FLATPAK_VER_INFO="release version=\"${FLATPAK_VERSION}\" date=\"${FLATPAK_DATE}\""
-echo "Oolite Flatpak version info: ${FLATPAK_VER_INFO}"
-sed -i "/<releases>/a \\    <${FLATPAK_VER_INFO}/>" $FLATPAK_METAINFO
+install -D installers/flatpak/space.oolite.Oolite.metainfo.xml.template $FLATPAK_METAINFO
+sed -i "s/@VER@/${FLATPAK_VERSION}/g" "$FLATPAK_METAINFO"
+sed -i "s/@DATE@/${FLATPAK_DATE}/g" "$FLATPAK_METAINFO"
 
 FLATPAK_DESKTOP=/app/share/applications/space.oolite.Oolite.desktop
 install -D installers/FreeDesktop/oolite.desktop $FLATPAK_DESKTOP
