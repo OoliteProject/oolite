@@ -2594,7 +2594,7 @@ finished:
 				DWORD dwLastError = 0;
 				switch (event.syswm.msg->msg)
 				{
-					case WM_WINDOWPOSCHANGING:
+					case WM_MOVE:
 						/* if we are in fullscreen mode we normally don't worry about having the window moved.
 						   However, when using multiple monitors, one can use hotkey combinations to make the
 						   window "jump" from one monitor to the next. We don't want this to happen, so if we
