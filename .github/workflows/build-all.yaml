@@ -96,7 +96,7 @@ jobs:
         with:
           name: oolite-linux-${{matrix.flavour}}
           path: |
-            oolite/build/Oolite_*.AppImage
+            oolite/build/oolite*.AppImage
           retention-days: 5
 
   build-flatpak:
