@@ -13,7 +13,14 @@ VER_REV=$(echo "$VERSION" | cut -d. -f3)
 if [ "" == "$VER_REV" ]; then
     VER_REV="0"
 fi
-VER_DATE=$(date +%y%m%d)
+TIMESTAMP=$(git log -1 --format=%ct)
+# Convert to __DATE__ format (e.g., Feb 20 2026)
+CPP_DATE=$(date -d "@$TIMESTAMP" +"%b %e %Y")
+# Convert to ISO 8601 format (e.g., 2026-02-20)
+APP_DATE=$(date -d "@$TIMESTAMP" -I)
+# Convert to YYMMDD format (e.g., 260313)
+VER_DATE=$(date -d "@$TIMESTAMP" +"%y%m%d")
+
 VER_GITREV=$(git rev-list --count HEAD)
 VER_GITHASH=$(git rev-parse --short=7 HEAD)
 VER_FULL="$VER_MAJ.$VER_MIN.$VER_REV.$VER_GITREV-$VER_DATE-$VER_GITHASH"
