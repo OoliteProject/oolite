@@ -42,6 +42,7 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
+          set-safe-directory: true
       - name: Checkout dependencies
         run: |
           ShellScripts/Linux/checkout_deps.sh
@@ -69,6 +70,7 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
+          set-safe-directory: true
       - name: Checkout dependencies
         run: |
           ShellScripts/Linux/checkout_deps.sh
