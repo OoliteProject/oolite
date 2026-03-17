@@ -34,8 +34,6 @@ install_freedesktop() {
 
     sed -i "s/@VER@/${VERSION}/g" "$APP_METAINFO"
     sed -i "s/@DATE@/${APP_DATE}/g" "$APP_METAINFO"
-    echo "APP_DATE is $APP_DATE"
-    cat "$APP_METAINFO"
 
     # Desktop and Icon
     install -D ../../installers/FreeDesktop/space.oolite.Oolite.desktop "$APPSHR/applications/space.oolite.Oolite.desktop" || { echo "$err_msg desktop file" >&2; return 1; }
