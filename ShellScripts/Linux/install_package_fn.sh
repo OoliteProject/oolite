@@ -131,7 +131,7 @@ install_package() {
         "appimage")
             case "$CURRENT_DISTRO" in
                 debian) PKG_NAME="file fuse3" ;;
-                redhat) PKG_NAME="file fuse3 which desktop-file-utils" ;;
+                redhat) PKG_NAME="file fuse3 which desktop-file-utils perl-File-MimeInfo" ;;
                 arch) PKG_NAME="file fuse3" ;;
             esac ;;
 
