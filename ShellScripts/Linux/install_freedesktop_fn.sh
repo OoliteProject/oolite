@@ -8,7 +8,7 @@ install_freedesktop() {
     local err_msg="❌ Error: Failed to install "
 
     SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
-    pushd "$SCRIPT_DIR" > /dev/null || return 1
+    pushd "$SCRIPT_DIR"
 
     source ../common/get_version.sh
 
@@ -34,11 +34,13 @@ install_freedesktop() {
 
     sed -i "s/@VER@/${VERSION}/g" "$APP_METAINFO"
     sed -i "s/@DATE@/${APP_DATE}/g" "$APP_METAINFO"
+    echo "APP_DATE is $APP_DATE"
+    cat "$APP_METAINFO"
 
     # Desktop and Icon
     install -D ../../installers/FreeDesktop/space.oolite.Oolite.desktop "$APPSHR/applications/space.oolite.Oolite.desktop" || { echo "$err_msg desktop file" >&2; return 1; }
 
     install -D "$PROGDIR/Resources/Textures/oolite-logo1.png" "$APPSHR/icons/hicolor/256x256/apps/space.oolite.Oolite.png" || { echo "$err_msg icon file" >&2; return 1; }
 
-    popd > /dev/null
+    popd
 }
