@@ -14,12 +14,13 @@ if [ "" == "$VER_REV" ]; then
     VER_REV="0"
 fi
 TIMESTAMP=$(git log -1 --format=%ct)
+# Date conversions use UTC for consistency
 # Convert to __DATE__ format (e.g., Feb 20 2026)
-CPP_DATE=$(date -d "@$TIMESTAMP" +"%b %e %Y")
-# Convert to ISO 8601 format (e.g., 2026-02-20)
-APP_DATE=$(date -d "@$TIMESTAMP" -I)
+CPP_DATE=$(date -u -d "@$TIMESTAMP" +"%b %e %Y")
+# Convert to YYYY-MM-DD
+APP_DATE=$(date -u -d "@$TIMESTAMP" +"%Y-%m-%d")
 # Convert to YYMMDD format (e.g., 260313)
-VER_DATE=$(date -d "@$TIMESTAMP" +"%y%m%d")
+VER_DATE=$(date -u -d "@$TIMESTAMP" +"%y%m%d")
 
 VER_GITREV=$(git rev-list --count HEAD)
 VER_GITHASH=$(git rev-parse --short=7 HEAD)
