@@ -78,10 +78,7 @@ run_script() {
         return 1
     fi
     # For building AppImage
-    if ! install_package file; then
-        return 1
-    fi
-    if ! install_package fuse; then
+    if ! install_package appimage; then
         return 1
     fi
     # For building Flatpak
