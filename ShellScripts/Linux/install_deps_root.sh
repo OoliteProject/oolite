@@ -116,7 +116,6 @@ run_script() {
     cd tools-make
     make clean
 
-    # Bash
     if [[ ${CURRENT_DISTRO,,} == "redhat" ]]; then
         LIB_PARAM="--with-libdir=lib64"
     else
