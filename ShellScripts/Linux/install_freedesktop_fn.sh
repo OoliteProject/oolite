@@ -3,6 +3,7 @@
 install_freedesktop() {
     # Install metainfo (eg. for FlatHub and AppImageHub)
     # $1: app folder (destination)
+    # $2: appdata or metainfo
 
     local err_msg="❌ Error: Failed to install "
 
@@ -28,7 +29,7 @@ install_freedesktop() {
 
     install -D "GNUstep.conf.template" "$APPBIN/Resources/GNUstep.conf.template" || { echo "$err_msg GNUstep template" >&2; return 1; }
 
-    APP_METAINFO="$APPSHR/metainfo/space.oolite.Oolite.metainfo.xml"
+    APP_METAINFO="$APPSHR/metainfo/space.oolite.Oolite.$2.xml"
     install -D ../../installers/FreeDesktop/space.oolite.Oolite.metainfo.xml.template "$APP_METAINFO" || { echo "$err_msg metainfo template" >&2; return 1; }
 
     sed -i "s/@VER@/${VERSION}/g" "$APP_METAINFO"

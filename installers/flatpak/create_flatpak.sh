@@ -10,7 +10,6 @@ run_script() {
     rm -rf oolite.app
     rm -rf obj.spk
     source ShellScripts/common/get_version.sh
-    source ShellScripts/common/check_rename_fn.sh
     source ShellScripts/common/checkout_submodules_fn.sh
 
     if ! checkout_submodules; then
@@ -78,23 +77,22 @@ EOF
         return 1
     fi
 
-    if ! flatpak build-bundle \
-      repo \
-      space.oolite.Oolite.flatpak \
-      space.oolite.Oolite; then
-        echo "❌ Flatpak bundle creation failed!" >&2
-        return 1
-    fi
-
    	if (( $# == 1 )); then
         SUFFIX="_${1}-${VER_FULL}"
     else
         SUFFIX="-$VER_FULL"
     fi
-
-    if ! check_rename "space.oolite.Oolite" "space.oolite.Oolite.flatpak" $SUFFIX; then
+    ARCH=$(uname -m)
+    FILENAME="space.oolite.Oolite${SUFFIX}-${ARCH}.flatpak"
+    echo "Creating Flatpak $FILENAME..."
+    if ! flatpak build-bundle \
+      repo \
+      "$FILENAME" \
+      space.oolite.Oolite; then
+        echo "❌ Flatpak bundle creation failed!" >&2
         return 1
     fi
+
     popd
 }
 
