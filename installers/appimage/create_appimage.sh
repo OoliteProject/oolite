@@ -9,45 +9,53 @@ run_script() {
     cd ../../build
     source ../ShellScripts/Linux/os_detection.sh
     source ../ShellScripts/common/get_version.sh
-    source ../ShellScripts/common/check_rename_fn.sh
+    source ../ShellScripts/Linux/install_freedesktop_fn.sh
 
-    APPDIR="./Oolite.AppDir"
-    rm -rf $APPDIR
+    ARCH=$(uname -m)
+    APPDIR="./oolite.AppDir"
     APPBIN="$APPDIR/usr/bin"
-    APPLIB="$APPDIR/usr/lib"
-    mkdir -p "$APPBIN"
+    APPSHR="$APPDIR/usr/share"
+    rm -rf "$APPDIR"
 
-    PROGDIR="../oolite.app"
-    cp -uf "$PROGDIR/splash-launcher" "$APPBIN"
-    cp -rf "$PROGDIR/Resources" "$APPBIN"
-    cp -uf "../ShellScripts/Linux/GNUstep.conf.template" "$APPBIN/Resources"
-
+    ABS_APPDIR_USR=$(realpath -m "$APPDIR/usr")
+    if ! install_freedesktop "$ABS_APPDIR_USR" appdata; then
+        return 1
+    fi
 
    	if (( $# == 1 )); then
         echo "Including Basic-debug.oxp"
         cp -rf AddOns "$APPBIN"
     fi
 
-    curl -o linuxdeploy -L https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
-    chmod +x linuxdeploy
+    LINUXDEPLOY_BIN="./linuxdeploy"
+    if [ ! -x "$LINUXDEPLOY_BIN" ]; then
+        echo "📥 linuxdeploy not found or not executable. Downloading..."
+        curl -o "$LINUXDEPLOY_BIN" -L https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-$ARCH.AppImage || { echo "❌ Download failed" >&2; exit 1; }
+        chmod +x "$LINUXDEPLOY_BIN"
+    fi
 
     case "$CURRENT_DISTRO" in
-        debian) SDL2="--library=/usr/lib/x86_64-linux-gnu/libSDL2-2.0.so.0" ;;
+        debian) SDL2="--library=/usr/lib/$ARCH-linux-gnu/libSDL2-2.0.so.0" ;;
         redhat) SDL2="--library=/usr/lib64/libSDL2-2.0.so.0 --library=/usr/lib64/libSDL3.so.0" ;;
         arch) SDL2="--library=/usr/lib/libSDL2-2.0.so.0 --library=/usr/lib/libSDL3.so.0" ;;
     esac
 
+    ICON_SUBPATH="icons/hicolor/256x256/apps/space.oolite.Oolite.png"
+    ICON_PATH="$APPSHR/$ICON_SUBPATH"
     echo "Building AppDir for AppImage..."
+    # install_metadatainfo_fn already put the files in the parameters below in the right place,
+    # but no harm putting again here
     if ! NO_STRIP=1 ./linuxdeploy \
-    --appdir $APPDIR \
-    --executable $PROGDIR/oolite \
-    --custom-apprun $PROGDIR/run_oolite.sh \
-    --desktop-file ../installers/FreeDesktop/oolite.desktop \
-    --icon-file ../installers/FreeDesktop/oolite-icon.png \
+    --appdir "$APPDIR" \
+    --executable "$APPBIN/oolite" \
+    --custom-apprun "$APPBIN/run_oolite.sh" \
+    --desktop-file "$APPSHR/applications/space.oolite.Oolite.desktop" \
+    --icon-file "$ICON_PATH" \
     $SDL2; then
         echo "❌ AppDir generation failed!" >&2
         return 1
     fi
+    ln -sf "usr/share/$ICON_SUBPATH" "$APPDIR/.DirIcon"
 
    	if [[ $1 == "dev" ]]; then
         echo "Not stripping libs for snapshot AppImage"
@@ -58,22 +66,38 @@ run_script() {
         -exec strip --strip-unneeded '{}' +   # keeps symbols needed for runtime linking
     fi
 
-    curl -o appimagetool -L https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
-    chmod +x appimagetool
+    LINTER_BIN="./appdir-lint.sh"
+    EXCLUDE_LIST="./excludelist"
 
-    echo "Creating AppImage..."
-    if ! ./appimagetool $APPDIR; then
-        echo "❌ AppImage creation failed!" >&2
+    if [ ! -x "$LINTER_BIN" ] || [ ! -f "$EXCLUDE_LIST" ]; then
+        echo "📥 Downloading AppDir linter and excludelist..."
+        curl -o "$LINTER_BIN" -L https://raw.githubusercontent.com/AppImage/AppImages/master/appdir-lint.sh || { echo "❌ Linter download failed" >&2; exit 1; }
+        curl -o "$EXCLUDE_LIST" -L https://raw.githubusercontent.com/AppImage/AppImages/master/excludelist || { echo "❌ Excludelist download failed" >&2; exit 1; }
+        chmod +x "$LINTER_BIN"
+    fi
+
+    echo "🔍 Running AppDir linter..."
+    if ! "$LINTER_BIN" "$APPDIR"; then
+        echo "❌ AppDir linting failed!" >&2
         return 1
     fi
 
-   	if (( $# == 1 )); then
-        SUFFIX="${1}_${VER_FULL}"
-    else
-        SUFFIX="$VER_FULL"
+    APPIMAGETOOL_BIN="./appimagetool"
+    if [ ! -x "$APPIMAGETOOL_BIN" ]; then
+        echo "📥 appimagetool not found. Downloading..."
+        curl -o "$APPIMAGETOOL_BIN" -L https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-$ARCH.AppImage || { echo "❌ appimagetool download failed" >&2; exit 1; }
+        chmod +x "$APPIMAGETOOL_BIN"
     fi
 
-    if ! check_rename "Oolite" "Oolite-*" $SUFFIX; then
+   	if (( $# == 1 )); then
+        SUFFIX="_${1}-${VER_FULL}"
+    else
+        SUFFIX="-$VER_FULL"
+    fi
+    FILENAME="oolite${SUFFIX}-${ARCH}.AppImage"
+    echo "Creating AppImage $FILENAME..."
+    if ! ./appimagetool "$APPDIR" "$FILENAME"; then
+        echo "❌ AppImage creation failed!" >&2
         return 1
     fi
 

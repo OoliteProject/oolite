@@ -10,7 +10,6 @@ run_script() {
     rm -rf oolite.app
     rm -rf obj.spk
     source ShellScripts/common/get_version.sh
-    source ShellScripts/common/check_rename_fn.sh
     source ShellScripts/common/checkout_submodules_fn.sh
 
     if ! checkout_submodules; then
@@ -59,8 +58,6 @@ run_script() {
         return 1
     fi
 
-    sed -i "/- name: oolite/a \    build-options:\n      env:\n        VERSION_OVERRIDE: \"$VER_FULL\"" \
-        $MANIFEST
     TOTAL_LINES=$(wc -l < $MANIFEST)
     START_LINE=$((TOTAL_LINES - 3))
     sed -i "${START_LINE},\$d" $MANIFEST
@@ -80,23 +77,22 @@ EOF
         return 1
     fi
 
+   	if (( $# == 1 )); then
+        SUFFIX="_${1}-${VER_FULL}"
+    else
+        SUFFIX="-$VER_FULL"
+    fi
+    ARCH=$(uname -m)
+    FILENAME="space.oolite.Oolite${SUFFIX}-${ARCH}.flatpak"
+    echo "Creating Flatpak $FILENAME..."
     if ! flatpak build-bundle \
       repo \
-      space.oolite.Oolite.flatpak \
+      "$FILENAME" \
       space.oolite.Oolite; then
         echo "❌ Flatpak bundle creation failed!" >&2
         return 1
     fi
 
-   	if (( $# == 1 )); then
-        SUFFIX="${1}_${VER_FULL}"
-    else
-        SUFFIX="$VER_FULL"
-    fi
-
-    if ! check_rename "space.oolite.Oolite" "space.oolite.Oolite.flatpak" $SUFFIX; then
-        return 1
-    fi
     popd
 }
 

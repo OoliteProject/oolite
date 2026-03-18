@@ -44,31 +44,46 @@
 
   <screenshots>
     <screenshot type="default">
-      <image>https://raw.githubusercontent.com/OoliteProject/oolite/1.92-maintenance/installers/flatpak/oolite-999.png</image>
+      <image>https://raw.githubusercontent.com/OoliteProject/oolite/1.92-maintenance/installers/FreeDesktop/oolite-999.png</image>
       <caption>The universe awaits. Go explore and seek your fortune!</caption>
     </screenshot>
     <screenshot>
-      <image>https://raw.githubusercontent.com/OoliteProject/oolite/1.92-maintenance/installers/flatpak/oolite-008.png</image>
+      <image>https://raw.githubusercontent.com/OoliteProject/oolite/1.92-maintenance/installers/FreeDesktop/oolite-008.png</image>
       <caption>Choose from a diverse range of interstellar craft. </caption>
     </screenshot>
     <screenshot>
-      <image>https://raw.githubusercontent.com/OoliteProject/oolite/1.92-maintenance/installers/flatpak/oolite-064.png</image>
+      <image>https://raw.githubusercontent.com/OoliteProject/oolite/1.92-maintenance/installers/FreeDesktop/oolite-064.png</image>
       <caption>Find safety in massive orbital stations.</caption>
     </screenshot>
     <screenshot>
-      <image>https://raw.githubusercontent.com/OoliteProject/oolite/1.92-maintenance/installers/flatpak/oolite-001.png</image>
+      <image>https://raw.githubusercontent.com/OoliteProject/oolite/1.92-maintenance/installers/FreeDesktop/oolite-001.png</image>
       <caption>Access the expansion pack manager and quick reference guides on the start screen.</caption>
     </screenshot>
     <screenshot>
-      <image>https://raw.githubusercontent.com/OoliteProject/oolite/1.92-maintenance/installers/flatpak/oolite-002.png</image>
+      <image>https://raw.githubusercontent.com/OoliteProject/oolite/1.92-maintenance/installers/FreeDesktop/oolite-002.png</image>
       <caption>Learn to fly with the tutorial covering piloting, combat, and travel.</caption>
     </screenshot>
     <screenshot>
-      <image>https://raw.githubusercontent.com/OoliteProject/oolite/1.92-maintenance/installers/flatpak/oolite-004.png</image>
+      <image>https://raw.githubusercontent.com/OoliteProject/oolite/1.92-maintenance/installers/FreeDesktop/oolite-004.png</image>
       <caption>Fly to Maraus, a wealthy industrial world, one of 2000 systems to be discovered.</caption>
     </screenshot>
   </screenshots>
 
   <releases>
+    <release version="@VER@" date="@DATE@">
+      <description>
+        <p>This stable release fixes these bugs:</p>
+        <ul>
+          <li>Centre main window after showing splash.</li>
+          <li>Smooth resizing of game window.</li>
+          <li>Fix for crash when no network.</li>
+        </ul>
+      </description>
+    </release>
+    <release version="1.92" date="2026-02-03">
+      <description>
+        <p>First release of Oolite for Flatpak and AppImage.</p>
+      </description>
+    </release>
   </releases>
 </component>
