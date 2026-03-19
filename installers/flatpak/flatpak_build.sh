@@ -1,6 +1,7 @@
 #!/bin/bash
 
 source /app/share/GNUstep/Makefiles/GNUstep.sh
+source ShellScripts/common/get_version.sh
 source ShellScripts/Linux/install_freedesktop_fn.sh
 
 export ADDITIONAL_CFLAGS="-DBUILD_DATE='\"$CPP_DATE\"'"
