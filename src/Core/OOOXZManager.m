@@ -114,7 +114,6 @@ enum {
 	OXZ_GUI_ROW_EXIT		= 27
 };
 
-
 NSComparisonResult oxzSort(id m1, id m2, void *context);
 
 static OOOXZManager *sSingleton = nil;
@@ -624,7 +623,6 @@ static OOOXZManager *sSingleton = nil;
 - (BOOL) updateManifests
 {
 	NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:[self dataURL]]];
-	[request setHTTPShouldHandleCookies:NO];
 	if (_downloadStatus != OXZ_DOWNLOAD_NONE)
 	{
 		return NO;
@@ -641,6 +639,7 @@ static OOOXZManager *sSingleton = nil;
 {
 	NSString *userAgent = [NSString stringWithFormat:@"Oolite/%@", [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"]];
 	[request setValue:userAgent forHTTPHeaderField:@"User-Agent"];
+	[request setHTTPShouldHandleCookies:NO];
 	NSURLConnection *download = [[NSURLConnection alloc] initWithRequest:request delegate:self];
 	if (download)
 	{
@@ -1232,7 +1231,14 @@ static OOOXZManager *sSingleton = nil;
 	case OXZ_STATE_INSTALLING:
 		[gui setTitle:DESC(@"oolite-oxzmanager-title-downloading")];
 
-		[gui addLongText:[NSString stringWithFormat:DESC(@"oolite-oxzmanager-progress-@-is-@-of-@"),_currentDownloadName,[self humanSize:_downloadProgress],[self humanSize:_downloadExpected]] startingAtRow:OXZ_GUI_ROW_PROGRESS align:GUI_ALIGN_LEFT];
+		if (_downloadStatus == OXZ_DOWNLOAD_ERROR)
+		{
+			[gui addLongText:OOExpandKey(@"oolite-oxzmanager-progress-error") startingAtRow:OXZ_GUI_ROW_PROGRESS align:GUI_ALIGN_LEFT];
+		}
+		else
+		{
+			[gui addLongText:[NSString stringWithFormat:DESC(@"oolite-oxzmanager-progress-@-is-@-of-@"),_currentDownloadName,[self humanSize:_downloadProgress],[self humanSize:_downloadExpected]] startingAtRow:OXZ_GUI_ROW_PROGRESS align:GUI_ALIGN_LEFT];
+		}
 
 		[gui addLongText:_progressStatus startingAtRow:OXZ_GUI_ROW_PROGRESS+2 align:GUI_ALIGN_LEFT];
 
@@ -1710,7 +1716,6 @@ static OOOXZManager *sSingleton = nil;
 		return NO;
 	}
 	NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:url]];
-	[request setHTTPShouldHandleCookies:NO];
 	if (_downloadStatus != OXZ_DOWNLOAD_NONE)
 	{
 		return NO;

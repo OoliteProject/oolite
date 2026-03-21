@@ -78,10 +78,7 @@ run_script() {
         return 1
     fi
     # For building AppImage
-    if ! install_package file; then
-        return 1
-    fi
-    if ! install_package fuse; then
+    if ! install_package appimage; then
         return 1
     fi
     # For building Flatpak
@@ -116,7 +113,6 @@ run_script() {
     cd tools-make
     make clean
 
-    # Bash
     if [[ ${CURRENT_DISTRO,,} == "redhat" ]]; then
         LIB_PARAM="--with-libdir=lib64"
     else

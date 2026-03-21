@@ -38,10 +38,10 @@ jobs:
         run: |
           dnf -y update
           dnf -y install git
-      - uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-          submodules: true
+      - name: Checkout Oolite
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git clone --recursive https://github.com/${{ github.repository }} .
       - name: Checkout dependencies
         run: |
           ShellScripts/Linux/checkout_deps.sh
@@ -65,10 +65,10 @@ jobs:
         run: |
           pacman -Syu --noconfirm
           pacman -S --noconfirm --needed git
-      - uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-          submodules: true
+      - name: Checkout Oolite
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git clone --recursive https://github.com/${{ github.repository }} .
       - name: Checkout dependencies
         run: |
           ShellScripts/Linux/checkout_deps.sh

@@ -41,7 +41,7 @@ run_script() {
     echo "!define VER_REV ${VER_REV}" >> OoliteVersions.nsh
     echo "!define VER_GITREV ${VER_GITREV}" >> OoliteVersions.nsh
     echo "!define VER_GITHASH ${VER_GITHASH}" >> OoliteVersions.nsh
-    echo "!define VERSION ${VER}" >> OoliteVersions.nsh
+    echo "!define VERSION ${VER_FULL}" >> OoliteVersions.nsh
     echo "!define BUILDTIME \"${BUILDTIME}\"" >> OoliteVersions.nsh
     echo "!define BUILDHOST_IS64BIT 1" >> OoliteVersions.nsh
 

@@ -248,7 +248,12 @@ enum PreferredAppMode
 	NSString *versionString = [NSString stringWithFormat:@"Oolite v%@", [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"]];
 
 	strcpy (windowCaption, [versionString UTF8String]);
-	strcat (windowCaption, " - "__DATE__);
+	strcat(windowCaption, " - ");
+#ifdef BUILD_DATE
+	strcat(windowCaption, BUILD_DATE);
+#else
+	strcat(windowCaption, __DATE__);
+#endif
 	SDL_WM_SetCaption (windowCaption, "Oolite");	// Set window title.
 
 #if OOLITE_WINDOWS
@@ -710,9 +715,12 @@ enum PreferredAppMode
 #endif
 	}
 	else
+	{
 		[self initialiseGLWithSize: currentWindowSize];
-
-
+#if OOLITE_LINUX
+		SDL_WM_GrabInput(SDL_GRAB_OFF);
+#endif
+	}
 	// do screen resizing updates
 	if ([PlayerEntity sharedPlayer])
 	{
@@ -2125,6 +2133,10 @@ finished:
 	NSTimeInterval			timeNow = [NSDate timeIntervalSinceReferenceDate];
 	Uint16 					key_id;
 	int						scan_code;
+#if OOLITE_LINUX
+    NSSize					newSize;
+	bool					resize_pending = false;
+#endif
 
 	while (SDL_PollEvent(&event))
 	{
@@ -2540,8 +2552,8 @@ finished:
 			case SDL_VIDEORESIZE:
 			{
 				SDL_ResizeEvent *rsevt=(SDL_ResizeEvent *)&event;
-				NSSize newSize=NSMakeSize(rsevt->w, rsevt->h);
 #if OOLITE_WINDOWS
+				NSSize newSize=NSMakeSize(rsevt->w, rsevt->h);
 				if (!fullScreen && updateContext)
 				{
 					if (saveSize == NO)
@@ -2557,8 +2569,8 @@ finished:
 					}
 				}
 #else
-				[self initialiseGLWithSize: newSize];
-				[self saveWindowSize: newSize];
+				newSize=NSMakeSize(rsevt->w, rsevt->h);
+                resize_pending = true;
 #endif
 				// certain gui screens will require an immediate redraw after
 				// a resize event - Nikos 20140129
@@ -2722,6 +2734,14 @@ finished:
 	{
 		_mouseWheelDelta = 0.0f;
 	}
+#if OOLITE_LINUX
+	if (resize_pending)
+	{
+		[self initialiseGLWithSize: newSize];
+		[self saveWindowSize: newSize];
+		resize_pending = false;
+	}
+#endif
 }
 
 

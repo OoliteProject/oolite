@@ -128,21 +128,24 @@ install_package() {
                 arch) PKG_NAME="libx11" ;;
             esac ;;
 
-        "file") PKG_NAME="file" ;;
-
-        "fuse") PKG_NAME="fuse3" ;;
+        "appimage")
+            case "$CURRENT_DISTRO" in
+                debian) PKG_NAME="file fuse3" ;;
+                redhat) PKG_NAME="file fuse3 which desktop-file-utils perl-File-MimeInfo" ;;
+                arch) PKG_NAME="file fuse3" ;;
+            esac ;;
 
         "flatpak") PKG_NAME="flatpak flatpak-builder" ;;
 
         *)
-            echo "❌ Could not translate '$GENERIC_NAME' for $CURRENT_DISTRO!" >&2
+            echo "❌ I don't know how to translate '$GENERIC_NAME' for $CURRENT_DISTRO" >&2
             return 1
             ;;
     esac
 
     # Perform the Installation
     if [ -z "$PKG_NAME" ]; then
-        echo "❌ Could not determine package name for $GENERIC_NAME!" >&2
+        echo "❌ Could not determine package name for $GENERIC_NAME" >&2
         return 1
     else
         echo "--> Installing $GENERIC_NAME ($PKG_NAME)..."

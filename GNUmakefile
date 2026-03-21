@@ -11,19 +11,6 @@ ifeq ($(GNUSTEP_HOST_OS),mingw32)
 endif
 GNUSTEP_OBJ_DIR_BASENAME         := $(GNUSTEP_OBJ_DIR_NAME)
 
-VERSION                          := $(shell cat src/Cocoa/oolite-version.xcconfig | cut -d '=' -f 2)
-VER_MAJ                          := $(shell echo $(VERSION) | cut -d. -f1)
-VER_MIN                          := $(shell echo $(VERSION) | cut -d. -f2)
-VER_REV                          := $(shell echo $(VERSION) | cut -d. -f3)
-ifeq ($(VER_REV),)
-    VER_REV                       = 0
-endif
-VER_DATE                         := $(shell date +%y%m%d)
-VER_GITREV                       := $(shell git rev-list --count HEAD)
-VER_GITHASH                      := $(shell git rev-parse --short=7 HEAD)
-VER_FULL                         := $(VER_MAJ).$(VER_MIN).$(VER_REV).$(VER_GITREV)-$(VER_DATE)-$(VER_GITHASH)
-
-
 ifeq ($(GNUSTEP_HOST_OS),mingw32)
 	vpath %.rc src/SDL/OOResourcesWin
 
@@ -57,11 +44,11 @@ ifeq ($(GNUSTEP_HOST_OS),mingw32)
         LIBPNG_LIBRARY_NAME          = png14
     endif
 
-    ADDITIONAL_INCLUDE_DIRS      = -Isrc/SDL -Isrc/Core -Isrc/BSDCompat -Isrc/Core/Scripting -Isrc/Core/Materials -Isrc/Core/Entities -Isrc/Core/OXPVerifier -Isrc/Core/Debug -Isrc/Core/Tables -Isrc/Core/MiniZip -Isrc/SDL/EXRSnapshotSupport
-    ADDITIONAL_OBJC_LIBS         = -lglu32 -lopengl32 -l$(OPENAL_LIBRARY_NAME).dll -l$(LIBPNG_LIBRARY_NAME).dll -lmingw32 -lSDLmain -lSDL -lvorbisfile.dll -lvorbis.dll -lz -lgnustep-base -l$(JS_IMPORT_LIBRARY) -lnspr4 -lshlwapi -ldwmapi -lwinmm -mwindows
-    ADDITIONAL_CFLAGS            = -DWIN32 -DNEED_STRLCPY `sdl-config --cflags` -mtune=generic -DWINVER=0x0601 -D_WIN32_WINNT=0x0601 -DNTDDI_VERSION=0x0A00000F
+    ADDITIONAL_INCLUDE_DIRS      += -Isrc/SDL -Isrc/Core -Isrc/BSDCompat -Isrc/Core/Scripting -Isrc/Core/Materials -Isrc/Core/Entities -Isrc/Core/OXPVerifier -Isrc/Core/Debug -Isrc/Core/Tables -Isrc/Core/MiniZip -Isrc/SDL/EXRSnapshotSupport
+    ADDITIONAL_OBJC_LIBS         += -lglu32 -lopengl32 -l$(OPENAL_LIBRARY_NAME).dll -l$(LIBPNG_LIBRARY_NAME).dll -lmingw32 -lSDLmain -lSDL -lvorbisfile.dll -lvorbis.dll -lz -lgnustep-base -l$(JS_IMPORT_LIBRARY) -lnspr4 -lshlwapi -ldwmapi -lwinmm -mwindows
+    ADDITIONAL_CFLAGS            += -DWIN32 -DNEED_STRLCPY `sdl-config --cflags` -mtune=generic -DWINVER=0x0601 -D_WIN32_WINNT=0x0601 -DNTDDI_VERSION=0x0A00000F
 # note the vpath stuff above isn't working for me, so adding src/SDL and src/Core explicitly
-    ADDITIONAL_OBJCFLAGS         = -DLOADSAVEGUI -DWIN32 -DXP_WIN -Wno-import -std=gnu99 `sdl-config --cflags` -mtune=generic -DWINVER=0x0601 -D_WIN32_WINNT=0x0601 -DNTDDI_VERSION=0x0A00000F
+    ADDITIONAL_OBJCFLAGS         += -DLOADSAVEGUI -DWIN32 -DXP_WIN -Wno-import -std=gnu99 `sdl-config --cflags` -mtune=generic -DWINVER=0x0601 -D_WIN32_WINNT=0x0601 -DNTDDI_VERSION=0x0A00000F
 #     oolite_LIB_DIRS              += -L$(GNUSTEP_LOCAL_ROOT)/lib -L$(WIN_DEPS_DIR)/lib -L$(JS_LIB_DIR)
 
     ifeq ($(ESPEAK),yes)
@@ -93,11 +80,11 @@ else  # Linux only uses modern build
         LIBJS                    = js_static
     endif
 
-    ADDITIONAL_INCLUDE_DIRS      = -I$(LIBJS_INC_DIR) -Isrc/SDL -Isrc/Core -Isrc/BSDCompat -Isrc/Core/Scripting -Isrc/Core/Materials -Isrc/Core/Entities -Isrc/Core/OXPVerifier -Isrc/Core/Debug -Isrc/Core/Tables -Isrc/Core/MiniZip
-    ADDITIONAL_OBJC_LIBS         = -lGLU -lGL -lX11 -lSDL -lgnustep-base -L$(LIBJS_DIR) -l$(LIBJS) -lopenal -lz -lvorbisfile -lpng `nspr-config --libs` -lstdc++
-    ADDITIONAL_OBJCFLAGS         = -DLINUX -DXP_UNIX `sdl-config --cflags`
-    ADDITIONAL_CFLAGS            = -DLINUX `sdl-config --cflags`
-    ADDITIONAL_LDFLAGS           = -fuse-ld=bfd  # Force use of ld (ldd and gold don't work. mold also works)
+    ADDITIONAL_INCLUDE_DIRS      += -I$(LIBJS_INC_DIR) -Isrc/SDL -Isrc/Core -Isrc/BSDCompat -Isrc/Core/Scripting -Isrc/Core/Materials -Isrc/Core/Entities -Isrc/Core/OXPVerifier -Isrc/Core/Debug -Isrc/Core/Tables -Isrc/Core/MiniZip
+    ADDITIONAL_OBJC_LIBS         += -lGLU -lGL -lX11 -lSDL -lgnustep-base -L$(LIBJS_DIR) -l$(LIBJS) -lopenal -lz -lvorbisfile -lpng `nspr-config --libs` -lstdc++
+    ADDITIONAL_OBJCFLAGS         += -DLINUX -DXP_UNIX `sdl-config --cflags`
+    ADDITIONAL_CFLAGS            += -DLINUX `sdl-config --cflags`
+    ADDITIONAL_LDFLAGS           += -fuse-ld=bfd  # Force use of ld (ldd and gold don't work. mold also works)
 
     ifeq ($(ESPEAK),yes)
         ADDITIONAL_OBJC_LIBS     += -lespeak-ng
@@ -117,8 +104,9 @@ endif
 
 # add specific flags if building modern
 ifeq ($(modern),yes)
-    ADDITIONAL_CFLAGS        += -DOOLITE_MODERN_BUILD=1 -DOO_VERSION_FULL=\"$(VER_FULL)\" 
-    ADDITIONAL_OBJCFLAGS     += -DOOLITE_MODERN_BUILD=1 -DOO_VERSION_FULL=\"$(VER_FULL)\" 
+    VER_FULL := $(shell ./ShellScripts/common/get_version.sh)
+    ADDITIONAL_CFLAGS        += -DOOLITE_MODERN_BUILD=1 -DOO_VERSION_FULL=\"$(VER_FULL)\"
+    ADDITIONAL_OBJCFLAGS     += -DOOLITE_MODERN_BUILD=1 -DOO_VERSION_FULL=\"$(VER_FULL)\"
 #   link time optimizations
     ifeq ($(lto),yes)
         ADDITIONAL_CFLAGS        += -flto
