@@ -1,3 +1,25 @@
+Changes between Oolite 1.92 and Oolite 1.92.1:
+
+* Windows: Fixed game window title bar not respecting system dark mode settings
+  on Windows when launched with the -nosplash cmd line arg.
+* Fixed white flashbang on Windows port startup when the game was started with
+  the -nosplash cmd line argument.
+* Windows: Fixed regression regarding transfer of full screen window to different
+  monitor with Win + Shift + Left/Right in multi-monitor setups. This action is
+  now disabled - as intended, when the game runs in full screen.
+* Security fix: Download OXZ list using https.
+* Fixed bug where a savefile passed as cmd line argument would not load unless
+  it was the last argument.
+* The full game version is now inlined and reported in the help message and log
+  files.
+* Added test release build identification in help text output.
+* Linux: Fixed crash when attempting to download expansions list without a
+  network connection.
+* Linux: Splash screen and main window are now both centered on game startup.
+* Linux: Game window can now be resized smoothly.
+
+-------------------------------------------------------------------------------
+
 Changes between Oolite 1.90 and Oolite 1.92:
 
 General:
