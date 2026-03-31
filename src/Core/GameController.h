@@ -112,6 +112,17 @@ MA 02110-1301, USA.
 - (BOOL) isGamePaused;
 - (void) setGamePaused:(BOOL)value;
 
+/*
+  Eco Quality of Service currently implemented only on Windows.
+  It sets the game to low power consumption mode when it loses
+  focus or is paused. When EcoQoS is active:
+  - Windows schedules the appliation on more efficient CPU cores
+  - The CPU is kept at a more efficient clock frequency
+  
+  On non-Windows platforms it is a no-op.
+*/
+- (void) setEcoQoS: (BOOL)efficiencyModeRequested;
+
 - (OOMouseInteractionMode) mouseInteractionMode;
 - (void) setMouseInteractionMode:(OOMouseInteractionMode)mode;
 - (void) setMouseInteractionModeForFlight;	// Chooses mouse control mode appropriately.

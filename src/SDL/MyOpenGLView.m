@@ -2702,6 +2702,7 @@ finished:
 							dwLastError = GetLastError();
 							OOLog(@"wm_setfocus.message", @"Setting thread priority to time critical failed! (error code: %ld)", dwLastError);
 						}
+						[gameController setEcoQoS:[gameController isGamePaused]];
 						break;
 						
 					case WM_KILLFOCUS:
@@ -2710,6 +2711,7 @@ finished:
 							dwLastError = GetLastError();
 							OOLog(@"wm_killfocus.message", @"Setting thread priority to normal failed! (error code: %ld)", dwLastError);
 						}
+						[gameController setEcoQoS:YES];
 						break;
 						
 					default:

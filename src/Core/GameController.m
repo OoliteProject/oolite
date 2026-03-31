@@ -136,15 +136,44 @@ static GameController *sSharedController = nil;
 	{
 		_resumeMode = [self mouseInteractionMode];
 		[self setMouseInteractionModeForUIWithMouseInteraction:NO];
+		[self setEcoQoS:YES];
 		gameIsPaused = YES;
 		[PLAYER doScriptEvent:OOJSID("gamePaused")];
 	}
 	else if (!value && gameIsPaused)
 	{
 		[self setMouseInteractionMode:_resumeMode];
+		[self setEcoQoS:NO];
 		gameIsPaused = NO;
 		[PLAYER doScriptEvent:OOJSID("gameResumed")];
 	}
+}
+
+
+- (void) setEcoQoS: (BOOL)efficiencyModeRequested
+{
+#if OOLITE_WINDOWS
+	if ([[NSUserDefaults standardUserDefaults] oo_boolForKey:@"ecoqos" defaultValue:YES])
+	{
+		BOOL setEfficiencyMode = !!efficiencyModeRequested; // yes or no, not 42
+		HANDLE currentProcess = GetCurrentProcess();
+		
+		if (EXPECT_NOT(!SetPriorityClass(currentProcess, setEfficiencyMode ? IDLE_PRIORITY_CLASS : NORMAL_PRIORITY_CLASS)))
+		{
+			OOLog(@"gameController.setEcoQos", @"SetPriorityClass failed with error %lu", GetLastError());
+		}
+		
+		PROCESS_POWER_THROTTLING_STATE powerThrottling;
+		RtlZeroMemory(&powerThrottling, sizeof(powerThrottling));
+		powerThrottling.Version = PROCESS_POWER_THROTTLING_CURRENT_VERSION;
+		powerThrottling.ControlMask = PROCESS_POWER_THROTTLING_EXECUTION_SPEED;
+		powerThrottling.StateMask = setEfficiencyMode ? PROCESS_POWER_THROTTLING_EXECUTION_SPEED : 0;
+		if (EXPECT_NOT(!SetProcessInformation(currentProcess, ProcessPowerThrottling, &powerThrottling, sizeof(powerThrottling))))
+		{
+			OOLog(@"gameController.setEcoQos", @"SetProcessInformation failed with error %lu", GetLastError());
+		}
+	}
+#endif
 }
 
 
