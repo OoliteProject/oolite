@@ -164,7 +164,7 @@ void OOPrintLogHeader(void)
 	#if (defined (SNAPSHOT_BUILD))
 		versionString = @"development version " @OO_VERSION_FULL;
 	#else
-		versionString = [NSString stringWithFormat:@"version %s", OO_VERSION_FULL];
+		versionString = @"version " @OO_VERSION_FULL;
 	#endif
 	if (versionString == nil)  versionString = @"<unknown version>";
 	

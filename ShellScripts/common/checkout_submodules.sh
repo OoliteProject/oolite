@@ -5,7 +5,7 @@ run_script() {
     pushd "$SCRIPT_DIR"
 
     source ./checkout_submodules_fn.sh
-    cd ../..
+
     if ! checkout_submodules; then
         return 1
     fi

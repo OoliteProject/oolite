@@ -128,9 +128,12 @@ install_package() {
                 arch) PKG_NAME="libx11" ;;
             esac ;;
 
-        "file") PKG_NAME="file" ;;
-
-        "fuse") PKG_NAME="fuse3" ;;
+        "appimage")
+            case "$CURRENT_DISTRO" in
+                debian) PKG_NAME="file fuse3" ;;
+                redhat) PKG_NAME="file fuse3 which desktop-file-utils perl-File-MimeInfo" ;;
+                arch) PKG_NAME="file fuse3" ;;
+            esac ;;
 
         "flatpak") PKG_NAME="flatpak flatpak-builder" ;;
 

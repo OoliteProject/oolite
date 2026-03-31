@@ -11,5 +11,6 @@ checkout_deps() {
     git clone --filter=blob:none https://github.com/gnustep/libobjc2.git
     git clone --filter=blob:none https://github.com/gnustep/tools-make.git
     git clone --filter=blob:none https://github.com/gnustep/libs-base.git
+
     popd
 }

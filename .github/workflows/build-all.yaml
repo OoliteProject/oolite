@@ -46,7 +46,7 @@ jobs:
         with:
           name: oolite-linux-${{matrix.flavour}}
           path: |
-            oolite/build/Oolite_*.AppImage
+            oolite/build/oolite*.AppImage
           retention-days: 5
 
   build-flatpak:
@@ -158,7 +158,7 @@ jobs:
           cat build/OOLITE_VERSION.txt >> "$GITHUB_OUTPUT"
 
       - name: Remove old prereleases
-        if: github.ref == 'refs/heads/master'
+        if: github.ref == 'refs/heads/master' || endsWith(github.ref, 'maintenance')
         uses: s00d/delete-older-releases@0.2.1
         with:
           keep_latest: 7
@@ -169,7 +169,7 @@ jobs:
       # For changes on master branch, create a new release.
       # It should move the 'latest' tag automatically.
       - name: Create Release
-        if: github.ref == 'refs/heads/master'
+        if: github.ref == 'refs/heads/master' || endsWith(github.ref, 'maintenance')
         id: create_release
         uses: "marvinpinto/action-automatic-releases@latest"
         with:
@@ -188,7 +188,7 @@ jobs:
             artifacts/oolite-flatpak/*.flatpak
 
       - name: Remove old workflow runs
-        if: github.ref == 'refs/heads/master'
+        if: github.ref == 'refs/heads/master' || endsWith(github.ref, 'maintenance')
         uses: Mattraks/delete-workflow-runs@v2
         with:
           token: ${{ github.token }}

@@ -135,7 +135,7 @@ enum StringInput
 {
 	gvStringInputNo = 0,
 	gvStringInputAlpha = 1,
-	gvStringInputLoadSave = 2,	
+	gvStringInputLoadSave = 2,
 	gvStringInputAll = 3
 };
 
@@ -196,7 +196,7 @@ extern int debug;
 	NSMutableString		*typedString;
 
 	NSPoint				virtualJoystickPosition;
-	
+
 	float				_mouseVirtualStickSensitivityFactor;
 
 	NSSize				viewSize;
@@ -227,7 +227,7 @@ extern int debug;
 	BOOL				updateContext;
 	BOOL				saveSize;
 	BOOL				atDesktopResolution;
-	unsigned			keyboardMap; // *** FLAGGED for deletion 
+	unsigned			keyboardMap; // *** FLAGGED for deletion
 	HWND 				SDL_Window;
 	MONITORINFOEX		monitorInfo;
 	RECT				lastGoodRect;
@@ -240,18 +240,18 @@ extern int debug;
 	int					_sdrToneMapper;
 
 	float				_colorSaturation;
-	
+
 	BOOL				_hdrOutput;
 
 	BOOL				grabMouseStatus;
 
 	NSSize				firstScreen;
-	
+
 	OOOpenGLMatrixManager		*matrixManager;
 
    // Mouse mode indicator (for mouse movement model)
    BOOL					mouseInDeltaMode;
-   
+
    float				_mouseWheelDelta;
 }
 

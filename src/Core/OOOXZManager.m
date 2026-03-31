@@ -114,7 +114,6 @@ enum {
 	OXZ_GUI_ROW_EXIT		= 27
 };
 
-
 NSComparisonResult oxzSort(id m1, id m2, void *context);
 
 static OOOXZManager *sSingleton = nil;
@@ -237,24 +236,24 @@ static OOOXZManager *sSingleton = nil;
 	{
 		return [NSString stringWithUTF8String:managedAddOnsEnv];
 	}
-    else
-    {
-	    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory,NSUserDomainMask,YES);
-	    NSString *appPath = [paths objectAtIndex:0];
-	    if (appPath != nil)
-	    {
-		    appPath = [appPath stringByAppendingPathComponent:@"Oolite"];
-    #if OOLITE_MAC_OS_X
-		    appPath = [appPath stringByAppendingPathComponent:@"Managed AddOns"];
-    #else
-		    /* GNUStep uses "ApplicationSupport" rather than "Application
-		     * Support" so match convention by not putting a space in the
-		     * path either */
-		    appPath = [appPath stringByAppendingPathComponent:@"ManagedAddOns"];
-    #endif
-		    return appPath;
-	    }
-    }
+	else
+	{
+		NSArray *paths = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory,NSUserDomainMask,YES);
+		NSString *appPath = [paths objectAtIndex:0];
+		if (appPath != nil)
+		{
+			appPath = [appPath stringByAppendingPathComponent:@"Oolite"];
+	#if OOLITE_MAC_OS_X
+			appPath = [appPath stringByAppendingPathComponent:@"Managed AddOns"];
+	#else
+			/* GNUStep uses "ApplicationSupport" rather than "Application
+			 * Support" so match convention by not putting a space in the
+			 * path either */
+			appPath = [appPath stringByAppendingPathComponent:@"ManagedAddOns"];
+	#endif
+			return appPath;
+		}
+	}
 	return nil;
 }
 
@@ -267,10 +266,10 @@ static OOOXZManager *sSingleton = nil;
 	{
 		return [NSString stringWithUTF8String:addOnsExtractEnv];
 	}
-    else
-    {
+	else
+	{
 #if OOLITE_WINDOWS
-    #if OO_GAME_DATA_TO_USER_FOLDER
+	#if OO_GAME_DATA_TO_USER_FOLDER
 		return [NSString stringWithFormat:@"%s\\Oolite\\AddOns", SDL_getenv("LOCALAPPDATA")];
 	#else
 		return @"../AddOns";
@@ -278,19 +277,19 @@ static OOOXZManager *sSingleton = nil;
 #else
 		return [[NSHomeDirectory() stringByAppendingPathComponent:@".Oolite"] stringByAppendingPathComponent:@"AddOns"];
 #endif
-    }
+	}
 }
 
 /* Add additional AddOns paths */
 - (NSArray *) additionalAddOnsPaths
 {
-    const char *additionalAddOnsEnv = SDL_getenv("OO_ADDITIONALADDONSDIRS");
+	const char *additionalAddOnsEnv = SDL_getenv("OO_ADDITIONALADDONSDIRS");
 
-    if (additionalAddOnsEnv) {
+	if (additionalAddOnsEnv) {
 		NSString *envStr = [NSString stringWithUTF8String:additionalAddOnsEnv];
 		return [envStr componentsSeparatedByString:@","];
-    }
-    return [NSArray array];
+	}
+	return [NSArray array];
 }
 
 
@@ -450,8 +449,8 @@ static OOOXZManager *sSingleton = nil;
 	}
 
 	NSMutableArray *filteredList = [NSMutableArray arrayWithCapacity:[list count]];
-	NSDictionary *manifest       = nil;
-	NSInvocation *invocation     = [NSInvocation invocationWithMethodSignature:[[self class] instanceMethodSignatureForSelector:filterSelector]];
+	NSDictionary *manifest		 = nil;
+	NSInvocation *invocation	 = [NSInvocation invocationWithMethodSignature:[[self class] instanceMethodSignatureForSelector:filterSelector]];
 	[invocation setSelector:filterSelector];
 	[invocation setTarget:self];
 	if (parameter != nil)
@@ -624,7 +623,6 @@ static OOOXZManager *sSingleton = nil;
 - (BOOL) updateManifests
 {
 	NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:[self dataURL]]];
-	[request setHTTPShouldHandleCookies:NO];
 	if (_downloadStatus != OXZ_DOWNLOAD_NONE)
 	{
 		return NO;
@@ -641,6 +639,7 @@ static OOOXZManager *sSingleton = nil;
 {
 	NSString *userAgent = [NSString stringWithFormat:@"Oolite/%@", [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"]];
 	[request setValue:userAgent forHTTPHeaderField:@"User-Agent"];
+	[request setHTTPShouldHandleCookies:NO];
 	NSURLConnection *download = [[NSURLConnection alloc] initWithRequest:request delegate:self];
 	if (download)
 	{
@@ -880,7 +879,7 @@ static OOOXZManager *sSingleton = nil;
 		{
 			OOLog(kOOOXZDebugLog,@"Dependency stack: checking %@",[requirement oo_stringForKey:kOOManifestRelationIdentifier]);
 			if (![ResourceManager manifest:downloadedManifest HasUnmetDependency:requirement logErrors:NO]
-			    && requires != nil && [requires containsObject:requirement])
+				&& requires != nil && [requires containsObject:requirement])
 			{
 				// it was unmet, but now it's met					
 				[progress appendFormat:DESC(@"oolite-oxzmanager-progress-now-has-@"),[requirement oo_stringForKey:kOOManifestRelationDescription defaultValue:[requirement oo_stringForKey:kOOManifestRelationIdentifier]]];
@@ -1232,8 +1231,14 @@ static OOOXZManager *sSingleton = nil;
 	case OXZ_STATE_INSTALLING:
 		[gui setTitle:DESC(@"oolite-oxzmanager-title-downloading")];
 
-		[gui addLongText:[NSString stringWithFormat:DESC(@"oolite-oxzmanager-progress-@-is-@-of-@"),_currentDownloadName,[self humanSize:_downloadProgress],[self humanSize:_downloadExpected]] startingAtRow:OXZ_GUI_ROW_PROGRESS align:GUI_ALIGN_LEFT];
-
+		if (_downloadStatus == OXZ_DOWNLOAD_ERROR)
+		{
+			[gui addLongText:OOExpandKey(@"oolite-oxzmanager-progress-error") startingAtRow:OXZ_GUI_ROW_PROGRESS align:GUI_ALIGN_LEFT];
+		}
+		else
+		{
+			[gui addLongText:[NSString stringWithFormat:DESC(@"oolite-oxzmanager-progress-@-is-@-of-@"),_currentDownloadName,[self humanSize:_downloadProgress],[self humanSize:_downloadExpected]] startingAtRow:OXZ_GUI_ROW_PROGRESS align:GUI_ALIGN_LEFT];
+		}
 		[gui addLongText:_progressStatus startingAtRow:OXZ_GUI_ROW_PROGRESS+2 align:GUI_ALIGN_LEFT];
 
 		[gui setText:DESC(@"oolite-oxzmanager-cancel") forRow:OXZ_GUI_ROW_CANCEL align:GUI_ALIGN_CENTER];
@@ -1710,7 +1715,6 @@ static OOOXZManager *sSingleton = nil;
 		return NO;
 	}
 	NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:url]];
-	[request setHTTPShouldHandleCookies:NO];
 	if (_downloadStatus != OXZ_DOWNLOAD_NONE)
 	{
 		return NO;
