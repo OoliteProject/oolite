@@ -59,7 +59,7 @@ modules:
     sources:
       - type: git
         url: https://github.com/gnustep/libobjc2.git
-        commit: e5c06e3be8895007bcc7be58cbeccac2a5a89eff
+        commit: 62e3a80b8e93818c2ac3250beab211c4d294cc87
   - name: gnustep-make
     build-options:
       env:
@@ -69,9 +69,9 @@ modules:
       - --with-library-combo=ng-gnu-gnu
       - --with-runtime-abi=gnustep-2.2
     sources:
-      - type: archive
-        url: "https://github.com/gnustep/tools-make/releases/download/make-2_9_3/gnustep-make-2.9.3.tar.gz"
-        sha256: "93ca320b706279ebca53760da89d4c3f2bbc547f4723967140a34346d9f04c24"
+      - type: git
+        url: https://github.com/gnustep/tools-make.git
+        commit: 50cf9619e672fb2ff6825f239b5a172c5dc55630
   - name: gnustep-base
     build-options:
       env:
@@ -80,16 +80,16 @@ modules:
     sources:
       - type: git
         url: https://github.com/gnustep/libs-base.git
-        commit: 2b236ec2c4816e7ff482f07dc973b655a3780122
+        commit: caa0816846937a0ad4724eba12cd0d69786b2e54
   - name: oolite
     buildsystem: simple
     build-commands:
-    - source installers/flatpak/flatpak_build.sh
+      - source installers/flatpak/flatpak_build.sh
     sources:
       # Update tag and commit for FlatHub release. For CI and local builds, create_flatpak.sh replaces git source with:
       # - type: dir
       #   path: ../
       - type: git
         url: https://github.com/OoliteProject/oolite.git
-        tag: "1.92.0.3"
-        commit: d2a705b05f667e9aa4d18478ff9305dac9183a9a
+        tag: "1.92.1.0"
+        commit: dd117d31c2f0e756d478e64584120d3d5cbf64d8
