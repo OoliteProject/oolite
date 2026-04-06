@@ -97,10 +97,8 @@ jobs:
         with:
           update: true
 
-      - name: Checkout Oolite
-        uses: actions/checkout@v6
+      - uses: actions/checkout@v6
         with:
-          path: oolite
           fetch-depth: 0
           submodules: true
 
@@ -110,17 +108,17 @@ jobs:
           repository: OoliteProject/oolite_windeps_build
           latest: true
           fileName: "*"
-          out-file-path: oolite/build/packages
+          out-file-path: build/packages
 
       - name: Install packages
         shell: msys2 {0}
         env:
           msystem: UCRT64
         run: |
-          oolite/ShellScripts/Windows/install_deps.sh clang
+          ShellScripts/Windows/install_deps.sh clang
 
       - name: Install Mesa Windows
-        uses: f3d-app/install-mesa-windows-action@v1
+        uses: f3d-app/install-mesa-windows-action@v2
         with:
           path: ${{github.workspace}}/oolite.app
 
@@ -129,4 +127,4 @@ jobs:
         env:
           msystem: UCRT64
         run: |
-          oolite/ShellScripts/common/build_oolite.sh test
+          ShellScripts/common/build_oolite.sh test
