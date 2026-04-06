@@ -101,19 +101,25 @@ sudo ShellScripts/Linux/install_deps_root.sh
 
 ### Building Oolite
 
-Next run this in your bash or MSYS2 prompt to build Oolite:
+Next run this in your Bash or MSYS2 prompt to build Oolite:
 
 ```bash
 ShellScripts/common/build_oolite.sh release
 ```
 
-The completed build (executable and games files) can be found in the Oolite.app directory.
+The completed build (executable and games files) can be found in the oolite.app directory.
 
 Subsequently, you can clean and build as follows:
 
 ```bash
 make -f Makefile clean
 make -f Makefile release -j$(nproc)
+```
+
+You can run a test from your Bash or MSYS2 prompt as follows:
+
+```bash
+make -f Makefile test
 ```
 
 On Linux, you will need to run this beforehand: `source /usr/local/share/GNUstep/Makefiles/GNUstep.sh`
