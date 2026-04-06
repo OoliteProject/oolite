@@ -116,11 +116,7 @@ jobs:
           msystem: UCRT64
         run: |
           ShellScripts/Windows/install_deps.sh clang
-
-      - name: Install Mesa Windows
-        uses: f3d-app/install-mesa-windows-action@v2
-        with:
-          path: ${{github.workspace}}/oolite.app
+          pacboy -S mesa --noconfirm
 
       - name: Build Oolite
         shell: msys2 {0}
