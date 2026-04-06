@@ -1,6 +1,4 @@
----
-name: build-all
-
+name: Build Oolite package for various platforms
 on:
   workflow_dispatch:
   push:
