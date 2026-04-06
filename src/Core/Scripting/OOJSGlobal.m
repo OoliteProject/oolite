@@ -861,10 +861,8 @@ static JSBool GlobalQuitGame(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 
-	// Log the event so you see it in Latest.log
 	OOLog(@"script.debug.quit", @"Quit requested via JavaScript global.quitGame()");
 
-	// Call the method you just added to Universe
 	[UNIVERSE quitGame];
 
 	OOJS_RETURN_BOOL(YES);

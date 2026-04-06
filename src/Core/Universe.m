@@ -1052,9 +1052,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
 - (void) quitGame
 {
-OOLog(@"universe.quit", @"Quit command received by Universe.");
-
-	// Use the internal convenience method instead of NSApp
+	OOLog(@"universe.quit", @"Quit command received by Universe.");
 	[[self gameController] exitAppWithContext:@"Universe Request"];
 }
 

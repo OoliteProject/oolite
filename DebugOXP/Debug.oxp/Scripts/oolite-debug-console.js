@@ -861,8 +861,7 @@ this.evaluate = function evaluate(command, PARAM)
 this.quit = function() {
     log("debugConsole.automation", "Triggering global quitGame bridge...");
 
-    // This calls the native function you added to OOJSGlobal.m,
-    // which in turn calls [Universe quitGame]
+    // This calls the native function in OOJSGlobal.m, which in turn calls [Universe quitGame]
     if (typeof quitGame === "function") {
         quitGame();
     } else {
