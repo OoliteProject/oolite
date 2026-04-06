@@ -16,6 +16,7 @@ run_script() {
 
     if ! $PYTHON_CMD launch_snapshot.py --path=../oolite.app; then
         echo "❌ Oolite test failed!" >&2
+        return 1
     fi
 
     echo "✅ Oolite test completed successfully"
