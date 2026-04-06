@@ -35,7 +35,7 @@ jobs:
 
       - name: Install packages
         run: |
-          sudo oolite/ShellScripts/Linux/install_deps_root.sh
+          sudo oolite/ShellScripts/Linux/install_deps_root.sh --skip-wayland
 
       - name: Build Oolite
         run: |
