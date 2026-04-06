@@ -23,7 +23,7 @@ jobs:
           sudo ShellScripts/Linux/install_deps_root.sh
       - name: Build Oolite
         run: |
-          ShellScripts/common/build_oolite.sh test-snapshot
+          ShellScripts/common/build_oolite.sh test
 
   fedora:
     runs-on: ubuntu-latest
@@ -50,7 +50,7 @@ jobs:
           ShellScripts/Linux/install_deps_root.sh
       - name: Build Oolite
         run: |
-          ShellScripts/common/build_oolite.sh test-snapshot
+          ShellScripts/common/build_oolite.sh test
 
   arch:
     runs-on: ubuntu-latest
@@ -77,7 +77,7 @@ jobs:
           ShellScripts/Linux/install_deps_root.sh
       - name: Build Oolite
         run: |
-          ShellScripts/common/build_oolite.sh test-snapshot
+          ShellScripts/common/build_oolite.sh test
 
   windows:
     runs-on: windows-latest
@@ -114,4 +114,4 @@ jobs:
         env:
           msystem: UCRT64
         run: |
-          oolite/ShellScripts/common/build_oolite.sh test-snapshot
+          oolite/ShellScripts/common/build_oolite.sh test
