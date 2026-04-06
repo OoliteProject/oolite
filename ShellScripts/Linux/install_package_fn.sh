@@ -37,6 +37,15 @@ install_package() {
                 arch) PKG_NAME="gnutls" ;;
             esac ;;
 
+        "python")
+            case "$CURRENT_DISTRO" in
+                debian) PKG_NAME="python3-pip" ;;
+                redhat) PKG_NAME="python3-pip" ;;
+                arch) PKG_NAME="python-pip" ;;
+            esac ;;
+
+        "xwfb-run") PKG_NAME="xwayland-run weston" ;;
+
         "icu-dev")
             case "$CURRENT_DISTRO" in
                 debian) PKG_NAME="libicu-dev" ;;

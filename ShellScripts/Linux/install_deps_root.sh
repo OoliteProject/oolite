@@ -30,6 +30,15 @@ run_script() {
     if ! install_package gnutls-dev; then
         return 1
     fi
+    # Check Python
+    if ! python3 --version >/dev/null 2>&1; then
+        if ! install_package python; then
+            return 1
+        fi
+    fi
+    if ! install_package xwfb-run; then
+        return 1
+    fi
     if ! install_package icu-dev; then
         return 1
     fi
