@@ -119,6 +119,11 @@ jobs:
         run: |
           oolite/ShellScripts/Windows/install_deps.sh clang
 
+      - name: Install Mesa Windows
+        uses: f3d-app/install-mesa-windows-action@v1
+        with:
+          path: ${{github.workspace}}/oolite.app
+
       - name: Build Oolite
         shell: msys2 {0}
         env:
