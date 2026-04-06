@@ -23,7 +23,7 @@ jobs:
           sudo ShellScripts/Linux/install_deps_root.sh
       - name: Build Oolite
         run: |
-          ShellScripts/common/build_oolite.sh pkg-appimage
+          ShellScripts/common/build_oolite.sh test-snapshot
 
   fedora:
     runs-on: ubuntu-latest
@@ -50,7 +50,7 @@ jobs:
           ShellScripts/Linux/install_deps_root.sh
       - name: Build Oolite
         run: |
-          ShellScripts/common/build_oolite.sh pkg-appimage
+          ShellScripts/common/build_oolite.sh test-snapshot
 
   arch:
     runs-on: ubuntu-latest
@@ -77,4 +77,41 @@ jobs:
           ShellScripts/Linux/install_deps_root.sh
       - name: Build Oolite
         run: |
-          ShellScripts/common/build_oolite.sh pkg-appimage
+          ShellScripts/common/build_oolite.sh test-snapshot
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - name: Set up MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          update: true
+
+      - name: Checkout Oolite
+        uses: actions/checkout@v6
+        with:
+          path: oolite
+          fetch-depth: 0
+          submodules: true
+
+      - name: Download latest release assets
+        uses: robinraju/release-downloader@v1
+        with:
+          repository: OoliteProject/oolite_windeps_build
+          latest: true
+          fileName: "*"
+          out-file-path: oolite/build/packages
+
+      - name: Install packages
+        shell: msys2 {0}
+        env:
+          msystem: UCRT64
+        run: |
+          oolite/ShellScripts/Windows/install_deps.sh clang
+
+      - name: Build Oolite
+        shell: msys2 {0}
+        env:
+          msystem: UCRT64
+        run: |
+          oolite/ShellScripts/common/build_oolite.sh test-snapshot

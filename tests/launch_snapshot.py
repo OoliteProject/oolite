@@ -1,3 +1,4 @@
+import argparse
 import socket
 import subprocess
 import time
@@ -11,18 +12,19 @@ import shutil
 
 # --- PROTOCOL CONSTANTS (from _protocol.py) ---
 # Using the exact string definitions required by the Oolite Debug Protocol
-REQUEST_CONNECTION    = "Request Connection"
-APPROVE_CONNECTION    = "Approve Connection"
-PERFORM_COMMAND       = "Perform Command"
-PACKET_TYPE_KEY       = "packet type"
-MESSAGE_KEY           = "message"
-CONSOLE_IDENTITY_KEY  = "console identity"
-OOLITE_VERSION_KEY    = "Oolite version"
+REQUEST_CONNECTION = "Request Connection"
+APPROVE_CONNECTION = "Approve Connection"
+PERFORM_COMMAND = "Perform Command"
+PACKET_TYPE_KEY = "packet type"
+MESSAGE_KEY = "message"
+CONSOLE_IDENTITY_KEY = "console identity"
+OOLITE_VERSION_KEY = "Oolite version"
 
 # --- CONFIGURATION ---
-OOLITE_BIN = "./oolite"
+IS_WINDOWS = sys.platform == "win32" or (os.name == "nt")
 PORT = 8563
 HOST = "127.0.0.1"
+
 
 def send_plist_packet(sock, packet):
     """
@@ -45,6 +47,7 @@ def send_plist_packet(sock, packet):
         print(f"[!] Failed to encode/send packet: {e}")
         return False
 
+
 def receive_plist_packet(sock):
     """
     Implements the receiving state machine from PropertyListPacketProtocol.py:
@@ -53,13 +56,15 @@ def receive_plist_packet(sock):
     """
     try:
         header = sock.recv(4)
-        if len(header) < 4: return None
+        if len(header) < 4:
+            return None
 
         length = struct.unpack(">I", header)[0]
         data = b""
         while len(data) < length:
             chunk = sock.recv(length - len(data))
-            if not chunk: break
+            if not chunk:
+                break
             data += chunk
 
         return plistlib.loads(data)
@@ -67,7 +72,8 @@ def receive_plist_packet(sock):
         print(f"[!] Error receiving packet: {e}")
         return None
 
-def run_test(snapshots_dir):
+
+def run_test(bin_name, snapshots_dir):
     # Setup TCP Server
     server_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -83,9 +89,22 @@ def run_test(snapshots_dir):
     env["ALSOFT_DRIVERS"] = "null"
     env["OO_SNAPSHOTSDIR"] = snapshots_dir
 
-    # Launch Oolite with -p to trigger debug console connection
-    cmd = ["xwfb-run", "--", OOLITE_BIN, "--no-splash", "-p"]
-    proc = subprocess.Popen(cmd, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    # Launch Oolite
+    if IS_WINDOWS:
+        cmd = [f"./{bin_name}", "--no-splash"]
+        creation_flags = 0x08000000
+    else:
+        cmd = ["xwfb-run", "--", f"./{bin_name}", "--no-splash"]
+        creation_flags = 0
+
+    print(f"[*] Executing: {' '.join(cmd)}")
+    proc = subprocess.Popen(
+        cmd,
+        env=env,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        creationflags=creation_flags,
+    )
 
     conn = None
     try:
@@ -107,12 +126,14 @@ def run_test(snapshots_dir):
         pkt = receive_plist_packet(conn)
 
         if pkt and pkt.get(PACKET_TYPE_KEY) == REQUEST_CONNECTION:
-            print(f"[+] Handshake started. Oolite version: {pkt.get(OOLITE_VERSION_KEY)}")
+            print(
+                f"[+] Handshake started. Oolite version: {pkt.get(OOLITE_VERSION_KEY)}"
+            )
 
             # Respond with 'Approve Connection' and identity
             approval = {
                 PACKET_TYPE_KEY: APPROVE_CONNECTION,
-                CONSOLE_IDENTITY_KEY: "OoliteAutomationTester"
+                CONSOLE_IDENTITY_KEY: "OoliteAutomationTester",
             }
             send_plist_packet(conn, approval)
             print("[*] Connection Approved.")
@@ -128,7 +149,7 @@ def run_test(snapshots_dir):
         print("[*] Requesting snapshot and quit...")
         cmd_packet = {
             PACKET_TYPE_KEY: PERFORM_COMMAND,
-            MESSAGE_KEY: "takeSnapShot(); quit();"
+            MESSAGE_KEY: "takeSnapShot(); quit();",
         }
         send_plist_packet(conn, cmd_packet)
 
@@ -141,7 +162,9 @@ def run_test(snapshots_dir):
             snaps = [f for f in os.listdir(snapshots_dir) if f.endswith(".png")]
             if snaps:
                 snap_path = os.path.join(snapshots_dir, snaps[0])
-                print(f"[+] Success: Captured {snap_path} ({os.path.getsize(snap_path)//1024} KB)")
+                print(
+                    f"[+] Success: Captured {snap_path} ({os.path.getsize(snap_path) // 1024} KB)"
+                )
                 return True
             else:
                 print("[!] Error: Oolite exited but no snapshot was found.")
@@ -152,17 +175,50 @@ def run_test(snapshots_dir):
             return False
 
     finally:
-        if conn: conn.close()
+        if conn:
+            conn.close()
         server_sock.close()
         if proc.poll() is None:
             proc.kill()
 
+
 if __name__ == "__main__":
-    # Use a temporary directory for snapshot storage
-    temp_dir = tempfile.mkdtemp(prefix="oolite_test_")
+    parser = argparse.ArgumentParser(description="Oolite Automation Tester")
+    parser.add_argument(
+        "--path", default="./", help="Path to the Oolite directory (default: ./)"
+    )
+    args = parser.parse_args()
+
+    # Determine binary name and original path
+    bin_name = "oolite.exe" if IS_WINDOWS else "oolite"
+    original_cwd = os.getcwd()
+    target_dir = os.path.abspath(args.path)
+
+    # If the user pointed to a file, get the containing directory
+    if os.path.isfile(target_dir):
+        bin_name = os.path.basename(target_dir)
+        target_dir = os.path.dirname(target_dir)
+
+    # Use a temporary directory for snapshots relative to the current CWD
+    # before we jump into the Oolite folder.
+    temp_snap_dir = tempfile.mkdtemp(prefix="oolite_snapshot_")
+
+    success = False
     try:
-        success = run_test(temp_dir)
+        print(f"[*] Moving to {target_dir}")
+        os.chdir(target_dir)
+
+        # Run the test from within the Oolite directory
+        success = run_test(bin_name, temp_snap_dir)
+
+    except Exception as e:
+        print(f"[!] Critical Error: {e}")
     finally:
-        shutil.rmtree(temp_dir)
+        # ALWAYS return to the original path
+        os.chdir(original_cwd)
+        print(f"[*] Returned to {original_cwd}")
+
+        # Cleanup snapshots
+        shutil.rmtree(temp_snap_dir)
 
     sys.exit(0 if success else 1)

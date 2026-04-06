@@ -49,6 +49,10 @@ debug:
 	$(MAKE) -f GNUmakefile debug=yes strip=no
 	mkdir -p oolite.app/AddOns && rm -rf oolite.app/AddOns/Basic-debug.oxp && cp -rf DebugOXP/Debug.oxp oolite.app/AddOns/Basic-debug.oxp
 
+.PHONY: test
+test: release-snapshot
+	tests/run_test.sh
+
 .PHONY: clean
 clean:
 	$(MAKE) -f GNUmakefile clean

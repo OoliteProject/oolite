@@ -45,7 +45,6 @@ run_script() {
         cp -rfu "$resdir" "$PROGDIR/Resources"
     done
 
-    cp -fu tests/oolite_tester.py "$PROGDIR"
     cp -fu Resources/README.TXT "$PROGDIR/Resources"
     cp -fu Resources/InfoPlist.strings "$PROGDIR/Resources"
     cp -fu src/Cocoa/Info-Oolite.plist "$PROGDIR/Resources/Info-gnustep.plist"
