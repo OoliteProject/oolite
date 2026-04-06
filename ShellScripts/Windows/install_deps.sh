@@ -40,6 +40,7 @@ run_script() {
     pacboy -S binutils --noconfirm
     pacboy -S uutils-coreutils --noconfirm
     pacboy -S python-pip --noconfirm
+    pacboy -S mesa --noconfirm
 
     source ../common/checkout_submodules_fn.sh
     checkout_submodules

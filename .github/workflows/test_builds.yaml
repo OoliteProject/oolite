@@ -116,27 +116,6 @@ jobs:
           msystem: UCRT64
         run: |
           ShellScripts/Windows/install_deps.sh clang
-          pacboy -S mesa --noconfirm
-
-      - name: Enable interactive desktop for SDL
-        shell: powershell
-        run: |
-          # Allow the runner service account to access the interactive window station
-          $code = @"
-          using System;
-          using System.Runtime.InteropServices;
-          public class Desktop {
-            [DllImport("user32.dll")] public static extern IntPtr OpenWindowStation(string name, bool inherit, uint access);
-            [DllImport("user32.dll")] public static extern bool SetProcessWindowStation(IntPtr hWinSta);
-            [DllImport("user32.dll")] public static extern IntPtr OpenDesktop(string name, uint flags, bool inherit, uint access);
-            [DllImport("user32.dll")] public static extern bool SetThreadDesktop(IntPtr hDesktop);
-          }
-          "@
-            Add-Type -TypeDefinition $code
-            $winsta = [Desktop]::OpenWindowStation("WinSta0", $false, 0x37F)
-          [Desktop]::SetProcessWindowStation($winsta)
-          $desktop = [Desktop]::OpenDesktop("Default", 0, $false, 0x1FF)
-          [Desktop]::SetThreadDesktop($desktop)
 
       - name: Build Oolite
         shell: msys2 {0}
