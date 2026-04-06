@@ -38,10 +38,15 @@ jobs:
         run: |
           dnf -y update
           dnf -y install git
-      - name: Checkout Oolite
+      - name: Pre-setup ownership
         run: |
+          # This must run before the checkout action if the action tries to do git commands
+          mkdir -p "$GITHUB_WORKSPACE"
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          git clone --recursive https://github.com/${{ github.repository }} .
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          submodules: true
       - name: Checkout dependencies
         run: |
           ShellScripts/Linux/checkout_deps.sh
@@ -65,10 +70,15 @@ jobs:
         run: |
           pacman -Syu --noconfirm
           pacman -S --noconfirm --needed git
-      - name: Checkout Oolite
+      - name: Pre-setup ownership
         run: |
+          # This must run before the checkout action if the action tries to do git commands
+          mkdir -p "$GITHUB_WORKSPACE"
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          git clone --recursive https://github.com/${{ github.repository }} .
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          submodules: true
       - name: Checkout dependencies
         run: |
           ShellScripts/Linux/checkout_deps.sh
