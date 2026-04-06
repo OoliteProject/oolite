@@ -85,6 +85,7 @@ def run_test(bin_name, snapshots_dir):
 
     # Environment configuration for headless snapshotting
     env = os.environ.copy()
+    env["GALLIUM_DRIVER"] = "llvmpipe"
     env["SDL_AUDIODRIVER"] = "dummy"
     env["ALSOFT_DRIVERS"] = "null"
     env["OO_SNAPSHOTSDIR"] = snapshots_dir
