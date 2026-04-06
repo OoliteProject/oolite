@@ -39,6 +39,7 @@ run_script() {
     pacman -S pactoys --noconfirm
     pacboy -S binutils --noconfirm
     pacboy -S uutils-coreutils --noconfirm
+    pacboy -S python-pip
 
     source ../common/checkout_submodules_fn.sh
     checkout_submodules
