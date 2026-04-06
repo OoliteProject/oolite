@@ -92,10 +92,8 @@ def run_test(bin_name, snapshots_dir):
     # Launch Oolite
     if IS_WINDOWS:
         cmd = [f"./{bin_name}", "--no-splash"]
-        creation_flags = 0x08000000
     else:
         cmd = ["xwfb-run", "--", f"./{bin_name}", "--no-splash"]
-        creation_flags = 0
 
     print(f"[*] Executing: {' '.join(cmd)}")
     proc = subprocess.Popen(
@@ -103,7 +101,6 @@ def run_test(bin_name, snapshots_dir):
         env=env,
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
-        creationflags=creation_flags,
     )
 
     conn = None
@@ -114,6 +111,7 @@ def run_test(bin_name, snapshots_dir):
             readable, _, _ = select.select([server_sock], [], [], 1)
             if readable:
                 conn, addr = server_sock.accept()
+                conn.setblocking(True)
                 print(f"[+] Oolite connected from {addr}")
                 break
 

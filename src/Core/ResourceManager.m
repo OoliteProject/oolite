@@ -190,9 +190,7 @@ static NSMutableDictionary *sStringCache;
 						 stringByDeletingLastPathComponent]
 					    stringByAppendingPathComponent:@"AddOns"],
 #endif
-#if !OOLITE_WINDOWS
                       @"AddOns",
-#endif
 					  [[OOOXZManager sharedManager] extractAddOnsPath],
 					  nil];
         sUserRootPaths = [[[[OOOXZManager sharedManager] additionalAddOnsPaths] arrayByAddingObjectsFromArray:defaultAddOnsPaths] retain];
