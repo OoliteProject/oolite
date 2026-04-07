@@ -10,7 +10,8 @@ import plistlib
 import tempfile
 import shutil
 
-# --- PROTOCOL CONSTANTS (from _protocol.py) ---
+# --- PROTOCOL CONSTANTS ---
+# See https://github.com/OoliteProject/oolite-debug-console/blob/master/ooliteConsoleServer/_protocol.py
 # Using the exact string definitions required by the Oolite Debug Protocol
 REQUEST_CONNECTION = "Request Connection"
 APPROVE_CONNECTION = "Approve Connection"
@@ -29,7 +30,8 @@ MIN_FILE_SIZE_KB = 100  # Threshold for a valid render
 
 def send_plist_packet(sock, packet):
     """
-    Implements the framing protocol from PropertyListPacketProtocol.py:
+    Implements the framing protocol from
+    https://github.com/OoliteProject/oolite-debug-console/blob/master/ooliteConsoleServer/PropertyListPacketProtocol.py:
     1. Encodes the dictionary as an XML Property List.
     2. Calculates a 32-bit big-endian integer for the length.
     3. Prepends this 4-byte header to the data.
@@ -51,7 +53,8 @@ def send_plist_packet(sock, packet):
 
 def receive_plist_packet(sock):
     """
-    Implements the receiving state machine from PropertyListPacketProtocol.py:
+    Implements the receiving state machine from:
+    https://github.com/OoliteProject/oolite-debug-console/blob/master/ooliteConsoleServer/OoliteDebugConsoleProtocol.py
     1. Reads the 4-byte header to determine expected length.
     2. Reads the specific number of bytes for the XML payload.
     """
@@ -122,7 +125,8 @@ def run_test(bin_name, snapshots_dir):
             print("[!] Failure: Oolite failed to connect.")
             return False
 
-        # 2. THE HANDSHAKE (Required by OoliteDebugConsoleProtocol.py)
+        # 2. THE HANDSHAKE from:
+        # https://github.com/OoliteProject/oolite-debug-console/blob/master/ooliteConsoleServer/OoliteDebugConsoleProtocol.py
         # Wait for 'Request Connection' from Oolite
         pkt = receive_plist_packet(conn)
 
