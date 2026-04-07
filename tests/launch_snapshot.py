@@ -24,6 +24,7 @@ OOLITE_VERSION_KEY = "Oolite version"
 IS_WINDOWS = sys.platform == "win32" or (os.name == "nt")
 PORT = 8563
 HOST = "127.0.0.1"
+MIN_FILE_SIZE_KB = 100  # Threshold for a valid render
 
 
 def send_plist_packet(sock, packet):
@@ -162,9 +163,16 @@ def run_test(bin_name, snapshots_dir):
             snaps = [f for f in os.listdir(snapshots_dir) if f.endswith(".png")]
             if snaps:
                 snap_path = os.path.join(snapshots_dir, snaps[0])
-                print(
-                    f"[+] Success: Captured {snap_path} ({os.path.getsize(snap_path) // 1024} KB)"
-                )
+                file_size_kb = os.path.getsize(snap_path) // 1024
+                print(f"[*] Captured {snap_path} ({file_size_kb} KB)")
+
+                if file_size_kb < MIN_FILE_SIZE_KB:
+                    print(
+                        f"[!] Failure: Snapshot is too small ({file_size_kb} KB). Likely a black frame."
+                    )
+                    return False
+
+                print("[+] Success: Snapshot passed quality check.")
                 return True
             else:
                 print("[!] Error: Oolite exited but no snapshot was found.")
