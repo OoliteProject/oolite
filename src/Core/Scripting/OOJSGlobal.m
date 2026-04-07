@@ -152,9 +152,9 @@ static JSFunctionSpec sGlobalMethods[] =
 
 #ifndef NDEBUG
 	{ "takeSnapShot",					GlobalTakeSnapShot,					1 },
+	{ "quitGame",						GlobalQuitGame,						0 },
 #endif
 	{ "pauseGame",						GlobalPauseGame,					0 },
-	{ "quitGame",						GlobalQuitGame,						0 },
 	{ 0 }
 };
 
