@@ -22,11 +22,6 @@ run_script() {
         return 1
     fi
 
-   	if (( $# == 1 )); then
-        echo "Including Basic-debug.oxp"
-        cp -rf AddOns "$APPBIN"
-    fi
-
     LINUXDEPLOY_BIN="./linuxdeploy"
     if [ ! -x "$LINUXDEPLOY_BIN" ]; then
         echo "📥 linuxdeploy not found or not executable. Downloading..."

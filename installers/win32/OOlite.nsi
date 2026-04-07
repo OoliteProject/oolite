@@ -133,7 +133,7 @@ SectionEnd
 Section "Basic-debug.OXP" ooDebugOXP
 ; Do not use any of the Debug OXP files when we are building Deployment
 SetOutPath $INSTDIR
-File /r "..\..\build\AddOns"
+File /r "${DST}\AddOns"
 SectionEnd
 
 ; Below are the descriptions of the two component sections
@@ -251,7 +251,7 @@ File "Privacy.pdf"
 ${If} ${ADDCHANGELOG} == "1"
   File "..\..\Doc\CHANGELOG.TXT"
 ${EndIf}
-File /r /x .git /x .svn /x *~ "${DST}"
+File /r /x AddOns /x .git /x .svn /x *~ "${DST}"
 
 ; Generate version info
 FileOpen $9 release.txt w ;Opens a Empty File and fills it

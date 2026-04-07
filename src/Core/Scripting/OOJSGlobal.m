@@ -74,6 +74,7 @@ static JSBool GlobalGetScreenBackgroundForKey(JSContext *context, uintN argc, js
 static JSBool GlobalSetScreenBackgroundForKey(JSContext *context, uintN argc, jsval *vp);
 static JSBool GlobalAutoAIForRole(JSContext *context, uintN argc, jsval *vp);
 static JSBool GlobalPauseGame(JSContext *context, uintN argc, jsval *vp);
+static JSBool GlobalQuitGame(JSContext *context, uintN argc, jsval *vp);
 static JSBool GlobalGetGuiColorSettingForKey(JSContext *context, uintN argc, jsval *vp);
 static JSBool GlobalSetGuiColorSettingForKey(JSContext *context, uintN argc, jsval *vp);
 static JSBool GlobalSetExtraGuiScreenKeys(JSContext *context, uintN argc, jsval *vp);
@@ -151,6 +152,7 @@ static JSFunctionSpec sGlobalMethods[] =
 
 #ifndef NDEBUG
 	{ "takeSnapShot",					GlobalTakeSnapShot,					1 },
+	{ "quitGame",						GlobalQuitGame,						0 },
 #endif
 	{ "pauseGame",						GlobalPauseGame,					0 },
 	{ 0 }
@@ -851,5 +853,19 @@ static JSBool GlobalPauseGame(JSContext *context, uintN argc, jsval *vp)
 	
 	OOJS_RETURN_BOOL(result);
 	
+	OOJS_NATIVE_EXIT
+}
+
+// quitGame() : Boolean
+static JSBool GlobalQuitGame(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+
+	OOLog(@"script.debug.quit", @"Quit requested via JavaScript global.quitGame()");
+
+	[UNIVERSE quitGame];
+
+	OOJS_RETURN_BOOL(YES);
+
 	OOJS_NATIVE_EXIT
 }

@@ -4,6 +4,16 @@
 
 
 run_script() {
+    local skip_wayland=false
+
+    # Parse arguments
+    while [[ "$#" -gt 0 ]]; do
+        case $1 in
+            -s|--skip-wayland) skip_wayland=true; shift ;;
+            *) shift ;;
+        esac
+    done
+
     # If current user ID is NOT 0 (root)
     if [[ $EUID -ne 0 ]]; then
         echo "This script requires root to install dependencies. Rerun and escalate privileges (eg. sudo ...)"
@@ -29,6 +39,17 @@ run_script() {
     fi
     if ! install_package gnutls-dev; then
         return 1
+    fi
+    # Check Python
+    if ! python3 --version >/dev/null 2>&1; then
+        if ! install_package python; then
+            return 1
+        fi
+    fi
+    if [[ $skip_wayland == false ]]; then
+        if ! install_package xwfb-run; then
+            return 1
+        fi
     fi
     if ! install_package icu-dev; then
         return 1

@@ -44,7 +44,7 @@ run_script() {
     for resdir in "${RESOURCE_DIRS[@]}"; do
         cp -rfu "$resdir" "$PROGDIR/Resources"
     done
-    
+
     cp -fu Resources/README.TXT "$PROGDIR/Resources"
     cp -fu Resources/InfoPlist.strings "$PROGDIR/Resources"
     cp -fu src/Cocoa/Info-Oolite.plist "$PROGDIR/Resources/Info-gnustep.plist"

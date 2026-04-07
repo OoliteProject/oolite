@@ -1050,6 +1050,11 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	[[self gameController] setGamePaused:YES];
 }
 
+- (void) quitGame
+{
+	OOLog(@"universe.quit", @"Quit command received by Universe.");
+	[[self gameController] exitAppWithContext:@"Universe Request"];
+}
 
 - (void) carryPlayerOn:(StationEntity*)carrier inWormhole:(WormholeEntity*)wormhole
 {

@@ -1,4 +1,4 @@
-name: Build Oolite package on various platforms
+name: Test Oolite package on various platforms
 on:
   push:
   pull_request:
@@ -23,7 +23,7 @@ jobs:
           sudo ShellScripts/Linux/install_deps_root.sh
       - name: Build Oolite
         run: |
-          ShellScripts/common/build_oolite.sh pkg-appimage
+          ShellScripts/common/build_oolite.sh test
 
   fedora:
     runs-on: ubuntu-latest
@@ -38,10 +38,15 @@ jobs:
         run: |
           dnf -y update
           dnf -y install git
-      - name: Checkout Oolite
+      - name: Pre-setup ownership
         run: |
+          # This must run before the checkout action if the action tries to do git commands
+          mkdir -p "$GITHUB_WORKSPACE"
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          git clone --recursive https://github.com/${{ github.repository }} .
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          submodules: true
       - name: Checkout dependencies
         run: |
           ShellScripts/Linux/checkout_deps.sh
@@ -50,7 +55,7 @@ jobs:
           ShellScripts/Linux/install_deps_root.sh
       - name: Build Oolite
         run: |
-          ShellScripts/common/build_oolite.sh pkg-appimage
+          ShellScripts/common/build_oolite.sh test
 
   arch:
     runs-on: ubuntu-latest
@@ -65,10 +70,15 @@ jobs:
         run: |
           pacman -Syu --noconfirm
           pacman -S --noconfirm --needed git
-      - name: Checkout Oolite
+      - name: Pre-setup ownership
         run: |
+          # This must run before the checkout action if the action tries to do git commands
+          mkdir -p "$GITHUB_WORKSPACE"
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          git clone --recursive https://github.com/${{ github.repository }} .
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          submodules: true
       - name: Checkout dependencies
         run: |
           ShellScripts/Linux/checkout_deps.sh
@@ -77,4 +87,39 @@ jobs:
           ShellScripts/Linux/install_deps_root.sh
       - name: Build Oolite
         run: |
-          ShellScripts/common/build_oolite.sh pkg-appimage
+          ShellScripts/common/build_oolite.sh test
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - name: Set up MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          update: true
+
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          submodules: true
+
+      - name: Download latest release assets
+        uses: robinraju/release-downloader@v1
+        with:
+          repository: OoliteProject/oolite_windeps_build
+          latest: true
+          fileName: "*"
+          out-file-path: build/packages
+
+      - name: Install packages
+        shell: msys2 {0}
+        env:
+          msystem: UCRT64
+        run: |
+          ShellScripts/Windows/install_deps.sh clang
+
+      - name: Build Oolite
+        shell: msys2 {0}
+        env:
+          msystem: UCRT64
+        run: |
+          ShellScripts/common/build_oolite.sh test
