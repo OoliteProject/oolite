@@ -85,6 +85,7 @@ def run_test(bin_name, snapshots_dir):
 
     # Environment configuration for headless snapshotting
     env = os.environ.copy()
+    env["LIBGL_ALWAYS_SOFTWARE"] = "1"
     env["GALLIUM_DRIVER"] = "llvmpipe"
     env["SDL_AUDIODRIVER"] = "dummy"
     env["ALSOFT_DRIVERS"] = "null"
@@ -141,7 +142,7 @@ def run_test(bin_name, snapshots_dir):
             return False
 
         # Allow time for engine state transition
-        time.sleep(1)
+        time.sleep(2)
 
         # 3. THE COMMAND (Using Perform Command packet type)
         # Combines snapshot and quit into one execution string
