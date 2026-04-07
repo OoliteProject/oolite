@@ -142,7 +142,7 @@ def run_test(bin_name, snapshots_dir):
             return False
 
         # Allow time for engine state transition
-        time.sleep(2)
+        time.sleep(5)
 
         # 3. THE COMMAND (Using Perform Command packet type)
         # Combines snapshot and quit into one execution string
