@@ -1784,7 +1784,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 // Exposed to AI
 - (ShipEntity *) launchPirateShip
 {
-	if ([self hasLaunchDock])
+	if (![self hasLaunchDock])
 	{
 		OOLog(@"station.launchShip.impossible", @"Cancelled launch for a pirate ship, as the %@ has no launch docks.",
 			  [self displayName]);
