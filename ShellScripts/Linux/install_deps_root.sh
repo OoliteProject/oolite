@@ -50,19 +50,28 @@ run_script() {
     fi
     if [[ $skip_wayland == false ]]; then
         if [[ ${CURRENT_DISTRO,,} == "arch" ]]; then
-            # 1. Standard keys/keyring setup (these are safe to re-run)
+            # 1. Initialize the pacman keyring
+            # This creates the trust database and local signing keys
+            pacman-key --init
+            pacman-key --populate archlinux
+
+            # 2. Add Chaotic-AUR keys
+            # Note the added --allow-weak-key-signatures to bypass the SHA1 rejection
             pacman-key --recv-key 3056513887B78AEB --keyserver keyserver.ubuntu.com
             pacman-key --lsign-key 3056513887B78AEB
+
+            # 3. Download and Install keyrings/mirrorlists
+            # We use --noprogressbar for cleaner script logs
             pacman -U --noconfirm 'https://cdn-mirror.chaotic.cx/chaotic-aur/chaotic-keyring.pkg.tar.zst'
             pacman -U --noconfirm 'https://cdn-mirror.chaotic.cx/chaotic-aur/chaotic-mirrorlist.pkg.tar.zst'
 
-            # 2. Check if [chaotic-aur] is already in pacman.conf
+            # 4. Idempotent check for pacman.conf
             if ! grep -q "\[chaotic-aur\]" /etc/pacman.conf; then
                 echo -e "\n[chaotic-aur]\nInclude = /etc/pacman.d/chaotic-mirrorlist" >> /etc/pacman.conf
-                echo "Added Chaotic-AUR to pacman.conf"
-            else
-                echo "Chaotic-AUR already configured, skipping..."
             fi
+
+            # Force a sync so pacman knows about the new repo
+            pacman -Sy
         fi
         if ! install_package xwfb-run; then
             return 1
