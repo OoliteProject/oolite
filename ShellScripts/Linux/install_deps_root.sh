@@ -24,6 +24,11 @@ run_script() {
     SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
     pushd "$SCRIPT_DIR"
 
+    if ! cd ../../build; then
+        echo "❌ build folder doesn't exist!" >&2
+        return 1
+    fi
+
     source ./install_package_fn.sh
     if ! install_package base-devel; then
         return 1
@@ -46,6 +51,15 @@ run_script() {
     if [[ $skip_wayland == false ]]; then
         if ! install_package xwfb-run; then
             return 1
+        fi
+        if [[ ${CURRENT_DISTRO,,} == "arch" ]]; then
+            git clone https://aur.archlinux.org/xwayland-run.git
+            cd xwayland-run
+            if ! makepkg -si; then
+                echo "❌ Could not build xwayland-run package!" >&2
+                return 1
+            fi
+            cd ..
         fi
     fi
     if ! install_package icu-dev; then
@@ -106,11 +120,6 @@ run_script() {
 
     export CC=clang
     export CXX=clang++
-
-    if ! cd ../../build; then
-        echo "❌ build folder doesn't exist!" >&2
-        return 1
-    fi
 
     cd libobjc2
     rm -rf build
