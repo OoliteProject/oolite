@@ -13301,8 +13301,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		{
 			if ([self abandonShip]) {
 				if (hunter == PLAYER) {
-					NSUInteger kills = [hunter score];
-					[hunter setScore:(kills+1)];
+					unsigned kills = [hunter score] + 1;
+					[hunter setScore:(kills)];
 				}
 			}
 		}
