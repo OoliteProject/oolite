@@ -37,7 +37,7 @@ install_package() {
                 arch) PKG_NAME="python-pip" ;;
             esac ;;
 
-        "xwfb-run") PKG_NAME="xwayland-run weston" ;;
+        "xwfb-run")
             case "$CURRENT_DISTRO" in
                 debian) PKG_NAME="xwayland-run weston" ;;
                 redhat) PKG_NAME="xwayland-run weston" ;;
