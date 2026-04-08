@@ -24,12 +24,12 @@ run_script() {
     SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
     pushd "$SCRIPT_DIR"
 
+    source ./install_package_fn.sh
     if ! cd ../../build; then
         echo "❌ build folder doesn't exist!" >&2
         return 1
     fi
 
-    source ./install_package_fn.sh
     if ! install_package base-devel; then
         return 1
     fi
