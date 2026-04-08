@@ -49,17 +49,23 @@ run_script() {
         fi
     fi
     if [[ $skip_wayland == false ]]; then
+        if [[ ${CURRENT_DISTRO,,} == "arch" ]]; then
+            # 1. Standard keys/keyring setup (these are safe to re-run)
+            pacman-key --recv-key 3056513887B78AEB --keyserver keyserver.ubuntu.com
+            pacman-key --lsign-key 3056513887B78AEB
+            pacman -U --noconfirm 'https://cdn-mirror.chaotic.cx/chaotic-aur/chaotic-keyring.pkg.tar.zst'
+            pacman -U --noconfirm 'https://cdn-mirror.chaotic.cx/chaotic-aur/chaotic-mirrorlist.pkg.tar.zst'
+
+            # 2. Check if [chaotic-aur] is already in pacman.conf
+            if ! grep -q "\[chaotic-aur\]" /etc/pacman.conf; then
+                echo -e "\n[chaotic-aur]\nInclude = /etc/pacman.d/chaotic-mirrorlist" >> /etc/pacman.conf
+                echo "Added Chaotic-AUR to pacman.conf"
+            else
+                echo "Chaotic-AUR already configured, skipping..."
+            fi
+        fi
         if ! install_package xwfb-run; then
             return 1
-        fi
-        if [[ ${CURRENT_DISTRO,,} == "arch" ]]; then
-            git clone https://aur.archlinux.org/xwayland-run.git
-            cd xwayland-run
-            if ! makepkg -si; then
-                echo "❌ Could not build xwayland-run package!" >&2
-                return 1
-            fi
-            cd ..
         fi
     fi
     if ! install_package icu-dev; then

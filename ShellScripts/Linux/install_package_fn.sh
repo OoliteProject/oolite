@@ -37,12 +37,7 @@ install_package() {
                 arch) PKG_NAME="python-pip" ;;
             esac ;;
 
-        "xwfb-run")
-            case "$CURRENT_DISTRO" in
-                debian) PKG_NAME="xwayland-run weston" ;;
-                redhat) PKG_NAME="xwayland-run weston" ;;
-                arch) PKG_NAME="weston xorg-xauth" ;;  # Dependencies needed to build xwayland-run package
-            esac ;;
+        "xwfb-run") PKG_NAME="xwayland-run weston" ;;
 
         "icu-dev")
             case "$CURRENT_DISTRO" in
