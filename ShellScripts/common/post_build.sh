@@ -58,9 +58,10 @@ run_script() {
                 cp -rfu "$MINGW_PREFIX/share/espeak-ng-data" "$PROGDIR/Resources"
             else
                 # Linux modern search paths for espeak-ng-data
+                # Some distributions put the data in arch-specific paths, so check for them
                 SEARCH_PATHS=(
                     "/usr/local/share/espeak-ng-data"
-                    "/usr/lib/x86_64-linux-gnu/espeak-ng-data"
+                    "/usr/lib/$(/usr/bin/arch 2>/dev/null || echo x86_64)-linux-gnu/espeak-ng-data"
                     "/usr/share/espeak-ng-data"
                     "/app/share/espeak-ng-data"
                 )

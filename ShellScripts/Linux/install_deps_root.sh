@@ -72,10 +72,12 @@ run_script() {
     if ! install_package espeak-ng-dev; then
         return 1
     fi
+    # Some distributions put the data in arch-specific paths
+    HOSTARCH="$(usr/bin/arch 2>/dev/null || echo x86_64)"
     if [ ! -d /usr/share/espeak-ng-data ]; then
         if [ ! -d /usr/local/share/espeak-ng-data ]; then
-            if [ ! -d /usr/lib/x86_64-linux-gnu/espeak-ng-data ]; then
-                echo "❌ espeak-ng-data not in /usr/share, /usr/local/share or /usr/lib/x86_64-linux-gnu!"
+            if [ ! -d /usr/lib/"$HOSTARCH"-linux-gnu/espeak-ng-data ]; then
+                echo "❌ espeak-ng-data not in /usr/share, /usr/local/share or /usr/lib/$HOST_ARCH-linux-gnu!"
                 return 1
             fi
         fi
