@@ -19,14 +19,7 @@ install_package() {
                 arch) PKG_NAME="base-devel" ;;
             esac ;;
 
-        "clang")
-            case "$CURRENT_DISTRO" in
-                debian) PKG_NAME="clang" ;;
-                redhat) PKG_NAME="clang-devel" ;;
-                arch)   PKG_NAME="clang" ;;
-            esac ;;
-
-        "lldb") PKG_NAME="lldb" ;;
+        "clang") PKG_NAME="clang lld lldb" ;;
 
         "cmake") PKG_NAME="cmake" ;;
 

@@ -31,9 +31,6 @@ run_script() {
     if ! install_package clang; then
         return 1
     fi
-    if ! install_package lldb; then
-        return 1
-    fi
     if ! install_package cmake; then
         return 1
     fi
