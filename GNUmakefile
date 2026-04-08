@@ -112,6 +112,8 @@ else  # Linux only uses modern build
     ifeq ($(COMPILER_TYPE),gcc)
         ADDITIONAL_OBJCFLAGS     += -std=gnu99 -Wall -Wno-import `nspr-config --cflags` -DLOADSAVEGUI
         ADDITIONAL_CFLAGS        += -Wall `nspr-config --cflags` -DNEED_STRLCPY
+    else
+        ADDITIONAL_LDFLAGS       += -fuse-ld=lld
     endif
 endif
 
