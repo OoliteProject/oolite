@@ -13301,8 +13301,14 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		{
 			if ([self abandonShip]) {
 				if (hunter == PLAYER) {
-					unsigned kills = [hunter score] + 1;
-					[hunter setScore:(kills)];
+					/*
+					 * Increase the players score when the pilot of a ship the player
+					 * is attacking abandons ship, rather than doing it when the ship
+					 * is actually destroyed, so that kills are awarded "correctly",
+					 * and not for shooting empty ships. 
+					 */
+					unsigned kills = [PLAYER score] + 1;
+					[PLAYER setScore:(kills)];
 				}
 			}
 		}
