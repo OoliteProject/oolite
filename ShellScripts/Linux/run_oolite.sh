@@ -7,7 +7,7 @@ SHOW_SPLASH=true
 # Loop through all arguments
 for arg in "$@"; do
   case "$arg" in
-    -nosplash|--nosplash)
+    -nosplash|--nosplash|-help|--help)
       SHOW_SPLASH=false
       ;;
   esac
