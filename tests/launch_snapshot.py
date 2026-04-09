@@ -105,8 +105,8 @@ def run_test(bin_name, snapshots_dir):
     proc = subprocess.Popen(
         cmd,
         env=env,
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
+        stdout=sys.stdout,
+        stderr=sys.stderr,
     )
 
     conn = None

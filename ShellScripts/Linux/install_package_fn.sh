@@ -19,14 +19,7 @@ install_package() {
                 arch) PKG_NAME="base-devel" ;;
             esac ;;
 
-        "clang")
-            case "$CURRENT_DISTRO" in
-                debian) PKG_NAME="clang" ;;
-                redhat) PKG_NAME="clang-devel" ;;
-                arch)   PKG_NAME="clang" ;;
-            esac ;;
-
-        "lldb") PKG_NAME="lldb" ;;
+        "clang") PKG_NAME="clang lld lldb" ;;
 
         "cmake") PKG_NAME="cmake" ;;
 
@@ -44,7 +37,12 @@ install_package() {
                 arch) PKG_NAME="python-pip" ;;
             esac ;;
 
-        "xwfb-run") PKG_NAME="xwayland-run weston" ;;
+        "xwfb-run")
+            case "$CURRENT_DISTRO" in
+                debian) PKG_NAME="xwayland-run weston" ;;
+                redhat) PKG_NAME="xwayland-run weston" ;;
+                arch) PKG_NAME="xwayland-run weston xorg-xwayland xorg-xauth" ;;
+            esac ;;
 
         "icu-dev")
             case "$CURRENT_DISTRO" in
