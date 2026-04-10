@@ -24,8 +24,6 @@ MA 02110-1301, USA.
 
 #import "OOCocoa.h"
 
-#if OOLITE_MODERN_BUILD
-
 #import <Foundation/NSUserDefaults.h>
 
 @interface NSUserDefaults (Override)
@@ -34,5 +32,3 @@ MA 02110-1301, USA.
                   toFile: (NSString*)file;
 
 @end
-
-#endif

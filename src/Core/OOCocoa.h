@@ -48,20 +48,10 @@ MA 02110-1301, USA.
 #ifdef GNUSTEP
 	#define OOLITE_GNUSTEP			1
 	
-	#if (((GNUSTEP_BASE_MAJOR_VERSION == 1 && GNUSTEP_BASE_MINOR_VERSION >= 31) || (GNUSTEP_BASE_MAJOR_VERSION > 1)) && !OOLITE_MODERN_BUILD)
-		#error Oolite legacy build cannot be generated using GNUstep 1.31 or higher.
+	#if (GNUSTEP_BASE_MAJOR_VERSION == 1 && GNUSTEP_BASE_MINOR_VERSION < 28)
+		#error Oolite cannot be built using GNUstep earlier than 1.28.
 	#endif
-	
-	#if ((GNUSTEP_BASE_MAJOR_VERSION == 1 && GNUSTEP_BASE_MINOR_VERSION < 28) && OOLITE_MODERN_BUILD)
-		#error Oolite modern build cannot be generated using GNUstep earlier than 1.28.
-	#endif
-	
-	#if (GNUSTEP_BASE_MAJOR_VERSION == 1 && GNUSTEP_BASE_MINOR_VERSION >= 20) || (GNUSTEP_BASE_MAJOR_VERSION > 1)
-		#define OOLITE_GNUSTEP_1_20	1
-	#else
-		#error Oolite for non-Mac targets requires GNUstep 1.20.
-	#endif
-	
+
 	#ifndef NSIntegerMax
 		// Missing in GNUstep-base prior to 1.23.
 		#define NSIntegerMax	INTPTR_MAX

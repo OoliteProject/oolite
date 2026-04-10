@@ -52,44 +52,37 @@ run_script() {
     
     # Voice Data
     if [ "$ESPEAK" = "yes" ]; then
-        if [ "$MODERN" = "yes" ]; then
-            if [ "$GNUSTEP_HOST_OS" = "mingw32" ]; then
-                # Windows modern espeak-ng-data
-                cp -rfu "$MINGW_PREFIX/share/espeak-ng-data" "$PROGDIR/Resources"
-            else
-                # Linux modern search paths for espeak-ng-data
-                SEARCH_PATHS=(
-                    "/usr/local/share/espeak-ng-data"
-                    "/usr/lib/x86_64-linux-gnu/espeak-ng-data"
-                    "/usr/share/espeak-ng-data"
-                    "/app/share/espeak-ng-data"
-                )
-                FOUND_DATA=false
-                for path in "${SEARCH_PATHS[@]}"; do
-                    if [ -d "$path" ]; then
-                        cp -rfu "$path" "$PROGDIR/Resources"
-                        FOUND_DATA=true
-                        break
-                    fi
-                done
-    
-                if [ "$FOUND_DATA" = false ]; then
-                    echo "❌ espeak-ng-data not found in any known location!" >&2
-                    return 1
-                fi
-            fi
-    
-            # Replace specific voices with Oolite-specific versions
-            rm -f "$PROGDIR/Resources/espeak-ng-data/voices/default"
-            rm -f "$PROGDIR/Resources/espeak-ng-data/voices/!v/f2"
-            cp -fu deps/Cross-platform-deps/espeak-data/voices/!v/f2 "$PROGDIR/Resources/espeak-ng-data/voices/!v/f2"
-            cp -fu deps/Cross-platform-deps/espeak-data/voices/default "$PROGDIR/Resources/espeak-ng-data/voices/default"
+        if [ "$GNUSTEP_HOST_OS" = "mingw32" ]; then
+            # Windows espeak-ng-data
+            cp -rfu "$MINGW_PREFIX/share/espeak-ng-data" "$PROGDIR/Resources"
         else
-            # Legacy espeak-data
-            if [ "$GNUSTEP_HOST_OS" = "mingw32" ] || [ "$USE_DEPS" = "yes" ]; then
-                cp -rfu deps/Cross-platform-deps/espeak-data "$PROGDIR/Resources"
+            # Linux search paths for espeak-ng-data
+            SEARCH_PATHS=(
+                "/usr/local/share/espeak-ng-data"
+                "/usr/lib/x86_64-linux-gnu/espeak-ng-data"
+                "/usr/share/espeak-ng-data"
+                "/app/share/espeak-ng-data"
+            )
+            FOUND_DATA=false
+            for path in "${SEARCH_PATHS[@]}"; do
+                if [ -d "$path" ]; then
+                    cp -rfu "$path" "$PROGDIR/Resources"
+                    FOUND_DATA=true
+                    break
+                fi
+            done
+
+            if [ "$FOUND_DATA" = false ]; then
+                echo "❌ espeak-ng-data not found in any known location!" >&2
+                return 1
             fi
         fi
+
+        # Replace specific voices with Oolite-specific versions
+        rm -f "$PROGDIR/Resources/espeak-ng-data/voices/default"
+        rm -f "$PROGDIR/Resources/espeak-ng-data/voices/!v/f2"
+        cp -fu deps/Cross-platform-deps/espeak-data/voices/!v/f2 "$PROGDIR/Resources/espeak-ng-data/voices/!v/f2"
+        cp -fu deps/Cross-platform-deps/espeak-data/voices/default "$PROGDIR/Resources/espeak-ng-data/voices/default"
     fi
     
     # Strip binary if requested
@@ -98,22 +91,8 @@ run_script() {
     fi
     
     if [ "$GNUSTEP_HOST_OS" = "mingw32" ]; then
-        if [ "$MODERN" = "yes" ]; then
-            # Determine and copy DLL dependencies for modern Windows
-            ldd "$PROGDIR/$DEST_BIN" | grep "$MINGW_PREFIX" | awk '{print $3}' | xargs -I {} cp -rfu {} "$PROGDIR"
-        else
-            # Copy legacy Windows DLLs
-            if [ "$GNUSTEP_HOST_CPU" = "x86_64" ]; then
-                cp -rfu deps/Windows-deps/x86_64/DLLs/*.dll "$PROGDIR"
-            else
-                cp -rfu deps/Windows-deps/x86/DLLs/*.dll "$PROGDIR"
-            fi
-    
-            if [ "$DEBUG" = "no" ]; then
-                rm -f "$PROGDIR/js32ECMAv5dbg.dll"
-            fi
-            rm -f "$PROGDIR/js32ECMAv5.dll"
-        fi
+        # Determine and copy DLL dependencies
+        ldd "$PROGDIR/$DEST_BIN" | grep "$MINGW_PREFIX" | awk '{print $3}' | xargs -I {} cp -rfu {} "$PROGDIR"
     else
         # Copy Linux-specific wrapper script
         cp -fu ShellScripts/Linux/run_oolite.sh "$PROGDIR"

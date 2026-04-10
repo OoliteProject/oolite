@@ -34,7 +34,7 @@ SOFTWARE.
 	#if OOLITE_MAC_OS_X
 		#define OO_HAVE_NSOPERATION (1)
 	#elif OOLITE_GNUSTEP
-//		#define OO_HAVE_NSOPERATION OOLITE_GNUSTEP_1_20 && OS_API_VERSION(100500, GS_API_LATEST)
+//		#define OO_HAVE_NSOPERATION OS_API_VERSION(100500, GS_API_LATEST)
 		// GNUstep (even current trunk - 1.21 @ 2010.06.06) only contains an
 		// incomplete implementation of NSOperation. Namely, it's missing
 		// NSInvocationOperation which is used in OOAsyncWorkManager.m

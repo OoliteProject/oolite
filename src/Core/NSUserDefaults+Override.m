@@ -28,8 +28,6 @@ MA 02110-1301, USA.
 #import <Foundation/NSFileManager.h>
 #import <Foundation/NSPropertyList.h>
 
-#if OOLITE_MODERN_BUILD
-
 @implementation NSUserDefaults (Override)
 
 - (BOOL) writeDictionary: (NSDictionary*)dict
@@ -72,5 +70,3 @@ MA 02110-1301, USA.
 }
 
 @end
-
-#endif // OOLITE_MODERN_BUILD
