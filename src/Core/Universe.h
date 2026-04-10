@@ -40,11 +40,7 @@ MA 02110-1301, USA.
 #import "OOSystemDescriptionManager.h"
 
 #if OOLITE_ESPEAK
-#if OOLITE_MODERN_BUILD
-  #include <espeak-ng/speak_lib.h>
-#else
-  #include <espeak/speak_lib.h>
-#endif
+#include <espeak-ng/speak_lib.h>
 #endif
 
 @class	GameController, CollisionRegion, MyOpenGLView, GuiDisplayGen,
