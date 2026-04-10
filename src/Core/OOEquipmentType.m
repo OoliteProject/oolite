@@ -97,7 +97,7 @@ static NSDictionary		*sMissilesRegistry = nil;
 	sEquipmentTypesOutfitting = nil;
 
 	equipmentTypes = [NSMutableArray arrayWithCapacity:[equipmentData count]];
-	for (itemEnum = [equipmentData objectEnumerator]; (itemInfo = [itemEnum nextObject]); )
+	foreach (itemInfo, equipmentData)
 	{
 		item = [[[OOEquipmentType alloc] initWithInfo:itemInfo] autorelease];
 		if (item != nil)
