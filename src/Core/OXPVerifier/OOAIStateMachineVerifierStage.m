@@ -67,7 +67,6 @@ static NSString * const kStageName	= @"Validating AIs";
 - (void) run
 {
 	NSArray						*aiNames = nil;
-	NSEnumerator				*aiEnum = nil;
 	NSString					*aiName = nil;
 	NSMutableSet				*whitelist = nil;
 	
@@ -80,7 +79,7 @@ static NSString * const kStageName	= @"Validating AIs";
 	[whitelist release];
 	
 	aiNames = [[_usedAIs allObjects] sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)];
-	for (aiEnum = [aiNames objectEnumerator]; (aiName = [aiEnum nextObject]); )
+	foreach (aiName, aiNames)
 	{
 		[self validateAI:aiName];
 	}
@@ -124,13 +123,10 @@ static NSString * const kStageName	= @"Validating AIs";
 {
 	NSString				*path = nil;
 	NSDictionary			*aiStateMachine = nil;
-	NSEnumerator			*stateEnum = nil;
 	NSString				*stateKey = nil;
 	NSDictionary			*stateHandlers = nil;
-	NSEnumerator			*handlerEnum = nil;
 	NSString				*handlerKey = nil;
 	NSArray					*handlerActions = nil;
-	NSEnumerator			*actionEnum = nil;
 	NSString				*action = nil;
 	NSRange					spaceRange;
 	NSString				*selector = nil;
@@ -155,7 +151,7 @@ static NSString * const kStageName	= @"Validating AIs";
 	}
 	
 	// Validate each state.
-	for (stateEnum = [aiStateMachine keyEnumerator]; (stateKey = [stateEnum nextObject]); )
+	foreachkey (stateKey, aiStateMachine)
 	{
 		stateHandlers = [aiStateMachine objectForKey:stateKey];
 		if (![stateHandlers isKindOfClass:[NSDictionary class]])
@@ -165,7 +161,7 @@ static NSString * const kStageName	= @"Validating AIs";
 		}
 		
 		// Verify handlers for this state.
-		for (handlerEnum = [stateHandlers keyEnumerator]; (handlerKey = [handlerEnum nextObject]); )
+		foreachkey (handlerKey, stateHandlers)
 		{
 			handlerActions = [stateHandlers objectForKey:handlerKey];
 			if (![handlerActions isKindOfClass:[NSArray class]])
@@ -176,7 +172,7 @@ static NSString * const kStageName	= @"Validating AIs";
 			
 			// Verify commands for this handler.
 			index = 0;
-			for (actionEnum = [handlerActions objectEnumerator]; (action = [actionEnum nextObject]); )
+			foreach (action, handlerActions)
 			{
 				index++;
 				if (![action isKindOfClass:[NSString class]])

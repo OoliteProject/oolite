@@ -122,7 +122,6 @@ static JSFunctionSpec sScriptMethods[] =
 	JSScript				*script = NULL;
 	JSObject				*scriptObject = NULL;
 	jsval					returnValue = JSVAL_VOID;
-	NSEnumerator			*keyEnum = nil;
 	NSString				*key = nil;
 	id						property = nil;
 	
@@ -182,7 +181,7 @@ static JSFunctionSpec sScriptMethods[] =
 		
 		// Set default properties from manifest.plist
 		NSDictionary *defaultProperties = [self defaultPropertiesFromPath:path];
-		for (keyEnum = [defaultProperties keyEnumerator]; (key = [keyEnum nextObject]); )
+		foreachkey (key, defaultProperties)
 		{
 			if ([key isKindOfClass:[NSString class]])
 			{
@@ -203,7 +202,7 @@ static JSFunctionSpec sScriptMethods[] =
 		// Set properties. (read-only)
 		if (!problem && properties != nil)
 		{
-			for (keyEnum = [properties keyEnumerator]; (key = [keyEnum nextObject]); )
+			foreachkey (key, properties)
 			{
 				if ([key isKindOfClass:[NSString class]])
 				{

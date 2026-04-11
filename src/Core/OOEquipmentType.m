@@ -56,7 +56,6 @@ static NSDictionary		*sMissilesRegistry = nil;
 	NSMutableDictionary	*equipmentTypesByIdentifier = nil;
 	NSArray				*itemInfo = nil;
 	OOEquipmentType		*item = nil;
-	NSEnumerator		*itemEnum = nil;
 	NSMutableArray *conditionScripts = nil;
 	
 	equipmentData = [UNIVERSE equipmentData];
@@ -68,7 +67,7 @@ static NSDictionary		*sMissilesRegistry = nil;
 	DESTROY(sEquipmentTypesByIdentifier);
 	equipmentTypesByIdentifier = [NSMutableDictionary dictionaryWithCapacity:[equipmentData count]];
 	
-	for (itemEnum = [equipmentData objectEnumerator]; (itemInfo = [itemEnum nextObject]); )
+	foreach (itemInfo, equipmentData)
 	{
 		item = [[[OOEquipmentType alloc] initWithInfo:itemInfo] autorelease];
 		if (item != nil)
@@ -98,7 +97,7 @@ static NSDictionary		*sMissilesRegistry = nil;
 	sEquipmentTypesOutfitting = nil;
 
 	equipmentTypes = [NSMutableArray arrayWithCapacity:[equipmentData count]];
-	for (itemEnum = [equipmentData objectEnumerator]; (itemInfo = [itemEnum nextObject]); )
+	foreach (itemInfo, equipmentData)
 	{
 		item = [[[OOEquipmentType alloc] initWithInfo:itemInfo] autorelease];
 		if (item != nil)

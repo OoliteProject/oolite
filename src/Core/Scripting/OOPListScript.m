@@ -125,7 +125,6 @@ static NSString * const kCacheName			= @"sanitized legacy scripts";
 + (NSArray *)scriptsFromDictionaryOfScripts:(NSDictionary *)dictionary filePath:(NSString *)filePath
 {
 	NSMutableArray		*result = nil;
-	NSEnumerator		*keyEnum = nil;
 	NSString			*key = nil;
 	NSArray				*scriptArray = nil;
 	NSDictionary		*metadata = nil;
@@ -139,7 +138,7 @@ static NSString * const kCacheName			= @"sanitized legacy scripts";
 	metadata = [dictionary objectForKey:kKeyMetadata];
 	if (![metadata isKindOfClass:[NSDictionary class]]) metadata = nil;
 	
-	for (keyEnum = [dictionary keyEnumerator]; (key = [keyEnum nextObject]); )
+	foreachkey (key, dictionary)
 	{
 		scriptArray = [dictionary objectForKey:key];
 		if ([key isKindOfClass:[NSString class]] &&
@@ -169,12 +168,11 @@ static NSString * const kCacheName			= @"sanitized legacy scripts";
 
 + (NSArray *) loadCachedScripts:(NSDictionary *)cachedScripts
 {
-	NSEnumerator		*keyEnum = nil;
 	NSString			*key = nil;
 	
 	NSMutableArray *result = [NSMutableArray arrayWithCapacity:[cachedScripts count]];
 	
-	for (keyEnum = [cachedScripts keyEnumerator]; (key = [keyEnum nextObject]); )
+	foreachkey (key, cachedScripts)
 	{
 		NSDictionary *cacheValue = [cachedScripts oo_dictionaryForKey:key];
 		NSArray *scriptArray = [cacheValue oo_arrayForKey:kKeyScript];

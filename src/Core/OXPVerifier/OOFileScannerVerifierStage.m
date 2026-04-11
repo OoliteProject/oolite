@@ -246,7 +246,6 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 	NSPropertyListFormat	format;
 	id						plist = nil;
 	NSArray					*errorLines = nil;
-	NSEnumerator			*errLineEnum = nil;
 	NSString				*displayName = nil,
 							*errorKey = nil;
 	NSAutoreleasePool		*pool = nil;
@@ -284,7 +283,7 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 			OOLog(@"verifyOXP.plist.parseError", @"Could not interpret property list %@.", displayName);
 			OOLogIndent();
 			errorLines = [errorString componentsSeparatedByString:@"\n"];
-			for (errLineEnum = [errorLines objectEnumerator]; (errorString = [errLineEnum nextObject]); )
+			foreach (errorString, errorLines)
 			{
 				while ([errorString hasPrefix:@"\t"])
 				{
@@ -418,13 +417,12 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 - (void)checkRootFolders
 {
 	NSArray					*knownNames = nil;
-	NSEnumerator			*nameEnum = nil;
 	NSString				*name = nil;
 	NSString				*lcName = nil;
 	NSString				*actual = nil;
 	
 	knownNames = [[self verifier] configurationArrayForKey:@"knownRootDirectories"];
-	for (nameEnum = [knownNames objectEnumerator]; (name = [nameEnum nextObject]); )
+	foreach (name, knownNames)
 	{
 		if (![name isKindOfClass:[NSString class]])  continue;
 		
@@ -444,14 +442,13 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 - (void)checkConfigFiles
 {
 	NSArray					*knownNames = nil;
-	NSEnumerator			*nameEnum = nil;
 	NSString				*name = nil,
 		*lcName = nil,
 		*realFileName = nil;
 	BOOL					inConfigDir;
 	
 	knownNames = [[self verifier] configurationArrayForKey:@"knownConfigFiles"];
-	for (nameEnum = [knownNames objectEnumerator]; (name = [nameEnum nextObject]); )
+	foreach (name, knownNames)
 	{
 		if (![name isKindOfClass:[NSString class]])  continue;
 		
@@ -477,22 +474,20 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 - (void)checkKnownFiles
 {
 	NSDictionary			*directories = nil;
-	NSEnumerator			*directoryEnum = nil;
 	NSString				*directory = nil,
 							*lcDirectory = nil;
 	NSArray					*fileList = nil;
-	NSEnumerator			*nameEnum = nil;
 	NSString				*name = nil,
 							*lcName = nil,
 							*realFileName = nil;
 	BOOL					inDirectory;
 	
 	directories = [[self verifier] configurationDictionaryForKey:@"knownFiles"];
-	for (directoryEnum = [directories keyEnumerator]; (directory = [directoryEnum nextObject]); )
+	foreachkey (directory, directories)
 	{
 		fileList = [directories objectForKey:directory];
 		lcDirectory = [directory lowercaseString];
-		for (nameEnum = [fileList objectEnumerator]; (name = [nameEnum nextObject]); )
+		foreach (name, fileList)
 		{
 			if (![name isKindOfClass:[NSString class]])  continue;
 			

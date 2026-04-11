@@ -106,10 +106,9 @@ static NSString * const kStageName	= @"Checking demoships.plist";
 
 - (void)runCheckWithDemoShips:(NSArray *)demoshipsPList shipData:(NSDictionary *)shipdataPList
 {
-	NSEnumerator				*nameEnum = nil;
 	NSString					*name = nil;
 	
-	for (nameEnum = [demoshipsPList objectEnumerator]; (name = [nameEnum nextObject]); )
+	foreach (name, demoshipsPList)
 	{
 		if ([shipdataPList objectForKey:name] == nil)
 		{

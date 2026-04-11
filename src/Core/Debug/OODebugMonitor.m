@@ -463,9 +463,8 @@ typedef struct
 	OOLogIndent();
 	if ([entity isShip])
 	{
-		NSEnumerator *subEnum = nil;
 		id subentity = nil;
-		for (subEnum = [entity subEntityEnumerator]; (subentity = [subEnum nextObject]); )
+		foreach (subentity, [entity subEntityEnumerator])
 		{
 			[self dumpEntity:subentity withState:state parentVisible:visible];
 		}
@@ -494,9 +493,8 @@ typedef struct
 	}
 	if ([entity isWormhole])
 	{
-		NSEnumerator *shipEnum = nil;
 		NSDictionary *shipInfo = nil;
-		for (shipEnum = [[entity shipsInTransit] objectEnumerator]; (shipInfo = [shipEnum nextObject]); )
+		foreach (shipInfo, [entity shipsInTransit])
 		{
 			ShipEntity *ship = [shipInfo objectForKey:@"ship"];
 			[self dumpEntity:ship withState:state parentVisible:NO];
@@ -516,8 +514,7 @@ typedef struct
 	NSMutableDictionary *textureRefCounts = [NSMutableDictionary dictionaryWithCapacity:[allTextures count]];
 	
 	OOTexture *tex = nil;
-	NSEnumerator *texEnum = nil;
-	for (texEnum = [allTextures objectEnumerator]; (tex = [texEnum nextObject]); )
+	foreach (tex, allTextures)
 	{
 		// We subtract one because allTextures retains the textures.
 		[textureRefCounts setObject:[NSNumber numberWithUnsignedInteger:[tex retainCount] - 1] forKey:[NSValue valueWithNonretainedObject:tex]];
@@ -537,12 +534,11 @@ typedef struct
 	};
 	
 	id entity = nil;
-	NSEnumerator *entityEnum = nil;
-	for (entityEnum = [entities objectEnumerator]; (entity = [entityEnum nextObject]); )
+	foreach (entity, entities)
 	{
 		[self dumpEntity:entity withState:&entityDumpState parentVisible:YES];
 	}
-	for (entityEnum = [[PLAYER scannedWormholes] objectEnumerator]; (entity = [entityEnum nextObject]); )
+	foreach (entity, [PLAYER scannedWormholes])
 	{
 		[self dumpEntity:entity withState:&entityDumpState parentVisible:YES];
 	}
@@ -560,7 +556,7 @@ typedef struct
 	*/
 	NSMutableArray *textures = [[[OOTexture cachedTexturesByAge] mutableCopy] autorelease];
 	
-	for (texEnum = [allTextures objectEnumerator]; (tex = [texEnum nextObject]); )
+	foreach (tex, allTextures)
 	{
 		if ([textures indexOfObject:tex] == NSNotFound)
 		{
@@ -575,7 +571,7 @@ typedef struct
 	[self writeMemStat:@"Textures:"];
 	OOLogIndent();
 	
-	for (texEnum = [textures objectEnumerator]; (tex = [texEnum nextObject]); )
+	foreach (tex, textures)
 	{
 		size_t objSize = [tex oo_objectSize];
 		size_t dataSize = [tex dataSize];
@@ -828,12 +824,11 @@ FIXME: this works with CRLF and LF, but not CR.
 - (NSMutableDictionary *)normalizeConfigDictionary:(NSDictionary *)dictionary
 {
 	NSMutableDictionary		*result = nil;
-	NSEnumerator			*keyEnum = nil;
 	NSString				*key = nil;
 	id						value = nil;
 	
 	result = [NSMutableDictionary dictionaryWithCapacity:[dictionary count]];
-	for (keyEnum = [dictionary keyEnumerator]; (key = [keyEnum nextObject]); )
+	foreachkey (key, dictionary)
 	{
 		value = [dictionary objectForKey:key];
 		value = [self normalizeConfigValue:value forKey:key];

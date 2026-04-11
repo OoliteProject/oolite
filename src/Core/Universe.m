@@ -1805,7 +1805,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 {
 	Random_Seed systemSeed = [systemManager getRandomSeedForCurrentSystem];
 	NSArray *blocks = [populatorSettings allValues];
-	NSEnumerator *enumerator = [[blocks sortedArrayUsingFunction:populatorPrioritySort context:nil] objectEnumerator];
+	NSArray *sortedBlocks = [blocks sortedArrayUsingFunction:populatorPrioritySort context:nil];
 	NSDictionary *populator = nil;
 	HPVector location = kZeroHPVector;
 	uint32_t i, locationSeed, groupCount, rndvalue;
@@ -1813,7 +1813,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	RANROTSeed rndlocal = RANROTGetFullSeed();
 	NSString *locationCode = nil;
 	OOJSPopulatorDefinition *pdef = nil;
-	while ((populator = [enumerator nextObject]))
+	foreach (populator, sortedBlocks)
 	{
 		deterministic_population = [populator oo_boolForKey:@"deterministic" defaultValue:NO];
 		if (EXPECT_NOT(sun == nil || planet == nil))
@@ -3173,7 +3173,6 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 - (void) setDockingClearanceProtocolActive:(BOOL)newValue
 {
 	OOShipRegistry	*registry = [OOShipRegistry sharedRegistry];
-	NSEnumerator	*statEnum = [allStations objectEnumerator]; 
 	StationEntity	*station = nil;
 
 	/* CIM: picking a random ship type which can take the same primary
@@ -3181,7 +3180,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	 * clearance requirements seems unlikely to work entirely
 	 * correctly. To be fixed. */
 						   
-	while ((station = [statEnum nextObject]))
+	foreach (station, allStations)
 	{
 		NSString	*stationKey = [registry randomShipKeyForRole:[station primaryRole]];
 		if (![[[registry shipInfoForKey:stationKey] allKeys] containsObject:@"requires_docking_clearance"])
@@ -6973,10 +6972,9 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 		NSString	*spokenText = text;
 		if (speechArray != nil)
 		{
-			NSEnumerator	*speechEnumerator = nil;
 			NSArray			*thePair = nil;
 			
-			for (speechEnumerator = [speechArray objectEnumerator]; (thePair = [speechEnumerator nextObject]); )
+			foreach (thePair, speechArray)
 			{
 				NSString *original_phrase = [thePair oo_stringAtIndex:0];
 				
@@ -7286,9 +7284,8 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 			if (zombies != nil)
 			{
 				update_stage = @"shootin' zombies";
-				NSEnumerator *zombieEnum = nil;
 				Entity *zombie = nil;
-				for (zombieEnum = [zombies objectEnumerator]; (zombie = [zombieEnum nextObject]); )
+				foreach (zombie, zombies)
 				{
 					OOLogERR(@"universe.zombie", @"Found dead entity %@ in active entity list, removing. This is an internal error, please report it.", zombie);
 					[self removeEntity:zombie];
@@ -9246,11 +9243,10 @@ static void VerifyDesc(NSString *key, id desc)
 					
 					if ([item incompatibleEquipment] != nil && extras != nil)
 					{
-						NSEnumerator				*keyEnum = nil;
 						id							key = nil;
 						BOOL						incompatible = NO;
 						
-						for (keyEnum = [[item incompatibleEquipment] objectEnumerator]; (key = [keyEnum nextObject]); )
+						foreach (key, [item incompatibleEquipment])
 						{
 							if ([extras containsObject:key])
 							{
@@ -9262,7 +9258,7 @@ static void VerifyDesc(NSString *key, id desc)
 						if (incompatible) break;
 						
 						// make sure the incompatible equipment is not choosen later on.
-						for (keyEnum = [[item incompatibleEquipment] objectEnumerator]; (key = [keyEnum nextObject]); )
+						foreach (key, [item incompatibleEquipment])
 						{
 							if ([options containsObject:key])
 							{
@@ -9306,11 +9302,10 @@ static void VerifyDesc(NSString *key, id desc)
 
 					if ([item requiresEquipment] != nil && extras != nil)
 					{
-						NSEnumerator				*keyEnum = nil;
 						id							key = nil;
 						BOOL						missing = NO;
 						
-						for (keyEnum = [[item requiresEquipment] objectEnumerator]; (key = [keyEnum nextObject]); )
+						foreach (key, [item requiresEquipment])
 						{
 							if (![extras containsObject:key])
 							{
@@ -9322,11 +9317,10 @@ static void VerifyDesc(NSString *key, id desc)
 					
 					if ([item requiresAnyEquipment] != nil && extras != nil)
 					{
-						NSEnumerator				*keyEnum = nil;
 						id							key = nil;
 						BOOL						missing = YES;
 						
-						for (keyEnum = [[item requiresAnyEquipment] objectEnumerator]; (key = [keyEnum nextObject]); )
+						foreach (key, [item requiresAnyEquipment])
 						{
 							if ([extras containsObject:key])
 							{
@@ -10994,13 +10988,12 @@ static void PreloadOneSound(NSString *soundName)
 	// Handle command line options to transform system_description array for easier localization
 	
 	NSArray				*arguments = nil;
-	NSEnumerator		*argEnum = nil;
 	NSString			*arg = nil;
 	BOOL				compileSysDesc = NO, exportSysDesc = NO, xml = NO;
 	
 	arguments = [[NSProcessInfo processInfo] arguments];
 	
-	for (argEnum = [arguments objectEnumerator]; (arg = [argEnum nextObject]); )
+	foreach (arg, arguments)
 	{
 		if ([arg isEqual:@"--compile-sysdesc"])  compileSysDesc = YES;
 		else if ([arg isEqual:@"--export-sysdesc"])  exportSysDesc = YES;

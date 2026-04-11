@@ -72,7 +72,6 @@ static NSArray *OOSanitizeLegacyScriptInternal(NSArray *script, SanStackElement 
 {
 	NSAutoreleasePool			*pool = nil;
 	NSMutableArray				*result = nil;
-	NSEnumerator				*statementEnum = nil;
 	id							statement = nil;
 	NSUInteger					index = 0;
 	
@@ -80,7 +79,7 @@ static NSArray *OOSanitizeLegacyScriptInternal(NSArray *script, SanStackElement 
 	
 	result = [NSMutableArray arrayWithCapacity:[script count]];
 	
-	for (statementEnum = [script objectEnumerator]; (statement = [statementEnum nextObject]); )
+	foreach (statement, script)
 	{
 		SanStackElement subStack =
 		{
@@ -125,7 +124,6 @@ NSArray *OOSanitizeLegacyScriptConditions(NSArray *conditions, NSString *context
 
 static NSArray *OOSanitizeLegacyScriptConditionsInternal(NSArray *conditions, SanStackElement *stack)
 {
-	NSEnumerator				*conditionEnum = nil;
 	NSString					*condition = nil;
 	NSMutableArray				*result = nil;
 	NSArray						*tokens = nil;
@@ -136,7 +134,7 @@ static NSArray *OOSanitizeLegacyScriptConditionsInternal(NSArray *conditions, Sa
 	
 	result = [NSMutableArray arrayWithCapacity:[conditions count]];
 	
-	for (conditionEnum = [conditions objectEnumerator]; (condition = [conditionEnum nextObject]); )
+	foreach (condition, conditions)
 	{
 		SanStackElement subStack =
 		{

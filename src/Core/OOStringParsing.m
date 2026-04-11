@@ -342,10 +342,9 @@ NSString *OOStringFromDeciCredits(OOCreditsQuantity tenthsOfCredits, BOOL includ
 
 - (BOOL)pathHasExtensionInArray:(NSArray *)extensions
 {
-	NSEnumerator	*extEnum = nil;
 	NSString		*extension = nil;
 	
-	for (extEnum = [extensions objectEnumerator]; (extension = [extEnum nextObject]); )
+	foreach (extension, extensions)
 	{
 		if ([[self pathExtension] caseInsensitiveCompare:extension] == NSOrderedSame) return YES;
 	}

@@ -201,12 +201,11 @@ static NSMutableArray	*sDeferredTimers;
 + (void) noteGameReset
 {
 	NSArray				*timers = nil;
-	NSEnumerator		*timerEnum = nil;
 	OOScriptTimer		*timer = nil;
 	
 	// Intermediate array is required so we don't get stuck in an endless loop over reinserted timers. Note that -sortedObjects also clears the queue!
 	timers = [sTimers sortedObjects];
-	for (timerEnum = [timers objectEnumerator]; (timer = [timerEnum nextObject]); )
+	foreach (timer, timers)
 	{
 		timer->_isScheduled = NO;
 	}

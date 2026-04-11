@@ -610,13 +610,12 @@ static BOOL sRunningScript = NO;
 - (NSString *) expandScriptRightHandSide:(NSArray *)rhsComponents
 {
 	NSMutableArray			*result = nil;
-	NSEnumerator			*componentEnum = nil;
 	NSArray					*component = nil;
 	NSString				*value = nil;
 	
 	result = [NSMutableArray arrayWithCapacity:[rhsComponents count]];
 	
-	for (componentEnum = [rhsComponents objectEnumerator]; (component = [componentEnum nextObject]); )
+	foreach (component, rhsComponents)
 	{
 		/*	Each component is a two-element array. The second element is a
 			string. The first element is a boolean indicating whether the
@@ -1404,7 +1403,7 @@ static int shipsFound;
 	
 	OOLog(kOOLogNoteRemoveAllCargo, @"%@ removeAllCargo", forceRemoval ? @"Forcing" : @"Going to");
 	
-	foreach(type, [shipCommodityData goods])
+	foreach (type, [shipCommodityData goods])
 	{
 		if ([shipCommodityData massUnitForGood:type] == UNITS_TONS)
 		{
@@ -2004,7 +2003,6 @@ static int shipsFound;
 	[UNIVERSE enterGUIViewModeWithMouseInteraction:YES]; // enables mouse selection of the choices list items
 	
 	OOGUIRow			choicesRow = (end_row+1) - keysCount;
-	NSEnumerator		*choiceEnum = nil;
 	NSString			*choiceKey = nil;
 	id            		choiceValue = nil;
 	NSString			*choiceText = nil;
@@ -2012,7 +2010,7 @@ static int shipsFound;
 	BOOL selectableRowExists = NO;
 	NSUInteger firstSelectableRow = end_row;
 
-	for (choiceEnum = [choiceKeys objectEnumerator]; (choiceKey = [choiceEnum nextObject]); )
+	foreach (choiceKey, choiceKeys)
 	{
 		choiceValue = [choicesDict objectForKey:choiceKey];
 		OOGUIAlignment alignment = GUI_ALIGN_CENTER;
