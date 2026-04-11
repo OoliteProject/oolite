@@ -10,6 +10,3 @@
 [submodule "deps/mozilla"]
 	path = deps/mozilla
 	url = https://github.com/OoliteProject/spidermonkey-ff4.git
-[submodule "deps/Windows-deps"]
-	path = deps/Windows-deps
-	url = https://github.com/OoliteProject/oolite-windows-dependencies.git
