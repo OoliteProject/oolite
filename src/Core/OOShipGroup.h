@@ -31,9 +31,7 @@ MA 02110-1301, USA.
 
 
 @interface OOShipGroup: OOWeakRefObject
-#if OOLITE_FAST_ENUMERATION
 <NSFastEnumeration>
-#endif
 {
 @private
 	NSUInteger				_count, _capacity;

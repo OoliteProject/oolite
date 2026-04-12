@@ -334,20 +334,6 @@ enum {
 		http://wiki.gnustep.org/index.php/ObjC2_FAQ
 	-- Ahruman 2011-02-04
 */
-#if OOLITE_MAC_OS_X
-	#define OOLITE_FAST_ENUMERATION		1
-#else
-	#if __clang__
-		#define OOLITE_FAST_ENUMERATION 1
-	#elif defined (OOLITE_GNUSTEP)
-		#define OOLITE_FAST_ENUMERATION (OOLITE_GCC_VERSION >= 40600)
-	#endif
-#endif
-
-#ifndef OOLITE_FAST_ENUMERATION
-#define OOLITE_FAST_ENUMERATION			0
-#endif
-
 
 /*	Enumeration macros:
 	foreach(VAR, COLLECTION) enumerates the members of an array or set, setting
@@ -363,15 +349,8 @@ enum {
 	
     These are based on macros by Jens Alfke.
 */
-#if OOLITE_FAST_ENUMERATION
 #define foreach(VAR, COLLECTION)	for(VAR in COLLECTION)
 #define foreachkey(VAR, DICT)		for(VAR in DICT)
-#else
-#define foreachLinewrapper2(x, y) x ## y
-#define foreachLine(x, y) foreachLinewrapper2(x, y)
-#define foreach(VAR, COLLECTION)	for (NSEnumerator * foreachLine(ooForEachEnum, __LINE__) = [(COLLECTION) objectEnumerator]; ((VAR) = [ foreachLine(ooForEachEnum, __LINE__) nextObject]); )
-#define foreachkey(VAR, DICT)		for (NSEnumerator * foreachLine(ooForEachEnum, __LINE__) = [(DICT) keyEnumerator]; ((VAR) = [ foreachLine(ooForEachEnum, __LINE__) nextObject]); )
-#endif
 
 
 /*	Support for foreach() with NSEnumerators in GCC.

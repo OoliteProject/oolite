@@ -216,7 +216,6 @@ static id ShipGroupIterate(OOShipGroupEnumerator *enumerator);
 }
 
 
-#if OOLITE_FAST_ENUMERATION
 - (NSArray *) memberArray
 {
 	id						*objects = NULL;
@@ -278,66 +277,6 @@ static id ShipGroupIterate(OOShipGroupEnumerator *enumerator);
 	
 	return NO;
 }
-#else
-- (NSArray *) memberArray
-{
-	return [[self objectEnumerator] allObjects];
-}
-
-
-- (NSArray *) memberArrayExcludingLeader
-{
-	id						*objects = NULL;
-	NSUInteger				count = 0;
-	NSArray					*result = nil;
-	NSEnumerator			*shipEnum = nil;
-	ShipEntity				*ship = nil;
-	ShipEntity				*leader = nil;
-	
-	if (_count == 0)  return [NSArray array];
-	leader = [self leader];
-	if (leader == nil)  return [self memberArray];
-	
-	objects = malloc(sizeof *objects * _count);
-	for (shipEnum = [self objectEnumerator]; (ship = [shipEnum nextObject]); )
-	{
-		if (ship != leader)
-		{
-			objects[count++] = ship;
-		}
-	}
-	
-	result = [NSArray arrayWithObjects:objects count:count];
-	free(objects);
-	
-	return result;
-}
-
-
-- (BOOL) containsShip:(ShipEntity *)ship
-{
-	OOShipGroupEnumerator	*shipEnum = nil;
-	ShipEntity				*containedShip = nil;
-	BOOL					result = NO;
-	
-	shipEnum = (OOShipGroupEnumerator *)[self objectEnumerator];
-	[shipEnum setPerformCleanup:NO];
-	while ((containedShip = [shipEnum nextObject]))
-	{
-		if ([ship isEqual:containedShip])
-		{
-			result = YES;
-			break;
-		}
-	}
-	
-	// Clean up
-	[self cleanUp];
-	
-	return result;
-}
-#endif
-
 
 - (BOOL) addShip:(ShipEntity *)ship
 {
@@ -511,7 +450,6 @@ static id ShipGroupIterate(OOShipGroupEnumerator *enumerator)
 }
 
 
-#if OOLITE_FAST_ENUMERATION
 - (NSUInteger)countByEnumeratingWithState:(NSFastEnumerationState *)state objects:(id *)stackbuf count:(NSUInteger)len
 {
 	NSUInteger				srcIndex, dstIndex = 0;
@@ -542,7 +480,6 @@ static id ShipGroupIterate(OOShipGroupEnumerator *enumerator)
 	
 	return dstIndex;
 }
-#endif
 
 
 /*	This method exists purely to suppress Clang static analyzer warnings that
