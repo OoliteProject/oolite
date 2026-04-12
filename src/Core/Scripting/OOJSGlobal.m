@@ -861,7 +861,7 @@ static JSBool GlobalQuitGame(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 
-	OOLog(@"script.debug.quit", @"Quit requested via JavaScript global.quitGame()");
+	OOLog(@"script.debug.quit", @"%@", @"Quit requested via JavaScript global.quitGame()");
 
 	[UNIVERSE quitGame];
 
