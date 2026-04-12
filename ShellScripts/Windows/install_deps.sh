@@ -9,14 +9,15 @@ install() {
 	# Second optional parameter is gcc or clang
     echo "Installing $1 package"
 
+    local fullname
     if [ -z "$2" ]; then
 		fullname=$1
     else
 		fullname="${1}_${2}"
     fi
 
-    packagename="$MINGW_PACKAGE_PREFIX-$fullname*any.pkg.tar.zst"
-	filename=$(ls $packagename 2>/dev/null)
+    local packagename="$MINGW_PACKAGE_PREFIX-$fullname*any.pkg.tar.zst"
+	local filename=$(ls $packagename 2>/dev/null)
 
 	# package file eg. mingw-w64-x86_64-libobjc2-2.3-3-any.pkg.tar.zst
     if [ -z "$filename" ]; then
@@ -31,7 +32,7 @@ install() {
 }
 
 run_script() {
-    SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+    local SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
     pushd "$SCRIPT_DIR"
 
     pacman -S git --noconfirm
@@ -47,7 +48,7 @@ run_script() {
 
     cd ../../build/packages
     echo "Installing common libraries"
-    package_names=(spidermonkey SDL)
+    local package_names=(spidermonkey SDL)
     for packagename in "${package_names[@]}"; do
         if ! install $packagename; then
           return 1
@@ -69,7 +70,7 @@ run_script() {
         echo "Installing GNUStep libraries with clang"
         export cc=$MINGW_PREFIX/bin/clang
         export cxx=$MINGW_PREFIX/bin/clang++
-        clang_package_names=(libobjc2 gnustep-make gnustep-base)
+        local clang_package_names=(libobjc2 gnustep-make gnustep-base)
         for packagename in "${clang_package_names[@]}"; do
             if ! install $packagename clang; then
               return 1
@@ -80,7 +81,7 @@ run_script() {
         echo "Installing GNUStep libraries with gcc"
         export cc=$MINGW_PREFIX/bin/gcc
         export cxx=$MINGW_PREFIX/bin/g++
-        gcc_package_names=(gnustep-make gnustep-base)
+        local gcc_package_names=(gnustep-make gnustep-base)
         for packagename in "${gcc_package_names[@]}"; do
             if ! install $packagename gcc; then
               return 1

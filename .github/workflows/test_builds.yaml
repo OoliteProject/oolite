@@ -17,10 +17,10 @@ jobs:
           submodules: true
       - name: Checkout dependencies
         run: |
-          ShellScripts/Linux/checkout_deps.sh
+          ShellScripts/Linux/build_gnustep.sh
       - name: Install packages
         run: |
-          sudo ShellScripts/Linux/install_deps_root.sh
+          sudo ShellScripts/Linux/install_packages_root.sh
       - name: Build Oolite
         run: |
           ShellScripts/common/build_oolite.sh test
@@ -49,10 +49,10 @@ jobs:
           submodules: true
       - name: Checkout dependencies
         run: |
-          ShellScripts/Linux/checkout_deps.sh
+          ShellScripts/Linux/build_gnustep.sh
       - name: Install packages
         run: |
-          ShellScripts/Linux/install_deps_root.sh
+          ShellScripts/Linux/install_packages_root.sh
       - name: Build Oolite
         run: |
           ShellScripts/common/build_oolite.sh test
@@ -81,10 +81,10 @@ jobs:
           submodules: true
       - name: Checkout dependencies
         run: |
-          ShellScripts/Linux/checkout_deps.sh
+          ShellScripts/Linux/build_gnustep.sh
       - name: Install packages
         run: |
-          ShellScripts/Linux/install_deps_root.sh
+          ShellScripts/Linux/install_packages_root.sh
       - name: Build Oolite
         run: |
           ShellScripts/common/build_oolite.sh test

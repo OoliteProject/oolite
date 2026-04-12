@@ -89,14 +89,14 @@ After installing git and checking out the Oolite repository and its submodules, 
 to check out the dependencies of Oolite that need to be built from source:
 
 ```bash
-ShellScripts/Linux/checkout_deps.sh
+ShellScripts/Linux/build_gnustep.sh
 ```
 
-Next run the following to install required packages and build dependencies (you can replace sudo
+Next run the following to install required packages (you can replace sudo
 with other methods that escalate privileges if you prefer):
 
 ```bash
-sudo ShellScripts/Linux/install_deps_root.sh
+sudo ShellScripts/Linux/install_packages_root.sh
 ```
 
 ### Building Oolite

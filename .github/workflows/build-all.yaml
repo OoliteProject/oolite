@@ -29,11 +29,11 @@ jobs:
 
       - name: Checkout dependencies
         run: |
-          oolite/ShellScripts/Linux/checkout_deps.sh
+          oolite/ShellScripts/Linux/build_gnustep.sh
 
       - name: Install packages
         run: |
-          sudo oolite/ShellScripts/Linux/install_deps_root.sh --skip-wayland
+          sudo oolite/ShellScripts/Linux/install_packages_root.sh --skip-wayland
 
       - name: Build Oolite
         run: |

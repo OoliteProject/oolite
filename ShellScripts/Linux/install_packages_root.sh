@@ -21,14 +21,10 @@ run_script() {
     fi
 
 
-    SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+    local SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
     pushd "$SCRIPT_DIR"
 
     source ./install_package_fn.sh
-    if ! cd ../../build; then
-        echo "❌ build folder doesn't exist!" >&2
-        return 1
-    fi
 
     if ! install_package base-devel; then
         return 1
@@ -132,55 +128,6 @@ run_script() {
     if ! install_package flatpak; then
         return 1
     fi
-
-    export CC=clang
-    export CXX=clang++
-
-    cd libobjc2
-    rm -rf build
-    mkdir build
-    cd build
-    if ! cmake -DTESTS=on -DCMAKE_BUILD_TYPE=Release -DGNUSTEP_INSTALL_TYPE=NONE -DEMBEDDED_BLOCKS_RUNTIME=ON -DOLDABI_COMPAT=OFF ../; then
-        echo "❌ libobjc2 cmake configure failed!" >&2
-        return 1
-    fi
-
-    if ! cmake --build .; then
-        echo "❌ libobjc2 cmake build failed!" >&2
-        return 1
-    fi
-    cmake --install .
-    cd ../..
-
-    cd tools-make
-    make clean
-
-    if [[ ${CURRENT_DISTRO,,} == "redhat" ]]; then
-        LIB_PARAM="--with-libdir=lib64"
-    else
-        LIB_PARAM=""
-    fi
-
-    if ! ./configure --with-library-combo=ng-gnu-gnu --with-runtime-abi=gnustep-2.2 ${LIB_PARAM:+"$LIB_PARAM"}; then
-        echo "❌ tools-make configure failed!" >&2
-        return 1
-    fi
-    make
-    make install
-    cd ..
-
-    cd libs-base
-    make clean
-    source /usr/local/share/GNUstep/Makefiles/GNUstep.sh
-    if ! ./configure; then
-        echo "❌ libs-base configure failed!" >&2
-        return 1
-    fi
-    if ! make -j$(nproc); then
-        echo "❌ libs-base make failed!" >&2
-        return 1
-    fi
-    make install
 
 	popd
 }

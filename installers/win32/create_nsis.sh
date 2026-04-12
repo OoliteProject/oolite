@@ -2,7 +2,7 @@
 
 run_script() {
     # First parameter is a suffix for the build type eg. test, dev
-    SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+    local SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
     pushd "$SCRIPT_DIR"
 
     mkdir -p ../../build/nsis
@@ -51,6 +51,7 @@ run_script() {
         echo "!define DEPLOYMENT 1" >> OoliteVersions.nsh
     fi
 
+    local NSIS
     if [[ -n "$MINGW_PREFIX" ]]; then
         NSIS=$MINGW_PREFIX/bin/makensis
     else

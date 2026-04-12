@@ -2,7 +2,7 @@
 
 run_script() {
     # First parameter is a suffix for the build type eg. test, dev
-    SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+    local SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
     pushd "$SCRIPT_DIR"
 
     cd ../..
@@ -35,7 +35,7 @@ run_script() {
         return 1
     fi
 
-    MANIFEST="space.oolite.Oolite.yaml"
+    local MANIFEST="space.oolite.Oolite.yaml"
     if command -v flatpak-builder-lint >/dev/null 2>&1; then
         if ! flatpak-builder-lint manifest "$MANIFEST"; then
             echo "❌ Flatpak manifest lint failed!" >&2
@@ -58,8 +58,8 @@ run_script() {
         return 1
     fi
 
-    TOTAL_LINES=$(wc -l < $MANIFEST)
-    START_LINE=$((TOTAL_LINES - 3))
+    local TOTAL_LINES=$(wc -l < $MANIFEST)
+    local START_LINE=$((TOTAL_LINES - 3))
     sed -i "${START_LINE},\$d" $MANIFEST
     cat <<EOF >> $MANIFEST
       - type: dir
@@ -77,12 +77,13 @@ EOF
         return 1
     fi
 
+    local SUFFIX
    	if (( $# == 1 )); then
         SUFFIX="_${1}-${VER_FULL}"
     else
         SUFFIX="-$VER_FULL"
     fi
-    ARCH=$(uname -m)
+    local ARCH=$(uname -m)
     FILENAME="space.oolite.Oolite${SUFFIX}-${ARCH}.flatpak"
     echo "Creating Flatpak $FILENAME..."
     if ! flatpak build-bundle \
