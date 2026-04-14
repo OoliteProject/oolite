@@ -22,7 +22,10 @@ run_script() {
     if [[ -z "$MINGW_PREFIX" ]]; then
         SHARE="build/gnustep/share"
         if [[ ! -d "$SHARE" ]]; then
-            SHARE="/usr/local/share"
+            SHARE="$HOME/.local/share"
+            if [[ ! -d "$SHARE" ]]; then
+                SHARE="/usr/local/share"
+            fi
         fi
     else
         SHARE="${MINGW_PREFIX}/share"

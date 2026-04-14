@@ -85,19 +85,29 @@ The Clang build uses the UCRT64 environment, while the GCC build uses the MINGW6
 
 ### Linux
 
-After installing git and checking out the Oolite repository and its submodules, run the following
-to check out the dependencies of Oolite that need to be built from source:
+After installing git and checking out the Oolite repository and its submodules, run the following 
+to install required packages (you can replace sudo with other methods that escalate privileges if 
+you prefer):
+
+```bash
+sudo ShellScripts/Linux/install_packages_root.sh
+```
+
+Next run the following to build the GNUstep libraries needed by Oolite:
 
 ```bash
 ShellScripts/Linux/build_gnustep.sh
 ```
 
-Next run the following to install required packages (you can replace sudo
-with other methods that escalate privileges if you prefer):
+Run the following to install the Mozilla JavaScript library needed by Oolite:
 
 ```bash
-sudo ShellScripts/Linux/install_packages_root.sh
+ShellScripts/Linux/install_mozilla_js.sh
 ```
+
+By default, the above two commands will install to $HOME/.local, but you can supply an argument system or build
+to specify /usr/local or the project build folder respectively. When installing to /usr/local, sudo is used by 
+default, but you can supply a further argument to specify an alternative like doas.
 
 ### Building Oolite
 
@@ -189,7 +199,6 @@ guide to the source tree.
     - **Cross-platform-deps**:  Dependencies for platforms other than Mac OS X
     - **Linux-deps**:  Dependencies for Linux on x86 and x86_64 processors
     - **URLs**:  URLs used for binary dependencies on Mac OS X
-    - **Windows-deps**:  Dependencies for Windows on x86 and x86_64 processors
 - **Doc**:  Documentation (including user guides)
 - **ShellScripts**:  Scripts to build from source on Windows and Linux
 - **installers**:  Files used to create various installers
