@@ -89,7 +89,7 @@ modules:
       - cp -r lib/* /app/lib/
     sources:
       - type: archive
-        url: https://github.com/mcarans/spidermonkey-linux/releases/download/0.0.1/mozilla-js-static-lib.tar.gz
+        url: https://github.com/OoliteProject/mozillajs-linux/releases/download/0.0.1/mozilla-js-static-lib.tar.gz
         sha256: ac8c18b4655e4798d348eb300201e46aa1574dfc683041f41e2b87f50ae72346
   - name: oolite
     buildsystem: simple

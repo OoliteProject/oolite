@@ -10,7 +10,7 @@ run_script() {
     dep_location LIB_SUBDIR TARGET ESCALATE "mozilla_js" $1 $2
 
     # The URL to your specific GitHub release asset
-    local RELEASE_URL="https://github.com/mcarans/spidermonkey-linux/releases/download/0.0.1/mozilla-js-static-lib.tar.gz"
+    local RELEASE_URL="https://github.com/OoliteProject/mozillajs-linux/releases/download/0.0.1/mozilla-js-static-lib.tar.gz"
 
     echo "Installing Mozilla JS static library to $TARGET"
     [[ -n "$ESCALATE" ]] && echo "Using escalation: $ESCALATE"
