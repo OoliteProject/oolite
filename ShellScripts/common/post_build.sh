@@ -26,7 +26,7 @@ run_script() {
 
     mkdir -p "$PROGDIR/Resources"
     
-    tools/mkmanifest.sh > "$PROGDIR/Resources/manifest.plist"
+    ShellScripts/common/mkmanifest.sh > "$PROGDIR/Resources/manifest.plist"
     
     local RESOURCE_DIRS=(
         "Resources/AIs"
