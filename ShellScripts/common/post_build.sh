@@ -97,6 +97,13 @@ run_script() {
         # Copy Linux-specific wrapper script
         cp -fu ShellScripts/Linux/run_oolite.sh "$PROGDIR"
         cp -fu ShellScripts/Linux/splash-launcher "$PROGDIR"
+
+        # If we're using GNUstep libraries that aren't in a system folder copy them
+        ldd "$PROGDIR/$DEST_BIN" | \
+            grep -E "libgnustep-base|libobjc\.so\." | \
+            grep -vE "^/(usr/|usr/local/)?lib(64)?/" | \
+            awk '{print $3}' | \
+            xargs -I {} cp -Lrfu {} "$PROGDIR/"
     fi
 
     echo "✅ Oolite post-build completed successfully"

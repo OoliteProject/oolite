@@ -15,12 +15,15 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
-      - name: Checkout dependencies
-        run: |
-          ShellScripts/Linux/build_gnustep.sh
       - name: Install packages
         run: |
           sudo ShellScripts/Linux/install_packages_root.sh
+      - name: Build GNUstep
+        run: |
+          ShellScripts/Linux/build_gnustep.sh
+      - name: Install Mozilla static library
+        run: |
+          ShellScripts/Linux/install_mozilla_js.sh
       - name: Build Oolite
         run: |
           ShellScripts/common/build_oolite.sh test
@@ -47,12 +50,15 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
-      - name: Checkout dependencies
-        run: |
-          ShellScripts/Linux/build_gnustep.sh
       - name: Install packages
         run: |
           ShellScripts/Linux/install_packages_root.sh
+      - name: Build GNUstep
+        run: |
+          ShellScripts/Linux/build_gnustep.sh
+      - name: Install Mozilla static library
+        run: |
+          ShellScripts/Linux/install_mozilla_js.sh
       - name: Build Oolite
         run: |
           ShellScripts/common/build_oolite.sh test
@@ -79,12 +85,15 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
-      - name: Checkout dependencies
-        run: |
-          ShellScripts/Linux/build_gnustep.sh
       - name: Install packages
         run: |
           ShellScripts/Linux/install_packages_root.sh
+      - name: Build GNUstep
+        run: |
+          ShellScripts/Linux/build_gnustep.sh
+      - name: Install Mozilla static library
+        run: |
+          ShellScripts/Linux/install_mozilla_js.sh
       - name: Build Oolite
         run: |
           ShellScripts/common/build_oolite.sh test
