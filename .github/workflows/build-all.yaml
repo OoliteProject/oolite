@@ -30,10 +30,10 @@ jobs:
           sudo oolite/ShellScripts/Linux/install_packages_root.sh --skip-wayland
       - name: Build GNUstep
         run: |
-          ShellScripts/Linux/build_gnustep.sh
+          oolite/ShellScripts/Linux/build_gnustep.sh
       - name: Install Mozilla static library
         run: |
-          ShellScripts/Linux/install_mozilla_js.sh
+          oolite/ShellScripts/Linux/install_mozilla_js.sh
       - name: Build Oolite
         run: |
           oolite/ShellScripts/common/build_oolite.sh ${{matrix.flavour}}
