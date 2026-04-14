@@ -79,10 +79,10 @@ run_script() {
         fi
 
         # Replace specific voices with Oolite-specific versions
-        rm -f "$PROGDIR/Resources/espeak-ng-data/voices/default"
         rm -f "$PROGDIR/Resources/espeak-ng-data/voices/!v/f2"
-        cp -fu deps/Cross-platform-deps/espeak-data/voices/!v/f2 "$PROGDIR/Resources/espeak-ng-data/voices/!v/f2"
-        cp -fu deps/Cross-platform-deps/espeak-data/voices/default "$PROGDIR/Resources/espeak-ng-data/voices/default"
+        cp -fu Resources/espeak-ng-data/voices/!v/f2 "$PROGDIR/Resources/espeak-ng-data/voices/!v/f2"
+        rm -f "$PROGDIR/Resources/espeak-ng-data/voices/default"
+        cp -fu Resources/espeak-ng-data/voices/default "$PROGDIR/Resources/espeak-ng-data/voices/default"
     fi
     
     # Strip binary if requested
