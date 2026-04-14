@@ -59,7 +59,7 @@ modules:
     sources:
       - type: git
         url: https://github.com/gnustep/libobjc2.git
-        commit: 62e3a80b8e93818c2ac3250beab211c4d294cc87
+        commit: b67709ad7851973fde127022d8ac6a710c82b1d5
   - name: gnustep-make
     build-options:
       env:
@@ -80,7 +80,17 @@ modules:
     sources:
       - type: git
         url: https://github.com/gnustep/libs-base.git
-        commit: caa0816846937a0ad4724eba12cd0d69786b2e54
+        commit: 530ac3454f9c8af315d823736252cb45221943c1
+  - name: mozilla-js-static
+    buildsystem: simple
+    build-commands:
+      - mkdir -p /app/lib /app/include
+      - cp -r include/* /app/include/
+      - cp -r lib/* /app/lib/
+    sources:
+      - type: archive
+        url: https://github.com/OoliteProject/mozillajs-linux/releases/download/0.0.1/mozilla-js-static-lib.tar.gz
+        sha256: ac8c18b4655e4798d348eb300201e46aa1574dfc683041f41e2b87f50ae72346
   - name: oolite
     buildsystem: simple
     build-commands:

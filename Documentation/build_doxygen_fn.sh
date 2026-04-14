@@ -1,7 +1,7 @@
 #!/bin/bash
 
 build_doxygen() {
-    SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+    local SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
     pushd "$SCRIPT_DIR"
 
     PKG_OK=$(command -v doxygen)

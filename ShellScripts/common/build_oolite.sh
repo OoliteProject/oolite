@@ -4,7 +4,7 @@
 
 run_script() {
     # First optional parameter is build target. Default target is release.
-    SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+    local SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
     pushd "$SCRIPT_DIR"
 
     export CC=clang
@@ -18,13 +18,28 @@ run_script() {
         TARGET=$1
     fi
 
+    local SHARE
     if [[ -z "$MINGW_PREFIX" ]]; then
-        SHARE="/usr/local/share"
+        SHARE="build/gnustep/share"
+        if [[ ! -d "$SHARE" ]]; then
+            SHARE="$HOME/.local/share"
+            if [[ ! -d "$SHARE" ]]; then
+                SHARE="/usr/local/share"
+            fi
+        fi
     else
         SHARE="${MINGW_PREFIX}/share"
     fi
 
-    source "$SHARE/GNUstep/Makefiles/GNUstep.sh"
+    local GNUSTEP_SH="$SHARE/GNUstep/Makefiles/GNUstep.sh"
+
+    if [[ -f "$GNUSTEP_SH" ]]; then
+        source "$GNUSTEP_SH"
+    else
+        echo "❌ Could not find GNUstep.sh in $SHARE!"
+        return 1
+    fi
+
     make -f Makefile clean
     if ! make -f Makefile $TARGET -j$(nproc); then
         echo "❌ Oolite build failed!" >&2

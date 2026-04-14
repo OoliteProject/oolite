@@ -7,16 +7,16 @@ install_freedesktop() {
 
     local err_msg="❌ Error: Failed to"
 
-    SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+    local SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
     pushd "$SCRIPT_DIR"
 
     source ../common/get_version.sh
 
     echo "Installing metainfo to to $1"
 
-    PROGDIR="../../oolite.app"
-    APPBIN="$1/bin"
-    APPSHR="$1/share"
+    local PROGDIR="../../oolite.app"
+    local APPBIN="$1/bin"
+    local APPSHR="$1/share"
 
     # Install binaries and scripts
     install -D "$PROGDIR/oolite" "$APPBIN/oolite" || { echo "$err_msg install oolite binary" >&2; return 1; }

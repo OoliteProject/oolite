@@ -58,21 +58,41 @@ ifeq ($(GNUSTEP_HOST_OS),mingw32)
     endif
 
 else
-    LIBJS_DIR                    = deps/Linux-deps/x86_64/mozilla
-    LIBJS_INC_DIR                = deps/Linux-deps/x86_64/mozilla/include
+
     ifeq ($(debug),yes)
-        LIBJS                    = jsdbg_static
-# By default we don't share the debug version of JS library
-# If you want to debug into JS, ensure a libjsdbg_static.a exists into $(LIBJS_DIR)
+        LIBJS = jsdbg_static
     else
-        LIBJS                    = js_static
+        LIBJS = js_static
     endif
 
-    ADDITIONAL_INCLUDE_DIRS      += -I$(LIBJS_INC_DIR) -Isrc/SDL -Isrc/Core -Isrc/BSDCompat -Isrc/Core/Scripting -Isrc/Core/Materials -Isrc/Core/Entities -Isrc/Core/OXPVerifier -Isrc/Core/Debug -Isrc/Core/Tables -Isrc/Core/MiniZip
-    ADDITIONAL_OBJC_LIBS         += -lGLU -lGL -lX11 -lSDL -lgnustep-base -L$(LIBJS_DIR) -l$(LIBJS) -lopenal -lz -lvorbisfile -lpng `nspr-config --libs` -lstdc++
+    # 2. Define the search roots (highest priority first)
+    SEARCH_ROOTS = \
+        build/mozilla_js \
+        $(HOME)/.local \
+        /usr/local \
+        /app
+
+    # 3. Find the first path that contains the SPECIFIC library we need (js_static vs jsdbg_static)
+    # We check both 'lib' and 'lib64' inside each root to handle Fedora vs Kubuntu/Arch
+    FOUND_LIB_DIR := $(firstword $(foreach root,$(SEARCH_ROOTS), \
+        $(if $(wildcard $(root)/lib/lib$(LIBJS).a),$(root)/lib,) \
+        $(if $(wildcard $(root)/lib64/lib$(LIBJS).a),$(root)/lib64,) \
+    ))
+
+    # 4. If a valid library directory is found, sync the include folder
+    ifneq ($(FOUND_LIB_DIR),)
+        # abspath cleans up the path (e.g., build/mozilla_js/lib/../include becomes build/mozilla_js/include)
+        FOUND_INC_DIR := $(abspath $(FOUND_LIB_DIR)/../include)
+
+        ADDITIONAL_INCLUDE_DIRS  += -I$(FOUND_INC_DIR)
+        ADDITIONAL_OBJC_LIBS     += -L$(FOUND_LIB_DIR)
+    endif
+
+    ADDITIONAL_INCLUDE_DIRS      += -Isrc/SDL -Isrc/Core -Isrc/BSDCompat -Isrc/Core/Scripting -Isrc/Core/Materials -Isrc/Core/Entities -Isrc/Core/OXPVerifier -Isrc/Core/Debug -Isrc/Core/Tables -Isrc/Core/MiniZip
+    ADDITIONAL_OBJC_LIBS         += -lGLU -lGL -lX11 -lSDL -lgnustep-base -l$(LIBJS) -lopenal -lz -lvorbisfile -lpng `nspr-config --libs` -lstdc++
     ADDITIONAL_OBJCFLAGS         += -DLINUX -DXP_UNIX `sdl-config --cflags`
     ADDITIONAL_CFLAGS            += -DLINUX `sdl-config --cflags`
-    ADDITIONAL_LDFLAGS           += -fuse-ld=bfd  # Force use of ld (ldd and gold don't work. mold also works)
+    ADDITIONAL_LDFLAGS           += -Wl,-rpath,'$$ORIGIN'
 
     ifeq ($(ESPEAK),yes)
         ADDITIONAL_OBJC_LIBS     += -lespeak-ng
@@ -87,6 +107,7 @@ else
     ifeq ($(COMPILER_TYPE),gcc)
         ADDITIONAL_OBJCFLAGS     += -std=gnu99 -Wall -Wno-import `nspr-config --cflags` -DLOADSAVEGUI
         ADDITIONAL_CFLAGS        += -Wall `nspr-config --cflags` -DNEED_STRLCPY
+        ADDITIONAL_LDFLAGS       += -fuse-ld=bfd
     else
         ADDITIONAL_LDFLAGS       += -fuse-ld=lld
     endif

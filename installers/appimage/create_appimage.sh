@@ -2,7 +2,7 @@
 
 run_script() {
     # First parameter is a suffix for the build type eg. test, dev
-    SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+    local SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
     pushd "$SCRIPT_DIR"
 
     mkdir -p ../../build
@@ -11,18 +11,18 @@ run_script() {
     source ../ShellScripts/common/get_version.sh
     source ../ShellScripts/Linux/install_freedesktop_fn.sh
 
-    ARCH=$(uname -m)
-    APPDIR="./oolite.AppDir"
-    APPBIN="$APPDIR/usr/bin"
-    APPSHR="$APPDIR/usr/share"
+    local ARCH=$(uname -m)
+    local APPDIR="./oolite.AppDir"
+    local APPBIN="$APPDIR/usr/bin"
+    local APPSHR="$APPDIR/usr/share"
     rm -rf "$APPDIR"
 
-    ABS_APPDIR_USR=$(realpath -m "$APPDIR/usr")
+    local ABS_APPDIR_USR=$(realpath -m "$APPDIR/usr")
     if ! install_freedesktop "$ABS_APPDIR_USR" appdata; then
         return 1
     fi
 
-    LINUXDEPLOY_BIN="./linuxdeploy"
+    local LINUXDEPLOY_BIN="./linuxdeploy"
     if [ ! -x "$LINUXDEPLOY_BIN" ]; then
         echo "📥 linuxdeploy not found or not executable. Downloading..."
         curl -o "$LINUXDEPLOY_BIN" -L https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-$ARCH.AppImage || { echo "❌ Download failed" >&2; exit 1; }
@@ -35,8 +35,8 @@ run_script() {
         arch) SDL2="--library=/usr/lib/libSDL2-2.0.so.0 --library=/usr/lib/libSDL3.so.0" ;;
     esac
 
-    ICON_SUBPATH="icons/hicolor/256x256/apps/space.oolite.Oolite.png"
-    ICON_PATH="$APPSHR/$ICON_SUBPATH"
+    local ICON_SUBPATH="icons/hicolor/256x256/apps/space.oolite.Oolite.png"
+    local ICON_PATH="$APPSHR/$ICON_SUBPATH"
     echo "Building AppDir for AppImage..."
     # install_metadatainfo_fn already put the files in the parameters below in the right place,
     # but no harm putting again here
@@ -61,8 +61,8 @@ run_script() {
         -exec strip --strip-unneeded '{}' +   # keeps symbols needed for runtime linking
     fi
 
-    LINTER_BIN="./appdir-lint.sh"
-    EXCLUDE_LIST="./excludelist"
+    local LINTER_BIN="./appdir-lint.sh"
+    local EXCLUDE_LIST="./excludelist"
 
     if [ ! -x "$LINTER_BIN" ] || [ ! -f "$EXCLUDE_LIST" ]; then
         echo "📥 Downloading AppDir linter and excludelist..."
@@ -77,19 +77,20 @@ run_script() {
         return 1
     fi
 
-    APPIMAGETOOL_BIN="./appimagetool"
+    local APPIMAGETOOL_BIN="./appimagetool"
     if [ ! -x "$APPIMAGETOOL_BIN" ]; then
         echo "📥 appimagetool not found. Downloading..."
         curl -o "$APPIMAGETOOL_BIN" -L https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-$ARCH.AppImage || { echo "❌ appimagetool download failed" >&2; exit 1; }
         chmod +x "$APPIMAGETOOL_BIN"
     fi
 
+    local SUFFIX
    	if (( $# == 1 )); then
         SUFFIX="_${1}-${VER_FULL}"
     else
         SUFFIX="-$VER_FULL"
     fi
-    FILENAME="oolite${SUFFIX}-${ARCH}.AppImage"
+    local FILENAME="oolite${SUFFIX}-${ARCH}.AppImage"
     echo "Creating AppImage $FILENAME..."
     if ! ./appimagetool "$APPDIR" "$FILENAME"; then
         echo "❌ AppImage creation failed!" >&2

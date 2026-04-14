@@ -19,26 +19,24 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y git
-
       - name: Checkout Oolite
         uses: actions/checkout@v6
         with:
           path: oolite
           fetch-depth: 0
           submodules: true
-
-      - name: Checkout dependencies
-        run: |
-          oolite/ShellScripts/Linux/checkout_deps.sh
-
       - name: Install packages
         run: |
-          sudo oolite/ShellScripts/Linux/install_deps_root.sh --skip-wayland
-
+          sudo oolite/ShellScripts/Linux/install_packages_root.sh --skip-wayland
+      - name: Build GNUstep
+        run: |
+          oolite/ShellScripts/Linux/build_gnustep.sh
+      - name: Install Mozilla static library
+        run: |
+          oolite/ShellScripts/Linux/install_mozilla_js.sh
       - name: Build Oolite
         run: |
           oolite/ShellScripts/common/build_oolite.sh ${{matrix.flavour}}
-
       - name: Archive installer
         uses: actions/upload-artifact@v6
         with:
@@ -59,11 +57,9 @@ jobs:
           path: oolite
           fetch-depth: 0
           submodules: true
-
       - name: Build flatpak
         run: |
           oolite/installers/flatpak/create_flatpak.sh
-
       - name: Archive installer
         uses: actions/upload-artifact@v6
         with:
@@ -87,14 +83,12 @@ jobs:
         uses: msys2/setup-msys2@v2
         with:
           update: true
-
       - name: Checkout Oolite
         uses: actions/checkout@v6
         with:
           path: oolite
           fetch-depth: 0
           submodules: true
-
       - name: Download latest release assets
         uses: robinraju/release-downloader@v1
         with:
@@ -102,21 +96,18 @@ jobs:
           latest: true
           fileName: "*"
           out-file-path: oolite/build/packages
-
       - name: Install packages
         shell: msys2 {0}
         env:
           msystem: UCRT64
         run: |
           oolite/ShellScripts/Windows/install_deps.sh clang
-
       - name: Build Oolite
         shell: msys2 {0}
         env:
           msystem: UCRT64
         run: |
           oolite/ShellScripts/common/build_oolite.sh ${{matrix.flavour}}
-
       - name: Archive installer
         uses: actions/upload-artifact@v6
         with:
@@ -138,13 +129,11 @@ jobs:
         uses: actions/download-artifact@v7
         with:
           path: artifacts
-
       - name: Checkout Oolite
         uses: actions/checkout@v6
         with:
           path: oolite
           fetch-depth: 0
-
       - name: Calculate version number and set OOLITE_VERSION
         id: version
         run: |
@@ -154,7 +143,6 @@ jobs:
           # taking into account that we may have just two digits
           source ShellScripts/common/get_version.sh
           cat build/OOLITE_VERSION.txt >> "$GITHUB_OUTPUT"
-
       - name: Remove old prereleases
         if: github.ref == 'refs/heads/master' || endsWith(github.ref, 'maintenance')
         uses: s00d/delete-older-releases@0.2.1
@@ -163,7 +151,6 @@ jobs:
           delete_type: 'prerelease'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       # For changes on master branch, create a new release.
       # It should move the 'latest' tag automatically.
       - name: Create Release
@@ -184,7 +171,6 @@ jobs:
             artifacts/oolite-linux-pkg-appimage-deployment/*.AppImage
             artifacts/oolite-linux-pkg-appimage/*.AppImage
             artifacts/oolite-flatpak/*.flatpak
-
       - name: Remove old workflow runs
         if: github.ref == 'refs/heads/master' || endsWith(github.ref, 'maintenance')
         uses: Mattraks/delete-workflow-runs@v2

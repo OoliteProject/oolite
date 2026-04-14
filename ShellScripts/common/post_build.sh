@@ -2,33 +2,33 @@
 # Processes Oolite data files after compilation
 
 run_script() {
-    SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+    local SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
     pushd "$SCRIPT_DIR"
 
     cd ../..
 
-    OS_EXT=""
+    local OS_EXT=""
     if [ "$GNUSTEP_HOST_OS" = "mingw32" ]; then
         # Windows only executable extension
         OS_EXT=".exe"
     fi
     
     # Debug extension if needed
-    EXT=""
+    local EXT=""
     if [ "$DEBUG" = "yes" ]; then
         EXT=".dbg"
     fi
     
     # Paths and binary names
-    PROGDIR="${OBJC_PROGRAM_NAME}.app"
-    SRC_BIN="${OBJC_PROGRAM_NAME}${OS_EXT}"
-    DEST_BIN="${OBJC_PROGRAM_NAME}${EXT}${OS_EXT}"
+    local PROGDIR="${OBJC_PROGRAM_NAME}.app"
+    local SRC_BIN="${OBJC_PROGRAM_NAME}${OS_EXT}"
+    local DEST_BIN="${OBJC_PROGRAM_NAME}${EXT}${OS_EXT}"
 
     mkdir -p "$PROGDIR/Resources"
     
     tools/mkmanifest.sh > "$PROGDIR/Resources/manifest.plist"
     
-    RESOURCE_DIRS=(
+    local RESOURCE_DIRS=(
         "Resources/AIs"
         "Resources/Config"
         "Resources/Scenarios"
@@ -57,13 +57,13 @@ run_script() {
             cp -rfu "$MINGW_PREFIX/share/espeak-ng-data" "$PROGDIR/Resources"
         else
             # Linux search paths for espeak-ng-data
-            SEARCH_PATHS=(
+            local SEARCH_PATHS=(
                 "/usr/local/share/espeak-ng-data"
                 "/usr/lib/x86_64-linux-gnu/espeak-ng-data"
                 "/usr/share/espeak-ng-data"
                 "/app/share/espeak-ng-data"
             )
-            FOUND_DATA=false
+            local FOUND_DATA=false
             for path in "${SEARCH_PATHS[@]}"; do
                 if [ -d "$path" ]; then
                     cp -rfu "$path" "$PROGDIR/Resources"
@@ -97,6 +97,13 @@ run_script() {
         # Copy Linux-specific wrapper script
         cp -fu ShellScripts/Linux/run_oolite.sh "$PROGDIR"
         cp -fu ShellScripts/Linux/splash-launcher "$PROGDIR"
+
+        # If we're using GNUstep libraries that aren't in a system folder copy them
+        ldd "$PROGDIR/$DEST_BIN" | \
+            grep -E "libgnustep-base|libobjc\.so\." | \
+            grep -vE "^/(usr/|usr/local/)?lib(64)?/" | \
+            awk '{print $3}' | \
+            xargs -I {} cp -Lrfu {} "$PROGDIR/"
     fi
 
     echo "✅ Oolite post-build completed successfully"

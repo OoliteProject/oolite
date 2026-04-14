@@ -4,8 +4,8 @@ SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
 source $SCRIPT_DIR/os_detection.sh
 
 install_package() {
-    GENERIC_NAME=$1
-    PKG_NAME=""
+    local GENERIC_NAME=$1
+    local PKG_NAME=""
 
     # This CASE statement is the dictionary.
     # Add your packages here.
