@@ -30,7 +30,7 @@ varying vec2			vTexCoords;
 varying vec3			vLight1Vector;
 varying vec3			vCoords;
 
-const float pi = 3.141592654;
+const float pi = 3.1415926;
 
 void main(void)
 {
