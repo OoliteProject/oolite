@@ -1067,7 +1067,6 @@ static OOColor *ColorWithHSBColor(Vector c)
 										bindingTarget: self];
 			if (cloudsMaterial == nil)
 			{
-				OOLog(@"texture.planet.KJA", @"No clouds material");
 				DESTROY(_cloudsShaderDrawable);
 			}
 			else

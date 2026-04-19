@@ -1,4 +1,4 @@
-/*	Settings for shader system.
+>/*	Settings for shader system.
 	
 	While it is possible to override this in the usual fashion, it would not
 	be a very good idea.
@@ -142,7 +142,6 @@
 		uniforms =
 		{
 			clouds = { type = texture; value = 0; };
-			terminatorThreshold = "terminatorThresholdVector";
 		};
 	};
 	"clouds-dynamic-macros" = 
