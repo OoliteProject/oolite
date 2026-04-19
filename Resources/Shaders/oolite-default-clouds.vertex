@@ -30,8 +30,6 @@ varying vec2			vTexCoords;
 varying vec3			vLight1Vector;
 varying vec3			vCoords;
 
-const float pi = 3.1415926;
-
 void main(void)
 {
 	vCoords = gl_Vertex.xyz;
@@ -51,7 +49,7 @@ void main(void)
 
 	vec3 texNormal = normalize(vCoords);
 	vTexCoords.t = (texNormal.y + 1.0)/2.0;
-	vTexCoords.s = acos(texNormal.x/sqrt(texNormal.x*texNormal.x+texNormal.z*texNormal.z)) / (2.0 * pi);
+	vTexCoords.s = acos(texNormal.x/sqrt(texNormal.x*texNormal.x+texNormal.z*texNormal.z)) / (2.0 * acos(-1.0));
 	if (texNormal.z > 0.0)
 	{
 		vTexCoords.s = 1.0 - vTexCoords.s;
