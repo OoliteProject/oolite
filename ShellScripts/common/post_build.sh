@@ -2,32 +2,33 @@
 # Processes Oolite data files after compilation
 
 run_script() {
+    # All variables declared local to avoid global scope pollution
     local SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
-    pushd "$SCRIPT_DIR"
+    pushd "$SCRIPT_DIR" > /dev/null
 
     cd ../..
 
     local OS_EXT=""
-    if [ "$GNUSTEP_HOST_OS" = "mingw32" ]; then
+    if [[ "$GNUSTEP_HOST_OS" == "mingw32" ]]; then
         # Windows only executable extension
         OS_EXT=".exe"
     fi
-    
+
     # Debug extension if needed
     local EXT=""
-    if [ "$DEBUG" = "yes" ]; then
+    if [[ "$DEBUG" == "yes" ]]; then
         EXT=".dbg"
     fi
-    
+
     # Paths and binary names
     local PROGDIR="${OBJC_PROGRAM_NAME}.app"
     local SRC_BIN="${OBJC_PROGRAM_NAME}${OS_EXT}"
     local DEST_BIN="${OBJC_PROGRAM_NAME}${EXT}${OS_EXT}"
 
     mkdir -p "$PROGDIR/Resources"
-    
+
     tools/mkmanifest.sh > "$PROGDIR/Resources/manifest.plist"
-    
+
     local RESOURCE_DIRS=(
         "Resources/AIs"
         "Resources/Config"
@@ -41,6 +42,8 @@ run_script() {
         "Resources/Binary/Textures"
         "Schemata"
     )
+
+    local resdir
     for resdir in "${RESOURCE_DIRS[@]}"; do
         cp -rfu "$resdir" "$PROGDIR/Resources"
     done
@@ -49,10 +52,10 @@ run_script() {
     cp -fu Resources/InfoPlist.strings "$PROGDIR/Resources"
     cp -fu src/Cocoa/Info-Oolite.plist "$PROGDIR/Resources/Info-gnustep.plist"
     cp -fu "$GNUSTEP_OBJ_DIR_NAME/$SRC_BIN" "$PROGDIR/$DEST_BIN"
-    
+
     # Voice Data
-    if [ "$ESPEAK" = "yes" ]; then
-        if [ "$GNUSTEP_HOST_OS" = "mingw32" ]; then
+    if [[ "$ESPEAK" == "yes" ]]; then
+        if [[ "$GNUSTEP_HOST_OS" == "mingw32" ]]; then
             # Windows espeak-ng-data
             cp -rfu "$MINGW_PREFIX/share/espeak-ng-data" "$PROGDIR/Resources"
         else
@@ -64,15 +67,16 @@ run_script() {
                 "/app/share/espeak-ng-data"
             )
             local FOUND_DATA=false
+            local path
             for path in "${SEARCH_PATHS[@]}"; do
-                if [ -d "$path" ]; then
+                if [[ -d "$path" ]]; then
                     cp -rfu "$path" "$PROGDIR/Resources"
                     FOUND_DATA=true
                     break
                 fi
             done
 
-            if [ "$FOUND_DATA" = false ]; then
+            if [[ "$FOUND_DATA" == false ]]; then
                 echo "❌ espeak-ng-data not found in any known location!" >&2
                 return 1
             fi
@@ -84,13 +88,13 @@ run_script() {
         cp -fu deps/Cross-platform-deps/espeak-data/voices/!v/f2 "$PROGDIR/Resources/espeak-ng-data/voices/!v/f2"
         cp -fu deps/Cross-platform-deps/espeak-data/voices/default "$PROGDIR/Resources/espeak-ng-data/voices/default"
     fi
-    
+
     # Strip binary if requested
-    if [ "$STRIP_BIN" = "yes" ]; then
+    if [[ "$STRIP_BIN" == "yes" ]]; then
         ${STRIP:-strip} "$PROGDIR/$DEST_BIN"
     fi
-    
-    if [ "$GNUSTEP_HOST_OS" = "mingw32" ]; then
+
+    if [[ "$GNUSTEP_HOST_OS" == "mingw32" ]]; then
         # Determine and copy DLL dependencies
         ldd "$PROGDIR/$DEST_BIN" | grep "$MINGW_PREFIX" | awk '{print $3}' | xargs -I {} cp -rfu {} "$PROGDIR"
     else
@@ -107,7 +111,7 @@ run_script() {
     fi
 
     echo "✅ Oolite post-build completed successfully"
-    popd
+    popd > /dev/null
 }
 
 run_script "$@"
@@ -117,4 +121,3 @@ status=$?
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     exit $status
 fi
-
