@@ -24,11 +24,31 @@
 	SOFTWARE.
 */
 
+/*      "Harsh shadow factor": degree to which normal map affects global diffuse light
+        with terminator and full shadow, as opposed to "local light" which is a normal
+        Lambertian light.
+
+        Terminator threshold: defines the width and colour of the terminator. The
+        numbers are cosines of the angle where it transitions to full light.
+
+        Both of these factors are ignored in simple shader mode.
+*/
+const float                     kHarshShadowFactor      = 0.05;
+uniform vec4                    terminatorThreshold;
+
 uniform sampler2D		clouds;
 
 // No vNormal, because normal is always 0,0,1 in tangent space.
 varying vec3			vLight1Vector;
 varying vec2			vTexCoords;
+
+vec3 CalcDiffuseIntensity(in vec3 lightVector, in vec3 normal)
+{
+	float LdotN = lightVector.z;
+	
+	// Hard terminator with slight redish-orange tinge. Note: threshold values are cosines.
+	return smoothstep(vec3(0.0), terminatorThreshold.xyz, vec3(LdotN));
+}
 
 void main()
 {
@@ -36,9 +56,10 @@ void main()
 	vec3 normal = vec3(0.0, 0.0, 1.0);
 
 	vec3 light1Vector = normalize(vLight1Vector);
+	vec3 diffuseIntensity = CalcDiffuseIntensity(light1Vector, normal);
 	
 	float NdotL = max(0.0, dot(light1Vector, normal));
 
-	gl_FragColor = vec4(NdotL*cloudColor.xyz, cloudColor.w);
+	gl_FragColor = vec4(NdotL*diffuseIntensity*cloudColor.xyz, cloudColor.w);
 }
 

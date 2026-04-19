@@ -142,6 +142,7 @@
 		uniforms =
 		{
 			clouds = { type = texture; value = 0; };
+			terminatorThreshold = "terminatorThresholdVector";
 		};
 	};
 	"clouds-dynamic-macros" = 
