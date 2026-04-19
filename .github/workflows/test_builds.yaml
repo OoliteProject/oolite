@@ -1,5 +1,6 @@
 name: Test Oolite package on various platforms
 on:
+  workflow_dispatch:
   push:
   pull_request:
 
