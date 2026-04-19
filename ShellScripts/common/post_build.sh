@@ -8,16 +8,15 @@ run_script() {
 
     cd ../..
 
+    local EXT=""
     local OS_EXT=""
     if [[ "$GNUSTEP_HOST_OS" == "mingw32" ]]; then
         # Windows only executable extension
         OS_EXT=".exe"
-    fi
-
-    # Debug extension if needed
-    local EXT=""
-    if [[ "$DEBUG" == "yes" ]]; then
-        EXT=".dbg"
+       # Debug extension if needed
+        if [[ "$DEBUG" == "yes" ]]; then
+            EXT=".dbg"
+        fi
     fi
 
     # Paths and binary names
