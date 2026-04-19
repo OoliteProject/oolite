@@ -162,6 +162,7 @@ static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH;	// atmosphere effect 
 		// the shader atmosphere at the planet edges. If no shader atmosphere is used, then set it to the standard radius
 		double atmosphereRadius = [UNIVERSE detailLevel] >= DETAIL_LEVEL_SHADERS ? collision_radius : collision_radius + ATMOSPHERE_DEPTH;
 		_atmosphereDrawable = [[OOPlanetDrawable atmosphereWithRadius:atmosphereRadius] retain];
+		_cloudsShaderDrawable = [[OOPlanetDrawable atmosphereWithRadius:atmosphereRadius] retain];
 		_atmosphereShaderDrawable = [[OOPlanetDrawable atmosphereWithRadius:collision_radius + ATMOSPHERE_DEPTH] retain];
 		
 		// convert the atmosphere settings to generic 'material parameters'
@@ -463,12 +464,15 @@ static OOColor *ColorWithHSBColor(Vector c)
 	
 	// FIXME: in old planet code, atmosphere (if textured) is set to 0.6 alpha.
 	_atmosphereDrawable = [planet->_atmosphereDrawable copy];
+	_cloudsShaderDrawable = [planet->_cloudsShaderDrawable copy];
 	_atmosphereShaderDrawable = [planet->_atmosphereShaderDrawable copy];
 	[_atmosphereDrawable setRadius:collision_radius + ATMOSPHERE_DEPTH * PLANET_MINIATURE_FACTOR * 2.0]; //not to scale: invisible otherwise
+	if (_cloudsShaderDrawable)  [_cloudsShaderDrawable setRadius:collision_radius + ATMOSPHERE_DEPTH * PLANET_MINIATURE_FACTOR * 2.0]; //not to scale: invisible otherwise
 	if (_atmosphereShaderDrawable)  [_atmosphereShaderDrawable setRadius:collision_radius + ATMOSPHERE_DEPTH * PLANET_MINIATURE_FACTOR * 2.0];
 	
 	[_planetDrawable setLevelOfDetail:0.8f];
 	[_atmosphereDrawable setLevelOfDetail:0.8f];
+	if (_cloudsShaderDrawable)  [_cloudsShaderDrawable setLevelOfDetail:0.8f];
 	if (_atmosphereShaderDrawable)  [_atmosphereShaderDrawable setLevelOfDetail:0.8f];
 	
 	return self;
@@ -480,6 +484,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 	DESTROY(_name);
 	DESTROY(_planetDrawable);
 	DESTROY(_atmosphereDrawable);
+	DESTROY(_cloudsShaderDrawable);
 	DESTROY(_atmosphereShaderDrawable);
 	DESTROY(_airColor);
 	DESTROY(_illuminationColor);
@@ -584,6 +589,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 								   alpha:aleph];
 				double atmosphereRadius = canDrawShaderAtmosphere ? collision_radius : collision_radius + (ATMOSPHERE_DEPTH * alt);
 				[_atmosphereDrawable setRadius:atmosphereRadius];
+				if (_cloudsShaderDrawable) [_cloudsShaderDrawable setRadius: atmosphereRadius];
 				if (_atmosphereShaderDrawable)  [_atmosphereShaderDrawable setRadius:collision_radius + (ATMOSPHERE_DEPTH * alt)];
 				// apply air resistance for the ship, not the camera. Although setSkyColorRed
 				// has already set the air resistance to aleph, override it immediately
@@ -595,12 +601,14 @@ static OOColor *ColorWithHSBColor(Vector c)
 			if (EXPECT_NOT([_atmosphereDrawable radius] < collision_radius + ATMOSPHERE_DEPTH))
 			{
 				[_atmosphereDrawable setRadius:collision_radius + ATMOSPHERE_DEPTH];
+				if (_cloudsShaderDrawable) [_cloudsShaderDrawable setRadius: collision_radius * ATMOSPHERE_DEPTH];
 				if (_atmosphereShaderDrawable)  [_atmosphereShaderDrawable setRadius:collision_radius + ATMOSPHERE_DEPTH];
 			}
 			if (canDrawShaderAtmosphere && [_atmosphereDrawable radius] != collision_radius)
 			{
 				// if shader atmo is in use, force texture atmo radius to just collision_radius for cosmetic purposes
 				[_atmosphereDrawable setRadius:collision_radius];
+				if (_cloudsShaderDrawable) [_cloudsShaderDrawable setRadius: collision_radius];
 			}
 			if ([PLAYER findNearestPlanet] == self) // ensure no problems in case of more than one planets
 			{
@@ -658,7 +666,11 @@ static OOColor *ColorWithHSBColor(Vector c)
 	{
 		[_planetDrawable calculateLevelOfDetailForViewDistance:cam_zero_distance];
 		[_atmosphereDrawable setLevelOfDetail:[_planetDrawable levelOfDetail]];
-		if (canDrawShaderAtmosphere)  [_atmosphereShaderDrawable setLevelOfDetail:[_planetDrawable levelOfDetail]];
+		if (canDrawShaderAtmosphere)
+		{
+			if (_cloudsShaderDrawable)  [_cloudsShaderDrawable setLevelOfDetail: [_planetDrawable levelOfDetail]];
+			[_atmosphereShaderDrawable setLevelOfDetail:[_planetDrawable levelOfDetail]];
+		}
 	}
 
 	// 500km squared
@@ -678,8 +690,15 @@ static OOColor *ColorWithHSBColor(Vector c)
 		{
 			OOGLPushModelView();
 			OOGLMultModelView(OOMatrixForQuaternionRotation(_atmosphereOrientation));
-			[_atmosphereDrawable renderTranslucentPartsOnOpaquePass];
-			if (canDrawShaderAtmosphere)  [_atmosphereShaderDrawable renderTranslucentPartsOnOpaquePass];
+			if (canDrawShaderAtmosphere)
+			{
+				if(_cloudsShaderDrawable) [_cloudsShaderDrawable renderTranslucentPartsOnOpaquePass];
+				[_atmosphereShaderDrawable renderTranslucentPartsOnOpaquePass];
+			}
+			else
+			{
+				[_atmosphereDrawable renderTranslucentPartsOnOpaquePass];
+			}
 			OOGLPopModelView();
 		}
 	}
@@ -1006,6 +1025,17 @@ static OOColor *ColorWithHSBColor(Vector c)
 	/* Generate atmosphere texture */
 	if (!isMoon)
 	{
+		OOLog(@"texture.planet.generate",@"Preparing atmosphere for planet %@",self);
+		/* Generate a standalone atmosphere texture */
+		OOTexture *atmosphere = nil;
+		[OOStandaloneAtmosphereGenerator generateAtmosphereTexture:&atmosphere
+														withInfo:_materialParameters];
+		
+		OOLog(@"texture.planet.generate",@"Planet %@ has atmosphere %@",self,atmosphere);
+		
+		OOSingleTextureMaterial *dynamicMaterial = [[OOSingleTextureMaterial alloc] initWithName:@"dynamic" texture:atmosphere configuration:nil];
+		[_atmosphereDrawable setMaterial:dynamicMaterial];
+
 		if (shadersOn)
 		{
 			NSMutableDictionary *aConfig = [[[materialDefaults oo_dictionaryForKey:@"atmosphere-material"] mutableCopy] autorelease];
@@ -1026,18 +1056,26 @@ static OOColor *ColorWithHSBColor(Vector c)
 			{
 				[_atmosphereShaderDrawable setMaterial:dynamicShaderMaterial];
 			}
+
+			NSMutableDictionary *cloudConfig = [[[materialDefaults oo_dictionaryForKey:@"clouds-dynamic-material"] mutableCopy] autorelease];
+			[cloudConfig setObject:[NSArray arrayWithObjects: atmosphere, nil] forKey: @"_oo_texture_objects"];
+			NSDictionary *cloudMacros = [materialDefaults oo_dictionaryForKey: @"clouds-dynamic-macros"];
+
+			OOMaterial *cloudsMaterial = [OOShaderMaterial shaderMaterialWithName:@"dynamic"
+										configuration: cloudConfig
+										macros: cloudMacros
+										bindingTarget: self];
+			if (cloudsMaterial == nil)
+			{
+				OOLog(@"texture.planet.KJA", @"No clouds material");
+				DESTROY(_cloudsShaderDrawable);
+			}
+			else
+			{
+				[_cloudsShaderDrawable setMaterial: cloudsMaterial];
+			}
 		}
 		
-		OOLog(@"texture.planet.generate",@"Preparing atmosphere for planet %@",self);
-		/* Generate a standalone atmosphere texture */
-		OOTexture *atmosphere = nil;
-		[OOStandaloneAtmosphereGenerator generateAtmosphereTexture:&atmosphere
-														withInfo:_materialParameters];
-		
-		OOLog(@"texture.planet.generate",@"Planet %@ has atmosphere %@",self,atmosphere);
-		
-		OOSingleTextureMaterial *dynamicMaterial = [[OOSingleTextureMaterial alloc] initWithName:@"dynamic" texture:atmosphere configuration:nil];
-		[_atmosphereDrawable setMaterial:dynamicMaterial];
 		[dynamicMaterial release];
 	}
 

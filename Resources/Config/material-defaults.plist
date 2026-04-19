@@ -135,4 +135,18 @@
 		IS_OOLITE = 1;
 		OOSTD_DIFFUSE_MAP = 1;
 	};
+	"clouds-dynamic-material" =
+	{
+		vertex_shader = "oolite-default-clouds.vertex";
+		fragment_shader = "oolite-default-clouds.fragment";
+		uniforms =
+		{
+			clouds = { type = texture; value = 0; };
+		};
+	};
+	"clouds-dynamic-macros" = 
+	{
+		IS_OOLITE = 1;
+	};
 }
+

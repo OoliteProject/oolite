@@ -41,6 +41,7 @@ MA 02110-1301, USA.
 @private
 	OOPlanetDrawable		*_planetDrawable;
 	OOPlanetDrawable		*_atmosphereDrawable;
+	OOPlanetDrawable		*_cloudsShaderDrawable;
 	OOPlanetDrawable		*_atmosphereShaderDrawable;
 	
 	BOOL					_miniature;
