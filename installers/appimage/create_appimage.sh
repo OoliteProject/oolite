@@ -18,7 +18,7 @@ run_script() {
     rm -rf "$APPDIR"
 
     local ABS_APPDIR_USR=$(realpath -m "$APPDIR/usr")
-    if ! install_freedesktop "$ABS_APPDIR_USR" appdata; then
+    if ! install_freedesktop "$ABS_APPDIR_USR" bin appdata; then
         return 1
     fi
 
