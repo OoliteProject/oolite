@@ -20,6 +20,9 @@ install_freedesktop() {
 
     # Install binaries and scripts
     install -D "$PROGDIR/oolite" "$APPBIN/oolite" || { echo "$err_msg install oolite binary" >&2; return 1; }
+    if [[ -f "$PROGDIR/oolite.debug" ]]; then
+        install -D "$PROGDIR/oolite.debug" "$APPBIN/oolite.debug" || { echo "$err_msg install oolite debug symbols" >&2; return 1; }
+    fi
     install -D "$PROGDIR/run_oolite.sh" "$APPBIN/run_oolite.sh" || { echo "$err_msg install run_oolite.sh" >&2; return 1; }
     install -D "$PROGDIR/splash-launcher" "$APPBIN/splash-launcher" || { echo "$err_msg install splash-launcher" >&2; return 1; }
 

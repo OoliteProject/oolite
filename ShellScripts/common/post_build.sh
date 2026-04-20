@@ -90,7 +90,14 @@ run_script() {
 
     # Strip binary if requested
     if [[ "$STRIP_BIN" == "yes" ]]; then
+        if [[ "$GNUSTEP_HOST_OS" == "linux-gnu" ]]; then
+            cp -f "$GNUSTEP_OBJ_DIR_NAME/$SRC_BIN" "$PROGDIR/$DEST_BIN"
+            objcopy --only-keep-debug "$PROGDIR/$DEST_BIN" "$PROGDIR/$DEST_BIN.debug"
+        fi
         ${STRIP:-strip} "$PROGDIR/$DEST_BIN"
+        if [[ "$GNUSTEP_HOST_OS" == "linux-gnu" ]]; then
+            objcopy --add-gnu-debuglink="$PROGDIR/$DEST_BIN.debug" "$PROGDIR/$DEST_BIN"
+        fi
     fi
 
     if [[ "$GNUSTEP_HOST_OS" == "mingw32" ]]; then

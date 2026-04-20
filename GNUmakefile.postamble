@@ -21,3 +21,4 @@ after-all::
 
 after-clean::
 	$(RM) -rf $(GNUSTEP_OBJ_DIR_BASENAME) $(addprefix $(GNUSTEP_OBJ_DIR_BASENAME), .spk .dbg .spk.dbg)
+	$(RM) -rf build/thinlto_cache
