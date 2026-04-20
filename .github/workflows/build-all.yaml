@@ -2,6 +2,7 @@ name: Build Oolite package for various platforms
 on:
   workflow_dispatch:
   push:
+  pull_request:
 
 jobs:
   build-linux:

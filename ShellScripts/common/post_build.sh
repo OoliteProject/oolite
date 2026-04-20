@@ -101,7 +101,7 @@ run_script() {
         # If we're using GNUstep libraries that aren't in a system folder copy them
         ldd "$PROGDIR/$DEST_BIN" | \
             grep -E "libgnustep-base|libobjc\.so\." | \
-            grep -vE "^/(usr/|usr/local/)?lib(64)?/" | \
+            grep -vE "^[[:space:]]*.*=>[[:space:]]*/(usr/(local/)?|lib(64)?/)" | \
             awk '{print $3}' | \
             xargs -I {} cp -Lrfu {} "$PROGDIR/"
     fi
