@@ -469,7 +469,7 @@ enum PreferredAppMode
 							"Click OK to launch anyway, or Cancel to exit.", "oolite.exe - HDR requested",
 							MB_OKCANCEL | MB_ICONWARNING) == IDCANCEL)
 		{
-			exit (1);
+			[gameController exitAppWithContext:@"Cancel selected on no-HDR confirmation dialog"];
 		}
 	}
 
