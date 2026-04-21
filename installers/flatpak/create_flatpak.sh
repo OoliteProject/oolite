@@ -93,6 +93,15 @@ EOF
         echo "❌ Flatpak bundle creation failed!" >&2
         return 1
     fi
+    DEBUGLNAME="space.oolite.Oolite.Debug${SUFFIX}-${ARCH}.flatpak"
+    if ! flatpak build-bundle \
+      --runtime \
+      repo \
+      "$DEBUGLNAME" \
+      space.oolite.Oolite.Debug; then
+        echo "❌ Flatpak bundle creation failed!" >&2
+        return 1
+    fi
 
     popd
 }

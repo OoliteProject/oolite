@@ -13,7 +13,6 @@ POST_BUILD_ENV = \
 	ESPEAK="$(ESPEAK)" \
 	USE_DEPS="$(use_deps)" \
 	STRIP_BIN="$(strip)" \
-	STRIP="$(STRIP)" \
 	VER_FULL="$(VER_FULL)"
 
 after-all::

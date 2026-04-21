@@ -93,6 +93,8 @@ modules:
         sha256: ac8c18b4655e4798d348eb300201e46aa1574dfc683041f41e2b87f50ae72346
   - name: oolite
     buildsystem: simple
+    build-options:
+      no-debuginfo: true
     build-commands:
       - source installers/flatpak/flatpak_build.sh
     sources:
