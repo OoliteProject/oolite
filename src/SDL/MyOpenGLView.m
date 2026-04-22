@@ -118,32 +118,6 @@ enum PreferredAppMode
 }
 
 
-- (void) createSurface // KJASDL
-{
-#if OOLITE_WINDOWS
-	updateContext = !showSplashScreen;
-#elif OOLITE_LINUX
-	if (!showSplashScreen)
-	{
-		// blank the surface / go to fullscreen
-		[self initialiseGLWithSize: firstScreen];
-	}
-#endif
-
-	/* KJASDL: Apparently we don't set gamma here, but calculate it in shaders instead
-	_gamma = 1.0f;
-	if (SDL_SetGamma(_gamma, _gamma, _gamma) < 0 )
-	{
-		char * errStr = SDL_GetError();
-		OOLogWARN(@"gamma.set.failed", @"Could not set gamma: %s", errStr);
-		// CIM: this doesn't seem to necessarily be fatal. Gamma settings
-		// mostly work on mine despite this function failing.
-		//	exit(1);
-	}
-	SDL_EnableUNICODE(1);*/
-}
-
-
 - (id) init
 {
 	self = [super init];
@@ -228,6 +202,13 @@ enum PreferredAppMode
 #else
 	strcat(windowCaption, __DATE__);
 #endif
+	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, bitsPerColorComponent);
+	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, bitsPerColorComponent);
+	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, bitsPerColorComponent);
+	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, bitsPerColorComponent);
+	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+	
 	int windowFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_FULLSCREEN | SDL_WINDOW_RESIZABLE;
 	window = SDL_CreateWindow(windowCaption, firstScreen.width, firstScreen.height, windowFlags);
 	if (!window)
@@ -292,13 +273,6 @@ enum PreferredAppMode
 	}
 	SDL_DestroySurface(icon);
 
-	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, bitsPerColorComponent);
-	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, bitsPerColorComponent);
-	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, bitsPerColorComponent);
-	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, bitsPerColorComponent);
-	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-	
 	_colorSaturation = 1.0f;
 	
 	_hdrOutput = NO;
@@ -350,8 +324,16 @@ enum PreferredAppMode
 #endif
 
 	OOLog(@"display.initGL", @"Trying %d-bpcc, 24-bit depth buffer", bitsPerColorComponent);
-	[self createSurface];
-	
+#if OOLITE_WINDOWS
+	updateContext = !showSplashScreen;
+#elif OOLITE_LINUX
+	if (!showSplashScreen)
+	{
+		// blank the surface / go to fullscreen
+		[self initialiseGLWithSize: firstScreen];
+	}
+#endif
+
 	/* KJASDL
 	if (surface == NULL)
 	{
