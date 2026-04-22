@@ -213,6 +213,30 @@ enum PreferredAppMode
 	window = SDL_CreateWindow(windowCaption, firstScreen.width, firstScreen.height, windowFlags);
 	if (!window)
 	{
+		OOLog(@"display.initGL", @"%@", @"Trying 8-bpcc, 32-bit depth buffer");
+		SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
+		SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
+		SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
+		SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
+		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
+		window = SDL_CreateWindow(windowCaption, firstScreen.width, firstScreen.height, windowFlags);
+	}
+
+	if (!window)
+	{
+		OOLog(@"display.initGL", @"%@", @"Trying 5-bpcc, 16-bit depth buffer");
+		SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5);
+		SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5);
+		SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5);
+		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
+		// and if it's this bad, forget even trying to multisample!
+		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
+		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
+		window = SDL_CreateWindow(windowCaption, firstScreen.width, firstScreen.height, windowFlags);
+	}
+
+	if (!window)
+	{
 		OOLog(@"sdl.create_window", @"%@", @"Could not create SDL window");
 		exit(1);
 	}
