@@ -228,7 +228,7 @@ enum PreferredAppMode
 #else
 	strcat(windowCaption, __DATE__);
 #endif
-	int windowFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_FULLSCREEN;
+	int windowFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_FULLSCREEN | SDL_WINDOW_RESIZABLE;
 	window = SDL_CreateWindow(windowCaption, firstScreen.width, firstScreen.height, windowFlags);
 	if (!window)
 	{
@@ -2688,7 +2688,7 @@ finished:
 
 	int displayModeCount;
 	modes = SDL_GetFullscreenDisplayModes(displayId, &displayModeCount);
-	if(displayModeCount)
+	if(!displayModeCount)
 	{
 		OOLog(@"display.mode.list.none", @"%@", @"SDL didn't return any screen modes");
 		return;
