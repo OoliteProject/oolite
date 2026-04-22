@@ -36,8 +36,8 @@ MA 02110-1301, USA.
 	int i;
 
 	// Find and open the sticks. Make sure that we don't fail if more joysticks than MAX_STICKS are detected.
-	stickCount = SDL_NumJoysticks();
-	OOLog(@"joystick.init", @"Number of joysticks detected: %ld", (long)stickCount);
+	SDL_JoystickID *joystickIds = SDL_GetJoysticks(&stickCount);
+	OOLog(@"joystick.init", @"Number of joysticks detected: %d", stickCount);
 	if (stickCount > MAX_STICKS)
 	{
 		stickCount = MAX_STICKS;
@@ -52,14 +52,15 @@ MA 02110-1301, USA.
 			if(i > MAX_STICKS)
 				break;
 
-			stick[i]=SDL_JoystickOpen(i);
+			stick[i]=SDL_OpenJoystick(joystickIds[i]);
 			if(!stick[i])
 			{
 				OOLog(@"joystick.init", @"Failed to open joystick #%d", i);
 			}
 		}
-		SDL_JoystickEventState(SDL_ENABLE);
+		SDL_SetJoystickEventsEnabled(true);
 	}
+	SDL_free(joystickIds);
 	return [super init];
 }
 
@@ -69,16 +70,16 @@ MA 02110-1301, USA.
 	BOOL rc=NO;
 	switch(evt->type)
 	{
-		case SDL_JOYAXISMOTION:
+		case SDL_EVENT_JOYSTICK_AXIS_MOTION:
 			[self decodeAxisEvent: (JoyAxisEvent *)evt];
 			rc=YES;
 			break;
-		case SDL_JOYBUTTONDOWN:
-		case SDL_JOYBUTTONUP:
+		case SDL_EVENT_JOYSTICK_BUTTON_DOWN:
+		case SDL_EVENT_JOYSTICK_BUTTON_UP:
 			[self decodeButtonEvent: (JoyButtonEvent *)evt];
 			rc=YES;
 			break;
-		case SDL_JOYHATMOTION:
+		case SDL_EVENT_JOYSTICK_HAT_MOTION:
 			[self decodeHatEvent: (JoyHatEvent *)evt];
 			rc=YES;
 			break;
@@ -99,13 +100,14 @@ MA 02110-1301, USA.
 
 - (NSString *) nameOfJoystick:(NSUInteger)stickNumber
 {
-	return [NSString stringWithUTF8String:SDL_JoystickName((int)stickNumber)];
+	if (stickNumber >= stickCount)  return @"(unknown joystick)";
+	return [NSString stringWithUTF8String:SDL_GetJoystickName(stick[stickNumber])];
 }
 
 
 - (int16_t) getAxisWithStick:(NSUInteger) stickNum axis:(NSUInteger) axisNum 
 {
-	return SDL_JoystickGetAxis(stick[stickNum], axisNum);
+	return SDL_GetJoystickAxis(stick[stickNum], axisNum);
 }
 
 

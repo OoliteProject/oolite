@@ -683,7 +683,7 @@ static id sSharedStickHandler = nil;
 		{
 			btn.type = (evt->value & (1 << i)) ? JOYBUTTONDOWN : JOYBUTTONUP;
 			btn.button = MAX_REAL_BUTTONS + i + evt->which * 4;
-			btn.state = (evt->value & (1 << i)) ? JOYBUTTON_PRESSED : JOYBUTTON_RELEASED;
+			btn.down = (evt->value & (1 << i));
 			[self decodeButtonEvent:&btn];
 		}
 	}

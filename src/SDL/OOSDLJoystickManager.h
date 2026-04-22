@@ -36,7 +36,7 @@ MA 02110-1301, USA.
 
 
 #import <Foundation/Foundation.h>
-#import <SDL.h>
+#import <SDL3/SDL.h>
 #import "OOJoystickManager.h"
 
 
@@ -46,7 +46,7 @@ MA 02110-1301, USA.
 {
 @private
 	SDL_Joystick		*stick[MAX_STICKS];
-	NSUInteger			stickCount;
+	int			stickCount;
 }
 
 - (id) init;

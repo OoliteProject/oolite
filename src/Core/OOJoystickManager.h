@@ -164,26 +164,25 @@ enum {
 
 #if OOLITE_SDL
 
-#import <SDL.h>
+#import <SDL3/SDL.h>
 
 enum
 {
-	JOYAXISMOTION		= SDL_JOYAXISMOTION,
-	JOYBUTTONDOWN		= SDL_JOYBUTTONDOWN,
-	JOYBUTTONUP			= SDL_JOYBUTTONUP,
-	JOYBUTTON_PRESSED	= SDL_PRESSED,
-	JOYBUTTON_RELEASED	= SDL_RELEASED,
-	JOYHAT_MOTION		= SDL_JOYHATMOTION,
-
+	JOYAXISMOTION		= SDL_EVENT_JOYSTICK_AXIS_MOTION,
+	JOYBUTTONDOWN		= SDL_EVENT_JOYSTICK_BUTTON_DOWN,
+	JOYBUTTONUP		= SDL_EVENT_JOYSTICK_BUTTON_UP,
+	JOYHAT_MOTION		= SDL_EVENT_JOYSTICK_HAT_MOTION,
 	JOYHAT_CENTERED		= SDL_HAT_CENTERED,
-	JOYHAT_UP			= SDL_HAT_UP,
+	JOYHAT_UP		= SDL_HAT_UP,
 	JOYHAT_RIGHT		= SDL_HAT_RIGHT,
-	JOYHAT_DOWN			= SDL_HAT_DOWN,
-	JOYHAT_LEFT			= SDL_HAT_LEFT,
+	JOYHAT_DOWN		= SDL_HAT_DOWN,
+	JOYHAT_LEFT		= SDL_HAT_LEFT,
 	JOYHAT_RIGHTUP		= SDL_HAT_RIGHTUP,
 	JOYHAT_RIGHTDOWN	= SDL_HAT_RIGHTDOWN,
 	JOYHAT_LEFTUP		= SDL_HAT_LEFTUP,
 	JOYHAT_LEFTDOWN		= SDL_HAT_LEFTDOWN,
+	JOYBUTTON_PRESSED,
+	JOYBUTTON_RELEASED
 };
 
 typedef SDL_JoyButtonEvent JoyButtonEvent;
@@ -202,10 +201,10 @@ enum
 	JOYHAT_MOTION,
 	
 	JOYHAT_CENTERED		= 0x00,
-	JOYHAT_UP			= 0x01,
+	JOYHAT_UP		= 0x01,
 	JOYHAT_RIGHT		= 0x02,
-	JOYHAT_DOWN			= 0x04,
-	JOYHAT_LEFT			= 0x08,
+	JOYHAT_DOWN		= 0x04,
+	JOYHAT_LEFT		= 0x08,
 	JOYHAT_RIGHTUP		= (JOYHAT_RIGHT|JOYHAT_UP),
 	JOYHAT_RIGHTDOWN	= (JOYHAT_RIGHT|JOYHAT_DOWN),
 	JOYHAT_LEFTUP		= (JOYHAT_LEFT|JOYHAT_UP),
@@ -218,7 +217,7 @@ typedef struct
 	uint32_t		type;
 	uint8_t			which;
 	uint8_t			axis;
-	int				value;
+	int			value;
 } JoyAxisEvent;
 
 typedef struct
@@ -226,7 +225,7 @@ typedef struct
 	uint32_t		type;
 	uint8_t			which;
 	uint8_t			button;
-	int				state;
+	bool			down;
 	
 } JoyButtonEvent;
 
@@ -263,8 +262,8 @@ typedef struct
 	// the desired function, and the hardware (axis or button etc.)
 	id			cbObject;
 	SEL			cbSelector;
-	char		cbHardware;
-	BOOL		invertPitch;
+	char			cbHardware;
+	BOOL			invertPitch;
 
 }
 

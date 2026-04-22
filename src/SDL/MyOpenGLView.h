@@ -28,7 +28,7 @@ MA 02110-1301, USA.
 #import "OOOpenGLMatrixManager.h"
 
 
-#include <SDL.h>
+#include <SDL3/SDL.h>
 
 #define WINDOW_SIZE_DEFAULT_WIDTH	1280
 #define WINDOW_SIZE_DEFAULT_HEIGHT	720
@@ -217,9 +217,11 @@ extern int debug;
 
 	// Windowed mode
 	NSSize				currentWindowSize;
-	SDL_Surface			*surface;
 
 	BOOL				showSplashScreen;
+	SDL_Window			*window;
+	SDL_GLContext			*glContext;
+	char				windowCaption[128];
 
 #if OOLITE_WINDOWS
 
@@ -228,7 +230,7 @@ extern int debug;
 	BOOL				saveSize;
 	BOOL				atDesktopResolution;
 	unsigned			keyboardMap; // *** FLAGGED for deletion
-	HWND 				SDL_Window;
+	HWND 				windowHandle;
 	MONITORINFOEX		monitorInfo;
 	RECT				lastGoodRect;
 	float				_hdrMaxBrightness;
@@ -323,7 +325,7 @@ extern int debug;
 #endif
 
 - (NSRect) bounds;
-+ (NSMutableDictionary *) getNativeSize;
+- (NSMutableDictionary *) getNativeSize;
 
 - (void) setFullScreenMode:(BOOL)fsm;
 - (BOOL) inFullScreenMode;

@@ -36,7 +36,7 @@ SOFTWARE.
 #include <stdio.h>
 #import "NSThreadOOExtensions.h"
 #import "NSFileManagerOOExtensions.h"
-#include <SDL.h>
+#include <SDL3/SDL.h>
 
 
 #undef NSLog		// We need to be able to call the real NSLog.
