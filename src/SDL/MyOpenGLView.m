@@ -210,7 +210,7 @@ enum PreferredAppMode
 		return nil;
 	}
 
-	SDL_SetEnvironmentVariable(SDL_GetEnvironment(), "SDL_VIDEO_WINDOW_POS", "center", true);
+	SDL_SetEnvironmentVariable(SDL_GetEnvironment(), "SDL_VIDEO_WINDOW_POS", "center", YES);
 
 	[OOJoystickManager setStickHandlerClass:[OOSDLJoystickManager class]];
 	// end TODO
@@ -759,6 +759,8 @@ enum PreferredAppMode
 
 - (void) drawRect:(NSRect)rect
 {
+	SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+	SDL_SetWindowSize(window, (int)NSWidth(rect), (int)NSHeight(rect));
 	[self updateScreenWithVideoMode:YES];
 }
 
@@ -784,7 +786,10 @@ enum PreferredAppMode
 
 	// do all the drawing!
 	//
-	if (UNIVERSE)  [UNIVERSE drawUniverse];
+	if (UNIVERSE)
+	{
+		[UNIVERSE drawUniverse];
+	}
 	else
 	{
 		// not set up yet, draw a black screen
@@ -828,8 +833,20 @@ enum PreferredAppMode
 	ShowWindow(windowHandle,SW_RESTORE);
 	MoveWindow(windowHandle,dest.x,dest.y,dest.w,dest.h,TRUE);
 
+  #else
+
+	SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+	SDL_SetWindowSize(window, image->w, image->h);
+
   #endif
 
+	SDL_ShowWindow(window);
+	SDL_Surface *surface = SDL_GetWindowSurface(window);
+	SDL_BlitSurface(image, NULL, window, NULL);
+	SDL_DestroySurface(image);
+	return;
+
+/* KJASDL
 	OOSetOpenGLState(OPENGL_STATE_OVERLAY);
 
 	glViewport( 0, 0, dest.w, dest.h);
@@ -908,6 +925,7 @@ enum PreferredAppMode
 
 	glDisable( GL_TEXTURE_2D );
 	OOVerifyOpenGLState();
+*/
 }
 
 
@@ -2187,24 +2205,19 @@ finished:
 				BOOL modifier_pressed = NO;
 				BOOL special_key = NO;
 
+				shift = kbd_event->mod & SDL_KMOD_SHIFT;
+				ctrl = kbd_event->mod & SDL_KMOD_CTRL;
+				opt = kbd_event->mod & SDL_KMOD_ALT;
+
 				// translate scancode to unicode equiv
 				switch (kbd_event->key) 
 				{
 					case SDLK_LSHIFT:
 					case SDLK_RSHIFT:
-						shift = YES;
-						modifier_pressed = YES;
-						break;
-
 					case SDLK_LCTRL:
 					case SDLK_RCTRL:
-						ctrl = YES;
-						modifier_pressed = YES;
-						break;
-						
 					case SDLK_LALT:
 					case SDLK_RALT:
-						opt = YES;
 						modifier_pressed = YES;
 						break;
 
@@ -2274,6 +2287,15 @@ finished:
 						;
 				}
 
+				if (!special_key)
+				{
+					if (shift && !ctrl)
+					{
+						NSString *keyShifted = [keyMappings_shifted objectForKey:[NSString stringWithFormat:@"%d", scan_code]];
+						if (keyShifted) key_id = [keyShifted integerValue];
+
+					}
+				}
 				// the keyup event doesn't give us the unicode value, so store it here so it can be retrieved on keyup
 				// the ctrl key tends to mix up the unicode values, so deal with some special cases
 				// we also need (in most cases) to get the character without the impact of caps lock. 
@@ -2335,6 +2357,10 @@ finished:
 				suppressKeys = NO;    // DJS
 				kbd_event = (SDL_KeyboardEvent*)&event;
 				scan_code = kbd_event->scancode;
+
+				shift = kbd_event->mod & SDL_KMOD_SHIFT;
+				ctrl = kbd_event->mod & SDL_KMOD_CTRL;
+				opt = kbd_event->mod & SDL_KMOD_ALT;
 
 				// all the work should have been down on the keydown event, so all we need to do is get the unicode value from the array
 				key_id = scancode2Unicode[scan_code];
