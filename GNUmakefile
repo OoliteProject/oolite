@@ -88,10 +88,10 @@ else
         ADDITIONAL_OBJC_LIBS     += -L$(FOUND_LIB_DIR)
     endif
 
-    ADDITIONAL_CFLAGS            += -g
-    ADDITIONAL_OBJCFLAGS         += -g
-    ADDITIONAL_CCFLAGS           += -g
-    ADDITIONAL_LDFLAGS           += -g
+    ADDITIONAL_CFLAGS            += -ggdb3
+    ADDITIONAL_OBJCFLAGS         += -ggdb3
+    ADDITIONAL_CCFLAGS           += -ggdb3
+    ADDITIONAL_LDFLAGS           += -ggdb3
 
     ADDITIONAL_INCLUDE_DIRS      += -Isrc/SDL -Isrc/Core -Isrc/BSDCompat -Isrc/Core/Scripting -Isrc/Core/Materials -Isrc/Core/Entities -Isrc/Core/OXPVerifier -Isrc/Core/Debug -Isrc/Core/Tables -Isrc/Core/MiniZip
     ADDITIONAL_OBJC_LIBS         += -lGLU -lGL -lX11 -lSDL -lgnustep-base -l$(LIBJS) -lopenal -lz -lvorbisfile -lpng `nspr-config --libs` -lstdc++
