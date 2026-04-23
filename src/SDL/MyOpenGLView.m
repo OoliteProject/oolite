@@ -209,7 +209,21 @@ enum PreferredAppMode
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	
-	int windowFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_FULLSCREEN | SDL_WINDOW_RESIZABLE;
+	/* Multisampling significantly improves graphics quality with
+	 * basically no extra programming effort on our part, especially
+	 * for curved surfaces like the planet, but is also expensive - in
+	 * the worst case the entire scene must be rendered four
+	 * times. For now it can be a hidden setting. If early testing
+	 * doesn't give any problems (other than speed on low-end graphics
+	 * cards) a game options entry might be useful. - CIM, 24 Aug 2013*/
+
+	if ([prefs oo_boolForKey:@"anti-aliasing" defaultValue:NO])
+	{
+		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
+	}
+
+	int windowFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
 	window = SDL_CreateWindow(windowCaption, firstScreen.width, firstScreen.height, windowFlags);
 	if (!window)
 	{
@@ -237,7 +251,8 @@ enum PreferredAppMode
 
 	if (!window)
 	{
-		OOLog(@"sdl.create_window", @"%@", @"Could not create SDL window");
+		char * errStr = SDL_GetError();
+		OOLogERR(@"display.mode.error", @"Could not create window: %s", errStr);
 		exit(1);
 	}
 	glContext = SDL_GL_CreateContext(window);
@@ -317,19 +332,6 @@ enum PreferredAppMode
 	SDL_SetWindowSurfaceVSync(window, vSyncPreference);
 	OOLog(@"display.initGL", @"V-Sync %@requested.", vSyncPreference ? @"" : @"not ");
 	
-	/* Multisampling significantly improves graphics quality with
-	 * basically no extra programming effort on our part, especially
-	 * for curved surfaces like the planet, but is also expensive - in
-	 * the worst case the entire scene must be rendered four
-	 * times. For now it can be a hidden setting. If early testing
-	 * doesn't give any problems (other than speed on low-end graphics
-	 * cards) a game options entry might be useful. - CIM, 24 Aug 2013*/
-	if ([prefs oo_boolForKey:@"anti-aliasing" defaultValue:NO])
-	{
-		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
-	}
-
 	OOLog(@"display.mode.list", @"%@", @"CREATING MODE LIST");
 	[self populateFullScreenModelist];
 	currentSize = 0;
@@ -358,51 +360,6 @@ enum PreferredAppMode
 	}
 #endif
 
-	/* KJASDL
-	if (surface == NULL)
-	{
-		// Retry with hardcoded 8 bits per color component
-		OOLog(@"display.initGL", @"%@", @"Trying 8-bpcc, 32-bit depth buffer");
-		SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
-		SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
-		SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
-		SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
-		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
-		[self createSurface];
-		
-		if (surface == NULL)
-		{
-			// Still not working? One last go...
-			// Retry, allowing 16-bit contexts.
-			OOLog(@"display.initGL", @"%@", @"Trying 5-bpcc, 16-bit depth buffer");
-			SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5);
-			SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5);
-			SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5);
-			SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
-			// and if it's this bad, forget even trying to multisample!
-			SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
-			SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
-
-			[self createSurface];
-
-			if (surface == NULL)
-			{
-				char * errStr = SDL_GetError();
-				OOLogERR(@"display.mode.error", @"Could not create display surface: %s", errStr);
-#if OOLITE_WINDOWS
-				if (showSplashScreen)
-				{
-					[[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"splash-screen"];
-					[[NSUserDefaults standardUserDefaults] synchronize];
-					OOLogWARN(@"display.mode.conflict",@"Possible incompatibility between the splash screen and video drivers detected.");
-					OOLogWARN(@"display.mode.conflict",@"Oolite will start without showing the splash screen from now on. Override with 'oolite.exe -splash'");
-				}
-#endif
-				exit(1);
-			}
-		}
-	}*/
-	
 	int testAttrib = -1;
 	OOLog(@"display.initGL", @"%@", @"Achieved color / depth buffer sizes (bits):");
 	SDL_GL_GetAttribute(SDL_GL_RED_SIZE, &testAttrib);
@@ -841,14 +798,15 @@ enum PreferredAppMode
 
   #else
 
+	SDL_SetWindowSize(window, dest.w, dest.h);
 	SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
-	SDL_SetWindowSize(window, image->w, image->h);
+	SDL_ShowWindow(window);
 
   #endif
 
-	SDL_ShowWindow(window);
 	SDL_Surface *surface = SDL_GetWindowSurface(window);
-	SDL_BlitSurface(image, NULL, window, NULL);
+	SDL_BlitSurface(image, NULL, surface, NULL);
+	//SDL_UpdateWindowSurface(window);
 	SDL_DestroySurface(image);
 	return;
 
