@@ -13,7 +13,6 @@ POST_BUILD_ENV = \
 	ESPEAK="$(ESPEAK)" \
 	USE_DEPS="$(use_deps)" \
 	STRIP_BIN="$(strip)" \
-	STRIP="$(STRIP)" \
 	VER_FULL="$(VER_FULL)"
 
 after-all::
@@ -21,3 +20,4 @@ after-all::
 
 after-clean::
 	$(RM) -rf $(GNUSTEP_OBJ_DIR_BASENAME) $(addprefix $(GNUSTEP_OBJ_DIR_BASENAME), .spk .dbg .spk.dbg)
+	$(RM) -rf build/thinlto_cache

@@ -88,6 +88,11 @@ else
         ADDITIONAL_OBJC_LIBS     += -L$(FOUND_LIB_DIR)
     endif
 
+    ADDITIONAL_CFLAGS            += -ggdb3
+    ADDITIONAL_OBJCFLAGS         += -ggdb3
+    ADDITIONAL_CCFLAGS           += -ggdb3
+    ADDITIONAL_LDFLAGS           += -ggdb3
+
     ADDITIONAL_INCLUDE_DIRS      += -Isrc/SDL -Isrc/Core -Isrc/BSDCompat -Isrc/Core/Scripting -Isrc/Core/Materials -Isrc/Core/Entities -Isrc/Core/OXPVerifier -Isrc/Core/Debug -Isrc/Core/Tables -Isrc/Core/MiniZip
     ADDITIONAL_OBJC_LIBS         += -lGLU -lGL -lX11 -lSDL -lgnustep-base -l$(LIBJS) -lopenal -lz -lvorbisfile -lpng `nspr-config --libs` -lstdc++
     ADDITIONAL_OBJCFLAGS         += -DLINUX -DXP_UNIX `sdl-config --cflags`
@@ -114,14 +119,21 @@ else
 endif
 
 VER_FULL := $(shell ./ShellScripts/common/get_version.sh)
-ADDITIONAL_CFLAGS        += -DOO_VERSION_FULL=\"$(VER_FULL)\"
-ADDITIONAL_OBJCFLAGS     += -DOO_VERSION_FULL=\"$(VER_FULL)\"
+ADDITIONAL_CFLAGS                += -DOO_VERSION_FULL=\"$(VER_FULL)\"
+ADDITIONAL_OBJCFLAGS             += -DOO_VERSION_FULL=\"$(VER_FULL)\"
 #   link time optimizations
 ifeq ($(lto),yes)
-    ADDITIONAL_CFLAGS        += -flto
-    ADDITIONAL_OBJCFLAGS     += -flto
-    ADDITIONAL_CCFLAGS       += -flto
-    ADDITIONAL_LDFLAGS       += -flto
+    ifeq ($(COMPILER_TYPE),clang)
+        ADDITIONAL_CFLAGS        += -flto=thin
+        ADDITIONAL_OBJCFLAGS     += -flto=thin
+        ADDITIONAL_CCFLAGS       += -flto=thin
+        ADDITIONAL_LDFLAGS       += -flto=thin -Wl,--thinlto-cache-dir=build/thinlto_cache
+    else
+        ADDITIONAL_CFLAGS        += -flto=auto
+        ADDITIONAL_OBJCFLAGS     += -flto=auto
+        ADDITIONAL_CCFLAGS       += -flto=auto
+        ADDITIONAL_LDFLAGS       += -flto=auto
+    endif
 endif
 
 OBJC_PROGRAM_NAME = oolite
