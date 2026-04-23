@@ -25,9 +25,9 @@ run_script() {
     local DEST_BIN="${OBJC_PROGRAM_NAME}${EXT}${OS_EXT}"
 
     mkdir -p "$PROGDIR/Resources"
-
-    tools/mkmanifest.sh > "$PROGDIR/Resources/manifest.plist"
-
+    
+    ShellScripts/common/mkmanifest.sh > "$PROGDIR/Resources/manifest.plist"
+    
     local RESOURCE_DIRS=(
         "Resources/AIs"
         "Resources/Config"
@@ -82,10 +82,10 @@ run_script() {
         fi
 
         # Replace specific voices with Oolite-specific versions
-        rm -f "$PROGDIR/Resources/espeak-ng-data/voices/default"
         rm -f "$PROGDIR/Resources/espeak-ng-data/voices/!v/f2"
-        cp -fu deps/Cross-platform-deps/espeak-data/voices/!v/f2 "$PROGDIR/Resources/espeak-ng-data/voices/!v/f2"
-        cp -fu deps/Cross-platform-deps/espeak-data/voices/default "$PROGDIR/Resources/espeak-ng-data/voices/default"
+        cp -fu Resources/espeak-ng-data/voices/!v/f2 "$PROGDIR/Resources/espeak-ng-data/voices/!v/f2"
+        rm -f "$PROGDIR/Resources/espeak-ng-data/voices/default"
+        cp -fu Resources/espeak-ng-data/voices/default "$PROGDIR/Resources/espeak-ng-data/voices/default"
     fi
 
     # Strip binary if requested

@@ -169,17 +169,6 @@ or C++ with which it is interoperable.
 
 ### Troubleshooting
 
-- If you get errors like `fatal error: jsapi.h: No such file or directory`, there was probably an issue with checking
-  out the submodules.
-
-- If you can't see any textures, try deleting the following files, and compile again although these are already excluded
-  from modern builds.
-
-```bash
-rm deps/Linux-deps/include/png.h
-rm deps/Linux-deps/include/pngconf.h
-```
-
 - If you get compiler errors, you can try compiling with:
 
 ```bash
@@ -191,25 +180,11 @@ make -f Makefile release OBJCFLAGS="-fobjc-exceptions -Wno-format-security" -j$(
 Oolite for all platforms can be built from this repository. Here is a quick
 guide to the source tree.
 
-- **debian**:  Files to enable automatic setup under Linux using dpkg (Debian package manager) tools
 - **DebugOXP**:  [Debug.oxp](http://wiki.alioth.net/index.php/Debug_OXP), the expansion pack that enables console
   support in debug and test release builds
-- **deps**
-    - **Cocoa-deps**:  Dependencies for Mac OS X
-    - **Cross-platform-deps**:  Dependencies for platforms other than Mac OS X
-    - **Linux-deps**:  Dependencies for Linux on x86 and x86_64 processors
-    - **URLs**:  URLs used for binary dependencies on Mac OS X
 - **Doc**:  Documentation (including user guides)
 - **ShellScripts**:  Scripts to build from source on Windows and Linux
 - **installers**:  Files used to create various installers
-- **Mac-specific**:  Additional projects used only on Mac OS X
-    - **DataFormatters**:  Debugger configurations for Xcode
-    - **DebugBundle**:  Implements
-      the [Debug menu and in-app console](http://wiki.alioth.net/index.php/Debug_OXP#Mac_OS_X-specific_features)
-    - **OCUnitTest**:  A small number of unit tests
-    - **Oolite-docktile:**  An embedded plug-in which implements the Oolite dock menu when Oolite is not running
-    - **Oolite-importer**:  A Spotlight importer to make saved games and OXPs searchable
-- **Oolite.xcodeproj**:  The OS X Xcode project to build Oolite
 - **Resources**:  Game assets and resource files for Mac and GNUstep application bundles
 - **Schemata**:  Plist schema files for the [OXP Verifier](http://wiki.alioth.net/index.php/OXP_howto#OXP_Verifier)
 - **src**:  Objective-C and C sources, incuding header files
@@ -218,4 +193,4 @@ guide to the source tree.
     - **Core**:  Files that are compiled on all platforms
     - **SDL**:  Files that are only compiled for platforms that use SDL
 - **tests**:  A mixed bag of test cases for manual testing and ad-hoc code tests.
-- **tools**:  Various tools for preparing files, builds, releases etc.
+- **tools**:  Various historical tools for preparing files.
