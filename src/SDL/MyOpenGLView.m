@@ -301,6 +301,19 @@ enum PreferredAppMode
 	bounds.size.width = width;
 	bounds.size.height = height;
 
+	OOLog(@"display.mode.list", @"%@", @"CREATING MODE LIST");
+	[self populateFullScreenModelist];
+	currentSize = 0;
+
+	// Find what the full screen and windowed settings are.
+	fullScreen = NO;
+	[self loadFullscreenSettings];
+	[self loadWindowSize];
+
+	// Set up the drawing surface's dimensions.
+	firstScreen = (fullScreen) ? [self modeAsSize: currentSize] : currentWindowSize;
+	viewSize = firstScreen;	// viewSize must be set prior to splash screen initialization
+
 }
 
 - (id) init
@@ -373,21 +386,6 @@ enum PreferredAppMode
 
 	[OOSound setUp];
 	if (![OOSound isSoundOK])  OOLog(@"sound.init", @"%@", @"Sound system disabled.");
-
-	OOLog(@"display.mode.list", @"%@", @"CREATING MODE LIST");
-	[self populateFullScreenModelist];
-	currentSize = 0;
-
-	// Find what the full screen and windowed settings are.
-	fullScreen = NO;
-	[self loadFullscreenSettings];
-	[self loadWindowSize];
-
-	// Set up the drawing surface's dimensions.
-	firstScreen = (fullScreen) ? [self modeAsSize: currentSize] : currentWindowSize;
-	viewSize = firstScreen;	// viewSize must be set prior to splash screen initialization
-
-	//[self createWindow];
 
 	grabMouseStatus = NO;
 
@@ -1394,6 +1392,10 @@ finished:
 
 - (void) initialiseGLWithSize:(NSSize) v_size useVideoMode:(BOOL) v_mode
 {
+	if (!window)
+	{
+		[self createWindowWithSize: v_size];
+	}
 #if OOLITE_LINUX
 	NSSize oldViewSize = viewSize;
 #endif
@@ -1563,6 +1565,7 @@ finished:
 
 	SDL_SetWindowBordered(window, v_mode);
 	SDL_SetWindowFullscreen(window, fullScreen);
+	SDL_SetWindowSize(window, viewSize.width, viewSize.height);
 	SDL_Surface *surface = SDL_GetWindowSurface(window);
 	bounds.size.width = surface->w;
 	bounds.size.height = surface->h;
