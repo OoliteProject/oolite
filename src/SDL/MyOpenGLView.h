@@ -320,9 +320,6 @@ extern int debug;
 - (void) display;
 
 - (BOOL) snapShot:(NSString *)filename;
-#if SNAPSHOTS_PNG_FORMAT
-- (BOOL) pngSaveSurface:(NSString *)fileName withSurface:(SDL_Surface *)surf;
-#endif
 
 - (NSRect) bounds;
 - (NSMutableDictionary *) getNativeSize;

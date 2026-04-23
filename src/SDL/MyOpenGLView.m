@@ -1658,7 +1658,7 @@ finished:
 	SDL_Surface *surface = SDL_GetWindowSurface(window);
 	OOLog(@"screenshot", @"Saving screen shot \"%@\" (%u x %u pixels).", pathToPic, surface->w, surface->h);
 
-	int pitch = surface->w * 3;
+	int pitch = surface->pitch;
 	unsigned char *pixls = malloc(pitch * surface->h);
 	int y;
 	int off;
@@ -1667,18 +1667,18 @@ finished:
 	else                glPixelStorei(GL_PACK_ALIGNMENT,4);
 	for (y=surface->h-1, off=0; y>=0; y--, off+=pitch)
 	{
-		glReadPixels(0, y, surface->w, 1, GL_RGB, GL_UNSIGNED_BYTE, pixls + off);
+		glReadPixels(0, y, surface->w, 1, GL_BGRA, GL_UNSIGNED_BYTE, pixls + off);
 	}
 	
 	tmpSurface = SDL_CreateSurfaceFrom(surface->w, surface->h, surface->format, pixls, surface->pitch);
 #if SNAPSHOTS_PNG_FORMAT
-	if(![self pngSaveSurface:pathToPic withSurface:tmpSurface])
+	if(!SDL_SavePNG(tmpSurface, [pathToPic UTF8String]))
 	{
 		OOLog(@"screenshotPNG", @"Failed to save %@", pathToPic);
 		snapShotOK = NO;
 	}
 #else
-	if (SDL_SaveBMP(tmpSurface, [pathToPic UTF8String]) == -1)
+	if (!SDL_SaveBMP(tmpSurface, [pathToPic UTF8String]))
 	{
 		OOLog(@"screenshotBMP", @"Failed to save %@", pathToPic);
 		snapShotOK = NO;
@@ -1729,7 +1729,7 @@ finished:
 - (BOOL) pngSaveSurface:(NSString *)fileName withSurface:(SDL_Surface *)surf
 {
 	SDL_Surface* surface = SDL_GetWindowSurface(window);
-	if (!SDL_SavePNG(surface, [fileName UTF8String]))
+	if (!SDL_SavePNG(surf, [fileName UTF8String]))
 	{
 		OOLog(@"pngSaveSurface.fileCreate.failed", @"Failed to create output screenshot file %@", fileName);
 		return NO;
