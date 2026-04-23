@@ -80,6 +80,7 @@ enum PreferredAppMode
 - (void) resetSDLKeyModifiers;
 - (void) setWindowBorderless:(BOOL)borderless;
 - (void) handleStringInput: (SDL_KeyboardEvent *) kbd_event keyID:(Uint16)key_id; // DJS
+- (void) createWindowWithSize: (NSSize) size;
 @end
 
 @implementation MyOpenGLView
@@ -117,14 +118,195 @@ enum PreferredAppMode
 	return [mode autorelease];
 }
 
+- (void) createWindowWithSize: (NSSize) size
+{
+	Uint32          colorkey;
+	SDL_Surface     *icon=NULL;
+	NSString		*imagesDir;
+
+	NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
+	showSplashScreen = [prefs oo_boolForKey:@"splash-screen" defaultValue:YES];
+	BOOL	vSyncPreference = [prefs oo_boolForKey:@"v-sync" defaultValue:YES];
+	int 	bitsPerColorComponent = [prefs oo_boolForKey:@"hdr" defaultValue:NO] ? 16 : 8;
+
+	// Generate the window caption, containing the version number and the date the executable was compiled.
+	NSString *versionString = [NSString stringWithFormat:@"Oolite v%@", [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"]];
+
+	strcpy (windowCaption, [versionString UTF8String]);
+	strcat(windowCaption, " - ");
+#ifdef BUILD_DATE
+	strcat(windowCaption, BUILD_DATE);
+#else
+	strcat(windowCaption, __DATE__);
+#endif
+	OOLog(@"display.initGL", @"Trying %d-bpcc, 24-bit depth buffer", bitsPerColorComponent);	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, bitsPerColorComponent);
+	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, bitsPerColorComponent);
+	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, bitsPerColorComponent);
+	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, bitsPerColorComponent);
+	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+	
+	/* Multisampling significantly improves graphics quality with
+	 * basically no extra programming effort on our part, especially
+	 * for curved surfaces like the planet, but is also expensive - in
+	 * the worst case the entire scene must be rendered four
+	 * times. For now it can be a hidden setting. If early testing
+	 * doesn't give any problems (other than speed on low-end graphics
+	 * cards) a game options entry might be useful. - CIM, 24 Aug 2013*/
+
+	if ([prefs oo_boolForKey:@"anti-aliasing" defaultValue:NO])
+	{
+		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
+	}
+
+	int windowFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
+	window = SDL_CreateWindow(windowCaption, size.width, size.height, windowFlags);
+	if (!window)
+	{
+		OOLog(@"display.initGL", @"%@", @"Trying 8-bpcc, 32-bit depth buffer");
+		SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
+		SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
+		SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
+		SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
+		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
+		window = SDL_CreateWindow(windowCaption, size.width, size.height, windowFlags);
+	}
+
+	if (!window)
+	{
+		OOLog(@"display.initGL", @"%@", @"Trying 5-bpcc, 16-bit depth buffer");
+		SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5);
+		SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5);
+		SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5);
+		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
+		// and if it's this bad, forget even trying to multisample!
+		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
+		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
+		window = SDL_CreateWindow(windowCaption, size.width, size.height, windowFlags);
+	}
+
+	if (!window)
+	{
+		const char * errStr = SDL_GetError();
+		OOLogERR(@"display.mode.error", @"Could not create window: %s", errStr);
+		exit(1);
+	}
+	glContext = SDL_GL_CreateContext(window);
+	if (!glContext)
+	{
+		OOLog(@"sdl.create_context", @"%@", @"Could not create OpenGL context");
+	}
+	SDL_GetWindowSurface(window);
+
+#if OOLITE_WINDOWS
+	// needed for enabling system window manager events, which is needed for handling window movement messages
+	SDL_EventState (SDL_SYSWMEVENT, SDL_ENABLE);
+	
+	//capture the window handle for later
+	int propertyCount;
+	SDL_PropertiesID windowPropertiesID = SDL_GetWindowProperties(window);
+	windowHandle   = SDL_GetPointerProperty(windowPropertiesId, SDL_PROP_WINDOW_WIN32_HWND_POINTER, NULL);
+	if (!windowHandle)
+	{
+		OOLog(@"sdl.window_handle", @"%@", @"Failed to retrieve window handle");
+		exit(1);
+	}
+	
+	// This must be inited after windowHandle has been set - we need the main window handle in order to get monitor info
+	if (![self getCurrentMonitorInfo:&monitorInfo])
+	{
+		OOLogWARN(@"display.initGL.monitorInfoWarning", @"Could not get current monitor information.");
+	}
+
+	atDesktopResolution = YES;
+	
+#if USE_UNDOCUMENTED_DARKMODE_API
+	// dark mode stuff - this is mainly for the winodw titlebar's context menu
+	HMODULE hUxTheme = LoadLibraryExW(L"uxtheme.dll", NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
+	if (hUxTheme)
+	{
+		// hack alert! ordinal 135 is undocumented and could change in a future version of Windows
+		pfnSetPreferredAppMode SetPreferredAppMode = (pfnSetPreferredAppMode)GetProcAddress(hUxTheme, MAKEINTRESOURCEA(135));
+		if (SetPreferredAppMode)  SetPreferredAppMode(AllowDark);
+		FreeLibrary(hUxTheme);
+	}
+	[self refreshDarKOrLightMode];
+#endif
+#endif //OOLITE_WINDOWS
+
+	imagesDir = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"Images"];
+	icon = SDL_LoadBMP([[imagesDir stringByAppendingPathComponent:@"WMicon.bmp"] UTF8String]);
+
+	if (icon != NULL)
+	{
+		/* KJASDL
+		colorkey = SDL_MapRGB(icon->format, NULL, 128, 0, 128);
+		SDL_SetColorKey(icon, SDL_SRCCOLORKEY, colorkey);
+		*/
+		SDL_SetWindowIcon(window, icon);
+	}
+	SDL_DestroySurface(icon);
+
+	_colorSaturation = 1.0f;
+	
+	_hdrOutput = NO;
+#if OOLITE_WINDOWS
+	_hdrMaxBrightness = [prefs oo_floatForKey:@"hdr-max-brightness" defaultValue:1000.0f];
+	_hdrPaperWhiteBrightness = [prefs oo_floatForKey:@"hdr-paperwhite-brightness" defaultValue:200.0f];
+	_hdrToneMapper = OOHDRToneMapperFromString([prefs oo_stringForKey:@"hdr-tone-mapper" defaultValue:@"OOHDR_TONEMAPPER_ACES_APPROX"]);
+	if (bitsPerColorComponent == 16)
+	{
+		// SDL.dll built specifically for Oolite required
+		SDL_GL_SetAttribute(SDL_GL_PIXEL_TYPE_FLOAT, 1);
+		_hdrOutput = YES;
+	}
+#endif
+	
+	_sdrToneMapper = OOSDRToneMapperFromString([prefs oo_stringForKey:@"sdr-tone-mapper" defaultValue:@"OOSDR_TONEMAPPER_ACES"]);
+	
+	SDL_SetWindowSurfaceVSync(window, vSyncPreference);
+	OOLog(@"display.initGL", @"V-Sync %@requested.", vSyncPreference ? @"" : @"not ");
+	
+	int testAttrib = -1;
+	OOLog(@"display.initGL", @"%@", @"Achieved color / depth buffer sizes (bits):");
+	SDL_GL_GetAttribute(SDL_GL_RED_SIZE, &testAttrib);
+	OOLog(@"display.initGL", @"Red: %d", testAttrib);
+	SDL_GL_GetAttribute(SDL_GL_GREEN_SIZE, &testAttrib);
+	OOLog(@"display.initGL", @"Green: %d", testAttrib);
+	SDL_GL_GetAttribute(SDL_GL_BLUE_SIZE, &testAttrib);
+	OOLog(@"display.initGL", @"Blue: %d", testAttrib);
+	SDL_GL_GetAttribute(SDL_GL_ALPHA_SIZE, &testAttrib);
+	OOLog(@"display.initGL", @"Alpha: %d", testAttrib);
+	SDL_GL_GetAttribute(SDL_GL_DEPTH_SIZE, &testAttrib);
+	OOLog(@"display.initGL", @"Depth Buffer: %d", testAttrib);
+#if OOLITE_WINDOWS
+	SDL_GL_GetAttribute(SDL_GL_PIXEL_TYPE_FLOAT, &testAttrib);
+	OOLog(@"display.initGL", @"Pixel type is float : %d", testAttrib);
+
+  	OOLog(@"display.initGL", @"Pixel format index: %d", GetPixelFormat(GetDC(windowHandle)));
+#endif
+	
+	// Verify V-sync successfully set - report it if not
+	
+	int hasVsync;
+	if (vSyncPreference && (!SDL_GetWindowSurfaceVSync(window, &hasVsync) || !hasVsync))
+	{
+		OOLogWARN(@"display.initGL", @"Could not enable V-Sync. Please check that your graphics driver supports the %@_swap_control extension.",
+					OOLITE_WINDOWS ? @"WGL_EXT" : @"[GLX_SGI/GLX_MESA]");
+	}
+
+	int width, height;
+	SDL_GetWindowSizeInPixels(window, &width, &height);
+	bounds.size.width = width;
+	bounds.size.height = height;
+
+}
 
 - (id) init
 {
 	self = [super init];
 
-	Uint32          colorkey;
-	SDL_Surface     *icon=NULL;
-	NSString		*imagesDir;
  	NSString		*cmdLineArgsStr = @"Startup command: ";
 
 	// SDL splash screen  settings
@@ -192,146 +374,6 @@ enum PreferredAppMode
 	[OOSound setUp];
 	if (![OOSound isSoundOK])  OOLog(@"sound.init", @"%@", @"Sound system disabled.");
 
-	// Generate the window caption, containing the version number and the date the executable was compiled.
-	NSString *versionString = [NSString stringWithFormat:@"Oolite v%@", [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"]];
-
-	strcpy (windowCaption, [versionString UTF8String]);
-	strcat(windowCaption, " - ");
-#ifdef BUILD_DATE
-	strcat(windowCaption, BUILD_DATE);
-#else
-	strcat(windowCaption, __DATE__);
-#endif
-	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, bitsPerColorComponent);
-	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, bitsPerColorComponent);
-	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, bitsPerColorComponent);
-	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, bitsPerColorComponent);
-	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-	
-	/* Multisampling significantly improves graphics quality with
-	 * basically no extra programming effort on our part, especially
-	 * for curved surfaces like the planet, but is also expensive - in
-	 * the worst case the entire scene must be rendered four
-	 * times. For now it can be a hidden setting. If early testing
-	 * doesn't give any problems (other than speed on low-end graphics
-	 * cards) a game options entry might be useful. - CIM, 24 Aug 2013*/
-
-	if ([prefs oo_boolForKey:@"anti-aliasing" defaultValue:NO])
-	{
-		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
-	}
-
-	int windowFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
-	window = SDL_CreateWindow(windowCaption, firstScreen.width, firstScreen.height, windowFlags);
-	if (!window)
-	{
-		OOLog(@"display.initGL", @"%@", @"Trying 8-bpcc, 32-bit depth buffer");
-		SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
-		SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
-		SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
-		SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
-		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
-		window = SDL_CreateWindow(windowCaption, firstScreen.width, firstScreen.height, windowFlags);
-	}
-
-	if (!window)
-	{
-		OOLog(@"display.initGL", @"%@", @"Trying 5-bpcc, 16-bit depth buffer");
-		SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5);
-		SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5);
-		SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5);
-		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
-		// and if it's this bad, forget even trying to multisample!
-		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
-		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
-		window = SDL_CreateWindow(windowCaption, firstScreen.width, firstScreen.height, windowFlags);
-	}
-
-	if (!window)
-	{
-		const char * errStr = SDL_GetError();
-		OOLogERR(@"display.mode.error", @"Could not create window: %s", errStr);
-		exit(1);
-	}
-	glContext = SDL_GL_CreateContext(window);
-	if (!glContext)
-	{
-		OOLog(@"sdl.create_context", @"%@", @"Could not create OpenGL context");
-	}
-
-#if OOLITE_WINDOWS
-	// needed for enabling system window manager events, which is needed for handling window movement messages
-	SDL_EventState (SDL_SYSWMEVENT, SDL_ENABLE);
-	
-	//capture the window handle for later
-	int propertyCount;
-	SDL_PropertiesID windowPropertiesID = SDL_GetWindowProperties(window);
-	windowHandle   = SDL_GetPointerProperty(windowPropertiesId, SDL_PROP_WINDOW_WIN32_HWND_POINTER, NULL);
-	if (!windowHandle)
-	{
-		OOLog(@"sdl.window_handle", @"%@", @"Failed to retrieve window handle");
-		exit(1);
-	}
-	
-	// This must be inited after windowHandle has been set - we need the main window handle in order to get monitor info
-	if (![self getCurrentMonitorInfo:&monitorInfo])
-	{
-		OOLogWARN(@"display.initGL.monitorInfoWarning", @"Could not get current monitor information.");
-	}
-
-	atDesktopResolution = YES;
-	
-#if USE_UNDOCUMENTED_DARKMODE_API
-	// dark mode stuff - this is mainly for the winodw titlebar's context menu
-	HMODULE hUxTheme = LoadLibraryExW(L"uxtheme.dll", NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
-	if (hUxTheme)
-	{
-		// hack alert! ordinal 135 is undocumented and could change in a future version of Windows
-		pfnSetPreferredAppMode SetPreferredAppMode = (pfnSetPreferredAppMode)GetProcAddress(hUxTheme, MAKEINTRESOURCEA(135));
-		if (SetPreferredAppMode)  SetPreferredAppMode(AllowDark);
-		FreeLibrary(hUxTheme);
-	}
-	[self refreshDarKOrLightMode];
-#endif
-#endif //OOLITE_WINDOWS
-
-	grabMouseStatus = NO;
-
-	imagesDir = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"Images"];
-	icon = SDL_LoadBMP([[imagesDir stringByAppendingPathComponent:@"WMicon.bmp"] UTF8String]);
-
-	if (icon != NULL)
-	{
-		/* KJASDL
-		colorkey = SDL_MapRGB(icon->format, NULL, 128, 0, 128);
-		SDL_SetColorKey(icon, SDL_SRCCOLORKEY, colorkey);
-		*/
-		SDL_SetWindowIcon(window, icon);
-	}
-	SDL_DestroySurface(icon);
-
-	_colorSaturation = 1.0f;
-	
-	_hdrOutput = NO;
-#if OOLITE_WINDOWS
-	_hdrMaxBrightness = [prefs oo_floatForKey:@"hdr-max-brightness" defaultValue:1000.0f];
-	_hdrPaperWhiteBrightness = [prefs oo_floatForKey:@"hdr-paperwhite-brightness" defaultValue:200.0f];
-	_hdrToneMapper = OOHDRToneMapperFromString([prefs oo_stringForKey:@"hdr-tone-mapper" defaultValue:@"OOHDR_TONEMAPPER_ACES_APPROX"]);
-	if (bitsPerColorComponent == 16)
-	{
-		// SDL.dll built specifically for Oolite required
-		SDL_GL_SetAttribute(SDL_GL_PIXEL_TYPE_FLOAT, 1);
-		_hdrOutput = YES;
-	}
-#endif
-	
-	_sdrToneMapper = OOSDRToneMapperFromString([prefs oo_stringForKey:@"sdr-tone-mapper" defaultValue:@"OOSDR_TONEMAPPER_ACES"]);
-	
-	SDL_SetWindowSurfaceVSync(window, vSyncPreference);
-	OOLog(@"display.initGL", @"V-Sync %@requested.", vSyncPreference ? @"" : @"not ");
-	
 	OOLog(@"display.mode.list", @"%@", @"CREATING MODE LIST");
 	[self populateFullScreenModelist];
 	currentSize = 0;
@@ -342,15 +384,16 @@ enum PreferredAppMode
 	[self loadWindowSize];
 
 	// Set up the drawing surface's dimensions.
-	firstScreen= (fullScreen) ? [self modeAsSize: currentSize] : currentWindowSize;
+	firstScreen = (fullScreen) ? [self modeAsSize: currentSize] : currentWindowSize;
 	viewSize = firstScreen;	// viewSize must be set prior to splash screen initialization
+
+	//[self createWindow];
+
+	grabMouseStatus = NO;
+
 
 #if OOLITE_WINDOWS
 	ShowWindow(windowHandle,SW_SHOWMINIMIZED);
-#endif
-
-	OOLog(@"display.initGL", @"Trying %d-bpcc, 24-bit depth buffer", bitsPerColorComponent);
-#if OOLITE_WINDOWS
 	updateContext = !showSplashScreen;
 #elif OOLITE_LINUX
 	if (!showSplashScreen)
@@ -359,39 +402,6 @@ enum PreferredAppMode
 		[self initialiseGLWithSize: firstScreen];
 	}
 #endif
-
-	int testAttrib = -1;
-	OOLog(@"display.initGL", @"%@", @"Achieved color / depth buffer sizes (bits):");
-	SDL_GL_GetAttribute(SDL_GL_RED_SIZE, &testAttrib);
-	OOLog(@"display.initGL", @"Red: %d", testAttrib);
-	SDL_GL_GetAttribute(SDL_GL_GREEN_SIZE, &testAttrib);
-	OOLog(@"display.initGL", @"Green: %d", testAttrib);
-	SDL_GL_GetAttribute(SDL_GL_BLUE_SIZE, &testAttrib);
-	OOLog(@"display.initGL", @"Blue: %d", testAttrib);
-	SDL_GL_GetAttribute(SDL_GL_ALPHA_SIZE, &testAttrib);
-	OOLog(@"display.initGL", @"Alpha: %d", testAttrib);
-	SDL_GL_GetAttribute(SDL_GL_DEPTH_SIZE, &testAttrib);
-	OOLog(@"display.initGL", @"Depth Buffer: %d", testAttrib);
-#if OOLITE_WINDOWS
-	SDL_GL_GetAttribute(SDL_GL_PIXEL_TYPE_FLOAT, &testAttrib);
-	OOLog(@"display.initGL", @"Pixel type is float : %d", testAttrib);
-
-  	OOLog(@"display.initGL", @"Pixel format index: %d", GetPixelFormat(GetDC(windowHandle)));
-#endif
-	
-	// Verify V-sync successfully set - report it if not
-	
-	int hasVsync;
-	if (vSyncPreference && (!SDL_GetWindowSurfaceVSync(window, &hasVsync) || !hasVsync))
-	{
-		OOLogWARN(@"display.initGL", @"Could not enable V-Sync. Please check that your graphics driver supports the %@_swap_control extension.",
-					OOLITE_WINDOWS ? @"WGL_EXT" : @"[GLX_SGI/GLX_MESA]");
-	}
-
-	int width, height;
-	SDL_GetWindowSizeInPixels(window, &width, &height);
-	bounds.size.width = width;
-	bounds.size.height = height;
 
 	[self autoShowMouse];
 
@@ -794,6 +804,7 @@ enum PreferredAppMode
 	dest.w = image->w;
 	dest.h = image->h;
 
+	[self createWindowWithSize: NSMakeSize(image->w, image->h)];
   #if OOLITE_WINDOWS
 
 	dest.x = (GetSystemMetrics(SM_CXSCREEN)- dest.w)/2;
@@ -804,18 +815,10 @@ enum PreferredAppMode
 
   #else
 
-	SDL_SetWindowSize(window, dest.w, dest.h);
 	SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 
   #endif
 
-	SDL_Surface *surface = SDL_GetWindowSurface(window);
-	SDL_BlitSurface(image, NULL, surface, NULL);
-	//SDL_UpdateWindowSurface(window);
-	SDL_DestroySurface(image);
-	return;
-
-/* KJASDL
 	OOSetOpenGLState(OPENGL_STATE_OVERLAY);
 
 	glViewport( 0, 0, dest.w, dest.h);
@@ -825,7 +828,7 @@ enum PreferredAppMode
 	glClear( GL_COLOR_BUFFER_BIT );
 
 	[matrixManager resetProjection];
-	[matrixManager orthoLeft: 0.0f right: dest.w bottom: dest.h top: 0.0 near: -1.0 far: 1.0];
+	[matrixManager orthoLeft: 0.0f right: 1 bottom: 1 top: 0.0 near: -1.0 far: 1.0];
 	[matrixManager syncProjection];
 
 	[matrixManager resetModelView];
@@ -875,11 +878,11 @@ enum PreferredAppMode
 	glTexCoord2i( 0, 0 );
 	glVertex2i( 0, 0 );
 	glTexCoord2i( 1, 0 );
-	glVertex2i( dest.w, 0 );
+	glVertex2i( 1, 0 );
 	glTexCoord2i( 1, 1 );
-	glVertex2i( dest.w, dest.h );
+	glVertex2i( 1, 1 );
 	glTexCoord2i( 0, 1 );
-	glVertex2i( 0, dest.h );
+	glVertex2i( 0, 1 );
 
 	glEnd();
 
@@ -894,7 +897,9 @@ enum PreferredAppMode
 
 	glDisable( GL_TEXTURE_2D );
 	OOVerifyOpenGLState();
-*/
+
+	SDL_DestroySurface(image);
+	return;
 }
 
 
