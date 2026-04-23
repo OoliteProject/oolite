@@ -811,7 +811,7 @@ enum PreferredAppMode
 
 	SDL_Surface *surface = SDL_GetWindowSurface(window);
 	SDL_BlitSurface(image, NULL, surface, NULL);
-	SDL_UpdateWindowSurface(window);
+	//SDL_UpdateWindowSurface(window);
 	SDL_DestroySurface(image);
 	return;
 
