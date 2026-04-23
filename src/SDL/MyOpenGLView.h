@@ -220,7 +220,7 @@ extern int debug;
 
 	BOOL				showSplashScreen;
 	SDL_Window			*window;
-	SDL_GLContext			*glContext;
+	SDL_GLContext			glContext;
 	char				windowCaption[128];
 
 #if OOLITE_WINDOWS

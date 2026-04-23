@@ -251,7 +251,7 @@ enum PreferredAppMode
 
 	if (!window)
 	{
-		char * errStr = SDL_GetError();
+		const char * errStr = SDL_GetError();
 		OOLogERR(@"display.mode.error", @"Could not create window: %s", errStr);
 		exit(1);
 	}
@@ -388,7 +388,10 @@ enum PreferredAppMode
 					OOLITE_WINDOWS ? @"WGL_EXT" : @"[GLX_SGI/GLX_MESA]");
 	}
 
-	SDL_GetWindowSizeInPixels(window, &bounds.size.width, &bounds.size.height);
+	int width, height;
+	SDL_GetWindowSizeInPixels(window, &width, &height);
+	bounds.size.width = width;
+	bounds.size.height = height;
 
 	[self autoShowMouse];
 
@@ -491,11 +494,14 @@ enum PreferredAppMode
 		[screenSizes release];
 
 	if (window)
+	{
 		SDL_DestroyWindow(window);
+	}
 
 	if (glContext)
+	{
 		SDL_GL_DestroyContext(glContext);
-	
+	}
 
 	if (keyMappings_normal)
 		[keyMappings_normal release];
@@ -800,13 +806,12 @@ enum PreferredAppMode
 
 	SDL_SetWindowSize(window, dest.w, dest.h);
 	SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
-	SDL_ShowWindow(window);
 
   #endif
 
 	SDL_Surface *surface = SDL_GetWindowSurface(window);
 	SDL_BlitSurface(image, NULL, surface, NULL);
-	//SDL_UpdateWindowSurface(window);
+	SDL_UpdateWindowSurface(window);
 	SDL_DestroySurface(image);
 	return;
 
@@ -1988,7 +1993,8 @@ finished:
 	SDL_KeyboardEvent		*kbd_event;
 	SDL_MouseButtonEvent	*mbtn_event;
 	SDL_MouseMotionEvent	*mmove_event;
-	float						mxdelta, mydelta;
+	SDL_MouseWheelEvent	*mw_event;
+ 	float						mxdelta, mydelta;
 	float					mouseVirtualStickSensitivityX = viewSize.width * _mouseVirtualStickSensitivityFactor;
 	float					mouseVirtualStickSensitivityY = viewSize.height * _mouseVirtualStickSensitivityFactor;
 	NSTimeInterval			timeNow = [NSDate timeIntervalSinceReferenceDate];
@@ -2064,9 +2070,9 @@ finished:
 				break;
 
 			case SDL_EVENT_MOUSE_WHEEL:
-				SDL_MouseWheelEvent *mw_event = (SDL_MouseWheelEvent*)&event;
+				mw_event = (SDL_MouseWheelEvent*)&event;
 #if OOLITE_LINUX
-				if (!mw_event->y < 0)  inDelta = OOMOUSEWHEEL_DELTA;
+				if (mw_event->y < 0)  inDelta = OOMOUSEWHEEL_DELTA;
 				if (inDelta == 0)  inDelta = -OOMOUSEWHEEL_DELTA;
 #endif
 				if (inDelta > 0)
