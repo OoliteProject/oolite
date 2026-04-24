@@ -92,9 +92,26 @@ enum PreferredAppMode
 	int nativeDisplayHeight = 768;
 
 #if OOLITE_LINUX
-	SDL_DisplayID displayId = SDL_GetDisplayForWindow(window);
+	BOOL displayFound = NO;
+	SDL_DisplayID displayId;
+	if (window)
+	{
+		displayId  = SDL_GetDisplayForWindow(window);
+		displayFound = YES;
+	}
+	else
+	{
+		int displayCount;
+		SDL_DisplayID *displayIds = SDL_GetDisplays(&displayCount);
+		if (displayCount > 0)
+		{
+			displayId = displayIds[0];
+			SDL_free(displayIds);
+			displayFound = YES;
+		}
+	}
 	SDL_Rect boundsRect;
-	if(SDL_GetDisplayUsableBounds(displayId, &boundsRect))
+	if(displayFound && SDL_GetDisplayUsableBounds(displayId, &boundsRect))
 	{
 		nativeDisplayWidth = boundsRect.w;
 		nativeDisplayHeight = boundsRect.h;
@@ -125,7 +142,6 @@ enum PreferredAppMode
 	NSString		*imagesDir;
 
 	NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
-	showSplashScreen = [prefs oo_boolForKey:@"splash-screen" defaultValue:YES];
 	BOOL	vSyncPreference = [prefs oo_boolForKey:@"v-sync" defaultValue:YES];
 	int 	bitsPerColorComponent = [prefs oo_boolForKey:@"hdr" defaultValue:NO] ? 16 : 8;
 
@@ -301,19 +317,11 @@ enum PreferredAppMode
 	bounds.size.width = width;
 	bounds.size.height = height;
 
-	OOLog(@"display.mode.list", @"%@", @"CREATING MODE LIST");
 	[self populateFullScreenModelist];
+	[self loadFullscreenSettings];
 	currentSize = 0;
 
-	// Find what the full screen and windowed settings are.
-	fullScreen = NO;
-	[self loadFullscreenSettings];
-	[self loadWindowSize];
-
-	// Set up the drawing surface's dimensions.
-	firstScreen = (fullScreen) ? [self modeAsSize: currentSize] : currentWindowSize;
-	viewSize = firstScreen;	// viewSize must be set prior to splash screen initialization
-
+	return;
 }
 
 - (id) init
@@ -388,6 +396,16 @@ enum PreferredAppMode
 	if (![OOSound isSoundOK])  OOLog(@"sound.init", @"%@", @"Sound system disabled.");
 
 	grabMouseStatus = NO;
+
+	OOLog(@"display.mode.list", @"%@", @"CREATING MODE LIST");
+
+	// Find what the full screen and windowed settings are.
+	fullScreen = NO;
+	[self loadWindowSize];
+
+	// Set up the drawing surface's dimensions.
+	firstScreen = (fullScreen) ? [self modeAsSize: currentSize] : currentWindowSize;
+	viewSize = firstScreen;	// viewSize must be set prior to splash screen initialization
 
 
 #if OOLITE_WINDOWS
