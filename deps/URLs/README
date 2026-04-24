@@ -1,6 +1,0 @@
-These files contain download URLs for various dependencies. They are used
-by the Mac OS X build system to download dependencies automatically (see
-deps/Cocoa-deps/scripts). The first line must be an URL which can be
-downloaded by curl and expanded by tar. Any additional lines will be
-ignored. Currently, the second line is the original URL for files which are
-mirrored.

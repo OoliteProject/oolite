@@ -3,7 +3,8 @@
 install_freedesktop() {
     # Install metainfo (eg. for FlatHub and AppImageHub)
     # $1: app folder (destination)
-    # $2: appdata or metainfo
+    # $2: debug symbol folder
+    # $3: appdata or metainfo
 
     local err_msg="❌ Error: Failed to"
 
@@ -20,6 +21,9 @@ install_freedesktop() {
 
     # Install binaries and scripts
     install -D "$PROGDIR/oolite" "$APPBIN/oolite" || { echo "$err_msg install oolite binary" >&2; return 1; }
+    if [[ -f "$PROGDIR/oolite.debug" ]]; then
+        install -D "$PROGDIR/oolite.debug" "$1/$2/oolite.debug" || { echo "$err_msg install oolite debug symbols" >&2; return 1; }
+    fi
     install -D "$PROGDIR/run_oolite.sh" "$APPBIN/run_oolite.sh" || { echo "$err_msg install run_oolite.sh" >&2; return 1; }
     install -D "$PROGDIR/splash-launcher" "$APPBIN/splash-launcher" || { echo "$err_msg install splash-launcher" >&2; return 1; }
 
@@ -35,7 +39,7 @@ install_freedesktop() {
 
     install -D "GNUstep.conf.template" "$APPBIN/Resources/GNUstep.conf.template" || { echo "$err_msg GNUstep template" >&2; return 1; }
 
-    APP_METAINFO="$APPSHR/metainfo/space.oolite.Oolite.$2.xml"
+    APP_METAINFO="$APPSHR/metainfo/space.oolite.Oolite.$3.xml"
     install -D ../../installers/FreeDesktop/space.oolite.Oolite.metainfo.xml.template "$APP_METAINFO" || { echo "$err_msg metainfo template" >&2; return 1; }
 
     sed -i "s/@VER@/${VERSION}/g" "$APP_METAINFO"

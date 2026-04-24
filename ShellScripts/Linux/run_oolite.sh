@@ -3,12 +3,17 @@
 
 HERE="$(dirname "$(readlink -f "$0")")"
 
+DEBUG=false
 SHOW_SPLASH=true
 # Loop through all arguments
 for arg in "$@"; do
   case "$arg" in
     -nosplash|--nosplash|-help|--help)
       SHOW_SPLASH=false
+      ;;
+    debug)
+      DEBUG=true
+      shift
       ;;
   esac
 done
@@ -46,6 +51,9 @@ launch_guarded() {
     if [[ "$1" == "packageinfo" ]]; then
         cat "$OO_EXEDIR/Resources/manifest.plist"
         exit 0
+    fi
+    if [[ "$DEBUG" == true ]]; then
+        exec gdb --args "$OO_EXEDIR/oolite" "$@" -nosplash
     fi
     if [[ "$SHOW_SPLASH" == true ]]; then
         "$OO_EXEDIR/splash-launcher" "$OO_EXEDIR/Resources/Images/splash.bmp" &

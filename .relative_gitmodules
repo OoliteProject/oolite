@@ -1,15 +1,3 @@
 [submodule "Resources/Binary"]
 	path = Resources/Binary
 	url = ../oolite-binary-resources.git
-[submodule "deps/Linux-deps"]
-	path = deps/Linux-deps
-	url = ../oolite-linux-dependencies.git
-[submodule "deps/Cross-platform-deps"]
-	path = deps/Cross-platform-deps
-	url = ../oolite-sdl-dependencies.git
-[submodule "deps/mozilla"]
-	path = deps/mozilla
-	url = ../spidermonkey-ff4.git
-[submodule "deps/Windows-deps"]
-	path = deps/Windows-deps
-	url = ../oolite-windows-dependencies.git
