@@ -214,7 +214,8 @@ enum PreferredAppMode
 	{
 		OOLog(@"sdl.create_context", @"%@", @"Could not create OpenGL context");
 	}
-	SDL_GetWindowSurface(window);
+	SDL_Surface *surface = SDL_GetWindowSurface(window);
+	SDL_SetSurfaceColorspace(surface, SDL_COLORSPACE_HDR10);
 
 #if OOLITE_WINDOWS
 	// needed for enabling system window manager events, which is needed for handling window movement messages
