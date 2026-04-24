@@ -80,7 +80,6 @@ enum PreferredAppMode
 - (void) resetSDLKeyModifiers;
 - (void) setWindowBorderless:(BOOL)borderless;
 - (void) handleStringInput: (SDL_KeyboardEvent *) kbd_event keyID:(Uint16)key_id; // DJS
-- (void) createWindowWithSize: (NSSize) size;
 @end
 
 @implementation MyOpenGLView
@@ -135,6 +134,16 @@ enum PreferredAppMode
 	return [mode autorelease];
 }
 
+- (NSString*) getWindowCaption
+{
+#ifdef BUILD_DATE
+	NSString *caption = [NSString stringWithFormat:@"Oolite v%@ - %s", [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"], BUILD_DATE];
+#else
+	NSString *caption = [NSString stringWithFormat:@"Oolite v%@ - %s", [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"], __DATE__];
+#endif
+	return [[caption retain] autorelease];
+}
+
 - (void) createWindowWithSize: (NSSize) size
 {
 	Uint32          colorkey;
@@ -145,16 +154,7 @@ enum PreferredAppMode
 	BOOL	vSyncPreference = [prefs oo_boolForKey:@"v-sync" defaultValue:YES];
 	int 	bitsPerColorComponent = [prefs oo_boolForKey:@"hdr" defaultValue:NO] ? 16 : 8;
 
-	// Generate the window caption, containing the version number and the date the executable was compiled.
-	NSString *versionString = [NSString stringWithFormat:@"Oolite v%@", [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"]];
 
-	strcpy (windowCaption, [versionString UTF8String]);
-	strcat(windowCaption, " - ");
-#ifdef BUILD_DATE
-	strcat(windowCaption, BUILD_DATE);
-#else
-	strcat(windowCaption, __DATE__);
-#endif
 	OOLog(@"display.initGL", @"Trying %d-bpcc, 24-bit depth buffer", bitsPerColorComponent);	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, bitsPerColorComponent);
 	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, bitsPerColorComponent);
 	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, bitsPerColorComponent);
@@ -176,8 +176,9 @@ enum PreferredAppMode
 		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
 	}
 
+	NSString *windowCaption = [self getWindowCaption];
 	int windowFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
-	window = SDL_CreateWindow(windowCaption, size.width, size.height, windowFlags);
+	window = SDL_CreateWindow([windowCaption UTF8String], size.width, size.height, windowFlags);
 	if (!window)
 	{
 		OOLog(@"display.initGL", @"%@", @"Trying 8-bpcc, 32-bit depth buffer");
@@ -186,7 +187,7 @@ enum PreferredAppMode
 		SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
 		SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
 		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
-		window = SDL_CreateWindow(windowCaption, size.width, size.height, windowFlags);
+		window = SDL_CreateWindow([windowCaption UTF8String], size.width, size.height, windowFlags);
 	}
 
 	if (!window)
@@ -199,7 +200,7 @@ enum PreferredAppMode
 		// and if it's this bad, forget even trying to multisample!
 		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
 		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
-		window = SDL_CreateWindow(windowCaption, size.width, size.height, windowFlags);
+		window = SDL_CreateWindow([windowCaption UTF8String], size.width, size.height, windowFlags);
 	}
 
 	if (!window)
@@ -374,7 +375,17 @@ enum PreferredAppMode
 	}
 
  	OOLog(@"process.args", @"%@", cmdLineArgsStr);
-	
+
+	// Find what the full screen and windowed settings are.
+	fullScreen = NO;
+	[self loadWindowSize];
+
+	// Set up the drawing surface's dimensions.
+	firstScreen = (fullScreen) ? [self modeAsSize: currentSize] : currentWindowSize;
+	viewSize = firstScreen;	// viewSize must be set prior to splash screen initialization
+
+	//[self createWindowWithSize: firstScreen];
+
 	matrixManager = [[OOOpenGLMatrixManager alloc] init];
 
 	// TODO: This code up to and including stickHandler really ought
@@ -399,13 +410,6 @@ enum PreferredAppMode
 
 	OOLog(@"display.mode.list", @"%@", @"CREATING MODE LIST");
 
-	// Find what the full screen and windowed settings are.
-	fullScreen = NO;
-	[self loadWindowSize];
-
-	// Set up the drawing surface's dimensions.
-	firstScreen = (fullScreen) ? [self modeAsSize: currentSize] : currentWindowSize;
-	viewSize = firstScreen;	// viewSize must be set prior to splash screen initialization
 
 
 #if OOLITE_WINDOWS
@@ -465,7 +469,9 @@ enum PreferredAppMode
 #else
 	if (!showSplashScreen)  return;
 
+	SDL_ShowWindow(window);
 	SDL_SetWindowFullscreen(window, fullScreen);
+	SDL_GetWindowSurface(window);
 	SDL_SetEnvironmentVariable(SDL_GetEnvironment(), "SDL_VIDEO_WINDOW_POS", "none", YES); //stop linux from auto centering on resize
 
 	/* MKW 2011.11.11

@@ -219,9 +219,9 @@ extern int debug;
 	NSSize				currentWindowSize;
 
 	BOOL				showSplashScreen;
+	SDL_Window			*splashWindow;
 	SDL_Window			*window;
 	SDL_GLContext			glContext;
-	char				windowCaption[128];
 
 #if OOLITE_WINDOWS
 
@@ -263,6 +263,8 @@ extern int debug;
  */
 - (id) init;
 
+- (NSString*) getWindowCaption;
+- (void) createWindowWithSize: (NSSize) size;
 - (void) initSplashScreen;
 - (void) endSplashScreen;
 - (void) autoShowMouse;
