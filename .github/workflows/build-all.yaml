@@ -25,7 +25,6 @@ jobs:
         with:
           path: oolite
           fetch-depth: 0
-          submodules: true
       - name: Install packages
         run: |
           sudo oolite/ShellScripts/Linux/install_packages_root.sh --skip-wayland
@@ -57,7 +56,6 @@ jobs:
         with:
           path: oolite
           fetch-depth: 0
-          submodules: true
       - name: Build flatpak
         run: |
           oolite/installers/flatpak/create_flatpak.sh
@@ -89,7 +87,6 @@ jobs:
         with:
           path: oolite
           fetch-depth: 0
-          submodules: true
       - name: Download latest release assets
         uses: robinraju/release-downloader@v1
         with:

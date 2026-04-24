@@ -25,30 +25,9 @@ run_script() {
     local DEST_BIN="${OBJC_PROGRAM_NAME}${EXT}${OS_EXT}"
 
     mkdir -p "$PROGDIR/Resources"
-    
+
     ShellScripts/common/mkmanifest.sh > "$PROGDIR/Resources/manifest.plist"
-    
-    local RESOURCE_DIRS=(
-        "Resources/AIs"
-        "Resources/Config"
-        "Resources/Scenarios"
-        "Resources/Scripts"
-        "Resources/Shaders"
-        "Resources/Binary/Images"
-        "Resources/Binary/Models"
-        "Resources/Binary/Music"
-        "Resources/Binary/Sounds"
-        "Resources/Binary/Textures"
-        "Schemata"
-    )
 
-    local resdir
-    for resdir in "${RESOURCE_DIRS[@]}"; do
-        cp -rfu "$resdir" "$PROGDIR/Resources"
-    done
-
-    cp -fu Resources/README.TXT "$PROGDIR/Resources"
-    cp -fu Resources/InfoPlist.strings "$PROGDIR/Resources"
     cp -fu src/Cocoa/Info-Oolite.plist "$PROGDIR/Resources/Info-gnustep.plist"
     cp -fu "$GNUSTEP_OBJ_DIR_NAME/$SRC_BIN" "$PROGDIR/$DEST_BIN"
 
@@ -81,12 +60,13 @@ run_script() {
             fi
         fi
 
-        # Replace specific voices with Oolite-specific versions
-        rm -f "$PROGDIR/Resources/espeak-ng-data/voices/!v/f2"
-        cp -fu Resources/espeak-ng-data/voices/!v/f2 "$PROGDIR/Resources/espeak-ng-data/voices/!v/f2"
-        rm -f "$PROGDIR/Resources/espeak-ng-data/voices/default"
-        cp -fu Resources/espeak-ng-data/voices/default "$PROGDIR/Resources/espeak-ng-data/voices/default"
     fi
+
+    # Replace specific voices with Oolite-specific versions
+    rm -f "$PROGDIR/Resources/espeak-ng-data/voices/!v/f2"
+    rm -f "$PROGDIR/Resources/espeak-ng-data/voices/default"
+    cp -rfu Resources/. "$PROGDIR/Resources"
+    rm -f "$PROGDIR/Resources/AIReference.html" "$PROGDIR/Resources/*.icns"
 
     # Strip binary if requested
     if [[ "$STRIP_BIN" == "yes" ]]; then
