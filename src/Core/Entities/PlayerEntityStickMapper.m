@@ -285,9 +285,6 @@ MA 02110-1301, USA.
 			key = CUSTOMEQUIP_BUTTONMODE;
 		}
 		NSDictionary *dict = [customEquipActivation objectAtIndex:function];
-		//if ([key isEqualToString:CUSTOMEQUIP_BUTTONACTIVATE] && [dict objectForKey:CUSTOMEQUIP_BUTTONACTIVATE]) [dict removeObjectForKey:key];
-		//if ([key isEqualToString:CUSTOMEQUIP_BUTTONMODE] && [dict objectForKey:CUSTOMEQUIP_BUTTONMODE]) [dict removeObjectForKey:key];
-		
 		NSMutableDictionary *dict2 = [[NSMutableDictionary alloc] initWithObjectsAndKeys:[dict oo_stringForKey:CUSTOMEQUIP_EQUIPKEY], CUSTOMEQUIP_EQUIPKEY, [dict oo_stringForKey:CUSTOMEQUIP_EQUIPNAME], CUSTOMEQUIP_EQUIPNAME, hwDict, key, nil];
 		if ([key isEqualToString:CUSTOMEQUIP_BUTTONACTIVATE] && [dict objectForKey:CUSTOMEQUIP_BUTTONMODE]) [dict2 setObject:[dict objectForKey:CUSTOMEQUIP_BUTTONMODE] forKey:CUSTOMEQUIP_BUTTONMODE];
 		if ([key isEqualToString:CUSTOMEQUIP_BUTTONMODE] && [dict objectForKey:CUSTOMEQUIP_BUTTONACTIVATE]) [dict2 setObject:[dict objectForKey:CUSTOMEQUIP_BUTTONACTIVATE] forKey:CUSTOMEQUIP_BUTTONACTIVATE];
