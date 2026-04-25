@@ -10,11 +10,6 @@ run_script() {
     rm -rf oolite.app
     rm -rf obj.spk
     source ShellScripts/common/get_version.sh
-    source ShellScripts/common/checkout_submodules_fn.sh
-
-    if ! checkout_submodules; then
-        return 1
-    fi
 
     mkdir -p build
     cd build

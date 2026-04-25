@@ -62,16 +62,16 @@ API documentation is available [here](https://oolite.readthedocs.io/en/latest/ap
 
 The Oolite source is available from GitHub. The first step is to install git if you don't already
 have it installed as it is required to obtain and build Oolite. With Git installed, check out the
-Oolite repository and its submodules:
+Oolite repository:
 
 ```bash
-git clone --filter=blob:none --recurse-submodules https://github.com/OoliteProject/oolite.git
+git clone --filter=blob:none https://github.com/OoliteProject/oolite.git
 cd oolite
 ```
 
 ### Windows
 
-After installing git and checking out the Oolite repository and its submodules, double click `Run Me`
+After installing git and checking out the Oolite repository, double click `Run Me`
 in ShellScripts/Windows or run in a command prompt:
 
 ```cmd
@@ -85,7 +85,7 @@ The Clang build uses the UCRT64 environment, while the GCC build uses the MINGW6
 
 ### Linux
 
-After installing git and checking out the Oolite repository and its submodules, run the following 
+After installing git and checking out the Oolite repository, run the following 
 to install required packages (you can replace sudo with other methods that escalate privileges if 
 you prefer):
 
