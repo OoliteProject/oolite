@@ -219,11 +219,11 @@ enum PreferredAppMode
 
 #if OOLITE_WINDOWS
 	// needed for enabling system window manager events, which is needed for handling window movement messages
-	SDL_EventState (SDL_SYSWMEVENT, SDL_ENABLE);
+	// KJASDL SDL_EventState (SDL_SYSWMEVENT, SDL_ENABLE);
 	
 	//capture the window handle for later
 	int propertyCount;
-	SDL_PropertiesID windowPropertiesID = SDL_GetWindowProperties(window);
+	SDL_PropertiesID windowPropertiesId = SDL_GetWindowProperties(window);
 	windowHandle   = SDL_GetPointerProperty(windowPropertiesId, SDL_PROP_WINDOW_WIN32_HWND_POINTER, NULL);
 	if (!windowHandle)
 	{
@@ -273,12 +273,14 @@ enum PreferredAppMode
 	_hdrMaxBrightness = [prefs oo_floatForKey:@"hdr-max-brightness" defaultValue:1000.0f];
 	_hdrPaperWhiteBrightness = [prefs oo_floatForKey:@"hdr-paperwhite-brightness" defaultValue:200.0f];
 	_hdrToneMapper = OOHDRToneMapperFromString([prefs oo_stringForKey:@"hdr-tone-mapper" defaultValue:@"OOHDR_TONEMAPPER_ACES_APPROX"]);
+	/* KJASDL
 	if (bitsPerColorComponent == 16)
 	{
 		// SDL.dll built specifically for Oolite required
 		SDL_GL_SetAttribute(SDL_GL_PIXEL_TYPE_FLOAT, 1);
 		_hdrOutput = YES;
 	}
+	*/
 #endif
 	
 	_sdrToneMapper = OOSDRToneMapperFromString([prefs oo_stringForKey:@"sdr-tone-mapper" defaultValue:@"OOSDR_TONEMAPPER_ACES"]);
@@ -298,12 +300,14 @@ enum PreferredAppMode
 	OOLog(@"display.initGL", @"Alpha: %d", testAttrib);
 	SDL_GL_GetAttribute(SDL_GL_DEPTH_SIZE, &testAttrib);
 	OOLog(@"display.initGL", @"Depth Buffer: %d", testAttrib);
+/* KJASDL
 #if OOLITE_WINDOWS
 	SDL_GL_GetAttribute(SDL_GL_PIXEL_TYPE_FLOAT, &testAttrib);
 	OOLog(@"display.initGL", @"Pixel type is float : %d", testAttrib);
 
   	OOLog(@"display.initGL", @"Pixel format index: %d", GetPixelFormat(GetDC(windowHandle)));
 #endif
+*/
 	
 	// Verify V-sync successfully set - report it if not
 	
@@ -1004,10 +1008,11 @@ enum PreferredAppMode
 
 - (void) resetSDLKeyModifiers
 {
+	/* KJASDL - looks like SDL3 won't allow us to change the keyboard state - try without to see if it's needed
 	// this is used when we regain focus to ensure that all
 	// modifier keys are reset to their correct status
-	SDLMod modState = SDL_GetModState();
-	Uint8 *keyState = SDL_GetKeyState(NULL);
+	SDL_Keymod modState = SDL_GetModState();
+	const BOOL *keyState = SDL_GetKeyboardState(NULL);
 	BYTE keyboardStatus[256];
 	#define OO_RESET_SDLKEY_MODIFIER(vkCode, kModCode, sdlkCode)	do {\
 	if (keyboardStatus[vkCode] & 0x0080) \
@@ -1057,6 +1062,7 @@ enum PreferredAppMode
 	}
 	
 	SDL_SetModState(modState);
+	*/
 }
 
 
@@ -2033,6 +2039,7 @@ finished:
 	NSTimeInterval			timeNow = [NSDate timeIntervalSinceReferenceDate];
 	Uint16	 				key_id;
 	SDL_Scancode				scan_code;
+	float inDelta;
 #if OOLITE_LINUX
     NSSize					newSize;
 	bool					resize_pending = false;
@@ -2050,12 +2057,7 @@ finished:
 
 			case SDL_EVENT_MOUSE_BUTTON_DOWN:
 				mbtn_event = (SDL_MouseButtonEvent*)&event;
-#if OOLITE_LINUX
-				short inDelta = 0;
-#else
-				// specially built SDL.dll is required for this
-				short inDelta = mbtn_event->wheelDelta;
-#endif
+
 				switch(mbtn_event->button)
 				{
 					case SDL_BUTTON_LEFT:
@@ -2107,6 +2109,8 @@ finished:
 #if OOLITE_LINUX
 				if (mw_event->y < 0)  inDelta = OOMOUSEWHEEL_DELTA;
 				if (inDelta == 0)  inDelta = -OOMOUSEWHEEL_DELTA;
+#elif OOLITE_WINDOWS
+				inDelta = mw_event->y;
 #endif
 				if (inDelta > 0)
 				{
@@ -2486,7 +2490,8 @@ finished:
 				}
 				break;
 			}
-			
+
+/* KJASDL - see if we still need all this
 #if OOLITE_WINDOWS
 			// if we minimize the window while in fullscreen (e.g. via
 			// Win+M or Win+DownArrow), restore the non-borderless window
@@ -2513,24 +2518,24 @@ finished:
 				switch (event.syswm.msg->msg)
 				{
 					case WM_MOVE:
-						/* if we are in fullscreen mode we normally don't worry about having the window moved.
-						   However, when using multiple monitors, one can use hotkey combinations to make the
-						   window "jump" from one monitor to the next. We don't want this to happen, so if we
-						   detect that our (fullscreen) window has moved, we immediately bring it back to its
-						   original position. Nikos - 20140922
-						*/
+						// if we are in fullscreen mode we normally don't worry about having the window moved.
+						// However, when using multiple monitors, one can use hotkey combinations to make the
+						// window "jump" from one monitor to the next. We don't want this to happen, so if we
+						// detect that our (fullscreen) window has moved, we immediately bring it back to its
+						// original position. Nikos - 20140922
+
 						if (fullScreen)
 						{
 							RECT rDC;
 							
-							/* attempting to move our fullscreen window while in maximized state can freak
-							   Windows out and the window may not return to its original position properly.
-							   Solution: if such a move takes place, first change the window placement to
-							   normal, move it normally, then restore its placement to maximized again. 
-							   Additionally, the last good known window position seems to be lost in such
-							   a case. While at it, update also the coordinates of the non-maximized window
-							   so that it can return to its original position - this is why we need lastGoodRect.
-							 */
+							// attempting to move our fullscreen window while in maximized state can freak
+							// Windows out and the window may not return to its original position properly.
+							// Solution: if such a move takes place, first change the window placement to
+							// normal, move it normally, then restore its placement to maximized again. 
+							// Additionally, the last good known window position seems to be lost in such
+							// a case. While at it, update also the coordinates of the non-maximized window
+							// so that it can return to its original position - this is why we need lastGoodRect.
+
 							WINDOWPLACEMENT wp;
 							wp.length = sizeof(WINDOWPLACEMENT);
 							GetWindowPlacement(windowHandle, &wp);
@@ -2572,11 +2577,11 @@ finished:
 						{
 							[[PlayerEntity sharedPlayer] doGuiScreenResizeUpdates];
 						}
-						/*
-						 deliberately no break statement here - moving or resizing the window changes its bounds
-						 rectangle. Therefore we must check whether to clip the mouse or not inside the newly
-						 updated rectangle, so just let it fall through
-						*/
+						
+						// deliberately no break statement here - moving or resizing the window changes its bounds
+						// rectangle. Therefore we must check whether to clip the mouse or not inside the newly
+						// updated rectangle, so just let it fall through
+						
 						
 					case WM_ACTIVATEAPP:
 						if(grabMouseStatus)  [self grabMouseInsideGameWindow:YES];
@@ -2596,13 +2601,13 @@ finished:
 						break;
 						
 					case WM_SETFOCUS:
-						/*
-	`					make sure that all modifier keys like Shift, Alt, Ctrl and Caps Lock
-	`					are set correctly to what they should be when we get focus. We have
-	`					to do it ourselves because SDL on Windows has problems with this
-	`					when focus change events occur, like e.g. Alt-Tab in/out of the
-						application
-	`					*/
+						
+						// make sure that all modifier keys like Shift, Alt, Ctrl and Caps Lock
+						// are set correctly to what they should be when we get focus. We have
+						// to do it ourselves because SDL on Windows has problems with this
+						// when focus change events occur, like e.g. Alt-Tab in/out of the
+						// application
+
 						[self resetSDLKeyModifiers];
 						if (!SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL))
 						{
@@ -2627,6 +2632,7 @@ finished:
 				break;
 			}
 #endif
+*/
 
 			// caused by INTR or someone hitting close
 			case SDL_EVENT_QUIT:
