@@ -35,6 +35,7 @@ MA 02110-1301, USA.
 #if OOLITE_WINDOWS
 #include <locale.h>
 #include <SDL3/SDL.h>
+#include <SDL3/SDL_main.h>
 // Make sure that a high performance GPU is
 // selected, if more than one are available
 __declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
@@ -93,7 +94,7 @@ int main(int argc, char *argv[])
 
 	// Prepend system PATH env variable with our own executable's path
 	char pathEnvVar[] = "PATH";
-	char *systemPath = SDL_getenv(pathEnvVar);
+	const char *systemPath = SDL_getenv(pathEnvVar);
 	size_t currentWorkingDirLen = strlen(currentWorkingDir);
 	size_t systemPathLen = strlen(systemPath);
 	// the max possible length of the string below is systemPath plus the path
@@ -103,21 +104,21 @@ int main(int argc, char *argv[])
 	strcat(finalPath, ";");
 	strcat(finalPath, systemPath);
 
-	SDL_SetEnvironment("GNUSTEP_PATH_HANDLING", "windows");
-	SDL_SetEnvironment(pathEnvVar, finalPath);
-	SDL_SetEnvironment("GNUSTEP_SYSTEM_ROOT", currentWorkingDir);
-	SDL_SetEnvironment("GNUSTEP_LOCAL_ROOT", currentWorkingDir);
-	SDL_SetEnvironment("GNUSTEP_NETWORK_ROOT", currentWorkingDir);
-	SDL_SetEnvironment("GNUSTEP_USERS_ROOT", currentWorkingDir);
+	SDL_Environment *environment = SDL_GetEnvironment();
+	SDL_SetEnvironmentVariable(environment, "GNUSTEP_PATH_HANDLING", "windows", YES);
+	SDL_SetEnvironmentVariable(environment, pathEnvVar, finalPath, YES);
+	SDL_SetEnvironmentVariable(environment, "GNUSTEP_SYSTEM_ROOT", currentWorkingDir, YES);
+	SDL_SetEnvironmentVariable(environment, "GNUSTEP_LOCAL_ROOT", currentWorkingDir, YES);
+	SDL_SetEnvironmentVariable(environment, "GNUSTEP_NETWORK_ROOT", currentWorkingDir, YES);
+	SDL_SetEnvironmentVariable(environment, "GNUSTEP_USERS_ROOT", currentWorkingDir, YES);
 #if OO_GAME_DATA_TO_USER_FOLDER
-	SDL_SetEnvironment("HOMEPATH", strcat(SDL_getenv("LOCALAPPDATA"), "\\Oolite\\oolite.app"));
+	SDL_SetEnvironmentVariable(environment, "HOMEPATH", strcat(SDL_getenv("LOCALAPPDATA"), "\\Oolite\\oolite.app"), YES);
 #else
-	SDL_SetEnvironment("HOMEPATH", currentWorkingDir);
+	SDL_SetEnvironmentVariable(environment, "HOMEPATH", currentWorkingDir, YES);
 #endif
 
 	SetCurrentDirectory(currentWorkingDir);
 
-	free(envVarString);
 	free(finalPath);
 
 	/*	Windows amibtiously starts apps with the C library locale set to the
