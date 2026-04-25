@@ -1,9 +1,9 @@
 #!/bin/bash
 
-SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
-source $SCRIPT_DIR/os_detection.sh
-
 install_package() {
+    local SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+    source $SCRIPT_DIR/os_detection.sh
+
     local GENERIC_NAME=$1
     local PKG_NAME=""
 
@@ -137,8 +137,8 @@ install_package() {
 
         "appimage")
             case "$CURRENT_DISTRO" in
-                debian) PKG_NAME="build-essential" ;;
-                redhat) PKG_NAME="desktop-file-utils" ;;
+                debian) PKG_NAME="NONE" ;;
+                redhat) PKG_NAME="desktop-file-utils which" ;;
                 arch) PKG_NAME="desktop-file-utils zsync" ;;
             esac ;;
 
@@ -151,7 +151,11 @@ install_package() {
     esac
 
     # Perform the Installation
-    if [ -z "$PKG_NAME" ]; then
+    if [[ "${PKGNAME}" == "NONE" ]]; then
+        echo "⏭️ PKGNAME is set to NONE. Skipping install."
+        return 0
+    fi
+    if [[ -z "$PKG_NAME" ]]; then
         echo "❌ Could not determine package name for $GENERIC_NAME!" >&2
         return 1
     else
@@ -160,7 +164,5 @@ install_package() {
             echo "❌ Could not install $GENERIC_NAME ($PKG_NAME)!" >&2
             return 1
         fi
-
-
     fi
 }
