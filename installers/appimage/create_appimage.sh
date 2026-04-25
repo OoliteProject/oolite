@@ -13,6 +13,7 @@ run_script() {
 
     local ARCH=$(uname -m)
     local APPDIR="./oolite.AppDir"
+    export APPDIR
     local APPBIN="$APPDIR/usr/bin"
     local APPSHR="$APPDIR/usr/share"
     rm -rf "$APPDIR"
@@ -22,49 +23,46 @@ run_script() {
         return 1
     fi
 
-    local LINUXDEPLOY_BIN="./linuxdeploy"
-    if [ ! -x "$LINUXDEPLOY_BIN" ]; then
-        echo "📥 linuxdeploy not found or not executable. Downloading..."
-        curl -o "$LINUXDEPLOY_BIN" -L https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-$ARCH.AppImage || { echo "❌ Download failed" >&2; exit 1; }
-        chmod +x "$LINUXDEPLOY_BIN"
+    local SHARUN_BIN="./quick-sharun"
+    if [[ ! -x "$SHARUN_BIN" ]]; then
+        echo "📥 quick-sharun not found or not executable. Downloading..."
+        curl -o "$SHARUN_BIN" -L https://raw.githubusercontent.com/pkgforge-dev/Anylinux-AppImages/refs/heads/main/useful-tools/quick-sharun.sh || { echo "❌ Download failed" >&2; exit 1; }
+        chmod +x "$SHARUN_BIN"
     fi
-
-    case "$CURRENT_DISTRO" in
-        debian) SDL2="--library=/usr/lib/$ARCH-linux-gnu/libSDL2-2.0.so.0" ;;
-        redhat) SDL2="--library=/usr/lib64/libSDL2-2.0.so.0 --library=/usr/lib64/libSDL3.so.0" ;;
-        arch) SDL2="--library=/usr/lib/libSDL2-2.0.so.0 --library=/usr/lib/libSDL3.so.0" ;;
-    esac
 
     local ICON_SUBPATH="icons/hicolor/256x256/apps/space.oolite.Oolite.png"
-    local ICON_PATH="$APPSHR/$ICON_SUBPATH"
+    local ICON="$APPSHR/$ICON_SUBPATH"
+    export ICON
+    local DESKTOP="$APPSHR/applications/space.oolite.Oolite.desktop"
+    export DESKTOP
+    local SUFFIX
+   	if (( $# == 1 )); then
+        SUFFIX="_${1}-${VER_FULL}"
+    else
+        SUFFIX="-$VER_FULL"
+    fi
+    local OUTNAME="oolite${SUFFIX}-${ARCH}.AppImage"
+    export OUTNAME
+
     echo "Building AppDir for AppImage..."
+
+    local DEPLOY_OPENGL=0
+    export DEPLOY_OPENGL
+    local DEPLOY_VULKAN=0
+    export DEPLOY_VULKAN
+    local DEPLOY_LOCALE=0
+    export DEPLOY_LOCALE
     # install_metadatainfo_fn already put the files in the parameters below in the right place,
     # but no harm putting again here
-    if ! NO_STRIP=1 ./linuxdeploy \
-    --appdir "$APPDIR" \
-    --executable "$APPBIN/oolite" \
-    --custom-apprun "$APPBIN/run_oolite.sh" \
-    --desktop-file "$APPSHR/applications/space.oolite.Oolite.desktop" \
-    --icon-file "$ICON_PATH" \
-    $SDL2; then
+    if ! $SHARUN_BIN "$APPBIN/run_oolite.sh"; then
         echo "❌ AppDir generation failed!" >&2
         return 1
-    fi
-    ln -sf "usr/share/$ICON_SUBPATH" "$APPDIR/.DirIcon"
-
-   	if [[ $1 == "dev" ]]; then
-        echo "Not stripping libs for snapshot AppImage"
-   	else
-        echo "Stripping libs in AppDir..."
-        find "$APPDIR/usr" -type f \
-        \( -name '*.so' -o -name '*.so.*' \) \
-        -exec strip --strip-unneeded '{}' +   # keeps symbols needed for runtime linking
     fi
 
     local LINTER_BIN="./appdir-lint.sh"
     local EXCLUDE_LIST="./excludelist"
 
-    if [ ! -x "$LINTER_BIN" ] || [ ! -f "$EXCLUDE_LIST" ]; then
+    if [[ ! -x "$LINTER_BIN" ]] || [[ ! -f "$EXCLUDE_LIST" ]]; then
         echo "📥 Downloading AppDir linter and excludelist..."
         curl -o "$LINTER_BIN" -L https://raw.githubusercontent.com/AppImage/AppImages/master/appdir-lint.sh || { echo "❌ Linter download failed" >&2; exit 1; }
         curl -o "$EXCLUDE_LIST" -L https://raw.githubusercontent.com/AppImage/AppImages/master/excludelist || { echo "❌ Excludelist download failed" >&2; exit 1; }
@@ -77,22 +75,8 @@ run_script() {
         return 1
     fi
 
-    local APPIMAGETOOL_BIN="./appimagetool"
-    if [ ! -x "$APPIMAGETOOL_BIN" ]; then
-        echo "📥 appimagetool not found. Downloading..."
-        curl -o "$APPIMAGETOOL_BIN" -L https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-$ARCH.AppImage || { echo "❌ appimagetool download failed" >&2; exit 1; }
-        chmod +x "$APPIMAGETOOL_BIN"
-    fi
-
-    local SUFFIX
-   	if (( $# == 1 )); then
-        SUFFIX="_${1}-${VER_FULL}"
-    else
-        SUFFIX="-$VER_FULL"
-    fi
-    local FILENAME="oolite${SUFFIX}-${ARCH}.AppImage"
-    echo "Creating AppImage $FILENAME..."
-    if ! ./appimagetool "$APPDIR" "$FILENAME"; then
+    echo "Creating AppImage $OUTNAME..."
+    if ! $SHARUN_BIN --make-appimage; then
         echo "❌ AppImage creation failed!" >&2
         return 1
     fi

@@ -6,7 +6,13 @@ on:
 
 jobs:
   build-linux:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:latest
+      options: >-
+        --cap-add SYS_ADMIN
+        --device /dev/fuse
+        --security-opt apparmor:unconfined
     strategy:
       matrix:
         flavour: [pkg-appimage-snapshot, pkg-appimage-deployment, pkg-appimage]
@@ -16,10 +22,15 @@ jobs:
       #  run: |
       #    printenv | sort
 
-      - name: Update Ubuntu
+      - name: Update Arch
         run: |
-          sudo apt-get update
-          sudo apt-get install -y git
+          pacman -Syu --noconfirm
+          pacman -S --noconfirm --needed git
+      - name: Pre-setup ownership
+        run: |
+          # This must run before the checkout action if the action tries to do git commands
+          mkdir -p "$GITHUB_WORKSPACE"
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - name: Checkout Oolite
         uses: actions/checkout@v6
         with:
