@@ -137,9 +137,9 @@ install_package() {
 
         "appimage")
             case "$CURRENT_DISTRO" in
-                debian) PKG_NAME="" ;;
+                debian) PKG_NAME="build-essential" ;;
                 redhat) PKG_NAME="desktop-file-utils" ;;
-                arch) PKG_NAME="desktop-file-utils" ;;
+                arch) PKG_NAME="desktop-file-utils zsync" ;;
             esac ;;
 
         "flatpak") PKG_NAME="flatpak flatpak-builder" ;;
