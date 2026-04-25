@@ -137,9 +137,9 @@ install_package() {
 
         "appimage")
             case "$CURRENT_DISTRO" in
-                debian) PKG_NAME="file fuse3" ;;
-                redhat) PKG_NAME="file fuse3 which desktop-file-utils perl-File-MimeInfo" ;;
-                arch) PKG_NAME="file fuse3" ;;
+                debian) PKG_NAME="" ;;
+                redhat) PKG_NAME="desktop-file-utils" ;;
+                arch) PKG_NAME="desktop-file-utils" ;;
             esac ;;
 
         "flatpak") PKG_NAME="flatpak flatpak-builder" ;;
