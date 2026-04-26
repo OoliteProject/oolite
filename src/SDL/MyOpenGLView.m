@@ -323,10 +323,6 @@ enum PreferredAppMode
 	bounds.size.width = width;
 	bounds.size.height = height;
 
-	[self populateFullScreenModelist];
-	[self loadFullscreenSettings];
-	currentSize = 0;
-
 	return;
 }
 
@@ -380,11 +376,13 @@ enum PreferredAppMode
 	}
 
  	OOLog(@"process.args", @"%@", cmdLineArgsStr);
+	[self populateFullScreenModelist];
 
 	// Find what the full screen and windowed settings are.
 	fullScreen = NO;
 	currentSize = 0;
 	[self loadWindowSize];
+	[self loadFullscreenSettings];
 
 	// Set up the drawing surface's dimensions.
 	firstScreen = (fullScreen) ? [self modeAsSize: currentSize] : currentWindowSize;
