@@ -14,12 +14,12 @@ run_script() {
     local ARCH=$(uname -m)
     local APPDIR="./oolite.AppDir"
     export APPDIR
-    local APPBIN="$APPDIR/usr/bin"
-    local APPSHR="$APPDIR/usr/share"
+    local APPBIN="$APPDIR/bin"
+    local APPSHR="$APPDIR/share"
     rm -rf "$APPDIR"
 
-    local ABS_APPDIR_USR=$(realpath -m "$APPDIR/usr")
-    if ! install_freedesktop "$ABS_APPDIR_USR" bin appdata; then
+    local ABS_APPDIR=$(realpath -m "$APPDIR")
+    if ! install_freedesktop "$ABS_APPDIR" bin appdata; then
         return 1
     fi
 
@@ -30,7 +30,8 @@ run_script() {
         chmod +x "$SHARUN_BIN"
     fi
 
-    local ICON_SUBPATH="icons/hicolor/256x256/apps/space.oolite.Oolite.png"
+    local ICON_FILENAME="space.oolite.Oolite.png"
+    local ICON_SUBPATH="icons/hicolor/256x256/apps/$ICON_FILENAME"
     local ICON="$APPSHR/$ICON_SUBPATH"
     export ICON
     local DESKTOP="$APPSHR/applications/space.oolite.Oolite.desktop"
