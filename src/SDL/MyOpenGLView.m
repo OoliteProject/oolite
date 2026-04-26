@@ -164,6 +164,7 @@ enum PreferredAppMode
 	if (bitsPerColorComponent > 8)
 	{
 		SDL_GL_SetAttribute(SDL_GL_FLOATBUFFERS, 1);
+		_hdrOutput = YES;
 	}
 	else
 	{
@@ -171,6 +172,7 @@ enum PreferredAppMode
 		SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, bitsPerColorComponent);
 		SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, bitsPerColorComponent);
 		SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, bitsPerColorComponent);
+		_hdrOutput = NO;
 	}
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
@@ -201,6 +203,7 @@ enum PreferredAppMode
 		SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
 		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 		window = SDL_CreateWindow([windowCaption UTF8String], size.width, size.height, windowFlags);
+		_hdrOutput = NO;
 	}
 
 	if (!window)
@@ -294,19 +297,10 @@ enum PreferredAppMode
 
 	_colorSaturation = 1.0f;
 	
-	_hdrOutput = NO;
 #if OOLITE_WINDOWS
 	_hdrMaxBrightness = [prefs oo_floatForKey:@"hdr-max-brightness" defaultValue:1000.0f];
 	_hdrPaperWhiteBrightness = [prefs oo_floatForKey:@"hdr-paperwhite-brightness" defaultValue:200.0f];
 	_hdrToneMapper = OOHDRToneMapperFromString([prefs oo_stringForKey:@"hdr-tone-mapper" defaultValue:@"OOHDR_TONEMAPPER_ACES_APPROX"]);
-	/* KJASDL
-	if (bitsPerColorComponent == 16)
-	{
-		// SDL.dll built specifically for Oolite required
-		SDL_GL_SetAttribute(SDL_GL_PIXEL_TYPE_FLOAT, 1);
-		_hdrOutput = YES;
-	}
-	*/
 #endif
 	
 	_sdrToneMapper = OOSDRToneMapperFromString([prefs oo_stringForKey:@"sdr-tone-mapper" defaultValue:@"OOSDR_TONEMAPPER_ACES"]);
@@ -326,14 +320,13 @@ enum PreferredAppMode
 	OOLog(@"display.initGL", @"Alpha: %d", testAttrib);
 	SDL_GL_GetAttribute(SDL_GL_DEPTH_SIZE, &testAttrib);
 	OOLog(@"display.initGL", @"Depth Buffer: %d", testAttrib);
-/* KJASDL
-#if OOLITE_WINDOWS
-	SDL_GL_GetAttribute(SDL_GL_PIXEL_TYPE_FLOAT, &testAttrib);
+
+	SDL_GL_GetAttribute(SDL_GL_FLOATBUFFERS, &testAttrib);
 	OOLog(@"display.initGL", @"Pixel type is float : %d", testAttrib);
 
+#if OOLITE_WINDOWS
   	OOLog(@"display.initGL", @"Pixel format index: %d", GetPixelFormat(GetDC(windowHandle)));
 #endif
-*/
 	
 	// Verify V-sync successfully set - report it if not
 	
@@ -2879,6 +2872,11 @@ finished:
 	return NSMakeSize(WINDOW_SIZE_DEFAULT_WIDTH, WINDOW_SIZE_DEFAULT_HEIGHT);
 }
 
+- (NSDictionary *) currentScreenMode
+{
+	NSDictionary *mode=[screenSizes objectAtIndex: currentSize];
+	return [[mode retain] autorelease];
+}
 
 - (void) setMouseInDeltaMode: (BOOL) inDelta
 {

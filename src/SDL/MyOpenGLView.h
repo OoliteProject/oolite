@@ -345,6 +345,7 @@ extern int debug;
 - (int) findDisplayModeForWidth: (unsigned int) d_width Height:(unsigned int) d_height
                         Refresh: (unsigned int)d_refresh;
 - (NSSize) currentScreenSize;
+- (NSDictionary*) currentScreenMode;
 
 - (void) pollControls;
 
