@@ -222,6 +222,8 @@ extern int debug;
 	SDL_Window			*splashWindow;
 	SDL_Window			*window;
 	SDL_GLContext			glContext;
+	int				bitsPerColorComponent;
+	BOOL				vSyncPreference;
 
 #if OOLITE_WINDOWS
 

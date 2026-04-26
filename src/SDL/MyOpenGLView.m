@@ -108,7 +108,7 @@ enum PreferredAppMode
 	return displayId;
 }
 
-- (NSMutableDictionary *) getNativeSize // KJASDL
+- (NSMutableDictionary *) getNativeSize
 {
 	NSMutableDictionary *mode=[[NSMutableDictionary alloc] init];
 	int nativeDisplayWidth = 1024;
@@ -159,14 +159,19 @@ enum PreferredAppMode
 	NSString		*imagesDir;
 
 	NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
-	BOOL	vSyncPreference = [prefs oo_boolForKey:@"v-sync" defaultValue:YES];
-	int 	bitsPerColorComponent = [prefs oo_boolForKey:@"hdr" defaultValue:NO] ? 16 : 8;
 
-
-	OOLog(@"display.initGL", @"Trying %d-bpcc, 24-bit depth buffer", bitsPerColorComponent);	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, bitsPerColorComponent);
-	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, bitsPerColorComponent);
-	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, bitsPerColorComponent);
-	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, bitsPerColorComponent);
+	OOLog(@"display.initGL", @"Trying %d-bpcc, 24-bit depth buffer", bitsPerColorComponent);
+	if (bitsPerColorComponent > 8)
+	{
+		SDL_GL_SetAttribute(SDL_GL_FLOATBUFFERS, 1);
+	}
+	else
+	{
+		SDL_GL_SetAttribute(SDL_GL_RED_SIZE, bitsPerColorComponent);
+		SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, bitsPerColorComponent);
+		SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, bitsPerColorComponent);
+		SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, bitsPerColorComponent);
+	}
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	
@@ -189,12 +194,12 @@ enum PreferredAppMode
 	window = SDL_CreateWindow([windowCaption UTF8String], size.width, size.height, windowFlags);
 	if (!window)
 	{
-		OOLog(@"display.initGL", @"%@", @"Trying 8-bpcc, 32-bit depth buffer");
+		OOLog(@"display.initGL", @"%@", @"Trying 8-bpcc, 24-bit depth buffer");
 		SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
 		SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
 		SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
 		SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
-		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
+		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 		window = SDL_CreateWindow([windowCaption UTF8String], size.width, size.height, windowFlags);
 	}
 
@@ -221,9 +226,22 @@ enum PreferredAppMode
 	if (!glContext)
 	{
 		OOLog(@"sdl.create_context", @"%@", @"Could not create OpenGL context");
+		exit(1);
 	}
 	SDL_Surface *surface = SDL_GetWindowSurface(window);
-	SDL_SetSurfaceColorspace(surface, SDL_COLORSPACE_HDR10);
+	if (SDL_SetSurfaceColorspace(surface, SDL_COLORSPACE_HDR10))
+	{
+		OOLog(@"sdl.use_hdr_surface", @"%@", @"HDR surface set");
+	}
+	else
+	{
+		OOLogWARN(@"sdl.use_hdr_surface", @"%@ %s", @"Failed to set HDR surface - trying EDR. Error was:", SDL_GetError());
+		if (!SDL_SetSurfaceColorspace(surface, SDL_COLORSPACE_SRGB_LINEAR))
+		{
+			OOLogWARN(@"sdl.use_edr_surface", @"%@ %s", @"Failed to set HDR surface - falling back to SDR. Error was:", SDL_GetError());
+			SDL_SetSurfaceColorspace(surface, SDL_COLORSPACE_SRGB);
+		}
+	}
 
 #if OOLITE_WINDOWS
 	// needed for enabling system window manager events, which is needed for handling window movement messages
@@ -325,6 +343,10 @@ enum PreferredAppMode
 		OOLogWARN(@"display.initGL", @"Could not enable V-Sync. Please check that your graphics driver supports the %@_swap_control extension.",
 					OOLITE_WINDOWS ? @"WGL_EXT" : @"[GLX_SGI/GLX_MESA]");
 	}
+	else
+	{
+		OOLog(@"display.initGL", @"%@", @"V-Sync set");
+	}
 
 	int width, height;
 	SDL_GetWindowSizeInPixels(window, &width, &height);
@@ -344,8 +366,8 @@ enum PreferredAppMode
 
 	NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
 	showSplashScreen = [prefs oo_boolForKey:@"splash-screen" defaultValue:YES];
-	BOOL	vSyncPreference = [prefs oo_boolForKey:@"v-sync" defaultValue:YES];
-	int 	bitsPerColorComponent = [prefs oo_boolForKey:@"hdr" defaultValue:NO] ? 16 : 8;
+	vSyncPreference = [prefs oo_boolForKey:@"v-sync" defaultValue:YES];
+	bitsPerColorComponent = [prefs oo_boolForKey:@"hdr" defaultValue:NO] ? 16 : 8;
 	int		vSyncValue;
 
 	NSArray				*arguments = nil;
