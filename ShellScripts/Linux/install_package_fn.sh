@@ -138,7 +138,7 @@ install_package() {
         "appimage")
             case "$CURRENT_DISTRO" in
                 debian) PKG_NAME="NONE" ;;
-                redhat) PKG_NAME="desktop-file-utils which" ;;
+                redhat) PKG_NAME="desktop-file-utils which zsync" ;;
                 arch) PKG_NAME="desktop-file-utils zsync" ;;
             esac ;;
 
@@ -151,13 +151,12 @@ install_package() {
     esac
 
     # Perform the Installation
-    if [[ "${PKGNAME}" == "NONE" ]]; then
-        echo "⏭️ PKGNAME is set to NONE. Skipping install."
-        return 0
-    fi
     if [[ -z "$PKG_NAME" ]]; then
         echo "❌ Could not determine package name for $GENERIC_NAME!" >&2
         return 1
+    elif [[ "$PKG_NAME" == "NONE" ]]; then
+        echo "⏭️ PKGNAME is set to NONE. Skipping install."
+        return 0
     else
         echo "--> Installing $GENERIC_NAME ($PKG_NAME)..."
         if ! "${INSTALL_CMD[@]}" $PKG_NAME; then
