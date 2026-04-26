@@ -43,9 +43,6 @@ run_script() {
     pacboy -S python-pip --noconfirm
     pacboy -S mesa --noconfirm
 
-    source ../common/checkout_submodules_fn.sh
-    checkout_submodules
-
     cd ../../build/packages
     echo "Installing common libraries"
     local package_names=(spidermonkey SDL)
