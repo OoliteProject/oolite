@@ -324,6 +324,7 @@ extern int debug;
 - (BOOL) snapShot:(NSString *)filename;
 
 - (NSRect) bounds;
+- (SDL_DisplayID) getDisplayId;
 - (NSMutableDictionary *) getNativeSize;
 
 - (void) setFullScreenMode:(BOOL)fsm;

@@ -84,6 +84,30 @@ enum PreferredAppMode
 
 @implementation MyOpenGLView
 
+- (SDL_DisplayID) getDisplayId
+{
+	SDL_DisplayID displayId = 0;
+	if (window)
+	{
+		displayId  = SDL_GetDisplayForWindow(window);
+	}
+	else
+	{
+		int displayCount;
+		SDL_DisplayID *displayIds = SDL_GetDisplays(&displayCount);
+		if (displayIds)
+		{
+			displayId = displayIds[0];
+		}
+		else
+		{
+			OOLog(@"sdl.display_id", @"Could not get list of displays. Error was: %s", SDL_GetError());
+		}
+		SDL_free(displayIds);
+	}
+	return displayId;
+}
+
 - (NSMutableDictionary *) getNativeSize // KJASDL
 {
 	NSMutableDictionary *mode=[[NSMutableDictionary alloc] init];
@@ -91,26 +115,9 @@ enum PreferredAppMode
 	int nativeDisplayHeight = 768;
 
 #if OOLITE_LINUX
-	BOOL displayFound = NO;
-	SDL_DisplayID displayId;
-	if (window)
-	{
-		displayId  = SDL_GetDisplayForWindow(window);
-		displayFound = YES;
-	}
-	else
-	{
-		int displayCount;
-		SDL_DisplayID *displayIds = SDL_GetDisplays(&displayCount);
-		if (displayCount > 0)
-		{
-			displayId = displayIds[0];
-			SDL_free(displayIds);
-			displayFound = YES;
-		}
-	}
+	SDL_DisplayID displayId = [self getDisplayId];
 	SDL_Rect boundsRect;
-	if(displayFound && SDL_GetDisplayUsableBounds(displayId, &boundsRect))
+	if (displayId && SDL_GetDisplayUsableBounds(displayId, &boundsRect))
 	{
 		nativeDisplayWidth = boundsRect.w;
 		nativeDisplayHeight = boundsRect.h;
@@ -120,6 +127,7 @@ enum PreferredAppMode
 	{
 		OOLog(@"display.mode.list.native.failed", @"%@", @"SDL_GetWMInfo failed, defaulting to 1024x768 for native size");
 	}
+
 #elif OOLITE_WINDOWS
 	nativeDisplayWidth = GetSystemMetrics(SM_CXSCREEN);
 	nativeDisplayHeight = GetSystemMetrics(SM_CYSCREEN);
@@ -376,19 +384,6 @@ enum PreferredAppMode
 	}
 
  	OOLog(@"process.args", @"%@", cmdLineArgsStr);
-	[self populateFullScreenModelist];
-
-	// Find what the full screen and windowed settings are.
-	fullScreen = NO;
-	currentSize = 0;
-	[self loadWindowSize];
-	[self loadFullscreenSettings];
-
-	// Set up the drawing surface's dimensions.
-	firstScreen = (fullScreen) ? [self modeAsSize: currentSize] : currentWindowSize;
-	viewSize = firstScreen;	// viewSize must be set prior to splash screen initialization
-
-	//[self createWindowWithSize: firstScreen];
 
 	matrixManager = [[OOOpenGLMatrixManager alloc] init];
 
@@ -402,7 +397,18 @@ enum PreferredAppMode
 		return nil;
 	}
 
+	[self populateFullScreenModelist];
 	SDL_SetEnvironmentVariable(SDL_GetEnvironment(), "SDL_VIDEO_WINDOW_POS", "center", YES);
+
+	// Find what the full screen and windowed settings are.
+	fullScreen = NO;
+	currentSize = 0;
+	[self loadWindowSize];
+	[self loadFullscreenSettings];
+
+	// Set up the drawing surface's dimensions.
+	firstScreen = (fullScreen) ? [self modeAsSize: currentSize] : currentWindowSize;
+	viewSize = firstScreen;	// viewSize must be set prior to splash screen initialization
 
 	[OOJoystickManager setStickHandlerClass:[OOSDLJoystickManager class]];
 	// end TODO
@@ -2711,7 +2717,7 @@ finished:
 	int i;
 	SDL_DisplayMode **modes;
 	NSMutableDictionary *mode;
-	SDL_DisplayID displayId = SDL_GetDisplayForWindow(window);
+	SDL_DisplayID displayId = [self getDisplayId];
 
 	screenSizes=[[NSMutableArray alloc] init];
 
