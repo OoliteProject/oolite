@@ -383,6 +383,7 @@ enum PreferredAppMode
 
 	// Find what the full screen and windowed settings are.
 	fullScreen = NO;
+	currentSize = 0;
 	[self loadWindowSize];
 
 	// Set up the drawing surface's dimensions.
