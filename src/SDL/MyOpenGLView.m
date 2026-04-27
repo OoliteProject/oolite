@@ -95,7 +95,6 @@ enum PreferredAppMode
 	{
 		int displayCount;
 		SDL_DisplayID *displayIds = SDL_GetDisplays(&displayCount);
-		OOLog(@"KJA.displayCount", @"%d", displayCount);
 		if (displayIds)
 		{
 			displayId = displayIds[0];
@@ -197,7 +196,9 @@ enum PreferredAppMode
 	window = SDL_CreateWindow([windowCaption UTF8String], size.width, size.height, windowFlags);
 	if (!window)
 	{
+		OOLog(@"KJA.createWindow", @"%s", SDL_GetError());
 		OOLog(@"display.initGL", @"%@", @"Trying 8-bpcc, 24-bit depth buffer");
+		SDL_GL_SetAttribute(SDL_GL_FLOATBUFFERS, 0);
 		SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
 		SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
 		SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
