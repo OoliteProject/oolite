@@ -95,6 +95,7 @@ enum PreferredAppMode
 	{
 		int displayCount;
 		SDL_DisplayID *displayIds = SDL_GetDisplays(&displayCount);
+		OOLog(@"KJA.displayCount", @"%d", displayCount);
 		if (displayIds)
 		{
 			displayId = displayIds[0];
@@ -192,7 +193,7 @@ enum PreferredAppMode
 	}
 
 	NSString *windowCaption = [self getWindowCaption];
-	int windowFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
+	int windowFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY;
 	window = SDL_CreateWindow([windowCaption UTF8String], size.width, size.height, windowFlags);
 	if (!window)
 	{
@@ -493,7 +494,7 @@ enum PreferredAppMode
 #else
 	if (!showSplashScreen)  return;
 
-	SDL_ShowWindow(window);
+	SDL_SetWindowSize(window, firstScreen.width, firstScreen.height);
 	SDL_SetWindowFullscreen(window, fullScreen);
 	SDL_GetWindowSurface(window);
 	SDL_SetEnvironmentVariable(SDL_GetEnvironment(), "SDL_VIDEO_WINDOW_POS", "none", YES); //stop linux from auto centering on resize
