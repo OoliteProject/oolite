@@ -2222,7 +2222,7 @@ finished:
 			}
 			case SDL_EVENT_KEY_DOWN:
 				kbd_event = (SDL_KeyboardEvent*)&event;
-				key_id = kbd_event->key;
+				key_id = SDL_GetKeyFromScancode(kbd_event->scancode, kbd_event->mod, YES);
 				scan_code = kbd_event->scancode;
 
 				//char *keychar = SDL_GetKeyName(kbd_event->keysym.sym);
