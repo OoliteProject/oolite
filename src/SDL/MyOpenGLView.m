@@ -193,7 +193,7 @@ enum PreferredAppMode
 	}
 
 	NSString *windowCaption = [self getWindowCaption];
-	int windowFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY;
+	int windowFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
 	window = SDL_CreateWindow([windowCaption UTF8String], size.width, size.height, windowFlags);
 	if (!window)
 	{
@@ -867,8 +867,13 @@ enum PreferredAppMode
   #endif
 
 	OOSetOpenGLState(OPENGL_STATE_OVERLAY);
+	float pixelDensity = SDL_GetWindowPixelDensity(window);
+	if (pixelDensity == 0.0f)
+	{
+		pixelDensity = 1.0f;
+	}
 
-	glViewport( 0, 0, dest.w, dest.h);
+	glViewport( 0, 0, dest.w * pixelDensity, dest.h * pixelDensity);
 
 	glEnable( GL_TEXTURE_2D );
 	glClearColor( 0.0f, 0.0f, 0.0f, 0.0f );
