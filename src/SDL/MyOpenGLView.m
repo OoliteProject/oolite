@@ -883,7 +883,7 @@ enum PreferredAppMode
 	glClear( GL_COLOR_BUFFER_BIT );
 
 	[matrixManager resetProjection];
-	[matrixManager orthoLeft: 0.0f right: 1 bottom: 1 top: 0.0 near: -1.0 far: 1.0];
+	[matrixManager orthoLeft: 0.0f right: 1.0f bottom: 1.0f top: 0.0f near: -1.0f far: 1.0f];
 	[matrixManager syncProjection];
 
 	[matrixManager resetModelView];
@@ -940,6 +940,7 @@ enum PreferredAppMode
 	glVertex2i( 0, 1 );
 
 	glEnd();
+	glFinish();
 
 	SDL_GL_SwapWindow(window);
 	[matrixManager resetModelView];
