@@ -2338,11 +2338,15 @@ finished:
 					} 
 					else 
 					{
-						key_id = 0; // reset the value here to force a lookup from the keymappings data
+						// SDL3 - the key_id should contain the correct unicode value, so we shouldn't need to run the key mapping
+						// - kanthoney
+						//key_id = 0; // reset the value here to force a lookup from the keymappings data
 					}
 				}
 
 				// if we get here and we still don't have a key id, grab the unicode value from our keymappings dict
+				// SDL3 - as per comment above, we shouldn't need to run keymappings using SDL3, so commenting this out to confirm
+#if 0
 				if (key_id == 0) 
 				{
 					// get unicode value for keycode from keymappings files
@@ -2358,7 +2362,7 @@ finished:
 						if (keyShifted) key_id = [keyShifted integerValue];
 					}
 				}
-
+#endif
 				// if we've got the unicode value, we can store it in our array now
 				if (key_id > 0) scancode2Unicode[scan_code] = key_id;
 
