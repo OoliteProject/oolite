@@ -1814,7 +1814,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor,
 	}
 	
 	BOOL		*systemsFound = [UNIVERSE systemsFound];
-	NSSize		viewSize = [[UNIVERSE gameView] backingViewSize];
+	NSSize		viewSize = [[UNIVERSE gameView] viewSize];
 	double aspect_ratio = viewSize.width / viewSize.height;
 
 	// default colours - match those in HeadUpDisplay:OODrawPlanetInfo

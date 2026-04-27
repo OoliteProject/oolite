@@ -193,7 +193,7 @@ enum PreferredAppMode
 	}
 
 	NSString *windowCaption = [self getWindowCaption];
-	int windowFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
+	int windowFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY;
 	window = SDL_CreateWindow([windowCaption UTF8String], size.width, size.height, windowFlags);
 	if (!window)
 	{
@@ -637,7 +637,7 @@ enum PreferredAppMode
 
 - (NSSize) viewSize
 {
-	return viewSize;
+	return NSMakeSize(NSWidth(bounds), NSHeight(bounds));
 }
 
 
@@ -793,13 +793,15 @@ enum PreferredAppMode
 - (void) updateScreenWithVideoMode:(BOOL) v_mode
 {
 	SDL_Surface* surface = SDL_GetWindowSurface(window);
-	if ((viewSize.width != surface->w)||(viewSize.height != surface->h)) // resized
+	int windowWidth, windowHeight;
+	SDL_GetWindowSize(window, &windowWidth, &windowHeight);
+	if ((viewSize.width != windowWidth)||(viewSize.height != windowHeight)) // resized
 	{
 #if OOLITE_LINUX
 		m_glContextInitialized = NO; //probably not needed
 #endif
-		viewSize.width = surface->w;
-		viewSize.height = surface->h;
+		viewSize.width = windowWidth;
+		viewSize.height = windowHeight;
 	}
 
     if (m_glContextInitialized == NO)
@@ -1452,9 +1454,6 @@ finished:
 	{
 		[self createWindowWithSize: v_size];
 	}
-#if OOLITE_LINUX
-	NSSize oldViewSize = viewSize;
-#endif
 	viewSize = v_size;
 	OOLog(@"display.initGL", @"Requested a new surface of %d x %d, %@.", (int)viewSize.width, (int)viewSize.height,(fullScreen ? @"fullscreen" : @"windowed"));
 	SDL_GL_SwapWindow(window);	// clear the buffer before resize
@@ -1641,7 +1640,10 @@ finished:
 
 	[self autoShowMouse];
 
-	[[self gameController] setUpBasicOpenGLStateWithSize:viewSize];
+	int pixelWidth, pixelHeight;
+	SDL_GetWindowSizeInPixels(window, &pixelWidth, &pixelHeight);
+	NSSize pixelSize = NSMakeSize(pixelWidth, pixelHeight);
+	[[self gameController] setUpBasicOpenGLStateWithSize:pixelSize];
 	SDL_GL_SwapWindow(window);
 	squareX = 0.0f;
 
@@ -1920,7 +1922,7 @@ finished:
 	[self setVirtualJoystick:0.0 :0.0];
 	if ([[PlayerEntity sharedPlayer] isMouseControlOn])
 	{
-		SDL_WarpMouseInWindow(window, [self viewSize].width / 2, [self viewSize].height / 2);
+		SDL_WarpMouseInWindow(window, viewSize.width / 2, viewSize.height / 2);
 		mouseWarped = YES;
 	}
 }
