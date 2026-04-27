@@ -179,7 +179,7 @@ extern int debug;
 	BOOL				suppressKeys;    // DJS
 
 	BOOL				opt, ctrl, command, shift, lastKeyShifted;
-	BOOL				allowingStringInput;
+	enum StringInput	allowingStringInput;
 	BOOL				isAlphabetKeyDown;
 
 	int					keycodetrans[255];
