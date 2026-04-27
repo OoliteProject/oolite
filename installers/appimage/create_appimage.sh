@@ -55,7 +55,7 @@ run_script() {
     export DEPLOY_LOCALE
     # install_metadatainfo_fn already put the files in the parameters below in the right place,
     # but no harm putting again here
-    if ! $SHARUN_BIN "$APPBIN/run_oolite.sh"; then
+    if ! $SHARUN_BIN "$APPBIN/oolite"; then
         echo "❌ AppDir generation failed!" >&2
         return 1
     fi
