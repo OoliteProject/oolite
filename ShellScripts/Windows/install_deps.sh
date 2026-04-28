@@ -42,10 +42,11 @@ run_script() {
     pacboy -S uutils-coreutils --noconfirm
     pacboy -S python-pip --noconfirm
     pacboy -S mesa --noconfirm
+    pacboy -S sdl3 --noconfirm
 
     cd ../../build/packages
     echo "Installing common libraries"
-    local package_names=(spidermonkey sdl3)
+    local package_names=(spidermonkey)
     for packagename in "${package_names[@]}"; do
         if ! install $packagename; then
           return 1
