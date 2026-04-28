@@ -121,7 +121,7 @@ enum PreferredAppMode
 	{
 		nativeDisplayWidth = boundsRect.w;
 		nativeDisplayHeight = boundsRect.h;
-		OOLog(@"display.mode.list.native", @"X11 native resolution detected: %d x %d", nativeDisplayWidth, nativeDisplayHeight);
+		OOLog(@"display.mode.list.native", @"Native display resolution detected: %d x %d", nativeDisplayWidth, nativeDisplayHeight);
 	}
 	else
 	{
@@ -638,13 +638,13 @@ enum PreferredAppMode
 
 - (NSSize) viewSize
 {
-	return NSMakeSize(NSWidth(bounds), NSHeight(bounds));
+	return viewSize;
 }
 
 
 - (NSSize) backingViewSize
 {
-	return viewSize;
+	return bounds.size;
 }
 
 
@@ -2202,8 +2202,8 @@ finished:
 					// mouse pointer.
 					mmove_event = (SDL_MouseMotionEvent*)&event;
 
-					int w=bounds.size.width;
-					int h=bounds.size.height;
+					int w=viewSize.width;
+					int h=viewSize.height;
 
 					if (!mouseWarped) // standard event, handle it
 					{

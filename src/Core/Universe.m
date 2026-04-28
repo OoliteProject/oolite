@@ -609,7 +609,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	GLhandleARB program = [textureProgram program];
 	GLhandleARB blur = [blurProgram program];
 	GLhandleARB final = [finalProgram program];
-	NSSize viewSize = [gameView viewSize];
+	NSSize viewSize = [gameView backingViewSize];
 	float fboResolution[2] = {viewSize.width, viewSize.height};
 
 	OOGL(glBindFramebuffer(GL_FRAMEBUFFER, passthroughFramebufferID));
@@ -724,7 +724,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	[self setDetailLevelDirectly:[prefs oo_intForKey:@"detailLevel"
 								defaultValue:[[OOOpenGLExtensionManager sharedManager] defaultDetailLevel]]];
 								
-	[self initTargetFramebufferWithViewSize:[gameView viewSize]];
+	[self initTargetFramebufferWithViewSize:[gameView backingViewSize]];
 	
 	[OOMaterial setUp];
 	
@@ -4548,8 +4548,8 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 	[result setObject:desc forKey:@"musicMode"];
 	
 	NSDictionary *gameWindow = [NSDictionary dictionaryWithObjectsAndKeys:
-						[NSNumber numberWithFloat:[gameView viewSize].width], @"width",
-						[NSNumber numberWithFloat:[gameView viewSize].height], @"height",
+						[NSNumber numberWithFloat:[gameView backingViewSize].width], @"width",
+						[NSNumber numberWithFloat:[gameView backingViewSize].height], @"height",
 						[NSNumber numberWithBool:[[self gameController] inFullScreenMode]], @"fullScreen",
 						nil];
 	[result setObject:gameWindow forKey:@"gameWindow"];
@@ -4828,7 +4828,7 @@ static const OOMatrix	starboard_matrix =
 {
 	int currentPostFX = [self currentPostFX];
 	BOOL hudSeparateRenderPass =  [self useShaders] && (currentPostFX == OO_POSTFX_NONE || ((currentPostFX == OO_POSTFX_CLOAK || currentPostFX == OO_POSTFX_CRTBADSIGNAL) && [self colorblindMode] == OO_POSTFX_NONE));
- 	NSSize  viewSize = [gameView viewSize];
+ 	NSSize  viewSize = [gameView backingViewSize];
 	OOLog(@"universe.profile.draw", @"%@", @"Begin draw");
 	
 	if (!no_update)
@@ -5201,7 +5201,7 @@ static const OOMatrix	starboard_matrix =
 			OOCheckOpenGLErrors(@"Universe after drawing entities");
 			OOLog(@"universe.profile.draw", @"%@", @"Begin HUD");
 			
-			GLfloat	lineWidth = [gameView viewSize].width / 1024.0; // restore line size
+			GLfloat	lineWidth = [gameView backingViewSize].width / 1024.0; // restore line size
 			if (lineWidth < 1.0)  lineWidth = 1.0;
 			if (lineWidth > 1.5)  lineWidth = 1.5; // don't overscale; think of ultra-wide screen setups
 			OOGL(GLScaledLineWidth(lineWidth));
@@ -5309,7 +5309,7 @@ static const OOMatrix	starboard_matrix =
 
 - (void) prepareToRenderIntoDefaultFramebuffer
 {
-	NSSize viewSize = [gameView viewSize];
+	NSSize viewSize = [gameView backingViewSize];
 	if([self useShaders])
 	{
 		if ([gameView msaa])
