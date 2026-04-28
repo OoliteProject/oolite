@@ -234,18 +234,10 @@ enum PreferredAppMode
 		exit(1);
 	}
 	SDL_Surface *surface = SDL_GetWindowSurface(window);
-	if (SDL_SetSurfaceColorspace(surface, SDL_COLORSPACE_HDR10))
+	if (!SDL_SetSurfaceColorspace(surface, SDL_COLORSPACE_SRGB_LINEAR))
 	{
-		OOLog(@"sdl.use_hdr_surface", @"%@", @"HDR surface set");
-	}
-	else
-	{
-		OOLogWARN(@"sdl.use_hdr_surface", @"%@ %s", @"Failed to set HDR surface - trying EDR. Error was:", SDL_GetError());
-		if (!SDL_SetSurfaceColorspace(surface, SDL_COLORSPACE_SRGB_LINEAR))
-		{
-			OOLogWARN(@"sdl.use_edr_surface", @"%@ %s", @"Failed to set HDR surface - falling back to SDR. Error was:", SDL_GetError());
-			SDL_SetSurfaceColorspace(surface, SDL_COLORSPACE_SRGB);
-		}
+		OOLogWARN(@"sdl.use_edr_surface", @"%@ %s", @"Failed to set SDR linear surface - falling back to SDR. Error was:", SDL_GetError());
+		SDL_SetSurfaceColorspace(surface, SDL_COLORSPACE_SRGB);
 	}
 
 #if OOLITE_WINDOWS
