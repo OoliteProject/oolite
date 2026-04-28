@@ -2232,9 +2232,9 @@ finished:
 				BOOL modifier_pressed = NO;
 				BOOL special_key = NO;
 
-				shift = kbd_event->mod & SDL_KMOD_SHIFT;
-				ctrl = kbd_event->mod & SDL_KMOD_CTRL;
-				opt = kbd_event->mod & SDL_KMOD_ALT;
+				shift = (kbd_event->mod & SDL_KMOD_SHIFT) != 0;
+				ctrl = (kbd_event->mod & SDL_KMOD_CTRL) != 0;
+				opt = (kbd_event->mod & SDL_KMOD_ALT) != 0;
 
 				// translate scancode to unicode equiv
 				switch (kbd_event->key) 
