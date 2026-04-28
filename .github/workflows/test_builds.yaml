@@ -100,6 +100,9 @@ jobs:
       - name: Build Oolite
         run: |
           ShellScripts/common/build_oolite.sh test
+      - name: Build AppImage
+        run: |
+          installers/appimage/create_appimage.sh
 
   windows:
     runs-on: windows-latest
