@@ -10,6 +10,7 @@ uniform float		uTime;
 uniform vec2		uResolution;
 uniform float		uSaturation;
 uniform int			uSDRToneMapper;
+uniform	float		uGamma;
 
 #ifndef OO_DITHER
 #define OO_DITHER	1
@@ -847,7 +848,7 @@ void main()
 	}
 
 	// gamma correction       
-	if (gammaCorrectionRequired)  result = pow(result, vec3(1.0 / 2.2));
+	if (gammaCorrectionRequired)  result = pow(result, vec3(1.0 / uGamma));
 	
 #if OO_DITHER
 	result += random(TexCoords + uTime) / 255.0;
