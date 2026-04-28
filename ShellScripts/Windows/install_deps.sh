@@ -45,7 +45,7 @@ run_script() {
 
     cd ../../build/packages
     echo "Installing common libraries"
-    local package_names=(spidermonkey SDL)
+    local package_names=(spidermonkey sdl3)
     for packagename in "${package_names[@]}"; do
         if ! install $packagename; then
           return 1

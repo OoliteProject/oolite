@@ -114,7 +114,7 @@ run_script() {
     if ! install_package glu-dev; then
         return 1
     fi
-    if ! install_package sdl12-compat; then
+    if ! install_package sdl3; then
         return 1
     fi
     if ! install_package x11-dev; then

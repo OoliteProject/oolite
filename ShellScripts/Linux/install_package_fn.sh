@@ -121,11 +121,11 @@ install_package() {
                 arch) PKG_NAME="glu" ;;
             esac ;;
 
-        "sdl12-compat")
+	"sdl3")
             case "$CURRENT_DISTRO" in
-                debian) PKG_NAME="libsdl1.2-compat-dev" ;;
-                redhat) PKG_NAME="sdl12-compat-devel" ;;
-                arch) PKG_NAME="sdl12-compat" ;;
+                debian) PKG_NAME="libsdl3-dev" ;;
+                redhat) PKG_NAME="SDL3-devel" ;;
+		arch) PKG_NAME="sdl3";
             esac ;;
 
         "x11-dev")
