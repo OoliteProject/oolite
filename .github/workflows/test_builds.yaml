@@ -29,7 +29,7 @@ jobs:
           ShellScripts/common/build_oolite.sh test
       - name: Build AppImage
         run: |
-          installers/appimage/create_appimage.sh
+          ShellScripts/common/build_oolite.sh pkg-appimage-snapshot
   fedora:
     runs-on: ubuntu-latest
     container:
@@ -65,7 +65,7 @@ jobs:
           ShellScripts/common/build_oolite.sh test
       - name: Build AppImage
         run: |
-          installers/appimage/create_appimage.sh
+          ShellScripts/common/build_oolite.sh pkg-appimage-snapshot
 
   arch:
     runs-on: ubuntu-latest
@@ -102,7 +102,7 @@ jobs:
           ShellScripts/common/build_oolite.sh test
       - name: Build AppImage
         run: |
-          installers/appimage/create_appimage.sh
+          ShellScripts/common/build_oolite.sh pkg-appimage-snapshot
 
   windows:
     runs-on: windows-latest
