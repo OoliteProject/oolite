@@ -34,8 +34,6 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: fedora:latest
-    env:
-      GLYCIN_DISABLED: 1
     steps:
       - name: Update Fedora
         run: |
