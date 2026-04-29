@@ -34,10 +34,6 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: fedora:latest
-      options: >-
-        --cap-add SYS_ADMIN
-        --device /dev/fuse
-        --security-opt apparmor:unconfined
     env:
       GLYCIN_DISABLED: 1
     steps:
@@ -73,10 +69,6 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: archlinux:latest
-      options: >-
-        --cap-add SYS_ADMIN
-        --device /dev/fuse
-        --security-opt apparmor:unconfined
     steps:
       - name: Update Arch
         run: |
