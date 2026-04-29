@@ -363,7 +363,9 @@ MA 02110-1301, USA.
 				bf -= 10000;
 				key = CUSTOMEQUIP_BUTTONMODE;
 			}
-			[[customEquipActivation objectAtIndex:bf] removeObjectForKey:key];
+			NSMutableDictionary *copyDict = [[customEquipActivation objectAtIndex:bf] mutableCopy];
+			[copyDict removeObjectForKey:key];
+			[customEquipActivation replaceObjectAtIndex: bf withObject: copyDict];
 		}
 		else 
 		{
