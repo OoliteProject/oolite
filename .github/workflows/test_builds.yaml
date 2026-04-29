@@ -20,22 +20,20 @@ jobs:
           sudo ShellScripts/Linux/install_packages_root.sh
       - name: Build GNUstep
         run: |
-          ShellScripts/Linux/build_gnustep.sh
+          ShellScripts/Linux/build_gnustep.sh system
       - name: Install Mozilla static library
         run: |
-          ShellScripts/Linux/install_mozilla_js.sh
+          ShellScripts/Linux/install_mozilla_js.sh system
       - name: Build Oolite
         run: |
           ShellScripts/common/build_oolite.sh test
-
+      - name: Build AppImage
+        run: |
+          ShellScripts/common/build_oolite.sh pkg-appimage-snapshot
   fedora:
     runs-on: ubuntu-latest
     container:
       image: fedora:latest
-      options: >-
-        --cap-add SYS_ADMIN
-        --device /dev/fuse
-        --security-opt apparmor:unconfined
     steps:
       - name: Update Fedora
         run: |
@@ -54,22 +52,21 @@ jobs:
           ShellScripts/Linux/install_packages_root.sh
       - name: Build GNUstep
         run: |
-          ShellScripts/Linux/build_gnustep.sh
+          ShellScripts/Linux/build_gnustep.sh system
       - name: Install Mozilla static library
         run: |
-          ShellScripts/Linux/install_mozilla_js.sh
+          ShellScripts/Linux/install_mozilla_js.sh system
       - name: Build Oolite
         run: |
           ShellScripts/common/build_oolite.sh test
+      - name: Build AppImage
+        run: |
+          ShellScripts/common/build_oolite.sh pkg-appimage-snapshot
 
   arch:
     runs-on: ubuntu-latest
     container:
       image: archlinux:latest
-      options: >-
-        --cap-add SYS_ADMIN
-        --device /dev/fuse
-        --security-opt apparmor:unconfined
     steps:
       - name: Update Arch
         run: |
@@ -88,13 +85,16 @@ jobs:
           ShellScripts/Linux/install_packages_root.sh
       - name: Build GNUstep
         run: |
-          ShellScripts/Linux/build_gnustep.sh
+          ShellScripts/Linux/build_gnustep.sh system
       - name: Install Mozilla static library
         run: |
-          ShellScripts/Linux/install_mozilla_js.sh
+          ShellScripts/Linux/install_mozilla_js.sh system
       - name: Build Oolite
         run: |
           ShellScripts/common/build_oolite.sh test
+      - name: Build AppImage
+        run: |
+          ShellScripts/common/build_oolite.sh pkg-appimage-snapshot
 
   windows:
     runs-on: windows-latest

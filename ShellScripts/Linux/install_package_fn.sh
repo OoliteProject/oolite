@@ -1,9 +1,9 @@
 #!/bin/bash
 
-SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
-source $SCRIPT_DIR/os_detection.sh
-
 install_package() {
+    local SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+    source $SCRIPT_DIR/os_detection.sh
+
     local GENERIC_NAME=$1
     local PKG_NAME=""
 
@@ -40,7 +40,7 @@ install_package() {
         "xwfb-run")
             case "$CURRENT_DISTRO" in
                 debian) PKG_NAME="xwayland-run weston" ;;
-                redhat) PKG_NAME="xwayland-run weston" ;;
+                redhat) PKG_NAME="xwayland-run weston adwaita-icon-theme" ;;
                 arch) PKG_NAME="xwayland-run weston xorg-xwayland xorg-xauth libdisplay-info" ;;
             esac ;;
 
@@ -137,9 +137,9 @@ install_package() {
 
         "appimage")
             case "$CURRENT_DISTRO" in
-                debian) PKG_NAME="file fuse3" ;;
-                redhat) PKG_NAME="file fuse3 which desktop-file-utils perl-File-MimeInfo" ;;
-                arch) PKG_NAME="file fuse3" ;;
+                debian) PKG_NAME="NONE" ;;
+                redhat) PKG_NAME="desktop-file-utils which zsync" ;;
+                arch) PKG_NAME="desktop-file-utils zsync" ;;
             esac ;;
 
         "flatpak") PKG_NAME="flatpak flatpak-builder" ;;
@@ -151,16 +151,17 @@ install_package() {
     esac
 
     # Perform the Installation
-    if [ -z "$PKG_NAME" ]; then
+    if [[ -z "$PKG_NAME" ]]; then
         echo "❌ Could not determine package name for $GENERIC_NAME!" >&2
         return 1
+    elif [[ "$PKG_NAME" == "NONE" ]]; then
+        echo "⏭️ PKGNAME is set to NONE. Skipping install."
+        return 0
     else
         echo "--> Installing $GENERIC_NAME ($PKG_NAME)..."
         if ! "${INSTALL_CMD[@]}" $PKG_NAME; then
             echo "❌ Could not install $GENERIC_NAME ($PKG_NAME)!" >&2
             return 1
         fi
-
-
     fi
 }
