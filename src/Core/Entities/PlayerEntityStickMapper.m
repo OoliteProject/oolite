@@ -285,7 +285,9 @@ MA 02110-1301, USA.
 			function -= 10000;
 			key = CUSTOMEQUIP_BUTTONMODE;
 		}
-		[[customEquipActivation objectAtIndex:function] setObject:hwDict forKey:key];
+		NSMutableDictionary *copyDict = [[customEquipActivation objectAtIndex: function] mutableCopy];
+		[copyDict setObject:hwDict forKey:key];
+		[customEquipActivation replaceObjectAtIndex: function withObject: copyDict];
 		[self checkCustomEquipButtons:hwDict ignore:function];
 
 		NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
