@@ -38,6 +38,8 @@ jobs:
         --cap-add SYS_ADMIN
         --device /dev/fuse
         --security-opt apparmor:unconfined
+    env:
+      GLYCIN_DISABLED: 1
     steps:
       - name: Update Fedora
         run: |
