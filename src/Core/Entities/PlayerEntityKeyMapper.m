@@ -286,12 +286,18 @@ static NSArray *camera_keys = nil;
 				
 				if ([item defaultActivateKey] && [lookupKey isEqualToString:CUSTOMEQUIP_KEYACTIVATE]) 
 				{
-					[[customEquipActivation objectAtIndex:idx] setObject:[item defaultActivateKey] forKey:lookupKey];
+					NSMutableDictionary *copyDict = [[customEquipActivation objectAtIndex:idx] mutableCopy];
+					[copyDict setObject:[item defaultActivateKey] forKey:lookupKey];
+					[customEquipActivation replaceObjectAtIndex:idx withObject: copyDict];
+					//[[customEquipActivation objectAtIndex:idx] setObject:[item defaultActivateKey] forKey:lookupKey];
 					update = true;
 				}
 				if ([item defaultModeKey] && [lookupKey isEqualToString:CUSTOMEQUIP_KEYMODE]) 
 				{
-					[[customEquipActivation objectAtIndex:idx] setObject:[item defaultModeKey] forKey:lookupKey];
+					NSMutableDictionary *copyDict = [[customEquipActivation objectAtIndex:idx] mutableCopy];
+					[copyDict setObject:[item defaultModeKey] forKey:lookupKey];
+					[customEquipActivation replaceObjectAtIndex:idx withObject: copyDict];
+					//[[customEquipActivation objectAtIndex:idx] setObject:[item defaultModeKey] forKey:lookupKey];
 					update = true;
 				}
 
@@ -1667,7 +1673,10 @@ static NSArray *camera_keys = nil;
 	else 
 	{
 		NSString *custkey = [self getCustomEquipKeyDefType:key];
-		[[customEquipActivation objectAtIndex:[self getCustomEquipIndex:key]] removeObjectForKey:custkey];
+		NSUInteger keyIndex = [self getCustomEquipIndex:key];
+		NSMutableDictionary *copyDict = [[customEquipActivation objectAtIndex: keyIndex] mutableCopy];
+		[copyDict removeObjectForKey:custkey];
+		[customEquipActivation replaceObjectAtIndex: keyIndex withObject: copyDict];
 		[defaults setObject:customEquipActivation forKey:KEYCONFIG_CUSTOMEQUIP];
 	}
 	// reload settings
