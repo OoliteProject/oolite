@@ -284,12 +284,10 @@ MA 02110-1301, USA.
 			function -= 10000;
 			key = CUSTOMEQUIP_BUTTONMODE;
 		}
-		NSDictionary *custEquip1 = [customEquipActivation objectAtIndex:function];
-		NSMutableDictionary *custEquip2 = [[NSMutableDictionary alloc] initWithObjectsAndKeys:[custEquip1 oo_stringForKey:CUSTOMEQUIP_EQUIPKEY], CUSTOMEQUIP_EQUIPKEY, [custEquip1 oo_stringForKey:CUSTOMEQUIP_EQUIPNAME], CUSTOMEQUIP_EQUIPNAME, hwDict, key, nil];
-		if ([key isEqualToString:CUSTOMEQUIP_BUTTONACTIVATE] && [custEquip1 objectForKey:CUSTOMEQUIP_BUTTONMODE]) [custEquip2 setObject:[custEquip1 objectForKey:CUSTOMEQUIP_BUTTONMODE] forKey:CUSTOMEQUIP_BUTTONMODE];
-		if ([key isEqualToString:CUSTOMEQUIP_BUTTONMODE] && [custEquip1 objectForKey:CUSTOMEQUIP_BUTTONACTIVATE]) [custEquip2 setObject:[custEquip1 objectForKey:CUSTOMEQUIP_BUTTONACTIVATE] forKey:CUSTOMEQUIP_BUTTONACTIVATE];
-		[customEquipActivation replaceObjectAtIndex:function withObject:custEquip2];
-		[custEquip2 release];
+		NSMutableDictionary *custEquip = [[customEquipActivation objectAtIndex:function] mutableCopy];
+		[custEquip setObject:hwDict forKey:key];
+		[customEquipActivation replaceObjectAtIndex:function withObject:custEquip];
+		[custEquip release];
 		[self checkCustomEquipButtons:hwDict ignore:function];
 		NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
 		[defaults setObject:customEquipActivation forKey:KEYCONFIG_CUSTOMEQUIP];
