@@ -95,10 +95,8 @@ if [[ -n "$FLATPAK_ID" ]]; then
 
 # Check if we are running inside an AppImage
 elif [[ -n "$APPIMAGE" ]]; then
-    BASEDIR="$APPDIR/usr"
+    BASEDIR="$APPDIR"
     OO_EXEDIR="$BASEDIR/bin"
-    export LD_LIBRARY_PATH="$BASEDIR/lib:$LD_LIBRARY_PATH"
-    export PATH="$OO_EXEDIR:$PATH"
 
     DEBUG_OXP=$(grep "debug_functionality_support" "$OO_EXEDIR/Resources/manifest.plist")
     if [[ "$DEBUG_OXP" == *"yes"* ]]; then
