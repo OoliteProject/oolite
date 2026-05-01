@@ -5,7 +5,41 @@ on:
   pull_request:
 
 jobs:
+  common:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Install GitVersion
+        uses: gittools/actions/gitversion/setup@v4
+        with:
+          versionSpec: '6'
+
+      - name: Check for Fork
+        run: |
+          if [ "${{ github.repository }}" == "OoliteProject/oolite" ]; then
+            echo "PROJECTNAME=oolite" >> $GITHUB_ENV
+          else
+            echo "PROJECTNAME=OoliteFork" >> $GITHUB_ENV
+          fi
+
+      - name: Determine Oolite Version
+        id: version_step
+        uses: gittools/actions/gitversion/execute@v4
+        with:
+          overrideConfig: |
+            semantic-version-format=Loose
+            next-version=1.93.1
+
+      - name: Check environment
+        run: |
+          printenv | sort
+
   build-linux:
+    needs: [common]
     runs-on: ubuntu-latest
     container:
       image: archlinux:latest
@@ -57,6 +91,7 @@ jobs:
           retention-days: 5
 
   build-flatpak:
+    needs: [common]
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-25.08
@@ -79,6 +114,7 @@ jobs:
           retention-days: 5
 
   build-windows:
+    needs: [common]
     runs-on: windows-latest
     strategy:
       matrix:
