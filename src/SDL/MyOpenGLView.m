@@ -2060,7 +2060,9 @@ finished:
 	Uint16	 				key_id;
 	SDL_Scancode				scan_code;
 	float inDelta;
-#if OOLITE_LINUX
+#if OOLITE_WINDOWS
+	DWORD dwLastError = 0;
+#elif OOLITE_LINUX
     NSSize					newSize;
 	bool					resize_pending = false;
 #endif
@@ -2515,6 +2517,115 @@ finished:
 				}
 				break;
 			}
+
+#if OOLITE_WINDOWS
+			case SDL_EVENT_WINDOW_MINIMIZED:
+			{
+				if (fullScreen)
+				{
+					[self setWindowBorderless: NO];
+				}
+				break;
+			}
+
+			case SDL_EVENT_WINDOW_RESTORED:
+			{
+				if (fullScreen)
+				{
+					[self setWindowBorderless: YES];
+				}
+				break;
+			}
+
+			case SDL_EVENT_WINDOW_MOVED:
+			{
+				if (fullScreen)
+				{
+					RECT rDC;
+					
+					// attempting to move our fullscreen window while in maximized state can freak
+					// Windows out and the window may not return to its original position properly.
+					// Solution: if such a move takes place, first change the window placement to
+					// normal, move it normally, then restore its placement to maximized again. 
+					// Additionally, the last good known window position seems to be lost in such
+					// a case. While at it, update also the coordinates of the non-maximized window
+					// so that it can return to its original position - this is why we need lastGoodRect.
+
+					WINDOWPLACEMENT wp;
+					wp.length = sizeof(WINDOWPLACEMENT);
+					GetWindowPlacement(windowHandle, &wp);
+					
+					GetWindowRect(windowHandle, &rDC);
+					if (rDC.left != monitorInfo.rcMonitor.left || rDC.top != monitorInfo.rcMonitor.top)
+					{
+						BOOL fullScreenMaximized = NO;
+						if (wp.showCmd == SW_SHOWMAXIMIZED && !fullScreenMaximized)
+						{
+							fullScreenMaximized = YES;
+							wp.showCmd = SW_SHOWNORMAL;
+							SetWindowPlacement(windowHandle, &wp);
+						}
+			
+						if (wp.showCmd != SW_SHOWMINIMIZED && wp.showCmd != SW_MINIMIZE)
+						{
+							MoveWindow(windowHandle, monitorInfo.rcMonitor.left, monitorInfo.rcMonitor.top,
+											(int)viewSize.width, (int)viewSize.height, TRUE);
+						}
+						
+						if (fullScreenMaximized)
+						{
+							GetWindowPlacement(windowHandle, &wp);
+							wp.showCmd = SW_SHOWMAXIMIZED;
+							CopyRect(&wp.rcNormalPosition, &lastGoodRect);
+							SetWindowPlacement(windowHandle, &wp);
+						}
+					}
+					else if (wp.showCmd == SW_SHOWMAXIMIZED)
+					{
+							CopyRect(&wp.rcNormalPosition, &lastGoodRect);
+							SetWindowPlacement(windowHandle, &wp);
+					}
+				}
+				// it is important that this gets done after we've dealt with possible fullscreen movements,
+				// because -doGuiScreenResizeUpdates does itself an update on current monitor
+				if ([PlayerEntity sharedPlayer])
+				{
+					[[PlayerEntity sharedPlayer] doGuiScreenResizeUpdates];
+				}
+				
+				if(grabMouseStatus)  [self grabMouseInsideGameWindow:YES];
+				break;
+			}
+
+			case SDL_EVENT_WINDOW_FOCUS_GAINED:
+			{
+				// make sure that all modifier keys like Shift, Alt, Ctrl and Caps Lock
+				// are set correctly to what they should be when we get focus. We have
+				// to do it ourselves because SDL on Windows has problems with this
+				// when focus change events occur, like e.g. Alt-Tab in/out of the
+				// application
+
+				[self resetSDLKeyModifiers];
+				if (!SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL))
+				{
+					dwLastError = GetLastError();
+					OOLog(@"wm_setfocus.message", @"Setting thread priority to time critical failed! (error code: %ld)", dwLastError);
+				}
+				[gameController setEcoQoS:[gameController isGamePaused]];
+				break;
+			}
+
+			case SDL_EVENT_WINDOW_FOCUS_LOST:
+			{
+				if (!SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_NORMAL))
+				{
+					dwLastError = GetLastError();
+					OOLog(@"wm_killfocus.message", @"Setting thread priority to normal failed! (error code: %ld)", dwLastError);
+				}
+				[gameController setEcoQoS:YES];
+				break;
+			}
+#endif
 
 /* KJASDL - see if we still need all this
 #if OOLITE_WINDOWS

@@ -120,9 +120,6 @@ static BOOL				pageUpDownKeyPressed;
 static BOOL				leftRightKeyPressed;
 static BOOL				musicModeKeyPressed;
 static BOOL				volumeControlPressed;
-#if OOLITE_SDL
-static BOOL				gammaControlPressed;
-#endif
 static BOOL				fovControlPressed;
 static BOOL				hdrMaxBrightnessControlPressed;
 static BOOL				hdrPaperWhiteControlPressed;
