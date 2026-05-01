@@ -284,13 +284,12 @@ MA 02110-1301, USA.
 			function -= 10000;
 			key = CUSTOMEQUIP_BUTTONMODE;
 		}
-		NSDictionary *dict = [customEquipActivation objectAtIndex:function];
-		NSMutableDictionary *dict2 = [[NSMutableDictionary alloc] initWithObjectsAndKeys:[dict oo_stringForKey:CUSTOMEQUIP_EQUIPKEY], CUSTOMEQUIP_EQUIPKEY, [dict oo_stringForKey:CUSTOMEQUIP_EQUIPNAME], CUSTOMEQUIP_EQUIPNAME, hwDict, key, nil];
-		if ([key isEqualToString:CUSTOMEQUIP_BUTTONACTIVATE] && [dict objectForKey:CUSTOMEQUIP_BUTTONMODE]) [dict2 setObject:[dict objectForKey:CUSTOMEQUIP_BUTTONMODE] forKey:CUSTOMEQUIP_BUTTONMODE];
-		if ([key isEqualToString:CUSTOMEQUIP_BUTTONMODE] && [dict objectForKey:CUSTOMEQUIP_BUTTONACTIVATE]) [dict2 setObject:[dict objectForKey:CUSTOMEQUIP_BUTTONACTIVATE] forKey:CUSTOMEQUIP_BUTTONACTIVATE];
-		[customEquipActivation replaceObjectAtIndex:function withObject:dict2];
-		[dict release];
-		[dict2 release];
+		NSDictionary *custEquip1 = [customEquipActivation objectAtIndex:function];
+		NSMutableDictionary *custEquip2 = [[NSMutableDictionary alloc] initWithObjectsAndKeys:[custEquip1 oo_stringForKey:CUSTOMEQUIP_EQUIPKEY], CUSTOMEQUIP_EQUIPKEY, [custEquip1 oo_stringForKey:CUSTOMEQUIP_EQUIPNAME], CUSTOMEQUIP_EQUIPNAME, hwDict, key, nil];
+		if ([key isEqualToString:CUSTOMEQUIP_BUTTONACTIVATE] && [custEquip1 objectForKey:CUSTOMEQUIP_BUTTONMODE]) [custEquip2 setObject:[custEquip1 objectForKey:CUSTOMEQUIP_BUTTONMODE] forKey:CUSTOMEQUIP_BUTTONMODE];
+		if ([key isEqualToString:CUSTOMEQUIP_BUTTONMODE] && [custEquip1 objectForKey:CUSTOMEQUIP_BUTTONACTIVATE]) [custEquip2 setObject:[custEquip1 objectForKey:CUSTOMEQUIP_BUTTONACTIVATE] forKey:CUSTOMEQUIP_BUTTONACTIVATE];
+		[customEquipActivation replaceObjectAtIndex:function withObject:custEquip2];
+		[custEquip2 release];
 		[self checkCustomEquipButtons:hwDict ignore:function];
 		NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
 		[defaults setObject:customEquipActivation forKey:KEYCONFIG_CUSTOMEQUIP];
@@ -323,23 +322,23 @@ MA 02110-1301, USA.
 	for (i = 0; i < [customEquipActivation count]; i++)
 	{
 		if (i != idx) {
-			NSMutableDictionary *dict = [[customEquipActivation objectAtIndex:i] mutableCopy];
+			NSMutableDictionary *custEquip = [[customEquipActivation objectAtIndex:i] mutableCopy];
 			NSDictionary *bf = [[customEquipActivation objectAtIndex:i] objectForKey:CUSTOMEQUIP_BUTTONACTIVATE];
 			if ([bf oo_integerForKey:STICK_NUMBER] == [stickFn oo_integerForKey:STICK_NUMBER] && 
 				[bf oo_integerForKey:STICK_AXBUT] == [stickFn oo_integerForKey:STICK_AXBUT] &&
-				[dict objectForKey:CUSTOMEQUIP_BUTTONACTIVATE])
+				[custEquip objectForKey:CUSTOMEQUIP_BUTTONACTIVATE])
 			{
-				[dict removeObjectForKey:CUSTOMEQUIP_BUTTONACTIVATE];
+				[custEquip removeObjectForKey:CUSTOMEQUIP_BUTTONACTIVATE];
 			}
 			bf = [[customEquipActivation objectAtIndex:i] objectForKey:CUSTOMEQUIP_BUTTONMODE];
 			if ([bf oo_integerForKey:STICK_NUMBER] == [stickFn oo_integerForKey:STICK_NUMBER] && 
 				[bf oo_integerForKey:STICK_AXBUT] == [stickFn oo_integerForKey:STICK_AXBUT] &&
-				[dict objectForKey:CUSTOMEQUIP_BUTTONMODE])
+				[custEquip objectForKey:CUSTOMEQUIP_BUTTONMODE])
 			{
-				[dict removeObjectForKey:CUSTOMEQUIP_BUTTONMODE];
+				[custEquip removeObjectForKey:CUSTOMEQUIP_BUTTONMODE];
 			}
-			[customEquipActivation replaceObjectAtIndex:i withObject:dict];
-			[dict release];
+			[customEquipActivation replaceObjectAtIndex:i withObject:custEquip];
+			[custEquip release];
 		}
 	}
 }
@@ -370,11 +369,11 @@ MA 02110-1301, USA.
 				bf -= 10000;
 				key = CUSTOMEQUIP_BUTTONMODE;
 			}
-			NSMutableDictionary *dict = [[customEquipActivation objectAtIndex:bf] mutableCopy];
-			if ([key isEqualToString:CUSTOMEQUIP_BUTTONACTIVATE] && [dict objectForKey:CUSTOMEQUIP_BUTTONACTIVATE]) [dict removeObjectForKey:key];
-			if ([key isEqualToString:CUSTOMEQUIP_BUTTONMODE] && [dict objectForKey:CUSTOMEQUIP_BUTTONMODE]) [dict removeObjectForKey:key];
-			[customEquipActivation replaceObjectAtIndex:bf withObject:dict];
-			[dict release];
+			NSMutableDictionary *custEquip = [[customEquipActivation objectAtIndex:bf] mutableCopy];
+			if ([key isEqualToString:CUSTOMEQUIP_BUTTONACTIVATE] && [custEquip objectForKey:CUSTOMEQUIP_BUTTONACTIVATE]) [custEquip removeObjectForKey:key];
+			if ([key isEqualToString:CUSTOMEQUIP_BUTTONMODE] && [custEquip objectForKey:CUSTOMEQUIP_BUTTONMODE]) [custEquip removeObjectForKey:key];
+			[customEquipActivation replaceObjectAtIndex:bf withObject:custEquip];
+			[custEquip release];
 		}
 		else 
 		{
