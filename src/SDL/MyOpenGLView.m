@@ -2889,24 +2889,6 @@ finished:
 }
 
 
-- (void) setGammaValue: (float) value // KJASDL
-{
-	if (value < 0.2f)  value = 0.2f;
-	if (value > 4.0f)  value = 4.0f;
-
-	_gamma = value;
-	//SDL_SetGamma(_gamma, _gamma, _gamma);
-	
-	[[NSUserDefaults standardUserDefaults] setFloat:_gamma forKey:@"gamma-value"];
-}
-
-
-- (float) gammaValue
-{
-	return _gamma;
-}
-
-
 - (void) setFov:(float)value fromFraction:(BOOL)fromFraction
 {
 	_fov = fromFraction ? value : tan((value / 2) * M_PI / 180);

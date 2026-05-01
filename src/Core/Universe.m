@@ -748,7 +748,6 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	autoSave = [prefs oo_boolForKey:@"autosave" defaultValue:NO];
 	wireframeGraphics = [prefs oo_boolForKey:@"wireframe-graphics" defaultValue:NO];
 	doProcedurallyTexturedPlanets = [prefs oo_boolForKey:@"procedurally-textured-planets" defaultValue:YES];
-	[inGameView setGammaValue:[prefs oo_floatForKey:@"gamma-value" defaultValue:1.0f]];
 	[inGameView setMsaa:[prefs oo_boolForKey:@"anti-aliasing" defaultValue:NO]];
 	OOLog(@"MSAA.setup", @"Multisample anti-aliasing %@requested.", [inGameView msaa] ? @"" : @"not ");
 	[inGameView setFov:OOClamp_0_max_f([prefs oo_floatForKey:@"fov-value" defaultValue:57.2f], MAX_FOV_DEG) fromFraction:NO];
@@ -4519,9 +4518,6 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 	[result oo_setBool:autoSave forKey:@"autosave"];
 	[result oo_setBool:wireframeGraphics forKey:@"wireframeGraphics"];
 	[result oo_setBool:doProcedurallyTexturedPlanets forKey:@"procedurallyTexturedPlanets"];
-#if OOLITE_SDL
-	[result oo_setFloat:[gameView gammaValue] forKey:@"gammaValue"];
-#endif
 
 	[result oo_setFloat:[gameView fov:NO] forKey:@"fovValue"];
 

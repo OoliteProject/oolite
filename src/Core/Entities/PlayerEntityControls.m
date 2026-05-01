@@ -3700,34 +3700,6 @@ static NSTimeInterval	time_last_frame;
 	}
 	else
 		volumeControlPressed = NO;
-		
-#if OOLITE_SDL
-	if ((guiSelectedRow == GUI_ROW(GAME,GAMMA))
-		&&(([self checkKeyPress:n_key_gui_arrow_right])||([self checkKeyPress:n_key_gui_arrow_left])))
-	{
-		if (!gammaControlPressed)
-		{
-			BOOL rightKeyDown = [self checkKeyPress:n_key_gui_arrow_right];
-			BOOL leftKeyDown = [self checkKeyPress:n_key_gui_arrow_left];
-			float gamma = [gameView gammaValue];
-			gamma += (((rightKeyDown && (gamma < 4.0f)) ? 0.2f : 0.0f) - ((leftKeyDown && (gamma > 0.2f)) ? 0.2f : 0.0f));
-			if (gamma > 3.95f) gamma = 4.0f;
-			if (gamma < 0.25f) gamma = 0.2f;
-			[gameView setGammaValue:gamma];
-			int gamma5 = gamma * 5;	// avoid rounding errors
-			NSString* gammaWordDesc = DESC(@"gameoptions-gamma-value");
-			NSString* v1_string = @"|||||||||||||||||||||||||";
-			NSString* v0_string = @".........................";
-			v1_string = [v1_string substringToIndex:gamma5];
-			v0_string = [v0_string substringToIndex:20 - gamma5];
-			[gui setText:[NSString stringWithFormat:@"%@%@%@ (%.1f) ", gammaWordDesc, v1_string, v0_string, gamma]	forRow:GUI_ROW(GAME,GAMMA)  align:GUI_ALIGN_CENTER];
-		}
-		gammaControlPressed = YES;
-	}
-	else
-		gammaControlPressed = NO;
-#endif
-
 
 	if ((guiSelectedRow == GUI_ROW(GAME,FOV))
 		&&(([self checkKeyPress:n_key_gui_arrow_right])||([self checkKeyPress:n_key_gui_arrow_left])))

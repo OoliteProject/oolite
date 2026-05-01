@@ -206,7 +206,6 @@ extern int debug;
     double				squareX,squareY;
 	NSRect				bounds;
 
-	float				_gamma;
 	float				_fov;
 	BOOL				_msaa;
 
@@ -376,9 +375,6 @@ extern int debug;
 - (void) clearCommandF;
 
 - (void) setMouseInDeltaMode: (BOOL) inDelta;
-
-- (void) setGammaValue: (float) value;
-- (float) gammaValue;
 
 - (void) setFov:(float)value fromFraction:(BOOL)fromFraction;
 - (float) fov:(BOOL)inFraction;
