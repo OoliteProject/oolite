@@ -223,7 +223,6 @@ MA 02110-1301, USA.
 		OOLog(@"joystick.configure.error", @"%s called when not on stick mapper screen.", __PRETTY_FUNCTION__);
 		return;
 	}
-	
 	// What moved?
 	int function;
 	NSDictionary *entry = [stickFunctions objectAtIndex:selFunctionIdx];
@@ -285,9 +284,11 @@ MA 02110-1301, USA.
 			function -= 10000;
 			key = CUSTOMEQUIP_BUTTONMODE;
 		}
-		[[customEquipActivation objectAtIndex:function] setObject:hwDict forKey:key];
+		NSMutableDictionary *custEquip = [[customEquipActivation objectAtIndex:function] mutableCopy];
+		[custEquip setObject:hwDict forKey:key];
+		[customEquipActivation replaceObjectAtIndex:function withObject:custEquip];
+		[custEquip release];
 		[self checkCustomEquipButtons:hwDict ignore:function];
-
 		NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
 		[defaults setObject:customEquipActivation forKey:KEYCONFIG_CUSTOMEQUIP];
 	}
@@ -319,18 +320,23 @@ MA 02110-1301, USA.
 	for (i = 0; i < [customEquipActivation count]; i++)
 	{
 		if (i != idx) {
+			NSMutableDictionary *custEquip = [[customEquipActivation objectAtIndex:i] mutableCopy];
 			NSDictionary *bf = [[customEquipActivation objectAtIndex:i] objectForKey:CUSTOMEQUIP_BUTTONACTIVATE];
 			if ([bf oo_integerForKey:STICK_NUMBER] == [stickFn oo_integerForKey:STICK_NUMBER] && 
-				[bf oo_integerForKey:STICK_AXBUT] == [stickFn oo_integerForKey:STICK_AXBUT])
+				[bf oo_integerForKey:STICK_AXBUT] == [stickFn oo_integerForKey:STICK_AXBUT] &&
+				[custEquip objectForKey:CUSTOMEQUIP_BUTTONACTIVATE])
 			{
-				[[customEquipActivation objectAtIndex:i] removeObjectForKey:CUSTOMEQUIP_BUTTONACTIVATE];
+				[custEquip removeObjectForKey:CUSTOMEQUIP_BUTTONACTIVATE];
 			}
 			bf = [[customEquipActivation objectAtIndex:i] objectForKey:CUSTOMEQUIP_BUTTONMODE];
 			if ([bf oo_integerForKey:STICK_NUMBER] == [stickFn oo_integerForKey:STICK_NUMBER] && 
-				[bf oo_integerForKey:STICK_AXBUT] == [stickFn oo_integerForKey:STICK_AXBUT])
+				[bf oo_integerForKey:STICK_AXBUT] == [stickFn oo_integerForKey:STICK_AXBUT] &&
+				[custEquip objectForKey:CUSTOMEQUIP_BUTTONMODE])
 			{
-				[[customEquipActivation objectAtIndex:i] removeObjectForKey:CUSTOMEQUIP_BUTTONMODE];
+				[custEquip removeObjectForKey:CUSTOMEQUIP_BUTTONMODE];
 			}
+			[customEquipActivation replaceObjectAtIndex:i withObject:custEquip];
+			[custEquip release];
 		}
 	}
 }
@@ -361,7 +367,11 @@ MA 02110-1301, USA.
 				bf -= 10000;
 				key = CUSTOMEQUIP_BUTTONMODE;
 			}
-			[[customEquipActivation objectAtIndex:bf] removeObjectForKey:key];
+			NSMutableDictionary *custEquip = [[customEquipActivation objectAtIndex:bf] mutableCopy];
+			if ([key isEqualToString:CUSTOMEQUIP_BUTTONACTIVATE] && [custEquip objectForKey:CUSTOMEQUIP_BUTTONACTIVATE]) [custEquip removeObjectForKey:key];
+			if ([key isEqualToString:CUSTOMEQUIP_BUTTONMODE] && [custEquip objectForKey:CUSTOMEQUIP_BUTTONMODE]) [custEquip removeObjectForKey:key];
+			[customEquipActivation replaceObjectAtIndex:bf withObject:custEquip];
+			[custEquip release];
 		}
 		else 
 		{
