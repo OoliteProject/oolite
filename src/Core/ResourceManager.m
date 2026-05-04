@@ -467,7 +467,7 @@ static NSMutableDictionary *sStringCache;
 {
 	NSString *path = nil;
 	NSMutableArray *maskedArray = [NSMutableArray arrayWithCapacity:[inputPathArray count]];
-	char *userNamePathEnvVar = 
+	const char *userNamePathEnvVar = 
 #if OOLITE_WINDOWS
 		SDL_getenv("USERPROFILE");
 #else

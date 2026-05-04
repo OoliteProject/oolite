@@ -61,12 +61,6 @@ MA 02110-1301, USA.
 #include <GL/glext.h>
 #include <GL/glu.h>
 
-#ifdef OOLITE_WINDOWS
-#define glActiveTexture glActiveTexturePtr
-#define glActiveTextureARB glActiveTextureARBPtr
-#define glClientActiveTextureARB glClientActiveTextureARBPtr
-#endif
-
 #ifdef __DEFINED_GL_GLEXT_PROTOTYPES
 #undef GL_GLEXT_PROTOTYPES
 #undef __DEFINED_GL_GLEXT_PROTOTYPES
