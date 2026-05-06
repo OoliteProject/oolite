@@ -2259,7 +2259,11 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 	[self setDockedStation:[UNIVERSE station]];
 	[self setLastAegisLock:[UNIVERSE planet]];
-	[self validateCustomEquipActivationArray];
+	// only do this if we're not in strict mode, otherwise all previously saved OXP key/joystick defs will be wiped.
+	if (![[UNIVERSE useAddOns] isEqualToString:SCENARIO_OXP_DEFINITION_NONE]) 
+	{
+		[self validateCustomEquipActivationArray];
+	}
 
 	JSContext *context = OOJSAcquireContext();
 	[self doWorldScriptEvent:OOJSID("startUp") inContext:context withArguments:NULL count:0 timeLimit:MAX(0.0, [[NSUserDefaults standardUserDefaults] oo_floatForKey:@"start-script-limit-value" defaultValue:kOOJSLongTimeLimit])];
