@@ -398,7 +398,7 @@ enum PreferredAppMode
 	// TODO: This code up to and including stickHandler really ought
 	// not to be in this class.
 	OOLog(@"sdl.init", @"%@", @"initialising SDL");
-	if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK))
+	if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK | SDL_INIT_GAMEPAD))
 	{
 		OOLog(@"sdl.init.failed", @"Unable to init SDL: %s\n", SDL_GetError());
 		[self dealloc];
@@ -2073,6 +2073,9 @@ finished:
 			case SDL_EVENT_JOYSTICK_AXIS_MOTION:
 			case SDL_EVENT_JOYSTICK_BUTTON_UP:
 			case SDL_EVENT_JOYSTICK_BUTTON_DOWN:
+			case SDL_EVENT_GAMEPAD_AXIS_MOTION:
+			case SDL_EVENT_GAMEPAD_BUTTON_UP:
+			case SDL_EVENT_GAMEPAD_BUTTON_DOWN:
 			case SDL_EVENT_JOYSTICK_HAT_MOTION:
 				[(OOSDLJoystickManager*)[OOJoystickManager sharedStickHandler] handleSDLEvent: &event];
 				break;

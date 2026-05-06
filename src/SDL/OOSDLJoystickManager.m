@@ -35,6 +35,8 @@ MA 02110-1301, USA.
 {
 	int i;
 
+	NSMutableDictionary *idMap = [[[NSMutableDictionary alloc] init] autorelease];
+
 	// Find and open the sticks. Make sure that we don't fail if more joysticks than MAX_STICKS are detected.
 	SDL_JoystickID *joystickIds = SDL_GetJoysticks(&stickCount);
 	OOLog(@"joystick.init", @"Number of joysticks detected: %d", stickCount);
@@ -53,7 +55,11 @@ MA 02110-1301, USA.
 				break;
 
 			stick[i]=SDL_OpenJoystick(joystickIds[i]);
-			if(!stick[i])
+			if(stick[i])
+			{
+				[idMap setObject: [NSNumber numberWithInt: i] forKey: [NSString stringWithFormat: @"%d", joystickIds[i]]];
+			}
+			else
 			{
 				OOLog(@"joystick.init", @"Failed to open joystick #%d", i);
 			}
@@ -61,7 +67,57 @@ MA 02110-1301, USA.
 		SDL_SetJoystickEventsEnabled(true);
 	}
 	SDL_free(joystickIds);
+	joystickIdMap = [idMap copy];
 	return [super init];
+}
+
+
+- (void) dealloc
+{
+	[joystickIdMap release];
+}
+
+
+- (NSInteger) getJoystickIndexFromId: (SDL_JoystickID) joystickId
+{
+	NSNumber *index = [joystickIdMap valueForKey: [NSString stringWithFormat: @"%d", joystickId]];
+	if (index)
+	{
+		return [index integerValue];
+	}
+	return -1;
+}
+
+
+- (JoyAxisEvent) makeJoyAxisEvent: (SDL_JoyAxisEvent*) sdlevt
+{
+	JoyAxisEvent evt;
+	evt.type = sdlevt->type;
+	evt.which = [self getJoystickIndexFromId: sdlevt->which];
+	evt.axis = sdlevt->axis;
+	evt.value = sdlevt->value;
+	return evt;
+}
+
+- (JoyButtonEvent) makeJoyButtonEvent: (SDL_JoyButtonEvent*) sdlevt
+{
+	JoyButtonEvent evt;
+	evt.type = sdlevt->type;
+	evt.which = [self getJoystickIndexFromId: sdlevt->which];
+	evt.button = sdlevt->button;
+	evt.down = sdlevt->down;
+	return evt;
+}
+
+
+- (JoyHatEvent) makeJoyHatEvent: (SDL_JoyHatEvent*) sdlevt
+{
+	JoyHatEvent evt;
+	evt.type = sdlevt->type;
+	evt.which = [self getJoystickIndexFromId: sdlevt->which];
+	evt.hat = sdlevt->hat;
+	evt.value = sdlevt->value;
+	return evt;
 }
 
 
@@ -70,19 +126,43 @@ MA 02110-1301, USA.
 	BOOL rc=NO;
 	switch(evt->type)
 	{
+		case SDL_EVENT_GAMEPAD_AXIS_MOTION:
 		case SDL_EVENT_JOYSTICK_AXIS_MOTION:
-			[self decodeAxisEvent: (JoyAxisEvent *)evt];
-			rc=YES;
+		{
+			JoyAxisEvent joyEvt = [self makeJoyAxisEvent: (SDL_JoyAxisEvent*)evt];
+			if (joyEvt.which >= 0)
+			{
+				[self decodeAxisEvent: &joyEvt];
+				rc=YES;
+			}
 			break;
+		}
+
+		case SDL_EVENT_GAMEPAD_BUTTON_DOWN:
+		case SDL_EVENT_GAMEPAD_BUTTON_UP:
 		case SDL_EVENT_JOYSTICK_BUTTON_DOWN:
 		case SDL_EVENT_JOYSTICK_BUTTON_UP:
-			[self decodeButtonEvent: (JoyButtonEvent *)evt];
-			rc=YES;
+		{
+			JoyButtonEvent joyEvt = [self makeJoyButtonEvent: (SDL_JoyButtonEvent*)evt];
+			if (joyEvt.which >= 0)
+			{
+				[self decodeButtonEvent: &joyEvt];
+				rc=YES;
+			}
 			break;
+		}
+
 		case SDL_EVENT_JOYSTICK_HAT_MOTION:
-			[self decodeHatEvent: (JoyHatEvent *)evt];
-			rc=YES;
+		{
+			JoyHatEvent joyEvt = [self makeJoyHatEvent: (SDL_JoyHatEvent*)evt];
+			if (joyEvt.which >= 0)
+			{
+				[self decodeHatEvent: &joyEvt];
+				rc=YES;
+			}
 			break;
+		}
+
 		default:
 			OOLog(@"handleSDLEvent.unknownEvent", @"%@", @"JoystickHandler was sent an event it doesn't know");
 	}

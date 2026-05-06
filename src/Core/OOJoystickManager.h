@@ -215,15 +215,15 @@ enum
 typedef struct
 {
 	uint32_t		type;
-	uint8_t			which;
+	int32_t			which;
 	uint8_t			axis;
-	int			value;
+	int16_t			value;
 } JoyAxisEvent;
 
 typedef struct
 {
 	uint32_t		type;
-	uint8_t			which;
+	int32_t			which;
 	uint8_t			button;
 	bool			down;
 	
@@ -232,7 +232,7 @@ typedef struct
 typedef struct
 {
 	uint32_t		type;
-	uint8_t			which;
+	int32_t			which;
 	uint8_t			hat;
 	uint8_t			value; 
 	uint8_t			padding;	
