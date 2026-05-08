@@ -778,7 +778,6 @@ enum PreferredAppMode
 
 - (void) drawRect:(NSRect)rect
 {
-	SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 	SDL_SetWindowSize(window, (int)NSWidth(rect), (int)NSHeight(rect));
 	[self updateScreenWithVideoMode:YES];
 }
@@ -854,11 +853,6 @@ enum PreferredAppMode
 	SetWindowLong(windowHandle,GWL_STYLE,GetWindowLong(windowHandle,GWL_STYLE) & ~WS_CAPTION & ~WS_THICKFRAME);
 	ShowWindow(windowHandle,SW_RESTORE);
 	MoveWindow(windowHandle,dest.x,dest.y,dest.w,dest.h,TRUE);
-
-  #else
-
-	SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
-
   #endif
 
 	OOSetOpenGLState(OPENGL_STATE_OVERLAY);
