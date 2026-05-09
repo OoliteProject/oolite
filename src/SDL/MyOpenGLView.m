@@ -241,9 +241,8 @@ enum PreferredAppMode
 
 #if OOLITE_WINDOWS
 	//capture the window handle for later
-	int propertyCount;
 	SDL_PropertiesID windowPropertiesId = SDL_GetWindowProperties(window);
-	windowHandle   = SDL_GetPointerProperty(windowPropertiesId, SDL_PROP_WINDOW_WIN32_HWND_POINTER, NULL);
+	windowHandle = SDL_GetPointerProperty(windowPropertiesId, SDL_PROP_WINDOW_WIN32_HWND_POINTER, NULL);
 	if (!windowHandle)
 	{
 		OOLog(@"sdl.window_handle", @"%@", @"Failed to retrieve window handle");

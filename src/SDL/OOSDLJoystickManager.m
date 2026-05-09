@@ -75,6 +75,7 @@ MA 02110-1301, USA.
 - (void) dealloc
 {
 	[joystickIdMap release];
+	[super dealloc];
 }
 
 
