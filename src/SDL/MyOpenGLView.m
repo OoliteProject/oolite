@@ -2105,34 +2105,19 @@ finished:
 					}
 					keys[gvMouseLeftButton] = NO;
 				}
-				/* 
-				   Mousewheel handling - just note time since last use here and mark as inactive,
-				   if needed, at the end of this method. Note that the mousewheel button up event is 
-				   kind of special, as in, it is sent at the same time as its corresponding mousewheel
-				   button down one - Nikos 20140809
-				*/
-				if (mbtn_event->button == SDL_BUTTON_MIDDLE)
-				{
-					NSTimeInterval timeBetweenMouseWheels = timeNow - timeSinceLastMouseWheel;
-					timeSinceLastMouseWheel += timeBetweenMouseWheels;
-				}
 				break;
 
 			case SDL_EVENT_MOUSE_WHEEL:
 				mw_event = (SDL_MouseWheelEvent*)&event;
-#if OOLITE_LINUX
-				if (mw_event->y < 0)  inDelta = OOMOUSEWHEEL_DELTA;
-				if (inDelta == 0)  inDelta = -OOMOUSEWHEEL_DELTA;
-#elif OOLITE_WINDOWS
+
 				inDelta = mw_event->y;
-#endif
 				if (inDelta > 0)
 				{
 					if (_mouseWheelDelta >= 0.0f)
 						_mouseWheelDelta += inDelta;
 					else
 						_mouseWheelDelta = 0.0f;
-					}
+				}
 				else if (inDelta < 0)
 				{
 					if (_mouseWheelDelta <= 0.0f)
@@ -2140,6 +2125,14 @@ finished:
 					else
 						_mouseWheelDelta = 0.0f;
 				}
+				/* 
+				   Mousewheel handling - just note time since last use here and mark as inactive,
+				   if needed, at the end of this method. Note that the mousewheel button up event is 
+				   kind of special, as in, it is sent at the same time as its corresponding mousewheel
+				   button down one - Nikos 20140809
+				*/
+				NSTimeInterval timeBetweenMouseWheels = timeNow - timeSinceLastMouseWheel;
+				timeSinceLastMouseWheel += timeBetweenMouseWheels;
 				break;
 
 			case SDL_EVENT_MOUSE_MOTION:
