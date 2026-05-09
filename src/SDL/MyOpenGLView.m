@@ -484,8 +484,6 @@ enum PreferredAppMode
 
 	SDL_SetWindowSize(window, firstScreen.width, firstScreen.height);
 	SDL_SetWindowFullscreen(window, fullScreen);
-	SDL_GetWindowSurface(window);
-	SDL_SetEnvironmentVariable(SDL_GetEnvironment(), "SDL_VIDEO_WINDOW_POS", "none", YES); //stop linux from auto centering on resize
 
 	/* MKW 2011.11.11
 	 * Eat all SDL events to gobble up any resize events while the
