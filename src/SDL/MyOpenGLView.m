@@ -196,7 +196,6 @@ enum PreferredAppMode
 	window = SDL_CreateWindow([windowCaption UTF8String], size.width, size.height, windowFlags);
 	if (!window)
 	{
-		OOLog(@"KJA.createWindow", @"%s", SDL_GetError());
 		OOLog(@"display.initGL", @"%@", @"Trying 8-bpcc, 24-bit depth buffer");
 		SDL_GL_SetAttribute(SDL_GL_FLOATBUFFERS, 0);
 		SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
@@ -241,9 +240,6 @@ enum PreferredAppMode
 	}
 
 #if OOLITE_WINDOWS
-	// needed for enabling system window manager events, which is needed for handling window movement messages
-	// KJASDL SDL_EventState (SDL_SYSWMEVENT, SDL_ENABLE);
-	
 	//capture the window handle for later
 	int propertyCount;
 	SDL_PropertiesID windowPropertiesId = SDL_GetWindowProperties(window);
@@ -281,10 +277,10 @@ enum PreferredAppMode
 
 	if (icon != NULL)
 	{
-		/* KJASDL
-		colorkey = SDL_MapRGB(icon->format, NULL, 128, 0, 128);
-		SDL_SetColorKey(icon, SDL_SRCCOLORKEY, colorkey);
-		*/
+		const SDL_PixelFormatDetails *pixelFormat = SDL_GetPixelFormatDetails(icon->format);
+		const SDL_Palette *palette = SDL_GetSurfacePalette(icon);
+		colorkey = SDL_MapRGB(pixelFormat, palette, 128, 0, 128);
+		SDL_SetSurfaceColorKey(icon, YES, colorkey);
 		SDL_SetWindowIcon(window, icon);
 	}
 	SDL_DestroySurface(icon);
@@ -1023,7 +1019,7 @@ enum PreferredAppMode
 
 - (void) resetSDLKeyModifiers
 {
-	/* KJASDL - looks like SDL3 won't allow us to change the keyboard state - try without to see if it's needed
+	/* kanthoney - looks like SDL3 won't allow us to change the keyboard state - try without to see if it's needed
 	// this is used when we regain focus to ensure that all
 	// modifier keys are reset to their correct status
 	SDL_Keymod modState = SDL_GetModState();
@@ -2623,149 +2619,6 @@ finished:
 				break;
 			}
 #endif
-
-/* KJASDL - see if we still need all this
-#if OOLITE_WINDOWS
-			// if we minimize the window while in fullscreen (e.g. via
-			// Win+M or Win+DownArrow), restore the non-borderless window
-			// style before minimuzing and reset it when we return, otherwise
-			// there might be issues with the game window remaining stuck on
-			// top in some cases (seen with some Intel gfx chips).
-			// N.B. active event gain of zero means app is iconified
-			case SDL_ACTIVEEVENT:
-			{			
-				if ((event.active.state & SDL_APPACTIVE) && fullScreen)
-				{
-					[self setWindowBorderless:event.active.gain];
-				}
-				break;
-			}
-			
-			// need to track this because the user may move the game window
-			// to a secondary monitor, in which case we must potentially
-			// refresh the information displayed (e.g. Game Options screen)
-			// Nikos - 20140920
-			case SDL_SYSWMEVENT:
-			{
-				DWORD dwLastError = 0;
-				switch (event.syswm.msg->msg)
-				{
-					case WM_MOVE:
-						// if we are in fullscreen mode we normally don't worry about having the window moved.
-						// However, when using multiple monitors, one can use hotkey combinations to make the
-						// window "jump" from one monitor to the next. We don't want this to happen, so if we
-						// detect that our (fullscreen) window has moved, we immediately bring it back to its
-						// original position. Nikos - 20140922
-
-						if (fullScreen)
-						{
-							RECT rDC;
-							
-							// attempting to move our fullscreen window while in maximized state can freak
-							// Windows out and the window may not return to its original position properly.
-							// Solution: if such a move takes place, first change the window placement to
-							// normal, move it normally, then restore its placement to maximized again. 
-							// Additionally, the last good known window position seems to be lost in such
-							// a case. While at it, update also the coordinates of the non-maximized window
-							// so that it can return to its original position - this is why we need lastGoodRect.
-
-							WINDOWPLACEMENT wp;
-							wp.length = sizeof(WINDOWPLACEMENT);
-							GetWindowPlacement(windowHandle, &wp);
-							
-							GetWindowRect(windowHandle, &rDC);
-							if (rDC.left != monitorInfo.rcMonitor.left || rDC.top != monitorInfo.rcMonitor.top)
-							{
-								BOOL fullScreenMaximized = NO;
-								if (wp.showCmd == SW_SHOWMAXIMIZED && !fullScreenMaximized)
-								{
-									fullScreenMaximized = YES;
-									wp.showCmd = SW_SHOWNORMAL;
-									SetWindowPlacement(windowHandle, &wp);
-								}
-			
-								if (wp.showCmd != SW_SHOWMINIMIZED && wp.showCmd != SW_MINIMIZE)
-								{
-									MoveWindow(windowHandle, monitorInfo.rcMonitor.left, monitorInfo.rcMonitor.top,
-													(int)viewSize.width, (int)viewSize.height, TRUE);
-								}
-								
-								if (fullScreenMaximized)
-								{
-									GetWindowPlacement(windowHandle, &wp);
-									wp.showCmd = SW_SHOWMAXIMIZED;
-									CopyRect(&wp.rcNormalPosition, &lastGoodRect);
-									SetWindowPlacement(windowHandle, &wp);
-								}
-							}
-							else if (wp.showCmd == SW_SHOWMAXIMIZED)
-							{
-									CopyRect(&wp.rcNormalPosition, &lastGoodRect);
-									SetWindowPlacement(windowHandle, &wp);
-							}
-						}
-						// it is important that this gets done after we've dealt with possible fullscreen movements,
-						// because -doGuiScreenResizeUpdates does itself an update on current monitor
-						if ([PlayerEntity sharedPlayer])
-						{
-							[[PlayerEntity sharedPlayer] doGuiScreenResizeUpdates];
-						}
-						
-						// deliberately no break statement here - moving or resizing the window changes its bounds
-						// rectangle. Therefore we must check whether to clip the mouse or not inside the newly
-						// updated rectangle, so just let it fall through
-						
-						
-					case WM_ACTIVATEAPP:
-						if(grabMouseStatus)  [self grabMouseInsideGameWindow:YES];
-						break;
-						
-					case WM_SETTINGCHANGE:
-						// TODO: we really should be checking the status of event.syswm.msg->lParam here and run our
-						// dark / light mode refresh check only if the lParam LPCTSTR matches "ImmersiveColorSet".
-						// However, for some reason I cannot get an actual string on lParam. This means that the
-						// mode refresh check runs every time something changes the Windows Registry while the game
-						// is running. Still, should be OK because our refreshDarKOrLightMode will be transparent in
-						// such cases, plus we would not practically expect too many events doing things to the Registry
-						// while we are running. If in the future we need to respond to a different event which changes 
-						// system settings in real time, then yes, we will have to find a way to decode lParam properly.
-						// Nikos, 20230805
-						[self refreshDarKOrLightMode];
-						break;
-						
-					case WM_SETFOCUS:
-						
-						// make sure that all modifier keys like Shift, Alt, Ctrl and Caps Lock
-						// are set correctly to what they should be when we get focus. We have
-						// to do it ourselves because SDL on Windows has problems with this
-						// when focus change events occur, like e.g. Alt-Tab in/out of the
-						// application
-
-						[self resetSDLKeyModifiers];
-						if (!SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL))
-						{
-							dwLastError = GetLastError();
-							OOLog(@"wm_setfocus.message", @"Setting thread priority to time critical failed! (error code: %ld)", dwLastError);
-						}
-						[gameController setEcoQoS:[gameController isGamePaused]];
-						break;
-						
-					case WM_KILLFOCUS:
-						if (!SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_NORMAL))
-						{
-							dwLastError = GetLastError();
-							OOLog(@"wm_killfocus.message", @"Setting thread priority to normal failed! (error code: %ld)", dwLastError);
-						}
-						[gameController setEcoQoS:YES];
-						break;
-						
-					default:
-						;
-				}
-				break;
-			}
-#endif
-*/
 
 			// caused by INTR or someone hitting close
 			case SDL_EVENT_QUIT:
