@@ -7,6 +7,13 @@ on:
 jobs:
   common:
     runs-on: ubuntu-latest
+    outputs:
+      SEMVER: ${{ steps.version_generator.outputs.SEMVER }}
+      PROJECTNAME: ${{ steps.version_generator.outputs.PROJECTNAME }}
+      GitVersion_Major: ${{ steps.version_generator.outputs.GitVersion_Major }}
+      GitVersion_Minor: ${{ steps.version_generator.outputs.GitVersion_Minor }}
+      GitVersion_Patch: ${{ steps.version_generator.outputs.GitVersion_Patch }}
+      GitVersion_VersionSourceDistance: ${{ steps.version_generator.outputs.GitVersion_VersionSourceDistance }}
     steps:
       - name: Checkout project
         uses: actions/checkout@v6
@@ -34,8 +41,15 @@ jobs:
             semantic-version-format=Loose
             next-version=1.93.1
 
-      - name: Check environment
+      - name: Print and register result
+        id: version_generator
         run: |
+          echo "SEMVER=$GitVersion_SemVer" >> "$GITHUB_OUTPUT"
+          echo "GitVersion_Major=$GitVersion_Major" >> "$GITHUB_OUTPUT"
+          echo "GitVersion_Minor=$GitVersion_Minor" >> "$GITHUB_OUTPUT"
+          echo "GitVersion_Patch=$GitVersion_Patch" >> "$GITHUB_OUTPUT"
+          echo "GitVersion_VersionSourceDistance=$GitVersion_VersionSourceDistance" >> "$GITHUB_OUTPUT"
+          echo "PROJECTNAME=$PROJECTNAME" >> "$GITHUB_OUTPUT"
           printenv | sort
 
   build-linux:
@@ -80,6 +94,9 @@ jobs:
         run: |
           oolite/ShellScripts/Linux/install_mozilla_js.sh system
       - name: Build Oolite
+        env:
+          SEMVER: ${{ needs.common.outputs.SEMVER }}
+          PROJECTNAME: ${{ needs.common.outputs.PROJECTNAME }}
         run: |
           oolite/ShellScripts/common/build_oolite.sh ${{matrix.flavour}}
       - name: Archive installer
@@ -103,6 +120,9 @@ jobs:
           path: oolite
           fetch-depth: 0
       - name: Build flatpak
+        env:
+          SEMVER: ${{ needs.common.outputs.SEMVER }}
+          PROJECTNAME: ${{ needs.common.outputs.PROJECTNAME }}
         run: |
           oolite/installers/flatpak/create_flatpak.sh
       - name: Archive installer
@@ -151,6 +171,13 @@ jobs:
         shell: msys2 {0}
         env:
           msystem: UCRT64
+          VER_MAJ: ${{ needs.common.outputs.GitVersion_Major }}
+          VER_MIN: ${{ needs.common.outputs.GitVersion_Minor }}
+          VER_REV: ${{ needs.common.outputs.GitVersion_Patch }}
+          VER_GITREV: ${{ needs.common.outputs.GitVersion_VersionSourceDistance }}
+          SEMVER: ${{ needs.common.outputs.SEMVER }}
+          VER_NSIS: ${{ needs.common.outputs.GitVersion_Major }}.${{ needs.common.outputs.GitVersion_Minor }}.${{ needs.common.outputs.GitVersion_Patch }}.${{ needs.common.outputs.GitVersion_VersionSourceDistance }}
+          PROJECTNAME: ${{ needs.common.outputs.PROJECTNAME }}
         run: |
           oolite/ShellScripts/common/build_oolite.sh ${{matrix.flavour}}
       - name: Archive installer
@@ -162,7 +189,7 @@ jobs:
           retention-days: 5
 
   release:
-    needs: [build-linux, build-flatpak, build-windows]
+    needs: [build-linux, build-flatpak, build-windows, common]
     runs-on: ubuntu-22.04
     steps:
       ## This is for debugging only and helps developing the workflow.
@@ -181,6 +208,9 @@ jobs:
           fetch-depth: 0
       - name: Calculate version number and set OOLITE_VERSION
         id: version
+        env:
+          SEMVER: ${{ needs.common.outputs.SEMVER }}
+          PROJECTNAME: ${{ needs.common.outputs.PROJECTNAME }}
         run: |
           set -x
           cd oolite
