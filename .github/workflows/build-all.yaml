@@ -229,7 +229,6 @@ jobs:
       # For changes on master branch, create a new release.
       # It should move the 'latest' tag automatically.
       - name: Create Release
-        if: github.ref == 'refs/heads/master' || endsWith(github.ref, 'maintenance')
         id: create_release
         uses: "marvinpinto/action-automatic-releases@latest"
         with:
