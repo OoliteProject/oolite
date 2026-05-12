@@ -1,4 +1,6 @@
-#!/bin/bash
+#!/bin/bash -x
+
+echo "I am $0 $@"
 
 run_script() {
     # First parameter is a suffix for the build type eg. test, dev
@@ -81,6 +83,7 @@ EOF
     local ARCH=$(uname -m)
     FILENAME="space.oolite.Oolite${SUFFIX}-${ARCH}.flatpak"
     echo "Creating Flatpak $FILENAME..."
+    find app/space.oolite.Oolite/
     if ! flatpak build-bundle \
       repo \
       "$FILENAME" \
