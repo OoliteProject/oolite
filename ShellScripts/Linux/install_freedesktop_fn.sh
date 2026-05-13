@@ -2,6 +2,10 @@
 #
 # Installs the manifest and injects version number
 #
+# Requires environment variables:
+#   VERSION
+#   APP_DATE
+#
 
 echo "I am install_freedesktop_fn.sh $@"
 printenv | sort

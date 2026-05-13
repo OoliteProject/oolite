@@ -36,7 +36,7 @@ run_script() {
 
     if [ -n "${SEMVER}" ] && [ -n "${PROJECTNAME}" ]; then
         # patch manifest
-        sed -i "97a \      env:\n        SEMVER: $SEMVER\n        PROJECTNAME: $PROJECTNAME" $MANIFEST || return 1
+        sed -i "97a \      env:\n        SEMVER: $SEMVER\n        PROJECTNAME: $PROJECTNAME\n        VERSION: $SEMVER" $MANIFEST || return 1
     fi
 
     # check manifest
