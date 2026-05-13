@@ -1,4 +1,14 @@
-#!/bin/bash
+#!/bin/bash -x
+#
+# Installs the manifest and injects version number
+#
+# Requires environment variables:
+#   VERSION
+#   APP_DATE
+#
+
+echo "I am install_freedesktop_fn.sh $@"
+printenv | sort
 
 install_freedesktop() {
     # Install metainfo (eg. for FlatHub and AppImageHub)
@@ -44,6 +54,11 @@ install_freedesktop() {
 
     sed -i "s/@VER@/${VERSION}/g" "$APP_METAINFO"
     sed -i "s/@DATE@/${APP_DATE}/g" "$APP_METAINFO"
+
+    echo ===========================================
+    echo Our manifest looks like this:
+    cat "$APP_METAINFO"
+    echo ===========================================
 
     # Desktop and Icon
     install -D ../../installers/FreeDesktop/space.oolite.Oolite.desktop "$APPSHR/applications/space.oolite.Oolite.desktop" || { echo "$err_msg desktop file" >&2; return 1; }
