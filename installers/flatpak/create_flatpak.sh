@@ -33,8 +33,17 @@ run_script() {
     fi
 
     local MANIFEST="space.oolite.Oolite.yaml"
+
+    if [ -n "${SEMVER}" ] && [ -n "${PROJECTNAME}" ]; then
+        # patch manifest
+        sed -i "97a \      env:\n        SEMVER: $SEMVER\n        PROJECTNAME: $PROJECTNAME" $MANIFEST || return 1
+    fi
+
+    # check manifest
     if command -v flatpak-builder-lint >/dev/null 2>&1; then
         if ! flatpak-builder-lint manifest "$MANIFEST"; then
+            echo "❌ Flatpak manifest lint failed!" >&2
+            cat $MANIFEST
             echo "❌ Flatpak manifest lint failed!" >&2
             return 1
         fi
@@ -62,6 +71,10 @@ run_script() {
       - type: dir
         path: ../
 EOF
+
+    # show effective manifest
+    flatpak-builder --show-manifest $MANIFEST
+
     if ! flatpak-builder \
       --user \
       --force-clean \
@@ -83,7 +96,6 @@ EOF
     local ARCH=$(uname -m)
     FILENAME="space.oolite.Oolite${SUFFIX}-${ARCH}.flatpak"
     echo "Creating Flatpak $FILENAME..."
-    find app/space.oolite.Oolite/
     if ! flatpak build-bundle \
       repo \
       "$FILENAME" \
