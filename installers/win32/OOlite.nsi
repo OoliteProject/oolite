@@ -31,6 +31,9 @@
 !ifndef OUTDIR
 !define OUTDIR .
 !endif
+!ifndef SEMVER
+!define SEMVER ${VERSION}
+!endif
 
 !ifndef SNAPSHOT
 !ifndef DEPLOYMENT
@@ -58,10 +61,10 @@ SetCompress auto
 SetCompressor LZMA
 SetCompressorDictSize 32
 SetDatablockOptimize on
-OutFile "${OUTDIR}\OoliteInstall-${VER}-win${EXTVER}.exe"
+OutFile "${OUTDIR}\OoliteInstall-${SEMVER}-win${EXTVER}.exe"
 BrandingText "(C) 2003-2026 Giles Williams, Jens Ayton and contributors"
 Name "Oolite"
-Caption "Oolite ${VER}${EXTVER} Setup"
+Caption "Oolite ${SEMVER} ${EXTVER} Setup"
 SubCaption 0 " "
 SubCaption 1 " "
 SubCaption 2 " "
@@ -83,7 +86,7 @@ VIAddVersionKey "ProductName" "Oolite"
 VIAddVersionKey "FileDescription" "A space combat/trading game, inspired by Elite."
 VIAddVersionKey "LegalCopyright" "� 2003-2026 Giles Williams, Jens Ayton and contributors"
 VIAddVersionKey "FileVersion" "${VER}"
-VIAddVersionKey "ProductVersion" "${VER}"
+VIAddVersionKey "ProductVersion" "${SEMVER}"
 !ifdef SNAPSHOT
 VIAddVersionKey "GIT Revision" "${VER_GITHASH}"
 !endif

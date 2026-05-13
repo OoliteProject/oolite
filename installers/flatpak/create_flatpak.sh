@@ -1,4 +1,6 @@
-#!/bin/bash
+#!/bin/bash -x
+
+echo "I am $0 $@"
 
 run_script() {
     # First parameter is a suffix for the build type eg. test, dev
@@ -31,8 +33,17 @@ run_script() {
     fi
 
     local MANIFEST="space.oolite.Oolite.yaml"
+
+    if [ -n "${SEMVER}" ] && [ -n "${PROJECTNAME}" ]; then
+        # patch manifest
+        sed -i "97a \      env:\n        SEMVER: $SEMVER\n        PROJECTNAME: $PROJECTNAME\n        VERSION: $SEMVER" $MANIFEST || return 1
+    fi
+
+    # check manifest
     if command -v flatpak-builder-lint >/dev/null 2>&1; then
         if ! flatpak-builder-lint manifest "$MANIFEST"; then
+            echo "❌ Flatpak manifest lint failed!" >&2
+            cat $MANIFEST
             echo "❌ Flatpak manifest lint failed!" >&2
             return 1
         fi
@@ -60,6 +71,10 @@ run_script() {
       - type: dir
         path: ../
 EOF
+
+    # show effective manifest
+    flatpak-builder --show-manifest $MANIFEST
+
     if ! flatpak-builder \
       --user \
       --force-clean \
