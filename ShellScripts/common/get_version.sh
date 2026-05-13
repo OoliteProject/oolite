@@ -21,7 +21,7 @@ APP_DATE=$(date -u -d "@$TIMESTAMP" +"%Y-%m-%d")
 # Convert to YYMMDD format (e.g., 260313)
 VER_DATE=$(date -u -d "@$TIMESTAMP" +"%y%m%d")
 
-if [ -z "${SEMVER}" ] || [ -z "${PROJECTNAME}" ]
+if [[ -z "${SEMVER}" ]] || [[ -z "${PROJECTNAME}" ]]
 then
     # Variables not passed in. Calculate the classic way.
 
@@ -29,7 +29,7 @@ then
     VER_MAJ=$(echo "$VERSION" | cut -d. -f1)
     VER_MIN=$(echo "$VERSION" | cut -d. -f2)
     VER_REV=$(echo "$VERSION" | cut -d. -f3)
-    if [ "" == "$VER_REV" ]; then
+    if [[ "" == "$VER_REV" ]]; then
         VER_REV="0"
     fi
 

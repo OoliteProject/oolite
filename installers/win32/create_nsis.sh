@@ -42,7 +42,7 @@ run_script() {
        return 1
     fi
 
-    if [ -z "${VER_NSIS}" ]
+    if [[ -z "${VER_NSIS}" ]]
     then
         export VER_NSIS=$VER_FULL;
     fi
