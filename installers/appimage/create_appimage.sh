@@ -1,4 +1,10 @@
-#!/bin/bash
+#!/bin/bash -x
+#
+# Creates the appimage.
+# First parameter can be set to build type, typically one of "test", "dev" or omitted for release builds.
+#
+
+echo I am $0 $@
 
 run_script() {
     # First parameter is a suffix for the build type eg. test, dev
