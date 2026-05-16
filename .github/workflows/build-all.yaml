@@ -51,6 +51,8 @@ jobs:
           echo "GitVersion_VersionSourceDistance=$GitVersion_VersionSourceDistance" >> "$GITHUB_OUTPUT"
           echo "PROJECTNAME=$PROJECTNAME" >> "$GITHUB_OUTPUT"
           printenv | sort
+          echo "head.repo.full_name = -${{github.event.pull_request.head.repo.full_name}}-"
+          echo "base.repo.full_name = -${{github.event.pull_request.base.repo.full_name}}-"
 
   build-linux:
     needs: [common]
