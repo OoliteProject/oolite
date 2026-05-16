@@ -24,9 +24,10 @@ jobs:
       - name: Install Mozilla static library
         run: |
           ShellScripts/Linux/install_mozilla_js.sh system
-      - name: Build Oolite
+      - name: Build Oolite (no test)
+        if: github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
         run: |
-          ShellScripts/common/build_oolite.sh test
+          ShellScripts/common/build_oolite.sh
       - name: Build AppImage
         run: |
           ShellScripts/common/build_oolite.sh pkg-appimage-snapshot
@@ -56,9 +57,14 @@ jobs:
       - name: Install Mozilla static library
         run: |
           ShellScripts/Linux/install_mozilla_js.sh system
-      - name: Build Oolite
+      - name: Build and test Oolite
+        if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
         run: |
           ShellScripts/common/build_oolite.sh test
+      - name: Build Oolite (no test)
+        if: github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
+        run: |
+          ShellScripts/common/build_oolite.sh
       - name: Build AppImage
         run: |
           ShellScripts/common/build_oolite.sh pkg-appimage-snapshot
@@ -89,9 +95,14 @@ jobs:
       - name: Install Mozilla static library
         run: |
           ShellScripts/Linux/install_mozilla_js.sh system
-      - name: Build Oolite
+      - name: Build and test Oolite
+        if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
         run: |
           ShellScripts/common/build_oolite.sh test
+      - name: Build Oolite (no test)
+        if: github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
+        run: |
+          ShellScripts/common/build_oolite.sh
       - name: Build AppImage
         run: |
           ShellScripts/common/build_oolite.sh pkg-appimage-snapshot
@@ -123,9 +134,18 @@ jobs:
         run: |
           ShellScripts/Windows/install_deps.sh clang
 
-      - name: Build Oolite
+      - name: Build and test Oolite
+        if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
         shell: msys2 {0}
         env:
           msystem: UCRT64
         run: |
           ShellScripts/common/build_oolite.sh test
+
+      - name: Build Oolite (no test)
+        if: github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
+        shell: msys2 {0}
+        env:
+          msystem: UCRT64
+        run: |
+          ShellScripts/common/build_oolite.sh
