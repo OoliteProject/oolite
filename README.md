@@ -2,10 +2,10 @@
 
 Oolite is an open source Elite clone on steroids. While it can run just like the original but on modern computers it can also be vastly modified through Oolite Expansion Packs.
 
-Homepage: https://oolite.space/
-Wiki: https://wiki.alioth.net/index.php/Oolite_Main_Page
-Forum: https://bb.oolite.space/
-Documentation: https://oolite.readthedocs.io/
+- Homepage: https://oolite.space/
+- Wiki: https://wiki.alioth.net/index.php/Oolite_Main_Page
+- Forum: https://bb.oolite.space/
+- Documentation: https://oolite.readthedocs.io/
 
 ## What does it look like?
 
