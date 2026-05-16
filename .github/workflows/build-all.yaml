@@ -191,6 +191,8 @@ jobs:
   release:
     needs: [build-linux, build-flatpak, build-windows, common]
     runs-on: ubuntu-22.04
+    # Only run for internal requests (so not for PRs from forks)
+    if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
     steps:
       ## This is for debugging only and helps developing the workflow.
       # - name: Environment Variables
