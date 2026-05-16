@@ -24,6 +24,10 @@ jobs:
       - name: Install Mozilla static library
         run: |
           ShellScripts/Linux/install_mozilla_js.sh system
+      - name: Build and test Oolite
+        if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
+        run: |
+          ShellScripts/common/build_oolite.sh test
       - name: Build Oolite (no test)
         if: github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
         run: |
