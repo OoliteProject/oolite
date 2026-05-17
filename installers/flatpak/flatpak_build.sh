@@ -1,4 +1,10 @@
-#!/bin/bash
+#!/bin/bash -x
+#
+# Prepares the app directory for the flatpak builder
+#
+
+echo "I am flatpak_build.sh $@"
+printenv | sort
 
 source /app/share/GNUstep/Makefiles/GNUstep.sh
 source ShellScripts/common/get_version.sh

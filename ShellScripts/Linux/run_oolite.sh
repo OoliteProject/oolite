@@ -141,7 +141,7 @@ else
         ORIGINAL_CONF="/usr/local/etc/GNUstep/GNUstep.conf"
     fi
 
-    GNUSTEP_CONFIG_FILE=$(mktemp -t oolite_gnustep_XXXX --suffix=.conf)
+    export GNUSTEP_CONFIG_FILE=$(mktemp -t oolite_gnustep_XXXX --suffix=.conf)
     # Copy the original config (if it exists) to the temp file
     if [ -f "$ORIGINAL_CONF" ]; then
         cp "$ORIGINAL_CONF" "$GNUSTEP_CONFIG_FILE"

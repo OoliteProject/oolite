@@ -425,7 +425,7 @@ enum
 	NSUInteger			size = 0;
 	
 	rootPool = [[NSAutoreleasePool alloc] init];
-	[NSThread ooSetCurrentThreadName:@"OOLogOutputHandler.logger"];
+	[NSThread ooSetCurrentThreadName:@"loggerThread"];
 	
 	// Signal readiness
 	[messageQueue retain];

@@ -1,4 +1,14 @@
-#!/bin/bash
+#!/bin/bash -x
+#
+# Creates the windows installer using NSIS.
+# First parameter can be set to build type, typically one of "test", "dev" or omitted for release builds.
+# Accepts two verion variables:
+#   VER_FULL - the full version number Oolite is getting built with
+#   VER_NSIS - the numberical version number (x.x.x.x) that the NSIS installer is built with
+#
+
+echo I am $0 $@
+
 
 run_script() {
     # First parameter is a suffix for the build type eg. test, dev
@@ -32,6 +42,11 @@ run_script() {
        return 1
     fi
 
+    if [[ -z "${VER_NSIS}" ]]
+    then
+        export VER_NSIS=$VER_FULL;
+    fi
+
     # Passing arguments cause problems with some versions of NSIS.
     # Because of this, we generate them into a separate file and include them.
     echo "; Version Definitions for Oolite" > OoliteVersions.nsh
@@ -41,7 +56,8 @@ run_script() {
     echo "!define VER_REV ${VER_REV}" >> OoliteVersions.nsh
     echo "!define VER_GITREV ${VER_GITREV}" >> OoliteVersions.nsh
     echo "!define VER_GITHASH ${VER_GITHASH}" >> OoliteVersions.nsh
-    echo "!define VERSION ${VER_FULL}" >> OoliteVersions.nsh
+    echo "!define VERSION ${VER_NSIS}" >> OoliteVersions.nsh
+    echo "!define SEMVER ${SEMVER}" >> OoliteVersions.nsh
     echo "!define BUILDTIME \"${BUILDTIME}\"" >> OoliteVersions.nsh
     echo "!define BUILDHOST_IS64BIT 1" >> OoliteVersions.nsh
 

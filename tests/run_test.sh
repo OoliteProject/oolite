@@ -26,6 +26,9 @@ run_script() {
 
     if ! $PYTHON_CMD launch_snapshot.py --path=../oolite.app; then
         echo "❌ Oolite test failed!" >&2
+        echo "   If this is a windows build try creating a new release of the Windows dependencies in the GitHub UI here:" >&2
+        echo "   https://github.com/OoliteProject/oolite_windeps_build/releases" >&2
+        echo "   Then rerun this build." >&2
         return 1
     fi
 

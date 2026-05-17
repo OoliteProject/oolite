@@ -1,3 +1,14 @@
+## What is Oolite?
+
+Oolite is an open source Elite clone on steroids. While it can run just like the original but on modern computers it can also be vastly modified through Oolite Expansion Packs.
+
+- Homepage: https://oolite.space/
+- Wiki: https://wiki.alioth.net/index.php/Oolite_Main_Page
+- Forum: https://bb.oolite.space/
+- Documentation: https://oolite.readthedocs.io/
+
+## What does it look like?
+
 [![build-all](https://github.com/OoliteProject/oolite/actions/workflows/build-all.yaml/badge.svg)](https://github.com/OoliteProject/oolite/actions/workflows/build-all.yaml)
 
 [![GitHub release](https://img.shields.io/github/release/OoliteProject/Oolite.svg)](https://github.com/OoliteProject/Oolite/releases/latest)
