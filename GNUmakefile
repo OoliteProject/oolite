@@ -90,14 +90,11 @@ else
     endif
 
     ADDITIONAL_CFLAGS            += -ggdb3
-    ADDITIONAL_OBJCFLAGS         += -ggdb3
-    ADDITIONAL_CCFLAGS           += -ggdb3
     ADDITIONAL_LDFLAGS           += -ggdb3
 
-    ADDITIONAL_INCLUDE_DIRS      += -Isrc/SDL -Isrc/Core -Isrc/BSDCompat -Isrc/Core/Scripting -Isrc/Core/Materials -Isrc/Core/Entities -Isrc/Core/OXPVerifier -Isrc/Core/Debug -Isrc/Core/Tables -Isrc/Core/MiniZip
-    ADDITIONAL_OBJC_LIBS         += -lGLU -lGL -lX11 -lSDL3 -lgnustep-base -l$(LIBJS) -lopenal -lz -lvorbisfile -lpng `nspr-config --libs` -lstdc++
-    ADDITIONAL_OBJCFLAGS         += -DLINUX -DXP_UNIX `sdl-config --cflags`
-    ADDITIONAL_CFLAGS            += -DLINUX `sdl-config --cflags`
+    ADDITIONAL_INCLUDE_DIRS      += -Isrc/SDL -Isrc/Core -Isrc/BSDCompat -Isrc/Core/Scripting -Isrc/Core/Materials -Isrc/Core/Entities -Isrc/Core/OXPVerifier -Isrc/Core/Debug -Isrc/Core/Tables -Isrc/Core/MiniZip `pkg-config sdl3 --cflags-only-I`
+    ADDITIONAL_OBJC_LIBS         += -lstdc++ -lGLU -lGL -lX11 -lgnustep-base -lopenal -lz -lvorbisfile -lpng `pkg-config nspr --libs` `pkg-config sdl3 --libs` -l$(LIBJS)
+    ADDITIONAL_OBJCFLAGS         += -DLINUX -DXP_UNIX
     ADDITIONAL_LDFLAGS           += -Wl,-rpath,'$$ORIGIN'
 
     ifeq ($(ESPEAK),yes)
@@ -111,8 +108,6 @@ else
     endif
 
     ifeq ($(COMPILER_TYPE),gcc)
-        ADDITIONAL_OBJCFLAGS     += -std=gnu99 -Wall -Wno-import `nspr-config --cflags` -DLOADSAVEGUI
-        ADDITIONAL_CFLAGS        += -Wall `nspr-config --cflags` -DNEED_STRLCPY
         ADDITIONAL_LDFLAGS       += -fuse-ld=bfd
     else
         ADDITIONAL_LDFLAGS       += -fuse-ld=lld
