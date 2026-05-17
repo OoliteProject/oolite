@@ -12,14 +12,19 @@ jobs:
     steps:
       - name: Update Ubuntu
         run: |
-          sudo apt-get update
-          sudo apt-get install -y git
+          apt-get update
+          apt-get install -y git
+      - name: Pre-setup ownership
+        run: |
+          # This must run before the checkout action if the action tries to do git commands
+          mkdir -p "$GITHUB_WORKSPACE"
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: Install packages
         run: |
-          sudo ShellScripts/Linux/install_packages_root.sh
+          ShellScripts/Linux/install_packages_root.sh
       - name: Build GNUstep
         run: |
           ShellScripts/Linux/build_gnustep.sh system

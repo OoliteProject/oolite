@@ -3,10 +3,10 @@ runtime: org.freedesktop.Platform
 runtime-version: "25.08"
 sdk: org.freedesktop.Sdk
 sdk-extensions:
-  - org.freedesktop.Sdk.Extension.llvm21
+  - org.freedesktop.Sdk.Extension.llvm22
 build-options:
-  append-path: /usr/lib/sdk/llvm21/bin
-  prepend-ld-library-path: /usr/lib/sdk/llvm21/lib
+  append-path: /usr/lib/sdk/llvm22/bin
+  prepend-ld-library-path: /usr/lib/sdk/llvm22/lib
 command: run_oolite.sh
 finish-args:
   - --socket=wayland
@@ -22,7 +22,6 @@ cleanup:
   - "*.a"
   - "*.la"
 modules:
-  - shared-modules/SDL/sdl12-compat.json
   - name: pcaudiolib
     sources:
       - type: archive
