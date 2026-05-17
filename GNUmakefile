@@ -90,6 +90,7 @@ else
     endif
 
     ADDITIONAL_CFLAGS            += -ggdb3
+    ADDITIONAL_OBJCFLAGS         += -ggdb3
     ADDITIONAL_LDFLAGS           += -ggdb3
 
     ADDITIONAL_INCLUDE_DIRS      += -Isrc/SDL -Isrc/Core -Isrc/BSDCompat -Isrc/Core/Scripting -Isrc/Core/Materials -Isrc/Core/Entities -Isrc/Core/OXPVerifier -Isrc/Core/Debug -Isrc/Core/Tables -Isrc/Core/MiniZip `pkg-config sdl3 --cflags-only-I`
@@ -122,12 +123,10 @@ ifeq ($(lto),yes)
     ifeq ($(COMPILER_TYPE),clang)
         ADDITIONAL_CFLAGS        += -flto=thin
         ADDITIONAL_OBJCFLAGS     += -flto=thin
-        ADDITIONAL_CCFLAGS       += -flto=thin
         ADDITIONAL_LDFLAGS       += -flto=thin -Wl,--thinlto-cache-dir=build/thinlto_cache
     else
         ADDITIONAL_CFLAGS        += -flto=auto
         ADDITIONAL_OBJCFLAGS     += -flto=auto
-        ADDITIONAL_CCFLAGS       += -flto=auto
         ADDITIONAL_LDFLAGS       += -flto=auto
     endif
 endif
