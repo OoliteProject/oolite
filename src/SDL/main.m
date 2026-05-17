@@ -93,8 +93,14 @@ int main(int argc, char *argv[])
 	if (probeString)  *probeString = '\0'; // currentWorkingDir now contains the path we need
 
 	// Prepend system PATH env variable with our own executable's path
-	char pathEnvVar[] = "PATH";
-	const char *systemPath = SDL_getenv(pathEnvVar);
+	char *pathEnvVar = "Path";
+	SDL_Environment *environment = SDL_GetEnvironment();
+	char *systemPath = SDL_GetEnvironmentVariable(environment, pathEnvVar);
+	if (!systemPath)
+	{
+		pathEnvVar = "PATH";
+		systemPath = SDL_GetEnvironmentVariable(environment, pathEnvVar);
+	}
 	size_t currentWorkingDirLen = strlen(currentWorkingDir);
 	size_t systemPathLen = strlen(systemPath);
 	// the max possible length of the string below is systemPath plus the path
@@ -104,7 +110,6 @@ int main(int argc, char *argv[])
 	strcat(finalPath, ";");
 	strcat(finalPath, systemPath);
 
-	SDL_Environment *environment = SDL_GetEnvironment();
 	SDL_SetEnvironmentVariable(environment, "GNUSTEP_PATH_HANDLING", "windows", YES);
 	SDL_SetEnvironmentVariable(environment, pathEnvVar, finalPath, YES);
 	SDL_SetEnvironmentVariable(environment, "GNUSTEP_SYSTEM_ROOT", currentWorkingDir, YES);
