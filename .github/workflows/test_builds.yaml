@@ -42,6 +42,7 @@ jobs:
       - name: Build AppImage
         run: |
           ShellScripts/common/build_oolite.sh pkg-appimage-snapshot
+
   fedora:
     runs-on: ubuntu-latest
     container:
