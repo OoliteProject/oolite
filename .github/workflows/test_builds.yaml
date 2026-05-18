@@ -13,7 +13,7 @@ jobs:
       - name: Update Ubuntu
         run: |
           apt-get update
-          apt-get install -y git
+          apt-get install -y git curl ca-certificates
       - name: Pre-setup ownership
         run: |
           # This must run before the checkout action if the action tries to do git commands
