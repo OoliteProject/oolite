@@ -25,6 +25,12 @@ run_script() {
     fi
 
     if ! $PYTHON_CMD launch_snapshot.py --path=../oolite.app; then
+        ERROR_LOG="../oolite.app/xwfb_errors.log"
+        if [[ -f "$ERROR_LOG" ]]; then
+            echo "--- Found xwfb_errors.log ---"
+            cat "$ERROR_LOG"
+            echo "------------------------------"
+        fi
         echo "❌ Oolite test failed!" >&2
         echo "   If this is a windows build try creating a new release of the Windows dependencies in the GitHub UI here:" >&2
         echo "   https://github.com/OoliteProject/oolite_windeps_build/releases" >&2
