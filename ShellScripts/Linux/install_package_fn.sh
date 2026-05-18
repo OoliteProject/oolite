@@ -39,7 +39,7 @@ install_package() {
 
         "xwfb-run")
             case "$CURRENT_DISTRO" in
-                debian) PKG_NAME="xwayland-run weston libgl1-mesa-dri libglx-mesa0 adwaita-icon-theme" ;;
+                debian) PKG_NAME="xwayland-run weston xwayland" ;;
                 redhat) PKG_NAME="xwayland-run weston adwaita-icon-theme" ;;
                 arch) PKG_NAME="xwayland-run weston xorg-xwayland xorg-xauth libdisplay-info" ;;
             esac ;;
