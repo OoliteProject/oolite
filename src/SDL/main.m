@@ -94,12 +94,11 @@ int main(int argc, char *argv[])
 
 	// Prepend system PATH env variable with our own executable's path
 	char *pathEnvVar = "Path";
-	SDL_Environment *environment = SDL_GetEnvironment();
-	char *systemPath = SDL_GetEnvironmentVariable(environment, pathEnvVar);
+	const char *systemPath = SDL_getenv(pathEnvVar);
 	if (!systemPath)
 	{
 		pathEnvVar = "PATH";
-		systemPath = SDL_GetEnvironmentVariable(environment, pathEnvVar);
+		systemPath = SDL_getenv(pathEnvVar);
 	}
 	size_t currentWorkingDirLen = strlen(currentWorkingDir);
 	size_t systemPathLen = strlen(systemPath);
@@ -110,16 +109,16 @@ int main(int argc, char *argv[])
 	strcat(finalPath, ";");
 	strcat(finalPath, systemPath);
 
-	SDL_SetEnvironmentVariable(environment, "GNUSTEP_PATH_HANDLING", "windows", YES);
-	SDL_SetEnvironmentVariable(environment, pathEnvVar, finalPath, YES);
-	SDL_SetEnvironmentVariable(environment, "GNUSTEP_SYSTEM_ROOT", currentWorkingDir, YES);
-	SDL_SetEnvironmentVariable(environment, "GNUSTEP_LOCAL_ROOT", currentWorkingDir, YES);
-	SDL_SetEnvironmentVariable(environment, "GNUSTEP_NETWORK_ROOT", currentWorkingDir, YES);
-	SDL_SetEnvironmentVariable(environment, "GNUSTEP_USERS_ROOT", currentWorkingDir, YES);
+	SDL_setenv_unsafe("GNUSTEP_PATH_HANDLING", "windows", YES);
+	SDL_setenv_unsafe(pathEnvVar, finalPath, YES);
+	SDL_setenv_unsafe("GNUSTEP_SYSTEM_ROOT", currentWorkingDir, YES);
+	SDL_setenv_unsafe("GNUSTEP_LOCAL_ROOT", currentWorkingDir, YES);
+	SDL_setenv_unsafe("GNUSTEP_NETWORK_ROOT", currentWorkingDir, YES);
+	SDL_setenv_unsafe("GNUSTEP_USERS_ROOT", currentWorkingDir, YES);
 #if OO_GAME_DATA_TO_USER_FOLDER
-	SDL_SetEnvironmentVariable(environment, "HOMEPATH", strcat(SDL_getenv("LOCALAPPDATA"), "\\Oolite\\oolite.app"), YES);
+	SDL_setenv_unsafe("HOMEPATH", strcat(SDL_getenv("LOCALAPPDATA"), "\\Oolite\\oolite.app"), YES);
 #else
-	SDL_SetEnvironmentVariable(environment, "HOMEPATH", currentWorkingDir, YES);
+	SDL_setenv_unsafe("HOMEPATH", currentWorkingDir, YES);
 #endif
 
 	SetCurrentDirectory(currentWorkingDir);
