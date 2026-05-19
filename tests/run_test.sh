@@ -24,9 +24,6 @@ run_script() {
         fi
     fi
 
-    glxinfo -B        # confirms software renderer is actually active
-    ldconfig -p | grep -E "gbm|egl|gl"   # confirms libs are present
-
     if ! $PYTHON_CMD launch_snapshot.py --path=../oolite.app; then
         ERROR_LOG="../oolite.app/xwfb_errors.log"
         if [[ -f "$ERROR_LOG" ]]; then
