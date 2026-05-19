@@ -31,12 +31,6 @@ run_script() {
             cat "$ERROR_LOG"
             echo "------------------------------"
         fi >&2
-        WESTON_LOG="../oolite.app/weston_debug.log"
-        if [[ -f "$WESTON_LOG" ]]; then
-            echo "--- Found weston_debug.log ---"
-            cat "$WESTON_LOG"
-            echo "------------------------------"
-        fi >&2
         echo "❌ Oolite test failed!" >&2
         echo "   If this is a windows build try creating a new release of the Windows dependencies in the GitHub UI here:" >&2
         echo "   https://github.com/OoliteProject/oolite_windeps_build/releases" >&2
