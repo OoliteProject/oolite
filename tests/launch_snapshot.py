@@ -99,7 +99,7 @@ def run_test(bin_name, snapshots_dir):
     if IS_WINDOWS:
         cmd = [f"./{bin_name}", "--no-splash"]
     else:
-        cmd = ["xwfb-run", "-e", "./xwfb_errors.log", "-z=--logger-scopes=log,proto,xwm-wm-x11", "-s=-verbose", "--", f"./{bin_name}", "--no-splash"]
+        cmd = ["xwfb-run", "-e", "./xwfb_errors.log", "-z", "\\\\--logger-scopes=log,proto,xwm-wm-x11", "-s", "\\\\-verbose", "--", f"./{bin_name}", "--no-splash"]
 
     print(f"[*] Executing: {' '.join(cmd)}")
     proc = subprocess.Popen(
