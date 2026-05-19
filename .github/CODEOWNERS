@@ -1,4 +1,4 @@
 # Require specific reviewers for any changes to GitHub Actions workflows
 # https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
 
-/.github/workflows/ @oocube @mcarans @phkb
+/.github/ @oocube @mcarans @phkb
