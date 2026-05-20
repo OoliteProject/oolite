@@ -12,8 +12,10 @@ jobs:
     steps:
       - name: Update Ubuntu
         run: |
-          apt-get update
-          apt-get install -y git curl ca-certificates
+          apt update          
+          apt install -y software-properties-common git curl ca-certificates
+          add-apt-repository universe
+          apt update
       - name: Pre-setup ownership
         run: |
           # This must run before the checkout action if the action tries to do git commands
