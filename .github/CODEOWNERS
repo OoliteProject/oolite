@@ -1,4 +1,10 @@
 # Require specific reviewers for any changes to GitHub Actions workflows
 # https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
 
+# 1. Default owners for everything
+* @oocube @mcarans @phkb @mwerle @Kaks @AnotherCommander @ericwalch @dsalt @cim-- @KonstantinosSykas @kanthoney @jobi-wan
+
+# 2. Secure our workflows
 /.github/ @oocube @mcarans @phkb
+/installers/ @oocube @mcarans @phkb
+/ShellScripts/ @oocube @mcarans @phkb
