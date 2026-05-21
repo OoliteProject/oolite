@@ -1,15 +1,10 @@
 #!/bin/bash
 # Processes Oolite data files after compilation
 
-output_logs() {
+output_log() {
     if [[ -f "$1" ]]; then
-        echo "--- xwfb_output.log ---"
-        cat "$1"
-        echo "-----------------------"
-    fi
-    if [[ -f "$2" ]]; then
         echo "--- Latest.log ---"
-        cat "$2"
+        cat "$1"
         echo "------------------------------"
     fi
 }
@@ -27,7 +22,7 @@ run_script() {
     local SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
     pushd "$SCRIPT_DIR"
 
-    local TARGET_DIR="../oolite.app"
+    local TARGET_DIR=$(readlink -f "../oolite.app")
     if [[ -n "$MSYSTEM" ]]; then
         local MESA_DLL="${MSYSTEM_PREFIX}/bin/opengl32.dll"
 
@@ -37,21 +32,20 @@ run_script() {
         fi
     fi
 
-    local LOGS_DIR="$TARGET_DIR/logs"
-    rm -rf "$LOGS_DIR"
-    mkdir -p "$LOGS_DIR"
-    local XWFB_LOG="$LOGS_DIR/xwfb_output.log"
-    local OOLITE_LOG="$LOGS_DIR/Latest.log"
+    local TEST_OUTPUT="$TARGET_DIR/test_output"
+    rm -rf "$TEST_OUTPUT"
+    mkdir -p "$TEST_OUTPUT"
+    local OOLITE_LOG="$TEST_OUTPUT/Latest.log"
 
-    if ! $PYTHON_CMD launch_snapshot.py --path="$TARGET_DIR"; then
-        output_logs "$XWFB_LOG" "$OOLITE_LOG"
+    if ! $PYTHON_CMD launch_snapshot.py --path="$TARGET_DIR" --test_output="$TEST_OUTPUT"; then
+        output_log "$OOLITE_LOG"
         echo "❌ Oolite test failed!" >&2
         echo "   If this is a windows build try creating a new release of the Windows dependencies in the GitHub UI here:" >&2
         echo "   https://github.com/OoliteProject/oolite_windeps_build/releases" >&2
         echo "   Then rerun this build." >&2
         return 1
     fi
-    output_logs "$XWFB_LOG" "$OOLITE_LOG"
+    output_log "$OOLITE_LOG"
 
     echo "✅ Oolite test completed successfully"
     popd
