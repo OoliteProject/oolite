@@ -25,10 +25,20 @@ run_script() {
     local TARGET_DIR=$(readlink -f "../oolite.app")
     if [[ -n "$MSYSTEM" ]]; then
         local MESA_DLL="${MSYSTEM_PREFIX}/bin/opengl32.dll"
+        local EGL_DLL="${MSYSTEM_PREFIX}/bin/libEGL.dll"
+        local GLES_DLL="${MSYSTEM_PREFIX}/bin/libGLESv2.dll"
 
+        # 1. Keep your core Mesa software driver
         if [[ -f "$MESA_DLL" ]]; then
-            echo "📦 Found $MSYSTEM Mesa driver at $MESA_DLL"
+            echo "📦 Copying $MSYSTEM Mesa driver at $MESA_DLL"
             cp "$MESA_DLL" "$TARGET_DIR/"
+        fi
+
+        # 2. Add the EGL interface libraries required by SDL's offscreen mode
+        if [[ -f "$EGL_DLL" && -f "$GLES_DLL" ]]; then
+            echo "📦 Copying $MSYSTEM EGL/GLESv2 libraries for SDL offscreen support"
+            cp "$EGL_DLL" "$TARGET_DIR/"
+            cp "$GLES_DLL" "$TARGET_DIR/"
         fi
     fi
 
