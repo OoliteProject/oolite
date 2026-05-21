@@ -42,7 +42,6 @@ run_script() {
     pacboy -S uutils-coreutils --noconfirm
     pacboy -S python-pip --noconfirm
     pacboy -S mesa --noconfirm
-    pacboy -S angleproject --noconfirm
     pacboy -S sdl3 --noconfirm
 
     cd ../../build/packages

@@ -89,7 +89,8 @@ def run_test(bin_name, test_output):
 
     # Environment configuration for pure headless software offscreen rendering
     env = os.environ.copy()
-    env["SDL_VIDEODRIVER"] = "offscreen"
+    if not IS_WINDOWS:
+        env["SDL_VIDEODRIVER"] = "offscreen"
     env["LIBGL_ALWAYS_SOFTWARE"] = "1"
     env["GALLIUM_DRIVER"] = "llvmpipe"
     env["SDL_AUDIODRIVER"] = "dummy"
