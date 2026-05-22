@@ -17,6 +17,12 @@ run_script() {
     cd build
     cp ../installers/flatpak/space.oolite.Oolite.* ./
 
+    mkdir -p shared-modules/glu
+    if ! curl -o shared-modules/glu/glu-9.json -L https://github.com/flathub/shared-modules/raw/refs/heads/master/glu/glu-9.json; then
+        echo "❌ Flatpak download of glu shared module failed!" >&2
+        return 1
+    fi
+
     local MANIFEST="space.oolite.Oolite.yaml"
 
     if [ -n "${SEMVER}" ] && [ -n "${PROJECTNAME}" ]; then
