@@ -20,9 +20,8 @@ run_script() {
     local MANIFEST="space.oolite.Oolite.yaml"
 
     if [ -n "${SEMVER}" ] && [ -n "${PROJECTNAME}" ]; then
-        # Define the multi-line env block, paying close attention to YAML indentation.
-        ENV_BLOCK="      env:\n        SEMVER: \"$SEMVER\"\n        PROJECTNAME: \"$PROJECTNAME\"\n        VERSION: \"$SEMVER\""
-        # Swap out the anchor comment line with the raw block
+        ENV_BLOCK="env:\n        SEMVER: \"$SEMVER\"\n        PROJECTNAME: \"$PROJECTNAME\"\n        VERSION: \"$SEMVER\""
+        # Swap the comment
         sed -i "s|#[[:space:]]*CI builds add an env block here|$ENV_BLOCK|g" "$MANIFEST" || return 1
     fi
 
