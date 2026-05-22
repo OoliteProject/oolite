@@ -94,6 +94,7 @@ modules:
     buildsystem: simple
     build-options:
       no-debuginfo: true
+      # CI builds add an env block here
     build-commands:
       - source installers/flatpak/flatpak_build.sh
     sources:
