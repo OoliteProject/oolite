@@ -243,9 +243,12 @@ enum PreferredAppMode
 	[OOSound setUp];
 	if (![OOSound isSoundOK])  OOLog(@"sound.init", @"%@", @"Sound system disabled.");
 
-	// Generate the window caption, containing the version number and the date the executable was compiled.
 	static char windowCaption[128];
-	NSString *versionString = [NSString stringWithFormat:@"Oolite v%@", [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"]];
+	// Generate the window caption, containing the version number and the date the executable was compiled.
+	//NSString *versionString = [NSString stringWithFormat:@"Oolite v%@", [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"]];
+
+	// Generate the window caption, containing the full version number.
+	NSString *versionString = @"Oolite v" @OO_VERSION_FULL;
 
 	strcpy (windowCaption, [versionString UTF8String]);
 	strcat(windowCaption, " - ");
