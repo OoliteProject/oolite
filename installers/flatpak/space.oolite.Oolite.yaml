@@ -3,10 +3,10 @@ runtime: org.freedesktop.Platform
 runtime-version: "25.08"
 sdk: org.freedesktop.Sdk
 sdk-extensions:
-  - org.freedesktop.Sdk.Extension.llvm21
+  - org.freedesktop.Sdk.Extension.llvm22
 build-options:
-  append-path: /usr/lib/sdk/llvm21/bin
-  prepend-ld-library-path: /usr/lib/sdk/llvm21/lib
+  append-path: /usr/lib/sdk/llvm22/bin
+  prepend-ld-library-path: /usr/lib/sdk/llvm22/lib
 command: run_oolite.sh
 finish-args:
   - --socket=wayland
@@ -22,7 +22,7 @@ cleanup:
   - "*.a"
   - "*.la"
 modules:
-  - shared-modules/SDL/sdl12-compat.json
+  - shared-modules/glu/glu-9.json
   - name: pcaudiolib
     sources:
       - type: archive
@@ -91,10 +91,25 @@ modules:
       - type: archive
         url: https://github.com/OoliteProject/mozillajs-linux/releases/download/0.0.1/mozilla-js-static-lib.tar.gz
         sha256: ac8c18b4655e4798d348eb300201e46aa1574dfc683041f41e2b87f50ae72346
+  - name: sdl3
+    buildsystem: cmake-ninja
+    build-options:
+      env:
+        CC: clang
+        CXX: clang++
+    config-opts:
+      - -DCMAKE_BUILD_TYPE=Release
+      - -DSDL_STATIC=OFF
+      - -DSDL_TEST_LIBRARY=OFF
+    sources:
+      - type: git
+        url: https://github.com/libsdl-org/SDL.git
+        tag: release-3.4.8
   - name: oolite
     buildsystem: simple
     build-options:
       no-debuginfo: true
+      # CI builds add an env block here
     build-commands:
       - source installers/flatpak/flatpak_build.sh
     sources:

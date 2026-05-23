@@ -22,21 +22,13 @@ run_script() {
         echo "❌ Flatpak download of glu shared module failed!" >&2
         return 1
     fi
-    mkdir -p shared-modules/SDL
-    if ! curl -o shared-modules/SDL/sdl12-compat.json -L https://github.com/flathub/shared-modules/raw/refs/heads/master/SDL/sdl12-compat.json; then
-        echo "❌ Flatpak download of SDL shared module failed!" >&2
-        return 1
-    fi
-    if ! curl -o shared-modules/SDL/sdl12-compat-cmake-version.patch -L https://github.com/flathub/shared-modules/raw/refs/heads/master/SDL/sdl12-compat-cmake-version.patch; then
-        echo "❌ Flatpak download of SDL cmake patch failed!" >&2
-        return 1
-    fi
 
     local MANIFEST="space.oolite.Oolite.yaml"
 
     if [ -n "${SEMVER}" ] && [ -n "${PROJECTNAME}" ]; then
-        # patch manifest
-        sed -i "97a \      env:\n        SEMVER: $SEMVER\n        PROJECTNAME: $PROJECTNAME\n        VERSION: $SEMVER" $MANIFEST || return 1
+        ENV_BLOCK="env:\n        SEMVER: \"$SEMVER\"\n        PROJECTNAME: \"$PROJECTNAME\"\n        VERSION: \"$SEMVER\""
+        # Swap the comment
+        sed -i "s|#[[:space:]]*CI builds add an env block here|$ENV_BLOCK|g" "$MANIFEST" || return 1
     fi
 
     # check manifest
