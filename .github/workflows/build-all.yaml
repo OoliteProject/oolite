@@ -155,6 +155,7 @@ jobs:
         uses: msys2/setup-msys2@v2
         with:
           update: true
+          cache: false
       - name: Checkout Oolite
         uses: actions/checkout@v6
         with:
