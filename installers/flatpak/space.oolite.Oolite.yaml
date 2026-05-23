@@ -91,6 +91,20 @@ modules:
       - type: archive
         url: https://github.com/OoliteProject/mozillajs-linux/releases/download/0.0.1/mozilla-js-static-lib.tar.gz
         sha256: ac8c18b4655e4798d348eb300201e46aa1574dfc683041f41e2b87f50ae72346
+  - name: sdl3
+    buildsystem: cmake-ninja
+    build-options:
+      env:
+        CC: clang
+        CXX: clang++
+    config-opts:
+      - -DCMAKE_BUILD_TYPE=Release
+      - -DSDL_STATIC=OFF
+      - -DSDL_TEST_LIBRARY=OFF
+    sources:
+      - type: git
+        url: https://github.com/libsdl-org/SDL.git
+        tag: release-3.4.8
   - name: oolite
     buildsystem: simple
     build-options:
