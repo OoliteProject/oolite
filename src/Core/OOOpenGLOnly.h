@@ -55,10 +55,11 @@ MA 02110-1301, USA.
 #endif	// OOLITE_LINUX && !OOLITE_WINDOWS
 
 // the standard SDL_opengl.h
-#include <SDL_opengl.h>
+#include <SDL3/SDL_opengl.h>
 
 // include an up-to-date version of glext.h
 #include <GL/glext.h>
+#include <GL/glu.h>
 
 #ifdef __DEFINED_GL_GLEXT_PROTOTYPES
 #undef GL_GLEXT_PROTOTYPES

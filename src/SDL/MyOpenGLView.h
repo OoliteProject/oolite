@@ -28,7 +28,7 @@ MA 02110-1301, USA.
 #import "OOOpenGLMatrixManager.h"
 
 
-#include <SDL.h>
+#include <SDL3/SDL.h>
 
 #define WINDOW_SIZE_DEFAULT_WIDTH	1280
 #define WINDOW_SIZE_DEFAULT_HEIGHT	720
@@ -179,7 +179,7 @@ extern int debug;
 	BOOL				suppressKeys;    // DJS
 
 	BOOL				opt, ctrl, command, shift, lastKeyShifted;
-	BOOL				allowingStringInput;
+	enum StringInput	allowingStringInput;
 	BOOL				isAlphabetKeyDown;
 
 	int					keycodetrans[255];
@@ -206,7 +206,6 @@ extern int debug;
     double				squareX,squareY;
 	NSRect				bounds;
 
-	float				_gamma;
 	float				_fov;
 	BOOL				_msaa;
 
@@ -217,9 +216,13 @@ extern int debug;
 
 	// Windowed mode
 	NSSize				currentWindowSize;
-	SDL_Surface			*surface;
 
 	BOOL				showSplashScreen;
+	SDL_Window			*splashWindow;
+	SDL_Window			*window;
+	SDL_GLContext			glContext;
+	int				bitsPerColorComponent;
+	BOOL				vSyncPreference;
 
 #if OOLITE_WINDOWS
 
@@ -228,7 +231,7 @@ extern int debug;
 	BOOL				saveSize;
 	BOOL				atDesktopResolution;
 	unsigned			keyboardMap; // *** FLAGGED for deletion
-	HWND 				SDL_Window;
+	HWND 				windowHandle;
 	MONITORINFOEX		monitorInfo;
 	RECT				lastGoodRect;
 	float				_hdrMaxBrightness;
@@ -261,6 +264,8 @@ extern int debug;
  */
 - (id) init;
 
+- (NSString*) getWindowCaption;
+- (void) createWindowWithSize: (NSSize) size;
 - (void) initSplashScreen;
 - (void) endSplashScreen;
 - (void) autoShowMouse;
@@ -318,12 +323,10 @@ extern int debug;
 - (void) display;
 
 - (BOOL) snapShot:(NSString *)filename;
-#if SNAPSHOTS_PNG_FORMAT
-- (BOOL) pngSaveSurface:(NSString *)fileName withSurface:(SDL_Surface *)surf;
-#endif
 
 - (NSRect) bounds;
-+ (NSMutableDictionary *) getNativeSize;
+- (SDL_DisplayID) getDisplayId;
+- (NSMutableDictionary *) getNativeSize;
 
 - (void) setFullScreenMode:(BOOL)fsm;
 - (BOOL) inFullScreenMode;
@@ -341,6 +344,7 @@ extern int debug;
 - (int) findDisplayModeForWidth: (unsigned int) d_width Height:(unsigned int) d_height
                         Refresh: (unsigned int)d_refresh;
 - (NSSize) currentScreenSize;
+- (NSDictionary*) currentScreenMode;
 
 - (void) pollControls;
 
@@ -371,9 +375,6 @@ extern int debug;
 - (void) clearCommandF;
 
 - (void) setMouseInDeltaMode: (BOOL) inDelta;
-
-- (void) setGammaValue: (float) value;
-- (float) gammaValue;
 
 - (void) setFov:(float)value fromFraction:(BOOL)fromFraction;
 - (float) fov:(BOOL)inFraction;

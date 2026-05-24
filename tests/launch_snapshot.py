@@ -77,7 +77,7 @@ def receive_plist_packet(sock):
         return None
 
 
-def run_test(bin_name, snapshots_dir):
+def run_test(bin_name, test_output):
     # Setup TCP Server
     server_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -87,19 +87,20 @@ def run_test(bin_name, snapshots_dir):
 
     print(f"[*] Console server listening on {PORT}")
 
-    # Environment configuration for headless snapshotting
+    # Environment configuration for pure headless software offscreen rendering
     env = os.environ.copy()
+    if not IS_WINDOWS:
+        env["SDL_VIDEODRIVER"] = "offscreen"
     env["LIBGL_ALWAYS_SOFTWARE"] = "1"
     env["GALLIUM_DRIVER"] = "llvmpipe"
     env["SDL_AUDIODRIVER"] = "dummy"
-    env["ALSOFT_DRIVERS"] = "null"
-    env["OO_SNAPSHOTSDIR"] = snapshots_dir
 
-    # Launch Oolite
-    if IS_WINDOWS:
-        cmd = [f"./{bin_name}", "--no-splash"]
-    else:
-        cmd = ["xwfb-run", "--", f"./{bin_name}", "--no-splash"]
+    env["ALSOFT_DRIVERS"] = "null"
+    env["OO_SNAPSHOTSDIR"] = test_output
+
+    env["OO_LOGSDIR"] = test_output
+
+    cmd = [f"./{bin_name}", "--no-splash"]
 
     print(f"[*] Executing: {' '.join(cmd)}")
     proc = subprocess.Popen(
@@ -125,9 +126,7 @@ def run_test(bin_name, snapshots_dir):
             print("[!] Failure: Oolite failed to connect.")
             return False
 
-        # 2. THE HANDSHAKE from:
-        # https://github.com/OoliteProject/oolite-debug-console/blob/master/ooliteConsoleServer/OoliteDebugConsoleProtocol.py
-        # Wait for 'Request Connection' from Oolite
+        # 2. THE HANDSHAKE
         pkt = receive_plist_packet(conn)
 
         if pkt and pkt.get(PACKET_TYPE_KEY) == REQUEST_CONNECTION:
@@ -149,8 +148,7 @@ def run_test(bin_name, snapshots_dir):
         # Allow time for engine state transition
         time.sleep(5)
 
-        # 3. THE COMMAND (Using Perform Command packet type)
-        # Combines snapshot and quit into one execution string
+        # 3. THE COMMAND
         print("[*] Requesting snapshot and quit...")
         cmd_packet = {
             PACKET_TYPE_KEY: PERFORM_COMMAND,
@@ -164,9 +162,9 @@ def run_test(bin_name, snapshots_dir):
             proc.wait(timeout=15)
 
             # 5. VERIFY OUTPUT
-            snaps = [f for f in os.listdir(snapshots_dir) if f.endswith(".png")]
+            snaps = [f for f in os.listdir(test_output) if f.endswith(".png")]
             if snaps:
-                snap_path = os.path.join(snapshots_dir, snaps[0])
+                snap_path = os.path.join(test_output, snaps[0])
                 file_size_kb = os.path.getsize(snap_path) // 1024
                 print(f"[*] Captured {snap_path} ({file_size_kb} KB)")
 
@@ -197,7 +195,10 @@ def run_test(bin_name, snapshots_dir):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Oolite Automation Tester")
     parser.add_argument(
-        "--path", default="./", help="Path to the Oolite directory (default: ./)"
+        "--path", default="./oolite.app", help="Path to the Oolite directory (default: ./oolite.app)"
+    )
+    parser.add_argument(
+        "--test_output", default="./oolite.app/test_output", help="Path to test output (default: ./oolite.app/test_output)"
     )
     args = parser.parse_args()
 
@@ -211,17 +212,13 @@ if __name__ == "__main__":
         bin_name = os.path.basename(target_dir)
         target_dir = os.path.dirname(target_dir)
 
-    # Use a temporary directory for snapshots relative to the current CWD
-    # before we jump into the Oolite folder.
-    temp_snap_dir = tempfile.mkdtemp(prefix="oolite_snapshot_")
-
     success = False
     try:
         print(f"[*] Moving to {target_dir}")
         os.chdir(target_dir)
 
         # Run the test from within the Oolite directory
-        success = run_test(bin_name, temp_snap_dir)
+        success = run_test(bin_name, args.test_output)
 
     except Exception as e:
         print(f"[!] Critical Error: {e}")
@@ -229,8 +226,5 @@ if __name__ == "__main__":
         # ALWAYS return to the original path
         os.chdir(original_cwd)
         print(f"[*] Returned to {original_cwd}")
-
-        # Cleanup snapshots
-        shutil.rmtree(temp_snap_dir)
 
     sys.exit(0 if success else 1)

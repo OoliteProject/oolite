@@ -8992,14 +8992,6 @@ static NSString *SliderString(NSInteger amountIn20ths)
 			[gui setColor:[OOColor grayColor] forRow:GUI_ROW(GAME,VOLUME)];
 		}
 		
-#if OOLITE_SDL		
-		// gamma control
-		float gamma = [gameView gammaValue];
-		int gamma5 = (gamma * 5);
-		NSString* gammaWordDesc = DESC(@"gameoptions-gamma-value");
-		[gui setText:[NSString stringWithFormat:@"%@%@ (%.1f) ", gammaWordDesc, SliderString(gamma5), gamma] forRow:GUI_ROW(GAME,GAMMA) align:GUI_ALIGN_CENTER];
-		[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,GAMMA)];
-#endif
 
 		// field of view control
 		float fov = [gameView fov:NO];

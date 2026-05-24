@@ -34,7 +34,11 @@ dep_location() {
     case "$_mode" in
         "system")
             _target_ref="/usr/local"
-            _esc_ref="$_escalate_cmd"
+            if [[ $EUID -eq 0 ]]; then
+                _esc_ref=""
+            else
+                _esc_ref="$_escalate_cmd"
+            fi
             ;;
         "home")
             _target_ref="$HOME/.local"

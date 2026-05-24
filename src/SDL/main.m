@@ -34,7 +34,8 @@ MA 02110-1301, USA.
 
 #if OOLITE_WINDOWS
 #include <locale.h>
-#include <SDL.h>
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_main.h>
 // Make sure that a high performance GPU is
 // selected, if more than one are available
 __declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
@@ -92,41 +93,36 @@ int main(int argc, char *argv[])
 	if (probeString)  *probeString = '\0'; // currentWorkingDir now contains the path we need
 
 	// Prepend system PATH env variable with our own executable's path
-	char pathEnvVar[] = "PATH";
-	char *systemPath = SDL_getenv(pathEnvVar);
+	char *pathEnvVar = "Path";
+	const char *systemPath = SDL_getenv(pathEnvVar);
+	if (!systemPath)
+	{
+		pathEnvVar = "PATH";
+		systemPath = SDL_getenv(pathEnvVar);
+	}
 	size_t currentWorkingDirLen = strlen(currentWorkingDir);
 	size_t systemPathLen = strlen(systemPath);
 	// the max possible length of the string below is systemPath plus the path
 	// we have determined for us, plus one char for the ";" and one char for the null terminator
 	char *finalPath = malloc(systemPathLen + currentWorkingDirLen + 2 * sizeof(char));
-	// the max possible length of the string below is systemPath plus the path we have
-	// determined for us, plus one char for the ";", plus the string "PATH", plus one char for the
-	// "=" of the final string that will be passed on to SDL_putenv and one char for the null terminator
-	char *envVarString = malloc(systemPathLen + currentWorkingDirLen + strlen(pathEnvVar) + 3 * sizeof(char));
 	strcpy(finalPath, currentWorkingDir);
 	strcat(finalPath, ";");
 	strcat(finalPath, systemPath);
 
-	#define SETENVVAR(var, value) do {\
-			sprintf(envVarString, "%s=%s", (var), (value));\
-			SDL_putenv (envVarString);\
-			} while (0);
-
-	SETENVVAR("GNUSTEP_PATH_HANDLING", "windows");
-	SETENVVAR(pathEnvVar, finalPath);
-	SETENVVAR("GNUSTEP_SYSTEM_ROOT", currentWorkingDir);
-	SETENVVAR("GNUSTEP_LOCAL_ROOT", currentWorkingDir);
-	SETENVVAR("GNUSTEP_NETWORK_ROOT", currentWorkingDir);
-	SETENVVAR("GNUSTEP_USERS_ROOT", currentWorkingDir);
+	SDL_setenv_unsafe("GNUSTEP_PATH_HANDLING", "windows", YES);
+	SDL_setenv_unsafe(pathEnvVar, finalPath, YES);
+	SDL_setenv_unsafe("GNUSTEP_SYSTEM_ROOT", currentWorkingDir, YES);
+	SDL_setenv_unsafe("GNUSTEP_LOCAL_ROOT", currentWorkingDir, YES);
+	SDL_setenv_unsafe("GNUSTEP_NETWORK_ROOT", currentWorkingDir, YES);
+	SDL_setenv_unsafe("GNUSTEP_USERS_ROOT", currentWorkingDir, YES);
 #if OO_GAME_DATA_TO_USER_FOLDER
-	SETENVVAR("HOMEPATH", strcat(SDL_getenv("LOCALAPPDATA"), "\\Oolite\\oolite.app"));
+	SDL_setenv_unsafe("HOMEPATH", strcat(SDL_getenv("LOCALAPPDATA"), "\\Oolite\\oolite.app"), YES);
 #else
-	SETENVVAR("HOMEPATH", currentWorkingDir);
+	SDL_setenv_unsafe("HOMEPATH", currentWorkingDir, YES);
 #endif
 
 	SetCurrentDirectory(currentWorkingDir);
 
-	free(envVarString);
 	free(finalPath);
 
 	/*	Windows amibtiously starts apps with the C library locale set to the
