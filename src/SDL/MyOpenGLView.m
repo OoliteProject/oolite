@@ -2212,7 +2212,6 @@ finished:
 				key_id = SDL_GetKeyFromScancode(kbd_event->scancode, kbd_event->mod, NO);
 				scan_code = kbd_event->scancode;
 
-				OOLog(@"KJA.keydown1", @"Keydown scancode = %d, unicode = %i, key = %i, shift = %d, ctrl = %d, alt = %d", scan_code, key_id, kbd_event->key, shift, ctrl, opt);
 				//char *keychar = SDL_GetKeyName(kbd_event->keysym.sym);
 				// deal with modifiers first
 				BOOL modifier_pressed = NO;
@@ -2330,7 +2329,7 @@ finished:
 					[self handleStringInput:kbd_event keyID:key_id];
 				}
 
-				//OOLog(kOOLogKeyDown, @"Keydown scancode = %d, unicode = %i", kbd_event->keysym.scancode, key_id);
+				OOLog(kOOLogKeyDown, @"Keydown scancode = %d, unicode = %i", scan_code, key_id);
 
 				if (key_id > 0 && key_id <= [self numKeys]) 
 				{
@@ -2338,7 +2337,7 @@ finished:
 				}
 				else 
 				{
-					//OOLog(@"keys.test", @"Unhandled Keydown scancode/unicode: %d %i", scan_code, key_id);
+					OOLog(@"keys.test", @"Unhandled Keydown scancode/unicode: %d %i", scan_code, key_id);
 				}
 				break;
 
