@@ -224,10 +224,18 @@ extern PFNGLVALIDATEPROGRAMARBPROC				glValidateProgramARB;
 
 
 #if OO_SHADERS || OO_MULTITEXTURE
+// The SDL3/SDL_opengl.h header file declares glActiveTextureARB symbols as a function, not a function pointer, which means that if we
+// try to declare or set glActiveTextureARB we get compiler errors. StackOverflow AI suggests we either use GLEW or we use a declare a different
+// name for the symbol. As there are currently only three symbols with this problem, I've gone for the latter approach, creating a macro
+// so we can stull use glActiveTexture in the code
+// -- kanthoney 2026-05-04 
+#define glActiveTextureARB glActiveTextureARBPtr
 extern PFNGLACTIVETEXTUREARBPROC				glActiveTextureARB;
 #endif
 
 #if OO_MULTITEXTURE
+// See note for glActiveTextureARB
+#define glClientActiveTextureARB glClientActiveTextureARBPtr
 extern PFNGLCLIENTACTIVETEXTUREARBPROC			glClientActiveTextureARB;
 #endif
 
@@ -266,6 +274,8 @@ extern PFNGLENABLEVERTEXATTRIBARRAYPROC		glEnableVertexAttribArray;
 extern PFNGLUSEPROGRAMPROC						glUseProgram;
 extern PFNGLGETUNIFORMLOCATIONPROC				glGetUniformLocation;
 extern PFNGLUNIFORM1IPROC						glUniform1i;
+// See note for glActiveTextureARB
+#define glActiveTexture glActiveTexturePtr
 extern PFNGLACTIVETEXTUREPROC					glActiveTexture;
 extern PFNGLBLENDFUNCSEPARATEPROC				glBlendFuncSeparate;
 extern PFNGLUNIFORM1FPROC						glUniform1f;

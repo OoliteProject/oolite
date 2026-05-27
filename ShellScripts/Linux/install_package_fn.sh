@@ -37,13 +37,6 @@ install_package() {
                 arch) PKG_NAME="python-pip" ;;
             esac ;;
 
-        "xwfb-run")
-            case "$CURRENT_DISTRO" in
-                debian) PKG_NAME="xwayland-run weston" ;;
-                redhat) PKG_NAME="xwayland-run weston adwaita-icon-theme" ;;
-                arch) PKG_NAME="xwayland-run weston xorg-xwayland xorg-xauth libdisplay-info" ;;
-            esac ;;
-
         "icu-dev")
             case "$CURRENT_DISTRO" in
                 debian) PKG_NAME="libicu-dev" ;;
@@ -121,11 +114,11 @@ install_package() {
                 arch) PKG_NAME="glu" ;;
             esac ;;
 
-        "sdl12-compat")
+	"sdl3")
             case "$CURRENT_DISTRO" in
-                debian) PKG_NAME="libsdl1.2-compat-dev" ;;
-                redhat) PKG_NAME="sdl12-compat-devel" ;;
-                arch) PKG_NAME="sdl12-compat" ;;
+                debian) PKG_NAME="libsdl3-dev" ;;
+                redhat) PKG_NAME="SDL3-devel" ;;
+		arch) PKG_NAME="sdl3";
             esac ;;
 
         "x11-dev")

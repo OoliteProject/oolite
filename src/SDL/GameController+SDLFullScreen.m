@@ -59,10 +59,20 @@ MA 02110-1301, USA.
 			continue;
 		[displayModes addObject: mode];
 	}
-	
-	NSSize fsmSize = [gameView currentScreenSize];
-	width = fsmSize.width;
-	height = fsmSize.height;
+
+	NSDictionary *currentMode = [gameView currentScreenMode];
+	if (currentMode)
+	{
+		width = [[currentMode objectForKey: kOODisplayWidth] intValue];
+		height = [[currentMode objectForKey: kOODisplayHeight] intValue];
+		refresh = [[currentMode objectForKey: kOODisplayRefreshRate] intValue];
+	}
+	else
+	{
+		NSSize fsmSize = [gameView currentScreenSize];
+		width = fsmSize.width;
+		height = fsmSize.height;
+	}
 }
 
 

@@ -11,17 +11,24 @@ concurrency:
 jobs:
   ubuntu:
     runs-on: ubuntu-latest
+    container:
+      image: ubuntu:26.04
     steps:
       - name: Update Ubuntu
         run: |
-          sudo apt-get update
-          sudo apt-get install -y git
+          apt update          
+          apt install -y git curl ca-certificates
+      - name: Pre-setup ownership
+        run: |
+          # This must run before the checkout action if the action tries to do git commands
+          mkdir -p "$GITHUB_WORKSPACE"
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: Install packages
         run: |
-          sudo ShellScripts/Linux/install_packages_root.sh
+          ShellScripts/Linux/install_packages_root.sh
       - name: Build GNUstep
         run: |
           ShellScripts/Linux/build_gnustep.sh system
@@ -39,6 +46,7 @@ jobs:
       - name: Build AppImage
         run: |
           ShellScripts/common/build_oolite.sh pkg-appimage-snapshot
+
   fedora:
     runs-on: ubuntu-latest
     container:

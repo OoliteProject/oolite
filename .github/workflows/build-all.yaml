@@ -92,7 +92,7 @@ jobs:
           fetch-depth: 0
       - name: Install packages
         run: |
-          oolite/ShellScripts/Linux/install_packages_root.sh --skip-wayland
+          oolite/ShellScripts/Linux/install_packages_root.sh
       - name: Build GNUstep
         run: |
           oolite/ShellScripts/Linux/build_gnustep.sh system

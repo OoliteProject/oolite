@@ -35,10 +35,10 @@ ifeq ($(GNUSTEP_HOST_OS),mingw32)
     LIBPNG_LIBRARY_NAME          = png
 
     ADDITIONAL_INCLUDE_DIRS      += -Isrc/SDL -Isrc/Core -Isrc/BSDCompat -Isrc/Core/Scripting -Isrc/Core/Materials -Isrc/Core/Entities -Isrc/Core/OXPVerifier -Isrc/Core/Debug -Isrc/Core/Tables -Isrc/Core/MiniZip -Isrc/SDL/EXRSnapshotSupport
-    ADDITIONAL_OBJC_LIBS         += -lglu32 -lopengl32 -l$(OPENAL_LIBRARY_NAME).dll -l$(LIBPNG_LIBRARY_NAME).dll -lmingw32 -lSDLmain -lSDL -lvorbisfile.dll -lvorbis.dll -lz -lgnustep-base -l$(JS_IMPORT_LIBRARY) -lnspr4 -lshlwapi -ldwmapi -lwinmm -mwindows
-    ADDITIONAL_CFLAGS            += -DWIN32 -DNEED_STRLCPY `sdl-config --cflags` -mtune=generic -DWINVER=0x0A00 -D_WIN32_WINNT=0x0A00 -DNTDDI_VERSION=0x0A00000F
+    ADDITIONAL_OBJC_LIBS         += -lglu32 -lopengl32 -l$(OPENAL_LIBRARY_NAME).dll -l$(LIBPNG_LIBRARY_NAME).dll -lmingw32 -lSDL3 -lvorbisfile.dll -lvorbis.dll -lz -lgnustep-base -l$(JS_IMPORT_LIBRARY) -lnspr4 -lshlwapi -ldwmapi -lwinmm -mwindows
+    ADDITIONAL_CFLAGS            += -DWIN32 -DNEED_STRLCPY -mtune=generic -DWINVER=0x0A00 -D_WIN32_WINNT=0x0A00 -DNTDDI_VERSION=0x0A00000F
 # note the vpath stuff above isn't working for me, so adding src/SDL and src/Core explicitly
-    ADDITIONAL_OBJCFLAGS         += -DLOADSAVEGUI -DWIN32 -DXP_WIN -Wno-import -std=gnu99 `sdl-config --cflags` -mtune=generic -DWINVER=0x0A00 -D_WIN32_WINNT=0x0A00 -DNTDDI_VERSION=0x0A00000F
+    ADDITIONAL_OBJCFLAGS         += -DLOADSAVEGUI -DWIN32 -DXP_WIN -Wno-import -std=gnu99 -mtune=generic -DWINVER=0x0A00 -D_WIN32_WINNT=0x0A00 -DNTDDI_VERSION=0x0A00000F
 #     oolite_LIB_DIRS              += -L$(GNUSTEP_LOCAL_ROOT)/lib -L$(WIN_DEPS_DIR)/lib -L$(JS_LIB_DIR)
 
     ifeq ($(ESPEAK),yes)
@@ -90,13 +90,11 @@ else
 
     ADDITIONAL_CFLAGS            += -ggdb3
     ADDITIONAL_OBJCFLAGS         += -ggdb3
-    ADDITIONAL_CCFLAGS           += -ggdb3
     ADDITIONAL_LDFLAGS           += -ggdb3
 
     ADDITIONAL_INCLUDE_DIRS      += -Isrc/SDL -Isrc/Core -Isrc/BSDCompat -Isrc/Core/Scripting -Isrc/Core/Materials -Isrc/Core/Entities -Isrc/Core/OXPVerifier -Isrc/Core/Debug -Isrc/Core/Tables -Isrc/Core/MiniZip
-    ADDITIONAL_OBJC_LIBS         += -lGLU -lGL -lX11 -lSDL -lgnustep-base -l$(LIBJS) -lopenal -lz -lvorbisfile -lpng `nspr-config --libs` -lstdc++
-    ADDITIONAL_OBJCFLAGS         += -DLINUX -DXP_UNIX `sdl-config --cflags`
-    ADDITIONAL_CFLAGS            += -DLINUX `sdl-config --cflags`
+    ADDITIONAL_OBJC_LIBS         += -lGLU -lGL -lX11 -lgnustep-base -lopenal -lz -lvorbisfile -lpng -lnspr4 -lSDL3 -l$(LIBJS)
+    ADDITIONAL_OBJCFLAGS         += -DLINUX -DXP_UNIX
     ADDITIONAL_LDFLAGS           += -Wl,-rpath,'$$ORIGIN'
 
     ifeq ($(ESPEAK),yes)
@@ -110,8 +108,6 @@ else
     endif
 
     ifeq ($(COMPILER_TYPE),gcc)
-        ADDITIONAL_OBJCFLAGS     += -std=gnu99 -Wall -Wno-import `nspr-config --cflags` -DLOADSAVEGUI
-        ADDITIONAL_CFLAGS        += -Wall `nspr-config --cflags` -DNEED_STRLCPY
         ADDITIONAL_LDFLAGS       += -fuse-ld=bfd
     else
         ADDITIONAL_LDFLAGS       += -fuse-ld=lld
@@ -126,12 +122,10 @@ ifeq ($(lto),yes)
     ifeq ($(COMPILER_TYPE),clang)
         ADDITIONAL_CFLAGS        += -flto=thin
         ADDITIONAL_OBJCFLAGS     += -flto=thin
-        ADDITIONAL_CCFLAGS       += -flto=thin
         ADDITIONAL_LDFLAGS       += -flto=thin -Wl,--thinlto-cache-dir=build/thinlto_cache
     else
         ADDITIONAL_CFLAGS        += -flto=auto
         ADDITIONAL_OBJCFLAGS     += -flto=auto
-        ADDITIONAL_CCFLAGS       += -flto=auto
         ADDITIONAL_LDFLAGS       += -flto=auto
     endif
 endif
