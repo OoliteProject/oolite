@@ -2209,9 +2209,10 @@ finished:
 			}
 			case SDL_EVENT_KEY_DOWN:
 				kbd_event = (SDL_KeyboardEvent*)&event;
-				key_id = SDL_GetKeyFromScancode(kbd_event->scancode, kbd_event->mod, YES);
+				key_id = SDL_GetKeyFromScancode(kbd_event->scancode, kbd_event->mod, NO);
 				scan_code = kbd_event->scancode;
 
+				OOLog(@"KJA.keydown1", @"Keydown scancode = %d, unicode = %i, key = %i, shift = %d, ctrl = %d, alt = %d", scan_code, key_id, kbd_event->key, shift, ctrl, opt);
 				//char *keychar = SDL_GetKeyName(kbd_event->keysym.sym);
 				// deal with modifiers first
 				BOOL modifier_pressed = NO;
@@ -2299,15 +2300,6 @@ finished:
 						;
 				}
 
-				if (!special_key)
-				{
-					if (shift && !ctrl)
-					{
-						NSString *keyShifted = [keyMappings_shifted objectForKey:[NSString stringWithFormat:@"%d", scan_code]];
-						if (keyShifted) key_id = [keyShifted integerValue];
-
-					}
-				}
 				// the keyup event doesn't give us the unicode value, so store it here so it can be retrieved on keyup
 				// the ctrl key tends to mix up the unicode values, so deal with some special cases
 				// we also need (in most cases) to get the character without the impact of caps lock. 
@@ -2330,25 +2322,6 @@ finished:
 					}
 				}
 
-				// if we get here and we still don't have a key id, grab the unicode value from our keymappings dict
-				// SDL3 - as per comment above, we shouldn't need to run keymappings using SDL3, so commenting this out to confirm
-#if 0
-				if (key_id == 0) 
-				{
-					// get unicode value for keycode from keymappings files
-					// this handles all the non-functional keys. the function keys are handled in the switch above
-					if (!shift)
-					{
-						NSString *keyNormal = [keyMappings_normal objectForKey:[NSString stringWithFormat:@"%d", scan_code]];
-						if (keyNormal) key_id = [keyNormal integerValue];
-					}
-					else
-					{
-						NSString *keyShifted = [keyMappings_shifted objectForKey:[NSString stringWithFormat:@"%d", scan_code]];
-						if (keyShifted) key_id = [keyShifted integerValue];
-					}
-				}
-#endif
 				// if we've got the unicode value, we can store it in our array now
 				if (key_id > 0) scancode2Unicode[scan_code] = key_id;
 
@@ -2357,7 +2330,6 @@ finished:
 					[self handleStringInput:kbd_event keyID:key_id];
 				}
 
-				OOLog(kOOLogKeyDown, @"Keydown scancode = %d, unicode = %i, character = %c, shift = %d, ctrl = %d, alt = %d", scan_code, key_id, key_id, shift, ctrl, opt);
 				//OOLog(kOOLogKeyDown, @"Keydown scancode = %d, unicode = %i", kbd_event->keysym.scancode, key_id);
 
 				if (key_id > 0 && key_id <= [self numKeys]) 
