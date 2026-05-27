@@ -192,8 +192,20 @@ enum PreferredAppMode
 	}
 
 	NSString *windowCaption = [self getWindowCaption];
-	int windowFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY;
-	window = SDL_CreateWindow([windowCaption UTF8String], size.width, size.height, windowFlags);
+	Uint32 windowFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY;
+
+	// Define modern SDL3 properties for window configuration
+	SDL_PropertiesID props = SDL_CreateProperties();
+	SDL_SetStringProperty(props, SDL_PROP_WINDOW_CREATE_TITLE_STRING, [windowCaption UTF8String]);
+	SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_WIDTH_NUMBER, size.width);
+	SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_HEIGHT_NUMBER, size.height);
+	SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_FLAGS_NUMBER, windowFlags);
+
+	// Explicit centering properties setup for SDL3
+	SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_X_NUMBER, SDL_WINDOWPOS_CENTERED);
+	SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_Y_NUMBER, SDL_WINDOWPOS_CENTERED);
+
+	window = SDL_CreateWindowWithProperties(props);
 	if (!window)
 	{
 		OOLog(@"display.initGL", @"%@", @"Trying 8-bpcc, 24-bit depth buffer");
@@ -203,7 +215,7 @@ enum PreferredAppMode
 		SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
 		SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
 		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-		window = SDL_CreateWindow([windowCaption UTF8String], size.width, size.height, windowFlags);
+		window = SDL_CreateWindowWithProperties(props);
 		_hdrOutput = NO;
 	}
 
@@ -217,8 +229,11 @@ enum PreferredAppMode
 		// and if it's this bad, forget even trying to multisample!
 		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
 		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
-		window = SDL_CreateWindow([windowCaption UTF8String], size.width, size.height, windowFlags);
+		window = SDL_CreateWindowWithProperties(props);
 	}
+
+	// Clean up properties block
+	SDL_DestroyProperties(props);
 
 	if (!window)
 	{
@@ -248,7 +263,7 @@ enum PreferredAppMode
 		OOLog(@"sdl.window_handle", @"%@", @"Failed to retrieve window handle");
 		exit(1);
 	}
-	
+
 	// This must be inited after windowHandle has been set - we need the main window handle in order to get monitor info
 	if (![self getCurrentMonitorInfo:&monitorInfo])
 	{
@@ -256,7 +271,7 @@ enum PreferredAppMode
 	}
 
 	atDesktopResolution = YES;
-	
+
 #if USE_UNDOCUMENTED_DARKMODE_API
 	// dark mode stuff - this is mainly for the winodw titlebar's context menu
 	HMODULE hUxTheme = LoadLibraryExW(L"uxtheme.dll", NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
@@ -285,18 +300,18 @@ enum PreferredAppMode
 	SDL_DestroySurface(icon);
 
 	_colorSaturation = 1.0f;
-	
+
 #if OOLITE_WINDOWS
 	_hdrMaxBrightness = [prefs oo_floatForKey:@"hdr-max-brightness" defaultValue:1000.0f];
 	_hdrPaperWhiteBrightness = [prefs oo_floatForKey:@"hdr-paperwhite-brightness" defaultValue:200.0f];
 	_hdrToneMapper = OOHDRToneMapperFromString([prefs oo_stringForKey:@"hdr-tone-mapper" defaultValue:@"OOHDR_TONEMAPPER_ACES_APPROX"]);
 #endif
-	
+
 	_sdrToneMapper = OOSDRToneMapperFromString([prefs oo_stringForKey:@"sdr-tone-mapper" defaultValue:@"OOSDR_TONEMAPPER_ACES"]);
-	
+
 	SDL_SetWindowSurfaceVSync(window, vSyncPreference);
 	OOLog(@"display.initGL", @"V-Sync %@requested.", vSyncPreference ? @"" : @"not ");
-	
+
 	int testAttrib = -1;
 	OOLog(@"display.initGL", @"%@", @"Achieved color / depth buffer sizes (bits):");
 	SDL_GL_GetAttribute(SDL_GL_RED_SIZE, &testAttrib);
@@ -316,9 +331,9 @@ enum PreferredAppMode
 #if OOLITE_WINDOWS
   	OOLog(@"display.initGL", @"Pixel format index: %d", GetPixelFormat(GetDC(windowHandle)));
 #endif
-	
+
 	// Verify V-sync successfully set - report it if not
-	
+
 	int hasVsync;
 	if (vSyncPreference && (!SDL_GetWindowSurfaceVSync(window, &hasVsync) || !hasVsync))
 	{
@@ -376,10 +391,10 @@ enum PreferredAppMode
 		{
 			showSplashScreen = YES;
 		}
-		
+
 		// if V-sync is disabled at the command line, override the defaults file
 		if ([arg isEqual:@"-novsync"] || [arg isEqual:@"--novsync"])  vSyncPreference = NO;
-		
+
 		if ([arg isEqual: @"-hdr"])  bitsPerColorComponent = 16;
 
   		// build the startup command string so that we can log it
@@ -401,7 +416,6 @@ enum PreferredAppMode
 	}
 
 	[self populateFullScreenModelist];
-	SDL_SetEnvironmentVariable(SDL_GetEnvironment(), "SDL_VIDEO_WINDOW_POS", "center", YES);
 
 	// Find what the full screen and windowed settings are.
 	fullScreen = NO;
@@ -440,7 +454,7 @@ enum PreferredAppMode
 
 	virtualJoystickPosition = NSMakePoint(0.0,0.0);
 	mouseWarped = NO;
-	
+
 	_mouseVirtualStickSensitivityFactor = OOClamp_0_1_f([prefs oo_floatForKey:@"mouse-flight-sensitivity" defaultValue:0.95f]);
 	// ensure no chance of a divide by zero later on
 	if (_mouseVirtualStickSensitivityFactor < 0.005f)  _mouseVirtualStickSensitivityFactor = 0.005f;
@@ -450,7 +464,7 @@ enum PreferredAppMode
 	isAlphabetKeyDown = NO;
 
 	timeIntervalAtLastClick = timeSinceLastMouseWheel = [NSDate timeIntervalSinceReferenceDate];
-	
+
 	_mouseWheelDelta = 0.0f;
 
 	m_glContextInitialized = NO;
@@ -482,8 +496,10 @@ enum PreferredAppMode
 #else
 	if (!showSplashScreen)  return;
 
+	SDL_HideWindow(window);
 	SDL_SetWindowSize(window, firstScreen.width, firstScreen.height);
 	SDL_SetWindowFullscreen(window, fullScreen);
+	SDL_ShowWindow(window);
 
 	/* MKW 2011.11.11
 	 * Eat all SDL events to gobble up any resize events while the

@@ -15,6 +15,7 @@ finish-args:
   - --share=network
   - --socket=pulseaudio
   - --device=dri
+  - --device=input
 cleanup:
   - /include
   - /lib/pkgconfig

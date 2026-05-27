@@ -4,13 +4,9 @@
 HERE="$(dirname "$(readlink -f "$0")")"
 
 DEBUG=false
-SHOW_SPLASH=true
 # Loop through all arguments
 for arg in "$@"; do
   case "$arg" in
-    -nosplash|--nosplash|-help|--help)
-      SHOW_SPLASH=false
-      ;;
     debug)
       DEBUG=true
       shift
@@ -55,13 +51,7 @@ launch_guarded() {
     if [[ "$DEBUG" == true ]]; then
         exec gdb --args "$OO_EXEDIR/oolite" "$@" -nosplash
     fi
-    if [[ "$SHOW_SPLASH" == true ]]; then
-        "$OO_EXEDIR/splash-launcher" "$OO_EXEDIR/Resources/Images/splash.bmp" &
-        "$OO_EXEDIR/oolite" "$@" -nosplash
-    else
-        # already has -nosplash
-        "$OO_EXEDIR/oolite" "$@"
-    fi
+    "$OO_EXEDIR/oolite" "$@"
     local EXIT_CODE=$?
 
     if [ $EXIT_CODE -eq 0 ]; then
