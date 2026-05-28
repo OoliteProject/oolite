@@ -108,6 +108,7 @@ else
     endif
 
     ifeq ($(COMPILER_TYPE),gcc)
+        ADDITIONAL_OBJCFLAGS     += -std=gnu99
         ADDITIONAL_LDFLAGS       += -fuse-ld=bfd
     else
         ADDITIONAL_LDFLAGS       += -fuse-ld=lld
