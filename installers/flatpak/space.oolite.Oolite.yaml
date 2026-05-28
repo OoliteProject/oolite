@@ -9,7 +9,7 @@ build-options:
   prepend-ld-library-path: /usr/lib/sdk/llvm22/lib
 command: run_oolite.sh
 finish-args:
-  - --require-version=any
+  - --require-version=1.8.2
   - --socket=wayland
   - --socket=fallback-x11
   - --share=ipc
