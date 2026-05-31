@@ -498,6 +498,7 @@ enum PreferredAppMode
 
 	SDL_HideWindow(window);
 	SDL_SetWindowSize(window, firstScreen.width, firstScreen.height);
+    SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 	SDL_SetWindowFullscreen(window, fullScreen);
 	SDL_ShowWindow(window);
 
