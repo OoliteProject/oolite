@@ -46,6 +46,7 @@ install_freedesktop() {
         cp -rf "$PROGDIR/AddOns/." "$APPBIN/AddOns/" || { echo "$err_msg copy AddOns folder" >&2; return 1; }
     fi
 
+    rm -f "$APPBIN/Resources/GNUstep.conf.orig"
     install -D "GNUstep.conf.template" "$APPBIN/Resources/GNUstep.conf.template" || { echo "$err_msg GNUstep template" >&2; return 1; }
 
     APP_METAINFO="$APPSHR/metainfo/space.oolite.Oolite.$3.xml"

@@ -3,10 +3,14 @@
 
 HERE="$(dirname "$(readlink -f "$0")")"
 
+HELP=false
 DEBUG=false
 # Loop through all arguments
 for arg in "$@"; do
   case "$arg" in
+    -help|--help)
+      HELP=true
+      ;;
     debug)
       DEBUG=true
       shift
@@ -50,6 +54,39 @@ launch_guarded() {
     fi
     if [[ "$DEBUG" == true ]]; then
         exec gdb --args "$OO_EXEDIR/oolite" "$@" -nosplash
+    fi
+    if [[ "$HELP" == true ]]; then
+        # Colors
+        B='\033[1m'
+        G='\033[32m'
+        N='\033[0m'
+
+        echo "This run_oolite.sh script enables Oolite to be configured to use alternative locations by setting various environment variables:"
+        echo ""
+        printf "${B}%-22s | %-8s | %-48s${N}\n" "Environment Variable" "Value" "Game Folder"
+        printf "%-22s-+-%-8s-+-%-48s\n" "----------------------" "--------" "------------------------------------------------"
+        printf "${G}%-22s${N} | %-8s | %-48s\n" "OO_DIRTYPE" "xdg" "\$HOME/.local/share/Oolite"
+        printf "${G}%-22s${N} | %-8s | %-48s\n" "OO_DIRTYPE" "legacy" "\$HOME (old folder structure - not recommended)"
+
+        echo ""
+        echo "More intricate setups are possible by specifying individual environment variables for different folders:"
+        echo ""
+
+        printf "${B}%-25s | %-40s | %-40s${N}\n" "Environment Variable" "Description" "Default Path (if unset)"
+        printf "%-25s-+-%-40s-+-%-40s\n" "-------------------------" "----------------------------------------" "----------------------------------------"
+        printf "${G}%-25s${N} | %-40s | %-40s\n" "OO_SAVEDIR" "Directory for saved games" "\$GAME_DATA/SavedGames"
+        printf "${G}%-25s${N} | %-40s | %-40s\n" "OO_SNAPSHOTSDIR" "Directory for screenshots/snapshots" "\$GAME_DATA/Snapshots"
+        printf "${G}%-25s${N} | %-40s | %-40s\n" "OO_LOGSDIR" "Directory for game log files" "\$GAME_DATA/.logs"
+        printf "${G}%-25s${N} | %-40s | %-40s\n" "OO_MANAGEDADDONSDIR" "Directory for OXPs managed by the game" "\$GAME_DATA/.ManagedAddOns"
+        printf "${G}%-25s${N} | %-40s | %-40s\n" "OO_USERADDONSDIR" "User-specified directory for OXPs" "\$GAME_DATA/AddOns"
+        printf "${G}%-25s${N} | %-40s | %-40s\n" "OO_ADDONSEXTRACTDIR" "Directory for extracted OXPs" "\${OO_USERADDONSDIR:-\$GAME_DATA/AddOns}"
+        printf "${G}%-25s${N} | %-40s | %-40s\n" "OO_ADDITIONALADDONSDIRS" "List of extra addon search paths" ""
+        printf "${G}%-25s${N} | %-40s | %-40s\n" "OO_GNUSTEPDIR" "GNUstep directory" "\$GAME_DATA/.GNUstep"
+        printf "${G}%-25s${N} | %-40s | %-40s\n" "OO_GNUSTEPDEFAULTSDIR" "User preferences defaults file location" "\$GAME_DATA"
+        echo ""
+        echo ""
+        echo "The following options can be passed to the Oolite executable:"
+        echo ""
     fi
     "$OO_EXEDIR/oolite" "$@"
     local EXIT_CODE=$?
@@ -119,26 +156,9 @@ else
         # Use script directory
         GAME_DATA="$HERE/GameData"
     fi
-    # Find the current system configuration file
-    ORIGINAL_CONF=$(gnustep-config --variable=GNUSTEP_CONFIG_FILE)
-
-    # Fallback: If gnustep-config returns nothing, assume standard location
-    if [ -z "$ORIGINAL_CONF" ]; then
-        ORIGINAL_CONF="/etc/GNUstep/GNUstep.conf"
-    fi
-
-    if [ -z "$ORIGINAL_CONF" ]; then
-        ORIGINAL_CONF="/usr/local/etc/GNUstep/GNUstep.conf"
-    fi
 
     export GNUSTEP_CONFIG_FILE=$(mktemp -t oolite_gnustep_XXXX --suffix=.conf)
-    # Copy the original config (if it exists) to the temp file
-    if [ -f "$ORIGINAL_CONF" ]; then
-        cp "$ORIGINAL_CONF" "$GNUSTEP_CONFIG_FILE"
-    else
-        echo "No system config found at $ORIGINAL_CONF. Starting with empty config."
-        touch "$GNUSTEP_CONFIG_FILE"
-    fi
+    cp "$HERE/Resources/GNUstep.conf.orig" "$GNUSTEP_CONFIG_FILE"
 fi
 
 mkdir -p "$GAME_DATA"
