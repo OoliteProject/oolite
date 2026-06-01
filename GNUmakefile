@@ -3,7 +3,7 @@ include config.make
 
 vpath %.m src/SDL:src/Core:src/Core/Entities:src/Core/Materials:src/Core/Scripting:src/Core/OXPVerifier:src/Core/Debug
 vpath %.h src/SDL:src/Core:src/Core/Entities:src/Core/Materials:src/Core/Scripting:src/Core/OXPVerifier:src/Core/Debug:src/Core/MiniZip
-vpath %.c src/SDL:src/Core:src/BSDCompat:src/Core/Debug:src/Core/MiniZip:src/SDL/EXRSnapshotSupport
+vpath %.c src/SDL:src/Core:src/Core/Debug:src/Core/MiniZip:src/SDL/EXRSnapshotSupport
 vpath %.cpp src/SDL/EXRSnapshotSupport
 GNUSTEP_INSTALLATION_DIR         = $(GNUSTEP_USER_ROOT)
 ifeq ($(GNUSTEP_HOST_OS),mingw32)
