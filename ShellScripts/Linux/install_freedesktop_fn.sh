@@ -35,7 +35,6 @@ install_freedesktop() {
         install -D "$PROGDIR/oolite.debug" "$1/$2/oolite.debug" || { echo "$err_msg install oolite debug symbols" >&2; return 1; }
     fi
     install -D "$PROGDIR/run_oolite.sh" "$APPBIN/run_oolite.sh" || { echo "$err_msg install run_oolite.sh" >&2; return 1; }
-    install -D "$PROGDIR/splash-launcher" "$APPBIN/splash-launcher" || { echo "$err_msg install splash-launcher" >&2; return 1; }
 
     # Resources copy
     mkdir -p "$APPBIN/Resources"

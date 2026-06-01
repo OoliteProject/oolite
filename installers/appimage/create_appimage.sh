@@ -59,6 +59,9 @@ run_script() {
     export DEPLOY_VULKAN
     local DEPLOY_LOCALE=0
     export DEPLOY_LOCALE
+    local STRACE_MODE=0
+    export STRACE_MODE
+
     # install_metadatainfo_fn already put the files in the parameters below in the right place,
     # but no harm putting again here
     if ! $SHARUN_BIN "$APPBIN/oolite"; then
@@ -82,8 +85,15 @@ run_script() {
         return 1
     fi
 
+    APPIMAGETOOL_BIN="./appimagetool"
+    if [ ! -x "$APPIMAGETOOL_BIN" ]; then
+        echo "📥 appimagetool not found. Downloading..."
+        curl -o "$APPIMAGETOOL_BIN" -L https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-$ARCH.AppImage || { echo "❌ appimagetool download failed" >&2; exit 1; }
+        chmod +x "$APPIMAGETOOL_BIN"
+    fi
+
     echo "Creating AppImage $OUTNAME..."
-    if ! $SHARUN_BIN --make-appimage; then
+    if ! $APPIMAGETOOL_BIN "$ABS_APPDIR" "$OUTNAME"; then
         echo "❌ AppImage creation failed!" >&2
         return 1
     fi

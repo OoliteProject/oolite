@@ -32,20 +32,34 @@ run_script() {
     fi
 
     # check manifest
+    LINT_EXCEPTIONS=$(mktemp /tmp/oolite-lint-XXXXXX.json)
+    cat <<EOF > "$LINT_EXCEPTIONS"
+{
+  "space.oolite.Oolite": [
+    "finish-args-has-dev-input"
+  ]
+}
+EOF
+    trap 'rm -f "$LINT_EXCEPTIONS"' RETURN EXIT
+
     if command -v flatpak-builder-lint >/dev/null 2>&1; then
-        if ! flatpak-builder-lint manifest "$MANIFEST"; then
+        if ! flatpak-builder-lint manifest "$MANIFEST" --exceptions --user-exceptions="$LINT_EXCEPTIONS"; then
             echo "❌ Flatpak manifest lint failed!" >&2
-            cat $MANIFEST
+            cat "$MANIFEST"
             echo "❌ Flatpak manifest lint failed!" >&2
             return 1
         fi
     else
         echo "Native linter not found. Falling back to Flatpak container..."
-        if ! flatpak run --command=flatpak-builder-lint org.flatpak.Builder manifest "$MANIFEST"; then
+        if ! flatpak run --filesystem="$LINT_EXCEPTIONS" --command=flatpak-builder-lint org.flatpak.Builder manifest "$MANIFEST" --exceptions --user-exceptions="$LINT_EXCEPTIONS"; then
             echo "❌ Flatpak manifest lint failed!" >&2
             return 1
         fi
     fi
+
+    # 3. Clean up
+    rm -f "$LINT_EXCEPTIONS"
+    trap - RETURN EXIT
 
     echo "Creating Flatpak..."
     if ! flatpak remote-add \

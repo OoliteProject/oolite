@@ -130,9 +130,9 @@ install_package() {
 
         "appimage")
             case "$CURRENT_DISTRO" in
-                debian) PKG_NAME="NONE" ;;
-                redhat) PKG_NAME="desktop-file-utils which zsync" ;;
-                arch) PKG_NAME="desktop-file-utils zsync" ;;
+                debian) PKG_NAME="file fuse3" ;;
+                redhat) PKG_NAME="file fuse3 desktop-file-utils which zsync" ;;
+                arch) PKG_NAME="file fuse3 desktop-file-utils zsync" ;;
             esac ;;
 
         "flatpak") PKG_NAME="flatpak flatpak-builder" ;;
