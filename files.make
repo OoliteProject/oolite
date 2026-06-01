@@ -1,6 +1,5 @@
 oolite_C_FILES = \
     legacy_random.c \
-    strlcpy.c \
     OOTCPStreamDecoder.c \
     OOPlanetData.c \
 	ioapi.c \

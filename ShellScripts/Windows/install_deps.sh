@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# No parameters: build both clang and gcc in that order (end setup will be for gcc)
-# One parameter gcc = build gcc only (end setup will be for gcc)
-# One parameter clang = build clang only (end setup will be for clang)
+# No parameters: build clang only
+# One parameter gcc = build gcc only
+# One parameter clang = build clang only
 
 install() {
 	# First parameter is package name

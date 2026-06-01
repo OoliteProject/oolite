@@ -34,11 +34,10 @@ ifeq ($(GNUSTEP_HOST_OS),mingw32)
     OPENAL_LIBRARY_NAME          = openal
     LIBPNG_LIBRARY_NAME          = png
 
-    ADDITIONAL_INCLUDE_DIRS      += -Isrc/SDL -Isrc/Core -Isrc/BSDCompat -Isrc/Core/Scripting -Isrc/Core/Materials -Isrc/Core/Entities -Isrc/Core/OXPVerifier -Isrc/Core/Debug -Isrc/Core/Tables -Isrc/Core/MiniZip -Isrc/SDL/EXRSnapshotSupport
-    ADDITIONAL_OBJC_LIBS         += -lglu32 -lopengl32 -l$(OPENAL_LIBRARY_NAME).dll -l$(LIBPNG_LIBRARY_NAME).dll -lmingw32 -lSDL3 -lvorbisfile.dll -lvorbis.dll -lz -lgnustep-base -l$(JS_IMPORT_LIBRARY) -lnspr4 -lshlwapi -ldwmapi -lwinmm -mwindows
-    ADDITIONAL_CFLAGS            += -DWIN32 -DNEED_STRLCPY -mtune=generic -DWINVER=0x0A00 -D_WIN32_WINNT=0x0A00 -DNTDDI_VERSION=0x0A00000F
-# note the vpath stuff above isn't working for me, so adding src/SDL and src/Core explicitly
-    ADDITIONAL_OBJCFLAGS         += -DLOADSAVEGUI -DWIN32 -DXP_WIN -Wno-import -std=gnu99 -mtune=generic -DWINVER=0x0A00 -D_WIN32_WINNT=0x0A00 -DNTDDI_VERSION=0x0A00000F
+    ADDITIONAL_INCLUDE_DIRS      += -Isrc/SDL -Isrc/Core -Isrc/Core/Scripting -Isrc/Core/Materials -Isrc/Core/Entities -Isrc/Core/OXPVerifier -Isrc/Core/Debug -Isrc/Core/Tables -Isrc/Core/MiniZip -Isrc/SDL/EXRSnapshotSupport
+    ADDITIONAL_OBJC_LIBS         += -lglu32 -lopengl32 -l$(OPENAL_LIBRARY_NAME).dll -l$(LIBPNG_LIBRARY_NAME).dll -lSDL3 -lvorbisfile.dll -lvorbis.dll -lz -lgnustep-base -l$(JS_IMPORT_LIBRARY) -lnspr4 -ldwmapi -lwinmm -mwindows
+    ADDITIONAL_CFLAGS            += -DWIN32 -DWINVER=0x0A00
+    ADDITIONAL_OBJCFLAGS         += -DWIN32 -DXP_WIN -DWINVER=0x0A00
 #     oolite_LIB_DIRS              += -L$(GNUSTEP_LOCAL_ROOT)/lib -L$(WIN_DEPS_DIR)/lib -L$(JS_LIB_DIR)
 
     ifeq ($(ESPEAK),yes)
@@ -55,6 +54,8 @@ ifeq ($(GNUSTEP_HOST_OS),mingw32)
             ADDITIONAL_CCFLAGS   += -g -gcodeview
             ADDITIONAL_LDFLAGS   += -Wl,-pdb= 
         endif
+    else
+    	ADDITIONAL_OBJCFLAGS     += -std=gnu99
     endif
 
 else
@@ -92,7 +93,7 @@ else
     ADDITIONAL_OBJCFLAGS         += -ggdb3
     ADDITIONAL_LDFLAGS           += -ggdb3
 
-    ADDITIONAL_INCLUDE_DIRS      += -Isrc/SDL -Isrc/Core -Isrc/BSDCompat -Isrc/Core/Scripting -Isrc/Core/Materials -Isrc/Core/Entities -Isrc/Core/OXPVerifier -Isrc/Core/Debug -Isrc/Core/Tables -Isrc/Core/MiniZip
+    ADDITIONAL_INCLUDE_DIRS      += -Isrc/SDL -Isrc/Core -Isrc/Core/Scripting -Isrc/Core/Materials -Isrc/Core/Entities -Isrc/Core/OXPVerifier -Isrc/Core/Debug -Isrc/Core/Tables -Isrc/Core/MiniZip
     ADDITIONAL_OBJC_LIBS         += -lGLU -lGL -lX11 -lgnustep-base -lopenal -lz -lvorbisfile -lpng -lnspr4 -lSDL3 -l$(LIBJS)
     ADDITIONAL_OBJCFLAGS         += -DLINUX -DXP_UNIX
     ADDITIONAL_LDFLAGS           += -Wl,-rpath,'$$ORIGIN'
