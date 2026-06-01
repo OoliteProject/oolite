@@ -96,7 +96,8 @@ run_script() {
     else
         # Copy Linux-specific wrapper script
         cp -fu ShellScripts/Linux/run_oolite.sh "$PROGDIR"
-        cp -fu ShellScripts/Linux/splash-launcher "$PROGDIR"
+        local GNUSTEP_CONF=$(gnustep-config --variable=GNUSTEP_CONFIG_FILE)
+        install -D "$GNUSTEP_CONF" "$PROGDIR/Resources/GNUstep.conf.orig" || { echo "$err_msg GNUstep config" >&2; return 1; }
 
         # If we're using GNUstep libraries that aren't in a system folder copy them
         ldd "$PROGDIR/$DEST_BIN" | \
