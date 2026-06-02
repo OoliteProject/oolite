@@ -5,11 +5,15 @@ HERE="$(dirname "$(readlink -f "$0")")"
 
 HELP=false
 DEBUG=false
+PACKAGEINFO=false
 # Loop through all arguments
 for arg in "$@"; do
   case "$arg" in
     -help|--help)
       HELP=true
+      ;;
+    packageinfo)
+      PACKAGEINFO=true
       ;;
     debug)
       DEBUG=true
@@ -48,7 +52,7 @@ notify_failure() {
 }
 
 launch_guarded() {
-    if [[ "$1" == "packageinfo" ]]; then
+    if [[ "$PACKAGEINFO" == true ]]; then
         cat "$OO_EXEDIR/Resources/manifest.plist"
         exit 0
     fi
@@ -56,12 +60,12 @@ launch_guarded() {
         exec gdb --args "$OO_EXEDIR/oolite" "$@" -nosplash
     fi
     if [[ "$HELP" == true ]]; then
-        # Colors
         B='\033[1m'
         G='\033[32m'
         N='\033[0m'
 
-        echo "This run_oolite.sh script enables Oolite to be configured to use alternative locations by setting various environment variables:"
+        echo "Oolite can be configured to use alternative folder locations by setting various environment variables."
+        echo "This is not applicable for flatpak."
         echo ""
         printf "${B}%-22s | %-8s | %-48s${N}\n" "Environment Variable" "Value" "Game Folder"
         printf "%-22s-+-%-8s-+-%-48s\n" "----------------------" "--------" "------------------------------------------------"
@@ -85,7 +89,19 @@ launch_guarded() {
         printf "${G}%-25s${N} | %-40s | %-40s\n" "OO_GNUSTEPDEFAULTSDIR" "User preferences defaults file location" "\$GAME_DATA"
         echo ""
         echo ""
-        echo "The following options can be passed to the Oolite executable:"
+        printf "${B}Usage:${N} run_oolite.sh                    [Linux options] [Oolite options]"
+        echo ""
+        echo "       <appimage filename>              [Linux options] [Oolite options]"
+        echo "       flatpak run space.oolite.Oolite  [Linux options] [Oolite options]"
+        echo ""
+        printf "${B}Linux options${N} can be any of the following:"
+        echo ""
+        echo ""
+        echo "packageinfo                             Display version information about Oolite and quit"
+        echo "debug                                   Launch Oolite with gdb (not applicable for appimage)"
+        echo ""
+        printf "${B}Oolite options${N} are set out below as options for the Oolite executable:"
+        echo ""
         echo ""
     fi
     "$OO_EXEDIR/oolite" "$@"
