@@ -1,0 +1,43 @@
+# ==============================================================================
+# Oolite Build Options
+# ==============================================================================
+
+# Core Engine Features
+option('no_shaders', type: 'boolean', value: false,
+       description: 'Disable shader support entirely')
+
+option('espeak', type: 'boolean', value: true,
+       description: 'Enable eSpeak-ng text-to-speech support')
+
+option('oo_javascript_trace', type: 'boolean', value: true,
+       description: 'Enable Mozilla SpiderMonkey JavaScript call tracing')
+
+option('oo_fov_inflight_control_enabled', type: 'boolean', value: false,
+       description: 'Enable in-flight Field of View (FOV) control adjustments')
+
+# Debugging and Heavy Instrumentation
+option('oo_check_gl_heavy', type: 'boolean', value: false,
+       description: 'Enable heavy OpenGL error checking and validation checks')
+
+option('oo_exclude_debug_support', type: 'boolean', value: false,
+       description: 'Force exclude developer debug features (strips diagnostic tools)')
+
+option('oo_oxp_verifier_enabled', type: 'boolean', value: true,
+       description: 'Enable Oolite Expansion Pack (OXP) checking and verification stages')
+
+option('oo_localization_tools', type: 'boolean', value: true,
+       description: 'Enable development tools for processing and extracting localizations')
+
+option('debug_graphviz', type: 'boolean', value: true,
+       description: 'Enable AI state-machine graph visualization via GraphViz syntax output')
+
+# Release Variant Control
+option('deployment_release_configuration', type: 'boolean', value: false,
+       description: 'Force a strict production deployment setup (overrides and disables most debugging instrumentation)')
+
+option('snapshot_build', type: 'boolean', value: false,
+       description: 'Mark the compilation as a development snapshot build')
+
+# Windows Specific Customizations
+option('pdb', type: 'boolean', value: false,
+       description: 'Windows Clang builds only: Generate native .pdb debug symbol files')

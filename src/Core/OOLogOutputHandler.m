@@ -148,7 +148,7 @@ void OOLogOutputHandlerInit(void)
 	{
 		OOLog(@"logging.nsLogFilter.install.failed", @"Failed to install NSLog() filter; system messages will not be logged in log file.");
 	}
-#elif GNUSTEP
+#elif GNUSTEP_RUNTIME
 	NSRecursiveLock *lock = GSLogLock();
 	[lock lock];
 	_NSLog_printf_handler = OONSLogPrintfHandler;
@@ -175,7 +175,7 @@ void OOLogOutputHandlerClose(void)
 			_NSSetLogCStringFunction(sDefaultLogCStringFunction);
 			sDefaultLogCStringFunction = NULL;
 		}
-#elif GNUSTEP
+#elif GNUSTEP_RUNTIME
 		NSRecursiveLock *lock = GSLogLock();
 		[lock lock];
 		_NSLog_printf_handler = NULL;

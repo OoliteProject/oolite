@@ -26,7 +26,7 @@ MA 02110-1301, USA.
 */
 
 #ifndef OOLITE_SDL
-#if (!OOLITE_MAC_OS_X && GNUSTEP)
+#if (!OOLITE_MAC_OS_X && GNUSTEP_RUNTIME)
 #define OOLITE_SDL	1
 #endif
 #endif
