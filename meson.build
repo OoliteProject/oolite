@@ -2,7 +2,7 @@ project(
     'oolite',
     ['c', 'cpp', 'objc'],
     meson_version: '>= 1.4.0',
-    version: run_command('ShellScripts/common/get_version.sh', check: true).stdout().strip(),
+    version: run_command('bash', files('ShellScripts/common/get_version.sh'), check: true).stdout().strip(),
     default_options: [
         'prefix=' + meson.current_build_dir() / 'oolite.app',
         'bindir=',
