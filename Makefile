@@ -1,5 +1,3 @@
-include config.make
-
 .PHONY: help
 help:
 	@echo "This is a helper-Makefile to make compiling Oolite easier."
@@ -28,25 +26,34 @@ help:
 	@echo "  pkg-win-snapshot        - builds a snapshot version"
 
 
+NATIVE_FILE ?= clang.ini
+
+# Arguments: 1 = extra meson setup options, 2 = build directory suffix
+define meson_build
+	meson setup build/meson_$(2) $(1) --native-file $(NATIVE_FILE)
+	meson compile -C build/meson_$(2)
+	meson install -C build/meson_$(2)
+endef
+
 # Here are our default targets
 #
 .PHONY: release
 release:
-	$(MAKE) -f GNUmakefile debug=no strip=yes lto=yes
+	$(call meson_build,-Ddebug=false -Dstrip_bin=true -Db_lto=true,release)
 	mkdir -p oolite.app/AddOns && rm -rf oolite.app/AddOns/Basic-debug.oxp && cp -rf DebugOXP/Debug.oxp oolite.app/AddOns/Basic-debug.oxp
 
 .PHONY: release-deployment
 release-deployment:
-	$(MAKE) -f GNUmakefile DEPLOYMENT_RELEASE_CONFIGURATION=yes debug=no strip=yes lto=yes
+	$(call meson_build,-Ddeployment_release_configuration=true -Ddebug=false -Dstrip_bin=true -Db_lto=true,deployment)
 
 .PHONY: release-snapshot
 release-snapshot:
-	$(MAKE) -f GNUmakefile SNAPSHOT_BUILD=yes debug=no
+	$(call meson_build,-Dsnapshot_build=true -Ddebug=false -Dstrip_bin=false,snapshot)
 	mkdir -p oolite.app/AddOns && rm -rf oolite.app/AddOns/Basic-debug.oxp && cp -rf DebugOXP/Debug.oxp oolite.app/AddOns/Basic-debug.oxp
 
 .PHONY: debug
 debug:
-	$(MAKE) -f GNUmakefile debug=yes strip=no
+	$(call meson_build,-Ddebug=true -Dstrip_bin=false,debug)
 	mkdir -p oolite.app/AddOns && rm -rf oolite.app/AddOns/Basic-debug.oxp && cp -rf DebugOXP/Debug.oxp oolite.app/AddOns/Basic-debug.oxp
 
 .PHONY: test
@@ -55,8 +62,7 @@ test: release-snapshot
 
 .PHONY: clean
 clean:
-	$(MAKE) -f GNUmakefile clean
-	$(RM) -rf oolite.app
+	$(RM) -rf build/meson_*
 
 .PHONY: all
 all: release release-deployment release-snapshot debug

@@ -19,6 +19,8 @@ echo "	title = \"Oolite core\";"
 echo "	identifier = \"org.oolite.oolite\";"
 echo "	"
 echo "	version = \"$VER_FULL\";"
+echo "  git remote url = \"$(git config --get remote.origin.url)\";"
+echo "  git commit hash = \"$(git rev-parse HEAD)\";"
 if [ "$DEPLOYMENT_RELEASE_CONFIGURATION" = "yes" ]; then
     echo "	debug_functionality_support = no;"
 else
