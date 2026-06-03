@@ -15,20 +15,20 @@ fi
 . $OOLITE_VERSION_FILE
 
 echo "{"
-echo "	title = \"Oolite core\";"
-echo "	identifier = \"org.oolite.oolite\";"
-echo "	"
-echo "	version = \"$VER_FULL\";"
-echo "  git remote url = \"$(git config --get remote.origin.url)\";"
-echo "  git commit hash = \"$(git rev-parse HEAD)\";"
+echo "    title = \"Oolite core\";"
+echo "    identifier = \"org.oolite.oolite\";"
+echo "    "
+echo "    version = \"$VER_FULL\";"
+echo "    git remote url = \"$(git config --get remote.origin.url)\";"
+echo "    git commit hash = \"$(git rev-parse HEAD)\";"
 if [ "$DEPLOYMENT_RELEASE_CONFIGURATION" = "yes" ]; then
-    echo "	debug_functionality_support = no;"
+    echo "    debug_functionality_support = no;"
 else
-    echo "	debug_functionality_support = yes;"
+    echo "    debug_functionality_support = yes;"
 fi
-echo "	required_oolite_version = \"$OOLITE_VERSION\";"
-echo "	"
-echo "	license = \"GPL 2+ / CC-BY-NC-SA 3.0 - see LICENSE.md for details\";"
-echo "	author = \"Giles Williams, Jens Ayton and contributors\";"
-echo "	information_url = \"https://oolite.space/\";"
+echo "    required_oolite_version = \"$OOLITE_VERSION\";"
+echo "    "
+echo "    license = \"GPL 2+ / CC-BY-NC-SA 3.0 - see LICENSE.md for details\";"
+echo "    author = \"Giles Williams, Jens Ayton and contributors\";"
+echo "    information_url = \"https://oolite.space/\";"
 echo "}"

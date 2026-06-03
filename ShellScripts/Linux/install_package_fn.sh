@@ -23,6 +23,13 @@ install_package() {
 
         "cmake") PKG_NAME="cmake" ;;
 
+        "meson")
+            case "$CURRENT_DISTRO" in
+                debian) PKG_NAME="meson ninja-build" ;;
+                redhat) PKG_NAME="meson ninja-build" ;;
+                arch) PKG_NAME="meson ninja" ;;
+            esac ;;
+
         "gnutls-dev")
             case "$CURRENT_DISTRO" in
                 debian) PKG_NAME="libgnutls28-dev" ;;
