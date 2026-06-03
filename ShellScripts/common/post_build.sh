@@ -2,12 +2,12 @@
 # Processes Oolite data files after compilation
 
 run_script() {
-    # All variables declared local to avoid global scope pollution
     local SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
     pushd "$SCRIPT_DIR" > /dev/null
 
     cd ../..
 
+    set -x
     PROGDIR="$(dirname "$PROGPATH")"
     mkdir -p "$PROGDIR/Resources"
 
