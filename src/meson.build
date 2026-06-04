@@ -39,7 +39,7 @@ if is_windows
     if (cc.get_id() == 'gcc')
         add_project_arguments('-DSTATIC_JS_API', language: c_family)
     endif
-    oolite_deps += [dependency('js' + win_js_suffix)]
+    oolite_deps += [cc.find_library('js' + win_js_suffix)]
 
 else
     add_project_arguments('-ggdb3', '-DLINUX', '-DXP_UNIX', language: c_family)
