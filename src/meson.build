@@ -35,17 +35,11 @@ if is_windows
         oolite_deps += [cc.find_library(lib)]
     endforeach
 
-    my_includes += [
-        include_directories('deps/Windows-deps/x86_64/JS32ECMAv5/include'),
-    ]
-    win_js_suffix = (get_option('optimization') == '0' or get_option('debug')) ? 'ECMAv5dbg' : 'ECMAv5'
-    js_lib_dir = meson.current_source_dir() + '/deps/Windows-deps/x86_64/JS32' + win_js_suffix + '/lib'
-    if (get_option('optimization') == '0' or get_option('debug')) and (
-        cc.get_id() == 'gcc'
-    )
+    win_js_suffix = (get_option('optimization') == '0' or get_option('debug')) ? 'dbg' : ''
+    if (cc.get_id() == 'gcc')
         add_project_arguments('-DSTATIC_JS_API', language: c_family)
     endif
-    oolite_deps += [cc.find_library('js32' + win_js_suffix, dirs: js_lib_dir)]
+    oolite_deps += [dependency('js' + win_js_suffix)]
 
 else
     add_project_arguments('-ggdb3', '-DLINUX', '-DXP_UNIX', language: c_family)
