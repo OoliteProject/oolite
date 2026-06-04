@@ -37,7 +37,7 @@ jobs:
         run: |
           ShellScripts/Linux/build_gnustep.sh system
           echo "/usr/local/lib" | tee -a /etc/ld.so.conf
-          sudo ldconfig
+          ldconfig
       - name: Install Mozilla static library
         run: |
           ShellScripts/Linux/install_mozilla_js.sh system
@@ -84,7 +84,7 @@ jobs:
         run: |
           ShellScripts/Linux/install_mozilla_js.sh system
           echo "/usr/local/lib" | tee -a /etc/ld.so.conf
-          sudo ldconfig
+          ldconfig
       - name: Build and test Oolite
         if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
         run: |
@@ -128,7 +128,7 @@ jobs:
         run: |
           ShellScripts/Linux/install_mozilla_js.sh system
           echo "/usr/local/lib" | tee -a /etc/ld.so.conf
-          sudo ldconfig
+          ldconfig
       - name: Build and test Oolite
         if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
         run: |

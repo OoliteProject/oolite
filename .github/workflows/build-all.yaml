@@ -100,7 +100,7 @@ jobs:
         run: |
           oolite/ShellScripts/Linux/install_mozilla_js.sh system
           echo "/usr/local/lib" | tee -a /etc/ld.so.conf
-          sudo ldconfig
+          ldconfig
       - name: Build Oolite
         env:
           SEMVER: ${{ needs.common.outputs.SEMVER }}
