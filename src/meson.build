@@ -32,7 +32,7 @@ if is_windows
     endif
 
     win_js_suffix = (get_option('optimization') == '0' or get_option('debug')) ? 'dbg' : ''
-    dep_libs = ['glu32', 'opengl32', 'dwmapi', 'winmm', 'gnustep-base', 'js' + win_js_suffix]
+    dep_libs = ['glu32', 'opengl32', 'dwmapi', 'winmm', 'objc', 'gnustep-base', 'js' + win_js_suffix]
     foreach lib : dep_libs
         oolite_deps += [cc.find_library(lib)]
     endforeach
@@ -63,6 +63,7 @@ else
         },
     ]
     foreach item : libraries_to_find
+        dep_name = item['name']
         found_dep = false
         foreach root : [
             'build/' + item['build_subfolder'],
@@ -78,7 +79,7 @@ else
             foreach libdir : search_subdirs
                 test_path = join_paths(actual_root, libdir)
                 lib_check = cc.find_library(
-                    item['name'],
+                    dep_name,
                     dirs: test_path,
                     required: false,
                 )
@@ -109,6 +110,9 @@ else
                 endif
             endforeach
         endforeach
+        if not found_dep
+            error('Required dependency "@0@" was not found in any of the searched paths.'.format(dep_name))
+        endif
     endforeach
 endif
 
