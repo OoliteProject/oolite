@@ -36,6 +36,8 @@ jobs:
       - name: Build GNUstep
         run: |
           ShellScripts/Linux/build_gnustep.sh system
+          echo "/usr/local/lib" | tee /etc/ld.so.conf.d/gnustep.conf
+          ldconfig
       - name: Install Mozilla static library
         run: |
           ShellScripts/Linux/install_mozilla_js.sh system
