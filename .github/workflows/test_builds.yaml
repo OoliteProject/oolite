@@ -83,7 +83,7 @@ jobs:
       - name: Install Mozilla static library
         run: |
           ShellScripts/Linux/install_mozilla_js.sh system
-          echo "/usr/local/lib" | tee -a /etc/ld.so.conf
+          echo "/usr/local/lib64" | tee -a /etc/ld.so.conf
           ldconfig
       - name: Build and test Oolite
         if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
