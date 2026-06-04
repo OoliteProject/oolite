@@ -195,10 +195,10 @@ def run_test(bin_name, test_output):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Oolite Automation Tester")
     parser.add_argument(
-        "--path", default="./oolite.app", help="Path to the Oolite directory (default: ./oolite.app)"
+        "--path", default="./", help="Path to the Oolite directory (default: ./)"
     )
     parser.add_argument(
-        "--test_output", default="./oolite.app/test_output", help="Path to test output (default: ./oolite.app/test_output)"
+        "--test_output", default="./test_output", help="Path to test output (default: ./test_output)"
     )
     args = parser.parse_args()
 

@@ -45,7 +45,7 @@ MA 02110-1301, USA.
 #include <stdbool.h>
 #import <Foundation/Foundation.h>
 
-#ifdef GNUSTEP_RUNTIME
+#ifdef GNUSTEP_BASE_LIBRARY
 	#define OOLITE_GNUSTEP			1
 	
 	#if (GNUSTEP_BASE_MAJOR_VERSION == 1 && GNUSTEP_BASE_MINOR_VERSION < 28)

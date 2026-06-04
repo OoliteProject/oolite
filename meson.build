@@ -24,26 +24,34 @@ is_windows = (host_os == 'windows' or host_os == 'cygwin')
 
 c_family = ['c', 'cpp', 'objc']
 
-if cc.get_id() == 'clang'
-    add_project_arguments('-std=gnu99', language: ['c', 'objc'])
-endif
-
 version_string = meson.project_version()
 add_project_arguments(
     '-DOO_VERSION_FULL="@0@"'.format(version_string),
-    '-DGNUSTEP_RUNTIME=1',
+    '-DGNUSTEP_BASE_LIBRARY=1',
     language: c_family,
 )
-
 add_project_arguments(
-    '-D_NONFRAGILE_ABI=1',
-    '-DGNUSTEP_BASE_LIBRARY=1',
-    '-fobjc-runtime=gnustep-2.2',
-    '-fblocks',
     '-fexceptions',
     '-fobjc-exceptions',
     language: 'objc',
 )
+
+if cc.get_id() == 'clang'
+    add_project_arguments(
+        '-DGNUSTEP_RUNTIME=1',
+        '-D_NONFRAGILE_ABI=1',
+        '-fobjc-runtime=gnustep-2.2',
+        '-fblocks',
+        language: 'objc',
+    )
+else
+    add_project_arguments('-std=gnu99', language: ['c', 'objc'])
+    add_project_arguments(
+        '-DGNU_RUNTIME=1',
+        '-fobjc-runtime=gcc',
+        language: 'objc',
+    )
+endif
 
 if get_option('optimization') == '0' or get_option('debug')
     add_project_arguments(

@@ -40,7 +40,7 @@
  * You may contact the author at will_mason@users.sourceforge.net.
  */
 
-#if defined(GNUSTEP_RUNTIME)
+#if defined(GNUSTEP_BASE_LIBRARY)
 
 #include "Comparison.h"
 #include <Foundation/NSString.h>

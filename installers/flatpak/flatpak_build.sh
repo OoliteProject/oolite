@@ -14,7 +14,8 @@ export ADDITIONAL_CFLAGS="-DBUILD_DATE='\"$CPP_DATE\"'"
 export ADDITIONAL_OBJCFLAGS="-DBUILD_DATE='\"$CPP_DATE\"'"
 make -f Makefile release-deployment -j$FLATPAK_BUILDER_N_JOBS
 
-install_freedesktop /app lib/debug/bin metainfo
+local ABS_OOLITEDIR=$(realpath -m "build/meson_deployment/oolite.app")
+install_freedesktop $ABS_OOLITEDIR /app lib/debug/bin metainfo
 # Ensure the destination directory exists
 mkdir -p /app/lib/debug/source/oolite
 # Copy the src directory recursively

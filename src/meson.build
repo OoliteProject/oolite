@@ -13,6 +13,7 @@ if get_option('espeak')
     add_project_arguments('-DHAVE_LIBESPEAK=1', language: c_family)
 endif
 
+gnustep_folder = ''  # Not needed for Windows
 my_sources = []
 my_includes = []
 
@@ -30,16 +31,14 @@ if is_windows
         extra_link_args += ['-Wl,-pdb=']
     endif
 
-    dep_libs = ['gnustep-base', 'glu32', 'opengl32', 'dwmapi', 'winmm']
+    win_js_suffix = (get_option('optimization') == '0' or get_option('debug')) ? 'dbg' : ''
+    dep_libs = ['glu32', 'opengl32', 'dwmapi', 'winmm', 'gnustep-base', 'js' + win_js_suffix]
     foreach lib : dep_libs
         oolite_deps += [cc.find_library(lib)]
     endforeach
-
-    win_js_suffix = (get_option('optimization') == '0' or get_option('debug')) ? 'dbg' : ''
     if (cc.get_id() == 'gcc')
         add_project_arguments('-DSTATIC_JS_API', language: c_family)
     endif
-    oolite_deps += [cc.find_library('js' + win_js_suffix)]
 
 else
     add_project_arguments('-ggdb3', '-DLINUX', '-DXP_UNIX', language: c_family)
@@ -51,7 +50,6 @@ else
         dependency('x11'),
     ]
 
-    gnustep_folder = ''
     fs = import('fs')
     home_local = join_paths(fs.expanduser('~'), '.local')
     libraries_to_find = [
