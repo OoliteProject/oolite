@@ -40,7 +40,9 @@ endef
 .PHONY: release
 release:
 	$(call meson_build,-Ddebug=false -Dstrip_bin=true -Db_lto=true,release)
-	mkdir -p oolite.app/AddOns && rm -rf oolite.app/AddOns/Basic-debug.oxp && cp -rf DebugOXP/Debug.oxp oolite.app/AddOns/Basic-debug.oxp
+	mkdir -p build/meson_release/oolite.app/AddOns && \
+	rm -rf build/meson_release/oolite.app/AddOns/Basic-debug.oxp && \
+	cp -rf DebugOXP/Debug.oxp build/meson_release/oolite.app/AddOns/Basic-debug.oxp
 
 .PHONY: release-deployment
 release-deployment:
@@ -49,12 +51,16 @@ release-deployment:
 .PHONY: release-snapshot
 release-snapshot:
 	$(call meson_build,-Dsnapshot_build=true -Ddebug=false -Dstrip_bin=false,snapshot)
-	mkdir -p oolite.app/AddOns && rm -rf oolite.app/AddOns/Basic-debug.oxp && cp -rf DebugOXP/Debug.oxp oolite.app/AddOns/Basic-debug.oxp
+	mkdir -p build/meson_snapshot/oolite.app/AddOns && \
+	rm -rf build/meson_snapshot/oolite.app/AddOns/Basic-debug.oxp && \
+	cp -rf DebugOXP/Debug.oxp build/meson_snapshot/oolite.app/AddOns/Basic-debug.oxp
 
 .PHONY: debug
 debug:
 	$(call meson_build,-Ddebug=true -Dstrip_bin=false,debug)
-	mkdir -p oolite.app/AddOns && rm -rf oolite.app/AddOns/Basic-debug.oxp && cp -rf DebugOXP/Debug.oxp oolite.app/AddOns/Basic-debug.oxp
+	mkdir -p build/meson_debug/oolite.app/AddOns && \
+	rm -rf build/meson_debug/oolite.app/AddOns/Basic-debug.oxp && \
+	cp -rf DebugOXP/Debug.oxp build/meson_debug/oolite.app/AddOns/Basic-debug.oxp
 
 .PHONY: test
 test: release-snapshot
