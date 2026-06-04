@@ -2,7 +2,11 @@ project(
     'oolite',
     ['c', 'cpp', 'objc'],
     meson_version: '>= 1.4.0',
-    version: run_command('bash', files('ShellScripts/common/get_version.sh'), check: true).stdout().strip(),
+    version: run_command(
+        'bash',
+        files('ShellScripts/common/get_version.sh'),
+        check: true,
+    ).stdout().strip(),
     default_options: [
         'prefix=' + meson.current_build_dir() / 'oolite.app',
         'bindir=',
@@ -12,101 +16,105 @@ project(
 )
 
 # ------------------------------------------------------------------------------
-# Compiler Setup
+# Compiler Setup & Baseline Arguments
 # ------------------------------------------------------------------------------
 cc = meson.get_compiler('c')
 host_os = host_machine.system()
 is_windows = (host_os == 'windows' or host_os == 'cygwin')
 
-extra_c_args = []
-extra_objc_args = []
-extra_link_args = []
+c_family = ['c', 'cpp', 'objc']
 
 if cc.get_id() == 'clang'
-    extra_c_args += ['-Qunused-arguments']
-    extra_objc_args += ['-Qunused-arguments']
-else
     add_project_arguments('-std=gnu99', language: ['c', 'objc'])
 endif
 
 version_string = meson.project_version()
-extra_c_args += ['-DOO_VERSION_FULL="@0@"'.format(version_string)]
-extra_objc_args += ['-DOO_VERSION_FULL="@0@"'.format(version_string)]
+add_project_arguments(
+    '-DOO_VERSION_FULL="@0@"'.format(version_string),
+    '-DGNUSTEP_RUNTIME=1',
+    language: c_family,
+)
+
+add_project_arguments(
+    '-D_NONFRAGILE_ABI=1',
+    '-DGNUSTEP_BASE_LIBRARY=1',
+    '-fobjc-runtime=gnustep-2.2',
+    '-fblocks',
+    '-fexceptions',
+    '-fobjc-exceptions',
+    language: 'objc',
+)
 
 if get_option('optimization') == '0' or get_option('debug')
-    extra_c_args += ['-O0', '-DDEBUG', '-DOO_DEBUG', '-DOO_CHECK_GL_HEAVY=1']
-    extra_objc_args += ['-O0', '-DDEBUG', '-DOO_DEBUG', '-DOO_CHECK_GL_HEAVY=1']
+    add_project_arguments(
+        '-O0',
+        '-DDEBUG',
+        '-DOO_DEBUG',
+        '-DOO_CHECK_GL_HEAVY=1',
+        language: c_family,
+    )
 endif
 
 if get_option('no_shaders')
-    extra_c_args += ['-DNO_SHADERS=1']
-    extra_objc_args += ['-DNO_SHADERS=1']
+    add_project_arguments('-DNO_SHADERS=1', language: c_family)
 endif
 
 if get_option('deployment_release_configuration')
-    deployment_flags = [
+    add_project_arguments(
         '-DNDEBUG',
         '-DOO_CHECK_GL_HEAVY=0',
         '-DOO_OXP_VERIFIER_ENABLED=0',
         '-DOO_LOCALIZATION_TOOLS=0',
         '-DDEBUG_GRAPHVIZ=0',
         '-DOO_FOV_INFLIGHT_CONTROL_ENABLED=0',
-    ]
-    extra_c_args += deployment_flags
-    extra_objc_args += deployment_flags
+        language: c_family,
+    )
 else
     if get_option('oo_check_gl_heavy')
-        extra_c_args += ['-DOO_CHECK_GL_HEAVY=1']
-        extra_objc_args += ['-DOO_CHECK_GL_HEAVY=1']
+        add_project_arguments('-DOO_CHECK_GL_HEAVY=1', language: c_family)
     endif
     if get_option('oo_exclude_debug_support')
-        extra_c_args += ['-DNDEBUG']
-        extra_objc_args += ['-DNDEBUG']
+        add_project_arguments('-DNDEBUG', language: c_family)
     endif
     if get_option('oo_oxp_verifier_enabled')
-        extra_c_args += ['-DOO_OXP_VERIFIER_ENABLED=1']
-        extra_objc_args += ['-DOO_OXP_VERIFIER_ENABLED=1']
+        add_project_arguments('-DOO_OXP_VERIFIER_ENABLED=1', language: c_family)
     endif
     if get_option('oo_localization_tools')
-        extra_c_args += ['-DOO_LOCALIZATION_TOOLS=1']
-        extra_objc_args += ['-DOO_LOCALIZATION_TOOLS=1']
+        add_project_arguments('-DOO_LOCALIZATION_TOOLS=1', language: c_family)
     endif
     if get_option('debug_graphviz')
-        extra_c_args += ['-DDEBUG_GRAPHVIZ=1']
-        extra_objc_args += ['-DDEBUG_GRAPHVIZ=1']
+        add_project_arguments('-DDEBUG_GRAPHVIZ=1', language: c_family)
     endif
     if get_option('oo_fov_inflight_control_enabled')
-        extra_c_args += ['-DOO_FOV_INFLIGHT_CONTROL_ENABLED=1']
-        extra_objc_args += ['-DOO_FOV_INFLIGHT_CONTROL_ENABLED=1']
+        add_project_arguments(
+            '-DOO_FOV_INFLIGHT_CONTROL_ENABLED=1',
+            language: c_family,
+        )
     endif
 endif
 
 if get_option('snapshot_build')
-    extra_c_args += [
+    add_project_arguments(
         '-DSNAPSHOT_BUILD',
         '-DOOLITE_SNAPSHOT_VERSION="@0@"'.format(version_string),
-    ]
-    extra_objc_args += [
-        '-DSNAPSHOT_BUILD',
-        '-DOOLITE_SNAPSHOT_VERSION="@0@"'.format(version_string),
-    ]
+        language: c_family,
+    )
 endif
 
 if get_option('oo_javascript_trace')
-    extra_objc_args += ['-DMOZ_TRACE_JSCALLS=1']
+    add_project_arguments('-DMOZ_TRACE_JSCALLS=1', language: c_family)
 endif
 
+extra_link_args = []
 if get_option('b_lto')
     if cc.get_id() == 'clang'
-        extra_c_args += ['-flto=thin']
-        extra_objc_args += ['-flto=thin']
+        add_project_arguments('-flto=thin', language: c_family)
         extra_link_args += [
             '-flto=thin',
             '-Wl,--thinlto-cache-dir=thinlto_cache',
         ]
     else
-        extra_c_args += ['-flto=auto']
-        extra_objc_args += ['-flto=auto']
+        add_project_arguments('-flto=auto', language: c_family)
         extra_link_args += ['-flto=auto']
     endif
 endif
@@ -120,18 +128,12 @@ install_env_args = [
         'oolite',
     ),
     'HOST_OS=' + host_os,
-    'DEBUG=' + (
-        get_option('debug') ? 'yes' : 'no'
-    ),
+    'DEBUG=' + (get_option('debug') ? 'yes' : 'no'),
     'DEPLOYMENT_RELEASE_CONFIGURATION=' + (
         get_option('deployment_release_configuration') ? 'yes' : 'no'
     ),
-    'ESPEAK=' + (
-        get_option('espeak') ? 'yes' : 'no'
-    ),
-    'STRIP_BIN=' + (
-        get_option('strip_bin') ? 'yes' : 'no'
-    ),
+    'ESPEAK=' + (get_option('espeak') ? 'yes' : 'no'),
+    'STRIP_BIN=' + (get_option('strip_bin') ? 'yes' : 'no'),
     'VER_FULL=' + version_string,
     'GNUSTEP_FOLDER=' + gnustep_folder,
 ]

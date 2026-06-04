@@ -11,6 +11,7 @@ my_sources += files(
     'NSDictionaryOOExtensions.m',
     'NSFileManagerOOExtensions.m',
     'NSMutableDictionaryOOExtensions.m',
+    'NSNumberOOExtensions.m',
     'NSObjectOOExtensions.m',
     'NSScannerOOExtensions.m',
     'NSStringOOExtensions.m',
