@@ -15,8 +15,8 @@ run_script() {
         TARGET=$1
     fi
 
-    make -f Makefile clean
-    if ! make -f Makefile $TARGET; then
+    make clean
+    if ! make $TARGET; then
         echo "❌ Oolite build failed!" >&2
         return 1
     fi

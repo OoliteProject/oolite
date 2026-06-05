@@ -68,6 +68,10 @@ remake: clean all
 ## Packaging Targets
 ##
 
+.PHONY: pkg-flatpak
+pkg-flatpak: ## Package a Flatpak application
+	./installers/flatpak/create_flatpak.sh
+
 .PHONY: pkg-appimage
 pkg-appimage: release ## Package a test release AppImage
 	installers/appimage/create_appimage.sh meson_release/oolite.app "test"
