@@ -692,7 +692,7 @@ enum PreferredAppMode
 	return fullScreen;
 }
 
-#ifdef GNUSTEP
+#ifdef GNUSTEP_BASE_LIBRARY
 - (void) setFullScreenMode:(BOOL)fsm
 {
 	fullScreen = fsm;

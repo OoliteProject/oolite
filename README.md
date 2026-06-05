@@ -133,28 +133,26 @@ The completed build (executable and games files) can be found in the oolite.app 
 Subsequently, you can clean and build as follows:
 
 ```bash
-make -f Makefile clean
-make -f Makefile release -j$(nproc)
+make clean
+make release
 ```
 
 You can run a test from your Bash or MSYS2 prompt as follows:
 
 ```bash
-make -f Makefile test
+make test
 ```
 
-On Linux, you will need to run this beforehand: `source /usr/local/share/GNUstep/Makefiles/GNUstep.sh`
-
-On Windows, this is set up be default in the shell: `source $MINGW_PREFIX/share/GNUstep/Makefiles/GNUstep.sh`
-
 Other targets are release-deployment for a production release and release-snapshot for a debug release.
+
+
 
 ### Other Linux Make Targets
 
 This target builds an AppImage for testing which can be found in build:
 
 ```bash
-make -f Makefile pkg-appimage -j$(nproc)
+make pkg-appimage
 ```
 
 The target pkg-appimage-deployment is the production release, while pkg-appimage-snapshot is for debugging.
@@ -162,7 +160,16 @@ The target pkg-appimage-deployment is the production release, while pkg-appimage
 This target builds a Flatpak which can be found in build:
 
 ```bash
-make -f Makefile pkg-flatpak -j$(nproc)
+make pkg-flatpak
+```
+
+Although there is a top level Makefile, the underlying build system is Meson. You can run the deployment
+build directly using Meson build commands like this:
+
+```bash
+meson setup build/meson_deployment -Ddeployment_release_configuration=true -Ddebug=false -Dstrip_bin=true -Db_lto=true --native-file clang.ini --reconfigure
+meson compile -C build/meson_deployment
+meson install -C build/meson_deployment
 ```
 
 ### Mac OS
@@ -177,14 +184,6 @@ originally coded on Mac, but was ported to Windows and Linux by way of the GNUst
 provides a similar API to what is available on Mac. Objective-C is supported by modern IDEs like
 CLion and Visual Studio Code. The language can be easily picked up by programmers familiar with C
 or C++ with which it is interoperable.
-
-### Troubleshooting
-
-- If you get compiler errors, you can try compiling with:
-
-```bash
-make -f Makefile release OBJCFLAGS="-fobjc-exceptions -Wno-format-security" -j$(nproc)
-```
 
 ## Contents of repository
 

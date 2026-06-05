@@ -24,8 +24,9 @@ run_script() {
     local APPSHR="$APPDIR/share"
     rm -rf "$APPDIR"
 
+    local ABS_OOLITEDIR=$(realpath -m "$1")
     local ABS_APPDIR=$(realpath -m "$APPDIR")
-    if ! install_freedesktop "$ABS_APPDIR" bin appdata; then
+    if ! install_freedesktop "$ABS_OOLITEDIR" "$ABS_APPDIR" bin appdata; then
         return 1
     fi
 
@@ -43,8 +44,8 @@ run_script() {
     local DESKTOP="$APPSHR/applications/space.oolite.Oolite.desktop"
     export DESKTOP
     local SUFFIX
-   	if (( $# == 1 )); then
-        SUFFIX="_${1}-${VER_FULL}"
+   	if (( $# == 2 )); then
+        SUFFIX="_${2}-${VER_FULL}"
     else
         SUFFIX="-$VER_FULL"
     fi
@@ -74,8 +75,8 @@ run_script() {
 
     if [[ ! -x "$LINTER_BIN" ]] || [[ ! -f "$EXCLUDE_LIST" ]]; then
         echo "📥 Downloading AppDir linter and excludelist..."
-        curl -o "$LINTER_BIN" -L https://raw.githubusercontent.com/AppImage/AppImages/master/appdir-lint.sh || { echo "❌ Linter download failed" >&2; exit 1; }
-        curl -o "$EXCLUDE_LIST" -L https://raw.githubusercontent.com/AppImage/AppImages/master/excludelist || { echo "❌ Excludelist download failed" >&2; exit 1; }
+        curl -o "$LINTER_BIN" -L https://raw.githubusercontent.com/AppImage/AppImages/master/appdir-lint.sh || { echo "❌ Linter download failed" >&2; return 1; }
+        curl -o "$EXCLUDE_LIST" -L https://raw.githubusercontent.com/AppImage/AppImages/master/excludelist || { echo "❌ Excludelist download failed" >&2; return 1; }
         chmod +x "$LINTER_BIN"
     fi
 
@@ -88,7 +89,7 @@ run_script() {
     APPIMAGETOOL_BIN="./appimagetool"
     if [ ! -x "$APPIMAGETOOL_BIN" ]; then
         echo "📥 appimagetool not found. Downloading..."
-        curl -o "$APPIMAGETOOL_BIN" -L https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-$ARCH.AppImage || { echo "❌ appimagetool download failed" >&2; exit 1; }
+        curl -o "$APPIMAGETOOL_BIN" -L https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-$ARCH.AppImage || { echo "❌ appimagetool download failed" >&2; return 1; }
         chmod +x "$APPIMAGETOOL_BIN"
     fi
 

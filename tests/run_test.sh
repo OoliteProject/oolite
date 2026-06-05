@@ -22,7 +22,8 @@ run_script() {
     local SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
     pushd "$SCRIPT_DIR"
 
-    local TARGET_DIR=$(readlink -f "../oolite.app")
+    local BUILD_TYPE="${1:-snapshot}"
+    local TARGET_DIR=$(readlink -f "../build/meson_${BUILD_TYPE}/oolite.app")
     if [[ -n "$MSYSTEM" ]]; then
         local MESA_DLL="${MSYSTEM_PREFIX}/bin/opengl32.dll"
         if [[ -f "$MESA_DLL" ]]; then
@@ -31,7 +32,7 @@ run_script() {
         fi
     fi
 
-    local TEST_OUTPUT="$TARGET_DIR/test_output"
+    local TEST_OUTPUT="$TARGET_DIR/../test_output"
     rm -rf "$TEST_OUTPUT"
     mkdir -p "$TEST_OUTPUT"
     local OOLITE_LOG="$TEST_OUTPUT/Latest.log"

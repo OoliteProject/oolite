@@ -1,0 +1,150 @@
+project(
+    'oolite',
+    ['c', 'cpp', 'objc'],
+    meson_version: '>= 1.4.0',
+    version: run_command(
+        'bash',
+        files('ShellScripts/common/get_version.sh'),
+        check: true,
+    ).stdout().strip(),
+    default_options: [
+        'prefix=' + meson.current_build_dir() / 'oolite.app',
+        'bindir=',
+        'datadir=',
+        'optimization=2',
+    ],
+)
+
+# ------------------------------------------------------------------------------
+# Compiler Setup & Baseline Arguments
+# ------------------------------------------------------------------------------
+cc = meson.get_compiler('c')
+host_os = host_machine.system()
+is_windows = (host_os == 'windows' or host_os == 'cygwin')
+
+c_family = ['c', 'cpp', 'objc']
+
+version_string = meson.project_version()
+add_project_arguments(
+    '-DOO_VERSION_FULL="@0@"'.format(version_string),
+    '-DGNUSTEP_BASE_LIBRARY=1',
+    language: c_family,
+)
+add_project_arguments(
+    '-fexceptions',
+    '-fobjc-exceptions',
+    language: 'objc',
+)
+
+if cc.get_id() == 'clang'
+    add_project_arguments(
+        '-DGNUSTEP_RUNTIME=1',
+        '-D_NONFRAGILE_ABI=1',
+        '-fobjc-runtime=gnustep-2.2',
+        '-fblocks',
+        language: 'objc',
+    )
+else
+    add_project_arguments('-std=gnu99', language: ['c', 'objc'])
+    add_project_arguments(
+        '-DGNU_RUNTIME=1',
+        '-fobjc-runtime=gcc',
+        language: 'objc',
+    )
+endif
+
+is_debug = (get_option('optimization') == '0' or get_option('debug'))
+if is_debug
+    add_project_arguments(
+        '-O0',
+        '-DDEBUG',
+        '-DOO_DEBUG',
+        '-DOO_CHECK_GL_HEAVY=1',
+        language: c_family,
+    )
+endif
+
+if get_option('no_shaders')
+    add_project_arguments('-DNO_SHADERS=1', language: c_family)
+endif
+
+if get_option('deployment_release_configuration')
+    add_project_arguments(
+        '-DNDEBUG',
+        '-DOO_CHECK_GL_HEAVY=0',
+        '-DOO_OXP_VERIFIER_ENABLED=0',
+        '-DOO_LOCALIZATION_TOOLS=0',
+        '-DDEBUG_GRAPHVIZ=0',
+        '-DOO_FOV_INFLIGHT_CONTROL_ENABLED=0',
+        language: c_family,
+    )
+else
+    if get_option('oo_check_gl_heavy')
+        add_project_arguments('-DOO_CHECK_GL_HEAVY=1', language: c_family)
+    endif
+    if get_option('oo_exclude_debug_support')
+        add_project_arguments('-DNDEBUG', language: c_family)
+    endif
+    if get_option('oo_oxp_verifier_enabled')
+        add_project_arguments('-DOO_OXP_VERIFIER_ENABLED=1', language: c_family)
+    endif
+    if get_option('oo_localization_tools')
+        add_project_arguments('-DOO_LOCALIZATION_TOOLS=1', language: c_family)
+    endif
+    if get_option('debug_graphviz')
+        add_project_arguments('-DDEBUG_GRAPHVIZ=1', language: c_family)
+    endif
+    if get_option('oo_fov_inflight_control_enabled')
+        add_project_arguments(
+            '-DOO_FOV_INFLIGHT_CONTROL_ENABLED=1',
+            language: c_family,
+        )
+    endif
+endif
+
+if get_option('snapshot_build')
+    add_project_arguments(
+        '-DSNAPSHOT_BUILD',
+        '-DOOLITE_SNAPSHOT_VERSION="@0@"'.format(version_string),
+        language: c_family,
+    )
+endif
+
+if get_option('oo_javascript_trace')
+    add_project_arguments('-DMOZ_TRACE_JSCALLS=1', language: c_family)
+endif
+
+extra_link_args = []
+if get_option('b_lto')
+    if cc.get_id() == 'clang'
+        add_project_arguments('-flto=thin', language: c_family)
+        extra_link_args += [
+            '-flto=thin',
+            '-Wl,--thinlto-cache-dir=thinlto_cache',
+        ]
+    else
+        add_project_arguments('-flto=auto', language: c_family)
+        extra_link_args += ['-flto=auto']
+    endif
+endif
+
+subdir('src')
+
+install_env_args = [
+    'PROGPATH=' + join_paths(
+        meson.global_build_root() / 'oolite.app',
+        get_option('bindir'),
+        'oolite',
+    ),
+    'HOST_OS=' + host_os,
+    'DEBUG=' + (get_option('debug') ? 'yes' : 'no'),
+    'DEPLOYMENT_RELEASE_CONFIGURATION=' + (
+        get_option('deployment_release_configuration') ? 'yes' : 'no'
+    ),
+    'ESPEAK=' + (get_option('espeak') ? 'yes' : 'no'),
+    'STRIP_BIN=' + (get_option('strip_bin') ? 'yes' : 'no'),
+    'VER_FULL=' + version_string,
+    'GNUSTEP_FOLDER=' + gnustep_folder,
+]
+post_build_script = find_program('ShellScripts/common/post_build.sh')
+meson.add_install_script('env', install_env_args, post_build_script.full_path())

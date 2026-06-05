@@ -23,11 +23,6 @@ deps/libpng
 
 # Build products
 build/
-oolite.app
-obj.spk
-obj.win.spk
-obj.spk.dbg
-obj.win.spk.dbg
 tools/icosmesh/obj
 doxygen/
 libobjc2/

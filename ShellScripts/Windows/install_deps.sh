@@ -59,6 +59,8 @@ run_script() {
     pacboy -S pcaudiolib --noconfirm
     pacboy -S espeak-ng --noconfirm
     pacman -S make --noconfirm
+    pacboy -S meson --noconfirm
+    pacboy -S ninja --noconfirm
     pacboy -S nsis --noconfirm
 
     if [[ -z "$1" || "$1" == "clang" ]]; then
