@@ -48,6 +48,7 @@ run_script() {
     fi
 
     local OOLITE_DIR="../$1"
+    OOLITE_DIR="${OOLITE_DIR//\//\\}"
     # Passing arguments cause problems with some versions of NSIS.
     # Because of this, we generate them into a separate file and include them.
     echo "; Version Definitions for Oolite" > OoliteVersions.nsh
