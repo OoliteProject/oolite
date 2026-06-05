@@ -53,7 +53,8 @@ else
     )
 endif
 
-if get_option('optimization') == '0' or get_option('debug')
+is_debug = (get_option('optimization') == '0' or get_option('debug'))
+if is_debug
     add_project_arguments(
         '-O0',
         '-DDEBUG',

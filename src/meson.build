@@ -32,9 +32,9 @@ if is_windows
     endif
 
     win_js_suffix = (get_option('optimization') == '0' or get_option('debug')) ? 'dbg' : ''
-    dep_libs = ['glu32', 'opengl32', 'dwmapi', 'winmm', 'objc', 'gnustep-base', 'js' + win_js_suffix]
+    dep_libs = ['glu32', 'opengl32', 'dwmapi', 'winmm', 'ws2_32', 'objc', 'gnustep-base', 'js' + win_js_suffix]
     foreach lib : dep_libs
-        oolite_deps += [cc.find_library(lib)]
+        oolite_deps += [cc.find_library(lib, required: true)]
     endforeach
     if (cc.get_id() == 'gcc')
         add_project_arguments('-DSTATIC_JS_API', language: c_family)
@@ -51,69 +51,61 @@ else
     ]
 
     fs = import('fs')
+    project_root = meson.project_source_root()
     home_local = join_paths(fs.expanduser('~'), '.local')
-    libraries_to_find = [
-        {
-            'name': (get_option('optimization') == '0' or get_option('debug')) ? 'jsdbg_static' : 'js_static',
-            'build_subfolder': 'mozilla_js',
-        },
-        {
-            'name': 'gnustep-base',
-            'build_subfolder': 'gnustep',
-        },
+
+    candidate_roots = [
+        {'abs': project_root, 'rel': '..'},
+        {'abs': home_local,   'rel': home_local},
+        {'abs': '/usr/local', 'rel': '/usr/local'},
+        {'abs': '/app',       'rel': '/app'}
     ]
-    foreach item : libraries_to_find
-        dep_name = item['name']
-        found_dep = false
-        foreach root : [
-            'build/' + item['build_subfolder'],
-            home_local,
-            '/usr/local',
-            '/app',
-        ]
-            actual_root = root.substring(0, 1) == '/' ? root : join_paths(
-                meson.current_source_dir(),
-                root,
-            )
-            search_subdirs = ['lib', 'lib64']
-            foreach libdir : search_subdirs
-                test_path = join_paths(actual_root, libdir)
-                lib_check = cc.find_library(
-                    dep_name,
-                    dirs: test_path,
-                    required: false,
-                )
+    js_name  = is_debug ? 'jsdbg_static' : 'js_static'
+    js_lib   = disabler()
+    gs_lib   = disabler()
+    objc_lib = disabler()
+    js_inc   = ''
+    gs_inc   = ''
+    foreach root : candidate_roots
+        if not js_lib.found()
+            js_sub = (root['abs'] == project_root) ? 'build/mozilla_js' : ''
+            js_folder = root['abs'] / js_sub
+            lib_check = cc.find_library(js_name, dirs: [js_folder / 'lib', js_folder / 'lib64'], required: false)
+            if lib_check.found()
+                js_lib = lib_check
+                js_inc = root['rel'] / js_sub / 'include'
+            endif
+        endif
 
-                if lib_check.found() and not found_dep
-                    include_target = join_paths(actual_root, 'include')
-                    linked_objects = [lib_check]
-                    if item['build_subfolder'] == 'gnustep'
-                        gnustep_folder = actual_root
-                        linked_objects += [
-                            cc.find_library(
-                                'objc',
-                                dirs: test_path,
-                                required: true,
-                            ),
-                        ]
-                    endif
+        if not gs_lib.found()
+            gs_sub = (root['abs'] == project_root) ? 'build/gnustep' : ''
+            gnustep_folder = root['abs'] / gs_sub
+            test_dirs = [gnustep_folder / 'lib', gnustep_folder / 'lib64']
+            lib_check = cc.find_library('gnustep-base', dirs: test_dirs, required: false)
+            if lib_check.found()
+                gs_lib = lib_check
+                objc_lib = cc.find_library('objc', dirs: test_dirs, required: true)
+                gs_inc = root['rel'] / gs_sub / 'include'
+            endif
+        endif
 
-                    oolite_deps += [
-                        declare_dependency(
-                            dependencies: linked_objects,
-                            include_directories: include_directories(
-                                include_target,
-                            ),
-                        ),
-                    ]
-                    found_dep = true
-                endif
-            endforeach
-        endforeach
-        if not found_dep
-            error('Required dependency "@0@" was not found in any of the searched paths.'.format(dep_name))
+        if js_lib.found() and gs_lib.found()
+            break
         endif
     endforeach
+
+    if not js_lib.found()
+        error('Required dependency "@0@" was not found.'.format(js_name))
+    endif
+    if not gs_lib.found()
+        error('Required dependency "gnustep-base" was not found.')
+    endif
+
+    inc_dir = include_directories([js_inc, gs_inc], is_system: true)
+    oolite_deps += declare_dependency(
+        dependencies: [js_lib, gs_lib, objc_lib],
+        include_directories: inc_dir
+    )
 endif
 
 # Enter child subdirectories
