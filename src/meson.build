@@ -138,6 +138,7 @@ oolite_bin = executable(
     my_sources,
     include_directories: my_includes,
     dependencies: oolite_deps,
+    win_subsystem: 'windows',
     link_args: extra_link_args,
     build_rpath: '$ORIGIN',
     install_rpath: '$ORIGIN',
