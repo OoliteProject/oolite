@@ -76,7 +76,8 @@ run_script() {
 
     if [[ "$HOST_OS" == "windows" ]]; then
         # Determine and copy DLL dependencies
-        ldd "$PROGPATH" | grep "$MINGW_PREFIX" | awk '{print $3}' | xargs -I {} cp -rfu {} "$PROGDIR"
+        UNIX_PREFIX=$(cygpath -u "$MINGW_PREFIX")
+        ldd "$PROGPATH" | grep "$UNIX_PREFIX" | awk '{print $3}' | xargs -I {} cp -rfu {} "$PROGDIR"
     else
         # Copy Linux-specific wrapper script
         cp -fu ShellScripts/Linux/run_oolite.sh "$PROGDIR"
