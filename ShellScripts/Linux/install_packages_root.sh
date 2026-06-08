@@ -25,6 +25,9 @@ run_script() {
     if ! install_package cmake; then
         return 1
     fi
+    if ! install_package meson; then
+        return 1
+    fi
     if ! install_package gnutls-dev; then
         return 1
     fi

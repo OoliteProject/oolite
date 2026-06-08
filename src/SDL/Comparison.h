@@ -40,7 +40,7 @@
  * You may contact the author at will_mason@users.sourceforge.net.
  */
 
-#if defined(GNUSTEP)
+#if defined(GNUSTEP_BASE_LIBRARY)
 
 #if !defined(__COMPARISON_OL_GUARD)
 #define __COMPARISON_OL_GUARD

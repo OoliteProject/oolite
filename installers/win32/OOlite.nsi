@@ -26,7 +26,7 @@
 ; We use M.m.R.S:  M-major, m-minor, R-revision, S-subversion
 !define VER ${VERSION}
 !ifndef DST
-!define DST ..\..\oolite.app
+!define DST ${OOLITE_DIR}
 !endif
 !ifndef OUTDIR
 !define OUTDIR .

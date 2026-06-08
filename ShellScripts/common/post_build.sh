@@ -2,38 +2,22 @@
 # Processes Oolite data files after compilation
 
 run_script() {
-    # All variables declared local to avoid global scope pollution
     local SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
     pushd "$SCRIPT_DIR" > /dev/null
 
     cd ../..
 
-    local EXT=""
-    local OS_EXT=""
-    if [[ "$GNUSTEP_HOST_OS" == "mingw32" ]]; then
-        # Windows only executable extension
-        OS_EXT=".exe"
-       # Debug extension if needed
-        if [[ "$DEBUG" == "yes" ]]; then
-            EXT=".dbg"
-        fi
-    fi
-
-    # Paths and binary names
-    local PROGDIR="${OBJC_PROGRAM_NAME}.app"
-    local SRC_BIN="${OBJC_PROGRAM_NAME}${OS_EXT}"
-    local DEST_BIN="${OBJC_PROGRAM_NAME}${EXT}${OS_EXT}"
-
+    set -x
+    PROGDIR="$(dirname "$PROGPATH")"
     mkdir -p "$PROGDIR/Resources"
 
     ShellScripts/common/mkmanifest.sh > "$PROGDIR/Resources/manifest.plist"
 
     cp -fu src/Cocoa/Info-Oolite.plist "$PROGDIR/Resources/Info-gnustep.plist"
-    cp -fu "$GNUSTEP_OBJ_DIR_NAME/$SRC_BIN" "$PROGDIR/$DEST_BIN"
 
     # Voice Data
     if [[ "$ESPEAK" == "yes" ]]; then
-        if [[ "$GNUSTEP_HOST_OS" == "mingw32" ]]; then
+        if [[ "$HOST_OS" == "windows" ]]; then
             # Windows espeak-ng-data
             cp -rfu "$MINGW_PREFIX/share/espeak-ng-data" "$PROGDIR/Resources"
         else
@@ -70,37 +54,38 @@ run_script() {
 
     # Strip binary if requested
     if [[ "$STRIP_BIN" == "yes" ]]; then
-        if [[ "$GNUSTEP_HOST_OS" == "mingw32" ]]; then
+        if [[ "$HOST_OS" == "windows" ]]; then
             # Windows: Standard GNU strip is safest for PE/COFF
-            strip "$PROGDIR/$DEST_BIN"
+            strip "$PROGPATH"
         else
             # Linux
-            cp -f "$GNUSTEP_OBJ_DIR_NAME/$SRC_BIN" "$PROGDIR/$DEST_BIN"
+            DEBUGPATH="$PROGDIR/$(basename "$PROGPATH").debug"
             # Extract symbols to file
-            objcopy --only-keep-debug "$PROGDIR/$DEST_BIN" "$PROGDIR/$DEST_BIN.debug"
+            objcopy --only-keep-debug "$PROGPATH" "$DEBUGPATH"
             # Compress the debug sections in the symbol file
-            objcopy --compress-debug-sections=zlib-gnu "$PROGDIR/$DEST_BIN.debug"
+            objcopy --compress-debug-sections=zlib-gnu "$DEBUGPATH"
             # strip the binary
-            strip  -R .comment "$PROGDIR/$DEST_BIN"
+            strip  -R .comment "$PROGPATH"
             # Add the debug link
-            objcopy --add-gnu-debuglink="$PROGDIR/$DEST_BIN.debug" "$PROGDIR/$DEST_BIN"
+            objcopy --add-gnu-debuglink="$DEBUGPATH" "$PROGPATH"
         fi
-    elif [[ "$GNUSTEP_HOST_OS" == "linux-gnu" ]]; then
+    elif [[ "$HOST_OS" == "linux" ]]; then
         # Compress the debug sections in the binary
-        objcopy --compress-debug-sections=zlib-gnu "$PROGDIR/$DEST_BIN"
+        objcopy --compress-debug-sections=zlib-gnu "$PROGPATH"
     fi
 
-    if [[ "$GNUSTEP_HOST_OS" == "mingw32" ]]; then
+    if [[ "$HOST_OS" == "windows" ]]; then
         # Determine and copy DLL dependencies
-        ldd "$PROGDIR/$DEST_BIN" | grep "$MINGW_PREFIX" | awk '{print $3}' | xargs -I {} cp -rfu {} "$PROGDIR"
+        UNIX_PREFIX=$(cygpath -u "$MINGW_PREFIX")
+        ldd "$PROGPATH" | grep "$UNIX_PREFIX" | awk '{print $3}' | xargs -I {} cp -rfu {} "$PROGDIR"
     else
         # Copy Linux-specific wrapper script
         cp -fu ShellScripts/Linux/run_oolite.sh "$PROGDIR"
-        local GNUSTEP_CONF=$(gnustep-config --variable=GNUSTEP_CONFIG_FILE)
+        local GNUSTEP_CONF="$GNUSTEP_FOLDER/etc/GNUstep/GNUstep.conf"
         install -D "$GNUSTEP_CONF" "$PROGDIR/Resources/GNUstep.conf.orig" || { echo "$err_msg GNUstep config" >&2; return 1; }
 
         # If we're using GNUstep libraries that aren't in a system folder copy them
-        ldd "$PROGDIR/$DEST_BIN" | \
+        ldd "$PROGPATH" | \
             grep -E "libgnustep-base|libobjc\.so\." | \
             grep -vE "^[[:space:]]*.*=>[[:space:]]*/(usr/(local/)?|lib(64)?/)" | \
             awk '{print $3}' | \

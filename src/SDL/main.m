@@ -23,7 +23,7 @@ MA 02110-1301, USA.
 */
 
 
-#ifdef GNUSTEP
+#ifdef GNUSTEP_BASE_LIBRARY
 #import <Foundation/NSAutoreleasePool.h>
 #if (GNUSTEP_BASE_MAJOR_VERSION == 1 && (GNUSTEP_BASE_MINOR_VERSION == 24 && GNUSTEP_BASE_SUBMINOR_VERSION >= 9) || (GNUSTEP_BASE_MINOR_VERSION > 24)) || (GNUSTEP_BASE_MAJOR_VERSION > 1)
 #import <Foundation/NSDate.h>
@@ -67,7 +67,7 @@ uint32_t gDebugFlags = 0;
  */
 int main(int argc, char *argv[])
 {
-#ifdef GNUSTEP
+#ifdef GNUSTEP_BASE_LIBRARY
 	int i;
 
 #if (GNUSTEP_BASE_MAJOR_VERSION == 1 && (GNUSTEP_BASE_MINOR_VERSION == 24 && GNUSTEP_BASE_SUBMINOR_VERSION >= 9) || (GNUSTEP_BASE_MINOR_VERSION > 24)) || (GNUSTEP_BASE_MAJOR_VERSION > 1)
