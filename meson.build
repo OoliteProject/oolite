@@ -48,7 +48,6 @@ else
     add_project_arguments('-std=gnu99', language: ['c', 'objc'])
     add_project_arguments(
         '-DGNU_RUNTIME=1',
-        '-fobjc-runtime=gcc',
         language: 'objc',
     )
 endif
