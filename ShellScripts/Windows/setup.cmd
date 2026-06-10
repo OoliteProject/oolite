@@ -14,13 +14,6 @@ set /p INSTALL_PATH=Enter the installation path for MSYS2:
 :: Prompt the user for UCRT64 Clang or MinGW64 GCC
 set /p UCRT_CLANG_OR_MINGW_GCC=Enter 1 for UCRT64 Clang or 2 for MinGW64 GCC: 
 
-:: Where to download Oolite dependencies
-set OOLITE_DEPS_URL=https://api.github.com/repos/OoliteProject/oolite_windeps_build/releases/latest
-mkdir packages
-
-echo === Download Oolite dependencies ===
-powershell -NoLogo -NoProfile -Command "$release=Invoke-RestMethod %OOLITE_DEPS_URL%; foreach ($asset in $release.assets) {Invoke-WebRequest $asset.browser_download_url -OutFile (Join-Path packages $asset.name)}"
-
 :: Where to download installer
 set MSYS2_URL=https://github.com/msys2/msys2-installer/releases/latest/download/msys2-base-x86_64-latest.sfx.exe
 set INSTALLER=%TEMP%\msys2-base.sfx.exe
