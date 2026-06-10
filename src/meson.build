@@ -1,3 +1,7 @@
+oolite_sources = []
+oolite_includes = []
+oolite_override_options = []
+oolite_link_args = []
 oolite_dependencies = [
     dependency('sdl3'),
     dependency('libpng'),
@@ -7,65 +11,14 @@ oolite_dependencies = [
     dependency('nspr'),
     dependency('zlib'),
 ]
-# gnustep including its flags, mozilla js
-subdir('meson')
 
 if get_option('espeak')
     oolite_dependencies += [dependency('espeak-ng')]
     add_project_arguments('-DHAVE_LIBESPEAK=1', language: c_family)
 endif
 
-oolite_override_options = []
-oolite_link_args = []
-
-oolite_sources = []
-oolite_includes = []
-
-if is_windows
-    add_project_arguments(
-        '-DWIN32',
-        '-DXP_WIN',
-        '-DWINVER=0x0A00',
-        language: c_family,
-    )
-    oolite_link_args += ['-mwindows']
-
-    if cc.get_id() == 'clang' and get_option('pdb')
-        add_project_arguments('-g', '-gcodeview', language: c_family)
-        oolite_link_args += ['-Wl,-pdb=']
-    endif
-
-    win_js_suffix = (get_option('optimization') == '0' or get_option('debug')) ? 'dbg' : ''
-    dep_libs = [
-        'glu32',
-        'opengl32',
-        'dwmapi',
-        'winmm',
-        'ws2_32',
-        'objc',
-        'gnustep-base',
-        'js' + win_js_suffix,
-    ]
-    foreach lib : dep_libs
-        oolite_dependencies += [cc.find_library(lib, required: true)]
-    endforeach
-    if (cc.get_id() == 'gcc')
-        add_project_arguments('-DSTATIC_JS_API', language: c_family)
-    endif
-
-else
-    add_project_arguments('-ggdb3', '-DLINUX', '-DXP_UNIX', language: c_family)
-    oolite_link_args += ['-ggdb3']
-
-    oolite_dependencies += [
-        dependency('gl'),
-        dependency('glu'),
-        dependency('x11'),
-    ]
-
-endif
-
 # Enter child subdirectories
+subdir('meson')
 subdir('Core')
 subdir('SDL')
 

@@ -20,7 +20,6 @@ project(
 # ------------------------------------------------------------------------------
 cc = meson.get_compiler('c')
 host_os = host_machine.system()
-is_windows = (host_os == 'windows' or host_os == 'cygwin')
 
 c_family = ['c', 'cpp', 'objc']
 
