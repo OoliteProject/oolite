@@ -52,6 +52,10 @@ id OOPropertyListFromData(NSData *data, NSString *whereFrom)
 {
 	id			result = nil;
 	NSString	*error = nil;
+
+	if (whereFrom == nil) whereFrom = @"<data in memory>";
+	OOLog(@"OOPListParser", @"Parsing %@ as a property list.", whereFrom);
+
 	
 	if (data != nil)
 	{
