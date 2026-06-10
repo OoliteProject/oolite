@@ -102,8 +102,6 @@ run_script() {
         pacman -Q > installed-packages-gcc.txt
     fi
 
-    echo "source $MINGW_PREFIX/share/GNUstep/Makefiles/GNUstep.sh" > /etc/profile.d/GNUstep.sh
-
     if ! grep -q "# Custom history settings" ~/.bashrc; then
         cat >> ~/.bashrc <<'EOF'
 # Custom history settings
