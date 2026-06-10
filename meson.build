@@ -15,43 +15,14 @@ project(
     ],
 )
 
-# ------------------------------------------------------------------------------
-# Compiler Setup & Baseline Arguments
-# ------------------------------------------------------------------------------
-cc = meson.get_compiler('c')
 host_os = host_machine.system()
-is_windows = (host_os == 'windows' or host_os == 'cygwin')
-
 c_family = ['c', 'cpp', 'objc']
 
 version_string = meson.project_version()
 add_project_arguments(
     '-DOO_VERSION_FULL="@0@"'.format(version_string),
-    '-DGNUSTEP_BASE_LIBRARY=1',
     language: c_family,
 )
-add_project_arguments(
-    '-fexceptions',
-    '-fobjc-exceptions',
-    language: 'objc',
-)
-
-if cc.get_id() == 'clang'
-    add_project_arguments(
-        '-DGNUSTEP_RUNTIME=1',
-        '-D_NONFRAGILE_ABI=1',
-        '-fobjc-runtime=gnustep-2.2',
-        '-fblocks',
-        language: 'objc',
-    )
-else
-    add_project_arguments('-std=gnu99', language: ['c', 'objc'])
-    add_project_arguments(
-        '-DGNU_RUNTIME=1',
-        '-fobjc-runtime=gcc',
-        language: 'objc',
-    )
-endif
 
 is_debug = (get_option('optimization') == '0' or get_option('debug'))
 if is_debug
@@ -114,20 +85,8 @@ if get_option('oo_javascript_trace')
     add_project_arguments('-DMOZ_TRACE_JSCALLS=1', language: c_family)
 endif
 
-extra_link_args = []
-if get_option('b_lto')
-    if cc.get_id() == 'clang'
-        add_project_arguments('-flto=thin', language: c_family)
-        extra_link_args += [
-            '-flto=thin',
-            '-Wl,--thinlto-cache-dir=thinlto_cache',
-        ]
-    else
-        add_project_arguments('-flto=auto', language: c_family)
-        extra_link_args += ['-flto=auto']
-    endif
-endif
-
+gnustep_folder = ''  # Not needed for Windows
+# dependencies, compiler/linker flags and build
 subdir('src')
 
 install_env_args = [

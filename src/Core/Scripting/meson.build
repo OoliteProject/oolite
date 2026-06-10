@@ -1,6 +1,6 @@
 # Generated Meson configuration for sub-module: Scripting
 
-my_sources += files(
+oolite_sources += files(
     'EntityOOJavaScriptExtensions.m',
     'OOConstToJSString.m',
     'OOJSCall.m',
@@ -50,5 +50,5 @@ my_sources += files(
     'OOScriptTimer.m',
 )
 
-my_includes += include_directories('.')
+oolite_includes += include_directories('.')
 

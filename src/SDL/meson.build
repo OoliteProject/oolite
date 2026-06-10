@@ -1,6 +1,6 @@
 # Generated Meson configuration for sub-module: SDL
 
-my_sources += files(
+oolite_sources += files(
     'Comparison.m',
     'GameController+SDLFullScreen.m',
     'MyOpenGLView.m',
@@ -8,7 +8,7 @@ my_sources += files(
     'main.m',
 )
 
-my_includes += include_directories('.')
+oolite_includes += include_directories('.')
 
 # Enter child subdirectories
 subdir('EXRSnapshotSupport')

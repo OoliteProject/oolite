@@ -1,6 +1,6 @@
 # Generated Meson configuration for sub-module: Entities
 
-my_sources += files(
+oolite_sources += files(
     'DockEntity.m',
     'DustEntity.m',
     'Entity.m',
@@ -44,5 +44,5 @@ my_sources += files(
     'WormholeEntity.m',
 )
 
-my_includes += include_directories('.')
+oolite_includes += include_directories('.')
 
