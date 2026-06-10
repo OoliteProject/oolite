@@ -1,3 +1,3 @@
 # Generated Meson build file for Tables
 
-my_includes += include_directories('.')
+oolite_includes += include_directories('.')

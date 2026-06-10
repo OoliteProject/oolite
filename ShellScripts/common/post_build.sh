@@ -82,6 +82,9 @@ run_script() {
         # Copy Linux-specific wrapper script
         cp -fu ShellScripts/Linux/run_oolite.sh "$PROGDIR"
         local GNUSTEP_CONF="$GNUSTEP_FOLDER/etc/GNUstep/GNUstep.conf"
+        if [ ! -f "$GNUSTEP_CONF" ] && [ "$GNUSTEP_FOLDER" = "/usr" ] && [ -f "/etc/GNUstep/GNUstep.conf" ]; then
+            GNUSTEP_CONF="/etc/GNUstep/GNUstep.conf"
+        fi
         install -D "$GNUSTEP_CONF" "$PROGDIR/Resources/GNUstep.conf.orig" || { echo "$err_msg GNUstep config" >&2; return 1; }
 
         # If we're using GNUstep libraries that aren't in a system folder copy them

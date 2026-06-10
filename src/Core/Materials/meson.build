@@ -1,6 +1,6 @@
 # Generated Meson configuration for sub-module: Materials
 
-my_sources += files(
+oolite_sources += files(
     'OOBasicMaterial.m',
     'OOCombinedEmissionMapGenerator.m',
     'OOConcreteTexture.m',
@@ -26,5 +26,5 @@ my_sources += files(
     'OOTextureLoader.m',
 )
 
-my_includes += include_directories('.')
+oolite_includes += include_directories('.')
 

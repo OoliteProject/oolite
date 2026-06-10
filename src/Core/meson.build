@@ -1,6 +1,6 @@
 # Generated Meson configuration for sub-module: Core
 
-my_sources += files(
+oolite_sources += files(
     'AI.m',
     'AIGraphViz.m',
     'CollisionRegion.m',
@@ -103,7 +103,7 @@ my_sources += files(
     'legacy_random.c',
 )
 
-my_includes += include_directories('.')
+oolite_includes += include_directories('.')
 
 # Enter child subdirectories
 subdir('Debug')

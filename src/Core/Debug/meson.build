@@ -1,6 +1,6 @@
 # Generated Meson configuration for sub-module: Debug
 
-my_sources += files(
+oolite_sources += files(
     'OODebugMonitor.m',
     'OODebugStandards.m',
     'OODebugSupport.m',
@@ -10,5 +10,5 @@ my_sources += files(
     'OOTCPStreamDecoderAbstractionLayer.m',
 )
 
-my_includes += include_directories('.')
+oolite_includes += include_directories('.')
 

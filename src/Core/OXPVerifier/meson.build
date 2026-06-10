@@ -1,6 +1,6 @@
 # Generated Meson configuration for sub-module: OXPVerifier
 
-my_sources += files(
+oolite_sources += files(
     'OOAIStateMachineVerifierStage.m',
     'OOCheckDemoShipsPListVerifierStage.m',
     'OOCheckEquipmentPListVerifierStage.m',
@@ -16,5 +16,5 @@ my_sources += files(
     'OOTextureVerifierStage.m',
 )
 
-my_includes += include_directories('.')
+oolite_includes += include_directories('.')
 
