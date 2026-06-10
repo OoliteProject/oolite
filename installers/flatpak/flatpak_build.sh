@@ -6,7 +6,6 @@
 echo "I am flatpak_build.sh $@"
 printenv | sort
 
-source /app/share/GNUstep/Makefiles/GNUstep.sh
 source ShellScripts/common/get_version.sh
 source ShellScripts/Linux/install_freedesktop_fn.sh
 
