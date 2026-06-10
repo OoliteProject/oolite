@@ -15,12 +15,7 @@ project(
     ],
 )
 
-# ------------------------------------------------------------------------------
-# Compiler Setup & Baseline Arguments
-# ------------------------------------------------------------------------------
-cc = meson.get_compiler('c')
 host_os = host_machine.system()
-
 c_family = ['c', 'cpp', 'objc']
 
 version_string = meson.project_version()

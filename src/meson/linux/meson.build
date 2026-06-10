@@ -45,32 +45,6 @@ else
     error('Required dependency "gnustep-base" was not found in SEARCH_ROOTS.')
 endif
 
-add_project_arguments(
-    '-DGNUSTEP_BASE_LIBRARY=1',
-    language: c_family,
-)
-add_project_arguments(
-    '-fexceptions',
-    '-fobjc-exceptions',
-    language: 'objc',
-)
-
-if cc.get_id() == 'clang'
-    add_project_arguments(
-        '-DGNUSTEP_RUNTIME=1',
-        '-D_NONFRAGILE_ABI=1',
-        '-fobjc-runtime=gnustep-2.2',
-        '-fblocks',
-        language: 'objc',
-    )
-else
-    add_project_arguments(
-        '-DGNU_RUNTIME=1',
-        '-fconstant-string-class=NSConstantString',
-        language: 'objc',
-    )
-endif
-
 # =====================================================================
 # MOZILLA JS BLOCK (Scan & Resolve)
 # =====================================================================

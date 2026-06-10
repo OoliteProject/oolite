@@ -17,27 +17,9 @@ if get_option('espeak')
     add_project_arguments('-DHAVE_LIBESPEAK=1', language: c_family)
 endif
 
-# Enter child subdirectories
 subdir('meson')
 subdir('Core')
 subdir('SDL')
-
-if cc.get_id() == 'gcc'
-    oolite_override_options += 'c_std=gnu99'
-endif
-
-if get_option('b_lto')
-    if cc.get_id() == 'clang'
-        add_project_arguments('-flto=thin', language: c_family)
-        oolite_link_args += [
-            '-flto=thin',
-            '-Wl,--thinlto-cache-dir=thinlto_cache',
-        ]
-    else
-        add_project_arguments('-flto=auto', language: c_family)
-        oolite_link_args += ['-flto=auto']
-    endif
-endif
 
 oolite_bin = executable(
     'oolite',
