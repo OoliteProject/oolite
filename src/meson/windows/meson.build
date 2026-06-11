@@ -28,5 +28,9 @@ foreach lib : dep_libs
     oolite_dependencies += [cc.find_library(lib, required: true)]
 endforeach
 if (ccid == 'gcc')
-    add_project_arguments('-DSTATIC_JS_API', language: c_family)
+    add_project_arguments(
+        '-DSTATIC_JS_API',
+        '-D_WIN32_WINNT=0x0A00',
+        language: c_family
+    )
 endif
