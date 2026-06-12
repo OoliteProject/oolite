@@ -8,11 +8,14 @@ run_script() {
     cd ../..
 
     set -x
-    PROGDIR="$(dirname "$PROGPATH")"
+    ORIGPROGPATH="$PROGPATH"
+    APPNAME=$(basename "$ORIGPROGPATH")
+    PROGDIR="$(dirname "$ORIGPROGPATH")/../oolite.app"
+    PROGPATH="$PROGDIR/$APPNAME"
     mkdir -p "$PROGDIR/Resources"
 
+    cp -fu "$ORIGPROGPATH" "$PROGPATH"
     ShellScripts/common/mkmanifest.sh > "$PROGDIR/Resources/manifest.plist"
-
     cp -fu src/Cocoa/Info-Oolite.plist "$PROGDIR/Resources/Info-gnustep.plist"
 
     # Voice Data
@@ -59,7 +62,7 @@ run_script() {
             strip "$PROGPATH"
         else
             # Linux
-            DEBUGPATH="$PROGDIR/$(basename "$PROGPATH").debug"
+            DEBUGPATH="$PROGDIR/$APPNAME.debug"
             # Extract symbols to file
             objcopy --only-keep-debug "$PROGPATH" "$DEBUGPATH"
             # Compress the debug sections in the symbol file

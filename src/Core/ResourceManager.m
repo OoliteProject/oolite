@@ -202,16 +202,30 @@ static NSMutableDictionary *sStringCache;
 
 + (NSString *)builtInPath
 {
-#if OOLITE_WINDOWS
-	/*	[[NSBundle mainBundle] resourcePath] causes complaints under Windows,
-		because we don't have a properly-built bundle.
-	*/
-	return @"Resources";
-#else
-	return [[NSBundle mainBundle] resourcePath];
-#endif
-}
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    NSString *startingDir = nil;
 
+#if OOLITE_WINDOWS
+    // Windows: Start from the forced working directory
+    startingDir = [@"./" stringByStandardizingPath];
+#elif defined(__APPLE__)
+    // macOS: Use resourcePath directly and return it immediately.
+    return [[NSBundle mainBundle] resourcePath];
+#else
+    // Linux/GNUstep: Use bundlePath directly to manage local vs system layouts
+    startingDir = [[NSBundle mainBundle] bundlePath];
+#endif
+
+    // Look for a "Resources" folder (Windows & Linux)
+    NSString *primaryResourcesPath = [startingDir stringByAppendingPathComponent:@"Resources"];
+    BOOL isDir = NO;
+    if ([fileManager fileExistsAtPath:primaryResourcesPath isDirectory:&isDir] && isDir) {
+        return primaryResourcesPath;
+    }
+    // Fallback: Look in startingDir / ../shared/oolite (Linux FHS System Install)
+    NSString *fallbackPath = [[startingDir stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"shared/oolite"];
+    return [fallbackPath stringByStandardizingPath];
+}
 
 + (NSArray *)pathsWithAddOns
 {

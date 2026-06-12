@@ -17,8 +17,8 @@ help: ## Show this help message
 define meson_build
 	meson setup build/meson_$(2) $(1) --native-file $(NATIVE_FILE) --reconfigure 2>/dev/null || meson setup build/meson_$(2) $(1) --native-file $(NATIVE_FILE)
 	meson compile -C build/meson_$(2)
-	meson install -C build/meson_$(2)
 endef
+#	meson install -C build/meson_$(2)
 
 # Helper macro for syncing OXP files cleanly
 define sync_debug_oxp
