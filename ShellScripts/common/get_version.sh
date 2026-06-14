@@ -4,7 +4,7 @@
 # Output goes into the OOLITE_VERSION.txt file and to stdout.
 #
 
-GITVERSION=./gitversion
+GITVERSION=/usr/local/bin/gitversion
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
 pushd "$SCRIPT_DIR" > /dev/null
 
@@ -26,7 +26,7 @@ if [[ -z "${SEMVER}" ]] || [[ -z "${PROJECTNAME}" ]]
 then
     # Variables not passed in. Calculate the classic way.
 
-    VERSION=$(${GITVERSION} /showvariable SemVer)$(git diff --quiet || echo "+dirty."$(./gitversion /showvariable UncommittedChanges))
+    VERSION=$(${GITVERSION} /showvariable SemVer)$(git diff --quiet || echo "+dirty."$(${GITVERSION} /showvariable UncommittedChanges))
     VER_MAJ=$(${GITVERSION} /showvariable Major)
     VER_MIN=$(${GITVERSION} /showvariable Minor)
     VER_REV=$(${GITVERSION} /showvariable Patch)
