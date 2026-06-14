@@ -1,8 +1,8 @@
 #!/bin/bash
 
 build_referencesheet() {
-    local SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
-    pushd "$SCRIPT_DIR"
+    local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+    pushd "$script_dir"
 
     PKG_OK=$(command -v soffice)
     if [ "" = "$PKG_OK" ]; then

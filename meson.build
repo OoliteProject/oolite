@@ -8,9 +8,6 @@ project(
         check: true,
     ).stdout().strip(),
     default_options: [
-        'prefix=/usr',
-        'bindir=bin',
-        'datadir=share/oolite',
         'optimization=2',
     ],
 )

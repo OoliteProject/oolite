@@ -1,166 +1,166 @@
 #!/bin/bash
 
 install_package() {
-    local SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
-    source $SCRIPT_DIR/os_detection.sh
+    local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+    source $script_dir/os_detection.sh
 
-    local GENERIC_NAME=$1
-    local PKG_NAME=""
+    local generic_name=$1
+    local pkg_name=""
 
     # This CASE statement is the dictionary.
     # Add your packages here.
-    case "$GENERIC_NAME" in
-        "git") PKG_NAME="git" ;;
+    case "$generic_name" in
+        "git") pkg_name="git" ;;
 
         "base-devel")
             case "$CURRENT_DISTRO" in
-                debian) PKG_NAME="build-essential" ;;
-                redhat) PKG_NAME="gcc gcc-c++ make" ;;
-                arch) PKG_NAME="base-devel" ;;
+                debian) pkg_name="build-essential" ;;
+                redhat) pkg_name="gcc gcc-c++ make" ;;
+                arch) pkg_name="base-devel" ;;
             esac ;;
 
-        "clang") PKG_NAME="clang lld lldb" ;;
+        "clang") pkg_name="clang lld lldb" ;;
 
-        "cmake") PKG_NAME="cmake" ;;
+        "cmake") pkg_name="cmake" ;;
 
         "meson")
             case "$CURRENT_DISTRO" in
-                debian) PKG_NAME="meson ninja-build" ;;
-                redhat) PKG_NAME="meson ninja-build" ;;
-                arch) PKG_NAME="meson ninja" ;;
+                debian) pkg_name="meson ninja-build" ;;
+                redhat) pkg_name="meson ninja-build" ;;
+                arch) pkg_name="meson ninja" ;;
             esac ;;
 
         "gnutls-dev")
             case "$CURRENT_DISTRO" in
-                debian) PKG_NAME="libgnutls28-dev" ;;
-                redhat) PKG_NAME="gnutls-devel" ;;
-                arch) PKG_NAME="gnutls" ;;
+                debian) pkg_name="libgnutls28-dev" ;;
+                redhat) pkg_name="gnutls-devel" ;;
+                arch) pkg_name="gnutls" ;;
             esac ;;
 
         "python")
             case "$CURRENT_DISTRO" in
-                debian) PKG_NAME="python3-pip" ;;
-                redhat) PKG_NAME="python3-pip" ;;
-                arch) PKG_NAME="python-pip" ;;
+                debian) pkg_name="python3-pip" ;;
+                redhat) pkg_name="python3-pip" ;;
+                arch) pkg_name="python-pip" ;;
             esac ;;
 
         "icu-dev")
             case "$CURRENT_DISTRO" in
-                debian) PKG_NAME="libicu-dev" ;;
-                redhat) PKG_NAME="libicu-devel" ;;
-                arch) PKG_NAME="icu" ;;
+                debian) pkg_name="libicu-dev" ;;
+                redhat) pkg_name="libicu-devel" ;;
+                arch) pkg_name="icu" ;;
             esac ;;
 
         "ffi-dev")
             case "$CURRENT_DISTRO" in
-                debian) PKG_NAME="libffi-dev" ;;
-                redhat) PKG_NAME="libffi-devel" ;;
-                arch) PKG_NAME="libffi" ;;
+                debian) pkg_name="libffi-dev" ;;
+                redhat) pkg_name="libffi-devel" ;;
+                arch) pkg_name="libffi" ;;
             esac ;;
 
         "xslt-dev")
             case "$CURRENT_DISTRO" in
-                debian) PKG_NAME="libxml2-dev libxslt1-dev" ;;
-                redhat) PKG_NAME="libxml2-devel libxslt-devel" ;;
-                arch) PKG_NAME="libxml2 libxslt" ;;
+                debian) pkg_name="libxml2-dev libxslt1-dev" ;;
+                redhat) pkg_name="libxml2-devel libxslt-devel" ;;
+                arch) pkg_name="libxml2 libxslt" ;;
             esac ;;
 
         "png-dev")
             case "$CURRENT_DISTRO" in
-                debian) PKG_NAME="libpng-dev" ;;
-                redhat) PKG_NAME="libpng-devel" ;;
-                arch)   PKG_NAME="libpng" ;;
+                debian) pkg_name="libpng-dev" ;;
+                redhat) pkg_name="libpng-devel" ;;
+                arch)   pkg_name="libpng" ;;
             esac ;;
 
         "zlib-dev")
             case "$CURRENT_DISTRO" in
-                debian) PKG_NAME="zlib1g-dev" ;;
-                redhat) PKG_NAME="zlib-devel" ;;
-                arch) PKG_NAME="zlib" ;;
+                debian) pkg_name="zlib1g-dev" ;;
+                redhat) pkg_name="zlib-devel" ;;
+                arch) pkg_name="zlib" ;;
             esac ;;
 
         "nspr-dev")
             case "$CURRENT_DISTRO" in
-                debian) PKG_NAME="libnspr4-dev" ;;
-                redhat) PKG_NAME="nspr-devel" ;;
-                arch) PKG_NAME="nspr" ;;
+                debian) pkg_name="libnspr4-dev" ;;
+                redhat) pkg_name="nspr-devel" ;;
+                arch) pkg_name="nspr" ;;
             esac ;;
 
         "espeak-ng-dev")
             case "$CURRENT_DISTRO" in
-                debian) PKG_NAME="libespeak-ng-dev" ;;
-                redhat) PKG_NAME="espeak-ng-devel" ;;
-                arch) PKG_NAME="espeak-ng" ;;
+                debian) pkg_name="libespeak-ng-dev" ;;
+                redhat) pkg_name="espeak-ng-devel" ;;
+                arch) pkg_name="espeak-ng" ;;
             esac ;;
 
         "vorbis-dev")
             case "$CURRENT_DISTRO" in
-                debian) PKG_NAME="libvorbis-dev" ;;
-                redhat) PKG_NAME="libvorbis-devel" ;;
-                arch) PKG_NAME="libvorbis" ;;
+                debian) pkg_name="libvorbis-dev" ;;
+                redhat) pkg_name="libvorbis-devel" ;;
+                arch) pkg_name="libvorbis" ;;
             esac ;;
 
         "openal-dev")
             case "$CURRENT_DISTRO" in
-                debian) PKG_NAME="libopenal-dev" ;;
-                redhat) PKG_NAME="openal-soft-devel" ;;
-                arch) PKG_NAME="openal" ;;
+                debian) pkg_name="libopenal-dev" ;;
+                redhat) pkg_name="openal-soft-devel" ;;
+                arch) pkg_name="openal" ;;
             esac ;;
 
         "opengl-dev")
             case "$CURRENT_DISTRO" in
-                debian) PKG_NAME="libgl-dev" ;;
-                redhat) PKG_NAME="mesa-libGL-devel" ;;
-                arch) PKG_NAME="libglvnd" ;;
+                debian) pkg_name="libgl-dev" ;;
+                redhat) pkg_name="mesa-libGL-devel" ;;
+                arch) pkg_name="libglvnd" ;;
             esac ;;
 
         "glu-dev")
             case "$CURRENT_DISTRO" in
-                debian) PKG_NAME="libglu1-mesa-dev" ;;
-                redhat) PKG_NAME="mesa-libGLU-devel" ;;
-                arch) PKG_NAME="glu" ;;
+                debian) pkg_name="libglu1-mesa-dev" ;;
+                redhat) pkg_name="mesa-libGLU-devel" ;;
+                arch) pkg_name="glu" ;;
             esac ;;
 
 	"sdl3")
             case "$CURRENT_DISTRO" in
-                debian) PKG_NAME="libsdl3-dev" ;;
-                redhat) PKG_NAME="SDL3-devel" ;;
-		arch) PKG_NAME="sdl3";
+                debian) pkg_name="libsdl3-dev" ;;
+                redhat) pkg_name="SDL3-devel" ;;
+		arch) pkg_name="sdl3";
             esac ;;
 
         "x11-dev")
             case "$CURRENT_DISTRO" in
-                debian) PKG_NAME="libx11-dev" ;;
-                redhat) PKG_NAME="libX11-devel" ;;
-                arch) PKG_NAME="libx11" ;;
+                debian) pkg_name="libx11-dev" ;;
+                redhat) pkg_name="libX11-devel" ;;
+                arch) pkg_name="libx11" ;;
             esac ;;
 
         "appimage")
             case "$CURRENT_DISTRO" in
-                debian) PKG_NAME="file fuse3" ;;
-                redhat) PKG_NAME="file fuse3 desktop-file-utils which zsync" ;;
-                arch) PKG_NAME="file fuse3 desktop-file-utils zsync" ;;
+                debian) pkg_name="file fuse3" ;;
+                redhat) pkg_name="file fuse3 desktop-file-utils which zsync" ;;
+                arch) pkg_name="file fuse3 desktop-file-utils zsync" ;;
             esac ;;
 
-        "flatpak") PKG_NAME="flatpak flatpak-builder" ;;
+        "flatpak") pkg_name="flatpak flatpak-builder" ;;
 
         *)
-            echo "❌ Could not translate '$GENERIC_NAME' for $CURRENT_DISTRO!" >&2
+            echo "❌ Could not translate '$generic_name' for $CURRENT_DISTRO!" >&2
             return 1
             ;;
     esac
 
     # Perform the Installation
-    if [[ -z "$PKG_NAME" ]]; then
-        echo "❌ Could not determine package name for $GENERIC_NAME!" >&2
+    if [[ -z "$pkg_name" ]]; then
+        echo "❌ Could not determine package name for $generic_name!" >&2
         return 1
-    elif [[ "$PKG_NAME" == "NONE" ]]; then
+    elif [[ "$pkg_name" == "NONE" ]]; then
         echo "⏭️ PKGNAME is set to NONE. Skipping install."
         return 0
     else
-        echo "--> Installing $GENERIC_NAME ($PKG_NAME)..."
-        if ! "${INSTALL_CMD[@]}" $PKG_NAME; then
-            echo "❌ Could not install $GENERIC_NAME ($PKG_NAME)!" >&2
+        echo "--> Installing $generic_name ($pkg_name)..."
+        if ! "${INSTALL_CMD[@]}" $pkg_name; then
+            echo "❌ Could not install $generic_name ($pkg_name)!" >&2
             return 1
         fi
     fi

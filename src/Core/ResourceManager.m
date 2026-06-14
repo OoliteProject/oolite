@@ -181,7 +181,11 @@ static NSMutableDictionary *sStringCache;
 	{
 		// the paths are now in order of preference as per yesterday's talk. -- Kaks 2010-05-05
 		NSArray *defaultAddOnsPaths = [NSArray arrayWithObjects:
-#if OOLITE_MAC_OS_X
+#if OOLITE_WINDOWS
+		              [[[@"./" stringByStandardizingPath]
+						 stringByDeletingLastPathComponent]
+					    stringByAppendingPathComponent:@"share/oolite/AddOns"],
+#elif OOLITE_MAC_OS_X
 					  [[[[NSHomeDirectory() stringByAppendingPathComponent:@"Library"]
 						 stringByAppendingPathComponent:@"Application Support"]
 						 stringByAppendingPathComponent:@"Oolite"]
@@ -189,6 +193,11 @@ static NSMutableDictionary *sStringCache;
 					  [[[[NSBundle mainBundle] bundlePath]
 						 stringByDeletingLastPathComponent]
 					    stringByAppendingPathComponent:@"AddOns"],
+#else
+					  [[[[[NSBundle mainBundle] executablePath]
+						 stringByDeletingLastPathComponent]
+						 stringByDeletingLastPathComponent]
+					    stringByAppendingPathComponent:@"share/oolite/AddOns"],
 #endif
                       @"AddOns",
 					  [[OOOXZManager sharedManager] extractAddOnsPath],
@@ -208,12 +217,13 @@ static NSMutableDictionary *sStringCache;
 #if OOLITE_WINDOWS
     // Windows: Start from the forced working directory
     startingDir = [@"./" stringByStandardizingPath];
-#elif defined(__APPLE__)
+#elif OOLITE_MAC_OS_X
     // macOS: Use resourcePath directly and return it immediately.
     return [[NSBundle mainBundle] resourcePath];
 #else
     // Linux/GNUstep: Use bundlePath directly to manage local vs system layouts
-    startingDir = [[NSBundle mainBundle] bundlePath];
+    startingDir = [[[NSBundle mainBundle] executablePath]
+        stringByDeletingLastPathComponent];
 #endif
 
     // Look for a "Resources" folder (Windows & Linux)
@@ -222,8 +232,8 @@ static NSMutableDictionary *sStringCache;
     if ([fileManager fileExistsAtPath:primaryResourcesPath isDirectory:&isDir] && isDir) {
         return primaryResourcesPath;
     }
-    // Fallback: Look in startingDir / ../shared/oolite (Linux FHS System Install)
-    NSString *fallbackPath = [[startingDir stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"shared/oolite"];
+    // Fallback: Look in startingDir / ../share/oolite (Linux FHS System Install)
+    NSString *fallbackPath = [[startingDir stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"share/oolite/Resources"];
     return [fallbackPath stringByStandardizingPath];
 }
 
@@ -270,6 +280,11 @@ static NSMutableDictionary *sStringCache;
 	// validate default search paths
 	DESTROY(sSearchPaths);
 	sSearchPaths = [NSMutableArray new];
+    NSString *builtIn = [self builtInPath];
+    if (builtIn != nil)
+    {
+        [sSearchPaths addObject:builtIn];
+    }
 	foreach (path, existingRootPaths)
 	{
 		[self checkPotentialPath:path :sSearchPaths];

@@ -838,7 +838,7 @@ enum PreferredAppMode
 	SDL_Surface     	*image=NULL;
 	SDL_Rect			dest;
 
-	NSString		*imagesDir = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"Images"];
+	NSString		*imagesDir = [[ResourceManager builtInPath] stringByAppendingPathComponent:@"Images"];
 
 	image = SDL_LoadBMP([[imagesDir stringByAppendingPathComponent:@"splash.bmp"] UTF8String]);
 
