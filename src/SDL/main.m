@@ -125,13 +125,23 @@ int main(int argc, char *argv[])
 
 	free(finalPath);
 
-	/*	Windows amibtiously starts apps with the C library locale set to the
+	/*	Windows ambitiously starts apps with the C library locale set to the
 		system locale rather than the "C" locale as per spec. Fixing here so
 		numbers don't behave strangely.
 	*/
 	setlocale(LC_ALL, "C");
 
-#else // Linux
+#else // Linux and Mac
+#if OOLITE_LINUX
+	char result[PATH_MAX];
+	ssize_t count = readlink("/proc/self/exe", result, PATH_MAX - 1);
+	result[count] = '\0';
+	char *last_slash = strrchr(result, '/');
+	if (last_slash != NULL) {
+		*last_slash = '\0'; // Chop off the executable name, leaving just the directory
+	}
+	chdir(result);
+#endif
 	#define OO_SHOW_MSG(ooMsg, ooTitle, ooFlags)	fprintf(stdout, "%s", ooMsg)
  	#define TABS1	"\t\t"
 	#define TABS2	"\t\t\t"

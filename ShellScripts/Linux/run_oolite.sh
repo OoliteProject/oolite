@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 HERE="$(dirname "$(readlink -f "$0")")"
 
 HELP=false
@@ -124,16 +123,20 @@ find_exe_resources_dirs() {
             OO_EXEDIR="$HERE/oolite.app"
         fi
     fi
+    OO_EXEDIR="$(readlink -f "$OO_EXEDIR")"
+
     if [[ -z "$OO_RESOURCESDIR" ]]; then
         OO_RESOURCESDIR="$OO_EXEDIR/Resources"
         if [[ ! -d "$OO_RESOURCESDIR" ]]; then
             OO_RESOURCESDIR="$OO_EXEDIR/../share/oolite/Resources"
         fi
     fi
+    OO_RESOURCESDIR="$(readlink -f "$OO_RESOURCESDIR")"
 }
 
 
 make_gnustepconf_template() {
+    BASEDIR="$(readlink -f "$BASEDIR")"
     export GNUSTEP_CONFIG_FILE=$(mktemp -t oolite_gnustep_XXXX --suffix=.conf)
     sed -e "s|@BASEDIR@|$BASEDIR|g" "$OO_RESOURCESDIR/GNUstep.conf.template" > "$GNUSTEP_CONFIG_FILE"
 }
@@ -141,32 +144,31 @@ make_gnustepconf_template() {
 # Check if we are running inside a Flatpak
 if [[ -n "$FLATPAK_ID" ]]; then
     BASEDIR="/app"
-    OO_EXEDIR="$BASEDIR/bin"
-    OO_RESOURCESDIR="$BASEDIR/share/oolite/Resources"
-    GAME_DATA="$HOME/.var/app/$FLATPAK_ID"
+    OO_EXEDIR="$(readlink -f "$BASEDIR/bin")"
+    OO_RESOURCESDIR="$(readlink -f "$BASEDIR/share/oolite/Resources")"
+    GAME_DATA="$(readlink -f "$HOME/.var/app/$FLATPAK_ID")"
     make_gnustepconf_template
 
 # Check if we are running inside an AppImage
 elif [[ -n "$APPIMAGE" ]]; then
     BASEDIR="$APPDIR"
-    OO_EXEDIR="$BASEDIR/bin"
-    OO_RESOURCESDIR="$BASEDIR/share/oolite/Resources"
+    OO_EXEDIR="$(readlink -f "$BASEDIR/bin")"
+    OO_RESOURCESDIR="$(readlink -f "$BASEDIR/share/oolite/Resources")"
 
     DEBUG_OXP=$(grep "debug_functionality_support" "$OO_EXEDIR/Resources/manifest.plist")
     if [[ "$DEBUG_OXP" == *"yes"* ]]; then
-        INTERNAL_ADDONS="$OO_EXEDIR/AddOns"
+        INTERNAL_ADDONS="$(readlink -f "$OO_EXEDIR/AddOns")"
         export OO_ADDITIONALADDONSDIRS="${OO_ADDITIONALADDONSDIRS}${OO_ADDITIONALADDONSDIRS:+,}$INTERNAL_ADDONS"
     fi
 
     if [[ -n "$OO_DIRTYPE" ]]; then
         if [[ "${OO_DIRTYPE,,}" == "xdg" ]]; then
-            GAME_DATA="$HOME/.local/share/Oolite"
+            GAME_DATA="$(readlink -f "$HOME/.local/share/Oolite")"
         elif [[ "${OO_DIRTYPE,,}" == "legacy" ]]; then
             launch_guarded "$@"
         fi
     else
-        # Get the folder containing the AppImage file
-        HERE="$(dirname "$APPIMAGE")"
+        HERE="$(dirname "$(readlink -f "$APPIMAGE")")"
         GAME_DATA="$HERE/GameData"
     fi
     make_gnustepconf_template
@@ -174,13 +176,12 @@ else
     # Check if OO_DIRTYPE set
     if [[ -n "$OO_DIRTYPE" ]]; then
         if [[ "${OO_DIRTYPE,,}" == "xdg" ]]; then
-            GAME_DATA="$HOME/.local/share/Oolite"
+            GAME_DATA="$(readlink -f "$HOME/.local/share/Oolite")"
         elif [[ "${OO_DIRTYPE,,}" == "legacy" ]]; then
             find_exe_resources_dirs
             launch_guarded "$@"
         fi
     else
-        # Use script directory
         GAME_DATA="$HERE/GameData"
     fi
     find_exe_resources_dirs
@@ -190,18 +191,19 @@ fi
 
 mkdir -p "$GAME_DATA"
 
-export OO_SAVEDIR="${OO_SAVEDIR:-$GAME_DATA/SavedGames}"
+export OO_SAVEDIR="$(readlink -f "${OO_SAVEDIR:-$GAME_DATA/SavedGames}")"
 mkdir -p "$OO_SAVEDIR"
-export OO_SNAPSHOTSDIR="${OO_SNAPSHOTSDIR:-$GAME_DATA/Snapshots}"
+export OO_SNAPSHOTSDIR="$(readlink -f "${OO_SNAPSHOTSDIR:-$GAME_DATA/Snapshots}")"
 mkdir -p "$OO_SNAPSHOTSDIR"
-export OO_LOGSDIR="${OO_LOGSDIR:-$GAME_DATA/.logs}"
+export OO_LOGSDIR="$(readlink -f "${OO_LOGSDIR:-$GAME_DATA/.logs}")"
 mkdir -p "$OO_LOGSDIR"
-export OO_MANAGEDADDONSDIR="${OO_MANAGEDADDONSDIR:-$GAME_DATA/.ManagedAddOns}"
+export OO_MANAGEDADDONSDIR="$(readlink -f "${OO_MANAGEDADDONSDIR:-$GAME_DATA/.ManagedAddOns}")"
 mkdir -p "$OO_MANAGEDADDONSDIR"
 
 if [[ -z "$OO_ADDONSEXTRACTDIR" ]]; then
-    export OO_ADDONSEXTRACTDIR="${OO_USERADDONSDIR:-$GAME_DATA/AddOns}"
+    export OO_ADDONSEXTRACTDIR="$(readlink -f "${OO_USERADDONSDIR:-$GAME_DATA/AddOns}")"
 elif [[ -n "$OO_USERADDONSDIR" ]]; then
+    OO_USERADDONSDIR="$(readlink -f "$OO_USERADDONSDIR")"
     if [[ ",$OO_ADDITIONALADDONSDIRS," != *",$OO_USERADDONSDIR,"* ]]; then
         export OO_ADDITIONALADDONSDIRS="${OO_ADDITIONALADDONSDIRS}${OO_ADDITIONALADDONSDIRS:+,}$OO_USERADDONSDIR"
     fi
@@ -212,9 +214,9 @@ if [ -n "$OO_ADDITIONALADDONSDIRS" ]; then
     (IFS=,; mkdir -p $OO_ADDITIONALADDONSDIRS)
 fi
 
-OO_GNUSTEPDIR="${OO_GNUSTEPDIR:-$GAME_DATA/.GNUstep}"
+OO_GNUSTEPDIR="$(readlink -f "${OO_GNUSTEPDIR:-$GAME_DATA/.GNUstep}")"
 mkdir -p "$OO_GNUSTEPDIR"
-OO_GNUSTEPDEFAULTSDIR="${OO_GNUSTEPDEFAULTSDIR:-${GAME_DATA}}"
+OO_GNUSTEPDEFAULTSDIR="$(readlink -f "${OO_GNUSTEPDEFAULTSDIR:-${GAME_DATA}}")"
 mkdir -p "$OO_GNUSTEPDEFAULTSDIR"
 
 echo "" >> "$GNUSTEP_CONFIG_FILE"

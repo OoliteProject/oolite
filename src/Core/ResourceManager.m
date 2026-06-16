@@ -179,13 +179,10 @@ static NSMutableDictionary *sStringCache;
 	
 	if (sUserRootPaths == nil)
 	{
+		NSString *cwd = [[NSFileManager defaultManager] currentDirectoryPath];
 		// the paths are now in order of preference as per yesterday's talk. -- Kaks 2010-05-05
 		NSArray *defaultAddOnsPaths = [NSArray arrayWithObjects:
-#if OOLITE_WINDOWS
-		              [[[@"./" stringByStandardizingPath]
-						 stringByDeletingLastPathComponent]
-					    stringByAppendingPathComponent:@"share/oolite/AddOns"],
-#elif OOLITE_MAC_OS_X
+#if OOLITE_MAC_OS_X
 					  [[[[NSHomeDirectory() stringByAppendingPathComponent:@"Library"]
 						 stringByAppendingPathComponent:@"Application Support"]
 						 stringByAppendingPathComponent:@"Oolite"]
@@ -194,15 +191,13 @@ static NSMutableDictionary *sStringCache;
 						 stringByDeletingLastPathComponent]
 					    stringByAppendingPathComponent:@"AddOns"],
 #else
-					  [[[[[NSBundle mainBundle] executablePath]
-						 stringByDeletingLastPathComponent]
-						 stringByDeletingLastPathComponent]
+					  [[cwd stringByDeletingLastPathComponent]
 					    stringByAppendingPathComponent:@"share/oolite/AddOns"],
 #endif
-                      @"AddOns",
+					  [cwd stringByAppendingPathComponent:@"AddOns"],
 					  [[OOOXZManager sharedManager] extractAddOnsPath],
 					  nil];
-        sUserRootPaths = [[[[OOOXZManager sharedManager] additionalAddOnsPaths] arrayByAddingObjectsFromArray:defaultAddOnsPaths] retain];
+		sUserRootPaths = [[[[OOOXZManager sharedManager] additionalAddOnsPaths] arrayByAddingObjectsFromArray:defaultAddOnsPaths] retain];
 	}
 	OOLog(@"searchPaths.debug",@"%@",sUserRootPaths);
 	return sUserRootPaths;
@@ -211,30 +206,22 @@ static NSMutableDictionary *sStringCache;
 
 + (NSString *)builtInPath
 {
-    NSFileManager *fileManager = [NSFileManager defaultManager];
-    NSString *startingDir = nil;
+	NSFileManager *fileManager = [NSFileManager defaultManager];
 
-#if OOLITE_WINDOWS
-    // Windows: Start from the forced working directory
-    startingDir = [@"./" stringByStandardizingPath];
-#elif OOLITE_MAC_OS_X
-    // macOS: Use resourcePath directly and return it immediately.
-    return [[NSBundle mainBundle] resourcePath];
+#if OOLITE_MAC_OS_X
+	return [[NSBundle mainBundle] resourcePath];  // Use resourcePath directly
 #else
-    // Linux/GNUstep: Use bundlePath directly to manage local vs system layouts
-    startingDir = [[[NSBundle mainBundle] executablePath]
-        stringByDeletingLastPathComponent];
+	NSString *startingDir = [fileManager currentDirectoryPath];  // Start from cwd
 #endif
-
     // Look for a "Resources" folder (Windows & Linux)
-    NSString *primaryResourcesPath = [startingDir stringByAppendingPathComponent:@"Resources"];
-    BOOL isDir = NO;
-    if ([fileManager fileExistsAtPath:primaryResourcesPath isDirectory:&isDir] && isDir) {
-        return primaryResourcesPath;
-    }
-    // Fallback: Look in startingDir / ../share/oolite/Resources
-    NSString *fallbackPath = [[startingDir stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"share/oolite/Resources"];
-    return [fallbackPath stringByStandardizingPath];
+	NSString *primaryResourcesPath = [startingDir stringByAppendingPathComponent:@"Resources"];
+	BOOL isDir = NO;
+	if ([fileManager fileExistsAtPath:primaryResourcesPath isDirectory:&isDir] && isDir) {
+		return primaryResourcesPath;
+	}
+	// Fallback: Look in startingDir/../share/oolite/Resources
+	NSString *fallbackPath = [[startingDir stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"share/oolite/Resources"];
+	return [fallbackPath stringByStandardizingPath];
 }
 
 + (NSArray *)pathsWithAddOns
