@@ -40,6 +40,8 @@ MA 02110-1301, USA.
 // selected, if more than one are available
 __declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
 __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
+#elif OOLITE_LINUX
+#include <unistd.h>
 #endif
 
 GameController* controller;
