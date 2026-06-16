@@ -24,7 +24,7 @@ add_project_arguments(
     language: c_family,
 )
 add_project_arguments(
-    '-DOO_BUILDER="${BUILDER}"',
+    "-DOO_BUILDER='${BUILDER}'",
     language: c_family,
 )
 
