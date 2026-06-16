@@ -22,7 +22,7 @@ APP_DATE=$(date -u -d "@$TIMESTAMP" +"%Y-%m-%d")
 # Convert to YYMMDD format (e.g., 260313)
 VER_DATE=$(date -u -d "@$TIMESTAMP" +"%y%m%d")
 
-if [[ -z "${SEMVER}" ]] || [[ -z "${PROJECTNAME}" ]]
+if [[ -z "${SEMVER}" ]] || [[ -z "${BUILDER}" ]]
 then
     # Variables not passed in. Calculate the classic way.
 

@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       SEMVER: ${{ steps.version_generator.outputs.SEMVER }}
-      PROJECTNAME: ${{ steps.version_generator.outputs.PROJECTNAME }}
+      BUILDER: ${{ steps.version_generator.outputs.BUILDER }}
       GitVersion_Major: ${{ steps.version_generator.outputs.GitVersion_Major }}
       GitVersion_Minor: ${{ steps.version_generator.outputs.GitVersion_Minor }}
       GitVersion_Patch: ${{ steps.version_generator.outputs.GitVersion_Patch }}
@@ -32,9 +32,9 @@ jobs:
       - name: Check for Fork
         run: |
           if [ "${{ github.repository }}" == "OoliteProject/oolite" ]; then
-            echo "PROJECTNAME=oolite" >> $GITHUB_ENV
+            echo "BUILDER=OoliteProject" >> $GITHUB_ENV
           else
-            echo "PROJECTNAME=OoliteFork" >> $GITHUB_ENV
+            echo "BUILDER=unknown" >> $GITHUB_ENV
           fi
 
       - name: Determine Oolite Version
@@ -53,7 +53,7 @@ jobs:
           echo "GitVersion_Minor=$GitVersion_Minor" >> "$GITHUB_OUTPUT"
           echo "GitVersion_Patch=$GitVersion_Patch" >> "$GITHUB_OUTPUT"
           echo "GitVersion_VersionSourceDistance=$GitVersion_VersionSourceDistance" >> "$GITHUB_OUTPUT"
-          echo "PROJECTNAME=$PROJECTNAME" >> "$GITHUB_OUTPUT"
+          echo "BUILDER=$BUILDER" >> "$GITHUB_OUTPUT"
           printenv | sort
           echo "head.repo.full_name = -${{github.event.pull_request.head.repo.full_name}}-"
           echo "base.repo.full_name = -${{github.event.pull_request.base.repo.full_name}}-"
@@ -104,7 +104,7 @@ jobs:
       - name: Build Oolite
         env:
           SEMVER: ${{ needs.common.outputs.SEMVER }}
-          PROJECTNAME: ${{ needs.common.outputs.PROJECTNAME }}
+          BUILDER: ${{ needs.common.outputs.BUILDER }}
         run: |
           oolite/ShellScripts/common/build_oolite.sh ${{matrix.flavour}}
       - name: Archive installer
@@ -130,7 +130,7 @@ jobs:
       - name: Build flatpak
         env:
           SEMVER: ${{ needs.common.outputs.SEMVER }}
-          PROJECTNAME: ${{ needs.common.outputs.PROJECTNAME }}
+          BUILDER: ${{ needs.common.outputs.BUILDER }}
         run: |
           oolite/installers/flatpak/create_flatpak.sh
       - name: Archive installer
@@ -186,7 +186,7 @@ jobs:
           VER_GITREV: ${{ needs.common.outputs.GitVersion_VersionSourceDistance }}
           SEMVER: ${{ needs.common.outputs.SEMVER }}
           VER_NSIS: ${{ needs.common.outputs.GitVersion_Major }}.${{ needs.common.outputs.GitVersion_Minor }}.${{ needs.common.outputs.GitVersion_Patch }}.${{ needs.common.outputs.GitVersion_VersionSourceDistance }}
-          PROJECTNAME: ${{ needs.common.outputs.PROJECTNAME }}
+          BUILDER: ${{ needs.common.outputs.BUILDER }}
         run: |
           oolite/ShellScripts/common/build_oolite.sh ${{matrix.flavour}}
       - name: Archive installer
@@ -221,7 +221,7 @@ jobs:
         id: version
         env:
           SEMVER: ${{ needs.common.outputs.SEMVER }}
-          PROJECTNAME: ${{ needs.common.outputs.PROJECTNAME }}
+          BUILDER: ${{ needs.common.outputs.BUILDER }}
         run: |
           set -x
           cd oolite

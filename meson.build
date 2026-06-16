@@ -23,6 +23,10 @@ add_project_arguments(
     '-DOO_VERSION_FULL="@0@"'.format(version_string),
     language: c_family,
 )
+add_project_arguments(
+    '-DOO_BUILDER="${BUILDER}"',
+    language: c_family,
+)
 
 is_debug = (get_option('optimization') == '0' or get_option('debug'))
 if is_debug
