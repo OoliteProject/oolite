@@ -232,7 +232,7 @@ static NSMutableDictionary *sStringCache;
     if ([fileManager fileExistsAtPath:primaryResourcesPath isDirectory:&isDir] && isDir) {
         return primaryResourcesPath;
     }
-    // Fallback: Look in startingDir / ../share/oolite (Linux FHS System Install)
+    // Fallback: Look in startingDir / ../share/oolite/Resources
     NSString *fallbackPath = [[startingDir stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"share/oolite/Resources"];
     return [fallbackPath stringByStandardizingPath];
 }
