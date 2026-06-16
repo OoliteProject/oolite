@@ -15,8 +15,6 @@ project(
     ],
 )
 
-os_mod = import('os')
-
 host_os = host_machine.system()
 c_family = ['c', 'cpp', 'objc']
 
