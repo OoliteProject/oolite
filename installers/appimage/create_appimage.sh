@@ -18,14 +18,14 @@ run_script() {
     source ../ShellScripts/Linux/install_freedesktop_fn.sh
 
     local arch=$(uname -m)
-    local appdir="./oolite.AppDir"
-    export appdir
-    local appbin="$appdir/bin"
-    local appshr="$appdir/share"
-    rm -rf "$appdir"
+    local APPDIR="./oolite.AppDir"
+    export APPDIR
+    local appbin="$APPDIR/bin"
+    local appshr="$APPDIR/share"
+    rm -rf "$APPDIR"
 
     local abs_oolitedir=$(realpath -m "$1")
-    local abs_appdir=$(realpath -m "$appdir")
+    local abs_appdir=$(realpath -m "$APPDIR")
     if ! install_freedesktop "$abs_oolitedir" "$abs_appdir" bin appdata; then
         return 1
     fi
@@ -81,7 +81,7 @@ run_script() {
     fi
 
     echo "🔍 Running AppDir linter..."
-    if ! "$linter_bin" "$appdir"; then
+    if ! "$linter_bin" "$APPDIR"; then
         echo "❌ AppDir linting failed!" >&2
         return 1
     fi

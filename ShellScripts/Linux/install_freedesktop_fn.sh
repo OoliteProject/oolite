@@ -37,17 +37,19 @@ install_freedesktop() {
     install -D "$1/run_oolite.sh" "$appbin/run_oolite.sh" || { echo "$err_msg install run_oolite.sh" >&2; return 1; }
 
     # Resources copy
-    mkdir -p "$appbin/Resources"
-    cp -rf "$1/Resources/." "$appbin/Resources/" || { echo "$err_msg copy Resources folder" >&2; return 1; }
+    local resourcesdir="$appshr/oolite/Resources"
+    mkdir -p "$resourcesdir"
+    cp -rf "$1/Resources/." "$resourcesdir/" || { echo "$err_msg copy Resources folder" >&2; return 1; }
 
     # AddOns copy if folder exists in oolite.app
     if [ -d "$1/AddOns" ]; then
-        mkdir -p "$appbin/AddOns"
-        cp -rf "$1/AddOns/." "$appbin/AddOns/" || { echo "$err_msg copy AddOns folder" >&2; return 1; }
+        local addonsdir="$appshr/oolite/AddOns"
+        mkdir -p "$addonsdir"
+        cp -rf "$1/AddOns/." "$addonsdir/" || { echo "$err_msg copy AddOns folder" >&2; return 1; }
     fi
 
-    rm -f "$appbin/Resources/GNUstep.conf.orig"
-    install -D "GNUstep.conf.template" "$appbin/Resources/GNUstep.conf.template" || { echo "$err_msg GNUstep template" >&2; return 1; }
+    rm -f "$resourcesdir/GNUstep.conf.orig"
+    install -D "GNUstep.conf.template" "$resourcesdir/GNUstep.conf.template" || { echo "$err_msg GNUstep template" >&2; return 1; }
 
     local app_metainfo="$appshr/metainfo/space.oolite.Oolite.$4.xml"
     install -D ../../installers/FreeDesktop/space.oolite.Oolite.metainfo.xml.template "$app_metainfo" || { echo "$err_msg metainfo template" >&2; return 1; }
