@@ -23,8 +23,9 @@ add_project_arguments(
     '-DOO_VERSION_FULL="@0@"'.format(version_string),
     language: c_family,
 )
+builder = 'unknown'
 add_project_arguments(
-    "-DOO_BUILDER='${BUILDER}'",
+    '-DOO_BUILDER="@0@"'.format(builder),
     language: c_family,
 )
 
