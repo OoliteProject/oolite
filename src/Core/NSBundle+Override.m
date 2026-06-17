@@ -11,11 +11,6 @@
 #import <Foundation/NSPathUtilities.h>
 #import <Foundation/NSDictionary.h>
 
-#if OOLITE_LINUX
-#import <unistd.h>
-#import <limits.h>
-#endif
-
 @implementation NSBundle (Override)
 
 - (NSDictionary *)infoDictionary {
