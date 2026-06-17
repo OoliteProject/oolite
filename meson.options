@@ -2,6 +2,10 @@
 # Oolite Build Options
 # ==============================================================================
 
+# Oolite Packaging options
+option('builder', type: 'string', value: 'unknown', 
+       description: 'The one who compiles the code and builds the package')
+
 # Core Engine Features
 option('no_shaders', type: 'boolean', value: false,
        description: 'Disable shader support entirely')

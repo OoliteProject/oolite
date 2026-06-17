@@ -14,7 +14,6 @@ project(
         'optimization=2',
     ],
 )
-option('builder', type: 'string', value: 'unknown', description: 'The one who compiles the code and builds the package')
 
 host_os = host_machine.system()
 c_family = ['c', 'cpp', 'objc']
