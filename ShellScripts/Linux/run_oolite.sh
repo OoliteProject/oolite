@@ -155,12 +155,6 @@ elif [[ -n "$APPIMAGE" ]]; then
     OO_EXEDIR="$(readlink -f "$BASEDIR/bin")"
     OO_RESOURCESDIR="$(readlink -f "$BASEDIR/share/oolite/Resources")"
 
-    DEBUG_OXP=$(grep "debug_functionality_support" "$OO_RESOURCESDIR/manifest.plist")
-    if [[ "$DEBUG_OXP" == *"yes"* ]]; then
-        INTERNAL_ADDONS="$(readlink -f "$BASEDIR/share/oolite/AddOns")"
-        export OO_ADDITIONALADDONSDIRS="${OO_ADDITIONALADDONSDIRS}${OO_ADDITIONALADDONSDIRS:+,}$INTERNAL_ADDONS"
-    fi
-
     if [[ -n "$OO_DIRTYPE" ]]; then
         if [[ "${OO_DIRTYPE,,}" == "xdg" ]]; then
             GAME_DATA="$(readlink -f "$HOME/.local/share/Oolite")"
