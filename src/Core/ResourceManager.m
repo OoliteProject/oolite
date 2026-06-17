@@ -267,11 +267,6 @@ static NSMutableDictionary *sStringCache;
 	// validate default search paths
 	DESTROY(sSearchPaths);
 	sSearchPaths = [NSMutableArray new];
-    NSString *builtIn = [self builtInPath];
-    if (builtIn != nil)
-    {
-        [sSearchPaths addObject:builtIn];
-    }
 	foreach (path, existingRootPaths)
 	{
 		[self checkPotentialPath:path :sSearchPaths];
