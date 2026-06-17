@@ -16,8 +16,8 @@ help: ## Show this help message
 # Macro for Meson workflow
 define meson_build
 	meson setup build/meson_$(2) $(1) --native-file $(NATIVE_FILE) --reconfigure 2>/dev/null || meson setup build/meson_$(2) $(1) --native-file $(NATIVE_FILE)
-	meson compile -C build/meson_$(2)
-	meson install -C build/meson_$(2)
+	meson compile -C build/meson_$(2) -Dbuilder=${BUILDER}
+	meson install -C build/meson_$(2) -Dbuilder=${BUILDER}
 endef
 
 # Helper macro for syncing OXP files cleanly

@@ -14,6 +14,7 @@ project(
         'optimization=2',
     ],
 )
+option('builder', type: 'string', value: 'unknown', description: 'The one who compiles the code and builds the package')
 
 host_os = host_machine.system()
 c_family = ['c', 'cpp', 'objc']
@@ -24,8 +25,7 @@ add_project_arguments(
     language: c_family,
 )
 
-env_mod = import('env')
-builder = env_mod.get('BUILDER', 'unknown') 
+builder = get_option('builder')
 add_project_arguments(
     '-DOO_BUILDER="@0@"'.format(builder),
     language: c_family,
