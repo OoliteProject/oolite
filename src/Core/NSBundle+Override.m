@@ -3,7 +3,7 @@
  *
  * Oolite Core Framework Override
  * Bypasses standard plist loading to manually locate and parse info-gnustep.plist
- * across Windows, macOS, and Linux environments safely at boot.
+ * across Windows and Linux environments safely at boot.
  */
 
 #import "NSBundle+Override.h"
