@@ -3,6 +3,7 @@ SHELL := /bin/bash
 .SHELLFLAGS := -eu -o pipefail -c
 
 NATIVE_FILE ?= clang.ini
+BUILDER ?= unknown
 
 # Modern, self-documenting help target. 
 # It parses the '##' comments next to targets automatically.
@@ -15,7 +16,7 @@ help: ## Show this help message
 
 # Macro for Meson workflow
 define meson_build
-	meson setup build/meson_$(2) $(1) --native-file $(NATIVE_FILE) --reconfigure 2>/dev/null || meson setup build/meson_$(2) $(1) --native-file $(NATIVE_FILE)
+	meson setup build/meson_$(2) $(1) --native-file $(NATIVE_FILE) --reconfigure -Dbuilder=${BUILDER} 2>/dev/null || meson setup build/meson_$(2) $(1) --native-file $(NATIVE_FILE) -Dbuilder=${BUILDER}
 	meson compile -C build/meson_$(2)
 	meson install -C build/meson_$(2)
 endef

@@ -24,6 +24,12 @@ add_project_arguments(
     language: c_family,
 )
 
+builder = get_option('builder')
+add_project_arguments(
+    '-DOO_BUILDER="@0@"'.format(builder),
+    language: c_family,
+)
+
 is_debug = (get_option('optimization') == '0' or get_option('debug'))
 if is_debug
     add_project_arguments(

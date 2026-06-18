@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # This script must be run as root (for example with sudo).
+set -e
 
 
 run_script() {
@@ -13,6 +14,13 @@ run_script() {
 
     local SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
     pushd "$SCRIPT_DIR"
+
+    # install gitversion
+    GITVERSION_TGZ=$(./download_github.sh --owner GitTools --repository GitVersion --filter linux-x --outputdir ${SCRIPT_DIR})
+    tar xfz ${GITVERSION_TGZ} --directory ${SCRIPT_DIR}
+    chmod +xr ${SCRIPT_DIR}/gitversion
+    mv ${SCRIPT_DIR}/gitversion /usr/local/bin/gitversion
+    rm -f ${GITVERSION_TGZ}
 
     source ./install_package_fn.sh
 
