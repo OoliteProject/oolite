@@ -3,6 +3,7 @@ SHELL := /bin/bash
 .SHELLFLAGS := -eu -o pipefail -c
 
 NATIVE_FILE ?= clang.ini
+BUILDER ?= unknown
 
 # Modern, self-documenting help target. 
 # It parses the '##' comments next to targets automatically.
