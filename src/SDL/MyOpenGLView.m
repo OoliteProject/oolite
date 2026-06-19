@@ -403,12 +403,25 @@ enum PreferredAppMode
 
  	OOLog(@"process.args", @"%@", cmdLineArgsStr);
 
+#if OOLITE_SPEECH_SYNTH
+#if OOLITE_ESPEAK
+	if (!SDL_getenv("ESPEAK_DATA_PATH"))
+	{
+		espeak_Initialize(AUDIO_OUTPUT_PLAYBACK, 100, [[ResourceManager builtInPath] UTF8String], 0);
+	}
+	else
+	{
+		espeak_Initialize(AUDIO_OUTPUT_PLAYBACK, 100, NULL, 0);
+	}
+#endif
+#endif
+
 	matrixManager = [[OOOpenGLMatrixManager alloc] init];
 
 	// TODO: This code up to and including stickHandler really ought
 	// not to be in this class.
 	OOLog(@"sdl.init", @"%@", @"initialising SDL");
-	if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_GAMEPAD))
+	if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK | SDL_INIT_GAMEPAD))
 	{
 		OOLog(@"sdl.init.failed", @"Unable to init SDL: %s\n", SDL_GetError());
 		[self dealloc];
