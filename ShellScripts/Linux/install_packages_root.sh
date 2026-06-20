@@ -20,9 +20,7 @@ run_script() {
     # install gitversion
     local outputdir="../../build"
     mkdir -p "$outputdir"
-
     download_latest_release gitversion_tgz "GitTools" "GitVersion" "linux-x" "$outputdir"
-
     tar xfz ${gitversion_tgz} --directory "$outputdir"
     chmod +xr "$outputdir/gitversion"
     mv "$outputdir/gitversion" /usr/local/bin/gitversion

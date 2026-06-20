@@ -11,7 +11,8 @@ run_script() {
     PROGDIR="$(dirname "$PROGPATH")"
     mkdir -p "$PROGDIR/Resources"
 
-    ShellScripts/common/mkmanifest.sh > "$PROGDIR/Resources/manifest.plist"
+    source "generate_manifest_fn.sh"
+    generate_manifest "$PROGDIR/Resources/manifest.plist"
 
     cp -fu src/Cocoa/Info-Oolite.plist "$PROGDIR/Resources/Info-gnustep.plist"
 
