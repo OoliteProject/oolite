@@ -215,7 +215,7 @@
 	$plistError								= $error;
 	plist.parse.failed						= $plistError;
 	plist.wrongType							= $plistError;
-	
+	plist.information                       = no;
 	
 	rendering.opengl.error					= no;					// Test for and display OpenGL errors
 	rendering.opengl.version				= $troubleShootingDump;	// Display renderer version information at startup
