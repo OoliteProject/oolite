@@ -22,17 +22,17 @@ APP_DATE=$(date -u -d "@$TIMESTAMP" +"%Y-%m-%d")
 # Convert to YYMMDD format (e.g., 260313)
 VER_DATE=$(date -u -d "@$TIMESTAMP" +"%y%m%d")
 
-VERSION=$(${GITVERSION} /showvariable SemVer)$(git diff --quiet || echo "+dirty."$(${GITVERSION} /showvariable UncommittedChanges))
+VER_FULL=$(${GITVERSION} /showvariable SemVer)$(git diff --quiet || echo "+dirty."$(${GITVERSION} /showvariable UncommittedChanges))
 VER_MAJ=$(${GITVERSION} /showvariable Major)
 VER_MIN=$(${GITVERSION} /showvariable Minor)
 VER_REV=$(${GITVERSION} /showvariable Patch)
+VER_DIST=$(${GITVERSION} /showvariable VersionSourceDistance)
 if [[ "" == "$VER_REV" ]]; then
     VER_REV="0"
 fi
-
+VER_NSIS="$VER_MAJ.$VER_MIN.$VER_REV.$VER_DIST"
 VER_GITREV=$(git rev-list --count HEAD)
 VER_GITHASH=$(git rev-parse --short=7 HEAD)
-VER_FULL="${VERSION}"
 BUILDTIME=$(date "+%Y.%m.%d %H:%M")
 
 echo "OOLITE_VERSION=$VER_FULL" > OOLITE_VERSION.txt

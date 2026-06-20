@@ -42,11 +42,6 @@ run_script() {
        return 1
     fi
 
-    if [[ -z "${VER_NSIS}" ]]
-    then
-        export VER_NSIS=$VER_FULL;
-    fi
-
     local OOLITE_DIR="../$1"
     OOLITE_DIR="${OOLITE_DIR//\//\\}"
     # Passing arguments cause problems with some versions of NSIS.
@@ -60,7 +55,7 @@ run_script() {
     echo "!define VER_GITREV ${VER_GITREV}" >> OoliteVersions.nsh
     echo "!define VER_GITHASH ${VER_GITHASH}" >> OoliteVersions.nsh
     echo "!define VERSION ${VER_NSIS}" >> OoliteVersions.nsh
-    echo "!define SEMVER ${SEMVER}" >> OoliteVersions.nsh
+    echo "!define SEMVER ${VER_FULL}" >> OoliteVersions.nsh
     echo "!define BUILDTIME \"${BUILDTIME}\"" >> OoliteVersions.nsh
     echo "!define BUILDHOST_IS64BIT 1" >> OoliteVersions.nsh
 
