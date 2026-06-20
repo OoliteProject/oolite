@@ -57,7 +57,7 @@ test: release-snapshot ## Run test suite
 
 .PHONY: clean
 clean: ## Remove all generated build artifacts
-	$(RM) -rf build/meson_*
+	rm -rf build/meson_*
 
 .PHONY: all
 all: release release-deployment release-snapshot debug ## Build all standard development targets
