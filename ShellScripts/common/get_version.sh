@@ -22,17 +22,6 @@ APP_DATE=$(date -u -d "@$TIMESTAMP" +"%Y-%m-%d")
 # Convert to YYMMDD format (e.g., 260313)
 VER_DATE=$(date -u -d "@$TIMESTAMP" +"%y%m%d")
 
-# Check if the GITHUB_REPOSITORY environment variable is set and not empty
-if [[ -n "$GITHUB_REPOSITORY" ]]; then
-    if [[ "$GITHUB_REPOSITORY" == "OoliteProject/oolite" ]]; then
-        BUILDER="OoliteProject"
-    else
-        BUILDER="unknown"
-    fi
-else
-    BUILDER="unknown"
-fi
-
 VERSION=$(${GITVERSION} /showvariable SemVer)$(git diff --quiet || echo "+dirty."$(${GITVERSION} /showvariable UncommittedChanges))
 VER_MAJ=$(${GITVERSION} /showvariable Major)
 VER_MIN=$(${GITVERSION} /showvariable Minor)

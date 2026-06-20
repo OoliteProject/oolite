@@ -16,7 +16,7 @@ help: ## Show this help message
 
 # Macro for Meson workflow
 define meson_build
-	meson setup build/meson_$(2) $(1) -Dbuilder=${BUILDER} --native-file $(NATIVE_FILE) --reconfigure 2>/dev/null || meson setup build/meson_$(2) $(1) -Dbuilder=${BUILDER} --native-file $(NATIVE_FILE)
+	meson setup build/meson_$(2) $(1) -Dgithub_repository=${GITHUB_REPOSITORY} --native-file $(NATIVE_FILE) --reconfigure 2>/dev/null || meson setup build/meson_$(2) $(1) -Dgithub_repository=${GITHUB_REPOSITORY} --native-file $(NATIVE_FILE)
 	meson compile -C build/meson_$(2)
 	meson install -C build/meson_$(2)
 endef

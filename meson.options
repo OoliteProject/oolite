@@ -2,10 +2,6 @@
 # Oolite Build Options
 # ==============================================================================
 
-# Oolite Packaging options
-option('builder', type: 'string', value: 'unknown', 
-       description: 'The one who compiles the code and builds the package')
-
 # Core Engine Features
 option('no_shaders', type: 'boolean', value: false,
        description: 'Disable shader support entirely')
@@ -47,3 +43,9 @@ option('strip_bin', type: 'boolean', value: false, description: 'Enable strippin
 # Windows Specific Customizations
 option('pdb', type: 'boolean', value: false,
        description: 'Windows Clang builds only: Generate native .pdb debug symbol files')
+
+# GitHub repository variable from CI if available
+option('github_repository', type: 'string', value: '',
+       description: 'GitHub repository variable from CI if available')
+
+
