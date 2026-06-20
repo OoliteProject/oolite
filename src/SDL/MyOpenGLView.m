@@ -403,6 +403,19 @@ enum PreferredAppMode
 
  	OOLog(@"process.args", @"%@", cmdLineArgsStr);
 
+#if OOLITE_SPEECH_SYNTH
+#if OOLITE_ESPEAK
+	if (!SDL_getenv("ESPEAK_DATA_PATH"))
+	{
+		espeak_Initialize(AUDIO_OUTPUT_PLAYBACK, 100, [[ResourceManager builtInPath] UTF8String], 0);
+	}
+	else
+	{
+		espeak_Initialize(AUDIO_OUTPUT_PLAYBACK, 100, NULL, 0);
+	}
+#endif
+#endif
+
 	matrixManager = [[OOOpenGLMatrixManager alloc] init];
 
 	// TODO: This code up to and including stickHandler really ought
