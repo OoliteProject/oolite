@@ -1,11 +1,6 @@
 generate_manifest() {
-    local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
-    pushd "$script_dir" > /dev/null
-
-    local manifest_output="$1"
-
     # Locate the xcconfig file
-    local oolite_version_file="../../src/Cocoa/oolite-version.xcconfig"
+    local oolite_version_file="src/Cocoa/oolite-version.xcconfig"
 
     if [[ ! -f "$oolite_version_file" ]]; then
         echo "Error: $oolite_version_file not found." >&2
@@ -16,7 +11,8 @@ generate_manifest() {
     # Extract definition of $OOLITE_VERSION from the xcconfig
     source "$oolite_version_file"
 
-    source get_gitremote_fn.sh git_remote
+    source ShellScripts/common/get_gitremote_fn.sh
+    get_gitremote git_remote
 
     # Redirect the entire block output into the manifest_output file
     {
@@ -40,8 +36,5 @@ generate_manifest() {
         echo "    author = \"Giles Williams, Jens Ayton and contributors\";"
         echo "    information_url = \"https://oolite.space/\";"
         echo "}"
-    } > "$manifest_output"
-
-    # Restore the original directory
-    popd > /dev/null
+    } > "$1"
 }

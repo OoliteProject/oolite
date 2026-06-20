@@ -5,13 +5,13 @@ run_script() {
     local SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
     pushd "$SCRIPT_DIR" > /dev/null
 
+    source "generate_manifest_fn.sh"
     cd ../..
 
     set -x
     PROGDIR="$(dirname "$PROGPATH")"
     mkdir -p "$PROGDIR/Resources"
 
-    source "generate_manifest_fn.sh"
     generate_manifest "$PROGDIR/Resources/manifest.plist"
 
     cp -fu src/Cocoa/Info-Oolite.plist "$PROGDIR/Resources/Info-gnustep.plist"
