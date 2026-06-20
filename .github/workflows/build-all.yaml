@@ -52,9 +52,6 @@ jobs:
           echo "/usr/local/lib" | tee -a /etc/ld.so.conf
           ldconfig
       - name: Build Oolite
-        env:
-          SEMVER: ${{ needs.common.outputs.SEMVER }}
-          BUILDER: ${{ needs.common.outputs.BUILDER }}
         run: |
           oolite/ShellScripts/common/build_oolite.sh ${{matrix.flavour}}
       - name: Archive installer
@@ -77,9 +74,6 @@ jobs:
           path: oolite
           fetch-depth: 0
       - name: Build flatpak
-        env:
-          SEMVER: ${{ needs.common.outputs.SEMVER }}
-          BUILDER: ${{ needs.common.outputs.BUILDER }}
         run: |
           oolite/installers/flatpak/create_flatpak.sh
       - name: Archive installer
@@ -128,13 +122,6 @@ jobs:
         shell: msys2 {0}
         env:
           msystem: UCRT64
-          VER_MAJ: ${{ needs.common.outputs.GitVersion_Major }}
-          VER_MIN: ${{ needs.common.outputs.GitVersion_Minor }}
-          VER_REV: ${{ needs.common.outputs.GitVersion_Patch }}
-          VER_GITREV: ${{ needs.common.outputs.GitVersion_VersionSourceDistance }}
-          SEMVER: ${{ needs.common.outputs.SEMVER }}
-          VER_NSIS: ${{ needs.common.outputs.GitVersion_Major }}.${{ needs.common.outputs.GitVersion_Minor }}.${{ needs.common.outputs.GitVersion_Patch }}.${{ needs.common.outputs.GitVersion_VersionSourceDistance }}
-          BUILDER: ${{ needs.common.outputs.BUILDER }}
         run: |
           oolite/ShellScripts/common/build_oolite.sh ${{matrix.flavour}}
       - name: Archive installer
@@ -146,7 +133,7 @@ jobs:
           retention-days: 5
 
   release:
-    needs: [build-linux, build-flatpak, build-windows, common]
+    needs: [build-linux, build-flatpak, build-windows]
     runs-on: ubuntu-22.04
     # Only run for internal requests (so not for PRs from forks)
     if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
@@ -167,9 +154,6 @@ jobs:
           fetch-depth: 0
       - name: Calculate version number and set OOLITE_VERSION
         id: version
-        env:
-          SEMVER: ${{ needs.common.outputs.SEMVER }}
-          BUILDER: ${{ needs.common.outputs.BUILDER }}
         run: |
           set -x
           cd oolite
