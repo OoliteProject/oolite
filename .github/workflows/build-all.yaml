@@ -9,57 +9,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  common:
-    runs-on: ubuntu-latest
-    outputs:
-      SEMVER: ${{ steps.version_generator.outputs.SEMVER }}
-      BUILDER: ${{ steps.version_generator.outputs.BUILDER }}
-      GitVersion_Major: ${{ steps.version_generator.outputs.GitVersion_Major }}
-      GitVersion_Minor: ${{ steps.version_generator.outputs.GitVersion_Minor }}
-      GitVersion_Patch: ${{ steps.version_generator.outputs.GitVersion_Patch }}
-      GitVersion_VersionSourceDistance: ${{ steps.version_generator.outputs.GitVersion_VersionSourceDistance }}
-    steps:
-      - name: Checkout project
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-
-      - name: Install GitVersion
-        uses: gittools/actions/gitversion/setup@v4
-        with:
-          versionSpec: '6'
-
-      - name: Check for Fork
-        run: |
-          if [ "${{ github.repository }}" == "OoliteProject/oolite" ]; then
-            echo "BUILDER=OoliteProject" >> $GITHUB_ENV
-          else
-            echo "BUILDER=unknown" >> $GITHUB_ENV
-          fi
-
-      - name: Determine Oolite Version
-        id: version_step
-        uses: gittools/actions/gitversion/execute@v4
-        with:
-          overrideConfig: |
-            semantic-version-format=Loose
-            next-version=1.93.1
-
-      - name: Print and register result
-        id: version_generator
-        run: |
-          echo "SEMVER=$GitVersion_SemVer" >> "$GITHUB_OUTPUT"
-          echo "GitVersion_Major=$GitVersion_Major" >> "$GITHUB_OUTPUT"
-          echo "GitVersion_Minor=$GitVersion_Minor" >> "$GITHUB_OUTPUT"
-          echo "GitVersion_Patch=$GitVersion_Patch" >> "$GITHUB_OUTPUT"
-          echo "GitVersion_VersionSourceDistance=$GitVersion_VersionSourceDistance" >> "$GITHUB_OUTPUT"
-          echo "BUILDER=$BUILDER" >> "$GITHUB_OUTPUT"
-          printenv | sort
-          echo "head.repo.full_name = -${{github.event.pull_request.head.repo.full_name}}-"
-          echo "base.repo.full_name = -${{github.event.pull_request.base.repo.full_name}}-"
-
   build-linux:
-    needs: [common]
     runs-on: ubuntu-latest
     container:
       image: archlinux:latest
@@ -116,7 +66,6 @@ jobs:
           retention-days: 5
 
   build-flatpak:
-    needs: [common]
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-25.08
@@ -142,7 +91,6 @@ jobs:
           retention-days: 5
 
   build-windows:
-    needs: [common]
     runs-on: windows-latest
     strategy:
       matrix:
