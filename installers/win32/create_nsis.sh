@@ -42,15 +42,9 @@ run_script() {
        return 1
     fi
 
-    local OOLITE_DIR="../$1"
-    OOLITE_DIR="${OOLITE_DIR//\//\\}"
-    if [[ -z "${VER_NSIS}" ]]
-    then
-        export VER_NSIS=$VER_FULL;
-    fi
-
     local oolite_dir="../$1"
     oolite_dir="${oolite_dir//\//\\}"
+
     # Passing arguments cause problems with some versions of NSIS.
     # Because of this, we generate them into a separate file and include them.
     echo "; Version Definitions for Oolite" > OoliteVersions.nsh

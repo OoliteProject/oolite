@@ -25,7 +25,6 @@ run_script() {
         return 1
     fi
     cp -fu "$ORIGPROGPATH" "$progpath"
-    ShellScripts/common/mkmanifest.sh > "$PROGDIR/Resources/manifest.plist"
     cp -fu src/Cocoa/Info-Oolite.plist "$PROGDIR/Resources/Info-gnustep.plist"
 
     # Voice Data

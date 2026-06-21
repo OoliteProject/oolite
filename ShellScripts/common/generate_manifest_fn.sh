@@ -22,7 +22,7 @@ generate_manifest() {
         echo "    "
         echo "    version = \"$VER_FULL\";"
         echo "    git_remote_url = \"$git_remote\";"
-        echo "    git_commit_hash = \"$(git rev-parse HEAD)\";"
+        echo "    git_commit_hash = \"$VER_GITHASH\";"
 
         if [[ "$DEPLOYMENT_RELEASE_CONFIGURATION" == "yes" ]]; then
             echo "    debug_functionality_support = no;"

@@ -25,13 +25,9 @@ run_script() {
 
     local manifest="space.oolite.Oolite.yaml"
 
-    if [ -n "${SEMVER}" ] && [ -n "${BUILDER}" ]; then
-        ENV_BLOCK="env:\n        SEMVER: \"$SEMVER\"\n        BUILDER: \"$BUILDER\"\n        VERSION: \"$SEMVER\""
-    if [ -n "${SEMVER}" ] && [ -n "${PROJECTNAME}" ]; then
-        local env_block="env:\n        SEMVER: \"$SEMVER\"\n        PROJECTNAME: \"$PROJECTNAME\"\n        VERSION: \"$SEMVER\""
-        # Swap the comment
-        sed -i "s|#[[:space:]]*CI builds add an env block here|$env_block|g" "$manifest" || return 1
-    fi
+    local env_block="env:\n        VER_FULL: \"$VER_FULL\"\n        BUILDER: \"$BUILDER\""
+    # Swap the comment
+    sed -i "s|#[[:space:]]*CI builds add an env block here|$env_block|g" "$manifest" || return 1
 
     # check manifest
     local lint_exceptions=$(mktemp /tmp/oolite-lint-XXXXXX.json)
