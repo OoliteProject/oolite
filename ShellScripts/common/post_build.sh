@@ -2,17 +2,27 @@
 # Processes Oolite data files after compilation
 
 run_script() {
-    local SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
-    pushd "$SCRIPT_DIR" > /dev/null
+    local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+    pushd "$script_dir" > /dev/null
 
     cd ../..
 
     set -x
-    PROGDIR="$(dirname "$PROGPATH")"
+    local appname=$(basename "$ORIGPROGPATH")
+    local appdir=$(dirname "$ORIGPROGPATH")
+    local progpath="$PROGDIR/$appname"
     mkdir -p "$PROGDIR/Resources"
 
+    if [[ ! -f "$ORIGPROGPATH" ]]; then
+        echo "❌ 'Oolite binary at '$ORIGPROGPATH' does not exist!" >&2
+        return 1
+    fi
+    if ! cp -fu "$ORIGPROGPATH" "$progpath"; then
+        echo "❌ Failed to copy '$ORIGPROGPATH' to '$progpath'!" >&2
+        return 1
+    fi
+    cp -fu "$ORIGPROGPATH" "$progpath"
     ShellScripts/common/mkmanifest.sh > "$PROGDIR/Resources/manifest.plist"
-
     cp -fu src/Cocoa/Info-Oolite.plist "$PROGDIR/Resources/Info-gnustep.plist"
 
     # Voice Data
@@ -28,17 +38,17 @@ run_script() {
                 "/usr/share/espeak-ng-data"
                 "/app/share/espeak-ng-data"
             )
-            local FOUND_DATA=false
+            local found_data=false
             local path
             for path in "${SEARCH_PATHS[@]}"; do
                 if [[ -d "$path" ]]; then
                     cp -rfu "$path" "$PROGDIR/Resources"
-                    FOUND_DATA=true
+                    found_data=true
                     break
                 fi
             done
 
-            if [[ "$FOUND_DATA" == false ]]; then
+            if [[ "$found_data" == false ]]; then
                 echo "❌ espeak-ng-data not found in any known location!" >&2
                 return 1
             fi
@@ -56,39 +66,39 @@ run_script() {
     if [[ "$STRIP_BIN" == "yes" ]]; then
         if [[ "$HOST_OS" == "windows" ]]; then
             # Windows: Standard GNU strip is safest for PE/COFF
-            strip "$PROGPATH"
+            strip "$progpath"
         else
             # Linux
-            DEBUGPATH="$PROGDIR/$(basename "$PROGPATH").debug"
+            local debugpath="$PROGDIR/$appname.debug"
             # Extract symbols to file
-            objcopy --only-keep-debug "$PROGPATH" "$DEBUGPATH"
+            objcopy --only-keep-debug "$progpath" "$debugpath"
             # Compress the debug sections in the symbol file
-            objcopy --compress-debug-sections=zlib-gnu "$DEBUGPATH"
+            objcopy --compress-debug-sections=zlib-gnu "$debugpath"
             # strip the binary
-            strip  -R .comment "$PROGPATH"
+            strip  -R .comment "$progpath"
             # Add the debug link
-            objcopy --add-gnu-debuglink="$DEBUGPATH" "$PROGPATH"
+            objcopy --add-gnu-debuglink="$debugpath" "$progpath"
         fi
     elif [[ "$HOST_OS" == "linux" ]]; then
         # Compress the debug sections in the binary
-        objcopy --compress-debug-sections=zlib-gnu "$PROGPATH"
+        objcopy --compress-debug-sections=zlib-gnu "$progpath"
     fi
 
     if [[ "$HOST_OS" == "windows" ]]; then
         # Determine and copy DLL dependencies
-        UNIX_PREFIX=$(cygpath -u "$MINGW_PREFIX")
-        ldd "$PROGPATH" | grep "$UNIX_PREFIX" | awk '{print $3}' | xargs -I {} cp -rfu {} "$PROGDIR"
+        local unix_prefix=$(cygpath -u "$MINGW_PREFIX")
+        ldd "$progpath" | grep "$unix_prefix" | awk '{print $3}' | xargs -I {} cp -rfu {} "$PROGDIR"
     else
         # Copy Linux-specific wrapper script
         cp -fu ShellScripts/Linux/run_oolite.sh "$PROGDIR"
-        local GNUSTEP_CONF="$GNUSTEP_FOLDER/etc/GNUstep/GNUstep.conf"
-        if [ ! -f "$GNUSTEP_CONF" ] && [ "$GNUSTEP_FOLDER" = "/usr" ] && [ -f "/etc/GNUstep/GNUstep.conf" ]; then
-            GNUSTEP_CONF="/etc/GNUstep/GNUstep.conf"
+        local gnustep_conf="$GNUSTEP_FOLDER/etc/GNUstep/GNUstep.conf"
+        if [ ! -f "$gnustep_conf" ] && [ "$GNUSTEP_FOLDER" = "/usr" ] && [ -f "/etc/GNUstep/GNUstep.conf" ]; then
+            gnustep_conf="/etc/GNUstep/GNUstep.conf"
         fi
-        install -D "$GNUSTEP_CONF" "$PROGDIR/Resources/GNUstep.conf.orig" || { echo "$err_msg GNUstep config" >&2; return 1; }
+        install -D "$gnustep_conf" "$PROGDIR/Resources/GNUstep.conf.orig" || { echo "$err_msg GNUstep config" >&2; return 1; }
 
         # If we're using GNUstep libraries that aren't in a system folder copy them
-        ldd "$PROGPATH" | \
+        ldd "$progpath" | \
             grep -E "libgnustep-base|libobjc\.so\." | \
             grep -vE "^[[:space:]]*.*=>[[:space:]]*/(usr/(local/)?|lib(64)?/)" | \
             awk '{print $3}' | \
@@ -96,6 +106,7 @@ run_script() {
     fi
 
     echo "✅ Oolite post-build completed successfully"
+    touch "$appdir/$STAMP_FILE"
     popd > /dev/null
 }
 

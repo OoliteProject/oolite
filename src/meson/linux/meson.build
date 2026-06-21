@@ -77,4 +77,3 @@ oolite_dependencies += declare_dependency(
     dependencies: [js_lib, gs_lib, objc_lib],
     include_directories: inc_dir,
 )
-

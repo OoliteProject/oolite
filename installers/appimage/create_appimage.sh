@@ -8,8 +8,8 @@ echo I am $0 $@
 
 run_script() {
     # First parameter is a suffix for the build type eg. test, dev
-    local SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
-    pushd "$SCRIPT_DIR"
+    local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+    pushd "$script_dir"
 
     mkdir -p ../../build
     cd ../../build
@@ -17,39 +17,39 @@ run_script() {
     source ../ShellScripts/common/get_version.sh
     source ../ShellScripts/Linux/install_freedesktop_fn.sh
 
-    local ARCH=$(uname -m)
+    local arch=$(uname -m)
     local APPDIR="./oolite.AppDir"
     export APPDIR
-    local APPBIN="$APPDIR/bin"
-    local APPSHR="$APPDIR/share"
+    local appbin="$APPDIR/bin"
+    local appshr="$APPDIR/share"
     rm -rf "$APPDIR"
 
-    local ABS_OOLITEDIR=$(realpath -m "$1")
-    local ABS_APPDIR=$(realpath -m "$APPDIR")
-    if ! install_freedesktop "$ABS_OOLITEDIR" "$ABS_APPDIR" bin appdata; then
+    local abs_oolitedir=$(realpath -m "$1")
+    local abs_appdir=$(realpath -m "$APPDIR")
+    if ! install_freedesktop "$abs_oolitedir" "$abs_appdir" bin appdata; then
         return 1
     fi
 
-    local SHARUN_BIN="./quick-sharun"
-    if [[ ! -x "$SHARUN_BIN" ]]; then
+    local sharun_bin="./quick-sharun"
+    if [[ ! -x "$sharun_bin" ]]; then
         echo "📥 quick-sharun not found or not executable. Downloading..."
-        curl -o "$SHARUN_BIN" -L https://raw.githubusercontent.com/pkgforge-dev/Anylinux-AppImages/refs/heads/main/useful-tools/quick-sharun.sh || { echo "❌ Download failed" >&2; exit 1; }
-        chmod +x "$SHARUN_BIN"
+        curl -o "$sharun_bin" -L https://raw.githubusercontent.com/pkgforge-dev/Anylinux-AppImages/refs/heads/main/useful-tools/quick-sharun.sh || { echo "❌ Download failed" >&2; exit 1; }
+        chmod +x "$sharun_bin"
     fi
 
-    local ICON_FILENAME="space.oolite.Oolite.png"
-    local ICON_SUBPATH="icons/hicolor/256x256/apps/$ICON_FILENAME"
-    local ICON="$APPSHR/$ICON_SUBPATH"
+    local icon_filename="space.oolite.Oolite.png"
+    local icon_subpath="icons/hicolor/256x256/apps/$icon_filename"
+    local ICON="$appshr/$icon_subpath"
     export ICON
-    local DESKTOP="$APPSHR/applications/space.oolite.Oolite.desktop"
+    local DESKTOP="$appshr/applications/space.oolite.Oolite.desktop"
     export DESKTOP
-    local SUFFIX
+    local suffix
    	if (( $# == 2 )); then
-        SUFFIX="_${2}-${VER_FULL}"
+        suffix="_${2}-${VER_FULL}"
     else
-        SUFFIX="-$VER_FULL"
+        suffix="-$VER_FULL"
     fi
-    local OUTNAME="oolite${SUFFIX}-${ARCH}.AppImage"
+    local OUTNAME="oolite${suffix}-${arch}.AppImage"
     export OUTNAME
 
     echo "Building AppDir for AppImage..."
@@ -65,36 +65,36 @@ run_script() {
 
     # install_metadatainfo_fn already put the files in the parameters below in the right place,
     # but no harm putting again here
-    if ! $SHARUN_BIN "$APPBIN/oolite"; then
+    if ! $sharun_bin "$appbin/oolite"; then
         echo "❌ AppDir generation failed!" >&2
         return 1
     fi
 
-    local LINTER_BIN="./appdir-lint.sh"
-    local EXCLUDE_LIST="./excludelist"
+    local linter_bin="./appdir-lint.sh"
+    local exclude_list="./excludelist"
 
-    if [[ ! -x "$LINTER_BIN" ]] || [[ ! -f "$EXCLUDE_LIST" ]]; then
+    if [[ ! -x "$linter_bin" ]] || [[ ! -f "$exclude_list" ]]; then
         echo "📥 Downloading AppDir linter and excludelist..."
-        curl -o "$LINTER_BIN" -L https://raw.githubusercontent.com/AppImage/AppImages/master/appdir-lint.sh || { echo "❌ Linter download failed" >&2; return 1; }
-        curl -o "$EXCLUDE_LIST" -L https://raw.githubusercontent.com/AppImage/AppImages/master/excludelist || { echo "❌ Excludelist download failed" >&2; return 1; }
-        chmod +x "$LINTER_BIN"
+        curl -o "$linter_bin" -L https://raw.githubusercontent.com/AppImage/AppImages/master/appdir-lint.sh || { echo "❌ Linter download failed" >&2; return 1; }
+        curl -o "$exclude_list" -L https://raw.githubusercontent.com/AppImage/AppImages/master/excludelist || { echo "❌ Excludelist download failed" >&2; return 1; }
+        chmod +x "$linter_bin"
     fi
 
     echo "🔍 Running AppDir linter..."
-    if ! "$LINTER_BIN" "$APPDIR"; then
+    if ! "$linter_bin" "$APPDIR"; then
         echo "❌ AppDir linting failed!" >&2
         return 1
     fi
 
-    APPIMAGETOOL_BIN="./appimagetool"
-    if [ ! -x "$APPIMAGETOOL_BIN" ]; then
+    appimagetool_bin="./appimagetool"
+    if [ ! -x "$appimagetool_bin" ]; then
         echo "📥 appimagetool not found. Downloading..."
-        curl -o "$APPIMAGETOOL_BIN" -L https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-$ARCH.AppImage || { echo "❌ appimagetool download failed" >&2; return 1; }
-        chmod +x "$APPIMAGETOOL_BIN"
+        curl -o "$appimagetool_bin" -L https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-$arch.AppImage || { echo "❌ appimagetool download failed" >&2; return 1; }
+        chmod +x "$appimagetool_bin"
     fi
 
     echo "Creating AppImage $OUTNAME..."
-    if ! $APPIMAGETOOL_BIN "$ABS_APPDIR" "$OUTNAME"; then
+    if ! $appimagetool_bin "$abs_appdir" "$OUTNAME"; then
         echo "❌ AppImage creation failed!" >&2
         return 1
     fi

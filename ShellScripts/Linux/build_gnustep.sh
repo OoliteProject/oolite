@@ -3,8 +3,8 @@
 # Parameter two: Escalate command (defaults to sudo for 'system').
 
 run_script() {
-    local SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
-    pushd "$SCRIPT_DIR"
+    local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+    pushd "$script_dir"
 
     echo "Building GNUStep libraries"
 
@@ -67,9 +67,9 @@ run_script() {
     cd tools-make
     make clean
 
-    local LIB_DIR="$TARGET/$LIB_SUBDIR"
+    local lib_dir="$TARGET/$LIB_SUBDIR"
     export CPPFLAGS="-I$TARGET/include"
-    export LDFLAGS="-L$LIB_DIR"
+    export LDFLAGS="-L$lib_dir"
 
     if ! ./configure --prefix="$TARGET" --with-library-combo=ng-gnu-gnu --with-runtime-abi=gnustep-2.2 "--with-libdir=$LIB_SUBDIR"; then
         echo "❌ tools-make configure failed!" >&2
@@ -82,7 +82,7 @@ run_script() {
     cd libs-base
     make clean
 
-    export LD_LIBRARY_PATH="$LIB_DIR:$LD_LIBRARY_PATH"
+    export LD_LIBRARY_PATH="$lib_dir:$LD_LIBRARY_PATH"
     source "$TARGET/share/GNUstep/Makefiles/GNUstep.sh"
     if ! ./configure; then
         echo "❌ libs-base configure failed!" >&2

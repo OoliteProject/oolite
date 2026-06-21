@@ -19,51 +19,53 @@ install_freedesktop() {
 
     local err_msg="❌ Error: Failed to"
 
-    local SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
-    pushd "$SCRIPT_DIR"
+    local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+    pushd "$script_dir"
 
     source ../common/get_version.sh
 
     echo "Installing metainfo to to $2"
 
-    local APPBIN="$2/bin"
-    local APPSHR="$2/share"
+    local appbin="$2/bin"
+    local appshr="$2/share"
 
     # Install binaries and scripts
-    install -D "$1/oolite" "$APPBIN/oolite" || { echo "$err_msg install oolite binary" >&2; return 1; }
+    install -D "$1/oolite" "$appbin/oolite" || { echo "$err_msg install oolite binary" >&2; return 1; }
     if [[ -f "$1/oolite.debug" ]]; then
         install -D "$1/oolite.debug" "$2/$3/oolite.debug" || { echo "$err_msg install oolite debug symbols" >&2; return 1; }
     fi
-    install -D "$1/run_oolite.sh" "$APPBIN/run_oolite.sh" || { echo "$err_msg install run_oolite.sh" >&2; return 1; }
+    install -D "$1/run_oolite.sh" "$appbin/run_oolite.sh" || { echo "$err_msg install run_oolite.sh" >&2; return 1; }
 
     # Resources copy
-    mkdir -p "$APPBIN/Resources"
-    cp -rf "$1/Resources/." "$APPBIN/Resources/" || { echo "$err_msg copy Resources folder" >&2; return 1; }
+    local resourcesdir="$appshr/oolite/Resources"
+    mkdir -p "$resourcesdir"
+    cp -rf "$1/Resources/." "$resourcesdir/" || { echo "$err_msg copy Resources folder" >&2; return 1; }
 
     # AddOns copy if folder exists in oolite.app
     if [ -d "$1/AddOns" ]; then
-        mkdir -p "$APPBIN/AddOns"
-        cp -rf "$1/AddOns/." "$APPBIN/AddOns/" || { echo "$err_msg copy AddOns folder" >&2; return 1; }
+        local addonsdir="$appshr/oolite/AddOns"
+        mkdir -p "$addonsdir"
+        cp -rf "$1/AddOns/." "$addonsdir/" || { echo "$err_msg copy AddOns folder" >&2; return 1; }
     fi
 
-    rm -f "$APPBIN/Resources/GNUstep.conf.orig"
-    install -D "GNUstep.conf.template" "$APPBIN/Resources/GNUstep.conf.template" || { echo "$err_msg GNUstep template" >&2; return 1; }
+    rm -f "$resourcesdir/GNUstep.conf.orig"
+    install -D "GNUstep.conf.template" "$resourcesdir/GNUstep.conf.template" || { echo "$err_msg GNUstep template" >&2; return 1; }
 
-    APP_METAINFO="$APPSHR/metainfo/space.oolite.Oolite.$4.xml"
-    install -D ../../installers/FreeDesktop/space.oolite.Oolite.metainfo.xml.template "$APP_METAINFO" || { echo "$err_msg metainfo template" >&2; return 1; }
+    local app_metainfo="$appshr/metainfo/space.oolite.Oolite.$4.xml"
+    install -D ../../installers/FreeDesktop/space.oolite.Oolite.metainfo.xml.template "$app_metainfo" || { echo "$err_msg metainfo template" >&2; return 1; }
 
-    sed -i "s/@VER@/${VERSION}/g" "$APP_METAINFO"
-    sed -i "s/@DATE@/${APP_DATE}/g" "$APP_METAINFO"
+    sed -i "s/@VER@/${VERSION}/g" "$app_metainfo"
+    sed -i "s/@DATE@/${APP_DATE}/g" "$app_metainfo"
 
     echo ===========================================
     echo Our manifest looks like this:
-    cat "$APP_METAINFO"
+    cat "$app_metainfo"
     echo ===========================================
 
     # Desktop and Icon
-    install -D ../../installers/FreeDesktop/space.oolite.Oolite.desktop "$APPSHR/applications/space.oolite.Oolite.desktop" || { echo "$err_msg desktop file" >&2; return 1; }
+    install -D ../../installers/FreeDesktop/space.oolite.Oolite.desktop "$appshr/applications/space.oolite.Oolite.desktop" || { echo "$err_msg desktop file" >&2; return 1; }
 
-    install -D "$1/Resources/Textures/oolite-logo1.png" "$APPSHR/icons/hicolor/256x256/apps/space.oolite.Oolite.png" || { echo "$err_msg icon file" >&2; return 1; }
+    install -D "$1/Resources/Textures/oolite-logo1.png" "$appshr/icons/hicolor/256x256/apps/space.oolite.Oolite.png" || { echo "$err_msg icon file" >&2; return 1; }
 
     popd
 }

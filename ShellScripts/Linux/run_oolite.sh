@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 HERE="$(dirname "$(readlink -f "$0")")"
 
 HELP=false
@@ -23,29 +22,31 @@ for arg in "$@"; do
 done
 
 notify_failure() {
+    # First parameter is exit code
+    local msg
     if [[ -n "$FLATPAK_ID" ]]; then
-        local MSG="<b>$FLATPAK_ID failed to start!</b>\n\nExit Code: $EXIT_CODE"
+        msg="<b>$FLATPAK_ID failed to start!</b>\n\nExit Code: $1"
         gdbus call --session \
             --dest org.freedesktop.portal.Desktop \
             --object-path /org/freedesktop/portal/desktop \
             --method org.freedesktop.portal.Notification.AddNotification \
             "oolite_launch" \
-            "{'title': <'Application Error'>, 'body': <'$MSG'>}"
+            "{'title': <'Application Error'>, 'body': <'$msg'>}"
     else
-        local APP_NAME="${ARGV0:-Application}"
-        local MSG="<b>$APP_NAME failed to start!</b>\n\nExit Code: $EXIT_CODE\n\nRun from terminal to see details."
+        local app_name="${ARGV0:-Application}"
+        msg="<b>$app_name failed to start!</b>\n\nExit Code: $1\n\nRun from terminal to see details."
 
         if command -v notify-send > /dev/null; then
             notify-send \
                 --urgency=critical \
-                --app-name="$APP_NAME" \
+                --app-name="$app_name" \
                 --icon=dialog-error \
                 "Application Error" \
-                "$MSG"
+                "$msg"
         else
             # Fallback to Console (stderr) if libnotify is missing
             echo "------------------------------------------------" >&2
-            echo "ERROR: $APP_NAME exited with code $EXIT_CODE" >&2
+            echo "ERROR: $app_name exited with code $1" >&2
             echo "------------------------------------------------" >&2
         fi
     fi
@@ -53,7 +54,7 @@ notify_failure() {
 
 launch_guarded() {
     if [[ "$PACKAGEINFO" == true ]]; then
-        cat "$OO_EXEDIR/Resources/manifest.plist"
+        cat "$OO_RESOURCESDIR/manifest.plist"
         exit 0
     fi
     if [[ "$DEBUG" == true ]]; then
@@ -105,57 +106,63 @@ launch_guarded() {
         echo ""
     fi
     "$OO_EXEDIR/oolite" "$@"
-    local EXIT_CODE=$?
+    local exit_code=$?
 
-    if [ $EXIT_CODE -eq 0 ]; then
+    if [ $exit_code -eq 0 ]; then
         exit 0
     fi
 
-    notify_failure
-    exit $EXIT_CODE
+    notify_failure "$exit_code"
+    exit $exit_code
 }
 
-find_exedir() {
+find_exe_resources_dirs() {
     if [[ -z "$OO_EXEDIR" ]]; then
         OO_EXEDIR="$HERE"
         if [[ ! -f "$OO_EXEDIR/oolite" ]]; then
             OO_EXEDIR="$HERE/oolite.app"
         fi
     fi
+    OO_EXEDIR="$(readlink -f "$OO_EXEDIR")"
+
+    if [[ -z "$OO_RESOURCESDIR" ]]; then
+        OO_RESOURCESDIR="$OO_EXEDIR/Resources"
+        if [[ ! -d "$OO_RESOURCESDIR" ]]; then
+            OO_RESOURCESDIR="$OO_EXEDIR/../share/oolite/Resources"
+        fi
+    fi
+    OO_RESOURCESDIR="$(readlink -f "$OO_RESOURCESDIR")"
 }
 
+
 make_gnustepconf_template() {
+    BASEDIR="$(readlink -f "$BASEDIR")"
     export GNUSTEP_CONFIG_FILE=$(mktemp -t oolite_gnustep_XXXX --suffix=.conf)
-    sed -e "s|@BASEDIR@|$BASEDIR|g" "$OO_EXEDIR/Resources/GNUstep.conf.template" > "$GNUSTEP_CONFIG_FILE"
+    sed -e "s|@BASEDIR@|$BASEDIR|g" "$OO_RESOURCESDIR/GNUstep.conf.template" > "$GNUSTEP_CONFIG_FILE"
 }
 
 # Check if we are running inside a Flatpak
 if [[ -n "$FLATPAK_ID" ]]; then
     BASEDIR="/app"
-    OO_EXEDIR="$BASEDIR/bin"
-    GAME_DATA="$HOME/.var/app/$FLATPAK_ID"
+    OO_EXEDIR="$(readlink -f "$BASEDIR/bin")"
+    OO_RESOURCESDIR="$(readlink -f "$BASEDIR/share/oolite/Resources")"
+    GAME_DATA="$(readlink -f "$HOME/.var/app/$FLATPAK_ID")"
     make_gnustepconf_template
 
 # Check if we are running inside an AppImage
 elif [[ -n "$APPIMAGE" ]]; then
     BASEDIR="$APPDIR"
-    OO_EXEDIR="$BASEDIR/bin"
-
-    DEBUG_OXP=$(grep "debug_functionality_support" "$OO_EXEDIR/Resources/manifest.plist")
-    if [[ "$DEBUG_OXP" == *"yes"* ]]; then
-        INTERNAL_ADDONS="$OO_EXEDIR/AddOns"
-        export OO_ADDITIONALADDONSDIRS="${OO_ADDITIONALADDONSDIRS}${OO_ADDITIONALADDONSDIRS:+,}$INTERNAL_ADDONS"
-    fi
+    OO_EXEDIR="$(readlink -f "$BASEDIR/bin")"
+    OO_RESOURCESDIR="$(readlink -f "$BASEDIR/share/oolite/Resources")"
 
     if [[ -n "$OO_DIRTYPE" ]]; then
         if [[ "${OO_DIRTYPE,,}" == "xdg" ]]; then
-            GAME_DATA="$HOME/.local/share/Oolite"
+            GAME_DATA="$(readlink -f "$HOME/.local/share/Oolite")"
         elif [[ "${OO_DIRTYPE,,}" == "legacy" ]]; then
             launch_guarded "$@"
         fi
     else
-        # Get the folder containing the AppImage file
-        HERE="$(dirname "$APPIMAGE")"
+        HERE="$(dirname "$(readlink -f "$APPIMAGE")")"
         GAME_DATA="$HERE/GameData"
     fi
     make_gnustepconf_template
@@ -163,34 +170,34 @@ else
     # Check if OO_DIRTYPE set
     if [[ -n "$OO_DIRTYPE" ]]; then
         if [[ "${OO_DIRTYPE,,}" == "xdg" ]]; then
-            GAME_DATA="$HOME/.local/share/Oolite"
+            GAME_DATA="$(readlink -f "$HOME/.local/share/Oolite")"
         elif [[ "${OO_DIRTYPE,,}" == "legacy" ]]; then
-            find_exedir
+            find_exe_resources_dirs
             launch_guarded "$@"
         fi
     else
-        # Use script directory
         GAME_DATA="$HERE/GameData"
     fi
-
+    find_exe_resources_dirs
     export GNUSTEP_CONFIG_FILE=$(mktemp -t oolite_gnustep_XXXX --suffix=.conf)
-    cp "$HERE/Resources/GNUstep.conf.orig" "$GNUSTEP_CONFIG_FILE"
+    cp "$OO_RESOURCESDIR/GNUstep.conf.orig" "$GNUSTEP_CONFIG_FILE"
 fi
 
 mkdir -p "$GAME_DATA"
 
-export OO_SAVEDIR="${OO_SAVEDIR:-$GAME_DATA/SavedGames}"
+export OO_SAVEDIR="$(readlink -f "${OO_SAVEDIR:-$GAME_DATA/SavedGames}")"
 mkdir -p "$OO_SAVEDIR"
-export OO_SNAPSHOTSDIR="${OO_SNAPSHOTSDIR:-$GAME_DATA/Snapshots}"
+export OO_SNAPSHOTSDIR="$(readlink -f "${OO_SNAPSHOTSDIR:-$GAME_DATA/Snapshots}")"
 mkdir -p "$OO_SNAPSHOTSDIR"
-export OO_LOGSDIR="${OO_LOGSDIR:-$GAME_DATA/.logs}"
+export OO_LOGSDIR="$(readlink -f "${OO_LOGSDIR:-$GAME_DATA/.logs}")"
 mkdir -p "$OO_LOGSDIR"
-export OO_MANAGEDADDONSDIR="${OO_MANAGEDADDONSDIR:-$GAME_DATA/.ManagedAddOns}"
+export OO_MANAGEDADDONSDIR="$(readlink -f "${OO_MANAGEDADDONSDIR:-$GAME_DATA/.ManagedAddOns}")"
 mkdir -p "$OO_MANAGEDADDONSDIR"
 
 if [[ -z "$OO_ADDONSEXTRACTDIR" ]]; then
-    export OO_ADDONSEXTRACTDIR="${OO_USERADDONSDIR:-$GAME_DATA/AddOns}"
+    export OO_ADDONSEXTRACTDIR="$(readlink -f "${OO_USERADDONSDIR:-$GAME_DATA/AddOns}")"
 elif [[ -n "$OO_USERADDONSDIR" ]]; then
+    OO_USERADDONSDIR="$(readlink -f "$OO_USERADDONSDIR")"
     if [[ ",$OO_ADDITIONALADDONSDIRS," != *",$OO_USERADDONSDIR,"* ]]; then
         export OO_ADDITIONALADDONSDIRS="${OO_ADDITIONALADDONSDIRS}${OO_ADDITIONALADDONSDIRS:+,}$OO_USERADDONSDIR"
     fi
@@ -201,9 +208,9 @@ if [ -n "$OO_ADDITIONALADDONSDIRS" ]; then
     (IFS=,; mkdir -p $OO_ADDITIONALADDONSDIRS)
 fi
 
-OO_GNUSTEPDIR="${OO_GNUSTEPDIR:-$GAME_DATA/.GNUstep}"
+OO_GNUSTEPDIR="$(readlink -f "${OO_GNUSTEPDIR:-$GAME_DATA/.GNUstep}")"
 mkdir -p "$OO_GNUSTEPDIR"
-OO_GNUSTEPDEFAULTSDIR="${OO_GNUSTEPDEFAULTSDIR:-${GAME_DATA}}"
+OO_GNUSTEPDEFAULTSDIR="$(readlink -f "${OO_GNUSTEPDEFAULTSDIR:-${GAME_DATA}}")"
 mkdir -p "$OO_GNUSTEPDEFAULTSDIR"
 
 echo "" >> "$GNUSTEP_CONFIG_FILE"
@@ -221,6 +228,5 @@ echo "GNUSTEP_USER_DIR_DOC_MAN=$OO_GNUSTEPDIR/Library/Documentation/man" >> "$GN
 echo "GNUSTEP_USER_DIR_DOC_INFO=$OO_GNUSTEPDIR/Library/Documentation/info" >> "$GNUSTEP_CONFIG_FILE"
 echo "GNUSTEP_USER_DEFAULTS_DIR=$OO_GNUSTEPDEFAULTSDIR" >> "$GNUSTEP_CONFIG_FILE"
 
-find_exedir
 launch_guarded "$@"
 rm "$GNUSTEP_CONFIG_FILE"

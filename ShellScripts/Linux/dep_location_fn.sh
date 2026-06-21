@@ -18,9 +18,9 @@ dep_location() {
     local _escalate_cmd="${6:-sudo}"
 
     # Get the directory where the script is located
-    local SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+    local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
 
-    source "$SCRIPT_DIR/os_detection.sh"
+    source "$script_dir/os_detection.sh"
     cd ../../
 
     # Logic for LIB_SUBDIR

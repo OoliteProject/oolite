@@ -4,8 +4,8 @@ echo "I am $0 $@"
 
 run_script() {
     # First parameter is a suffix for the build type eg. test, dev
-    local SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
-    pushd "$SCRIPT_DIR"
+    local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+    pushd "$script_dir"
 
     cd ../..
     # Deleting these prevents odd linking errors
@@ -23,42 +23,42 @@ run_script() {
         return 1
     fi
 
-    local MANIFEST="space.oolite.Oolite.yaml"
+    local manifest="space.oolite.Oolite.yaml"
 
     if [ -n "${SEMVER}" ] && [ -n "${PROJECTNAME}" ]; then
-        ENV_BLOCK="env:\n        SEMVER: \"$SEMVER\"\n        PROJECTNAME: \"$PROJECTNAME\"\n        VERSION: \"$SEMVER\""
+        local env_block="env:\n        SEMVER: \"$SEMVER\"\n        PROJECTNAME: \"$PROJECTNAME\"\n        VERSION: \"$SEMVER\""
         # Swap the comment
-        sed -i "s|#[[:space:]]*CI builds add an env block here|$ENV_BLOCK|g" "$MANIFEST" || return 1
+        sed -i "s|#[[:space:]]*CI builds add an env block here|$env_block|g" "$manifest" || return 1
     fi
 
     # check manifest
-    LINT_EXCEPTIONS=$(mktemp /tmp/oolite-lint-XXXXXX.json)
-    cat <<EOF > "$LINT_EXCEPTIONS"
+    local lint_exceptions=$(mktemp /tmp/oolite-lint-XXXXXX.json)
+    cat <<EOF > "$lint_exceptions"
 {
   "space.oolite.Oolite": [
     "finish-args-has-dev-input"
   ]
 }
 EOF
-    trap 'rm -f "$LINT_EXCEPTIONS"' RETURN EXIT
+    trap 'rm -f "$lint_exceptions"' RETURN EXIT
 
     if command -v flatpak-builder-lint >/dev/null 2>&1; then
-        if ! flatpak-builder-lint manifest "$MANIFEST" --exceptions --user-exceptions="$LINT_EXCEPTIONS"; then
+        if ! flatpak-builder-lint manifest "$manifest" --exceptions --user-exceptions="$lint_exceptions"; then
             echo "❌ Flatpak manifest lint failed!" >&2
-            cat "$MANIFEST"
+            cat "$manifest"
             echo "❌ Flatpak manifest lint failed!" >&2
             return 1
         fi
     else
         echo "Native linter not found. Falling back to Flatpak container..."
-        if ! flatpak run --filesystem="$LINT_EXCEPTIONS" --command=flatpak-builder-lint org.flatpak.Builder manifest "$MANIFEST" --exceptions --user-exceptions="$LINT_EXCEPTIONS"; then
+        if ! flatpak run --filesystem="$lint_exceptions" --command=flatpak-builder-lint org.flatpak.Builder manifest "$manifest" --exceptions --user-exceptions="$lint_exceptions"; then
             echo "❌ Flatpak manifest lint failed!" >&2
             return 1
         fi
     fi
 
     # 3. Clean up
-    rm -f "$LINT_EXCEPTIONS"
+    rm -f "$lint_exceptions"
     trap - RETURN EXIT
 
     echo "Creating Flatpak..."
@@ -70,16 +70,16 @@ EOF
         return 1
     fi
 
-    local TOTAL_LINES=$(wc -l < $MANIFEST)
-    local START_LINE=$((TOTAL_LINES - 3))
-    sed -i "${START_LINE},\$d" $MANIFEST
-    cat <<EOF >> $MANIFEST
+    local total_lines=$(wc -l < $manifest)
+    local start_line=$((total_lines - 3))
+    sed -i "${start_line},\$d" $manifest
+    cat <<EOF >> $manifest
       - type: dir
         path: ../
 EOF
 
     # show effective manifest
-    flatpak-builder --show-manifest $MANIFEST
+    flatpak-builder --show-manifest $manifest
 
     if ! flatpak-builder \
       --user \
@@ -88,32 +88,32 @@ EOF
       --install-deps-from=flathub \
       --disable-rofiles-fuse \
       build-dir \
-      $MANIFEST; then
+      $manifest; then
         echo "❌ Flatpak build failed!" >&2
         return 1
     fi
 
-    local SUFFIX
+    local suffix
    	if (( $# == 1 )); then
-        SUFFIX="_${1}-${VER_FULL}"
+        suffix="_${1}-${VER_FULL}"
     else
-        SUFFIX="-$VER_FULL"
+        suffix="-$VER_FULL"
     fi
     local ARCH=$(uname -m)
-    FILENAME="space.oolite.Oolite${SUFFIX}-${ARCH}.flatpak"
-    echo "Creating Flatpak $FILENAME..."
+    local filename="space.oolite.Oolite${suffix}-${ARCH}.flatpak"
+    echo "Creating Flatpak $filename..."
     if ! flatpak build-bundle \
       repo \
-      "$FILENAME" \
+      "$filename" \
       space.oolite.Oolite; then
         echo "❌ Flatpak bundle creation failed!" >&2
         return 1
     fi
-    DEBUGLNAME="space.oolite.Oolite.Debug${SUFFIX}-${ARCH}.flatpak"
+    local debugname="space.oolite.Oolite.Debug${suffix}-${ARCH}.flatpak"
     if ! flatpak build-bundle \
       --runtime \
       repo \
-      "$DEBUGLNAME" \
+      "$debugname" \
       space.oolite.Oolite.Debug; then
         echo "❌ Flatpak bundle creation failed!" >&2
         return 1
