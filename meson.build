@@ -8,9 +8,6 @@ project(
         check: true,
     ).stdout().strip(),
     default_options: [
-        'prefix=' + meson.current_build_dir() / 'oolite.app',
-        'bindir=',
-        'datadir=',
         'optimization=2',
     ],
 )
@@ -99,22 +96,3 @@ endif
 gnustep_folder = ''  # Not needed for Windows
 # dependencies, compiler/linker flags and build
 subdir('src')
-
-install_env_args = [
-    'PROGPATH=' + join_paths(
-        meson.global_build_root() / 'oolite.app',
-        get_option('bindir'),
-        'oolite',
-    ),
-    'HOST_OS=' + host_os,
-    'DEBUG=' + (get_option('debug') ? 'yes' : 'no'),
-    'DEPLOYMENT_RELEASE_CONFIGURATION=' + (
-        get_option('deployment_release_configuration') ? 'yes' : 'no'
-    ),
-    'ESPEAK=' + (get_option('espeak') ? 'yes' : 'no'),
-    'STRIP_BIN=' + (get_option('strip_bin') ? 'yes' : 'no'),
-    'VER_FULL=' + version_string,
-    'GNUSTEP_FOLDER=' + gnustep_folder,
-]
-post_build_script = find_program('ShellScripts/common/post_build.sh')
-meson.add_install_script('env', install_env_args, post_build_script.full_path())

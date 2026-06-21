@@ -103,6 +103,13 @@ oolite_sources += files(
     'legacy_random.c',
 )
 
+if host_os != 'darwin'
+    oolite_sources += files(
+        'NSBundle+Override.m',
+        'NSUserDefaults+Override.m',
+    )
+endif
+
 oolite_includes += include_directories('.')
 
 # Enter child subdirectories

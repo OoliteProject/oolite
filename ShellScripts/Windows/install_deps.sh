@@ -32,8 +32,8 @@ install() {
 }
 
 run_script() {
-    local SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
-    pushd "$SCRIPT_DIR"
+    local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+    pushd "$script_dir"
 
     local oolite_deps_url="https://api.github.com/repos/OoliteProject/oolite_windeps_build/releases/latest"
 

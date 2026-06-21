@@ -179,6 +179,7 @@ static NSMutableDictionary *sStringCache;
 	
 	if (sUserRootPaths == nil)
 	{
+		NSString *cwd = [[NSFileManager defaultManager] currentDirectoryPath];
 		// the paths are now in order of preference as per yesterday's talk. -- Kaks 2010-05-05
 		NSArray *defaultAddOnsPaths = [NSArray arrayWithObjects:
 #if OOLITE_MAC_OS_X
@@ -189,11 +190,14 @@ static NSMutableDictionary *sStringCache;
 					  [[[[NSBundle mainBundle] bundlePath]
 						 stringByDeletingLastPathComponent]
 					    stringByAppendingPathComponent:@"AddOns"],
+#else
+					  [[cwd stringByDeletingLastPathComponent]
+					    stringByAppendingPathComponent:@"share/oolite/AddOns"],
 #endif
-                      @"AddOns",
+					  [cwd stringByAppendingPathComponent:@"AddOns"],
 					  [[OOOXZManager sharedManager] extractAddOnsPath],
 					  nil];
-        sUserRootPaths = [[[[OOOXZManager sharedManager] additionalAddOnsPaths] arrayByAddingObjectsFromArray:defaultAddOnsPaths] retain];
+		sUserRootPaths = [[[[OOOXZManager sharedManager] additionalAddOnsPaths] arrayByAddingObjectsFromArray:defaultAddOnsPaths] retain];
 	}
 	OOLog(@"searchPaths.debug",@"%@",sUserRootPaths);
 	return sUserRootPaths;
@@ -202,16 +206,23 @@ static NSMutableDictionary *sStringCache;
 
 + (NSString *)builtInPath
 {
-#if OOLITE_WINDOWS
-	/*	[[NSBundle mainBundle] resourcePath] causes complaints under Windows,
-		because we don't have a properly-built bundle.
-	*/
-	return @"Resources";
-#else
-	return [[NSBundle mainBundle] resourcePath];
-#endif
-}
+	NSFileManager *fileManager = [NSFileManager defaultManager];
 
+#if OOLITE_MAC_OS_X
+	return [[NSBundle mainBundle] resourcePath];  // Use resourcePath directly
+#else
+	NSString *startingDir = [fileManager currentDirectoryPath];  // Start from cwd
+#endif
+    // Look for a "Resources" folder (Windows & Linux)
+	NSString *primaryResourcesPath = [startingDir stringByAppendingPathComponent:@"Resources"];
+	BOOL isDir = NO;
+	if ([fileManager fileExistsAtPath:primaryResourcesPath isDirectory:&isDir] && isDir) {
+		return primaryResourcesPath;
+	}
+	// Fallback: Look in startingDir/../share/oolite/Resources
+	NSString *fallbackPath = [[startingDir stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"share/oolite/Resources"];
+	return [fallbackPath stringByStandardizingPath];
+}
 
 + (NSArray *)pathsWithAddOns
 {

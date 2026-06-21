@@ -19,8 +19,8 @@ run_script() {
       return 1
     fi
 
-    local SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
-    pushd "$SCRIPT_DIR"
+    local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+    pushd "$script_dir"
 
     local BUILD_TYPE="${1:-snapshot}"
     local TARGET_DIR=$(readlink -f "../build/meson_${BUILD_TYPE}/oolite.app")

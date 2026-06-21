@@ -1,8 +1,8 @@
 #!/bin/bash
 
 run_script() {
-    local SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
-    pushd "$SCRIPT_DIR"
+    local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+    pushd "$script_dir"
 
     rm -rf ../build/documentation
     source ./build_doxygen_fn.sh

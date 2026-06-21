@@ -3,20 +3,20 @@
 # One parameter: build target
 
 run_script() {
-    # First optional parameter is build target. Default target is release.
-    local SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
-    pushd "$SCRIPT_DIR"
+    local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+    pushd "$script_dir"
 
     cd ../..
 
+    local target
     if [[ -z "$1" ]]; then
-        TARGET=release
+        target=release
     else
-        TARGET=$1
+        target=$1
     fi
 
     make clean
-    if ! make $TARGET; then
+    if ! make $target; then
         echo "❌ Oolite build failed!" >&2
         return 1
     fi
@@ -33,4 +33,3 @@ status=$?
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     exit $status
 fi
-
