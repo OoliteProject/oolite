@@ -33,7 +33,7 @@ run_script() {
 
     local manifest="space.oolite.Oolite.yaml"
 
-    local env_block="env:\n        VER_FULL: \"$VER_FULL\"\n        BUILDER: \"$BUILDER\""
+    local env_block="env:\n        VER_FULL: \"$VER_FULL\"\n        GITHUB_REPOSITORY: \"$GITHUB_REPOSITORY\""
     # Swap the comment
     sed -i "s|#[[:space:]]*CI builds add an env block here|$env_block|g" "$manifest" || return 1
 
