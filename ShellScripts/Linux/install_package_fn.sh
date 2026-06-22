@@ -23,6 +23,8 @@ install_package() {
 
         "cmake") pkg_name="cmake" ;;
 
+        "jq") pkg_name="jq" ;;
+
         "meson")
             case "$CURRENT_DISTRO" in
                 debian) pkg_name="meson ninja-build" ;;
@@ -121,7 +123,7 @@ install_package() {
                 arch) pkg_name="glu" ;;
             esac ;;
 
-	"sdl3")
+        "sdl3")
             case "$CURRENT_DISTRO" in
                 debian) pkg_name="libsdl3-dev" ;;
                 redhat) pkg_name="SDL3-devel" ;;
@@ -137,9 +139,9 @@ install_package() {
 
         "appimage")
             case "$CURRENT_DISTRO" in
-                debian) pkg_name="file fuse3" ;;
-                redhat) pkg_name="file fuse3 desktop-file-utils which zsync" ;;
-                arch) pkg_name="file fuse3 desktop-file-utils zsync" ;;
+                debian) pkg_name="file fuse3 patchelf" ;;
+                redhat) pkg_name="file fuse3 desktop-file-utils patchelf which zsync" ;;
+                arch) pkg_name="file fuse3 desktop-file-utils patchelf zsync" ;;
             esac ;;
 
         "flatpak") pkg_name="flatpak flatpak-builder" ;;
