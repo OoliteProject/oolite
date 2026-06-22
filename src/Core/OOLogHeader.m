@@ -168,7 +168,7 @@ void OOPrintLogHeader(void)
 	#endif
 	if (versionString == nil)  versionString = @"<unknown version>";
 	
-	NSMutableString *miscString = [NSMutableString stringWithFormat:@"Opening log for Oolite %@ (" CPU_TYPE_STRING RELEASE_VARIANT_STRING ") under %@ at %@.\n", versionString, systemString, [NSDate date]];
+	NSMutableString *miscString = [NSMutableString stringWithFormat:@"Opening log for Oolite %@ by %@ (" CPU_TYPE_STRING RELEASE_VARIANT_STRING ") under %@ at %@.\n", versionString, @OO_BUILDER, systemString, [NSDate date]];
 	
 	[miscString appendString:AdditionalLogHeaderInfo()];
 	

@@ -11,39 +11,48 @@ mkdir -p ../../build
 cd ../../build
 
 # Timestamp of last commit/push
-TIMESTAMP=$(git log -1 --format=%ct)
-
+if [[ -z "${GETVERSION_TIMESTAMP}" ]]; then
+    # Run timestamp exactly once and export it for any subsequent child scripts
+    export GETVERSION_TIMESTAMP=$(git log -1 --format=%ct)
+fi
 # Date conversions use UTC for consistency
 # Convert to __DATE__ format (e.g., Feb 20 2026)
-CPP_DATE=$(date -u -d "@$TIMESTAMP" +"%b %e %Y")
+CPP_DATE=$(date -u -d "@$GETVERSION_TIMESTAMP" +"%b %e %Y")
 # Convert to YYYY-MM-DD
-APP_DATE=$(date -u -d "@$TIMESTAMP" +"%Y-%m-%d")
+APP_DATE=$(date -u -d "@$GETVERSION_TIMESTAMP" +"%Y-%m-%d")
 # Convert to YYMMDD format (e.g., 260313)
-VER_DATE=$(date -u -d "@$TIMESTAMP" +"%y%m%d")
+VER_DATE=$(date -u -d "@$GETVERSION_TIMESTAMP" +"%y%m%d")
+# Convert to YYYY.MM.DD HH:MM format (e.g., 2026.06.21 07:56)
+BUILDTIME=$(date -u -d "@$GETVERSION_TIMESTAMP" "+%Y.%m.%d %H:%M")
 
-if [[ -z "${SEMVER}" ]] || [[ -z "${PROJECTNAME}" ]]
-then
-    # Variables not passed in. Calculate the classic way.
+if [[ -z "${GITVERSION_JSON}" ]]; then
+    # Run GitVersion exactly once and export it for any subsequent child scripts
+    export GITVERSION_JSON=$(gitversion)
+fi
 
-    VERSION=$(cat ../src/Cocoa/oolite-version.xcconfig | cut -d '=' -f 2)
-    VER_MAJ=$(echo "$VERSION" | cut -d. -f1)
-    VER_MIN=$(echo "$VERSION" | cut -d. -f2)
-    VER_REV=$(echo "$VERSION" | cut -d. -f3)
+if [[ -z "${VER_FULL}" ]]; then
+    VER_MAJ=$(echo "$GITVERSION_JSON" | jq -r '.Major')
+    VER_MIN=$(echo "$GITVERSION_JSON" | jq -r '.Minor')
+    VER_REV=$(echo "$GITVERSION_JSON" | jq -r '.Patch')
     if [[ "" == "$VER_REV" ]]; then
         VER_REV="0"
     fi
+    VER_DIST=$(echo "$GITVERSION_JSON" | jq -r '.VersionSourceDistance')
+    VER_SEMVER=$(echo "$GITVERSION_JSON" | jq -r '.SemVer')
+    VER_UNCOMMITTED=$(echo "$GITVERSION_JSON" | jq -r '.UncommittedChanges')
 
+    if git diff --quiet; then
+        VER_FULL=$VER_SEMVER
+    else
+        VER_FULL="${VER_SEMVER}+dirty.${VER_UNCOMMITTED}"
+    fi
+
+    VER_NSIS="$VER_MAJ.$VER_MIN.$VER_REV.$VER_DIST"
     VER_GITREV=$(git rev-list --count HEAD)
     VER_GITHASH=$(git rev-parse --short=7 HEAD)
-    VER_FULL="$VER_MAJ.$VER_MIN.$VER_REV.$VER_GITREV-$VER_DATE-$VER_GITHASH"
-    BUILDTIME=$(date "+%Y.%m.%d %H:%M")
-else
-    # Variables passed in. Make use of them.
 
-    VER_FULL="${SEMVER}"
+    echo "OOLITE_VERSION=$VER_FULL" > OOLITE_VERSION.txt
 fi
 
-echo "OOLITE_VERSION=$VER_FULL" > OOLITE_VERSION.txt
 echo "$VER_FULL"
-
 popd > /dev/null

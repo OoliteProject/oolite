@@ -10,7 +10,7 @@ install() {
     echo "Installing $1 package"
 
     local fullname
-    if [ -z "$2" ]; then
+    if [[ -z "$2" ]]; then
         fullname=$1
     else
         fullname="${1}_${2}"
@@ -20,7 +20,7 @@ install() {
     local filename=$(ls $packagename 2>/dev/null)
 
     # package file eg. mingw-w64-x86_64-libobjc2-2.3-3-any.pkg.tar.zst
-    if [ -z "$filename" ]; then
+    if [[ -z "$filename" ]]; then
         echo "❌ No file matching $packagename found!" >&2
         return 1
     fi
@@ -35,6 +35,8 @@ run_script() {
     local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
     pushd "$script_dir"
 
+    source ../common/download_github_fn.sh
+
     local oolite_deps_url="https://api.github.com/repos/OoliteProject/oolite_windeps_build/releases/latest"
 
     pacman -Syu --noconfirm
@@ -42,6 +44,8 @@ run_script() {
     pacman -S dos2unix --noconfirm
     pacman -S pactoys --noconfirm
     pacboy -S binutils --noconfirm
+    pacboy -S jq --noconfirm
+    pacman -S unzip --noconfirm
     pacboy -S python-pip --noconfirm
     pacman -S make --noconfirm
     pacboy -S meson --noconfirm
@@ -56,6 +60,14 @@ run_script() {
     pacboy -S sdl3 --noconfirm
 
     cd ../../build
+    # install gitversion
+    local outputdir="."
+    download_latest_release gitversion_zip "GitTools" "GitVersion" "win-x64" "$outputdir"
+    unzip -o ${gitversion_zip} -d "$outputdir"
+    chmod +x "$outputdir/gitversion.exe"
+    mv "$outputdir/gitversion.exe" "$MINGW_PREFIX/bin/gitversion.exe"
+    rm -f ${gitversion_zip}
+
     mkdir -p packages
     cd packages
     curl -s "$oolite_deps_url" | \

@@ -5,6 +5,7 @@ run_script() {
     local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
     pushd "$script_dir" > /dev/null
 
+    source "generate_manifest_fn.sh"
     cd ../..
 
     set -x
@@ -12,6 +13,8 @@ run_script() {
     local appdir=$(dirname "$ORIGPROGPATH")
     local progpath="$PROGDIR/$appname"
     mkdir -p "$PROGDIR/Resources"
+
+    generate_manifest "$PROGDIR/Resources/manifest.plist"
 
     if [[ ! -f "$ORIGPROGPATH" ]]; then
         echo "❌ 'Oolite binary at '$ORIGPROGPATH' does not exist!" >&2
@@ -22,7 +25,6 @@ run_script() {
         return 1
     fi
     cp -fu "$ORIGPROGPATH" "$progpath"
-    ShellScripts/common/mkmanifest.sh > "$PROGDIR/Resources/manifest.plist"
     cp -fu src/Cocoa/Info-Oolite.plist "$PROGDIR/Resources/Info-gnustep.plist"
 
     # Voice Data
