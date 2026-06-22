@@ -113,12 +113,14 @@ jobs:
           msystem: UCRT64
         run: |
           ShellScripts/Windows/install_deps.sh clang
+          git status --ignored=matching
       - name: Build Oolite
         shell: msys2 {0}
         env:
           msystem: UCRT64
         run: |
           ShellScripts/common/build_oolite.sh ${{matrix.flavour}}
+          git status --ignored=matching
       - name: Archive installer
         uses: actions/upload-artifact@v6
         with:
