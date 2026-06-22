@@ -61,7 +61,7 @@ run_script() {
     cd ../../build
     # install gitversion
     local outputdir="./"
-    download_latest_release gitversion_zip "GitTools" "GitVersion" "win-x" "$outputdir"
+    download_latest_release gitversion_zip "GitTools" "GitVersion" "win-x64" "$outputdir"
     unzip -o ${gitversion_zip} -d "$outputdir"
     chmod +x "$outputdir/gitversion.exe"
     mv "$outputdir/gitversion.exe" "$MINGW_PREFIX/bin/gitversion.exe"
