@@ -17,6 +17,7 @@ run_script() {
     cd build
     if ! command -v gitversion &> /dev/null; then
         echo "Installing gitversion..."
+        source ../ShellScripts/common/download_github_fn.sh
         local outputdir="./"
         download_latest_release gitversion_tgz "GitTools" "GitVersion" "linux-x64" "$outputdir"
         tar xfz ${gitversion_tgz} --directory "$outputdir"
