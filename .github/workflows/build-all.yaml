@@ -9,57 +9,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  common:
-    runs-on: ubuntu-latest
-    outputs:
-      SEMVER: ${{ steps.version_generator.outputs.SEMVER }}
-      PROJECTNAME: ${{ steps.version_generator.outputs.PROJECTNAME }}
-      GitVersion_Major: ${{ steps.version_generator.outputs.GitVersion_Major }}
-      GitVersion_Minor: ${{ steps.version_generator.outputs.GitVersion_Minor }}
-      GitVersion_Patch: ${{ steps.version_generator.outputs.GitVersion_Patch }}
-      GitVersion_VersionSourceDistance: ${{ steps.version_generator.outputs.GitVersion_VersionSourceDistance }}
-    steps:
-      - name: Checkout project
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-
-      - name: Install GitVersion
-        uses: gittools/actions/gitversion/setup@v4
-        with:
-          versionSpec: '6'
-
-      - name: Check for Fork
-        run: |
-          if [ "${{ github.repository }}" == "OoliteProject/oolite" ]; then
-            echo "PROJECTNAME=oolite" >> $GITHUB_ENV
-          else
-            echo "PROJECTNAME=OoliteFork" >> $GITHUB_ENV
-          fi
-
-      - name: Determine Oolite Version
-        id: version_step
-        uses: gittools/actions/gitversion/execute@v4
-        with:
-          overrideConfig: |
-            semantic-version-format=Loose
-            next-version=1.93.1
-
-      - name: Print and register result
-        id: version_generator
-        run: |
-          echo "SEMVER=$GitVersion_SemVer" >> "$GITHUB_OUTPUT"
-          echo "GitVersion_Major=$GitVersion_Major" >> "$GITHUB_OUTPUT"
-          echo "GitVersion_Minor=$GitVersion_Minor" >> "$GITHUB_OUTPUT"
-          echo "GitVersion_Patch=$GitVersion_Patch" >> "$GITHUB_OUTPUT"
-          echo "GitVersion_VersionSourceDistance=$GitVersion_VersionSourceDistance" >> "$GITHUB_OUTPUT"
-          echo "PROJECTNAME=$PROJECTNAME" >> "$GITHUB_OUTPUT"
-          printenv | sort
-          echo "head.repo.full_name = -${{github.event.pull_request.head.repo.full_name}}-"
-          echo "base.repo.full_name = -${{github.event.pull_request.base.repo.full_name}}-"
-
   build-linux:
-    needs: [common]
     runs-on: ubuntu-latest
     container:
       image: archlinux:latest
@@ -88,35 +38,30 @@ jobs:
       - name: Checkout Oolite
         uses: actions/checkout@v6
         with:
-          path: oolite
           fetch-depth: 0
       - name: Install packages
         run: |
-          oolite/ShellScripts/Linux/install_packages_root.sh
+          ShellScripts/Linux/install_packages_root.sh
       - name: Build GNUstep
         run: |
-          oolite/ShellScripts/Linux/build_gnustep.sh system
+          ShellScripts/Linux/build_gnustep.sh system
       - name: Install Mozilla static library
         run: |
-          oolite/ShellScripts/Linux/install_mozilla_js.sh system
+          ShellScripts/Linux/install_mozilla_js.sh system
           echo "/usr/local/lib" | tee -a /etc/ld.so.conf
           ldconfig
       - name: Build Oolite
-        env:
-          SEMVER: ${{ needs.common.outputs.SEMVER }}
-          PROJECTNAME: ${{ needs.common.outputs.PROJECTNAME }}
         run: |
-          oolite/ShellScripts/common/build_oolite.sh ${{matrix.flavour}}
+          ShellScripts/common/build_oolite.sh ${{matrix.flavour}}
       - name: Archive installer
         uses: actions/upload-artifact@v6
         with:
           name: oolite-linux-${{matrix.flavour}}
           path: |
-            oolite/build/oolite*.AppImage
+            build/oolite*.AppImage
           retention-days: 5
 
   build-flatpak:
-    needs: [common]
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-25.08
@@ -125,24 +70,19 @@ jobs:
       - name: Checkout Oolite
         uses: actions/checkout@v6
         with:
-          path: oolite
           fetch-depth: 0
       - name: Build flatpak
-        env:
-          SEMVER: ${{ needs.common.outputs.SEMVER }}
-          PROJECTNAME: ${{ needs.common.outputs.PROJECTNAME }}
         run: |
-          oolite/installers/flatpak/create_flatpak.sh
+          installers/flatpak/create_flatpak.sh
       - name: Archive installer
         uses: actions/upload-artifact@v6
         with:
           name: oolite-flatpak
           path: |
-            oolite/build/space.oolite.Oolite*.flatpak
+            build/space.oolite.Oolite*.flatpak
           retention-days: 5
 
   build-windows:
-    needs: [common]
     runs-on: windows-latest
     strategy:
       matrix:
@@ -161,44 +101,29 @@ jobs:
       - name: Checkout Oolite
         uses: actions/checkout@v6
         with:
-          path: oolite
           fetch-depth: 0
-      - name: Download latest release assets
-        uses: robinraju/release-downloader@v1
-        with:
-          repository: OoliteProject/oolite_windeps_build
-          latest: true
-          fileName: "*"
-          out-file-path: oolite/build/packages
       - name: Install packages
         shell: msys2 {0}
         env:
           msystem: UCRT64
         run: |
-          oolite/ShellScripts/Windows/install_deps.sh clang
+          ShellScripts/Windows/install_deps.sh clang
       - name: Build Oolite
         shell: msys2 {0}
         env:
           msystem: UCRT64
-          VER_MAJ: ${{ needs.common.outputs.GitVersion_Major }}
-          VER_MIN: ${{ needs.common.outputs.GitVersion_Minor }}
-          VER_REV: ${{ needs.common.outputs.GitVersion_Patch }}
-          VER_GITREV: ${{ needs.common.outputs.GitVersion_VersionSourceDistance }}
-          SEMVER: ${{ needs.common.outputs.SEMVER }}
-          VER_NSIS: ${{ needs.common.outputs.GitVersion_Major }}.${{ needs.common.outputs.GitVersion_Minor }}.${{ needs.common.outputs.GitVersion_Patch }}.${{ needs.common.outputs.GitVersion_VersionSourceDistance }}
-          PROJECTNAME: ${{ needs.common.outputs.PROJECTNAME }}
         run: |
-          oolite/ShellScripts/common/build_oolite.sh ${{matrix.flavour}}
+          ShellScripts/common/build_oolite.sh ${{matrix.flavour}}
       - name: Archive installer
         uses: actions/upload-artifact@v6
         with:
           name: oolite-windows-${{matrix.flavour}}
           path: |
-            oolite/build/OoliteInstall*.exe
+            build/OoliteInstall*.exe
           retention-days: 5
 
   release:
-    needs: [build-linux, build-flatpak, build-windows, common]
+    needs: [build-linux, build-flatpak, build-windows]
     runs-on: ubuntu-22.04
     # Only run for internal requests (so not for PRs from forks)
     if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
@@ -212,23 +137,34 @@ jobs:
         uses: actions/download-artifact@v7
         with:
           path: artifacts
-      - name: Checkout Oolite
-        uses: actions/checkout@v6
-        with:
-          path: oolite
-          fetch-depth: 0
       - name: Calculate version number and set OOLITE_VERSION
         id: version
-        env:
-          SEMVER: ${{ needs.common.outputs.SEMVER }}
-          PROJECTNAME: ${{ needs.common.outputs.PROJECTNAME }}
         run: |
-          set -x
-          cd oolite
-          # Build version string,
-          # taking into account that we may have just two digits
-          source ShellScripts/common/get_version.sh
-          cat build/OOLITE_VERSION.txt >> "$GITHUB_OUTPUT"
+          set -x          
+          # 1. Check that there are exactly 8 files recursively in the artifacts directory
+          FILE_COUNT=$(find artifacts -type f | wc -l)
+          echo "Total files found: $FILE_COUNT"          
+          if [[ "$FILE_COUNT" -ne 8 ]]; then
+            echo "❌ Expected exactly 8 files, but found $FILE_COUNT." >&2
+            exit 1
+          fi                    
+          # 2. Get the path of the first available AppImage
+          APPIMAGE_PATH=$(find artifacts -type f -name "*.AppImage" | head -n 1)          
+          if [[ -z "$APPIMAGE_PATH" ]]; then
+            echo "❌ No AppImages found in the downloaded artifacts!" >&2
+            exit 1
+          fi          
+          echo "Found AppImage: $APPIMAGE_PATH"                    
+          # 3. Run with packageinfo and extract the string inside quotes
+          chmod +x "$APPIMAGE_PATH"
+          VERSION_STR=$("$APPIMAGE_PATH" packageinfo | awk -F'"' '/^[[:space:]]*version =/ {print $2; exit}')           
+          if [[ -z "$VERSION_STR" ]]; then
+            echo "❌ Failed to extract version string from packageinfo output!" >&2
+            exit 1
+          fi                     
+          echo "Extracted Version: $VERSION_STR"          
+          # 4. Output the extracted version for subsequent steps
+          echo "OOLITE_VERSION=$VERSION_STR" >> "$GITHUB_OUTPUT"
       - name: Remove old prereleases
         if: github.ref == 'refs/heads/master' || endsWith(github.ref, 'maintenance')
         uses: s00d/delete-older-releases@0.2.1

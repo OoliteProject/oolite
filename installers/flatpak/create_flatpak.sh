@@ -8,13 +8,21 @@ run_script() {
     pushd "$script_dir"
 
     cd ../..
-    # Deleting these prevents odd linking errors
-    rm -rf oolite.app
-    rm -rf obj.spk
-    source ShellScripts/common/get_version.sh
-
     mkdir -p build
     cd build
+    if ! command -v gitversion &> /dev/null; then
+        echo "Installing gitversion..."
+        source ../ShellScripts/common/download_github_fn.sh
+        local outputdir="."
+        download_latest_release gitversion_tgz "GitTools" "GitVersion" "linux-x64" "$outputdir"
+        tar xfz ${gitversion_tgz} --directory "$outputdir"
+        chmod +x "$outputdir/gitversion"
+        mkdir -p /usr/local/bin
+        mv "$outputdir/gitversion" /usr/local/bin/gitversion
+        rm -f ${gitversion_tgz}
+    fi
+    source ../ShellScripts/common/get_version.sh
+
     cp ../installers/flatpak/space.oolite.Oolite.* ./
 
     mkdir -p shared-modules/glu
@@ -25,11 +33,9 @@ run_script() {
 
     local manifest="space.oolite.Oolite.yaml"
 
-    if [ -n "${SEMVER}" ] && [ -n "${PROJECTNAME}" ]; then
-        local env_block="env:\n        SEMVER: \"$SEMVER\"\n        PROJECTNAME: \"$PROJECTNAME\"\n        VERSION: \"$SEMVER\""
-        # Swap the comment
-        sed -i "s|#[[:space:]]*CI builds add an env block here|$env_block|g" "$manifest" || return 1
-    fi
+    local env_block="env:\n        VER_FULL: \"$VER_FULL\"\n        GITHUB_REPOSITORY: \"$GITHUB_REPOSITORY\""
+    # Swap the comment
+    sed -i "s|#[[:space:]]*CI builds add an env block here|$env_block|g" "$manifest" || return 1
 
     # check manifest
     local lint_exceptions=$(mktemp /tmp/oolite-lint-XXXXXX.json)
