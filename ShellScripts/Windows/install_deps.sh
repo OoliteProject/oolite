@@ -47,7 +47,7 @@ run_script() {
     pacboy -S jq --noconfirm
     pacman -S unzip --noconfirm
     pacboy -S python-pip --noconfirm
-    pacboy -S make --noconfirm
+    pacman -S make --noconfirm
     pacboy -S meson --noconfirm
     pacboy -S ninja --noconfirm
     pacboy -S nsis --noconfirm
@@ -112,13 +112,6 @@ run_script() {
             fi
         done
         pacman -Q > installed-packages-gcc.txt
-    fi
-
-    if ! grep -q "# MinGW make alias" ~/.bashrc; then
-        cat >> ~/.bashrc <<'EOF'
-# MinGW make alias
-alias make="mingw32-make"
-EOF
     fi
 
     if ! grep -q "# Custom history settings" ~/.bashrc; then
