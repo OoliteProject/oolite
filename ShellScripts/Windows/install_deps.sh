@@ -114,6 +114,13 @@ run_script() {
         pacman -Q > installed-packages-gcc.txt
     fi
 
+    if ! grep -q "# MinGW make alias" ~/.bashrc; then
+        cat >> ~/.bashrc <<'EOF'
+# MinGW make alias
+alias make="mingw32-make"
+EOF
+    fi
+
     if ! grep -q "# Custom history settings" ~/.bashrc; then
         cat >> ~/.bashrc <<'EOF'
 # Custom history settings
