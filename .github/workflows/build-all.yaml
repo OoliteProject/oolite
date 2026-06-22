@@ -157,7 +157,7 @@ jobs:
           echo "Found AppImage: $APPIMAGE_PATH"                    
           # 3. Run with packageinfo and extract the string inside quotes
           chmod +x "$APPIMAGE_PATH"
-          VERSION_STR=$("$APPIMAGE_PATH" packageinfo | awk -F'"' '/version =/ {print $2}')           
+          VERSION_STR=$("$APPIMAGE_PATH" packageinfo | awk -F'"' '/^[[:space:]]*version =/ {print $2; exit}')           
           if [[ -z "$VERSION_STR" ]]; then
             echo "❌ Failed to extract version string from packageinfo output!" >&2
             exit 1
