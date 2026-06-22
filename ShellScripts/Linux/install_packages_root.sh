@@ -37,6 +37,9 @@ run_script() {
     if ! install_package cmake; then
         return 1
     fi
+    if ! install_package jq; then
+        return 1
+    fi
     if ! install_package meson; then
         return 1
     fi

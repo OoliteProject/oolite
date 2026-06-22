@@ -23,6 +23,8 @@ install_package() {
 
         "cmake") pkg_name="cmake" ;;
 
+        "jq") pkg_name="jq" ;;
+
         "meson")
             case "$CURRENT_DISTRO" in
                 debian) pkg_name="meson ninja-build" ;;
@@ -121,7 +123,7 @@ install_package() {
                 arch) pkg_name="glu" ;;
             esac ;;
 
-	"sdl3")
+        "sdl3")
             case "$CURRENT_DISTRO" in
                 debian) pkg_name="libsdl3-dev" ;;
                 redhat) pkg_name="SDL3-devel" ;;

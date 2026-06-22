@@ -21,19 +21,10 @@ download_latest_release() {
 
     # Extract the download URL
     local download_url
-    if command -v jq &> /dev/null; then
-        if [[ -n "${filter}" ]]; then
-            download_url=$(echo "${release_json}" | jq -r ".assets[] | select(.name | contains(\"${filter}\")) | .browser_download_url" | head -n 1)
-        else
-            download_url=$(echo "${release_json}" | jq -r '.assets[0].browser_download_url')
-        fi
+    if [[ -n "${filter}" ]]; then
+        download_url=$(echo "${release_json}" | jq -r ".assets[] | select(.name | contains(\"${filter}\")) | .browser_download_url" | head -n 1)
     else
-        # Fallback using grep/sed if jq isn't available
-        if [[ -n "${filter}" ]]; then
-            download_url=$(echo "${release_json}" | grep "browser_download_url" | grep "${filter}" | head -n 1 | cut -d '"' -f 4)
-        else
-            download_url=$(echo "${release_json}" | grep "browser_download_url" | head -n 1 | cut -d '"' -f 4)
-        fi
+        download_url=$(echo "${release_json}" | jq -r '.assets[0].browser_download_url')
     fi
 
     # Check if a URL was actually found

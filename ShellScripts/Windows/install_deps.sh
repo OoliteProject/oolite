@@ -42,6 +42,7 @@ run_script() {
     pacman -S dos2unix --noconfirm
     pacman -S pactoys --noconfirm
     pacboy -S binutils --noconfirm
+    pacboy -S jq --noconfirm
     pacboy -S python-pip --noconfirm
     pacman -S make --noconfirm
     pacboy -S meson --noconfirm
