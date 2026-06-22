@@ -67,6 +67,11 @@ jobs:
       image: ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-25.08
       options: --privileged
     steps:
+      - name: Pre-setup ownership
+        run: |
+          # This must run before the checkout action if the action tries to do git commands
+          mkdir -p "$GITHUB_WORKSPACE"
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - name: Checkout Oolite
         uses: actions/checkout@v6
         with:
