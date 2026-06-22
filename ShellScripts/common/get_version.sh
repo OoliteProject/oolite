@@ -4,7 +4,6 @@
 # Output goes into the OOLITE_VERSION.txt file and to stdout.
 #
 
-GITVERSION=/usr/local/bin/gitversion
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
 pushd "$SCRIPT_DIR" > /dev/null
 
@@ -28,7 +27,7 @@ BUILDTIME=$(date -u -d "@$GETVERSION_TIMESTAMP" "+%Y.%m.%d %H:%M")
 
 if [[ -z "${GITVERSION_JSON}" ]]; then
     # Run GitVersion exactly once and export it for any subsequent child scripts
-    export GITVERSION_JSON=$(${GITVERSION})
+    export GITVERSION_JSON=$(gitversion)
 fi
 
 if [[ -z "${VER_FULL}" ]]; then
