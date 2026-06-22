@@ -8,8 +8,6 @@ run_script() {
     pushd "$script_dir"
 
     cd ../..
-    source ShellScripts/common/get_version.sh
-
     mkdir -p build
     cd build
     if ! command -v gitversion &> /dev/null; then
@@ -22,6 +20,7 @@ run_script() {
         mv "$outputdir/gitversion" /usr/local/bin/gitversion
         rm -f ${gitversion_tgz}
     fi
+    source ../ShellScripts/common/get_version.sh
 
     cp ../installers/flatpak/space.oolite.Oolite.* ./
 
