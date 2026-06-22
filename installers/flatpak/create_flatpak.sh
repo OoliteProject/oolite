@@ -17,6 +17,7 @@ run_script() {
         download_latest_release gitversion_tgz "GitTools" "GitVersion" "linux-x64" "$outputdir"
         tar xfz ${gitversion_tgz} --directory "$outputdir"
         chmod +x "$outputdir/gitversion"
+        mkdir -p /usr/local/bin
         mv "$outputdir/gitversion" /usr/local/bin/gitversion
         rm -f ${gitversion_tgz}
     fi
