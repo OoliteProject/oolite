@@ -45,7 +45,7 @@ run_script() {
     pacman -S pactoys --noconfirm
     pacboy -S binutils --noconfirm
     pacboy -S jq --noconfirm
-    pacboy -S unzip --noconfirm
+    pacman -S unzip --noconfirm
     pacboy -S python-pip --noconfirm
     pacman -S make --noconfirm
     pacboy -S meson --noconfirm
