@@ -8,9 +8,6 @@ run_script() {
     pushd "$script_dir"
 
     cd ../..
-    # Deleting these prevents odd linking errors
-    rm -rf oolite.app
-    rm -rf obj.spk
     source ShellScripts/common/get_version.sh
 
     mkdir -p build
