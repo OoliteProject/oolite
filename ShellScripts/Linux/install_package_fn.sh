@@ -139,9 +139,9 @@ install_package() {
 
         "appimage")
             case "$CURRENT_DISTRO" in
-                debian) pkg_name="file fuse3" ;;
-                redhat) pkg_name="file fuse3 desktop-file-utils which zsync" ;;
-                arch) pkg_name="file fuse3 desktop-file-utils zsync" ;;
+                debian) pkg_name="file fuse3 patchelf" ;;
+                redhat) pkg_name="file fuse3 desktop-file-utils patchelf which zsync" ;;
+                arch) pkg_name="file fuse3 desktop-file-utils patchelf zsync" ;;
             esac ;;
 
         "flatpak") pkg_name="flatpak flatpak-builder" ;;
