@@ -144,7 +144,7 @@ jobs:
           # 1. Check that there are exactly 8 files recursively in the artifacts directory
           FILE_COUNT=$(find artifacts -type f | wc -l)
           echo "Total files found: $FILE_COUNT"          
-          if [ "$FILE_COUNT" -ne 8 ]; then
+          if [[ "$FILE_COUNT" -ne 8 ]]; then
             echo "❌ Expected exactly 8 files, but found $FILE_COUNT." >&2
             exit 1
           fi                    
