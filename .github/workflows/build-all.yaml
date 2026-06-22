@@ -38,28 +38,27 @@ jobs:
       - name: Checkout Oolite
         uses: actions/checkout@v6
         with:
-          path: oolite
           fetch-depth: 0
       - name: Install packages
         run: |
-          oolite/ShellScripts/Linux/install_packages_root.sh
+          ShellScripts/Linux/install_packages_root.sh
       - name: Build GNUstep
         run: |
-          oolite/ShellScripts/Linux/build_gnustep.sh system
+          ShellScripts/Linux/build_gnustep.sh system
       - name: Install Mozilla static library
         run: |
-          oolite/ShellScripts/Linux/install_mozilla_js.sh system
+          ShellScripts/Linux/install_mozilla_js.sh system
           echo "/usr/local/lib" | tee -a /etc/ld.so.conf
           ldconfig
       - name: Build Oolite
         run: |
-          oolite/ShellScripts/common/build_oolite.sh ${{matrix.flavour}}
+          ShellScripts/common/build_oolite.sh ${{matrix.flavour}}
       - name: Archive installer
         uses: actions/upload-artifact@v6
         with:
           name: oolite-linux-${{matrix.flavour}}
           path: |
-            oolite/build/oolite*.AppImage
+            build/oolite*.AppImage
           retention-days: 5
 
   build-flatpak:
@@ -71,17 +70,16 @@ jobs:
       - name: Checkout Oolite
         uses: actions/checkout@v6
         with:
-          path: oolite
           fetch-depth: 0
       - name: Build flatpak
         run: |
-          oolite/installers/flatpak/create_flatpak.sh
+          installers/flatpak/create_flatpak.sh
       - name: Archive installer
         uses: actions/upload-artifact@v6
         with:
           name: oolite-flatpak
           path: |
-            oolite/build/space.oolite.Oolite*.flatpak
+            build/space.oolite.Oolite*.flatpak
           retention-days: 5
 
   build-windows:
@@ -103,33 +101,25 @@ jobs:
       - name: Checkout Oolite
         uses: actions/checkout@v6
         with:
-          path: oolite
           fetch-depth: 0
-      - name: Download latest release assets
-        uses: robinraju/release-downloader@v1
-        with:
-          repository: OoliteProject/oolite_windeps_build
-          latest: true
-          fileName: "*"
-          out-file-path: oolite/build/packages
       - name: Install packages
         shell: msys2 {0}
         env:
           msystem: UCRT64
         run: |
-          oolite/ShellScripts/Windows/install_deps.sh clang
+          ShellScripts/Windows/install_deps.sh clang
       - name: Build Oolite
         shell: msys2 {0}
         env:
           msystem: UCRT64
         run: |
-          oolite/ShellScripts/common/build_oolite.sh ${{matrix.flavour}}
+          ShellScripts/common/build_oolite.sh ${{matrix.flavour}}
       - name: Archive installer
         uses: actions/upload-artifact@v6
         with:
           name: oolite-windows-${{matrix.flavour}}
           path: |
-            oolite/build/OoliteInstall*.exe
+            build/OoliteInstall*.exe
           retention-days: 5
 
   release:
@@ -147,20 +137,34 @@ jobs:
         uses: actions/download-artifact@v7
         with:
           path: artifacts
-      - name: Checkout Oolite
-        uses: actions/checkout@v6
-        with:
-          path: oolite
-          fetch-depth: 0
       - name: Calculate version number and set OOLITE_VERSION
         id: version
         run: |
-          set -x
-          cd oolite
-          # Build version string,
-          # taking into account that we may have just two digits
-          source ShellScripts/common/get_version.sh
-          cat build/OOLITE_VERSION.txt >> "$GITHUB_OUTPUT"
+          set -x          
+          # 1. Check that there are exactly 7 files recursively in the artifacts directory
+          FILE_COUNT=$(find artifacts -type f | wc -l)
+          echo "Total files found: $FILE_COUNT"          
+          if [ "$FILE_COUNT" -ne 7 ]; then
+            echo "❌ Expected exactly 7 files, but found $FILE_COUNT." >&2
+            exit 1
+          fi                    
+          # 2. Get the path of the first available AppImage
+          APPIMAGE_PATH=$(find artifacts -type f -name "*.AppImage" | head -n 1)          
+          if [[ -z "$APPIMAGE_PATH" ]]; then
+            echo "❌ No AppImages found in the downloaded artifacts!" >&2
+            exit 1
+          fi          
+          echo "Found AppImage: $APPIMAGE_PATH"                    
+          # 3. Run with packageinfo and extract the string inside quotes
+          chmod +x "$APPIMAGE_PATH"
+          VERSION_STR=$("$APPIMAGE_PATH" packageinfo | awk -F'"' '/version =/ {print $2}')           
+          if [[ -z "$VERSION_STR" ]]; then
+            echo "❌ Failed to extract version string from packageinfo output!" >&2
+            exit 1
+          fi                     
+          echo "Extracted Version: $VERSION_STR"          
+          # 4. Output the extracted version for subsequent steps
+          echo "OOLITE_VERSION=$VERSION_STR" >> "$GITHUB_OUTPUT"
       - name: Remove old prereleases
         if: github.ref == 'refs/heads/master' || endsWith(github.ref, 'maintenance')
         uses: s00d/delete-older-releases@0.2.1

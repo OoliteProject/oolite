@@ -10,7 +10,7 @@ install() {
     echo "Installing $1 package"
 
     local fullname
-    if [ -z "$2" ]; then
+    if [[ -z "$2" ]]; then
         fullname=$1
     else
         fullname="${1}_${2}"
@@ -20,7 +20,7 @@ install() {
     local filename=$(ls $packagename 2>/dev/null)
 
     # package file eg. mingw-w64-x86_64-libobjc2-2.3-3-any.pkg.tar.zst
-    if [ -z "$filename" ]; then
+    if [[ -z "$filename" ]]; then
         echo "❌ No file matching $packagename found!" >&2
         return 1
     fi
