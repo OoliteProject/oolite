@@ -11,11 +11,10 @@ run_script() {
         return 1
     fi
 
-
     local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
     pushd "$script_dir"
 
-    source download_github_fn.sh
+    source ../common/download_github_fn.sh
 
     source ./install_package_fn.sh
 
@@ -104,7 +103,7 @@ run_script() {
     mkdir -p "$outputdir"
     download_latest_release gitversion_tgz "GitTools" "GitVersion" "linux-x" "$outputdir"
     tar xfz ${gitversion_tgz} --directory "$outputdir"
-    chmod +xr "$outputdir/gitversion"
+    chmod +x "$outputdir/gitversion"
     mv "$outputdir/gitversion" /usr/local/bin/gitversion
     rm -f ${gitversion_tgz}
 

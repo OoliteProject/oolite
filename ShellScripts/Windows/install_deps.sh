@@ -35,6 +35,8 @@ run_script() {
     local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
     pushd "$script_dir"
 
+    source ../common/download_github_fn.sh
+
     local oolite_deps_url="https://api.github.com/repos/OoliteProject/oolite_windeps_build/releases/latest"
 
     pacman -Syu --noconfirm
@@ -57,6 +59,14 @@ run_script() {
     pacboy -S sdl3 --noconfirm
 
     cd ../../build
+    # install gitversion
+    local outputdir="./"
+    download_latest_release gitversion_zip "GitTools" "GitVersion" "win-x" "$outputdir"
+    unzip -o ${gitversion_zip} -d "$outputdir"
+    chmod +x "$outputdir/gitversion.exe"
+    mv "$outputdir/gitversion.exe" "$MINGW_PREFIX/bin/gitversion.exe"
+    rm -f ${gitversion_zip}
+
     mkdir -p packages
     cd packages
     curl -s "$oolite_deps_url" | \
