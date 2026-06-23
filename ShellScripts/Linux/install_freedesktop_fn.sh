@@ -54,7 +54,7 @@ install_freedesktop() {
     local app_metainfo="$appshr/metainfo/space.oolite.Oolite.$4.xml"
     install -D ../../installers/FreeDesktop/space.oolite.Oolite.metainfo.xml.template "$app_metainfo" || { echo "$err_msg metainfo template" >&2; return 1; }
 
-    sed -i "s/@VER@/${VERSION}/g" "$app_metainfo"
+    sed -i "s/@VER@/${VER_FULL}/g" "$app_metainfo"
     sed -i "s/@DATE@/${APP_DATE}/g" "$app_metainfo"
 
     echo ===========================================

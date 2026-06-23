@@ -43,3 +43,9 @@ option('strip_bin', type: 'boolean', value: false, description: 'Enable strippin
 # Windows Specific Customizations
 option('pdb', type: 'boolean', value: false,
        description: 'Windows Clang builds only: Generate native .pdb debug symbol files')
+
+# GitHub repository variable from CI if available
+option('github_repository', type: 'string', value: '',
+       description: 'GitHub repository variable from CI if available')
+
+
