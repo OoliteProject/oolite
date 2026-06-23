@@ -3,7 +3,7 @@ generate_manifest() {
     local oolite_version_file="src/Cocoa/oolite-version.xcconfig"
 
     if [[ ! -f "$oolite_version_file" ]]; then
-        echo "Error: $oolite_version_file not found." >&2
+        echo "❌ $oolite_version_file not found!" >&2
         popd > /dev/null
         return 1
     fi

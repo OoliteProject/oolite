@@ -15,7 +15,7 @@ download_latest_release() {
 
     # Check if the repository was found/has releases
     if echo "${release_json}" | grep -q "Not Found"; then
-        echo "❌ Error: Repository not found or has no public releases at ${api_url}" >&2
+        echo "❌ Repository not found or has no public releases at ${api_url}!" >&2
         return 1
     fi
 
@@ -29,7 +29,7 @@ download_latest_release() {
 
     # Check if a URL was actually found
     if [[ -z "${download_url}" || "${download_url}" == "null" ]]; then
-        echo "Error: Could not find a matching download URL." >&2
+        echo "❌ Could not find a matching download URL!" >&2
         return 1
     fi
 

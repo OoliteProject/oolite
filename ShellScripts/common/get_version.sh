@@ -1,7 +1,6 @@
 #!/bin/bash
 #
-# Calculates the Oolite version number if not passed via env variables.
-# Output goes into the OOLITE_VERSION.txt file and to stdout.
+# Calculates the Oolite version number if not passed via env variables. Output goes to stdout.
 #
 
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
@@ -27,6 +26,10 @@ BUILDTIME=$(date -u -d "@$GETVERSION_TIMESTAMP" "+%Y.%m.%d %H:%M")
 
 if [[ -z "${GITVERSION_JSON}" ]]; then
     # Run GitVersion exactly once and export it for any subsequent child scripts
+    if ! command -v gitversion &> /dev/null; then
+        echo "❌ gitversion binary not found!" >&2
+        exit 1
+    fi
     export GITVERSION_JSON=$(gitversion)
 fi
 
@@ -50,8 +53,6 @@ if [[ -z "${VER_FULL}" ]]; then
     VER_NSIS="$VER_MAJ.$VER_MIN.$VER_REV.$VER_DIST"
     VER_GITREV=$(git rev-list --count HEAD)
     VER_GITHASH=$(git rev-parse --short=7 HEAD)
-
-    echo "OOLITE_VERSION=$VER_FULL" > OOLITE_VERSION.txt
 fi
 
 echo "$VER_FULL"
