@@ -24,16 +24,15 @@ VER_DATE=$(date -u -d "@$GETVERSION_TIMESTAMP" +"%y%m%d")
 # Convert to YYYY.MM.DD HH:MM format (e.g., 2026.06.21 07:56)
 BUILDTIME=$(date -u -d "@$GETVERSION_TIMESTAMP" "+%Y.%m.%d %H:%M")
 
-if [[ -z "${GITVERSION_JSON}" ]]; then
-    # Run GitVersion exactly once and export it for any subsequent child scripts
-    if ! command -v gitversion &> /dev/null; then
-        echo "❌ gitversion binary not found!" >&2
-        exit 1
-    fi
-    export GITVERSION_JSON=$(gitversion)
-fi
-
 if [[ -z "${VER_FULL}" ]]; then
+    if [[ -z "${GITVERSION_JSON}" ]]; then
+        # Run GitVersion exactly once and export it for any subsequent child scripts
+        if ! command -v gitversion &> /dev/null; then
+            echo "❌ gitversion binary not found!" >&2
+            exit 1
+        fi
+        export GITVERSION_JSON=$(gitversion)
+    fi
     VER_MAJ=$(echo "$GITVERSION_JSON" | jq -r '.Major')
     VER_MIN=$(echo "$GITVERSION_JSON" | jq -r '.Minor')
     VER_REV=$(echo "$GITVERSION_JSON" | jq -r '.Patch')
