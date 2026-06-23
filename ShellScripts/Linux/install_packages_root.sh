@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # This script must be run as root (for example with sudo).
+set -e
 
 
 run_script() {
@@ -10,9 +11,10 @@ run_script() {
         return 1
     fi
 
-
     local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
     pushd "$script_dir"
+
+    source ../common/download_github_fn.sh
 
     source ./install_package_fn.sh
 
@@ -23,6 +25,9 @@ run_script() {
         return 1
     fi
     if ! install_package cmake; then
+        return 1
+    fi
+    if ! install_package jq; then
         return 1
     fi
     if ! install_package meson; then
@@ -92,6 +97,15 @@ run_script() {
     if ! install_package flatpak; then
         return 1
     fi
+
+    # install gitversion
+    local outputdir="../../build"
+    mkdir -p "$outputdir"
+    download_latest_release gitversion_tgz "GitTools" "GitVersion" "linux-x64" "$outputdir"
+    tar xfz ${gitversion_tgz} --directory "$outputdir"
+    chmod +x "$outputdir/gitversion"
+    mv "$outputdir/gitversion" /usr/local/bin/gitversion
+    rm -f ${gitversion_tgz}
 
 	popd
 }
