@@ -117,7 +117,6 @@ jobs:
           msystem: UCRT64
         run: |
           ShellScripts/Windows/install_deps.sh clang
-          git status --ignored=matching
       - name: Build Oolite
         shell: msys2 {0}
         env:
