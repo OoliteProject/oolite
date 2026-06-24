@@ -1,8 +1,6 @@
 #!/bin/bash -x
 
-echo "I am $0 $@"
-
-run_script() {
+create_flatpak() {
     # First parameter is a suffix for the build type eg. test, dev
     local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
     pushd "$script_dir"
@@ -127,13 +125,3 @@ EOF
 
     popd
 }
-
-run_script "$@"
-status=$?
-
-
-# Exit only if not sourced
-if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-    exit $status
-fi
-

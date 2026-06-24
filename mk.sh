@@ -4,7 +4,7 @@ SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
 pushd "$SCRIPT_DIR" > /dev/null
 
 # Strict expansions, but NO 'set -e'
-set -u -o pipefail
+set -o pipefail
 
 # --- Error Handling Trap ---
 cleanup_and_exit() {
@@ -113,38 +113,38 @@ execute_target() {
             ;;
         test)
             execute_target "release-snapshot"
-            tests/run_test.sh
+            source tests/run_test_fn.sh && run_test
             ;;
         clean)
             echo "--> Cleaning all build artifacts..."
             rm -rf build/meson_*
             ;;
         pkg-flatpak)
-            ./installers/flatpak/create_flatpak.sh
+            source installers/flatpak/create_flatpak_fn.sh && create_flatpak
             ;;
         pkg-appimage)
             execute_target "release"
-            installers/appimage/create_appimage.sh meson_release/oolite.app "test"
+            source installers/appimage/create_appimage_fn.sh && create_appimage meson_release/oolite.app "test"
             ;;
         pkg-appimage-deployment)
             execute_target "release-deployment"
-            installers/appimage/create_appimage.sh meson_deployment/oolite.app
+            source installers/appimage/create_appimage_fn.sh && create_appimage meson_deployment/oolite.app
             ;;
         pkg-appimage-snapshot)
             execute_target "release-snapshot"
-            installers/appimage/create_appimage.sh meson_snapshot/oolite.app "dev"
+            source installers/appimage/create_appimage_fn.sh && create_appimage meson_snapshot/oolite.app "dev"
             ;;
         pkg-win)
             execute_target "release"
-            installers/win32/create_nsis.sh meson_release/oolite.app "test"
+            source installers/win32/create_nsis_fn.sh && create_nsis meson_release/oolite.app "test"
             ;;
         pkg-win-deployment)
             execute_target "release-deployment"
-            installers/win32/create_nsis.sh meson_deployment/oolite.app
+            source installers/win32/create_nsis_fn.sh && create_nsis meson_deployment/oolite.app
             ;;
         pkg-win-snapshot)
             execute_target "release-snapshot"
-            installers/win32/create_nsis.sh meson_snapshot/oolite.app "dev"
+            source installers/win32/create_nsis_fn.sh && create_nsis meson_snapshot/oolite.app "dev"
             ;;
         help|--help|-h)
             show_help

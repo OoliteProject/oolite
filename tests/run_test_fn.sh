@@ -9,7 +9,7 @@ output_log() {
     fi
 }
 
-run_script() {
+run_test() {
     if python3 --version >/dev/null 2>&1; then
         local PYTHON_CMD="python3"
     elif python --version >/dev/null 2>&1; then
@@ -50,12 +50,3 @@ run_script() {
     echo "✅ Oolite test completed successfully"
     popd
 }
-
-run_script "$@"
-status=$?
-
-# Exit only if not sourced
-if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-    exit $status
-fi
-

@@ -4,9 +4,7 @@
 # First parameter can be set to build type, typically one of "test", "dev" or omitted for release builds.
 #
 
-echo I am $0 $@
-
-run_script() {
+create_appimage() {
     # First parameter is a suffix for the build type eg. test, dev
     local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
     pushd "$script_dir"
@@ -101,13 +99,3 @@ run_script() {
 
     popd
 }
-
-run_script "$@"
-status=$?
-
-
-# Exit only if not sourced
-if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-    exit $status
-fi
-

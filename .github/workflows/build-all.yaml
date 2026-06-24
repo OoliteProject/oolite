@@ -52,7 +52,7 @@ jobs:
           ldconfig
       - name: Build Oolite
         run: |
-          ShellScripts/common/build_oolite.sh ${{matrix.flavour}}
+          ./mk.sh ${{matrix.flavour}}
       - name: Archive installer
         uses: actions/upload-artifact@v6
         with:
@@ -78,7 +78,7 @@ jobs:
           fetch-depth: 0
       - name: Build flatpak
         run: |
-          installers/flatpak/create_flatpak.sh
+          ./mk.sh pkg-flatpak
       - name: Archive installer
         uses: actions/upload-artifact@v6
         with:
@@ -122,7 +122,7 @@ jobs:
         env:
           msystem: UCRT64
         run: |
-          ShellScripts/common/build_oolite.sh ${{matrix.flavour}}
+          ./mk.sh ${{matrix.flavour}}
       - name: Archive installer
         uses: actions/upload-artifact@v6
         with:
