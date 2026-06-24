@@ -12,9 +12,8 @@ run_script() {
     local appname=$(basename "$ORIGPROGPATH")
     local appdir=$(dirname "$ORIGPROGPATH")
     local progpath="$PROGDIR/$appname"
-    mkdir -p "$PROGDIR/Resources"
-
-    generate_manifest "$PROGDIR/Resources/manifest.plist"
+    local resourcesdir="$PROGDIR/Resources"
+    mkdir -p "$resourcesdir"
 
     if [[ ! -f "$ORIGPROGPATH" ]]; then
         echo "❌ 'Oolite binary at '$ORIGPROGPATH' does not exist!" >&2
@@ -24,14 +23,20 @@ run_script() {
         echo "❌ Failed to copy '$ORIGPROGPATH' to '$progpath'!" >&2
         return 1
     fi
-    cp -fu "$ORIGPROGPATH" "$progpath"
-    cp -fu src/Cocoa/Info-Oolite.plist "$PROGDIR/Resources/Info-gnustep.plist"
+    generate_manifest "$resourcesdir/manifest.plist"
+    cp -fu src/Cocoa/Info-Oolite.plist "$resourcesdir/Info-gnustep.plist"
+    if [[ "$DEPLOYMENT_RELEASE_CONFIGURATION" == "no" ]]; then
+        local addonsdir="$PROGDIR/AddOns"
+        mkdir -p "$addonsdir"
+        rm -rf "$addonsdir/Basic-debug.oxp"
+        cp -rf DebugOXP/Debug.oxp "$addonsdir/Basic-debug.oxp"
+    fi
 
     # Voice Data
     if [[ "$ESPEAK" == "yes" ]]; then
         if [[ "$HOST_OS" == "windows" ]]; then
             # Windows espeak-ng-data
-            cp -rfu "$MINGW_PREFIX/share/espeak-ng-data" "$PROGDIR/Resources"
+            cp -rfu "$MINGW_PREFIX/share/espeak-ng-data" "$resourcesdir"
         else
             # Linux search paths for espeak-ng-data
             local SEARCH_PATHS=(
@@ -44,7 +49,7 @@ run_script() {
             local path
             for path in "${SEARCH_PATHS[@]}"; do
                 if [[ -d "$path" ]]; then
-                    cp -rfu "$path" "$PROGDIR/Resources"
+                    cp -rfu "$path" "$resourcesdir"
                     found_data=true
                     break
                 fi
@@ -59,10 +64,10 @@ run_script() {
     fi
 
     # Replace specific voices with Oolite-specific versions
-    rm -f "$PROGDIR/Resources/espeak-ng-data/voices/!v/f2"
-    rm -f "$PROGDIR/Resources/espeak-ng-data/voices/default"
-    cp -rfu Resources/. "$PROGDIR/Resources"
-    rm -f "$PROGDIR/Resources/AIReference.html" "$PROGDIR/Resources/*.icns"
+    rm -f "$resourcesdir/espeak-ng-data/voices/!v/f2"
+    rm -f "$resourcesdir/espeak-ng-data/voices/default"
+    cp -rfu Resources/. "$resourcesdir"
+    rm -f "$resourcesdir/AIReference.html" "$resourcesdir/*.icns"
 
     # Strip binary if requested
     if [[ "$STRIP_BIN" == "yes" ]]; then
@@ -97,7 +102,7 @@ run_script() {
         if [ ! -f "$gnustep_conf" ] && [ "$GNUSTEP_FOLDER" = "/usr" ] && [ -f "/etc/GNUstep/GNUstep.conf" ]; then
             gnustep_conf="/etc/GNUstep/GNUstep.conf"
         fi
-        install -D "$gnustep_conf" "$PROGDIR/Resources/GNUstep.conf.orig" || { echo "$err_msg GNUstep config" >&2; return 1; }
+        install -D "$gnustep_conf" "$resourcesdir/GNUstep.conf.orig" || { echo "$err_msg GNUstep config" >&2; return 1; }
 
         # If we're using GNUstep libraries that aren't in a system folder copy them
         ldd "$progpath" | \

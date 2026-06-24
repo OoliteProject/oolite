@@ -37,7 +37,7 @@ oolite_bin = executable(
 
 prog_dir = meson.global_build_root() / appname + '.app'
 stamp_file = '.oolite_bundle.stamp'
-install_env_args = [
+post_build_env_args = [
     'ORIGPROGPATH=' + meson.current_build_dir() / appname,
     'PROGDIR=' + prog_dir,
     'HOST_OS=' + host_os,
@@ -58,7 +58,7 @@ oolite_app_bundle = custom_target('post_build',
                                   depend_files: [post_build_script.full_path()],
                                   command: [
                                       'env',
-                                      install_env_args,
+                                      post_build_env_args,
                                       post_build_script.full_path(),
                                   ],
                                   build_by_default: true,
