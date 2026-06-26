@@ -44,14 +44,14 @@ jobs:
       - name: Build and test Oolite
         if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
         run: |
-          ./mk.sh test
+          ./mk.sh test-dev
       - name: Build Oolite (no test)
         if: github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
         run: |
-          ./mk.sh release-snapshot
+          ./mk.sh build-dev
       - name: Build AppImage
         run: |
-          ./mk.sh pkg-appimage-snapshot
+          ./mk.sh pkg-appimage-dev
 
   fedora:
     runs-on: ubuntu-latest
@@ -88,14 +88,14 @@ jobs:
       - name: Build and test Oolite
         if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
         run: |
-          ./mk.sh test
+          ./mk.sh test-dev
       - name: Build Oolite (no test)
         if: github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
         run: |
-          ./mk.sh release-snapshot
+          ./mk.sh build-dev
       - name: Build AppImage
         run: |
-          ./mk.sh pkg-appimage-snapshot
+          ./mk.sh pkg-appimage-dev
 
   arch:
     runs-on: ubuntu-latest
@@ -132,14 +132,14 @@ jobs:
       - name: Build and test Oolite
         if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
         run: |
-          ./mk.sh test
+          ./mk.sh test-dev
       - name: Build Oolite (no test)
         if: github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
         run: |
-          ./mk.sh release-snapshot
+          ./mk.sh build-dev
       - name: Build AppImage
         run: |
-          ./mk.sh pkg-appimage-snapshot
+          ./mk.sh pkg-appimage-dev
 
   windows:
     runs-on: windows-latest
@@ -174,7 +174,7 @@ jobs:
         env:
           msystem: UCRT64
         run: |
-          ./mk.sh test
+          ./mk.sh test-dev
 
       - name: Build Oolite (no test)
         if: github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
@@ -182,4 +182,4 @@ jobs:
         env:
           msystem: UCRT64
         run: |
-          ./mk.sh release-snapshot
+          ./mk.sh build-dev

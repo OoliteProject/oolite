@@ -161,7 +161,7 @@ void OOPrintLogHeader(void)
 	#endif
 	
 	NSString *versionString = nil;
-	#if (defined (SNAPSHOT_BUILD))
+	#if (defined (DEV_RELEASE))
 		versionString = @"development version " @OO_VERSION_FULL;
 	#else
 		versionString = @"version " @OO_VERSION_FULL;

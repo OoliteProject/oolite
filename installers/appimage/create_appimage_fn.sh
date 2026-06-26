@@ -1,18 +1,18 @@
 #!/bin/bash -x
 #
 # Creates the appimage.
-# First parameter can be set to build type, typically one of "test", "dev" or omitted for release builds.
-#
 
 create_appimage() {
-    # First parameter is a suffix for the build type eg. test, dev
+    local build_folder="$1"  # Build folder
+    local ver_full="$2"  # Oolite version
+    local app_date="$3"  # Oolite build date
+    local build_type="$4"  # Typically one of "test", "dev" or omitted for release builds
+
     local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
     pushd "$script_dir"
 
-    mkdir -p ../../build
     cd ../../build
     source ../ShellScripts/Linux/os_detection.sh
-    source ../ShellScripts/common/get_version.sh
     source ../ShellScripts/Linux/install_freedesktop_fn.sh
 
     local arch=$(uname -m)
@@ -22,9 +22,9 @@ create_appimage() {
     local appshr="$APPDIR/share"
     rm -rf "$APPDIR"
 
-    local abs_oolitedir=$(realpath -m "$1")
+    local abs_oolitedir=$(realpath -m "$build_folder")
     local abs_appdir=$(realpath -m "$APPDIR")
-    if ! install_freedesktop "$abs_oolitedir" "$abs_appdir" bin appdata; then
+    if ! install_freedesktop "$abs_oolitedir" "$ver_full" "$app_date" "$abs_appdir" "bin" "appdata"; then
         return 1
     fi
 
@@ -42,10 +42,10 @@ create_appimage() {
     local DESKTOP="$appshr/applications/space.oolite.Oolite.desktop"
     export DESKTOP
     local suffix
-   	if (( $# == 2 )); then
-        suffix="_${2}-${VER_FULL}"
+    if [[ -n "$build_type" ]]; then
+        suffix="_$build_type-$ver_full"
     else
-        suffix="-$VER_FULL"
+        suffix="-$ver_full"
     fi
     local OUTNAME="oolite${suffix}-${arch}.AppImage"
     export OUTNAME

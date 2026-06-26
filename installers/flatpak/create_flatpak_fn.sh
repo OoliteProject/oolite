@@ -1,7 +1,9 @@
 #!/bin/bash -x
 
 create_flatpak() {
-    # First parameter is a suffix for the build type eg. test, dev
+    local ver_full="$1"  # Oolite version
+    local github_repository="$2" # GitHub repository (set by GitHub Actions)
+
     local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
     pushd "$script_dir"
 
@@ -19,7 +21,6 @@ create_flatpak() {
         mv "$outputdir/gitversion" /usr/local/bin/gitversion
         rm -f ${gitversion_tgz}
     fi
-    source ../ShellScripts/common/get_version.sh
 
     cp ../installers/flatpak/space.oolite.Oolite.* ./
 
@@ -30,12 +31,7 @@ create_flatpak() {
     fi
 
     local manifest="space.oolite.Oolite.yaml"
-
-    local env_block="env:\n        VER_FULL: \"$VER_FULL\"\n        GITHUB_REPOSITORY: \"$GITHUB_REPOSITORY\""
-    # Swap the comment
-    sed -i "s|#[[:space:]]*CI builds add an env block here|$env_block|g" "$manifest" || return 1
-
-    # check manifest
+    sed -i "s|^\([[:space:]]*- \)./mk.sh.*|\1./mk.sh flatpak-deployment --ver-full=\"$ver_full\" --github-repository=\"$github_repository\"|" "$manifest" || return 1
     local lint_exceptions=$(mktemp /tmp/oolite-lint-XXXXXX.json)
     cat <<EOF > "$lint_exceptions"
 {
@@ -46,7 +42,7 @@ create_flatpak() {
 EOF
     trap 'rm -f "$lint_exceptions"' RETURN EXIT
 
-    if command -v flatpak-builder-lint >/dev/null 2>&1; then
+    if command -v flatpak-builder-lint >/dev/null 2>&1; then  # check manifest
         if ! flatpak-builder-lint manifest "$manifest" --exceptions --user-exceptions="$lint_exceptions"; then
             echo "❌ Flatpak manifest lint failed!" >&2
             cat "$manifest"
@@ -97,12 +93,7 @@ EOF
         return 1
     fi
 
-    local suffix
-   	if (( $# == 1 )); then
-        suffix="_${1}-${VER_FULL}"
-    else
-        suffix="-$VER_FULL"
-    fi
+    local suffix="-$ver_full"
     local ARCH=$(uname -m)
     local filename="space.oolite.Oolite${suffix}-${ARCH}.flatpak"
     echo "Creating Flatpak $filename..."

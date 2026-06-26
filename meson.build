@@ -2,11 +2,7 @@ project(
     'oolite',
     ['c', 'cpp', 'objc'],
     meson_version: '>= 1.4.0',
-    version: run_command(
-        'bash',
-        files('ShellScripts/common/get_version.sh'),
-        check: true,
-    ).stdout().strip(),
+    version: 'not used',
     default_options: [
         'optimization=2',
     ],
@@ -15,20 +11,11 @@ project(
 host_os = host_machine.system()
 c_family = ['c', 'cpp', 'objc']
 
-version_string = meson.project_version()
+version_string = get_option('ver_full')  # use instead of meson project version!
 add_project_arguments(
     '-DOO_VERSION_FULL="@0@"'.format(version_string),
-    language: c_family,
-)
-
-github_repository = get_option('github_repository')
-if github_repository == 'OoliteProject/oolite'
-    builder = 'OoliteProject'
-else
-    builder = 'unknown'
-endif
-add_project_arguments(
-    '-DOO_BUILDER="@0@"'.format(builder),
+    '-DOO_BUILD_DATE="@0@"'.format(get_option('build_date')),
+    '-DOO_BUILDER="@0@"'.format(get_option('builder')),
     language: c_family,
 )
 
@@ -47,7 +34,7 @@ if get_option('no_shaders')
     add_project_arguments('-DNO_SHADERS=1', language: c_family)
 endif
 
-if get_option('deployment_release_configuration')
+if get_option('deployment_release')
     add_project_arguments(
         '-DNDEBUG',
         '-DOO_CHECK_GL_HEAVY=0',
@@ -81,10 +68,9 @@ else
     endif
 endif
 
-if get_option('snapshot_build')
+if get_option('dev_release')
     add_project_arguments(
-        '-DSNAPSHOT_BUILD',
-        '-DOOLITE_SNAPSHOT_VERSION="@0@"'.format(version_string),
+        '-DDEV_RELEASE',
         language: c_family,
     )
 endif

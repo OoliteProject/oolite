@@ -1,5 +1,5 @@
 ; Include the NSIS logic library. Required for the code that handles 
-; adding of the changelog file in the non-snapshot distributions
+; adding of the changelog file in the non-dev distributions
 !include "LogicLib.nsh"
 
 ; Include the Sections library, required for being able to provide the 
@@ -35,8 +35,8 @@
 !define SEMVER ${VERSION}
 !endif
 
-!ifndef SNAPSHOT
-!ifndef DEPLOYMENT
+!ifndef DEV_RELEASE
+!ifndef DEPLOYMENT_RELEASE
 !define EXTVER "-test"  ; Official distribution with OXP developer tools
 !define ADDCHANGELOG 1	; Official distributions go with a changelog file
 !else
@@ -45,10 +45,10 @@
 !endif
 !else
 !define EXTVER "-dev"
-!define ADDCHANGELOG 0	; Snapshot distributions do not need changelog
+!define ADDCHANGELOG 0	; Dev distributions do not need changelog
 !endif
 
-!ifndef DEPLOYMENT
+!ifndef DEPLOYMENT_RELEASE
 !define DEBUGOXPINCLUDED 1
 !else
 !define DEBUGOXPINCLUDED 0
@@ -87,7 +87,7 @@ VIAddVersionKey "FileDescription" "A space combat/trading game, inspired by Elit
 VIAddVersionKey "LegalCopyright" "� 2003-2026 Giles Williams, Jens Ayton and contributors"
 VIAddVersionKey "FileVersion" "${VER}"
 VIAddVersionKey "ProductVersion" "${SEMVER}"
-!ifdef SNAPSHOT
+!ifdef DEV_RELEASE
 VIAddVersionKey "GIT Revision" "${VER_GITHASH}"
 !endif
 !ifdef BUILDTIME
@@ -104,7 +104,7 @@ VIProductVersion "${VER}"
 !define MUI_UNICON oolite.ico
 
 !insertmacro MUI_PAGE_DIRECTORY
-!ifndef DEPLOYMENT
+!ifndef DEPLOYMENT_RELEASE
 	!insertmacro MUI_PAGE_COMPONENTS
 !endif
 !insertmacro MUI_PAGE_INSTFILES
@@ -127,14 +127,14 @@ VIProductVersion "${VER}"
 
 !insertmacro MUI_LANGUAGE "English"
 
-!ifndef DEPLOYMENT
+!ifndef DEPLOYMENT_RELEASE
 ; Create the main game and Debug OXP sections
 Section "Oolite Game" ooGame
 SectionIn RO	; The game itself cannot be unselected
 SectionEnd
 
 Section "Basic-debug.OXP" ooDebugOXP
-; Do not use any of the Debug OXP files when we are building Deployment
+; Do not use any of the Debug OXP files when we are building deployment release
 SetOutPath $INSTDIR
 File /r "${DST}\AddOns"
 SectionEnd
@@ -200,7 +200,7 @@ uninst:
 done:
 FunctionEnd
 
-!ifndef DEPLOYMENT
+!ifndef DEPLOYMENT_RELEASE
 Function .onSelChange
 	${If} ${SectionIsSelected} ${ooDebugOXP}
 		!insertmacro SelectSection ${ooDebugOXP}

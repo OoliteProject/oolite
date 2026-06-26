@@ -19,7 +19,7 @@ jobs:
         --security-opt apparmor:unconfined
     strategy:
       matrix:
-        flavour: [pkg-appimage-snapshot, pkg-appimage-deployment, pkg-appimage]
+        flavour: [pkg-appimage-deployment, pkg-appimage-test, pkg-appimage-dev]
     steps:
       ## This is for debugging only and helps developing the workflow.
       # - name: Environment Variables
@@ -52,7 +52,7 @@ jobs:
           ldconfig
       - name: Build Oolite
         run: |
-          ./mk.sh ${{matrix.flavour}}
+          ./mk.sh ${{matrix.flavour}} --github-repository="$GITHUB_REPOSITORY"
       - name: Archive installer
         uses: actions/upload-artifact@v6
         with:
@@ -78,7 +78,7 @@ jobs:
           fetch-depth: 0
       - name: Build flatpak
         run: |
-          ./mk.sh pkg-flatpak
+          ./mk.sh pkg-flatpak --github-repository="$GITHUB_REPOSITORY"
       - name: Archive installer
         uses: actions/upload-artifact@v6
         with:
@@ -91,7 +91,7 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        flavour: [pkg-win-snapshot, pkg-win-deployment, pkg-win]
+        flavour: [pkg-win-deployment, pkg-win-test, pkg-win-dev]
     steps:
       ## This is for debugging only and helps developing the workflow.
       # - name: Environment Variables
@@ -122,7 +122,7 @@ jobs:
         env:
           msystem: UCRT64
         run: |
-          ./mk.sh ${{matrix.flavour}}
+          ./mk.sh ${{matrix.flavour}} --github-repository="$GITHUB_REPOSITORY"
       - name: Archive installer
         uses: actions/upload-artifact@v6
         with:
@@ -146,7 +146,7 @@ jobs:
         uses: actions/download-artifact@v7
         with:
           path: artifacts
-      - name: Calculate version number and set OOLITE_VERSION
+      - name: Calculate version number and set VER_FULL
         id: version
         run: |
           set -x          
@@ -166,14 +166,14 @@ jobs:
           echo "Found AppImage: $APPIMAGE_PATH"                    
           # 3. Run with packageinfo and extract the string inside quotes
           chmod +x "$APPIMAGE_PATH"
-          VERSION_STR=$("$APPIMAGE_PATH" packageinfo | awk -F'"' '/^[[:space:]]*version =/ {print $2; exit}')           
-          if [[ -z "$VERSION_STR" ]]; then
+          VER_FULL=$("$APPIMAGE_PATH" packageinfo | awk -F'"' '/^[[:space:]]*version =/ {print $2; exit}')           
+          if [[ -z "$VER_FULL" ]]; then
             echo "❌ Failed to extract version string from packageinfo output!" >&2
             exit 1
           fi                     
-          echo "Extracted Version: $VERSION_STR"          
+          echo "Extracted Version: $VER_FULL"          
           # 4. Output the extracted version for subsequent steps
-          echo "OOLITE_VERSION=$VERSION_STR" >> "$GITHUB_OUTPUT"
+          echo "VER_FULL=$VER_FULL" >> "$GITHUB_OUTPUT"
       - name: Remove old prereleases
         if: github.ref == 'refs/heads/master' || endsWith(github.ref, 'maintenance')
         uses: s00d/delete-older-releases@0.2.1
@@ -190,16 +190,16 @@ jobs:
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           # automatic_release_tag: "latest"
-          automatic_release_tag: "${{ steps.version.outputs.OOLITE_VERSION }}"
+          automatic_release_tag: "${{ steps.version.outputs.VER_FULL }}"
           prerelease: true
-          title: "Oolite ${{ steps.version.outputs.OOLITE_VERSION }}"
+          title: "Oolite ${{ steps.version.outputs.VER_FULL }}"
           files: |
-            artifacts/oolite-windows-pkg-win-snapshot/OoliteInstall-*-dev.exe
             artifacts/oolite-windows-pkg-win-deployment/OoliteInstall-*.exe
-            artifacts/oolite-windows-pkg-win/OoliteInstall-*.exe
-            artifacts/oolite-linux-pkg-appimage-snapshot/*.AppImage
+            artifacts/oolite-windows-pkg-win-test/OoliteInstall-*.exe
+            artifacts/oolite-windows-pkg-win-dev/OoliteInstall-*-dev.exe
             artifacts/oolite-linux-pkg-appimage-deployment/*.AppImage
-            artifacts/oolite-linux-pkg-appimage/*.AppImage
+            artifacts/oolite-linux-pkg-appimage-test/*.AppImage
+            artifacts/oolite-linux-pkg-appimage-dev/*.AppImage
             artifacts/oolite-flatpak/*.flatpak
       - name: Remove old workflow runs
         if: github.ref == 'refs/heads/master' || endsWith(github.ref, 'maintenance')
