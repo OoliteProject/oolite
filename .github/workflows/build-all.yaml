@@ -114,8 +114,10 @@ jobs:
       - name: Set up MSYS2
         uses: msys2/setup-msys2@v2
         with:
+          msystem: UCRT64
           update: true
           cache: false
+          path-type: minimal
       - name: Checkout Oolite
         uses: actions/checkout@v6
         with:
