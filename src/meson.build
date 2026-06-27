@@ -35,6 +35,7 @@ oolite_bin = executable(
     install: false,
 )
 
+bash_prog = find_program('bash')
 prog_dir = meson.global_build_root() / appname + '.app'
 stamp_file = '.oolite_bundle.stamp'
 post_build_args = [
@@ -55,6 +56,7 @@ oolite_app_bundle = custom_target('post_build',
                                   input: oolite_bin,
                                   output: stamp_file,
                                   command: [
+                                      bash_prog,
                                       post_build_script,
                                       post_build_args,
                                   ],

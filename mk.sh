@@ -5,10 +5,6 @@ pushd "$SCRIPT_DIR" > /dev/null
 
 set -u -o pipefail  # Strict expansions
 
-if [[ -v MINGW_PREFIX ]]; then
-    export BASH="$(cygpath -w /usr/bin/bash.exe)"
-fi
-
 # --- Error Handling Trap ---
 cleanup_and_exit() {
     local exit_code=$?
