@@ -125,7 +125,7 @@ default, but you can supply a further argument to specify an alternative like do
 Next run this in your Bash or MSYS2 prompt to build Oolite:
 
 ```bash
-./mk.sh release-dev
+./mk.sh build-dev
 ```
 
 The completed build (executable and games files) can be found in the oolite.app directory.
@@ -134,7 +134,7 @@ Subsequently, you can clean and build as follows:
 
 ```bash
 ./mk.sh clean
-./mk.sh release-dev
+./mk.sh build-dev
 ```
 
 You can run a test that launches the game and takes a snapshot from your Bash or MSYS2 prompt as follows:
@@ -143,8 +143,8 @@ You can run a test that launches the game and takes a snapshot from your Bash or
 ./mk.sh test
 ```
 
-release-dev keeps debug symbols in the binary. Other release targets remove those symbols from the binary although they
-are made available in a separate symbols file. release-deployment is for a production release and release-test is for a 
+build-dev keeps debug symbols in the binary. Other build targets remove those symbols from the binary although they
+are made available in a separate symbols file. build-deployment is for a production build and build-test is for a 
 test release that supports the debug console which is used by expansion developers for debugging their OXPs.
 
 You can install:
@@ -155,11 +155,11 @@ You can install:
 
 Other targets are install-deployment for a production install and install-test for a test install.
 
-The underlying build system is Meson. You can run the deployment build directly using Meson build commands like this:
+The underlying build system is Meson, but it is recommended to run via the mk.sh script which also allow you to pass
+meson setup, compile and install flags. Type the following for help:
 
 ```bash
-meson setup build/meson_deployment -Ddeployment_release=true -Ddebug=false -Dstrip_bin=true -Db_lto=true --native-file clang.ini --reconfigure
-meson compile -C build/meson_deployment
+./mk.sh help
 ```
 
 ### Other Linux ./mk.sh Targets
