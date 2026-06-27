@@ -9,6 +9,7 @@ if [ -f /etc/os-release ]; then
         OS_FAMILY="${ID} ${ID_LIKE}"
     else
         OS_FAMILY="${ID}"
+    fi
 else
     echo "❌ /etc/os-release not found - cannot detect OS!" >&2
     exit 1
