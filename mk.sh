@@ -28,6 +28,11 @@ CLEAN_BUILD=false
 SETUP_FLAGS=() # Array to cleanly store additional meson setup arguments
 COMPILE_FLAGS=() # Array to cleanly store additional meson compile arguments
 INSTALL_FLAGS=() # Array to cleanly store additional meson install arguments
+if [[ -v MINGW_PREFIX ]]; then
+    meson() {  # Windows path override
+        PATH="$MINGW_PREFIX/bin:$PATH" command meson "$@"
+    }
+fi
 
 meson_setup() {
     local build_dir="build/meson_$2"
@@ -144,20 +149,20 @@ execute_target() {  # Target Execution Logic
             meson_install "debug"
             ;;
         test-deployment)
-            execute_target "build-deployment"
-            source tests/run_test_fn.sh && run_test
+            echo "❌ Cannot test deployment as not set up for debug console!" >&2
+            exit 1
             ;;
         test-test)
             execute_target "build-test"
-            source tests/run_test_fn.sh && run_test
+            source tests/run_test_fn.sh && run_test "test"
             ;;
         test-dev)
             execute_target "build-dev"
-            source tests/run_test_fn.sh && run_test
+            source tests/run_test_fn.sh && run_test "dev"
             ;;
         test-debug)
             execute_target "build-debug"
-            source tests/run_test_fn.sh && run_test
+            source tests/run_test_fn.sh && run_test "debug"
             ;;
         clean)
             echo "--> Cleaning all build artifacts..."
@@ -198,7 +203,7 @@ execute_target() {  # Target Execution Logic
             show_help
             ;;
         *)
-            echo "Error: Unknown target '$1'" >&2
+            echo "❌ Unknown target '$1'" >&2
             show_help
             exit 1
             ;;
@@ -244,13 +249,13 @@ while [[ $# -gt 0 ]]; do  # Flexible Argument Parser
             exit 0
             ;;
         -*)
-            echo "Error: Unknown option '$1'" >&2
+            echo "❌ Unknown option '$1'" >&2
             show_help
             exit 1
             ;;
         *)
             if [[ -n "$TARGET" ]]; then
-                echo "Error: Multiple targets specified ('$TARGET' and '$1'). Only one target allowed." >&2
+                echo "❌ Multiple targets specified ('$TARGET' and '$1'). Only one target allowed." >&2
                 exit 1
             fi
             TARGET="$1"

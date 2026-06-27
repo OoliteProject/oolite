@@ -22,10 +22,10 @@ run_test() {
     local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
     pushd "$script_dir"
 
-    local BUILD_TYPE="${1:-snapshot}"
+    local BUILD_TYPE="${1:-dev}"
     local TARGET_DIR=$(readlink -f "../build/meson_${BUILD_TYPE}/oolite.app")
-    if [[ -n "$MSYSTEM" ]]; then
-        local MESA_DLL="${MSYSTEM_PREFIX}/bin/opengl32.dll"
+    if [[ -v MINGW_PREFIX ]]; then
+        local MESA_DLL="${MINGW_PREFIX}/bin/opengl32.dll"
         if [[ -f "$MESA_DLL" ]]; then
             echo "📦 Copying $MSYSTEM Mesa driver at $MESA_DLL"
             cp "$MESA_DLL" "$TARGET_DIR/"

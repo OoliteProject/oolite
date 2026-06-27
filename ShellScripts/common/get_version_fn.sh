@@ -18,6 +18,9 @@ get_version() {
     local -n output_ver_gitrev=$3
     local -n output_ver_githash=$4
 
+    output_ver_gitrev=$(git rev-list --count HEAD)
+    output_ver_githash=$(git rev-parse --short=7 HEAD)
+
     if [[ -n "$5" ]]; then  # VER_FULL already populated
         return 0
     fi
@@ -47,7 +50,4 @@ get_version() {
         output_ver_full="${ver_semver}+dirty.${ver_uncommitted}"
         output_ver_nsis="$ver_maj.$ver_min.$ver_rev.$ver_uncommitted"
     fi
-
-    output_ver_gitrev=$(git rev-list --count HEAD)
-    output_ver_githash=$(git rev-parse --short=7 HEAD)
 }
