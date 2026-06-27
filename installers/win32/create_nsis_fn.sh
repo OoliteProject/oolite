@@ -71,7 +71,7 @@ create_nsis() {
     fi
 
     local nsis
-    if [[ -n "$MINGW_PREFIX" ]]; then
+    if [[ -v MINGW_PREFIX ]]; then
         nsis=$MINGW_PREFIX/bin/makensis
     else
         nsis=/nsis/makensis.exe

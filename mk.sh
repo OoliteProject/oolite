@@ -30,7 +30,7 @@ COMPILE_FLAGS=() # Array to cleanly store additional meson compile arguments
 INSTALL_FLAGS=() # Array to cleanly store additional meson install arguments
 if [[ -v MINGW_PREFIX ]]; then
     meson() {  # Windows path override
-        PATH="$MINGW_PREFIX/bin:$PATH" command meson "$@"
+        PATH="$MINGW_PREFIX/bin:/usr/bin:$PATH" command meson "$@"
     }
 fi
 
@@ -41,6 +41,7 @@ meson_setup() {
         rm -rf "$build_dir"  # If --clean was specified, delete the specific build directory first
     fi
     echo "--> Running Meson setup for: $2"
+    type meson  # for debugging
     # Setup with --reconfigure, fallback to fresh setup. SETUP_FLAGS safely expands the array only if it's not empty
     meson setup "$build_dir" $1 ${SETUP_FLAGS[@]+"${SETUP_FLAGS[@]}"} -Dver_full="$VER_FULL" -Dver_githash="$VER_GITHASH" -Dbuild_date="${CPP_DATE}" -Dbuilder="${BUILDER}" --native-file "${NATIVE_FILE}" --reconfigure 2>/dev/null || \
     meson setup "$build_dir" $1 ${SETUP_FLAGS[@]+"${SETUP_FLAGS[@]}"} -Dver_full="$VER_FULL" -Dver_githash="$VER_GITHASH" -Dbuild_date="${CPP_DATE}" -Dbuilder="${BUILDER}" --native-file "${NATIVE_FILE}"
