@@ -117,7 +117,6 @@ jobs:
           msystem: UCRT64
           update: true
           cache: false
-          path-type: minimal
       - name: Checkout Oolite
         uses: actions/checkout@v6
         with:

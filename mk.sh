@@ -4,7 +4,10 @@ SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
 pushd "$SCRIPT_DIR" > /dev/null
 
 set -u -o pipefail  # Strict expansions
-which bash
+
+if [[ -v MINGW_PREFIX ]]; then
+    export BASH="$(cygpath -w /usr/bin/bash.exe)"
+fi
 
 # --- Error Handling Trap ---
 cleanup_and_exit() {
