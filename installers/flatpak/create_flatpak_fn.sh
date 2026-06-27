@@ -10,17 +10,6 @@ create_flatpak() {
     cd ../..
     mkdir -p build
     cd build
-    if ! command -v gitversion &> /dev/null; then
-        echo "Installing gitversion..."
-        source ../ShellScripts/common/download_github_fn.sh
-        local outputdir="."
-        download_latest_release gitversion_tgz "GitTools" "GitVersion" "linux-x64" "$outputdir"
-        tar xfz ${gitversion_tgz} --directory "$outputdir"
-        chmod +x "$outputdir/gitversion"
-        mkdir -p /usr/local/bin
-        mv "$outputdir/gitversion" /usr/local/bin/gitversion
-        rm -f ${gitversion_tgz}
-    fi
 
     cp ../installers/flatpak/space.oolite.Oolite.* ./
 

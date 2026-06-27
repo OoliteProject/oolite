@@ -78,6 +78,15 @@ jobs:
           fetch-depth: 0
       - name: Build flatpak
         run: |
+          echo "Installing gitversion..."
+          source ShellScripts/common/download_github_fn.sh
+          OUTPUTDIR="."
+          download_latest_release gitversion_tgz "GitTools" "GitVersion" "linux-x64" "$OUTPUTDIR"
+          tar xfz ${gitversion_tgz} --directory "$OUTPUTDIR"
+          chmod +x "$OUTPUTDIR/gitversion"
+          mkdir -p /usr/local/bin
+          mv "$OUTPUTDIR/gitversion" /usr/local/bin/gitversion
+          rm -f ${gitversion_tgz}
           ./mk.sh pkg-flatpak --github-repository="$GITHUB_REPOSITORY"
       - name: Archive installer
         uses: actions/upload-artifact@v6
