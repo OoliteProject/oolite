@@ -145,7 +145,7 @@ You can run a test that launches the game and takes a snapshot from your Bash or
 
 build-dev keeps debug symbols in the binary. Other build targets remove those symbols from the binary although they
 are made available in a separate symbols file. build-deployment is for a production build and build-test is for a 
-test release that supports the debug console which is used by expansion developers for debugging their OXPs.
+test release that supports the debug console which is used by expansion developers for debugging their OXPs. 
 
 You can install:
 
@@ -161,6 +161,9 @@ meson setup, compile and install flags. Type the following for help:
 ```bash
 ./mk.sh help
 ```
+
+build-dev runs 2 targets which can be run independently: setup-dev which runs meson setup and compile-dev which runs 
+meson compile.
 
 ### Other Linux ./mk.sh Targets
 
