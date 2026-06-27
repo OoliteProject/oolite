@@ -51,7 +51,7 @@ post_build_args = [
     gnustep_folder,
     stamp_file,
 ]
-post_build_script = find_program('../ShellScripts/common/post_build.sh')
+post_build_script = files('../ShellScripts/common/post_build.sh')
 oolite_app_bundle = custom_target('post_build',
                                   input: oolite_bin,
                                   output: stamp_file,
@@ -70,5 +70,5 @@ install_args = [
     host_os,
     get_option('deployment_release') ? 'yes' : 'no',
 ]
-install_script = find_program('../ShellScripts/common/install.sh')
-meson.add_install_script(install_script, install_args)
+install_script = files('../ShellScripts/common/install.sh')
+meson.add_install_script(bash_prog, install_script, install_args)
