@@ -57,6 +57,8 @@ show_help() {  # Script Help Menu
     echo "Options:"
     echo -e "  \033[36m--clean\033[0m                        Delete target build directory before compiling"
     echo -e "  \033[36m--setup-flags=\"...\"\033[0m          Pass additional arguments directly to 'meson setup'"
+    echo -e "  \033[36m--compile-flags=\"...\"\033[0m          Pass additional arguments directly to 'meson compile'"
+    echo -e "  \033[36m--install-flags=\"...\"\033[0m          Pass additional arguments directly to 'meson install'"
     echo -e "  \033[36m--native-file=\"...\"\033[0m          Specify native file (defaults to clang.ini)"
     echo -e "  \033[36m--ver-full=\"...\"\033[0m             Specify full version string"
     echo -e "  \033[36m--github-repository=\"...\"\033[0m    Specify target GitHub repository"

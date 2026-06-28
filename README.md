@@ -128,7 +128,7 @@ Next run this in your Bash or MSYS2 prompt to build Oolite:
 ./mk.sh build-dev
 ```
 
-The completed build (executable and games files) can be found in the oolite.app directory.
+The completed build (executable and games files) can be found in the build/meson_dev/oolite.app directory.
 
 Subsequently, you can clean and build as follows:
 
