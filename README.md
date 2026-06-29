@@ -133,8 +133,7 @@ The completed build (executable and games files) can be found in the build/meson
 Subsequently, you can clean and build as follows:
 
 ```bash
-./mk.sh clean
-./mk.sh build-dev
+./mk.sh build-dev --clean
 ```
 
 You can run a test that launches the game and takes a snapshot from your Bash or MSYS2 prompt as follows:
