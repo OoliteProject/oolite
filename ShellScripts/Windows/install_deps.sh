@@ -58,6 +58,7 @@ run_script() {
     pacboy -S mesa --noconfirm
     pacboy -S sdl3 --noconfirm
 
+    mkdir -p ../../build/packages
     cd ../../build
     # install gitversion
     local outputdir="."
@@ -67,7 +68,6 @@ run_script() {
     mv "$outputdir/gitversion.exe" "$MINGW_PREFIX/bin/gitversion.exe"
     rm -f ${gitversion_zip}
 
-    mkdir -p packages
     cd packages
     curl -s "$oolite_deps_url" | \
     grep -oP '"browser_download_url": "\K[^"]+' | \
