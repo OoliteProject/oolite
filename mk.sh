@@ -41,7 +41,7 @@ meson_setup() {
     meson setup "$build_dir" $1 ${SETUP_FLAGS[@]+"${SETUP_FLAGS[@]}"} -Dver_full="$VER_FULL" -Dver_githash="$VER_GITHASH" -Dbuild_date="${CPP_DATE}" -Dbuilder="${BUILDER}" --native-file "${NATIVE_FILE}"
 }
 
-meson_build() {
+meson_compile() {
     echo "--> Running Meson build for: $1"
     meson compile -C "build/meson_$1" ${COMPILE_FLAGS[@]+"${COMPILE_FLAGS[@]}"}
 }
@@ -106,16 +106,16 @@ execute_target() {  # Target Execution Logic
             meson_setup "-Ddebug=true -Dstrip_bin=false" "debug"
             ;;
         compile-deployment)
-            meson_build "deployment"
+            meson_compile "deployment"
             ;;
         compile-test)
-            meson_build "test"
+            meson_compile "test"
             ;;
         compile-dev)
-            meson_build "dev"
+            meson_compile "dev"
             ;;
         compile-debug)
-            meson_build "debug"
+            meson_compile "debug"
             ;;
         build-deployment)
             execute_target "setup-deployment"
@@ -134,15 +134,19 @@ execute_target() {  # Target Execution Logic
             execute_target "compile-debug"
             ;;
         install-deployment)
+            execute_target "build-deployment"
             meson_install "deployment"
             ;;
         install-test)
+            execute_target "build-test"
             meson_install "test"
             ;;
         install-dev)
+            execute_target "build-dev"
             meson_install "dev"
             ;;
         install-debug)
+            execute_target "build-debug"
             meson_install "debug"
             ;;
         test-deployment)
