@@ -1,6 +1,6 @@
 #!/bin/bash
 
-download_latest_release() {
+download_github_release() {
     local -n downloaded_file="$1"
     local owner="$2"
     local repository="$3"
