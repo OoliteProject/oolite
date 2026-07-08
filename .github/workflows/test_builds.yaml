@@ -22,11 +22,13 @@ jobs:
         run: |
           apt update          
           apt install -y git curl ca-certificates
-      - name: Pre-setup ownership
+      - name: Pre-setup ownership & curl token
         run: |
           # This must run before the checkout action if the action tries to do git commands
           mkdir -p "$GITHUB_WORKSPACE"
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          echo "header = \"Authorization: Bearer ${GITHUB_TOKEN}\"" >> ~/.curlrc
+          echo "header = \"Accept: application/vnd.github+json\"" >> ~/.curlrc
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
@@ -66,11 +68,13 @@ jobs:
         run: |
           dnf -y update
           dnf -y install git
-      - name: Pre-setup ownership
+      - name: Pre-setup ownership & curl token
         run: |
           # This must run before the checkout action if the action tries to do git commands
           mkdir -p "$GITHUB_WORKSPACE"
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          echo "header = \"Authorization: Bearer ${GITHUB_TOKEN}\"" >> ~/.curlrc
+          echo "header = \"Accept: application/vnd.github+json\"" >> ~/.curlrc
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
@@ -110,11 +114,13 @@ jobs:
         run: |
           pacman -Syu --noconfirm
           pacman -S --noconfirm --needed git
-      - name: Pre-setup ownership
+      - name: Pre-setup ownership & curl token
         run: |
           # This must run before the checkout action if the action tries to do git commands
           mkdir -p "$GITHUB_WORKSPACE"
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          echo "header = \"Authorization: Bearer ${GITHUB_TOKEN}\"" >> ~/.curlrc
+          echo "header = \"Accept: application/vnd.github+json\"" >> ~/.curlrc
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
@@ -166,8 +172,9 @@ jobs:
         env:
           msystem: UCRT64
         run: |
+          echo "header = \"Authorization: Bearer ${GITHUB_TOKEN}\"" >> ~/.curlrc
+          echo "header = \"Accept: application/vnd.github+json\"" >> ~/.curlrc
           ShellScripts/Windows/install_deps.sh clang
-
       - name: Build and test Oolite
         if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
         shell: msys2 {0}

@@ -30,11 +30,13 @@ jobs:
         run: |
           pacman -Syu --noconfirm
           pacman -S --noconfirm --needed git
-      - name: Pre-setup ownership
+      - name: Pre-setup ownership & curl token
         run: |
           # This must run before the checkout action if the action tries to do git commands
           mkdir -p "$GITHUB_WORKSPACE"
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          echo "header = \"Authorization: Bearer ${GITHUB_TOKEN}\"" >> ~/.curlrc
+          echo "header = \"Accept: application/vnd.github+json\"" >> ~/.curlrc
       - name: Checkout Oolite
         uses: actions/checkout@v6
         with:
@@ -67,11 +69,13 @@ jobs:
       image: ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-25.08
       options: --privileged
     steps:
-      - name: Pre-setup ownership
+      - name: Pre-setup ownership & curl token
         run: |
           # This must run before the checkout action if the action tries to do git commands
           mkdir -p "$GITHUB_WORKSPACE"
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          echo "header = \"Authorization: Bearer ${GITHUB_TOKEN}\"" >> ~/.curlrc
+          echo "header = \"Accept: application/vnd.github+json\"" >> ~/.curlrc
       - name: Checkout Oolite
         uses: actions/checkout@v6
         with:
@@ -98,10 +102,12 @@ jobs:
       #  run: |
       #    Get-ChildItem Env: | Sort Name
 
-      - name: Configure Git Line Endings
+      - name: Git line endings & curl token
         run: |
           git config --global core.autocrlf false
           git config --global core.eol lf
+          echo "header = \"Authorization: Bearer ${GITHUB_TOKEN}\"" >> ~/.curlrc
+          echo "header = \"Accept: application/vnd.github+json\"" >> ~/.curlrc
       - name: Set up MSYS2
         uses: msys2/setup-msys2@v2
         with:
