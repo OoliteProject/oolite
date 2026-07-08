@@ -132,7 +132,7 @@ static NSString * const kStageName	= @"Checking equipment.plist";
 		
 		/*	Check element types. The numbers are required to be unsigned
 			integers; the use of a negative default will catch both negative
-			values and unconvertable values.
+			values and unconvertible values.
 		*/
 		if ([entry oo_longAtIndex:EQUIPMENT_TECH_LEVEL_INDEX defaultValue:-1] < 0)
 		{
