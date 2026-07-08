@@ -28,7 +28,6 @@ MA 02110-1301, USA.
 #import "OOOpenGLMatrixManager.h"
 
 
-#include <SDL3/SDL_init.h>
 #include <SDL3/SDL_video.h>
 
 #define WINDOW_SIZE_DEFAULT_WIDTH	1280
