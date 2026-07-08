@@ -27,7 +27,7 @@ MA 02110-1301, USA.
 */
 
 #include <stdlib.h>
-#include <SDL3/SDL.h>
+#include <SDL3/SDL_stdinc.h>
 #import "ResourceManager.h"
 #import "OOPListParsing.h"
 #import "GameController.h"

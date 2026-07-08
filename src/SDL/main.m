@@ -34,7 +34,7 @@ MA 02110-1301, USA.
 
 #if OOLITE_WINDOWS
 #include <locale.h>
-#include <SDL3/SDL.h>
+#include <SDL3/SDL_stdinc.h>
 #include <SDL3/SDL_main.h>
 // Make sure that a high performance GPU is
 // selected, if more than one are available
