@@ -3,54 +3,47 @@
 */
 
 {
-	type = dictionary;
-	schema =
-	{
-		"dials" =
-		{
-			type = array;
-			valueType =
-			{
-				type = dictionary;
-				schema =
-				{
+	type = "dictionary";
+	schema = {
+		dials = {
+			type = "array";
+			valueType = {
+				type = "dictionary";
+				schema = {
 					// Not all values apply to all types of dial.
-					"alpha" = $floatZeroToTwo;
-					"equipment_required" = $equipmentKey;
-					"selector" = $oneParamSelector;
-					"x" = integer;
-					"y" = integer;
-					"width" = positiveFloat;
-					"height" = positiveFloat;
-					"rgb_color" = $simpleRGBColor;
-					"color" = $colourSpecifier;	// Alternative to rgb_color as of 1.70
-					"draw_surround" = boolean;
-					"labelled" = boolean;
-					"spacing" = positiveInteger;
-					"n_bars" = positiveInteger;
+					alpha = "$floatZeroToTwo";
+					equipment_required = "$equipmentKey";
+					selector = "$oneParamSelector";
+					x = "integer";
+					y = "integer";
+					width = "positiveFloat";
+					height = "positiveFloat";
+					rgb_color = "$simpleRGBColor";
+					color = "$colourSpecifier";	// Alternative to rgb_color as of 1.70
+					draw_surround = "boolean";
+					labelled = "boolean";
+					spacing = "positiveInteger";
+					n_bars = "positiveInteger";
 					
 					// These are for use with the resetGuis: selector.
-					"message_gui" = $guiParameters;
-					"comm_log_gui" = $commGuiParameters;
+					message_gui = "$guiParameters";
+					comm_log_gui = "$commGuiParameters";
 				};
 				allowOthers = NO;
 				requiredKeys = ( "selector" );
 			};
 		};
-		legends =
-		{
-			type = array;
-			valueType =
-			{
-				type = dictionary;
-				schema =
-				{
-					"text" = string;
-					"x" = integer;
-					"y" = integer;
-					"width" = positiveFloat;
-					"height" = positiveFloat;
-					"image" = $imageFileName;
+		legends = {
+			type = "array";
+			valueType = {
+				type = "dictionary";
+				schema = {
+					text = "string";
+					x = "integer";
+					y = "integer";
+					width = "positiveFloat";
+					height = "positiveFloat";
+					image = "$imageFileName";
 				};
 				allowOthers = NO;
 			};
@@ -58,94 +51,69 @@
 		};
 	};
 	allowOthers = NO;
-	$definitions =
-	{
-		$equipmentKey =
-		{
-			type = string;
-			requiredPrefix = "EQ_";
-		};
-		$oneParamSelector =
-		{
-			type = delegatedType;
-			key = oneParamSelector;
-			baseType =
-			{
-				type = string;
+	$definitions = {
+		$equipmentKey = { type = "string"; requiredPrefix = "EQ_"; };
+		$oneParamSelector = {
+			type = "delegatedType";
+			key = "oneParamSelector";
+			baseType = {
+				type = "string";
 				requiredSuffix = ":";
 			};
 		};
-		$floatZeroToOne =
-		{
-			type = positiveFloat;
-			maximum = 1;
-		};
-		$floatZeroToTwo =
-		{
+		$floatZeroToOne = { type = "positiveFloat"; maximum = 1; };
+		$floatZeroToTwo = {
 			// Alpha can reasonably be two for aegis, since it's scaled by 0.5. 
 			// Why the inconsistency? Kaks 20101029
-			type = positiveFloat;
+			type = "positiveFloat";
 			maximum = 2;
 		};
-		$simpleRGBColor =
-		{
-			type = array;
-			valueType = $floatZeroToOne;
+		$simpleRGBColor = {
+			type = "array";
+			valueType = "$floatZeroToOne";
 			minCount = 3;
 			maxCount = 3;
 		};
-		$colorSpecifier =
-		{
-			type = delegatedType;
-			baseType =
-			{
+		$colorSpecifier = {
+			type = "delegatedType";
+			baseType = {
 				type = oneOf;
-				options =
-				(
-					array,
-					dictionary,
-					string
-				);
+				options = ( "array", "dictionary", "string" );
 			};
-			key = colorSpecifier;
+			key = "colorSpecifier";
 		};
-		$imageFileName =
-		{
-			type = delegatedType;
-			baseType = string;
-			key = imageFileName;
+		$imageFileName = {
+			type = "delegatedType";
+			baseType = "string";
+			key = "imageFileName";
 		};
-		$guiParameters =
-		{
-			type = dictionary;
-			schema =
-			{
-				"x" = integer;
-				"y" = integer;
-				"width" = positiveFloat;
-				"height" = positiveFloat;
-				"row_height" = positiveInteger;
-				"alpha" = $floatZeroToOne;
-				"background_rgba" = string;
-				"title" = string;
+		$guiParameters = {
+			type = "dictionary";
+			schema = {
+				x = "integer";
+				y = "integer";
+				width = "positiveFloat";
+				height = "positiveFloat";
+				row_height = "positiveInteger";
+				alpha = "$floatZeroToOne";
+				background_rgba = "string";
+				title = "string";
 			};
 			allowOthers = NO;
 		};
-		$commGuiParameters =
-		{
-			type = dictionary;
-			schema =
-			{
-				"automatic" = boolean;
-				"permanent" = boolean;
-				"x" = integer;
-				"y" = integer;
-				"width" = positiveFloat;
-				"height" = positiveFloat;
-				"row_height" = positiveInteger;
-				"alpha" = $floatZeroToOne;
-				"background_rgba" = string;
-				"title" = string;
+		$commGuiParameters = {
+			type = "dictionary";
+			schema = {
+				automatic = "boolean";
+				permanent = "boolean";
+				x = "integer";
+				y = "integer";
+				width = "positiveFloat";
+				height = "positiveFloat";
+				row_height = "positiveInteger";
+				alpha = "$floatZeroToOne";
+				background_rgba = "string";
+				title = "string";
 			};
 			allowOthers = NO;
 		};

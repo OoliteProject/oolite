@@ -61,6 +61,9 @@ static NSString * const kStageName	= @"Checking plist well-formedness";
 	NSString *plistName = nil;
 	foreach (plistName, plists)
 	{
+		// don't scan a js file as a plist
+		if ([plistName isEqualToString:@"script.js"]) continue;
+
 		if ([fileScanner fileExists:plistName
 						   inFolder:@"Config"
 					 referencedFrom:nil

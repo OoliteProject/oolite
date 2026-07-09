@@ -3,10 +3,6 @@
 */
 
 {
-	type = array;
-	valueType =
-	{
-		type = delegatedType;
-		baseType = string;
-	};
+	type = "array";
+	valueType = { type = "delegatedType"; baseType = "string"; };
 }
