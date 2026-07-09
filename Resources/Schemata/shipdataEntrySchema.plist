@@ -4,172 +4,146 @@
 
 {
 	type = "dictionary";
-	schema =
-	{
-		like_ship = "$shipRole";
-		is_template = "boolean";
-		is_external_dependency = "boolean";
-		max_flight_speed = "positiveFloat";
-		max_flight_roll = "positiveFloat";
-		max_flight_pitch = "positiveFloat";
-		max_flight_yaw = "positiveFloat";
-		thrust = "positiveFloat";
+	schema = {
 		accuracy = "float";
-		max_energy = "positiveFloat";
-		energy_recharge_rate = "positiveFloat";
-		forward_weapon_type = "string";
+		aft_eject_position = "vector";
 		aft_weapon_type = "string";
-		port_weapon_type = "string";
-		starboard_weapon_type = "string";
-		weapon_facings = "positiveInteger";
-		weapon_energy = "positiveFloat";
-		weapon_range = "positiveFloat";
-		fire_rate =
-		{
-			type = "positiveFloat";
-			minimum = "0.25";
-		};
-		scanner_range = "positiveFloat";
-		fuel_charge_rate = "positiveFloat";
-		missiles = "positiveInteger";
-		has_ecm = "fuzzyBoolean";
-		has_scoop = "fuzzyBoolean";
-		has_escape_pod = "positiveInteger";
-		has_energy_bomb = "fuzzyBoolean";
-		has_fuel_injection = "fuzzyBoolean";
-		has_cloaking_device = "fuzzyBoolean";
-		has_military_jammer = "fuzzyBoolean";
-		has_military_scanner_filter = "fuzzyBoolean";
-		fragment_chance = "fuzzyBoolean";
-		has_shield_booster = "fuzzyBoolean";
-		has_shield_enhancer = "fuzzyBoolean";
-		fuel = "positiveInteger";
-		bounty = "positiveInteger";
 		ai_type = "$aiFileName";
-		max_cargo = "positiveInteger";
-		likely_cargo = "positiveInteger";
-		extra_cargo = "positiveInteger";
+		allows_auto_docking = "boolean";
+		allows_fast_docking = "boolean";
+		auto_ai = "boolean";
+		beacon = "string";
+		bounty = "positiveInteger";
 		cargo_carried = "$cargoCarried";
 		cargo_type = "$cargoType";
-		model = "$modelName";
-		materials = "$materialDict";
-		shaders = "$materialDict";
-		smooth = "boolean";
-		density = "positiveFloat";
-		name = "string";
-		display_name = "string";
-		roles = "$roles";
-		exhaust =
-		{
-			type = "array";
-			valueType = "$exhaustSpecifier";
-		};
-		is_hulk = "boolean";
-		subentities =
-		{
-			type = "array";
-			valueType = "$subEntitySpecifier";
-		};
-		frangible = "boolean";
-		scanner_display_color1 = "$colorSpecifier";
-		scanner_display_color2 = "$colorSpecifier";
-		laser_color = "$colorSpecifier";
-		scan_class = "$scanClass";
-		scanClass = "$scanClass";
-		launch_actions = "$scriptActions";
-		script_actions = "$scriptActions";
+		cloak_passive = "boolean";
+		cloak_automatic = "boolean";
+		conditions = "$scriptConditionList";
+		counts_as_kill = "boolean";
+		custom_views = { type = "array"; valueType = "$customViewSpec"; };
 		death_actions = "$scriptActions";
-		setup_actions = "$scriptActions";
-		escorts =
-		{
-			valueType = "positiveInteger";
-			maximum = 16;
-		};
-		beacon = "string";
-		rotational_velocity = "quaternion";
-		track_contacts = "boolean";
-		weapon_position_forward = "vector";
-		weapon_position_aft = "vector";
-		weapon_position_port = "vector";
-		weapon_position_starboard = "vector";
-		weapon_offset_x = "float";	// NOTE: ignored after 1.65
-		scoop_position = "vector";
-		heat_insulation = "positiveFloat";
-		pilot = "$characterKey";
-		unpiloted = "fuzzyBoolean";
+		debris_role = "$shipRole";
+		defense_ship = "$shipKey";
+		defense_ship_role = "$shipRole";
+		density = "positiveFloat";
+		display_name = "string";
+		energy_recharge_rate = "positiveFloat";
+		equipment_price_factor = "positiveFloat";
+		equivalent_tech_level = "integer";
+		escape_pod_role = "$shipRole";		// new, improved (1.77)
+		escape_pod_model = "$shipRole";		// old, deprecated
+		escorts = { type = "positiveInteger"; maximum = 16; };
 		escort_role = "$shipRole";
 		escort-role = "$shipRole";
 		escort_ship = "$shipKey";
 		escort-ship = "$shipKey";
-		escorts = "positiveInteger";
-		missile_launch_position = "vector";
-		missile_load_time = "positiveFloat";
-		missile_role = "$shipRole";
-		escape_pod_role = "$shipRole";		// new, improved (1.77)
-		escape_pod_model = "$shipRole";		// old, deprecated
-		aft_eject_position = "vector";
-		auto_ai = "boolean";
-		script = "$scriptFileName";
-		conditions = "$scriptConditionList";
-		script_info = "dictionary";
-		is_submunition = "boolean";
-		is_carrier = "boolean";
-		isCarrier = "boolean";
-		no_boulders = "fuzzyBoolean";
-		hyperspace_motor = "boolean";
-		hyperspace_motor_spin_time = "positiveFloat";
-		throw_sparks = "boolean";
-		max_missiles = "positiveInteger";
-		cloak_passive = "boolean";
-		cloak_automatic = "boolean";
-		debris_role = "$shipRole";
-		has_scoop_message = "boolean";
-		
-		rotating = "boolean";
-		station_roll = "float";
-		defense_ship = "$shipKey";
-		defense_ship_role = "$shipRole";
+		exhaust = { type = "array"; valueType = "$exhaustSpecifier"; };
+		extra_cargo = "positiveInteger";
+		extra_equipment = "$extraEquipmentDictionary";
+		fire_rate = { type = "positiveFloat"; minimum = 0.25; };
+		forward_weapon_type = "string";
+		fragment_chance = "fuzzyBoolean";
+		frangible = "boolean";
+		fuel = "positiveInteger";
+		fuel_charge_rate = "positiveFloat";
+		has_cloaking_device = "fuzzyBoolean";
+		has_ecm = "fuzzyBoolean";
+		has_energy_bomb = "fuzzyBoolean";
+		has_escape_pod = "positiveInteger";
+		has_fuel_injection = "fuzzyBoolean";
+		has_military_jammer = "fuzzyBoolean";
+		has_military_scanner_filter = "fuzzyBoolean";
 		has_npc_traffic = "fuzzyBoolean";
 		has_patrol_ships = "fuzzyBoolean";
+		has_scoop = "fuzzyBoolean";
+		has_scoop_message = "boolean";
+		has_shield_booster = "fuzzyBoolean";
+		has_shield_enhancer = "fuzzyBoolean";
 		has_shipyard = "$hasShipyard";
 		hasShipyard = "$hasShipyard";
-		port_radius = "positiveFloat";
-		port_dimensions = "$portDimensions";
-		equivalent_tech_level = "integer";
-		max_scavengers = "positiveInteger";
+		heat_insulation = "positiveFloat";
+		hud = "$hudFileName";
+		hyperspace_motor = "boolean";
+		hyperspace_motor_spin_time = "positiveFloat";
+		interstellar_undocking = "boolean";
+		is_carrier = "boolean";
+		isCarrier = "boolean";
+		is_external_dependency = "boolean";
+		is_hulk = "boolean";
+		is_submunition = "boolean";
+		is_template = "boolean";
+		laser_color = "$colorSpecifier";
+		launch_actions = "$scriptActions";
+		like_ship = "$shipRole";
+		likely_cargo = "positiveInteger";
+		market = "string";
+		materials = "$materialDict";
+		max_cargo = "positiveInteger";
 		max_defense_ships = "positiveInteger";
+		max_energy = "positiveFloat";
+		max_flight_speed = "positiveFloat";
+		max_flight_roll = "positiveFloat";
+		max_flight_pitch = "positiveFloat";
+		max_flight_yaw = "positiveFloat";
+		max_missiles = "positiveInteger";
 		max_police = "positiveInteger";
-		equipment_price_factor = "positiveFloat";
+		max_scavengers = "positiveInteger";
+		missile_launch_position = "vector";
+		missile_load_time = "positiveFloat";
+		missiles = "positiveInteger";
+		missile_role = "$shipRole";
+		model = "$modelName";
+		name = "string";
+		no_boulders = "fuzzyBoolean";
+		pilot = "$characterKey";
+		port_dimensions = "$portDimensions";
+		port_radius = "positiveFloat";
+		port_weapon_type = "string";
 		requires_docking_clearance = "boolean";
+		roles = "$roles";
+		rotating = "boolean";
+		rotational_velocity = "quaternion";
+		scan_class = "$scanClass";
+		scanClass = "$scanClass";
+		scanner_display_color1 = "$colorSpecifier";
+		scanner_display_color2 = "$colorSpecifier";
+		scanner_range = "positiveFloat";
+		scoop_position = "vector";
+		script = "$scriptFileName";
+		script_actions = "$scriptActions";
+		script_info = "dictionary";
+		setup_actions = "$scriptActions";
+		shaders = "$materialDict";
+		smooth = "boolean";
+		starboard_weapon_type = "string";
+		station_roll = "float";
+		subentities = { type = "array"; valueType = "$subEntitySpecifier"; };
+		sun_glare_filter = { type = "positiveFloat"; maximum = 1; };
+		throw_sparks = "boolean";
+		thrust = "positiveFloat";
+		track_contacts = "boolean";
+		tunnel_aspect_ratio = "positiveFloat";
 		tunnel_corners = "positiveInteger";
 		tunnel_start_angle = "float";
-		tunnel_aspect_ratio = "positiveFloat";
-		market = "string";
-		interstellar_undocking = "boolean";
-		allows_auto_docking = "boolean";
-		allows_fast_docking = "boolean";
-		counts_as_kill = "boolean";
-		
-		extra_equipment = "$extraEquipmentDictionary";
-		hud = "$hudFileName";
-		view_position_forward = "vector";
 		view_position_aft = "vector";
+		view_position_forward = "vector";
 		view_position_port = "vector";
 		view_position_starboard = "vector";
-		custom_views =
-		{
-			type = "array";
-			valueType = "$customViewSpec";
-		};
+		weapon_energy = "positiveFloat";
+		weapon_facings = "positiveInteger";
+		weapon_position_aft = "$weaponPosition";
+		weapon_position_forward = "$weaponPosition";
+		weapon_position_port = "$weaponPosition";
+		weapon_position_starboard = "$weaponPosition";
+		weapon_offset_x = "float";	// NOTE: ignored after 1.65
+		weapon_range = "positiveFloat";
+		unpiloted = "fuzzyBoolean";
 	};
-	$definitions =
-	{
+	$definitions = {
 		// "Special" types referred to above.
-		$materialDict =
-		{
+		$materialDict = {
 			type = "dictionary";
-			schema =
-			{
+			schema = {
 				ambient = "$colorSpecifier";		// Deprecated but permitted alias for ambient_color
 				ambient_color = "$colorSpecifier";
 				diffuse = "$colorSpecifier";		// Deprecated but permitted alias for diffuse_color
@@ -179,52 +153,30 @@
 				emission_color = "$colorSpecifier";
 				emission_map = "$textureSpecifier";
 				emission_modulate_color = "$colorSpecifier";
-				specular = "$colorSpecifier";
-				specular_color = "$colorSpecifier";	// Deprecated but permitted alias for emission_color
+				normal_map = "$textureSpecifier";
+				specular = "$colorSpecifier";		// Deprecated but permitted alias for specular_color
+				specular_color = "$colorSpecifier";	
 				specular_map = "$textureSpecifier";
 				specular_modulate_color = "$colorSpecifier";
-				
-				shininess =
-				{
-					type = "positiveInteger";
-					maximum = "128";
-				};
+
+				gloss = { type = "positiveFloat"; maximum = 1; };
+				shininess = { type = "positiveInteger"; maximum = 128; };
 				fragment_shader = "$shaderFileName";
-				textures =
-				{
-					type = "array";
-					valueType = "$textureSpecifier";
-				};
-				uniforms =
-				{
+				textures = { type = "array"; valueType = "$textureSpecifier"; };
+				uniforms = {
 					type = "dictionary";
-					valueType =
-					{
+					valueType = {
 						type = "oneOf";
-						options =
-						(
+						options = (
 							"string",
 							{
 								type = "dictionary";
-								schema =
-								{
+								schema = {
 									asMatrix = "boolean";
 									binding = "string";
 									clamped = "boolean";
 									normalized = "boolean";
-									type =
-									{
-										type = "enumeration";
-										values =
-										(
-											"binding",
-											"float",
-											"real",
-											"int",
-											"integer",
-											"texture"
-										);
-									};
+									type = { type = "enumeration"; values = ( "binding", "float", "real", "int", "integer", "texture" ); };
 									value = "float";
 								};
 							}
@@ -234,37 +186,16 @@
 				vertex_shader = "$shaderFileName";
 			};
 		};
-		$textureSpecifier =
-		{
+		$textureSpecifier = {
 			type = "oneOf";
-			options =
-			(
+			options = (
 				"string",
 				{
 					type = "dictionary";
-					schema =
-					{
+					schema = {
 						anisotropy = "positiveFloat";
-						mag_filter =
-						{
-							type = "enumeration";
-							values =
-							(
-								"nearest",
-								"linear"
-							);
-						};
-						min_filter =
-						{
-							type = "enumeration";
-							values =
-							(
-								"nearest",
-								"linear",
-								"mipmap",
-								"default"
-							);
-						};
+						mag_filter = { type = "enumeration"; values = ( "nearest", "linear" ); };
+						min_filter = { type = "enumeration"; values = ( "nearest", "linear", "mipmap", "default" ); };
 						name = "string";
 						no_shrink = "boolean";
 						repeat_s = "boolean";
@@ -274,12 +205,11 @@
 				}
 			);
 		};
-		$scanClass =
-		{
+		$scanClass = {
 			type = "enumeration";
-			values =
-			(
+			values = (
 				"CLASS_NOT_SET",
+				"CLASS_NEUTRAL",
 				"CLASS_NO_DRAW",
 				"CLASS_BUOY",
 				"CLASS_CARGO",
@@ -292,11 +222,9 @@
 				"CLASS_THARGOID"
 			);
 		};
-		$cargoType =
-		{
+		$cargoType = {
 			type = "enumeration";
-			values =
-			(
+			values = (
 				"CARGO_NOT_CARGO",
 				"CARGO_SLAVES",
 				"CARGO_ALLOY",
@@ -308,134 +236,93 @@
 				"CARGO_CHARACTER"
 			);
 		};
-		$customViewSpec =
-		{
+		$customViewSpec = {
 			type = "dictionary";
-			schema =
-			{
-				"view_description" = "string";
-				"view_position" = "vector";
-				"view_orientation" = "quaternion";
-				"weapon_facing" =
-				{
+			schema = {
+				view_description = "string";
+				view_position = "vector";
+				view_orientation = "quaternion";
+				weapon_facing = {
 					type = "enumeration";
 					filter = "lowerCase";
-					values =
-					(
-						"forward",
-						"aft",
-						"port",
-						"starboard"
-					);
+					values = ( "forward", "aft", "port", "starboard" );
 				};
 			};
 		};
+		$weaponPosition = {
+			type = "oneOf";
+			options =  ( "vector", "array" );
+		};
 		
 		// Types handled in code.
-		$modelName =
-		{
+		$modelName = {
 			type = "delegatedType";
-			baseType =
-			{
+			baseType = {
 				type = "string";
 				filter = "lowerCase";
 				requiredSuffix = ".dat";
 			};
 			key = "modelName";
 		};
-		$colorSpecifier =
-		{
+		$colorSpecifier = {
 			type = "delegatedType";
-			baseType =
-			{
+			baseType = {
 				type = "oneOf";
-				options =
-				(
-					"array",
-					"dictionary",
-					"string"
-				);
+				options = ( "array", "dictionary", "string" );
 			};
 			key = "colorSpecifier";
 		};
-		$textureFileName =
-		{
+		$textureFileName = {
 			type = "delegatedType";
-			baseType =
-			{
+			baseType = {
 				type = "string";
 				filter = "lowerCase";
 				requiredSuffix = ".png";
 			};
 			key = "textureFileName";
 		};
-		$hasShipyard =
-		{
+		$hasShipyard = {
 			type = "oneOf";
-			options =
-			(
-				"$scriptCondition",
-				"boolean"
-			);
+			options = ( "$scriptCondition", "boolean" );
 		};
-		$aiFileName =
-		{
+		$aiFileName = {
 			type = "oneOf";
-			options = 
-			(
-				"$aiFileNamePlist",
-				"$aiFileNameJs"
-			);
+			options =  ( "$aiFileNamePlist", "$aiFileNameJs" );
 			key = "aiFileName";
 		};
-		$aiFileNamePlist =
-		{
+		$aiFileNamePlist = {
 			type = "delegatedType";
-			baseType =
-			{
+			baseType = {
 				type = "string";
 				filter = "lowerCase";
 				requiredSuffix = ".plist";
 			};
 		};
-		$aiFileNameJs =
-		{
+		$aiFileNameJs = {
 			type = "delegatedType";
-			baseType =
-			{
+			baseType = {
 				type = "string";
 				filter = "lowerCase";
 				requiredSuffix = ".js";
 			};
 		};
-		$shaderFileName =
-		{
+		$shaderFileName = {
 			type = "delegatedType";
-			baseType =
-			{
+			baseType = {
 				type = "string";
 				filter = "lowerCase";
-				requiredSuffix =
-				(
-					".vertex",
-					".vert",
-					".fragment",
-					".frag"
-				);
+				requiredSuffix = ( ".vertex", ".vert", ".fragment", ".frag" );
 			};
 			key = "shaderFileName";
 		};
-		$exhaustSpecifier =
-		{
+		$exhaustSpecifier = {
 			type = "delegatedType";
 			baseType = "string";
 			key = "exhaustSpecifier";
 		};
-		$subEntitySpecifier =
-		{
+		$subEntitySpecifier = {
 			type = "oneOf";
-			options = 
-			(
+			options =  (
 				{
 					type = "delegatedType";
 					baseType = "string";
@@ -444,13 +331,8 @@
 				{
 					type = "dictionary";
 					requiredKeys = ( "type", "subentity_key" );
-					schema =
-					{
-						"type" =
-						{
-							type = "enumeration";
-							values = ( "standard", "ball_turret" );
-						};
+					schema = {
+						type = { type = "enumeration"; values = ( "standard", "ball_turret" ); };
 						subentity_key = "$shipKey";
 						position = "vector";
 						orientation = "quaternion";
@@ -460,19 +342,10 @@
 				{
 					type = "dictionary";
 					requiredKeys = ( "type" );
-					schema =
-					{
-						"type" =
-						{
-							type = "enumeration";
-							values = ( "flasher" );
-						};
+					schema = {
+						type = { type = "enumeration"; values = ( "flasher" ); };
 						color = "$colorSpecifier";
-						colors =
-						{
-							type = array;
-							valueType = "$colorSpecifier";
-						};
+						colors = { type = "array"; valueType = "$colorSpecifier"; };
 						position = "vector";
 						orientation = "quaternion";
 						size = "positiveFloat";
@@ -483,74 +356,62 @@
 				}
 			);
 		};
-		$scriptActions =
-		{
+		$scriptActions = {
 			type = "delegatedType";
 			baseType = "array";
 			key = "scriptActions";
 		};
-		$characterKey =
-		{
+		$characterKey = {
 			type = "delegatedType";
 			baseType = "string";
 			key = "characterKey";
 		};
-		$shipRole =
-		{
+		$shipRole = {
 			type = "delegatedType";
 			baseType = "string";
 			key = "shipRole";
 		};
-		$shipKey =
-		{
+		$shipKey = {
 			type = "delegatedType";
 			baseType = "string";
 			key = "shipKey";
 		};
-		$roles =	
-		{
+		$roles = {
 			type = "delegatedType";
 			baseType = "string";
 			key = "roles";
 		};
-		$scriptCondition =
-		{
+		$scriptCondition = {
 			type = "delegatedType";
 			baseType = "string";
 			key = "scriptCondition";
 		};
-		$scriptConditionList =
-		{
+		$scriptConditionList = {
 			type = "delegatedType";
 			baseType = "array";
 			key = "scriptConditions";
 		};
-		$portDimensions =
-		{
+		$portDimensions = {
 			type = "delegatedType";
 			baseType = "string";
 			key = "portDimensions";
 		};
-		$extraEquipmentDictionary =
-		{
+		$extraEquipmentDictionary = {
 			type = "delegatedType";
 			baseType = "dictionary";
 			key = "extraEquipmentDictionary";
 		};
-		$hudFileName =
-		{
+		$hudFileName = {
 			type = "delegatedType";
 			baseType = "string";
 			key = "hudFileName";
 		};
-		$cargoCarried =
-		{
+		$cargoCarried = {
 			type = "delegatedType";
 			baseType = "string";
 			key = "cargoCarried";
 		};
-		$scriptFileName =
-		{
+		$scriptFileName = {
 			type = "delegatedType";
 			baseType = "string";
 			key = "$scriptFileName";
