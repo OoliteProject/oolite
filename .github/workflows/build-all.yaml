@@ -31,12 +31,16 @@ jobs:
           pacman -Syu --noconfirm
           pacman -S --noconfirm --needed git
       - name: Pre-setup ownership & curl token
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # This must run before the checkout action if the action tries to do git commands
           mkdir -p "$GITHUB_WORKSPACE"
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          echo "header = \"Authorization: Bearer ${GITHUB_TOKEN}\"" >> ~/.curlrc
-          echo "header = \"Accept: application/vnd.github+json\"" >> ~/.curlrc
+          cat << EOF >> ~/.curlrc
+          header = "Authorization: Bearer $GITHUB_TOKEN"
+          header = "Accept: application/vnd.github+json"
+          EOF          
       - name: Checkout Oolite
         uses: actions/checkout@v6
         with:
@@ -70,12 +74,16 @@ jobs:
       options: --privileged
     steps:
       - name: Pre-setup ownership & curl token
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # This must run before the checkout action if the action tries to do git commands
           mkdir -p "$GITHUB_WORKSPACE"
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          echo "header = \"Authorization: Bearer ${GITHUB_TOKEN}\"" >> ~/.curlrc
-          echo "header = \"Accept: application/vnd.github+json\"" >> ~/.curlrc
+          cat << EOF >> ~/.curlrc
+          header = "Authorization: Bearer $GITHUB_TOKEN"
+          header = "Accept: application/vnd.github+json"
+          EOF          
       - name: Checkout Oolite
         uses: actions/checkout@v6
         with:
@@ -106,8 +114,6 @@ jobs:
         run: |
           git config --global core.autocrlf false
           git config --global core.eol lf
-          echo "header = \"Authorization: Bearer ${GITHUB_TOKEN}\"" >> ~/.curlrc
-          echo "header = \"Accept: application/vnd.github+json\"" >> ~/.curlrc
       - name: Set up MSYS2
         uses: msys2/setup-msys2@v2
         with:
@@ -121,7 +127,13 @@ jobs:
         shell: msys2 {0}
         env:
           msystem: UCRT64
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          cat << EOF > ~/.curlrc
+          header = "Authorization: Bearer $GITHUB_TOKEN"
+          header = "Accept: application/vnd.github+json"
+          EOF
+          cp ~/.curlrc /c/Users/runneradmin/.curlrc 2>/dev/null || true          
           ShellScripts/Windows/install_deps.sh clang
       - name: Build Oolite
         shell: msys2 {0}
