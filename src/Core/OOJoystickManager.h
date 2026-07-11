@@ -164,7 +164,7 @@ enum {
 
 #if OOLITE_SDL
 
-#import <SDL3/SDL.h>
+#import <SDL3/SDL_events.h>
 
 enum
 {

@@ -12,6 +12,7 @@ install_gitversion() {
 
     source ../common/download_github_release_fn.sh
 
+    local gitversion_tgz
     download_github_release gitversion_tgz "GitTools" "GitVersion" "linux-x64" "$outputdir"
     tar xfz ${gitversion_tgz} --directory "$outputdir"
     chmod +x "$outputdir/gitversion"

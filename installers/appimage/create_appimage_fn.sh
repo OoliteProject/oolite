@@ -3,28 +3,22 @@
 # Creates the appimage.
 
 create_appimage() {
-    local build_folder="$1"  # Build folder
-    local ver_full="$2"  # Oolite version
-    local app_date="$3"  # Oolite build date
-    local build_type="$4"  # Typically one of "test", "dev" or omitted for release builds
+    local build_type="$1"  # Typically one of "deployment", "test", "dev"
+    local build_folder="$2"  # Build folder
 
     local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
     pushd "$script_dir"
+    source ../FreeDesktop/install_freedesktop_fn.sh
+    source ../../ShellScripts/Linux/os_detection.sh
 
-    cd ../../build
-    source ../ShellScripts/Linux/os_detection.sh
-    source ../ShellScripts/Linux/install_freedesktop_fn.sh
-
+    cd ../../build/appimage
     local arch=$(uname -m)
     local APPDIR="./oolite.AppDir"
     export APPDIR
     local appbin="$APPDIR/bin"
     local appshr="$APPDIR/share"
-    rm -rf "$APPDIR"
 
-    local abs_oolitedir=$(realpath -m "$build_folder")
-    local abs_appdir=$(realpath -m "$APPDIR")
-    if ! install_freedesktop "$abs_oolitedir" "$ver_full" "$app_date" "$abs_appdir" "bin" "appdata"; then
+    if ! install_freedesktop ver_full "../$build_folder" "$APPDIR" "bin" "appdata"; then
         return 1
     fi
 
@@ -42,7 +36,7 @@ create_appimage() {
     local DESKTOP="$appshr/applications/space.oolite.Oolite.desktop"
     export DESKTOP
     local suffix
-    if [[ -n "$build_type" ]]; then
+    if [[ "$build_type" != "deployment" ]]; then
         suffix="_$build_type-$ver_full"
     else
         suffix="-$ver_full"
@@ -92,7 +86,7 @@ create_appimage() {
     fi
 
     echo "Creating AppImage $OUTNAME..."
-    if ! $appimagetool_bin "$abs_appdir" "$OUTNAME"; then
+    if ! $appimagetool_bin "$APPDIR" "../$OUTNAME"; then
         echo "❌ AppImage creation failed!" >&2
         return 1
     fi

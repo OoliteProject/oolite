@@ -47,11 +47,14 @@ post_build_args = [
     get_option('espeak') ? 'yes' : 'no',
     get_option('strip_bin') ? 'yes' : 'no',
     version_string,
-    get_option('ver_githash'),
+    version_vars.get('ver_quad'),
+    version_vars.get('ver_githash'),
+    version_vars.get('buildtime'),
     gnustep_folder,
     stamp_file,
 ]
 post_build_script = files('../ShellScripts/common/post_build.sh')
+generate_manifest_script = files('../ShellScripts/common/generate_manifest_fn.sh')
 oolite_app_bundle = custom_target('post_build',
                                   input: oolite_bin,
                                   output: stamp_file,
@@ -60,6 +63,7 @@ oolite_app_bundle = custom_target('post_build',
                                       post_build_script,
                                       post_build_args,
                                   ],
+                                  depend_files: [generate_manifest_script],
                                   build_by_default: true,
                                   install: false,
 )

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 download_github_release() {
-    local -n downloaded_file="$1"
+    local -n _downloaded_file="$1"
     local owner="$2"
     local repository="$3"
     local filter="$4"
@@ -39,5 +39,5 @@ download_github_release() {
     echo "Downloading latest release: ${filename}..." >&2
     curl -L -O --output-dir "${outputdir}" "${download_url}"
 
-    downloaded_file="${outputdir}/${filename}"
+    _downloaded_file="${outputdir}/${filename}"
 }

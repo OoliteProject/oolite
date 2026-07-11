@@ -43,21 +43,3 @@ option('strip_bin', type: 'boolean', value: false, description: 'Enable strippin
 # Windows Specific Customizations
 option('pdb', type: 'boolean', value: false,
        description: 'Windows Clang builds only: Generate native .pdb debug symbol files')
-
-# Oolite version
-option('ver_full', type: 'string', value: '',
-       description: 'Oolite version')
-
-# Git hash of commit
-option('ver_githash', type: 'string', value: '',
-       description: 'Git hash of commit')
-
-# Oolite build date
-option('build_date', type: 'string', value: 'unknown',
-       description: 'Oolite build date')
-
-# Oolite builder
-option('builder', type: 'string', value: 'unknown',
-       description: 'Oolite builder')
-
-

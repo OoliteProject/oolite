@@ -19,7 +19,7 @@ jobs:
         --security-opt apparmor:unconfined
     strategy:
       matrix:
-        flavour: [pkg-appimage-deployment, pkg-appimage-test, pkg-appimage-dev]
+        flavour: [deployment, test, dev]
     steps:
       ## This is for debugging only and helps developing the workflow.
       # - name: Environment Variables
@@ -30,11 +30,17 @@ jobs:
         run: |
           pacman -Syu --noconfirm
           pacman -S --noconfirm --needed git
-      - name: Pre-setup ownership
+      - name: Pre-setup ownership & curl token
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # This must run before the checkout action if the action tries to do git commands
           mkdir -p "$GITHUB_WORKSPACE"
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          cat << EOF >> ~/.curlrc
+          header = "Authorization: Bearer $GITHUB_TOKEN"
+          header = "Accept: application/vnd.github+json"
+          EOF          
       - name: Checkout Oolite
         uses: actions/checkout@v6
         with:
@@ -52,7 +58,10 @@ jobs:
           ldconfig
       - name: Build Oolite
         run: |
-          ./mk.sh ${{matrix.flavour}} --github-repository="$GITHUB_REPOSITORY"
+          ./mk.sh build ${{matrix.flavour}} --github-repository="$GITHUB_REPOSITORY"
+      - name: Package Oolite
+        run: |
+          ./mk.sh pkg-appimage ${{matrix.flavour}}
       - name: Archive installer
         uses: actions/upload-artifact@v6
         with:
@@ -67,11 +76,17 @@ jobs:
       image: ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-25.08
       options: --privileged
     steps:
-      - name: Pre-setup ownership
+      - name: Pre-setup ownership & curl token
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # This must run before the checkout action if the action tries to do git commands
           mkdir -p "$GITHUB_WORKSPACE"
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          cat << EOF >> ~/.curlrc
+          header = "Authorization: Bearer $GITHUB_TOKEN"
+          header = "Accept: application/vnd.github+json"
+          EOF          
       - name: Checkout Oolite
         uses: actions/checkout@v6
         with:
@@ -82,7 +97,7 @@ jobs:
           source ShellScripts/Linux/install_gitversion_fn.sh
           mkdir -p /usr/local/bin
           install_gitversion "."
-          ./mk.sh pkg-flatpak --github-repository="$GITHUB_REPOSITORY"
+          ./mk.sh pkg-flatpak deployment --github-repository="$GITHUB_REPOSITORY"
       - name: Archive installer
         uses: actions/upload-artifact@v6
         with:
@@ -95,14 +110,14 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        flavour: [pkg-win-deployment, pkg-win-test, pkg-win-dev]
+        flavour: [deployment, test, dev]
     steps:
       ## This is for debugging only and helps developing the workflow.
       # - name: Environment Variables
       #  run: |
       #    Get-ChildItem Env: | Sort Name
 
-      - name: Configure Git Line Endings
+      - name: Git line endings & curl token
         run: |
           git config --global core.autocrlf false
           git config --global core.eol lf
@@ -120,14 +135,28 @@ jobs:
         shell: msys2 {0}
         env:
           msystem: UCRT64
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          cat << EOF > ~/.curlrc
+          header = "Authorization: Bearer $GITHUB_TOKEN"
+          header = "Accept: application/vnd.github+json"
+          EOF
+          cp ~/.curlrc /c/Users/runneradmin/.curlrc 2>/dev/null || true          
           ShellScripts/Windows/install_deps.sh clang
       - name: Build Oolite
         shell: msys2 {0}
         env:
           msystem: UCRT64
+          PYTHONUTF8: "1"
         run: |
-          ./mk.sh ${{matrix.flavour}} --github-repository="$GITHUB_REPOSITORY"
+          ./mk.sh build ${{matrix.flavour}} --github-repository="$GITHUB_REPOSITORY"
+      - name: Package Oolite
+        shell: msys2 {0}
+        env:
+          msystem: UCRT64
+          PYTHONUTF8: "1"
+        run: |
+          ./mk.sh pkg-win ${{matrix.flavour}}
       - name: Archive installer
         uses: actions/upload-artifact@v6
         with:

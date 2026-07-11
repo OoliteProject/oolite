@@ -1,19 +1,20 @@
 #!/bin/bash
 # Parameter one: "system", "home", or "build" (defaults to home).
-# Parameter two: Escalate command (defaults to sudo for 'system').
+# Parameter two: escalate command (defaults to sudo for 'system').
 
 run_script() {
     # Get the directory where the script is located
     local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
 
     source "$script_dir/dep_location_fn.sh"
-    dep_location LIB_SUBDIR TARGET ESCALATE "mozilla_js" $1 $2
+    local lib_subdir target escalate
+    dep_location lib_subdir target escalate "mozilla_js" $1 $2
 
     # The URL to your specific GitHub release asset
     local release_url="https://github.com/OoliteProject/mozillajs-linux/releases/download/0.0.1/mozilla-js-static-lib.tar.gz"
 
-    echo "Installing Mozilla JS static library to $TARGET"
-    [[ -n "$ESCALATE" ]] && echo "Using escalation: $ESCALATE"
+    echo "Installing Mozilla JS static library to $target"
+    [[ -n "$escalate" ]] && echo "Using escalation: $escalate"
 
     # Download and extract
     # Curl downloads as current user, Tar extracts using escalation
@@ -32,12 +33,12 @@ run_script() {
     fi
 
     # Move headers to include
-    if ! $ESCALATE cp -r "$temp_staging/include/"* "$TARGET/include/"; then
+    if ! $escalate cp -r "$temp_staging/include/"* "$target/include/"; then
         echo "❌ Mozilla JS library header install failed!" >&2
         return 1
     fi
     # Move libs from 'lib' in tarball to 'lib64' on system
-    if ! $ESCALATE cp -r "$temp_staging/lib/"* "$TARGET/$LIB_SUBDIR/"; then
+    if ! $escalate cp -r "$temp_staging/lib/"* "$target/$lib_subdir/"; then
         echo "❌ Mozilla JS library lib install failed!" >&2
         return 1
     fi

@@ -2,7 +2,12 @@ project(
     'oolite',
     ['c', 'cpp', 'objc'],
     meson_version: '>= 1.4.0',
-    version: 'not used',
+    version: run_command(
+        'bash',
+        files('ShellScripts/common/get_version.sh'),
+        meson.project_build_root(),
+        check: true,
+    ).stdout().strip(),
     default_options: [
         'optimization=2',
     ],
@@ -11,11 +16,23 @@ project(
 host_os = host_machine.system()
 c_family = ['c', 'cpp', 'objc']
 
-version_string = get_option('ver_full')  # use instead of meson project version!
+version_string = meson.project_version()
+cat_cmd = find_program('cat', required: true)
+version_file = meson.project_build_root() / '.meson_version'
+cat_result = run_command(cat_cmd, version_file, check: true)
+version_vars = {}
+file_contents = cat_result.stdout().strip()
+
+foreach line : file_contents.split('\n')
+    parts = line.split('=')
+    key = parts[0].strip()
+    value = parts[1].strip('"\' ')
+    version_vars += { key : value }
+endforeach
 add_project_arguments(
     '-DOO_VERSION_FULL="@0@"'.format(version_string),
-    '-DOO_BUILD_DATE="@0@"'.format(get_option('build_date')),
-    '-DOO_BUILDER="@0@"'.format(get_option('builder')),
+    '-DOO_BUILD_DATE="@0@"'.format(version_vars.get('app_date')),
+    '-DOO_BUILDER="@0@"'.format(version_vars.get('builder')),
     language: c_family,
 )
 

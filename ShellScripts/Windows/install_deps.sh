@@ -61,6 +61,7 @@ run_script() {
     mkdir -p ../../build/packages
     cd ../../build
     # install gitversion
+    local gitversion_zip
     local outputdir="."
     download_github_release gitversion_zip "GitTools" "GitVersion" "win-x64" "$outputdir"
     unzip -o ${gitversion_zip} -d "$outputdir"

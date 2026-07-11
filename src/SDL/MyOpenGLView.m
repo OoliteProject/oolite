@@ -22,6 +22,7 @@ MA 02110-1301, USA.
 
 */
 
+#include <SDL3/SDL_init.h>
 #import "png.h"
 #import "MyOpenGLView.h"
 

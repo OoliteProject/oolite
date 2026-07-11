@@ -10,9 +10,11 @@ run_script() {
     local espeak="$6"
     local strip_bin="$7"
     local ver_full="$8"
-    local ver_githash="$9"
-    local gnustep_folder="${10}"
-    local stamp_file="${11}"
+    local ver_quad="$9"
+    local ver_githash="${10}"
+    local buildtime="${11}"
+    local gnustep_folder="${12}"
+    local stamp_file="${13}"
 
     local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
     pushd "$script_dir" > /dev/null
@@ -35,7 +37,7 @@ run_script() {
         echo "❌ Failed to copy '$origprogpath' to '$progpath'!" >&2
         return 1
     fi
-    generate_manifest "$resourcesdir/manifest.plist" "$deployment_release" "$ver_full" "$ver_githash"
+    generate_manifest "$resourcesdir/manifest.plist" "$deployment_release" "$ver_full" "$ver_quad" "$ver_githash" "$buildtime"
     cp -fu src/Cocoa/Info-Oolite.plist "$resourcesdir/Info-gnustep.plist"
     if [[ "$deployment_release" == "no" ]]; then
         local addonsdir="$progdir/AddOns"

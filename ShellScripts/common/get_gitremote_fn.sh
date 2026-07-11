@@ -1,6 +1,6 @@
 get_gitremote() {
     # Accept a variable name as the first argument to use as a nameref return
-    local -n final_url=$1
+    local -n _final_url=$1
 
     local raw_url resolved_git_dir upstream_url
 
@@ -21,12 +21,12 @@ get_gitremote() {
 
         # If we successfully found an upstream URL, use it.
         if [[ -n "$upstream_url" ]]; then
-            final_url="$upstream_url"
+            _final_url="$upstream_url"
         else
-            final_url="UNKNOWN"
+            _final_url="UNKNOWN"
         fi
     else
         # It's already a standard web URL (GitHub, GitLab, etc.)
-        final_url="$raw_url"
+        _final_url="$raw_url"
     fi
 }
