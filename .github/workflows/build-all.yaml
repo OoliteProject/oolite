@@ -65,7 +65,7 @@ jobs:
       - name: Archive installer
         uses: actions/upload-artifact@v6
         with:
-          name: oolite-linux-${{matrix.flavour}}
+          name: oolite-linux-appimage-${{matrix.flavour}}
           path: |
             build/oolite*.AppImage
           retention-days: 5
@@ -101,7 +101,7 @@ jobs:
       - name: Archive installer
         uses: actions/upload-artifact@v6
         with:
-          name: oolite-flatpak
+          name: oolite-linux-flatpak-deployment
           path: |
             build/space.oolite.Oolite*.flatpak
           retention-days: 5
@@ -160,7 +160,7 @@ jobs:
       - name: Archive installer
         uses: actions/upload-artifact@v6
         with:
-          name: oolite-windows-${{matrix.flavour}}
+          name: oolite-windows-nsis-${{matrix.flavour}}
           path: |
             build/OoliteInstall*.exe
           retention-days: 5
@@ -228,13 +228,13 @@ jobs:
           prerelease: true
           title: "Oolite ${{ steps.version.outputs.VER_FULL }}"
           files: |
-            artifacts/oolite-windows-pkg-win-deployment/OoliteInstall-*.exe
-            artifacts/oolite-windows-pkg-win-test/OoliteInstall-*.exe
-            artifacts/oolite-windows-pkg-win-dev/OoliteInstall-*-dev.exe
-            artifacts/oolite-linux-pkg-appimage-deployment/*.AppImage
-            artifacts/oolite-linux-pkg-appimage-test/*.AppImage
-            artifacts/oolite-linux-pkg-appimage-dev/*.AppImage
-            artifacts/oolite-flatpak/*.flatpak
+            artifacts/oolite-windows-nsis-deployment/OoliteInstall-*.exe
+            artifacts/oolite-windows-nsis-test/OoliteInstall-*.exe
+            artifacts/oolite-windows-nsis-dev/OoliteInstall-*-dev.exe
+            artifacts/oolite-linux-appimage-deployment/*.AppImage
+            artifacts/oolite-linux-appimage-test/*.AppImage
+            artifacts/oolite-linux-appimage-dev/*.AppImage
+            artifacts/oolite-linux-flatpak-deployment/*.flatpak
       - name: Remove old workflow runs
         if: github.ref == 'refs/heads/master' || endsWith(github.ref, 'maintenance')
         uses: Mattraks/delete-workflow-runs@v2
