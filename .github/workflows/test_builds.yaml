@@ -32,7 +32,7 @@ jobs:
           cat << EOF >> ~/.curlrc
           header = "Authorization: Bearer $GITHUB_TOKEN"
           header = "Accept: application/vnd.github+json"
-          EOF          
+          EOF
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
@@ -81,7 +81,7 @@ jobs:
           cat << EOF >> ~/.curlrc
           header = "Authorization: Bearer $GITHUB_TOKEN"
           header = "Accept: application/vnd.github+json"
-          EOF          
+          EOF
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
@@ -130,7 +130,7 @@ jobs:
           cat << EOF >> ~/.curlrc
           header = "Authorization: Bearer $GITHUB_TOKEN"
           header = "Accept: application/vnd.github+json"
-          EOF          
+          EOF
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0

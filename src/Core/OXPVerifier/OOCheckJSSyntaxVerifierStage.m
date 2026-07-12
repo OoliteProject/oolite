@@ -47,9 +47,9 @@ static NSString * const kStageName	= @"Checking JS Script file syntax";
 - (BOOL)shouldRun
 {
 	OOFileScannerVerifierStage	*fileScanner = nil;
-	
+
 	fileScanner = [[self verifier] fileScannerStage];
-	return ([[fileScanner filesInFolder:@"Scripts"] count] > 0);
+	return ([[fileScanner filesInFolder:@"Scripts"] count] > 0 || [[fileScanner filesInFolder:@"Config"] containsObject:@"script.js"]);
 }
 
 
@@ -60,11 +60,13 @@ static NSString * const kStageName	= @"Checking JS Script file syntax";
 	NSString					*scriptFile = nil;
 	NSString					*fileExt = nil;
 	NSString					*filePath = nil;
+	BOOL						configScript = NO;
 
 	fileScanner = [[self verifier] fileScannerStage];
 	scriptFiles = [fileScanner filesInFolder:@"Scripts"];
+	configScript = ([[fileScanner filesInFolder:@"Config"] containsObject:@"script.js"]);
 	
-	if (scriptFiles == nil)  return;
+	if (scriptFiles == nil && configScript == NO)  return;
 
 	[[OOJavaScriptEngine sharedEngine] setShowErrorLocations:YES];
 
@@ -79,8 +81,12 @@ static NSString * const kStageName	= @"Checking JS Script file syntax";
 			(void)script;
 		}
 	}
-	
-	
+	if (configScript == YES) {
+		scriptFile = @"script.js";
+		filePath = [fileScanner pathForFile:scriptFile inFolder:@"Config" referencedFrom:nil checkBuiltIn:NO];
+		OOScript	*script = [OOJSScript scriptWithPath:filePath properties:nil];
+		(void)script;
+	}
 }
 
 @end

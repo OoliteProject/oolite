@@ -223,7 +223,7 @@ guide to the source tree.
 - **ShellScripts**:  Scripts to build from source on Windows and Linux
 - **installers**:  Files used to create various installers
 - **Resources**:  Game assets and resource files for Mac and GNUstep application bundles
-- **Schemata**:  Plist schema files for the [OXP Verifier](http://wiki.alioth.net/index.php/OXP_howto#OXP_Verifier)
+    - **Schemata**:  Plist schema files for the [OXP Verifier](http://wiki.alioth.net/index.php/OXP_howto#OXP_Verifier)
 - **src**:  Objective-C and C sources, incuding header files
     - **Cocoa**:  Files that are only compiled on Mac OS X
     - **Core**:  Files that are compiled on all platforms
