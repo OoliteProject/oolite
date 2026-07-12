@@ -12,12 +12,15 @@
 		allows_auto_docking = "boolean";
 		allows_fast_docking = "boolean";
 		auto_ai = "boolean";
+		auto_weapons = "boolean";
 		beacon = "string";
+		beacon_label = "string";
 		bounty = "positiveInteger";
 		cargo_carried = "$cargoCarried";
 		cargo_type = "$cargoType";
 		cloak_passive = "boolean";
 		cloak_automatic = "boolean";
+		condition_script = "$scriptFileName";
 		conditions = "$scriptConditionList";
 		counts_as_kill = "boolean";
 		custom_views = { type = "array"; valueType = "$customViewSpec"; };
@@ -34,10 +37,13 @@
 		escape_pod_model = "$shipRole";		// old, deprecated
 		escorts = { type = "positiveInteger"; maximum = 16; };
 		escort_role = "$shipRole";
+		escort_roles = { type = "array"; valueType = "$escortRolesSpecifier"; };
 		escort-role = "$shipRole";
 		escort_ship = "$shipKey";
 		escort-ship = "$shipKey";
 		exhaust = { type = "array"; valueType = "$exhaustSpecifier"; };
+		exhaust_emissive_color = "$colorSpecifier";
+		explosion_type = { type = "array"; valueType = "string"; };
 		extra_cargo = "positiveInteger";
 		extra_equipment = "$extraEquipmentDictionary";
 		fire_rate = { type = "positiveFloat"; minimum = 0.25; };
@@ -65,6 +71,8 @@
 		hud = "$hudFileName";
 		hyperspace_motor = "boolean";
 		hyperspace_motor_spin_time = "positiveFloat";
+		injector_burn_rate = "positiveFloat";
+		injector_speed_factor = "positiveFloat";
 		interstellar_undocking = "boolean";
 		is_carrier = "boolean";
 		isCarrier = "boolean";
@@ -77,6 +85,11 @@
 		like_ship = "$shipRole";
 		likely_cargo = "positiveInteger";
 		market = "string";
+		market_broadcast = "boolean";
+		market_capacity = "positiveInteger";
+		market_definition = { type = "array"; valueType = "$commoditySpecifier"; };
+		market_monitored = "boolean";
+		market_script = "$scriptFileName";
 		materials = "$materialDict";
 		max_cargo = "positiveInteger";
 		max_defense_ships = "positiveInteger";
@@ -105,8 +118,11 @@
 		rotational_velocity = "quaternion";
 		scan_class = "$scanClass";
 		scanClass = "$scanClass";
+		scan_description = "string";
 		scanner_display_color1 = "$colorSpecifier";
 		scanner_display_color2 = "$colorSpecifier";
+		scanner_hostile_display_color1 = "$colorSpecifier";
+		scanner_hostile_display_color2 = "$colorSpecifier";
 		scanner_range = "positiveFloat";
 		scoop_position = "vector";
 		script = "$scriptFileName";
@@ -114,6 +130,9 @@
 		script_info = "dictionary";
 		setup_actions = "$scriptActions";
 		shaders = "$materialDict";
+		ship_name = "string";
+		ship_class_name = "string";
+		show_damage = "boolean";
 		smooth = "boolean";
 		starboard_weapon_type = "string";
 		station_roll = "float";
@@ -131,6 +150,7 @@
 		view_position_starboard = "vector";
 		weapon_energy = "positiveFloat";
 		weapon_facings = "positiveInteger";
+		weapon_mount_mode = "$weaponMountMode";
 		weapon_position_aft = "$weaponPosition";
 		weapon_position_forward = "$weaponPosition";
 		weapon_position_port = "$weaponPosition";
@@ -184,6 +204,31 @@
 					};
 				};
 				vertex_shader = "$shaderFileName";
+			};
+		};
+		$escortRolesSpecifier = {
+			type = "dictionary";
+			schema = {
+				role = "string";
+				min = "integer";
+				max = "integer";
+			};
+		};
+		$commoditySpecifier = {
+			type = "dictionary";
+			schema = {
+				type = { type = "enumeration"; values = ( "good", "class", "default" ); };
+				name = "string";
+				requiredKeys = ( "type" );
+				capacity = "positiveInteger";
+				legality_export = "integer";
+				legality_import = "integer";
+				price_adder = "float";
+				price_multiplier = "float";
+				price_randomiser = "float";
+				quantity_adder = "float";
+				quantity_multiplier = "float";
+				quantity_randomiser = "float";
 			};
 		};
 		$textureSpecifier = {
@@ -253,7 +298,10 @@
 			type = "oneOf";
 			options =  ( "vector", "array" );
 		};
-		
+		$weaponMountMode = { 
+			type = "enumeration"; 
+			values = ( "single", "split", "multiply" ); 
+		};
 		// Types handled in code.
 		$modelName = {
 			type = "delegatedType";
