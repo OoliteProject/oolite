@@ -44,6 +44,15 @@ run_script() {
             echo "❌ Failed to copy '$run_oolite_src' to '$run_oolite_dst'!" >&2
             return 1
         fi
+        local debugname="$appname.debug"
+        local oolite_debug_src="$progdir/$debugname"
+        if [[ -f "$oolite_debug_src" ]]; then
+            local oolite_debug_dst="$fullbindir/$debugname"
+            if ! cp -fu "$oolite_debug_src" "$oolite_debug_dst"; then
+                echo "❌ Failed to copy '$oolite_debug_src' to '$oolite_debug_dst'!" >&2
+                return 1
+            fi
+        fi
     fi
     local resources_src="$progdir/Resources/."
     local resources_dst="$fulldatadir/Resources"

@@ -36,6 +36,7 @@ GITHUB_REPOSITORY=""
 CLEAN_BUILD=false
 SETUP_FLAGS=() # Array to cleanly store additional meson setup arguments
 COMPILE_FLAGS=() # Array to cleanly store additional meson compile arguments
+CONFIGURE_FLAGS=() # Array to cleanly store additional meson configure arguments
 INSTALL_FLAGS=() # Array to cleanly store additional meson install arguments
 
 clean() {
@@ -83,6 +84,17 @@ meson_compile() {
     fi
 }
 
+meson_configure() {
+    local build_dir="build/meson_$1"
+    echo "--> Running Meson configure for: $1"
+    local meson_opts=("${@:2}")
+    if ! meson configure "$build_dir" "${meson_opts[@]}" ${CONFIGURE_FLAGS[@]+"${CONFIGURE_FLAGS[@]}"}; then
+        echo "❌ Meson configure failed!" >&2
+        output_meson_log "$build_dir"
+        exit 1
+    fi
+}
+
 meson_install() {
     local build_dir="build/meson_$1"
     echo "--> Running Meson install for: $1"
@@ -100,6 +112,7 @@ show_help() {  # Script Help Menu
     echo "Options:"
     echo -e "  \033[36m--setup-flags=\"...\"\033[0m          Pass additional arguments directly to 'meson setup'"
     echo -e "  \033[36m--compile-flags=\"...\"\033[0m        Pass additional arguments directly to 'meson compile'"
+    echo -e "  \033[36m--configure-flags=\"...\"\033[0m      Pass additional arguments directly to 'meson configure'"
     echo -e "  \033[36m--install-flags=\"...\"\033[0m        Pass additional arguments directly to 'meson install'"
     echo -e "  \033[36m--native-file=\"...\"\033[0m          Specify native file (defaults to clang.ini)"
     echo -e "  \033[36m--ver-full=\"...\"\033[0m             Specify full version string"
@@ -109,8 +122,9 @@ show_help() {  # Script Help Menu
     echo "Build Type Actions (Requires build_type as second parameter):"
     echo -e "  \033[36msetup <build_type>\033[0m              Setup a release build directory"
     echo -e "  \033[36mcompile <build_type>\033[0m            Compile a build directory"
-    echo -e "  \033[36mbuild <build_type>\033[0m              Setup and compile a build build_type"
-    echo -e "  \033[36minstall <build_type>\033[0m            Install a built build_type configuration"
+    echo -e "  \033[36mbuild <build_type>\033[0m              Setup and compile a build directory"
+    echo -e "  \033[36mconfigure <build_type>\033[0m          Modify build options of an existing build directory"
+    echo -e "  \033[36minstall <build_type>\033[0m            Install an existing build directory"
     echo -e "  \033[36mtest <build_type>\033[0m               Run test suites (deployment build_type excluded)"
     echo -e "  \033[36mclean <build_type>\033[0m              Clean a specific build_type's directory"
     echo -e "  \033[36mflatpak-internal <build_type>\033[0m   Build flatpak dependencies internally"
@@ -161,6 +175,10 @@ case "$action" in
             execute_target "setup" "$build_type"
             execute_target "compile" "$build_type"
             ;;
+        configure)
+            validate_build_type "$build_type"
+            meson_configure "$build_type"
+            ;;
         install)
             validate_build_type "$build_type"
             meson_install "$build_type"
@@ -186,7 +204,7 @@ case "$action" in
         flatpak-internal)
             validate_build_type "$build_type"
             execute_target "build" "$build_type"
-            if ! meson configure "build/meson_$build_type" --prefix="/app"; then
+            if ! meson_configure "$build_type" "--prefix=/app"; then
                 echo "❌ Flatpak meson configure with prefix /app failed!" >&2
                 exit 1
             fi
@@ -216,7 +234,8 @@ case "$action" in
             ;;
         pkg-appimage)
             validate_build_type "$build_type"
-            if ! meson configure "build/meson_$build_type" --prefix=$(realpath -m "build/appimage/oolite.AppDir"); then
+            local appdir=$(realpath -m "build/appimage/oolite.AppDir")
+            if ! meson_configure "$build_type" "--prefix=$appdir"; then
                 echo "❌ AppImage meson configure with prefix /app failed!" >&2
                 exit 1
             fi
@@ -265,6 +284,11 @@ while [[ $# -gt 0 ]]; do
         --compile-flags=*)
             read -r -a flags_array <<< "${1#*=}"
             COMPILE_FLAGS+=("${flags_array[@]}")
+            shift
+            ;;
+        --configure-flags=*)
+            read -r -a flags_array <<< "${1#*=}"
+            CONFIGURE_FLAGS+=("${flags_array[@]}")
             shift
             ;;
         --install-flags=*)

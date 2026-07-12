@@ -122,73 +122,82 @@ default, but you can supply a further argument to specify an alternative like do
 
 ### Building Oolite
 
-Next run this in your Bash or MSYS2 prompt to build Oolite:
-
-```bash
-./mk.sh build-dev
-```
-
-The completed build (executable and games files) can be found in the build/meson_dev/oolite.app directory.
-
-Subsequently, you can clean and build as follows:
-
-```bash
-./mk.sh build-dev --clean
-```
-
-You can run a test that launches the game and takes a snapshot from your Bash or MSYS2 prompt as follows:
-
-```bash
-./mk.sh test
-```
-
-build-dev keeps debug symbols in the binary. Other build targets remove those symbols from the binary although they
-are made available in a separate symbols file. build-deployment is for a production build and build-test is for a 
-test release that supports the debug console which is used by expansion developers for debugging their OXPs. 
-
-You can install:
-
-```bash
-./mk.sh install-dev
-```
-
-Other targets are install-deployment for a production install and install-test for a test install.
-
-The underlying build system is Meson, but it is recommended to run via the mk.sh script which also allow you to pass
-meson setup, compile and install flags. Type the following for help:
+The underlying build system is Meson, but it is recommended to build via the mk.sh script which also allow you to pass
+meson setup, compile, configure and install flags. Type the following for help:
 
 ```bash
 ./mk.sh help
 ```
 
-build-dev runs 2 targets which can be run independently: setup-dev which runs meson setup and compile-dev which runs 
+Oolite has various build types:
+
+- **"dev"**: Keeps debug symbols in the binary.
+- **"deployment"**: Intended for production builds. Removes debug symbols from the binary, but makes them available in
+  a separate symbols file.
+- **"test"**: Used for test releases; supports the debug console, which expansion developers use to debug their OXPs.
+  Removes debug symbols from the binary, but makes them available in a separate symbols file.
+
+You can run this in your Bash or MSYS2 prompt to build Oolite for development:
+
+```bash
+./mk.sh build dev
+```
+
+Optionally you can pass `--setup-flags` and/or `--compile-flags` to pass specific options to meson. The completed build 
+(executable and games files) can be found in the `build/meson_dev/oolite.app` directory.
+
+build dev runs 2 actions which can be run independently: `setup dev` which runs meson setup and `compile dev` which runs
 meson compile.
 
-### Other Linux ./mk.sh Targets
-
-This target builds an AppImage for development which can be found in the `build` fodler:
+Subsequently, you can clean and build the development build as follows:
 
 ```bash
-./mk.sh pkg-appimage-dev
+./mk.sh clean dev
+./mk.sh build dev
 ```
 
-The target pkg-appimage-deployment is the production release, while pkg-appimage-test is for test.
-
-This target builds a Flatpak (deployment only) which can be found in the `build` folder:
+You can run a test of the development build that launches the game and takes a snapshot from your Bash or MSYS2 prompt 
+as follows:
 
 ```bash
-./mk.sh pkg-flatpak
+./mk.sh test dev
 ```
 
-### Other Windows ./mk.sh Targets
-
-This target builds a Windows NSIS installer for development which can be found in the `build` folder:
+You can modify build options of the build directory (such as `--prefix`):
 
 ```bash
-./mk.sh pkg-win-dev
+./mk.sh configure dev --configure-flags="<FLAGS>"
 ```
 
-The target pkg-win-deployment is the production release, while pkg-win-test is for test.
+You can install the build folder:
+
+```bash
+./mk.sh install dev
+```
+
+Optionally you can pass `--install-flags` to pass specific options to meson.
+
+### Other Linux ./mk.sh Actions
+
+This action builds an AppImage for development which can be found in the `build` folder:
+
+```bash
+./mk.sh pkg-appimage dev
+```
+
+This action builds a Flatpak which can be found in the `build` folder:
+
+```bash
+./mk.sh pkg-flatpak deployment
+```
+
+### Other Windows ./mk.sh Actions
+
+This action builds a Windows NSIS installer for development which can be found in the `build` folder:
+
+```bash
+./mk.sh pkg-win dev
+```
 
 ### Mac OS
 
