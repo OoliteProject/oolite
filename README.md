@@ -149,11 +149,11 @@ Optionally you can pass `--setup-flags` and/or `--compile-flags` to pass specifi
 build dev runs 2 actions which can be run independently: `setup dev` which runs meson setup and `compile dev` which runs
 meson compile.
 
-Subsequently, you can clean and build the development build as follows:
+If for some reason the build fails, you can try cleaning the build folder first, although meson should not usually
+require this step:
 
 ```bash
 ./mk.sh clean dev
-./mk.sh build dev
 ```
 
 You can run a test of the development build that launches the game and takes a snapshot from your Bash or MSYS2 prompt 
