@@ -32,7 +32,7 @@ jobs:
           cat << EOF >> ~/.curlrc
           header = "Authorization: Bearer $GITHUB_TOKEN"
           header = "Accept: application/vnd.github+json"
-          EOF          
+          EOF
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
@@ -47,17 +47,16 @@ jobs:
       - name: Install Mozilla static library
         run: |
           ShellScripts/Linux/install_mozilla_js.sh system
-      - name: Build and test Oolite
+      - name: Build Oolite
+        run: |
+          ./mk.sh build dev
+      - name: Test Oolite
         if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
         run: |
-          ShellScripts/common/build_oolite.sh test
-      - name: Build Oolite (no test)
-        if: github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
-        run: |
-          ShellScripts/common/build_oolite.sh
+          ./mk.sh test dev
       - name: Build AppImage
         run: |
-          ShellScripts/common/build_oolite.sh pkg-appimage-snapshot
+          ./mk.sh pkg-appimage dev
 
   fedora:
     runs-on: ubuntu-latest
@@ -82,7 +81,7 @@ jobs:
           cat << EOF >> ~/.curlrc
           header = "Authorization: Bearer $GITHUB_TOKEN"
           header = "Accept: application/vnd.github+json"
-          EOF          
+          EOF
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
@@ -97,17 +96,16 @@ jobs:
           ShellScripts/Linux/install_mozilla_js.sh system
           echo "/usr/local/lib64" | tee -a /etc/ld.so.conf
           ldconfig
-      - name: Build and test Oolite
+      - name: Build Oolite
+        run: |
+          ./mk.sh build dev
+      - name: Test Oolite
         if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
         run: |
-          ShellScripts/common/build_oolite.sh test
-      - name: Build Oolite (no test)
-        if: github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
-        run: |
-          ShellScripts/common/build_oolite.sh
+          ./mk.sh test dev
       - name: Build AppImage
         run: |
-          ShellScripts/common/build_oolite.sh pkg-appimage-snapshot
+          ./mk.sh pkg-appimage dev
 
   arch:
     runs-on: ubuntu-latest
@@ -132,7 +130,7 @@ jobs:
           cat << EOF >> ~/.curlrc
           header = "Authorization: Bearer $GITHUB_TOKEN"
           header = "Accept: application/vnd.github+json"
-          EOF          
+          EOF
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
@@ -147,17 +145,16 @@ jobs:
           ShellScripts/Linux/install_mozilla_js.sh system
           echo "/usr/local/lib" | tee -a /etc/ld.so.conf
           ldconfig
-      - name: Build and test Oolite
+      - name: Build Oolite
+        run: |
+          ./mk.sh build dev
+      - name: Test Oolite
         if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
         run: |
-          ShellScripts/common/build_oolite.sh test
-      - name: Build Oolite (no test)
-        if: github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
-        run: |
-          ShellScripts/common/build_oolite.sh
+          ./mk.sh test dev
       - name: Build AppImage
         run: |
-          ShellScripts/common/build_oolite.sh pkg-appimage-snapshot
+          ./mk.sh pkg-appimage dev
 
   windows:
     runs-on: windows-latest
@@ -191,18 +188,20 @@ jobs:
           EOF
           cp ~/.curlrc /c/Users/runneradmin/.curlrc 2>/dev/null || true          
           ShellScripts/Windows/install_deps.sh clang
-      - name: Build and test Oolite
+
+      - name: Build Oolite
+        shell: msys2 {0}
+        env:
+          msystem: UCRT64
+          PYTHONUTF8: "1"
+        run: |
+          ./mk.sh build dev
+
+      - name: Test Oolite
         if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
         shell: msys2 {0}
         env:
           msystem: UCRT64
+          PYTHONUTF8: "1"
         run: |
-          ShellScripts/common/build_oolite.sh test
-
-      - name: Build Oolite (no test)
-        if: github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
-        shell: msys2 {0}
-        env:
-          msystem: UCRT64
-        run: |
-          ShellScripts/common/build_oolite.sh
+          ./mk.sh test dev

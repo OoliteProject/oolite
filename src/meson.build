@@ -35,42 +35,44 @@ oolite_bin = executable(
     install: false,
 )
 
+bash_prog = find_program('bash')
 prog_dir = meson.global_build_root() / appname + '.app'
 stamp_file = '.oolite_bundle.stamp'
-install_env_args = [
-    'ORIGPROGPATH=' + meson.current_build_dir() / appname,
-    'PROGDIR=' + prog_dir,
-    'HOST_OS=' + host_os,
-    'DEBUG=' + (get_option('debug') ? 'yes' : 'no'),
-    'DEPLOYMENT_RELEASE_CONFIGURATION=' + (
-        get_option('deployment_release_configuration') ? 'yes' : 'no'
-    ),
-    'ESPEAK=' + (get_option('espeak') ? 'yes' : 'no'),
-    'STRIP_BIN=' + (get_option('strip_bin') ? 'yes' : 'no'),
-    'VER_FULL=' + version_string,
-    'GNUSTEP_FOLDER=' + gnustep_folder,
-    'STAMP_FILE=' + stamp_file,
+post_build_args = [
+    meson.current_build_dir() / appname,
+    prog_dir,
+    host_os,
+    get_option('debug') ? 'yes' : 'no',
+    get_option('deployment_release') ? 'yes' : 'no',
+    get_option('espeak') ? 'yes' : 'no',
+    get_option('strip_bin') ? 'yes' : 'no',
+    version_string,
+    version_vars.get('ver_quad'),
+    version_vars.get('ver_githash'),
+    version_vars.get('buildtime'),
+    gnustep_folder,
+    stamp_file,
 ]
-post_build_script = find_program('../ShellScripts/common/post_build.sh')
+post_build_script = files('../ShellScripts/common/post_build.sh')
+generate_manifest_script = files('../ShellScripts/common/generate_manifest_fn.sh')
 oolite_app_bundle = custom_target('post_build',
                                   input: oolite_bin,
                                   output: stamp_file,
-                                  depend_files: [post_build_script.full_path()],
                                   command: [
-                                      'env',
-                                      install_env_args,
-                                      post_build_script.full_path(),
+                                      bash_prog,
+                                      post_build_script,
+                                      post_build_args,
                                   ],
+                                  depend_files: [generate_manifest_script],
                                   build_by_default: true,
                                   install: false,
 )
-install_env_args = [
-    'STAGEPROGPATH=' + prog_dir / appname,
-    'BINDIR=' + get_option('bindir'),
-    'DATADIR=' + get_option('datadir'),
-    'HOST_OS=' + host_os,
-    'DEPLOYMENT_RELEASE_CONFIGURATION=' + (
-    get_option('deployment_release_configuration') ? 'yes' : 'no'),
+install_args = [
+    prog_dir / appname,
+    get_option('bindir'),
+    get_option('datadir'),
+    host_os,
+    get_option('deployment_release') ? 'yes' : 'no',
 ]
-install_script = find_program('../ShellScripts/common/install.sh')
-meson.add_install_script('env', install_env_args, install_script.full_path())
+install_script = files('../ShellScripts/common/install.sh')
+meson.add_install_script(bash_prog, install_script, install_args)

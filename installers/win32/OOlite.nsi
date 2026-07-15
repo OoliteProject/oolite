@@ -1,5 +1,5 @@
 ; Include the NSIS logic library. Required for the code that handles 
-; adding of the changelog file in the non-snapshot distributions
+; adding of the changelog file in the non-dev distributions
 !include "LogicLib.nsh"
 
 ; Include the Sections library, required for being able to provide the 
@@ -14,10 +14,6 @@
 ; and it's too much work to try to dynamically edit this file
 !include /NONFATAL "OoliteVersions.nsh"
 
-!ifndef VER_GITREV
-!warning "No GIT Revision supplied"
-!define VER_GITREV 0
-!endif
 !ifndef VERSION
 !warning "No Version information supplied"
 !define VERSION 0.0.0.0
@@ -31,12 +27,12 @@
 !ifndef OUTDIR
 !define OUTDIR .
 !endif
-!ifndef SEMVER
-!define SEMVER ${VERSION}
+!ifndef VER_FULL
+!define VER_FULL ${VERSION}
 !endif
 
-!ifndef SNAPSHOT
-!ifndef DEPLOYMENT
+!ifndef DEV_RELEASE
+!ifndef DEPLOYMENT_RELEASE
 !define EXTVER "-test"  ; Official distribution with OXP developer tools
 !define ADDCHANGELOG 1	; Official distributions go with a changelog file
 !else
@@ -45,10 +41,10 @@
 !endif
 !else
 !define EXTVER "-dev"
-!define ADDCHANGELOG 0	; Snapshot distributions do not need changelog
+!define ADDCHANGELOG 0	; Dev distributions do not need changelog
 !endif
 
-!ifndef DEPLOYMENT
+!ifndef DEPLOYMENT_RELEASE
 !define DEBUGOXPINCLUDED 1
 !else
 !define DEBUGOXPINCLUDED 0
@@ -61,10 +57,10 @@ SetCompress auto
 SetCompressor LZMA
 SetCompressorDictSize 32
 SetDatablockOptimize on
-OutFile "${OUTDIR}\OoliteInstall-${SEMVER}-win${EXTVER}.exe"
+OutFile "${OUTDIR}\OoliteInstall-${VER_FULL}-win${EXTVER}.exe"
 BrandingText "(C) 2003-2026 Giles Williams, Jens Ayton and contributors"
 Name "Oolite"
-Caption "Oolite ${SEMVER} ${EXTVER} Setup"
+Caption "Oolite ${VER_FULL} ${EXTVER} Setup"
 SubCaption 0 " "
 SubCaption 1 " "
 SubCaption 2 " "
@@ -86,9 +82,9 @@ VIAddVersionKey "ProductName" "Oolite"
 VIAddVersionKey "FileDescription" "A space combat/trading game, inspired by Elite."
 VIAddVersionKey "LegalCopyright" "� 2003-2026 Giles Williams, Jens Ayton and contributors"
 VIAddVersionKey "FileVersion" "${VER}"
-VIAddVersionKey "ProductVersion" "${SEMVER}"
-!ifdef SNAPSHOT
-VIAddVersionKey "GIT Revision" "${VER_GITHASH}"
+VIAddVersionKey "ProductVersion" "${VER_FULL}"
+!ifdef DEV_RELEASE
+VIAddVersionKey "GIT Hash" "${VER_GITHASH}"
 !endif
 !ifdef BUILDTIME
 VIAddVersionKey "Build Time" "${BUILDTIME}"
@@ -104,7 +100,7 @@ VIProductVersion "${VER}"
 !define MUI_UNICON oolite.ico
 
 !insertmacro MUI_PAGE_DIRECTORY
-!ifndef DEPLOYMENT
+!ifndef DEPLOYMENT_RELEASE
 	!insertmacro MUI_PAGE_COMPONENTS
 !endif
 !insertmacro MUI_PAGE_INSTFILES
@@ -127,14 +123,14 @@ VIProductVersion "${VER}"
 
 !insertmacro MUI_LANGUAGE "English"
 
-!ifndef DEPLOYMENT
+!ifndef DEPLOYMENT_RELEASE
 ; Create the main game and Debug OXP sections
 Section "Oolite Game" ooGame
 SectionIn RO	; The game itself cannot be unselected
 SectionEnd
 
 Section "Basic-debug.OXP" ooDebugOXP
-; Do not use any of the Debug OXP files when we are building Deployment
+; Do not use any of the Debug OXP files when we are building deployment release
 SetOutPath $INSTDIR
 File /r "${DST}\AddOns"
 SectionEnd
@@ -200,7 +196,7 @@ uninst:
 done:
 FunctionEnd
 
-!ifndef DEPLOYMENT
+!ifndef DEPLOYMENT_RELEASE
 Function .onSelChange
 	${If} ${SectionIsSelected} ${ooDebugOXP}
 		!insertmacro SelectSection ${ooDebugOXP}

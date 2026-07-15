@@ -46,7 +46,7 @@ where XXX is a version number. Many Linux package managers support Flatpak so yo
 double click the downloaded file to install it.
 
 The AppImage is named `Oolite_XXX-x86_64.AppImage` where XXX is a version number. Download this
-file to where you would like it stored, make it executable and run, for example by typing
+file to where you would like it stored, ./mk.sh it executable and run, for example by typing
 
 ```bash
 chmod +x Oolite_XXX-x86_64.AppImage
@@ -122,54 +122,81 @@ default, but you can supply a further argument to specify an alternative like do
 
 ### Building Oolite
 
-Next run this in your Bash or MSYS2 prompt to build Oolite:
+The underlying build system is Meson, but it is recommended to build via the mk.sh script which also allow you to pass
+meson setup, compile, configure and install flags. Type the following for help:
 
 ```bash
-ShellScripts/common/build_oolite.sh release
+./mk.sh help
 ```
 
-The completed build (executable and games files) can be found in the oolite.app directory.
+Oolite has various build types:
 
-Subsequently, you can clean and build as follows:
+- **"dev"**: Keeps debug symbols in the binary.
+- **"deployment"**: Intended for production builds. Removes debug symbols from the binary, but makes them available in
+  a separate symbols file.
+- **"test"**: Used for test releases; supports the debug console, which expansion developers use to debug their OXPs.
+  Removes debug symbols from the binary, but makes them available in a separate symbols file.
+
+You can run this in your Bash or MSYS2 prompt to build Oolite for development:
 
 ```bash
-make clean
-make release
+./mk.sh build dev
 ```
 
-You can run a test from your Bash or MSYS2 prompt as follows:
+Optionally you can pass `--setup-flags` and/or `--compile-flags` to pass specific options to meson. The completed build 
+(executable and games files) can be found in the `build/meson_dev/oolite.app` directory.
+
+build dev runs 2 actions which can be run independently: `setup dev` which runs meson setup and `compile dev` which runs
+meson compile.
+
+If for some reason the build fails, you can try cleaning the build folder first, although meson should not usually
+require this step:
 
 ```bash
-make test
+./mk.sh clean dev
 ```
 
-Other targets are release-deployment for a production release and release-snapshot for a debug release.
-
-
-
-### Other Linux Make Targets
-
-This target builds an AppImage for testing which can be found in build:
+You can run a test of the development build that launches the game and takes a snapshot from your Bash or MSYS2 prompt 
+as follows:
 
 ```bash
-make pkg-appimage
+./mk.sh test dev
 ```
 
-The target pkg-appimage-deployment is the production release, while pkg-appimage-snapshot is for debugging.
-
-This target builds a Flatpak which can be found in build:
+You can modify build options of the build directory (such as `--prefix`):
 
 ```bash
-make pkg-flatpak
+./mk.sh configure dev --configure-flags="<FLAGS>"
 ```
 
-Although there is a top level Makefile, the underlying build system is Meson. You can run the deployment
-build directly using Meson build commands like this:
+You can install the build folder:
 
 ```bash
-meson setup build/meson_deployment -Ddeployment_release_configuration=true -Ddebug=false -Dstrip_bin=true -Db_lto=true --native-file clang.ini --reconfigure
-meson compile -C build/meson_deployment
-meson install -C build/meson_deployment
+./mk.sh install dev
+```
+
+Optionally you can pass `--install-flags` to pass specific options to meson.
+
+### Other Linux ./mk.sh Actions
+
+This action builds an AppImage for development which can be found in the `build` folder:
+
+```bash
+./mk.sh pkg-appimage dev
+```
+
+This action builds a Flatpak which can be found in the `build` folder:
+
+```bash
+./mk.sh pkg-flatpak deployment
+```
+
+### Other Windows ./mk.sh Actions
+
+This action builds a Windows NSIS installer for development which can be found in the `build` folder:
+
+```bash
+./mk.sh pkg-win dev
 ```
 
 ### Mac OS
@@ -196,7 +223,7 @@ guide to the source tree.
 - **ShellScripts**:  Scripts to build from source on Windows and Linux
 - **installers**:  Files used to create various installers
 - **Resources**:  Game assets and resource files for Mac and GNUstep application bundles
-- **Schemata**:  Plist schema files for the [OXP Verifier](http://wiki.alioth.net/index.php/OXP_howto#OXP_Verifier)
+    - **Schemata**:  Plist schema files for the [OXP Verifier](http://wiki.alioth.net/index.php/OXP_howto#OXP_Verifier)
 - **src**:  Objective-C and C sources, incuding header files
     - **Cocoa**:  Files that are only compiled on Mac OS X
     - **Core**:  Files that are compiled on all platforms

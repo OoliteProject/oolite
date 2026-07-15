@@ -15,7 +15,7 @@ install_package() {
         "base-devel")
             case "$CURRENT_DISTRO" in
                 debian) pkg_name="build-essential" ;;
-                redhat) pkg_name="gcc gcc-c++ make" ;;
+                redhat) pkg_name="gcc gcc-c++" ;;
                 arch) pkg_name="base-devel" ;;
             esac ;;
 

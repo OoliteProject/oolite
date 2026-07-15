@@ -111,13 +111,14 @@ modules:
     buildsystem: simple
     build-options:
       no-debuginfo: true
-      # CI builds add an env block here
     build-commands:
-      - source installers/flatpak/flatpak_build.sh
+      # Update --ver-full for FlatHub release. For CI and local builds, create_flatpak.sh replaces
+      # --ver-full and --github-repository values
+      - ./mk.sh flatpak deployment --ver-full="1.92.1" --buildtime="2026.03.19 07:13" --github-repository="OoliteProject/oolite"
     sources:
       # Update tag and commit for FlatHub release. For CI and local builds, create_flatpak.sh replaces git source with:
       # - type: dir
-      #   path: ../
+      #   path: ../../
       - type: git
         url: https://github.com/OoliteProject/oolite.git
         tag: "1.92.1.0"

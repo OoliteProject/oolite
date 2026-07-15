@@ -2,17 +2,28 @@
 # Processes Oolite data files after compilation
 
 run_script() {
+    local stageprogpath="$1"
+    local bindir="$2"
+    local datadir="$3"
+    local host_os="$4"
+    local deployment_release="$5"
+
     local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
     pushd "$script_dir" > /dev/null
 
     cd ../..
 
-    set -x    
-    local appname=$(basename "$STAGEPROGPATH")
-    local progdir=$(dirname "$STAGEPROGPATH")
-    local installdir="${INSTALLDIR:-$MESON_INSTALL_DESTDIR_PREFIX}"
-    local fullbindir="$installdir/$BINDIR"
-    local fulldatadir="$installdir/$DATADIR/oolite"  # don't use appname here as Obj-C has oolite specifically
+    set -x
+    local appname=$(basename "$stageprogpath")
+    local progdir=$(dirname "$stageprogpath")
+    local installdir="$MESON_INSTALL_DESTDIR_PREFIX"
+    local fullbindir="$installdir/$bindir"
+    rm -f "$fullbindir/oolite"
+    if [[ "$host_os" == "linux" ]]; then
+        rm -f "$fullbindir/run_oolite.sh"
+    fi
+    local fulldatadir="$installdir/$datadir/oolite"  # don't use appname here as Obj-C has oolite specifically
+    rm -rf "$fulldatadir"
     local progpath="$fullbindir/$appname"
     if ! mkdir -p "$fullbindir"; then
         echo "❌ Failed to create folder '$fullbindir'!" >&2
@@ -22,16 +33,25 @@ run_script() {
         echo "❌ Failed to create folder '$fulldatadir'!" >&2
         return 1
     fi
-    if ! cp -fu "$STAGEPROGPATH" "$progpath"; then
-        echo "❌ Failed to copy '$STAGEPROGPATH' to '$progpath'!" >&2
+    if ! cp -fu "$stageprogpath" "$progpath"; then
+        echo "❌ Failed to copy '$stageprogpath' to '$progpath'!" >&2
         return 1
-    fi    
-    if [[ "$HOST_OS" == "linux" ]]; then
+    fi
+    if [[ "$host_os" == "linux" ]]; then
         local run_oolite_src="$progdir/run_oolite.sh"
         local run_oolite_dst="$fullbindir/run_oolite.sh"
         if ! cp -fu "$run_oolite_src" "$run_oolite_dst"; then
             echo "❌ Failed to copy '$run_oolite_src' to '$run_oolite_dst'!" >&2
             return 1
+        fi
+        local debugname="$appname.debug"
+        local oolite_debug_src="$progdir/$debugname"
+        if [[ -f "$oolite_debug_src" ]]; then
+            local oolite_debug_dst="$fullbindir/$debugname"
+            if ! cp -fu "$oolite_debug_src" "$oolite_debug_dst"; then
+                echo "❌ Failed to copy '$oolite_debug_src' to '$oolite_debug_dst'!" >&2
+                return 1
+            fi
         fi
     fi
     local resources_src="$progdir/Resources/."

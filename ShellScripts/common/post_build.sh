@@ -2,6 +2,20 @@
 # Processes Oolite data files after compilation
 
 run_script() {
+    local origprogpath="$1"
+    local progdir="$2"
+    local host_os="$3"
+    local debug="$4"
+    local deployment_release="$5"
+    local espeak="$6"
+    local strip_bin="$7"
+    local ver_full="$8"
+    local ver_quad="$9"
+    local ver_githash="${10}"
+    local buildtime="${11}"
+    local gnustep_folder="${12}"
+    local stamp_file="${13}"
+
     local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
     pushd "$script_dir" > /dev/null
 
@@ -9,29 +23,34 @@ run_script() {
     cd ../..
 
     set -x
-    local appname=$(basename "$ORIGPROGPATH")
-    local appdir=$(dirname "$ORIGPROGPATH")
-    local progpath="$PROGDIR/$appname"
-    mkdir -p "$PROGDIR/Resources"
+    local appname=$(basename "$origprogpath")
+    local appdir=$(dirname "$origprogpath")
+    local progpath="$progdir/$appname"
+    local resourcesdir="$progdir/Resources"
+    mkdir -p "$resourcesdir"
 
-    generate_manifest "$PROGDIR/Resources/manifest.plist"
-
-    if [[ ! -f "$ORIGPROGPATH" ]]; then
-        echo "❌ 'Oolite binary at '$ORIGPROGPATH' does not exist!" >&2
+    if [[ ! -f "$origprogpath" ]]; then
+        echo "❌ 'Oolite binary at '$origprogpath' does not exist!" >&2
         return 1
     fi
-    if ! cp -fu "$ORIGPROGPATH" "$progpath"; then
-        echo "❌ Failed to copy '$ORIGPROGPATH' to '$progpath'!" >&2
+    if ! cp -fu "$origprogpath" "$progpath"; then
+        echo "❌ Failed to copy '$origprogpath' to '$progpath'!" >&2
         return 1
     fi
-    cp -fu "$ORIGPROGPATH" "$progpath"
-    cp -fu src/Cocoa/Info-Oolite.plist "$PROGDIR/Resources/Info-gnustep.plist"
+    generate_manifest "$resourcesdir/manifest.plist" "$deployment_release" "$ver_full" "$ver_quad" "$ver_githash" "$buildtime"
+    cp -fu src/Cocoa/Info-Oolite.plist "$resourcesdir/Info-gnustep.plist"
+    if [[ "$deployment_release" == "no" ]]; then
+        local addonsdir="$progdir/AddOns"
+        mkdir -p "$addonsdir"
+        rm -rf "$addonsdir/Basic-debug.oxp"
+        cp -rf DebugOXP/Debug.oxp "$addonsdir/Basic-debug.oxp"
+    fi
 
     # Voice Data
-    if [[ "$ESPEAK" == "yes" ]]; then
-        if [[ "$HOST_OS" == "windows" ]]; then
+    if [[ "$espeak" == "yes" ]]; then
+        if [[ "$host_os" == "windows" ]]; then
             # Windows espeak-ng-data
-            cp -rfu "$MINGW_PREFIX/share/espeak-ng-data" "$PROGDIR/Resources"
+            cp -rfu "$MINGW_PREFIX/share/espeak-ng-data" "$resourcesdir"
         else
             # Linux search paths for espeak-ng-data
             local SEARCH_PATHS=(
@@ -44,7 +63,7 @@ run_script() {
             local path
             for path in "${SEARCH_PATHS[@]}"; do
                 if [[ -d "$path" ]]; then
-                    cp -rfu "$path" "$PROGDIR/Resources"
+                    cp -rfu "$path" "$resourcesdir"
                     found_data=true
                     break
                 fi
@@ -59,19 +78,19 @@ run_script() {
     fi
 
     # Replace specific voices with Oolite-specific versions
-    rm -f "$PROGDIR/Resources/espeak-ng-data/voices/!v/f2"
-    rm -f "$PROGDIR/Resources/espeak-ng-data/voices/default"
-    cp -rfu Resources/. "$PROGDIR/Resources"
-    rm -f "$PROGDIR/Resources/AIReference.html" "$PROGDIR/Resources/*.icns"
+    rm -f "$resourcesdir/espeak-ng-data/voices/!v/f2"
+    rm -f "$resourcesdir/espeak-ng-data/voices/default"
+    cp -rfu Resources/. "$resourcesdir"
+    rm -f "$resourcesdir/AIReference.html" "$resourcesdir/*.icns"
 
     # Strip binary if requested
-    if [[ "$STRIP_BIN" == "yes" ]]; then
-        if [[ "$HOST_OS" == "windows" ]]; then
+    if [[ "$strip_bin" == "yes" ]]; then
+        if [[ "$host_os" == "windows" ]]; then
             # Windows: Standard GNU strip is safest for PE/COFF
             strip "$progpath"
         else
             # Linux
-            local debugpath="$PROGDIR/$appname.debug"
+            local debugpath="$progdir/$appname.debug"
             # Extract symbols to file
             objcopy --only-keep-debug "$progpath" "$debugpath"
             # Compress the debug sections in the symbol file
@@ -81,34 +100,34 @@ run_script() {
             # Add the debug link
             objcopy --add-gnu-debuglink="$debugpath" "$progpath"
         fi
-    elif [[ "$HOST_OS" == "linux" ]]; then
+    elif [[ "$host_os" == "linux" ]]; then
         # Compress the debug sections in the binary
         objcopy --compress-debug-sections=zlib-gnu "$progpath"
     fi
 
-    if [[ "$HOST_OS" == "windows" ]]; then
+    if [[ "$host_os" == "windows" ]]; then
         # Determine and copy DLL dependencies
         local unix_prefix=$(cygpath -u "$MINGW_PREFIX")
-        ldd "$progpath" | grep "$unix_prefix" | awk '{print $3}' | xargs -I {} cp -rfu {} "$PROGDIR"
+        ldd "$progpath" | grep "$unix_prefix" | awk '{print $3}' | xargs -I {} cp -rfu {} "$progdir"
     else
         # Copy Linux-specific wrapper script
-        cp -fu ShellScripts/Linux/run_oolite.sh "$PROGDIR"
-        local gnustep_conf="$GNUSTEP_FOLDER/etc/GNUstep/GNUstep.conf"
-        if [ ! -f "$gnustep_conf" ] && [ "$GNUSTEP_FOLDER" = "/usr" ] && [ -f "/etc/GNUstep/GNUstep.conf" ]; then
+        cp -fu ShellScripts/Linux/run_oolite.sh "$progdir"
+        local gnustep_conf="$gnustep_folder/etc/GNUstep/GNUstep.conf"
+        if [ ! -f "$gnustep_conf" ] && [ "$gnustep_folder" = "/usr" ] && [ -f "/etc/GNUstep/GNUstep.conf" ]; then
             gnustep_conf="/etc/GNUstep/GNUstep.conf"
         fi
-        install -D "$gnustep_conf" "$PROGDIR/Resources/GNUstep.conf.orig" || { echo "$err_msg GNUstep config" >&2; return 1; }
+        install -D "$gnustep_conf" "$resourcesdir/GNUstep.conf.orig" || { echo "$err_msg GNUstep config" >&2; return 1; }
 
         # If we're using GNUstep libraries that aren't in a system folder copy them
         ldd "$progpath" | \
             grep -E "libgnustep-base|libobjc\.so\." | \
             grep -vE "^[[:space:]]*.*=>[[:space:]]*/(usr/(local/)?|lib(64)?/)" | \
             awk '{print $3}' | \
-            xargs -I {} cp -Lrfu {} "$PROGDIR/"
+            xargs -I {} cp -Lrfu {} "$progdir/"
     fi
 
     echo "✅ Oolite post-build completed successfully"
-    touch "$appdir/$STAMP_FILE"
+    touch "$appdir/$stamp_file"
     popd > /dev/null
 }
 

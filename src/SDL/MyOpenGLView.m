@@ -145,11 +145,7 @@ enum PreferredAppMode
 
 - (NSString*) getWindowCaption
 {
-#ifdef BUILD_DATE
-	NSString *caption = [NSString stringWithFormat:@"Oolite v%@ by %@ - %s", @OO_VERSION_FULL, @OO_BUILDER, BUILD_DATE];
-#else
-	NSString *caption = [NSString stringWithFormat:@"Oolite v%@ by %@ - %s", @OO_VERSION_FULL, @OO_BUILDER, __DATE__];
-#endif
+	NSString *caption = [NSString stringWithFormat:@"Oolite v%@ by %@ - %@", @OO_VERSION_FULL, @OO_BUILDER, @OO_BUILD_DATE];
 	return [[caption retain] autorelease];
 }
 

@@ -32,20 +32,14 @@ option('debug_graphviz', type: 'boolean', value: true,
        description: 'Enable AI state-machine graph visualization via GraphViz syntax output')
 
 # Release Variant Control
-option('deployment_release_configuration', type: 'boolean', value: false,
+option('deployment_release', type: 'boolean', value: false,
        description: 'Force a strict production deployment setup (overrides and disables most debugging instrumentation)')
 
-option('snapshot_build', type: 'boolean', value: false,
-       description: 'Mark the compilation as a development snapshot build')
+option('dev_release', type: 'boolean', value: false,
+       description: 'Mark the compilation as a development release')
 
 option('strip_bin', type: 'boolean', value: false, description: 'Enable stripping')
 
 # Windows Specific Customizations
 option('pdb', type: 'boolean', value: false,
        description: 'Windows Clang builds only: Generate native .pdb debug symbol files')
-
-# GitHub repository variable from CI if available
-option('github_repository', type: 'string', value: '',
-       description: 'GitHub repository variable from CI if available')
-
-

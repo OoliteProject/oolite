@@ -19,7 +19,7 @@ jobs:
         --security-opt apparmor:unconfined
     strategy:
       matrix:
-        flavour: [pkg-appimage-snapshot, pkg-appimage-deployment, pkg-appimage]
+        flavour: [deployment, test, dev]
     steps:
       ## This is for debugging only and helps developing the workflow.
       # - name: Environment Variables
@@ -58,11 +58,14 @@ jobs:
           ldconfig
       - name: Build Oolite
         run: |
-          ShellScripts/common/build_oolite.sh ${{matrix.flavour}}
+          ./mk.sh build ${{matrix.flavour}} --github-repository="$GITHUB_REPOSITORY"
+      - name: Package Oolite
+        run: |
+          ./mk.sh pkg-appimage ${{matrix.flavour}}
       - name: Archive installer
         uses: actions/upload-artifact@v6
         with:
-          name: oolite-linux-${{matrix.flavour}}
+          name: oolite-linux-appimage-${{matrix.flavour}}
           path: |
             build/oolite*.AppImage
           retention-days: 5
@@ -90,11 +93,15 @@ jobs:
           fetch-depth: 0
       - name: Build flatpak
         run: |
-          installers/flatpak/create_flatpak.sh
+          echo "Installing gitversion..."
+          source ShellScripts/Linux/install_gitversion_fn.sh
+          mkdir -p /usr/local/bin
+          install_gitversion "."
+          ./mk.sh pkg-flatpak deployment --github-repository="$GITHUB_REPOSITORY"
       - name: Archive installer
         uses: actions/upload-artifact@v6
         with:
-          name: oolite-flatpak
+          name: oolite-linux-flatpak-deployment
           path: |
             build/space.oolite.Oolite*.flatpak
           retention-days: 5
@@ -103,7 +110,7 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        flavour: [pkg-win-snapshot, pkg-win-deployment, pkg-win]
+        flavour: [deployment, test, dev]
     steps:
       ## This is for debugging only and helps developing the workflow.
       # - name: Environment Variables
@@ -117,6 +124,7 @@ jobs:
       - name: Set up MSYS2
         uses: msys2/setup-msys2@v2
         with:
+          msystem: UCRT64
           update: true
           cache: false
       - name: Checkout Oolite
@@ -139,12 +147,20 @@ jobs:
         shell: msys2 {0}
         env:
           msystem: UCRT64
+          PYTHONUTF8: "1"
         run: |
-          ShellScripts/common/build_oolite.sh ${{matrix.flavour}}
+          ./mk.sh build ${{matrix.flavour}} --github-repository="$GITHUB_REPOSITORY"
+      - name: Package Oolite
+        shell: msys2 {0}
+        env:
+          msystem: UCRT64
+          PYTHONUTF8: "1"
+        run: |
+          ./mk.sh pkg-win ${{matrix.flavour}}
       - name: Archive installer
         uses: actions/upload-artifact@v6
         with:
-          name: oolite-windows-${{matrix.flavour}}
+          name: oolite-windows-nsis-${{matrix.flavour}}
           path: |
             build/OoliteInstall*.exe
           retention-days: 5
@@ -164,7 +180,7 @@ jobs:
         uses: actions/download-artifact@v7
         with:
           path: artifacts
-      - name: Calculate version number and set OOLITE_VERSION
+      - name: Calculate version number and set VER_FULL
         id: version
         run: |
           set -x          
@@ -184,14 +200,14 @@ jobs:
           echo "Found AppImage: $APPIMAGE_PATH"                    
           # 3. Run with packageinfo and extract the string inside quotes
           chmod +x "$APPIMAGE_PATH"
-          VERSION_STR=$("$APPIMAGE_PATH" packageinfo | awk -F'"' '/^[[:space:]]*version =/ {print $2; exit}')           
-          if [[ -z "$VERSION_STR" ]]; then
+          VER_FULL=$("$APPIMAGE_PATH" packageinfo | awk -F'"' '/^[[:space:]]*version =/ {print $2; exit}')           
+          if [[ -z "$VER_FULL" ]]; then
             echo "❌ Failed to extract version string from packageinfo output!" >&2
             exit 1
           fi                     
-          echo "Extracted Version: $VERSION_STR"          
+          echo "Extracted Version: $VER_FULL"          
           # 4. Output the extracted version for subsequent steps
-          echo "OOLITE_VERSION=$VERSION_STR" >> "$GITHUB_OUTPUT"
+          echo "VER_FULL=$VER_FULL" >> "$GITHUB_OUTPUT"
       - name: Remove old prereleases
         if: github.ref == 'refs/heads/master' || endsWith(github.ref, 'maintenance')
         uses: s00d/delete-older-releases@0.2.1
@@ -208,17 +224,17 @@ jobs:
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           # automatic_release_tag: "latest"
-          automatic_release_tag: "${{ steps.version.outputs.OOLITE_VERSION }}"
+          automatic_release_tag: "${{ steps.version.outputs.VER_FULL }}"
           prerelease: true
-          title: "Oolite ${{ steps.version.outputs.OOLITE_VERSION }}"
+          title: "Oolite ${{ steps.version.outputs.VER_FULL }}"
           files: |
-            artifacts/oolite-windows-pkg-win-snapshot/OoliteInstall-*-dev.exe
-            artifacts/oolite-windows-pkg-win-deployment/OoliteInstall-*.exe
-            artifacts/oolite-windows-pkg-win/OoliteInstall-*.exe
-            artifacts/oolite-linux-pkg-appimage-snapshot/*.AppImage
-            artifacts/oolite-linux-pkg-appimage-deployment/*.AppImage
-            artifacts/oolite-linux-pkg-appimage/*.AppImage
-            artifacts/oolite-flatpak/*.flatpak
+            artifacts/oolite-windows-nsis-deployment/OoliteInstall-*.exe
+            artifacts/oolite-windows-nsis-test/OoliteInstall-*.exe
+            artifacts/oolite-windows-nsis-dev/OoliteInstall-*-dev.exe
+            artifacts/oolite-linux-appimage-deployment/*.AppImage
+            artifacts/oolite-linux-appimage-test/*.AppImage
+            artifacts/oolite-linux-appimage-dev/*.AppImage
+            artifacts/oolite-linux-flatpak-deployment/*.flatpak
       - name: Remove old workflow runs
         if: github.ref == 'refs/heads/master' || endsWith(github.ref, 'maintenance')
         uses: Mattraks/delete-workflow-runs@v2

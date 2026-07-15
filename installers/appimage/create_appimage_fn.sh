@@ -1,32 +1,24 @@
 #!/bin/bash -x
 #
 # Creates the appimage.
-# First parameter can be set to build type, typically one of "test", "dev" or omitted for release builds.
-#
 
-echo I am $0 $@
+create_appimage() {
+    local build_type="$1"  # Typically one of "deployment", "test", "dev"
+    local build_folder="$2"  # Build folder
 
-run_script() {
-    # First parameter is a suffix for the build type eg. test, dev
     local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
     pushd "$script_dir"
+    source ../FreeDesktop/install_freedesktop_fn.sh
+    source ../../ShellScripts/Linux/os_detection.sh
 
-    mkdir -p ../../build
-    cd ../../build
-    source ../ShellScripts/Linux/os_detection.sh
-    source ../ShellScripts/common/get_version.sh
-    source ../ShellScripts/Linux/install_freedesktop_fn.sh
-
+    cd ../../build/appimage
     local arch=$(uname -m)
     local APPDIR="./oolite.AppDir"
     export APPDIR
     local appbin="$APPDIR/bin"
     local appshr="$APPDIR/share"
-    rm -rf "$APPDIR"
 
-    local abs_oolitedir=$(realpath -m "$1")
-    local abs_appdir=$(realpath -m "$APPDIR")
-    if ! install_freedesktop "$abs_oolitedir" "$abs_appdir" bin appdata; then
+    if ! install_freedesktop ver_full "../$build_folder" "$APPDIR" "bin" "appdata"; then
         return 1
     fi
 
@@ -44,10 +36,10 @@ run_script() {
     local DESKTOP="$appshr/applications/space.oolite.Oolite.desktop"
     export DESKTOP
     local suffix
-   	if (( $# == 2 )); then
-        suffix="_${2}-${VER_FULL}"
+    if [[ "$build_type" != "deployment" ]]; then
+        suffix="_$build_type-$ver_full"
     else
-        suffix="-$VER_FULL"
+        suffix="-$ver_full"
     fi
     local OUTNAME="oolite${suffix}-${arch}.AppImage"
     export OUTNAME
@@ -94,20 +86,10 @@ run_script() {
     fi
 
     echo "Creating AppImage $OUTNAME..."
-    if ! $appimagetool_bin "$abs_appdir" "$OUTNAME"; then
+    if ! $appimagetool_bin "$APPDIR" "../$OUTNAME"; then
         echo "❌ AppImage creation failed!" >&2
         return 1
     fi
 
     popd
 }
-
-run_script "$@"
-status=$?
-
-
-# Exit only if not sourced
-if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-    exit $status
-fi
-

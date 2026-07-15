@@ -1,6 +1,6 @@
 #!/bin/bash
 # Parameter one: "system", "home", or "build" (defaults to home).
-# Parameter two: Escalate command (defaults to sudo for 'system').
+# Parameter two: escalate command (defaults to sudo for 'system').
 
 run_script() {
     local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
@@ -9,7 +9,8 @@ run_script() {
     echo "Building GNUStep libraries"
 
     source dep_location_fn.sh
-    dep_location LIB_SUBDIR TARGET ESCALATE "gnustep" $1 $2
+    local lib_subdir target escalate
+    dep_location lib_subdir target escalate "gnustep" $1 $2
 
 
     mkdir -p ../../build
@@ -52,7 +53,7 @@ run_script() {
     rm -rf build
     mkdir build
     cd build
-    if ! cmake -DCMAKE_INSTALL_PREFIX="$TARGET" -DCMAKE_INSTALL_LIBDIR="$LIB_SUBDIR" -DTESTS=on -DCMAKE_BUILD_TYPE=Release -DGNUSTEP_INSTALL_TYPE=NONE -DEMBEDDED_BLOCKS_RUNTIME=ON -DOLDABI_COMPAT=OFF ../; then
+    if ! cmake -DCMAKE_INSTALL_PREFIX="$target" -DCMAKE_INSTALL_LIBDIR="$lib_subdir" -DTESTS=on -DCMAKE_BUILD_TYPE=Release -DGNUSTEP_INSTALL_TYPE=NONE -DEMBEDDED_BLOCKS_RUNTIME=ON -DOLDABI_COMPAT=OFF ../; then
         echo "❌ libobjc2 cmake configure failed!" >&2
         return 1
     fi
@@ -61,29 +62,29 @@ run_script() {
         echo "❌ libobjc2 cmake build failed!" >&2
         return 1
     fi
-    $ESCALATE cmake --install .
+    $escalate cmake --install .
     cd ../..
 
     cd tools-make
     make clean
 
-    local lib_dir="$TARGET/$LIB_SUBDIR"
-    export CPPFLAGS="-I$TARGET/include"
+    local lib_dir="$target/$lib_subdir"
+    export CPPFLAGS="-I$target/include"
     export LDFLAGS="-L$lib_dir"
 
-    if ! ./configure --prefix="$TARGET" --with-library-combo=ng-gnu-gnu --with-runtime-abi=gnustep-2.2 "--with-libdir=$LIB_SUBDIR"; then
+    if ! ./configure --prefix="$target" --with-library-combo=ng-gnu-gnu --with-runtime-abi=gnustep-2.2 "--with-libdir=$lib_subdir"; then
         echo "❌ tools-make configure failed!" >&2
         return 1
     fi
     make
-    $ESCALATE make install
+    $escalate make install
     cd ..
 
     cd libs-base
     make clean
 
     export LD_LIBRARY_PATH="$lib_dir:$LD_LIBRARY_PATH"
-    source "$TARGET/share/GNUstep/Makefiles/GNUstep.sh"
+    source "$target/share/GNUstep/Makefiles/GNUstep.sh"
     if ! ./configure; then
         echo "❌ libs-base configure failed!" >&2
         return 1
@@ -92,7 +93,7 @@ run_script() {
         echo "❌ libs-base make failed!" >&2
         return 1
     fi
-    $ESCALATE make install
+    $escalate make install
 
     popd
 }
