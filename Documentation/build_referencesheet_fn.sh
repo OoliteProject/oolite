@@ -11,7 +11,6 @@ build_referencesheet() {
     fi
 
     cd ..
-    source ShellScripts/common/get_version.sh
     mkdir -p build/documentation/docs/reference
     cd build/documentation/
     cp ../../Doc/OoliteRS.odt ./reference.odt
