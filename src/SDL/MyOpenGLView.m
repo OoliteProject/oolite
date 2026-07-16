@@ -1464,7 +1464,7 @@ finished:
 	}
 	viewSize = v_size;
 	OOLog(@"display.initGL", @"Requested a new surface of %d x %d, %@.", (int)viewSize.width, (int)viewSize.height,(fullScreen ? @"fullscreen" : @"windowed"));
-	SDL_GL_SwapWindow(window);	// clear the buffer before resize
+	int pixelWidth, pixelHeight;
 	
 #if OOLITE_WINDOWS
 	if (!updateContext) return;
@@ -1629,9 +1629,10 @@ finished:
 	SDL_SetWindowBordered(window, v_mode);
 	SDL_SetWindowFullscreen(window, fullScreen);
 	SDL_SetWindowSize(window, viewSize.width, viewSize.height);
-	SDL_Surface *surface = SDL_GetWindowSurface(window);
-	bounds.size.width = surface->w;
-	bounds.size.height = surface->h;
+
+	SDL_GetWindowSizeInPixels(window, &pixelWidth, &pixelHeight);
+	bounds.size.width = pixelWidth;
+	bounds.size.height = pixelHeight;
 
 #endif
 	OOLog(@"display.initGL", @"Created a new surface of %d x %d, %@.", (int)viewSize.width, (int)viewSize.height,(fullScreen ? @"fullscreen" : @"windowed"));
@@ -1648,8 +1649,9 @@ finished:
 
 	[self autoShowMouse];
 
-	int pixelWidth, pixelHeight;
+#if OOLITE_WINDOWS
 	SDL_GetWindowSizeInPixels(window, &pixelWidth, &pixelHeight);
+#endif
 	NSSize pixelSize = NSMakeSize(pixelWidth, pixelHeight);
 	[[self gameController] setUpBasicOpenGLStateWithSize:pixelSize];
 	SDL_GL_SwapWindow(window);
@@ -2484,18 +2486,19 @@ finished:
 					{
 						[self initialiseGLWithSize: newSize];
 						[self saveWindowSize: newSize];
+
+						// certain gui screens will require an immediate redraw after
+						// a resize event - Nikos 20140129
+						if ([PlayerEntity sharedPlayer])
+						{
+							[[PlayerEntity sharedPlayer] doGuiScreenResizeUpdates];
+						}
 					}
 				}
 #else
 				newSize=NSMakeSize(rsevt->data1, rsevt->data2);
                 resize_pending = true;
 #endif
-				// certain gui screens will require an immediate redraw after
-				// a resize event - Nikos 20140129
-				if ([PlayerEntity sharedPlayer])
-				{
-					[[PlayerEntity sharedPlayer] doGuiScreenResizeUpdates];
-				}
 				break;
 			}
 
@@ -2625,9 +2628,17 @@ finished:
 #if OOLITE_LINUX
 	if (resize_pending)
 	{
+		resize_pending = false;
+
 		[self initialiseGLWithSize: newSize];
 		[self saveWindowSize: newSize];
-		resize_pending = false;
+
+		// certain gui screens will require an immediate redraw after
+		// a resize event - Nikos 20140129
+		if ([PlayerEntity sharedPlayer])
+		{
+			[[PlayerEntity sharedPlayer] doGuiScreenResizeUpdates];
+		}
 	}
 #endif
 }
