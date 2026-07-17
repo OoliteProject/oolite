@@ -91,8 +91,8 @@ create_flatpak() {
         return 1
     fi
 
-    local ARCH=$(uname -m)
-    local filename="space.oolite.Oolite-$ver_full-$build_type-$ARCH.flatpak"
+    local arch=$(uname -m)
+    local filename="space.oolite.Oolite_$arch_$ver_full-$build_type.flatpak"
     echo "Creating Flatpak $filename..."
     if ! flatpak build-bundle \
       repo \
