@@ -35,7 +35,7 @@ create_appimage() {
     export ICON
     local DESKTOP="$appshr/applications/space.oolite.Oolite.desktop"
     export DESKTOP
-    local OUTNAME="Oolite_$arch_$ver_full-$build_type.AppImage"
+    local OUTNAME="Oolite-$ver_full-$build_type-$arch.AppImage"
     export OUTNAME
 
     echo "Building AppDir for AppImage..."
