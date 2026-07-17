@@ -91,14 +91,8 @@ create_flatpak() {
         return 1
     fi
 
-    local suffix
-    if [[ "$build_type" != "deployment" ]]; then
-        suffix="_$build_type-$ver_full"
-    else
-        suffix="-$ver_full"
-    fi
     local ARCH=$(uname -m)
-    local filename="space.oolite.Oolite${suffix}-${ARCH}.flatpak"
+    local filename="space.oolite.Oolite-$ver_full-$build_type-$ARCH.flatpak"
     echo "Creating Flatpak $filename..."
     if ! flatpak build-bundle \
       repo \

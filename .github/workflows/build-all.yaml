@@ -226,15 +226,14 @@ jobs:
           name: "Oolite ${{ steps.version.outputs.VER_FULL }}"
           tag_name: "${{ steps.version.outputs.VER_FULL }}"
           prerelease: true
-          preserve_order: true
           files: |
+            artifacts/oolite-windows-nsis-deployment/OoliteInstall-*.exe
+            artifacts/oolite-windows-nsis-test/OoliteInstall-*.exe
+            artifacts/oolite-windows-nsis-dev/OoliteInstall-*.exe
             artifacts/oolite-linux-appimage-deployment/*.AppImage
             artifacts/oolite-linux-appimage-test/*.AppImage
             artifacts/oolite-linux-appimage-dev/*.AppImage
             artifacts/oolite-linux-flatpak-deployment/*.flatpak
-            artifacts/oolite-windows-nsis-deployment/OoliteInstall-*.exe
-            artifacts/oolite-windows-nsis-test/OoliteInstall-*.exe
-            artifacts/oolite-windows-nsis-dev/OoliteInstall-*-dev.exe
 
       - name: Remove old workflow runs
         if: github.ref == 'refs/heads/master' || endsWith(github.ref, 'maintenance')
