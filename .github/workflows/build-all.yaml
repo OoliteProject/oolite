@@ -67,7 +67,7 @@ jobs:
         with:
           name: oolite-linux-appimage-${{matrix.flavour}}
           path: |
-            build/oolite*.AppImage
+            build/Oolite*.AppImage
           retention-days: 5
 
   build-flatpak:
@@ -220,21 +220,21 @@ jobs:
       # It should move the 'latest' tag automatically.
       - name: Create Release
         id: create_release
-        uses: "marvinpinto/action-automatic-releases@latest"
+        uses: softprops/action-gh-release@v3
         with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          # automatic_release_tag: "latest"
-          automatic_release_tag: "${{ steps.version.outputs.VER_FULL }}"
+          token: "${{ secrets.GITHUB_TOKEN }}"
+          name: "Oolite ${{ steps.version.outputs.VER_FULL }}"
+          tag_name: "${{ steps.version.outputs.VER_FULL }}"
           prerelease: true
-          title: "Oolite ${{ steps.version.outputs.VER_FULL }}"
           files: |
             artifacts/oolite-windows-nsis-deployment/OoliteInstall-*.exe
             artifacts/oolite-windows-nsis-test/OoliteInstall-*.exe
-            artifacts/oolite-windows-nsis-dev/OoliteInstall-*-dev.exe
+            artifacts/oolite-windows-nsis-dev/OoliteInstall-*.exe
             artifacts/oolite-linux-appimage-deployment/*.AppImage
             artifacts/oolite-linux-appimage-test/*.AppImage
             artifacts/oolite-linux-appimage-dev/*.AppImage
             artifacts/oolite-linux-flatpak-deployment/*.flatpak
+
       - name: Remove old workflow runs
         if: github.ref == 'refs/heads/master' || endsWith(github.ref, 'maintenance')
         uses: Mattraks/delete-workflow-runs@v2
