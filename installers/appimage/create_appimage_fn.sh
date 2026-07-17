@@ -41,7 +41,7 @@ create_appimage() {
     else
         suffix="-$ver_full"
     fi
-    local OUTNAME="oolite${suffix}-${arch}.AppImage"
+    local OUTNAME="Oolite${suffix}-${arch}.AppImage"
     export OUTNAME
 
     echo "Building AppDir for AppImage..."
