@@ -36,7 +36,7 @@
 !define EXTVER "-test"  ; Official distribution with OXP developer tools
 !define ADDCHANGELOG 1	; Official distributions go with a changelog file
 !else
-!define EXTVER ""
+!define EXTVER "-deployment"
 !define ADDCHANGELOG 1	; Official distributions go with a changelog file
 !endif
 !else

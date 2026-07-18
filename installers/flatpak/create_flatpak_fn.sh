@@ -91,14 +91,9 @@ create_flatpak() {
         return 1
     fi
 
-    local suffix
-    if [[ "$build_type" != "deployment" ]]; then
-        suffix="_$build_type-$ver_full"
-    else
-        suffix="-$ver_full"
-    fi
-    local ARCH=$(uname -m)
-    local filename="space.oolite.Oolite${suffix}-${ARCH}.flatpak"
+    local arch=$(uname -m)
+    local suffix="-$ver_full-$build_type-$arch"
+    local filename="space.oolite.Oolite${suffix}.flatpak"
     echo "Creating Flatpak $filename..."
     if ! flatpak build-bundle \
       repo \
@@ -107,7 +102,7 @@ create_flatpak() {
         echo "❌ Flatpak bundle creation failed!" >&2
         return 1
     fi
-    local debugname="space.oolite.Oolite.Debug${suffix}-${ARCH}.flatpak"
+    local debugname="space.oolite.Oolite.Debug${suffix}.flatpak"
     if ! flatpak build-bundle \
       --runtime \
       repo \

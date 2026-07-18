@@ -10,7 +10,12 @@ install_package() {
     # This CASE statement is the dictionary.
     # Add your packages here.
     case "$generic_name" in
-        "git") pkg_name="git" ;;
+        "procps")
+            case "$CURRENT_DISTRO" in
+                debian) pkg_name="procps" ;;
+                redhat) pkg_name="procps-ng" ;;
+                arch) pkg_name="procps-ng" ;;
+            esac ;;
 
         "base-devel")
             case "$CURRENT_DISTRO" in

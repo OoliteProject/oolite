@@ -17,6 +17,9 @@ run_script() {
     source install_gitversion_fn.sh
     source install_package_fn.sh
 
+    if ! install_package procps; then
+        return 1
+    fi
     if ! install_package base-devel; then
         return 1
     fi
