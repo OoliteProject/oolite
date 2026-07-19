@@ -1654,7 +1654,9 @@ finished:
 #endif
 	NSSize pixelSize = NSMakeSize(pixelWidth, pixelHeight);
 	[[self gameController] setUpBasicOpenGLStateWithSize:pixelSize];
+#if OOLITE_WINDOWS
 	SDL_GL_SwapWindow(window);
+#endif
 	squareX = 0.0f;
 
 	m_glContextInitialized = YES;
@@ -2496,8 +2498,13 @@ finished:
 					}
 				}
 #else
-				newSize=NSMakeSize(rsevt->data1, rsevt->data2);
-                resize_pending = true;
+				int pixelWidth = 0;
+				int pixelHeight = 0;
+				if (SDL_GetWindowSizeInPixels(window, &pixelWidth, &pixelHeight) == 0)
+				{
+					newSize = NSMakeSize(pixelWidth, pixelHeight);
+				}
+				resize_pending = true;
 #endif
 				break;
 			}
