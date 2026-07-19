@@ -57,6 +57,8 @@ jobs:
           echo "/usr/local/lib" | tee -a /etc/ld.so.conf
           ldconfig
       - name: Build Oolite
+        env:
+          GitVersion_BranchName: ${{ github.head_ref || github.ref_name }}
         run: |
           ./mk.sh build ${{matrix.flavour}} --github-repository="$GITHUB_REPOSITORY"
       - name: Package Oolite
@@ -92,6 +94,8 @@ jobs:
         with:
           fetch-depth: 0
       - name: Build flatpak
+        env:
+          GitVersion_BranchName: ${{ github.head_ref || github.ref_name }}
         run: |
           echo "Installing gitversion..."
           source ShellScripts/Linux/install_gitversion_fn.sh
@@ -148,6 +152,7 @@ jobs:
         env:
           msystem: UCRT64
           PYTHONUTF8: "1"
+          GitVersion_BranchName: ${{ github.head_ref || github.ref_name }}
         run: |
           ./mk.sh build ${{matrix.flavour}} --github-repository="$GITHUB_REPOSITORY"
       - name: Package Oolite
