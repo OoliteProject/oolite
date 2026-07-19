@@ -226,6 +226,7 @@ jobs:
           name: "Oolite ${{ steps.version.outputs.VER_FULL }}"
           tag_name: "${{ steps.version.outputs.VER_FULL }}"
           prerelease: true
+          target_commitish: ${{ github.event.pull_request.head.sha || github.sha }}
           files: |
             artifacts/oolite-windows-nsis-deployment/OoliteInstall-*.exe
             artifacts/oolite-windows-nsis-test/OoliteInstall-*.exe
