@@ -2632,7 +2632,35 @@ finished:
 	{
 		resize_pending = false;
 
-		[self initialiseGLWithSize: newSize];
+		// 1. Tell SDL to update the window dimensions
+		SDL_SetWindowSize(window, newSize.width, newSize.height);
+
+		// 2. Fetch actual pixel bounds back from SDL
+		int pixelWidth, pixelHeight;
+		SDL_GetWindowSizeInPixels(window, &pixelWidth, &pixelHeight);
+		bounds.size = NSMakeSize(pixelWidth, pixelHeight);
+		viewSize = bounds.size;
+
+		// 3. Recalculate aspect-ratio-dependent projection offsets
+		if (bounds.size.width / bounds.size.height > 4.0 / 3.0) {
+			display_z = 480.0 * bounds.size.width / bounds.size.height;
+			x_offset = 240.0 * bounds.size.width / bounds.size.height;
+			y_offset = 240.0;
+		} else {
+			display_z = 640.0;
+			x_offset = 320.0;
+			y_offset = 320.0 * bounds.size.height / bounds.size.width;
+		}
+
+		// 4. Update OpenGL Viewport and Projection Matrix
+		float ratio = 0.5;
+		float aspect = bounds.size.height / bounds.size.width;
+
+		OOGL(glViewport(0, 0, bounds.size.width, bounds.size.height));
+		OOGLResetProjection();
+		OOGLFrustum(-ratio, ratio, -aspect * ratio, aspect * ratio, 1.0, MAX_CLEAR_DEPTH);
+
+		// 5. Save the updated window size
 		[self saveWindowSize: newSize];
 	}
 #endif
