@@ -2471,10 +2471,10 @@ finished:
 				}
 				break;
 
-			case SDL_EVENT_WINDOW_RESIZED:
+			case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
 			{
-				SDL_WindowEvent *rsevt=(SDL_WindowEvent *)&event;
 #if OOLITE_WINDOWS
+				SDL_WindowEvent *rsevt=(SDL_WindowEvent *)&event;
 				NSSize newSize=NSMakeSize(rsevt->data1, rsevt->data2);
 				if (!fullScreen && updateContext)
 				{
@@ -2498,12 +2498,7 @@ finished:
 					}
 				}
 #else
-				int pixelWidth = 0;
-				int pixelHeight = 0;
-				if (SDL_GetWindowSizeInPixels(window, &pixelWidth, &pixelHeight) == 0)
-				{
-					newSize = NSMakeSize(pixelWidth, pixelHeight);
-				}
+				newSize = NSMakeSize(event.window.data1, event.window.data2);
 				resize_pending = true;
 #endif
 				break;
