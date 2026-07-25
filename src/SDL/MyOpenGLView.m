@@ -2467,7 +2467,7 @@ finished:
 				}
 				break;
 
-			case SDL_EVENT_WINDOW_RESIZED:
+			case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
 			{
 				SDL_WindowEvent *rsevt=(SDL_WindowEvent *)&event;
 #if OOLITE_WINDOWS
