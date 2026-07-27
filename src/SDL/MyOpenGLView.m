@@ -2633,7 +2633,7 @@ finished:
 		resize_pending = false;
 
 		// 1. Tell SDL to update the window dimensions
-		SDL_SetWindowSize(window, newSize.width, newSize.height);
+//		SDL_SetWindowSize(window, newSize.width, newSize.height);
 
 		// 2. Fetch actual pixel bounds back from SDL
 		int pixelWidth, pixelHeight;
