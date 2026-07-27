@@ -452,13 +452,12 @@ enum PreferredAppMode
 #if OOLITE_WINDOWS
 	ShowWindow(windowHandle,SW_SHOWMINIMIZED);
 	updateContext = !showSplashScreen;
-#elif OOLITE_LINUX
+#endif
 	if (!showSplashScreen)
 	{
 		// blank the surface / go to fullscreen
 		[self initialiseGLWithSize: firstScreen];
 	}
-#endif
 
 	[self autoShowMouse];
 
@@ -500,12 +499,11 @@ enum PreferredAppMode
 
 	wasFullScreen = !fullScreen;
 	updateContext = YES;
-	ShowWindow(windowHandle,SW_RESTORE);
-	[self initialiseGLWithSize: firstScreen];
+#endif // OOLITE_WINDOWS
 
-#else
-	if (!showSplashScreen)  return;
+    if (!showSplashScreen)  return;
 
+#if OOLITE_LINUX
 	SDL_HideWindow(window);
 	SDL_SetWindowSize(window, firstScreen.width, firstScreen.height);
     SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
@@ -528,7 +526,7 @@ enum PreferredAppMode
 		*/
 	}
 
-#endif // OOLITE_WINDOWS
+#endif // OOLITE_LINUX
 
 	[self updateScreen];
 	[self autoShowMouse];
