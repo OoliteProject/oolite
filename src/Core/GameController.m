@@ -344,7 +344,7 @@ static GameController *sSharedController = nil;
 		[gameView initSplashScreen];
 	}
 #else
-	[gameView updateScreen];
+	[gameView updateScreenWithVideoMode:YES];
 #endif
 }
 
@@ -404,7 +404,7 @@ static GameController *sSharedController = nil;
 	
 	@try
 	{
-		[gameView display];
+		[gameView updateScreenWithVideoMode:YES];
 	}
 	@catch (id exception) {}
 }
@@ -902,7 +902,7 @@ static NSMutableArray *sMessageStack;
 
 - (void)windowDidResize:(NSNotification *)aNotification
 {
-	[gameView updateScreen];
+	[gameView updateScreenWithVideoMode:YES];
 }
 
 

@@ -448,7 +448,7 @@ enum PreferredAppMode
 	OOLog(@"display.mode.list", @"%@", @"CREATING MODE LIST");
 
 
-
+	m_glContextInitialized = NO;
 #if OOLITE_WINDOWS
 	ShowWindow(windowHandle,SW_SHOWMINIMIZED);
 	updateContext = !showSplashScreen;
@@ -476,8 +476,6 @@ enum PreferredAppMode
 	timeIntervalAtLastClick = timeSinceLastMouseWheel = [NSDate timeIntervalSinceReferenceDate];
 
 	_mouseWheelDelta = 0.0f;
-
-	m_glContextInitialized = NO;
 
 	return self;
 }
@@ -530,7 +528,7 @@ enum PreferredAppMode
 
 #endif // OOLITE_WINDOWS
 
-	[self updateScreen];
+	[self updateScreenWithVideoMode:YES];
 	[self autoShowMouse];
 }
 
@@ -786,22 +784,6 @@ enum PreferredAppMode
 
 #endif
 
-- (void) display
-{
-	[self updateScreen];
-}
-
-- (void) updateScreen
-{
-	[self drawRect: NSMakeRect(0, 0, viewSize.width, viewSize.height)];
-}
-
-- (void) drawRect:(NSRect)rect
-{
-//	SDL_SetWindowSize(window, (int)NSWidth(rect), (int)NSHeight(rect));
-	[self updateScreenWithVideoMode:YES];
-}
-
 - (void) updateScreenWithVideoMode:(BOOL) v_mode
 {
 	SDL_Surface* surface = SDL_GetWindowSurface(window);
@@ -809,9 +791,6 @@ enum PreferredAppMode
 	SDL_GetWindowSize(window, &windowWidth, &windowHeight);
 	if ((viewSize.width != windowWidth)||(viewSize.height != windowHeight)) // resized
 	{
-#if OOLITE_LINUX
-		m_glContextInitialized = NO; //probably not needed
-#endif
 		viewSize.width = windowWidth;
 		viewSize.height = windowHeight;
 	}
