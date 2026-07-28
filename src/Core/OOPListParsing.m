@@ -22,7 +22,7 @@ MA 02110-1301, USA.
 
 */
 
-
+#import "Universe.h"
 #import "OOPListParsing.h"
 #import "OOLogging.h"
 #import "OOStringParsing.h"
@@ -38,6 +38,7 @@ MA 02110-1301, USA.
 
 static NSString * const kOOLogPListFoundationParseError		= @"plist.parse.failed";
 static NSString * const kOOLogPListWrongType				= @"plist.wrongType";
+static NSString * const kOOLogPListInformation              = @"plist.information";
 
 
 #ifndef NO_DYNAMIC_PLIST_DTD_CHANGE
@@ -53,6 +54,12 @@ id OOPropertyListFromData(NSData *data, NSString *whereFrom)
 	id			result = nil;
 	NSString	*error = nil;
 	
+	if (whereFrom == nil) whereFrom = @"<data in memory>";
+	if (UNIVERSE != nil) 
+	{
+		OOLog(kOOLogPListInformation, @"Parsing %@ as a property list.", whereFrom);
+	}
+
 	if (data != nil)
 	{
 #ifndef NO_DYNAMIC_PLIST_DTD_CHANGE
