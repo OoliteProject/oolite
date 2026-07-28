@@ -456,6 +456,7 @@ enum PreferredAppMode
 	if (!showSplashScreen)
 	{
 		// blank the surface / go to fullscreen
+	    [self createWindowWithSize: firstScreen];
 		[self initialiseGLWithSize: firstScreen];
 	}
 
@@ -1435,10 +1436,6 @@ finished:
 
 - (void) initialiseGLWithSize:(NSSize) v_size useVideoMode:(BOOL) v_mode
 {
-	if (!window)
-	{
-		[self createWindowWithSize: v_size];
-	}
 	viewSize = v_size;
 	OOLog(@"display.initGL", @"Requested a new surface of %d x %d, %@.", (int)viewSize.width, (int)viewSize.height,(fullScreen ? @"fullscreen" : @"windowed"));
 	int pixelWidth, pixelHeight;
