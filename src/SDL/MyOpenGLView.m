@@ -790,9 +790,6 @@ enum PreferredAppMode
 	SDL_GetWindowSizeInPixels(window, &windowWidth, &windowHeight);
 	if ((viewSize.width != windowWidth)||(viewSize.height != windowHeight)) // resized
 	{
-#if OOLITE_LINUX
-		m_glContextInitialized = NO; //probably not needed
-#endif
 		viewSize.width = windowWidth;
 		viewSize.height = windowHeight;
 	}
