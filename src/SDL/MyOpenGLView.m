@@ -448,7 +448,7 @@ enum PreferredAppMode
 	OOLog(@"display.mode.list", @"%@", @"CREATING MODE LIST");
 
 
-
+	m_glContextInitialized = NO;
 #if OOLITE_WINDOWS
 	ShowWindow(windowHandle,SW_SHOWMINIMIZED);
 	updateContext = !showSplashScreen;
@@ -456,6 +456,7 @@ enum PreferredAppMode
 	if (!showSplashScreen)
 	{
 		// blank the surface / go to fullscreen
+	    [self createWindowWithSize: firstScreen];
 		[self initialiseGLWithSize: firstScreen];
 	}
 
@@ -475,8 +476,6 @@ enum PreferredAppMode
 	timeIntervalAtLastClick = timeSinceLastMouseWheel = [NSDate timeIntervalSinceReferenceDate];
 
 	_mouseWheelDelta = 0.0f;
-
-	m_glContextInitialized = NO;
 
 	return self;
 }
@@ -528,7 +527,7 @@ enum PreferredAppMode
 
 #endif // OOLITE_LINUX
 
-	[self updateScreen];
+	[self updateScreenWithVideoMode:YES];
 	[self autoShowMouse];
 }
 
@@ -784,32 +783,13 @@ enum PreferredAppMode
 
 #endif
 
-- (void) display
-{
-	[self updateScreen];
-}
-
-- (void) updateScreen
-{
-	[self drawRect: NSMakeRect(0, 0, viewSize.width, viewSize.height)];
-}
-
-- (void) drawRect:(NSRect)rect
-{
-	SDL_SetWindowSize(window, (int)NSWidth(rect), (int)NSHeight(rect));
-	[self updateScreenWithVideoMode:YES];
-}
-
 - (void) updateScreenWithVideoMode:(BOOL) v_mode
 {
 	SDL_Surface* surface = SDL_GetWindowSurface(window);
 	int windowWidth, windowHeight;
-	SDL_GetWindowSize(window, &windowWidth, &windowHeight);
+	SDL_GetWindowSizeInPixels(window, &windowWidth, &windowHeight);
 	if ((viewSize.width != windowWidth)||(viewSize.height != windowHeight)) // resized
 	{
-#if OOLITE_LINUX
-		m_glContextInitialized = NO; //probably not needed
-#endif
 		viewSize.width = windowWidth;
 		viewSize.height = windowHeight;
 	}
@@ -1456,13 +1436,9 @@ finished:
 
 - (void) initialiseGLWithSize:(NSSize) v_size useVideoMode:(BOOL) v_mode
 {
-	if (!window)
-	{
-		[self createWindowWithSize: v_size];
-	}
 	viewSize = v_size;
 	OOLog(@"display.initGL", @"Requested a new surface of %d x %d, %@.", (int)viewSize.width, (int)viewSize.height,(fullScreen ? @"fullscreen" : @"windowed"));
-	SDL_GL_SwapWindow(window);	// clear the buffer before resize
+	int pixelWidth, pixelHeight;
 	
 #if OOLITE_WINDOWS
 	if (!updateContext) return;
@@ -1627,9 +1603,10 @@ finished:
 	SDL_SetWindowBordered(window, v_mode);
 	SDL_SetWindowFullscreen(window, fullScreen);
 	SDL_SetWindowSize(window, viewSize.width, viewSize.height);
-	SDL_Surface *surface = SDL_GetWindowSurface(window);
-	bounds.size.width = surface->w;
-	bounds.size.height = surface->h;
+
+	SDL_GetWindowSizeInPixels(window, &pixelWidth, &pixelHeight);
+	bounds.size.width = pixelWidth;
+	bounds.size.height = pixelHeight;
 
 #endif
 	OOLog(@"display.initGL", @"Created a new surface of %d x %d, %@.", (int)viewSize.width, (int)viewSize.height,(fullScreen ? @"fullscreen" : @"windowed"));
@@ -1646,11 +1623,14 @@ finished:
 
 	[self autoShowMouse];
 
-	int pixelWidth, pixelHeight;
+#if OOLITE_WINDOWS
 	SDL_GetWindowSizeInPixels(window, &pixelWidth, &pixelHeight);
+#endif
 	NSSize pixelSize = NSMakeSize(pixelWidth, pixelHeight);
 	[[self gameController] setUpBasicOpenGLStateWithSize:pixelSize];
+#if OOLITE_WINDOWS
 	SDL_GL_SwapWindow(window);
+#endif
 	squareX = 0.0f;
 
 	m_glContextInitialized = YES;
@@ -2465,10 +2445,10 @@ finished:
 				}
 				break;
 
-			case SDL_EVENT_WINDOW_RESIZED:
+			case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
 			{
-				SDL_WindowEvent *rsevt=(SDL_WindowEvent *)&event;
 #if OOLITE_WINDOWS
+				SDL_WindowEvent *rsevt=(SDL_WindowEvent *)&event;
 				NSSize newSize=NSMakeSize(rsevt->data1, rsevt->data2);
 				if (!fullScreen && updateContext)
 				{
@@ -2482,18 +2462,19 @@ finished:
 					{
 						[self initialiseGLWithSize: newSize];
 						[self saveWindowSize: newSize];
+
 					}
 				}
-#else
-				newSize=NSMakeSize(rsevt->data1, rsevt->data2);
-                resize_pending = true;
-#endif
-				// certain gui screens will require an immediate redraw after
+			    // certain gui screens will require an immediate redraw after
 				// a resize event - Nikos 20140129
 				if ([PlayerEntity sharedPlayer])
 				{
 					[[PlayerEntity sharedPlayer] doGuiScreenResizeUpdates];
 				}
+#else
+				newSize = NSMakeSize(event.window.data1, event.window.data2);
+				resize_pending = true;
+#endif
 				break;
 			}
 
@@ -2623,9 +2604,38 @@ finished:
 #if OOLITE_LINUX
 	if (resize_pending)
 	{
-		[self initialiseGLWithSize: newSize];
-		[self saveWindowSize: newSize];
 		resize_pending = false;
+
+		// 1. Tell SDL to update the window dimensions
+//		SDL_SetWindowSize(window, newSize.width, newSize.height);
+
+		// 2. Fetch actual pixel bounds back from SDL
+		int pixelWidth, pixelHeight;
+		SDL_GetWindowSizeInPixels(window, &pixelWidth, &pixelHeight);
+		bounds.size = NSMakeSize(pixelWidth, pixelHeight);
+		viewSize = bounds.size;
+
+		// 3. Recalculate aspect-ratio-dependent projection offsets
+		if (bounds.size.width / bounds.size.height > 4.0 / 3.0) {
+			display_z = 480.0 * bounds.size.width / bounds.size.height;
+			x_offset = 240.0 * bounds.size.width / bounds.size.height;
+			y_offset = 240.0;
+		} else {
+			display_z = 640.0;
+			x_offset = 320.0;
+			y_offset = 320.0 * bounds.size.height / bounds.size.width;
+		}
+
+		// 4. Update OpenGL Viewport and Projection Matrix
+		float ratio = 0.5;
+		float aspect = bounds.size.height / bounds.size.width;
+
+		OOGL(glViewport(0, 0, bounds.size.width, bounds.size.height));
+		OOGLResetProjection();
+		OOGLFrustum(-ratio, ratio, -aspect * ratio, aspect * ratio, 1.0, MAX_CLEAR_DEPTH);
+
+		// 5. Save the updated window size
+		[self saveWindowSize: newSize];
 	}
 #endif
 }
