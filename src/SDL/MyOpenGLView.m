@@ -2463,13 +2463,13 @@ finished:
 						[self initialiseGLWithSize: newSize];
 						[self saveWindowSize: newSize];
 
-						// certain gui screens will require an immediate redraw after
-						// a resize event - Nikos 20140129
-						if ([PlayerEntity sharedPlayer])
-						{
-							[[PlayerEntity sharedPlayer] doGuiScreenResizeUpdates];
-						}
 					}
+				}
+			    // certain gui screens will require an immediate redraw after
+				// a resize event - Nikos 20140129
+				if ([PlayerEntity sharedPlayer])
+				{
+					[[PlayerEntity sharedPlayer] doGuiScreenResizeUpdates];
 				}
 #else
 				newSize = NSMakeSize(event.window.data1, event.window.data2);
