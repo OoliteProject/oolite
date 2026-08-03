@@ -2465,24 +2465,44 @@ finished:
 				}
 				break;
 
-			case SDL_EVENT_WINDOW_RESIZED:
+			case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
 			{
 				SDL_WindowEvent *rsevt=(SDL_WindowEvent *)&event;
 #if OOLITE_WINDOWS
 				NSSize newSize=NSMakeSize(rsevt->data1, rsevt->data2);
 				if (!fullScreen && updateContext)
 				{
-					if (saveSize == NO)
-					{
-						// event triggered by caption & frame
-						// next event will be a real resize.
-						saveSize = YES;
+
+					// 1. Tell SDL to update the window dimensions
+					SDL_SetWindowSize(window, newSize.width, newSize.height);
+
+					// 2. Fetch actual pixel bounds back from SDL
+					int pixelWidth, pixelHeight;
+					SDL_GetWindowSizeInPixels(window, &pixelWidth, &pixelHeight);
+					bounds.size = NSMakeSize(pixelWidth, pixelHeight);
+					viewSize = bounds.size;
+
+					// 3. Recalculate aspect-ratio-dependent projection offsets
+					if (bounds.size.width / bounds.size.height > 4.0 / 3.0) {
+						display_z = 480.0 * bounds.size.width / bounds.size.height;
+						x_offset = 240.0 * bounds.size.width / bounds.size.height;
+						y_offset = 240.0;
+					} else {
+						display_z = 640.0;
+						x_offset = 320.0;
+						y_offset = 320.0 * bounds.size.height / bounds.size.width;
 					}
-					else
-					{
-						[self initialiseGLWithSize: newSize];
-						[self saveWindowSize: newSize];
-					}
+
+					// 4. Update OpenGL Viewport and Projection Matrix
+					float ratio = 0.5;
+					float aspect = bounds.size.height / bounds.size.width;
+
+					OOGL(glViewport(0, 0, bounds.size.width, bounds.size.height));
+					OOGLResetProjection();
+					OOGLFrustum(-ratio, ratio, -aspect * ratio, aspect * ratio, 1.0, MAX_CLEAR_DEPTH);
+
+					// 5. Save the updated window size
+					[self saveWindowSize: newSize];
 				}
 #else
 				newSize=NSMakeSize(rsevt->data1, rsevt->data2);
@@ -2490,117 +2510,27 @@ finished:
 #endif
 				// certain gui screens will require an immediate redraw after
 				// a resize event - Nikos 20140129
-				if ([PlayerEntity sharedPlayer])
-				{
-					[[PlayerEntity sharedPlayer] doGuiScreenResizeUpdates];
-				}
 				break;
 			}
 
 #if OOLITE_WINDOWS
-			case SDL_EVENT_WINDOW_MINIMIZED:
-			{
-				if (fullScreen)
-				{
-					[self setWindowBorderless: NO];
-				}
-				break;
-			}
-
-			case SDL_EVENT_WINDOW_RESTORED:
-			{
-				if (fullScreen)
-				{
-					[self setWindowBorderless: YES];
-				}
-				break;
-			}
-
 			case SDL_EVENT_WINDOW_MOVED:
 			{
-				if (fullScreen)
-				{
-					RECT rDC;
-					
-					// attempting to move our fullscreen window while in maximized state can freak
-					// Windows out and the window may not return to its original position properly.
-					// Solution: if such a move takes place, first change the window placement to
-					// normal, move it normally, then restore its placement to maximized again. 
-					// Additionally, the last good known window position seems to be lost in such
-					// a case. While at it, update also the coordinates of the non-maximized window
-					// so that it can return to its original position - this is why we need lastGoodRect.
-
-					WINDOWPLACEMENT wp;
-					wp.length = sizeof(WINDOWPLACEMENT);
-					GetWindowPlacement(windowHandle, &wp);
-					
-					GetWindowRect(windowHandle, &rDC);
-					if (rDC.left != monitorInfo.rcMonitor.left || rDC.top != monitorInfo.rcMonitor.top)
-					{
-						BOOL fullScreenMaximized = NO;
-						if (wp.showCmd == SW_SHOWMAXIMIZED && !fullScreenMaximized)
-						{
-							fullScreenMaximized = YES;
-							wp.showCmd = SW_SHOWNORMAL;
-							SetWindowPlacement(windowHandle, &wp);
-						}
-			
-						if (wp.showCmd != SW_SHOWMINIMIZED && wp.showCmd != SW_MINIMIZE)
-						{
-							MoveWindow(windowHandle, monitorInfo.rcMonitor.left, monitorInfo.rcMonitor.top,
-											(int)viewSize.width, (int)viewSize.height, TRUE);
-						}
-						
-						if (fullScreenMaximized)
-						{
-							GetWindowPlacement(windowHandle, &wp);
-							wp.showCmd = SW_SHOWMAXIMIZED;
-							CopyRect(&wp.rcNormalPosition, &lastGoodRect);
-							SetWindowPlacement(windowHandle, &wp);
-						}
-					}
-					else if (wp.showCmd == SW_SHOWMAXIMIZED)
-					{
-							CopyRect(&wp.rcNormalPosition, &lastGoodRect);
-							SetWindowPlacement(windowHandle, &wp);
-					}
-				}
 				// it is important that this gets done after we've dealt with possible fullscreen movements,
 				// because -doGuiScreenResizeUpdates does itself an update on current monitor
-				if ([PlayerEntity sharedPlayer])
-				{
-					[[PlayerEntity sharedPlayer] doGuiScreenResizeUpdates];
-				}
-				
+
 				if(grabMouseStatus)  [self grabMouseInsideGameWindow:YES];
 				break;
 			}
 
 			case SDL_EVENT_WINDOW_FOCUS_GAINED:
 			{
-				// make sure that all modifier keys like Shift, Alt, Ctrl and Caps Lock
-				// are set correctly to what they should be when we get focus. We have
-				// to do it ourselves because SDL on Windows has problems with this
-				// when focus change events occur, like e.g. Alt-Tab in/out of the
-				// application
-
-				[self resetSDLKeyModifiers];
-				if (!SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL))
-				{
-					dwLastError = GetLastError();
-					OOLog(@"wm_setfocus.message", @"Setting thread priority to time critical failed! (error code: %ld)", dwLastError);
-				}
 				[gameController setEcoQoS:[gameController isGamePaused]];
 				break;
 			}
 
 			case SDL_EVENT_WINDOW_FOCUS_LOST:
 			{
-				if (!SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_NORMAL))
-				{
-					dwLastError = GetLastError();
-					OOLog(@"wm_killfocus.message", @"Setting thread priority to normal failed! (error code: %ld)", dwLastError);
-				}
 				[gameController setEcoQoS:YES];
 				break;
 			}
