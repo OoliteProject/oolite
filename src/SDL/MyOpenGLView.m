@@ -2362,9 +2362,8 @@ finished:
 
 			case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
 			{
-				SDL_WindowEvent *rsevt=(SDL_WindowEvent *)&event;
 #if OOLITE_WINDOWS
-				NSSize newSize=NSMakeSize(rsevt->data1, rsevt->data2);
+				NSSize newSize=NSMakeSize(event.window.data1, event.window.data2);
 				if (!fullScreen && updateContext)
 				{
 					int pixelWidth, pixelHeight;  // Fetch actual pixel bounds back from SDL
@@ -2391,7 +2390,7 @@ finished:
 					[self saveWindowSize: newSize];  // Save the updated window size
 				}
 #else
-				newSize=NSMakeSize(rsevt->data1, rsevt->data2);
+				newSize=NSMakeSize(event.window.data1, event.window.data2);
                 resize_pending = true;
 #endif
 				break;
