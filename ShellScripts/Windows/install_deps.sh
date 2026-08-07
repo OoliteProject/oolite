@@ -33,9 +33,8 @@ install() {
 
 run_script() {
     local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+    source "$script_dir/../common/download_github_release_fn.sh"
     pushd "$script_dir"
-
-    source ../common/download_github_release_fn.sh
 
     local oolite_deps_url="https://api.github.com/repos/OoliteProject/oolite_windeps_build/releases/latest"
 
