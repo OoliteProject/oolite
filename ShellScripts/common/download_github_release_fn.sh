@@ -40,7 +40,7 @@ download_github_release() {
         return 1
     fi
 
-    if ! download "${outputdir}" "${download_url}"; then
+    if ! download "${download_url}" "${outputdir}"; then
         popd
         return 1
     fi
