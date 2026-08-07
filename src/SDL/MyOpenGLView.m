@@ -1456,204 +1456,99 @@ finished:
 
 - (void) initialiseGLWithSize:(NSSize) v_size useVideoMode:(BOOL) v_mode
 {
-	if (!window)
-	{
-		[self createWindowWithSize: v_size];
-	}
-	viewSize = v_size;
-	OOLog(@"display.initGL", @"Requested a new surface of %d x %d, %@.", (int)viewSize.width, (int)viewSize.height,(fullScreen ? @"fullscreen" : @"windowed"));
-	SDL_GL_SwapWindow(window);	// clear the buffer before resize
-	
-#if OOLITE_WINDOWS
-	if (!updateContext) return;
+    if (!window)
+    {
+       [self createWindowWithSize: v_size];
+    }
 
-	DEVMODE settings;
-	settings.dmSize        = sizeof(DEVMODE);
-	settings.dmDriverExtra = 0;
-	EnumDisplaySettings(0, ENUM_CURRENT_SETTINGS, &settings);
-	
-	WINDOWPLACEMENT windowPlacement;
-	windowPlacement.length = sizeof(WINDOWPLACEMENT);
-	GetWindowPlacement(windowHandle, &windowPlacement);
-	
-	static BOOL lastWindowPlacementMaximized = NO;
-	if (fullScreen && (windowPlacement.showCmd == SW_SHOWMAXIMIZED))
-	{
-		if (!wasFullScreen)
-		{
-			lastWindowPlacementMaximized = YES;
-		}
-	}
-	
-	if (lastWindowPlacementMaximized)
-	{
-		windowPlacement.showCmd = SW_SHOWMAXIMIZED;
-	}
-	
-	// are we attempting to go to a different screen resolution? Note: this also takes care of secondary monitor situations because 
-	// by design the only resolution available for fullscreen on a secondary display device is its native one - Nikos 20150605
-	BOOL changingResolution = 	[self isRunningOnPrimaryDisplayDevice] &&
-								((fullScreen && (settings.dmPelsWidth != viewSize.width || settings.dmPelsHeight != viewSize.height)) ||
-								(wasFullScreen && (settings.dmPelsWidth != [[[screenSizes objectAtIndex:0] objectForKey: kOODisplayWidth] intValue]
-								|| settings.dmPelsHeight != [[[screenSizes objectAtIndex:0] objectForKey: kOODisplayHeight] intValue])));
-			
-	RECT wDC;
+    viewSize = v_size;
+    OOLog(@"display.initGL", @"Requested a new surface of %d x %d, %@.",
+          (int)viewSize.width, (int)viewSize.height, (fullScreen ? @"fullscreen" : @"windowed"));
 
-	if (fullScreen)
-	{
-		/*NOTE: If we ever decide to change the default behaviour of launching
-		always on primary monitor to launching on the monitor the program was 
-		started on, all that needs to be done is comment out the line below, as
-		well as the identical one in the else branch further down.
-		Nikos 20141222
-	   */
-	   [self getCurrentMonitorInfo: &monitorInfo];
-		
-		settings.dmPelsWidth = viewSize.width;
-		settings.dmPelsHeight = viewSize.height;
-		settings.dmFields = DM_PELSWIDTH | DM_PELSHEIGHT;
-				
-		// just before going fullscreen, save the location of the current window. It
-		// may be needed in case of potential attempts to move our fullscreen window
-		// in a maximized state (yes, in Windows this is entirely possible).
-		if(lastWindowPlacementMaximized)
-		{
-			CopyRect(&lastGoodRect, &windowPlacement.rcNormalPosition);
-			// if maximized, switch to normal placement before going full screen
-			windowPlacement.showCmd = SW_SHOWNORMAL;
-			SetWindowPlacement(windowHandle, &windowPlacement);
-		}
-		else  GetWindowRect(windowHandle, &lastGoodRect);
-		
-		// ok, can go fullscreen now
-		SetForegroundWindow(windowHandle);
-		if (changingResolution)
-		{
-			if (ChangeDisplaySettingsEx(monitorInfo.szDevice, &settings, NULL, CDS_FULLSCREEN, NULL) != DISP_CHANGE_SUCCESSFUL)
-			{
-				m_glContextInitialized = YES;
-				OOLogERR(@"displayMode.change.error", @"Could not switch to requested display mode.");
-				return;
-			}
-			atDesktopResolution = settings.dmPelsWidth == [[[screenSizes objectAtIndex:0] objectForKey: kOODisplayWidth] intValue]
-								&& settings.dmPelsHeight == [[[screenSizes objectAtIndex:0] objectForKey: kOODisplayHeight] intValue];
-		}
-		
-		MoveWindow(windowHandle, monitorInfo.rcMonitor.left, monitorInfo.rcMonitor.top, (int)viewSize.width, (int)viewSize.height, TRUE);
-		if(!wasFullScreen)
-		{
-			[self setWindowBorderless:YES];
-		}
-	}
-	
-	else if ( wasFullScreen )
-	{
-		if (changingResolution)
-		{
-			// restore original desktop resolution
-			if (ChangeDisplaySettingsEx(NULL, NULL, NULL, 0, NULL) == DISP_CHANGE_SUCCESSFUL)
-			{
-				atDesktopResolution = YES;
-			}
-		}
-		
-		/*NOTE: If we ever decide to change the default behaviour of launching
-		always on primary monitor to launching on the monitor the program was 
-		started on, we need to comment out the line below.
-		For now, this line is needed for correct positioning of our window in case
-		we return from a non-native resolution fullscreen and has to come after the
-		display settings have been reverted.
-		Nikos 20141222
-		*/
-		[self getCurrentMonitorInfo: &monitorInfo];
-		
-		if (lastWindowPlacementMaximized)  CopyRect(&windowPlacement.rcNormalPosition, &lastGoodRect);
-		SetWindowPlacement(windowHandle, &windowPlacement);
-		if (!lastWindowPlacementMaximized)
-		{
-			MoveWindow(windowHandle,	(monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left - (int)viewSize.width)/2 +
-								monitorInfo.rcMonitor.left,
-								(monitorInfo.rcMonitor.bottom - monitorInfo.rcMonitor.top - (int)viewSize.height)/2 +
-								monitorInfo.rcMonitor.top,
-								(int)viewSize.width, (int)viewSize.height, TRUE);
-		}
-		
-		[self setWindowBorderless:NO];
-								
-		lastWindowPlacementMaximized = NO;
-		ShowWindow(windowHandle,SW_SHOW);
-	}
-	
-	// stop saveWindowSize from reacting to caption & frame if necessary
-	saveSize = !wasFullScreen;
+    // 1. Handle Fullscreen vs. Windowed Mode in pure SDL3
+    if (fullScreen)
+    {
+        if (v_mode)
+        {
+            // Exclusive Fullscreen: Get closest matching mode for current display
+            SDL_DisplayID displayID = SDL_GetDisplayForWindow(window);
+            SDL_DisplayMode closestMode;
 
-	GetClientRect(windowHandle, &wDC);
+            // In SDL3: pass width, height, refresh rate (0.0f = desktop rate), high-density flag, and target struct
+            if (displayID != 0 && SDL_GetClosestFullscreenDisplayMode(displayID, (int)viewSize.width, (int)viewSize.height, 0.0f, true, &closestMode))
+            {
+                SDL_SetWindowFullscreenMode(window, &closestMode);
+            }
+            else
+            {
+                // Fallback to desktop mode if no exact mode was matched
+                SDL_SetWindowFullscreenMode(window, NULL);
+            }
+        }
+        else
+        {
+            // Desktop (Borderless) Fullscreen
+            SDL_SetWindowFullscreenMode(window, NULL);
+        }
 
-	if (!fullScreen && (bounds.size.width != wDC.right - wDC.left
-					|| bounds.size.height != wDC.bottom - wDC.top))
-	{
-		// Resize the game window if needed. When we ask for a W x H
-		// window, we intend that the client area be W x H. The actual
-		// window itself must become big enough to accomodate an area
-		// of such size. 
-		if (wasFullScreen)	// this is true when switching from full screen or when starting in windowed mode
-							//after the splash screen has ended
-		{
-			RECT desiredClientRect;
-			GetWindowRect(windowHandle, &desiredClientRect);
-			AdjustWindowRect(&desiredClientRect, WS_CAPTION | WS_THICKFRAME, FALSE);
-			SetWindowPos(windowHandle, NULL,	desiredClientRect.left, desiredClientRect.top,
-											desiredClientRect.right - desiredClientRect.left,
-											desiredClientRect.bottom - desiredClientRect.top, 0);
-		}
-		GetClientRect(windowHandle, &wDC);
-		viewSize.width = wDC.right - wDC.left;
-		viewSize.height = wDC.bottom - wDC.top;
-	}
+        // Toggle Fullscreen ON (SDL3 uses a boolean true/false)
+        SDL_SetWindowFullscreen(window, true);
+    }
+    else
+    {
+        // Toggle Fullscreen OFF
+        SDL_SetWindowFullscreen(window, false);
+        SDL_SetWindowSize(window, (int)viewSize.width, (int)viewSize.height);
 
-	// Reset bounds and viewSize to current values
-	bounds.size.width = viewSize.width = wDC.right - wDC.left;
-	bounds.size.height = viewSize.height = wDC.bottom - wDC.top;
-	
-	if (fullScreen) // bounds on fullscreen coincide with client area, since we are borderless
-	{
-		bounds.origin.x = monitorInfo.rcMonitor.left;
-		bounds.origin.y = monitorInfo.rcMonitor.top;
-	}
-	wasFullScreen=fullScreen;
+        // Center window on display when returning from fullscreen
+        if (wasFullScreen)
+        {
+            SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+        }
+    }
 
-#else //OOLITE_LINUX
+    wasFullScreen = fullScreen;
 
-	SDL_SetWindowBordered(window, v_mode);
-	SDL_SetWindowFullscreen(window, fullScreen);
-	SDL_SetWindowSize(window, viewSize.width, viewSize.height);
-	SDL_Surface *surface = SDL_GetWindowSurface(window);
-	bounds.size.width = surface->w;
-	bounds.size.height = surface->h;
+    // 2. Query Backing Framebuffer Dimensions (HiDPI Aware in SDL3)
+    int pixelWidth = 0, pixelHeight = 0;
+    SDL_GetWindowSizeInPixels(window, &pixelWidth, &pixelHeight);
 
-#endif
-	OOLog(@"display.initGL", @"Created a new surface of %d x %d, %@.", (int)viewSize.width, (int)viewSize.height,(fullScreen ? @"fullscreen" : @"windowed"));
+    bounds.size.width = (CGFloat)pixelWidth;
+    bounds.size.height = (CGFloat)pixelHeight;
+    viewSize = bounds.size;
 
-	if (viewSize.width/viewSize.height > 4.0/3.0) {
-		display_z = 480.0 * bounds.size.width/bounds.size.height;
-		x_offset = 240.0 * bounds.size.width/bounds.size.height;
-		y_offset = 240.0;
-	} else {
-		display_z = 640.0;
-		x_offset = 320.0;
-		y_offset = 320.0 * bounds.size.height/bounds.size.width;
-	}
+    // Query window origin position
+    int winX = 0, winY = 0;
+    SDL_GetWindowPosition(window, &winX, &winY);
+    bounds.origin.x = (CGFloat)winX;
+    bounds.origin.y = (CGFloat)winY;
 
-	[self autoShowMouse];
+    OOLog(@"display.initGL", @"Created a new surface of %d x %d, %@.",
+          pixelWidth, pixelHeight, (fullScreen ? @"fullscreen" : @"windowed"));
 
-	int pixelWidth, pixelHeight;
-	SDL_GetWindowSizeInPixels(window, &pixelWidth, &pixelHeight);
-	NSSize pixelSize = NSMakeSize(pixelWidth, pixelHeight);
-	[[self gameController] setUpBasicOpenGLStateWithSize:pixelSize];
-	SDL_GL_SwapWindow(window);
-	squareX = 0.0f;
+    // 3. Aspect Ratio & Projection Calculations
+    if (bounds.size.width / bounds.size.height > 4.0 / 3.0)
+    {
+       display_z = 480.0 * bounds.size.width / bounds.size.height;
+       x_offset  = 240.0 * bounds.size.width / bounds.size.height;
+       y_offset  = 240.0;
+    }
+    else
+    {
+       display_z = 640.0;
+       x_offset  = 320.0;
+       y_offset  = 320.0 * bounds.size.height / bounds.size.width;
+    }
 
-	m_glContextInitialized = YES;
+    [self autoShowMouse];
+
+    // 4. Initialize OpenGL State & Viewport
+    NSSize pixelSize = NSMakeSize(pixelWidth, pixelHeight);
+    [[self gameController] setUpBasicOpenGLStateWithSize:pixelSize];
+    SDL_GL_SwapWindow(window);
+    squareX = 0.0f;
+
+    m_glContextInitialized = YES;
 }
 
 
@@ -2472,15 +2367,13 @@ finished:
 				NSSize newSize=NSMakeSize(rsevt->data1, rsevt->data2);
 				if (!fullScreen && updateContext)
 				{
-					// Fetch actual pixel bounds back from SDL
-					int pixelWidth, pixelHeight;
+					int pixelWidth, pixelHeight;  // Fetch actual pixel bounds back from SDL
 					SDL_GetWindowSizeInPixels(window, &pixelWidth, &pixelHeight);
 					bounds.size = NSMakeSize(pixelWidth, pixelHeight);
 					viewSize = bounds.size;
 
-					// Recalculate aspect-ratio-dependent projection offsets
-					if (bounds.size.width / bounds.size.height > 4.0 / 3.0) {
-						display_z = 480.0 * bounds.size.width / bounds.size.height;
+					if (bounds.size.width / bounds.size.height > 4.0 / 3.0) {  // Recalculate aspect-ratio-dependent
+						display_z = 480.0 * bounds.size.width / bounds.size.height;  // projection offsets
 						x_offset = 240.0 * bounds.size.width / bounds.size.height;
 						y_offset = 240.0;
 					} else {
@@ -2489,16 +2382,13 @@ finished:
 						y_offset = 320.0 * bounds.size.height / bounds.size.width;
 					}
 
-					// Update OpenGL Viewport and Projection Matrix
-					float ratio = 0.5;
+					float ratio = 0.5;  // Update OpenGL Viewport and Projection Matrix
 					float aspect = bounds.size.height / bounds.size.width;
-
 					OOGL(glViewport(0, 0, bounds.size.width, bounds.size.height));
 					OOGLResetProjection();
 					OOGLFrustum(-ratio, ratio, -aspect * ratio, aspect * ratio, 1.0, MAX_CLEAR_DEPTH);
 
-					// Save the updated window size
-					[self saveWindowSize: newSize];
+					[self saveWindowSize: newSize];  // Save the updated window size
 				}
 #else
 				newSize=NSMakeSize(rsevt->data1, rsevt->data2);
