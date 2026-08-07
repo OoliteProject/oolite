@@ -1,4 +1,6 @@
-#!/bin/bash -ex
+#!/bin/bash
+set -x
+
 #
 # Creates the appimage.
 

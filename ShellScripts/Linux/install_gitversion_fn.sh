@@ -13,7 +13,7 @@ install_gitversion() {
     source ../common/download_github_release_fn.sh
 
     local gitversion_tgz
-    download_github_release gitversion_tgz "GitTools" "GitVersion" "linux-x64" "$outputdir" || { popd > /dev/null; return 1; }
+    download_github_release gitversion_tgz "GitTools" "GitVersion" "linux-x64" "$outputdir"
     if ! tar xfz ${gitversion_tgz} --directory "$outputdir"; then
         echo "❌ Could not unpack gitversion tgz!" >&2
         return 1
