@@ -1,8 +1,6 @@
-#!/bin/bash
+#!/bin/bash -e
 
 # This script must be run as root (for example with sudo).
-set -e
-
 
 run_script() {
     # If current user ID is NOT 0 (root)
@@ -11,99 +9,108 @@ run_script() {
         return 1
     fi
 
+    # Initialize local flags with defaults
+    local INSTALL_CORE=true
+    local INSTALL_APPIMAGE=false
+    local INSTALL_FLATPAK=false
+    local SCRIPT_DIR
+    local pkgs
+    local pkg
+    local LIB_PARAM
+    local BIN
+    local LINTER_BIN
+    local EXCLUDE_LIST
+
+    # Parse Command Line Arguments
+    if [[ "$#" -gt 0 ]]; then
+        INSTALL_CORE=false
+    fi
+
+    while [[ "$#" -gt 0 ]]; do
+        case $1 in
+            --appimage)        INSTALL_APPIMAGE=true ;;
+            --flatpak)         INSTALL_FLATPAK=true ;;
+            --core)            INSTALL_CORE=true ;;
+            --core+appimage|--core-appimage)
+                INSTALL_CORE=true
+                INSTALL_APPIMAGE=true
+                ;;
+            --core+flatpak|--core-flatpak)
+                INSTALL_CORE=true
+                INSTALL_FLATPAK=true
+                ;;
+            --all)
+                INSTALL_CORE=true
+                INSTALL_APPIMAGE=true
+                INSTALL_FLATPAK=true
+                ;;
+            -h|--help)
+                echo "Usage: ./install_deps_root.sh [options]"
+                echo "Options:"
+                echo "  --core           Install only base build dependencies (default if no args)"
+                echo "  --appimage       Install only AppImage tools"
+                echo "  --flatpak        Install only Flatpak tools"
+                echo "  --core+appimage  Install base build dependencies + AppImage tools"
+                echo "  --core+flatpak   Install base build dependencies + Flatpak tools"
+                echo "  --all            Install everything"
+                exit 0
+                ;;
+            *) echo "Unknown parameter: $1"; exit 1 ;;
+        esac
+        shift
+    done
+
+    if [[ "$INSTALL_CORE" == false && "$INSTALL_APPIMAGE" == false && "$INSTALL_FLATPAK" == false ]]; then
+        INSTALL_CORE=true
+    fi
+
     local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
-    pushd "$script_dir"
+    pushd "$script_dir" > /dev/null
 
-    source install_gitversion_fn.sh
-    source install_package_fn.sh
+    source ./install_package_fn.sh
+    source ../common/download_fn.sh
+    source ./install_gitversion_fn.sh
 
-    if ! install_package procps; then
-        return 1
-    fi
-    if ! install_package base-devel; then
-        return 1
-    fi
-    if ! install_package clang; then
-        return 1
-    fi
-    if ! install_package cmake; then
-        return 1
-    fi
-    if ! install_package jq; then
-        return 1
-    fi
-    if ! install_package meson; then
-        return 1
-    fi
-    if ! install_package gnutls-dev; then
-        return 1
-    fi
-    # Check Python
-    if ! python3 --version >/dev/null 2>&1; then
-        if ! install_package python; then
-            return 1
+    local outputdir="../../build"
+    mkdir -p "$outputdir"
+
+    if [[ "$INSTALL_CORE" == true ]]; then  # Core dependencies
+        echo "📦 Installing Core Build Dependencies..."
+        pkgs=(
+            procps base-devel clang cmake jq meson gnutls-dev icu-dev ffi-dev xslt-dev png-dev zlib-dev nspr-dev
+            espeak-ng-dev vorbis-dev openal-dev opengl-dev glu-dev sdl3 x11-dev
+        )
+        for pkg in "${pkgs[@]}"; do
+            install_package "$pkg"
+        done
+        if ! python3 --version >/dev/null 2>&1; then  # Check Python
+            install_package python
         fi
-    fi
-    if ! install_package icu-dev; then
-        return 1
-    fi
-    if ! install_package ffi-dev; then
-        return 1
-    fi
-    if ! install_package xslt-dev; then
-        return 1
-    fi
-    if ! install_package png-dev; then
-        return 1
-    fi
-    if ! install_package zlib-dev; then
-        return 1
-    fi
-    if ! install_package nspr-dev; then
-        return 1
-    fi
-    if ! install_package espeak-ng-dev; then
-        return 1
-    fi
-    if [ ! -d /usr/share/espeak-ng-data ]; then
-        if [ ! -d /usr/local/share/espeak-ng-data ]; then
-            if [ ! -d /usr/lib/x86_64-linux-gnu/espeak-ng-data ]; then
-                echo "❌ espeak-ng-data not in /usr/share, /usr/local/share or /usr/lib/x86_64-linux-gnu!"
-                return 1
+        install_gitversion "$outputdir"
+        if [ ! -d /usr/share/espeak-ng-data ]; then
+            if [ ! -d /usr/local/share/espeak-ng-data ]; then
+                if [ ! -d /usr/lib/x86_64-linux-gnu/espeak-ng-data ]; then
+                    echo "❌ espeak-ng-data not in /usr/share, /usr/local/share or /usr/lib/x86_64-linux-gnu!"
+                    return 1
+                fi
             fi
         fi
     fi
-    if ! install_package vorbis-dev; then
-        return 1
-    fi
-    if ! install_package openal-dev; then
-        return 1
-    fi
-    if ! install_package opengl-dev; then
-        return 1
-    fi
-    if ! install_package glu-dev; then
-        return 1
-    fi
-    if ! install_package sdl3; then
-        return 1
-    fi
-    if ! install_package x11-dev; then
-        return 1
-    fi
-    # For building AppImage
-    if ! install_package appimage; then
-        return 1
-    fi
-    # For building Flatpak
-    if ! install_package flatpak; then
-        return 1
+
+    if [[ "$INSTALL_APPIMAGE" == true ]]; then  # For building AppImage
+        echo "📦 Installing AppImage Tools..."
+        install_package appimage
+        BIN="/usr/local/bin"
+        download "https://raw.githubusercontent.com/pkgforge-dev/Anylinux-AppImages/refs/heads/main/useful-tools/quick-sharun.sh" "$BIN" "+x"
+        download "https://raw.githubusercontent.com/AppImage/AppImages/master/appdir-lint.sh" "$BIN" "+x"
+        download "https://raw.githubusercontent.com/AppImage/AppImages/master/excludelist" "$BIN"
+        download "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-$(uname -m).AppImage" "$BIN" "+x"
     fi
 
-    # install gitversion
-    local outputdir="../../build"
-    mkdir -p "$outputdir"
-    install_gitversion "$outputdir"
+    if [[ "$INSTALL_FLATPAK" == true ]]; then  # For building Flatpak
+        install_package flatpak
+    fi
+
 	popd
 }
 

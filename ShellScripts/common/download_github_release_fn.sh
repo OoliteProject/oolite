@@ -9,7 +9,10 @@ download_github_release() {
 
     local repo="${owner}/${repository}"
     local api_url="https://api.github.com/repos/${repo}/releases/latest"
-    
+
+    local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+    source "$script_dir/download_fn.sh"
+
     echo "Fetching latest release info for ${repo}..." >&2
     local release_json=$(curl -s "${api_url}")
 
@@ -33,11 +36,11 @@ download_github_release() {
         return 1
     fi
 
+    if ! download "${download_url}" "${outputdir}"; then
+        return 1
+    fi
+
     # Extract filename from the URL
     local filename=$(basename "${download_url}")
-
-    echo "Downloading latest release: ${filename}..." >&2
-    curl -L -O --output-dir "${outputdir}" "${download_url}"
-
     _downloaded_file="${outputdir}/${filename}"
 }

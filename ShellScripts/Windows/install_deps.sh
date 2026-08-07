@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 # No parameters: build clang only
 # One parameter gcc = build gcc only
@@ -33,31 +33,14 @@ install() {
 
 run_script() {
     local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+    source "$script_dir/../common/download_github_release_fn.sh"
     pushd "$script_dir"
-
-    source ../common/download_github_release_fn.sh
 
     local oolite_deps_url="https://api.github.com/repos/OoliteProject/oolite_windeps_build/releases/latest"
 
     pacman -Syu --noconfirm
-    pacman -S git --noconfirm
-    pacman -S dos2unix --noconfirm
-    pacman -S pactoys --noconfirm
-    pacboy -S binutils --noconfirm
-    pacboy -S jq --noconfirm
-    pacman -S unzip --noconfirm
-    pacboy -S python-pip --noconfirm
-    pacboy -S meson --noconfirm
-    pacboy -S ninja --noconfirm
-    pacboy -S nsis --noconfirm
-    pacboy -S libpng --noconfirm
-    pacboy -S openal --noconfirm
-    pacboy -S libvorbis --noconfirm
-    pacboy -S pcaudiolib --noconfirm
-    pacboy -S espeak-ng --noconfirm
-    pacboy -S mesa --noconfirm
-    pacboy -S sdl3 --noconfirm
-
+    pacman -S --noconfirm dos2unix git pactoys unzip
+    pacboy -S --noconfirm binutils espeak-ng jq libpng libvorbis mesa meson ninja nsis openal pcaudiolib python-pip sdl3
     mkdir -p ../../build/packages
     cd ../../build
     # install gitversion

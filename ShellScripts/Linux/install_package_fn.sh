@@ -144,7 +144,7 @@ install_package() {
 
         "appimage")
             case "$CURRENT_DISTRO" in
-                debian) pkg_name="file fuse3 patchelf" ;;
+                debian) pkg_name="file fuse3 patchelf desktop-file-utils" ;;
                 redhat) pkg_name="file fuse3 desktop-file-utils patchelf which zsync" ;;
                 arch) pkg_name="file fuse3 desktop-file-utils patchelf zsync" ;;
             esac ;;
