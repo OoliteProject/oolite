@@ -13,10 +13,16 @@ install_gitversion() {
     source ../common/download_github_release_fn.sh
 
     local gitversion_tgz
-    download_github_release gitversion_tgz "GitTools" "GitVersion" "linux-x64" "$outputdir"
-    tar xfz ${gitversion_tgz} --directory "$outputdir"
+    download_github_release gitversion_tgz "GitTools" "GitVersion" "linux-x64" "$outputdir" || { popd > /dev/null; return 1; }
+    if ! tar xfz ${gitversion_tgz} --directory "$outputdir"; then
+        echo "❌ Could not unpack gitversion tgz!" >&2
+        return 1
+    fi
     chmod +x "$outputdir/gitversion"
-    mv "$outputdir/gitversion" /usr/local/bin/gitversion
+    if ! mv "$outputdir/gitversion" /usr/local/bin/gitversion; then
+        echo "❌ Could not move gitversion to /usr/local/bin!" >&2
+        return 1
+    fi
     rm -f ${gitversion_tgz}
 
     popd

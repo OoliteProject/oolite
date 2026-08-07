@@ -38,7 +38,7 @@ jobs:
           fetch-depth: 0
       - name: Install packages
         run: |
-          ShellScripts/Linux/install_packages_root.sh
+          ShellScripts/Linux/install_packages_root.sh --core+appimage
       - name: Build GNUstep
         run: |
           ShellScripts/Linux/build_gnustep.sh system
@@ -87,7 +87,7 @@ jobs:
           fetch-depth: 0
       - name: Install packages
         run: |
-          ShellScripts/Linux/install_packages_root.sh
+          ShellScripts/Linux/install_packages_root.sh --core+appimage
       - name: Build GNUstep
         run: |
           ShellScripts/Linux/build_gnustep.sh system
@@ -136,7 +136,7 @@ jobs:
           fetch-depth: 0
       - name: Install packages
         run: |
-          ShellScripts/Linux/install_packages_root.sh
+          ShellScripts/Linux/install_packages_root.sh --core+appimage
       - name: Build GNUstep
         run: |
           ShellScripts/Linux/build_gnustep.sh system
