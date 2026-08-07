@@ -8,9 +8,7 @@ install_gitversion() {
     fi
 
     local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
-    pushd "$script_dir"
-
-    source ../common/download_github_release_fn.sh
+    source "$script_dir/../common/download_github_release_fn.sh"
 
     local gitversion_tgz
     download_github_release gitversion_tgz "GitTools" "GitVersion" "linux-x64" "$outputdir"
@@ -24,6 +22,4 @@ install_gitversion() {
         return 1
     fi
     rm -f ${gitversion_tgz}
-
-    popd
 }

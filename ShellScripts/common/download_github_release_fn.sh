@@ -11,9 +11,7 @@ download_github_release() {
     local api_url="https://api.github.com/repos/${repo}/releases/latest"
 
     local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
-    pushd "$script_dir" > /dev/null
-
-    source ./download_fn.sh
+    source "$script_dir/download_fn.sh"
 
     echo "Fetching latest release info for ${repo}..." >&2
     local release_json=$(curl -s "${api_url}")
@@ -21,7 +19,6 @@ download_github_release() {
     # Check if the repository was found/has releases
     if echo "${release_json}" | grep -q "Not Found"; then
         echo "❌ Repository not found or has no public releases at ${api_url}!" >&2
-        popd
         return 1
     fi
 
@@ -36,17 +33,14 @@ download_github_release() {
     # Check if a URL was actually found
     if [[ -z "${download_url}" || "${download_url}" == "null" ]]; then
         echo "❌ Could not find a matching download URL!" >&2
-        popd
         return 1
     fi
 
     if ! download "${download_url}" "${outputdir}"; then
-        popd
         return 1
     fi
 
     # Extract filename from the URL
     local filename=$(basename "${download_url}")
     _downloaded_file="${outputdir}/${filename}"
-    popd
 }
