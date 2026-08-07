@@ -29,10 +29,8 @@ jobs:
           # This must run before the checkout action if the action tries to do git commands
           mkdir -p "$GITHUB_WORKSPACE"
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          cat << EOF >> ~/.curlrc
-          header = "Authorization: Bearer $GITHUB_TOKEN"
-          header = "Accept: application/vnd.github+json"
-          EOF
+          echo 'header = "Authorization: Bearer '$GITHUB_TOKEN'"' >> ~/.curlrc
+          echo 'header = "Accept: application/vnd.github+json"' >> ~/.curlrc
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
@@ -78,10 +76,8 @@ jobs:
           # This must run before the checkout action if the action tries to do git commands
           mkdir -p "$GITHUB_WORKSPACE"
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          cat << EOF >> ~/.curlrc
-          header = "Authorization: Bearer $GITHUB_TOKEN"
-          header = "Accept: application/vnd.github+json"
-          EOF
+          echo 'header = "Authorization: Bearer '$GITHUB_TOKEN'"' >> ~/.curlrc
+          echo 'header = "Accept: application/vnd.github+json"' >> ~/.curlrc
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
@@ -127,10 +123,8 @@ jobs:
           # This must run before the checkout action if the action tries to do git commands
           mkdir -p "$GITHUB_WORKSPACE"
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          cat << EOF >> ~/.curlrc
-          header = "Authorization: Bearer $GITHUB_TOKEN"
-          header = "Accept: application/vnd.github+json"
-          EOF
+          echo 'header = "Authorization: Bearer '$GITHUB_TOKEN'"' >> ~/.curlrc
+          echo 'header = "Accept: application/vnd.github+json"' >> ~/.curlrc
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
@@ -182,10 +176,8 @@ jobs:
           msystem: UCRT64
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          cat << EOF > ~/.curlrc
-          header = "Authorization: Bearer $GITHUB_TOKEN"
-          header = "Accept: application/vnd.github+json"
-          EOF
+          echo 'header = "Authorization: Bearer '$GITHUB_TOKEN'"' >> ~/.curlrc
+          echo 'header = "Accept: application/vnd.github+json"' >> ~/.curlrc
           cp ~/.curlrc /c/Users/runneradmin/.curlrc 2>/dev/null || true          
           ShellScripts/Windows/install_deps.sh clang
 

@@ -30,31 +30,31 @@ create_flatpak() {
     fi
     tail -n 12 $manifest
 
-#    local lint_exceptions=$(mktemp /tmp/oolite-lint-XXXXXX.json)
-#    cat <<EOF > "$lint_exceptions"
-#{
-#  "space.oolite.Oolite": [
-#    "finish-args-has-dev-input"
-#  ]
-#}
-#EOF
-#    trap 'rm -f "$lint_exceptions"' RETURN EXIT
-#    if command -v flatpak-builder-lint >/dev/null 2>&1; then  # check manifest
-#        if ! flatpak-builder-lint manifest "$manifest" --exceptions --user-exceptions="$lint_exceptions"; then
-#            echo "❌ Flatpak manifest lint failed!" >&2
-#            cat "$manifest"
-#            echo "❌ Flatpak manifest lint failed!" >&2
-#            return 1
-#        fi
-#    else
-#        echo "Native linter not found. Falling back to Flatpak container..."
-#        if ! flatpak run --filesystem="$lint_exceptions" --command=flatpak-builder-lint org.flatpak.Builder manifest "$manifest" --exceptions --user-exceptions="$lint_exceptions"; then
-#            echo "❌ Flatpak manifest lint failed!" >&2
-#            return 1
-#        fi
-#    fi
-#    rm -f "$lint_exceptions"  # Clean up
-#    trap - RETURN EXIT
+    local lint_exceptions=$(mktemp /tmp/oolite-lint-XXXXXX.json)
+    cat <<EOF > "$lint_exceptions"
+{
+  "space.oolite.Oolite": [
+    "finish-args-has-dev-input"
+  ]
+}
+EOF
+    trap 'rm -f "$lint_exceptions"' RETURN EXIT
+    if command -v flatpak-builder-lint >/dev/null 2>&1; then  # check manifest
+        if ! flatpak-builder-lint manifest "$manifest" --exceptions --user-exceptions="$lint_exceptions"; then
+            echo "❌ Flatpak manifest lint failed!" >&2
+            cat "$manifest"
+            echo "❌ Flatpak manifest lint failed!" >&2
+            return 1
+        fi
+    else
+        echo "Native linter not found. Falling back to Flatpak container..."
+        if ! flatpak run --filesystem="$lint_exceptions" --command=flatpak-builder-lint org.flatpak.Builder manifest "$manifest" --exceptions --user-exceptions="$lint_exceptions"; then
+            echo "❌ Flatpak manifest lint failed!" >&2
+            return 1
+        fi
+    fi
+    rm -f "$lint_exceptions"  # Clean up
+    trap - RETURN EXIT
 
     echo "Creating Flatpak..."
     if ! flatpak remote-add \
