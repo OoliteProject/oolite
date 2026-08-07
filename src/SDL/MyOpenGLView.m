@@ -2472,17 +2472,13 @@ finished:
 				NSSize newSize=NSMakeSize(rsevt->data1, rsevt->data2);
 				if (!fullScreen && updateContext)
 				{
-
-					// 1. Tell SDL to update the window dimensions
-					SDL_SetWindowSize(window, newSize.width, newSize.height);
-
-					// 2. Fetch actual pixel bounds back from SDL
+					// Fetch actual pixel bounds back from SDL
 					int pixelWidth, pixelHeight;
 					SDL_GetWindowSizeInPixels(window, &pixelWidth, &pixelHeight);
 					bounds.size = NSMakeSize(pixelWidth, pixelHeight);
 					viewSize = bounds.size;
 
-					// 3. Recalculate aspect-ratio-dependent projection offsets
+					// Recalculate aspect-ratio-dependent projection offsets
 					if (bounds.size.width / bounds.size.height > 4.0 / 3.0) {
 						display_z = 480.0 * bounds.size.width / bounds.size.height;
 						x_offset = 240.0 * bounds.size.width / bounds.size.height;
@@ -2493,7 +2489,7 @@ finished:
 						y_offset = 320.0 * bounds.size.height / bounds.size.width;
 					}
 
-					// 4. Update OpenGL Viewport and Projection Matrix
+					// Update OpenGL Viewport and Projection Matrix
 					float ratio = 0.5;
 					float aspect = bounds.size.height / bounds.size.width;
 
@@ -2501,24 +2497,19 @@ finished:
 					OOGLResetProjection();
 					OOGLFrustum(-ratio, ratio, -aspect * ratio, aspect * ratio, 1.0, MAX_CLEAR_DEPTH);
 
-					// 5. Save the updated window size
+					// Save the updated window size
 					[self saveWindowSize: newSize];
 				}
 #else
 				newSize=NSMakeSize(rsevt->data1, rsevt->data2);
                 resize_pending = true;
 #endif
-				// certain gui screens will require an immediate redraw after
-				// a resize event - Nikos 20140129
 				break;
 			}
 
 #if OOLITE_WINDOWS
 			case SDL_EVENT_WINDOW_MOVED:
 			{
-				// it is important that this gets done after we've dealt with possible fullscreen movements,
-				// because -doGuiScreenResizeUpdates does itself an update on current monitor
-
 				if(grabMouseStatus)  [self grabMouseInsideGameWindow:YES];
 				break;
 			}
