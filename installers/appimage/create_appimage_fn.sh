@@ -1,5 +1,4 @@
 #!/bin/bash
-set -x
 
 #
 # Creates the appimage.
@@ -51,7 +50,7 @@ create_appimage() {
     fi
 
     echo "🔍 Running AppDir linter..."
-    if ! appdir-lint.sh "$APPDIR"; then
+    if ! bash -x "$(command -v appdir-lint.sh)" "$APPDIR"; then
         echo "❌ AppDir linting failed!" >&2
         return 1
     fi
