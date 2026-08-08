@@ -450,7 +450,6 @@ enum PreferredAppMode
 
 #if OOLITE_WINDOWS
 	ShowWindow(windowHandle,SW_SHOWMINIMIZED);
-	updateContext = !showSplashScreen;
 #endif
 	if (!showSplashScreen)
 	{
@@ -498,8 +497,6 @@ enum PreferredAppMode
 		}
 	}
 
-	wasFullScreen = !fullScreen;
-	updateContext = YES;
 #endif // OOLITE_WINDOWS
 
     if (!showSplashScreen)  return;
@@ -1473,16 +1470,11 @@ finished:
         SDL_SetWindowSize(window, (int)viewSize.width, (int)viewSize.height);
 
         // Center window on display when returning from fullscreen
-        if (wasFullScreen)
-        {
-            SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+        SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 #if OOLITE_WINDOWS
-            [self refreshDarkOrLightMode];
+        [self refreshDarkOrLightMode];
 #endif
-        }
     }
-
-    wasFullScreen = fullScreen;
 
     // 2. Query Backing Framebuffer Dimensions (HiDPI Aware in SDL3)
     int pixelWidth = 0, pixelHeight = 0;
@@ -1942,10 +1934,8 @@ finished:
 	Uint16	 				key_id;
 	SDL_Scancode				scan_code;
 	float inDelta;
-#if OOLITE_LINUX
     NSSize					newSize;
 	bool					resize_pending = false;
-#endif
 
 	while (SDL_PollEvent(&event))
 	{
@@ -2335,37 +2325,8 @@ finished:
 
 			case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
 			{
-#if OOLITE_WINDOWS
-				NSSize newSize=NSMakeSize(event.window.data1, event.window.data2);
-				if (!fullScreen && updateContext)
-				{
-					int pixelWidth, pixelHeight;  // Fetch actual pixel bounds back from SDL
-					SDL_GetWindowSizeInPixels(window, &pixelWidth, &pixelHeight);
-					bounds.size = NSMakeSize(pixelWidth, pixelHeight);
-					viewSize = bounds.size;
-
-					if (bounds.size.width / bounds.size.height > 4.0 / 3.0) {  // Recalculate aspect-ratio-dependent
-						display_z = 480.0 * bounds.size.width / bounds.size.height;  // projection offsets
-						x_offset = 240.0 * bounds.size.width / bounds.size.height;
-						y_offset = 240.0;
-					} else {
-						display_z = 640.0;
-						x_offset = 320.0;
-						y_offset = 320.0 * bounds.size.height / bounds.size.width;
-					}
-
-					float ratio = 0.5;  // Update OpenGL Viewport and Projection Matrix
-					float aspect = bounds.size.height / bounds.size.width;
-					OOGL(glViewport(0, 0, bounds.size.width, bounds.size.height));
-					OOGLResetProjection();
-					OOGLFrustum(-ratio, ratio, -aspect * ratio, aspect * ratio, 1.0, MAX_CLEAR_DEPTH);
-
-					[self saveWindowSize: newSize];  // Save the updated window size
-				}
-#else
 				newSize=NSMakeSize(event.window.data1, event.window.data2);
                 resize_pending = true;
-#endif
 				break;
 			}
 
@@ -2411,14 +2372,35 @@ finished:
 	{
 		_mouseWheelDelta = 0.0f;
 	}
-#if OOLITE_LINUX
-	if (resize_pending)
+    if (resize_pending)
 	{
-		[self initialiseGLWithSize: newSize];
-		[self saveWindowSize: newSize];
+		if (!fullScreen)
+		{
+			int pixelWidth, pixelHeight;  // Fetch actual pixel bounds back from SDL
+			SDL_GetWindowSizeInPixels(window, &pixelWidth, &pixelHeight);
+			bounds.size = NSMakeSize(pixelWidth, pixelHeight);
+			viewSize = bounds.size;
+
+			if (bounds.size.width / bounds.size.height > 4.0 / 3.0) {  // Recalculate aspect-ratio-dependent
+				display_z = 480.0 * bounds.size.width / bounds.size.height;  // projection offsets
+				x_offset = 240.0 * bounds.size.width / bounds.size.height;
+				y_offset = 240.0;
+			} else {
+				display_z = 640.0;
+				x_offset = 320.0;
+				y_offset = 320.0 * bounds.size.height / bounds.size.width;
+			}
+
+			float ratio = 0.5;  // Update OpenGL Viewport and Projection Matrix
+			float aspect = bounds.size.height / bounds.size.width;
+			OOGL(glViewport(0, 0, bounds.size.width, bounds.size.height));
+			OOGLResetProjection();
+			OOGLFrustum(-ratio, ratio, -aspect * ratio, aspect * ratio, 1.0, MAX_CLEAR_DEPTH);
+
+			[self saveWindowSize: newSize];  // Save the updated window size
+		}
 		resize_pending = false;
 	}
-#endif
 }
 
 
