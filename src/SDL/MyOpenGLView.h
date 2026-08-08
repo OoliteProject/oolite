@@ -296,7 +296,7 @@ extern int debug;
 #if OOLITE_WINDOWS
 - (BOOL) getCurrentMonitorInfo:(MONITORINFOEX *)mInfo;
 - (MONITORINFOEX) currentMonitorInfo;
-- (void) refreshDarKOrLightMode;
+- (void) refreshDarkOrLightMode;
 - (BOOL) isDarkModeOn;
 - (BOOL) atDesktopResolution;
 - (float) hdrMaxBrightness;

@@ -79,7 +79,6 @@ enum PreferredAppMode
 @interface MyOpenGLView (OOPrivate)
 
 - (void) resetSDLKeyModifiers;
-- (void) setWindowBorderless:(BOOL)borderless;
 - (void) handleStringInput: (SDL_KeyboardEvent *) kbd_event keyID:(Uint16)key_id; // DJS
 @end
 
@@ -189,7 +188,7 @@ enum PreferredAppMode
 	}
 
 	NSString *windowCaption = [self getWindowCaption];
-	Uint32 windowFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY;
+	Uint32 windowFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_BORDERLESS | SDL_WINDOW_HIGH_PIXEL_DENSITY;
 
 	// Define modern SDL3 properties for window configuration
 	SDL_PropertiesID props = SDL_CreateProperties();
@@ -279,7 +278,7 @@ enum PreferredAppMode
 		if (SetPreferredAppMode)  SetPreferredAppMode(AllowDark);
 		FreeLibrary(hUxTheme);
 	}
-	[self refreshDarKOrLightMode];
+	[self refreshDarkOrLightMode];
 #endif
 #endif //OOLITE_WINDOWS
 
@@ -483,6 +482,8 @@ enum PreferredAppMode
 
 - (void) endSplashScreen
 {
+    SDL_SetWindowBordered(window, true);
+    SDL_SetWindowResizable(window, true);
 #if OOLITE_WINDOWS
 	// we need to get through here even if splash screen has not
 	// been shown - this method also prepares the main game window
@@ -868,7 +869,6 @@ enum PreferredAppMode
 
 	dest.x = (GetSystemMetrics(SM_CXSCREEN)- dest.w)/2;
 	dest.y = (GetSystemMetrics(SM_CYSCREEN)-dest.h)/2;
-	SetWindowLong(windowHandle,GWL_STYLE,GetWindowLong(windowHandle,GWL_STYLE) & ~WS_CAPTION & ~WS_THICKFRAME);
 	ShowWindow(windowHandle,SW_RESTORE);
 	MoveWindow(windowHandle,dest.x,dest.y,dest.w,dest.h,TRUE);
   #endif
@@ -1099,29 +1099,7 @@ enum PreferredAppMode
 }
 
 
-- (void) setWindowBorderless:(BOOL)borderless
-{
-	LONG currentWindowStyle = GetWindowLong(windowHandle, GWL_STYLE);
-	
-	// window already has the desired style?
-	if ((!borderless && (currentWindowStyle & WS_CAPTION)) ||
-		(borderless && !(currentWindowStyle & WS_CAPTION)))  return;
-		
-	if (borderless)
-	{
-		SetWindowLong(windowHandle, GWL_STYLE, currentWindowStyle & ~WS_CAPTION & ~WS_THICKFRAME);
-	}
-	else
-	{
-		SetWindowLong(windowHandle, GWL_STYLE, currentWindowStyle |
-						WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX );
-		[self refreshDarKOrLightMode];
-	}
-	SetWindowPos(windowHandle, NULL, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
-}
-
-
-- (void) refreshDarKOrLightMode
+- (void) refreshDarkOrLightMode
 {
 	int shouldSetDarkMode = [self isDarkModeOn];
 	DwmSetWindowAttribute (windowHandle, DWMWA_USE_IMMERSIVE_DARK_MODE, &shouldSetDarkMode, sizeof(shouldSetDarkMode));
@@ -1414,12 +1392,6 @@ finished:
 }
 
 
-- (void) setWindowBorderless:(BOOL)borderless
-{
-	// do nothing on Linux
-}
-
-
 - (BOOL) hdrOutput
 {
 	return NO;
@@ -1504,6 +1476,9 @@ finished:
         if (wasFullScreen)
         {
             SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+#if OOLITE_WINDOWS
+            [self refreshDarkOrLightMode];
+#endif
         }
     }
 
@@ -1967,9 +1942,7 @@ finished:
 	Uint16	 				key_id;
 	SDL_Scancode				scan_code;
 	float inDelta;
-#if OOLITE_WINDOWS
-	DWORD dwLastError = 0;
-#elif OOLITE_LINUX
+#if OOLITE_LINUX
     NSSize					newSize;
 	bool					resize_pending = false;
 #endif
@@ -2397,6 +2370,14 @@ finished:
 			}
 
 #if OOLITE_WINDOWS
+			case SDL_EVENT_WINDOW_MINIMIZED:
+			{
+				if (fullScreen)
+				{
+					[self refreshDarkOrLightMode];
+				}
+				break;
+			}
 			case SDL_EVENT_WINDOW_MOVED:
 			{
 				if(grabMouseStatus)  [self grabMouseInsideGameWindow:YES];
