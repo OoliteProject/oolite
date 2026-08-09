@@ -1437,10 +1437,17 @@ finished:
     // 1. Handle Fullscreen vs. Windowed Mode in pure SDL3
     if (fullScreen)
     {
-        if (v_mode)
+        SDL_DisplayID displayID = SDL_GetDisplayForWindow(window);
+        const SDL_DisplayMode *desktopMode = (displayID != 0) ? SDL_GetDesktopDisplayMode(displayID) : NULL;
+
+        // Check if requested resolution differs from current desktop mode
+        BOOL isDifferentResolution = desktopMode &&
+            (desktopMode->w != (int)viewSize.width || desktopMode->h != (int)viewSize.height);
+
+        // Only switch hardware display modes if explicit video mode was requested
+        // AND the requested resolution is actually different from the desktop native resolution.
+        if (v_mode && isDifferentResolution)
         {
-            // Exclusive Fullscreen: Get closest matching mode for current display
-            SDL_DisplayID displayID = SDL_GetDisplayForWindow(window);
             SDL_DisplayMode closestMode;
 
             // In SDL3: pass width, height, refresh rate (0.0f = desktop rate), high-density flag, and target struct
@@ -1456,7 +1463,7 @@ finished:
         }
         else
         {
-            // Desktop (Borderless) Fullscreen
+            // Desktop (Borderless) Fullscreen — instant, zero display handshake delay
             SDL_SetWindowFullscreenMode(window, NULL);
         }
 
@@ -1468,9 +1475,6 @@ finished:
         // Toggle Fullscreen OFF
         SDL_SetWindowFullscreen(window, false);
         SDL_SetWindowSize(window, (int)viewSize.width, (int)viewSize.height);
-
-        // Center window on display when returning from fullscreen
-        SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 #if OOLITE_WINDOWS
         [self refreshDarkOrLightMode];
 #endif
