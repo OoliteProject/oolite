@@ -2502,7 +2502,6 @@ finished:
 	{
 		_mouseWheelDelta = 0.0f;
 	}
-#if OOLITE_LINUX
     if (resize_pending)
 	{
 		if (!fullScreen)
@@ -2532,7 +2531,6 @@ finished:
 		}
 		resize_pending = false;
 	}
-#endif
 }
 
 
