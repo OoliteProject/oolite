@@ -189,7 +189,7 @@ enum PreferredAppMode
 	}
 
 	NSString *windowCaption = [self getWindowCaption];
-	Uint32 windowFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY;
+	Uint32 windowFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_BORDERLESS | SDL_WINDOW_HIGH_PIXEL_DENSITY;
 
 	// Define modern SDL3 properties for window configuration
 	SDL_PropertiesID props = SDL_CreateProperties();
@@ -499,16 +499,24 @@ enum PreferredAppMode
 
 	wasFullScreen = !fullScreen;
 	updateContext = YES;
-#endif // OOLITE_WINDOWS
-
+#endif
+	SDL_SetWindowResizable(window, true);
+	SDL_SetWindowBordered(window, true);
     if (!showSplashScreen)  return;
 
 #if OOLITE_LINUX
-	SDL_HideWindow(window);
-	SDL_SetWindowSize(window, firstScreen.width, firstScreen.height);
-    SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
-	SDL_SetWindowFullscreen(window, fullScreen);
-	SDL_ShowWindow(window);
+	if (fullScreen)
+	{
+		SDL_SetWindowFullscreen(window, true);
+	}
+	else
+	{
+		SDL_HideWindow(window);
+		SDL_SetWindowFullscreen(window, false);
+		SDL_SetWindowSize(window, firstScreen.width, firstScreen.height);
+    	SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+		SDL_ShowWindow(window);
+	}
 
 	/* MKW 2011.11.11
 	 * Eat all SDL events to gobble up any resize events while the
@@ -735,7 +743,9 @@ enum PreferredAppMode
 	{
 		[self initialiseGLWithSize: currentWindowSize];
 #if OOLITE_LINUX
-		SDL_SetWindowMouseGrab(window, NO);
+		SDL_HideWindow(window);
+    	SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+		SDL_ShowWindow(window);
 #endif
 	}
 	// do screen resizing updates
