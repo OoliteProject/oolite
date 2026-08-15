@@ -2072,12 +2072,8 @@ finished:
 	Uint16	 				key_id;
 	SDL_Scancode				scan_code;
 	float inDelta;
-#if OOLITE_WINDOWS
-	DWORD dwLastError = 0;
-#elif OOLITE_LINUX
     NSSize					newSize;
 	bool					resize_pending = false;
-#endif
 
 	while (SDL_PollEvent(&event))
 	{
@@ -2467,58 +2463,14 @@ finished:
 
 			case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
 			{
-				SDL_WindowEvent *rsevt=(SDL_WindowEvent *)&event;
-#if OOLITE_WINDOWS
-				NSSize newSize=NSMakeSize(rsevt->data1, rsevt->data2);
-				if (!fullScreen && updateContext)
-				{
-
-					// 1. Tell SDL to update the window dimensions
-					SDL_SetWindowSize(window, newSize.width, newSize.height);
-
-					// 2. Fetch actual pixel bounds back from SDL
-					int pixelWidth, pixelHeight;
-					SDL_GetWindowSizeInPixels(window, &pixelWidth, &pixelHeight);
-					bounds.size = NSMakeSize(pixelWidth, pixelHeight);
-					viewSize = bounds.size;
-
-					// 3. Recalculate aspect-ratio-dependent projection offsets
-					if (bounds.size.width / bounds.size.height > 4.0 / 3.0) {
-						display_z = 480.0 * bounds.size.width / bounds.size.height;
-						x_offset = 240.0 * bounds.size.width / bounds.size.height;
-						y_offset = 240.0;
-					} else {
-						display_z = 640.0;
-						x_offset = 320.0;
-						y_offset = 320.0 * bounds.size.height / bounds.size.width;
-					}
-
-					// 4. Update OpenGL Viewport and Projection Matrix
-					float ratio = 0.5;
-					float aspect = bounds.size.height / bounds.size.width;
-
-					OOGL(glViewport(0, 0, bounds.size.width, bounds.size.height));
-					OOGLResetProjection();
-					OOGLFrustum(-ratio, ratio, -aspect * ratio, aspect * ratio, 1.0, MAX_CLEAR_DEPTH);
-
-					// 5. Save the updated window size
-					[self saveWindowSize: newSize];
-				}
-#else
-				newSize=NSMakeSize(rsevt->data1, rsevt->data2);
+				newSize=NSMakeSize(event.window.data1, event.window.data2);
                 resize_pending = true;
-#endif
-				// certain gui screens will require an immediate redraw after
-				// a resize event - Nikos 20140129
 				break;
 			}
 
 #if OOLITE_WINDOWS
 			case SDL_EVENT_WINDOW_MOVED:
 			{
-				// it is important that this gets done after we've dealt with possible fullscreen movements,
-				// because -doGuiScreenResizeUpdates does itself an update on current monitor
-
 				if(grabMouseStatus)  [self grabMouseInsideGameWindow:YES];
 				break;
 			}
@@ -2550,14 +2502,35 @@ finished:
 	{
 		_mouseWheelDelta = 0.0f;
 	}
-#if OOLITE_LINUX
-	if (resize_pending)
+    if (resize_pending)
 	{
-		[self initialiseGLWithSize: newSize];
-		[self saveWindowSize: newSize];
+		if (!fullScreen)
+		{
+			int pixelWidth, pixelHeight;  // Fetch actual pixel bounds back from SDL
+			SDL_GetWindowSizeInPixels(window, &pixelWidth, &pixelHeight);
+			bounds.size = NSMakeSize(pixelWidth, pixelHeight);
+			viewSize = bounds.size;
+
+			if (bounds.size.width / bounds.size.height > 4.0 / 3.0) {  // Recalculate aspect-ratio-dependent
+				display_z = 480.0 * bounds.size.width / bounds.size.height;  // projection offsets
+				x_offset = 240.0 * bounds.size.width / bounds.size.height;
+				y_offset = 240.0;
+			} else {
+				display_z = 640.0;
+				x_offset = 320.0;
+				y_offset = 320.0 * bounds.size.height / bounds.size.width;
+			}
+
+			float ratio = 0.5;  // Update OpenGL Viewport and Projection Matrix
+			float aspect = bounds.size.height / bounds.size.width;
+			OOGL(glViewport(0, 0, bounds.size.width, bounds.size.height));
+			OOGLResetProjection();
+			OOGLFrustum(-ratio, ratio, -aspect * ratio, aspect * ratio, 1.0, MAX_CLEAR_DEPTH);
+
+			[self saveWindowSize: newSize];  // Save the updated window size
+		}
 		resize_pending = false;
 	}
-#endif
 }
 
 
