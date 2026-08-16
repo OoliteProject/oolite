@@ -1450,10 +1450,12 @@ finished:
 	viewSize = v_size;
 	OOLog(@"display.initGL", @"Requested a new surface of %d x %d, %@.", (int)viewSize.width, (int)viewSize.height,(fullScreen ? @"fullscreen" : @"windowed"));
 	SDL_GL_SwapWindow(window);	// clear the buffer before resize
-	
-	SDL_SetWindowBordered(window, v_mode);
+
+	if (!fullScreen) {
+		SDL_SetWindowSize(window, viewSize.width, viewSize.height);
+		SDL_SetWindowBordered(window, v_mode);
+	}
 	SDL_SetWindowFullscreen(window, fullScreen);
-	SDL_SetWindowSize(window, viewSize.width, viewSize.height);
 	int w, h;
 	SDL_GetWindowSize(window, &w, &h);
 	bounds.size.width = w;
