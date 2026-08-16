@@ -447,12 +447,6 @@ enum PreferredAppMode
 
 	OOLog(@"display.mode.list", @"%@", @"CREATING MODE LIST");
 
-
-
-#if OOLITE_WINDOWS
-	ShowWindow(windowHandle,SW_SHOWMINIMIZED);
-	updateContext = !showSplashScreen;
-#endif
 	if (!showSplashScreen)
 	{
 		// blank the surface / go to fullscreen
@@ -497,14 +491,11 @@ enum PreferredAppMode
 		}
 	}
 
-	wasFullScreen = !fullScreen;
-	updateContext = YES;
 #endif
 	SDL_SetWindowResizable(window, true);
 	SDL_SetWindowBordered(window, true);
     if (!showSplashScreen)  return;
 
-#if OOLITE_LINUX
 	if (fullScreen)
 	{
 		SDL_SetWindowFullscreen(window, true);
@@ -533,8 +524,6 @@ enum PreferredAppMode
 		OOLog(@"display.splash", @"Suppressed splash-screen event %d: %d ", numEvents, dummyEvent.type);
 		*/
 	}
-
-#endif // OOLITE_LINUX
 
 	[self updateScreen];
 	[self autoShowMouse];

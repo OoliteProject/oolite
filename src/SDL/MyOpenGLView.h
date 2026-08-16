@@ -226,8 +226,6 @@ extern int debug;
 
 #if OOLITE_WINDOWS
 
-	BOOL				wasFullScreen;
-	BOOL				updateContext;
 	BOOL				saveSize;
 	BOOL				atDesktopResolution;
 	unsigned			keyboardMap; // *** FLAGGED for deletion
