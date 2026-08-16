@@ -712,21 +712,9 @@ enum PreferredAppMode
 - (void) toggleScreenMode
 {
 	[self setFullScreenMode: !fullScreen];
-#if OOLITE_WINDOWS
-	[self getCurrentMonitorInfo:&monitorInfo];
-#endif
  	if(fullScreen)
 	{
-#if OOLITE_WINDOWS
-		if(![self isRunningOnPrimaryDisplayDevice])
-		{
-			[self initialiseGLWithSize:NSMakeSize(monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left,
-												monitorInfo.rcMonitor.bottom - monitorInfo.rcMonitor.top)];
-		}
-		else  [self initialiseGLWithSize:[self modeAsSize: currentSize]];
-#else
  		[self initialiseGLWithSize:[self modeAsSize: currentSize]];
-#endif
 	}
 	else
 	{
