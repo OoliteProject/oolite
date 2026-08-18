@@ -34,7 +34,7 @@ create_flatpak() {
     cat <<EOF > "$lint_exceptions"
 {
   "space.oolite.Oolite": [
-    "finish-args-has-dev-input"
+    "finish-args-reserved-dev"
   ]
 }
 EOF
