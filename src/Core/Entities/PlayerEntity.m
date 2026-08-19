@@ -4114,31 +4114,6 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 }
 
 
-// Game options and status screens (for now) may require an immediate window redraw after
-// said window has been resized. This method must be called after such resize events, including
-// toggle to/from full screen - Nikos 20140129
-- (void) doGuiScreenResizeUpdates
-{
-	switch ([self guiScreen])
-	{
-		case GUI_SCREEN_GAMEOPTIONS:
-			//refresh play windowed / full screen
-			[self setGuiToGameOptionsScreen];
-			break;
-		case GUI_SCREEN_STATUS:
-			// status screen must be redone in order to possibly
-			// refresh displayed model's draw position
-			[self setGuiToStatusScreen];
-			break;
-		default:
-			break;
-	}
-
-
-	[hud resetGuiPositions];
-}
-
-
 // Check for lost targeting - both on the ships' main target as well as each
 // missile.
 // If we're actively scanning and we don't have a current target, then check

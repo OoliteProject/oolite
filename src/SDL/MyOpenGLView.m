@@ -79,7 +79,6 @@ enum PreferredAppMode
 @interface MyOpenGLView (OOPrivate)
 
 - (void) resetSDLKeyModifiers;
-- (void) setWindowBorderless:(BOOL)borderless;
 - (void) handleStringInput: (SDL_KeyboardEvent *) kbd_event keyID:(Uint16)key_id; // DJS
 @end
 
@@ -725,11 +724,6 @@ enum PreferredAppMode
 		SDL_ShowWindow(window);
 #endif
 	}
-	// do screen resizing updates
-	if ([PlayerEntity sharedPlayer])
-	{
-		[[PlayerEntity sharedPlayer] doGuiScreenResizeUpdates];
-	}
 }
 
 
@@ -1086,28 +1080,6 @@ enum PreferredAppMode
 }
 
 
-- (void) setWindowBorderless:(BOOL)borderless
-{
-	LONG currentWindowStyle = GetWindowLong(windowHandle, GWL_STYLE);
-	
-	// window already has the desired style?
-	if ((!borderless && (currentWindowStyle & WS_CAPTION)) ||
-		(borderless && !(currentWindowStyle & WS_CAPTION)))  return;
-		
-	if (borderless)
-	{
-		SetWindowLong(windowHandle, GWL_STYLE, currentWindowStyle & ~WS_CAPTION & ~WS_THICKFRAME);
-	}
-	else
-	{
-		SetWindowLong(windowHandle, GWL_STYLE, currentWindowStyle |
-						WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX );
-		[self refreshDarKOrLightMode];
-	}
-	SetWindowPos(windowHandle, NULL, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
-}
-
-
 - (void) refreshDarKOrLightMode
 {
 	int shouldSetDarkMode = [self isDarkModeOn];
@@ -1401,12 +1373,6 @@ finished:
 }
 
 
-- (void) setWindowBorderless:(BOOL)borderless
-{
-	// do nothing on Linux
-}
-
-
 - (BOOL) hdrOutput
 {
 	return NO;
@@ -1451,11 +1417,20 @@ finished:
 	OOLog(@"display.initGL", @"Requested a new surface of %d x %d, %@.", (int)viewSize.width, (int)viewSize.height,(fullScreen ? @"fullscreen" : @"windowed"));
 	SDL_GL_SwapWindow(window);	// clear the buffer before resize
 
-	if (!fullScreen) {
+	SDL_SetWindowFullscreen(window, fullScreen);
+#if OOLITE_WINDOWS
+	if (fullScreen)  // Hack for Windows SDL3 pause issue: https://github.com/libsdl-org/SDL/issues/12791
+	{                // Occurs on some systems eg. when going fullscreen -> window or vice versa
+		LONG currentWindowStyle = GetWindowLong(windowHandle, GWL_STYLE);
+    	currentWindowStyle &= ~WS_POPUP;
+    	SetWindowLong(windowHandle, GWL_STYLE, currentWindowStyle);
+	}
+#endif
+	if (!fullScreen)
+	{
 		SDL_SetWindowSize(window, viewSize.width, viewSize.height);
 		SDL_SetWindowBordered(window, v_mode);
 	}
-	SDL_SetWindowFullscreen(window, fullScreen);
 	int w, h;
 	SDL_GetWindowSize(window, &w, &h);
 	bounds.size.width = w;

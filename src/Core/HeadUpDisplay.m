@@ -401,27 +401,6 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 }
 
 
-- (void) resetGuiPositions
-{
-	NSDictionary *hudDict = [ResourceManager dictionaryFromFilesNamed:[self hudName] inFolder:@"Config" andMerge:YES];
-
-	GuiDisplayGen*	gui = [UNIVERSE messageGUI];
-	NSDictionary*	gui_info = [hudDict oo_dictionaryForKey:@"message_gui"];
-	if (gui && gui_info)
-	{
-		[self resetGuiPosition:gui withInfo:gui_info];
-	}
-
-	gui = [UNIVERSE commLogGUI];
-	gui_info = [hudDict oo_dictionaryForKey:@"comm_log_gui"];
-	if (gui && gui_info)
-	{
-		[self resetGuiPosition:gui withInfo:gui_info];
-	}
-
-}
-
-
 - (void) resetGuis:(NSDictionary *)info
 {
 	// check for entries in hud.plist for message_gui and comm_log_gui
