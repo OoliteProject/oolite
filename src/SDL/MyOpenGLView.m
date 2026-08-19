@@ -1427,8 +1427,8 @@ finished:
 	else  // Hack for Windows SDL3 pause issue: https://github.com/libsdl-org/SDL/issues/12791
 	{     // Occurs on some systems eg. when going fullscreen -> window or vice versa
 		LONG currentWindowStyle = GetWindowLong(windowHandle, GWL_STYLE);
-    	currentWindowStyle &= ~WS_POPUP;
-    	SetWindowLong(windowHandle, GWL_STYLE, currentWindowStyle);
+		currentWindowStyle &= ~WS_POPUP;
+		SetWindowLong(windowHandle, GWL_STYLE, currentWindowStyle);
 	}
 #endif
 	int w, h;
