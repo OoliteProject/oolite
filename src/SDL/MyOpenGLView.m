@@ -1418,19 +1418,19 @@ finished:
 	SDL_GL_SwapWindow(window);	// clear the buffer before resize
 
 	SDL_SetWindowFullscreen(window, fullScreen);
-#if OOLITE_WINDOWS
-	if (fullScreen)  // Hack for Windows SDL3 pause issue: https://github.com/libsdl-org/SDL/issues/12791
-	{                // Occurs on some systems eg. when going fullscreen -> window or vice versa
-		LONG currentWindowStyle = GetWindowLong(windowHandle, GWL_STYLE);
-    	currentWindowStyle &= ~WS_POPUP;
-    	SetWindowLong(windowHandle, GWL_STYLE, currentWindowStyle);
-	}
-#endif
 	if (!fullScreen)
 	{
 		SDL_SetWindowSize(window, viewSize.width, viewSize.height);
 		SDL_SetWindowBordered(window, v_mode);
 	}
+#if OOLITE_WINDOWS
+	else  // Hack for Windows SDL3 pause issue: https://github.com/libsdl-org/SDL/issues/12791
+	{     // Occurs on some systems eg. when going fullscreen -> window or vice versa
+		LONG currentWindowStyle = GetWindowLong(windowHandle, GWL_STYLE);
+    	currentWindowStyle &= ~WS_POPUP;
+    	SetWindowLong(windowHandle, GWL_STYLE, currentWindowStyle);
+	}
+#endif
 	int w, h;
 	SDL_GetWindowSize(window, &w, &h);
 	bounds.size.width = w;
