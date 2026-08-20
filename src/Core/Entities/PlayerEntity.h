@@ -1302,8 +1302,6 @@ typedef enum
 
 - (void) showShipModelWithKey:(NSString *)shipKey shipData:(NSDictionary *)shipData personality:(uint16_t)personality factorX:(GLfloat)factorX factorY:(GLfloat)factorY factorZ:(GLfloat)factorZ inContext:(NSString *)context;
 
-- (void) doGuiScreenResizeUpdates;
-
 /* Fractional expression of amount of entry inside a planet's atmosphere. 0.0f is out of atmosphere,
    1.0f is fully in and is normally associated with the point of ship destruct due to altitude.
 */
