@@ -766,23 +766,10 @@ enum PreferredAppMode
 
 - (void) updateScreen
 {
-	SDL_SetWindowSize(window, (int)viewSize.width, (int)viewSize.height);
-	SDL_Surface* surface = SDL_GetWindowSurface(window);
-	int windowWidth, windowHeight;
-	SDL_GetWindowSize(window, &windowWidth, &windowHeight);
-	if ((viewSize.width != windowWidth)||(viewSize.height != windowHeight)) // resized
-	{
-		viewSize.width = windowWidth;
-		viewSize.height = windowHeight;
-	}
-
     if (m_glContextInitialized == NO)
 	{
 		[self initialiseGLWithSize:viewSize];
 	}
-
-	if (surface == 0)
-		return;
 
 	// do all the drawing!
 	//
