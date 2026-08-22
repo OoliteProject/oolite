@@ -468,8 +468,6 @@ enum PreferredAppMode
 
 	_mouseWheelDelta = 0.0f;
 
-	m_glContextInitialized = NO;
-
 	return self;
 }
 
@@ -523,6 +521,7 @@ enum PreferredAppMode
 		*/
 	}
 
+	[self initialiseGLWithSize:firstScreen];
 	[self updateScreen];
 	[self autoShowMouse];
 }
@@ -766,11 +765,6 @@ enum PreferredAppMode
 
 - (void) updateScreen
 {
-    if (m_glContextInitialized == NO)
-	{
-		[self initialiseGLWithSize:viewSize];
-	}
-
 	// do all the drawing!
 	//
 	if (UNIVERSE)
@@ -1352,8 +1346,6 @@ finished:
 	[[self gameController] setUpBasicOpenGLStateWithSize:pixelSize];
 	SDL_GL_SwapWindow(window);
 	squareX = 0.0f;
-
-	m_glContextInitialized = YES;
 }
 
 
