@@ -404,7 +404,7 @@ static GameController *sSharedController = nil;
 	
 	@try
 	{
-		[gameView display];
+		[gameView updateScreen];
 	}
 	@catch (id exception) {}
 }
