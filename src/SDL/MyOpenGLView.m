@@ -765,16 +765,13 @@ enum PreferredAppMode
 
 - (void) updateScreen
 {
-	// do all the drawing!
-	//
 	if (UNIVERSE)
 	{
-		[UNIVERSE drawUniverse];
+		[UNIVERSE drawUniverse];  // do all the drawing!
 	}
 	else
 	{
-		// not set up yet, draw a black screen
-		glClearColor( 0.0, 0.0, 0.0, 0.0);
+		glClearColor( 0.0, 0.0, 0.0, 0.0);  // not set up yet, draw a black screen
 		glClear( GL_COLOR_BUFFER_BIT);
 	}
 
