@@ -526,6 +526,126 @@ enum PreferredAppMode
 	[self autoShowMouse];
 }
 
+- (void) updateGLSize:(NSSize) size
+{
+	bounds.size = size;
+	viewSize = size;
+
+	if (bounds.size.width / bounds.size.height > 4.0 / 3.0)
+	{
+		display_z = 480.0 * bounds.size.width / bounds.size.height;
+		x_offset = 240.0 * bounds.size.width / bounds.size.height;
+		y_offset = 240.0;
+	}
+	else
+	{
+		display_z = 640.0;
+		x_offset = 320.0;
+		y_offset = 320.0 * bounds.size.height / bounds.size.width;
+	}
+
+	float ratio = 0.5;
+	float aspect = bounds.size.height / bounds.size.width;
+
+	OOGL(glViewport(0, 0, bounds.size.width, bounds.size.height));
+	OOGLResetProjection();
+	OOGLFrustum(-ratio, ratio, -aspect * ratio, aspect * ratio, 1.0, MAX_CLEAR_DEPTH);
+}
+
+
+- (void) setUpBasicOpenGLStateWithSize
+{
+	OOOpenGLExtensionManager *extMgr = [OOOpenGLExtensionManager sharedManager];
+
+	OOGL(glClearColor(0.0, 0.0, 0.0, 0.0));
+	OOGL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+	OOGL(glClearDepth(1.0));
+	OOGL(glDepthFunc(GL_LESS));	// depth buffer
+
+	if (UNIVERSE)
+	{
+		[UNIVERSE setLighting];
+	}
+	else
+	{
+		GLfloat black[4]        = {0.0, 0.0, 0.0, 1.0};
+		GLfloat white[]         = {1.0, 1.0, 1.0, 1.0};
+		GLfloat stars_ambient[] = {0.25, 0.2, 0.25, 1.0};
+
+		OOGL(glLightfv(GL_LIGHT1, GL_AMBIENT, black));
+		OOGL(glLightfv(GL_LIGHT1, GL_SPECULAR, white));
+		OOGL(glLightfv(GL_LIGHT1, GL_DIFFUSE, white));
+		OOGL(glLightfv(GL_LIGHT1, GL_POSITION, black));
+		OOGL(glLightModelfv(GL_LIGHT_MODEL_AMBIENT, stars_ambient));
+	}
+
+	if ([extMgr usePointSmoothing])
+	{
+		OOGL(glEnable(GL_POINT_SMOOTH));
+	}
+
+	if ([extMgr useLineSmoothing])
+	{
+		OOGL(glEnable(GL_LINE_SMOOTH));
+	}
+
+	OOGL(glDisable(GL_NORMALIZE));
+	OOGL(glDisable(GL_RESCALE_NORMAL));
+
+	OOGL(glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR));
+}
+
+
+- (void) initialiseGLWithSize:(NSSize) v_size
+{
+	if (!window)
+	{
+		[self createWindowWithSize:v_size];
+	}
+
+	viewSize = v_size;
+
+	OOLog(@"display.initGL", @"Requested a new surface of %d x %d, %@.", (int)viewSize.width, (int)viewSize.height,
+	    (fullScreen ? @"fullscreen" : @"windowed"));
+
+	SDL_GL_SwapWindow(window);	// clear the buffer before resize
+
+	SDL_SetWindowFullscreen(window, fullScreen);
+
+	if (!fullScreen)
+	{
+		SDL_SetWindowSize(window, viewSize.width, viewSize.height);
+		SDL_SetWindowBordered(window, YES);
+	}
+#if OOLITE_WINDOWS
+	else	// Hack for Windows SDL3 pause issue: https://github.com/libsdl-org/SDL/issues/12791
+	{		// Occurs on some systems eg. when going fullscreen -> window or vice versa
+		LONG currentWindowStyle = GetWindowLong(windowHandle, GWL_STYLE);
+		currentWindowStyle &= ~WS_POPUP;
+		SetWindowLong(windowHandle, GWL_STYLE, currentWindowStyle);
+	}
+#endif
+
+	int pixelWidth, pixelHeight;
+	SDL_GetWindowSizeInPixels(window, &pixelWidth, &pixelHeight);
+
+	[self updateGLSize:NSMakeSize(pixelWidth, pixelHeight)];
+
+	OOLog(@"display.initGL",
+		  @"Created a new surface of %d x %d, %@.",
+		  (int)viewSize.width,
+		  (int)viewSize.height,
+		  (fullScreen ? @"fullscreen" : @"windowed"));
+
+	[self autoShowMouse];
+
+	[self setUpBasicOpenGLStateWithSize];
+
+	SDL_GL_SwapWindow(window);
+
+	squareX = 0.0f;
+}
+
 
 - (void) initKeyMappingData
 {
@@ -1291,58 +1411,6 @@ finished:
 	if (newToneMapper > OOSDR_TONEMAPPER_REINHARD)  newToneMapper = OOSDR_TONEMAPPER_REINHARD;
 	if (newToneMapper < OOSDR_TONEMAPPER_NONE)  newToneMapper = OOSDR_TONEMAPPER_NONE;
 	_sdrToneMapper = newToneMapper;
-}
-
-
-- (void) initialiseGLWithSize:(NSSize) v_size
-{
-	if (!window)
-	{
-		[self createWindowWithSize: v_size];
-	}
-	viewSize = v_size;
-	OOLog(@"display.initGL", @"Requested a new surface of %d x %d, %@.", (int)viewSize.width, (int)viewSize.height,(fullScreen ? @"fullscreen" : @"windowed"));
-	SDL_GL_SwapWindow(window);	// clear the buffer before resize
-
-	SDL_SetWindowFullscreen(window, fullScreen);
-	if (!fullScreen)
-	{
-		SDL_SetWindowSize(window, viewSize.width, viewSize.height);
-		SDL_SetWindowBordered(window, YES);
-	}
-#if OOLITE_WINDOWS
-	else  // Hack for Windows SDL3 pause issue: https://github.com/libsdl-org/SDL/issues/12791
-	{     // Occurs on some systems eg. when going fullscreen -> window or vice versa
-		LONG currentWindowStyle = GetWindowLong(windowHandle, GWL_STYLE);
-		currentWindowStyle &= ~WS_POPUP;
-		SetWindowLong(windowHandle, GWL_STYLE, currentWindowStyle);
-	}
-#endif
-	int w, h;
-	SDL_GetWindowSize(window, &w, &h);
-	bounds.size.width = w;
-	bounds.size.height = h;
-	viewSize = bounds.size;
-	OOLog(@"display.initGL", @"Created a new surface of %d x %d, %@.", (int)viewSize.width, (int)viewSize.height,(fullScreen ? @"fullscreen" : @"windowed"));
-
-	if (viewSize.width/viewSize.height > 4.0/3.0) {
-		display_z = 480.0 * bounds.size.width/bounds.size.height;
-		x_offset = 240.0 * bounds.size.width/bounds.size.height;
-		y_offset = 240.0;
-	} else {
-		display_z = 640.0;
-		x_offset = 320.0;
-		y_offset = 320.0 * bounds.size.height/bounds.size.width;
-	}
-
-	[self autoShowMouse];
-
-	int pixelWidth, pixelHeight;
-	SDL_GetWindowSizeInPixels(window, &pixelWidth, &pixelHeight);
-	NSSize pixelSize = NSMakeSize(pixelWidth, pixelHeight);
-	[[self gameController] setUpBasicOpenGLStateWithSize:pixelSize];
-	SDL_GL_SwapWindow(window);
-	squareX = 0.0f;
 }
 
 
@@ -2189,28 +2257,13 @@ finished:
 	{
 		_mouseWheelDelta = 0.0f;
 	}
-    if (resize_pending)
+	if (resize_pending)
 	{
-		int pixelWidth, pixelHeight;  // Fetch actual pixel bounds back from SDL
+		int pixelWidth, pixelHeight;
+		// Fetch actual pixel bounds back from SDL
 		SDL_GetWindowSizeInPixels(window, &pixelWidth, &pixelHeight);
-		bounds.size = NSMakeSize(pixelWidth, pixelHeight);
-		viewSize = bounds.size;
 
-		if (bounds.size.width / bounds.size.height > 4.0 / 3.0) {  // Recalculate aspect-ratio-dependent
-			display_z = 480.0 * bounds.size.width / bounds.size.height;  // projection offsets
-			x_offset = 240.0 * bounds.size.width / bounds.size.height;
-			y_offset = 240.0;
-		} else {
-			display_z = 640.0;
-			x_offset = 320.0;
-			y_offset = 320.0 * bounds.size.height / bounds.size.width;
-		}
-
-		float ratio = 0.5;  // Update OpenGL Viewport and Projection Matrix
-		float aspect = bounds.size.height / bounds.size.width;
-		OOGL(glViewport(0, 0, bounds.size.width, bounds.size.height));
-		OOGLResetProjection();
-		OOGLFrustum(-ratio, ratio, -aspect * ratio, aspect * ratio, 1.0, MAX_CLEAR_DEPTH);
+		[self updateGLSize:NSMakeSize(pixelWidth, pixelHeight)];
 
 		if (!fullScreen)
 		{
