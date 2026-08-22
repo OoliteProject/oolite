@@ -289,7 +289,6 @@ extern int debug;
 - (void) noteMouseInteractionModeChangedFrom:(OOMouseInteractionMode)oldMode to:(OOMouseInteractionMode)newMode;
 
 - (void) initialiseGLWithSize:(NSSize) v_size;
-- (void) initialiseGLWithSize:(NSSize) v_size useVideoMode:(BOOL) v_mode;
 - (BOOL) isRunningOnPrimaryDisplayDevice;
 #if OOLITE_WINDOWS
 - (BOOL) getCurrentMonitorInfo:(MONITORINFOEX *)mInfo;
@@ -315,10 +314,7 @@ extern int debug;
 
 - (void) stringToClipboard:(NSString *)stringToCopy;
 
-- (void) drawRect:(NSRect)rect;
 - (void) updateScreen;
-- (void) updateScreenWithVideoMode:(BOOL) v_mode;
-- (void) display;
 
 - (BOOL) snapShot:(NSString *)filename;
 

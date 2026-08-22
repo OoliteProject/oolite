@@ -78,7 +78,6 @@ enum PreferredAppMode
 
 @interface MyOpenGLView (OOPrivate)
 
-- (void) resetSDLKeyModifiers;
 - (void) handleStringInput: (SDL_KeyboardEvent *) kbd_event keyID:(Uint16)key_id; // DJS
 @end
 
@@ -765,39 +764,21 @@ enum PreferredAppMode
 
 #endif
 
-- (void) display
-{
-	[self updateScreen];
-}
-
 - (void) updateScreen
 {
-	[self drawRect: NSMakeRect(0, 0, viewSize.width, viewSize.height)];
-}
-
-- (void) drawRect:(NSRect)rect
-{
-	SDL_SetWindowSize(window, (int)NSWidth(rect), (int)NSHeight(rect));
-	[self updateScreenWithVideoMode:YES];
-}
-
-- (void) updateScreenWithVideoMode:(BOOL) v_mode
-{
+	SDL_SetWindowSize(window, (int)viewSize.width, (int)viewSize.height);
 	SDL_Surface* surface = SDL_GetWindowSurface(window);
 	int windowWidth, windowHeight;
 	SDL_GetWindowSize(window, &windowWidth, &windowHeight);
 	if ((viewSize.width != windowWidth)||(viewSize.height != windowHeight)) // resized
 	{
-#if OOLITE_LINUX
-		m_glContextInitialized = NO; //probably not needed
-#endif
 		viewSize.width = windowWidth;
 		viewSize.height = windowHeight;
 	}
 
     if (m_glContextInitialized == NO)
 	{
-		[self initialiseGLWithSize:viewSize useVideoMode:v_mode];
+		[self initialiseGLWithSize:viewSize];
 	}
 
 	if (surface == 0)
@@ -1017,66 +998,6 @@ enum PreferredAppMode
 			CloseClipboard();
 		}
 	}
-}
-
-
-- (void) resetSDLKeyModifiers
-{
-	/* kanthoney - looks like SDL3 won't allow us to change the keyboard state - try without to see if it's needed
-	// this is used when we regain focus to ensure that all
-	// modifier keys are reset to their correct status
-	SDL_Keymod modState = SDL_GetModState();
-	const BOOL *keyState = SDL_GetKeyboardState(NULL);
-	BYTE keyboardStatus[256];
-	#define OO_RESET_SDLKEY_MODIFIER(vkCode, kModCode, sdlkCode)	do {\
-	if (keyboardStatus[vkCode] & 0x0080) \
-	{ \
-		modState |= kModCode; \
-		keyState[sdlkCode] = SDL_PRESSED; \
-	} \
-	else \
-	{ \
-		modState &= ~kModCode; \
-		keyState[sdlkCode] = SDL_RELEASED; \
-	} \
-	} while(0)
-	if (GetKeyboardState(keyboardStatus))
-	{
-		// A bug noted here https://github.com/libsdl-org/SDL-1.2/issues/449
-		// was patched in SDL here https://github.com/libsdl-org/SDL-1.2/commit/09980c67290f11c3d088a6a039c550be83536c81
-		// This was replicated in our SDL binary (Windows-deps rev. 36fd5e6),
-		// so we no longer need to check the state of Alt when returning to the app.
-		// SDL change researched and implemented by Nikos 20220622.
-		// Alt key
-		//OO_RESET_SDLKEY_MODIFIER(VK_LMENU, KMOD_LALT, SDLK_LALT);
-		//OO_RESET_SDLKEY_MODIFIER(VK_RMENU, KMOD_RALT, SDLK_RALT);
-		//opt =  (modState & KMOD_LALT || modState & KMOD_RALT);
-		
-		//Ctrl key
-		OO_RESET_SDLKEY_MODIFIER(VK_LCONTROL, KMOD_LCTRL, SDLK_LCTRL);
-		OO_RESET_SDLKEY_MODIFIER(VK_RCONTROL, KMOD_RCTRL, SDLK_RCTRL);
-		ctrl =  (modState & KMOD_LCTRL || modState & KMOD_RCTRL);
-		
-		// Shift key
-		OO_RESET_SDLKEY_MODIFIER(VK_LSHIFT, KMOD_LSHIFT, SDLK_LSHIFT);
-		OO_RESET_SDLKEY_MODIFIER(VK_RSHIFT, KMOD_RSHIFT, SDLK_RSHIFT);
-		shift =  (modState & KMOD_LSHIFT || modState & KMOD_RSHIFT);
-		
-		// Caps Lock key state
-		if (GetKeyState(VK_CAPITAL) & 0x0001)
-		{
-			modState |= KMOD_CAPS;
-			keyState[SDLK_CAPSLOCK] = SDL_PRESSED;
-		}
-		else
-		{
-			modState &= ~KMOD_CAPS;
-			keyState[SDLK_CAPSLOCK] = SDL_RELEASED;
-		}
-	}
-	
-	SDL_SetModState(modState);
-	*/
 }
 
 
@@ -1367,12 +1288,6 @@ finished:
 }
 
 
-- (void) resetSDLKeyModifiers
-{
-	// probably not needed for Linux
-}
-
-
 - (BOOL) hdrOutput
 {
 	return NO;
@@ -1403,12 +1318,6 @@ finished:
 
 - (void) initialiseGLWithSize:(NSSize) v_size
 {
-	[self initialiseGLWithSize:v_size useVideoMode:YES];
-}
-
-
-- (void) initialiseGLWithSize:(NSSize) v_size useVideoMode:(BOOL) v_mode
-{
 	if (!window)
 	{
 		[self createWindowWithSize: v_size];
@@ -1421,7 +1330,7 @@ finished:
 	if (!fullScreen)
 	{
 		SDL_SetWindowSize(window, viewSize.width, viewSize.height);
-		SDL_SetWindowBordered(window, v_mode);
+		SDL_SetWindowBordered(window, YES);
 	}
 #if OOLITE_WINDOWS
 	else  // Hack for Windows SDL3 pause issue: https://github.com/libsdl-org/SDL/issues/12791
