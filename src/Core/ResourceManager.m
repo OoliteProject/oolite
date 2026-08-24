@@ -207,21 +207,7 @@ static NSMutableDictionary *sStringCache;
 + (NSString *)builtInPath
 {
 	NSFileManager *fileManager = [NSFileManager defaultManager];
-
-#if OOLITE_MAC_OS_X
 	return [[NSBundle mainBundle] resourcePath];  // Use resourcePath directly
-#else
-	NSString *startingDir = [fileManager currentDirectoryPath];  // Start from cwd
-#endif
-    // Look for a "Resources" folder (Windows & Linux)
-	NSString *primaryResourcesPath = [startingDir stringByAppendingPathComponent:@"Resources"];
-	BOOL isDir = NO;
-	if ([fileManager fileExistsAtPath:primaryResourcesPath isDirectory:&isDir] && isDir) {
-		return primaryResourcesPath;
-	}
-	// Fallback: Look in startingDir/../share/oolite/Resources
-	NSString *fallbackPath = [[startingDir stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"share/oolite/Resources"];
-	return [fallbackPath stringByStandardizingPath];
 }
 
 + (NSArray *)pathsWithAddOns
