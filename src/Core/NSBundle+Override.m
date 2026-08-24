@@ -1,74 +1,51 @@
-#import <Foundation/Foundation.h>
-#import <objc/runtime.h>
+/*
+ * NSBundle+Override.m
+ *
+ * Oolite Core Framework Override
+ * Bypasses standard plist loading to manually locate and parse info-gnustep.plist
+ * across Windows and Linux environments safely at boot.
+ */
 
-@implementation NSBundle (ResourceOverride)
+#import "NSBundle+Override.h"
+#import <Foundation/NSFileManager.h>
+#import <Foundation/NSPathUtilities.h>
+#import <Foundation/NSDictionary.h>
 
-+ (void)load {
-    Class class = [self class];
+@implementation NSBundle (Override)
 
-    // Swizzle resourcePath
-    Method origRes = class_getInstanceMethod(class, @selector(resourcePath));
-    Method swizRes = class_getInstanceMethod(class, @selector(oolite_resourcePath));
-    if (origRes && swizRes) {
-        method_exchangeImplementations(origRes, swizRes);
-    }
+- (NSDictionary *)infoDictionary {
+	NSFileManager *fileManager = [NSFileManager defaultManager];
+	NSString *startingDir = [fileManager currentDirectoryPath];  // Start from cwd
 
-    // Swizzle infoDictionary
-    Method origInfo = class_getInstanceMethod(class, @selector(infoDictionary));
-    Method swizInfo = class_getInstanceMethod(class, @selector(oolite_infoDictionary));
-    if (origInfo && swizInfo) {
-        method_exchangeImplementations(origInfo, swizInfo);
-    }
-}
+	NSString *primaryResourcesPath = [startingDir stringByAppendingPathComponent:@"Resources"];
+	BOOL isDir = NO;
 
-// Helper method to locate the Resources folder
-- (NSString *)oolite_resolvedResourcesPath {
-    NSFileManager *fileManager = [NSFileManager defaultManager];
+	NSString *resourcesFolder = nil;
+	if ([fileManager fileExistsAtPath:primaryResourcesPath isDirectory:&isDir] && isDir) {
+		resourcesFolder = primaryResourcesPath;
+	} else {
+		// Fallback: Look in startingDir / ../share/oolite/Resources (Standard Linux system layout)
+		NSString *fallbackPath = [[startingDir stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"share/oolite/Resources"];
+		resourcesFolder = [fallbackPath stringByStandardizingPath];
+	}
 
-    NSString *startingDir = [fileManager currentDirectoryPath];
-    NSString *primaryResourcesPath = [startingDir stringByAppendingPathComponent:@"Resources"];
-    BOOL isDir = NO;
+	// Append the target file name to the resolved path root
+	NSString *plistPath = [resourcesFolder stringByAppendingPathComponent:@"Info-gnustep.plist"];
 
-    if ([fileManager fileExistsAtPath:primaryResourcesPath isDirectory:&isDir] && isDir) {
-        return primaryResourcesPath;
-    }
+	// Load the target configuration file
+	NSDictionary *gnustepPlist = [NSDictionary dictionaryWithContentsOfFile:plistPath];
+	NSMutableDictionary *workingDict = nil;
 
-    // Fallback: Standard Linux system layout
-    NSString *fallbackPath = [[startingDir stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"share/oolite/Resources"];
-    return [fallbackPath stringByStandardizingPath];
-}
+	if (gnustepPlist) {
+		workingDict = [gnustepPlist mutableCopy];
+	} else {
+		// Fallback block prevents runtime crashes if files are missing during dev/build refactors
+		workingDict = [[NSMutableDictionary alloc] init];
+		NSLog(@"[Oolite-Core] Warning: Failed to find info-gnustep.plist at calculated path: %@", plistPath);
+	}
 
-- (NSString *)oolite_resourcePath {
-    NSString *path = [self bundlePath];
-    if ([path hasSuffix:@".framework"] || [path hasSuffix:@".bundle"]) {
-        return [self oolite_resourcePath]; // Original implementation
-    }
-
-    return [self oolite_resolvedResourcesPath];
-}
-
-- (NSDictionary *)oolite_infoDictionary {
-    NSString *path = [self bundlePath];
-    if ([path hasSuffix:@".framework"] || [path hasSuffix:@".bundle"]) {
-        return [self oolite_infoDictionary]; // Original implementation
-    }
-
-    // Attempt standard loading first via original method
-    NSDictionary *dict = [self oolite_infoDictionary];
-    if (dict && [dict count] > 0) {
-        return dict;
-    }
-
-    // Fallback: Explicitly load Info-gnustep.plist from resolved resources path
-    NSString *resDir = [self oolite_resolvedResourcesPath];
-    NSString *plistPath = [resDir stringByAppendingPathComponent:@"Info-gnustep.plist"];
-    NSDictionary *gnustepPlist = [NSDictionary dictionaryWithContentsOfFile:plistPath];
-
-    if (gnustepPlist) {
-        return gnustepPlist;
-    }
-
-    return [NSDictionary dictionary]; // Return empty dictionary rather than nil to prevent crashes
+	// Return the dictionary cleanly managed for memory
+	return [workingDict autorelease];
 }
 
 @end
