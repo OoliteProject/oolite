@@ -1,16 +1,13 @@
 Prior to release:
 
 - Minor & Major versions:
-installers/autopackage/default.x86.apspec
-installers/autopackage/default.x86_64.apspec
-src/Cocoa/Info-Oolite.plist
-src/Cocoa/oolite-version.xcconfig
+Resources/Info-gnustep.plist
 Resources/InfoPlist.strings (twice. note: UTF-16)
 DebugOXP/Debug.oxp/manifest.plist
+README.md
+installers/flatpak/space.oolite.Oolite.yaml
 
 - Major versions:
-Doc/OoliteReadMe.doc
-Doc/OoliteReadMe.pdf
 http://wiki.alioth.net/index.php/Oolite_Instruction_Manual#Playing_the_game
 http://wiki.alioth.net/index.php/Pilot%27s_Reference_Manual
 DebugOXP/Resources/oolite-debug-console.js

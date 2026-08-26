@@ -38,7 +38,6 @@ run_script() {
         return 1
     fi
     generate_manifest "$resourcesdir/manifest.plist" "$deployment_release" "$ver_full" "$ver_quad" "$ver_githash" "$buildtime"
-    cp -fu src/Cocoa/Info-Oolite.plist "$resourcesdir/Info-gnustep.plist"
     if [[ "$deployment_release" == "no" ]]; then
         local addonsdir="$progdir/AddOns"
         mkdir -p "$addonsdir"

@@ -1,6 +1,0 @@
-#include "oolite-options.xcconfig"
-
-EXPORTED_SYMBOLS_FILE = src/Cocoa/exports-debug-32.exp
-EXPORTED_SYMBOLS_FILE[arch=x86_64] = src/Cocoa/exports-debug-64.exp
-
-OO_MATHS_OPTS = -O3
