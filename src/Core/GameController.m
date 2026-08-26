@@ -970,66 +970,6 @@ static NSMutableArray *sMessageStack;
 }
 
 
-- (void)setUpBasicOpenGLStateWithSize:(NSSize)viewSize
-{
-	OOOpenGLExtensionManager	*extMgr = [OOOpenGLExtensionManager sharedManager];
-	
-	float	ratio = 0.5;
-	float   aspect = viewSize.height/viewSize.width;
-	
-	OOGL(glClearColor(0.0, 0.0, 0.0, 0.0));
-	OOGL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-	
-	OOGL(glClearDepth(1.0));
-	OOGL(glViewport(0, 0, viewSize.width, viewSize.height));
-	
-	OOGLResetProjection(); // reset matrix
-	OOGLFrustum(-ratio, ratio, -aspect*ratio, aspect*ratio, 1.0, MAX_CLEAR_DEPTH);	// set projection matrix
-		
-	OOGL(glDepthFunc(GL_LESS));			// depth buffer
-	
-	if (UNIVERSE)
-	{
-		[UNIVERSE setLighting];
-	}
-	else
-	{
-		GLfloat black[4] =	{0.0, 0.0, 0.0, 1.0};
-		GLfloat	white[] =	{1.0, 1.0, 1.0, 1.0};
-		GLfloat	stars_ambient[] =	{0.25, 0.2, 0.25, 1.0};
-		
-		OOGL(glLightfv(GL_LIGHT1, GL_AMBIENT, black));
-		OOGL(glLightfv(GL_LIGHT1, GL_SPECULAR, white));
-		OOGL(glLightfv(GL_LIGHT1, GL_DIFFUSE, white));
-		OOGL(glLightfv(GL_LIGHT1, GL_POSITION, black));
-		OOGL(glLightModelfv(GL_LIGHT_MODEL_AMBIENT, stars_ambient));
-		
-	}
-	
-	if ([extMgr usePointSmoothing])  OOGL(glEnable(GL_POINT_SMOOTH));
-	if ([extMgr useLineSmoothing])  OOGL(glEnable(GL_LINE_SMOOTH));
-	
-	// world's simplest OpenGL optimisations...
-#if GL_APPLE_transform_hint
-	if ([extMgr haveExtension:@"GL_APPLE_transform_hint"])
-	{
-		OOGL(glHint(GL_TRANSFORM_HINT_APPLE, GL_FASTEST));
-	}
-#endif
-	
-	OOGL(glDisable(GL_NORMALIZE));
-	OOGL(glDisable(GL_RESCALE_NORMAL));
-	
-#if GL_VERSION_1_2
-	// For OpenGL 1.2 or later, we want GL_SEPARATE_SPECULAR_COLOR all the time.
-	if ([extMgr versionIsAtLeastMajor:1 minor:2])
-	{
-		OOGL(glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR));
-	}
-#endif
-}
-
-
 #ifndef NDEBUG
 /*	This method exists purely to suppress Clang static analyzer warnings that
 	these ivars are unused (but may be used by categories, which they are).
