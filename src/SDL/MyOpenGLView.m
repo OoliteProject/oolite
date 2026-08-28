@@ -854,12 +854,6 @@ enum PreferredAppMode
 }
 
 
-- (int) indexOfCurrentSize
-{
-	return currentSize;
-}
-
-
 - (void) setScreenSize: (int)sizeIndex
 {
 	currentSize=sizeIndex;
@@ -1546,96 +1540,6 @@ finished:
 	// return to the previous directory
 	[[NSFileManager defaultManager] changeCurrentDirectoryPath:originalDirectory];
 	return snapShotOK;
-}
-
-
-#if SNAPSHOTS_PNG_FORMAT
-- (BOOL) pngSaveSurface:(NSString *)fileName withSurface:(SDL_Surface *)surf
-{
-	if (!SDL_SavePNG(surf, [fileName UTF8String]))
-	{
-		OOLog(@"pngSaveSurface.fileCreate.failed", @"Failed to create output screenshot file %@", fileName);
-		return NO;
-	}
-	return YES;
-}
-#endif	// SNAPSHOTS_PNG_FORMAT
-
-
-/*     Turn the Cocoa ArrowKeys into our arrow key constants. */
-- (int) translateKeyCode: (int) input
-{
-	int key = input;
-	switch ( input )
-	{
-		case NSUpArrowFunctionKey:
-			key = gvArrowKeyUp;
-			break;
-
-		case NSDownArrowFunctionKey:
-			key = gvArrowKeyDown;
-			break;
-
-		case NSLeftArrowFunctionKey:
-			key = gvArrowKeyLeft;
-			break;
-
-		case NSRightArrowFunctionKey:
-			key = gvArrowKeyRight;
-			break;
-
-		case NSF1FunctionKey:
-			key = gvFunctionKey1;
-			break;
-
-		case NSF2FunctionKey:
-			key = gvFunctionKey2;
-			break;
-
-		case NSF3FunctionKey:
-			key = gvFunctionKey3;
-			break;
-
-		case NSF4FunctionKey:
-			key = gvFunctionKey4;
-			break;
-
-		case NSF5FunctionKey:
-			key = gvFunctionKey5;
-			break;
-
-		case NSF6FunctionKey:
-			key = gvFunctionKey6;
-			break;
-
-		case NSF7FunctionKey:
-			key = gvFunctionKey7;
-			break;
-
-		case NSF8FunctionKey:
-			key = gvFunctionKey8;
-			break;
-
-		case NSF9FunctionKey:
-			key = gvFunctionKey9;
-			break;
-
-		case NSF10FunctionKey:
-			key = gvFunctionKey10;
-			break;
-
-		case NSF11FunctionKey:
-			key = gvFunctionKey11;
-			break;
-
-		case NSHomeFunctionKey:
-			key = gvHomeKey;
-			break;
-
-		default:
-			break;
-	}
-	return key;
 }
 
 
