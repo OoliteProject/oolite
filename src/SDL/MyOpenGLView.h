@@ -265,16 +265,8 @@ extern int debug;
 - (void) createWindowWithSize: (NSSize) size;
 - (void) initSplashScreen;
 - (void) endSplashScreen;
-- (void) autoShowMouse;
 
-- (void) initKeyMappingData;
 
-- (void) setStringInput: (enum StringInput) value;
-- (void) allowStringInput: (BOOL) value;
-- (enum StringInput) allowingStringInput;
-- (NSString *) typedString;
-- (void) resetTypedString;
-- (void) setTypedString:(NSString*) value;
 
 - (NSSize) viewSize;
 - (NSSize) backingViewSize;
@@ -285,9 +277,9 @@ extern int debug;
 - (GameController *) gameController;
 - (void) setGameController:(GameController *) controller;
 
-- (void) noteMouseInteractionModeChangedFrom:(OOMouseInteractionMode)oldMode to:(OOMouseInteractionMode)newMode;
 
 - (void) initialiseGLWithSize:(NSSize) v_size;
+- (void) updateGLSize:(NSSize) size;
 - (BOOL) isRunningOnPrimaryDisplayDevice;
 #if OOLITE_WINDOWS
 - (BOOL) getCurrentMonitorInfo:(MONITORINFOEX *)mInfo;
@@ -337,35 +329,11 @@ extern int debug;
 - (NSSize) currentScreenSize;
 - (NSDictionary*) currentScreenMode;
 
-- (void) pollControls;
 
-- (void) setVirtualJoystick:(double) vmx :(double) vmy;
-- (NSPoint) virtualJoystickPosition;
 
-- (void) clearKeys;
-- (void) clearMouse;
-- (void) clearKey: (int)theKey;
-- (void) resetMouse;
-- (BOOL) isAlphabetKeyDown;
-- (void) suppressKeysUntilKeyUp; // DJS
-- (BOOL) isDown: (int) key;
-- (BOOL) isOptDown; // opt == alt key
-- (BOOL) isCtrlDown;
-- (BOOL) isCommandDown;
-- (BOOL) isShiftDown;
-- (BOOL) isCapsLockOn;
-- (BOOL) lastKeyWasShifted;
-- (int) numKeys;
-- (int) mouseWheelState;
-- (float) mouseWheelDelta;
-- (void) setMouseWheelDelta: (float) newWheelDelta;
 
 // Command-key combinations need special handling. SDL stubs for these mac functions.
-- (BOOL) isCommandQDown;
-- (BOOL) isCommandFDown;
-- (void) clearCommandF;
 
-- (void) setMouseInDeltaMode: (BOOL) inDelta;
 
 - (void) setFov:(float)value fromFraction:(BOOL)fromFraction;
 - (float) fov:(BOOL)inFraction;
@@ -409,3 +377,6 @@ extern int debug;
 #endif
 
 @end
+
+#include <SDL3/SDL_events.h>
+#import "MyOpenGLView+Input.h"

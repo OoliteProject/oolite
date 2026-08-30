@@ -687,7 +687,7 @@ static NSString * kOOLogKeyDown			= @"input.keyMapping.keyPress.keyDown";
 // DJS: String input handler. Since for SDL versions we're also handling
 // freeform typing this has necessarily got more complex than the non-SDL
 // versions.
-- (void) handleStringInput: (SDL_KeyboardEvent *) kbd_event keyID:(Uint16)key_id;
+- (void) handleStringInput: (SDL_KeyboardEvent *) kbd_event keyID:(Uint16)key_id
 {
 	SDL_Keycode key=kbd_event->key;
 
