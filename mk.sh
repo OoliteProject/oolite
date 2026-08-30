@@ -34,6 +34,7 @@ VER_FULL=""
 BUILDTIME=""
 GITHUB_REPOSITORY=""
 CLEAN_BUILD=false
+PRINT_MESON_LOG=false
 SETUP_FLAGS=() # Array to cleanly store additional meson setup arguments
 COMPILE_FLAGS=() # Array to cleanly store additional meson compile arguments
 CONFIGURE_FLAGS=() # Array to cleanly store additional meson configure arguments
@@ -61,14 +62,18 @@ meson_setup() {
         echo "🔄 Directory exists, attempting to reconfigure..."
         if ! meson setup "$build_dir" "${meson_opts[@]}" ${SETUP_FLAGS[@]+"${SETUP_FLAGS[@]}"} --native-file "${NATIVE_FILE}" --reconfigure; then
             echo "❌ Meson reconfiguration failed!" >&2
-            output_meson_log "$build_dir"
+            if [[ "$PRINT_MESON_LOG" == true ]]; then
+                output_meson_log "$build_dir"
+            fi
             exit 1
         fi
     else
         echo "🏗️ Creating new build configuration..."
         if ! meson setup "$build_dir" "${meson_opts[@]}" ${SETUP_FLAGS[@]+"${SETUP_FLAGS[@]}"} --native-file "${NATIVE_FILE}"; then
             echo "❌ Meson initial setup failed!" >&2
-            output_meson_log "$build_dir"
+            if [[ "$PRINT_MESON_LOG" == true ]]; then
+                output_meson_log "$build_dir"
+            fi
             exit 1
         fi
     fi
@@ -79,7 +84,9 @@ meson_compile() {
     echo "--> Running Meson build for: $1"
     if ! meson compile -C "$build_dir" ${COMPILE_FLAGS[@]+"${COMPILE_FLAGS[@]}"}; then
         echo "❌ Meson compile failed!" >&2
-        output_meson_log "$build_dir"
+        if [[ "$PRINT_MESON_LOG" == true ]]; then
+            output_meson_log "$build_dir"
+        fi
         exit 1
     fi
 }
@@ -90,7 +97,9 @@ meson_configure() {
     local meson_opts=("${@:2}")
     if ! meson configure "$build_dir" "${meson_opts[@]}" ${CONFIGURE_FLAGS[@]+"${CONFIGURE_FLAGS[@]}"}; then
         echo "❌ Meson configure failed!" >&2
-        output_meson_log "$build_dir"
+        if [[ "$PRINT_MESON_LOG" == true ]]; then
+            output_meson_log "$build_dir"
+        fi
         exit 1
     fi
 }
@@ -100,7 +109,9 @@ meson_install() {
     echo "--> Running Meson install for: $1"
     if ! meson install -C "$build_dir" ${INSTALL_FLAGS[@]+"${INSTALL_FLAGS[@]}"}; then
         echo "❌ Meson install failed!" >&2
-        output_meson_log "$build_dir"
+        if [[ "$PRINT_MESON_LOG" == true ]]; then
+            output_meson_log "$build_dir"
+        fi
         exit 1
     fi
 }
@@ -110,31 +121,33 @@ show_help() {  # Script Help Menu
     echo "       $0 [options] <global_action>"
     echo ""
     echo "Options:"
-    echo -e "  \033[36m--setup-flags=\"...\"\033[0m          Pass additional arguments directly to 'meson setup'"
-    echo -e "  \033[36m--compile-flags=\"...\"\033[0m        Pass additional arguments directly to 'meson compile'"
-    echo -e "  \033[36m--configure-flags=\"...\"\033[0m      Pass additional arguments directly to 'meson configure'"
-    echo -e "  \033[36m--install-flags=\"...\"\033[0m        Pass additional arguments directly to 'meson install'"
-    echo -e "  \033[36m--native-file=\"...\"\033[0m          Specify native file (defaults to clang.ini)"
-    echo -e "  \033[36m--ver-full=\"...\"\033[0m             Specify full version string"
-    echo -e "  \033[36m--buildtime=\"...\"\033[0m            Specify build time"
-    echo -e "  \033[36m--github-repository=\"...\"\033[0m    Specify target GitHub repository"
+    echo -e "  \033[36m--setup-flags=\"...\"\033[0m            Pass additional arguments directly to 'meson setup'"
+    echo -e "  \033[36m--compile-flags=\"...\"\033[0m          Pass additional arguments directly to 'meson compile'"
+    echo -e "  \033[36m--configure-flags=\"...\"\033[0m        Pass additional arguments directly to 'meson configure'"
+    echo -e "  \033[36m--install-flags=\"...\"\033[0m          Pass additional arguments directly to 'meson install'"
+    echo -e "  \033[36m--native-file=\"...\"\033[0m            Specify native file (defaults to clang.ini)"
+    echo -e "  \033[36m--ver-full=\"...\"\033[0m               Specify full version string"
+    echo -e "  \033[36m--buildtime=\"...\"\033[0m              Specify build time"
+    echo -e "  \033[36m--github-repository=\"...\"\033[0m      Specify target GitHub repository"
+    echo -e "  \033[36m--meson-log\033[0m                    Output the Meson log file contents"
     echo ""
     echo "Build Type Actions (Requires build_type as second parameter):"
-    echo -e "  \033[36msetup <build_type>\033[0m              Setup a release build directory"
-    echo -e "  \033[36mcompile <build_type>\033[0m            Compile a build directory"
-    echo -e "  \033[36mbuild <build_type>\033[0m              Setup and compile a build directory"
-    echo -e "  \033[36mconfigure <build_type>\033[0m          Modify build options of an existing build directory"
-    echo -e "  \033[36minstall <build_type>\033[0m            Install an existing build directory"
-    echo -e "  \033[36mtest <build_type>\033[0m               Run test suites (deployment build_type excluded)"
-    echo -e "  \033[36mclean <build_type>\033[0m              Clean a specific build_type's directory"
-    echo -e "  \033[36mflatpak-internal <build_type>\033[0m   Build flatpak dependencies internally"
-    echo -e "  \033[36mpkg-flatpak <build_type>\033[0m        Package a Flatpak application"
-    echo -e "  \033[36mpkg-appimage <build_type>\033[0m       Package a Linux AppImage installer"
-    echo -e "  \033[36mpkg-win <build_type>\033[0m            Package a Windows NSIS installer"
+    echo -e "  \033[36msetup <build_type>\033[0m             Setup a release build directory"
+    echo -e "  \033[36mcompile <build_type>\033[0m           Compile a build directory"
+    echo -e "  \033[36mbuild <build_type>\033[0m             Setup and compile a build directory"
+    echo -e "  \033[36mconfigure <build_type>\033[0m         Modify build options of an existing build directory"
+    echo -e "  \033[36minstall <build_type>\033[0m           Install an existing build directory"
+    echo -e "  \033[36mtest <build_type>\033[0m              Run test suites (deployment build_type excluded)"
+    echo -e "  \033[36mclean <build_type>\033[0m             Clean a specific build_type's directory"
+    echo -e "  \033[36moutput-meson-log <build_type>\033[0m  Print the meson log file for a build directory"
+    echo -e "  \033[36mflatpak-internal <build_type>\033[0m  Build flatpak dependencies internally"
+    echo -e "  \033[36mpkg-flatpak <build_type>\033[0m       Package a Flatpak application"
+    echo -e "  \033[36mpkg-appimage <build_type>\033[0m      Package a Linux AppImage installer"
+    echo -e "  \033[36mpkg-win <build_type>\033[0m           Package a Windows NSIS installer"
     echo ""
     echo "Global Actions:"
-    echo -e "  \033[36mclean-all\033[0m                    Remove generated artifacts for all builds"
-    echo -e "  \033[36mhelp\033[0m                         Show this breakdown menu"
+    echo -e "  \033[36mclean-all\033[0m                      Remove generated artifacts for all builds"
+    echo -e "  \033[36mhelp\033[0m                           Show this breakdown menu"
     echo ""
     echo "Build Types:"
     echo -e "  \033[32mdeployment, test, dev, debug\033[0m"
@@ -152,7 +165,7 @@ execute_target() {  # Target Execution Logic
     local action="$1"
     local build_type="${2:-}"
 
-case "$action" in
+    case "$action" in
         setup)
             validate_build_type "$build_type"
             if [[ "$build_type" == "deployment" ]]; then
@@ -200,6 +213,10 @@ case "$action" in
                 validate_build_type "$build_type"
                 clean "build/meson_$build_type"
             fi
+            ;;
+        output-meson-log)
+            validate_build_type "$build_type"
+            output_meson_log "build/meson_$build_type"
             ;;
         flatpak-internal)
             validate_build_type "$build_type"
@@ -312,6 +329,10 @@ while [[ $# -gt 0 ]]; do
             GITHUB_REPOSITORY="${1#*=}"
             shift
             ;;
+        --meson-log|--output-meson-log)
+            PRINT_MESON_LOG=true
+            shift
+            ;;
         help|--help|-h)
             show_help
             exit 0
@@ -366,6 +387,10 @@ if [[ -z "$NATIVE_FILE" ]]; then
 fi
 
 execute_target "$ACTION" "$BUILD_TYPE"
+
+if [[ "$PRINT_MESON_LOG" == true ]]; then
+    output_meson_log "build/meson_$BUILD_TYPE"
+fi
 
 trap - ERR  # Successful Exit
 popd > /dev/null
