@@ -88,9 +88,9 @@ run_script() {
         fi
         install_gitversion "$outputdir"
         local espeak_folder="$(uname -m 2>/dev/null || echo x86_64)-linux-gnu"
-        if [[ ! -d /usr/share/espeak-ng-data &&
-              ! -d /usr/local/share/espeak-ng-data &&
-              ! -d /usr/lib/$espeak_folder/espeak-ng-data ]]; then
+        if [[ ! -d "/usr/share/espeak-ng-data" &&
+              ! -d "/usr/local/share/espeak-ng-data" &&
+              ! -d "/usr/lib/$espeak_folder/espeak-ng-data" ]]; then
             echo "❌ espeak-ng-data not in /usr/share, /usr/local/share or /usr/lib/$espeak_folder!"
             return 1
         fi
