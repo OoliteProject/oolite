@@ -87,13 +87,12 @@ run_script() {
             install_package python
         fi
         install_gitversion "$outputdir"
-        if [ ! -d /usr/share/espeak-ng-data ]; then
-            if [ ! -d /usr/local/share/espeak-ng-data ]; then
-                if [ ! -d /usr/lib/x86_64-linux-gnu/espeak-ng-data ]; then
-                    echo "❌ espeak-ng-data not in /usr/share, /usr/local/share or /usr/lib/x86_64-linux-gnu!"
-                    return 1
-                fi
-            fi
+        local espeak_folder="$(uname -m 2>/dev/null || echo x86_64)-linux-gnu"
+        if [[ ! -d "/usr/share/espeak-ng-data" &&
+              ! -d "/usr/local/share/espeak-ng-data" &&
+              ! -d "/usr/lib/$espeak_folder/espeak-ng-data" ]]; then
+            echo "❌ espeak-ng-data not in /usr/share, /usr/local/share or /usr/lib/$espeak_folder!"
+            return 1
         fi
     fi
 

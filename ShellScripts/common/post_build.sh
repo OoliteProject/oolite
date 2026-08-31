@@ -54,7 +54,7 @@ run_script() {
             # Linux search paths for espeak-ng-data
             local SEARCH_PATHS=(
                 "/usr/local/share/espeak-ng-data"
-                "/usr/lib/x86_64-linux-gnu/espeak-ng-data"
+                "/usr/lib/$(uname -m 2>/dev/null || echo x86_64)-linux-gnu/espeak-ng-data"
                 "/usr/share/espeak-ng-data"
                 "/app/share/espeak-ng-data"
             )
