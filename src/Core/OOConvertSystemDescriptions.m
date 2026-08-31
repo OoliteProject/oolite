@@ -284,8 +284,8 @@ static NSMutableDictionary *InitKeyToIndexDict(NSDictionary *dict, NSMutableSet 
 
 static NSString *IndexToKey(NSUInteger index, NSDictionary *indicesToKeys, BOOL useFallback)
 {
-	NSString *result = [indicesToKeys objectForKey:[NSString stringWithFormat:@"%llu", index]];
-	if (result == nil && useFallback)  result = [NSString stringWithFormat:@"block_%llu", index];
+	NSString *result = [indicesToKeys objectForKey:[NSString stringWithFormat:@"%lu", index]];
+	if (result == nil && useFallback)  result = [NSString stringWithFormat:@"block_%lu", index];
 	
 	return result;
 }

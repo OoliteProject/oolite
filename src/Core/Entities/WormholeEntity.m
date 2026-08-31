@@ -856,7 +856,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 	OOLog(@"dumpState.wormholeEntity", @"Scanned State          : %@", [self scanInfoString]);
 
 	OOLog(@"dumpState.wormholeEntity", @"Mass                   : %.2lf", witch_mass);
-	OOLog(@"dumpState.wormholeEntity", @"Ships                  : %llu", [shipsInTransit count]);
+	OOLog(@"dumpState.wormholeEntity", @"Ships                  : %lu", [shipsInTransit count]);
 	unsigned i;
 	for (i = 0; i < [shipsInTransit count]; ++i)
 	{

@@ -46,7 +46,7 @@ MA 02110-1301, USA.
 
 - (NSString *) descriptionComponents
 {
-	return [NSString stringWithFormat:@"%@, %@. bounty: %i insurance: %llu", [self name], [self shortDescription], [self legalStatus], [self insuranceCredits]];
+	return [NSString stringWithFormat:@"%@, %@. bounty: %i insurance: %lu", [self name], [self shortDescription], [self legalStatus], [self insuranceCredits]];
 }
 
 

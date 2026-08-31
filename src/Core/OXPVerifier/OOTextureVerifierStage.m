@@ -168,11 +168,11 @@ static NSString * const kStageName	= @"Testing textures and images";
 			rHeight = OORoundUpToPowerOf2_PixMap((2 * pixmap.height) / 3);
 			if (pixmap.width != rWidth || pixmap.height != rHeight)
 			{
-				OOLog(@"verifyOXP.texture.notPOT", @"----- WARNING: image %@ has non-power-of-two dimensions; it will have to be rescaled (from %ux%u pixels to %ux%u pixels) at runtime.", displayName, pixmap.width, pixmap.height, rWidth, rHeight);
+				OOLog(@"verifyOXP.texture.notPOT", @"----- WARNING: image %@ has non-power-of-two dimensions; it will have to be rescaled (from %lux%lu pixels to %lux%lu pixels) at runtime.", displayName, pixmap.width, pixmap.height, rWidth, rHeight);
 			}
 			else
 			{
-				OOLog(@"verifyOXP.verbose.texture.OK", @"- %@ (%ux%u px) OK.", displayName, pixmap.width, pixmap.height);
+				OOLog(@"verifyOXP.verbose.texture.OK", @"- %@ (%lux%lu px) OK.", displayName, pixmap.width, pixmap.height);
 			}
 			
 			OOFreePixMap(&pixmap);
