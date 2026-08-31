@@ -11,6 +11,8 @@
 #import <Foundation/NSPathUtilities.h>
 #import <Foundation/NSDictionary.h>
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wobjc-protocol-method-implementation"
 @implementation NSBundle (Override)
 
 - (NSDictionary *)infoDictionary {
@@ -49,3 +51,4 @@
 }
 
 @end
+#pragma clang diagnostic pop

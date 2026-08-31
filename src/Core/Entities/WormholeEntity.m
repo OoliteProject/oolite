@@ -742,9 +742,10 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 	if (outer_radius >= z_distance) // inside the sphere
 		return;
 	int i;
-	
-	NSRange				activity = { 0.34, 1.0 };
-	
+
+	const GLfloat activityMin = 0.34f;
+	const GLfloat activityLength = 1.0f;
+
 	GLfloat				s0, c0, s1, c1;
 	
 	GLfloat				r0, r1;
@@ -765,7 +766,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 			rv0 = randf();
 			rv1 = randf();
 			
-			q = activity.location + rv0 * activity.length;
+			q = activityMin + rv0 * activityLength;
 			
 			s0 = r0 * sin(theta);
 			c0 = r0 * cos(theta);
@@ -783,7 +784,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 		rv0 = randf();
 		rv1 = randf();
 			
-		q = activity.location + rv0 * activity.length;
+		q = activityMin + rv0 * activityLength;
 		
 		s0 = 0.0f;	// r0 * sin(0);
 		c0 = r0;	// r0 * cos(0);

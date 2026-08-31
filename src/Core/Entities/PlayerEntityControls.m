@@ -121,8 +121,10 @@ static BOOL				leftRightKeyPressed;
 static BOOL				musicModeKeyPressed;
 static BOOL				volumeControlPressed;
 static BOOL				fovControlPressed;
+#if OOLITE_WINDOWS
 static BOOL				hdrMaxBrightnessControlPressed;
 static BOOL				hdrPaperWhiteControlPressed;
+#endif
 static BOOL				colorblindModeControlPressed;
 static BOOL				shaderSelectKeyPressed;
 static BOOL				selectPressed;
