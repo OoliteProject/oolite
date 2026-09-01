@@ -344,7 +344,7 @@ BOOL OOGenerateMipMaps(void *textureBytes, OOPixMapDimension width, OOPixMapDime
 {
 	if (EXPECT_NOT(width != OORoundUpToPowerOf2_PixMap(width) || height != OORoundUpToPowerOf2_PixMap(height)))
 	{
-		OOLog(kOOLogParameterError, @"Non-power-of-two dimensions (%zux%zu) passed to %s() - ignoring, data will be junk.", width, height, __PRETTY_FUNCTION__);
+		OOLog(kOOLogParameterError, @"Non-power-of-two dimensions (%ux%u) passed to %s() - ignoring, data will be junk.", width, height, __PRETTY_FUNCTION__);
 		return NO;
 	}
 	if (EXPECT_NOT(textureBytes == NULL))

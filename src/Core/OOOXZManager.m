@@ -1522,12 +1522,12 @@ static OOOXZManager *sSingleton = nil;
 		}
 		else if (_interfaceState == OXZ_STATE_PICK_INSTALL)
 		{
-			OOLog(kOOOXZDebugLog, @"Trying to install index %zu", (unsigned long)item);
+			OOLog(kOOOXZDebugLog, @"Trying to install index %zu", item);
 			[self installOXZ:item];
 		}
 		else if (_interfaceState == OXZ_STATE_PICK_INSTALLED)
 		{
-			OOLog(kOOOXZDebugLog, @"Trying to install index %zu", (unsigned long)item);
+			OOLog(kOOOXZDebugLog, @"Trying to install index %zu", item);
 			[self installOXZ:item];
 		}
 
@@ -1956,13 +1956,13 @@ static OOOXZManager *sSingleton = nil;
 	NSArray *remList = _filteredList;
 	if ([remList count] <= item)
 	{
-		OOLog(kOOOXZDebugLog, @"Unable to remove item %zu as only %zu in list", (unsigned long)item, (unsigned long)[remList count]);
+		OOLog(kOOOXZDebugLog, @"Unable to remove item %zu as only %zu in list", item, [remList count]);
 		return NO;
 	}
 	NSString *filename = [[remList objectAtIndex:item] oo_stringForKey:kOOManifestFilePath];
 	if (filename == nil)
 	{
-		OOLog(kOOOXZDebugLog, @"Unable to remove item %zu as filename not found", (unsigned long)item);
+		OOLog(kOOOXZDebugLog, @"Unable to remove item %zu as filename not found", item);
 		return NO;
 	}
 

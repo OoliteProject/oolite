@@ -434,7 +434,7 @@ static BOOL					sHaveSetUp = NO;
 		if (_isCubeMap)  leaveSpaceForMipMaps = NO;
 #endif
 		
-		OOLog(@"texture.load.rescale", @"Rescaling texture \"%@\" from %zu x %zu to %zu x %zu.", [_path lastPathComponent], pixMap.width, pixMap.height, desiredWidth, desiredHeight);
+		OOLog(@"texture.load.rescale", @"Rescaling texture \"%@\" from %u x %u to %u x %u.", [_path lastPathComponent], pixMap.width, pixMap.height, desiredWidth, desiredHeight);
 		
 		pixMap = OOScalePixMap(pixMap, desiredWidth, desiredHeight, leaveSpaceForMipMaps);
 		if (EXPECT_NOT(!OOIsValidPixMap(pixMap)))  return;

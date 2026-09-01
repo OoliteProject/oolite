@@ -604,7 +604,7 @@ static NSString *kOOSystemLayerProperty = @"layer";
 		NSUInteger index = ([PLAYER galaxyNumber] * OO_SYSTEMS_PER_GALAXY) + s;
 		if (index >= OO_SYSTEM_CACHE_LENGTH)
 		{
-			OOLog(@"system.description.error",@"'%zu' is an invalid system index for the current system. This is an internal error. Please report it.",(unsigned long)index);
+			OOLog(@"system.description.error",@"'%zu' is an invalid system index for the current system. This is an internal error. Please report it.",index);
 			return kNilRandomSeed;
 		}
 		return RandomSeedFromString([propertyCache[index] oo_stringForKey:@"random_seed"]);

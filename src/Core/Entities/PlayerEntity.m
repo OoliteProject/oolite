@@ -4914,7 +4914,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 - (NSString *) dial_objinfo
 {
-	NSString *result = [NSString stringWithFormat:@"Entities: %3lu", [UNIVERSE entityCount]];
+	NSString *result = [NSString stringWithFormat:@"Entities: %3zu", [UNIVERSE entityCount]];
 #ifndef NDEBUG
 	result = [NSString stringWithFormat:@"%@ (%d, %zu KiB, avg %zu bytes)", result, gLiveEntityCount, gTotalEntityMemory >> 10, gTotalEntityMemory / gLiveEntityCount];
 #endif
@@ -10936,7 +10936,7 @@ static NSString *last_outfitting_key=nil;
 	NSString *available = OOPadStringToEms(((available_units > 0) ? (NSString *)[NSString stringWithFormat:@"%d",available_units] : DESC(@"commodity-quantity-none")), 2.5);
 
 	NSUInteger priceDecimal = pricePerUnit % 10;
-	NSString *price = [NSString stringWithFormat:@" %@.%zu ",OOPadStringToEms([NSString stringWithFormat:@"%zu",(unsigned long)(pricePerUnit/10)],2.5),priceDecimal];
+	NSString *price = [NSString stringWithFormat:@" %@.%zu ",OOPadStringToEms([NSString stringWithFormat:@"%zu",(pricePerUnit/10)],2.5),priceDecimal];
 			
 	// this works with up to 9999 tons of gemstones. Any more than that, they deserve the formatting they get! :)
 			

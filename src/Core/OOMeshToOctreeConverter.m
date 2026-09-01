@@ -261,7 +261,7 @@ OOINLINE void AddTriangle(GeometryData *data, Triangle tri)
 
 - (NSString *) descriptionComponents
 {
-	return [NSString stringWithFormat:@"%zu triangles", _data.count];
+	return [NSString stringWithFormat:@"%u triangles", _data.count];
 }
 
 

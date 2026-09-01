@@ -1540,7 +1540,7 @@ static NSMutableDictionary *currentShipyard = nil;
 			{
 				[gui setColor:[gui colorFromSetting:kGuiShipyardScrollColor defaultValue:[OOColor greenColor]] forRow:GUI_ROW_SHIPYARD_START];
 				[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-back"), @" <-- ", nil] forRow:GUI_ROW_SHIPYARD_START];
-				[gui setKey:[NSString stringWithFormat:@"More:%ld", previous] forRow:GUI_ROW_SHIPYARD_START];
+				[gui setKey:[NSString stringWithFormat:@"More:%zd", previous] forRow:GUI_ROW_SHIPYARD_START];
 			}
 			for (i = 0; i < (shipCount - skip) && (int)i < rowCount; i++)
 			{

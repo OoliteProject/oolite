@@ -160,7 +160,7 @@ static GameController *sSharedController = nil;
 		
 		if (EXPECT_NOT(!SetPriorityClass(currentProcess, setEfficiencyMode ? IDLE_PRIORITY_CLASS : NORMAL_PRIORITY_CLASS)))
 		{
-			OOLog(@"gameController.setEcoQos", @"SetPriorityClass failed with error %zu", GetLastError());
+			OOLog(@"gameController.setEcoQos", @"SetPriorityClass failed with error %lu", GetLastError());
 		}
 		
 		PROCESS_POWER_THROTTLING_STATE powerThrottling;
@@ -170,7 +170,7 @@ static GameController *sSharedController = nil;
 		powerThrottling.StateMask = setEfficiencyMode ? PROCESS_POWER_THROTTLING_EXECUTION_SPEED : 0;
 		if (EXPECT_NOT(!SetProcessInformation(currentProcess, ProcessPowerThrottling, &powerThrottling, sizeof(powerThrottling))))
 		{
-			OOLog(@"gameController.setEcoQos", @"SetProcessInformation failed with error %zu", GetLastError());
+			OOLog(@"gameController.setEcoQos", @"SetProcessInformation failed with error %lu", GetLastError());
 		}
 	}
 #endif

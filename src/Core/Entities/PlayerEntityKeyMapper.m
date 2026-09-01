@@ -873,7 +873,7 @@ static NSArray *camera_keys = nil;
 		{
 			[gui setColor:[OOColor greenColor] forRow:GUI_ROW_KC_FUNCSTART];
 			[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-back"), @" <-- ", nil] forRow:GUI_ROW_KC_FUNCSTART];
-			[gui setKey:[NSString stringWithFormat:@"More:%ld", previous] forRow:GUI_ROW_KC_FUNCSTART];
+			[gui setKey:[NSString stringWithFormat:@"More:%zd", previous] forRow:GUI_ROW_KC_FUNCSTART];
 		}
 		
 		for(i = 0; i < (n_functions - skip) && (int)i < n_rows; i++)
@@ -1338,7 +1338,7 @@ static NSArray *camera_keys = nil;
 		{
 			[gui setColor:[OOColor greenColor] forRow:GUI_ROW_KC_FUNCSTART];
 			[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-back"), @" <-- ", nil] forRow:GUI_ROW_KC_FUNCSTART];
-			[gui setKey:[NSString stringWithFormat:@"More:%ld", previous] forRow:GUI_ROW_KC_FUNCSTART];
+			[gui setKey:[NSString stringWithFormat:@"More:%zd", previous] forRow:GUI_ROW_KC_FUNCSTART];
 		}
 		
 		NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
