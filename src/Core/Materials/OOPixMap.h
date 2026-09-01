@@ -30,7 +30,7 @@ SOFTWARE.
 #import "OOMaths.h"
 
 
-typedef uint_fast32_t		OOPixMapDimension;		// Note: dimensions are assumed to be less than 1048576 (2^20) pixels.
+typedef uint32_t		OOPixMapDimension;		// Note: dimensions are assumed to be less than 1048576 (2^20) pixels.
 
 #define OORoundUpToPowerOf2_PixMap OORoundUpToPowerOf2_32
 

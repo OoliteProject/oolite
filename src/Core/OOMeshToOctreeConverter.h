@@ -44,9 +44,9 @@ enum
 	struct OOMeshToOctreeConverterInternalData
 	{
 		Triangle			*triangles;
-		uint_fast32_t		count;
-		uint_fast32_t		capacity;
-		uint_fast32_t		pendingCapacity;
+		uint32_t		count;
+		uint32_t		capacity;
+		uint32_t		pendingCapacity;
 		Triangle			smallData[kOOMeshToOctreeConverterSmallDataCapacity];
 	}					_data;
 }

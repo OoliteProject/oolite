@@ -133,8 +133,8 @@ OOTimeDelta OOHighResTimeDeltaInSeconds(OOHighResTimeValue startTime, OOHighResT
 #elif OO_PROFILING_STOPWATCH_WINDOWS
 	return 1e-3 * (double)(endTime - startTime);
 #elif OO_PROFILING_STOPWATCH_GETTIMEOFDAY
-	int_fast32_t deltaS = (int_fast32_t)endTime.tv_sec - (int_fast32_t)startTime.tv_sec;
-	int_fast32_t deltaU = (int_fast32_t)endTime.tv_usec - (int_fast32_t)startTime.tv_usec;
+	int32_t deltaS = (int32_t)endTime.tv_sec - (int32_t)startTime.tv_sec;
+	int32_t deltaU = (int32_t)endTime.tv_usec - (int32_t)startTime.tv_usec;
 	double result = deltaU;
 	result = (result * 1e-6) + deltaS;
 	return result;

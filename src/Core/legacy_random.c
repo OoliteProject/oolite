@@ -319,8 +319,8 @@ void make_pseudo_random_seed (Random_Seed *seed_ptr)
 
 void rotate_seed (Random_Seed *seed_ptr)
 {
-	uint_fast16_t x;
-	uint_fast16_t y;
+	uint16_t x;
+	uint16_t y;
 	
 	/*	Note: this is equivalent to adding three (little-endian) 16-bit values
 		together, rotating the three numbers and replacing one of them with

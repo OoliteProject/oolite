@@ -431,8 +431,8 @@ static void ScaleToHalf_1_x1(void *srcBytes, void *dstBytes, OOPixMapDimension s
 {
 	OOPixMapDimension		x, y;
 	uint8_t					*src0, *src1, *dst;
-	uint_fast8_t			px00, px01, px10, px11;
-	uint_fast16_t			sum;
+	uint8_t			px00, px01, px10, px11;
+	uint16_t			sum;
 	
 	src0 = srcBytes;
 	src1 = src0 + srcWidth;
@@ -473,8 +473,8 @@ static void ScaleToHalf_1_x4(void *srcBytes, void *dstBytes, OOPixMapDimension s
 {
 	OOPixMapDimension		x, y;
 	uint32_t				*src0, *src1, *dst;
-	uint_fast32_t			px00, px01, px10, px11;
-	uint_fast32_t			sum0, sum1;
+	uint32_t			px00, px01, px10, px11;
+	uint32_t			sum0, sum1;
 	
 	srcWidth >>= 2;	// Four (output) pixels at a time
 	src0 = srcBytes;
@@ -656,8 +656,8 @@ static void ScaleToHalf_2_x1(void *srcBytes, void *dstBytes, OOPixMapDimension s
 {
 	OOPixMapDimension		x, y;
 	uint16_t				*src0, *src1, *dst;
-	uint_fast16_t			px00, px01, px10, px11;
-	uint_fast32_t			sumHi, sumLo;
+	uint16_t			px00, px01, px10, px11;
+	uint32_t			sumHi, sumLo;
 	
 	src0 = srcBytes;
 	src1 = src0 + srcWidth;
@@ -748,14 +748,14 @@ static void ScaleToHalf_4_x1(void *srcBytes, void *dstBytes, OOPixMapDimension s
 {
 	OOPixMapDimension		x, y;
 	uint32_t				*src0, *src1, *dst;
-	uint_fast32_t			px00, px01, px10, px11;
+	uint32_t			px00, px01, px10, px11;
 	
 	/*	We treat channel layout as ABGR -- actual layout doesn't matter since
 		each channel is handled the same. We use two accumulators, with
 		alternating channels, so overflow doesn't cross channel boundaries,
 		while having less overhead than one accumulator per channel.
 	*/
-	uint_fast32_t			ag, br;
+	uint32_t			ag, br;
 	
 	src0 = srcBytes;
 	src1 = src0 + srcWidth;
@@ -890,10 +890,10 @@ static void StretchVerticallyN_x1(OOPixMap srcPx, OOPixMap dstPx)
 {
 	uint8_t				*src, *src0, *src1, *prev, *dst;
 	uint8_t				px0, px1;
-	uint_fast32_t		x, y, xCount;
+	uint32_t		x, y, xCount;
 	size_t				srcRowBytes;
-	uint_fast16_t		weight0, weight1;
-	uint_fast32_t		fractY;	// Y coordinate, fixed-point (24.8)
+	uint16_t		weight0, weight1;
+	uint32_t		fractY;	// Y coordinate, fixed-point (24.8)
 	
 	src = srcPx.pixels;
 	srcRowBytes = srcPx.rowBytes;
@@ -939,10 +939,10 @@ static void StretchVerticallyN_x4(OOPixMap srcPx, OOPixMap dstPx)
 	uint8_t				*src;
 	uint32_t			*src0, *src1, *prev, *dst;
 	uint32_t			px0, px1, ag, br;
-	uint_fast32_t		x, y, xCount;
+	uint32_t		x, y, xCount;
 	size_t				srcRowBytes;
-	uint_fast16_t		weight0, weight1;
-	uint_fast32_t		fractY;	// Y coordinate, fixed-point (24.8)
+	uint16_t		weight0, weight1;
+	uint32_t		fractY;	// Y coordinate, fixed-point (24.8)
 	
 	src = srcPx.pixels;
 	srcRowBytes = srcPx.rowBytes;
@@ -990,10 +990,10 @@ static void StretchVerticallyN_x8(OOPixMap srcPx, OOPixMap dstPx)
 	uint8_t				*src;
 	uint64_t			*src0, *src1, *prev, *dst;
 	uint64_t			px0, px1, agag, brbr;
-	uint_fast32_t		x, y, xCount;
+	uint32_t		x, y, xCount;
 	size_t				srcRowBytes;
-	uint_fast16_t		weight0, weight1;
-	uint_fast32_t		fractY;	// Y coordinate, fixed-point (24.8)
+	uint16_t		weight0, weight1;
+	uint32_t		fractY;	// Y coordinate, fixed-point (24.8)
 	
 	src = srcPx.pixels;
 	srcRowBytes = srcPx.rowBytes;
@@ -1040,10 +1040,10 @@ static void StretchHorizontally1(OOPixMap srcPx, OOPixMap dstPx)
 {
 	uint8_t				*src, *srcStart, *dst;
 	uint8_t				px0, px1;
-	uint_fast32_t		x, y, xCount;
+	uint32_t		x, y, xCount;
 	size_t				srcRowBytes;
-	uint_fast16_t		weight0, weight1;
-	uint_fast32_t		fractX, deltaX;	// X coordinate, fixed-point (20.12), allowing widths up to 1 mebipixel
+	uint16_t		weight0, weight1;
+	uint32_t		fractX, deltaX;	// X coordinate, fixed-point (20.12), allowing widths up to 1 mebipixel
 	
 	NSCParameterAssert(OOIsValidPixMap(srcPx) && OOPixMapBytesPerPixel(srcPx) == 1 && OOIsValidPixMap(dstPx) && OOPixMapBytesPerPixel(dstPx) == 1);
 	
@@ -1099,11 +1099,11 @@ static void StretchHorizontally2(OOPixMap srcPx, OOPixMap dstPx)
 {
 	uint16_t			*src, *srcStart, *dst;
 	uint16_t			px0, px1;
-	uint_fast32_t		hi, lo;
-	uint_fast32_t		x, y, xCount;
+	uint32_t		hi, lo;
+	uint32_t		x, y, xCount;
 	size_t				srcRowBytes;
-	uint_fast16_t		weight0, weight1;
-	uint_fast32_t		fractX, deltaX;	// X coordinate, fixed-point (20.12), allowing widths up to 1 mebipixel
+	uint16_t		weight0, weight1;
+	uint32_t		fractX, deltaX;	// X coordinate, fixed-point (20.12), allowing widths up to 1 mebipixel
 	
 	NSCParameterAssert(OOIsValidPixMap(srcPx) && OOPixMapBytesPerPixel(srcPx) == 2 && OOIsValidPixMap(dstPx) && OOPixMapBytesPerPixel(dstPx) == 2);
 	
@@ -1166,10 +1166,10 @@ static void StretchHorizontally4(OOPixMap srcPx, OOPixMap dstPx)
 	uint32_t			*src, *srcStart, *dst;
 	uint32_t			px0, px1;
 	uint32_t			ag, br;
-	uint_fast32_t		x, y, xCount;
+	uint32_t		x, y, xCount;
 	size_t				srcRowBytes;
-	uint_fast16_t		weight0, weight1;
-	uint_fast32_t		fractX, deltaX;	// X coordinate, fixed-point (20.12), allowing widths up to 1 mebipixel
+	uint16_t		weight0, weight1;
+	uint32_t		fractX, deltaX;	// X coordinate, fixed-point (20.12), allowing widths up to 1 mebipixel
 	
 	NSCParameterAssert(OOIsValidPixMap(srcPx) && OOPixMapBytesPerPixel(srcPx) == 4 && OOIsValidPixMap(dstPx) && OOPixMapBytesPerPixel(dstPx) == 4);
 	
@@ -1231,11 +1231,11 @@ static void SqueezeHorizontally1(OOPixMap srcPx, OOPixMapDimension dstWidth)
 {
 	uint8_t				*src, *srcStart, *dst;
 	uint8_t				borderPx;
-	uint_fast32_t		x, y, xCount, endX;
+	uint32_t		x, y, xCount, endX;
 	size_t				srcRowBytes;
-	uint_fast32_t		endFractX, deltaX;
-	uint_fast32_t		accum, weight;
-	uint_fast8_t		borderWeight;
+	uint32_t		endFractX, deltaX;
+	uint32_t		accum, weight;
+	uint8_t		borderWeight;
 	
 	NSCParameterAssert(OOIsValidPixMap(srcPx) && OOPixMapBytesPerPixel(srcPx) == 1);
 	
@@ -1294,11 +1294,11 @@ static void SqueezeHorizontally1(OOPixMap srcPx, OOPixMapDimension dstWidth)
 static void SqueezeVertically1(OOPixMap srcPx, OOPixMapDimension dstHeight)
 {
 	uint8_t				*src, *srcStart, *dst;
-	uint_fast32_t		x, y, xCount, startY, endY, lastRow;
+	uint32_t		x, y, xCount, startY, endY, lastRow;
 	size_t				srcRowBytes;
-	uint_fast32_t		endFractY, deltaY;
-	uint_fast32_t		accum, weight;
-	uint_fast8_t		startWeight, endWeight;
+	uint32_t		endFractY, deltaY;
+	uint32_t		accum, weight;
+	uint8_t		startWeight, endWeight;
 	
 	NSCParameterAssert(OOIsValidPixMap(srcPx) && OOPixMapBytesPerPixel(srcPx) == 1);
 	
@@ -1361,7 +1361,7 @@ static void SqueezeVertically1(OOPixMap srcPx, OOPixMapDimension dstHeight)
 */
 #define ACCUM2(PX, WT) do {							\
 			uint16_t px = PX;						\
-			uint_fast32_t wt = WT;					\
+			uint32_t wt = WT;					\
 			accumHi += (px & 0xFF00) * wt;			\
 			accumLo += (px & 0x00FF) * wt;			\
 			weight += wt;							\
@@ -1383,11 +1383,11 @@ static void SqueezeHorizontally2(OOPixMap srcPx, OOPixMapDimension dstWidth)
 {
 	uint16_t			*src, *srcStart, *dst;
 	uint16_t			borderPx;
-	uint_fast32_t		x, y, xCount, endX;
+	uint32_t		x, y, xCount, endX;
 	size_t				srcRowBytes;
-	uint_fast32_t		endFractX, deltaX;
-	uint_fast32_t		accumHi, accumLo, weight;
-	uint_fast8_t		borderWeight;
+	uint32_t		endFractX, deltaX;
+	uint32_t		accumHi, accumLo, weight;
+	uint8_t		borderWeight;
 	
 	NSCParameterAssert(OOIsValidPixMap(srcPx) && OOPixMapBytesPerPixel(srcPx) == 2);
 	
@@ -1445,11 +1445,11 @@ static void SqueezeHorizontally2(OOPixMap srcPx, OOPixMapDimension dstWidth)
 static void SqueezeVertically2(OOPixMap srcPx, OOPixMapDimension dstHeight)
 {
 	uint16_t			*src, *srcStart, *dst;
-	uint_fast32_t		x, y, xCount, startY, endY, lastRow;
+	uint32_t		x, y, xCount, startY, endY, lastRow;
 	size_t				srcRowBytes;
-	uint_fast32_t		endFractY, deltaY;
-	uint_fast32_t		accumHi, accumLo, weight;
-	uint_fast8_t		startWeight, endWeight;
+	uint32_t		endFractY, deltaY;
+	uint32_t		accumHi, accumLo, weight;
+	uint8_t		startWeight, endWeight;
 	
 	NSCParameterAssert(OOIsValidPixMap(srcPx) && OOPixMapBytesPerPixel(srcPx) == 2);
 	
@@ -1512,7 +1512,7 @@ static void SqueezeVertically2(OOPixMap srcPx, OOPixMapDimension dstHeight)
 */
 #define ACCUM4(PX, WT) do {							\
 			uint32_t px = PX;						\
-			uint_fast32_t wt = WT;					\
+			uint32_t wt = WT;					\
 			ag = ((px & 0xFF00FF00) >> 8) * wt;		\
 			br = (px & 0x00FF00FF) * wt;			\
 			accum1 += ag >> 16;						\
@@ -1548,11 +1548,11 @@ static void SqueezeHorizontally4(OOPixMap srcPx, OOPixMapDimension dstWidth)
 {
 	uint32_t			*src, *srcStart, *dst;
 	uint32_t			borderPx, ag, br;
-	uint_fast32_t		x, y, xCount, endX;
+	uint32_t		x, y, xCount, endX;
 	size_t				srcRowBytes;
-	uint_fast32_t		endFractX, deltaX;
-	uint_fast32_t		accum1, accum2, accum3, accum4, weight;
-	uint_fast8_t		borderWeight;
+	uint32_t		endFractX, deltaX;
+	uint32_t		accum1, accum2, accum3, accum4, weight;
+	uint8_t		borderWeight;
 	
 	NSCParameterAssert(OOIsValidPixMap(srcPx) && OOPixMapBytesPerPixel(srcPx) == 4);
 	
@@ -1610,12 +1610,12 @@ static void SqueezeHorizontally4(OOPixMap srcPx, OOPixMapDimension dstWidth)
 static void SqueezeVertically4(OOPixMap srcPx, OOPixMapDimension dstHeight)
 {
 	uint32_t			*src, *srcStart, *dst;
-	uint_fast32_t		x, y, xCount, startY, endY, lastRow;
+	uint32_t		x, y, xCount, startY, endY, lastRow;
 	size_t				srcRowBytes;
 	uint32_t			ag, br;
-	uint_fast32_t		endFractY, deltaY;
-	uint_fast32_t		accum1, accum2, accum3, accum4, weight;
-	uint_fast8_t		startWeight, endWeight;
+	uint32_t		endFractY, deltaY;
+	uint32_t		accum1, accum2, accum3, accum4, weight;
+	uint8_t		startWeight, endWeight;
 	
 	NSCParameterAssert(OOIsValidPixMap(srcPx) && OOPixMapBytesPerPixel(srcPx) == 4);
 	
