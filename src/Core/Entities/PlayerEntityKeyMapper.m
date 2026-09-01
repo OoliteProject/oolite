@@ -940,7 +940,7 @@ static NSArray *camera_keys = nil;
 				[gui setArray:[NSArray arrayWithObjects: 
 								[entry objectForKey:KEY_KC_GUIDESC], assignment, override, nil]
 					forRow:i + start_row];
-				[gui setKey:[NSString stringWithFormat:@"Index:%lu", i + skip] forRow:i + start_row];
+				[gui setKey:[NSString stringWithFormat:@"Index:%zu", i + skip] forRow:i + start_row];
 				if (validate) 
 				{
 					[gui setColor:[OOColor orangeColor] forRow:i + start_row];
@@ -951,7 +951,7 @@ static NSArray *camera_keys = nil;
 		{
 			[gui setColor:[OOColor greenColor] forRow:start_row + i];
 			[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-more"), @" --> ", nil] forRow:start_row + i];
-			[gui setKey:[NSString stringWithFormat:@"More:%lu", n_rows + skip] forRow:start_row + i];
+			[gui setKey:[NSString stringWithFormat:@"More:%zu", n_rows + skip] forRow:start_row + i];
 			i++;
 		}
 		
@@ -1351,13 +1351,13 @@ static NSArray *camera_keys = nil;
 			NSString *selected = @"";
 			if ([[entry objectForKey:@"key"] isEqualToString:kbd]) selected = @"Current";
 			[gui setArray:[NSArray arrayWithObjects:desc, selected, nil] forRow:i + start_row];
-			[gui setKey:[NSString stringWithFormat:@"Index:%lu", i + skip] forRow:i + start_row];
+			[gui setKey:[NSString stringWithFormat:@"Index:%zu", i + skip] forRow:i + start_row];
 		}
 		if (i < n_functions - skip)
 		{
 			[gui setColor:[OOColor greenColor] forRow:start_row + i];
 			[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-more"), @" --> ", nil] forRow:start_row + i];
-			[gui setKey:[NSString stringWithFormat:@"More:%lu", n_rows + skip] forRow:start_row + i];
+			[gui setKey:[NSString stringWithFormat:@"More:%zu", n_rows + skip] forRow:start_row + i];
 			i++;
 		}
 		

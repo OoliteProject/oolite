@@ -441,7 +441,7 @@ static NSString *NormalModeDescription(OOMeshNormalMode mode)
 		/*	It should not be possible to have multiple texture units if
 			texture combiners are not available.
 		*/
-		NSAssert2([[OOOpenGLExtensionManager sharedManager] textureCombinersSupported], @"Mesh %@ uses %lu texture units, but multitexturing is not available.", [self shortDescription], _textureUnitCount);
+		NSAssert2([[OOOpenGLExtensionManager sharedManager] textureCombinersSupported], @"Mesh %@ uses %zu texture units, but multitexturing is not available.", [self shortDescription], _textureUnitCount);
 		
 		for (unit = 0; unit < _textureUnitCount; unit++)
 		{

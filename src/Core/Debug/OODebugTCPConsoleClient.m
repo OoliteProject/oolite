@@ -688,7 +688,7 @@ noteChangedConfigrationValue:(in id)newValue
 	if (errorDesc == nil)  errorDesc = [error description];
 	if (errorDesc == nil)  errorDesc = @"bad stream.";
 	[self breakConnectionWithMessage:[NSString stringWithFormat:
-	   @"Connection to debug console failed: '%@' (outStream status: %lu, inStream status: %lu).",
+	   @"Connection to debug console failed: '%@' (outStream status: %zu, inStream status: %zu).",
 		errorDesc, [_outStream streamStatus], [_inStream streamStatus]]];
 }
 

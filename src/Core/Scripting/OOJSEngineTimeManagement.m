@@ -876,7 +876,7 @@ static void UpdateProfileForFrame(OOHighResTimeValue now, OOJSProfileStackFrame 
 		}
 		else
 		{
-			return [NSString stringWithFormat:@"%@: %lu times, total %g ms, avg %g ms, max %g ms", _function, _hitCount, totalTimeSum, totalTimeSum / _hitCount, totalTimeMax];
+			return [NSString stringWithFormat:@"%@: %zu times, total %g ms, avg %g ms, max %g ms", _function, _hitCount, totalTimeSum, totalTimeSum / _hitCount, totalTimeMax];
 		}
 	}
 	else
@@ -887,7 +887,7 @@ static void UpdateProfileForFrame(OOHighResTimeValue now, OOJSProfileStackFrame 
 		}
 		else
 		{
-			return [NSString stringWithFormat:@"%@: %lu times, total %g ms (self %g ms), avg %g ms (self %g ms), max %g ms, max self %g ms", _function, _hitCount, totalTimeSum, selfTimeSum, totalTimeSum / _hitCount, selfTimeSum / _hitCount, totalTimeMax, selfTimeMax];
+			return [NSString stringWithFormat:@"%@: %zu times, total %g ms (self %g ms), avg %g ms (self %g ms), max %g ms, max self %g ms", _function, _hitCount, totalTimeSum, selfTimeSum, totalTimeSum / _hitCount, selfTimeSum / _hitCount, totalTimeMax, selfTimeMax];
 		}
 	}
 }

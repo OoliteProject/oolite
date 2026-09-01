@@ -537,7 +537,7 @@ static NSMutableString *StringFromStackInternal(SanStackElement *topOfStack)
 	if (base == nil)  base = [NSMutableString string];
 	
 	NSString *string = topOfStack->key;
-	if (string == nil)  string = [NSString stringWithFormat:@"%lu", (unsigned long)topOfStack->index];
+	if (string == nil)  string = [NSString stringWithFormat:@"%zu", (unsigned long)topOfStack->index];
 	if ([base length] > 0)  [base appendString:@"."];
 	
 	[base appendString:string];

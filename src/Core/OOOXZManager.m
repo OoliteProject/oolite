@@ -375,7 +375,7 @@ static OOOXZManager *sSingleton = nil;
 	}
 	else if (bytes < 1024*1024)
 	{
-		return [NSString stringWithFormat:@"%lu kB",bytes>>10];
+		return [NSString stringWithFormat:@"%zu kB",bytes>>10];
 	}
 	else 
 	{
@@ -869,7 +869,7 @@ static OOOXZManager *sSingleton = nil;
 	}
 	NSDictionary *requirement = nil;
 	NSMutableString *progress = [NSMutableString stringWithCapacity:2048];
-	OOLog(kOOOXZDebugLog,@"Dependency stack has %lu elements",[_dependencyStack count]);
+	OOLog(kOOOXZDebugLog,@"Dependency stack has %zu elements",[_dependencyStack count]);
 
 	if ([_dependencyStack count] > 0)
 	{
@@ -972,7 +972,7 @@ static OOOXZManager *sSingleton = nil;
 			_downloadStatus = OXZ_DOWNLOAD_NONE;
 			if (_downloadAllDependencies)
 			{
-				OOLog(kOOOXZDebugLog,@"Dependency stack: installing %lu from list",index);
+				OOLog(kOOOXZDebugLog,@"Dependency stack: installing %zu from list",index);
 				if (![self installOXZ:index]) {
 					// if a required dependency is somehow uninstallable
 					// e.g. required+maximum version don't match this Oolite
@@ -1522,12 +1522,12 @@ static OOOXZManager *sSingleton = nil;
 		}
 		else if (_interfaceState == OXZ_STATE_PICK_INSTALL)
 		{
-			OOLog(kOOOXZDebugLog, @"Trying to install index %lu", (unsigned long)item);
+			OOLog(kOOOXZDebugLog, @"Trying to install index %zu", (unsigned long)item);
 			[self installOXZ:item];
 		}
 		else if (_interfaceState == OXZ_STATE_PICK_INSTALLED)
 		{
-			OOLog(kOOOXZDebugLog, @"Trying to install index %lu", (unsigned long)item);
+			OOLog(kOOOXZDebugLog, @"Trying to install index %zu", (unsigned long)item);
 			[self installOXZ:item];
 		}
 
@@ -1956,13 +1956,13 @@ static OOOXZManager *sSingleton = nil;
 	NSArray *remList = _filteredList;
 	if ([remList count] <= item)
 	{
-		OOLog(kOOOXZDebugLog, @"Unable to remove item %lu as only %lu in list", (unsigned long)item, (unsigned long)[remList count]);
+		OOLog(kOOOXZDebugLog, @"Unable to remove item %zu as only %zu in list", (unsigned long)item, (unsigned long)[remList count]);
 		return NO;
 	}
 	NSString *filename = [[remList objectAtIndex:item] oo_stringForKey:kOOManifestFilePath];
 	if (filename == nil)
 	{
-		OOLog(kOOOXZDebugLog, @"Unable to remove item %lu as filename not found", (unsigned long)item);
+		OOLog(kOOOXZDebugLog, @"Unable to remove item %zu as filename not found", (unsigned long)item);
 		return NO;
 	}
 
@@ -2334,7 +2334,7 @@ static OOOXZManager *sSingleton = nil;
 
 - (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data
 {
-	OOLog(kOOOXZDebugLog,@"Downloaded %lu bytes",[data length]);
+	OOLog(kOOOXZDebugLog,@"Downloaded %zu bytes",[data length]);
 	[_fileWriter seekToEndOfFile];
 	[_fileWriter writeData:data];
 	_downloadProgress += [data length];

@@ -133,7 +133,7 @@ static id ShipGroupIterate(OOShipGroupEnumerator *enumerator);
 
 - (NSString *) descriptionComponents
 {
-	NSString *desc = [NSString stringWithFormat:@"%lu ships", _count];
+	NSString *desc = [NSString stringWithFormat:@"%zu ships", _count];
 	if ([self name] != nil)
 	{
 		desc = [NSString stringWithFormat:@"\"%@\", %@", [self name], desc];

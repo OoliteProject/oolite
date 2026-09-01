@@ -211,7 +211,7 @@ static NSString *AdditionalLogHeaderInfo(void)
 	sysModel = GetSysCtlString("hw.model");
 	sysPhysMem = GetSysCtlInt("hw.memsize");
 	
-	return [NSString stringWithFormat:@"Machine type: %@, %lu MiB memory, %@.", sysModel, sysPhysMem >> 20, GetCPUDescription()];
+	return [NSString stringWithFormat:@"Machine type: %@, %zu MiB memory, %@.", sysModel, sysPhysMem >> 20, GetCPUDescription()];
 }
 
 #ifndef CPUFAMILY_INTEL_MEROM
@@ -301,13 +301,13 @@ static NSString *GetCPUDescription(void)
 			typeStr = @"ARM";
 	}
 	
-	if (typeStr == nil)  typeStr = [NSString stringWithFormat:@"CPU type %lu", sysCPUType];
+	if (typeStr == nil)  typeStr = [NSString stringWithFormat:@"CPU type %zu", sysCPUType];
 	
 	NSString *countStr = nil;
-	if (sysCPUCount == sysLogicalCPUCount)  countStr = [NSString stringWithFormat:@"%lu", sysCPUCount];
-	else countStr = [NSString stringWithFormat:@"%lu (%lu logical)", sysCPUCount, sysLogicalCPUCount];
+	if (sysCPUCount == sysLogicalCPUCount)  countStr = [NSString stringWithFormat:@"%zu", sysCPUCount];
+	else countStr = [NSString stringWithFormat:@"%zu (%zu logical)", sysCPUCount, sysLogicalCPUCount];
 	
-	return [NSString stringWithFormat:@"%@ x %@%@ @ %lu MHz", countStr, typeStr, subTypeStr, (sysCPUFrequency + 500000) / 1000000];
+	return [NSString stringWithFormat:@"%@ x %@%@ @ %zu MHz", countStr, typeStr, subTypeStr, (sysCPUFrequency + 500000) / 1000000];
 }
 
 

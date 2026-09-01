@@ -180,7 +180,7 @@ SOFTWARE.
 		[_emissionMap apply];
 	}
 	
-	NSAssert2(textureUnit - GL_TEXTURE0_ARB == _unitsUsed, @"OOMultiTextureMaterial texture unit count invalid (expected %lu, actually using %u)", _unitsUsed, textureUnit - GL_TEXTURE0_ARB);
+	NSAssert2(textureUnit - GL_TEXTURE0_ARB == _unitsUsed, @"OOMultiTextureMaterial texture unit count invalid (expected %zu, actually using %u)", _unitsUsed, textureUnit - GL_TEXTURE0_ARB);
 	
 	if (textureUnit > GL_TEXTURE1_ARB)
 	{

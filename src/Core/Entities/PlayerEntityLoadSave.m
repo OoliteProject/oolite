@@ -247,7 +247,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 			scenario = [[UNIVERSE scenarios] objectAtIndex:i];
 			NSString *scenarioName = [NSString stringWithFormat:@" %@ ",[scenario oo_stringForKey:@"name"]];
 			[gui setText:OOExpand(scenarioName) forRow:row];
-			[gui setKey:[NSString stringWithFormat:@"Scenario:%lu", (unsigned long)i] forRow:row];
+			[gui setKey:[NSString stringWithFormat:@"Scenario:%zu", (unsigned long)i] forRow:row];
 			++row;
 		}
 

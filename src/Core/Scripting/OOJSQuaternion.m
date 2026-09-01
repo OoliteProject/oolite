@@ -221,13 +221,13 @@ static QuaternionStatistics sQuaternionConversionStats;
 	double convFac = 100.0 / sum;
 	
 	return [NSString stringWithFormat:
-		   @"quaternion-to-quaternion conversions: %lu (%g %%)\n"
-			"    entity-to-quaternion conversions: %lu (%g %%)\n"
-			"     array-to-quaternion conversions: %lu (%g %%)\n"
-			"       prototype-to-zero conversions: %lu (%g %%)\n"
-			"                    null conversions: %lu (%g %%)\n"
-			"                  failed conversions: %lu (%g %%)\n"
-			"                               total: %lu",
+		   @"quaternion-to-quaternion conversions: %zu (%g %%)\n"
+			"    entity-to-quaternion conversions: %zu (%g %%)\n"
+			"     array-to-quaternion conversions: %zu (%g %%)\n"
+			"       prototype-to-zero conversions: %zu (%g %%)\n"
+			"                    null conversions: %zu (%g %%)\n"
+			"                  failed conversions: %zu (%g %%)\n"
+			"                               total: %zu",
 			(long)stats->quatCount, stats->quatCount * convFac,
 			(long)stats->entityCount, stats->entityCount * convFac,
 			(long)stats->arrayCount, stats->arrayCount * convFac,

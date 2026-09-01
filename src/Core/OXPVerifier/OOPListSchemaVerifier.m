@@ -1120,13 +1120,13 @@ static NSError *Verify_PositiveInteger(OOPListSchemaVerifier *verifier, id value
 	constraint = [params oo_unsignedLongLongForKey:@"minimum" defaultValue:0];
 	if (numericValue < constraint)
 	{
-		return  Error(kPListErrorMinimumConstraintNotMet, &keyPath, @"Number is too small (%lu, minimum is %lu).", numericValue, constraint);
+		return  Error(kPListErrorMinimumConstraintNotMet, &keyPath, @"Number is too small (%zu, minimum is %zu).", numericValue, constraint);
 	}
 	
 	constraint = [params oo_unsignedLongLongForKey:@"maximum" defaultValue:ULLONG_MAX];
 	if (constraint < numericValue)
 	{
-		return  Error(kPListErrorMaximumConstraintNotMet, &keyPath, @"Number is too large (%lu, maximum is %lu).", numericValue, constraint);
+		return  Error(kPListErrorMaximumConstraintNotMet, &keyPath, @"Number is too large (%zu, maximum is %zu).", numericValue, constraint);
 	}
 	
 	return nil;

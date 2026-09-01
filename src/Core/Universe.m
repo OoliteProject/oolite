@@ -983,7 +983,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	
 	if (!OOLogWillDisplayMessagesInClass(@"universe.objectDump"))  return;
 	
-	OOLog(@"universe.objectDump", @"DEBUG: Entity Dump - [entities count] = %lu,\tn_entities = %u", [entities count], n_entities);
+	OOLog(@"universe.objectDump", @"DEBUG: Entity Dump - [entities count] = %zu,\tn_entities = %u", [entities count], n_entities);
 	
 	OOLogIndent();
 	for (i = 0; i < show_count; i++)
@@ -3973,7 +3973,7 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 	++profSlowPath;
 	if ((profSlowPath % 10) == 0)	// Only print every tenth slow path, to reduce spamminess.
 	{
-		OOLog(@"shipRegistry.selection.profile", @"Hit slow path in ship selection for role \"%@\", having selected ship \"%@\". Now %lu of %lu on slow path (%f%%).", role, shipKey, profSlowPath, profTotal, ((double)profSlowPath)/((double)profTotal) * 100.0f);
+		OOLog(@"shipRegistry.selection.profile", @"Hit slow path in ship selection for role \"%@\", having selected ship \"%@\". Now %zu of %zu on slow path (%f%%).", role, shipKey, profSlowPath, profTotal, ((double)profSlowPath)/((double)profTotal) * 100.0f);
 	}
 #endif
 	
@@ -4342,7 +4342,7 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 		}
 		else
 		{
-			OOLog(@"universe.createContainer.failed", @"***** ERROR: failed to find a container to fill with %@ (%lu).", [goodsKeys oo_stringAtIndex:co_type], co_type);
+			OOLog(@"universe.createContainer.failed", @"***** ERROR: failed to find a container to fill with %@ (%zu).", [goodsKeys oo_stringAtIndex:co_type], co_type);
 
 		}
 	}
@@ -10430,7 +10430,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 		entity = sortedEntities[i];
 		if ([entity sessionID] != _sessionID)
 		{
-			OOLogERR(@"universe.sessionIDs.verify.failed", @"Invalid entity %@ (came from session %lu, current session is %lu).", [entity shortDescription], [entity sessionID], _sessionID);
+			OOLogERR(@"universe.sessionIDs.verify.failed", @"Invalid entity %@ (came from session %zu, current session is %zu).", [entity shortDescription], [entity sessionID], _sessionID);
 			if (badEntities == nil)  badEntities = [NSMutableArray array];
 			[badEntities addObject:entity];
 		}
@@ -10881,14 +10881,14 @@ static void PreloadOneSound(NSString *soundName)
 	for (j = 0; j < subCount; ++j)
 	{
 		label = OOStringifySystemDescriptionLine([curses oo_stringAtIndex:j], keyMap, NO);
-		[graphViz appendFormat:@"\t\tthargoid_curse_%lu [label=\"%@\"]\n", j, EscapedGraphVizString(label)];
+		[graphViz appendFormat:@"\t\tthargoid_curse_%zu [label=\"%@\"]\n", j, EscapedGraphVizString(label)];
 	}
 	[graphViz appendString:@"\t}\n"];
 	for (j = 0; j < subCount; ++j)
 	{
 		[self addNumericRefsInString:[curses oo_stringAtIndex:j]
 						  toGraphViz:graphViz
-							fromNode:[NSString stringWithFormat:@"thargoid_curse_%lu", j]
+							fromNode:[NSString stringWithFormat:@"thargoid_curse_%zu", j]
 						   nodeCount:count];
 	}
 	[graphViz appendString:@"\t\n"];
@@ -10898,18 +10898,18 @@ static void PreloadOneSound(NSString *soundName)
 	for (i = 0; i < count; ++i)
 	{
 		// Build label, using sysdesc_key_table.plist if available
-		label = [keyMap objectForKey:[NSString stringWithFormat:@"%lu", i]];
-		if (label == nil)  label = [NSString stringWithFormat:@"[%lu]", i];
-		else  label = [NSString stringWithFormat:@"[%lu] (%@)", i, label];
+		label = [keyMap objectForKey:[NSString stringWithFormat:@"%zu", i]];
+		if (label == nil)  label = [NSString stringWithFormat:@"[%zu]", i];
+		else  label = [NSString stringWithFormat:@"[%zu] (%@)", i, label];
 		
-		[graphViz appendFormat:@"\tsubgraph cluster_%lu\n\t{\n\t\tlabel=\"%@\"\n", i, EscapedGraphVizString(label)];
+		[graphViz appendFormat:@"\tsubgraph cluster_%zu\n\t{\n\t\tlabel=\"%@\"\n", i, EscapedGraphVizString(label)];
 		
 		thisDesc = [systemDescriptions oo_arrayAtIndex:i];
 		subCount = [thisDesc count];
 		for (j = 0; j < subCount; ++j)
 		{
 			label = OOStringifySystemDescriptionLine([thisDesc oo_stringAtIndex:j], keyMap, NO);
-			[graphViz appendFormat:@"\t\tn%lu_%lu [label=\"\\\"%@\\\"\"]\n", i, j, EscapedGraphVizString(label)];
+			[graphViz appendFormat:@"\t\tn%zu_%zu [label=\"\\\"%@\\\"\"]\n", i, j, EscapedGraphVizString(label)];
 		}
 		
 		[graphViz appendString:@"\t}\n"];
@@ -10926,7 +10926,7 @@ static void PreloadOneSound(NSString *soundName)
 			descLine = [thisDesc oo_stringAtIndex:j];
 			[self addNumericRefsInString:descLine
 							  toGraphViz:graphViz
-								fromNode:[NSString stringWithFormat:@"n%lu_%lu", i, j]
+								fromNode:[NSString stringWithFormat:@"n%zu_%zu", i, j]
 							   nodeCount:count];
 		}
 	}

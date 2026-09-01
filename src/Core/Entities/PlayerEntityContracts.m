@@ -1558,7 +1558,7 @@ static NSMutableDictionary *currentShipyard = nil;
 			{
 				[gui setColor:[gui colorFromSetting:kGuiShipyardScrollColor defaultValue:[OOColor greenColor]] forRow:startRow + i];
 				[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-more"), @" --> ", nil] forRow:startRow + i];
-				[gui setKey:[NSString stringWithFormat:@"More:%lu", rowCount + skip] forRow:startRow + i];
+				[gui setKey:[NSString stringWithFormat:@"More:%zu", rowCount + skip] forRow:startRow + i];
 				i++;
 			}
 
