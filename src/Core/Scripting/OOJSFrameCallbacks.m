@@ -452,7 +452,7 @@ static void RunDeferredOperations(JSContext *context)
 {
 	NSDictionary		*operation = nil;
 	
-	FCBLog(@"script.frameCallback.debug.run-deferred", @"Running %lu deferred frame callback operations.", (long)[sDeferredOps count]);
+	FCBLog(@"script.frameCallback.debug.run-deferred", @"Running %zu deferred frame callback operations.", (long)[sDeferredOps count]);
 	FCBLogIndentIf(@"script.frameCallback.debug.run-deferred");
 	
 	foreach (operation, sDeferredOps)

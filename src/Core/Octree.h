@@ -93,13 +93,13 @@ enum
 {
 @private
 	int					*_octree;
-	uint_fast32_t		_nodeCount, _capacity;
+	uint32_t		_nodeCount, _capacity;
 	struct OOOctreeBuildState
 	{
 		uint32_t			insertionPoint;
 		uint32_t			remaining;
 	}					_stateStack[kMaxOctreeDepth + 1];
-	uint_fast8_t		_level;
+	uint8_t		_level;
 }
 
 /*

@@ -175,7 +175,7 @@ void OOTCPStreamDecoderReceiveBytes(OOTCPStreamDecoderRef decoder, const void *i
 		}
 		else
 		{
-			Error(decoder, OOALSTR("OOTCPStreamDecoder internal error: reached unreachable state. nextSize = %lu, bufferUsed = %lu, nextPacketData = %@."), (unsigned long)decoder->nextSize, (unsigned long)decoder->headerSpaceUsed, decoder->nextPacketData);
+			Error(decoder, OOALSTR("OOTCPStreamDecoder internal error: reached unreachable state. nextSize = %zu, bufferUsed = %zu, nextPacketData = %@."), (unsigned long)decoder->nextSize, (unsigned long)decoder->headerSpaceUsed, decoder->nextPacketData);
 		}
 	}
 }

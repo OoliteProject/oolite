@@ -294,13 +294,13 @@ static VectorStatistics sVectorConversionStats;
 	if (sum == 0)  convFac = 0;
 	
 	return [NSString stringWithFormat:
-		   @" vector-to-vector conversions: %lu (%g %%)\n"
-			" entity-to-vector conversions: %lu (%g %%)\n"
-			"  array-to-vector conversions: %lu (%g %%)\n"
-			"prototype-to-zero conversions: %lu (%g %%)\n"
-			"             null conversions: %lu (%g %%)\n"
-			"           failed conversions: %lu (%g %%)\n"
-			"                        total: %lu",
+		   @" vector-to-vector conversions: %zu (%g %%)\n"
+			" entity-to-vector conversions: %zu (%g %%)\n"
+			"  array-to-vector conversions: %zu (%g %%)\n"
+			"prototype-to-zero conversions: %zu (%g %%)\n"
+			"             null conversions: %zu (%g %%)\n"
+			"           failed conversions: %zu (%g %%)\n"
+			"                        total: %zu",
 			(long)stats->vectorCount, stats->vectorCount * convFac,
 			(long)stats->entityCount, stats->entityCount * convFac,
 			(long)stats->arrayCount, stats->arrayCount * convFac,

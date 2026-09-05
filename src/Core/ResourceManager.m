@@ -2151,7 +2151,7 @@ static NSString *LogClassKeyRoot(NSString *key)
 			}
 			
 			displayString = [[displayNames sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)] componentsJoinedByString:@"\n    "];
-			OOLog(@"script.load.world.listAll", @"Loaded %llu world scripts:\n    %@", count, displayString);
+			OOLog(@"script.load.world.listAll", @"Loaded %zu world scripts:\n    %@", count, displayString);
 		}
 		else
 		{

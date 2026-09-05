@@ -132,8 +132,8 @@ static NSString * const kGuiChartRouteShortColor	= @"chart_route_short_color";
 static NSString * const kGuiChartRouteQuickColor	= @"chart_route_quick_color";
 static NSString * const kGuiChartTraveltimeTabs		= @"chart_traveltime_tabs";
 
-static NSString * const kGuiChartEconomyUColor		= @"chart_economy_%lu_color";
-static NSString * const kGuiChartGovernmentUColor	= @"chart_government_%lu_color";
+static NSString * const kGuiChartEconomyUColor		= @"chart_economy_%zu_color";
+static NSString * const kGuiChartGovernmentUColor	= @"chart_government_%zu_color";
 static NSString * const kGuiChartTechColor			= @"chart_tech_color";
 // F7
 static NSString * const kGuiSystemdataFactsColor		= @"systemdata_facts_color";

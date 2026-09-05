@@ -625,7 +625,7 @@ static NSString *KeyFromTextureSpec(NSDictionary *spec)
 	{
 		texID = [_texturesByName count];
 		NSNumber	*texIDObj = [NSNumber numberWithUnsignedInteger:texID];
-		NSString	*texUniform = [NSString stringWithFormat:@"uTexture%llu", texID];
+		NSString	*texUniform = [NSString stringWithFormat:@"uTexture%zu", texID];
 		
 #ifndef NDEBUG
 		BOOL useInternalFormat = NO;
@@ -666,7 +666,7 @@ static NSString *KeyFromTextureSpec(NSDictionary *spec)
 	if ((NSUInteger)NSHashGet(_sampledTextures, (const void *)(texID + 1)) == 0)
 	{
 		NSHashInsertKnownAbsent(_sampledTextures, (const void *)(texID + 1));
-		[_fragmentTextureLookups appendFormat:@"\tvec4 tex%lluSample = texture2D(uTexture%llu, texCoords);  // %@\n", texID, texID, [textureSpec oo_stringForKey:kOOTextureSpecifierNameKey]];
+		[_fragmentTextureLookups appendFormat:@"\tvec4 tex%zuSample = texture2D(uTexture%zu, texCoords);  // %@\n", texID, texID, [textureSpec oo_stringForKey:kOOTextureSpecifierNameKey]];
 	}
 }
 
@@ -678,7 +678,7 @@ static NSString *KeyFromTextureSpec(NSDictionary *spec)
 	[self setUpOneTexture:textureSpec];
 	NSUInteger	texID = [self textureIDForSpec:textureSpec];
 	
-	*outSampleName = [NSString stringWithFormat:@"tex%lluSample", texID];
+	*outSampleName = [NSString stringWithFormat:@"tex%zuSample", texID];
 	*outSwizzleOp = GetExtractMode(textureSpec);
 }
 
@@ -704,7 +704,7 @@ static NSString *KeyFromTextureSpec(NSDictionary *spec)
 		return [NSString stringWithFormat:@"%@.%@", sample, swizzle];
 	}
 	
-	OOLogWARN(@"material.synthesis.warning.extractionMismatch", @"The %@ map for material \"%@\" of \"%@\" specifies %llu channels to extract, but only %@ may be used.", mapName, [self materialKey], [self entityName], channelCount, @"1 or 3");
+	OOLogWARN(@"material.synthesis.warning.extractionMismatch", @"The %@ map for material \"%@\" of \"%@\" specifies %zu channels to extract, but only %@ may be used.", mapName, [self materialKey], [self entityName], channelCount, @"1 or 3");
 	return nil;
 }
 
@@ -726,7 +726,7 @@ static NSString *KeyFromTextureSpec(NSDictionary *spec)
 		return [NSString stringWithFormat:@"%@.%@", sample, swizzle];
 	}
 	
-	OOLogWARN(@"material.synthesis.warning.extractionMismatch", @"The %@ map for material \"%@\" of \"%@\" specifies %llu channels to extract, but only %@ may be used.", mapName, [self materialKey], [self entityName], channelCount, @"1");
+	OOLogWARN(@"material.synthesis.warning.extractionMismatch", @"The %@ map for material \"%@\" of \"%@\" specifies %zu channels to extract, but only %@ may be used.", mapName, [self materialKey], [self entityName], channelCount, @"1");
 	return nil;
 }
 
@@ -840,7 +840,7 @@ static NSString *KeyFromTextureSpec(NSDictionary *spec)
 				[_fragmentPreTextures appendString:@"\t// Parallax mapping\n"];
 				
 				NSUInteger texID = [self assignIDForTexture:parallaxMap];
-				[_fragmentPreTextures appendFormat:@"\tfloat parallax = texture2D(uTexture%llu, vTexCoords).%@;\n", texID, swizzle];
+				[_fragmentPreTextures appendFormat:@"\tfloat parallax = texture2D(uTexture%zu, vTexCoords).%@;\n", texID, swizzle];
 				
 				if (parallaxScale != 1.0f)
 				{
@@ -857,7 +857,7 @@ static NSString *KeyFromTextureSpec(NSDictionary *spec)
 			}
 			else
 			{
-				OOLogWARN(@"material.synthesis.warning.extractionMismatch", @"The %@ map for material \"%@\" of \"%@\" specifies %llu channels to extract, but only %@ may be used.", @"parallax", [self materialKey], [self entityName], channelCount, @"1");
+				OOLogWARN(@"material.synthesis.warning.extractionMismatch", @"The %@ map for material \"%@\" of \"%@\" specifies %zu channels to extract, but only %@ may be used.", @"parallax", [self materialKey], [self entityName], channelCount, @"1");
 			}
 		}
 	}
@@ -1010,7 +1010,7 @@ static NSString *KeyFromTextureSpec(NSDictionary *spec)
 		}
 		else
 		{
-			OOLogWARN(@"material.synthesis.warning.extractionMismatch", @"The %@ map for material \"%@\" of \"%@\" specifies %llu channels to extract, but only %@ may be used.", @"normal", [self materialKey], [self entityName], [swizzle length], @"3");
+			OOLogWARN(@"material.synthesis.warning.extractionMismatch", @"The %@ map for material \"%@\" of \"%@\" specifies %zu channels to extract, but only %@ may be used.", @"normal", [self materialKey], [self entityName], [swizzle length], @"3");
 		}
 	}
 	_constZNormal = YES;

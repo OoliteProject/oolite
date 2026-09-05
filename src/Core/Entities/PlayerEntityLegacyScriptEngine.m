@@ -1993,7 +1993,7 @@ static int shipsFound;
 
 	NSInteger keysCount = [choiceKeys count];
 	if ((end_row + 1) < [choiceKeys count]) {
-		OOLogERR(kOOLogException, @"in mission.runScreen choices: number of choices defined (%llu) is greater than available lines (%llu). Check HUD settings for allowBigGui.",  [choiceKeys count], (end_row + 1));
+		OOLogERR(kOOLogException, @"in mission.runScreen choices: number of choices defined (%zu) is greater than available lines (%zu). Check HUD settings for allowBigGui.",  [choiceKeys count], (end_row + 1));
 		keysCount = end_row + 1;
 	}
 
@@ -2877,7 +2877,7 @@ static int shipsFound;
 	
 	[eqScripts addObject:[NSArray arrayWithObjects:eq_key,s,nil]];
 	if (primedEquipment == [eqScripts count] - 1) primedEquipment++;	// if primed-none, keep it as primed-none.
-	OOLog(@"player.equipmentScript", @"Scriptable equipment available: %llu.", [eqScripts count]);
+	OOLog(@"player.equipmentScript", @"Scriptable equipment available: %zu.", [eqScripts count]);
 	return YES;
 }
 

@@ -64,8 +64,8 @@ static void ExtractChannel_4(OOPixMap *ioPixMap, uint8_t channelIndex)
 	
 	uint32_t			*src;
 	uint8_t				*dst;
-	uint_fast8_t		shift;
-	uint_fast32_t		xCount, y;
+	uint8_t		shift;
+	uint32_t		xCount, y;
 	
 	dst = ioPixMap->pixels;
 	shift = 8 * channelIndex;
@@ -132,7 +132,7 @@ static void ToRGBA_1(OOPixMap srcPx, OOPixMap dstPx)
 	
 	uint8_t				*src;
 	uint32_t			*dst;
-	uint_fast32_t		xCount, y;
+	uint32_t		xCount, y;
 	
 	dst = dstPx.pixels;
 	
@@ -155,9 +155,9 @@ static void ToRGBA_2(OOPixMap srcPx, OOPixMap dstPx)
 	NSCParameterAssert(OOPixMapBytesPerPixel(srcPx) == 2 && dstPx.format == kOOPixMapRGBA && srcPx.width == dstPx.width && srcPx.height == dstPx.height);
 	
 	uint16_t			*src;
-	uint_fast32_t		px;
+	uint32_t		px;
 	uint32_t			*dst;
-	uint_fast32_t		xCount, y;
+	uint32_t		xCount, y;
 	
 	dst = dstPx.pixels;
 	
@@ -198,9 +198,9 @@ static void ModulateUniform_4(OOPixMap pixMap, uint16_t f3, uint16_t f2, uint16_
 	NSCParameterAssert(OOPixMapBytesPerPixel(pixMap) == 4);
 	
 	uint32_t			*curr;
-	uint_fast32_t		px;
-	uint_fast32_t		p0, p1, p2, p3;
-	uint_fast32_t		xCount, y;
+	uint32_t		px;
+	uint32_t		p0, p1, p2, p3;
+	uint32_t		xCount, y;
 	
 	for (y = 0; y < pixMap.height; y++)
 	{
@@ -255,10 +255,10 @@ BOOL OOPixMapModulatePixMap(OOPixMap *ioDstPixMap, OOPixMap otherPixMap)
 static void ModulatePixMap_4(OOPixMap mainPx, OOPixMap otherPx)
 {
 	uint32_t			*dst, *other;
-	uint_fast32_t		px;
-	uint_fast16_t		m0, m1, m2, m3;
-	uint_fast16_t		o0, o1, o2, o3;
-	uint_fast32_t		xCount, y;
+	uint32_t		px;
+	uint16_t		m0, m1, m2, m3;
+	uint16_t		o0, o1, o2, o3;
+	uint32_t		xCount, y;
 	
 	for (y = 0; y < mainPx.height; y++)
 	{
@@ -290,7 +290,7 @@ static void ModulatePixMap_4(OOPixMap mainPx, OOPixMap otherPx)
 			m2 = (m2 * o2) / 255;
 			m3 = (m3 * o3) / 255;
 			
-			*dst++ = ((uint_fast32_t)m0 << 24) | ((uint_fast32_t)m1 << 16) | (m2 << 8) | m3;
+			*dst++ = (m0 << 24) | (m1 << 16) | (m2 << 8) | m3;
 			other++;
 		}
 		while (--xCount);
@@ -314,10 +314,10 @@ BOOL OOPixMapAddPixMap(OOPixMap *ioDstPixMap, OOPixMap otherPixMap)
 static void AddPixMap_4(OOPixMap mainPx, OOPixMap otherPx)
 {
 	uint32_t			*dst, *other;
-	uint_fast32_t		px;
-	uint_fast32_t		m02, m13;
-	uint_fast32_t		o02, o13;
-	uint_fast32_t		xCount, y;
+	uint32_t		px;
+	uint32_t		m02, m13;
+	uint32_t		o02, o13;
+	uint32_t		xCount, y;
 	
 	for (y = 0; y < mainPx.height; y++)
 	{

@@ -28,6 +28,8 @@ MA 02110-1301, USA.
 #import <Foundation/NSFileManager.h>
 #import <Foundation/NSPropertyList.h>
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wobjc-protocol-method-implementation"
 @implementation NSUserDefaults (Override)
 
 - (BOOL) writeDictionary: (NSDictionary*)dict
@@ -70,3 +72,4 @@ MA 02110-1301, USA.
 }
 
 @end
+#pragma clang diagnostic pop

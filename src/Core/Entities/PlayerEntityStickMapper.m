@@ -452,7 +452,7 @@ MA 02110-1301, USA.
 		{
 			[gui setColor:[OOColor greenColor] forRow:GUI_ROW_FUNCSTART];
 			[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-back"), @" <-- ", nil] forRow:GUI_ROW_FUNCSTART];
-			[gui setKey:[NSString stringWithFormat:@"More:%lld", previous] forRow:GUI_ROW_FUNCSTART];
+			[gui setKey:[NSString stringWithFormat:@"More:%zd", previous] forRow:GUI_ROW_FUNCSTART];
 		}
 		
 		for(i=0; i < (n_functions - skip) && (int)i < n_rows; i++)
@@ -519,14 +519,14 @@ MA 02110-1301, USA.
 								[entry objectForKey: KEY_GUIDESC], assignment, allowedThings, nil]
 					forRow: i + start_row];
 				//[gui setKey: GUI_KEY_OK forRow: i + start_row];
-				[gui setKey: [NSString stringWithFormat: @"Index:%llu", i + skip] forRow: i + start_row];
+				[gui setKey: [NSString stringWithFormat: @"Index:%zu", i + skip] forRow: i + start_row];
 			}
 		}
 		if (i < n_functions - skip)
 		{
 			[gui setColor: [OOColor greenColor] forRow: start_row + i];
 			[gui setArray: [NSArray arrayWithObjects: DESC(@"gui-more"), @" --> ", nil] forRow: start_row + i];
-			[gui setKey: [NSString stringWithFormat: @"More:%llu", n_rows + skip] forRow: start_row + i];
+			[gui setKey: [NSString stringWithFormat: @"More:%zu", n_rows + skip] forRow: start_row + i];
 			i++;
 		}
 		

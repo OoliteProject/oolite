@@ -34,6 +34,9 @@ SOFTWARE.
 
 #if OOLITE_LINUX
 // Workaround for clang/glibc incompatibility.
+#ifdef __block
+#undef __block
+#endif
 #define __block __glibc_block
 #endif
 #include <unistd.h>

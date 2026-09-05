@@ -931,7 +931,7 @@ OOINLINE void InsertNode(OOOctreeBuilder *self, int value)
 	*/
 	
 	NSAssert(_nodeCount > 8, @"After ending an inner node, there must be at least eight nodes in buffer.");
-	for (uint_fast32_t node = _nodeCount - 8; node < _nodeCount; node++)
+	for (uint32_t node = _nodeCount - 8; node < _nodeCount; node++)
 	{
 		if (_octree[node] != -1)  return;
 	}

@@ -94,13 +94,13 @@ MA 02110-1301, USA.
 	Triangle *triangles
 		Pointer to the triangle array. Initially points at smallData.
 	
-	uint_fast32_t count
+	uint32_t count
 		The number of triangles currently in the GeometryData.
 	
-	uint_fast32_t capacity
+	uint32_t capacity
 		The number of slots in triangles. Invariant: count <= capacity.
 	
-	uint_fast32_t pendingCapacity
+	uint32_t pendingCapacity
 		The capacity hint passed to InitGeometryData(). Used by
 		AddTriangle_slow().
 	
@@ -118,7 +118,7 @@ typedef struct OOMeshToOctreeConverterInternalData GeometryData;
 	The data has to be by reference rather than a return value so that the
 	triangles pointer can be pointed into the struct.
 */
-OOINLINE void InitGeometryData(GeometryData *data, uint_fast32_t capacity);
+OOINLINE void InitGeometryData(GeometryData *data, uint32_t capacity);
 
 /*
 	DestroyGeometryData(data)
@@ -182,7 +182,7 @@ static void SplitGeometryZ(GeometryData *data, GeometryData *dPlus, GeometryData
 
 // MARK: Inline function bodies.
 
-void InitGeometryData(GeometryData *data, uint_fast32_t capacity)
+void InitGeometryData(GeometryData *data, uint32_t capacity)
 {
 	NSCParameterAssert(data != NULL);
 	
@@ -238,7 +238,7 @@ OOINLINE void AddTriangle(GeometryData *data, Triangle tri)
 	
 	if ((self = [super init]))
 	{
-		InitGeometryData(&_data, (uint_fast32_t)capacity);
+		InitGeometryData(&_data, capacity);
 	}
 	
 	return self;
@@ -292,7 +292,7 @@ static OOScalar MaxDimensionFromOrigin(GeometryData *data)
 	NSCParameterAssert(data != NULL);
 	
 	OOScalar		result = 0.0f;
-	uint_fast32_t	i, j;
+	uint32_t	i, j;
 	for (i = 0; i < data->count; i++) for (j = 0; j < 3; j++)
 	{
 		Vector v = data->triangles[i].v[j];
@@ -361,7 +361,7 @@ void BuildSubOctree(GeometryData *data, OOOctreeBuilder *builder, OOScalar halfW
 	{
 		kFactor = 2
 	};
-	uint_fast32_t subCapacity = data->count * kFactor;
+	uint32_t subCapacity = data->count * kFactor;
 	
 #define DECL_GEOMETRY(NAME, CAP) GeometryData NAME; InitGeometryData(&NAME, CAP);
 	
@@ -444,7 +444,7 @@ static void TranslateGeometryX(GeometryData *data, OOScalar offset)
 	
 	// Optimization note: offset is never zero, so no early return.
 	
-	uint_fast32_t i, count = data->count;
+	uint32_t i, count = data->count;
 	for (i = 0; i < count; i++)
 	{
 		data->triangles[i].v[0].x += offset;
@@ -460,7 +460,7 @@ static void TranslateGeometryY(GeometryData *data, OOScalar offset)
 	
 	// Optimization note: offset is never zero, so no early return.
 	
-	uint_fast32_t i, count = data->count;
+	uint32_t i, count = data->count;
 	for (i = 0; i < count; i++)
 	{
 		data->triangles[i].v[0].y += offset;
@@ -476,7 +476,7 @@ static void TranslateGeometryZ(GeometryData *data, OOScalar offset)
 	
 	// Optimization note: offset is never zero, so no early return.
 	
-	uint_fast32_t i, count = data->count;
+	uint32_t i, count = data->count;
 	for (i = 0; i < count; i++)
 	{
 		data->triangles[i].v[0].z += offset;
@@ -491,7 +491,7 @@ static void SplitGeometryX(GeometryData *data, GeometryData *dPlus, GeometryData
 	NSCParameterAssert(data != NULL && dPlus != NULL && dMinus != NULL);
 	
 	// test each triangle splitting against x == 0.0
-	uint_fast32_t	i, count = data->count;
+	uint32_t	i, count = data->count;
 	for (i = 0; i < count; i++)
 	{
 		bool done_tri = false;
@@ -623,7 +623,7 @@ static void SplitGeometryY(GeometryData *data, GeometryData *dPlus, GeometryData
 	NSCParameterAssert(data != NULL && dPlus != NULL && dMinus != NULL);
 	
 	// test each triangle splitting against y == 0.0
-	uint_fast32_t	i, count = data->count;
+	uint32_t	i, count = data->count;
 	for (i = 0; i < count; i++)
 	{
 		bool done_tri = false;
@@ -756,7 +756,7 @@ static void SplitGeometryZ(GeometryData *data, GeometryData *dPlus, GeometryData
 	NSCParameterAssert(data != NULL && dPlus != NULL && dMinus != NULL);
 	
 	// test each triangle splitting against z == 0.0
-	uint_fast32_t	i, count = data->count;
+	uint32_t	i, count = data->count;
 	for (i = 0; i < count; i++)
 	{
 		bool done_tri = false;
@@ -907,7 +907,7 @@ static NO_INLINE_FUNC void AddTriangle_slow(GeometryData *data, Triangle tri)
 	
 	if (data->capacity == kOOMeshToOctreeConverterSmallDataCapacity)
 	{
-		data->capacity = MAX(data->pendingCapacity, (uint_fast32_t)kOOMeshToOctreeConverterSmallDataCapacity * 2);
+		data->capacity = MAX(data->pendingCapacity, kOOMeshToOctreeConverterSmallDataCapacity * 2);
 		data->triangles = malloc(data->capacity * sizeof(Triangle));
 		memcpy(data->triangles, data->smallData, sizeof data->smallData);
 	}
