@@ -238,7 +238,7 @@ OOINLINE void AddTriangle(GeometryData *data, Triangle tri)
 	
 	if ((self = [super init]))
 	{
-		InitGeometryData(&_data, (uint32_t)capacity);
+		InitGeometryData(&_data, capacity);
 	}
 	
 	return self;
@@ -907,7 +907,7 @@ static NO_INLINE_FUNC void AddTriangle_slow(GeometryData *data, Triangle tri)
 	
 	if (data->capacity == kOOMeshToOctreeConverterSmallDataCapacity)
 	{
-		data->capacity = MAX(data->pendingCapacity, (uint32_t)kOOMeshToOctreeConverterSmallDataCapacity * 2);
+		data->capacity = MAX(data->pendingCapacity, kOOMeshToOctreeConverterSmallDataCapacity * 2);
 		data->triangles = malloc(data->capacity * sizeof(Triangle));
 		memcpy(data->triangles, data->smallData, sizeof data->smallData);
 	}

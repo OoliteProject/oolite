@@ -290,7 +290,7 @@ static void ModulatePixMap_4(OOPixMap mainPx, OOPixMap otherPx)
 			m2 = (m2 * o2) / 255;
 			m3 = (m3 * o3) / 255;
 			
-			*dst++ = ((uint32_t)m0 << 24) | ((uint32_t)m1 << 16) | (m2 << 8) | m3;
+			*dst++ = (m0 << 24) | (m1 << 16) | (m2 << 8) | m3;
 			other++;
 		}
 		while (--xCount);
