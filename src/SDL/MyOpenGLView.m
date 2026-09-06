@@ -937,17 +937,8 @@ enum PreferredAppMode
 
 - (void) grabMouseInsideGameWindow:(BOOL) value
 {
-	if(value)
-	{
-		RECT gameWindowRect;
-		GetWindowRect(windowHandle, &gameWindowRect);
-		ClipCursor(&gameWindowRect);
-	}
-	else
-	{
-		ClipCursor(NULL);
-	}
-	grabMouseStatus = !!value;
+	SDL_SetWindowMouseGrab(window, value);
+	grabMouseStatus = value;
 }
 
 
