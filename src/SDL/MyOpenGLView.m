@@ -111,7 +111,6 @@ enum PreferredAppMode
 	int nativeDisplayWidth = 1024;
 	int nativeDisplayHeight = 768;
 
-#if OOLITE_LINUX
 	SDL_DisplayID displayId = [self getDisplayId];
 	SDL_Rect boundsRect;
 	if (displayId && SDL_GetDisplayUsableBounds(displayId, &boundsRect))
@@ -125,13 +124,6 @@ enum PreferredAppMode
 		OOLog(@"display.mode.list.native.failed", @"%@", @"SDL_GetWMInfo failed, defaulting to 1024x768 for native size");
 	}
 
-#elif OOLITE_WINDOWS
-	nativeDisplayWidth = GetSystemMetrics(SM_CXSCREEN);
-	nativeDisplayHeight = GetSystemMetrics(SM_CYSCREEN);
-	OOLog(@"display.mode.list.native", @"Windows native resolution detected: %d x %d", nativeDisplayWidth, nativeDisplayHeight);
-#else
-	OOLog(@"display.mode.list.native.unknown", @"Unknown architecture, defaulting to 1024x768");
-#endif
 	[mode setValue: [NSNumber numberWithInt: nativeDisplayWidth] forKey:kOODisplayWidth];
 	[mode setValue: [NSNumber numberWithInt: nativeDisplayHeight] forKey: kOODisplayHeight];
 	[mode setValue: [NSNumber numberWithInt: 0] forKey: kOODisplayRefreshRate];
@@ -257,12 +249,6 @@ enum PreferredAppMode
 		exit(1);
 	}
 
-	// This must be inited after windowHandle has been set - we need the main window handle in order to get monitor info
-	if (![self getCurrentMonitorInfo:&monitorInfo])
-	{
-		OOLogWARN(@"display.initGL.monitorInfoWarning", @"Could not get current monitor information.");
-	}
-
 	atDesktopResolution = YES;
 
 #if USE_UNDOCUMENTED_DARKMODE_API
@@ -321,9 +307,8 @@ enum PreferredAppMode
 	SDL_GL_GetAttribute(SDL_GL_FLOATBUFFERS, &testAttrib);
 	OOLog(@"display.initGL", @"Pixel type is float : %d", testAttrib);
 
-#if OOLITE_WINDOWS
-  	OOLog(@"display.initGL", @"Pixel format index: %d", GetPixelFormat(GetDC(windowHandle)));
-#endif
+	SDL_PixelFormat format = SDL_GetWindowPixelFormat(window);
+	OOLog(@"display.initGL", @"Window Pixel Format: %s", SDL_GetPixelFormatName(format));
 
 	// Verify V-sync successfully set - report it if not
 
@@ -927,36 +912,28 @@ enum PreferredAppMode
 
 
 #if OOLITE_WINDOWS
-- (MONITORINFOEX) currentMonitorInfo
+- (void)getDisplayDimensions:(unsigned *)width height:(unsigned *)height
 {
-	return monitorInfo;
-}
+	SDL_DisplayID displayID = SDL_GetDisplayForWindow(window);
 
-
-- (BOOL) getCurrentMonitorInfo:(MONITORINFOEX *)mInfo
-{
-	HMONITOR hMon = MonitorFromWindow(windowHandle, MONITOR_DEFAULTTOPRIMARY);
-	ZeroMemory(mInfo, sizeof(MONITORINFOEX));
-	mInfo->cbSize = sizeof(MONITORINFOEX);
-	if (GetMonitorInfo (hMon, (LPMONITORINFO)mInfo))
-	{
-		return YES;
+	SDL_Rect displaybounds;
+	if (SDL_GetDisplayBounds(displayID, &displaybounds)) {
+		if (width)  *width  = (unsigned)displaybounds.w;
+		if (height) *height = (unsigned)displaybounds.h;
 	}
-	return NO;
 }
 
-
-- (BOOL) isRunningOnPrimaryDisplayDevice
+- (BOOL)isRunningOnPrimaryDisplayDevice
 {
-	BOOL result = YES;
-	[self getCurrentMonitorInfo:&monitorInfo];
-	if (!(monitorInfo.dwFlags & MONITORINFOF_PRIMARY))
-	{
-		result = NO;
-	}
-	return result;
-}
+	if (!window) {
+		return NO;
+    }
 
+	SDL_DisplayID windowDisplayID = SDL_GetDisplayForWindow(window);
+	SDL_DisplayID primaryDisplayID = SDL_GetPrimaryDisplay();
+
+	return (windowDisplayID != 0 && windowDisplayID == primaryDisplayID);
+}
 
 - (void) grabMouseInsideGameWindow:(BOOL) value
 {

@@ -8902,9 +8902,7 @@ static NSString *SliderString(NSInteger amountIn20ths)
 #if OOLITE_WINDOWS
 		if (!runningOnPrimaryDisplayDevice)
 		{
-			MONITORINFOEX mInfo = [gameView currentMonitorInfo];
-			modeWidth = mInfo.rcMonitor.right - mInfo.rcMonitor.left;
-			modeHeight = mInfo.rcMonitor.bottom - mInfo.rcMonitor.top;
+			[gameView getDisplayDimensions:&modeWidth height:&modeHeight];
 		}
 #endif
 		
