@@ -38,8 +38,10 @@ SOFTWARE.
 	return nil;
 }
 
+#ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wobjc-protocol-method-implementation"
+#endif
 - (NSString *)description
 {
 	NSString				*components = nil;
@@ -54,7 +56,10 @@ SOFTWARE.
 		return [NSString stringWithFormat:@"<%@ %p>", [self class], self];
 	}
 }
+#ifdef __clang__
 #pragma clang diagnostic pop
+#endif
+
 
 - (NSString *) shortDescription
 {
