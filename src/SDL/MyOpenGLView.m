@@ -111,7 +111,6 @@ enum PreferredAppMode
 	int nativeDisplayWidth = 1024;
 	int nativeDisplayHeight = 768;
 
-#if OOLITE_LINUX
 	SDL_DisplayID displayId = [self getDisplayId];
 	SDL_Rect boundsRect;
 	if (displayId && SDL_GetDisplayUsableBounds(displayId, &boundsRect))
@@ -125,13 +124,6 @@ enum PreferredAppMode
 		OOLog(@"display.mode.list.native.failed", @"%@", @"SDL_GetWMInfo failed, defaulting to 1024x768 for native size");
 	}
 
-#elif OOLITE_WINDOWS
-	nativeDisplayWidth = GetSystemMetrics(SM_CXSCREEN);
-	nativeDisplayHeight = GetSystemMetrics(SM_CYSCREEN);
-	OOLog(@"display.mode.list.native", @"Windows native resolution detected: %d x %d", nativeDisplayWidth, nativeDisplayHeight);
-#else
-	OOLog(@"display.mode.list.native.unknown", @"Unknown architecture, defaulting to 1024x768");
-#endif
 	[mode setValue: [NSNumber numberWithInt: nativeDisplayWidth] forKey:kOODisplayWidth];
 	[mode setValue: [NSNumber numberWithInt: nativeDisplayHeight] forKey: kOODisplayHeight];
 	[mode setValue: [NSNumber numberWithInt: 0] forKey: kOODisplayRefreshRate];
@@ -257,12 +249,6 @@ enum PreferredAppMode
 		exit(1);
 	}
 
-	// This must be inited after windowHandle has been set - we need the main window handle in order to get monitor info
-	if (![self getCurrentMonitorInfo:&monitorInfo])
-	{
-		OOLogWARN(@"display.initGL.monitorInfoWarning", @"Could not get current monitor information.");
-	}
-
 	atDesktopResolution = YES;
 
 #if USE_UNDOCUMENTED_DARKMODE_API
@@ -321,9 +307,8 @@ enum PreferredAppMode
 	SDL_GL_GetAttribute(SDL_GL_FLOATBUFFERS, &testAttrib);
 	OOLog(@"display.initGL", @"Pixel type is float : %d", testAttrib);
 
-#if OOLITE_WINDOWS
-  	OOLog(@"display.initGL", @"Pixel format index: %d", GetPixelFormat(GetDC(windowHandle)));
-#endif
+	SDL_PixelFormat format = SDL_GetWindowPixelFormat(window);
+	OOLog(@"display.initGL", @"Window Pixel Format: %s", SDL_GetPixelFormatName(format));
 
 	// Verify V-sync successfully set - report it if not
 
@@ -836,15 +821,6 @@ enum PreferredAppMode
 	dest.h = image->h;
 
 	[self createWindowWithSize: NSMakeSize(image->w, image->h)];
-  #if OOLITE_WINDOWS
-
-	dest.x = (GetSystemMetrics(SM_CXSCREEN)- dest.w)/2;
-	dest.y = (GetSystemMetrics(SM_CYSCREEN)-dest.h)/2;
-	SetWindowLong(windowHandle,GWL_STYLE,GetWindowLong(windowHandle,GWL_STYLE) & ~WS_CAPTION & ~WS_THICKFRAME);
-	ShowWindow(windowHandle,SW_RESTORE);
-	MoveWindow(windowHandle,dest.x,dest.y,dest.w,dest.h,TRUE);
-  #endif
-
 	OOSetOpenGLState(OPENGL_STATE_OVERLAY);
 	float pixelDensity = SDL_GetWindowPixelDensity(window);
 	if (pixelDensity == 0.0f)
@@ -936,50 +912,33 @@ enum PreferredAppMode
 
 
 #if OOLITE_WINDOWS
-- (MONITORINFOEX) currentMonitorInfo
+- (void)getDisplayDimensions:(unsigned *)width height:(unsigned *)height
 {
-	return monitorInfo;
-}
+	SDL_DisplayID displayID = SDL_GetDisplayForWindow(window);
 
-
-- (BOOL) getCurrentMonitorInfo:(MONITORINFOEX *)mInfo
-{
-	HMONITOR hMon = MonitorFromWindow(windowHandle, MONITOR_DEFAULTTOPRIMARY);
-	ZeroMemory(mInfo, sizeof(MONITORINFOEX));
-	mInfo->cbSize = sizeof(MONITORINFOEX);
-	if (GetMonitorInfo (hMon, (LPMONITORINFO)mInfo))
-	{
-		return YES;
+	SDL_Rect displaybounds;
+	if (SDL_GetDisplayBounds(displayID, &displaybounds)) {
+		if (width)  *width  = (unsigned)displaybounds.w;
+		if (height) *height = (unsigned)displaybounds.h;
 	}
-	return NO;
 }
 
-
-- (BOOL) isRunningOnPrimaryDisplayDevice
+- (BOOL)isRunningOnPrimaryDisplayDevice
 {
-	BOOL result = YES;
-	[self getCurrentMonitorInfo:&monitorInfo];
-	if (!(monitorInfo.dwFlags & MONITORINFOF_PRIMARY))
-	{
-		result = NO;
-	}
-	return result;
-}
+	if (!window) {
+		return NO;
+    }
 
+	SDL_DisplayID windowDisplayID = SDL_GetDisplayForWindow(window);
+	SDL_DisplayID primaryDisplayID = SDL_GetPrimaryDisplay();
+
+	return (windowDisplayID != 0 && windowDisplayID == primaryDisplayID);
+}
 
 - (void) grabMouseInsideGameWindow:(BOOL) value
 {
-	if(value)
-	{
-		RECT gameWindowRect;
-		GetWindowRect(windowHandle, &gameWindowRect);
-		ClipCursor(&gameWindowRect);
-	}
-	else
-	{
-		ClipCursor(NULL);
-	}
-	grabMouseStatus = !!value;
+	SDL_SetWindowMouseGrab(window, value);
+	grabMouseStatus = value;
 }
 
 
@@ -1053,180 +1012,21 @@ enum PreferredAppMode
 
 - (BOOL) isOutputDisplayHDREnabled
 {
-	UINT32 pathCount, modeCount;
-	DISPLAYCONFIG_PATH_INFO *pPathInfoArray;
-	DISPLAYCONFIG_MODE_INFO *pModeInfoArray;
-	UINT32 flags = QDC_ONLY_ACTIVE_PATHS | QDC_VIRTUAL_MODE_AWARE;
-	LONG tempResult = ERROR_SUCCESS;
-	BOOL isAdvColorInfo2DetectionSuccess = NO;
 	BOOL result = NO;
-	
-	do
+	SDL_DisplayID displayID = SDL_GetPrimaryDisplay();  // Get the primary display ID
+	if (displayID == 0)
 	{
-		// determine how many path and mode structures to allocate
-		tempResult = GetDisplayConfigBufferSizes(flags, &pathCount, &modeCount);
-		
-		if (tempResult != ERROR_SUCCESS)
-		{
-			OOLog(@"gameView.isOutputDisplayHDREnabled", @"Error! Code: %ld", HRESULT_FROM_WIN32(tempResult));
-			return NO;
-		}
-		
-		// allocate the path and mode arrays
-		pPathInfoArray = (DISPLAYCONFIG_PATH_INFO *)malloc(pathCount * sizeof(DISPLAYCONFIG_PATH_INFO));
-		if (!pPathInfoArray)
-		{
-			OOLog(@"gameView.isOutputDisplayHDREnabled", @"Error! Code: -1");
-			return NO;
-		}
-		
-		pModeInfoArray = (DISPLAYCONFIG_MODE_INFO *)malloc(modeCount * sizeof(DISPLAYCONFIG_MODE_INFO));
-		if (!pModeInfoArray)
-		{
-			if (pPathInfoArray)
-				free(pPathInfoArray);
-			OOLog(@"gameView.isOutputDisplayHDREnabled", @"Error! Code: -1");
-			return NO;
-		}
-		
-		// get all active paths and their modes
-		tempResult = QueryDisplayConfig(flags, &pathCount, pPathInfoArray, &modeCount, pModeInfoArray, NULL);
-		
-		if (tempResult != ERROR_SUCCESS)
-		{
-			OOLog(@"gameView.isOutputDisplayHDREnabled", @"Error! Code: %ld", HRESULT_FROM_WIN32(tempResult));
-			return NO;
-		}
-	
-		// the function may have returned fewer paths/modes than estimated
-		pPathInfoArray = realloc(pPathInfoArray, pathCount * sizeof(DISPLAYCONFIG_PATH_INFO));
-		if (!pPathInfoArray)
-		{
-			OOLogERR(@"gameView.isOutputDisplayHDREnabled", @"Failed ro reallocate pPathInfoArray");
-			exit (1);
-		}
-		pModeInfoArray = realloc(pModeInfoArray, modeCount * sizeof(DISPLAYCONFIG_MODE_INFO));
-		if (!pModeInfoArray)
-		{
-			OOLogERR(@"gameView.isOutputDisplayHDREnabled", @"Failed to reallocate pModeInfoArray");
-			exit (1);
-		}
-	
-		// it's possible that between the call to GetDisplayConfigBufferSizes and QueryDisplayConfig
-		// that the display state changed, so loop on the case of ERROR_INSUFFICIENT_BUFFER.
-	} while (tempResult == ERROR_INSUFFICIENT_BUFFER);
-	
-	if (tempResult != ERROR_SUCCESS)
-	{
-		OOLog(@"gameView.isOutputDisplayHDREnabled", @"Error! Code: %ld", HRESULT_FROM_WIN32(tempResult));
+		OOLog(@"gameView.isOutputDisplayHDREnabled", @"Error! Failed to retrieve primary display ID: %s", SDL_GetError());
 		return NO;
 	}
-
-    // for each active path
-	int i;
-	wchar_t wcsPrimaryDeviceID[256] = L"OOUnknownDevice";
-	// get the string device id of the primary display device
-	// we cannot guarantee the enumeration order so we must go
-	// through all diplay device paths here and then do it again
-	// for the DisplayConfig queries
-	for (i = 0; i < pathCount; i++)
+	SDL_PropertiesID props = SDL_GetDisplayProperties(displayID);  // Retrieve properties for the target display
+	if (props == 0)
 	{
-		int j = 0;
-		char saveDeviceName[64];
-		DISPLAY_DEVICE dd;
-		ZeroMemory(&dd, sizeof(dd));
-		dd.cb = sizeof(dd);
-		EnumDisplayDevices(NULL, i, &dd, 0);
-		if (dd.StateFlags & DISPLAY_DEVICE_PRIMARY_DEVICE)
-		{
-			// second call to EnumDisplayDevices gets us the monitor device ID
-			strncpy(saveDeviceName, dd.DeviceName, 33);
-			while (EnumDisplayDevices(saveDeviceName, j, &dd, 0x00000001))
-			{
-				if (EXPECT(dd.StateFlags & DISPLAY_DEVICE_ACTIVE))
-				{
-					// found it, store its ID
-					mbstowcs(wcsPrimaryDeviceID, dd.DeviceID, 129);
-					// got what we wanted, no need to stay in the loops
-					goto finished;
-				}
-				else
-				{
-					OOLogWARN(@"gameView.isOutputDisplayHDREnabled", @"Primary monitor candidate %s (%s %s) not active.", dd.DeviceName, dd.DeviceString, dd.DeviceID);
-					// continue searching for a primary monitor that is attached
-				}
-				j++;
-			}
-		}
+		OOLog(@"gameView.isOutputDisplayHDREnabled", @"Error! Failed to get display properties: %s", SDL_GetError());
+		return NO;
 	}
-	
-finished:
-	
-	for (i = 0; i < pathCount; i++)
-	{
-		DISPLAYCONFIG_PATH_INFO *path = &pPathInfoArray[i];
-		// find the target (monitor) friendly name
-		DISPLAYCONFIG_TARGET_DEVICE_NAME targetName = {};
-		targetName.header.adapterId = path->targetInfo.adapterId;
-		targetName.header.id = path->targetInfo.id;
-		targetName.header.type = DISPLAYCONFIG_DEVICE_INFO_GET_TARGET_NAME;
-		targetName.header.size = sizeof(targetName);
-		tempResult = DisplayConfigGetDeviceInfo(&targetName.header);
-		
-		if (tempResult != ERROR_SUCCESS)
-		{
-			OOLog(@"gameView.isOutputDisplayHDREnabled", @"Error! Code: %ld", HRESULT_FROM_WIN32(tempResult));
-			return NO;
-		}
-		
-		// find the advanced color information using the more reliable advanced color info 2 api
-		DISPLAYCONFIG_GET_ADVANCED_COLOR_INFO_2 advColorInfo2 = {};
-		advColorInfo2.header.type = DISPLAYCONFIG_DEVICE_INFO_GET_ADVANCED_COLOR_INFO_2;
-		advColorInfo2.header.adapterId = path->targetInfo.adapterId;
-		advColorInfo2.header.id = path->targetInfo.id;
-		advColorInfo2.header.size = sizeof(advColorInfo2);
-		
-		tempResult = DisplayConfigGetDeviceInfo(&advColorInfo2.header);
-		
-		if (tempResult == ERROR_SUCCESS)  isAdvColorInfo2DetectionSuccess = YES;
-		else
-		{
-			OOLogWARN(@"gameView.isOutputDisplayHDREnabled", @"Received 0x%08lX while attempting to detect HDR mode using Advanced Color Info 2 API. Retrying detection using legacy API.", HRESULT_FROM_WIN32(tempResult));
-			// no return, just fall through and try again using standard advanced color info api
-		}
-		
-		// find the advanced color information
-		DISPLAYCONFIG_GET_ADVANCED_COLOR_INFO advColorInfo = {};
-		advColorInfo.header.type = DISPLAYCONFIG_DEVICE_INFO_GET_ADVANCED_COLOR_INFO;
-		advColorInfo.header.adapterId = path->targetInfo.adapterId;
-		advColorInfo.header.id = path->targetInfo.id;
-		advColorInfo.header.size = sizeof(advColorInfo);
-		
-		tempResult = DisplayConfigGetDeviceInfo(&advColorInfo.header);
-		
-		if (tempResult != ERROR_SUCCESS)
-		{
-			OOLog(@"gameView.isOutputDisplayHDREnabled", @"Error! Code: %ld", HRESULT_FROM_WIN32(tempResult));
-			return NO;
-		}
-		
-		BOOL isPrimaryDisplayDevice = !wcscmp(targetName.monitorDevicePath, wcsPrimaryDeviceID);
-		// we are starting om the primary device, so check that one for advanced color support
-		// we also ensure that wide color gamut SDR displays do not get incorrectly detected as supporting HDR 
-		if (isPrimaryDisplayDevice && 
-			((isAdvColorInfo2DetectionSuccess && advColorInfo2.highDynamicRangeSupported && advColorInfo2.activeColorMode == DISPLAYCONFIG_ADVANCED_COLOR_MODE_HDR) ||
-			(!isAdvColorInfo2DetectionSuccess && advColorInfo.advancedColorSupported && advColorInfo.advancedColorEnabled && !advColorInfo.wideColorEnforced)))
-		{
-			result = YES;
-			break;
-		}
-	}
-	
+	result = SDL_GetBooleanProperty(props, SDL_PROP_DISPLAY_HDR_ENABLED_BOOLEAN, false);  // Query for HDR enabling
 	OOLog(@"gameView.isOutputDisplayHDREnabled", @"HDR display output requested - checking availability: %@", result ? @"YES" : @"NO");
-	
-	free (pModeInfoArray);
-	free (pPathInfoArray);
-
 	return result;
 }
 

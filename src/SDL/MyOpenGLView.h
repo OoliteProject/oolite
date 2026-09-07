@@ -229,7 +229,6 @@ extern int debug;
 	BOOL				atDesktopResolution;
 	unsigned			keyboardMap; // *** FLAGGED for deletion
 	HWND 				windowHandle;
-	MONITORINFOEX		monitorInfo;
 	RECT				lastGoodRect;
 	float				_hdrMaxBrightness;
 	float				_hdrPaperWhiteBrightness;
@@ -282,8 +281,7 @@ extern int debug;
 - (void) updateGLSize:(NSSize) size;
 - (BOOL) isRunningOnPrimaryDisplayDevice;
 #if OOLITE_WINDOWS
-- (BOOL) getCurrentMonitorInfo:(MONITORINFOEX *)mInfo;
-- (MONITORINFOEX) currentMonitorInfo;
+- (void)getDisplayDimensions:(unsigned *)width height:(unsigned *)height;
 - (void) refreshDarKOrLightMode;
 - (BOOL) isDarkModeOn;
 - (BOOL) atDesktopResolution;
