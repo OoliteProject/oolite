@@ -118,7 +118,7 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOCocoa.h"
+#import "OOFoundation.h"
 
 
 // context is used for error messages.

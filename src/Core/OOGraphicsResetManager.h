@@ -32,7 +32,7 @@ SOFTWARE.
 
 */
 
-#import "OOCocoa.h"
+#import "OOFoundation.h"
 
 
 @protocol OOGraphicsResetClient

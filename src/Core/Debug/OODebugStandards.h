@@ -26,7 +26,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 */
-#import "OOCocoa.h"
+#import "OOFoundation.h"
 
 // Warn/exit if deprecated functionality used
 void OOStandardsDeprecated(NSString *message);

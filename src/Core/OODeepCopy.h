@@ -45,7 +45,7 @@ SOFTWARE.
 
 */
 
-#import "OOCocoa.h"
+#import "OOFoundation.h"
 #import "OOFunctionAttributes.h"
 
 

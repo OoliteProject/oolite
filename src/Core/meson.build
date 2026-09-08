@@ -30,7 +30,7 @@ oolite_sources += files(
     'OOCache.m',
     'OOCacheManager.m',
     'OOCharacter.m',
-    'OOCocoa.m',
+    'OOFoundation.m',
     'OOCollectionExtractors.m',
     'OOColor.m',
     'OOCommodities.m',

@@ -119,11 +119,7 @@ NSComparisonResult oxzSort(id m1, id m2, void *context);
 static OOOXZManager *sSingleton = nil;
 
 // protocol was only formalised in 10.7
-#if OOLITE_MAC_OS_X_10_7 
-@interface OOOXZManager (OOPrivate) <NSURLConnectionDataDelegate> 
-#else
-@interface OOOXZManager (NSURLConnectionDataDelegate) 
-#endif
+@interface OOOXZManager (NSURLConnectionDataDelegate)
 
 - (NSString *) manifestPath;
 - (NSString *) downloadPath;

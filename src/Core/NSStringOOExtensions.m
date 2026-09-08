@@ -24,7 +24,7 @@ MA 02110-1301, USA.
 
 #import "NSStringOOExtensions.h"
 #import "NSDataOOExtensions.h"
-#import "OOCocoa.h"
+#import "OOFoundation.h"
 
 
 @implementation NSString (OOExtensions)

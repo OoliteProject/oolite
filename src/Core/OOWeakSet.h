@@ -22,7 +22,7 @@ This code is hereby placed in the public domain.
 
 */
 
-#import "OOCocoa.h"
+#import "OOFoundation.h"
 #import "OOWeakReference.h"
 
 
