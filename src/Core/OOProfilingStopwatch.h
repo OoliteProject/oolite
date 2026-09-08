@@ -29,7 +29,7 @@ SOFTWARE.
 */
 
 #ifndef OOSTOPWATCH_STANDALONE
-#import "OOCocoa.h"
+#import "OOFoundation.h"
 #import "OOFunctionAttributes.h"
 #import "OOTypes.h"
 #endif

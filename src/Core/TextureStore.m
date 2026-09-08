@@ -22,7 +22,7 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOCocoa.h"
+#import "OOFoundation.h"
 #import "TextureStore.h"
 #if !NEW_PLANETS
 

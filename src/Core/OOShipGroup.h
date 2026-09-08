@@ -24,7 +24,7 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOCocoa.h"
+#import "OOFoundation.h"
 #import "OOWeakReference.h"
 
 @class ShipEntity;

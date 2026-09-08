@@ -39,7 +39,7 @@ SOFTWARE.
 
 #if OO_OXP_VERIFIER_ENABLED
 
-#import "OOCocoa.h"
+#import "OOFoundation.h"
 
 @class OOOXPVerifierStage;
 

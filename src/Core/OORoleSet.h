@@ -29,7 +29,7 @@ SOFTWARE.
 
 */
 
-#import "OOCocoa.h"
+#import "OOFoundation.h"
 
 
 @interface OORoleSet: NSObject <NSCopying>

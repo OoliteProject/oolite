@@ -26,7 +26,7 @@ MA 02110-1301, USA.
 */
 
 #include <jsapi.h>
-#import "OOCocoa.h"
+#import "OOFoundation.h"
 
 @class OOEquipmentType;
 

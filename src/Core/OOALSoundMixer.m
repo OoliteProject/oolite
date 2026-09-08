@@ -28,7 +28,7 @@ SOFTWARE.
 #include <assert.h>
 
 #import "OOALSoundMixer.h"
-#import "OOCocoa.h"
+#import "OOFoundation.h"
 #import "OOALSound.h"
 #import "OOALSoundChannel.h"
 
