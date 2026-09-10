@@ -9,14 +9,13 @@ build-options:
   prepend-ld-library-path: /usr/lib/sdk/llvm22/lib
 command: run_oolite.sh
 finish-args:
-  - --require-version=1.16.0
   - --socket=wayland
   - --socket=fallback-x11
   - --share=ipc
   - --share=network
   - --socket=pulseaudio
   - --device=dri
-  - --device=input
+  - --filesystem=/dev/input:ro
 cleanup:
   - /include
   - /lib/pkgconfig
