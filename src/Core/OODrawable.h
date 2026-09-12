@@ -27,7 +27,7 @@ SOFTWARE.
 
 */
 
-#import "OOCocoa.h"
+#import "OOFoundation.h"
 #import "OOOpenGL.h"
 #import "OOMaths.h"
 #import "OOWeakReference.h"

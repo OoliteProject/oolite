@@ -29,7 +29,7 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOCocoa.h"
+#import "OOFoundation.h"
 
 
 @interface OOCacheManager: NSObject

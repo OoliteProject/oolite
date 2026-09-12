@@ -35,7 +35,7 @@ SOFTWARE.
 
 */
 
-#import "OOCocoa.h"
+#import "OOFoundation.h"
 
 
 @interface OOProbabilitySet: NSObject <NSCopying, NSMutableCopying>

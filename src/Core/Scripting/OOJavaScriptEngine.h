@@ -23,7 +23,7 @@ MA 02110-1301, USA.
 */
 
 
-#import "OOCocoa.h"
+#import "OOFoundation.h"
 #import "Universe.h"
 #import "PlayerEntity.h"
 #import "PlayerEntityLegacyScriptEngine.h"
@@ -214,7 +214,7 @@ OOINLINE jsval OOJSValueFromBOOL(int b)
 	-oo_jsDescriptionWithClassName:
 	-oo_jsClassName
 	
-	See comments for -descriptionComponents in OOCocoa.h.
+	See comments for -descriptionComponents in OOFoundation.h.
 */
 - (NSString *) oo_jsDescription;
 - (NSString *) oo_jsDescriptionWithClassName:(NSString *)className;

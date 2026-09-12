@@ -25,7 +25,7 @@ SOFTWARE.
 */
 
 #ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
-#import "OOCocoa.h"
+#import "OOFoundation.h"
 #import "OOStringParsing.h"
 #endif
 

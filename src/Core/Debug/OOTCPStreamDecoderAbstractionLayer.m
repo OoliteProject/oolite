@@ -9,7 +9,7 @@
 #ifndef NDEBUG
 
 #import "OOTCPStreamDecoderAbstractionLayer.h"
-#import "OOCocoa.h"
+#import "OOFoundation.h"
 
 
 // Simulate literal CF/NS strings. Each literal string that is used becomes a single object. Since it uses pointers as keys, it should only be used with literals.

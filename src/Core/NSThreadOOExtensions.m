@@ -26,7 +26,7 @@ SOFTWARE.
 */
 
 #import "NSThreadOOExtensions.h"
-#import "OOCocoa.h"
+#import "OOFoundation.h"
 #include <pthread.h>
 
 

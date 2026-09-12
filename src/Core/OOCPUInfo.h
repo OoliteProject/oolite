@@ -24,7 +24,7 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOCocoa.h"
+#import "OOFoundation.h"
 #include <stdint.h>
 
 #if OOLITE_LINUX

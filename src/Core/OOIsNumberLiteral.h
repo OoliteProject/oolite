@@ -27,7 +27,7 @@
 	SOFTWARE.
 */
 
-#import "OOCocoa.h"
+#import "OOFoundation.h"
 
 
 /*	Recognise C-style decimal integer or float literals, without type suffix.

@@ -27,7 +27,7 @@ SOFTWARE.
 
 */
 
-#import "OOCocoa.h"
+#import "OOFoundation.h"
 #import "unzip.h"
 
 #define ZIP_BUFFER_SIZE 8192
