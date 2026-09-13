@@ -49,8 +49,8 @@ typedef enum
 } OOStellarBodyType;
 
 
-#define ATMOSPHERE_DEPTH		500.0
-#define PLANET_MINIATURE_FACTOR	0.00185
+#define ATMOSPHERE_DEPTH		1500.0	// 3 times deeper than before
+#define PLANET_MINIATURE_FACTOR		0.00028	// Adjusted for larger planets
 #define MAX_SUBDIVIDE			6
 
 
