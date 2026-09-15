@@ -2101,8 +2101,13 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	// Most of this is probably also set more than once
 	
 	[self setCommanderName:PLAYER_DEFAULT_NAME];
-	[self setLastsaveName:PLAYER_DEFAULT_NAME];
-	
+	NSString *savedName = [[NSUserDefaults standardUserDefaults] stringForKey:@"last_savename"];
+	if (savedName != nil)
+	{
+		[_lastsaveName autorelease];
+		_lastsaveName = [savedName copy];
+	}
+
 	galaxy_coordinates		= NSMakePoint(0x14,0xAD);	// 20,173
 
 	credits					= 1000;
@@ -13069,6 +13074,7 @@ else _dockTarget = NO_TARGET;
 	NSParameterAssert(value != nil);
 	[_lastsaveName autorelease];
 	_lastsaveName = [value copy];
+	[[NSUserDefaults standardUserDefaults] setObject:_lastsaveName forKey:@"last_savename"];
 }
 
 

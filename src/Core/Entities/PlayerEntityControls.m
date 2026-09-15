@@ -2488,7 +2488,6 @@ static NSTimeInterval	time_last_frame;
 			}
 			break;
 			
-#if OO_USE_CUSTOM_LOAD_SAVE
 			// DJS: Farm off load/save screen options to LoadSave.m
 		case GUI_SCREEN_LOAD:
 		{
@@ -2519,8 +2518,7 @@ static NSTimeInterval	time_last_frame;
 		case GUI_SCREEN_SAVE_OVERWRITE:
 			[self overwriteCommanderInputHandler];
 			break;
-#endif
-			
+
 		case GUI_SCREEN_STICKMAPPER:
 			[self handleStickMapperScreenKeys];
 			break;
@@ -5295,7 +5293,6 @@ static BOOL autopilot_pause;
 			}
 			break;
 			
-#if OO_USE_CUSTOM_LOAD_SAVE
 			// DJS: Farm off load/save screen options to LoadSave.m
 		case GUI_SCREEN_LOAD:
 		{
@@ -5310,7 +5307,6 @@ static BOOL autopilot_pause;
 			}
 			break;
 		}
-#endif
 
 		default:
 			break;
