@@ -2101,8 +2101,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	// Most of this is probably also set more than once
 	
 	[self setCommanderName:PLAYER_DEFAULT_NAME];
-	[self setLastsaveName:PLAYER_DEFAULT_NAME];
-	
+
 	galaxy_coordinates		= NSMakePoint(0x14,0xAD);	// 20,173
 
 	credits					= 1000;
