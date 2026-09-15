@@ -26,7 +26,7 @@ SOFTWARE.
 */
 
 #import "OONullTexture.h"
-#import "OOCocoa.h"
+#import "OOFoundation.h"
 #import "OOTextureInternal.h"
 
 

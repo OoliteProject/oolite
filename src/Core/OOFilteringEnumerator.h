@@ -51,7 +51,7 @@ SOFTWARE.
 
 */
 
-#import "OOCocoa.h"
+#import "OOFoundation.h"
 
 
 @interface OOFilteringEnumerator: NSEnumerator

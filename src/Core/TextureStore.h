@@ -32,7 +32,7 @@ MA 02110-1301, USA.
 #import "OOStellarBody.h"
 #if !NEW_PLANETS
 
-#import "OOCocoa.h"
+#import "OOFoundation.h"
 #import "OOOpenGL.h"
 
 

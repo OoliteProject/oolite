@@ -26,7 +26,7 @@ SOFTWARE.
 
 */
 
-#import "OOCocoa.h"
+#import "OOFoundation.h"
 #import "OOOpenGL.h"
 
 @class OOColor;

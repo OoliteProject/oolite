@@ -28,7 +28,7 @@ SOFTWARE.
 
 */
 
-#import "OOCocoa.h"
+#import "OOFoundation.h"
 #import "OOTypes.h"
 #import "OOScript.h"
 #import "Universe.h"

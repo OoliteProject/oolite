@@ -1,6 +1,6 @@
 /*
 
-OOCocoa.h
+OOFoundation.h
 
 Import OpenStep main headers and define some Macisms and other compatibility
 stuff.
@@ -51,50 +51,14 @@ MA 02110-1301, USA.
 	#if (GNUSTEP_BASE_MAJOR_VERSION == 1 && GNUSTEP_BASE_MINOR_VERSION < 28)
 		#error Oolite cannot be built using GNUstep earlier than 1.28.
 	#endif
-
-	#ifndef NSIntegerMax
-		// Missing in GNUstep-base prior to 1.23.
-		#define NSIntegerMax	INTPTR_MAX
-		#define NSIntegerMin	INTPTR_MIN
-		#define NSUIntegerMax	UINTPTR_MAX
-	#endif
-	
 #else
-	#import <AppKit/AppKit.h>
-	
 	#define OOLITE_MAC_OS_X			1
-	#define OOLITE_SPEECH_SYNTH		1
-	
-	#if __LP64__
-		#define OOLITE_64_BIT		1
-	#endif
-	
+
 	/*	Useful macro copied from GNUstep.
 	*/
 	#ifndef DESTROY
 		#define DESTROY(x) do { id x_ = x; x = nil; [x_ release]; } while (0)
 	#endif
-	
-	#if defined MAC_OS_X_VERSION_10_7 && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_7
-		#define OOLITE_MAC_OS_X_10_7	1
-	#endif
-	
-	#if defined MAC_OS_X_VERSION_10_8 && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_8
-		#define OOLITE_MAC_OS_X_10_8	1
-	#endif
-
-	#ifndef MAC_OS_X_VERSION_10_12
-		typedef NSUInteger NSWindowStyleMask;
-	#endif
-#endif
-
-
-#ifndef OOLITE_MAC_OS_X_10_7
-	#define OOLITE_MAC_OS_X_10_7	0
-#endif
-
-#ifndef OOLITE_MAC_OS_X_10_8
-	#define OOLITE_MAC_OS_X_10_8	0
 #endif
 
 
@@ -362,23 +326,7 @@ enum {
 @end
 
 
-/*	@optional directive for protocols: added in Objective-C 2.0.
-	
-	As a nasty, nasty hack, the OOLITE_OPTIONAL(foo) macro allows an optional
-	section with or without @optional. If @optional is not available, it
-	actually ends the protocol and starts an appropriately-named informal
-	protocol, i.e. a category on NSObject. Since it ends the protocol, there
-	can only be one and there's no way to switch back to @required.
-*/
-#ifndef OOLITE_HAVE_PROTOCOL_OPTIONAL
-#define OOLITE_HAVE_PROTOCOL_OPTIONAL  (OOLITE_MAC_OS_X || OOLITE_HAVE_CLANG || OOLITE_GCC_VERSION >= 40700)
-#endif
-
-#if OOLITE_HAVE_PROTOCOL_OPTIONAL
 #define OOLITE_OPTIONAL(protocolName) @optional
-#else
-#define OOLITE_OPTIONAL(protocolName) @end @interface NSObject (protocolName ## Optional)
-#endif
 
 
 /*	instancetype contextual keyword; added in Clang 3.0ish.

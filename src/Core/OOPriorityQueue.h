@@ -38,7 +38,7 @@ SOFTWARE.
 
 */
 
-#import "OOCocoa.h"
+#import "OOFoundation.h"
 
 #ifndef OO_PQ_STRONG
 #if __has_feature(objc_arc)

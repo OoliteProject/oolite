@@ -27,7 +27,7 @@ SOFTWARE.
 
 */
 
-#import "OOCocoa.h"
+#import "OOFoundation.h"
 
 
 @interface NSData (OOExtensions)

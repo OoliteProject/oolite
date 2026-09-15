@@ -26,7 +26,7 @@ MA 02110-1301, USA.
 */
 
 #include "OOFunctionAttributes.h"
-#include "OOCocoa.h"
+#include "OOFoundation.h"
 
 
 typedef enum

@@ -1,8 +1,8 @@
 /*
 
-OOCocoa.m
+OOFoundation.m
 
-Runtime-like and Cocoa/GNUstep compatibility methods.
+Runtime-like and Foundation compatibility methods.
 
 
 Copyright (C) 2008-2013 Jens Ayton
@@ -27,7 +27,7 @@ SOFTWARE.
 
 */
 
-#import "OOCocoa.h"
+#import "OOFoundation.h"
 #import "OOFunctionAttributes.h"
 
 

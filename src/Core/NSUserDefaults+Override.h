@@ -22,7 +22,7 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOCocoa.h"
+#import "OOFoundation.h"
 
 #import <Foundation/NSUserDefaults.h>
 
