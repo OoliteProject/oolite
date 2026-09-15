@@ -51,7 +51,7 @@ MA 02110-1301, USA.
 
 @interface PlayerEntity (LoadSave)
 
-- (BOOL) loadPlayer;	// Returns NO on immediate failure, i.e. when using an OS X modal open panel which is cancelled.
+- (BOOL) loadPlayer;
 - (void) savePlayer;
 - (void) quicksavePlayer;
 - (void) autosavePlayer;
