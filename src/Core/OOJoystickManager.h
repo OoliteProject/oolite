@@ -4,7 +4,7 @@ OOJoystickManager.h
 By Dylan Smith
 modified by Alex Smith and Jens Ayton
 
-JoystickHandler handles joystick events from SDL, and translates them
+JoystickHandler handles joystick events, and translates them
 into the appropriate action via a lookup table. The lookup table is
 stored as a simple array rather than an ObjC dictionary since this
 will be examined fairly often (once per frame during gameplay).
@@ -126,11 +126,7 @@ enum {
 #define STICK_NORMALDIV 32768
 #define STICK_PRECISIONDIV (STICK_PRECISIONFAC*STICK_NORMALDIV)
 
-#if OOLITE_MAC_OS_X
-#define STICK_DEADZONE	0.0025
-#else
 #define STICK_DEADZONE	0.05
-#endif
 
 #define STICK_MAX_DEADZONE	(STICK_DEADZONE * 2)
 
@@ -159,93 +155,10 @@ enum {
 #define ENUMKEY(x) [NSString stringWithFormat: @"%d", x]
 
 
-
-//SDL Abstracted constants
-
-#if OOLITE_SDL
-
-#import <SDL3/SDL_events.h>
-
-enum
-{
-	JOYAXISMOTION		= SDL_EVENT_JOYSTICK_AXIS_MOTION,
-	JOYBUTTONDOWN		= SDL_EVENT_JOYSTICK_BUTTON_DOWN,
-	JOYBUTTONUP		= SDL_EVENT_JOYSTICK_BUTTON_UP,
-	JOYHAT_MOTION		= SDL_EVENT_JOYSTICK_HAT_MOTION,
-	JOYHAT_CENTERED		= SDL_HAT_CENTERED,
-	JOYHAT_UP		= SDL_HAT_UP,
-	JOYHAT_RIGHT		= SDL_HAT_RIGHT,
-	JOYHAT_DOWN		= SDL_HAT_DOWN,
-	JOYHAT_LEFT		= SDL_HAT_LEFT,
-	JOYHAT_RIGHTUP		= SDL_HAT_RIGHTUP,
-	JOYHAT_RIGHTDOWN	= SDL_HAT_RIGHTDOWN,
-	JOYHAT_LEFTUP		= SDL_HAT_LEFTUP,
-	JOYHAT_LEFTDOWN		= SDL_HAT_LEFTDOWN,
-	JOYBUTTON_PRESSED,
-	JOYBUTTON_RELEASED
-};
-
-typedef SDL_JoyButtonEvent JoyButtonEvent;
-typedef SDL_JoyAxisEvent JoyAxisEvent;
-typedef SDL_JoyHatEvent JoyHatEvent;
-
-#else
-
-enum
-{
-	JOYAXISMOTION,
-	JOYBUTTONDOWN,
-	JOYBUTTONUP,
-	JOYBUTTON_PRESSED,
-	JOYBUTTON_RELEASED,
-	JOYHAT_MOTION,
-	
-	JOYHAT_CENTERED		= 0x00,
-	JOYHAT_UP		= 0x01,
-	JOYHAT_RIGHT		= 0x02,
-	JOYHAT_DOWN		= 0x04,
-	JOYHAT_LEFT		= 0x08,
-	JOYHAT_RIGHTUP		= (JOYHAT_RIGHT|JOYHAT_UP),
-	JOYHAT_RIGHTDOWN	= (JOYHAT_RIGHT|JOYHAT_DOWN),
-	JOYHAT_LEFTUP		= (JOYHAT_LEFT|JOYHAT_UP),
-	JOYHAT_LEFTDOWN		= (JOYHAT_LEFT|JOYHAT_DOWN),
-};
-
-// Abstracted SDL event types
-typedef struct
-{
-	uint32_t		type;
-	int32_t			which;
-	uint8_t			axis;
-	int16_t			value;
-} JoyAxisEvent;
-
-typedef struct
-{
-	uint32_t		type;
-	int32_t			which;
-	uint8_t			button;
-	bool			down;
-	
-} JoyButtonEvent;
-
-typedef struct
-{
-	uint32_t		type;
-	int32_t			which;
-	uint8_t			hat;
-	uint8_t			value; 
-	uint8_t			padding;	
-} JoyHatEvent;
-
-#endif //OOLITE_SDL
-
-
 #import "OOJoystickProfile.h"
 
 @interface OOJoystickManager: NSObject 
 {
-@private
 	// Axis/button mapping arrays
 	int8_t		axismap[MAX_STICKS][MAX_AXES];
 	int8_t		buttonmap[MAX_STICKS][MAX_BUTTONS];
@@ -254,10 +167,7 @@ typedef struct
 	BOOL		butstate[BUTTON_end];
 	uint8_t		hatstate[MAX_STICKS][MAX_HATS];
 	BOOL		precisionMode;
-	OOJoystickAxisProfile *roll_profile;
-	OOJoystickAxisProfile *pitch_profile;
-	OOJoystickAxisProfile *yaw_profile;
-	
+
 	// Handle callbacks - the object, selector to call
 	// the desired function, and the hardware (axis or button etc.)
 	id			cbObject;
@@ -265,6 +175,10 @@ typedef struct
 	char			cbHardware;
 	BOOL			invertPitch;
 
+  @private
+	OOJoystickAxisProfile *roll_profile;
+	OOJoystickAxisProfile *pitch_profile;
+	OOJoystickAxisProfile *yaw_profile;
 }
 
 + (id) sharedStickHandler;
@@ -327,15 +241,8 @@ typedef struct
 - (void) clearMappings;
 - (void) clearStickStates;
 - (void) clearStickButtonState: (int)stickButton;
-- (void) decodeAxisEvent: (JoyAxisEvent *)evt;
-- (void) decodeButtonEvent: (JoyButtonEvent *)evt;
-- (void) decodeHatEvent: (JoyHatEvent *)evt;
 - (void) saveStickSettings;
 - (void) loadStickSettings;
 
-
-//Methods that should be overridden by all subclasses
-- (NSString *) nameOfJoystick:(NSUInteger)stickNumber;
-- (int16_t) getAxisWithStick:(NSUInteger) stickNum axis:(NSUInteger)axisNum;
 
 @end
