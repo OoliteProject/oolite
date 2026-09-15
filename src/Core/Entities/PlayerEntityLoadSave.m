@@ -50,15 +50,11 @@
 
 
 // Name of modifier key used to issue commands. See also -isCommandModifierKeyDown.
-#if OO_USE_CUSTOM_LOAD_SAVE
 #define COMMAND_MODIFIER_KEY		"Ctrl"
-#endif
 
 
 static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 
-
-#if OO_USE_CUSTOM_LOAD_SAVE
 
 @interface MyOpenGLView (OOLoadSaveExtensions)
 
@@ -66,19 +62,8 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 
 @end
 
-#endif
-
 
 @interface PlayerEntity (OOLoadSavePrivate)
-
-#if OOLITE_USE_APPKIT_LOAD_SAVE
-
-- (BOOL) loadPlayerWithPanel;
-- (void) savePlayerWithPanel;
-
-#endif
-
-#if OO_USE_CUSTOM_LOAD_SAVE
 
 - (void) setGuiToLoadCommanderScreen;
 - (void) setGuiToSaveCommanderScreen: (NSString *)cdrName;
@@ -88,8 +73,6 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 - (int) findIndexOfCommander: (NSString *)cdrName;
 - (void) nativeSavePlayer: (NSString *)cdrName;
 - (BOOL) existingNativeSave: (NSString *)cdrName;
-
-#endif
 
 - (void) writePlayerToPath:(NSString *)path;
 
@@ -102,44 +85,14 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 {
 	BOOL				OK = YES;
 	
-#if OO_USE_APPKIT_LOAD_SAVE_ALWAYS
-	OK = [self loadPlayerWithPanel];
-#elif OOLITE_USE_APPKIT_LOAD_SAVE
-	// OS X: use system open/save dialogs in windowed mode, custom interface in full-screen.
-	if ([[UNIVERSE gameController] inFullScreenMode])
-	{
-		[self setGuiToLoadCommanderScreen];
-	}
-	else
-	{
-		OK = [self loadPlayerWithPanel];
-	}
-#else
-	// Other platforms: use custom interface all the time.
 	[self setGuiToLoadCommanderScreen];
-#endif
 	return OK;
 }
 
 
 - (void)savePlayer
 {
-#if OO_USE_APPKIT_LOAD_SAVE_ALWAYS
-	[self savePlayerWithPanel];
-#elif OOLITE_USE_APPKIT_LOAD_SAVE
-	// OS X: use system open/save dialogs in windowed mode, custom interface in full-screen.
-	if ([[UNIVERSE gameController] inFullScreenMode])
-	{
-		[self setGuiToSaveCommanderScreen:self.lastsaveName];
-	}
-	else
-	{
-		[self savePlayerWithPanel];
-	}
-#else
-	// Other platforms: use custom interface all the time.
 	[self setGuiToSaveCommanderScreen:[self lastsaveName]];
-#endif
 }
 
 - (void) autosavePlayer
@@ -354,10 +307,6 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	return YES;
 }
 
-
-
-
-#if OO_USE_CUSTOM_LOAD_SAVE
 
 - (NSString *)commanderSelector
 {
@@ -591,8 +540,6 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	}
 }
 
-#endif
-
 
 - (BOOL) loadPlayerFromFile:(NSString *)fileToOpen asNew:(BOOL)asNew
 {
@@ -817,55 +764,6 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 
 @implementation PlayerEntity (OOLoadSavePrivate)
 
-#if OOLITE_USE_APPKIT_LOAD_SAVE
-
-- (BOOL)loadPlayerWithPanel
-{
-	NSOpenPanel *oPanel = [NSOpenPanel openPanel];
-	
-	oPanel.allowsMultipleSelection = NO;
-	oPanel.allowedFileTypes = [NSArray arrayWithObject:@"oolite-save"];
-	
-	if ([oPanel runModal] == NSOKButton)
-	{
-		NSURL *url = oPanel.URL;
-		if (url.isFileURL)
-		{
-			return [self loadPlayerFromFile:url.path asNew:NO];
-		}
-	}
-	
-	return NO;
-}
-
-
-- (void) savePlayerWithPanel
-{
-	NSSavePanel *sPanel = [NSSavePanel savePanel];
-	
-	sPanel.allowedFileTypes = [NSArray arrayWithObject:@"oolite-save"];
-	sPanel.canSelectHiddenExtension = YES;
-	sPanel.nameFieldStringValue = self.lastsaveName;
-	
-	if ([sPanel runModal] == NSOKButton)
-	{
-		NSURL *url = sPanel.URL;
-		NSAssert(url.isFileURL, @"Save panel with default configuration should not provide non-file URLs.");
-		
-		NSString *path = url.path;
-		NSString *newName = [path.lastPathComponent stringByDeletingPathExtension];
-		
-		ShipScriptEventNoCx(self, "playerWillSaveGame", OOJSSTR("STANDARD_SAVE"));
-		
-		self.lastsaveName = newName;
-		[self writePlayerToPath:path];
-	}
-	[self setGuiToStatusScreen];
-}
-
-#endif
-
-
 - (void) writePlayerToPath:(NSString *)path
 {
 	NSString		*errDesc = nil;
@@ -916,8 +814,6 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	[self writePlayerToPath:savePath];
 }
 
-
-#if OO_USE_CUSTOM_LOAD_SAVE
 
 - (void) setGuiToLoadCommanderScreen
 {
@@ -1220,8 +1116,7 @@ NSComparisonResult sortCommanders(id cdr1, id cdr2, void *context)
 	
 	if ([cdr oo_boolForKey:@"isFolder"])
 	{
-		NSString *folderDesc=[NSString stringWithFormat: DESC(@"loadsavescreen-hold-@-and-press-return-to-open-folder-@"), @COMMAND_MODIFIER_KEY, [[cdr oo_stringForKey:@"saved_game_path"] lastPathComponent]];
-		[gui setColor: [OOColor orangeColor] forRow: CDRDESCROW];
+		NSString *folderDesc=[NSString stringWithFormat: DESC(@"loadsavescreen-hold-@-and-press-return-to-open-folder-@"), @COMMAND_MODIFIER_KEY, [[cdr oo_stringForKey:@"saved_game_path"] lastPathComponent]];		[gui setColor: [OOColor orangeColor] forRow: CDRDESCROW];
 		[gui addLongText: folderDesc startingAtRow: CDRDESCROW align: GUI_ALIGN_LEFT];
 		return;
 	}
@@ -1350,12 +1245,8 @@ NSComparisonResult sortCommanders(id cdr1, id cdr2, void *context)
 	return -1;
 }
 
-#endif
-
 @end
 
-
-#if OO_USE_CUSTOM_LOAD_SAVE
 
 @implementation MyOpenGLView (OOLoadSaveExtensions)
 
@@ -1365,8 +1256,6 @@ NSComparisonResult sortCommanders(id cdr1, id cdr2, void *context)
 }
 
 @end
-
-#endif
 
 
 static uint16_t PersonalityForCommanderDict(NSDictionary *dict)

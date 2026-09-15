@@ -48,18 +48,6 @@ MA 02110-1301, USA.
 #define SAVE_OVERWRITE_NO_ROW	9
 
 
-// Set to 1 to use custom load/save dialogs in windowed mode on Macs in debug builds. No effect on other platforms.
-#define USE_CUSTOM_LOAD_SAVE_ON_MAC_DEBUG		0
-
-// OOLITE_USE_APPKIT_LOAD_SAVE is true if we ever want AppKit dialogs.
-#define OOLITE_USE_APPKIT_LOAD_SAVE				(OOLITE_MAC_OS_X && !USE_CUSTOM_LOAD_SAVE_ON_MAC_DEBUG)
-
-// Mac 64-bit builds: never use custom load/save dialogs.
-#define OO_USE_APPKIT_LOAD_SAVE_ALWAYS			(OOLITE_USE_APPKIT_LOAD_SAVE && OOLITE_64_BIT)
-
-// OO_USE_CUSTOM_LOAD_SAVE is true if we will ever want custom dialogs.
-#define OO_USE_CUSTOM_LOAD_SAVE					(!OO_USE_APPKIT_LOAD_SAVE_ALWAYS)
-
 
 @interface PlayerEntity (LoadSave)
 
@@ -72,16 +60,10 @@ MA 02110-1301, USA.
 - (void) addScenarioModel:(NSString *)shipKey;
 - (void) showScenarioDetails;
 - (BOOL) startScenario;
-
-
-#if OO_USE_CUSTOM_LOAD_SAVE
-
 // Interface for PlayerEntityControls
 - (NSString *) commanderSelector;
 - (void) saveCommanderInputHandler;
 - (void) overwriteCommanderInputHandler;
-
-#endif
 
 - (BOOL) loadPlayerFromFile:(NSString *)fileToOpen asNew:(BOOL)asNew;
 
