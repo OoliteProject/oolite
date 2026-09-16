@@ -205,9 +205,6 @@ enum {
 // Accessors and discovery about the hardware.
 // These work directly on the internal lookup table so to be fast
 // since they are likely to be called by the game loop.
-- (NSUInteger) joystickCount;
-- (NSString *) nameOfJoystick:(NSUInteger)stickNumber;
-- (int16_t) getAxisWithStick:(NSUInteger) stickNum axis:(NSUInteger) axisNum ;
 - (BOOL) isButtonDown:(int)button stick:(int)stickNum;
 - (BOOL) getButtonState:(int)function;
 - (double) getAxisState:(int)function;
@@ -246,5 +243,9 @@ enum {
 - (void) saveStickSettings;
 - (void) loadStickSettings;
 
+//Methods that should be overridden by all subclasses
+- (NSUInteger) joystickCount;
+- (NSString *) nameOfJoystick:(NSUInteger)stickNumber;
+- (int16_t) getAxisWithStick:(NSUInteger) stickNum axis:(NSUInteger)axisNum;
 
 @end
