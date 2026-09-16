@@ -554,11 +554,6 @@ static id sSharedStickHandler = nil;
 	cbHardware = 0;
 }
 
-- (NSUInteger) joystickCount
-{
-	return 0;
-}
-
 - (void) saveStickSettings
 {
 	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
@@ -612,6 +607,10 @@ static id sSharedStickHandler = nil;
 }
 
 // These get overidden by subclasses
+- (NSUInteger) joystickCount
+{
+	return 0;
+}
 
 - (NSString *) nameOfJoystick:(NSUInteger)stickNumber
 {
