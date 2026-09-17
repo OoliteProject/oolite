@@ -282,8 +282,6 @@ extern int debug;
 - (BOOL) isRunningOnPrimaryDisplayDevice;
 #if OOLITE_WINDOWS
 - (void)getDisplayDimensions:(unsigned *)width height:(unsigned *)height;
-- (void) refreshDarKOrLightMode;
-- (BOOL) isDarkModeOn;
 - (BOOL) atDesktopResolution;
 - (float) hdrMaxBrightness;
 - (void) setHDRMaxBrightness:(float)newMaxBrightness;

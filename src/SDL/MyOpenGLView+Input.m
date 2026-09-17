@@ -637,12 +637,6 @@ static NSString * kOOLogKeyDown			= @"input.keyMapping.keyPress.keyDown";
 			}
 
 #if OOLITE_WINDOWS
-			case SDL_EVENT_WINDOW_MOVED:
-			{
-				if(grabMouseStatus)  [self grabMouseInsideGameWindow:YES];
-				break;
-			}
-
 			case SDL_EVENT_WINDOW_FOCUS_GAINED:
 			{
 				[gameController setEcoQoS:[gameController isGamePaused]];

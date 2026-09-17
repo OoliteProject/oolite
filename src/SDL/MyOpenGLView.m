@@ -51,30 +51,6 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
 
 #include <ctype.h>
 
-#if OOLITE_WINDOWS
-#ifndef DWMWA_USE_IMMERSIVE_DARK_MODE
-#define DWMWA_USE_IMMERSIVE_DARK_MODE	20
-#endif
-HRESULT WINAPI DwmSetWindowAttribute (HWND hwnd, DWORD dwAttribute, LPCVOID pvAttribute, DWORD cbAttribute);
-
-#define USE_UNDOCUMENTED_DARKMODE_API	1
-
-#if USE_UNDOCUMENTED_DARKMODE_API
-#ifndef LOAD_LIBRARY_SEARCH_SYSTEM32
-#define LOAD_LIBRARY_SEARCH_SYSTEM32	0x00000800
-#endif
-typedef DWORD(WINAPI* pfnSetPreferredAppMode)(DWORD appMode);
-enum PreferredAppMode
-{
-    Default,
-    AllowDark,
-    ForceDark,
-    ForceLight,
-    Max
-};
-#endif
-#endif //OOLITE_WINDOWS
-
 @interface MyOpenGLView (OOPrivate)
 
 @end
@@ -251,18 +227,6 @@ enum PreferredAppMode
 
 	atDesktopResolution = YES;
 
-#if USE_UNDOCUMENTED_DARKMODE_API
-	// dark mode stuff - this is mainly for the winodw titlebar's context menu
-	HMODULE hUxTheme = LoadLibraryExW(L"uxtheme.dll", NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
-	if (hUxTheme)
-	{
-		// hack alert! ordinal 135 is undocumented and could change in a future version of Windows
-		pfnSetPreferredAppMode SetPreferredAppMode = (pfnSetPreferredAppMode)GetProcAddress(hUxTheme, MAKEINTRESOURCEA(135));
-		if (SetPreferredAppMode)  SetPreferredAppMode(AllowDark);
-		FreeLibrary(hUxTheme);
-	}
-	[self refreshDarKOrLightMode];
-#endif
 #endif //OOLITE_WINDOWS
 
 	imagesDir = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"Images"];
@@ -967,34 +931,6 @@ enum PreferredAppMode
 			CloseClipboard();
 		}
 	}
-}
-
-
-- (void) refreshDarKOrLightMode
-{
-	int shouldSetDarkMode = [self isDarkModeOn];
-	DwmSetWindowAttribute (windowHandle, DWMWA_USE_IMMERSIVE_DARK_MODE, &shouldSetDarkMode, sizeof(shouldSetDarkMode));
-}
-
-
-- (BOOL) isDarkModeOn
-{
-	char buffer[4];
-	DWORD bufferSize = sizeof(buffer);
-	
-	// reading a REG_DWORD value from the Registry
-	HRESULT resultRegGetValue = RegGetValueW(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
-									L"AppsUseLightTheme", RRF_RT_REG_DWORD, NULL, buffer, &bufferSize);
-	if (resultRegGetValue != ERROR_SUCCESS)
-	{
-		return NO;
-	}
-	
-	// get our 4 obtained bytes into integer little endian format
-	int i = (int)(buffer[3] << 24 | buffer[2] << 16 | buffer[1] << 8 | buffer[0]);
-	
-	// dark mode is 0, light mode is 1
-	return i == 0;
 }
 
 
