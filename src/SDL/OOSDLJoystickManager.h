@@ -52,12 +52,13 @@ MA 02110-1301, USA.
 
 - (id) init;
 - (void) dealloc;
-- (BOOL) handleSDLEvent: (SDL_Event *)evt;
-- (NSString *) nameOfJoystick:(NSUInteger)stickNumber;
-- (int16_t) getAxisWithStick:(NSUInteger) stickNum axis:(NSUInteger) axisNum ;
-- (JoyAxisEvent) makeJoyAxisEvent: (SDL_JoyAxisEvent*) sdlevt;
-- (JoyButtonEvent) makeJoyButtonEvent: (SDL_JoyButtonEvent*) sdlevt;
-- (JoyHatEvent) makeJoyHatEvent: (SDL_JoyHatEvent*) sdlevt;
 - (NSInteger) getJoystickIndexFromId: (SDL_JoystickID) joystickId;
+- (SDL_JoyAxisEvent) makeJoyAxisEvent: (SDL_JoyAxisEvent*) sdlevt;
+- (SDL_JoyButtonEvent) makeJoyButtonEvent: (SDL_JoyButtonEvent*) sdlevt;
+- (SDL_JoyHatEvent) makeJoyHatEvent: (SDL_JoyHatEvent*) sdlevt;
+- (void) decodeAxisEvent: (SDL_JoyAxisEvent *)evt;
+- (void) decodeButtonEvent: (SDL_JoyButtonEvent *)evt;
+- (void) decodeHatEvent: (SDL_JoyHatEvent *)evt;
+- (BOOL) handleSDLEvent: (SDL_Event *)evt;
 
 @end
