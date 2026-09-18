@@ -272,11 +272,11 @@ static void CacheCheckIntegrity(OOCacheImpl *cache, NSString *context);
 }
 
 
-- (void)setObject:inObject forKey:(id)key
+- (void)setObject:(id)value forKey:(id)key
 {
 	CHECK_INTEGRITY(@"setObject:forKey: before");
 	
-	if (CacheInsert(cache, key, inObject))
+	if (CacheInsert(cache, key, value))
 	{
 		dirty = YES;
 		if (autoPrune)  [self prune];
