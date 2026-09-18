@@ -693,7 +693,7 @@ MA 02110-1301, USA.
 	HPVector port_pos = [self absolutePositionForSubentity];
 	
 	BoundingBox shipbb = [ship boundingBox];
-	BoundingBox arbb = [ship findBoundingBoxRelativeToPosition: port_pos InVectors: vi : vj : vk];
+	BoundingBox arbb = [ship findBoundingBoxRelativeToPosition: port_pos InVectors: vi j:vj k:vk];
 	
 	// port dimensions..
 	GLfloat ww = port_dimensions.x;
@@ -1134,7 +1134,7 @@ MA 02110-1301, USA.
 }
 
 
-- (void)setDimensionsAndCorridor:(BOOL)docking :(BOOL)ddc :(BOOL)launching
+- (void)setDimensionsAndCorridor:(BOOL)docking  ddc:(BOOL)ddc  launching:(BOOL)launching
 {
 	StationEntity *station = (StationEntity*)[self parentEntity];
 	if (virtual_dock)

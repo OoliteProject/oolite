@@ -50,7 +50,7 @@ MA 02110-1301, USA.
 }
 
 /*
-	- (id) initWithDictionary:
+- (id) initWithDictionary:
 	
 	Deserialize an octree from cache representation.
 	(To make a new octree, build it with OOOctreeBuilder.)
@@ -64,10 +64,10 @@ MA 02110-1301, USA.
 - (void) drawOctreeCollisions;
 #endif
 
-- (GLfloat) isHitByLine:(Vector)v0 :(Vector)v1;
+- (GLfloat) isHitByLine:(Vector)v0  v1:(Vector)v1;
 
 - (BOOL) isHitByOctree:(Octree *)other withOrigin:(Vector)origin andIJK:(Triangle)ijk;
-- (BOOL) isHitByOctree:(Octree *)other withOrigin:(Vector)origin andIJK:(Triangle)ijk andScales:(GLfloat)s1 :(GLfloat)s2;
+- (BOOL) isHitByOctree:(Octree *)other withOrigin:(Vector)origin andIJK:(Triangle)ijk andScales:(GLfloat)s1  s2:(GLfloat)s2;
 
 - (NSDictionary *) dictionaryRepresentation;
 

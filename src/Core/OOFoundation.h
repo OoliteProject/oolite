@@ -337,7 +337,7 @@ enum {
 	
 	For example, given:
 		@interface Foo: NSObject
-		+ (instancetype) fooWithProperty:(id)property;
++ (instancetype) fooWithProperty:(id)property;
 		@end
 		
 		@interface Bar: Foo

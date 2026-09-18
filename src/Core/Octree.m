@@ -52,8 +52,8 @@ typedef struct
 
 #ifndef OODEBUGLDRAWING_DISABLE
 
-- (void) drawOctreeFromLocation:(uint32_t)loc :(GLfloat)scale :(Vector)offset;
-- (void) drawOctreeCollisionFromLocation:(uint32_t)loc :(GLfloat)scale :(Vector)offset;
+- (void) drawOctreeFromLocation:(uint32_t)loc  scale:(GLfloat)scale  offset:(Vector)offset;
+- (void) drawOctreeCollisionFromLocation:(uint32_t)loc  scale:(GLfloat)scale  offset:(Vector)offset;
 
 - (BOOL) hasCollision;
 - (void) setHasCollision:(BOOL)value;
@@ -185,7 +185,7 @@ static Vector offsetForOctant(int oct, GLfloat r)
 	glColor4f(0.4f, 0.4f, 0.4f, 0.5f);
 	
 	// it's a series of cubes
-	[self drawOctreeFromLocation:0 :_radius : kZeroVector];
+	[self drawOctreeFromLocation:0 scale:_radius offset:kZeroVector];
 	
 	OOGLEND();
 	
@@ -201,7 +201,7 @@ static Vector offsetForOctant(int oct, GLfloat r)
 #endif
 
 
-- (void) drawOctreeFromLocation:(uint32_t)loc :(GLfloat)scale :(Vector)offset
+- (void) drawOctreeFromLocation:(uint32_t)loc  scale:(GLfloat)scale  offset:(Vector)offset
 {
 	if (_octree[loc] == 0)
 	{
@@ -248,21 +248,21 @@ static Vector offsetForOctant(int oct, GLfloat r)
 	{
 		GLfloat sc = 0.5f * scale;
 		OCTREE_COLOR(0.4f, 0.4f, 0.4f, 0.5f);
-		[self drawOctreeFromLocation:loc + _octree[loc] + 0 :sc :make_vector(offset.x - sc, offset.y - sc, offset.z - sc)];
+		[self drawOctreeFromLocation:loc + _octree[loc] + 0 scale:sc offset:make_vector(offset.x - sc, offset.y - sc, offset.z - sc)];
 		OCTREE_COLOR(0.0f, 0.0f, 1.0f, 0.5f);
-		[self drawOctreeFromLocation:loc + _octree[loc] + 1 :sc :make_vector(offset.x - sc, offset.y - sc, offset.z + sc)];
+		[self drawOctreeFromLocation:loc + _octree[loc] + 1 scale:sc offset:make_vector(offset.x - sc, offset.y - sc, offset.z + sc)];
 		OCTREE_COLOR(0.0f, 1.0f, 0.0f, 0.5f);
-		[self drawOctreeFromLocation:loc + _octree[loc] + 2 :sc :make_vector(offset.x - sc, offset.y + sc, offset.z - sc)];
+		[self drawOctreeFromLocation:loc + _octree[loc] + 2 scale:sc offset:make_vector(offset.x - sc, offset.y + sc, offset.z - sc)];
 		OCTREE_COLOR(0.0f, 1.0f, 1.0f, 0.5f);
-		[self drawOctreeFromLocation:loc + _octree[loc] + 3 :sc :make_vector(offset.x - sc, offset.y + sc, offset.z + sc)];
+		[self drawOctreeFromLocation:loc + _octree[loc] + 3 scale:sc offset:make_vector(offset.x - sc, offset.y + sc, offset.z + sc)];
 		OCTREE_COLOR(1.0f, 0.0f, 0.0f, 0.5f);
-		[self drawOctreeFromLocation:loc + _octree[loc] + 4 :sc :make_vector(offset.x + sc, offset.y - sc, offset.z - sc)];
+		[self drawOctreeFromLocation:loc + _octree[loc] + 4 scale:sc offset:make_vector(offset.x + sc, offset.y - sc, offset.z - sc)];
 		OCTREE_COLOR(1.0f, 0.0f, 1.0f, 0.5f);
-		[self drawOctreeFromLocation:loc + _octree[loc] + 5 :sc :make_vector(offset.x + sc, offset.y - sc, offset.z + sc)];
+		[self drawOctreeFromLocation:loc + _octree[loc] + 5 scale:sc offset:make_vector(offset.x + sc, offset.y - sc, offset.z + sc)];
 		OCTREE_COLOR(1.0f, 1.0f, 0.0f, 0.5f);
-		[self drawOctreeFromLocation:loc + _octree[loc] + 6 :sc :make_vector(offset.x + sc, offset.y + sc, offset.z - sc)];
+		[self drawOctreeFromLocation:loc + _octree[loc] + 6 scale:sc offset:make_vector(offset.x + sc, offset.y + sc, offset.z - sc)];
 		OCTREE_COLOR(1.0f, 1.0f, 1.0f, 0.5f);
-		[self drawOctreeFromLocation:loc + _octree[loc] + 7 :sc :make_vector(offset.x + sc, offset.y + sc, offset.z + sc)];
+		[self drawOctreeFromLocation:loc + _octree[loc] + 7 scale:sc offset:make_vector(offset.x + sc, offset.y + sc, offset.z + sc)];
 	}
 }
 
@@ -277,7 +277,7 @@ static BOOL drawTestForCollisions;
 	drawTestForCollisions = NO;
 	if (_hasCollision)
 	{
-		[self drawOctreeCollisionFromLocation:0 :_radius :kZeroVector];
+		[self drawOctreeCollisionFromLocation:0 scale:_radius offset:kZeroVector];
 	}
 	_hasCollision = drawTestForCollisions;
 	
@@ -286,7 +286,7 @@ static BOOL drawTestForCollisions;
 }
 
 
-- (void) drawOctreeCollisionFromLocation:(uint32_t)loc :(GLfloat)scale :(Vector)offset
+- (void) drawOctreeCollisionFromLocation:(uint32_t)loc  scale:(GLfloat)scale  offset:(Vector)offset
 {
 	if (_octree[loc] == 0)
 	{
@@ -343,14 +343,14 @@ static BOOL drawTestForCollisions;
 	if (_octree[loc] > 0)
 	{
 		GLfloat sc = 0.5f * scale;
-		[self drawOctreeCollisionFromLocation:loc + _octree[loc] + 0 :sc :make_vector(offset.x - sc, offset.y - sc, offset.z - sc)];
-		[self drawOctreeCollisionFromLocation:loc + _octree[loc] + 1 :sc :make_vector(offset.x - sc, offset.y - sc, offset.z + sc)];
-		[self drawOctreeCollisionFromLocation:loc + _octree[loc] + 2 :sc :make_vector(offset.x - sc, offset.y + sc, offset.z - sc)];
-		[self drawOctreeCollisionFromLocation:loc + _octree[loc] + 3 :sc :make_vector(offset.x - sc, offset.y + sc, offset.z + sc)];
-		[self drawOctreeCollisionFromLocation:loc + _octree[loc] + 4 :sc :make_vector(offset.x + sc, offset.y - sc, offset.z - sc)];
-		[self drawOctreeCollisionFromLocation:loc + _octree[loc] + 5 :sc :make_vector(offset.x + sc, offset.y - sc, offset.z + sc)];
-		[self drawOctreeCollisionFromLocation:loc + _octree[loc] + 6 :sc :make_vector(offset.x + sc, offset.y + sc, offset.z - sc)];
-		[self drawOctreeCollisionFromLocation:loc + _octree[loc] + 7 :sc :make_vector(offset.x + sc, offset.y + sc, offset.z + sc)];
+		[self drawOctreeCollisionFromLocation:loc + _octree[loc] + 0 scale:sc offset:make_vector(offset.x - sc, offset.y - sc, offset.z - sc)];
+		[self drawOctreeCollisionFromLocation:loc + _octree[loc] + 1 scale:sc offset:make_vector(offset.x - sc, offset.y - sc, offset.z + sc)];
+		[self drawOctreeCollisionFromLocation:loc + _octree[loc] + 2 scale:sc offset:make_vector(offset.x - sc, offset.y + sc, offset.z - sc)];
+		[self drawOctreeCollisionFromLocation:loc + _octree[loc] + 3 scale:sc offset:make_vector(offset.x - sc, offset.y + sc, offset.z + sc)];
+		[self drawOctreeCollisionFromLocation:loc + _octree[loc] + 4 scale:sc offset:make_vector(offset.x + sc, offset.y - sc, offset.z - sc)];
+		[self drawOctreeCollisionFromLocation:loc + _octree[loc] + 5 scale:sc offset:make_vector(offset.x + sc, offset.y - sc, offset.z + sc)];
+		[self drawOctreeCollisionFromLocation:loc + _octree[loc] + 6 scale:sc offset:make_vector(offset.x + sc, offset.y + sc, offset.z - sc)];
+		[self drawOctreeCollisionFromLocation:loc + _octree[loc] + 7 scale:sc offset:make_vector(offset.x + sc, offset.y + sc, offset.z + sc)];
 	}
 }
 #endif // OODEBUGLDRAWING_DISABLE
@@ -474,7 +474,7 @@ static BOOL isHitByLine(const int *octbuffer, unsigned char *collbuffer, int lev
 	return NO;
 }
 
-- (GLfloat) isHitByLine:(Vector)v0 :(Vector)v1
+- (GLfloat) isHitByLine:(Vector)v0  v1:(Vector)v1
 {
 	memset(_collisionOctree, 0, _nodeCount * sizeof *_collisionOctree);
 	hasCollided = NO;
@@ -647,7 +647,7 @@ static BOOL isHitByOctree(Octree_details axialDetails,
 }
 
 
-- (BOOL) isHitByOctree:(Octree *)other withOrigin:(Vector)v0 andIJK:(Triangle)ijk andScales:(GLfloat) s1 :(GLfloat)s2
+- (BOOL) isHitByOctree:(Octree *)other withOrigin:(Vector)v0 andIJK:(Triangle)ijk andScales:(GLfloat) s1  s2:(GLfloat)s2
 {
 	Octree_details details1 = [self octreeDetails];
 	Octree_details details2 = [other octreeDetails];

@@ -710,9 +710,9 @@ static NSString *NormalModeDescription(OOMeshNormalMode mode)
 
 
 - (BoundingBox) findBoundingBoxRelativeToPosition:(Vector)opv
-											basis:(Vector)ri :(Vector)rj :(Vector)rk
+											basis:(Vector)ri  rj:(Vector)rj  rk:(Vector)rk
 									 selfPosition:(Vector)position
-										selfBasis:(Vector)si :(Vector)sj :(Vector)sk
+										selfBasis:(Vector)si  sj:(Vector)sj  sk:(Vector)sk
 {
 	BoundingBox	result;
 	Vector		pv, rv;

@@ -552,11 +552,11 @@ typedef enum
 - (float) volume;
 
 // octree collision hunting
-- (GLfloat)doesHitLine:(HPVector)v0 :(HPVector)v1;
-- (GLfloat)doesHitLine:(HPVector)v0 :(HPVector)v1 :(ShipEntity**)hitEntity;
-- (GLfloat)doesHitLine:(HPVector)v0 :(HPVector)v1 withPosition:(HPVector)o andIJK:(Vector)i :(Vector)j :(Vector)k;	// for subentities
+- (GLfloat)doesHitLine:(HPVector)v0  v1:(HPVector)v1;
+- (GLfloat)doesHitLine:(HPVector)v0  v1:(HPVector)v1  hitEntity:(ShipEntity**)hitEntity;
+- (GLfloat)doesHitLine:(HPVector)v0  v1:(HPVector)v1 withPosition:(HPVector)o andIJK:(Vector)i  j:(Vector)j  k:(Vector)k;	// for subentities
 
-- (BoundingBox) findBoundingBoxRelativeToPosition:(HPVector)opv InVectors:(Vector)i :(Vector)j :(Vector)k;
+- (BoundingBox) findBoundingBoxRelativeToPosition:(HPVector)opv InVectors:(Vector)i  j:(Vector)j  k:(Vector)k;
 
 - (HPVector)absoluteTractorPosition;
 
@@ -723,7 +723,7 @@ typedef enum
 - (void) updateTrackingCurve;
 - (void) calculateTrackingCurve;
 
-- (GLfloat *) scannerDisplayColorForShip:(ShipEntity*)otherShip :(BOOL)isHostile :(BOOL)flash :(OOColor *)scannerDisplayColor1 :(OOColor *)scannerDisplayColor2 :(OOColor *)scannerDisplayColorH1 :(OOColor *)scannerDisplayColorH2;
+- (GLfloat *) scannerDisplayColorForShip:(ShipEntity*)otherShip  isHostile:(BOOL)isHostile  flash:(BOOL)flash  scannerDisplayColor1:(OOColor *)scannerDisplayColor1  scannerDisplayColor2:(OOColor *)scannerDisplayColor2  scannerDisplayColorH1:(OOColor *)scannerDisplayColorH1  scannerDisplayColorH2:(OOColor *)scannerDisplayColorH2;
 - (void)setScannerDisplayColor1:(OOColor *)color1;
 - (void)setScannerDisplayColor2:(OOColor *)color2;
 - (OOColor *)scannerDisplayColor1;
@@ -1068,7 +1068,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (GLfloat) rollToMatchUp:(Vector) up_vec rotating:(GLfloat) match_roll;
 
 - (GLfloat) rangeToDestination;
-- (double) trackDestination:(double) delta_t :(BOOL) retreat;
+- (double) trackDestination:(double) delta_t  retreat:(BOOL) retreat;
 
 - (void) setCoordinate:(HPVector)coord;
 - (HPVector) coordinates;
@@ -1078,8 +1078,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (void) setEvasiveJink:(GLfloat) z;
 - (void) evasiveAction:(double) delta_t;
-- (double) trackPrimaryTarget:(double) delta_t :(BOOL) retreat;
-- (double) trackSideTarget:(double) delta_t :(BOOL) leftside;
+- (double) trackPrimaryTarget:(double) delta_t  retreat:(BOOL) retreat;
+- (double) trackSideTarget:(double) delta_t  leftside:(BOOL) leftside;
 - (double) missileTrackPrimaryTarget:(double) delta_t;
 
 //return 0.0 if there is no primary target

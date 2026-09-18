@@ -46,10 +46,10 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 
 @interface GuiDisplayGen (Internal)
 
-- (void) drawGLDisplay:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha;
+- (void) drawGLDisplay:(GLfloat)x  y:(GLfloat)y  z:(GLfloat)z  alpha:(GLfloat) alpha;
 
 - (void) drawCrossHairsWithSize:(GLfloat) size x:(GLfloat)x y:(GLfloat)y z:(GLfloat)z;
-- (void) drawStarChart:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha :(BOOL) compact;
+- (void) drawStarChart:(GLfloat)x  y:(GLfloat)y  z:(GLfloat)z  alpha:(GLfloat) alpha  compact:(BOOL) compact;
 - (void) drawSystemMarkers:(NSArray *)marker atX:(GLfloat)x andY:(GLfloat)y andZ:(GLfloat)z withAlpha:(GLfloat)alpha andScale:(GLfloat)scale;
 - (void) drawSystemMarker:(NSDictionary *)marker atX:(GLfloat)x andY:(GLfloat)y andZ:(GLfloat)z withAlpha:(GLfloat)alpha andScale:(GLfloat)scale;
 
@@ -1398,7 +1398,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor,
 	{
 		PlayerEntity* player = PLAYER;
 		
-		[self drawGLDisplay:x - 0.5f * size_in_pixels.width :y - 0.5f * size_in_pixels.height :z :alpha];
+		[self drawGLDisplay:x - 0.5f * size_in_pixels.width y:y - 0.5f * size_in_pixels.height z:z alpha:alpha];
 		
 		if (self == [UNIVERSE gui])
 		{
@@ -1410,13 +1410,13 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor,
 				backgroundSpecial == GUI_BACKGROUND_SPECIAL_CUSTOM_ANA_QUICKEST ||
 				backgroundSpecial == GUI_BACKGROUND_SPECIAL_CUSTOM_ANA_SHORTEST)
 			{
-				[self drawStarChart:x - 0.5f * size_in_pixels.width :y - 0.5f * size_in_pixels.height :z :alpha :NO];
+				[self drawStarChart:x - 0.5f * size_in_pixels.width y:y - 0.5f * size_in_pixels.height z:z alpha:alpha compact:NO];
 			}
 			if (backgroundSpecial == GUI_BACKGROUND_SPECIAL_LONG || 
 					backgroundSpecial == GUI_BACKGROUND_SPECIAL_LONG_ANA_QUICKEST ||
 					backgroundSpecial == GUI_BACKGROUND_SPECIAL_LONG_ANA_SHORTEST)
 			{
-				[self drawStarChart:x - 0.5f * size_in_pixels.width :y - 0.5f * size_in_pixels.height :z :alpha :YES];
+				[self drawStarChart:x - 0.5f * size_in_pixels.width y:y - 0.5f * size_in_pixels.height z:z alpha:alpha compact:YES];
 			}
 			if ([player guiScreen] == GUI_SCREEN_STATUS)
 			{
@@ -1465,7 +1465,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor,
 		
 		cursor_x += x;
 		cursor_y += y;
-		[[UNIVERSE gameView] setVirtualJoystick:cursor_x/size_in_pixels.width :-cursor_y/size_in_pixels.height];
+		[[UNIVERSE gameView] setVirtualJoystick:cursor_x/size_in_pixels.width vmy:-cursor_y/size_in_pixels.height];
 
 		OOGLBEGIN(GL_LINES);
 			glVertex3f((float)cursor_x - h1, (float)cursor_y, z);	glVertex3f((float)cursor_x - h3, (float)cursor_y, z);
@@ -1481,7 +1481,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor,
 }
 
 
-- (void) drawGLDisplay:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha
+- (void) drawGLDisplay:(GLfloat)x  y:(GLfloat)y  z:(GLfloat)z  alpha:(GLfloat) alpha
 {
 	NSSize		strsize;
 	unsigned	i;
@@ -1755,7 +1755,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor,
 }
 
 
-- (void) drawStarChart:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha :(BOOL)compact
+- (void) drawStarChart:(GLfloat)x  y:(GLfloat)y  z:(GLfloat)z  alpha:(GLfloat) alpha  compact:(BOOL)compact
 {
 	PlayerEntity* player = PLAYER;
 

@@ -51,17 +51,17 @@ MA 02110-1301, USA.
 
 @interface PlayerEntity (StickMapper)
 
-   - (void) resetStickFunctions;
-   - (void) setGuiToStickMapperScreen: (unsigned)skip resetCurrentRow: (BOOL) resetCurrentRow;
-   - (void) setGuiToStickMapperScreen: (unsigned)skip;
-   - (void) stickMapperInputHandler: (GuiDisplayGen *)gui
+- (void) resetStickFunctions;
+- (void) setGuiToStickMapperScreen: (unsigned)skip resetCurrentRow: (BOOL) resetCurrentRow;
+- (void) setGuiToStickMapperScreen: (unsigned)skip;
+- (void) stickMapperInputHandler: (GuiDisplayGen *)gui
 							   view: (MyOpenGLView *)gameView;
    // Callback method
-   - (void) updateFunction: (NSDictionary *)hwDict;
+- (void) updateFunction: (NSDictionary *)hwDict;
 
    // Future: populate via plist
-   - (NSDictionary *)makeStickGuiDictHeader:(NSString *)header;
-   - (NSDictionary *)makeStickGuiDict: (NSString *)what 
+- (NSDictionary *)makeStickGuiDictHeader:(NSString *)header;
+- (NSDictionary *)makeStickGuiDict: (NSString *)what 
 							allowable: (int)allowable
 							   axisfn: (int)axisfn
 								butfn: (int)butfn;

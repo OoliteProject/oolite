@@ -1332,16 +1332,16 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 				{
 					ShipEntity *ship = (ShipEntity *)scannedEntity;
 					isHostile = (([ship hasHostileTarget])&&([ship primaryTarget] == PLAYER));
-					GLfloat *base_col = [ship scannerDisplayColorForShip:PLAYER :isHostile :flash
-																		:[ship scannerDisplayColor1] :[ship scannerDisplayColor2]
-																		:[ship scannerDisplayColorHostile1] :[ship scannerDisplayColorHostile2]
+					GLfloat *base_col = [ship scannerDisplayColorForShip:PLAYER isHostile:isHostile flash:flash
+																		scannerDisplayColor1:[ship scannerDisplayColor1] scannerDisplayColor2:[ship scannerDisplayColor2]
+																		scannerDisplayColorH1:[ship scannerDisplayColorHostile1] scannerDisplayColorH2:[ship scannerDisplayColorHostile2]
 						];
 					col[0] = base_col[0];	col[1] = base_col[1];	col[2] = base_col[2];	col[3] = alpha * base_col[3];
 				}
 				else if ([scannedEntity isVisualEffect])
 				{
 					OOVisualEffectEntity *vis = (OOVisualEffectEntity *)scannedEntity;
-					GLfloat* base_col = [vis scannerDisplayColorForShip:flash :[vis scannerDisplayColor1] :[vis scannerDisplayColor2]];
+					GLfloat* base_col = [vis scannerDisplayColorForShip:flash scannerDisplayColor1:[vis scannerDisplayColor1] scannerDisplayColor2:[vis scannerDisplayColor2]];
 					col[0] = base_col[0];	col[1] = base_col[1];	col[2] = base_col[2];	col[3] = alpha * base_col[3];
 				}
 
@@ -3625,12 +3625,12 @@ static void hudDrawReticleOnTarget(Entity *target, PlayerEntity *player1, GLfloa
 			{
 				ShipEntity *ship = (ShipEntity *)target;
 				BOOL isHostile = (([ship hasHostileTarget])&&([ship primaryTarget] == PLAYER));
-				GLColorWithOverallAlpha([ship scannerDisplayColorForShip:PLAYER :isHostile :flash :[ship scannerDisplayColor1] :[ship scannerDisplayColor2] :[ship scannerDisplayColorHostile1] :[ship scannerDisplayColorHostile2]],alpha);
+				GLColorWithOverallAlpha([ship scannerDisplayColorForShip:PLAYER isHostile:isHostile flash:flash scannerDisplayColor1:[ship scannerDisplayColor1] scannerDisplayColor2:[ship scannerDisplayColor2] scannerDisplayColorH1:[ship scannerDisplayColorHostile1] scannerDisplayColorH2:[ship scannerDisplayColorHostile2]],alpha);
 			}
 			else if ([target isVisualEffect])
 			{
 				OOVisualEffectEntity *vis = (OOVisualEffectEntity *)target;
-				GLColorWithOverallAlpha([vis scannerDisplayColorForShip:flash :[vis scannerDisplayColor1] :[vis scannerDisplayColor2]],alpha);
+				GLColorWithOverallAlpha([vis scannerDisplayColorForShip:flash scannerDisplayColor1:[vis scannerDisplayColor1] scannerDisplayColor2:[vis scannerDisplayColor2]],alpha);
 			}
 			else
 			{

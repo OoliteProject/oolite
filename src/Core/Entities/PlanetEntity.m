@@ -74,7 +74,7 @@ static GLfloat	texture_uv_array[MAX_PLANET_VERTICES * 2];
 
 
 - (void) initialiseBaseTerrainArray:(int) percent_land;
-- (void) paintVertex:(unsigned) vi :(int) seed;
+- (void) paintVertex:(unsigned) vi  seed:(int) seed;
 - (void) scaleVertices;
 
 - (id) initAsAtmosphereForPlanet:(PlanetEntity *)planet dictionary:(NSDictionary *)dict;
@@ -1435,7 +1435,7 @@ static unsigned baseVertexIndexForEdge(GLushort va, GLushort vb, BOOL textured)
 }
 
 
-- (void) paintVertex:(unsigned) vi :(int) seed
+- (void) paintVertex:(unsigned) vi  seed:(int) seed
 {
 	RANROTSeed saved_seed = RANROTGetFullSeed();
 	BOOL isTextured = _texture != nil;

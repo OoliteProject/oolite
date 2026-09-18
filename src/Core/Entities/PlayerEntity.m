@@ -150,7 +150,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 - (NSArray*) contractsListForScriptingFromArray:(NSArray *)contractsArray forCargo:(BOOL)forCargo;
 
 
-- (void) prepareMarkedDestination:(NSMutableDictionary *)markers :(NSDictionary *)marker;
+- (void) prepareMarkedDestination:(NSMutableDictionary *)markers  marker:(NSDictionary *)marker;
 
 - (void) witchStart;
 - (void) witchJumpTo:(OOSystemID)sTo misjump:(BOOL)misjump;
@@ -6288,7 +6288,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 // override ShipEntity definition to ensure that 
 // if shields are still up, always hit the main entity and take the damage
 // on the shields
-- (GLfloat) doesHitLine:(HPVector)v0 :(HPVector)v1 :(ShipEntity **)hitEntity
+- (GLfloat) doesHitLine:(HPVector)v0  v1:(HPVector)v1  hitEntity:(ShipEntity **)hitEntity
 {
 	if (hitEntity)
 		hitEntity[0] = (ShipEntity*)nil;
@@ -6296,7 +6296,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	Vector u1 = HPVectorToVector(HPvector_between(position, v1));
 	Vector w0 = make_vector(dot_product(u0, v_right), dot_product(u0, v_up), dot_product(u0, v_forward));	// in ijk vectors
 	Vector w1 = make_vector(dot_product(u1, v_right), dot_product(u1, v_up), dot_product(u1, v_forward));
-	GLfloat hit_distance = [octree isHitByLine:w0 :w1];
+	GLfloat hit_distance = [octree isHitByLine:w0 v1:w1];
 	if (hit_distance)
 	{
 		if (hitEntity)
@@ -6320,7 +6320,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		w0 = resolveVectorInIJK(u0, ijk);
 		w1 = resolveVectorInIJK(u1, ijk);
 		
-		GLfloat hitSub = [se->octree isHitByLine:w0 :w1];
+		GLfloat hitSub = [se->octree isHitByLine:w0 v1:w1];
 		if (hitSub && (hit_distance == 0 || hit_distance > hitSub))
 		{	
 			hit_distance = hitSub;
@@ -8705,7 +8705,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 }
 
 
-- (void) prepareMarkedDestination:(NSMutableDictionary *)markers :(NSDictionary *)marker
+- (void) prepareMarkedDestination:(NSMutableDictionary *)markers  marker:(NSDictionary *)marker
 {
 	NSNumber *key = [NSNumber numberWithInt:[marker oo_intForKey:@"system"]];
 	NSMutableArray *list = [markers objectForKey:key];
@@ -8733,19 +8733,19 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	{
 		sysid = [[passengers oo_dictionaryAtIndex:i]  oo_unsignedCharForKey:CONTRACT_KEY_DESTINATION];
 		marker = [self passengerContractMarker:sysid];
-		[self prepareMarkedDestination:destinations:marker];
+		[self prepareMarkedDestination:destinations marker:marker];
 	}
 	for (i = 0; i < [parcels count]; i++)
 	{
 		sysid = [[parcels oo_dictionaryAtIndex:i]  oo_unsignedCharForKey:CONTRACT_KEY_DESTINATION];
 		marker = [self parcelContractMarker:sysid];
-		[self prepareMarkedDestination:destinations:marker];
+		[self prepareMarkedDestination:destinations marker:marker];
 	}
 	for (i = 0; i < [contracts count]; i++)
 	{
 		sysid = [[contracts oo_dictionaryAtIndex:i]  oo_unsignedCharForKey:CONTRACT_KEY_DESTINATION];
 		marker = [self cargoContractMarker:sysid];
-		[self prepareMarkedDestination:destinations:marker];
+		[self prepareMarkedDestination:destinations marker:marker];
 	}
 
 	NSString					*key = nil;
@@ -8753,7 +8753,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	foreachkey (key, missionDestinations)
 	{
 		marker = [missionDestinations objectForKey:key];
-		[self prepareMarkedDestination:destinations:marker];
+		[self prepareMarkedDestination:destinations marker:marker];
 	}
 	
 	return destinations;

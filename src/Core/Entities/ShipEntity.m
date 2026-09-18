@@ -1004,7 +1004,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 			[(DockEntity *)subentity setVirtual];
 		}
 		
-		[(DockEntity *)subentity setDimensionsAndCorridor:allow_docking:ddc:allow_launching];
+		[(DockEntity *)subentity setDimensionsAndCorridor:allow_docking ddc:ddc launching:allow_launching];
 		[subentity setDisplayName:[subentDict oo_stringForKey:@"dock_label" defaultValue:@"the docking bay"]];
 	}
 
@@ -1417,13 +1417,13 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 }
 
 
-- (BoundingBox)findBoundingBoxRelativeToPosition:(HPVector)opv InVectors:(Vector) _i :(Vector) _j :(Vector) _k
+- (BoundingBox)findBoundingBoxRelativeToPosition:(HPVector)opv InVectors:(Vector)i  j:(Vector)j  k:(Vector)k
 {
 	// HPVect: check that this conversion doesn't lose needed precision
 	return [[self mesh] findBoundingBoxRelativeToPosition:HPVectorToVector(opv)
-													basis:_i :_j :_k
+													basis:i rj:j rk:k
 										 selfPosition:HPVectorToVector(position)
-												selfBasis:v_right :v_up :v_forward];
+												selfBasis:v_right sj:v_up sk:v_forward];
 }
 
 
@@ -1439,17 +1439,17 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 }
 
 
-- (GLfloat) doesHitLine:(HPVector)v0 :(HPVector)v1
+- (GLfloat) doesHitLine:(HPVector)v0  v1:(HPVector)v1
 {
 	Vector u0 = HPVectorToVector(HPvector_between(position, v0));	// relative to origin of model / octree
 	Vector u1 = HPVectorToVector(HPvector_between(position, v1));
 	Vector w0 = make_vector(dot_product(u0, v_right), dot_product(u0, v_up), dot_product(u0, v_forward));	// in ijk vectors
 	Vector w1 = make_vector(dot_product(u1, v_right), dot_product(u1, v_up), dot_product(u1, v_forward));
-	return [octree isHitByLine:w0 :w1];
+	return [octree isHitByLine:w0 v1:w1];
 }
 
 
-- (GLfloat) doesHitLine:(HPVector)v0 :(HPVector)v1 :(ShipEntity **)hitEntity
+- (GLfloat) doesHitLine:(HPVector)v0  v1:(HPVector)v1  hitEntity:(ShipEntity **)hitEntity
 {
 	if (hitEntity)
 		hitEntity[0] = (ShipEntity*)nil;
@@ -1457,7 +1457,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	Vector u1 = HPVectorToVector(HPvector_between(position, v1));
 	Vector w0 = make_vector(dot_product(u0, v_right), dot_product(u0, v_up), dot_product(u0, v_forward));	// in ijk vectors
 	Vector w1 = make_vector(dot_product(u1, v_right), dot_product(u1, v_up), dot_product(u1, v_forward));
-	GLfloat hit_distance = [octree isHitByLine:w0 :w1];
+	GLfloat hit_distance = [octree isHitByLine:w0 v1:w1];
 	if (hit_distance)
 	{
 		if (hitEntity)
@@ -1475,7 +1475,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 		w0 = resolveVectorInIJK(u0, ijk);
 		w1 = resolveVectorInIJK(u1, ijk);
 		
-		GLfloat hitSub = [se->octree isHitByLine:w0 :w1];
+		GLfloat hitSub = [se->octree isHitByLine:w0 v1:w1];
 		if (hitSub && (hit_distance == 0 || hit_distance > hitSub))
 		{	
 			hit_distance = hitSub;
@@ -1490,13 +1490,13 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 }
 
 
-- (GLfloat)doesHitLine:(HPVector)v0 :(HPVector)v1 withPosition:(HPVector)o andIJK:(Vector)i :(Vector)j :(Vector)k
+- (GLfloat)doesHitLine:(HPVector)v0  v1:(HPVector)v1 withPosition:(HPVector)o andIJK:(Vector)i  j:(Vector)j  k:(Vector)k
 {
 	Vector u0 = HPVectorToVector(HPvector_between(o, v0));	// relative to origin of model / octree
 	Vector u1 = HPVectorToVector(HPvector_between(o, v1));
 	Vector w0 = make_vector(dot_product(u0, i), dot_product(u0, j), dot_product(u0, k));	// in ijk vectors
 	Vector w1 = make_vector(dot_product(u1, j), dot_product(u1, j), dot_product(u1, k));
-	return [octree isHitByLine:w0 :w1];
+	return [octree isHitByLine:w0 v1:w1];
 }
 
 
@@ -4272,7 +4272,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		[self noteLostTargetAndGoIdle];
 		return;
 	}
-	[self trackPrimaryTarget:delta_t:NO]; // applies sticks
+	[self trackPrimaryTarget:delta_t retreat:NO]; // applies sticks
 	if ([self hasProximityAlertIgnoringTarget:YES])
 	{
 		[self avoidCollision];
@@ -4293,7 +4293,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			[self doScriptEvent:OOJSID("shipAchievedDesiredRange")];
 
 		}
-		desired_speed = maxFlightSpeed * [self trackPrimaryTarget:delta_t:NO];
+		desired_speed = maxFlightSpeed * [self trackPrimaryTarget:delta_t retreat:NO];
 	}
 	else
 	{
@@ -4337,7 +4337,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 		_destination = target->position;
 		desired_range = 0.5 * target->collision_radius;
-		[self trackDestination: delta_t : NO];
+		[self trackDestination: delta_t retreat:NO];
 
 		//
 		if (distance < last_distance)	// improvement
@@ -4405,7 +4405,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	double aspect = [self approachAspectToPrimaryTarget];
 	if (range > 3000.0 || ([target isShip] && [(ShipEntity*)target primaryTarget] != self) || frustration - floor(frustration) > fmin(1.6/max_flight_roll,aspect))
 	{
-		[self trackPrimaryTarget:delta_t:YES];
+		[self trackDestination:delta_t retreat:YES];
 	}
 	else
 	{
@@ -4496,7 +4496,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	else if (frustration < 0.0)
 		frustration = 0.0;
 	
-	[self trackPrimaryTarget:delta_t:NO];
+	[self trackPrimaryTarget:delta_t retreat:NO];
 	
 	if (missiles) [self considerFiringMissile:delta_t];
 
@@ -4881,7 +4881,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		desired_speed = max_available_speed; // use afterburner to approach
 
 	double last_success_factor = success_factor;
-	success_factor = [self trackSideTarget:delta_t:leftside];	// do the actual piloting
+	success_factor = [self trackSideTarget:delta_t leftside:leftside];	// do the actual piloting
 	if (weapon_temp > COMBAT_AI_WEAPON_TEMP_USABLE)
 	{ // will probably have more luck with the other laser or picking a different attack method
 		if (leftside)
@@ -5074,7 +5074,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		}
 
 		double last_success_factor = success_factor;
-		success_factor = [self trackPrimaryTarget:delta_t:NO];
+		success_factor = [self trackPrimaryTarget:delta_t retreat:NO];
 		
 		if ((success_factor > 0.999)||(success_factor > last_success_factor))
 		{
@@ -5230,7 +5230,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 
 	pitching_over = NO; // in case it's set from elsewhere
-	double confidenceFactor = [self trackDestination:delta_t :NO];
+	double confidenceFactor = [self trackDestination:delta_t retreat:NO];
 	
 	if(success_factor > last_success_factor || confidenceFactor < 0.85) frustration += delta_t;
 	else if(frustration > 0.0) frustration -= delta_t * 0.75;
@@ -5282,7 +5282,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		desired_speed = maxFlightSpeed * 0.875;
 	}
 
-	[self trackPrimaryTarget:delta_t:NO];
+	[self trackPrimaryTarget:delta_t retreat:NO];
 
 	/* Don't open fire until within 3km - it doesn't take many mining
 	 * laser shots to destroy an asteroid, but some of these mining
@@ -5406,7 +5406,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 
 	double last_success_factor = success_factor;
-	success_factor = [self trackPrimaryTarget:delta_t:NO];	// do the actual piloting
+	success_factor = [self trackPrimaryTarget:delta_t retreat:NO];	// do the actual piloting
 
 	if ((success_factor > 0.999)||(success_factor > last_success_factor))
 	{
@@ -5524,7 +5524,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		behaviour = BEHAVIOUR_ATTACK_TARGET;
 		frustration = 0.0;
 	}
-	[self trackPrimaryTarget:delta_t:YES];
+	[self trackDestination:delta_t retreat:YES];
 
 	if (missiles) [self considerFiringMissile:delta_t];
 
@@ -5567,7 +5567,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		} 
 		frustration = 0.0;
 	}
-	[self trackPrimaryTarget:delta_t:YES];
+	[self trackDestination:delta_t retreat:YES];
 	if ([forward_weapon_type isTurretLaser]) 
 	{
 		// most Thargoids will only have the forward weapon
@@ -5632,7 +5632,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		}
 	}
 
-	[self trackPrimaryTarget:delta_t:YES];
+	[self trackDestination:delta_t retreat:YES];
 
 	Entity *target = [self primaryTarget];
 
@@ -5703,7 +5703,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		max_cos = sqrt(1 - 0.90 * desired_range*desired_range/(distance * distance));   // Head for a point within 95% of desired_range (must match the value in trackDestination)
 	}
-	double confidenceFactor = [self trackDestination:delta_t:NO];
+	double confidenceFactor = [self trackDestination:delta_t retreat:NO];
 	if (confidenceFactor >= max_cos && flightPitch == 0.0)
 	{
 		// desired facing achieved and movement stabilised.
@@ -5769,7 +5769,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		return;
 	}
 
-	double confidenceFactor = [self trackDestination:delta_t:YES]; // turn away from destination
+	double confidenceFactor = [self trackDestination:delta_t retreat:YES]; // turn away from destination
 	
 	if (confidenceFactor >= max_cos && flightSpeed == 0.0)
 	{
@@ -5807,7 +5807,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	success_factor = distance;
 
 	// do the actual piloting!!
-	[self trackDestination:delta_t: NO];
+	[self trackDestination:delta_t retreat:NO];
 
 	eta = eta / 0.51;	// 2% safety margin assuming an average of half current speed
 	GLfloat slowdownTime = (thrust > 0.0)? flightSpeed / (thrust) : 4.0;
@@ -5867,7 +5867,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		success_factor = distance;
 
 		// do the actual piloting!!
-		double confidenceFactor = [self trackDestination:delta_t: NO];
+		double confidenceFactor = [self trackDestination:delta_t retreat:NO];
 		if(confidenceFactor < 0.2) confidenceFactor = 0.2;  // don't allow small or negative values.
 		
 		/*	2009-07-19 Eric: Estimated Time of Arrival (eta) should also take the "angle to target" into account (confidenceFactor = cos(angle to target))
@@ -5963,7 +5963,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		desired_speed = 0.0;
 	}
 
-	[self trackDestination:delta_t:YES];
+	[self trackDestination:delta_t retreat:YES];
 	if ([self hasProximityAlertIgnoringTarget:YES])
 	{
 		[self avoidCollision];
@@ -5988,7 +5988,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			desired_range = prox_ship->collision_radius * PROXIMITY_AVOID_DISTANCE_FACTOR;
 			_destination = prox_ship->position;
 		}
-		double dq = [self trackDestination:delta_t:YES]; // returns 0 when heading towards prox_ship
+		double dq = [self trackDestination:delta_t retreat:YES]; // returns 0 when heading towards prox_ship
 		// Heading towards target with desired_speed > 0, avoids collisions better than setting desired_speed to zero.
 		// (tested with boa class cruiser on collisioncourse with buoy)
 		desired_speed = maxFlightSpeed * (0.5 * dq + 0.5);
@@ -6118,7 +6118,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			desired_range = 1.0;
 		else
 			desired_range = 100.0;
-		v0 = [self trackDestination:delta_t: NO];
+		v0 = [self trackDestination:delta_t retreat:NO];
 		desired_range = temp;
 		
 		if (dist2 < last_dist2)	// improvement
@@ -6492,7 +6492,7 @@ static GLfloat mascem_color1[4] =	{ 0.3, 0.3, 0.3, 1.0};	// dark gray
 static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by script
 
-- (GLfloat *) scannerDisplayColorForShip:(ShipEntity*)otherShip :(BOOL)isHostile :(BOOL)flash :(OOColor *)scannerDisplayColor1 :(OOColor *)scannerDisplayColor2 :(OOColor *)scannerDisplayColorH1 :(OOColor *)scannerDisplayColorH2
+- (GLfloat *) scannerDisplayColorForShip:(ShipEntity*)otherShip  isHostile:(BOOL)isHostile  flash:(BOOL)flash  scannerDisplayColor1:(OOColor *)scannerDisplayColor1  scannerDisplayColor2:(OOColor *)scannerDisplayColor2  scannerDisplayColorH1:(OOColor *)scannerDisplayColorH1  scannerDisplayColorH2:(OOColor *)scannerDisplayColorH2
 {
 	if (isHostile)
 	{
@@ -8543,7 +8543,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 			switch (cargo_flag)
 			{
 			case CARGO_FLAG_FULL_UNIFORM:
-				newCargo = [UNIVERSE getContainersOfCommodity:[shipinfoDictionary oo_stringForKey:@"cargo_carried"] :num];
+				newCargo = [UNIVERSE getContainersOfCommodity:[shipinfoDictionary oo_stringForKey:@"cargo_carried"] how_much:num];
 				break;
 			case CARGO_FLAG_FULL_PLENTIFUL:
 				newCargo = [UNIVERSE getContainersOfGoods:num scarce:NO legal:YES];
@@ -8552,7 +8552,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 				newCargo = [UNIVERSE getContainersOfGoods:num scarce:YES legal:YES];
 				break;
 			case CARGO_FLAG_FULL_MEDICAL:
-				newCargo = [UNIVERSE getContainersOfCommodity:@"Narcotics" :num];
+				newCargo = [UNIVERSE getContainersOfCommodity:@"Narcotics" how_much:num];
 				break;
 			case CARGO_FLAG_FULL_CONTRABAND:
 				newCargo = [UNIVERSE getContainersOfGoods:num scarce:YES legal:NO];
@@ -9592,7 +9592,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	Vector i = vector_right_from_quaternion(q);
 	Vector j = vector_up_from_quaternion(q);
 	Vector k = vector_forward_from_quaternion(q);
-	BoundingBox arbb = [ship findBoundingBoxRelativeToPosition:kZeroHPVector InVectors:i :j :k];
+	BoundingBox arbb = [ship findBoundingBoxRelativeToPosition:kZeroHPVector InVectors:i j:j k:k];
 	Vector result = kZeroVector;
 	switch ([padAlign characterAtIndex:0])
 	{
@@ -10468,7 +10468,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 }
 
 
-- (double) trackPrimaryTarget:(double) delta_t :(BOOL) retreat
+- (double) trackPrimaryTarget:(double) delta_t  retreat:(BOOL) retreat
 {
 	Entity*	target = [self primaryTarget];
 
@@ -10702,7 +10702,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 }
 
 
-- (double) trackSideTarget:(double) delta_t :(BOOL) leftside
+- (double) trackSideTarget:(double) delta_t  leftside:(BOOL) leftside
 {
 	Entity*	target = [self primaryTarget];
 
@@ -10921,7 +10921,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 }
 
 
-- (double) trackDestination:(double) delta_t :(BOOL) retreat
+- (double) trackDestination:(double) delta_t  retreat:(BOOL) retreat
 {
 	Vector  relPos;
 	GLfloat  d_forward, d_up, d_right;
@@ -14297,10 +14297,10 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 }
 
 
-- (BoundingBox) findBoundingBoxRelativeTo:(Entity *)other InVectors:(Vector) _i :(Vector) _j :(Vector) _k
+- (BoundingBox) findBoundingBoxRelativeTo:(Entity *)other InVectors:(Vector)i  j:(Vector)j  k:(Vector)k
 {
 	HPVector  opv = other ? other->position : position;
-	return [self findBoundingBoxRelativeToPosition:opv InVectors:_i :_j :_k];
+	return [self findBoundingBoxRelativeToPosition:opv InVectors:i j:j k:k];
 }
 
 
