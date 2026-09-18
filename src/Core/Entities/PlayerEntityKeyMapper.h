@@ -64,31 +64,31 @@ MA 02110-1301, USA.
 #define KEYCONFIG_OVERRIDES @"KeyConfigOverrides"  // NSUserDefaults
 
 @interface PlayerEntity (KeyMapper)
-- (void) resetKeyFunctions;
-- (void) initCheckingDictionary;
+   - (void) resetKeyFunctions;
+   - (void) initCheckingDictionary;
 
-- (void) setGuiToKeyMapperScreen:(unsigned)skip resetCurrentRow:(BOOL)resetCurrentRow;
-- (void) setGuiToKeyMapperScreen:(unsigned)skip;
-- (void) keyMapperInputHandler:(GuiDisplayGen *)gui view:(MyOpenGLView *)gameView;
+   - (void) setGuiToKeyMapperScreen:(unsigned)skip resetCurrentRow:(BOOL)resetCurrentRow;
+   - (void) setGuiToKeyMapperScreen:(unsigned)skip;
+   - (void) keyMapperInputHandler:(GuiDisplayGen *)gui view:(MyOpenGLView *)gameView;
 
-- (void) setGuiToKeyConfigScreen;
-- (void) setGuiToKeyConfigScreen:(BOOL) resetSelectedRow;
-- (void) handleKeyConfigKeys:(GuiDisplayGen *)gui view:(MyOpenGLView *)gameView;
-- (void) outputKeyDefinition:(NSString *)key shift:(NSString *)shift mod1:(NSString *)mod1 mod2:(NSString *)mod2 skiprows:(NSUInteger)skiprows;
+   - (void) setGuiToKeyConfigScreen;
+   - (void) setGuiToKeyConfigScreen:(BOOL) resetSelectedRow;
+   - (void) handleKeyConfigKeys:(GuiDisplayGen *)gui view:(MyOpenGLView *)gameView;
+   - (void) outputKeyDefinition:(NSString *)key shift:(NSString *)shift mod1:(NSString *)mod1 mod2:(NSString *)mod2 skiprows:(NSUInteger)skiprows;
 
-- (void) setGuiToKeyConfigEntryScreen;
-- (void) handleKeyConfigEntryKeys:(GuiDisplayGen *)gui view:(MyOpenGLView *)gameView;
+   - (void) setGuiToKeyConfigEntryScreen;
+   - (void) handleKeyConfigEntryKeys:(GuiDisplayGen *)gui view:(MyOpenGLView *)gameView;
 
-- (void) setGuiToConfirmClearScreen;
-- (void) handleKeyMapperConfirmClearKeys:(GuiDisplayGen *)gui view:(MyOpenGLView *)gameView;
+   - (void) setGuiToConfirmClearScreen;
+   - (void) handleKeyMapperConfirmClearKeys:(GuiDisplayGen *)gui view:(MyOpenGLView *)gameView;
 
-- (void) setGuiToKeyboardLayoutScreen:(unsigned)skip;
-- (void) setGuiToKeyboardLayoutScreen:(unsigned)skip resetCurrentRow:(BOOL)resetCurrentRow;
-- (void) handleKeyboardLayoutEntryKeys:(GuiDisplayGen *)gui view:(MyOpenGLView *)gameView;
+   - (void) setGuiToKeyboardLayoutScreen:(unsigned)skip;
+   - (void) setGuiToKeyboardLayoutScreen:(unsigned)skip resetCurrentRow:(BOOL)resetCurrentRow;
+   - (void) handleKeyboardLayoutEntryKeys:(GuiDisplayGen *)gui view:(MyOpenGLView *)gameView;
 
-- (NSString *)validateKey:(NSString*)key checkKeys:(NSArray*)check_keys;
+   - (NSString *)validateKey:(NSString*)key checkKeys:(NSArray*)check_keys;
 
-- (NSDictionary *)makeKeyGuiDict:(NSString *)what keyDef:(NSString *)keyDef;
-- (NSDictionary *)makeKeyGuiDictHeader:(NSString *)header;
+   - (NSDictionary *)makeKeyGuiDict:(NSString *)what keyDef:(NSString *)keyDef;
+   - (NSDictionary *)makeKeyGuiDictHeader:(NSString *)header;
 
 @end
