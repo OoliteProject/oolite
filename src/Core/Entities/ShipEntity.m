@@ -14297,7 +14297,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 }
 
 
-- (BoundingBox) findBoundingBoxRelativeTo:(Entity *)other InVectors:(Vector)i  j:(Vector)j  k:(Vector)k
+- (BoundingBox) findBoundingBoxRelativeTo:(Entity *)other i:(Vector)i  j:(Vector)j  k:(Vector)k
 {
 	HPVector  opv = other ? other->position : position;
 	return [self findBoundingBoxRelativeToPosition:opv i:i j:j k:k];
