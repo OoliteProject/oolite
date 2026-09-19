@@ -280,8 +280,8 @@ extern int debug;
 - (void) initialiseGLWithSize:(NSSize) v_size;
 - (void) updateGLSize:(NSSize) size;
 - (BOOL) isRunningOnPrimaryDisplayDevice;
-#if OOLITE_WINDOWS
 - (void)getDisplayDimensions:(unsigned *)width height:(unsigned *)height;
+#if OOLITE_WINDOWS
 - (BOOL) atDesktopResolution;
 - (float) hdrMaxBrightness;
 - (void) setHDRMaxBrightness:(float)newMaxBrightness;

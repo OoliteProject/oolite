@@ -23,6 +23,7 @@ MA 02110-1301, USA.
 */
 
 #include <SDL3/SDL_init.h>
+#include <SDL3/SDL_clipboard.h>
 #import "png.h"
 #import "MyOpenGLView.h"
 #import "MyOpenGLView+Input.h"
@@ -216,7 +217,8 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
 	}
 
 #if OOLITE_WINDOWS
-	//capture the window handle for later
+	// capture the window handle for later (only needed for ugly hack later when transitioning between
+    // full screen and window). Don't use anywhere else.
 	SDL_PropertiesID windowPropertiesId = SDL_GetWindowProperties(window);
 	windowHandle = SDL_GetPointerProperty(windowPropertiesId, SDL_PROP_WINDOW_WIN32_HWND_POINTER, NULL);
 	if (!windowHandle)
@@ -874,8 +876,6 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
 	return;
 }
 
-
-#if OOLITE_WINDOWS
 - (void)getDisplayDimensions:(unsigned *)width height:(unsigned *)height
 {
 	SDL_DisplayID displayID = SDL_GetDisplayForWindow(window);
@@ -899,40 +899,25 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
 	return (windowDisplayID != 0 && windowDisplayID == primaryDisplayID);
 }
 
-- (void) grabMouseInsideGameWindow:(BOOL) value
+- (void) grabMouseInsideGameWindow:(BOOL)value
 {
-	SDL_SetWindowMouseGrab(window, value);
 	grabMouseStatus = value;
+	SDL_SetWindowRelativeMouseMode(window, value ? true : false);  // Lock cursor to window, enable relative delta motion
 }
-
 
 - (void) stringToClipboard:(NSString *)stringToCopy
 {
 	if (stringToCopy)
 	{
-		const char *clipboardText = [stringToCopy cStringUsingEncoding:NSUTF8StringEncoding];
-		const size_t clipboardTextLength = strlen(clipboardText) + 1;
-		HGLOBAL clipboardMem = GlobalAlloc(GMEM_MOVEABLE, clipboardTextLength);
-		if (clipboardMem)
+		const char *clipboardText = [stringToCopy UTF8String];
+		if (!SDL_SetClipboardText(clipboardText))
 		{
-			memcpy(GlobalLock(clipboardMem), clipboardText, clipboardTextLength);
-			GlobalUnlock(clipboardMem);
-			OpenClipboard(0);
-			EmptyClipboard();
-			if (!SetClipboardData(CF_TEXT, clipboardMem))
-			{
-				OOLog(@"stringToClipboard.failed", @"Failed to copy string %@ to clipboard", stringToCopy);
-				// free global allocated memory if clipboard copy failed
-				// note: no need to free it if copy succeeded; the OS becomes
-				// the owner of the copied memory once SetClipboardData has
-				// been executed successfully
-				GlobalFree(clipboardMem);
-			}
-			CloseClipboard();
+			OOLog(@"stringToClipboard.failed", @"Failed to copy string %@ to clipboard: %s", stringToCopy, SDL_GetError());
 		}
 	}
 }
 
+#if OOLITE_WINDOWS
 
 - (BOOL) atDesktopResolution
 {
@@ -1014,25 +999,6 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
 
 
 #else	// Linus stub methods
-
-// for Linux we assume we are always on the primary monitor for now
-- (BOOL) isRunningOnPrimaryDisplayDevice
-{
-	return YES;
-}
-
-
-- (void) grabMouseInsideGameWindow:(BOOL) value
-{
-	// do nothing
-}
-
-
-- (void) stringToClipboard:(NSString *)stringToCopy
-{
-	// TODO: implement string clipboard copy for Linux
-}
-
 
 - (BOOL) hdrOutput
 {

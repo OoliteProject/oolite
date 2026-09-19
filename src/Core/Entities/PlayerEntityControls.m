@@ -1056,13 +1056,11 @@ static NSTimeInterval	time_last_frame;
 						/*	Ensure the keyboard pitch override (intended to lock
 						 out the joystick if the player runs to the keyboard)
 						 is reset */
-					#if OOLITE_GNUSTEP
 						[gameView resetMouse];
 						if ([[NSUserDefaults standardUserDefaults] boolForKey:@"grab-mouse-on-mouse-control"])
 						{
 							[gameView grabMouseInsideGameWindow:YES];
 						}
-					#endif
 						mouse_x_axis_map_to_yaw = [self checkKeyPress:n_key_mouse_control_yaw];
 						keyboardRollOverride = mouse_x_axis_map_to_yaw;   // Getafix: set keyboardRollOverride to TRUE only if yaw is mapped to mouse x-axis
 						keyboardPitchOverride = NO;
@@ -1071,9 +1069,7 @@ static NSTimeInterval	time_last_frame;
 					else
 					{
 						[UNIVERSE addMessage:DESC(@"mouse-off") forCount:3.0];
-                    #if OOLITE_GNUSTEP
 						[gameView grabMouseInsideGameWindow:NO];
-                    #endif
 					}
 				}
 				if (OOMouseInteractionModeIsFlightMode([gameController mouseInteractionMode]))
@@ -1093,10 +1089,8 @@ static NSTimeInterval	time_last_frame;
 			{
 				mouse_control_on = NO;
 				[UNIVERSE addMessage:DESC(@"mouse-off") forCount:3.0];
-            #if OOLITE_GNUSTEP
 				[gameView grabMouseInsideGameWindow:NO];
-            #endif
-				
+
 				if (OOMouseInteractionModeIsFlightMode([gameController mouseInteractionMode]))
 				{
 					[gameController setMouseInteractionModeForFlight];

@@ -8904,12 +8904,10 @@ static NSString *SliderString(NSInteger amountIn20ths)
 		float modeRefresh = [mode oo_floatForKey:kOODisplayRefreshRate];
 
 		BOOL runningOnPrimaryDisplayDevice = [gameView isRunningOnPrimaryDisplayDevice];
-#if OOLITE_WINDOWS
 		if (!runningOnPrimaryDisplayDevice)
 		{
 			[gameView getDisplayDimensions:&modeWidth height:&modeHeight];
 		}
-#endif
 		
 		NSString *displayModeString = [self screenModeStringForWidth:modeWidth height:modeHeight refreshRate:modeRefresh];
 		
