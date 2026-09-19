@@ -647,7 +647,7 @@ static BOOL isHitByOctree(Octree_details axialDetails,
 }
 
 
-- (BOOL) isHitByOctree:(Octree *)other withOrigin:(Vector)v0 andIJK:(Triangle)ijk andScales:(GLfloat) s1  s2:(GLfloat)s2
+- (BOOL) isHitByOctree:(Octree *)other withOrigin:(Vector)v0 andIJK:(Triangle)ijk s1:(GLfloat) s1  s2:(GLfloat)s2
 {
 	Octree_details details1 = [self octreeDetails];
 	Octree_details details2 = [other octreeDetails];
