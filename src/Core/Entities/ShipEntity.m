@@ -4405,7 +4405,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	double aspect = [self approachAspectToPrimaryTarget];
 	if (range > 3000.0 || ([target isShip] && [(ShipEntity*)target primaryTarget] != self) || frustration - floor(frustration) > fmin(1.6/max_flight_roll,aspect))
 	{
-		[self trackDestination:delta_t retreat:YES];
+		[self trackPrimaryTarget:delta_t retreat:YES];
 	}
 	else
 	{
@@ -5524,7 +5524,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		behaviour = BEHAVIOUR_ATTACK_TARGET;
 		frustration = 0.0;
 	}
-	[self trackDestination:delta_t retreat:YES];
+	[self trackPrimaryTarget:delta_t retreat:YES];
 
 	if (missiles) [self considerFiringMissile:delta_t];
 
@@ -5567,7 +5567,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		} 
 		frustration = 0.0;
 	}
-	[self trackDestination:delta_t retreat:YES];
+	[self trackPrimaryTarget:delta_t retreat:YES];
 	if ([forward_weapon_type isTurretLaser]) 
 	{
 		// most Thargoids will only have the forward weapon
@@ -5632,7 +5632,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		}
 	}
 
-	[self trackDestination:delta_t retreat:YES];
+	[self trackPrimaryTarget:delta_t retreat:YES];
 
 	Entity *target = [self primaryTarget];
 
