@@ -1417,13 +1417,13 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 }
 
 
-- (BoundingBox)findBoundingBoxRelativeToPosition:(HPVector)opv InVectors:(Vector)i  j:(Vector)j  k:(Vector)k
+- (BoundingBox)findBoundingBoxRelativeToPosition:(HPVector)opv i:(Vector)i  j:(Vector)j  k:(Vector)k
 {
 	// HPVect: check that this conversion doesn't lose needed precision
 	return [[self mesh] findBoundingBoxRelativeToPosition:HPVectorToVector(opv)
-													basis:i rj:j rk:k
+													ri:i rj:j rk:k
 										 selfPosition:HPVectorToVector(position)
-												selfBasis:v_right sj:v_up sk:v_forward];
+												si:v_right sj:v_up sk:v_forward];
 }
 
 
@@ -1490,7 +1490,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 }
 
 
-- (GLfloat)doesHitLine:(HPVector)v0  v1:(HPVector)v1 withPosition:(HPVector)o andIJK:(Vector)i  j:(Vector)j  k:(Vector)k
+- (GLfloat)doesHitLine:(HPVector)v0  v1:(HPVector)v1 withPosition:(HPVector)o i:(Vector)i  j:(Vector)j  k:(Vector)k
 {
 	Vector u0 = HPVectorToVector(HPvector_between(o, v0));	// relative to origin of model / octree
 	Vector u1 = HPVectorToVector(HPvector_between(o, v1));
@@ -9592,7 +9592,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	Vector i = vector_right_from_quaternion(q);
 	Vector j = vector_up_from_quaternion(q);
 	Vector k = vector_forward_from_quaternion(q);
-	BoundingBox arbb = [ship findBoundingBoxRelativeToPosition:kZeroHPVector InVectors:i j:j k:k];
+	BoundingBox arbb = [ship findBoundingBoxRelativeToPosition:kZeroHPVector i:i j:j k:k];
 	Vector result = kZeroVector;
 	switch ([padAlign characterAtIndex:0])
 	{
@@ -14300,7 +14300,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 - (BoundingBox) findBoundingBoxRelativeTo:(Entity *)other InVectors:(Vector)i  j:(Vector)j  k:(Vector)k
 {
 	HPVector  opv = other ? other->position : position;
-	return [self findBoundingBoxRelativeToPosition:opv InVectors:i j:j k:k];
+	return [self findBoundingBoxRelativeToPosition:opv i:i j:j k:k];
 }
 
 

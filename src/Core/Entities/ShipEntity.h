@@ -554,9 +554,9 @@ typedef enum
 // octree collision hunting
 - (GLfloat)doesHitLine:(HPVector)v0  v1:(HPVector)v1;
 - (GLfloat)doesHitLine:(HPVector)v0  v1:(HPVector)v1  hitEntity:(ShipEntity**)hitEntity;
-- (GLfloat)doesHitLine:(HPVector)v0  v1:(HPVector)v1 withPosition:(HPVector)o andIJK:(Vector)i  j:(Vector)j  k:(Vector)k;	// for subentities
+- (GLfloat)doesHitLine:(HPVector)v0  v1:(HPVector)v1 withPosition:(HPVector)o i:(Vector)i  j:(Vector)j  k:(Vector)k;	// for subentities
 
-- (BoundingBox) findBoundingBoxRelativeToPosition:(HPVector)opv InVectors:(Vector)i  j:(Vector)j  k:(Vector)k;
+- (BoundingBox) findBoundingBoxRelativeToPosition:(HPVector)opv i:(Vector)i  j:(Vector)j  k:(Vector)k;
 
 - (HPVector)absoluteTractorPosition;
 

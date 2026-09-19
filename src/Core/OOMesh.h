@@ -177,9 +177,9 @@ typedef struct
 
 // This needs a better name.
 - (BoundingBox) findBoundingBoxRelativeToPosition:(Vector)opv
-											basis:(Vector)ri  rj:(Vector)rj  rk:(Vector)rk
+											ri:(Vector)ri  rj:(Vector)rj  rk:(Vector)rk
 									 selfPosition:(Vector)position
-										selfBasis:(Vector)si  sj:(Vector)sj  sk:(Vector)sk;
+										si:(Vector)si  sj:(Vector)sj  sk:(Vector)sk;
 - (BoundingBox) findSubentityBoundingBoxWithPosition:(Vector)position rotMatrix:(OOMatrix)rotMatrix;
 
 - (OOMesh *) meshRescaledBy:(GLfloat)scaleFactor;
