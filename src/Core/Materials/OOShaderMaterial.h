@@ -151,7 +151,7 @@ typedef uint16_t OOUniformConvertOptions;
 	
 	Additionally, the target may implement the following method, used to seed
 	any random bindings:
-		- (uint32_t) randomSeedForShaders;
+- (uint32_t) randomSeedForShaders;
 */
 -(void) addUniformsFromDictionary:(NSDictionary *)uniformDefs withBindingTarget:(id<OOWeakReferenceSupport>)target;
 

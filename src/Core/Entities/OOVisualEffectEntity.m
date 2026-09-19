@@ -618,7 +618,7 @@ MA 02110-1301, USA.
 static GLfloat default_color[4] =	{ 0.0, 0.0, 0.0, 0.0};
 static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};
 
-- (GLfloat *) scannerDisplayColorForShip:(BOOL)flash :(OOColor *)scannerDisplayColor1 :(OOColor *)scannerDisplayColor2
+- (GLfloat *) scannerDisplayColorForShip:(BOOL)flash  scannerDisplayColor1:(OOColor *)scannerDisplayColor1  scannerDisplayColor2:(OOColor *)scannerDisplayColor2
 {
 	
 	if (scannerDisplayColor1 || scannerDisplayColor2)

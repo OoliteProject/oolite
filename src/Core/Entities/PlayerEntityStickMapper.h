@@ -61,7 +61,7 @@ MA 02110-1301, USA.
 
    // Future: populate via plist
    - (NSDictionary *)makeStickGuiDictHeader:(NSString *)header;
-   - (NSDictionary *)makeStickGuiDict: (NSString *)what 
+   - (NSDictionary *)makeStickGuiDict: (NSString *)what
 							allowable: (int)allowable
 							   axisfn: (int)axisfn
 								butfn: (int)butfn;

@@ -63,7 +63,7 @@ extern NSDictionary* ParseOOSScripts(NSString* script);
 @interface ResourceManager (OOPrivate)
 
 + (void) checkOXPMessagesInPath:(NSString *)path;
-+ (void) checkPotentialPath:(NSString *)path :(NSMutableArray *)searchPaths;
++ (void) checkPotentialPath:(NSString *)path  searchPaths:(NSMutableArray *)searchPaths;
 + (BOOL) validateManifest:(NSDictionary*)manifest forOXP:(NSString *)path;
 + (BOOL) areRequirementsFulfilled:(NSDictionary*)requirements forOXP:(NSString *)path andFile:(NSString *)file;
 + (void) filterSearchPathsForConflicts:(NSMutableArray *)searchPaths;
@@ -269,7 +269,7 @@ static NSMutableDictionary *sStringCache;
 	sSearchPaths = [NSMutableArray new];
 	foreach (path, existingRootPaths)
 	{
-		[self checkPotentialPath:path :sSearchPaths];
+		[self checkPotentialPath:path searchPaths:sSearchPaths];
 	}
 	
 	// Iterate over root paths.
@@ -289,7 +289,7 @@ static NSMutableDictionary *sStringCache;
 						// If it is, is it an OXP?.
 						if ([[[path pathExtension] lowercaseString] isEqualToString:@"oxp"])
 						{
-							[self checkPotentialPath:path :sSearchPaths];
+							[self checkPotentialPath:path searchPaths:sSearchPaths];
 							if ([sSearchPaths containsObject:path])  [self checkOXPMessagesInPath:path];
 						}
 						else
@@ -303,7 +303,7 @@ static NSMutableDictionary *sStringCache;
 						// If not a directory, is it an OXZ?
 						if ([[[path pathExtension] lowercaseString] isEqualToString:@"oxz"])
 						{
-							[self checkPotentialPath:path :sSearchPaths];
+							[self checkPotentialPath:path searchPaths:sSearchPaths];
 							if ([sSearchPaths containsObject:path])  [self checkOXPMessagesInPath:path];
 						}
 					}
@@ -314,7 +314,7 @@ static NSMutableDictionary *sStringCache;
 	
 	foreach (path, sExternalPaths)
 	{
-		[self checkPotentialPath:path :sSearchPaths];
+		[self checkPotentialPath:path searchPaths:sSearchPaths];
 		if ([sSearchPaths containsObject:path])  [self checkOXPMessagesInPath:path];
 	}
 
@@ -610,7 +610,7 @@ static NSMutableDictionary *sStringCache;
 
 
 // Given a path to an assumed OXP (or other location where files are permissible), check for a requires.plist or manifest.plist and add to search paths if acceptable.
-+ (void)checkPotentialPath:(NSString *)path :(NSMutableArray *)searchPaths
++ (void)checkPotentialPath:(NSString *)path  searchPaths:(NSMutableArray *)searchPaths
 {
 	NSDictionary			*requirements = nil;
 	NSDictionary			*manifest = nil;

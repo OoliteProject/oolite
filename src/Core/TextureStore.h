@@ -46,7 +46,7 @@ MA 02110-1301, USA.
 						intoData:(unsigned char **)textureData
 						   width:(GLuint *)textureWidth
 						  height:(GLuint *)textureHeight;
-+ (BOOL) getCloudTextureNameFor:(OOColor *)color :(GLfloat)impress :(GLfloat)bias
++ (BOOL) getCloudTextureNameFor:(OOColor *)color  impress:(GLfloat)impress  bias:(GLfloat)bias
 					   intoData:(unsigned char **)textureData
 						  width:(GLuint *)textureWidth
 						 height:(GLuint *)textureHeight;

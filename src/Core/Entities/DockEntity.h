@@ -118,7 +118,7 @@ MA 02110-1301, USA.
 - (void) addShipToLaunchQueue:(ShipEntity *)ship withPriority:(BOOL)priority;
 
 // Geometry
-- (void) setDimensionsAndCorridor:(BOOL)docking :(BOOL)ddc :(BOOL)launching;
+- (void) setDimensionsAndCorridor:(BOOL)docking  ddc:(BOOL)ddc  launching:(BOOL)launching;
 - (Vector) portUpVectorForShipsBoundingBox:(BoundingBox)bb;
 - (BOOL) isOffCentre;
 - (void) setVirtual;

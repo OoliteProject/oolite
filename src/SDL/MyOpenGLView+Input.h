@@ -39,7 +39,7 @@ MA 02110-1301, USA.
 
 - (void) pollControls;
 
-- (void) setVirtualJoystick:(double) vmx :(double) vmy;
+- (void) setVirtualJoystick:(double) vmx  vmy:(double) vmy;
 - (NSPoint) virtualJoystickPosition;
 
 - (void) clearKeys;
