@@ -4083,7 +4083,7 @@ static JSBool ShipAdjustCargo(JSContext *context, uintN argc, jsval *vp)
 
 	if (adjustment > 0)
 	{
-		NSArray *cargo = [UNIVERSE getContainersOfCommodity:commodity :adjustment]; // non-reified templates
+		NSArray *cargo = [UNIVERSE getContainersOfCommodity:commodity how_much:adjustment]; // non-reified templates
 		ok = [thisEnt addCargo:cargo];
 	}
 	else if (adjustment < 0)

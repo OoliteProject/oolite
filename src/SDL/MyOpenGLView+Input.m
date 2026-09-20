@@ -92,7 +92,7 @@ static NSString * kOOLogKeyDown			= @"input.keyMapping.keyPress.keyDown";
 	[self autoShowMouse];
 	[self setMouseInDeltaMode:OOMouseInteractionModeIsFlightMode(newMode)];
 }
-- (void) setVirtualJoystick:(double) vmx :(double) vmy
+- (void) setVirtualJoystick:(double) vmx  vmy:(double) vmy
 {
 	virtualJoystickPosition.x = vmx;
 	virtualJoystickPosition.y = vmy;
@@ -126,7 +126,7 @@ static NSString * kOOLogKeyDown			= @"input.keyMapping.keyPress.keyDown";
 }
 - (void) resetMouse
 {
-	[self setVirtualJoystick:0.0 :0.0];
+	[self setVirtualJoystick:0.0 vmy:0.0];
 	if ([[PlayerEntity sharedPlayer] isMouseControlOn])
 	{
 		SDL_WarpMouseInWindow(window, viewSize.width / 2, viewSize.height / 2);
@@ -387,7 +387,7 @@ static NSString * kOOLogKeyDown			= @"input.keyMapping.keyPress.keyDown";
 							my /= MAIN_GUI_PIXEL_HEIGHT * w / 640.0;
 						}
 
-						[self setVirtualJoystick:mx :my];
+						[self setVirtualJoystick:mx vmy:my];
 					}
 					else
 					{

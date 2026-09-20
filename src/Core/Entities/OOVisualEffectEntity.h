@@ -110,7 +110,7 @@
 - (OOColor *)scannerDisplayColor2;
 - (void)setScannerDisplayColor1:(OOColor *)color;
 - (void)setScannerDisplayColor2:(OOColor *)color; 
-- (GLfloat *) scannerDisplayColorForShip:(BOOL)flash :(OOColor *)scannerDisplayColor1 :(OOColor *)scannerDisplayColor2;
+- (GLfloat *) scannerDisplayColorForShip:(BOOL)flash  scannerDisplayColor1:(OOColor *)scannerDisplayColor1  scannerDisplayColor2:(OOColor *)scannerDisplayColor2;
 
 - (void) setScript:(NSString *)script_name;
 - (OOJSScript *)script;

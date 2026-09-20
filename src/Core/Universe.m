@@ -1278,7 +1278,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	PlayerEntity*		player = PLAYER;
 	Quaternion			randomQ;
 	
-	NSString*		override_key = [self keyForInterstellarOverridesForSystems:s1 :s2 inGalaxy:galaxyID];
+	NSString*		override_key = [self keyForInterstellarOverridesForSystems:s1 s2:s2 inGalaxy:galaxyID];
 
 	NSDictionary *systeminfo = [systemManager getPropertiesForSystemKey:override_key];
 	
@@ -1289,7 +1289,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	/*- the sky backdrop -*/
 	OOColor *col1 = [OOColor colorWithRed:0.0 green:1.0 blue:0.5 alpha:1.0];
 	OOColor *col2 = [OOColor colorWithRed:0.0 green:1.0 blue:0.0 alpha:1.0];
-	thing = [[SkyEntity alloc] initWithColors:col1:col2 andSystemInfo: systeminfo];	// alloc retains!
+	thing = [[SkyEntity alloc] initWithColors:col1 col2:col2 andSystemInfo:systeminfo];	// alloc retains!
 	[thing setScanClass: CLASS_NO_DRAW];
 	quaternion_set_random(&randomQ);
 	[thing setOrientation:randomQ];
@@ -1441,7 +1441,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	OOColor *col1 = [OOColor colorWithHue:h1 saturation:randf() brightness:0.5 + randf()/2.0 alpha:1.0];
 	OOColor *col2 = [OOColor colorWithHue:h2 saturation:0.5 + randf()/2.0 brightness:0.5 + randf()/2.0 alpha:1.0];
 	
-	thing = [[SkyEntity alloc] initWithColors:col1:col2 andSystemInfo: systeminfo];	// alloc retains!
+	thing = [[SkyEntity alloc] initWithColors:col1 col2:col2 andSystemInfo:systeminfo];	// alloc retains!
 	[thing setScanClass: CLASS_NO_DRAW];
 	[self addEntity:thing];
 //	bgcolor = [(SkyEntity *)thing skyColor];
@@ -4350,7 +4350,7 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 }
 
 
-- (NSArray *) getContainersOfCommodity:(OOCommodityType)commodity_name :(OOCargoQuantity)how_much
+- (NSArray *) getContainersOfCommodity:(OOCommodityType)commodity_name  how_much:(OOCargoQuantity)how_much
 {
 	NSMutableArray	*accumulator = [NSMutableArray arrayWithCapacity:how_much];
 	if (![commodities goodDefined:commodity_name])  
@@ -6208,7 +6208,7 @@ static BOOL MaintainLinkedLists(Universe *uni)
 			v_off.x * v_off.x + v_off.y * v_off.y < cr * cr)						// AND not off to both sides
 		{
 			ShipEntity *entHit = nil;
-			GLfloat hit = [(ShipEntity *)e2 doesHitLine:p0 :p1 :&entHit];	// octree detection
+			GLfloat hit = [(ShipEntity *)e2 doesHitLine:p0 v1:p1 hitEntity:&entHit];	// octree detection
 			
 			if (hit > 0.0 && hit < nearest)
 			{
@@ -8162,7 +8162,7 @@ static void VerifyDesc(NSString *key, id desc)
 }
 
 
-- (NSString *) keyForInterstellarOverridesForSystems:(OOSystemID) s1 :(OOSystemID) s2 inGalaxy:(OOGalaxyID) g
+- (NSString *) keyForInterstellarOverridesForSystems:(OOSystemID) s1  s2:(OOSystemID) s2 inGalaxy:(OOGalaxyID) g
 {
 	return [NSString stringWithFormat:@"interstellar: %d %d %d", g, s1, s2];
 }

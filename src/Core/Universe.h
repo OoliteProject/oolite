@@ -528,7 +528,7 @@ enum
 - (ShipEntity *) reifyCargoPod:(ShipEntity *)cargoObj;
 - (ShipEntity *) cargoPodFromTemplate:(ShipEntity *)cargoObj;
 - (NSArray *) getContainersOfGoods:(OOCargoQuantity)how_many scarce:(BOOL)scarce legal:(BOOL)legal;
-- (NSArray *) getContainersOfCommodity:(OOCommodityType) commodity_name :(OOCargoQuantity) how_many;
+- (NSArray *) getContainersOfCommodity:(OOCommodityType) commodity_name  how_much:(OOCargoQuantity)how_much;
 - (void) fillCargopodWithRandomCargo:(ShipEntity *)cargopod;
 
 - (NSString *) getRandomCommodity;
@@ -677,7 +677,7 @@ enum
 - (BOOL) descriptionBooleanForKey:(NSString *)key;	// Boolean from descriptions.plist, for configuration.
 
 - (NSString *) keyForPlanetOverridesForSystem:(OOSystemID) s inGalaxy:(OOGalaxyID) g;
-- (NSString *) keyForInterstellarOverridesForSystems:(OOSystemID) s1 :(OOSystemID) s2 inGalaxy:(OOGalaxyID) g;
+- (NSString *) keyForInterstellarOverridesForSystems:(OOSystemID) s1  s2:(OOSystemID) s2 inGalaxy:(OOGalaxyID) g;
 - (NSDictionary *) generateSystemData:(OOSystemID) s;
 - (NSDictionary *) generateSystemData:(OOSystemID) s useCache:(BOOL) useCache;
 - (NSDictionary *) currentSystemData;	// Same as generateSystemData:systemSeed unless in interstellar space.
