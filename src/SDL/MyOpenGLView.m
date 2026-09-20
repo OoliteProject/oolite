@@ -901,8 +901,8 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
 
 - (void) grabMouseInsideGameWindow:(BOOL)value
 {
+	SDL_SetWindowMouseGrab(window, value);
 	grabMouseStatus = value;
-	SDL_SetWindowRelativeMouseMode(window, value ? true : false);  // Lock cursor to window, enable relative delta motion
 }
 
 - (void) stringToClipboard:(NSString *)stringToCopy
