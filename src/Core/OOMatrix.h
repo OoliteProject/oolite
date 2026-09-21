@@ -25,9 +25,8 @@ MA 02110-1301, USA.
 */
 
 
-#ifndef INCLUDED_OOMATHS_h
-	#error Do not include OOMatrix.h directly; include OOMaths.h.
-#else
+#include "OOVector.h"
+#include "OOQuaternion.h"
 
 typedef struct OOMatrix
 {
@@ -98,7 +97,6 @@ OOINLINE void OOMatrixGetBasisVectors(OOMatrix m, Vector *outRight, Vector *outU
 OOMatrix OOMatrixOrthogonalize(OOMatrix m) CONST_FUNC;
 
 
-#if OOMATHS_OPENGL_INTEGRATION
 /*	OpenGL conveniences. Need to be macros to work with OOMacroOpenGL. */
 #define OOMatrixValuesForOpenGL(M) (&(M).m[0][0])
 #define GLMultOOMatrix(M) do { OOMatrix m_ = M; OOGL(glMultMatrixf(OOMatrixValuesForOpenGL(m_))); } while (0)
@@ -109,7 +107,6 @@ OOMatrix OOMatrixOrthogonalize(OOMatrix m) CONST_FUNC;
 void GLUniformMatrix3(GLint location, OOMatrix M);
 
 OOINLINE OOMatrix OOMatrixLoadGLMatrix(GLenum matrixID) ALWAYS_INLINE_FUNC;
-#endif
 
 
 #if __OBJC__
@@ -364,13 +361,9 @@ OOINLINE OOMatrix OOMatrixTranspose(OOMatrix m)
 }
 
 
-#if OOMATHS_OPENGL_INTEGRATION
 OOINLINE OOMatrix OOMatrixLoadGLMatrix(GLenum matrixID)
 {
 	OOMatrix m;
 	glGetFloatv(matrixID, OOMatrixValuesForOpenGL(m));
 	return m;
 }
-#endif
-
-#endif	/* INCLUDED_OOMATHS_h */

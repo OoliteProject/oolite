@@ -30,7 +30,8 @@ SOFTWARE.
 
 */
 
-#import <Foundation/Foundation.h>
+#pragma once
+
 #import "OOOpenALController.h"
 #import "OOMaths.h"
 

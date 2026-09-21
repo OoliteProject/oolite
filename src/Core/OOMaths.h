@@ -28,21 +28,12 @@ MA 02110-1301, USA.
 */
 
 
-#ifndef INCLUDED_OOMATHS_h
-#define INCLUDED_OOMATHS_h
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 	
-#ifndef OOMATHS_STANDALONE
-#define OOMATHS_STANDALONE 0
-#endif
-
-#ifndef OOMATHS_OPENGL_INTEGRATION
-#define OOMATHS_OPENGL_INTEGRATION !OOMATHS_STANDALONE
-#endif
-
 #ifdef __OBJC__
 #import <Foundation/Foundation.h>
 #endif
@@ -54,17 +45,9 @@ extern "C" {
 #include <stdint.h>
 #include <limits.h>
 #include <assert.h>
-
-#if OOMATHS_OPENGL_INTEGRATION
 #include "OOOpenGL.h"
-#endif
 
-
-#if OOMATHS_OPENGL_INTEGRATION
 typedef GLfloat OOScalar;
-#else
-typedef float OOScalar;
-#endif
 
 typedef double OOHPScalar;
 
@@ -119,23 +102,14 @@ typedef double OOHPScalar;
 #endif
 
 
-#include "OOFastArithmetic.h"
-#include "OOVector.h"
 #include "OOHPVector.h"
-#include "OOQuaternion.h"
 #include "OOMatrix.h"
-
-#if !OOMATHS_STANDALONE
 #include "OOVoxel.h"
 #include "OOTriangle.h"
 #include "OOBoundingBox.h"
-
 #include "legacy_random.h"
-#endif
 
 
 #ifdef __cplusplus
 }
 #endif
-
-#endif	/* INCLUDED_OOMATHS_h */

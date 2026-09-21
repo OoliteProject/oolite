@@ -21,7 +21,6 @@ MA 02110-1301, USA.
 
  */
 
-#import "OOWaypointEntity.h"
 #import "OOJSWaypoint.h"
 #import "OOJSEntity.h"
 #import "OOJSVector.h"

@@ -32,6 +32,10 @@ MA 02110-1301, USA.
 
 */
 
+#pragma once
+
+#import "OOFoundation.h"
+
 #define STICKPROFILE_TYPE_STANDARD	1
 #define STICKPROFILE_TYPE_SPLINE	2
 #define STICKPROFILE_MAX_POWER		10.0

@@ -33,7 +33,6 @@ MA 02110-1301, USA.
 #import "OOEquipmentType.h"
 #import "OOShipRegistry.h"
 #import "OOConstToString.h"
-#import "StationEntity.h"
 #import "GameController.h"
 
 

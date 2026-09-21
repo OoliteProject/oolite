@@ -27,7 +27,6 @@ MA 02110-1301, USA.
 #import "png.h"
 #import "MyOpenGLView.h"
 #import "MyOpenGLView+Input.h"
-
 #import "GameController.h"
 #import "Universe.h"
 #import "OOSDLJoystickManager.h"

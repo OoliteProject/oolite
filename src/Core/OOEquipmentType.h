@@ -28,6 +28,8 @@ SOFTWARE.
 
 */
 
+#pragma once
+
 #import "OOFoundation.h"
 #import "OOTypes.h"
 #import "OOScript.h"

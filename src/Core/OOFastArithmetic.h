@@ -24,11 +24,7 @@ MA 02110-1301, USA.
 
 */
 
-
-#ifndef INCLUDED_OOMATHS_h
-	#error Do not include OOFastArithmetic.h directly; include OOMaths.h.
-#else
-
+#pragma once
 
 /* Clamp to range. */
 OOINLINE float OOClamp_0_1_f(float value) INLINE_CONST_FUNC;
@@ -107,7 +103,3 @@ OOINLINE double OOLerpd(double v0, double v1, double fraction)
 	// Linear interpolation - equivalent to v0 * (1.0 - fraction) + v1 * fraction.
 	return v0 + fraction * (v1 - v0);
 }
-
-
-
-#endif	/* INCLUDED_OOMATHS_h */

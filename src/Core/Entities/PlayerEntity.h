@@ -26,6 +26,8 @@ MA 02110-1301, USA.
 
 */
 
+#pragma once
+
 #import <Foundation/Foundation.h>
 #import "WormholeEntity.h"
 #import "ShipEntity.h"

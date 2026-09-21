@@ -24,6 +24,7 @@ MA 02110-1301, USA.
 
 */
 
+#pragma once
 
 #import "OOFoundation.h"
 #import "OOMaths.h"

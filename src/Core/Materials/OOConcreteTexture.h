@@ -28,6 +28,9 @@ SOFTWARE.
 
 */
 
+#pragma once
+
+#import "OOOpenGLExtensionManager.h"
 #import "OOTexture.h"
 
 

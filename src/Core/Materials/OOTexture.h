@@ -31,6 +31,8 @@ SOFTWARE.
 
 */
 
+#pragma once
+
 #import <Foundation/Foundation.h>
 
 #import "OOOpenGL.h"

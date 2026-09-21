@@ -26,9 +26,7 @@
 
 #import "OOTextureInternal.h"
 #import "OOConcreteTexture.h"
-
 #import "OOTextureLoader.h"
-
 #import "OOCollectionExtractors.h"
 #import "Universe.h"
 #import "ResourceManager.h"
