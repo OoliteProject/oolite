@@ -671,6 +671,7 @@ typedef enum
 
 	NSArray					*n_key_oxzmanager_setfilter;
 	NSArray					*n_key_oxzmanager_showinfo;
+	NSArray					*n_key_oxzmanager_copyurl;
 	NSArray					*n_key_oxzmanager_extract;
 	
 #if OO_FOV_INFLIGHT_CONTROL_ENABLED

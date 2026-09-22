@@ -497,6 +497,7 @@ static NSTimeInterval	time_last_frame;
 
 	LOAD_KEY_SETTING2(n_key_oxzmanager_setfilter, 'f', NO, NO, 0, NO, NO);
 	LOAD_KEY_SETTING2(n_key_oxzmanager_showinfo, 'i', NO, NO, 0, NO, NO);
+	LOAD_KEY_SETTING2(n_key_oxzmanager_copyurl, 'c', NO, NO, 0, NO, NO);
 	LOAD_KEY_SETTING2(n_key_oxzmanager_extract, 'x', NO, NO, 0, NO, NO);
 	
 #if OO_FOV_INFLIGHT_CONTROL_ENABLED
@@ -5164,6 +5165,7 @@ static BOOL autopilot_pause;
 				} // endif isAcceptingGUIInput
 				if ([self checkKeyPress:n_key_oxzmanager_setfilter] ||
 					[self checkKeyPress:n_key_oxzmanager_showinfo] ||
+					[self checkKeyPress:n_key_oxzmanager_copyurl] ||
 					[self checkKeyPress:n_key_oxzmanager_extract])
 				{
 					if (!oxz_manager_pressed)
@@ -5176,6 +5178,10 @@ static BOOL autopilot_pause;
 						else if ([self checkKeyPress:n_key_oxzmanager_showinfo])
 						{
 							[oxzmanager processShowInfoKey];
+						}
+						else if ([self checkKeyPress:n_key_oxzmanager_copyurl])
+						{
+							[oxzmanager processCopyUrlKey];
 						}
 						else if ([self checkKeyPress:n_key_oxzmanager_extract])
 						{

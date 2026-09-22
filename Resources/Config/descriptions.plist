@@ -1379,6 +1379,7 @@
 
 	"oolite-keydesc-key_oxzmanager_setfilter"	= "Set filter";
 	"oolite-keydesc-key_oxzmanager_showinfo"	= "Show info";
+	"oolite-keydesc-key_oxzmanager_copyurl"		= "Copy OXP URL";
 	"oolite-keydesc-key_oxzmanager_extract"		= "Extract content";
 	
 	"oolite-keydesc-key_dump_target_state" 		= "Dump target state";
@@ -1499,8 +1500,8 @@
 	"oolite-oxzmanager-installable-manual"	= "Status: Manually installed; cannot also be installed automatically.";
 	"oolite-oxzmanager-installable-version"	= "Status: Incompatible with this version of Oolite.";
 	"oolite-oxzmanager-installable-noremote"= "Status: Installed but no longer available for download.";
-	"oolite-oxzmanager-installer-nonepicked" = "Select a pack and press return to install or upgrade it if possible. Packs in orange can be installed but will require other packs to be installed before they work, or conflict with a pack you have already installed. Press '[oolite_key_oxzmanager_showinfo]' to get more information on a selected pack.";
-	"oolite-oxzmanager-installed-nonepicked" = "Select a pack and press return to upgrade it if upgrades are available. Manually installed packs are not listed here. Press '[oolite_key_oxzmanager_showinfo]' to get more information on a selected pack, or '[oolite_key_oxzmanager_extract]' to extract it to your AddOns folder.";
+	"oolite-oxzmanager-installer-nonepicked" = "Select a pack and press return to install or upgrade it if possible. Packs in orange can be installed but will require other packs to be installed before they work, or conflict with a pack you have already installed. Press '[oolite_key_oxzmanager_showinfo]' to get more information on a selected pack or '[oolite_key_oxzmanager_copyurl]' to copy the pack's URL.";
+	"oolite-oxzmanager-installed-nonepicked" = "Select a pack and press return to upgrade it if upgrades are available. Manually installed packs are not listed here. Press '[oolite_key_oxzmanager_showinfo]' to get more information on a selected pack, '[oolite_key_oxzmanager_copyurl]' to copy the pack's URL, or '[oolite_key_oxzmanager_extract]' to extract it to your AddOns folder.";
 	"oolite-oxzmanager-remover-nonepicked" = "Select a pack and press return to remove it. If the pack is coloured blue it is no longer available for download and you will not be able to reinstall it if you remove it.";
 
 	"oolite-oxzmanager-text-prompt-@" 		= "New Filter = %@";
@@ -1514,7 +1515,7 @@
 	"oolite-oxzmanager-infopage-tags-@"			= "Tags: %@";
 	"oolite-oxzmanager-infopage-description-@"	= "Description: %@";
 	"oolite-oxzmanager-infopage-infourl-@"		= "URL: %@";
-	"oolite-oxzmanager-infopage-return"			= "Press '[oolite_key_oxzmanager_showinfo]' again to return";
+	"oolite-oxzmanager-infopage-return"			= "Press '[oolite_key_oxzmanager_copyurl]' to copy the pack's URL, or '[oolite_key_oxzmanager_showinfo]' again to return";
 
 	"oolite-oxzmanager-extract-info"			= "Extracting an expansion pack installed through the manager will unzip it and place it into your AddOns folder. You do not need to do this to play Oolite with the pack - only if you want to look inside it or modify it.";
 	"oolite-oxzmanager-extract-releasebuild"	= "If you want to modify or build your own expansions, the developer release of Oolite has several useful additional features.";
