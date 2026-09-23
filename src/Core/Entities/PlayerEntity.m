@@ -8904,12 +8904,10 @@ static NSString *SliderString(NSInteger amountIn20ths)
 		float modeRefresh = [mode oo_floatForKey:kOODisplayRefreshRate];
 
 		BOOL runningOnPrimaryDisplayDevice = [gameView isRunningOnPrimaryDisplayDevice];
-#if OOLITE_WINDOWS
 		if (!runningOnPrimaryDisplayDevice)
 		{
 			[gameView getDisplayDimensions:&modeWidth height:&modeHeight];
 		}
-#endif
 		
 		NSString *displayModeString = [self screenModeStringForWidth:modeWidth height:modeHeight refreshRate:modeRefresh];
 		
@@ -13626,6 +13624,7 @@ else _dockTarget = NO_TARGET;
 	n_key_switch_previous_mfd &&
 	n_key_oxzmanager_setfilter &&
 	n_key_oxzmanager_showinfo &&
+	n_key_oxzmanager_copyurl &&
 	n_key_oxzmanager_extract &&
 #if OO_FOV_INFLIGHT_CONTROL_ENABLED
 	n_key_inc_field_of_view &&

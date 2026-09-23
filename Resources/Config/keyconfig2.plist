@@ -503,6 +503,9 @@
         key_oxzmanager_showinfo = ({
             key = "i";
         });
+        key_oxzmanager_copyurl = ({
+            key = "c";
+        });
         key_oxzmanager_extract = ({
             key = "x";
         });
@@ -1015,6 +1018,9 @@
         });
         key_oxzmanager_showinfo = ({
             key = "i";
+        });
+        key_oxzmanager_copyurl = ({
+            key = "c";
         });
         key_oxzmanager_extract = ({
             key = "x";
@@ -1533,6 +1539,9 @@
         key_oxzmanager_showinfo = ({
             key = "i";
         });
+        key_oxzmanager_copyurl = ({
+            key = "c";
+        });
         key_oxzmanager_extract = ({
             key = "x";
         });
@@ -2048,6 +2057,9 @@
         key_oxzmanager_showinfo = ({
             key = "i";
         });
+        key_oxzmanager_copyurl = ({
+            key = "c";
+        });
         key_oxzmanager_extract = ({
             key = "x";
         });
@@ -2562,6 +2574,9 @@
         });
         key_oxzmanager_showinfo = ({
             key = "i";
+        });
+        key_oxzmanager_copyurl = ({
+            key = "c";
         });
         key_oxzmanager_extract = ({
             key = "x";
@@ -3087,6 +3102,9 @@
         key_oxzmanager_showinfo = ({
             key = "i";
         });
+        key_oxzmanager_copyurl = ({
+            key = "c";
+        });
         key_oxzmanager_extract = ({
             key = "x";
         });
@@ -3604,6 +3622,9 @@
         key_oxzmanager_showinfo = ({
             key = "i";
         });
+        key_oxzmanager_copyurl = ({
+            key = "c";
+        });
         key_oxzmanager_extract = ({
             key = "x";
         });
@@ -4118,6 +4139,9 @@
         });
         key_oxzmanager_showinfo = ({
             key = "i";
+        });
+        key_oxzmanager_copyurl = ({
+            key = "c";
         });
         key_oxzmanager_extract = ({
             key = "x";
@@ -4634,6 +4658,9 @@
         key_oxzmanager_showinfo = ({
             key = "i";
         });
+        key_oxzmanager_copyurl = ({
+            key = "c";
+        });
         key_oxzmanager_extract = ({
             key = "x";
         });
@@ -5146,6 +5173,9 @@
         });
         key_oxzmanager_showinfo = ({
             key = "i";
+        });
+        key_oxzmanager_copyurl = ({
+            key = "c";
         });
         key_oxzmanager_extract = ({
             key = "x";
@@ -5662,6 +5692,9 @@
         key_oxzmanager_showinfo = ({
             key = "i";
         });
+        key_oxzmanager_copyurl = ({
+            key = "c";
+        });
         key_oxzmanager_extract = ({
             key = "x";
         });
@@ -6177,6 +6210,9 @@
         });
         key_oxzmanager_showinfo = ({
             key = "i";
+        });
+        key_oxzmanager_copyurl = ({
+            key = "c";
         });
         key_oxzmanager_extract = ({
             key = "x";
@@ -6695,6 +6731,9 @@
         key_oxzmanager_showinfo = ({
             key = "i";
         });
+        key_oxzmanager_copyurl = ({
+            key = "c";
+        });
         key_oxzmanager_extract = ({
             key = "x";
         });
@@ -7209,6 +7248,9 @@
         });
         key_oxzmanager_showinfo = ({
             key = "i";
+        });
+        key_oxzmanager_copyurl = ({
+            key = "c";
         });
         key_oxzmanager_extract = ({
             key = "x";
@@ -7726,6 +7768,9 @@
         key_oxzmanager_showinfo = ({
             key = "i";
         });
+        key_oxzmanager_copyurl = ({
+            key = "c";
+        });
         key_oxzmanager_extract = ({
             key = "x";
         });
@@ -8239,6 +8284,9 @@
         });
         key_oxzmanager_showinfo = ({
             key = "i";
+        });
+        key_oxzmanager_copyurl = ({
+            key = "c";
         });
         key_oxzmanager_extract = ({
             key = "x";

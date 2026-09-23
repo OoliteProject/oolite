@@ -64,6 +64,7 @@ typedef enum {
 	NSArray 			*_managedList;
 	NSArray				*_filteredList;
 	NSString			*_currentFilter;
+	NSString			*_currentOXPURL;
 
 	OXZInterfaceState	_interfaceState;
 	BOOL				_interfaceShowingOXZDetail;
@@ -108,6 +109,7 @@ typedef enum {
 - (void) refreshTextInput:(NSString *)input;
 - (void) processFilterKey;
 - (void) processShowInfoKey;
+- (void) processCopyUrlKey;
 - (void) processExtractKey;
 - (OOGUIRow) showInstallOptions;
 - (OOGUIRow) showRemoveOptions;

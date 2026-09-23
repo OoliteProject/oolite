@@ -497,6 +497,7 @@ static NSTimeInterval	time_last_frame;
 
 	LOAD_KEY_SETTING2(n_key_oxzmanager_setfilter, 'f', NO, NO, 0, NO, NO);
 	LOAD_KEY_SETTING2(n_key_oxzmanager_showinfo, 'i', NO, NO, 0, NO, NO);
+	LOAD_KEY_SETTING2(n_key_oxzmanager_copyurl, 'c', NO, NO, 0, NO, NO);
 	LOAD_KEY_SETTING2(n_key_oxzmanager_extract, 'x', NO, NO, 0, NO, NO);
 	
 #if OO_FOV_INFLIGHT_CONTROL_ENABLED
@@ -1056,13 +1057,11 @@ static NSTimeInterval	time_last_frame;
 						/*	Ensure the keyboard pitch override (intended to lock
 						 out the joystick if the player runs to the keyboard)
 						 is reset */
-					#if OOLITE_GNUSTEP
 						[gameView resetMouse];
 						if ([[NSUserDefaults standardUserDefaults] boolForKey:@"grab-mouse-on-mouse-control"])
 						{
 							[gameView grabMouseInsideGameWindow:YES];
 						}
-					#endif
 						mouse_x_axis_map_to_yaw = [self checkKeyPress:n_key_mouse_control_yaw];
 						keyboardRollOverride = mouse_x_axis_map_to_yaw;   // Getafix: set keyboardRollOverride to TRUE only if yaw is mapped to mouse x-axis
 						keyboardPitchOverride = NO;
@@ -1071,9 +1070,7 @@ static NSTimeInterval	time_last_frame;
 					else
 					{
 						[UNIVERSE addMessage:DESC(@"mouse-off") forCount:3.0];
-                    #if OOLITE_GNUSTEP
 						[gameView grabMouseInsideGameWindow:NO];
-                    #endif
 					}
 				}
 				if (OOMouseInteractionModeIsFlightMode([gameController mouseInteractionMode]))
@@ -1093,10 +1090,8 @@ static NSTimeInterval	time_last_frame;
 			{
 				mouse_control_on = NO;
 				[UNIVERSE addMessage:DESC(@"mouse-off") forCount:3.0];
-            #if OOLITE_GNUSTEP
 				[gameView grabMouseInsideGameWindow:NO];
-            #endif
-				
+
 				if (OOMouseInteractionModeIsFlightMode([gameController mouseInteractionMode]))
 				{
 					[gameController setMouseInteractionModeForFlight];
@@ -5170,6 +5165,7 @@ static BOOL autopilot_pause;
 				} // endif isAcceptingGUIInput
 				if ([self checkKeyPress:n_key_oxzmanager_setfilter] ||
 					[self checkKeyPress:n_key_oxzmanager_showinfo] ||
+					[self checkKeyPress:n_key_oxzmanager_copyurl] ||
 					[self checkKeyPress:n_key_oxzmanager_extract])
 				{
 					if (!oxz_manager_pressed)
@@ -5182,6 +5178,10 @@ static BOOL autopilot_pause;
 						else if ([self checkKeyPress:n_key_oxzmanager_showinfo])
 						{
 							[oxzmanager processShowInfoKey];
+						}
+						else if ([self checkKeyPress:n_key_oxzmanager_copyurl])
+						{
+							[oxzmanager processCopyUrlKey];
 						}
 						else if ([self checkKeyPress:n_key_oxzmanager_extract])
 						{

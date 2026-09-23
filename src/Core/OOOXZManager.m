@@ -405,6 +405,12 @@ static OOOXZManager *sSingleton = nil;
 	_currentFilter = [[filter lowercaseString] copy]; // copy retains
 }
 
+- (void) setOXPURL:(NSString *)url
+{
+	DESTROY(_currentOXPURL);
+	_currentOXPURL = [[url lowercaseString] copy]; // copy retains
+}
+
 
 - (NSArray *) applyCurrentFilter:(NSArray *)list
 {
@@ -1653,9 +1659,7 @@ static OOOXZManager *sSingleton = nil;
 			[gui setText:[NSString stringWithFormat:DESC(@"oolite-oxzmanager-infopage-infourl-@"),
 								   infoURLString]
 				  forRow:25 align:GUI_ALIGN_LEFT];
-			// copy url info text to clipboard automatically once we are in the oxz info page
-			[[UNIVERSE gameView] stringToClipboard:infoURLString];	  
-				  
+			[self setOXPURL:infoURLString];
 // instructions
 			[gui setText:OOExpand(DESC(@"oolite-oxzmanager-infopage-return")) forRow:27 align:GUI_ALIGN_CENTER];
 			[gui setColor:[OOColor greenColor] forRow:27];
@@ -1664,6 +1668,36 @@ static OOOXZManager *sSingleton = nil;
 	}
 }
 
+- (void) processCopyUrlKey
+{
+
+	if (_interfaceState == OXZ_STATE_PICK_INSTALL || _interfaceState == OXZ_STATE_PICK_INSTALLED || _interfaceState == OXZ_STATE_PICK_REMOVE)
+	{
+		GuiDisplayGen	*gui = [UNIVERSE gui];
+
+		if (_interfaceShowingOXZDetail)
+		{
+			[[UNIVERSE gameView] stringToClipboard:_currentOXPURL];
+		}
+		else
+		{
+			OOGUIRow selection = [gui selectedRow];
+
+			if (selection < OXZ_GUI_ROW_LISTSTART || selection >= OXZ_GUI_ROW_LISTSTART + OXZ_GUI_NUM_LISTROWS)
+			{
+				// not on an OXZ
+				return;
+			}
+			_item = _offset + selection - OXZ_GUI_ROW_LISTSTART;
+
+			NSDictionary *manifest = [_filteredList oo_dictionaryAtIndex:_item];
+// infoURL
+			NSString *infoURLString = [manifest oo_stringForKey:kOOManifestInformationURL];
+			// copy url info text to clipboard automatically once we are in the oxz info page
+			[[UNIVERSE gameView] stringToClipboard:infoURLString];
+		}
+	}
+}
 
 - (void) processExtractKey
 {
