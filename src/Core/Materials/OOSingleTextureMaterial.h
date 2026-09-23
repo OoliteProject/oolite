@@ -31,24 +31,22 @@ SOFTWARE.
 
 @class OOTexture;
 
-
-@interface OOSingleTextureMaterial: OOBasicMaterial
-{
+@interface OOSingleTextureMaterial : OOBasicMaterial {
 @private
-	OOTexture				*_texture;
+    OOTexture* _texture;
 }
 
 /*	In addition to OOBasicMateral configuration keys, an OOTexture
-	configuration dictionary may be used. If there is a "texture" entry, it
-	will be used; otherwise, if there is a "textures" array, its first member
-	will be used.
-	
-	If the found OOTexture config dictionary contains a "name" key, it will be
-	used in preference to the name parameter.
+        configuration dictionary may be used. If there is a "texture" entry, it
+        will be used; otherwise, if there is a "textures" array, its first member
+        will be used.
+
+        If the found OOTexture config dictionary contains a "name" key, it will be
+        used in preference to the name parameter.
 */
-- (id)initWithName:(NSString *)name configuration:(NSDictionary *)configuration;
+- (id)initWithName:(NSString*)name configuration:(NSDictionary*)configuration;
 
 // Designated initializer
-- (id) initWithName:(NSString *)name texture:(OOTexture *)texture configuration:(NSDictionary *)configuration;
+- (id)initWithName:(NSString*)name texture:(OOTexture*)texture configuration:(NSDictionary*)configuration;
 
 @end

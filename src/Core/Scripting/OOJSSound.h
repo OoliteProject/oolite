@@ -25,19 +25,17 @@ MA 02110-1301, USA.
 */
 
 #pragma once
+#import "OOSound.h"
 #import <Foundation/Foundation.h>
 #include <jsapi.h>
-#import "OOSound.h"
 
 @class OOSound;
 
-
-void InitOOJSSound(JSContext *context, JSObject *global);
-
+void InitOOJSSound(JSContext* context, JSObject* global);
 
 /*	SoundFromJSValue()
-	
-	Convert a JS value to a sound. The value may be either a Sound object or a
-	string specifying a sound name.
+
+        Convert a JS value to a sound. The value may be either a Sound object or a
+        string specifying a sound name.
  */
-OOSound *SoundFromJSValue(JSContext *context, jsval value);
+OOSound* SoundFromJSValue(JSContext* context, jsval value);

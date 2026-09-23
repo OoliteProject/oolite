@@ -32,46 +32,43 @@ SOFTWARE.
 
 #pragma once
 
-#import "OOOpenALController.h"
 #import "OOMaths.h"
+#import "OOOpenALController.h"
 
 @class OOSound;
 
-
-@interface OOSoundChannel: NSObject
-{
-	OOSoundChannel				*_next;
-	id							_delegate;
-	OOSound						*_sound;
-	ALuint						_buffer;
-	ALuint						_lastBuffer;
-	BOOL						_bigSound;
-	ALuint						_source;
-	BOOL						_playing;
-	BOOL						_loop;
+@interface OOSoundChannel : NSObject {
+    OOSoundChannel* _next;
+    id _delegate;
+    OOSound* _sound;
+    ALuint _buffer;
+    ALuint _lastBuffer;
+    BOOL _bigSound;
+    ALuint _source;
+    BOOL _playing;
+    BOOL _loop;
 }
 
-- (void) update;
+- (void)update;
 
-- (void) setDelegate:(id)delegate;
+- (void)setDelegate:(id)delegate;
 
 // Unretained pointer used to maintain simple stack
-- (OOSoundChannel *) next;
-- (void) setNext:(OOSoundChannel *)next;
+- (OOSoundChannel*)next;
+- (void)setNext:(OOSoundChannel*)next;
 
 // set sound position relative to listener
-- (void) setPosition:(Vector) vector;
-- (void) setGain:(float) gain;
-- (BOOL) playSound:(OOSound *)sound looped:(BOOL)loop;
+- (void)setPosition:(Vector)vector;
+- (void)setGain:(float)gain;
+- (BOOL)playSound:(OOSound*)sound looped:(BOOL)loop;
 - (void)stop;
 
-- (OOSound *)sound;
+- (OOSound*)sound;
 
 @end
 
+@interface NSObject (OOSoundChannelDelegate)
 
-@interface NSObject(OOSoundChannelDelegate)
-
-- (void)channel:(OOSoundChannel *)inChannel didFinishPlayingSound:(OOSound *)inSound;
+- (void)channel:(OOSoundChannel*)inChannel didFinishPlayingSound:(OOSound*)inSound;
 
 @end

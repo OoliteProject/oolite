@@ -2,11 +2,15 @@
 
 #if OOLITE_OPENAL
 
-#import "OOALSoundMixer.h"
 #import "OOALSoundChannel.h"
+#import "OOALSoundMixer.h"
 
-#define OOSoundAcquireLock() do {} while(0)
-#define OOSoundReleaseLock() do {} while(0)
+#define OOSoundAcquireLock() \
+    do {                     \
+    } while (0)
+#define OOSoundReleaseLock() \
+    do {                     \
+    } while (0)
 
 #else
 

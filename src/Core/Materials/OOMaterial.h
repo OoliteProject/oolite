@@ -10,7 +10,7 @@ This is an abstract class; actual materials should be subclasses.
 Currently, only shader materials are supported. Direct use of textures should
 also be replaced with an OOMaterial subclass.
 
- 
+
 Copyright (C) 2007-2013 Jens Ayton and contributors
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -33,63 +33,60 @@ SOFTWARE.
 
 */
 
-#import <Foundation/Foundation.h>
 #import "OOOpenGL.h"
-#import "OOWeakReference.h"
 #import "OOOpenGLExtensionManager.h"
+#import "OOWeakReference.h"
+#import <Foundation/Foundation.h>
 
-
-@interface OOMaterial: NSObject
+@interface OOMaterial : NSObject
 
 // Called once at startup (by -[Universe init]).
-+ (void) setUp;
++ (void)setUp;
 
-
-- (NSString *) name;
+- (NSString*)name;
 
 // Make this the current material.
-- (void) apply;
+- (void)apply;
 
 /*	Make no material the current material, tearing down anything set up by the
-	current material.
+        current material.
 */
-+ (void) applyNone;
++ (void)applyNone;
 
 /*	Get current material.
-*/
-+ (OOMaterial *) current;
+ */
++ (OOMaterial*)current;
 
 /*	Ensure material is ready to be used in a display list. This is not
-	required before using a material directly.
+        required before using a material directly.
 */
-- (void) ensureFinishedLoading;
-- (BOOL) isFinishedLoading;
+- (void)ensureFinishedLoading;
+- (BOOL)isFinishedLoading;
 
 // Only used by shader material, but defined for all materials for convenience.
-- (void) setBindingTarget:(id<OOWeakReferenceSupport>)target;
+- (void)setBindingTarget:(id<OOWeakReferenceSupport>)target;
 
 // True if material wants three-component cube map texture coordinates.
-- (BOOL) wantsNormalsAsTextureCoordinates;
+- (BOOL)wantsNormalsAsTextureCoordinates;
 
 #if OO_MULTITEXTURE
 // Nasty hack: number of texture units for which the drawable should set its basic texture coordinates.
-- (NSUInteger) countOfTextureUnitsWithBaseCoordinates;
+- (NSUInteger)countOfTextureUnitsWithBaseCoordinates;
 #endif
 
 #ifndef NDEBUG
-- (NSSet *) allTextures;
+- (NSSet*)allTextures;
 #endif
 
 @end
 
-
 @interface OOMaterial (OOSubclassInterface)
 
 // Subclass responsibilities - don't call directly.
-- (BOOL) doApply;	// Override instead of -apply
-- (void) unapplyWithNext:(OOMaterial *)next;
+- (BOOL)doApply; // Override instead of -apply
+- (void)unapplyWithNext:(OOMaterial*)next;
 
 // Call at top of dealloc
-- (void) willDealloc;
+- (void)willDealloc;
 
 @end

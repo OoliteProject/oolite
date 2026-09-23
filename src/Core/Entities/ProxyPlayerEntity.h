@@ -28,80 +28,76 @@ MA 02110-1301, USA.
 
 #import "PlayerEntity.h"
 
-
-@interface ProxyPlayerEntity: ShipEntity
-{
+@interface ProxyPlayerEntity : ShipEntity {
 @private
-	float					_fuelLeakRate;
-	GLfloat					_dialForwardShield;
-	GLfloat					_dialAftShield;
-	OOMissileStatus			_missileStatus;
-	OOFuelScoopStatus		_fuelScoopStatus;
-	OOCompassMode			_compassMode;
-	OOAlertCondition		_alertCondition;
-	NSUInteger				_trumbleCount;
-	int						_tradeInFactor;
-	unsigned				_massLocked: 1,
-							_atHyperspeed: 1,
-							_dialIdentEngaged: 1;
+    float _fuelLeakRate;
+    GLfloat _dialForwardShield;
+    GLfloat _dialAftShield;
+    OOMissileStatus _missileStatus;
+    OOFuelScoopStatus _fuelScoopStatus;
+    OOCompassMode _compassMode;
+    OOAlertCondition _alertCondition;
+    NSUInteger _trumbleCount;
+    int _tradeInFactor;
+    unsigned _massLocked : 1,
+        _atHyperspeed : 1,
+        _dialIdentEngaged : 1;
 }
 
-- (void) copyValuesFromPlayer:(PlayerEntity *)player;
-
+- (void)copyValuesFromPlayer:(PlayerEntity*)player;
 
 // Default: 0
-- (float) fuelLeakRate;
-- (void) setFuelLeakRate:(float)value;
+- (float)fuelLeakRate;
+- (void)setFuelLeakRate:(float)value;
 
 // Default: NO
-- (BOOL) massLocked;
-- (void) setMassLocked:(BOOL)value;
+- (BOOL)massLocked;
+- (void)setMassLocked:(BOOL)value;
 
 // Default: NO
-- (BOOL) atHyperspeed;
-- (void) setAtHyperspeed:(BOOL)value;
+- (BOOL)atHyperspeed;
+- (void)setAtHyperspeed:(BOOL)value;
 
 // Default: 1
-- (GLfloat) dialForwardShield;
-- (void) setDialForwardShield:(GLfloat)value;
+- (GLfloat)dialForwardShield;
+- (void)setDialForwardShield:(GLfloat)value;
 
 // Default: 1
-- (GLfloat) dialAftShield;
-- (void) setDialAftShield:(GLfloat)value;
+- (GLfloat)dialAftShield;
+- (void)setDialAftShield:(GLfloat)value;
 
 // Default: MISSILE_STATUS_SAFE
-- (OOMissileStatus) dialMissileStatus;
-- (void) setDialMissileStatus:(OOMissileStatus)value;
+- (OOMissileStatus)dialMissileStatus;
+- (void)setDialMissileStatus:(OOMissileStatus)value;
 
 // Default: SCOOP_STATUS_NOT_INSTALLED or SCOOP_STATUS_OKAY depending on equipment.
-- (OOFuelScoopStatus) dialFuelScoopStatus;
-- (void) setDialFuelScoopStatus:(OOFuelScoopStatus)value;
+- (OOFuelScoopStatus)dialFuelScoopStatus;
+- (void)setDialFuelScoopStatus:(OOFuelScoopStatus)value;
 
 // Default: COMPASS_MODE_BASIC or COMPASS_MODE_PLANET depending on equipment.
-- (OOCompassMode) compassMode;
-- (void) setCompassMode:(OOCompassMode)value;
+- (OOCompassMode)compassMode;
+- (void)setCompassMode:(OOCompassMode)value;
 
 // Default: NO
-- (BOOL) dialIdentEngaged;
-- (void) setDialIdentEngaged:(BOOL)value;
+- (BOOL)dialIdentEngaged;
+- (void)setDialIdentEngaged:(BOOL)value;
 
 // Default: ALERT_CONDITION_DOCKED
-- (OOAlertCondition) alertCondition;
-- (void) setAlertCondition:(OOAlertCondition)condition;
+- (OOAlertCondition)alertCondition;
+- (void)setAlertCondition:(OOAlertCondition)condition;
 
 // Default: 0
-- (NSUInteger) trumbleCount;
-- (void) setTrumbleCount:(NSUInteger)value;
+- (NSUInteger)trumbleCount;
+- (void)setTrumbleCount:(NSUInteger)value;
 
-- (void) setTradeInFactor:(int)tif;
-- (int) tradeInFactor;
+- (void)setTradeInFactor:(int)tif;
+- (int)tradeInFactor;
 
 @end
-
 
 @interface Entity (ProxyPlayer)
 
 // True for PlayerEntity or ProxyPlayerEntity.
-- (BOOL) isPlayerLikeShip;
+- (BOOL)isPlayerLikeShip;
 
 @end

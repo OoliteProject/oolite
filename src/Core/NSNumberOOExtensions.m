@@ -28,45 +28,42 @@ SOFTWARE.
 #import "NSNumberOOExtensions.h"
 #import "OOFunctionAttributes.h"
 
-
 @implementation NSNumber (OOExtensions)
 
-- (BOOL) oo_isFloatingPointNumber
+- (BOOL)oo_isFloatingPointNumber
 {
 #if __COREFOUNDATION_CFNUMBER__
-	return CFNumberIsFloatType((CFNumberRef)self);
+    return CFNumberIsFloatType((CFNumberRef)self);
 #else
-	/*	This happily assumes the compiler will inline strcmp() where one
-		argument is a single-character constant string. Verified under
-		apple-gcc 4.0 (even with -O0).
-	*/
-	const char *type = [self objCType];
-	return (strcmp(type, @encode(double)) == 0 || strcmp(type, @encode(float)) == 0);
+    /*	This happily assumes the compiler will inline strcmp() where one
+            argument is a single-character constant string. Verified under
+            apple-gcc 4.0 (even with -O0).
+    */
+    const char* type = [self objCType];
+    return (strcmp(type, @encode(double)) == 0 || strcmp(type, @encode(float)) == 0);
 #endif
 }
 
-
-- (BOOL) oo_isBoolean
+- (BOOL)oo_isBoolean
 {
-	/*	There's no explicit way to test this. However, on Mac OS X boolean
-		NSNumbers are required to be constant objects because they're toll-
-		free bridged with kCFBooleanTrue and kCFBooleanFalse, so comparison to
-		those values has to work.
-		
-		In GNUstep, constant objects are also used, because they're not about
-		to miss such an obvious optimization.
-	*/
-	
+    /*	There's no explicit way to test this. However, on Mac OS X boolean
+            NSNumbers are required to be constant objects because they're toll-
+            free bridged with kCFBooleanTrue and kCFBooleanFalse, so comparison to
+            those values has to work.
+
+            In GNUstep, constant objects are also used, because they're not about
+            to miss such an obvious optimization.
+    */
+
 #if __COREFOUNDATION_CFNUMBER__
-	return self == (NSNumber *)kCFBooleanTrue || self == (NSNumber *)kCFBooleanFalse;
+    return self == (NSNumber*)kCFBooleanTrue || self == (NSNumber*)kCFBooleanFalse;
 #else
-	static NSNumber *sTrue = nil, *sFalse;
-	if (EXPECT_NOT(sTrue == nil))
-	{
-		sTrue = [[NSNumber numberWithBool:YES] retain];
-		sFalse = [[NSNumber numberWithBool:NO] retain];
-	}
-	return self == sTrue || self == sFalse;
+    static NSNumber *sTrue = nil, *sFalse;
+    if (EXPECT_NOT(sTrue == nil)) {
+        sTrue = [[NSNumber numberWithBool:YES] retain];
+        sFalse = [[NSNumber numberWithBool:NO] retain];
+    }
+    return self == sTrue || self == sFalse;
 #endif
 }
 

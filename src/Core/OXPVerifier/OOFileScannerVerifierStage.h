@@ -33,84 +33,79 @@ SOFTWARE.
 
 #if OO_OXP_VERIFIER_ENABLED
 
-@interface OOFileScannerVerifierStage: OOOXPVerifierStage
-{
+@interface OOFileScannerVerifierStage : OOOXPVerifierStage {
 @private
-	NSString					*_basePath;
-	NSMutableSet				*_usedFiles;
-	NSMutableSet				*_caseWarnings;
-	NSDictionary				*_directoryListings;
-	NSDictionary				*_directoryCases;
-	NSMutableSet				*_badPLists;
-	NSSet						*_junkFileNames;
-	NSSet						*_skipDirectoryNames;
+    NSString* _basePath;
+    NSMutableSet* _usedFiles;
+    NSMutableSet* _caseWarnings;
+    NSDictionary* _directoryListings;
+    NSDictionary* _directoryCases;
+    NSMutableSet* _badPLists;
+    NSSet* _junkFileNames;
+    NSSet* _skipDirectoryNames;
 }
 
 // Returns name to be used in -dependencies by other stages; also registers stage.
-+ (NSString *)nameForDependencyForVerifier:(OOOXPVerifier *)verifier;
++ (NSString*)nameForDependencyForVerifier:(OOOXPVerifier*)verifier;
 
 /*	This method does the following:
-		A.	Checks whether a file exists.
-		B.	Checks whether case matches, and logs a warning otherwise.
-		C.	Maintains list of files which are referred to.
-		D.	Optionally falls back on Oolite's built-in files.
-	
-	For example, to test whether a texture referenced in a shipdata.plist entry
-	exists, one would use:
-	[fileScanner fileExists:textureName inFolder:@"Textures" referencedFrom:@"shipdata.plist" checkBuiltIn:YES];
+                A.	Checks whether a file exists.
+                B.	Checks whether case matches, and logs a warning otherwise.
+                C.	Maintains list of files which are referred to.
+                D.	Optionally falls back on Oolite's built-in files.
+
+        For example, to test whether a texture referenced in a shipdata.plist entry
+        exists, one would use:
+        [fileScanner fileExists:textureName inFolder:@"Textures" referencedFrom:@"shipdata.plist" checkBuiltIn:YES];
 */
-- (BOOL)fileExists:(NSString *)file
-		  inFolder:(NSString *)folder
-	referencedFrom:(NSString *)context
-	  checkBuiltIn:(BOOL)checkBuiltIn;
+- (BOOL)fileExists:(NSString*)file
+          inFolder:(NSString*)folder
+    referencedFrom:(NSString*)context
+      checkBuiltIn:(BOOL)checkBuiltIn;
 
 //	This method performs all the checks the previous one does, but also returns a file path.
-- (NSString *)pathForFile:(NSString *)file
-				 inFolder:(NSString *)folder
-		   referencedFrom:(NSString *)context
-			 checkBuiltIn:(BOOL)checkBuiltIn;
+- (NSString*)pathForFile:(NSString*)file
+                inFolder:(NSString*)folder
+          referencedFrom:(NSString*)context
+            checkBuiltIn:(BOOL)checkBuiltIn;
 
 //	Data getters based on above method.
-- (NSData *)dataForFile:(NSString *)file
-			   inFolder:(NSString *)folder
-		 referencedFrom:(NSString *)context
-		   checkBuiltIn:(BOOL)checkBuiltIn;
+- (NSData*)dataForFile:(NSString*)file
+              inFolder:(NSString*)folder
+        referencedFrom:(NSString*)context
+          checkBuiltIn:(BOOL)checkBuiltIn;
 
-- (id)plistNamed:(NSString *)file	// Only uses "real" plist parser, not homebrew.
-		inFolder:(NSString *)folder
-  referencedFrom:(NSString *)context
-	checkBuiltIn:(BOOL)checkBuiltIn;
-
+- (id)plistNamed:(NSString*)file // Only uses "real" plist parser, not homebrew.
+          inFolder:(NSString*)folder
+    referencedFrom:(NSString*)context
+      checkBuiltIn:(BOOL)checkBuiltIn;
 
 /*	Utility to handle display names of files.
-	If a file and folder are provided, returns folder/file, otherwise just file.
+        If a file and folder are provided, returns folder/file, otherwise just file.
 */
-- (id)displayNameForFile:(NSString *)file andFolder:(NSString *)folder;
+- (id)displayNameForFile:(NSString*)file andFolder:(NSString*)folder;
 
 /*	Get a list of files in a subfolder of the OXP. Order is undefined.
-*/
-- (NSArray *)filesInFolder:(NSString *)folder;
+ */
+- (NSArray*)filesInFolder:(NSString*)folder;
 
 @end
 
-
-@interface OOListUnusedFilesStage: OOOXPVerifierStage
+@interface OOListUnusedFilesStage : OOOXPVerifierStage
 
 // Returns name to be used in -dependents by other stages; also registers stage.
-+ (NSString *)nameForReverseDependencyForVerifier:(OOOXPVerifier *)verifier;
++ (NSString*)nameForReverseDependencyForVerifier:(OOOXPVerifier*)verifier;
 
 @end
 
+@interface OOOXPVerifier (OOFileScannerVerifierStage)
 
-@interface OOOXPVerifier(OOFileScannerVerifierStage)
-
-- (OOFileScannerVerifierStage *)fileScannerStage;
+- (OOFileScannerVerifierStage*)fileScannerStage;
 
 @end
-
 
 // Convenience base class for stages that require OOFileScannerVerifierStage and OOListUnusedFilesStage.
-@interface OOFileHandlingVerifierStage: OOOXPVerifierStage
+@interface OOFileHandlingVerifierStage : OOOXPVerifierStage
 
 @end
 

@@ -25,44 +25,50 @@ MA 02110-1301, USA.
 
 #import "OOMouseInteractionMode.h"
 
-
-NSString *OOStringFromMouseInteractionMode(OOMouseInteractionMode mode)
+NSString* OOStringFromMouseInteractionMode(OOMouseInteractionMode mode)
 {
-	switch (mode)
-	{
-		case MOUSE_MODE_UI_SCREEN_NO_INTERACTION:	return @"UI_SCREEN_NO_INTERACTION";
-		case MOUSE_MODE_UI_SCREEN_WITH_INTERACTION:	return @"UI_SCREEN_WITH_INTERACTION";
-		case MOUSE_MODE_FLIGHT_NO_MOUSE_CONTROL:	return @"FLIGHT_NO_MOUSE_CONTROL";
-		case MOUSE_MODE_FLIGHT_WITH_MOUSE_CONTROL:	return @"FLIGHT_WITH_MOUSE_CONTROL";
-	}
-	
-	return [NSString stringWithFormat:@"<unknown mode %u>", mode];
-}
+    switch (mode) {
+    case MOUSE_MODE_UI_SCREEN_NO_INTERACTION:
+        return @"UI_SCREEN_NO_INTERACTION";
+    case MOUSE_MODE_UI_SCREEN_WITH_INTERACTION:
+        return @"UI_SCREEN_WITH_INTERACTION";
+    case MOUSE_MODE_FLIGHT_NO_MOUSE_CONTROL:
+        return @"FLIGHT_NO_MOUSE_CONTROL";
+    case MOUSE_MODE_FLIGHT_WITH_MOUSE_CONTROL:
+        return @"FLIGHT_WITH_MOUSE_CONTROL";
+    }
 
+    return [NSString stringWithFormat:@"<unknown mode %u>", mode];
+}
 
 BOOL OOMouseInteractionModeIsUIScreen(OOMouseInteractionMode mode)
 {
-	switch (mode)
-	{
-		case MOUSE_MODE_UI_SCREEN_NO_INTERACTION:	return YES;
-		case MOUSE_MODE_UI_SCREEN_WITH_INTERACTION:	return YES;
-		case MOUSE_MODE_FLIGHT_NO_MOUSE_CONTROL:	return NO;
-		case MOUSE_MODE_FLIGHT_WITH_MOUSE_CONTROL:	return NO;
-	}
-	
-	return NO;
-}
+    switch (mode) {
+    case MOUSE_MODE_UI_SCREEN_NO_INTERACTION:
+        return YES;
+    case MOUSE_MODE_UI_SCREEN_WITH_INTERACTION:
+        return YES;
+    case MOUSE_MODE_FLIGHT_NO_MOUSE_CONTROL:
+        return NO;
+    case MOUSE_MODE_FLIGHT_WITH_MOUSE_CONTROL:
+        return NO;
+    }
 
+    return NO;
+}
 
 BOOL OOMouseInteractionModeIsFlightMode(OOMouseInteractionMode mode)
 {
-	switch (mode)
-	{
-		case MOUSE_MODE_UI_SCREEN_NO_INTERACTION:	return NO;
-		case MOUSE_MODE_UI_SCREEN_WITH_INTERACTION:	return NO;
-		case MOUSE_MODE_FLIGHT_NO_MOUSE_CONTROL:	return YES;
-		case MOUSE_MODE_FLIGHT_WITH_MOUSE_CONTROL:	return YES;
-	}
-	
-	return NO;
+    switch (mode) {
+    case MOUSE_MODE_UI_SCREEN_NO_INTERACTION:
+        return NO;
+    case MOUSE_MODE_UI_SCREEN_WITH_INTERACTION:
+        return NO;
+    case MOUSE_MODE_FLIGHT_NO_MOUSE_CONTROL:
+        return YES;
+    case MOUSE_MODE_FLIGHT_WITH_MOUSE_CONTROL:
+        return YES;
+    }
+
+    return NO;
 }

@@ -26,32 +26,30 @@ MA 02110-1301, USA.
 #import "OOJSScript.h"
 #include <jsapi.h>
 
-@interface OOJSInterfaceDefinition: OOWeakRefObject
-{
+@interface OOJSInterfaceDefinition : OOWeakRefObject {
 @private
-	jsval				_callback;
-	JSObject			*_callbackThis;
-	OOJSScript			*_owningScript;
+    jsval _callback;
+    JSObject* _callbackThis;
+    OOJSScript* _owningScript;
 
-	NSString			*_title;
-	NSString			*_summary;
-	NSString			*_category;
+    NSString* _title;
+    NSString* _summary;
+    NSString* _category;
 }
 
-- (NSString *)title;
-- (void)setTitle:(NSString *)title;
-- (NSString *)category;
-- (void)setCategory:(NSString *)category;
-- (NSString *)summary;
-- (void)setSummary:(NSString *)summary;
+- (NSString*)title;
+- (void)setTitle:(NSString*)title;
+- (NSString*)category;
+- (void)setCategory:(NSString*)category;
+- (NSString*)summary;
+- (void)setSummary:(NSString*)summary;
 - (jsval)callback;
 - (void)setCallback:(jsval)callback;
-- (JSObject *)callbackThis;
-- (void)setCallbackThis:(JSObject *)callbackthis;
+- (JSObject*)callbackThis;
+- (void)setCallbackThis:(JSObject*)callbackthis;
 
-- (void)runCallback:(NSString *)key;
+- (void)runCallback:(NSString*)key;
 
-- (NSComparisonResult)interfaceCompare:(OOJSInterfaceDefinition *)other;
+- (NSComparisonResult)interfaceCompare:(OOJSInterfaceDefinition*)other;
 
 @end
-

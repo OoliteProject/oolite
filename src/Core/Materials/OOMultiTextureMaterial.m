@@ -2,7 +2,7 @@
 
 OOMultiTextureMaterial.m
 
- 
+
 Copyright (C) 2010-2013 Jens Ayton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -26,195 +26,179 @@ SOFTWARE.
 */
 
 #import "OOMultiTextureMaterial.h"
+#import "NSDictionaryOOExtensions.h"
 #import "OOCombinedEmissionMapGenerator.h"
+#import "OOMacroOpenGL.h"
+#import "OOMaterialSpecifier.h"
 #import "OOOpenGLExtensionManager.h"
 #import "OOTexture.h"
-#import "OOMacroOpenGL.h"
-#import "NSDictionaryOOExtensions.h"
-#import "OOMaterialSpecifier.h"
 
 #if OO_MULTITEXTURE
 
-
 @implementation OOMultiTextureMaterial
 
-- (id)initWithName:(NSString *)name configuration:(NSDictionary *)configuration
+- (id)initWithName:(NSString*)name configuration:(NSDictionary*)configuration
 {
-	if (![[OOOpenGLExtensionManager sharedManager] textureCombinersSupported])
-	{
-		[self release];
-		return nil;
-	}
-	
-	NSDictionary *diffuseSpec = [configuration oo_diffuseMapSpecifierWithDefaultName:name];
-	NSDictionary *emissionSpec = [configuration oo_emissionMapSpecifier];
-	NSDictionary *illuminationSpec = [configuration oo_illuminationMapSpecifier];
-	NSDictionary *emissionAndIlluminationSpec = [configuration oo_emissionAndIlluminationMapSpecifier];
-	OOColor *diffuseColor = [configuration oo_diffuseColor];
-	OOColor *emissionColor = nil;
-	OOColor *illuminationColor = [configuration oo_illuminationModulateColor];
-	
-	NSMutableDictionary *mutableConfiguration = [NSMutableDictionary dictionaryWithDictionary:configuration];
-	
-	if (emissionSpec != nil || emissionAndIlluminationSpec != nil)
-	{
-		emissionColor = [configuration oo_emissionModulateColor];
-		
-		/*	If an emission map and an emission colour are both specified, stop
-			the superclass (OOBasicMaterial) from applying the emission colour.
-		*/
-		[mutableConfiguration removeObjectForKey:kOOMaterialEmissionColorName];
-		[mutableConfiguration removeObjectForKey:kOOMaterialEmissionColorLegacyName];
-	}
-	
-	if ((self = [super initWithName:name configuration:mutableConfiguration]))
-	{
-		if (diffuseSpec != nil)
-		{
-			_diffuseMap = [[OOTexture textureWithConfiguration:diffuseSpec] retain];
-			if (_diffuseMap != nil)  _unitsUsed++;
-		}
-		
-		// Check for simplest cases, where we don't need to bake a derived emission map.
-		if (emissionSpec != nil && illuminationSpec == nil && emissionAndIlluminationSpec == nil && emissionColor == nil)
-		{
-			_emissionMap = [[OOTexture textureWithConfiguration:emissionSpec extraOptions:kOOTextureExtraShrink] retain];
-			if (_emissionMap != nil)  _unitsUsed++;
-		}
-		else
-		{
-			OOCombinedEmissionMapGenerator *generator = nil;
-			
-			if (emissionAndIlluminationSpec != nil)
-			{
-				generator = [[OOCombinedEmissionMapGenerator alloc] initWithEmissionAndIlluminationMapSpec:emissionAndIlluminationSpec
-																							diffuseMap:_diffuseMap
-																						  diffuseColor:diffuseColor
-																						 emissionColor:emissionColor
-																					 illuminationColor:illuminationColor
-																					  optionsSpecifier:emissionAndIlluminationSpec];
-			}
-			else
-			{
-				generator = [[OOCombinedEmissionMapGenerator alloc] initWithEmissionMapSpec:emissionSpec
-																			  emissionColor:emissionColor
-																				 diffuseMap:_diffuseMap
-																			   diffuseColor:diffuseColor
-																		illuminationMapSpec:illuminationSpec
-																		  illuminationColor:illuminationColor
-																		   optionsSpecifier:emissionSpec ?: illuminationSpec];
-			}
-			
-			_emissionMap = [[OOTexture textureWithGenerator:[generator autorelease]] retain];
-			if (_emissionMap != nil)  _unitsUsed++;
-		}
-	}
-	
-	return self;
+    if (![[OOOpenGLExtensionManager sharedManager] textureCombinersSupported]) {
+        [self release];
+        return nil;
+    }
+
+    NSDictionary* diffuseSpec = [configuration oo_diffuseMapSpecifierWithDefaultName:name];
+    NSDictionary* emissionSpec = [configuration oo_emissionMapSpecifier];
+    NSDictionary* illuminationSpec = [configuration oo_illuminationMapSpecifier];
+    NSDictionary* emissionAndIlluminationSpec = [configuration oo_emissionAndIlluminationMapSpecifier];
+    OOColor* diffuseColor = [configuration oo_diffuseColor];
+    OOColor* emissionColor = nil;
+    OOColor* illuminationColor = [configuration oo_illuminationModulateColor];
+
+    NSMutableDictionary* mutableConfiguration = [NSMutableDictionary dictionaryWithDictionary:configuration];
+
+    if (emissionSpec != nil || emissionAndIlluminationSpec != nil) {
+        emissionColor = [configuration oo_emissionModulateColor];
+
+        /*	If an emission map and an emission colour are both specified, stop
+                the superclass (OOBasicMaterial) from applying the emission colour.
+        */
+        [mutableConfiguration removeObjectForKey:kOOMaterialEmissionColorName];
+        [mutableConfiguration removeObjectForKey:kOOMaterialEmissionColorLegacyName];
+    }
+
+    if ((self = [super initWithName:name configuration:mutableConfiguration])) {
+        if (diffuseSpec != nil) {
+            _diffuseMap = [[OOTexture textureWithConfiguration:diffuseSpec] retain];
+            if (_diffuseMap != nil)
+                _unitsUsed++;
+        }
+
+        // Check for simplest cases, where we don't need to bake a derived emission map.
+        if (emissionSpec != nil && illuminationSpec == nil && emissionAndIlluminationSpec == nil && emissionColor == nil) {
+            _emissionMap = [[OOTexture textureWithConfiguration:emissionSpec extraOptions:kOOTextureExtraShrink] retain];
+            if (_emissionMap != nil)
+                _unitsUsed++;
+        } else {
+            OOCombinedEmissionMapGenerator* generator = nil;
+
+            if (emissionAndIlluminationSpec != nil) {
+                generator = [[OOCombinedEmissionMapGenerator alloc] initWithEmissionAndIlluminationMapSpec:emissionAndIlluminationSpec
+                                                                                                diffuseMap:_diffuseMap
+                                                                                              diffuseColor:diffuseColor
+                                                                                             emissionColor:emissionColor
+                                                                                         illuminationColor:illuminationColor
+                                                                                          optionsSpecifier:emissionAndIlluminationSpec];
+            } else {
+                generator = [[OOCombinedEmissionMapGenerator alloc] initWithEmissionMapSpec:emissionSpec
+                                                                              emissionColor:emissionColor
+                                                                                 diffuseMap:_diffuseMap
+                                                                               diffuseColor:diffuseColor
+                                                                        illuminationMapSpec:illuminationSpec
+                                                                          illuminationColor:illuminationColor
+                                                                           optionsSpecifier:emissionSpec ?: illuminationSpec];
+            }
+
+            _emissionMap = [[OOTexture textureWithGenerator:[generator autorelease]] retain];
+            if (_emissionMap != nil)
+                _unitsUsed++;
+        }
+    }
+
+    return self;
 }
 
-
-- (void) dealloc
+- (void)dealloc
 {
-	[self willDealloc];
-	
-	DESTROY(_diffuseMap);
-	DESTROY(_emissionMap);
-	
-	[super dealloc];
+    [self willDealloc];
+
+    DESTROY(_diffuseMap);
+    DESTROY(_emissionMap);
+
+    [super dealloc];
 }
 
-
-- (NSString *) descriptionComponents
+- (NSString*)descriptionComponents
 {
-	NSMutableArray *bits = [NSMutableArray array];
-	if (_diffuseMap)  [bits addObject:[NSString stringWithFormat:@"diffuse map: %@", [_diffuseMap shortDescription]]];
-	if (_emissionMap)  [bits addObject:[NSString stringWithFormat:@"emission map: %@", [_emissionMap shortDescription]]];
-	
-	NSString *result = [super descriptionComponents];
-	if ([bits count] > 0)  result = [result stringByAppendingFormat:@" - %@", [bits componentsJoinedByString:@","]];
-	return result;
+    NSMutableArray* bits = [NSMutableArray array];
+    if (_diffuseMap)
+        [bits addObject:[NSString stringWithFormat:@"diffuse map: %@", [_diffuseMap shortDescription]]];
+    if (_emissionMap)
+        [bits addObject:[NSString stringWithFormat:@"emission map: %@", [_emissionMap shortDescription]]];
+
+    NSString* result = [super descriptionComponents];
+    if ([bits count] > 0)
+        result = [result stringByAppendingFormat:@" - %@", [bits componentsJoinedByString:@","]];
+    return result;
 }
 
-
-- (NSUInteger) textureUnitCount
+- (NSUInteger)textureUnitCount
 {
-	return _unitsUsed;
+    return _unitsUsed;
 }
 
-
-- (NSUInteger) countOfTextureUnitsWithBaseCoordinates
+- (NSUInteger)countOfTextureUnitsWithBaseCoordinates
 {
-	return _unitsUsed;
+    return _unitsUsed;
 }
 
-
-- (void) ensureFinishedLoading
+- (void)ensureFinishedLoading
 {
-	[_diffuseMap ensureFinishedLoading];
-	[_emissionMap ensureFinishedLoading];
+    [_diffuseMap ensureFinishedLoading];
+    [_emissionMap ensureFinishedLoading];
 }
 
-
-- (void) apply
+- (void)apply
 {
-	OO_ENTER_OPENGL();
-	
-	[super apply];
-	
-	GLenum textureUnit = GL_TEXTURE0_ARB;
-	
-	if (_diffuseMap != nil)
-	{
-		OOGL(glActiveTextureARB(textureUnit++));
-		OOGL(glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB));
-		OOGL(glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_MODULATE));
-		[_diffuseMap apply];
-	}
-	
-	if (_emissionMap != nil)
-	{
-		OOGL(glActiveTextureARB(textureUnit++));
-		OOGL(glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB));
-		OOGL(glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_ADD));
-		[_emissionMap apply];
-	}
-	
-	NSAssert2(textureUnit - GL_TEXTURE0_ARB == _unitsUsed, @"OOMultiTextureMaterial texture unit count invalid (expected %zu, actually using %u)", _unitsUsed, textureUnit - GL_TEXTURE0_ARB);
-	
-	if (textureUnit > GL_TEXTURE1_ARB)
-	{
-		OOGL(glActiveTextureARB(GL_TEXTURE0_ARB));
-	}
+    OO_ENTER_OPENGL();
+
+    [super apply];
+
+    GLenum textureUnit = GL_TEXTURE0_ARB;
+
+    if (_diffuseMap != nil) {
+        OOGL(glActiveTextureARB(textureUnit++));
+        OOGL(glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB));
+        OOGL(glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_MODULATE));
+        [_diffuseMap apply];
+    }
+
+    if (_emissionMap != nil) {
+        OOGL(glActiveTextureARB(textureUnit++));
+        OOGL(glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB));
+        OOGL(glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_ADD));
+        [_emissionMap apply];
+    }
+
+    NSAssert2(textureUnit - GL_TEXTURE0_ARB == _unitsUsed, @"OOMultiTextureMaterial texture unit count invalid (expected %zu, actually using %u)", _unitsUsed, textureUnit - GL_TEXTURE0_ARB);
+
+    if (textureUnit > GL_TEXTURE1_ARB) {
+        OOGL(glActiveTextureARB(GL_TEXTURE0_ARB));
+    }
 }
 
-
-- (void) unapplyWithNext:(OOMaterial *)next
+- (void)unapplyWithNext:(OOMaterial*)next
 {
-	OO_ENTER_OPENGL();
-	
-	[super unapplyWithNext:next];
-	
-	NSUInteger i;
-	i = [next isKindOfClass:[OOMultiTextureMaterial class]] ? [(OOMultiTextureMaterial *)next textureUnitCount] : 0;
-	for (; i != _unitsUsed; ++i)
-	{
-		OOGL(glActiveTextureARB(GL_TEXTURE0_ARB + i));
-		[OOTexture applyNone];
-		OOGL(glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE));
-	}
-	OOGL(glActiveTextureARB(GL_TEXTURE0_ARB));
-}
+    OO_ENTER_OPENGL();
 
+    [super unapplyWithNext:next];
+
+    NSUInteger i;
+    i = [next isKindOfClass:[OOMultiTextureMaterial class]] ? [(OOMultiTextureMaterial*)next textureUnitCount] : 0;
+    for (; i != _unitsUsed; ++i) {
+        OOGL(glActiveTextureARB(GL_TEXTURE0_ARB + i));
+        [OOTexture applyNone];
+        OOGL(glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE));
+    }
+    OOGL(glActiveTextureARB(GL_TEXTURE0_ARB));
+}
 
 #ifndef NDEBUG
-- (NSSet *) allTextures
+- (NSSet*)allTextures
 {
-	if (_diffuseMap == nil)  return [NSSet setWithObject:_emissionMap];
-	return [NSSet setWithObjects:_diffuseMap, _emissionMap, nil];
+    if (_diffuseMap == nil)
+        return [NSSet setWithObject:_emissionMap];
+    return [NSSet setWithObjects:_diffuseMap, _emissionMap, nil];
 }
 #endif
 
 @end
 
-#endif	/* OO_MULTITEXTURE */
+#endif /* OO_MULTITEXTURE */

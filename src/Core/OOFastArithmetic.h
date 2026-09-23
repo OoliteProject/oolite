@@ -37,69 +37,64 @@ OOINLINE double OOClamp_0_max_d(double value, double max) INLINE_CONST_FUNC;
 OOINLINE float OOLerp(float v0, float v1, float fraction) INLINE_CONST_FUNC;
 OOINLINE double OOLerpd(double v0, double v1, double fraction) INLINE_CONST_FUNC;
 
-
 /* Round integer up to nearest power of 2. NOTE: these return 0 if the high bit of value is set. */
 OOINLINE INLINE_CONST_FUNC uint32_t OORoundUpToPowerOf2_32(uint32_t value)
 {
-	return 0x80000000U >> (__builtin_clz(value - 1) - 1);
+    return 0x80000000U >> (__builtin_clz(value - 1) - 1);
 }
-
 
 OOINLINE INLINE_CONST_FUNC uint64_t OORoundUpToPowerOf2_64(uint64_t value)
 {
-	return 0x8000000000000000ULL >> (__builtin_clzll(value - 1) - 1);
+    return 0x8000000000000000ULL >> (__builtin_clzll(value - 1) - 1);
 }
-
 
 #if __OBJC__
 #if OOLITE_64_BIT
 OOINLINE INLINE_CONST_FUNC NSUInteger OORoundUpToPowerOf2_NS(NSUInteger value)
 {
-	return OORoundUpToPowerOf2_64(value);
+    return OORoundUpToPowerOf2_64(value);
 }
 #else
 OOINLINE INLINE_CONST_FUNC NSUInteger OORoundUpToPowerOf2_NS(NSUInteger value)
 {
-	return OORoundUpToPowerOf2_32(value);
+    return OORoundUpToPowerOf2_32(value);
 }
 #endif
 #endif
 
-
 OOINLINE float OOClamp_0_1_f(float value)
 {
-	return fmax(0.0f, fmin(value, 1.0f));
+    return fmax(0.0f, fmin(value, 1.0f));
 }
 
 OOINLINE float OOClamp_n1_1_f(float value)
 {
-	return fmax(-1.0f, fmin(value, 1.0f));
+    return fmax(-1.0f, fmin(value, 1.0f));
 }
 
 OOINLINE double OOClamp_0_1_d(double value)
 {
-	return fmax(0.0f, fmin(value, 1.0f));
+    return fmax(0.0f, fmin(value, 1.0f));
 }
 
 OOINLINE float OOClamp_0_max_f(float value, float max)
 {
-	return fmax(0.0f, fmin(value, max));
+    return fmax(0.0f, fmin(value, max));
 }
 
 OOINLINE double OOClamp_0_max_d(double value, double max)
 {
-	return fmax(0.0, fmin(value, max));
+    return fmax(0.0, fmin(value, max));
 }
-
 
 OOINLINE float OOLerp(float v0, float v1, float fraction)
 {
-	// Linear interpolation - equivalent to v0 * (1.0f - fraction) + v1 * fraction.
-	return v0 + fraction * (v1 - v0);
+    // Linear interpolation - equivalent to v0 * (1.0f - fraction) + v1 * fraction.
+    return v0 + fraction * (v1 - v0);
 }
 
 OOINLINE double OOLerpd(double v0, double v1, double fraction)
 {
-	// Linear interpolation - equivalent to v0 * (1.0 - fraction) + v1 * fraction.
-	return v0 + fraction * (v1 - v0);
+    // Linear interpolation - equivalent to v0 * (1.0 - fraction) + v1 * fraction.
+    return v0 + fraction * (v1 - v0);
 }

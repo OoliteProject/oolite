@@ -25,206 +25,184 @@ MA 02110-1301, USA.
 
 #import "ProxyPlayerEntity.h"
 
-
 @implementation ProxyPlayerEntity
 
-- (id)initWithKey:(NSString *)key definition:(NSDictionary *)dict
+- (id)initWithKey:(NSString*)key definition:(NSDictionary*)dict
 {
-	self = [super initWithKey:key definition:dict];
-	if (self != nil)
-	{
-		[self setDialForwardShield:1.0f];
-		[self setDialAftShield:1.0f];
-		[self setDialFuelScoopStatus:[self hasScoop] ? SCOOP_STATUS_OKAY : SCOOP_STATUS_NOT_INSTALLED];
-		[self setCompassMode:[self hasEquipmentItemProviding:@"EQ_ADVANCED_COMPASS"] ? COMPASS_MODE_PLANET : COMPASS_MODE_BASIC];
-		[self setTradeInFactor:95];
-	}
-	
-	return self;
+    self = [super initWithKey:key definition:dict];
+    if (self != nil) {
+        [self setDialForwardShield:1.0f];
+        [self setDialAftShield:1.0f];
+        [self setDialFuelScoopStatus:[self hasScoop] ? SCOOP_STATUS_OKAY : SCOOP_STATUS_NOT_INSTALLED];
+        [self setCompassMode:[self hasEquipmentItemProviding:@"EQ_ADVANCED_COMPASS"] ? COMPASS_MODE_PLANET : COMPASS_MODE_BASIC];
+        [self setTradeInFactor:95];
+    }
+
+    return self;
 }
 
-
-- (void) copyValuesFromPlayer:(PlayerEntity *)player
+- (void)copyValuesFromPlayer:(PlayerEntity*)player
 {
-	if (player == nil)  return;
-	
-	[self setFuelLeakRate:[player fuelLeakRate]];
-	[self setMassLocked:[player massLocked]];
-	[self setAtHyperspeed:[player atHyperspeed]];
-	[self setDialForwardShield:[player dialForwardShield]];
-	[self setDialAftShield:[player dialAftShield]];
-	[self setDialMissileStatus:[player dialMissileStatus]];
-	[self setDialFuelScoopStatus:[player dialFuelScoopStatus]];
-	[self setCompassMode:[player compassMode]];
-	[self setDialIdentEngaged:[player dialIdentEngaged]];
-	[self setAlertCondition:[player alertCondition]];
-	[self setTrumbleCount:[player trumbleCount]];
-	[self setTradeInFactor:[player tradeInFactor]];
+    if (player == nil)
+        return;
 
+    [self setFuelLeakRate:[player fuelLeakRate]];
+    [self setMassLocked:[player massLocked]];
+    [self setAtHyperspeed:[player atHyperspeed]];
+    [self setDialForwardShield:[player dialForwardShield]];
+    [self setDialAftShield:[player dialAftShield]];
+    [self setDialMissileStatus:[player dialMissileStatus]];
+    [self setDialFuelScoopStatus:[player dialFuelScoopStatus]];
+    [self setCompassMode:[player compassMode]];
+    [self setDialIdentEngaged:[player dialIdentEngaged]];
+    [self setAlertCondition:[player alertCondition]];
+    [self setTrumbleCount:[player trumbleCount]];
+    [self setTradeInFactor:[player tradeInFactor]];
 }
 
-
-- (BOOL) isPlayerLikeShip
+- (BOOL)isPlayerLikeShip
 {
-	return YES;
+    return YES;
 }
 
-
-- (float) fuelLeakRate
+- (float)fuelLeakRate
 {
-	return _fuelLeakRate;
+    return _fuelLeakRate;
 }
 
-- (void) setFuelLeakRate:(float)value
+- (void)setFuelLeakRate:(float)value
 {
-	_fuelLeakRate = fmax(value, 0.0f);
+    _fuelLeakRate = fmax(value, 0.0f);
 }
 
-
-- (BOOL) massLocked
+- (BOOL)massLocked
 {
-	return _massLocked;
+    return _massLocked;
 }
 
-- (void) setMassLocked:(BOOL)value
+- (void)setMassLocked:(BOOL)value
 {
-	_massLocked = !!value;
+    _massLocked = !!value;
 }
 
-
-- (BOOL) atHyperspeed
+- (BOOL)atHyperspeed
 {
-	return _atHyperspeed;
+    return _atHyperspeed;
 }
 
-- (void) setAtHyperspeed:(BOOL)value
+- (void)setAtHyperspeed:(BOOL)value
 {
-	_atHyperspeed = !!value;
+    _atHyperspeed = !!value;
 }
 
-
-- (GLfloat) dialForwardShield
+- (GLfloat)dialForwardShield
 {
-	return _dialForwardShield;
+    return _dialForwardShield;
 }
 
-- (void) setDialForwardShield:(GLfloat)value
+- (void)setDialForwardShield:(GLfloat)value
 {
-	_dialForwardShield = value;
+    _dialForwardShield = value;
 }
 
-
-- (GLfloat) dialAftShield
+- (GLfloat)dialAftShield
 {
-	return _dialAftShield;
+    return _dialAftShield;
 }
 
-- (void) setDialAftShield:(GLfloat)value
+- (void)setDialAftShield:(GLfloat)value
 {
-	_dialAftShield = value;
+    _dialAftShield = value;
 }
 
-
-- (OOMissileStatus) dialMissileStatus
+- (OOMissileStatus)dialMissileStatus
 {
-	return _missileStatus;
+    return _missileStatus;
 }
 
-- (void) setDialMissileStatus:(OOMissileStatus)value
+- (void)setDialMissileStatus:(OOMissileStatus)value
 {
-	_missileStatus = value;
+    _missileStatus = value;
 }
 
-
-- (OOFuelScoopStatus) dialFuelScoopStatus
+- (OOFuelScoopStatus)dialFuelScoopStatus
 {
-	return _fuelScoopStatus;
+    return _fuelScoopStatus;
 }
 
-- (void) setDialFuelScoopStatus:(OOFuelScoopStatus)value
+- (void)setDialFuelScoopStatus:(OOFuelScoopStatus)value
 {
-	_fuelScoopStatus = value;
+    _fuelScoopStatus = value;
 }
 
-
-- (OOCompassMode) compassMode
+- (OOCompassMode)compassMode
 {
-	return _compassMode;
+    return _compassMode;
 }
 
-- (void) setCompassMode:(OOCompassMode)value
+- (void)setCompassMode:(OOCompassMode)value
 {
-	_compassMode = value;
+    _compassMode = value;
 }
 
-
-- (BOOL) dialIdentEngaged
+- (BOOL)dialIdentEngaged
 {
-	return _dialIdentEngaged;
+    return _dialIdentEngaged;
 }
 
-- (void) setDialIdentEngaged:(BOOL)value
+- (void)setDialIdentEngaged:(BOOL)value
 {
-	_dialIdentEngaged = !!value;
+    _dialIdentEngaged = !!value;
 }
 
-
-- (OOAlertCondition) alertCondition
+- (OOAlertCondition)alertCondition
 {
-	return _alertCondition;
+    return _alertCondition;
 }
 
-- (void) setAlertCondition:(OOAlertCondition)value
+- (void)setAlertCondition:(OOAlertCondition)value
 {
-	_alertCondition = value;
+    _alertCondition = value;
 }
 
-
-- (NSUInteger) trumbleCount
+- (NSUInteger)trumbleCount
 {
-	return _trumbleCount;
+    return _trumbleCount;
 }
 
-
-- (void) setTrumbleCount:(NSUInteger)value
+- (void)setTrumbleCount:(NSUInteger)value
 {
-	_trumbleCount = value;
+    _trumbleCount = value;
 }
 
-
-- (void) setTradeInFactor:(int)tif
+- (void)setTradeInFactor:(int)tif
 {
-	_tradeInFactor = tif;
+    _tradeInFactor = tif;
 }
 
-
-- (int) tradeInFactor
+- (int)tradeInFactor
 {
-	return _tradeInFactor;
+    return _tradeInFactor;
 }
-
-
 
 // If you're here to add more properties, don't forget to update -copyValuesFromPlayer:.
 
 @end
 
-
 @implementation Entity (ProxyPlayer)
 
-- (BOOL) isPlayerLikeShip
+- (BOOL)isPlayerLikeShip
 {
-	return NO;
+    return NO;
 }
 
 @end
 
-
 @implementation PlayerEntity (ProxyPlayer)
 
-- (BOOL) isPlayerLikeShip
+- (BOOL)isPlayerLikeShip
 {
-	return YES;
+    return YES;
 }
 
 @end

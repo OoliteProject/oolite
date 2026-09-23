@@ -31,26 +31,25 @@ MA 02110-1301, USA.
 
 @class OOPListSchemaVerifier, OOAIStateMachineVerifierStage;
 
-@interface OOCheckShipDataPListVerifierStage: OOTextureHandlingStage
-{
+@interface OOCheckShipDataPListVerifierStage : OOTextureHandlingStage {
 @private
-	NSDictionary				*_shipdataPList;
-	NSSet						*_ooliteShipNames;
-	NSSet						*_basicKeys,
-								*_stationKeys,
-								*_playerKeys,
-								*_allKeys;
-	OOPListSchemaVerifier		*_schemaVerifier;
-	OOAIStateMachineVerifierStage *_aiVerifierStage;
-	
-	// Info about ship currently being checked.
-	NSString					*_name;
-	NSDictionary				*_info;
-	NSSet						*_roles;
-	uint32_t					_isStation: 1,
-								_isPlayer: 1,
-								_isTemplate: 1,
-								_havePrintedMessage: 1;
+    NSDictionary* _shipdataPList;
+    NSSet* _ooliteShipNames;
+    NSSet *_basicKeys,
+        *_stationKeys,
+        *_playerKeys,
+        *_allKeys;
+    OOPListSchemaVerifier* _schemaVerifier;
+    OOAIStateMachineVerifierStage* _aiVerifierStage;
+
+    // Info about ship currently being checked.
+    NSString* _name;
+    NSDictionary* _info;
+    NSSet* _roles;
+    uint32_t _isStation : 1,
+        _isPlayer : 1,
+        _isTemplate : 1,
+        _havePrintedMessage : 1;
 }
 @end
 

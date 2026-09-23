@@ -23,99 +23,93 @@ MA 02110-1301, USA.
 */
 
 #import "OOTextureSprite.h"
-#import "OOTexture.h"
-#import "OOMaths.h"
 #import "OOMacroOpenGL.h"
-
+#import "OOMaths.h"
+#import "OOTexture.h"
 
 @implementation OOTextureSprite
 
-- (id)initWithTexture:(OOTexture *)inTexture
+- (id)initWithTexture:(OOTexture*)inTexture
 {
-	return [self initWithTexture:inTexture size:[inTexture originalDimensions]];
+    return [self initWithTexture:inTexture size:[inTexture originalDimensions]];
 }
 
-
-- (id)initWithTexture:(OOTexture *)inTexture size:(NSSize)spriteSize
+- (id)initWithTexture:(OOTexture*)inTexture size:(NSSize)spriteSize
 {
-	if (inTexture == nil)
-	{
-		[self release];
-		return nil;
-	}
-	
-	self = [super init];
-	if (self != nil)
-	{
-		texture = [inTexture retain];
-		size = spriteSize;
-	}
-	return self;
-}
+    if (inTexture == nil) {
+        [self release];
+        return nil;
+    }
 
+    self = [super init];
+    if (self != nil) {
+        texture = [inTexture retain];
+        size = spriteSize;
+    }
+    return self;
+}
 
 - (void)dealloc
 {
-	[texture release];
-	
-	[super dealloc];
+    [texture release];
+
+    [super dealloc];
 }
 
 - (NSSize)size
 {
-	return size;
+    return size;
 }
 
-
-- (void) blitToX:(float)x Y:(float)y Z:(float)z alpha:(float)a
+- (void)blitToX:(float)x Y:(float)y Z:(float)z alpha:(float)a
 {
-	OO_ENTER_OPENGL();
-	OOSetOpenGLState(OPENGL_STATE_OVERLAY);
-	
-	a = OOClamp_0_1_f(a);
-	OOGL(glEnable(GL_TEXTURE_2D));
-	OOGL(glColor4f(1.0, 1.0, 1.0, a));
-	
-	// Note that the textured Quad is drawn ACW from the top left.
-	
-	[texture apply];
-	OOGLBEGIN(GL_QUADS);
-		glTexCoord2f(0.0, 0.0);
-		glVertex3f(x, y+size.height, z);
-		
-		glTexCoord2f(0.0, 1.0);
-		glVertex3f(x, y, z);
-		
-		glTexCoord2f(1.0, 1.0);
-		glVertex3f(x+size.width, y, z);
-		
-		glTexCoord2f(1.0, 0.0);
-		glVertex3f(x+size.width, y+size.height, z);
-	OOGLEND();
-	
-	OOGL(glDisable(GL_TEXTURE_2D));
-	
-	OOVerifyOpenGLState();
+    OO_ENTER_OPENGL();
+    OOSetOpenGLState(OPENGL_STATE_OVERLAY);
+
+    a = OOClamp_0_1_f(a);
+    OOGL(glEnable(GL_TEXTURE_2D));
+    OOGL(glColor4f(1.0, 1.0, 1.0, a));
+
+    // Note that the textured Quad is drawn ACW from the top left.
+
+    [texture apply];
+    OOGLBEGIN(GL_QUADS);
+    glTexCoord2f(0.0, 0.0);
+    glVertex3f(x, y + size.height, z);
+
+    glTexCoord2f(0.0, 1.0);
+    glVertex3f(x, y, z);
+
+    glTexCoord2f(1.0, 1.0);
+    glVertex3f(x + size.width, y, z);
+
+    glTexCoord2f(1.0, 0.0);
+    glVertex3f(x + size.width, y + size.height, z);
+    OOGLEND();
+
+    OOGL(glDisable(GL_TEXTURE_2D));
+
+    OOVerifyOpenGLState();
 }
 
-
-- (void) blitCentredToX:(float)x Y:(float)y Z:(float)z alpha:(float)a
+- (void)blitCentredToX:(float)x Y:(float)y Z:(float)z alpha:(float)a
 {
-	float	xs = x - size.width / 2.0;
-	float	ys = y - size.height / 2.0;
-	[self blitToX:xs Y:ys Z:z alpha:a];
+    float xs = x - size.width / 2.0;
+    float ys = y - size.height / 2.0;
+    [self blitToX:xs Y:ys Z:z alpha:a];
 }
 
-
-- (void) blitBackgroundCentredToX:(float)x Y:(float)y Z:(float)z alpha:(float)a
+- (void)blitBackgroundCentredToX:(float)x Y:(float)y Z:(float)z alpha:(float)a
 {
-	// Without distance, coriolis stations would be rendered behind the background image.
-	// Set an arbitrary value for distance, might not be sufficient for really huge ships.
-	float	distance = 512.0f;
-	
-	size.width *= distance; size.height *= distance;
-	[self blitCentredToX:x Y:y Z:z * distance alpha:a];
-	size.width /= distance; size.height /= distance;
+    // Without distance, coriolis stations would be rendered behind the background image.
+    // Set an arbitrary value for distance, might not be sufficient for really huge ships.
+    float distance = 512.0f;
+
+    size.width *= distance;
+    size.height *= distance;
+    [self blitCentredToX:x Y:y Z:z * distance alpha:a];
+    size.width /= distance;
+    size.height /= distance;
 }
 
 @end

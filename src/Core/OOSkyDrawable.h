@@ -32,27 +32,25 @@ SOFTWARE.
 
 @class OOColor, OOTexture;
 
-
-@interface OOSkyDrawable: OODrawable
-{
+@interface OOSkyDrawable : OODrawable {
 @private
-	unsigned				_starCount;
-	unsigned				_nebulaCount;
-	
-	NSMutableArray			*_quadSets;
-	
-	GLint					_displayListName;
+    unsigned _starCount;
+    unsigned _nebulaCount;
+
+    NSMutableArray* _quadSets;
+
+    GLint _displayListName;
 }
 
-- (id)initWithColor1:(OOColor *)color1
-			  Color2:(OOColor *)color2
-			  Color3:(OOColor *)color3
-			  Color4:(OOColor *)color4
-		   starCount:(unsigned)starCount
-		 nebulaCount:(unsigned)nebulaCount
-	    nebulaHueFix:(BOOL)nebulaHueFix
-	   clusterFactor:(float)nebulaClusterFactor
-			   alpha:(float)nebulaAlpha
-			   scale:(float)nebulaScale;
+- (id)initWithColor1:(OOColor*)color1
+              Color2:(OOColor*)color2
+              Color3:(OOColor*)color3
+              Color4:(OOColor*)color4
+           starCount:(unsigned)starCount
+         nebulaCount:(unsigned)nebulaCount
+        nebulaHueFix:(BOOL)nebulaHueFix
+       clusterFactor:(float)nebulaClusterFactor
+               alpha:(float)nebulaAlpha
+               scale:(float)nebulaScale;
 
 @end

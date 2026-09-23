@@ -28,73 +28,58 @@ SOFTWARE.
 #import "OODrawable.h"
 #import "NSObjectOOExtensions.h"
 
-
 @implementation OODrawable
 
 - (void)renderOpaqueParts
 {
-	
 }
-
 
 - (void)renderTranslucentParts
 {
-
 }
-
 
 - (BOOL)hasOpaqueParts
 {
-	return NO;
+    return NO;
 }
-
 
 - (BOOL)hasTranslucentParts
 {
-	return NO;
+    return NO;
 }
-
 
 - (GLfloat)collisionRadius
 {
-	return 0.0f;
+    return 0.0f;
 }
-
 
 - (GLfloat)maxDrawDistance
 {
-	return 0.0f;
+    return 0.0f;
 }
-
 
 - (BoundingBox)boundingBox
 {
-	return kZeroBoundingBox;
+    return kZeroBoundingBox;
 }
-
 
 - (void)setBindingTarget:(id<OOWeakReferenceSupport>)target
 {
-	
 }
-
 
 - (void)dumpSelfState
 {
-	
 }
-
 
 #ifndef NDEBUG
-- (NSSet *) allTextures
+- (NSSet*)allTextures
 {
-	return nil;
+    return nil;
 }
 
-
-- (size_t) totalSize
+- (size_t)totalSize
 {
-	return [self oo_objectSize];
+    return [self oo_objectSize];
 }
 #endif
 

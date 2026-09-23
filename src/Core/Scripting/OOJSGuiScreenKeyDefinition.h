@@ -26,29 +26,27 @@ MA 02110-1301, USA.
 #import "OOJSScript.h"
 #include <jsapi.h>
 
-@interface OOJSGuiScreenKeyDefinition: OOWeakRefObject
-{
+@interface OOJSGuiScreenKeyDefinition : OOWeakRefObject {
 @private
-	jsval				_callback;
-	JSObject			*_callbackThis;
-	OOJSScript			*_owningScript;
+    jsval _callback;
+    JSObject* _callbackThis;
+    OOJSScript* _owningScript;
 
-	NSString			*_name;
-	NSDictionary		*_registerKeys;
+    NSString* _name;
+    NSDictionary* _registerKeys;
 }
 
-- (NSString *)name;
-- (void)setName:(NSString *)name;
-- (NSDictionary *)registerKeys;
-- (void)setRegisterKeys:(NSDictionary *)registerKeys;
+- (NSString*)name;
+- (void)setName:(NSString*)name;
+- (NSDictionary*)registerKeys;
+- (void)setRegisterKeys:(NSDictionary*)registerKeys;
 - (jsval)callback;
 - (void)setCallback:(jsval)callback;
-- (JSObject *)callbackThis;
-- (void)setCallbackThis:(JSObject *)callbackthis;
+- (JSObject*)callbackThis;
+- (void)setCallbackThis:(JSObject*)callbackthis;
 
-- (void)runCallback:(NSString *)key;
+- (void)runCallback:(NSString*)key;
 
-- (NSComparisonResult)interfaceCompare:(OOJSGuiScreenKeyDefinition *)other;
+- (NSComparisonResult)interfaceCompare:(OOJSGuiScreenKeyDefinition*)other;
 
 @end
-

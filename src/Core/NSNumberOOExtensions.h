@@ -29,10 +29,9 @@ SOFTWARE.
 
 #import <Foundation/Foundation.h>
 
-
 @interface NSNumber (OOExtensions)
 
-- (BOOL) oo_isFloatingPointNumber;	// True if it represents a float or double.
-- (BOOL) oo_isBoolean;				// True for booleans. WARNING: apparently also true for 0 and 1 in GNUstep 1.20 and later, as there is no distinction between boolean NSNumbers and int NSNumbers.
+- (BOOL)oo_isFloatingPointNumber; // True if it represents a float or double.
+- (BOOL)oo_isBoolean; // True for booleans. WARNING: apparently also true for 0 and 1 in GNUstep 1.20 and later, as there is no distinction between boolean NSNumbers and int NSNumbers.
 
 @end

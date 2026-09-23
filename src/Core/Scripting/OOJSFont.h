@@ -32,5 +32,4 @@ SOFTWARE.
 #import <Foundation/Foundation.h>
 #include <jsapi.h>
 
-
-void InitOOJSFont(JSContext *context, JSObject *global);
+void InitOOJSFont(JSContext* context, JSObject* global);

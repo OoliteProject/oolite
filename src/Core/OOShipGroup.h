@@ -29,44 +29,41 @@ MA 02110-1301, USA.
 
 @class ShipEntity;
 
-
-@interface OOShipGroup: OOWeakRefObject
-<NSFastEnumeration>
-{
+@interface OOShipGroup : OOWeakRefObject <NSFastEnumeration> {
 @private
-	NSUInteger				_count, _capacity;
-	unsigned long			_updateCount;
-	OOWeakReference			**_members;
-	OOWeakReference			*_leader;
-	NSString				*_name;
-	
-	struct JSObject			*_jsSelf;
+    NSUInteger _count, _capacity;
+    unsigned long _updateCount;
+    OOWeakReference** _members;
+    OOWeakReference* _leader;
+    NSString* _name;
+
+    struct JSObject* _jsSelf;
 }
 
-- (id) init;
-- (id) initWithName:(NSString *)name;
-+ (instancetype) groupWithName:(NSString *)name;
-+ (instancetype) groupWithName:(NSString *)name leader:(ShipEntity *)leader;
+- (id)init;
+- (id)initWithName:(NSString*)name;
++ (instancetype)groupWithName:(NSString*)name;
++ (instancetype)groupWithName:(NSString*)name leader:(ShipEntity*)leader;
 
-- (NSString *) name;
-- (void) setName:(NSString *)name;
+- (NSString*)name;
+- (void)setName:(NSString*)name;
 
-- (ShipEntity *) leader;
-- (void) setLeader:(ShipEntity *)leader;
+- (ShipEntity*)leader;
+- (void)setLeader:(ShipEntity*)leader;
 
-- (NSEnumerator *) objectEnumerator;
-- (NSEnumerator *) mutationSafeEnumerator;	// Enumerate over contents at time this is called, even if actual group is mutated.
+- (NSEnumerator*)objectEnumerator;
+- (NSEnumerator*)mutationSafeEnumerator; // Enumerate over contents at time this is called, even if actual group is mutated.
 
-- (NSSet *) members;
-- (NSArray *) memberArray;	// arbitrary order
-- (NSSet *) membersExcludingLeader;
-- (NSArray *) memberArrayExcludingLeader;	// arbitrary order
+- (NSSet*)members;
+- (NSArray*)memberArray; // arbitrary order
+- (NSSet*)membersExcludingLeader;
+- (NSArray*)memberArrayExcludingLeader; // arbitrary order
 
-- (BOOL) containsShip:(ShipEntity *)ship;
-- (BOOL) addShip:(ShipEntity *)ship;
-- (BOOL) removeShip:(ShipEntity *)ship;
+- (BOOL)containsShip:(ShipEntity*)ship;
+- (BOOL)addShip:(ShipEntity*)ship;
+- (BOOL)removeShip:(ShipEntity*)ship;
 
-- (NSUInteger) count;		// NOTE: this is O(n).
-- (BOOL) isEmpty;
+- (NSUInteger)count; // NOTE: this is O(n).
+- (BOOL)isEmpty;
 
 @end

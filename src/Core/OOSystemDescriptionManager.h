@@ -28,39 +28,34 @@ MA 02110-1301, USA.
 #import "OOTypes.h"
 #import "legacy_random.h"
 
-typedef enum
-{
-	OO_LAYER_CORE = 0,
-	OO_LAYER_OXP_STATIC = 1,
-	OO_LAYER_OXP_DYNAMIC = 2,
-	OO_LAYER_OXP_PRIORITY = 3
+typedef enum {
+    OO_LAYER_CORE = 0,
+    OO_LAYER_OXP_STATIC = 1,
+    OO_LAYER_OXP_DYNAMIC = 2,
+    OO_LAYER_OXP_PRIORITY = 3
 } OOSystemLayer;
 
-
-typedef enum
-{
-	OO_SYSTEMCONCEALMENT_NONE = 0,
-	OO_SYSTEMCONCEALMENT_NODATA = 100,
-	OO_SYSTEMCONCEALMENT_NONAME = 200,
-	OO_SYSTEMCONCEALMENT_NOTHING = 300
+typedef enum {
+    OO_SYSTEMCONCEALMENT_NONE = 0,
+    OO_SYSTEMCONCEALMENT_NODATA = 100,
+    OO_SYSTEMCONCEALMENT_NONAME = 200,
+    OO_SYSTEMCONCEALMENT_NOTHING = 300
 } OOSystemConcealment;
 
-
-#define OO_SYSTEM_LAYERS        4
-#define OO_SYSTEMS_PER_GALAXY	(kOOMaximumSystemID+1)
-#define OO_GALAXIES_AVAILABLE	(kOOMaximumGalaxyID+1)
-#define OO_SYSTEMS_AVAILABLE    OO_SYSTEMS_PER_GALAXY * OO_GALAXIES_AVAILABLE
+#define OO_SYSTEM_LAYERS 4
+#define OO_SYSTEMS_PER_GALAXY (kOOMaximumSystemID + 1)
+#define OO_GALAXIES_AVAILABLE (kOOMaximumGalaxyID + 1)
+#define OO_SYSTEMS_AVAILABLE OO_SYSTEMS_PER_GALAXY* OO_GALAXIES_AVAILABLE
 // don't bother caching interstellar properties
-#define OO_SYSTEM_CACHE_LENGTH  OO_SYSTEMS_AVAILABLE
+#define OO_SYSTEM_CACHE_LENGTH OO_SYSTEMS_AVAILABLE
 
-@interface OOSystemDescriptionEntry : NSObject
-{
+@interface OOSystemDescriptionEntry : NSObject {
 @private
-	NSMutableDictionary			*layers[OO_SYSTEM_LAYERS];
+    NSMutableDictionary* layers[OO_SYSTEM_LAYERS];
 }
 
-- (void) setProperty:(NSString *)property forLayer:(OOSystemLayer)layer toValue:(id)value;
-- (id) getProperty:(NSString *)property forLayer:(OOSystemLayer)layer;
+- (void)setProperty:(NSString*)property forLayer:(OOSystemLayer)layer toValue:(id)value;
+- (id)getProperty:(NSString*)property forLayer:(OOSystemLayer)layer;
 
 @end
 
@@ -70,50 +65,47 @@ typedef enum
  * forSystemKey calculates the values - but is necessary for
  * interstellar space
  */
-@interface OOSystemDescriptionManager : NSObject
-{
+@interface OOSystemDescriptionManager : NSObject {
 @private
-	NSMutableDictionary			*universalProperties;
-	OOSystemDescriptionEntry	*interstellarSpace;
-	NSMutableDictionary			*systemDescriptions;
-	NSMutableDictionary			*propertyCache[OO_SYSTEM_CACHE_LENGTH];
-	NSMutableSet				*propertiesInUse;
-	NSPoint						coordinatesCache[OO_SYSTEM_CACHE_LENGTH];
-	NSMutableArray				*neighbourCache[OO_SYSTEM_CACHE_LENGTH];
-	NSMutableDictionary			*scriptedChanges;
+    NSMutableDictionary* universalProperties;
+    OOSystemDescriptionEntry* interstellarSpace;
+    NSMutableDictionary* systemDescriptions;
+    NSMutableDictionary* propertyCache[OO_SYSTEM_CACHE_LENGTH];
+    NSMutableSet* propertiesInUse;
+    NSPoint coordinatesCache[OO_SYSTEM_CACHE_LENGTH];
+    NSMutableArray* neighbourCache[OO_SYSTEM_CACHE_LENGTH];
+    NSMutableDictionary* scriptedChanges;
 }
 
 // this needs to be re-called every time system coordinates change
 // changing system coordinates after plist loading is probably
 // too much of a can of worms *anyway*, so currently it's only
 // called just after the manager data is loaded.
-- (void) buildRouteCache;
+- (void)buildRouteCache;
 
-- (void) setUniversalProperties:(NSDictionary *)properties;
-- (void) setInterstellarProperties:(NSDictionary *)properties;
+- (void)setUniversalProperties:(NSDictionary*)properties;
+- (void)setInterstellarProperties:(NSDictionary*)properties;
 
 // this is used by planetinfo.plist and has default layer 1
-- (void) setProperties:(NSDictionary *)properties forSystemKey:(NSString *)key;
+- (void)setProperties:(NSDictionary*)properties forSystemKey:(NSString*)key;
 
 // this is used by Javascript property setting
-- (void) setProperty:(NSString *)property forSystemKey:(NSString *)key andLayer:(OOSystemLayer)layer toValue:(id)value fromManifest:(NSString *)manifest;
+- (void)setProperty:(NSString*)property forSystemKey:(NSString*)key andLayer:(OOSystemLayer)layer toValue:(id)value fromManifest:(NSString*)manifest;
 
-- (void) importScriptedChanges:(NSDictionary *)scripted;
-- (void) importLegacyScriptedChanges:(NSDictionary *)scripted;
-- (NSDictionary *) exportScriptedChanges;
+- (void)importScriptedChanges:(NSDictionary*)scripted;
+- (void)importLegacyScriptedChanges:(NSDictionary*)scripted;
+- (NSDictionary*)exportScriptedChanges;
 
-- (NSDictionary *) getPropertiesForSystemKey:(NSString *)key;
-- (NSDictionary *) getPropertiesForSystem:(OOSystemID)s inGalaxy:(OOGalaxyID)g;
-- (NSDictionary *) getPropertiesForCurrentSystem;
-- (id) getProperty:(NSString *)property forSystemKey:(NSString *)key;
-- (id) getProperty:(NSString *)property forSystem:(OOSystemID)s inGalaxy:(OOGalaxyID)g;
+- (NSDictionary*)getPropertiesForSystemKey:(NSString*)key;
+- (NSDictionary*)getPropertiesForSystem:(OOSystemID)s inGalaxy:(OOGalaxyID)g;
+- (NSDictionary*)getPropertiesForCurrentSystem;
+- (id)getProperty:(NSString*)property forSystemKey:(NSString*)key;
+- (id)getProperty:(NSString*)property forSystem:(OOSystemID)s inGalaxy:(OOGalaxyID)g;
 
-- (NSPoint) getCoordinatesForSystem:(OOSystemID)s inGalaxy:(OOGalaxyID)g;
-- (NSArray *) getNeighbourIDsForSystem:(OOSystemID)s inGalaxy:(OOGalaxyID)g;
+- (NSPoint)getCoordinatesForSystem:(OOSystemID)s inGalaxy:(OOGalaxyID)g;
+- (NSArray*)getNeighbourIDsForSystem:(OOSystemID)s inGalaxy:(OOGalaxyID)g;
 
-- (Random_Seed) getRandomSeedForCurrentSystem;
-- (Random_Seed) getRandomSeedForSystem:(OOSystemID)s inGalaxy:(OOGalaxyID)g;
+- (Random_Seed)getRandomSeedForCurrentSystem;
+- (Random_Seed)getRandomSeedForSystem:(OOSystemID)s inGalaxy:(OOGalaxyID)g;
 
 @end
-
-

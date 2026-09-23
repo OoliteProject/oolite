@@ -33,72 +33,62 @@ SOFTWARE.
 
 - (void)dealloc
 {
-	free(_buffer);
-	_buffer = NULL;
-	DESTROY(_name);
-	
-	[super dealloc];
+    free(_buffer);
+    _buffer = NULL;
+    DESTROY(_name);
+
+    [super dealloc];
 }
 
-- (NSString *)name
+- (NSString*)name
 {
-	return _name;
+    return _name;
 }
 
-
-
-- (id)initWithDecoder:(OOALSoundDecoder *)inDecoder
+- (id)initWithDecoder:(OOALSoundDecoder*)inDecoder
 {
-	BOOL					OK = YES;
-	
-	[OOSound setUp];
-	if (![OOSound isSoundOK] || nil == inDecoder) OK = NO;
-	
-	if (OK)
-	{
-		self = [super init];
-		if (nil == self) OK = NO;
-	}
-	
-	if (OK)
-	{
-		_name = [[inDecoder name] copy];
-		_sampleRate = [inDecoder sampleRate];
-		OK = [inDecoder readCreatingBuffer:&_buffer withFrameCount:&_size];
-		_stereo = [inDecoder isStereo];
-	}
-	
-	if (!OK)
-	{
-		[self release];
-		self = nil;
-	}
-	return self;
+    BOOL OK = YES;
+
+    [OOSound setUp];
+    if (![OOSound isSoundOK] || nil == inDecoder)
+        OK = NO;
+
+    if (OK) {
+        self = [super init];
+        if (nil == self)
+            OK = NO;
+    }
+
+    if (OK) {
+        _name = [[inDecoder name] copy];
+        _sampleRate = [inDecoder sampleRate];
+        OK = [inDecoder readCreatingBuffer:&_buffer withFrameCount:&_size];
+        _stereo = [inDecoder isStereo];
+    }
+
+    if (!OK) {
+        [self release];
+        self = nil;
+    }
+    return self;
 }
 
-
-- (ALuint) soundBuffer
+- (ALuint)soundBuffer
 {
-	ALuint buffer;
-	ALint error;
-	OOAL(alGenBuffers(1,&buffer));
-	if ((error = alGetError()) != AL_NO_ERROR)
-	{
-		OOLog(kOOLogSoundLoadingError, @"%@", @"Could not create OpenAL buffer");
-		return 0;
-	}
-	else
-	{
-		if (!_stereo)
-		{
-			alBufferData(buffer,AL_FORMAT_MONO16,_buffer,(ALsizei)_size,_sampleRate);
-		}
-		else
-		{
-			alBufferData(buffer,AL_FORMAT_STEREO16,_buffer,(ALsizei)_size,_sampleRate);
-		}
-		return buffer;
-	}
+    ALuint buffer;
+    ALint error;
+    OOAL(alGenBuffers(1, &buffer));
+    if ((error = alGetError()) != AL_NO_ERROR) {
+        OOLog(kOOLogSoundLoadingError, @"%@", @"Could not create OpenAL buffer");
+        return 0;
+    } else {
+        if (!_stereo) {
+            alBufferData(buffer, AL_FORMAT_MONO16, _buffer, (ALsizei)_size, _sampleRate);
+        } else {
+            alBufferData(buffer, AL_FORMAT_STEREO16, _buffer, (ALsizei)_size, _sampleRate);
+        }
+        return buffer;
+    }
 }
 
 @end

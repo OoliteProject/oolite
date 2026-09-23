@@ -29,10 +29,10 @@ SOFTWARE.
 #import "OOFoundation.h"
 
 // Warn/exit if deprecated functionality used
-void OOStandardsDeprecated(NSString *message);
+void OOStandardsDeprecated(NSString* message);
 
 // Warn/exit if an OXP error is detected
-void OOStandardsError(NSString *message);
+void OOStandardsError(NSString* message);
 
 // Return true if in standard enforcing mode
 // Always false in release builds
@@ -40,5 +40,3 @@ void OOStandardsError(NSString *message);
 BOOL OOEnforceStandards(void);
 
 void OOSetStandardsForOXPVerifierMode(void);
-
-

@@ -26,174 +26,156 @@ MA 02110-1301, USA.
 
 #ifndef NDEBUG
 
-
 #import "OOJSCall.h"
 #import "OOJavaScriptEngine.h"
 
-#import "OOFunctionAttributes.h"
-#import "ShipEntity.h"
 #import "OOCollectionExtractors.h"
-#import "OOShaderUniformMethodType.h"
-#import "OOJSVector.h"
+#import "OOFunctionAttributes.h"
 #import "OOJSQuaternion.h"
+#import "OOJSVector.h"
+#import "OOShaderUniformMethodType.h"
+#import "ShipEntity.h"
 
+typedef enum {
+    kMethodTypeInvalid = kOOShaderUniformTypeInvalid,
 
-typedef enum
-{
-	kMethodTypeInvalid				= kOOShaderUniformTypeInvalid,
-	
-	kMethodTypeCharVoid				= kOOShaderUniformTypeChar,
-	kMethodTypeUnsignedCharVoid		= kOOShaderUniformTypeUnsignedChar,
-	kMethodTypeShortVoid			= kOOShaderUniformTypeShort,
-	kMethodTypeUnsignedShortVoid	= kOOShaderUniformTypeUnsignedShort,
-	kMethodTypeIntVoid				= kOOShaderUniformTypeInt,
-	kMethodTypeUnsignedIntVoid		= kOOShaderUniformTypeUnsignedInt,
-	kMethodTypeLongVoid				= kOOShaderUniformTypeLong,
-	kMethodTypeUnsignedLongVoid		= kOOShaderUniformTypeUnsignedLong,
-	kMethodTypeFloatVoid			= kOOShaderUniformTypeFloat,
-	kMethodTypeDoubleVoid			= kOOShaderUniformTypeDouble,
-	kMethodTypeVectorVoid			= kOOShaderUniformTypeVector,
-	kMethodTypeQuaternionVoid		= kOOShaderUniformTypeQuaternion,
-	kMethodTypeMatrixVoid			= kOOShaderUniformTypeMatrix,
-	kMethodTypePointVoid			= kOOShaderUniformTypePoint,
-	
-	kMethodTypeObjectVoid			= kOOShaderUniformTypeObject,
-	kMethodTypeObjectObject,
-	kMethodTypeVoidVoid,
-	kMethodTypeVoidObject
+    kMethodTypeCharVoid = kOOShaderUniformTypeChar,
+    kMethodTypeUnsignedCharVoid = kOOShaderUniformTypeUnsignedChar,
+    kMethodTypeShortVoid = kOOShaderUniformTypeShort,
+    kMethodTypeUnsignedShortVoid = kOOShaderUniformTypeUnsignedShort,
+    kMethodTypeIntVoid = kOOShaderUniformTypeInt,
+    kMethodTypeUnsignedIntVoid = kOOShaderUniformTypeUnsignedInt,
+    kMethodTypeLongVoid = kOOShaderUniformTypeLong,
+    kMethodTypeUnsignedLongVoid = kOOShaderUniformTypeUnsignedLong,
+    kMethodTypeFloatVoid = kOOShaderUniformTypeFloat,
+    kMethodTypeDoubleVoid = kOOShaderUniformTypeDouble,
+    kMethodTypeVectorVoid = kOOShaderUniformTypeVector,
+    kMethodTypeQuaternionVoid = kOOShaderUniformTypeQuaternion,
+    kMethodTypeMatrixVoid = kOOShaderUniformTypeMatrix,
+    kMethodTypePointVoid = kOOShaderUniformTypePoint,
+
+    kMethodTypeObjectVoid = kOOShaderUniformTypeObject,
+    kMethodTypeObjectObject,
+    kMethodTypeVoidVoid,
+    kMethodTypeVoidObject
 } MethodType;
 
-
 static MethodType GetMethodType(id object, SEL selector);
-OOINLINE BOOL MethodExpectsParameter(MethodType type)	{ return type == kMethodTypeVoidObject || type == kMethodTypeObjectObject; }
+OOINLINE BOOL MethodExpectsParameter(MethodType type) { return type == kMethodTypeVoidObject || type == kMethodTypeObjectObject; }
 
-
-BOOL OOJSCallObjCObjectMethod(JSContext *context, id object, NSString *oo_jsClassName, uintN argc, jsval *argv, jsval *outResult)
+BOOL OOJSCallObjCObjectMethod(JSContext* context, id object, NSString* oo_jsClassName, uintN argc, jsval* argv, jsval* outResult)
 {
-	OOJS_PROFILE_ENTER
-	
-	NSString				*selectorString = nil;
-	SEL						selector = NULL;
-	NSString				*paramString = nil;
-	MethodType				type;
-	BOOL					haveParameter = NO,
-							error = NO;
-	id						result = nil;
-	
-	if (argc == 0)
-	{
-		OOJSReportError(context, @"%@.callObjC(): no selector specified.", oo_jsClassName);
-		return NO;
-	}
-	
-	if ([object isKindOfClass:[ShipEntity class]])
-	{
-		[PLAYER setScriptTarget:object];
-	}
-	
-	selectorString = OOStringFromJSValue(context, argv[0]);
-	
-	// Join all parameters together with spaces.
-	if (1 < argc && [selectorString hasSuffix:@":"])
-	{
-		haveParameter = YES;
-		paramString = [NSString concatenationOfStringsFromJavaScriptValues:argv + 1 count:argc - 1 separator:@" " inContext:context];
-	}
-	
-	selector = NSSelectorFromString(selectorString);
-	
-	if ([object respondsToSelector:selector])
-	{
-		// Validate signature.
-		type = GetMethodType(object, selector);
-		
-		if (MethodExpectsParameter(type) && !haveParameter)
-		{
-			OOJSReportError(context, @"%@.callObjC(): method %@ requires a parameter.", oo_jsClassName, selectorString);
-			error = YES;
-		}
-		else
-		{
-			IMP method = [object methodForSelector:selector];
-			switch (type)
-			{
-				case kMethodTypeVoidObject:
-					[object performSelector:selector withObject:paramString];
-					break;
-					
-				case kMethodTypeObjectObject:
-					result = [object performSelector:selector withObject:paramString];
-					break;
-					
-				case kMethodTypeObjectVoid:
-					result = [object performSelector:selector];
-					if ([selectorString hasSuffix:@"_bool"])  result = [NSNumber numberWithBool:OOBooleanFromObject(result, NO)];
-					break;
-					
-				case kMethodTypeVoidVoid:
-					[object performSelector:selector];
-					break;
-					
-				case kMethodTypeCharVoid:
-				case kMethodTypeUnsignedCharVoid:
-				case kMethodTypeShortVoid:
-				case kMethodTypeUnsignedShortVoid:
-				case kMethodTypeIntVoid:
-				case kMethodTypeUnsignedIntVoid:
-				case kMethodTypeLongVoid:
-					result = [NSNumber numberWithLongLong:OOCallIntegerMethod(object, selector, method, (OOShaderUniformType)type)];
-					break;
-					
-				case kMethodTypeUnsignedLongVoid:
-					result = [NSNumber numberWithUnsignedLongLong:OOCallIntegerMethod(object, selector, method, (OOShaderUniformType)type)];
-					break;
-					
-				case kMethodTypeFloatVoid:
-				case kMethodTypeDoubleVoid:
-					result = [NSNumber numberWithDouble:OOCallFloatMethod(object, selector, method, (OOShaderUniformType)type)];
-					break;
-					
-				case kMethodTypeVectorVoid:
-				{
-					Vector v = ((VectorReturnMsgSend)method)(object, selector);
-					*outResult = OBJECT_TO_JSVAL(JSVectorWithVector(context, v));
-					break;
-				}
-					
-				case kMethodTypeQuaternionVoid:
-				{
-					Quaternion q = ((QuaternionReturnMsgSend)method)(object, selector);
-					*outResult = OBJECT_TO_JSVAL(JSQuaternionWithQuaternion(context, q));
-					break;
-				}
-					
-				case kMethodTypeMatrixVoid:
-				case kMethodTypePointVoid:
-				case kMethodTypeInvalid:
-					OOJSReportError(context, @"%@.callObjC(): method %@ cannot be called from JavaScript.", oo_jsClassName, selectorString);
-					error = YES;
-					break;
-			}
-			if (result != nil)
-			{
-				*outResult = [result oo_jsValueInContext:context];
-			}
-		}
-	}
-	else
-	{
-		OOJSReportError(context, @"%@.callObjC(): %@ does not respond to method %@.", oo_jsClassName, [object shortDescription], selectorString);
-		error = YES;
-	}
-	
-	return !error;
-	
-	OOJS_PROFILE_EXIT
+    OOJS_PROFILE_ENTER
+
+    NSString* selectorString = nil;
+    SEL selector = NULL;
+    NSString* paramString = nil;
+    MethodType type;
+    BOOL haveParameter = NO,
+         error = NO;
+    id result = nil;
+
+    if (argc == 0) {
+        OOJSReportError(context, @"%@.callObjC(): no selector specified.", oo_jsClassName);
+        return NO;
+    }
+
+    if ([object isKindOfClass:[ShipEntity class]]) {
+        [PLAYER setScriptTarget:object];
+    }
+
+    selectorString = OOStringFromJSValue(context, argv[0]);
+
+    // Join all parameters together with spaces.
+    if (1 < argc && [selectorString hasSuffix:@":"]) {
+        haveParameter = YES;
+        paramString = [NSString concatenationOfStringsFromJavaScriptValues:argv + 1 count:argc - 1 separator:@" " inContext:context];
+    }
+
+    selector = NSSelectorFromString(selectorString);
+
+    if ([object respondsToSelector:selector]) {
+        // Validate signature.
+        type = GetMethodType(object, selector);
+
+        if (MethodExpectsParameter(type) && !haveParameter) {
+            OOJSReportError(context, @"%@.callObjC(): method %@ requires a parameter.", oo_jsClassName, selectorString);
+            error = YES;
+        } else {
+            IMP method = [object methodForSelector:selector];
+            switch (type) {
+            case kMethodTypeVoidObject:
+                [object performSelector:selector withObject:paramString];
+                break;
+
+            case kMethodTypeObjectObject:
+                result = [object performSelector:selector withObject:paramString];
+                break;
+
+            case kMethodTypeObjectVoid:
+                result = [object performSelector:selector];
+                if ([selectorString hasSuffix:@"_bool"])
+                    result = [NSNumber numberWithBool:OOBooleanFromObject(result, NO)];
+                break;
+
+            case kMethodTypeVoidVoid:
+                [object performSelector:selector];
+                break;
+
+            case kMethodTypeCharVoid:
+            case kMethodTypeUnsignedCharVoid:
+            case kMethodTypeShortVoid:
+            case kMethodTypeUnsignedShortVoid:
+            case kMethodTypeIntVoid:
+            case kMethodTypeUnsignedIntVoid:
+            case kMethodTypeLongVoid:
+                result = [NSNumber numberWithLongLong:OOCallIntegerMethod(object, selector, method, (OOShaderUniformType)type)];
+                break;
+
+            case kMethodTypeUnsignedLongVoid:
+                result = [NSNumber numberWithUnsignedLongLong:OOCallIntegerMethod(object, selector, method, (OOShaderUniformType)type)];
+                break;
+
+            case kMethodTypeFloatVoid:
+            case kMethodTypeDoubleVoid:
+                result = [NSNumber numberWithDouble:OOCallFloatMethod(object, selector, method, (OOShaderUniformType)type)];
+                break;
+
+            case kMethodTypeVectorVoid: {
+                Vector v = ((VectorReturnMsgSend)method)(object, selector);
+                *outResult = OBJECT_TO_JSVAL(JSVectorWithVector(context, v));
+                break;
+            }
+
+            case kMethodTypeQuaternionVoid: {
+                Quaternion q = ((QuaternionReturnMsgSend)method)(object, selector);
+                *outResult = OBJECT_TO_JSVAL(JSQuaternionWithQuaternion(context, q));
+                break;
+            }
+
+            case kMethodTypeMatrixVoid:
+            case kMethodTypePointVoid:
+            case kMethodTypeInvalid:
+                OOJSReportError(context, @"%@.callObjC(): method %@ cannot be called from JavaScript.", oo_jsClassName, selectorString);
+                error = YES;
+                break;
+            }
+            if (result != nil) {
+                *outResult = [result oo_jsValueInContext:context];
+            }
+        }
+    } else {
+        OOJSReportError(context, @"%@.callObjC(): %@ does not respond to method %@.", oo_jsClassName, [object shortDescription], selectorString);
+        error = YES;
+    }
+
+    return !error;
+
+    OOJS_PROFILE_EXIT
 }
 
-
 // Template class providing method signature strings for the four signatures we support.
-@interface OOJSCallMethodSignatureTemplateClass: NSObject
+@interface OOJSCallMethodSignatureTemplateClass : NSObject
 
 - (void)voidVoidMethod;
 - (void)voidObjectMethod:(id)object;
@@ -201,40 +183,46 @@ BOOL OOJSCallObjCObjectMethod(JSContext *context, id object, NSString *oo_jsClas
 
 @end
 
-
-static BOOL SignatureMatch(NSMethodSignature *sig, SEL selector)
+static BOOL SignatureMatch(NSMethodSignature* sig, SEL selector)
 {
-	NSMethodSignature		*template = nil;
-	
-	template = [OOJSCallMethodSignatureTemplateClass instanceMethodSignatureForSelector:selector];
-	return [sig isEqual:template];
-}
+    NSMethodSignature* template = nil;
 
+    template = [OOJSCallMethodSignatureTemplateClass instanceMethodSignatureForSelector:selector];
+    return [sig isEqual:template];
+}
 
 static MethodType GetMethodType(id object, SEL selector)
 {
-	NSMethodSignature *sig = [object methodSignatureForSelector:selector];
-	
-	if (SignatureMatch(sig, @selector(voidVoidMethod)))  return kMethodTypeVoidVoid;
-	if (SignatureMatch(sig, @selector(voidObjectMethod:)))  return kMethodTypeVoidObject;
-	if (SignatureMatch(sig, @selector(objectObjectMethod:)))  return kMethodTypeObjectObject;
-	
-	MethodType type = (MethodType)OOShaderUniformTypeFromMethodSignature(sig);
-	if (type != kMethodTypeInvalid)  return type;
-	
-	return kMethodTypeInvalid;
+    NSMethodSignature* sig = [object methodSignatureForSelector:selector];
+
+    if (SignatureMatch(sig, @selector(voidVoidMethod)))
+        return kMethodTypeVoidVoid;
+    if (SignatureMatch(sig, @selector(voidObjectMethod:)))
+        return kMethodTypeVoidObject;
+    if (SignatureMatch(sig, @selector(objectObjectMethod:)))
+        return kMethodTypeObjectObject;
+
+    MethodType type = (MethodType)OOShaderUniformTypeFromMethodSignature(sig);
+    if (type != kMethodTypeInvalid)
+        return type;
+
+    return kMethodTypeInvalid;
 }
 
+@implementation OOJSCallMethodSignatureTemplateClass : NSObject
 
-@implementation OOJSCallMethodSignatureTemplateClass: NSObject
+- (void)voidVoidMethod
+{
+}
 
-- (void)voidVoidMethod {}
+- (void)voidObjectMethod:(id)object
+{
+}
 
-
-- (void)voidObjectMethod:(id)object {}
-
-
-- (id)objectObjectMethod:(id)object { return nil; }
+- (id)objectObjectMethod:(id)object
+{
+    return nil;
+}
 
 @end
 

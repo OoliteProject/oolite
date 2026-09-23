@@ -39,99 +39,97 @@ MA 02110-1301, USA.
 
 #import "OOFoundation.h"
 
-
 // Enums are used here rather than a more complex ObjC object because
 // these are required very frequently (once per frame) so must be light
 // on CPU cycles (try and avoid too many objc sendmsgs).
 // Controls that can be an axis
 enum {
-	AXIS_ROLL,
-	AXIS_PITCH,
-	AXIS_YAW,
-	AXIS_PRECISION,
-	AXIS_THRUST,
-	AXIS_VIEWX,
-	AXIS_VIEWY,
+    AXIS_ROLL,
+    AXIS_PITCH,
+    AXIS_YAW,
+    AXIS_PRECISION,
+    AXIS_THRUST,
+    AXIS_VIEWX,
+    AXIS_VIEWY,
 #if OO_FOV_INFLIGHT_CONTROL_ENABLED
-	AXIS_FIELD_OF_VIEW,
+    AXIS_FIELD_OF_VIEW,
 #endif
-	AXIS_end
+    AXIS_end
 };
 
 // Controls that can be a button
 enum {
-	BUTTON_INCTHRUST,
-	BUTTON_DECTHRUST,
-	BUTTON_SCANNERZOOM,
-	BUTTON_SCANNERUNZOOM,
-	BUTTON_JETTISON,
-	BUTTON_COMPASSMODE,
-	BUTTON_COMMSLOG,
-	BUTTON_DOCKCPU,
-	BUTTON_DOCKCPUFAST,
-	BUTTON_FUELINJECT,
-	BUTTON_HYPERSPEED,
-	BUTTON_HYPERDRIVE,
-	BUTTON_GALACTICDRIVE,
-	BUTTON_FIRE,
-	BUTTON_ARMMISSILE,
-	BUTTON_LAUNCHMISSILE,
-	BUTTON_PRIMEEQUIPMENT,
-	BUTTON_ACTIVATEEQUIPMENT,
-	BUTTON_UNARM,
-	BUTTON_TARGETINCOMINGMISSILE,
-	BUTTON_CYCLEMISSILE,
-	BUTTON_ENERGYBOMB, // now fast activate B
-	BUTTON_WEAPONSONLINETOGGLE,
-	BUTTON_ID,
-	BUTTON_ECM,
-	BUTTON_ESCAPE,
-	BUTTON_CLOAK, // now fast activate A
-	BUTTON_PRECISION,
-	BUTTON_VIEWFORWARD,
-	BUTTON_VIEWAFT,
-	BUTTON_VIEWPORT,
-	BUTTON_VIEWSTARBOARD,
-	BUTTON_SNAPSHOT,
-	BUTTON_PREVTARGET,
-	BUTTON_NEXTTARGET,
-	BUTTON_MODEEQUIPMENT,
+    BUTTON_INCTHRUST,
+    BUTTON_DECTHRUST,
+    BUTTON_SCANNERZOOM,
+    BUTTON_SCANNERUNZOOM,
+    BUTTON_JETTISON,
+    BUTTON_COMPASSMODE,
+    BUTTON_COMMSLOG,
+    BUTTON_DOCKCPU,
+    BUTTON_DOCKCPUFAST,
+    BUTTON_FUELINJECT,
+    BUTTON_HYPERSPEED,
+    BUTTON_HYPERDRIVE,
+    BUTTON_GALACTICDRIVE,
+    BUTTON_FIRE,
+    BUTTON_ARMMISSILE,
+    BUTTON_LAUNCHMISSILE,
+    BUTTON_PRIMEEQUIPMENT,
+    BUTTON_ACTIVATEEQUIPMENT,
+    BUTTON_UNARM,
+    BUTTON_TARGETINCOMINGMISSILE,
+    BUTTON_CYCLEMISSILE,
+    BUTTON_ENERGYBOMB, // now fast activate B
+    BUTTON_WEAPONSONLINETOGGLE,
+    BUTTON_ID,
+    BUTTON_ECM,
+    BUTTON_ESCAPE,
+    BUTTON_CLOAK, // now fast activate A
+    BUTTON_PRECISION,
+    BUTTON_VIEWFORWARD,
+    BUTTON_VIEWAFT,
+    BUTTON_VIEWPORT,
+    BUTTON_VIEWSTARBOARD,
+    BUTTON_SNAPSHOT,
+    BUTTON_PREVTARGET,
+    BUTTON_NEXTTARGET,
+    BUTTON_MODEEQUIPMENT,
 #if OO_FOV_INFLIGHT_CONTROL_ENABLED
-	BUTTON_INC_FIELD_OF_VIEW,
-	BUTTON_DEC_FIELD_OF_VIEW,
+    BUTTON_INC_FIELD_OF_VIEW,
+    BUTTON_DEC_FIELD_OF_VIEW,
 #endif
-	BUTTON_DOCKINGCLEARANCE,
-	BUTTON_COMPASSMODE_PREV,
-	BUTTON_PRIMEEQUIPMENT_PREV,
-	BUTTON_ROTATECARGO,
-	BUTTON_MFDSELECTNEXT,
-	BUTTON_MFDSELECTPREV,
-	BUTTON_MFDCYCLENEXT,
-	BUTTON_MFDCYCLEPREV,
-	BUTTON_EXTVIEWCYCLE,
-	BUTTON_DOCKINGMUSIC,
-	BUTTON_PAUSE,
-	BUTTON_TOGGLEHUD,
-	BUTTON_end
+    BUTTON_DOCKINGCLEARANCE,
+    BUTTON_COMPASSMODE_PREV,
+    BUTTON_PRIMEEQUIPMENT_PREV,
+    BUTTON_ROTATECARGO,
+    BUTTON_MFDSELECTNEXT,
+    BUTTON_MFDSELECTPREV,
+    BUTTON_MFDCYCLENEXT,
+    BUTTON_MFDCYCLEPREV,
+    BUTTON_EXTVIEWCYCLE,
+    BUTTON_DOCKINGMUSIC,
+    BUTTON_PAUSE,
+    BUTTON_TOGGLEHUD,
+    BUTTON_end
 };
 
 // Stick constants
 #define MAX_STICKS 4
-#define MAX_AXES  16
-#define MAX_REAL_BUTTONS  64
-#define MAX_HATS  4
+#define MAX_AXES 16
+#define MAX_REAL_BUTTONS 64
+#define MAX_HATS 4
 #define MAX_BUTTONS (MAX_REAL_BUTTONS + 4 * MAX_HATS)
 #define STICK_NOFUNCTION -1
 #define STICK_AXISUNASSIGNED -10.0
 
 #define STICK_PRECISIONFAC 3
 #define STICK_NORMALDIV 32768
-#define STICK_PRECISIONDIV (STICK_PRECISIONFAC*STICK_NORMALDIV)
+#define STICK_PRECISIONDIV (STICK_PRECISIONFAC * STICK_NORMALDIV)
 
-#define STICK_DEADZONE	0.05
+#define STICK_DEADZONE 0.05
 
-#define STICK_MAX_DEADZONE	(STICK_DEADZONE * 2)
-
+#define STICK_MAX_DEADZONE (STICK_DEADZONE * 2)
 
 // Kind of stick device (these are bits - if any more are added,
 // the next one is 4 and so on).
@@ -143,92 +141,90 @@ enum {
 #define AXCBTHRESH 20000
 
 // Dictionary keys - used in the defaults file
-#define AXIS_SETTINGS @"JoystickAxes"  // NSUserDefaults
+#define AXIS_SETTINGS @"JoystickAxes" // NSUserDefaults
 #define BUTTON_SETTINGS @"JoystickButs" // NSUserDefaults
-#define STICK_ISAXIS @"isAxis"      // YES=axis NO=button
-#define STICK_NUMBER @"stickNum"    // Stick number 0 to 4
-#define STICK_AXBUT  @"stickAxBt"   // Axis or button number
+#define STICK_ISAXIS @"isAxis" // YES=axis NO=button
+#define STICK_NUMBER @"stickNum" // Stick number 0 to 4
+#define STICK_AXBUT @"stickAxBt" // Axis or button number
 #define STICK_FUNCTION @"stickFunc" // Function of axis/button
 #define STICK_ROLL_AXIS_PROFILE_SETTING @"RollAxisProfile" // Joystick Profiles
 #define STICK_PITCH_AXIS_PROFILE_SETTING @"PitchAxisProfile" // Joystick Profiles
 #define STICK_YAW_AXIS_PROFILE_SETTING @"YawAxisProfile" // Joystick Profiles
 // shortcut to make code more readable when using enum as key for
 // an NSDictionary
-#define ENUMKEY(x) [NSString stringWithFormat: @"%d", x]
-
+#define ENUMKEY(x) [NSString stringWithFormat:@"%d", x]
 
 #import "OOJoystickProfile.h"
 
-@interface OOJoystickManager: NSObject 
-{
-	// Axis/button mapping arrays
-	int8_t		axismap[MAX_STICKS][MAX_AXES];
-	int8_t		buttonmap[MAX_STICKS][MAX_BUTTONS];
-	BOOL		true_butstate[MAX_STICKS][MAX_BUTTONS];
-	double		axstate[AXIS_end];
-	BOOL		butstate[BUTTON_end];
-	uint8_t		hatstate[MAX_STICKS][MAX_HATS];
-	BOOL		precisionMode;
+@interface OOJoystickManager : NSObject {
+    // Axis/button mapping arrays
+    int8_t axismap[MAX_STICKS][MAX_AXES];
+    int8_t buttonmap[MAX_STICKS][MAX_BUTTONS];
+    BOOL true_butstate[MAX_STICKS][MAX_BUTTONS];
+    double axstate[AXIS_end];
+    BOOL butstate[BUTTON_end];
+    uint8_t hatstate[MAX_STICKS][MAX_HATS];
+    BOOL precisionMode;
 
-	// Handle callbacks - the object, selector to call
-	// the desired function, and the hardware (axis or button etc.)
-	id			cbObject;
-	SEL			cbSelector;
-	char			cbHardware;
-	BOOL			invertPitch;
+    // Handle callbacks - the object, selector to call
+    // the desired function, and the hardware (axis or button etc.)
+    id cbObject;
+    SEL cbSelector;
+    char cbHardware;
+    BOOL invertPitch;
 
-  @private
-	OOJoystickAxisProfile *roll_profile;
-	OOJoystickAxisProfile *pitch_profile;
-	OOJoystickAxisProfile *yaw_profile;
+@private
+    OOJoystickAxisProfile* roll_profile;
+    OOJoystickAxisProfile* pitch_profile;
+    OOJoystickAxisProfile* yaw_profile;
 }
 
-+ (id) sharedStickHandler;
-+ (BOOL) setStickHandlerClass:(Class)aClass;
++ (id)sharedStickHandler;
++ (BOOL)setStickHandlerClass:(Class)aClass;
 
 // General.
 // Note: handleSDLEvent returns a BOOL (YES we handled it or NO we
 // didn't) so in the future when more handler classes are written,
 // the GameView event loop can just go through an NSArray of handlers
 // until it finds a handler that handles the event.
-- (id) init;
+- (id)init;
 
 // Roll/pitch axis
-- (NSPoint) rollPitchAxis;
+- (NSPoint)rollPitchAxis;
 
 // View axis
-- (NSPoint) viewAxis;
+- (NSPoint)viewAxis;
 
 // convert a dictionary into the internal function map
-- (void) setFunction:(int)function withDict: (NSDictionary *)stickFn;
-- (void) unsetAxisFunction:(int)function;
-- (void) unsetButtonFunction:(int)function;
+- (void)setFunction:(int)function withDict:(NSDictionary*)stickFn;
+- (void)unsetAxisFunction:(int)function;
+- (void)unsetButtonFunction:(int)function;
 
 // Accessors and discovery about the hardware.
 // These work directly on the internal lookup table so to be fast
 // since they are likely to be called by the game loop.
-- (BOOL) isButtonDown:(int)button stick:(int)stickNum;
-- (BOOL) getButtonState:(int)function;
-- (double) getAxisState:(int)function;
-- (double) getSensitivity;
+- (BOOL)isButtonDown:(int)button stick:(int)stickNum;
+- (BOOL)getButtonState:(int)function;
+- (double)getAxisState:(int)function;
+- (double)getSensitivity;
 
 // Axis profile handling
-- (void) setProfile: (OOJoystickAxisProfile *) profile forAxis:(int) axis;
-- (OOJoystickAxisProfile *) getProfileForAxis: (int) axis;
-- (void) saveProfileForAxis: (int) axis;
-- (void) loadProfileForAxis: (int) axis;
+- (void)setProfile:(OOJoystickAxisProfile*)profile forAxis:(int)axis;
+- (OOJoystickAxisProfile*)getProfileForAxis:(int)axis;
+- (void)saveProfileForAxis:(int)axis;
+- (void)loadProfileForAxis:(int)axis;
 
 // This one just returns a pointer to the entire state array to
 // allow for multiple lookups with only one objc_sendMsg
-- (const BOOL *) getAllButtonStates;
+- (const BOOL*)getAllButtonStates;
 
 // Hardware introspection.
-- (NSArray *) listSticks;
+- (NSArray*)listSticks;
 
 // These use NSDictionary/NSArray since they are used outside the game
 // loop and are needed for loading/saving defaults.
-- (NSDictionary *) axisFunctions;
-- (NSDictionary *) buttonFunctions;
+- (NSDictionary*)axisFunctions;
+- (NSDictionary*)buttonFunctions;
 
 // Set a callback for the next moved axis/pressed button. hwflags
 // is in the form HW_AXIS | HW_BUTTON (or just one of).
@@ -238,16 +234,16 @@ enum {
 - (void)clearCallback;
 
 // Methods generally only used by this class.
-- (void) setDefaultMapping;
-- (void) clearMappings;
-- (void) clearStickStates;
-- (void) clearStickButtonState: (int)stickButton;
-- (void) saveStickSettings;
-- (void) loadStickSettings;
+- (void)setDefaultMapping;
+- (void)clearMappings;
+- (void)clearStickStates;
+- (void)clearStickButtonState:(int)stickButton;
+- (void)saveStickSettings;
+- (void)loadStickSettings;
 
-//Methods that should be overridden by all subclasses
-- (NSUInteger) joystickCount;
-- (NSString *) nameOfJoystick:(NSUInteger)stickNumber;
-- (int16_t) getAxisWithStick:(NSUInteger) stickNum axis:(NSUInteger)axisNum;
+// Methods that should be overridden by all subclasses
+- (NSUInteger)joystickCount;
+- (NSString*)nameOfJoystick:(NSUInteger)stickNumber;
+- (int16_t)getAxisWithStick:(NSUInteger)stickNum axis:(NSUInteger)axisNum;
 
 @end

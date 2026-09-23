@@ -28,12 +28,11 @@ SOFTWARE.
 */
 
 #import "OOFoundation.h"
-#import "OOOpenGL.h"
 #import "OOMaths.h"
+#import "OOOpenGL.h"
 #import "OOWeakReference.h"
 
-
-@interface OODrawable: NSObject
+@interface OODrawable : NSObject
 
 - (void)renderOpaqueParts;
 - (void)renderTranslucentParts;
@@ -51,8 +50,8 @@ SOFTWARE.
 - (void)dumpSelfState;
 
 #ifndef NDEBUG
-- (NSSet *) allTextures;
-- (size_t) totalSize;	// Size including dynamic data, not counting textures.
+- (NSSet*)allTextures;
+- (size_t)totalSize; // Size including dynamic data, not counting textures.
 #endif
 
 @end

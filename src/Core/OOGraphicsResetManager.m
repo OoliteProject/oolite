@@ -26,124 +26,111 @@ SOFTWARE.
 */
 
 #import "OOGraphicsResetManager.h"
-#import "OOTexture.h"
 #import "OOOpenGLExtensionManager.h"
+#import "OOTexture.h"
 
-
-static OOGraphicsResetManager *sSingleton = nil;
-
+static OOGraphicsResetManager* sSingleton = nil;
 
 @implementation OOGraphicsResetManager
 
-- (void) dealloc
+- (void)dealloc
 {
-	if (sSingleton == self)  sSingleton = nil;
-	[clients release];
-	
-	[super dealloc];
+    if (sSingleton == self)
+        sSingleton = nil;
+    [clients release];
+
+    [super dealloc];
 }
 
-
-+ (OOGraphicsResetManager *) sharedManager
++ (OOGraphicsResetManager*)sharedManager
 {
-	if (sSingleton == nil)  sSingleton = [[self alloc] init];
-	return sSingleton;
+    if (sSingleton == nil)
+        sSingleton = [[self alloc] init];
+    return sSingleton;
 }
 
-
-- (void) registerClient:(id<OOGraphicsResetClient>)client
+- (void)registerClient:(id<OOGraphicsResetClient>)client
 {
-	if (client != nil)
-	{
-		if (clients == nil)  clients = [[NSMutableSet alloc] init];
-		[clients addObject:[NSValue valueWithPointer:client]];
-	}
+    if (client != nil) {
+        if (clients == nil)
+            clients = [[NSMutableSet alloc] init];
+        [clients addObject:[NSValue valueWithPointer:client]];
+    }
 }
 
-
-- (void) unregisterClient:(id<OOGraphicsResetClient>)client
+- (void)unregisterClient:(id<OOGraphicsResetClient>)client
 {
-	[clients removeObject:[NSValue valueWithPointer:client]];
+    [clients removeObject:[NSValue valueWithPointer:client]];
 }
 
-
-- (void) resetGraphicsState
+- (void)resetGraphicsState
 {
-	NSEnumerator			*clientEnum = nil;
-	id						client = nil;
-	
-	OOGL(glFinish());
-	
-	OOLog(@"rendering.reset.start", @"%@", @"Resetting graphics state.");
-	OOLogIndentIf(@"rendering.reset.start");
-	
-	[[OOOpenGLExtensionManager sharedManager] reset];
-	[OOTexture rebindAllTextures];
-	
-	for (clientEnum = [clients objectEnumerator]; (client = [[clientEnum nextObject] pointerValue]); )
-	{
-		@try
-		{
-			[client resetGraphicsState];
-		}
-		@catch (NSException *exception)
-		{
-			OOLog(kOOLogException, @"***** EXCEPTION -- %@ : %@ -- ignored during graphics reset.", [exception name], [exception reason]);
-		}
-	}
-	
-	OOLogOutdentIf(@"rendering.reset.start");
-	OOLog(@"rendering.reset.end", @"%@", @"End of graphics state reset.");
+    NSEnumerator* clientEnum = nil;
+    id client = nil;
+
+    OOGL(glFinish());
+
+    OOLog(@"rendering.reset.start", @"%@", @"Resetting graphics state.");
+    OOLogIndentIf(@"rendering.reset.start");
+
+    [[OOOpenGLExtensionManager sharedManager] reset];
+    [OOTexture rebindAllTextures];
+
+    for (clientEnum = [clients objectEnumerator]; (client = [[clientEnum nextObject] pointerValue]);) {
+        @try {
+            [client resetGraphicsState];
+        }
+        @catch (NSException* exception) {
+            OOLog(kOOLogException, @"***** EXCEPTION -- %@ : %@ -- ignored during graphics reset.", [exception name], [exception reason]);
+        }
+    }
+
+    OOLogOutdentIf(@"rendering.reset.start");
+    OOLog(@"rendering.reset.end", @"%@", @"End of graphics state reset.");
 }
 
 @end
 
-
 @implementation OOGraphicsResetManager (Singleton)
 
 /*	Canonical singleton boilerplate.
-	See Cocoa Fundamentals Guide: Creating a Singleton Instance.
-	See also +sharedManager above.
-	
-	// NOTE: assumes single-threaded first access.
+        See Cocoa Fundamentals Guide: Creating a Singleton Instance.
+        See also +sharedManager above.
+
+        // NOTE: assumes single-threaded first access.
 */
 
-+ (id) allocWithZone:(NSZone *)inZone
++ (id)allocWithZone:(NSZone*)inZone
 {
-	if (sSingleton == nil)
-	{
-		sSingleton = [super allocWithZone:inZone];
-		return sSingleton;
-	}
-	return nil;
+    if (sSingleton == nil) {
+        sSingleton = [super allocWithZone:inZone];
+        return sSingleton;
+    }
+    return nil;
 }
 
-
-- (id) copyWithZone:(NSZone *)inZone
+- (id)copyWithZone:(NSZone*)inZone
 {
-	return self;
+    return self;
 }
 
-
-- (id) retain
+- (id)retain
 {
-	return self;
+    return self;
 }
 
-
-- (NSUInteger) retainCount
+- (NSUInteger)retainCount
 {
-	return UINT_MAX;
+    return UINT_MAX;
 }
 
-
-- (void) release
-{}
-
-
-- (id) autorelease
+- (void)release
 {
-	return self;
+}
+
+- (id)autorelease
+{
+    return self;
 }
 
 @end

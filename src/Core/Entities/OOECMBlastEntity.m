@@ -24,112 +24,100 @@ MA 02110-1301, USA.
 */
 
 #import "OOECMBlastEntity.h"
-#import "Universe.h"
-#import "ShipEntity.h"
 #import "OOEntityFilterPredicate.h"
 #import "OOJavaScriptEngine.h"
-
+#import "ShipEntity.h"
+#import "Universe.h"
 
 // NOTE: these values are documented for scripting, be careful about changing them.
-#define ECM_EFFECT_DURATION		2.0
-#define ECM_PULSE_COUNT			4
-#define ECM_PULSE_INTERVAL		(ECM_EFFECT_DURATION / (double)ECM_PULSE_COUNT)
+#define ECM_EFFECT_DURATION 2.0
+#define ECM_PULSE_COUNT 4
+#define ECM_PULSE_INTERVAL (ECM_EFFECT_DURATION / (double)ECM_PULSE_COUNT)
 
-#define ECM_DEBUG_DRAW			0
-
+#define ECM_DEBUG_DRAW 0
 
 #if ECM_DEBUG_DRAW
 #import "OODebugGLDrawing.h"
 #endif
 
-
 @implementation OOECMBlastEntity
 
-- (id) initFromShip:(ShipEntity *)ship
+- (id)initFromShip:(ShipEntity*)ship
 {
-	if (ship == nil)
-	{
-		DESTROY(self);
-	}
-	else if ((self = [super init]))
-	{
-		_blastsRemaining = ECM_PULSE_COUNT;
-		_nextBlast = ECM_PULSE_INTERVAL;
-		_ship = [ship weakRetain];
-		
-		[self setPosition:[ship position]];
-		
-		[self setStatus:STATUS_EFFECT];
-		[self setScanClass:CLASS_NO_DRAW];
-	}
-	
-	return self;
+    if (ship == nil) {
+        DESTROY(self);
+    } else if ((self = [super init])) {
+        _blastsRemaining = ECM_PULSE_COUNT;
+        _nextBlast = ECM_PULSE_INTERVAL;
+        _ship = [ship weakRetain];
+
+        [self setPosition:[ship position]];
+
+        [self setStatus:STATUS_EFFECT];
+        [self setScanClass:CLASS_NO_DRAW];
+    }
+
+    return self;
 }
 
-
-- (void) update:(OOTimeDelta)delta_t
+- (void)update:(OOTimeDelta)delta_t
 {
-	_nextBlast -= delta_t;
-	ShipEntity		*ship = [_ship weakRefUnderlyingObject];
-	BOOL 			validShip = (ship != nil) && ([ship status] != STATUS_DEAD);
-	
-	if (_nextBlast <= 0.0 && validShip)
-	{
-		// Do ECM stuff.
-		double radius = OOClamp_0_1_d((double)(ECM_PULSE_COUNT - _blastsRemaining + 1) * 1.0 / (double)ECM_PULSE_COUNT);
-		radius *= SCANNER_MAX_RANGE;
-		_blastsRemaining--;
-		
-		NSArray *targets = [UNIVERSE findEntitiesMatchingPredicate:IsShipPredicate
-														 parameter:NULL
-														   inRange:radius
-														  ofEntity:self];
-		NSUInteger i, count = [targets count];
-		if (count > 0)
-		{
-			JSContext *context = OOJSAcquireContext();
-			jsval ecmPulsesRemaining = INT_TO_JSVAL(_blastsRemaining);
-			jsval whomVal = OOJSValueFromNativeObject(context, ship);
-			
-			for (i = 0; i < count; i++)
-			{
-				ShipEntity *target = [targets objectAtIndex:i];
-				ShipScriptEvent(context, target, "shipHitByECM", ecmPulsesRemaining, whomVal);
-				[target reactToAIMessage:@"ECM" context:nil];
-				[target noticeECM];
-			}
-			
-			OOJSRelinquishContext(context);
-		}
-		_nextBlast += ECM_PULSE_INTERVAL;
-	}
-	
-	if (_blastsRemaining == 0 || !validShip)  [UNIVERSE removeEntity:self];
+    _nextBlast -= delta_t;
+    ShipEntity* ship = [_ship weakRefUnderlyingObject];
+    BOOL validShip = (ship != nil) && ([ship status] != STATUS_DEAD);
+
+    if (_nextBlast <= 0.0 && validShip) {
+        // Do ECM stuff.
+        double radius = OOClamp_0_1_d((double)(ECM_PULSE_COUNT - _blastsRemaining + 1) * 1.0 / (double)ECM_PULSE_COUNT);
+        radius *= SCANNER_MAX_RANGE;
+        _blastsRemaining--;
+
+        NSArray* targets = [UNIVERSE findEntitiesMatchingPredicate:IsShipPredicate
+                                                         parameter:NULL
+                                                           inRange:radius
+                                                          ofEntity:self];
+        NSUInteger i, count = [targets count];
+        if (count > 0) {
+            JSContext* context = OOJSAcquireContext();
+            jsval ecmPulsesRemaining = INT_TO_JSVAL(_blastsRemaining);
+            jsval whomVal = OOJSValueFromNativeObject(context, ship);
+
+            for (i = 0; i < count; i++) {
+                ShipEntity* target = [targets objectAtIndex:i];
+                ShipScriptEvent(context, target, "shipHitByECM", ecmPulsesRemaining, whomVal);
+                [target reactToAIMessage:@"ECM" context:nil];
+                [target noticeECM];
+            }
+
+            OOJSRelinquishContext(context);
+        }
+        _nextBlast += ECM_PULSE_INTERVAL;
+    }
+
+    if (_blastsRemaining == 0 || !validShip)
+        [UNIVERSE removeEntity:self];
 }
 
-
-- (void) drawImmediate:(bool)immediate translucent:(bool)translucent
+- (void)drawImmediate:(bool)immediate translucent:(bool)translucent
 {
 #if ECM_DEBUG_DRAW && OO_DEBUG
-	OODebugDrawPoint(kZeroVector, [OOColor cyanColor]);
+    OODebugDrawPoint(kZeroVector, [OOColor cyanColor]);
 #endif
-	// Else do nothing, we're invisible!
+    // Else do nothing, we're invisible!
 }
 
-
-- (BOOL) isECMBlast
+- (BOOL)isECMBlast
 {
-	return YES;
+    return YES;
 }
 
 @end
 
-
 @implementation Entity (OOECMBlastEntity)
 
-- (BOOL) isECMBlast
+- (BOOL)isECMBlast
 {
-	return NO;
+    return NO;
 }
 
 @end

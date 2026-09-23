@@ -1,0 +1,3 @@
+# Apple-style Objective-C clang-format configuration
+
+BasedOnStyle: WebKit

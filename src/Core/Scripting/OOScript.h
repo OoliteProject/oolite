@@ -9,9 +9,9 @@ scripts, was supported until 1.69.1, but never used. OOScript unifies the
 interfaces to the script types and abstracts loading. Additionally, it falls
 back to a more "primitive" script if loading of one type fails; specifically,
 the order of precedence is:
-	script.js		(JavaScript)
+        script.js		(JavaScript)
 //	script.oos		(OOS)
-	script.plist	(property list)
+        script.plist	(property list)
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -37,31 +37,30 @@ MA 02110-1301, USA.
 
 @class Entity;
 
-
-@interface OOScript: NSObject
+@interface OOScript : NSObject
 
 /*	Looks for path/world-scripts.plist, path/script.js, then path/script.plist.
-	May return zero or more scripts.
+        May return zero or more scripts.
 */
-+ (NSArray *)worldScriptsAtPath:(NSString *)path;
++ (NSArray*)worldScriptsAtPath:(NSString*)path;
 
 //	Load named scripts from Scripts folders.
-+ (NSArray *)scriptsFromFileNamed:(NSString *)fileName;
-+ (NSArray *)scriptsFromList:(NSArray *)fileNames;
++ (NSArray*)scriptsFromFileNamed:(NSString*)fileName;
++ (NSArray*)scriptsFromList:(NSArray*)fileNames;
 
-+ (NSArray *)scriptsFromFileAtPath:(NSString *)filePath;
++ (NSArray*)scriptsFromFileAtPath:(NSString*)filePath;
 
 //	Load a single JavaScript script.
-+ (id)jsScriptFromFileNamed:(NSString *)fileName properties:(NSDictionary *)properties;
++ (id)jsScriptFromFileNamed:(NSString*)fileName properties:(NSDictionary*)properties;
 //  As above, but load from the "AIs" directory
-+ (id)jsAIScriptFromFileNamed:(NSString *)fileName properties:(NSDictionary *)properties;
++ (id)jsAIScriptFromFileNamed:(NSString*)fileName properties:(NSDictionary*)properties;
 
-- (NSString *)name;
-- (NSString *)scriptDescription;
-- (NSString *)version;
-- (NSString *)displayName;	// "name version" if version is defined, otherwise just "name".
+- (NSString*)name;
+- (NSString*)scriptDescription;
+- (NSString*)version;
+- (NSString*)displayName; // "name version" if version is defined, otherwise just "name".
 
-- (BOOL) requiresTickle;
-- (void)runWithTarget:(Entity *)target;
+- (BOOL)requiresTickle;
+- (void)runWithTarget:(Entity*)target;
 
 @end

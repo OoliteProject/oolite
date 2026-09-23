@@ -29,133 +29,112 @@ SOFTWARE.
 #import "OOFunctionAttributes.h"
 #import "OOLogging.h"
 
-
-static OOMaterial *sActiveMaterial = nil;
-
+static OOMaterial* sActiveMaterial = nil;
 
 @implementation OOMaterial
 
 + (void)setUp
 {
-	// I thought we'd need this, but the stuff I needed it for turned out to be problematic. Maybe in future. -- Ahruman
+    // I thought we'd need this, but the stuff I needed it for turned out to be problematic. Maybe in future. -- Ahruman
 }
-
 
 - (void)dealloc
 {
-	// Ensure cleanup happens; doing it more than once is safe.
-	[self willDealloc];
-	
-	[super dealloc];
+    // Ensure cleanup happens; doing it more than once is safe.
+    [self willDealloc];
+
+    [super dealloc];
 }
 
-
-- (NSString *)descriptionComponents
+- (NSString*)descriptionComponents
 {
-	return [NSString stringWithFormat:@"\"%@\"", [self name]];
+    return [NSString stringWithFormat:@"\"%@\"", [self name]];
 }
 
-
-- (NSString *)name
+- (NSString*)name
 {
-	OOLogGenericParameterError();
-	return nil;
+    OOLogGenericParameterError();
+    return nil;
 }
-
 
 // Make this the current GL shader program.
 - (void)apply
 {
-	[sActiveMaterial unapplyWithNext:self];
-	[sActiveMaterial release];
-	sActiveMaterial = nil;
-	
-	if ([self doApply])
-	{
-		sActiveMaterial = [self retain];
-	}
-}
+    [sActiveMaterial unapplyWithNext:self];
+    [sActiveMaterial release];
+    sActiveMaterial = nil;
 
+    if ([self doApply]) {
+        sActiveMaterial = [self retain];
+    }
+}
 
 + (void)applyNone
 {
-	[sActiveMaterial unapplyWithNext:nil];
-	[sActiveMaterial release];
-	sActiveMaterial = nil;
+    [sActiveMaterial unapplyWithNext:nil];
+    [sActiveMaterial release];
+    sActiveMaterial = nil;
 }
 
-
-+ (OOMaterial *)current
++ (OOMaterial*)current
 {
-	return [[sActiveMaterial retain] autorelease];
+    return [[sActiveMaterial retain] autorelease];
 }
-
 
 - (void)ensureFinishedLoading
 {
-	
 }
 
-
-- (BOOL) isFinishedLoading
+- (BOOL)isFinishedLoading
 {
-	return YES;
+    return YES;
 }
-
 
 - (void)setBindingTarget:(id<OOWeakReferenceSupport>)target
 {
-	
 }
 
-
-- (BOOL) wantsNormalsAsTextureCoordinates
+- (BOOL)wantsNormalsAsTextureCoordinates
 {
-	return NO;
+    return NO;
 }
-
 
 #if OO_MULTITEXTURE
-- (NSUInteger) countOfTextureUnitsWithBaseCoordinates
+- (NSUInteger)countOfTextureUnitsWithBaseCoordinates
 {
-	return 1;
+    return 1;
 }
 #endif
 
-
 #ifndef NDEBUG
-- (NSSet *) allTextures
+- (NSSet*)allTextures
 {
-	return nil;
+    return nil;
 }
 #endif
 
 @end
 
-
 @implementation OOMaterial (OOSubclassInterface)
 
 - (BOOL)doApply
 {
-	OOLogGenericSubclassResponsibility();
-	return NO;
+    OOLogGenericSubclassResponsibility();
+    return NO;
 }
 
-
-- (void)unapplyWithNext:(OOMaterial *)next
+- (void)unapplyWithNext:(OOMaterial*)next
 {
-	// Do nothing.
+    // Do nothing.
 }
-
 
 - (void)willDealloc
 {
-	if (EXPECT_NOT(sActiveMaterial == self))
-	{
-		OOLog(@"shader.dealloc.imbalance", @"%@", @"***** Material deallocated while active, indicating a retain/release imbalance.");
-		[self unapplyWithNext:nil];
-		sActiveMaterial = nil;
-	}
+    if (EXPECT_NOT(sActiveMaterial == self)) {
+        OOLog(@"shader.dealloc.imbalance", @"%@", @"***** Material deallocated while active, indicating a retain/release imbalance.");
+        [self unapplyWithNext:nil];
+        sActiveMaterial = nil;
+    }
 }
 
 @end

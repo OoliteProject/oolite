@@ -31,59 +31,55 @@ MA 02110-1301, USA.
 
 @class MyOpenGLView;
 
-
 #if OOLITE_MAC_OS_X
-#define kOODisplayWidth			((NSString *)kCGDisplayWidth)
-#define kOODisplayHeight		((NSString *)kCGDisplayHeight)
-#define kOODisplayRefreshRate	((NSString *)kCGDisplayRefreshRate)
-#define kOODisplayBitsPerPixel	((NSString *)kCGDisplayBitsPerPixel)
-#define kOODisplayIOFlags		((NSString *)kCGDisplayIOFlags)
+#define kOODisplayWidth ((NSString*)kCGDisplayWidth)
+#define kOODisplayHeight ((NSString*)kCGDisplayHeight)
+#define kOODisplayRefreshRate ((NSString*)kCGDisplayRefreshRate)
+#define kOODisplayBitsPerPixel ((NSString*)kCGDisplayBitsPerPixel)
+#define kOODisplayIOFlags ((NSString*)kCGDisplayIOFlags)
 #else
-#define kOODisplayWidth			(@"Width")
-#define kOODisplayHeight		(@"Height")
-#define kOODisplayRefreshRate	(@"RefreshRate")
+#define kOODisplayWidth (@"Width")
+#define kOODisplayHeight (@"Height")
+#define kOODisplayRefreshRate (@"RefreshRate")
 #endif
 
+#define DISPLAY_MIN_COLOURS 32
+#define DISPLAY_MIN_WIDTH 640
+#define DISPLAY_MIN_HEIGHT 480
+#define DISPLAY_MAX_WIDTH 7680 // 8K gaming, yay!!
+#define DISPLAY_MAX_HEIGHT 4320
 
-#define DISPLAY_MIN_COLOURS		32
-#define DISPLAY_MIN_WIDTH		640
-#define DISPLAY_MIN_HEIGHT		480
-#define DISPLAY_MAX_WIDTH		7680		// 8K gaming, yay!!
-#define DISPLAY_MAX_HEIGHT		4320
-
-
-@interface OOFullScreenController: NSObject
-{
+@interface OOFullScreenController : NSObject {
 @private
-	MyOpenGLView			*_gameView;
+    MyOpenGLView* _gameView;
 }
 
-- (id) initWithGameView:(MyOpenGLView *)view;
+- (id)initWithGameView:(MyOpenGLView*)view;
 
 #if OOLITE_PROPERTY_SYNTAX
 
-@property (nonatomic, readonly) MyOpenGLView *gameView;
+@property (nonatomic, readonly) MyOpenGLView* gameView;
 @property (nonatomic, getter=inFullScreenMode) BOOL fullScreenMode;
-@property (nonatomic, readonly) NSArray *displayModes;
-@property (nonatomic, readonly) NSDictionary *currentDisplayMode;
+@property (nonatomic, readonly) NSArray* displayModes;
+@property (nonatomic, readonly) NSDictionary* currentDisplayMode;
 @property (nonatomic, readonly) NSUInteger indexOfCurrentDisplayMode;
 
 #else
 
-- (MyOpenGLView *) gameView;
+- (MyOpenGLView*)gameView;
 
-- (BOOL) inFullScreenMode;
-- (void) setFullScreenMode:(BOOL)value;
+- (BOOL)inFullScreenMode;
+- (void)setFullScreenMode:(BOOL)value;
 
-- (NSArray *) displayModes;
-- (NSDictionary *) currentDisplayMode;
-- (NSUInteger) indexOfCurrentDisplayMode;
+- (NSArray*)displayModes;
+- (NSDictionary*)currentDisplayMode;
+- (NSUInteger)indexOfCurrentDisplayMode;
 
 #endif
 
-- (BOOL) setDisplayWidth:(NSUInteger)width height:(NSUInteger)height refreshRate:(NSUInteger)refresh;
-- (NSDictionary *) findDisplayModeForWidth:(NSUInteger)width height:(NSUInteger)height refreshRate:(NSUInteger)d_refresh;
+- (BOOL)setDisplayWidth:(NSUInteger)width height:(NSUInteger)height refreshRate:(NSUInteger)refresh;
+- (NSDictionary*)findDisplayModeForWidth:(NSUInteger)width height:(NSUInteger)height refreshRate:(NSUInteger)d_refresh;
 
-- (void) noteMouseInteractionModeChangedFrom:(OOMouseInteractionMode)oldMode to:(OOMouseInteractionMode)newMode;
+- (void)noteMouseInteractionModeChangedFrom:(OOMouseInteractionMode)oldMode to:(OOMouseInteractionMode)newMode;
 
 @end

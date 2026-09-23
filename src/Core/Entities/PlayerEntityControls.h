@@ -26,27 +26,26 @@ MA 02110-1301, USA.
 
 #include "PlayerEntity.h"
 
-
 @interface PlayerEntity (Controls)
 
-- (void) initControls;
-- (void) initKeyConfigSettings;
+- (void)initControls;
+- (void)initKeyConfigSettings;
 
-- (void) pollControls:(double)delta_t;
-- (BOOL) handleGUIUpDownArrowKeys;
-- (void) clearPlanetSearchString;
-- (void) targetNewSystem:(int) direction;
-- (void) switchToMainView;
-- (void) noteSwitchToView:(OOViewID)toView fromView:(OOViewID)fromView;
-- (void) beginWitchspaceCountdown:(int)spin_time;
-- (void) beginWitchspaceCountdown;
-- (void) cancelWitchspaceCountdown;
-- (NSArray*) processKeyCode:(NSArray*)key_def;
-- (BOOL) checkNavKeyPress:(NSArray*)key_def;
-- (BOOL) checkKeyPress:(NSArray*)key_def;
-- (BOOL) checkKeyPress:(NSArray*)key_def fKey_only:(BOOL)fKey_only;
-- (BOOL) checkKeyPress:(NSArray*)key_def ignore_ctrl:(BOOL)ignore_ctrl;
-- (BOOL) checkKeyPress:(NSArray*)key_def fKey_only:(BOOL)fKey_only ignore_ctrl:(BOOL)ignore_ctrl;
-- (int) getFirstKeyCode:(NSArray*)key_def;
+- (void)pollControls:(double)delta_t;
+- (BOOL)handleGUIUpDownArrowKeys;
+- (void)clearPlanetSearchString;
+- (void)targetNewSystem:(int)direction;
+- (void)switchToMainView;
+- (void)noteSwitchToView:(OOViewID)toView fromView:(OOViewID)fromView;
+- (void)beginWitchspaceCountdown:(int)spin_time;
+- (void)beginWitchspaceCountdown;
+- (void)cancelWitchspaceCountdown;
+- (NSArray*)processKeyCode:(NSArray*)key_def;
+- (BOOL)checkNavKeyPress:(NSArray*)key_def;
+- (BOOL)checkKeyPress:(NSArray*)key_def;
+- (BOOL)checkKeyPress:(NSArray*)key_def fKey_only:(BOOL)fKey_only;
+- (BOOL)checkKeyPress:(NSArray*)key_def ignore_ctrl:(BOOL)ignore_ctrl;
+- (BOOL)checkKeyPress:(NSArray*)key_def fKey_only:(BOOL)fKey_only ignore_ctrl:(BOOL)ignore_ctrl;
+- (int)getFirstKeyCode:(NSArray*)key_def;
 
 @end

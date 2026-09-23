@@ -26,11 +26,10 @@ MA 02110-1301, USA.
 
 #pragma once
 
+#import "DockEntity.h"
 #import <Foundation/Foundation.h>
 #include <jsapi.h>
-#import "DockEntity.h"
 
 @class DockEntity;
 
-
-void InitOOJSDock(JSContext *context, JSObject *global);
+void InitOOJSDock(JSContext* context, JSObject* global);

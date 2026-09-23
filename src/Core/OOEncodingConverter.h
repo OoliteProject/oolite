@@ -28,42 +28,38 @@ SOFTWARE.
 
 */
 
-
-#ifndef OOENCODINGCONVERTER_EXCLUDE	// For the convenience of fonttexgen
+#ifndef OOENCODINGCONVERTER_EXCLUDE // For the convenience of fonttexgen
 
 #import "OOFoundation.h"
 
 @class OOCache;
 
-
-@interface OOEncodingConverter: NSObject
-{
+@interface OOEncodingConverter : NSObject {
 @private
-	NSStringEncoding			_encoding;
-	OOCache						*_cache;
-	NSDictionary				*_substitutions;
+    NSStringEncoding _encoding;
+    OOCache* _cache;
+    NSDictionary* _substitutions;
 }
 
-- (id) initWithEncoding:(NSStringEncoding)encoding substitutions:(NSDictionary *)substitutions;
-- (id) initWithFontPList:(NSDictionary *)fontPList;
+- (id)initWithEncoding:(NSStringEncoding)encoding substitutions:(NSDictionary*)substitutions;
+- (id)initWithFontPList:(NSDictionary*)fontPList;
 
-- (NSData *) convertString:(NSString *)string;
+- (NSData*)convertString:(NSString*)string;
 
-- (NSStringEncoding) encoding;
+- (NSStringEncoding)encoding;
 
 @end
 
-#endif //OOENCODINGCONVERTER_EXCLUDE
-
+#endif // OOENCODINGCONVERTER_EXCLUDE
 
 /*
-	There are a variety of overlapping naming schemes for text encoding.
-	We ignore them and use a fixed list:
-		"windows-latin-1"		NSWindowsCP1252StringEncoding
-		"windows-latin-2"		NSWindowsCP1250StringEncoding
-		"windows-cyrillic"		NSWindowsCP1251StringEncoding
-		"windows-greek"			NSWindowsCP1253StringEncoding
-		"windows-turkish"		NSWindowsCP1254StringEncoding
+        There are a variety of overlapping naming schemes for text encoding.
+        We ignore them and use a fixed list:
+                "windows-latin-1"		NSWindowsCP1252StringEncoding
+                "windows-latin-2"		NSWindowsCP1250StringEncoding
+                "windows-cyrillic"		NSWindowsCP1251StringEncoding
+                "windows-greek"			NSWindowsCP1253StringEncoding
+                "windows-turkish"		NSWindowsCP1254StringEncoding
 */
-NSString *StringFromEncoding(NSStringEncoding encoding);	// Returns nil for unknown
-NSStringEncoding EncodingFromString(NSString *name);		// Returns (NSStringEncoding)NSNotFound for unknown
+NSString* StringFromEncoding(NSStringEncoding encoding); // Returns nil for unknown
+NSStringEncoding EncodingFromString(NSString* name); // Returns (NSStringEncoding)NSNotFound for unknown

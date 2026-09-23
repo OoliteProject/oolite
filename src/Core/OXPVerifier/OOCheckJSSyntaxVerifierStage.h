@@ -29,7 +29,7 @@ MA 02110-1301, USA.
 
 #if OO_OXP_VERIFIER_ENABLED
 
-@interface OOCheckJSSyntaxVerifierStage: OOFileHandlingVerifierStage
+@interface OOCheckJSSyntaxVerifierStage : OOFileHandlingVerifierStage
 @end
 
 #endif

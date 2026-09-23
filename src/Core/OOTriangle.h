@@ -24,15 +24,13 @@ MA 02110-1301, USA.
 
 */
 
-
 typedef struct
 {
-	Vector		v[3];
+    Vector v[3];
 } Triangle;
 
-
 /* Calculate normal for triangle. */
-OOINLINE Vector calculateNormalForTriangle(Triangle *ioTriangle) NONNULL_FUNC;
+OOINLINE Vector calculateNormalForTriangle(Triangle* ioTriangle) NONNULL_FUNC;
 
 /* Generate a triangle from three vertices. */
 OOINLINE Triangle make_triangle(Vector v0, Vector v1, Vector v2) CONST_FUNC;
@@ -43,36 +41,30 @@ OOINLINE Vector resolveVectorInIJK(Vector v0, Triangle ijk);
 /* Test whether triangle's area is 0. */
 OOINLINE bool OOTriangleIsDegenerate(Triangle tri) CONST_FUNC;
 
-
 /*** Only inline definitions beyond this point ***/
 
 OOINLINE Triangle make_triangle(Vector v0, Vector v1, Vector v2)
 {
-	return (Triangle){{ v0, v1, v2 }};
+    return (Triangle) { { v0, v1, v2 } };
 }
 
-
-OOINLINE Vector calculateNormalForTriangle(Triangle *tri)
+OOINLINE Vector calculateNormalForTriangle(Triangle* tri)
 {
-	Vector v01 = vector_subtract(tri->v[1], tri->v[0]);
-	Vector v12 = vector_subtract(tri->v[2], tri->v[1]);
-	return cross_product(v01, v12);
+    Vector v01 = vector_subtract(tri->v[1], tri->v[0]);
+    Vector v12 = vector_subtract(tri->v[2], tri->v[1]);
+    return cross_product(v01, v12);
 }
-
 
 OOINLINE Vector resolveVectorInIJK(Vector v0, Triangle ijk)
 {
-	Vector result;
-	result.x = dot_product(v0, ijk.v[0]);
-	result.y = dot_product(v0, ijk.v[1]);
-	result.z = dot_product(v0, ijk.v[2]);
-	return result;
+    Vector result;
+    result.x = dot_product(v0, ijk.v[0]);
+    result.y = dot_product(v0, ijk.v[1]);
+    result.z = dot_product(v0, ijk.v[2]);
+    return result;
 }
-
 
 OOINLINE bool OOTriangleIsDegenerate(Triangle tri)
 {
-	return vector_equal(tri.v[0], tri.v[1]) ||
-	       vector_equal(tri.v[1], tri.v[2]) ||
-	       vector_equal(tri.v[2], tri.v[0]);
+    return vector_equal(tri.v[0], tri.v[1]) || vector_equal(tri.v[1], tri.v[2]) || vector_equal(tri.v[2], tri.v[0]);
 }

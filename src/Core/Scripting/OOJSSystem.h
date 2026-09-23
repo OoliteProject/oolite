@@ -28,5 +28,4 @@ MA 02110-1301, USA.
 #import <Foundation/Foundation.h>
 #include <jsapi.h>
 
-
-void InitOOJSSystem(JSContext *context, JSObject *global);
+void InitOOJSSystem(JSContext* context, JSObject* global);

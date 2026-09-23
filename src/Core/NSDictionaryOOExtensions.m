@@ -27,48 +27,48 @@ SOFTWARE.
 
 #import "NSDictionaryOOExtensions.h"
 
-
 @implementation NSDictionary (OOExtensions)
 
-- (NSDictionary *) dictionaryByAddingObject:(id)object forKey:(id)key
+- (NSDictionary*)dictionaryByAddingObject:(id)object forKey:(id)key
 {
-	// Note: object lifetime issues aside, we need to copy and autorelease so that the right thing happens for mutable dictionaries.
-	if (object == nil || key == nil)  return [[self copy] autorelease];
-	
-	NSMutableDictionary *temp = [self mutableCopy];
-	[temp setObject:object forKey:key];
-	NSDictionary *result = [[temp copy] autorelease];
-	[temp release];
-	
-	return result;
+    // Note: object lifetime issues aside, we need to copy and autorelease so that the right thing happens for mutable dictionaries.
+    if (object == nil || key == nil)
+        return [[self copy] autorelease];
+
+    NSMutableDictionary* temp = [self mutableCopy];
+    [temp setObject:object forKey:key];
+    NSDictionary* result = [[temp copy] autorelease];
+    [temp release];
+
+    return result;
 }
 
-
-- (NSDictionary *) dictionaryByRemovingObjectForKey:(id)key
+- (NSDictionary*)dictionaryByRemovingObjectForKey:(id)key
 {
-	// Note: object lifetime issues aside, we need to copy and autorelease so that the right thing happens for mutable dictionaries.
-	if (key == nil)  return [[self copy] autorelease];
-	
-	NSMutableDictionary *temp = [self mutableCopy];
-	[temp removeObjectForKey:key];
-	NSDictionary *result = [[temp copy] autorelease];
-	[temp release];
-	
-	return result;
+    // Note: object lifetime issues aside, we need to copy and autorelease so that the right thing happens for mutable dictionaries.
+    if (key == nil)
+        return [[self copy] autorelease];
+
+    NSMutableDictionary* temp = [self mutableCopy];
+    [temp removeObjectForKey:key];
+    NSDictionary* result = [[temp copy] autorelease];
+    [temp release];
+
+    return result;
 }
 
-
-- (NSDictionary *) dictionaryByAddingEntriesFromDictionary:(NSDictionary *)dictionary
+- (NSDictionary*)dictionaryByAddingEntriesFromDictionary:(NSDictionary*)dictionary
 {
-	// Note: object lifetime issues aside, we need to copy and autorelease so that the right thing happens for mutable dictionaries.
-	if (dictionary == nil)  return [[self copy] autorelease];
-	
-	NSMutableDictionary *temp = [self mutableCopy];
-	[temp addEntriesFromDictionary:dictionary];
-	NSDictionary *result = [[temp copy] autorelease];
-	[temp release];
-	
-	return result;
+    // Note: object lifetime issues aside, we need to copy and autorelease so that the right thing happens for mutable dictionaries.
+    if (dictionary == nil)
+        return [[self copy] autorelease];
+
+    NSMutableDictionary* temp = [self mutableCopy];
+    [temp addEntriesFromDictionary:dictionary];
+    NSDictionary* result = [[temp copy] autorelease];
+    [temp release];
+
+    return result;
 }
 
 @end

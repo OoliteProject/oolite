@@ -24,135 +24,125 @@ MA 02110-1301, USA.
 */
 
 #import "OOJSGuiScreenKeyDefinition.h"
-//#import "OOJavaScriptEngine.h"
-
+// #import "OOJavaScriptEngine.h"
 
 @implementation OOJSGuiScreenKeyDefinition
 
-- (id) init {
-	self = [super init];
-	_callback = JSVAL_VOID;
-	_callbackThis = NULL;
+- (id)init
+{
+    self = [super init];
+    _callback = JSVAL_VOID;
+    _callbackThis = NULL;
 
-	_owningScript = [[OOJSScript currentlyRunningScript] weakRetain];
+    _owningScript = [[OOJSScript currentlyRunningScript] weakRetain];
 
-	[[NSNotificationCenter defaultCenter] addObserver:self
-												 selector:@selector(deleteJSPointers)
-												 name:kOOJavaScriptEngineWillResetNotification
-											   object:[OOJavaScriptEngine sharedEngine]];
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(deleteJSPointers)
+                                                 name:kOOJavaScriptEngineWillResetNotification
+                                               object:[OOJavaScriptEngine sharedEngine]];
 
-	return self;
+    return self;
 }
 
-- (void) deleteJSPointers
+- (void)deleteJSPointers
 {
 
-	JSContext				*context = OOJSAcquireContext();
-	_callback = JSVAL_VOID;
-	_callbackThis = NULL;
-	JS_RemoveValueRoot(context, &_callback);
-	JS_RemoveObjectRoot(context, &_callbackThis);
+    JSContext* context = OOJSAcquireContext();
+    _callback = JSVAL_VOID;
+    _callbackThis = NULL;
+    JS_RemoveValueRoot(context, &_callback);
+    JS_RemoveObjectRoot(context, &_callbackThis);
 
-	OOJSRelinquishContext(context);
+    OOJSRelinquishContext(context);
 
-	[[NSNotificationCenter defaultCenter] removeObserver:self
-													name:kOOJavaScriptEngineWillResetNotification
-												  object:[OOJavaScriptEngine sharedEngine]];
-
+    [[NSNotificationCenter defaultCenter] removeObserver:self
+                                                    name:kOOJavaScriptEngineWillResetNotification
+                                                  object:[OOJavaScriptEngine sharedEngine]];
 }
 
-- (void) dealloc 
+- (void)dealloc
 {
-	[_owningScript release];
+    [_owningScript release];
 
-	[self deleteJSPointers];
+    [self deleteJSPointers];
 
-	[super dealloc];
+    [super dealloc];
 }
 
-- (NSString *)name 
+- (NSString*)name
 {
-	return _name;
+    return _name;
 }
 
-
-- (void)setName:(NSString *)name
+- (void)setName:(NSString*)name
 {
-	[_name autorelease];
-	_name = [name retain];
+    [_name autorelease];
+    _name = [name retain];
 }
 
-
-- (NSDictionary *)registerKeys
+- (NSDictionary*)registerKeys
 {
-	return _registerKeys;
+    return _registerKeys;
 }
 
-
-- (void)setRegisterKeys:(NSDictionary *)registerKeys
+- (void)setRegisterKeys:(NSDictionary*)registerKeys
 {
-	[_registerKeys release];
-	_registerKeys = [registerKeys copy];
+    [_registerKeys release];
+    _registerKeys = [registerKeys copy];
 }
-
 
 - (jsval)callback
 {
-	return _callback;
+    return _callback;
 }
-
 
 - (void)setCallback:(jsval)callback
 {
-	JSContext				*context = OOJSAcquireContext();
-	JS_RemoveValueRoot(context, &_callback);
-	_callback = callback;
-	OOJSAddGCValueRoot(context, &_callback, "OOJSGuiScreenKeyDefinition callback function");
-	OOJSRelinquishContext(context);
+    JSContext* context = OOJSAcquireContext();
+    JS_RemoveValueRoot(context, &_callback);
+    _callback = callback;
+    OOJSAddGCValueRoot(context, &_callback, "OOJSGuiScreenKeyDefinition callback function");
+    OOJSRelinquishContext(context);
 }
 
-
-- (JSObject *)callbackThis
+- (JSObject*)callbackThis
 {
-	return _callbackThis;
+    return _callbackThis;
 }
 
-
-- (void)setCallbackThis:(JSObject *)callbackThis
+- (void)setCallbackThis:(JSObject*)callbackThis
 {
-	JSContext				*context = OOJSAcquireContext();
-	JS_RemoveObjectRoot(context, &_callbackThis);
-	_callbackThis = callbackThis;
-	OOJSAddGCObjectRoot(context, &_callbackThis, "OOJSGuiScreenKeyDefinition callback this");
-	OOJSRelinquishContext(context);
+    JSContext* context = OOJSAcquireContext();
+    JS_RemoveObjectRoot(context, &_callbackThis);
+    _callbackThis = callbackThis;
+    OOJSAddGCObjectRoot(context, &_callbackThis, "OOJSGuiScreenKeyDefinition callback this");
+    OOJSRelinquishContext(context);
 }
 
-
-- (void)runCallback:(NSString *)key
+- (void)runCallback:(NSString*)key
 {
-	OOJavaScriptEngine *engine = [OOJavaScriptEngine sharedEngine];
-	JSContext			*context = OOJSAcquireContext();		
-	jsval					rval = JSVAL_VOID;
+    OOJavaScriptEngine* engine = [OOJavaScriptEngine sharedEngine];
+    JSContext* context = OOJSAcquireContext();
+    jsval rval = JSVAL_VOID;
 
-	jsval         cKey = OOJSValueFromNativeObject(context, key);
+    jsval cKey = OOJSValueFromNativeObject(context, key);
 
-	OOJSScript *owner = [_owningScript retain]; // local copy needed
-	[OOJSScript pushScript:owner];
-	
-	[engine callJSFunction:_callback
-				 forObject:_callbackThis
-					  argc:1
-					  argv:&cKey
-					result:&rval];
-	
-	[OOJSScript popScript:owner];
-	[owner release];
+    OOJSScript* owner = [_owningScript retain]; // local copy needed
+    [OOJSScript pushScript:owner];
 
-	OOJSRelinquishContext(context);
+    [engine callJSFunction:_callback
+                 forObject:_callbackThis
+                      argc:1
+                      argv:&cKey
+                    result:&rval];
+
+    [OOJSScript popScript:owner];
+    [owner release];
+
+    OOJSRelinquishContext(context);
 }
 
-
-- (NSComparisonResult)interfaceCompare:(OOJSGuiScreenKeyDefinition *)other
+- (NSComparisonResult)interfaceCompare:(OOJSGuiScreenKeyDefinition*)other
 {
     return [_name caseInsensitiveCompare:[other name]];
 }

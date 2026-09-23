@@ -26,83 +26,70 @@ MA 02110-1301, USA.
 #import "OOFullScreenController.h"
 #import "OOLogging.h"
 
-
 @implementation OOFullScreenController
 
-- (id) initWithGameView:(MyOpenGLView *)view
+- (id)initWithGameView:(MyOpenGLView*)view
 {
-	if ((self = [super init]))
-	{
-		_gameView = [view retain];
-	}
-	return self;
+    if ((self = [super init])) {
+        _gameView = [view retain];
+    }
+    return self;
 }
 
-
-- (void) dealloc
+- (void)dealloc
 {
-	DESTROY(_gameView);
-	
-	[super dealloc];
+    DESTROY(_gameView);
+
+    [super dealloc];
 }
 
-
-- (MyOpenGLView *) gameView
+- (MyOpenGLView*)gameView
 {
-	return _gameView;
+    return _gameView;
 }
 
-
-- (BOOL) inFullScreenMode
+- (BOOL)inFullScreenMode
 {
-	OOLogGenericSubclassResponsibility();
-	return NO;
+    OOLogGenericSubclassResponsibility();
+    return NO;
 }
 
-
-- (void) setFullScreenMode:(BOOL)value
+- (void)setFullScreenMode:(BOOL)value
 {
-	OOLogGenericSubclassResponsibility();
+    OOLogGenericSubclassResponsibility();
 }
 
-
-- (NSArray *) displayModes
+- (NSArray*)displayModes
 {
-	OOLogGenericSubclassResponsibility();
-	return nil;
+    OOLogGenericSubclassResponsibility();
+    return nil;
 }
 
-
-- (NSDictionary *) currentDisplayMode
+- (NSDictionary*)currentDisplayMode
 {
-	return [[self displayModes] objectAtIndex:[self indexOfCurrentDisplayMode]];
+    return [[self displayModes] objectAtIndex:[self indexOfCurrentDisplayMode]];
 }
 
-
-- (NSUInteger) indexOfCurrentDisplayMode
+- (NSUInteger)indexOfCurrentDisplayMode
 {
-	OOLogGenericSubclassResponsibility();
-	return NSNotFound;
+    OOLogGenericSubclassResponsibility();
+    return NSNotFound;
 }
 
-
-- (BOOL) setDisplayWidth:(NSUInteger)width height:(NSUInteger)height refreshRate:(NSUInteger)refresh
+- (BOOL)setDisplayWidth:(NSUInteger)width height:(NSUInteger)height refreshRate:(NSUInteger)refresh
 {
-	OOLogGenericSubclassResponsibility();
-	return NO;
+    OOLogGenericSubclassResponsibility();
+    return NO;
 }
 
-
-- (NSDictionary *) findDisplayModeForWidth:(NSUInteger)width height:(NSUInteger)height refreshRate:(NSUInteger)d_refresh
+- (NSDictionary*)findDisplayModeForWidth:(NSUInteger)width height:(NSUInteger)height refreshRate:(NSUInteger)d_refresh
 {
-	OOLogGenericSubclassResponsibility();
-	return nil;
+    OOLogGenericSubclassResponsibility();
+    return nil;
 }
 
-
-- (void) noteMouseInteractionModeChangedFrom:(OOMouseInteractionMode)oldMode to:(OOMouseInteractionMode)newMode
+- (void)noteMouseInteractionModeChangedFrom:(OOMouseInteractionMode)oldMode to:(OOMouseInteractionMode)newMode
 {
-	
 }
 
 @end

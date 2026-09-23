@@ -29,25 +29,24 @@ MA 02110-1301, USA.
 
 #import "Entity.h"
 
-@interface OOWaypointEntity: Entity <OOBeaconEntity>
-{
+@interface OOWaypointEntity : Entity <OOBeaconEntity> {
 @private
-	OOScalar				_size;
+    OOScalar _size;
 
-	NSString				*_beaconCode;
-	NSString				*_beaconLabel;
-	OOWeakReference			*_prevBeacon;
-	OOWeakReference			*_nextBeacon;
-	id <OOHUDBeaconIcon>	_beaconDrawable;
-	BOOL					oriented;
+    NSString* _beaconCode;
+    NSString* _beaconLabel;
+    OOWeakReference* _prevBeacon;
+    OOWeakReference* _nextBeacon;
+    id<OOHUDBeaconIcon> _beaconDrawable;
+    BOOL oriented;
 }
 
-+ (instancetype) waypointWithDictionary:(NSDictionary *)info;
++ (instancetype)waypointWithDictionary:(NSDictionary*)info;
 
-- (id) initWithDictionary:(NSDictionary *)info;
+- (id)initWithDictionary:(NSDictionary*)info;
 
-- (BOOL) oriented;
-- (OOScalar) size;
-- (void) setSize:(OOScalar)newSize;
+- (BOOL)oriented;
+- (OOScalar)size;
+- (void)setSize:(OOScalar)newSize;
 
 @end

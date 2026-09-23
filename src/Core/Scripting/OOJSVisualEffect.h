@@ -26,20 +26,19 @@ MA 02110-1301, USA.
 
 #pragma once
 
+#import "OOVisualEffectEntity.h"
 #import <Foundation/Foundation.h>
 #include <jsapi.h>
-#import "OOVisualEffectEntity.h"
 
 @class OOVisualEffectEntity;
 
-
-void InitOOJSVisualEffect(JSContext *context, JSObject *global);
+void InitOOJSVisualEffect(JSContext* context, JSObject* global);
 
 @interface OOVisualEffectEntity (OOJavaScriptExtensions)
 
-- (void)getJSClass:(JSClass **)outClass andPrototype:(JSObject **)outPrototype;
-- (NSString *) oo_jsClassName;
-- (BOOL) isVisibleToScripts;
-- (NSArray *) subEntitiesForScript;
+- (void)getJSClass:(JSClass**)outClass andPrototype:(JSObject**)outPrototype;
+- (NSString*)oo_jsClassName;
+- (BOOL)isVisibleToScripts;
+- (NSArray*)subEntitiesForScript;
 
 @end

@@ -26,25 +26,22 @@ MA 02110-1301, USA.
 
 #pragma once
 
+#import "PlayerEntity.h"
 #import <Foundation/Foundation.h>
 #include <jsapi.h>
-#import "PlayerEntity.h"
-
 
 @class PlayerEntity;
 
+void InitOOJSPlayer(JSContext* context, JSObject* global);
 
-void InitOOJSPlayer(JSContext *context, JSObject *global);
-
-JSClass *JSPlayerClass(void);
-JSObject *JSPlayerPrototype(void);
-JSObject *JSPlayerObject(void);
-
+JSClass* JSPlayerClass(void);
+JSObject* JSPlayerPrototype(void);
+JSObject* JSPlayerObject(void);
 
 /*	All JS functions which talk to the player entity should call
-	OOOPlayerForScripting() to ensure that the script target (for the legacy
-	system) is set correctly. Additionally, all such functions should _always_
-	call OOPlayerForScripting(), even if they end up not using it, to ensure
-	consistent state.
+        OOOPlayerForScripting() to ensure that the script target (for the legacy
+        system) is set correctly. Additionally, all such functions should _always_
+        call OOPlayerForScripting(), even if they end up not using it, to ensure
+        consistent state.
 */
-PlayerEntity *OOPlayerForScripting(void);
+PlayerEntity* OOPlayerForScripting(void);

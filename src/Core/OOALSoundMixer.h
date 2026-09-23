@@ -33,29 +33,24 @@ SOFTWARE.
 
 @class OOSoundChannel;
 
-
-enum
-{
-	kMixerGeneralChannels		= 32
+enum {
+    kMixerGeneralChannels = 32
 };
 
+@interface OOSoundMixer : NSObject {
+    OOSoundChannel* _channels[kMixerGeneralChannels];
+    OOSoundChannel* _freeList;
 
-@interface OOSoundMixer: NSObject
-{
-	OOSoundChannel				*_channels[kMixerGeneralChannels];
-	OOSoundChannel				*_freeList;
-	
-	uint32_t					_maxChannels;
-	uint32_t					_playMask;
-	
+    uint32_t _maxChannels;
+    uint32_t _playMask;
 }
 
 // Singleton accessor
-+ (id) sharedMixer;
++ (id)sharedMixer;
 
-- (void) update;
+- (void)update;
 
-- (OOSoundChannel *) popChannel;
-- (void) pushChannel:(OOSoundChannel *)channel;
+- (OOSoundChannel*)popChannel;
+- (void)pushChannel:(OOSoundChannel*)channel;
 
 @end

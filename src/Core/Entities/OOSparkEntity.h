@@ -25,18 +25,16 @@ MA 02110-1301, USA.
 
 #import "OOLightParticleEntity.h"
 
-
-@interface OOSparkEntity: OOLightParticleEntity
-{
+@interface OOSparkEntity : OOLightParticleEntity {
 @private
-	GLfloat				_baseRGBA[4];
-	GLfloat				_duration, _timeRemaining;
+    GLfloat _baseRGBA[4];
+    GLfloat _duration, _timeRemaining;
 }
 
-- (id) initWithPosition:(HPVector)position
-			   velocity:(Vector)velocity
-			   duration:(OOTimeDelta)duration
-				   size:(float)size
-				  color:(OOColor *)color;
+- (id)initWithPosition:(HPVector)position
+              velocity:(Vector)velocity
+              duration:(OOTimeDelta)duration
+                  size:(float)size
+                 color:(OOColor*)color;
 
 @end

@@ -2,7 +2,7 @@
 
 NSThreadOOExtensions.m
 
- 
+
 Copyright (C) 2007-2013 Jens Ayton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -29,27 +29,25 @@ SOFTWARE.
 #import "OOFoundation.h"
 #include <pthread.h>
 
-
-#define OO_HAVE_PTHREAD_SETNAME_NP	OOLITE_MAC_OS_X
-
+#define OO_HAVE_PTHREAD_SETNAME_NP OOLITE_MAC_OS_X
 
 @implementation NSThread (OOExtensions)
 
-+ (void) ooSetCurrentThreadName:(NSString *)name
++ (void)ooSetCurrentThreadName:(NSString*)name
 {
-	// We may be called with no pool in place.
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	
-	[[NSThread currentThread] setName:name];
-	
+    // We may be called with no pool in place.
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+
+    [[NSThread currentThread] setName:name];
+
 #if OO_HAVE_PTHREAD_SETNAME_NP
-	/*	Under Mac OS X 10.6, the name set by pthread_setname_np() is used in
-		crash reports, but, annoyingly, -[NSThread setName:] does not call it.
-	*/
-	pthread_setname_np([name UTF8String]);
+    /*	Under Mac OS X 10.6, the name set by pthread_setname_np() is used in
+            crash reports, but, annoyingly, -[NSThread setName:] does not call it.
+    */
+    pthread_setname_np([name UTF8String]);
 #endif
-	
-	[pool release];
+
+    [pool release];
 }
 
 @end

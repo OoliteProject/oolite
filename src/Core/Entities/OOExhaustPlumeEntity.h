@@ -23,52 +23,47 @@ MA 02110-1301, USA.
 
 */
 
-#import "ShipEntity.h"
 #import "OOTexture.h"
+#import "ShipEntity.h"
 
 typedef struct
 {
-	double					timeframe;		// universal time for this frame
-	HPVector					position;
-	Quaternion				orientation;
-	Vector					k;				// direction vectors
+    double timeframe; // universal time for this frame
+    HPVector position;
+    Quaternion orientation;
+    Vector k; // direction vectors
 } Frame;
 
-
-enum
-{
-	kExhaustFrameCount = 16
+enum {
+    kExhaustFrameCount = 16
 };
 
-
-@interface OOExhaustPlumeEntity: Entity <OOSubEntity>
-{
+@interface OOExhaustPlumeEntity : Entity <OOSubEntity> {
 @private
-	Vector			_exhaustScale;
-	OOHPScalar			_vertices[34 * 3];
-	GLfloat			_glVertices[34 * 3];
-	GLfloat			_exhaustBaseColors[34 * 4];
-	Frame			_track[kExhaustFrameCount];
-	OOTimeAbsolute	_trackTime;
-	uint8_t			_nextFrame;
+    Vector _exhaustScale;
+    OOHPScalar _vertices[34 * 3];
+    GLfloat _glVertices[34 * 3];
+    GLfloat _exhaustBaseColors[34 * 4];
+    Frame _track[kExhaustFrameCount];
+    OOTimeAbsolute _trackTime;
+    uint8_t _nextFrame;
 }
 
-+ (id) exhaustForShip:(ShipEntity *)ship withDefinition:(NSArray *)definition andScale:(float)scale;
-- (id) initForShip:(ShipEntity *)ship withDefinition:(NSArray *)definition andScale:(float)scale;
++ (id)exhaustForShip:(ShipEntity*)ship withDefinition:(NSArray*)definition andScale:(float)scale;
+- (id)initForShip:(ShipEntity*)ship withDefinition:(NSArray*)definition andScale:(float)scale;
 
-- (void) resetPlume;
+- (void)resetPlume;
 
-- (Vector) scale;
-- (void) setScale:(Vector)scale;
+- (Vector)scale;
+- (void)setScale:(Vector)scale;
 
-- (OOTexture *) texture;
+- (OOTexture*)texture;
 
-+ (void) setUpTexture;
-+ (OOTexture *) plumeTexture;
-+ (void) resetGraphicsState;
++ (void)setUpTexture;
++ (OOTexture*)plumeTexture;
++ (void)resetGraphicsState;
 
 @end
-
 
 @interface Entity (OOExhaustPlume)
 

@@ -25,72 +25,65 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOTextureGenerator.h"
 #import "OOMaths.h"
-
+#import "OOTextureGenerator.h"
 
 @class OOPlanetNormalMapGenerator, OOPlanetAtmosphereGenerator;
 
+typedef struct OOPlanetTextureGeneratorInfo {
+    RANROTSeed seed;
 
-typedef struct OOPlanetTextureGeneratorInfo
-{
-	RANROTSeed						seed;
-	
-	unsigned						width;
-	unsigned						height;
-	
-	// Planet parameters.
-	float							landFraction;
-	float							polarFraction;
-	FloatRGB						landColor;
-	FloatRGB						seaColor;
-	FloatRGB						deepSeaColor;
-	FloatRGB						paleLandColor;
-	FloatRGB						polarSeaColor;
-	FloatRGB						paleSeaColor;
-	
-	// Planet mixing coefficients.
-	float							mix_hi;
-	float							mix_oh;
-	float							mix_ih;
-	float							mix_polarCap;
-	
-	// Atmosphere parameters.
-	float							cloudAlpha;
-	float							cloudFraction;
-	FloatRGB						airColor;
-	FloatRGB						cloudColor;
-	FloatRGB						paleCloudColor;
-	
-	// Noise generation stuff.
-	float							*fbmBuffer;
-	float							*qBuffer;
-	
-	uint16_t						*permutations;
-	
-	unsigned						planetAspectRatio;
-	unsigned						planetScaleOffset;
-	BOOL							perlin3d;
+    unsigned width;
+    unsigned height;
+
+    // Planet parameters.
+    float landFraction;
+    float polarFraction;
+    FloatRGB landColor;
+    FloatRGB seaColor;
+    FloatRGB deepSeaColor;
+    FloatRGB paleLandColor;
+    FloatRGB polarSeaColor;
+    FloatRGB paleSeaColor;
+
+    // Planet mixing coefficients.
+    float mix_hi;
+    float mix_oh;
+    float mix_ih;
+    float mix_polarCap;
+
+    // Atmosphere parameters.
+    float cloudAlpha;
+    float cloudFraction;
+    FloatRGB airColor;
+    FloatRGB cloudColor;
+    FloatRGB paleCloudColor;
+
+    // Noise generation stuff.
+    float* fbmBuffer;
+    float* qBuffer;
+
+    uint16_t* permutations;
+
+    unsigned planetAspectRatio;
+    unsigned planetScaleOffset;
+    BOOL perlin3d;
 } OOPlanetTextureGeneratorInfo;
 
-
-
-@interface OOPlanetTextureGenerator: OOTextureGenerator
-{
+@interface OOPlanetTextureGenerator : OOTextureGenerator {
 @private
-	OOPlanetTextureGeneratorInfo	_info;
-	unsigned						_planetScale;
-	
-	OOPlanetNormalMapGenerator		*_nMapGenerator;
-	OOPlanetAtmosphereGenerator		*_atmoGenerator;
+    OOPlanetTextureGeneratorInfo _info;
+    unsigned _planetScale;
+
+    OOPlanetNormalMapGenerator* _nMapGenerator;
+    OOPlanetAtmosphereGenerator* _atmoGenerator;
 }
 
+- (id)initWithPlanetInfo:(NSDictionary*)planetInfo;
 
-- (id) initWithPlanetInfo:(NSDictionary *)planetInfo;
-
-+ (OOTexture *) planetTextureWithInfo:(NSDictionary *)planetInfo;
-+ (BOOL) generatePlanetTexture:(OOTexture **)texture andAtmosphere:(OOTexture **)atmosphere withInfo:(NSDictionary *)planetInfo;
-+ (BOOL) generatePlanetTexture:(OOTexture **)texture secondaryTexture:(OOTexture **)secondaryTexture withInfo:(NSDictionary *)planetInfo;
-+ (BOOL) generatePlanetTexture:(OOTexture **)texture secondaryTexture:(OOTexture **)secondaryTexture andAtmosphere:(OOTexture **)atmosphere withInfo:(NSDictionary *)planetInfo;
++ (OOTexture*)planetTextureWithInfo:(NSDictionary*)planetInfo;
++ (BOOL)generatePlanetTexture:(OOTexture**)texture andAtmosphere:(OOTexture**)atmosphere withInfo:(NSDictionary*)planetInfo;
++ (BOOL)generatePlanetTexture:(OOTexture**)texture secondaryTexture:(OOTexture**)secondaryTexture withInfo:(NSDictionary*)planetInfo;
++ (BOOL)generatePlanetTexture:(OOTexture**)texture secondaryTexture:(OOTexture**)secondaryTexture andAtmosphere:(OOTexture**)atmosphere withInfo:(NSDictionary*)planetInfo;
 
 @end

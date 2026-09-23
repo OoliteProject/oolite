@@ -24,98 +24,90 @@ MA 02110-1301, USA.
 */
 
 #import "OOPlasmaShotEntity.h"
-#import "Universe.h"
-#import "PlayerEntity.h"
 #import "OOColor.h"
 #import "OOPlasmaBurstEntity.h"
+#import "PlayerEntity.h"
+#import "Universe.h"
 
-
-#define kPlasmaShotSize				12.0f
-#define kPlasmaShotActivationDelay	0.05f
-
+#define kPlasmaShotSize 12.0f
+#define kPlasmaShotActivationDelay 0.05f
 
 /*	If nonzero, plasma shots fade with distance. Bits of this were in the old
-	ParticleEntity code, but I think it was disabled on purpose.
-	-- Ahruman 2009-09-25
+        ParticleEntity code, but I think it was disabled on purpose.
+        -- Ahruman 2009-09-25
 */
 #define PLASMA_ATTENUATION 0
 
-
 @implementation OOPlasmaShotEntity
 
-- (id) initWithPosition:(HPVector)inPosition
-			   velocity:(Vector)inVelocity
-				 energy:(float)inEnergy
-			   duration:(OOTimeDelta)duration
-				  color:(OOColor *)color
+- (id)initWithPosition:(HPVector)inPosition
+              velocity:(Vector)inVelocity
+                energy:(float)inEnergy
+              duration:(OOTimeDelta)duration
+                 color:(OOColor*)color
 {
-	if ((self = [super initWithDiameter:kPlasmaShotSize]))
-	{
-		[self setPosition:inPosition];
-		[self setVelocity:inVelocity];
-		[self setCollisionRadius:2.0];
-		
-		[self setColor:color alpha:1.0];
-		_colorComponents[3] = 1.0f;
-		
-		[self setEnergy:inEnergy];
-		_duration = duration;
-	}
-	
-	return self;
+    if ((self = [super initWithDiameter:kPlasmaShotSize])) {
+        [self setPosition:inPosition];
+        [self setVelocity:inVelocity];
+        [self setCollisionRadius:2.0];
+
+        [self setColor:color alpha:1.0];
+        _colorComponents[3] = 1.0f;
+
+        [self setEnergy:inEnergy];
+        _duration = duration;
+    }
+
+    return self;
 }
 
-
-- (BOOL) canCollide
+- (BOOL)canCollide
 {
-	return [UNIVERSE getTime] > [self spawnTime] + kPlasmaShotActivationDelay;
+    return [UNIVERSE getTime] > [self spawnTime] + kPlasmaShotActivationDelay;
 }
 
-
-- (BOOL) checkCloseCollisionWith:(Entity *)other
+- (BOOL)checkCloseCollisionWith:(Entity*)other
 {
-	return ([other rootShipEntity] != [self owner]) && ![other isEffect];
+    return ([other rootShipEntity] != [self owner]) && ![other isEffect];
 }
 
-
-- (void) update:(double)delta_t
+- (void)update:(double)delta_t
 {
-	[super update:delta_t];
-	
-	OOTimeDelta lifeTime = [self timeElapsedSinceSpawn];
-	
+    [super update:delta_t];
+
+    OOTimeDelta lifeTime = [self timeElapsedSinceSpawn];
+
 #if PLASMA_ATTENUATION
-	float attenuation = OOClamp_0_1_f(1.0f - lifeTime / _duration);
+    float attenuation = OOClamp_0_1_f(1.0f - lifeTime / _duration);
 #else
-	const float attenuation = 1.0f;
+    const float attenuation = 1.0f;
 #endif
-	
-	NSUInteger i, count = [collidingEntities count];
-	for (i = 0; i < count; i++)
-	{
-		Entity *e = (Entity *)[collidingEntities objectAtIndex:i];
-		if ([e rootShipEntity] != [self owner])
-		{
-			// we're going to force the weapon id to be a phantom equipment key so there is something for 
-			// the PlayerEntitySound to reference. it allow allows for the sound effects to be overridden by OXP.
-			[e takeEnergyDamage:[self energy] * attenuation
-						   from:self
-					  becauseOf:[self owner]
-			   weaponIdentifier:@"EQ_WEAPON_PLASMA_SHOT"];
-			[UNIVERSE removeEntity:self];
-			
-			// Spawn a plasma burst.
-			OOPlasmaBurstEntity *burst = [[OOPlasmaBurstEntity alloc] initWithPosition:[self position]];
-			[UNIVERSE addEntity:burst];
-			[burst release];
-		}
-	}
-	
+
+    NSUInteger i, count = [collidingEntities count];
+    for (i = 0; i < count; i++) {
+        Entity* e = (Entity*)[collidingEntities objectAtIndex:i];
+        if ([e rootShipEntity] != [self owner]) {
+            // we're going to force the weapon id to be a phantom equipment key so there is something for
+            // the PlayerEntitySound to reference. it allow allows for the sound effects to be overridden by OXP.
+            [e takeEnergyDamage:[self energy] * attenuation
+                            from:self
+                       becauseOf:[self owner]
+                weaponIdentifier:@"EQ_WEAPON_PLASMA_SHOT"];
+            [UNIVERSE removeEntity:self];
+
+            // Spawn a plasma burst.
+            OOPlasmaBurstEntity* burst = [[OOPlasmaBurstEntity alloc] initWithPosition:[self position]];
+            [UNIVERSE addEntity:burst];
+            [burst release];
+        }
+    }
+
 #if PLASMA_ATTENUATION
-	_colorComponents[3] = attenuation;
+    _colorComponents[3] = attenuation;
 #endif
-	
-	if (lifeTime > _duration)  [UNIVERSE removeEntity:self];
+
+    if (lifeTime > _duration)
+        [UNIVERSE removeEntity:self];
 }
 
 @end

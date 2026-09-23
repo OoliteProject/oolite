@@ -25,9 +25,8 @@ MA 02110-1301, USA.
 
 #import "OOLightParticleEntity.h"
 
+@interface OOPlasmaBurstEntity : OOLightParticleEntity
 
-@interface OOPlasmaBurstEntity: OOLightParticleEntity
-
-- (id) initWithPosition:(HPVector)position;
+- (id)initWithPosition:(HPVector)position;
 
 @end

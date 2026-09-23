@@ -39,14 +39,12 @@ SOFTWARE.
 
 */
 
-
 #import <Foundation/Foundation.h>
 
+NSArray* OOConvertSystemDescriptionsToArrayFormat(NSDictionary* descriptionsInDictionaryFormat, NSDictionary* indicesToKeys);
+NSDictionary* OOConvertSystemDescriptionsToDictionaryFormat(NSArray* descriptionsInArrayFormat, NSDictionary* indicesToKeys);
 
-NSArray *OOConvertSystemDescriptionsToArrayFormat(NSDictionary *descriptionsInDictionaryFormat, NSDictionary *indicesToKeys);
-NSDictionary *OOConvertSystemDescriptionsToDictionaryFormat(NSArray *descriptionsInArrayFormat, NSDictionary *indicesToKeys);
-
-NSString *OOStringifySystemDescriptionLine(NSString *line, NSDictionary *indicesToKeys, BOOL useFallback);
+NSString* OOStringifySystemDescriptionLine(NSString* line, NSDictionary* indicesToKeys, BOOL useFallback);
 
 //	Higher-level functions to drive the entire conversion.
 void CompileSystemDescriptions(BOOL asXML);

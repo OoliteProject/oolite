@@ -32,6 +32,5 @@ MA 02110-1301, USA.
 
 #import "OOJavaScriptEngine.h"
 
-
-void InitOOJSSpecialFunctions(JSContext *context, JSObject *global);
-OOJSValue *JSSpecialFunctionsObjectWrapper(JSContext *context);
+void InitOOJSSpecialFunctions(JSContext* context, JSObject* global);
+OOJSValue* JSSpecialFunctionsObjectWrapper(JSContext* context);

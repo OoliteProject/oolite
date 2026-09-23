@@ -36,61 +36,57 @@ MA 02110-1301, USA.
 
 #import "OOFoundation.h"
 
-#define STICKPROFILE_TYPE_STANDARD	1
-#define STICKPROFILE_TYPE_SPLINE	2
-#define STICKPROFILE_MAX_POWER		10.0
+#define STICKPROFILE_TYPE_STANDARD 1
+#define STICKPROFILE_TYPE_SPLINE 2
+#define STICKPROFILE_MAX_POWER 10.0
 
-@interface OOJoystickAxisProfile : NSObject <NSCopying>
-{
+@interface OOJoystickAxisProfile : NSObject <NSCopying> {
 @private
-	double deadzone;
+    double deadzone;
 }
 
-- (id) init;
-- (id) copyWithZone: (NSZone *) zone;
-- (double) rawValue: (double) x;
-- (double) value: (double) x;
-- (double) deadzone;
-- (void) setDeadzone: (double) newValue;
+- (id)init;
+- (id)copyWithZone:(NSZone*)zone;
+- (double)rawValue:(double)x;
+- (double)value:(double)x;
+- (double)deadzone;
+- (void)setDeadzone:(double)newValue;
 
 @end
 
-@interface OOJoystickStandardAxisProfile: OOJoystickAxisProfile
-{
+@interface OOJoystickStandardAxisProfile : OOJoystickAxisProfile {
 @private
-	double power;
-	double parameter;
+    double power;
+    double parameter;
 }
 
-- (id) init;
-- (id) copyWithZone: (NSZone *) zone;
-- (void) setPower: (double) newValue;
-- (double) power;
-- (void) setParameter: (double) newValue;
-- (double) parameter;
-- (double) rawValue: (double) x;
+- (id)init;
+- (id)copyWithZone:(NSZone*)zone;
+- (void)setPower:(double)newValue;
+- (double)power;
+- (void)setParameter:(double)newValue;
+- (double)parameter;
+- (double)rawValue:(double)x;
 
 @end
 
-@interface OOJoystickSplineAxisProfile: OOJoystickAxisProfile
-{
+@interface OOJoystickSplineAxisProfile : OOJoystickAxisProfile {
 @private
-	NSMutableArray *controlPoints;
-	NSArray *segments;
+    NSMutableArray* controlPoints;
+    NSArray* segments;
 }
 
-- (id) init;
-- (void) dealloc;
-- (id) copyWithZone: (NSZone *) zone;
-- (int) addControl: (NSPoint) point;
-- (NSPoint) pointAtIndex: (NSInteger) index;
-- (int) countPoints;
-- (void) removeControl: (NSInteger) index;
-- (void) clearControlPoints;
-- (void) moveControl: (NSInteger) index point: (NSPoint) point;
-- (double) rawValue: (double) x;
-- (double) gradient: (double) x;
-- (NSArray *) controlPoints;
+- (id)init;
+- (void)dealloc;
+- (id)copyWithZone:(NSZone*)zone;
+- (int)addControl:(NSPoint)point;
+- (NSPoint)pointAtIndex:(NSInteger)index;
+- (int)countPoints;
+- (void)removeControl:(NSInteger)index;
+- (void)clearControlPoints;
+- (void)moveControl:(NSInteger)index point:(NSPoint)point;
+- (double)rawValue:(double)x;
+- (double)gradient:(double)x;
+- (NSArray*)controlPoints;
 
 @end
-

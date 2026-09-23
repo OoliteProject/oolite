@@ -24,83 +24,80 @@ MA 02110-1301, USA.
 
 */
 
-#import <Foundation/Foundation.h>
-#import "OOWeakReference.h"
 #import "OOTypes.h"
+#import "OOWeakReference.h"
+#import <Foundation/Foundation.h>
 
-#define AI_THINK_INTERVAL					0.125
-
+#define AI_THINK_INTERVAL 0.125
 
 @class ShipEntity;
 
-
-@interface AI: OOWeakRefObject
-{
+@interface AI : OOWeakRefObject {
 @private
-	id					_owner;						// OOWeakReference to the ShipEntity this is the AI for
-	NSString			*ownerDesc;					// describes the object this is the AI for
-	
-	NSDictionary		*stateMachine;
-	NSString			*stateMachineName;
-	NSString			*currentState;
-	NSMutableSet		*pendingMessages;
-	
-	NSMutableArray		*aiStack;
-	
-	OOTimeAbsolute		nextThinkTime;
-	OOTimeDelta			thinkTimeInterval;
-	
-	NSString      *jsScript;
+    id _owner; // OOWeakReference to the ShipEntity this is the AI for
+    NSString* ownerDesc; // describes the object this is the AI for
+
+    NSDictionary* stateMachine;
+    NSString* stateMachineName;
+    NSString* currentState;
+    NSMutableSet* pendingMessages;
+
+    NSMutableArray* aiStack;
+
+    OOTimeAbsolute nextThinkTime;
+    OOTimeDelta thinkTimeInterval;
+
+    NSString* jsScript;
 }
 
-+ (AI *) currentlyRunningAI;
-+ (NSString *) currentlyRunningAIDescription;
++ (AI*)currentlyRunningAI;
++ (NSString*)currentlyRunningAIDescription;
 
-- (NSString *) name;
-- (NSString *) associatedJS;
-- (NSString *) state;
+- (NSString*)name;
+- (NSString*)associatedJS;
+- (NSString*)state;
 
-- (void) setStateMachine:(NSString *)smName withJSScript:(NSString *)script;
-- (void) setState:(NSString *)stateName;
+- (void)setStateMachine:(NSString*)smName withJSScript:(NSString*)script;
+- (void)setState:(NSString*)stateName;
 
-- (void) setStateMachine:(NSString *)smName afterDelay:(NSTimeInterval)delay;
-- (void) setState:(NSString *)stateName afterDelay:(NSTimeInterval)delay;
+- (void)setStateMachine:(NSString*)smName afterDelay:(NSTimeInterval)delay;
+- (void)setState:(NSString*)stateName afterDelay:(NSTimeInterval)delay;
 
-- (id) initWithStateMachine:(NSString *) smName andState:(NSString *) stateName;
+- (id)initWithStateMachine:(NSString*)smName andState:(NSString*)stateName;
 
-- (ShipEntity *)owner;
-- (void) setOwner:(ShipEntity *)ship;
+- (ShipEntity*)owner;
+- (void)setOwner:(ShipEntity*)ship;
 
-- (void) preserveCurrentStateMachine;
+- (void)preserveCurrentStateMachine;
 
-- (void) restorePreviousStateMachine;
+- (void)restorePreviousStateMachine;
 
-- (BOOL) hasSuspendedStateMachines;
-- (void) exitStateMachineWithMessage:(NSString *)message;
+- (BOOL)hasSuspendedStateMachines;
+- (void)exitStateMachineWithMessage:(NSString*)message;
 
-- (NSUInteger) stackDepth;
+- (NSUInteger)stackDepth;
 
 // Immediately handle a message. This is the core dispatcher. DebugContext is a textual hint for diagnostics.
-- (void) reactToMessage:(NSString *) message context:(NSString *)debugContext;
+- (void)reactToMessage:(NSString*)message context:(NSString*)debugContext;
 
-- (void) takeAction:(NSString *) action;
+- (void)takeAction:(NSString*)action;
 
-- (void) think;
+- (void)think;
 
-- (void) message:(NSString *) ms;
-- (void) dropMessage:(NSString *) ms;
-- (NSSet *) pendingMessages;
-- (void) debugDumpPendingMessages;
+- (void)message:(NSString*)ms;
+- (void)dropMessage:(NSString*)ms;
+- (NSSet*)pendingMessages;
+- (void)debugDumpPendingMessages;
 
-- (void) setNextThinkTime:(OOTimeAbsolute) ntt;
-- (OOTimeAbsolute) nextThinkTime;
+- (void)setNextThinkTime:(OOTimeAbsolute)ntt;
+- (OOTimeAbsolute)nextThinkTime;
 
-- (void) setThinkTimeInterval:(OOTimeDelta) tti;
-- (OOTimeDelta) thinkTimeInterval;
+- (void)setThinkTimeInterval:(OOTimeDelta)tti;
+- (OOTimeDelta)thinkTimeInterval;
 
-- (void) clearStack;
+- (void)clearStack;
 
-- (void) clearAllData;
+- (void)clearAllData;
 
 - (void)dumpState;
 

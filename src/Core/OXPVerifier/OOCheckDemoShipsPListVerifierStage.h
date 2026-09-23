@@ -30,7 +30,7 @@ MA 02110-1301, USA.
 
 #if OO_OXP_VERIFIER_ENABLED
 
-@interface OOCheckDemoShipsPListVerifierStage: OOFileHandlingVerifierStage
+@interface OOCheckDemoShipsPListVerifierStage : OOFileHandlingVerifierStage
 @end
 
 #endif

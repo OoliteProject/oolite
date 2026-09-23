@@ -29,38 +29,36 @@ MA 02110-1301, USA.
 
 @class OOMaterial;
 
-
-@interface OOPlanetDrawable: OODrawable <NSCopying>
-{
+@interface OOPlanetDrawable : OODrawable <NSCopying> {
 @private
-	OOMaterial				*_material;
-	BOOL					_isAtmosphere;
-	float					_radius;
-	OOMatrix				_transform;
-	unsigned				_lod;
+    OOMaterial* _material;
+    BOOL _isAtmosphere;
+    float _radius;
+    OOMatrix _transform;
+    unsigned _lod;
 }
 
-+ (instancetype) planetWithTextureName:(NSString *)textureName radius:(float)radius;
-+ (instancetype) atmosphereWithRadius:(float)radius;
++ (instancetype)planetWithTextureName:(NSString*)textureName radius:(float)radius;
++ (instancetype)atmosphereWithRadius:(float)radius;
 
-- (id) initAsAtmosphere;
+- (id)initAsAtmosphere;
 
-- (OOMaterial *) material;
-- (void) setMaterial:(OOMaterial *)material;
+- (OOMaterial*)material;
+- (void)setMaterial:(OOMaterial*)material;
 
-- (NSString *) textureName;
-- (void) setTextureName:(NSString *)textureName;
+- (NSString*)textureName;
+- (void)setTextureName:(NSString*)textureName;
 
 // Radius, in game metres.
-- (float) radius;
-- (void) setRadius:(float)radius;
+- (float)radius;
+- (void)setRadius:(float)radius;
 
 // Level of detail, [0..1]. Granularity is implementation-defined.
-- (float) levelOfDetail;
-- (void) setLevelOfDetail:(float)lod;
-- (void) calculateLevelOfDetailForViewDistance:(float)distance;
+- (float)levelOfDetail;
+- (void)setLevelOfDetail:(float)lod;
+- (void)calculateLevelOfDetailForViewDistance:(float)distance;
 
 // depth-buffer hack
-- (void) renderTranslucentPartsOnOpaquePass;
+- (void)renderTranslucentPartsOnOpaquePass;
 
 @end

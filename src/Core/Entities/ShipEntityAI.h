@@ -33,45 +33,44 @@ MA 02110-1301, USA.
 
 //	AI methods also used in other code.
 
-- (void) setAITo:(NSString *)aiString;
-- (void) setAIScript:(NSString *)aiString;
-- (void) switchAITo:(NSString *)aiString;
+- (void)setAITo:(NSString*)aiString;
+- (void)setAIScript:(NSString*)aiString;
+- (void)switchAITo:(NSString*)aiString;
 
-- (void) scanForHostiles;
-- (BOOL) performHyperSpaceToSpecificSystem:(OOSystemID)systemID;
-- (void) scanForNearestIncomingMissile;
+- (void)scanForHostiles;
+- (BOOL)performHyperSpaceToSpecificSystem:(OOSystemID)systemID;
+- (void)scanForNearestIncomingMissile;
 
-- (void) enterTargetWormhole;
-- (void) enterPlayerWormhole;
+- (void)enterTargetWormhole;
+- (void)enterPlayerWormhole;
 
-- (void) wormholeEscorts;
-- (void) wormholeEntireGroup;
+- (void)wormholeEscorts;
+- (void)wormholeEntireGroup;
 
-- (BOOL) suggestEscortTo:(ShipEntity *)mother;
+- (BOOL)suggestEscortTo:(ShipEntity*)mother;
 
-- (void) groupAttackTarget;
+- (void)groupAttackTarget;
 
-- (void) performAttack;
-- (void) performCollect;
-- (void) performEscort;
-- (void) performFaceDestination;
-- (void) performFlee;
-- (void) performFlyToRangeFromDestination;
-- (void) performHold;
-- (void) performIdle;
-- (void) performIntercept;
-- (void) performLandOnPlanet;
-- (void) performMining;
-- (void) performScriptedAI;
-- (void) performScriptedAttackAI;
-- (void) performStop;
-- (void) performTumble;
+- (void)performAttack;
+- (void)performCollect;
+- (void)performEscort;
+- (void)performFaceDestination;
+- (void)performFlee;
+- (void)performFlyToRangeFromDestination;
+- (void)performHold;
+- (void)performIdle;
+- (void)performIntercept;
+- (void)performLandOnPlanet;
+- (void)performMining;
+- (void)performScriptedAI;
+- (void)performScriptedAttackAI;
+- (void)performStop;
+- (void)performTumble;
 
-- (void) broadcastDistressMessage;
-- (void) broadcastDistressMessageWithDumping:(BOOL)dumpCargo;
+- (void)broadcastDistressMessage;
+- (void)broadcastDistressMessageWithDumping:(BOOL)dumpCargo;
 
-- (void) requestDockingCoordinates;
-- (void) recallDockingInstructions;
-
+- (void)requestDockingCoordinates;
+- (void)recallDockingInstructions;
 
 @end

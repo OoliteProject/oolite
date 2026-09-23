@@ -24,58 +24,56 @@ MA 02110-1301, USA.
 
 */
 
-#import <Foundation/Foundation.h>
+#import "OOJSPropID.h"
 #import "OOTypes.h"
 #import "legacy_random.h"
-#import "OOJSPropID.h"
+#import <Foundation/Foundation.h>
 
 @class OOJSScript;
 
-
-@interface OOCharacter: NSObject
-{
+@interface OOCharacter : NSObject {
 @private
-	NSString			*_name;
-	NSString			*_shortDescription;
-	OOSystemID			_originSystem;
-	Random_Seed			_genSeed;
-	int					_legalStatus;
-	OOCreditsQuantity	_insuranceCredits;
-	NSArray				*_scriptActions;
-	OOJSScript			*_script;
+    NSString* _name;
+    NSString* _shortDescription;
+    OOSystemID _originSystem;
+    Random_Seed _genSeed;
+    int _legalStatus;
+    OOCreditsQuantity _insuranceCredits;
+    NSArray* _scriptActions;
+    OOJSScript* _script;
 }
 
-- (id) initWithRole:(NSString *)role andOriginalSystem:(OOSystemID)s;
+- (id)initWithRole:(NSString*)role andOriginalSystem:(OOSystemID)s;
 
-+ (OOCharacter *) characterWithRole:(NSString *)c_role andOriginalSystem:(OOSystemID)s;
-+ (OOCharacter *) randomCharacterWithRole:(NSString *)c_role andOriginalSystem:(OOSystemID)s;
-+ (OOCharacter *) characterWithDictionary:(NSDictionary *)c_dict;
++ (OOCharacter*)characterWithRole:(NSString*)c_role andOriginalSystem:(OOSystemID)s;
++ (OOCharacter*)randomCharacterWithRole:(NSString*)c_role andOriginalSystem:(OOSystemID)s;
++ (OOCharacter*)characterWithDictionary:(NSDictionary*)c_dict;
 
-- (NSString*) planetOfOrigin;
-- (OOSystemID) planetIDOfOrigin;
-- (NSString*) species;
+- (NSString*)planetOfOrigin;
+- (OOSystemID)planetIDOfOrigin;
+- (NSString*)species;
 
-- (void) basicSetUp;
-- (BOOL) castInRole:(NSString *)role;
+- (void)basicSetUp;
+- (BOOL)castInRole:(NSString*)role;
 
-- (NSString *) name;
-- (void) setName:(NSString *)value;
+- (NSString*)name;
+- (void)setName:(NSString*)value;
 
-- (NSString *) shortDescription;
-- (void) setShortDescription:(NSString *)value;
+- (NSString*)shortDescription;
+- (void)setShortDescription:(NSString*)value;
 
-- (int) legalStatus;
-- (void) setLegalStatus:(int)value;
+- (int)legalStatus;
+- (void)setLegalStatus:(int)value;
 
-- (OOCreditsQuantity) insuranceCredits;
-- (void) setInsuranceCredits:(OOCreditsQuantity)value;
+- (OOCreditsQuantity)insuranceCredits;
+- (void)setInsuranceCredits:(OOCreditsQuantity)value;
 
-- (NSArray *) legacyScript;
-- (void) setLegacyScript:(NSArray *)scriptActions;
-- (OOJSScript *)script;
-- (void) setCharacterScript:(NSString *)scriptName;
-- (void) doScriptEvent:(jsid)message;
+- (NSArray*)legacyScript;
+- (void)setLegacyScript:(NSArray*)scriptActions;
+- (OOJSScript*)script;
+- (void)setCharacterScript:(NSString*)scriptName;
+- (void)doScriptEvent:(jsid)message;
 
-- (NSDictionary *) infoForScripting;
+- (NSDictionary*)infoForScripting;
 
 @end

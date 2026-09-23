@@ -29,46 +29,44 @@ SOFTWARE.
 
 */
 
-#import <Foundation/Foundation.h>
-#import "OOTexture.h"
 #import "OOMaths.h"
+#import "OOTexture.h"
+#import <Foundation/Foundation.h>
 
-
-@interface OOProbabilisticTextureManager: NSObject
-{
+@interface OOProbabilisticTextureManager : NSObject {
 @private
-	unsigned				_count;
-	OOTexture				**_textures;
-	float					*_prob;
-	int	                    *_galaxy;
-	float					_probMax;
-	float					*_probMaxGal;
-	RANROTSeed				_seed;
+    unsigned _count;
+    OOTexture** _textures;
+    float* _prob;
+    int* _galaxy;
+    float _probMax;
+    float* _probMaxGal;
+    RANROTSeed _seed;
 }
 
 /*	plistName is the name of the property list specifying the actual textures
-	to use. The plist will be loaded from Config directories and merged. It
-	should contain an array of dictionaries; each dictionary must have a
-	"texture" entry specifying the texture file name (in Textures directories)
-	and an optional "probability" entry (default: 1.0). As a convenience, an
-	entry may also be a string, in which case probability will be 1.0.
-	
-	If no seed is specified, the current seed will be copied.
-*/
-- (id)initWithPListName:(NSString *)plistName 
-				options:(uint32_t)options
-			 anisotropy:(GLfloat)anisotropy
-				lodBias:(GLfloat)lodBias;
+        to use. The plist will be loaded from Config directories and merged. It
+        should contain an array of dictionaries; each dictionary must have a
+        "texture" entry specifying the texture file name (in Textures directories)
+        and an optional "probability" entry (default: 1.0). As a convenience, an
+        entry may also be a string, in which case probability will be 1.0.
 
-- (id)initWithPListName:(NSString *)plistName 
-				options:(uint32_t)options
-			 anisotropy:(GLfloat)anisotropy
-				lodBias:(GLfloat)lodBias
-				   seed:(RANROTSeed)seed;
+        If no seed is specified, the current seed will be copied.
+*/
+- (id)initWithPListName:(NSString*)plistName
+                options:(uint32_t)options
+             anisotropy:(GLfloat)anisotropy
+                lodBias:(GLfloat)lodBias;
+
+- (id)initWithPListName:(NSString*)plistName
+                options:(uint32_t)options
+             anisotropy:(GLfloat)anisotropy
+                lodBias:(GLfloat)lodBias
+                   seed:(RANROTSeed)seed;
 
 /*	Select a texture, weighted-randomly.
-*/
-- (OOTexture *)selectTexture;
+ */
+- (OOTexture*)selectTexture;
 
 - (unsigned)textureCount;
 

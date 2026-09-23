@@ -28,102 +28,88 @@ SOFTWARE.
 */
 
 #import "OODebugStandards.h"
-#import "OOLogging.h"
-#import "OOCollectionExtractors.h"
 #import "GameController.h"
+#import "OOCollectionExtractors.h"
+#import "OOLogging.h"
 
 #ifdef NDEBUG
 // in release mode, stubs
-void OOStandardsDeprecated(NSString *message) {}
-void OOStandardsError(NSString *message) {}
+void OOStandardsDeprecated(NSString* message) { }
+void OOStandardsError(NSString* message) { }
 BOOL OOEnforceStandards() { return NO; }
-void OOSetStandardsForOXPVerifierMode() {}
+void OOSetStandardsForOXPVerifierMode() { }
 
 #else
 
 void OOStandardsSetup(void);
-void OOStandardsInternal(NSString *type, NSString *message);
+void OOStandardsInternal(NSString* type, NSString* message);
 
 static BOOL sSetup = NO;
 
 typedef enum {
-// do nothing (equivalent to release build)
-	STANDARDS_ENFORCEMENT_OFF = 0,
-// warn in log but otherwise do nothing
-	STANDARDS_ENFORCEMENT_WARN,
-// warn in log, block use of deprecated or error items
-	STANDARDS_ENFORCEMENT_ENFORCE,
-// note in log, then exit if deprecated or error condition occurs
-	STANDARDS_ENFORCEMENT_QUIT
+    // do nothing (equivalent to release build)
+    STANDARDS_ENFORCEMENT_OFF = 0,
+    // warn in log but otherwise do nothing
+    STANDARDS_ENFORCEMENT_WARN,
+    // warn in log, block use of deprecated or error items
+    STANDARDS_ENFORCEMENT_ENFORCE,
+    // note in log, then exit if deprecated or error condition occurs
+    STANDARDS_ENFORCEMENT_QUIT
 } OOStandardsEnforcement;
 
 static OOStandardsEnforcement sEnforcement = STANDARDS_ENFORCEMENT_WARN;
 
-
 void OOStandardsSetup()
 {
-	if (sSetup) 
-	{
-		return;
-	}
-	NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
-	int s = [prefs oo_intForKey:@"enforce-oxp-standards" 
-				   defaultValue:STANDARDS_ENFORCEMENT_WARN];
-	if (s < STANDARDS_ENFORCEMENT_OFF)
-	{
-		s = STANDARDS_ENFORCEMENT_OFF;
-	}
-	else if (s > STANDARDS_ENFORCEMENT_QUIT)
-	{
-		s = STANDARDS_ENFORCEMENT_QUIT;
-	}
-	sEnforcement = s;
+    if (sSetup) {
+        return;
+    }
+    NSUserDefaults* prefs = [NSUserDefaults standardUserDefaults];
+    int s = [prefs oo_intForKey:@"enforce-oxp-standards"
+                   defaultValue:STANDARDS_ENFORCEMENT_WARN];
+    if (s < STANDARDS_ENFORCEMENT_OFF) {
+        s = STANDARDS_ENFORCEMENT_OFF;
+    } else if (s > STANDARDS_ENFORCEMENT_QUIT) {
+        s = STANDARDS_ENFORCEMENT_QUIT;
+    }
+    sEnforcement = s;
 }
 
-
-void OOStandardsInternal(NSString *type, NSString *message)
+void OOStandardsInternal(NSString* type, NSString* message)
 {
-	OOStandardsSetup();
-	if (sEnforcement == STANDARDS_ENFORCEMENT_OFF)
-	{
-		return;
-	}
+    OOStandardsSetup();
+    if (sEnforcement == STANDARDS_ENFORCEMENT_OFF) {
+        return;
+    }
 
-	OOLog(type, @"%@", message);
+    OOLog(type, @"%@", message);
 
-	if (sEnforcement == STANDARDS_ENFORCEMENT_QUIT)
-	{
-		[[GameController sharedController] exitAppWithContext:type];
-		// exit
-	}
+    if (sEnforcement == STANDARDS_ENFORCEMENT_QUIT) {
+        [[GameController sharedController] exitAppWithContext:type];
+        // exit
+    }
 }
 
-
-void OOStandardsDeprecated(NSString *message)
+void OOStandardsDeprecated(NSString* message)
 {
-	OOStandardsInternal(@"oxp-standards.deprecated",message);
+    OOStandardsInternal(@"oxp-standards.deprecated", message);
 }
 
-
-void OOStandardsError(NSString *message)
+void OOStandardsError(NSString* message)
 {
-	OOStandardsInternal(@"oxp-standards.error",message);
+    OOStandardsInternal(@"oxp-standards.error", message);
 }
-
 
 BOOL OOEnforceStandards()
 {
-	OOStandardsSetup();
-	return sEnforcement >= STANDARDS_ENFORCEMENT_ENFORCE;
+    OOStandardsSetup();
+    return sEnforcement >= STANDARDS_ENFORCEMENT_ENFORCE;
 }
-
 
 void OOSetStandardsForOXPVerifierMode()
 {
-	sEnforcement = STANDARDS_ENFORCEMENT_WARN;
-	sSetup = YES;
+    sEnforcement = STANDARDS_ENFORCEMENT_WARN;
+    sSetup = YES;
 }
-
-
 
 #endif

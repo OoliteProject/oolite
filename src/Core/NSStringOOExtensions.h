@@ -26,79 +26,70 @@ MA 02110-1301, USA.
 
 #import "OOFoundation.h"
 
-
 @interface NSString (OOExtensions)
 
 /*	+stringWithContentsOfUnicodeFile:
-	
-	Like +stringWithContentsOfFile:, but biased towards Unicode encodings and
-	cross-system consistency. Specifically:
-	* If the file starts with a UTF-16 BOM, assume UTF-16.
-	* Otherwise, if the file can be interpreted as UTF-8, assume UTF-8.
-	* Otherwise, assume ISO-Latin-1.
-*/
-+ (instancetype) stringWithContentsOfUnicodeFile:(NSString *)path;
 
+        Like +stringWithContentsOfFile:, but biased towards Unicode encodings and
+        cross-system consistency. Specifically:
+        * If the file starts with a UTF-16 BOM, assume UTF-16.
+        * Otherwise, if the file can be interpreted as UTF-8, assume UTF-8.
+        * Otherwise, assume ISO-Latin-1.
+*/
++ (instancetype)stringWithContentsOfUnicodeFile:(NSString*)path;
 
 /*	+stringWithUTF16String:
-	
-	Takes a NUL-terminated native-endian UTF-16 string.
-*/
-+ (instancetype) stringWithUTF16String:(const unichar *)chars;
 
+        Takes a NUL-terminated native-endian UTF-16 string.
+*/
++ (instancetype)stringWithUTF16String:(const unichar*)chars;
 
 /*	-utf16DataWithBOM:
-	Convert to native-endian UTF-16 data.
+        Convert to native-endian UTF-16 data.
 */
-- (NSData *) utf16DataWithBOM:(BOOL)includeByteOrderMark;
+- (NSData*)utf16DataWithBOM:(BOOL)includeByteOrderMark;
 
 /*	- oo_hash
-	Hash function for when we want consistency across platforms and versions.
-	It implements modified djb2 (with xor rather than addition) in terms of
-	UTF-16 code elements.
+        Hash function for when we want consistency across platforms and versions.
+        It implements modified djb2 (with xor rather than addition) in terms of
+        UTF-16 code elements.
 */
-- (uint32_t) oo_hash;
-
+- (uint32_t)oo_hash;
 
 /*	-stringByTrimmingLeadingCharactersInSet:
-	Strips characters belonging to selected character set from start of string. 
+        Strips characters belonging to selected character set from start of string.
 */
-- (NSString *)stringByTrimmingLeadingCharactersInSet:(NSCharacterSet *)characterSet;
-
+- (NSString*)stringByTrimmingLeadingCharactersInSet:(NSCharacterSet*)characterSet;
 
 /*	-stringByTrimmingLeadingWhitespaceAndNewlineCharacters:
-	Strips leading whtiespaces and newline characters from string.
-*/	
-- (NSString *)stringByTrimmingLeadingWhitespaceAndNewlineCharacters;
-
+        Strips leading whtiespaces and newline characters from string.
+*/
+- (NSString*)stringByTrimmingLeadingWhitespaceAndNewlineCharacters;
 
 /*	-stringByTrimmingTrailingCharactersInSet:
-	Strips characters belonging to selected character set from end of string. 
+        Strips characters belonging to selected character set from end of string.
 */
-- (NSString *)stringByTrimmingTrailingCharactersInSet:(NSCharacterSet *)characterSet;
- 
- 
- /*	-stringByTrimmingTrailingWhitespaceAndNewlineCharacters:
-	Strips trailing whtiespaces and newline characters from string.
-*/	
-- (NSString *)stringByTrimmingTrailingWhitespaceAndNewlineCharacters;
+- (NSString*)stringByTrimmingTrailingCharactersInSet:(NSCharacterSet*)characterSet;
+
+/*	-stringByTrimmingTrailingWhitespaceAndNewlineCharacters:
+       Strips trailing whtiespaces and newline characters from string.
+*/
+- (NSString*)stringByTrimmingTrailingWhitespaceAndNewlineCharacters;
 
 @end
-
 
 @interface NSMutableString (OOExtensions)
 
-- (void) appendLine:(NSString *)line;
-- (void) appendFormatLine:(NSString *)fmt, ...;
-- (void) appendFormatLine:(NSString *)fmt arguments:(va_list)args;
+- (void)appendLine:(NSString*)line;
+- (void)appendFormatLine:(NSString*)fmt, ...;
+- (void)appendFormatLine:(NSString*)fmt arguments:(va_list)args;
 
-- (void) deleteCharacterAtIndex:(unsigned long)index;
+- (void)deleteCharacterAtIndex:(unsigned long)index;
 
 @end
 
-
 /*	OOTabString(count)
-	
-	Return a string of <count> tabs.
+
+        Return a string of <count> tabs.
 */
-NSString *OOTabString(NSUInteger count);
+NSString* OOTabString(NSUInteger count);

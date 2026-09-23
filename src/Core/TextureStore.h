@@ -35,26 +35,22 @@ MA 02110-1301, USA.
 #import "OOFoundation.h"
 #import "OOOpenGL.h"
 
-
 @class OOColor;
 
-
-@interface TextureStore: NSObject
+@interface TextureStore : NSObject
 
 // routines to create textures...
-+ (BOOL) getPlanetTextureNameFor:(NSDictionary *)planetInfo
-						intoData:(unsigned char **)textureData
-						   width:(GLuint *)textureWidth
-						  height:(GLuint *)textureHeight;
-+ (BOOL) getCloudTextureNameFor:(OOColor *)color  impress:(GLfloat)impress  bias:(GLfloat)bias
-					   intoData:(unsigned char **)textureData
-						  width:(GLuint *)textureWidth
-						 height:(GLuint *)textureHeight;
++ (BOOL)getPlanetTextureNameFor:(NSDictionary*)planetInfo
+                       intoData:(unsigned char**)textureData
+                          width:(GLuint*)textureWidth
+                         height:(GLuint*)textureHeight;
++ (BOOL)getCloudTextureNameFor:(OOColor*)color impress:(GLfloat)impress bias:(GLfloat)bias
+                      intoData:(unsigned char**)textureData
+                         width:(GLuint*)textureWidth
+                        height:(GLuint*)textureHeight;
 
 @end
 
-
 void fillRanNoiseBuffer();
 
-
-#endif	// !NEW_PLANETS
+#endif // !NEW_PLANETS

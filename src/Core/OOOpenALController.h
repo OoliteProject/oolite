@@ -26,25 +26,22 @@ MA 02110-1301, USA.
 
 #import "OOOpenAL.h"
 
+static NSString* const kOOLogSoundInitError = @"sound.initialization.error";
+static NSString* const kOOLogSoundLoadingSuccess = @"sound.load.success";
+static NSString* const kOOLogSoundLoadingError = @"sound.load.error";
 
-static NSString * const kOOLogSoundInitError		= @"sound.initialization.error";
-static NSString * const kOOLogSoundLoadingSuccess	= @"sound.load.success";
-static NSString * const kOOLogSoundLoadingError		= @"sound.load.error";
-
-
-@interface OOOpenALController : NSObject 
-{
+@interface OOOpenALController : NSObject {
 @private
-	ALCdevice *device;
-	ALCcontext *context;
+    ALCdevice* device;
+    ALCcontext* context;
 }
- 
-+ (OOOpenALController *) sharedController;
 
-- (void) setMasterVolume:(ALfloat) fraction;
-- (ALfloat) masterVolume;
++ (OOOpenALController*)sharedController;
 
-- (void) shutdown;
+- (void)setMasterVolume:(ALfloat)fraction;
+- (ALfloat)masterVolume;
+
+- (void)shutdown;
 
 /**
  * \ingroup cli
@@ -53,6 +50,6 @@ static NSString * const kOOLogSoundLoadingError		= @"sound.load.error";
  * @return returns the instance to OOOpenALController if sound
  *         shall be played and can be played, otherwise null
  */
-- (id) init;
+- (id)init;
 
 @end

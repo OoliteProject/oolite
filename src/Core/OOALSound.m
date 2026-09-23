@@ -25,156 +25,140 @@ SOFTWARE.
 */
 
 #import "OOALSound.h"
-#import "OOLogging.h"
-#import "OOCollectionExtractors.h"
-#import "OOMaths.h"
-#import "OOALSoundDecoder.h"
-#import "OOOpenALController.h"
 #import "OOALBufferedSound.h"
-#import "OOALStreamedSound.h"
+#import "OOALSoundDecoder.h"
 #import "OOALSoundMixer.h"
+#import "OOALStreamedSound.h"
+#import "OOCollectionExtractors.h"
+#import "OOLogging.h"
+#import "OOMaths.h"
+#import "OOOpenALController.h"
 
 #define KEY_VOLUME_CONTROL @"volume_control"
 
-static const size_t kMaxBufferedSoundSize = 1 << 20;	// 1 MB
+static const size_t kMaxBufferedSoundSize = 1 << 20; // 1 MB
 
-static BOOL	sIsSetUp = NO;
+static BOOL sIsSetUp = NO;
 static BOOL sIsSoundOK = NO;
 
 @implementation OOSound
 
-+ (BOOL) setUp
++ (BOOL)setUp
 {
-	if (!sIsSetUp)
-	{
-		sIsSetUp = YES;
-		OOOpenALController* controller = [OOOpenALController sharedController];
-		if (controller != nil)
-		{
-			sIsSoundOK = YES;
-			float volume = [[NSUserDefaults standardUserDefaults] oo_floatForKey:KEY_VOLUME_CONTROL defaultValue:0.5];
-			[self setMasterVolume:volume];
-		}
-	}
-	
-	return sIsSoundOK;
+    if (!sIsSetUp) {
+        sIsSetUp = YES;
+        OOOpenALController* controller = [OOOpenALController sharedController];
+        if (controller != nil) {
+            sIsSoundOK = YES;
+            float volume = [[NSUserDefaults standardUserDefaults] oo_floatForKey:KEY_VOLUME_CONTROL defaultValue:0.5];
+            [self setMasterVolume:volume];
+        }
+    }
+
+    return sIsSoundOK;
 }
 
-
-+ (void) setMasterVolume:(float) fraction
++ (void)setMasterVolume:(float)fraction
 {
-	if (!sIsSetUp && ![self setUp])
-		return;
-	
-	fraction = OOClamp_0_1_f(fraction);
+    if (!sIsSetUp && ![self setUp])
+        return;
 
-	OOOpenALController *controller = [OOOpenALController sharedController];
-	if (fraction != [controller masterVolume])
-	{
-		[controller setMasterVolume:fraction];
-		[[NSUserDefaults standardUserDefaults] setFloat:[controller masterVolume] forKey:KEY_VOLUME_CONTROL];
-	}
+    fraction = OOClamp_0_1_f(fraction);
+
+    OOOpenALController* controller = [OOOpenALController sharedController];
+    if (fraction != [controller masterVolume]) {
+        [controller setMasterVolume:fraction];
+        [[NSUserDefaults standardUserDefaults] setFloat:[controller masterVolume] forKey:KEY_VOLUME_CONTROL];
+    }
 }
 
-
-+ (float) masterVolume
++ (float)masterVolume
 {
-	if (!sIsSetUp && ![self setUp] )
-		return 0.0;
+    if (!sIsSetUp && ![self setUp])
+        return 0.0;
 
-	OOOpenALController *controller = [OOOpenALController sharedController];
-	return [controller masterVolume];
+    OOOpenALController* controller = [OOOpenALController sharedController];
+    return [controller masterVolume];
 }
 
-
-- (id) init
+- (id)init
 {
-	if (!sIsSetUp)  [OOSound setUp];
-	return [super init];
+    if (!sIsSetUp)
+        [OOSound setUp];
+    return [super init];
 }
 
-
-- (id) initWithContentsOfFile:(NSString *)path
+- (id)initWithContentsOfFile:(NSString*)path
 {
-	if (!sIsSoundOK)  return nil;
-	
-	[self release];
-	if (!sIsSetUp && ![OOSound setUp])  return nil;
+    if (!sIsSoundOK)
+        return nil;
 
-	OOALSoundDecoder		*decoder;
+    [self release];
+    if (!sIsSetUp && ![OOSound setUp])
+        return nil;
 
-	decoder = [[OOALSoundDecoder alloc] initWithPath:path];
-	if (nil == decoder) return nil;
-	
-	if ([decoder sizeAsBuffer] <= kMaxBufferedSoundSize)
-	{
-		self = [[OOALBufferedSound alloc] initWithDecoder:decoder];
-	}
-	else
-	{
-		self = [[OOALStreamedSound alloc] initWithDecoder:decoder];
-	}
-	[decoder release];
-	
-	if (nil != self)
-	{
-		#ifndef NDEBUG
-			OOLog(kOOLogSoundLoadingSuccess, @"Loaded sound %@", path);
-		#endif
-	}
-	else
-	{
-		OOLog(kOOLogSoundLoadingError, @"Failed to load sound \"%@\"", path);
-	}
-	
-	return self;
+    OOALSoundDecoder* decoder;
 
+    decoder = [[OOALSoundDecoder alloc] initWithPath:path];
+    if (nil == decoder)
+        return nil;
 
+    if ([decoder sizeAsBuffer] <= kMaxBufferedSoundSize) {
+        self = [[OOALBufferedSound alloc] initWithDecoder:decoder];
+    } else {
+        self = [[OOALStreamedSound alloc] initWithDecoder:decoder];
+    }
+    [decoder release];
+
+    if (nil != self) {
+#ifndef NDEBUG
+        OOLog(kOOLogSoundLoadingSuccess, @"Loaded sound %@", path);
+#endif
+    } else {
+        OOLog(kOOLogSoundLoadingError, @"Failed to load sound \"%@\"", path);
+    }
+
+    return self;
 }
 
-- (id)initWithDecoder:(OOALSoundDecoder *)inDecoder
+- (id)initWithDecoder:(OOALSoundDecoder*)inDecoder
 {
-	[self release];
-	return nil;
+    [self release];
+    return nil;
 }
 
-
-- (NSString *)name
+- (NSString*)name
 {
-	OOLogGenericSubclassResponsibility();
-	return @"";
+    OOLogGenericSubclassResponsibility();
+    return @"";
 }
 
-
-+ (void) update
++ (void)update
 {
-	OOSoundMixer * mixer = [OOSoundMixer sharedMixer];
-	if( sIsSoundOK && mixer)
-		[mixer update];
+    OOSoundMixer* mixer = [OOSoundMixer sharedMixer];
+    if (sIsSoundOK && mixer)
+        [mixer update];
 }
 
-+ (BOOL) isSoundOK
++ (BOOL)isSoundOK
 {
-  return sIsSoundOK;
+    return sIsSoundOK;
 }
 
-
-- (ALuint) soundBuffer
+- (ALuint)soundBuffer
 {
-	OOLogGenericSubclassResponsibility();
-	return 0;
+    OOLogGenericSubclassResponsibility();
+    return 0;
 }
 
-
-- (BOOL) soundIncomplete
+- (BOOL)soundIncomplete
 {
-	return NO;
+    return NO;
 }
 
-
-- (void) rewind
+- (void)rewind
 {
-	// doesn't need to do anything on seekable FDs
+    // doesn't need to do anything on seekable FDs
 }
 
 @end

@@ -33,15 +33,14 @@ MA 02110-1301, USA.
 
 #pragma once
 
+#import "PlayerEntity.h"
 #import <Foundation/Foundation.h>
 #include <jsapi.h>
-#import "PlayerEntity.h"
 
 @class PlayerEntity;
 
+void InitOOJSPlayerShip(JSContext* context, JSObject* global);
 
-void InitOOJSPlayerShip(JSContext *context, JSObject *global);
-
-JSClass *JSPlayerShipClass(void);
-JSObject *JSPlayerShipPrototype(void);
-JSObject *JSPlayerShipObject(void);
+JSClass* JSPlayerShipClass(void);
+JSObject* JSPlayerShipPrototype(void);
+JSObject* JSPlayerShipObject(void);

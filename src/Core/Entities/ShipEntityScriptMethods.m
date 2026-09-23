@@ -24,77 +24,69 @@ MA 02110-1301, USA.
 */
 
 #import "ShipEntityScriptMethods.h"
-#import "Universe.h"
 #import "OOCollectionExtractors.h"
+#import "Universe.h"
 
-
-static NSString * const kOOLogNoteAddShips = @"script.debug.note.addShips";
-
+static NSString* const kOOLogNoteAddShips = @"script.debug.note.addShips";
 
 @implementation ShipEntity (ScriptMethods)
 
-- (ShipEntity *) ejectShipOfType:(NSString *)shipKey
+- (ShipEntity*)ejectShipOfType:(NSString*)shipKey
 {
-	ShipEntity		*item = nil;
-	
-	if (shipKey != nil)
-	{
-		item = [[UNIVERSE newShipWithName:shipKey] autorelease];
-		if (item != nil)  [self dumpItem:item];
-	}
-	
-	return item;
+    ShipEntity* item = nil;
+
+    if (shipKey != nil) {
+        item = [[UNIVERSE newShipWithName:shipKey] autorelease];
+        if (item != nil)
+            [self dumpItem:item];
+    }
+
+    return item;
 }
 
-
-- (ShipEntity *) ejectShipOfRole:(NSString *)role
+- (ShipEntity*)ejectShipOfRole:(NSString*)role
 {
-	ShipEntity		*item = nil;
-	
-	if (role != nil)
-	{
-		item = [[UNIVERSE newShipWithRole:role] autorelease];
-		if (item != nil)  [self dumpItem:item];
-	}
-	
-	return item;
+    ShipEntity* item = nil;
+
+    if (role != nil) {
+        item = [[UNIVERSE newShipWithRole:role] autorelease];
+        if (item != nil)
+            [self dumpItem:item];
+    }
+
+    return item;
 }
 
-
-- (NSArray *) spawnShipsWithRole:(NSString *)role count:(NSUInteger)count
+- (NSArray*)spawnShipsWithRole:(NSString*)role count:(NSUInteger)count
 {
-	ShipEntity				*ship = [self rootShipEntity];	// FIXME: (EMMSTRAN) implement an -absolutePosition method, use that in spawnShipWithRole:near:, and use self instead of root.
-	ShipEntity				*spawned = nil;
-	NSMutableArray			*result = nil;
-	
-	if (count == 0)  return [NSArray array];
-	
-	OOLog(kOOLogNoteAddShips, @"Spawning %zu x '%@' near %@ %d", count, role, [self shortDescription], [self universalID]);
-	
-	result = [NSMutableArray arrayWithCapacity:count];
-	
-	do
-	{
-		spawned = [UNIVERSE spawnShipWithRole:role near:ship];
-		if (spawned != nil)
-		{
-			[spawned setTemperature:[self randomEjectaTemperature]];
-			if ([self isMissileFlagSet] && [[spawned shipInfoDictionary] oo_boolForKey:@"is_submunition"])
-			{
-				[spawned setOwner:[self owner]];
-				[spawned addTarget:[self primaryTarget]];
-				[spawned setIsMissileFlag:YES];
-			}
-   			if ([spawned isMine])
-	  		{
-	 			[spawned setOwner:self];
-	 		}
-			[result addObject:spawned];
-		}
-	}
-	while (--count);
-	
-	return result;
+    ShipEntity* ship = [self rootShipEntity]; // FIXME: (EMMSTRAN) implement an -absolutePosition method, use that in spawnShipWithRole:near:, and use self instead of root.
+    ShipEntity* spawned = nil;
+    NSMutableArray* result = nil;
+
+    if (count == 0)
+        return [NSArray array];
+
+    OOLog(kOOLogNoteAddShips, @"Spawning %zu x '%@' near %@ %d", count, role, [self shortDescription], [self universalID]);
+
+    result = [NSMutableArray arrayWithCapacity:count];
+
+    do {
+        spawned = [UNIVERSE spawnShipWithRole:role near:ship];
+        if (spawned != nil) {
+            [spawned setTemperature:[self randomEjectaTemperature]];
+            if ([self isMissileFlagSet] && [[spawned shipInfoDictionary] oo_boolForKey:@"is_submunition"]) {
+                [spawned setOwner:[self owner]];
+                [spawned addTarget:[self primaryTarget]];
+                [spawned setIsMissileFlag:YES];
+            }
+            if ([spawned isMine]) {
+                [spawned setOwner:self];
+            }
+            [result addObject:spawned];
+        }
+    } while (--count);
+
+    return result;
 }
 
 @end

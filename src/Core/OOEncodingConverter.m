@@ -31,12 +31,11 @@ SOFTWARE.
 #import "OOCollectionExtractors.h"
 #import "OOLogging.h"
 
-
 /*	Using compatibility mapping - converting strings to Unicode form KC - would
-	reduce potential complications in localizing Oolite. However, the method to
-	perform the transformation is not available in GNUstep. I'm currently not
-	using it under OS X either, for cross-platform consistency.
-	-- Ahruman 2008-01-27
+        reduce potential complications in localizing Oolite. However, the method to
+        perform the transformation is not available in GNUstep. I'm currently not
+        using it under OS X either, for cross-platform consistency.
+        -- Ahruman 2008-01-27
 */
 #if OOLITE_MAC_OS_X
 #define USE_COMPATIBILITY_MAPPING 0
@@ -44,213 +43,200 @@ SOFTWARE.
 #define USE_COMPATIBILITY_MAPPING 0
 #endif
 
-
 #define PROFILE_ENCODING_CONVERTER 0
-
 
 static const NSUInteger kCachePruneThreshold = 200;
 
-
 #if PROFILE_ENCODING_CONVERTER
-static OOEncodingConverter	*sProfiledConverter = nil;
-static NSTimer				*sProfileTimer = nil;
+static OOEncodingConverter* sProfiledConverter = nil;
+static NSTimer* sProfileTimer = nil;
 
-static unsigned				sCacheHits = 0;
-static unsigned				sCacheMisses = 0;
+static unsigned sCacheHits = 0;
+static unsigned sCacheMisses = 0;
 #endif
-
 
 @interface OOEncodingConverter (Private)
 
-- (NSData *) performConversionForString:(NSString *)string;
+- (NSData*)performConversionForString:(NSString*)string;
 
 @end
-
 
 @implementation OOEncodingConverter
 
-- (id) initWithEncoding:(NSStringEncoding)encoding substitutions:(NSDictionary *)substitutions
+- (id)initWithEncoding:(NSStringEncoding)encoding substitutions:(NSDictionary*)substitutions
 {
-	self = [super init];
-	if (self != nil)
-	{
-		_cache = [[OOCache alloc] init];
-		[_cache setPruneThreshold:kCachePruneThreshold];
-		[_cache setName:@"Text encoding"];
-		_substitutions = [substitutions copy];
-		_encoding = encoding;
-		
+    self = [super init];
+    if (self != nil) {
+        _cache = [[OOCache alloc] init];
+        [_cache setPruneThreshold:kCachePruneThreshold];
+        [_cache setName:@"Text encoding"];
+        _substitutions = [substitutions copy];
+        _encoding = encoding;
+
 #if PROFILE_ENCODING_CONVERTER
-		if (sProfiledConverter == nil)
-		{
-			sProfiledConverter = self;
-			sProfileTimer = [NSTimer scheduledTimerWithTimeInterval:5 target:self selector:@selector(profileFire:) userInfo:nil repeats:YES];
-		}
+        if (sProfiledConverter == nil) {
+            sProfiledConverter = self;
+            sProfileTimer = [NSTimer scheduledTimerWithTimeInterval:5 target:self selector:@selector(profileFire:) userInfo:nil repeats:YES];
+        }
 #endif
-	}
-	
-	return self;
+    }
+
+    return self;
 }
 
-
-- (id) initWithFontPList:(NSDictionary *)fontPList
+- (id)initWithFontPList:(NSDictionary*)fontPList
 {
-	return [self initWithEncoding:EncodingFromString([fontPList oo_stringForKey:@"encoding"]) substitutions:[fontPList oo_dictionaryForKey:@"substitutions"]];
+    return [self initWithEncoding:EncodingFromString([fontPList oo_stringForKey:@"encoding"]) substitutions:[fontPList oo_dictionaryForKey:@"substitutions"]];
 }
 
-
-- (void) dealloc
+- (void)dealloc
 {
-	[_cache release];
-	[_substitutions release];
-	
+    [_cache release];
+    [_substitutions release];
+
 #if PROFILE_ENCODING_CONVERTER
-	sProfiledConverter = nil;
-	[sProfileTimer invalidate];
-	sProfileTimer = nil;
-	sCacheHits = 0;
-	sCacheMisses = 0;
+    sProfiledConverter = nil;
+    [sProfileTimer invalidate];
+    sProfileTimer = nil;
+    sCacheHits = 0;
+    sCacheMisses = 0;
 #endif
-	
-	[super dealloc];
+
+    [super dealloc];
 }
 
-
-- (NSString *) descriptionComponents
+- (NSString*)descriptionComponents
 {
-	return [NSString stringWithFormat:@"encoding: %u", _encoding];
+    return [NSString stringWithFormat:@"encoding: %u", _encoding];
 }
 
-
-- (NSData *) convertString:(NSString *)string
+- (NSData*)convertString:(NSString*)string
 {
-	NSData				*data = nil;
-	
+    NSData* data = nil;
+
 #if USE_COMPATIBILITY_MAPPING
-	// Convert to Unicode Normalization Form KC (that is, minimize the use of combining modifiers while avoiding precomposed ligatures)
-	string = [string precomposedStringWithCompatibilityMapping];
+    // Convert to Unicode Normalization Form KC (that is, minimize the use of combining modifiers while avoiding precomposed ligatures)
+    string = [string precomposedStringWithCompatibilityMapping];
 #endif
-	
-	if (string == nil)  return [NSData data];
-	
-	data = [_cache objectForKey:string];
-	if (data == nil)
-	{
-		data = [self performConversionForString:string];
-		if (data != nil)  [_cache setObject:data forKey:string];
-		
+
+    if (string == nil)
+        return [NSData data];
+
+    data = [_cache objectForKey:string];
+    if (data == nil) {
+        data = [self performConversionForString:string];
+        if (data != nil)
+            [_cache setObject:data forKey:string];
+
 #if PROFILE_ENCODING_CONVERTER
-		++sCacheMisses;
-	}
-	else
-	{
-		++sCacheHits;
+        ++sCacheMisses;
+    } else {
+        ++sCacheHits;
 #endif
-	}
-	
-	return data;
+    }
+
+    return data;
 }
 
-
-- (NSStringEncoding) encoding
+- (NSStringEncoding)encoding
 {
-	return _encoding;
+    return _encoding;
 }
 
 @end
-
 
 @implementation OOEncodingConverter (Private)
 
-- (NSData *) performConversionForString:(NSString *)string
+- (NSData*)performConversionForString:(NSString*)string
 {
-	NSString			*subst = nil;
-	NSMutableString		*mutable = nil;
-	
-	mutable = [[string mutableCopy] autorelease];
-	if (mutable == nil)  return nil;
-	
-	foreachkey (subst, _substitutions)
-	{
-		[mutable replaceOccurrencesOfString:subst
-								 withString:[_substitutions objectForKey:subst]
-									options:0
-									  range:NSMakeRange(0, [mutable length])];
-	}
-	
-	return [mutable dataUsingEncoding:_encoding allowLossyConversion:YES];
-}
+    NSString* subst = nil;
+    NSMutableString* mutable = nil;
 
+    mutable = [[string mutableCopy] autorelease];
+    if (mutable == nil)
+        return nil;
+
+    foreachkey(subst, _substitutions)
+    {
+        [mutable replaceOccurrencesOfString:subst
+                                 withString:[_substitutions objectForKey:subst]
+                                    options:0
+                                      range:NSMakeRange(0, [mutable length])];
+    }
+
+    return [mutable dataUsingEncoding:_encoding allowLossyConversion:YES];
+}
 
 #if PROFILE_ENCODING_CONVERTER
 /*
-	Profiling observations:
-	* The clock generates one new string per second.
-	* The trade screens each use over 100 strings, so cache sizes below 150
+        Profiling observations:
+        * The clock generates one new string per second.
+        * The trade screens each use over 100 strings, so cache sizes below 150
       are undesireable.
-	* Cache hit ratio is extremely near 100% at most times.
+        * Cache hit ratio is extremely near 100% at most times.
 */
-- (void) profileFire:(id)junk
+- (void)profileFire:(id)junk
 {
-	float ratio = (float)sCacheHits / (float)(sCacheHits + sCacheMisses);
-	OOLog(@"strings.encoding.profile", @"Cache hits: %u, misses: %u, ratio: %.2g", sCacheHits, sCacheMisses, ratio);
-	sCacheHits = sCacheMisses = 0;
+    float ratio = (float)sCacheHits / (float)(sCacheHits + sCacheMisses);
+    OOLog(@"strings.encoding.profile", @"Cache hits: %u, misses: %u, ratio: %.2g", sCacheHits, sCacheMisses, ratio);
+    sCacheHits = sCacheMisses = 0;
 }
 #endif
 
 @end
 
-#endif //OOENCODINGCONVERTER_EXCLUDE
-
+#endif // OOENCODINGCONVERTER_EXCLUDE
 
 /*
-	There are a variety of overlapping naming schemes for text encoding.
-	We ignore them and use a fixed list:
-		"windows-latin-1"		NSWindowsCP1252StringEncoding
-		"windows-latin-2"		NSWindowsCP1250StringEncoding
-		"windows-cyrillic"		NSWindowsCP1251StringEncoding
-		"windows-greek"			NSWindowsCP1253StringEncoding
-		"windows-turkish"		NSWindowsCP1254StringEncoding
+        There are a variety of overlapping naming schemes for text encoding.
+        We ignore them and use a fixed list:
+                "windows-latin-1"		NSWindowsCP1252StringEncoding
+                "windows-latin-2"		NSWindowsCP1250StringEncoding
+                "windows-cyrillic"		NSWindowsCP1251StringEncoding
+                "windows-greek"			NSWindowsCP1253StringEncoding
+                "windows-turkish"		NSWindowsCP1254StringEncoding
 */
 
-#define kWindowsLatin1Str		@"windows-latin-1"
-#define kWindowsLatin2Str		@"windows-latin-2"
-#define kWindowsCyrillicStr		@"windows-cyrillic"
-#define kWindowsGreekStr		@"windows-greek"
-#define kWindowsTurkishStr		@"windows-turkish"
+#define kWindowsLatin1Str @"windows-latin-1"
+#define kWindowsLatin2Str @"windows-latin-2"
+#define kWindowsCyrillicStr @"windows-cyrillic"
+#define kWindowsGreekStr @"windows-greek"
+#define kWindowsTurkishStr @"windows-turkish"
 
-
-NSString *StringFromEncoding(NSStringEncoding encoding)
+NSString* StringFromEncoding(NSStringEncoding encoding)
 {
-	switch (encoding)
-	{
-		case NSWindowsCP1252StringEncoding:
-			return kWindowsLatin1Str;
-			
-		case NSWindowsCP1250StringEncoding:
-			return kWindowsLatin2Str;
-			
-		case NSWindowsCP1251StringEncoding:
-			return kWindowsCyrillicStr;
-			
-		case NSWindowsCP1253StringEncoding:
-			return kWindowsGreekStr;
-			
-		case NSWindowsCP1254StringEncoding:
-			return kWindowsTurkishStr;
-			
-		default:
-			return nil;
-	}
+    switch (encoding) {
+    case NSWindowsCP1252StringEncoding:
+        return kWindowsLatin1Str;
+
+    case NSWindowsCP1250StringEncoding:
+        return kWindowsLatin2Str;
+
+    case NSWindowsCP1251StringEncoding:
+        return kWindowsCyrillicStr;
+
+    case NSWindowsCP1253StringEncoding:
+        return kWindowsGreekStr;
+
+    case NSWindowsCP1254StringEncoding:
+        return kWindowsTurkishStr;
+
+    default:
+        return nil;
+    }
 }
 
-
-NSStringEncoding EncodingFromString(NSString *name)
+NSStringEncoding EncodingFromString(NSString* name)
 {
-	if ([name isEqualToString:kWindowsLatin1Str])  return NSWindowsCP1252StringEncoding;
-	if ([name isEqualToString:kWindowsLatin2Str])  return NSWindowsCP1250StringEncoding;
-	if ([name isEqualToString:kWindowsCyrillicStr])  return NSWindowsCP1251StringEncoding;
-	if ([name isEqualToString:kWindowsGreekStr])  return NSWindowsCP1253StringEncoding;
-	if ([name isEqualToString:kWindowsTurkishStr])  return NSWindowsCP1254StringEncoding;
-	return (NSStringEncoding)NSNotFound;
+    if ([name isEqualToString:kWindowsLatin1Str])
+        return NSWindowsCP1252StringEncoding;
+    if ([name isEqualToString:kWindowsLatin2Str])
+        return NSWindowsCP1250StringEncoding;
+    if ([name isEqualToString:kWindowsCyrillicStr])
+        return NSWindowsCP1251StringEncoding;
+    if ([name isEqualToString:kWindowsGreekStr])
+        return NSWindowsCP1253StringEncoding;
+    if ([name isEqualToString:kWindowsTurkishStr])
+        return NSWindowsCP1254StringEncoding;
+    return (NSStringEncoding)NSNotFound;
 }

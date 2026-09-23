@@ -30,11 +30,9 @@ MA 02110-1301, USA.
 
 #import "OOFoundation.h"
 
-
 @interface NSScanner (OOExtensions)
 
-- (BOOL) ooliteScanCharactersFromSet:(NSCharacterSet *)set intoString:(NSString **)value;
-- (BOOL) ooliteScanUpToCharactersFromSet:(NSCharacterSet *)set intoString:(NSString **)value;
+- (BOOL)ooliteScanCharactersFromSet:(NSCharacterSet*)set intoString:(NSString**)value;
+- (BOOL)ooliteScanUpToCharactersFromSet:(NSCharacterSet*)set intoString:(NSString**)value;
 
 @end
-

@@ -26,40 +26,35 @@ MA 02110-1301, USA.
 */
 
 #import "OOFoundation.h"
-#import "OOWeakReference.h"
-#import "OOTypes.h"
 #import "OOMaths.h"
-
+#import "OOTypes.h"
+#import "OOWeakReference.h"
 
 #ifndef NEW_PLANETS
 // not for 1.77/8
 #define NEW_PLANETS 1
 #endif
 
-
-typedef enum
-{
-	STELLAR_TYPE_SUN,
-	STELLAR_TYPE_NORMAL_PLANET,	// Terrestrial planet with atmosphere and oceans
+typedef enum {
+    STELLAR_TYPE_SUN,
+    STELLAR_TYPE_NORMAL_PLANET, // Terrestrial planet with atmosphere and oceans
 #if !NEW_PLANETS
-	STELLAR_TYPE_ATMOSPHERE,
+    STELLAR_TYPE_ATMOSPHERE,
 #endif
-	STELLAR_TYPE_MOON,			// Rocky/airless planet
-	STELLAR_TYPE_MINIATURE		// Display proxy for a "normal" planet
+    STELLAR_TYPE_MOON, // Rocky/airless planet
+    STELLAR_TYPE_MINIATURE // Display proxy for a "normal" planet
 } OOStellarBodyType;
 
-
-#define ATMOSPHERE_DEPTH		500.0
-#define PLANET_MINIATURE_FACTOR	0.00185
-#define MAX_SUBDIVIDE			6
-
+#define ATMOSPHERE_DEPTH 500.0
+#define PLANET_MINIATURE_FACTOR 0.00185
+#define MAX_SUBDIVIDE 6
 
 @protocol OOStellarBody <NSObject, OOWeakReferenceSupport>
 
-- (double) radius;
-- (OOStellarBodyType) planetType;
+- (double)radius;
+- (OOStellarBodyType)planetType;
 
-- (NSString *) name;
-- (void) setName:(NSString *)name;
+- (NSString*)name;
+- (void)setName:(NSString*)name;
 
 @end

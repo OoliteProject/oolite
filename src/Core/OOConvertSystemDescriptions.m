@@ -26,365 +26,327 @@ SOFTWARE.
 
 */
 
-#import	"Universe.h"
-
+#import "Universe.h"
 
 #if OO_LOCALIZATION_TOOLS
 
+#import "OOCollectionExtractors.h"
 #import "OOConvertSystemDescriptions.h"
 #import "OldSchoolPropertyListWriting.h"
-#import "OOCollectionExtractors.h"
 #import "ResourceManager.h"
 
-static NSMutableDictionary *InitKeyToIndexDict(NSDictionary *dict, NSMutableSet **outUsedIndices);
-static NSString *IndexToKey(NSUInteger index, NSDictionary *indicesToKeys, BOOL useFallback);
-static NSArray *ConvertIndicesToKeys(NSArray *entry, NSDictionary *indicesToKeys);
-static NSNumber *KeyToIndex(NSString *key, NSMutableDictionary *ioKeysToIndices, NSMutableSet *ioUsedIndicies, NSUInteger *ioSlotCache);
-static NSArray *ConvertKeysToIndices(NSArray *entry, NSMutableDictionary *ioKeysToIndices, NSMutableSet *ioUsedIndicies, NSUInteger *ioSlotCache);
-static NSUInteger HighestIndex(NSMutableDictionary *sparseArray);	// Actually returns highest index + 1, which is fine.
-
+static NSMutableDictionary* InitKeyToIndexDict(NSDictionary* dict, NSMutableSet** outUsedIndices);
+static NSString* IndexToKey(NSUInteger index, NSDictionary* indicesToKeys, BOOL useFallback);
+static NSArray* ConvertIndicesToKeys(NSArray* entry, NSDictionary* indicesToKeys);
+static NSNumber* KeyToIndex(NSString* key, NSMutableDictionary* ioKeysToIndices, NSMutableSet* ioUsedIndicies, NSUInteger* ioSlotCache);
+static NSArray* ConvertKeysToIndices(NSArray* entry, NSMutableDictionary* ioKeysToIndices, NSMutableSet* ioUsedIndicies, NSUInteger* ioSlotCache);
+static NSUInteger HighestIndex(NSMutableDictionary* sparseArray); // Actually returns highest index + 1, which is fine.
 
 void CompileSystemDescriptions(BOOL asXML)
 {
-	NSDictionary		*sysDescDict = nil;
-	NSArray				*sysDescArray = nil;
-	NSDictionary		*keyMap = nil;
-	NSData				*data = nil;
-	NSString			*error = nil;
-	
-	sysDescDict = [ResourceManager dictionaryFromFilesNamed:@"sysdesc.plist"
-												   inFolder:@"Config"
-												   andMerge:NO];
-	if (sysDescDict == nil)
-	{
-		OOLog(@"sysdesc.compile.failed.fileNotFound", @"%@", @"Could not load a dictionary from sysdesc.plist, ignoring --compile-sysdesc option.");
-		return;
-	}
-	
-	keyMap = [ResourceManager dictionaryFromFilesNamed:@"sysdesc_key_table.plist"
-											  inFolder:@"Config"
-											  andMerge:NO];
-	// keyMap is optional, so no nil check
-	
-	sysDescArray = OOConvertSystemDescriptionsToArrayFormat(sysDescDict, keyMap);
-	if (sysDescArray == nil)
-	{
-		OOLog(@"sysdesc.compile.failed.conversion", @"%@", @"Could not convert sysdesc.plist to descriptions.plist format for some reason.");
-		return;
-	}
-	
-	sysDescDict = [NSDictionary dictionaryWithObject:sysDescArray forKey:@"system_description"];
-	
-	if (asXML)
-	{
-		data = [NSPropertyListSerialization dataFromPropertyList:sysDescDict
-														  format:NSPropertyListXMLFormat_v1_0
-												errorDescription:&error];
-	}
-	else
-	{
-		data = [sysDescDict oldSchoolPListFormatWithErrorDescription:&error];
-	}
-	
-	if (data == nil)
-	{
-		OOLog(@"sysdesc.compile.failed.XML", @"Could not convert translated sysdesc.plist to property list: %@.", error);
-		return;
-	}
-	
-	if ([ResourceManager writeDiagnosticData:data toFileNamed:@"sysdesc-compiled.plist"])
-	{
-		OOLog(@"sysdesc.compile.success", @"%@", @"Wrote translated sysdesc.plist to sysdesc-compiled.plist.");
-	}
-	else
-	{
-		OOLog(@"sysdesc.compile.failed.writeFailure", @"%@", @"Could not write translated sysdesc.plist to sysdesc-compiled.plist.");
-	}
-}
+    NSDictionary* sysDescDict = nil;
+    NSArray* sysDescArray = nil;
+    NSDictionary* keyMap = nil;
+    NSData* data = nil;
+    NSString* error = nil;
 
+    sysDescDict = [ResourceManager dictionaryFromFilesNamed:@"sysdesc.plist"
+                                                   inFolder:@"Config"
+                                                   andMerge:NO];
+    if (sysDescDict == nil) {
+        OOLog(@"sysdesc.compile.failed.fileNotFound", @"%@", @"Could not load a dictionary from sysdesc.plist, ignoring --compile-sysdesc option.");
+        return;
+    }
+
+    keyMap = [ResourceManager dictionaryFromFilesNamed:@"sysdesc_key_table.plist"
+                                              inFolder:@"Config"
+                                              andMerge:NO];
+    // keyMap is optional, so no nil check
+
+    sysDescArray = OOConvertSystemDescriptionsToArrayFormat(sysDescDict, keyMap);
+    if (sysDescArray == nil) {
+        OOLog(@"sysdesc.compile.failed.conversion", @"%@", @"Could not convert sysdesc.plist to descriptions.plist format for some reason.");
+        return;
+    }
+
+    sysDescDict = [NSDictionary dictionaryWithObject:sysDescArray forKey:@"system_description"];
+
+    if (asXML) {
+        data = [NSPropertyListSerialization dataFromPropertyList:sysDescDict
+                                                          format:NSPropertyListXMLFormat_v1_0
+                                                errorDescription:&error];
+    } else {
+        data = [sysDescDict oldSchoolPListFormatWithErrorDescription:&error];
+    }
+
+    if (data == nil) {
+        OOLog(@"sysdesc.compile.failed.XML", @"Could not convert translated sysdesc.plist to property list: %@.", error);
+        return;
+    }
+
+    if ([ResourceManager writeDiagnosticData:data toFileNamed:@"sysdesc-compiled.plist"]) {
+        OOLog(@"sysdesc.compile.success", @"%@", @"Wrote translated sysdesc.plist to sysdesc-compiled.plist.");
+    } else {
+        OOLog(@"sysdesc.compile.failed.writeFailure", @"%@", @"Could not write translated sysdesc.plist to sysdesc-compiled.plist.");
+    }
+}
 
 void ExportSystemDescriptions(BOOL asXML)
 {
-	NSArray				*sysDescArray = nil;
-	NSDictionary		*sysDescDict = nil;
-	NSDictionary		*keyMap = nil;
-	NSData				*data = nil;
-	NSString			*error = nil;
-	
-	sysDescArray = [[UNIVERSE descriptions] oo_arrayForKey:@"system_description"];
-	
-	keyMap = [ResourceManager dictionaryFromFilesNamed:@"sysdesc_key_table.plist"
-											  inFolder:@"Config"
-											  andMerge:NO];
-	// keyMap is optional, so no nil check
-	
-	sysDescDict = OOConvertSystemDescriptionsToDictionaryFormat(sysDescArray, keyMap);
-	if (sysDescArray == nil)
-	{
-		OOLog(@"sysdesc.export.failed.conversion", @"%@", @"Could not convert system_description do sysdesc.plist format for some reason.");
-		return;
-	}
-	
-	if (asXML)
-	{
-		data = [NSPropertyListSerialization dataFromPropertyList:sysDescDict
-														  format:NSPropertyListXMLFormat_v1_0
-												errorDescription:&error];
-	}
-	else
-	{
-		data = [sysDescDict oldSchoolPListFormatWithErrorDescription:&error];
-	}
-	
-	if (data == nil)
-	{
-		OOLog(@"sysdesc.export.failed.XML", @"Could not convert translated system_description to XML property list: %@.", error);
-		return;
-	}
-	
-	if ([ResourceManager writeDiagnosticData:data toFileNamed:@"sysdesc.plist"])
-	{
-		OOLog(@"sysdesc.export.success", @"%@", @"Wrote translated system_description to sysdesc.plist.");
-	}
-	else
-	{
-		OOLog(@"sysdesc.export.failed.writeFailure", @"%@", @"Could not write translated system_description to sysdesc.plist.");
-	}
+    NSArray* sysDescArray = nil;
+    NSDictionary* sysDescDict = nil;
+    NSDictionary* keyMap = nil;
+    NSData* data = nil;
+    NSString* error = nil;
+
+    sysDescArray = [[UNIVERSE descriptions] oo_arrayForKey:@"system_description"];
+
+    keyMap = [ResourceManager dictionaryFromFilesNamed:@"sysdesc_key_table.plist"
+                                              inFolder:@"Config"
+                                              andMerge:NO];
+    // keyMap is optional, so no nil check
+
+    sysDescDict = OOConvertSystemDescriptionsToDictionaryFormat(sysDescArray, keyMap);
+    if (sysDescArray == nil) {
+        OOLog(@"sysdesc.export.failed.conversion", @"%@", @"Could not convert system_description do sysdesc.plist format for some reason.");
+        return;
+    }
+
+    if (asXML) {
+        data = [NSPropertyListSerialization dataFromPropertyList:sysDescDict
+                                                          format:NSPropertyListXMLFormat_v1_0
+                                                errorDescription:&error];
+    } else {
+        data = [sysDescDict oldSchoolPListFormatWithErrorDescription:&error];
+    }
+
+    if (data == nil) {
+        OOLog(@"sysdesc.export.failed.XML", @"Could not convert translated system_description to XML property list: %@.", error);
+        return;
+    }
+
+    if ([ResourceManager writeDiagnosticData:data toFileNamed:@"sysdesc.plist"]) {
+        OOLog(@"sysdesc.export.success", @"%@", @"Wrote translated system_description to sysdesc.plist.");
+    } else {
+        OOLog(@"sysdesc.export.failed.writeFailure", @"%@", @"Could not write translated system_description to sysdesc.plist.");
+    }
 }
 
-
-NSArray *OOConvertSystemDescriptionsToArrayFormat(NSDictionary *descriptionsInDictionaryFormat, NSDictionary *indicesToKeys)
+NSArray* OOConvertSystemDescriptionsToArrayFormat(NSDictionary* descriptionsInDictionaryFormat, NSDictionary* indicesToKeys)
 {
-	NSMutableDictionary		*result = nil;
-	NSAutoreleasePool		*pool = nil;
-	NSString				*key = nil;
-	NSArray					*entry = nil;
-	NSMutableDictionary		*keysToIndices = nil;
-	NSMutableSet			*usedIndices = nil;
-	NSUInteger				slotCache = 0;
-	NSNumber				*index = nil;
-	NSUInteger				i, count;
-	NSMutableArray			*realResult = nil;
-	
-	pool = [[NSAutoreleasePool alloc] init];
-	
-	// Use a dictionary as a sparse array.
-	result = [NSMutableDictionary dictionaryWithCapacity:[descriptionsInDictionaryFormat count]];
-	
-	keysToIndices = InitKeyToIndexDict(indicesToKeys, &usedIndices);
-	
-	foreachkey (key, descriptionsInDictionaryFormat)
-	{
-		entry = ConvertKeysToIndices([descriptionsInDictionaryFormat objectForKey:key], keysToIndices, usedIndices, &slotCache);
-		index = KeyToIndex(key, keysToIndices, usedIndices, &slotCache);
-		
-		[result setObject:entry forKey:index];
-	}
-	
-	count = HighestIndex(result);
-	realResult = [NSMutableArray arrayWithCapacity:count];
-	for (i = 0; i < count; i++)
-	{
-		entry = [result objectForKey:[NSNumber numberWithUnsignedInteger:i]];
-		if (entry == nil)  entry = [NSArray array];
-		[realResult addObject:entry];
-	}
-	
-	[realResult retain];
-	[pool release];
-	return [realResult autorelease];
+    NSMutableDictionary* result = nil;
+    NSAutoreleasePool* pool = nil;
+    NSString* key = nil;
+    NSArray* entry = nil;
+    NSMutableDictionary* keysToIndices = nil;
+    NSMutableSet* usedIndices = nil;
+    NSUInteger slotCache = 0;
+    NSNumber* index = nil;
+    NSUInteger i, count;
+    NSMutableArray* realResult = nil;
+
+    pool = [[NSAutoreleasePool alloc] init];
+
+    // Use a dictionary as a sparse array.
+    result = [NSMutableDictionary dictionaryWithCapacity:[descriptionsInDictionaryFormat count]];
+
+    keysToIndices = InitKeyToIndexDict(indicesToKeys, &usedIndices);
+
+    foreachkey(key, descriptionsInDictionaryFormat)
+    {
+        entry = ConvertKeysToIndices([descriptionsInDictionaryFormat objectForKey:key], keysToIndices, usedIndices, &slotCache);
+        index = KeyToIndex(key, keysToIndices, usedIndices, &slotCache);
+
+        [result setObject:entry forKey:index];
+    }
+
+    count = HighestIndex(result);
+    realResult = [NSMutableArray arrayWithCapacity:count];
+    for (i = 0; i < count; i++) {
+        entry = [result objectForKey:[NSNumber numberWithUnsignedInteger:i]];
+        if (entry == nil)
+            entry = [NSArray array];
+        [realResult addObject:entry];
+    }
+
+    [realResult retain];
+    [pool release];
+    return [realResult autorelease];
 }
 
-
-NSDictionary *OOConvertSystemDescriptionsToDictionaryFormat(NSArray *descriptionsInArrayFormat, NSDictionary *indicesToKeys)
+NSDictionary* OOConvertSystemDescriptionsToDictionaryFormat(NSArray* descriptionsInArrayFormat, NSDictionary* indicesToKeys)
 {
-	NSMutableDictionary		*result = nil;
-	NSAutoreleasePool		*pool = nil;
-	NSArray					*entry = nil;
-	NSString				*key = nil;
-	NSUInteger				i = 0;
-	
-	result = [NSMutableDictionary dictionaryWithCapacity:[descriptionsInArrayFormat count]];
-	pool = [[NSAutoreleasePool alloc] init];
-	
-	foreach (entry, descriptionsInArrayFormat)
-	{
-		entry = ConvertIndicesToKeys(entry, indicesToKeys);
-		key = IndexToKey(i, indicesToKeys, YES);
-		++i;
-		
-		[result setObject:entry forKey:key];
-	}
-	
-	[pool release];
-	return result;
+    NSMutableDictionary* result = nil;
+    NSAutoreleasePool* pool = nil;
+    NSArray* entry = nil;
+    NSString* key = nil;
+    NSUInteger i = 0;
+
+    result = [NSMutableDictionary dictionaryWithCapacity:[descriptionsInArrayFormat count]];
+    pool = [[NSAutoreleasePool alloc] init];
+
+    foreach (entry, descriptionsInArrayFormat) {
+        entry = ConvertIndicesToKeys(entry, indicesToKeys);
+        key = IndexToKey(i, indicesToKeys, YES);
+        ++i;
+
+        [result setObject:entry forKey:key];
+    }
+
+    [pool release];
+    return result;
 }
 
-
-NSString *OOStringifySystemDescriptionLine(NSString *line, NSDictionary *indicesToKeys, BOOL useFallback)
+NSString* OOStringifySystemDescriptionLine(NSString* line, NSDictionary* indicesToKeys, BOOL useFallback)
 {
-	NSUInteger				p1, p2;
-	NSRange					searchRange;
-	NSString				*before = nil, *after = nil, *middle = nil;
-	NSString				*key = nil;
-	
-	searchRange.location = 0;
-	searchRange.length = [line length];
-	
-	while ([line rangeOfString:@"[" options:NSLiteralSearch range:searchRange].location != NSNotFound)
-	{
-		p1 = [line rangeOfString:@"[" options:NSLiteralSearch range:searchRange].location;
-		p2 = [line rangeOfString:@"]" options:NSLiteralSearch range:searchRange].location + 1;
-		
-		before = [line substringWithRange:NSMakeRange(0, p1)];
-		after = [line substringWithRange:NSMakeRange(p2,[line length] - p2)];
-		middle = [line substringWithRange:NSMakeRange(p1 + 1 , p2 - p1 - 2)];
-		
-		if ([[middle stringByTrimmingCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@"0123456789"]] isEqual:@""] && ![middle isEqual:@""])
-		{
-			// Found [] around integers only
-			key = IndexToKey([middle intValue], indicesToKeys, useFallback);
-			if (key != nil)
-			{
-				line = [NSString stringWithFormat:@"%@[#%@]%@", before, key, after];
-			}
-		}
-		
-		searchRange.length -= p2 - searchRange.location;
-		searchRange.location = [line length] - searchRange.length;
-	}
-	return line;
+    NSUInteger p1, p2;
+    NSRange searchRange;
+    NSString *before = nil, *after = nil, *middle = nil;
+    NSString* key = nil;
+
+    searchRange.location = 0;
+    searchRange.length = [line length];
+
+    while ([line rangeOfString:@"[" options:NSLiteralSearch range:searchRange].location != NSNotFound) {
+        p1 = [line rangeOfString:@"[" options:NSLiteralSearch range:searchRange].location;
+        p2 = [line rangeOfString:@"]" options:NSLiteralSearch range:searchRange].location + 1;
+
+        before = [line substringWithRange:NSMakeRange(0, p1)];
+        after = [line substringWithRange:NSMakeRange(p2, [line length] - p2)];
+        middle = [line substringWithRange:NSMakeRange(p1 + 1, p2 - p1 - 2)];
+
+        if ([[middle stringByTrimmingCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@"0123456789"]] isEqual:@""] && ![middle isEqual:@""]) {
+            // Found [] around integers only
+            key = IndexToKey([middle intValue], indicesToKeys, useFallback);
+            if (key != nil) {
+                line = [NSString stringWithFormat:@"%@[#%@]%@", before, key, after];
+            }
+        }
+
+        searchRange.length -= p2 - searchRange.location;
+        searchRange.location = [line length] - searchRange.length;
+    }
+    return line;
 }
 
-
-static NSMutableDictionary *InitKeyToIndexDict(NSDictionary *dict, NSMutableSet **outUsedIndices)
+static NSMutableDictionary* InitKeyToIndexDict(NSDictionary* dict, NSMutableSet** outUsedIndices)
 {
-	NSString				*key = nil;
-	NSNumber				*number = nil;
-	NSMutableDictionary		*result = nil;
-	NSMutableSet			*used = nil;
-	
-	assert(outUsedIndices != NULL);
-	
-	result = [NSMutableDictionary dictionaryWithCapacity:[dict count]];
-	used = [NSMutableSet setWithCapacity:[dict count]];
-	
-	foreachkey (key, dict)
-	{
-		// Convert keys of dict to array indices
-		number = [NSNumber numberWithInt:[key intValue]];
-		[result setObject:number forKey:[dict objectForKey:key]];
-		[used addObject:number];
-	}
-	
-	*outUsedIndices = used;
-	return result;
+    NSString* key = nil;
+    NSNumber* number = nil;
+    NSMutableDictionary* result = nil;
+    NSMutableSet* used = nil;
+
+    assert(outUsedIndices != NULL);
+
+    result = [NSMutableDictionary dictionaryWithCapacity:[dict count]];
+    used = [NSMutableSet setWithCapacity:[dict count]];
+
+    foreachkey(key, dict)
+    {
+        // Convert keys of dict to array indices
+        number = [NSNumber numberWithInt:[key intValue]];
+        [result setObject:number forKey:[dict objectForKey:key]];
+        [used addObject:number];
+    }
+
+    *outUsedIndices = used;
+    return result;
 }
 
-
-static NSString *IndexToKey(NSUInteger index, NSDictionary *indicesToKeys, BOOL useFallback)
+static NSString* IndexToKey(NSUInteger index, NSDictionary* indicesToKeys, BOOL useFallback)
 {
-	NSString *result = [indicesToKeys objectForKey:[NSString stringWithFormat:@"%zu", index]];
-	if (result == nil && useFallback)  result = [NSString stringWithFormat:@"block_%zu", index];
-	
-	return result;
+    NSString* result = [indicesToKeys objectForKey:[NSString stringWithFormat:@"%zu", index]];
+    if (result == nil && useFallback)
+        result = [NSString stringWithFormat:@"block_%zu", index];
+
+    return result;
 }
 
-
-static NSArray *ConvertIndicesToKeys(NSArray *entry, NSDictionary *indicesToKeys)
+static NSArray* ConvertIndicesToKeys(NSArray* entry, NSDictionary* indicesToKeys)
 {
-	NSString				*line = nil;
-	NSMutableArray			*result = nil;
-	
-	result = [NSMutableArray arrayWithCapacity:[entry count]];
-	
-	foreach (line, entry)
-	{
-		[result addObject:OOStringifySystemDescriptionLine(line, indicesToKeys, YES)];
-	}
-	
-	return result;
+    NSString* line = nil;
+    NSMutableArray* result = nil;
+
+    result = [NSMutableArray arrayWithCapacity:[entry count]];
+
+    foreach (line, entry) {
+        [result addObject:OOStringifySystemDescriptionLine(line, indicesToKeys, YES)];
+    }
+
+    return result;
 }
 
-
-static NSNumber *KeyToIndex(NSString *key, NSMutableDictionary *ioKeysToIndices, NSMutableSet *ioUsedIndicies, NSUInteger *ioSlotCache)
+static NSNumber* KeyToIndex(NSString* key, NSMutableDictionary* ioKeysToIndices, NSMutableSet* ioUsedIndicies, NSUInteger* ioSlotCache)
 {
-	NSNumber				*result = nil;
-	
-	assert(ioSlotCache != NULL);
-	
-	result = [ioKeysToIndices objectForKey:key];
-	if (result == nil)
-	{
-		// Search for free index
-		do
-		{
-			result = [NSNumber numberWithUnsignedInteger:(*ioSlotCache)++];
-		}
-		while ([ioUsedIndicies containsObject:result]);
-		
-		[ioKeysToIndices setObject:result forKey:key];
-		[ioUsedIndicies addObject:result];
-		OOLog(@"sysdesc.compile.unknownKey", @"Assigning key \"%@\" to index %@.", key, result);
-	}
-	
-	return result;
+    NSNumber* result = nil;
+
+    assert(ioSlotCache != NULL);
+
+    result = [ioKeysToIndices objectForKey:key];
+    if (result == nil) {
+        // Search for free index
+        do {
+            result = [NSNumber numberWithUnsignedInteger:(*ioSlotCache)++];
+        } while ([ioUsedIndicies containsObject:result]);
+
+        [ioKeysToIndices setObject:result forKey:key];
+        [ioUsedIndicies addObject:result];
+        OOLog(@"sysdesc.compile.unknownKey", @"Assigning key \"%@\" to index %@.", key, result);
+    }
+
+    return result;
 }
 
-
-static NSArray *ConvertKeysToIndices(NSArray *entry, NSMutableDictionary *ioKeysToIndices, NSMutableSet *ioUsedIndicies, NSUInteger *ioSlotCache)
+static NSArray* ConvertKeysToIndices(NSArray* entry, NSMutableDictionary* ioKeysToIndices, NSMutableSet* ioUsedIndicies, NSUInteger* ioSlotCache)
 {
-	NSString				*line = nil;
-	NSUInteger				p1, p2;
-	NSRange					searchRange;
-	NSMutableArray			*result = nil;
-	NSString				*before = nil, *after = nil, *middle = nil;
-	
-	result = [NSMutableArray arrayWithCapacity:[entry count]];
-	
-	foreach (line, entry)
-	{
-		searchRange.location = 0;
-		searchRange.length = [line length];
-		
-		while ([line rangeOfString:@"[" options:NSLiteralSearch range:searchRange].location != NSNotFound)
-		{
-			p1 = [line rangeOfString:@"[" options:NSLiteralSearch range:searchRange].location;
-			p2 = [line rangeOfString:@"]" options:NSLiteralSearch range:searchRange].location + 1;
-			
-			before = [line substringWithRange:NSMakeRange(0, p1)];
-			after = [line substringWithRange:NSMakeRange(p2,[line length] - p2)];
-			middle = [line substringWithRange:NSMakeRange(p1 + 1 , p2 - p1 - 2)];
-			
-			if ([middle length] > 1 && [middle hasPrefix:@"#"])
-			{
-				// Found [] around key
-				line = [NSString stringWithFormat:@"%@[%@]%@", before, KeyToIndex([middle substringFromIndex:1], ioKeysToIndices, ioUsedIndicies, ioSlotCache), after];
-			}
-			
-			searchRange.length -= p2 - searchRange.location;
-			searchRange.location = [line length] - searchRange.length;
-		}
-		
-		[result addObject:line];
-	}
-	
-	return result;
+    NSString* line = nil;
+    NSUInteger p1, p2;
+    NSRange searchRange;
+    NSMutableArray* result = nil;
+    NSString *before = nil, *after = nil, *middle = nil;
+
+    result = [NSMutableArray arrayWithCapacity:[entry count]];
+
+    foreach (line, entry) {
+        searchRange.location = 0;
+        searchRange.length = [line length];
+
+        while ([line rangeOfString:@"[" options:NSLiteralSearch range:searchRange].location != NSNotFound) {
+            p1 = [line rangeOfString:@"[" options:NSLiteralSearch range:searchRange].location;
+            p2 = [line rangeOfString:@"]" options:NSLiteralSearch range:searchRange].location + 1;
+
+            before = [line substringWithRange:NSMakeRange(0, p1)];
+            after = [line substringWithRange:NSMakeRange(p2, [line length] - p2)];
+            middle = [line substringWithRange:NSMakeRange(p1 + 1, p2 - p1 - 2)];
+
+            if ([middle length] > 1 && [middle hasPrefix:@"#"]) {
+                // Found [] around key
+                line = [NSString stringWithFormat:@"%@[%@]%@", before, KeyToIndex([middle substringFromIndex:1], ioKeysToIndices, ioUsedIndicies, ioSlotCache), after];
+            }
+
+            searchRange.length -= p2 - searchRange.location;
+            searchRange.location = [line length] - searchRange.length;
+        }
+
+        [result addObject:line];
+    }
+
+    return result;
 }
 
-
-static NSUInteger HighestIndex(NSMutableDictionary *sparseArray)
+static NSUInteger HighestIndex(NSMutableDictionary* sparseArray)
 {
-	NSNumber				*key = nil;
-	NSUInteger				curr, highest = 0;
-	
-	foreachkey (key, sparseArray)
-	{
-		curr = [key intValue];
-		if (highest < curr)  highest = curr;
-	}
-	
-	return highest;
+    NSNumber* key = nil;
+    NSUInteger curr, highest = 0;
+
+    foreachkey(key, sparseArray)
+    {
+        curr = [key intValue];
+        if (highest < curr)
+            highest = curr;
+    }
+
+    return highest;
 }
 
 #endif

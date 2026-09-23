@@ -29,52 +29,47 @@ SOFTWARE.
 
 #import "OOFoundation.h"
 
-
 @class OOAsyncQueue;
 
 @protocol OOAsyncWorkTask;
 
-
-typedef enum
-{
-	kOOAsyncPriorityLow,
-	kOOAsyncPriorityMedium,
-	kOOAsyncPriorityHigh
+typedef enum {
+    kOOAsyncPriorityLow,
+    kOOAsyncPriorityMedium,
+    kOOAsyncPriorityHigh
 } OOAsyncWorkPriority;
 
+@interface OOAsyncWorkManager : NSObject
 
-@interface OOAsyncWorkManager: NSObject
++ (OOAsyncWorkManager*)sharedAsyncWorkManager;
 
-+ (OOAsyncWorkManager *) sharedAsyncWorkManager;
-
-- (BOOL) addTask:(id<OOAsyncWorkTask>)task priority:(OOAsyncWorkPriority)priority;
+- (BOOL)addTask:(id<OOAsyncWorkTask>)task priority:(OOAsyncWorkPriority)priority;
 
 /*	Complete any tasks whose asynchronous portion is ready, but without waiting.
-*/
-- (void) completePendingTasks;
+ */
+- (void)completePendingTasks;
 
 /*	Wait for a task to complete.
-	
-	WARNING: if task is not an existing task, or does not implement
-	-completeAsyncTask, this will never return.
-	
-	IMPORTANT: May only be called on the main thread.
+
+        WARNING: if task is not an existing task, or does not implement
+        -completeAsyncTask, this will never return.
+
+        IMPORTANT: May only be called on the main thread.
 */
-- (void) waitForTaskToComplete:(id<OOAsyncWorkTask>)task;
+- (void)waitForTaskToComplete:(id<OOAsyncWorkTask>)task;
 
 @end
-
 
 @protocol OOAsyncWorkTask <NSObject>
 
 // Called on a worker thread. There may be multiple worker threads.
-- (void) performAsyncTask;
+- (void)performAsyncTask;
 
 // @optional
 OOLITE_OPTIONAL(OOAsyncWorkTask)
 
 /*	Called on main thread some time after -performAsyncTask completes.
-*/
-- (void) completeAsyncTask;
+ */
+- (void)completeAsyncTask;
 
 @end

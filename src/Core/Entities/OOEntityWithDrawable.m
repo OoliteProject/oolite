@@ -22,114 +22,100 @@ MA 02110-1301, USA.
 
 */
 
-
 #import "OOEntityWithDrawable.h"
 #import "OODrawable.h"
-#import "Universe.h"
-#import "ShipEntity.h"
 #import "OOVisualEffectEntity.h"
+#import "ShipEntity.h"
+#import "Universe.h"
 
 @implementation OOEntityWithDrawable
 
 - (void)dealloc
 {
-	[drawable release];
-	drawable = nil;
-	
-	[super dealloc];
+    [drawable release];
+    drawable = nil;
+
+    [super dealloc];
 }
 
-
-- (OODrawable *)drawable
+- (OODrawable*)drawable
 {
-	return drawable;
+    return drawable;
 }
 
-
-- (void)setDrawable:(OODrawable *)inDrawable
+- (void)setDrawable:(OODrawable*)inDrawable
 {
-	if (inDrawable != drawable)
-	{
-		[drawable autorelease];
-		drawable = [inDrawable retain];
-		[drawable setBindingTarget:self];
-		
-		collision_radius = [drawable collisionRadius];
-		no_draw_distance = [drawable maxDrawDistance];
-		boundingBox = [drawable boundingBox];
-	}
-}
+    if (inDrawable != drawable) {
+        [drawable autorelease];
+        drawable = [inDrawable retain];
+        [drawable setBindingTarget:self];
 
+        collision_radius = [drawable collisionRadius];
+        no_draw_distance = [drawable maxDrawDistance];
+        boundingBox = [drawable boundingBox];
+    }
+}
 
 - (double)findCollisionRadius
 {
-	return [drawable collisionRadius];
+    return [drawable collisionRadius];
 }
 
-
-- (void) drawImmediate:(bool)immediate translucent:(bool)translucent
+- (void)drawImmediate:(bool)immediate translucent:(bool)translucent
 {
-	if (no_draw_distance < cam_zero_distance)
-	{
-		// Don't draw.
-		return;
-	}
-	
-	if (no_draw_distance != INFINITY && ![self isImmuneToBreakPatternHide])
-	{ 
-		// (always draw sky, always draw break patterns)
-		if (![self isSubEntity]) 
-		{
-			GLfloat clipradius = collision_radius;
-			if ([self isShip])
-			{
-				ShipEntity* shipself = (ShipEntity*)self;
-				clipradius = [shipself frustumRadius];
-			}
-			else if ([self isVisualEffect])
-			{
-				OOVisualEffectEntity* veself = (OOVisualEffectEntity*)self;
-				clipradius = [veself frustumRadius];
-			}
-			// don't bother with frustum culling within/near collision radius, as
-			// potential for problems with floating point inaccuracy causing
-			// unwanted disappearance maybe fix
-			// http://aegidian.org/bb/viewtopic.php?f=3&t=13619 - CIM
-			if (cam_zero_distance > (clipradius+1000)*(clipradius+1000))
-			{
-				if (![UNIVERSE viewFrustumIntersectsSphereAt:cameraRelativePosition withRadius:clipradius])
-				{
-					return;
-				}
-			}
-		} 
-		else // is subentity
-		{
-			// don't bother with frustum culling within 1km, as above - CIM
-			if (cam_zero_distance > (collision_radius+1000)*(collision_radius+1000))
-			{
-				// check correct sub-entity position
-				if (![UNIVERSE viewFrustumIntersectsSphereAt:cameraRelativePosition withRadius:[self collisionRadius]])
-				{
-					return;
-				}
-			}
-		}
-	}	
+    if (no_draw_distance < cam_zero_distance) {
+        // Don't draw.
+        return;
+    }
 
-	if ([UNIVERSE wireframeGraphics])  OOGLWireframeModeOn();
-		
-	if (translucent)  [drawable renderTranslucentParts];
-	else  [drawable renderOpaqueParts];
-	
-	if ([UNIVERSE wireframeGraphics])  OOGLWireframeModeOff();
+    if (no_draw_distance != INFINITY && ![self isImmuneToBreakPatternHide]) {
+        // (always draw sky, always draw break patterns)
+        if (![self isSubEntity]) {
+            GLfloat clipradius = collision_radius;
+            if ([self isShip]) {
+                ShipEntity* shipself = (ShipEntity*)self;
+                clipradius = [shipself frustumRadius];
+            } else if ([self isVisualEffect]) {
+                OOVisualEffectEntity* veself = (OOVisualEffectEntity*)self;
+                clipradius = [veself frustumRadius];
+            }
+            // don't bother with frustum culling within/near collision radius, as
+            // potential for problems with floating point inaccuracy causing
+            // unwanted disappearance maybe fix
+            // http://aegidian.org/bb/viewtopic.php?f=3&t=13619 - CIM
+            if (cam_zero_distance > (clipradius + 1000) * (clipradius + 1000)) {
+                if (![UNIVERSE viewFrustumIntersectsSphereAt:cameraRelativePosition withRadius:clipradius]) {
+                    return;
+                }
+            }
+        } else // is subentity
+        {
+            // don't bother with frustum culling within 1km, as above - CIM
+            if (cam_zero_distance > (collision_radius + 1000) * (collision_radius + 1000)) {
+                // check correct sub-entity position
+                if (![UNIVERSE viewFrustumIntersectsSphereAt:cameraRelativePosition withRadius:[self collisionRadius]]) {
+                    return;
+                }
+            }
+        }
+    }
+
+    if ([UNIVERSE wireframeGraphics])
+        OOGLWireframeModeOn();
+
+    if (translucent)
+        [drawable renderTranslucentParts];
+    else
+        [drawable renderOpaqueParts];
+
+    if ([UNIVERSE wireframeGraphics])
+        OOGLWireframeModeOff();
 }
-
 
 #ifndef NDEBUG
-- (NSSet *) allTextures
+- (NSSet*)allTextures
 {
-	return [[self drawable] allTextures];
+    return [[self drawable] allTextures];
 }
 #endif
 

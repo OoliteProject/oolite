@@ -4,7 +4,7 @@ OOMaterialConvenienceCreators.h
 
 Methods for easy creation of materials.
 
- 
+
 Copyright (C) 2007-2013 Jens Ayton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -31,31 +31,30 @@ SOFTWARE.
 
 @class OOColor;
 
-
 @interface OOMaterial (OOConvenienceCreators)
 
 /*	Get a material based on configuration. The result will be an
-	OOBasicMaterial, OOSingleTextureMaterial or OOShaderMaterial (the latter
-	only if shaders are available). cacheKey is used for caching of synthesized
-	shader materials; nil may be passed for no caching.
+        OOBasicMaterial, OOSingleTextureMaterial or OOShaderMaterial (the latter
+        only if shaders are available). cacheKey is used for caching of synthesized
+        shader materials; nil may be passed for no caching.
 */
-+ (OOMaterial *) materialWithName:(NSString *)name
-						 cacheKey:(NSString *)cacheKey
-					configuration:(NSDictionary *)configuration
-						   macros:(NSDictionary *)macros
-					bindingTarget:(id<OOWeakReferenceSupport>)object
-				  forSmoothedMesh:(BOOL)smooth;
++ (OOMaterial*)materialWithName:(NSString*)name
+                       cacheKey:(NSString*)cacheKey
+                  configuration:(NSDictionary*)configuration
+                         macros:(NSDictionary*)macros
+                  bindingTarget:(id<OOWeakReferenceSupport>)object
+                forSmoothedMesh:(BOOL)smooth;
 
 /*	Select an appropriate material description (based on availability of
-	shaders and content of dictionaries, which may be nil) and call
-	+materialWithName:forModelNamed:configuration:macros:bindTarget:forSmoothedMesh:.
+        shaders and content of dictionaries, which may be nil) and call
+        +materialWithName:forModelNamed:configuration:macros:bindTarget:forSmoothedMesh:.
 */
-+ (OOMaterial *) materialWithName:(NSString *)name
-						 cacheKey:(NSString *)cacheKey
-			   materialDictionary:(NSDictionary *)materialDict
-				shadersDictionary:(NSDictionary *)shadersDict
-						   macros:(NSDictionary *)macros
-					bindingTarget:(id<OOWeakReferenceSupport>)object
-				  forSmoothedMesh:(BOOL)smooth;
++ (OOMaterial*)materialWithName:(NSString*)name
+                       cacheKey:(NSString*)cacheKey
+             materialDictionary:(NSDictionary*)materialDict
+              shadersDictionary:(NSDictionary*)shadersDict
+                         macros:(NSDictionary*)macros
+                  bindingTarget:(id<OOWeakReferenceSupport>)object
+                forSmoothedMesh:(BOOL)smooth;
 
 @end

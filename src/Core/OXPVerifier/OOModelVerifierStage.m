@@ -29,167 +29,161 @@ MA 02110-1301, USA.
 
 #import "OOFileScannerVerifierStage.h"
 
-static NSString * const kStageName	= @"Testing models";
+static NSString* const kStageName = @"Testing models";
 
 static id NSNULL = nil;
 
-
 @interface OOModelVerifierStage (OOPrivate)
 
-- (void)checkModel:(NSString *)name
-		   context:(NSString *)context
-		 materials:(NSDictionary *)materials
-		   shaders:(NSDictionary *)shaders;
+- (void)checkModel:(NSString*)name
+           context:(NSString*)context
+         materials:(NSDictionary*)materials
+           shaders:(NSDictionary*)shaders;
 
 @end
-
 
 @implementation OOModelVerifierStage
 
 - (id)init
 {
-	self = [super init];
-	if (self != nil)
-	{
-		NSNULL = [[NSNull null] retain];
-		_modelsToCheck = [[NSMutableSet alloc] init];
-	}
-	return self;
+    self = [super init];
+    if (self != nil) {
+        NSNULL = [[NSNull null] retain];
+        _modelsToCheck = [[NSMutableSet alloc] init];
+    }
+    return self;
 }
-
 
 - (void)dealloc
 {
-	[_modelsToCheck release];
-	
-	[super dealloc];
+    [_modelsToCheck release];
+
+    [super dealloc];
 }
 
-
-+ (NSString *)nameForReverseDependencyForVerifier:(OOOXPVerifier *)verifier
++ (NSString*)nameForReverseDependencyForVerifier:(OOOXPVerifier*)verifier
 {
-	OOModelVerifierStage *stage = [verifier stageWithName:kStageName];
-	if (stage == nil)
-	{
-		stage = [[OOModelVerifierStage alloc] init];
-		[verifier registerStage:stage];
-		[stage release];
-	}
-	
-	return kStageName;
+    OOModelVerifierStage* stage = [verifier stageWithName:kStageName];
+    if (stage == nil) {
+        stage = [[OOModelVerifierStage alloc] init];
+        [verifier registerStage:stage];
+        [stage release];
+    }
+
+    return kStageName;
 }
 
-
-- (NSString *)name
+- (NSString*)name
 {
-	return kStageName;
+    return kStageName;
 }
-
 
 - (BOOL)shouldRun
 {
-	return [_modelsToCheck count] != 0;
+    return [_modelsToCheck count] != 0;
 }
-
 
 - (void)run
 {
-	NSDictionary				*info = nil;
-	NSAutoreleasePool			*pool = nil;
-	NSString					*name = nil,
-								*context = nil;
-	NSDictionary				*materials = nil,
-								*shaders = nil;
-	
-	OOLog(@"verifyOXP.models.unimplemented", @"%@", @"TODO: implement model verifier.");
-	
-	foreach (info, _modelsToCheck)
-	{
-		pool = [[NSAutoreleasePool alloc] init];
-		
-		name = [info objectForKey:@"name"];
-		context = [info objectForKey:@"context"];
-		if (context == NSNULL)  context = nil;
-		materials = [info objectForKey:@"materials"];
-		if (materials == NSNULL)  materials = nil;
-		shaders = [info objectForKey:@"shaders"];
-		if (shaders == NSNULL)  shaders = nil;
-		
-		[self checkModel:name
-				 context:context
-			   materials:materials
-				 shaders:shaders];
-		
-		[pool release];
-	}
-	[_modelsToCheck release];
-	_modelsToCheck = nil;
+    NSDictionary* info = nil;
+    NSAutoreleasePool* pool = nil;
+    NSString *name = nil,
+             *context = nil;
+    NSDictionary *materials = nil,
+                 *shaders = nil;
+
+    OOLog(@"verifyOXP.models.unimplemented", @"%@", @"TODO: implement model verifier.");
+
+    foreach (info, _modelsToCheck) {
+        pool = [[NSAutoreleasePool alloc] init];
+
+        name = [info objectForKey:@"name"];
+        context = [info objectForKey:@"context"];
+        if (context == NSNULL)
+            context = nil;
+        materials = [info objectForKey:@"materials"];
+        if (materials == NSNULL)
+            materials = nil;
+        shaders = [info objectForKey:@"shaders"];
+        if (shaders == NSNULL)
+            shaders = nil;
+
+        [self checkModel:name
+                 context:context
+               materials:materials
+                 shaders:shaders];
+
+        [pool release];
+    }
+    [_modelsToCheck release];
+    _modelsToCheck = nil;
 }
 
-
-- (BOOL) modelNamed:(NSString *)name
-	   usedForEntry:(NSString *)entryName
-			 inFile:(NSString *)fileName
-	  withMaterials:(NSDictionary *)materials
-		 andShaders:(NSDictionary *)shaders
+- (BOOL)modelNamed:(NSString*)name
+      usedForEntry:(NSString*)entryName
+            inFile:(NSString*)fileName
+     withMaterials:(NSDictionary*)materials
+        andShaders:(NSDictionary*)shaders
 {
-	OOFileScannerVerifierStage	*fileScanner = nil;
-	NSDictionary				*info = nil;
-	NSString					*context = nil;
-	
-	if (name == nil)  return NO;
-	
-	if (entryName != nil)  context = [NSString stringWithFormat:@"entry \"%@\" of %@", entryName, fileName];
-	else context = fileName;
-	
-	fileScanner = [[self verifier] fileScannerStage];
-	if (![fileScanner fileExists:name
-						inFolder:@"Models"
-				  referencedFrom:context
-					checkBuiltIn:YES])
-	{
-		return NO;
-	}
-	
-	if (context == nil)  context = NSNULL;
-	if (materials == nil)  materials = NSNULL;
-	if (shaders == nil)  shaders = NSNULL;
-	
-	info = [NSDictionary dictionaryWithObjectsAndKeys:
-				name, @"name",
-				context, @"context",
-				materials, @"materials",
-				shaders, @"shaders",
-				nil];
-	
-	[_modelsToCheck addObject:info];
-	
-	return YES;
+    OOFileScannerVerifierStage* fileScanner = nil;
+    NSDictionary* info = nil;
+    NSString* context = nil;
+
+    if (name == nil)
+        return NO;
+
+    if (entryName != nil)
+        context = [NSString stringWithFormat:@"entry \"%@\" of %@", entryName, fileName];
+    else
+        context = fileName;
+
+    fileScanner = [[self verifier] fileScannerStage];
+    if (![fileScanner fileExists:name
+                        inFolder:@"Models"
+                  referencedFrom:context
+                    checkBuiltIn:YES]) {
+        return NO;
+    }
+
+    if (context == nil)
+        context = NSNULL;
+    if (materials == nil)
+        materials = NSNULL;
+    if (shaders == nil)
+        shaders = NSNULL;
+
+    info = [NSDictionary dictionaryWithObjectsAndKeys:
+            name, @"name",
+        context, @"context",
+        materials, @"materials",
+        shaders, @"shaders",
+        nil];
+
+    [_modelsToCheck addObject:info];
+
+    return YES;
 }
 
 @end
-
 
 @implementation OOModelVerifierStage (OOPrivate)
 
-
-- (void)checkModel:(NSString *)name
-				 context:(NSString *)context
-			   materials:(NSDictionary *)materials
-				 shaders:(NSDictionary *)shaders
+- (void)checkModel:(NSString*)name
+           context:(NSString*)context
+         materials:(NSDictionary*)materials
+           shaders:(NSDictionary*)shaders
 {
-	OOLog(@"verifyOXP.verbose.model.unimp", @"- Pretending to verify model %@ referenced in %@.", name, context);
-	// FIXME: this should check DAT files.
+    OOLog(@"verifyOXP.verbose.model.unimp", @"- Pretending to verify model %@ referenced in %@.", name, context);
+    // FIXME: this should check DAT files.
 }
 
 @end
 
+@implementation OOOXPVerifier (OOModelVerifierStage)
 
-@implementation OOOXPVerifier(OOModelVerifierStage)
-
-- (OOModelVerifierStage *)modelVerifierStage
+- (OOModelVerifierStage*)modelVerifierStage
 {
-	return [self stageWithName:kStageName];
+    return [self stageWithName:kStageName];
 }
 
 @end

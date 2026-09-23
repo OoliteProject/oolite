@@ -4,7 +4,7 @@ NSThreadOOExtensions.h
 
 Utility methods for NSThread.
 
- 
+
 Copyright (C) 2007-2013 Jens Ayton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -27,15 +27,13 @@ SOFTWARE.
 
 */
 
-#import <Foundation/Foundation.h>
 #import "OOFunctionAttributes.h"
-
+#import <Foundation/Foundation.h>
 
 @interface NSThread (OOExtensions)
 
 //	Set name of current thread for identification during debugging.
 //	Under OS X, this does more than -setName:.
-+ (void) ooSetCurrentThreadName:(NSString *)name;
++ (void)ooSetCurrentThreadName:(NSString*)name;
 
 @end
-

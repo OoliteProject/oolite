@@ -38,27 +38,25 @@ MA 02110-1301, USA.
 
 @interface NSFileManager (OOExtensions)
 
-- (NSArray *) commanderContentsOfPath:(NSString*)savePath;
-- (NSString *) defaultCommanderPath;
+- (NSArray*)commanderContentsOfPath:(NSString*)savePath;
+- (NSString*)defaultCommanderPath;
 
 /*
-	Wrappers for methods that were deprecated in Leopard but whose replacements
-	still aren't in GNUstep.
+        Wrappers for methods that were deprecated in Leopard but whose replacements
+        still aren't in GNUstep.
 */
-- (NSArray *) oo_directoryContentsAtPath:(NSString *)path;
-- (BOOL) oo_createDirectoryAtPath:(NSString *)path attributes:(NSDictionary *)attributes;
-- (NSDictionary *) oo_fileAttributesAtPath:(NSString *)path traverseLink:(BOOL)yorn;
-- (NSDictionary *) oo_fileSystemAttributesAtPath:(NSString *)path;
-- (BOOL) oo_removeItemAtPath:(NSString *)path;
-- (BOOL) oo_moveItemAtPath:(NSString *)src toPath:(NSString *)dest;
+- (NSArray*)oo_directoryContentsAtPath:(NSString*)path;
+- (BOOL)oo_createDirectoryAtPath:(NSString*)path attributes:(NSDictionary*)attributes;
+- (NSDictionary*)oo_fileAttributesAtPath:(NSString*)path traverseLink:(BOOL)yorn;
+- (NSDictionary*)oo_fileSystemAttributesAtPath:(NSString*)path;
+- (BOOL)oo_removeItemAtPath:(NSString*)path;
+- (BOOL)oo_moveItemAtPath:(NSString*)src toPath:(NSString*)dest;
 
 #if OOLITE_SDL
-- (BOOL) chdirToSnapshotPath;
+- (BOOL)chdirToSnapshotPath;
 #endif
 
 // this also checks inside OXZ files; always returns NO for directories
-- (BOOL) oo_oxzFileExistsAtPath:(NSString *)path;
+- (BOOL)oo_oxzFileExistsAtPath:(NSString*)path;
 
 @end
-
-

@@ -24,230 +24,194 @@ MA 02110-1301, USA.
 */
 
 #import "OOFlasherEntity.h"
-#import "Universe.h"
-#import "PlayerEntity.h"
-#import "OOColor.h"
-#import "OOCollectionExtractors.h"
 #import "NSDictionaryOOExtensions.h"
-
+#import "OOCollectionExtractors.h"
+#import "OOColor.h"
+#import "PlayerEntity.h"
+#import "Universe.h"
 
 @interface OOFlasherEntity (Internal)
 
-- (void) setUpColors:(NSArray *)colorSpecifiers;
-- (void) getCurrentColorComponents;
+- (void)setUpColors:(NSArray*)colorSpecifiers;
+- (void)getCurrentColorComponents;
 
 @end
-
 
 @implementation OOFlasherEntity
 
-+ (instancetype) flasherWithDictionary:(NSDictionary *)dictionary
++ (instancetype)flasherWithDictionary:(NSDictionary*)dictionary
 {
-	return [[[OOFlasherEntity alloc] initWithDictionary:dictionary] autorelease];
+    return [[[OOFlasherEntity alloc] initWithDictionary:dictionary] autorelease];
 }
 
-
-- (id) initWithDictionary:(NSDictionary *)dictionary
+- (id)initWithDictionary:(NSDictionary*)dictionary
 {
-	float size = [dictionary oo_floatForKey:@"size" defaultValue:1.0f];
-	
-	if ((self = [super initWithDiameter:size]))
-	{
-		_frequency = [dictionary oo_floatForKey:@"frequency" defaultValue:1.0f] * 2.0f;
-		_phase = [dictionary oo_floatForKey:@"phase" defaultValue:0.0f];
-		_brightfraction = [dictionary oo_floatForKey:@"bright_fraction" defaultValue:0.5f];
+    float size = [dictionary oo_floatForKey:@"size" defaultValue:1.0f];
 
-		[self setUpColors:[dictionary oo_arrayForKey:@"colors"]];
-		[self getCurrentColorComponents];
-		
-		[self setActive:[dictionary oo_boolForKey:@"initially_on" defaultValue:YES]];
-	}
-	return self;
+    if ((self = [super initWithDiameter:size])) {
+        _frequency = [dictionary oo_floatForKey:@"frequency" defaultValue:1.0f] * 2.0f;
+        _phase = [dictionary oo_floatForKey:@"phase" defaultValue:0.0f];
+        _brightfraction = [dictionary oo_floatForKey:@"bright_fraction" defaultValue:0.5f];
+
+        [self setUpColors:[dictionary oo_arrayForKey:@"colors"]];
+        [self getCurrentColorComponents];
+
+        [self setActive:[dictionary oo_boolForKey:@"initially_on" defaultValue:YES]];
+    }
+    return self;
 }
 
-
-- (void) dealloc
+- (void)dealloc
 {
-	[_colors release];
-	
-	[super dealloc];
+    [_colors release];
+
+    [super dealloc];
 }
 
-
-- (void) setUpColors:(NSArray *)colorSpecifiers
+- (void)setUpColors:(NSArray*)colorSpecifiers
 {
-	NSMutableArray *colors = [NSMutableArray arrayWithCapacity:[colorSpecifiers count]];
-	id specifier = nil;
-	foreach (specifier, colorSpecifiers)
-	{
-		[colors addObject:[OOColor colorWithDescription:specifier saturationFactor:0.75f]];
-	}
-	
-	_colors = [colors copy];
+    NSMutableArray* colors = [NSMutableArray arrayWithCapacity:[colorSpecifiers count]];
+    id specifier = nil;
+    foreach (specifier, colorSpecifiers) {
+        [colors addObject:[OOColor colorWithDescription:specifier saturationFactor:0.75f]];
+    }
+
+    _colors = [colors copy];
 }
 
-
-- (void) getCurrentColorComponents
+- (void)getCurrentColorComponents
 {
-	[self setColor:[_colors objectAtIndex:_activeColor] alpha:_colorComponents[3]];
+    [self setColor:[_colors objectAtIndex:_activeColor] alpha:_colorComponents[3]];
 }
 
-
-- (BOOL) isActive
+- (BOOL)isActive
 {
-	return _active;
+    return _active;
 }
 
-
-- (void) setActive:(BOOL)active
+- (void)setActive:(BOOL)active
 {
-	_active = !!active;
+    _active = !!active;
 }
 
-
-- (OOColor *) color
+- (OOColor*)color
 {
-	return [OOColor colorWithRed:_colorComponents[0]
-						   green:_colorComponents[1]
-							blue:_colorComponents[2]
-						   alpha:_colorComponents[3]];
+    return [OOColor colorWithRed:_colorComponents[0]
+                           green:_colorComponents[1]
+                            blue:_colorComponents[2]
+                           alpha:_colorComponents[3]];
 }
 
-
-- (float) frequency
+- (float)frequency
 {
-	return _frequency;
+    return _frequency;
 }
 
-
-- (void) setFrequency:(float)frequency
+- (void)setFrequency:(float)frequency
 {
-	_frequency = frequency;
+    _frequency = frequency;
 }
 
-
-- (float) phase
+- (float)phase
 {
-	return _phase;
+    return _phase;
 }
 
-
-- (void) setPhase:(float)phase
+- (void)setPhase:(float)phase
 {
-	_phase = phase;
+    _phase = phase;
 }
 
-
-- (float) fraction
+- (float)fraction
 {
-	return _brightfraction;
+    return _brightfraction;
 }
 
-
-- (void) setFraction:(float)fraction
+- (void)setFraction:(float)fraction
 {
-	_brightfraction = fraction;
+    _brightfraction = fraction;
 }
 
-
-- (void) update:(OOTimeDelta) delta_t
+- (void)update:(OOTimeDelta)delta_t
 {
-	[super update:delta_t];
-	
-	_time += delta_t;
+    [super update:delta_t];
 
-	if (_frequency != 0)
-	{
-		float wave = sinf(_frequency * M_PI * (_time + _phase));
-		NSUInteger count = [_colors count];
-		if (count > 1 && wave < 0) 
-		{
-			if (!_justSwitched && wave > _wave)	// don't test for wave >= _wave - could give wrong results with very low frequencies
-			{
-				_justSwitched = YES;
-				++_activeColor;
-				_activeColor %= count;	//_activeColor = ++_activeColor % count; is potentially undefined operation
-				[self setColor:[_colors objectAtIndex:_activeColor]];
-			}
-		}
-		else if (_justSwitched)
-		{
-			_justSwitched = NO;
-		}
+    _time += delta_t;
 
-		float threshold = cosf(_brightfraction * M_PI);
-		
-		float brightness = _brightfraction;
-		if (wave > threshold)
-		{
-			brightness = _brightfraction + (((1-_brightfraction)/(1-threshold))*(wave-threshold));
-		}
-		else if (wave < threshold)
-		{
-			brightness = _brightfraction + ((_brightfraction/(threshold+1))*(wave-threshold));
-		}
+    if (_frequency != 0) {
+        float wave = sinf(_frequency * M_PI * (_time + _phase));
+        NSUInteger count = [_colors count];
+        if (count > 1 && wave < 0) {
+            if (!_justSwitched && wave > _wave) // don't test for wave >= _wave - could give wrong results with very low frequencies
+            {
+                _justSwitched = YES;
+                ++_activeColor;
+                _activeColor %= count; //_activeColor = ++_activeColor % count; is potentially undefined operation
+                [self setColor:[_colors objectAtIndex:_activeColor]];
+            }
+        } else if (_justSwitched) {
+            _justSwitched = NO;
+        }
 
-		_colorComponents[3] = brightness;
-		
-		_wave = wave;
-	}
-	else
-	{
-		_colorComponents[3] = 1.0;
-	}
+        float threshold = cosf(_brightfraction * M_PI);
+
+        float brightness = _brightfraction;
+        if (wave > threshold) {
+            brightness = _brightfraction + (((1 - _brightfraction) / (1 - threshold)) * (wave - threshold));
+        } else if (wave < threshold) {
+            brightness = _brightfraction + ((_brightfraction / (threshold + 1)) * (wave - threshold));
+        }
+
+        _colorComponents[3] = brightness;
+
+        _wave = wave;
+    } else {
+        _colorComponents[3] = 1.0;
+    }
 }
 
-
-- (void) drawImmediate:(bool)immediate translucent:(bool)translucent
+- (void)drawImmediate:(bool)immediate translucent:(bool)translucent
 {
-	if (_active)
-	{
-		[super drawImmediate:immediate translucent:translucent];
-	}
+    if (_active) {
+        [super drawImmediate:immediate translucent:translucent];
+    }
 }
 
-
-- (void) drawSubEntityImmediate:(bool)immediate translucent:(bool)translucent
+- (void)drawSubEntityImmediate:(bool)immediate translucent:(bool)translucent
 {
-	if (_active)
-	{
-		[super drawSubEntityImmediate:immediate translucent:translucent];
-	}
+    if (_active) {
+        [super drawSubEntityImmediate:immediate translucent:translucent];
+    }
 }
 
-
-- (BOOL) isFlasher
+- (BOOL)isFlasher
 {
-	return YES;
+    return YES;
 }
-
 
 - (double)findCollisionRadius
 {
-	return [self diameter] / 2.0;
+    return [self diameter] / 2.0;
 }
 
-
-- (void) rescaleBy:(GLfloat)factor
+- (void)rescaleBy:(GLfloat)factor
 {
-	[self setDiameter:[self diameter] * factor];
+    [self setDiameter:[self diameter] * factor];
 }
 
-
-- (void) rescaleBy:(GLfloat)factor writeToCache:(BOOL)writeToCache
+- (void)rescaleBy:(GLfloat)factor writeToCache:(BOOL)writeToCache
 {
-	/* Do nothing; this is only needed because of OOEntityWithDrawable
-	   implementation requirements */
+    /* Do nothing; this is only needed because of OOEntityWithDrawable
+       implementation requirements */
 }
 
 @end
 
-
 @implementation Entity (OOFlasherEntityExtensions)
 
-- (BOOL) isFlasher
+- (BOOL)isFlasher
 {
-	return NO;
+    return NO;
 }
 
 @end

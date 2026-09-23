@@ -30,55 +30,53 @@ SOFTWARE.
 
 */
 
-#import "OOMaterial.h"
 #import "OOColor.h"
+#import "OOMaterial.h"
 
-
-@interface OOBasicMaterial: OOMaterial
-{
+@interface OOBasicMaterial : OOMaterial {
 @private
-	NSString				*materialName;
-	
-	// Colours
-	GLfloat					diffuse[4],
-							specular[4],
-							ambient[4],
-							emission[4];
-	
-	// Specular exponent
-	uint8_t					shininess;		// Default: 0.0
+    NSString* materialName;
+
+    // Colours
+    GLfloat diffuse[4],
+        specular[4],
+        ambient[4],
+        emission[4];
+
+    // Specular exponent
+    uint8_t shininess; // Default: 0.0
 }
 
 /*	Initialize with default values (historical Olite defaults, not GL defaults):
-		diffuse		{ 1.0, 1.0, 1.0, 1.0 }
-		specular	{ 0.0, 0.0, 0.0, 1.0 }
-		ambient		{ 1.0, 1.0, 1.0, 1.0 }
-		emission	{ 0.0, 0.0, 0.0, 1.0 }
-		shininess	0
+                diffuse		{ 1.0, 1.0, 1.0, 1.0 }
+                specular	{ 0.0, 0.0, 0.0, 1.0 }
+                ambient		{ 1.0, 1.0, 1.0, 1.0 }
+                emission	{ 0.0, 0.0, 0.0, 1.0 }
+                shininess	0
 */
-- (id)initWithName:(NSString *)name;
+- (id)initWithName:(NSString*)name;
 
 /*	Initialize with dictionary. Accepted keys:
-		diffuse		colour description
-		specular	colour description
-		ambient		colour description
-		emission	colour description
-		shininess	integer
-	
-	"Colour description" refers to anything +[OOColor colorWithDescription:]
-	will accept.
-*/
-- (id)initWithName:(NSString *)name configuration:(NSDictionary *)configuration;
+                diffuse		colour description
+                specular	colour description
+                ambient		colour description
+                emission	colour description
+                shininess	integer
 
-- (OOColor *)diffuseColor;
-- (void)setDiffuseColor:(OOColor *)color;
-- (void)setAmbientAndDiffuseColor:(OOColor *)color;
-- (OOColor *)specularColor;
-- (void)setSpecularColor:(OOColor *)color;
-- (OOColor *)ambientColor;
-- (void)setAmbientColor:(OOColor *)color;
-- (OOColor *)emmisionColor;
-- (void)setEmissionColor:(OOColor *)color;
+        "Colour description" refers to anything +[OOColor colorWithDescription:]
+        will accept.
+*/
+- (id)initWithName:(NSString*)name configuration:(NSDictionary*)configuration;
+
+- (OOColor*)diffuseColor;
+- (void)setDiffuseColor:(OOColor*)color;
+- (void)setAmbientAndDiffuseColor:(OOColor*)color;
+- (OOColor*)specularColor;
+- (void)setSpecularColor:(OOColor*)color;
+- (OOColor*)ambientColor;
+- (void)setAmbientColor:(OOColor*)color;
+- (OOColor*)emmisionColor;
+- (void)setEmissionColor:(OOColor*)color;
 
 - (void)getDiffuseComponents:(GLfloat[4])outComponents;
 - (void)setDiffuseComponents:(const GLfloat[4])components;
@@ -97,12 +95,11 @@ SOFTWARE.
 - (void)setEmissionRed:(GLfloat)r green:(GLfloat)g blue:(GLfloat)b alpha:(GLfloat)a;
 
 - (uint8_t)shininess;
-- (void)setShininess:(uint8_t)value;	// Clamped to [0, 128]
-
+- (void)setShininess:(uint8_t)value; // Clamped to [0, 128]
 
 /*	For subclasses: return true to permit specular settings, false to deny
-	them. By default, this is ![UNIVERSE reducedDetail].
+        them. By default, this is ![UNIVERSE reducedDetail].
 */
-- (BOOL) permitSpecular;
+- (BOOL)permitSpecular;
 
 @end

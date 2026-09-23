@@ -30,17 +30,13 @@ SOFTWARE.
 
 #import "OOLogging.h"
 
-
-void OOLogSetDisplayMessagesInClass(NSString *inClass, BOOL inFlag);
-NSString *OOLogGetParentMessageClass(NSString *inClass);
-
+void OOLogSetDisplayMessagesInClass(NSString* inClass, BOOL inFlag);
+NSString* OOLogGetParentMessageClass(NSString* inClass);
 
 void OOLoggingInit(void);
 void OOLoggingTerminate(void);
 
-
 void OOLogInsertMarker(void);
-
 
 // Get/set display settings. These are stored in user defaults.
 BOOL OOLogShowFunction(void);
@@ -56,4 +52,4 @@ void OOLogSetShowMessageClass(BOOL flag);
 void OOLogSetShowMessageClassTemporary(BOOL flag);
 
 // Utility function to strip path components from __FILE__ strings.
-NSString *OOLogAbbreviatedFileName(const char *inName);
+NSString* OOLogAbbreviatedFileName(const char* inName);

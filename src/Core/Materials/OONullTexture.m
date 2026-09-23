@@ -29,103 +29,88 @@ SOFTWARE.
 #import "OOFoundation.h"
 #import "OOTextureInternal.h"
 
-
-static OONullTexture *sSingleton = nil;
-
+static OONullTexture* sSingleton = nil;
 
 @implementation OONullTexture
 
-+ (OONullTexture *) sharedNullTexture
++ (OONullTexture*)sharedNullTexture
 {
-	// NOTE: assumes single-threaded access.
-	if (sSingleton == nil)
-	{
-		sSingleton = [[self alloc] init];
-	}
-	
-	return sSingleton;
+    // NOTE: assumes single-threaded access.
+    if (sSingleton == nil) {
+        sSingleton = [[self alloc] init];
+    }
+
+    return sSingleton;
 }
 
-
-- (void) apply
+- (void)apply
 {
-	[OOTexture applyNone];
+    [OOTexture applyNone];
 }
 
-
-- (NSSize) dimensions
+- (NSSize)dimensions
 {
-	return NSZeroSize;
+    return NSZeroSize;
 }
 
-
-- (BOOL) isMipMapped
+- (BOOL)isMipMapped
 {
-	return NO;
+    return NO;
 }
 
-
-- (void) forceRebind
+- (void)forceRebind
 {
-	
 }
-
 
 #ifndef NDEBUG
-- (NSString *) name
+- (NSString*)name
 {
-	return @"<null texture>";
+    return @"<null texture>";
 }
 #endif
 
 @end
 
-
 @implementation OONullTexture (Singleton)
 
 /*	Canonical singleton boilerplate.
-	See Cocoa Fundamentals Guide: Creating a Singleton Instance.
-	See also +nullTexture above.
-	
-	NOTE: assumes single-threaded access.
+        See Cocoa Fundamentals Guide: Creating a Singleton Instance.
+        See also +nullTexture above.
+
+        NOTE: assumes single-threaded access.
 */
 
-+ (id)allocWithZone:(NSZone *)inZone
++ (id)allocWithZone:(NSZone*)inZone
 {
-	if (sSingleton == nil)
-	{
-		sSingleton = [super allocWithZone:inZone];
-		return sSingleton;
-	}
-	return nil;
+    if (sSingleton == nil) {
+        sSingleton = [super allocWithZone:inZone];
+        return sSingleton;
+    }
+    return nil;
 }
 
-
-- (id)copyWithZone:(NSZone *)inZone
+- (id)copyWithZone:(NSZone*)inZone
 {
-	return self;
+    return self;
 }
-
 
 - (id)retain
 {
-	return self;
+    return self;
 }
-
 
 - (NSUInteger)retainCount
 {
-	return UINT_MAX;
+    return UINT_MAX;
 }
 
-
 - (void)release
-{}
-
+{
+}
 
 - (id)autorelease
 {
-	return self;
+    return self;
 }
 
 @end

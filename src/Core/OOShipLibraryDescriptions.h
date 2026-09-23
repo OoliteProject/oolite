@@ -26,32 +26,32 @@ MA 02110-1301, USA.
 
 #import "ShipEntity.h"
 
-static NSString * const kOODemoShipKey			= @"ship";
-static NSString * const kOODemoShipName			= @"name"; // set internally only
-static NSString * const kOODemoShipClass		= @"class";
-static NSString * const kOODemoShipSummary		= @"summary";
-static NSString * const kOODemoShipDescription	= @"description";
-static NSString * const kOODemoShipShipData		= @"ship_data";
-static NSString * const kOODemoShipSpeed		= @"speed";
-static NSString * const kOODemoShipTurnRate		= @"turn_rate";
-static NSString * const kOODemoShipCargo		= @"cargo";
-static NSString * const kOODemoShipGenerator	= @"generator";
-static NSString * const kOODemoShipShields		= @"shields";
-static NSString * const kOODemoShipWitchspace	= @"witchspace";
-static NSString * const kOODemoShipWeapons		= @"weapons";
-static NSString * const kOODemoShipTurrets		= @"turrets";
-static NSString * const kOODemoShipSize			= @"size";
-static NSString * const kOODemoShipConditions	= @"condition_script";
+static NSString* const kOODemoShipKey = @"ship";
+static NSString* const kOODemoShipName = @"name"; // set internally only
+static NSString* const kOODemoShipClass = @"class";
+static NSString* const kOODemoShipSummary = @"summary";
+static NSString* const kOODemoShipDescription = @"description";
+static NSString* const kOODemoShipShipData = @"ship_data";
+static NSString* const kOODemoShipSpeed = @"speed";
+static NSString* const kOODemoShipTurnRate = @"turn_rate";
+static NSString* const kOODemoShipCargo = @"cargo";
+static NSString* const kOODemoShipGenerator = @"generator";
+static NSString* const kOODemoShipShields = @"shields";
+static NSString* const kOODemoShipWitchspace = @"witchspace";
+static NSString* const kOODemoShipWeapons = @"weapons";
+static NSString* const kOODemoShipTurrets = @"turrets";
+static NSString* const kOODemoShipSize = @"size";
+static NSString* const kOODemoShipConditions = @"condition_script";
 
-NSString *OOShipLibraryCategorySingular(NSString *category);
-NSString *OOShipLibraryCategoryPlural(NSString *category);
+NSString* OOShipLibraryCategorySingular(NSString* category);
+NSString* OOShipLibraryCategoryPlural(NSString* category);
 
-NSString *OOShipLibrarySpeed (ShipEntity *demo_ship);
-NSString *OOShipLibraryTurnRate (ShipEntity *demo_ship);
-NSString *OOShipLibraryCargo (ShipEntity *demo_ship);
-NSString *OOShipLibraryGenerator (ShipEntity *demo_ship);
-NSString *OOShipLibraryShields (ShipEntity *demo_ship);
-NSString *OOShipLibraryWitchspace (ShipEntity *demo_ship);
-NSString *OOShipLibraryWeapons (ShipEntity *demo_ship);
-NSString *OOShipLibraryTurrets (ShipEntity *demo_ship);
-NSString *OOShipLibrarySize (ShipEntity *demo_ship);
+NSString* OOShipLibrarySpeed(ShipEntity* demo_ship);
+NSString* OOShipLibraryTurnRate(ShipEntity* demo_ship);
+NSString* OOShipLibraryCargo(ShipEntity* demo_ship);
+NSString* OOShipLibraryGenerator(ShipEntity* demo_ship);
+NSString* OOShipLibraryShields(ShipEntity* demo_ship);
+NSString* OOShipLibraryWitchspace(ShipEntity* demo_ship);
+NSString* OOShipLibraryWeapons(ShipEntity* demo_ship);
+NSString* OOShipLibraryTurrets(ShipEntity* demo_ship);
+NSString* OOShipLibrarySize(ShipEntity* demo_ship);

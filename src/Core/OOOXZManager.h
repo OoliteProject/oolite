@@ -24,99 +24,96 @@ MA 02110-1301, USA.
 
 */
 
+#import "GuiDisplayGen.h"
+#import "NSFileManagerOOExtensions.h"
 #import "OOFoundation.h"
 #import "OOOpenGL.h"
-#import "NSFileManagerOOExtensions.h"
 #import "OOTypes.h"
-#import "GuiDisplayGen.h"
 
 typedef enum {
-	OXZ_DOWNLOAD_NONE = 0,
-	OXZ_DOWNLOAD_STARTED = 1,
-	OXZ_DOWNLOAD_RECEIVING = 2,
-	OXZ_DOWNLOAD_COMPLETE = 10,
-	OXZ_DOWNLOAD_ERROR = 99
+    OXZ_DOWNLOAD_NONE = 0,
+    OXZ_DOWNLOAD_STARTED = 1,
+    OXZ_DOWNLOAD_RECEIVING = 2,
+    OXZ_DOWNLOAD_COMPLETE = 10,
+    OXZ_DOWNLOAD_ERROR = 99
 } OXZDownloadStatus;
 
-
 typedef enum {
-	OXZ_STATE_NODATA,
-	OXZ_STATE_MAIN,
-	OXZ_STATE_UPDATING,
-	OXZ_STATE_PICK_INSTALL,
-	OXZ_STATE_PICK_INSTALLED,
-	OXZ_STATE_PICK_REMOVE,
-	OXZ_STATE_INSTALLING,
-	OXZ_STATE_DEPENDENCIES,
-	OXZ_STATE_REMOVING,
-	OXZ_STATE_TASKDONE,
-	OXZ_STATE_RESTARTING,
-	OXZ_STATE_SETFILTER,
-	OXZ_STATE_EXTRACT,
-	OXZ_STATE_EXTRACTDONE
+    OXZ_STATE_NODATA,
+    OXZ_STATE_MAIN,
+    OXZ_STATE_UPDATING,
+    OXZ_STATE_PICK_INSTALL,
+    OXZ_STATE_PICK_INSTALLED,
+    OXZ_STATE_PICK_REMOVE,
+    OXZ_STATE_INSTALLING,
+    OXZ_STATE_DEPENDENCIES,
+    OXZ_STATE_REMOVING,
+    OXZ_STATE_TASKDONE,
+    OXZ_STATE_RESTARTING,
+    OXZ_STATE_SETFILTER,
+    OXZ_STATE_EXTRACT,
+    OXZ_STATE_EXTRACTDONE
 } OXZInterfaceState;
 
-
-@interface OOOXZManager : NSObject
-{
+@interface OOOXZManager : NSObject {
 @private
-	NSArray 			*_oxzList;
-	NSArray 			*_managedList;
-	NSArray				*_filteredList;
-	NSString			*_currentFilter;
-	NSString			*_currentOXPURL;
+    NSArray* _oxzList;
+    NSArray* _managedList;
+    NSArray* _filteredList;
+    NSString* _currentFilter;
+    NSString* _currentOXPURL;
 
-	OXZInterfaceState	_interfaceState;
-	BOOL				_interfaceShowingOXZDetail;
-	BOOL				_changesMade;
+    OXZInterfaceState _interfaceState;
+    BOOL _interfaceShowingOXZDetail;
+    BOOL _changesMade;
 
-	NSURLConnection		*_currentDownload;
-	NSString			*_currentDownloadName;
+    NSURLConnection* _currentDownload;
+    NSString* _currentDownloadName;
 
-	OXZDownloadStatus	_downloadStatus;
-	NSUInteger			_downloadProgress;
-	NSUInteger			_downloadExpected;
-	NSFileHandle		*_fileWriter;
-	NSUInteger			_item;
+    OXZDownloadStatus _downloadStatus;
+    NSUInteger _downloadProgress;
+    NSUInteger _downloadExpected;
+    NSFileHandle* _fileWriter;
+    NSUInteger _item;
 
-	BOOL				_downloadAllDependencies;
+    BOOL _downloadAllDependencies;
 
-	NSUInteger			_offset;
+    NSUInteger _offset;
 
-	NSString			*_progressStatus;
-	NSMutableSet		*_dependencyStack;
+    NSString* _progressStatus;
+    NSMutableSet* _dependencyStack;
 }
 
-+ (OOOXZManager *) sharedManager;
++ (OOOXZManager*)sharedManager;
 
-- (NSString *) installPath;
-- (NSString *) extractAddOnsPath;
-- (NSArray *) additionalAddOnsPaths;
+- (NSString*)installPath;
+- (NSString*)extractAddOnsPath;
+- (NSArray*)additionalAddOnsPaths;
 
-- (BOOL) updateManifests;
-- (BOOL) cancelUpdate;
+- (BOOL)updateManifests;
+- (BOOL)cancelUpdate;
 
-- (NSArray *) manifests;
-- (NSArray *) managedOXZs;
+- (NSArray*)manifests;
+- (NSArray*)managedOXZs;
 
-- (void) gui;
-- (BOOL) isRestarting;
-- (BOOL) isAcceptingTextInput;
-- (BOOL) isAcceptingGUIInput;
+- (void)gui;
+- (BOOL)isRestarting;
+- (BOOL)isAcceptingTextInput;
+- (BOOL)isAcceptingGUIInput;
 
-- (void) processSelection;
-- (void) processTextInput:(NSString *)input;
-- (void) refreshTextInput:(NSString *)input;
-- (void) processFilterKey;
-- (void) processShowInfoKey;
-- (void) processCopyUrlKey;
-- (void) processExtractKey;
-- (OOGUIRow) showInstallOptions;
-- (OOGUIRow) showRemoveOptions;
-- (void) showOptionsUpdate;
-- (void) showOptionsPrev;
-- (void) showOptionsNext;
-- (void) processOptionsPrev;
-- (void) processOptionsNext;
+- (void)processSelection;
+- (void)processTextInput:(NSString*)input;
+- (void)refreshTextInput:(NSString*)input;
+- (void)processFilterKey;
+- (void)processShowInfoKey;
+- (void)processCopyUrlKey;
+- (void)processExtractKey;
+- (OOGUIRow)showInstallOptions;
+- (OOGUIRow)showRemoveOptions;
+- (void)showOptionsUpdate;
+- (void)showOptionsPrev;
+- (void)showOptionsNext;
+- (void)processOptionsPrev;
+- (void)processOptionsNext;
 
 @end

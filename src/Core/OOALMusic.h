@@ -29,22 +29,20 @@ SOFTWARE.
 
 */
 
-#import <Foundation/Foundation.h>
 #import "OOALSound.h"
 #import "OOSoundSource.h"
+#import <Foundation/Foundation.h>
 
-
-@interface OOMusic: OOSound
-{
+@interface OOMusic : OOSound {
 @private
-	OOSound				*sound;
+    OOSound* sound;
 }
 
-- (void) playLooped:(BOOL)looped;
-- (void) stop;
-- (BOOL) isPlaying;
-- (void) setMusicGain:(float)newValue;
-- (float) musicGain;
-- (OOSoundSource *)musicSoundSource;
+- (void)playLooped:(BOOL)looped;
+- (void)stop;
+- (BOOL)isPlaying;
+- (void)setMusicGain:(float)newValue;
+- (float)musicGain;
+- (OOSoundSource*)musicSoundSource;
 
 @end

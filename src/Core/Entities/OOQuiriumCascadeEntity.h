@@ -27,21 +27,18 @@ MA 02110-1301, USA.
 
 #import "Entity.h"
 
-
-@interface OOQuiriumCascadeEntity: Entity
-{
+@interface OOQuiriumCascadeEntity : Entity {
 @private
-	OOTimeDelta			_timePassed;
-	GLfloat				_color[4];
+    OOTimeDelta _timePassed;
+    GLfloat _color[4];
 }
 
-+ (instancetype) quiriumCascadeFromShip:(ShipEntity *)ship;
++ (instancetype)quiriumCascadeFromShip:(ShipEntity*)ship;
 
 @end
 
-
 @interface Entity (OOQuiriumCascadeExtensions)
 
-- (BOOL) isCascadeWeapon;
+- (BOOL)isCascadeWeapon;
 
 @end

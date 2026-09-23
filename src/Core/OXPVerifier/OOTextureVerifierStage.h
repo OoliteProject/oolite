@@ -30,34 +30,31 @@ MA 02110-1301, USA.
 
 #if OO_OXP_VERIFIER_ENABLED
 
-@interface OOTextureVerifierStage: OOFileHandlingVerifierStage
-{
+@interface OOTextureVerifierStage : OOFileHandlingVerifierStage {
 @private
-	NSMutableSet					*_usedTextures;
+    NSMutableSet* _usedTextures;
 }
 
 // Returns name to be used in -dependents by other stages.
-+ (NSString *)nameForReverseDependencyForVerifier:(OOOXPVerifier *)verifier;
++ (NSString*)nameForReverseDependencyForVerifier:(OOOXPVerifier*)verifier;
 
 /*	This can be called by other stages *before* the texture stage runs.
-	The context specifies where the texture is used; something like
-	"fooShip.dat" or "shipdata.plist materials dictionary for ship \"foo\"".
-	It should make sense with "Texture \"foo\" referenced in " in front of it.
+        The context specifies where the texture is used; something like
+        "fooShip.dat" or "shipdata.plist materials dictionary for ship \"foo\"".
+        It should make sense with "Texture \"foo\" referenced in " in front of it.
 */
-- (void) textureNamed:(NSString *)name usedInContext:(NSString *)context;
+- (void)textureNamed:(NSString*)name usedInContext:(NSString*)context;
 
 @end
-
 
 // Convenience base class for stages that need to run before OOTextureHandlingStage.
-@interface OOTextureHandlingStage: OOFileHandlingVerifierStage
+@interface OOTextureHandlingStage : OOFileHandlingVerifierStage
 
 @end
 
+@interface OOOXPVerifier (OOTextureVerifierStage)
 
-@interface OOOXPVerifier(OOTextureVerifierStage)
-
-- (OOTextureVerifierStage *)textureVerifierStage;
+- (OOTextureVerifierStage*)textureVerifierStage;
 
 @end
 

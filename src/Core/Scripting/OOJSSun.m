@@ -29,166 +29,151 @@ MA 02110-1301, USA.
 
 #import "OOSunEntity.h"
 
+static JSObject* sSunPrototype;
 
-static JSObject		*sSunPrototype;
+static JSBool SunGetProperty(JSContext* context, JSObject* this, jsid propID, jsval* value);
+static JSBool SunGoNova(JSContext* context, uintN argc, jsval* vp);
+static JSBool SunCancelNova(JSContext* context, uintN argc, jsval* vp);
 
+static JSClass sSunClass = {
+    "Sun",
+    JSCLASS_HAS_PRIVATE,
 
-static JSBool SunGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
-static JSBool SunGoNova(JSContext *context, uintN argc, jsval *vp);
-static JSBool SunCancelNova(JSContext *context, uintN argc, jsval *vp);
-
-
-static JSClass sSunClass =
-{
-	"Sun",
-	JSCLASS_HAS_PRIVATE,
-	
-	JS_PropertyStub,		// addProperty
-	JS_PropertyStub,		// delProperty
-	SunGetProperty,			// getProperty
-	JS_StrictPropertyStub,	// setProperty
-	JS_EnumerateStub,		// enumerate
-	JS_ResolveStub,			// resolve
-	JS_ConvertStub,			// convert
-	OOJSObjectWrapperFinalize,// finalize
-	JSCLASS_NO_OPTIONAL_MEMBERS
+    JS_PropertyStub, // addProperty
+    JS_PropertyStub, // delProperty
+    SunGetProperty, // getProperty
+    JS_StrictPropertyStub, // setProperty
+    JS_EnumerateStub, // enumerate
+    JS_ResolveStub, // resolve
+    JS_ConvertStub, // convert
+    OOJSObjectWrapperFinalize, // finalize
+    JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
-
-enum
-{
-	// Property IDs
-	kSun_radius,				// Radius of sun in metres, number, read-only
-	kSun_hasGoneNova,			// Has sun gone nova, boolean, read-only
-	kSun_isGoingNova,			// Will sun go nova, boolean, read-only
-	kSun_name					// Name of sun, string, read-only (writable via systeminfo)
+enum {
+    // Property IDs
+    kSun_radius, // Radius of sun in metres, number, read-only
+    kSun_hasGoneNova, // Has sun gone nova, boolean, read-only
+    kSun_isGoingNova, // Will sun go nova, boolean, read-only
+    kSun_name // Name of sun, string, read-only (writable via systeminfo)
 };
 
-
-static JSPropertySpec sSunProperties[] =
-{
-	// JS name					ID							flags
-	{ "hasGoneNova",			kSun_hasGoneNova,			OOJS_PROP_READONLY_CB },
-	{ "isGoingNova",			kSun_isGoingNova,			OOJS_PROP_READONLY_CB },
-	{ "name",					kSun_name,					OOJS_PROP_READONLY_CB },
-	{ "radius",					kSun_radius,				OOJS_PROP_READONLY_CB },
-	{ 0 }
+static JSPropertySpec sSunProperties[] = {
+    // JS name					ID							flags
+    { "hasGoneNova", kSun_hasGoneNova, OOJS_PROP_READONLY_CB },
+    { "isGoingNova", kSun_isGoingNova, OOJS_PROP_READONLY_CB },
+    { "name", kSun_name, OOJS_PROP_READONLY_CB },
+    { "radius", kSun_radius, OOJS_PROP_READONLY_CB },
+    { 0 }
 };
 
-
-static JSFunctionSpec sSunMethods[] =
-{
-	// JS name					Function					min args
-	{ "cancelNova",				SunCancelNova,				0 },
-	{ "goNova",					SunGoNova,					1 },
-	{ 0 }
+static JSFunctionSpec sSunMethods[] = {
+    // JS name					Function					min args
+    { "cancelNova", SunCancelNova, 0 },
+    { "goNova", SunGoNova, 1 },
+    { 0 }
 };
-
 
 DEFINE_JS_OBJECT_GETTER(JSSunGetSunEntity, &sSunClass, sSunPrototype, OOSunEntity)
 
-
-void InitOOJSSun(JSContext *context, JSObject *global)
+void InitOOJSSun(JSContext* context, JSObject* global)
 {
-	sSunPrototype = JS_InitClass(context, global, JSEntityPrototype(), &sSunClass, OOJSUnconstructableConstruct, 0, sSunProperties, sSunMethods, NULL, NULL);
-	OOJSRegisterObjectConverter(&sSunClass, OOJSBasicPrivateObjectConverter);
-	OOJSRegisterSubclass(&sSunClass, JSEntityClass());
+    sSunPrototype = JS_InitClass(context, global, JSEntityPrototype(), &sSunClass, OOJSUnconstructableConstruct, 0, sSunProperties, sSunMethods, NULL, NULL);
+    OOJSRegisterObjectConverter(&sSunClass, OOJSBasicPrivateObjectConverter);
+    OOJSRegisterSubclass(&sSunClass, JSEntityClass());
 }
-
 
 @implementation OOSunEntity (OOJavaScriptExtensions)
 
-- (BOOL) isVisibleToScripts
+- (BOOL)isVisibleToScripts
 {
-	return YES;
+    return YES;
 }
 
-
-- (void)getJSClass:(JSClass **)outClass andPrototype:(JSObject **)outPrototype
+- (void)getJSClass:(JSClass**)outClass andPrototype:(JSObject**)outPrototype
 {
-	*outClass = &sSunClass;
-	*outPrototype = sSunPrototype;
+    *outClass = &sSunClass;
+    *outPrototype = sSunPrototype;
 }
 
-
-- (NSString *) oo_jsClassName
+- (NSString*)oo_jsClassName
 {
-	return @"Sun";
+    return @"Sun";
 }
 
 @end
 
-
-static JSBool SunGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value)
+static JSBool SunGetProperty(JSContext* context, JSObject* this, jsid propID, jsval* value)
 {
-	if (!JSID_IS_INT(propID))  return YES;
-	
-	OOJS_NATIVE_ENTER(context)
-	
-	OOSunEntity					*sun = nil;
-	
-	if (EXPECT_NOT(!JSSunGetSunEntity(context, this, &sun)))  return NO;
-	
-	switch (JSID_TO_INT(propID))
-	{
-		case kSun_radius:
-			return JS_NewNumberValue(context, [sun radius], value);
+    if (!JSID_IS_INT(propID))
+        return YES;
 
-		case kSun_name:
-			*value = OOJSValueFromNativeObject(context, [sun name]);
-			return YES;
-			
-		case kSun_hasGoneNova:
-			*value = OOJSValueFromBOOL([sun goneNova]);
-			return YES;
-			
-		case kSun_isGoingNova:
-			*value = OOJSValueFromBOOL([sun willGoNova] && ![sun goneNova]);
-			return YES;
-			
-		default:
-			OOJSReportBadPropertySelector(context, this, propID, sSunProperties);
-			return NO;
-	}
-	
-	OOJS_NATIVE_EXIT
+    OOJS_NATIVE_ENTER(context)
+
+    OOSunEntity* sun = nil;
+
+    if (EXPECT_NOT(!JSSunGetSunEntity(context, this, &sun)))
+        return NO;
+
+    switch (JSID_TO_INT(propID)) {
+    case kSun_radius:
+        return JS_NewNumberValue(context, [sun radius], value);
+
+    case kSun_name:
+        *value = OOJSValueFromNativeObject(context, [sun name]);
+        return YES;
+
+    case kSun_hasGoneNova:
+        *value = OOJSValueFromBOOL([sun goneNova]);
+        return YES;
+
+    case kSun_isGoingNova:
+        *value = OOJSValueFromBOOL([sun willGoNova] && ![sun goneNova]);
+        return YES;
+
+    default:
+        OOJSReportBadPropertySelector(context, this, propID, sSunProperties);
+        return NO;
+    }
+
+    OOJS_NATIVE_EXIT
 }
-
 
 // *** Methods ***
 
 // goNova([delay : Number])
-static JSBool SunGoNova(JSContext *context, uintN argc, jsval *vp)
+static JSBool SunGoNova(JSContext* context, uintN argc, jsval* vp)
 {
-	OOJS_NATIVE_ENTER(context)
-	
-	OOSunEntity					*sun = nil;
-	jsdouble					delay = 0;
-	
-	if (EXPECT_NOT(!JSSunGetSunEntity(context, OOJS_THIS, &sun)))  return NO;
-	if (argc > 0 && EXPECT_NOT(!JS_ValueToNumber(context, OOJS_ARGV[0], &delay)))  return NO;
-	
-	[sun setGoingNova:YES inTime:delay];
-	OOJS_RETURN_VOID;
-	
-	OOJS_NATIVE_EXIT
+    OOJS_NATIVE_ENTER(context)
+
+    OOSunEntity* sun = nil;
+    jsdouble delay = 0;
+
+    if (EXPECT_NOT(!JSSunGetSunEntity(context, OOJS_THIS, &sun)))
+        return NO;
+    if (argc > 0 && EXPECT_NOT(!JS_ValueToNumber(context, OOJS_ARGV[0], &delay)))
+        return NO;
+
+    [sun setGoingNova:YES inTime:delay];
+    OOJS_RETURN_VOID;
+
+    OOJS_NATIVE_EXIT
 }
 
-
 // cancelNova()
-static JSBool SunCancelNova(JSContext *context, uintN argc, jsval *vp)
+static JSBool SunCancelNova(JSContext* context, uintN argc, jsval* vp)
 {
-	OOJS_NATIVE_ENTER(context)
-	
-	OOSunEntity					*sun = nil;
-	
-	if (EXPECT_NOT(!JSSunGetSunEntity(context, OOJS_THIS, &sun)))  return NO;
-	
-	if ([sun willGoNova] && ![sun goneNova])
-	{
-		[sun setGoingNova:NO inTime:0];
-	}
-	OOJS_RETURN_VOID;
-	
-	OOJS_NATIVE_EXIT
+    OOJS_NATIVE_ENTER(context)
+
+    OOSunEntity* sun = nil;
+
+    if (EXPECT_NOT(!JSSunGetSunEntity(context, OOJS_THIS, &sun)))
+        return NO;
+
+    if ([sun willGoNova] && ![sun goneNova]) {
+        [sun setGoingNova:NO inTime:0];
+    }
+    OOJS_RETURN_VOID;
+
+    OOJS_NATIVE_EXIT
 }

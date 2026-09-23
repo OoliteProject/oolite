@@ -24,130 +24,117 @@ MA 02110-1301, USA.
 */
 
 #import "OOFlashEffectEntity.h"
-#import "Universe.h"
-#import "PlayerEntity.h"
 #import "OOColor.h"
-#import "OOTexture.h"
 #import "OOGraphicsResetManager.h"
+#import "OOTexture.h"
+#import "PlayerEntity.h"
+#import "Universe.h"
 
+#define kLaserFlashDuration 0.3f
+#define kExplosionFlashDuration 0.4f
+#define kGrowthRateFactor 150.0f // if average flashSize is 80 then this is 12000
+#define kMinExplosionGrowth 600.0f
+#define kLaserFlashInitialSize 1.0f
+#define kExplosionFlashAlpha 0.5f
 
-#define kLaserFlashDuration			0.3f
-#define kExplosionFlashDuration		0.4f
-#define kGrowthRateFactor			150.0f	// if average flashSize is 80 then this is 12000
-#define kMinExplosionGrowth			600.0f
-#define kLaserFlashInitialSize		1.0f
-#define kExplosionFlashAlpha		0.5f
-
-static OOTexture *sFlashTexture = nil;
-
+static OOTexture* sFlashTexture = nil;
 
 @interface OOFlashEffectEntity (Private)
 
 // Designated initializer.
-- (id) initWithPosition:(HPVector)pos size:(float)size color:(OOColor *)color duration:(float)duration;
+- (id)initWithPosition:(HPVector)pos size:(float)size color:(OOColor*)color duration:(float)duration;
 
-+ (void) resetGraphicsState;
++ (void)resetGraphicsState;
 
-- (void) performUpdate:(OOTimeDelta)delta_t;
+- (void)performUpdate:(OOTimeDelta)delta_t;
 
 @end
 
-
 @implementation OOFlashEffectEntity
 
-- (id) initExplosionFlashWithPosition:(HPVector)pos velocity:(Vector)vel size:(float)size
+- (id)initExplosionFlashWithPosition:(HPVector)pos velocity:(Vector)vel size:(float)size
 {
-	if ((self = [self initWithPosition:pos size:size color:[OOColor whiteColor] duration:kExplosionFlashDuration]))
-	{
-		_growthRate = fmax(_growthRate, kMinExplosionGrowth);
-		_alpha = kExplosionFlashAlpha;
-		[self setVelocity:vel];
-	}
-	return self;
+    if ((self = [self initWithPosition:pos size:size color:[OOColor whiteColor] duration:kExplosionFlashDuration])) {
+        _growthRate = fmax(_growthRate, kMinExplosionGrowth);
+        _alpha = kExplosionFlashAlpha;
+        [self setVelocity:vel];
+    }
+    return self;
 }
 
-
-- (id) initLaserFlashWithPosition:(HPVector)pos velocity:(Vector)vel color:(OOColor *)color
+- (id)initLaserFlashWithPosition:(HPVector)pos velocity:(Vector)vel color:(OOColor*)color
 {
-	if ((self = [self initWithPosition:pos size:kLaserFlashInitialSize color:color duration:kLaserFlashDuration]))
-	{
-		[self setVelocity:vel];
-		_alpha = 1.0f;
-	}
-	return self;
+    if ((self = [self initWithPosition:pos size:kLaserFlashInitialSize color:color duration:kLaserFlashDuration])) {
+        [self setVelocity:vel];
+        _alpha = 1.0f;
+    }
+    return self;
 }
 
-
-+ (instancetype) explosionFlashFromEntity:(Entity *)entity
++ (instancetype)explosionFlashFromEntity:(Entity*)entity
 {
-	return [[[self alloc] initExplosionFlashWithPosition:[entity position] velocity:[entity velocity] size:[entity collisionRadius]] autorelease];
+    return [[[self alloc] initExplosionFlashWithPosition:[entity position] velocity:[entity velocity] size:[entity collisionRadius]] autorelease];
 }
 
-
-+ (instancetype) laserFlashWithPosition:(HPVector)pos velocity:(Vector)vel color:(OOColor *)color
++ (instancetype)laserFlashWithPosition:(HPVector)pos velocity:(Vector)vel color:(OOColor*)color
 {
-	return [[[self alloc] initLaserFlashWithPosition:pos velocity:vel color:color] autorelease];
+    return [[[self alloc] initLaserFlashWithPosition:pos velocity:vel color:color] autorelease];
 }
 
-
-- (id) initWithPosition:(HPVector)pos size:(float)size color:(OOColor *)color duration:(float)duration
+- (id)initWithPosition:(HPVector)pos size:(float)size color:(OOColor*)color duration:(float)duration
 {
-	if ((self = [super initWithDiameter:size]))
-	{
-		[self setPosition:pos];
-		_duration = duration;
-		_growthRate = kGrowthRateFactor * size;
-		[self setColor:color alpha:1.0f];
-		assert([self collisionRadius] == 0 && [self energy] == 0 && magnitude([self velocity]) == 0);
-	}
-	return self;
+    if ((self = [super initWithDiameter:size])) {
+        [self setPosition:pos];
+        _duration = duration;
+        _growthRate = kGrowthRateFactor * size;
+        [self setColor:color alpha:1.0f];
+        assert([self collisionRadius] == 0 && [self energy] == 0 && magnitude([self velocity]) == 0);
+    }
+    return self;
 }
 
-
-- (void) update:(OOTimeDelta)delta_t
+- (void)update:(OOTimeDelta)delta_t
 {
-	[super update:delta_t];
-	
-	float tf = _duration * 0.667f;
-	float tf1 = _duration - tf;
-	
-	// Scale up.
-	_diameter += delta_t * _growthRate;
-	
-	// Fade in and out.
-	OOTimeDelta lifeTime = [self timeElapsedSinceSpawn];
-	_colorComponents[3] = _alpha * ((lifeTime < tf) ? (lifeTime / tf) : (_duration - lifeTime) / tf1);
-	
-	// Disappear as necessary.
-	if (lifeTime > _duration)  [UNIVERSE removeEntity:self];
+    [super update:delta_t];
+
+    float tf = _duration * 0.667f;
+    float tf1 = _duration - tf;
+
+    // Scale up.
+    _diameter += delta_t * _growthRate;
+
+    // Fade in and out.
+    OOTimeDelta lifeTime = [self timeElapsedSinceSpawn];
+    _colorComponents[3] = _alpha * ((lifeTime < tf) ? (lifeTime / tf) : (_duration - lifeTime) / tf1);
+
+    // Disappear as necessary.
+    if (lifeTime > _duration)
+        [UNIVERSE removeEntity:self];
 }
 
-
-- (OOTexture *) texture
+- (OOTexture*)texture
 {
-	if (sFlashTexture == nil)  [OOFlashEffectEntity	setUpTexture];
-	return sFlashTexture;
+    if (sFlashTexture == nil)
+        [OOFlashEffectEntity setUpTexture];
+    return sFlashTexture;
 }
 
-
-+ (void) setUpTexture
++ (void)setUpTexture
 {
-	if (sFlashTexture == nil)
-	{
-		sFlashTexture = [[OOTexture textureWithName:@"oolite-particle-flash.png"
-										   inFolder:@"Textures"
-											options:kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear | kOOTextureAlphaMask
-										 anisotropy:kOOTextureDefaultAnisotropy
-											lodBias:0.0] retain];
-		[[OOGraphicsResetManager sharedManager] registerClient:(id<OOGraphicsResetClient>)[OOFlashEffectEntity class]];
-	}
+    if (sFlashTexture == nil) {
+        sFlashTexture = [[OOTexture textureWithName:@"oolite-particle-flash.png"
+                                           inFolder:@"Textures"
+                                            options:kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear | kOOTextureAlphaMask
+                                         anisotropy:kOOTextureDefaultAnisotropy
+                                            lodBias:0.0] retain];
+        [[OOGraphicsResetManager sharedManager] registerClient:(id<OOGraphicsResetClient>)[OOFlashEffectEntity class]];
+    }
 }
 
-
-+ (void) resetGraphicsState
++ (void)resetGraphicsState
 {
-	[sFlashTexture release];
-	sFlashTexture = nil;
+    [sFlashTexture release];
+    sFlashTexture = nil;
 }
 
 @end

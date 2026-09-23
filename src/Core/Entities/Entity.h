@@ -26,15 +26,14 @@ MA 02110-1301, USA.
 
 #pragma once
 
+#import "OOCacheManager.h"
+#import "OOColor.h"
 #import "OOFoundation.h"
 #import "OOMaths.h"
-#import "OOCacheManager.h"
 #import "OOTypes.h"
 #import "OOWeakReference.h"
-#import "OOColor.h"
 
 @class Universe, CollisionRegion, ShipEntity, OOVisualEffectEntity;
-
 
 #ifndef NDEBUG
 
@@ -43,262 +42,253 @@ extern size_t gTotalEntityMemory;
 
 #endif
 
-
-#define NO_DRAW_DISTANCE_FACTOR		1024.0
-#define ABSOLUTE_NO_DRAW_DISTANCE2	(2500.0 * 2500.0 * NO_DRAW_DISTANCE_FACTOR * NO_DRAW_DISTANCE_FACTOR)
+#define NO_DRAW_DISTANCE_FACTOR 1024.0
+#define ABSOLUTE_NO_DRAW_DISTANCE2 (2500.0 * 2500.0 * NO_DRAW_DISTANCE_FACTOR * NO_DRAW_DISTANCE_FACTOR)
 // ie. the furthest away thing we can draw is at 1280km (a 2.5km wide object would disappear at that range)
 
-
-#define SCANNER_MAX_RANGE			25600.0
-#define SCANNER_MAX_RANGE2			655360000.0
+#define SCANNER_MAX_RANGE 25600.0
+#define SCANNER_MAX_RANGE2 655360000.0
 
 #define CLOSE_COLLISION_CHECK_MAX_RANGE2 1000000000.0
 
-
 #define ENTRY(label, value) label = value,
 
-typedef enum OOEntityStatus
-{
-	#include "OOEntityStatus.tbl"
+typedef enum OOEntityStatus {
+#include "OOEntityStatus.tbl"
 } OOEntityStatus;
-
 
 #ifndef OO_SCANCLASS_TYPE
 #define OO_SCANCLASS_TYPE
 typedef enum OOScanClass OOScanClass;
 #endif
 
-enum OOScanClass
-{
-	#include "OOScanClass.tbl"
+enum OOScanClass {
+#include "OOScanClass.tbl"
 };
 
 #undef ENTRY
 
-
-@interface Entity: OOWeakRefObject
-{
-	// the base object for ships/stations/anything actually
-	//////////////////////////////////////////////////////
-	//
-	// @public variables:
-	//
-	// we forego encapsulation for some variables in order to
-	// lose the overheads of Obj-C accessor methods...
-	//
+@interface Entity : OOWeakRefObject {
+    // the base object for ships/stations/anything actually
+    //////////////////////////////////////////////////////
+    //
+    // @public variables:
+    //
+    // we forego encapsulation for some variables in order to
+    // lose the overheads of Obj-C accessor methods...
+    //
 @public
-	OOUniversalID			universalID;			// used to reference the entity
-	
-	unsigned				isShip: 1,
-							isStation: 1,
-							isPlayer: 1,
-							isWormhole: 1,
-							isSubEntity: 1,
-							hasMoved: 1,
-							hasRotated: 1,
-							hasCollided: 1,
-							isSunlit: 1,
-							collisionTestFilter: 2,
-							throw_sparks: 1,
-							isImmuneToBreakPatternHide: 1,
-							isExplicitlyNotMainStation: 1,
-							isVisualEffect: 1;
-	
-	OOScanClass				scanClass;
-	
-	GLfloat					zero_distance;
-	GLfloat					cam_zero_distance;
-	GLfloat					no_draw_distance;		// 10 km initially
-	GLfloat					collision_radius;
-	HPVector					position; // use high-precision vectors for global position
-	Vector						cameraRelativePosition;
-	Quaternion				orientation;
-	OOColor					*atmosphereFogging;
-	
-	int						zero_index;
-	
-	// Linked lists of entites, sorted by position on each (world) axis
-	Entity					*x_previous, *x_next;
-	Entity					*y_previous, *y_next;
-	Entity					*z_previous, *z_next;
-	
-	Entity					*collision_chain;
-	
-	OOUniversalID			shadingEntityID;
-	
-	Entity					*collider;
-	
-	CollisionRegion			*collisionRegion;		// initially nil - then maintained
-	
+    OOUniversalID universalID; // used to reference the entity
+
+    unsigned isShip : 1,
+        isStation : 1,
+        isPlayer : 1,
+        isWormhole : 1,
+        isSubEntity : 1,
+        hasMoved : 1,
+        hasRotated : 1,
+        hasCollided : 1,
+        isSunlit : 1,
+        collisionTestFilter : 2,
+        throw_sparks : 1,
+        isImmuneToBreakPatternHide : 1,
+        isExplicitlyNotMainStation : 1,
+        isVisualEffect : 1;
+
+    OOScanClass scanClass;
+
+    GLfloat zero_distance;
+    GLfloat cam_zero_distance;
+    GLfloat no_draw_distance; // 10 km initially
+    GLfloat collision_radius;
+    HPVector position; // use high-precision vectors for global position
+    Vector cameraRelativePosition;
+    Quaternion orientation;
+    OOColor* atmosphereFogging;
+
+    int zero_index;
+
+    // Linked lists of entites, sorted by position on each (world) axis
+    Entity *x_previous, *x_next;
+    Entity *y_previous, *y_next;
+    Entity *z_previous, *z_next;
+
+    Entity* collision_chain;
+
+    OOUniversalID shadingEntityID;
+
+    Entity* collider;
+
+    CollisionRegion* collisionRegion; // initially nil - then maintained
+
 @protected
-	HPVector					lastPosition;
-	Quaternion				lastOrientation;
-	
-	GLfloat					distanceTravelled;		// set to zero initially
-	
-	OOMatrix				rotMatrix;
-	
-	Vector					velocity;
-	
-	GLfloat					energy;
-	GLfloat					maxEnergy;
-	
-	BoundingBox				boundingBox;
-	GLfloat					mass;
-	
-	NSMutableArray			*collidingEntities;
-	
-	OOTimeAbsolute			spawnTime;
-	
-	struct JSObject			*_jsSelf;
-	NSUInteger				lastDrawCounter;
-	
+    HPVector lastPosition;
+    Quaternion lastOrientation;
+
+    GLfloat distanceTravelled; // set to zero initially
+
+    OOMatrix rotMatrix;
+
+    Vector velocity;
+
+    GLfloat energy;
+    GLfloat maxEnergy;
+
+    BoundingBox boundingBox;
+    GLfloat mass;
+
+    NSMutableArray* collidingEntities;
+
+    OOTimeAbsolute spawnTime;
+
+    struct JSObject* _jsSelf;
+    NSUInteger lastDrawCounter;
+
 @private
-	NSUInteger				_sessionID;
-	
-	OOWeakReference			*_owner;
-	OOEntityStatus			_status;
+    NSUInteger _sessionID;
+
+    OOWeakReference* _owner;
+    OOEntityStatus _status;
 }
 
 // The session in which the entity was created.
-- (NSUInteger) sessionID;
+- (NSUInteger)sessionID;
 
-- (BOOL) isShip;
-- (BOOL) isDock;
-- (BOOL) isStation;
-- (BOOL) isSubEntity;
-- (BOOL) isPlayer;
-- (BOOL) isPlanet;
-- (BOOL) isSun;
-- (BOOL) isSunlit;
-- (BOOL) isStellarObject;
-- (BOOL) isSky;
-- (BOOL) isWormhole;
-- (BOOL) isEffect;
-- (BOOL) isVisualEffect;
-- (BOOL) isWaypoint;
+- (BOOL)isShip;
+- (BOOL)isDock;
+- (BOOL)isStation;
+- (BOOL)isSubEntity;
+- (BOOL)isPlayer;
+- (BOOL)isPlanet;
+- (BOOL)isSun;
+- (BOOL)isSunlit;
+- (BOOL)isStellarObject;
+- (BOOL)isSky;
+- (BOOL)isWormhole;
+- (BOOL)isEffect;
+- (BOOL)isVisualEffect;
+- (BOOL)isWaypoint;
 
-- (BOOL) validForAddToUniverse;
-- (void) addToLinkedLists;
-- (void) removeFromLinkedLists;
+- (BOOL)validForAddToUniverse;
+- (void)addToLinkedLists;
+- (void)removeFromLinkedLists;
 
-- (void) updateLinkedLists;
+- (void)updateLinkedLists;
 
-- (void) wasAddedToUniverse;
-- (void) wasRemovedFromUniverse;
+- (void)wasAddedToUniverse;
+- (void)wasRemovedFromUniverse;
 
-- (void) warnAboutHostiles;
+- (void)warnAboutHostiles;
 
-- (CollisionRegion *) collisionRegion;
-- (void) setCollisionRegion:(CollisionRegion*)region;
+- (CollisionRegion*)collisionRegion;
+- (void)setCollisionRegion:(CollisionRegion*)region;
 
-- (void) setUniversalID:(OOUniversalID)uid;
-- (OOUniversalID) universalID;
+- (void)setUniversalID:(OOUniversalID)uid;
+- (OOUniversalID)universalID;
 
-- (BOOL) throwingSparks;
-- (void) setThrowSparks:(BOOL)value;
-- (void) throwSparks;
+- (BOOL)throwingSparks;
+- (void)setThrowSparks:(BOOL)value;
+- (void)throwSparks;
 
-- (void) setOwner:(Entity *)ent;
-- (id) owner;
-- (ShipEntity *) parentEntity;		// owner if self is subentity of owner, otherwise nil.
-- (ShipEntity *) rootShipEntity;	// like parentEntity, but recursive.
+- (void)setOwner:(Entity*)ent;
+- (id)owner;
+- (ShipEntity*)parentEntity; // owner if self is subentity of owner, otherwise nil.
+- (ShipEntity*)rootShipEntity; // like parentEntity, but recursive.
 
-- (void) setPosition:(HPVector)posn;
-- (void) setPositionX:(OOHPScalar)x y:(OOHPScalar)y z:(OOHPScalar)z;
-- (HPVector) position;
-- (Vector) cameraRelativePosition;
-- (GLfloat) cameraRangeFront;
-- (GLfloat) cameraRangeBack;
+- (void)setPosition:(HPVector)posn;
+- (void)setPositionX:(OOHPScalar)x y:(OOHPScalar)y z:(OOHPScalar)z;
+- (HPVector)position;
+- (Vector)cameraRelativePosition;
+- (GLfloat)cameraRangeFront;
+- (GLfloat)cameraRangeBack;
 
-- (void) updateCameraRelativePosition;
+- (void)updateCameraRelativePosition;
 // gets a low-position relative vector
-- (Vector) vectorTo:(Entity *)entity;
+- (Vector)vectorTo:(Entity*)entity;
 
-- (HPVector) absolutePositionForSubentity;
-- (HPVector) absolutePositionForSubentityOffset:(HPVector) offset;
+- (HPVector)absolutePositionForSubentity;
+- (HPVector)absolutePositionForSubentityOffset:(HPVector)offset;
 
-- (double) zeroDistance;
-- (double) camZeroDistance;
-- (NSComparisonResult) compareZeroDistance:(Entity *)otherEntity;
+- (double)zeroDistance;
+- (double)camZeroDistance;
+- (NSComparisonResult)compareZeroDistance:(Entity*)otherEntity;
 
-- (BoundingBox) boundingBox;
+- (BoundingBox)boundingBox;
 
-- (GLfloat) mass;
+- (GLfloat)mass;
 
-- (Quaternion) orientation;
-- (void) setOrientation:(Quaternion) quat;
-- (Quaternion) normalOrientation;	// Historical wart: orientation.w is reversed for player; -normalOrientation corrects this.
-- (void) setNormalOrientation:(Quaternion) quat;
-- (void) orientationChanged;
+- (Quaternion)orientation;
+- (void)setOrientation:(Quaternion)quat;
+- (Quaternion)normalOrientation; // Historical wart: orientation.w is reversed for player; -normalOrientation corrects this.
+- (void)setNormalOrientation:(Quaternion)quat;
+- (void)orientationChanged;
 
-- (void) setVelocity:(Vector)vel;
-- (Vector) velocity;
-- (double) speed;
+- (void)setVelocity:(Vector)vel;
+- (Vector)velocity;
+- (double)speed;
 
-- (GLfloat) distanceTravelled;
-- (void) setDistanceTravelled:(GLfloat)value;
+- (GLfloat)distanceTravelled;
+- (void)setDistanceTravelled:(GLfloat)value;
 
+- (void)setStatus:(OOEntityStatus)stat;
+- (OOEntityStatus)status;
 
-- (void) setStatus:(OOEntityStatus)stat;
-- (OOEntityStatus) status;
+- (void)setScanClass:(OOScanClass)sClass;
+- (OOScanClass)scanClass;
 
-- (void) setScanClass:(OOScanClass)sClass;
-- (OOScanClass) scanClass;
+- (void)setEnergy:(GLfloat)amount;
+- (GLfloat)energy;
 
-- (void) setEnergy:(GLfloat)amount;
-- (GLfloat) energy;
+- (void)setMaxEnergy:(GLfloat)amount;
+- (GLfloat)maxEnergy;
 
-- (void) setMaxEnergy:(GLfloat)amount;
-- (GLfloat) maxEnergy;
+- (void)applyRoll:(GLfloat)roll andClimb:(GLfloat)climb;
+- (void)applyRoll:(GLfloat)roll climb:(GLfloat)climb andYaw:(GLfloat)yaw;
+- (void)moveForward:(double)amount;
 
-- (void) applyRoll:(GLfloat)roll andClimb:(GLfloat)climb;
-- (void) applyRoll:(GLfloat)roll climb:(GLfloat) climb andYaw:(GLfloat)yaw;
-- (void) moveForward:(double)amount;
+- (OOMatrix)rotationMatrix;
+- (OOMatrix)drawRotationMatrix;
+- (OOMatrix)transformationMatrix;
+- (OOMatrix)drawTransformationMatrix;
 
-- (OOMatrix) rotationMatrix;
-- (OOMatrix) drawRotationMatrix;
-- (OOMatrix) transformationMatrix;
-- (OOMatrix) drawTransformationMatrix;
+- (BOOL)canCollide;
+- (GLfloat)collisionRadius;
+- (GLfloat)frustumRadius;
+- (void)setCollisionRadius:(GLfloat)amount;
+- (NSMutableArray*)collisionArray;
 
-- (BOOL) canCollide;
-- (GLfloat) collisionRadius;
-- (GLfloat) frustumRadius;
-- (void) setCollisionRadius:(GLfloat)amount;
-- (NSMutableArray *)collisionArray;
+- (void)update:(OOTimeDelta)delta_t;
 
-- (void) update:(OOTimeDelta)delta_t;
+- (void)applyVelocity:(OOTimeDelta)delta_t;
+- (BOOL)checkCloseCollisionWith:(Entity*)other;
 
-- (void) applyVelocity:(OOTimeDelta)delta_t;
-- (BOOL) checkCloseCollisionWith:(Entity *)other;
+- (void)takeEnergyDamage:(double)amount from:(Entity*)ent becauseOf:(Entity*)other weaponIdentifier:(NSString*)weaponIdentifier;
 
-- (void) takeEnergyDamage:(double)amount from:(Entity *)ent becauseOf:(Entity *)other weaponIdentifier:(NSString *)weaponIdentifier;
+- (void)dumpState; // General "describe situtation verbosely in log" command.
+- (void)dumpSelfState; // Subclasses should override this, not -dumpState, and call throught to super first.
 
-- (void) dumpState;		// General "describe situtation verbosely in log" command.
-- (void) dumpSelfState;	// Subclasses should override this, not -dumpState, and call throught to super first.
-
-- (NSUInteger) lastDrawCounter;
-- (void) setLastDrawCounter: (NSUInteger) drawCounter;
+- (NSUInteger)lastDrawCounter;
+- (void)setLastDrawCounter:(NSUInteger)drawCounter;
 
 // Subclass repsonsibilities
-- (double) findCollisionRadius;
-- (void) drawImmediate:(bool)immediate translucent:(bool)translucent;
-- (BOOL) isVisible;
-- (BOOL) isInSpace;
-- (BOOL) isImmuneToBreakPatternHide;
+- (double)findCollisionRadius;
+- (void)drawImmediate:(bool)immediate translucent:(bool)translucent;
+- (BOOL)isVisible;
+- (BOOL)isInSpace;
+- (BOOL)isImmuneToBreakPatternHide;
 
 // For shader bindings.
-- (GLfloat) universalTime;
-- (GLfloat) spawnTime;
-- (GLfloat) timeElapsedSinceSpawn;
-- (void) setAtmosphereFogging: (OOColor *) fogging;
-- (OOColor *) fogUniform;
+- (GLfloat)universalTime;
+- (GLfloat)spawnTime;
+- (GLfloat)timeElapsedSinceSpawn;
+- (void)setAtmosphereFogging:(OOColor*)fogging;
+- (OOColor*)fogUniform;
 
 #ifndef NDEBUG
-- (NSString *) descriptionForObjDumpBasic;
-- (NSString *) descriptionForObjDump;
+- (NSString*)descriptionForObjDumpBasic;
+- (NSString*)descriptionForObjDump;
 
-- (NSSet *) allTextures;
+- (NSSet*)allTextures;
 #endif
 
 @end
@@ -308,31 +298,29 @@ enum OOScanClass
 // Methods that must be supported by entities with beacons, regardless of type.
 @protocol OOBeaconEntity
 
-- (NSComparisonResult) compareBeaconCodeWith:(Entity <OOBeaconEntity>*) other;
-- (NSString *) beaconCode;
-- (void) setBeaconCode:(NSString *)bcode;
-- (NSString *) beaconLabel;
-- (void) setBeaconLabel:(NSString *)blabel;
-- (BOOL) isBeacon;
-- (id <OOHUDBeaconIcon>) beaconDrawable;
-- (Entity <OOBeaconEntity> *) prevBeacon;
-- (Entity <OOBeaconEntity> *) nextBeacon;
-- (void) setPrevBeacon:(Entity <OOBeaconEntity> *)beaconShip;
-- (void) setNextBeacon:(Entity <OOBeaconEntity> *)beaconShip;
-- (BOOL) isJammingScanning;
+- (NSComparisonResult)compareBeaconCodeWith:(Entity<OOBeaconEntity>*)other;
+- (NSString*)beaconCode;
+- (void)setBeaconCode:(NSString*)bcode;
+- (NSString*)beaconLabel;
+- (void)setBeaconLabel:(NSString*)blabel;
+- (BOOL)isBeacon;
+- (id<OOHUDBeaconIcon>)beaconDrawable;
+- (Entity<OOBeaconEntity>*)prevBeacon;
+- (Entity<OOBeaconEntity>*)nextBeacon;
+- (void)setPrevBeacon:(Entity<OOBeaconEntity>*)beaconShip;
+- (void)setNextBeacon:(Entity<OOBeaconEntity>*)beaconShip;
+- (BOOL)isJammingScanning;
 
 @end
 
-
-enum
-{
-	// Values used for unknown strings.
-	kOOEntityStatusDefault		= STATUS_INACTIVE,
-	kOOScanClassDefault			= CLASS_NOT_SET
+enum {
+    // Values used for unknown strings.
+    kOOEntityStatusDefault = STATUS_INACTIVE,
+    kOOScanClassDefault = CLASS_NOT_SET
 };
 
-NSString *OOStringFromEntityStatus(OOEntityStatus status) CONST_FUNC;
-OOEntityStatus OOEntityStatusFromString(NSString *string) PURE_FUNC;
+NSString* OOStringFromEntityStatus(OOEntityStatus status) CONST_FUNC;
+OOEntityStatus OOEntityStatusFromString(NSString* string) PURE_FUNC;
 
-NSString *OOStringFromScanClass(OOScanClass scanClass) CONST_FUNC;
-OOScanClass OOScanClassFromString(NSString *string) PURE_FUNC;
+NSString* OOStringFromScanClass(OOScanClass scanClass) CONST_FUNC;
+OOScanClass OOScanClassFromString(NSString* string) PURE_FUNC;

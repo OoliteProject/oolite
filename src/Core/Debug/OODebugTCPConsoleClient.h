@@ -27,46 +27,41 @@ SOFTWARE.
 
 */
 
-#import "OOFoundation.h"
 #import "OODebuggerInterface.h"
+#import "OOFoundation.h"
 
 @class OODebugMonitor;
 
-
-typedef enum
-{
-	kOOTCPClientNotConnected,
-	kOOTCPClientStartedConnectionStage1,
-	kOOTCPClientStartedConnectionStage2,
-	kOOTCPClientConnected,
-	kOOTCPClientConnectionRefused,
-	kOOTCPClientDisconnected
+typedef enum {
+    kOOTCPClientNotConnected,
+    kOOTCPClientStartedConnectionStage1,
+    kOOTCPClientStartedConnectionStage2,
+    kOOTCPClientConnected,
+    kOOTCPClientConnectionRefused,
+    kOOTCPClientDisconnected
 } OOTCPClientConnectionStatus;
 
-
-@interface OODebugTCPConsoleClient: NSObject <OODebuggerInterface>
-{
+@interface OODebugTCPConsoleClient : NSObject <OODebuggerInterface> {
 @private
-	NSHost						*_host;
-	NSOutputStream				*_outStream;
-	NSInputStream				*_inStream;
-	OOTCPClientConnectionStatus	_status;
-	OODebugMonitor				*_monitor;
-	struct OOTCPStreamDecoder	*_decoder;
+    NSHost* _host;
+    NSOutputStream* _outStream;
+    NSInputStream* _inStream;
+    OOTCPClientConnectionStatus _status;
+    OODebugMonitor* _monitor;
+    struct OOTCPStreamDecoder* _decoder;
 }
 
-- (id) initWithAddress:(NSString *)address	// Pass nil for localhost
-				  port:(uint16_t)port;		// Pass 0 for default port
+- (id)initWithAddress:(NSString*)address // Pass nil for localhost
+                 port:(uint16_t)port; // Pass 0 for default port
 
 @end
-
 
 #if OOLITE_MAC_OS_X
 
 /*
-	Declare conformance to NSStreamDelegate, which is a formal protocol starting
-	in the Mac OS X 10.6 SDK. At the time of writing, it's still an informal
-	protocol in GNUstep trunk. -- Ahruman 2012-01-07
+        Declare conformance to NSStreamDelegate, which is a formal protocol starting
+        in the Mac OS X 10.6 SDK. At the time of writing, it's still an informal
+        protocol in GNUstep trunk. -- Ahruman 2012-01-07
 */
 @interface OODebugTCPConsoleClient (NSStreamDelegate) <NSStreamDelegate>
 @end

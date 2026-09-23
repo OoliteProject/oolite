@@ -24,127 +24,116 @@ MA 02110-1301, USA.
 
 #include "OOMaths.h"
 
+const Vector kZeroVector = { 0.0f, 0.0f, 0.0f };
+const Vector kBasisXVector = { 1.0f, 0.0f, 0.0f };
+const Vector kBasisYVector = { 0.0f, 1.0f, 0.0f };
+const Vector kBasisZVector = { 0.0f, 0.0f, 1.0f };
 
-const Vector			kZeroVector = { 0.0f, 0.0f, 0.0f };
-const Vector			kBasisXVector = { 1.0f, 0.0f, 0.0f };
-const Vector			kBasisYVector = { 0.0f, 1.0f, 0.0f };
-const Vector			kBasisZVector = { 0.0f, 0.0f, 1.0f };
+const Vector2D kZeroVector2D = { 0.0f, 0.0f };
+const Vector2D kBasisXVector2D = { 1.0f, 0.0f };
+const Vector2D kBasisYVector2D = { 0.0f, 1.0f };
 
-const Vector2D			kZeroVector2D = { 0.0f, 0.0f };
-const Vector2D			kBasisXVector2D = { 1.0f, 0.0f };
-const Vector2D			kBasisYVector2D = { 0.0f, 1.0f };
-
-const BoundingBox		kZeroBoundingBox = {{ 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }};
-
+const BoundingBox kZeroBoundingBox = { { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };
 
 #if __OBJC__
-NSString *VectorDescription(Vector vector)
+NSString* VectorDescription(Vector vector)
 {
-	return [NSString stringWithFormat:@"(%g, %g, %g)", vector.x, vector.y, vector.z];
+    return [NSString stringWithFormat:@"(%g, %g, %g)", vector.x, vector.y, vector.z];
 }
 
 @implementation OONativeVector
 
-- (id) initWithVector:(Vector)vect
+- (id)initWithVector:(Vector)vect
 {
-	self = [super init];
-	if (EXPECT_NOT(self == nil))  return nil;
+    self = [super init];
+    if (EXPECT_NOT(self == nil))
+        return nil;
 
-	v = vect;
+    v = vect;
 
-	return self;
+    return self;
 }
 
-- (Vector) getVector
+- (Vector)getVector
 {
-	return v;
+    return v;
 }
-
 
 @end
 
 #endif
 
-
-
 /*	This generates random vectors distrubuted evenly over the surface of the
-	unit sphere. It does this the simple way, by generating vectors in the
-	half-unit cube and rejecting those outside the half-unit sphere (and the
-	zero vector), then normalizing the result. (Half-unit measures are used
-	to avoid unnecessary multiplications of randf() values.)
-	
-	In principle, using three normally-distributed co-ordinates (and again
-	normalizing the result) would provide the right result without looping, but
-	I don't trust bellf() so I'll go with the simple approach for now.
+        unit sphere. It does this the simple way, by generating vectors in the
+        half-unit cube and rejecting those outside the half-unit sphere (and the
+        zero vector), then normalizing the result. (Half-unit measures are used
+        to avoid unnecessary multiplications of randf() values.)
+
+        In principle, using three normally-distributed co-ordinates (and again
+        normalizing the result) would provide the right result without looping, but
+        I don't trust bellf() so I'll go with the simple approach for now.
 */
 Vector OORandomUnitVector(void)
 {
-	Vector				v;
-	float				m;
-	
-	do
-	{
-		v = make_vector(randf() - 0.5f, randf() - 0.5f, randf() - 0.5f);
-		m = magnitude2(v);
-	}
-	while (m > 0.25f || m == 0.0f);	// We're confining to a sphere of radius 0.5 using the sqared magnitude; 0.5 squared is 0.25.
-	
-	return vector_normal(v);
-}
+    Vector v;
+    float m;
 
+    do {
+        v = make_vector(randf() - 0.5f, randf() - 0.5f, randf() - 0.5f);
+        m = magnitude2(v);
+    } while (m > 0.25f || m == 0.0f); // We're confining to a sphere of radius 0.5 using the sqared magnitude; 0.5 squared is 0.25.
+
+    return vector_normal(v);
+}
 
 Vector OOVectorRandomSpatial(OOScalar maxLength)
 {
-	Vector				v;
-	float				m;
-	
-	do
-	{
-		v = make_vector(randf() - 0.5f, randf() - 0.5f, randf() - 0.5f);
-		m = magnitude2(v);
-	}
-	while (m > 0.25f);	// We're confining to a sphere of radius 0.5 using the sqared magnitude; 0.5 squared is 0.25.
-	
-	return vector_multiply_scalar(v, maxLength * 2.0f);	// 2.0 is to compensate for the 0.5-radius sphere.
-}
+    Vector v;
+    float m;
 
+    do {
+        v = make_vector(randf() - 0.5f, randf() - 0.5f, randf() - 0.5f);
+        m = magnitude2(v);
+    } while (m > 0.25f); // We're confining to a sphere of radius 0.5 using the sqared magnitude; 0.5 squared is 0.25.
+
+    return vector_multiply_scalar(v, maxLength * 2.0f); // 2.0 is to compensate for the 0.5-radius sphere.
+}
 
 Vector OOVectorRandomRadial(OOScalar maxLength)
 {
-	return vector_multiply_scalar(OORandomUnitVector(), randf() * maxLength);
+    return vector_multiply_scalar(OORandomUnitVector(), randf() * maxLength);
 }
-
 
 Vector OORandomPositionInBoundingBox(BoundingBox bb)
 {
-	Vector result;
-	result.x = bb.min.x + randf() * (bb.max.x - bb.min.x);
-	result.y = bb.min.y + randf() * (bb.max.y - bb.min.y);
-	result.z = bb.min.z + randf() * (bb.max.z - bb.min.z);
-	return result;
+    Vector result;
+    result.x = bb.min.x + randf() * (bb.max.x - bb.min.x);
+    result.y = bb.min.y + randf() * (bb.max.y - bb.min.y);
+    result.z = bb.min.z + randf() * (bb.max.z - bb.min.z);
+    return result;
 }
 
 // only need high precision versions of these
 /*Vector OORandomPositionInCylinder(Vector centre1, OOScalar exclusion1, Vector centre2, OOScalar exclusion2, OOScalar radius)
 {
-	OOScalar exc12 = exclusion1*exclusion1;
-	OOScalar exc22 = exclusion2*exclusion2;
-	Vector result;
-	do
-	{
-		result = vector_add(OOVectorInterpolate(centre1,centre2,randf()),OOVectorRandomSpatial(radius));
-	}
-	while(distance2(result,centre1)<exc12 || distance2(result,centre2)<exc22);
-	return result;
+        OOScalar exc12 = exclusion1*exclusion1;
+        OOScalar exc22 = exclusion2*exclusion2;
+        Vector result;
+        do
+        {
+                result = vector_add(OOVectorInterpolate(centre1,centre2,randf()),OOVectorRandomSpatial(radius));
+        }
+        while(distance2(result,centre1)<exc12 || distance2(result,centre2)<exc22);
+        return result;
 }
 
 Vector OORandomPositionInShell(Vector centre, OOScalar inner, OOScalar outer)
 {
-	Vector result;
-	OOScalar inner2 = inner*inner;
-	do
-	{
-		result = vector_add(centre,OOVectorRandomSpatial(outer));
-	} while(distance2(result,centre)<inner2);
-	return result;
-	}*/
+        Vector result;
+        OOScalar inner2 = inner*inner;
+        do
+        {
+                result = vector_add(centre,OOVectorRandomSpatial(outer));
+        } while(distance2(result,centre)<inner2);
+        return result;
+        }*/

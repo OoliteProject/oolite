@@ -28,36 +28,31 @@ SOFTWARE.
 #import "OOTextureGenerator.h"
 #import "OOAsyncWorkManager.h"
 
-
 @implementation OOTextureGenerator
 
-- (uint32_t) textureOptions
+- (uint32_t)textureOptions
 {
-	return kOOTextureDefaultOptions;
+    return kOOTextureDefaultOptions;
 }
 
-
-- (GLfloat) anisotropy
+- (GLfloat)anisotropy
 {
-	return kOOTextureDefaultAnisotropy;
+    return kOOTextureDefaultAnisotropy;
 }
 
-
-- (GLfloat) lodBias
+- (GLfloat)lodBias
 {
-	return kOOTextureDefaultLODBias;
+    return kOOTextureDefaultLODBias;
 }
 
-
-- (NSString *) cacheKey
+- (NSString*)cacheKey
 {
-	return nil;
+    return nil;
 }
 
-
-- (BOOL) enqueue
+- (BOOL)enqueue
 {
-	return [[OOAsyncWorkManager sharedAsyncWorkManager] addTask:self priority:kOOAsyncPriorityMedium];
+    return [[OOAsyncWorkManager sharedAsyncWorkManager] addTask:self priority:kOOAsyncPriorityMedium];
 }
 
 @end

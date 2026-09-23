@@ -32,227 +32,192 @@ SOFTWARE.
 
 @interface OOSoundChannel (Private)
 
-- (BOOL) enqueueBuffer:(OOSound *)sound;
-- (void) hasStopped;
-- (void) getNextSoundBuffer;
+- (BOOL)enqueueBuffer:(OOSound*)sound;
+- (void)hasStopped;
+- (void)getNextSoundBuffer;
 
 @end
 
-
 @implementation OOSoundChannel
 
-- (id) init
+- (id)init
 {
-	if ((self = [super init]))
-	{
-		ALuint error;
-		OOAL(alGenSources(1,&_source));
-		if ((error = alGetError()) != AL_NO_ERROR)
-		{
-			OOLog(kOOLogSoundInitError, @"%@", @"Could not create OpenAL source");
-			[self release];
-			self = nil;
-		}
-		else
-		{
-			// sources are all relative to listener, defaulting to zero vector
-			OOAL(alSourcei(_source, AL_SOURCE_RELATIVE, AL_TRUE));
-			OOAL(alSource3f(_source, AL_POSITION, 0.0f, 0.0f, 0.0f));
-		}
-	}
-	return self;
+    if ((self = [super init])) {
+        ALuint error;
+        OOAL(alGenSources(1, &_source));
+        if ((error = alGetError()) != AL_NO_ERROR) {
+            OOLog(kOOLogSoundInitError, @"%@", @"Could not create OpenAL source");
+            [self release];
+            self = nil;
+        } else {
+            // sources are all relative to listener, defaulting to zero vector
+            OOAL(alSourcei(_source, AL_SOURCE_RELATIVE, AL_TRUE));
+            OOAL(alSource3f(_source, AL_POSITION, 0.0f, 0.0f, 0.0f));
+        }
+    }
+    return self;
 }
 
-
-- (void) dealloc
+- (void)dealloc
 {
-	[self hasStopped]; // make sure buffers are dequeued and deleted
-	OOAL(alDeleteSources(1, &_source));
-	[super dealloc];
+    [self hasStopped]; // make sure buffers are dequeued and deleted
+    OOAL(alDeleteSources(1, &_source));
+    [super dealloc];
 }
 
-- (void) update
+- (void)update
 {
-	// Check if we've reached the end of a sound.
-	if (_sound != nil)
-	{
-		ALint check;
-		OOAL(alGetSourcei(_source,AL_SOURCE_STATE,&check));
-		if (check == AL_STOPPED)
-		{
-			[self hasStopped];
-		}
-		else if ([_sound soundIncomplete]) // streaming and not finished loading
-		{
-			OOLog(@"sound.buffer", @"Incomplete, trying next for %@", [_sound name]);
-			[self getNextSoundBuffer];
-		}
-		else if (_loop)
-		{
-			OOLog(@"sound.buffer", @"Looping, trying restart for %@", [_sound name]);
-			// sound is complete, but needs to be looped, so start it again
-			[_sound rewind];
-			[self getNextSoundBuffer];
-		}
-	}
+    // Check if we've reached the end of a sound.
+    if (_sound != nil) {
+        ALint check;
+        OOAL(alGetSourcei(_source, AL_SOURCE_STATE, &check));
+        if (check == AL_STOPPED) {
+            [self hasStopped];
+        } else if ([_sound soundIncomplete]) // streaming and not finished loading
+        {
+            OOLog(@"sound.buffer", @"Incomplete, trying next for %@", [_sound name]);
+            [self getNextSoundBuffer];
+        } else if (_loop) {
+            OOLog(@"sound.buffer", @"Looping, trying restart for %@", [_sound name]);
+            // sound is complete, but needs to be looped, so start it again
+            [_sound rewind];
+            [self getNextSoundBuffer];
+        }
+    }
 }
 
-
-- (void) getNextSoundBuffer
+- (void)getNextSoundBuffer
 {
-	if (!_bigSound)
-	{
-		// we've only loaded one buffer so far
-		_bigSound = YES;
-		_lastBuffer = _buffer;
-		[self enqueueBuffer:_sound];
-	}
-	else
-	{
-		// _lastBuffer has something in it, so only queue up
-		// another one if we've finished with that
-		ALint processed = 0;
-		OOAL(alGetSourcei(_source, AL_BUFFERS_PROCESSED, &processed));
-		if (processed > 0) // slot free
-		{
-			// dequeue and delete lastBuffer
-			ALuint buffer;
-			OOAL(alSourceUnqueueBuffers(_source, 1, &buffer));
-			assert(buffer == _lastBuffer);
-			OOAL(alDeleteBuffers(1,&_lastBuffer));
-			// shuffle along, and grab the next bit
-			_lastBuffer = _buffer;
-			[self enqueueBuffer:_sound];
-		}
-	}
+    if (!_bigSound) {
+        // we've only loaded one buffer so far
+        _bigSound = YES;
+        _lastBuffer = _buffer;
+        [self enqueueBuffer:_sound];
+    } else {
+        // _lastBuffer has something in it, so only queue up
+        // another one if we've finished with that
+        ALint processed = 0;
+        OOAL(alGetSourcei(_source, AL_BUFFERS_PROCESSED, &processed));
+        if (processed > 0) // slot free
+        {
+            // dequeue and delete lastBuffer
+            ALuint buffer;
+            OOAL(alSourceUnqueueBuffers(_source, 1, &buffer));
+            assert(buffer == _lastBuffer);
+            OOAL(alDeleteBuffers(1, &_lastBuffer));
+            // shuffle along, and grab the next bit
+            _lastBuffer = _buffer;
+            [self enqueueBuffer:_sound];
+        }
+    }
 }
 
-
-- (void) setDelegate:(id)delegate
+- (void)setDelegate:(id)delegate
 {
-	_delegate = delegate;
+    _delegate = delegate;
 }
 
-
-- (OOSoundChannel *) next
+- (OOSoundChannel*)next
 {
-	return _next;
+    return _next;
 }
 
-
-- (void) setNext:(OOSoundChannel *)next
+- (void)setNext:(OOSoundChannel*)next
 {
-	_next = next;
+    _next = next;
 }
 
-
-- (void) setPosition:(Vector) vector
+- (void)setPosition:(Vector)vector
 {
-	OOAL(alSource3f(_source, AL_POSITION, vector.x, vector.y, vector.z));
+    OOAL(alSource3f(_source, AL_POSITION, vector.x, vector.y, vector.z));
 }
 
-
-- (void) setGain:(float) gain
+- (void)setGain:(float)gain
 {
-	OOAL(alSourcef(_source, AL_GAIN, gain));
+    OOAL(alSourcef(_source, AL_GAIN, gain));
 }
 
-
-- (BOOL) playSound:(OOSound *)sound looped:(BOOL)loop
+- (BOOL)playSound:(OOSound*)sound looped:(BOOL)loop
 {
-	if (sound == nil)  return NO;
-	
-	if (_sound != nil)  [self stop];
+    if (sound == nil)
+        return NO;
 
-	_loop = loop;
-	_bigSound = NO;
-	[sound rewind];
-	if ([self enqueueBuffer:sound])
-	{
-		_sound = [sound retain];
-		return YES;
-	}
-	else
-	{
-		return NO;
-	}
+    if (_sound != nil)
+        [self stop];
+
+    _loop = loop;
+    _bigSound = NO;
+    [sound rewind];
+    if ([self enqueueBuffer:sound]) {
+        _sound = [sound retain];
+        return YES;
+    } else {
+        return NO;
+    }
 }
 
-
-- (void) stop
+- (void)stop
 {
-	if (_sound != nil)
-	{
-		OOAL(alSourceStop(_source));
-		OOAL(alSourcei(_source, AL_BUFFER, AL_NONE));
-		[self hasStopped];
-	}
+    if (_sound != nil) {
+        OOAL(alSourceStop(_source));
+        OOAL(alSourcei(_source, AL_BUFFER, AL_NONE));
+        [self hasStopped];
+    }
 }
 
-
-- (void) hasStopped
+- (void)hasStopped
 {
-	ALint queued;
-	OOAL(alGetSourcei(_source, AL_BUFFERS_QUEUED, &queued));
-    
-	while (queued--)
-	{
-		ALuint buffer;
-		OOAL(alSourceUnqueueBuffers(_source, 1, &buffer));
-	}
+    ALint queued;
+    OOAL(alGetSourcei(_source, AL_BUFFERS_QUEUED, &queued));
 
-	OOAL(alDeleteBuffers(1,&_buffer));
-	if (_bigSound)
-	{
-		// then we have two buffers to cleanup
-		OOAL(alDeleteBuffers(1,&_lastBuffer));
-	}
-	_bigSound = NO;
+    while (queued--) {
+        ALuint buffer;
+        OOAL(alSourceUnqueueBuffers(_source, 1, &buffer));
+    }
 
+    OOAL(alDeleteBuffers(1, &_buffer));
+    if (_bigSound) {
+        // then we have two buffers to cleanup
+        OOAL(alDeleteBuffers(1, &_lastBuffer));
+    }
+    _bigSound = NO;
 
-	OOSound *sound = _sound;
-	_sound = nil;
-	
-	if (nil != _delegate && [_delegate respondsToSelector:@selector(channel:didFinishPlayingSound:)])
-	{
-		[_delegate channel:self didFinishPlayingSound:sound];
-	}
-	[sound release];
+    OOSound* sound = _sound;
+    _sound = nil;
+
+    if (nil != _delegate && [_delegate respondsToSelector:@selector(channel:didFinishPlayingSound:)]) {
+        [_delegate channel:self didFinishPlayingSound:sound];
+    }
+    [sound release];
 }
 
-
-- (BOOL) enqueueBuffer:(OOSound *)sound
+- (BOOL)enqueueBuffer:(OOSound*)sound
 {
-	// get sound data
-	_buffer = [sound soundBuffer];
-	// bind sound data to buffer
-	OOAL(alSourceQueueBuffers(_source, 1, &_buffer));
-	ALuint error;
-	if ((error = alGetError()) != AL_NO_ERROR)
-	{
-		OOLog(@"ov.debug", @"Error %u queueing buffers (_source: %u (%p), _buffer: %u (%p))",
-							error, _source, &_source, _buffer, &_buffer);
-		return NO;
-	}
-	ALint playing = 0;
-	OOAL(alGetSourcei(_source,AL_SOURCE_STATE,&playing));
-	if (playing != AL_PLAYING)
-	{
-		OOAL(alSourcePlay(_source));
-		if ((error = alGetError()) != AL_NO_ERROR)
-		{
-			OOLog(@"ov.debug",@"Error %d playing source",error);
-			return NO;
-		}
-	}
-	return YES;
+    // get sound data
+    _buffer = [sound soundBuffer];
+    // bind sound data to buffer
+    OOAL(alSourceQueueBuffers(_source, 1, &_buffer));
+    ALuint error;
+    if ((error = alGetError()) != AL_NO_ERROR) {
+        OOLog(@"ov.debug", @"Error %u queueing buffers (_source: %u (%p), _buffer: %u (%p))",
+            error, _source, &_source, _buffer, &_buffer);
+        return NO;
+    }
+    ALint playing = 0;
+    OOAL(alGetSourcei(_source, AL_SOURCE_STATE, &playing));
+    if (playing != AL_PLAYING) {
+        OOAL(alSourcePlay(_source));
+        if ((error = alGetError()) != AL_NO_ERROR) {
+            OOLog(@"ov.debug", @"Error %d playing source", error);
+            return NO;
+        }
+    }
+    return YES;
 }
 
-
-
-- (OOSound *)sound
+- (OOSound*)sound
 {
-	return _sound;
+    return _sound;
 }
 
 @end

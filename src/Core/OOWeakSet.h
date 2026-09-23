@@ -25,33 +25,31 @@ This code is hereby placed in the public domain.
 #import "OOFoundation.h"
 #import "OOWeakReference.h"
 
-
-@interface OOWeakSet: NSObject <NSCopying, NSMutableCopying>
-{
+@interface OOWeakSet : NSObject <NSCopying, NSMutableCopying> {
 @private
-	NSMutableSet			*_objects;
+    NSMutableSet* _objects;
 }
 
-- (id) init;
-- (id) initWithCapacity:(NSUInteger)capacity;				// As with Foundation collections, capacity is only a hint.
+- (id)init;
+- (id)initWithCapacity:(NSUInteger)capacity; // As with Foundation collections, capacity is only a hint.
 
-+ (instancetype) set;
-+ (instancetype) setWithCapacity:(NSUInteger)capacity;
++ (instancetype)set;
++ (instancetype)setWithCapacity:(NSUInteger)capacity;
 
-- (NSUInteger) count;
-- (BOOL) containsObject:(id<OOWeakReferenceSupport>)object;
-- (NSEnumerator *) objectEnumerator;
+- (NSUInteger)count;
+- (BOOL)containsObject:(id<OOWeakReferenceSupport>)object;
+- (NSEnumerator*)objectEnumerator;
 
-- (void) addObject:(id<OOWeakReferenceSupport>)object;		// Unlike NSSet, adding nil fails silently.
-- (void) removeObject:(id<OOWeakReferenceSupport>)object;	// Like NSSet, does not complain if object is not already a member.
+- (void)addObject:(id<OOWeakReferenceSupport>)object; // Unlike NSSet, adding nil fails silently.
+- (void)removeObject:(id<OOWeakReferenceSupport>)object; // Like NSSet, does not complain if object is not already a member.
 
-- (void) addObjectsByEnumerating:(NSEnumerator *)enumerator;
+- (void)addObjectsByEnumerating:(NSEnumerator*)enumerator;
 
-- (void) makeObjectsPerformSelector:(SEL)selector;
-- (void) makeObjectsPerformSelector:(SEL)selector withObject:(id)argument;
+- (void)makeObjectsPerformSelector:(SEL)selector;
+- (void)makeObjectsPerformSelector:(SEL)selector withObject:(id)argument;
 
-- (NSArray *) allObjects;
+- (NSArray*)allObjects;
 
-- (void) removeAllObjects;
+- (void)removeAllObjects;
 
 @end

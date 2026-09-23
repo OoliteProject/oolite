@@ -21,7 +21,7 @@ argument), the second is the argument.
 
 
 A sanitized condition is an array of the form:
-	(opType, rawString, selector, comparisonType, operandArray).
+        (opType, rawString, selector, comparisonType, operandArray).
 
 opType and comparisonType are NSNumbers containing OOOperationType and
 OOComparisonType enumerators, respectively.
@@ -42,61 +42,61 @@ array. All other valid opTypes require the array to have five elements.
 
 A complete example: given the following script (the Cloaking Device mission
 script from Oolite 1.65):
-	(
-		{
-			conditions = (
-				"galaxy_number equal 4",
-				"status_string equal STATUS_EXITING_WITCHSPACE",
-				"mission_cloak undefined"
-			);
-			do = (
-				{
-					conditions = ("mission_cloakcounter undefined");
-					do = ("set: mission_cloakcounter 0");
-				},
-				"increment: mission_cloakcounter",
-				"checkForShips: asp-cloaked",
-				{
-					conditions = ("shipsFound_number equal 0", "mission_cloakcounter greaterthan 6");
-					do = ("addShips: asp-cloaked 1", "addShips: asp-pirate 2");
-				}
-			);
-		}
-	)
+        (
+                {
+                        conditions = (
+                                "galaxy_number equal 4",
+                                "status_string equal STATUS_EXITING_WITCHSPACE",
+                                "mission_cloak undefined"
+                        );
+                        do = (
+                                {
+                                        conditions = ("mission_cloakcounter undefined");
+                                        do = ("set: mission_cloakcounter 0");
+                                },
+                                "increment: mission_cloakcounter",
+                                "checkForShips: asp-cloaked",
+                                {
+                                        conditions = ("shipsFound_number equal 0", "mission_cloakcounter greaterthan 6");
+                                        do = ("addShips: asp-cloaked 1", "addShips: asp-pirate 2");
+                                }
+                        );
+                }
+        )
 the sanitized form (with rawString values replaced with "..." for simplicity) is:
-	(
-		(
-			true,	// This is a conditonal statement
-			(		// conditions
-				(OP_NUMBER, "...", "galaxy_number", COMPARISON_EQUAL, ((false, "4"))),
-				(OP_STRING, "...", "status_string", COMPARISON_EQUAL, ((false, "STATUS_EXITING_WITCHSPACE"))),
-				(OP_MISSION_VAR, "...", "mission_cloak", COMPARISON_UNDEFINED, ())
-			),
-			(		// do
-				(
-					true,
-					( (OP_MISSION_VAR, "...", "mission_cloakcounter", COMPARISON_UNDEFINED, ()) ),
-					( (false, "set:", "mission_cloakcounter 0") ),
-					()
-				),
-				(false, "increment:", "mission_cloakcounter"),
-				(false, "checkForShips:", "asp-cloaked"),
-				(true,
-					(
-						(OP_NUMBER, "...", "shipsFound_number", COMPARISON_EQUAL, ((false, "0"))),
-						(OP_MISSION_VAR, "...", "mission_cloakcounter, COMPARISON_GREATERTHAN, ((false, "6"))),
-					),
-					(
-						(false, "addShips:", "asp-cloaked 1"),
-						(false, "addShips:", "asp-pirate 2"),
-					),
-					()
-				)
-			),
-			()		// else
-		)
-	)
- 
+        (
+                (
+                        true,	// This is a conditonal statement
+                        (		// conditions
+                                (OP_NUMBER, "...", "galaxy_number", COMPARISON_EQUAL, ((false, "4"))),
+                                (OP_STRING, "...", "status_string", COMPARISON_EQUAL, ((false, "STATUS_EXITING_WITCHSPACE"))),
+                                (OP_MISSION_VAR, "...", "mission_cloak", COMPARISON_UNDEFINED, ())
+                        ),
+                        (		// do
+                                (
+                                        true,
+                                        ( (OP_MISSION_VAR, "...", "mission_cloakcounter", COMPARISON_UNDEFINED, ()) ),
+                                        ( (false, "set:", "mission_cloakcounter 0") ),
+                                        ()
+                                ),
+                                (false, "increment:", "mission_cloakcounter"),
+                                (false, "checkForShips:", "asp-cloaked"),
+                                (true,
+                                        (
+                                                (OP_NUMBER, "...", "shipsFound_number", COMPARISON_EQUAL, ((false, "0"))),
+                                                (OP_MISSION_VAR, "...", "mission_cloakcounter, COMPARISON_GREATERTHAN, ((false, "6"))),
+                                        ),
+                                        (
+                                                (false, "addShips:", "asp-cloaked 1"),
+                                                (false, "addShips:", "asp-pirate 2"),
+                                        ),
+                                        ()
+                                )
+                        ),
+                        ()		// else
+                )
+        )
+
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -120,18 +120,16 @@ MA 02110-1301, USA.
 
 #import "OOFoundation.h"
 
-
 // context is used for error messages.
-NSArray *OOSanitizeLegacyScript(NSArray *script, NSString *context, BOOL allowAIMethods);
-NSArray *OOSanitizeLegacyScriptConditions(NSArray *conditions, NSString *context);
-
+NSArray* OOSanitizeLegacyScript(NSArray* script, NSString* context, BOOL allowAIMethods);
+NSArray* OOSanitizeLegacyScriptConditions(NSArray* conditions, NSString* context);
 
 /*	Quick test of whether a conditions array is sanitized. It is assumed that
-	this will only be passed fully-sanitized or fully-unsanitized conditions
-	arrays, so the test doesn't need to be exhaustive.
-	
-	Note that OOLegacyConditionsAreSanitized() is *not* called by
-	OOSanitizeLegacyScript(), so that it is not possible to sneak an
-	unwhitelisted "pre-compiled" condition past it.
+        this will only be passed fully-sanitized or fully-unsanitized conditions
+        arrays, so the test doesn't need to be exhaustive.
+
+        Note that OOLegacyConditionsAreSanitized() is *not* called by
+        OOSanitizeLegacyScript(), so that it is not possible to sneak an
+        unwhitelisted "pre-compiled" condition past it.
 */
-BOOL OOLegacyConditionsAreSanitized(NSArray *conditions);
+BOOL OOLegacyConditionsAreSanitized(NSArray* conditions);

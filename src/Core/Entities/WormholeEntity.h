@@ -30,87 +30,85 @@ MA 02110-1301, USA.
 
 #import "Entity.h"
 
-#define WORMHOLE_EXPIRES_TIMEINTERVAL	900.0
-#define WORMHOLE_SHRINK_RATE			4000.0
+#define WORMHOLE_EXPIRES_TIMEINTERVAL 900.0
+#define WORMHOLE_SHRINK_RATE 4000.0
 #define WORMHOLE_LEADER_SPEED_FACTOR 0.25
 
 @class ShipEntity, Universe;
 
-typedef enum
-{
-	WH_SCANINFO_NONE = 0,
-	WH_SCANINFO_SCANNED,
-	WH_SCANINFO_COLLAPSE_TIME,
-	WH_SCANINFO_ARRIVAL_TIME,
-	WH_SCANINFO_DESTINATION,
-	WH_SCANINFO_SHIP,
+typedef enum {
+    WH_SCANINFO_NONE = 0,
+    WH_SCANINFO_SCANNED,
+    WH_SCANINFO_COLLAPSE_TIME,
+    WH_SCANINFO_ARRIVAL_TIME,
+    WH_SCANINFO_DESTINATION,
+    WH_SCANINFO_SHIP,
 } WORMHOLE_SCANINFO;
 
-@interface WormholeEntity: Entity
-{
+@interface WormholeEntity : Entity {
 @private
-	double			expiry_time;	// Time when wormhole entrance closes
-	double			travel_time;	// Time taken for a ship to traverse the wormhole
-	double			arrival_time;	// Time when wormhole exit opens
-	double			estimated_arrival_time;	// Time when wormhole should open (be different to arrival_time for misjump wormholes)
-	double			scan_time;		// Time when wormhole was scanned
-	
-	OOSystemID		origin;
-	OOSystemID		destination;
+    double expiry_time; // Time when wormhole entrance closes
+    double travel_time; // Time taken for a ship to traverse the wormhole
+    double arrival_time; // Time when wormhole exit opens
+    double estimated_arrival_time; // Time when wormhole should open (be different to arrival_time for misjump wormholes)
+    double scan_time; // Time when wormhole was scanned
 
-	NSPoint			originCoords;      // May not equal our origin system if the wormhole opens from Interstellar Space
-	NSPoint			destinationCoords; // May not equal the destination system if the wormhole misjumps
+    OOSystemID origin;
+    OOSystemID destination;
 
-	NSMutableArray	*shipsInTransit;
-	
-	double			witch_mass;
-	double			shrink_factor;	// used during nova mission
-// not used yet
-	double      exit_speed; // exit speed of ships in this wormhole
-	
-	WORMHOLE_SCANINFO	scan_info;
-	BOOL			hasExitPosition;
-	BOOL			_misjump;
-	GLfloat   _misjumpRange;
-  BOOL      containsPlayer;
+    NSPoint originCoords; // May not equal our origin system if the wormhole opens from Interstellar Space
+    NSPoint destinationCoords; // May not equal the destination system if the wormhole misjumps
+
+    NSMutableArray* shipsInTransit;
+
+    double witch_mass;
+    double shrink_factor; // used during nova mission
+    // not used yet
+    double exit_speed; // exit speed of ships in this wormhole
+
+    WORMHOLE_SCANINFO scan_info;
+    BOOL hasExitPosition;
+    BOOL _misjump;
+    GLfloat _misjumpRange;
+    BOOL containsPlayer;
 }
 
-- (WormholeEntity*) initWithDict:(NSDictionary*)dict;
-- (WormholeEntity*) initWormholeTo:(OOSystemID) s fromShip:(ShipEntity *) ship;
+- (WormholeEntity*)initWithDict:(NSDictionary*)dict;
+- (WormholeEntity*)initWormholeTo:(OOSystemID)s fromShip:(ShipEntity*)ship;
 
-- (BOOL) suckInShip:(ShipEntity *) ship;
-- (void) disgorgeShips;
-- (void) setExitPosition:(HPVector)pos;
+- (BOOL)suckInShip:(ShipEntity*)ship;
+- (void)disgorgeShips;
+- (void)setExitPosition:(HPVector)pos;
 
-- (OOSystemID) origin;
-- (OOSystemID) destination;
-- (NSPoint) originCoordinates;
-- (NSPoint) destinationCoordinates;
+- (OOSystemID)origin;
+- (OOSystemID)destination;
+- (NSPoint)originCoordinates;
+- (NSPoint)destinationCoordinates;
 
-- (void) setMisjump;	// Flags up a wormhole as 'misjumpy'
-- (void) setMisjumpWithRange:(GLfloat)range;	// Flags up a wormhole as 'misjumpy'
-- (BOOL) withMisjump;
-- (GLfloat) misjumpRange;
+- (void)setMisjump; // Flags up a wormhole as 'misjumpy'
+- (void)setMisjumpWithRange:(GLfloat)range; // Flags up a wormhole as 'misjumpy'
+- (BOOL)withMisjump;
+- (GLfloat)misjumpRange;
 
-- (double) exitSpeed;	// exit speed from this wormhole
-- (void) setExitSpeed:(double) speed;	// set exit speed from this wormhole
+- (double)exitSpeed; // exit speed from this wormhole
+- (void)setExitSpeed:(double)speed; // set exit speed from this wormhole
 
-- (double) expiryTime;	// Time at which the wormholes entrance closes
-- (double) arrivalTime;	// Time at which the wormholes exit opens
-- (double) estimatedArrivalTime;	// Time when wormhole should open (different from arrival_time for misjump wormholes)
-- (double) travelTime;	// Time needed for a ship to traverse the wormhole
-- (double) scanTime;	// Time when wormhole was scanned
-- (void) setScannedAt:(double)time;
-- (void) setContainsPlayer:(BOOL)val; // mark the wormhole as waiting for player exit
+- (double)expiryTime; // Time at which the wormholes entrance closes
+- (double)arrivalTime; // Time at which the wormholes exit opens
+- (double)estimatedArrivalTime; // Time when wormhole should open (different from arrival_time for misjump wormholes)
+- (double)travelTime; // Time needed for a ship to traverse the wormhole
+- (double)scanTime; // Time when wormhole was scanned
+- (void)setScannedAt:(double)time;
+- (void)setContainsPlayer:(BOOL)val; // mark the wormhole as waiting for player exit
 
-- (BOOL) isScanned;		// True if the wormhole has been scanned by the player
-- (WORMHOLE_SCANINFO) scanInfo; // Stage of scanning
-- (void)setScanInfo:(WORMHOLE_SCANINFO) scanInfo;
+- (BOOL)isScanned; // True if the wormhole has been scanned by the player
+- (WORMHOLE_SCANINFO)scanInfo; // Stage of scanning
+- (void)setScanInfo:(WORMHOLE_SCANINFO)scanInfo;
 
-- (NSArray*) shipsInTransit;
+- (NSArray*)shipsInTransit;
 
-- (NSString *) identFromShip:(ShipEntity*) ship;
+- (NSString*)identFromShip:(ShipEntity*)ship;
 
-- (NSDictionary *)getDict;
+- (NSDictionary*)getDict;
 
 @end

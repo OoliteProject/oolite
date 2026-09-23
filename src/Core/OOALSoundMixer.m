@@ -27,151 +27,132 @@ SOFTWARE.
 
 #include <assert.h>
 
-#import "OOALSoundMixer.h"
-#import "OOFoundation.h"
 #import "OOALSound.h"
 #import "OOALSoundChannel.h"
+#import "OOALSoundMixer.h"
+#import "OOFoundation.h"
 
-static OOSoundMixer *sSingleton = nil;
-
+static OOSoundMixer* sSingleton = nil;
 
 @implementation OOSoundMixer
 
-+ (id) sharedMixer
++ (id)sharedMixer
 {
-	if (nil == sSingleton)
-	{
-		[[self alloc] init];
-	}
-	return sSingleton;
+    if (nil == sSingleton) {
+        [[self alloc] init];
+    }
+    return sSingleton;
 }
 
-
-- (id) init
+- (id)init
 {
-	BOOL						OK = YES;
-	uint32_t					idx = 0, count = kMixerGeneralChannels;
-	OOSoundChannel				*channel;
-	
-	if (!(self = [super init]))  return nil;
-	if (![OOSound setUp])  OK = NO;
-	
-	if (OK)
-	{
-		// Allocate channels
-		do
-		{
-			channel = [[OOSoundChannel alloc] init];
-			if (nil != channel)
-			{
-				_channels[idx++] = channel;
-				[self pushChannel:channel];
-			}
-		}  while (--count);
-	}
-	
-	if (!OK)
-	{
-		[super release];
-// static analyser complains about this next line; probably nothing - CIM
-		self = nil;
-	}
-	else
-	{
-		sSingleton = self;
-	}
-	
-	return sSingleton;
-}
+    BOOL OK = YES;
+    uint32_t idx = 0, count = kMixerGeneralChannels;
+    OOSoundChannel* channel;
 
+    if (!(self = [super init]))
+        return nil;
+    if (![OOSound setUp])
+        OK = NO;
+
+    if (OK) {
+        // Allocate channels
+        do {
+            channel = [[OOSoundChannel alloc] init];
+            if (nil != channel) {
+                _channels[idx++] = channel;
+                [self pushChannel:channel];
+            }
+        } while (--count);
+    }
+
+    if (!OK) {
+        [super release];
+        // static analyser complains about this next line; probably nothing - CIM
+        self = nil;
+    } else {
+        sSingleton = self;
+    }
+
+    return sSingleton;
+}
 
 // only to be called at app shutdown by OOOpenALController::shutdown
-- (void) shutdown
+- (void)shutdown
 {
-	uint32_t i;
-	for (i = 0; i < kMixerGeneralChannels; ++i)
-	{
-		DESTROY(_channels[i]);
-	}
+    uint32_t i;
+    for (i = 0; i < kMixerGeneralChannels; ++i) {
+        DESTROY(_channels[i]);
+    }
 }
 
-
-- (void) update
+- (void)update
 {
-	uint32_t i;
-	for (i = 0; i < kMixerGeneralChannels; ++i)
-	{
-		[_channels[i] update];
-	}
+    uint32_t i;
+    for (i = 0; i < kMixerGeneralChannels; ++i) {
+        [_channels[i] update];
+    }
 }
 
-
-- (OOSoundChannel *) popChannel
+- (OOSoundChannel*)popChannel
 {
-	OOSoundChannel *channel = _freeList;
-	_freeList = [channel next];
-	[channel setNext:nil];
-	
-	return channel;
+    OOSoundChannel* channel = _freeList;
+    _freeList = [channel next];
+    [channel setNext:nil];
+
+    return channel;
 }
 
-
-- (void) pushChannel:(OOSoundChannel *)channel
+- (void)pushChannel:(OOSoundChannel*)channel
 {
-	assert(channel != nil);
-	
-	[channel setNext:_freeList];
-	_freeList = channel;
+    assert(channel != nil);
+
+    [channel setNext:_freeList];
+    _freeList = channel;
 }
 
 @end
 
-
 @implementation OOSoundMixer (Singleton)
 
 /*	Canonical singleton boilerplate.
-	See Cocoa Fundamentals Guide: Creating a Singleton Instance.
-	See also +sharedMixer above.
-	
-	NOTE: assumes single-threaded access.
+        See Cocoa Fundamentals Guide: Creating a Singleton Instance.
+        See also +sharedMixer above.
+
+        NOTE: assumes single-threaded access.
 */
 
-+ (id)allocWithZone:(NSZone *)inZone
++ (id)allocWithZone:(NSZone*)inZone
 {
-	if (sSingleton == nil)
-	{
-		sSingleton = [super allocWithZone:inZone];
-		return sSingleton;
-	}
-	return nil;
+    if (sSingleton == nil) {
+        sSingleton = [super allocWithZone:inZone];
+        return sSingleton;
+    }
+    return nil;
 }
 
-
-- (id)copyWithZone:(NSZone *)inZone
+- (id)copyWithZone:(NSZone*)inZone
 {
-	return self;
+    return self;
 }
-
 
 - (id)retain
 {
-	return self;
+    return self;
 }
-
 
 - (NSUInteger)retainCount
 {
-	return UINT_MAX;
+    return UINT_MAX;
 }
 
-
 - (void)release
-{}
-
+{
+}
 
 - (id)autorelease
 {
-	return self;
+    return self;
 }
 
 @end

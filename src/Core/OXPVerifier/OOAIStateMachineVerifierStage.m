@@ -31,180 +31,169 @@ MA 02110-1301, USA.
 
 #import "ResourceManager.h"
 
-static NSString * const kStageName	= @"Validating AIs";
-
+static NSString* const kStageName = @"Validating AIs";
 
 @interface OOAIStateMachineVerifierStage (Private)
 
-- (void) validateAI:(NSString *)aiName;
+- (void)validateAI:(NSString*)aiName;
 
 @end
-
 
 @implementation OOAIStateMachineVerifierStage
 
-- (void) dealloc
+- (void)dealloc
 {
-	[_whitelist release];
-	[_usedAIs release];
-	
-	[super dealloc];
+    [_whitelist release];
+    [_usedAIs release];
+
+    [super dealloc];
 }
 
-
-- (NSString *) name
+- (NSString*)name
 {
-	return kStageName;
+    return kStageName;
 }
 
-
-- (BOOL) shouldRun
+- (BOOL)shouldRun
 {
-	return [_usedAIs count] != 0;
+    return [_usedAIs count] != 0;
 }
 
-
-- (void) run
+- (void)run
 {
-	NSArray						*aiNames = nil;
-	NSString					*aiName = nil;
-	NSMutableSet				*whitelist = nil;
-	
-	// Build whitelist. Note that we merge in aliases since the distinction doesn't matter when just validating.
-	whitelist = [[NSMutableSet alloc] init];
-	[whitelist addObjectsFromArray:[[ResourceManager whitelistDictionary] oo_arrayForKey:@"ai_methods"]];
-	[whitelist addObjectsFromArray:[[ResourceManager whitelistDictionary] oo_arrayForKey:@"ai_and_action_methods"]];
-	[whitelist addObjectsFromArray:[[[ResourceManager whitelistDictionary] oo_dictionaryForKey:@"ai_method_aliases"] allKeys]];
-	_whitelist = [whitelist copy];
-	[whitelist release];
-	
-	aiNames = [[_usedAIs allObjects] sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)];
-	foreach (aiName, aiNames)
-	{
-		[self validateAI:aiName];
-	}
-	
-	[_whitelist release];
-	_whitelist = nil;
+    NSArray* aiNames = nil;
+    NSString* aiName = nil;
+    NSMutableSet* whitelist = nil;
+
+    // Build whitelist. Note that we merge in aliases since the distinction doesn't matter when just validating.
+    whitelist = [[NSMutableSet alloc] init];
+    [whitelist addObjectsFromArray:[[ResourceManager whitelistDictionary] oo_arrayForKey:@"ai_methods"]];
+    [whitelist addObjectsFromArray:[[ResourceManager whitelistDictionary] oo_arrayForKey:@"ai_and_action_methods"]];
+    [whitelist addObjectsFromArray:[[[ResourceManager whitelistDictionary] oo_dictionaryForKey:@"ai_method_aliases"] allKeys]];
+    _whitelist = [whitelist copy];
+    [whitelist release];
+
+    aiNames = [[_usedAIs allObjects] sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)];
+    foreach (aiName, aiNames) {
+        [self validateAI:aiName];
+    }
+
+    [_whitelist release];
+    _whitelist = nil;
 }
 
-
-+ (NSString *) nameForReverseDependencyForVerifier:(OOOXPVerifier *)verifier
++ (NSString*)nameForReverseDependencyForVerifier:(OOOXPVerifier*)verifier
 {
-	return kStageName;
+    return kStageName;
 }
 
-
-- (void) stateMachineNamed:(NSString *)name usedByShip:(NSString *)shipName
+- (void)stateMachineNamed:(NSString*)name usedByShip:(NSString*)shipName
 {
-	OOFileScannerVerifierStage	*fileScanner = nil;
-	
-	if (name == nil)  return;
-	if ([_usedAIs containsObject:name])  return;
-	if (_usedAIs == nil)  _usedAIs = [[NSMutableSet alloc] init];
-	[_usedAIs addObject:name];
-	
-	fileScanner = [[self verifier] fileScannerStage];
-	if (![fileScanner fileExists:name
-						inFolder:@"AIs"
-				  referencedFrom:[NSString stringWithFormat:@"shipdata.plist entry \"%@\"", shipName]
-					checkBuiltIn:YES])
-	{
-		OOLog(@"verifyOXP.validateAI.notFound", @"----- WARNING: AI state machine \"%@\" referenced in shipdata.plist entry \"%@\" could not be found in %@ or in Oolite.", name, shipName, [[self verifier] oxpDisplayName]);
-	}
+    OOFileScannerVerifierStage* fileScanner = nil;
+
+    if (name == nil)
+        return;
+    if ([_usedAIs containsObject:name])
+        return;
+    if (_usedAIs == nil)
+        _usedAIs = [[NSMutableSet alloc] init];
+    [_usedAIs addObject:name];
+
+    fileScanner = [[self verifier] fileScannerStage];
+    if (![fileScanner fileExists:name
+                        inFolder:@"AIs"
+                  referencedFrom:[NSString stringWithFormat:@"shipdata.plist entry \"%@\"", shipName]
+                    checkBuiltIn:YES]) {
+        OOLog(@"verifyOXP.validateAI.notFound", @"----- WARNING: AI state machine \"%@\" referenced in shipdata.plist entry \"%@\" could not be found in %@ or in Oolite.", name, shipName, [[self verifier] oxpDisplayName]);
+    }
 }
 
 @end
 
-
 @implementation OOAIStateMachineVerifierStage (Private)
 
-- (void) validateAI:(NSString *)aiName
+- (void)validateAI:(NSString*)aiName
 {
-	NSString				*path = nil;
-	NSDictionary			*aiStateMachine = nil;
-	NSString				*stateKey = nil;
-	NSDictionary			*stateHandlers = nil;
-	NSString				*handlerKey = nil;
-	NSArray					*handlerActions = nil;
-	NSString				*action = nil;
-	NSRange					spaceRange;
-	NSString				*selector = nil;
-	NSMutableSet			*badSelectors = nil;
-	NSString				*badSelectorDesc = nil;
-	NSUInteger				index = 0;
-	
-	OOLog(@"verifyOXP.verbose.validateAI", @"- Validating AI \"%@\".", aiName);
-	OOLogIndentIf(@"verifyOXP.verbose.validateAI");
-	
-	// Attempt to load AI.
-	path = [[[self verifier] fileScannerStage] pathForFile:aiName inFolder:@"AIs" referencedFrom:@"AI list" checkBuiltIn:NO];
-	if (path == nil)  return;
-	
-	badSelectors = [NSMutableSet set];
-	
-	aiStateMachine = OODictionaryFromFile(path);
-	if (aiStateMachine == nil)
-	{
-		OOLog(@"verifyOXP.validateAI.failed.notDictPlist", @"***** ERROR: could not interpret \"%@\" as a dictionary.", path);
-		return;
-	}
-	
-	// Validate each state.
-	foreachkey (stateKey, aiStateMachine)
-	{
-		stateHandlers = [aiStateMachine objectForKey:stateKey];
-		if (![stateHandlers isKindOfClass:[NSDictionary class]])
-		{
-			OOLog(@"verifyOXP.validateAI.failed.invalidFormat.state", @"***** ERROR: state \"%@\" in AI \"%@\" is not a dictionary.", stateKey, aiName);
-			continue;
-		}
-		
-		// Verify handlers for this state.
-		foreachkey (handlerKey, stateHandlers)
-		{
-			handlerActions = [stateHandlers objectForKey:handlerKey];
-			if (![handlerActions isKindOfClass:[NSArray class]])
-			{
-				OOLog(@"verifyOXP.validateAI.failed.invalidFormat.handler", @"***** ERROR: handler \"%@\" for state \"%@\" in AI \"%@\" is not an array, ignoring.", handlerKey, stateKey, aiName);
-				continue;
-			}
-			
-			// Verify commands for this handler.
-			index = 0;
-			foreach (action, handlerActions)
-			{
-				index++;
-				if (![action isKindOfClass:[NSString class]])
-				{
-					OOLog(@"verifyOXP.validateAI.failed.invalidFormat.action", @"***** ERROR: action %zu in handler \"%@\" for state \"%@\" in AI \"%@\" is not a string, ignoring.", index - 1, handlerKey, stateKey, aiName);
-					continue;
-				}
-				
-				// Trim spaces from beginning and end.
-				action = [action stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
-				
-				// Cut off parameters.
-				spaceRange = [action rangeOfString:@" "];
-				if (spaceRange.location == NSNotFound)  selector = action;
-				else  selector = [action substringToIndex:spaceRange.location];
-				
-				// Check against whitelist.
-				if (![_whitelist containsObject:selector])
-				{
-					[badSelectors addObject:selector];
-				}
-			}
-		}
-	}
-	
-	if ([badSelectors count] != 0)
-	{
-		badSelectorDesc = [[[badSelectors allObjects] sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)] componentsJoinedByString:@", "];
-		OOLog(@"verifyOXP.validateAI.failed.badSelector", @"***** ERROR: the AI \"%@\" uses %zu unpermitted method%s: %@", aiName, [badSelectors count], ([badSelectors count] == 1) ? "" : "s", badSelectorDesc);
-	}
-	
-	OOLogOutdentIf(@"verifyOXP.verbose.validateAI");
+    NSString* path = nil;
+    NSDictionary* aiStateMachine = nil;
+    NSString* stateKey = nil;
+    NSDictionary* stateHandlers = nil;
+    NSString* handlerKey = nil;
+    NSArray* handlerActions = nil;
+    NSString* action = nil;
+    NSRange spaceRange;
+    NSString* selector = nil;
+    NSMutableSet* badSelectors = nil;
+    NSString* badSelectorDesc = nil;
+    NSUInteger index = 0;
+
+    OOLog(@"verifyOXP.verbose.validateAI", @"- Validating AI \"%@\".", aiName);
+    OOLogIndentIf(@"verifyOXP.verbose.validateAI");
+
+    // Attempt to load AI.
+    path = [[[self verifier] fileScannerStage] pathForFile:aiName inFolder:@"AIs" referencedFrom:@"AI list" checkBuiltIn:NO];
+    if (path == nil)
+        return;
+
+    badSelectors = [NSMutableSet set];
+
+    aiStateMachine = OODictionaryFromFile(path);
+    if (aiStateMachine == nil) {
+        OOLog(@"verifyOXP.validateAI.failed.notDictPlist", @"***** ERROR: could not interpret \"%@\" as a dictionary.", path);
+        return;
+    }
+
+    // Validate each state.
+    foreachkey(stateKey, aiStateMachine)
+    {
+        stateHandlers = [aiStateMachine objectForKey:stateKey];
+        if (![stateHandlers isKindOfClass:[NSDictionary class]]) {
+            OOLog(@"verifyOXP.validateAI.failed.invalidFormat.state", @"***** ERROR: state \"%@\" in AI \"%@\" is not a dictionary.", stateKey, aiName);
+            continue;
+        }
+
+        // Verify handlers for this state.
+        foreachkey(handlerKey, stateHandlers)
+        {
+            handlerActions = [stateHandlers objectForKey:handlerKey];
+            if (![handlerActions isKindOfClass:[NSArray class]]) {
+                OOLog(@"verifyOXP.validateAI.failed.invalidFormat.handler", @"***** ERROR: handler \"%@\" for state \"%@\" in AI \"%@\" is not an array, ignoring.", handlerKey, stateKey, aiName);
+                continue;
+            }
+
+            // Verify commands for this handler.
+            index = 0;
+            foreach (action, handlerActions) {
+                index++;
+                if (![action isKindOfClass:[NSString class]]) {
+                    OOLog(@"verifyOXP.validateAI.failed.invalidFormat.action", @"***** ERROR: action %zu in handler \"%@\" for state \"%@\" in AI \"%@\" is not a string, ignoring.", index - 1, handlerKey, stateKey, aiName);
+                    continue;
+                }
+
+                // Trim spaces from beginning and end.
+                action = [action stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+
+                // Cut off parameters.
+                spaceRange = [action rangeOfString:@" "];
+                if (spaceRange.location == NSNotFound)
+                    selector = action;
+                else
+                    selector = [action substringToIndex:spaceRange.location];
+
+                // Check against whitelist.
+                if (![_whitelist containsObject:selector]) {
+                    [badSelectors addObject:selector];
+                }
+            }
+        }
+    }
+
+    if ([badSelectors count] != 0) {
+        badSelectorDesc = [[[badSelectors allObjects] sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)] componentsJoinedByString:@", "];
+        OOLog(@"verifyOXP.validateAI.failed.badSelector", @"***** ERROR: the AI \"%@\" uses %zu unpermitted method%s: %@", aiName, [badSelectors count], ([badSelectors count] == 1) ? "" : "s", badSelectorDesc);
+    }
+
+    OOLogOutdentIf(@"verifyOXP.verbose.validateAI");
 }
 
 @end

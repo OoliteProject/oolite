@@ -25,35 +25,33 @@ MA 02110-1301, USA.
 
 */
 
-#import "ShipEntity.h"
-#import "OOTypes.h"
-#import "OOTexture.h"
 #import "OOMaths.h"
+#import "OOTexture.h"
+#import "OOTypes.h"
+#import "ShipEntity.h"
 
 @class OOColor;
 
-
-@interface OOLaserShotEntity: Entity
-{
+@interface OOLaserShotEntity : Entity {
 @private
-	GLfloat					_color[4];
-	OOTimeDelta				_lifetime;
-	GLfloat					_range;
-	Vector					_offset;
-	Quaternion				_relOrientation;
+    GLfloat _color[4];
+    OOTimeDelta _lifetime;
+    GLfloat _range;
+    Vector _offset;
+    Quaternion _relOrientation;
 }
 
-+ (instancetype) laserFromShip:(ShipEntity *)ship direction:(OOWeaponFacing)direction offset:(Vector)offset;
++ (instancetype)laserFromShip:(ShipEntity*)ship direction:(OOWeaponFacing)direction offset:(Vector)offset;
 
-- (void) setColor:(OOColor *)color;
+- (void)setColor:(OOColor*)color;
 
-- (void) setRange:(GLfloat)range;
+- (void)setRange:(GLfloat)range;
 
-- (OOTexture *) texture1;
-- (OOTexture *) texture2;
+- (OOTexture*)texture1;
+- (OOTexture*)texture2;
 
-+ (void) setUpTexture;
-+ (OOTexture *) innerTexture;
-+ (OOTexture *) outerTexture;
++ (void)setUpTexture;
++ (OOTexture*)innerTexture;
++ (OOTexture*)outerTexture;
 
 @end

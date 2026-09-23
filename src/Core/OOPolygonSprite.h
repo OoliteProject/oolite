@@ -28,43 +28,39 @@ SOFTWARE.
 
 */
 
-
 #import "OOFoundation.h"
 #import "OOOpenGL.h"
 #import "OOOpenGLExtensionManager.h"
 
-
-@interface OOPolygonSprite: NSObject
-{
+@interface OOPolygonSprite : NSObject {
 @private
-	GLfloat					*_solidData;
-	size_t					_solidCount;
-	GLfloat					*_outlineData;
-	size_t					_outlineCount;
-	
+    GLfloat* _solidData;
+    size_t _solidCount;
+    GLfloat* _outlineData;
+    size_t _outlineCount;
+
 #if OO_USE_VBO
-	GLuint					_solidVBO;
-	GLuint					_outlineVBO;
+    GLuint _solidVBO;
+    GLuint _outlineVBO;
 #endif
-	
+
 #ifndef NDEBUG
-	NSString				*_name;
+    NSString* _name;
 #endif
 }
 
 /*	DataArray is either an array of pairs of numbers, or an array of such
-	arrays (representing one or more contours).
-	OutlineWidth is the width of the tesselated outline, in the same scale as
-	the vertices.
-	Name is used for debugging only.
+        arrays (representing one or more contours).
+        OutlineWidth is the width of the tesselated outline, in the same scale as
+        the vertices.
+        Name is used for debugging only.
 */
-- (id) initWithDataArray:(NSArray *)dataArray outlineWidth:(GLfloat)outlineWidth name:(NSString *)name;
+- (id)initWithDataArray:(NSArray*)dataArray outlineWidth:(GLfloat)outlineWidth name:(NSString*)name;
 
-- (void) drawFilled;
-- (void) drawOutline;
+- (void)drawFilled;
+- (void)drawOutline;
 
 @end
-
 
 #import "HeadUpDisplay.h"
 

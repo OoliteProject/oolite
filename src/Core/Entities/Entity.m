@@ -24,1135 +24,1032 @@ MA 02110-1301, USA.
 
 #import "Entity.h"
 #import "EntityOOJavaScriptExtensions.h"
-#import "PlayerEntity.h"
 #import "OOPlanetEntity.h"
+#import "PlayerEntity.h"
 
-#import "OOMaths.h"
-#import "Universe.h"
 #import "GameController.h"
-#import "ResourceManager.h"
 #import "OOConstToString.h"
+#import "OOMaths.h"
+#import "ResourceManager.h"
+#import "Universe.h"
 
 #import "CollisionRegion.h"
 
+#import "NSObjectOOExtensions.h"
 #import "NSScannerOOExtensions.h"
 #import "OODebugFlags.h"
-#import "NSObjectOOExtensions.h"
 
 #ifndef NDEBUG
 uint32_t gLiveEntityCount = 0;
 size_t gTotalEntityMemory = 0;
 #endif
 
-
 #ifndef NDEBUG
-static NSString * const kOOLogEntityAddToList				= @"entity.linkedList.add";
-static NSString * const kOOLogEntityAddToListError			= @"entity.linkedList.add.error";
-static NSString * const kOOLogEntityRemoveFromList			= @"entity.linkedList.remove";
-static NSString * const kOOLogEntityRemoveFromListError		= @"entity.linkedList.remove.error";
-static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.error";
+static NSString* const kOOLogEntityAddToList = @"entity.linkedList.add";
+static NSString* const kOOLogEntityAddToListError = @"entity.linkedList.add.error";
+static NSString* const kOOLogEntityRemoveFromList = @"entity.linkedList.remove";
+static NSString* const kOOLogEntityRemoveFromListError = @"entity.linkedList.remove.error";
+static NSString* const kOOLogEntityUpdateError = @"entity.linkedList.update.error";
 #endif
-static NSString * const kOOLogEntityVerificationError		= @"entity.linkedList.verify.error";
-
-
+static NSString* const kOOLogEntityVerificationError = @"entity.linkedList.verify.error";
 
 @interface Entity (OOPrivate)
 
-- (BOOL) checkLinkedLists;
+- (BOOL)checkLinkedLists;
 
 @end
 
-
 @implementation Entity
 
-- (id) init
+- (id)init
 {
-	self = [super init];
-	if (EXPECT_NOT(self == nil))  return nil;
-	
-	_sessionID = [UNIVERSE sessionID];
-	
-	orientation = kIdentityQuaternion;
-	rotMatrix = kIdentityMatrix;
-	position = kZeroHPVector;
-	
-	no_draw_distance = 100000.0;  //  10 km
-	
-	collidingEntities = [[NSMutableArray alloc] init];
-	
-	scanClass = CLASS_NOT_SET;
-	[self setStatus:STATUS_COCKPIT_DISPLAY];
-	
-	spawnTime = [UNIVERSE getTime];
-	
-	isSunlit = YES;
+    self = [super init];
+    if (EXPECT_NOT(self == nil))
+        return nil;
 
-	atmosphereFogging = [[OOColor colorWithRed: 0.0 green: 0.0 blue: 0.0 alpha: 0.0] retain];
-	
+    _sessionID = [UNIVERSE sessionID];
+
+    orientation = kIdentityQuaternion;
+    rotMatrix = kIdentityMatrix;
+    position = kZeroHPVector;
+
+    no_draw_distance = 100000.0; //  10 km
+
+    collidingEntities = [[NSMutableArray alloc] init];
+
+    scanClass = CLASS_NOT_SET;
+    [self setStatus:STATUS_COCKPIT_DISPLAY];
+
+    spawnTime = [UNIVERSE getTime];
+
+    isSunlit = YES;
+
+    atmosphereFogging = [[OOColor colorWithRed:0.0 green:0.0 blue:0.0 alpha:0.0] retain];
+
 #ifndef NDEBUG
-	gLiveEntityCount++;
-	gTotalEntityMemory += [self oo_objectSize];
+    gLiveEntityCount++;
+    gTotalEntityMemory += [self oo_objectSize];
 #endif
-	
-	lastDrawCounter = 0;
-	return self;
+
+    lastDrawCounter = 0;
+    return self;
 }
 
-
-- (void) dealloc
+- (void)dealloc
 {
-	[UNIVERSE ensureEntityReallyRemoved:self];
-	DESTROY(collidingEntities);
-	DESTROY(collisionRegion);
-	[self deleteJSSelf];
-	[self setOwner:nil];
-	[atmosphereFogging release];
-	
+    [UNIVERSE ensureEntityReallyRemoved:self];
+    DESTROY(collidingEntities);
+    DESTROY(collisionRegion);
+    [self deleteJSSelf];
+    [self setOwner:nil];
+    [atmosphereFogging release];
+
 #ifndef NDEBUG
-	gLiveEntityCount--;
-	gTotalEntityMemory -= [self oo_objectSize];
+    gLiveEntityCount--;
+    gTotalEntityMemory -= [self oo_objectSize];
 #endif
-	
-	[super dealloc];
+
+    [super dealloc];
 }
 
-
-- (NSString *)descriptionComponents
+- (NSString*)descriptionComponents
 {
-	return [NSString stringWithFormat:@"position: %@ scanClass: %@ status: %@", HPVectorDescription([self position]), OOStringFromScanClass([self scanClass]), OOStringFromEntityStatus([self status])];
+    return [NSString stringWithFormat:@"position: %@ scanClass: %@ status: %@", HPVectorDescription([self position]), OOStringFromScanClass([self scanClass]), OOStringFromEntityStatus([self status])];
 }
 
-
-- (NSUInteger) sessionID
+- (NSUInteger)sessionID
 {
-	return _sessionID;
+    return _sessionID;
 }
-
 
 - (BOOL)isShip
 {
-	return isShip;
+    return isShip;
 }
-
 
 - (BOOL)isDock
 {
-	return NO;
+    return NO;
 }
-
 
 - (BOOL)isStation
 {
-	return isStation;
+    return isStation;
 }
-
 
 - (BOOL)isSubEntity
 {
-	return isSubEntity;
+    return isSubEntity;
 }
-
 
 - (BOOL)isPlayer
 {
-	return isPlayer;
+    return isPlayer;
 }
-
 
 - (BOOL)isPlanet
 {
-	return NO;
+    return NO;
 }
-
 
 - (BOOL)isSun
 {
-	return NO;
+    return NO;
 }
 
-
-- (BOOL) isSunlit
+- (BOOL)isSunlit
 {
-	return isSunlit;
+    return isSunlit;
 }
 
-
-- (BOOL) isStellarObject
+- (BOOL)isStellarObject
 {
-	return [self isPlanet] || [self isSun];
+    return [self isPlanet] || [self isSun];
 }
-
 
 - (BOOL)isSky
 {
-	return NO;
+    return NO;
 }
 
 - (BOOL)isWormhole
 {
-	return isWormhole;
+    return isWormhole;
 }
 
-
-- (BOOL) isEffect
+- (BOOL)isEffect
 {
-	return NO;
+    return NO;
 }
 
-
-- (BOOL) isVisualEffect
+- (BOOL)isVisualEffect
 {
-	return NO;
+    return NO;
 }
 
-
-- (BOOL) isWaypoint
+- (BOOL)isWaypoint
 {
-	return NO;
+    return NO;
 }
 
-
-- (BOOL) validForAddToUniverse
+- (BOOL)validForAddToUniverse
 {
-	NSUInteger mySessionID = [self sessionID];
-	NSUInteger currentSessionID = [UNIVERSE sessionID];
-	if (EXPECT_NOT(mySessionID != currentSessionID))
-	{
-		OOLogERR(@"entity.invalidSession", @"Entity %@ from session %zu cannot be added to universe in session %zu. This is an internal error, please report it.", [self shortDescription], mySessionID, currentSessionID);
-		return NO;
-	}
-	
-	return YES;
+    NSUInteger mySessionID = [self sessionID];
+    NSUInteger currentSessionID = [UNIVERSE sessionID];
+    if (EXPECT_NOT(mySessionID != currentSessionID)) {
+        OOLogERR(@"entity.invalidSession", @"Entity %@ from session %zu cannot be added to universe in session %zu. This is an internal error, please report it.", [self shortDescription], mySessionID, currentSessionID);
+        return NO;
+    }
+
+    return YES;
 }
 
-
-- (void) addToLinkedLists
+- (void)addToLinkedLists
 {
 #ifndef NDEBUG
-	if (gDebugFlags & DEBUG_LINKED_LISTS)
-		OOLog(kOOLogEntityAddToList, @"DEBUG adding entity %@ to linked lists", self);
+    if (gDebugFlags & DEBUG_LINKED_LISTS)
+        OOLog(kOOLogEntityAddToList, @"DEBUG adding entity %@ to linked lists", self);
 #endif
-	//
-	// insert at the start
-	if (UNIVERSE)
-	{
-		x_previous = nil; x_next = UNIVERSE->x_list_start;
-		// move UP the list
-		while ((x_next)&&(x_next->position.x - x_next->collision_radius < position.x - collision_radius))
-		{
-			x_previous = x_next;
-			x_next = x_next->x_next;
-		}	
-		if (x_next)		x_next->x_previous = self;
-		if (x_previous) x_previous->x_next = self;
-		else			UNIVERSE->x_list_start = self;
-		
-		y_previous = nil; y_next = UNIVERSE->y_list_start;
-		// move UP the list
-		while ((y_next)&&(y_next->position.y - y_next->collision_radius < position.y - collision_radius))
-		{
-			y_previous = y_next;
-			y_next = y_next->y_next;
-		}	
-		if (y_next)		y_next->y_previous = self;
-		if (y_previous) y_previous->y_next = self;
-		else			UNIVERSE->y_list_start = self;
+    //
+    // insert at the start
+    if (UNIVERSE) {
+        x_previous = nil;
+        x_next = UNIVERSE->x_list_start;
+        // move UP the list
+        while ((x_next) && (x_next->position.x - x_next->collision_radius < position.x - collision_radius)) {
+            x_previous = x_next;
+            x_next = x_next->x_next;
+        }
+        if (x_next)
+            x_next->x_previous = self;
+        if (x_previous)
+            x_previous->x_next = self;
+        else
+            UNIVERSE->x_list_start = self;
 
-		z_previous = nil; z_next = UNIVERSE->z_list_start;
-		// move UP the list
-		while ((z_next)&&(z_next->position.z - z_next->collision_radius < position.z - collision_radius))
-		{
-			z_previous = z_next;
-			z_next = z_next->z_next;
-		}	
-		if (z_next)		z_next->z_previous = self;
-		if (z_previous) z_previous->z_next = self;
-		else			UNIVERSE->z_list_start = self;
-				
-	}
-	
-#ifndef NDEBUG
-	if (gDebugFlags & DEBUG_LINKED_LISTS)
-	{
-		if (![self checkLinkedLists])
-		{
-			OOLog(kOOLogEntityAddToListError, @"DEBUG LINKED LISTS - problem encountered while adding %@ to linked lists", self);
-			[UNIVERSE debugDumpEntities];
-		}
-	}
-#endif
-}
+        y_previous = nil;
+        y_next = UNIVERSE->y_list_start;
+        // move UP the list
+        while ((y_next) && (y_next->position.y - y_next->collision_radius < position.y - collision_radius)) {
+            y_previous = y_next;
+            y_next = y_next->y_next;
+        }
+        if (y_next)
+            y_next->y_previous = self;
+        if (y_previous)
+            y_previous->y_next = self;
+        else
+            UNIVERSE->y_list_start = self;
 
-
-- (void) removeFromLinkedLists
-{
-#ifndef NDEBUG
-	if (gDebugFlags & DEBUG_LINKED_LISTS)
-		OOLog(kOOLogEntityRemoveFromList, @"DEBUG removing entity %@ from linked lists", self);
-#endif
-	
-	if ((x_next == nil)&&(x_previous == nil))	// removed already!
-		return;
-
-	// make sure the starting point is still correct
-	if (UNIVERSE)
-	{
-		if ((UNIVERSE->x_list_start == self)&&(x_next))
-				UNIVERSE->x_list_start = x_next;
-		if ((UNIVERSE->y_list_start == self)&&(y_next))
-				UNIVERSE->y_list_start = y_next;
-		if ((UNIVERSE->z_list_start == self)&&(z_next))
-				UNIVERSE->z_list_start = z_next;
-	}
-	//
-	if (x_previous)		x_previous->x_next = x_next;
-	if (x_next)			x_next->x_previous = x_previous;
-	//
-	if (y_previous)		y_previous->y_next = y_next;
-	if (y_next)			y_next->y_previous = y_previous;
-	//
-	if (z_previous)		z_previous->z_next = z_next;
-	if (z_next)			z_next->z_previous = z_previous;
-	//
-	x_previous = nil;	x_next = nil;
-	y_previous = nil;	y_next = nil;
-	z_previous = nil;	z_next = nil;
+        z_previous = nil;
+        z_next = UNIVERSE->z_list_start;
+        // move UP the list
+        while ((z_next) && (z_next->position.z - z_next->collision_radius < position.z - collision_radius)) {
+            z_previous = z_next;
+            z_next = z_next->z_next;
+        }
+        if (z_next)
+            z_next->z_previous = self;
+        if (z_previous)
+            z_previous->z_next = self;
+        else
+            UNIVERSE->z_list_start = self;
+    }
 
 #ifndef NDEBUG
-	if (gDebugFlags & DEBUG_LINKED_LISTS)
-	{
-		if (![self checkLinkedLists])
-		{
-			OOLog(kOOLogEntityRemoveFromListError, @"DEBUG LINKED LISTS - problem encountered while removing %@ from linked lists", self);
-			[UNIVERSE debugDumpEntities];
-		}
-	}
+    if (gDebugFlags & DEBUG_LINKED_LISTS) {
+        if (![self checkLinkedLists]) {
+            OOLog(kOOLogEntityAddToListError, @"DEBUG LINKED LISTS - problem encountered while adding %@ to linked lists", self);
+            [UNIVERSE debugDumpEntities];
+        }
+    }
 #endif
 }
 
-
-- (BOOL) checkLinkedLists
+- (void)removeFromLinkedLists
 {
-	// DEBUG check for loops
-	if (UNIVERSE->n_entities > 0)
-	{
-		int n;
-		Entity	*check, *last;
-		//
-		last = nil;
-		//
-		n = UNIVERSE->n_entities;
-		check = UNIVERSE->x_list_start;
-		while ((n--)&&(check))
-		{
-			last = check;
-			check = check->x_next;
-		}
-		if ((check)||(n > 0))
-		{
-			OOLog(kOOLogEntityVerificationError, @"Broken x_next %@ list (%d) ***", UNIVERSE->x_list_start, n);
-			return NO;
-		}
-		//
-		n = UNIVERSE->n_entities;
-		check = last;
-		while ((n--)&&(check))	check = check->x_previous;
-		if ((check)||(n > 0))
-		{
-			OOLog(kOOLogEntityVerificationError, @"Broken x_previous %@ list (%d) ***", UNIVERSE->x_list_start, n);
-			return NO;
-		}
-		//
-		n = UNIVERSE->n_entities;
-		check = UNIVERSE->y_list_start;
-		while ((n--)&&(check))
-		{
-			last = check;
-			check = check->y_next;
-		}
-		if ((check)||(n > 0))
-		{
-			OOLog(kOOLogEntityVerificationError, @"Broken y_next %@ list (%d) ***", UNIVERSE->y_list_start, n);
-			return NO;
-		}
-		//
-		n = UNIVERSE->n_entities;
-		check = last;
-		while ((n--)&&(check))	check = check->y_previous;
-		if ((check)||(n > 0))
-		{
-			OOLog(kOOLogEntityVerificationError, @"Broken y_previous %@ list (%d) ***", UNIVERSE->y_list_start, n);
-			return NO;
-		}
-		//
-		n = UNIVERSE->n_entities;
-		check = UNIVERSE->z_list_start;
-		while ((n--)&&(check))
-		{
-			last = check;
-			check = check->z_next;
-		}
-		if ((check)||(n > 0))
-		{
-			OOLog(kOOLogEntityVerificationError, @"Broken z_next %@ list (%d) ***", UNIVERSE->z_list_start, n);
-			return NO;
-		}
-		//
-		n = UNIVERSE->n_entities;
-		check = last;
-		while ((n--)&&(check))	check = check->z_previous;
-		if ((check)||(n > 0))
-		{
-			OOLog(kOOLogEntityVerificationError, @"Broken z_previous %@ list (%d) ***", UNIVERSE->z_list_start, n);
-			return NO;
-		}
-	}
-	return YES;
-}
-
-
-- (void) updateLinkedLists
-{
-	if (!UNIVERSE)
-		return;	// not in the UNIVERSE - don't do this!
-	if ((x_next == nil)&&(x_previous == nil))
-		return;	// not in the lists - don't do this!
-	
 #ifndef NDEBUG
-	if (gDebugFlags & DEBUG_LINKED_LISTS)
-	{
-		if (![self checkLinkedLists])
-		{
-			OOLog(kOOLogEntityVerificationError, @"DEBUG LINKED LISTS problem encountered before updating linked lists for %@", self);
-			[UNIVERSE debugDumpEntities];
-		}
-	}
+    if (gDebugFlags & DEBUG_LINKED_LISTS)
+        OOLog(kOOLogEntityRemoveFromList, @"DEBUG removing entity %@ from linked lists", self);
 #endif
-	
-	// update position in linked list for position.x
-	// take self out of list..
-	if (x_previous)		x_previous->x_next = x_next;
-	if (x_next)			x_next->x_previous = x_previous;
-	// sink DOWN the list
-	while ((x_previous)&&(x_previous->position.x - x_previous->collision_radius > position.x - collision_radius))
-	{
-		x_next = x_previous;
-		x_previous = x_previous->x_previous;
-	}
-	// bubble UP the list
-	while ((x_next)&&(x_next->position.x - x_next->collision_radius < position.x - collision_radius))
-	{
-		x_previous = x_next;
-		x_next = x_next->x_next;
-	}
-	if (x_next)		// insert self into the list before x_next..
-		x_next->x_previous = self;
-	if (x_previous)	// insert self into the list after x_previous..
-		x_previous->x_next = self;
-	if ((x_previous == nil)&&(UNIVERSE))	// if we're the first then tell the UNIVERSE!
-			UNIVERSE->x_list_start = self;
-	
-	// update position in linked list for position.y
-	// take self out of list..
-	if (y_previous)		y_previous->y_next = y_next;
-	if (y_next)			y_next->y_previous = y_previous;
-	// sink DOWN the list
-	while ((y_previous)&&(y_previous->position.y - y_previous->collision_radius > position.y - collision_radius))
-	{
-		y_next = y_previous;
-		y_previous = y_previous->y_previous;
-	}
-	// bubble UP the list
-	while ((y_next)&&(y_next->position.y - y_next->collision_radius < position.y - collision_radius))
-	{
-		y_previous = y_next;
-		y_next = y_next->y_next;
-	}
-	if (y_next)		// insert self into the list before y_next..
-		y_next->y_previous = self;
-	if (y_previous)	// insert self into the list after y_previous..
-		y_previous->y_next = self;
-	if ((y_previous == nil)&&(UNIVERSE))	// if we're the first then tell the UNIVERSE!
-			UNIVERSE->y_list_start = self;
-	
-	// update position in linked list for position.z
-	// take self out of list..
-	if (z_previous)		z_previous->z_next = z_next;
-	if (z_next)			z_next->z_previous = z_previous;
-	// sink DOWN the list
-	while ((z_previous)&&(z_previous->position.z - z_previous->collision_radius > position.z - collision_radius))
-	{
-		z_next = z_previous;
-		z_previous = z_previous->z_previous;
-	}
-	// bubble UP the list
-	while ((z_next)&&(z_next->position.z - z_next->collision_radius < position.z - collision_radius))
-	{
-		z_previous = z_next;
-		z_next = z_next->z_next;
-	}
-	if (z_next)		// insert self into the list before z_next..
-		z_next->z_previous = self;
-	if (z_previous)	// insert self into the list after z_previous..
-		z_previous->z_next = self;
-	if ((z_previous == nil)&&(UNIVERSE))	// if we're the first then tell the UNIVERSE!
-			UNIVERSE->z_list_start = self;
-	
-	// done
+
+    if ((x_next == nil) && (x_previous == nil)) // removed already!
+        return;
+
+    // make sure the starting point is still correct
+    if (UNIVERSE) {
+        if ((UNIVERSE->x_list_start == self) && (x_next))
+            UNIVERSE->x_list_start = x_next;
+        if ((UNIVERSE->y_list_start == self) && (y_next))
+            UNIVERSE->y_list_start = y_next;
+        if ((UNIVERSE->z_list_start == self) && (z_next))
+            UNIVERSE->z_list_start = z_next;
+    }
+    //
+    if (x_previous)
+        x_previous->x_next = x_next;
+    if (x_next)
+        x_next->x_previous = x_previous;
+    //
+    if (y_previous)
+        y_previous->y_next = y_next;
+    if (y_next)
+        y_next->y_previous = y_previous;
+    //
+    if (z_previous)
+        z_previous->z_next = z_next;
+    if (z_next)
+        z_next->z_previous = z_previous;
+    //
+    x_previous = nil;
+    x_next = nil;
+    y_previous = nil;
+    y_next = nil;
+    z_previous = nil;
+    z_next = nil;
+
 #ifndef NDEBUG
-	if (gDebugFlags & DEBUG_LINKED_LISTS)
-	{
-		if (![self checkLinkedLists])
-		{
-			OOLog(kOOLogEntityUpdateError, @"DEBUG LINKED LISTS problem encountered after updating linked lists for %@", self);
-			[UNIVERSE debugDumpEntities];
-		}
-	}
+    if (gDebugFlags & DEBUG_LINKED_LISTS) {
+        if (![self checkLinkedLists]) {
+            OOLog(kOOLogEntityRemoveFromListError, @"DEBUG LINKED LISTS - problem encountered while removing %@ from linked lists", self);
+            [UNIVERSE debugDumpEntities];
+        }
+    }
 #endif
 }
 
-
-- (void) wasAddedToUniverse
+- (BOOL)checkLinkedLists
 {
-	// Do nothing
+    // DEBUG check for loops
+    if (UNIVERSE->n_entities > 0) {
+        int n;
+        Entity *check, *last;
+        //
+        last = nil;
+        //
+        n = UNIVERSE->n_entities;
+        check = UNIVERSE->x_list_start;
+        while ((n--) && (check)) {
+            last = check;
+            check = check->x_next;
+        }
+        if ((check) || (n > 0)) {
+            OOLog(kOOLogEntityVerificationError, @"Broken x_next %@ list (%d) ***", UNIVERSE->x_list_start, n);
+            return NO;
+        }
+        //
+        n = UNIVERSE->n_entities;
+        check = last;
+        while ((n--) && (check))
+            check = check->x_previous;
+        if ((check) || (n > 0)) {
+            OOLog(kOOLogEntityVerificationError, @"Broken x_previous %@ list (%d) ***", UNIVERSE->x_list_start, n);
+            return NO;
+        }
+        //
+        n = UNIVERSE->n_entities;
+        check = UNIVERSE->y_list_start;
+        while ((n--) && (check)) {
+            last = check;
+            check = check->y_next;
+        }
+        if ((check) || (n > 0)) {
+            OOLog(kOOLogEntityVerificationError, @"Broken y_next %@ list (%d) ***", UNIVERSE->y_list_start, n);
+            return NO;
+        }
+        //
+        n = UNIVERSE->n_entities;
+        check = last;
+        while ((n--) && (check))
+            check = check->y_previous;
+        if ((check) || (n > 0)) {
+            OOLog(kOOLogEntityVerificationError, @"Broken y_previous %@ list (%d) ***", UNIVERSE->y_list_start, n);
+            return NO;
+        }
+        //
+        n = UNIVERSE->n_entities;
+        check = UNIVERSE->z_list_start;
+        while ((n--) && (check)) {
+            last = check;
+            check = check->z_next;
+        }
+        if ((check) || (n > 0)) {
+            OOLog(kOOLogEntityVerificationError, @"Broken z_next %@ list (%d) ***", UNIVERSE->z_list_start, n);
+            return NO;
+        }
+        //
+        n = UNIVERSE->n_entities;
+        check = last;
+        while ((n--) && (check))
+            check = check->z_previous;
+        if ((check) || (n > 0)) {
+            OOLog(kOOLogEntityVerificationError, @"Broken z_previous %@ list (%d) ***", UNIVERSE->z_list_start, n);
+            return NO;
+        }
+    }
+    return YES;
 }
 
-
-- (void) wasRemovedFromUniverse
+- (void)updateLinkedLists
 {
-	// Do nothing
+    if (!UNIVERSE)
+        return; // not in the UNIVERSE - don't do this!
+    if ((x_next == nil) && (x_previous == nil))
+        return; // not in the lists - don't do this!
+
+#ifndef NDEBUG
+    if (gDebugFlags & DEBUG_LINKED_LISTS) {
+        if (![self checkLinkedLists]) {
+            OOLog(kOOLogEntityVerificationError, @"DEBUG LINKED LISTS problem encountered before updating linked lists for %@", self);
+            [UNIVERSE debugDumpEntities];
+        }
+    }
+#endif
+
+    // update position in linked list for position.x
+    // take self out of list..
+    if (x_previous)
+        x_previous->x_next = x_next;
+    if (x_next)
+        x_next->x_previous = x_previous;
+    // sink DOWN the list
+    while ((x_previous) && (x_previous->position.x - x_previous->collision_radius > position.x - collision_radius)) {
+        x_next = x_previous;
+        x_previous = x_previous->x_previous;
+    }
+    // bubble UP the list
+    while ((x_next) && (x_next->position.x - x_next->collision_radius < position.x - collision_radius)) {
+        x_previous = x_next;
+        x_next = x_next->x_next;
+    }
+    if (x_next) // insert self into the list before x_next..
+        x_next->x_previous = self;
+    if (x_previous) // insert self into the list after x_previous..
+        x_previous->x_next = self;
+    if ((x_previous == nil) && (UNIVERSE)) // if we're the first then tell the UNIVERSE!
+        UNIVERSE->x_list_start = self;
+
+    // update position in linked list for position.y
+    // take self out of list..
+    if (y_previous)
+        y_previous->y_next = y_next;
+    if (y_next)
+        y_next->y_previous = y_previous;
+    // sink DOWN the list
+    while ((y_previous) && (y_previous->position.y - y_previous->collision_radius > position.y - collision_radius)) {
+        y_next = y_previous;
+        y_previous = y_previous->y_previous;
+    }
+    // bubble UP the list
+    while ((y_next) && (y_next->position.y - y_next->collision_radius < position.y - collision_radius)) {
+        y_previous = y_next;
+        y_next = y_next->y_next;
+    }
+    if (y_next) // insert self into the list before y_next..
+        y_next->y_previous = self;
+    if (y_previous) // insert self into the list after y_previous..
+        y_previous->y_next = self;
+    if ((y_previous == nil) && (UNIVERSE)) // if we're the first then tell the UNIVERSE!
+        UNIVERSE->y_list_start = self;
+
+    // update position in linked list for position.z
+    // take self out of list..
+    if (z_previous)
+        z_previous->z_next = z_next;
+    if (z_next)
+        z_next->z_previous = z_previous;
+    // sink DOWN the list
+    while ((z_previous) && (z_previous->position.z - z_previous->collision_radius > position.z - collision_radius)) {
+        z_next = z_previous;
+        z_previous = z_previous->z_previous;
+    }
+    // bubble UP the list
+    while ((z_next) && (z_next->position.z - z_next->collision_radius < position.z - collision_radius)) {
+        z_previous = z_next;
+        z_next = z_next->z_next;
+    }
+    if (z_next) // insert self into the list before z_next..
+        z_next->z_previous = self;
+    if (z_previous) // insert self into the list after z_previous..
+        z_previous->z_next = self;
+    if ((z_previous == nil) && (UNIVERSE)) // if we're the first then tell the UNIVERSE!
+        UNIVERSE->z_list_start = self;
+
+    // done
+#ifndef NDEBUG
+    if (gDebugFlags & DEBUG_LINKED_LISTS) {
+        if (![self checkLinkedLists]) {
+            OOLog(kOOLogEntityUpdateError, @"DEBUG LINKED LISTS problem encountered after updating linked lists for %@", self);
+            [UNIVERSE debugDumpEntities];
+        }
+    }
+#endif
 }
 
-
-- (void) warnAboutHostiles
+- (void)wasAddedToUniverse
 {
-	// do nothing for now, this can be expanded in sub classes
-	OOLog(@"general.error.subclassResponsibility.Entity-warnAboutHostiles", @"%@", @"***** Entity does nothing in warnAboutHostiles");
+    // Do nothing
 }
 
-
-- (CollisionRegion*) collisionRegion
+- (void)wasRemovedFromUniverse
 {
-	return collisionRegion;
+    // Do nothing
 }
 
-
-- (void) setCollisionRegion: (CollisionRegion*) region
+- (void)warnAboutHostiles
 {
-	if (collisionRegion) [collisionRegion release];
-	collisionRegion = [region retain];
+    // do nothing for now, this can be expanded in sub classes
+    OOLog(@"general.error.subclassResponsibility.Entity-warnAboutHostiles", @"%@", @"***** Entity does nothing in warnAboutHostiles");
 }
 
-
-- (void) setUniversalID:(OOUniversalID)uid
+- (CollisionRegion*)collisionRegion
 {
-	universalID = uid;
+    return collisionRegion;
 }
 
-
-- (OOUniversalID) universalID
+- (void)setCollisionRegion:(CollisionRegion*)region
 {
-	return universalID;
+    if (collisionRegion)
+        [collisionRegion release];
+    collisionRegion = [region retain];
 }
 
-
-- (BOOL) throwingSparks
+- (void)setUniversalID:(OOUniversalID)uid
 {
-	return throw_sparks;
+    universalID = uid;
 }
 
-
-- (void) setThrowSparks:(BOOL) value
+- (OOUniversalID)universalID
 {
-	throw_sparks = value;
+    return universalID;
 }
 
-
-- (void) throwSparks
+- (BOOL)throwingSparks
 {
-	// do nothing for now
+    return throw_sparks;
 }
 
-
-- (void) setOwner:(Entity *)ent
+- (void)setThrowSparks:(BOOL)value
 {
-	[_owner release];
-	_owner = [ent weakRetain];
+    throw_sparks = value;
 }
 
-
-- (id) owner
+- (void)throwSparks
 {
-	return [_owner weakRefUnderlyingObject];
+    // do nothing for now
 }
 
-
-- (ShipEntity *)parentEntity
+- (void)setOwner:(Entity*)ent
 {
-	id owner = [self owner];
-	if ([owner isShipWithSubEntityShip:self])  return owner;
-	return nil;
+    [_owner release];
+    _owner = [ent weakRetain];
 }
 
-
-- (id<OOWeakReferenceSupport>) superShaderBindingTarget
+- (id)owner
 {
-	return [self parentEntity];
+    return [_owner weakRefUnderlyingObject];
 }
 
-
-- (ShipEntity *) rootShipEntity
+- (ShipEntity*)parentEntity
 {
-	ShipEntity *parent = [self parentEntity];
-	if (parent != nil)  return [parent rootShipEntity];
-	if ([self isShip])  return (ShipEntity *)self;
-	return nil;
+    id owner = [self owner];
+    if ([owner isShipWithSubEntityShip:self])
+        return owner;
+    return nil;
 }
 
-
-- (HPVector) position
+- (id<OOWeakReferenceSupport>)superShaderBindingTarget
 {
-	return position;
+    return [self parentEntity];
 }
 
-- (Vector) cameraRelativePosition
+- (ShipEntity*)rootShipEntity
 {
-	return cameraRelativePosition;
+    ShipEntity* parent = [self parentEntity];
+    if (parent != nil)
+        return [parent rootShipEntity];
+    if ([self isShip])
+        return (ShipEntity*)self;
+    return nil;
 }
 
-- (GLfloat) cameraRangeFront
+- (HPVector)position
 {
-	return magnitude(cameraRelativePosition) - [self frustumRadius];
+    return position;
 }
 
-- (GLfloat) cameraRangeBack
+- (Vector)cameraRelativePosition
 {
-	return magnitude(cameraRelativePosition) + [self frustumRadius];
+    return cameraRelativePosition;
 }
 
+- (GLfloat)cameraRangeFront
+{
+    return magnitude(cameraRelativePosition) - [self frustumRadius];
+}
 
+- (GLfloat)cameraRangeBack
+{
+    return magnitude(cameraRelativePosition) + [self frustumRadius];
+}
 
 // Exposed to uniform bindings.
 // so needs to remain at OpenGL precision levels
-- (Vector) relativePosition
+- (Vector)relativePosition
 {
-	return HPVectorToVector(HPvector_subtract([self position], [PLAYER position]));
+    return HPVectorToVector(HPvector_subtract([self position], [PLAYER position]));
 }
 
-- (Vector) vectorTo:(Entity *)entity
+- (Vector)vectorTo:(Entity*)entity
 {
-	return HPVectorToVector(HPvector_subtract([entity position], [self position]));
+    return HPVectorToVector(HPvector_subtract([entity position], [self position]));
 }
 
-
-- (void) setPosition:(HPVector) posn
+- (void)setPosition:(HPVector)posn
 {
-	position = posn;
-	[self updateCameraRelativePosition];
+    position = posn;
+    [self updateCameraRelativePosition];
 }
 
-
-- (void) setPositionX:(OOHPScalar)x y:(OOHPScalar)y z:(OOHPScalar)z
+- (void)setPositionX:(OOHPScalar)x y:(OOHPScalar)y z:(OOHPScalar)z
 {
-	position.x = x;
-	position.y = y;
-	position.z = z;
-	[self updateCameraRelativePosition];
+    position.x = x;
+    position.y = y;
+    position.z = z;
+    [self updateCameraRelativePosition];
 }
 
-
-- (void) updateCameraRelativePosition
+- (void)updateCameraRelativePosition
 {
-	cameraRelativePosition = HPVectorToVector(HPvector_subtract([self absolutePositionForSubentity],[PLAYER viewpointPosition]));
+    cameraRelativePosition = HPVectorToVector(HPvector_subtract([self absolutePositionForSubentity], [PLAYER viewpointPosition]));
 }
 
-
-- (HPVector) absolutePositionForSubentity
+- (HPVector)absolutePositionForSubentity
 {
-	return [self absolutePositionForSubentityOffset:kZeroHPVector];
+    return [self absolutePositionForSubentityOffset:kZeroHPVector];
 }
 
-
-- (HPVector) absolutePositionForSubentityOffset:(HPVector) offset
+- (HPVector)absolutePositionForSubentityOffset:(HPVector)offset
 {
-	HPVector		abspos = HPvector_add(position, OOHPVectorMultiplyMatrix(offset, rotMatrix));
-	Entity		*last = nil;
-	Entity		*father = [self parentEntity];
-	
-	while (father != nil && father != last)
-	{
-		abspos = HPvector_add(OOHPVectorMultiplyMatrix(abspos, [father drawRotationMatrix]), [father position]);
-		last = father;
-		if (![last isSubEntity]) break;
-		father = [father owner];
-	}
-	return abspos;
+    HPVector abspos = HPvector_add(position, OOHPVectorMultiplyMatrix(offset, rotMatrix));
+    Entity* last = nil;
+    Entity* father = [self parentEntity];
+
+    while (father != nil && father != last) {
+        abspos = HPvector_add(OOHPVectorMultiplyMatrix(abspos, [father drawRotationMatrix]), [father position]);
+        last = father;
+        if (![last isSubEntity])
+            break;
+        father = [father owner];
+    }
+    return abspos;
 }
 
-
-- (double) zeroDistance
+- (double)zeroDistance
 {
-	return zero_distance;
+    return zero_distance;
 }
 
-
-- (double) camZeroDistance
+- (double)camZeroDistance
 {
-	return cam_zero_distance;
+    return cam_zero_distance;
 }
 
-
-- (NSComparisonResult) compareZeroDistance:(Entity *)otherEntity
+- (NSComparisonResult)compareZeroDistance:(Entity*)otherEntity
 {
-	if ((otherEntity)&&(zero_distance > otherEntity->zero_distance))
-		return NSOrderedAscending;
-	else
-		return NSOrderedDescending;
+    if ((otherEntity) && (zero_distance > otherEntity->zero_distance))
+        return NSOrderedAscending;
+    else
+        return NSOrderedDescending;
 }
 
-
-- (BoundingBox) boundingBox
+- (BoundingBox)boundingBox
 {
-	return boundingBox;
+    return boundingBox;
 }
 
-
-- (GLfloat) mass
+- (GLfloat)mass
 {
-	return mass;
+    return mass;
 }
 
-
-- (void) setOrientation:(Quaternion) quat
+- (void)setOrientation:(Quaternion)quat
 {
-	orientation = quat;
-	[self orientationChanged];
+    orientation = quat;
+    [self orientationChanged];
 }
 
-
-- (Quaternion) orientation
+- (Quaternion)orientation
 {
-	return orientation;
+    return orientation;
 }
 
-
-- (Quaternion) normalOrientation
+- (Quaternion)normalOrientation
 {
-	return [self orientation];
+    return [self orientation];
 }
 
-
-- (void) setNormalOrientation:(Quaternion) quat
+- (void)setNormalOrientation:(Quaternion)quat
 {
-	[self setOrientation:quat];
+    [self setOrientation:quat];
 }
 
-
-- (void) orientationChanged
+- (void)orientationChanged
 {
-	quaternion_normalize(&orientation);
-	rotMatrix = OOMatrixForQuaternionRotation(orientation);
+    quaternion_normalize(&orientation);
+    rotMatrix = OOMatrixForQuaternionRotation(orientation);
 }
 
-
-- (void) setVelocity:(Vector) vel
+- (void)setVelocity:(Vector)vel
 {
-	velocity = vel;
+    velocity = vel;
 }
 
-
-- (Vector) velocity
+- (Vector)velocity
 {
-	return velocity;
+    return velocity;
 }
 
-
-- (double) speed
+- (double)speed
 {
-	return magnitude([self velocity]);
+    return magnitude([self velocity]);
 }
 
-
-- (GLfloat) distanceTravelled
+- (GLfloat)distanceTravelled
 {
-	return distanceTravelled;
+    return distanceTravelled;
 }
 
-
-- (void) setDistanceTravelled: (GLfloat) value
+- (void)setDistanceTravelled:(GLfloat)value
 {
-	distanceTravelled = value;
+    distanceTravelled = value;
 }
 
-
-- (void) setStatus:(OOEntityStatus) stat
+- (void)setStatus:(OOEntityStatus)stat
 {
-	_status = stat;
+    _status = stat;
 }
 
-
-- (OOEntityStatus) status
+- (OOEntityStatus)status
 {
-	return _status;
+    return _status;
 }
 
-
-- (void) setScanClass:(OOScanClass)sClass
+- (void)setScanClass:(OOScanClass)sClass
 {
-	scanClass = sClass;
+    scanClass = sClass;
 }
 
-
-- (OOScanClass) scanClass
+- (OOScanClass)scanClass
 {
-	return scanClass;
+    return scanClass;
 }
 
-
-- (void) setEnergy:(GLfloat) amount
+- (void)setEnergy:(GLfloat)amount
 {
-	energy = amount;
+    energy = amount;
 }
 
-
-- (GLfloat) energy
+- (GLfloat)energy
 {
-	return energy;
+    return energy;
 }
 
-
-- (void) setMaxEnergy:(GLfloat)amount
+- (void)setMaxEnergy:(GLfloat)amount
 {
-	maxEnergy = amount;
+    maxEnergy = amount;
 }
 
-
-- (GLfloat) maxEnergy
+- (GLfloat)maxEnergy
 {
-	return maxEnergy;
+    return maxEnergy;
 }
 
-
-- (void) applyRoll:(GLfloat) roll andClimb:(GLfloat) climb
+- (void)applyRoll:(GLfloat)roll andClimb:(GLfloat)climb
 {
-	if ((roll == 0.0)&&(climb == 0.0)&&(!hasRotated))
-		return;
+    if ((roll == 0.0) && (climb == 0.0) && (!hasRotated))
+        return;
 
-	if (roll)
-		quaternion_rotate_about_z(&orientation, -roll);
-	if (climb)
-		quaternion_rotate_about_x(&orientation, -climb);
-	
-	[self orientationChanged];
+    if (roll)
+        quaternion_rotate_about_z(&orientation, -roll);
+    if (climb)
+        quaternion_rotate_about_x(&orientation, -climb);
+
+    [self orientationChanged];
 }
 
-
-- (void) applyRoll:(GLfloat) roll climb:(GLfloat) climb andYaw:(GLfloat) yaw
+- (void)applyRoll:(GLfloat)roll climb:(GLfloat)climb andYaw:(GLfloat)yaw
 {
-	if ((roll == 0.0)&&(climb == 0.0)&&(yaw == 0.0)&&(!hasRotated))
-		return;
+    if ((roll == 0.0) && (climb == 0.0) && (yaw == 0.0) && (!hasRotated))
+        return;
 
-	if (roll)
-		quaternion_rotate_about_z(&orientation, -roll);
-	if (climb)
-		quaternion_rotate_about_x(&orientation, -climb);
-	if (yaw)
-		quaternion_rotate_about_y(&orientation, -yaw);
+    if (roll)
+        quaternion_rotate_about_z(&orientation, -roll);
+    if (climb)
+        quaternion_rotate_about_x(&orientation, -climb);
+    if (yaw)
+        quaternion_rotate_about_y(&orientation, -yaw);
 
-	[self orientationChanged];
+    [self orientationChanged];
 }
 
-
-- (void) moveForward:(double)amount
+- (void)moveForward:(double)amount
 {
-	HPVector forward = HPvector_multiply_scalar(HPvector_forward_from_quaternion(orientation), amount);
-	position = HPvector_add(position, forward);
-	distanceTravelled += amount;
+    HPVector forward = HPvector_multiply_scalar(HPvector_forward_from_quaternion(orientation), amount);
+    position = HPvector_add(position, forward);
+    distanceTravelled += amount;
 }
 
-
-- (OOMatrix) rotationMatrix
+- (OOMatrix)rotationMatrix
 {
-	return rotMatrix;
+    return rotMatrix;
 }
 
-
-- (OOMatrix) drawRotationMatrix
+- (OOMatrix)drawRotationMatrix
 {
-	return rotMatrix;
+    return rotMatrix;
 }
 
-
-- (OOMatrix) transformationMatrix
+- (OOMatrix)transformationMatrix
 {
-	OOMatrix result = rotMatrix;
-	return OOMatrixHPTranslate(result, position);
+    OOMatrix result = rotMatrix;
+    return OOMatrixHPTranslate(result, position);
 }
 
-
-- (OOMatrix) drawTransformationMatrix
+- (OOMatrix)drawTransformationMatrix
 {
-	OOMatrix result = rotMatrix;
-	return OOMatrixHPTranslate(result, position);
+    OOMatrix result = rotMatrix;
+    return OOMatrixHPTranslate(result, position);
 }
 
-
-- (BOOL) canCollide
+- (BOOL)canCollide
 {
-	return YES;
+    return YES;
 }
 
-
-- (GLfloat) collisionRadius
+- (GLfloat)collisionRadius
 {
-	return collision_radius;
+    return collision_radius;
 }
 
-
-- (GLfloat) frustumRadius
+- (GLfloat)frustumRadius
 {
-	return collision_radius;
+    return collision_radius;
 }
 
-
-- (void) setCollisionRadius:(GLfloat) amount
+- (void)setCollisionRadius:(GLfloat)amount
 {
-	collision_radius = amount;
+    collision_radius = amount;
 }
 
-
-- (NSMutableArray *) collisionArray
+- (NSMutableArray*)collisionArray
 {
-	return collidingEntities;
+    return collidingEntities;
 }
 
-
-- (void) update:(OOTimeDelta)delta_t
+- (void)update:(OOTimeDelta)delta_t
 {
-	if (_status != STATUS_COCKPIT_DISPLAY)
-	{
-		if ([self isSubEntity])
-		{
-			zero_distance = [[self owner] zeroDistance];
-			cam_zero_distance = [[self owner] camZeroDistance];
-			[self updateCameraRelativePosition];
-		}
-		else
-		{
-			zero_distance = HPdistance2(PLAYER->position, position);
-			cam_zero_distance = HPdistance2([PLAYER viewpointPosition], position);
-			[self updateCameraRelativePosition];
-		}
-	}
-	else
-	{
-		zero_distance = HPmagnitude2(position);
-		cam_zero_distance = zero_distance;
-		cameraRelativePosition = HPVectorToVector(position);
-	}
-	
-	if ([self status] != STATUS_COCKPIT_DISPLAY)
-	{
-		[self applyVelocity:delta_t];
-	}
+    if (_status != STATUS_COCKPIT_DISPLAY) {
+        if ([self isSubEntity]) {
+            zero_distance = [[self owner] zeroDistance];
+            cam_zero_distance = [[self owner] camZeroDistance];
+            [self updateCameraRelativePosition];
+        } else {
+            zero_distance = HPdistance2(PLAYER->position, position);
+            cam_zero_distance = HPdistance2([PLAYER viewpointPosition], position);
+            [self updateCameraRelativePosition];
+        }
+    } else {
+        zero_distance = HPmagnitude2(position);
+        cam_zero_distance = zero_distance;
+        cameraRelativePosition = HPVectorToVector(position);
+    }
 
-	hasMoved = !HPvector_equal(position, lastPosition);
-	hasRotated = !quaternion_equal(orientation, lastOrientation);
-	lastPosition = position;
-	lastOrientation = orientation;
+    if ([self status] != STATUS_COCKPIT_DISPLAY) {
+        [self applyVelocity:delta_t];
+    }
+
+    hasMoved = !HPvector_equal(position, lastPosition);
+    hasRotated = !quaternion_equal(orientation, lastOrientation);
+    lastPosition = position;
+    lastOrientation = orientation;
 }
 
-
-- (void) applyVelocity:(OOTimeDelta)delta_t
+- (void)applyVelocity:(OOTimeDelta)delta_t
 {
-	position = HPvector_add(position, HPvector_multiply_scalar(vectorToHPVector(velocity), delta_t));
+    position = HPvector_add(position, HPvector_multiply_scalar(vectorToHPVector(velocity), delta_t));
 }
 
-
-- (BOOL) checkCloseCollisionWith:(Entity *)other
+- (BOOL)checkCloseCollisionWith:(Entity*)other
 {
-	return other != nil;
+    return other != nil;
 }
-
 
 - (double)findCollisionRadius
 {
-	OOLogGenericSubclassResponsibility();
-	return 0;
+    OOLogGenericSubclassResponsibility();
+    return 0;
 }
 
-
-- (void) drawImmediate:(bool)immediate translucent:(bool)translucent
+- (void)drawImmediate:(bool)immediate translucent:(bool)translucent
 {
-	OOLogGenericSubclassResponsibility();
+    OOLogGenericSubclassResponsibility();
 }
 
-
-- (void) takeEnergyDamage:(double) amount from:(Entity *) ent becauseOf:(Entity *) other weaponIdentifier:(NSString *)weaponIdentifier
+- (void)takeEnergyDamage:(double)amount from:(Entity*)ent becauseOf:(Entity*)other weaponIdentifier:(NSString*)weaponIdentifier
 {
-	
 }
-
 
 - (void)dumpState
 {
-	if (OOLogWillDisplayMessagesInClass(@"dumpState"))
-	{
-		OOLog(@"dumpState", @"State for %@:", self);
-		OOLogPushIndent();
-		OOLogIndent();
-		@try
-		{
-			[self dumpSelfState];
-		}
-		@catch (id exception) {}
-		OOLogPopIndent();
-	}
+    if (OOLogWillDisplayMessagesInClass(@"dumpState")) {
+        OOLog(@"dumpState", @"State for %@:", self);
+        OOLogPushIndent();
+        OOLogIndent();
+        @try {
+            [self dumpSelfState];
+        }
+        @catch (id exception) {
+        }
+        OOLogPopIndent();
+    }
 }
-
 
 - (void)dumpSelfState
 {
-	NSMutableArray		*flags = nil;
-	NSString			*flagsString = nil;
-	id					owner = [self owner];
-	
-	if (owner == self)  owner = @"self";
-	else if (owner == nil)  owner = @"none";
-	
-	OOLog(@"dumpState.entity", @"Universal ID: %u", universalID);
-	OOLog(@"dumpState.entity", @"Scan class: %@", OOStringFromScanClass(scanClass));
-	OOLog(@"dumpState.entity", @"Status: %@", OOStringFromEntityStatus([self status]));
-	OOLog(@"dumpState.entity", @"Position: %@", HPVectorDescription(position));
-	OOLog(@"dumpState.entity", @"Orientation: %@", QuaternionDescription(orientation));
-	OOLog(@"dumpState.entity", @"Distance travelled: %g", distanceTravelled);
-	OOLog(@"dumpState.entity", @"Energy: %g of %g", energy, maxEnergy);
-	OOLog(@"dumpState.entity", @"Mass: %g", mass);
-	OOLog(@"dumpState.entity", @"Owner: %@", owner);
-	
-	flags = [NSMutableArray array];
-	#define ADD_FLAG_IF_SET(x)		if (x) { [flags addObject:@#x]; }
-	ADD_FLAG_IF_SET(isShip);
-	ADD_FLAG_IF_SET(isStation);
-	ADD_FLAG_IF_SET(isPlayer);
-	ADD_FLAG_IF_SET(isWormhole);
-	ADD_FLAG_IF_SET(isSubEntity);
-	ADD_FLAG_IF_SET(hasMoved);
-	ADD_FLAG_IF_SET(hasRotated);
-	ADD_FLAG_IF_SET(isSunlit);
-	ADD_FLAG_IF_SET(throw_sparks);
-	flagsString = [flags count] ? [flags componentsJoinedByString:@", "] : (NSString *)@"none";
-	OOLog(@"dumpState.entity", @"Flags: %@", flagsString);
-	OOLog(@"dumpState.entity", @"Collision Test Filter: %u", collisionTestFilter);
+    NSMutableArray* flags = nil;
+    NSString* flagsString = nil;
+    id owner = [self owner];
 
+    if (owner == self)
+        owner = @"self";
+    else if (owner == nil)
+        owner = @"none";
+
+    OOLog(@"dumpState.entity", @"Universal ID: %u", universalID);
+    OOLog(@"dumpState.entity", @"Scan class: %@", OOStringFromScanClass(scanClass));
+    OOLog(@"dumpState.entity", @"Status: %@", OOStringFromEntityStatus([self status]));
+    OOLog(@"dumpState.entity", @"Position: %@", HPVectorDescription(position));
+    OOLog(@"dumpState.entity", @"Orientation: %@", QuaternionDescription(orientation));
+    OOLog(@"dumpState.entity", @"Distance travelled: %g", distanceTravelled);
+    OOLog(@"dumpState.entity", @"Energy: %g of %g", energy, maxEnergy);
+    OOLog(@"dumpState.entity", @"Mass: %g", mass);
+    OOLog(@"dumpState.entity", @"Owner: %@", owner);
+
+    flags = [NSMutableArray array];
+#define ADD_FLAG_IF_SET(x)      \
+    if (x) {                    \
+        [flags addObject:@ #x]; \
+    }
+    ADD_FLAG_IF_SET(isShip);
+    ADD_FLAG_IF_SET(isStation);
+    ADD_FLAG_IF_SET(isPlayer);
+    ADD_FLAG_IF_SET(isWormhole);
+    ADD_FLAG_IF_SET(isSubEntity);
+    ADD_FLAG_IF_SET(hasMoved);
+    ADD_FLAG_IF_SET(hasRotated);
+    ADD_FLAG_IF_SET(isSunlit);
+    ADD_FLAG_IF_SET(throw_sparks);
+    flagsString = [flags count] ? [flags componentsJoinedByString:@", "] : (NSString*)@"none";
+    OOLog(@"dumpState.entity", @"Flags: %@", flagsString);
+    OOLog(@"dumpState.entity", @"Collision Test Filter: %u", collisionTestFilter);
 }
 
-
-- (void)subEntityReallyDied:(ShipEntity *)sub
+- (void)subEntityReallyDied:(ShipEntity*)sub
 {
-	OOLog(@"entity.bug", @"%s called for non-ship entity %p by %p", __PRETTY_FUNCTION__, self, sub);
+    OOLog(@"entity.bug", @"%s called for non-ship entity %p by %p", __PRETTY_FUNCTION__, self, sub);
 }
 
-
-- (NSUInteger) lastDrawCounter
+- (NSUInteger)lastDrawCounter
 {
-	return lastDrawCounter;
+    return lastDrawCounter;
 }
 
-
-- (void) setLastDrawCounter: (NSUInteger) drawCounter
+- (void)setLastDrawCounter:(NSUInteger)drawCounter
 {
-	lastDrawCounter = drawCounter;
-	return;
+    lastDrawCounter = drawCounter;
+    return;
 }
-
 
 // For shader bindings.
 - (GLfloat)universalTime
 {
-	return [UNIVERSE getTime];
+    return [UNIVERSE getTime];
 }
-
 
 - (GLfloat)spawnTime
 {
-	return spawnTime;
+    return spawnTime;
 }
-
 
 - (GLfloat)timeElapsedSinceSpawn
 {
-	return [UNIVERSE getTime] - spawnTime;
+    return [UNIVERSE getTime] - spawnTime;
 }
 
-
-- (void) setAtmosphereFogging: (OOColor *)fogging
+- (void)setAtmosphereFogging:(OOColor*)fogging
 {
-	[atmosphereFogging release];
-	atmosphereFogging = [fogging retain];
+    [atmosphereFogging release];
+    atmosphereFogging = [fogging retain];
 }
 
-- (OOColor *) fogUniform
+- (OOColor*)fogUniform
 {
-	return [[atmosphereFogging retain] autorelease];
+    return [[atmosphereFogging retain] autorelease];
 }
 
 #ifndef NDEBUG
-- (NSString *) descriptionForObjDumpBasic
+- (NSString*)descriptionForObjDumpBasic
 {
-	NSString *result = [self descriptionComponents];
-	if (result != nil)  result = [NSString stringWithFormat:@"%@ %@", NSStringFromClass([self class]), result];
-	else  result = [self description];
-	
-	return result;
+    NSString* result = [self descriptionComponents];
+    if (result != nil)
+        result = [NSString stringWithFormat:@"%@ %@", NSStringFromClass([self class]), result];
+    else
+        result = [self description];
+
+    return result;
 }
 
-
-- (NSString *) descriptionForObjDump
+- (NSString*)descriptionForObjDump
 {
-	NSString *result = [self descriptionForObjDumpBasic];
-	
-	result = [result stringByAppendingFormat:@" range: %g (visible: %@)", HPdistance([self position], [PLAYER position]), [self isVisible] ? @"yes" : @"no"];
-	
-	return result;
+    NSString* result = [self descriptionForObjDumpBasic];
+
+    result = [result stringByAppendingFormat:@" range: %g (visible: %@)", HPdistance([self position], [PLAYER position]), [self isVisible] ? @"yes" : @"no"];
+
+    return result;
 }
 
-
-- (NSSet *) allTextures
+- (NSSet*)allTextures
 {
-	return nil;
+    return nil;
 }
 #endif
 
-
-- (BOOL) isVisible
+- (BOOL)isVisible
 {
-	return cam_zero_distance <= ABSOLUTE_NO_DRAW_DISTANCE2;
+    return cam_zero_distance <= ABSOLUTE_NO_DRAW_DISTANCE2;
 }
 
-
-- (BOOL) isInSpace
+- (BOOL)isInSpace
 {
-	switch ([self status])
-	{
-	case STATUS_IN_FLIGHT:
-	case STATUS_DOCKING:
-	case STATUS_LAUNCHING:
-	case STATUS_AUTOPILOT_ENGAGED:
-	case STATUS_WITCHSPACE_COUNTDOWN:
-	case STATUS_BEING_SCOOPED:
-	case STATUS_EFFECT:
-	case STATUS_ACTIVE:
-		return YES;
-	default:
-		return NO;
-	}
+    switch ([self status]) {
+    case STATUS_IN_FLIGHT:
+    case STATUS_DOCKING:
+    case STATUS_LAUNCHING:
+    case STATUS_AUTOPILOT_ENGAGED:
+    case STATUS_WITCHSPACE_COUNTDOWN:
+    case STATUS_BEING_SCOOPED:
+    case STATUS_EFFECT:
+    case STATUS_ACTIVE:
+        return YES;
+    default:
+        return NO;
+    }
 }
 
-
-- (BOOL) isImmuneToBreakPatternHide
+- (BOOL)isImmuneToBreakPatternHide
 {
-	return isImmuneToBreakPatternHide;
+    return isImmuneToBreakPatternHide;
 }
 
 @end

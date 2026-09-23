@@ -48,12 +48,10 @@ SOFTWARE.
 #import "OOFoundation.h"
 #import "OOFunctionAttributes.h"
 
-
 id OODeepCopy(id object) OO_RETURNS_RETAINED;
-
 
 @interface NSObject (OODeepCopy)
 
-- (id) ooDeepCopyWithSharedObjects:(NSMutableSet *)objects OO_RETURNS_RETAINED;
+- (id)ooDeepCopyWithSharedObjects:(NSMutableSet*)objects OO_RETURNS_RETAINED;
 
 @end

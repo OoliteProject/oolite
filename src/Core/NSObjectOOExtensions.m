@@ -27,25 +27,22 @@ SOFTWARE.
 
 #import "NSObjectOOExtensions.h"
 
-
 #if OOLITE_MAC_OS_X
 #import <objc/runtime.h>
 #endif
-
 
 @implementation NSObject (OOExtensions)
 
 #ifndef NDEBUG
 
-+ (size_t) oo_instanceSize
++ (size_t)oo_instanceSize
 {
-	return class_getInstanceSize(self);
+    return class_getInstanceSize(self);
 }
 
-
-- (size_t) oo_objectSize
+- (size_t)oo_objectSize
 {
-	return [[self class] oo_instanceSize];
+    return [[self class] oo_instanceSize];
 }
 
 #endif

@@ -33,200 +33,179 @@ SOFTWARE.
 
 @interface OOOXPVerifierStage (OOPrivate)
 
-- (void)registerDepedent:(OOOXPVerifierStage *)dependent;
-- (void)dependencyCompleted:(OOOXPVerifierStage *)dependency;
+- (void)registerDepedent:(OOOXPVerifierStage*)dependent;
+- (void)dependencyCompleted:(OOOXPVerifierStage*)dependency;
 
 @end
-
 
 @implementation OOOXPVerifierStage
 
 - (id)init
 {
-	self = [super init];
-	
-	if (self != nil)
-	{
-		_dependencies = [[NSMutableSet alloc] init];
-		_incompleteDependencies = [[NSMutableSet alloc] init];
-		_dependents = [[NSMutableSet alloc] init];
-		_canRun = NO;
-	}
-	
-	return self;
-}
+    self = [super init];
 
+    if (self != nil) {
+        _dependencies = [[NSMutableSet alloc] init];
+        _incompleteDependencies = [[NSMutableSet alloc] init];
+        _dependents = [[NSMutableSet alloc] init];
+        _canRun = NO;
+    }
+
+    return self;
+}
 
 - (void)dealloc
 {
-	[_dependencies release];
-	[_incompleteDependencies release];
-	[_dependents release];
-	
-	[super dealloc];
-}
+    [_dependencies release];
+    [_incompleteDependencies release];
+    [_dependents release];
 
+    [super dealloc];
+}
 
 - (id)description
 {
-	return [NSString stringWithFormat:@"<%@ %p>{\"%@\"}", [self class], self, [self name]];
+    return [NSString stringWithFormat:@"<%@ %p>{\"%@\"}", [self class], self, [self name]];
 }
 
-
-- (OOOXPVerifier *)verifier
+- (OOOXPVerifier*)verifier
 {
-	return [[_verifier retain] autorelease];
+    return [[_verifier retain] autorelease];
 }
-
 
 - (BOOL)completed
 {
-	return _hasRun;
+    return _hasRun;
 }
 
-
-- (NSString *)name
+- (NSString*)name
 {
-	OOLogGenericSubclassResponsibility();
-	return nil;
+    OOLogGenericSubclassResponsibility();
+    return nil;
 }
 
-
-- (NSSet *)dependencies
+- (NSSet*)dependencies
 {
-	return nil;
+    return nil;
 }
 
-
-- (NSSet *)dependents
+- (NSSet*)dependents
 {
-	return nil;
+    return nil;
 }
-
 
 - (BOOL)shouldRun
 {
-	return YES;
+    return YES;
 }
-
 
 - (void)run
 {
-	OOLogGenericSubclassResponsibility();
+    OOLogGenericSubclassResponsibility();
 }
 
 @end
-
 
 @implementation OOOXPVerifierStage (OOInternal)
 
-- (void)setVerifier:(OOOXPVerifier *)verifier
+- (void)setVerifier:(OOOXPVerifier*)verifier
 {
-	_verifier = verifier;	// Not retained.
+    _verifier = verifier; // Not retained.
 }
 
-
-- (BOOL)isDependentOf:(OOOXPVerifierStage *)stage
+- (BOOL)isDependentOf:(OOOXPVerifierStage*)stage
 {
-	OOOXPVerifierStage		*directDep = nil;
-	
-	if (stage == nil)  return NO;
-	
-	// Direct dependency check.
-	if ([_dependencies containsObject:stage])  return YES;
-	
-	// Recursive dependency check.
-	foreach (directDep, _dependencies)
-	{
-		if ([directDep isDependentOf:stage])  return YES;
-	}
-	
-	return NO;
+    OOOXPVerifierStage* directDep = nil;
+
+    if (stage == nil)
+        return NO;
+
+    // Direct dependency check.
+    if ([_dependencies containsObject:stage])
+        return YES;
+
+    // Recursive dependency check.
+    foreach (directDep, _dependencies) {
+        if ([directDep isDependentOf:stage])
+            return YES;
+    }
+
+    return NO;
 }
 
-
-- (void)registerDependency:(OOOXPVerifierStage *)dependency
+- (void)registerDependency:(OOOXPVerifierStage*)dependency
 {
-	[_dependencies addObject:dependency];
-	[_incompleteDependencies addObject:dependency];
-	
-	[dependency registerDepedent:self];
-}
+    [_dependencies addObject:dependency];
+    [_incompleteDependencies addObject:dependency];
 
+    [dependency registerDepedent:self];
+}
 
 - (BOOL)canRun
 {
-	return _canRun;
+    return _canRun;
 }
-
 
 - (void)performRun
 {
-	assert(_canRun && !_hasRun);
-	
-	OOLogPushIndent();
-	@try
-	{
-		[self run];
-	}
-	@catch (NSException *exception)
-	{
-		OOLog(@"verifyOXP.exception", @"***** Exception while running verification stage \"%@\": %@", [self name], exception);
-	}
-	OOLogPopIndent();
-	
-	_hasRun = YES;
-	_canRun = NO;
-	[_dependents makeObjectsPerformSelector:@selector(dependencyCompleted:) withObject:self];
-}
+    assert(_canRun && !_hasRun);
 
+    OOLogPushIndent();
+    @try {
+        [self run];
+    }
+    @catch (NSException* exception) {
+        OOLog(@"verifyOXP.exception", @"***** Exception while running verification stage \"%@\": %@", [self name], exception);
+    }
+    OOLogPopIndent();
+
+    _hasRun = YES;
+    _canRun = NO;
+    [_dependents makeObjectsPerformSelector:@selector(dependencyCompleted:) withObject:self];
+}
 
 - (void)noteSkipped
 {
-	assert(_canRun && !_hasRun);
-	
-	_hasRun = YES;
-	_canRun = NO;
-	[_dependents makeObjectsPerformSelector:@selector(dependencyCompleted:) withObject:self];
-}
+    assert(_canRun && !_hasRun);
 
+    _hasRun = YES;
+    _canRun = NO;
+    [_dependents makeObjectsPerformSelector:@selector(dependencyCompleted:) withObject:self];
+}
 
 - (void)dependencyRegistrationComplete
 {
-	_canRun = [_incompleteDependencies count] == 0;
+    _canRun = [_incompleteDependencies count] == 0;
 }
 
-
-- (NSSet *)resolvedDependencies
+- (NSSet*)resolvedDependencies
 {
-	return _dependencies;
+    return _dependencies;
 }
 
-
-- (NSSet *)resolvedDependents
+- (NSSet*)resolvedDependents
 {
-	return _dependents;
+    return _dependents;
 }
 
 @end
-
 
 @implementation OOOXPVerifierStage (OOPrivate)
 
-- (void)registerDepedent:(OOOXPVerifierStage *)dependent
+- (void)registerDepedent:(OOOXPVerifierStage*)dependent
 {
-	assert(![self isDependentOf:dependent]);
-	
-	[_dependents addObject:dependent];
+    assert(![self isDependentOf:dependent]);
+
+    [_dependents addObject:dependent];
 }
 
-
-- (void)dependencyCompleted:(OOOXPVerifierStage *)dependency
+- (void)dependencyCompleted:(OOOXPVerifierStage*)dependency
 {
-	[_incompleteDependencies removeObject:dependency];
-	if ([_incompleteDependencies count] == 0)  _canRun = YES;
+    [_incompleteDependencies removeObject:dependency];
+    if ([_incompleteDependencies count] == 0)
+        _canRun = YES;
 }
 
 @end
 
-#endif	//OO_OXP_VERIFIER_ENABLED
+#endif // OO_OXP_VERIFIER_ENABLED

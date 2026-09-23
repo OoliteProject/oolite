@@ -24,20 +24,18 @@ SOFTWARE.
 
 */
 
-#import "OOSound.h"
 #import "OOALSoundDecoder.h"
+#import "OOSound.h"
 
-@interface OOALBufferedSound: OOSound
-{
+@interface OOALBufferedSound : OOSound {
 @private
-	char				*_buffer;
-	size_t				_size;
-	double				_sampleRate;
-	NSString			*_name;
-	BOOL				_stereo;
+    char* _buffer;
+    size_t _size;
+    double _sampleRate;
+    NSString* _name;
+    BOOL _stereo;
 }
 
-- (id)initWithDecoder:(OOALSoundDecoder *)inDecoder;
-
+- (id)initWithDecoder:(OOALSoundDecoder*)inDecoder;
 
 @end

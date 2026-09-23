@@ -25,12 +25,12 @@ SOFTWARE.
 
 */
 
-#include <jsdbgapi.h>
 #import "OOJSEngineTimeManagement.h"
-#import "OOProfilingStopwatch.h"
-#import "OOJSScript.h"
 #import "OOCollectionExtractors.h"
+#import "OOJSScript.h"
 #import "OOLoggingExtended.h"
+#import "OOProfilingStopwatch.h"
+#include <jsdbgapi.h>
 
 #if OOLITE_LINUX
 // Workaround for clang/glibc incompatibility.
@@ -45,13 +45,11 @@ SOFTWARE.
 #undef __block
 #endif
 
-
 #if OO_DEBUG
-#define OOJS_DEBUG_LIMITER	1
+#define OOJS_DEBUG_LIMITER 1
 #else
-#define OOJS_DEBUG_LIMITER	0
+#define OOJS_DEBUG_LIMITER 0
 #endif
-
 
 static unsigned sLimiterStartDepth;
 static int sLimiterPauseDepth;
@@ -59,951 +57,865 @@ static OOHighResTimeValue sLimiterStart;
 static OOHighResTimeValue sLimiterPauseStart;
 static double sLimiterTimeLimit;
 
-
 #if OOJS_DEBUG_LIMITER
-#define OOJS_TIME_LIMIT		(0.2)	// seconds
+#define OOJS_TIME_LIMIT (0.2) // seconds
 #else
-#define OOJS_TIME_LIMIT		(1)	// seconds
+#define OOJS_TIME_LIMIT (1) // seconds
 #endif
 
 static BOOL sStop;
 
 #ifndef NDEBUG
-static const char *sLastStartedFile;
+static const char* sLastStartedFile;
 static unsigned sLastStartedLine;
-static const char *sLastStoppedFile;
+static const char* sLastStoppedFile;
 static unsigned sLastStoppedLine;
 #endif
 
-
 #if OOJS_PROFILE && defined(MOZ_TRACE_JSCALLS)
-static void FunctionCallback(JSFunction *function, JSScript *script, JSContext *context, int entering);
+static void FunctionCallback(JSFunction* function, JSScript* script, JSContext* context, int entering);
 #endif
 
-
 #ifndef NDEBUG
-void OOJSStartTimeLimiterWithTimeLimit_(OOTimeDelta limit, const char *file, unsigned line)
+void OOJSStartTimeLimiterWithTimeLimit_(OOTimeDelta limit, const char* file, unsigned line)
 #else
 void OOJSStartTimeLimiterWithTimeLimit(OOTimeDelta limit)
 #endif
 {
 #if OOJS_DEBUG_LIMITER
-	OOLog(@"script.javaScript.timeLimit.debug",@"Limiter starting: %u => %u",sLimiterStartDepth,sLimiterStartDepth+1);
+    OOLog(@"script.javaScript.timeLimit.debug", @"Limiter starting: %u => %u", sLimiterStartDepth, sLimiterStartDepth + 1);
 #endif
-	if (sLimiterStartDepth++ == 0)
-	{
-		if (limit <= 0.0)  limit = OOJS_TIME_LIMIT;
-		sLimiterTimeLimit = limit;
-		sLimiterPauseDepth = 0;
-		
-		OODisposeHighResTime(sLimiterStart);
-		sLimiterStart = OOGetHighResTime();
-	}
-	
+    if (sLimiterStartDepth++ == 0) {
+        if (limit <= 0.0)
+            limit = OOJS_TIME_LIMIT;
+        sLimiterTimeLimit = limit;
+        sLimiterPauseDepth = 0;
+
+        OODisposeHighResTime(sLimiterStart);
+        sLimiterStart = OOGetHighResTime();
+    }
+
 #ifndef NDEBUG
-	sLastStartedFile = file;
-	sLastStartedLine = line;
+    sLastStartedFile = file;
+    sLastStartedLine = line;
 #endif
 }
 
-
 #ifndef NDEBUG
-void OOJSStopTimeLimiter_(const char *file, unsigned line)
+void OOJSStopTimeLimiter_(const char* file, unsigned line)
 #else
 void OOJSStopTimeLimiter(void)
 #endif
 {
 #ifndef NDEBUG
-	if (sLimiterStartDepth == 0)
-	{
-		OOLog(@"bug.javaScript.limiterDepth", @"Attempt to stop JavaScript time limiter while it is already fully stopped. This is an internal bug, please report it. (Last start: %@:%u, last valid stop: %@:%u, this stop attempt: %@:%u.)", OOLogAbbreviatedFileName(sLastStartedFile), sLastStartedLine, OOLogAbbreviatedFileName(sLastStoppedFile), sLastStoppedLine, OOLogAbbreviatedFileName(file), line);
-		return;
-	}
-	
-	sLastStoppedFile = file;
-	sLastStoppedLine = line;
+    if (sLimiterStartDepth == 0) {
+        OOLog(@"bug.javaScript.limiterDepth", @"Attempt to stop JavaScript time limiter while it is already fully stopped. This is an internal bug, please report it. (Last start: %@:%u, last valid stop: %@:%u, this stop attempt: %@:%u.)", OOLogAbbreviatedFileName(sLastStartedFile), sLastStartedLine, OOLogAbbreviatedFileName(sLastStoppedFile), sLastStoppedLine, OOLogAbbreviatedFileName(file), line);
+        return;
+    }
+
+    sLastStoppedFile = file;
+    sLastStoppedLine = line;
 
 #if OOJS_DEBUG_LIMITER
-	OOLog(@"script.javaScript.timeLimit.debug",@"Limiter ending: %u <= %u",sLimiterStartDepth-1,sLimiterStartDepth);
+    OOLog(@"script.javaScript.timeLimit.debug", @"Limiter ending: %u <= %u", sLimiterStartDepth - 1, sLimiterStartDepth);
 #endif
 
 #endif
-	
-	if (--sLimiterStartDepth == 0)  sLimiterTimeLimit = 0.0;
+
+    if (--sLimiterStartDepth == 0)
+        sLimiterTimeLimit = 0.0;
 }
-
 
 void OOJSPauseTimeLimiter(void)
 {
-	if (sLimiterPauseDepth++ == 0)
-	{
-		OODisposeHighResTime(sLimiterPauseStart);
-		sLimiterPauseStart = OOGetHighResTime();
-	}
+    if (sLimiterPauseDepth++ == 0) {
+        OODisposeHighResTime(sLimiterPauseStart);
+        sLimiterPauseStart = OOGetHighResTime();
+    }
 }
-
 
 void OOJSResumeTimeLimiter(void)
 {
-	if (--sLimiterPauseDepth == 0)
-		
-	{
-		OOHighResTimeValue now = OOGetHighResTime();
-		OOTimeDelta elapsed = OOHighResTimeDeltaInSeconds(sLimiterPauseStart, now);
-		OODisposeHighResTime(now);
-		
-		sLimiterTimeLimit += elapsed;
-	}
-}
+    if (--sLimiterPauseDepth == 0)
 
+    {
+        OOHighResTimeValue now = OOGetHighResTime();
+        OOTimeDelta elapsed = OOHighResTimeDeltaInSeconds(sLimiterPauseStart, now);
+        OODisposeHighResTime(now);
+
+        sLimiterTimeLimit += elapsed;
+    }
+}
 
 #ifndef NDEBUG
 OOHighResTimeValue OOJSCopyTimeLimiterNominalStartTime(void)
 {
-	return sLimiterStart;
+    return sLimiterStart;
 }
-
 
 void OOJSResetTimeLimiter(void)
 {
-	OODisposeHighResTime(sLimiterStart);
-	sLimiterStart = OOGetHighResTime();
-	
-	sStop = NO;
-}
+    OODisposeHighResTime(sLimiterStart);
+    sLimiterStart = OOGetHighResTime();
 
+    sStop = NO;
+}
 
 OOTimeDelta OOJSGetTimeLimiterLimit(void)
 {
-	return sLimiterTimeLimit;
+    return sLimiterTimeLimit;
 }
-
 
 void OOJSSetTimeLimiterLimit(OOTimeDelta limit)
 {
-	sLimiterTimeLimit = limit;
+    sLimiterTimeLimit = limit;
 }
 #endif
 
-
 @implementation OOJavaScriptEngine (WatchdogTimer)
 
-- (void) watchdogTimerThread
+- (void)watchdogTimerThread
 {
-	for (;;)
-	{
+    for (;;) {
 #if OOLITE_WINDOWS
-		Sleep(OOJS_TIME_LIMIT * 1000);
+        Sleep(OOJS_TIME_LIMIT * 1000);
 #else
-		usleep(OOJS_TIME_LIMIT * 1000000);
+        usleep(OOJS_TIME_LIMIT * 1000000);
 #endif
-		
-		if (EXPECT(sLimiterStartDepth == 0 || sLimiterPauseDepth > 0))  continue;	// Most of the time, a script isn't running.
-		
-		// Note: if you add logging here, you need a manual autorelease pool.
-		
-		OOHighResTimeValue now = OOGetHighResTime();
-		OOTimeDelta elapsed = OOHighResTimeDeltaInSeconds(sLimiterStart, now);
-		OODisposeHighResTime(now);
-		
-		if (EXPECT_NOT(elapsed > sLimiterTimeLimit))
-		{
-			sStop = YES;
-			JS_TriggerAllOperationCallbacks(_runtime);
-		}
-	}
+
+        if (EXPECT(sLimiterStartDepth == 0 || sLimiterPauseDepth > 0))
+            continue; // Most of the time, a script isn't running.
+
+        // Note: if you add logging here, you need a manual autorelease pool.
+
+        OOHighResTimeValue now = OOGetHighResTime();
+        OOTimeDelta elapsed = OOHighResTimeDeltaInSeconds(sLimiterStart, now);
+        OODisposeHighResTime(now);
+
+        if (EXPECT_NOT(elapsed > sLimiterTimeLimit)) {
+            sStop = YES;
+            JS_TriggerAllOperationCallbacks(_runtime);
+        }
+    }
 }
 
 @end
 
-
-static JSBool OperationCallback(JSContext *context)
+static JSBool OperationCallback(JSContext* context)
 {
-	if (!sStop)  return YES;
-	
+    if (!sStop)
+        return YES;
+
     JS_ClearPendingException(context);
-	
-	OOHighResTimeValue now = OOGetHighResTime();
-	OOTimeDelta elapsed = OOHighResTimeDeltaInSeconds(sLimiterStart, now);
-	OODisposeHighResTime(now);
-	
-	if (elapsed <= sLimiterTimeLimit)  return YES;
-	
-	OOLogERR(@"script.javaScript.timeLimit", @"Script \"%@\" ran for %g seconds and has been terminated.", [[OOJSScript currentlyRunningScript] name], elapsed);
+
+    OOHighResTimeValue now = OOGetHighResTime();
+    OOTimeDelta elapsed = OOHighResTimeDeltaInSeconds(sLimiterStart, now);
+    OODisposeHighResTime(now);
+
+    if (elapsed <= sLimiterTimeLimit)
+        return YES;
+
+    OOLogERR(@"script.javaScript.timeLimit", @"Script \"%@\" ran for %g seconds and has been terminated.", [[OOJSScript currentlyRunningScript] name], elapsed);
 #ifndef NDEBUG
-	OOJSDumpStack(context);
+    OOJSDumpStack(context);
 #endif
-	
-	// FIXME: we really should put something in the JS log here, but since that's implemented in JS there are complications.
-	
-	return NO;
+
+    // FIXME: we really should put something in the JS log here, but since that's implemented in JS there are complications.
+
+    return NO;
 }
 
-
-static JSBool ContextCallback(JSContext *context, uintN contextOp)
+static JSBool ContextCallback(JSContext* context, uintN contextOp)
 {
-	if (contextOp == JSCONTEXT_NEW)
-	{
-		JS_SetOperationCallback(context, OperationCallback);
-		
+    if (contextOp == JSCONTEXT_NEW) {
+        JS_SetOperationCallback(context, OperationCallback);
+
 #if OOJS_PROFILE && defined(MOZ_TRACE_JSCALLS)
-		JS_SetFunctionCallback(context, (JSFunctionCallback)FunctionCallback);	// Naughtily casts away consts, because const JSContexts and JSFunctions are useless.
+        JS_SetFunctionCallback(context, (JSFunctionCallback)FunctionCallback); // Naughtily casts away consts, because const JSContexts and JSFunctions are useless.
 #endif
-	}
-	return YES;
+    }
+    return YES;
 }
 
-
-void OOJSTimeManagementInit(OOJavaScriptEngine *engine, JSRuntime *runtime)
+void OOJSTimeManagementInit(OOJavaScriptEngine* engine, JSRuntime* runtime)
 {
-	[NSThread detachNewThreadSelector:@selector(watchdogTimerThread)
-							 toTarget:engine
-						   withObject:nil];
-	
-	JS_SetContextCallback(runtime, ContextCallback);
-}
+    [NSThread detachNewThreadSelector:@selector(watchdogTimerThread)
+                             toTarget:engine
+                           withObject:nil];
 
+    JS_SetContextCallback(runtime, ContextCallback);
+}
 
 #if OOJS_PROFILE
-	
+
 #ifndef MOZ_TRACE_JSCALLS
 #warning Profiling is enabled, but MOZ_TRACE_JSCALLS is disabled, so only native functions will be profiled.
 #endif
 
-static BOOL						sProfiling = NO;
-static BOOL						sTracing = NO;
-static OOJSProfileStackFrame	*sProfileStack = NULL;
-static NSMapTable				*sProfileInfo;
-static double					sProfilerOverhead;
-static double					sProfilerTotalNativeTime;
-static double					sProfilerTotalJavaScriptTime;
-static double					sProfilerEntryTimeLimit;
-static OOHighResTimeValue		sProfilerStartTime;
-
+static BOOL sProfiling = NO;
+static BOOL sTracing = NO;
+static OOJSProfileStackFrame* sProfileStack = NULL;
+static NSMapTable* sProfileInfo;
+static double sProfilerOverhead;
+static double sProfilerTotalNativeTime;
+static double sProfilerTotalJavaScriptTime;
+static double sProfilerEntryTimeLimit;
+static OOHighResTimeValue sProfilerStartTime;
 
 @interface OOTimeProfile (Private)
 
-- (void) setTotalTime:(double)value;
-- (void) setNativeTime:(double)value;
+- (void)setTotalTime:(double)value;
+- (void)setNativeTime:(double)value;
 #ifdef MOZ_TRACE_JSCALLS
-- (void) setJavaScriptTime:(double)value;
+- (void)setJavaScriptTime:(double)value;
 #endif
-- (void) setProfilerOverhead:(double)value;
-- (void) setExtensionTime:(double)value;
-- (void) setProfileEntries:(NSArray *)value;
+- (void)setProfilerOverhead:(double)value;
+- (void)setExtensionTime:(double)value;
+- (void)setProfileEntries:(NSArray*)value;
 
-- (NSDictionary *) propertyListRepresentation;
+- (NSDictionary*)propertyListRepresentation;
 
 @end
-
 
 @interface OOTimeProfileEntry (Private)
 
-- (id) initWithCName:(const char *)name;
+- (id)initWithCName:(const char*)name;
 #ifdef MOZ_TRACE_JSCALLS
-- (id) initWithJSFunction:(JSFunction *)function context:(JSContext *)context;
+- (id)initWithJSFunction:(JSFunction*)function context:(JSContext*)context;
 #endif
 
-- (void) addSampleWithTotalTime:(OOTimeDelta)totalTime selfTime:(OOTimeDelta)selfTime;
+- (void)addSampleWithTotalTime:(OOTimeDelta)totalTime selfTime:(OOTimeDelta)selfTime;
 
-- (NSDictionary *) propertyListRepresentation;
+- (NSDictionary*)propertyListRepresentation;
 
 @end
 
-
 void OOJSBeginProfiling(BOOL trace)
 {
-	assert(sProfiling == NO);
-	sProfiling = YES;
-	sTracing = trace;
-	sProfileInfo = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks, NSObjectMapValueCallBacks, 100);
-	sProfilerOverhead = 0.0;
-	sProfilerTotalNativeTime = 0.0;
-	sProfilerTotalJavaScriptTime = 0.0;
-	sProfilerEntryTimeLimit = OOJSGetTimeLimiterLimit();
-	
-	// This should be last for precision.
-	sProfilerStartTime = OOGetHighResTime();
-	
-	if (trace)
-	{
-		OOLog(@"script.javaScript.trace", @"%@", @">>>> Beginning trace.");
-		OOLogIndent();
-	}
+    assert(sProfiling == NO);
+    sProfiling = YES;
+    sTracing = trace;
+    sProfileInfo = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks, NSObjectMapValueCallBacks, 100);
+    sProfilerOverhead = 0.0;
+    sProfilerTotalNativeTime = 0.0;
+    sProfilerTotalJavaScriptTime = 0.0;
+    sProfilerEntryTimeLimit = OOJSGetTimeLimiterLimit();
+
+    // This should be last for precision.
+    sProfilerStartTime = OOGetHighResTime();
+
+    if (trace) {
+        OOLog(@"script.javaScript.trace", @"%@", @">>>> Beginning trace.");
+        OOLogIndent();
+    }
 }
 
-
-OOTimeProfile *OOJSEndProfiling(void)
+OOTimeProfile* OOJSEndProfiling(void)
 {
-	// This should be at the top for precision.
-	OOHighResTimeValue now = OOGetHighResTime();
-	// Time limiter should be as close to outermost as practical.
-	OOJSPauseTimeLimiter();
-	
-	assert(sProfiling && sProfileStack == NULL);
-	
-	sProfiling = NO;
+    // This should be at the top for precision.
+    OOHighResTimeValue now = OOGetHighResTime();
+    // Time limiter should be as close to outermost as practical.
+    OOJSPauseTimeLimiter();
 
-	OOTimeProfile *result = [[OOTimeProfile alloc] init];
-	
-	[result setTotalTime:OOHighResTimeDeltaInSeconds(sProfilerStartTime, now)];
-	[result setNativeTime:sProfilerTotalNativeTime];
+    assert(sProfiling && sProfileStack == NULL);
+
+    sProfiling = NO;
+
+    OOTimeProfile* result = [[OOTimeProfile alloc] init];
+
+    [result setTotalTime:OOHighResTimeDeltaInSeconds(sProfilerStartTime, now)];
+    [result setNativeTime:sProfilerTotalNativeTime];
 #ifdef MOZ_TRACE_JSCALLS
-	[result setJavaScriptTime:sProfilerTotalJavaScriptTime];
+    [result setJavaScriptTime:sProfilerTotalJavaScriptTime];
 #endif
-	[result setProfilerOverhead:sProfilerOverhead];
-	
-	double currentTimeLimit = OOJSGetTimeLimiterLimit(); 
-	[result setExtensionTime:currentTimeLimit - sProfilerEntryTimeLimit];
-	
-	[result setProfileEntries:[NSAllMapTableValues(sProfileInfo) sortedArrayUsingSelector:@selector(compareBySelfTimeReverse:)]];
-	
-	if (sTracing)
-	{
-		OOLogOutdent();
-		OOLog(@"script.javaScript.trace", @"%@", @"<<<< End of trace.");
-		sTracing = NO;
-	}
-	
-	// Clean up.
-	NSFreeMapTable(sProfileInfo);
-	OODisposeHighResTime(sProfilerStartTime);
-	
-	OODisposeHighResTime(now);
-	
-	OOJSResumeTimeLimiter();
-	return result;
-}
+    [result setProfilerOverhead:sProfilerOverhead];
 
+    double currentTimeLimit = OOJSGetTimeLimiterLimit();
+    [result setExtensionTime:currentTimeLimit - sProfilerEntryTimeLimit];
+
+    [result setProfileEntries:[NSAllMapTableValues(sProfileInfo) sortedArrayUsingSelector:@selector(compareBySelfTimeReverse:)]];
+
+    if (sTracing) {
+        OOLogOutdent();
+        OOLog(@"script.javaScript.trace", @"%@", @"<<<< End of trace.");
+        sTracing = NO;
+    }
+
+    // Clean up.
+    NSFreeMapTable(sProfileInfo);
+    OODisposeHighResTime(sProfilerStartTime);
+
+    OODisposeHighResTime(now);
+
+    OOJSResumeTimeLimiter();
+    return result;
+}
 
 BOOL OOJSIsProfiling(void)
 {
-	return sProfiling;
+    return sProfiling;
 }
 
 void OOJSBeginTracing(void);
 void OOJSEndTracing(void);
 BOOL OOJSIsTracing(void);
 
-
-static void UpdateProfileForFrame(OOHighResTimeValue now, OOJSProfileStackFrame *frame);
-
+static void UpdateProfileForFrame(OOHighResTimeValue now, OOJSProfileStackFrame* frame);
 
 #ifdef MOZ_TRACE_JSCALLS
-static void CleanUpJSFrame(OOJSProfileStackFrame *frame)
+static void CleanUpJSFrame(OOJSProfileStackFrame* frame)
 {
-	free(frame);
+    free(frame);
 }
 
-
-static void TraceEnterJSFunction(JSContext *context, JSFunction *function, OOTimeProfileEntry *profileEntry)
+static void TraceEnterJSFunction(JSContext* context, JSFunction* function, OOTimeProfileEntry* profileEntry)
 {
-	NSMutableString		*name = [NSMutableString stringWithFormat:@"%@(", [profileEntry function]];
-	BOOL				isNative = JS_GetFunctionNative(context, function) != NULL;
-	NSString			*frameTag = nil;
-	NSString			*logMsgClass = nil;
-	
-	if (!isNative)
-	{
-		// Get stack frame and find arguments.
-		JSStackFrame		*frame = NULL;
-		BOOL				first = YES;
-		jsval				this;
-		JSObject			*scope;
-		JSPropertyDescArray	properties = { 0 , NULL };
-		unsigned			i;
-		
-		// Temporarily disable profiling as we'll call out to profiled functions to get value descriptions.
-		sProfiling = NO;
-		
-		if (JS_FrameIterator(context, &frame) != NULL)
-		{
-			if (JS_IsConstructorFrame(context, frame))
-			{
-				[name insertString:@"new " atIndex:0];
-			}
-			
-			if (JS_GetFrameThis(context, frame, &this))
-			{
-				[name appendFormat:@"this: %@", OOJSDescribeValue(context, this, YES)];
-				first = NO;
-			}
-			
-			scope = JS_GetFrameScopeChain(context, frame);
-			if (scope != NULL && JS_GetPropertyDescArray(context, scope, &properties))
-			{
-				for (i = 0; i < properties.length; i++)
-				{
-					JSPropertyDesc *prop = &properties.array[i];
-					if (prop->flags & JSPD_ARGUMENT)
-					{
-						if (!first)  [name appendFormat:@", "];
-						else  first = NO;
-						
-						[name appendFormat:@"%@: %@", OOStringFromJSValueEvenIfNull(context, prop->id), OOJSDescribeValue(context, prop->value, YES)];
-					}
-				}
-			}
-		}
-		
-		sProfiling = YES;
-		
-		frameTag = @"JS";	// JavaScript
-		logMsgClass = @"script.javaScript.trace.JS";
-	}
-	else
-	{
-		frameTag = @"NW";	// Native Wrapper
-		logMsgClass = @"script.javaScript.trace.NW";
-	}
-	
-	[name appendString:@")"];
-	OOLog(logMsgClass, @">> %@ [%@]", name, frameTag);
-	OOLogIndent();
+    NSMutableString* name = [NSMutableString stringWithFormat:@"%@(", [profileEntry function]];
+    BOOL isNative = JS_GetFunctionNative(context, function) != NULL;
+    NSString* frameTag = nil;
+    NSString* logMsgClass = nil;
+
+    if (!isNative) {
+        // Get stack frame and find arguments.
+        JSStackFrame* frame = NULL;
+        BOOL first = YES;
+        jsval this;
+        JSObject* scope;
+        JSPropertyDescArray properties = { 0, NULL };
+        unsigned i;
+
+        // Temporarily disable profiling as we'll call out to profiled functions to get value descriptions.
+        sProfiling = NO;
+
+        if (JS_FrameIterator(context, &frame) != NULL) {
+            if (JS_IsConstructorFrame(context, frame)) {
+                [name insertString:@"new " atIndex:0];
+            }
+
+            if (JS_GetFrameThis(context, frame, &this)) {
+                [name appendFormat:@"this: %@", OOJSDescribeValue(context, this, YES)];
+                first = NO;
+            }
+
+            scope = JS_GetFrameScopeChain(context, frame);
+            if (scope != NULL && JS_GetPropertyDescArray(context, scope, &properties)) {
+                for (i = 0; i < properties.length; i++) {
+                    JSPropertyDesc* prop = &properties.array[i];
+                    if (prop->flags & JSPD_ARGUMENT) {
+                        if (!first)
+                            [name appendFormat:@", "];
+                        else
+                            first = NO;
+
+                        [name appendFormat:@"%@: %@", OOStringFromJSValueEvenIfNull(context, prop->id), OOJSDescribeValue(context, prop->value, YES)];
+                    }
+                }
+            }
+        }
+
+        sProfiling = YES;
+
+        frameTag = @"JS"; // JavaScript
+        logMsgClass = @"script.javaScript.trace.JS";
+    } else {
+        frameTag = @"NW"; // Native Wrapper
+        logMsgClass = @"script.javaScript.trace.NW";
+    }
+
+    [name appendString:@")"];
+    OOLog(logMsgClass, @">> %@ [%@]", name, frameTag);
+    OOLogIndent();
 }
 
-
-static void FunctionCallback(JSFunction *function, JSScript *script, JSContext *context, int entering)
+static void FunctionCallback(JSFunction* function, JSScript* script, JSContext* context, int entering)
 {
-	if (EXPECT(!sProfiling))  return;
-	if (EXPECT_NOT(function == NULL))  return;
-	
-	// Ignore native functions. Ours get their own entries anyway, SpiderMonkey's are elided.
-	if (!sTracing && JS_GetFunctionNative(context, function) != NULL)  return;
-	
-	OOHighResTimeValue start = OOGetHighResTime();
-	
-	NSAutoreleasePool *pool = [NSAutoreleasePool new];
-	
-	if (entering > 0)
-	{
-		// Create profile entry up front so we can shove the JS function in it.
-		OOTimeProfileEntry *entry = NSMapGet(sProfileInfo, function);
-		if (entry == nil)
-		{
-			entry = [[OOTimeProfileEntry alloc] initWithJSFunction:function context:context];
-			NSMapInsertKnownAbsent(sProfileInfo, function, entry);
-			[entry release];
-		}
-		
-		if (EXPECT_NOT(sTracing))
-		{
-			// We use EXPECT_NOT here because profiles are time-critical and traces are not.
-			TraceEnterJSFunction(context, function, entry);
-		}
-		
-		// Make a stack frame on the heap.
-		OOJSProfileStackFrame *frame = malloc(sizeof(OOJSProfileStackFrame));
-		assert(frame != NULL);
-		
-		*frame = (OOJSProfileStackFrame)
-		{
-			.back = sProfileStack,
-			.key = function,
-			.startTime = start,
-			.subTime = 0.0,
-			.total = &sProfilerTotalJavaScriptTime,
-			.cleanup = CleanUpJSFrame
-		};
-		
-		sProfileStack = frame;
-	}
-	else
-	{
-		// Exiting.
-		assert(sProfileStack != NULL && sProfileStack->cleanup == CleanUpJSFrame);
-		
-		UpdateProfileForFrame(start, sProfileStack);
-	}
-	
-	[pool release];
-	
-	OOHighResTimeValue end = OOGetHighResTime();
-	double currentOverhead = OOHighResTimeDeltaInSeconds(start, end);
-	sProfilerOverhead += currentOverhead;
-	OODisposeHighResTime(start);
-	OODisposeHighResTime(end);
+    if (EXPECT(!sProfiling))
+        return;
+    if (EXPECT_NOT(function == NULL))
+        return;
+
+    // Ignore native functions. Ours get their own entries anyway, SpiderMonkey's are elided.
+    if (!sTracing && JS_GetFunctionNative(context, function) != NULL)
+        return;
+
+    OOHighResTimeValue start = OOGetHighResTime();
+
+    NSAutoreleasePool* pool = [NSAutoreleasePool new];
+
+    if (entering > 0) {
+        // Create profile entry up front so we can shove the JS function in it.
+        OOTimeProfileEntry* entry = NSMapGet(sProfileInfo, function);
+        if (entry == nil) {
+            entry = [[OOTimeProfileEntry alloc] initWithJSFunction:function context:context];
+            NSMapInsertKnownAbsent(sProfileInfo, function, entry);
+            [entry release];
+        }
+
+        if (EXPECT_NOT(sTracing)) {
+            // We use EXPECT_NOT here because profiles are time-critical and traces are not.
+            TraceEnterJSFunction(context, function, entry);
+        }
+
+        // Make a stack frame on the heap.
+        OOJSProfileStackFrame* frame = malloc(sizeof(OOJSProfileStackFrame));
+        assert(frame != NULL);
+
+        *frame = (OOJSProfileStackFrame) {
+            .back = sProfileStack,
+            .key = function,
+            .startTime = start,
+            .subTime = 0.0,
+            .total = &sProfilerTotalJavaScriptTime,
+            .cleanup = CleanUpJSFrame
+        };
+
+        sProfileStack = frame;
+    } else {
+        // Exiting.
+        assert(sProfileStack != NULL && sProfileStack->cleanup == CleanUpJSFrame);
+
+        UpdateProfileForFrame(start, sProfileStack);
+    }
+
+    [pool release];
+
+    OOHighResTimeValue end = OOGetHighResTime();
+    double currentOverhead = OOHighResTimeDeltaInSeconds(start, end);
+    sProfilerOverhead += currentOverhead;
+    OODisposeHighResTime(start);
+    OODisposeHighResTime(end);
 }
 #endif
 
-
-void OOJSProfileEnter(OOJSProfileStackFrame *frame, const char *function)
+void OOJSProfileEnter(OOJSProfileStackFrame* frame, const char* function)
 {
-	if (EXPECT(!sProfiling))  return;
-	if (EXPECT_NOT(sTracing))
-	{
-		// We use EXPECT_NOT here because profiles are time-critical and traces are not.
-		OOLog(@"script.javaScript.trace.ON", @">> %s [ON]", function);
-		OOLogIndent();
-	}
-	
-	*frame = (OOJSProfileStackFrame)
-	{
-		.back = sProfileStack,
-		.key = function,
-		.function = function,
-		.startTime = OOGetHighResTime(),
-		.total = &sProfilerTotalNativeTime
-	};
-	sProfileStack = frame;
+    if (EXPECT(!sProfiling))
+        return;
+    if (EXPECT_NOT(sTracing)) {
+        // We use EXPECT_NOT here because profiles are time-critical and traces are not.
+        OOLog(@"script.javaScript.trace.ON", @">> %s [ON]", function);
+        OOLogIndent();
+    }
+
+    *frame = (OOJSProfileStackFrame) {
+        .back = sProfileStack,
+        .key = function,
+        .function = function,
+        .startTime = OOGetHighResTime(),
+        .total = &sProfilerTotalNativeTime
+    };
+    sProfileStack = frame;
 }
 
-
-void OOJSProfileExit(OOJSProfileStackFrame *frame)
+void OOJSProfileExit(OOJSProfileStackFrame* frame)
 {
-	if (EXPECT(!sProfiling))  return;
-	
-	OOHighResTimeValue	now = OOGetHighResTime();
-	NSAutoreleasePool	*pool = [NSAutoreleasePool new];
-	BOOL				done = NO;
-	
-	/*
-		It's possible there could be JavaScript frames on top of this frame if
-		a JS native returned false. Or possibly not. The semantics of
-		JS_SetFunctionCallback() aren't specified in detail.
-		-- Ahruman 2011-01-16
-	*/
-	for (;;)
-	{
-		assert(sProfileStack != NULL);
-		
-		done = (sProfileStack == frame);
-		UpdateProfileForFrame(now, sProfileStack);
-		if (EXPECT(done))  break;
-	}
-	
-	[pool release];
-	
-	OODisposeHighResTime(frame->startTime);
-	
-	OOHighResTimeValue end = OOGetHighResTime();
-	double currentOverhead = OOHighResTimeDeltaInSeconds(now, end);
-	sProfilerOverhead += currentOverhead;
-	
-	/*	Equivalent of pausing/resuming time limiter, except that it guarantees
-		excluded time will match profiler overhead if there are no other
-		pauses happening.
-	*/
-	if (sLimiterPauseDepth == 0)  sLimiterTimeLimit += currentOverhead;
-	
-	OODisposeHighResTime(now);
-	OODisposeHighResTime(end);
+    if (EXPECT(!sProfiling))
+        return;
+
+    OOHighResTimeValue now = OOGetHighResTime();
+    NSAutoreleasePool* pool = [NSAutoreleasePool new];
+    BOOL done = NO;
+
+    /*
+            It's possible there could be JavaScript frames on top of this frame if
+            a JS native returned false. Or possibly not. The semantics of
+            JS_SetFunctionCallback() aren't specified in detail.
+            -- Ahruman 2011-01-16
+    */
+    for (;;) {
+        assert(sProfileStack != NULL);
+
+        done = (sProfileStack == frame);
+        UpdateProfileForFrame(now, sProfileStack);
+        if (EXPECT(done))
+            break;
+    }
+
+    [pool release];
+
+    OODisposeHighResTime(frame->startTime);
+
+    OOHighResTimeValue end = OOGetHighResTime();
+    double currentOverhead = OOHighResTimeDeltaInSeconds(now, end);
+    sProfilerOverhead += currentOverhead;
+
+    /*	Equivalent of pausing/resuming time limiter, except that it guarantees
+            excluded time will match profiler overhead if there are no other
+            pauses happening.
+    */
+    if (sLimiterPauseDepth == 0)
+        sLimiterTimeLimit += currentOverhead;
+
+    OODisposeHighResTime(now);
+    OODisposeHighResTime(end);
 }
 
-
-static void UpdateProfileForFrame(OOHighResTimeValue now, OOJSProfileStackFrame *frame)
+static void UpdateProfileForFrame(OOHighResTimeValue now, OOJSProfileStackFrame* frame)
 {
-	sProfileStack = frame->back;
-	
-	OOTimeProfileEntry *entry = NSMapGet(sProfileInfo, frame->key);
-	if (entry == nil)
-	{
-		entry = [[OOTimeProfileEntry alloc] initWithCName:frame->function];
-		NSMapInsertKnownAbsent(sProfileInfo, frame->key, entry);
-		[entry release];
-	}
-	
-	OOTimeDelta time = OOHighResTimeDeltaInSeconds(frame->startTime, now);
-	OOTimeDelta selfTime = time - frame->subTime;
-	[entry addSampleWithTotalTime:time selfTime:selfTime];
-	
-	*(frame->total) += selfTime;
-	if (sProfileStack != NULL)  sProfileStack->subTime += time;
-	
-	if (frame->cleanup != NULL)  frame->cleanup(frame);
-	
-	if (EXPECT_NOT(sTracing))  OOLogOutdent();
-}
+    sProfileStack = frame->back;
 
+    OOTimeProfileEntry* entry = NSMapGet(sProfileInfo, frame->key);
+    if (entry == nil) {
+        entry = [[OOTimeProfileEntry alloc] initWithCName:frame->function];
+        NSMapInsertKnownAbsent(sProfileInfo, frame->key, entry);
+        [entry release];
+    }
+
+    OOTimeDelta time = OOHighResTimeDeltaInSeconds(frame->startTime, now);
+    OOTimeDelta selfTime = time - frame->subTime;
+    [entry addSampleWithTotalTime:time selfTime:selfTime];
+
+    *(frame->total) += selfTime;
+    if (sProfileStack != NULL)
+        sProfileStack->subTime += time;
+
+    if (frame->cleanup != NULL)
+        frame->cleanup(frame);
+
+    if (EXPECT_NOT(sTracing))
+        OOLogOutdent();
+}
 
 @implementation OOTimeProfile
 
-- (void) dealloc
+- (void)dealloc
 {
-	DESTROY(_profileEntries);
-	
-	[super dealloc];
+    DESTROY(_profileEntries);
+
+    [super dealloc];
 }
 
-
-- (NSString *) description
+- (NSString*)description
 {
-	double totalTime = [self totalTime];
-	
-	NSMutableString *result = [NSMutableString stringWithFormat:
-							  @"Total time: %g ms\n"
-							   "JavaScript: %g ms, native: %g ms\n"
-							   "Counted towards limit: %g ms, excluded: %g ms\n"
-							   "Profiler overhead: %g ms",
-							   totalTime * 1000.0,
-							   [self javaScriptTime] * 1000.0, [self nativeTime] * 1000.0,
-							   [self nonExtensionTime] * 1000.0, [self extensionTime] * 1000.0,
-							   [self profilerOverhead] * 1000.0];
-	
-	NSArray *profileEntries = [self profileEntries];
-	NSUInteger i, count = [profileEntries count];
-	if (count != 0)
-	{
-		[result appendString:@"\n                                                        NAME  T  COUNT    TOTAL     SELF  TOTAL%   SELF%  SELFMAX"];
-		for (i = 0; i < count; i++)
-		{
-		//	[result appendFormat:@"\n    %@", [_profileEntries objectAtIndex:i]];
-			
-			OOTimeProfileEntry *entry = [profileEntries objectAtIndex:i];
-			
-			double totalPc = [entry totalTimeSum] * 100.0 / totalTime;
-			double selfPc = [entry selfTimeSum] * 100.0 / totalTime;
-			
-			[result appendFormat:@"\n%60s  %c%7lu %8.2f %8.2f   %5.1f   %5.1f %8.2f",
-			 [[entry function] UTF8String],
-			 [entry isJavaScriptFrame] ? 'J' : 'N',
-			 (unsigned long)[entry hitCount], [entry totalTimeSum] * 1000.0, [entry selfTimeSum] * 1000.0, totalPc, selfPc, [entry selfTimeMax] * 1000.0];
-		}
-	}
-	
-	return result;
+    double totalTime = [self totalTime];
+
+    NSMutableString* result = [NSMutableString stringWithFormat:
+            @"Total time: %g ms\n"
+             "JavaScript: %g ms, native: %g ms\n"
+             "Counted towards limit: %g ms, excluded: %g ms\n"
+             "Profiler overhead: %g ms",
+        totalTime * 1000.0,
+        [self javaScriptTime] * 1000.0, [self nativeTime] * 1000.0,
+        [self nonExtensionTime] * 1000.0, [self extensionTime] * 1000.0,
+        [self profilerOverhead] * 1000.0];
+
+    NSArray* profileEntries = [self profileEntries];
+    NSUInteger i, count = [profileEntries count];
+    if (count != 0) {
+        [result appendString:@"\n                                                        NAME  T  COUNT    TOTAL     SELF  TOTAL%   SELF%  SELFMAX"];
+        for (i = 0; i < count; i++) {
+            //	[result appendFormat:@"\n    %@", [_profileEntries objectAtIndex:i]];
+
+            OOTimeProfileEntry* entry = [profileEntries objectAtIndex:i];
+
+            double totalPc = [entry totalTimeSum] * 100.0 / totalTime;
+            double selfPc = [entry selfTimeSum] * 100.0 / totalTime;
+
+            [result appendFormat:@"\n%60s  %c%7lu %8.2f %8.2f   %5.1f   %5.1f %8.2f",
+                [[entry function] UTF8String],
+                [entry isJavaScriptFrame] ? 'J' : 'N',
+                (unsigned long)[entry hitCount], [entry totalTimeSum] * 1000.0, [entry selfTimeSum] * 1000.0, totalPc, selfPc, [entry selfTimeMax] * 1000.0];
+        }
+    }
+
+    return result;
 }
 
-
-- (double) totalTime
+- (double)totalTime
 {
-	return _totalTime;
+    return _totalTime;
 }
 
-
-- (void) setTotalTime:(double)value
+- (void)setTotalTime:(double)value
 {
-	_totalTime = value;
+    _totalTime = value;
 }
 
-
-- (double) javaScriptTime
+- (double)javaScriptTime
 {
 #ifdef MOZ_TRACE_JSCALLS
-	return _javaScriptTime;
+    return _javaScriptTime;
 #else
-	return _totalTime - _nativeTime;
+    return _totalTime - _nativeTime;
 #endif
 }
-
 
 #ifdef MOZ_TRACE_JSCALLS
-- (void) setJavaScriptTime:(double)value
+- (void)setJavaScriptTime:(double)value
 {
-	_javaScriptTime = value;
+    _javaScriptTime = value;
 }
 #endif
 
-
-- (double) nativeTime
+- (double)nativeTime
 {
-	return _nativeTime;
+    return _nativeTime;
 }
 
-
-- (void) setNativeTime:(double)value
+- (void)setNativeTime:(double)value
 {
-	_nativeTime = value;
+    _nativeTime = value;
 }
 
-
-- (double) extensionTime
+- (double)extensionTime
 {
-	return _extensionTime;
+    return _extensionTime;
 }
 
-
-- (void) setExtensionTime:(double)value
+- (void)setExtensionTime:(double)value
 {
-	_extensionTime = value;
+    _extensionTime = value;
 }
 
-
-- (double) nonExtensionTime
+- (double)nonExtensionTime
 {
-	return _totalTime - _extensionTime;
+    return _totalTime - _extensionTime;
 }
 
-
-- (double) profilerOverhead
+- (double)profilerOverhead
 {
-	return _profilerOverhead;
+    return _profilerOverhead;
 }
 
-
-- (void) setProfilerOverhead:(double)value
+- (void)setProfilerOverhead:(double)value
 {
-	_profilerOverhead = value;
+    _profilerOverhead = value;
 }
 
-
-- (NSArray *) profileEntries
+- (NSArray*)profileEntries
 {
-	return _profileEntries;
+    return _profileEntries;
 }
 
-
-- (void) setProfileEntries:(NSArray *)value
+- (void)setProfileEntries:(NSArray*)value
 {
-	if (_profileEntries != value)
-	{
-		[_profileEntries release];
-		_profileEntries = [value retain];
-	}
+    if (_profileEntries != value) {
+        [_profileEntries release];
+        _profileEntries = [value retain];
+    }
 }
 
-
-- (jsval) oo_jsValueInContext:(JSContext *)context
+- (jsval)oo_jsValueInContext:(JSContext*)context
 {
-	return OOJSValueFromNativeObject(context, [self propertyListRepresentation]);
+    return OOJSValueFromNativeObject(context, [self propertyListRepresentation]);
 }
 
-
-- (NSDictionary *) propertyListRepresentation
+- (NSDictionary*)propertyListRepresentation
 {
-	NSArray *profileEntries = [self profileEntries];
-	NSMutableArray *convertedEntries = [NSMutableArray arrayWithCapacity:[profileEntries count]];
-	OOTimeProfileEntry *entry = nil;
-	foreach (entry, profileEntries)
-	{
-		[convertedEntries addObject:[entry propertyListRepresentation]];
-	}
-	
-	return [NSDictionary dictionaryWithObjectsAndKeys:
-			profileEntries, @"profiles",
-			[NSNumber numberWithDouble:[self totalTime]], @"totalTime",
-			[NSNumber numberWithDouble:[self javaScriptTime]], @"javaScriptTime",
-			[NSNumber numberWithDouble:[self nativeTime]], @"nativeTime",
-			[NSNumber numberWithDouble:[self extensionTime]], @"extensionTime",
-			[NSNumber numberWithDouble:[self nonExtensionTime]], @"nonExtensionTime",
-			[NSNumber numberWithDouble:[self profilerOverhead]], @"profilerOverhead",
-			nil];
+    NSArray* profileEntries = [self profileEntries];
+    NSMutableArray* convertedEntries = [NSMutableArray arrayWithCapacity:[profileEntries count]];
+    OOTimeProfileEntry* entry = nil;
+    foreach (entry, profileEntries) {
+        [convertedEntries addObject:[entry propertyListRepresentation]];
+    }
+
+    return [NSDictionary dictionaryWithObjectsAndKeys:
+            profileEntries, @"profiles",
+        [NSNumber numberWithDouble:[self totalTime]], @"totalTime",
+        [NSNumber numberWithDouble:[self javaScriptTime]], @"javaScriptTime",
+        [NSNumber numberWithDouble:[self nativeTime]], @"nativeTime",
+        [NSNumber numberWithDouble:[self extensionTime]], @"extensionTime",
+        [NSNumber numberWithDouble:[self nonExtensionTime]], @"nonExtensionTime",
+        [NSNumber numberWithDouble:[self profilerOverhead]], @"profilerOverhead",
+        nil];
 }
 
 @end
 
-
 @implementation OOTimeProfileEntry
 
-- (id) initWithCName:(const char *)name
+- (id)initWithCName:(const char*)name
 {
-	NSAssert(sProfiling, @"Can't create profile entries while not profiling.");
-	
-	if ((self = [super init]))
-	{
-		if (name != NULL)
-		{
-			_function = [[NSString stringWithUTF8String:name] retain];
-		}
-	}
-	
-	return self;
+    NSAssert(sProfiling, @"Can't create profile entries while not profiling.");
+
+    if ((self = [super init])) {
+        if (name != NULL) {
+            _function = [[NSString stringWithUTF8String:name] retain];
+        }
+    }
+
+    return self;
 }
 
-
 #if MOZ_TRACE_JSCALLS
-- (id) initWithJSFunction:(JSFunction *)function context:(JSContext *)context
+- (id)initWithJSFunction:(JSFunction*)function context:(JSContext*)context
 {
-	if ((self = [self initWithCName:NULL]))
-	{
-		// Temporarily disable profiling so we don't profile the profiler while it's profiling the profilee.
-		sProfiling = NO;
-		_jsFunction = function;
-		
-		NSString *funcName = nil;
-		JSString *jsName = JS_GetFunctionId(_jsFunction);
-		if (jsName != NULL)  funcName = [OOStringFromJSString(context, jsName) retain];
-		else  funcName = @"<anonymous>";
-		
-		// If it's a non-native function, get its source location.
-		NSString *location = nil;
-		if (JS_GetFunctionNative(context, function) == NULL)
-		{
-			JSStackFrame *frame = NULL;
-			if (JS_FrameIterator(context, &frame) != NULL)
-			{
-				location = OOJSDescribeLocation(context, frame);
-			}
-		}
-		
-		if (location != nil)
-		{
-			_function = [[NSString alloc] initWithFormat:@"(%@) %@", location, funcName];
-		}
-		else  _function = [funcName retain];
-		
-		sProfiling = YES;
-	}
-	
-	return self;
+    if ((self = [self initWithCName:NULL])) {
+        // Temporarily disable profiling so we don't profile the profiler while it's profiling the profilee.
+        sProfiling = NO;
+        _jsFunction = function;
+
+        NSString* funcName = nil;
+        JSString* jsName = JS_GetFunctionId(_jsFunction);
+        if (jsName != NULL)
+            funcName = [OOStringFromJSString(context, jsName) retain];
+        else
+            funcName = @"<anonymous>";
+
+        // If it's a non-native function, get its source location.
+        NSString* location = nil;
+        if (JS_GetFunctionNative(context, function) == NULL) {
+            JSStackFrame* frame = NULL;
+            if (JS_FrameIterator(context, &frame) != NULL) {
+                location = OOJSDescribeLocation(context, frame);
+            }
+        }
+
+        if (location != nil) {
+            _function = [[NSString alloc] initWithFormat:@"(%@) %@", location, funcName];
+        } else
+            _function = [funcName retain];
+
+        sProfiling = YES;
+    }
+
+    return self;
 }
 #endif
 
-
-- (void) dealloc
+- (void)dealloc
 {
-	DESTROY(_function);
-	
-	[super dealloc];
+    DESTROY(_function);
+
+    [super dealloc];
 }
 
-
-- (void) addSampleWithTotalTime:(OOTimeDelta)totalTime selfTime:(OOTimeDelta)selfTime
+- (void)addSampleWithTotalTime:(OOTimeDelta)totalTime selfTime:(OOTimeDelta)selfTime
 {
-	_hitCount++;
-	_totalTimeSum += totalTime;
-	_selfTimeSum += selfTime;
-	_totalTimeMax = fmax(_totalTimeMax, totalTime);
-	_selfTimeMax = fmax(_selfTimeMax, selfTime);
+    _hitCount++;
+    _totalTimeSum += totalTime;
+    _selfTimeSum += selfTime;
+    _totalTimeMax = fmax(_totalTimeMax, totalTime);
+    _selfTimeMax = fmax(_selfTimeMax, selfTime);
 }
 
-
-- (NSString *) description
+- (NSString*)description
 {
-	if (_hitCount == 0)  return [NSString stringWithFormat:@"%@: --", _function];
-	
-	// Convert everything to milliseconds.
-	float totalTimeSum = _totalTimeSum * 1000.0;
-	float selfTimeSum = _selfTimeSum * 1000.0;
-	float totalTimeMax = _totalTimeMax * 1000.0;
-	float selfTimeMax = _selfTimeMax * 1000.0;
-	
-	if (totalTimeSum == selfTimeSum && totalTimeMax == selfTimeMax)
-	{
-		if (_hitCount == 1)
-		{
-			return [NSString stringWithFormat:@"%@: 1 time, %g ms", _function, totalTimeSum];
-		}
-		else
-		{
-			return [NSString stringWithFormat:@"%@: %lu times, total %g ms, avg %g ms, max %g ms", _function, _hitCount, totalTimeSum, totalTimeSum / _hitCount, totalTimeMax];
-		}
-	}
-	else
-	{
-		if (_hitCount == 1)
-		{
-			return [NSString stringWithFormat:@"%@: 1 time, %g ms (self %g ms)", _function, totalTimeSum, selfTimeSum];
-		}
-		else
-		{
-			return [NSString stringWithFormat:@"%@: %lu times, total %g ms (self %g ms), avg %g ms (self %g ms), max %g ms, max self %g ms", _function, _hitCount, totalTimeSum, selfTimeSum, totalTimeSum / _hitCount, selfTimeSum / _hitCount, totalTimeMax, selfTimeMax];
-		}
-	}
+    if (_hitCount == 0)
+        return [NSString stringWithFormat:@"%@: --", _function];
+
+    // Convert everything to milliseconds.
+    float totalTimeSum = _totalTimeSum * 1000.0;
+    float selfTimeSum = _selfTimeSum * 1000.0;
+    float totalTimeMax = _totalTimeMax * 1000.0;
+    float selfTimeMax = _selfTimeMax * 1000.0;
+
+    if (totalTimeSum == selfTimeSum && totalTimeMax == selfTimeMax) {
+        if (_hitCount == 1) {
+            return [NSString stringWithFormat:@"%@: 1 time, %g ms", _function, totalTimeSum];
+        } else {
+            return [NSString stringWithFormat:@"%@: %lu times, total %g ms, avg %g ms, max %g ms", _function, _hitCount, totalTimeSum, totalTimeSum / _hitCount, totalTimeMax];
+        }
+    } else {
+        if (_hitCount == 1) {
+            return [NSString stringWithFormat:@"%@: 1 time, %g ms (self %g ms)", _function, totalTimeSum, selfTimeSum];
+        } else {
+            return [NSString stringWithFormat:@"%@: %lu times, total %g ms (self %g ms), avg %g ms (self %g ms), max %g ms, max self %g ms", _function, _hitCount, totalTimeSum, selfTimeSum, totalTimeSum / _hitCount, selfTimeSum / _hitCount, totalTimeMax, selfTimeMax];
+        }
+    }
 }
 
-
-- (NSString *) function
+- (NSString*)function
 {
-	return _function;
+    return _function;
 }
 
-
-- (NSUInteger) hitCount
+- (NSUInteger)hitCount
 {
-	return _hitCount;
+    return _hitCount;
 }
 
-
-- (double) totalTimeSum
+- (double)totalTimeSum
 {
-	return _totalTimeSum;
+    return _totalTimeSum;
 }
 
-
-- (double) selfTimeSum
+- (double)selfTimeSum
 {
-	return _selfTimeSum;
+    return _selfTimeSum;
 }
 
-
-- (double) totalTimeAverage
+- (double)totalTimeAverage
 {
-	return _hitCount ? (_totalTimeSum / _hitCount) : 0.0;
+    return _hitCount ? (_totalTimeSum / _hitCount) : 0.0;
 }
 
-
-- (double) selfTimeAverage
+- (double)selfTimeAverage
 {
-	return _hitCount ? (_selfTimeSum / _hitCount) : 0.0;
+    return _hitCount ? (_selfTimeSum / _hitCount) : 0.0;
 }
 
-
-- (double) totalTimeMax
+- (double)totalTimeMax
 {
-	return _totalTimeMax;
+    return _totalTimeMax;
 }
 
-
-- (double) selfTimeMax
+- (double)selfTimeMax
 {
-	return _selfTimeMax;
+    return _selfTimeMax;
 }
 
-
-- (BOOL) isJavaScriptFrame
+- (BOOL)isJavaScriptFrame
 {
 #if MOZ_TRACE_JSCALLS
-	return _jsFunction != NULL;
+    return _jsFunction != NULL;
 #else
-	return NO;
+    return NO;
 #endif
 }
 
-
-- (NSComparisonResult) compareByTotalTime:(OOTimeProfileEntry *)other
+- (NSComparisonResult)compareByTotalTime:(OOTimeProfileEntry*)other
 {
-	return -[self compareByTotalTimeReverse:other];
+    return -[self compareByTotalTimeReverse:other];
 }
 
-
-- (NSComparisonResult) compareByTotalTimeReverse:(OOTimeProfileEntry *)other
+- (NSComparisonResult)compareByTotalTimeReverse:(OOTimeProfileEntry*)other
 {
-	double selfTotal = [self totalTimeSum];
-	double otherTotal = [other totalTimeSum];
-	
-	if (selfTotal < otherTotal)  return NSOrderedDescending;
-	if (selfTotal > otherTotal)  return NSOrderedAscending;
-	return NSOrderedSame;
+    double selfTotal = [self totalTimeSum];
+    double otherTotal = [other totalTimeSum];
+
+    if (selfTotal < otherTotal)
+        return NSOrderedDescending;
+    if (selfTotal > otherTotal)
+        return NSOrderedAscending;
+    return NSOrderedSame;
 }
 
-
-- (NSComparisonResult) compareBySelfTime:(OOTimeProfileEntry *)other
+- (NSComparisonResult)compareBySelfTime:(OOTimeProfileEntry*)other
 {
-	return -[self compareBySelfTimeReverse:other];
+    return -[self compareBySelfTimeReverse:other];
 }
 
-
-- (NSComparisonResult) compareBySelfTimeReverse:(OOTimeProfileEntry *)other
+- (NSComparisonResult)compareBySelfTimeReverse:(OOTimeProfileEntry*)other
 {
-	double selfTotal = [self selfTimeSum];
-	double otherTotal = [other selfTimeSum];
-	
-	if (selfTotal < otherTotal)  return NSOrderedDescending;
-	if (selfTotal > otherTotal)  return NSOrderedAscending;
-	return NSOrderedSame;
+    double selfTotal = [self selfTimeSum];
+    double otherTotal = [other selfTimeSum];
+
+    if (selfTotal < otherTotal)
+        return NSOrderedDescending;
+    if (selfTotal > otherTotal)
+        return NSOrderedAscending;
+    return NSOrderedSame;
 }
 
-
-- (jsval) oo_jsValueInContext:(JSContext *)context
+- (jsval)oo_jsValueInContext:(JSContext*)context
 {
-	return OOJSValueFromNativeObject(context, [self propertyListRepresentation]);
+    return OOJSValueFromNativeObject(context, [self propertyListRepresentation]);
 }
 
-
-- (NSDictionary *) propertyListRepresentation
+- (NSDictionary*)propertyListRepresentation
 {
-	return [NSDictionary dictionaryWithObjectsAndKeys:
-			_function, @"name",
-			[NSNumber numberWithUnsignedInteger:[self hitCount]], @"hitCount",
-			[NSNumber numberWithDouble:[self totalTimeSum]], @"totalTimeSum",
-			[NSNumber numberWithDouble:[self selfTimeSum]], @"selfTimeSum",
-			[NSNumber numberWithDouble:[self totalTimeAverage]], @"totalTimeAverage",
-			[NSNumber numberWithDouble:[self selfTimeAverage]], @"selfTimeAverage",
-			[NSNumber numberWithDouble:[self totalTimeMax]], @"totalTimeMax",
-			[NSNumber numberWithDouble:[self selfTimeMax]], @"selfTimeMax",
-			[NSNumber numberWithBool:[self isJavaScriptFrame]], @"isJavaScriptFrame",
-			nil];
+    return [NSDictionary dictionaryWithObjectsAndKeys:
+            _function, @"name",
+        [NSNumber numberWithUnsignedInteger:[self hitCount]], @"hitCount",
+        [NSNumber numberWithDouble:[self totalTimeSum]], @"totalTimeSum",
+        [NSNumber numberWithDouble:[self selfTimeSum]], @"selfTimeSum",
+        [NSNumber numberWithDouble:[self totalTimeAverage]], @"totalTimeAverage",
+        [NSNumber numberWithDouble:[self selfTimeAverage]], @"selfTimeAverage",
+        [NSNumber numberWithDouble:[self totalTimeMax]], @"totalTimeMax",
+        [NSNumber numberWithDouble:[self selfTimeMax]], @"selfTimeMax",
+        [NSNumber numberWithBool:[self isJavaScriptFrame]], @"isJavaScriptFrame",
+        nil];
 }
 
 @end

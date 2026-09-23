@@ -29,7 +29,7 @@ SOFTWARE.
 
 #import "OOJavaScriptEngine.h"
 
-void InitOOJSFrameCallbacks(JSContext *context, JSObject *global);
+void InitOOJSFrameCallbacks(JSContext* context, JSObject* global);
 
 void OOJSFrameCallbacksInvoke(OOTimeDelta delta);
 

@@ -4,7 +4,7 @@ OOMultiTextureMaterial.h
 
 A material that uses multitexturing and texture combiners.
 
- 
+
 Copyright (C) 2010-2013 Jens Ayton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -27,7 +27,6 @@ SOFTWARE.
 
 */
 
-
 #import "OOOpenGLExtensionManager.h"
 
 #if OO_MULTITEXTURE
@@ -36,20 +35,18 @@ SOFTWARE.
 
 @class OOTexture;
 
-
-@interface OOMultiTextureMaterial: OOBasicMaterial
-{
+@interface OOMultiTextureMaterial : OOBasicMaterial {
 @private
-	OOTexture			*_diffuseMap;
-	OOTexture			*_emissionMap;
-	
-	NSUInteger			_unitsUsed;
+    OOTexture* _diffuseMap;
+    OOTexture* _emissionMap;
+
+    NSUInteger _unitsUsed;
 }
 
-- (id)initWithName:(NSString *)name configuration:(NSDictionary *)configuration;
+- (id)initWithName:(NSString*)name configuration:(NSDictionary*)configuration;
 
-- (NSUInteger) textureUnitCount;
+- (NSUInteger)textureUnitCount;
 
 @end
 
-#endif	/* OO_MULTITEXTURE */
+#endif /* OO_MULTITEXTURE */

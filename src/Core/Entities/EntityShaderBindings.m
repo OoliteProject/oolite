@@ -26,55 +26,52 @@ MA 02110-1301, USA.
 */
 
 #import "Entity.h"
-#import "PlayerEntityScriptMethods.h"
 #import "PlayerEntityLegacyScriptEngine.h"
-
+#import "PlayerEntityScriptMethods.h"
 
 @implementation Entity (ShaderBindings)
 
 // Clock time.
-- (GLfloat) clock
+- (GLfloat)clock
 {
-	return [PLAYER clockTime];
+    return [PLAYER clockTime];
 }
-
 
 // System "flavour" numbers.
-- (unsigned) pseudoFixedD100
+- (unsigned)pseudoFixedD100
 {
-	return [PLAYER systemPseudoRandom100];
+    return [PLAYER systemPseudoRandom100];
 }
 
-- (unsigned) pseudoFixedD256
+- (unsigned)pseudoFixedD256
 {
-	return [PLAYER systemPseudoRandom256];
+    return [PLAYER systemPseudoRandom256];
 }
-
 
 // System attributes.
-- (unsigned) systemGovernment
+- (unsigned)systemGovernment
 {
-	return [[PLAYER systemGovernment_number] unsignedIntValue];
+    return [[PLAYER systemGovernment_number] unsignedIntValue];
 }
 
-- (unsigned) systemEconomy
+- (unsigned)systemEconomy
 {
-	return [[PLAYER systemEconomy_number] unsignedIntValue];
+    return [[PLAYER systemEconomy_number] unsignedIntValue];
 }
 
-- (unsigned) systemTechLevel
+- (unsigned)systemTechLevel
 {
-	return [[PLAYER systemTechLevel_number] unsignedIntValue];
+    return [[PLAYER systemTechLevel_number] unsignedIntValue];
 }
 
-- (unsigned) systemPopulation
+- (unsigned)systemPopulation
 {
-	return [[PLAYER systemPopulation_number] unsignedIntValue];
+    return [[PLAYER systemPopulation_number] unsignedIntValue];
 }
 
-- (unsigned) systemProductivity
+- (unsigned)systemProductivity
 {
-	return [[PLAYER systemProductivity_number] unsignedIntValue];
+    return [[PLAYER systemProductivity_number] unsignedIntValue];
 }
 
 @end

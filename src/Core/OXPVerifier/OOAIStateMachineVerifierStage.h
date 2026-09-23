@@ -29,17 +29,16 @@ MA 02110-1301, USA.
 
 #if OO_OXP_VERIFIER_ENABLED
 
-@interface OOAIStateMachineVerifierStage: OOFileHandlingVerifierStage
-{
+@interface OOAIStateMachineVerifierStage : OOFileHandlingVerifierStage {
 @private
-	NSSet					*_whitelist;
-	NSMutableSet			*_usedAIs;
+    NSSet* _whitelist;
+    NSMutableSet* _usedAIs;
 }
 
 // Returns name to be used in -dependents by other stages.
-+ (NSString *) nameForReverseDependencyForVerifier:(OOOXPVerifier *)verifier;
++ (NSString*)nameForReverseDependencyForVerifier:(OOOXPVerifier*)verifier;
 
-- (void) stateMachineNamed:(NSString *)name usedByShip:(NSString *)shipName;
+- (void)stateMachineNamed:(NSString*)name usedByShip:(NSString*)shipName;
 
 @end
 

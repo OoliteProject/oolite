@@ -25,63 +25,56 @@ MA 02110-1301, USA.
 
 #import "Entity.h"
 
-#import "OOTypes.h"
 #import "OOMaths.h"
+#import "OOTypes.h"
 
 @class OOTexture, OOColor;
 
-
-enum
-{
-	kFragmentBurstMaxParticles		= 64,
-	kBigFragmentBurstMaxParticles	= 16
+enum {
+    kFragmentBurstMaxParticles = 64,
+    kBigFragmentBurstMaxParticles = 16
 };
 
-
-@interface OOParticleSystem: Entity
-{
+@interface OOParticleSystem : Entity {
 @protected
-	Vector			_particlePosition[kFragmentBurstMaxParticles];
-	Vector			_particleVelocity[kFragmentBurstMaxParticles];
-	GLfloat			_particleColor[kFragmentBurstMaxParticles][4];
-	GLfloat			_particleSize[kFragmentBurstMaxParticles];
-	unsigned		_count;
-	
-	unsigned		_particleType;
-	
-	OOTimeDelta		_timePassed, _duration;
-	double			_maxSpeed;
+    Vector _particlePosition[kFragmentBurstMaxParticles];
+    Vector _particleVelocity[kFragmentBurstMaxParticles];
+    GLfloat _particleColor[kFragmentBurstMaxParticles][4];
+    GLfloat _particleSize[kFragmentBurstMaxParticles];
+    unsigned _count;
+
+    unsigned _particleType;
+
+    OOTimeDelta _timePassed, _duration;
+    double _maxSpeed;
 }
 
 /*	Initialize particle effect with particles flying out randomly.
-	Initiali _particleSize[] is equal to speed.
+        Initiali _particleSize[] is equal to speed.
  */
-- (id) initWithPosition:(HPVector)position
-			   velocity:(Vector)velocity
-				  count:(unsigned)count
-			   minSpeed:(float)minSpeed
-			   maxSpeed:(float)maxSpeed
-			   duration:(OOTimeDelta)duration
-			  baseColor:(GLfloat[4])baseColor;
+- (id)initWithPosition:(HPVector)position
+              velocity:(Vector)velocity
+                 count:(unsigned)count
+              minSpeed:(float)minSpeed
+              maxSpeed:(float)maxSpeed
+              duration:(OOTimeDelta)duration
+             baseColor:(GLfloat[4])baseColor;
 
-- (OOTexture *) texture;
-
-@end
-
-
-@interface OOSmallFragmentBurstEntity: OOParticleSystem
-
-+ (id) fragmentBurstFromEntity:(Entity *)entity;
+- (OOTexture*)texture;
 
 @end
 
+@interface OOSmallFragmentBurstEntity : OOParticleSystem
 
-@interface OOBigFragmentBurstEntity: OOParticleSystem
-{
++ (id)fragmentBurstFromEntity:(Entity*)entity;
+
+@end
+
+@interface OOBigFragmentBurstEntity : OOParticleSystem {
 @private
-	GLfloat			_baseSize;
+    GLfloat _baseSize;
 }
 
-+ (id) fragmentBurstFromEntity:(Entity *)entity;
++ (id)fragmentBurstFromEntity:(Entity*)entity;
 
 @end

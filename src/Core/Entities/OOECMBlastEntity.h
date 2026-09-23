@@ -29,23 +29,19 @@ MA 02110-1301, USA.
 
 @class ShipEntity;
 
-
-@interface OOECMBlastEntity: Entity
-{
+@interface OOECMBlastEntity : Entity {
 @private
-	OOTimeDelta			_nextBlast;
-	uint8_t		_blastsRemaining;
-	OOWeakReference		*_ship;
+    OOTimeDelta _nextBlast;
+    uint8_t _blastsRemaining;
+    OOWeakReference* _ship;
 }
 
-
-- (id) initFromShip:(ShipEntity *)ship;
+- (id)initFromShip:(ShipEntity*)ship;
 
 @end
 
-
 @interface Entity (OOECMBlastEntity)
 
-- (BOOL) isECMBlast;
+- (BOOL)isECMBlast;
 
 @end
