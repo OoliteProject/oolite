@@ -27,7 +27,6 @@ MA 02110-1301, USA.
 #import "OOJSQuaternion.h"
 #import "OOJavaScriptEngine.h"
 #import "OOConstToJSString.h"
-#import "EntityOOJavaScriptExtensions.h"
 #import "OOJSCall.h"
 
 #import "OOJSPlayer.h"

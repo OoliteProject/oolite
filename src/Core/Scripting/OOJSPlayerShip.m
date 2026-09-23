@@ -31,7 +31,6 @@ MA 02110-1301, USA.
 #import "OOJavaScriptEngine.h"
 #import "EntityOOJavaScriptExtensions.h"
 #import "OOSystemDescriptionManager.h"
-#import "PlayerEntity.h"
 #import "PlayerEntityControls.h"
 #import "PlayerEntityContracts.h"
 #import "PlayerEntityScriptMethods.h"

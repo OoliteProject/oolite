@@ -25,26 +25,8 @@ MA 02110-1301, USA.
 
 */
 
-#ifndef OOLITE_SDL
-#if (!OOLITE_MAC_OS_X && GNUSTEP_BASE_LIBRARY)
-#define OOLITE_SDL	1
-#endif
-#endif
-
-#if OOLITE_MAC_OS_X
-
-// Apple OpenGL includes...
-#include <OpenGL/OpenGL.h>
-#include <OpenGL/gl.h>
-#include <OpenGL/glu.h>
-#include <OpenGL/glext.h>
-
-#elif OOLITE_SDL
-
+#pragma once
 // SDL OpenGL includes...
-
-// prevent the including of SDL_opengl.h loading a previous version of glext.h
-#define NO_SDL_GLEXT
 
 // GL_GLEXT_PROTOTYPES must be defined for the Linux build to use shaders.
 #if OOLITE_LINUX
@@ -64,10 +46,4 @@ MA 02110-1301, USA.
 #ifdef __DEFINED_GL_GLEXT_PROTOTYPES
 #undef GL_GLEXT_PROTOTYPES
 #undef __DEFINED_GL_GLEXT_PROTOTYPES
-#endif
-
-#else	// Not OS X or SDL
-
-#error OOOpenGL.h: unknown target!
-
 #endif

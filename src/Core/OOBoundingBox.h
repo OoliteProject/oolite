@@ -24,11 +24,9 @@ MA 02110-1301, USA.
 
 */
 
+#pragma once
 
-#ifndef INCLUDED_OOMATHS_h
-	#error Do not include OOBoundingBox.h directly; include OOMaths.h.
-#else
-
+#include "OOHPVector.h"
 
 typedef struct
 {
@@ -112,5 +110,3 @@ OOINLINE Vector OOBoundingBoxCenter(BoundingBox bb)
 {
 	return vector_multiply_scalar(vector_add(bb.min, bb.max), 0.5f);
 }
-
-#endif

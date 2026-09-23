@@ -25,6 +25,8 @@ MA 02110-1301, USA.
 
 */
 
+#pragma once
+
 #import "Entity.h"
 
 @interface OOWaypointEntity: Entity <OOBeaconEntity>

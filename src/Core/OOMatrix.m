@@ -22,11 +22,8 @@ MA 02110-1301, USA.
 
 */
 
-
 #include "OOMaths.h"
-#if OOMATHS_OPENGL_INTEGRATION
 #import "OOOpenGLExtensionManager.h"
-#endif
 
 const OOMatrix	kIdentityMatrix = 
 								{ .m = {
@@ -452,8 +449,6 @@ OOMatrix OOMatrixInverseWithDeterminant(OOMatrix M, OOScalar *d)
 	return B;
 }
 
-#if OOMATHS_OPENGL_INTEGRATION
-
 void GLUniformMatrix3(int location, OOMatrix M)
 {
 	OOScalar m[9];
@@ -468,6 +463,4 @@ void GLUniformMatrix3(int location, OOMatrix M)
 	m[8] = M.m[2][2];
 	OOGL(glUniformMatrix3fvARB(location, 1, NO, m));
 }
-
-#endif
 

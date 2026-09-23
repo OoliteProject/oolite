@@ -25,7 +25,6 @@ MA 02110-1301, USA.
 
 #import "OOJSEquipmentInfo.h"
 #import "OOJavaScriptEngine.h"
-#import "OOEquipmentType.h"
 #import "OOJSPlayer.h"
 #import "OODebugStandards.h"
 

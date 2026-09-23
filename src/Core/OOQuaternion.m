@@ -41,7 +41,6 @@ Quaternion quaternion_multiply(Quaternion q1, Quaternion q2)
 }
 
 
-#if !OOMATHS_STANDALONE
 // NOTE: this is broken - its distribution is weighted towards corners of the hypercube. Probably doesn't matter, though.
 void quaternion_set_random(Quaternion *quat)
 {
@@ -51,7 +50,6 @@ void quaternion_set_random(Quaternion *quat)
 	quat->z = (OOScalar)(Ranrot() % 1024) - 511.5f;  // -511.5 to +511.5
 	quaternion_normalize(quat);
 }
-#endif
 
 
 Vector vector_forward_from_quaternion(Quaternion quat)

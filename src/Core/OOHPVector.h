@@ -26,10 +26,10 @@ MA 02110-1301, USA.
 */
 
 
-#ifndef INCLUDED_OOMATHS_h
-	#error Do not include OOHPVector.h directly; include OOMaths.h.
-#else
+#pragma once
 
+#include "OOFastArithmetic.h"
+#include "OOVector.h"
 
 #ifndef OOMATHS_EXTERNAL_VECTOR_TYPES
 
@@ -68,7 +68,6 @@ OOINLINE HPVector2D MakeHPVector2D(OOHPScalar vx, OOHPScalar vy) INLINE_CONST_FU
 OOINLINE HPVector vectorToHPVector(Vector v) INLINE_CONST_FUNC;
 OOINLINE Vector HPVectorToVector(HPVector v) INLINE_CONST_FUNC;
 
-#if !OOMATHS_STANDALONE
 /* Generate random vectors. */
 HPVector OORandomUnitHPVector(void);
 HPVector OOHPVectorRandomSpatial(OOHPScalar maxLength);	// Random vector uniformly distributed in radius-maxLength sphere. (Longer vectors are more common.)
@@ -78,8 +77,6 @@ HPVector OORandomPositionInShell(HPVector centre, OOHPScalar inner, OOHPScalar o
 /* returns the projection of 'point' to the plane defined by the point
 	 'plane' and the normal vector 'normal' */
 HPVector OOProjectHPVectorToPlane(HPVector point, HPVector plane, HPVector normal);
-#endif
-
 
 /* Multiply vector by scalar (in place) */
 OOINLINE void HPscale_vector(HPVector *outHPVector, OOHPScalar factor) ALWAYS_INLINE_FUNC NONNULL_FUNC;
@@ -142,11 +139,9 @@ NSArray *ArrayFromHPVector(HPVector vector);
 
 #endif
 
-#if OOMATHS_OPENGL_INTEGRATION
 /*	OpenGL conveniences. Need to be macros to work with OOMacroOpenGL. */
 #define GLVertexOOHPVector(v) do { HPVector v_ = v; glVertex3f(v_.x, v_.y, v_.z); } while (0)
 #define GLTranslateOOHPVector(v) do { HPVector v_ = v; OOGL(glTranslatef(v_.x, v_.y, v_.z)); } while (0)
-#endif
 
 
 /*** Only inline definitions beyond this point ***/
@@ -355,6 +350,3 @@ OOINLINE HPVector HPnormal_to_surface(HPVector v1, HPVector v2, HPVector v3)
 	d1 = HPvector_subtract(v3, v2);
 	return HPcross_product(d0, d1);
 }
-
-
-#endif	/* INCLUDED_OOMATHS_h */

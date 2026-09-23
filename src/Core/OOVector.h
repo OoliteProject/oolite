@@ -24,11 +24,7 @@ MA 02110-1301, USA.
 
 */
 
-
-#ifndef INCLUDED_OOMATHS_h
-	#error Do not include OOVector.h directly; include OOMaths.h.
-#else
-
+#pragma once
 
 #ifndef OOMATHS_EXTERNAL_VECTOR_TYPES
 
@@ -64,7 +60,6 @@ extern const Vector2D	kZeroVector2D,		/* 0, 0 */
 OOINLINE Vector make_vector(OOScalar vx, OOScalar vy, OOScalar vz) INLINE_CONST_FUNC;
 OOINLINE Vector2D MakeVector2D(OOScalar vx, OOScalar vy) INLINE_CONST_FUNC;
 
-#if !OOMATHS_STANDALONE
 /* Generate random vectors. */
 Vector OORandomUnitVector(void);
 Vector OOVectorRandomSpatial(OOScalar maxLength);	// Random vector uniformly distributed in radius-maxLength sphere. (Longer vectors are more common.)
@@ -72,7 +67,6 @@ Vector OOVectorRandomRadial(OOScalar maxLength);		// Random vector with uniform 
 // only needed in high-precision forms so far
 //Vector OORandomPositionInCylinder(Vector centre1, OOScalar exclusion1, Vector centre2, OOScalar exclusion2, OOScalar radius);
 //Vector OORandomPositionInShell(Vector centre, OOScalar inner, OOScalar outer);
-#endif
 
 /* Multiply vector by scalar (in place) */
 OOINLINE void scale_vector(Vector *outVector, OOScalar factor) ALWAYS_INLINE_FUNC NONNULL_FUNC;
@@ -145,12 +139,9 @@ NSString *VectorDescription(Vector vector);	// @"(x, y, z)"
 
 #endif
 
-#if OOMATHS_OPENGL_INTEGRATION
 /*	OpenGL conveniences. Need to be macros to work with OOMacroOpenGL. */
 #define GLVertexOOVector(v) do { Vector v_ = v; glVertex3f(v_.x, v_.y, v_.z); } while (0)
 #define GLTranslateOOVector(v) do { Vector v_ = v; OOGL(glTranslatef(v_.x, v_.y, v_.z)); } while (0)
-#endif
-
 
 /*** Only inline definitions beyond this point ***/
 
@@ -343,6 +334,3 @@ OOINLINE Vector normal_to_surface(Vector v1, Vector v2, Vector v3)
 	d1 = vector_subtract(v3, v2);
 	return cross_product(d0, d1);
 }
-
-
-#endif	/* INCLUDED_OOMATHS_h */

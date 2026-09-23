@@ -27,11 +27,6 @@ MA 02110-1301, USA.
 */
 
 
-#ifndef INCLUDED_OOMATHS_h
-	#error Do not include OOVoxel.h directly; include OOMaths.h.
-#else
-
-
 #define CUBE_FACE_RIGHT		0x01
 #define CUBE_FACE_LEFT		0x02
 #define CUBE_FACE_TOP		0x04
@@ -42,6 +37,3 @@ MA 02110-1301, USA.
 
 Vector lineIntersectionWithFace(Vector p1, Vector p2, long mask, GLfloat rd) CONST_FUNC;
 int lineCubeIntersection(Vector v0, Vector v1, GLfloat rd) CONST_FUNC;
-
-
-#endif

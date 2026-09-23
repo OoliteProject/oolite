@@ -33,7 +33,6 @@ SOFTWARE.
 #if OO_SHADERS || !defined(NDEBUG)
 
 #import "OOMaths.h"
-#import "OOHPVector.h"
 
 
 typedef enum

@@ -30,6 +30,10 @@ SOFTWARE.
 */
 
 
+#pragma once
+
+#import "OOFoundation.h"
+
 @class OODebugMonitor;
 
 // Interface for debugger.

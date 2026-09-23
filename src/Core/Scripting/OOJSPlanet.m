@@ -29,8 +29,6 @@ MA 02110-1301, USA.
 #import "OOJSQuaternion.h"
 #import "OOJSVector.h"
 
-#import "OOPlanetEntity.h"
-
 
 static JSObject		*sPlanetPrototype;
 

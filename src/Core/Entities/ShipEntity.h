@@ -25,6 +25,8 @@
  
  */
 
+#pragma once
+
 #import "OOEntityWithDrawable.h"
 #import "OOPlanetEntity.h"
 #import "OOJSPropID.h"

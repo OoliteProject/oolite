@@ -21,7 +21,6 @@ MA 02110-1301, USA.
 
  */
 
-#import "WormholeEntity.h"
 #import "OOJSWormhole.h"
 #import "OOJSEntity.h"
 #import "OOJSVector.h"

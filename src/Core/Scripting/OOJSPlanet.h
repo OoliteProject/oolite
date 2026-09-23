@@ -25,8 +25,12 @@ MA 02110-1301, USA.
 
 */
 
+#pragma once
+
 #import <Foundation/Foundation.h>
 #include <jsapi.h>
+#import "OOPlanetEntity.h"
+
 
 @class OOPlanetEntity;
 

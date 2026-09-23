@@ -34,9 +34,7 @@ const Vector2D			kZeroVector2D = { 0.0f, 0.0f };
 const Vector2D			kBasisXVector2D = { 1.0f, 0.0f };
 const Vector2D			kBasisYVector2D = { 0.0f, 1.0f };
 
-#if !OOMATHS_STANDALONE
 const BoundingBox		kZeroBoundingBox = {{ 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }};
-#endif
 
 
 #if __OBJC__
@@ -69,7 +67,6 @@ NSString *VectorDescription(Vector vector)
 
 
 
-#if !OOMATHS_STANDALONE
 /*	This generates random vectors distrubuted evenly over the surface of the
 	unit sphere. It does this the simple way, by generating vectors in the
 	half-unit cube and rejecting those outside the half-unit sphere (and the
@@ -151,5 +148,3 @@ Vector OORandomPositionInShell(Vector centre, OOScalar inner, OOScalar outer)
 	} while(distance2(result,centre)<inner2);
 	return result;
 	}*/
-
-#endif

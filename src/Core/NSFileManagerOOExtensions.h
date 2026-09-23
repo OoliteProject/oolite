@@ -26,7 +26,9 @@ MA 02110-1301, USA.
 
 */
 
-#import <Foundation/Foundation.h>
+#pragma once
+
+#import "OOFoundation.h"
 
 #define SAVEDIR "oolite-saves"
 

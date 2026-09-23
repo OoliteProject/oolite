@@ -8,7 +8,6 @@ Oolite
 
 #include <SDL3/SDL_init.h>
 #import "MyOpenGLView.h"
-
 #import "GameController.h"
 #import "Universe.h"
 #import "OOSDLJoystickManager.h"

@@ -26,6 +26,8 @@ MA 02110-1301, USA.
 
 */
 
+#pragma once
+
 #import "Entity.h"
 
 #define WORMHOLE_EXPIRES_TIMEINTERVAL	900.0

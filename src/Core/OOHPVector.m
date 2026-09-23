@@ -52,7 +52,6 @@ NSArray *ArrayFromHPVector(HPVector vec)
 #endif
 
 
-#if !OOMATHS_STANDALONE
 /*	This generates random vectors distrubuted evenly over the surface of the
 	unit sphere. It does this the simple way, by generating vectors in the
 	half-unit cube and rejecting those outside the half-unit sphere (and the
@@ -142,5 +141,3 @@ HPVector OOProjectHPVectorToPlane(HPVector point, HPVector plane, HPVector norma
 {
 	return HPvector_subtract(point,HPvector_multiply_scalar(normal,HPdot_product(HPvector_subtract(point, plane), normal)));
 }
-
-#endif

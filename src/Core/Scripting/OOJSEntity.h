@@ -27,6 +27,7 @@ MA 02110-1301, USA.
 #import <Foundation/Foundation.h>
 #import "OOJavaScriptEngine.h"
 #import "Universe.h"
+#import "EntityOOJavaScriptExtensions.h"
 
 @class Entity;
 

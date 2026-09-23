@@ -30,6 +30,9 @@ MA 02110-1301, USA.
  causing a warning in Clang. This lets us write #define FOO (1 && OOLITE_DEBUG)
  instead.
  */
+
+#pragma once
+
 #ifdef NDEBUG
 #define OOLITE_DEBUG 0
 #else

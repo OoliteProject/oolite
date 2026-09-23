@@ -31,6 +31,8 @@ SOFTWARE.
 
 */
 
+#pragma once
+
 #import "OOFoundation.h"
 #import "OOOpenGL.h"
 #import "OOFunctionAttributes.h"

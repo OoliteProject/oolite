@@ -24,6 +24,8 @@ MA 02110-1301, USA.
 
 */
 
+#pragma once
+
 #import "ShipEntity.h"
 #import "StationEntity.h"	// For MAX_DOCKING_STAGES
 

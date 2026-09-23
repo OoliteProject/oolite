@@ -31,7 +31,6 @@ MA 02110-1301, USA.
 #import "OOJSDock.h"
 #import "DockEntity.h"
 #import "OOPlanetEntity.h"
-#import "OOVisualEffectEntity.h"
 #import "OOJSVisualEffect.h"
 #import "WormholeEntity.h"
 #import "OOJSWormhole.h"
