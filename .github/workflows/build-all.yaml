@@ -9,7 +9,20 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  clang-format-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Oolite
+        uses: actions/checkout@v6
+
+      - name: Check clang-format
+        uses: jidicula/clang-format-action@v4.18.0
+        with:
+          clang-format-version: '22'
+          check-path: 'src'
+
   build-linux:
+    needs: clang-format-check
     runs-on: ubuntu-latest
     container:
       image: archlinux:latest
@@ -23,8 +36,8 @@ jobs:
     steps:
       ## This is for debugging only and helps developing the workflow.
       # - name: Environment Variables
-      #  run: |
-      #    printenv | sort
+      #   run: |
+      #     printenv | sort
 
       - name: Update Arch
         run: |
@@ -69,6 +82,7 @@ jobs:
           retention-days: 5
 
   build-flatpak:
+    needs: clang-format-check
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-25.08
@@ -103,6 +117,7 @@ jobs:
           retention-days: 5
 
   build-windows:
+    needs: clang-format-check
     runs-on: windows-latest
     strategy:
       matrix:
@@ -110,8 +125,8 @@ jobs:
     steps:
       ## This is for debugging only and helps developing the workflow.
       # - name: Environment Variables
-      #  run: |
-      #    Get-ChildItem Env: | Sort Name
+      #   run: |
+      #     Get-ChildItem Env: | Sort Name
 
       - name: Git line endings & curl token
         run: |
@@ -167,8 +182,8 @@ jobs:
     steps:
       ## This is for debugging only and helps developing the workflow.
       # - name: Environment Variables
-      #  run: |
-      #    printenv | sort
+      #   run: |
+      #     printenv | sort
 
       - name: Download artifacts
         uses: actions/download-artifact@v7
