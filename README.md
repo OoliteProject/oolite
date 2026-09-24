@@ -10,6 +10,7 @@ Oolite is an open source Elite clone on steroids. While it can run just like the
 ## What does it look like?
 
 [![build-all](https://github.com/OoliteProject/oolite/actions/workflows/build-all.yaml/badge.svg)](https://github.com/OoliteProject/oolite/actions/workflows/build-all.yaml)
+[![clang-format](https://img.shields.io/github/actions/workflow/status/OoliteProject/oolite/build-all.yaml?job=clang-format-check&label=clang-format)](https://github.com/OoliteProject/oolite/actions/workflows/build-all.yaml)
 
 [![GitHub release](https://img.shields.io/github/release/OoliteProject/Oolite.svg)](https://github.com/OoliteProject/Oolite/releases/latest)
 
