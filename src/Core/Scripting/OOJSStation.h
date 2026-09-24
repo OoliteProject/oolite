@@ -26,11 +26,10 @@ MA 02110-1301, USA.
 
 #pragma once
 
+#import "StationEntity.h"
 #import <Foundation/Foundation.h>
 #include <jsapi.h>
-#import "StationEntity.h"
 
 @class StationEntity;
 
-
-void InitOOJSStation(JSContext *context, JSObject *global);
+void InitOOJSStation(JSContext* context, JSObject* global);

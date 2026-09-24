@@ -4,7 +4,7 @@ OORoleSet.h
 
 Manage a set of roles for a ship (or ship type), including probabilities.
 
-A role set is an immutable object. 
+A role set is an immutable object.
 
 
 Copyright (C) 2007-2013 Jens Ayton
@@ -31,42 +31,39 @@ SOFTWARE.
 
 #import "OOFoundation.h"
 
-
-@interface OORoleSet: NSObject <NSCopying>
-{
+@interface OORoleSet : NSObject <NSCopying> {
 @private
-	NSString					*_roleString;
-	NSDictionary				*_rolesAndProbabilities;
-	NSSet						*_roles;
-	float						_totalProb;
+    NSString* _roleString;
+    NSDictionary* _rolesAndProbabilities;
+    NSSet* _roles;
+    float _totalProb;
 }
 
-+ (instancetype) roleSetWithString:(NSString *)roleString;
-+ (instancetype) roleSetWithRole:(NSString *)role probability:(float)probability;
++ (instancetype)roleSetWithString:(NSString*)roleString;
++ (instancetype)roleSetWithRole:(NSString*)role probability:(float)probability;
 
-- (id)initWithRoleString:(NSString *)roleString;
-- (id)initWithRole:(NSString *)role probability:(float)probability;
+- (id)initWithRoleString:(NSString*)roleString;
+- (id)initWithRole:(NSString*)role probability:(float)probability;
 
-- (NSString *)roleString;
+- (NSString*)roleString;
 
-- (BOOL)hasRole:(NSString *)role;
-- (float)probabilityForRole:(NSString *)role;
-- (BOOL)intersectsSet:(id)set;	// set may be an OORoleSet or an NSSet.
+- (BOOL)hasRole:(NSString*)role;
+- (float)probabilityForRole:(NSString*)role;
+- (BOOL)intersectsSet:(id)set; // set may be an OORoleSet or an NSSet.
 
-- (NSSet *)roles;
-- (NSArray *)sortedRoles;
-- (NSDictionary *)rolesAndProbabilities;
+- (NSSet*)roles;
+- (NSArray*)sortedRoles;
+- (NSDictionary*)rolesAndProbabilities;
 
 // Returns a random role, taking probabilities into account.
-- (NSString *)anyRole;
+- (NSString*)anyRole;
 
-	// Creating modified copies of role sets:
-- (id)roleSetWithAddedRole:(NSString *)role probability:(float)probability;
-- (id)roleSetWithAddedRoleIfNotSet:(NSString *)role probability:(float)probability;	// Unlike the above, does not change probability if role exists.
-- (id)roleSetWithRemovedRole:(NSString *)role;
+// Creating modified copies of role sets:
+- (id)roleSetWithAddedRole:(NSString*)role probability:(float)probability;
+- (id)roleSetWithAddedRoleIfNotSet:(NSString*)role probability:(float)probability; // Unlike the above, does not change probability if role exists.
+- (id)roleSetWithRemovedRole:(NSString*)role;
 
 @end
 
-
 // Returns a dictionary whose keys are roles and whose values are weights.
-NSDictionary *OOParseRolesFromString(NSString *string);
+NSDictionary* OOParseRolesFromString(NSString* string);

@@ -28,103 +28,90 @@ SOFTWARE.
 
 #import "OOALMusic.h"
 
-static OOMusic			*sPlayingMusic = nil;
-static OOSoundSource	*sMusicSource = nil;
-
+static OOMusic* sPlayingMusic = nil;
+static OOSoundSource* sMusicSource = nil;
 
 @implementation OOMusic
 
-+ (id)allocWithZone:(NSZone *)inZone
++ (id)allocWithZone:(NSZone*)inZone
 {
-	return NSAllocateObject([OOMusic class], 0, inZone);
+    return NSAllocateObject([OOMusic class], 0, inZone);
 }
-
 
 - (void)dealloc
 {
-	if (sPlayingMusic == self) [self stop];
-	[sound release];
-	
-	[super dealloc];
+    if (sPlayingMusic == self)
+        [self stop];
+    [sound release];
+
+    [super dealloc];
 }
 
-- (id)initWithContentsOfFile:(NSString *)inPath
+- (id)initWithContentsOfFile:(NSString*)inPath
 {
-	self = [super init];
-	if (nil != self)
-	{
-		sound = [[OOSound alloc] initWithContentsOfFile:inPath];
-		if (nil == sound)
-		{
-			[self release];
-			self = nil;
-		}
-	}
-	
-	return self;
+    self = [super init];
+    if (nil != self) {
+        sound = [[OOSound alloc] initWithContentsOfFile:inPath];
+        if (nil == sound) {
+            [self release];
+            self = nil;
+        }
+    }
+
+    return self;
 }
 
-
-- (NSString *)name
+- (NSString*)name
 {
-	return [sound name];
+    return [sound name];
 }
-
 
 - (void)setMusicGain:(float)newValue
 {
-	if (nil != sMusicSource)
-	{
-		[sMusicSource setGain:newValue];
-	}
+    if (nil != sMusicSource) {
+        [sMusicSource setGain:newValue];
+    }
 }
 
-
-- (float) musicGain
+- (float)musicGain
 {
-	if (nil == sMusicSource)  return 0.0f;
-	return [sMusicSource gain];
+    if (nil == sMusicSource)
+        return 0.0f;
+    return [sMusicSource gain];
 }
-
 
 - (void)playLooped:(BOOL)inLoop
 {
-	if (sPlayingMusic != self)
-	{
-		if (nil == sMusicSource)
-		{
-			sMusicSource = [[OOSoundSource alloc] init];
-		}
-		[sMusicSource stop];
-		[sMusicSource setLoop:inLoop];
-		[sMusicSource setSound:sound];
-		[sMusicSource play];
-		
-		sPlayingMusic = self;
-	}
+    if (sPlayingMusic != self) {
+        if (nil == sMusicSource) {
+            sMusicSource = [[OOSoundSource alloc] init];
+        }
+        [sMusicSource stop];
+        [sMusicSource setLoop:inLoop];
+        [sMusicSource setSound:sound];
+        [sMusicSource play];
+
+        sPlayingMusic = self;
+    }
 }
 
-
-- (OOSoundSource *)musicSoundSource
+- (OOSoundSource*)musicSoundSource
 {
-	return sMusicSource;
+    return sMusicSource;
 }
-
 
 - (BOOL)isPlaying
 {
-	return sPlayingMusic == self && [sMusicSource isPlaying];
+    return sPlayingMusic == self && [sMusicSource isPlaying];
 }
-
 
 - (void)stop
 {
-	if (sPlayingMusic == self)
-	{
-		sPlayingMusic = nil;
-		[sMusicSource stop];
-		[sMusicSource setSound:nil];
-	}
+    if (sPlayingMusic == self) {
+        sPlayingMusic = nil;
+        [sMusicSource stop];
+        [sMusicSource setSound:nil];
+    }
 }
 
 @end

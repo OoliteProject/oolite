@@ -31,38 +31,35 @@ SOFTWARE.
 
 @class OOProbabilitySet;
 
-
-@interface OOShipRegistry: NSObject
-{
+@interface OOShipRegistry : NSObject {
 @private
-	NSDictionary			*_shipData;
-	NSDictionary			*_effectData;
-	NSArray					*_demoShips;
-	NSArray					*_playerShips;
-	NSDictionary			*_probabilitySets;
+    NSDictionary* _shipData;
+    NSDictionary* _effectData;
+    NSArray* _demoShips;
+    NSArray* _playerShips;
+    NSDictionary* _probabilitySets;
 }
 
-+ (OOShipRegistry *) sharedRegistry;
++ (OOShipRegistry*)sharedRegistry;
 
-+ (void) reload;
++ (void)reload;
 
-- (NSDictionary *) shipInfoForKey:(NSString *)key;
-- (void) setShipInfoForKey:(NSString *)key with:(NSDictionary *)newShipData;
-- (NSDictionary *) effectInfoForKey:(NSString *)key;
-- (NSDictionary *) shipyardInfoForKey:(NSString *)key;
-- (OOProbabilitySet *) probabilitySetForRole:(NSString *)role;
+- (NSDictionary*)shipInfoForKey:(NSString*)key;
+- (void)setShipInfoForKey:(NSString*)key with:(NSDictionary*)newShipData;
+- (NSDictionary*)effectInfoForKey:(NSString*)key;
+- (NSDictionary*)shipyardInfoForKey:(NSString*)key;
+- (OOProbabilitySet*)probabilitySetForRole:(NSString*)role;
 
-- (NSArray *) demoShipKeys;
-- (NSArray *) playerShipKeys;
+- (NSArray*)demoShipKeys;
+- (NSArray*)playerShipKeys;
 
 @end
 
-
 @interface OOShipRegistry (OOConveniences)
 
-- (NSArray *) shipKeys;
-- (NSArray *) shipRoles;
-- (NSArray *) shipKeysWithRole:(NSString *)role;
-- (NSString *) randomShipKeyForRole:(NSString *)role;
+- (NSArray*)shipKeys;
+- (NSArray*)shipRoles;
+- (NSArray*)shipKeysWithRole:(NSString*)role;
+- (NSString*)randomShipKeyForRole:(NSString*)role;
 
 @end

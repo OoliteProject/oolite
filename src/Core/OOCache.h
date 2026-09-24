@@ -45,22 +45,18 @@ MA 02110-1301, USA.
 
 #import <Foundation/Foundation.h>
 
-
-enum
-{
-	kOOCacheMinimumPruneThreshold			= 25U,
-	kOOCacheDefaultPruneThreshold			= 200U,
-	kOOCacheNoPrune							= 0xFFFFFFFFU
+enum {
+    kOOCacheMinimumPruneThreshold = 25U,
+    kOOCacheDefaultPruneThreshold = 200U,
+    kOOCacheNoPrune = 0xFFFFFFFFU
 };
 
-
-@interface OOCache: NSObject
-{
+@interface OOCache : NSObject {
 @private
-	struct OOCacheImpl		*cache;
-	unsigned				pruneThreshold;
-	BOOL					autoPrune;
-	BOOL					dirty;
+    struct OOCacheImpl* cache;
+    unsigned pruneThreshold;
+    BOOL autoPrune;
+    BOOL dirty;
 }
 
 - (id)init;
@@ -82,9 +78,9 @@ enum
 - (BOOL)dirty;
 - (void)markClean;
 
-- (NSString *)name;
-- (void)setName:(NSString *)name;
+- (NSString*)name;
+- (void)setName:(NSString*)name;
 
-- (NSArray *) objectsByAge;
+- (NSArray*)objectsByAge;
 
 @end

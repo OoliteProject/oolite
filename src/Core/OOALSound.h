@@ -24,25 +24,25 @@ SOFTWARE.
 
 */
 
-#import <Foundation/Foundation.h>
 #import "OOOpenALController.h"
+#import <Foundation/Foundation.h>
 
-@interface OOSound: NSObject
+@interface OOSound : NSObject
 
-+ (BOOL) setUp;
-+ (void) update;
++ (BOOL)setUp;
++ (void)update;
 
-+ (void) setMasterVolume:(float) fraction;
-+ (float) masterVolume;
++ (void)setMasterVolume:(float)fraction;
++ (float)masterVolume;
 
-- (id) initWithContentsOfFile:(NSString *)path;
+- (id)initWithContentsOfFile:(NSString*)path;
 
-- (NSString *)name;
+- (NSString*)name;
 
-+ (BOOL) isSoundOK;
++ (BOOL)isSoundOK;
 
-- (ALuint) soundBuffer;
-- (BOOL) soundIncomplete;
-- (void) rewind;
+- (ALuint)soundBuffer;
+- (BOOL)soundIncomplete;
+- (void)rewind;
 
 @end

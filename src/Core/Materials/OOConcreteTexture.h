@@ -33,61 +33,58 @@ SOFTWARE.
 #import "OOOpenGLExtensionManager.h"
 #import "OOTexture.h"
 
+#define OOTEXTURE_RELOADABLE 1
 
-#define OOTEXTURE_RELOADABLE		1
-
-
-@interface OOConcreteTexture: OOTexture
-{
+@interface OOConcreteTexture : OOTexture {
 @private
 #if OOTEXTURE_RELOADABLE
-	NSString				*_path;
+    NSString* _path;
 #endif
-	NSString				*_key;
-	uint8_t					_loaded: 1,
-							_uploaded: 1,
+    NSString* _key;
+    uint8_t _loaded : 1,
+        _uploaded : 1,
 #if GL_EXT_texture_rectangle
-							_isRectTexture: 1,
+        _isRectTexture : 1,
 #endif
 #if OO_TEXTURE_CUBE_MAP
-							_isCubeMap: 1,
+        _isCubeMap : 1,
 #endif
-							_valid: 1;
-	uint8_t					_mipLevels;
-	
-	OOTextureLoader			*_loader;
-	
-	void					*_bytes;
-	GLuint					_textureName;
-	uint32_t				_width,
-							_height,
-							_originalWidth,
-							_originalHeight;
-	
-	OOTextureDataFormat		_format;
-	uint32_t				_options;
+        _valid : 1;
+    uint8_t _mipLevels;
+
+    OOTextureLoader* _loader;
+
+    void* _bytes;
+    GLuint _textureName;
+    uint32_t _width,
+        _height,
+        _originalWidth,
+        _originalHeight;
+
+    OOTextureDataFormat _format;
+    uint32_t _options;
 #if GL_EXT_texture_lod_bias
-	GLfloat					_lodBias;
+    GLfloat _lodBias;
 #endif
 #if GL_EXT_texture_filter_anisotropic
-	float					_anisotropy;
+    float _anisotropy;
 #endif
-	
+
 #ifndef NDEBUG
-	NSString				*_name;
+    NSString* _name;
 #endif
 }
 
-- (id) initWithLoader:(OOTextureLoader *)loader
-				  key:(NSString *)key
-			  options:(uint32_t)options
-		   anisotropy:(GLfloat)anisotropy
-			  lodBias:(GLfloat)lodBias;
+- (id)initWithLoader:(OOTextureLoader*)loader
+                 key:(NSString*)key
+             options:(uint32_t)options
+          anisotropy:(GLfloat)anisotropy
+             lodBias:(GLfloat)lodBias;
 
-- (id)initWithPath:(NSString *)path
-			   key:(NSString *)key
-		   options:(uint32_t)options
-		anisotropy:(float)anisotropy
-		   lodBias:(GLfloat)lodBias;
+- (id)initWithPath:(NSString*)path
+               key:(NSString*)key
+           options:(uint32_t)options
+        anisotropy:(float)anisotropy
+           lodBias:(GLfloat)lodBias;
 
 @end

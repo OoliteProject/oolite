@@ -32,27 +32,25 @@ SOFTWARE.
 
 #import <Foundation/Foundation.h>
 
-
-@interface OOAsyncQueue: NSObject
-{
+@interface OOAsyncQueue : NSObject {
 @private
-	NSConditionLock				*_lock;
-	struct OOAsyncQueueElement	*_head,
-								*_tail,
-								*_pool;
-	unsigned					_elemCount,
-								_poolCount;
+    NSConditionLock* _lock;
+    struct OOAsyncQueueElement *_head,
+        *_tail,
+        *_pool;
+    unsigned _elemCount,
+        _poolCount;
 }
 
-- (BOOL)enqueue:(id)object;	// Returns NO on failure, or if object is nil.
+- (BOOL)enqueue:(id)object; // Returns NO on failure, or if object is nil.
 
-- (id)dequeue;			// Blocks until the queue is non-empty.
-- (id)tryDequeue;		// Returns nil if empty.
+- (id)dequeue; // Blocks until the queue is non-empty.
+- (id)tryDequeue; // Returns nil if empty.
 
 // Due to the asynchronous nature of the queue, these values are immediately out of date.
 - (BOOL)empty;
 - (unsigned)count;
 
-- (void)emptyQueue;		// Releases all elements.
+- (void)emptyQueue; // Releases all elements.
 
 @end

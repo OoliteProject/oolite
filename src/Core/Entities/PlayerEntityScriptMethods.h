@@ -27,67 +27,65 @@ MA 02110-1301, USA.
 
 #import "PlayerEntity.h"
 
-
 @interface PlayerEntity (ScriptMethods)
 
-- (unsigned) score;
-- (void) setScore:(unsigned)value;
+- (unsigned)score;
+- (void)setScore:(unsigned)value;
 
-- (double) creditBalance;
-- (void) setCreditBalance:(double)value;
+- (double)creditBalance;
+- (void)setCreditBalance:(double)value;
 
-- (NSString *) dockedStationName;
-- (NSString *) dockedStationDisplayName;
-- (BOOL) dockedAtMainStation;
+- (NSString*)dockedStationName;
+- (NSString*)dockedStationDisplayName;
+- (BOOL)dockedAtMainStation;
 
-- (void) awardCommodityType:(NSString *)type amount:(OOCargoQuantity)amount;
+- (void)awardCommodityType:(NSString*)type amount:(OOCargoQuantity)amount;
 
-- (void) resetScannerZoom;
+- (void)resetScannerZoom;
 
-- (OOGalaxyID) currentGalaxyID;
-- (OOSystemID) currentSystemID;
+- (OOGalaxyID)currentGalaxyID;
+- (OOSystemID)currentSystemID;
 
-- (void) setMissionChoice:(NSString *)newChoice;
-- (void) setMissionChoice:(NSString *)newChoice withEvent:(BOOL) withEvent;
-- (void) setMissionChoice:(NSString *)newChoice keyPress:(NSString *)keyPress;
-- (void) setMissionChoice:(NSString *)newChoice keyPress:(NSString *)keyPress withEvent:(BOOL) withEvent;
-- (void) allowMissionInterrupt;
+- (void)setMissionChoice:(NSString*)newChoice;
+- (void)setMissionChoice:(NSString*)newChoice withEvent:(BOOL)withEvent;
+- (void)setMissionChoice:(NSString*)newChoice keyPress:(NSString*)keyPress;
+- (void)setMissionChoice:(NSString*)newChoice keyPress:(NSString*)keyPress withEvent:(BOOL)withEvent;
+- (void)allowMissionInterrupt;
 
-- (OOTimeDelta) scriptTimer;
+- (OOTimeDelta)scriptTimer;
 
-- (unsigned) systemPseudoRandom100;
-- (unsigned) systemPseudoRandom256;
-- (double) systemPseudoRandomFloat;
+- (unsigned)systemPseudoRandom100;
+- (unsigned)systemPseudoRandom256;
+- (double)systemPseudoRandomFloat;
 
-- (NSDictionary *) passengerContractMarker:(OOSystemID)system;
-- (NSDictionary *) parcelContractMarker:(OOSystemID)system;
-- (NSDictionary *) cargoContractMarker:(OOSystemID)system;
-- (NSDictionary *) defaultMarker:(OOSystemID)system;
-- (NSDictionary *) validatedMarker:(NSDictionary *)marker;
+- (NSDictionary*)passengerContractMarker:(OOSystemID)system;
+- (NSDictionary*)parcelContractMarker:(OOSystemID)system;
+- (NSDictionary*)cargoContractMarker:(OOSystemID)system;
+- (NSDictionary*)defaultMarker:(OOSystemID)system;
+- (NSDictionary*)validatedMarker:(NSDictionary*)marker;
 
-- (NSString *) keyBindingDescription2:(NSString *)binding;
-- (NSString *) getKeyBindingDescription:(NSArray *)keyList;
-- (NSString *) keyCodeDescription:(OOKeyCode)code;
-- (NSString *) keyCodeDescriptionShort:(OOKeyCode)code;
+- (NSString*)keyBindingDescription2:(NSString*)binding;
+- (NSString*)getKeyBindingDescription:(NSArray*)keyList;
+- (NSString*)keyCodeDescription:(OOKeyCode)code;
+- (NSString*)keyCodeDescriptionShort:(OOKeyCode)code;
 
-- (NSString *) commanderKillsAsString;
-- (NSString *) commanderBountyAsString;
-- (NSString *) creditsFormattedForSubstitution;
-- (NSString *) creditsFormattedForLegacySubstitution;
+- (NSString*)commanderKillsAsString;
+- (NSString*)commanderBountyAsString;
+- (NSString*)creditsFormattedForSubstitution;
+- (NSString*)creditsFormattedForLegacySubstitution;
 
 @end
 
-
 /*	OOGalacticCoordinatesFromInternal()
-	Given internal coordinates ranging from 0 to 255 on each axis, return
-	corresponding coordinates in user-meaningful coordinates by scaling by
-	0.4 on the X axis and 0.2 on the Y axis.
-	
-	OOInternalCoordinatesFromGalactic()
-	Inverse operation.
-	
-	For valid floating-point comparisons, it is imperative that the same
-	calculation be used consistently.
+        Given internal coordinates ranging from 0 to 255 on each axis, return
+        corresponding coordinates in user-meaningful coordinates by scaling by
+        0.4 on the X axis and 0.2 on the Y axis.
+
+        OOInternalCoordinatesFromGalactic()
+        Inverse operation.
+
+        For valid floating-point comparisons, it is imperative that the same
+        calculation be used consistently.
  */
 Vector OOGalacticCoordinatesFromInternal(NSPoint internalCoordinates);
 NSPoint OOInternalCoordinatesFromGalactic(Vector galacticCoordinates);

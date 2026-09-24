@@ -32,14 +32,12 @@ MA 02110-1301, USA.
 
 #import "OOScript.h"
 
-
-@interface OOPListScript: OOScript
-{
+@interface OOPListScript : OOScript {
 @private
-	NSArray					*_script;
-	NSDictionary			*_metadata;
+    NSArray* _script;
+    NSDictionary* _metadata;
 }
 
-+ (NSArray *)scriptsInPListFile:(NSString *)filePath;
++ (NSArray*)scriptsInPListFile:(NSString*)filePath;
 
 @end

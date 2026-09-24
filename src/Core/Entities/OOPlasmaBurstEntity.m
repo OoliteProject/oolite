@@ -26,40 +26,37 @@ MA 02110-1301, USA.
 #import "OOPlasmaBurstEntity.h"
 #import "Universe.h"
 
-
-#define kPlasmaBurstInitialSize		64.0f
-#define kPlasmaBurstGrowthRate		64.0f
-#define kPlasmaBurstDuration		2.0f
-
+#define kPlasmaBurstInitialSize 64.0f
+#define kPlasmaBurstGrowthRate 64.0f
+#define kPlasmaBurstDuration 2.0f
 
 @implementation OOPlasmaBurstEntity
 
-- (id) initWithPosition:(HPVector)inPosition
+- (id)initWithPosition:(HPVector)inPosition
 {
-	if ((self = [super initWithDiameter:kPlasmaBurstInitialSize]))
-	{
-		[self setPosition:inPosition];
-		[self setCollisionRadius:2.0];
-		
-		[self setColor:[OOColor redColor]];
-	}
-	
-	return self;
+    if ((self = [super initWithDiameter:kPlasmaBurstInitialSize])) {
+        [self setPosition:inPosition];
+        [self setCollisionRadius:2.0];
+
+        [self setColor:[OOColor redColor]];
+    }
+
+    return self;
 }
 
-
-- (void) update:(double)delta_t
+- (void)update:(double)delta_t
 {
-	[super update:delta_t];
-	
-	OOTimeDelta lifeTime = [self timeElapsedSinceSpawn];
-	float attenuation = OOClamp_0_1_f(1.0f - lifeTime / kPlasmaBurstDuration);
-	
-	_diameter = kPlasmaBurstInitialSize + lifeTime * kPlasmaBurstGrowthRate;
-	
-	_colorComponents[3] = attenuation;
-	
-	if (lifeTime > kPlasmaBurstDuration)  [UNIVERSE removeEntity:self];
+    [super update:delta_t];
+
+    OOTimeDelta lifeTime = [self timeElapsedSinceSpawn];
+    float attenuation = OOClamp_0_1_f(1.0f - lifeTime / kPlasmaBurstDuration);
+
+    _diameter = kPlasmaBurstInitialSize + lifeTime * kPlasmaBurstGrowthRate;
+
+    _colorComponents[3] = attenuation;
+
+    if (lifeTime > kPlasmaBurstDuration)
+        [UNIVERSE removeEntity:self];
 }
 
 @end

@@ -26,14 +26,13 @@ MA 02110-1301, USA.
 
 #pragma once
 
+#import "ShipEntity.h"
 #import <Foundation/Foundation.h>
 #include <jsapi.h>
-#import "ShipEntity.h"
 
 @class ShipEntity;
 
+void InitOOJSShip(JSContext* context, JSObject* global);
 
-void InitOOJSShip(JSContext *context, JSObject *global);
-
-JSClass *JSShipClass(void);
-JSObject *JSShipPrototype(void);
+JSClass* JSShipClass(void);
+JSObject* JSShipPrototype(void);

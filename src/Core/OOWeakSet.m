@@ -9,308 +9,272 @@ This code is hereby placed in the public domain.
 
 #import "OOWeakSet.h"
 
-
-
-@interface OOWeakRefUnpackingEnumerator: NSEnumerator
-{
+@interface OOWeakRefUnpackingEnumerator : NSEnumerator {
 @private
-	NSEnumerator			*_enumerator;
+    NSEnumerator* _enumerator;
 }
 
-- (id) initWithEnumerator:(NSEnumerator *)enumerator;
+- (id)initWithEnumerator:(NSEnumerator*)enumerator;
 
-+ (instancetype) enumeratorWithCollection:(id)collection;	// Collection must implement -objectEnumerator
++ (instancetype)enumeratorWithCollection:(id)collection; // Collection must implement -objectEnumerator
 
 @end
-
 
 @interface OOWeakSet (OOPrivate)
 
-- (void) compact;	// Remove any zeroed entries.
+- (void)compact; // Remove any zeroed entries.
 
 @end
-
 
 @implementation OOWeakSet
 
-- (id) init
+- (id)init
 {
-	return [self initWithCapacity:0];
+    return [self initWithCapacity:0];
 }
 
-
-- (id) initWithCapacity:(NSUInteger)capacity
+- (id)initWithCapacity:(NSUInteger)capacity
 {
-	if ((self = [super init]))
-	{
-		_objects = [[NSMutableSet alloc] initWithCapacity:capacity];
-		if (_objects == NULL)
-		{
-			[self release];
-			return nil;
-		}
-	}
-	return self;
+    if ((self = [super init])) {
+        _objects = [[NSMutableSet alloc] initWithCapacity:capacity];
+        if (_objects == NULL) {
+            [self release];
+            return nil;
+        }
+    }
+    return self;
 }
 
-
-+ (instancetype) set
++ (instancetype)set
 {
-	return [[[self alloc] init] autorelease];
+    return [[[self alloc] init] autorelease];
 }
 
-
-+ (instancetype) setWithCapacity:(NSUInteger)capacity
++ (instancetype)setWithCapacity:(NSUInteger)capacity
 {
-	return [[[self alloc] initWithCapacity:capacity] autorelease];
+    return [[[self alloc] initWithCapacity:capacity] autorelease];
 }
 
-
-- (void) dealloc
+- (void)dealloc
 {
-	DESTROY(_objects);
-	
-	[super dealloc];
+    DESTROY(_objects);
+
+    [super dealloc];
 }
 
-
-- (NSString *) description
+- (NSString*)description
 {
-	NSMutableString *result = [NSMutableString stringWithFormat:@"<%@ %p>{", [self class], self];
-	NSEnumerator *selfEnum = [self objectEnumerator];
-	id object = nil;
-	BOOL first = YES;
-	while ((object = [selfEnum nextObject]))
-	{
-		if (!first)  [result appendString:@", "];
-		else  first = NO;
-		
-		NSString *desc = nil;
-		if ([object respondsToSelector:@selector(shortDescription)])  desc = [object shortDescription];
-		else  desc = [object description];
-		
-		[result appendString:desc];
-	}
-	
-	[result appendString:@"}"];
-	return result;
-}
+    NSMutableString* result = [NSMutableString stringWithFormat:@"<%@ %p>{", [self class], self];
+    NSEnumerator* selfEnum = [self objectEnumerator];
+    id object = nil;
+    BOOL first = YES;
+    while ((object = [selfEnum nextObject])) {
+        if (!first)
+            [result appendString:@", "];
+        else
+            first = NO;
 
+        NSString* desc = nil;
+        if ([object respondsToSelector:@selector(shortDescription)])
+            desc = [object shortDescription];
+        else
+            desc = [object description];
+
+        [result appendString:desc];
+    }
+
+    [result appendString:@"}"];
+    return result;
+}
 
 // MARK: Protocol conformance
 
-- (id) copyWithZone:(NSZone *)zone
+- (id)copyWithZone:(NSZone*)zone
 {
-	[self compact];
-	OOWeakSet *result = [[OOWeakSet allocWithZone:zone] init];
-	[result addObjectsByEnumerating:[self objectEnumerator]];
-	return result;
+    [self compact];
+    OOWeakSet* result = [[OOWeakSet allocWithZone:zone] init];
+    [result addObjectsByEnumerating:[self objectEnumerator]];
+    return result;
 }
 
-
-- (id) mutableCopyWithZone:(NSZone *)zone
+- (id)mutableCopyWithZone:(NSZone*)zone
 {
-	return [self copyWithZone:zone];
+    return [self copyWithZone:zone];
 }
 
-
-- (BOOL) isEqual:(id)other
+- (BOOL)isEqual:(id)other
 {
-	if (![other isKindOfClass:[OOWeakSet class]])  return NO;
-	if ([self count] != [other count])  return NO;
-	
-	BOOL result = YES;
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	NSEnumerator *selfEnum = [self objectEnumerator];
-	id object = nil;
-	while ((object = [selfEnum nextObject]))
-	{
-		if (![other containsObject:object])
-		{
-			result = NO;
-			break;
-		}
-	}
-	DESTROY(pool);
-	
-	return result;
-}
+    if (![other isKindOfClass:[OOWeakSet class]])
+        return NO;
+    if ([self count] != [other count])
+        return NO;
 
+    BOOL result = YES;
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    NSEnumerator* selfEnum = [self objectEnumerator];
+    id object = nil;
+    while ((object = [selfEnum nextObject])) {
+        if (![other containsObject:object]) {
+            result = NO;
+            break;
+        }
+    }
+    DESTROY(pool);
+
+    return result;
+}
 
 // MARK: Meat and potatoes
 
-- (NSUInteger) count
+- (NSUInteger)count
 {
-	[self compact];
-	return [_objects count];
+    [self compact];
+    return [_objects count];
 }
 
-
-- (BOOL) containsObject:(id<OOWeakReferenceSupport>)object
+- (BOOL)containsObject:(id<OOWeakReferenceSupport>)object
 {
-	[self compact];
-	OOWeakReference *weakObj = [object weakRetain];
-	BOOL result = [_objects containsObject:weakObj];
-	[weakObj release];
-	return result;
+    [self compact];
+    OOWeakReference* weakObj = [object weakRetain];
+    BOOL result = [_objects containsObject:weakObj];
+    [weakObj release];
+    return result;
 }
 
-
-- (NSEnumerator *) objectEnumerator
+- (NSEnumerator*)objectEnumerator
 {
-	return [OOWeakRefUnpackingEnumerator enumeratorWithCollection:_objects];
+    return [OOWeakRefUnpackingEnumerator enumeratorWithCollection:_objects];
 }
 
-
-- (void) addObject:(id<OOWeakReferenceSupport>)object
+- (void)addObject:(id<OOWeakReferenceSupport>)object
 {
-	if (object == nil)  return;
-	NSAssert([object conformsToProtocol:@protocol(OOWeakReferenceSupport)], @"Attempt to add object to OOWeakSet which does not conform to OOWeakReferenceSupport.");
-	
-	OOWeakReference *weakObj = [object weakRetain];
-	[_objects addObject:weakObj];
-	[weakObj release];
+    if (object == nil)
+        return;
+    NSAssert([object conformsToProtocol:@protocol(OOWeakReferenceSupport)], @"Attempt to add object to OOWeakSet which does not conform to OOWeakReferenceSupport.");
+
+    OOWeakReference* weakObj = [object weakRetain];
+    [_objects addObject:weakObj];
+    [weakObj release];
 }
 
-
-- (void) removeObject:(id<OOWeakReferenceSupport>)object
+- (void)removeObject:(id<OOWeakReferenceSupport>)object
 {
-	OOWeakReference *weakObj = [object weakRetain];
-	[_objects removeObject:weakObj];
-	[weakObj release];
+    OOWeakReference* weakObj = [object weakRetain];
+    [_objects removeObject:weakObj];
+    [weakObj release];
 }
 
-
-- (void) addObjectsByEnumerating:(NSEnumerator *)enumerator
+- (void)addObjectsByEnumerating:(NSEnumerator*)enumerator
 {
-	id object = nil;
-	[self compact];
-	while ((object = [enumerator nextObject]))
-	{
-		[self addObject:object];
-	}
+    id object = nil;
+    [self compact];
+    while ((object = [enumerator nextObject])) {
+        [self addObject:object];
+    }
 }
 
-
-- (void) makeObjectsPerformSelector:(SEL)selector
+- (void)makeObjectsPerformSelector:(SEL)selector
 {
-	OOWeakReference *weakRef = nil;
-	foreach (weakRef, _objects)
-	{
-		[[weakRef weakRefUnderlyingObject] performSelector:selector];
-	}
+    OOWeakReference* weakRef = nil;
+    foreach (weakRef, _objects) {
+        [[weakRef weakRefUnderlyingObject] performSelector:selector];
+    }
 }
 
-
-- (void) makeObjectsPerformSelector:(SEL)selector withObject:(id)argument
+- (void)makeObjectsPerformSelector:(SEL)selector withObject:(id)argument
 {
-	OOWeakReference *weakRef = nil;
-	foreach (weakRef, _objects)
-	{
-		[[weakRef weakRefUnderlyingObject] performSelector:selector withObject:argument];
-	}
+    OOWeakReference* weakRef = nil;
+    foreach (weakRef, _objects) {
+        [[weakRef weakRefUnderlyingObject] performSelector:selector withObject:argument];
+    }
 }
 
-
-- (NSArray *) allObjects
+- (NSArray*)allObjects
 {
-	NSMutableArray *result = [NSMutableArray arrayWithCapacity:[_objects count]];
-	OOWeakReference *weakRef = nil;
-	foreach (weakRef, _objects)
-	{
-		id object = [weakRef weakRefUnderlyingObject];
-		if (object != nil)  [result addObject:object];
-	}
-	
+    NSMutableArray* result = [NSMutableArray arrayWithCapacity:[_objects count]];
+    OOWeakReference* weakRef = nil;
+    foreach (weakRef, _objects) {
+        id object = [weakRef weakRefUnderlyingObject];
+        if (object != nil)
+            [result addObject:object];
+    }
+
 #ifdef NDEBUG
-	return result;
+    return result;
 #else
-	return [NSArray arrayWithArray:result];
+    return [NSArray arrayWithArray:result];
 #endif
 }
 
-
-- (void) removeAllObjects
+- (void)removeAllObjects
 {
-	[_objects removeAllObjects];
+    [_objects removeAllObjects];
 }
 
-
-- (void) compact
+- (void)compact
 {
-	OOWeakReference *weakRef = nil;
-	BOOL compactRequired = NO;
-	foreach (weakRef, _objects)
-	{
-		if ([weakRef weakRefUnderlyingObject] == nil)
-		{
-			compactRequired = YES;
-			break;
-		}
-	}
-	
-	if (compactRequired)
-	{
-		NSMutableSet *newObjects = [[NSMutableSet alloc] initWithCapacity:[_objects count]];
-		foreach (weakRef, _objects)
-		{
-			if ([weakRef weakRefUnderlyingObject] != nil)
-			{
-				[newObjects addObject:weakRef];
-			}
-		}
-		
-		[_objects release];
-		_objects = newObjects;
-	}
+    OOWeakReference* weakRef = nil;
+    BOOL compactRequired = NO;
+    foreach (weakRef, _objects) {
+        if ([weakRef weakRefUnderlyingObject] == nil) {
+            compactRequired = YES;
+            break;
+        }
+    }
+
+    if (compactRequired) {
+        NSMutableSet* newObjects = [[NSMutableSet alloc] initWithCapacity:[_objects count]];
+        foreach (weakRef, _objects) {
+            if ([weakRef weakRefUnderlyingObject] != nil) {
+                [newObjects addObject:weakRef];
+            }
+        }
+
+        [_objects release];
+        _objects = newObjects;
+    }
 }
 
 @end
 
-
 @implementation OOWeakRefUnpackingEnumerator
 
-- (id) initWithEnumerator:(NSEnumerator *)enumerator
+- (id)initWithEnumerator:(NSEnumerator*)enumerator
 {
-	if (enumerator == nil)
-	{
-		[self release];
-		return nil;
-	}
-	
-	if ((self = [super init]))
-	{
-		_enumerator = [enumerator retain];
-	}
-	
-	return self;
+    if (enumerator == nil) {
+        [self release];
+        return nil;
+    }
+
+    if ((self = [super init])) {
+        _enumerator = [enumerator retain];
+    }
+
+    return self;
 }
 
-
-+ (instancetype) enumeratorWithCollection:(id)collection
++ (instancetype)enumeratorWithCollection:(id)collection
 {
-	return [[[self alloc] initWithEnumerator:[collection objectEnumerator]] autorelease];
+    return [[[self alloc] initWithEnumerator:[collection objectEnumerator]] autorelease];
 }
 
-
-- (void) dealloc
+- (void)dealloc
 {
-	[_enumerator release];
-	
-	[super dealloc];
+    [_enumerator release];
+
+    [super dealloc];
 }
 
-
-- (id) nextObject
+- (id)nextObject
 {
-	id next = nil;
-	while ((next = [_enumerator nextObject]))
-	{
-		next = [next weakRefUnderlyingObject];
-		if (next != nil)  return next;
-	}
-	
-	return nil;
+    id next = nil;
+    while ((next = [_enumerator nextObject])) {
+        next = [next weakRefUnderlyingObject];
+        if (next != nil)
+            return next;
+    }
+
+    return nil;
 }
 
 @end

@@ -9,8 +9,7 @@ This code is hereby placed in the public domain.
 
 #import "OOWeakReference.h"
 
-
-@interface OOWeakReferenceTemplates: NSObject
+@interface OOWeakReferenceTemplates : NSObject
 
 + (void)weakRefDrop;
 + (id)weakRefUnderlyingObject;
@@ -18,170 +17,158 @@ This code is hereby placed in the public domain.
 
 @end
 
-
 @implementation OOWeakReference
 
 // *** Core functionality.
 
 + (id)weakRefWithObject:(id<OOWeakReferenceSupport>)object
 {
-	if (object == nil)  return nil;
-	
-	OOWeakReference	*result = [OOWeakReference alloc];
-	// No init for proxies.
-	result->_object = object;
-	return [result autorelease];
-}
+    if (object == nil)
+        return nil;
 
+    OOWeakReference* result = [OOWeakReference alloc];
+    // No init for proxies.
+    result->_object = object;
+    return [result autorelease];
+}
 
 - (void)dealloc
 {
-	[_object weakRefDied:self];
-	
-	[super dealloc];
+    [_object weakRefDied:self];
+
+    [super dealloc];
 }
 
-
-- (NSString *)description
+- (NSString*)description
 {
-	if (_object != nil)  return [_object description];
-	else  return [NSString stringWithFormat:@"<Dead %@ %p>", [self class], self];
+    if (_object != nil)
+        return [_object description];
+    else
+        return [NSString stringWithFormat:@"<Dead %@ %p>", [self class], self];
 }
-
 
 - (id)weakRefUnderlyingObject
 {
-	return _object;
+    return _object;
 }
-
 
 - (id)weakRetain
 {
-	return [self retain];
+    return [self retain];
 }
-
 
 - (void)weakRefDrop
 {
-	_object = nil;
+    _object = nil;
 }
-
 
 // *** Proxy evilness beyond this point.
 
-- (Class) class
+- (Class)class
 {
-	return [_object class];
+    return [_object class];
 }
 
-
-- (BOOL) isProxy
+- (BOOL)isProxy
 {
-	return YES;
+    return YES;
 }
 
-
-- (void)forwardInvocation:(NSInvocation *)invocation
+- (void)forwardInvocation:(NSInvocation*)invocation
 {
-	// Does the right thing even with nil _object.
-	[invocation invokeWithTarget:_object];
+    // Does the right thing even with nil _object.
+    [invocation invokeWithTarget:_object];
 }
 
-
-- (NSMethodSignature *)methodSignatureForSelector:(SEL)selector
+- (NSMethodSignature*)methodSignatureForSelector:(SEL)selector
 {
-	NSMethodSignature		*result = nil;
-	
-	if (__builtin_expect(
-		selector != @selector(weakRefDrop) &&
-		selector != @selector(weakRefUnderlyingObject), 1))
-	{
-		// Not a proxy method; get signature from _object if it exists, otherwise generic signature for nil calls.
-		if (__builtin_expect(_object != nil, 1))  result = [(id)_object methodSignatureForSelector:selector];
-		else  result = [OOWeakReferenceTemplates methodSignatureForSelector:@selector(nilMethod)];
-	}
-	else
-	{
-		// One of OOWeakReference's own methods.
-		result = [OOWeakReferenceTemplates methodSignatureForSelector:selector];
-	}
-	
-	return result;
-}
+    NSMethodSignature* result = nil;
 
+    if (__builtin_expect(
+            selector != @selector(weakRefDrop) && selector != @selector(weakRefUnderlyingObject), 1)) {
+        // Not a proxy method; get signature from _object if it exists, otherwise generic signature for nil calls.
+        if (__builtin_expect(_object != nil, 1))
+            result = [(id)_object methodSignatureForSelector:selector];
+        else
+            result = [OOWeakReferenceTemplates methodSignatureForSelector:@selector(nilMethod)];
+    } else {
+        // One of OOWeakReference's own methods.
+        result = [OOWeakReferenceTemplates methodSignatureForSelector:selector];
+    }
+
+    return result;
+}
 
 - (BOOL)respondsToSelector:(SEL)selector
 {
-	if (__builtin_expect(_object != nil &&
-		selector != @selector(weakRefDrop) &&
-		selector != @selector(weakRefUnderlyingObject), 1))
-	{
-		// _object exists and it's not one of our methods, ask _object.
-		return [_object respondsToSelector:selector];
-	}
-	else
-	{
-		// Selector we responds to, or _object is nil and therefore responds to everything.
-		return YES;
-	}
+    if (__builtin_expect(_object != nil && selector != @selector(weakRefDrop) && selector != @selector(weakRefUnderlyingObject), 1)) {
+        // _object exists and it's not one of our methods, ask _object.
+        return [_object respondsToSelector:selector];
+    } else {
+        // Selector we responds to, or _object is nil and therefore responds to everything.
+        return YES;
+    }
 }
-
 
 // New fast forwarding mechanism introduced in Mac OS X 10.5.
 // Note that -forwardInvocation: is still called if _object is nil.
 - (id)forwardingTargetForSelector:(SEL)sel
 {
-	return _object;
+    return _object;
 }
 
 @end
-
 
 @implementation NSObject (OOWeakReference)
 
 - (id)weakRefUnderlyingObject
 {
-	return self;
+    return self;
 }
 
 @end
-
 
 @implementation OOWeakRefObject
 
 - (id)weakRetain
 {
-	if (weakSelf == nil)  weakSelf = [OOWeakReference weakRefWithObject:self];
-	return [weakSelf retain];	// Each caller releases this, as -weakRetain must be balanced with -release.
+    if (weakSelf == nil)
+        weakSelf = [OOWeakReference weakRefWithObject:self];
+    return [weakSelf retain]; // Each caller releases this, as -weakRetain must be balanced with -release.
 }
 
-
-- (void)weakRefDied:(OOWeakReference *)weakRef
+- (void)weakRefDied:(OOWeakReference*)weakRef
 {
-	if (weakRef == weakSelf)  weakSelf = nil;
+    if (weakRef == weakSelf)
+        weakSelf = nil;
 }
-
 
 - (void)dealloc
 {
-	[weakSelf weakRefDrop];	// Very important!
-	[super dealloc];
+    [weakSelf weakRefDrop]; // Very important!
+    [super dealloc];
 }
-
 
 - (id)weakSelf
 {
-	return [[self weakRetain] autorelease];
+    return [[self weakRetain] autorelease];
 }
 
 @end
 
-
 @implementation OOWeakReferenceTemplates
 
 // These are never called, but an implementation must exist so that -methodSignatureForSelector: works.
-+ (void)weakRefDrop  {}
-+ (id)weakRefUnderlyingObject  { return nil; }
-+ (id)nilMethod { return nil; }
++ (void)weakRefDrop
+{
+}
++ (id)weakRefUnderlyingObject
+{
+    return nil;
+}
++ (id)nilMethod
+{
+    return nil;
+}
 
 @end

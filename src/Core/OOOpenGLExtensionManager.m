@@ -26,134 +26,127 @@ SOFTWARE.
 */
 
 #import "OOOpenGLExtensionManager.h"
-#import "OOLogging.h"
-#import "OOFunctionAttributes.h"
-#include <stdlib.h>
 #import "NSThreadOOExtensions.h"
+#import "OOFunctionAttributes.h"
+#import "OOLogging.h"
+#include <stdlib.h>
 
-#import "ResourceManager.h"
 #import "OOCollectionExtractors.h"
-#import "OORegExpMatcher.h"
 #import "OOConstToString.h"
-
+#import "OORegExpMatcher.h"
+#import "ResourceManager.h"
 
 /*	OpenGL version required, currently 1.1 or later (basic stuff like
-	glBindTexture(), glDrawArrays()). We probably have implicit requirements
-	for later versions, but I don't feel like auditing.
-	-- Ahruman
-	We need at least 3.0 for the Frame Buffer Objects now in use. Might as
- 	well go all the way to 3.3.
-	-- Nikos 20220817
+        glBindTexture(), glDrawArrays()). We probably have implicit requirements
+        for later versions, but I don't feel like auditing.
+        -- Ahruman
+        We need at least 3.0 for the Frame Buffer Objects now in use. Might as
+        well go all the way to 3.3.
+        -- Nikos 20220817
 */
-enum
-{
-	kMinMajorVersion				= 3,
-	kMinMinorVersion				= 3
+enum {
+    kMinMajorVersion = 3,
+    kMinMinorVersion = 3
 };
-
 
 #if OOLITE_WINDOWS
 /*	Define the function pointers for the OpenGL extensions used in the game
-	(required for Windows only).
+        (required for Windows only).
 */
 static void OOBadOpenGLExtensionUsed(void) GCC_ATTR((noreturn, used));
 
 #if OO_SHADERS
 
-PFNGLUSEPROGRAMOBJECTARBPROC			glUseProgramObjectARB			= (PFNGLUSEPROGRAMOBJECTARBPROC)&OOBadOpenGLExtensionUsed;
-PFNGLGETUNIFORMLOCATIONARBPROC			glGetUniformLocationARB			= (PFNGLGETUNIFORMLOCATIONARBPROC)&OOBadOpenGLExtensionUsed;
-PFNGLUNIFORM1IARBPROC					glUniform1iARB					= (PFNGLUNIFORM1IARBPROC)&OOBadOpenGLExtensionUsed;
-PFNGLUNIFORM1FARBPROC					glUniform1fARB					= (PFNGLUNIFORM1FARBPROC)&OOBadOpenGLExtensionUsed;
-PFNGLUNIFORMMATRIX3FVARBPROC			glUniformMatrix3fvARB			= (PFNGLUNIFORMMATRIX3FVARBPROC)&OOBadOpenGLExtensionUsed;
-PFNGLUNIFORMMATRIX4FVARBPROC			glUniformMatrix4fvARB			= (PFNGLUNIFORMMATRIX4FVARBPROC)&OOBadOpenGLExtensionUsed;
-PFNGLUNIFORM4FVARBPROC					glUniform4fvARB					= (PFNGLUNIFORM4FVARBPROC)&OOBadOpenGLExtensionUsed;
-PFNGLGETOBJECTPARAMETERIVARBPROC		glGetObjectParameterivARB		= (PFNGLGETOBJECTPARAMETERIVARBPROC)&OOBadOpenGLExtensionUsed;
-PFNGLCREATESHADEROBJECTARBPROC			glCreateShaderObjectARB			= (PFNGLCREATESHADEROBJECTARBPROC)&OOBadOpenGLExtensionUsed;
-PFNGLGETINFOLOGARBPROC					glGetInfoLogARB					= (PFNGLGETINFOLOGARBPROC)&OOBadOpenGLExtensionUsed;
-PFNGLCREATEPROGRAMOBJECTARBPROC			glCreateProgramObjectARB		= (PFNGLCREATEPROGRAMOBJECTARBPROC)&OOBadOpenGLExtensionUsed;
-PFNGLATTACHOBJECTARBPROC				glAttachObjectARB				= (PFNGLATTACHOBJECTARBPROC)&OOBadOpenGLExtensionUsed;
-PFNGLDELETEOBJECTARBPROC				glDeleteObjectARB				= (PFNGLDELETEOBJECTARBPROC)&OOBadOpenGLExtensionUsed;
-PFNGLLINKPROGRAMARBPROC					glLinkProgramARB				= (PFNGLLINKPROGRAMARBPROC)&OOBadOpenGLExtensionUsed;
-PFNGLCOMPILESHADERARBPROC				glCompileShaderARB				= (PFNGLCOMPILESHADERARBPROC)&OOBadOpenGLExtensionUsed;
-PFNGLSHADERSOURCEARBPROC				glShaderSourceARB				= (PFNGLSHADERSOURCEARBPROC)&OOBadOpenGLExtensionUsed;
-PFNGLUNIFORM2FVARBPROC					glUniform2fvARB					= (PFNGLUNIFORM2FVARBPROC)&OOBadOpenGLExtensionUsed;
-PFNGLBINDATTRIBLOCATIONARBPROC			glBindAttribLocationARB			= (PFNGLBINDATTRIBLOCATIONARBPROC)&OOBadOpenGLExtensionUsed;
-PFNGLENABLEVERTEXATTRIBARRAYARBPROC		glEnableVertexAttribArrayARB	= (PFNGLENABLEVERTEXATTRIBARRAYARBPROC)&OOBadOpenGLExtensionUsed;
-PFNGLVERTEXATTRIBPOINTERARBPROC			glVertexAttribPointerARB		= (PFNGLVERTEXATTRIBPOINTERARBPROC)&OOBadOpenGLExtensionUsed;
-PFNGLDISABLEVERTEXATTRIBARRAYARBPROC	glDisableVertexAttribArrayARB	= (PFNGLDISABLEVERTEXATTRIBARRAYARBPROC)&OOBadOpenGLExtensionUsed;
-PFNGLVALIDATEPROGRAMARBPROC			glValidateProgramARB			= (PFNGLVALIDATEPROGRAMARBPROC)&OOBadOpenGLExtensionUsed;
+PFNGLUSEPROGRAMOBJECTARBPROC glUseProgramObjectARB = (PFNGLUSEPROGRAMOBJECTARBPROC)&OOBadOpenGLExtensionUsed;
+PFNGLGETUNIFORMLOCATIONARBPROC glGetUniformLocationARB = (PFNGLGETUNIFORMLOCATIONARBPROC)&OOBadOpenGLExtensionUsed;
+PFNGLUNIFORM1IARBPROC glUniform1iARB = (PFNGLUNIFORM1IARBPROC)&OOBadOpenGLExtensionUsed;
+PFNGLUNIFORM1FARBPROC glUniform1fARB = (PFNGLUNIFORM1FARBPROC)&OOBadOpenGLExtensionUsed;
+PFNGLUNIFORMMATRIX3FVARBPROC glUniformMatrix3fvARB = (PFNGLUNIFORMMATRIX3FVARBPROC)&OOBadOpenGLExtensionUsed;
+PFNGLUNIFORMMATRIX4FVARBPROC glUniformMatrix4fvARB = (PFNGLUNIFORMMATRIX4FVARBPROC)&OOBadOpenGLExtensionUsed;
+PFNGLUNIFORM4FVARBPROC glUniform4fvARB = (PFNGLUNIFORM4FVARBPROC)&OOBadOpenGLExtensionUsed;
+PFNGLGETOBJECTPARAMETERIVARBPROC glGetObjectParameterivARB = (PFNGLGETOBJECTPARAMETERIVARBPROC)&OOBadOpenGLExtensionUsed;
+PFNGLCREATESHADEROBJECTARBPROC glCreateShaderObjectARB = (PFNGLCREATESHADEROBJECTARBPROC)&OOBadOpenGLExtensionUsed;
+PFNGLGETINFOLOGARBPROC glGetInfoLogARB = (PFNGLGETINFOLOGARBPROC)&OOBadOpenGLExtensionUsed;
+PFNGLCREATEPROGRAMOBJECTARBPROC glCreateProgramObjectARB = (PFNGLCREATEPROGRAMOBJECTARBPROC)&OOBadOpenGLExtensionUsed;
+PFNGLATTACHOBJECTARBPROC glAttachObjectARB = (PFNGLATTACHOBJECTARBPROC)&OOBadOpenGLExtensionUsed;
+PFNGLDELETEOBJECTARBPROC glDeleteObjectARB = (PFNGLDELETEOBJECTARBPROC)&OOBadOpenGLExtensionUsed;
+PFNGLLINKPROGRAMARBPROC glLinkProgramARB = (PFNGLLINKPROGRAMARBPROC)&OOBadOpenGLExtensionUsed;
+PFNGLCOMPILESHADERARBPROC glCompileShaderARB = (PFNGLCOMPILESHADERARBPROC)&OOBadOpenGLExtensionUsed;
+PFNGLSHADERSOURCEARBPROC glShaderSourceARB = (PFNGLSHADERSOURCEARBPROC)&OOBadOpenGLExtensionUsed;
+PFNGLUNIFORM2FVARBPROC glUniform2fvARB = (PFNGLUNIFORM2FVARBPROC)&OOBadOpenGLExtensionUsed;
+PFNGLBINDATTRIBLOCATIONARBPROC glBindAttribLocationARB = (PFNGLBINDATTRIBLOCATIONARBPROC)&OOBadOpenGLExtensionUsed;
+PFNGLENABLEVERTEXATTRIBARRAYARBPROC glEnableVertexAttribArrayARB = (PFNGLENABLEVERTEXATTRIBARRAYARBPROC)&OOBadOpenGLExtensionUsed;
+PFNGLVERTEXATTRIBPOINTERARBPROC glVertexAttribPointerARB = (PFNGLVERTEXATTRIBPOINTERARBPROC)&OOBadOpenGLExtensionUsed;
+PFNGLDISABLEVERTEXATTRIBARRAYARBPROC glDisableVertexAttribArrayARB = (PFNGLDISABLEVERTEXATTRIBARRAYARBPROC)&OOBadOpenGLExtensionUsed;
+PFNGLVALIDATEPROGRAMARBPROC glValidateProgramARB = (PFNGLVALIDATEPROGRAMARBPROC)&OOBadOpenGLExtensionUsed;
 #endif
 
 #if OO_SHADERS || OO_MULTITEXTURE
-PFNGLACTIVETEXTUREARBPROC				glActiveTextureARB				= (PFNGLACTIVETEXTUREARBPROC)&OOBadOpenGLExtensionUsed;
+PFNGLACTIVETEXTUREARBPROC glActiveTextureARB = (PFNGLACTIVETEXTUREARBPROC)&OOBadOpenGLExtensionUsed;
 #endif
 
 #if OO_MULTITEXTURE
-PFNGLCLIENTACTIVETEXTUREARBPROC			glClientActiveTextureARB		= (PFNGLCLIENTACTIVETEXTUREARBPROC)&OOBadOpenGLExtensionUsed;
+PFNGLCLIENTACTIVETEXTUREARBPROC glClientActiveTextureARB = (PFNGLCLIENTACTIVETEXTUREARBPROC)&OOBadOpenGLExtensionUsed;
 #endif
 
 #if OO_USE_VBO
-PFNGLGENBUFFERSARBPROC					glGenBuffersARB					= (PFNGLGENBUFFERSARBPROC)&OOBadOpenGLExtensionUsed;
-PFNGLDELETEBUFFERSARBPROC				glDeleteBuffersARB				= (PFNGLDELETEBUFFERSARBPROC)&OOBadOpenGLExtensionUsed;
-PFNGLBINDBUFFERARBPROC					glBindBufferARB					= (PFNGLBINDBUFFERARBPROC)&OOBadOpenGLExtensionUsed;
-PFNGLBUFFERDATAARBPROC					glBufferDataARB					= (PFNGLBUFFERDATAARBPROC)&OOBadOpenGLExtensionUsed;
+PFNGLGENBUFFERSARBPROC glGenBuffersARB = (PFNGLGENBUFFERSARBPROC)&OOBadOpenGLExtensionUsed;
+PFNGLDELETEBUFFERSARBPROC glDeleteBuffersARB = (PFNGLDELETEBUFFERSARBPROC)&OOBadOpenGLExtensionUsed;
+PFNGLBINDBUFFERARBPROC glBindBufferARB = (PFNGLBINDBUFFERARBPROC)&OOBadOpenGLExtensionUsed;
+PFNGLBUFFERDATAARBPROC glBufferDataARB = (PFNGLBUFFERDATAARBPROC)&OOBadOpenGLExtensionUsed;
 #endif
 
 #if OO_USE_FBO
-PFNGLGENFRAMEBUFFERSEXTPROC				glGenFramebuffersEXT			= (PFNGLGENFRAMEBUFFERSEXTPROC)&OOBadOpenGLExtensionUsed;
-PFNGLBINDFRAMEBUFFEREXTPROC				glBindFramebufferEXT			= (PFNGLBINDFRAMEBUFFEREXTPROC)&OOBadOpenGLExtensionUsed;
-PFNGLGENRENDERBUFFERSEXTPROC			glGenRenderbuffersEXT			= (PFNGLGENRENDERBUFFERSEXTPROC)&OOBadOpenGLExtensionUsed;
-PFNGLBINDRENDERBUFFEREXTPROC			glBindRenderbufferEXT			= (PFNGLBINDRENDERBUFFEREXTPROC)&OOBadOpenGLExtensionUsed;
-PFNGLRENDERBUFFERSTORAGEEXTPROC			glRenderbufferStorageEXT		= (PFNGLRENDERBUFFERSTORAGEEXTPROC)&OOBadOpenGLExtensionUsed;
-PFNGLFRAMEBUFFERRENDERBUFFEREXTPROC		glFramebufferRenderbufferEXT	= (PFNGLFRAMEBUFFERRENDERBUFFEREXTPROC)&OOBadOpenGLExtensionUsed;
-PFNGLFRAMEBUFFERTEXTURE2DEXTPROC		glFramebufferTexture2DEXT		= (PFNGLFRAMEBUFFERTEXTURE2DEXTPROC)&OOBadOpenGLExtensionUsed;
-PFNGLCHECKFRAMEBUFFERSTATUSEXTPROC		glCheckFramebufferStatusEXT		= (PFNGLCHECKFRAMEBUFFERSTATUSEXTPROC)&OOBadOpenGLExtensionUsed;
-PFNGLDELETEFRAMEBUFFERSEXTPROC			glDeleteFramebuffersEXT			= (PFNGLDELETEFRAMEBUFFERSEXTPROC)&OOBadOpenGLExtensionUsed;
-PFNGLDELETERENDERBUFFERSEXTPROC			glDeleteRenderbuffersEXT		= (PFNGLDELETERENDERBUFFERSEXTPROC)&OOBadOpenGLExtensionUsed;
-PFNGLGENRENDERBUFFERSPROC				glGenRenderbuffers				= (PFNGLGENRENDERBUFFERSPROC)&OOBadOpenGLExtensionUsed;
-PFNGLBINDRENDERBUFFERPROC				glBindRenderbuffer				= (PFNGLBINDRENDERBUFFERPROC)&OOBadOpenGLExtensionUsed;		 
-PFNGLRENDERBUFFERSTORAGEPROC			glRenderbufferStorage			= (PFNGLRENDERBUFFERSTORAGEPROC)&OOBadOpenGLExtensionUsed;	  
-PFNGLGENFRAMEBUFFERSPROC				glGenFramebuffers				= (PFNGLGENFRAMEBUFFERSPROC)&OOBadOpenGLExtensionUsed;		  
-PFNGLBINDFRAMEBUFFERPROC				glBindFramebuffer				= (PFNGLBINDFRAMEBUFFERPROC)&OOBadOpenGLExtensionUsed;		  
-PFNGLFRAMEBUFFERRENDERBUFFERPROC		glFramebufferRenderbuffer		= (PFNGLFRAMEBUFFERRENDERBUFFERPROC)&OOBadOpenGLExtensionUsed;  
-PFNGLFRAMEBUFFERTEXTURE2DPROC			glFramebufferTexture2D			= (PFNGLFRAMEBUFFERTEXTURE2DPROC)&OOBadOpenGLExtensionUsed;	  
-PFNGLGENVERTEXARRAYSPROC				glGenVertexArrays				= (PFNGLGENVERTEXARRAYSPROC)&OOBadOpenGLExtensionUsed;		  
-PFNGLGENBUFFERSPROC						glGenBuffers					= (PFNGLGENBUFFERSPROC)&OOBadOpenGLExtensionUsed;				  
-PFNGLBINDVERTEXARRAYPROC				glBindVertexArray				= (PFNGLBINDVERTEXARRAYPROC)&OOBadOpenGLExtensionUsed;		  
-PFNGLBINDBUFFERPROC						glBindBuffer					= (PFNGLBINDBUFFERPROC)&OOBadOpenGLExtensionUsed;				  
-PFNGLBUFFERDATAPROC						glBufferData					= (PFNGLBUFFERDATAPROC)&OOBadOpenGLExtensionUsed;				  
-PFNGLVERTEXATTRIBPOINTERPROC			glVertexAttribPointer			= (PFNGLVERTEXATTRIBPOINTERPROC)&OOBadOpenGLExtensionUsed;	  
-PFNGLENABLEVERTEXATTRIBARRAYPROC		glEnableVertexAttribArray		= (PFNGLENABLEVERTEXATTRIBARRAYPROC)&OOBadOpenGLExtensionUsed;  
-PFNGLUSEPROGRAMPROC						glUseProgram					= (PFNGLUSEPROGRAMPROC)&OOBadOpenGLExtensionUsed;				  
-PFNGLGETUNIFORMLOCATIONPROC				glGetUniformLocation			= (PFNGLGETUNIFORMLOCATIONPROC)&OOBadOpenGLExtensionUsed;		  
-PFNGLUNIFORM1IPROC						glUniform1i						= (PFNGLUNIFORM1IPROC)&OOBadOpenGLExtensionUsed;				  
-PFNGLACTIVETEXTUREPROC					glActiveTexture					= (PFNGLACTIVETEXTUREPROC)&OOBadOpenGLExtensionUsed;
-PFNGLBLENDFUNCSEPARATEPROC				glBlendFuncSeparate				= (PFNGLBLENDFUNCSEPARATEPROC)&OOBadOpenGLExtensionUsed;
-PFNGLUNIFORM1FPROC						glUniform1f						= (PFNGLUNIFORM1FPROC)&OOBadOpenGLExtensionUsed;
-PFNGLUNIFORM2FVPROC						glUniform2fv					= (PFNGLUNIFORM2FVPROC)&OOBadOpenGLExtensionUsed;
-PFNGLDELETERENDERBUFFERSPROC			glDeleteRenderbuffers			= (PFNGLDELETERENDERBUFFERSPROC)&OOBadOpenGLExtensionUsed;
-PFNGLDELETEFRAMEBUFFERSPROC				glDeleteFramebuffers			= (PFNGLDELETEFRAMEBUFFERSPROC)&OOBadOpenGLExtensionUsed;
-PFNGLDELETEVERTEXARRAYSPROC				glDeleteVertexArrays			= (PFNGLDELETEVERTEXARRAYSPROC)&OOBadOpenGLExtensionUsed;
-PFNGLDELETEBUFFERSPROC					glDeleteBuffers					= (PFNGLDELETEBUFFERSPROC)&OOBadOpenGLExtensionUsed;
-PFNGLDRAWBUFFERSPROC						glDrawBuffers					= (PFNGLDRAWBUFFERSPROC)&OOBadOpenGLExtensionUsed;
-PFNGLCHECKFRAMEBUFFERSTATUSPROC			glCheckFramebufferStatus			= (PFNGLCHECKFRAMEBUFFERSTATUSPROC)&OOBadOpenGLExtensionUsed;
-PFNGLTEXIMAGE2DMULTISAMPLEPROC				glTexImage2DMultisample			= (PFNGLTEXIMAGE2DMULTISAMPLEPROC)&OOBadOpenGLExtensionUsed;
-PFNGLRENDERBUFFERSTORAGEMULTISAMPLEPROC		glRenderbufferStorageMultisample	= (PFNGLRENDERBUFFERSTORAGEMULTISAMPLEPROC)&OOBadOpenGLExtensionUsed;
-PFNGLBLITFRAMEBUFFERPROC					glBlitFramebuffer					= (PFNGLBLITFRAMEBUFFERPROC)&OOBadOpenGLExtensionUsed;
-PFNGLCLAMPCOLORPROC						glClampColor					= (PFNGLCLAMPCOLORPROC)&OOBadOpenGLExtensionUsed;
-#endif                                                                    
+PFNGLGENFRAMEBUFFERSEXTPROC glGenFramebuffersEXT = (PFNGLGENFRAMEBUFFERSEXTPROC)&OOBadOpenGLExtensionUsed;
+PFNGLBINDFRAMEBUFFEREXTPROC glBindFramebufferEXT = (PFNGLBINDFRAMEBUFFEREXTPROC)&OOBadOpenGLExtensionUsed;
+PFNGLGENRENDERBUFFERSEXTPROC glGenRenderbuffersEXT = (PFNGLGENRENDERBUFFERSEXTPROC)&OOBadOpenGLExtensionUsed;
+PFNGLBINDRENDERBUFFEREXTPROC glBindRenderbufferEXT = (PFNGLBINDRENDERBUFFEREXTPROC)&OOBadOpenGLExtensionUsed;
+PFNGLRENDERBUFFERSTORAGEEXTPROC glRenderbufferStorageEXT = (PFNGLRENDERBUFFERSTORAGEEXTPROC)&OOBadOpenGLExtensionUsed;
+PFNGLFRAMEBUFFERRENDERBUFFEREXTPROC glFramebufferRenderbufferEXT = (PFNGLFRAMEBUFFERRENDERBUFFEREXTPROC)&OOBadOpenGLExtensionUsed;
+PFNGLFRAMEBUFFERTEXTURE2DEXTPROC glFramebufferTexture2DEXT = (PFNGLFRAMEBUFFERTEXTURE2DEXTPROC)&OOBadOpenGLExtensionUsed;
+PFNGLCHECKFRAMEBUFFERSTATUSEXTPROC glCheckFramebufferStatusEXT = (PFNGLCHECKFRAMEBUFFERSTATUSEXTPROC)&OOBadOpenGLExtensionUsed;
+PFNGLDELETEFRAMEBUFFERSEXTPROC glDeleteFramebuffersEXT = (PFNGLDELETEFRAMEBUFFERSEXTPROC)&OOBadOpenGLExtensionUsed;
+PFNGLDELETERENDERBUFFERSEXTPROC glDeleteRenderbuffersEXT = (PFNGLDELETERENDERBUFFERSEXTPROC)&OOBadOpenGLExtensionUsed;
+PFNGLGENRENDERBUFFERSPROC glGenRenderbuffers = (PFNGLGENRENDERBUFFERSPROC)&OOBadOpenGLExtensionUsed;
+PFNGLBINDRENDERBUFFERPROC glBindRenderbuffer = (PFNGLBINDRENDERBUFFERPROC)&OOBadOpenGLExtensionUsed;
+PFNGLRENDERBUFFERSTORAGEPROC glRenderbufferStorage = (PFNGLRENDERBUFFERSTORAGEPROC)&OOBadOpenGLExtensionUsed;
+PFNGLGENFRAMEBUFFERSPROC glGenFramebuffers = (PFNGLGENFRAMEBUFFERSPROC)&OOBadOpenGLExtensionUsed;
+PFNGLBINDFRAMEBUFFERPROC glBindFramebuffer = (PFNGLBINDFRAMEBUFFERPROC)&OOBadOpenGLExtensionUsed;
+PFNGLFRAMEBUFFERRENDERBUFFERPROC glFramebufferRenderbuffer = (PFNGLFRAMEBUFFERRENDERBUFFERPROC)&OOBadOpenGLExtensionUsed;
+PFNGLFRAMEBUFFERTEXTURE2DPROC glFramebufferTexture2D = (PFNGLFRAMEBUFFERTEXTURE2DPROC)&OOBadOpenGLExtensionUsed;
+PFNGLGENVERTEXARRAYSPROC glGenVertexArrays = (PFNGLGENVERTEXARRAYSPROC)&OOBadOpenGLExtensionUsed;
+PFNGLGENBUFFERSPROC glGenBuffers = (PFNGLGENBUFFERSPROC)&OOBadOpenGLExtensionUsed;
+PFNGLBINDVERTEXARRAYPROC glBindVertexArray = (PFNGLBINDVERTEXARRAYPROC)&OOBadOpenGLExtensionUsed;
+PFNGLBINDBUFFERPROC glBindBuffer = (PFNGLBINDBUFFERPROC)&OOBadOpenGLExtensionUsed;
+PFNGLBUFFERDATAPROC glBufferData = (PFNGLBUFFERDATAPROC)&OOBadOpenGLExtensionUsed;
+PFNGLVERTEXATTRIBPOINTERPROC glVertexAttribPointer = (PFNGLVERTEXATTRIBPOINTERPROC)&OOBadOpenGLExtensionUsed;
+PFNGLENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArray = (PFNGLENABLEVERTEXATTRIBARRAYPROC)&OOBadOpenGLExtensionUsed;
+PFNGLUSEPROGRAMPROC glUseProgram = (PFNGLUSEPROGRAMPROC)&OOBadOpenGLExtensionUsed;
+PFNGLGETUNIFORMLOCATIONPROC glGetUniformLocation = (PFNGLGETUNIFORMLOCATIONPROC)&OOBadOpenGLExtensionUsed;
+PFNGLUNIFORM1IPROC glUniform1i = (PFNGLUNIFORM1IPROC)&OOBadOpenGLExtensionUsed;
+PFNGLACTIVETEXTUREPROC glActiveTexture = (PFNGLACTIVETEXTUREPROC)&OOBadOpenGLExtensionUsed;
+PFNGLBLENDFUNCSEPARATEPROC glBlendFuncSeparate = (PFNGLBLENDFUNCSEPARATEPROC)&OOBadOpenGLExtensionUsed;
+PFNGLUNIFORM1FPROC glUniform1f = (PFNGLUNIFORM1FPROC)&OOBadOpenGLExtensionUsed;
+PFNGLUNIFORM2FVPROC glUniform2fv = (PFNGLUNIFORM2FVPROC)&OOBadOpenGLExtensionUsed;
+PFNGLDELETERENDERBUFFERSPROC glDeleteRenderbuffers = (PFNGLDELETERENDERBUFFERSPROC)&OOBadOpenGLExtensionUsed;
+PFNGLDELETEFRAMEBUFFERSPROC glDeleteFramebuffers = (PFNGLDELETEFRAMEBUFFERSPROC)&OOBadOpenGLExtensionUsed;
+PFNGLDELETEVERTEXARRAYSPROC glDeleteVertexArrays = (PFNGLDELETEVERTEXARRAYSPROC)&OOBadOpenGLExtensionUsed;
+PFNGLDELETEBUFFERSPROC glDeleteBuffers = (PFNGLDELETEBUFFERSPROC)&OOBadOpenGLExtensionUsed;
+PFNGLDRAWBUFFERSPROC glDrawBuffers = (PFNGLDRAWBUFFERSPROC)&OOBadOpenGLExtensionUsed;
+PFNGLCHECKFRAMEBUFFERSTATUSPROC glCheckFramebufferStatus = (PFNGLCHECKFRAMEBUFFERSTATUSPROC)&OOBadOpenGLExtensionUsed;
+PFNGLTEXIMAGE2DMULTISAMPLEPROC glTexImage2DMultisample = (PFNGLTEXIMAGE2DMULTISAMPLEPROC)&OOBadOpenGLExtensionUsed;
+PFNGLRENDERBUFFERSTORAGEMULTISAMPLEPROC glRenderbufferStorageMultisample = (PFNGLRENDERBUFFERSTORAGEMULTISAMPLEPROC)&OOBadOpenGLExtensionUsed;
+PFNGLBLITFRAMEBUFFERPROC glBlitFramebuffer = (PFNGLBLITFRAMEBUFFERPROC)&OOBadOpenGLExtensionUsed;
+PFNGLCLAMPCOLORPROC glClampColor = (PFNGLCLAMPCOLORPROC)&OOBadOpenGLExtensionUsed;
+#endif
 #endif
 
+static NSString* const kOOLogOpenGLShaderSupport = @"rendering.opengl.shader.support";
 
-static NSString * const kOOLogOpenGLShaderSupport		= @"rendering.opengl.shader.support";
-
-
-static OOOpenGLExtensionManager *sSingleton = nil;
-
+static OOOpenGLExtensionManager* sSingleton = nil;
 
 // Read integer from string, advancing string to end of read data.
-static unsigned IntegerFromString(const GLubyte **ioString);
-
+static unsigned IntegerFromString(const GLubyte** ioString);
 
 @interface OOOpenGLExtensionManager (OOPrivate)
 
@@ -173,377 +166,339 @@ static unsigned IntegerFromString(const GLubyte **ioString);
 - (void)checkTextureCombinersSupported;
 #endif
 
-- (NSDictionary *) lookUpPerGPUSettingsWithVersionString:(NSString *)version extensionsString:(NSString *)extensionsStr;
+- (NSDictionary*)lookUpPerGPUSettingsWithVersionString:(NSString*)version extensionsString:(NSString*)extensionsStr;
 
 @end
 
-
-static NSArray *ArrayOfExtensions(NSString *extensionString)
+static NSArray* ArrayOfExtensions(NSString* extensionString)
 {
-	NSArray *components = [extensionString componentsSeparatedByString:@" "];
-	NSMutableArray *result = [NSMutableArray arrayWithCapacity:[components count]];
-	NSString *extStr = nil;
-	foreach (extStr, components)
-	{
-		if ([extStr length] > 0)  [result addObject:extStr];
-	}
-	return result;
+    NSArray* components = [extensionString componentsSeparatedByString:@" "];
+    NSMutableArray* result = [NSMutableArray arrayWithCapacity:[components count]];
+    NSString* extStr = nil;
+    foreach (extStr, components) {
+        if ([extStr length] > 0)
+            [result addObject:extStr];
+    }
+    return result;
 }
-
 
 @implementation OOOpenGLExtensionManager
 
 - (id)init
 {
-	self = [super init];
-	if (self != nil)
-	{
+    self = [super init];
+    if (self != nil) {
 #if OOOPENGLEXTMGR_LOCK_SET_ACCESS
-		lock = [[NSLock alloc] init];
-		[lock setName:@"OOOpenGLExtensionManager extension set lock"];
+        lock = [[NSLock alloc] init];
+        [lock setName:@"OOOpenGLExtensionManager extension set lock"];
 #endif
-		
-		[self reset];
-	}
-	
-	return self;
+
+        [self reset];
+    }
+
+    return self;
 }
 
-
-- (void) reset
+- (void)reset
 {
-	const GLubyte		*versionString = NULL, *curr = NULL;
-	
-	DESTROY(extensions);
-	DESTROY(vendor);
-	DESTROY(renderer);
-	
-	NSString *extensionsStr = [NSString stringWithUTF8String:(char *)glGetString(GL_EXTENSIONS)];
-	extensions = [[NSSet alloc] initWithArray:ArrayOfExtensions(extensionsStr)];
-	
-	vendor = [[NSString alloc] initWithUTF8String:(const char *)glGetString(GL_VENDOR)];
-	renderer = [[NSString alloc] initWithUTF8String:(const char *)glGetString(GL_RENDERER)];
-	
-	versionString = glGetString(GL_VERSION);
-	if (versionString != NULL)
-	{
-		/*	String is supposed to be "major.minorFOO" or
-		 "major.minor.releaseFOO" where FOO is an empty string or
-		 a string beginning with space.
-		 */
-		curr = versionString;
-		major = IntegerFromString(&curr);
-		if (*curr == '.')
-		{
-			curr++;
-			minor = IntegerFromString(&curr);
-		}
-		if (*curr == '.')
-		{
-			curr++;
-			release = IntegerFromString(&curr);
-		}
-	}
-	
-	/*	For aesthetic reasons, cause the ResourceManager to initialize its
-	 search paths here. If we don't, the search path dump ends up in
-	 the middle of the OpenGL stuff.
-	 */
-	[ResourceManager paths];
-	
-	OOLog(@"rendering.opengl.version", @"OpenGL renderer version: %u.%u.%u (\"%s\"). Vendor: \"%@\". Renderer: \"%@\".", major, minor, release, versionString, vendor, renderer);
-	OOLog(@"rendering.opengl.extensions", @"OpenGL extensions (%zu):\n%@", [extensions count], [[extensions allObjects] componentsJoinedByString:@", "]);
-	
-	if (![self versionIsAtLeastMajor:kMinMajorVersion minor:kMinMinorVersion])
-	{
-		OOLog(@"rendering.opengl.version.insufficient", @"***** Oolite requires OpenGL version %u.%u or later.", kMinMajorVersion, kMinMinorVersion);
-		[NSException raise:@"OoliteOpenGLTooOldException"
-					format:@"Oolite requires at least OpenGL %u.%u. You have %u.%u (\"%s\").", kMinMajorVersion, kMinMinorVersion, major, minor, versionString];
-	}
-	
-	NSString *versionStr = [[[NSString alloc] initWithUTF8String:(const char *)versionString] autorelease];
-	NSDictionary *gpuConfig = [self lookUpPerGPUSettingsWithVersionString:versionStr extensionsString:extensionsStr];
-	
+    const GLubyte *versionString = NULL, *curr = NULL;
+
+    DESTROY(extensions);
+    DESTROY(vendor);
+    DESTROY(renderer);
+
+    NSString* extensionsStr = [NSString stringWithUTF8String:(char*)glGetString(GL_EXTENSIONS)];
+    extensions = [[NSSet alloc] initWithArray:ArrayOfExtensions(extensionsStr)];
+
+    vendor = [[NSString alloc] initWithUTF8String:(const char*)glGetString(GL_VENDOR)];
+    renderer = [[NSString alloc] initWithUTF8String:(const char*)glGetString(GL_RENDERER)];
+
+    versionString = glGetString(GL_VERSION);
+    if (versionString != NULL) {
+        /*	String is supposed to be "major.minorFOO" or
+         "major.minor.releaseFOO" where FOO is an empty string or
+         a string beginning with space.
+         */
+        curr = versionString;
+        major = IntegerFromString(&curr);
+        if (*curr == '.') {
+            curr++;
+            minor = IntegerFromString(&curr);
+        }
+        if (*curr == '.') {
+            curr++;
+            release = IntegerFromString(&curr);
+        }
+    }
+
+    /*	For aesthetic reasons, cause the ResourceManager to initialize its
+     search paths here. If we don't, the search path dump ends up in
+     the middle of the OpenGL stuff.
+     */
+    [ResourceManager paths];
+
+    OOLog(@"rendering.opengl.version", @"OpenGL renderer version: %u.%u.%u (\"%s\"). Vendor: \"%@\". Renderer: \"%@\".", major, minor, release, versionString, vendor, renderer);
+    OOLog(@"rendering.opengl.extensions", @"OpenGL extensions (%zu):\n%@", [extensions count], [[extensions allObjects] componentsJoinedByString:@", "]);
+
+    if (![self versionIsAtLeastMajor:kMinMajorVersion minor:kMinMinorVersion]) {
+        OOLog(@"rendering.opengl.version.insufficient", @"***** Oolite requires OpenGL version %u.%u or later.", kMinMajorVersion, kMinMinorVersion);
+        [NSException raise:@"OoliteOpenGLTooOldException"
+                    format:@"Oolite requires at least OpenGL %u.%u. You have %u.%u (\"%s\").", kMinMajorVersion, kMinMinorVersion, major, minor, versionString];
+    }
+
+    NSString* versionStr = [[[NSString alloc] initWithUTF8String:(const char*)versionString] autorelease];
+    NSDictionary* gpuConfig = [self lookUpPerGPUSettingsWithVersionString:versionStr extensionsString:extensionsStr];
+
 #if OO_SHADERS
-	[self checkShadersSupported];
-	
-	if (shadersAvailable)
-	{
-		defaultShaderSetting = OOShaderSettingFromString([gpuConfig oo_stringForKey:@"default_shader_level"
-																   defaultValue:@"SHADERS_FULL"]);
-		maximumShaderSetting = OOShaderSettingFromString([gpuConfig oo_stringForKey:@"maximum_shader_level"
-																   defaultValue:@"SHADERS_FULL"]);
-		if (maximumShaderSetting <= SHADERS_OFF)
-		{
-			shadersAvailable = NO;
-			maximumShaderSetting = SHADERS_NOT_SUPPORTED;
-			OOLog(kOOLogOpenGLShaderSupport, @"Shaders will not be used (disallowed for GPU type \"%@\").", [gpuConfig oo_stringForKey:@"name" defaultValue:renderer]);
-		}
-		if (maximumShaderSetting < defaultShaderSetting)
-		{
-			defaultShaderSetting = maximumShaderSetting;
-		}
-		
-		if (shadersAvailable)
-		{
-			OOLog(kOOLogOpenGLShaderSupport, @"%@", @"Shaders are supported.");
-		}
-	}
-	else
-	{
-		defaultShaderSetting = SHADERS_NOT_SUPPORTED;
-		maximumShaderSetting = SHADERS_NOT_SUPPORTED;
-	}
-	
-	GLint texImageUnitOverride = [gpuConfig oo_intForKey:@"texture_image_units" defaultValue:textureImageUnitCount];
-	if (texImageUnitOverride < textureImageUnitCount)  textureImageUnitCount = MAX(texImageUnitOverride, 0);
+    [self checkShadersSupported];
+
+    if (shadersAvailable) {
+        defaultShaderSetting = OOShaderSettingFromString([gpuConfig oo_stringForKey:@"default_shader_level"
+                                                                       defaultValue:@"SHADERS_FULL"]);
+        maximumShaderSetting = OOShaderSettingFromString([gpuConfig oo_stringForKey:@"maximum_shader_level"
+                                                                       defaultValue:@"SHADERS_FULL"]);
+        if (maximumShaderSetting <= SHADERS_OFF) {
+            shadersAvailable = NO;
+            maximumShaderSetting = SHADERS_NOT_SUPPORTED;
+            OOLog(kOOLogOpenGLShaderSupport, @"Shaders will not be used (disallowed for GPU type \"%@\").", [gpuConfig oo_stringForKey:@"name" defaultValue:renderer]);
+        }
+        if (maximumShaderSetting < defaultShaderSetting) {
+            defaultShaderSetting = maximumShaderSetting;
+        }
+
+        if (shadersAvailable) {
+            OOLog(kOOLogOpenGLShaderSupport, @"%@", @"Shaders are supported.");
+        }
+    } else {
+        defaultShaderSetting = SHADERS_NOT_SUPPORTED;
+        maximumShaderSetting = SHADERS_NOT_SUPPORTED;
+    }
+
+    GLint texImageUnitOverride = [gpuConfig oo_intForKey:@"texture_image_units" defaultValue:textureImageUnitCount];
+    if (texImageUnitOverride < textureImageUnitCount)
+        textureImageUnitCount = MAX(texImageUnitOverride, 0);
 #endif
-	
+
 #if OO_USE_VBO
-	[self checkVBOSupported];
+    [self checkVBOSupported];
 #endif
 #if OO_USE_FBO
-	[self checkFBOSupported];
+    [self checkFBOSupported];
 #endif
 #if OO_MULTITEXTURE
-	[self checkTextureCombinersSupported];
-	GLint texUnitOverride = [gpuConfig oo_intForKey:@"texture_units" defaultValue:textureUnitCount];
-	if (texUnitOverride < textureUnitCount)  textureUnitCount = MAX(texUnitOverride, 0);
+    [self checkTextureCombinersSupported];
+    GLint texUnitOverride = [gpuConfig oo_intForKey:@"texture_units" defaultValue:textureUnitCount];
+    if (texUnitOverride < textureUnitCount)
+        textureUnitCount = MAX(texUnitOverride, 0);
 #endif
-	
-	usePointSmoothing = [gpuConfig oo_boolForKey:@"smooth_points" defaultValue:YES];
-	useLineSmoothing = [gpuConfig oo_boolForKey:@"smooth_lines" defaultValue:YES];
-	useDustShader = [gpuConfig oo_boolForKey:@"use_dust_shader" defaultValue:YES];
-}
 
+    usePointSmoothing = [gpuConfig oo_boolForKey:@"smooth_points" defaultValue:YES];
+    useLineSmoothing = [gpuConfig oo_boolForKey:@"smooth_lines" defaultValue:YES];
+    useDustShader = [gpuConfig oo_boolForKey:@"use_dust_shader" defaultValue:YES];
+}
 
 - (void)dealloc
 {
-	if (sSingleton == self)  sSingleton = nil;
-	
+    if (sSingleton == self)
+        sSingleton = nil;
+
 #if OOOPENGLEXTMGR_LOCK_SET_ACCESS
-	[lock release];
+    [lock release];
 #endif
-	DESTROY(extensions);
-	DESTROY(vendor);
-	DESTROY(renderer);
-	
-	[super dealloc];
+    DESTROY(extensions);
+    DESTROY(vendor);
+    DESTROY(renderer);
+
+    [super dealloc];
 }
 
-
-+ (OOOpenGLExtensionManager *)sharedManager
++ (OOOpenGLExtensionManager*)sharedManager
 {
-	// NOTE: assumes single-threaded first access. See header.
-	if (sSingleton == nil)  sSingleton = [[self alloc] init];
-	return sSingleton;
+    // NOTE: assumes single-threaded first access. See header.
+    if (sSingleton == nil)
+        sSingleton = [[self alloc] init];
+    return sSingleton;
 }
 
-
-- (BOOL)haveExtension:(NSString *)extension
+- (BOOL)haveExtension:(NSString*)extension
 {
 // NSSet is documented as thread-safe under OS X, but I'm not sure about GNUstep. -- Ahruman
 #if OOOPENGLEXTMGR_LOCK_SET_ACCESS
-	[lock lock];
+    [lock lock];
 #endif
-	
-	BOOL result = [extensions containsObject:extension];
-	
-#if OOOPENGLEXTMGR_LOCK_SET_ACCESS
-	[lock unlock];
-#endif
-	
-	return result;
-}
 
+    BOOL result = [extensions containsObject:extension];
+
+#if OOOPENGLEXTMGR_LOCK_SET_ACCESS
+    [lock unlock];
+#endif
+
+    return result;
+}
 
 - (BOOL)shadersSupported
 {
 #if OO_SHADERS
-	return shadersAvailable;
+    return shadersAvailable;
 #else
-	return NO;
+    return NO;
 #endif
 }
-
 
 - (BOOL)shadersForceDisabled
 {
 #if OO_SHADERS
-	return shadersForceDisabled;
+    return shadersForceDisabled;
 #else
-	return YES;
+    return YES;
 #endif
 }
-
 
 - (OOGraphicsDetail)defaultDetailLevel
 {
 #if OO_SHADERS
-	if (defaultShaderSetting < SHADERS_FULL)
-	{
-		return DETAIL_LEVEL_MINIMUM;
-	}
-	else
-	{
-		return DETAIL_LEVEL_MAXIMUM;
-	}
+    if (defaultShaderSetting < SHADERS_FULL) {
+        return DETAIL_LEVEL_MINIMUM;
+    } else {
+        return DETAIL_LEVEL_MAXIMUM;
+    }
 #else
-	return SHADERS_NOT_SUPPORTED;
+    return SHADERS_NOT_SUPPORTED;
 #endif
 }
-
 
 - (OOGraphicsDetail)maximumDetailLevel
 {
 #if OO_SHADERS
-	if (maximumShaderSetting < SHADERS_FULL)
-	{
-		return DETAIL_LEVEL_MINIMUM;
-	}
-	else
-	{
-		return DETAIL_LEVEL_MAXIMUM;
-	}
+    if (maximumShaderSetting < SHADERS_FULL) {
+        return DETAIL_LEVEL_MINIMUM;
+    } else {
+        return DETAIL_LEVEL_MAXIMUM;
+    }
 #else
-	return DETAIL_LEVEL_MINIMUM;
+    return DETAIL_LEVEL_MINIMUM;
 #endif
 }
-
 
 - (GLint)textureImageUnitCount
 {
 #if OO_SHADERS
-	return textureImageUnitCount;
+    return textureImageUnitCount;
 #else
-	return 0;
+    return 0;
 #endif
 }
-
 
 - (BOOL)vboSupported
 {
 #if OO_USE_VBO
-	return vboSupported;
+    return vboSupported;
 #else
-	return NO;
+    return NO;
 #endif
 }
-
 
 - (BOOL)fboSupported
 {
 #if OO_USE_FBO
-	return fboSupported;
+    return fboSupported;
 #else
-	return NO;
+    return NO;
 #endif
 }
-
 
 - (BOOL)textureCombinersSupported
 {
 #if OO_MULTITEXTURE
-	return textureCombinersSupported;
+    return textureCombinersSupported;
 #else
-	return NO;
+    return NO;
 #endif
 }
-
 
 - (GLint)textureUnitCount
 {
 #if OO_MULTITEXTURE
-	return textureUnitCount;
+    return textureUnitCount;
 #else
-	return 0;
+    return 0;
 #endif
 }
 
-
 - (NSUInteger)majorVersionNumber
 {
-	return major;
+    return major;
 }
-
 
 - (NSUInteger)minorVersionNumber
 {
-	return minor;
+    return minor;
 }
-
 
 - (NSUInteger)releaseVersionNumber
 {
-	return release;
+    return release;
 }
 
-
-- (void)getVersionMajor:(unsigned *)outMajor minor:(unsigned *)outMinor release:(unsigned *)outRelease
+- (void)getVersionMajor:(unsigned*)outMajor minor:(unsigned*)outMinor release:(unsigned*)outRelease
 {
-	if (outMajor != NULL)  *outMajor = major;
-	if (outMinor != NULL)  *outMinor = minor;
-	if (outRelease != NULL)  *outRelease = release;
+    if (outMajor != NULL)
+        *outMajor = major;
+    if (outMinor != NULL)
+        *outMinor = minor;
+    if (outRelease != NULL)
+        *outRelease = release;
 }
 
-
-- (BOOL) versionIsAtLeastMajor:(unsigned)maj minor:(unsigned)min
+- (BOOL)versionIsAtLeastMajor:(unsigned)maj minor:(unsigned)min
 {
-	return major > maj || (major == maj && minor >= min);
+    return major > maj || (major == maj && minor >= min);
 }
 
-
-- (NSString *) vendorString
+- (NSString*)vendorString
 {
-	return vendor;
+    return vendor;
 }
 
-
-- (NSString *) rendererString
+- (NSString*)rendererString
 {
-	return renderer;
+    return renderer;
 }
 
-
-- (BOOL) usePointSmoothing
+- (BOOL)usePointSmoothing
 {
-	return usePointSmoothing;
+    return usePointSmoothing;
 }
 
-
-- (BOOL) useLineSmoothing
+- (BOOL)useLineSmoothing
 {
-	return useLineSmoothing;
+    return useLineSmoothing;
 }
 
-
-- (BOOL) useDustShader
+- (BOOL)useDustShader
 {
-	return useDustShader;
+    return useDustShader;
 }
 
 @end
 
-
-static unsigned IntegerFromString(const GLubyte **ioString)
+static unsigned IntegerFromString(const GLubyte** ioString)
 {
-	if (EXPECT_NOT(ioString == NULL))  return 0;
-	
-	unsigned		result = 0;
-	const GLubyte	*curr = *ioString;
-	
-	while ('0' <= *curr && *curr <= '9')
-	{
-		result = result * 10 + *curr++ - '0';
-	}
-	
-	*ioString = curr;
-	return result;
+    if (EXPECT_NOT(ioString == NULL))
+        return 0;
+
+    unsigned result = 0;
+    const GLubyte* curr = *ioString;
+
+    while ('0' <= *curr && *curr <= '9') {
+        result = result * 10 + *curr++ - '0';
+    }
+
+    *ioString = curr;
+    return result;
 }
 
-
 @implementation OOOpenGLExtensionManager (OOPrivate)
-
 
 #if OO_SHADERS
 
@@ -553,333 +508,311 @@ static unsigned IntegerFromString(const GLubyte **ioString)
  */
 - (void)checkShadersSupported
 {
-	shadersAvailable = NO;
-	shadersForceDisabled = NO;
+    shadersAvailable = NO;
+    shadersForceDisabled = NO;
 
-	/* Some cards claim to support shaders but do so extremely
-	 * badly. These are listed in gpu-settings.plist where we know
-	 * about them; for those we don't being able to run with
-	 * -noshaders may help get the game up and running at a frame rate
-	 * where thegraphics settings can be changed.  - CIM */
-	NSArray 		*arguments = [[NSProcessInfo processInfo] arguments];
-	NSString 		*arg = nil;
-	// scan for shader overrides: -noshaders || --noshaders
-	foreach (arg, arguments)
-	{
-		if ([arg isEqual:@"-noshaders"] || [arg isEqual:@"--noshaders"])
-		{
-			shadersForceDisabled = YES;
-			OOLog(kOOLogOpenGLShaderSupport, @"%@", @"Shaders will not be used (disabled on command line).");
-			return;
-		}
-	}	
+    /* Some cards claim to support shaders but do so extremely
+     * badly. These are listed in gpu-settings.plist where we know
+     * about them; for those we don't being able to run with
+     * -noshaders may help get the game up and running at a frame rate
+     * where thegraphics settings can be changed.  - CIM */
+    NSArray* arguments = [[NSProcessInfo processInfo] arguments];
+    NSString* arg = nil;
+    // scan for shader overrides: -noshaders || --noshaders
+    foreach (arg, arguments) {
+        if ([arg isEqual:@"-noshaders"] || [arg isEqual:@"--noshaders"]) {
+            shadersForceDisabled = YES;
+            OOLog(kOOLogOpenGLShaderSupport, @"%@", @"Shaders will not be used (disabled on command line).");
+            return;
+        }
+    }
 
-	NSString * const requiredExtension[] = 
-						{
-							@"GL_ARB_shading_language_100",
-							@"GL_ARB_fragment_shader",
-							@"GL_ARB_vertex_shader",
-							@"GL_ARB_multitexture",
-							@"GL_ARB_shader_objects",
-							nil	// sentinel - don't remove!
-						};
-	NSString * const *required = NULL;
-	
-	for (required = requiredExtension; *required != nil; ++required)
-	{
-		if (![self haveExtension:*required])
-		{
-			OOLog(kOOLogOpenGLShaderSupport, @"Shaders will not be used (OpenGL extension %@ is not available).", *required);
-			return;
-		}
-	}
-	
+    NSString* const requiredExtension[] = {
+        @"GL_ARB_shading_language_100",
+        @"GL_ARB_fragment_shader",
+        @"GL_ARB_vertex_shader",
+        @"GL_ARB_multitexture",
+        @"GL_ARB_shader_objects",
+        nil // sentinel - don't remove!
+    };
+    NSString* const* required = NULL;
+
+    for (required = requiredExtension; *required != nil; ++required) {
+        if (![self haveExtension:*required]) {
+            OOLog(kOOLogOpenGLShaderSupport, @"Shaders will not be used (OpenGL extension %@ is not available).", *required);
+            return;
+        }
+    }
+
 #if OOLITE_WINDOWS
-	glGetObjectParameterivARB	=	(PFNGLGETOBJECTPARAMETERIVARBPROC)wglGetProcAddress("glGetObjectParameterivARB");
-	glCreateShaderObjectARB		=	(PFNGLCREATESHADEROBJECTARBPROC)wglGetProcAddress("glCreateShaderObjectARB");
-	glGetInfoLogARB				=	(PFNGLGETINFOLOGARBPROC)wglGetProcAddress("glGetInfoLogARB");
-	glCreateProgramObjectARB	=	(PFNGLCREATEPROGRAMOBJECTARBPROC)wglGetProcAddress("glCreateProgramObjectARB");
-	glAttachObjectARB			=	(PFNGLATTACHOBJECTARBPROC)wglGetProcAddress("glAttachObjectARB");
-	glDeleteObjectARB			=	(PFNGLDELETEOBJECTARBPROC)wglGetProcAddress("glDeleteObjectARB");
-	glLinkProgramARB			=	(PFNGLLINKPROGRAMARBPROC)wglGetProcAddress("glLinkProgramARB");
-	glCompileShaderARB			=	(PFNGLCOMPILESHADERARBPROC)wglGetProcAddress("glCompileShaderARB");
-	glShaderSourceARB			=	(PFNGLSHADERSOURCEARBPROC)wglGetProcAddress("glShaderSourceARB");
-	glUseProgramObjectARB		=	(PFNGLUSEPROGRAMOBJECTARBPROC)wglGetProcAddress("glUseProgramObjectARB");
-	glActiveTextureARB			=	(PFNGLACTIVETEXTUREARBPROC)wglGetProcAddress("glActiveTextureARB");
-	glGetUniformLocationARB		=	(PFNGLGETUNIFORMLOCATIONARBPROC)wglGetProcAddress("glGetUniformLocationARB");
-	glUniform1iARB				=	(PFNGLUNIFORM1IARBPROC)wglGetProcAddress("glUniform1iARB");
-	glUniform1fARB				=	(PFNGLUNIFORM1FARBPROC)wglGetProcAddress("glUniform1fARB");
-	glUniformMatrix3fvARB		=	(PFNGLUNIFORMMATRIX3FVARBPROC)wglGetProcAddress("glUniformMatrix3fvARB");
-	glUniformMatrix4fvARB		=	(PFNGLUNIFORMMATRIX4FVARBPROC)wglGetProcAddress("glUniformMatrix4fvARB");
-	glUniform4fvARB				=	(PFNGLUNIFORM4FVARBPROC)wglGetProcAddress("glUniform4fvARB");
-	glUniform2fvARB				=	(PFNGLUNIFORM2FVARBPROC)wglGetProcAddress("glUniform2fvARB");
-	glBindAttribLocationARB		=	(PFNGLBINDATTRIBLOCATIONARBPROC)wglGetProcAddress("glBindAttribLocationARB");
-	glEnableVertexAttribArrayARB =	(PFNGLENABLEVERTEXATTRIBARRAYARBPROC)wglGetProcAddress("glEnableVertexAttribArrayARB");
-	glVertexAttribPointerARB	=	(PFNGLVERTEXATTRIBPOINTERARBPROC)wglGetProcAddress("glVertexAttribPointerARB");
-	glDisableVertexAttribArrayARB =	(PFNGLDISABLEVERTEXATTRIBARRAYARBPROC)wglGetProcAddress("glDisableVertexAttribArrayARB");
-	glValidateProgramARB		=	(PFNGLVALIDATEPROGRAMARBPROC)wglGetProcAddress("glValidateProgramARB");
+    glGetObjectParameterivARB = (PFNGLGETOBJECTPARAMETERIVARBPROC)wglGetProcAddress("glGetObjectParameterivARB");
+    glCreateShaderObjectARB = (PFNGLCREATESHADEROBJECTARBPROC)wglGetProcAddress("glCreateShaderObjectARB");
+    glGetInfoLogARB = (PFNGLGETINFOLOGARBPROC)wglGetProcAddress("glGetInfoLogARB");
+    glCreateProgramObjectARB = (PFNGLCREATEPROGRAMOBJECTARBPROC)wglGetProcAddress("glCreateProgramObjectARB");
+    glAttachObjectARB = (PFNGLATTACHOBJECTARBPROC)wglGetProcAddress("glAttachObjectARB");
+    glDeleteObjectARB = (PFNGLDELETEOBJECTARBPROC)wglGetProcAddress("glDeleteObjectARB");
+    glLinkProgramARB = (PFNGLLINKPROGRAMARBPROC)wglGetProcAddress("glLinkProgramARB");
+    glCompileShaderARB = (PFNGLCOMPILESHADERARBPROC)wglGetProcAddress("glCompileShaderARB");
+    glShaderSourceARB = (PFNGLSHADERSOURCEARBPROC)wglGetProcAddress("glShaderSourceARB");
+    glUseProgramObjectARB = (PFNGLUSEPROGRAMOBJECTARBPROC)wglGetProcAddress("glUseProgramObjectARB");
+    glActiveTextureARB = (PFNGLACTIVETEXTUREARBPROC)wglGetProcAddress("glActiveTextureARB");
+    glGetUniformLocationARB = (PFNGLGETUNIFORMLOCATIONARBPROC)wglGetProcAddress("glGetUniformLocationARB");
+    glUniform1iARB = (PFNGLUNIFORM1IARBPROC)wglGetProcAddress("glUniform1iARB");
+    glUniform1fARB = (PFNGLUNIFORM1FARBPROC)wglGetProcAddress("glUniform1fARB");
+    glUniformMatrix3fvARB = (PFNGLUNIFORMMATRIX3FVARBPROC)wglGetProcAddress("glUniformMatrix3fvARB");
+    glUniformMatrix4fvARB = (PFNGLUNIFORMMATRIX4FVARBPROC)wglGetProcAddress("glUniformMatrix4fvARB");
+    glUniform4fvARB = (PFNGLUNIFORM4FVARBPROC)wglGetProcAddress("glUniform4fvARB");
+    glUniform2fvARB = (PFNGLUNIFORM2FVARBPROC)wglGetProcAddress("glUniform2fvARB");
+    glBindAttribLocationARB = (PFNGLBINDATTRIBLOCATIONARBPROC)wglGetProcAddress("glBindAttribLocationARB");
+    glEnableVertexAttribArrayARB = (PFNGLENABLEVERTEXATTRIBARRAYARBPROC)wglGetProcAddress("glEnableVertexAttribArrayARB");
+    glVertexAttribPointerARB = (PFNGLVERTEXATTRIBPOINTERARBPROC)wglGetProcAddress("glVertexAttribPointerARB");
+    glDisableVertexAttribArrayARB = (PFNGLDISABLEVERTEXATTRIBARRAYARBPROC)wglGetProcAddress("glDisableVertexAttribArrayARB");
+    glValidateProgramARB = (PFNGLVALIDATEPROGRAMARBPROC)wglGetProcAddress("glValidateProgramARB");
 #endif
-	
-	glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS_ARB, &textureImageUnitCount);
-	
-	shadersAvailable = YES;
+
+    glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS_ARB, &textureImageUnitCount);
+
+    shadersAvailable = YES;
 }
 #endif
-
 
 #if OO_USE_VBO
 - (void)checkVBOSupported
 {
-	vboSupported = NO;
-	
-	if ([self versionIsAtLeastMajor:1 minor:5] || [self haveExtension:@"GL_ARB_vertex_buffer_object"])
-	{
-		vboSupported = YES;
-	}
-	
+    vboSupported = NO;
+
+    if ([self versionIsAtLeastMajor:1 minor:5] || [self haveExtension:@"GL_ARB_vertex_buffer_object"]) {
+        vboSupported = YES;
+    }
+
 #if OOLITE_WINDOWS
-	if (vboSupported)
-	{
-		glGenBuffersARB = (PFNGLGENBUFFERSARBPROC)wglGetProcAddress("glGenBuffersARB");
-		glDeleteBuffersARB = (PFNGLDELETEBUFFERSARBPROC)wglGetProcAddress("glDeleteBuffersARB");
-		glBindBufferARB = (PFNGLBINDBUFFERARBPROC)wglGetProcAddress("glBindBufferARB");
-		glBufferDataARB = (PFNGLBUFFERDATAARBPROC)wglGetProcAddress("glBufferDataARB");
-	}
+    if (vboSupported) {
+        glGenBuffersARB = (PFNGLGENBUFFERSARBPROC)wglGetProcAddress("glGenBuffersARB");
+        glDeleteBuffersARB = (PFNGLDELETEBUFFERSARBPROC)wglGetProcAddress("glDeleteBuffersARB");
+        glBindBufferARB = (PFNGLBINDBUFFERARBPROC)wglGetProcAddress("glBindBufferARB");
+        glBufferDataARB = (PFNGLBUFFERDATAARBPROC)wglGetProcAddress("glBufferDataARB");
+    }
 #endif
 }
 #endif
-
 
 #if OO_USE_FBO
 - (void)checkFBOSupported
 {
-	fboSupported = NO;
-	
-	if ([self haveExtension:@"GL_EXT_framebuffer_object"])
-	{
-		fboSupported = YES;
-	}
-	
+    fboSupported = NO;
+
+    if ([self haveExtension:@"GL_EXT_framebuffer_object"]) {
+        fboSupported = YES;
+    }
+
 #if OOLITE_WINDOWS
-	if (fboSupported)
-	{
-		glGenFramebuffersEXT = (PFNGLGENFRAMEBUFFERSEXTPROC)wglGetProcAddress("glGenFramebuffersEXT");
-		glBindFramebufferEXT = (PFNGLBINDFRAMEBUFFEREXTPROC)wglGetProcAddress("glBindFramebufferEXT");
-		glGenRenderbuffersEXT = (PFNGLGENRENDERBUFFERSEXTPROC)wglGetProcAddress("glGenRenderbuffersEXT");
-		glBindRenderbufferEXT = (PFNGLBINDRENDERBUFFEREXTPROC)wglGetProcAddress("glBindRenderbufferEXT");
-		glRenderbufferStorageEXT = (PFNGLRENDERBUFFERSTORAGEEXTPROC)wglGetProcAddress("glRenderbufferStorageEXT");
-		glFramebufferRenderbufferEXT = (PFNGLFRAMEBUFFERRENDERBUFFEREXTPROC)wglGetProcAddress("glFramebufferRenderbufferEXT");
-		glFramebufferTexture2DEXT = (PFNGLFRAMEBUFFERTEXTURE2DEXTPROC)wglGetProcAddress("glFramebufferTexture2DEXT");
-		glCheckFramebufferStatusEXT = (PFNGLCHECKFRAMEBUFFERSTATUSEXTPROC)wglGetProcAddress("glCheckFramebufferStatusEXT");
-		glDeleteFramebuffersEXT = (PFNGLDELETEFRAMEBUFFERSEXTPROC)wglGetProcAddress("glDeleteFramebuffersEXT");
-		glDeleteRenderbuffersEXT = (PFNGLDELETERENDERBUFFERSEXTPROC)wglGetProcAddress("glDeleteRenderbuffersEXT");
-		glGenRenderbuffers = (PFNGLGENRENDERBUFFERSPROC)wglGetProcAddress("glGenRenderbuffers");
-		glBindRenderbuffer			= (PFNGLBINDRENDERBUFFERPROC)wglGetProcAddress			("glBindRenderbuffer"			);
-		glRenderbufferStorage		= (PFNGLRENDERBUFFERSTORAGEPROC)wglGetProcAddress		("glRenderbufferStorage"		);
-		glGenFramebuffers			= (PFNGLGENFRAMEBUFFERSPROC)wglGetProcAddress			("glGenFramebuffers"			);
-		glBindFramebuffer			= (PFNGLBINDFRAMEBUFFERPROC)wglGetProcAddress			("glBindFramebuffer"			);
-		glFramebufferRenderbuffer	= (PFNGLFRAMEBUFFERRENDERBUFFERPROC)wglGetProcAddress	("glFramebufferRenderbuffer"	);
-		glFramebufferTexture2D		= (PFNGLFRAMEBUFFERTEXTURE2DPROC)wglGetProcAddress		("glFramebufferTexture2D"		);
-		glGenVertexArrays			= (PFNGLGENVERTEXARRAYSPROC)wglGetProcAddress			("glGenVertexArrays"			);
-		glGenBuffers				= (PFNGLGENBUFFERSPROC)wglGetProcAddress				("glGenBuffers"					);
-		glBindVertexArray			= (PFNGLBINDVERTEXARRAYPROC)wglGetProcAddress			("glBindVertexArray"			);
-		glBindBuffer				= (PFNGLBINDBUFFERPROC)wglGetProcAddress				("glBindBuffer"					);
-		glBufferData				= (PFNGLBUFFERDATAPROC)wglGetProcAddress				("glBufferData"					);
-		glVertexAttribPointer		= (PFNGLVERTEXATTRIBPOINTERPROC)wglGetProcAddress		("glVertexAttribPointer"		);
-		glEnableVertexAttribArray	= (PFNGLENABLEVERTEXATTRIBARRAYPROC)wglGetProcAddress	("glEnableVertexAttribArray"	);
-		glUseProgram				= (PFNGLUSEPROGRAMPROC)	wglGetProcAddress				("glUseProgram"					);
-		glGetUniformLocation		= (PFNGLGETUNIFORMLOCATIONPROC)wglGetProcAddress		("glGetUniformLocation"			);
-		glUniform1i					= (PFNGLUNIFORM1IPROC)wglGetProcAddress					("glUniform1i"					);
-		glActiveTexture				= (PFNGLACTIVETEXTUREPROC)wglGetProcAddress				("glActiveTexture"				);
-		glBlendFuncSeparate			= (PFNGLBLENDFUNCSEPARATEPROC)wglGetProcAddress			("glBlendFuncSeparate"			);
-		glUniform1f					= (PFNGLUNIFORM1FPROC)wglGetProcAddress					("glUniform1f"					);
-		glUniform2fv				= (PFNGLUNIFORM2FVPROC)wglGetProcAddress				("glUniform2fv"					);
-		glDeleteRenderbuffers		= (PFNGLDELETERENDERBUFFERSPROC)wglGetProcAddress		("glDeleteRenderbuffer"			);
-		glDeleteFramebuffers		= (PFNGLDELETEFRAMEBUFFERSPROC)wglGetProcAddress		("glDeleteFramebuffers"			);
-		glDeleteVertexArrays		= (PFNGLDELETEVERTEXARRAYSPROC)wglGetProcAddress		("glDeleteVertexArrays"			);
-		glDeleteBuffers				= (PFNGLDELETEBUFFERSPROC)wglGetProcAddress				("glDeleteBuffers"				);
-		glDrawBuffers				= (PFNGLDRAWBUFFERSPROC)wglGetProcAddress				("glDrawBuffers"				);
-		glCheckFramebufferStatus		= (PFNGLCHECKFRAMEBUFFERSTATUSPROC)wglGetProcAddress		("glCheckFramebufferStatus"				);
-		glTexImage2DMultisample		= (PFNGLTEXIMAGE2DMULTISAMPLEPROC)wglGetProcAddress		("glTexImage2DMultisample"					);
-		glRenderbufferStorageMultisample = (PFNGLRENDERBUFFERSTORAGEMULTISAMPLEPROC)wglGetProcAddress ("glRenderbufferStorageMultisample"	);
-		glBlitFramebuffer			= (PFNGLBLITFRAMEBUFFERPROC)wglGetProcAddress			("glBlitFramebuffer"			);
-		glClampColor				= (PFNGLCLAMPCOLORPROC)wglGetProcAddress				("glClampColor"					);
-	}
+    if (fboSupported) {
+        glGenFramebuffersEXT = (PFNGLGENFRAMEBUFFERSEXTPROC)wglGetProcAddress("glGenFramebuffersEXT");
+        glBindFramebufferEXT = (PFNGLBINDFRAMEBUFFEREXTPROC)wglGetProcAddress("glBindFramebufferEXT");
+        glGenRenderbuffersEXT = (PFNGLGENRENDERBUFFERSEXTPROC)wglGetProcAddress("glGenRenderbuffersEXT");
+        glBindRenderbufferEXT = (PFNGLBINDRENDERBUFFEREXTPROC)wglGetProcAddress("glBindRenderbufferEXT");
+        glRenderbufferStorageEXT = (PFNGLRENDERBUFFERSTORAGEEXTPROC)wglGetProcAddress("glRenderbufferStorageEXT");
+        glFramebufferRenderbufferEXT = (PFNGLFRAMEBUFFERRENDERBUFFEREXTPROC)wglGetProcAddress("glFramebufferRenderbufferEXT");
+        glFramebufferTexture2DEXT = (PFNGLFRAMEBUFFERTEXTURE2DEXTPROC)wglGetProcAddress("glFramebufferTexture2DEXT");
+        glCheckFramebufferStatusEXT = (PFNGLCHECKFRAMEBUFFERSTATUSEXTPROC)wglGetProcAddress("glCheckFramebufferStatusEXT");
+        glDeleteFramebuffersEXT = (PFNGLDELETEFRAMEBUFFERSEXTPROC)wglGetProcAddress("glDeleteFramebuffersEXT");
+        glDeleteRenderbuffersEXT = (PFNGLDELETERENDERBUFFERSEXTPROC)wglGetProcAddress("glDeleteRenderbuffersEXT");
+        glGenRenderbuffers = (PFNGLGENRENDERBUFFERSPROC)wglGetProcAddress("glGenRenderbuffers");
+        glBindRenderbuffer = (PFNGLBINDRENDERBUFFERPROC)wglGetProcAddress("glBindRenderbuffer");
+        glRenderbufferStorage = (PFNGLRENDERBUFFERSTORAGEPROC)wglGetProcAddress("glRenderbufferStorage");
+        glGenFramebuffers = (PFNGLGENFRAMEBUFFERSPROC)wglGetProcAddress("glGenFramebuffers");
+        glBindFramebuffer = (PFNGLBINDFRAMEBUFFERPROC)wglGetProcAddress("glBindFramebuffer");
+        glFramebufferRenderbuffer = (PFNGLFRAMEBUFFERRENDERBUFFERPROC)wglGetProcAddress("glFramebufferRenderbuffer");
+        glFramebufferTexture2D = (PFNGLFRAMEBUFFERTEXTURE2DPROC)wglGetProcAddress("glFramebufferTexture2D");
+        glGenVertexArrays = (PFNGLGENVERTEXARRAYSPROC)wglGetProcAddress("glGenVertexArrays");
+        glGenBuffers = (PFNGLGENBUFFERSPROC)wglGetProcAddress("glGenBuffers");
+        glBindVertexArray = (PFNGLBINDVERTEXARRAYPROC)wglGetProcAddress("glBindVertexArray");
+        glBindBuffer = (PFNGLBINDBUFFERPROC)wglGetProcAddress("glBindBuffer");
+        glBufferData = (PFNGLBUFFERDATAPROC)wglGetProcAddress("glBufferData");
+        glVertexAttribPointer = (PFNGLVERTEXATTRIBPOINTERPROC)wglGetProcAddress("glVertexAttribPointer");
+        glEnableVertexAttribArray = (PFNGLENABLEVERTEXATTRIBARRAYPROC)wglGetProcAddress("glEnableVertexAttribArray");
+        glUseProgram = (PFNGLUSEPROGRAMPROC)wglGetProcAddress("glUseProgram");
+        glGetUniformLocation = (PFNGLGETUNIFORMLOCATIONPROC)wglGetProcAddress("glGetUniformLocation");
+        glUniform1i = (PFNGLUNIFORM1IPROC)wglGetProcAddress("glUniform1i");
+        glActiveTexture = (PFNGLACTIVETEXTUREPROC)wglGetProcAddress("glActiveTexture");
+        glBlendFuncSeparate = (PFNGLBLENDFUNCSEPARATEPROC)wglGetProcAddress("glBlendFuncSeparate");
+        glUniform1f = (PFNGLUNIFORM1FPROC)wglGetProcAddress("glUniform1f");
+        glUniform2fv = (PFNGLUNIFORM2FVPROC)wglGetProcAddress("glUniform2fv");
+        glDeleteRenderbuffers = (PFNGLDELETERENDERBUFFERSPROC)wglGetProcAddress("glDeleteRenderbuffer");
+        glDeleteFramebuffers = (PFNGLDELETEFRAMEBUFFERSPROC)wglGetProcAddress("glDeleteFramebuffers");
+        glDeleteVertexArrays = (PFNGLDELETEVERTEXARRAYSPROC)wglGetProcAddress("glDeleteVertexArrays");
+        glDeleteBuffers = (PFNGLDELETEBUFFERSPROC)wglGetProcAddress("glDeleteBuffers");
+        glDrawBuffers = (PFNGLDRAWBUFFERSPROC)wglGetProcAddress("glDrawBuffers");
+        glCheckFramebufferStatus = (PFNGLCHECKFRAMEBUFFERSTATUSPROC)wglGetProcAddress("glCheckFramebufferStatus");
+        glTexImage2DMultisample = (PFNGLTEXIMAGE2DMULTISAMPLEPROC)wglGetProcAddress("glTexImage2DMultisample");
+        glRenderbufferStorageMultisample = (PFNGLRENDERBUFFERSTORAGEMULTISAMPLEPROC)wglGetProcAddress("glRenderbufferStorageMultisample");
+        glBlitFramebuffer = (PFNGLBLITFRAMEBUFFERPROC)wglGetProcAddress("glBlitFramebuffer");
+        glClampColor = (PFNGLCLAMPCOLORPROC)wglGetProcAddress("glClampColor");
+    }
 #endif
 }
 #endif
-
 
 #if OO_MULTITEXTURE
 - (void)checkTextureCombinersSupported
 {
-	textureCombinersSupported = [self haveExtension:@"GL_ARB_texture_env_combine"];
-	
-	if (textureCombinersSupported)
-	{
-		OOGL(glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, &textureUnitCount));
-		
-#if OOLITE_WINDOWS
-		// Duplicated in checkShadersSupported. but that's not really a problem.
-		glActiveTextureARB = (PFNGLACTIVETEXTUREARBPROC)wglGetProcAddress("glActiveTextureARB");
-		
-		glClientActiveTextureARB = (PFNGLCLIENTACTIVETEXTUREARBPROC)wglGetProcAddress("glClientActiveTextureARB");
-#endif
-	}
-	else
-	{
-		textureUnitCount = 1;
-	}
+    textureCombinersSupported = [self haveExtension:@"GL_ARB_texture_env_combine"];
 
+    if (textureCombinersSupported) {
+        OOGL(glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, &textureUnitCount));
+
+#if OOLITE_WINDOWS
+        // Duplicated in checkShadersSupported. but that's not really a problem.
+        glActiveTextureARB = (PFNGLACTIVETEXTUREARBPROC)wglGetProcAddress("glActiveTextureARB");
+
+        glClientActiveTextureARB = (PFNGLCLIENTACTIVETEXTUREARBPROC)wglGetProcAddress("glClientActiveTextureARB");
+#endif
+    } else {
+        textureUnitCount = 1;
+    }
 }
 #endif
-
 
 // regexps may be a single string or an array of strings (in which case results are ANDed).
-static BOOL CheckRegExps(NSString *string, id regexps)
+static BOOL CheckRegExps(NSString* string, id regexps)
 {
-	if (regexps == nil)  return YES;	// No restriction == match.
-	if ([regexps isKindOfClass:[NSString class]])
-	{
-		return [string oo_matchesRegularExpression:regexps];
-	}
-	if ([regexps isKindOfClass:[NSArray class]])
-	{
-		NSEnumerator *regexpEnum = nil;
-		NSString *regexp = nil;
-		
-		for (regexpEnum = [regexps objectEnumerator]; (regexp = [regexpEnum nextObject]); )
-		{
-			if (EXPECT_NOT(![regexp isKindOfClass:[NSString class]]))
-			{
-				// Invalid type -- match fails.
-				return NO;
-			}
-			
-			if (![string oo_matchesRegularExpression:regexp])  return NO;
-		}
-		return YES;
-	}
-	
-	// Invalid type -- match fails.
-	return NO;
+    if (regexps == nil)
+        return YES; // No restriction == match.
+    if ([regexps isKindOfClass:[NSString class]]) {
+        return [string oo_matchesRegularExpression:regexps];
+    }
+    if ([regexps isKindOfClass:[NSArray class]]) {
+        NSEnumerator* regexpEnum = nil;
+        NSString* regexp = nil;
+
+        for (regexpEnum = [regexps objectEnumerator]; (regexp = [regexpEnum nextObject]);) {
+            if (EXPECT_NOT(![regexp isKindOfClass:[NSString class]])) {
+                // Invalid type -- match fails.
+                return NO;
+            }
+
+            if (![string oo_matchesRegularExpression:regexp])
+                return NO;
+        }
+        return YES;
+    }
+
+    // Invalid type -- match fails.
+    return NO;
 }
 
-
-NSComparisonResult CompareGPUSettingsByPriority(id a, id b, void *context)
+NSComparisonResult CompareGPUSettingsByPriority(id a, id b, void* context)
 {
-	NSString		*keyA = a;
-	NSString		*keyB = b;
-	NSDictionary	*configurations = context;
-	NSDictionary	*dictA = [configurations oo_dictionaryForKey:keyA];
-	NSDictionary	*dictB = [configurations oo_dictionaryForKey:keyB];
-	double			precedenceA = [dictA oo_doubleForKey:@"precedence" defaultValue:1];
-	double			precedenceB = [dictB oo_doubleForKey:@"precedence" defaultValue:1];
-	
-	if (precedenceA > precedenceB)  return NSOrderedAscending;
-	if (precedenceA < precedenceB)  return NSOrderedDescending;
-	
-	return [keyA caseInsensitiveCompare:keyB];
+    NSString* keyA = a;
+    NSString* keyB = b;
+    NSDictionary* configurations = context;
+    NSDictionary* dictA = [configurations oo_dictionaryForKey:keyA];
+    NSDictionary* dictB = [configurations oo_dictionaryForKey:keyB];
+    double precedenceA = [dictA oo_doubleForKey:@"precedence" defaultValue:1];
+    double precedenceB = [dictB oo_doubleForKey:@"precedence" defaultValue:1];
+
+    if (precedenceA > precedenceB)
+        return NSOrderedAscending;
+    if (precedenceA < precedenceB)
+        return NSOrderedDescending;
+
+    return [keyA caseInsensitiveCompare:keyB];
 }
 
-
-- (NSDictionary *) lookUpPerGPUSettingsWithVersionString:(NSString *)versionStr extensionsString:(NSString *)extensionsStr
+- (NSDictionary*)lookUpPerGPUSettingsWithVersionString:(NSString*)versionStr extensionsString:(NSString*)extensionsStr
 {
-	NSDictionary *configurations = [ResourceManager dictionaryFromFilesNamed:@"gpu-settings.plist"
-																	inFolder:@"Config"
-																	andMerge:YES];
-	
-	NSArray *keys = [[configurations allKeys] sortedArrayUsingFunction:CompareGPUSettingsByPriority context:configurations];
-	
-	NSString *key = nil;
-	NSDictionary *config = nil;
-	
-	foreach (key, keys)
-	{
-		config = [configurations oo_dictionaryForKey:key];
-		if (EXPECT_NOT(config == nil))  continue;
-		
-		NSDictionary *match = [config oo_dictionaryForKey:@"match"];
-		NSString *expr = nil;
-		
-		expr = [match objectForKey:@"vendor"];
-		if (!CheckRegExps(vendor, expr))  continue;
-		
-		expr = [match oo_stringForKey:@"renderer"];
-		if (!CheckRegExps(renderer, expr))  continue;
-		
-		expr = [match oo_stringForKey:@"version"];
-		if (!CheckRegExps(versionStr, expr))  continue;
-		
-		expr = [match oo_stringForKey:@"extensions"];
-		if (!CheckRegExps(extensionsStr, expr))  continue;
-		
-		OOLog(@"rendering.opengl.gpuSpecific", @"Matched GPU configuration \"%@\".", key);
-		return config;
-	}
-	
-	return [NSDictionary dictionary];
+    NSDictionary* configurations = [ResourceManager dictionaryFromFilesNamed:@"gpu-settings.plist"
+                                                                    inFolder:@"Config"
+                                                                    andMerge:YES];
+
+    NSArray* keys = [[configurations allKeys] sortedArrayUsingFunction:CompareGPUSettingsByPriority context:configurations];
+
+    NSString* key = nil;
+    NSDictionary* config = nil;
+
+    foreach (key, keys) {
+        config = [configurations oo_dictionaryForKey:key];
+        if (EXPECT_NOT(config == nil))
+            continue;
+
+        NSDictionary* match = [config oo_dictionaryForKey:@"match"];
+        NSString* expr = nil;
+
+        expr = [match objectForKey:@"vendor"];
+        if (!CheckRegExps(vendor, expr))
+            continue;
+
+        expr = [match oo_stringForKey:@"renderer"];
+        if (!CheckRegExps(renderer, expr))
+            continue;
+
+        expr = [match oo_stringForKey:@"version"];
+        if (!CheckRegExps(versionStr, expr))
+            continue;
+
+        expr = [match oo_stringForKey:@"extensions"];
+        if (!CheckRegExps(extensionsStr, expr))
+            continue;
+
+        OOLog(@"rendering.opengl.gpuSpecific", @"Matched GPU configuration \"%@\".", key);
+        return config;
+    }
+
+    return [NSDictionary dictionary];
 }
 
 @end
-
 
 @implementation OOOpenGLExtensionManager (Singleton)
 
 /*	Canonical singleton boilerplate.
-	See Cocoa Fundamentals Guide: Creating a Singleton Instance.
-	See also +sharedManager above.
-	
-	// NOTE: assumes single-threaded first access.
+        See Cocoa Fundamentals Guide: Creating a Singleton Instance.
+        See also +sharedManager above.
+
+        // NOTE: assumes single-threaded first access.
 */
 
-+ (id)allocWithZone:(NSZone *)inZone
++ (id)allocWithZone:(NSZone*)inZone
 {
-	if (sSingleton == nil)
-	{
-		sSingleton = [super allocWithZone:inZone];
-		return sSingleton;
-	}
-	return nil;
+    if (sSingleton == nil) {
+        sSingleton = [super allocWithZone:inZone];
+        return sSingleton;
+    }
+    return nil;
 }
 
-
-- (id)copyWithZone:(NSZone *)inZone
+- (id)copyWithZone:(NSZone*)inZone
 {
-	return self;
+    return self;
 }
-
 
 - (id)retain
 {
-	return self;
+    return self;
 }
-
 
 - (NSUInteger)retainCount
 {
-	return UINT_MAX;
+    return UINT_MAX;
 }
 
-
 - (void)release
-{}
-
+{
+}
 
 - (id)autorelease
 {
-	return self;
+    return self;
 }
 
 @end
-
 
 #if OOLITE_WINDOWS
 
 static void OOBadOpenGLExtensionUsed(void)
 {
-	OOLog(@"rendering.opengl.badExtension", @"***** An uninitialized OpenGL extension function has been called, terminating. This is a serious error, please report it. *****");
-	exit(EXIT_FAILURE);
+    OOLog(@"rendering.opengl.badExtension", @"***** An uninitialized OpenGL extension function has been called, terminating. This is a serious error, please report it. *****");
+    exit(EXIT_FAILURE);
 }
 
 #endif

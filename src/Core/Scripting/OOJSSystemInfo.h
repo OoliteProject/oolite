@@ -25,12 +25,11 @@ MA 02110-1301, USA.
 
 */
 
+#import "OOTypes.h"
 #import <Foundation/Foundation.h>
 #include <jsapi.h>
-#import "OOTypes.h"
 
-
-void InitOOJSSystemInfo(JSContext *context, JSObject *global);
+void InitOOJSSystemInfo(JSContext* context, JSObject* global);
 
 // Returns JSVAL_NULL on failure (with a JS warning, but no exception).
-jsval GetJSSystemInfoForSystem(JSContext *context, OOGalaxyID galaxy, OOSystemID system);
+jsval GetJSSystemInfoForSystem(JSContext* context, OOGalaxyID galaxy, OOSystemID system);

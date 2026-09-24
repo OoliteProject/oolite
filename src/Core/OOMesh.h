@@ -36,161 +36,155 @@ MA 02110-1301, USA.
 
 #import "OODrawable.h"
 #import "OOOpenGL.h"
-#import "OOWeakReference.h"
 #import "OOOpenGLExtensionManager.h"
+#import "OOWeakReference.h"
 
 @class OOMaterial, Octree;
 
-
-#define OOMESH_PROFILE	0
+#define OOMESH_PROFILE 0
 #if OOMESH_PROFILE
 @class OOProfilingStopwatch;
 #endif
 
-
-enum
-{
-	kOOMeshMaxMaterials			= 8
+enum {
+    kOOMeshMaxMaterials = 8
 };
 
-
-typedef uint16_t			OOMeshSmoothGroup;
-typedef uint8_t				OOMeshMaterialIndex, OOMeshMaterialCount;
-typedef uint32_t			OOMeshVertexCount;
-typedef uint32_t			OOMeshFaceCount;
-typedef uint8_t				OOMeshFaceVertexCount;
-
+typedef uint16_t OOMeshSmoothGroup;
+typedef uint8_t OOMeshMaterialIndex, OOMeshMaterialCount;
+typedef uint32_t OOMeshVertexCount;
+typedef uint32_t OOMeshFaceCount;
+typedef uint8_t OOMeshFaceVertexCount;
 
 typedef struct
 {
-	OOMeshSmoothGroup		smoothGroup;
-	OOMeshMaterialIndex		materialIndex;
-	GLuint					vertex[3];
-	
-	Vector					normal;
-	Vector					tangent;
-	GLfloat					s[3];
-	GLfloat					t[3];
+    OOMeshSmoothGroup smoothGroup;
+    OOMeshMaterialIndex materialIndex;
+    GLuint vertex[3];
+
+    Vector normal;
+    Vector tangent;
+    GLfloat s[3];
+    GLfloat t[3];
 } OOMeshFace;
 
-
 typedef struct
 {
-	GLint					*indexArray;
-	GLfloat					*textureUVArray;
-	Vector					*vertexArray;
-	Vector					*normalArray;
-	Vector					*tangentArray;
-	
-	GLuint					count;
+    GLint* indexArray;
+    GLfloat* textureUVArray;
+    Vector* vertexArray;
+    Vector* normalArray;
+    Vector* tangentArray;
+
+    GLuint count;
 } OOMeshDisplayLists;
 
-
-@interface OOMesh: OODrawable <NSCopying>
-{
+@interface OOMesh : OODrawable <NSCopying> {
 @private
-	uint8_t					_normalMode: 2,
-							brokenInRender: 1,
-							listsReady: 1;
-	
-	OOMeshMaterialCount		materialCount;
-	OOMeshVertexCount		vertexCount;
-	OOMeshFaceCount			faceCount;
-	
-	NSString				*baseFile;
-	NSString				*baseFileOctreeCacheRef;
-	BOOL					_cacheWriteable;
-	
-	Vector					*_vertices;
-	Vector					*_normals;
-	Vector					*_tangents;
-	OOMeshFace				*_faces;
-	
-	// Redundancy! Needs fixing.
-	OOMeshDisplayLists		_displayLists;
-	
-	NSRange					triangle_range[kOOMeshMaxMaterials];
-	NSString				*materialKeys[kOOMeshMaxMaterials];
-	OOMaterial				*materials[kOOMeshMaxMaterials];
-	GLuint					displayList0;
-	
-	GLfloat					collisionRadius;
-	GLfloat					maxDrawDistance;
-	BoundingBox				boundingBox;
-	
-	Octree					*octree;
-	
-	NSMutableDictionary		*_retainedObjects;
-	
-	NSDictionary			*_materialDict;
-	NSDictionary			*_shadersDict;
-	NSString				*_cacheKey;
-	NSDictionary			*_shaderMacros;
-	id						_shaderBindingTarget;
+    uint8_t _normalMode : 2,
+        brokenInRender : 1,
+        listsReady : 1;
 
-	Vector					_lastPosition;
-	OOMatrix				_lastRotMatrix;
-	BoundingBox				_lastBoundingBox;
-	
+    OOMeshMaterialCount materialCount;
+    OOMeshVertexCount vertexCount;
+    OOMeshFaceCount faceCount;
+
+    NSString* baseFile;
+    NSString* baseFileOctreeCacheRef;
+    BOOL _cacheWriteable;
+
+    Vector* _vertices;
+    Vector* _normals;
+    Vector* _tangents;
+    OOMeshFace* _faces;
+
+    // Redundancy! Needs fixing.
+    OOMeshDisplayLists _displayLists;
+
+    NSRange triangle_range[kOOMeshMaxMaterials];
+    NSString* materialKeys[kOOMeshMaxMaterials];
+    OOMaterial* materials[kOOMeshMaxMaterials];
+    GLuint displayList0;
+
+    GLfloat collisionRadius;
+    GLfloat maxDrawDistance;
+    BoundingBox boundingBox;
+
+    Octree* octree;
+
+    NSMutableDictionary* _retainedObjects;
+
+    NSDictionary* _materialDict;
+    NSDictionary* _shadersDict;
+    NSString* _cacheKey;
+    NSDictionary* _shaderMacros;
+    id _shaderBindingTarget;
+
+    Vector _lastPosition;
+    OOMatrix _lastRotMatrix;
+    BoundingBox _lastBoundingBox;
+
 #if OO_MULTITEXTURE
-	NSUInteger				_textureUnitCount;
+    NSUInteger _textureUnitCount;
 #endif
-	
+
 #if OOMESH_PROFILE
-	OOProfilingStopwatch	*_stopwatch;
-	double					_stopwatchLastTime;
+    OOProfilingStopwatch* _stopwatch;
+    double _stopwatchLastTime;
 #endif
 }
 
-+ (instancetype) meshWithName:(NSString *)name
-					 cacheKey:(NSString *)cacheKey
-		   materialDictionary:(NSDictionary *)materialDict
-			shadersDictionary:(NSDictionary *)shadersDict
-					   smooth:(BOOL)smooth
-				 shaderMacros:(NSDictionary *)macros
-		  shaderBindingTarget:(id<OOWeakReferenceSupport>)object;
++ (instancetype)meshWithName:(NSString*)name
+                    cacheKey:(NSString*)cacheKey
+          materialDictionary:(NSDictionary*)materialDict
+           shadersDictionary:(NSDictionary*)shadersDict
+                      smooth:(BOOL)smooth
+                shaderMacros:(NSDictionary*)macros
+         shaderBindingTarget:(id<OOWeakReferenceSupport>)object;
 
-+ (instancetype) meshWithName:(NSString *)name
-					 cacheKey:(NSString *)cacheKey
-		   materialDictionary:(NSDictionary *)materialDict
-			shadersDictionary:(NSDictionary *)shadersDict
-					   smooth:(BOOL)smooth
-				 shaderMacros:(NSDictionary *)macros
-		  shaderBindingTarget:(id<OOWeakReferenceSupport>)object
-				  scaleFactor:(float)factor
-			   cacheWriteable:(BOOL)cacheWriteable;
++ (instancetype)meshWithName:(NSString*)name
+                    cacheKey:(NSString*)cacheKey
+          materialDictionary:(NSDictionary*)materialDict
+           shadersDictionary:(NSDictionary*)shadersDict
+                      smooth:(BOOL)smooth
+                shaderMacros:(NSDictionary*)macros
+         shaderBindingTarget:(id<OOWeakReferenceSupport>)object
+                 scaleFactor:(float)factor
+              cacheWriteable:(BOOL)cacheWriteable;
 
++ (OOMaterial*)placeholderMaterial;
 
-+ (OOMaterial *) placeholderMaterial;
+- (NSString*)modelName;
 
-- (NSString *) modelName;
+- (void)rebindMaterials;
 
-- (void) rebindMaterials;
+- (NSDictionary*)materials;
+- (NSDictionary*)shaders;
 
-- (NSDictionary *) materials;
-- (NSDictionary *) shaders;
+- (size_t)vertexCount;
+- (size_t)faceCount;
 
-- (size_t) vertexCount;
-- (size_t) faceCount;
-
-- (Octree *) octree;
+- (Octree*)octree;
 
 // This needs a better name.
-- (BoundingBox) findBoundingBoxRelativeToPosition:(Vector)opv
-											ri:(Vector)ri  rj:(Vector)rj  rk:(Vector)rk
-									 selfPosition:(Vector)position
-										si:(Vector)si  sj:(Vector)sj  sk:(Vector)sk;
-- (BoundingBox) findSubentityBoundingBoxWithPosition:(Vector)position rotMatrix:(OOMatrix)rotMatrix;
+- (BoundingBox)findBoundingBoxRelativeToPosition:(Vector)opv
+                                              ri:(Vector)ri
+                                              rj:(Vector)rj
+                                              rk:(Vector)rk
+                                    selfPosition:(Vector)position
+                                              si:(Vector)si
+                                              sj:(Vector)sj
+                                              sk:(Vector)sk;
+- (BoundingBox)findSubentityBoundingBoxWithPosition:(Vector)position rotMatrix:(OOMatrix)rotMatrix;
 
-- (OOMesh *) meshRescaledBy:(GLfloat)scaleFactor;
+- (OOMesh*)meshRescaledBy:(GLfloat)scaleFactor;
 
 @end
-
 
 #import "OOCacheManager.h"
 @interface OOCacheManager (Octree)
 
-+ (Octree *)octreeForModel:(NSString *)inKey;
-+ (void)setOctree:(Octree *)inOctree forModel:(NSString *)inKey;
++ (Octree*)octreeForModel:(NSString*)inKey;
++ (void)setOctree:(Octree*)inOctree forModel:(NSString*)inKey;
 
 @end

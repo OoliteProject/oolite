@@ -30,78 +30,62 @@ MA 02110-1301, USA.
 
 #import "OOFileScannerVerifierStage.h"
 
-static NSString * const kStageName	= @"Checking plist well-formedness";
-
+static NSString* const kStageName = @"Checking plist well-formedness";
 
 @implementation OOCheckPListSyntaxVerifierStage
 
-- (NSString *)name
+- (NSString*)name
 {
-	return kStageName;
+    return kStageName;
 }
-
 
 - (BOOL)shouldRun
 {
-	return YES;
+    return YES;
 }
-
 
 - (void)run
 {
-	OOFileScannerVerifierStage	*fileScanner = nil;
+    OOFileScannerVerifierStage* fileScanner = nil;
 
-	
-	fileScanner = [[self verifier] fileScannerStage];
+    fileScanner = [[self verifier] fileScannerStage];
 
-	NSArray *plists = [[[self verifier] configurationDictionaryForKey:@"knownFiles"] oo_arrayForKey:@"Config"];
-	NSArray *arrayPlists = [[[self verifier] configurationDictionaryForKey:@"knownFiles"] oo_arrayForKey:@"ConfigArrays"];
-	NSArray *dictionaryPlists = [[[self verifier] configurationDictionaryForKey:@"knownFiles"] oo_arrayForKey:@"ConfigDictionaries"];
+    NSArray* plists = [[[self verifier] configurationDictionaryForKey:@"knownFiles"] oo_arrayForKey:@"Config"];
+    NSArray* arrayPlists = [[[self verifier] configurationDictionaryForKey:@"knownFiles"] oo_arrayForKey:@"ConfigArrays"];
+    NSArray* dictionaryPlists = [[[self verifier] configurationDictionaryForKey:@"knownFiles"] oo_arrayForKey:@"ConfigDictionaries"];
 
-	NSString *plistName = nil;
-	foreach (plistName, plists)
-	{
-		// don't scan a js file as a plist
-		if ([plistName isEqualToString:@"script.js"]) continue;
+    NSString* plistName = nil;
+    foreach (plistName, plists) {
+        // don't scan a js file as a plist
+        if ([plistName isEqualToString:@"script.js"])
+            continue;
 
-		if ([fileScanner fileExists:plistName
-						   inFolder:@"Config"
-					 referencedFrom:nil
-					   checkBuiltIn:NO])
-		{
-			OOLog(@"verifyOXP.syntaxCheck",@"Checking %@",plistName);
-			id retrieve = [fileScanner plistNamed:plistName
-										 inFolder:@"Config"
-								   referencedFrom:nil
-									 checkBuiltIn:NO];
-			if (retrieve != nil)
-			{
-				if ([retrieve isKindOfClass:[NSArray class]])
-				{
-					if (![arrayPlists containsObject:plistName])
-					{
-						OOLog(@"verifyOXP.syntaxCheck.error",@"%@ should be an array but isn't.",plistName);
-					}
-				}
-				else if ([retrieve isKindOfClass:[NSDictionary class]])
-				{
-					if (![dictionaryPlists containsObject:plistName])
-					{
-						OOLog(@"verifyOXP.syntaxCheck.error",@"%@ should be an array but isn't.",plistName);
-					}
-				}
-				else
-				{
-					OOLog(@"verifyOXP.syntaxCheck.error",@"%@ is neither an array nor a dictionary.",plistName);
-				}
-			}
-		}
-	}
-	
+        if ([fileScanner fileExists:plistName
+                           inFolder:@"Config"
+                     referencedFrom:nil
+                       checkBuiltIn:NO]) {
+            OOLog(@"verifyOXP.syntaxCheck", @"Checking %@", plistName);
+            id retrieve = [fileScanner plistNamed:plistName
+                                         inFolder:@"Config"
+                                   referencedFrom:nil
+                                     checkBuiltIn:NO];
+            if (retrieve != nil) {
+                if ([retrieve isKindOfClass:[NSArray class]]) {
+                    if (![arrayPlists containsObject:plistName]) {
+                        OOLog(@"verifyOXP.syntaxCheck.error", @"%@ should be an array but isn't.", plistName);
+                    }
+                } else if ([retrieve isKindOfClass:[NSDictionary class]]) {
+                    if (![dictionaryPlists containsObject:plistName]) {
+                        OOLog(@"verifyOXP.syntaxCheck.error", @"%@ should be an array but isn't.", plistName);
+                    }
+                } else {
+                    OOLog(@"verifyOXP.syntaxCheck.error", @"%@ is neither an array nor a dictionary.", plistName);
+                }
+            }
+        }
+    }
 }
 
 @end
-
-
 
 #endif

@@ -24,17 +24,16 @@ MA 02110-1301, USA.
 
 */
 
+#import "OOExhaustPlumeEntity.h"
 #import <Foundation/Foundation.h>
 #include <jsapi.h>
-#import "OOExhaustPlumeEntity.h"
 
-
-void InitOOJSExhaustPlume(JSContext *context, JSObject *global);
+void InitOOJSExhaustPlume(JSContext* context, JSObject* global);
 
 @interface OOExhaustPlumeEntity (OOJavaScriptExtensions)
 
-- (void)getJSClass:(JSClass **)outClass andPrototype:(JSObject **)outPrototype;
-- (NSString *) oo_jsClassName;
-- (BOOL) isVisibleToScripts;
+- (void)getJSClass:(JSClass**)outClass andPrototype:(JSObject**)outPrototype;
+- (NSString*)oo_jsClassName;
+- (BOOL)isVisibleToScripts;
 
 @end

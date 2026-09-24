@@ -20,7 +20,7 @@
  * Copyright (c) 1997
  * Moscow Center for SPARC Technology
  *
- * Copyright (c) 1999 
+ * Copyright (c) 1999
  * Boris Fomitchev
  *
  * This library is free software; you can redistribute it and/or
@@ -67,7 +67,7 @@
  * @param object the object to which to compare this one
  * @return YES if @a object is equal to this one, NO otherwise
  */
-- (BOOL) isEqualTo: (id)object;
+- (BOOL)isEqualTo:(id)object;
 
 /**
  * Return whether this object is greater than another one. This message returns
@@ -76,7 +76,7 @@
  * @param object the object to which to compare this one
  * @return YES if this object is greater than @a object, NO otherwise
  */
-- (BOOL) isGreaterThan: (id)object;
+- (BOOL)isGreaterThan:(id)object;
 
 /**
  * Return whether this object is greater than or equal to another one. This message returns
@@ -85,7 +85,7 @@
  * @param object the object to which to compare this one
  * @return YES if this object is greater than or equal to @a object, NO otherwise
  */
-- (BOOL) isGreaterThanOrEqualTo: (id)object;
+- (BOOL)isGreaterThanOrEqualTo:(id)object;
 
 /**
  * Return whether this object is less than another one. This message returns
@@ -94,7 +94,7 @@
  * @param object the object to which to compare this one
  * @return YES if this object is less than @a object, NO otherwise
  */
-- (BOOL) isLessThan: (id)object;
+- (BOOL)isLessThan:(id)object;
 
 /**
  * Return whether this object is less than or equal to another one. This message returns
@@ -103,7 +103,7 @@
  * @param object the object to which to compare this one
  * @return YES if this object is less than or equal to @a object, NO otherwise
  */
-- (BOOL) isLessThanOrEqualTo: (id)object;
+- (BOOL)isLessThanOrEqualTo:(id)object;
 
 /**
  * Return whether another object is not equal to this one. This message returns YES if
@@ -112,7 +112,7 @@
  * @param object the object to which to compare this one
  * @return YES if @a object is not equal to this one, NO otherwise
  */
-- (BOOL) isNotEqualTo: (id)object;
+- (BOOL)isNotEqualTo:(id)object;
 
 @end
 

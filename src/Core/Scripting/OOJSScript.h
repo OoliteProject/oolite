@@ -22,72 +22,69 @@ MA 02110-1301, USA.
 
 */
 
-
-#import "OOScript.h"
 #import "OOJavaScriptEngine.h"
+#import "OOScript.h"
 
-static NSString * const kLocalManifestProperty = @"oolite_manifest_identifier";
+static NSString* const kLocalManifestProperty = @"oolite_manifest_identifier";
 
-@interface OOJSScript: OOScript <OOWeakReferenceSupport>
-{
+@interface OOJSScript : OOScript <OOWeakReferenceSupport> {
 @private
-	JSObject			*_jsSelf;
-	
-	NSString			*name;
-	NSString			*description;
-	NSString			*version;
-	NSString			*filePath;
-	
-	OOWeakReference		*weakSelf;
+    JSObject* _jsSelf;
+
+    NSString* name;
+    NSString* description;
+    NSString* version;
+    NSString* filePath;
+
+    OOWeakReference* weakSelf;
 }
 
-+ (id) scriptWithPath:(NSString *)path properties:(NSDictionary *)properties;
++ (id)scriptWithPath:(NSString*)path properties:(NSDictionary*)properties;
 
-- (id) initWithPath:(NSString *)path properties:(NSDictionary *)properties;
+- (id)initWithPath:(NSString*)path properties:(NSDictionary*)properties;
 
-+ (OOJSScript *) currentlyRunningScript;
-+ (NSArray *) scriptStack;
++ (OOJSScript*)currentlyRunningScript;
++ (NSArray*)scriptStack;
 
 /*	External manipulation of acrtive script stack. Used, for instance, by
-	timers. Failing to balance these will crash!
-	Passing a nil script is valid for cases where JS is used which is not
-	attached to a specific script.
+        timers. Failing to balance these will crash!
+        Passing a nil script is valid for cases where JS is used which is not
+        attached to a specific script.
 */
-+ (void) pushScript:(OOJSScript *)script;
-+ (void) popScript:(OOJSScript *)script;
++ (void)pushScript:(OOJSScript*)script;
++ (void)popScript:(OOJSScript*)script;
 
 /*	Call a method.
-	Requires a request on context.
-	outResult may be NULL.
+        Requires a request on context.
+        outResult may be NULL.
 */
-- (BOOL) callMethod:(jsid)methodID
-		  inContext:(JSContext *)context
-	  withArguments:(jsval *)argv count:(intN)argc
-			 result:(jsval *)outResult;
+- (BOOL)callMethod:(jsid)methodID
+         inContext:(JSContext*)context
+     withArguments:(jsval*)argv
+             count:(intN)argc
+            result:(jsval*)outResult;
 
-- (id) propertyWithID:(jsid)propID inContext:(JSContext *)context;
+- (id)propertyWithID:(jsid)propID inContext:(JSContext*)context;
 // Set a property which can be modified or deleted by the script.
-- (BOOL) setProperty:(id)value withID:(jsid)propID inContext:(JSContext *)context;
+- (BOOL)setProperty:(id)value withID:(jsid)propID inContext:(JSContext*)context;
 // Set a special property which cannot be modified or deleted by the script.
-- (BOOL) defineProperty:(id)value withID:(jsid)propID inContext:(JSContext *)context;
+- (BOOL)defineProperty:(id)value withID:(jsid)propID inContext:(JSContext*)context;
 
-- (id) propertyNamed:(NSString *)name;
-- (BOOL) setProperty:(id)value named:(NSString *)name;
-- (BOOL) defineProperty:(id)value named:(NSString *)name;
+- (id)propertyNamed:(NSString*)name;
+- (BOOL)setProperty:(id)value named:(NSString*)name;
+- (BOOL)defineProperty:(id)value named:(NSString*)name;
 
 @end
-
 
 @interface OOScript (JavaScriptEvents)
 
 // For simplicity, calling methods on non-JS scripts works but does nothing.
-- (BOOL) callMethod:(jsid)methodID
-		  inContext:(JSContext *)context
-	  withArguments:(jsval *)argv count:(intN)argc
-			 result:(jsval *)outResult;
+- (BOOL)callMethod:(jsid)methodID
+         inContext:(JSContext*)context
+     withArguments:(jsval*)argv
+             count:(intN)argc
+            result:(jsval*)outResult;
 
 @end
 
-
-void InitOOJSScript(JSContext *context, JSObject *global);
-
+void InitOOJSScript(JSContext* context, JSObject* global);

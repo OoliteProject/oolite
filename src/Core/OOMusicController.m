@@ -24,365 +24,338 @@ MA 02110-1301, USA.
 */
 
 #import "OOMusicController.h"
-#import "OOSound.h"
 #import "OOCollectionExtractors.h"
+#import "OOSound.h"
 #import "ResourceManager.h"
-
 
 static id sSingleton = nil;
 
-
 @interface OOMusicController (Private)
 
-- (void) playiTunesPlaylist:(NSString *)playlistName;
-- (void) pauseiTunes;
+- (void)playiTunesPlaylist:(NSString*)playlistName;
+- (void)pauseiTunes;
 
 @end
 
-
-
 // Values for _special
-enum
-{
-	kSpecialNone,
-	kSpecialTheme,
-	kSpecialDocking,
-	kSpecialDocked,
-	kSpecialMission
+enum {
+    kSpecialNone,
+    kSpecialTheme,
+    kSpecialDocking,
+    kSpecialDocked,
+    kSpecialMission
 };
-
 
 @implementation OOMusicController
 
-+ (OOMusicController *) sharedController
++ (OOMusicController*)sharedController
 {
-	if (sSingleton == nil)
-	{
-		sSingleton = [[self alloc] init];
-	}
-	
-	return sSingleton;
+    if (sSingleton == nil) {
+        sSingleton = [[self alloc] init];
+    }
+
+    return sSingleton;
 }
 
-
-- (id) init
+- (id)init
 {
-	self = [super init];
-	if (self != nil)
-	{
-		NSString *modeString = [[NSUserDefaults standardUserDefaults] stringForKey:@"music mode"];
-		if ([modeString isEqualToString:@"off"])  _mode = kOOMusicOff;
-		else if ([modeString isEqualToString:@"iTunes"])  _mode = kOOMusicITunes;
-		else  _mode = kOOMusicOn;
-		
-		// Handle unlikely case of taking prefs from iTunes-enabled system to other.
-		if (_mode > kOOMusicModeMax)  _mode = kOOMusicModeMax;
-		
-		[self setMissionMusic:@"OoliteTheme.ogg"];
-	}
-	
-	return self;
+    self = [super init];
+    if (self != nil) {
+        NSString* modeString = [[NSUserDefaults standardUserDefaults] stringForKey:@"music mode"];
+        if ([modeString isEqualToString:@"off"])
+            _mode = kOOMusicOff;
+        else if ([modeString isEqualToString:@"iTunes"])
+            _mode = kOOMusicITunes;
+        else
+            _mode = kOOMusicOn;
+
+        // Handle unlikely case of taking prefs from iTunes-enabled system to other.
+        if (_mode > kOOMusicModeMax)
+            _mode = kOOMusicModeMax;
+
+        [self setMissionMusic:@"OoliteTheme.ogg"];
+    }
+
+    return self;
 }
 
-
-- (void) playMusicNamed:(NSString *)name loop:(BOOL)loop
+- (void)playMusicNamed:(NSString*)name loop:(BOOL)loop
 {
-	[self playMusicNamed:name loop:loop gain:OO_DEFAULT_SOUNDSOURCE_GAIN];
+    [self playMusicNamed:name loop:loop gain:OO_DEFAULT_SOUNDSOURCE_GAIN];
 }
 
-
-- (void) playMusicNamed:(NSString *)name loop:(BOOL)loop gain:(float)gain
+- (void)playMusicNamed:(NSString*)name loop:(BOOL)loop gain:(float)gain
 {
-	if ([self isPlaying] && [name isEqual:[self playingMusic]])  return;
-	
-	if (_mode == kOOMusicOn || (_mode == kOOMusicITunes && [name isEqualToString:@"OoliteTheme.ogg"]))
-	{
-		OOMusic *music = [ResourceManager ooMusicNamed:name inFolder:@"Music"];
-		if (music != nil)
-		{
-			[_current stop];
-			
-			[music setMusicGain:OOClamp_0_1_f(gain)];
-			[music playLooped:loop];
-			
-			[_current release];
-			_current = [music retain];
-		}
-	}
+    if ([self isPlaying] && [name isEqual:[self playingMusic]])
+        return;
+
+    if (_mode == kOOMusicOn || (_mode == kOOMusicITunes && [name isEqualToString:@"OoliteTheme.ogg"])) {
+        OOMusic* music = [ResourceManager ooMusicNamed:name inFolder:@"Music"];
+        if (music != nil) {
+            [_current stop];
+
+            [music setMusicGain:OOClamp_0_1_f(gain)];
+            [music playLooped:loop];
+
+            [_current release];
+            _current = [music retain];
+        }
+    }
 }
 
-
-- (void) playThemeMusic
+- (void)playThemeMusic
 {
-	_special = kSpecialTheme;
-	[self playMusicNamed:@"OoliteTheme.ogg" loop:YES];
+    _special = kSpecialTheme;
+    [self playMusicNamed:@"OoliteTheme.ogg" loop:YES];
 }
 
-
-- (void) playDockingMusic
+- (void)playDockingMusic
 {
-	_special = kSpecialDocking;
-	
-	if (_mode == kOOMusicITunes)
-	{
-		[self playiTunesPlaylist:@"Oolite-Docking"];
-	}
-	else
-	{
-		[self playMusicNamed:@"BlueDanube.ogg" loop:YES];
-	}
+    _special = kSpecialDocking;
+
+    if (_mode == kOOMusicITunes) {
+        [self playiTunesPlaylist:@"Oolite-Docking"];
+    } else {
+        [self playMusicNamed:@"BlueDanube.ogg" loop:YES];
+    }
 }
 
-
-- (void) playDockedMusic
+- (void)playDockedMusic
 {
-	_special = kSpecialDocked;
-	
-	if (_mode == kOOMusicITunes)
-	{
-		[self playiTunesPlaylist:@"Oolite-Docked"];
-	}
-	else
-	{
-		[self playMusicNamed:@"OoliteDocked.ogg" loop:NO];
-	}
+    _special = kSpecialDocked;
+
+    if (_mode == kOOMusicITunes) {
+        [self playiTunesPlaylist:@"Oolite-Docked"];
+    } else {
+        [self playMusicNamed:@"OoliteDocked.ogg" loop:NO];
+    }
 }
 
-
-- (void) setMissionMusic:(NSString *)missionMusicName
+- (void)setMissionMusic:(NSString*)missionMusicName
 {
-	[_missionMusic autorelease];
-	_missionMusic = [missionMusicName copy];
+    [_missionMusic autorelease];
+    _missionMusic = [missionMusicName copy];
 }
 
-
-- (void) playMissionMusic
+- (void)playMissionMusic
 {
-	if (_missionMusic != nil)
-	{
-		_special = kSpecialMission;
-		[self playMusicNamed:_missionMusic loop:NO];
-	}
+    if (_missionMusic != nil) {
+        _special = kSpecialMission;
+        [self playMusicNamed:_missionMusic loop:NO];
+    }
 }
-
 
 // Stop without switching iTunes to in-flight music.
-- (void) justStop
+- (void)justStop
 {
-	[_current stop];
-	[_current release];
-	_current = nil;
-	_special = kSpecialNone;
+    [_current stop];
+    [_current release];
+    _current = nil;
+    _special = kSpecialNone;
 }
 
-
-- (void) stop
+- (void)stop
 {
-	[self justStop];
-	
-	if (_mode == kOOMusicITunes)
-	{
-		[self playiTunesPlaylist:@"Oolite-Inflight"];
-	}
+    [self justStop];
+
+    if (_mode == kOOMusicITunes) {
+        [self playiTunesPlaylist:@"Oolite-Inflight"];
+    }
 }
 
-
-- (void) stopMusicNamed:(NSString *)name
+- (void)stopMusicNamed:(NSString*)name
 {
-	if ([name isEqual:[self playingMusic]])  [self stop];
+    if ([name isEqual:[self playingMusic]])
+        [self stop];
 }
 
-
-- (void) stopThemeMusic
+- (void)stopThemeMusic
 {
-	if (_special == kSpecialTheme)
-	{
-		[self justStop];
-		[self playDockedMusic];
-	}
+    if (_special == kSpecialTheme) {
+        [self justStop];
+        [self playDockedMusic];
+    }
 }
 
-
-- (void) stopDockingMusic
+- (void)stopDockingMusic
 {
-	if (_special == kSpecialDocking)  [self stop];
+    if (_special == kSpecialDocking)
+        [self stop];
 }
 
-
-- (void) stopMissionMusic
+- (void)stopMissionMusic
 {
-	if (_special == kSpecialMission)  [self stop];
+    if (_special == kSpecialMission)
+        [self stop];
 }
 
-
-- (void) toggleDockingMusic
+- (void)toggleDockingMusic
 {
-	if (_mode != kOOMusicOn)  return;
-	
-	if (![self isPlaying])  [self playDockingMusic];
-	else if (_special == kSpecialDocking)  [self stop];
+    if (_mode != kOOMusicOn)
+        return;
+
+    if (![self isPlaying])
+        [self playDockingMusic];
+    else if (_special == kSpecialDocking)
+        [self stop];
 }
 
-
-- (OOSoundSource *) soundSource
+- (OOSoundSource*)soundSource
 {
-	return [_current musicSoundSource];
+    return [_current musicSoundSource];
 }
 
-
-- (NSString *) playingMusic
+- (NSString*)playingMusic
 {
-	return [_current name];
+    return [_current name];
 }
 
-
-- (BOOL) isPlaying
+- (BOOL)isPlaying
 {
-	return [_current isPlaying];
+    return [_current isPlaying];
 }
 
-
-- (OOMusicMode) mode
+- (OOMusicMode)mode
 {
-	return _mode;
+    return _mode;
 }
 
-
-- (void) setMode:(OOMusicMode)mode
+- (void)setMode:(OOMusicMode)mode
 {
-	if (mode <= kOOMusicModeMax && _mode != mode)
-	{
-		if (_mode == kOOMusicITunes) [self pauseiTunes];
-		_mode = mode;
-		
-		if (_mode == kOOMusicOff)  [self stop];
-		else switch (_special)
-		{
-			case kSpecialNone:
-				[self stop];
-				break;
-				
-			case kSpecialTheme:
-				[self playThemeMusic];
-				break;
-				
-			case kSpecialDocked:
-				[self playDockedMusic];
-				break;
-				
-			case kSpecialDocking:
-				[self playDockingMusic];
-				break;
-				
-			case kSpecialMission:
-				[self playMissionMusic];
-				break;
-		}
-		
-		NSString *modeString = nil;
-		switch (_mode)
-		{
-			case kOOMusicOff:		modeString = @"off"; break;
-			case kOOMusicOn:		modeString = @"on"; break;
-			case kOOMusicITunes:	modeString = @"iTunes"; break;
-		}
-		[[NSUserDefaults standardUserDefaults] setObject:modeString forKey:@"music mode"];
-	}
+    if (mode <= kOOMusicModeMax && _mode != mode) {
+        if (_mode == kOOMusicITunes)
+            [self pauseiTunes];
+        _mode = mode;
+
+        if (_mode == kOOMusicOff)
+            [self stop];
+        else
+            switch (_special) {
+            case kSpecialNone:
+                [self stop];
+                break;
+
+            case kSpecialTheme:
+                [self playThemeMusic];
+                break;
+
+            case kSpecialDocked:
+                [self playDockedMusic];
+                break;
+
+            case kSpecialDocking:
+                [self playDockingMusic];
+                break;
+
+            case kSpecialMission:
+                [self playMissionMusic];
+                break;
+            }
+
+        NSString* modeString = nil;
+        switch (_mode) {
+        case kOOMusicOff:
+            modeString = @"off";
+            break;
+        case kOOMusicOn:
+            modeString = @"on";
+            break;
+        case kOOMusicITunes:
+            modeString = @"iTunes";
+            break;
+        }
+        [[NSUserDefaults standardUserDefaults] setObject:modeString forKey:@"music mode"];
+    }
 }
 
 @end
-
-
 
 @implementation OOMusicController (Singleton)
 
 /*	Canonical singleton boilerplate.
-	See Cocoa Fundamentals Guide: Creating a Singleton Instance.
-	See also +sharedController above.
-	
-	NOTE: assumes single-threaded access.
+        See Cocoa Fundamentals Guide: Creating a Singleton Instance.
+        See also +sharedController above.
+
+        NOTE: assumes single-threaded access.
 */
 
-+ (id) allocWithZone:(NSZone *)inZone
++ (id)allocWithZone:(NSZone*)inZone
 {
-	if (sSingleton == nil)
-	{
-		sSingleton = [super allocWithZone:inZone];
-		return sSingleton;
-	}
-	return nil;
+    if (sSingleton == nil) {
+        sSingleton = [super allocWithZone:inZone];
+        return sSingleton;
+    }
+    return nil;
 }
 
-
-- (id) copyWithZone:(NSZone *)inZone
+- (id)copyWithZone:(NSZone*)inZone
 {
-	return self;
+    return self;
 }
 
-
-- (id) retain
+- (id)retain
 {
-	return self;
+    return self;
 }
 
-
-- (NSUInteger) retainCount
+- (NSUInteger)retainCount
 {
-	return UINT_MAX;
+    return UINT_MAX;
 }
 
-
-- (void) release
-{}
-
-
-- (id) autorelease
+- (void)release
 {
-	return self;
+}
+
+- (id)autorelease
+{
+    return self;
 }
 
 @end
 
-
 @implementation OOMusicController (Private)
 
 #if OOLITE_MAC_OS_X
-- (void) playiTunesPlaylist:(NSString *)playlistName
+- (void)playiTunesPlaylist:(NSString*)playlistName
 {
-	NSString *ootunesScriptString =
-		[NSString stringWithFormat:
-		@"with timeout of 1 second\n"
-		 "    tell application \"iTunes\"\n"
-		 "        copy playlist \"%@\" to thePlaylist\n"
-		 "        if thePlaylist exists then\n"
-		 "            play some track of thePlaylist\n"
-		 "        end if\n"
-		 "    end tell\n"
-		 "end timeout",
-		 playlistName];
-	
-	NSAppleScript *ootunesScript = [[[NSAppleScript alloc] initWithSource:ootunesScriptString] autorelease];
-	NSDictionary *errDict = nil;
-	
-	[ootunesScript executeAndReturnError:&errDict];
-	if (errDict)
-		OOLog(@"sound.music.iTunesIntegration.failed", @"ootunes returned :%@", errDict);
+    NSString* ootunesScriptString =
+        [NSString stringWithFormat:
+                @"with timeout of 1 second\n"
+                 "    tell application \"iTunes\"\n"
+                 "        copy playlist \"%@\" to thePlaylist\n"
+                 "        if thePlaylist exists then\n"
+                 "            play some track of thePlaylist\n"
+                 "        end if\n"
+                 "    end tell\n"
+                 "end timeout",
+            playlistName];
+
+    NSAppleScript* ootunesScript = [[[NSAppleScript alloc] initWithSource:ootunesScriptString] autorelease];
+    NSDictionary* errDict = nil;
+
+    [ootunesScript executeAndReturnError:&errDict];
+    if (errDict)
+        OOLog(@"sound.music.iTunesIntegration.failed", @"ootunes returned :%@", errDict);
 }
 
-
-- (void) pauseiTunes
+- (void)pauseiTunes
 {
-	NSString *ootunesScriptString = [NSString stringWithFormat:@"try\nignoring application responses\ntell application \"iTunes\" to pause\nend ignoring\nend try"];
-	NSAppleScript *ootunesScript = [[NSAppleScript alloc] initWithSource:ootunesScriptString];
-	NSDictionary *errDict = nil;
-	[ootunesScript executeAndReturnError:&errDict];
-	if (errDict)
-		OOLog(@"sound.music.iTunesIntegration.failed", @"ootunes returned :%@", errDict);
-	[ootunesScript release]; 
+    NSString* ootunesScriptString = [NSString stringWithFormat:@"try\nignoring application responses\ntell application \"iTunes\" to pause\nend ignoring\nend try"];
+    NSAppleScript* ootunesScript = [[NSAppleScript alloc] initWithSource:ootunesScriptString];
+    NSDictionary* errDict = nil;
+    [ootunesScript executeAndReturnError:&errDict];
+    if (errDict)
+        OOLog(@"sound.music.iTunesIntegration.failed", @"ootunes returned :%@", errDict);
+    [ootunesScript release];
 }
 #else
-- (void) playiTunesPlaylist:(NSString *)playlistName {}
-- (void) pauseiTunes {}
+- (void)playiTunesPlaylist:(NSString*)playlistName
+{
+}
+- (void)pauseiTunes
+{
+}
 #endif
 
 @end

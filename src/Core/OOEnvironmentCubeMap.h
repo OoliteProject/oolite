@@ -34,20 +34,18 @@ SOFTWARE.
 
 #import "OOTexture.h"
 
-
-@interface OOEnvironmentCubeMap: OOTexture
-{
+@interface OOEnvironmentCubeMap : OOTexture {
 @private
-	GLuint						_size;
-	GLuint						_fbos[6];
-	GLuint						_depthBuffers[6];
-	GLuint						_textureName;
-	BOOL						_planets;
+    GLuint _size;
+    GLuint _fbos[6];
+    GLuint _depthBuffers[6];
+    GLuint _textureName;
+    BOOL _planets;
 }
 
-- (id) initWithSideLength:(GLuint)size;
+- (id)initWithSideLength:(GLuint)size;
 
-- (void) render;
+- (void)render;
 
 @end
 

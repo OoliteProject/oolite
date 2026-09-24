@@ -30,61 +30,55 @@ MA 02110-1301, USA.
 
 @class OOMusic;
 
-
 #define OOLITE_ITUNES_SUPPORT OOLITE_MAC_OS_X
 
+typedef enum {
+    kOOMusicOff,
+    kOOMusicOn,
+    kOOMusicITunes,
 
-typedef enum
-{
-	kOOMusicOff,
-	kOOMusicOn,
-	kOOMusicITunes,
-	
 #if OOLITE_ITUNES_SUPPORT
-	kOOMusicModeMax = kOOMusicITunes
+    kOOMusicModeMax = kOOMusicITunes
 #else
-	kOOMusicModeMax = kOOMusicOn
+    kOOMusicModeMax = kOOMusicOn
 #endif
 } OOMusicMode;
 
-
-@interface OOMusicController: NSObject
-{
+@interface OOMusicController : NSObject {
 @private
-	OOMusicMode				_mode;
-	NSString				*_missionMusic;
-	OOMusic					*_current;
-	uint8_t					_special;
+    OOMusicMode _mode;
+    NSString* _missionMusic;
+    OOMusic* _current;
+    uint8_t _special;
 }
 
-+ (OOMusicController *) sharedController;
++ (OOMusicController*)sharedController;
 
-- (void) playMusicNamed:(NSString *)name loop:(BOOL)loop;
-- (void) playMusicNamed:(NSString *)name loop:(BOOL)loop gain:(float)gain;
+- (void)playMusicNamed:(NSString*)name loop:(BOOL)loop;
+- (void)playMusicNamed:(NSString*)name loop:(BOOL)loop gain:(float)gain;
 
-- (void) playThemeMusic;
-- (void) playDockingMusic;
-- (void) playDockedMusic;
+- (void)playThemeMusic;
+- (void)playDockingMusic;
+- (void)playDockedMusic;
 
-- (void) setMissionMusic:(NSString *)missionMusicName;
-- (void) playMissionMusic;
+- (void)setMissionMusic:(NSString*)missionMusicName;
+- (void)playMissionMusic;
 
-- (void) justStop;
-- (void) stop;
-- (void) stopMusicNamed:(NSString *)name;	// Stop only if name == playingMusic
-- (void) stopThemeMusic;
-- (void) stopDockingMusic;
-- (void) stopMissionMusic;
+- (void)justStop;
+- (void)stop;
+- (void)stopMusicNamed:(NSString*)name; // Stop only if name == playingMusic
+- (void)stopThemeMusic;
+- (void)stopDockingMusic;
+- (void)stopMissionMusic;
 
-- (void) toggleDockingMusic;	// Start docking music if none playing, stop docking music if currently playing docking music.
+- (void)toggleDockingMusic; // Start docking music if none playing, stop docking music if currently playing docking music.
 
-- (OOSoundSource *) soundSource;
+- (OOSoundSource*)soundSource;
 
-- (NSString *) playingMusic;
-- (BOOL) isPlaying;
+- (NSString*)playingMusic;
+- (BOOL)isPlaying;
 
-- (OOMusicMode) mode;
-- (void) setMode:(OOMusicMode)mode;
-
+- (OOMusicMode)mode;
+- (void)setMode:(OOMusicMode)mode;
 
 @end

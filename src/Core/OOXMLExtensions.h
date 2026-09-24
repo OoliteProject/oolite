@@ -29,13 +29,12 @@ MA 02110-1301, USA.
 
 */
 
-
 #import <Foundation/Foundation.h>
 
 /* interfaces */
 
 @interface NSDictionary (OOXMLExtensions)
 
-- (BOOL) writeOOXMLToFile:(NSString *)path atomically:(BOOL)flag errorDescription:(NSString **)outErrorDesc;
+- (BOOL)writeOOXMLToFile:(NSString*)path atomically:(BOOL)flag errorDescription:(NSString**)outErrorDesc;
 
 @end

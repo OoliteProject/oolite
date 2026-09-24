@@ -29,7 +29,6 @@ SOFTWARE.
 
 */
 
-
 #pragma once
 
 #import "OOFoundation.h"
@@ -41,34 +40,34 @@ SOFTWARE.
 @protocol OODebuggerInterface <NSObject>
 
 // Sent to establish connection.
-- (BOOL)connectDebugMonitor:(in OODebugMonitor *)debugMonitor
-			   errorMessage:(out NSString **)message;
+- (BOOL)connectDebugMonitor:(in OODebugMonitor*)debugMonitor
+               errorMessage:(out NSString**)message;
 
 // Sent to close connection.
-- (void)disconnectDebugMonitor:(in OODebugMonitor *)debugMonitor
-					   message:(in NSString *)message;
+- (void)disconnectDebugMonitor:(in OODebugMonitor*)debugMonitor
+                       message:(in NSString*)message;
 
 // Sent to print to the JavaScript console.
 // colorKey is intended to be used to look up a foreground/background colour pair
 // in the configuration. EmphasisRange is to specify a bold section of text.
-- (oneway void)debugMonitor:(in OODebugMonitor *)debugMonitor
-			jsConsoleOutput:(in NSString *)output
-				   colorKey:(in NSString *)colorKey
-			  emphasisRange:(in NSRange)emphasisRange;
+- (oneway void)debugMonitor:(in OODebugMonitor*)debugMonitor
+            jsConsoleOutput:(in NSString*)output
+                   colorKey:(in NSString*)colorKey
+              emphasisRange:(in NSRange)emphasisRange;
 
 // Sent to clear the JavaScript console.
-- (oneway void)debugMonitorClearConsole:(in OODebugMonitor *)debugMonitor;
+- (oneway void)debugMonitorClearConsole:(in OODebugMonitor*)debugMonitor;
 
 // Sent to show the console, for instance in response to a warning or error message.
-- (oneway void)debugMonitorShowConsole:(in OODebugMonitor *)debugMonitor;
+- (oneway void)debugMonitorShowConsole:(in OODebugMonitor*)debugMonitor;
 
 // Sent once when the debugger is connected.
-- (oneway void)debugMonitor:(in OODebugMonitor *)debugMonitor
-		  noteConfiguration:(in NSDictionary *)configuration;
+- (oneway void)debugMonitor:(in OODebugMonitor*)debugMonitor
+          noteConfiguration:(in NSDictionary*)configuration;
 
 // Sent when configuration changes. newValue may be nil.
-- (oneway void)debugMonitor:(in OODebugMonitor *)debugMonitor
-noteChangedConfigrationValue:(in id)newValue
-					 forKey:(in NSString *)key;
+- (oneway void)debugMonitor:(in OODebugMonitor*)debugMonitor
+    noteChangedConfigrationValue:(in id)newValue
+                          forKey:(in NSString*)key;
 
 @end

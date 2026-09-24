@@ -26,231 +26,222 @@ MA 02110-1301, USA.
 
 #pragma once
 
-#import "ShipEntity.h"
 #import "OOJSInterfaceDefinition.h"
+#import "ShipEntity.h"
 #import "Universe.h"
 
 @class OOWeakSet;
 
-
-typedef enum
-{
-	STATION_ALERT_LEVEL_GREEN	= ALERT_CONDITION_GREEN,
-	STATION_ALERT_LEVEL_YELLOW	= ALERT_CONDITION_YELLOW,
-	STATION_ALERT_LEVEL_RED		= ALERT_CONDITION_RED
+typedef enum {
+    STATION_ALERT_LEVEL_GREEN = ALERT_CONDITION_GREEN,
+    STATION_ALERT_LEVEL_YELLOW = ALERT_CONDITION_YELLOW,
+    STATION_ALERT_LEVEL_RED = ALERT_CONDITION_RED
 } OOStationAlertLevel;
 
-#define STATION_MAX_POLICE				8
+#define STATION_MAX_POLICE 8
 
-#define STATION_DELAY_BETWEEN_LAUNCHES  6.0
+#define STATION_DELAY_BETWEEN_LAUNCHES 6.0
 
-#define STATION_LAUNCH_RETRY_INTERVAL   2.0
+#define STATION_LAUNCH_RETRY_INTERVAL 2.0
 
-#define MAX_DOCKING_STAGES				16
+#define MAX_DOCKING_STAGES 16
 
-#define DOCKING_CLEARANCE_WINDOW		126.0
+#define DOCKING_CLEARANCE_WINDOW 126.0
 
-
-@interface StationEntity: ShipEntity
-{
+@interface StationEntity : ShipEntity {
 @private
-	OOWeakSet				*_shipsOnHold;
-	DockEntity				*player_reserved_dock;
-	double					last_launch_time;
-	double					approach_spacing;
-	OOStationAlertLevel		alertLevel;
-	
-	unsigned				max_police;					// max no. of police ships allowed
-	unsigned				max_defense_ships;			// max no. of defense ships allowed
-	unsigned				defenders_launched;
-	
-	unsigned				max_scavengers;				// max no. of scavenger ships allowed
-	unsigned				scavengers_launched;
-	
-	OOTechLevelID			equivalentTechLevel;
-	float					equipmentPriceFactor;
-	
-	Vector  				port_dimensions;
-	double					port_radius;
-	
-	unsigned				no_docking_while_launching: 1,
-							hasNPCTraffic: 1;
-	BOOL					hasPatrolShips;
-	
-	OOUniversalID			planet;
+    OOWeakSet* _shipsOnHold;
+    DockEntity* player_reserved_dock;
+    double last_launch_time;
+    double approach_spacing;
+    OOStationAlertLevel alertLevel;
 
-	NSString				*allegiance;
-	
-	OOCommodityMarket		*localMarket;
-	OOCargoQuantity			marketCapacity;
-	NSArray					*marketDefinition;
-	NSString				*marketScriptName;
-//	NSMutableArray			*localPassengers;
-//	NSMutableArray			*localContracts;
-	NSMutableArray			*localShipyard;
-	
-	NSMutableDictionary *localInterfaces;
+    unsigned max_police; // max no. of police ships allowed
+    unsigned max_defense_ships; // max no. of defense ships allowed
+    unsigned defenders_launched;
 
-	unsigned				docked_shuttles;
-	double					last_shuttle_launch_time;
-	double					shuttle_launch_interval;
-	
-	unsigned				docked_traders;
-	double					last_trader_launch_time;
-	double					trader_launch_interval;
-	
-	double					last_patrol_report_time;
-	double					patrol_launch_interval;
-	
-	unsigned				suppress_arrival_reports: 1,
-							requiresDockingClearance: 1,
-							interstellarUndockingAllowed: 1,
-							allowsFastDocking: 1,
-							allowsSaving: 1,
-							allowsAutoDocking: 1,
-							hasBreakPattern: 1,
-							marketMonitored: 1,
-							marketBroadcast: 1;
+    unsigned max_scavengers; // max no. of scavenger ships allowed
+    unsigned scavengers_launched;
+
+    OOTechLevelID equivalentTechLevel;
+    float equipmentPriceFactor;
+
+    Vector port_dimensions;
+    double port_radius;
+
+    unsigned no_docking_while_launching : 1,
+        hasNPCTraffic : 1;
+    BOOL hasPatrolShips;
+
+    OOUniversalID planet;
+
+    NSString* allegiance;
+
+    OOCommodityMarket* localMarket;
+    OOCargoQuantity marketCapacity;
+    NSArray* marketDefinition;
+    NSString* marketScriptName;
+    //	NSMutableArray			*localPassengers;
+    //	NSMutableArray			*localContracts;
+    NSMutableArray* localShipyard;
+
+    NSMutableDictionary* localInterfaces;
+
+    unsigned docked_shuttles;
+    double last_shuttle_launch_time;
+    double shuttle_launch_interval;
+
+    unsigned docked_traders;
+    double last_trader_launch_time;
+    double trader_launch_interval;
+
+    double last_patrol_report_time;
+    double patrol_launch_interval;
+
+    unsigned suppress_arrival_reports : 1,
+        requiresDockingClearance : 1,
+        interstellarUndockingAllowed : 1,
+        allowsFastDocking : 1,
+        allowsSaving : 1,
+        allowsAutoDocking : 1,
+        hasBreakPattern : 1,
+        marketMonitored : 1,
+        marketBroadcast : 1;
 }
 
+- (OOCargoQuantity)marketCapacity;
+- (NSArray*)marketDefinition;
+- (NSString*)marketScriptName;
+- (BOOL)marketMonitored;
+- (BOOL)marketBroadcast;
+- (OOCreditsQuantity)legalStatusOfManifest:(OOCommodityMarket*)manifest export:(BOOL)export;
 
-- (OOCargoQuantity) marketCapacity;
-- (NSArray *) marketDefinition;
-- (NSString *) marketScriptName;
-- (BOOL) marketMonitored;
-- (BOOL) marketBroadcast;
-- (OOCreditsQuantity) legalStatusOfManifest:(OOCommodityMarket *)manifest export:(BOOL)export;
-
-- (OOCommodityMarket *) localMarket;
-- (void) setLocalMarket:(NSArray *)market;
-- (NSDictionary *) localMarketForScripting;
-- (void) setPrice:(OOCreditsQuantity) price forCommodity:(OOCommodityType) commodity;
-- (void) setQuantity:(OOCargoQuantity) quantity forCommodity:(OOCommodityType) commodity;
+- (OOCommodityMarket*)localMarket;
+- (void)setLocalMarket:(NSArray*)market;
+- (NSDictionary*)localMarketForScripting;
+- (void)setPrice:(OOCreditsQuantity)price forCommodity:(OOCommodityType)commodity;
+- (void)setQuantity:(OOCargoQuantity)quantity forCommodity:(OOCommodityType)commodity;
 
 /*- (NSMutableArray *) localPassengers;
 - (void) setLocalPassengers:(NSArray *)market;
 - (NSMutableArray *) localContracts;
 - (void) setLocalContracts:(NSArray *)market; */
-- (NSMutableArray *) localShipyard;
-- (void) setLocalShipyard:(NSArray *)market;
-- (void) generateShipyard;
-- (void) generateShipyard:(OOTechLevelID)stationTechLevel;
-- (NSMutableDictionary *) localInterfaces;
-- (void) setInterfaceDefinition:(OOJSInterfaceDefinition *)definition forKey:(NSString *)key;
+- (NSMutableArray*)localShipyard;
+- (void)setLocalShipyard:(NSArray*)market;
+- (void)generateShipyard;
+- (void)generateShipyard:(OOTechLevelID)stationTechLevel;
+- (NSMutableDictionary*)localInterfaces;
+- (void)setInterfaceDefinition:(OOJSInterfaceDefinition*)definition forKey:(NSString*)key;
 
-- (OOCommodityMarket *) initialiseLocalMarket;
+- (OOCommodityMarket*)initialiseLocalMarket;
 
-- (OOTechLevelID) equivalentTechLevel;
-- (void) setEquivalentTechLevel:(OOTechLevelID)value;
+- (OOTechLevelID)equivalentTechLevel;
+- (void)setEquivalentTechLevel:(OOTechLevelID)value;
 
-- (NSEnumerator *) dockSubEntityEnumerator;
-- (Vector) virtualPortDimensions;
-- (DockEntity*) playerReservedDock;
+- (NSEnumerator*)dockSubEntityEnumerator;
+- (Vector)virtualPortDimensions;
+- (DockEntity*)playerReservedDock;
 
-- (HPVector) beaconPosition;
+- (HPVector)beaconPosition;
 
-- (float) equipmentPriceFactor;
+- (float)equipmentPriceFactor;
 
-- (void) setPlanet:(OOPlanetEntity *)planet;
+- (void)setPlanet:(OOPlanetEntity*)planet;
 
-- (OOPlanetEntity *) planet;
+- (OOPlanetEntity*)planet;
 
-- (void) setAllegiance:(NSString *)newAllegiance;
-- (NSString *)allegiance;
+- (void)setAllegiance:(NSString*)newAllegiance;
+- (NSString*)allegiance;
 
-- (unsigned) countOfDockedContractors;
-- (unsigned) countOfDockedPolice;
-- (unsigned) countOfDockedDefenders;
+- (unsigned)countOfDockedContractors;
+- (unsigned)countOfDockedPolice;
+- (unsigned)countOfDockedDefenders;
 
-- (void) sanityCheckShipsOnApproach;
+- (void)sanityCheckShipsOnApproach;
 
-- (void) autoDockShipsOnApproach;
+- (void)autoDockShipsOnApproach;
 
-- (Vector) portUpVectorForShip:(ShipEntity *)ship;
+- (Vector)portUpVectorForShip:(ShipEntity*)ship;
 
-- (NSDictionary *) dockingInstructionsForShip:(ShipEntity *)ship;
+- (NSDictionary*)dockingInstructionsForShip:(ShipEntity*)ship;
 
-- (BOOL) shipIsInDockingCorridor:(ShipEntity *)ship;
+- (BOOL)shipIsInDockingCorridor:(ShipEntity*)ship;
 
-- (BOOL) dockingCorridorIsEmpty;
+- (BOOL)dockingCorridorIsEmpty;
 
-- (void) clearDockingCorridor;
+- (void)clearDockingCorridor;
 
-- (void) clear;
+- (void)clear;
 
+- (void)abortAllDockings;
 
-- (void) abortAllDockings;
+- (void)abortDockingForShip:(ShipEntity*)ship;
 
-- (void) abortDockingForShip:(ShipEntity *)ship;
+- (BOOL)hasMultipleDocks;
+- (BOOL)hasClearDock;
+- (BOOL)hasLaunchDock;
+- (DockEntity*)selectDockForDocking;
+- (unsigned)currentlyInLaunchingQueues;
+- (unsigned)currentlyInDockingQueues;
 
-- (BOOL) hasMultipleDocks;
-- (BOOL) hasClearDock;
-- (BOOL) hasLaunchDock;
-- (DockEntity *) selectDockForDocking;
-- (unsigned) currentlyInLaunchingQueues;
-- (unsigned) currentlyInDockingQueues;
+- (void)launchShip:(ShipEntity*)ship;
 
+- (ShipEntity*)launchIndependentShip:(NSString*)role;
 
-- (void) launchShip:(ShipEntity *)ship;
+- (void)noteDockedShip:(ShipEntity*)ship;
 
-- (ShipEntity *) launchIndependentShip:(NSString *)role;
+- (BOOL)interstellarUndockingAllowed;
+- (BOOL)hasNPCTraffic;
+- (void)setHasNPCTraffic:(BOOL)flag;
 
-- (void) noteDockedShip:(ShipEntity *)ship;
-
-- (BOOL) interstellarUndockingAllowed;
-- (BOOL) hasNPCTraffic;
-- (void) setHasNPCTraffic:(BOOL)flag;
-
-- (OOStationAlertLevel) alertLevel;
-- (void) setAlertLevel:(OOStationAlertLevel)level signallingScript:(BOOL)signallingScript;
+- (OOStationAlertLevel)alertLevel;
+- (void)setAlertLevel:(OOStationAlertLevel)level signallingScript:(BOOL)signallingScript;
 
 ////////////////////////////////////////////////////////////// AI methods...
 
-- (void) increaseAlertLevel;
-- (void) decreaseAlertLevel;
+- (void)increaseAlertLevel;
+- (void)decreaseAlertLevel;
 
-- (NSArray *) launchPolice;
-- (ShipEntity *) launchDefenseShip;
-- (ShipEntity *) launchScavenger;
-- (ShipEntity *) launchMiner;
+- (NSArray*)launchPolice;
+- (ShipEntity*)launchDefenseShip;
+- (ShipEntity*)launchScavenger;
+- (ShipEntity*)launchMiner;
 /**Lazygun** added the following line*/
-- (ShipEntity *) launchPirateShip;
-- (ShipEntity *) launchShuttle;
-- (ShipEntity *) launchEscort;
-- (ShipEntity *) launchPatrol;
+- (ShipEntity*)launchPirateShip;
+- (ShipEntity*)launchShuttle;
+- (ShipEntity*)launchEscort;
+- (ShipEntity*)launchPatrol;
 
-- (void) launchShipWithRole:(NSString *)role;
+- (void)launchShipWithRole:(NSString*)role;
 
-- (void) acceptPatrolReportFrom:(ShipEntity *)patrol_ship;
+- (void)acceptPatrolReportFrom:(ShipEntity*)patrol_ship;
 
-- (NSString *) acceptDockingClearanceRequestFrom:(ShipEntity *)other;
-- (BOOL) requiresDockingClearance;
-- (void) setRequiresDockingClearance:(BOOL)newValue;
+- (NSString*)acceptDockingClearanceRequestFrom:(ShipEntity*)other;
+- (BOOL)requiresDockingClearance;
+- (void)setRequiresDockingClearance:(BOOL)newValue;
 
-- (BOOL) allowsFastDocking;
-- (void) setAllowsFastDocking:(BOOL)newValue;
+- (BOOL)allowsFastDocking;
+- (void)setAllowsFastDocking:(BOOL)newValue;
 
-- (BOOL) allowsAutoDocking;
-- (void) setAllowsAutoDocking:(BOOL)newValue;
+- (BOOL)allowsAutoDocking;
+- (void)setAllowsAutoDocking:(BOOL)newValue;
 
-- (BOOL) allowsSaving;
+- (BOOL)allowsSaving;
 // no setting this after station creation
 
-- (NSString *) marketOverrideName;
-- (BOOL) isRotatingStation;
-- (BOOL) hasShipyard;
+- (NSString*)marketOverrideName;
+- (BOOL)isRotatingStation;
+- (BOOL)hasShipyard;
 
-- (BOOL) suppressArrivalReports;
-- (void) setSuppressArrivalReports:(BOOL)newValue;
+- (BOOL)suppressArrivalReports;
+- (void)setSuppressArrivalReports:(BOOL)newValue;
 
-- (BOOL) hasBreakPattern;
-- (void) setHasBreakPattern:(BOOL)newValue;
+- (BOOL)hasBreakPattern;
+- (void)setHasBreakPattern:(BOOL)newValue;
 
-- (BOOL) fitsInDock:(ShipEntity *)ship;
-- (BOOL) fitsInDock:(ShipEntity *)ship andLogNoFit:(BOOL)logNoFit;
+- (BOOL)fitsInDock:(ShipEntity*)ship;
+- (BOOL)fitsInDock:(ShipEntity*)ship andLogNoFit:(BOOL)logNoFit;
 
 @end
 
-
-
-NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords, float speed, float range, NSString *ai_message, NSString *comms_message, BOOL match_rotation, int docking_stage);
+NSDictionary* OOMakeDockingInstructions(StationEntity* station, HPVector coords, float speed, float range, NSString* ai_message, NSString* comms_message, BOOL match_rotation, int docking_stage);

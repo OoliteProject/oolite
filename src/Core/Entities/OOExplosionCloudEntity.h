@@ -27,18 +27,17 @@ MA 02110-1301, USA.
 
 #import "OOParticleSystem.h"
 
-@interface OOExplosionCloudEntity: OOParticleSystem
-{
+@interface OOExplosionCloudEntity : OOParticleSystem {
 @private
-	float				_growthRate;
-	OOTimeDelta			_cloudDuration;
-	float				_alpha;
-	float				_brightnessMult;
-	OOTexture			*_texture;
-	NSDictionary		*_settings;
+    float _growthRate;
+    OOTimeDelta _cloudDuration;
+    float _alpha;
+    float _brightnessMult;
+    OOTexture* _texture;
+    NSDictionary* _settings;
 }
 
-+ (instancetype) explosionCloudFromEntity:(Entity *)entity withSettings:(NSDictionary *)settings;
-+ (instancetype) explosionCloudFromEntity:(Entity *)entity withSize:(float) size andSettings:(NSDictionary *)settings;
++ (instancetype)explosionCloudFromEntity:(Entity*)entity withSettings:(NSDictionary*)settings;
++ (instancetype)explosionCloudFromEntity:(Entity*)entity withSize:(float)size andSettings:(NSDictionary*)settings;
 
 @end

@@ -39,15 +39,14 @@ SOFTWARE.
 
 #import <Foundation/Foundation.h>
 
-
 void OOLogOutputHandlerInit(void);
 void OOLogOutputHandlerClose(void);
-void OOLogOutputHandlerPrint(NSString *string);
+void OOLogOutputHandlerPrint(NSString* string);
 
 // This will attempt to ensure the containing directory exists. If it fails, it will return nil.
-NSString *OOLogHandlerGetLogPath(void);
-NSString *OOLogHandlerGetLogBasePath(void);
-void OOLogOutputHandlerChangeLogFile(NSString *newLogName);
+NSString* OOLogHandlerGetLogPath(void);
+NSString* OOLogHandlerGetLogBasePath(void);
+void OOLogOutputHandlerChangeLogFile(NSString* newLogName);
 
 void OOLogOutputHandlerStartLoggingToStdout(void);
 void OOLogOutputHandlerStopLoggingToStdout(void);

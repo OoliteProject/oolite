@@ -29,38 +29,32 @@ MA 02110-1301, USA.
 
 @class OOColor;
 
-
-enum
-{
-	kOOBreakPatternMaxSides			= 128,
-	kOOBreakPatternMaxVertices		= (kOOBreakPatternMaxSides + 1) * 2
+enum {
+    kOOBreakPatternMaxSides = 128,
+    kOOBreakPatternMaxVertices = (kOOBreakPatternMaxSides + 1) * 2
 };
 
+#define BREAK_PATTERN_RING_SPACING 50.0
+#define BREAK_PATTERN_RING_SPEED 200.0
 
-#define BREAK_PATTERN_RING_SPACING		50.0
-#define BREAK_PATTERN_RING_SPEED		200.0
-
-
-@interface OOBreakPatternEntity: Entity
-{
+@interface OOBreakPatternEntity : Entity {
 @private
-	Vector					_vertexPosition[kOOBreakPatternMaxVertices];
-	GLfloat					_vertexColor[kOOBreakPatternMaxVertices][4];
-	NSUInteger				_vertexCount;
-	double					_lifetime;
+    Vector _vertexPosition[kOOBreakPatternMaxVertices];
+    GLfloat _vertexColor[kOOBreakPatternMaxVertices][4];
+    NSUInteger _vertexCount;
+    double _lifetime;
 }
 
-+ (instancetype) breakPatternWithPolygonSides:(NSUInteger)sides startAngle:(float)startAngleDegrees aspectRatio:(float)aspectRatio;
++ (instancetype)breakPatternWithPolygonSides:(NSUInteger)sides startAngle:(float)startAngleDegrees aspectRatio:(float)aspectRatio;
 
-- (void) setInnerColor:(OOColor *)color1 outerColor:(OOColor *)color2;
+- (void)setInnerColor:(OOColor*)color1 outerColor:(OOColor*)color2;
 
-- (void) setLifetime:(double)lifetime;
+- (void)setLifetime:(double)lifetime;
 
 @end
 
-
 @interface Entity (OOBreakPatternEntity)
 
-- (BOOL) isBreakPattern;
+- (BOOL)isBreakPattern;
 
 @end

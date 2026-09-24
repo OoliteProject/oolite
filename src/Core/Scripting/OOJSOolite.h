@@ -28,5 +28,4 @@ MA 02110-1301, USA.
 #import <Foundation/Foundation.h>
 #include <jsapi.h>
 
-
-void InitOOJSOolite(JSContext *context, JSObject *global);
+void InitOOJSOolite(JSContext* context, JSObject* global);

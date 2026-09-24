@@ -29,30 +29,27 @@ SOFTWARE.
 
 #import "OOTextureLoader.h"
 
-
 typedef struct
 {
-	float			r, g, b;
+    float r, g, b;
 } FloatRGB;
 
-
 typedef struct
 {
-	float			r, g, b, a;
+    float r, g, b, a;
 } FloatRGBA;
 
-
-@interface OOTextureGenerator: OOTextureLoader
+@interface OOTextureGenerator : OOTextureLoader
 
 // Generators, unlike normal loaders, get to specify their own flags and other settings.
-- (uint32_t) textureOptions;	// Default: kOOTextureDefaultOptions
-- (GLfloat) anisotropy;			// Default: kOOTextureDefaultAnisotropy
-- (GLfloat) lodBias;			// Default: kOOTextureDefaultLODBias
+- (uint32_t)textureOptions; // Default: kOOTextureDefaultOptions
+- (GLfloat)anisotropy; // Default: kOOTextureDefaultAnisotropy
+- (GLfloat)lodBias; // Default: kOOTextureDefaultLODBias
 
 // Key for in-memory cache; nil for no cache.
-- (NSString *) cacheKey;
+- (NSString*)cacheKey;
 
 // For use by OOTexture.
-- (BOOL) enqueue;
+- (BOOL)enqueue;
 
 @end

@@ -7,20 +7,20 @@ NSEnumerator which takes an existing enumerator and filters out the objects
 that return NO from a given method. The method may take 0 or 1 arguments
 
 Example of use:
-	NSArray			*cats = [self cats];
-	NSEnumerator	*happyCatEnum = [[cats objectEnumerator] filteredWithSelector:@selector(isHappy)];
-	id				happyCat = nil;
-	
-	while ((happyCat = [happyCatEnum nextObject]))
-	{
-		...
-	}
+        NSArray			*cats = [self cats];
+        NSEnumerator	*happyCatEnum = [[cats objectEnumerator] filteredWithSelector:@selector(isHappy)];
+        id				happyCat = nil;
+
+        while ((happyCat = [happyCatEnum nextObject]))
+        {
+                ...
+        }
 
 Filters can be trivially chained. For instance, to get happy red cats, use:
-	NSEnumeratore	*happyRedCatEnum = [[[cats objectEnumerator]
-										filteredWithSelector:@selector(isHappy)]
-										filteredWithSelector:@selector(hasColor:)
-												 andArgument:[NSColor redColor]];
+        NSEnumeratore	*happyRedCatEnum = [[[cats objectEnumerator]
+                                                                                filteredWithSelector:@selector(isHappy)]
+                                                                                filteredWithSelector:@selector(hasColor:)
+                                                                                                 andArgument:[NSColor redColor]];
 
 Objects that do not respond to the filter selector are treated as if they had
 returned NO.
@@ -53,61 +53,54 @@ SOFTWARE.
 
 #import "OOFoundation.h"
 
-
-@interface OOFilteringEnumerator: NSEnumerator
-{
+@interface OOFilteringEnumerator : NSEnumerator {
 @private
-	NSEnumerator		*_underlyingEnum;
-	SEL					_selector;
-	id					_argument;
-	BOOL				_takesArgument;
+    NSEnumerator* _underlyingEnum;
+    SEL _selector;
+    id _argument;
+    BOOL _takesArgument;
 }
 
-+ (id) filterEnumerator:(NSEnumerator *)enumerator withSelector:(SEL)selector;
-+ (id) filterEnumerator:(NSEnumerator *)enumerator withSelector:(SEL)selector andArgument:(id)argument;
++ (id)filterEnumerator:(NSEnumerator*)enumerator withSelector:(SEL)selector;
++ (id)filterEnumerator:(NSEnumerator*)enumerator withSelector:(SEL)selector andArgument:(id)argument;
 
-- (id) initWithUnderlyingEnumerator:(NSEnumerator *)enumerator
-					   withSelector:(SEL)selector
-					 takingArgument:(BOOL)takesArgument
-					  argumentValue:(id)argument;
+- (id)initWithUnderlyingEnumerator:(NSEnumerator*)enumerator
+                      withSelector:(SEL)selector
+                    takingArgument:(BOOL)takesArgument
+                     argumentValue:(id)argument;
 
 @end
-
 
 @interface NSEnumerator (OOFilteringEnumerator)
 
-- (id) filteredWithSelector:(SEL)selector;
-- (id) filteredWithSelector:(SEL)selector andArgument:(id)argument;
+- (id)filteredWithSelector:(SEL)selector;
+- (id)filteredWithSelector:(SEL)selector andArgument:(id)argument;
 
 @end
-
 
 @interface NSArray (OOFilteringEnumerator)
 
-- (id) objectEnumeratorFilteredWithSelector:(SEL)selector;
-- (id) objectEnumeratorFilteredWithSelector:(SEL)selector andArgument:(id)argument;
+- (id)objectEnumeratorFilteredWithSelector:(SEL)selector;
+- (id)objectEnumeratorFilteredWithSelector:(SEL)selector andArgument:(id)argument;
 
 @end
-
 
 @interface NSSet (OOFilteringEnumerator)
 
-- (id) objectEnumeratorFilteredWithSelector:(SEL)selector;
-- (id) objectEnumeratorFilteredWithSelector:(SEL)selector andArgument:(id)argument;
+- (id)objectEnumeratorFilteredWithSelector:(SEL)selector;
+- (id)objectEnumeratorFilteredWithSelector:(SEL)selector andArgument:(id)argument;
 
 @end
-
 
 @interface NSDictionary (OOFilteringEnumerator)
 
-- (id) objectEnumeratorFilteredWithSelector:(SEL)selector;
-- (id) objectEnumeratorFilteredWithSelector:(SEL)selector andArgument:(id)argument;
+- (id)objectEnumeratorFilteredWithSelector:(SEL)selector;
+- (id)objectEnumeratorFilteredWithSelector:(SEL)selector andArgument:(id)argument;
 
-- (id) keyEnumeratorFilteredWithSelector:(SEL)selector;
-- (id) keyEnumeratorFilteredWithSelector:(SEL)selector andArgument:(id)argument;
+- (id)keyEnumeratorFilteredWithSelector:(SEL)selector;
+- (id)keyEnumeratorFilteredWithSelector:(SEL)selector andArgument:(id)argument;
 
 @end
-
 
 @interface NSEnumerator (OOMakeObjectsPerformSelector)
 

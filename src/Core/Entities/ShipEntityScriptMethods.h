@@ -27,12 +27,11 @@ MA 02110-1301, USA.
 
 #import "ShipEntity.h"
 
-
 @interface ShipEntity (ScriptMethods)
 
-- (ShipEntity *) ejectShipOfType:(NSString *)shipKey;	// Note: ship type, not role.
-- (ShipEntity *) ejectShipOfRole:(NSString *)role;
+- (ShipEntity*)ejectShipOfType:(NSString*)shipKey; // Note: ship type, not role.
+- (ShipEntity*)ejectShipOfRole:(NSString*)role;
 
-- (NSArray *) spawnShipsWithRole:(NSString *)role count:(NSUInteger)count;
+- (NSArray*)spawnShipsWithRole:(NSString*)role count:(NSUInteger)count;
 
 @end

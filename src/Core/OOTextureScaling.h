@@ -31,17 +31,15 @@ SOFTWARE.
 
 #import "OOPixMap.h"
 
-
 /*	Assumes 8 bits per sample, interleaved.
-	dstPixels must have space for dstWidth * dstHeight pixels (no row padding
-	is generated).
-	
-	IMPORTANT: this will free() srcPixMap's pixels.
+        dstPixels must have space for dstWidth * dstHeight pixels (no row padding
+        is generated).
+
+        IMPORTANT: this will free() srcPixMap's pixels.
 */
 OOPixMap OOScalePixMap(OOPixMap srcPixMap, OOPixMapDimension dstWidth, OOPixMapDimension dstHeight, BOOL leaveSpaceForMipMaps);
 
-
 /*	Assumes 8 bits per sample, interleaved.
-	Buffer must have space for (4 * width * height) / 3 pixels.
+        Buffer must have space for (4 * width * height) / 3 pixels.
 */
-BOOL OOGenerateMipMaps(void *textureBytes, OOPixMapDimension width, OOPixMapDimension height, OOPixMapFormat format);
+BOOL OOGenerateMipMaps(void* textureBytes, OOPixMapDimension width, OOPixMapDimension height, OOPixMapFormat format);

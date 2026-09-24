@@ -27,18 +27,16 @@ MA 02110-1301, USA.
 
 #import "OOLightParticleEntity.h"
 
-
-@interface OOFlashEffectEntity: OOLightParticleEntity
-{
+@interface OOFlashEffectEntity : OOLightParticleEntity {
 @private
-	float				_duration;
-	float				_growthRate;
-	float				_alpha;
+    float _duration;
+    float _growthRate;
+    float _alpha;
 }
 
-+ (instancetype) explosionFlashFromEntity:(Entity *)entity;
-+ (instancetype) laserFlashWithPosition:(HPVector)position velocity:(Vector)vel color:(OOColor *)color;
++ (instancetype)explosionFlashFromEntity:(Entity*)entity;
++ (instancetype)laserFlashWithPosition:(HPVector)position velocity:(Vector)vel color:(OOColor*)color;
 
-+ (void) setUpTexture;
++ (void)setUpTexture;
 
 @end

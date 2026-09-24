@@ -29,12 +29,11 @@ SOFTWARE.
 
 #import "OOFoundation.h"
 
-
 @interface NSDictionary (OOExtensions)
 
 // These all return self if passed nil paramters. They all return a new immutable dictionary if sent to a mutable dictionary.
-- (NSDictionary *) dictionaryByAddingObject:(id)object forKey:(id)key;
-- (NSDictionary *) dictionaryByRemovingObjectForKey:(id)key;
-- (NSDictionary *) dictionaryByAddingEntriesFromDictionary:(NSDictionary *)dictionary;
+- (NSDictionary*)dictionaryByAddingObject:(id)object forKey:(id)key;
+- (NSDictionary*)dictionaryByRemovingObjectForKey:(id)key;
+- (NSDictionary*)dictionaryByAddingEntriesFromDictionary:(NSDictionary*)dictionary;
 
 @end

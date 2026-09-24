@@ -26,105 +26,89 @@ SOFTWARE.
 */
 
 #import "OOSingleTextureMaterial.h"
-#import "OOTexture.h"
 #import "OOCollectionExtractors.h"
 #import "OOFunctionAttributes.h"
-
+#import "OOTexture.h"
 
 @implementation OOSingleTextureMaterial
 
-- (id)initWithName:(NSString *)name configuration:(NSDictionary *)configuration
+- (id)initWithName:(NSString*)name configuration:(NSDictionary*)configuration
 {
-	id					texSpec = nil;
-	
-	if (configuration != nil)
-	{
-		texSpec = [configuration oo_textureSpecifierForKey:@"diffuse_map" defaultName:name];
-	}
-	else
-	{
-		texSpec = name;
-	}
-	
-	return [self initWithName:name
-					  texture:[OOTexture textureWithConfiguration:texSpec]
-				configuration:configuration];
+    id texSpec = nil;
+
+    if (configuration != nil) {
+        texSpec = [configuration oo_textureSpecifierForKey:@"diffuse_map" defaultName:name];
+    } else {
+        texSpec = name;
+    }
+
+    return [self initWithName:name
+                      texture:[OOTexture textureWithConfiguration:texSpec]
+                configuration:configuration];
 }
 
-
-- (id) initWithName:(NSString *)name texture:(OOTexture *)texture configuration:(NSDictionary *)configuration
+- (id)initWithName:(NSString*)name texture:(OOTexture*)texture configuration:(NSDictionary*)configuration
 {
-	if (name != nil && texture != nil)
-	{
-		self = [super initWithName:name configuration:configuration];
-		if (self != nil)
-		{
-			_texture = [texture retain];
-		}
-	}
-	else
-	{
-		DESTROY(self);
-	}
+    if (name != nil && texture != nil) {
+        self = [super initWithName:name configuration:configuration];
+        if (self != nil) {
+            _texture = [texture retain];
+        }
+    } else {
+        DESTROY(self);
+    }
 
-	
-	return self;
+    return self;
 }
-
 
 - (void)dealloc
 {
-	[self willDealloc];
-	[_texture release];
-	
-	[super dealloc];
+    [self willDealloc];
+    [_texture release];
+
+    [super dealloc];
 }
 
-
-- (NSString *) descriptionComponents
+- (NSString*)descriptionComponents
 {
-	return [_texture description];
+    return [_texture description];
 }
-
 
 - (BOOL)doApply
 {
-	if (EXPECT_NOT(![super doApply]))  return NO;
-	
-	[_texture apply];
-	return YES;
+    if (EXPECT_NOT(![super doApply]))
+        return NO;
+
+    [_texture apply];
+    return YES;
 }
 
-
-- (void)unapplyWithNext:(OOMaterial *)next
+- (void)unapplyWithNext:(OOMaterial*)next
 {
-	if (![next isKindOfClass:[OOSingleTextureMaterial class]])  [OOTexture applyNone];
-	[super unapplyWithNext:next];
+    if (![next isKindOfClass:[OOSingleTextureMaterial class]])
+        [OOTexture applyNone];
+    [super unapplyWithNext:next];
 }
-
 
 - (void)ensureFinishedLoading
 {
-	[_texture ensureFinishedLoading];
+    [_texture ensureFinishedLoading];
 }
 
-
-- (BOOL) isFinishedLoading
+- (BOOL)isFinishedLoading
 {
-	return [_texture isFinishedLoading];
+    return [_texture isFinishedLoading];
 }
 
-
-- (BOOL) wantsNormalsAsTextureCoordinates
+- (BOOL)wantsNormalsAsTextureCoordinates
 {
-	return [_texture isCubeMap];
+    return [_texture isCubeMap];
 }
-
 
 #ifndef NDEBUG
-- (NSSet *) allTextures
+- (NSSet*)allTextures
 {
-	return [NSSet setWithObject:_texture];
+    return [NSSet setWithObject:_texture];
 }
 #endif
 

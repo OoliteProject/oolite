@@ -31,146 +31,143 @@ SOFTWARE.
 #pragma once
 
 #import "OOFoundation.h"
-#import "OOTypes.h"
 #import "OOScript.h"
+#import "OOTypes.h"
 #import "Universe.h"
 
-
-@interface OOEquipmentType: NSObject <NSCopying>
-{
+@interface OOEquipmentType : NSObject <NSCopying> {
 @private
-	OOTechLevelID			_techLevel;
-	OOCreditsQuantity		_price;
-	NSString				*_name;
-	NSString				*_identifier;
-	NSString				*_description;
-	unsigned				_isAvailableToAll: 1,
-							_requiresEmptyPylon: 1,
-							_requiresMountedPylon: 1,
-							_requiresClean: 1,
-							_requiresNotClean: 1,
-							_portableBetweenShips: 1,
-							_requiresFreePassengerBerth: 1,
-							_requiresFullFuel: 1,
-							_requiresNonFullFuel: 1,
-							_isMissileOrMine: 1,
-							_isVisible: 1,
-							_isAvailableToPlayer: 1,
-							_isAvailableToNPCs: 1,
-							_fastAffinityA: 1,
-							_fastAffinityB: 1,
-							_canCarryMultiple: 1,
-							_hideValues: 1;
-	OOColor					*_displayColor;
-	NSUInteger				_installTime;
-	NSUInteger				_repairTime;
-	GLfloat     			_damageProbability;
-	OOCargoQuantity			_requiredCargoSpace;
-	NSSet					*_requiresEquipment;
-	NSSet					*_requiresAnyEquipment;
-	NSSet					*_incompatibleEquipment;
-	NSArray					*_conditions;
-	NSArray					*_provides;
-	NSArray					*_defaultActivateKey;
-	NSArray					*_defaultModeKey;
-	NSDictionary			*_scriptInfo;
-	NSDictionary			*_weaponInfo;
-	NSString				*_script;
-	NSString				*_condition_script;
-	
-	struct JSObject			*_jsSelf;
+    OOTechLevelID _techLevel;
+    OOCreditsQuantity _price;
+    NSString* _name;
+    NSString* _identifier;
+    NSString* _description;
+    unsigned _isAvailableToAll : 1,
+        _requiresEmptyPylon : 1,
+        _requiresMountedPylon : 1,
+        _requiresClean : 1,
+        _requiresNotClean : 1,
+        _portableBetweenShips : 1,
+        _requiresFreePassengerBerth : 1,
+        _requiresFullFuel : 1,
+        _requiresNonFullFuel : 1,
+        _isMissileOrMine : 1,
+        _isVisible : 1,
+        _isAvailableToPlayer : 1,
+        _isAvailableToNPCs : 1,
+        _fastAffinityA : 1,
+        _fastAffinityB : 1,
+        _canCarryMultiple : 1,
+        _hideValues : 1;
+    OOColor* _displayColor;
+    NSUInteger _installTime;
+    NSUInteger _repairTime;
+    GLfloat _damageProbability;
+    OOCargoQuantity _requiredCargoSpace;
+    NSSet* _requiresEquipment;
+    NSSet* _requiresAnyEquipment;
+    NSSet* _incompatibleEquipment;
+    NSArray* _conditions;
+    NSArray* _provides;
+    NSArray* _defaultActivateKey;
+    NSArray* _defaultModeKey;
+    NSDictionary* _scriptInfo;
+    NSDictionary* _weaponInfo;
+    NSString* _script;
+    NSString* _condition_script;
+
+    struct JSObject* _jsSelf;
 }
 
-+ (void) loadEquipment;			// Load equipment data; called on loading and when changing to/from strict mode.
-+ (void) addEquipmentWithInfo:(NSArray *)itemInfo;	// Used to generate equipment from missile_role entries.
++ (void)loadEquipment; // Load equipment data; called on loading and when changing to/from strict mode.
++ (void)addEquipmentWithInfo:(NSArray*)itemInfo; // Used to generate equipment from missile_role entries.
 
-+ (NSString *) getMissileRegistryRoleForShip:(NSString *)shipKey;
-+ (void) setMissileRegistryRole:(NSString *)roles forShip:(NSString *)shipKey;
++ (NSString*)getMissileRegistryRoleForShip:(NSString*)shipKey;
++ (void)setMissileRegistryRole:(NSString*)roles forShip:(NSString*)shipKey;
 
-+ (NSArray *) allEquipmentTypes;
-+ (NSEnumerator *) equipmentEnumerator;
-+ (NSEnumerator *) reverseEquipmentEnumerator;
-+ (NSEnumerator *) equipmentEnumeratorOutfitting;
++ (NSArray*)allEquipmentTypes;
++ (NSEnumerator*)equipmentEnumerator;
++ (NSEnumerator*)reverseEquipmentEnumerator;
++ (NSEnumerator*)equipmentEnumeratorOutfitting;
 
-+ (OOEquipmentType *) equipmentTypeWithIdentifier:(NSString *)identifier;
++ (OOEquipmentType*)equipmentTypeWithIdentifier:(NSString*)identifier;
 
-- (NSString *) identifier;
-- (NSString *) damagedIdentifier;
-- (NSString *) name;			// localized
-- (NSString *) descriptiveText;	// localized
-- (OOTechLevelID) techLevel;
-- (OOCreditsQuantity) price;	// Tenths of credits
+- (NSString*)identifier;
+- (NSString*)damagedIdentifier;
+- (NSString*)name; // localized
+- (NSString*)descriptiveText; // localized
+- (OOTechLevelID)techLevel;
+- (OOCreditsQuantity)price; // Tenths of credits
 
-- (BOOL) isAvailableToAll;
-- (BOOL) requiresEmptyPylon;
-- (BOOL) requiresMountedPylon;
-- (BOOL) requiresCleanLegalRecord;
-- (BOOL) requiresNonCleanLegalRecord;
-- (BOOL) requiresFreePassengerBerth;
-- (BOOL) requiresFullFuel;
-- (BOOL) requiresNonFullFuel;
-- (BOOL) isPrimaryWeapon;
-- (BOOL) isMissileOrMine;
-- (BOOL) isPortableBetweenShips;
+- (BOOL)isAvailableToAll;
+- (BOOL)requiresEmptyPylon;
+- (BOOL)requiresMountedPylon;
+- (BOOL)requiresCleanLegalRecord;
+- (BOOL)requiresNonCleanLegalRecord;
+- (BOOL)requiresFreePassengerBerth;
+- (BOOL)requiresFullFuel;
+- (BOOL)requiresNonFullFuel;
+- (BOOL)isPrimaryWeapon;
+- (BOOL)isMissileOrMine;
+- (BOOL)isPortableBetweenShips;
 
-- (BOOL) canCarryMultiple;
-- (GLfloat) damageProbability;
-- (BOOL) canBeDamaged;
-- (BOOL) isVisible;				// Visible in UI?
-- (BOOL) hideValues;
-- (OOColor *) displayColor;
-- (void) setDisplayColor:(OOColor *)newColor;
+- (BOOL)canCarryMultiple;
+- (GLfloat)damageProbability;
+- (BOOL)canBeDamaged;
+- (BOOL)isVisible; // Visible in UI?
+- (BOOL)hideValues;
+- (OOColor*)displayColor;
+- (void)setDisplayColor:(OOColor*)newColor;
 
-- (BOOL) isAvailableToPlayer;
-- (BOOL) isAvailableToNPCs;
+- (BOOL)isAvailableToPlayer;
+- (BOOL)isAvailableToNPCs;
 
-- (OOCargoQuantity) requiredCargoSpace;
-- (NSSet *) requiresEquipment;		// Set of equipment identifiers; all items required
-- (NSSet *) requiresAnyEquipment;	// Set of equipment identifiers; any item required
-- (NSSet *) incompatibleEquipment;	// Set of equipment identifiers; all items prohibited
+- (OOCargoQuantity)requiredCargoSpace;
+- (NSSet*)requiresEquipment; // Set of equipment identifiers; all items required
+- (NSSet*)requiresAnyEquipment; // Set of equipment identifiers; any item required
+- (NSSet*)incompatibleEquipment; // Set of equipment identifiers; all items prohibited
 
 // FIXME: should have general mechanism to handle scripts or legacy conditions.
-- (NSArray *) conditions;
+- (NSArray*)conditions;
 
-- (NSString *) conditionScript;
+- (NSString*)conditionScript;
 
-- (NSDictionary *) scriptInfo;
-- (NSString *) scriptName;
+- (NSDictionary*)scriptInfo;
+- (NSString*)scriptName;
 
-- (BOOL) fastAffinityDefensive;
-- (BOOL) fastAffinityOffensive;
+- (BOOL)fastAffinityDefensive;
+- (BOOL)fastAffinityOffensive;
 
-- (NSArray *) defaultActivateKey;
-- (NSArray *) defaultModeKey;
+- (NSArray*)defaultActivateKey;
+- (NSArray*)defaultModeKey;
 
-- (NSUInteger) installTime;
-- (NSUInteger) repairTime;
+- (NSUInteger)installTime;
+- (NSUInteger)repairTime;
 
-- (NSArray *) providesForScripting;
-- (BOOL) provides:(NSString *)key;
+- (NSArray*)providesForScripting;
+- (BOOL)provides:(NSString*)key;
 
 // weapon properties
-- (BOOL) isTurretLaser;
-- (BOOL) isMiningLaser;
-- (NSDictionary *) weaponInfo;
-- (GLfloat) weaponRange;
-- (GLfloat) weaponEnergyUse;
-- (GLfloat) weaponDamage;
-- (GLfloat) weaponRechargeRate;
-- (GLfloat) weaponShotTemperature;
-- (GLfloat) weaponThreatAssessment;
-- (OOColor *) weaponColor;
-- (NSString *) fxShotMissName;
-- (NSString *) fxShotHitName;
-- (NSString *) fxShieldHitName;
-- (NSString *) fxUnshieldedHitName;
-- (NSString *) fxWeaponLaunchedName;
+- (BOOL)isTurretLaser;
+- (BOOL)isMiningLaser;
+- (NSDictionary*)weaponInfo;
+- (GLfloat)weaponRange;
+- (GLfloat)weaponEnergyUse;
+- (GLfloat)weaponDamage;
+- (GLfloat)weaponRechargeRate;
+- (GLfloat)weaponShotTemperature;
+- (GLfloat)weaponThreatAssessment;
+- (OOColor*)weaponColor;
+- (NSString*)fxShotMissName;
+- (NSString*)fxShotHitName;
+- (NSString*)fxShieldHitName;
+- (NSString*)fxUnshieldedHitName;
+- (NSString*)fxWeaponLaunchedName;
 
 @end
 
-
 @interface OOEquipmentType (Conveniences)
 
-- (OOTechLevelID) effectiveTechLevel;
+- (OOTechLevelID)effectiveTechLevel;
 
 @end

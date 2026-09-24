@@ -33,9 +33,9 @@ SOFTWARE.
 
 @interface OOOXPVerifierStage (OOInternal)
 
-- (void)setVerifier:(OOOXPVerifier *)verifier;
-- (BOOL)isDependentOf:(OOOXPVerifierStage *)stage;
-- (void)registerDependency:(OOOXPVerifierStage *)dependency;
+- (void)setVerifier:(OOOXPVerifier*)verifier;
+- (BOOL)isDependentOf:(OOOXPVerifierStage*)stage;
+- (void)registerDependency:(OOOXPVerifierStage*)dependency;
 - (void)dependencyRegistrationComplete;
 
 - (BOOL)canRun;
@@ -44,8 +44,8 @@ SOFTWARE.
 - (void)noteSkipped;
 
 // These return sets of stages set up by -registerDependency, wheras -dependencies/dependents return sets of names.
-- (NSSet *)resolvedDependencies;
-- (NSSet *)resolvedDependents;
+- (NSSet*)resolvedDependencies;
+- (NSSet*)resolvedDependents;
 
 @end
 

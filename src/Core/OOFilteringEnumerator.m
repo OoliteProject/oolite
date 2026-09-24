@@ -28,232 +28,200 @@ SOFTWARE.
 
 #import "OOFilteringEnumerator.h"
 
-
 typedef BOOL (*BoolReturnMsgSend)(id, SEL);
 typedef BOOL (*BoolReturnWithParamMsgSend)(id, SEL, id);
 
-
 @implementation OOFilteringEnumerator
 
-+ (id) filterEnumerator:(NSEnumerator *)enumerator withSelector:(SEL)selector
++ (id)filterEnumerator:(NSEnumerator*)enumerator withSelector:(SEL)selector
 {
-	if (selector == NULL)  return [[enumerator retain] autorelease];
-	
-	return [[[self alloc] initWithUnderlyingEnumerator:enumerator
-										  withSelector:selector
-										takingArgument:NO
-										 argumentValue:nil]
-						  autorelease];
+    if (selector == NULL)
+        return [[enumerator retain] autorelease];
+
+    return [[[self alloc] initWithUnderlyingEnumerator:enumerator
+                                          withSelector:selector
+                                        takingArgument:NO
+                                         argumentValue:nil]
+        autorelease];
 }
 
-
-+ (id) filterEnumerator:(NSEnumerator *)enumerator withSelector:(SEL)selector andArgument:(id)argument
++ (id)filterEnumerator:(NSEnumerator*)enumerator withSelector:(SEL)selector andArgument:(id)argument
 {
-	if (selector == NULL)  return [[enumerator retain] autorelease];
-	
-	return [[[self alloc] initWithUnderlyingEnumerator:enumerator
-										  withSelector:selector
-										takingArgument:YES
-										 argumentValue:argument]
-			autorelease];
+    if (selector == NULL)
+        return [[enumerator retain] autorelease];
+
+    return [[[self alloc] initWithUnderlyingEnumerator:enumerator
+                                          withSelector:selector
+                                        takingArgument:YES
+                                         argumentValue:argument]
+        autorelease];
 }
 
-- (id) initWithUnderlyingEnumerator:(NSEnumerator *)enumerator
-					   withSelector:(SEL)selector
-					 takingArgument:(BOOL)takesArgument
-					  argumentValue:(id)argument
+- (id)initWithUnderlyingEnumerator:(NSEnumerator*)enumerator
+                      withSelector:(SEL)selector
+                    takingArgument:(BOOL)takesArgument
+                     argumentValue:(id)argument
 {
-	self = [super init];
-	if (self != nil)
-	{
-		_underlyingEnum = [enumerator retain];
-		_selector = selector;
-		_takesArgument = takesArgument;
-		if (_takesArgument)
-		{
-			_argument = [argument retain];
-		}
-	}
-	return self;
+    self = [super init];
+    if (self != nil) {
+        _underlyingEnum = [enumerator retain];
+        _selector = selector;
+        _takesArgument = takesArgument;
+        if (_takesArgument) {
+            _argument = [argument retain];
+        }
+    }
+    return self;
 }
 
-
-- (void) dealloc
+- (void)dealloc
 {
-	[_underlyingEnum release];
-	[_argument release];
-	
-	[super dealloc];
+    [_underlyingEnum release];
+    [_argument release];
+
+    [super dealloc];
 }
 
-
-- (NSString *) descriptionComponents
+- (NSString*)descriptionComponents
 {
-	NSString *subDesc = NSStringFromSelector(_selector);
-	if (_takesArgument)
-	{
-		subDesc = [subDesc stringByAppendingString:[_argument shortDescription]];
-	}
-	
-	return [NSString stringWithFormat:@"%@ matching %@", [_underlyingEnum shortDescription], subDesc];
+    NSString* subDesc = NSStringFromSelector(_selector);
+    if (_takesArgument) {
+        subDesc = [subDesc stringByAppendingString:[_argument shortDescription]];
+    }
+
+    return [NSString stringWithFormat:@"%@ matching %@", [_underlyingEnum shortDescription], subDesc];
 }
 
-
-- (NSString *) shortDescriptionComponents
+- (NSString*)shortDescriptionComponents
 {
-	return NSStringFromSelector(_selector);
+    return NSStringFromSelector(_selector);
 }
 
-
-- (id) nextObject
+- (id)nextObject
 {
-	for (;;)
-	{
-		// Get next object
-		id obj = [_underlyingEnum nextObject];
-		BOOL filter;
-		
-		if (obj == nil)
-		{
-			// End of enumeration
-			if (_underlyingEnum != nil)
-			{
-				[_underlyingEnum release];
-				_underlyingEnum = nil;
-				[_argument release];
-				_argument = nil;
-			}
-			return nil;
-		}
-		
-		// Check against filter
-		IMP predicate = [obj methodForSelector:_selector];
-		if (predicate != NULL)
-		{
-			if (!_takesArgument)
-			{
-				filter = ((BoolReturnMsgSend)predicate)(obj, _selector);
-			}
-			else
-			{
-				filter = ((BoolReturnWithParamMsgSend)predicate)(obj, _selector, _argument);
-			}
-		}
-		else
-		{
-			// Unsupported method
-			filter = NO;
-		}
-		
-		// If object passed, return it.
-		if (filter)  return obj;
-	}
+    for (;;) {
+        // Get next object
+        id obj = [_underlyingEnum nextObject];
+        BOOL filter;
+
+        if (obj == nil) {
+            // End of enumeration
+            if (_underlyingEnum != nil) {
+                [_underlyingEnum release];
+                _underlyingEnum = nil;
+                [_argument release];
+                _argument = nil;
+            }
+            return nil;
+        }
+
+        // Check against filter
+        IMP predicate = [obj methodForSelector:_selector];
+        if (predicate != NULL) {
+            if (!_takesArgument) {
+                filter = ((BoolReturnMsgSend)predicate)(obj, _selector);
+            } else {
+                filter = ((BoolReturnWithParamMsgSend)predicate)(obj, _selector, _argument);
+            }
+        } else {
+            // Unsupported method
+            filter = NO;
+        }
+
+        // If object passed, return it.
+        if (filter)
+            return obj;
+    }
 }
 
 @end
-
 
 @implementation NSEnumerator (OOFilteringEnumerator)
 
-- (id) filteredWithSelector:(SEL)selector
+- (id)filteredWithSelector:(SEL)selector
 {
-	return [OOFilteringEnumerator filterEnumerator:self withSelector:selector];
+    return [OOFilteringEnumerator filterEnumerator:self withSelector:selector];
 }
 
-
-- (id) filteredWithSelector:(SEL)selector andArgument:(id)argument
+- (id)filteredWithSelector:(SEL)selector andArgument:(id)argument
 {
-	return [OOFilteringEnumerator filterEnumerator:self withSelector:selector andArgument:argument];
+    return [OOFilteringEnumerator filterEnumerator:self withSelector:selector andArgument:argument];
 }
 
 @end
-
 
 @implementation NSArray (OOFilteringEnumerator)
 
-- (id) objectEnumeratorFilteredWithSelector:(SEL)selector
+- (id)objectEnumeratorFilteredWithSelector:(SEL)selector
 {
-	return [[self objectEnumerator] filteredWithSelector:selector];
+    return [[self objectEnumerator] filteredWithSelector:selector];
 }
 
-
-- (id) objectEnumeratorFilteredWithSelector:(SEL)selector andArgument:(id)argument
+- (id)objectEnumeratorFilteredWithSelector:(SEL)selector andArgument:(id)argument
 {
-	return [[self objectEnumerator] filteredWithSelector:selector andArgument:argument];
+    return [[self objectEnumerator] filteredWithSelector:selector andArgument:argument];
 }
 
 @end
-
 
 @implementation NSSet (OOFilteringEnumerator)
 
-- (id) objectEnumeratorFilteredWithSelector:(SEL)selector
+- (id)objectEnumeratorFilteredWithSelector:(SEL)selector
 {
-	return [[self objectEnumerator] filteredWithSelector:selector];
+    return [[self objectEnumerator] filteredWithSelector:selector];
 }
 
-
-- (id) objectEnumeratorFilteredWithSelector:(SEL)selector andArgument:(id)argument
+- (id)objectEnumeratorFilteredWithSelector:(SEL)selector andArgument:(id)argument
 {
-	return [[self objectEnumerator] filteredWithSelector:selector andArgument:argument];
+    return [[self objectEnumerator] filteredWithSelector:selector andArgument:argument];
 }
 
 @end
-
 
 @implementation NSDictionary (OOFilteringEnumerator)
 
-- (id) objectEnumeratorFilteredWithSelector:(SEL)selector
+- (id)objectEnumeratorFilteredWithSelector:(SEL)selector
 {
-	return [[self objectEnumerator] filteredWithSelector:selector];
+    return [[self objectEnumerator] filteredWithSelector:selector];
 }
 
-
-- (id) objectEnumeratorFilteredWithSelector:(SEL)selector andArgument:(id)argument
+- (id)objectEnumeratorFilteredWithSelector:(SEL)selector andArgument:(id)argument
 {
-	return [[self objectEnumerator] filteredWithSelector:selector andArgument:argument];
+    return [[self objectEnumerator] filteredWithSelector:selector andArgument:argument];
 }
 
-
-- (id) keyEnumeratorFilteredWithSelector:(SEL)selector
+- (id)keyEnumeratorFilteredWithSelector:(SEL)selector
 {
-	return [[self keyEnumerator] filteredWithSelector:selector];
+    return [[self keyEnumerator] filteredWithSelector:selector];
 }
 
-
-- (id) keyEnumeratorFilteredWithSelector:(SEL)selector andArgument:(id)argument
+- (id)keyEnumeratorFilteredWithSelector:(SEL)selector andArgument:(id)argument
 {
-	return [[self keyEnumerator] filteredWithSelector:selector andArgument:argument];
+    return [[self keyEnumerator] filteredWithSelector:selector andArgument:argument];
 }
 
 @end
-
 
 @implementation NSEnumerator (OOMakeObjectsPerformSelector)
 
 - (void)makeObjectsPerformSelector:(SEL)selector
 {
-	id object = nil;
-	while ((object = [self nextObject]))
-	{
-		if (selector != NULL && [object respondsToSelector:selector])
-		{
-			[object performSelector:selector];
-		}
-	}
+    id object = nil;
+    while ((object = [self nextObject])) {
+        if (selector != NULL && [object respondsToSelector:selector]) {
+            [object performSelector:selector];
+        }
+    }
 }
-
 
 - (void)makeObjectsPerformSelector:(SEL)selector withObject:(id)argument
 {
-	id object = nil;
-	while ((object = [self nextObject]))
-	{
-		if (selector != NULL && [object respondsToSelector:selector])
-		{
-			[object performSelector:selector withObject:argument];
-		}
-	}
+    id object = nil;
+    while ((object = [self nextObject])) {
+        if (selector != NULL && [object respondsToSelector:selector]) {
+            [object performSelector:selector withObject:argument];
+        }
+    }
 }
 
 @end

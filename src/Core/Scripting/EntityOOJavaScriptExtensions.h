@@ -29,32 +29,29 @@ MA 02110-1301, USA.
 #import "Entity.h"
 #import "OOJavaScriptEngine.h"
 
-
 @interface Entity (OOJavaScriptExtensions)
 
-- (BOOL) isVisibleToScripts;
+- (BOOL)isVisibleToScripts;
 
-- (NSString *) oo_jsClassName;
+- (NSString*)oo_jsClassName;
 
 // Internal:
-- (void) getJSClass:(JSClass **)outClass andPrototype:(JSObject **)outPrototype;
-- (void) deleteJSSelf;
+- (void)getJSClass:(JSClass**)outClass andPrototype:(JSObject**)outPrototype;
+- (void)deleteJSSelf;
 
 @end
-
 
 @interface ShipEntity (OOJavaScriptExtensions)
 
 // "Normal" subentities, excluding flashers and exhaust plumes.
-- (NSArray *) subEntitiesForScript;
+- (NSArray*)subEntitiesForScript;
 
-- (void) setTargetForScript:(ShipEntity *)target;
+- (void)setTargetForScript:(ShipEntity*)target;
 
 @end
 
-
 @interface PlayerEntity (OOJavaScriptExtensions)
 
-- (void) setJSSelf:(JSObject *)val context:(JSContext *)context;
+- (void)setJSSelf:(JSObject*)val context:(JSContext*)context;
 
 @end

@@ -27,22 +27,21 @@ MA 02110-1301, USA.
 
 #import "ShipEntity.h"
 
-
 @interface ShipEntity (LoadRestore)
 
 /*	Produces a property list representation of a specific ship. Intended for
-	use with wormholes, but should probably generalize quite well.
-	
-	The optional "context" is a mutable dictionary used to synchronise certain
-	state when saving multiple ships - currently, groups. It is not a property
-	list and does not need to be saved alongside the ships.
+        use with wormholes, but should probably generalize quite well.
+
+        The optional "context" is a mutable dictionary used to synchronise certain
+        state when saving multiple ships - currently, groups. It is not a property
+        list and does not need to be saved alongside the ships.
 */
-- (NSDictionary *) savedShipDictionaryWithContext:(NSMutableDictionary *)context;
+- (NSDictionary*)savedShipDictionaryWithContext:(NSMutableDictionary*)context;
 
 /*	Restore a ship from a property list representation generated with
-	-savedShipDictionary. If the ship can't be restored and fallback is YES,
-	an attempt will be made to generate a new ship with the same primary role.
+        -savedShipDictionary. If the ship can't be restored and fallback is YES,
+        an attempt will be made to generate a new ship with the same primary role.
 */
-+ (id) shipRestoredFromDictionary:(NSDictionary *)dictionary useFallback:(BOOL)fallback context:(NSMutableDictionary *)context;
++ (id)shipRestoredFromDictionary:(NSDictionary*)dictionary useFallback:(BOOL)fallback context:(NSMutableDictionary*)context;
 
 @end

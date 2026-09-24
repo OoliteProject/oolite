@@ -24,37 +24,32 @@ MA 02110-1301, USA.
 
 #import "OOXMLExtensions.h"
 
-
 @implementation NSDictionary (OOXMLExtensions)
 
-- (BOOL) writeOOXMLToFile:(NSString *)path atomically:(BOOL)flag errorDescription:(NSString **)outErrorDesc
+- (BOOL)writeOOXMLToFile:(NSString*)path atomically:(BOOL)flag errorDescription:(NSString**)outErrorDesc
 {
-	NSData		*data = nil;
-	NSString	*errorDesc = nil;
-	
-	data = [NSPropertyListSerialization dataFromPropertyList:self format:NSPropertyListXMLFormat_v1_0 errorDescription:outErrorDesc];
-	if (data == nil)
-	{
-		if (outErrorDesc != NULL)
-		{
-			*outErrorDesc = [NSString stringWithFormat:@"could not convert property list to XML: %@", errorDesc];
-		}
+    NSData* data = nil;
+    NSString* errorDesc = nil;
+
+    data = [NSPropertyListSerialization dataFromPropertyList:self format:NSPropertyListXMLFormat_v1_0 errorDescription:outErrorDesc];
+    if (data == nil) {
+        if (outErrorDesc != NULL) {
+            *outErrorDesc = [NSString stringWithFormat:@"could not convert property list to XML: %@", errorDesc];
+        }
 #if OOLITE_RELEASE_PLIST_ERROR_STRINGS
-		[errorDesc release];
+        [errorDesc release];
 #endif
-		return NO;
-	}
-	
-	if (![data writeToFile:path atomically:YES])
-	{
-		if (outErrorDesc != NULL)
-		{
-			*outErrorDesc = [NSString stringWithFormat:@"could not write data to %@.", path];
-		}
-		return NO;
-	}
-	
-	return YES;
+        return NO;
+    }
+
+    if (![data writeToFile:path atomically:YES]) {
+        if (outErrorDesc != NULL) {
+            *outErrorDesc = [NSString stringWithFormat:@"could not write data to %@.", path];
+        }
+        return NO;
+    }
+
+    return YES;
 }
 
 @end

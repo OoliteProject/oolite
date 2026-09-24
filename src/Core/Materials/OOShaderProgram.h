@@ -29,40 +29,37 @@ SOFTWARE.
 
 */
 
-
-#import <Foundation/Foundation.h>
 #import "OOOpenGL.h"
 #import "OOOpenGLExtensionManager.h"
+#import <Foundation/Foundation.h>
 
 #if OO_SHADERS
 
-
-@interface OOShaderProgram: NSObject
-{
+@interface OOShaderProgram : NSObject {
 @private
-	GLhandleARB						program;
-	NSString						*key;
-	NSArray							*standardMatrixUniformLocations;
+    GLhandleARB program;
+    NSString* key;
+    NSArray* standardMatrixUniformLocations;
 }
 
-+ (id) shaderProgramWithVertexShader:(NSString *)vertexShaderSource
-					  fragmentShader:(NSString *)fragmentShaderSource
-					vertexShaderName:(NSString *)vertexShaderName
-				  fragmentShaderName:(NSString *)fragmentShaderName
-							  prefix:(NSString *)prefixString			// String prepended to program source (both vs and fs)
-				   attributeBindings:(NSDictionary *)attributeBindings	// Maps vertex attribute names to "locations".
-							cacheKey:(NSString *)cacheKey;
++ (id)shaderProgramWithVertexShader:(NSString*)vertexShaderSource
+                     fragmentShader:(NSString*)fragmentShaderSource
+                   vertexShaderName:(NSString*)vertexShaderName
+                 fragmentShaderName:(NSString*)fragmentShaderName
+                             prefix:(NSString*)prefixString // String prepended to program source (both vs and fs)
+                  attributeBindings:(NSDictionary*)attributeBindings // Maps vertex attribute names to "locations".
+                           cacheKey:(NSString*)cacheKey;
 
 // Loads a shader from a file, caching and sharing shader program instances.
-+ (id) shaderProgramWithVertexShaderName:(NSString *)vertexShaderName
-					  fragmentShaderName:(NSString *)fragmentShaderName
-								  prefix:(NSString *)prefixString			// String prepended to program source (both vs and fs)
-					   attributeBindings:(NSDictionary *)attributeBindings;	// Maps vertex attribute names to "locations".
++ (id)shaderProgramWithVertexShaderName:(NSString*)vertexShaderName
+                     fragmentShaderName:(NSString*)fragmentShaderName
+                                 prefix:(NSString*)prefixString // String prepended to program source (both vs and fs)
+                      attributeBindings:(NSDictionary*)attributeBindings; // Maps vertex attribute names to "locations".
 
-- (void) apply;
-+ (void) applyNone;
+- (void)apply;
++ (void)applyNone;
 
-- (GLhandleARB) program;
+- (GLhandleARB)program;
 
 @end
 

@@ -27,17 +27,15 @@ SOFTWARE.
 
 */
 
-#import "OOTextureGenerator.h"
 #import "OOPixMap.h"
+#import "OOTextureGenerator.h"
 
-
-@interface OOPixMapTextureLoader: OOTextureGenerator
-{
+@interface OOPixMapTextureLoader : OOTextureGenerator {
 @private
-	OOPixMap			_pixMap;
-	uint32_t			_texOptions;
+    OOPixMap _pixMap;
+    uint32_t _texOptions;
 }
 
-- (id) initWithPixMap:(OOPixMap)pixMap textureOptions:(uint32_t)options freeWhenDone:(BOOL)freeWhenDone;
+- (id)initWithPixMap:(OOPixMap)pixMap textureOptions:(uint32_t)options freeWhenDone:(BOOL)freeWhenDone;
 
 @end

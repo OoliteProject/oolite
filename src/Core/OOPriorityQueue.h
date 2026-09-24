@@ -48,33 +48,31 @@ SOFTWARE.
 #endif
 #endif
 
-
-@interface OOPriorityQueue: NSObject <NSCopying>
-{
+@interface OOPriorityQueue : NSObject <NSCopying> {
 @private
-	SEL						_comparator;
-	OO_PQ_STRONG id			*_heap;
-	NSUInteger				_count,
-							_capacity;
+    SEL _comparator;
+    OO_PQ_STRONG id* _heap;
+    NSUInteger _count,
+        _capacity;
 }
 
 // Note: -init is equivalent to -initWithComparator:@selector(compare:)
-+ (instancetype) queueWithComparator:(SEL)comparator;
-- (id) initWithComparator:(SEL)comparator;
++ (instancetype)queueWithComparator:(SEL)comparator;
+- (id)initWithComparator:(SEL)comparator;
 
-- (void) addObject:(id)object;			// May throw NSInvalidArgumentException or NSMallocException.
-- (void) removeObject:(id)object;		// Uses comparator (looking for NSOrderedEqual) to find object. Note: relatively expensive.
-- (void) removeExactObject:(id)object;	// Uses pointer comparison to find object. Note: still relatively expensive.
+- (void)addObject:(id)object; // May throw NSInvalidArgumentException or NSMallocException.
+- (void)removeObject:(id)object; // Uses comparator (looking for NSOrderedEqual) to find object. Note: relatively expensive.
+- (void)removeExactObject:(id)object; // Uses pointer comparison to find object. Note: still relatively expensive.
 
-- (NSUInteger) count;
+- (NSUInteger)count;
 
-- (id) nextObject;
-- (id) peekAtNextObject;				// Returns next object without removing it.
-- (void) removeNextObject;
+- (id)nextObject;
+- (id)peekAtNextObject; // Returns next object without removing it.
+- (void)removeNextObject;
 
-- (void) addObjects:(id)collection;		// collection must respond to -nextObject, or implement -objectEnumerator to return something that implements -nextObject -- such as an NSEnumerator.
+- (void)addObjects:(id)collection; // collection must respond to -nextObject, or implement -objectEnumerator to return something that implements -nextObject -- such as an NSEnumerator.
 
-- (NSArray *) sortedObjects;			// Returns the objects in -nextObject order and empties the heap. To get the objects without emptying the heap, copy the priority queue first.
-- (NSEnumerator *) objectEnumerator;	// Enumerator which pulls objects off the heap until it's empty. Note however that the queue itself behaves like an enumerator, as -nextObject has similar semantics (except that the enumerator's -nextObject can never start returning objects after it returns nil).
+- (NSArray*)sortedObjects; // Returns the objects in -nextObject order and empties the heap. To get the objects without emptying the heap, copy the priority queue first.
+- (NSEnumerator*)objectEnumerator; // Enumerator which pulls objects off the heap until it's empty. Note however that the queue itself behaves like an enumerator, as -nextObject has similar semantics (except that the enumerator's -nextObject can never start returning objects after it returns nil).
 
 @end

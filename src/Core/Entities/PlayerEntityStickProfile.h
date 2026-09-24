@@ -24,39 +24,37 @@ MA 02110-1301, USA.
 
 */
 
-#import "PlayerEntity.h"
 #import "GuiDisplayGen.h"
 #import "MyOpenGLView.h"
 #import "OOJoystickProfile.h"
+#import "PlayerEntity.h"
 #import "Universe.h"
 
 @interface PlayerEntity (StickProfile)
 
-- (void) setGuiToStickProfileScreen: (GuiDisplayGen *) gui;
-- (void) stickProfileInputHandler: (GuiDisplayGen *) gui view: (MyOpenGLView *) gameView;
-- (void) stickProfileGraphAxisProfile: (GLfloat) alpha screenAt: (Vector) screenAt screenSize: (NSSize) screenSize;
+- (void)setGuiToStickProfileScreen:(GuiDisplayGen*)gui;
+- (void)stickProfileInputHandler:(GuiDisplayGen*)gui view:(MyOpenGLView*)gameView;
+- (void)stickProfileGraphAxisProfile:(GLfloat)alpha screenAt:(Vector)screenAt screenSize:(NSSize)screenSize;
 
 @end
 
-@interface StickProfileScreen: NSObject
-{
+@interface StickProfileScreen : NSObject {
 @private
-	OOJoystickManager *stickHandler;
-	NSUInteger current_axis;
-	OOJoystickAxisProfile *profiles[3][2];
-	GuiDisplayGen *gui;
-	NSRect graphRect;
-	NSInteger selected_control_point;
-	NSInteger dragged_control_point;
-	NSInteger double_click_control_point;
+    OOJoystickManager* stickHandler;
+    NSUInteger current_axis;
+    OOJoystickAxisProfile* profiles[3][2];
+    GuiDisplayGen* gui;
+    NSRect graphRect;
+    NSInteger selected_control_point;
+    NSInteger dragged_control_point;
+    NSInteger double_click_control_point;
 }
 
-- (id) init;
-- (void) dealloc;
-- (void) startGui: (GuiDisplayGen *) gui_display_gen;
-- (void) mouseDown: (NSPoint) position;
-- (void) mouseUp;
-- (void) deleteSelected;
+- (id)init;
+- (void)dealloc;
+- (void)startGui:(GuiDisplayGen*)gui_display_gen;
+- (void)mouseDown:(NSPoint)position;
+- (void)mouseUp;
+- (void)deleteSelected;
 
 @end
-

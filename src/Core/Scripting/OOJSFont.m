@@ -26,36 +26,32 @@ SOFTWARE.
 */
 
 #import "OOJSFont.h"
-#import "OOJavaScriptEngine.h"
 #import "HeadUpDisplay.h"
+#import "OOJavaScriptEngine.h"
 
-
-static JSBool FontMeasureString(JSContext *context, uintN argc, jsval *vp);
-
+static JSBool FontMeasureString(JSContext* context, uintN argc, jsval* vp);
 
 // MARK: Public
 
-void InitOOJSFont(JSContext *context, JSObject *global)
+void InitOOJSFont(JSContext* context, JSObject* global)
 {
-	JSObject *fontObject = JS_DefineObject(context, global, "defaultFont", NULL, NULL, OOJS_PROP_READONLY);
-	JS_DefineFunction(context, fontObject, "measureString", FontMeasureString, 1, OOJS_METHOD_READONLY);
+    JSObject* fontObject = JS_DefineObject(context, global, "defaultFont", NULL, NULL, OOJS_PROP_READONLY);
+    JS_DefineFunction(context, fontObject, "measureString", FontMeasureString, 1, OOJS_METHOD_READONLY);
 }
-
 
 // MARK: Methods
 
-static JSBool FontMeasureString(JSContext *context, uintN argc, jsval *vp)
+static JSBool FontMeasureString(JSContext* context, uintN argc, jsval* vp)
 {
-	OOJS_NATIVE_ENTER(context)
-	
-	if (EXPECT_NOT(argc < 1) || JSVAL_IS_VOID(OOJS_ARGV[0]))
-	{
-		jsval undefined = JSVAL_VOID;
-		OOJSReportBadArguments(context, nil, @"defaultFont.measureString", MIN(argc, 1U), &undefined, nil, @"string");
-		return NO;
-	}
-	
-	OOJS_RETURN_DOUBLE(OOStringWidthInEm(OOStringFromJSValue(context, OOJS_ARGV[0])));
-	
-	OOJS_NATIVE_EXIT
+    OOJS_NATIVE_ENTER(context)
+
+    if (EXPECT_NOT(argc < 1) || JSVAL_IS_VOID(OOJS_ARGV[0])) {
+        jsval undefined = JSVAL_VOID;
+        OOJSReportBadArguments(context, nil, @"defaultFont.measureString", MIN(argc, 1U), &undefined, nil, @"string");
+        return NO;
+    }
+
+    OOJS_RETURN_DOUBLE(OOStringWidthInEm(OOStringFromJSValue(context, OOJS_ARGV[0])));
+
+    OOJS_NATIVE_EXIT
 }

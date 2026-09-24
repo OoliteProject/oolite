@@ -28,14 +28,13 @@ MA 02110-1301, USA.
 
 #import <Foundation/Foundation.h>
 
-
 // whereFrom is an optional description of the data source, for error reporting.
-id OOPropertyListFromData(NSData *data, NSString *whereFrom);
-id OOPropertyListFromFile(NSString *path);
+id OOPropertyListFromData(NSData* data, NSString* whereFrom);
+id OOPropertyListFromFile(NSString* path);
 
 // Wrappers which ensure that the plist contains the right type of object.
-NSDictionary *OODictionaryFromData(NSData *data, NSString *whereFrom);
-NSDictionary *OODictionaryFromFile(NSString *path);
+NSDictionary* OODictionaryFromData(NSData* data, NSString* whereFrom);
+NSDictionary* OODictionaryFromFile(NSString* path);
 
-NSArray *OOArrayFromData(NSData *data, NSString *whereFrom);
-NSArray *OOArrayFromFile(NSString *path);
+NSArray* OOArrayFromData(NSData* data, NSString* whereFrom);
+NSArray* OOArrayFromFile(NSString* path);

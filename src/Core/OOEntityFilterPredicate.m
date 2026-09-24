@@ -27,155 +27,143 @@ MA 02110-1301, USA.
 
 #import "OOEntityFilterPredicate.h"
 #import "Entity.h"
-#import "ShipEntity.h"
 #import "OOPlanetEntity.h"
 #import "OORoleSet.h"
+#import "ShipEntity.h"
 
-
-BOOL YESPredicate(Entity *entity, void *parameter)
+BOOL YESPredicate(Entity* entity, void* parameter)
 {
-	return YES;
+    return YES;
 }
 
-
-BOOL NOPredicate(Entity *entity, void *parameter)
+BOOL NOPredicate(Entity* entity, void* parameter)
 {
-	return NO;
+    return NO;
 }
 
-
-BOOL NOTPredicate(Entity *entity, void *parameter)
+BOOL NOTPredicate(Entity* entity, void* parameter)
 {
-	ChainedEntityPredicateParameter *param = parameter;
-	if (param == NULL || param->predicate == NULL)  return NO;
-	
-	return !param->predicate(entity, param->parameter);
+    ChainedEntityPredicateParameter* param = parameter;
+    if (param == NULL || param->predicate == NULL)
+        return NO;
+
+    return !param->predicate(entity, param->parameter);
 }
 
-
-BOOL ANDPredicate(Entity *entity, void *parameter)
+BOOL ANDPredicate(Entity* entity, void* parameter)
 {
-	BinaryOperationPredicateParameter *param = parameter;
-	
-	if (!param->predicate1(entity, param->parameter1))  return NO;
-	if (!param->predicate2(entity, param->parameter2))  return NO;
-	return YES;
+    BinaryOperationPredicateParameter* param = parameter;
+
+    if (!param->predicate1(entity, param->parameter1))
+        return NO;
+    if (!param->predicate2(entity, param->parameter2))
+        return NO;
+    return YES;
 }
 
-
-BOOL ORPredicate(Entity *entity, void *parameter)
+BOOL ORPredicate(Entity* entity, void* parameter)
 {
-	BinaryOperationPredicateParameter *param = parameter;
-	
-	if (param->predicate1(entity, param->parameter1))  return YES;
-	if (param->predicate2(entity, param->parameter2))  return YES;
-	return NO;
+    BinaryOperationPredicateParameter* param = parameter;
+
+    if (param->predicate1(entity, param->parameter1))
+        return YES;
+    if (param->predicate2(entity, param->parameter2))
+        return YES;
+    return NO;
 }
 
-
-BOOL NORPredicate(Entity *entity, void *parameter)
+BOOL NORPredicate(Entity* entity, void* parameter)
 {
-	BinaryOperationPredicateParameter *param = parameter;
-	
-	if (param->predicate1(entity, param->parameter1))  return NO;
-	if (param->predicate2(entity, param->parameter2))  return NO;
-	return YES;
+    BinaryOperationPredicateParameter* param = parameter;
+
+    if (param->predicate1(entity, param->parameter1))
+        return NO;
+    if (param->predicate2(entity, param->parameter2))
+        return NO;
+    return YES;
 }
 
-
-BOOL XORPredicate(Entity *entity, void *parameter)
+BOOL XORPredicate(Entity* entity, void* parameter)
 {
-	BinaryOperationPredicateParameter *param = parameter;
-	BOOL A, B;
-	
-	A = param->predicate1(entity, param->parameter1);
-	B = param->predicate2(entity, param->parameter2);
-	
-	return (A || B) && !(A && B);
+    BinaryOperationPredicateParameter* param = parameter;
+    BOOL A, B;
+
+    A = param->predicate1(entity, param->parameter1);
+    B = param->predicate2(entity, param->parameter2);
+
+    return (A || B) && !(A && B);
 }
 
-
-BOOL NANDPredicate(Entity *entity, void *parameter)
+BOOL NANDPredicate(Entity* entity, void* parameter)
 {
-	BinaryOperationPredicateParameter *param = parameter;
-	BOOL A, B;
-	
-	A = param->predicate1(entity, param->parameter1);
-	B = param->predicate2(entity, param->parameter2);
-	
-	return !(A && B);
+    BinaryOperationPredicateParameter* param = parameter;
+    BOOL A, B;
+
+    A = param->predicate1(entity, param->parameter1);
+    B = param->predicate2(entity, param->parameter2);
+
+    return !(A && B);
 }
 
-
-BOOL HasScanClassPredicate(Entity *entity, void *parameter)
+BOOL HasScanClassPredicate(Entity* entity, void* parameter)
 {
-	return [(id)parameter intValue] == [entity scanClass];
+    return [(id)parameter intValue] == [entity scanClass];
 }
 
-
-BOOL HasClassPredicate(Entity *entity, void *parameter)
+BOOL HasClassPredicate(Entity* entity, void* parameter)
 {
-	return [entity isKindOfClass:(Class)parameter];
+    return [entity isKindOfClass:(Class)parameter];
 }
 
-
-BOOL IsShipPredicate(Entity *entity, void *parameter)
+BOOL IsShipPredicate(Entity* entity, void* parameter)
 {
-	return [entity isShip] && ![entity isSubEntity];
+    return [entity isShip] && ![entity isSubEntity];
 }
 
-
-BOOL IsStationPredicate(Entity *entity, void *parameter)
+BOOL IsStationPredicate(Entity* entity, void* parameter)
 {
-	return [entity isStation];
+    return [entity isStation];
 }
 
-
-BOOL IsPlanetPredicate(Entity *entity, void *parameter)
+BOOL IsPlanetPredicate(Entity* entity, void* parameter)
 {
-	if (![entity isPlanet])  return NO;
-	OOStellarBodyType type = [(OOPlanetEntity *)entity planetType];
-	return (type == STELLAR_TYPE_NORMAL_PLANET || type == STELLAR_TYPE_MOON);
+    if (![entity isPlanet])
+        return NO;
+    OOStellarBodyType type = [(OOPlanetEntity*)entity planetType];
+    return (type == STELLAR_TYPE_NORMAL_PLANET || type == STELLAR_TYPE_MOON);
 }
 
-
-BOOL IsSunPredicate(Entity *entity, void *parameter)
+BOOL IsSunPredicate(Entity* entity, void* parameter)
 {
-	return [entity isSun];
+    return [entity isSun];
 }
 
-
-BOOL IsVisualEffectPredicate(Entity *entity, void *parameter)
+BOOL IsVisualEffectPredicate(Entity* entity, void* parameter)
 {
-	return [entity isVisualEffect] && ![entity isSubEntity];
+    return [entity isVisualEffect] && ![entity isSubEntity];
 }
 
-
-BOOL HasRolePredicate(Entity *ship, void *parameter)
+BOOL HasRolePredicate(Entity* ship, void* parameter)
 {
-	return [(ShipEntity *)ship hasRole:(NSString *)parameter];
+    return [(ShipEntity*)ship hasRole:(NSString*)parameter];
 }
 
-
-BOOL HasPrimaryRolePredicate(Entity *ship, void *parameter)
+BOOL HasPrimaryRolePredicate(Entity* ship, void* parameter)
 {
-	return [(ShipEntity *)ship hasPrimaryRole:(NSString *)parameter];
+    return [(ShipEntity*)ship hasPrimaryRole:(NSString*)parameter];
 }
 
-
-BOOL HasRoleInSetPredicate(Entity *ship, void *parameter)
+BOOL HasRoleInSetPredicate(Entity* ship, void* parameter)
 {
-	return [[(ShipEntity *)ship roleSet] intersectsSet:(NSSet *)parameter];
+    return [[(ShipEntity*)ship roleSet] intersectsSet:(NSSet*)parameter];
 }
 
-
-BOOL HasPrimaryRoleInSetPredicate(Entity *ship, void *parameter)
+BOOL HasPrimaryRoleInSetPredicate(Entity* ship, void* parameter)
 {
-	return [(NSSet *)parameter containsObject:[(ShipEntity *)ship primaryRole]];
+    return [(NSSet*)parameter containsObject:[(ShipEntity*)ship primaryRole]];
 }
 
-
-BOOL IsHostileAgainstTargetPredicate(Entity *ship, void *parameter)
+BOOL IsHostileAgainstTargetPredicate(Entity* ship, void* parameter)
 {
-	return [(ShipEntity *)ship hasHostileTarget] && [(ShipEntity *)ship primaryTarget] == (ShipEntity *)parameter;
+    return [(ShipEntity*)ship hasHostileTarget] && [(ShipEntity*)ship primaryTarget] == (ShipEntity*)parameter;
 }

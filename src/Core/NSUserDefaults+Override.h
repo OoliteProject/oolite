@@ -28,7 +28,7 @@ MA 02110-1301, USA.
 
 @interface NSUserDefaults (Override)
 
-- (BOOL) writeDictionary: (NSDictionary*)dict
-                  toFile: (NSString*)file;
+- (BOOL)writeDictionary:(NSDictionary*)dict
+                 toFile:(NSString*)file;
 
 @end

@@ -25,60 +25,58 @@ SOFTWARE.
 
 */
 
-
 /*
-	For shader uniform binding to work, it is necessary to be able to tell the
-	return type of a method. This is done by comparing the methodReturnType of
-	a method's NSMethodSignature to those of methods in a template class, one
-	method for each supported return type.
-	
-	Under OS X, the methodReturnType for a type foo is simply @encode(foo),
-	but under the GNU runtime, it is the @encode() string for the entire
-	method signature. In general, this is platform-defined. In order to
-	maintain an implementation-agnostic approach, we get the signature from a
-	known method of each time at runtime.
-	
-	NOTE: the GNU runtime's approach means that the methodReturnType differs
-	between different method signatures with the same return type. For
-	instance, a method -(id)foo:(int) will have a different methodReturnType
-	than a method -(id)foo. As far as I can see this is a bug, but Oolite only
-	supports binding to methods with no parameters, so this is not a problem.
+        For shader uniform binding to work, it is necessary to be able to tell the
+        return type of a method. This is done by comparing the methodReturnType of
+        a method's NSMethodSignature to those of methods in a template class, one
+        method for each supported return type.
+
+        Under OS X, the methodReturnType for a type foo is simply @encode(foo),
+        but under the GNU runtime, it is the @encode() string for the entire
+        method signature. In general, this is platform-defined. In order to
+        maintain an implementation-agnostic approach, we get the signature from a
+        known method of each time at runtime.
+
+        NOTE: the GNU runtime's approach means that the methodReturnType differs
+        between different method signatures with the same return type. For
+        instance, a method -(id)foo:(int) will have a different methodReturnType
+        than a method -(id)foo. As far as I can see this is a bug, but Oolite only
+        supports binding to methods with no parameters, so this is not a problem.
 */
 
 #import "OOShaderUniformMethodType.h"
 
 #if OO_SHADERS || !defined(NDEBUG)
 
-
 #import "OOMaths.h"
 
-static BOOL				sInited = NO;
-static const char		*sTemplates[kOOShaderUniformTypeCount];
+static BOOL sInited = NO;
+static const char* sTemplates[kOOShaderUniformTypeCount];
 
 static void InitTemplates(void);
-static const char *CopyTemplateForSelector(SEL selector);
+static const char* CopyTemplateForSelector(SEL selector);
 
-
-OOShaderUniformType OOShaderUniformTypeFromMethodSignature(NSMethodSignature *signature)
+OOShaderUniformType OOShaderUniformTypeFromMethodSignature(NSMethodSignature* signature)
 {
-	unsigned				i;
-	const char				*typeCode = NULL;
-	
-	if (EXPECT_NOT(sInited == NO))  InitTemplates();
-	
-	typeCode = [signature methodReturnType];
-	if (EXPECT_NOT(typeCode == NULL))  return kOOShaderUniformTypeInvalid;
-	
-	for (i = kOOShaderUniformTypeInvalid + 1; i != kOOShaderUniformTypeCount; ++i)
-	{
-		if (sTemplates[i] != NULL && strcmp(sTemplates[i], typeCode) == 0)  return i;
-	}
-	
-	return kOOShaderUniformTypeInvalid;
+    unsigned i;
+    const char* typeCode = NULL;
+
+    if (EXPECT_NOT(sInited == NO))
+        InitTemplates();
+
+    typeCode = [signature methodReturnType];
+    if (EXPECT_NOT(typeCode == NULL))
+        return kOOShaderUniformTypeInvalid;
+
+    for (i = kOOShaderUniformTypeInvalid + 1; i != kOOShaderUniformTypeCount; ++i) {
+        if (sTemplates[i] != NULL && strcmp(sTemplates[i], typeCode) == 0)
+            return i;
+    }
+
+    return kOOShaderUniformTypeInvalid;
 }
 
-
-@interface OOShaderUniformTypeMethodSignatureTemplateClass: NSObject
+@interface OOShaderUniformTypeMethodSignatureTemplateClass : NSObject
 
 - (float)floatMethod;
 - (double)doubleMethod;
@@ -99,205 +97,184 @@ OOShaderUniformType OOShaderUniformTypeFromMethodSignature(NSMethodSignature *si
 
 @end
 
-
 static void InitTemplates(void)
 {
-	#define GET_TEMPLATE(enumValue, sel) do { \
-					sTemplates[enumValue] = CopyTemplateForSelector(@selector(sel)); \
-				} while (0)
-	
-	GET_TEMPLATE(kOOShaderUniformTypeChar,			signedCharMethod);
-	GET_TEMPLATE(kOOShaderUniformTypeUnsignedChar,	unsignedCharMethod);
-	GET_TEMPLATE(kOOShaderUniformTypeShort,			signedShortMethod);
-	GET_TEMPLATE(kOOShaderUniformTypeUnsignedShort,	unsignedShortMethod);
-	GET_TEMPLATE(kOOShaderUniformTypeInt,			signedIntMethod);
-	GET_TEMPLATE(kOOShaderUniformTypeUnsignedInt,	unsignedIntMethod);
-	GET_TEMPLATE(kOOShaderUniformTypeLong,			signedLongMethod);
-	GET_TEMPLATE(kOOShaderUniformTypeUnsignedLong,	unsignedLongMethod);
-	GET_TEMPLATE(kOOShaderUniformTypeFloat,			floatMethod);
-	GET_TEMPLATE(kOOShaderUniformTypeDouble,		doubleMethod);
-	GET_TEMPLATE(kOOShaderUniformTypeVector,		vectorMethod);
-	GET_TEMPLATE(kOOShaderUniformTypeHPVector,		hpvectorMethod);
-	GET_TEMPLATE(kOOShaderUniformTypeQuaternion,	quaternionMethod);
-	GET_TEMPLATE(kOOShaderUniformTypeMatrix,		matrixMethod);
-	GET_TEMPLATE(kOOShaderUniformTypePoint,			pointMethod);
-	GET_TEMPLATE(kOOShaderUniformTypeObject,		idMethod);
-	
-	sInited = YES;
+#define GET_TEMPLATE(enumValue, sel)                                     \
+    do {                                                                 \
+        sTemplates[enumValue] = CopyTemplateForSelector(@selector(sel)); \
+    } while (0)
+
+    GET_TEMPLATE(kOOShaderUniformTypeChar, signedCharMethod);
+    GET_TEMPLATE(kOOShaderUniformTypeUnsignedChar, unsignedCharMethod);
+    GET_TEMPLATE(kOOShaderUniformTypeShort, signedShortMethod);
+    GET_TEMPLATE(kOOShaderUniformTypeUnsignedShort, unsignedShortMethod);
+    GET_TEMPLATE(kOOShaderUniformTypeInt, signedIntMethod);
+    GET_TEMPLATE(kOOShaderUniformTypeUnsignedInt, unsignedIntMethod);
+    GET_TEMPLATE(kOOShaderUniformTypeLong, signedLongMethod);
+    GET_TEMPLATE(kOOShaderUniformTypeUnsignedLong, unsignedLongMethod);
+    GET_TEMPLATE(kOOShaderUniformTypeFloat, floatMethod);
+    GET_TEMPLATE(kOOShaderUniformTypeDouble, doubleMethod);
+    GET_TEMPLATE(kOOShaderUniformTypeVector, vectorMethod);
+    GET_TEMPLATE(kOOShaderUniformTypeHPVector, hpvectorMethod);
+    GET_TEMPLATE(kOOShaderUniformTypeQuaternion, quaternionMethod);
+    GET_TEMPLATE(kOOShaderUniformTypeMatrix, matrixMethod);
+    GET_TEMPLATE(kOOShaderUniformTypePoint, pointMethod);
+    GET_TEMPLATE(kOOShaderUniformTypeObject, idMethod);
+
+    sInited = YES;
 }
 
-
-static const char *CopyTemplateForSelector(SEL selector)
+static const char* CopyTemplateForSelector(SEL selector)
 {
-	NSMethodSignature		*signature = nil;
-	const char				*typeCode = NULL;
-	
-	signature = [OOShaderUniformTypeMethodSignatureTemplateClass instanceMethodSignatureForSelector:selector];
-	typeCode = [signature methodReturnType];
-	
-	/*	typeCode is *probably* a constant, but this isn't formally guaranteed
-		as far as I'm aware, so we make a copy of it.
-	*/
-	return typeCode ? strdup(typeCode) : NULL;
+    NSMethodSignature* signature = nil;
+    const char* typeCode = NULL;
+
+    signature = [OOShaderUniformTypeMethodSignatureTemplateClass instanceMethodSignatureForSelector:selector];
+    typeCode = [signature methodReturnType];
+
+    /*	typeCode is *probably* a constant, but this isn't formally guaranteed
+            as far as I'm aware, so we make a copy of it.
+    */
+    return typeCode ? strdup(typeCode) : NULL;
 }
 
-
-@implementation OOShaderUniformTypeMethodSignatureTemplateClass: NSObject
+@implementation OOShaderUniformTypeMethodSignatureTemplateClass : NSObject
 
 - (signed char)signedCharMethod
 {
-	return 0;
+    return 0;
 }
-
 
 - (unsigned char)unsignedCharMethod
 {
-	return 0;
+    return 0;
 }
-
 
 - (signed short)signedShortMethod
 {
-	return 0;
+    return 0;
 }
-
 
 - (unsigned short)unsignedShortMethod
 {
-	return 0;
+    return 0;
 }
-
 
 - (signed int)signedIntMethod
 {
-	return 0;
+    return 0;
 }
-
 
 - (unsigned int)unsignedIntMethod
 {
-	return 0;
+    return 0;
 }
-
 
 - (signed long)signedLongMethod
 {
-	return 0;
+    return 0;
 }
-
 
 - (unsigned long)unsignedLongMethod
 {
-	return 0;
+    return 0;
 }
-
 
 - (float)floatMethod
 {
-	return 0.0f;
+    return 0.0f;
 }
-
 
 - (double)doubleMethod
 {
-	return 0.0;
+    return 0.0;
 }
-
 
 - (Vector)vectorMethod
 {
-	Vector v = {0};
-	return v;
+    Vector v = { 0 };
+    return v;
 }
-
 
 - (HPVector)hpvectorMethod
 {
-	HPVector v = {0};
-	return v;
+    HPVector v = { 0 };
+    return v;
 }
-
 
 - (Quaternion)quaternionMethod
 {
-	Quaternion q = {0};
-	return q;
+    Quaternion q = { 0 };
+    return q;
 }
-
 
 - (OOMatrix)matrixMethod
 {
-	return kZeroMatrix;
+    return kZeroMatrix;
 }
-
 
 - (NSPoint)pointMethod
 {
-	return NSZeroPoint;
+    return NSZeroPoint;
 }
-
 
 - (id)idMethod
 {
-	return nil;
+    return nil;
 }
 
 @end
 
-
 long long OOCallIntegerMethod(id object, SEL selector, IMP method, OOShaderUniformType type)
 {
-	switch (type)
-	{
-		case kOOShaderUniformTypeChar:
-			return ((CharReturnMsgSend)method)(object, selector);
-			
-		case kOOShaderUniformTypeUnsignedChar:
-			return ((UnsignedCharReturnMsgSend)method)(object, selector);
-			
-		case kOOShaderUniformTypeShort:
-			return ((ShortReturnMsgSend)method)(object, selector);
-			
-		case kOOShaderUniformTypeUnsignedShort:
-			return ((UnsignedShortReturnMsgSend)method)(object, selector);
-			
-		case kOOShaderUniformTypeInt:
-			return ((IntReturnMsgSend)method)(object, selector);
-			
-		case kOOShaderUniformTypeUnsignedInt:
-			return ((UnsignedIntReturnMsgSend)method)(object, selector);
-			
-		case kOOShaderUniformTypeLong:
-			return ((LongReturnMsgSend)method)(object, selector);
-			
-		case kOOShaderUniformTypeUnsignedLong:
-			return ((UnsignedLongReturnMsgSend)method)(object, selector);
-			
-		case kOOShaderUniformTypeLongLong:
-			return ((LongLongReturnMsgSend)method)(object, selector);
-			
-		case kOOShaderUniformTypeUnsignedLongLong:
-			return ((UnsignedLongLongReturnMsgSend)method)(object, selector);
-			
-		default:
-			return 0;
-	}
-}
+    switch (type) {
+    case kOOShaderUniformTypeChar:
+        return ((CharReturnMsgSend)method)(object, selector);
 
+    case kOOShaderUniformTypeUnsignedChar:
+        return ((UnsignedCharReturnMsgSend)method)(object, selector);
+
+    case kOOShaderUniformTypeShort:
+        return ((ShortReturnMsgSend)method)(object, selector);
+
+    case kOOShaderUniformTypeUnsignedShort:
+        return ((UnsignedShortReturnMsgSend)method)(object, selector);
+
+    case kOOShaderUniformTypeInt:
+        return ((IntReturnMsgSend)method)(object, selector);
+
+    case kOOShaderUniformTypeUnsignedInt:
+        return ((UnsignedIntReturnMsgSend)method)(object, selector);
+
+    case kOOShaderUniformTypeLong:
+        return ((LongReturnMsgSend)method)(object, selector);
+
+    case kOOShaderUniformTypeUnsignedLong:
+        return ((UnsignedLongReturnMsgSend)method)(object, selector);
+
+    case kOOShaderUniformTypeLongLong:
+        return ((LongLongReturnMsgSend)method)(object, selector);
+
+    case kOOShaderUniformTypeUnsignedLongLong:
+        return ((UnsignedLongLongReturnMsgSend)method)(object, selector);
+
+    default:
+        return 0;
+    }
+}
 
 double OOCallFloatMethod(id object, SEL selector, IMP method, OOShaderUniformType type)
 {
-	switch (type)
-	{
-		case kOOShaderUniformTypeFloat:
-			return ((FloatReturnMsgSend)method)(object, selector);
-			
-		case kOOShaderUniformTypeDouble:
-			return ((DoubleReturnMsgSend)method)(object, selector);
-			
-		default:
-			return 0;
-	}
+    switch (type) {
+    case kOOShaderUniformTypeFloat:
+        return ((FloatReturnMsgSend)method)(object, selector);
+
+    case kOOShaderUniformTypeDouble:
+        return ((DoubleReturnMsgSend)method)(object, selector);
+
+    default:
+        return 0;
+    }
 }
 
-#endif	// OO_SHADERS
+#endif // OO_SHADERS

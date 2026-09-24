@@ -25,47 +25,44 @@ MA 02110-1301, USA.
 
 */
 
-
 #import "OOFoundation.h"
 #include <jsapi.h>
 
-
-@interface OOJSFunction: NSObject
-{
+@interface OOJSFunction : NSObject {
 @private
-	JSFunction					*_function;
-	NSString					*_name;
+    JSFunction* _function;
+    NSString* _name;
 }
 
-- (id) initWithFunction:(JSFunction *)function context:(JSContext *)context;
-- (id) initWithName:(NSString *)name
-			  scope:(JSObject *)scope		// may be NULL, in which case global object is used.
-			   code:(NSString *)code		// full JS code for function, including function declaration.
-	  argumentCount:(NSUInteger)argCount
-	  argumentNames:(const char **)argNames
-		   fileName:(NSString *)fileName
-		 lineNumber:(NSUInteger)lineNumber
-			context:(JSContext *)context;	// may be NULL. If not null, must be in a request.
+- (id)initWithFunction:(JSFunction*)function context:(JSContext*)context;
+- (id)initWithName:(NSString*)name
+             scope:(JSObject*)scope // may be NULL, in which case global object is used.
+              code:(NSString*)code // full JS code for function, including function declaration.
+     argumentCount:(NSUInteger)argCount
+     argumentNames:(const char**)argNames
+          fileName:(NSString*)fileName
+        lineNumber:(NSUInteger)lineNumber
+           context:(JSContext*)context; // may be NULL. If not null, must be in a request.
 
-- (NSString *) name;
-- (JSFunction *) function;
-- (jsval) functionValue;
+- (NSString*)name;
+- (JSFunction*)function;
+- (jsval)functionValue;
 
 // Raw evaluation. Context may not be NULL and must be in a request.
-- (BOOL) evaluateWithContext:(JSContext *)context
-					   scope:(JSObject *)jsThis
-						argc:(uintN)argc
-						argv:(jsval *)argv
-					  result:(jsval *)result;
+- (BOOL)evaluateWithContext:(JSContext*)context
+                      scope:(JSObject*)jsThis
+                       argc:(uintN)argc
+                       argv:(jsval*)argv
+                     result:(jsval*)result;
 
 // Object-wrapper evaluation.
-- (id) evaluateWithContext:(JSContext *)context
-					 scope:(id)jsThis
-				 arguments:(NSArray *)arguments;
+- (id)evaluateWithContext:(JSContext*)context
+                    scope:(id)jsThis
+                arguments:(NSArray*)arguments;
 
 // As above, but converts result to a boolean.
-- (BOOL) evaluatePredicateWithContext:(JSContext *)context
-								scope:(id)jsThis
-							arguments:(NSArray *)arguments;
+- (BOOL)evaluatePredicateWithContext:(JSContext*)context
+                               scope:(id)jsThis
+                           arguments:(NSArray*)arguments;
 
 @end

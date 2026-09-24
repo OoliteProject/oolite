@@ -29,33 +29,30 @@ MA 02110-1301, USA.
 
 @class OOTexture, OOColor;
 
-
-@interface OOLightParticleEntity: Entity
-{
+@interface OOLightParticleEntity : Entity {
 @protected
-	GLfloat					_colorComponents[4];
-	float					_diameter;
+    GLfloat _colorComponents[4];
+    float _diameter;
 }
 
-- (id) initWithDiameter:(float)diameter;
+- (id)initWithDiameter:(float)diameter;
 
-- (float) diameter;
-- (void) setDiameter:(float)diameter;
+- (float)diameter;
+- (void)setDiameter:(float)diameter;
 
-- (void) setColor:(OOColor *)color;
-- (void) setColor:(OOColor *)color alpha:(GLfloat)alpha;
+- (void)setColor:(OOColor*)color;
+- (void)setColor:(OOColor*)color alpha:(GLfloat)alpha;
 
 /*	For subclasses that don't want the default blur texture.
-	NOTE: such subclasses must deal with the OOGraphicsResetManager. Also,
-	OOLightParticleEntity assumes the texture is twice as big as the nominal
-	size of the particle (with a black border for anti-aliasing purposes).
+        NOTE: such subclasses must deal with the OOGraphicsResetManager. Also,
+        OOLightParticleEntity assumes the texture is twice as big as the nominal
+        size of the particle (with a black border for anti-aliasing purposes).
 */
-- (OOTexture *) texture;
+- (OOTexture*)texture;
 
-+ (void) setUpTexture;
-+ (OOTexture *) defaultParticleTexture;
++ (void)setUpTexture;
++ (OOTexture*)defaultParticleTexture;
 
-
-- (void) drawSubEntityImmediate:(bool)immediate translucent:(bool)translucent;
+- (void)drawSubEntityImmediate:(bool)immediate translucent:(bool)translucent;
 
 @end

@@ -25,601 +25,501 @@ MA 02110-1301, USA.
 */
 
 #import "OOJoystickManager.h"
-#import "OOLogging.h"
 #import "OOCollectionExtractors.h"
-
+#import "OOLogging.h"
 
 static Class sStickHandlerClass = Nil;
 static id sSharedStickHandler = nil;
 
-
 @interface OOJoystickManager (Private)
 
 // Setting button and axis functions
-- (void) setFunctionForAxis:(int)axis
-                   function:(int)function
-                      stick:(int)stickNum;
+- (void)setFunctionForAxis:(int)axis
+                  function:(int)function
+                     stick:(int)stickNum;
 
-- (void) setFunctionForButton:(int)button
-                     function:(int)function
-                        stick:(int)stickNum;
+- (void)setFunctionForButton:(int)button
+                    function:(int)function
+                       stick:(int)stickNum;
 
 @end
 
-
-
 @implementation OOJoystickManager
 
-+ (id) sharedStickHandler
++ (id)sharedStickHandler
 {
-	if (sSharedStickHandler == nil)
-	{
-		if (sStickHandlerClass == Nil)  sStickHandlerClass = [OOJoystickManager class];
-		sSharedStickHandler = [[sStickHandlerClass alloc] init];
-	}
-	return sSharedStickHandler;
+    if (sSharedStickHandler == nil) {
+        if (sStickHandlerClass == Nil)
+            sStickHandlerClass = [OOJoystickManager class];
+        sSharedStickHandler = [[sStickHandlerClass alloc] init];
+    }
+    return sSharedStickHandler;
 }
 
-
-+ (BOOL) setStickHandlerClass:(Class)aClass
++ (BOOL)setStickHandlerClass:(Class)aClass
 {
-	NSAssert(sStickHandlerClass == nil, @"Can't set joystick handler class after joystick handler is initialized.");
-	NSParameterAssert(aClass == Nil || [aClass isSubclassOfClass:[OOJoystickManager class]]);
-	
-	sStickHandlerClass = aClass;
-	return YES;
+    NSAssert(sStickHandlerClass == nil, @"Can't set joystick handler class after joystick handler is initialized.");
+    NSParameterAssert(aClass == Nil || [aClass isSubclassOfClass:[OOJoystickManager class]]);
+
+    sStickHandlerClass = aClass;
+    return YES;
 }
 
-
-- (id) init
+- (id)init
 {
-	if ((self = [super init]))
-	{
-		// set initial values for stick buttons/axes (NO for buttons,
-		// STICK_AXISUNASSIGNED for axes). Caution: calling this again
-		// after axes have been assigned will set all the axes to
-		// STICK_AXISUNASSIGNED so if there is a need to do something
-		// like this, then do it some other way, or change this method
-		// so it doesn't do that.
-		[self clearStickStates];
-		
-		// Make some sensible mappings. This also ensures unassigned
-		// axes and buttons are set to unassigned (STICK_NOFUNCTION).
-		[self loadStickSettings];
-		invertPitch = NO;
-		precisionMode = NO;
-	}
-	return self;
+    if ((self = [super init])) {
+        // set initial values for stick buttons/axes (NO for buttons,
+        // STICK_AXISUNASSIGNED for axes). Caution: calling this again
+        // after axes have been assigned will set all the axes to
+        // STICK_AXISUNASSIGNED so if there is a need to do something
+        // like this, then do it some other way, or change this method
+        // so it doesn't do that.
+        [self clearStickStates];
+
+        // Make some sensible mappings. This also ensures unassigned
+        // axes and buttons are set to unassigned (STICK_NOFUNCTION).
+        [self loadStickSettings];
+        invertPitch = NO;
+        precisionMode = NO;
+    }
+    return self;
 }
 
-
-
-- (NSPoint) rollPitchAxis
+- (NSPoint)rollPitchAxis
 {
-	return NSMakePoint([self getAxisState:AXIS_ROLL], [self getAxisState:AXIS_PITCH]);
+    return NSMakePoint([self getAxisState:AXIS_ROLL], [self getAxisState:AXIS_PITCH]);
 }
 
-
-- (NSPoint) viewAxis
+- (NSPoint)viewAxis
 {
-	return NSMakePoint(axstate[AXIS_VIEWX], axstate[AXIS_VIEWY]);
+    return NSMakePoint(axstate[AXIS_VIEWX], axstate[AXIS_VIEWY]);
 }
 
-
-- (BOOL) getButtonState: (int)function
+- (BOOL)getButtonState:(int)function
 {
-	return butstate[function];
+    return butstate[function];
 }
 
-
-- (const BOOL *)getAllButtonStates
+- (const BOOL*)getAllButtonStates
 {
-	return butstate;
+    return butstate;
 }
 
-- (BOOL) isButtonDown:(int)button stick:(int)stickNum
+- (BOOL)isButtonDown:(int)button stick:(int)stickNum
 {
-	return true_butstate[stickNum][button];
+    return true_butstate[stickNum][button];
 }
 
-- (double) getAxisState: (int)function
+- (double)getAxisState:(int)function
 {
-	if (axstate[function] == STICK_AXISUNASSIGNED)
-	{
-		return STICK_AXISUNASSIGNED;
-	}
-	switch (function)
-	{
-	case AXIS_ROLL:
-		if (precisionMode)
-		{
-			return [roll_profile value:axstate[function]] / STICK_PRECISIONFAC;
-		}
-		else
-		{
- 			return [roll_profile value:axstate[function]];
-		}
-	case AXIS_PITCH:
-		if (precisionMode)
-		{
-			return [pitch_profile value:axstate[function]] / STICK_PRECISIONFAC;
-		}
-		else
-		{
-			return [pitch_profile value:axstate[function]];
-		}
-	case AXIS_YAW:
-		if (precisionMode)
-		{
-			return [yaw_profile value:axstate[function]] / STICK_PRECISIONFAC;
-		}
-		else
-		{
-			return [yaw_profile value:axstate[function]];
-		}
-	default:
-		return axstate[function];
-	}
+    if (axstate[function] == STICK_AXISUNASSIGNED) {
+        return STICK_AXISUNASSIGNED;
+    }
+    switch (function) {
+    case AXIS_ROLL:
+        if (precisionMode) {
+            return [roll_profile value:axstate[function]] / STICK_PRECISIONFAC;
+        } else {
+            return [roll_profile value:axstate[function]];
+        }
+    case AXIS_PITCH:
+        if (precisionMode) {
+            return [pitch_profile value:axstate[function]] / STICK_PRECISIONFAC;
+        } else {
+            return [pitch_profile value:axstate[function]];
+        }
+    case AXIS_YAW:
+        if (precisionMode) {
+            return [yaw_profile value:axstate[function]] / STICK_PRECISIONFAC;
+        } else {
+            return [yaw_profile value:axstate[function]];
+        }
+    default:
+        return axstate[function];
+    }
 }
 
-
-- (double) getSensitivity
+- (double)getSensitivity
 {
-	return precisionMode ? STICK_PRECISIONFAC : 1.0;
+    return precisionMode ? STICK_PRECISIONFAC : 1.0;
 }
 
-- (void) setProfile: (OOJoystickAxisProfile *) profile forAxis: (int) axis
+- (void)setProfile:(OOJoystickAxisProfile*)profile forAxis:(int)axis
 {
-	switch (axis)
-	{
-	case AXIS_ROLL:
-		[roll_profile release];
-		roll_profile = [profile retain];
-		break;
+    switch (axis) {
+    case AXIS_ROLL:
+        [roll_profile release];
+        roll_profile = [profile retain];
+        break;
 
-	case AXIS_PITCH:
-		[pitch_profile release];
-		pitch_profile = [profile retain];
-		break;
+    case AXIS_PITCH:
+        [pitch_profile release];
+        pitch_profile = [profile retain];
+        break;
 
-	case AXIS_YAW:
-		[yaw_profile release];
-		yaw_profile = [profile retain];
-		break;
-	}
-	return;
+    case AXIS_YAW:
+        [yaw_profile release];
+        yaw_profile = [profile retain];
+        break;
+    }
+    return;
 }
 
-- (OOJoystickAxisProfile *) getProfileForAxis: (int) axis
+- (OOJoystickAxisProfile*)getProfileForAxis:(int)axis
 {
-	switch (axis)
-	{
-	case AXIS_ROLL:
-		return roll_profile;
-	case AXIS_PITCH:
-		return pitch_profile;
-	case AXIS_YAW:
-		return yaw_profile;
-	}
-	return nil;
+    switch (axis) {
+    case AXIS_ROLL:
+        return roll_profile;
+    case AXIS_PITCH:
+        return pitch_profile;
+    case AXIS_YAW:
+        return yaw_profile;
+    }
+    return nil;
 }
 
-
-- (void) saveProfileForAxis: (int) axis
+- (void)saveProfileForAxis:(int)axis
 {
-	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-	NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
-	OOJoystickAxisProfile *profile;
-	OOJoystickStandardAxisProfile *standard_profile;
-	OOJoystickSplineAxisProfile *spline_profile;
-	NSArray *controlPoints;
-	NSMutableArray *points;
-	NSPoint point;
-	NSUInteger i;
-	
-	profile = [self getProfileForAxis: axis];
-	if (!profile) return;
-	[dict setObject: [NSNumber numberWithDouble: [profile deadzone]] forKey: @"Deadzone"];
-	if ([profile isKindOfClass: [OOJoystickStandardAxisProfile class]])
-	{
-		standard_profile = (OOJoystickStandardAxisProfile *) profile;
-		[dict setObject: @"Standard" forKey: @"Type"];
-		[dict setObject: [NSNumber numberWithDouble: [standard_profile power]] forKey: @"Power"];
-		[dict setObject: [NSNumber numberWithDouble: [standard_profile parameter]] forKey: @"Parameter"];
-	}
-	else if ([profile isKindOfClass: [OOJoystickSplineAxisProfile class]])
-	{
-		spline_profile = (OOJoystickSplineAxisProfile *) profile;
-		[dict setObject: @"Spline" forKey: @"Type"];
-		controlPoints = [NSArray arrayWithArray: [spline_profile controlPoints]];
-		points = [[NSMutableArray alloc] initWithCapacity: [controlPoints count]];
-		for (i = 0; i < [controlPoints count]; i++)
-		{
-			point = [[controlPoints objectAtIndex: i] pointValue];
-			[points addObject: [NSArray arrayWithObjects:
-				[NSNumber numberWithFloat: point.x],
-				[NSNumber numberWithFloat: point.y],
-				nil ]];
-		}
-		[dict setObject: points forKey: @"ControlPoints"];
-	}
-	else
-	{
-		[dict setObject: @"Standard" forKey: @"Type"];
-	}
-	if (axis == AXIS_ROLL)
-	{
-		[defaults setObject: dict forKey: STICK_ROLL_AXIS_PROFILE_SETTING];
-	}
-	else if (axis == AXIS_PITCH)
-	{
-		[defaults setObject: dict forKey: STICK_PITCH_AXIS_PROFILE_SETTING];
-	}
-	else if (axis == AXIS_YAW)
-	{
-		[defaults setObject: dict forKey: STICK_YAW_AXIS_PROFILE_SETTING];
-	}
-	return;
+    NSUserDefaults* defaults = [NSUserDefaults standardUserDefaults];
+    NSMutableDictionary* dict = [[NSMutableDictionary alloc] init];
+    OOJoystickAxisProfile* profile;
+    OOJoystickStandardAxisProfile* standard_profile;
+    OOJoystickSplineAxisProfile* spline_profile;
+    NSArray* controlPoints;
+    NSMutableArray* points;
+    NSPoint point;
+    NSUInteger i;
+
+    profile = [self getProfileForAxis:axis];
+    if (!profile)
+        return;
+    [dict setObject:[NSNumber numberWithDouble:[profile deadzone]] forKey:@"Deadzone"];
+    if ([profile isKindOfClass:[OOJoystickStandardAxisProfile class]]) {
+        standard_profile = (OOJoystickStandardAxisProfile*)profile;
+        [dict setObject:@"Standard" forKey:@"Type"];
+        [dict setObject:[NSNumber numberWithDouble:[standard_profile power]] forKey:@"Power"];
+        [dict setObject:[NSNumber numberWithDouble:[standard_profile parameter]] forKey:@"Parameter"];
+    } else if ([profile isKindOfClass:[OOJoystickSplineAxisProfile class]]) {
+        spline_profile = (OOJoystickSplineAxisProfile*)profile;
+        [dict setObject:@"Spline" forKey:@"Type"];
+        controlPoints = [NSArray arrayWithArray:[spline_profile controlPoints]];
+        points = [[NSMutableArray alloc] initWithCapacity:[controlPoints count]];
+        for (i = 0; i < [controlPoints count]; i++) {
+            point = [[controlPoints objectAtIndex:i] pointValue];
+            [points addObject:[NSArray arrayWithObjects:
+                                      [NSNumber numberWithFloat:point.x],
+                                  [NSNumber numberWithFloat:point.y],
+                                  nil]];
+        }
+        [dict setObject:points forKey:@"ControlPoints"];
+    } else {
+        [dict setObject:@"Standard" forKey:@"Type"];
+    }
+    if (axis == AXIS_ROLL) {
+        [defaults setObject:dict forKey:STICK_ROLL_AXIS_PROFILE_SETTING];
+    } else if (axis == AXIS_PITCH) {
+        [defaults setObject:dict forKey:STICK_PITCH_AXIS_PROFILE_SETTING];
+    } else if (axis == AXIS_YAW) {
+        [defaults setObject:dict forKey:STICK_YAW_AXIS_PROFILE_SETTING];
+    }
+    return;
 }
 
-
-
-- (void) loadProfileForAxis: (int) axis
+- (void)loadProfileForAxis:(int)axis
 {
-	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-	NSDictionary *dict;
-	OOJoystickStandardAxisProfile *standard_profile;
-	OOJoystickSplineAxisProfile *spline_profile;
-	
-	if (axis == AXIS_ROLL)
-	{
-		dict = [defaults objectForKey: STICK_ROLL_AXIS_PROFILE_SETTING];
-	}
-	else if (axis == AXIS_PITCH)
-	{
-		dict = [defaults objectForKey: STICK_PITCH_AXIS_PROFILE_SETTING];
-	}
-	else if (axis == AXIS_YAW)
-	{
-		dict = [defaults objectForKey: STICK_YAW_AXIS_PROFILE_SETTING];
-	}
-	else
-	{
-		return;
-	}
+    NSUserDefaults* defaults = [NSUserDefaults standardUserDefaults];
+    NSDictionary* dict;
+    OOJoystickStandardAxisProfile* standard_profile;
+    OOJoystickSplineAxisProfile* spline_profile;
 
-	NSString *type = [dict objectForKey: @"Type"];
-	if ([type isEqualToString: @"Standard"])
-	{
-		standard_profile = [[OOJoystickStandardAxisProfile alloc] init];
-		[standard_profile setDeadzone: [[dict objectForKey: @"Deadzone"] doubleValue]];
-		[standard_profile setPower: [[dict objectForKey: @"Power"] doubleValue]];
-		[standard_profile setParameter: [[dict objectForKey: @"Parameter"] doubleValue]];
-		[self setProfile: [standard_profile autorelease] forAxis: axis];
-	}
-	else if([type isEqualToString: @"Spline"])
-	{
-		spline_profile = [[OOJoystickSplineAxisProfile alloc] init];
-		[spline_profile setDeadzone: [[dict objectForKey: @"Deadzone"] doubleValue]];
-		NSArray *points = [dict objectForKey: @"ControlPoints"], *pointArray;
-		NSPoint point;
-		NSUInteger i;
+    if (axis == AXIS_ROLL) {
+        dict = [defaults objectForKey:STICK_ROLL_AXIS_PROFILE_SETTING];
+    } else if (axis == AXIS_PITCH) {
+        dict = [defaults objectForKey:STICK_PITCH_AXIS_PROFILE_SETTING];
+    } else if (axis == AXIS_YAW) {
+        dict = [defaults objectForKey:STICK_YAW_AXIS_PROFILE_SETTING];
+    } else {
+        return;
+    }
 
-		for (i = 0; i < [points count]; i++)
-		{
-			pointArray = [points objectAtIndex: i];
-			if ([pointArray count] >= 2)
-			{
-				point = NSMakePoint([[pointArray objectAtIndex: 0] floatValue], [[pointArray objectAtIndex: 1] floatValue]);
-				[spline_profile addControl: point];
-			}
-		}
-		[self setProfile: [spline_profile autorelease] forAxis: axis];
-	}
-	else
-	{
-		[self setProfile: [[[OOJoystickStandardAxisProfile alloc] init] autorelease] forAxis: axis];
-	}
+    NSString* type = [dict objectForKey:@"Type"];
+    if ([type isEqualToString:@"Standard"]) {
+        standard_profile = [[OOJoystickStandardAxisProfile alloc] init];
+        [standard_profile setDeadzone:[[dict objectForKey:@"Deadzone"] doubleValue]];
+        [standard_profile setPower:[[dict objectForKey:@"Power"] doubleValue]];
+        [standard_profile setParameter:[[dict objectForKey:@"Parameter"] doubleValue]];
+        [self setProfile:[standard_profile autorelease] forAxis:axis];
+    } else if ([type isEqualToString:@"Spline"]) {
+        spline_profile = [[OOJoystickSplineAxisProfile alloc] init];
+        [spline_profile setDeadzone:[[dict objectForKey:@"Deadzone"] doubleValue]];
+        NSArray *points = [dict objectForKey:@"ControlPoints"], *pointArray;
+        NSPoint point;
+        NSUInteger i;
+
+        for (i = 0; i < [points count]; i++) {
+            pointArray = [points objectAtIndex:i];
+            if ([pointArray count] >= 2) {
+                point = NSMakePoint([[pointArray objectAtIndex:0] floatValue], [[pointArray objectAtIndex:1] floatValue]);
+                [spline_profile addControl:point];
+            }
+        }
+        [self setProfile:[spline_profile autorelease] forAxis:axis];
+    } else {
+        [self setProfile:[[[OOJoystickStandardAxisProfile alloc] init] autorelease] forAxis:axis];
+    }
 }
 
-- (NSArray *)listSticks
+- (NSArray*)listSticks
 {
-	NSUInteger i, stickCount = [self joystickCount];
-	
-	NSMutableArray *stickList = [NSMutableArray array];
-	for (i = 0; i < stickCount; i++)
-	{
-		[stickList addObject:[self nameOfJoystick:i]];
-	}
-	return stickList;
+    NSUInteger i, stickCount = [self joystickCount];
+
+    NSMutableArray* stickList = [NSMutableArray array];
+    for (i = 0; i < stickCount; i++) {
+        [stickList addObject:[self nameOfJoystick:i]];
+    }
+    return stickList;
 }
 
-
-- (NSDictionary *) axisFunctions
+- (NSDictionary*)axisFunctions
 {
-	int i,j;
-	NSMutableDictionary *fnList = [NSMutableDictionary dictionary];
-	
-	// Add axes
-	for (i = 0; i < MAX_AXES; i++)
-	{
-		for (j = 0; j < MAX_STICKS; j++)
-		{
-			if(axismap[j][i] >= 0)
-			{
-				NSDictionary *fnDict=[NSDictionary dictionaryWithObjectsAndKeys:
-									  [NSNumber numberWithBool:YES], STICK_ISAXIS,
-									  [NSNumber numberWithInt:j], STICK_NUMBER, 
-									  [NSNumber numberWithInt:i], STICK_AXBUT,
-									  nil];
-				[fnList setValue: fnDict
-						  forKey: ENUMKEY(axismap[j][i])];
-			}
-		}
-	}
-	return fnList;
+    int i, j;
+    NSMutableDictionary* fnList = [NSMutableDictionary dictionary];
+
+    // Add axes
+    for (i = 0; i < MAX_AXES; i++) {
+        for (j = 0; j < MAX_STICKS; j++) {
+            if (axismap[j][i] >= 0) {
+                NSDictionary* fnDict = [NSDictionary dictionaryWithObjectsAndKeys:
+                        [NSNumber numberWithBool:YES], STICK_ISAXIS,
+                    [NSNumber numberWithInt:j], STICK_NUMBER,
+                    [NSNumber numberWithInt:i], STICK_AXBUT,
+                    nil];
+                [fnList setValue:fnDict
+                          forKey:ENUMKEY(axismap[j][i])];
+            }
+        }
+    }
+    return fnList;
 }
 
-
-- (NSDictionary *)buttonFunctions
+- (NSDictionary*)buttonFunctions
 {
-	int i, j;
-	NSMutableDictionary *fnList = [NSMutableDictionary dictionary];
-	
-	// Add buttons
-	for (i = 0; i < MAX_BUTTONS; i++)
-	{
-		for (j = 0; j < MAX_STICKS; j++)
-		{
-			if(buttonmap[j][i] >= 0)
-			{
-				NSDictionary *fnDict = [NSDictionary dictionaryWithObjectsAndKeys:
-										[NSNumber numberWithBool:NO], STICK_ISAXIS, 
-										[NSNumber numberWithInt:j], STICK_NUMBER, 
-										[NSNumber numberWithInt:i], STICK_AXBUT, 
-										nil];
-				[fnList setValue:fnDict
-						  forKey:ENUMKEY(buttonmap[j][i])];
-			}
-		}
-	}
-	return fnList;
+    int i, j;
+    NSMutableDictionary* fnList = [NSMutableDictionary dictionary];
+
+    // Add buttons
+    for (i = 0; i < MAX_BUTTONS; i++) {
+        for (j = 0; j < MAX_STICKS; j++) {
+            if (buttonmap[j][i] >= 0) {
+                NSDictionary* fnDict = [NSDictionary dictionaryWithObjectsAndKeys:
+                        [NSNumber numberWithBool:NO], STICK_ISAXIS,
+                    [NSNumber numberWithInt:j], STICK_NUMBER,
+                    [NSNumber numberWithInt:i], STICK_AXBUT,
+                    nil];
+                [fnList setValue:fnDict
+                          forKey:ENUMKEY(buttonmap[j][i])];
+            }
+        }
+    }
+    return fnList;
 }
 
-
-- (void) setFunction:(int)function withDict:(NSDictionary *)stickFn
+- (void)setFunction:(int)function withDict:(NSDictionary*)stickFn
 {
-	BOOL isAxis = [stickFn oo_boolForKey:STICK_ISAXIS];
-	int stickNum = [stickFn oo_intForKey:STICK_NUMBER];
-	int stickAxBt = [stickFn oo_intForKey:STICK_AXBUT];
-	
-	if (isAxis)
-	{
-		[self setFunctionForAxis:stickAxBt 
-						function:function
-						   stick:stickNum];
-	}
-	else
-	{
-		[self setFunctionForButton:stickAxBt
-						  function:function
-							 stick:stickNum];
-	}
+    BOOL isAxis = [stickFn oo_boolForKey:STICK_ISAXIS];
+    int stickNum = [stickFn oo_intForKey:STICK_NUMBER];
+    int stickAxBt = [stickFn oo_intForKey:STICK_AXBUT];
+
+    if (isAxis) {
+        [self setFunctionForAxis:stickAxBt
+                        function:function
+                           stick:stickNum];
+    } else {
+        [self setFunctionForButton:stickAxBt
+                          function:function
+                             stick:stickNum];
+    }
 }
 
-
-- (void) setFunctionForAxis:(int)axis 
-                   function:(int)function
-                      stick:(int)stickNum
+- (void)setFunctionForAxis:(int)axis
+                  function:(int)function
+                     stick:(int)stickNum
 {
-	NSParameterAssert(axis < MAX_AXES && stickNum < MAX_STICKS);
-	
-	int16_t axisvalue = [self getAxisWithStick:stickNum axis:axis];
-	[self unsetAxisFunction:function];
-	axismap[stickNum][axis] = function;
-	
-	// initialize the throttle to what it's set to now (or else the
-	// commander has to waggle the throttle to wake it up). Other axes
-	// set as default.
-	if(function == AXIS_THRUST)
-	{
-		axstate[function] = (float)(65536 - (axisvalue + 32768)) / 65536;
-	}
-	else
-	{
-		axstate[function] = (float)axisvalue / STICK_NORMALDIV;
-	}
+    NSParameterAssert(axis < MAX_AXES && stickNum < MAX_STICKS);
+
+    int16_t axisvalue = [self getAxisWithStick:stickNum axis:axis];
+    [self unsetAxisFunction:function];
+    axismap[stickNum][axis] = function;
+
+    // initialize the throttle to what it's set to now (or else the
+    // commander has to waggle the throttle to wake it up). Other axes
+    // set as default.
+    if (function == AXIS_THRUST) {
+        axstate[function] = (float)(65536 - (axisvalue + 32768)) / 65536;
+    } else {
+        axstate[function] = (float)axisvalue / STICK_NORMALDIV;
+    }
 }
 
-
-- (void) setFunctionForButton:(int)button 
-                     function:(int)function 
-                        stick:(int)stickNum
+- (void)setFunctionForButton:(int)button
+                    function:(int)function
+                       stick:(int)stickNum
 {
-	NSParameterAssert(button < MAX_BUTTONS && stickNum < MAX_STICKS);
-	
-	int i, j;
-	for (i = 0; i < MAX_BUTTONS; i++)
-	{
-		for (j = 0; j < MAX_STICKS; j++)
-		{
-			if (buttonmap[j][i] == function)
-			{
-				buttonmap[j][i] = STICK_NOFUNCTION;
-				break;
-			}
-		}
-	}
-	buttonmap[stickNum][button] = function;
+    NSParameterAssert(button < MAX_BUTTONS && stickNum < MAX_STICKS);
+
+    int i, j;
+    for (i = 0; i < MAX_BUTTONS; i++) {
+        for (j = 0; j < MAX_STICKS; j++) {
+            if (buttonmap[j][i] == function) {
+                buttonmap[j][i] = STICK_NOFUNCTION;
+                break;
+            }
+        }
+    }
+    buttonmap[stickNum][button] = function;
 }
 
-
-- (void) unsetAxisFunction:(int)function
+- (void)unsetAxisFunction:(int)function
 {
-	int i, j;
-	for (i = 0; i < MAX_AXES; i++)
-	{
-		for (j = 0; j < MAX_STICKS; j++)
-		{
-			if (axismap[j][i] == function)
-			{
-				axismap[j][i] = STICK_NOFUNCTION;
-				axstate[function] = STICK_AXISUNASSIGNED;
-				break;
-			}
-		}
-	}
+    int i, j;
+    for (i = 0; i < MAX_AXES; i++) {
+        for (j = 0; j < MAX_STICKS; j++) {
+            if (axismap[j][i] == function) {
+                axismap[j][i] = STICK_NOFUNCTION;
+                axstate[function] = STICK_AXISUNASSIGNED;
+                break;
+            }
+        }
+    }
 }
 
-
-- (void) unsetButtonFunction:(int)function
+- (void)unsetButtonFunction:(int)function
 {
-	int i,j;
-	for (i = 0; i < MAX_BUTTONS; i++)
-	{
-		for (j = 0; j < MAX_STICKS; j++)
-		{
-			if(buttonmap[j][i] == function)
-			{
-				buttonmap[j][i] = STICK_NOFUNCTION;
-				break;
-			}
-		}
-	}
+    int i, j;
+    for (i = 0; i < MAX_BUTTONS; i++) {
+        for (j = 0; j < MAX_STICKS; j++) {
+            if (buttonmap[j][i] == function) {
+                buttonmap[j][i] = STICK_NOFUNCTION;
+                break;
+            }
+        }
+    }
 }
 
-
-- (void) setDefaultMapping
+- (void)setDefaultMapping
 {
-	// assign the simplest mapping: stick 0 having
-	// axis 0/1 being roll/pitch and button 0 being fire, 1 being missile
-	// All joysticks should at least have two axes and two buttons.
-	axismap[0][0] = AXIS_ROLL;
-	axismap[0][1] = AXIS_PITCH;
-	buttonmap[0][0] = BUTTON_FIRE;
-	buttonmap[0][1] = BUTTON_LAUNCHMISSILE;
+    // assign the simplest mapping: stick 0 having
+    // axis 0/1 being roll/pitch and button 0 being fire, 1 being missile
+    // All joysticks should at least have two axes and two buttons.
+    axismap[0][0] = AXIS_ROLL;
+    axismap[0][1] = AXIS_PITCH;
+    buttonmap[0][0] = BUTTON_FIRE;
+    buttonmap[0][1] = BUTTON_LAUNCHMISSILE;
 }
 
-
-- (void) clearMappings
+- (void)clearMappings
 {
-	memset(axismap, STICK_NOFUNCTION, sizeof axismap);
-	memset(buttonmap, STICK_NOFUNCTION, sizeof buttonmap);
+    memset(axismap, STICK_NOFUNCTION, sizeof axismap);
+    memset(buttonmap, STICK_NOFUNCTION, sizeof buttonmap);
 }
 
-
-- (void) clearStickStates
+- (void)clearStickStates
 {
-	int i, j;
-	for (i = 0; i < AXIS_end; i++)
-	{
-		axstate[i] = STICK_AXISUNASSIGNED;
-	}
-	for (i = 0; i < BUTTON_end; i++)
-	{
-		butstate[i] = 0;
-	}
-	for (i = 0; i < MAX_BUTTONS; i++)
-	{
-		for (j = 0; j < MAX_STICKS; j++)
-		{
-			true_butstate[j][i] = NO;
-		}
-	}
+    int i, j;
+    for (i = 0; i < AXIS_end; i++) {
+        axstate[i] = STICK_AXISUNASSIGNED;
+    }
+    for (i = 0; i < BUTTON_end; i++) {
+        butstate[i] = 0;
+    }
+    for (i = 0; i < MAX_BUTTONS; i++) {
+        for (j = 0; j < MAX_STICKS; j++) {
+            true_butstate[j][i] = NO;
+        }
+    }
 }
 
-
-- (void) clearStickButtonState:(int)stickButton
+- (void)clearStickButtonState:(int)stickButton
 {
-	if (stickButton >= 0 && stickButton < BUTTON_end)
-	{
-		butstate[stickButton] = 0;
-	}
+    if (stickButton >= 0 && stickButton < BUTTON_end) {
+        butstate[stickButton] = 0;
+    }
 }
 
-
-- (void)setCallback:(SEL) selector
-             object:(id) obj
+- (void)setCallback:(SEL)selector
+             object:(id)obj
            hardware:(char)hwflags
 {
-	cbObject = obj;
-	cbSelector = selector;
-	cbHardware = hwflags;
+    cbObject = obj;
+    cbSelector = selector;
+    cbHardware = hwflags;
 }
-
 
 - (void)clearCallback
 {
-	cbObject = nil;
-	cbHardware = 0;
+    cbObject = nil;
+    cbHardware = 0;
 }
 
-- (void) saveStickSettings
+- (void)saveStickSettings
 {
-	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-	
-	[defaults setObject:[self axisFunctions]
-				 forKey:AXIS_SETTINGS];
-	[defaults setObject:[self buttonFunctions]
-				 forKey:BUTTON_SETTINGS];
-	[self saveProfileForAxis: AXIS_ROLL];
-	[self saveProfileForAxis: AXIS_PITCH];
-	[self saveProfileForAxis: AXIS_YAW];
-	[defaults synchronize];
+    NSUserDefaults* defaults = [NSUserDefaults standardUserDefaults];
+
+    [defaults setObject:[self axisFunctions]
+                 forKey:AXIS_SETTINGS];
+    [defaults setObject:[self buttonFunctions]
+                 forKey:BUTTON_SETTINGS];
+    [self saveProfileForAxis:AXIS_ROLL];
+    [self saveProfileForAxis:AXIS_PITCH];
+    [self saveProfileForAxis:AXIS_YAW];
+    [defaults synchronize];
 }
 
-
-- (void) loadStickSettings
+- (void)loadStickSettings
 {
-	unsigned i;
-	[self clearMappings];
-	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-	NSDictionary *axisSettings = [defaults objectForKey: AXIS_SETTINGS];
-	NSDictionary *buttonSettings = [defaults objectForKey: BUTTON_SETTINGS];
-	if(axisSettings)
-	{
-		NSArray *keys = [axisSettings allKeys];
-		for (i = 0; i < [keys count]; i++)
-		{
-			NSString *key = [keys objectAtIndex: i];
-			[self setFunction: [key intValue]
-					 withDict: [axisSettings objectForKey: key]];
-		}
-	}
-	if(buttonSettings)
-	{
-		NSArray *keys = [buttonSettings allKeys];
-		for (i = 0; i < [keys count]; i++)
-		{
-			NSString *key = [keys objectAtIndex: i];
-			[self setFunction:[key intValue]
-					 withDict:[buttonSettings objectForKey: key]];
-		}
-	}
-	else
-	{
-		// Nothing to load - set useful defaults
-		[self setDefaultMapping];
-	}
-	[self loadProfileForAxis: AXIS_ROLL];
-	[self loadProfileForAxis: AXIS_PITCH];
-	[self loadProfileForAxis: AXIS_YAW];
+    unsigned i;
+    [self clearMappings];
+    NSUserDefaults* defaults = [NSUserDefaults standardUserDefaults];
+    NSDictionary* axisSettings = [defaults objectForKey:AXIS_SETTINGS];
+    NSDictionary* buttonSettings = [defaults objectForKey:BUTTON_SETTINGS];
+    if (axisSettings) {
+        NSArray* keys = [axisSettings allKeys];
+        for (i = 0; i < [keys count]; i++) {
+            NSString* key = [keys objectAtIndex:i];
+            [self setFunction:[key intValue]
+                     withDict:[axisSettings objectForKey:key]];
+        }
+    }
+    if (buttonSettings) {
+        NSArray* keys = [buttonSettings allKeys];
+        for (i = 0; i < [keys count]; i++) {
+            NSString* key = [keys objectAtIndex:i];
+            [self setFunction:[key intValue]
+                     withDict:[buttonSettings objectForKey:key]];
+        }
+    } else {
+        // Nothing to load - set useful defaults
+        [self setDefaultMapping];
+    }
+    [self loadProfileForAxis:AXIS_ROLL];
+    [self loadProfileForAxis:AXIS_PITCH];
+    [self loadProfileForAxis:AXIS_YAW];
 }
 
 // These get overidden by subclasses
-- (NSUInteger) joystickCount
+- (NSUInteger)joystickCount
 {
-	return 0;
+    return 0;
 }
 
-- (NSString *) nameOfJoystick:(NSUInteger)stickNumber
+- (NSString*)nameOfJoystick:(NSUInteger)stickNumber
 {
-	return @"Dummy joystick";
+    return @"Dummy joystick";
 }
 
-- (int16_t) getAxisWithStick:(NSUInteger)stickNum axis:(NSUInteger)axisNum
+- (int16_t)getAxisWithStick:(NSUInteger)stickNum axis:(NSUInteger)axisNum
 {
-	return 0;
+    return 0;
 }
 
 @end

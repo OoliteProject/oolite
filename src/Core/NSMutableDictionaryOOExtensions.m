@@ -22,46 +22,42 @@ MA 02110-1301, USA.
 
 */
 
-#import <Foundation/Foundation.h>
 #import "NSMutableDictionaryOOExtensions.h"
+#import <Foundation/Foundation.h>
 
 @implementation NSMutableDictionary (OOExtensions)
 
-- (void)mergeEntriesFromDictionary:(NSDictionary *)otherDictionary
+- (void)mergeEntriesFromDictionary:(NSDictionary*)otherDictionary
 {
-	NSEnumerator	*otherKeysEnum = nil;
-	id				key = nil;
-	 
-	for (otherKeysEnum = [otherDictionary keyEnumerator]; (key = [otherKeysEnum nextObject]); )
-	{
-		if (![self objectForKey:key])
-			[self setObject:[otherDictionary objectForKey:key] forKey:key];
-		else
-		{
-			BOOL merged = NO;
-			id thisObject = [self objectForKey:key];
-			id otherObject = [otherDictionary objectForKey:key];
-			
-			if ([thisObject isKindOfClass:[NSDictionary class]]&&[otherObject isKindOfClass:[NSDictionary class]]&&(![thisObject isEqual:otherObject]))
-			{
-				NSMutableDictionary* mergeObject = [NSMutableDictionary dictionaryWithDictionary:(NSDictionary*)thisObject];
-				[mergeObject mergeEntriesFromDictionary:(NSDictionary*)otherObject];
-				[self setObject:mergeObject forKey:key];
-				merged = YES;
-			}
-			
-			if ([thisObject isKindOfClass:[NSArray class]]&&[otherObject isKindOfClass:[NSArray class]]&&(![thisObject isEqual:otherObject]))
-			{
-				NSMutableArray* mergeObject = [NSMutableArray arrayWithArray:(NSArray*)thisObject];
-				[mergeObject addObjectsFromArray:(NSArray*)otherObject];
-				[self setObject:mergeObject forKey:key];
-				merged = YES;
-			}
-			
-			if (!merged)
-				[self setObject:otherObject forKey:key];
-		}
-	}	
+    NSEnumerator* otherKeysEnum = nil;
+    id key = nil;
+
+    for (otherKeysEnum = [otherDictionary keyEnumerator]; (key = [otherKeysEnum nextObject]);) {
+        if (![self objectForKey:key])
+            [self setObject:[otherDictionary objectForKey:key] forKey:key];
+        else {
+            BOOL merged = NO;
+            id thisObject = [self objectForKey:key];
+            id otherObject = [otherDictionary objectForKey:key];
+
+            if ([thisObject isKindOfClass:[NSDictionary class]] && [otherObject isKindOfClass:[NSDictionary class]] && (![thisObject isEqual:otherObject])) {
+                NSMutableDictionary* mergeObject = [NSMutableDictionary dictionaryWithDictionary:(NSDictionary*)thisObject];
+                [mergeObject mergeEntriesFromDictionary:(NSDictionary*)otherObject];
+                [self setObject:mergeObject forKey:key];
+                merged = YES;
+            }
+
+            if ([thisObject isKindOfClass:[NSArray class]] && [otherObject isKindOfClass:[NSArray class]] && (![thisObject isEqual:otherObject])) {
+                NSMutableArray* mergeObject = [NSMutableArray arrayWithArray:(NSArray*)thisObject];
+                [mergeObject addObjectsFromArray:(NSArray*)otherObject];
+                [self setObject:mergeObject forKey:key];
+                merged = YES;
+            }
+
+            if (!merged)
+                [self setObject:otherObject forKey:key];
+        }
+    }
 }
 
 @end

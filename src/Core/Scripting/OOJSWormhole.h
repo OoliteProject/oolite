@@ -26,19 +26,18 @@ MA 02110-1301, USA.
 
 #pragma once
 
+#import "WormholeEntity.h"
 #import <Foundation/Foundation.h>
 #include <jsapi.h>
-#import "WormholeEntity.h"
 
 @class WormholeEntity;
 
-
-void InitOOJSWormhole(JSContext *context, JSObject *global);
+void InitOOJSWormhole(JSContext* context, JSObject* global);
 
 @interface WormholeEntity (OOJavaScriptExtensions)
 
-- (void)getJSClass:(JSClass **)outClass andPrototype:(JSObject **)outPrototype;
-- (NSString *) oo_jsClassName;
-- (BOOL) isVisibleToScripts;
+- (void)getJSClass:(JSClass**)outClass andPrototype:(JSObject**)outPrototype;
+- (NSString*)oo_jsClassName;
+- (BOOL)isVisibleToScripts;
 
 @end

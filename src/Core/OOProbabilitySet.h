@@ -8,9 +8,9 @@ Comes in mutable and immutable variants.
 
 Performance characteristics:
   *	-randomObject, the primary method, is O(log n) for immutable
-	OOProbabilitySets and O(n) for mutable ones.
+        OOProbabilitySets and O(n) for mutable ones.
   *	-containsObject: and -probabilityForObject: are O(n). This could be
-	optimized, but there's currently no need.
+        optimized, but there's currently no need.
 
 
 Copyright (C) 2008-2013 Jens Ayton
@@ -37,42 +37,39 @@ SOFTWARE.
 
 #import "OOFoundation.h"
 
+@interface OOProbabilitySet : NSObject <NSCopying, NSMutableCopying>
 
-@interface OOProbabilitySet: NSObject <NSCopying, NSMutableCopying>
++ (id)probabilitySet;
++ (id)probabilitySetWithObjects:(id*)objects weights:(float*)weights count:(NSUInteger)count;
++ (id)probabilitySetWithPropertyListRepresentation:(NSDictionary*)plist;
 
-+ (id) probabilitySet;
-+ (id) probabilitySetWithObjects:(id *)objects weights:(float *)weights count:(NSUInteger)count;
-+ (id) probabilitySetWithPropertyListRepresentation:(NSDictionary *)plist;
-
-- (id) init;
-- (id) initWithObjects:(id *)objects weights:(float *)weights count:(NSUInteger)count;
-- (id) initWithPropertyListRepresentation:(NSDictionary *)plist;
+- (id)init;
+- (id)initWithObjects:(id*)objects weights:(float*)weights count:(NSUInteger)count;
+- (id)initWithPropertyListRepresentation:(NSDictionary*)plist;
 
 // propertyListRepresentation is only valid if objects are property list objects.
-- (NSDictionary *) propertyListRepresentation;
+- (NSDictionary*)propertyListRepresentation;
 
-- (NSUInteger) count;
-- (id) randomObject;
+- (NSUInteger)count;
+- (id)randomObject;
 
-- (float) weightForObject:(id)object;	// Returns -1 for unknown objects.
-- (float) sumOfWeights;
-- (NSArray *) allObjects;
+- (float)weightForObject:(id)object; // Returns -1 for unknown objects.
+- (float)sumOfWeights;
+- (NSArray*)allObjects;
 
 @end
-
 
 @interface OOProbabilitySet (OOExtendedProbabilitySet)
 
-- (BOOL) containsObject:(id)object;
-- (NSEnumerator *) objectEnumerator;
-- (float) probabilityForObject:(id)object;	// Returns -1 for unknown objects, or a value from 0 to 1 inclusive for known objects.
+- (BOOL)containsObject:(id)object;
+- (NSEnumerator*)objectEnumerator;
+- (float)probabilityForObject:(id)object; // Returns -1 for unknown objects, or a value from 0 to 1 inclusive for known objects.
 
 @end
 
+@interface OOMutableProbabilitySet : OOProbabilitySet
 
-@interface OOMutableProbabilitySet: OOProbabilitySet
-
-- (void) setWeight:(float)weight forObject:(id)object;	// Adds object if needed.
-- (void) removeObject:(id)object;
+- (void)setWeight:(float)weight forObject:(id)object; // Adds object if needed.
+- (void)removeObject:(id)object;
 
 @end

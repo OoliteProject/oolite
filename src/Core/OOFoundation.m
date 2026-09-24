@@ -30,74 +30,63 @@ SOFTWARE.
 #import "OOFoundation.h"
 #import "OOFunctionAttributes.h"
 
-
 @implementation NSObject (OODescriptionComponents)
 
-- (NSString *)descriptionComponents
+- (NSString*)descriptionComponents
 {
-	return nil;
+    return nil;
 }
 
 #ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wobjc-protocol-method-implementation"
 #endif
-- (NSString *)description
+- (NSString*)description
 {
-	NSString				*components = nil;
-	
-	components = [self descriptionComponents];
-	if (components != nil)
-	{
-		return [NSString stringWithFormat:@"<%@ %p>{%@}", [self class], self, components];
-	}
-	else
-	{
-		return [NSString stringWithFormat:@"<%@ %p>", [self class], self];
-	}
+    NSString* components = nil;
+
+    components = [self descriptionComponents];
+    if (components != nil) {
+        return [NSString stringWithFormat:@"<%@ %p>{%@}", [self class], self, components];
+    } else {
+        return [NSString stringWithFormat:@"<%@ %p>", [self class], self];
+    }
 }
 #ifdef __clang__
 #pragma clang diagnostic pop
 #endif
 
-
-- (NSString *) shortDescription
+- (NSString*)shortDescription
 {
-	NSString				*components = nil;
-	
-	components = [self shortDescriptionComponents];
-	if (components != nil)
-	{
-		return [NSString stringWithFormat:@"<%@ %p>{%@}", [self class], self, components];
-	}
-	else
-	{
-		return [NSString stringWithFormat:@"<%@ %p>", [self class], self];
-	}
+    NSString* components = nil;
+
+    components = [self shortDescriptionComponents];
+    if (components != nil) {
+        return [NSString stringWithFormat:@"<%@ %p>{%@}", [self class], self, components];
+    } else {
+        return [NSString stringWithFormat:@"<%@ %p>", [self class], self];
+    }
 }
 
-
-- (NSString *) shortDescriptionComponents
+- (NSString*)shortDescriptionComponents
 {
-	return nil;
+    return nil;
 }
 
 @end
-
 
 @implementation NSEnumerator (OOForEachSupport)
 
-- (NSEnumerator *) objectEnumerator
+- (NSEnumerator*)objectEnumerator
 {
-	return self;
+    return self;
 }
 
 @end
-
 
 #ifndef NDEBUG
 id OOConsumeReference(id OO_NS_CONSUMED value)
 {
-	return value;
+    return value;
 }
 #endif

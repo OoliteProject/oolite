@@ -28,60 +28,57 @@ MA 02110-1301, USA.
 #import "OOFoundation.h"
 #import "OOMaths.h"
 
-
-#define	COLLISION_REGION_BORDER_RADIUS	32000.0f
-#define	COLLISION_MAX_ENTITIES			128
+#define COLLISION_REGION_BORDER_RADIUS 32000.0f
+#define COLLISION_MAX_ENTITIES 128
 #define MINIMUM_SHADOWING_ENTITY_RADIUS 75.0
 
 @class Entity, OOSunEntity;
 
-
-@interface CollisionRegion: NSObject
-{
+@interface CollisionRegion : NSObject {
 @private
-	BOOL				isUniverse;			// if YES location is origin and radius is 0.0f
-	
-	int					crid;				// identifier
-	HPVector				location;			// center of the region
-	GLfloat				radius;				// inner radius of the region
-	GLfloat				border_radius;		// additiønal, border radius of the region (typically 32km or some value > the scanner range)
+    BOOL isUniverse; // if YES location is origin and radius is 0.0f
 
-	unsigned			checks_this_tick;
-	unsigned			checks_within_range;
+    int crid; // identifier
+    HPVector location; // center of the region
+    GLfloat radius; // inner radius of the region
+    GLfloat border_radius; // additiønal, border radius of the region (typically 32km or some value > the scanner range)
 
-	NSMutableArray		*subregions;
-	
-	BOOL				isPlayerInRegion;
-	
-	Entity				**entity_array;	// entities within the region
-	unsigned			n_entities;		// number of entities
-	unsigned			max_entities;	// so storage can be expanded
-	
-	CollisionRegion		*parentRegion;
+    unsigned checks_this_tick;
+    unsigned checks_within_range;
+
+    NSMutableArray* subregions;
+
+    BOOL isPlayerInRegion;
+
+    Entity** entity_array; // entities within the region
+    unsigned n_entities; // number of entities
+    unsigned max_entities; // so storage can be expanded
+
+    CollisionRegion* parentRegion;
 }
 
-- (id) initAsUniverse;
-- (id) initAtLocation:(HPVector) locn withRadius:(GLfloat) rad withinRegion:(CollisionRegion*) otherRegion;
+- (id)initAsUniverse;
+- (id)initAtLocation:(HPVector)locn withRadius:(GLfloat)rad withinRegion:(CollisionRegion*)otherRegion;
 
-- (void) clearSubregions;
-- (void) addSubregionAtPosition:(HPVector) pos withRadius:(GLfloat) rad;
+- (void)clearSubregions;
+- (void)addSubregionAtPosition:(HPVector)pos withRadius:(GLfloat)rad;
 
 // collision checking
-- (void) clearEntityList;
-- (void) addEntity:(Entity *)ent;
-- (BOOL) checkEntity:(Entity *)ent;
+- (void)clearEntityList;
+- (void)addEntity:(Entity*)ent;
+- (BOOL)checkEntity:(Entity*)ent;
 
-- (void) findCollisions;
-- (void) findShadowedEntities;
+- (void)findCollisions;
+- (void)findShadowedEntities;
 
 // Description for FPS HUD
-- (NSString *) collisionDescription;
+- (NSString*)collisionDescription;
 
-- (NSString *) debugOut;
+- (NSString*)debugOut;
 
 @end
 
 /* Given a region centred at e1pos with a radius of e1rad, the depth
  * of shadowing cast by e2 from the_sun is recorded in outValue, with
  * >1 = no shadow, <1 = shadow */
-BOOL shadowAtPointOcclusionToValue(HPVector e1pos, GLfloat e1rad, Entity *e2, OOSunEntity *the_sun, float *outValue);
+BOOL shadowAtPointOcclusionToValue(HPVector e1pos, GLfloat e1rad, Entity* e2, OOSunEntity* the_sun, float* outValue);

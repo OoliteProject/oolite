@@ -32,5 +32,4 @@ SOFTWARE.
 
 @class OOMesh;
 
-
-BOOL OOSynthesizeMaterialShader(NSDictionary *materialConfiguration, NSString *materialKey, NSString *entityName, NSString **outVertexShader, NSString **outFragmentShader, NSArray **outTextureSpecs, NSDictionary **outUniformSpecs);
+BOOL OOSynthesizeMaterialShader(NSDictionary* materialConfiguration, NSString* materialKey, NSString* entityName, NSString** outVertexShader, NSString** outFragmentShader, NSArray** outTextureSpecs, NSDictionary** outUniformSpecs);

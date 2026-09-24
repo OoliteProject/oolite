@@ -26,114 +26,113 @@ MA 02110-1301, USA.
 
 @interface PlayerEntity (Sound)
 
-- (void) setUpSound;
-- (void) setUpWeaponSounds;
-- (void) destroySound;
+- (void)setUpSound;
+- (void)setUpWeaponSounds;
+- (void)destroySound;
 
 // Interface sounds; only one at a time
-- (BOOL) isBeeping;
-- (void) playIdentOn;
-- (void) playIdentOff;
-- (void) playIdentLockedOn;
-- (void) playMissileArmed;
-- (void) playMineArmed;
-- (void) playMissileSafe;
-- (void) playMissileLockedOn;
-- (void) playWeaponsOnline;
-- (void) playWeaponsOffline;
-- (void) playNextEquipmentSelected;
-- (void) playNextMissileSelected;
-- (void) playCargoJettisioned;
-- (void) playAutopilotOn;
-- (void) playAutopilotOff;
-- (void) playAutopilotOutOfRange;
-- (void) playAutopilotCannotDockWithTarget;
-- (void) playSaveOverwriteYes;
-- (void) playSaveOverwriteNo;
-- (void) playHoldFull;
-- (void) playJumpMassLocked;
-- (void) playTargetLost;
-- (void) playNoTargetInMemory;
-- (void) playTargetSwitched;
-- (void) playCloakingDeviceOn;
-- (void) playCloakingDeviceOff;
-- (void) playCloakingDeviceInsufficientEnergy;
-- (void) playMenuNavigationUp;
-- (void) playMenuNavigationDown;
-- (void) playMenuNavigationNot;
-- (void) playMenuPagePrevious;
-- (void) playMenuPageNext;
-- (void) playDismissedReportScreen;
-- (void) playDismissedMissionScreen;
-- (void) playChangedOption;
+- (BOOL)isBeeping;
+- (void)playIdentOn;
+- (void)playIdentOff;
+- (void)playIdentLockedOn;
+- (void)playMissileArmed;
+- (void)playMineArmed;
+- (void)playMissileSafe;
+- (void)playMissileLockedOn;
+- (void)playWeaponsOnline;
+- (void)playWeaponsOffline;
+- (void)playNextEquipmentSelected;
+- (void)playNextMissileSelected;
+- (void)playCargoJettisioned;
+- (void)playAutopilotOn;
+- (void)playAutopilotOff;
+- (void)playAutopilotOutOfRange;
+- (void)playAutopilotCannotDockWithTarget;
+- (void)playSaveOverwriteYes;
+- (void)playSaveOverwriteNo;
+- (void)playHoldFull;
+- (void)playJumpMassLocked;
+- (void)playTargetLost;
+- (void)playNoTargetInMemory;
+- (void)playTargetSwitched;
+- (void)playCloakingDeviceOn;
+- (void)playCloakingDeviceOff;
+- (void)playCloakingDeviceInsufficientEnergy;
+- (void)playMenuNavigationUp;
+- (void)playMenuNavigationDown;
+- (void)playMenuNavigationNot;
+- (void)playMenuPagePrevious;
+- (void)playMenuPageNext;
+- (void)playDismissedReportScreen;
+- (void)playDismissedMissionScreen;
+- (void)playChangedOption;
 
-- (void) updateFuelScoopSoundWithInterval:(OOTimeDelta)delta_t;
+- (void)updateFuelScoopSoundWithInterval:(OOTimeDelta)delta_t;
 
-- (void) startAfterburnerSound;
-- (void) stopAfterburnerSound;
+- (void)startAfterburnerSound;
+- (void)stopAfterburnerSound;
 
 // Buy/sell get their own source.
-- (void) playBuyCommodity;
-- (void) playBuyShip;
-- (void) playSellCommodity;
-- (void) playCantBuyCommodity;
-- (void) playCantSellCommodity;
-- (void) playCantBuyShip;
+- (void)playBuyCommodity;
+- (void)playBuyShip;
+- (void)playSellCommodity;
+- (void)playCantBuyCommodity;
+- (void)playCantSellCommodity;
+- (void)playCantBuyShip;
 
 // Hyperspace alert sounds; logically hyperspace sounds, but played on the interface sound source.
-- (void) playHyperspaceNoTarget;
-- (void) playHyperspaceNoFuel;
-- (void) playHyperspaceBlocked;
-- (void) playHyperspaceDistanceTooGreat;
-
+- (void)playHyperspaceNoTarget;
+- (void)playHyperspaceNoFuel;
+- (void)playHyperspaceBlocked;
+- (void)playHyperspaceDistanceTooGreat;
 
 /*	Hyperspace sounds; only one at a time. These get their own pool since
-	people might want something longer than beeps and boops (e.g. the existing
-	hyperspace countdown one). Hyperspace-related alert sounds are with the
-	normal interface sounds.
+        people might want something longer than beeps and boops (e.g. the existing
+        hyperspace countdown one). Hyperspace-related alert sounds are with the
+        normal interface sounds.
 */
-- (void) playStandardHyperspace;
-- (void) playGalacticHyperspace;
-- (void) playHyperspaceAborted;
+- (void)playStandardHyperspace;
+- (void)playGalacticHyperspace;
+- (void)playHyperspaceAborted;
 
 // ECM; only one at a time
-- (void) playHitByECMSound;
-- (void) playFiredECMSound;
+- (void)playHitByECMSound;
+- (void)playFiredECMSound;
 
-- (void) playLaunchFromStation;
-- (void) playDockWithStation;
-- (void) playExitWitchspace;
+- (void)playLaunchFromStation;
+- (void)playDockWithStation;
+- (void)playExitWitchspace;
 
 // Warning sounds
-- (void) playHostileWarning;
-- (void) playAlertConditionRed;
-- (void) playIncomingMissile:(Vector)missileVector;
-- (void) playEnergyLow;
-- (void) playDockingDenied;
-- (void) playWitchjumpFailure;
-- (void) playWitchjumpMisjump;
-- (void) playWitchjumpBlocked;
-- (void) playWitchjumpDistanceTooGreat;
-- (void) playWitchjumpInsufficientFuel;
-- (void) playFuelLeak;
+- (void)playHostileWarning;
+- (void)playAlertConditionRed;
+- (void)playIncomingMissile:(Vector)missileVector;
+- (void)playEnergyLow;
+- (void)playDockingDenied;
+- (void)playWitchjumpFailure;
+- (void)playWitchjumpMisjump;
+- (void)playWitchjumpBlocked;
+- (void)playWitchjumpDistanceTooGreat;
+- (void)playWitchjumpInsufficientFuel;
+- (void)playFuelLeak;
 
 // Damage sounds
-- (void) playShieldHit:(Vector)attackVector weaponIdentifier:(NSString *)weaponIdentifier;
-- (void) playDirectHit:(Vector)attackVector weaponIdentifier:(NSString *)weaponIdentifier;
-- (void) playScrapeDamage:(Vector)attackVector;
+- (void)playShieldHit:(Vector)attackVector weaponIdentifier:(NSString*)weaponIdentifier;
+- (void)playDirectHit:(Vector)attackVector weaponIdentifier:(NSString*)weaponIdentifier;
+- (void)playScrapeDamage:(Vector)attackVector;
 
 // Weapon sounds
-- (void) playLaserHit:(BOOL)hit offset:(Vector)weaponOffset weaponIdentifier:(NSString *)weaponIdentifier;
-- (void) playWeaponOverheated:(Vector)weaponOffset;
-- (void) playMissileLaunched:(Vector)weaponOffset weaponIdentifier:(NSString *)weaponIdentifier;
-- (void) playMineLaunched:(Vector)weaponOffset weaponIdentifier:(NSString *)weaponIdentifier;
+- (void)playLaserHit:(BOOL)hit offset:(Vector)weaponOffset weaponIdentifier:(NSString*)weaponIdentifier;
+- (void)playWeaponOverheated:(Vector)weaponOffset;
+- (void)playMissileLaunched:(Vector)weaponOffset weaponIdentifier:(NSString*)weaponIdentifier;
+- (void)playMineLaunched:(Vector)weaponOffset weaponIdentifier:(NSString*)weaponIdentifier;
 
 // Miscellaneous sounds
-- (void) playEscapePodScooped;
-- (void) playAegisCloseToPlanet;
-- (void) playAegisCloseToStation;
-- (void) playGameOver;
+- (void)playEscapePodScooped;
+- (void)playAegisCloseToPlanet;
+- (void)playAegisCloseToStation;
+- (void)playGameOver;
 
-- (void) playLegacyScriptSound:(NSString *)key;
+- (void)playLegacyScriptSound:(NSString*)key;
 
 @end

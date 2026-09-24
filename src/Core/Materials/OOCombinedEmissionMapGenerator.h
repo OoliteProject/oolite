@@ -29,52 +29,49 @@ SOFTWARE.
 
 */
 
-
 #import "OOTextureGenerator.h"
 
 @class OOColor;
 
-
-@interface OOCombinedEmissionMapGenerator: OOTextureGenerator
-{
+@interface OOCombinedEmissionMapGenerator : OOTextureGenerator {
 @private
-	NSString					*_cacheKey;
-	
-	NSDictionary				*_emissionSpec;
-	NSDictionary				*_illuminationSpec;
-	OOTexture					*_diffuseMap;
-	
-	OOPixMap					_emissionPx;
-	OOPixMap					_diffusePx;
-	OOPixMap					_illuminationPx;
-	OOColor						*_emissionColor;
-	OOColor						*_illuminationColor;
-	BOOL						_isCombinedMap;
-	
-	uint32_t					_textureOptions;
-	GLfloat						_anisotropy;
-	GLfloat						_lodBias;
-	
+    NSString* _cacheKey;
+
+    NSDictionary* _emissionSpec;
+    NSDictionary* _illuminationSpec;
+    OOTexture* _diffuseMap;
+
+    OOPixMap _emissionPx;
+    OOPixMap _diffusePx;
+    OOPixMap _illuminationPx;
+    OOColor* _emissionColor;
+    OOColor* _illuminationColor;
+    BOOL _isCombinedMap;
+
+    uint32_t _textureOptions;
+    GLfloat _anisotropy;
+    GLfloat _lodBias;
+
 #ifndef NDEBUG
-	NSString					*_emissionDesc;
-	NSString					*_illuminationDesc;
-	NSString					*_diffuseDesc;
+    NSString* _emissionDesc;
+    NSString* _illuminationDesc;
+    NSString* _diffuseDesc;
 #endif
 }
 
-- (id) initWithEmissionMapSpec:(NSDictionary *)emissionMapSpec
-				 emissionColor:(OOColor *)emissionColor
-					diffuseMap:(OOTexture *)diffuseMap
-				  diffuseColor:(OOColor *)diffuseColor
-		   illuminationMapSpec:(NSDictionary *)illuminationMapSpec
-			 illuminationColor:(OOColor *)illuminationColor
-			  optionsSpecifier:(NSDictionary *)spec;
+- (id)initWithEmissionMapSpec:(NSDictionary*)emissionMapSpec
+                emissionColor:(OOColor*)emissionColor
+                   diffuseMap:(OOTexture*)diffuseMap
+                 diffuseColor:(OOColor*)diffuseColor
+          illuminationMapSpec:(NSDictionary*)illuminationMapSpec
+            illuminationColor:(OOColor*)illuminationColor
+             optionsSpecifier:(NSDictionary*)spec;
 
-- (id) initWithEmissionAndIlluminationMapSpec:(NSDictionary *)emissionAndIlluminationMapSpec
-								   diffuseMap:(OOTexture *)diffuseMap
-								 diffuseColor:(OOColor *)diffuseColor
-								emissionColor:(OOColor *)emissionColor
-							illuminationColor:(OOColor *)illuminationColor
-							 optionsSpecifier:(NSDictionary *)spec;
+- (id)initWithEmissionAndIlluminationMapSpec:(NSDictionary*)emissionAndIlluminationMapSpec
+                                  diffuseMap:(OOTexture*)diffuseMap
+                                diffuseColor:(OOColor*)diffuseColor
+                               emissionColor:(OOColor*)emissionColor
+                           illuminationColor:(OOColor*)illuminationColor
+                            optionsSpecifier:(NSDictionary*)spec;
 
 @end

@@ -15,10 +15,10 @@ There are four public sound classes:
            constraint that only one OOMusic may play at a time.
 * OOSoundSource: a thing that can play a sound. Each sound played is
            conceptually played through a sound source, although this can be
-		   implicit using OOSound's -play method.
+                   implicit using OOSound's -play method.
 * OOSoundReferencePoint: a point in space relative to which a sound source is
            positioned. Since positional sound is not implemented, this serves
-		   no practical purpose.
+                   no practical purpose.
 
 
 Oolite
@@ -48,9 +48,9 @@ MA 02110-1301, USA.
 #define OOLITE_OPENAL 1
 
 #if OOLITE_OPENAL
-	#import "OOALSound.h"
-	#import "OOALMusic.h"
-	#import "OOBasicSoundReferencePoint.h"
+#import "OOALMusic.h"
+#import "OOALSound.h"
+#import "OOBasicSoundReferencePoint.h"
 #else
 
 #warning No sound implementation selected. Currently, the only option is OOLITE_OPENAL. There are SDL and Mac CoreAudio implementations in the revision history.

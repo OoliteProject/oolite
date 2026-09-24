@@ -29,13 +29,12 @@ SOFTWARE.
 
 #import "OOFoundation.h"
 
-
 @interface NSObject (OOExtensions)
 
 #ifndef NDEBUG
 
-+ (size_t) oo_instanceSize;
-- (size_t) oo_objectSize;
++ (size_t)oo_instanceSize;
+- (size_t)oo_objectSize;
 
 #endif
 

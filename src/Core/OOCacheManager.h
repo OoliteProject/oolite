@@ -31,30 +31,28 @@ MA 02110-1301, USA.
 
 #import "OOFoundation.h"
 
-
-@interface OOCacheManager: NSObject
-{
+@interface OOCacheManager : NSObject {
 @private
-	NSMutableDictionary		*_caches;
-	id						_scheduledWrite;
-	BOOL					_permitWrites;
-	BOOL					_dirty;
+    NSMutableDictionary* _caches;
+    id _scheduledWrite;
+    BOOL _permitWrites;
+    BOOL _dirty;
 }
 
-+ (OOCacheManager *)sharedCache;
++ (OOCacheManager*)sharedCache;
 
-- (id)objectForKey:(NSString *)inKey inCache:(NSString *)inCacheKey;
-- (void)setObject:(id)inElement forKey:(NSString *)inKey inCache:(NSString *)inCacheKey;
-- (void)removeObjectForKey:(NSString *)inKey inCache:(NSString *)inCacheKey;
-- (void)clearCache:(NSString *)inCacheKey;
+- (id)objectForKey:(NSString*)inKey inCache:(NSString*)inCacheKey;
+- (void)setObject:(id)inElement forKey:(NSString*)inKey inCache:(NSString*)inCacheKey;
+- (void)removeObjectForKey:(NSString*)inKey inCache:(NSString*)inCacheKey;
+- (void)clearCache:(NSString*)inCacheKey;
 - (void)clearAllCaches;
-- (void) reloadAllCaches;
+- (void)reloadAllCaches;
 
 - (void)setAllowCacheWrites:(BOOL)flag;
 
-- (NSString *)cacheDirectoryPathCreatingIfNecessary:(BOOL)create;
+- (NSString*)cacheDirectoryPathCreatingIfNecessary:(BOOL)create;
 
 - (void)flush;
-- (void)finishOngoingFlush;	// Wait for flush to complete. Does nothing if async flushing is disabled.
+- (void)finishOngoingFlush; // Wait for flush to complete. Does nothing if async flushing is disabled.
 
 @end

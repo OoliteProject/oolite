@@ -34,7 +34,6 @@ SOFTWARE.
 
 @class OODebugMonitor;
 
-
-JSObject *DebugMonitorToJSConsole(JSContext *context, OODebugMonitor *monitor);
+JSObject* DebugMonitorToJSConsole(JSContext* context, OODebugMonitor* monitor);
 
 void OOJSConsoleDestroy(void);

@@ -33,32 +33,26 @@ MA 02110-1301, USA.
 
 */
 
-
-
+#import "OOJoystickManager.h"
 #import <Foundation/Foundation.h>
 #import <SDL3/SDL_events.h>
-#import "OOJoystickManager.h"
 
-
-
-
-@interface OOSDLJoystickManager: OOJoystickManager
-{
+@interface OOSDLJoystickManager : OOJoystickManager {
 @private
-	NSDictionary		*joystickIdMap;
-	SDL_Joystick		*stick[MAX_STICKS];
-	int			stickCount;
+    NSDictionary* joystickIdMap;
+    SDL_Joystick* stick[MAX_STICKS];
+    int stickCount;
 }
 
-- (id) init;
-- (void) dealloc;
-- (NSInteger) getJoystickIndexFromId: (SDL_JoystickID) joystickId;
-- (SDL_JoyAxisEvent) makeJoyAxisEvent: (SDL_JoyAxisEvent*) sdlevt;
-- (SDL_JoyButtonEvent) makeJoyButtonEvent: (SDL_JoyButtonEvent*) sdlevt;
-- (SDL_JoyHatEvent) makeJoyHatEvent: (SDL_JoyHatEvent*) sdlevt;
-- (void) decodeAxisEvent: (SDL_JoyAxisEvent *)evt;
-- (void) decodeButtonEvent: (SDL_JoyButtonEvent *)evt;
-- (void) decodeHatEvent: (SDL_JoyHatEvent *)evt;
-- (BOOL) handleSDLEvent: (SDL_Event *)evt;
+- (id)init;
+- (void)dealloc;
+- (NSInteger)getJoystickIndexFromId:(SDL_JoystickID)joystickId;
+- (SDL_JoyAxisEvent)makeJoyAxisEvent:(SDL_JoyAxisEvent*)sdlevt;
+- (SDL_JoyButtonEvent)makeJoyButtonEvent:(SDL_JoyButtonEvent*)sdlevt;
+- (SDL_JoyHatEvent)makeJoyHatEvent:(SDL_JoyHatEvent*)sdlevt;
+- (void)decodeAxisEvent:(SDL_JoyAxisEvent*)evt;
+- (void)decodeButtonEvent:(SDL_JoyButtonEvent*)evt;
+- (void)decodeHatEvent:(SDL_JoyHatEvent*)evt;
+- (BOOL)handleSDLEvent:(SDL_Event*)evt;
 
 @end

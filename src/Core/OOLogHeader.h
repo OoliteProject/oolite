@@ -28,8 +28,6 @@ SOFTWARE.
 
 */
 
-
 #import "OOFoundation.h"
-
 
 void OOPrintLogHeader(void);

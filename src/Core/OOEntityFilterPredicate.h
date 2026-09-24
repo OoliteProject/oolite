@@ -31,47 +31,44 @@ MA 02110-1301, USA.
 
 */
 
-
 #import "Universe.h"
-
 
 typedef struct
 {
-	EntityFilterPredicate	predicate;
-	void					*parameter;
+    EntityFilterPredicate predicate;
+    void* parameter;
 } ChainedEntityPredicateParameter;
 
 typedef struct
 {
-	EntityFilterPredicate	predicate1;
-	void					*parameter1;
-	EntityFilterPredicate	predicate2;
-	void					*parameter2;
+    EntityFilterPredicate predicate1;
+    void* parameter1;
+    EntityFilterPredicate predicate2;
+    void* parameter2;
 } BinaryOperationPredicateParameter;
 
+BOOL YESPredicate(Entity* entity, void* parameter); // Parameter: ignored. Always returns YES.
+BOOL NOPredicate(Entity* entity, void* parameter); // Parameter: ignored. Always returns NO.
 
-BOOL YESPredicate(Entity *entity, void *parameter);						// Parameter: ignored. Always returns YES.
-BOOL NOPredicate(Entity *entity, void *parameter);						// Parameter: ignored. Always returns NO.
+BOOL NOTPredicate(Entity* entity, void* parameter); // Parameter: ChainedEntityPredicateParameter. Reverses effect of chained predicate.
 
-BOOL NOTPredicate(Entity *entity, void *parameter);						// Parameter: ChainedEntityPredicateParameter. Reverses effect of chained predicate.
+BOOL ANDPredicate(Entity* entity, void* parameter); // Parameter: BinaryOperationPredicateParameter. Short-circuiting AND operator.
+BOOL ORPredicate(Entity* entity, void* parameter); // Parameter: BinaryOperationPredicateParameter. Short-circuiting OR operator.
+BOOL NORPredicate(Entity* entity, void* parameter); // Parameter: BinaryOperationPredicateParameter. Short-circuiting NOR operator.
+BOOL XORPredicate(Entity* entity, void* parameter); // Parameter: BinaryOperationPredicateParameter. XOR operator.
+BOOL NANDPredicate(Entity* entity, void* parameter); // Parameter: BinaryOperationPredicateParameter. NAND operator.
 
-BOOL ANDPredicate(Entity *entity, void *parameter);						// Parameter: BinaryOperationPredicateParameter. Short-circuiting AND operator.
-BOOL ORPredicate(Entity *entity, void *parameter);						// Parameter: BinaryOperationPredicateParameter. Short-circuiting OR operator.
-BOOL NORPredicate(Entity *entity, void *parameter);						// Parameter: BinaryOperationPredicateParameter. Short-circuiting NOR operator.
-BOOL XORPredicate(Entity *entity, void *parameter);						// Parameter: BinaryOperationPredicateParameter. XOR operator.
-BOOL NANDPredicate(Entity *entity, void *parameter);					// Parameter: BinaryOperationPredicateParameter. NAND operator.
-
-BOOL HasScanClassPredicate(Entity *entity, void *parameter);			// Parameter: NSNumber (int)
-BOOL HasClassPredicate(Entity *entity, void *parameter);				// Parameter: Class
-BOOL IsShipPredicate(Entity *entity, void *parameter);					// Parameter: ignored. Tests isShip and !isSubentity.
-BOOL IsStationPredicate(Entity *entity, void *parameter);				// Parameter: ignored. Tests isStation.
-BOOL IsPlanetPredicate(Entity *entity, void *parameter);				// Parameter: ignored. Tests isPlanet and planetType == STELLAR_TYPE_NORMAL_PLANET.
-BOOL IsSunPredicate(Entity *entity, void *parameter);					// Parameter: ignored. Tests isSun.
-BOOL IsVisualEffectPredicate(Entity *entity, void *parameter);					// Parameter: ignored. Tests isVisualEffect and !isSubentity.
+BOOL HasScanClassPredicate(Entity* entity, void* parameter); // Parameter: NSNumber (int)
+BOOL HasClassPredicate(Entity* entity, void* parameter); // Parameter: Class
+BOOL IsShipPredicate(Entity* entity, void* parameter); // Parameter: ignored. Tests isShip and !isSubentity.
+BOOL IsStationPredicate(Entity* entity, void* parameter); // Parameter: ignored. Tests isStation.
+BOOL IsPlanetPredicate(Entity* entity, void* parameter); // Parameter: ignored. Tests isPlanet and planetType == STELLAR_TYPE_NORMAL_PLANET.
+BOOL IsSunPredicate(Entity* entity, void* parameter); // Parameter: ignored. Tests isSun.
+BOOL IsVisualEffectPredicate(Entity* entity, void* parameter); // Parameter: ignored. Tests isVisualEffect and !isSubentity.
 
 // These predicates assume their parameter is a ShipEntity.
-BOOL HasRolePredicate(Entity *ship, void *parameter);					// Parameter: NSString
-BOOL HasPrimaryRolePredicate(Entity *ship, void *parameter);			// Parameter: NSString
-BOOL HasRoleInSetPredicate(Entity *ship, void *parameter);				// Parameter: NSSet
-BOOL HasPrimaryRoleInSetPredicate(Entity *ship, void *parameter);		// Parameter: NSSet
-BOOL IsHostileAgainstTargetPredicate(Entity *ship, void *parameter);	// Parameter: ShipEntity
+BOOL HasRolePredicate(Entity* ship, void* parameter); // Parameter: NSString
+BOOL HasPrimaryRolePredicate(Entity* ship, void* parameter); // Parameter: NSString
+BOOL HasRoleInSetPredicate(Entity* ship, void* parameter); // Parameter: NSSet
+BOOL HasPrimaryRoleInSetPredicate(Entity* ship, void* parameter); // Parameter: NSSet
+BOOL IsHostileAgainstTargetPredicate(Entity* ship, void* parameter); // Parameter: ShipEntity

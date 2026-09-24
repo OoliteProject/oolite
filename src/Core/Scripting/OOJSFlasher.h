@@ -26,17 +26,16 @@ MA 02110-1301, USA.
 
 #pragma once
 
+#import "OOFlasherEntity.h"
 #import <Foundation/Foundation.h>
 #include <jsapi.h>
-#import "OOFlasherEntity.h"
 
-
-void InitOOJSFlasher(JSContext *context, JSObject *global);
+void InitOOJSFlasher(JSContext* context, JSObject* global);
 
 @interface OOFlasherEntity (OOJavaScriptExtensions)
 
-- (void)getJSClass:(JSClass **)outClass andPrototype:(JSObject **)outPrototype;
-- (NSString *) oo_jsClassName;
-- (BOOL) isVisibleToScripts;
+- (void)getJSClass:(JSClass**)outClass andPrototype:(JSObject**)outPrototype;
+- (NSString*)oo_jsClassName;
+- (BOOL)isVisibleToScripts;
 
 @end

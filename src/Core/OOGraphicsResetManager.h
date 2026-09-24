@@ -34,27 +34,24 @@ SOFTWARE.
 
 #import "OOFoundation.h"
 
-
 @protocol OOGraphicsResetClient
 
-- (void) resetGraphicsState;
+- (void)resetGraphicsState;
 
 @end
 
-
-@interface OOGraphicsResetManager: NSObject
-{
+@interface OOGraphicsResetManager : NSObject {
 @private
-	NSMutableSet			*clients;
+    NSMutableSet* clients;
 }
 
-+ (OOGraphicsResetManager *) sharedManager;
++ (OOGraphicsResetManager*)sharedManager;
 
 // Clients are not retained.
-- (void) registerClient:(id<OOGraphicsResetClient>)client;
-- (void) unregisterClient:(id<OOGraphicsResetClient>)client;
+- (void)registerClient:(id<OOGraphicsResetClient>)client;
+- (void)unregisterClient:(id<OOGraphicsResetClient>)client;
 
 // Forwarded to all clients, after resetting textures.
-- (void) resetGraphicsState;
+- (void)resetGraphicsState;
 
 @end

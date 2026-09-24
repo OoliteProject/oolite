@@ -26,10 +26,10 @@ SOFTWARE.
 */
 
 #import "OOAsyncWorkManager.h"
+#import "NSThreadOOExtensions.h"
 #import "OOAsyncQueue.h"
 #import "OOCPUInfo.h"
 #import "OOCollectionExtractors.h"
-#import "NSThreadOOExtensions.h"
 #import "OONSOperation.h"
 
 #define USE_PTHREAD_ONCE (!OOLITE_WINDOWS)
@@ -38,431 +38,386 @@ SOFTWARE.
 #include <pthread.h>
 #endif
 
-
-static OOAsyncWorkManager *sSingleton = nil;
-
+static OOAsyncWorkManager* sSingleton = nil;
 
 @interface NSThread (MethodsThatMayExistDependingOnSystem)
 
-- (BOOL) isMainThread;
-+ (BOOL) isMainThread;
+- (BOOL)isMainThread;
++ (BOOL)isMainThread;
 
 @end
-
 
 /*	OOAsyncWorkManagerInternal: shared superclass of our two implementations,
-	which implements shared functionality but is not itself concrete.
+        which implements shared functionality but is not itself concrete.
 */
-@interface OOAsyncWorkManagerInternal: OOAsyncWorkManager
-{
+@interface OOAsyncWorkManagerInternal : OOAsyncWorkManager {
 @private
-	OOAsyncQueue			*_readyQueue;
-	
-	NSMutableSet			*_pendingCompletableOperations;
-	NSLock					*_pendingOpsLock;
+    OOAsyncQueue* _readyQueue;
+
+    NSMutableSet* _pendingCompletableOperations;
+    NSLock* _pendingOpsLock;
 }
 
-- (void) queueResult:(id<OOAsyncWorkTask>)task;
+- (void)queueResult:(id<OOAsyncWorkTask>)task;
 
-- (void) noteTaskQueued:(id<OOAsyncWorkTask>)task;
+- (void)noteTaskQueued:(id<OOAsyncWorkTask>)task;
 
 @end
 
-
 #if !OO_HAVE_NSOPERATION
-@interface OOManualDispatchAsyncWorkManager: OOAsyncWorkManagerInternal
-{
+@interface OOManualDispatchAsyncWorkManager : OOAsyncWorkManagerInternal {
 @private
-	OOAsyncQueue			*_taskQueue;
+    OOAsyncQueue* _taskQueue;
 }
 
-- (void) queueTask:(NSNumber *)threadNumber;
+- (void)queueTask:(NSNumber*)threadNumber;
 
 @end
 #endif
 
-
-@interface OOOperationQueueAsyncWorkManager: OOAsyncWorkManagerInternal
-{
+@interface OOOperationQueueAsyncWorkManager : OOAsyncWorkManagerInternal {
 @private
-	OONSOperationQueue		_operationQueue;
+    OONSOperationQueue _operationQueue;
 }
 
 #if !OO_HAVE_NSOPERATION
-+ (BOOL) canBeUsed;
++ (BOOL)canBeUsed;
 #endif
 
-- (void) dispatchTask:(id<OOAsyncWorkTask>)task;
+- (void)dispatchTask:(id<OOAsyncWorkTask>)task;
 
 @end
-
 
 #if !USE_PTHREAD_ONCE
-static NSLock *sInitLock = nil;
+static NSLock* sInitLock = nil;
 #endif
-
 
 static void InitAsyncWorkManager(void)
 {
-	NSCAssert(sSingleton == nil, @"Async Work Manager singleton not nil in one-time init");
-	
-#if !OO_HAVE_NSOPERATION
-	if ([OOOperationQueueAsyncWorkManager canBeUsed])
-	{
-		sSingleton = [[OOOperationQueueAsyncWorkManager alloc] init];
-	}
-	if (sSingleton == nil)
-	{
-		sSingleton = [[OOManualDispatchAsyncWorkManager alloc] init];
-	}
-#else
-	sSingleton = [[OOOperationQueueAsyncWorkManager alloc] init];
-#endif
-	
-	if (sSingleton == nil)
-	{
-		OOLog(@"asyncWorkManager.setUpDispatcher.failed", @"%@", @"***** FATAL ERROR: could not set up async work manager!");
-		exit(EXIT_FAILURE);
-	}
-	
-	OOLog(@"asyncWorkManager.dispatchMethod", @"Selected async work manager: %@", [sSingleton class]);
-}
+    NSCAssert(sSingleton == nil, @"Async Work Manager singleton not nil in one-time init");
 
+#if !OO_HAVE_NSOPERATION
+    if ([OOOperationQueueAsyncWorkManager canBeUsed]) {
+        sSingleton = [[OOOperationQueueAsyncWorkManager alloc] init];
+    }
+    if (sSingleton == nil) {
+        sSingleton = [[OOManualDispatchAsyncWorkManager alloc] init];
+    }
+#else
+    sSingleton = [[OOOperationQueueAsyncWorkManager alloc] init];
+#endif
+
+    if (sSingleton == nil) {
+        OOLog(@"asyncWorkManager.setUpDispatcher.failed", @"%@", @"***** FATAL ERROR: could not set up async work manager!");
+        exit(EXIT_FAILURE);
+    }
+
+    OOLog(@"asyncWorkManager.dispatchMethod", @"Selected async work manager: %@", [sSingleton class]);
+}
 
 @implementation OOAsyncWorkManager
 
 #if !USE_PTHREAD_ONCE
-+ (void) initialize
++ (void)initialize
 {
-	if (sInitLock == nil)
-	{
-		sInitLock = [[NSLock alloc] init];
-		NSAssert(sInitLock != nil, @"Async Work Manager init failed");
-	}
+    if (sInitLock == nil) {
+        sInitLock = [[NSLock alloc] init];
+        NSAssert(sInitLock != nil, @"Async Work Manager init failed");
+    }
 }
 #endif
 
-
-+ (OOAsyncWorkManager *) sharedAsyncWorkManager
++ (OOAsyncWorkManager*)sharedAsyncWorkManager
 {
 #if USE_PTHREAD_ONCE
-	static pthread_once_t once = PTHREAD_ONCE_INIT;
-	pthread_once(&once, InitAsyncWorkManager);
-	NSAssert(sSingleton != nil, @"Async Work Manager init failed");
+    static pthread_once_t once = PTHREAD_ONCE_INIT;
+    pthread_once(&once, InitAsyncWorkManager);
+    NSAssert(sSingleton != nil, @"Async Work Manager init failed");
 #else
-	[sInitLock lock];
-	if (sSingleton == nil)
-	{
-		InitAsyncWorkManager();
-		NSAssert(sSingleton != nil, @"Async Work Manager init failed");
-	}
-	[sInitLock unlock];
+    [sInitLock lock];
+    if (sSingleton == nil) {
+        InitAsyncWorkManager();
+        NSAssert(sSingleton != nil, @"Async Work Manager init failed");
+    }
+    [sInitLock unlock];
 #endif
-	
-	return sSingleton;
+
+    return sSingleton;
 }
 
-
-+ (id) allocWithZone:(NSZone *)inZone
++ (id)allocWithZone:(NSZone*)inZone
 {
-	if (sSingleton == nil)
-	{
-		sSingleton = [super allocWithZone:inZone];
-		return sSingleton;
-	}
-	return nil;
+    if (sSingleton == nil) {
+        sSingleton = [super allocWithZone:inZone];
+        return sSingleton;
+    }
+    return nil;
 }
 
-
-- (void) dealloc
+- (void)dealloc
 {
-	abort();
-	[super dealloc];
+    abort();
+    [super dealloc];
 }
 
-
-- (oneway void) release
-{}
-
-
-- (id) retain
+- (oneway void)release
 {
-	return self;
 }
 
-
-- (NSUInteger) retainCount
+- (id)retain
 {
-	return UINT_MAX;
+    return self;
 }
 
-
-- (BOOL) addTask:(id<OOAsyncWorkTask>)task priority:(OOAsyncWorkPriority)priority
+- (NSUInteger)retainCount
 {
-	OOLogGenericSubclassResponsibility();
-	return NO;
+    return UINT_MAX;
 }
 
-
-- (void) completePendingTasks
+- (BOOL)addTask:(id<OOAsyncWorkTask>)task priority:(OOAsyncWorkPriority)priority
 {
-	OOLogGenericSubclassResponsibility();
+    OOLogGenericSubclassResponsibility();
+    return NO;
 }
 
-
-- (void) waitForTaskToComplete:(id<OOAsyncWorkTask>)task
+- (void)completePendingTasks
 {
-	OOLogGenericSubclassResponsibility();
-	[NSException raise:NSInternalInconsistencyException format:@"%s called.", __PRETTY_FUNCTION__];
+    OOLogGenericSubclassResponsibility();
+}
+
+- (void)waitForTaskToComplete:(id<OOAsyncWorkTask>)task
+{
+    OOLogGenericSubclassResponsibility();
+    [NSException raise:NSInternalInconsistencyException format:@"%s called.", __PRETTY_FUNCTION__];
 }
 
 @end
-
 
 @implementation OOAsyncWorkManagerInternal
 
-
-- (id) init
+- (id)init
 {
-	if ((self = [super init]))
-	{
-		_readyQueue = [[OOAsyncQueue alloc] init];
-		
-		if (_readyQueue == nil)
-		{
-			[self release];
-			return nil;
-		}
-		
-		_pendingCompletableOperations = [[NSMutableSet alloc] init];
-		_pendingOpsLock = [[NSLock alloc] init];
-		
-		if (_pendingCompletableOperations == nil || _pendingOpsLock == nil)
-		{
-			[self release];
-			return nil;
-		}
-	}
-	
-	return self;
+    if ((self = [super init])) {
+        _readyQueue = [[OOAsyncQueue alloc] init];
+
+        if (_readyQueue == nil) {
+            [self release];
+            return nil;
+        }
+
+        _pendingCompletableOperations = [[NSMutableSet alloc] init];
+        _pendingOpsLock = [[NSLock alloc] init];
+
+        if (_pendingCompletableOperations == nil || _pendingOpsLock == nil) {
+            [self release];
+            return nil;
+        }
+    }
+
+    return self;
 }
 
-
-- (void) completePendingTasks
+- (void)completePendingTasks
 {
-	id next = nil;
-	
-	[_pendingOpsLock lock];
-	for (;;)
-	{
-		next = [_readyQueue tryDequeue];
-		if (next == nil)  break;
-		
-		[_pendingCompletableOperations removeObject:next];
-		[next completeAsyncTask];
-	}
-	[_pendingOpsLock unlock];
+    id next = nil;
+
+    [_pendingOpsLock lock];
+    for (;;) {
+        next = [_readyQueue tryDequeue];
+        if (next == nil)
+            break;
+
+        [_pendingCompletableOperations removeObject:next];
+        [next completeAsyncTask];
+    }
+    [_pendingOpsLock unlock];
 }
 
-
-- (void) waitForTaskToComplete:(id<OOAsyncWorkTask>)task
+- (void)waitForTaskToComplete:(id<OOAsyncWorkTask>)task
 {
-	if (task == nil)  return;
-	
+    if (task == nil)
+        return;
+
 #if OO_DEBUG
-	NSParameterAssert([(id)task respondsToSelector:@selector(completeAsyncTask)]);
-	NSAssert1(![NSThread respondsToSelector:@selector(isMainThread)] || [[NSThread self] isMainThread], @"%s can only be called from the main thread.", __PRETTY_FUNCTION__);
+    NSParameterAssert([(id)task respondsToSelector:@selector(completeAsyncTask)]);
+    NSAssert1(![NSThread respondsToSelector:@selector(isMainThread)] || [[NSThread self] isMainThread], @"%s can only be called from the main thread.", __PRETTY_FUNCTION__);
 #endif
-	
-	[_pendingOpsLock lock];
-	BOOL exists = [_pendingCompletableOperations containsObject:task];
-	if (exists)  [_pendingCompletableOperations removeObject:task];
-	[_pendingOpsLock unlock];
-	
-	if (!exists)  return;
-	
-	id next = nil;
-	do
-	{
-		// Dequeue a task and complete it.
-		next = [_readyQueue dequeue];
-		[_pendingOpsLock lock];
-		[_pendingCompletableOperations removeObject:next];
-		[_pendingOpsLock unlock];
-	
-		[next completeAsyncTask];
-		
-	}  while (next != task);	// We don't control order, so keep looking until we get the one we care about.
+
+    [_pendingOpsLock lock];
+    BOOL exists = [_pendingCompletableOperations containsObject:task];
+    if (exists)
+        [_pendingCompletableOperations removeObject:task];
+    [_pendingOpsLock unlock];
+
+    if (!exists)
+        return;
+
+    id next = nil;
+    do {
+        // Dequeue a task and complete it.
+        next = [_readyQueue dequeue];
+        [_pendingOpsLock lock];
+        [_pendingCompletableOperations removeObject:next];
+        [_pendingOpsLock unlock];
+
+        [next completeAsyncTask];
+
+    } while (next != task); // We don't control order, so keep looking until we get the one we care about.
 }
 
-
-- (void) queueResult:(id<OOAsyncWorkTask>)task
+- (void)queueResult:(id<OOAsyncWorkTask>)task
 {
-	if ([task respondsToSelector:@selector(completeAsyncTask)])
-	{
-		[_readyQueue enqueue:task];
-	}
+    if ([task respondsToSelector:@selector(completeAsyncTask)]) {
+        [_readyQueue enqueue:task];
+    }
 }
 
-
-- (void) noteTaskQueued:(id<OOAsyncWorkTask>)task
+- (void)noteTaskQueued:(id<OOAsyncWorkTask>)task
 {
-	[_pendingOpsLock lock];
-	[_pendingCompletableOperations addObject:task];
-	[_pendingOpsLock unlock];
+    [_pendingOpsLock lock];
+    [_pendingCompletableOperations addObject:task];
+    [_pendingOpsLock unlock];
 }
 
 @end
 
-
-
 /******* OOManualDispatchAsyncWorkManager - manual thread management *******/
 
-enum
-{
-	kMaxWorkThreads			= 8
+enum {
+    kMaxWorkThreads = 8
 };
-
 
 #if !OO_HAVE_NSOPERATION
 @implementation OOManualDispatchAsyncWorkManager
 
-- (id) init
+- (id)init
 {
-	if ((self = [super init]))
-	{
-		// Set up work queue.
-		_taskQueue = [[OOAsyncQueue alloc] init];
-		if (_taskQueue == nil)
-		{
-			[self release];
-			return nil;
-		}
-		
-		// Set up loading threads.
-		NSUInteger threadCount, threadNumber = 1;
+    if ((self = [super init])) {
+        // Set up work queue.
+        _taskQueue = [[OOAsyncQueue alloc] init];
+        if (_taskQueue == nil) {
+            [self release];
+            return nil;
+        }
+
+        // Set up loading threads.
+        NSUInteger threadCount, threadNumber = 1;
 #if OO_DEBUG
-		threadCount = kMaxWorkThreads;
+        threadCount = kMaxWorkThreads;
 #else
-		threadCount = MIN(OOCPUCount(), (unsigned)kMaxWorkThreads);
+        threadCount = MIN(OOCPUCount(), (unsigned)kMaxWorkThreads);
 #endif
-		do
-		{
-			[NSThread detachNewThreadSelector:@selector(queueTask:) toTarget:self withObject:[NSNumber numberWithInt:threadNumber++]];
-		}  while (--threadCount > 0);
-	}
-	
-	return self;
+        do {
+            [NSThread detachNewThreadSelector:@selector(queueTask:) toTarget:self withObject:[NSNumber numberWithInt:threadNumber++]];
+        } while (--threadCount > 0);
+    }
+
+    return self;
 }
 
-
-- (BOOL) addTask:(id<OOAsyncWorkTask>)task priority:(OOAsyncWorkPriority)priority
+- (BOOL)addTask:(id<OOAsyncWorkTask>)task priority:(OOAsyncWorkPriority)priority
 {
-	if (EXPECT_NOT(task == nil))  return NO;
-	
-	[super noteTaskQueued:task];
-	
-	// Priority is ignored.
-	return [_taskQueue enqueue:task];
+    if (EXPECT_NOT(task == nil))
+        return NO;
+
+    [super noteTaskQueued:task];
+
+    // Priority is ignored.
+    return [_taskQueue enqueue:task];
 }
 
-
-- (void) queueTask:(NSNumber *)threadNumber
+- (void)queueTask:(NSNumber*)threadNumber
 {
-	NSAutoreleasePool			*rootPool = nil, *pool = nil;
-	
-	rootPool = [[NSAutoreleasePool alloc] init];
-	
-	[NSThread setThreadPriority:0.5];
-	[NSThread ooSetCurrentThreadName:[NSString stringWithFormat:@"OOAsyncWorkManager thread %@", threadNumber]];
-	
-	for (;;)
-	{
-		pool = [[NSAutoreleasePool alloc] init];
-		
-		id<OOAsyncWorkTask> task = [_taskQueue dequeue];
-		@try
-		{
-			[task performAsyncTask];
-		}
-		@catch (id exception) {}
-		[self queueResult:task];
-		
-		[pool release];
-	}
-	
-	[rootPool release];
+    NSAutoreleasePool *rootPool = nil, *pool = nil;
+
+    rootPool = [[NSAutoreleasePool alloc] init];
+
+    [NSThread setThreadPriority:0.5];
+    [NSThread ooSetCurrentThreadName:[NSString stringWithFormat:@"OOAsyncWorkManager thread %@", threadNumber]];
+
+    for (;;) {
+        pool = [[NSAutoreleasePool alloc] init];
+
+        id<OOAsyncWorkTask> task = [_taskQueue dequeue];
+        @try {
+            [task performAsyncTask];
+        }
+        @catch (id exception) {
+        }
+        [self queueResult:task];
+
+        [pool release];
+    }
+
+    [rootPool release];
 }
 
 @end
 #endif
 
-
 /******* OOOperationQueueAsyncWorkManager - dispatch through NSOperationQueue if available *******/
-
 
 @implementation OOOperationQueueAsyncWorkManager
 
 #if !OO_HAVE_NSOPERATION
-+ (BOOL) canBeUsed
++ (BOOL)canBeUsed
 {
-	if ([[NSUserDefaults standardUserDefaults] boolForKey:@"disable-operation-queue-work-manager"])  return NO;
-	return [OONSInvocationOperationClass() class] != Nil;
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"disable-operation-queue-work-manager"])
+        return NO;
+    return [OONSInvocationOperationClass() class] != Nil;
 }
 #endif
 
-
-- (id) init
+- (id)init
 {
-	if ((self = [super init]))
-	{
-		_operationQueue = [[OONSOperationQueueClass() alloc] init];
-		
-		if (_operationQueue == nil)
-		{
-			[self release];
-			return nil;
-		}
-	}
-	
-	return self;
+    if ((self = [super init])) {
+        _operationQueue = [[OONSOperationQueueClass() alloc] init];
+
+        if (_operationQueue == nil) {
+            [self release];
+            return nil;
+        }
+    }
+
+    return self;
 }
 
-
-- (void) dealloc
+- (void)dealloc
 {
-	[_operationQueue release];
-	
-	[super dealloc];
+    [_operationQueue release];
+
+    [super dealloc];
 }
 
-
-- (BOOL) addTask:(id<OOAsyncWorkTask>)task priority:(OOAsyncWorkPriority)priority
+- (BOOL)addTask:(id<OOAsyncWorkTask>)task priority:(OOAsyncWorkPriority)priority
 {
-	if (EXPECT_NOT(task == nil))  return NO;
-	
-	id operation = [[OONSInvocationOperationClass() alloc] initWithTarget:self selector:@selector(dispatchTask:) object:task];
-	if (operation == nil)  return NO;
-	
-	if (priority == kOOAsyncPriorityLow)  [operation setQueuePriority:OONSOperationQueuePriorityLow];
-	else if (priority == kOOAsyncPriorityHigh)  [operation setQueuePriority:OONSOperationQueuePriorityHigh];
-	
-	[_operationQueue addOperation:operation];
-	[operation release];
-	
-	[super noteTaskQueued:task];
-	return YES;
+    if (EXPECT_NOT(task == nil))
+        return NO;
+
+    id operation = [[OONSInvocationOperationClass() alloc] initWithTarget:self selector:@selector(dispatchTask:) object:task];
+    if (operation == nil)
+        return NO;
+
+    if (priority == kOOAsyncPriorityLow)
+        [operation setQueuePriority:OONSOperationQueuePriorityLow];
+    else if (priority == kOOAsyncPriorityHigh)
+        [operation setQueuePriority:OONSOperationQueuePriorityHigh];
+
+    [_operationQueue addOperation:operation];
+    [operation release];
+
+    [super noteTaskQueued:task];
+    return YES;
 }
 
-
-- (void) dispatchTask:(id<OOAsyncWorkTask>)task
+- (void)dispatchTask:(id<OOAsyncWorkTask>)task
 {
-	@try
-	{
-		[task performAsyncTask];
-	}
-	@catch (id exception) {}
-	[self queueResult:task];
+    @try {
+        [task performAsyncTask];
+    }
+    @catch (id exception) {
+    }
+    [self queueResult:task];
 }
 
 @end

@@ -24,60 +24,56 @@ MA 02110-1301, USA.
 
 #import "NSScannerOOExtensions.h"
 
-
 @implementation NSScanner (OOExtensions)
 
-- (BOOL) ooliteScanCharactersFromSet:(NSCharacterSet *)set intoString:(NSString **)value
+- (BOOL)ooliteScanCharactersFromSet:(NSCharacterSet*)set intoString:(NSString**)value
 {
-	NSUInteger		currentLocation = [self scanLocation];
-	NSRange			matchedRange = NSMakeRange( currentLocation, 0);
-	NSString		*scanString = [self string];
-	NSUInteger		scanLength = [scanString length];
-	
-	while ((currentLocation < scanLength)&&([set characterIsMember:[scanString characterAtIndex:currentLocation]]))
-	{
-		currentLocation++;
-	}
-	
-	[self setScanLocation:currentLocation];
-	
-	matchedRange.length = currentLocation - matchedRange.location;
-	
-	if (!matchedRange.length)  return NO;
-	
-	if (value != NULL)
-	{
-		*value = [scanString substringWithRange:matchedRange];
-	}
-	
-	return YES;
+    NSUInteger currentLocation = [self scanLocation];
+    NSRange matchedRange = NSMakeRange(currentLocation, 0);
+    NSString* scanString = [self string];
+    NSUInteger scanLength = [scanString length];
+
+    while ((currentLocation < scanLength) && ([set characterIsMember:[scanString characterAtIndex:currentLocation]])) {
+        currentLocation++;
+    }
+
+    [self setScanLocation:currentLocation];
+
+    matchedRange.length = currentLocation - matchedRange.location;
+
+    if (!matchedRange.length)
+        return NO;
+
+    if (value != NULL) {
+        *value = [scanString substringWithRange:matchedRange];
+    }
+
+    return YES;
 }
 
-
-- (BOOL) ooliteScanUpToCharactersFromSet:(NSCharacterSet *)set intoString:(NSString **)value
+- (BOOL)ooliteScanUpToCharactersFromSet:(NSCharacterSet*)set intoString:(NSString**)value
 {
-	NSUInteger		currentLocation = [self scanLocation];
-	NSRange			matchedRange = NSMakeRange( currentLocation, 0);
-	NSString		*scanString = [self string];
-	NSUInteger		scanLength = [scanString length];
-	
-	while ((currentLocation < scanLength)&&(![set characterIsMember:[scanString characterAtIndex:currentLocation]]))
-	{
-		currentLocation++;
-	}
-	
-	[self setScanLocation:currentLocation];
-	
-	matchedRange.length = currentLocation - matchedRange.location;
-	
-	if (!matchedRange.length)  return NO;
-	
-	if (value != NULL)
-	{
-		*value = [scanString substringWithRange:matchedRange];
-	}
-	
-	return YES;
+    NSUInteger currentLocation = [self scanLocation];
+    NSRange matchedRange = NSMakeRange(currentLocation, 0);
+    NSString* scanString = [self string];
+    NSUInteger scanLength = [scanString length];
+
+    while ((currentLocation < scanLength) && (![set characterIsMember:[scanString characterAtIndex:currentLocation]])) {
+        currentLocation++;
+    }
+
+    [self setScanLocation:currentLocation];
+
+    matchedRange.length = currentLocation - matchedRange.location;
+
+    if (!matchedRange.length)
+        return NO;
+
+    if (value != NULL) {
+        *value = [scanString substringWithRange:matchedRange];
+    }
+
+    return YES;
 }
 
 @end

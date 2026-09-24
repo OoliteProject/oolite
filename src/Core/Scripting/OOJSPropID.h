@@ -23,13 +23,13 @@ MA 02110-1301, USA.
 
 */
 
-#include <jsapi.h>
 #import "OOFunctionAttributes.h"
+#include <jsapi.h>
 
 /*
-	OOJSID(const char * [literal])
-	Macro to create a string-based jsid. The string is interned and converted
-	into a string by a helper the first time the macro is hit, then cached.
+        OOJSID(const char * [literal])
+        Macro to create a string-based jsid. The string is interned and converted
+        into a string by a helper the first time the macro is hit, then cached.
 */
 
 #ifdef JS_USE_JSVAL_JSID_STRUCT_TYPES
@@ -37,5 +37,4 @@ MA 02110-1301, USA.
 #else
 #define OOJSID(str) ({ static jsid idCache = JSID_VOID; if (EXPECT_NOT(idCache == JSID_VOID)) OOJSInitJSIDCachePRIVATE(""str, &idCache); idCache; })
 #endif
-void OOJSInitJSIDCachePRIVATE(const char *name, jsid *idCache);
-
+void OOJSInitJSIDCachePRIVATE(const char* name, jsid* idCache);

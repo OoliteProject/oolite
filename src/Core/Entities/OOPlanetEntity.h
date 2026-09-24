@@ -32,84 +32,81 @@ MA 02110-1301, USA.
 #import "Entity.h"
 #import "OOColor.h"
 
-
 @class OOPlanetDrawable, ShipEntity, OOMaterial;
 
-
-@interface OOPlanetEntity: Entity <OOStellarBody>
-{
+@interface OOPlanetEntity : Entity <OOStellarBody> {
 @private
-	OOPlanetDrawable		*_planetDrawable;
-	OOPlanetDrawable		*_atmosphereDrawable;
-	OOPlanetDrawable		*_cloudsShaderDrawable;
-	OOPlanetDrawable		*_atmosphereShaderDrawable;
-	
-	BOOL					_miniature;
-	OOColor				*_airColor;
-	OOColor				*_illuminationColor;
-	float				_airColorMixRatio;
-	float				_airDensity;
-	double				_mesopause2;
-	
-	Vector				_rotationAxis;
-	float				_rotationalVelocity;
-	Quaternion			_atmosphereOrientation;
-	float				_atmosphereRotationalVelocity;
-	
-	Vector				_terminatorThresholdVector;
-	
-	unsigned				_shuttlesOnGround;
-	OOTimeDelta			_lastLaunchTime;
-	OOTimeDelta			_shuttleLaunchInterval;
-	
-	NSDictionary			*_materialParameters;
-	NSString				*_textureName;
-	NSString				*_normSpecMapName;
+    OOPlanetDrawable* _planetDrawable;
+    OOPlanetDrawable* _atmosphereDrawable;
+    OOPlanetDrawable* _cloudsShaderDrawable;
+    OOPlanetDrawable* _atmosphereShaderDrawable;
 
-	NSString				*_name;
+    BOOL _miniature;
+    OOColor* _airColor;
+    OOColor* _illuminationColor;
+    float _airColorMixRatio;
+    float _airDensity;
+    double _mesopause2;
+
+    Vector _rotationAxis;
+    float _rotationalVelocity;
+    Quaternion _atmosphereOrientation;
+    float _atmosphereRotationalVelocity;
+
+    Vector _terminatorThresholdVector;
+
+    unsigned _shuttlesOnGround;
+    OOTimeDelta _lastLaunchTime;
+    OOTimeDelta _shuttleLaunchInterval;
+
+    NSDictionary* _materialParameters;
+    NSString* _textureName;
+    NSString* _normSpecMapName;
+
+    NSString* _name;
 }
 
-- (id) initAsMainPlanetForSystem:(OOSystemID)s;
+- (id)initAsMainPlanetForSystem:(OOSystemID)s;
 
-- (id) initFromDictionary:(NSDictionary *)dict withAtmosphere:(BOOL)atmosphere andSeed:(Random_Seed)seed forSystem:(OOSystemID)systemID;
+- (id)initFromDictionary:(NSDictionary*)dict withAtmosphere:(BOOL)atmosphere andSeed:(Random_Seed)seed forSystem:(OOSystemID)systemID;
 
-- (instancetype) miniatureVersion;
+- (instancetype)miniatureVersion;
 
-- (double) rotationalVelocity;
-- (void) setRotationalVelocity:(double) v;
+- (double)rotationalVelocity;
+- (void)setRotationalVelocity:(double)v;
 
-- (BOOL) planetHasStation;
-- (void) launchShuttle;
-- (void) welcomeShuttle:(ShipEntity *)shuttle;
+- (BOOL)planetHasStation;
+- (void)launchShuttle;
+- (void)welcomeShuttle:(ShipEntity*)shuttle;
 
-- (BOOL) hasAtmosphere;
+- (BOOL)hasAtmosphere;
 
 // FIXME: need material model.
-- (NSString *) textureFileName;
-- (void) setTextureFileName:(NSString *)textureName;
+- (NSString*)textureFileName;
+- (void)setTextureFileName:(NSString*)textureName;
 
-- (BOOL) setUpPlanetFromTexture:(NSString *)fileName;
+- (BOOL)setUpPlanetFromTexture:(NSString*)fileName;
 
-- (OOMaterial *) material;
-- (OOMaterial *) atmosphereMaterial;
-- (OOMaterial *) atmosphereShaderMaterial;
+- (OOMaterial*)material;
+- (OOMaterial*)atmosphereMaterial;
+- (OOMaterial*)atmosphereShaderMaterial;
 
-- (BOOL) isFinishedLoading;
+- (BOOL)isFinishedLoading;
 
-- (Vector) airColorAsVector; // visible to shader bindings
-- (OOColor *) airColor;
-- (void) setAirColor:(OOColor *) newColor;
-- (Vector) illuminationColorAsVector; // visible to shader bindings
-- (OOColor *) illuminationColor;
-- (void) setIlluminationColor:(OOColor *) newColor;
-- (float) airColorMixRatio; // visible to shader bindings
-- (void) setAirColorMixRatio:(float) newRatio;
-- (float) airDensity; // visible to shafer bindings
-- (void) setAirDensity: (float) newDensity;
+- (Vector)airColorAsVector; // visible to shader bindings
+- (OOColor*)airColor;
+- (void)setAirColor:(OOColor*)newColor;
+- (Vector)illuminationColorAsVector; // visible to shader bindings
+- (OOColor*)illuminationColor;
+- (void)setIlluminationColor:(OOColor*)newColor;
+- (float)airColorMixRatio; // visible to shader bindings
+- (void)setAirColorMixRatio:(float)newRatio;
+- (float)airDensity; // visible to shafer bindings
+- (void)setAirDensity:(float)newDensity;
 
-- (void) setTerminatorThresholdVector:(Vector) newTerminatorThresholdVector;
-- (Vector) terminatorThresholdVector; // visible to shader bindings
+- (void)setTerminatorThresholdVector:(Vector)newTerminatorThresholdVector;
+- (Vector)terminatorThresholdVector; // visible to shader bindings
 
 @end
 
-#endif	// NEW_PLANETS
+#endif // NEW_PLANETS

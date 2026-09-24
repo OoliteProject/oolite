@@ -28,5 +28,4 @@ MA 02110-1301, USA.
 #include <jsapi.h>
 @class OOSoundSource;
 
-
-void InitOOJSSoundSource(JSContext *context, JSObject *global);
+void InitOOJSSoundSource(JSContext* context, JSObject* global);

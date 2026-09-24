@@ -26,47 +26,41 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOTextureGenerator.h"
 #import "OOMaths.h"
+#import "OOTextureGenerator.h"
 
+typedef struct OOStandaloneAtmosphereGeneratorInfo {
+    RANROTSeed seed;
 
-typedef struct OOStandaloneAtmosphereGeneratorInfo
-{
-	RANROTSeed						seed;
-	
-	unsigned						width;
-	unsigned						height;
-	
-	// Atmosphere parameters.
-	float							cloudAlpha;
-	float							cloudFraction;
-	FloatRGB						airColor;
-	FloatRGB						cloudColor;
-	FloatRGB						paleCloudColor;
-	
-	// Noise generation stuff.
-	float							*fbmBuffer;
-	
-	uint16_t						*permutations;
-	
-	unsigned						planetAspectRatio;
-	unsigned						planetScaleOffset;
-	BOOL							perlin3d;
+    unsigned width;
+    unsigned height;
+
+    // Atmosphere parameters.
+    float cloudAlpha;
+    float cloudFraction;
+    FloatRGB airColor;
+    FloatRGB cloudColor;
+    FloatRGB paleCloudColor;
+
+    // Noise generation stuff.
+    float* fbmBuffer;
+
+    uint16_t* permutations;
+
+    unsigned planetAspectRatio;
+    unsigned planetScaleOffset;
+    BOOL perlin3d;
 } OOStandaloneAtmosphereGeneratorInfo;
 
-
-
-@interface OOStandaloneAtmosphereGenerator: OOTextureGenerator
-{
+@interface OOStandaloneAtmosphereGenerator : OOTextureGenerator {
 @private
-	OOStandaloneAtmosphereGeneratorInfo	_info;
-	unsigned						_planetScale;
+    OOStandaloneAtmosphereGeneratorInfo _info;
+    unsigned _planetScale;
 }
 
+- (id)initWithPlanetInfo:(NSDictionary*)planetInfo;
 
-- (id) initWithPlanetInfo:(NSDictionary *)planetInfo;
-
-+ (OOTexture *) planetTextureWithInfo:(NSDictionary *)planetInfo;
-+ (BOOL) generateAtmosphereTexture:(OOTexture **)texture withInfo:(NSDictionary *)planetInfo;
++ (OOTexture*)planetTextureWithInfo:(NSDictionary*)planetInfo;
++ (BOOL)generateAtmosphereTexture:(OOTexture**)texture withInfo:(NSDictionary*)planetInfo;
 
 @end

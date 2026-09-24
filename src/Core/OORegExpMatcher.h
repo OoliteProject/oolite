@@ -36,33 +36,28 @@ SOFTWARE.
 
 @class OOJSFunction, OOJSValue;
 
-
-enum
-{
-	kOORegExpCaseInsensitive	= JSREG_FOLD,
-	kOORegExpMultiLine			= JSREG_MULTILINE
+enum {
+    kOORegExpCaseInsensitive = JSREG_FOLD,
+    kOORegExpMultiLine = JSREG_MULTILINE
 };
 
-
-@interface OORegExpMatcher: NSObject
-{
+@interface OORegExpMatcher : NSObject {
 @private
-	OOJSFunction			*_tester;
-	NSString				*_cachedRegExpString;
-	OOJSValue				*_cachedRegExpObject;
-	NSUInteger				_cachedFlags;
+    OOJSFunction* _tester;
+    NSString* _cachedRegExpString;
+    OOJSValue* _cachedRegExpObject;
+    NSUInteger _cachedFlags;
 }
 
-+ (instancetype) regExpMatcher;
++ (instancetype)regExpMatcher;
 
-- (BOOL) string:(NSString *)string matchesExpression:(NSString *)regExp;
-- (BOOL) string:(NSString *)string matchesExpression:(NSString *)regExp flags:(NSUInteger)flags;
+- (BOOL)string:(NSString*)string matchesExpression:(NSString*)regExp;
+- (BOOL)string:(NSString*)string matchesExpression:(NSString*)regExp flags:(NSUInteger)flags;
 
 @end
 
-
 @interface NSString (OORegExpMatcher)
 
-- (BOOL) oo_matchesRegularExpression:(NSString *)regExp;
+- (BOOL)oo_matchesRegularExpression:(NSString*)regExp;
 
 @end

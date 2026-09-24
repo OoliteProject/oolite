@@ -26,27 +26,25 @@ MA 02110-1301, USA.
 
 #ifndef NDEBUG
 
-
 #import <Foundation/Foundation.h>
 #include <jsapi.h>
 
-
 /*	OOJSCallObjCObjectMethod()
-	
-	Function for implementing JavaScript call() methods.
-	
-	The argument list is expected to be either a single string (selector), or
-	a string ending with a : followed by arbitrary arguments which will be
-	concatenated as a string. (This behaviour reflects Oolite's traditional
-	scripting system and the expectations of its script methods. It also has
-	the advantage that it can be done with GNUstep's buggy implementation of
-	NSMethodSignature.)
-	
-	If the method returns an object, *outResult will be set to that object's
-	-oo_jsValueInContext:. Otherwise, it will be left unchanged.
-	
-	argv is assumed to contain at least one value.
+
+        Function for implementing JavaScript call() methods.
+
+        The argument list is expected to be either a single string (selector), or
+        a string ending with a : followed by arbitrary arguments which will be
+        concatenated as a string. (This behaviour reflects Oolite's traditional
+        scripting system and the expectations of its script methods. It also has
+        the advantage that it can be done with GNUstep's buggy implementation of
+        NSMethodSignature.)
+
+        If the method returns an object, *outResult will be set to that object's
+        -oo_jsValueInContext:. Otherwise, it will be left unchanged.
+
+        argv is assumed to contain at least one value.
 */
-BOOL OOJSCallObjCObjectMethod(JSContext *context, id object, NSString *oo_jsClassName, uintN argc, jsval *argv, jsval *outResult);
+BOOL OOJSCallObjCObjectMethod(JSContext* context, id object, NSString* oo_jsClassName, uintN argc, jsval* argv, jsval* outResult);
 
 #endif

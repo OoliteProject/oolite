@@ -30,11 +30,11 @@ SOFTWARE.
 */
 
 #ifndef OO_OXP_VERIFIER_ENABLED
-	#ifdef NDEBUG
-		#define OO_OXP_VERIFIER_ENABLED 0
-	#else
-		#define OO_OXP_VERIFIER_ENABLED 1
-	#endif
+#ifdef NDEBUG
+#define OO_OXP_VERIFIER_ENABLED 0
+#else
+#define OO_OXP_VERIFIER_ENABLED 1
+#endif
 #endif
 
 #if OO_OXP_VERIFIER_ENABLED
@@ -43,50 +43,46 @@ SOFTWARE.
 
 @class OOOXPVerifierStage;
 
-
-@interface OOOXPVerifier: NSObject
-{
+@interface OOOXPVerifier : NSObject {
 @private
-	NSDictionary				*_verifierPList;
-	
-	NSString					*_basePath;
-	NSString					*_displayName;
-	
-	NSMutableDictionary			*_stagesByName;
-	NSMutableSet				*_waitingStages;
-	
-	BOOL						_openForRegistration;
+    NSDictionary* _verifierPList;
+
+    NSString* _basePath;
+    NSString* _displayName;
+
+    NSMutableDictionary* _stagesByName;
+    NSMutableSet* _waitingStages;
+
+    BOOL _openForRegistration;
 }
 
 /*	Look for command-line arguments requesting OXP verification. If any are
-	found, run the verification and return YES. Otherwise, return NO.
-	
-	At the moment, only one OXP may be verified per run; additional requests
-	are ignored.
+        found, run the verification and return YES. Otherwise, return NO.
+
+        At the moment, only one OXP may be verified per run; additional requests
+        are ignored.
 */
 + (BOOL)runVerificationIfRequested;
 
-
 /*	Stage registration. Currently, stages are registered by OOOXPVerifier
-	itself. Stages may also register other stages - substages, as it were -
-	in their -initWithVerifier: methods, or when -dependencies or
-	-dependents are called. Registration at later points is not permitted.
+        itself. Stages may also register other stages - substages, as it were -
+        in their -initWithVerifier: methods, or when -dependencies or
+        -dependents are called. Registration at later points is not permitted.
 */
-- (void)registerStage:(OOOXPVerifierStage *)stage;
-
+- (void)registerStage:(OOOXPVerifierStage*)stage;
 
 //	All other methods are for use by verifier stages.
-- (NSString *)oxpPath;
-- (NSString *)oxpDisplayName;
+- (NSString*)oxpPath;
+- (NSString*)oxpDisplayName;
 
-- (id)stageWithName:(NSString *)name;
+- (id)stageWithName:(NSString*)name;
 
 // Read from verifyOXP.plist
-- (id)configurationValueForKey:(NSString *)key;
-- (NSArray *)configurationArrayForKey:(NSString *)key;
-- (NSDictionary *)configurationDictionaryForKey:(NSString *)key;
-- (NSString *)configurationStringForKey:(NSString *)key;
-- (NSSet *)configurationSetForKey:(NSString *)key;
+- (id)configurationValueForKey:(NSString*)key;
+- (NSArray*)configurationArrayForKey:(NSString*)key;
+- (NSDictionary*)configurationDictionaryForKey:(NSString*)key;
+- (NSString*)configurationStringForKey:(NSString*)key;
+- (NSSet*)configurationSetForKey:(NSString*)key;
 
 @end
 

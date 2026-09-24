@@ -1,5 +1,5 @@
 /*
- 
+
 NSOperationQueue was introduced in Mac OS X 10.5 and GNUstep 0.19.x.
 
 This header helps us use it if it's available at runtime without requiring
@@ -29,35 +29,33 @@ SOFTWARE.
 
 */
 
-
 #ifndef OO_HAVE_NSOPERATION
-	#if OOLITE_MAC_OS_X
-		#define OO_HAVE_NSOPERATION (1)
-	#elif OOLITE_GNUSTEP
+#if OOLITE_MAC_OS_X
+#define OO_HAVE_NSOPERATION (1)
+#elif OOLITE_GNUSTEP
 //		#define OO_HAVE_NSOPERATION OS_API_VERSION(100500, GS_API_LATEST)
-		// GNUstep (even current trunk - 1.21 @ 2010.06.06) only contains an
-		// incomplete implementation of NSOperation. Namely, it's missing
-		// NSInvocationOperation which is used in OOAsyncWorkManager.m
-		#define OO_HAVE_NSOPERATION (0)
-	#endif
+// GNUstep (even current trunk - 1.21 @ 2010.06.06) only contains an
+// incomplete implementation of NSOperation. Namely, it's missing
+// NSInvocationOperation which is used in OOAsyncWorkManager.m
+#define OO_HAVE_NSOPERATION (0)
+#endif
 #endif
 
 #ifndef OO_ALLOW_NSOPERATION
 #define OO_ALLOW_NSOPERATION 1
 #endif
 
-
 #if OO_ALLOW_NSOPERATION
 #if !OO_HAVE_NSOPERATION
 
 #import "OOFunctionAttributes.h"
 
-#define OONSOperationQueue				id
-#define OONSOperation					id
-#define OONSInvocationOperation			id
+#define OONSOperationQueue id
+#define OONSOperation id
+#define OONSInvocationOperation id
 
 /*	NOTE: if OO_HAVE_NSOPERATION, these will compile to class names, which are
-	not values. If you want an actual Class object, use [OONSOperationClass() class].
+        not values. If you want an actual Class object, use [OONSOperationClass() class].
 */
 OOINLINE Class OONSOperationQueueClass() PURE_FUNC;
 OOINLINE Class OONSOperationClass() PURE_FUNC;
@@ -65,113 +63,106 @@ OOINLINE Class OONSInvocationOperationClass() PURE_FUNC;
 
 OOINLINE Class OONSOperationQueueClass()
 {
-	return NSClassFromString(@"NSOperationQueue");
+    return NSClassFromString(@"NSOperationQueue");
 }
 
 OOINLINE Class OONSOperationClass()
 {
-	return NSClassFromString(@"NSOperation");
+    return NSClassFromString(@"NSOperation");
 }
-
 
 OOINLINE Class OONSInvocationOperationClass()
 {
-	return NSClassFromString(@"NSInvocationOperation");
+    return NSClassFromString(@"NSInvocationOperation");
 }
-
 
 @class NSOperationQueue;
 @class NSOperation;
 @class NSInvocationOperation;
 
-
 enum {
-	OONSOperationQueuePriorityVeryLow = -8,
-	OONSOperationQueuePriorityLow = -4,
-	OONSOperationQueuePriorityNormal = 0,
-	OONSOperationQueuePriorityHigh = 4,
-	OONSOperationQueuePriorityVeryHigh = 8
+    OONSOperationQueuePriorityVeryLow = -8,
+    OONSOperationQueuePriorityLow = -4,
+    OONSOperationQueuePriorityNormal = 0,
+    OONSOperationQueuePriorityHigh = 4,
+    OONSOperationQueuePriorityVeryHigh = 8
 };
 
-
 /*	These classes are (deliberately) not implemented. Their declarations exist
-	only so that the type system will know about the methods when they're used
-	on id variables.
+        only so that the type system will know about the methods when they're used
+        on id variables.
 */
 
 @interface OONSOperationProto
 
-- (void) start;
-- (void) main;
+- (void)start;
+- (void)main;
 
-- (BOOL) isCancelled;
-- (void) cancel;
+- (BOOL)isCancelled;
+- (void)cancel;
 
-- (BOOL) isExecuting;
-- (BOOL) isFinished;
+- (BOOL)isExecuting;
+- (BOOL)isFinished;
 
-- (BOOL) isConcurrent;
+- (BOOL)isConcurrent;
 
-- (BOOL) isReady;
+- (BOOL)isReady;
 
-- (void) addDependency:(NSOperation *)op;
-- (void) removeDependency:(NSOperation *)op;
+- (void)addDependency:(NSOperation*)op;
+- (void)removeDependency:(NSOperation*)op;
 
-- (NSArray *) dependencies;
+- (NSArray*)dependencies;
 
-- (NSInteger) queuePriority;
-- (void) setQueuePriority:(NSInteger)p;
+- (NSInteger)queuePriority;
+- (void)setQueuePriority:(NSInteger)p;
 
 @end
-
 
 @interface OONSInvocationOperationProto
 
-- (id) initWithTarget:(id)target selector:(SEL)sel object:(id)arg;
-- (id) initWithInvocation:(NSInvocation *)inv;
+- (id)initWithTarget:(id)target selector:(SEL)sel object:(id)arg;
+- (id)initWithInvocation:(NSInvocation*)inv;
 
-- (NSInvocation *) invocation;
+- (NSInvocation*)invocation;
 
-- (id) result;
+- (id)result;
 
 @end
 
-
 @interface OONSOperationQueueProto
 
-- (void) addOperation:(NSOperation *)op;
+- (void)addOperation:(NSOperation*)op;
 
-- (NSArray *) operations;
+- (NSArray*)operations;
 
-- (NSInteger) maxConcurrentOperationCount;
-- (void) setMaxConcurrentOperationCount:(NSInteger)cnt;
+- (NSInteger)maxConcurrentOperationCount;
+- (void)setMaxConcurrentOperationCount:(NSInteger)cnt;
 
-- (void) setSuspended:(BOOL)b;
-- (BOOL) isSuspended;
+- (void)setSuspended:(BOOL)b;
+- (BOOL)isSuspended;
 
-- (void) cancelAllOperations;
+- (void)cancelAllOperations;
 
-- (void) waitUntilAllOperationsAreFinished;
+- (void)waitUntilAllOperationsAreFinished;
 
 @end
 
 #else
 
-#define OONSOperationQueue				NSOperationQueue *
-#define OONSOperation					NSOperation *
-#define OONSInvocationOperation			NSInvocationOperation *
+#define OONSOperationQueue NSOperationQueue*
+#define OONSOperation NSOperation*
+#define OONSInvocationOperation NSInvocationOperation*
 
-#define OONSOperationQueueClass()		NSOperationQueue
-#define OONSOperationClass()			NSOperation
-#define OONSInvocationOperationClass()  NSInvocationOperation
-
+#define OONSOperationQueueClass() NSOperationQueue
+#define OONSOperationClass() NSOperation
+#define OONSInvocationOperationClass() NSInvocationOperation
 
 enum {
-	OONSOperationQueuePriorityVeryLow = NSOperationQueuePriorityVeryLow,
-	OONSOperationQueuePriorityLow = NSOperationQueuePriorityLow,
-	OONSOperationQueuePriorityNormal = NSOperationQueuePriorityNormal,
-	OONSOperationQueuePriorityHigh = NSOperationQueuePriorityHigh,
-	OONSOperationQueuePriorityVeryHigh = NSOperationQueuePriorityVeryHigh
+    OONSOperationQueuePriorityVeryLow = NSOperationQueuePriorityVeryLow,
+    OONSOperationQueuePriorityLow = NSOperationQueuePriorityLow,
+    OONSOperationQueuePriorityNormal = NSOperationQueuePriorityNormal,
+    OONSOperationQueuePriorityHigh = NSOperationQueuePriorityHigh,
+    OONSOperationQueuePriorityVeryHigh = NSOperationQueuePriorityVeryHigh
 };
 
 #endif

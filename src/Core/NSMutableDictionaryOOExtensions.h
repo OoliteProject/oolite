@@ -28,6 +28,6 @@ MA 02110-1301, USA.
 
 @interface NSMutableDictionary (OOExtensions)
 
-- (void)mergeEntriesFromDictionary:(NSDictionary *)otherDictionary;
+- (void)mergeEntriesFromDictionary:(NSDictionary*)otherDictionary;
 
 @end

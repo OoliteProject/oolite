@@ -27,158 +27,143 @@ MA 02110-1301, USA.
 
 #import "OOBreakPatternEntity.h"
 #import "OOColor.h"
-#import "Universe.h"
 #import "OOMacroOpenGL.h"
-
+#import "Universe.h"
 
 @interface OOBreakPatternEntity (Private)
 
-- (void) setInnerColorComponents:(GLfloat[4])color1 outerColorComponents:(GLfloat[4])color2;
+- (void)setInnerColorComponents:(GLfloat[4])color1 outerColorComponents:(GLfloat[4])color2;
 
 @end
-
 
 @implementation OOBreakPatternEntity
 
-- (id) initWithPolygonSides:(NSUInteger)sides startAngle:(float)startAngleDegrees aspectRatio:(float)aspectRatio
+- (id)initWithPolygonSides:(NSUInteger)sides startAngle:(float)startAngleDegrees aspectRatio:(float)aspectRatio
 {
-	sides = MIN(MAX((NSUInteger)3, sides), (NSUInteger)kOOBreakPatternMaxSides);
-	
-	if ((self = [super init]))
-	{
-		_vertexCount = (sides + 1) * 2;
-		float angle = startAngleDegrees * M_PI / 180.0f;
-		float deltaAngle = M_PI * 2.0f / sides;
-		float xAspect = fmin(1.0f, aspectRatio);
-		float yAspect = fmin(1.0f, 1.0f / aspectRatio);
-		
-		NSUInteger vi = 0;
-		for (NSUInteger i = 0; i < sides; i++)
-		{
-			float s = sin(angle) * xAspect;
-			float c = cos(angle) * yAspect;
-			
-			_vertexPosition[vi++] = (Vector) { s * 50, c * 50, -40 };
-			_vertexPosition[vi++] = (Vector) { s * 40, c * 40, 0 };
-			
-			angle += deltaAngle;
-		}
-		
-		_vertexPosition[vi++] = _vertexPosition[0];
-		_vertexPosition[vi++] = _vertexPosition[1];
-		
-		[self setInnerColorComponents:(GLfloat[]){ 1.0f, 0.0f, 0.0f, 0.5f }
-				 outerColorComponents:(GLfloat[]){ 0.0f, 0.0f, 1.0f, 0.25f }];
-		
-		[self setStatus:STATUS_EFFECT];
-		[self setScanClass:CLASS_NO_DRAW];
-		
-		isImmuneToBreakPatternHide = YES;
-	}
-	
-	return self;
+    sides = MIN(MAX((NSUInteger)3, sides), (NSUInteger)kOOBreakPatternMaxSides);
+
+    if ((self = [super init])) {
+        _vertexCount = (sides + 1) * 2;
+        float angle = startAngleDegrees * M_PI / 180.0f;
+        float deltaAngle = M_PI * 2.0f / sides;
+        float xAspect = fmin(1.0f, aspectRatio);
+        float yAspect = fmin(1.0f, 1.0f / aspectRatio);
+
+        NSUInteger vi = 0;
+        for (NSUInteger i = 0; i < sides; i++) {
+            float s = sin(angle) * xAspect;
+            float c = cos(angle) * yAspect;
+
+            _vertexPosition[vi++] = (Vector) { s * 50, c * 50, -40 };
+            _vertexPosition[vi++] = (Vector) { s * 40, c * 40, 0 };
+
+            angle += deltaAngle;
+        }
+
+        _vertexPosition[vi++] = _vertexPosition[0];
+        _vertexPosition[vi++] = _vertexPosition[1];
+
+        [self setInnerColorComponents:(GLfloat[]) { 1.0f, 0.0f, 0.0f, 0.5f }
+                 outerColorComponents:(GLfloat[]) { 0.0f, 0.0f, 1.0f, 0.25f }];
+
+        [self setStatus:STATUS_EFFECT];
+        [self setScanClass:CLASS_NO_DRAW];
+
+        isImmuneToBreakPatternHide = YES;
+    }
+
+    return self;
 }
 
-
-+ (instancetype) breakPatternWithPolygonSides:(NSUInteger)sides startAngle:(float)startAngleDegrees aspectRatio:(float)aspectRatio
++ (instancetype)breakPatternWithPolygonSides:(NSUInteger)sides startAngle:(float)startAngleDegrees aspectRatio:(float)aspectRatio
 {
-	return [[[self alloc] initWithPolygonSides:sides startAngle:startAngleDegrees aspectRatio:aspectRatio] autorelease];
+    return [[[self alloc] initWithPolygonSides:sides startAngle:startAngleDegrees aspectRatio:aspectRatio] autorelease];
 }
 
-
-- (void) setInnerColor:(OOColor *)color1 outerColor:(OOColor *)color2
+- (void)setInnerColor:(OOColor*)color1 outerColor:(OOColor*)color2
 {
-	GLfloat inner[4], outer[4];
-	[color1 getRed:&inner[0] green:&inner[1] blue:&inner[2] alpha:&inner[3]];
-	[color2 getRed:&outer[0] green:&outer[1] blue:&outer[2] alpha:&outer[3]];
-	[self setInnerColorComponents:inner outerColorComponents:outer];
+    GLfloat inner[4], outer[4];
+    [color1 getRed:&inner[0] green:&inner[1] blue:&inner[2] alpha:&inner[3]];
+    [color2 getRed:&outer[0] green:&outer[1] blue:&outer[2] alpha:&outer[3]];
+    [self setInnerColorComponents:inner outerColorComponents:outer];
 }
 
-
-- (void) setInnerColorComponents:(GLfloat[4])color1 outerColorComponents:(GLfloat[4])color2
+- (void)setInnerColorComponents:(GLfloat[4])color1 outerColorComponents:(GLfloat[4])color2
 {
-	GLfloat *colors[2] = { color1, color2 };
-	
-	for (NSUInteger i = 0; i < _vertexCount; i++)
-	{
-		GLfloat *color = colors[i & 1];
-		memcpy(&_vertexColor[i], color, sizeof (GLfloat) * 4);
-	}
+    GLfloat* colors[2] = { color1, color2 };
+
+    for (NSUInteger i = 0; i < _vertexCount; i++) {
+        GLfloat* color = colors[i & 1];
+        memcpy(&_vertexColor[i], color, sizeof(GLfloat) * 4);
+    }
 }
 
-
-- (void) setLifetime:(double)lifetime
+- (void)setLifetime:(double)lifetime
 {
-	_lifetime = lifetime;
+    _lifetime = lifetime;
 }
 
-
-- (void) update:(OOTimeDelta) delta_t
+- (void)update:(OOTimeDelta)delta_t
 {
-	[super update:delta_t];
-	
-	_lifetime -= BREAK_PATTERN_RING_SPEED * delta_t;
-	if (_lifetime < 0.0)
-	{
-		[UNIVERSE removeEntity:self];
-	}
+    [super update:delta_t];
+
+    _lifetime -= BREAK_PATTERN_RING_SPEED * delta_t;
+    if (_lifetime < 0.0) {
+        [UNIVERSE removeEntity:self];
+    }
 }
 
-
-- (void) drawImmediate:(bool)immediate translucent:(bool)translucent
+- (void)drawImmediate:(bool)immediate translucent:(bool)translucent
 {
-	// check if has been hidden.
-	if (!isImmuneToBreakPatternHide) return;
-	
-	if (translucent || immediate)
-	{
-		OO_ENTER_OPENGL();
-		OOSetOpenGLState(OPENGL_STATE_OPAQUE);
-		
-		OOGL(glDisable(GL_LIGHTING));
-		OOGL(glDisable(GL_TEXTURE_2D));
-		OOGL(glEnable(GL_BLEND));
-		OOGL(glDepthMask(GL_FALSE));
-		OOGL(glDisableClientState(GL_NORMAL_ARRAY));
-		
-		OOGL(glVertexPointer(3, GL_FLOAT, 0, _vertexPosition));
-		OOGL(glEnableClientState(GL_COLOR_ARRAY));
-		OOGL(glColorPointer(4, GL_FLOAT, 0, _vertexColor));
-		
-		OOGL(glDrawArrays(GL_TRIANGLE_STRIP, 0, _vertexCount));
-		
-		OOGL(glEnable(GL_LIGHTING));
-		OOGL(glEnable(GL_TEXTURE_2D));
-		OOGL(glDisable(GL_BLEND));
-		OOGL(glDepthMask(GL_TRUE));
-		OOGL(glEnableClientState(GL_NORMAL_ARRAY));
-		OOGL(glDisableClientState(GL_COLOR_ARRAY));
-		
-		OOVerifyOpenGLState();
-		OOCheckOpenGLErrors(@"OOBreakPatternEntity after drawing %@", self);
-	}
+    // check if has been hidden.
+    if (!isImmuneToBreakPatternHide)
+        return;
+
+    if (translucent || immediate) {
+        OO_ENTER_OPENGL();
+        OOSetOpenGLState(OPENGL_STATE_OPAQUE);
+
+        OOGL(glDisable(GL_LIGHTING));
+        OOGL(glDisable(GL_TEXTURE_2D));
+        OOGL(glEnable(GL_BLEND));
+        OOGL(glDepthMask(GL_FALSE));
+        OOGL(glDisableClientState(GL_NORMAL_ARRAY));
+
+        OOGL(glVertexPointer(3, GL_FLOAT, 0, _vertexPosition));
+        OOGL(glEnableClientState(GL_COLOR_ARRAY));
+        OOGL(glColorPointer(4, GL_FLOAT, 0, _vertexColor));
+
+        OOGL(glDrawArrays(GL_TRIANGLE_STRIP, 0, _vertexCount));
+
+        OOGL(glEnable(GL_LIGHTING));
+        OOGL(glEnable(GL_TEXTURE_2D));
+        OOGL(glDisable(GL_BLEND));
+        OOGL(glDepthMask(GL_TRUE));
+        OOGL(glEnableClientState(GL_NORMAL_ARRAY));
+        OOGL(glDisableClientState(GL_COLOR_ARRAY));
+
+        OOVerifyOpenGLState();
+        OOCheckOpenGLErrors(@"OOBreakPatternEntity after drawing %@", self);
+    }
 }
 
-
-- (BOOL) canCollide
+- (BOOL)canCollide
 {
-	return NO;
+    return NO;
 }
 
-
-- (BOOL) isBreakPattern
+- (BOOL)isBreakPattern
 {
-	return YES;
+    return YES;
 }
 
 @end
 
-
 @implementation Entity (OOBreakPatternEntity)
 
-- (BOOL) isBreakPattern
+- (BOOL)isBreakPattern
 {
-	return NO;
+    return NO;
 }
 
 @end

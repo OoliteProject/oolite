@@ -26,83 +26,74 @@ MA 02110-1301, USA.
 
 #import "OOTypes.h"
 
-
-#define MAIN_SYSTEM_MARKET_LIMIT  127
+#define MAIN_SYSTEM_MARKET_LIMIT 127
 
 // keys in trade-goods.plist
-static NSString * const kOOCommodityName			= @"name";
-static NSString * const kOOCommodityClasses			= @"classes";
-static NSString * const kOOCommodityContainer		= @"quantity_unit";
-static NSString * const kOOCommodityPeakExport		= @"peak_export";
-static NSString * const kOOCommodityPeakImport		= @"peak_import";
-static NSString * const kOOCommodityPriceAverage	= @"price_average";
-static NSString * const kOOCommodityPriceEconomic	= @"price_economic";
-static NSString * const kOOCommodityPriceRandom		= @"price_random";
+static NSString* const kOOCommodityName = @"name";
+static NSString* const kOOCommodityClasses = @"classes";
+static NSString* const kOOCommodityContainer = @"quantity_unit";
+static NSString* const kOOCommodityPeakExport = @"peak_export";
+static NSString* const kOOCommodityPeakImport = @"peak_import";
+static NSString* const kOOCommodityPriceAverage = @"price_average";
+static NSString* const kOOCommodityPriceEconomic = @"price_economic";
+static NSString* const kOOCommodityPriceRandom = @"price_random";
 // next one cannot be set from file - named for compatibility
-static NSString * const kOOCommodityPriceCurrent	= @"price";
-static NSString * const kOOCommodityQuantityAverage	= @"quantity_average";
-static NSString * const kOOCommodityQuantityEconomic= @"quantity_economic";
-static NSString * const kOOCommodityQuantityRandom	= @"quantity_random";
+static NSString* const kOOCommodityPriceCurrent = @"price";
+static NSString* const kOOCommodityQuantityAverage = @"quantity_average";
+static NSString* const kOOCommodityQuantityEconomic = @"quantity_economic";
+static NSString* const kOOCommodityQuantityRandom = @"quantity_random";
 // next one cannot be set from file - named for compatibility
-static NSString * const kOOCommodityQuantityCurrent	= @"quantity";
-static NSString * const kOOCommodityLegalityExport	= @"legality_export";
-static NSString * const kOOCommodityLegalityImport	= @"legality_import";
-static NSString * const kOOCommodityTrumbleOpinion	= @"trumble_opinion";
-static NSString * const kOOCommoditySortOrder		= @"sort_order";
-static NSString * const kOOCommodityCapacity		= @"capacity";
-static NSString * const kOOCommodityScript			= @"market_script";
-static NSString * const kOOCommodityComment			= @"comment";
-static NSString * const kOOCommodityShortComment	= @"short_comment";
+static NSString* const kOOCommodityQuantityCurrent = @"quantity";
+static NSString* const kOOCommodityLegalityExport = @"legality_export";
+static NSString* const kOOCommodityLegalityImport = @"legality_import";
+static NSString* const kOOCommodityTrumbleOpinion = @"trumble_opinion";
+static NSString* const kOOCommoditySortOrder = @"sort_order";
+static NSString* const kOOCommodityCapacity = @"capacity";
+static NSString* const kOOCommodityScript = @"market_script";
+static NSString* const kOOCommodityComment = @"comment";
+static NSString* const kOOCommodityShortComment = @"short_comment";
 // next one cannot be set from file - named for compatibility
-static NSString * const kOOCommodityKey				= @"key";
-
+static NSString* const kOOCommodityKey = @"key";
 
 // keys in secondary market definitions
-static NSString * const kOOCommodityMarketType					= @"type";
-static NSString * const kOOCommodityMarketName					= @"name";
-static NSString * const kOOCommodityMarketPriceAdder			= @"price_adder";
-static NSString * const kOOCommodityMarketPriceMultiplier		= @"price_multiplier";
-static NSString * const kOOCommodityMarketPriceRandomiser		= @"price_randomiser";
-static NSString * const kOOCommodityMarketQuantityAdder			= @"quantity_adder";
-static NSString * const kOOCommodityMarketQuantityMultiplier	= @"quantity_multiplier";
-static NSString * const kOOCommodityMarketQuantityRandomiser	= @"quantity_randomiser";
-static NSString * const kOOCommodityMarketLegalityExport		= @"legality_export";
-static NSString * const kOOCommodityMarketLegalityImport		= @"legality_import";
-static NSString * const kOOCommodityMarketCapacity				= @"capacity";
+static NSString* const kOOCommodityMarketType = @"type";
+static NSString* const kOOCommodityMarketName = @"name";
+static NSString* const kOOCommodityMarketPriceAdder = @"price_adder";
+static NSString* const kOOCommodityMarketPriceMultiplier = @"price_multiplier";
+static NSString* const kOOCommodityMarketPriceRandomiser = @"price_randomiser";
+static NSString* const kOOCommodityMarketQuantityAdder = @"quantity_adder";
+static NSString* const kOOCommodityMarketQuantityMultiplier = @"quantity_multiplier";
+static NSString* const kOOCommodityMarketQuantityRandomiser = @"quantity_randomiser";
+static NSString* const kOOCommodityMarketLegalityExport = @"legality_export";
+static NSString* const kOOCommodityMarketLegalityImport = @"legality_import";
+static NSString* const kOOCommodityMarketCapacity = @"capacity";
 
 // values for "type" in the plist
-static NSString * const kOOCommodityMarketTypeValueDefault		= @"default";
-static NSString * const kOOCommodityMarketTypeValueClass		= @"class";
-static NSString * const kOOCommodityMarketTypeValueGood			= @"good";
-
-
+static NSString* const kOOCommodityMarketTypeValueDefault = @"default";
+static NSString* const kOOCommodityMarketTypeValueClass = @"class";
+static NSString* const kOOCommodityMarketTypeValueGood = @"good";
 
 @class OOCommodityMarket, StationEntity;
 
-@interface OOCommodities: NSObject
-{
+@interface OOCommodities : NSObject {
 @private
-	NSDictionary		*_commodityLists;
-	
-
+    NSDictionary* _commodityLists;
 }
 
-+ (OOCommodityType) legacyCommodityType:(NSUInteger)i;
++ (OOCommodityType)legacyCommodityType:(NSUInteger)i;
 
-- (OOCommodityMarket *) generateManifestForPlayer;
-- (OOCommodityMarket *) generateBlankMarket;
-- (OOCommodityMarket *) generateMarketForSystemWithEconomy:(OOEconomyID)economy andScript:(NSString *)scriptName;
-- (OOCommodityMarket *) generateMarketForStation:(StationEntity *)station;
+- (OOCommodityMarket*)generateManifestForPlayer;
+- (OOCommodityMarket*)generateBlankMarket;
+- (OOCommodityMarket*)generateMarketForSystemWithEconomy:(OOEconomyID)economy andScript:(NSString*)scriptName;
+- (OOCommodityMarket*)generateMarketForStation:(StationEntity*)station;
 
-- (OOCreditsQuantity) samplePriceForCommodity:(OOCommodityType)commodity inEconomy:(OOEconomyID)economy withScript:(NSString *)scriptName inSystem:(OOSystemID)system;
+- (OOCreditsQuantity)samplePriceForCommodity:(OOCommodityType)commodity inEconomy:(OOEconomyID)economy withScript:(NSString*)scriptName inSystem:(OOSystemID)system;
 
-- (NSUInteger) count;
-- (NSArray *) goods;
-- (BOOL) goodDefined:(NSString *)key;
-- (NSString *) goodNamed:(NSString *)name;
-- (NSString *) getRandomCommodity;
-- (OOMassUnit) massUnitForGood:(NSString *)good;
-
-
+- (NSUInteger)count;
+- (NSArray*)goods;
+- (BOOL)goodDefined:(NSString*)key;
+- (NSString*)goodNamed:(NSString*)name;
+- (NSString*)getRandomCommodity;
+- (OOMassUnit)massUnitForGood:(NSString*)good;
 
 @end

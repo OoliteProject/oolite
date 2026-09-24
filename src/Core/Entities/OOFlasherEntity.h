@@ -28,48 +28,43 @@ MA 02110-1301, USA.
 #import "OOLightParticleEntity.h"
 #import "ShipEntity.h"
 
-
-@interface OOFlasherEntity: OOLightParticleEntity <OOSubEntity>
-{
+@interface OOFlasherEntity : OOLightParticleEntity <OOSubEntity> {
 @private
-	float					_frequency;
-	float					_phase;
-	float					_wave;
-	float         			_brightfraction;
-	NSArray					*_colors;
-	NSUInteger				_activeColor;
-	
-	OOTimeDelta				_time;
-	
-	BOOL					_active;
-	BOOL					_justSwitched;
+    float _frequency;
+    float _phase;
+    float _wave;
+    float _brightfraction;
+    NSArray* _colors;
+    NSUInteger _activeColor;
+
+    OOTimeDelta _time;
+
+    BOOL _active;
+    BOOL _justSwitched;
 }
 
-+ (instancetype) flasherWithDictionary:(NSDictionary *)dictionary;
-- (id) initWithDictionary:(NSDictionary *)dictionary;
++ (instancetype)flasherWithDictionary:(NSDictionary*)dictionary;
+- (id)initWithDictionary:(NSDictionary*)dictionary;
 
-- (BOOL) isActive;
-- (void) setActive:(BOOL)active;
+- (BOOL)isActive;
+- (void)setActive:(BOOL)active;
 
-- (OOColor *) color;
+- (OOColor*)color;
 // setColor is defined by superclass
 
-- (float) frequency;
-- (void) setFrequency:(float)frequency;
+- (float)frequency;
+- (void)setFrequency:(float)frequency;
 
-- (float) phase;
-- (void) setPhase:(float)phase;
+- (float)phase;
+- (void)setPhase:(float)phase;
 
-- (float) fraction;
-- (void) setFraction:(float)fraction;
-
+- (float)fraction;
+- (void)setFraction:(float)fraction;
 
 @end
-
 
 @interface Entity (OOFlasherEntityExtensions)
 
-- (BOOL) isFlasher;
+- (BOOL)isFlasher;
 
 @end
-

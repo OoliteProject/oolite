@@ -30,9 +30,8 @@ SOFTWARE.
 
 #import "OOTexture.h"
 
+@interface OONullTexture : OOTexture
 
-@interface OONullTexture: OOTexture
-
-+ (OONullTexture *) sharedNullTexture;
++ (OONullTexture*)sharedNullTexture;
 
 @end

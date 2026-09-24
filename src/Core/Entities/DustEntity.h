@@ -28,32 +28,30 @@ MA 02110-1301, USA.
 #import "OOOpenGLExtensionManager.h"
 #import "OOTexture.h"
 
-#define DUST_SCALE			2000
-#define DUST_N_PARTICLES	600
+#define DUST_SCALE 2000
+#define DUST_N_PARTICLES 600
 
 @class OOColor, OOShaderProgram, OOShaderUniform;
 
-
-@interface DustEntity: Entity
-{
+@interface DustEntity : Entity {
 @private
-	OOColor				*dust_color;
-	Vector				vertices[DUST_N_PARTICLES * 2];
-	GLushort			indices[DUST_N_PARTICLES * 2];
-	GLfloat				color_fv[4];
-	OOTexture			*texture;
-	bool				hasPointSprites;
-	bool				drawDust;
-	
+    OOColor* dust_color;
+    Vector vertices[DUST_N_PARTICLES * 2];
+    GLushort indices[DUST_N_PARTICLES * 2];
+    GLfloat color_fv[4];
+    OOTexture* texture;
+    bool hasPointSprites;
+    bool drawDust;
+
 #if OO_SHADERS
-	GLfloat				warpinessAttr[DUST_N_PARTICLES * 2];
-	OOShaderProgram		*shader;
-	NSArray				*uniforms;
-	uint8_t				shaderMode;
+    GLfloat warpinessAttr[DUST_N_PARTICLES * 2];
+    OOShaderProgram* shader;
+    NSArray* uniforms;
+    uint8_t shaderMode;
 #endif
 }
 
-- (void) setDustColor:(OOColor *) color;
-- (OOColor *) dustColor;
+- (void)setDustColor:(OOColor*)color;
+- (OOColor*)dustColor;
 
 @end

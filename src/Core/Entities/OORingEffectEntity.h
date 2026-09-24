@@ -28,18 +28,16 @@ MA 02110-1301, USA.
 
 #import "Entity.h"
 
-
-@interface OORingEffectEntity: Entity
-{
+@interface OORingEffectEntity : Entity {
 @private
-	GLfloat				_timePassed;
-	GLfloat				_innerRadius,
-						_outerRadius,
-						_innerGrowthRate,
-						_outerGrowthRate;
+    GLfloat _timePassed;
+    GLfloat _innerRadius,
+        _outerRadius,
+        _innerGrowthRate,
+        _outerGrowthRate;
 }
 
-+ (instancetype) ringFromEntity:(Entity *)sourceEntity;
-+ (instancetype) shrinkingRingFromEntity:(Entity *)sourceEntity;
++ (instancetype)ringFromEntity:(Entity*)sourceEntity;
++ (instancetype)shrinkingRingFromEntity:(Entity*)sourceEntity;
 
 @end

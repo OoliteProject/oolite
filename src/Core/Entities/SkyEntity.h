@@ -28,15 +28,13 @@ MA 02110-1301, USA.
 
 @class OOColor;
 
-
-@interface SkyEntity: OOEntityWithDrawable
-{
-	OOColor					*skyColor;
+@interface SkyEntity : OOEntityWithDrawable {
+    OOColor* skyColor;
 }
 
-- (id) initWithColors:(OOColor *)col1  col2:(OOColor *)col2 andSystemInfo:(NSDictionary *)systemInfo;
-- (BOOL) changeProperty:(NSString *)key withDictionary:(NSDictionary*) dict;
+- (id)initWithColors:(OOColor*)col1 col2:(OOColor*)col2 andSystemInfo:(NSDictionary*)systemInfo;
+- (BOOL)changeProperty:(NSString*)key withDictionary:(NSDictionary*)dict;
 
-- (OOColor *)skyColor;
+- (OOColor*)skyColor;
 
 @end

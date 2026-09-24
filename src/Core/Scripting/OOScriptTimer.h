@@ -35,41 +35,37 @@ MA 02110-1301, USA.
 #import "OOFoundation.h"
 #import "OOTypes.h"
 
-
-@interface OOScriptTimer: NSObject
-{
+@interface OOScriptTimer : NSObject {
 @private
-	OOTimeAbsolute				_nextTime;
-	OOTimeDelta					_interval;
-	BOOL						_isScheduled;
-	BOOL						_hasBeenRun;	// Needed for one-shot timers.
+    OOTimeAbsolute _nextTime;
+    OOTimeDelta _interval;
+    BOOL _isScheduled;
+    BOOL _hasBeenRun; // Needed for one-shot timers.
 }
 
-- (id) initWithNextTime:(OOTimeAbsolute)nextTime
-			   interval:(OOTimeDelta)interval;
+- (id)initWithNextTime:(OOTimeAbsolute)nextTime
+              interval:(OOTimeDelta)interval;
 
 // Sets nextTime to current time + delay.
-- (id) initOneShotTimerWithDelay:(OOTimeDelta)delay;
+- (id)initOneShotTimerWithDelay:(OOTimeDelta)delay;
 
 - (OOTimeAbsolute)nextTime;
-- (BOOL)setNextTime:(OOTimeAbsolute)nextTime;	// Only works when timer is not scheduled.
+- (BOOL)setNextTime:(OOTimeAbsolute)nextTime; // Only works when timer is not scheduled.
 - (OOTimeDelta)interval;
 - (void)setInterval:(OOTimeDelta)interval;
 
 // Subclass responsibility:
-- (void) timerFired;
+- (void)timerFired;
 
-- (BOOL) scheduleTimer;
-- (void) unscheduleTimer;
-- (BOOL) isScheduled;
+- (BOOL)scheduleTimer;
+- (void)unscheduleTimer;
+- (BOOL)isScheduled;
 
++ (void)updateTimers;
++ (void)noteGameReset;
 
-+ (void) updateTimers;
-+ (void) noteGameReset;
+- (BOOL)isValidForScheduling;
 
-
-- (BOOL) isValidForScheduling;
-
-- (NSComparisonResult) compareByNextFireTime:(OOScriptTimer *)other;
+- (NSComparisonResult)compareByNextFireTime:(OOScriptTimer*)other;
 
 @end

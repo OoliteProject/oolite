@@ -27,23 +27,22 @@ MA 02110-1301, USA.
 
 #pragma once
 
-#include <jsapi.h>
-#import "OOFoundation.h"
 #import "OOEquipmentType.h"
+#import "OOFoundation.h"
+#include <jsapi.h>
 
 @class OOEquipmentType;
 
-
-void InitOOJSEquipmentInfo(JSContext *context, JSObject *global);
+void InitOOJSEquipmentInfo(JSContext* context, JSObject* global);
 
 /*	Given a jsval representing a string (equipment key) or a JS EquipmentInfo,
-	return the corresponding EquipmentType or key. Note that
-	JSValueToEquipmentKey() will not return arbitrary strings, only valid
-	equipment keys.
-	JSValueToEquipmentKeyRelaxed() will return any string that does not end
-	with _DAMAGED.
+        return the corresponding EquipmentType or key. Note that
+        JSValueToEquipmentKey() will not return arbitrary strings, only valid
+        equipment keys.
+        JSValueToEquipmentKeyRelaxed() will return any string that does not end
+        with _DAMAGED.
  */
-OOEquipmentType *JSValueToEquipmentType(JSContext *context, jsval value);
-NSString *JSValueToEquipmentKey(JSContext *context, jsval value);
+OOEquipmentType* JSValueToEquipmentType(JSContext* context, jsval value);
+NSString* JSValueToEquipmentKey(JSContext* context, jsval value);
 
-NSString *JSValueToEquipmentKeyRelaxed(JSContext *context, jsval value, BOOL *outExists);
+NSString* JSValueToEquipmentKeyRelaxed(JSContext* context, jsval value, BOOL* outExists);

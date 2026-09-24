@@ -9,7 +9,7 @@ the same priority that has expired, or a sound of lower priority that has not
 expired.
 
 All sounds are specified by customsounds.plist key.
- 
+
 
 Copyright (C) 2008-2013 Jens Ayton
 
@@ -33,49 +33,47 @@ SOFTWARE.
 
 */
 
-#import <Foundation/Foundation.h>
-#import "OOTypes.h"
 #import "OOMaths.h"
+#import "OOTypes.h"
+#import <Foundation/Foundation.h>
 
-@interface OOSoundSourcePool: NSObject
-{
+@interface OOSoundSourcePool : NSObject {
 @private
-	struct OOSoundSourcePoolElement	*_sources;
-	uint8_t							_count;
-	uint8_t							_latest;
-	uint8_t							_reserved;
-	OOTimeDelta						_minRepeat;
-	OOTimeAbsolute					_nextRepeat;
-	NSString						*_lastKey;
+    struct OOSoundSourcePoolElement* _sources;
+    uint8_t _count;
+    uint8_t _latest;
+    uint8_t _reserved;
+    OOTimeDelta _minRepeat;
+    OOTimeAbsolute _nextRepeat;
+    NSString* _lastKey;
 }
 
-+ (instancetype) poolWithCount:(uint8_t)count minRepeatTime:(OOTimeDelta)minRepeat;
-- (id) initWithCount:(uint8_t)count minRepeatTime:(OOTimeDelta)minRepeat;
++ (instancetype)poolWithCount:(uint8_t)count minRepeatTime:(OOTimeDelta)minRepeat;
+- (id)initWithCount:(uint8_t)count minRepeatTime:(OOTimeDelta)minRepeat;
 
-- (void) playSoundWithKey:(NSString *)key
-				 priority:(float)priority
-			   expiryTime:(OOTimeDelta)expiryTime
-				  overlap:(BOOL)overlap
-				 position:(Vector)position;
+- (void)playSoundWithKey:(NSString*)key
+                priority:(float)priority
+              expiryTime:(OOTimeDelta)expiryTime
+                 overlap:(BOOL)overlap
+                position:(Vector)position;
 
-- (void) playSoundWithKey:(NSString *)key
-				 priority:(float)priority
-			   expiryTime:(OOTimeDelta)expiryTime;
+- (void)playSoundWithKey:(NSString*)key
+                priority:(float)priority
+              expiryTime:(OOTimeDelta)expiryTime;
 
-- (void) playSoundWithKey:(NSString *)key
-				 priority:(float)priority;	// expiryTime:0.1 +/- 0.5
+- (void)playSoundWithKey:(NSString*)key
+                priority:(float)priority; // expiryTime:0.1 +/- 0.5
 
-- (void) playSoundWithKey:(NSString *)key
-				 priority:(float)priority
-				 position:(Vector)position;	// expiryTime:0.1 +/- 0.5
+- (void)playSoundWithKey:(NSString*)key
+                priority:(float)priority
+                position:(Vector)position; // expiryTime:0.1 +/- 0.5
 
-- (void) playSoundWithKey:(NSString *)key
-				 position:(Vector)position;	// expiryTime:0.1 +/- 0.5
+- (void)playSoundWithKey:(NSString*)key
+                position:(Vector)position; // expiryTime:0.1 +/- 0.5
 
-- (void) playSoundWithKey:(NSString *)key;	// priority: 1.0, expiryTime:0.1 +/- 0.5
+- (void)playSoundWithKey:(NSString*)key; // priority: 1.0, expiryTime:0.1 +/- 0.5
 
-- (void) playSoundWithKey:(NSString *)key overlap:(BOOL)overlap;	// if overlap == NO it waits for key to finish before playing key again
-- (void) playSoundWithKey:(NSString *)key overlap:(BOOL)overlap position:(Vector)position;
-
+- (void)playSoundWithKey:(NSString*)key overlap:(BOOL)overlap; // if overlap == NO it waits for key to finish before playing key again
+- (void)playSoundWithKey:(NSString*)key overlap:(BOOL)overlap position:(Vector)position;
 
 @end
