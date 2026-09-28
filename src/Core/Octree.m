@@ -718,7 +718,7 @@ static Vector randomFullNodeFrom(Octree_details details, Vector offset)
     return randomFullNodeFrom([self octreeDetails], kZeroVector);
 }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 - (size_t)totalSize
 {
     return [self oo_objectSize] + _nodeCount * [_data oo_objectSize] + [_data length] + _nodeCount * sizeof *_collisionOctree;

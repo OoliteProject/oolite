@@ -72,7 +72,7 @@ MA 02110-1301, USA.
 
 - (Vector)randomPoint;
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 - (size_t)totalSize;
 #endif
 

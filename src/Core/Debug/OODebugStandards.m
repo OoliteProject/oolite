@@ -32,7 +32,7 @@ SOFTWARE.
 #import "OOCollectionExtractors.h"
 #import "OOLogging.h"
 
-#ifdef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 // in release mode, stubs
 void OOStandardsDeprecated(NSString* message) { }
 void OOStandardsError(NSString* message) { }

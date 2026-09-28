@@ -25,7 +25,7 @@ SOFTWARE.
 
 */
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 
 #import "OODebugSupport.h"
 #import "GameController.h"
@@ -132,4 +132,4 @@ static id LoadDebugPlugIn()
 
 #endif
 
-#endif /* NDEBUG */
+#endif /* OO_DEBUG_MONITOR_ENABLED */

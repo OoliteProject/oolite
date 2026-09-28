@@ -112,7 +112,7 @@ MA 02110-1301, USA.
         OOGLWireframeModeOff();
 }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 - (NSSet*)allTextures
 {
     return [[self drawable] allTextures];

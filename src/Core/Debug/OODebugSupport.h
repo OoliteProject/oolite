@@ -27,7 +27,7 @@ SOFTWARE.
 
 */
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 
 void OOInitDebugSupport(void);
 

@@ -35,7 +35,7 @@ MA 02110-1301, USA.
 
 @class Universe, CollisionRegion, ShipEntity, OOVisualEffectEntity;
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 
 extern uint32_t gLiveEntityCount;
 extern size_t gTotalEntityMemory;
@@ -284,7 +284,7 @@ enum OOScanClass {
 - (void)setAtmosphereFogging:(OOColor*)fogging;
 - (OOColor*)fogUniform;
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 - (NSString*)descriptionForObjDumpBasic;
 - (NSString*)descriptionForObjDump;
 

@@ -764,7 +764,7 @@ static NSString* NormalModeDescription(OOMeshNormalMode mode)
 }
 #endif
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 - (NSSet*)allTextures
 {
     NSMutableSet* result = [NSMutableSet set];

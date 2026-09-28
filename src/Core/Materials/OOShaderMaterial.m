@@ -678,7 +678,7 @@ static NSString* MacrosToString(NSDictionary* macros);
     return YES;
 }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 - (NSSet*)allTextures
 {
     return [NSSet setWithObjects:textures count:texCount];

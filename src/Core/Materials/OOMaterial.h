@@ -74,7 +74,7 @@ SOFTWARE.
 - (NSUInteger)countOfTextureUnitsWithBaseCoordinates;
 #endif
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 - (NSSet*)allTextures;
 #endif
 

@@ -1473,7 +1473,7 @@ static unsigned baseVertexIndexForEdge(GLushort va, GLushort vb, BOOL textured)
     return [OOTexture textureWithGenerator:loader];
 }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 - (NSSet*)allTextures
 {
     if (_texture != nil)

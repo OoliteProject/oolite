@@ -39,7 +39,7 @@ MA 02110-1301, USA.
 #import "NSScannerOOExtensions.h"
 #import "OODebugFlags.h"
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 uint32_t gLiveEntityCount = 0;
 size_t gTotalEntityMemory = 0;
 #endif
@@ -86,7 +86,7 @@ static NSString* const kOOLogEntityVerificationError = @"entity.linkedList.verif
 
     atmosphereFogging = [[OOColor colorWithRed:0.0 green:0.0 blue:0.0 alpha:0.0] retain];
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     gLiveEntityCount++;
     gTotalEntityMemory += [self oo_objectSize];
 #endif
@@ -104,7 +104,7 @@ static NSString* const kOOLogEntityVerificationError = @"entity.linkedList.verif
     [self setOwner:nil];
     [atmosphereFogging release];
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     gLiveEntityCount--;
     gTotalEntityMemory -= [self oo_objectSize];
 #endif
@@ -998,7 +998,7 @@ static NSString* const kOOLogEntityVerificationError = @"entity.linkedList.verif
     return [[atmosphereFogging retain] autorelease];
 }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 - (NSString*)descriptionForObjDumpBasic
 {
     NSString* result = [self descriptionComponents];

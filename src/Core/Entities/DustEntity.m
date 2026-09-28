@@ -407,7 +407,7 @@ enum {
 #endif
 }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 - (NSString*)descriptionForObjDump
 {
     // Don't include range and visibility flag as they're irrelevant.

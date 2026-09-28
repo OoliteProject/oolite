@@ -654,7 +654,7 @@ typedef enum {
     NSArray* n_key_dec_field_of_view;
 #endif
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     NSArray* n_key_dump_target_state;
     NSArray* n_key_dump_entity_list;
     NSArray* n_key_debug_full;

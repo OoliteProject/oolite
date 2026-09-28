@@ -12928,7 +12928,7 @@ static BOOL AuthorityPredicate(Entity* entity, void* parameter)
 {
 }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 - (NSString*)descriptionForObjDump
 {
     NSString* desc = [super descriptionForObjDump];

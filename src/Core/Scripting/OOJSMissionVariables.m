@@ -46,7 +46,7 @@ static JSBool MissionVariablesGetProperty(JSContext* context, JSObject* this, js
 static JSBool MissionVariablesSetProperty(JSContext* context, JSObject* this, jsid propID, JSBool strict, jsval* value);
 static JSBool MissionVariablesEnumerate(JSContext* context, JSObject* object, JSIterateOp enumOp, jsval* state, jsid* idp);
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 static id MissionVariablesConverter(JSContext* context, JSObject* object);
 #endif
 
@@ -68,13 +68,13 @@ void InitOOJSMissionVariables(JSContext* context, JSObject* global)
 {
     JS_DefineObject(context, global, "missionVariables", &sMissionVariablesClass, NULL, OOJS_PROP_READONLY);
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     // Allow callObjC() on missionVariables to call methods on the mission variables dictionary.
     OOJSRegisterObjectConverter(&sMissionVariablesClass, MissionVariablesConverter);
 #endif
 }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 static id MissionVariablesConverter(JSContext* context, JSObject* object)
 {
     return [PLAYER missionVariables];

@@ -30,7 +30,7 @@ MA 02110-1301, USA.
 #import "Universe.h"
 #include <jsapi.h>
 
-#define OOJSENGINE_MONITOR_SUPPORT OOLITE_DEBUG
+#define OOJSENGINE_MONITOR_SUPPORT OO_DEBUG_MONITOR_ENABLED
 
 #import "OOJSPropID.h"
 
@@ -48,7 +48,7 @@ MA 02110-1301, USA.
     JSClass* _numberClass;
     JSClass* _booleanClass;
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     BOOL _dumpStackForErrors;
     BOOL _dumpStackForWarnings;
 #endif
@@ -89,7 +89,7 @@ MA 02110-1301, USA.
 - (JSClass*)numberClass;
 - (JSClass*)booleanClass;
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 - (BOOL)dumpStackForErrors;
 - (void)setDumpStackForErrors:(BOOL)value;
 
@@ -124,7 +124,7 @@ OOINLINE JSContext* OOJSAcquireContext(void)
 // End a request on the main thread's context.
 OOINLINE void OOJSRelinquishContext(JSContext* context)
 {
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     extern JSContext* gOOJSMainThreadContext;
     NSCParameterAssert(context == gOOJSMainThreadContext && JS_IsInRequest(context));
 #endif
@@ -496,7 +496,7 @@ void OOJSRegisterObjectConverter(JSClass* theClass, OOJSClassConverterCallback c
         In debug builds, this will deliberately cause an error if name is not a
         string literal.
 */
-#ifdef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 #define OOJSAddGCValueRoot(context, root, name) JS_AddValueRoot((context), (root))
 #define OOJSAddGCStringRoot(context, root, name) JS_AddStringRoot((context), (root))
 #define OOJSAddGCObjectRoot(context, root, name) JS_AddObjectRoot((context), (root))

@@ -374,7 +374,9 @@
 
     OODebugEndWireframe(state);
 }
+#endif
 
+#ifdef OO_DEBUG_MONITOR_ENABLED
 - (NSSet*)allTextures
 {
     return [[self material] allTextures];

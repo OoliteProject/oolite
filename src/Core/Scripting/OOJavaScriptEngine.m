@@ -206,7 +206,7 @@ static void ReportJSError(JSContext* context, const char* message, JSErrorReport
             }
         }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
         BOOL dump;
         if (report->flags & JSREPORT_WARNING)
             dump = [jsEng dumpStackForWarnings];
@@ -258,7 +258,7 @@ static void ReportJSError(JSContext* context, const char* message, JSErrorReport
     JS_SetCStringsAreUTF8();
 
     NSUserDefaults* defaults = [NSUserDefaults standardUserDefaults];
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     /*	Set stack trace preferences from preferences. These will be overriden
             by the debug OXP script if installed, but being able to enable traces
             without setting up the debug console could be useful for debugging
@@ -585,7 +585,7 @@ static void ReportJSError(JSContext* context, const char* message, JSErrorReport
     OOJSRegisterObjectConverter([self booleanClass], JSBooleanConverter);
 }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 static JSTrapStatus DebuggerHook(JSContext* context, JSScript* script, jsbytecode* pc, jsval* rval, void* closure)
 {
     OOJSPauseTimeLimiter();
