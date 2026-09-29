@@ -917,7 +917,7 @@ static const BaseFace kTexturedFaces[][3] = {
     }
 }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 - (PlanetEntity*)atmosphere
 {
     return atmosphere;

@@ -1261,7 +1261,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 @end
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 @interface ShipEntity (Debug)
 
 - (OOShipGroup*)rawEscortGroup;

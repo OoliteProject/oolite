@@ -6003,7 +6003,7 @@ static GLfloat scripted_color[4] = { 0.0, 0.0, 0.0, 0.0 }; // to be defined by s
     }
 }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 - (OOShipGroup*)rawEscortGroup
 {
     return _escortGroup;

@@ -67,10 +67,13 @@ typedef struct
     size_t vCount; // Number of vertices so far in primitive.
     NSPoint pending0, pending1; // Used for splitting GL_TRIANGLE_STRIP/GL_TRIANGLE_FAN primitives.
     BOOL OK; // Set to false to indicate error.
+#ifdef OO_DEBUG_MONITOR_ENABLED
+    NSString* name;
+#endif
+
 #ifndef NDEBUG
     BOOL generatingOutline;
     unsigned svgID;
-    NSString* name;
     NSMutableString* debugSVG;
 #endif
 } TessPolygonData;
@@ -131,7 +134,7 @@ typedef GLvoid (*TessFuncPtr)();
 - (id)initWithDataArray:(NSArray*)dataArray outlineWidth:(GLfloat)outlineWidth name:(NSString*)name
 {
     if ((self = [super init])) {
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
         _name = [name copy];
 #endif
 
@@ -159,7 +162,7 @@ typedef GLvoid (*TessFuncPtr)();
 {
     [[OOGraphicsResetManager sharedManager] unregisterClient:self];
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     DESTROY(_name);
 #endif
     free(_solidData);
@@ -168,7 +171,7 @@ typedef GLvoid (*TessFuncPtr)();
     [super dealloc];
 }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 - (NSString*)descriptionComponents
 {
     return _name;
@@ -743,7 +746,7 @@ static void APIENTRY ErrorCallback(GLenum error, void* polygonData)
     NSCParameterAssert(data != NULL);
 
     NSString* name = @"";
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     name = [NSString stringWithFormat:@" \"%@\"", data->name];
 #endif
 

@@ -70,7 +70,7 @@ SOFTWARE.
     float _anisotropy;
 #endif
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     NSString* _name;
 #endif
 }
