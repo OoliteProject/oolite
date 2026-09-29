@@ -605,7 +605,7 @@ static const BaseFace kTexturedFaces[][3] = {
 
 - (BOOL)checkCloseCollisionWith:(Entity*)other
 {
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     if (gDebugFlags & DEBUG_COLLISIONS)
         OOLog(@"planet.collide", @"PLANET Collision!");
 #endif

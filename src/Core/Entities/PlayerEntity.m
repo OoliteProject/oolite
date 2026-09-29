@@ -11790,7 +11790,7 @@ static NSString* last_outfitting_key = nil;
     return result;
 }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 - (void)dumpSelfState
 {
     NSMutableArray* flags = nil;

@@ -410,7 +410,7 @@ typedef enum {
     // Collision detection
     Octree* octree;
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     // DEBUGGING
     OOBehaviour debugLastBehaviour;
 #endif

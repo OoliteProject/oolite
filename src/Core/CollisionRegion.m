@@ -250,7 +250,7 @@ static BOOL positionIsWithinBorders(HPVector position, CollisionRegion* region)
         }
     }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     if (gDebugFlags & DEBUG_COLLISIONS) {
         OOLog(@"collisionRegion.debug", @"DEBUG in collision region %@ testing %d out of %d entities", self, n_entities_to_test, n_entities);
     }
@@ -297,7 +297,7 @@ static BOOL positionIsWithinBorders(HPVector position, CollisionRegion* region)
                 dist2 = HPdistance2(e2->position, p1);
                 min_dist2 = r0 * r0;
                 if (dist2 < PROXIMITY_WARN_DISTANCE2 * min_dist2) {
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
                     if (gDebugFlags & DEBUG_COLLISIONS) {
                         OOLog(@"collisionRegion.debug", @"DEBUG Testing collision between %@ (%@) and %@ (%@)",
                             e1, (e1->collisionTestFilter == 3) ? @"YES" : @"NO", e2, (e2->collisionTestFilter == 3) ? @"YES" : @"NO");
@@ -366,7 +366,7 @@ static BOOL positionIsWithinBorders(HPVector position, CollisionRegion* region)
         }
     }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     if (gDebugFlags & DEBUG_COLLISIONS) {
         OOLog(@"collisionRegion.debug", @"Collision test checks %d, within range %d, for %d entities", checks_this_tick, checks_within_range, n_entities_to_test);
     }

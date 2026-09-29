@@ -32,7 +32,7 @@ MA 02110-1301, USA.
 #import "OOMaths.h"
 #import "OOOpenGL.h"
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 #define OctreeDebugLog(format, ...)                         \
     do {                                                    \
         if (EXPECT_NOT(gDebugFlags & DEBUG_OCTREE_LOGGING)) \

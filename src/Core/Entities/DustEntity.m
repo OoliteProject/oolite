@@ -256,7 +256,7 @@ enum {
     PlayerEntity* player = PLAYER;
     assert(player != nil);
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     if (gDebugFlags & DEBUG_NO_DUST)
         return;
 #endif

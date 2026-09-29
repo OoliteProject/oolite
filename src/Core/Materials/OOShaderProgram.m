@@ -249,7 +249,7 @@ static BOOL ValidateShaderObject(GLhandleARB object, NSString* name)
         return NO;
     }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     if (gDebugFlags & DEBUG_SHADER_VALIDATION && 0) {
         OOGL(glValidateProgramARB(object));
         OOGL(glGetObjectParameterivARB(object, GL_OBJECT_VALIDATE_STATUS_ARB, &status));

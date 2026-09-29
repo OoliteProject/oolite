@@ -33,7 +33,7 @@
 #import "OOSingleTextureMaterial.h"
 #import "Universe.h"
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 #import "Entity.h"
 #import "OODebugFlags.h"
 #import "OODebugGLDrawing.h"
@@ -272,7 +272,7 @@
 #endif
 
     OOGLPopModelView();
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     if (gDebugFlags & DEBUG_DRAW_NORMALS)
         [self debugDrawNormals];
 #endif
@@ -326,7 +326,7 @@
     _transform = OOMatrixForScaleUniform(_radius);
 }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 
 - (void)debugDrawNormals
 {

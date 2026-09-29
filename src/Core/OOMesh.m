@@ -152,7 +152,7 @@ static NSUInteger VFRGetFaceAtIndex(VertexFaceRef* vfr, NSUInteger index);
 
 - (void)rescaleByFactor:(GLfloat)factor;
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 - (void)debugDrawNormals;
 #endif
 
@@ -513,7 +513,7 @@ static NSString* NormalModeDescription(OOMeshNormalMode mode)
     OOGL(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
 #endif
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     if (gDebugFlags & DEBUG_DRAW_NORMALS)
         [self debugDrawNormals];
     if (gDebugFlags & DEBUG_OCTREE_DRAW)
@@ -752,7 +752,7 @@ static NSString* NormalModeDescription(OOMeshNormalMode mode)
     }
 }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 - (void)dumpSelfState
 {
     [super dumpSelfState];
@@ -1852,7 +1852,7 @@ static float FaceAreaCorrect(GLuint* vertIndices, Vector* vertices)
     return boundingBox;
 }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 - (void)debugDrawNormals
 {
     GLuint i;

@@ -96,7 +96,7 @@ MA 02110-1301, USA.
 #define USEMASC 1
 
 static NSString* const kOOLogSyntaxAddShips = @"script.debug.syntax.addShips";
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 static NSString* const kOOLogEntityBehaviourChanged = @"entity.behaviour.changed";
 #endif
 
@@ -2202,7 +2202,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
     } // end if !isSubEntity
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     // DEBUGGING
     if (reportAIMessages && (debugLastBehaviour != behaviour)) {
         OOLog(kOOLogEntityBehaviourChanged, @"%@ behaviour is now %@", self, OOStringFromBehaviour(behaviour));
@@ -5494,7 +5494,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
     // Draw self.
     [super drawImmediate:immediate translucent:translucent];
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     // Draw bounding boxes if we have to before going for the subentities.
     // TODO: the translucent flag here makes very little sense. Something's wrong with the matrices.
     if (translucent)
@@ -5519,7 +5519,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
     }
 }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 - (void)drawDebugStuff
 {
     // HPVect: imprecise here - needs camera relative
@@ -5561,7 +5561,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
     OOGLMultModelView(rotMatrix);
     [self drawImmediate:immediate translucent:translucent];
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     if (gDebugFlags & DEBUG_BOUNDING_BOXES) {
         OODebugDrawBoundingBox([self boundingBox]);
     }
@@ -12628,7 +12628,7 @@ static BOOL AuthorityPredicate(Entity* entity, void* parameter)
 }
 #endif
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 - (void)dumpSelfState
 {
     NSMutableArray* flags = nil;
