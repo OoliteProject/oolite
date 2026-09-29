@@ -198,10 +198,6 @@ execute_target() {  # Target Execution Logic
             ;;
         test)
             validate_build_type "$build_type"
-            if [[ "$build_type" == "deployment" ]]; then
-                echo "❌ Cannot test deployment as not set up for debug console!" >&2
-                exit 1
-            fi
             source tests/run_test_fn.sh && run_test "$build_type"
             ;;
         clean)
