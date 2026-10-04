@@ -46,7 +46,7 @@ __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
 GameController* controller;
 #endif
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 uint32_t gDebugFlags = 0;
 #endif
 

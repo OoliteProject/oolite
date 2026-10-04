@@ -55,7 +55,7 @@ MA 02110-1301, USA.
 static NSString* const kOOLogDebugMessage = @"script.debug.message";
 
 static JSBool GlobalGetProperty(JSContext* context, JSObject* this, jsid propID, jsval* value);
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 static JSBool GlobalSetProperty(JSContext* context, JSObject* this, jsid propID, JSBool strict, jsval* value);
 #endif
 
@@ -78,7 +78,7 @@ static JSBool GlobalSetGuiColorSettingForKey(JSContext* context, uintN argc, jsv
 static JSBool GlobalSetExtraGuiScreenKeys(JSContext* context, uintN argc, jsval* vp);
 static JSBool GlobalClearExtraGuiScreenKeys(JSContext* context, uintN argc, jsval* vp);
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 static JSBool GlobalTakeSnapShot(JSContext* context, uintN argc, jsval* vp);
 #endif
 
@@ -89,7 +89,7 @@ static JSClass sGlobalClass = {
     JS_PropertyStub,
     JS_PropertyStub,
     GlobalGetProperty,
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     GlobalSetProperty,
 #else
     // No writeable properties in non-debug builds
@@ -106,7 +106,7 @@ enum {
     kGlobal_galaxyNumber, // galaxy number, integer, read-only
     kGlobal_global, // global.global.global.global, integer, read-only
     kGlobal_guiScreen, // current GUI screen, string, read-only
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     kGlobal_timeAccelerationFactor // time acceleration, float, read/write
 #endif
 };
@@ -115,7 +115,7 @@ static JSPropertySpec sGlobalProperties[] = {
     // JS name					ID							flags
     { "galaxyNumber", kGlobal_galaxyNumber, OOJS_PROP_READONLY_CB },
     { "guiScreen", kGlobal_guiScreen, OOJS_PROP_READONLY_CB },
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     { "timeAccelerationFactor", kGlobal_timeAccelerationFactor, OOJS_PROP_READWRITE_CB },
 #endif
     { 0 }
@@ -140,7 +140,7 @@ static JSFunctionSpec sGlobalMethods[] = {
     { "setExtraGuiScreenKeys", GlobalSetExtraGuiScreenKeys, 2 },
     { "clearExtraGuiScreenKeys", GlobalClearExtraGuiScreenKeys, 2 },
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     { "takeSnapShot", GlobalTakeSnapShot, 1 },
     { "quitGame", GlobalQuitGame, 0 },
 #endif
@@ -182,7 +182,7 @@ static JSBool GlobalGetProperty(JSContext* context, JSObject* this, jsid propID,
         *value = OOJSValueFromGUIScreenID(context, [player guiScreen]);
         return YES;
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     case kGlobal_timeAccelerationFactor:
         return JS_NewNumberValue(context, [UNIVERSE timeAccelerationFactor], value);
 #endif
@@ -195,7 +195,7 @@ static JSBool GlobalGetProperty(JSContext* context, JSObject* this, jsid propID,
     OOJS_NATIVE_EXIT
 }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 static JSBool GlobalSetProperty(JSContext* context, JSObject* this, jsid propID, JSBool strict, jsval* value)
 {
     if (!JSID_IS_INT(propID))
@@ -688,7 +688,7 @@ static JSBool GlobalSetGuiColorSettingForKey(JSContext* context, uintN argc, jsv
     OOJS_NATIVE_EXIT
 }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 // takeSnapShot([name : alphanumeric String]) : Boolean
 static JSBool GlobalTakeSnapShot(JSContext* context, uintN argc, jsval* vp)
 {

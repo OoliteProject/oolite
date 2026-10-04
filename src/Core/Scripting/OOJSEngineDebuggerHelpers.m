@@ -78,7 +78,7 @@ MA 02110-1301, USA.
         Mac-specific/DataFormatters.
 */
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 
 #import "OOJavaScriptEngine.h"
 

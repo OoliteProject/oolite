@@ -38,12 +38,10 @@ run_script() {
         return 1
     fi
     generate_manifest "$resourcesdir/manifest.plist" "$deployment_release" "$ver_full" "$ver_quad" "$ver_githash" "$buildtime"
-    if [[ "$deployment_release" == "no" ]]; then
-        local addonsdir="$progdir/AddOns"
-        mkdir -p "$addonsdir"
-        rm -rf "$addonsdir/Basic-debug.oxp"
-        cp -rf DebugOXP/Debug.oxp "$addonsdir/Basic-debug.oxp"
-    fi
+    local addonsdir="$progdir/AddOns"
+    mkdir -p "$addonsdir"
+    rm -rf "$addonsdir/Basic-debug.oxp"
+    cp -rf DebugOXP/Debug.oxp "$addonsdir/Basic-debug.oxp"
 
     # Voice Data
     if [[ "$espeak" == "yes" ]]; then

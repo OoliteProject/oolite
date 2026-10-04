@@ -4395,7 +4395,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void* market);
 - (NSString*)dial_objinfo
 {
     NSString* result = [NSString stringWithFormat:@"Entities: %3zu", [UNIVERSE entityCount]];
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     result = [NSString stringWithFormat:@"%@ (%d, %zu KiB, avg %zu bytes)", result, gLiveEntityCount, gTotalEntityMemory >> 10, gTotalEntityMemory / gLiveEntityCount];
 #endif
 
@@ -11790,7 +11790,7 @@ static NSString* last_outfitting_key = nil;
     return result;
 }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 - (void)dumpSelfState
 {
     NSMutableArray* flags = nil;

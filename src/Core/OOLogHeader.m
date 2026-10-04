@@ -114,7 +114,7 @@ void OOPrintLogHeader(void)
         @"heavy OpenGL error checking",
 #endif
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
         @"JavaScript console support",
 #if OOLITE_MAC_OS_X
         // Under Mac OS X, Debug.oxp adds more than console support.

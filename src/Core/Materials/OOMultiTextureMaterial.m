@@ -190,7 +190,7 @@ SOFTWARE.
     OOGL(glActiveTextureARB(GL_TEXTURE0_ARB));
 }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 - (NSSet*)allTextures
 {
     if (_diffuseMap == nil)

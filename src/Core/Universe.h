@@ -299,7 +299,7 @@ enum {
 
     BOOL no_update;
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     double timeAccelerationFactor;
 #endif
 
@@ -393,7 +393,7 @@ enum {
 - (BOOL)doingStartUp; // True during initial game startup (not reset).
 
 - (NSUInteger)entityCount;
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 - (void)debugDumpEntities;
 - (NSArray*)entityList;
 #endif

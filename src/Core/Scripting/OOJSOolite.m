@@ -68,7 +68,7 @@ enum {
     kOolite_postFX, // current post processing effect, integer, read/write
     kOolite_hdrToneMapper, // currently active HDR tone mapper, string, read/write
     kOolite_sdrToneMapper, // currently active SDR tone mapper, string, read/write
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     kOolite_timeAccelerationFactor, // time acceleration, float, read/write
 #endif
 };
@@ -85,7 +85,7 @@ static JSPropertySpec sOoliteProperties[] = {
     { "postFX", kOolite_postFX, OOJS_PROP_READWRITE_CB },
     { "hdrToneMapper", kOolite_hdrToneMapper, OOJS_PROP_READWRITE_CB },
     { "sdrToneMapper", kOolite_sdrToneMapper, OOJS_PROP_READWRITE_CB },
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     { "timeAccelerationFactor", kOolite_timeAccelerationFactor, OOJS_PROP_READWRITE_CB },
 #endif
     { 0 }
@@ -166,7 +166,7 @@ static JSBool OoliteGetProperty(JSContext* context, JSObject* this, jsid propID,
         break;
     }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     case kOolite_timeAccelerationFactor:
         return JS_NewNumberValue(context, [UNIVERSE timeAccelerationFactor], value);
 #endif
@@ -239,7 +239,7 @@ static JSBool OoliteSetProperty(JSContext* context, JSObject* this, jsid propID,
         }
         break;
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     case kOolite_timeAccelerationFactor:
         if (JS_ValueToNumber(context, *value, &fValue)) {
             [UNIVERSE setTimeAccelerationFactor:fValue];

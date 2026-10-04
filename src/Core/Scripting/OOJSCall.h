@@ -24,7 +24,7 @@ MA 02110-1301, USA.
 
 */
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 
 #import <Foundation/Foundation.h>
 #include <jsapi.h>

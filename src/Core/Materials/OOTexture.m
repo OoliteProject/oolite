@@ -360,7 +360,7 @@ static NSString* sGlobalTraceContext = nil;
     }
 }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 - (void)setTrace:(BOOL)trace
 {
     if (trace && !_trace) {

@@ -31,7 +31,7 @@ SOFTWARE.
 #import "OOColor.h"
 #import "OOMaths.h"
 
-#if !defined(OODEBUGLDRAWING_DISABLE) && defined(NDEBUG)
+#if !defined(OODEBUGLDRAWING_DISABLE) && !defined(OO_DEBUG_MONITOR_ENABLED)
 #define OODEBUGLDRAWING_DISABLE 1
 #endif
 

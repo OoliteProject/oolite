@@ -26,7 +26,7 @@ SOFTWARE.
 
 */
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 
 #import "OOJSConsole.h"
 #import "OODebugMonitor.h"
@@ -66,7 +66,7 @@ static JSBool ConsoleConsoleMessage(JSContext* context, uintN argc, jsval* vp);
 static JSBool ConsoleClearConsole(JSContext* context, uintN argc, jsval* vp);
 static JSBool ConsoleScriptStack(JSContext* context, uintN argc, jsval* vp);
 static JSBool ConsoleInspectEntity(JSContext* context, uintN argc, jsval* vp);
-#if OO_DEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 static JSBool ConsoleCallObjCMethod(JSContext* context, uintN argc, jsval* vp);
 static JSBool ConsoleSetUpCallObjC(JSContext* context, uintN argc, jsval* vp);
 #endif
@@ -184,7 +184,7 @@ static JSFunctionSpec sConsoleMethods[] = {
     { "clearConsole", ConsoleClearConsole, 0 },
     { "scriptStack", ConsoleScriptStack, 0 },
     { "inspectEntity", ConsoleInspectEntity, 1 },
-#if OO_DEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     { "__setUpCallObjC", ConsoleSetUpCallObjC, 1 },
 #endif
     { "isExecutableJavaScript", ConsoleIsExecutableJavaScript, 2 },
@@ -292,7 +292,7 @@ static JSBool ConsoleGetProperty(JSContext* context, JSObject* this, jsid propID
     OOJS_NATIVE_ENTER(context)
 
     switch (JSID_TO_INT(propID)) {
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     case kConsole_debugFlags:
         *value = INT_TO_JSVAL((uint32_t)gDebugFlags);
         break;
@@ -391,7 +391,7 @@ static JSBool ConsoleSetProperty(JSContext* context, JSObject* this, jsid propID
     NSString* sValue;
 
     switch (JSID_TO_INT(propID)) {
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     case kConsole_debugFlags:
         if (JS_ValueToInt32(context, *value, &iValue)) {
             gDebugFlags = iValue;
@@ -693,7 +693,7 @@ static JSBool ConsoleInspectEntity(JSContext* context, uintN argc, jsval* vp)
     OOJS_NATIVE_EXIT
 }
 
-#if OO_DEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 // function callObjC(selector : String [, ...]) : Object
 static JSBool ConsoleCallObjCMethod(JSContext* context, uintN argc, jsval* vp)
 {
@@ -1050,4 +1050,4 @@ static JSBool PerformProfiling(JSContext* context, NSString* nominalFunction, ui
 
 #endif // OOJS_PROFILE
 
-#endif /* NDEBUG */
+#endif /* OO_DEBUG_MONITOR_ENABLED */

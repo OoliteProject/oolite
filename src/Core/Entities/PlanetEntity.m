@@ -605,7 +605,7 @@ static const BaseFace kTexturedFaces[][3] = {
 
 - (BOOL)checkCloseCollisionWith:(Entity*)other
 {
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     if (gDebugFlags & DEBUG_COLLISIONS)
         OOLog(@"planet.collide", @"PLANET Collision!");
 #endif
@@ -917,7 +917,7 @@ static const BaseFace kTexturedFaces[][3] = {
     }
 }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 - (PlanetEntity*)atmosphere
 {
     return atmosphere;
@@ -1473,7 +1473,7 @@ static unsigned baseVertexIndexForEdge(GLushort va, GLushort vb, BOOL textured)
     return [OOTexture textureWithGenerator:loader];
 }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 - (NSSet*)allTextures
 {
     if (_texture != nil)

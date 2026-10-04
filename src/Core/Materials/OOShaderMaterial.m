@@ -182,7 +182,7 @@ static NSString* MacrosToString(NSDictionary* macros);
 			{
 
 				BOOL canFallBack = ![modifiedMacros oo_boolForKey:@"OO_REDUCED_COMPLEXITY"];
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 				if (gDebugFlags & DEBUG_NO_SHADER_FALLBACK)  canFallBack = NO;
 #endif
 				if (canFallBack)
@@ -678,7 +678,7 @@ static NSString* MacrosToString(NSDictionary* macros);
     return YES;
 }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 - (NSSet*)allTextures
 {
     return [NSSet setWithObjects:textures count:texCount];

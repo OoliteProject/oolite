@@ -129,7 +129,7 @@ static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum* o
 
 - (void)dealloc
 {
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     OOLog(_trace ? @"texture.allocTrace.dealloc" : @"texture.dealloc", @"Deallocating and uncaching texture %p", self);
 #endif
 
@@ -155,7 +155,7 @@ static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum* o
 
     DESTROY(_loader);
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     DESTROY(_name);
 #endif
 
@@ -184,7 +184,7 @@ static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum* o
     return _key;
 }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 - (NSString*)name
 {
     if (_name != nil)
@@ -394,7 +394,7 @@ static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum* o
         }
 #endif
 
-#if !defined(NDEBUG) && OOTEXTURE_RELOADABLE
+#if defined(OO_DEBUG_MONITOR_ENABLED) && OOTEXTURE_RELOADABLE
         if (_trace) {
             static unsigned dumpID = 0;
             NSString* name = [NSString stringWithFormat:@"tex dump %u \"%@\"", ++dumpID, [self name]];

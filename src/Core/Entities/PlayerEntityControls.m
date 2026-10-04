@@ -92,7 +92,7 @@ static BOOL rotateCargo_pressed;
 static BOOL autopilot_key_pressed;
 static BOOL fast_autopilot_key_pressed;
 static BOOL docking_clearance_request_key_pressed;
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 static BOOL dump_target_state_pressed;
 static BOOL dump_entity_list_pressed;
 #endif
@@ -494,7 +494,7 @@ static NSTimeInterval time_last_frame;
     LOAD_KEY_SETTING2(n_key_dec_field_of_view, 'k', NO, NO, 0, NO, NO);
 #endif
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     LOAD_KEY_SETTING2(n_key_dump_target_state, 'H', YES, NO, 0, NO, NO);
     LOAD_KEY_SETTING2(n_key_dump_entity_list, '0', NO, NO, 0, NO, NO);
     LOAD_KEY_SETTING2(n_key_debug_full, 'd', NO, NO, 0, NO, NO);
@@ -1604,7 +1604,7 @@ static NSTimeInterval time_last_frame;
             }
 #endif
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
             exceptionContext = @"dump target state";
             if ([self checkKeyPress:n_key_dump_target_state]) {
                 if (!dump_target_state_pressed) {
@@ -1654,7 +1654,7 @@ static NSTimeInterval time_last_frame;
             }
 
             exceptionContext = @"debug keys";
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
             // look for debugging keys
             if ([self checkKeyPress:n_key_dump_entity_list] && ![gameView allowingStringInput]) // look for the '0' key
             {

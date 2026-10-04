@@ -650,7 +650,7 @@ MA 02110-1301, USA.
     ww *= 0.5;
     hh *= 0.5;
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     if ([ship isPlayer] && (gDebugFlags & DEBUG_DOCKING)) {
         BOOL inLane;
         float range;

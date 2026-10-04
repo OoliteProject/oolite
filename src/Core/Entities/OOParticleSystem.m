@@ -232,7 +232,7 @@ MA 02110-1301, USA.
     return [OOLightParticleEntity defaultParticleTexture];
 }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 - (NSSet*)allTextures
 {
     return [NSSet setWithObject:[OOLightParticleEntity defaultParticleTexture]];

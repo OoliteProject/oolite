@@ -44,7 +44,7 @@ SOFTWARE.
     GLuint _outlineVBO;
 #endif
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     NSString* _name;
 #endif
 }

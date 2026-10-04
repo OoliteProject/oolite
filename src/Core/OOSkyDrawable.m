@@ -81,7 +81,7 @@ enum {
 
 - (void)render;
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 - (size_t)totalSize;
 - (OOTexture*)texture;
 #endif
@@ -230,7 +230,7 @@ static OOColor* SaturatedColorInRange(OOColor* color1, OOColor* color2, BOOL hue
     return INFINITY;
 }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 - (NSSet*)allTextures
 {
     NSMutableSet* result = [NSMutableSet setWithCapacity:[_quadSets count]];
@@ -645,7 +645,7 @@ static OOColor* DebugColor(Vector orientation)
     OOGL(glDrawArrays(GL_QUADS, 0, 4 * _count));
 }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 - (size_t)totalSize
 {
     return [self oo_objectSize] + _count * 4 * (sizeof *_positions + sizeof *_texCoords + sizeof *_colors);
