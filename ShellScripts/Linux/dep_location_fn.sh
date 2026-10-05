@@ -19,8 +19,9 @@ dep_location() {
 
     # Get the directory where the script is located
     local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+    pushd "$script_dir"
 
-    source "$script_dir/os_detection.sh"
+    source "os_detection.sh"
     cd ../../
 
     # Logic for LIB_SUBDIR
@@ -59,4 +60,6 @@ dep_location() {
     # Ensure target subdirectories exist
     $_esc_ref mkdir -p "$_target_ref/$_lib_ref"
     $_esc_ref mkdir -p "$_target_ref/include"
+
+    popd
 }
