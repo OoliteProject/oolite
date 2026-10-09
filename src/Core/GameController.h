@@ -29,7 +29,7 @@ MA 02110-1301, USA.
 #import "OOFunctionAttributes.h"
 #import "OOMouseInteractionMode.h"
 
-#if OOLITE_MAC_OS_X
+#if OOLITE_MAC_APPKIT
 #import <Quartz/Quartz.h> // For PDFKit.
 #endif
 
@@ -42,11 +42,11 @@ MA 02110-1301, USA.
 @class MyOpenGLView, OOFullScreenController;
 
 // TEMP: whether to use separate OOFullScreenController object, will hopefully be used for all builds soon.
-#define OO_USE_FULLSCREEN_CONTROLLER OOLITE_MAC_OS_X
+#define OO_USE_FULLSCREEN_CONTROLLER OOLITE_MAC_APPKIT
 
 @interface GameController : NSObject {
 @private
-#if OOLITE_MAC_OS_X
+#if OOLITE_MAC_APPKIT
     IBOutlet NSTextField* splashProgressTextField;
     IBOutlet NSView* splashView;
     IBOutlet NSWindow* gameWindow;
@@ -124,7 +124,7 @@ MA 02110-1301, USA.
 
 - (void)performGameTick:(id)sender;
 
-#if OOLITE_MAC_OS_X
+#if OOLITE_MAC_APPKIT
 - (IBAction)showLogAction:(id)sender;
 - (IBAction)showLogFolderAction:(id)sender;
 - (IBAction)showSnapshotsAction:(id)sender;
@@ -168,7 +168,7 @@ MA 02110-1301, USA.
 @interface GameController (FullScreen)
 
 #if OO_USE_FULLSCREEN_CONTROLLER
-#if OOLITE_MAC_OS_X
+#if OOLITE_MAC_APPKIT
 - (IBAction)toggleFullScreenAction:(id)sender;
 #endif
 

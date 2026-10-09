@@ -1,3 +1,4 @@
+#ifndef OO_LEGACY_GL
 out vec4 FragColor;
   
 in vec2 TexCoords;
@@ -53,3 +54,77 @@ void main()
 		FragColor = vec4(result, 1.0);
 	}
 }
+#else
+
+// Legacy GLSL 1.20 port of the 7x7 std dev 3.0 Gaussian blur. The original
+// used a uniform array initialized with an array constructor, textureSize()
+// and isnan() — none of which exist in GLSL 1.20. The weights are now const
+// scalars, the taps are unrolled, the texel size arrives as a uniform set
+// from ObjC, and the NaN check uses x != x.
+const float weight0 = 0.13649812722755;
+const float weight1 = 0.12918787500405662;
+const float weight2 = 0.10952340502389683;
+const float weight3 = 0.08317258170844949;
+const float weight4 = 0.05657737457255749;
+const float weight5 = 0.03447396964662017;
+const float weight6 = 0.018815730430644367;
+
+const float radius = 1.2;
+
+uniform sampler2D imageIn;
+uniform bool horizontal;
+uniform vec2 texelSize; // 1.0 / framebuffer size (replaces textureSize)
+
+varying vec2 TexCoords;
+
+#define BLUR_TAP(off, w)  result += texture2D(imageIn, TexCoords + (off)).rgb * (w);
+
+void main()
+{
+	vec2 tex_offset = texelSize;
+	vec3 result = texture2D(imageIn, TexCoords).rgb * weight0; // current fragment's contribution
+	if(horizontal)
+	{
+		BLUR_TAP(vec2( tex_offset.x * 1.0 * radius, 0.0), weight1)
+		BLUR_TAP(vec2(-tex_offset.x * 1.0 * radius, 0.0), weight1)
+		BLUR_TAP(vec2( tex_offset.x * 2.0 * radius, 0.0), weight2)
+		BLUR_TAP(vec2(-tex_offset.x * 2.0 * radius, 0.0), weight2)
+		BLUR_TAP(vec2( tex_offset.x * 3.0 * radius, 0.0), weight3)
+		BLUR_TAP(vec2(-tex_offset.x * 3.0 * radius, 0.0), weight3)
+		BLUR_TAP(vec2( tex_offset.x * 4.0 * radius, 0.0), weight4)
+		BLUR_TAP(vec2(-tex_offset.x * 4.0 * radius, 0.0), weight4)
+		BLUR_TAP(vec2( tex_offset.x * 5.0 * radius, 0.0), weight5)
+		BLUR_TAP(vec2(-tex_offset.x * 5.0 * radius, 0.0), weight5)
+		BLUR_TAP(vec2( tex_offset.x * 6.0 * radius, 0.0), weight6)
+		BLUR_TAP(vec2(-tex_offset.x * 6.0 * radius, 0.0), weight6)
+	}
+	else
+	{
+		BLUR_TAP(vec2(0.0,  tex_offset.y * 1.0 * radius), weight1)
+		BLUR_TAP(vec2(0.0, -tex_offset.y * 1.0 * radius), weight1)
+		BLUR_TAP(vec2(0.0,  tex_offset.y * 2.0 * radius), weight2)
+		BLUR_TAP(vec2(0.0, -tex_offset.y * 2.0 * radius), weight2)
+		BLUR_TAP(vec2(0.0,  tex_offset.y * 3.0 * radius), weight3)
+		BLUR_TAP(vec2(0.0, -tex_offset.y * 3.0 * radius), weight3)
+		BLUR_TAP(vec2(0.0,  tex_offset.y * 4.0 * radius), weight4)
+		BLUR_TAP(vec2(0.0, -tex_offset.y * 4.0 * radius), weight4)
+		BLUR_TAP(vec2(0.0,  tex_offset.y * 5.0 * radius), weight5)
+		BLUR_TAP(vec2(0.0, -tex_offset.y * 5.0 * radius), weight5)
+		BLUR_TAP(vec2(0.0,  tex_offset.y * 6.0 * radius), weight6)
+		BLUR_TAP(vec2(0.0, -tex_offset.y * 6.0 * radius), weight6)
+	}
+
+	// at least one known OXP, DH nav buoy,  has an NaN issue resulting in black squares appearing on a
+	// specific location on its main model during the blurring passes, so make sure to always check
+	// against NaNs
+	if(result.x != result.x || result.y != result.y || result.z != result.z)
+	{
+		// mark offending pixel in red
+		gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+	}
+	else
+	{
+		gl_FragColor = vec4(result, 1.0);
+	}
+}
+#endif

@@ -118,6 +118,8 @@ SOFTWARE.
 
     unsigned major, minor, release;
 
+    BOOL legacyGLMode; // legacy-GL compatibility mode (macOS 2.1 context accepted by capability tests)
+
     BOOL usePointSmoothing;
     BOOL useLineSmoothing;
     BOOL useDustShader;
@@ -155,6 +157,7 @@ SOFTWARE.
 
 - (BOOL)vboSupported; // Vertex buffer objects
 - (BOOL)fboSupported; // Frame buffer objects
+- (BOOL)legacyGLMode; // Version gate accepted via legacy-GL compatibility path (darwin)
 - (BOOL)textureCombinersSupported;
 - (GLint)textureUnitCount; // Fixed function multitexture limit, does not apply to shaders. (GL_MAX_TEXTURE_UNITS_ARB)
 

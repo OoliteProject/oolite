@@ -1,3 +1,4 @@
+#ifndef OO_LEGACY_GL
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec2 aTexCoords;
 
@@ -8,3 +9,15 @@ void main()
 	TexCoords = aTexCoords;
 	gl_Position = vec4(aPos, 1.0);
 }
+#else
+attribute vec3 aPos;
+attribute vec2 aTexCoords;
+
+varying vec2 TexCoords;
+
+void main()
+{
+	TexCoords = aTexCoords;
+	gl_Position = vec4(aPos.xy, 0.0, 1.0);
+}
+#endif
