@@ -33,6 +33,10 @@ MA 02110-1301, USA.
 
 #pragma once
 
+#import <Foundation/Foundation.h>
+#include <math.h>
+#include <stdbool.h>
+
 #ifdef NDEBUG
 #define OOLITE_DEBUG 0
 #else
@@ -42,10 +46,6 @@ MA 02110-1301, USA.
 #if !OOLITE_DEBUG
 #define NS_BLOCK_ASSERTIONS 1
 #endif
-
-#import <Foundation/Foundation.h>
-#include <math.h>
-#include <stdbool.h>
 
 #ifdef GNUSTEP_BASE_LIBRARY
 #define OOLITE_GNUSTEP 1
