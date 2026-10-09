@@ -31,13 +31,16 @@ MA 02110-1301, USA.
 
 @class MyOpenGLView;
 
-#if OOLITE_MAC_OS_X
+#if OOLITE_MAC_APPKIT
 #define kOODisplayWidth ((NSString*)kCGDisplayWidth)
 #define kOODisplayHeight ((NSString*)kCGDisplayHeight)
 #define kOODisplayRefreshRate ((NSString*)kCGDisplayRefreshRate)
 #define kOODisplayBitsPerPixel ((NSString*)kCGDisplayBitsPerPixel)
 #define kOODisplayIOFlags ((NSString*)kCGDisplayIOFlags)
 #else
+/*	The SDL backends (GNUstep and Apple-Foundation alike) use these macros
+        as plain dictionary keys; the literals only need to be consistent.
+ */
 #define kOODisplayWidth (@"Width")
 #define kOODisplayHeight (@"Height")
 #define kOODisplayRefreshRate (@"RefreshRate")

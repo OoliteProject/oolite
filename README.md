@@ -17,7 +17,7 @@ Oolite is an open source Elite clone on steroids. While it can run just like the
 | Windows                                                                                                                                                                   | Linux                                                                                                                                                                                   | OSX                                                                                                                                                                                   |
 |---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [![Github release](https://img.shields.io/github/downloads/OoliteProject/Oolite/latest/OoliteInstall-1.92.1-win.exe.svg)](https://github.com/OoliteProject/oolite/releases/latest) | [![Github release](https://img.shields.io/github/downloads/OoliteProject/Oolite/latest/oolite-1.92.1-x86_64.AppImage.svg)](https://github.com/OoliteProject/oolite/releases/latest)      |                 |
- [![Github release](https://img.shields.io/github/downloads/OoliteProject/Oolite/latest/OoliteInstall-1.92.1-win-test.exe.svg)](https://github.com/OoliteProject/oolite/releases/latest) | [![Github release](https://img.shields.io/github/downloads/OoliteProject/Oolite/latest/oolite_test-1.92.1-x86_64.AppImage.svg)](https://github.com/OoliteProject/oolite/releases/latest)         | OSX is not supported for v1.92 |
+ [![Github release](https://img.shields.io/github/downloads/OoliteProject/Oolite/latest/OoliteInstall-1.92.1-win-test.exe.svg)](https://github.com/OoliteProject/oolite/releases/latest) | [![Github release](https://img.shields.io/github/downloads/OoliteProject/Oolite/latest/oolite_test-1.92.1-x86_64.AppImage.svg)](https://github.com/OoliteProject/oolite/releases/latest)         | No macOS release installer yet; native Apple Silicon builds from source, see [BUILDING-macOS.md](Documentation/BUILDING-macOS.md) |
 |[![Github release](https://img.shields.io/github/downloads/OoliteProject/Oolite/latest/Oolite-1.92.1-Deployment-to-Test-Release.exe.svg)](https://github.com/OoliteProject/oolite/releases/latest)                                                                                                                                                                           | [![Github release](https://img.shields.io/github/downloads/OoliteProject/Oolite/latest/space.oolite.Oolite-1.92.1-x86_64.flatpak.svg)](https://github.com/OoliteProject/oolite/releases/latest) |                                                                                                                                                                                       |
 |                                                                                                                                                                           |    |                                                                                                                                                                                       |
 
@@ -200,10 +200,19 @@ This action builds a Windows NSIS installer for development which can be found i
 ./mk.sh pkg-win dev
 ```
 
-### Mac OS
+### macOS
 
-Intel-based Macs can run old builds of Oolite, but current Macs are unsupported. It is hoped that they can be supported
-in future.
+Native Apple Silicon (ARM64) builds are supported on the `macos-port` branch and its pull-request series. macOS 26
+(Tahoe) or newer is required. After installing Xcode, the Homebrew libraries and the prebuilt JavaScript engine
+artifact (all documented in [Documentation/BUILDING-macOS.md](Documentation/BUILDING-macOS.md)), build with the same
+script used on Windows and Linux:
+
+```bash
+./mk.sh build dev
+```
+
+The completed build is an app bundle at `build/meson_dev/oolite.app`. CI produces unsigned arm64 build artifacts for
+every push. Intel Macs are not covered by this work; an x86_64 macOS build is a documented near-term follow-up.
 
 ### Objective-C
 
