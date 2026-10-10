@@ -319,7 +319,7 @@ enum {
     NSUInteger drawCounter;
 
 #if OOLITE_SPEECH_SYNTH
-#if OOLITE_MAC_OS_X
+#if OOLITE_MAC_APPKIT
     NSSpeechSynthesizer* speechSynthesizer;
 #elif OOLITE_ESPEAK
     const espeak_VOICE** espeak_voices;

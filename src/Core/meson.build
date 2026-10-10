@@ -48,6 +48,7 @@ oolite_sources += files(
     'OOExcludeObjectEnumerator.m',
     'OOFilteringEnumerator.m',
     'OOGraphicsResetManager.m',
+    'OOFullScreenController.m',
     'OOHPVector.m',
     'OOIsNumberLiteral.m',
     'OOJoystickManager.m',

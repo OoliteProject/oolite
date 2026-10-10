@@ -244,6 +244,7 @@ vec4 CalcSpecularLight(in vec3 lightVector, in vec3 eyeVector, in float exponent
 // https://www.jcgt.org/published/0010/02/02/
 // original code returns roughness squared but we need the actual value for our
 // specular calculations, so we return its square root instead
+#ifndef OO_LEGACY_GL
 float isotropicNDFFiltering (vec3 normal, float roughness2)
 {
 	const float sigma2 = 0.15915494;
@@ -255,6 +256,13 @@ float isotropicNDFFiltering (vec3 normal, float roughness2)
 	float filteredRoughness2 = clamp((roughness2 + clampedKernelRoughness2), 0.0, 1.0);
 	return sqrt(filteredRoughness2);
 }
+#else
+// Legacy GLSL (no derivatives): skip specular anti-aliasing, pass roughness through.
+float isotropicNDFFiltering (vec3 normal, float roughness2)
+{
+	return clamp(sqrt(roughness2), 0.0, 1.0);
+}
+#endif
 
 
 // More physically accurate specular lighting models
