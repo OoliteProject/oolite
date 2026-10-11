@@ -21,7 +21,7 @@ run_script() {
     declare -A repos=(
         ["https://github.com/gnustep/libobjc2.git"]="aca3916553665f01550832d02462bcf137c94c39"
         ["https://github.com/gnustep/tools-make.git"]="cafd2c4a73b568b2f0022f15a149963f39c564f3"
-        ["https://github.com/gnustep/libs-base.git"]="68f3d75694f0a7edf9fb1c6c7f19582e8cff1b5f"
+        ["https://github.com/gnustep/libs-base.git"]="3b33dd93db8661fbe00a6f67306bcf8e7a2315f1"
     )
 
     for url in "${!repos[@]}"; do
