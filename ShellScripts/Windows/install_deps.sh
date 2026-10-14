@@ -39,8 +39,8 @@ run_script() {
     local oolite_deps_url="https://api.github.com/repos/OoliteProject/oolite_windeps_build/releases/latest"
 
     pacman -Syu --noconfirm
-    pacman -S --noconfirm dos2unix git pactoys unzip
-    pacboy -S --noconfirm binutils espeak-ng jq libpng libvorbis mesa meson ninja nsis openal pcaudiolib python-pip sdl3
+    pacman -S --noconfirm dos2unix git jq pactoys unzip
+    pacboy -S --noconfirm binutils espeak-ng libpng libvorbis mesa meson ninja nsis ntldd openal pcaudiolib python-pip sdl3
     mkdir -p ../../build/packages
     cd ../../build
     # install gitversion
