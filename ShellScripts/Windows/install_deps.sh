@@ -40,7 +40,7 @@ run_script() {
 
     pacman -Syu --noconfirm
     pacman -S --noconfirm dos2unix git jq pactoys unzip
-    pacboy -S --noconfirm binutils espeak-ng libpng libvorbis mesa meson ninja nsis ntldd openal pcaudiolib python-pip sdl3
+    pacboy -S --noconfirm binutils curl espeak-ng libpng libvorbis mesa meson ninja nsis ntldd openal pcaudiolib python-pip sdl3
     mkdir -p ../../build/packages
     cd ../../build
     # install gitversion
