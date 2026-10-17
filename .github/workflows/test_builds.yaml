@@ -162,18 +162,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Download latest release assets
-        uses: robinraju/release-downloader@v1
-        with:
-          repository: OoliteProject/oolite_windeps_build
-          latest: true
-          fileName: "*"
-          out-file-path: build/packages
-
       - name: Install packages
         shell: msys2 {0}
         env:
-          msystem: UCRT64
+          MSYSTEM: UCRT64
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo 'header = "Authorization: Bearer '$GITHUB_TOKEN'"' >> ~/.curlrc
@@ -184,7 +176,7 @@ jobs:
       - name: Build Oolite
         shell: msys2 {0}
         env:
-          msystem: UCRT64
+          MSYSTEM: UCRT64
           PYTHONUTF8: "1"
         run: |
           ./mk.sh build deployment
@@ -193,7 +185,14 @@ jobs:
         if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
         shell: msys2 {0}
         env:
-          msystem: UCRT64
+          MSYSTEM: UCRT64
           PYTHONUTF8: "1"
         run: |
-          ./mk.sh test deployment
+          if ./mk.sh test deployment; then
+            echo "✅ Oolite test completed successfully"
+          else
+            echo "❌ Oolite test failed" >&2
+            cd build/meson_deployment/oolite.app
+            ntldd -R oolite.exe
+            exit 1
+          fi

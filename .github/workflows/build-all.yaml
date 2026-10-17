@@ -135,7 +135,7 @@ jobs:
       - name: Set up MSYS2
         uses: msys2/setup-msys2@v2
         with:
-          msystem: UCRT64
+          MSYSTEM: UCRT64
           update: true
           cache: false
       - name: Checkout Oolite
@@ -145,7 +145,7 @@ jobs:
       - name: Install packages
         shell: msys2 {0}
         env:
-          msystem: UCRT64
+          MSYSTEM: UCRT64
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo 'header = "Authorization: Bearer '$GITHUB_TOKEN'"' >> ~/.curlrc
@@ -155,14 +155,14 @@ jobs:
       - name: Build Oolite
         shell: msys2 {0}
         env:
-          msystem: UCRT64
+          MSYSTEM: UCRT64
           PYTHONUTF8: "1"
         run: |
           ./mk.sh build ${{matrix.flavour}} --github-repository="$GITHUB_REPOSITORY"
       - name: Package Oolite
         shell: msys2 {0}
         env:
-          msystem: UCRT64
+          MSYSTEM: UCRT64
           PYTHONUTF8: "1"
         run: |
           ./mk.sh pkg-win ${{matrix.flavour}}
