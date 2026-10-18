@@ -68,7 +68,12 @@ static OODebugMonitor* sSingleton = nil;
 @end
 
 @implementation OODebugMonitor
-#if OOLITE_GNUSTEP
+#if OOLITE_GNUSTEP || !OOLITE_MAC_APPKIT
+/*	Neither GNUstep Base nor Apple's Foundation declares this AppKit
+        constant, and the SDL backends never run NSApp, so nothing would post
+        it anyway; provide a local (never-posted) definition so the observer
+        registration below stays portable.
+*/
 NSString* NSApplicationWillTerminateNotification = @"ApplicationWillTerminate";
 #endif
 
@@ -832,7 +837,7 @@ FIXME: this works with CRLF and LF, but not CR.
         if (errorReport->filename != NULL)
             filePath = [NSString stringWithUTF8String:errorReport->filename];
         if ([filePath length] != 0) {
-            [formattedMessage appendFormat:@"\n    %@, line %u", [filePath lastPathComponent], errorReport -> lineno];
+            [formattedMessage appendFormat:@"\n    %@, line %u", [filePath lastPathComponent], errorReport->lineno];
 
             // Append source code
             sourceLine = [self sourceCodeForFile:filePath line:errorReport->lineno];

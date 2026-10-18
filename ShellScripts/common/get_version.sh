@@ -4,7 +4,15 @@
 #
 
 
-if [[ -v MINGW_PREFIX ]]; then
+# Derive the repository root from this script's own location
+# (<repo>/ShellScripts/common/) and normalize the working directory to it.
+# Launchers like macOS Homebrew meson (run from Python.app) do not guarantee a
+# repo cwd nor inherit GIT_DIR/GIT_WORK_TREE; under mk.sh on Linux this cd is
+# a no-op (mk.sh already pushes to the repo root).
+REPO_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
+cd "$REPO_ROOT" || exit 1
+
+if [[ -n "${MINGW_PREFIX+x}" ]]; then  # bash-3.2-safe replacement for `[[ -v MINGW_PREFIX ]]` (needs bash >= 4.3)
     WIN_PID=$(ps -p $$ | awk 'NR>1 {print $4}')
     PARENT_PROCESS=$(powershell.exe -Command "
         \$parentId = (gwmi Win32_Process -Filter 'ProcessId = $WIN_PID').ParentProcessId
@@ -18,7 +26,10 @@ if [[ -v MINGW_PREFIX ]]; then
 else
     PARENT_PROCESS=$(ps -p $PPID -o comm= 2>/dev/null || true)
 fi
-if [[ "$PARENT_PROCESS" != "meson" ]] || [[ -z "$MESON_BUILD_ROOT" ]]; then
+# Accept either meson signal: MESON_BUILD_ROOT (set by meson itself) or the
+# parent process comm. The comm check alone never matches on macOS, where
+# Homebrew meson runs under Python.app, so the parent comm is not "meson".
+if [[ -z "$MESON_BUILD_ROOT" ]] && [[ "$PARENT_PROCESS" != "meson" ]]; then
     SUITE_PARENT=$(basename "${BASH_SOURCE[1]}")  # Get the name of the script that is sourcing this file
     ALLOWED_SCRIPT="create_flatpak_fn.sh"  # Define the ONLY script allowed to source this
     if [[ "$SUITE_PARENT" != "$ALLOWED_SCRIPT" ]]; then
@@ -39,9 +50,9 @@ run_script() {
     fi
 
     source "ShellScripts/common/get_build_date_fn.sh"
-    local output_ver_githash=$(git rev-parse --short=7 HEAD)
+    local output_ver_githash=$(git -C "$REPO_ROOT" rev-parse --short=7 HEAD)
     local dirty_suffix=""
-    git diff --quiet || dirty_suffix="-dirty"
+    git -C "$REPO_ROOT" diff --quiet || dirty_suffix="-dirty"
     local lookup_hash="${output_ver_githash}${dirty_suffix}"
     local output_ver_full=""
     local output_buildtime=""
@@ -62,23 +73,16 @@ run_script() {
     if [[ -z "$output_ver_full" ]]; then
         local exact_tag=""  # Check for an exact Git tag first on a clean tree
         if [[ -z "$dirty_suffix" ]]; then
-            exact_tag=$(git describe --tags --exact-match HEAD 2>/dev/null)
+            exact_tag=$(git -C "$REPO_ROOT" describe --tags --exact-match HEAD 2>/dev/null)
         fi
         if [[ -n "$exact_tag" ]]; then
             output_ver_full="$exact_tag"
         else
-            if ! command -v gitversion &> /dev/null; then  # exact tag didn't hit, use gitversion for ver_full
-                echo "❌ gitversion binary not found!" >&2
-                exit 1
-            fi
-            local gitversion_json=$(gitversion)  # Run gitversion and get json output
-            local ver_semver=$(echo "$gitversion_json" | jq -r '.SemVer')
-            if [[ -z "$dirty_suffix" ]]; then
-                output_ver_full="$ver_semver"
-            else
-                local ver_uncommitted=$(echo "$gitversion_json" | jq -r '.UncommittedChanges')
-                output_ver_full="${ver_semver}+dirty.${ver_uncommitted}"
-            fi
+            # gitversion-free fallback (the gitversion binary is not available
+            # everywhere): nearest tag, commit distance since it, and a -dirty
+            # marker on modified trees; --always degrades to a short hash when
+            # no tag exists at all.
+            output_ver_full=$(git -C "$REPO_ROOT" describe --tags --always --dirty)
         fi
     fi
 
@@ -91,16 +95,19 @@ run_script() {
     [[ -z "$ver_rev" ]] && ver_rev="0"
 
     if [[ -z "$dirty_suffix" ]]; then  # Use git for other metrics for clean repository
-        local closest_tag=$(git describe --tags --abbrev=0 2>/dev/null)  # Derive distance from closest Git tag
+        local closest_tag=$(git -C "$REPO_ROOT" describe --tags --abbrev=0 2>/dev/null)  # Derive distance from closest Git tag
         local ver_dist="0"
         if [[ -n "$closest_tag" ]]; then
-            ver_dist=$(git rev-list --count "${closest_tag}..HEAD")
+            ver_dist=$(git -C "$REPO_ROOT" rev-list --count "${closest_tag}..HEAD")
         else
-            ver_dist=$(git rev-list --count HEAD)
+            ver_dist=$(git -C "$REPO_ROOT" rev-list --count HEAD)
         fi
         output_ver_quad="$ver_maj.$ver_min.$ver_rev.$ver_dist"
     else
-        local ver_uncommitted=$(git status --porcelain 2>/dev/null | wc -l)  # Dirty repo: get uncommitted file count
+        # Dirty repo: get uncommitted file count. BSD wc pads its output with
+        # spaces, which would corrupt the version quad; the arithmetic
+        # expansion strips them (a no-op on GNU wc).
+        local ver_uncommitted=$(($(git -C "$REPO_ROOT" status --porcelain 2>/dev/null | wc -l)))
         output_ver_quad="$ver_maj.$ver_min.$ver_rev.$ver_uncommitted"
     fi
 

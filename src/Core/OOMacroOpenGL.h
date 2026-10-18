@@ -31,6 +31,12 @@ MA 02110-1301, USA.
 
 #if OOLITE_MAC_OS_X && !defined(OOLITE_NO_CGL_MACRO)
 
+/*	CGLMacro.h uses CGL types and CGLGetCurrentContext() without including
+        the header that declares them; import it first or every macro expansion
+        site fails to compile.
+ */
+#import <OpenGL/OpenGL.h>
+
 #if MAC_OS_X_VERSION_10_4 <= MAC_OS_X_VERSION_MAX_ALLOWED
 
 #define CGL_MACRO_CACHE_RENDERER

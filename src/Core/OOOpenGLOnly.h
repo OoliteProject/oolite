@@ -28,8 +28,13 @@ MA 02110-1301, USA.
 #pragma once
 // SDL OpenGL includes...
 
-// GL_GLEXT_PROTOTYPES must be defined for the Linux build to use shaders.
-#if OOLITE_LINUX
+// GL_GLEXT_PROTOTYPES must be defined for the Linux build to use shaders, and
+// for the macOS legacy-GL build: SDL's vendored glext (SDL_opengl_glext.h) then
+// declares the ARB/3.x-named entry points that Apple's <OpenGL/gl.h> no longer
+// declares, giving direct linkage against OpenGL.framework (no function-pointer
+// table). macOS has no <GL/glext.h> or <GL/glu.h>; SDL_opengl.h is
+// self-contained.
+#if OOLITE_LINUX || defined(__APPLE__)
 #ifndef GL_GLEXT_PROTOTYPES
 #define GL_GLEXT_PROTOTYPES
 #define __DEFINED_GL_GLEXT_PROTOTYPES
@@ -40,8 +45,21 @@ MA 02110-1301, USA.
 #include <SDL3/SDL_opengl.h>
 
 // include an up-to-date version of glext.h
+// On Apple platforms, SDL_opengl.h above already bundles Mesa's glext
+// (SDL_opengl_glext.h, including its prototypes when GL_GLEXT_PROTOTYPES is
+// defined); the GL/ directory layout is Linux/X11-only. Apple's own
+// <OpenGL/glext.h> must not be mixed in, as it typedefs GLhandleARB to
+// void* while the rest of the tree uses Mesa's GLuint spelling.
+// Toolchain test (__APPLE__) rather than OOLITE_MAC_OS_X: this header is
+// also included from plain C data tables that do not import OOFoundation.h.
+// GLU, in contrast, is not bundled by SDL and comes from the platform's
+// OpenGL toolkit.
+#if !defined(__APPLE__)
 #include <GL/glext.h>
 #include <GL/glu.h>
+#else
+#include <OpenGL/glu.h>
+#endif
 
 #ifdef __DEFINED_GL_GLEXT_PROTOTYPES
 #undef GL_GLEXT_PROTOTYPES

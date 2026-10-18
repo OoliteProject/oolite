@@ -22,17 +22,18 @@ MA 02110-1301, USA.
 
 */
 
-#ifdef GNUSTEP_BASE_LIBRARY
-#import <Foundation/NSAutoreleasePool.h>
-#if (GNUSTEP_BASE_MAJOR_VERSION == 1 && (GNUSTEP_BASE_MINOR_VERSION == 24 && GNUSTEP_BASE_SUBMINOR_VERSION >= 9) || (GNUSTEP_BASE_MINOR_VERSION > 24)) || (GNUSTEP_BASE_MAJOR_VERSION > 1)
-#import <Foundation/NSDate.h>
-#endif
+//	SDL3 contract: on platforms where SDL supplies the process entry point
+//	(Windows), SDL_main.h renames main and provides the real one; on Linux
+//	and macOS it only adds declarations.
+#include <SDL3/SDL_main.h>
+
+#import <Foundation/Foundation.h>
+#include <stdint.h>
+
 #import "GameController.h"
 #import "OOLoggingExtended.h"
-#import <Foundation/NSString.h>
 
 #if OOLITE_WINDOWS
-#include <SDL3/SDL_main.h>
 #include <SDL3/SDL_stdinc.h>
 #include <locale.h>
 // Make sure that a high performance GPU is
@@ -43,8 +44,13 @@ __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
 #include <unistd.h>
 #endif
 
-GameController* controller;
+// Apple Foundation does not define this convenience macro (GNUstep does).
+#ifndef STRINGIFY
+#define OO_STRINGIFY_INNER(x) #x
+#define STRINGIFY(x) OO_STRINGIFY_INNER(x)
 #endif
+
+GameController* controller;
 
 #ifndef NDEBUG
 uint32_t gDebugFlags = 0;
@@ -57,21 +63,23 @@ uint32_t gDebugFlags = 0;
 
 /**
  * \ingroup cli
- * Entry point for Linux and Windows systems.
- * Initializes logging. If -load is passed, the argument after that is loaded
- * as savegame.
+ * Entry point for the SDL backends (Linux, Windows and the Apple-Foundation
+ * build). Initializes logging. If -load is passed, the argument after that is
+ * loaded as savegame.
  *
  * @param argc the number of command line arguments
  * @param argv the string array values of the command line arguments
  * @return returns 0 on success, or EXITFAILURE when an exception is caught
  */
+#if OOLITE_SDL
 int main(int argc, char* argv[])
 {
-#ifdef GNUSTEP_BASE_LIBRARY
     int i;
 
+#ifdef GNUSTEP_BASE_LIBRARY
 #if (GNUSTEP_BASE_MAJOR_VERSION == 1 && (GNUSTEP_BASE_MINOR_VERSION == 24 && GNUSTEP_BASE_SUBMINOR_VERSION >= 9) || (GNUSTEP_BASE_MINOR_VERSION > 24)) || (GNUSTEP_BASE_MAJOR_VERSION > 1)
     [NSDate class]; // See github issue #202
+#endif
 #endif
 
 #if OOLITE_WINDOWS
@@ -218,14 +226,14 @@ int main(int argc, char* argv[])
         DESTROY(pool);
 
         // Call applicationDidFinishLaunching because NSApp is not running in
-        // GNUstep port.
+        // the SDL ports; this explicit bootstrap replaces the NIB-driven call.
         [controller applicationDidFinishLaunching:nil];
     }
     @catch (NSException* exception) {
         OOLogERR(kOOLogException, @"Root exception handler hit - terminating. This is an internal error, please report it. Exception name: %@, reason: %@", [exception name], [exception reason]);
         return EXIT_FAILURE;
     }
-#endif
+#endif /* OOLITE_SDL */
 
     // never reached
     return 0;

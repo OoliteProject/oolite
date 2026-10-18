@@ -439,6 +439,14 @@ OOINLINE BOOL StatusIsSendable(OOTCPClientConnectionStatus status)
     while (length > 0) {
         data = [NSData dataWithBytesNoCopy:buffer length:length freeWhenDone:NO];
         OOTCPStreamDecoderReceiveData(_decoder, data);
+        /*	On Apple Foundation, a socket NSInputStream's -read:maxLength:
+            blocks (running a nested run loop) when no bytes are pending,
+            so an unconditional drain loop parks the main thread forever
+            once the console goes quiet, freezing loading and rendering.
+            Only re-read while the stream reports bytes available without
+            blocking; remaining data re-signals HasBytesAvailable. */
+        if (![_inStream hasBytesAvailable])
+            break;
         length = [_inStream read:buffer maxLength:kBufferSize];
     }
 }

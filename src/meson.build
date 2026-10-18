@@ -30,8 +30,8 @@ oolite_bin = executable(
     override_options: oolite_override_options,
     link_args: oolite_link_args,
     win_subsystem: 'windows',
-    build_rpath: '$ORIGIN',
-    install_rpath: '$ORIGIN',
+    build_rpath: host_os == 'darwin' ? '@executable_path/../Frameworks' : '$ORIGIN',
+    install_rpath: host_os == 'darwin' ? '@executable_path/../Frameworks' : '$ORIGIN',
     install: false,
 )
 
@@ -52,11 +52,15 @@ post_build_args = [
     version_vars.get('buildtime'),
     gnustep_folder,
     stamp_file,
+    # 14th argument: the substituted macOS bundle Info.plist (see root
+    # meson.build); consumed by ShellScripts/Darwin/post_build_fn.sh, ignored
+    # by the other platform post-builds.
+    meson.global_build_root() / 'Info.plist',
 ]
 post_build_script = files('../ShellScripts/common/post_build.sh')
 generate_manifest_script = files('../ShellScripts/common/generate_manifest_fn.sh')
 oolite_app_bundle = custom_target('post_build',
-                                  input: oolite_bin,
+                                  input: [oolite_bin, macos_info_plist],
                                   output: stamp_file,
                                   command: [
                                       bash_prog,
@@ -67,12 +71,18 @@ oolite_app_bundle = custom_target('post_build',
                                   build_by_default: true,
                                   install: false,
 )
-install_args = [
-    prog_dir / appname,
-    get_option('bindir'),
-    get_option('datadir'),
-    host_os,
-    get_option('deployment_release') ? 'yes' : 'no',
-]
-install_script = files('../ShellScripts/common/install.sh')
-meson.add_install_script(bash_prog, install_script, install_args)
+# The install script targets an FHS-style prefix layout. On darwin the product
+# of the build is the .app bundle assembled by the post_build step above, so
+# there is nothing for `meson install` to do. (Upstream question: a future
+# bundle-install rule could replace this skip.)
+if host_os != 'darwin'
+    install_args = [
+        prog_dir / appname,
+        get_option('bindir'),
+        get_option('datadir'),
+        host_os,
+        get_option('deployment_release') ? 'yes' : 'no',
+    ]
+    install_script = files('../ShellScripts/common/install.sh')
+    meson.add_install_script(bash_prog, install_script, install_args)
+endif

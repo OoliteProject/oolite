@@ -41,7 +41,7 @@ MA 02110-1301, USA.
     } else if (nil == dict) {
         NSFileManager* mgr = [NSFileManager defaultManager];
 
-        return [mgr removeFileAtPath:file handler:nil];
+        return [mgr removeItemAtPath:file error:nil];
     } else {
         NSData* data;
         NSString* err;

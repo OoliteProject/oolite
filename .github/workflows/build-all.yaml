@@ -174,8 +174,63 @@ jobs:
             build/OoliteInstall*.exe
           retention-days: 5
 
+  build-macos:
+    needs: clang-format-check
+    runs-on: macos-26
+    steps:
+      ## This is for debugging only and helps developing the workflow.
+      # - name: Environment Variables
+      #   run: |
+      #     printenv | sort
+
+      - name: Record toolchain
+        run: |
+          sw_vers
+          xcodebuild -version
+          clang --version
+
+      - name: Checkout Oolite
+        uses: actions/checkout@v6
+        with:
+          # Full history so get_version.sh's `git describe` sees the tags.
+          fetch-depth: 0
+      - name: Install packages
+        run: |
+          HOMEBREW_NO_AUTO_UPDATE=1 brew install meson ninja pkg-config libpng openal-soft libvorbis nspr zlib sdl3 espeak-ng
+      - name: Install Mozilla JS library (arm64, interpreter-only)
+        run: |
+          # Fetches the mozillajs-macos release artifact (patched js185 built
+          # from this org's spidermonkey-ff4; interpreter-only, pcre regexes)
+          # and stages it where the darwin meson scan looks:
+          # build/mozilla_js/{include,lib}. The install script handles the
+          # lib/js_static.a -> libjs_static.a name the scan expects.
+          ShellScripts/Darwin/install_mozilla_js.sh build
+      - name: Build Oolite
+        env:
+          # Homebrew pkgconfig dirs (including the keg-only ones). This MUST
+          # reach the FIRST meson setup: pkg_config_path is a sticky meson
+          # build option and dependency lookups are cached in the build dir.
+          # Without it, meson silently falls back to Apple's deprecated
+          # /System/Library/Frameworks/OpenAL and the system zlib (verified in
+          # port tasks T7/T10). Exported for pkg-config AND passed via
+          # --setup-flags so the meson option is set from the very first
+          # setup (an env var alone does not survive meson reconfigures).
+          PKG_CONFIG_PATH: /opt/homebrew/lib/pkgconfig:/opt/homebrew/opt/openal-soft/lib/pkgconfig:/opt/homebrew/opt/nspr/lib/pkgconfig:/opt/homebrew/opt/zlib/lib/pkgconfig:/opt/homebrew/opt/sdl3/lib/pkgconfig
+        run: |
+          ./mk.sh --setup-flags="-Dpkg_config_path=${PKG_CONFIG_PATH}" build dev --github-repository="$GITHUB_REPOSITORY"
+      - name: Archive app bundle
+        uses: actions/upload-artifact@v6
+        with:
+          # Dev flavor, ad-hoc signed only (no developer identity in CI);
+          # intentionally kept out of the release job until signing and
+          # notarization ownership is settled.
+          name: oolite-macos-arm64-unsigned
+          path: |
+            build/meson_dev/oolite.app
+          retention-days: 5
+
   release:
-    needs: [build-linux, build-flatpak, build-windows]
+    needs: [build-linux, build-flatpak, build-windows, build-macos]
     runs-on: ubuntu-22.04
     # Only run for internal requests (so not for PRs from forks)
     if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
@@ -189,6 +244,16 @@ jobs:
         uses: actions/download-artifact@v7
         with:
           path: artifacts
+          # Only the signed/publishable artifacts. The macOS job's bundle is
+          # dev-flavored and merely ad-hoc signed, so it must not reach the
+          # release step — and must not perturb the exact file-count assert
+          # below. Exclude it here until macOS signing/notarization ownership
+          # lands (build-macos stays in `needs` above so the run order stays
+          # deterministic).
+          pattern: |
+            oolite-linux-appimage-*
+            oolite-linux-flatpak-deployment
+            oolite-windows-nsis-*
       - name: Calculate version number and set VER_FULL
         id: version
         run: |

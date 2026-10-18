@@ -337,12 +337,70 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     return _colorblindMode;
 }
 
+#if OOLITE_MAC_OS_X
+/*	Legacy-GL compatibility layer (Task 8). The darwin build runs on Apple's
+    legacy 2.1 context, where float16 color buffers are not guaranteed
+    renderable. (Re)create the texture as RGBA8 if the FBO is incomplete.
+    Sets *outFellBack when the format was downgraded. The framebuffer to test
+    must be bound. Returns YES if the framebuffer is complete after the call. */
+static BOOL sMRTAvailable = YES; // multiple render targets (bloom bright-pass) usable
+#endif
+
+/*	Internal format of the postFX color buffers. GL_RGBA16F except when the
+    legacy-GL fallback (darwin) downgraded to GL_RGBA8 at init; reused by
+    resize so the formats stay consistent. */
+static GLenum sPostFXColorFormat = GL_RGBA16F;
+
+#if OOLITE_MAC_OS_X
+static BOOL EnsurePostFXFramebufferComplete(GLuint colorTexture, GLsizei width, GLsizei height, BOOL* outFellBack)
+{
+    if (outFellBack != NULL)
+        *outFellBack = NO;
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE)
+        return YES;
+
+    OOLogWARN(@"rendering.legacy.fallback", @"Float16 color buffer not renderable; falling back to RGBA8 (%ux%u).", (unsigned)width, (unsigned)height);
+    OOGL(glBindTexture(GL_TEXTURE_2D, colorTexture));
+    OOGL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL));
+    OOGL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorTexture, 0));
+    if (outFellBack != NULL)
+        *outFellBack = YES;
+    return glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE;
+}
+
+/*	PostFX full-screen quad without vertex array objects (GL 3.0 core, absent
+    on legacy GL): bind the quad's buffers and attribute pointers explicitly.
+    Locations 0/1 are pinned pre-link via the programs' attributeBindings. */
+static void BindPostFXQuadArrays(GLuint quadVBO, GLuint quadEBO)
+{
+    OOGL(glBindBuffer(GL_ARRAY_BUFFER, quadVBO));
+    OOGL(glEnableVertexAttribArray(0));
+    OOGL(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0)); // position
+    OOGL(glEnableVertexAttribArray(1));
+    OOGL(glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)))); // texture coords
+    OOGL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, quadEBO));
+}
+
+static void UnbindPostFXQuadArrays(void)
+{
+    OOGL(glDisableVertexAttribArray(1));
+    OOGL(glDisableVertexAttribArray(0));
+    OOGL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+    OOGL(glBindBuffer(GL_ARRAY_BUFFER, 0));
+}
+#endif // OOLITE_MAC_OS_X
+
 - (void)initTargetFramebufferWithViewSize:(NSSize)viewSize
 {
     // liberate us from the 0.0 to 1.0 rgb range!
+#if !OOLITE_MAC_OS_X
+    /*	glClampColor arrived with GL 3.0; Apple GL 2.1 raises GL_INVALID_ENUM
+        here (a no-op, but it pollutes the error log). Unclamped colors are
+        the 2.1 default anyway. */
     OOGL(glClampColor(GL_CLAMP_VERTEX_COLOR, GL_FALSE));
     OOGL(glClampColor(GL_CLAMP_READ_COLOR, GL_FALSE));
     OOGL(glClampColor(GL_CLAMP_FRAGMENT_COLOR, GL_FALSE));
+#endif
 
     // have to do this because on my machine the default framebuffer is not zero
     OOGL(glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &defaultDrawFBO));
@@ -351,13 +409,16 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     OOGL(glGetIntegerv(GL_CURRENT_PROGRAM, &previousProgramID));
     GLint previousTextureID;
     OOGL(glGetIntegerv(GL_TEXTURE_BINDING_2D, &previousTextureID));
+#if !OOLITE_MAC_OS_X
     GLint previousVAO;
     OOGL(glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &previousVAO));
+#endif
     GLint previousArrayBuffer;
     OOGL(glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &previousArrayBuffer));
     GLint previousElementBuffer;
     OOGL(glGetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING, &previousElementBuffer));
 
+#if !OOLITE_MAC_OS_X
     // create MSAA framebuffer and attach MSAA texture and depth buffer to framebuffer
     OOGL(glGenFramebuffers(1, &msaaFramebufferID));
     OOGL(glBindFramebuffer(GL_FRAMEBUFFER, msaaFramebufferID));
@@ -379,6 +440,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
         OOLogERR(@"initTargetFramebufferWithViewSize.result", @"%@", @"***** Error: Multisample framebuffer not complete");
     }
+#endif // !OOLITE_MAC_OS_X
 
     // create framebuffer and attach texture and depth buffer to framebuffer
     OOGL(glGenFramebuffers(1, &targetFramebufferID));
@@ -397,15 +459,29 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     // create necessary depth render buffer
     OOGL(glGenRenderbuffers(1, &targetDepthBufferID));
     OOGL(glBindRenderbuffer(GL_RENDERBUFFER, targetDepthBufferID));
+#if OOLITE_MAC_OS_X
+    // GL_DEPTH_COMPONENT32F is 3.0-core and unsupported on legacy GL; 24-bit depth is core since GL 1.4.
+    OOGL(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, (GLsizei)viewSize.width, (GLsizei)viewSize.height));
+#else
     OOGL(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32F, (GLsizei)viewSize.width, (GLsizei)viewSize.height));
+#endif
     OOGL(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, targetDepthBufferID));
 
     GLenum attachment[1] = { GL_COLOR_ATTACHMENT0 };
     OOGL(glDrawBuffers(1, attachment));
 
+#if OOLITE_MAC_OS_X
+    BOOL targetFellBack = NO;
+    if (!EnsurePostFXFramebufferComplete(targetTextureID, (GLsizei)viewSize.width, (GLsizei)viewSize.height, &targetFellBack)) {
+        OOLogERR(@"initTargetFramebufferWithViewSize.result", @"%@", @"***** Error: Framebuffer not complete (even after RGBA8 fallback)");
+    }
+    if (targetFellBack)
+        sPostFXColorFormat = GL_RGBA8;
+#else
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
         OOLogERR(@"initTargetFramebufferWithViewSize.result", @"%@", @"***** Error: Framebuffer not complete");
     }
+#endif
 
     OOGL(glBindFramebuffer(GL_FRAMEBUFFER, defaultDrawFBO));
 
@@ -433,11 +509,41 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     }
 
     GLenum attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+#if OOLITE_MAC_OS_X
+    /* MRT probe: bloom's bright-pass needs two color attachments. If ARB
+       draw buffers is absent (or the 2-attachment FBO is incomplete on
+       legacy GL), fall back to a single target and disable bloom. */
+    sMRTAvailable = [[OOOpenGLExtensionManager sharedManager] haveExtension:@"GL_ARB_draw_buffers"];
+    OOGL(glDrawBuffers(sMRTAvailable ? 2 : 1, attachments));
+    if (sMRTAvailable && glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        sMRTAvailable = NO;
+        OOGL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, 0, 0)); // detach C1
+        OOGL(glDrawBuffers(1, attachments));
+        OOLogWARN(@"rendering.legacy.fallback", @"Multiple render targets unavailable; bloom disabled (single-target passthrough).");
+    }
+    OOLog(@"rendering.legacy.mrt", @"Multiple render targets %@.", sMRTAvailable ? @"available" : @"unavailable (single target)");
+#else
     OOGL(glDrawBuffers(2, attachments));
+#endif
 
+#if OOLITE_MAC_OS_X
+    BOOL passthroughFellBack = NO;
+    if (!EnsurePostFXFramebufferComplete(passthroughTextureID[0], (GLsizei)viewSize.width, (GLsizei)viewSize.height, &passthroughFellBack)) {
+        OOLogERR(@"initTargetFramebufferWithViewSize.result", @"%@", @"***** Error: Passthrough framebuffer not complete (even after RGBA8 fallback)");
+    }
+    if (passthroughFellBack) {
+        // keep COLOR_ATTACHMENT1 format-consistent with COLOR_ATTACHMENT0
+        OOGL(glBindTexture(GL_TEXTURE_2D, passthroughTextureID[1]));
+        OOGL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, (GLsizei)viewSize.width, (GLsizei)viewSize.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL));
+        OOGL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, passthroughTextureID[1], 0));
+        OOGL(glBindTexture(GL_TEXTURE_2D, 0));
+        sPostFXColorFormat = GL_RGBA8;
+    }
+#else
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
         OOLogERR(@"initTargetFramebufferWithViewSize.result", @"%@", @"***** Error: Passthrough framebuffer not complete");
     }
+#endif
     OOGL(glBindFramebuffer(GL_FRAMEBUFFER, defaultDrawFBO));
 
     // ping-pong-framebuffer for blurring
@@ -453,13 +559,23 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
         OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
         OOGL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, pingpongColorbuffers[i], 0));
         // check if framebuffers are complete (no need for depth buffer)
+#if OOLITE_MAC_OS_X
+        if (!EnsurePostFXFramebufferComplete(pingpongColorbuffers[i], (GLsizei)viewSize.width, (GLsizei)viewSize.height, NULL)) {
+            OOLogERR(@"initTargetFramebufferWithViewSize.result", @"%@", @"***** Error: Pingpong framebuffers not complete (even after RGBA8 fallback)");
+        }
+#else
         if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
             OOLogERR(@"initTargetFramebufferWithViewSize.result", @"%@", @"***** Error: Pingpong framebuffers not complete");
         }
+#endif
     }
     OOGL(glBindFramebuffer(GL_FRAMEBUFFER, defaultDrawFBO));
 
     _bloom = [self detailLevel] >= DETAIL_LEVEL_EXTRAS;
+#if OOLITE_MAC_OS_X
+    // bloom's bright-pass writes a second color attachment; without MRT it cannot run.
+    _bloom = _bloom && sMRTAvailable;
+#endif
     _currentPostFX = _colorblindMode = OO_POSTFX_NONE;
 
     /* TODO: in OOEnvironmentCubeMap.m call these bind functions not with 0 but with "previousXxxID"s:
@@ -470,15 +586,34 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
     // shader for drawing a textured quad on the passthrough framebuffer and preparing it for bloom using MRT
     if (![[OOOpenGLExtensionManager sharedManager] shadersForceDisabled]) {
+#if OOLITE_MAC_OS_X
+        /*	Legacy GLSL 1.20: attribute locations are pinned pre-link via
+            attributeBindings (glBindAttribLocationARB) instead of layout()
+            qualifiers. The five shared postFX shaders are dual-mode: with
+            OO_LEGACY_GL defined they compile their GLSL 1.20 branch, without
+            it the upstream GLSL 330 content, byte-identical to what the
+            non-darwin prefixes below expect. OO_POSTFX_MRT selects the
+            gl_FragData[] bright-pass variant when multiple render targets
+            are available. */
+        NSString* texturePrefix = sMRTAvailable ? @"#version 120\n#define OO_LEGACY_GL 1\n#define OO_POSTFX_MRT 1\n" : @"#version 120\n#define OO_LEGACY_GL 1\n";
+        NSString* postFXPrefix = @"#version 120\n#define OO_LEGACY_GL 1\n";
+        NSDictionary* textureAttribs = @{ @"vert_position" : @0, @"texture_coordinate" : @1 };
+        NSDictionary* uvQuadAttribs = @{ @"aPos" : @0, @"aTexCoords" : @1 };
+#else
+        NSString* texturePrefix = @"#version 330\n";
+        NSString* postFXPrefix = @"#version 330\n";
+        NSDictionary* textureAttribs = [NSDictionary dictionary];
+        NSDictionary* uvQuadAttribs = [NSDictionary dictionary];
+#endif
         textureProgram = [[OOShaderProgram shaderProgramWithVertexShaderName:@"oolite-texture.vertex"
                                                           fragmentShaderName:@"oolite-texture.fragment"
-                                                                      prefix:@"#version 330\n"
-                                                           attributeBindings:[NSDictionary dictionary]] retain];
+                                                                      prefix:texturePrefix
+                                                           attributeBindings:textureAttribs] retain];
         // shader for blurring the over-threshold brightness image generated from the previous step using Gaussian filter
         blurProgram = [[OOShaderProgram shaderProgramWithVertexShaderName:@"oolite-blur.vertex"
                                                        fragmentShaderName:@"oolite-blur.fragment"
-                                                                   prefix:@"#version 330\n"
-                                                        attributeBindings:[NSDictionary dictionary]] retain];
+                                                                   prefix:postFXPrefix
+                                                        attributeBindings:uvQuadAttribs] retain];
         // shader for applying bloom and any necessary post-proc fx, tonemapping and gamma correction
         finalProgram = [[OOShaderProgram shaderProgramWithVertexShaderName:@"oolite-final.vertex"
 #if OOLITE_WINDOWS
@@ -486,15 +621,22 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 #else
                                                         fragmentShaderName:@"oolite-final.fragment"
 #endif
-                                                                    prefix:@"#version 330\n"
-                                                         attributeBindings:[NSDictionary dictionary]] retain];
+                                                                    prefix:postFXPrefix
+                                                         attributeBindings:uvQuadAttribs] retain];
     }
 
+#if !OOLITE_MAC_OS_X
     OOGL(glGenVertexArrays(1, &quadTextureVAO));
+#endif
     OOGL(glGenBuffers(1, &quadTextureVBO));
     OOGL(glGenBuffers(1, &quadTextureEBO));
 
+#if OOLITE_MAC_OS_X
+    /*	Legacy GL has no vertex array objects; the quad's attribute pointers
+        are bound explicitly at each draw site (BindPostFXQuadArrays). */
+#else
     OOGL(glBindVertexArray(quadTextureVAO));
+#endif
 
     OOGL(glBindBuffer(GL_ARRAY_BUFFER, quadTextureVBO));
     OOGL(glBufferData(GL_ARRAY_BUFFER, sizeof(framebufferQuadVertices), framebufferQuadVertices, GL_STATIC_DRAW));
@@ -502,17 +644,21 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     OOGL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, quadTextureEBO));
     OOGL(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(framebufferQuadIndices), framebufferQuadIndices, GL_STATIC_DRAW));
 
+#if !OOLITE_MAC_OS_X
     OOGL(glEnableVertexAttribArray(0));
     // position attribute
     OOGL(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0));
     OOGL(glEnableVertexAttribArray(1));
     // texture coord attribute
     OOGL(glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float))));
+#endif
 
     // restoring previous bindings
     OOGL(glUseProgram(previousProgramID));
     OOGL(glBindTexture(GL_TEXTURE_2D, previousTextureID));
+#if !OOLITE_MAC_OS_X
     OOGL(glBindVertexArray(previousVAO));
+#endif
     OOGL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, previousElementBuffer));
     OOGL(glBindBuffer(GL_ARRAY_BUFFER, previousArrayBuffer));
 }
@@ -529,7 +675,9 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     OOGL(glDeleteFramebuffers(1, &targetFramebufferID));
     OOGL(glDeleteFramebuffers(2, pingpongFBO));
     OOGL(glDeleteFramebuffers(1, &passthroughFramebufferID));
+#if !OOLITE_MAC_OS_X
     OOGL(glDeleteVertexArrays(1, &quadTextureVAO));
+#endif
     OOGL(glDeleteBuffers(1, &quadTextureVBO));
     OOGL(glDeleteBuffers(1, &quadTextureEBO));
     [textureProgram release];
@@ -540,6 +688,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 - (void)resizeTargetFramebufferWithViewSize:(NSSize)viewSize
 {
     int i;
+#if !OOLITE_MAC_OS_X
     // resize MSAA color attachment
     OOGL(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, msaaTextureID));
     OOGL(glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGBA16F, (GLsizei)viewSize.width, (GLsizei)viewSize.height, GL_TRUE));
@@ -549,27 +698,33 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     OOGL(glBindRenderbuffer(GL_RENDERBUFFER, msaaDepthBufferID));
     OOGL(glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_DEPTH_COMPONENT32F, (GLsizei)viewSize.width, (GLsizei)viewSize.height));
     OOGL(glBindRenderbuffer(GL_RENDERBUFFER, 0));
+#endif
 
-    // resize color attachments
+    // resize color attachments (using the format decided at init time)
     OOGL(glBindTexture(GL_TEXTURE_2D, targetTextureID));
-    OOGL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, (GLsizei)viewSize.width, (GLsizei)viewSize.height, 0, GL_RGBA, GL_FLOAT, NULL));
+    OOGL(glTexImage2D(GL_TEXTURE_2D, 0, sPostFXColorFormat, (GLsizei)viewSize.width, (GLsizei)viewSize.height, 0, GL_RGBA, sPostFXColorFormat == GL_RGBA16F ? GL_FLOAT : GL_UNSIGNED_BYTE, NULL));
     OOGL(glBindTexture(GL_TEXTURE_2D, 0));
 
     for (i = 0; i < 2; i++) {
         OOGL(glBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[i]));
-        OOGL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, (GLsizei)viewSize.width, (GLsizei)viewSize.height, 0, GL_RGBA, GL_FLOAT, NULL));
+        OOGL(glTexImage2D(GL_TEXTURE_2D, 0, sPostFXColorFormat, (GLsizei)viewSize.width, (GLsizei)viewSize.height, 0, GL_RGBA, sPostFXColorFormat == GL_RGBA16F ? GL_FLOAT : GL_UNSIGNED_BYTE, NULL));
         OOGL(glBindTexture(GL_TEXTURE_2D, 0));
     }
 
     for (i = 0; i < 2; i++) {
         OOGL(glBindTexture(GL_TEXTURE_2D, passthroughTextureID[i]));
-        OOGL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, (GLsizei)viewSize.width, (GLsizei)viewSize.height, 0, GL_RGBA, GL_FLOAT, NULL));
+        OOGL(glTexImage2D(GL_TEXTURE_2D, 0, sPostFXColorFormat, (GLsizei)viewSize.width, (GLsizei)viewSize.height, 0, GL_RGBA, sPostFXColorFormat == GL_RGBA16F ? GL_FLOAT : GL_UNSIGNED_BYTE, NULL));
         OOGL(glBindTexture(GL_TEXTURE_2D, 0));
     }
 
     // resize depth attachment
     OOGL(glBindRenderbuffer(GL_RENDERBUFFER, targetDepthBufferID));
+#if OOLITE_MAC_OS_X
+    // GL_DEPTH_COMPONENT32F is 3.0-core and unsupported on legacy GL; 24-bit depth is core since GL 1.4.
+    OOGL(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, (GLsizei)viewSize.width, (GLsizei)viewSize.height));
+#else
     OOGL(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32F, (GLsizei)viewSize.width, (GLsizei)viewSize.height));
+#endif
     OOGL(glBindRenderbuffer(GL_RENDERBUFFER, 0));
 
     targetFramebufferSize.width = viewSize.width;
@@ -585,8 +740,10 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     OOGL(glGetIntegerv(GL_CURRENT_PROGRAM, &previousProgramID));
     GLint previousTextureID;
     OOGL(glGetIntegerv(GL_TEXTURE_BINDING_2D, &previousTextureID));
+#if !OOLITE_MAC_OS_X
     GLint previousVAO;
     OOGL(glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &previousVAO));
+#endif
     GLint previousActiveTexture;
     OOGL(glGetIntegerv(GL_ACTIVE_TEXTURE, &previousActiveTexture));
 
@@ -594,9 +751,12 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     // fixes transparency issue for some reason
     OOGL(glDisable(GL_BLEND));
 
-    GLhandleARB program = [textureProgram program];
-    GLhandleARB blur = [blurProgram program];
-    GLhandleARB final = [finalProgram program];
+    /*	GLuint, not GLhandleARB: Apple's GL headers typedef GLhandleARB to
+        void*, while every entry point used below takes GLuint (Mesa's
+        spelling, used by the rest of the tree). */
+    GLuint program = (GLuint)(uintptr_t)[textureProgram program];
+    GLuint blur = (GLuint)(uintptr_t)[blurProgram program];
+    GLuint final = (GLuint)(uintptr_t)[finalProgram program];
     NSSize viewSize = [gameView backingViewSize];
     float fboResolution[2] = { viewSize.width, viewSize.height };
 
@@ -607,25 +767,40 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     OOGL(glBindTexture(GL_TEXTURE_2D, targetTextureID));
     OOGL(glUniform1i(glGetUniformLocation(program, "image"), 0));
 
+#if OOLITE_MAC_OS_X
+    BindPostFXQuadArrays(quadTextureVBO, quadTextureEBO);
+    OOGL(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0));
+    UnbindPostFXQuadArrays();
+#else
     OOGL(glBindVertexArray(quadTextureVAO));
     OOGL(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0));
     OOGL(glBindVertexArray(0));
+#endif
 
     OOGL(glBindFramebuffer(GL_FRAMEBUFFER, defaultDrawFBO));
 
     BOOL horizontal = YES, firstIteration = YES;
     unsigned int amount = [self bloom] ? 10 : 0; // if not blooming, why bother with the heavy calculations?
     OOGL(glUseProgram(blur));
+    // legacy GLSL has no textureSize(); the 1.20 blur shader takes the texel size as a uniform
+    // (setting a nonexistent uniform is a no-op on the 3.3 path)
+    OOGL(glUniform2f(glGetUniformLocation(blur, "texelSize"), 1.0f / viewSize.width, 1.0f / viewSize.height));
     for (unsigned int i = 0; i < amount; i++) {
         OOGL(glBindFramebuffer(GL_FRAMEBUFFER, pingpongFBO[horizontal]));
         OOGL(glUniform1i(glGetUniformLocation(blur, "horizontal"), horizontal));
         OOGL(glActiveTexture(GL_TEXTURE0));
         // bind texture of other framebuffer (or scene if first iteration)
         OOGL(glBindTexture(GL_TEXTURE_2D, firstIteration ? passthroughTextureID[1] : pingpongColorbuffers[!horizontal]));
-        OOGL(glUniform1i(glGetUniformLocation([blurProgram program], "imageIn"), 0));
+        OOGL(glUniform1i(glGetUniformLocation((GLuint)(uintptr_t)[blurProgram program], "imageIn"), 0));
+#if OOLITE_MAC_OS_X
+        BindPostFXQuadArrays(quadTextureVBO, quadTextureEBO);
+        OOGL(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0));
+        UnbindPostFXQuadArrays();
+#else
         OOGL(glBindVertexArray(quadTextureVAO));
         OOGL(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0));
         OOGL(glBindVertexArray(0));
+#endif
         horizontal = !horizontal;
         firstIteration = NO;
     }
@@ -654,8 +829,15 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     OOGL(glUniform1i(glGetUniformLocation(final, "bloomBlur"), 1));
     OOGL(glUniform1f(glGetUniformLocation(final, "uSaturation"), [gameView colorSaturation]));
 
+#if OOLITE_MAC_OS_X
+    BindPostFXQuadArrays(quadTextureVBO, quadTextureEBO);
+    OOGL(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0));
+    // restoring attribute-enable state protects the fixed-function material path
+    UnbindPostFXQuadArrays();
+#else
     OOGL(glBindVertexArray(quadTextureVAO));
     OOGL(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0));
+#endif
 
     // restore GL_TEXTURE1 to 0, just in case we are returning from a
     // DETAIL_LEVEL_NORMAL to DETAIL_LEVEL_SHADERS
@@ -666,7 +848,9 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     OOGL(glActiveTexture(previousActiveTexture));
     OOGL(glBindTexture(GL_TEXTURE_2D, previousTextureID));
     OOGL(glUseProgram(previousProgramID));
+#if !OOLITE_MAC_OS_X
     OOGL(glBindVertexArray(previousVAO));
+#endif
     OOGL(glEnable(GL_BLEND));
 }
 
@@ -731,9 +915,16 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     autoSave = [prefs oo_boolForKey:@"autosave" defaultValue:NO];
     wireframeGraphics = [prefs oo_boolForKey:@"wireframe-graphics" defaultValue:NO];
     doProcedurallyTexturedPlanets = [prefs oo_boolForKey:@"procedurally-textured-planets" defaultValue:YES];
+#if OOLITE_MAC_OS_X
+    // Legacy GL has no glTexImage2DMultisample; postFX runs non-MSAA (Task 8).
+    [inGameView setMsaa:NO];
+    OOLog(@"MSAA.setup", @"Multisample anti-aliasing disabled (legacy-GL mode).");
+#else
     [inGameView setMsaa:[prefs oo_boolForKey:@"anti-aliasing" defaultValue:NO]];
     OOLog(@"MSAA.setup", @"Multisample anti-aliasing %@requested.", [inGameView msaa] ? @"" : @"not ");
-    [inGameView setFov:OOClamp_0_max_f([prefs oo_floatForKey:@"fov-value" defaultValue:57.2f], MAX_FOV_DEG) fromFraction:NO];
+#endif
+    [inGameView setFov:OOClamp_0_max_f([prefs oo_floatForKey:@"fov-value" defaultValue:57.2f], MAX_FOV_DEG)
+          fromFraction:NO];
     if ([inGameView fov:NO] < MIN_FOV_DEG)
         [inGameView setFov:MIN_FOV_DEG fromFraction:NO];
 
@@ -741,7 +932,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
     // Set up speech synthesizer.
 #if OOLITE_SPEECH_SYNTH
-#if OOLITE_MAC_OS_X
+#if OOLITE_MAC_APPKIT
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_LOW, 0),
         ^{
             /*
@@ -887,7 +1078,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
 #if OOLITE_SPEECH_SYNTH
     [speechArray release];
-#if OOLITE_MAC_OS_X
+#if OOLITE_MAC_APPKIT
     [speechSynthesizer release];
 #elif OOLITE_ESPEAK
     espeak_Cancel();
@@ -6296,7 +6487,7 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity* e2, float range)
                 NSString* original_phrase = [thePair oo_stringAtIndex:0];
 
                 NSUInteger replacementIndex;
-#if OOLITE_MAC_OS_X
+#if OOLITE_MAC_APPKIT
                 replacementIndex = 1;
 #elif OOLITE_ESPEAK
                 replacementIndex = [thePair count] > 2 ? 2 : 1;
@@ -9050,7 +9241,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void* context)
 }
 
 // speech routines
-#if OOLITE_MAC_OS_X
+#if OOLITE_MAC_APPKIT
 
 - (void)startSpeakingString:(NSString*)text
 {
