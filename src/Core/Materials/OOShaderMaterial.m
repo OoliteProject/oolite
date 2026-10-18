@@ -123,6 +123,13 @@ static NSString* MacrosToString(NSDictionary* macros);
         [modifiedMacros setObject:[NSNumber numberWithUnsignedInt:textureUnits]
                            forKey:@"OO_TEXTURE_UNIT_COUNT"];
 
+#if OOLITE_MAC_OS_X
+        // Legacy GLSL has no derivatives; disable the specular-AA NDF filter
+        // (oolite-default-shader/planet.fragment guard on OO_LEGACY_GL).
+        [modifiedMacros setObject:[NSNumber numberWithBool:YES]
+                           forKey:@"OO_LEGACY_GL"];
+#endif
+
         // used to test for simplified shaders - OO_REDUCED_COMPLEXITY - here
         macroString = MacrosToString(modifiedMacros);
     }

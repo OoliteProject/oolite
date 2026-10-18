@@ -667,7 +667,7 @@ static void OpenLogFile(NSString* name)
     //	Open log file in appropriate application / provide feedback.
 
     if ([[NSUserDefaults standardUserDefaults] oo_boolForKey:@"oxp-verifier-open-log" defaultValue:YES]) {
-#if OOLITE_MAC_OS_X
+#if OOLITE_MAC_APPKIT
         [[NSWorkspace sharedWorkspace] openFile:OOLogHandlerGetLogPath()];
 #elif OOLITE_WINDOWS
         // ShellExecute will automatically use the app associated with .log files

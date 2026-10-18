@@ -1,3 +1,4 @@
+#ifndef OO_LEGACY_GL
 layout (location = 0) out vec4 out_color;
 layout (location = 1) out vec4 bright_color;
 
@@ -21,3 +22,26 @@ void main()
 	else
 		bright_color = vec4(0.0, 0.0, 0.0, 1.0);
 }
+#else
+varying vec2 v_texture_coordinate;
+
+uniform sampler2D image;
+
+void main()
+{
+	const float bloomThreshold = 1.0;
+	const float bloomStrength = 0.05;
+	vec4 sampled = texture2D(image, v_texture_coordinate);
+
+#ifdef OO_POSTFX_MRT
+	float brightness = dot(sampled.rgb, vec3(0.2126, 0.7152, 0.0722));
+	gl_FragData[0] = sampled;
+	if (brightness > bloomThreshold)
+		gl_FragData[1] = vec4(sampled.rgb * bloomStrength, 1.0);
+	else
+		gl_FragData[1] = vec4(0.0, 0.0, 0.0, 1.0);
+#else
+	gl_FragColor = sampled;
+#endif
+}
+#endif

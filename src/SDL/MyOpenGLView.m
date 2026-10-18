@@ -41,6 +41,10 @@ MA 02110-1301, USA.
 #include <SDL3/SDL_clipboard.h>
 #include <SDL3/SDL_init.h>
 
+#if OOLITE_MAC_OS_X
+#import <mach/mach_time.h>
+#endif
+
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #import "stb_image_write.h"
 
@@ -50,7 +54,27 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
 
 #include <ctype.h>
 
+#if OOLITE_MAC_OS_X
+/*	Refresh-period swap pacing state (see createWindowWithSize for why the
+        regular swap-interval mechanisms are unusable on this OS). Written and
+        read only from the main thread. */
+static double sSwapPacingSeconds = 0.0; // 0 = pacing disabled
+static uint64_t sLastSwapMachTime = 0;
+
+static double OODisplayRefreshSeconds(SDL_Window* window)
+{
+    const SDL_DisplayMode* mode = SDL_GetCurrentDisplayMode(SDL_GetDisplayForWindow(window));
+    if (mode != NULL && mode->refresh_rate > 10.0f)
+        return 1.0 / (double)mode->refresh_rate;
+    return 1.0 / 60.0; // sane fallback
+}
+#endif
+
 @interface MyOpenGLView (OOPrivate)
+
+#if OOLITE_MAC_OS_X
+- (void)swapWindow; // all darwin buffer swaps go through here (paces to display refresh)
+#endif
 
 @end
 
@@ -190,11 +214,34 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
         OOLog(@"sdl.create_context", @"%@", @"Could not create OpenGL context");
         exit(1);
     }
+#if OOLITE_MAC_OS_X
+    /*	SDL_SetWindowSurfaceVSync below only affects the SDL_GetWindowSurface
+        presentation path, and on macOS the window never enters surface mode
+        (see the guarded block above). SDL_GL_SetSwapInterval is also
+        unusable here: SDL3 implements cocoa GL v-sync in software through a
+        CVDisplayLink whose creation/start return values are never checked,
+        and on this OS CVDisplayLink creation fails outright, so the first
+        swap waits on its condition forever (boot hangs in the splash
+        screen); setting the legacy driver-level swap interval
+        (NSOpenGLCPSwapInterval) is accepted but not enforced by Apple's
+        Metal-backed GL either. Pace buffer swaps against the display's
+        refresh period in -swapWindow instead; that caps the frame rate to
+        the display refresh without ever hard-blocking on a signal that
+        this system may never deliver. */
+    if (vSyncPreference)
+        sSwapPacingSeconds = OODisplayRefreshSeconds(window);
+#endif
+#if !OOLITE_MAC_OS_X
+    /*	SDL3 puts a window into surface mode as soon as SDL_GetWindowSurface
+        is called; on macOS that competes with the NSOpenGLContext's own
+        presentation and the window stays black (legacy-GL build, Task 8).
+        The colorspace dance only matters for the Windows HDR path. */
     SDL_Surface* surface = SDL_GetWindowSurface(window);
     if (!SDL_SetSurfaceColorspace(surface, SDL_COLORSPACE_SRGB_LINEAR)) {
         OOLogWARN(@"sdl.use_edr_surface", @"%@ %s", @"Failed to set SDR linear surface - falling back to SDR. Error was:", SDL_GetError());
         SDL_SetSurfaceColorspace(surface, SDL_COLORSPACE_SRGB);
     }
+#endif
 
 #if OOLITE_WINDOWS
     // capture the window handle for later (only needed for ugly hack later when transitioning between
@@ -255,6 +302,13 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
     OOLog(@"display.initGL", @"Window Pixel Format: %s", SDL_GetPixelFormatName(format));
 
     // Verify V-sync successfully set - report it if not
+#if OOLITE_MAC_OS_X
+    if (vSyncPreference && sSwapPacingSeconds > 0.0) {
+        OOLog(@"display.initGL", @"%@", @"V-Sync set (refresh-period swap pacing).");
+    } else if (vSyncPreference) {
+        OOLogWARN(@"display.initGL", @"%@", @"Could not determine display refresh rate; V-Sync pacing disabled.");
+    }
+#else
 
     int hasVsync;
     if (vSyncPreference && (!SDL_GetWindowSurfaceVSync(window, &hasVsync) || !hasVsync)) {
@@ -263,6 +317,7 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
     } else {
         OOLog(@"display.initGL", @"%@", @"V-Sync set");
     }
+#endif
 
     int width, height;
     SDL_GetWindowSizeInPixels(window, &width, &height);
@@ -513,7 +568,11 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
     OOLog(@"display.initGL", @"Requested a new surface of %d x %d, %@.", (int)viewSize.width, (int)viewSize.height,
         (fullScreen ? @"fullscreen" : @"windowed"));
 
+#if OOLITE_MAC_OS_X
+    [self swapWindow]; // clear the buffer before resize
+#else
     SDL_GL_SwapWindow(window); // clear the buffer before resize
+#endif
 
     SDL_SetWindowFullscreen(window, fullScreen);
 
@@ -528,6 +587,11 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
         currentWindowStyle &= ~WS_POPUP;
         SetWindowLong(windowHandle, GWL_STYLE, currentWindowStyle);
     }
+#endif
+
+#if OOLITE_MAC_OS_X
+    if (vSyncPreference)
+        sSwapPacingSeconds = OODisplayRefreshSeconds(window); // display/fullscreen switches can change the refresh rate
 #endif
 
     int pixelWidth, pixelHeight;
@@ -545,7 +609,11 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
 
     [self setUpBasicOpenGLStateWithSize];
 
+#if OOLITE_MAC_OS_X
+    [self swapWindow];
+#else
     SDL_GL_SwapWindow(window);
+#endif
 
     squareX = 0.0f;
 }
@@ -626,7 +694,10 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
     return fullScreen;
 }
 
-#ifdef GNUSTEP_BASE_LIBRARY
+// The SDL fullscreen mechanism methods. Historically gated on GNUstep
+// because src/SDL was the GNUstep backend; any SDL build needs them
+// (OOLITE_SDL covers the Apple-Foundation SDL host too).
+#if OOLITE_SDL
 - (void)setFullScreenMode:(BOOL)fsm
 {
     fullScreen = fsm;
@@ -682,6 +753,31 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
 
 #endif
 
+#if OOLITE_MAC_OS_X
+/*	Pace to the display refresh, then swap. A pure sleep can overshoot by
+        about a millisecond, which is acceptable jitter for pacing; the final
+        sub-millisecond stretch busy-waits so the average frame rate lands on
+        the refresh rate rather than a millisecond or two under it. */
+- (void)swapWindow
+{
+    if (sSwapPacingSeconds > 0.0 && sLastSwapMachTime != 0) {
+        static mach_timebase_info_data_t timebase;
+        if (timebase.denom == 0)
+            mach_timebase_info(&timebase);
+
+        uint64_t now = mach_absolute_time();
+        double elapsed = ((double)(now - sLastSwapMachTime) * (double)timebase.numer / (double)timebase.denom) * 1e-9;
+        double remaining = sSwapPacingSeconds - elapsed;
+        if (remaining > 0.0015)
+            [NSThread sleepForTimeInterval:remaining - 0.0015];
+        while ((uint64_t)(sSwapPacingSeconds * 1e9) > ((mach_absolute_time() - sLastSwapMachTime) * timebase.numer / timebase.denom))
+            ; // spin the final stretch for phase accuracy
+    }
+    sLastSwapMachTime = mach_absolute_time();
+    SDL_GL_SwapWindow(window);
+}
+#endif
+
 - (void)updateScreen
 {
     if (UNIVERSE) {
@@ -691,7 +787,11 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
         glClear(GL_COLOR_BUFFER_BIT);
     }
 
+#if OOLITE_MAC_OS_X
+    [self swapWindow];
+#else
     SDL_GL_SwapWindow(window);
+#endif
 }
 
 - (void)initSplashScreen
@@ -791,7 +891,11 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
     glEnd();
     glFinish();
 
+#if OOLITE_MAC_OS_X
+    [self swapWindow];
+#else
     SDL_GL_SwapWindow(window);
+#endif
     [matrixManager resetModelView];
     [matrixManager syncModelView];
 
@@ -1008,23 +1112,49 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
         imageNo = tmpImageNo;
     }
 
+#if OOLITE_MAC_OS_X
+    /*	SDL_GetWindowSurface would flip the window into surface mode, which
+        competes with the NSOpenGLContext's own presentation on macOS (see
+        createWindowWithSize), and the GL framebuffer is never copied into
+        it: snapshots came out black. Describe the pixel data ourselves and
+        read the default framebuffer directly, mirroring the SDL path below. */
+    int surfaceW = 0, surfaceH = 0;
+    SDL_GetWindowSizeInPixels(window, &surfaceW, &surfaceH);
+    Uint32 surfaceFormat = SDL_PIXELFORMAT_BGRA32; // matches GL_BGRA/GL_UNSIGNED_BYTE below
+    int pitch = surfaceW * 4;
+    OOLog(@"screenshot", @"Saving screen shot \"%@\" (%u x %u pixels).", pathToPic, surfaceW, surfaceH);
+#else
     SDL_Surface* surface = SDL_GetWindowSurface(window);
     OOLog(@"screenshot", @"Saving screen shot \"%@\" (%u x %u pixels).", pathToPic, surface->w, surface->h);
 
+    int surfaceW = surface->w;
+    int surfaceH = surface->h;
+    Uint32 surfaceFormat = surface->format;
     int pitch = surface->pitch;
-    unsigned char* pixls = malloc(pitch * surface->h);
+#endif
+
+    unsigned char* pixls = malloc(pitch * surfaceH);
     int y;
     int off;
 
-    if (surface->w % 4)
+    if (surfaceW % 4)
         glPixelStorei(GL_PACK_ALIGNMENT, 1);
     else
         glPixelStorei(GL_PACK_ALIGNMENT, 4);
-    for (y = surface->h - 1, off = 0; y >= 0; y--, off += pitch) {
-        glReadPixels(0, y, surface->w, 1, GL_BGRA, GL_UNSIGNED_BYTE, pixls + off);
+#if OOLITE_MAC_OS_X
+    /*	The snapshot runs between frames, after the last buffer swap. Apple's
+        Metal-backed GL invalidates the back buffer on swap, so read the front
+        buffer (the last presented frame) instead; the back buffer reads black. */
+    OOGL(glReadBuffer(GL_FRONT));
+#endif
+    for (y = surfaceH - 1, off = 0; y >= 0; y--, off += pitch) {
+        glReadPixels(0, y, surfaceW, 1, GL_BGRA, GL_UNSIGNED_BYTE, pixls + off);
     }
+#if OOLITE_MAC_OS_X
+    OOGL(glReadBuffer(GL_BACK));
+#endif
 
-    tmpSurface = SDL_CreateSurfaceFrom(surface->w, surface->h, surface->format, pixls, surface->pitch);
+    tmpSurface = SDL_CreateSurfaceFrom(surfaceW, surfaceH, surfaceFormat, pixls, pitch);
 #if SNAPSHOTS_PNG_FORMAT
     if (!SDL_SavePNG(tmpSurface, [pathToPic UTF8String])) {
         OOLog(@"screenshotPNG", @"Failed to save %@", pathToPic);
@@ -1052,15 +1182,15 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
             fileExtension = SNAPSHOTHDR_EXTENSION_DEFAULT;
         }
 
-        NSString* pathToPicHDR = [pathToPic stringByReplacingString:@".png" withString:fileExtension];
-        OOLog(@"screenshot", @"Saving screen shot \"%@\" (%u x %u pixels).", pathToPicHDR, surface->w, surface->h);
-        GLfloat* pixlsf = (GLfloat*)malloc(pitch * surface->h * sizeof(GLfloat));
-        for (y = surface->h - 1, off = 0; y >= 0; y--, off += pitch) {
-            glReadPixels(0, y, surface->w, 1, GL_RGB, GL_FLOAT, pixlsf + off);
+        NSString* pathToPicHDR = [pathToPic stringByReplacingOccurrencesOfString:@".png" withString:fileExtension];
+        OOLog(@"screenshot", @"Saving screen shot \"%@\" (%u x %u pixels).", pathToPicHDR, surfaceW, surfaceH);
+        GLfloat* pixlsf = (GLfloat*)malloc(pitch * surfaceH * sizeof(GLfloat));
+        for (y = surfaceH - 1, off = 0; y >= 0; y--, off += pitch) {
+            glReadPixels(0, y, surfaceW, 1, GL_RGB, GL_FLOAT, pixlsf + off);
         }
 
-        if (([fileExtension isEqual:SNAPSHOTHDR_EXTENSION_EXR] && SaveEXRSnapshot([pathToPicHDR cStringUsingEncoding:NSUTF8StringEncoding], surface -> w, surface -> h, pixlsf) != 0) // TINYEXR_SUCCESS
-            || ([fileExtension isEqual:SNAPSHOTHDR_EXTENSION_HDR] && !stbi_write_hdr([pathToPicHDR cStringUsingEncoding:NSUTF8StringEncoding], surface -> w, surface -> h, 3, pixlsf))) {
+        if (([fileExtension isEqual:SNAPSHOTHDR_EXTENSION_EXR] && SaveEXRSnapshot([pathToPicHDR cStringUsingEncoding:NSUTF8StringEncoding], surfaceW, surfaceH, pixlsf) != 0) // TINYEXR_SUCCESS
+            || ([fileExtension isEqual:SNAPSHOTHDR_EXTENSION_HDR] && !stbi_write_hdr([pathToPicHDR cStringUsingEncoding:NSUTF8StringEncoding], surfaceW, surfaceH, 3, pixlsf))) {
             OOLog(@"screenshotHDR", @"Failed to save %@", pathToPicHDR);
             snapShotOK = NO;
         }

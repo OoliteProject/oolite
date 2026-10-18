@@ -80,6 +80,12 @@ MA 02110-1301, USA.
 #define OOJSENGINE_JSVERSION JSVERSION_ECMA_5
 #ifdef DEBUG
 #define JIT_OPTIONS 0
+#elif defined(__aarch64__) || defined(__ARM64__) || defined(_M_ARM64)
+/* The arm64 js185 build ships interpreter-only: the JSOPTION_* JIT bits
+ * compile, but they select JIT backends that are not present, so force
+ * them off instead of requesting the impossible.
+ */
+#define JIT_OPTIONS 0
 #else
 #define JIT_OPTIONS JSOPTION_JIT | JSOPTION_METHODJIT | JSOPTION_PROFILING
 #endif

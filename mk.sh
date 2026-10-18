@@ -125,7 +125,7 @@ show_help() {  # Script Help Menu
     echo -e "  \033[36m--compile-flags=\"...\"\033[0m          Pass additional arguments directly to 'meson compile'"
     echo -e "  \033[36m--configure-flags=\"...\"\033[0m        Pass additional arguments directly to 'meson configure'"
     echo -e "  \033[36m--install-flags=\"...\"\033[0m          Pass additional arguments directly to 'meson install'"
-    echo -e "  \033[36m--native-file=\"...\"\033[0m            Specify native file (defaults to clang.ini)"
+    echo -e "  \033[36m--native-file=\"...\"\033[0m            Specify native file (defaults to clang.ini; clang-darwin.ini on macOS)"
     echo -e "  \033[36m--ver-full=\"...\"\033[0m               Specify full version string"
     echo -e "  \033[36m--buildtime=\"...\"\033[0m              Specify build time"
     echo -e "  \033[36m--github-repository=\"...\"\033[0m      Specify target GitHub repository"
@@ -383,7 +383,11 @@ if [[ -z "$BUILD_TYPE" ]]; then
 fi
 
 if [[ -z "$NATIVE_FILE" ]]; then
-    NATIVE_FILE="clang.ini"  # Apply default if it wasn't passed as an option
+    if [[ "$(uname -s)" == "Darwin" ]]; then
+        NATIVE_FILE="clang-darwin.ini"  # macOS: Apple clang + ld (no lld dependency)
+    else
+        NATIVE_FILE="clang.ini"  # Apply default if it wasn't passed as an option
+    fi
 fi
 
 execute_target "$ACTION" "$BUILD_TYPE"

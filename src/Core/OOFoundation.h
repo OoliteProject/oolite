@@ -56,6 +56,13 @@ MA 02110-1301, USA.
 #else
 #define OOLITE_MAC_OS_X 1
 
+/*	Backend selector: 1 only when the AppKit (NIB/UI) backend is in use.
+        Apple-Foundation + SDL builds (the Meson darwin host) set OOLITE_SDL,
+        so all AppKit-only UI code compiles out and the SDL backend is used,
+        exactly as in the GNUstep/Linux build.
+*/
+#define OOLITE_MAC_APPKIT (OOLITE_MAC_OS_X && !OOLITE_SDL)
+
 /*	Useful macro copied from GNUstep.
  */
 #ifndef DESTROY
@@ -107,12 +114,13 @@ MA 02110-1301, USA.
 #define MIN(A, B) ({ __typeof__(A) __a = (A); __typeof__(B) __b = (B); __a < __b ? __a : __b; })
 #endif
 
-#ifdef HAVE_LIBESPEAK
-#define OOLITE_SPEECH_SYNTH 1
-#define OOLITE_ESPEAK 1
+#import "Comparison.h"
+
 #endif
 
-// Pseudo-keywords used for AppKit UI bindings.
+/*	Pseudo-keywords used for AppKit UI bindings. Apple's Foundation defines
+        these, so the no-ops only apply to other Foundation implementations.
+*/
 #ifndef IBOutlet
 #define IBOutlet /**/
 #endif
@@ -120,9 +128,10 @@ MA 02110-1301, USA.
 #define IBAction void
 #endif
 
-#import "Comparison.h"
-
-/* Define AppKit constants for events */
+#if !OOLITE_MAC_APPKIT
+/* Define AppKit constants for events. When the AppKit backend is in use,
+ * NSEvent.h already provides these with the same values.
+ */
 enum {
     NSUpArrowFunctionKey = 0xF700,
     NSDownArrowFunctionKey = 0xF701,
@@ -197,7 +206,6 @@ enum {
     NSHelpFunctionKey = 0xF746,
     NSModeSwitchFunctionKey = 0xF747
 };
-
 #endif
 
 #ifndef OOLITE_GNUSTEP
@@ -218,6 +226,25 @@ enum {
 
 #ifndef OOLITE_SDL
 #define OOLITE_SDL 0
+#endif
+
+#ifndef OOLITE_MAC_APPKIT
+/*	Not defined by an Apple-Foundation flavour block (i.e. building against
+        GNUstep): no AppKit backend.
+*/
+#define OOLITE_MAC_APPKIT 0
+#endif
+
+/*	Text-to-speech backend selection. HAVE_LIBESPEAK comes from the build
+        system when the espeak-ng option is enabled (src/meson.build); it is
+        deliberately platform-neutral — the mapping lives outside the
+        GNUstep-only block above so the Apple-Foundation darwin build gets
+        the espeak path as well (the AppKit backend uses NSSpeechSynthesizer
+        instead of espeak when both are available).
+*/
+#ifdef HAVE_LIBESPEAK
+#define OOLITE_SPEECH_SYNTH 1
+#define OOLITE_ESPEAK 1
 #endif
 
 #ifndef OOLITE_SPEECH_SYNTH
@@ -363,4 +390,12 @@ typedef id instancetype;
 #ifndef OO_GAME_DATA_TO_USER_FOLDER
 #define OO_GAME_DATA_TO_USER_FOLDER 0
 #endif
+#endif
+
+/*	Apple-Foundation-only compatibility declarations (audit-driven; see the
+        header for the rules). Skipped entirely on other Foundations, which never
+        see the file.
+ */
+#ifdef OOLITE_MACOS_APPLE_FOUNDATION
+#import "OOFoundationCompat.h"
 #endif

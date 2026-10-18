@@ -36,11 +36,28 @@ add_project_arguments(
     language: c_family,
 )
 
+# macOS bundle Info.plist: substituted from the template at configure time
+# (@ver_full@ / @ver_quad@, both derived from ShellScripts/common/get_version.sh
+# via version_vars). Generated on every host; only the darwin post-build
+# (ShellScripts/Darwin/post_build_fn.sh) installs it into the bundle.
+plist_data = configuration_data()
+plist_data.set('ver_full', version_string)
+plist_data.set('ver_quad', version_vars.get('ver_quad'))
+macos_info_plist = configure_file(
+    input: 'installers/macos/Info.plist.in',
+    output: 'Info.plist',
+    configuration: plist_data,
+)
+
 is_debug = (get_option('optimization') == '0' or get_option('debug'))
 if is_debug
     add_project_arguments(
         '-O0',
-        '-DDEBUG',
+        # NOTE: DEBUG must NOT be defined for oolite sources: js_static is
+        # built without DEBUG, and DEBUG flips jsapi.h's JSVAL_* / JSID_VOID
+        # constants to extern DEBUG-only library symbols the archive does not
+        # contain (link failure). Oolite's own debug features key off
+        # OO_DEBUG instead; see also the #ifdef DEBUG guards in OOJSConsole.m.
         '-DOO_DEBUG',
         '-DOO_CHECK_GL_HEAVY=1',
         language: c_family,
@@ -93,7 +110,13 @@ if get_option('dev_release')
 endif
 
 if get_option('oo_javascript_trace')
-    add_project_arguments('-DMOZ_TRACE_JSCALLS=1', language: c_family)
+    # JS_SetFunctionCallback (jsapi.h) only exists in SpiderMonkey builds
+    # that include the trace-JIT; the darwin js185 artifact is
+    # interpreter-only, so the option is inert there (documented port
+    # deviation: JIT off).
+    if host_os != 'darwin'
+        add_project_arguments('-DMOZ_TRACE_JSCALLS=1', language: c_family)
+    endif
 endif
 
 gnustep_folder = ''  # Not needed for Windows

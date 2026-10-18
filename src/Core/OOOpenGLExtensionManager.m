@@ -203,6 +203,8 @@ static NSArray* ArrayOfExtensions(NSString* extensionString)
 {
     const GLubyte *versionString = NULL, *curr = NULL;
 
+    legacyGLMode = NO;
+
     DESTROY(extensions);
     DESTROY(vendor);
     DESTROY(renderer);
@@ -241,9 +243,29 @@ static NSArray* ArrayOfExtensions(NSString* extensionString)
     OOLog(@"rendering.opengl.extensions", @"OpenGL extensions (%zu):\n%@", [extensions count], [[extensions allObjects] componentsJoinedByString:@", "]);
 
     if (![self versionIsAtLeastMajor:kMinMajorVersion minor:kMinMinorVersion]) {
+#if OOLITE_MAC_OS_X
+        /*	macOS has no compatibility profile: SDL hands us a legacy 2.1
+         context, which cannot satisfy the 3.3 gate but does provide the
+         FBO + ARB shader objects the renderer actually needs. Accept it
+         when the required capabilities are present (Task 8 legacy-GL
+         compatibility layer). */
+        if (![self versionIsAtLeastMajor:2 minor:1]) {
+            OOLog(@"rendering.opengl.version.insufficient", @"***** Oolite requires OpenGL version 2.1 or later (legacy mode).");
+            [NSException raise:@"OoliteOpenGLTooOldException"
+                        format:@"Oolite requires at least OpenGL 2.1 in legacy mode. You have %u.%u (\"%s\").", major, minor, versionString];
+        }
+        if (![self haveExtension:@"GL_EXT_framebuffer_object"]) {
+            OOLog(@"rendering.opengl.version.insufficient", @"***** Legacy mode requires GL_EXT_framebuffer_object.");
+            [NSException raise:@"OoliteOpenGLTooOldException"
+                        format:@"Legacy OpenGL mode requires GL_EXT_framebuffer_object. You have %u.%u (\"%s\").", major, minor, versionString];
+        }
+        legacyGLMode = YES;
+        OOLog(@"rendering.legacy.gate", @"%@ %u.%u accepted in legacy-GL compatibility mode (3.3 gate bypassed; FBO present).", @"Legacy OpenGL version:", major, minor);
+#else
         OOLog(@"rendering.opengl.version.insufficient", @"***** Oolite requires OpenGL version %u.%u or later.", kMinMajorVersion, kMinMinorVersion);
         [NSException raise:@"OoliteOpenGLTooOldException"
                     format:@"Oolite requires at least OpenGL %u.%u. You have %u.%u (\"%s\").", kMinMajorVersion, kMinMinorVersion, major, minor, versionString];
+#endif
     }
 
     NSString* versionStr = [[[NSString alloc] initWithUTF8String:(const char*)versionString] autorelease];
@@ -405,6 +427,11 @@ static NSArray* ArrayOfExtensions(NSString* extensionString)
 #else
     return NO;
 #endif
+}
+
+- (BOOL)legacyGLMode
+{
+    return legacyGLMode;
 }
 
 - (BOOL)textureCombinersSupported
