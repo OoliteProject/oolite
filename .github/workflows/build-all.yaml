@@ -218,6 +218,9 @@ jobs:
   release:
     needs: [build-linux, build-flatpak, build-windows, build-macos]
     runs-on: ubuntu-22.04
+    permissions:
+      contents: write  # create the release; also needed in forks, where the token is read-only by default
+      actions: write   # remove old workflow runs
     # Only run for internal requests (so not for PRs from forks)
     if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
     steps:
