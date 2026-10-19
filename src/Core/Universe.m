@@ -363,11 +363,20 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     OOGL(glBindFramebuffer(GL_FRAMEBUFFER, msaaFramebufferID));
 
     // creating MSAA texture that should be rendered into
+#if OO_MSAA_COLOR_RENDERBUFFER
+    // No multisample textures in the macOS legacy context; a multisample renderbuffer resolves the same way.
+    OOGL(glGenRenderbuffers(1, &msaaTextureID));
+    OOGL(glBindRenderbuffer(GL_RENDERBUFFER, msaaTextureID));
+    OOGL(glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_RGBA16F, (GLsizei)viewSize.width, (GLsizei)viewSize.height));
+    OOGL(glBindRenderbuffer(GL_RENDERBUFFER, 0));
+    OOGL(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, msaaTextureID));
+#else
     OOGL(glGenTextures(1, &msaaTextureID));
     OOGL(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, msaaTextureID));
     OOGL(glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGBA16F, (GLsizei)viewSize.width, (GLsizei)viewSize.height, GL_TRUE));
     OOGL(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0));
     OOGL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, msaaTextureID, 0));
+#endif
 
     // create necessary MSAA depth render buffer
     OOGL(glGenRenderbuffers(1, &msaaDepthBufferID));
@@ -519,7 +528,11 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
 - (void)deleteOpenGLObjects
 {
+#if OO_MSAA_COLOR_RENDERBUFFER
+    OOGL(glDeleteRenderbuffers(1, &msaaTextureID));
+#else
     OOGL(glDeleteTextures(1, &msaaTextureID));
+#endif
     OOGL(glDeleteTextures(1, &targetTextureID));
     OOGL(glDeleteTextures(2, passthroughTextureID));
     OOGL(glDeleteTextures(2, pingpongColorbuffers));
@@ -541,9 +554,15 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 {
     int i;
     // resize MSAA color attachment
+#if OO_MSAA_COLOR_RENDERBUFFER
+    OOGL(glBindRenderbuffer(GL_RENDERBUFFER, msaaTextureID));
+    OOGL(glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_RGBA16F, (GLsizei)viewSize.width, (GLsizei)viewSize.height));
+    OOGL(glBindRenderbuffer(GL_RENDERBUFFER, 0));
+#else
     OOGL(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, msaaTextureID));
     OOGL(glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGBA16F, (GLsizei)viewSize.width, (GLsizei)viewSize.height, GL_TRUE));
     OOGL(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0));
+#endif
 
     // resize MSAA depth attachment
     OOGL(glBindRenderbuffer(GL_RENDERBUFFER, msaaDepthBufferID));
@@ -594,9 +613,9 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     // fixes transparency issue for some reason
     OOGL(glDisable(GL_BLEND));
 
-    GLhandleARB program = [textureProgram program];
-    GLhandleARB blur = [blurProgram program];
-    GLhandleARB final = [finalProgram program];
+    GLuint program = OOGLProgramName([textureProgram program]);
+    GLuint blur = OOGLProgramName([blurProgram program]);
+    GLuint final = OOGLProgramName([finalProgram program]);
     NSSize viewSize = [gameView backingViewSize];
     float fboResolution[2] = { viewSize.width, viewSize.height };
 
@@ -622,7 +641,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
         OOGL(glActiveTexture(GL_TEXTURE0));
         // bind texture of other framebuffer (or scene if first iteration)
         OOGL(glBindTexture(GL_TEXTURE_2D, firstIteration ? passthroughTextureID[1] : pingpongColorbuffers[!horizontal]));
-        OOGL(glUniform1i(glGetUniformLocation([blurProgram program], "imageIn"), 0));
+        OOGL(glUniform1i(glGetUniformLocation(blur, "imageIn"), 0));
         OOGL(glBindVertexArray(quadTextureVAO));
         OOGL(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0));
         OOGL(glBindVertexArray(0));
@@ -741,7 +760,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
     // Set up speech synthesizer.
 #if OOLITE_SPEECH_SYNTH
-#if OOLITE_MAC_OS_X
+#if OOLITE_MAC_COCOA_UI
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_LOW, 0),
         ^{
             /*
@@ -887,7 +906,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
 #if OOLITE_SPEECH_SYNTH
     [speechArray release];
-#if OOLITE_MAC_OS_X
+#if OOLITE_MAC_COCOA_UI
     [speechSynthesizer release];
 #elif OOLITE_ESPEAK
     espeak_Cancel();
@@ -6296,7 +6315,7 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity* e2, float range)
                 NSString* original_phrase = [thePair oo_stringAtIndex:0];
 
                 NSUInteger replacementIndex;
-#if OOLITE_MAC_OS_X
+#if OOLITE_MAC_COCOA_UI
                 replacementIndex = 1;
 #elif OOLITE_ESPEAK
                 replacementIndex = [thePair count] > 2 ? 2 : 1;
@@ -9050,7 +9069,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void* context)
 }
 
 // speech routines
-#if OOLITE_MAC_OS_X
+#if OOLITE_MAC_COCOA_UI
 
 - (void)startSpeakingString:(NSString*)text
 {

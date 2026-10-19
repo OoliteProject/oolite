@@ -116,7 +116,7 @@ void OOPrintLogHeader(void)
 
 #ifndef NDEBUG
         @"JavaScript console support",
-#if OOLITE_MAC_OS_X
+#if OOLITE_MAC_COCOA_UI
         // Under Mac OS X, Debug.oxp adds more than console support.
         @"Debug plug-in support",
 #endif

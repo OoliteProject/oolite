@@ -104,7 +104,7 @@ SOFTWARE.
 #define OO_TEXTURE_CUBE_MAP 0
 #endif
 
-#define OOOPENGLEXTMGR_LOCK_SET_ACCESS (!OOLITE_MAC_OS_X)
+#define OOOPENGLEXTMGR_LOCK_SET_ACCESS (!OOLITE_MAC_COCOA_UI)
 
 @interface OOOpenGLExtensionManager : NSObject {
 @private

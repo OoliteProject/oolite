@@ -174,8 +174,49 @@ jobs:
             build/OoliteInstall*.exe
           retention-days: 5
 
+  build-macos:
+    needs: clang-format-check
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        flavour: [deployment, test, dev]
+    env:
+      HOMEBREW_NO_AUTO_UPDATE: 1
+      HOMEBREW_NO_INSTALL_CLEANUP: 1
+    steps:
+      - name: Checkout Oolite
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Install packages
+        run: |
+          ShellScripts/macOS/install_packages.sh
+      - name: Restore Mozilla static library
+        id: mozilla-js-cache
+        uses: actions/cache@v4
+        with:
+          path: build/mozilla_js
+          key: mozilla-js-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('ShellScripts/macOS/build_mozilla_js.sh', 'ShellScripts/macOS/mozilla_js_arm64.patch') }}
+      - name: Build Mozilla static library
+        if: steps.mozilla-js-cache.outputs.cache-hit != 'true'
+        run: |
+          ShellScripts/macOS/build_mozilla_js.sh
+      - name: Build Oolite
+        run: |
+          ./mk.sh build ${{matrix.flavour}} --github-repository="$GITHUB_REPOSITORY"
+      - name: Package Oolite
+        run: |
+          ./mk.sh pkg-dmg ${{matrix.flavour}}
+      - name: Archive installer
+        uses: actions/upload-artifact@v6
+        with:
+          name: oolite-macos-dmg-${{matrix.flavour}}
+          path: |
+            build/Oolite*.dmg
+          retention-days: 5
+
   release:
-    needs: [build-linux, build-flatpak, build-windows]
+    needs: [build-linux, build-flatpak, build-windows, build-macos]
     runs-on: ubuntu-22.04
     # Only run for internal requests (so not for PRs from forks)
     if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
@@ -193,11 +234,11 @@ jobs:
         id: version
         run: |
           set -x          
-          # 1. Check that there are exactly 8 files recursively in the artifacts directory
+          # 1. Check that there are exactly 11 files recursively in the artifacts directory
           FILE_COUNT=$(find artifacts -type f | wc -l)
           echo "Total files found: $FILE_COUNT"          
-          if [[ "$FILE_COUNT" -ne 8 ]]; then
-            echo "❌ Expected exactly 8 files, but found $FILE_COUNT." >&2
+          if [[ "$FILE_COUNT" -ne 11 ]]; then
+            echo "❌ Expected exactly 11 files, but found $FILE_COUNT." >&2
             exit 1
           fi                    
           # 2. Get the path of the first available AppImage
@@ -244,6 +285,9 @@ jobs:
             artifacts/oolite-linux-appimage-test/*.AppImage
             artifacts/oolite-linux-appimage-dev/*.AppImage
             artifacts/oolite-linux-flatpak-deployment/*.flatpak
+            artifacts/oolite-macos-dmg-deployment/*.dmg
+            artifacts/oolite-macos-dmg-test/*.dmg
+            artifacts/oolite-macos-dmg-dev/*.dmg
 
       - name: Remove old workflow runs
         if: github.ref == 'refs/heads/master' || endsWith(github.ref, 'maintenance')

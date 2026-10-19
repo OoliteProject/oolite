@@ -435,12 +435,23 @@ OOINLINE BOOL StatusIsSendable(OOTCPClientConnectionStatus status)
     NSInteger length;
     NSData* data;
 
+#if OOLITE_MAC_OS_X
+    // Only read while data is available: Apple's socket streams block in -read:maxLength: otherwise.
+    while ([_inStream hasBytesAvailable]) {
+        length = [_inStream read:buffer maxLength:kBufferSize];
+        if (length <= 0)
+            break;
+        data = [NSData dataWithBytesNoCopy:buffer length:length freeWhenDone:NO];
+        OOTCPStreamDecoderReceiveData(_decoder, data);
+    }
+#else
     length = [_inStream read:buffer maxLength:kBufferSize];
     while (length > 0) {
         data = [NSData dataWithBytesNoCopy:buffer length:length freeWhenDone:NO];
         OOTCPStreamDecoderReceiveData(_decoder, data);
         length = [_inStream read:buffer maxLength:kBufferSize];
     }
+#endif
 }
 
 - (void)dispatchPacket:(NSDictionary*)packet ofType:(NSString*)packetType

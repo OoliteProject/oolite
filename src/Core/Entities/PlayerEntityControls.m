@@ -278,7 +278,7 @@ static NSTimeInterval time_last_frame;
 
     keyShiftText = [DESC(@"oolite-keyconfig-shift") retain];
     keyMod1Text = [DESC(@"oolite-keyconfig-mod1") retain];
-#if OOLITE_MAC_OS_X
+#if OOLITE_MAC_COCOA_UI
     keyMod2Text = [DESC(@"oolite-keyconfig-mod2-mac") retain];
 #else
     keyMod2Text = [DESC(@"oolite-keyconfig-mod2-pc") retain];
