@@ -125,6 +125,9 @@ def run_test(bin_name, test_output):
 
         if not conn:
             print("[!] Failure: Oolite failed to connect.")
+            if sys.platform == "darwin" and proc.poll() is None:
+                # Show where a hung process is stuck
+                subprocess.run(["sample", str(proc.pid), "3"], stdout=sys.stdout, stderr=sys.stderr)
             return False
 
         # 2. THE HANDSHAKE
