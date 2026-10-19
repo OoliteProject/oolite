@@ -113,6 +113,14 @@ OOINLINE BOOL StatusIsSendable(OOTCPClientConnectionStatus status)
 
     self = [super init];
     if (self != nil) {
+#if OOLITE_MAC_OS_X
+        _host = [address copy];
+        CFReadStreamRef readStream = NULL;
+        CFWriteStreamRef writeStream = NULL;
+        CFStreamCreatePairWithSocketToHost(kCFAllocatorDefault, (CFStringRef)_host, port, &readStream, &writeStream);
+        _inStream = [(NSInputStream*)readStream autorelease];
+        _outStream = [(NSOutputStream*)writeStream autorelease];
+#else
         _host = [NSHost hostWithName:address];
         if (_host != nil) {
             [_host retain];
@@ -121,6 +129,7 @@ OOINLINE BOOL StatusIsSendable(OOTCPClientConnectionStatus status)
                            inputStream:&_inStream
                           outputStream:&_outStream];
         }
+#endif
 
         if (_inStream != nil && _outStream != nil) {
             [_inStream retain];
@@ -496,7 +505,11 @@ OOINLINE BOOL StatusIsSendable(OOTCPClientConnectionStatus status)
         if (consoleIdentity != nil)
             [connectedMessage appendFormat:@" \"%@\"", consoleIdentity];
 
+#if OOLITE_MAC_OS_X
+        hostName = _host;
+#else
         hostName = [_host name];
+#endif
         if ([hostName length] != 0 && ![hostName isEqual:@"localhost"] && ![hostName isEqual:@"127.0.0.1"] && ![hostName isEqual:@"::1"]) {
             [connectedMessage appendFormat:@" at %@", hostName];
         }
