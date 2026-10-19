@@ -7976,7 +7976,7 @@ static NSString* SliderString(NSInteger amountIn20ths)
         }
 #endif
 #endif
-#if !OOLITE_MAC_OS_X
+#if !OOLITE_MAC_COCOA_UI
         // window/fullscreen
         if ([gameView inFullScreenMode]) {
             [gui setText:DESC(@"gameoptions-play-in-window") forRow:GUI_ROW(GAME, DISPLAYSTYLE) align:GUI_ALIGN_CENTER];

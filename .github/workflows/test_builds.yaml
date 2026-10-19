@@ -196,3 +196,36 @@ jobs:
             ntldd -R oolite.exe
             exit 1
           fi
+
+  macos:
+    runs-on: macos-latest
+    env:
+      HOMEBREW_NO_AUTO_UPDATE: 1
+      HOMEBREW_NO_INSTALL_CLEANUP: 1
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Install packages
+        run: |
+          ShellScripts/macOS/install_packages.sh
+      - name: Restore Mozilla static library
+        id: mozilla-js-cache
+        uses: actions/cache@v4
+        with:
+          path: build/mozilla_js
+          key: mozilla-js-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('ShellScripts/macOS/build_mozilla_js.sh', 'ShellScripts/macOS/mozilla_js_arm64.patch') }}
+      - name: Build Mozilla static library
+        if: steps.mozilla-js-cache.outputs.cache-hit != 'true'
+        run: |
+          ShellScripts/macOS/build_mozilla_js.sh
+      - name: Build Oolite
+        run: |
+          ./mk.sh build dev
+      - name: Test Oolite
+        if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
+        run: |
+          ./mk.sh test dev
+      - name: Build DMG
+        run: |
+          ./mk.sh pkg-dmg dev

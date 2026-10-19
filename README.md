@@ -200,10 +200,36 @@ This action builds a Windows NSIS installer for development which can be found i
 ./mk.sh pkg-win dev
 ```
 
+### Other macOS ./mk.sh Actions
+
+This action builds a disk image (.dmg) containing the app bundle, which can be found in the `build` folder:
+
+```bash
+./mk.sh pkg-dmg deployment
+```
+
 ### Mac OS
 
-Intel-based Macs can run old builds of Oolite, but current Macs are unsupported. It is hoped that they can be supported
-in future.
+Apple Silicon Macs can build and run Oolite from source. The macOS build uses Apple's Foundation framework instead of
+GNUstep, with the same SDL front end as Linux and Windows. It needs Xcode (or the Xcode command line tools) and
+[Homebrew](https://brew.sh). After checking out the repository, install the required packages:
+
+```bash
+ShellScripts/macOS/install_packages.sh
+```
+
+Next, build the Mozilla JavaScript library. There is no prebuilt macOS version, so this compiles it from source into
+`build/mozilla_js`:
+
+```bash
+ShellScripts/macOS/build_mozilla_js.sh
+```
+
+Then build with `./mk.sh` as described below. The result is a self-contained application bundle, for example
+`build/meson_dev/oolite.app`, which you can open from Finder or with `open build/meson_dev/oolite.app`. The Homebrew
+libraries it needs are copied into the bundle, so it also runs on Apple Silicon Macs without Homebrew installed (same
+macOS version or later). `./mk.sh install dev` copies it to `/Applications/Oolite.app`. The bundle is only ad-hoc
+signed, so on another Mac you may need to right-click it and choose Open the first time.
 
 ### Objective-C
 
@@ -221,12 +247,11 @@ guide to the source tree.
 - **DebugOXP**:  [Debug.oxp](http://wiki.alioth.net/index.php/Debug_OXP), the expansion pack that enables console
   support in debug and test release builds
 - **Doc**:  Documentation (including user guides)
-- **ShellScripts**:  Scripts to build from source on Windows and Linux
+- **ShellScripts**:  Scripts to build from source on Windows, Linux and macOS
 - **installers**:  Files used to create various installers
 - **Resources**:  Game assets and resource files for Mac and GNUstep application bundles
     - **Schemata**:  Plist schema files for the [OXP Verifier](http://wiki.alioth.net/index.php/OXP_howto#OXP_Verifier)
 - **src**:  Objective-C and C sources, incuding header files
-    - **Cocoa**:  Files that are only compiled on Mac OS X
     - **Core**:  Files that are compiled on all platforms
     - **SDL**:  Files that are only compiled for platforms that use SDL
 - **tests**:  A mixed bag of test cases for manual testing and ad-hoc code tests.
