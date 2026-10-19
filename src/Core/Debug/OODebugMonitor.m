@@ -68,7 +68,7 @@ static OODebugMonitor* sSingleton = nil;
 @end
 
 @implementation OODebugMonitor
-#if OOLITE_GNUSTEP
+#if OOLITE_SDL
 NSString* NSApplicationWillTerminateNotification = @"ApplicationWillTerminate";
 #endif
 
@@ -636,7 +636,7 @@ typedef struct
     }
 }
 
-#if OOLITE_GNUSTEP
+#if OOLITE_SDL
 - (void)applicationWillTerminate
 {
     [[NSNotificationCenter defaultCenter] postNotificationName:NSApplicationWillTerminateNotification object:nil];

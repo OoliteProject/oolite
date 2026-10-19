@@ -122,7 +122,11 @@ static NSString* kOOLogKeyDown = @"input.keyMapping.keyPress.keyDown";
 {
     [self setVirtualJoystick:0.0 vmy:0.0];
     if ([[PlayerEntity sharedPlayer] isMouseControlOn]) {
-        SDL_WarpMouseInWindow(window, viewSize.width / 2, viewSize.height / 2);
+        // viewSize is in pixels; SDL mouse coordinates are in points (they differ on high-DPI displays)
+        float pixelDensity = SDL_GetWindowPixelDensity(window);
+        if (pixelDensity <= 0.0f)
+            pixelDensity = 1.0f;
+        SDL_WarpMouseInWindow(window, viewSize.width / 2 / pixelDensity, viewSize.height / 2 / pixelDensity);
         mouseWarped = YES;
     }
 }
@@ -348,8 +352,12 @@ static NSString* kOOLogKeyDown = @"input.keyMapping.keyPress.keyDown";
 
                 if (!mouseWarped) // standard event, handle it
                 {
-                    double mx = mmove_event->x - w / 2.0;
-                    double my = mmove_event->y - h / 2.0;
+                    // Event coordinates are in points, viewSize in pixels (they differ on high-DPI displays)
+                    float pixelDensity = SDL_GetWindowPixelDensity(window);
+                    if (pixelDensity <= 0.0f)
+                        pixelDensity = 1.0f;
+                    double mx = mmove_event->x * pixelDensity - w / 2.0;
+                    double my = mmove_event->y * pixelDensity - h / 2.0;
                     if (display_z > 640.0) {
                         mx /= w * MAIN_GUI_PIXEL_WIDTH / display_z;
                         my /= h;
@@ -839,7 +847,11 @@ static NSString* kOOLogKeyDown = @"input.keyMapping.keyPress.keyDown";
         [self updateGLSize:NSMakeSize(pixelWidth, pixelHeight)];
 
         if (!fullScreen) {
-            [self saveWindowSize:viewSize]; // Save the updated window size
+            // Save the window size in points, not pixels: they differ on high-DPI displays,
+            // and the saved size is passed back to SDL_SetWindowSize().
+            int windowWidth, windowHeight;
+            SDL_GetWindowSize(window, &windowWidth, &windowHeight);
+            [self saveWindowSize:NSMakeSize(windowWidth, windowHeight)];
         }
         resize_pending = false;
     }

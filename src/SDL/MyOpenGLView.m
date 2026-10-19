@@ -190,11 +190,14 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
         OOLog(@"sdl.create_context", @"%@", @"Could not create OpenGL context");
         exit(1);
     }
+#if !OOLITE_MAC_OS_X
+    // On macOS a window surface replaces the OpenGL drawable, so it must not be created there.
     SDL_Surface* surface = SDL_GetWindowSurface(window);
     if (!SDL_SetSurfaceColorspace(surface, SDL_COLORSPACE_SRGB_LINEAR)) {
         OOLogWARN(@"sdl.use_edr_surface", @"%@ %s", @"Failed to set SDR linear surface - falling back to SDR. Error was:", SDL_GetError());
         SDL_SetSurfaceColorspace(surface, SDL_COLORSPACE_SRGB);
     }
+#endif
 
 #if OOLITE_WINDOWS
     // capture the window handle for later (only needed for ugly hack later when transitioning between
@@ -232,7 +235,11 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
 
     _sdrToneMapper = OOSDRToneMapperFromString([prefs oo_stringForKey:@"sdr-tone-mapper" defaultValue:@"OOSDR_TONEMAPPER_ACES"]);
 
+#if OOLITE_MAC_OS_X
+    SDL_GL_SetSwapInterval(vSyncPreference ? 1 : 0);
+#else
     SDL_SetWindowSurfaceVSync(window, vSyncPreference);
+#endif
     OOLog(@"display.initGL", @"V-Sync %@requested.", vSyncPreference ? @"" : @"not ");
 
     int testAttrib = -1;
@@ -257,7 +264,11 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
     // Verify V-sync successfully set - report it if not
 
     int hasVsync;
+#if OOLITE_MAC_OS_X
+    if (vSyncPreference && (!SDL_GL_GetSwapInterval(&hasVsync) || !hasVsync)) {
+#else
     if (vSyncPreference && (!SDL_GetWindowSurfaceVSync(window, &hasVsync) || !hasVsync)) {
+#endif
         OOLogWARN(@"display.initGL", @"Could not enable V-Sync. Please check that your graphics driver supports the %@_swap_control extension.",
             OOLITE_WINDOWS ? @"WGL_EXT" : @"[GLX_SGI/GLX_MESA]");
     } else {
@@ -626,7 +637,7 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
     return fullScreen;
 }
 
-#ifdef GNUSTEP_BASE_LIBRARY
+#if OOLITE_SDL
 - (void)setFullScreenMode:(BOOL)fsm
 {
     fullScreen = fsm;
@@ -968,6 +979,11 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
     BOOL snapShotOK = YES;
     SDL_Surface* tmpSurface;
 
+#if OOLITE_MAC_OS_X
+    // The back buffer is undefined after a swap on macOS, so read the frame currently on screen.
+    OOGL(glReadBuffer(GL_FRONT));
+#endif
+
     // backup the previous directory
     NSString* originalDirectory = [[NSFileManager defaultManager] currentDirectoryPath];
     // use the snapshots directory
@@ -1008,7 +1024,17 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
         imageNo = tmpImageNo;
     }
 
+#if OOLITE_MAC_OS_X
+    // No window surface on macOS (see createWindowWithSize:); describe the GL drawable instead.
+    SDL_Surface* surface = NULL;
+    {
+        int pixelWidth, pixelHeight;
+        SDL_GetWindowSizeInPixels(window, &pixelWidth, &pixelHeight);
+        surface = SDL_CreateSurface(pixelWidth, pixelHeight, SDL_PIXELFORMAT_ARGB8888);
+    }
+#else
     SDL_Surface* surface = SDL_GetWindowSurface(window);
+#endif
     OOLog(@"screenshot", @"Saving screen shot \"%@\" (%u x %u pixels).", pathToPic, surface->w, surface->h);
 
     int pitch = surface->pitch;
@@ -1052,7 +1078,7 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
             fileExtension = SNAPSHOTHDR_EXTENSION_DEFAULT;
         }
 
-        NSString* pathToPicHDR = [pathToPic stringByReplacingString:@".png" withString:fileExtension];
+        NSString* pathToPicHDR = [pathToPic stringByReplacingOccurrencesOfString:@".png" withString:fileExtension];
         OOLog(@"screenshot", @"Saving screen shot \"%@\" (%u x %u pixels).", pathToPicHDR, surface->w, surface->h);
         GLfloat* pixlsf = (GLfloat*)malloc(pitch * surface->h * sizeof(GLfloat));
         for (y = surface->h - 1, off = 0; y >= 0; y--, off += pitch) {
@@ -1067,6 +1093,11 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
 
         free(pixlsf);
     }
+
+#if OOLITE_MAC_OS_X
+    SDL_DestroySurface(surface);
+    OOGL(glReadBuffer(GL_BACK));
+#endif
 
     // return to the previous directory
     [[NSFileManager defaultManager] changeCurrentDirectoryPath:originalDirectory];

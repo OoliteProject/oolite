@@ -35,7 +35,7 @@ SOFTWARE.
 #import "OOJavaScriptEngine.h"
 #import "ResourceManager.h"
 
-#if OOLITE_MAC_OS_X
+#if OOLITE_MAC_COCOA_UI
 static id LoadDebugPlugIn(void);
 #else
 #define LoadDebugPlugIn() nil
@@ -101,7 +101,7 @@ void OOInitDebugSupport(void)
     }
 }
 
-#if OOLITE_MAC_OS_X
+#if OOLITE_MAC_COCOA_UI
 
 static id LoadDebugPlugIn()
 {
