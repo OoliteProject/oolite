@@ -14,3 +14,5 @@
 # Random traffic in the system.
 [oojs.probe]: system.allShips
 [oojs.probe]: system.populatorSettings
+# Missile types are chosen at random when the ship is spawned.
+[oojs.probe]: spawned.missiles

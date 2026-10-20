@@ -449,7 +449,7 @@
 [oojs.probe]: spawned.AIScript = {aiStarted:function, author:"Giles Williams, Jens Ayton and contributors", license:"GPL 2+ / CC-BY-NC-SA 3.0 - see LICENSE.md for details", name:"Oolite Scavenger AI", oolite_manifest_identifier:"org.oolite.oolite", ship:<adder>, version:"1.93.1-229"}
 [oojs.probe]: spawned.AIScriptWakeTime = 0
 [oojs.probe]: spawned.AIState = "GLOBAL"
-[oojs.probe]: spawned.accuracy = -0.888672
+[oojs.probe]: spawned.accuracy = 0.84259
 [oojs.probe]: spawned.aftWeapon = null
 [oojs.probe]: spawned.alertCondition = 2
 [oojs.probe]: spawned.autoAI = true
@@ -468,7 +468,7 @@
 [oojs.probe]: spawned.commodity = null
 [oojs.probe]: spawned.commodityAmount = 0
 [oojs.probe]: spawned.contracts = []
-[oojs.probe]: spawned.crew = [{description:"a fierce bony lobster from Zaleriza", homeSystem:238, insuranceCredits:0, legalStatus:0, name:"Se Za", species:"fierce bony lobster"}]
+[oojs.probe]: spawned.crew = [{description:"a large blue slimy rodent from Beor", homeSystem:107, insuranceCredits:250, legalStatus:0, name:"A’thst Maloab", species:"large blue slimy rodent"}]
 [oojs.probe]: spawned.cruiseSpeed = 192
 [oojs.probe]: spawned.currentWeapon = {calculatedPrice:4000, canBeDamaged:true, canCarryMultiple:false, damageProbability:1, defaultActivateKey:null, defaultModeKey:null, description:"High powered pulse laser, a basic defense configuration.", displayColor:null, effectiveTechLevel:3, equipmentKey:"EQ_WEAPON_PULSE_LASER", fastAffinityDefensive:false, fastAffinityOffensive:false, incompatibleEquipment:null, installationTime:4600, isAvailableToAll:true, isAvailableToNPCs:true, isAvailableToPlayer:true, isExternalStore:false, isPortableBetweenShips:false, isVisible:true, name:"Pulse Laser", price:4000, provides:[], repairTime:0, requiredCargoSpace:0, requiresAnyEquipment:null, requiresCleanLegalRecord:false, requiresEmptyPylon:false, requiresEquipment:null, requiresFreePassengerBerth:false, requiresFullFuel:false, requiresMountedPylon:false, requiresNonCleanLegalRecord:false, requiresNonFullFuel:false, scriptInfo:{}, scriptName:"", techLevel:3, weaponInfo:{color:"redColor", damage:"15.0", energy:"0.8", range:"12500", recharge_rate:"0.5", shot_temperature:"7.0", threat_assessment:"0.0"}}
 [oojs.probe]: spawned.dataKey = "adder"
@@ -482,7 +482,7 @@
 [oojs.probe]: spawned.dockingInstructions = null
 [oojs.probe]: spawned.energy = 85
 [oojs.probe]: spawned.energyRechargeRate = 2
-[oojs.probe]: spawned.entityPersonality = 8778
+[oojs.probe]: spawned.entityPersonality = 17887
 [oojs.probe]: spawned.equipment = [{calculatedPrice:5250, canBeDamaged:true, canCarryMultiple:false, damageProbability:1, defaultActivateKey:null, defaultModeKey:null, description:"Wide cargo entrance and magnetic scoops enable in-flight capture of mined materials, fuel gasses from the solar corona, and salvage of space debris.", displayColor:null, effectiveTechLevel:5, equipmentKey:"EQ_FUEL_SCOOPS", fastAffinityDefensive:false, fastAffinityOffensive:false, incompatibleEquipment:null, installationTime:5850, isAvailableToAll:false, isAvailableToNPCs:true, isAvailableToPlayer:true, isExternalStore:false, isPortableBetweenShips:false, isVisible:true, name:"Fuel Scoops", price:5250, provides:[array 1], repairTime:0, requiredCargoSpace:0, requiresAnyEquipment:null, requiresCleanLegalRecord:false, requiresEmptyPylon:false, requiresEquipment:null, requiresFreePassengerBerth:false, requiresFullFuel:false, requiresMountedPylon:false, requiresNonCleanLegalRecord:false, requiresNonFullFuel:false, scriptInfo:{object}, scriptName:"", techLevel:5, weaponInfo:{object}}]
 [oojs.probe]: spawned.escortGroup = {count:1, leader:<adder>, name:"escort group", ships:[<adder>]}
 [oojs.probe]: spawned.escorts = []
@@ -497,7 +497,7 @@
 [oojs.probe]: spawned.hasHostileTarget = false
 [oojs.probe]: spawned.hasHyperspaceMotor = true
 [oojs.probe]: spawned.hasSuspendedAI = false
-[oojs.probe]: spawned.heading = Vector3D0.8858,0.4445,0.1332
+[oojs.probe]: spawned.heading = Vector3D-0.5369,-0.7032,-0.4661
 [oojs.probe]: spawned.heatInsulation = 1
 [oojs.probe]: spawned.homeSystem = 7
 [oojs.probe]: spawned.hyperspaceSpinTime = 15
@@ -552,10 +552,10 @@
 [oojs.probe]: spawned.maxThrust = 30
 [oojs.probe]: spawned.maxYaw = 2
 [oojs.probe]: spawned.missileCapacity = 1
-[oojs.probe]: spawned.missileLoadTime = 0
-[oojs.probe]: spawned.missiles = [{calculatedPrice:300, canBeDamaged:false, canCarryMultiple:true, damageProbability:0, defaultActivateKey:null, defaultModeKey:null, description:"Faulcon de Lacy HM3 homing missile, fast and accurate when used in conjunction with standard targeting scanners.", displayColor:null, effectiveTechLevel:1, equipmentKey:"EQ_MISSILE", fastAffinityDefensive:false, fastAffinityOffensive:false, incompatibleEquipment:null, installationTime:900, isAvailableToAll:true, isAvailableToNPCs:true, isAvailableToPlayer:true, isExternalStore:true, isPortableBetweenShips:false, isVisible:true, name:"Missile", price:300, provides:[array 0], repairTime:0, requiredCargoSpace:0, requiresAnyEquipment:null, requiresCleanLegalRecord:false, requiresEmptyPylon:true, requiresEquipment:null, requiresFreePassengerBerth:false, requiresFullFuel:false, requiresMountedPylon:false, requiresNonCleanLegalRecord:false, requiresNonFullFuel:false, scriptInfo:{object}, scriptName:"", techLevel:1, weaponInfo:{object}}]
+[oojs.probe]: spawned.missileLoadTime = 2
+[oojs.probe]: spawned.missiles = [{calculatedPrice:3500, canBeDamaged:false, canCarryMultiple:true, damageProbability:0, defaultActivateKey:null, defaultModeKey:null, description:"Faulcon de Lacy HMX5 homing missile - hardened against ECM.", displayColor:null, effectiveTechLevel:9, equipmentKey:"EQ_HARDENED_MISSILE", fastAffinityDefensive:false, fastAffinityOffensive:false, incompatibleEquipment:null, installationTime:4100, isAvailableToAll:true, isAvailableToNPCs:true, isAvailableToPlayer:true, isExternalStore:true, isPortableBetweenShips:false, isVisible:true, name:"ECM Hardened Missile", price:3500, provides:[array 0], repairTime:0, requiredCargoSpace:0, requiresAnyEquipment:null, requiresCleanLegalRecord:false, requiresEmptyPylon:true, requiresEquipment:null, requiresFreePassengerBerth:false, requiresFullFuel:false, requiresMountedPylon:false, requiresNonCleanLegalRecord:false, requiresNonFullFuel:false, scriptInfo:{object}, scriptName:"", techLevel:9, weaponInfo:{object}}]
 [oojs.probe]: spawned.name = "Adder"
-[oojs.probe]: spawned.orientation = Quaternion0.6608,0.5409,-0.3752,0.3604
+[oojs.probe]: spawned.orientation = Quaternion0.2799,-0.8053,-0.2906,0.4343
 [oojs.probe]: spawned.owner = null
 [oojs.probe]: spawned.parcelCount = 0
 [oojs.probe]: spawned.parcels = []
@@ -599,9 +599,9 @@
 [oojs.probe]: spawned.thrust = 30
 [oojs.probe]: spawned.thrustVector = Vector3D0,0,0
 [oojs.probe]: spawned.trackCloseContacts = false
-[oojs.probe]: spawned.vectorForward = Vector3D0.8858,0.4445,0.1332
-[oojs.probe]: spawned.vectorRight = Vector3D0.4586,-0.8823,-0.106
-[oojs.probe]: spawned.vectorUp = Vector3D0.0704,0.155,-0.9854
+[oojs.probe]: spawned.vectorForward = Vector3D-0.5369,-0.7032,-0.4661
+[oojs.probe]: spawned.vectorRight = Vector3D0.4538,0.225,-0.8622
+[oojs.probe]: spawned.vectorUp = Vector3D0.7112,-0.6744,0.1984
 [oojs.probe]: spawned.velocity = Vector3D0,0,0
 [oojs.probe]: spawned.weaponFacings = 1
 [oojs.probe]: spawned.weaponPositionAft = [Vector3D0,0,-22.5]
@@ -623,7 +623,7 @@
 [oojs.probe]: system keys: 29
 [oojs.probe]: system.ID = 7
 [oojs.probe]: system.allDemoShips = []
-[oojs.probe]: system.allShips = [<cobra3-player>, <coriolis-station>, <buoy>, <cobramk1>, <python-trader>, <sidewinder-escort>, <viper>, <viper>, <viper>, <viper>, <krait>, <gecko>, <asteroid-alternative>, <asteroid>, <asteroid-alternative>, <krait>, <cobramk1-alt>, <mamba-escort>, <moray>, <ferdelance>, <gecko>, <cobra3-alternate>, <mamba>, <gecko>, <ferdelance>, <sidewinder>, <krait>, <ferdelance>, <python>, <mamba>, <cobra3-trader>, <asp>, <adder>, <asteroid-alternative>, <asteroid>, <asteroid>, <asteroid>, <asteroid>, <krait>, <asteroid>, <cobra3-pirate>, <sidewinder>, <asteroid>, <asteroid>, <asteroid>, <sidewinder-escort>, <boa>, <cobramk1>, <gecko>, <cobra3-pirate>, <cobramk1-alt>, <sidewinder>, <krait>, <mamba>, <moray>, <python>, <cobra3-pirate>, <asp>, <buoy-witchpoint>, <krait>, <asteroid-alternative>, <rock-hermit-chaotic>, <asteroid-alternative>, <asteroid>, <asteroid>, <asteroid>, <asteroid>, <asteroid-alternative>, <asteroid-alternative>, <asteroid>, <asteroid-alternative>]
+[oojs.probe]: system.allShips = [<cobra3-player>, <coriolis-station>, <buoy>, <viper>, <gecko>, <sidewinder-escort>, <boa>, <cobramk1>, <ferdelance>, <krait>, <asp>, <cobra3-pirate>, <krait>, <python-blackdog>, <mamba-escort>, <cobramk1>, <mamba>, <mamba-escort>, <anaconda>, <gecko>, <moray>, <asteroid-alternative>, <asteroid>, <asteroid-alternative>, <gecko>, <cobramk1-alt>, <krait>, <krait>, <ferdelance>, <asteroid-alternative>, <asp>, <asteroid>, <sidewinder-escort>, <boa>, <sidewinder-escort>, <cobramk1-alt>, <asteroid>, <asteroid>, <asteroid>, <asteroid>, <asteroid>, <asteroid>, <python>, <ferdelance>, <moray>, <krait>, <asteroid>, <sidewinder>, <sidewinder>, <gecko>, <moray>, <krait>, <ferdelance>, <cobra3-alternate>, <krait>, <buoy-witchpoint>, <moray>, <cobra3-alternate>, <ferdelance>, <asteroid-alternative>, <rock-hermit-chaotic>, <asteroid-alternative>, <asteroid>, <asteroid>, <asteroid>, <asteroid>, <asteroid-alternative>, <asteroid-alternative>, <asteroid>, <asteroid-alternative>]
 [oojs.probe]: system.allVisualEffects = []
 [oojs.probe]: system.ambientLevel = 0.1
 [oojs.probe]: system.breakPattern = false
@@ -640,7 +640,7 @@
 [oojs.probe]: system.name = "Lave"
 [oojs.probe]: system.planets = [<Lave>]
 [oojs.probe]: system.population = 25
-[oojs.probe]: system.populatorSettings = {oolite-assassins:{groupCount:1, location:"WITCHPOINT", priority:40}, oolite-couriers-route1:{groupCount:1, location:"LANE_WP", priority:40}, oolite-couriers-route3:{groupCount:2, location:"LANE_WS", priority:40}, oolite-freighters:{groupCount:3, location:"LANE_WP", priority:40}, oolite-freighters-docking:{groupCount:1, location:"STATION_AEGIS", priority:40}, oolite-hunters-heavy-route1:{groupCount:0, location:"LANE_WP", priority:40}, oolite-hunters-heavy-route3:{groupCount:0, location:"LANE_WS", priority:40}, oolite-hunters-medium-route1:{groupCount:0, location:"LANE_WP", priority:40}, oolite-hunters-medium-route3:{groupCount:0, location:"LANE_WS", priority:40}, oolite-hunters-route1:{groupCount:1, location:"LANE_WP", priority:40}, oolite-hunters-triangle:{groupCount:0, location:"LANE_WPS", priority:40}, oolite-interceptors-route1:{groupCount:0, location:"LANE_WP", priority:40}, oolite-interceptors-witchpoint:{groupCount:0, location:"WITCHPOINT", priority:40}, oolite-nav-buoy:{coordinates:[array 3], deterministic:1, location:"COORDINATES", priority:5}, oolite-offlane-hermit:{deterministic:1, groupCount:1, location:"PLANET_ORBIT_HIGH", locationSeed:71258, priority:99}, oolite-pirate-heavy-remote:{groupCount:0, location:"LANE_WP", priority:40}, oolite-pirate-heavy-route1:{groupCount:0, location:"LANE_WP", priority:40}, oolite-pirate-heavy-triangle:{groupCount:0, location:"LANE_WPS", priority:40}, oolite-pirate-independent-route1:{groupCount:3, location:"LANE_WP", priority:40}, oolite-pirate-independent-route2:{groupCount:0, location:"LANE_PS", priority:40}, oolite-pirate-independent-route3:{groupCount:1, location:"LANE_WS", priority:40}, oolite-pirate-light-remote:{groupCount:0, location:"LANE_WP", priority:40}, oolite-pirate-light-route1:{groupCount:2, location:"LANE_WP", priority:40}, oolite-pirate-light-triangle:{groupCount:0, location:"LANE_WPS", priority:40}, oolite-pirate-medium-remote:{groupCount:0, location:"LANE_WP", priority:40}, oolite-pirate-medium-route1:{groupCount:0, location:"LANE_WP", priority:40}, oolite-pirate-medium-triangle:{groupCount:0, location:"LANE_WPS", priority:40}, oolite-police-route1:{groupCount:1, location:"LANE_WP", priority:40}, oolite-police-stationpatrol:{location:"STATION_AEGIS", priority:40}, oolite-police-triangle:{groupCount:0, location:"LANE_WPS", priority:40}, oolite-route1-asteroids:{deterministic:1, groupCount:1, location:"LANE_WP", locationSeed:51728, priority:20}, oolite-route2-asteroids:{deterministic:1, groupCount:3, location:"LANE_PS", locationSeed:82715, priority:20}, oolite-smugglers:{groupCount:0, location:"LANE_WP", priority:40}, oolite-thargoid-scouts:{groupCount:0, location:"LANE_WPS", priority:40}, oolite-thargoid-strike:{groupCount:0, location:"LANE_WPS", priority:40}, oolite-witch-buoy:{coordinates:[array 3], deterministic:1, location:"COORDINATES", priority:10}}
+[oojs.probe]: system.populatorSettings = {oolite-assassins:{groupCount:2, location:"WITCHPOINT", priority:40}, oolite-couriers-route1:{groupCount:1, location:"LANE_WP", priority:40}, oolite-couriers-route3:{groupCount:3, location:"LANE_WS", priority:40}, oolite-freighters:{groupCount:4, location:"LANE_WP", priority:40}, oolite-freighters-docking:{groupCount:0, location:"STATION_AEGIS", priority:40}, oolite-hunters-heavy-route1:{groupCount:0, location:"LANE_WP", priority:40}, oolite-hunters-heavy-route3:{groupCount:0, location:"LANE_WS", priority:40}, oolite-hunters-medium-route1:{groupCount:0, location:"LANE_WP", priority:40}, oolite-hunters-medium-route3:{groupCount:0, location:"LANE_WS", priority:40}, oolite-hunters-route1:{groupCount:0, location:"LANE_WP", priority:40}, oolite-hunters-triangle:{groupCount:0, location:"LANE_WPS", priority:40}, oolite-interceptors-route1:{groupCount:0, location:"LANE_WP", priority:40}, oolite-interceptors-witchpoint:{groupCount:0, location:"WITCHPOINT", priority:40}, oolite-nav-buoy:{coordinates:[array 3], deterministic:1, location:"COORDINATES", priority:5}, oolite-offlane-hermit:{deterministic:1, groupCount:1, location:"PLANET_ORBIT_HIGH", locationSeed:71258, priority:99}, oolite-pirate-heavy-remote:{groupCount:0, location:"LANE_WP", priority:40}, oolite-pirate-heavy-route1:{groupCount:0, location:"LANE_WP", priority:40}, oolite-pirate-heavy-triangle:{groupCount:0, location:"LANE_WPS", priority:40}, oolite-pirate-independent-route1:{groupCount:1, location:"LANE_WP", priority:40}, oolite-pirate-independent-route2:{groupCount:1, location:"LANE_PS", priority:40}, oolite-pirate-independent-route3:{groupCount:0, location:"LANE_WS", priority:40}, oolite-pirate-light-remote:{groupCount:0, location:"LANE_WP", priority:40}, oolite-pirate-light-route1:{groupCount:1, location:"LANE_WP", priority:40}, oolite-pirate-light-triangle:{groupCount:0, location:"LANE_WPS", priority:40}, oolite-pirate-medium-remote:{groupCount:0, location:"LANE_WP", priority:40}, oolite-pirate-medium-route1:{groupCount:1, location:"LANE_WP", priority:40}, oolite-pirate-medium-triangle:{groupCount:0, location:"LANE_WPS", priority:40}, oolite-police-route1:{groupCount:0, location:"LANE_WP", priority:40}, oolite-police-stationpatrol:{location:"STATION_AEGIS", priority:40}, oolite-police-triangle:{groupCount:0, location:"LANE_WPS", priority:40}, oolite-route1-asteroids:{deterministic:1, groupCount:1, location:"LANE_WP", locationSeed:51728, priority:20}, oolite-route2-asteroids:{deterministic:1, groupCount:3, location:"LANE_PS", locationSeed:82715, priority:20}, oolite-smugglers:{groupCount:0, location:"LANE_WP", priority:40}, oolite-thargoid-scouts:{groupCount:0, location:"LANE_WPS", priority:40}, oolite-thargoid-strike:{groupCount:0, location:"LANE_WPS", priority:40}, oolite-witch-buoy:{coordinates:[array 3], deterministic:1, location:"COORDINATES", priority:10}}
 [oojs.probe]: system.productivity = 7000
 [oojs.probe]: system.pseudoRandom100 = 57
 [oojs.probe]: system.pseudoRandom256 = 41
@@ -694,6 +694,8 @@
 [oojs.probe]: Vector3D from entity -> 0
 [oojs.probe]: Quaternion from entity -> false
 [oojs.probe]: bad method this THREW Error: Native method expected Ship, got [object Object].
+[oojs.probe]: legacy const outside block -> 5
+[oojs.probe]: legacy const before declaration -> "undefined"
 [oojs.probe]: launching
 [oojs.probe]: event soakEnd
 [oojs.probe]: in space -> true
