@@ -484,7 +484,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
     OOGLUseProgram(program);
     OOGLBindTexture(GL_TEXTURE_2D, OORendererRenderTargetTexture(_sceneTarget, 0));
-    OOGL(glUniform1i(glGetUniformLocation(program, "image"), 0));
+    [textureProgram setUniform:[textureProgram uniformHandleForName:@"image"] intValue:0];
 
     [self drawFramebufferQuad];
     OORendererEndPass();
@@ -495,11 +495,11 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     for (unsigned int i = 0; i < amount; i++) {
         // Every pixel is drawn, so the old contents don't matter.
         OORendererBeginPass(&(OORenderPassDescriptor) { .target = _pingpongTargets[horizontal], .colorLoad = kOOLoadDontCare, .depthLoad = kOOLoadDontCare });
-        OOGL(glUniform1i(glGetUniformLocation(blur, "horizontal"), horizontal));
+        [blurProgram setUniform:[blurProgram uniformHandleForName:@"horizontal"] intValue:horizontal];
         OOGLActiveTexture(GL_TEXTURE0);
         // bind texture of other framebuffer (or scene if first iteration)
         OOGLBindTexture(GL_TEXTURE_2D, firstIteration ? OORendererRenderTargetTexture(_passthroughTarget, 1) : OORendererRenderTargetTexture(_pingpongTargets[!horizontal], 0));
-        OOGL(glUniform1i(glGetUniformLocation(blur, "imageIn"), 0));
+        [blurProgram setUniform:[blurProgram uniformHandleForName:@"imageIn"] intValue:0];
         [self drawFramebufferQuad];
         OORendererEndPass();
         horizontal = !horizontal;
@@ -512,24 +512,25 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
     OOGLActiveTexture(GL_TEXTURE0);
     OOGLBindTexture(GL_TEXTURE_2D, OORendererRenderTargetTexture(_passthroughTarget, 0));
-    OOGL(glUniform1i(glGetUniformLocation(final, "scene"), 0));
-    OOGL(glUniform1i(glGetUniformLocation(final, "bloom"), [self bloom]));
-    OOGL(glUniform1f(glGetUniformLocation(final, "uTime"), [self getTime]));
-    OOGL(glUniform2fv(glGetUniformLocation(final, "uResolution"), 1, fboResolution));
-    OOGL(glUniform1i(glGetUniformLocation(final, "uPostFX"), [self currentPostFX]));
+    [finalProgram setUniform:[finalProgram uniformHandleForName:@"scene"] intValue:0];
+    [finalProgram setUniform:[finalProgram uniformHandleForName:@"bloom"] intValue:[self bloom]];
+    [finalProgram setUniform:[finalProgram uniformHandleForName:@"uTime"] floatValue:[self getTime]];
+    [finalProgram setUniform:[finalProgram uniformHandleForName:@"uResolution"] vec2Value:fboResolution];
+    [finalProgram setUniform:[finalProgram uniformHandleForName:@"uPostFX"] intValue:[self currentPostFX]];
 #if OOLITE_WINDOWS
     if ([gameView hdrOutput]) {
-        OOGL(glUniform1f(glGetUniformLocation(final, "uMaxBrightness"), [gameView hdrMaxBrightness]));
-        OOGL(glUniform1f(glGetUniformLocation(final, "uPaperWhiteBrightness"), [gameView hdrPaperWhiteBrightness]));
-        OOGL(glUniform1i(glGetUniformLocation(final, "uHDRToneMapper"), [gameView hdrToneMapper]));
+        [finalProgram setUniform:[finalProgram uniformHandleForName:@"uMaxBrightness"] floatValue:[gameView hdrMaxBrightness]];
+        [finalProgram setUniform:[finalProgram uniformHandleForName:@"uPaperWhiteBrightness"] floatValue:[gameView hdrPaperWhiteBrightness]];
+        [finalProgram setUniform:[finalProgram uniformHandleForName:@"uHDRToneMapper"] intValue:[gameView hdrToneMapper]];
     }
 #endif
-    OOGL(glUniform1i(glGetUniformLocation(final, "uSDRToneMapper"), [gameView sdrToneMapper]));
+    [finalProgram setUniform:[finalProgram uniformHandleForName:@"uSDRToneMapper"]
+                    intValue:[gameView sdrToneMapper]];
 
     OOGLActiveTexture(GL_TEXTURE1);
     OOGLBindTexture(GL_TEXTURE_2D, OORendererRenderTargetTexture(_pingpongTargets[!horizontal], 0));
-    OOGL(glUniform1i(glGetUniformLocation(final, "bloomBlur"), 1));
-    OOGL(glUniform1f(glGetUniformLocation(final, "uSaturation"), [gameView colorSaturation]));
+    [finalProgram setUniform:[finalProgram uniformHandleForName:@"bloomBlur"] intValue:1];
+    [finalProgram setUniform:[finalProgram uniformHandleForName:@"uSaturation"] floatValue:[gameView colorSaturation]];
 
     [self drawFramebufferQuad];
     OORendererEndPass();
