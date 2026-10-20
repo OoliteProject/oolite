@@ -15,10 +15,11 @@ fixed-function built-ins such as `gl_LightSource`, `gl_FrontMaterial`,
 ## Result
 
 **OXP shaders can be kept fully working.** Every shader file found in the
-expansion catalog translates and builds an SDL_GPU pipeline on both the Metal
-and Vulkan backends. Every program OpenGL can render produces the same image
-after translation, apart from GPU noise and undefined behaviour (both
-explained below).
+expansion catalog translates and builds an SDL_GPU pipeline on Metal, on
+Vulkan through MoltenVK, and on Mesa's Vulkan driver on Linux. The one
+exception is a single shader that needs a newer glslang than Debian ships.
+Every program OpenGL can render produces the same image after translation,
+apart from GPU noise and undefined behaviour (both explained below).
 
 Corpus: every OXZ in the catalog at `addons.oolite.space` (818 expansions, as
 of 2026-10-20), plus Oolite's 18 built-in programs. The built-ins cover the
@@ -32,43 +33,60 @@ texture, and the fixed-function emulation.
   plist references. Some are assigned from JavaScript, some are unused and 10
   are backups. The 65 that aren't backups were paired by file name, with the
   fixed-function stage standing in for a missing partner, giving 52
-  programs. 25 configured pairs name files that exist in no catalog OXP, so they can't be tested.
+  programs. 25 configured pairs name files that exist in no catalog OXP, so
+  they can't be tested.
 
-| Check | Metal | Vulkan (MoltenVK) |
-|---|---|---|
-| Translate, validate SPIR-V (`spirv-val`, Vulkan 1.0), create SDL_GPU shaders and pipeline: built-in | 18/18 | 18/18 |
-| Same, configured OXP programs | 392/392 | 392/392 |
-| Same, unconfigured OXP files | 52/52 | 52/52 |
-| Rendered image identical to OpenGL¹, configured programs, unset uniforms = 0.5 | 315/338 | 315/338 |
-| Same, unset uniforms = 1 (exercises `int`/`bool` branches) | 337/338 | 337/338 |
-| Either value, with the shaders' `fract(sin(x) * 43758.5453)` hash neutralised | 338/338 | 338/338 |
-| Rendered image identical to OpenGL¹, unconfigured files | 14/22 | not run |
+There are three test platforms:
+
+| Platform | SDL_GPU backend | OpenGL reference | Toolchain |
+|---|---|---|---|
+| macOS (Apple Silicon) | Metal | Apple GL 2.1 | glslang 16.6.0, SPIRV-Cross 1.4.363 |
+| macOS (Apple Silicon) | Vulkan through MoltenVK | Apple GL 2.1 | glslang 16.6.0, SPIRV-Cross 1.4.363 |
+| Linux (Debian 13, arm64, Docker) | Vulkan, Mesa lavapipe 25.0 | Mesa llvmpipe, GL 4.5 compatibility profile | glslang 15.1.0, SDL 3.2.10 |
+
+| Check | Metal | MoltenVK | lavapipe |
+|---|---|---|---|
+| Translate, validate SPIR-V (`spirv-val`, Vulkan 1.0), create SDL_GPU shaders and pipeline: built-in | 18/18 | 18/18 | 18/18 |
+| Same, configured OXP programs | 392/392 | 392/392 | 391/392² |
+| Same, unconfigured OXP files | 52/52 | 52/52 | 52/52 |
+| Rendered image identical to OpenGL¹, configured programs, unset uniforms = 0.5 | 315/338 | 315/338 | 316/338 |
+| Same, unset uniforms = 1 (exercises `int`/`bool` branches) | 337/338 | 337/338 | 338/338 |
+| Either value, with the shaders' `fract(sin(x) * 43758.5453)` hash neutralised | 338/338 | 338/338 | not needed at 1 |
+| Rendered image identical to OpenGL¹, unconfigured files, unset uniforms = 1 | 14/22 | not run | 37/52 |
 
 ¹ At most 2/255 per channel on more than 99.5% of pixels, and a mean
 difference below 0.5/255.
+² `cotbs-sensors.fragment` uses C-style casts (`(float)x`), which glslang
+16.6 accepts through `GL_NV_explicit_typecast` but 15.1 does not.
 
 - **Hash noise accounts for every image difference in configured programs**:
-  23 at 0.5, 1 at 1. All of these are Griff-family engine and hull shaders
-  that use a `sin()`-based hash, thresholded to on/off, for engine flicker.
-  Tiny differences in `sin()` precision between Apple's GL and Metal flip
-  individual pixels. Other GL drivers would be expected to differ in the same
-  way, but that wasn't measured. With the hash constant replaced, all of them
-  match (at most a few pixels off by 10/255 at the threshold).
-- **The 8 unconfigured-file differences are undefined behaviour.** Each is a
-  vertex shader whose fragment shader couldn't be paired by name, so it ran
-  against the fixed-function fragment stage. None of these vertex shaders
-  write `gl_FrontColor`, which makes GL's output undefined; the translator
-  defaults it to white. These pairings never occur in the game.
-- **No OpenGL reference for 7 configured programs and 30 unconfigured pairs,**
-  because Apple's GL 2.1 compiler rejects them. The configured 7 use
-  constructor-style array initialisers, a fragment input the vertex shader
-  never writes, and other syntax that NVIDIA's driver accepts. The translator
-  compiles all of them, but whether their output is right is unverified.
-- **The Vulkan column is not an independent driver test.** MoltenVK converts
+  23 on Apple and 22 on Mesa at 0.5; 1 on Apple and none on Mesa at 1. All
+  of these are Griff-family engine and hull shaders that use a `sin()`-based
+  hash, thresholded to on/off, for engine flicker. Tiny `sin()` precision
+  differences between the GL and SDL_GPU drivers flip individual pixels. With
+  the hash constant replaced, all of them match (at most a few pixels off by
+  10/255 at the threshold).
+- **Every unconfigured-file difference is undefined behaviour.** These are
+  the pairings made up for testing:
+  - On Apple, 8 vertex shaders ran against the fixed-function fragment stage
+    without writing `gl_FrontColor`.
+  - On Mesa, 15 fragment shaders ran against the fixed-function vertex stage
+    while reading varyings that stage never writes.
+
+  GL leaves those values undefined; the translator supplies zero, or white
+  for colour. The game never uses these pairings. Mesa compiles all 52
+  pairings, so it gives references Apple couldn't.
+- **No OpenGL reference for 7 configured programs.** Apple's GL and Mesa's GL
+  both reject them. They use constructor-style array initialisers, a fragment
+  input the vertex shader never writes, and other syntax that NVIDIA's driver
+  accepts. The translator compiles all of them, but whether their output is
+  right is unverified.
+- **Only the Mesa column is an independent driver test.** MoltenVK converts
   the SPIR-V to MSL with SPIRV-Cross and runs it on Metal, which is also what
-  Apple's GL runs on. The column shows that the SPIR-V and SDL's Vulkan
-  descriptor-set conventions are correct. It says nothing about real Vulkan
-  drivers (Mesa, NVIDIA, AMD).
+  Apple's GL runs on, so the MoltenVK column only shows that the SPIR-V and
+  SDL's Vulkan descriptor-set conventions are correct. Lavapipe and llvmpipe
+  share nothing with Apple's stack. They are software drivers, so hardware
+  Vulkan drivers (NVIDIA, AMD, Intel) are still untested.
 - **Cost:** translating, validating and building pipelines for the 392
   configured programs takes about 2 s, roughly 5 ms per program. That is
   fine for load-time translation; a disk cache can come later.
@@ -161,8 +179,10 @@ APIs, so the game can use it as is in phase 3.
   The OXPs' own textures and their animated uniform bindings (engine level,
   time and so on) were not used. The OpenGL reference is Apple's GL 2.1 only.
 - **Dependencies:** glslang and SPIRV-Cross; SDL_shadercross is not needed.
-  Tested only with Homebrew's glslang 16.6.0 and SPIRV-Cross 1.4.363.0;
-  packaging on MSYS2 and the Linux distributions hasn't been checked yet.
+  Tested with Homebrew (glslang 16.6.0, SPIRV-Cross 1.4.363.0) and Debian 13
+  (glslang 15.1.0, `libspirv-cross-c-shared`, SPIRV-Tools 2025.1). Debian's
+  static glslang also needs `SPIRV-Tools-opt`. MSYS2 packaging hasn't been
+  checked.
   The static SPIRV-Cross libraries need the C++ runtime at link time, and
   their pkg-config file doesn't list the backend libraries.
 - **Minimum glslang version: 15.0.0.** That release added
@@ -175,6 +195,11 @@ APIs, so the game can use it as is in phase 3.
   that and lower the minimum to 11.8.0, since sets, bindings and varying
   locations are rewritten afterwards anyway. Alternatively, glslang can be
   built as a Meson subproject.
+- **Full compatibility needs glslang 16.3.0 or later.** That release added
+  `GL_NV_explicit_typecast`, which C-style casts such as `(float)x` need.
+  Only one catalog shader uses them. Debian 13 and Ubuntu 24.04 ship 15.1.0,
+  so a bundled glslang (Meson subproject) is the safer choice for release
+  builds.
 
 ## Reproducing
 
@@ -190,6 +215,11 @@ build/sdl_gpu_spike/oogpu-check $C/corpus.tsv $C/check.log      # translate + sp
 python3 tools/sdl_gpu_spike/corpus/sweep.py build/sdl_gpu_spike/oogpu-render $C/corpus.tsv $C/images \
     Resources/Textures/cobra3_redux.png 1 > $C/sweep.tsv        # GL vs SDL_GPU images, unset uniforms = 1
 ```
+
+To run the Linux checks (Mesa lavapipe and llvmpipe), build
+`tools/sdl_gpu_spike/linux/Dockerfile` and follow the instructions at the top
+of `linux/run-tests.sh`. The manifests have to use the container's `/src` and
+`/corpus` paths.
 
 To use the Vulkan backend through MoltenVK, set `SDL_GPU_DRIVER=vulkan`,
 `VK_ICD_FILENAMES=/opt/homebrew/etc/vulkan/icd.d/MoltenVK_icd.json` and

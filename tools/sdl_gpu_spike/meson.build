@@ -4,20 +4,34 @@
 project('oolite-sdl-gpu-spike', 'c', 'cpp', default_options: ['c_std=c11', 'warning_level=2'])
 
 sdl3 = dependency('sdl3')
-spirv_tools = dependency('SPIRV-Tools-shared')
-# glslang ships no pkg-config file; look for the libraries directly.
+spirv_tools = dependency('SPIRV-Tools-shared', 'SPIRV-Tools')
 cc = meson.get_compiler('c')
+# "#pragma mark" sections, as in the rest of Oolite; GCC doesn't know them.
+add_project_arguments(cc.get_supported_arguments('-Wno-unknown-pragmas'), language: 'c')
 brew_lib = ['/opt/homebrew/lib', '/usr/local/lib']
-glslang = declare_dependency(
-    dependencies: [cc.find_library('glslang', dirs: brew_lib), cc.find_library('glslang-default-resource-limits', dirs: brew_lib)],
-    include_directories: include_directories(run_command('sh', '-c', 'for d in /opt/homebrew/include /usr/local/include /usr/include; do [ -d $d/glslang ] && echo $d && break; done', check: true).stdout().strip()))
+# Homebrew's glslang ships no pkg-config file; look for the libraries directly.
+glslang = dependency('glslang', required: false)
+if glslang.found()
+    # Debian's static glslang also needs the SPIRV-Tools optimiser.
+    glslang = declare_dependency(dependencies: [glslang, cc.find_library('glslang-default-resource-limits'),
+        cc.find_library('SPIRV-Tools-opt', required: false), spirv_tools])
+else
+    glslang = declare_dependency(
+        dependencies: [cc.find_library('glslang', dirs: brew_lib), cc.find_library('glslang-default-resource-limits', dirs: brew_lib)],
+        include_directories: include_directories(run_command('sh', '-c', 'for d in /opt/homebrew/include /usr/local/include /usr/include; do [ -d $d/glslang ] && echo $d && break; done', check: true).stdout().strip()))
+endif
 
-# The static spirv-cross-c pkg-config file leaves out the backends it needs.
-spirv_cross_libs = [dependency('spirv-cross-c')]
-foreach lib : ['msl', 'hlsl', 'cpp', 'glsl', 'reflect', 'util', 'core']
-    spirv_cross_libs += cc.find_library('spirv-cross-' + lib, dirs: brew_lib, static: true)
-endforeach
-spirv_cross = declare_dependency(dependencies: spirv_cross_libs)
+# Prefer the shared SPIRV-Cross C library (Debian, Ubuntu). The static one
+# (Homebrew) needs its backend libraries listed by hand, as its pkg-config
+# file leaves them out.
+spirv_cross = dependency('spirv-cross-c-shared', required: false)
+if not spirv_cross.found()
+    spirv_cross_libs = [dependency('spirv-cross-c')]
+    foreach lib : ['msl', 'hlsl', 'cpp', 'glsl', 'reflect', 'util', 'core']
+        spirv_cross_libs += cc.find_library('spirv-cross-' + lib, dirs: brew_lib, static: true)
+    endforeach
+    spirv_cross = declare_dependency(dependencies: spirv_cross_libs)
+endif
 
 translator = static_library('ooglsltranslator', 'OOGLSLTranslator.c',
     dependencies: [glslang, spirv_cross])

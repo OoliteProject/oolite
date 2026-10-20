@@ -18,7 +18,8 @@ Options:
     -i <name>=<n>        value for an int uniform
     -U <v>               value for every other uniform (all components)
     -T <png>             texture for every other 2D sampler
-Writes <out prefix>-gl.png and <out prefix>-gpu.png, and prints the mean and
+Writes <out prefix>-gl.png and <out prefix>-gpu.png (.bmp with SDL older than
+3.4, which also needs textures given as .bmp), and prints the mean and
 maximum per-channel difference and the share of pixels that differ by more
 than 2/255.
 
@@ -126,7 +127,7 @@ static Mat4 Inverse(Mat4 a)
 
 static Mat4 Perspective(float fovyDegrees, float aspect, float zNear, float zFar)
 {
-    float f = 1.0f / tanf(fovyDegrees * (float)M_PI / 360.0f);
+    float f = 1.0f / tanf(fovyDegrees * SDL_PI_F / 360.0f);
     Mat4 r = { { 0 } };
     r.m[0] = f / aspect;
     r.m[5] = f;
@@ -138,7 +139,7 @@ static Mat4 Perspective(float fovyDegrees, float aspect, float zNear, float zFar
 
 static Mat4 Rotation(float degrees, float x, float y, float z)
 {
-    float a = degrees * (float)M_PI / 180.0f, c = cosf(a), s = sinf(a), t = 1 - c;
+    float a = degrees * SDL_PI_F / 180.0f, c = cosf(a), s = sinf(a), t = 1 - c;
     Mat4 r = Identity();
     r.m[0] = t * x * x + c;
     r.m[1] = t * x * y + s * z;
@@ -169,9 +170,9 @@ static void BuildSphere(Mesh* mesh)
         mesh->streams[s] = calloc(n * OOVertexStreamComponents(s), sizeof(float));
     uint32_t v = 0;
     for (int ring = 0; ring <= kRings; ring++) {
-        float theta = (float)ring / kRings * (float)M_PI;
+        float theta = (float)ring / kRings * SDL_PI_F;
         for (int seg = 0; seg <= kSegments; seg++, v++) {
-            float phi = (float)seg / kSegments * 2.0f * (float)M_PI;
+            float phi = (float)seg / kSegments * 2.0f * SDL_PI_F;
             float x = sinf(theta) * cosf(phi), y = cosf(theta), z = -sinf(theta) * sinf(phi);
             float* p = &mesh->streams[kOOVertexStreamPosition][v * 3];
             float* nrm = &mesh->streams[kOOVertexStreamNormal][v * 3];
@@ -801,12 +802,31 @@ static bool RenderGPU(const Scene* scene, const OOGLSLProgram* program, uint8_t*
 
 #pragma mark - Main
 
-static bool SavePNG(const uint8_t* pixels, const char* prefix, const char* suffix)
+// PNG support arrived in SDL 3.4; Debian and Ubuntu ship 3.2.
+static SDL_Surface* LoadImage(const char* path)
+{
+    size_t length = strlen(path);
+    if (length > 4 && SDL_strcasecmp(path + length - 4, ".bmp") == 0)
+        return SDL_LoadBMP(path);
+#if SDL_VERSION_ATLEAST(3, 4, 0)
+    return SDL_LoadPNG(path);
+#else
+    SDL_SetError("PNG needs SDL 3.4; convert %s to BMP", path);
+    return NULL;
+#endif
+}
+
+static bool SaveImage(const uint8_t* pixels, const char* prefix, const char* suffix)
 {
     char path[1024];
-    snprintf(path, sizeof path, "%s-%s.png", prefix, suffix);
     SDL_Surface* surface = SDL_CreateSurfaceFrom(kSize, kSize, SDL_PIXELFORMAT_RGBA32, (void*)pixels, kSize * 4);
+#if SDL_VERSION_ATLEAST(3, 4, 0)
+    snprintf(path, sizeof path, "%s-%s.png", prefix, suffix);
     bool ok = surface != NULL && SDL_SavePNG(surface, path);
+#else
+    snprintf(path, sizeof path, "%s-%s.bmp", prefix, suffix);
+    bool ok = surface != NULL && SDL_SaveBMP(surface, path);
+#endif
     if (!ok)
         fprintf(stderr, "cannot save %s: %s\n", path, SDL_GetError());
     SDL_DestroySurface(surface);
@@ -853,7 +873,7 @@ int main(int argc, char* argv[])
             for (int i = 0; i < 16; i++)
                 scene.defaultValue.values[i] = strtof(argv[arg + 1], NULL);
         } else if (strcmp(argv[arg], "-T") == 0) {
-            SDL_Surface* loaded = SDL_LoadPNG(argv[arg + 1]);
+            SDL_Surface* loaded = LoadImage(argv[arg + 1]);
             if (loaded == NULL) {
                 fprintf(stderr, "cannot load %s: %s\n", argv[arg + 1], SDL_GetError());
                 return 2;
@@ -861,7 +881,7 @@ int main(int argc, char* argv[])
             scene.defaultTexture = SDL_ConvertSurface(loaded, SDL_PIXELFORMAT_RGBA32);
             SDL_DestroySurface(loaded);
         } else if (strcmp(argv[arg], "-t") == 0 && ParseAssignment(argv[arg + 1], name, sizeof name, &value)) {
-            SDL_Surface* loaded = SDL_LoadPNG(value);
+            SDL_Surface* loaded = LoadImage(value);
             if (loaded == NULL) {
                 fprintf(stderr, "cannot load %s: %s\n", value, SDL_GetError());
                 return 2;
@@ -912,8 +932,8 @@ int main(int argc, char* argv[])
         return 1;
     OOGLSLProgramFree(&program);
 
-    SavePNG(glPixels, out, "gl");
-    SavePNG(gpuPixels, out, "gpu");
+    SaveImage(glPixels, out, "gl");
+    SaveImage(gpuPixels, out, "gpu");
 
     double sum = 0;
     int maxDiff = 0;
