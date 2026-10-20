@@ -28,6 +28,7 @@ MA 02110-1301, USA.
 #import "OOCollectionExtractors.h"
 #import "OOImmediateMode.h"
 #import "OOJavaScriptEngine.h"
+#import "OORenderState.h"
 #import "OOSound.h"
 #import "OOStringExpander.h"
 #import "OOStringParsing.h"
@@ -1229,6 +1230,10 @@ static OOTextureSprite* NewTextureSpriteWithDescriptor(NSDictionary* descriptor,
     GLfloat y = drawPosition.y;
     GLfloat z = [[UNIVERSE gameView] display_z];
 
+    // The GUI is drawn as an unclipped overlay.
+    OODrawState guiState = OODrawStateForPreset(kOODrawStateOverlay);
+    OORendererPushDrawState(&guiState);
+
     if (alpha > 0.05f) {
         PlayerEntity* player = PLAYER;
 
@@ -1303,6 +1308,7 @@ static OOTextureSprite* NewTextureSpriteWithDescriptor(NSDictionary* descriptor,
         OOGL(GLScaledLineWidth(1.0f));
     }
 
+    OORendererPopDrawState();
     return cursor_row;
 }
 
@@ -1642,8 +1648,13 @@ static OOTextureSprite* NewTextureSpriteWithDescriptor(NSDictionary* descriptor,
     cu = NSMakePoint((float)(hscale * galaxy_coordinates.x + hoffset), (float)(vscale * galaxy_coordinates.y + voffset));
 
     // enable draw clipping; limit drawing area within the chart area
-    OOGL(glEnable(GL_SCISSOR_TEST));
-    OOGL(glScissor(clipRect.origin.x, clipRect.origin.y, clipRect.size.width, clipRect.size.height));
+    OODrawState chartState = OORendererInheritedDrawState(kOODrawStateOverlay);
+    chartState.scissor = true;
+    chartState.scissorRect[0] = clipRect.origin.x;
+    chartState.scissorRect[1] = clipRect.origin.y;
+    chartState.scissorRect[2] = clipRect.size.width;
+    chartState.scissorRect[3] = clipRect.size.height;
+    OORendererPushDrawState(&chartState);
 
     // Cache nearby systems so that [UNIVERSE generateSystemData:] does not get called on every frame
     // Caching code submitted by Y A J, 20091022
@@ -2046,7 +2057,7 @@ static OOTextureSprite* NewTextureSpriteWithDescriptor(NSDictionary* descriptor,
     GLDrawOval(x + cu.x, y + cu.y, z, NSMakeSize(6.0f / zoom + 2.0f, 6.0f / zoom + 2.0f), 5);
 
     // disable draw clipping
-    OOGL(glDisable(GL_SCISSOR_TEST));
+    OORendererPopDrawState();
 
     // Draw bottom divider
     [self setGLColorFromSetting:kGuiScreenDividerColor defaultValue:[OOColor colorWithWhite:0.75 alpha:1.0] alpha:alpha];

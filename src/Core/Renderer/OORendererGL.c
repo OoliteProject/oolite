@@ -37,6 +37,7 @@ MA 02110-1301, USA.
 #include "OOOpenGLOnly.h"
 
 #include <math.h>
+#include <stdio.h>
 
 #ifdef _WIN32
 /*  On Windows, GL functions after 1.1 are pointers that
@@ -154,3 +155,144 @@ void OORendererBackendCheckGLAttributes(const OOImmediateAttributes* expected)
 }
 
 #endif
+
+#pragma mark - Draw state
+
+typedef struct {
+    GLboolean blend, depthTest, depthMask, cullFace, lighting, texture2D, fog, scissorTest;
+    GLint blendSrc, blendDst, cullFaceMode, frontFace, activeTexture;
+    GLint scissorBox[4];
+} SavedGLState;
+
+static SavedGLState sSaved[kOORendererMaxDrawStateDepth];
+
+static void SetCapability(GLenum capability, bool enabled)
+{
+    if (enabled)
+        glEnable(capability);
+    else
+        glDisable(capability);
+}
+
+static void ApplyBlend(OOBlendMode blend)
+{
+    SetCapability(GL_BLEND, blend != kOOBlendOff);
+    // OOSetOpenGLState keeps the alpha blend function even with blending off.
+    glBlendFunc(GL_SRC_ALPHA, blend == kOOBlendAdditive ? GL_ONE : GL_ONE_MINUS_SRC_ALPHA);
+}
+
+void OORendererBackendPushDrawState(const OODrawState* state, int depth)
+{
+    SavedGLState* saved = &sSaved[depth];
+    saved->blend = glIsEnabled(GL_BLEND);
+    saved->depthTest = glIsEnabled(GL_DEPTH_TEST);
+    saved->cullFace = glIsEnabled(GL_CULL_FACE);
+    saved->lighting = glIsEnabled(GL_LIGHTING);
+    saved->fog = glIsEnabled(GL_FOG);
+    saved->scissorTest = glIsEnabled(GL_SCISSOR_TEST);
+    glGetBooleanv(GL_DEPTH_WRITEMASK, &saved->depthMask);
+    glGetIntegerv(GL_BLEND_SRC, &saved->blendSrc);
+    glGetIntegerv(GL_BLEND_DST, &saved->blendDst);
+    glGetIntegerv(GL_CULL_FACE_MODE, &saved->cullFaceMode);
+    glGetIntegerv(GL_FRONT_FACE, &saved->frontFace);
+    glGetIntegerv(GL_SCISSOR_BOX, saved->scissorBox);
+    // Texture enables and bindings belong to the active unit; use unit 0.
+    glGetIntegerv(GL_ACTIVE_TEXTURE, &saved->activeTexture);
+    if (saved->activeTexture != GL_TEXTURE0)
+        glActiveTexture(GL_TEXTURE0);
+    saved->texture2D = glIsEnabled(GL_TEXTURE_2D);
+    OORendererBackendSaveTexture(depth);
+
+    ApplyBlend(state->blend);
+    SetCapability(GL_DEPTH_TEST, state->depthTest);
+    glDepthMask(state->depthWrite ? GL_TRUE : GL_FALSE);
+    SetCapability(GL_CULL_FACE, state->cullBack);
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CCW);
+    SetCapability(GL_LIGHTING, state->lighting);
+    SetCapability(GL_FOG, state->fog);
+    SetCapability(GL_TEXTURE_2D, state->texture2D);
+    OORendererBackendApplyTexture(state->texture);
+    SetCapability(GL_SCISSOR_TEST, state->scissor);
+    if (state->scissor)
+        glScissor(state->scissorRect[0], state->scissorRect[1], state->scissorRect[2], state->scissorRect[3]);
+    // Stay on unit 0 for the scope, as OOSetOpenGLState's presets do.
+}
+
+void OORendererBackendPopDrawState(int depth)
+{
+    const SavedGLState* saved = &sSaved[depth];
+    glActiveTexture(GL_TEXTURE0);
+    OORendererBackendRestoreTexture(depth);
+    SetCapability(GL_TEXTURE_2D, saved->texture2D);
+    if (saved->activeTexture != GL_TEXTURE0)
+        glActiveTexture((GLenum)saved->activeTexture);
+    SetCapability(GL_BLEND, saved->blend);
+    glBlendFunc((GLenum)saved->blendSrc, (GLenum)saved->blendDst);
+    SetCapability(GL_DEPTH_TEST, saved->depthTest);
+    glDepthMask(saved->depthMask);
+    SetCapability(GL_CULL_FACE, saved->cullFace);
+    glCullFace((GLenum)saved->cullFaceMode);
+    glFrontFace((GLenum)saved->frontFace);
+    SetCapability(GL_LIGHTING, saved->lighting);
+    SetCapability(GL_FOG, saved->fog);
+    SetCapability(GL_SCISSOR_TEST, saved->scissorTest);
+    glScissor(saved->scissorBox[0], saved->scissorBox[1], saved->scissorBox[2], saved->scissorBox[3]);
+}
+
+void OORendererBackendVerifyDrawState(const OODrawState* state)
+{
+#ifndef NDEBUG
+    static unsigned sReported = 0; // bit per field, so each is reported once
+    unsigned bad = 0;
+    GLint value = 0, activeTexture = GL_TEXTURE0;
+    GLboolean flag;
+
+    if (glIsEnabled(GL_BLEND) != (state->blend != kOOBlendOff))
+        bad |= 1u << 0;
+    if (state->blend != kOOBlendOff) {
+        glGetIntegerv(GL_BLEND_DST, &value);
+        if (value != (state->blend == kOOBlendAdditive ? GL_ONE : GL_ONE_MINUS_SRC_ALPHA))
+            bad |= 1u << 1;
+    }
+    if (glIsEnabled(GL_DEPTH_TEST) != state->depthTest)
+        bad |= 1u << 2;
+    glGetBooleanv(GL_DEPTH_WRITEMASK, &flag);
+    if (flag != state->depthWrite)
+        bad |= 1u << 3;
+    if (glIsEnabled(GL_CULL_FACE) != state->cullBack)
+        bad |= 1u << 4;
+    if (glIsEnabled(GL_LIGHTING) != state->lighting)
+        bad |= 1u << 5;
+    if (glIsEnabled(GL_FOG) != state->fog)
+        bad |= 1u << 6;
+    if (glIsEnabled(GL_SCISSOR_TEST) != state->scissor)
+        bad |= 1u << 7;
+    glGetIntegerv(GL_ACTIVE_TEXTURE, &activeTexture);
+    if (activeTexture != GL_TEXTURE0)
+        bad |= 1u << 8;
+    else {
+        if (glIsEnabled(GL_TEXTURE_2D) != state->texture2D)
+            bad |= 1u << 9;
+        if (state->texture2D) {
+            glGetIntegerv(GL_TEXTURE_BINDING_2D, &value);
+            if ((unsigned)value != OORendererBackendTextureName(state->texture))
+                bad |= 1u << 10;
+        }
+    }
+
+    static const char* const kNames[] = { "blend enable", "blend function", "depth test", "depth write",
+        "culling", "lighting", "fog", "scissor", "active texture unit", "texturing", "bound texture" };
+    unsigned fresh = bad & ~sReported;
+    for (unsigned i = 0; i < sizeof kNames / sizeof *kNames; i++) {
+        if (fresh & (1u << i)) {
+            char message[160];
+            snprintf(message, sizeof message, "GL %s changed directly inside a pushed draw state; that code still needs to move to the renderer.", kNames[i]);
+            OORendererBackendWarn(message);
+        }
+    }
+    sReported |= bad;
+#else
+    (void)state;
+#endif
+}

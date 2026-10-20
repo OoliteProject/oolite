@@ -173,6 +173,11 @@ void OOImmediateEnd(void)
 #if OO_IMMEDIATE_GL_INTEROP
     OORendererBackendCheckGLAttributes(&sGLAtBegin);
 #endif
+#ifndef NDEBUG
+    const OODrawState* state = OORendererCurrentDrawState();
+    if (state != NULL)
+        OORendererBackendVerifyDrawState(state);
+#endif
 
     size_t count = OOExpandedVertexCount(sPrimitive, sVertexCount);
     if (count > 0 && Reserve(&sExpanded, &sExpandedCapacity, count)) {

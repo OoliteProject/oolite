@@ -30,13 +30,36 @@ MA 02110-1301, USA.
 #define OORENDERERBACKEND_H
 
 #include "OOImmediateMode.h"
+#include "OORenderState.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+enum {
+    kOORendererMaxDrawStateDepth = 16
+};
+
 // Draw expanded immediate-mode vertices with the current render state.
 void OORendererBackendDrawImmediate(OONativePrimitive primitive, const OOImmediateVertex* vertices, size_t count);
+
+/*  Apply a pushed draw state, keeping what it replaces in slot depth, and
+    restore it again on pop.
+*/
+void OORendererBackendPushDrawState(const OODrawState* state, int depth);
+void OORendererBackendPopDrawState(int depth);
+
+// Debug builds: report where the context no longer matches state.
+void OORendererBackendVerifyDrawState(const OODrawState* state);
+
+/*  Texture glue, in Objective-C (OORendererTexture.m). texture is an
+    OOTexture or NULL. The save and restore pair covers the 2D binding and
+    the LOD bias that -[OOTexture apply] sets.
+*/
+void OORendererBackendApplyTexture(const void* texture);
+unsigned OORendererBackendTextureName(const void* texture);
+void OORendererBackendSaveTexture(int depth);
+void OORendererBackendRestoreTexture(int depth);
 
 #if OO_IMMEDIATE_GL_INTEROP
 // Read and write GL's current colour, texture co-ordinate and normal.

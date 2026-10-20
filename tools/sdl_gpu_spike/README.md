@@ -263,16 +263,54 @@ the HUD and GUI).
 mechanical conversion and lists anything it can't convert. Run
 `audit_immediate.py` after each migration.
 
-**Still to do.**
-- Convert the remaining immediate-mode callers (the HUD, entities, debug
-  drawing).
-- Add render-state and pass objects (pipeline key: program, vertex layout,
-  topology, blend, depth, cull, target formats).
-- Express fixed-function state (lights, material, fog, texture combine) as
-  plain data.
-- Make uniforms go through programs by name.
-- Expand wide lines and points on the CPU.
-- Convert the vertex-array drawing code.
+**Explicit draw state** (`OORenderState.h`). Migrated code brackets its
+drawing with `OORendererPushDrawState()` and `OORendererPopDrawState()`.
+- **What the state covers:**
+  - blend mode, depth test and write, and culling (the SDL_GPU pipeline key);
+  - lighting, texturing and fog, which select the fixed-function emulation
+    under SDL_GPU;
+  - the texture on unit 0, whose options give the SDL_GPU sampler;
+  - the scissor rect.
+- **How the GL backend applies it:** a push saves the GL state these fields
+  cover and applies the new values; a pop restores exactly what was there.
+  Migrated and legacy code therefore can't disturb each other.
+- **Verification:** debug builds check at every batch that GL still matches
+  the pushed state, and log the first time each field differs. The legacy
+  `OOSetOpenGLState` debug verifier repairs state silently at preset
+  switches, so the renderer's check sits right at the draw.
+
+**Pilot status.** The GUI (`drawGUI`, and the star chart's scissor as a
+nested state) and the HUD text functions now draw only with pushed state.
+Text inherits the enclosing scissor, so system names stay clipped to the
+chart.
+
+**Checks.**
+- `oogpu-immediate-test` adds three cases, and all 45 pass on Apple's GL and
+  on Mesa:
+  - a pushed overlay state with texture and scissor draws exactly like the
+    equivalent raw GL;
+  - popping restores deliberately unusual previous state;
+  - a raw GL change inside a pushed state is reported.
+- The title-screen snapshot still matches the noise floor, with no renderer
+  warnings.
+- As an in-game negative control, a raw `glDisable(GL_BLEND)` inside the
+  text scope is logged.
+
+**Still to do in phase 1.**
+- **Lines and points.** Line width and point size are still GL state
+  (`GLScaledLineWidth`). Under SDL_GPU they become per-batch parameters
+  for expanding lines and points on the CPU.
+- **Wide-line and point expansion** needs explicit matrices and viewport.
+  Matrices already go entirely through `OOOpenGLMatrixManager`: no raw
+  `glMatrixMode`/`glLoadMatrix` calls remain outside it. The viewport and
+  render target still come from the GL context.
+- **Passes:** begin and end with load/clear operations, render targets
+  (post-processing FBOs, environment cube maps), and readback for snapshots.
+- **Fixed-function values as data:** light and material values, fog
+  parameters, and texture combine modes.
+- **Uniforms by name** through programs, instead of `OOShaderUniform`'s
+  direct `glUniform` calls.
+- **Vertex-array drawing:** `OOMesh`, planets, particles and so on.
 
 Broad in-game coverage needs scripted navigation of the GUI screens. A
 Linux game build under Xvfb, driven by simulated keys, is the likely route.

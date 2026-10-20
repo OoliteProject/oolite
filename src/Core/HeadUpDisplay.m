@@ -37,6 +37,7 @@ MA 02110-1301, USA.
 #import "OOPlanetEntity.h"
 #import "OOPolygonSprite.h"
 #import "OOQuiriumCascadeEntity.h"
+#import "OORenderState.h"
 #import "OOStringExpander.h"
 #import "OOStringParsing.h"
 #import "OOSunEntity.h"
@@ -3642,8 +3643,24 @@ CGFloat OOStringWidthInEm(NSString* text)
     return OORectFromString(text, 0, 0, NSMakeSize(1.0 / (GLYPH_SCALE_FACTOR * 8.0), 1.0)).size.width;
 }
 
+// Text is drawn as an overlay, clipped like whatever it is drawn inside.
+static OODrawState TextDrawState(BOOL textured)
+{
+    OODrawState enclosing = OORendererInheritedDrawState(kOODrawStateOverlay);
+    OODrawState state = OODrawStateForPreset(kOODrawStateOverlay);
+    state.scissor = enclosing.scissor;
+    memcpy(state.scissorRect, enclosing.scissorRect, sizeof state.scissorRect);
+    if (textured) {
+        state.texture2D = true;
+        state.texture = sFontTexture;
+    }
+    return state;
+}
+
 void drawHighlight(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat alpha)
 {
+    OODrawState state = TextDrawState(NO);
+    OORendererPushDrawState(&state);
     // Rounded corners, fading 'shadow' version
     OOImmediateColor4f(0.0f, 0.0f, 0.0f, alpha * 0.4f); // dark translucent shadow
 
@@ -3669,6 +3686,8 @@ void drawHighlight(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat alpha)
     OOImmediateVertex3f(x, y + 3.0f, z);
     OOImmediateVertex3f(x, y + siz.height + 1.0f, z);
     OOImmediateEnd();
+
+    OORendererPopDrawState();
 }
 
 void OODrawString(NSString* text, GLfloat x, GLfloat y, GLfloat z, NSSize siz)
@@ -3687,8 +3706,8 @@ void OOStartDrawingStrings()
 {
     OOSetOpenGLState(OPENGL_STATE_OVERLAY);
 
-    OOGL(glEnable(GL_TEXTURE_2D));
-    [sFontTexture apply];
+    OODrawState state = TextDrawState(YES);
+    OORendererPushDrawState(&state);
     OOImmediateBegin(kOOPrimitiveQuads);
 }
 
@@ -3715,9 +3734,7 @@ void OODrawStringQuadsAligned(NSString* text, GLfloat x, GLfloat y, GLfloat z, N
 void OOStopDrawingStrings()
 {
     OOImmediateEnd();
-
-    [OOTexture applyNone];
-    OOGL(glDisable(GL_TEXTURE_2D));
+    OORendererPopDrawState();
 
     OOVerifyOpenGLState();
 }
@@ -3758,8 +3775,8 @@ void OODrawPlanetInfo(int gov, int eco, int tec, GLfloat x, GLfloat y, GLfloat z
 
     OOSetOpenGLState(OPENGL_STATE_OVERLAY);
 
-    OOGL(glEnable(GL_TEXTURE_2D));
-    [sFontTexture apply];
+    OODrawState state = TextDrawState(YES);
+    OORendererPushDrawState(&state);
 
     OOImmediateBegin(kOOPrimitiveQuads);
     {
@@ -3788,8 +3805,7 @@ void OODrawPlanetInfo(int gov, int eco, int tec, GLfloat x, GLfloat y, GLfloat z
 
     (void)cx; // Suppress "value not used" analyzer issue.
 
-    [OOTexture applyNone];
-    OOGL(glDisable(GL_TEXTURE_2D));
+    OORendererPopDrawState();
 
     OOVerifyOpenGLState();
 }

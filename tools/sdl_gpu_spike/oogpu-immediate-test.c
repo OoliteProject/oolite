@@ -38,6 +38,7 @@ MA 02110-1301, USA.
 #define GL_SILENCE_DEPRECATION 1
 
 #include "OOImmediateMode.h"
+#include "OORenderState.h"
 
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_opengl.h>
@@ -53,11 +54,42 @@ enum {
 void OORendererBackendWarn(const char* message);
 
 static unsigned sWarnings = 0;
+static bool sExpectWarnings = false;
 
 void OORendererBackendWarn(const char* message)
 {
-    fprintf(stderr, "renderer warning: %s\n", message);
+    if (!sExpectWarnings)
+        fprintf(stderr, "renderer warning: %s\n", message);
     sWarnings++;
+}
+
+/*  Texture glue: the game passes OOTextures; here a "texture" is a GL
+    texture name cast to a pointer.
+*/
+void OORendererBackendApplyTexture(const void* texture);
+unsigned OORendererBackendTextureName(const void* texture);
+void OORendererBackendSaveTexture(int depth);
+void OORendererBackendRestoreTexture(int depth);
+static GLint sSavedBinding[16];
+
+void OORendererBackendApplyTexture(const void* texture)
+{
+    glBindTexture(GL_TEXTURE_2D, (GLuint)(uintptr_t)texture);
+}
+
+unsigned OORendererBackendTextureName(const void* texture)
+{
+    return (unsigned)(uintptr_t)texture;
+}
+
+void OORendererBackendSaveTexture(int depth)
+{
+    glGetIntegerv(GL_TEXTURE_BINDING_2D, &sSavedBinding[depth]);
+}
+
+void OORendererBackendRestoreTexture(int depth)
+{
+    glBindTexture(GL_TEXTURE_2D, (GLuint)sSavedBinding[depth]);
 }
 
 typedef struct {
@@ -434,6 +466,97 @@ int main(int argc, char* argv[])
             }
             printf("%-4s %-16s %-20s lit %6u  max %3d  differing %u\n", status, shapes[s].name, kVariantNames[v], lit, maxDiff, differing);
         }
+    }
+
+    /*  Draw state: a pushed overlay state with a texture and a scissor draws
+        what the equivalent raw GL state draws, and popping restores whatever
+        was there before, however unusual.
+    */
+    {
+        const TestShape* quads = &shapes[7];
+        glDisable(GL_BLEND);
+        glDisable(GL_TEXTURE_2D);
+        glDisable(GL_SCISSOR_TEST);
+        glBindTexture(GL_TEXTURE_2D, 0);
+        glClearColor(0, 0, 0, 1);
+        glClear(GL_COLOR_BUFFER_BIT);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glEnable(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, texture);
+        glEnable(GL_SCISSOR_TEST);
+        glScissor(40, 30, 150, 170);
+        DrawGL(quads);
+        glFinish();
+        glReadPixels(0, 0, kSize, kSize, GL_RGBA, GL_UNSIGNED_BYTE, glPixels);
+
+        // Something unlike the overlay state, which the pop must restore.
+        glDisable(GL_SCISSOR_TEST);
+        glDisable(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, 0);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_ONE, GL_ONE);
+        glEnable(GL_DEPTH_TEST);
+        glDepthMask(GL_FALSE);
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_FRONT);
+        glScissor(1, 2, 3, 4);
+        glClearColor(0, 0, 0, 1);
+        glClear(GL_COLOR_BUFFER_BIT);
+        OODrawState state = OODrawStateForPreset(kOODrawStateOverlay);
+        state.texture2D = true;
+        state.texture = (const void*)(uintptr_t)texture;
+        state.scissor = true;
+        state.scissorRect[0] = 40;
+        state.scissorRect[1] = 30;
+        state.scissorRect[2] = 150;
+        state.scissorRect[3] = 170;
+        OORendererPushDrawState(&state);
+        OODrawState inner = OODrawStateForPreset(kOODrawStateOpaque); // nested, popped straight away
+        OORendererPushDrawState(&inner);
+        OORendererPopDrawState();
+        DrawOO(quads);
+        OORendererPopDrawState();
+        glFinish();
+        glReadPixels(0, 0, kSize, kSize, GL_RGBA, GL_UNSIGNED_BYTE, ooPixels);
+        int maxDiff;
+        unsigned lit, differing = CountDifferences(glPixels, ooPixels, &maxDiff, &lit);
+        bool drawOK = differing == 0 && lit > 0;
+
+        GLint src, dst, cullMode, box[4], binding;
+        GLboolean depthMask;
+        glGetIntegerv(GL_BLEND_SRC, &src);
+        glGetIntegerv(GL_BLEND_DST, &dst);
+        glGetIntegerv(GL_CULL_FACE_MODE, &cullMode);
+        glGetIntegerv(GL_SCISSOR_BOX, box);
+        glGetIntegerv(GL_TEXTURE_BINDING_2D, &binding);
+        glGetBooleanv(GL_DEPTH_WRITEMASK, &depthMask);
+        bool restored = glIsEnabled(GL_BLEND) && src == GL_ONE && dst == GL_ONE && glIsEnabled(GL_DEPTH_TEST)
+            && !depthMask && glIsEnabled(GL_CULL_FACE) && cullMode == GL_FRONT && !glIsEnabled(GL_SCISSOR_TEST)
+            && !glIsEnabled(GL_TEXTURE_2D) && binding == 0 && box[0] == 1 && box[3] == 4;
+        glDisable(GL_DEPTH_TEST);
+        glDisable(GL_CULL_FACE);
+        glCullFace(GL_BACK);
+        glDepthMask(GL_TRUE);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glDisable(GL_BLEND);
+
+        // A raw GL change inside the scope must be reported.
+        unsigned before = sWarnings;
+        sExpectWarnings = true;
+        OORendererPushDrawState(&state);
+        glDisable(GL_BLEND);
+        DrawOO(quads);
+        OORendererPopDrawState();
+        sExpectWarnings = false;
+        bool reported = sWarnings > before;
+        sWarnings = before;
+
+        printf("%-4s pushed draw state draws like raw GL (lit %u, differing %u)\n", drawOK ? "OK" : "DIFF", lit, differing);
+        printf("%-4s popping restores the previous GL state\n", restored ? "OK" : "FAIL");
+        printf("%-4s raw GL change inside a pushed state is reported\n", reported ? "OK" : "FAIL");
+        total += 3;
+        failures += !drawOK + !restored + !reported;
     }
 
     // Interoperation with legacy GL: a colour set through GL is picked up,
