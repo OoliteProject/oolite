@@ -14,6 +14,8 @@
 # SpiderMonkey 1.8.5 builds need QEMU_RESERVED_VA=0x7fffffffffff: its value
 # representation assumes pointers fit in 47 bits. PROBE_TIMEOUT (seconds,
 # default 600) bounds the run; flight is slow under software rendering.
+# PROBE_EXTRA_ADDONS, if set, is a directory whose .oxz/.oxp contents are
+# also installed, to compare real OXPs' errors and warnings between engines.
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
 SRC="$(cd "$HERE/../.." && pwd)"
@@ -21,9 +23,14 @@ APP="$(cd "$1" && pwd)"
 OUT="$(cd "$(dirname "$2")" && pwd)/$(basename "$2")"
 LOG="$APP/GameData/.logs/Latest.log"
 
-rm -rf "$APP/GameData/AddOns/oojs_probe.oxp" "$APP/GameData/.logs"
+# Start from an AddOns folder containing only the probe (and any extra OXPs).
+rm -rf "$APP/GameData/AddOns" "$APP/GameData/.logs"
 mkdir -p "$APP/GameData/AddOns"
 cp -r "$HERE/oojs_probe.oxp" "$APP/GameData/AddOns/"
+if [[ -n "$PROBE_EXTRA_ADDONS" ]]; then
+    # OXPs must be directly in AddOns; Oolite does not search subfolders.
+    cp -r "$PROBE_EXTRA_ADDONS"/* "$APP/GameData/AddOns/"
+fi
 
 cd "$(dirname "$OUT")"
 export APP SRC LOG OUT
