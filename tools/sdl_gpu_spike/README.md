@@ -350,6 +350,79 @@ ship. The hook is worth keeping upstream for tests.
 Broad in-game coverage needs scripted navigation of the GUI screens. A
 Linux game build under Xvfb, driven by simulated keys, is the likely route.
 
+## Phase 2: migrating the call sites
+
+Phase 2 moves the game onto the renderer layer, still on OpenGL, one area
+per commit.
+
+**In-game regression scenario.** `scenarios/RenderTest.oxp` with
+`game-snapshot.py --scenario` takes 17 screenshots:
+- title and new game;
+- status, manifest, both charts, system data and market;
+- flight: forward twice, then the aft, port and starboard views;
+- a ship spawned ahead, lasers fired at it, its explosion and the debris.
+
+Debug builds make these reproducible:
+- `OO_DETERMINISTIC_TEST` fixes the game tick at 1/60 s, holds time on the
+  title screens, and seeds the random number generators;
+- the OXP seeds `Math.random`, times its steps from `startUpComplete`, and
+  gives Lave a fixed planet texture, because procedural texture
+  generation races;
+- `console.simulateKey()` presses keys.
+
+Two runs of the same build match exactly, except for one 6x3 patch on the
+spawned ship (a light flasher) in the ship and lasers frames, which varies
+by up to 22/255 between runs. The check masks only that patch.
+
+**Done** (each commit checked on all 17 screens, the immediate-mode audit,
+the harness on Apple's GL and on Mesa, and a deployment build):
+- **Immediate mode:** every `glBegin`/`glEnd` caller (HUD, GUI, entities,
+  planets, particles, debug drawing) uses `OOImmediate`, and
+  `audit_immediate.py` finds no raw GL emitters. Batches with the light
+  particles change 10-20 pixels by rounding in triangle setup; restoring
+  the raw-GL file removes the difference.
+- **Vertex arrays:** every client-array draw goes through
+  `OORendererDrawArrays`, `OORendererDrawElements` or, for quads and fans,
+  `OORendererDrawPrimitive`/`OORendererDrawPrimitiveElements`, which
+  expand them into triangle indices. Transient data uses a ring of upload
+  buffers. Display lists are gone (sky, mesh).
+- **State machine** (`OORenderStateMachine.h`, `OOGLStateCompat.h`). The
+  renderer keeps its own copy of the GL state that legacy code sets one
+  call at a time: capabilities, lights, blend, depth, culling, shading,
+  polygon mode, scissor, per-unit texture enables, bindings, environment
+  mode and LOD bias, and the program. `OOGLEnable`, `OOGLBindTexture` and
+  the other wrappers record each change and then make the GL call;
+  `migrate_state.py` moved every caller onto them, `OOSetOpenGLState`
+  included. `glPushAttrib`/`glPopAttrib` groups are mirrored too. The
+  SDL_GPU backend will build pipelines, fixed-function emulation and
+  bindings from this copy. With `OO_VERIFY_RENDER_STATE=1`, debug builds
+  compare GL with the copy at every draw: all 17 screens are clean, and a
+  planted raw `glDisable(GL_BLEND)` is reported.
+- **Fog** is set only through `OORendererSetFog*`.
+- **Textures** (`OORendererTexture.h`). Textures are created from a
+  descriptor (size, cube flag, mip level count, RGBA8/Gray8/Alpha8/
+  GrayAlpha8, sRGB, sampler settings), then uploaded and read back one
+  face and level at a time. The GL backend now uploads tightly packed
+  rows. GL's default 4-byte alignment had been misreading the narrowest
+  mipmap levels of one- and two-channel textures, which changes 6 pixels
+  in two frames. Harness cases round-trip every format, level and cube
+  face, and fail without that fix.
+
+**Remaining:**
+- **Post-processing as render targets.** The MSAA, target, passthrough
+  (two attachments) and ping-pong framebuffers in `Universe` become
+  renderer render targets; the MSAA resolve, which SDL_GPU does as a store
+  op, gets an explicit call; clears become load ops; and the fullscreen
+  quad (a VAO with generic attributes 0 and 1) draws through the renderer
+  if `OOVertexLayout` can express it. The scenario must first be run with
+  MSAA, bloom and the post-processing effects switched on, because the
+  default settings may not exercise them.
+- The splash screen texture (`MyOpenGLView`) and the remaining raw clears.
+- Texture combine modes (`OOMultiTextureMaterial`), point sprites and
+  separate specular, which the emulation shader must reproduce.
+- `OOEnvironmentCubeMap` is an unbuilt upstream prototype (it isn't in
+  any `meson.build`, and it doesn't compile); it is left alone.
+
 ## Reproducing
 
 ```bash
