@@ -42,7 +42,8 @@ void OORendererBackendDrawImmediate(OONativePrimitive primitive, const OOImmedia
 // Read and write GL's current colour, texture co-ordinate and normal.
 void OORendererBackendGetGLAttributes(OOImmediateAttributes* outAttributes);
 void OORendererBackendSetGLAttributes(const OOImmediateAttributes* attributes);
-// Report legacy GL code that changed the current colour inside a batch.
+// Report legacy GL code that changed the current colour inside a batch;
+// expected is GL's colour when the batch began.
 void OORendererBackendCheckGLAttributes(const OOImmediateAttributes* expected);
 #endif
 

@@ -10,6 +10,6 @@ FROM debian:trixie
 RUN apt-get update && apt-get install -y --no-install-recommends \
         build-essential meson ninja-build pkg-config python3 \
         libsdl3-dev glslang-dev libspirv-cross-c-shared-dev spirv-tools \
-        libgl-dev mesa-vulkan-drivers libgl1-mesa-dri libglx-mesa0 libvulkan1 \
+        libgl-dev libglu1-mesa-dev mesa-vulkan-drivers libgl1-mesa-dri libglx-mesa0 libvulkan1 \
         xvfb xauth mesa-utils \
     && rm -rf /var/lib/apt/lists/*

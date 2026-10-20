@@ -12,7 +12,11 @@ draw (points, lines, line strips, triangles or triangle strips) and handed to
 the renderer backend. Quads, quad strips, polygons, triangle fans and line
 loops are therefore expanded here, in shared code, so the expansion is
 exercised by the OpenGL backend too. The expansion keeps GL's winding and
-its flat-shading provoking vertex.
+its flat-shading provoking vertex. Smooth-shaded quads are split along the
+1-3 diagonal, as Apple's GL does; GL leaves the diagonal to the
+implementation, and Mesa uses 0-2. Because quads and polygons become
+triangles, wireframe mode (OOGLWireframeModeOn) now also shows their
+diagonals.
 
 Transitional OpenGL interoperation: until every caller has moved over, code
 that still uses raw GL runs between immediate-mode draws. The attribute

@@ -230,9 +230,26 @@ the HUD and GUI).
 - **`oogpu-immediate-test`.** It draws every primitive type with real GL
   immediate mode and through the new layer, using per-vertex colours and
   non-parallelogram quads, in smooth and flat shading, textured, and with
-  wide lines and points. All 40 cases are pixel-identical on Apple's GL
-  (max difference 0), and so are the two interop checks. As a negative
-  control, swapping the quad diagonal makes all four quad cases fail.
+  wide lines and points.
+  - **Results:** all 42 cases match on Apple's GL (max difference 0) and on
+    Mesa's llvmpipe. That's 40 drawing cases plus 2 interop checks. As a
+    negative control, swapping the quad diagonal makes all four quad cases
+    fail.
+  - **One driver difference:** for smooth-shaded quads, Apple splits along
+    the 1-3 diagonal and Mesa along 0-2. GL leaves the diagonal to the
+    implementation, so the test accepts either for that case and labels it
+    `OK02`.
+  - **Cost:** `--bench` times text-like batches in an optimised (`-O2`)
+    build on Apple GL. A batch costs 0.57 µs, against 0.26 µs for GL
+    immediate mode; the GL interop layer is 0.06 µs of that. For a HUD with
+    500 batches that adds about 0.15 ms per frame. The interop layer leaves
+    GL alone inside a batch, and syncs once at the end.
+- **`audit_immediate.py`.** Mixing the two APIs fails silently, because
+  batches often span functions: a helper emits vertices and its caller
+  opens the batch. The script finds every function that emits vertices
+  without opening its own batch. It reports any batch of one API that calls
+  an emitter of the other. The pilot is clean, and planting a raw `glBegin`
+  around a `GLDrawBallBillboard` call is caught.
 - **In-game snapshot.** The pilot migration covers `GuiDisplayGen.m`, the
   text drawing in `HeadUpDisplay.m`, the shape helpers in `OOOpenGL.m`, and
   the `GLDrawBallBillboard` callers. Its title-screen snapshot matches the
@@ -243,7 +260,8 @@ the HUD and GUI).
   compare snapshots.
 
 **Tooling.** `migrate_immediate.py <file> [first-last ...]` does the
-mechanical conversion and lists anything it can't convert.
+mechanical conversion and lists anything it can't convert. Run
+`audit_immediate.py` after each migration.
 
 **Still to do.**
 - Convert the remaining immediate-mode callers (the HUD, entities, debug

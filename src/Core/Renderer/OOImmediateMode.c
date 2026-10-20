@@ -61,10 +61,16 @@ static bool Reserve(OOImmediateVertex** buffer, size_t* capacity, size_t needed)
 #pragma mark - Attributes
 
 #if OO_IMMEDIATE_GL_INTEROP
-/*  Keep GL's current values equal to ours, also inside a batch, so legacy
-    code sees them and OOImmediateEnd() can spot legacy changes.
+/*  Keep GL's current values equal to ours between batches, so legacy code
+    sees them. Inside a batch GL is left alone: OOImmediateEnd() syncs it,
+    and checks it is unchanged to spot legacy glColor calls in the batch.
 */
-#define PUSH_TO_GL() OORendererBackendSetGLAttributes(&sCurrent)
+static OOImmediateAttributes sGLAtBegin;
+#define PUSH_TO_GL()                                     \
+    do {                                                 \
+        if (!sInBatch)                                   \
+            OORendererBackendSetGLAttributes(&sCurrent); \
+    } while (0)
 #else
 #define PUSH_TO_GL() \
     do {             \
@@ -129,6 +135,7 @@ void OOImmediateBegin(OOPrimitive primitive)
 #if OO_IMMEDIATE_GL_INTEROP
     // Pick up anything legacy code set through GL since the last draw.
     OORendererBackendGetGLAttributes(&sCurrent);
+    sGLAtBegin = sCurrent;
 #endif
     sPrimitive = primitive;
     sVertexCount = 0;
@@ -164,7 +171,7 @@ void OOImmediateEnd(void)
     assert(sInBatch);
     sInBatch = false;
 #if OO_IMMEDIATE_GL_INTEROP
-    OORendererBackendCheckGLAttributes(&sCurrent);
+    OORendererBackendCheckGLAttributes(&sGLAtBegin);
 #endif
 
     size_t count = OOExpandedVertexCount(sPrimitive, sVertexCount);

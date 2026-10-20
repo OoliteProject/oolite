@@ -9,8 +9,10 @@ the OpenGL backend, which expands the primitive and draws from vertex
 arrays, and the two images are compared.
 
 Usage: oogpu-immediate-test [<image dir>]
+       oogpu-immediate-test --bench
 With an image directory, writes <case>-gl.png and <case>-oo.png for
-failures.
+failures. --bench times text-like batches (eight textured glyph quads, one
+colour) drawn both ways.
 
 
 Copyright (C) 2026 Oolite contributors
@@ -192,7 +194,33 @@ static void DrawOO(const TestShape* shape)
     OOImmediateEnd();
 }
 
-static void Render(const TestShape* shape, const Variant* variant, bool useOO, uint8_t* pixels)
+/*  GL leaves the diagonal a smooth-shaded quad is split along up to the
+    implementation; only winding and the flat-shading provoking vertex are
+    defined. OOImmediate splits along 1-3 (as Apple's GL does); Mesa splits
+    along 0-2. This draws the 0-2 split, to tell the two apart.
+*/
+static void DrawOOQuadsAlternateDiagonal(const TestShape* shape)
+{
+    static const int kOrder[6] = { 0, 1, 2, 0, 2, 3 };
+    OOImmediateBegin(kOOPrimitiveTriangles);
+    for (int q = 0; q + 3 < shape->count; q += 4) {
+        for (int k = 0; k < 6; k++) {
+            const TestVertex* v = &shape->vertices[q + kOrder[k]];
+            OOImmediateColor4fv(v->color);
+            OOImmediateTexCoord2f(v->s, v->t);
+            OOImmediateVertex3f(v->x, v->y, 0.0f);
+        }
+    }
+    OOImmediateEnd();
+}
+
+typedef enum {
+    kDrawGL,
+    kDrawOO,
+    kDrawOOAlternateDiagonal
+} DrawMode;
+
+static void Render(const TestShape* shape, const Variant* variant, DrawMode mode, uint8_t* pixels)
 {
     glClearColor(0, 0, 0, 1);
     glClear(GL_COLOR_BUFFER_BIT);
@@ -203,12 +231,37 @@ static void Render(const TestShape* shape, const Variant* variant, bool useOO, u
         glEnable(GL_TEXTURE_2D);
     else
         glDisable(GL_TEXTURE_2D);
-    if (useOO)
+    if (mode == kDrawOO)
         DrawOO(shape);
+    else if (mode == kDrawOOAlternateDiagonal)
+        DrawOOQuadsAlternateDiagonal(shape);
     else
         DrawGL(shape);
     glFinish();
     glReadPixels(0, 0, kSize, kSize, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+}
+
+static unsigned CountDifferences(const uint8_t* a, const uint8_t* b, int* outMax, unsigned* outLit)
+{
+    unsigned differing = 0, lit = 0;
+    int maxDiff = 0;
+    for (int i = 0; i < kSize * kSize; i++) {
+        int pixelMax = 0;
+        for (int ch = 0; ch < 3; ch++) {
+            int d = abs((int)a[i * 4 + ch] - (int)b[i * 4 + ch]);
+            if (d > pixelMax)
+                pixelMax = d;
+        }
+        if (pixelMax > maxDiff)
+            maxDiff = pixelMax;
+        if (pixelMax > 2)
+            differing++;
+        if (a[i * 4] | a[i * 4 + 1] | a[i * 4 + 2])
+            lit++;
+    }
+    *outMax = maxDiff;
+    *outLit = lit;
+    return differing;
 }
 
 static void Save(const uint8_t* pixels, const char* dir, const char* name, const char* suffix)
@@ -227,9 +280,53 @@ static void Save(const uint8_t* pixels, const char* dir, const char* name, const
     SDL_DestroySurface(surface);
 }
 
+static double Bench(bool useOO, int batches)
+{
+    glEnable(GL_TEXTURE_2D);
+    glFinish();
+    Uint64 start = SDL_GetTicksNS();
+    for (int b = 0; b < batches; b++) {
+        float x = (float)(b % 32) * 8.0f, y = (float)((b / 32) % 32) * 8.0f;
+        if (useOO) {
+            OOImmediateColor4f(1.0f, 0.8f, 0.2f, 1.0f);
+            OOImmediateBegin(kOOPrimitiveQuads);
+            for (int g = 0; g < 8; g++) {
+                float gx = x + g;
+                OOImmediateTexCoord2f(0.0f, 0.0f);
+                OOImmediateVertex3f(gx, y, 0.0f);
+                OOImmediateTexCoord2f(0.1f, 0.0f);
+                OOImmediateVertex3f(gx + 1, y, 0.0f);
+                OOImmediateTexCoord2f(0.1f, 0.1f);
+                OOImmediateVertex3f(gx + 1, y + 1, 0.0f);
+                OOImmediateTexCoord2f(0.0f, 0.1f);
+                OOImmediateVertex3f(gx, y + 1, 0.0f);
+            }
+            OOImmediateEnd();
+        } else {
+            glColor4f(1.0f, 0.8f, 0.2f, 1.0f);
+            glBegin(GL_QUADS);
+            for (int g = 0; g < 8; g++) {
+                float gx = x + g;
+                glTexCoord2f(0.0f, 0.0f);
+                glVertex3f(gx, y, 0.0f);
+                glTexCoord2f(0.1f, 0.0f);
+                glVertex3f(gx + 1, y, 0.0f);
+                glTexCoord2f(0.1f, 0.1f);
+                glVertex3f(gx + 1, y + 1, 0.0f);
+                glTexCoord2f(0.0f, 0.1f);
+                glVertex3f(gx, y + 1, 0.0f);
+            }
+            glEnd();
+        }
+    }
+    glFinish();
+    return (double)(SDL_GetTicksNS() - start) / 1e6;
+}
+
 int main(int argc, char* argv[])
 {
-    const char* imageDir = argc > 1 ? argv[1] : NULL;
+    bool bench = argc > 1 && strcmp(argv[1], "--bench") == 0;
+    const char* imageDir = argc > 1 && !bench ? argv[1] : NULL;
     if (!SDL_Init(SDL_INIT_VIDEO)) {
         fprintf(stderr, "SDL_Init: %s\n", SDL_GetError());
         return 2;
@@ -273,6 +370,20 @@ int main(int argc, char* argv[])
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 16, 16, 0, GL_RGBA, GL_UNSIGNED_BYTE, checker);
     glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
+    if (bench) {
+        // A busy HUD frame has a few hundred batches; time many frames' worth.
+        const int batches = 200000;
+        Bench(false, 1000);
+        Bench(true, 1000);
+        double glTime = Bench(false, batches), ooTime = Bench(true, batches);
+        printf("%d batches: GL immediate mode %.1f ms (%.2f us/batch), OOImmediate %.1f ms (%.2f us/batch)\n",
+            batches, glTime, 1000.0 * glTime / batches, ooTime, 1000.0 * ooTime / batches);
+        SDL_GL_DestroyContext(context);
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return 0;
+    }
+
     static TestShape shapes[16];
     int shapeCount = BuildShapes(shapes);
     const Variant variants[] = {
@@ -288,27 +399,30 @@ int main(int argc, char* argv[])
     int failures = 0, total = 0;
     for (int v = 0; v < (int)(sizeof variants / sizeof *variants); v++) {
         for (int s = 0; s < shapeCount; s++) {
-            Render(&shapes[s], &variants[v], false, glPixels);
-            Render(&shapes[s], &variants[v], true, ooPixels);
-            int maxDiff = 0;
-            unsigned differing = 0, lit = 0;
-            for (int i = 0; i < kSize * kSize; i++) {
-                int pixelMax = 0;
-                for (int ch = 0; ch < 3; ch++) {
-                    int d = abs((int)glPixels[i * 4 + ch] - (int)ooPixels[i * 4 + ch]);
-                    if (d > pixelMax)
-                        pixelMax = d;
+            Render(&shapes[s], &variants[v], kDrawGL, glPixels);
+            Render(&shapes[s], &variants[v], kDrawOO, ooPixels);
+            int maxDiff;
+            unsigned lit;
+            unsigned differing = CountDifferences(glPixels, ooPixels, &maxDiff, &lit);
+            const char* status = "OK";
+            if (differing > 0 && shapes[s].ooPrimitive == kOOPrimitiveQuads && !variants[v].flat) {
+                // Implementation-defined; accept the other diagonal too.
+                uint8_t* altPixels = malloc(kSize * kSize * 4);
+                int altMax;
+                unsigned altLit;
+                Render(&shapes[s], &variants[v], kDrawOOAlternateDiagonal, altPixels);
+                if (CountDifferences(glPixels, altPixels, &altMax, &altLit) == 0) {
+                    status = "OK02";
+                    differing = 0;
+                    maxDiff = altMax;
                 }
-                if (pixelMax > maxDiff)
-                    maxDiff = pixelMax;
-                if (pixelMax > 2)
-                    differing++;
-                if (glPixels[i * 4] | glPixels[i * 4 + 1] | glPixels[i * 4 + 2])
-                    lit++;
+                free(altPixels);
             }
             total++;
             // An empty reference image would make the comparison meaningless.
             bool ok = differing == 0 && lit > 0;
+            if (!ok)
+                status = "DIFF";
             if (!ok) {
                 failures++;
                 if (imageDir != NULL) {
@@ -318,7 +432,7 @@ int main(int argc, char* argv[])
                     Save(ooPixels, imageDir, name, "oo");
                 }
             }
-            printf("%-4s %-16s %-20s lit %6u  max %3d  differing %u\n", ok ? "OK" : "DIFF", shapes[s].name, kVariantNames[v], lit, maxDiff, differing);
+            printf("%-4s %-16s %-20s lit %6u  max %3d  differing %u\n", status, shapes[s].name, kVariantNames[v], lit, maxDiff, differing);
         }
     }
 
@@ -336,6 +450,7 @@ int main(int argc, char* argv[])
     failures += !interopIn + !interopOut;
 
     printf("%d/%d cases match, %u renderer warnings\n", total - failures, total, sWarnings);
+    printf("(OK02: the driver splits smooth quads along the 0-2 diagonal, not 1-3. GL leaves this to the implementation.)\n");
     SDL_GL_DestroyContext(context);
     SDL_DestroyWindow(window);
     SDL_Quit();
