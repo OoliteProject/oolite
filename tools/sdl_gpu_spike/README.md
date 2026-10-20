@@ -408,20 +408,46 @@ the harness on Apple's GL and on Mesa, and a deployment build):
   in two frames. Harness cases round-trip every format, level and cube
   face, and fail without that fix.
 
-**Remaining:**
-- **Post-processing as render targets.** The MSAA, target, passthrough
-  (two attachments) and ping-pong framebuffers in `Universe` become
-  renderer render targets; the MSAA resolve, which SDL_GPU does as a store
-  op, gets an explicit call; clears become load ops; and the fullscreen
-  quad (a VAO with generic attributes 0 and 1) draws through the renderer
-  if `OOVertexLayout` can express it. The scenario must first be run with
-  MSAA, bloom and the post-processing effects switched on, because the
-  default settings may not exercise them.
-- The splash screen texture (`MyOpenGLView`) and the remaining raw clears.
-- Texture combine modes (`OOMultiTextureMaterial`), point sprites and
-  separate specular, which the emulation shader must reproduce.
+- **Render targets and passes** (`OORenderPass.h`). Render targets have
+  RGBA16F colour attachments (up to two), an optional float depth buffer
+  and 1 or 4 samples. They can be resized, their attachments are looked up
+  as textures, and an explicit resolve handles MSAA, which SDL_GPU does as
+  a store op. Universe's MSAA, scene, passthrough and ping-pong
+  framebuffers are render targets now. The post chain runs as passes (the
+  window cleared, the passthrough cleared, the blur iterations
+  don't-care, then the composite), and its quad draws from renderer
+  buffers on generic attributes 0 and 1. The splash screen and the early
+  clears also go through the renderer. Harness cases: a 4x resolve with
+  partial edge coverage, an MRT clear, resizing and bindings, on Apple's
+  GL and on Mesa (which takes the multisample-texture path).
+- **Fixed-function extras:** separate specular
+  (`OORendererSetLightModelSeparateSpecular`), and the per-unit
+  `GL_COMBINE_RGB` op that `OOMultiTextureMaterial` sets.
+- **Uniforms** in the post chain are set by handle through
+  `OOShaderProgram`.
+
+**Variant runs.** The default settings never reach MSAA, the post effects
+that draw the HUD with the scene, the no-bloom path or the no-shader path.
+`OO_SNAPSHOT_ARGS` passes launch arguments, which Foundation reads as
+defaults for that run only, so each branch is also run against its own
+baseline: `-anti-aliasing YES`, `oolite.postFX = 5;` (grayscale) as a
+console command, `-detailLevel 2` and `-detailLevel 1`. Two runs of the
+same build match within 6/255 (MSAA), 3, 1 and 0 respectively.
+
+**Left as they are, for phase 3:**
+- `OOShaderProgram` still compiles and links through GL. The SDL_GPU
+  backend replaces it with the translator from phase 0.
+- Native wide lines and points: the GL backend relies on the
+  `glLineWidth`/`glPointSize` calls in `GLScaledLineWidth` and
+  `GLScaledPointSize`. SDL_GPU will use the CPU expansion.
+- The fog hints, client-texture selection in `OOMesh` and the legacy state
+  manager's client-array presets only matter to GL.
+- Snapshot readback chooses `glReadBuffer` directly; under SDL_GPU it
+  becomes a swapchain texture download.
 - `OOEnvironmentCubeMap` is an unbuilt upstream prototype (it isn't in
   any `meson.build`, and it doesn't compile); it is left alone.
+- The Windows-only HDR uniforms and the backend's Windows function
+  pointer declarations have not been built.
 
 ## Reproducing
 
