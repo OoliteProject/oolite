@@ -1029,7 +1029,7 @@ static JSValue StationAddShipToShipyard(OOJS_NATIVE_ARGS)
 
     if (![shipyardDefinition objectForKey:SHIPYARD_KEY_PERSONALITY]) {
         // default to 0 if not supplied
-        [result setObject:0 forKey:SHIPYARD_KEY_PERSONALITY];
+        [result setObject:[NSNumber numberWithUnsignedInt:0] forKey:SHIPYARD_KEY_PERSONALITY];
     } else {
         [result setObject:[NSNumber numberWithUnsignedLongLong:[shipyardDefinition oo_unsignedIntForKey:SHIPYARD_KEY_PERSONALITY]] forKey:SHIPYARD_KEY_PERSONALITY];
     }
