@@ -85,3 +85,58 @@ void OORendererReadPixels(int x, int y, int width, int height, OOPixelFormat for
     assert(!sInPass);
     OORendererBackendReadPixels(x, y, width, height, format, pixels);
 }
+
+static OORenderTarget sWindowTarget = 0;
+
+void OORendererSetWindowTarget(OORenderTarget target)
+{
+    sWindowTarget = target;
+}
+
+OORenderTarget OORendererWindowTarget(void)
+{
+    return sWindowTarget;
+}
+
+OORenderTarget OORendererCreateRenderTarget(const OORenderTargetDescriptor* descriptor)
+{
+    if (descriptor == NULL || descriptor->width == 0 || descriptor->height == 0
+        || descriptor->colorAttachments > kOOMaxColorAttachments
+        || (descriptor->colorAttachments == 0 && !descriptor->depth)
+        || (descriptor->samples != 1 && descriptor->samples != 4)) {
+        OORendererBackendWarn("OORendererCreateRenderTarget: bad descriptor");
+        return 0;
+    }
+    return OORendererBackendCreateRenderTarget(descriptor);
+}
+
+void OORendererResizeRenderTarget(OORenderTarget target, unsigned width, unsigned height)
+{
+    assert(!sInPass);
+    if (target == 0 || width == 0 || height == 0)
+        return;
+    OORendererBackendResizeRenderTarget(target, width, height);
+}
+
+uint32_t OORendererRenderTargetTexture(OORenderTarget target, unsigned attachment)
+{
+    if (target == 0 || attachment >= kOOMaxColorAttachments)
+        return 0;
+    return OORendererBackendRenderTargetTexture(target, attachment);
+}
+
+void OORendererResolveRenderTarget(OORenderTarget source, OORenderTarget destination)
+{
+    assert(!sInPass);
+    if (source == 0 || destination == 0)
+        return;
+    OORendererBackendResolveRenderTarget(source, destination);
+}
+
+void OORendererDeleteRenderTarget(OORenderTarget target)
+{
+    assert(!sInPass);
+    if (target == 0)
+        return;
+    OORendererBackendDeleteRenderTarget(target);
+}

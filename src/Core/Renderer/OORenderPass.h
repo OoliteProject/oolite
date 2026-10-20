@@ -68,6 +68,41 @@ typedef struct {
     OOLoadOp depthLoad;
 } OORenderPassDescriptor;
 
+/*  Offscreen render targets. Colour attachments are RGBA16F, filtered
+    linearly and clamped to the edge; depth is 32-bit float. A multisampled
+    target can't be sampled, only resolved into a single-sampled one. All of
+    a target's attachments are cleared or loaded together.
+*/
+typedef struct {
+    unsigned width, height;
+    unsigned colorAttachments; // 0 to kOOMaxColorAttachments
+    bool depth;
+    unsigned samples; // 1, or 4 for MSAA
+} OORenderTargetDescriptor;
+
+enum {
+    kOOMaxColorAttachments = 2
+};
+
+// Returns 0 on failure.
+OORenderTarget OORendererCreateRenderTarget(const OORenderTargetDescriptor* descriptor);
+// Keeps the contents undefined. Outside a pass.
+void OORendererResizeRenderTarget(OORenderTarget target, unsigned width, unsigned height);
+/*  A colour attachment as a texture for OOGLBindTexture, or 0 for a
+    multisampled target. SDL_GPU replaces the texture on resize, so look it
+    up each time rather than keeping it.
+*/
+uint32_t OORendererRenderTargetTexture(OORenderTarget target, unsigned attachment);
+// Resolve (or copy) colour attachment 0 of source into destination, which has the same size. Outside a pass.
+void OORendererResolveRenderTarget(OORenderTarget source, OORenderTarget destination);
+void OORendererDeleteRenderTarget(OORenderTarget target);
+
+/*  The window's own target. On OpenGL, the framebuffer bound when the
+    window's context was set up, which isn't always 0.
+*/
+void OORendererSetWindowTarget(OORenderTarget target);
+OORenderTarget OORendererWindowTarget(void);
+
 void OORendererSetClearColor(float r, float g, float b, float a);
 void OORendererSetClearDepth(float depth);
 

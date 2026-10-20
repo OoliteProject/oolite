@@ -31,6 +31,7 @@ MA 02110-1301, USA.
 #import "OOJSPropID.h"
 #import "OOMaths.h"
 #import "OOOpenGL.h"
+#import "OORenderPass.h"
 #import "OOShaderProgram.h"
 #import "OOSound.h"
 #import "OOStellarBody.h"
@@ -346,22 +347,16 @@ enum {
     BOOL _dockingClearanceProtocolActive;
     BOOL _doingStartUp;
 
-    GLuint msaaTextureID;
-    GLuint targetTextureID;
-    GLuint passthroughTextureID[2];
+    OORenderTarget _msaaTarget; // the scene, multisampled, when MSAA is on
+    OORenderTarget _sceneTarget; // the scene, or _msaaTarget resolved
+    OORenderTarget _passthroughTarget; // the scene, and its bright parts for bloom
     NSSize targetFramebufferSize;
-    GLuint msaaFramebufferID;
-    GLuint msaaDepthBufferID;
-    GLuint targetDepthBufferID;
-    GLuint targetFramebufferID;
-    GLuint passthroughFramebufferID;
     OOShaderProgram* textureProgram;
     OOShaderProgram* blurProgram;
     OOShaderProgram* finalProgram;
     GLuint quadTextureVBO, quadTextureVAO, quadTextureEBO;
     GLint defaultDrawFBO;
-    GLuint pingpongFBO[2];
-    GLuint pingpongColorbuffers[2];
+    OORenderTarget _pingpongTargets[2]; // the bloom blur
     BOOL _bloom;
     int _currentPostFX;
     int _colorblindMode;

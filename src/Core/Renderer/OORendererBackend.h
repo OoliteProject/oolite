@@ -67,6 +67,13 @@ void OORendererBackendPopDrawState(int depth);
 // Logs once per message through rendering.renderer.
 void OORendererBackendWarn(const char* message);
 
+// Render targets (OORenderPass.h); descriptors are already validated.
+OORenderTarget OORendererBackendCreateRenderTarget(const OORenderTargetDescriptor* descriptor);
+void OORendererBackendResizeRenderTarget(OORenderTarget target, unsigned width, unsigned height);
+uint32_t OORendererBackendRenderTargetTexture(OORenderTarget target, unsigned attachment);
+void OORendererBackendResolveRenderTarget(OORenderTarget source, OORenderTarget destination);
+void OORendererBackendDeleteRenderTarget(OORenderTarget target);
+
 // Textures (OORendererTexture.h); descriptors are already validated.
 uint32_t OORendererBackendCreateTexture(const OOTextureDescriptor* descriptor);
 void OORendererBackendUploadTexture(uint32_t texture, unsigned face, unsigned level, unsigned width, unsigned height, const void* texels);

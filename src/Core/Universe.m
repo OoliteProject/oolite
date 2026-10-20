@@ -363,67 +363,13 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     GLint previousElementBuffer;
     OOGL(glGetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING, &previousElementBuffer));
 
-    // create MSAA framebuffer and attach MSAA texture and depth buffer to framebuffer
-    OOGL(glGenFramebuffers(1, &msaaFramebufferID));
-    OOGL(glBindFramebuffer(GL_FRAMEBUFFER, msaaFramebufferID));
+    OORendererSetWindowTarget((OORenderTarget)defaultDrawFBO);
+    unsigned width = (unsigned)viewSize.width, height = (unsigned)viewSize.height;
 
-    // creating MSAA texture that should be rendered into
-#if OO_MSAA_COLOR_RENDERBUFFER
-    // No multisample textures in the macOS legacy context; a multisample renderbuffer resolves the same way.
-    OOGL(glGenRenderbuffers(1, &msaaTextureID));
-    OOGL(glBindRenderbuffer(GL_RENDERBUFFER, msaaTextureID));
-    OOGL(glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_RGBA16F, (GLsizei)viewSize.width, (GLsizei)viewSize.height));
-    OOGL(glBindRenderbuffer(GL_RENDERBUFFER, 0));
-    OOGL(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, msaaTextureID));
-#else
-    OOGL(glGenTextures(1, &msaaTextureID));
-    OOGLBindTexture(GL_TEXTURE_2D_MULTISAMPLE, msaaTextureID);
-    OOGL(glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGBA16F, (GLsizei)viewSize.width, (GLsizei)viewSize.height, GL_TRUE));
-    OOGLBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
-    OOGL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, msaaTextureID, 0));
-#endif
-
-    // create necessary MSAA depth render buffer
-    OOGL(glGenRenderbuffers(1, &msaaDepthBufferID));
-    OOGL(glBindRenderbuffer(GL_RENDERBUFFER, msaaDepthBufferID));
-    OOGL(glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_DEPTH_COMPONENT32F, (GLsizei)viewSize.width, (GLsizei)viewSize.height));
-    OOGL(glBindRenderbuffer(GL_RENDERBUFFER, 0));
-    OOGL(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, msaaDepthBufferID));
-
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-        OOLogERR(@"initTargetFramebufferWithViewSize.result", @"%@", @"***** Error: Multisample framebuffer not complete");
-    }
-
-    // create framebuffer and attach texture and depth buffer to framebuffer
-    OOGL(glGenFramebuffers(1, &targetFramebufferID));
-    OOGL(glBindFramebuffer(GL_FRAMEBUFFER, targetFramebufferID));
-
-    // creating texture that should be rendered into
-    OOGL(glGenTextures(1, &targetTextureID));
-    OOGLBindTexture(GL_TEXTURE_2D, targetTextureID);
-    OOGL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, (GLsizei)viewSize.width, (GLsizei)viewSize.height, 0, GL_RGBA, GL_FLOAT, NULL));
-    OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-    OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-    OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
-    OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
-    OOGL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, targetTextureID, 0));
-
-    // create necessary depth render buffer
-    OOGL(glGenRenderbuffers(1, &targetDepthBufferID));
-    OOGL(glBindRenderbuffer(GL_RENDERBUFFER, targetDepthBufferID));
-    OOGL(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32F, (GLsizei)viewSize.width, (GLsizei)viewSize.height));
-    OOGL(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, targetDepthBufferID));
-
-    GLenum attachment[1] = { GL_COLOR_ATTACHMENT0 };
-    OOGL(glDrawBuffers(1, attachment));
-
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-        OOLogERR(@"initTargetFramebufferWithViewSize.result", @"%@", @"***** Error: Framebuffer not complete");
-    }
-
-    OOGL(glBindFramebuffer(GL_FRAMEBUFFER, defaultDrawFBO));
-
-    targetFramebufferSize = viewSize;
+    // The scene is drawn into a multisampled target when MSAA is on, and
+    // resolved into the single-sampled one the post-processing reads.
+    _msaaTarget = OORendererCreateRenderTarget(&(OORenderTargetDescriptor) { width, height, 1, true, 4 });
+    _sceneTarget = OORendererCreateRenderTarget(&(OORenderTargetDescriptor) { width, height, 1, true, 1 });
 
     // passthrough buffer
     // This is a framebuffer whose sole purpose is to pass on the texture rendered from the game to the blur and the final bloom
@@ -431,47 +377,14 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     // us to perform multiple render target operations needed for bloom. The alternative would be to not use this and change all our
     // shaders to be OpenGL 3.3 compatible, but given how Oolite synthesizes them and the work needed to port them over, well yeah no,
     // not doing it at this time - Nikos 20220814.
-    OOGL(glGenFramebuffers(1, &passthroughFramebufferID));
-    OOGL(glBindFramebuffer(GL_FRAMEBUFFER, passthroughFramebufferID));
+    _passthroughTarget = OORendererCreateRenderTarget(&(OORenderTargetDescriptor) { width, height, 2, false, 1 });
 
-    // creating textures that should be rendered into
-    OOGL(glGenTextures(2, passthroughTextureID));
+    // ping-pong targets for blurring; render targets clamp to the edge, as the blur filter would otherwise sample repeated texture values
     for (unsigned int i = 0; i < 2; i++) {
-        OOGLBindTexture(GL_TEXTURE_2D, passthroughTextureID[i]);
-        OOGL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, (GLsizei)viewSize.width, (GLsizei)viewSize.height, 0, GL_RGBA, GL_FLOAT, NULL));
-        OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-        OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-        OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
-        OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
-        OOGL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, passthroughTextureID[i], 0));
+        _pingpongTargets[i] = OORendererCreateRenderTarget(&(OORenderTargetDescriptor) { width, height, 1, false, 1 });
     }
 
-    GLenum attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
-    OOGL(glDrawBuffers(2, attachments));
-
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-        OOLogERR(@"initTargetFramebufferWithViewSize.result", @"%@", @"***** Error: Passthrough framebuffer not complete");
-    }
-    OOGL(glBindFramebuffer(GL_FRAMEBUFFER, defaultDrawFBO));
-
-    // ping-pong-framebuffer for blurring
-    OOGL(glGenFramebuffers(2, pingpongFBO));
-    OOGL(glGenTextures(2, pingpongColorbuffers));
-    for (unsigned int i = 0; i < 2; i++) {
-        OOGL(glBindFramebuffer(GL_FRAMEBUFFER, pingpongFBO[i]));
-        OOGLBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[i]);
-        OOGL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, (GLsizei)viewSize.width, (GLsizei)viewSize.height, 0, GL_RGBA, GL_FLOAT, NULL));
-        OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-        OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-        OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)); // we clamp to the edge as the blur filter would otherwise sample repeated texture values!
-        OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
-        OOGL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, pingpongColorbuffers[i], 0));
-        // check if framebuffers are complete (no need for depth buffer)
-        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-            OOLogERR(@"initTargetFramebufferWithViewSize.result", @"%@", @"***** Error: Pingpong framebuffers not complete");
-        }
-    }
-    OOGL(glBindFramebuffer(GL_FRAMEBUFFER, defaultDrawFBO));
+    targetFramebufferSize = viewSize;
 
     _bloom = [self detailLevel] >= DETAIL_LEVEL_EXTRAS;
     _currentPostFX = _colorblindMode = OO_POSTFX_NONE;
@@ -533,20 +446,11 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
 - (void)deleteOpenGLObjects
 {
-#if OO_MSAA_COLOR_RENDERBUFFER
-    OOGL(glDeleteRenderbuffers(1, &msaaTextureID));
-#else
-    OOGLDeleteTextures(1, &msaaTextureID);
-#endif
-    OOGLDeleteTextures(1, &targetTextureID);
-    OOGLDeleteTextures(2, passthroughTextureID);
-    OOGLDeleteTextures(2, pingpongColorbuffers);
-    OOGL(glDeleteRenderbuffers(1, &msaaDepthBufferID));
-    OOGL(glDeleteRenderbuffers(1, &targetDepthBufferID));
-    OOGL(glDeleteFramebuffers(1, &msaaFramebufferID));
-    OOGL(glDeleteFramebuffers(1, &targetFramebufferID));
-    OOGL(glDeleteFramebuffers(2, pingpongFBO));
-    OOGL(glDeleteFramebuffers(1, &passthroughFramebufferID));
+    OORendererDeleteRenderTarget(_msaaTarget);
+    OORendererDeleteRenderTarget(_sceneTarget);
+    OORendererDeleteRenderTarget(_passthroughTarget);
+    OORendererDeleteRenderTarget(_pingpongTargets[0]);
+    OORendererDeleteRenderTarget(_pingpongTargets[1]);
     OOGL(glDeleteVertexArrays(1, &quadTextureVAO));
     OOGL(glDeleteBuffers(1, &quadTextureVBO));
     OOGL(glDeleteBuffers(1, &quadTextureEBO));
@@ -557,44 +461,12 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
 - (void)resizeTargetFramebufferWithViewSize:(NSSize)viewSize
 {
-    int i;
-    // resize MSAA color attachment
-#if OO_MSAA_COLOR_RENDERBUFFER
-    OOGL(glBindRenderbuffer(GL_RENDERBUFFER, msaaTextureID));
-    OOGL(glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_RGBA16F, (GLsizei)viewSize.width, (GLsizei)viewSize.height));
-    OOGL(glBindRenderbuffer(GL_RENDERBUFFER, 0));
-#else
-    OOGLBindTexture(GL_TEXTURE_2D_MULTISAMPLE, msaaTextureID);
-    OOGL(glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGBA16F, (GLsizei)viewSize.width, (GLsizei)viewSize.height, GL_TRUE));
-    OOGLBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
-#endif
-
-    // resize MSAA depth attachment
-    OOGL(glBindRenderbuffer(GL_RENDERBUFFER, msaaDepthBufferID));
-    OOGL(glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_DEPTH_COMPONENT32F, (GLsizei)viewSize.width, (GLsizei)viewSize.height));
-    OOGL(glBindRenderbuffer(GL_RENDERBUFFER, 0));
-
-    // resize color attachments
-    OOGLBindTexture(GL_TEXTURE_2D, targetTextureID);
-    OOGL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, (GLsizei)viewSize.width, (GLsizei)viewSize.height, 0, GL_RGBA, GL_FLOAT, NULL));
-    OOGLBindTexture(GL_TEXTURE_2D, 0);
-
-    for (i = 0; i < 2; i++) {
-        OOGLBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[i]);
-        OOGL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, (GLsizei)viewSize.width, (GLsizei)viewSize.height, 0, GL_RGBA, GL_FLOAT, NULL));
-        OOGLBindTexture(GL_TEXTURE_2D, 0);
-    }
-
-    for (i = 0; i < 2; i++) {
-        OOGLBindTexture(GL_TEXTURE_2D, passthroughTextureID[i]);
-        OOGL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, (GLsizei)viewSize.width, (GLsizei)viewSize.height, 0, GL_RGBA, GL_FLOAT, NULL));
-        OOGLBindTexture(GL_TEXTURE_2D, 0);
-    }
-
-    // resize depth attachment
-    OOGL(glBindRenderbuffer(GL_RENDERBUFFER, targetDepthBufferID));
-    OOGL(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32F, (GLsizei)viewSize.width, (GLsizei)viewSize.height));
-    OOGL(glBindRenderbuffer(GL_RENDERBUFFER, 0));
+    unsigned width = (unsigned)viewSize.width, height = (unsigned)viewSize.height;
+    OORendererResizeRenderTarget(_msaaTarget, width, height);
+    OORendererResizeRenderTarget(_sceneTarget, width, height);
+    OORendererResizeRenderTarget(_pingpongTargets[0], width, height);
+    OORendererResizeRenderTarget(_pingpongTargets[1], width, height);
+    OORendererResizeRenderTarget(_passthroughTarget, width, height);
 
     targetFramebufferSize.width = viewSize.width;
     targetFramebufferSize.height = viewSize.height;
@@ -624,11 +496,11 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     NSSize viewSize = [gameView backingViewSize];
     float fboResolution[2] = { viewSize.width, viewSize.height };
 
-    OOGL(glBindFramebuffer(GL_FRAMEBUFFER, passthroughFramebufferID));
+    OOGL(glBindFramebuffer(GL_FRAMEBUFFER, _passthroughTarget));
     OOGL(glClear(GL_COLOR_BUFFER_BIT));
 
     OOGLUseProgram(program);
-    OOGLBindTexture(GL_TEXTURE_2D, targetTextureID);
+    OOGLBindTexture(GL_TEXTURE_2D, OORendererRenderTargetTexture(_sceneTarget, 0));
     OOGL(glUniform1i(glGetUniformLocation(program, "image"), 0));
 
     OOGL(glBindVertexArray(quadTextureVAO));
@@ -641,11 +513,11 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     unsigned int amount = [self bloom] ? 10 : 0; // if not blooming, why bother with the heavy calculations?
     OOGLUseProgram(blur);
     for (unsigned int i = 0; i < amount; i++) {
-        OOGL(glBindFramebuffer(GL_FRAMEBUFFER, pingpongFBO[horizontal]));
+        OOGL(glBindFramebuffer(GL_FRAMEBUFFER, _pingpongTargets[horizontal]));
         OOGL(glUniform1i(glGetUniformLocation(blur, "horizontal"), horizontal));
         OOGLActiveTexture(GL_TEXTURE0);
         // bind texture of other framebuffer (or scene if first iteration)
-        OOGLBindTexture(GL_TEXTURE_2D, firstIteration ? passthroughTextureID[1] : pingpongColorbuffers[!horizontal]);
+        OOGLBindTexture(GL_TEXTURE_2D, firstIteration ? OORendererRenderTargetTexture(_passthroughTarget, 1) : OORendererRenderTargetTexture(_pingpongTargets[!horizontal], 0));
         OOGL(glUniform1i(glGetUniformLocation(blur, "imageIn"), 0));
         OOGL(glBindVertexArray(quadTextureVAO));
         OOGL(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0));
@@ -658,7 +530,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     OOGLUseProgram(final);
 
     OOGLActiveTexture(GL_TEXTURE0);
-    OOGLBindTexture(GL_TEXTURE_2D, passthroughTextureID[0]);
+    OOGLBindTexture(GL_TEXTURE_2D, OORendererRenderTargetTexture(_passthroughTarget, 0));
     OOGL(glUniform1i(glGetUniformLocation(final, "scene"), 0));
     OOGL(glUniform1i(glGetUniformLocation(final, "bloom"), [self bloom]));
     OOGL(glUniform1f(glGetUniformLocation(final, "uTime"), [self getTime]));
@@ -674,7 +546,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     OOGL(glUniform1i(glGetUniformLocation(final, "uSDRToneMapper"), [gameView sdrToneMapper]));
 
     OOGLActiveTexture(GL_TEXTURE1);
-    OOGLBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[!horizontal]);
+    OOGLBindTexture(GL_TEXTURE_2D, OORendererRenderTargetTexture(_pingpongTargets[!horizontal], 0));
     OOGL(glUniform1i(glGetUniformLocation(final, "bloomBlur"), 1));
     OOGL(glUniform1f(glGetUniformLocation(final, "uSaturation"), [gameView colorSaturation]));
 
@@ -4374,7 +4246,7 @@ static const OOMatrix starboard_matrix = { { { 0.0f, 0.0f, 1.0f, 0.0f },
         // With shaders the scene is drawn into an offscreen target for post-processing.
         OORenderTarget sceneTarget = kOORenderTargetCurrent;
         if ([self useShaders]) {
-            sceneTarget = [gameView msaa] ? msaaFramebufferID : targetFramebufferID;
+            sceneTarget = [gameView msaa] ? _msaaTarget : _sceneTarget;
         }
         @try {
             no_update = YES; // block other attempts to draw
@@ -4793,13 +4665,9 @@ static const OOMatrix starboard_matrix = { { { 0.0f, 0.0f, 1.0f, 0.0f },
 
 - (void)prepareToRenderIntoDefaultFramebuffer
 {
-    NSSize viewSize = [gameView backingViewSize];
     if ([self useShaders]) {
         if ([gameView msaa]) {
-            // resolve MSAA framebuffer to target framebuffer
-            OOGL(glBindFramebuffer(GL_READ_FRAMEBUFFER, msaaFramebufferID));
-            OOGL(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, targetFramebufferID));
-            OOGL(glBlitFramebuffer(0, 0, (GLint)viewSize.width, (GLint)viewSize.height, 0, 0, (GLint)viewSize.width, (GLint)viewSize.height, GL_COLOR_BUFFER_BIT, GL_NEAREST));
+            OORendererResolveRenderTarget(_msaaTarget, _sceneTarget);
         }
     }
 }

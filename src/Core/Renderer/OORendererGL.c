@@ -54,6 +54,19 @@ extern PFNGLBINDFRAMEBUFFERPROC glBindFramebuffer;
 extern PFNGLENABLEVERTEXATTRIBARRAYARBPROC glEnableVertexAttribArrayARB;
 extern PFNGLDISABLEVERTEXATTRIBARRAYARBPROC glDisableVertexAttribArrayARB;
 extern PFNGLVERTEXATTRIBPOINTERARBPROC glVertexAttribPointerARB;
+extern PFNGLGENFRAMEBUFFERSPROC glGenFramebuffers;
+extern PFNGLDELETEFRAMEBUFFERSPROC glDeleteFramebuffers;
+extern PFNGLFRAMEBUFFERTEXTURE2DPROC glFramebufferTexture2D;
+extern PFNGLFRAMEBUFFERRENDERBUFFERPROC glFramebufferRenderbuffer;
+extern PFNGLCHECKFRAMEBUFFERSTATUSPROC glCheckFramebufferStatus;
+extern PFNGLGENRENDERBUFFERSPROC glGenRenderbuffers;
+extern PFNGLDELETERENDERBUFFERSPROC glDeleteRenderbuffers;
+extern PFNGLBINDRENDERBUFFERPROC glBindRenderbuffer;
+extern PFNGLRENDERBUFFERSTORAGEPROC glRenderbufferStorage;
+extern PFNGLRENDERBUFFERSTORAGEMULTISAMPLEPROC glRenderbufferStorageMultisample;
+extern PFNGLTEXIMAGE2DMULTISAMPLEPROC glTexImage2DMultisample;
+extern PFNGLDRAWBUFFERSPROC glDrawBuffers;
+extern PFNGLBLITFRAMEBUFFERPROC glBlitFramebuffer;
 #define glActiveTexture glActiveTexturePtr
 #define glClientActiveTexture glClientActiveTextureARBPtr
 #endif
@@ -689,4 +702,194 @@ void OORendererBackendDeleteTexture(uint32_t texture)
     TextureRecord* record = Record(texture, false);
     if (record != NULL)
         memset(record, 0, sizeof *record);
+}
+
+#pragma mark - Render targets
+
+/*  A render target is a framebuffer object. Single-sampled colour attachments
+    are textures, so they can be sampled; multisampled colour is a
+    renderbuffer on the macOS legacy context (OO_MSAA_COLOR_RENDERBUFFER) and
+    a multisample texture elsewhere. Depth is always a renderbuffer.
+*/
+typedef struct {
+    bool used;
+    OORenderTargetDescriptor descriptor;
+    GLuint color[kOOMaxColorAttachments];
+    GLuint depth;
+} RenderTargetRecord;
+
+static RenderTargetRecord* sTargets = NULL;
+static size_t sTargetCapacity = 0;
+
+static RenderTargetRecord* TargetRecord(OORenderTarget target, bool grow)
+{
+    if (target >= sTargetCapacity) {
+        if (!grow)
+            return NULL;
+        size_t capacity = sTargetCapacity ? sTargetCapacity : 16;
+        while (capacity <= target)
+            capacity *= 2;
+        RenderTargetRecord* records = realloc(sTargets, capacity * sizeof *records);
+        if (records == NULL)
+            return NULL;
+        memset(records + sTargetCapacity, 0, (capacity - sTargetCapacity) * sizeof *records);
+        sTargets = records;
+        sTargetCapacity = capacity;
+    }
+    RenderTargetRecord* record = &sTargets[target];
+    return grow || record->used ? record : NULL;
+}
+
+static bool MultisampleColorIsTexture(void)
+{
+#if OO_MSAA_COLOR_RENDERBUFFER
+    return false;
+#else
+    return true;
+#endif
+}
+
+// Size (or resize) every attachment's storage. The framebuffer is bound.
+static void AllocateStorage(const RenderTargetRecord* record)
+{
+    const OORenderTargetDescriptor* d = &record->descriptor;
+    GLsizei width = (GLsizei)d->width, height = (GLsizei)d->height;
+    for (unsigned i = 0; i < d->colorAttachments; i++) {
+        if (d->samples > 1 && !MultisampleColorIsTexture()) {
+            glBindRenderbuffer(GL_RENDERBUFFER, record->color[i]);
+            glRenderbufferStorageMultisample(GL_RENDERBUFFER, (GLsizei)d->samples, GL_RGBA16F, width, height);
+            glBindRenderbuffer(GL_RENDERBUFFER, 0);
+        } else if (d->samples > 1) {
+#if !OO_MSAA_COLOR_RENDERBUFFER
+            glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, record->color[i]);
+            glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, (GLsizei)d->samples, GL_RGBA16F, width, height, GL_TRUE);
+            glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
+#endif
+        } else {
+            uint32_t previous = BindForUpload(false, record->color[i]);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
+            glBindTexture(GL_TEXTURE_2D, previous);
+        }
+    }
+    if (d->depth) {
+        glBindRenderbuffer(GL_RENDERBUFFER, record->depth);
+        if (d->samples > 1)
+            glRenderbufferStorageMultisample(GL_RENDERBUFFER, (GLsizei)d->samples, GL_DEPTH_COMPONENT32F, width, height);
+        else
+            glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32F, width, height);
+        glBindRenderbuffer(GL_RENDERBUFFER, 0);
+    }
+}
+
+OORenderTarget OORendererBackendCreateRenderTarget(const OORenderTargetDescriptor* descriptor)
+{
+    GLint previousFramebuffer;
+    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &previousFramebuffer);
+
+    GLuint framebuffer = 0;
+    glGenFramebuffers(1, &framebuffer);
+    RenderTargetRecord* record = framebuffer != 0 ? TargetRecord(framebuffer, true) : NULL;
+    if (record == NULL) {
+        OORendererBackendWarn("OORendererCreateRenderTarget: no framebuffer name");
+        return 0;
+    }
+    memset(record, 0, sizeof *record);
+    record->used = true;
+    record->descriptor = *descriptor;
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
+    bool multisample = descriptor->samples > 1;
+    if (multisample && !MultisampleColorIsTexture())
+        glGenRenderbuffers((GLsizei)descriptor->colorAttachments, record->color);
+    else if (descriptor->colorAttachments > 0)
+        glGenTextures((GLsizei)descriptor->colorAttachments, record->color);
+    if (descriptor->depth)
+        glGenRenderbuffers(1, &record->depth);
+
+    for (unsigned i = 0; i < descriptor->colorAttachments && !multisample; i++) {
+        uint32_t previous = BindForUpload(false, record->color[i]);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glBindTexture(GL_TEXTURE_2D, previous);
+    }
+    AllocateStorage(record);
+
+    GLenum drawBuffers[kOOMaxColorAttachments];
+    for (unsigned i = 0; i < descriptor->colorAttachments; i++) {
+        GLenum attachment = GL_COLOR_ATTACHMENT0 + i;
+        drawBuffers[i] = attachment;
+        if (multisample && !MultisampleColorIsTexture())
+            glFramebufferRenderbuffer(GL_FRAMEBUFFER, attachment, GL_RENDERBUFFER, record->color[i]);
+#if !OO_MSAA_COLOR_RENDERBUFFER
+        else if (multisample)
+            glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D_MULTISAMPLE, record->color[i], 0);
+#endif
+        else
+            glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D, record->color[i], 0);
+    }
+    if (descriptor->depth)
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, record->depth);
+    if (descriptor->colorAttachments > 0)
+        glDrawBuffers((GLsizei)descriptor->colorAttachments, drawBuffers);
+
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        OORendererBackendWarn("OORendererCreateRenderTarget: framebuffer not complete");
+    glBindFramebuffer(GL_FRAMEBUFFER, (GLuint)previousFramebuffer);
+    return framebuffer;
+}
+
+void OORendererBackendResizeRenderTarget(OORenderTarget target, unsigned width, unsigned height)
+{
+    RenderTargetRecord* record = TargetRecord(target, false);
+    if (record == NULL)
+        return;
+    record->descriptor.width = width;
+    record->descriptor.height = height;
+    AllocateStorage(record);
+}
+
+uint32_t OORendererBackendRenderTargetTexture(OORenderTarget target, unsigned attachment)
+{
+    const RenderTargetRecord* record = TargetRecord(target, false);
+    if (record == NULL || record->descriptor.samples > 1 || attachment >= record->descriptor.colorAttachments)
+        return 0;
+    return record->color[attachment];
+}
+
+void OORendererBackendResolveRenderTarget(OORenderTarget source, OORenderTarget destination)
+{
+    const RenderTargetRecord* from = TargetRecord(source, false);
+    if (from == NULL)
+        return;
+    GLint previousRead, previousDraw;
+    glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &previousRead);
+    glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &previousDraw);
+    GLint width = (GLint)from->descriptor.width, height = (GLint)from->descriptor.height;
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, source);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, destination);
+    glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, (GLuint)previousRead);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, (GLuint)previousDraw);
+}
+
+void OORendererBackendDeleteRenderTarget(OORenderTarget target)
+{
+    RenderTargetRecord* record = TargetRecord(target, false);
+    if (record == NULL)
+        return;
+    const OORenderTargetDescriptor* d = &record->descriptor;
+    if (d->samples > 1 && !MultisampleColorIsTexture())
+        glDeleteRenderbuffers((GLsizei)d->colorAttachments, record->color);
+    else if (d->colorAttachments > 0) {
+        for (unsigned i = 0; i < d->colorAttachments; i++)
+            OORendererForgetTexture(record->color[i]);
+        glDeleteTextures((GLsizei)d->colorAttachments, record->color);
+    }
+    if (d->depth)
+        glDeleteRenderbuffers(1, &record->depth);
+    GLuint framebuffer = target;
+    glDeleteFramebuffers(1, &framebuffer);
+    memset(record, 0, sizeof *record);
 }

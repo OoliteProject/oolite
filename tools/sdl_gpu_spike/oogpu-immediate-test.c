@@ -929,6 +929,105 @@ int main(int argc, char* argv[])
         failures += !lightsOK + !materialOK + !fogOK;
     }
 
+    // Render targets: a 4x multisampled target resolves with partial coverage
+    // on a triangle's edge; a clear reaches both attachments of an MRT target;
+    // resizing keeps the attachment usable; the texture binding is left alone.
+    {
+        enum {
+            kTargetSize = 32
+        };
+        GLuint bound = 0;
+        glGenTextures(1, &bound);
+        glBindTexture(GL_TEXTURE_2D, bound);
+        OORendererSetTextureBinding(false, bound);
+
+        OORenderTarget msaa = OORendererCreateRenderTarget(&(OORenderTargetDescriptor) { kTargetSize, kTargetSize, 1, true, 4 });
+        OORenderTarget resolved = OORendererCreateRenderTarget(&(OORenderTargetDescriptor) { kTargetSize, kTargetSize, 1, true, 1 });
+        OORenderTarget mrt = OORendererCreateRenderTarget(&(OORenderTargetDescriptor) { kTargetSize, kTargetSize, 2, false, 1 });
+        bool created = msaa != 0 && resolved != 0 && mrt != 0 && OORendererRenderTargetTexture(msaa, 0) == 0
+            && OORendererRenderTargetTexture(resolved, 0) != 0 && OORendererRenderTargetTexture(mrt, 1) != 0;
+
+        glViewport(0, 0, kTargetSize, kTargetSize);
+        glMatrixMode(GL_PROJECTION);
+        glPushMatrix();
+        glLoadIdentity();
+        glOrtho(0, kTargetSize, 0, kTargetSize, -1, 1);
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+        SetCapability(GL_TEXTURE_2D, false);
+        SetCapability(GL_BLEND, false);
+        SetCapability(GL_DEPTH_TEST, false);
+        SetCapability(GL_LIGHTING, false);
+
+        float pixels[kTargetSize * kTargetSize * 4];
+        OORendererSetClearColor(0.0f, 0.0f, 1.0f, 1.0f);
+        OORendererBeginPass(&(OORenderPassDescriptor) { msaa, kOOLoadClear, kOOLoadClear });
+        OOImmediateBegin(kOOPrimitiveTriangles);
+        OOImmediateColor4f(1.0f, 0.0f, 0.0f, 1.0f);
+        OOImmediateVertex2f(0.0f, 0.0f);
+        OOImmediateVertex2f(kTargetSize, 0.0f);
+        OOImmediateVertex2f(0.0f, kTargetSize);
+        OOImmediateEnd();
+        OORendererEndPass();
+        OORendererResolveRenderTarget(msaa, resolved);
+        uint32_t resolvedTexture = OORendererRenderTargetTexture(resolved, 0);
+        glBindTexture(GL_TEXTURE_2D, resolvedTexture);
+        glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, pixels);
+        const float* inside = &pixels[(5 * kTargetSize + 5) * 4];
+        const float* outside = &pixels[(30 * kTargetSize + 30) * 4];
+        float edgeRed = 0.0f;
+        // Pixels whose centres lie on the diagonal are partly covered.
+        for (int x = 0; x < kTargetSize; x++)
+            edgeRed = fmaxf(edgeRed, fminf(pixels[((kTargetSize - 1 - x) * kTargetSize + x) * 4], 1.0f - pixels[((kTargetSize - 1 - x) * kTargetSize + x) * 4]));
+        bool resolveOK = inside[0] == 1.0f && inside[2] == 0.0f && outside[0] == 0.0f && outside[2] == 1.0f && edgeRed >= 0.2f;
+
+        OORendererSetClearColor(0.5f, 0.25f, 0.125f, 1.0f);
+        OORendererBeginPass(&(OORenderPassDescriptor) { mrt, kOOLoadClear, kOOLoadDontCare });
+        OORendererEndPass();
+        bool mrtOK = true;
+        for (unsigned a = 0; a < 2; a++) {
+            glBindTexture(GL_TEXTURE_2D, OORendererRenderTargetTexture(mrt, a));
+            glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, pixels);
+            mrtOK = mrtOK && pixels[0] == 0.5f && pixels[1] == 0.25f && pixels[2] == 0.125f;
+        }
+
+        OORendererResizeRenderTarget(mrt, kTargetSize / 2, kTargetSize / 4);
+        OORendererSetClearColor(0.75f, 0.0f, 0.0f, 1.0f);
+        OORendererBeginPass(&(OORenderPassDescriptor) { mrt, kOOLoadClear, kOOLoadDontCare });
+        OORendererEndPass();
+        GLint width = 0, height = 0;
+        glBindTexture(GL_TEXTURE_2D, OORendererRenderTargetTexture(mrt, 1));
+        glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &width);
+        glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &height);
+        glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, pixels);
+        bool resizeOK = width == kTargetSize / 2 && height == kTargetSize / 4 && pixels[0] == 0.75f;
+
+        glBindTexture(GL_TEXTURE_2D, bound);
+        OORendererDeleteRenderTarget(msaa);
+        OORendererDeleteRenderTarget(resolved);
+        OORendererDeleteRenderTarget(mrt);
+        GLint nowBound;
+        glGetIntegerv(GL_TEXTURE_BINDING_2D, &nowBound);
+        bool bindingKept = (GLuint)nowBound == bound && OORendererState()->units[0].binding2D == bound;
+
+        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fbo);
+        glViewport(0, 0, kSize, kSize);
+        glMatrixMode(GL_PROJECTION);
+        glPopMatrix();
+        glMatrixMode(GL_MODELVIEW);
+        glBindTexture(GL_TEXTURE_2D, 0);
+        OORendererSetTextureBinding(false, 0);
+        glDeleteTextures(1, &bound);
+        OORendererSetClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+
+        printf("%-4s render targets created (multisampled colour not sampleable)\n", created ? "OK" : "FAIL");
+        printf("%-4s 4x MSAA resolve: inside, outside and a partly covered edge (%.2f)\n", resolveOK ? "OK" : "FAIL", edgeRed);
+        printf("%-4s a clear reaches both attachments of an MRT target\n", mrtOK ? "OK" : "FAIL");
+        printf("%-4s resizing a target (%dx%d), binding kept: %s\n", resizeOK && bindingKept ? "OK" : "FAIL", width, height, bindingKept ? "yes" : "no");
+        total += 4;
+        failures += !created + !resolveOK + !mrtOK + !(resizeOK && bindingKept);
+    }
+
     // Textures: every format, with mipmaps down to the odd narrow levels whose
     // rows aren't four-byte aligned, and a cube map. Each level reads back as
     // uploaded, and creating or uploading leaves the binding alone.
