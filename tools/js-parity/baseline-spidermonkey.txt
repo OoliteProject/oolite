@@ -423,6 +423,24 @@
 [oojs.probe]: set maxEnergy invalid THREW Error: entity.maxEnergy must be positive.
 [oojs.probe]: construct Ship THREW Error: Ship cannot be used as a constructor.
 [oojs.probe]: Ship.prototype.isValid -> false
+[oojs.probe]: JSON vector -> "{\"x\":1,\"y\":2,\"z\":3}"
+[oojs.probe]: JSON quaternion -> "{\"w\":1,\"x\":0,\"y\":0,\"z\":0}"
+[oojs.probe]: vector own keys -> "x,y,z"
+[oojs.probe]: ship hasOwnProperty position -> false
+[oojs.probe]: ship hasOwnProperty hasRole -> false
+[oojs.probe]: player ship own: PlayerShip/Ship/Entity props -> [true, false, false]
+[oojs.probe]: player ship own keys count -> 65
+[oojs.probe]: station own: Station/Ship/Entity props -> [true, false, false]
+[oojs.probe]: station own keys -> 18
+[oojs.probe]: JSON keys of station -> "x,y,z"
+[oojs.probe]: string toSource -> "(new String(\"abc\"))"
+[oojs.probe]: number toSource -> "(new Number(5))"
+[oojs.probe]: object toSource -> "({a:1, b:\"x\"})"
+[oojs.probe]: array toSource -> "[1, \"two\"]"
+[oojs.probe]: uneval undefined -> "(void 0)"
+[oojs.probe]: vector toSource -> "Vector3D(1, 2, 3)"
+[oojs.probe]: function toString -> "function (a) {\u000a    \"use strict\";\u000a    return a + 1;\u000a}"
+[oojs.probe]: for-in integer key order -> "b,2,a,1"
 [oojs.probe]: spawned count -> 1
 [oojs.probe]: spawned keys: 168
 [oojs.probe]: spawned.AI = "nullAI.plist"
@@ -431,7 +449,7 @@
 [oojs.probe]: spawned.AIScript = {aiStarted:function, author:"Giles Williams, Jens Ayton and contributors", license:"GPL 2+ / CC-BY-NC-SA 3.0 - see LICENSE.md for details", name:"Oolite Scavenger AI", oolite_manifest_identifier:"org.oolite.oolite", ship:<adder>, version:"1.93.1-229"}
 [oojs.probe]: spawned.AIScriptWakeTime = 0
 [oojs.probe]: spawned.AIState = "GLOBAL"
-[oojs.probe]: spawned.accuracy = -4.782867
+[oojs.probe]: spawned.accuracy = 1.315613
 [oojs.probe]: spawned.aftWeapon = null
 [oojs.probe]: spawned.alertCondition = 2
 [oojs.probe]: spawned.autoAI = true
@@ -450,7 +468,7 @@
 [oojs.probe]: spawned.commodity = null
 [oojs.probe]: spawned.commodityAmount = 0
 [oojs.probe]: spawned.contracts = []
-[oojs.probe]: spawned.crew = [{description:"a human colonial from Raoror", homeSystem:53, insuranceCredits:0, legalStatus:14, name:"Nuil Kirfor", species:"human colonial"}]
+[oojs.probe]: spawned.crew = [{description:"a human colonial from Qudira", homeSystem:116, insuranceCredits:250, legalStatus:0, name:"Usil Ma", species:"human colonial"}]
 [oojs.probe]: spawned.cruiseSpeed = 192
 [oojs.probe]: spawned.currentWeapon = {calculatedPrice:4000, canBeDamaged:true, canCarryMultiple:false, damageProbability:1, defaultActivateKey:null, defaultModeKey:null, description:"High powered pulse laser, a basic defense configuration.", displayColor:null, effectiveTechLevel:3, equipmentKey:"EQ_WEAPON_PULSE_LASER", fastAffinityDefensive:false, fastAffinityOffensive:false, incompatibleEquipment:null, installationTime:4600, isAvailableToAll:true, isAvailableToNPCs:true, isAvailableToPlayer:true, isExternalStore:false, isPortableBetweenShips:false, isVisible:true, name:"Pulse Laser", price:4000, provides:[], repairTime:0, requiredCargoSpace:0, requiresAnyEquipment:null, requiresCleanLegalRecord:false, requiresEmptyPylon:false, requiresEquipment:null, requiresFreePassengerBerth:false, requiresFullFuel:false, requiresMountedPylon:false, requiresNonCleanLegalRecord:false, requiresNonFullFuel:false, scriptInfo:{}, scriptName:"", techLevel:3, weaponInfo:{color:"redColor", damage:"15.0", energy:"0.8", range:"12500", recharge_rate:"0.5", shot_temperature:"7.0", threat_assessment:"0.0"}}
 [oojs.probe]: spawned.dataKey = "adder"
@@ -464,7 +482,7 @@
 [oojs.probe]: spawned.dockingInstructions = null
 [oojs.probe]: spawned.energy = 85
 [oojs.probe]: spawned.energyRechargeRate = 2
-[oojs.probe]: spawned.entityPersonality = 24260
+[oojs.probe]: spawned.entityPersonality = 475
 [oojs.probe]: spawned.equipment = [{calculatedPrice:5250, canBeDamaged:true, canCarryMultiple:false, damageProbability:1, defaultActivateKey:null, defaultModeKey:null, description:"Wide cargo entrance and magnetic scoops enable in-flight capture of mined materials, fuel gasses from the solar corona, and salvage of space debris.", displayColor:null, effectiveTechLevel:5, equipmentKey:"EQ_FUEL_SCOOPS", fastAffinityDefensive:false, fastAffinityOffensive:false, incompatibleEquipment:null, installationTime:5850, isAvailableToAll:false, isAvailableToNPCs:true, isAvailableToPlayer:true, isExternalStore:false, isPortableBetweenShips:false, isVisible:true, name:"Fuel Scoops", price:5250, provides:[array 1], repairTime:0, requiredCargoSpace:0, requiresAnyEquipment:null, requiresCleanLegalRecord:false, requiresEmptyPylon:false, requiresEquipment:null, requiresFreePassengerBerth:false, requiresFullFuel:false, requiresMountedPylon:false, requiresNonCleanLegalRecord:false, requiresNonFullFuel:false, scriptInfo:{object}, scriptName:"", techLevel:5, weaponInfo:{object}}]
 [oojs.probe]: spawned.escortGroup = {count:1, leader:<adder>, name:"escort group", ships:[<adder>]}
 [oojs.probe]: spawned.escorts = []
@@ -479,7 +497,7 @@
 [oojs.probe]: spawned.hasHostileTarget = false
 [oojs.probe]: spawned.hasHyperspaceMotor = true
 [oojs.probe]: spawned.hasSuspendedAI = false
-[oojs.probe]: spawned.heading = Vector3D-0.2,0.9771,0.0724
+[oojs.probe]: spawned.heading = Vector3D0.5222,0.3508,-0.7773
 [oojs.probe]: spawned.heatInsulation = 1
 [oojs.probe]: spawned.homeSystem = 7
 [oojs.probe]: spawned.hyperspaceSpinTime = 15
@@ -534,10 +552,10 @@
 [oojs.probe]: spawned.maxThrust = 30
 [oojs.probe]: spawned.maxYaw = 2
 [oojs.probe]: spawned.missileCapacity = 1
-[oojs.probe]: spawned.missileLoadTime = 0
+[oojs.probe]: spawned.missileLoadTime = 2
 [oojs.probe]: spawned.missiles = [{calculatedPrice:300, canBeDamaged:false, canCarryMultiple:true, damageProbability:0, defaultActivateKey:null, defaultModeKey:null, description:"Faulcon de Lacy HM3 homing missile, fast and accurate when used in conjunction with standard targeting scanners.", displayColor:null, effectiveTechLevel:1, equipmentKey:"EQ_MISSILE", fastAffinityDefensive:false, fastAffinityOffensive:false, incompatibleEquipment:null, installationTime:900, isAvailableToAll:true, isAvailableToNPCs:true, isAvailableToPlayer:true, isExternalStore:true, isPortableBetweenShips:false, isVisible:true, name:"Missile", price:300, provides:[array 0], repairTime:0, requiredCargoSpace:0, requiresAnyEquipment:null, requiresCleanLegalRecord:false, requiresEmptyPylon:true, requiresEquipment:null, requiresFreePassengerBerth:false, requiresFullFuel:false, requiresMountedPylon:false, requiresNonCleanLegalRecord:false, requiresNonFullFuel:false, scriptInfo:{object}, scriptName:"", techLevel:1, weaponInfo:{object}}]
 [oojs.probe]: spawned.name = "Adder"
-[oojs.probe]: spawned.orientation = Quaternion0.5215,0.3794,0.5656,0.514
+[oojs.probe]: spawned.orientation = Quaternion0.3337,0.5278,-0.7811,0.0009
 [oojs.probe]: spawned.owner = null
 [oojs.probe]: spawned.parcelCount = 0
 [oojs.probe]: spawned.parcels = []
@@ -581,9 +599,9 @@
 [oojs.probe]: spawned.thrust = 30
 [oojs.probe]: spawned.thrustVector = Vector3D0,0,0
 [oojs.probe]: spawned.trackCloseContacts = false
-[oojs.probe]: spawned.vectorForward = Vector3D-0.2,0.9771,0.0724
-[oojs.probe]: spawned.vectorRight = Vector3D-0.1682,-0.107,0.9799
-[oojs.probe]: spawned.vectorUp = Vector3D0.9653,0.1838,0.1857
+[oojs.probe]: spawned.vectorForward = Vector3D0.5222,0.3508,-0.7773
+[oojs.probe]: spawned.vectorRight = Vector3D-0.2202,-0.8251,-0.5203
+[oojs.probe]: spawned.vectorUp = Vector3D-0.8239,0.4428,-0.3537
 [oojs.probe]: spawned.velocity = Vector3D0,0,0
 [oojs.probe]: spawned.weaponFacings = 1
 [oojs.probe]: spawned.weaponPositionAft = [Vector3D0,0,-22.5]
@@ -593,6 +611,8 @@
 [oojs.probe]: spawned.weaponRange = 12500
 [oojs.probe]: spawned.withinStationAegis = false
 [oojs.probe]: spawned.yaw = 0
+[oojs.probe]: ship own: Ship/Entity props -> [true, false]
+[oojs.probe]: ship own keys -> "accuracy,aftWeapon,AI,AIScript,AIScriptWakeTime,AIState,AIFoundTarget,AIPrimaryAggressor,alertCondition,autoAI,autoWeapons,beaconCode,beaconLabel,boundingBox,bounty,cargoList,cargoSpaceUsed,cargoSpaceCapacity,cargoSpaceAvailable,collisionExceptions,commodity,commodityAmount,contracts,cloakAutomatic,crew,cruiseSpeed,currentWeapon,dataKey,defenseTargets,desiredRange,desiredSpeed,destination,destinationSystem,displayName,dockingInstructions,energyRechargeRate,entityPersonality,equipment,escorts,escortGroup,exhaustEmissiveColor,exhausts,extraCargo,flashers,forwardWeapon,fuel,fuelChargeRate,group,hasHostileTarget,hasHyperspaceMotor,hasSuspendedAI,heatInsulation,heading,homeSystem,hyperspaceSpinTime,injectorBurnRate,injectorSpeedFactor,isBeacon,isCloaked,isCargo,isDerelict,isFrangible,isFleeing,isJamming,isMinable,isMine,isMissile,isPiloted,isPirate,isPirateVictim,isPolice,isRock,isBoulder,isThargoid,isTurret,isTrader,isWeapon,laserHeatLevel,laserHeatLevelAft,laserHeatLevelForward,laserHeatLevelPort,laserHeatLevelStarboard,lightsActive,markedForFines,maxEscorts,maxPitch,maxSpeed,maxRoll,maxYaw,maxThrust,missileCapacity,missileLoadTime,missiles,name,parcelCount,parcels,passengerCount,passengerCapacity,passengers,pitch,portWeapon,potentialCollider,primaryRole,reactionTime,reportAIMessages,roleWeights,roles,roll,savedCoordinates,scanDescription,scannerDisplayColor1,scannerDisplayColor2,scannerHostileDisplayColor1,scannerHostileDisplayColor2,scannerRange,script,scriptedMisjump,scriptedMisjumpRange,scriptInfo,shipClassName,shipUniqueName,speed,starboardWeapon,subEntities,subEntityCapacity,subEntityRotation,sunGlareFilter,target,temperature,thrust,thrustVector,trackCloseContacts,vectorForward,vectorRight,vectorUp,velocity,weaponFacings,weaponPositionAft,weaponPositionForward,weaponPositionPort,weaponPositionStarboard,weaponRange,withinStationAegis,yaw"
 [oojs.probe]: event staleCheck
 [oojs.probe]: stale isValid -> false
 [oojs.probe]: stale position -> undefined
