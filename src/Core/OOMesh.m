@@ -49,6 +49,7 @@ MA 02110-1301, USA.
 #import "OOOpenGLExtensionManager.h"
 #import "OOProfilingStopwatch.h"
 #import "OOShaderMaterial.h"
+#import "OOVertexArray.h"
 #import "Octree.h"
 #import "ResourceManager.h"
 #import "Universe.h"
@@ -120,6 +121,13 @@ typedef struct VertexFaceRef {
 static void VFRAddFace(VertexFaceRef* vfr, NSUInteger index);
 static NSUInteger VFRGetCount(VertexFaceRef* vfr);
 static NSUInteger VFRGetFaceAtIndex(VertexFaceRef* vfr, NSUInteger index);
+
+@interface OOMesh ()
+
+- (void)ensureRendererBuffers;
+- (void)releaseRendererBuffers;
+
+@end
 
 @interface OOMesh (Private) <NSMutableCopying, OOGraphicsResetClient>
 
@@ -300,6 +308,7 @@ static BOOL IsPerVertexNormalMode(OOMeshNormalMode mode)
     DESTROY(octree);
 
     [self deleteDisplayLists];
+    [self releaseRendererBuffers];
 
     for (i = 0; i != kOOMeshMaxMaterials; ++i) {
         DESTROY(materials[i]);
@@ -365,6 +374,30 @@ static NSString* NormalModeDescription(OOMeshNormalMode mode)
     return faceCount;
 }
 
+// Renderer buffers over the mesh arrays, rebuilt if the arrays change.
+- (void)ensureRendererBuffers
+{
+    if (_vertexBuffer != NULL && _rendererBufferSource == _displayLists.vertexArray)
+        return;
+    [self releaseRendererBuffers];
+    size_t vectors = _displayLists.count * sizeof(Vector);
+    _vertexBuffer = OORendererCreateBuffer(_displayLists.vertexArray, vectors);
+    _normalBuffer = OORendererCreateBuffer(_displayLists.normalArray, vectors);
+    _tangentBuffer = OORendererCreateBuffer(_displayLists.tangentArray, vectors);
+    _uvBuffer = OORendererCreateBuffer(_displayLists.textureUVArray, _displayLists.count * 2 * sizeof(GLfloat));
+    _rendererBufferSource = _displayLists.vertexArray;
+}
+
+- (void)releaseRendererBuffers
+{
+    OORendererReleaseBuffer(_vertexBuffer);
+    OORendererReleaseBuffer(_normalBuffer);
+    OORendererReleaseBuffer(_tangentBuffer);
+    OORendererReleaseBuffer(_uvBuffer);
+    _vertexBuffer = _normalBuffer = _tangentBuffer = _uvBuffer = NULL;
+    _rendererBufferSource = NULL;
+}
+
 - (void)renderOpaqueParts
 {
     OO_ENTER_OPENGL();
@@ -373,8 +406,7 @@ static NSString* NormalModeDescription(OOMeshNormalMode mode)
 
     OOSetOpenGLState(OPENGL_STATE_OPAQUE);
 
-    OOGL(glVertexPointer(3, GL_FLOAT, 0, _displayLists.vertexArray));
-    OOGL(glNormalPointer(GL_FLOAT, 0, _displayLists.normalArray));
+    [self ensureRendererBuffers];
 
     // for visual effects enable blending. This will allow use of alpha
     // channel in shaders - note, this is a bit of cheating the system,
@@ -385,10 +417,7 @@ static NSString* NormalModeDescription(OOMeshNormalMode mode)
     }
 
 #if OO_SHADERS
-    if ([[OOOpenGLExtensionManager sharedManager] shadersSupported]) {
-        OOGL(glEnableVertexAttribArrayARB(kTangentAttributeIndex));
-        OOGL(glVertexAttribPointerARB(kTangentAttributeIndex, 3, GL_FLOAT, GL_FALSE, 0, _displayLists.tangentArray));
-    }
+    BOOL useTangents = [[OOOpenGLExtensionManager sharedManager] shadersSupported];
 #endif
 
     BOOL usingNormalsAsTexCoords = NO;
@@ -412,21 +441,13 @@ static NSString* NormalModeDescription(OOMeshNormalMode mode)
     }
 
     NSUInteger unit;
-    if (_textureUnitCount <= 1) {
-        OOGL(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
-    } else {
-        /*	It should not be possible to have multiple texture units if
-                texture combiners are not available.
-        */
-        NSAssert2([[OOOpenGLExtensionManager sharedManager] textureCombinersSupported], @"Mesh %@ uses %zu texture units, but multitexturing is not available.", [self shortDescription], _textureUnitCount);
-
-        for (unit = 0; unit < _textureUnitCount; unit++) {
-            OOGL(glClientActiveTextureARB(GL_TEXTURE0_ARB + unit));
-            OOGL(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
-        }
-    }
+    /*	It should not be possible to have multiple texture units if
+            texture combiners are not available.
+    */
+    NSAssert2(_textureUnitCount <= 1 || [[OOOpenGLExtensionManager sharedManager] textureCombinersSupported], @"Mesh %@ uses %zu texture units, but multitexturing is not available.", [self shortDescription], _textureUnitCount);
+    NSUInteger texCoordUnits = _textureUnitCount > 1 ? _textureUnitCount : 1;
 #else
-    OOGL(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
+    NSUInteger texCoordUnits = 1;
 #endif
 
     @try {
@@ -452,7 +473,6 @@ static NSString* NormalModeDescription(OOMeshNormalMode mode)
 #endif
                     if (!wantsNormalsAsTextureCoordinates) {
                         OOGL(glDisable(GL_TEXTURE_CUBE_MAP));
-                        OOGL(glTexCoordPointer(2, GL_FLOAT, 0, _displayLists.textureUVArray));
                         /*	FIXME: Not including the line below breaks multitexturing in no-shaders mode.
                                 However, the OpenGL state manager should probably be handling this;
                                 TEXTURE_2D is part of OPENGL_STATE_OPAQUE, which has already been set.
@@ -461,7 +481,6 @@ static NSString* NormalModeDescription(OOMeshNormalMode mode)
                         OOGL(glEnable(GL_TEXTURE_2D));
                     } else {
                         OOGL(glDisable(GL_TEXTURE_2D));
-                        OOGL(glTexCoordPointer(3, GL_FLOAT, 0, _displayLists.vertexArray));
                         OOGL(glEnable(GL_TEXTURE_CUBE_MAP));
                     }
 #if OO_MULTITEXTURE
@@ -471,7 +490,22 @@ static NSString* NormalModeDescription(OOMeshNormalMode mode)
             }
 
             [materials[ti] apply];
-            OOGL(glDrawArrays(GL_TRIANGLES, triangle_range[ti].location, triangle_range[ti].length));
+
+            OOVertexLayout layout = { .count = 0 };
+            OOVertexLayoutAdd(&layout, kOOVertexPosition, 0, 3, 0, _vertexBuffer, 0);
+            OOVertexLayoutAdd(&layout, kOOVertexNormal, 0, 3, 0, _normalBuffer, 0);
+#if OO_SHADERS
+            if (useTangents)
+                OOVertexLayoutAdd(&layout, kOOVertexAttribute, kTangentAttributeIndex, 3, 0, _tangentBuffer, 0);
+#endif
+            for (NSUInteger texUnit = 0; texUnit < texCoordUnits; texUnit++) {
+                // Cube maps use the vertex positions as texture co-ordinates.
+                if (usingNormalsAsTexCoords)
+                    OOVertexLayoutAdd(&layout, kOOVertexTexCoord, (unsigned)texUnit, 3, 0, _vertexBuffer, 0);
+                else
+                    OOVertexLayoutAdd(&layout, kOOVertexTexCoord, (unsigned)texUnit, 2, 0, _uvBuffer, 0);
+            }
+            OORendererDrawArrays(kOONativePrimitiveTriangles, &layout, triangle_range[ti].location, triangle_range[ti].length);
         }
 
         listsReady = YES;
@@ -488,29 +522,14 @@ static NSString* NormalModeDescription(OOMeshNormalMode mode)
             @throw exception; // pass these on
     }
 
-#if OO_SHADERS
-    if ([[OOOpenGLExtensionManager sharedManager] shadersSupported]) {
-        OOGL(glDisableVertexAttribArrayARB(kTangentAttributeIndex));
-    }
-#endif
-
     [OOMaterial applyNone];
     OOCheckOpenGLErrors(@"OOMesh after drawing %@", self);
 
 #if OO_MULTITEXTURE
-    if (_textureUnitCount <= 1) {
-        OOGL(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
-    } else {
-        for (unit = 0; unit < _textureUnitCount; unit++) {
-            OOGL(glClientActiveTextureARB(GL_TEXTURE0_ARB + unit));
-            OOGL(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
-        }
-
+    if (_textureUnitCount > 1) {
         OOGL(glClientActiveTextureARB(GL_TEXTURE0_ARB));
         OOGL(glActiveTextureARB(GL_TEXTURE0_ARB));
     }
-#else
-    OOGL(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
 #endif
 
 #ifndef NDEBUG
@@ -903,6 +922,8 @@ static NSString* NormalModeDescription(OOMeshNormalMode mode)
 
         // Reset unsharable GL state
         result->listsReady = NO;
+        result->_vertexBuffer = result->_normalBuffer = result->_tangentBuffer = result->_uvBuffer = NULL;
+        result->_rendererBufferSource = NULL;
 
         [[OOGraphicsResetManager sharedManager] registerClient:result];
     }

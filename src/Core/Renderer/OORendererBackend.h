@@ -32,6 +32,7 @@ MA 02110-1301, USA.
 #include "OOFixedFunction.h"
 #include "OOImmediateMode.h"
 #include "OORenderState.h"
+#include "OOVertexArray.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -40,6 +41,14 @@ extern "C" {
 enum {
     kOORendererMaxDrawStateDepth = 16
 };
+
+// What an OORendererBuffer is on the OpenGL backend: the caller's memory.
+struct OORendererBuffer {
+    const void* data;
+    size_t size;
+};
+
+void OORendererBackendDrawArrays(OONativePrimitive primitive, const OOVertexLayout* layout, size_t first, size_t count);
 
 // Draw expanded immediate-mode vertices with the current render state.
 void OORendererBackendDrawImmediate(OONativePrimitive primitive, const OOImmediateVertex* vertices, size_t count);

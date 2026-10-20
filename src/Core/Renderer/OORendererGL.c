@@ -47,6 +47,9 @@ MA 02110-1301, USA.
 extern PFNGLACTIVETEXTUREPROC glActiveTexturePtr;
 extern PFNGLCLIENTACTIVETEXTUREARBPROC glClientActiveTextureARBPtr;
 extern PFNGLBINDBUFFERPROC glBindBuffer;
+extern PFNGLENABLEVERTEXATTRIBARRAYARBPROC glEnableVertexAttribArrayARB;
+extern PFNGLDISABLEVERTEXATTRIBARRAYARBPROC glDisableVertexAttribArrayARB;
+extern PFNGLVERTEXATTRIBPOINTERARBPROC glVertexAttribPointerARB;
 #define glActiveTexture glActiveTexturePtr
 #define glClientActiveTexture glClientActiveTextureARBPtr
 #endif
@@ -172,6 +175,14 @@ static void SetCapability(GLenum capability, bool enabled)
         glEnable(capability);
     else
         glDisable(capability);
+}
+
+static void SetClientState(GLenum array, bool enabled)
+{
+    if (enabled)
+        glEnableClientState(array);
+    else
+        glDisableClientState(array);
 }
 
 static void ApplyBlend(OOBlendMode blend)
@@ -352,4 +363,88 @@ void OORendererBackendSetFog(const OOFogValues* fog)
     glFogf(GL_FOG_START, fog->start);
     glFogf(GL_FOG_END, fog->end);
     glFogf(GL_FOG_DENSITY, fog->density);
+}
+
+#pragma mark - Vertex arrays
+
+void OORendererBackendDrawArrays(OONativePrimitive primitive, const OOVertexLayout* layout, size_t first, size_t count)
+{
+    // Classic arrays the layout doesn't use are disabled for the draw, as
+    // the state presets do, and everything is put back afterwards. Generic
+    // attribute arrays are assumed off outside draws, as Oolite keeps them
+    // (and glGetVertexAttribiv isn't loaded on Windows).
+    GLint arrayBuffer = 0, clientActiveTexture = GL_TEXTURE0;
+    glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &arrayBuffer);
+    glGetIntegerv(GL_CLIENT_ACTIVE_TEXTURE, &clientActiveTexture);
+    if (arrayBuffer != 0)
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    static const GLenum kClassic[3] = { GL_VERTEX_ARRAY, GL_NORMAL_ARRAY, GL_COLOR_ARRAY };
+    GLboolean classicWas[3], classicUsed[3] = { false, false, false };
+    for (int i = 0; i < 3; i++)
+        classicWas[i] = glIsEnabled(kClassic[i]);
+
+    enum { kMaxUnits = 8 };
+    GLboolean texCoordWas[kMaxUnits], texCoordUsed[kMaxUnits] = { false };
+    for (unsigned unit = 0; unit < kMaxUnits; unit++)
+        texCoordWas[unit] = 2; // not looked at yet
+
+    for (unsigned i = 0; i < layout->count; i++) {
+        const OOVertexStream* stream = &layout->streams[i];
+        const char* pointer = (const char*)stream->buffer->data + stream->offset;
+        GLsizei stride = (GLsizei)stream->stride;
+        switch (stream->semantic) {
+        case kOOVertexPosition:
+            classicUsed[0] = true;
+            glVertexPointer((GLint)stream->components, GL_FLOAT, stride, pointer);
+            break;
+        case kOOVertexNormal:
+            classicUsed[1] = true;
+            glNormalPointer(GL_FLOAT, stride, pointer);
+            break;
+        case kOOVertexColor:
+            classicUsed[2] = true;
+            glColorPointer((GLint)stream->components, GL_FLOAT, stride, pointer);
+            break;
+        case kOOVertexTexCoord:
+            if (stream->index < kMaxUnits) {
+                glClientActiveTexture(GL_TEXTURE0 + stream->index);
+                texCoordWas[stream->index] = glIsEnabled(GL_TEXTURE_COORD_ARRAY);
+                texCoordUsed[stream->index] = true;
+                glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+                glTexCoordPointer((GLint)stream->components, GL_FLOAT, stride, pointer);
+            }
+            break;
+        case kOOVertexAttribute:
+            glEnableVertexAttribArrayARB(stream->index);
+            glVertexAttribPointerARB(stream->index, (GLint)stream->components, GL_FLOAT, GL_FALSE, stride, pointer);
+            break;
+        }
+    }
+    for (int i = 0; i < 3; i++)
+        SetClientState(kClassic[i], classicUsed[i]);
+    // Unit 0 texture co-ordinates off if the layout doesn't supply them.
+    if (!texCoordUsed[0]) {
+        glClientActiveTexture(GL_TEXTURE0);
+        texCoordWas[0] = glIsEnabled(GL_TEXTURE_COORD_ARRAY);
+        glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+    }
+
+    glDrawArrays(GLPrimitive(primitive), (GLint)first, (GLsizei)count);
+
+    for (unsigned i = 0; i < layout->count; i++) {
+        if (layout->streams[i].semantic == kOOVertexAttribute)
+            glDisableVertexAttribArrayARB(layout->streams[i].index);
+    }
+    for (unsigned unit = 0; unit < kMaxUnits; unit++) {
+        if (texCoordWas[unit] != 2) {
+            glClientActiveTexture(GL_TEXTURE0 + unit);
+            SetClientState(GL_TEXTURE_COORD_ARRAY, texCoordWas[unit]);
+        }
+    }
+    for (int i = 0; i < 3; i++)
+        SetClientState(kClassic[i], classicWas[i]);
+    glClientActiveTexture((GLenum)clientActiveTexture);
+    if (arrayBuffer != 0)
+        glBindBuffer(GL_ARRAY_BUFFER, (GLuint)arrayBuffer);
 }

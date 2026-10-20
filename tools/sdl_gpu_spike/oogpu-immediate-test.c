@@ -40,6 +40,7 @@ MA 02110-1301, USA.
 #include "OOFixedFunction.h"
 #include "OOImmediateMode.h"
 #include "OORenderState.h"
+#include "OOVertexArray.h"
 
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_opengl.h>
@@ -558,6 +559,63 @@ int main(int argc, char* argv[])
         printf("%-4s raw GL change inside a pushed state is reported\n", reported ? "OK" : "FAIL");
         total += 3;
         failures += !drawOK + !restored + !reported;
+    }
+
+    /*  Vertex arrays: drawing from renderer buffers with a layout draws what
+        immediate mode draws, and leaves client-array state as it found it.
+    */
+    {
+        const TestShape* strip = &shapes[5];
+        float positions[32 * 3], colors[32 * 4], texCoords[32 * 2];
+        for (int i = 0; i < strip->count; i++) {
+            positions[i * 3] = strip->vertices[i].x;
+            positions[i * 3 + 1] = strip->vertices[i].y;
+            positions[i * 3 + 2] = 0;
+            memcpy(&colors[i * 4], strip->vertices[i].color, 4 * sizeof(float));
+            texCoords[i * 2] = strip->vertices[i].s;
+            texCoords[i * 2 + 1] = strip->vertices[i].t;
+        }
+        const Variant textured = { false, true, 1.0f };
+        Render(strip, &textured, kDrawGL, glPixels);
+
+        OORendererBuffer* posBuffer = OORendererCreateBuffer(positions, sizeof positions);
+        OORendererBuffer* colorBuffer = OORendererCreateBuffer(colors, sizeof colors);
+        OORendererBuffer* texBuffer = OORendererCreateBuffer(texCoords, sizeof texCoords);
+        OOVertexLayout layout = { .count = 0 };
+        OOVertexLayoutAdd(&layout, kOOVertexPosition, 0, 3, 0, posBuffer, 0);
+        OOVertexLayoutAdd(&layout, kOOVertexColor, 0, 4, 0, colorBuffer, 0);
+        OOVertexLayoutAdd(&layout, kOOVertexTexCoord, 0, 2, 0, texBuffer, 0);
+
+        // Odd client state: normal array on, colour off, texture unit 1 active.
+        glEnableClientState(GL_NORMAL_ARRAY);
+        glNormalPointer(GL_FLOAT, 0, positions);
+        glDisableClientState(GL_COLOR_ARRAY);
+        glClientActiveTexture(GL_TEXTURE1);
+        glClearColor(0, 0, 0, 1);
+        glClear(GL_COLOR_BUFFER_BIT);
+        glShadeModel(GL_SMOOTH);
+        glEnable(GL_TEXTURE_2D);
+        OORendererDrawArrays(kOONativePrimitiveTriangleStrip, &layout, 0, (size_t)strip->count);
+        glFinish();
+        glReadPixels(0, 0, kSize, kSize, GL_RGBA, GL_UNSIGNED_BYTE, ooPixels);
+        GLint clientActive;
+        glGetIntegerv(GL_CLIENT_ACTIVE_TEXTURE, &clientActive);
+        bool stateKept = glIsEnabled(GL_NORMAL_ARRAY) && !glIsEnabled(GL_COLOR_ARRAY) && clientActive == GL_TEXTURE1;
+        glClientActiveTexture(GL_TEXTURE0);
+        stateKept = stateKept && !glIsEnabled(GL_TEXTURE_COORD_ARRAY) && !glIsEnabled(GL_VERTEX_ARRAY);
+        glDisableClientState(GL_NORMAL_ARRAY);
+        glDisable(GL_TEXTURE_2D);
+        OORendererReleaseBuffer(posBuffer);
+        OORendererReleaseBuffer(colorBuffer);
+        OORendererReleaseBuffer(texBuffer);
+
+        int maxDiff;
+        unsigned lit, differing = CountDifferences(glPixels, ooPixels, &maxDiff, &lit);
+        bool drawOK = differing == 0 && lit > 0;
+        printf("%-4s vertex-array draw matches immediate mode (lit %u, differing %u)\n", drawOK ? "OK" : "DIFF", lit, differing);
+        printf("%-4s vertex-array draw leaves client-array state as it was\n", stateKept ? "OK" : "FAIL");
+        total += 2;
+        failures += !drawOK + !stateKept;
     }
 
     /*  Fixed-function values: what GL stores must be the same whether set
