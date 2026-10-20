@@ -63,6 +63,8 @@ void OORendererResetState(void)
     sState.frontFaceCCW = true;
     for (unsigned i = 0; i < kOOMaxTextureUnits; i++)
         sState.units[i].envMode = kOOTexEnvModulate;
+    for (unsigned i = 0; i < 4; i++)
+        sState.modelView[i * 5] = sState.projection[i * 5] = 1.0f;
     sDepth = 0;
 }
 
@@ -189,6 +191,26 @@ void OORendererSetTextureLODBias(float bias)
 void OORendererSetProgram(uint32_t program)
 {
     State()->program = program;
+}
+
+void OORendererSetModelViewMatrix(const float matrix[16])
+{
+    memcpy(State()->modelView, matrix, sizeof State()->modelView);
+}
+
+void OORendererSetProjectionMatrix(const float matrix[16])
+{
+    memcpy(State()->projection, matrix, sizeof State()->projection);
+}
+
+void OORendererSetViewport(int x, int y, int width, int height)
+{
+    int* v = State()->viewport;
+    v[0] = x;
+    v[1] = y;
+    v[2] = width;
+    v[3] = height;
+    State()->viewportSet = true;
 }
 
 void OORendererForgetTexture(uint32_t texture)

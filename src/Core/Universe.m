@@ -355,10 +355,9 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     GLint windowFramebuffer;
     OOGL(glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &windowFramebuffer));
 
-    GLint previousProgramID;
-    OOGL(glGetIntegerv(GL_CURRENT_PROGRAM, &previousProgramID));
-    GLint previousTextureID;
-    OOGL(glGetIntegerv(GL_TEXTURE_BINDING_2D, &previousTextureID));
+    const OORenderStateMachine* state = OORendererState();
+    uint32_t previousProgramID = state->program;
+    uint32_t previousTextureID = state->units[state->activeTexture].binding2D;
 
     OORendererSetWindowTarget((OORenderTarget)windowFramebuffer);
     unsigned width = (unsigned)viewSize.width, height = (unsigned)viewSize.height;

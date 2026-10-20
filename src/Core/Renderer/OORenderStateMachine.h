@@ -136,6 +136,10 @@ typedef struct {
     unsigned activeTexture;
     OOTextureUnitState units[kOOMaxTextureUnits];
     uint32_t program; // shader program name on OpenGL, 0 for none
+    // The matrices and viewport draws use: the last ones synced to GL.
+    float modelView[16], projection[16]; // column-major, as glLoadMatrixf
+    int viewport[4];
+    bool viewportSet; // GL's initial viewport is the window, which isn't recorded
 } OORenderStateMachine;
 
 // The current state. Read-only for backends.
@@ -160,6 +164,9 @@ void OORendererSetTexEnvColor(const float rgba[4]); // on the active unit
 void OORendererSetTexEnvCombineRGB(OOCombineOp op); // on the active unit
 void OORendererSetTextureLODBias(float bias); // on the active unit
 void OORendererSetProgram(uint32_t program);
+void OORendererSetModelViewMatrix(const float matrix[16]);
+void OORendererSetProjectionMatrix(const float matrix[16]);
+void OORendererSetViewport(int x, int y, int width, int height);
 // A texture was deleted: GL unbinds it from every unit.
 void OORendererForgetTexture(uint32_t texture);
 

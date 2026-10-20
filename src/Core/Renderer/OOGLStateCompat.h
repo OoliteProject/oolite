@@ -43,6 +43,10 @@ void OOGLFrontFace(GLenum mode);
 void OOGLShadeModel(GLenum mode);
 void OOGLPolygonMode(GLenum face, GLenum mode);
 void OOGLScissor(GLint x, GLint y, GLsizei width, GLsizei height);
+void OOGLViewport(GLint x, GLint y, GLsizei width, GLsizei height);
+// glLoadMatrixf on the modelview or projection stack, recorded for draws.
+void OOGLLoadModelViewMatrix(const GLfloat matrix[16]);
+void OOGLLoadProjectionMatrix(const GLfloat matrix[16]);
 void OOGLActiveTexture(GLenum unit);
 void OOGLBindTexture(GLenum target, GLuint texture);
 void OOGLDeleteTextures(GLsizei count, const GLuint* textures);

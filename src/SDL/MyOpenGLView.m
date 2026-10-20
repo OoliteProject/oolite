@@ -477,7 +477,7 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
     float ratio = 0.5;
     float aspect = bounds.size.height / bounds.size.width;
 
-    OOGL(glViewport(0, 0, bounds.size.width, bounds.size.height));
+    OOGLViewport(0, 0, bounds.size.width, bounds.size.height);
     OOGLResetProjection();
     OOGLFrustum(-ratio, ratio, -aspect * ratio, aspect * ratio, 1.0, MAX_CLEAR_DEPTH);
 }
@@ -745,7 +745,7 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
         pixelDensity = 1.0f;
     }
 
-    glViewport(0, 0, dest.w * pixelDensity, dest.h * pixelDensity);
+    OOGLViewport(0, 0, dest.w * pixelDensity, dest.h * pixelDensity);
 
     // The splash as RGBA bytes, whatever the BMP's layout.
     SDL_Surface* rgba = SDL_ConvertSurface(image, SDL_PIXELFORMAT_RGBA32);

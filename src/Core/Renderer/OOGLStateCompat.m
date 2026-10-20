@@ -215,6 +215,29 @@ void OOGLScissor(GLint x, GLint y, GLsizei width, GLsizei height)
     OOGL(glScissor(x, y, width, height));
 }
 
+void OOGLViewport(GLint x, GLint y, GLsizei width, GLsizei height)
+{
+    OO_ENTER_OPENGL();
+    OORendererSetViewport(x, y, width, height);
+    OOGL(glViewport(x, y, width, height));
+}
+
+void OOGLLoadModelViewMatrix(const GLfloat matrix[16])
+{
+    OO_ENTER_OPENGL();
+    OORendererSetModelViewMatrix(matrix);
+    OOGL(glMatrixMode(GL_MODELVIEW));
+    OOGL(glLoadMatrixf(matrix));
+}
+
+void OOGLLoadProjectionMatrix(const GLfloat matrix[16])
+{
+    OO_ENTER_OPENGL();
+    OORendererSetProjectionMatrix(matrix);
+    OOGL(glMatrixMode(GL_PROJECTION));
+    OOGL(glLoadMatrixf(matrix));
+}
+
 void OOGLActiveTexture(GLenum unit)
 {
     OO_ENTER_OPENGL();
@@ -455,6 +478,20 @@ void OOGLVerifyStateMachine(void)
             Report(bad, @"scissor box (GL %d %d %d %d, recorded %d %d %d %d)", values[0], values[1], values[2], values[3],
                 state->scissor[0], state->scissor[1], state->scissor[2], state->scissor[3]);
     }
+    if (state->viewportSet) {
+        glGetIntegerv(GL_VIEWPORT, values);
+        if (memcmp(values, state->viewport, sizeof state->viewport) != 0)
+            Report(bad, @"viewport (GL %d %d %d %d, recorded %d %d %d %d)", values[0], values[1], values[2], values[3],
+                state->viewport[0], state->viewport[1], state->viewport[2], state->viewport[3]);
+    }
+    GLfloat matrix[16];
+    glGetFloatv(GL_MODELVIEW_MATRIX, matrix);
+    if (memcmp(matrix, state->modelView, sizeof matrix) != 0)
+        Report(bad, @"modelview matrix");
+    glGetFloatv(GL_PROJECTION_MATRIX, matrix);
+    if (memcmp(matrix, state->projection, sizeof matrix) != 0)
+        Report(bad, @"projection matrix");
+
     glGetIntegerv(GL_CURRENT_PROGRAM, &value);
     if ((uint32_t)value != state->program)
         Report(bad, @"program (GL %d, recorded %u)", value, state->program);
