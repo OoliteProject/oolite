@@ -1,0 +1,602 @@
+/*
+
+oogpu-backend-test.c
+
+Draws the same scenes through the renderer layer with the OpenGL backend
+(built as oogpu-backend-test-gl) or the SDL_GPU backend
+(oogpu-backend-test-gpu), and saves each one as a BMP. The scenes use only
+the renderer's API, so comparing the two sets of images checks the SDL_GPU
+backend against GL. oogpu-backend-compare.py does the comparison.
+
+    oogpu-backend-test-gl <dir>
+    oogpu-backend-test-gpu <dir>      (OO_BACKEND_FAULT=<name> plants a fault)
+
+
+Copyright (C) 2026 Oolite contributors
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+MA 02110-1301, USA.
+
+*/
+
+#include "OOFixedFunction.h"
+#include "OOImmediateMode.h"
+#include "OORenderPass.h"
+#include "OORenderState.h"
+#include "OORenderStateMachine.h"
+#include "OORendererTexture.h"
+#include "OOVertexArray.h"
+
+#include <SDL3/SDL.h>
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#if OO_BACKEND_GPU
+#include "OORendererSDLGPU.h"
+#else
+#if defined(__APPLE__)
+#define GL_SILENCE_DEPRECATION 1
+#include <OpenGL/gl.h>
+#include <OpenGL/glext.h>
+#else
+#define GL_GLEXT_PROTOTYPES 1
+#include <GL/gl.h>
+#include <GL/glext.h>
+#endif
+#endif
+
+enum {
+    kSize = 256
+};
+static const float kPi = 3.14159265358979f;
+
+static unsigned sWarnings = 0;
+
+void OORendererBackendWarn(const char* message)
+{
+    fprintf(stderr, "renderer warning: %s\n", message);
+    sWarnings++;
+}
+
+/*  Texture glue: the game passes OOTextures; here a "texture" is a renderer
+    texture handle cast to a pointer.
+*/
+void OORendererBackendApplyTexture(const void* texture);
+unsigned OORendererBackendTextureName(const void* texture);
+void OORendererBackendSaveTexture(int depth);
+void OORendererBackendRestoreTexture(int depth);
+
+unsigned OORendererBackendTextureName(const void* texture)
+{
+    return (unsigned)(uintptr_t)texture;
+}
+
+#if OO_BACKEND_GPU
+void OORendererBackendApplyTexture(const void* texture)
+{
+    (void)texture;
+}
+
+void OORendererBackendSaveTexture(int depth)
+{
+    (void)depth;
+}
+
+void OORendererBackendRestoreTexture(int depth)
+{
+    (void)depth;
+}
+#else
+static GLint sSavedBinding[16];
+
+void OORendererBackendApplyTexture(const void* texture)
+{
+    glBindTexture(GL_TEXTURE_2D, (GLuint)(uintptr_t)texture);
+}
+
+void OORendererBackendSaveTexture(int depth)
+{
+    glGetIntegerv(GL_TEXTURE_BINDING_2D, &sSavedBinding[depth]);
+}
+
+void OORendererBackendRestoreTexture(int depth)
+{
+    glBindTexture(GL_TEXTURE_2D, (GLuint)sSavedBinding[depth]);
+}
+
+void OORendererBackendVerifyStateMachine(void)
+{
+}
+#endif
+
+#pragma mark - State the game sets through the OOGL* wrappers
+
+/*  In the game these go through OOGLStateCompat.m, which records them in the
+    state mirror and makes the GL call. The scenes do the same here.
+*/
+static void SetMatrices(const float modelView[16], const float projection[16])
+{
+    OORendererSetModelViewMatrix(modelView);
+    OORendererSetProjectionMatrix(projection);
+#if !OO_BACKEND_GPU
+    glMatrixMode(GL_PROJECTION);
+    glLoadMatrixf(projection);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadMatrixf(modelView);
+#endif
+}
+
+static void SetViewport(int x, int y, int width, int height)
+{
+    OORendererSetViewport(x, y, width, height);
+#if !OO_BACKEND_GPU
+    glViewport(x, y, width, height);
+#endif
+}
+
+static void SetFlatShading(bool flat)
+{
+    OORendererSetFlatShading(flat);
+#if !OO_BACKEND_GPU
+    glShadeModel(flat ? GL_FLAT : GL_SMOOTH);
+#endif
+}
+
+static void SetLightEnabled(unsigned light, bool enabled)
+{
+    OORendererSetLightEnabled(light, enabled);
+#if !OO_BACKEND_GPU
+    if (enabled)
+        glEnable(GL_LIGHT0 + light);
+    else
+        glDisable(GL_LIGHT0 + light);
+#endif
+}
+
+static void SetDepthFunc(OOCompareOp op)
+{
+    OORendererSetDepthFunc(op);
+#if !OO_BACKEND_GPU
+    static const GLenum kOps[] = { GL_NEVER, GL_LESS, GL_EQUAL, GL_LEQUAL, GL_GREATER, GL_NOTEQUAL, GL_GEQUAL, GL_ALWAYS };
+    glDepthFunc(kOps[op]);
+#endif
+}
+
+#pragma mark - Matrices
+
+static void Identity(float m[16])
+{
+    memset(m, 0, 16 * sizeof(float));
+    m[0] = m[5] = m[10] = m[15] = 1.0f;
+}
+
+static void Ortho(float m[16], float l, float r, float b, float t, float n, float f)
+{
+    Identity(m);
+    m[0] = 2.0f / (r - l);
+    m[5] = 2.0f / (t - b);
+    m[10] = -2.0f / (f - n);
+    m[12] = -(r + l) / (r - l);
+    m[13] = -(t + b) / (t - b);
+    m[14] = -(f + n) / (f - n);
+}
+
+static void Perspective(float m[16], float fovyDegrees, float aspect, float n, float f)
+{
+    float t = 1.0f / tanf(fovyDegrees * kPi / 360.0f);
+    memset(m, 0, 16 * sizeof(float));
+    m[0] = t / aspect;
+    m[5] = t;
+    m[10] = (f + n) / (n - f);
+    m[11] = -1.0f;
+    m[14] = 2.0f * f * n / (n - f);
+}
+
+static void Translation(float m[16], float x, float y, float z)
+{
+    Identity(m);
+    m[12] = x;
+    m[13] = y;
+    m[14] = z;
+}
+
+static void SetOrtho2D(void)
+{
+    float mv[16], p[16];
+    Identity(mv);
+    Ortho(p, 0, kSize, 0, kSize, -1, 1);
+    SetMatrices(mv, p);
+}
+
+#pragma mark - Scenes
+
+static OODrawState Plain(void)
+{
+    return (OODrawState) { .blend = kOOBlendOff };
+}
+
+static void Vertex(float x, float y, float r, float g, float b, float a)
+{
+    OOImmediateColor4f(r, g, b, a);
+    OOImmediateVertex2f(x, y);
+}
+
+// Smooth-shaded triangles with per-vertex colours.
+static void SceneSmooth(void)
+{
+    SetOrtho2D();
+    OODrawState state = Plain();
+    OORendererPushDrawState(&state);
+    OOImmediateBegin(kOOPrimitiveTriangles);
+    Vertex(20, 20, 1, 0, 0, 1);
+    Vertex(230, 40, 0, 1, 0, 1);
+    Vertex(110, 220, 0, 0, 1, 1);
+    Vertex(150, 200, 1, 1, 0, 1);
+    Vertex(240, 230, 0, 1, 1, 1);
+    Vertex(200, 120, 1, 0, 1, 1);
+    OOImmediateEnd();
+    OORendererPopDrawState();
+}
+
+// Flat-shaded quads and a fan: each primitive takes GL's provoking (last) vertex colour.
+static void SceneFlat(void)
+{
+    SetOrtho2D();
+    SetFlatShading(true);
+    OODrawState state = Plain();
+    OORendererPushDrawState(&state);
+    OOImmediateBegin(kOOPrimitiveQuads);
+    Vertex(10, 10, 1, 0, 0, 1);
+    Vertex(120, 20, 0, 1, 0, 1);
+    Vertex(110, 120, 0, 0, 1, 1);
+    Vertex(20, 110, 1, 1, 0, 1);
+    OOImmediateEnd();
+    OOImmediateBegin(kOOPrimitiveTriangleFan);
+    Vertex(190, 190, 1, 1, 1, 1);
+    Vertex(250, 190, 1, 0, 0, 1);
+    Vertex(240, 240, 0, 1, 0, 1);
+    Vertex(190, 250, 0, 0, 1, 1);
+    Vertex(140, 240, 1, 0, 1, 1);
+    OOImmediateEnd();
+    OOImmediateBegin(kOOPrimitiveLines);
+    Vertex(10, 200, 1, 0, 0, 1);
+    Vertex(120, 240, 0, 1, 0, 1);
+    OOImmediateEnd();
+    OORendererPopDrawState();
+    SetFlatShading(false);
+}
+
+// Alpha and additive blending over a background.
+static void SceneBlend(void)
+{
+    SetOrtho2D();
+    OODrawState state = Plain();
+    OORendererPushDrawState(&state);
+    OOImmediateBegin(kOOPrimitiveQuads);
+    Vertex(0, 0, 0.2f, 0.3f, 0.6f, 1);
+    Vertex(256, 0, 0.2f, 0.3f, 0.6f, 1);
+    Vertex(256, 128, 0.6f, 0.2f, 0.2f, 1);
+    Vertex(0, 128, 0.6f, 0.2f, 0.2f, 1);
+    OOImmediateEnd();
+    OORendererPopDrawState();
+
+    state.blend = kOOBlendAlpha;
+    OORendererPushDrawState(&state);
+    OOImmediateBegin(kOOPrimitiveQuads);
+    Vertex(30, 30, 1, 1, 0, 0.5f);
+    Vertex(200, 30, 1, 1, 0, 0.5f);
+    Vertex(200, 200, 1, 1, 0, 0.25f);
+    Vertex(30, 200, 1, 1, 0, 0.75f);
+    OOImmediateEnd();
+    OORendererPopDrawState();
+
+    state.blend = kOOBlendAdditive;
+    OORendererPushDrawState(&state);
+    OOImmediateBegin(kOOPrimitiveTriangles);
+    Vertex(100, 100, 0.5f, 0, 0.5f, 0.8f);
+    Vertex(250, 120, 0, 0.5f, 0.5f, 0.8f);
+    Vertex(150, 250, 0.5f, 0.5f, 0, 0.8f);
+    OOImmediateEnd();
+    OORendererPopDrawState();
+}
+
+// Two triangles that pass through each other, in perspective: checks the depth remap.
+static void SceneDepth(void)
+{
+    float mv[16], p[16];
+    Translation(mv, 0, 0, -4);
+    Perspective(p, 60, 1, 1, 10);
+    SetMatrices(mv, p);
+    OODrawState state = Plain();
+    state.depthTest = true;
+    state.depthWrite = true;
+    OORendererPushDrawState(&state);
+    SetDepthFunc(kOOCompareLessOrEqual);
+    OOImmediateBegin(kOOPrimitiveTriangles);
+    OOImmediateColor4f(1, 0.5f, 0, 1);
+    OOImmediateVertex3f(-2, -1.5f, -1);
+    OOImmediateVertex3f(2, -1.5f, 1);
+    OOImmediateVertex3f(0, 2, 0);
+    OOImmediateColor4f(0, 0.5f, 1, 1);
+    OOImmediateVertex3f(-2, 1.5f, 1);
+    OOImmediateVertex3f(0, -2, 0);
+    OOImmediateVertex3f(2, 1.5f, -1);
+    // Close to the near plane, where GL's clip-space depth is negative.
+    OOImmediateColor4f(0.2f, 1, 0.2f, 1);
+    OOImmediateVertex3f(-0.6f, -0.9f, 2.6f);
+    OOImmediateVertex3f(0.2f, -0.9f, 2.6f);
+    OOImmediateVertex3f(-0.2f, -0.3f, 2.6f);
+    // Crossing the near plane (eye depth 1): GL clips the part in front of it.
+    OOImmediateColor4f(1, 1, 1, 1);
+    OOImmediateVertex3f(0.8f, 1.0f, 1.5f);
+    OOImmediateVertex3f(-0.15f, 0.1f, 3.6f);
+    OOImmediateVertex3f(0.15f, -0.1f, 3.6f);
+    OOImmediateEnd();
+    SetDepthFunc(kOOCompareLess);
+    OORendererPopDrawState();
+}
+
+// Back-face culling: of each pair, only the counter-clockwise triangle shows.
+static void SceneCull(void)
+{
+    SetOrtho2D();
+    OODrawState state = Plain();
+    state.cullBack = true;
+    OORendererPushDrawState(&state);
+    OOImmediateBegin(kOOPrimitiveTriangles);
+    Vertex(20, 20, 1, 0, 0, 1);
+    Vertex(120, 20, 1, 0, 0, 1);
+    Vertex(70, 120, 1, 0, 0, 1);
+    Vertex(140, 20, 0, 1, 0, 1);
+    Vertex(190, 120, 0, 1, 0, 1);
+    Vertex(240, 20, 0, 1, 0, 1);
+    Vertex(20, 140, 0, 0, 1, 1);
+    Vertex(120, 140, 0, 0, 1, 1);
+    Vertex(70, 240, 0, 0, 1, 1);
+    OOImmediateEnd();
+    OORendererPopDrawState();
+}
+
+static uint32_t sChecker = 0;
+
+// A nearest-filtered checkerboard, modulated by vertex colour.
+static void SceneTexture(void)
+{
+    if (sChecker == 0) {
+        uint8_t texels[8 * 8 * 4];
+        for (int i = 0; i < 64; i++) {
+            bool on = ((i % 8) + (i / 8)) % 2;
+            uint8_t* t = &texels[i * 4];
+            t[0] = on ? 255 : 40;
+            t[1] = on ? 200 : 80;
+            t[2] = on ? 60 : 160;
+            t[3] = 255;
+        }
+        OOTextureDescriptor descriptor = { .width = 8, .height = 8, .levels = 1, .format = kOOTexelRGBA8, .repeatS = true, .repeatT = true, .minFilter = kOOFilterNearest, .magFilter = kOOFilterNearest };
+        sChecker = OORendererCreateTexture(&descriptor);
+        OORendererUploadTexture(sChecker, 0, 0, 8, 8, texels);
+    }
+    SetOrtho2D();
+    OODrawState state = Plain();
+    state.texture2D = true;
+    state.texture = (const void*)(uintptr_t)sChecker;
+    OORendererPushDrawState(&state);
+    OOImmediateBegin(kOOPrimitiveQuads);
+    OOImmediateColor4f(1, 1, 1, 1);
+    OOImmediateTexCoord2f(0, 0);
+    OOImmediateVertex2f(16, 16);
+    OOImmediateColor4f(1, 0.5f, 0.5f, 1);
+    OOImmediateTexCoord2f(2, 0);
+    OOImmediateVertex2f(240, 16);
+    OOImmediateColor4f(0.5f, 1, 0.5f, 1);
+    OOImmediateTexCoord2f(2, 2);
+    OOImmediateVertex2f(240, 240);
+    OOImmediateColor4f(0.5f, 0.5f, 1, 1);
+    OOImmediateTexCoord2f(0, 2);
+    OOImmediateVertex2f(16, 240);
+    OOImmediateEnd();
+    OORendererPopDrawState();
+}
+
+// Indexed vertex arrays: a strip with 16-bit indices and colours.
+static void SceneArrays(void)
+{
+    static const float positions[] = { 20, 30, 20, 220, 80, 60, 90, 200, 150, 40, 160, 230, 230, 30, 236, 210 };
+    static const float colors[] = { 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0.5f, 0.5f, 0.5f, 1 };
+    static const uint16_t indices[] = { 0, 1, 2, 3, 4, 5, 6, 7 };
+    static OORendererBuffer *positionBuffer, *colorBuffer, *indexBuffer;
+    if (positionBuffer == NULL) {
+        positionBuffer = OORendererCreateBuffer(positions, sizeof positions);
+        colorBuffer = OORendererCreateBuffer(colors, sizeof colors);
+        indexBuffer = OORendererCreateBuffer(indices, sizeof indices);
+    }
+    SetOrtho2D();
+    OODrawState state = Plain();
+    OORendererPushDrawState(&state);
+    OOVertexLayout layout = { 0 };
+    OOVertexLayoutAdd(&layout, kOOVertexPosition, 0, 2, 0, positionBuffer, 0);
+    OOVertexLayoutAdd(&layout, kOOVertexColor, 0, 4, 0, colorBuffer, 0);
+    OORendererDrawElements(kOONativePrimitiveTriangleStrip, &layout, indexBuffer, 0, kOOIndex16, 8);
+    OORendererPopDrawState();
+}
+
+// A lit sphere: light 1 as a directional sun, as Universe sets it, and a white material.
+static void SceneLit(void)
+{
+    float mv[16], p[16];
+    Translation(mv, 0, 0, -3);
+    Perspective(p, 50, 1, 1, 10);
+    // Light positions are given in eye space, with the identity modelview.
+    float identity[16];
+    Identity(identity);
+    SetMatrices(identity, p);
+    const float ambient[4] = { 0.1f, 0.1f, 0.1f, 1 }, diffuse[4] = { 1, 0.9f, 0.8f, 1 }, specular[4] = { 1, 1, 1, 1 };
+    const float direction[4] = { -0.5f, 0.6f, 0.62f, 0 };
+    OORendererSetLightColor(1, kOOLightAmbient, ambient);
+    OORendererSetLightColor(1, kOOLightDiffuse, diffuse);
+    OORendererSetLightColor(1, kOOLightSpecular, specular);
+    OORendererSetLightPosition(1, direction, NULL);
+    const float matAmbient[4] = { 0.6f, 0.6f, 0.6f, 1 }, matDiffuse[4] = { 0.7f, 0.6f, 0.5f, 1 }, matSpecular[4] = { 0.4f, 0.4f, 0.4f, 1 }, black[4] = { 0, 0, 0, 1 };
+    OORendererSetMaterialColor(kOOMaterialFrontAndBack, kOOMaterialAmbient, matAmbient);
+    OORendererSetMaterialColor(kOOMaterialFrontAndBack, kOOMaterialDiffuse, matDiffuse);
+    OORendererSetMaterialColor(kOOMaterialFrontAndBack, kOOMaterialSpecular, matSpecular);
+    OORendererSetMaterialColor(kOOMaterialFrontAndBack, kOOMaterialEmission, black);
+    OORendererSetMaterialShininess(kOOMaterialFrontAndBack, 20);
+    SetLightEnabled(0, false);
+    SetLightEnabled(1, true);
+    SetMatrices(mv, p);
+
+    OODrawState state = Plain();
+    state.depthTest = true;
+    state.depthWrite = true;
+    state.cullBack = true;
+    state.lighting = true;
+    OORendererPushDrawState(&state);
+    enum {
+        kStacks = 24,
+        kSlices = 32
+    };
+    for (int i = 0; i < kStacks; i++) {
+        OOImmediateBegin(kOOPrimitiveTriangleStrip);
+        for (int j = 0; j <= kSlices; j++) {
+            for (int k = 1; k >= 0; k--) {
+                float phi = kPi * ((float)(i + k) / kStacks - 0.5f);
+                float theta = 2.0f * kPi * j / kSlices;
+                float n[3] = { cosf(phi) * cosf(theta), sinf(phi), cosf(phi) * sinf(theta) };
+                OOImmediateNormal3f(n[0], n[1], n[2]);
+                OOImmediateVertex3f(n[0], n[1], n[2]);
+            }
+        }
+        OOImmediateEnd();
+    }
+    OORendererPopDrawState();
+    SetLightEnabled(1, false);
+}
+
+// A scissored draw inside a smaller viewport, both off-centre vertically,
+// so flipping between GL's bottom-left origin and SDL_GPU's shows.
+static void SceneScissor(void)
+{
+    SetViewport(32, 40, 160, 128);
+    SetOrtho2D();
+    OODrawState state = Plain();
+    state.scissor = true;
+    state.scissorRect[0] = 60;
+    state.scissorRect[1] = 20;
+    state.scissorRect[2] = 100;
+    state.scissorRect[3] = 120;
+    OORendererPushDrawState(&state);
+    OOImmediateBegin(kOOPrimitiveQuads);
+    Vertex(0, 0, 1, 0, 0, 1);
+    Vertex(256, 0, 0, 1, 0, 1);
+    Vertex(256, 256, 0, 0, 1, 1);
+    Vertex(0, 256, 1, 1, 1, 1);
+    OOImmediateEnd();
+    OORendererPopDrawState();
+    SetViewport(0, 0, kSize, kSize);
+}
+
+typedef struct {
+    const char* name;
+    void (*draw)(void);
+    float clear[4];
+} Scene;
+
+static const Scene kScenes[] = {
+    { "smooth", SceneSmooth, { 0, 0, 0, 1 } },
+    { "flat", SceneFlat, { 0.1f, 0.1f, 0.1f, 1 } },
+    { "blend", SceneBlend, { 0, 0, 0, 1 } },
+    { "depth", SceneDepth, { 0, 0, 0.1f, 1 } },
+    { "cull", SceneCull, { 0, 0, 0, 1 } },
+    { "texture", SceneTexture, { 0, 0, 0, 1 } },
+    { "arrays", SceneArrays, { 0.2f, 0.2f, 0.2f, 1 } },
+    { "lit", SceneLit, { 0, 0, 0, 1 } },
+    { "scissor", SceneScissor, { 0.3f, 0, 0.3f, 1 } },
+};
+
+static bool Save(const char* dir, const char* name, const uint8_t* bgraBottomUp)
+{
+    SDL_Surface* surface = SDL_CreateSurface(kSize, kSize, SDL_PIXELFORMAT_BGRA32);
+    for (int row = 0; row < kSize; row++)
+        memcpy((uint8_t*)surface->pixels + row * surface->pitch, bgraBottomUp + (size_t)(kSize - 1 - row) * kSize * 4, kSize * 4);
+    char path[1024];
+    snprintf(path, sizeof path, "%s/%s.bmp", dir, name);
+    bool ok = SDL_SaveBMP(surface, path);
+    SDL_DestroySurface(surface);
+    return ok;
+}
+
+int main(int argc, char* argv[])
+{
+    if (argc < 2) {
+        fprintf(stderr, "usage: %s <output dir>\n", argv[0]);
+        return 2;
+    }
+    if (!SDL_Init(SDL_INIT_VIDEO)) {
+        fprintf(stderr, "SDL_Init: %s\n", SDL_GetError());
+        return 2;
+    }
+#if OO_BACKEND_GPU
+    SDL_GPUDevice* device = SDL_CreateGPUDevice(SDL_GPU_SHADERFORMAT_MSL | SDL_GPU_SHADERFORMAT_SPIRV, true, NULL);
+    if (device == NULL || !OORendererSDLGPUInit(device, kSize, kSize)) {
+        fprintf(stderr, "SDL_GPU: %s\n", SDL_GetError());
+        return 2;
+    }
+    printf("SDL_GPU driver: %s\n", SDL_GetGPUDeviceDriver(device));
+#else
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+    SDL_Window* window = SDL_CreateWindow("oogpu-backend-test", 64, 64, SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN);
+    SDL_GLContext context = window ? SDL_GL_CreateContext(window) : NULL;
+    if (context == NULL) {
+        fprintf(stderr, "GL context: %s\n", SDL_GetError());
+        return 2;
+    }
+    printf("GL renderer: %s\n", (const char*)glGetString(GL_RENDERER));
+    GLuint fbo, color, depth;
+    glGenFramebuffersEXT(1, &fbo);
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fbo);
+    glGenRenderbuffersEXT(1, &color);
+    glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, color);
+    glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_RGBA8, kSize, kSize);
+    glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_RENDERBUFFER_EXT, color);
+    glGenRenderbuffersEXT(1, &depth);
+    glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, depth);
+    glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT24, kSize, kSize);
+    glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, depth);
+    OORendererSetWindowTarget(fbo);
+    glDisable(GL_DITHER);
+#endif
+    SetViewport(0, 0, kSize, kSize);
+
+    uint8_t* pixels = malloc(kSize * kSize * 4);
+    int failures = 0;
+    for (size_t i = 0; i < sizeof kScenes / sizeof *kScenes; i++) {
+        const Scene* scene = &kScenes[i];
+        OORendererSetClearColor(scene->clear[0], scene->clear[1], scene->clear[2], scene->clear[3]);
+        OORendererSetClearDepth(1.0f);
+        OORendererBeginPass(&(OORenderPassDescriptor) { .target = OORendererWindowTarget(), .colorLoad = kOOLoadClear, .depthLoad = kOOLoadClear });
+        scene->draw();
+        OORendererEndPass();
+        OORendererReadPixels(0, 0, kSize, kSize, kOOPixelsBGRA8, pixels);
+        if (!Save(argv[1], scene->name, pixels))
+            failures++;
+    }
+    printf("%zu scenes drawn, %u renderer warnings\n", sizeof kScenes / sizeof *kScenes, sWarnings);
+    free(pixels);
+    return failures != 0 || sWarnings != 0;
+}

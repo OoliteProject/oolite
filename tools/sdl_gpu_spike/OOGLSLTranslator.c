@@ -393,10 +393,13 @@ static char* BuildStageSource(OOGLSLStage stage, const char* prefix, const char*
                         "{\n");
         if (extraInit != NULL)
             StrAppend(&out, extraInit);
-        StrAppend(&out, "    oo_user_main();\n"
-                        // GL clip-space depth is [-w, w]; SDL_GPU's is [0, w].
-                        "    gl_Position.z = (gl_Position.z + gl_Position.w) * 0.5;\n"
-                        "}\n");
+        StrAppend(&out, "    oo_user_main();\n");
+        // GL clip-space depth is [-w, w]; SDL_GPU's is [0, w]. OO_TRANSLATOR_FAULT=depthremap
+        // leaves it out, as a negative control for the backend harness.
+        const char* fault = getenv("OO_TRANSLATOR_FAULT");
+        if (fault == NULL || strcmp(fault, "depthremap") != 0)
+            StrAppend(&out, "    gl_Position.z = (gl_Position.z + gl_Position.w) * 0.5;\n");
+        StrAppend(&out, "}\n");
     }
     return out.s;
 }
