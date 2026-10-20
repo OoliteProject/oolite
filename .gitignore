@@ -36,3 +36,4 @@ tools-make/
 /subprojects/*/
 !/subprojects/packagefiles/
 /subprojects/packagecache/
+/subprojects/.wraplock
