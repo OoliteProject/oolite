@@ -11,3 +11,6 @@
 [oojs.probe]: spawned.vectorUp
 # missileLoadTime is 2.0 when the (random) accuracy is high enough, else 0 (ShipEntity.m).
 [oojs.probe]: spawned.missileLoadTime
+# Random traffic in the system.
+[oojs.probe]: system.allShips
+[oojs.probe]: system.populatorSettings
