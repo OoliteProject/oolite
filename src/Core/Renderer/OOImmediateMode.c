@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 #include "OORendererBackend.h"
 
 #include <assert.h>
+#include <math.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -36,6 +37,8 @@ static OOImmediateAttributes sCurrent = {
 
 static OOPrimitive sPrimitive;
 static bool sInBatch = false;
+static float sLineWidth = 1.0f, sPointSize = 1.0f;
+static float sBatchLineWidth = 1.0f, sBatchPointSize = 1.0f;
 
 // Vertices of the current batch, and the expanded copy handed to the backend.
 static OOImmediateVertex* sVertices = NULL;
@@ -139,6 +142,8 @@ void OOImmediateBegin(OOPrimitive primitive)
 #endif
     sPrimitive = primitive;
     sVertexCount = 0;
+    sBatchLineWidth = sLineWidth;
+    sBatchPointSize = sPointSize;
     sInBatch = true;
 }
 
@@ -310,5 +315,183 @@ size_t OOExpandPrimitive(OOPrimitive primitive, const OOImmediateVertex* in, siz
     }
 #undef EMIT
     assert(o == n);
+    return o;
+}
+
+#pragma mark - Line width and point size
+
+void OOImmediateSetLineWidth(float pixels)
+{
+    sLineWidth = pixels;
+}
+
+void OOImmediateSetPointSize(float pixels)
+{
+    sPointSize = pixels;
+}
+
+float OOImmediateLineWidth(void)
+{
+    return sLineWidth;
+}
+
+float OOImmediatePointSize(void)
+{
+    return sPointSize;
+}
+
+float OOImmediateBatchLineWidth(void)
+{
+    return sBatchLineWidth;
+}
+
+float OOImmediateBatchPointSize(void)
+{
+    return sBatchPointSize;
+}
+
+#pragma mark - Wide line and point expansion
+
+enum {
+    kSmoothPointSegments = 16
+};
+
+static void Transform(const float* m, const float* p, float* out)
+{
+    for (int row = 0; row < 4; row++)
+        out[row] = m[row] * p[0] + m[4 + row] * p[1] + m[8 + row] * p[2] + m[12 + row];
+}
+
+static void Lerp(const float* a, const float* b, float t, float* out, int n)
+{
+    for (int i = 0; i < n; i++)
+        out[i] = a[i] + (b[i] - a[i]) * t;
+}
+
+// A vertex at window position (x, y) and NDC depth z, with interpolated attributes.
+static void Emit(OOImmediateVertex* out, const OOImmediateVertex* a, const OOImmediateVertex* b, float t,
+    float x, float y, float z, const float* viewport)
+{
+    *out = *a;
+    if (b != NULL && t != 0.0f) {
+        Lerp(a->color, b->color, t, out->color, 4);
+        Lerp(a->texCoord, b->texCoord, t, out->texCoord, 2);
+        Lerp(a->normal, b->normal, t, out->normal, 3);
+    }
+    out->position[0] = (x - viewport[0]) / viewport[2] * 2.0f - 1.0f;
+    out->position[1] = (y - viewport[1]) / viewport[3] * 2.0f - 1.0f;
+    out->position[2] = z;
+}
+
+static void ToWindow(const float* clip, const float* viewport, float* x, float* y, float* z)
+{
+    *x = (clip[0] / clip[3] * 0.5f + 0.5f) * viewport[2] + viewport[0];
+    *y = (clip[1] / clip[3] * 0.5f + 0.5f) * viewport[3] + viewport[1];
+    *z = clip[2] / clip[3];
+}
+
+static size_t ExpandSegment(const OOImmediateVertex* va, const OOImmediateVertex* vb, float width, bool smooth,
+    const float* mvp, const float* viewport, OOImmediateVertex* out)
+{
+    float ca[4], cb[4];
+    Transform(mvp, va->position, ca);
+    Transform(mvp, vb->position, cb);
+
+    // Clip to the near plane, z >= -w.
+    float da = ca[2] + ca[3], db = cb[2] + cb[3];
+    if (da < 0 && db < 0)
+        return 0;
+    float ta = 0, tb = 1;
+    if (da < 0)
+        ta = da / (da - db);
+    else if (db < 0)
+        tb = da / (da - db);
+    float pa[4], pb[4];
+    Lerp(ca, cb, ta, pa, 4);
+    Lerp(ca, cb, tb, pb, 4);
+
+    float ax, ay, az, bx, by, bz;
+    ToWindow(pa, viewport, &ax, &ay, &az);
+    ToWindow(pb, viewport, &bx, &by, &bz);
+    float dx = bx - ax, dy = by - ay;
+    float ox, oy;
+    if (smooth) {
+        float length = sqrtf(dx * dx + dy * dy);
+        if (length == 0)
+            return 0;
+        ox = -dy / length * width * 0.5f;
+        oy = dx / length * width * 0.5f;
+    } else if (fabsf(dx) >= fabsf(dy)) {
+        // x-major: GL sweeps the line vertically.
+        ox = 0;
+        oy = width * 0.5f;
+    } else {
+        ox = width * 0.5f;
+        oy = 0;
+    }
+
+    OOImmediateVertex corners[4];
+    Emit(&corners[0], va, vb, ta, ax - ox, ay - oy, az, viewport);
+    Emit(&corners[1], va, vb, tb, bx - ox, by - oy, bz, viewport);
+    Emit(&corners[2], va, vb, tb, bx + ox, by + oy, bz, viewport);
+    Emit(&corners[3], va, vb, ta, ax + ox, ay + oy, az, viewport);
+    static const int kOrder[6] = { 0, 1, 2, 0, 2, 3 };
+    for (int i = 0; i < 6; i++)
+        out[i] = corners[kOrder[i]];
+    return 6;
+}
+
+size_t OOExpandLinesCapacity(OONativePrimitive primitive, size_t count)
+{
+    size_t segments = primitive == kOONativePrimitiveLineStrip ? (count > 0 ? count - 1 : 0) : count / 2;
+    return segments * 6;
+}
+
+size_t OOExpandLinesToTriangles(OONativePrimitive primitive, const OOImmediateVertex* in, size_t count, float width, bool smooth,
+    const float* modelViewProjection, const float* viewport, OOImmediateVertex* out)
+{
+    size_t o = 0;
+    size_t step = primitive == kOONativePrimitiveLineStrip ? 1 : 2;
+    for (size_t i = 0; i + 1 < count; i += step)
+        o += ExpandSegment(&in[i], &in[i + 1], width, smooth, modelViewProjection, viewport, out + o);
+    return o;
+}
+
+size_t OOExpandPointsCapacity(size_t count, bool smooth)
+{
+    return count * (smooth ? 3 * kSmoothPointSegments : 6);
+}
+
+size_t OOExpandPointsToTriangles(const OOImmediateVertex* in, size_t count, float size, bool smooth,
+    const float* modelViewProjection, const float* viewport, OOImmediateVertex* out)
+{
+    size_t o = 0;
+    float r = size * 0.5f;
+    for (size_t i = 0; i < count; i++) {
+        float c[4], x, y, z;
+        Transform(modelViewProjection, in[i].position, c);
+        if (c[2] + c[3] < 0 || c[3] <= 0)
+            continue;
+        ToWindow(c, viewport, &x, &y, &z);
+        if (smooth) {
+            for (int k = 0; k < kSmoothPointSegments; k++) {
+                float a0 = (float)k / kSmoothPointSegments * 6.2831853f;
+                float a1 = (float)(k + 1) / kSmoothPointSegments * 6.2831853f;
+                Emit(&out[o++], &in[i], NULL, 0, x, y, z, viewport);
+                Emit(&out[o++], &in[i], NULL, 0, x + r * cosf(a0), y + r * sinf(a0), z, viewport);
+                Emit(&out[o++], &in[i], NULL, 0, x + r * cosf(a1), y + r * sinf(a1), z, viewport);
+            }
+        } else {
+            // GL's square point covers [x - r, x + r) on each axis.
+            OOImmediateVertex corners[4];
+            Emit(&corners[0], &in[i], NULL, 0, x - r, y - r, z, viewport);
+            Emit(&corners[1], &in[i], NULL, 0, x + r, y - r, z, viewport);
+            Emit(&corners[2], &in[i], NULL, 0, x + r, y + r, z, viewport);
+            Emit(&corners[3], &in[i], NULL, 0, x - r, y + r, z, viewport);
+            static const int kOrder[6] = { 0, 1, 2, 0, 2, 3 };
+            for (int k = 0; k < 6; k++)
+                out[o++] = corners[kOrder[k]];
+        }
+    }
     return o;
 }

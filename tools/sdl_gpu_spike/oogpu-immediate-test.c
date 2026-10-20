@@ -205,6 +205,14 @@ typedef struct {
     float lineWidth;
 } Variant;
 
+static void SetCapability(GLenum capability, bool enabled)
+{
+    if (enabled)
+        glEnable(capability);
+    else
+        glDisable(capability);
+}
+
 static void DrawGL(const TestShape* shape)
 {
     glBegin(shape->glMode);
@@ -617,6 +625,115 @@ int main(int argc, char* argv[])
         printf("%-4s vertex-array draw leaves client-array state as it was\n", stateKept ? "OK" : "FAIL");
         total += 2;
         failures += !drawOK + !stateKept;
+    }
+
+    /*  Wide lines and large points: GL draws them natively; for SDL_GPU they
+        are expanded into triangles on the CPU. Without smoothing GL's shapes
+        are specified closely enough to compare covered pixels; with
+        smoothing GL's antialiased edges are only approximated. Report the
+        overlap (intersection over union) of pixels at least half covered.
+        Apple's GL and Mesa both give at least 0.999 without smoothing; a
+        perpendicular offset instead of GL's minor-axis rule gives about
+        0.98, so the threshold is 0.995.
+    */
+    {
+        static const struct {
+            const char* name;
+            bool points, smooth, perspective;
+            float size;
+            double minimumOverlap;
+        } kCases[] = {
+            { "lines w3", false, false, false, 3.0f, 0.995 },
+            { "lines w5", false, false, false, 5.0f, 0.995 },
+            { "lines w5 perspective", false, false, true, 5.0f, 0.995 },
+            { "lines w4 smooth", false, true, false, 4.0f, 0.75 },
+            { "points s6", true, false, false, 6.0f, 0.995 },
+            { "points s9 smooth", true, true, false, 9.0f, 0.75 },
+        };
+        const TestShape* strip = &shapes[2];
+        const TestShape* points = &shapes[0];
+        const float viewport[4] = { 0, 0, kSize, kSize };
+        for (size_t c = 0; c < sizeof kCases / sizeof *kCases; c++) {
+            const TestShape* shape = kCases[c].points ? points : strip;
+            OOImmediateVertex in[32];
+            for (int i = 0; i < shape->count; i++) {
+                const TestVertex* v = &shape->vertices[i];
+                in[i] = (OOImmediateVertex) { .position = { v->x, v->y, 0 }, .color = { 1, 1, 1, 1 } };
+                if (kCases[c].perspective) {
+                    // Into a frustum: x, y in [-1, 1] at depths 2 to 4.
+                    in[i].position[0] = v->x / kSize * 2 - 1;
+                    in[i].position[1] = v->y / kSize * 2 - 1;
+                    in[i].position[2] = -2.0f - 2.0f * (float)i / shape->count;
+                }
+            }
+            glMatrixMode(GL_PROJECTION);
+            glLoadIdentity();
+            if (kCases[c].perspective)
+                glFrustum(-0.5, 0.5, -0.5, 0.5, 1.0, 10.0);
+            else
+                glOrtho(0, kSize, 0, kSize, -1, 1);
+            glMatrixMode(GL_MODELVIEW);
+            glLoadIdentity();
+            float projection[16], mvp[16];
+            glGetFloatv(GL_PROJECTION_MATRIX, projection);
+            memcpy(mvp, projection, sizeof mvp); // modelview is the identity
+
+            SetCapability(GL_LINE_SMOOTH, kCases[c].smooth);
+            SetCapability(GL_POINT_SMOOTH, kCases[c].smooth);
+            SetCapability(GL_BLEND, kCases[c].smooth);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            glLineWidth(kCases[c].size);
+            glPointSize(kCases[c].size);
+            glShadeModel(GL_SMOOTH);
+            glDisable(GL_TEXTURE_2D);
+            glClearColor(0, 0, 0, 1);
+            glClear(GL_COLOR_BUFFER_BIT);
+            glBegin(kCases[c].points ? GL_POINTS : GL_LINE_STRIP);
+            glColor4f(1, 1, 1, 1);
+            for (int i = 0; i < shape->count; i++)
+                glVertex3fv(in[i].position);
+            glEnd();
+            glFinish();
+            glReadPixels(0, 0, kSize, kSize, GL_RGBA, GL_UNSIGNED_BYTE, glPixels);
+
+            static OOImmediateVertex out[32 * 48];
+            size_t n = kCases[c].points
+                ? OOExpandPointsToTriangles(in, (size_t)shape->count, kCases[c].size, kCases[c].smooth, mvp, viewport, out)
+                : OOExpandLinesToTriangles(kOONativePrimitiveLineStrip, in, (size_t)shape->count, kCases[c].size, kCases[c].smooth, mvp, viewport, out);
+            glDisable(GL_LINE_SMOOTH);
+            glDisable(GL_POINT_SMOOTH);
+            glDisable(GL_BLEND);
+            glMatrixMode(GL_PROJECTION);
+            glLoadIdentity();
+            glMatrixMode(GL_MODELVIEW);
+            glClear(GL_COLOR_BUFFER_BIT);
+            OOImmediateBegin(kOOPrimitiveTriangles);
+            for (size_t i = 0; i < n; i++) {
+                OOImmediateColor4fv(out[i].color);
+                OOImmediateVertex3fv(out[i].position);
+            }
+            OOImmediateEnd();
+            glFinish();
+            glReadPixels(0, 0, kSize, kSize, GL_RGBA, GL_UNSIGNED_BYTE, ooPixels);
+
+            unsigned both = 0, either = 0;
+            for (int i = 0; i < kSize * kSize; i++) {
+                bool a = glPixels[i * 4 + 1] >= 128, b = ooPixels[i * 4 + 1] >= 128;
+                both += a && b;
+                either += a || b;
+            }
+            double overlap = either ? (double)both / either : 0;
+            bool ok = either > 0 && overlap >= kCases[c].minimumOverlap;
+            printf("%-4s CPU-expanded %-22s overlap with GL %.3f (%u px; need %.3f)\n", ok ? "OK" : "FAIL", kCases[c].name, overlap, either, kCases[c].minimumOverlap);
+            total++;
+            failures += !ok;
+        }
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        glOrtho(0, kSize, 0, kSize, -1, 1);
+        glMatrixMode(GL_MODELVIEW);
+        glLineWidth(1);
+        glPointSize(1);
     }
 
     /*  Passes: a pass binds its target and clears with the current clear

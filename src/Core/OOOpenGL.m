@@ -207,12 +207,14 @@ void GLDrawQuadStrip(OOGLVector* points, int n)
 void GLScaledLineWidth(GLfloat width)
 {
     OO_ENTER_OPENGL();
+    OOImmediateSetLineWidth(width * sDisplayScaleFactor);
     glLineWidth(width * sDisplayScaleFactor);
 }
 
 void GLScaledPointSize(GLfloat size)
 {
     OO_ENTER_OPENGL();
+    OOImmediateSetPointSize(size * sDisplayScaleFactor);
     glPointSize(size * sDisplayScaleFactor);
 }
 

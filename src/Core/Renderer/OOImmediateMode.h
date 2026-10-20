@@ -116,6 +116,21 @@ void OOImmediateNormal3f(float x, float y, float z);
 OOImmediateAttributes OOImmediateGetAttributes(void);
 void OOImmediateSetAttributes(OOImmediateAttributes attributes);
 
+/*  Line width and point size in pixels, as glLineWidth()/glPointSize(); set
+    through GLScaledLineWidth()/GLScaledPointSize(). Each batch takes the
+    values current at OOImmediateBegin(). SDL_GPU has neither, so its
+    backend expands wide lines and large points into triangles with
+    OOExpandLinesToTriangles()/OOExpandPointsToTriangles(). The OpenGL
+    backend draws them natively.
+*/
+void OOImmediateSetLineWidth(float pixels);
+void OOImmediateSetPointSize(float pixels);
+float OOImmediateLineWidth(void);
+float OOImmediatePointSize(void);
+// The values of the batch being drawn, for backends.
+float OOImmediateBatchLineWidth(void);
+float OOImmediateBatchPointSize(void);
+
 /*  Primitive expansion, exposed for the backends and for testing.
     OOExpandedVertexCount() returns the number of vertices OOExpandPrimitive()
     will write for count input vertices. Incomplete trailing primitives are
@@ -124,6 +139,27 @@ void OOImmediateSetAttributes(OOImmediateAttributes attributes);
 OONativePrimitive OONativePrimitiveFor(OOPrimitive primitive);
 size_t OOExpandedVertexCount(OOPrimitive primitive, size_t count);
 size_t OOExpandPrimitive(OOPrimitive primitive, const OOImmediateVertex* in, size_t count, OOImmediateVertex* out);
+
+/*  Expand lines (kOONativePrimitiveLines or LineStrip) or points into
+    triangles. modelViewProjection is column-major; viewport is x, y, width,
+    height in pixels. The output positions are normalised device co-ordinates,
+    to be drawn with identity matrices; other attributes come from the
+    original vertices. Lines are clipped to the near plane, and points behind
+    it are dropped.
+
+    Without smoothing, a line becomes GL's non-antialiased wide line: a
+    parallelogram offset along the minor axis. With smoothing it becomes a
+    rectangle around the line, and points become discs. GL's antialiased
+    coverage at the edges is not reproduced.
+
+    The *Capacity functions give the most vertices the expansion can write.
+*/
+size_t OOExpandLinesCapacity(OONativePrimitive primitive, size_t count);
+size_t OOExpandLinesToTriangles(OONativePrimitive primitive, const OOImmediateVertex* in, size_t count, float width, bool smooth,
+    const float* modelViewProjection, const float* viewport, OOImmediateVertex* out);
+size_t OOExpandPointsCapacity(size_t count, bool smooth);
+size_t OOExpandPointsToTriangles(const OOImmediateVertex* in, size_t count, float size, bool smooth,
+    const float* modelViewProjection, const float* viewport, OOImmediateVertex* out);
 
 #ifdef __cplusplus
 }
