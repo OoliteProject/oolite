@@ -434,6 +434,23 @@ static void LoadCompatibilityScript(JSContext* context)
     if (JS_IsException(result))
         OOJSReportPendingException(context);
     JS_FreeValue(context, result);
+
+    /*	The bundled QuickJS-ng is patched (subprojects/packagefiles/quickjs-ng)
+            for SpiderMonkey behaviour OXPs rely on. Warn if this one isn't, e.g.
+            a system library.
+    */
+    static BOOL checked = NO;
+    if (!checked) {
+        checked = YES;
+        const char* test = "(function () { 'use strict'; try { 'x'.oolite = 1; return true; } catch (e) { return false; } })()";
+        JSValue patched = JS_Eval(context, test, strlen(test), "<compatibility check>", JS_EVAL_TYPE_GLOBAL);
+        if (!JS_IsException(patched) && !OOJSValueToBOOL(context, patched)) {
+            OOLogWARN(@"script.javaScript.init.unpatchedEngine", @"%@", @"This QuickJS-ng library lacks Oolite's compatibility patches; some OXPs that worked with SpiderMonkey may fail. Build with the bundled QuickJS-ng subproject.");
+        }
+        if (JS_IsException(patched))
+            JS_FreeValue(context, JS_GetException(context));
+        JS_FreeValue(context, patched);
+    }
 }
 
 NSString* OOJSWrapScriptSource(NSString* source)
