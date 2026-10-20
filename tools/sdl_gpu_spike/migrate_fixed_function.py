@@ -29,6 +29,21 @@ LEFTOVER = re.compile(r"\bgl(?:Light|LightModel|Material)\w*\(")
 HEADERS = ['#import "OOFixedFunction.h"', '#import "OOOpenGLMatrixManager.h"']
 
 
+def top_level_imports(lines):
+    """Indices of #import lines outside any #if block, so an insertion after
+    them isn't compiled out in some configurations."""
+    depth, found = 0, []
+    for i, line in enumerate(lines):
+        stripped = line.strip()
+        if stripped.startswith("#if"):
+            depth += 1
+        elif stripped.startswith("#endif"):
+            depth -= 1
+        elif stripped.startswith("#import ") and depth == 0:
+            found.append(i)
+    return found
+
+
 def main():
     path = sys.argv[1]
     ranges = [tuple(int(x) for x in r.split("-")) for r in sys.argv[2:]]
@@ -72,7 +87,7 @@ def main():
             problems.append(f"{path}:{n}: {lines[i].strip()}")
 
     if changed:
-        imports = [i for i, l in enumerate(lines) if l.startswith("#import ")]
+        imports = top_level_imports(lines)
         for header in HEADERS:
             if header not in lines and imports:
                 lines.insert(imports[-1] + 1, header)

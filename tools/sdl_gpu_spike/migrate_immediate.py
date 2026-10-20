@@ -48,6 +48,21 @@ def in_ranges(n, ranges):
     return not ranges or any(a <= n <= b for a, b in ranges)
 
 
+def top_level_imports(lines):
+    """Indices of #import lines outside any #if block, so an insertion after
+    them isn't compiled out in some configurations."""
+    depth, found = 0, []
+    for i, line in enumerate(lines):
+        stripped = line.strip()
+        if stripped.startswith("#if"):
+            depth += 1
+        elif stripped.startswith("#endif"):
+            depth -= 1
+        elif stripped.startswith("#import ") and depth == 0:
+            found.append(i)
+    return found
+
+
 def main():
     path = sys.argv[1]
     ranges = [tuple(int(x) for x in r.split("-")) for r in sys.argv[2:]]
@@ -69,7 +84,7 @@ def main():
 
     text = "\n".join(lines)
     if changed and '#import "OOImmediateMode.h"' not in text:
-        imports = [i for i, l in enumerate(lines) if l.startswith("#import ")]
+        imports = top_level_imports(lines)
         if imports:
             lines.insert(imports[-1] + 1, '#import "OOImmediateMode.h"')
             text = "\n".join(lines)

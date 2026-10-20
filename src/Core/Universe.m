@@ -93,10 +93,11 @@ MA 02110-1301, USA.
 #import "StationEntity.h"
 #import "WormholeEntity.h"
 
-#if OO_LOCALIZATION_TOOLS
-#import "OOConvertSystemDescriptions.h"
 #import "OOFixedFunction.h"
 #import "OORenderPass.h"
+
+#if OO_LOCALIZATION_TOOLS
+#import "OOConvertSystemDescriptions.h"
 #endif
 
 enum {
