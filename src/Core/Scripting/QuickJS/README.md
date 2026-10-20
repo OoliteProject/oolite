@@ -77,6 +77,12 @@ Behaviour that needed emulating, all in the engine core:
   are unchanged) by `__ooliteRewriteLegacyConst()` in the compatibility script;
   only the read-only check is lost. The rewriter was checked against acorn's
   tokenizer on 488 OXP scripts: it changed exactly the `const` keywords.
+- **Properties on primitives.** SpiderMonkey 1.8.5 silently ignored
+  `"str".foo = 1` even in strict code (Route Planner relies on this); QuickJS
+  throws. QuickJS-ng is patched to match
+  (`subprojects/packagefiles/quickjs-ng/`), and a warning
+  (`script.javaScript.init.unpatchedEngine`) is logged if Oolite is linked
+  against an unpatched system QuickJS-ng.
 - The time limiter uses QuickJS's interrupt handler; error locations come from
   the exception's stack.
 
