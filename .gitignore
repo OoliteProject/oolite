@@ -31,3 +31,7 @@ tools-make/
 
 # Debug output
 /core
+
+# Meson subproject checkouts (wrap files are tracked)
+/subprojects/*/
+/subprojects/packagecache/
