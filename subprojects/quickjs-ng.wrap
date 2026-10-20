@@ -3,7 +3,8 @@ url = https://github.com/quickjs-ng/quickjs.git
 revision = v0.17.0
 depth = 1
 # Oolite compatibility patches (SpiderMonkey 1.8.5 behaviour that OXPs rely
-# on); see the comments in each file.
+# on); see the comments in each file. Upstream request for an option instead:
+# https://github.com/quickjs-ng/quickjs/issues/1837
 diff_files = quickjs-ng/0001-oolite-primitive-property-assignment.patch
 
 [provide]

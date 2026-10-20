@@ -81,7 +81,8 @@ Behaviour that needed emulating, all in the engine core:
   throws. QuickJS-ng is patched to match
   (`subprojects/packagefiles/quickjs-ng/`), and a warning
   (`script.javaScript.init.unpatchedEngine`) is logged if Oolite is linked
-  against an unpatched system QuickJS-ng.
+  against an unpatched system QuickJS-ng. An upstream option to replace the
+  patch has been requested (quickjs-ng/quickjs#1837).
 - The time limiter uses QuickJS's interrupt handler; error locations come from
   the exception's stack.
 
