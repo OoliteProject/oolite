@@ -203,6 +203,7 @@ typedef struct {
     bool flat;
     bool textured;
     float lineWidth;
+    bool smooth; // GL_LINE_SMOOTH and GL_POINT_SMOOTH with blending, as the game uses
 } Variant;
 
 static void SetCapability(GLenum capability, bool enabled)
@@ -270,6 +271,16 @@ static void Render(const TestShape* shape, const Variant* variant, DrawMode mode
     glShadeModel(variant->flat ? GL_FLAT : GL_SMOOTH);
     glLineWidth(variant->lineWidth);
     glPointSize(variant->lineWidth * 2.0f);
+    if (variant->smooth) {
+        glEnable(GL_LINE_SMOOTH);
+        glEnable(GL_POINT_SMOOTH);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    } else {
+        glDisable(GL_LINE_SMOOTH);
+        glDisable(GL_POINT_SMOOTH);
+        glDisable(GL_BLEND);
+    }
     if (variant->textured)
         glEnable(GL_TEXTURE_2D);
     else
@@ -430,12 +441,14 @@ int main(int argc, char* argv[])
     static TestShape shapes[16];
     int shapeCount = BuildShapes(shapes);
     const Variant variants[] = {
-        { false, false, 1.0f },
-        { true, false, 1.0f },
-        { false, true, 1.0f },
-        { true, true, 3.0f },
+        { false, false, 1.0f, false },
+        { true, false, 1.0f, false },
+        { false, true, 1.0f, false },
+        { true, true, 3.0f, false },
+        { false, false, 1.0f, true },
+        { false, false, 2.0f, true },
     };
-    static const char* const kVariantNames[] = { "smooth", "flat", "textured", "flat_textured_wide" };
+    static const char* const kVariantNames[] = { "smooth", "flat", "textured", "flat_textured_wide", "antialiased", "antialiased_wide" };
 
     uint8_t* glPixels = malloc(kSize * kSize * 4);
     uint8_t* ooPixels = malloc(kSize * kSize * 4);
@@ -584,7 +597,7 @@ int main(int argc, char* argv[])
             texCoords[i * 2] = strip->vertices[i].s;
             texCoords[i * 2 + 1] = strip->vertices[i].t;
         }
-        const Variant textured = { false, true, 1.0f };
+        const Variant textured = { false, true, 1.0f, false };
         Render(strip, &textured, kDrawGL, glPixels);
 
         OORendererBuffer* posBuffer = OORendererCreateBuffer(positions, sizeof positions);

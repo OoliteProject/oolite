@@ -13,7 +13,9 @@
     Snapshots, in order:
     1 title, 2 new game, 3 status, 4 manifest, 5 short-range chart,
     6 long-range chart, 7 system data, 8 market, 9 and 10 flight, 2 s and
-    4 s after the launch tunnel ends. Then the game quits.
+    4 s after the launch tunnel ends, 11 aft view, 12 port view,
+    13 starboard view, 14 a ship spawned ahead, 15 firing lasers at it,
+    16 its explosion, 17 the debris. Then the game quits.
 
     ES5 only, as the game's JavaScript engine requires.
 */
@@ -51,7 +53,26 @@ this.startUpComplete = function () {
         { at: 12.0, snap: true },
         { at: 12.5, key: "F1" }
     ];
-    var start = clock.absoluteSeconds, next = 0, keyName = null, keyUpAt = 0, launchedAt = -1, flightSnaps = 0;
+    var flightSteps = [
+        { at: 2.0, snap: true },
+        { at: 4.0, snap: true },
+        { at: 4.5, key: "F2" },
+        { at: 5.5, snap: true },
+        { at: 6.0, key: "F3" },
+        { at: 7.0, snap: true },
+        { at: 7.5, key: "F4" },
+        { at: 8.5, snap: true },
+        { at: 9.0, key: "F1" },
+        { at: 9.5, spawn: true },
+        { at: 10.5, snap: true },
+        { at: 11.0, key: "A", hold: 0.6 },
+        { at: 11.3, snap: true },
+        { at: 12.0, explode: true },
+        { at: 12.4, snap: true },
+        { at: 13.5, snap: true },
+        { at: 14.0, quit: true }
+    ];
+    var start = clock.absoluteSeconds, next = 0, keyName = null, keyUpAt = 0, launchedAt = -1, flightNext = 0, target = null;
     var callback = addFrameCallback(function () {
         var now = clock.absoluteSeconds - start;
         if (keyName !== null && now >= keyUpAt) {
@@ -72,10 +93,32 @@ this.startUpComplete = function () {
             if (launchedAt < 0) {
                 launchedAt = now;
             }
-            if ((flightSnaps === 0 && now >= launchedAt + 2.0) || (flightSnaps === 1 && now >= launchedAt + 4.0)) {
-                takeSnapShot();
-                flightSnaps++;
-                if (flightSnaps === 2) {
+            var t = now - launchedAt;
+            while (flightNext < flightSteps.length && t >= flightSteps[flightNext].at) {
+                var fs = flightSteps[flightNext++];
+                if (fs.snap) {
+                    takeSnapShot();
+                }
+                if (fs.key) {
+                    console.simulateKey(fs.key, true);
+                    keyName = fs.key;
+                    keyUpAt = now + (fs.hold || 0.2);
+                }
+                if (fs.spawn) {
+                    var ahead = player.ship.position.add(player.ship.vectorForward.multiply(350));
+                    target = (system.addShips("trader", 1, ahead, 0) || [])[0];
+                    if (target) {
+                        target.orientation = player.ship.orientation;
+                        target.AIScript.oolite_priorityai = null;
+                        target.switchAI("nullAI.plist");
+                        target.velocity = player.ship.velocity;
+                        target.desiredSpeed = player.ship.speed;
+                    }
+                }
+                if (fs.explode && target && target.isValid) {
+                    target.explode();
+                }
+                if (fs.quit) {
                     removeFrameCallback(callback);
                     log("renderTest", "done");
                     quitGame();
