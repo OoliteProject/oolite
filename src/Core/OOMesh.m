@@ -453,7 +453,6 @@ static NSString* NormalModeDescription(OOMeshNormalMode mode)
 
     @try {
         if (!listsReady) {
-            OOGL(displayList0 = glGenLists(materialCount));
 
             // Ensure all textures are loaded
             for (ti = 0; ti < materialCount; ti++) {
@@ -934,12 +933,8 @@ static NSString* NormalModeDescription(OOMeshNormalMode mode)
 
 - (void)deleteDisplayLists
 {
-    if (listsReady) {
-        OO_ENTER_OPENGL();
-
-        OOGL(glDeleteLists(displayList0, materialCount));
-        listsReady = NO;
-    }
+    // No display lists any more; this just makes the next draw reload textures.
+    listsReady = NO;
 }
 
 - (void)resetGraphicsState

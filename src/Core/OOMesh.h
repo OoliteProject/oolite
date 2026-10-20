@@ -107,7 +107,6 @@ typedef struct
     NSRange triangle_range[kOOMeshMaxMaterials];
     NSString* materialKeys[kOOMeshMaxMaterials];
     OOMaterial* materials[kOOMeshMaxMaterials];
-    GLuint displayList0;
 
     GLfloat collisionRadius;
     GLfloat maxDrawDistance;
