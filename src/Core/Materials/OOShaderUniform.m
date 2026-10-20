@@ -147,7 +147,7 @@ SOFTWARE.
     }
 
     if (OK) {
-        location = glGetUniformLocationARB([shaderProgram program], [uniformName UTF8String]);
+        location = [shaderProgram uniformHandleForName:uniformName];
         if (location == -1) {
             OK = NO;
             OOLog(@"shader.uniform.bind.failed", @"Could not bind uniform \"%@\" to -[%@ %@] (no uniform of that name could be found).", uniformName, [target class], NSStringFromSelector(selector));
@@ -157,6 +157,7 @@ SOFTWARE.
     // If we're still OK, it's a bindable method.
     if (OK) {
         name = [uniformName retain];
+        program = [shaderProgram retain];
         isBinding = YES;
         value.binding.selector = selector;
 
@@ -179,6 +180,7 @@ SOFTWARE.
 - (void)dealloc
 {
     [name release];
+    [program release];
     if (isBinding)
         [value.binding.object release];
 
@@ -375,13 +377,14 @@ SOFTWARE.
     }
 
     if (OK) {
-        location = glGetUniformLocationARB([shaderProgram program], [uniformName UTF8String]);
+        location = [shaderProgram uniformHandleForName:uniformName];
         if (location == -1)
             OK = NO;
     }
 
     if (OK) {
         name = [uniformName copy];
+        program = [shaderProgram retain];
     }
 
     if (!OK) {
@@ -395,19 +398,19 @@ SOFTWARE.
 {
     switch (type) {
     case kOOShaderUniformTypeInt:
-        OOGL(glUniform1iARB(location, value.constInt));
+        [program setUniform:location intValue:value.constInt];
         break;
 
     case kOOShaderUniformTypeFloat:
-        OOGL(glUniform1fARB(location, value.constFloat));
+        [program setUniform:location floatValue:value.constFloat];
         break;
 
     case kOOShaderUniformTypeVector:
-        OOGL(glUniform4fvARB(location, 1, value.constVector));
+        [program setUniform:location vec4Value:value.constVector];
         break;
 
     case kOOShaderUniformTypeMatrix:
-        GLUniformMatrix(location, value.constMatrix);
+        [program setUniform:location matrixValue:value.constMatrix];
     }
 }
 
@@ -522,18 +525,18 @@ SOFTWARE.
     if (isFloat) {
         if (convertClamp)
             fVal = OOClamp_0_1_f(fVal);
-        OOGL(glUniform1fARB(location, fVal));
+        [program setUniform:location floatValue:fVal];
     } else if (isInt) {
         if (convertClamp)
             iVal = iVal ? 1 : 0;
-        OOGL(glUniform1iARB(location, iVal));
+        [program setUniform:location intValue:iVal];
     } else if (isPoint) {
         GLfloat v2[2] = { pVal.x, pVal.y };
-        OOGL(glUniform2fvARB(location, 1, v2));
+        [program setUniform:location vec2Value:v2];
     } else if (isVector) {
-        OOGL(glUniform4fvARB(location, 1, expVVal));
+        [program setUniform:location vec4Value:expVVal];
     } else if (isMatrix) {
-        GLUniformMatrix(location, mVal);
+        [program setUniform:location matrixValue:mVal];
     }
 }
 

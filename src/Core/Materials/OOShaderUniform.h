@@ -32,13 +32,15 @@ SOFTWARE.
 #if OO_SHADERS
 
 #import "OOMaths.h"
+#import "OOShaderProgram.h"
 
 @class OOColor;
 
 @interface OOShaderUniform : NSObject {
 @private
     NSString* name;
-    GLint location;
+    OOShaderProgram* program; // Values are set through the program.
+    OOUniformHandle location;
     uint8_t isBinding : 1,
         // flags that apply only to bindings:
         isActiveBinding : 1,

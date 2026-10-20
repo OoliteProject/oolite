@@ -214,6 +214,48 @@ static NSString* GetGLSLInfoLog(GLhandleARB shaderObject);
     return program;
 }
 
+- (OOUniformHandle)uniformHandleForName:(NSString*)name
+{
+    OO_ENTER_OPENGL();
+    return glGetUniformLocationARB(program, [name UTF8String]);
+}
+
+- (void)setUniform:(OOUniformHandle)handle intValue:(GLint)value
+{
+    OO_ENTER_OPENGL();
+    OOGL(glUniform1iARB(handle, value));
+}
+
+- (void)setUniform:(OOUniformHandle)handle floatValue:(GLfloat)value
+{
+    OO_ENTER_OPENGL();
+    OOGL(glUniform1fARB(handle, value));
+}
+
+- (void)setUniform:(OOUniformHandle)handle vec2Value:(const GLfloat*)value
+{
+    OO_ENTER_OPENGL();
+    OOGL(glUniform2fvARB(handle, 1, value));
+}
+
+- (void)setUniform:(OOUniformHandle)handle vec4Value:(const GLfloat*)value
+{
+    OO_ENTER_OPENGL();
+    OOGL(glUniform4fvARB(handle, 1, value));
+}
+
+- (void)setUniform:(OOUniformHandle)handle matrixValue:(OOMatrix)value
+{
+    OO_ENTER_OPENGL();
+    GLUniformMatrix(handle, value);
+}
+
+- (void)setUniform:(OOUniformHandle)handle mat3Value:(OOMatrix)value
+{
+    OO_ENTER_OPENGL();
+    GLUniformMatrix3(handle, value);
+}
+
 @end
 
 static BOOL ValidateShaderObject(GLhandleARB object, NSString* name)
@@ -399,9 +441,9 @@ static BOOL ValidateShaderObject(GLhandleARB object, NSString* name)
             if ([obj isKindOfClass:[NSArray class]]) {
                 pair = (NSArray*)obj;
                 if ([[pair oo_stringAtIndex:2] compare:@"mat3"] == 0) {
-                    OOGL(GLUniformMatrix3([pair oo_intAtIndex:0], [matrixManager getMatrix:[pair oo_intAtIndex:1]]));
+                    [self setUniform:[pair oo_intAtIndex:0] mat3Value:[matrixManager getMatrix:[pair oo_intAtIndex:1]]];
                 } else {
-                    GLUniformMatrix([pair oo_intAtIndex:0], [matrixManager getMatrix:[pair oo_intAtIndex:1]]);
+                    [self setUniform:[pair oo_intAtIndex:0] matrixValue:[matrixManager getMatrix:[pair oo_intAtIndex:1]]];
                 }
             }
         }
@@ -486,14 +528,12 @@ static NSString* GetGLSLInfoLog(GLhandleARB shaderObject)
 
 #endif // OO_SHADERS
 
-
 #if OOLITE_MAC_OS_X
 static NSString* ReplaceRegex(NSString* source, NSString* pattern, NSString* replacement)
 {
     NSRegularExpression* regex = [NSRegularExpression regularExpressionWithPattern:pattern options:NSRegularExpressionAnchorsMatchLines error:NULL];
     return [regex stringByReplacingMatchesInString:source options:0 range:NSMakeRange(0, [source length]) withTemplate:replacement];
 }
-
 
 /*	Translate the subset of GLSL 3.30 used by Oolite's post-processing shaders
         to GLSL 1.20 (plus GL_EXT_gpu_shader4). Only top-level declarations are
