@@ -24,14 +24,18 @@ Conventions handled here:
 - clip-space depth: the translator remaps GL's [-w, w] to SDL_GPU's [0, w],
   and pipelines clip at the near and far planes as GL does (SDL_GPU clamps
   depth by default);
-- window origin: GL's viewport and scissor are bottom-left, SDL_GPU's top
-  left; readback is flipped back to GL's bottom-up rows;
-- flat shading: GL uses the last vertex of each primitive.
+- orientation: everything is rendered upside down (the translator negates
+  clip-space y), so every target holds GL's bottom-up rows. Uploaded
+  textures and render targets then agree, as in GL, and viewports, scissor
+  rectangles and readback use GL's co-ordinates unchanged. The front face
+  is inverted to match. Only presenting to a window will need a flip;
+- flat shading: GL uses the last vertex of each primitive;
+- SDL_GPU has no luminance or alpha-only formats; they are expanded to
+  RGBA on upload.
 
-Not in this slice: render targets other than the window, fog, colour
-material, separate specular, multitexturing, custom shader programs, wide
-lines and large points (the CPU expansion exists for them), and alpha-only
-or luminance textures are expanded to RGBA on upload.
+Not in this slice: fog, colour material, separate specular,
+multitexturing, custom shader programs, and wide lines and large points
+(the CPU expansion exists for them).
 
 
 Copyright (C) 2026 Oolite contributors
@@ -72,6 +76,16 @@ static SDL_GPUTexture* sWindowDepth = NULL;
 static unsigned sWindowWidth = 0, sWindowHeight = 0;
 static const SDL_GPUTextureFormat kColorFormat = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM;
 static const SDL_GPUTextureFormat kDepthFormat = SDL_GPU_TEXTUREFORMAT_D32_FLOAT;
+static const SDL_GPUTextureFormat kTargetColorFormat = SDL_GPU_TEXTUREFORMAT_R16G16B16A16_FLOAT;
+
+// Render targets (below); the open pass's target is NULL for the window.
+typedef struct TargetRecord TargetRecord;
+static TargetRecord* sPassTarget = NULL;
+static unsigned TargetWidth(void);
+static unsigned TargetHeight(void);
+static unsigned TargetColorCount(void);
+static bool TargetHasDepth(void);
+static bool TargetMultisampled(void);
 
 static OOGLSLProgram sFixedFunction;
 static SDL_GPUShader* sFixedVertex = NULL;
@@ -168,6 +182,7 @@ bool OORendererSDLGPUInit(SDL_GPUDevice* device, unsigned width, unsigned height
     if (!OOGLSLTranslatorInit())
         return false;
     OOGLSLOutputFormats formats = (SDL_GetGPUShaderFormats(device) & SDL_GPU_SHADERFORMAT_MSL) ? kOOGLSLOutputMSL : kOOGLSLOutputSPIRV;
+    formats |= kOOGLSLOutputGLOrientation;
     if (!OOGLSLTranslateProgram(NULL, NULL, NULL, formats, &sFixedFunction)) {
         fprintf(stderr, "fixed-function emulation: %s\n", sFixedFunction.log);
         return false;
@@ -219,6 +234,11 @@ bool OORendererSDLGPUInit(SDL_GPUDevice* device, unsigned width, unsigned height
 
 typedef struct {
     SDL_GPUPrimitiveType topology;
+    // The pass's target.
+    SDL_GPUTextureFormat colorFormat;
+    unsigned colorCount;
+    bool hasDepth;
+    SDL_GPUSampleCount samples;
     bool blend;
     OOBlendFactor blendSrc, blendDst;
     bool depthTest, depthWrite;
@@ -288,6 +308,10 @@ static PipelineKey CurrentKey(SDL_GPUPrimitiveType topology)
     const OORenderStateMachine* s = OORendererState();
     PipelineKey key = {
         .topology = topology,
+        .colorFormat = sPassTarget ? kTargetColorFormat : kColorFormat,
+        .colorCount = TargetColorCount(),
+        .hasDepth = TargetHasDepth(),
+        .samples = TargetMultisampled() ? SDL_GPU_SAMPLECOUNT_4 : SDL_GPU_SAMPLECOUNT_1,
         .blend = s->caps[kOOCapBlend],
         .blendSrc = s->blendSrc,
         .blendDst = s->blendDst,
@@ -322,8 +346,9 @@ static SDL_GPUGraphicsPipeline* PipelineFor(const PipelineKey* key)
             return sPipelines[i].pipeline;
     }
 
+    SDL_GPUColorTargetDescription colors[kOOMaxColorAttachments];
     SDL_GPUColorTargetDescription color = {
-        .format = kColorFormat,
+        .format = key->colorFormat,
         .blend_state = {
             .enable_blend = key->blend,
             .src_color_blendfactor = GPUBlendFactor(key->blendSrc),
@@ -353,9 +378,8 @@ static SDL_GPUGraphicsPipeline* PipelineFor(const PipelineKey* key)
         .rasterizer_state = {
             .fill_mode = key->wireframe ? SDL_GPU_FILLMODE_LINE : SDL_GPU_FILLMODE_FILL,
             .cull_mode = key->cull,
-            // Geometry and matrices stay in GL's convention, and SDL_GPU's
-            // clip space has +y up as GL's does, so winding is unchanged.
-            .front_face = key->frontFaceCCW ? SDL_GPU_FRONTFACE_COUNTER_CLOCKWISE : SDL_GPU_FRONTFACE_CLOCKWISE,
+            // Rendering upside down reverses the winding on screen.
+            .front_face = key->frontFaceCCW ? SDL_GPU_FRONTFACE_CLOCKWISE : SDL_GPU_FRONTFACE_COUNTER_CLOCKWISE,
             // GL clips at the near and far planes; SDL_GPU clamps unless asked.
             .enable_depth_clip = strcmp(sFault, "depthclamp") != 0,
         },
@@ -364,13 +388,20 @@ static SDL_GPUGraphicsPipeline* PipelineFor(const PipelineKey* key)
             .enable_depth_test = key->depthTest,
             .enable_depth_write = key->depthTest && key->depthWrite,
         },
+        .multisample_state = { .sample_count = key->samples },
         .target_info = {
-            .color_target_descriptions = &color,
-            .num_color_targets = 1,
+            .color_target_descriptions = colors,
+            .num_color_targets = key->colorCount,
             .depth_stencil_format = kDepthFormat,
-            .has_depth_stencil_target = true,
+            .has_depth_stencil_target = key->hasDepth,
         },
     };
+    for (unsigned i = 0; i < key->colorCount; i++)
+        colors[i] = color;
+    if (!key->hasDepth) {
+        info.depth_stencil_state.enable_depth_test = false;
+        info.depth_stencil_state.enable_depth_write = false;
+    }
     SDL_GPUGraphicsPipeline* pipeline = SDL_CreateGPUGraphicsPipeline(sDevice, &info);
     if (pipeline == NULL) {
         fprintf(stderr, "SDL_CreateGPUGraphicsPipeline: %s\n", SDL_GetError());
@@ -502,7 +533,7 @@ static void BuildLegacyState(OOGLSLLegacyStateBlock* L)
     L->fogDensity = 1;
     L->fogEnd = 1;
     L->fogScale = 1;
-    L->viewportHeight = (float)sWindowHeight;
+    L->viewportHeight = (float)TargetHeight();
     L->pointSize = 1;
     L->lightingEnabled = s->caps[kOOCapLighting] ? 1.0f : 0.0f;
 }
@@ -666,6 +697,181 @@ void OORendererBackendDeleteTexture(uint32_t texture)
     memset(record, 0, sizeof *record);
 }
 
+#pragma mark - Render targets
+
+struct TargetRecord {
+    bool used;
+    OORenderTargetDescriptor descriptor;
+    SDL_GPUTexture* color[kOOMaxColorAttachments];
+    SDL_GPUTexture* depth;
+    uint32_t colorTextures[kOOMaxColorAttachments]; // texture handles; single-sampled targets only
+};
+
+static TargetRecord* sTargets = NULL; // index = target - 1
+static size_t sTargetCount = 0;
+
+static TargetRecord* TargetFor(OORenderTarget target)
+{
+    if (target == 0 || target > sTargetCount || !sTargets[target - 1].used)
+        return NULL;
+    return &sTargets[target - 1];
+}
+
+static unsigned TargetWidth(void)
+{
+    return sPassTarget ? sPassTarget->descriptor.width : sWindowWidth;
+}
+
+static unsigned TargetHeight(void)
+{
+    return sPassTarget ? sPassTarget->descriptor.height : sWindowHeight;
+}
+
+static unsigned TargetColorCount(void)
+{
+    return sPassTarget ? sPassTarget->descriptor.colorAttachments : 1;
+}
+
+static bool TargetHasDepth(void)
+{
+    return sPassTarget ? sPassTarget->descriptor.depth : true;
+}
+
+static bool TargetMultisampled(void)
+{
+    return sPassTarget != NULL && sPassTarget->descriptor.samples > 1;
+}
+
+// Create (or, after a resize, recreate) a target's textures.
+static void AllocateTarget(TargetRecord* record)
+{
+    const OORenderTargetDescriptor* d = &record->descriptor;
+    bool multisample = d->samples > 1;
+    SDL_GPUTextureCreateInfo info = {
+        .type = SDL_GPU_TEXTURETYPE_2D,
+        .format = kTargetColorFormat,
+        .usage = SDL_GPU_TEXTUREUSAGE_COLOR_TARGET | (multisample ? 0 : SDL_GPU_TEXTUREUSAGE_SAMPLER),
+        .width = d->width,
+        .height = d->height,
+        .layer_count_or_depth = 1,
+        .num_levels = 1,
+        .sample_count = multisample ? SDL_GPU_SAMPLECOUNT_4 : SDL_GPU_SAMPLECOUNT_1,
+    };
+    for (unsigned i = 0; i < d->colorAttachments; i++) {
+        record->color[i] = SDL_CreateGPUTexture(sDevice, &info);
+        if (multisample)
+            continue;
+        if (record->colorTextures[i] == 0) {
+            // Attachments are sampled linearly and clamped, as on GL.
+            SDL_GPUSamplerCreateInfo samplerInfo = {
+                .min_filter = SDL_GPU_FILTER_LINEAR,
+                .mag_filter = SDL_GPU_FILTER_LINEAR,
+                .mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_NEAREST,
+                .address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
+                .address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
+                .address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
+            };
+            TextureRecord texture = { NULL, SDL_CreateGPUSampler(sDevice, &samplerInfo), { .width = d->width, .height = d->height, .levels = 1 } };
+            sTextures = realloc(sTextures, (sTextureCount + 1) * sizeof *sTextures);
+            sTextures[sTextureCount++] = texture;
+            record->colorTextures[i] = (uint32_t)sTextureCount;
+        }
+        sTextures[record->colorTextures[i] - 1].texture = record->color[i];
+    }
+    if (d->depth) {
+        info.format = kDepthFormat;
+        info.usage = SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET;
+        record->depth = SDL_CreateGPUTexture(sDevice, &info);
+    }
+}
+
+static void ReleaseTargetTextures(TargetRecord* record)
+{
+    for (unsigned i = 0; i < record->descriptor.colorAttachments; i++) {
+        if (record->color[i] != NULL)
+            SDL_ReleaseGPUTexture(sDevice, record->color[i]);
+        record->color[i] = NULL;
+        if (record->colorTextures[i] != 0)
+            sTextures[record->colorTextures[i] - 1].texture = NULL;
+    }
+    if (record->depth != NULL)
+        SDL_ReleaseGPUTexture(sDevice, record->depth);
+    record->depth = NULL;
+}
+
+OORenderTarget OORendererBackendCreateRenderTarget(const OORenderTargetDescriptor* descriptor)
+{
+    sTargets = realloc(sTargets, (sTargetCount + 1) * sizeof *sTargets);
+    TargetRecord* record = &sTargets[sTargetCount++];
+    memset(record, 0, sizeof *record);
+    record->used = true;
+    record->descriptor = *descriptor;
+    AllocateTarget(record);
+    return (OORenderTarget)sTargetCount;
+}
+
+void OORendererBackendResizeRenderTarget(OORenderTarget target, unsigned width, unsigned height)
+{
+    TargetRecord* record = TargetFor(target);
+    if (record == NULL)
+        return;
+    // SDL_GPU textures can't be resized; the handles stay, the textures change.
+    ReleaseTargetTextures(record);
+    record->descriptor.width = width;
+    record->descriptor.height = height;
+    AllocateTarget(record);
+}
+
+uint32_t OORendererBackendRenderTargetTexture(OORenderTarget target, unsigned attachment)
+{
+    TargetRecord* record = TargetFor(target);
+    if (record == NULL || record->descriptor.samples > 1 || attachment >= record->descriptor.colorAttachments)
+        return 0;
+    return record->colorTextures[attachment];
+}
+
+static void WaitFor(SDL_GPUCommandBuffer* commands);
+
+void OORendererBackendResolveRenderTarget(OORenderTarget source, OORenderTarget destination)
+{
+    TargetRecord* from = TargetFor(source);
+    TargetRecord* to = TargetFor(destination);
+    if (from == NULL || to == NULL || from->descriptor.colorAttachments == 0 || to->descriptor.colorAttachments == 0)
+        return;
+    SDL_GPUCommandBuffer* commands = SDL_AcquireGPUCommandBuffer(sDevice);
+    // An empty pass that resolves (SDL_GPU's form of GL's blit) colour 0.
+    bool resolve = from->descriptor.samples > 1 && strcmp(sFault, "resolve") != 0;
+    SDL_GPUColorTargetInfo color = {
+        .texture = from->color[0],
+        .load_op = SDL_GPU_LOADOP_LOAD,
+        .store_op = resolve ? SDL_GPU_STOREOP_RESOLVE : SDL_GPU_STOREOP_STORE,
+        .resolve_texture = resolve ? to->color[0] : NULL,
+    };
+    if (from->descriptor.samples == 1) {
+        OORendererBackendWarn("SDL_GPU backend: resolving a single-sampled target isn't implemented");
+        SDL_CancelGPUCommandBuffer(commands);
+        return;
+    }
+    SDL_EndGPURenderPass(SDL_BeginGPURenderPass(commands, &color, 1, NULL));
+    WaitFor(commands);
+}
+
+void OORendererBackendDeleteRenderTarget(OORenderTarget target)
+{
+    TargetRecord* record = TargetFor(target);
+    if (record == NULL)
+        return;
+    ReleaseTargetTextures(record);
+    for (unsigned i = 0; i < record->descriptor.colorAttachments; i++) {
+        if (record->colorTextures[i] != 0) {
+            TextureRecord* texture = &sTextures[record->colorTextures[i] - 1];
+            SDL_ReleaseGPUSampler(sDevice, texture->sampler);
+            memset(texture, 0, sizeof *texture);
+        }
+    }
+    record->used = false;
+}
+
 #pragma mark - Recording draws
 
 typedef struct {
@@ -697,12 +903,15 @@ static GPUVertex* ReserveVertices(size_t count)
     return result;
 }
 
-// GL's bottom-left rectangles in SDL_GPU's top-left window co-ordinates.
-static SDL_Rect FlipRect(const int r[4])
+/*  A GL rectangle in the target's co-ordinates. Rendering in GL's
+    orientation, they are the same; the "origin" fault flips them as if it
+    weren't.
+*/
+static SDL_Rect TargetRect(const int r[4])
 {
     if (strcmp(sFault, "origin") == 0)
-        return (SDL_Rect) { r[0], r[1], r[2], r[3] };
-    return (SDL_Rect) { r[0], (int)sWindowHeight - (r[1] + r[3]), r[2], r[3] };
+        return (SDL_Rect) { r[0], (int)TargetHeight() - (r[1] + r[3]), r[2], r[3] };
+    return (SDL_Rect) { r[0], r[1], r[2], r[3] };
 }
 
 /*  Record count vertices, already expanded to a list topology. A flat-shaded
@@ -728,7 +937,7 @@ static void RecordDraw(SDL_GPUPrimitiveType topology, size_t first, size_t count
 
     const OOTextureUnitState* unit = &s->units[0];
     uint32_t texture = unit->texture2D && unit->binding2D != 0 && strcmp(sFault, "texture") != 0 ? unit->binding2D : sWhiteTexture;
-    int full[4] = { 0, 0, (int)sWindowWidth, (int)sWindowHeight };
+    int full[4] = { 0, 0, (int)TargetWidth(), (int)TargetHeight() };
     if (sDrawCount == sDrawCapacity) {
         sDrawCapacity = sDrawCapacity ? sDrawCapacity * 2 : 64;
         sDraws = realloc(sDraws, sDrawCapacity * sizeof *sDraws);
@@ -739,9 +948,9 @@ static void RecordDraw(SDL_GPUPrimitiveType topology, size_t first, size_t count
         .vertexCount = count,
         .uniformIndex = sUniformCount++,
         .texture = texture,
-        .viewport = FlipRect(s->viewportSet ? s->viewport : full),
+        .viewport = TargetRect(s->viewportSet ? s->viewport : full),
         .scissor = s->caps[kOOCapScissorTest],
-        .scissorRect = FlipRect(s->scissor),
+        .scissorRect = TargetRect(s->scissor),
     };
 }
 
@@ -922,8 +1131,12 @@ void OORendererBackendSetClearValues(const float clearColor[4], float clearDepth
 
 void OORendererBackendBeginPass(const OORenderPassDescriptor* pass, const float clearColor[4], float clearDepth)
 {
-    if (pass->target != kOORenderTargetCurrent && pass->target != OORendererWindowTarget())
-        OORendererBackendWarn("SDL_GPU backend: only the window target is implemented; drawing there instead");
+    sPassTarget = NULL;
+    if (pass->target != kOORenderTargetCurrent && pass->target != OORendererWindowTarget()) {
+        sPassTarget = TargetFor(pass->target);
+        if (sPassTarget == NULL)
+            OORendererBackendWarn("SDL_GPU backend: a pass into an unknown target; drawing into the window instead");
+    }
     sPass = *pass;
     memcpy(sClearColor, clearColor, sizeof sClearColor);
     sClearDepth = clearDepth;
@@ -981,21 +1194,26 @@ void OORendererBackendEndPass(void)
     }
     SDL_EndGPUCopyPass(copy);
 
-    SDL_GPUColorTargetInfo color = {
-        .texture = sWindowColor,
-        .clear_color = { sClearColor[0], sClearColor[1], sClearColor[2], sClearColor[3] },
-        .load_op = LoadOp(sPass.colorLoad),
-        .store_op = SDL_GPU_STOREOP_STORE,
-    };
+    SDL_GPUColorTargetInfo colors[kOOMaxColorAttachments];
+    unsigned colorCount = sPassTarget ? sPassTarget->descriptor.colorAttachments : 1;
+    for (unsigned i = 0; i < colorCount; i++) {
+        colors[i] = (SDL_GPUColorTargetInfo) {
+            .texture = sPassTarget ? sPassTarget->color[i] : sWindowColor,
+            .clear_color = { sClearColor[0], sClearColor[1], sClearColor[2], sClearColor[3] },
+            .load_op = LoadOp(sPass.colorLoad),
+            .store_op = SDL_GPU_STOREOP_STORE,
+        };
+    }
+    SDL_GPUTexture* depthTexture = sPassTarget ? sPassTarget->depth : sWindowDepth;
     SDL_GPUDepthStencilTargetInfo depth = {
-        .texture = sWindowDepth,
+        .texture = depthTexture,
         .clear_depth = sClearDepth,
         .load_op = LoadOp(sPass.depthLoad),
         .store_op = SDL_GPU_STOREOP_STORE,
         .stencil_load_op = SDL_GPU_LOADOP_DONT_CARE,
         .stencil_store_op = SDL_GPU_STOREOP_DONT_CARE,
     };
-    SDL_GPURenderPass* pass = SDL_BeginGPURenderPass(commands, &color, 1, &depth);
+    SDL_GPURenderPass* pass = SDL_BeginGPURenderPass(commands, colors, colorCount, depthTexture ? &depth : NULL);
     if (sDrawCount > 0) {
         SDL_GPUBufferBinding binding = { .buffer = sVertexBuffer };
         SDL_BindGPUVertexBuffers(pass, 0, &binding, 1);
@@ -1009,7 +1227,7 @@ void OORendererBackendEndPass(void)
         SDL_BindGPUGraphicsPipeline(pass, pipeline);
         SDL_GPUViewport viewport = { (float)draw->viewport.x, (float)draw->viewport.y, (float)draw->viewport.w, (float)draw->viewport.h, 0, 1 };
         SDL_SetGPUViewport(pass, &viewport);
-        SDL_Rect scissor = draw->scissor ? draw->scissorRect : (SDL_Rect) { 0, 0, (int)sWindowWidth, (int)sWindowHeight };
+        SDL_Rect scissor = draw->scissor ? draw->scissorRect : (SDL_Rect) { 0, 0, (int)TargetWidth(), (int)TargetHeight() };
         SDL_SetGPUScissor(pass, &scissor);
         SDL_GPUTextureSamplerBinding sampler = { .texture = texture->texture, .sampler = texture->sampler };
         SDL_BindGPUFragmentSamplers(pass, sTextureSamplerSlot, &sampler, 1);
@@ -1024,6 +1242,7 @@ void OORendererBackendEndPass(void)
     if (transfer != NULL)
         SDL_ReleaseGPUTransferBuffer(sDevice, transfer);
     sVertexCount = sUniformCount = sDrawCount = 0;
+    sPassTarget = NULL;
 }
 
 void OORendererBackendReadPixels(int x, int y, int width, int height, OOPixelFormat format, void* pixels)
@@ -1038,18 +1257,18 @@ void OORendererBackendReadPixels(int x, int y, int width, int height, OOPixelFor
     SDL_GPUCommandBuffer* commands = SDL_AcquireGPUCommandBuffer(sDevice);
     SDL_GPUCopyPass* copy = SDL_BeginGPUCopyPass(commands);
     int flipped[4] = { x, y, width, height };
-    SDL_Rect rect = FlipRect(flipped);
+    SDL_Rect rect = TargetRect(flipped);
     SDL_GPUTextureRegion region = { .texture = sWindowColor, .x = (Uint32)rect.x, .y = (Uint32)rect.y, .w = (Uint32)width, .h = (Uint32)height, .d = 1 };
     SDL_GPUTextureTransferInfo destination = { .transfer_buffer = transfer };
     SDL_DownloadFromGPUTexture(copy, &region, &destination);
     SDL_EndGPUCopyPass(copy);
     WaitFor(commands);
 
-    // SDL_GPU's rows run top-down; GL's bottom-up. RGBA to BGRA.
+    // Rendered in GL's orientation, the rows are already bottom-up. RGBA to BGRA.
     const uint8_t* source = SDL_MapGPUTransferBuffer(sDevice, transfer, false);
     uint8_t* out = pixels;
     for (int row = 0; row < height; row++) {
-        const uint8_t* in = source + (size_t)(height - 1 - row) * width * 4;
+        const uint8_t* in = source + (size_t)row * width * 4;
         for (int i = 0; i < width; i++) {
             uint8_t* o = out + ((size_t)row * width + i) * 4;
             o[0] = in[i * 4 + 2];
@@ -1143,38 +1362,4 @@ void OORendererBackendSetGLAttributes(const OOImmediateAttributes* attributes)
 void OORendererBackendCheckGLAttributes(const OOImmediateAttributes* expected)
 {
     (void)expected;
-}
-
-#pragma mark - Not yet implemented
-
-OORenderTarget OORendererBackendCreateRenderTarget(const OORenderTargetDescriptor* descriptor)
-{
-    (void)descriptor;
-    OORendererBackendWarn("SDL_GPU backend: render targets aren't implemented yet");
-    return 0;
-}
-
-void OORendererBackendResizeRenderTarget(OORenderTarget target, unsigned width, unsigned height)
-{
-    (void)target;
-    (void)width;
-    (void)height;
-}
-
-uint32_t OORendererBackendRenderTargetTexture(OORenderTarget target, unsigned attachment)
-{
-    (void)target;
-    (void)attachment;
-    return 0;
-}
-
-void OORendererBackendResolveRenderTarget(OORenderTarget source, OORenderTarget destination)
-{
-    (void)source;
-    (void)destination;
-}
-
-void OORendererBackendDeleteRenderTarget(OORenderTarget target)
-{
-    (void)target;
 }

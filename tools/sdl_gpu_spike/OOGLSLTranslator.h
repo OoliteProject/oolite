@@ -174,6 +174,12 @@ typedef struct {
 typedef enum {
     kOOGLSLOutputSPIRV = 1 << 0,
     kOOGLSLOutputMSL = 1 << 1,
+    /*  Render upside down (negated clip-space y, so the caller inverts the
+        front face): every target then holds GL's bottom-up rows, matching
+        uploaded textures, and gl_FragCoord needs no flipping. Without it,
+        output has SDL_GPU's top-left orientation.
+    */
+    kOOGLSLOutputGLOrientation = 1 << 2,
 } OOGLSLOutputFormats;
 
 bool OOGLSLTranslatorInit(void);

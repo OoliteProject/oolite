@@ -348,7 +348,7 @@ static const char* const kFixedFunctionFragmentSource = "uniform sampler2D oo_Fi
 // epilogue; both are used to supply varyings the fragment shader reads but
 // the vertex shader never writes.
 static char* BuildStageSource(OOGLSLStage stage, const char* prefix, const char* source,
-    const char* extraOutputs, const char* extraInit)
+    const char* extraOutputs, const char* extraInit, bool glOrientation)
 {
     Str combined = { 0 };
     if (prefix != NULL)
@@ -372,8 +372,12 @@ static char* BuildStageSource(OOGLSLStage stage, const char* prefix, const char*
     } else {
         StrAppend(&out, kFragmentTexturePrelude);
         for (size_t i = 0; i < sizeof kFragmentInputs / sizeof *kFragmentInputs; i++) {
-            if (UsesToken(combined.s, kFragmentInputs[i].legacyName))
-                StrAppend(&out, kFragmentInputs[i].declaration);
+            if (!UsesToken(combined.s, kFragmentInputs[i].legacyName))
+                continue;
+            // Rendering in GL's orientation, gl_FragCoord already matches GL.
+            if (glOrientation && strcmp(kFragmentInputs[i].legacyName, "gl_FragCoord") == 0)
+                continue;
+            StrAppend(&out, kFragmentInputs[i].declaration);
         }
         if (UsesToken(combined.s, "gl_FragColor"))
             StrAppend(&out, "layout(location = 0) out vec4 oo_FragColor;\n#define gl_FragColor oo_FragColor\n");
@@ -399,6 +403,8 @@ static char* BuildStageSource(OOGLSLStage stage, const char* prefix, const char*
         const char* fault = getenv("OO_TRANSLATOR_FAULT");
         if (fault == NULL || strcmp(fault, "depthremap") != 0)
             StrAppend(&out, "    gl_Position.z = (gl_Position.z + gl_Position.w) * 0.5;\n");
+        if (glOrientation && (fault == NULL || strcmp(fault, "orientation") != 0))
+            StrAppend(&out, "    gl_Position.y = -gl_Position.y;\n");
         StrAppend(&out, "}\n");
     }
     return out.s;
@@ -578,7 +584,9 @@ static void AppendGLSLTypeName(Str* out, spvc_type type)
     else if (vecSize > 1)
         StrAppendf(out, "%svec%u", prefix, vecSize);
     else
-        StrAppend(out, *prefix == 'i' ? "int" : *prefix == 'u' ? "uint" : *prefix == 'b' ? "bool" : "float");
+        StrAppend(out, *prefix == 'i' ? "int" : *prefix == 'u' ? "uint"
+                : *prefix == 'b'                               ? "bool"
+                                                               : "float");
 }
 
 /*  Find fragment inputs that the vertex shader doesn't write, and generate
@@ -656,7 +664,7 @@ static bool AssignResourceLocations(SPIRVModule modules[kOOGLSLStageCount], Str*
 
         // Samplers: slots 0..n-1 in declaration binding order.
         GetResources(&r, SPVC_RESOURCE_TYPE_SAMPLED_IMAGE, &list, &count);
-        uint32_t(*order)[2] = calloc(count + 1, sizeof *order);
+        uint32_t (*order)[2] = calloc(count + 1, sizeof *order);
         for (size_t i = 0; i < count; i++) {
             order[i][0] = spvc_compiler_get_decoration(r.compiler, list[i].id, SpvDecorationBinding);
             order[i][1] = list[i].id;
@@ -877,7 +885,8 @@ bool OOGLSLTranslateProgram(const char* vertexSource, const char* fragmentSource
             free(sources[stage]);
             free(modules[stage].words);
             modules[stage].words = NULL;
-            sources[stage] = BuildStageSource(stage, prefix, userSources[stage], extraOutputs.s, extraInit.s);
+            sources[stage] = BuildStageSource(stage, prefix, userSources[stage], extraOutputs.s, extraInit.s,
+                (formats & kOOGLSLOutputGLOrientation) != 0);
         }
         OK = CompileWithGlslang(sources, modules, &log);
         if (OK && pass == 0 && !FindMissingVaryings(modules, &extraOutputs, &extraInit, &log))

@@ -510,22 +510,123 @@ static void SceneScissor(void)
     SetViewport(0, 0, kSize, kSize);
 }
 
+// Render targets: drawn before the window pass, then sampled in it.
+enum {
+    kTargetSize = 128
+};
+static OORenderTarget sTarget, sMSAATarget, sResolved, sMRT;
+
+static void DrawTargetContent(void)
+{
+    SetViewport(0, 0, kTargetSize, kTargetSize);
+    float mv[16], p[16];
+    Identity(mv);
+    Ortho(p, 0, kTargetSize, 0, kTargetSize, -1, 1);
+    SetMatrices(mv, p);
+    OODrawState state = Plain();
+    OORendererPushDrawState(&state);
+    // An asymmetric picture, so a flipped target shows.
+    OOImmediateBegin(kOOPrimitiveTriangles);
+    Vertex(8, 8, 1, 0, 0, 1);
+    Vertex(120, 16, 0, 1, 0, 1);
+    Vertex(16, 100, 0, 0, 1, 1);
+    Vertex(100, 120, 1, 1, 0, 1);
+    Vertex(70, 90, 1, 1, 0, 1);
+    Vertex(120, 70, 1, 1, 0, 1);
+    OOImmediateEnd();
+    OORendererPopDrawState();
+    SetViewport(0, 0, kSize, kSize);
+}
+
+static void DrawTargetQuad(OORenderTarget target, unsigned attachment)
+{
+    SetOrtho2D();
+    OODrawState state = Plain();
+    state.texture2D = true;
+    state.texture = (const void*)(uintptr_t)OORendererRenderTargetTexture(target, attachment);
+    OORendererPushDrawState(&state);
+    OOImmediateBegin(kOOPrimitiveQuads);
+    OOImmediateColor4f(1, 1, 1, 1);
+    OOImmediateTexCoord2f(0, 0);
+    OOImmediateVertex2f(20, 30);
+    OOImmediateTexCoord2f(1, 0);
+    OOImmediateVertex2f(236, 30);
+    OOImmediateTexCoord2f(1, 1);
+    OOImmediateVertex2f(236, 230);
+    OOImmediateTexCoord2f(0, 1);
+    OOImmediateVertex2f(20, 230);
+    OOImmediateEnd();
+    OORendererPopDrawState();
+}
+
+static void PrepareTarget(void)
+{
+    if (sTarget == 0)
+        sTarget = OORendererCreateRenderTarget(&(OORenderTargetDescriptor) { kTargetSize, kTargetSize, 1, true, 1 });
+    OORendererSetClearColor(0.1f, 0.2f, 0.3f, 1);
+    OORendererBeginPass(&(OORenderPassDescriptor) { .target = sTarget, .colorLoad = kOOLoadClear, .depthLoad = kOOLoadClear });
+    DrawTargetContent();
+    OORendererEndPass();
+}
+
+static void SceneTarget(void)
+{
+    DrawTargetQuad(sTarget, 0);
+}
+
+static void PrepareMSAA(void)
+{
+    if (sMSAATarget == 0) {
+        sMSAATarget = OORendererCreateRenderTarget(&(OORenderTargetDescriptor) { kTargetSize, kTargetSize, 1, true, 4 });
+        sResolved = OORendererCreateRenderTarget(&(OORenderTargetDescriptor) { kTargetSize, kTargetSize, 1, false, 1 });
+    }
+    OORendererSetClearColor(0, 0, 0, 1);
+    OORendererBeginPass(&(OORenderPassDescriptor) { .target = sMSAATarget, .colorLoad = kOOLoadClear, .depthLoad = kOOLoadClear });
+    DrawTargetContent();
+    OORendererEndPass();
+    OORendererResolveRenderTarget(sMSAATarget, sResolved);
+}
+
+static void SceneMSAA(void)
+{
+    DrawTargetQuad(sResolved, 0);
+}
+
+static void PrepareMRT(void)
+{
+    if (sMRT == 0)
+        sMRT = OORendererCreateRenderTarget(&(OORenderTargetDescriptor) { 64, 32, 2, false, 1 });
+    // A clear reaches every attachment.
+    OORendererSetClearColor(0.75f, 0.5f, 0.25f, 1);
+    OORendererBeginPass(&(OORenderPassDescriptor) { .target = sMRT, .colorLoad = kOOLoadClear, .depthLoad = kOOLoadDontCare });
+    OORendererEndPass();
+}
+
+static void SceneMRT(void)
+{
+    DrawTargetQuad(sMRT, 1);
+}
+
 typedef struct {
     const char* name;
     void (*draw)(void);
     float clear[4];
+    void (*prepare)(void); // passes into other targets, before the window pass
 } Scene;
 
 static const Scene kScenes[] = {
-    { "smooth", SceneSmooth, { 0, 0, 0, 1 } },
-    { "flat", SceneFlat, { 0.1f, 0.1f, 0.1f, 1 } },
-    { "blend", SceneBlend, { 0, 0, 0, 1 } },
-    { "depth", SceneDepth, { 0, 0, 0.1f, 1 } },
-    { "cull", SceneCull, { 0, 0, 0, 1 } },
-    { "texture", SceneTexture, { 0, 0, 0, 1 } },
-    { "arrays", SceneArrays, { 0.2f, 0.2f, 0.2f, 1 } },
-    { "lit", SceneLit, { 0, 0, 0, 1 } },
-    { "scissor", SceneScissor, { 0.3f, 0, 0.3f, 1 } },
+    { "smooth", SceneSmooth, { 0, 0, 0, 1 }, NULL },
+    { "flat", SceneFlat, { 0.1f, 0.1f, 0.1f, 1 }, NULL },
+    { "blend", SceneBlend, { 0, 0, 0, 1 }, NULL },
+    { "depth", SceneDepth, { 0, 0, 0.1f, 1 }, NULL },
+    { "cull", SceneCull, { 0, 0, 0, 1 }, NULL },
+    { "texture", SceneTexture, { 0, 0, 0, 1 }, NULL },
+    { "arrays", SceneArrays, { 0.2f, 0.2f, 0.2f, 1 }, NULL },
+    { "lit", SceneLit, { 0, 0, 0, 1 }, NULL },
+    { "scissor", SceneScissor, { 0.3f, 0, 0.3f, 1 }, NULL },
+    { "target", SceneTarget, { 0, 0, 0, 1 }, PrepareTarget },
+    { "msaa", SceneMSAA, { 0, 0, 0, 1 }, PrepareMSAA },
+    { "mrt", SceneMRT, { 0, 0, 0, 1 }, PrepareMRT },
 };
 
 static bool Save(const char* dir, const char* name, const uint8_t* bgraBottomUp)
@@ -587,6 +688,8 @@ int main(int argc, char* argv[])
     int failures = 0;
     for (size_t i = 0; i < sizeof kScenes / sizeof *kScenes; i++) {
         const Scene* scene = &kScenes[i];
+        if (scene->prepare != NULL)
+            scene->prepare();
         OORendererSetClearColor(scene->clear[0], scene->clear[1], scene->clear[2], scene->clear[3]);
         OORendererSetClearDepth(1.0f);
         OORendererBeginPass(&(OORenderPassDescriptor) { .target = OORendererWindowTarget(), .colorLoad = kOOLoadClear, .depthLoad = kOOLoadClear });
