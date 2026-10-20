@@ -719,7 +719,11 @@ static NSDictionary* sMissilesRegistry = nil;
 */
 - (BOOL)suppressClangStuff
 {
+#if OOJS_QUICKJS
+    return !JS_IsObject(_jsSelf);
+#else
     return !_jsSelf;
+#endif
 }
 
 @end

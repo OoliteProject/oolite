@@ -35,7 +35,9 @@ SOFTWARE.
 #import "OOLoggingExtended.h"
 #import "ResourceManager.h"
 
-#import "OOJSConsole.h"
+#if !OOJS_QUICKJS
+#import "OOJSConsole.h" // TODO (port, phase 4): debug console
+#endif
 #import "OOJSEngineTimeManagement.h"
 #import "OOJSScript.h"
 #import "OOJSSpecialFunctions.h"
@@ -47,7 +49,11 @@ SOFTWARE.
 
 static OODebugMonitor* sSingleton = nil;
 
+#if OOJS_QUICKJS
+@interface OODebugMonitor (Private) // TODO (port, phase 4): debug console (OOJavaScriptEngineMonitor)
+#else
 @interface OODebugMonitor (Private) <OOJavaScriptEngineMonitor>
+#endif
 
 - (void)setUpDebugConsoleScript;
 - (void)javaScriptEngineWillReset:(NSNotification*)notification;
@@ -129,9 +135,11 @@ NSString* NSApplicationWillTerminateNotification = @"ApplicationWillTerminate";
     [_bgColors release];
     [_sourceFiles release];
 
+#if !OOJS_QUICKJS
     if (_jsSelf != NULL) {
         [[OOJavaScriptEngine sharedEngine] removeGCObjectRoot:&_jsSelf];
     }
+#endif
 
     [super dealloc];
 }
@@ -568,6 +576,19 @@ typedef struct
     JSContext* context = OOJSAcquireContext();
 
     JSRuntime* runtime = JS_GetRuntime(context);
+#if OOJS_QUICKJS
+    /*	QuickJS has no heap limit or collection count; report the allocated
+            size and the threshold for the next cycle collection instead.
+    */
+    JSMemoryUsage usage;
+    JS_ComputeMemoryUsage(runtime, &usage);
+    size_t jsSize = (size_t)usage.malloc_size;
+    size_t jsGCThreshold = JS_GetGCThreshold(runtime);
+
+    OOJSRelinquishContext(context);
+
+    [self writeMemStat:@"JavaScript heap: %@ (%lli objects, next collection at %@)", SizeString(jsSize), (long long)usage.obj_count, SizeString(jsGCThreshold)];
+#else
     size_t jsSize = JS_GetGCParameter(runtime, JSGC_BYTES);
     size_t jsMax = JS_GetGCParameter(runtime, JSGC_MAX_BYTES);
     uint32_t jsGCCount = JS_GetGCParameter(runtime, JSGC_NUMBER);
@@ -575,6 +596,7 @@ typedef struct
     OOJSRelinquishContext(context);
 
     [self writeMemStat:@"JavaScript heap: %@ (limit %@, %u collections to date)", SizeString(jsSize), SizeString(jsMax), jsGCCount];
+#endif
     return jsSize;
 }
 
@@ -659,6 +681,10 @@ typedef struct
 
 - (void)setUpDebugConsoleScript
 {
+#if OOJS_QUICKJS
+    // TODO (port, phase 4): debug console. The console object (OOJSConsole.m) is not yet ported.
+    return;
+#else
     JSContext* context = OOJSAcquireContext();
     /*	The path to the console script is saved in this here static variable
             so that we can reload it when resetting into strict mode.
@@ -684,14 +710,17 @@ typedef struct
     }
 
     OOJSRelinquishContext(context);
+#endif
 }
 
 - (void)javaScriptEngineWillReset:(NSNotification*)notification
 {
     DESTROY(_script);
+#if !OOJS_QUICKJS
     _jsSelf = NULL;
 
     OOJSConsoleDestroy();
+#endif
 }
 
 - (void)disconnectDebuggerWithMessage:(NSString*)message
@@ -777,6 +806,7 @@ FIXME: this works with CRLF and LF, but not CR.
     return value;
 }
 
+#if !OOJS_QUICKJS // TODO (port, phase 4): debug console
 - (oneway void)jsEngine:(in byref OOJavaScriptEngine*)engine
                 context:(in JSContext*)context
                   error:(in JSErrorReport*)errorReport
@@ -883,6 +913,7 @@ FIXME: this works with CRLF and LF, but not CR.
     else
         return JSVAL_NULL;
 }
+#endif
 
 @end
 

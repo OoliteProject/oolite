@@ -24,6 +24,9 @@ MA 02110-1301, USA.
 
 #import "OOJSVector.h"
 #import "OOJSQuaternion.h"
+#if !OOJS_POC_HARNESS
+#import "OOJSEntity.h"
+#endif
 #import "OOJavaScriptEngine.h"
 
 static JSClassID sVectorClassID;
@@ -115,23 +118,11 @@ static const JSCFunctionListEntry sVectorStaticMethods[] = {
 
 void InitOOJSVector(JSContext* context, JSValueConst global)
 {
-    JSRuntime* runtime = JS_GetRuntime(context);
-    JS_NewClassID(runtime, &sVectorClassID);
-    JS_NewClass(runtime, sVectorClassID, &sVectorClass);
+    OOJSRegisterClass(&sVectorClassID, &sVectorClass);
 
-    /*	As in SpiderMonkey, the prototype is itself a Vector3D, with no
-            private data; JSObjectGetVector() treats it as a zero vector.
-    */
-    JSValue prototype = JS_NewObjectClass(context, sVectorClassID);
-    JS_SetPropertyFunctionList(context, prototype, sVectorProperties, OOJS_COUNT(sVectorProperties));
-    JS_SetPropertyFunctionList(context, prototype, sVectorMethods, OOJS_COUNT(sVectorMethods));
-
-    JSValue constructor = JS_NewCFunction2(context, VectorConstruct, "Vector3D", 0, JS_CFUNC_constructor_or_func, 0);
-    JS_SetConstructor(context, constructor, prototype);
-    JS_SetPropertyFunctionList(context, constructor, sVectorStaticMethods, OOJS_COUNT(sVectorStaticMethods));
-
-    JS_SetClassProto(context, sVectorClassID, prototype); // Takes ownership of prototype.
-    JS_SetPropertyStr(context, global, "Vector3D", constructor); // Takes ownership of constructor.
+    // As in SpiderMonkey, the prototype is itself an instance with no private data, treated as zero.
+    OOJSInitClass(context, global, sVectorClassID, JS_UNDEFINED, VectorConstruct, 0,
+        sVectorProperties, OOJS_COUNT(sVectorProperties), sVectorMethods, OOJS_COUNT(sVectorMethods), sVectorStaticMethods, OOJS_COUNT(sVectorStaticMethods));
 }
 
 JSValue JSVectorWithVector(JSContext* context, Vector vector)
@@ -256,7 +247,15 @@ private
         }
     }
 
-    // TODO (phase 3): if it's an entity, use its position.
+#if !OOJS_POC_HARNESS
+    // If it's an entity, use its position.
+    if (OOJSIsMemberOfSubclass(context, vectorObj, JSEntityClassID())) {
+        JSClassID ignored;
+        Entity* entity = [(id)JS_GetAnyOpaque(vectorObj, &ignored) weakRefUnderlyingObject];
+        *outVector = [entity position];
+        return YES;
+    }
+#endif
 
     /*
             If it's actually a Vector3D but with no private field (this happens for
