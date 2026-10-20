@@ -41,20 +41,17 @@ MA 02110-1301, USA.
           only consulted the hook for names it could not otherwise find;
           anything else is looked up in the system data.
         * get_own_property / get_own_property_names: the system data keys are
-          the (enumerable) own properties, so for..in, Object.keys(),
-          Object.getOwnPropertyNames() and JSON.stringify() list exactly the
-          system data keys, as the SpiderMonkey enumerate hook did. As a side
-          effect, hasOwnProperty() and the in operator now report true for
-          system data keys (SpiderMonkey reported false). The fixed properties
-          are also own properties (OOJSGetSharedPermanentOwnProperty()), as in
-          SpiderMonkey, and appear in Object.getOwnPropertyNames() (but not
-          for..in or Object.keys(), being hidden). SpiderMonkey's enumerate hook
-          listed only the system data keys there.
+          enumerable, so for..in, Object.keys(), Object.getOwnPropertyNames()
+          and JSON.stringify() list exactly the system data keys, as the
+          SpiderMonkey enumerate hook did; but, as in SpiderMonkey,
+          hasOwnProperty() and the in operator report false for them. The fixed
+          properties are own properties (OOJSGetSharedPermanentOwnProperty()),
+          as in SpiderMonkey, but are not listed by any enumeration.
         * set_property: assignments to names that are not read-only or
           accessors on the prototype chain are stored (as strings) in the
           system data, like the SpiderMonkey setProperty hook. SpiderMonkey also
-          added a shadowing own slot property; it is not needed here, since reads
-          go to the system data.
+          added a shadowing own slot property; reads go to the system data
+          instead, except that a key assigned null reads back as null.
         * delete_property: removes the key from the system data, like the
           SpiderMonkey delProperty hook.
 
@@ -64,10 +61,13 @@ MA 02110-1301, USA.
 
 static JSClassID sSystemInfoClassID;
 
-/*	Weak reference (no reference count held) to the most recently created
-        SystemInfo object. Cleared when that object is finalized and when the
-        JavaScript engine is reset. Zero-filled until first use, so always test
-        with JS_IsObject().
+/*	The most recently created SystemInfo object. SpiderMonkey's cache was a
+        weak reference, but its lazy garbage collector kept the object alive for
+        a while, so successive system.info reads in a script usually got the same
+        object. With reference counting the object would die at the end of each
+        statement, so the cache holds a reference, released when another system
+        is requested and when the JavaScript engine is reset. Zero-filled until
+        first use, so always test with JS_IsObject().
 */
 static JSValue sCachedSystemInfo;
 static OOGalaxyID sCachedGalaxy;
@@ -141,6 +141,7 @@ static const JSCFunctionListEntry sSystemInfoStaticMethods[] = {
     OOGalaxyID _galaxy;
     OOSystemID _system;
     NSString* _planetKey;
+    NSMutableSet* _nullAssignedKeys; // See SystemInfoExoticSetProperty().
 }
 
 - (id)initWithGalaxy:(OOGalaxyID)galaxy system:(OOSystemID)system;
@@ -149,6 +150,9 @@ static const JSCFunctionListEntry sSystemInfoStaticMethods[] = {
 - (void)setValue:(id)value forKey:(NSString*)key;
 
 - (NSArray*)allKeys;
+
+- (void)setNullAssigned:(BOOL)flag forKey:(NSString*)key;
+- (BOOL)isNullAssignedForKey:(NSString*)key;
 
 - (OOGalaxyID)galaxy;
 - (OOSystemID)system;
@@ -184,8 +188,25 @@ DEFINE_JS_OBJECT_GETTER(JSSystemInfoGetSystemInfo, sSystemInfoClassID, OOSystemI
 - (void)dealloc
 {
     [_planetKey release];
+    [_nullAssignedKeys release];
 
     [super dealloc];
+}
+
+- (void)setNullAssigned:(BOOL)flag forKey:(NSString*)key
+{
+    if (flag) {
+        if (_nullAssignedKeys == nil)
+            _nullAssignedKeys = [[NSMutableSet alloc] init];
+        [_nullAssignedKeys addObject:key];
+    } else {
+        [_nullAssignedKeys removeObject:key];
+    }
+}
+
+- (BOOL)isNullAssignedForKey:(NSString*)key
+{
+    return [_nullAssignedKeys containsObject:key];
 }
 
 - (NSString*)descriptionComponents
@@ -275,10 +296,12 @@ DEFINE_JS_OBJECT_GETTER(JSSystemInfoGetSystemInfo, sSystemInfoClassID, OOSystemI
     return result;
 }
 
-// The cache holds no reference, so it only needs forgetting on reset.
 + (void)oo_javaScriptEngineWillReset:(NSNotification*)notification
 {
+    JSValue oldCache = sCachedSystemInfo;
     sCachedSystemInfo = JS_UNDEFINED;
+    if (JS_IsObject(oldCache))
+        JS_FreeValue(OOJSAcquireContext(), oldCache);
 }
 
 @end
@@ -324,8 +347,12 @@ JSValue GetJSSystemInfoForSystem(JSContext* context, OOGalaxyID galaxy, OOSystem
 
     result = OOJSValueFromNativeObject(context, info);
 
-    // Cache is not a reference; we clear it in finalize if necessary.
-    sCachedSystemInfo = JS_IsObject(result) ? result : JS_UNDEFINED;
+    // Replace the cached object. (Freeing it may run SystemInfoFinalize(), which clears the cache.)
+    JSValue oldCache = sCachedSystemInfo;
+    sCachedSystemInfo = JS_UNDEFINED;
+    if (JS_IsObject(oldCache))
+        JS_FreeValue(context, oldCache);
+    sCachedSystemInfo = JS_IsObject(result) ? JS_DupValue(context, result) : JS_UNDEFINED;
     sCachedGalaxy = galaxy;
     sCachedSystem = system;
 
@@ -511,6 +538,16 @@ static int SystemInfoExoticGetOwnProperty(JSContext* context, JSPropertyDescript
     if (key == nil)
         return false; // Prototype (no dynamic properties) or symbol.
 
+    /*	SpiderMonkey's resolve hook made system data keys enumerable (for..in and
+            Object.keys() list them) but not own properties: hasOwnProperty() and
+            the in operator returned false. QuickJS asks this hook without a
+            descriptor for hasOwnProperty() and in, and with one when collecting
+            enumerable keys, so answer accordingly. (QuickJS-ng 0.17 behaviour;
+            tools/js-parity checks it.)
+    */
+    if (desc == NULL)
+        return false;
+
     if (!SystemInfoGetSystemDataValue(context, info, key, &value)) {
         return false;
     }
@@ -537,22 +574,14 @@ static int SystemInfoExoticGetOwnPropertyNames(JSContext* context, JSPropertyEnu
     *ptab = NULL;
     *plen = 0;
 
-    // The fixed (shared permanent) properties, as for other wrapper classes.
-    JSPropertyEnum* shared = NULL;
-    uint32_t sharedCount = 0;
-    if (OOJSGetSharedPermanentOwnPropertyNames(context, &shared, &sharedCount, obj) < 0)
-        return -1;
-
     OOSystemInfo* info = SystemInfoForObject(obj);
     NSArray* keys = [info allKeys];
     NSUInteger count = [keys count];
-    assert(count <= INT32_MAX - sharedCount);
+    assert(count <= INT32_MAX);
 
-    JSPropertyEnum* tab = js_mallocz(context, sizeof *tab * (count + sharedCount + 1));
-    if (tab == NULL) {
-        JS_FreePropertyEnum(context, shared, sharedCount);
+    JSPropertyEnum* tab = js_mallocz(context, sizeof *tab * (count + 1));
+    if (tab == NULL)
         return -1;
-    }
 
     // System data keys (all enumerable; the SpiderMonkey enumerate hook listed exactly these).
     uint32_t i = 0;
@@ -560,7 +589,6 @@ static int SystemInfoExoticGetOwnPropertyNames(JSContext* context, JSPropertyEnu
         JSAtom atom = JS_NewAtom(context, [[key description] UTF8String]);
         if (atom == JS_ATOM_NULL) {
             JS_FreePropertyEnum(context, tab, i);
-            JS_FreePropertyEnum(context, shared, sharedCount);
             return -1;
         }
         tab[i].atom = atom;
@@ -568,30 +596,10 @@ static int SystemInfoExoticGetOwnPropertyNames(JSContext* context, JSPropertyEnu
         i++;
     }
 
-    /*	Then the fixed properties not already listed (QuickJS does not remove
-            duplicates; "coordinates" is usually also a system data key). These are
-            hidden, so only Object.getOwnPropertyNames() sees the extra names.
-            NOTE: SpiderMonkey's JSCLASS_NEW_ENUMERATE hook replaced enumeration
-            entirely, so there Object.getOwnPropertyNames() returned only the
-            system data keys.
+    /*	Only the system data keys, as SpiderMonkey's JSCLASS_NEW_ENUMERATE hook
+            listed: the fixed properties (galaxyID...) are not named, although
+            hasOwnProperty() reports them, as before.
     */
-    uint32_t keyCount = i;
-    for (uint32_t j = 0; j < sharedCount; j++) {
-        BOOL duplicate = NO;
-        for (uint32_t k = 0; k < keyCount; k++) {
-            if (tab[k].atom == shared[j].atom) {
-                duplicate = YES;
-                break;
-            }
-        }
-        if (!duplicate) {
-            tab[i].atom = JS_DupAtom(context, shared[j].atom);
-            tab[i].is_enumerable = false;
-            i++;
-        }
-    }
-    JS_FreePropertyEnum(context, shared, sharedCount);
-
     *ptab = tab;
     *plen = i;
     return 0;
@@ -660,7 +668,8 @@ static JSValue SystemInfoExoticGetProperty(JSContext* context, JSValueConst obj,
         return JS_UNDEFINED;
 
     JSValue value;
-    SystemInfoGetSystemDataValue(context, info, key, &value);
+    if (!SystemInfoGetSystemDataValue(context, info, key, &value) && [info isNullAssignedForKey:key])
+        return JS_NULL;
     return value;
 
     OOJS_EXOTIC_EXIT(context, JS_EXCEPTION)
@@ -682,7 +691,12 @@ static int SystemInfoExoticSetProperty(JSContext* context, JSValueConst obj, JSA
         return JS_DefinePropertyValue(context, receiver, prop, JS_DupValue(context, value), JS_PROP_C_W_E);
     }
 
+    /*	Assigning null removes the system data key. SpiderMonkey also stored the
+            value in the object's own slot, so reading the key back gave null;
+            remember such keys to do the same.
+    */
     [info setValue:OOStringFromJSValue(context, value) forKey:key];
+    [info setNullAssigned:JS_IsNull(value) forKey:key];
     return true;
 
     OOJS_EXOTIC_EXIT(context, -1)

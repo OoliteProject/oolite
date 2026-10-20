@@ -154,6 +154,45 @@ this.$checkStale = function ()
 	$try("stale method", function () { return stale.hasRole("trader"); });
 	$try("stale toString", function () { return String(stale); });
 
-	$p("quitting");
-	quitGame();
+	// Objects whose QuickJS ports needed judgement calls.
+	$dump("system", system);
+	$try("system.info keys", function () { return Object.keys(system.info).sort().join(","); });
+	$try("system.info own galaxyID / government / in", function () { return [system.info.hasOwnProperty("galaxyID"), system.info.hasOwnProperty("government"), "government" in system.info]; });
+	$try("system.info names count", function () { return Object.getOwnPropertyNames(system.info).length; });
+	$try("infoForSystem name", function () { return System.infoForSystem(0, 7).name; });
+	$try("system.info set and read", function () { system.info.oojs_probe_key = "x"; return system.info.oojs_probe_key; });
+	$try("system.info set null", function () { system.info.oojs_probe_key = null; return system.info.oojs_probe_key; });
+	$dump("player", player);
+	$try("missionVariables unset", function () { return missionVariables.oojs_probe_unset; });
+	$try("missionVariables set/get", function () { missionVariables.oojs_probe = 42; return [missionVariables.oojs_probe, typeof missionVariables.oojs_probe]; });
+	$try("missionVariables keys include", function () { return Object.keys(missionVariables).indexOf("oojs_probe") !== -1; });
+	$try("missionVariables underscore", function () { missionVariables._oojs = 1; return missionVariables._oojs; });
+	$try("worldScripts own probe", function () { return worldScripts.oojs_probe === this || worldScripts.oojs_probe.name; });
+	$try("worldScripts keys count", function () { return Object.keys(worldScripts).length; });
+	$try("manifest food", function () { return player.ship.manifest.food; });
+	$try("manifest keys", function () { return Object.keys(player.ship.manifest).join(","); });
+	$try("Timer without new", function () { return Timer(this, function () {}, 1000); });
+	$try("Timer with new", function () { var t = new Timer(this, function () {}, 1000); t.stop(); return t.isRunning; });
+	$try("oolite.jsVersion", function () { return oolite.jsVersion; });
+	$try("Vector3D from entity", function () { return Vector3D(player.ship).squaredDistanceTo(player.ship.position); });
+	$try("Quaternion from entity", function () { return Quaternion(player.ship).dot(player.ship.orientation) > 0.999; });
+	$try("bad method this", function () { return Ship.prototype.hasRole.call({}, "trader"); });
+
+	// Soak: fly for a while so AI scripts, timers and frame callbacks run; exceptions show in the comparison.
+	$p("launching");
+	player.ship.launch();
+	this.$soakTimer = new Timer(this, this.$endSoak, 3); // Game seconds; slow under software rendering.
+};
+
+this.$endSoak = function ()
+{
+	$p("event soakEnd");
+	$try("in space", function () { return player.ship.isInSpace; });
+
+	/*	run_probe.sh quits the game from outside JavaScript (Shift-Escape) when
+		it sees this line, so the QuickJS build's shutdown leak check runs with
+		no script on the stack. quitGame() is the fallback.
+	*/
+	$p("ready for external quit");
+	this.$quitTimer = new Timer(this, function () { log("oojs.probe.quit", "quitting from script"); quitGame(); }, 30);
 };
