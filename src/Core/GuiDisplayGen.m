@@ -1032,7 +1032,7 @@ static OOTextureSprite* NewTextureSpriteWithDescriptor(NSDictionary* descriptor,
     return TextureForGUITexture(descriptor, kOOTextureSRGBA) != nil;
 }
 
-- (NSDictionary*)textureDescriptorFromJSValue:(jsval)value
+- (NSDictionary*)textureDescriptorFromJSValue:(OOJSVal)value
                                     inContext:(JSContext*)context
                             callerDescription:(NSString*)callerDescription
 {
@@ -1040,6 +1040,19 @@ static OOTextureSprite* NewTextureSpriteWithDescriptor(NSDictionary* descriptor,
 
     NSDictionary* result = nil;
 
+#if OOJS_QUICKJS
+    // Null may be used to indicate no texture.
+    if (JS_IsNull(value))
+        return [NSDictionary dictionary];
+
+    if (JS_IsObject(value)) {
+        // String objects are converted to NSStrings; anything else is treated as a dictionary.
+        // TODO (port): use a String class test when the QuickJS engine header provides one.
+        if (![OOJSNativeObjectFromJSValue(context, value) isKindOfClass:[NSString class]]) {
+            result = OOJSDictionaryFromJSObject(context, value);
+        }
+    }
+#else
     if (JSVAL_IS_OBJECT(value)) {
         // Null may be used to indicate no texture.
         if (JSVAL_IS_NULL(value))
@@ -1051,6 +1064,7 @@ static OOTextureSprite* NewTextureSpriteWithDescriptor(NSDictionary* descriptor,
             result = OOJSDictionaryFromJSObject(context, objValue);
         }
     }
+#endif
 
     if (result == nil) {
         NSString* name = OOStringFromJSValue(context, value);

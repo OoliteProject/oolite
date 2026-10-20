@@ -79,11 +79,12 @@ MA 02110-1301, USA.
         NSUInteger i, count = [targets count];
         if (count > 0) {
             JSContext* context = OOJSAcquireContext();
-            jsval ecmPulsesRemaining = INT_TO_JSVAL(_blastsRemaining);
-            jsval whomVal = OOJSValueFromNativeObject(context, ship);
 
             for (i = 0; i < count; i++) {
                 ShipEntity* target = [targets objectAtIndex:i];
+                // ShipScriptEvent() frees its arguments, so they are created for each target.
+                OOJSVal ecmPulsesRemaining = OOJSValueFromDouble(context, _blastsRemaining);
+                OOJSVal whomVal = OOJSValueFromNativeObject(context, ship);
                 ShipScriptEvent(context, target, "shipHitByECM", ecmPulsesRemaining, whomVal);
                 [target reactToAIMessage:@"ECM" context:nil];
                 [target noticeECM];

@@ -45,5 +45,7 @@ option('pdb', type: 'boolean', value: false,
        description: 'Windows Clang builds only: Generate native .pdb debug symbol files')
 
 # JavaScript engine migration (issue #580)
+option('js_engine', type: 'combo', choices: ['spidermonkey', 'quickjs'], value: 'spidermonkey',
+       description: 'JavaScript engine: SpiderMonkey 1.8.5, or QuickJS-ng (port in progress)')
 option('quickjs_poc', type: 'boolean', value: false,
        description: 'Build the QuickJS-ng proof-of-concept test harness (oojs-quickjs-poc)')
