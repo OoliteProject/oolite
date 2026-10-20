@@ -57,6 +57,7 @@ static void AddStackToArrayReversed(NSMutableArray* array, RunningStack* stack);
 static BOOL RunScriptWithName(JSContext* context, NSString* path, JSValueConst object, NSString** outErrorMessage);
 
 static NSString* StrippedName(NSString* string);
+static NSString* RewriteLegacyConst(JSContext* context, NSString* source);
 
 static JSClassDef sScriptClass = {
     .class_name = "Script",
@@ -646,6 +647,8 @@ static BOOL RunScriptWithName(JSContext* context, NSString* path, JSValueConst o
     }
 #endif
 
+    fileContents = RewriteLegacyConst(context, fileContents);
+
     NSData* source = [OOJSWrapScriptSource(fileContents) dataUsingEncoding:NSUTF8StringEncoding];
     NSMutableData* terminated = [NSMutableData dataWithData:source];
     [terminated appendBytes:"" length:1]; // JS_Eval requires a terminating NUL.
@@ -672,6 +675,37 @@ static BOOL RunScriptWithName(JSContext* context, NSString* path, JSValueConst o
 
     JS_FreeValue(context, result);
     return YES;
+}
+
+/*	In SpiderMonkey 1.8.5, const declarations were function-scoped and usable
+        before the declaration, like var; under ES2015 rules they are
+        block-scoped with a temporal dead zone, which breaks some OXPs. The
+        compatibility script's __ooliteRewriteLegacyConst() replaces the const
+        keyword with var (keeping line and column positions).
+*/
+static NSString* RewriteLegacyConst(JSContext* context, NSString* source)
+{
+    if ([source rangeOfString:@"const"].location == NSNotFound)
+        return source;
+
+    JSValue global = JS_GetGlobalObject(context);
+    JSValue rewriter = JS_GetPropertyStr(context, global, "__ooliteRewriteLegacyConst");
+    NSString* result = source;
+
+    if (JS_IsFunction(context, rewriter)) {
+        JSValue argument = OOJSValueFromNativeObject(context, source);
+        JSValue rewritten = JS_Call(context, rewriter, global, 1, (JSValueConst*)&argument);
+        if (JS_IsException(rewritten))
+            OOJSReportPendingException(context);
+        else
+            result = OOStringFromJSValue(context, rewritten) ?: source;
+        JS_FreeValue(context, rewritten);
+        JS_FreeValue(context, argument);
+    }
+
+    JS_FreeValue(context, rewriter);
+    JS_FreeValue(context, global);
+    return result;
 }
 
 static NSString* StrippedName(NSString* string)
