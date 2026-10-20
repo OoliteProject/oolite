@@ -355,7 +355,6 @@ enum {
     OOShaderProgram* blurProgram;
     OOShaderProgram* finalProgram;
     GLuint quadTextureVBO, quadTextureVAO, quadTextureEBO;
-    GLint defaultDrawFBO;
     OORenderTarget _pingpongTargets[2]; // the bloom blur
     BOOL _bloom;
     int _currentPostFX;

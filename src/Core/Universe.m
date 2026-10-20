@@ -350,7 +350,8 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     OOGL(glClampColor(GL_CLAMP_FRAGMENT_COLOR, GL_FALSE));
 
     // have to do this because on my machine the default framebuffer is not zero
-    OOGL(glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &defaultDrawFBO));
+    GLint windowFramebuffer;
+    OOGL(glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &windowFramebuffer));
 
     GLint previousProgramID;
     OOGL(glGetIntegerv(GL_CURRENT_PROGRAM, &previousProgramID));
@@ -363,7 +364,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     GLint previousElementBuffer;
     OOGL(glGetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING, &previousElementBuffer));
 
-    OORendererSetWindowTarget((OORenderTarget)defaultDrawFBO);
+    OORendererSetWindowTarget((OORenderTarget)windowFramebuffer);
     unsigned width = (unsigned)viewSize.width, height = (unsigned)viewSize.height;
 
     // The scene is drawn into a multisampled target when MSAA is on, and
@@ -475,18 +476,16 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 - (void)drawTargetTextureIntoDefaultFramebuffer
 {
     // save previous bindings state
-    GLint previousFBO;
-    OOGL(glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &previousFBO));
-    GLint previousProgramID;
-    OOGL(glGetIntegerv(GL_CURRENT_PROGRAM, &previousProgramID));
-    GLint previousTextureID;
-    OOGL(glGetIntegerv(GL_TEXTURE_BINDING_2D, &previousTextureID));
+    const OORenderStateMachine* state = OORendererState();
+    unsigned previousActiveTexture = state->activeTexture;
+    uint32_t previousTextureID = state->units[previousActiveTexture].binding2D;
+    uint32_t previousProgramID = state->program;
     GLint previousVAO;
     OOGL(glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &previousVAO));
-    GLint previousActiveTexture;
-    OOGL(glGetIntegerv(GL_ACTIVE_TEXTURE, &previousActiveTexture));
 
-    OOGL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+    OORenderTarget window = OORendererWindowTarget();
+    OORendererBeginPass(&(OORenderPassDescriptor) { .target = window, .colorLoad = kOOLoadClear, .depthLoad = kOOLoadClear });
+    OORendererEndPass();
     // fixes transparency issue for some reason
     OOGLDisable(GL_BLEND);
 
@@ -496,8 +495,8 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     NSSize viewSize = [gameView backingViewSize];
     float fboResolution[2] = { viewSize.width, viewSize.height };
 
-    OOGL(glBindFramebuffer(GL_FRAMEBUFFER, _passthroughTarget));
-    OOGL(glClear(GL_COLOR_BUFFER_BIT));
+    // Both attachments: the scene, and its bright parts for the blur.
+    OORendererBeginPass(&(OORenderPassDescriptor) { .target = _passthroughTarget, .colorLoad = kOOLoadClear, .depthLoad = kOOLoadDontCare });
 
     OOGLUseProgram(program);
     OOGLBindTexture(GL_TEXTURE_2D, OORendererRenderTargetTexture(_sceneTarget, 0));
@@ -506,14 +505,14 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     OOGL(glBindVertexArray(quadTextureVAO));
     OOGL(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0));
     OOGL(glBindVertexArray(0));
-
-    OOGL(glBindFramebuffer(GL_FRAMEBUFFER, defaultDrawFBO));
+    OORendererEndPass();
 
     BOOL horizontal = YES, firstIteration = YES;
     unsigned int amount = [self bloom] ? 10 : 0; // if not blooming, why bother with the heavy calculations?
     OOGLUseProgram(blur);
     for (unsigned int i = 0; i < amount; i++) {
-        OOGL(glBindFramebuffer(GL_FRAMEBUFFER, _pingpongTargets[horizontal]));
+        // Every pixel is drawn, so the old contents don't matter.
+        OORendererBeginPass(&(OORenderPassDescriptor) { .target = _pingpongTargets[horizontal], .colorLoad = kOOLoadDontCare, .depthLoad = kOOLoadDontCare });
         OOGL(glUniform1i(glGetUniformLocation(blur, "horizontal"), horizontal));
         OOGLActiveTexture(GL_TEXTURE0);
         // bind texture of other framebuffer (or scene if first iteration)
@@ -522,11 +521,13 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
         OOGL(glBindVertexArray(quadTextureVAO));
         OOGL(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0));
         OOGL(glBindVertexArray(0));
+        OORendererEndPass();
         horizontal = !horizontal;
         firstIteration = NO;
     }
-    OOGL(glBindFramebuffer(GL_FRAMEBUFFER, defaultDrawFBO));
 
+    // The final composite, over the cleared window.
+    OORendererBeginPass(&(OORenderPassDescriptor) { .target = window, .colorLoad = kOOLoadKeep, .depthLoad = kOOLoadKeep });
     OOGLUseProgram(final);
 
     OOGLActiveTexture(GL_TEXTURE0);
@@ -552,14 +553,14 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
     OOGL(glBindVertexArray(quadTextureVAO));
     OOGL(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0));
+    OORendererEndPass();
 
     // restore GL_TEXTURE1 to 0, just in case we are returning from a
     // DETAIL_LEVEL_NORMAL to DETAIL_LEVEL_SHADERS
     OOGLBindTexture(GL_TEXTURE_2D, 0);
 
-    // restore previous bindings
-    OOGL(glBindFramebuffer(GL_FRAMEBUFFER, previousFBO));
-    OOGLActiveTexture(previousActiveTexture);
+    // restore previous bindings; the window is still the bound target
+    OOGLActiveTexture(GL_TEXTURE0 + previousActiveTexture);
     OOGLBindTexture(GL_TEXTURE_2D, previousTextureID);
     OOGLUseProgram(previousProgramID);
     OOGL(glBindVertexArray(previousVAO));
@@ -4550,7 +4551,6 @@ static const OOMatrix starboard_matrix = { { { 0.0f, 0.0f, 1.0f, 0.0f },
 
                 OORendererEndPass(); // the scene
                 [self prepareToRenderIntoDefaultFramebuffer];
-                OOGL(glBindFramebuffer(GL_FRAMEBUFFER, defaultDrawFBO));
 
                 OOLog(@"universe.profile.secondPassDraw", @"%@", @"Begin second pass draw");
                 [self drawTargetTextureIntoDefaultFramebuffer];
@@ -4558,7 +4558,7 @@ static const OOMatrix starboard_matrix = { { { 0.0f, 0.0f, 1.0f, 0.0f },
                 OOLog(@"universe.profile.secondPassDraw", @"%@", @"End second pass drawing");
 
                 // The HUD is drawn over the post-processed scene, in the window.
-                OORendererBeginPass(&(OORenderPassDescriptor) { .target = kOORenderTargetCurrent, .colorLoad = kOOLoadKeep, .depthLoad = kOOLoadKeep });
+                OORendererBeginPass(&(OORenderPassDescriptor) { .target = OORendererWindowTarget(), .colorLoad = kOOLoadKeep, .depthLoad = kOOLoadKeep });
 
                 OOLog(@"universe.profile.drawHUD", @"%@", @"Begin HUD drawing");
             }
@@ -4654,7 +4654,6 @@ static const OOMatrix starboard_matrix = { { { 0.0f, 0.0f, 1.0f, 0.0f },
     if (!hudSeparateRenderPass) {
         if ([self useShaders]) {
             [self prepareToRenderIntoDefaultFramebuffer];
-            OOGL(glBindFramebuffer(GL_FRAMEBUFFER, defaultDrawFBO));
 
             OOLog(@"universe.profile.secondPassDraw", @"%@", @"Begin second pass draw");
             [self drawTargetTextureIntoDefaultFramebuffer];
