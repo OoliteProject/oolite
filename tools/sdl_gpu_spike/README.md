@@ -449,6 +449,78 @@ same build match within 6/255 (MSAA), 3, 1 and 0 respectively.
 - The Windows-only HDR uniforms and the backend's Windows function
   pointer declarations have not been built.
 
+## Phase 3: the SDL_GPU backend
+
+**Groundwork on GL** (in the game, checked with the 17-screen scenario and
+its variants):
+- The state verifier covers every mirrored field on every texture unit:
+  caps, lights, both blend factors, depth function, culling, front face,
+  shading, polygon mode, scissor, program, texture enables and bindings,
+  environment mode and colour, combine op and LOD bias. Seven planted raw
+  GL changes are each reported.
+- The mirror also holds the modelview and projection as last synced to GL,
+  and the viewport, with the verifier checking all three; a planted
+  glViewport, glScalef and glTranslatef are each caught.
+- Every GL state read left in game code is a startup query of device limits
+  or debug-only dumping.
+
+**First backend slice** (`OORendererSDLGPU.c`, spike build only). It
+implements `OORendererBackend.h` on SDL_GPU from the state mirror and the
+fixed-function values, drawing with the translator's own fixed-function
+emulation shaders.
+- **Recording.** SDL_GPU can't start a copy pass inside a render pass,
+  while Oolite makes vertex data and uploads textures mid-frame. So each
+  pass's draws are recorded (vertices into a CPU arena, de-indexed into
+  lists, plus a uniform snapshot and pipeline key), and at the end of the
+  pass one copy pass uploads everything before the draws are replayed.
+- **Conventions:**
+  - the translator remaps clip-space depth;
+  - pipelines turn depth clipping on, because SDL_GPU clamps by default
+    and would draw geometry in front of the near plane that GL clips;
+  - viewport, scissor and readback are flipped between the two origins;
+  - flat shading uses GL's last vertex;
+  - luminance and alpha textures are expanded to RGBA on upload.
+
+**Checking it.** `oogpu-backend-test.c` draws nine scenes through the
+renderer API only: smooth, flat, blending, depth (including the near
+plane), culling, textures, indexed arrays, lighting, and scissor inside an
+off-centre viewport. It is built against both backends, and
+`oogpu-backend-compare.py` compares the results: a scene passes when at
+most 0.5% of pixels differ by more than 16/255 and the mean difference is
+at most 1/255. All nine pass on Metal against Apple's GL, and on lavapipe
+Vulkan against llvmpipe GL. `OO_BACKEND_FAULT` and `OO_TRANSLATOR_FAULT`
+plant one fault each (blend factor, winding, depth test, flat shading,
+texture, origin, depth clamping, depth remap), and every one fails only
+the scenes it should, on both platforms. Two scenes first missed their
+faults: a depth scene with all its geometry beyond the near plane can't
+see the depth remap, and a viewport centred vertically can't see the
+origin flip. Both scenes were changed until their faults showed.
+
+```bash
+build/sdl_gpu_spike/oogpu-backend-test-gl out/gl
+build/sdl_gpu_spike/oogpu-backend-test-gpu out/gpu
+tools/sdl_gpu_spike/oogpu-backend-compare.py out/gl out/gpu
+```
+
+**Next:**
+- **Orientation of render targets.** A target SDL_GPU draws into the
+  usual way, sampled with GL texture co-ordinates, comes out upside down,
+  which the post chain would show. The likely fix is to render everything
+  flipped (negate clip-space y, invert the front face) so every target
+  holds GL's bottom-up layout. Uploaded textures and render targets then
+  agree, readback and the viewport and scissor need no flipping, and only
+  the final present to the swapchain flips. The translator's gl_FragCoord
+  flip then goes away.
+- Render targets, MSAA resolve (as a store op), and passes into them.
+- Fog, colour material, separate specular (added after texturing),
+  multitexture combine, and point sprites in the emulation shaders.
+- `OOShaderProgram` on the translator, so materials and OXP shaders draw.
+- Wide lines and large points through the CPU expansion.
+- Frames in flight instead of waiting after each pass; a swapchain;
+  device limits in place of the GL queries.
+- Then a game build option that selects the backend, and the 17-screen
+  scenario on SDL_GPU.
+
 ## Reproducing
 
 ```bash
