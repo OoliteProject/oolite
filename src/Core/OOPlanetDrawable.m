@@ -32,6 +32,7 @@
 #import "OOPlanetData.h"
 #import "OOPlanetDrawable.h"
 #import "OOSingleTextureMaterial.h"
+#import "OOVertexArray.h"
 #import "Universe.h"
 
 #ifndef NDEBUG
@@ -52,6 +53,33 @@
 - (void)renderCommonParts;
 
 @end
+
+/*  The planet data's index lists, as 16- or 32-bit indices: the renderer,
+    like SDL_GPU, has no 8-bit index type, so the small levels that use one
+    are widened once.
+*/
+static const void* PlanetIndices(unsigned level, OOIndexType* outType)
+{
+    static uint16_t* sWidened[kOOPlanetDataLevels];
+    const OOPlanetDataLevel* data = &kPlanetData[level];
+    switch (data->type) {
+    case GL_UNSIGNED_BYTE:
+        if (sWidened[level] == NULL) {
+            size_t count = data->faceCount * 3;
+            sWidened[level] = malloc(count * sizeof *sWidened[level]);
+            for (size_t i = 0; i < count; i++)
+                sWidened[level][i] = ((const uint8_t*)data->indices)[i];
+        }
+        *outType = kOOIndex16;
+        return sWidened[level];
+    case GL_UNSIGNED_SHORT:
+        *outType = kOOIndex16;
+        return data->indices;
+    default:
+        *outType = kOOIndex32;
+        return data->indices;
+    }
+}
 
 @implementation OOPlanetDrawable
 
@@ -242,22 +270,25 @@
     }
 #endif
 
-    OOGL(glDisableClientState(GL_COLOR_ARRAY));
-
-    OOGL(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
-
-    OOGL(glVertexPointer(3, GL_FLOAT, 0, kOOPlanetVertices));
+    // The unit sphere's positions are also its normals, and its cube-map co-ordinates.
+    OOVertexLayout layout = { .count = 0 };
+    const OORendererBuffer* vertices = OORendererTransientBuffer(kOOPlanetVertices, sizeof kOOPlanetVertices);
+    OOVertexLayoutAdd(&layout, kOOVertexPosition, 0, 3, 0, vertices, 0);
+    OOVertexLayoutAdd(&layout, kOOVertexNormal, 0, 3, 0, vertices, 0);
     if ([_material wantsNormalsAsTextureCoordinates]) {
-        OOGL(glTexCoordPointer(3, GL_FLOAT, 0, kOOPlanetVertices));
+        OOVertexLayoutAdd(&layout, kOOVertexTexCoord, 0, 3, 0, vertices, 0);
     } else {
-        OOGL(glTexCoordPointer(2, GL_FLOAT, 0, kOOPlanetTexCoords));
+        OOVertexLayoutAdd(&layout, kOOVertexTexCoord, 0, 2, 0, OORendererTransientBuffer(kOOPlanetTexCoords, sizeof kOOPlanetTexCoords), 0);
     }
 
     // FIXME: instead of GL_RESCALE_NORMAL, consider copying and transforming the vertex array for each planet.
     OOGL(glEnable(GL_RESCALE_NORMAL));
-    OOGL(glNormalPointer(GL_FLOAT, 0, kOOPlanetVertices));
 
-    OOGL(glDrawElements(GL_TRIANGLES, data->faceCount * 3, data->type, data->indices));
+    OOIndexType indexType;
+    const void* indices = PlanetIndices(_lod, &indexType);
+    size_t indexCount = data->faceCount * 3;
+    OORendererDrawElements(kOONativePrimitiveTriangles, &layout,
+        OORendererTransientBuffer(indices, indexCount * (indexType == kOOIndex16 ? 2 : 4)), 0, indexType, indexCount);
 
 #ifndef NDEBUG
     if ([UNIVERSE wireframeGraphics]) {
@@ -280,8 +311,6 @@
 
     [OOMaterial applyNone];
     OOGL(glPopAttrib());
-
-    OOGL(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
 }
 
 - (BOOL)hasOpaqueParts

@@ -33,6 +33,7 @@ MA 02110-1301, USA.
 
 #import "MyOpenGLView.h"
 #import "OOImmediateMode.h"
+#import "OOVertexArray.h"
 
 #define kLaserDuration (0.09) // seconds
 
@@ -207,7 +208,6 @@ static const GLfloat kLaserVertices[] = {
             hurting whatever is hit in a given frame.
             -- Ahruman 2011-01-31
     */
-    OOGL(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
     OOGL(glEnable(GL_TEXTURE_2D));
     OOGLPushModelView();
 
@@ -230,23 +230,27 @@ static const GLfloat kLaserVertices[] = {
         0.0f, phase3, 0.0f, phase4, 1.0f, phase4, 1.0f, phase3
     };
 
+    // The colour is the current colour, not an array.
+    const OORendererBuffer* vertices = OORendererTransientBuffer(kLaserVertices, sizeof kLaserVertices);
+    OOVertexLayout layout = { .count = 0 };
+    OOVertexLayoutAdd(&layout, kOOVertexPosition, 0, 3, 0, vertices, 0);
+    OOVertexLayoutAdd(&layout, kOOVertexTexCoord, 0, 2, 0, OORendererTransientBuffer(laserTexCoords2, sizeof laserTexCoords2), 0);
     OOImmediateColor4fv(_color);
-    glVertexPointer(3, GL_FLOAT, 0, kLaserVertices);
-    glTexCoordPointer(2, GL_FLOAT, 0, laserTexCoords2);
-    glDrawArrays(GL_QUADS, 0, 8);
+    OORendererDrawPrimitive(kOOPrimitiveQuads, &layout, 0, 8);
 
     OOGLScaleModelView(make_vector(kLaserCoreWidth / kLaserHalfWidth, kLaserCoreWidth / kLaserHalfWidth, 1.0));
     OOImmediateColor4f(kLaserBrightness, kLaserBrightness, kLaserBrightness, 0.9);
-    glDrawArrays(GL_QUADS, 0, 8);
+    OORendererDrawPrimitive(kOOPrimitiveQuads, &layout, 0, 8);
 
     [[self texture2] apply];
     OOGLScaleModelView(make_vector(kLaserFlareWidth / kLaserCoreWidth, kLaserFlareWidth / kLaserCoreWidth, 1.0));
     OOImmediateColor4f(_color[0], _color[1], _color[2], 0.9);
-    glTexCoordPointer(2, GL_FLOAT, 0, laserTexCoords);
-    glDrawArrays(GL_QUADS, 0, 8);
+    layout.count = 0;
+    OOVertexLayoutAdd(&layout, kOOVertexPosition, 0, 3, 0, vertices, 0);
+    OOVertexLayoutAdd(&layout, kOOVertexTexCoord, 0, 2, 0, OORendererTransientBuffer(laserTexCoords, sizeof laserTexCoords), 0);
+    OORendererDrawPrimitive(kOOPrimitiveQuads, &layout, 0, 8);
 
     OOGLPopModelView();
-    OOGL(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
     OOGL(glDisable(GL_TEXTURE_2D));
 
     OOVerifyOpenGLState();

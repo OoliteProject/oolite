@@ -55,6 +55,13 @@ typedef struct OORendererBuffer OORendererBuffer;
 OORendererBuffer* OORendererCreateBuffer(const void* data, size_t size);
 void OORendererReleaseBuffer(OORendererBuffer* buffer);
 
+/*  A buffer for data that changes every frame, valid until the frame ends.
+    Under SDL_GPU the data is copied into the frame's upload buffer; on
+    OpenGL it refers to the caller's memory, which must stay valid until the
+    draw that uses it.
+*/
+const OORendererBuffer* OORendererTransientBuffer(const void* data, size_t size);
+
 typedef enum {
     kOOVertexPosition, // gl_Vertex
     kOOVertexNormal, // gl_Normal; always three components
@@ -86,6 +93,29 @@ void OOVertexLayoutAdd(OOVertexLayout* layout, OOVertexSemantic semantic, unsign
 
 // Draw count vertices from first, with the current render state.
 void OORendererDrawArrays(OONativePrimitive primitive, const OOVertexLayout* layout, size_t first, size_t count);
+
+typedef enum {
+    kOOIndex16, // uint16_t
+    kOOIndex32, // uint32_t
+} OOIndexType;
+
+// Draw count indexed vertices; the indices start offset bytes into indexBuffer.
+void OORendererDrawElements(OONativePrimitive primitive, const OOVertexLayout* layout,
+    const OORendererBuffer* indexBuffer, size_t offset, OOIndexType indexType, size_t count);
+
+/*  The same for GL's primitive types, including quads, quad strips, fans,
+    polygons and line loops, which are turned into indexed triangles or line
+    strips the way OOImmediateEnd() expands them.
+*/
+void OORendererDrawPrimitive(OOPrimitive primitive, const OOVertexLayout* layout, size_t first, size_t count);
+void OORendererDrawPrimitiveElements(OOPrimitive primitive, const OOVertexLayout* layout,
+    const OORendererBuffer* indexBuffer, size_t offset, OOIndexType indexType, size_t count);
+
+/*  Index expansion behind the two functions above, exposed for testing.
+    in may be NULL for the indices first, first + 1, ...; out must hold
+    OOExpandedVertexCount(primitive, count) indices.
+*/
+size_t OOExpandPrimitiveIndices(OOPrimitive primitive, const uint32_t* in, size_t first, size_t count, uint32_t* out);
 
 #ifdef __cplusplus
 }

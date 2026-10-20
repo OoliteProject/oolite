@@ -368,7 +368,8 @@ void OORendererBackendSetFog(const OOFogValues* fog)
 
 #pragma mark - Vertex arrays
 
-void OORendererBackendDrawArrays(OONativePrimitive primitive, const OOVertexLayout* layout, size_t first, size_t count)
+static void DrawLayout(OONativePrimitive primitive, const OOVertexLayout* layout, size_t first, size_t count,
+    const void* indices, OOIndexType indexType)
 {
     // Classic arrays the layout doesn't use are disabled for the draw, as
     // the state presets do, and everything is put back afterwards. Generic
@@ -431,7 +432,10 @@ void OORendererBackendDrawArrays(OONativePrimitive primitive, const OOVertexLayo
         glDisableClientState(GL_TEXTURE_COORD_ARRAY);
     }
 
-    glDrawArrays(GLPrimitive(primitive), (GLint)first, (GLsizei)count);
+    if (indices != NULL)
+        glDrawElements(GLPrimitive(primitive), (GLsizei)count, indexType == kOOIndex16 ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT, indices);
+    else
+        glDrawArrays(GLPrimitive(primitive), (GLint)first, (GLsizei)count);
 
     for (unsigned i = 0; i < layout->count; i++) {
         if (layout->streams[i].semantic == kOOVertexAttribute)
@@ -495,4 +499,15 @@ void OORendererBackendReadPixels(int x, int y, int width, int height, OOPixelFor
         glReadPixels(x, y, width, height, GL_RGB, GL_FLOAT, pixels);
     else
         glReadPixels(x, y, width, height, GL_BGRA, GL_UNSIGNED_BYTE, pixels);
+}
+
+void OORendererBackendDrawArrays(OONativePrimitive primitive, const OOVertexLayout* layout, size_t first, size_t count)
+{
+    DrawLayout(primitive, layout, first, count, NULL, kOOIndex32);
+}
+
+void OORendererBackendDrawElements(OONativePrimitive primitive, const OOVertexLayout* layout,
+    const void* indices, OOIndexType indexType, size_t count)
+{
+    DrawLayout(primitive, layout, 0, count, indices, indexType);
 }

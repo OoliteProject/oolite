@@ -45,6 +45,7 @@ SOFTWARE.
 #import "OOMacroOpenGL.h"
 #import "OOMaths.h"
 #import "OOPointMaths.h"
+#import "OOVertexArray.h"
 
 #ifndef APIENTRY
 #define APIENTRY
@@ -184,33 +185,12 @@ typedef GLvoid (*TessFuncPtr)();
     OO_ENTER_OPENGL();
     OOSetOpenGLState(OPENGL_STATE_OVERLAY);
 
-#if OO_USE_VBO
-    BOOL useVBO = [[OOOpenGLExtensionManager sharedManager] vboSupported];
-
-    if (useVBO) {
-        if (*vbo == 0) {
-            OOGL(glGenBuffersARB(1, vbo));
-            if (*vbo != 0) {
-                OOGL(glBindBufferARB(GL_ARRAY_BUFFER, *vbo));
-                OOGL(glBufferDataARB(GL_ARRAY_BUFFER, sizeof(GLfloat) * count * 2, data, GL_STATIC_DRAW));
-            }
-        } else {
-            OOGL(glBindBufferARB(GL_ARRAY_BUFFER, *vbo));
-        }
-        if (*vbo != 0)
-            data = NULL; // Must pass NULL pointer to glVertexPointer to use VBO.
-    }
-#endif
-
-    OOGL(glEnableClientState(GL_VERTEX_ARRAY));
-    OOGL(glVertexPointer(2, GL_FLOAT, 0, data));
-    OOGL(glDrawArrays(GL_TRIANGLES, 0, count));
-    OOGL(glDisableClientState(GL_VERTEX_ARRAY));
-
-#if OO_USE_VBO
-    if (useVBO)
-        OOGL(glBindBufferARB(GL_ARRAY_BUFFER, 0));
-#endif
+    // vbo is unused: vertex buffer objects are off (OO_USE_VBO), and under
+    // SDL_GPU the renderer owns buffers.
+    (void)vbo;
+    OOVertexLayout layout = { .count = 0 };
+    OOVertexLayoutAdd(&layout, kOOVertexPosition, 0, 2, 0, OORendererTransientBuffer(data, sizeof(GLfloat) * count * 2), 0);
+    OORendererDrawArrays(kOONativePrimitiveTriangles, &layout, 0, count);
 
     OOVerifyOpenGLState();
     OOCheckOpenGLErrors(@"OOPolygonSprite after rendering %@", self);

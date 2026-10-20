@@ -50,6 +50,9 @@ struct OORendererBuffer {
 };
 
 void OORendererBackendDrawArrays(OONativePrimitive primitive, const OOVertexLayout* layout, size_t first, size_t count);
+// indices points at count indices of indexType.
+void OORendererBackendDrawElements(OONativePrimitive primitive, const OOVertexLayout* layout,
+    const void* indices, OOIndexType indexType, size_t count);
 
 // Draw expanded immediate-mode vertices with the current render state.
 void OORendererBackendDrawImmediate(OONativePrimitive primitive, const OOImmediateVertex* vertices, size_t count);

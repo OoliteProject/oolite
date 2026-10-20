@@ -27,6 +27,7 @@ MA 02110-1301, USA.
 
 #include <assert.h>
 #include <math.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -251,12 +252,15 @@ size_t OOExpandedVertexCount(OOPrimitive primitive, size_t count)
     primitive and ends with GL's provoking vertex for flat shading: the last
     vertex of each quad (quads and quad strips), the first vertex (polygons)
     and the last vertex of each triangle (fans).
+
+    ExpandIndices() writes the vertex numbers (0 to count - 1) to use; the
+    vertex and index expansions are both built on it, so they agree.
 */
-size_t OOExpandPrimitive(OOPrimitive primitive, const OOImmediateVertex* in, size_t count, OOImmediateVertex* out)
+static size_t ExpandIndices(OOPrimitive primitive, size_t count, uint32_t* out)
 {
     size_t n = OOExpandedVertexCount(primitive, count);
     size_t o = 0;
-#define EMIT(index) (out[o++] = in[(index)])
+#define EMIT(index) (out[o++] = (uint32_t)(index))
 
     switch (primitive) {
     case kOOPrimitivePoints:
@@ -264,14 +268,14 @@ size_t OOExpandPrimitive(OOPrimitive primitive, const OOImmediateVertex* in, siz
     case kOOPrimitiveLineStrip:
     case kOOPrimitiveTriangles:
     case kOOPrimitiveTriangleStrip:
-        memcpy(out, in, n * sizeof *out);
-        o = n;
+        for (size_t i = 0; i < n; i++)
+            EMIT(i);
         break;
 
     case kOOPrimitiveLineLoop:
         if (n > 0) {
-            memcpy(out, in, count * sizeof *out);
-            o = count;
+            for (size_t i = 0; i < count; i++)
+                EMIT(i);
             EMIT(0);
         }
         break;
@@ -321,6 +325,43 @@ size_t OOExpandPrimitive(OOPrimitive primitive, const OOImmediateVertex* in, siz
 #undef EMIT
     assert(o == n);
     return o;
+}
+
+static uint32_t* sIndexScratch = NULL;
+static size_t sIndexScratchCapacity = 0;
+
+static uint32_t* IndexScratch(size_t needed)
+{
+    if (needed > sIndexScratchCapacity) {
+        size_t capacity = sIndexScratchCapacity ? sIndexScratchCapacity : 1024;
+        while (capacity < needed)
+            capacity *= 2;
+        uint32_t* grown = realloc(sIndexScratch, capacity * sizeof *grown);
+        if (grown == NULL)
+            return NULL;
+        sIndexScratch = grown;
+        sIndexScratchCapacity = capacity;
+    }
+    return sIndexScratch;
+}
+
+size_t OOExpandPrimitive(OOPrimitive primitive, const OOImmediateVertex* in, size_t count, OOImmediateVertex* out)
+{
+    uint32_t* indices = IndexScratch(OOExpandedVertexCount(primitive, count) + 1);
+    if (indices == NULL)
+        return 0;
+    size_t n = ExpandIndices(primitive, count, indices);
+    for (size_t i = 0; i < n; i++)
+        out[i] = in[indices[i]];
+    return n;
+}
+
+size_t OOExpandPrimitiveIndices(OOPrimitive primitive, const uint32_t* in, size_t first, size_t count, uint32_t* out)
+{
+    size_t n = ExpandIndices(primitive, count, out);
+    for (size_t i = 0; i < n; i++)
+        out[i] = in != NULL ? in[out[i]] : (uint32_t)(first + out[i]);
+    return n;
 }
 
 #pragma mark - Line width and point size

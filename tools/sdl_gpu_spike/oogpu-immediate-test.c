@@ -261,8 +261,33 @@ static void DrawOOQuadsAlternateDiagonal(const TestShape* shape)
 typedef enum {
     kDrawGL,
     kDrawOO,
-    kDrawOOAlternateDiagonal
+    kDrawOOAlternateDiagonal,
+    kDrawOOArrays, // OORendererDrawPrimitive from buffers
+    kDrawOOElements, // OORendererDrawPrimitiveElements, 16-bit indices
 } DrawMode;
+
+static void DrawOOArrays(const TestShape* shape, bool indexed)
+{
+    float positions[32 * 3], colors[32 * 4], texCoords[32 * 2];
+    uint16_t indices[32];
+    for (int i = 0; i < shape->count; i++) {
+        positions[i * 3] = shape->vertices[i].x;
+        positions[i * 3 + 1] = shape->vertices[i].y;
+        positions[i * 3 + 2] = 0;
+        memcpy(&colors[i * 4], shape->vertices[i].color, 4 * sizeof(float));
+        texCoords[i * 2] = shape->vertices[i].s;
+        texCoords[i * 2 + 1] = shape->vertices[i].t;
+        indices[i] = (uint16_t)i;
+    }
+    OOVertexLayout layout = { .count = 0 };
+    OOVertexLayoutAdd(&layout, kOOVertexPosition, 0, 3, 0, OORendererTransientBuffer(positions, sizeof positions), 0);
+    OOVertexLayoutAdd(&layout, kOOVertexColor, 0, 4, 0, OORendererTransientBuffer(colors, sizeof colors), 0);
+    OOVertexLayoutAdd(&layout, kOOVertexTexCoord, 0, 2, 0, OORendererTransientBuffer(texCoords, sizeof texCoords), 0);
+    if (indexed)
+        OORendererDrawPrimitiveElements(shape->ooPrimitive, &layout, OORendererTransientBuffer(indices, sizeof indices), 0, kOOIndex16, (size_t)shape->count);
+    else
+        OORendererDrawPrimitive(shape->ooPrimitive, &layout, 0, (size_t)shape->count);
+}
 
 static void Render(const TestShape* shape, const Variant* variant, DrawMode mode, uint8_t* pixels)
 {
@@ -287,6 +312,8 @@ static void Render(const TestShape* shape, const Variant* variant, DrawMode mode
         glDisable(GL_TEXTURE_2D);
     if (mode == kDrawOO)
         DrawOO(shape);
+    else if (mode == kDrawOOArrays || mode == kDrawOOElements)
+        DrawOOArrays(shape, mode == kDrawOOElements);
     else if (mode == kDrawOOAlternateDiagonal)
         DrawOOQuadsAlternateDiagonal(shape);
     else
@@ -474,6 +501,19 @@ int main(int argc, char* argv[])
                 }
                 free(altPixels);
             }
+            // The same through the vertex-array paths.
+            for (DrawMode arrayMode = kDrawOOArrays; arrayMode <= kDrawOOElements; arrayMode++) {
+                Render(&shapes[s], &variants[v], arrayMode, ooPixels);
+                int arrayMax;
+                unsigned arrayLit, arrayDiffering = CountDifferences(glPixels, ooPixels, &arrayMax, &arrayLit);
+                if (arrayDiffering > 0 && strcmp(status, "OK02") == 0)
+                    arrayDiffering = 0; // the driver's other diagonal, as above
+                if (arrayDiffering > 0) {
+                    printf("DIFF %-16s %-20s through %s: differing %u\n", shapes[s].name, kVariantNames[v],
+                        arrayMode == kDrawOOArrays ? "OORendererDrawPrimitive" : "OORendererDrawPrimitiveElements", arrayDiffering);
+                    failures++;
+                }
+            }
             total++;
             // An empty reference image would make the comparison meaningless.
             bool ok = differing == 0 && lit > 0;
@@ -498,6 +538,10 @@ int main(int argc, char* argv[])
     */
     {
         const TestShape* quads = &shapes[7];
+        // Flat shading: smooth quads hit the driver's choice of diagonal.
+        glShadeModel(GL_FLAT);
+        glDisable(GL_LINE_SMOOTH);
+        glDisable(GL_POINT_SMOOTH);
         glDisable(GL_BLEND);
         glDisable(GL_TEXTURE_2D);
         glDisable(GL_SCISSOR_TEST);

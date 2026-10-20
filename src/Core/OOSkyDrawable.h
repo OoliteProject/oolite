@@ -38,8 +38,6 @@ SOFTWARE.
     unsigned _nebulaCount;
 
     NSMutableArray* _quadSets;
-
-    GLint _displayListName;
 }
 
 - (id)initWithColor1:(OOColor*)color1

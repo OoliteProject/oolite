@@ -25,6 +25,7 @@ MA 02110-1301, USA.
 #import "OOSunEntity.h"
 #import "OOMacroOpenGL.h"
 #import "OOOpenGLExtensionManager.h"
+#import "OOVertexArray.h"
 
 #import "AI.h"
 #import "MyOpenGLView.h"
@@ -404,14 +405,8 @@ MA 02110-1301, USA.
                           width:effective_cor16k
                       zDistance:sqrt_zero_distance];
         OOGL(glDisable(GL_BLEND));
-        OOGL(glVertexPointer(3, GL_FLOAT, 0, sunVertices));
-
-        OOGL(glEnableClientState(GL_COLOR_ARRAY));
-        OOGL(glColorPointer(4, GL_FLOAT, 0, sunColors));
-
-        OOGL(glDrawElements(GL_TRIANGLES, 3 * 360, GL_UNSIGNED_INT, sunTriangles));
-
-        OOGL(glDisableClientState(GL_COLOR_ARRAY));
+        OOVertexLayout layout = [self sunLayout];
+        OORendererDrawElements(kOONativePrimitiveTriangles, &layout, OORendererTransientBuffer(sunTriangles, sizeof sunTriangles), 0, kOOIndex32, 3 * 360);
         OOGL(glEnable(GL_BLEND));
     }
 
@@ -429,13 +424,18 @@ MA 02110-1301, USA.
 
     OOSetOpenGLState(OPENGL_STATE_ADDITIVE_BLENDING);
 
-    OOGL(glVertexPointer(3, GL_FLOAT, 0, sunVertices));
+    OOVertexLayout layout = [self sunLayout];
+    OORendererDrawElements(kOONativePrimitiveTriangles, &layout, OORendererTransientBuffer(sunTriangles, sizeof sunTriangles),
+        3 * 360 * sizeof *sunTriangles, kOOIndex32, 24 * 360);
+}
 
-    OOGL(glEnableClientState(GL_COLOR_ARRAY));
-    OOGL(glColorPointer(4, GL_FLOAT, 0, sunColors));
-    OOGL(glDrawElements(GL_TRIANGLES, 24 * 360, GL_UNSIGNED_INT, sunTriangles + (3 * 360)));
-
-    OOGL(glDisableClientState(GL_COLOR_ARRAY));
+// The corona's per-frame vertices and colours.
+- (OOVertexLayout)sunLayout
+{
+    OOVertexLayout layout = { .count = 0 };
+    OOVertexLayoutAdd(&layout, kOOVertexPosition, 0, 3, 0, OORendererTransientBuffer(sunVertices, sizeof sunVertices), 0);
+    OOVertexLayoutAdd(&layout, kOOVertexColor, 0, 4, 0, OORendererTransientBuffer(sunColors, sizeof sunColors), 0);
+    return layout;
 }
 
 - (void)calculateGLArrays:(GLfloat)inner_radius width:(GLfloat)width zDistance:(GLfloat)z_distance
