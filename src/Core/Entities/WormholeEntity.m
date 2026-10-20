@@ -32,6 +32,7 @@ MA 02110-1301, USA.
 
 #import "AI.h"
 #import "OOCollectionExtractors.h"
+#import "OOImmediateMode.h"
 #import "OOLoggingExtended.h"
 #import "OORoleSet.h"
 #import "OOShipGroup.h"
@@ -650,10 +651,10 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
         OOGL(glDisable(GL_CULL_FACE));
         OOGL(glEnable(GL_BLEND));
 
-        OOGL(glColor4fv(color_fv));
-        OOGLBEGIN(GL_TRIANGLE_FAN);
+        OOImmediateColor4fv(color_fv);
+        OOImmediateBegin(kOOPrimitiveTriangleFan);
         GLDrawBallBillboard(0.45 * collision_radius, 4, srzd);
-        OOGLEND();
+        OOImmediateEnd();
 
         color_fv[3] = fmin(color_fv[3] * 2.0, 1.0);
         DrawWormholeCorona(0.45 * collision_radius, collision_radius, 4, srzd, color_fv);

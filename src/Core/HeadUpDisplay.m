@@ -31,6 +31,7 @@ MA 02110-1301, USA.
 #import "OOCrosshairs.h"
 #import "OOEncodingConverter.h"
 #import "OOFoundation.h"
+#import "OOImmediateMode.h"
 #import "OOJavaScriptEngine.h"
 #import "OOJoystickManager.h"
 #import "OOPlanetEntity.h"
@@ -1437,13 +1438,13 @@ static void prefetchData(NSDictionary* info, struct CachedInfo* data)
     OOGL(glEnable(GL_TEXTURE_2D));
     [sFontTexture apply];
 
-    OOGLBEGIN(GL_QUADS);
+    OOImmediateBegin(kOOPrimitiveQuads);
     if (zl / 10 > 0)
         drawCharacterQuad(48 + zl / 10, cx - 0.8 * siz.width, cy, z1, siz);
     drawCharacterQuad(48 + zl % 10, cx - 0.4 * siz.width, cy, z1, siz);
     drawCharacterQuad(58, cx, cy, z1, siz);
     drawCharacterQuad(49, cx + 0.3 * siz.width, cy, z1, siz);
-    OOGLEND();
+    OOImmediateEnd();
 
     [OOTexture applyNone];
     OOGL(glDisable(GL_TEXTURE_2D));
@@ -3606,14 +3607,14 @@ static GLfloat drawCharacterQuad(uint8_t chr, GLfloat x, GLfloat y, GLfloat z, N
         if (chr > 32)
             y += ONE_EIGHTH * siz.height; // Adjust for baseline offset change in 1.71 (needed to keep accented characters in box)
 
-        glTexCoord2f(texture_x, texture_y + ONE_SIXTEENTH);
-        glVertex3f(x, y, z);
-        glTexCoord2f(texture_x + ONE_SIXTEENTH, texture_y + ONE_SIXTEENTH);
-        glVertex3f(x + siz.width, y, z);
-        glTexCoord2f(texture_x + ONE_SIXTEENTH, texture_y);
-        glVertex3f(x + siz.width, y + siz.height, z);
-        glTexCoord2f(texture_x, texture_y);
-        glVertex3f(x, y + siz.height, z);
+        OOImmediateTexCoord2f(texture_x, texture_y + ONE_SIXTEENTH);
+        OOImmediateVertex3f(x, y, z);
+        OOImmediateTexCoord2f(texture_x + ONE_SIXTEENTH, texture_y + ONE_SIXTEENTH);
+        OOImmediateVertex3f(x + siz.width, y, z);
+        OOImmediateTexCoord2f(texture_x + ONE_SIXTEENTH, texture_y);
+        OOImmediateVertex3f(x + siz.width, y + siz.height, z);
+        OOImmediateTexCoord2f(texture_x, texture_y);
+        OOImmediateVertex3f(x, y + siz.height, z);
     }
     return siz.width * sGlyphWidths[chr];
 }
@@ -3644,30 +3645,30 @@ CGFloat OOStringWidthInEm(NSString* text)
 void drawHighlight(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat alpha)
 {
     // Rounded corners, fading 'shadow' version
-    OOGL(glColor4f(0.0f, 0.0f, 0.0f, alpha * 0.4f)); // dark translucent shadow
+    OOImmediateColor4f(0.0f, 0.0f, 0.0f, alpha * 0.4f); // dark translucent shadow
 
-    OOGLBEGIN(GL_POLYGON);
+    OOImmediateBegin(kOOPrimitivePolygon);
     // thin 'halo' around the 'solid' highlight
-    glVertex3f(x + 1.0f, y + siz.height + 2.5f, z);
-    glVertex3f(x + siz.width + 3.0f, y + siz.height + 2.5f, z);
-    glVertex3f(x + siz.width + 4.5f, y + siz.height + 1.0f, z);
-    glVertex3f(x + siz.width + 4.5f, y + 3.0f, z);
-    glVertex3f(x + siz.width + 3.0f, y + 1.5f, z);
-    glVertex3f(x + 1.0f, y + 1.5f, z);
-    glVertex3f(x - 0.5f, y + 3.0f, z);
-    glVertex3f(x - 0.5f, y + siz.height + 1.0f, z);
-    OOGLEND();
+    OOImmediateVertex3f(x + 1.0f, y + siz.height + 2.5f, z);
+    OOImmediateVertex3f(x + siz.width + 3.0f, y + siz.height + 2.5f, z);
+    OOImmediateVertex3f(x + siz.width + 4.5f, y + siz.height + 1.0f, z);
+    OOImmediateVertex3f(x + siz.width + 4.5f, y + 3.0f, z);
+    OOImmediateVertex3f(x + siz.width + 3.0f, y + 1.5f, z);
+    OOImmediateVertex3f(x + 1.0f, y + 1.5f, z);
+    OOImmediateVertex3f(x - 0.5f, y + 3.0f, z);
+    OOImmediateVertex3f(x - 0.5f, y + siz.height + 1.0f, z);
+    OOImmediateEnd();
 
-    OOGLBEGIN(GL_POLYGON);
-    glVertex3f(x + 1.0f, y + siz.height + 2.0f, z);
-    glVertex3f(x + siz.width + 3.0f, y + siz.height + 2.0f, z);
-    glVertex3f(x + siz.width + 4.0f, y + siz.height + 1.0f, z);
-    glVertex3f(x + siz.width + 4.0f, y + 3.0f, z);
-    glVertex3f(x + siz.width + 3.0f, y + 2.0f, z);
-    glVertex3f(x + 1.0f, y + 2.0f, z);
-    glVertex3f(x, y + 3.0f, z);
-    glVertex3f(x, y + siz.height + 1.0f, z);
-    OOGLEND();
+    OOImmediateBegin(kOOPrimitivePolygon);
+    OOImmediateVertex3f(x + 1.0f, y + siz.height + 2.0f, z);
+    OOImmediateVertex3f(x + siz.width + 3.0f, y + siz.height + 2.0f, z);
+    OOImmediateVertex3f(x + siz.width + 4.0f, y + siz.height + 1.0f, z);
+    OOImmediateVertex3f(x + siz.width + 4.0f, y + 3.0f, z);
+    OOImmediateVertex3f(x + siz.width + 3.0f, y + 2.0f, z);
+    OOImmediateVertex3f(x + 1.0f, y + 2.0f, z);
+    OOImmediateVertex3f(x, y + 3.0f, z);
+    OOImmediateVertex3f(x, y + siz.height + 1.0f, z);
+    OOImmediateEnd();
 }
 
 void OODrawString(NSString* text, GLfloat x, GLfloat y, GLfloat z, NSSize siz)
@@ -3688,7 +3689,7 @@ void OOStartDrawingStrings()
 
     OOGL(glEnable(GL_TEXTURE_2D));
     [sFontTexture apply];
-    OOGLBEGIN(GL_QUADS);
+    OOImmediateBegin(kOOPrimitiveQuads);
 }
 
 void OODrawStringQuadsAligned(NSString* text, GLfloat x, GLfloat y, GLfloat z, NSSize siz, BOOL rightAlign)
@@ -3713,7 +3714,7 @@ void OODrawStringQuadsAligned(NSString* text, GLfloat x, GLfloat y, GLfloat z, N
 
 void OOStopDrawingStrings()
 {
-    OOGLEND();
+    OOImmediateEnd();
 
     [OOTexture applyNone];
     OOGL(glDisable(GL_TEXTURE_2D));
@@ -3723,20 +3724,17 @@ void OOStopDrawingStrings()
 
 void OODrawHilightedString(NSString* text, GLfloat x, GLfloat y, GLfloat z, NSSize siz)
 {
-    GLfloat color[4];
-
     // get the physical dimensions of the string
     NSSize strsize = OORectFromString(text, 0.0f, 0.0f, siz).size;
     strsize.width += 0.5f;
 
     OOSetOpenGLState(OPENGL_STATE_OVERLAY);
 
-    OOGL(glPushAttrib(GL_CURRENT_BIT)); // save the text colour
-    OOGL(glGetFloatv(GL_CURRENT_COLOR, color)); // we need the original colour's alpha.
+    OOImmediateAttributes textAttributes = OOImmediateGetAttributes(); // save the text colour; we need its alpha.
 
-    drawHighlight(x, y, z, strsize, color[3]);
+    drawHighlight(x, y, z, strsize, textAttributes.color[3]);
 
-    OOGL(glPopAttrib()); // restore the colour
+    OOImmediateSetAttributes(textAttributes); // restore the colour
 
     OODrawString(text, x, y, z, siz);
 
@@ -3763,7 +3761,7 @@ void OODrawPlanetInfo(int gov, int eco, int tec, GLfloat x, GLfloat y, GLfloat z
     OOGL(glEnable(GL_TEXTURE_2D));
     [sFontTexture apply];
 
-    OOGLBEGIN(GL_QUADS);
+    OOImmediateBegin(kOOPrimitiveQuads);
     {
         [[UNIVERSE gui] setGLColorFromSetting:[NSString stringWithFormat:kGuiChartEconomyUColor, (size_t)eco]
                                  defaultValue:[OOColor colorWithRed:ce1 green:1.0f blue:0.0f alpha:1.0f]
@@ -3786,7 +3784,7 @@ void OODrawPlanetInfo(int gov, int eco, int tec, GLfloat x, GLfloat y, GLfloat z
         }
         cx += drawCharacterQuad(48 + (tl % 10), cx, y - 2.0f, z, siz);
     }
-    OOGLEND();
+    OOImmediateEnd();
 
     (void)cx; // Suppress "value not used" analyzer issue.
 
@@ -3798,7 +3796,6 @@ void OODrawPlanetInfo(int gov, int eco, int tec, GLfloat x, GLfloat y, GLfloat z
 
 void OODrawHilightedPlanetInfo(int gov, int eco, int tec, GLfloat x, GLfloat y, GLfloat z, NSSize siz)
 {
-    float color[4];
     int tl = tec + 1;
 
     NSSize hisize;
@@ -3816,12 +3813,11 @@ void OODrawHilightedPlanetInfo(int gov, int eco, int tec, GLfloat x, GLfloat y, 
 
     OOSetOpenGLState(OPENGL_STATE_OVERLAY);
 
-    OOGL(glPushAttrib(GL_CURRENT_BIT)); // save the text colour
-    OOGL(glGetFloatv(GL_CURRENT_COLOR, color)); // we need the original colour's alpha.
+    OOImmediateAttributes textAttributes = OOImmediateGetAttributes(); // save the text colour; we need its alpha.
 
-    drawHighlight(x, y - 2.0f, z, hisize, color[3]);
+    drawHighlight(x, y - 2.0f, z, hisize, textAttributes.color[3]);
 
-    OOGL(glPopAttrib()); // restore the colour
+    OOImmediateSetAttributes(textAttributes); // restore the colour
 
     OODrawPlanetInfo(gov, eco, tec, x, y, z, siz);
 

@@ -32,6 +32,7 @@ MA 02110-1301, USA.
 #import "OOCollectionExtractors.h"
 #import "OOColor.h"
 #import "OODebugFlags.h"
+#import "OOImmediateMode.h"
 #import "OOStringExpander.h"
 #import "OOStringParsing.h"
 #import "PlayerEntity.h"
@@ -388,9 +389,9 @@ MA 02110-1301, USA.
         OOGL(glColor3fv(discColor));
         // FIXME: use vertex arrays
         OOGL(glDisable(GL_BLEND));
-        OOGLBEGIN(GL_TRIANGLE_FAN);
+        OOImmediateBegin(kOOPrimitiveTriangleFan);
         GLDrawBallBillboard(effective_radius, steps, sqrt_zero_distance);
-        OOGLEND();
+        OOImmediateEnd();
         OOGL(glEnable(GL_BLEND));
 
         if (ignoreDepthBuffer)

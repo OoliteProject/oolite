@@ -201,6 +201,64 @@ APIs, so the game can use it as is in phase 3.
   so a bundled glslang (Meson subproject) is the safer choice for release
   builds.
 
+## Phase 1: renderer layer, immediate mode first
+
+Phase 1 starts the renderer layer in `src/Core/Renderer/`. It goes in
+behind the OpenGL backend first, so the game can be checked against itself
+at every step.
+
+**Done so far: an immediate-mode replacement** (`OOImmediateMode.h`). It
+replaces `glBegin`/`glVertex`/`glColor`/`glEnd` (about 770 calls, mostly in
+the HUD and GUI).
+- **Same semantics as GL.** Vertices take the current colour, texture
+  co-ordinate and normal, as in GL immediate mode.
+- **Primitive expansion.** At `OOImmediateEnd()` the batch is expanded into
+  primitives SDL_GPU can draw: quads, quad strips, polygons, fans and line
+  loops become triangles or line strips. The expansion keeps GL's winding
+  and its flat-shading provoking vertex.
+- **OpenGL backend** (`OORendererGL.c`). It draws the expanded vertices from
+  client-side arrays and leaves all other state to the live GL context.
+  Legacy GL code still runs between batches, so:
+  - the attribute setters also set GL's current values;
+  - `OOImmediateBegin()` picks up values set directly through GL;
+  - debug builds warn if a raw `glColor` call lands inside a batch.
+
+  This interop layer (`OO_IMMEDIATE_GL_INTEROP`) is removed when the SDL_GPU
+  backend arrives.
+
+**Checks.**
+- **`oogpu-immediate-test`.** It draws every primitive type with real GL
+  immediate mode and through the new layer, using per-vertex colours and
+  non-parallelogram quads, in smooth and flat shading, textured, and with
+  wide lines and points. All 40 cases are pixel-identical on Apple's GL
+  (max difference 0), and so are the two interop checks. As a negative
+  control, swapping the quad diagonal makes all four quad cases fail.
+- **In-game snapshot.** The pilot migration covers `GuiDisplayGen.m`, the
+  text drawing in `HeadUpDisplay.m`, the shape helpers in `OOOpenGL.m`, and
+  the `GLDrawBallBillboard` callers. Its title-screen snapshot matches the
+  unmigrated build within the measured noise floor: at most 1/255 outside
+  the rotating ship and the version string, the same as two runs of the
+  unmodified build. The game was run with `-novsync`, because a locked
+  macOS screen otherwise blocks GL buffer swaps. Use `oogpu-imgdiff` to
+  compare snapshots.
+
+**Tooling.** `migrate_immediate.py <file> [first-last ...]` does the
+mechanical conversion and lists anything it can't convert.
+
+**Still to do.**
+- Convert the remaining immediate-mode callers (the HUD, entities, debug
+  drawing).
+- Add render-state and pass objects (pipeline key: program, vertex layout,
+  topology, blend, depth, cull, target formats).
+- Express fixed-function state (lights, material, fog, texture combine) as
+  plain data.
+- Make uniforms go through programs by name.
+- Expand wide lines and points on the CPU.
+- Convert the vertex-array drawing code.
+
+Broad in-game coverage needs scripted navigation of the GUI screens. A
+Linux game build under Xvfb, driven by simulated keys, is the likely route.
+
 ## Reproducing
 
 ```bash

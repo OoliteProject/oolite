@@ -51,3 +51,12 @@ else
 endif
 executable('oogpu-render', 'oogpu-render.c', dependencies: [common_dep, gl, cc.find_library('m', required: false)],
     link_language: 'cpp')
+
+executable('oogpu-imgdiff', 'oogpu-imgdiff.c', dependencies: [sdl3])
+
+# Checks src/Core/Renderer's immediate-mode replacement against GL immediate mode.
+renderer_src = '../../src/Core/Renderer'
+executable('oogpu-immediate-test', 'oogpu-immediate-test.c',
+    renderer_src / 'OOImmediateMode.c', renderer_src / 'OORendererGL.c',
+    include_directories: include_directories(renderer_src, '../../src/Core'),
+    dependencies: [sdl3, gl, cc.find_library('m', required: false)])

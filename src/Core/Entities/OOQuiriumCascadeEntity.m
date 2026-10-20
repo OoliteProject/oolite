@@ -24,6 +24,7 @@ MA 02110-1301, USA.
 */
 
 #import "OOQuiriumCascadeEntity.h"
+#import "OOImmediateMode.h"
 #import "OOMacroOpenGL.h"
 #import "PlayerEntity.h"
 #import "Universe.h"
@@ -122,10 +123,10 @@ MA 02110-1301, USA.
     OOGL(glEnable(GL_BLEND));
     OOGL(glBlendFunc(GL_SRC_ALPHA, GL_ONE));
 
-    OOGL(glColor4fv(_color));
-    OOGLBEGIN(GL_TRIANGLE_FAN);
+    OOImmediateColor4fv(_color);
+    OOImmediateBegin(kOOPrimitiveTriangleFan);
     GLDrawBallBillboard(collision_radius, 4, sqrt(cam_zero_distance));
-    OOGLEND();
+    OOImmediateEnd();
 
     OOGL(glPopAttrib());
 

@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 #import "GameController.h"
 #import "HeadUpDisplay.h"
 #import "OOCollectionExtractors.h"
+#import "OOImmediateMode.h"
 #import "OOJavaScriptEngine.h"
 #import "OOSound.h"
 #import "OOStringExpander.h"
@@ -384,7 +385,7 @@ static BOOL _refreshStarChart = NO;
     OOColor* col = [self colorFromSetting:setting defaultValue:def];
     [col getRed:&r green:&g blue:&b alpha:&a];
 
-    OOGL(glColor4f(r, g, b, a * alpha));
+    OOImmediateColor4f(r, g, b, a * alpha);
 }
 
 - (void)setGuiColorSettingFromKey:(NSString*)key color:(OOColor*)col
@@ -1282,23 +1283,23 @@ static OOTextureSprite* NewTextureSpriteWithDescriptor(NSDictionary* descriptor,
 
         GLfloat h1 = 3.0f;
         GLfloat h3 = 9.0f;
-        OOGL(glColor4f(0.6f, 0.6f, 1.0f, 1.0f)); // original value of (0.2f, 0.2f, 1.0f, 0.5f) too dark - Nikos 20130616
+        OOImmediateColor4f(0.6f, 0.6f, 1.0f, 1.0f); // original value of (0.2f, 0.2f, 1.0f, 0.5f) too dark - Nikos 20130616
         OOGL(GLScaledLineWidth(2.0f));
 
         cursor_x += x;
         cursor_y += y;
         [[UNIVERSE gameView] setVirtualJoystick:cursor_x / size_in_pixels.width vmy:-cursor_y / size_in_pixels.height];
 
-        OOGLBEGIN(GL_LINES);
-        glVertex3f((float)cursor_x - h1, (float)cursor_y, z);
-        glVertex3f((float)cursor_x - h3, (float)cursor_y, z);
-        glVertex3f((float)cursor_x + h1, (float)cursor_y, z);
-        glVertex3f((float)cursor_x + h3, (float)cursor_y, z);
-        glVertex3f((float)cursor_x, (float)cursor_y - h1, z);
-        glVertex3f((float)cursor_x, (float)cursor_y - h3, z);
-        glVertex3f((float)cursor_x, (float)cursor_y + h1, z);
-        glVertex3f((float)cursor_x, (float)cursor_y + h3, z);
-        OOGLEND();
+        OOImmediateBegin(kOOPrimitiveLines);
+        OOImmediateVertex3f((float)cursor_x - h1, (float)cursor_y, z);
+        OOImmediateVertex3f((float)cursor_x - h3, (float)cursor_y, z);
+        OOImmediateVertex3f((float)cursor_x + h1, (float)cursor_y, z);
+        OOImmediateVertex3f((float)cursor_x + h3, (float)cursor_y, z);
+        OOImmediateVertex3f((float)cursor_x, (float)cursor_y - h1, z);
+        OOImmediateVertex3f((float)cursor_x, (float)cursor_y - h3, z);
+        OOImmediateVertex3f((float)cursor_x, (float)cursor_y + h1, z);
+        OOImmediateVertex3f((float)cursor_x, (float)cursor_y + h3, z);
+        OOImmediateEnd();
         OOGL(GLScaledLineWidth(1.0f));
     }
 
@@ -1347,13 +1348,13 @@ static OOTextureSprite* NewTextureSpriteWithDescriptor(NSDictionary* descriptor,
     if (backgroundColor) {
         int playerStatus = [PLAYER status];
         if (playerStatus != STATUS_START_GAME && playerStatus != STATUS_DEAD) {
-            OOGL(glColor4f([backgroundColor redComponent], [backgroundColor greenComponent], [backgroundColor blueComponent], backgroundAlpha * [backgroundColor alphaComponent]));
-            OOGLBEGIN(GL_QUADS);
-            glVertex3f(x + 0.0f, y + 0.0f, z);
-            glVertex3f(x + size_in_pixels.width, y + 0.0f, z);
-            glVertex3f(x + size_in_pixels.width, y + size_in_pixels.height, z);
-            glVertex3f(x + 0.0f, y + size_in_pixels.height, z);
-            OOGLEND();
+            OOImmediateColor4f([backgroundColor redComponent], [backgroundColor greenComponent], [backgroundColor blueComponent], backgroundAlpha * [backgroundColor alphaComponent]);
+            OOImmediateBegin(kOOPrimitiveQuads);
+            OOImmediateVertex3f(x + 0.0f, y + 0.0f, z);
+            OOImmediateVertex3f(x + size_in_pixels.width, y + 0.0f, z);
+            OOImmediateVertex3f(x + size_in_pixels.width, y + size_in_pixels.height, z);
+            OOImmediateVertex3f(x + 0.0f, y + size_in_pixels.height, z);
+            OOImmediateEnd();
         }
     }
 
@@ -1382,12 +1383,12 @@ static OOTextureSprite* NewTextureSpriteWithDescriptor(NSDictionary* descriptor,
         //
         [self setGLColorFromSetting:kGuiScreenDividerColor defaultValue:[OOColor colorWithWhite:0.75 alpha:1.0] alpha:alpha];
 
-        OOGLBEGIN(GL_QUADS);
-        glVertex3f(x + 0, y + size_in_pixels.height - pixel_title_size.height + 4, z);
-        glVertex3f(x + size_in_pixels.width, y + size_in_pixels.height - pixel_title_size.height + 4, z);
-        glVertex3f(x + size_in_pixels.width, y + size_in_pixels.height - pixel_title_size.height + 2, z);
-        glVertex3f(x + 0, y + size_in_pixels.height - pixel_title_size.height + 2, z);
-        OOGLEND();
+        OOImmediateBegin(kOOPrimitiveQuads);
+        OOImmediateVertex3f(x + 0, y + size_in_pixels.height - pixel_title_size.height + 4, z);
+        OOImmediateVertex3f(x + size_in_pixels.width, y + size_in_pixels.height - pixel_title_size.height + 4, z);
+        OOImmediateVertex3f(x + size_in_pixels.width, y + size_in_pixels.height - pixel_title_size.height + 2, z);
+        OOImmediateVertex3f(x + 0, y + size_in_pixels.height - pixel_title_size.height + 2, z);
+        OOImmediateEnd();
     }
 
     // draw each row of text
@@ -1395,7 +1396,7 @@ static OOTextureSprite* NewTextureSpriteWithDescriptor(NSDictionary* descriptor,
     OOStartDrawingStrings();
     for (i = 0; i < n_rows; i++) {
         OOColor* row_color = (OOColor*)[rowColor objectAtIndex:i];
-        glColor4f([row_color redComponent], [row_color greenComponent], [row_color blueComponent], row_alpha[i]);
+        OOImmediateColor4f([row_color redComponent], [row_color greenComponent], [row_color blueComponent], row_alpha[i]);
 
         if ([[rowText objectAtIndex:i] isKindOfClass:[NSString class]]) {
             NSString* text = (NSString*)[rowText objectAtIndex:i];
@@ -1416,12 +1417,12 @@ static OOTextureSprite* NewTextureSpriteWithDescriptor(NSDictionary* descriptor,
                     NSRect block = OORectFromString(text, x + rowPosition[i].x + 2, y + rowPosition[i].y + 2, characterSize);
                     OOStopDrawingStrings();
                     [self setGLColorFromSetting:kGuiSelectedRowBackgroundColor defaultValue:[OOColor redColor] alpha:alpha];
-                    OOGLBEGIN(GL_QUADS);
-                    glVertex3f(block.origin.x, block.origin.y, z);
-                    glVertex3f(block.origin.x + block.size.width, block.origin.y, z);
-                    glVertex3f(block.origin.x + block.size.width, block.origin.y + block.size.height, z);
-                    glVertex3f(block.origin.x, block.origin.y + block.size.height, z);
-                    OOGLEND();
+                    OOImmediateBegin(kOOPrimitiveQuads);
+                    OOImmediateVertex3f(block.origin.x, block.origin.y, z);
+                    OOImmediateVertex3f(block.origin.x + block.size.width, block.origin.y, z);
+                    OOImmediateVertex3f(block.origin.x + block.size.width, block.origin.y + block.size.height, z);
+                    OOImmediateVertex3f(block.origin.x, block.origin.y + block.size.height, z);
+                    OOImmediateEnd();
                     [self setGLColorFromSetting:kGuiSelectedRowColor defaultValue:[OOColor blackColor] alpha:alpha];
                     OOStartDrawingStrings();
                 }
@@ -1437,12 +1438,12 @@ static OOTextureSprite* NewTextureSpriteWithDescriptor(NSDictionary* descriptor,
                     GLfloat g_alpha = 0.5f * (1.0f + (float)sin(6 * [UNIVERSE getTime]));
                     OOStopDrawingStrings();
                     [self setGLColorFromSetting:kGuiTextInputCursorColor defaultValue:[OOColor redColor] alpha:row_alpha[i] * g_alpha];
-                    OOGLBEGIN(GL_QUADS);
-                    glVertex3f(tr.origin.x, tr.origin.y, z);
-                    glVertex3f(tr.origin.x + tr.size.width, tr.origin.y, z);
-                    glVertex3f(tr.origin.x + tr.size.width, tr.origin.y + tr.size.height, z);
-                    glVertex3f(tr.origin.x, tr.origin.y + tr.size.height, z);
-                    OOGLEND();
+                    OOImmediateBegin(kOOPrimitiveQuads);
+                    OOImmediateVertex3f(tr.origin.x, tr.origin.y, z);
+                    OOImmediateVertex3f(tr.origin.x + tr.size.width, tr.origin.y, z);
+                    OOImmediateVertex3f(tr.origin.x + tr.size.width, tr.origin.y + tr.size.height, z);
+                    OOImmediateVertex3f(tr.origin.x, tr.origin.y + tr.size.height, z);
+                    OOImmediateEnd();
                     OOStartDrawingStrings();
                 }
             }
@@ -1496,12 +1497,12 @@ static OOTextureSprite* NewTextureSpriteWithDescriptor(NSDictionary* descriptor,
                     if (i == (unsigned)selectedRow) {
                         OOStopDrawingStrings();
                         [self setGLColorFromSetting:kGuiSelectedRowBackgroundColor defaultValue:[OOColor redColor] alpha:alpha];
-                        OOGLBEGIN(GL_QUADS);
-                        glVertex3f(block.origin.x, block.origin.y, z);
-                        glVertex3f(block.origin.x + block.size.width, block.origin.y, z);
-                        glVertex3f(block.origin.x + block.size.width, block.origin.y + block.size.height, z);
-                        glVertex3f(block.origin.x, block.origin.y + block.size.height, z);
-                        OOGLEND();
+                        OOImmediateBegin(kOOPrimitiveQuads);
+                        OOImmediateVertex3f(block.origin.x, block.origin.y, z);
+                        OOImmediateVertex3f(block.origin.x + block.size.width, block.origin.y, z);
+                        OOImmediateVertex3f(block.origin.x + block.size.width, block.origin.y + block.size.height, z);
+                        OOImmediateVertex3f(block.origin.x, block.origin.y + block.size.height, z);
+                        OOImmediateEnd();
                         [self setGLColorFromSetting:kGuiSelectedRowColor defaultValue:[OOColor blackColor] alpha:alpha];
                         OOStartDrawingStrings();
                     }
@@ -1516,16 +1517,16 @@ static OOTextureSprite* NewTextureSpriteWithDescriptor(NSDictionary* descriptor,
 
 - (void)drawCrossHairsWithSize:(GLfloat)size x:(GLfloat)x y:(GLfloat)y z:(GLfloat)z
 {
-    OOGLBEGIN(GL_QUADS);
-    glVertex3f(x - 1, y - size, z);
-    glVertex3f(x + 1, y - size, z);
-    glVertex3f(x + 1, y + size, z);
-    glVertex3f(x - 1, y + size, z);
-    glVertex3f(x - size, y - 1, z);
-    glVertex3f(x + size, y - 1, z);
-    glVertex3f(x + size, y + 1, z);
-    glVertex3f(x - size, y + 1, z);
-    OOGLEND();
+    OOImmediateBegin(kOOPrimitiveQuads);
+    OOImmediateVertex3f(x - 1, y - size, z);
+    OOImmediateVertex3f(x + 1, y - size, z);
+    OOImmediateVertex3f(x + 1, y + size, z);
+    OOImmediateVertex3f(x - 1, y + size, z);
+    OOImmediateVertex3f(x - size, y - 1, z);
+    OOImmediateVertex3f(x + size, y - 1, z);
+    OOImmediateVertex3f(x + size, y + 1, z);
+    OOImmediateVertex3f(x - size, y + 1, z);
+    OOImmediateEnd();
 }
 
 - (void)setStarChartTitle
@@ -1769,7 +1770,7 @@ static OOTextureSprite* NewTextureSpriteWithDescriptor(NSDictionary* descriptor,
     // draw marks and stars
     //
     OOGL(GLScaledLineWidth(1.5f));
-    OOGL(glColor4f(1.0f, 1.0f, 0.75f, alpha)); // pale yellow
+    OOImmediateColor4f(1.0f, 1.0f, 0.75f, alpha); // pale yellow
 
     for (i = 0; i < num_nearby_systems; i++) {
         NSPoint sys_coordinates = [systemManager getCoordinatesForSystem:i inGalaxy:galaxy_id];
@@ -1807,7 +1808,7 @@ static OOTextureSprite* NewTextureSpriteWithDescriptor(NSDictionary* descriptor,
         if (concealment[i] >= OO_SYSTEMCONCEALMENT_NODATA) {
             // no system data available
             r = g = b = 0.7;
-            OOGL(glColor4f(r, g, b, alpha));
+            OOImmediateColor4f(r, g, b, alpha);
         } else {
             switch (chart_mode) {
             case OOLRC_MODE_ECONOMY:
@@ -1819,7 +1820,7 @@ static OOTextureSprite* NewTextureSpriteWithDescriptor(NSDictionary* descriptor,
                                           alpha:1.0];
                 } else {
                     r = g = b = 0.3;
-                    OOGL(glColor4f(r, g, b, alpha));
+                    OOImmediateColor4f(r, g, b, alpha);
                 }
                 break;
             case OOLRC_MODE_GOVERNMENT:
@@ -1830,7 +1831,7 @@ static OOTextureSprite* NewTextureSpriteWithDescriptor(NSDictionary* descriptor,
                                           alpha:1.0];
                 } else {
                     r = g = b = 0.3;
-                    OOGL(glColor4f(r, g, b, alpha));
+                    OOImmediateColor4f(r, g, b, alpha);
                 }
                 break;
             case OOLRC_MODE_TECHLEVEL:
@@ -1841,7 +1842,7 @@ static OOTextureSprite* NewTextureSpriteWithDescriptor(NSDictionary* descriptor,
                 } else {
                     r = g = b = 0.3;
                 }
-                OOGL(glColor4f(r, g, b, alpha));
+                OOImmediateColor4f(r, g, b, alpha);
                 break;
             case OOLRC_MODE_UNKNOWN:
             case OOLRC_MODE_SUNCOLOR:
@@ -1857,7 +1858,7 @@ static OOTextureSprite* NewTextureSpriteWithDescriptor(NSDictionary* descriptor,
                     g = 0.2;
                     b = 0.0;
                 }
-                OOGL(glColor4f(r, g, b, alpha));
+                OOImmediateColor4f(r, g, b, alpha);
                 break;
             }
         }
@@ -1901,12 +1902,12 @@ static OOTextureSprite* NewTextureSpriteWithDescriptor(NSDictionary* descriptor,
             if (mark && (dx <= zoom * (CHART_WIDTH_AT_MAX_ZOOM / 2.0 + CHART_CLIP_BORDER)) && (dy <= zoom * (CHART_HEIGHT_AT_MAX_ZOOM + CHART_CLIP_BORDER))) {
                 star.x = (float)(sys_coordinates.x * hscale + hoffset);
                 star.y = (float)(sys_coordinates.y * vscale + voffset);
-                OOGLBEGIN(GL_LINE_LOOP);
-                glVertex3f(x + star.x - marker_size, y + star.y - marker_size, z);
-                glVertex3f(x + star.x + marker_size, y + star.y - marker_size, z);
-                glVertex3f(x + star.x + marker_size, y + star.y + marker_size, z);
-                glVertex3f(x + star.x - marker_size, y + star.y + marker_size, z);
-                OOGLEND();
+                OOImmediateBegin(kOOPrimitiveLineLoop);
+                OOImmediateVertex3f(x + star.x - marker_size, y + star.y - marker_size, z);
+                OOImmediateVertex3f(x + star.x + marker_size, y + star.y - marker_size, z);
+                OOImmediateVertex3f(x + star.x + marker_size, y + star.y + marker_size, z);
+                OOImmediateVertex3f(x + star.x - marker_size, y + star.y + marker_size, z);
+                OOImmediateEnd();
                 if (i == foundIndex || n_matches == 1) {
                     if (n_matches == 1)
                         foundSystem = 0;
@@ -2049,12 +2050,12 @@ static OOTextureSprite* NewTextureSpriteWithDescriptor(NSDictionary* descriptor,
 
     // Draw bottom divider
     [self setGLColorFromSetting:kGuiScreenDividerColor defaultValue:[OOColor colorWithWhite:0.75 alpha:1.0] alpha:alpha];
-    OOGLBEGIN(GL_QUADS);
-    glVertex3f(x + 0, (float)(y + size_in_pixels.height - (textRow - 1) * MAIN_GUI_ROW_HEIGHT - pixel_title_size.height), z);
-    glVertex3f(x + size_in_pixels.width, (GLfloat)(y + size_in_pixels.height - (textRow - 1) * MAIN_GUI_ROW_HEIGHT - pixel_title_size.height), z);
-    glVertex3f(x + size_in_pixels.width, (GLfloat)(y + size_in_pixels.height - (textRow - 1) * MAIN_GUI_ROW_HEIGHT - pixel_title_size.height - 2), z);
-    glVertex3f(x + 0, (GLfloat)(y + size_in_pixels.height - (textRow - 1) * MAIN_GUI_ROW_HEIGHT - pixel_title_size.height - 2), z);
-    OOGLEND();
+    OOImmediateBegin(kOOPrimitiveQuads);
+    OOImmediateVertex3f(x + 0, (float)(y + size_in_pixels.height - (textRow - 1) * MAIN_GUI_ROW_HEIGHT - pixel_title_size.height), z);
+    OOImmediateVertex3f(x + size_in_pixels.width, (GLfloat)(y + size_in_pixels.height - (textRow - 1) * MAIN_GUI_ROW_HEIGHT - pixel_title_size.height), z);
+    OOImmediateVertex3f(x + size_in_pixels.width, (GLfloat)(y + size_in_pixels.height - (textRow - 1) * MAIN_GUI_ROW_HEIGHT - pixel_title_size.height - 2), z);
+    OOImmediateVertex3f(x + 0, (GLfloat)(y + size_in_pixels.height - (textRow - 1) * MAIN_GUI_ROW_HEIGHT - pixel_title_size.height - 2), z);
+    OOImmediateEnd();
 }
 
 - (void)drawSystemMarkers:(NSArray*)markers atX:(GLfloat)x andY:(GLfloat)y andZ:(GLfloat)z withAlpha:(GLfloat)alpha andScale:(GLfloat)scale
@@ -2070,7 +2071,7 @@ static OOTextureSprite* NewTextureSpriteWithDescriptor(NSDictionary* descriptor,
     NSString* colorDesc = [marker oo_stringForKey:@"markerColor" defaultValue:@"redColor"];
     OORGBAComponents color = [[OOColor colorWithDescription:colorDesc] rgbaComponents];
 
-    OOGL(glColor4f(color.r, color.g, color.b, alpha)); // red
+    OOImmediateColor4f(color.r, color.g, color.b, alpha); // red
     GLfloat mark_size = [marker oo_floatForKey:@"markerScale" defaultValue:1.0];
     if (mark_size > 2.0) {
         mark_size = 2.0;
@@ -2081,39 +2082,39 @@ static OOTextureSprite* NewTextureSpriteWithDescriptor(NSDictionary* descriptor,
 
     NSString* shape = [marker oo_stringForKey:@"markerShape" defaultValue:@"MARKER_X"];
 
-    OOGLBEGIN(GL_LINES);
+    OOImmediateBegin(kOOPrimitiveLines);
     if ([shape isEqualToString:@"MARKER_X"]) {
-        glVertex3f(x - mark_size, y - mark_size, z);
-        glVertex3f(x + mark_size, y + mark_size, z);
-        glVertex3f(x - mark_size, y + mark_size, z);
-        glVertex3f(x + mark_size, y - mark_size, z);
+        OOImmediateVertex3f(x - mark_size, y - mark_size, z);
+        OOImmediateVertex3f(x + mark_size, y + mark_size, z);
+        OOImmediateVertex3f(x - mark_size, y + mark_size, z);
+        OOImmediateVertex3f(x + mark_size, y - mark_size, z);
     } else if ([shape isEqualToString:@"MARKER_PLUS"]) {
         mark_size *= 1.4; // match volumes
-        glVertex3f(x, y - mark_size, z);
-        glVertex3f(x, y + mark_size, z);
-        glVertex3f(x - mark_size, y, z);
-        glVertex3f(x + mark_size, y, z);
+        OOImmediateVertex3f(x, y - mark_size, z);
+        OOImmediateVertex3f(x, y + mark_size, z);
+        OOImmediateVertex3f(x - mark_size, y, z);
+        OOImmediateVertex3f(x + mark_size, y, z);
     } else if ([shape isEqualToString:@"MARKER_SQUARE"]) {
-        glVertex3f(x - mark_size, y - mark_size, z);
-        glVertex3f(x - mark_size, y + mark_size, z);
-        glVertex3f(x - mark_size, y + mark_size, z);
-        glVertex3f(x + mark_size, y + mark_size, z);
-        glVertex3f(x + mark_size, y + mark_size, z);
-        glVertex3f(x + mark_size, y - mark_size, z);
-        glVertex3f(x + mark_size, y - mark_size, z);
-        glVertex3f(x - mark_size, y - mark_size, z);
+        OOImmediateVertex3f(x - mark_size, y - mark_size, z);
+        OOImmediateVertex3f(x - mark_size, y + mark_size, z);
+        OOImmediateVertex3f(x - mark_size, y + mark_size, z);
+        OOImmediateVertex3f(x + mark_size, y + mark_size, z);
+        OOImmediateVertex3f(x + mark_size, y + mark_size, z);
+        OOImmediateVertex3f(x + mark_size, y - mark_size, z);
+        OOImmediateVertex3f(x + mark_size, y - mark_size, z);
+        OOImmediateVertex3f(x - mark_size, y - mark_size, z);
     } else if ([shape isEqualToString:@"MARKER_DIAMOND"]) {
         mark_size *= 1.4; // match volumes
-        glVertex3f(x, y - mark_size, z);
-        glVertex3f(x - mark_size, y, z);
-        glVertex3f(x - mark_size, y, z);
-        glVertex3f(x, y + mark_size, z);
-        glVertex3f(x, y + mark_size, z);
-        glVertex3f(x + mark_size, y, z);
-        glVertex3f(x + mark_size, y, z);
-        glVertex3f(x, y - mark_size, z);
+        OOImmediateVertex3f(x, y - mark_size, z);
+        OOImmediateVertex3f(x - mark_size, y, z);
+        OOImmediateVertex3f(x - mark_size, y, z);
+        OOImmediateVertex3f(x, y + mark_size, z);
+        OOImmediateVertex3f(x, y + mark_size, z);
+        OOImmediateVertex3f(x + mark_size, y, z);
+        OOImmediateVertex3f(x + mark_size, y, z);
+        OOImmediateVertex3f(x, y - mark_size, z);
     }
-    OOGLEND();
+    OOImmediateEnd();
 }
 
 - (OOSystemID)targetNextFoundSystem:(int)direction // +1 , 0 , -1
@@ -2189,7 +2190,7 @@ static OOTextureSprite* NewTextureSpriteWithDescriptor(NSDictionary* descriptor,
         concealment[i] = [systemInfo oo_intForKey:@"concealment" defaultValue:OO_SYSTEMCONCEALMENT_NONE];
     }
 
-    OOGLBEGIN(GL_LINES);
+    OOImmediateBegin(kOOPrimitiveLines);
     for (OOSystemID i = 0; i < 256; i++) {
 
         if (concealment[i] >= OO_SYSTEMCONCEALMENT_NOTHING) {
@@ -2231,16 +2232,16 @@ static OOTextureSprite* NewTextureSpriteWithDescriptor(NSDictionary* descriptor,
                 if (optimizeBy == OPTIMIZED_BY_NONE) {
                     [currentJumpColorStart getRed:&lr green:&lg blue:&lb alpha:&la];
                     [currentJumpColorEnd getRed:&lr2 green:&lg2 blue:&lb2 alpha:&la2];
-                    OOGL(glColor4f(lr, lg, lb, la * alpha));
-                    glVertex3f(x + star.x, y + star.y, z);
+                    OOImmediateColor4f(lr, lg, lb, la * alpha);
+                    OOImmediateVertex3f(x + star.x, y + star.y, z);
 
                     float frac = (d / jumpRange);
-                    OOGL(glColor4f(
+                    OOGL(OOImmediateColor4f(
                         OOLerp(lr, lr2, frac),
                         OOLerp(lg, lg2, frac),
                         OOLerp(lb, lb2, frac),
                         OOLerp(la, la2, frac)));
-                    glVertex3f(x + star2.x, y + star2.y, z);
+                    OOImmediateVertex3f(x + star2.x, y + star2.y, z);
 
                 } else {
                     thisConnectionColor = [OOColor colorWithDescription:[systemManager getProperty:@"link_color" forSystemKey:[NSString stringWithFormat:@"interstellar: %d %ld %ld", g, (long)i, (long)j]]];
@@ -2249,9 +2250,9 @@ static OOTextureSprite* NewTextureSpriteWithDescriptor(NSDictionary* descriptor,
                         thisConnectionColor = defaultConnectionColor;
                     }
                     [thisConnectionColor getRed:&lr green:&lg blue:&lb alpha:&la];
-                    OOGL(glColor4f(lr, lg, lb, la * alpha));
+                    OOImmediateColor4f(lr, lg, lb, la * alpha);
 
-                    glVertex3f(x + star.x, y + star.y, z);
+                    OOImmediateVertex3f(x + star.x, y + star.y, z);
 
                     // and the other colour for the other end
                     thatConnectionColor = [OOColor colorWithDescription:[systemManager getProperty:@"link_color" forSystemKey:[NSString stringWithFormat:@"interstellar: %d %ld %ld", g, (long)j, (long)i]]];
@@ -2260,14 +2261,14 @@ static OOTextureSprite* NewTextureSpriteWithDescriptor(NSDictionary* descriptor,
                         thatConnectionColor = thisConnectionColor;
                     }
                     [thatConnectionColor getRed:&lr green:&lg blue:&lb alpha:&la];
-                    OOGL(glColor4f(lr, lg, lb, la * alpha));
+                    OOImmediateColor4f(lr, lg, lb, la * alpha);
 
-                    glVertex3f(x + star2.x, y + star2.y, z);
+                    OOImmediateVertex3f(x + star2.x, y + star2.y, z);
                 }
             }
         }
     }
-    OOGLEND();
+    OOImmediateEnd();
 
     if (optimizeBy == OPTIMIZED_BY_NONE) {
         return;
@@ -2295,10 +2296,10 @@ static OOTextureSprite* NewTextureSpriteWithDescriptor(NSDictionary* descriptor,
             star2.x = (float)(star2abs.x * hscale);
             star2.y = (float)(star2abs.y * vscale);
 
-            OOGLBEGIN(GL_LINES);
-            glVertex3f(x + star.x, y + star.y, z);
-            glVertex3f(x + star2.x, y + star2.y, z);
-            OOGLEND();
+            OOImmediateBegin(kOOPrimitiveLines);
+            OOImmediateVertex3f(x + star.x, y + star.y, z);
+            OOImmediateVertex3f(x + star2.x, y + star2.y, z);
+            OOImmediateEnd();
 
             // Label the route, if not already labelled
             if (zoom > CHART_ZOOM_SHOW_LABELS && concealment[loc] < OO_SYSTEMCONCEALMENT_NONAME) {

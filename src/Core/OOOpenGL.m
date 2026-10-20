@@ -24,6 +24,7 @@ MA 02110-1301, USA.
 
 #import "OOOpenGL.h"
 #import "OOFunctionAttributes.h"
+#import "OOImmediateMode.h"
 #import "OOLogging.h"
 #import "OOMacroOpenGL.h"
 #import "OOMaths.h"
@@ -120,13 +121,13 @@ void GLDrawBallBillboard(GLfloat radius, GLfloat step, GLfloat z_distance)
     r = radius * z_distance / sqrt(z_distance * z_distance - radius * radius);
     delta = step * M_PI / 180.0f; // Convert step from degrees to radians
 
-    glVertex3i(0, 0, 0);
+    OOImmediateVertex3f(0, 0, 0);
     for (i = 0; i < (M_PI * 2.0); i += delta) {
         s = r * sin(i);
         c = r * cos(i);
-        glVertex3f(s, c, 0.0);
+        OOImmediateVertex3f(s, c, 0.0);
     }
-    glVertex3f(0.0, r, 0.0); // repeat the zero value to close
+    OOImmediateVertex3f(0.0, r, 0.0); // repeat the zero value to close
 }
 
 static void GLDrawOvalPoints(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat step)
@@ -141,39 +142,39 @@ static void GLDrawOvalPoints(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloa
     delta = step * M_PI / 180.0f;
 
     for (theta = 0.0f; theta < (2.0f * M_PI); theta += delta) {
-        glVertex3f(x + ww * sin(theta), y + hh * cos(theta), z);
+        OOImmediateVertex3f(x + ww * sin(theta), y + hh * cos(theta), z);
     }
-    glVertex3f(x, y + hh, z);
+    OOImmediateVertex3f(x, y + hh, z);
 }
 
 void GLDrawOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat step)
 {
     OO_ENTER_OPENGL();
 
-    OOGLBEGIN(GL_LINE_STRIP);
+    OOImmediateBegin(kOOPrimitiveLineStrip);
     GLDrawOvalPoints(x, y, z, siz, step);
-    OOGLEND();
+    OOImmediateEnd();
 }
 
 void GLDrawFilledOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat step)
 {
     OO_ENTER_OPENGL();
 
-    OOGLBEGIN(GL_TRIANGLE_FAN);
+    OOImmediateBegin(kOOPrimitiveTriangleFan);
     GLDrawOvalPoints(x, y, z, siz, step);
-    OOGLEND();
+    OOImmediateEnd();
 }
 
 void GLDrawPoints(OOGLVector* points, int n)
 {
     int i;
     OO_ENTER_OPENGL();
-    OOGLBEGIN(GL_LINE_STRIP);
+    OOImmediateBegin(kOOPrimitiveLineStrip);
     for (i = 0; i < n; i++) {
-        glVertex3f(points->x, points->y, points->z);
+        OOImmediateVertex3f(points->x, points->y, points->z);
         points++;
     }
-    OOGLEND();
+    OOImmediateEnd();
     return;
 }
 
@@ -181,12 +182,12 @@ void GLDrawFilledPoints(OOGLVector* points, int n)
 {
     int i;
     OO_ENTER_OPENGL();
-    OOGLBEGIN(GL_TRIANGLE_FAN);
+    OOImmediateBegin(kOOPrimitiveTriangleFan);
     for (i = 0; i < n; i++) {
-        glVertex3f(points->x, points->y, points->z);
+        OOImmediateVertex3f(points->x, points->y, points->z);
         points++;
     }
-    OOGLEND();
+    OOImmediateEnd();
     return;
 }
 
@@ -194,12 +195,12 @@ void GLDrawQuadStrip(OOGLVector* points, int n)
 {
     int i;
     OO_ENTER_OPENGL();
-    OOGLBEGIN(GL_QUAD_STRIP);
+    OOImmediateBegin(kOOPrimitiveQuadStrip);
     for (i = 0; i < n; i++) {
-        glVertex3f(points->x, points->y, points->z);
+        OOImmediateVertex3f(points->x, points->y, points->z);
         points++;
     }
-    OOGLEND();
+    OOImmediateEnd();
     return;
 }
 
