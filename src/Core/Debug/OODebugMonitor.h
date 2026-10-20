@@ -38,6 +38,9 @@ SOFTWARE.
 #import "OODebuggerInterface.h"
 #import "OOFoundation.h"
 #import "OOWeakReference.h"
+#if OOJS_QUICKJS
+#include <quickjs.h>
+#endif
 
 @class OOJSScript;
 
@@ -65,8 +68,10 @@ SOFTWARE.
 
     // JavaScript console support.
     OOJSScript* _script;
-#if !OOJS_QUICKJS
-    struct JSObject* _jsSelf; // TODO (port, phase 4): debug console
+#if OOJS_QUICKJS
+    JSValue _jsSelf; // Owned; released when the JS engine resets.
+#else
+    struct JSObject* _jsSelf;
 #endif
 
     NSDictionary* _configFromOXPs; // Settings from debugConfig.plist

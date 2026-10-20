@@ -14,7 +14,7 @@ jobs:
       fail-fast: false
       matrix:
         js_engine: [spidermonkey, quickjs]
-    name: ${{ github.job }} (${{ matrix.js_engine }})
+    name: ubuntu (${{ matrix.js_engine }})
     runs-on: ubuntu-latest
     container:
       image: ubuntu:26.04
@@ -161,7 +161,7 @@ jobs:
       fail-fast: false
       matrix:
         js_engine: [spidermonkey, quickjs]
-    name: ${{ github.job }} (${{ matrix.js_engine }})
+    name: windows (${{ matrix.js_engine }})
     runs-on: windows-latest
     steps:
       - name: Set up MSYS2
@@ -213,7 +213,7 @@ jobs:
       fail-fast: false
       matrix:
         js_engine: [spidermonkey, quickjs]
-    name: ${{ github.job }} (${{ matrix.js_engine }})
+    name: macos (${{ matrix.js_engine }})
     runs-on: macos-latest
     env:
       HOMEBREW_NO_AUTO_UPDATE: 1
