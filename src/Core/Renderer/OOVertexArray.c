@@ -66,6 +66,7 @@ static void VerifyState(void)
     const OODrawState* state = OORendererCurrentDrawState();
     if (state != NULL)
         OORendererBackendVerifyDrawState(state);
+    OORendererBackendVerifyStateMachine();
 #endif
 }
 

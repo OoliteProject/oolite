@@ -22,6 +22,7 @@
 
  */
 
+#import "OOGLStateCompat.h"
 #import "OOImmediateMode.h"
 #import "OOStellarBody.h"
 #if NEW_PLANETS
@@ -231,9 +232,9 @@ static const void* PlanetIndices(unsigned level, OOIndexType* outType)
     // yes, opaque - necessary changes made later
     OOSetOpenGLState(OPENGL_STATE_OPAQUE);
 
-    OOGL(glDisable(GL_DEPTH_TEST));
+    OOGLDisable(GL_DEPTH_TEST);
     [self renderCommonParts];
-    OOGL(glEnable(GL_DEPTH_TEST));
+    OOGLEnable(GL_DEPTH_TEST);
 
     OOVerifyOpenGLState();
 }
@@ -244,14 +245,14 @@ static const void* PlanetIndices(unsigned level, OOIndexType* outType)
 
     OO_ENTER_OPENGL();
 
-    OOGL(glPushAttrib(GL_ENABLE_BIT | GL_DEPTH_BUFFER_BIT));
-    OOGL(glShadeModel(GL_SMOOTH));
+    OOGLPushAttrib(GL_ENABLE_BIT | GL_DEPTH_BUFFER_BIT);
+    OOGLShadeModel(GL_SMOOTH);
 
     if (_isAtmosphere) {
-        OOGL(glEnable(GL_BLEND));
-        OOGL(glDepthMask(GL_FALSE));
+        OOGLEnable(GL_BLEND);
+        OOGLDepthMask(GL_FALSE);
     } else {
-        OOGL(glDisable(GL_BLEND));
+        OOGLDisable(GL_BLEND);
     }
 
     // Scale the ball.
@@ -260,13 +261,13 @@ static const void* PlanetIndices(unsigned level, OOIndexType* outType)
 
     [_material apply];
 
-    OOGL(glEnable(GL_LIGHTING));
-    OOGL(glEnable(GL_TEXTURE_2D));
+    OOGLEnable(GL_LIGHTING);
+    OOGLEnable(GL_TEXTURE_2D);
 
 #if OO_TEXTURE_CUBE_MAP
     if ([_material wantsNormalsAsTextureCoordinates]) {
-        OOGL(glDisable(GL_TEXTURE_2D));
-        OOGL(glEnable(GL_TEXTURE_CUBE_MAP));
+        OOGLDisable(GL_TEXTURE_2D);
+        OOGLEnable(GL_TEXTURE_CUBE_MAP);
     }
 #endif
 
@@ -282,7 +283,7 @@ static const void* PlanetIndices(unsigned level, OOIndexType* outType)
     }
 
     // FIXME: instead of GL_RESCALE_NORMAL, consider copying and transforming the vertex array for each planet.
-    OOGL(glEnable(GL_RESCALE_NORMAL));
+    OOGLEnable(GL_RESCALE_NORMAL);
 
     OOIndexType indexType;
     const void* indices = PlanetIndices(_lod, &indexType);
@@ -298,8 +299,8 @@ static const void* PlanetIndices(unsigned level, OOIndexType* outType)
 
 #if OO_TEXTURE_CUBE_MAP
     if ([_material wantsNormalsAsTextureCoordinates]) {
-        OOGL(glEnable(GL_TEXTURE_2D));
-        OOGL(glDisable(GL_TEXTURE_CUBE_MAP));
+        OOGLEnable(GL_TEXTURE_2D);
+        OOGLDisable(GL_TEXTURE_CUBE_MAP);
     }
 #endif
 
@@ -310,7 +311,7 @@ static const void* PlanetIndices(unsigned level, OOIndexType* outType)
 #endif
 
     [OOMaterial applyNone];
-    OOGL(glPopAttrib());
+    OOGLPopAttrib();
 }
 
 - (BOOL)hasOpaqueParts

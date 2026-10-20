@@ -65,6 +65,8 @@ void OORendererBackendPopDrawState(int depth);
 
 // Debug builds: report where the context no longer matches state.
 void OORendererBackendVerifyDrawState(const OODrawState* state);
+// Debug builds: report where the context no longer matches the state machine.
+void OORendererBackendVerifyStateMachine(void);
 
 // Fixed-function values. Light positions are already in eye space.
 void OORendererBackendSetLightColor(unsigned light, OOLightColor which, const float rgba[4]);

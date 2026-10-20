@@ -25,6 +25,7 @@ MA 02110-1301, USA.
 #import "OOParticleSystem.h"
 
 #import "MyOpenGLView.h"
+#import "OOGLStateCompat.h"
 #import "OOImmediateMode.h"
 #import "OOLightParticleEntity.h"
 #import "OOMacroOpenGL.h"
@@ -142,11 +143,11 @@ MA 02110-1301, USA.
     OO_ENTER_OPENGL();
     OOSetOpenGLState(OPENGL_STATE_ADDITIVE_BLENDING);
 
-    OOGL(glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT));
+    OOGLPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT);
 
-    OOGL(glEnable(GL_TEXTURE_2D));
-    OOGL(glEnable(GL_BLEND));
-    OOGL(glBlendFunc(GL_SRC_ALPHA, GL_ONE));
+    OOGLEnable(GL_TEXTURE_2D);
+    OOGLEnable(GL_BLEND);
+    OOGLBlendFunc(GL_SRC_ALPHA, GL_ONE);
     [[self texture] apply];
 
     HPVector viewPosition = [PLAYER viewpointPosition];
@@ -217,7 +218,7 @@ MA 02110-1301, USA.
         }
     }
 
-    OOGL(glPopAttrib());
+    OOGLPopAttrib();
 
     OOVerifyOpenGLState();
     OOCheckOpenGLErrors(@"OOParticleSystem after drawing %@", self);

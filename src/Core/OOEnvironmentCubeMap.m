@@ -34,6 +34,7 @@ SOFTWARE.
 
 #import "OODrawable.h"
 #import "OOEntityFilterPredicate.h"
+#import "OOGLStateCompat.h"
 #import "OOPlanetEntity.h"
 #import "OORenderPass.h"
 #import "OOSunEntity.h"
@@ -82,7 +83,7 @@ SOFTWARE.
     OO_ENTER_OPENGL();
 
     // Save stuff.
-    OOGL(glPushAttrib(GL_VIEWPORT_BIT | GL_ENABLE_BIT));
+    OOGLPushAttrib(GL_VIEWPORT_BIT | GL_ENABLE_BIT);
     OOGLPushModelView();
     OOGLPushProjection();
 
@@ -125,7 +126,7 @@ SOFTWARE.
     OOGLPopProjection();
     OOGLPopModelView();
     OOGL(glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0));
-    OOGL(glPopAttrib());
+    OOGLPopAttrib();
 }
 
 - (void)renderOnePassWithSky:(OODrawable*)sky sun:(OOSunEntity*)sun planets:(NSArray*)planets
@@ -136,9 +137,9 @@ SOFTWARE.
     OORendererSetClearDepth(MAX_CLEAR_DEPTH);
     OOGL(glClear(_planets ? GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT : GL_COLOR_BUFFER_BIT));
 
-    OOGL(glDepthMask(GL_FALSE));
+    OOGLDepthMask(GL_FALSE);
     [sky renderOpaqueParts];
-    OOGL(glDepthMask(GL_TRUE));
+    OOGLDepthMask(GL_TRUE);
 
     OOGLPushModelView();
     OOGLResetModelView();
@@ -173,7 +174,7 @@ SOFTWARE.
     _planets = [UNIVERSE reducedDetail];
 
     OOGL(glGenTextures(1, &_textureName));
-    OOGL(glBindTexture(GL_TEXTURE_CUBE_MAP, _textureName));
+    OOGLBindTexture(GL_TEXTURE_CUBE_MAP, _textureName);
     OOGL(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
     OOGL(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
     OOGL(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE));
@@ -207,7 +208,7 @@ SOFTWARE.
 
     OOCheckOpenGLErrors(@"after setting up environment cube map FBO");
 #endif
-    OOGL(glBindTexture(GL_TEXTURE_CUBE_MAP, 0));
+    OOGLBindTexture(GL_TEXTURE_CUBE_MAP, 0);
     OOGL(glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0));
     OOGL(glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, 0));
 }
@@ -217,7 +218,7 @@ SOFTWARE.
 - (void)apply
 {
     OO_ENTER_OPENGL();
-    OOGL(glBindTexture(GL_TEXTURE_CUBE_MAP, _textureName));
+    OOGLBindTexture(GL_TEXTURE_CUBE_MAP, _textureName);
 }
 
 - (NSSize)dimensions
@@ -231,7 +232,7 @@ SOFTWARE.
     if (_textureName == 0)
         return;
 
-    OOGL(glDeleteTextures(1, &_textureName));
+    OOGLDeleteTextures(1, &_textureName);
     _textureName = 0;
 
     OOGL(glDeleteFramebuffersEXT(6, _fbos));

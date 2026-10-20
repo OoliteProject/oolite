@@ -31,6 +31,7 @@ MA 02110-1301, USA.
 #import "OOCrosshairs.h"
 #import "OOEncodingConverter.h"
 #import "OOFoundation.h"
+#import "OOGLStateCompat.h"
 #import "OOImmediateMode.h"
 #import "OOJavaScriptEngine.h"
 #import "OOJoystickManager.h"
@@ -1436,7 +1437,7 @@ static void prefetchData(NSDictionary* info, struct CachedInfo* data)
     if (scanner_ultra_zoom)
         zl = pow(2, zl - 1);
     GLColorWithOverallAlpha(zoom_color, alpha);
-    OOGL(glEnable(GL_TEXTURE_2D));
+    OOGLEnable(GL_TEXTURE_2D);
     [sFontTexture apply];
 
     OOImmediateBegin(kOOPrimitiveQuads);
@@ -1448,7 +1449,7 @@ static void prefetchData(NSDictionary* info, struct CachedInfo* data)
     OOImmediateEnd();
 
     [OOTexture applyNone];
-    OOGL(glDisable(GL_TEXTURE_2D));
+    OOGLDisable(GL_TEXTURE_2D);
 }
 
 - (void)drawCompass:(NSDictionary*)info
@@ -2910,7 +2911,7 @@ static OOPolygonSprite* IconForMissileRole(NSString* role)
     GLfloat h3 = 3.0 * h1;
     GLfloat h4 = 4.0 * h1;
 
-    OOGL(glDisable(GL_TEXTURE_2D));
+    OOGLDisable(GL_TEXTURE_2D);
     OOImmediateBegin(kOOPrimitiveQuads);
     // section 1
     GLColorWithOverallAlpha(s1c, overallAlpha);

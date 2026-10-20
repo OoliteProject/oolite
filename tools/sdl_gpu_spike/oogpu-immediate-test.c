@@ -69,6 +69,12 @@ void OORendererBackendWarn(const char* message)
 /*  Texture glue: the game passes OOTextures; here a "texture" is a GL
     texture name cast to a pointer.
 */
+void OORendererBackendVerifyStateMachine(void);
+void OORendererBackendVerifyStateMachine(void)
+{
+    // The game checks this against GL; the harness drives GL directly.
+}
+
 void OORendererBackendApplyTexture(const void* texture);
 unsigned OORendererBackendTextureName(const void* texture);
 void OORendererBackendSaveTexture(int depth);

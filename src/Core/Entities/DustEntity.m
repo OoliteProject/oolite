@@ -38,6 +38,7 @@ MA 02110-1301, USA.
 #import "OOShaderUniform.h"
 #endif
 
+#import "OOGLStateCompat.h"
 #import "OOImmediateMode.h"
 #import "PlayerEntity.h"
 
@@ -315,7 +316,7 @@ enum {
         } else
 #endif
         {
-            OOGL(glEnable(GL_FOG));
+            OOGLEnable(GL_FOG);
             OOGL(glFogi(GL_FOG_MODE, GL_LINEAR));
             OOGL(glFogfv(GL_FOG_COLOR, fogcolor));
             OOGL(glHint(GL_FOG_HINT, GL_NICEST));
@@ -323,11 +324,11 @@ enum {
             OOGL(glFogf(GL_FOG_END, FAR_PLANE));
         }
 
-        OOGL(glEnable(GL_BLEND));
-        OOGL(glDepthMask(GL_FALSE));
+        OOGLEnable(GL_BLEND);
+        OOGLDepthMask(GL_FALSE);
 
         if (warp_stars) {
-            OOGL(glDisable(GL_TEXTURE_2D));
+            OOGLDisable(GL_TEXTURE_2D);
             OOVertexLayout layout = { .count = 0 };
             OOVertexLayoutAdd(&layout, kOOVertexPosition, 0, 3, 0, OORendererTransientBuffer(vertices, sizeof vertices), 0);
 #if OO_SHADERS
@@ -345,7 +346,7 @@ enum {
             }
 
             OORendererDrawElements(kOONativePrimitiveLines, &layout, OORendererTransientBuffer(indices, sizeof indices), 0, kOOIndex16, DUST_N_PARTICLES * 2);
-            OOGL(glEnable(GL_TEXTURE_2D));
+            OOGLEnable(GL_TEXTURE_2D);
 
         } else {
             OOVertexLayout pointLayout = { .count = 0 };
@@ -355,16 +356,16 @@ enum {
                 if (!useShader)
 #endif
                 {
-                    OOGL(glBlendFunc(GL_SRC_ALPHA, GL_ONE));
+                    OOGLBlendFunc(GL_SRC_ALPHA, GL_ONE);
                 }
-                OOGL(glEnable(GL_POINT_SPRITE_ARB));
+                OOGLEnable(GL_POINT_SPRITE_ARB);
                 [texture apply];
                 OORendererDrawArrays(kOONativePrimitivePoints, &pointLayout, 0, DUST_N_PARTICLES);
-                OOGL(glDisable(GL_POINT_SPRITE_ARB));
+                OOGLDisable(GL_POINT_SPRITE_ARB);
             } else {
-                OOGL(glDisable(GL_TEXTURE_2D));
+                OOGLDisable(GL_TEXTURE_2D);
                 OORendererDrawArrays(kOONativePrimitivePoints, &pointLayout, 0, DUST_N_PARTICLES);
-                OOGL(glEnable(GL_TEXTURE_2D));
+                OOGLEnable(GL_TEXTURE_2D);
             }
         }
 
@@ -375,12 +376,12 @@ enum {
         } else
 #endif
         {
-            OOGL(glDisable(GL_FOG));
-            OOGL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+            OOGLDisable(GL_FOG);
+            OOGLBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         }
 
-        OOGL(glDisable(GL_BLEND));
-        OOGL(glDepthMask(GL_TRUE));
+        OOGLDisable(GL_BLEND);
+        OOGLDepthMask(GL_TRUE);
     }
 
     OOVerifyOpenGLState();

@@ -32,6 +32,7 @@ MA 02110-1301, USA.
 #import "OOTexture.h"
 
 #import "MyOpenGLView.h"
+#import "OOGLStateCompat.h"
 #import "OOImmediateMode.h"
 #import "OOVertexArray.h"
 
@@ -208,7 +209,7 @@ static const GLfloat kLaserVertices[] = {
             hurting whatever is hit in a given frame.
             -- Ahruman 2011-01-31
     */
-    OOGL(glEnable(GL_TEXTURE_2D));
+    OOGLEnable(GL_TEXTURE_2D);
     OOGLPushModelView();
 
     OOGLScaleModelView(make_vector(kLaserHalfWidth, kLaserHalfWidth, _range));
@@ -251,7 +252,7 @@ static const GLfloat kLaserVertices[] = {
     OORendererDrawPrimitive(kOOPrimitiveQuads, &layout, 0, 8);
 
     OOGLPopModelView();
-    OOGL(glDisable(GL_TEXTURE_2D));
+    OOGLDisable(GL_TEXTURE_2D);
 
     OOVerifyOpenGLState();
     OOCheckOpenGLErrors(@"OOLaserShotEntity after drawing %@", self);

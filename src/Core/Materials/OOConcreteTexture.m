@@ -27,6 +27,7 @@
 #import "OOConcreteTexture.h"
 #import "OOCPUInfo.h"
 #import "OOCollectionExtractors.h"
+#import "OOGLStateCompat.h"
 #import "OOMacroOpenGL.h"
 #import "OOOpenGLExtensionManager.h"
 #import "OOPixMap.h"
@@ -140,7 +141,7 @@ static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum* o
     if (_loaded) {
         if (_textureName != 0) {
             OO_ENTER_OPENGL();
-            OOGL(glDeleteTextures(1, &_textureName));
+            OOGLDeleteTextures(1, &_textureName);
             _textureName = 0;
         }
         free(_bytes);
@@ -231,11 +232,11 @@ static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum* o
     else if (EXPECT_NOT(!_uploaded))
         [self uploadTexture];
     else
-        OOGL(glBindTexture([self glTextureTarget], _textureName));
+        OOGLBindTexture([self glTextureTarget], _textureName);
 
 #if GL_EXT_texture_lod_bias
     if (gOOTextureInfo.textureLODBiasAvailable)
-        OOGL(glTexEnvf(GL_TEXTURE_FILTER_CONTROL_EXT, GL_TEXTURE_LOD_BIAS_EXT, _lodBias));
+        OOGLTexEnvf(GL_TEXTURE_FILTER_CONTROL_EXT, GL_TEXTURE_LOD_BIAS_EXT, _lodBias);
 #endif
 }
 
@@ -426,7 +427,7 @@ static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum* o
         GLenum texTarget = [self glTextureTarget];
 
         OOGL(glGenTextures(1, &_textureName));
-        OOGL(glBindTexture(texTarget, _textureName));
+        OOGLBindTexture(texTarget, _textureName);
 
         // Select wrap mode
         GLint clampMode = gOOTextureInfo.clampToEdgeAvailable ? GL_CLAMP_TO_EDGE : GL_CLAMP;
@@ -576,7 +577,7 @@ static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum* o
         OO_ENTER_OPENGL();
 
         _uploaded = NO;
-        OOGL(glDeleteTextures(1, &_textureName));
+        OOGLDeleteTextures(1, &_textureName);
         _textureName = 0;
 
 #if OOTEXTURE_RELOADABLE

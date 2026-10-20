@@ -26,6 +26,7 @@ SOFTWARE.
 */
 
 #import "OODebugGLDrawing.h"
+#import "OOGLStateCompat.h"
 #import "OOImmediateMode.h"
 #import "OOMacroOpenGL.h"
 #import "OOMaterial.h"
@@ -133,17 +134,17 @@ OODebugWFState OODebugBeginWireframe(BOOL ignoreZ)
     OODebugWFState state = { .material = [OOMaterial current] };
     [OOMaterial applyNone];
 
-    OOGL(glPushAttrib(GL_ENABLE_BIT | GL_DEPTH_BUFFER_BIT | GL_LINE_BIT | GL_POINT_BIT | GL_CURRENT_BIT));
+    OOGLPushAttrib(GL_ENABLE_BIT | GL_DEPTH_BUFFER_BIT | GL_LINE_BIT | GL_POINT_BIT | GL_CURRENT_BIT);
 
-    OOGL(glDisable(GL_LIGHTING));
-    OOGL(glDisable(GL_TEXTURE_2D));
-    OOGL(glDisable(GL_FOG));
+    OOGLDisable(GL_LIGHTING);
+    OOGLDisable(GL_TEXTURE_2D);
+    OOGLDisable(GL_FOG);
     if (ignoreZ) {
-        OOGL(glDisable(GL_DEPTH_TEST));
-        OOGL(glDepthMask(GL_FALSE));
+        OOGLDisable(GL_DEPTH_TEST);
+        OOGLDepthMask(GL_FALSE);
     } else {
-        OOGL(glEnable(GL_DEPTH_TEST));
-        OOGL(glDepthMask(GL_TRUE));
+        OOGLEnable(GL_DEPTH_TEST);
+        OOGLDepthMask(GL_TRUE);
     }
 
     OOGL(GLScaledLineWidth(1.0f));
@@ -154,7 +155,7 @@ OODebugWFState OODebugBeginWireframe(BOOL ignoreZ)
 void OODebugEndWireframe(OODebugWFState state)
 {
     OO_ENTER_OPENGL();
-    OOGL(glPopAttrib());
+    OOGLPopAttrib();
     [state.material apply];
 }
 

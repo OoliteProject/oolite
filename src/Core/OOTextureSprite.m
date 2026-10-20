@@ -23,6 +23,7 @@ MA 02110-1301, USA.
 */
 
 #import "OOTextureSprite.h"
+#import "OOGLStateCompat.h"
 #import "OOImmediateMode.h"
 #import "OOMacroOpenGL.h"
 #import "OOMaths.h"
@@ -68,7 +69,7 @@ MA 02110-1301, USA.
     OOSetOpenGLState(OPENGL_STATE_OVERLAY);
 
     a = OOClamp_0_1_f(a);
-    OOGL(glEnable(GL_TEXTURE_2D));
+    OOGLEnable(GL_TEXTURE_2D);
     OOImmediateColor4f(1.0, 1.0, 1.0, a);
 
     // Note that the textured Quad is drawn ACW from the top left.
@@ -88,7 +89,7 @@ MA 02110-1301, USA.
     OOImmediateVertex3f(x + size.width, y + size.height, z);
     OOImmediateEnd();
 
-    OOGL(glDisable(GL_TEXTURE_2D));
+    OOGLDisable(GL_TEXTURE_2D);
 
     OOVerifyOpenGLState();
 }

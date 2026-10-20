@@ -24,6 +24,7 @@ MA 02110-1301, USA.
 
 #import "OOOpenGL.h"
 #import "OOFunctionAttributes.h"
+#import "OOGLStateCompat.h"
 #import "OOImmediateMode.h"
 #import "OOLogging.h"
 #import "OOMacroOpenGL.h"
@@ -95,13 +96,13 @@ void OOGLWireframeModeOn(void)
      * manager.  - CIM*/
     //	OOGL(glPushAttrib(GL_POLYGON_BIT | GL_LINE_BIT | GL_TEXTURE_BIT));
     OOGL(GLScaledLineWidth(1.0f));
-    OOGL(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
+    OOGLPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 }
 
 void OOGLWireframeModeOff(void)
 {
     OO_ENTER_OPENGL();
-    OOGL(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
+    OOGLPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     //	OOGL(glPopAttrib());
 }
 

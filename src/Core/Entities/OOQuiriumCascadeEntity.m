@@ -24,6 +24,7 @@ MA 02110-1301, USA.
 */
 
 #import "OOQuiriumCascadeEntity.h"
+#import "OOGLStateCompat.h"
 #import "OOImmediateMode.h"
 #import "OOMacroOpenGL.h"
 #import "PlayerEntity.h"
@@ -116,19 +117,19 @@ MA 02110-1301, USA.
     OO_ENTER_OPENGL();
     OOSetOpenGLState(OPENGL_STATE_ADDITIVE_BLENDING);
 
-    OOGL(glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT));
+    OOGLPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT);
 
-    OOGL(glDisable(GL_CULL_FACE));
-    OOGL(glDisable(GL_TEXTURE_2D));
-    OOGL(glEnable(GL_BLEND));
-    OOGL(glBlendFunc(GL_SRC_ALPHA, GL_ONE));
+    OOGLDisable(GL_CULL_FACE);
+    OOGLDisable(GL_TEXTURE_2D);
+    OOGLEnable(GL_BLEND);
+    OOGLBlendFunc(GL_SRC_ALPHA, GL_ONE);
 
     OOImmediateColor4fv(_color);
     OOImmediateBegin(kOOPrimitiveTriangleFan);
     GLDrawBallBillboard(collision_radius, 4, sqrt(cam_zero_distance));
     OOImmediateEnd();
 
-    OOGL(glPopAttrib());
+    OOGLPopAttrib();
 
     OOVerifyOpenGLState();
     OOCheckOpenGLErrors(@"OOQuiriumCascadeEntity after drawing %@", self);

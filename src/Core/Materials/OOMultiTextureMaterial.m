@@ -28,6 +28,7 @@ SOFTWARE.
 #import "OOMultiTextureMaterial.h"
 #import "NSDictionaryOOExtensions.h"
 #import "OOCombinedEmissionMapGenerator.h"
+#import "OOGLStateCompat.h"
 #import "OOMacroOpenGL.h"
 #import "OOMaterialSpecifier.h"
 #import "OOOpenGLExtensionManager.h"
@@ -154,23 +155,23 @@ SOFTWARE.
     GLenum textureUnit = GL_TEXTURE0_ARB;
 
     if (_diffuseMap != nil) {
-        OOGL(glActiveTextureARB(textureUnit++));
-        OOGL(glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB));
-        OOGL(glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_MODULATE));
+        OOGLActiveTexture(textureUnit++);
+        OOGLTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB);
+        OOGLTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_MODULATE);
         [_diffuseMap apply];
     }
 
     if (_emissionMap != nil) {
-        OOGL(glActiveTextureARB(textureUnit++));
-        OOGL(glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB));
-        OOGL(glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_ADD));
+        OOGLActiveTexture(textureUnit++);
+        OOGLTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB);
+        OOGLTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_ADD);
         [_emissionMap apply];
     }
 
     NSAssert2(textureUnit - GL_TEXTURE0_ARB == _unitsUsed, @"OOMultiTextureMaterial texture unit count invalid (expected %zu, actually using %u)", _unitsUsed, textureUnit - GL_TEXTURE0_ARB);
 
     if (textureUnit > GL_TEXTURE1_ARB) {
-        OOGL(glActiveTextureARB(GL_TEXTURE0_ARB));
+        OOGLActiveTexture(GL_TEXTURE0_ARB);
     }
 }
 
@@ -183,11 +184,11 @@ SOFTWARE.
     NSUInteger i;
     i = [next isKindOfClass:[OOMultiTextureMaterial class]] ? [(OOMultiTextureMaterial*)next textureUnitCount] : 0;
     for (; i != _unitsUsed; ++i) {
-        OOGL(glActiveTextureARB(GL_TEXTURE0_ARB + i));
+        OOGLActiveTexture(GL_TEXTURE0_ARB + i);
         [OOTexture applyNone];
-        OOGL(glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE));
+        OOGLTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
     }
-    OOGL(glActiveTextureARB(GL_TEXTURE0_ARB));
+    OOGLActiveTexture(GL_TEXTURE0_ARB);
 }
 
 #ifndef NDEBUG

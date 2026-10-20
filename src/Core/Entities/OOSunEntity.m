@@ -34,6 +34,7 @@ MA 02110-1301, USA.
 #import "OOColor.h"
 #import "OODebugFlags.h"
 #import "OOFixedFunction.h"
+#import "OOGLStateCompat.h"
 #import "OOImmediateMode.h"
 #import "OOOpenGLMatrixManager.h"
 #import "OOStringExpander.h"
@@ -387,27 +388,27 @@ MA 02110-1301, USA.
 
         // Close enough not to draw flat?
         if (ignoreDepthBuffer)
-            OOGL(glDisable(GL_DEPTH_TEST));
+            OOGLDisable(GL_DEPTH_TEST);
 
         OOImmediateColor3fv(discColor);
         // FIXME: use vertex arrays
-        OOGL(glDisable(GL_BLEND));
+        OOGLDisable(GL_BLEND);
         OOImmediateBegin(kOOPrimitiveTriangleFan);
         GLDrawBallBillboard(effective_radius, steps, sqrt_zero_distance);
         OOImmediateEnd();
-        OOGL(glEnable(GL_BLEND));
+        OOGLEnable(GL_BLEND);
 
         if (ignoreDepthBuffer)
-            OOGL(glEnable(GL_DEPTH_TEST));
+            OOGLEnable(GL_DEPTH_TEST);
 
     } else {
         [self calculateGLArrays:effective_radius
                           width:effective_cor16k
                       zDistance:sqrt_zero_distance];
-        OOGL(glDisable(GL_BLEND));
+        OOGLDisable(GL_BLEND);
         OOVertexLayout layout = [self sunLayout];
         OORendererDrawElements(kOONativePrimitiveTriangles, &layout, OORendererTransientBuffer(sunTriangles, sizeof sunTriangles), 0, kOOIndex32, 3 * 360);
-        OOGL(glEnable(GL_BLEND));
+        OOGLEnable(GL_BLEND);
     }
 
     OOVerifyOpenGLState();

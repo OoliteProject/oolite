@@ -33,11 +33,12 @@ SOFTWARE.
 
 #import "OOCollectionExtractors.h"
 #import "OOConstToString.h"
+#import "OOGLStateCompat.h"
 #import "OORegExpMatcher.h"
 #import "ResourceManager.h"
 
 /*	OpenGL version required, currently 1.1 or later (basic stuff like
-        glBindTexture(), glDrawArrays()). We probably have implicit requirements
+        OOGLBindTexture(), glDrawArrays()). We probably have implicit requirements
         for later versions, but I don't feel like auditing.
         -- Ahruman
         We need at least 3.0 for the Frame Buffer Objects now in use. Might as
@@ -248,7 +249,7 @@ static NSArray* ArrayOfExtensions(NSString* extensionString)
         // OK
     } else
 #endif
-    if (![self versionIsAtLeastMajor:kMinMajorVersion minor:kMinMinorVersion]) {
+        if (![self versionIsAtLeastMajor:kMinMajorVersion minor:kMinMinorVersion]) {
         OOLog(@"rendering.opengl.version.insufficient", @"***** Oolite requires OpenGL version %u.%u or later.", kMinMajorVersion, kMinMinorVersion);
         [NSException raise:@"OoliteOpenGLTooOldException"
                     format:@"Oolite requires at least OpenGL %u.%u. You have %u.%u (\"%s\").", kMinMajorVersion, kMinMinorVersion, major, minor, versionString];

@@ -43,6 +43,7 @@ MA 02110-1301, USA.
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #import "OOFixedFunction.h"
+#import "OOGLStateCompat.h"
 #import "OOImmediateMode.h"
 #import "OOOpenGLMatrixManager.h"
 #import "OORenderPass.h"
@@ -488,7 +489,7 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
     OORendererSetClearDepth(1.0);
     OORendererBeginPass(&(OORenderPassDescriptor) { .target = kOORenderTargetCurrent, .colorLoad = kOOLoadClear, .depthLoad = kOOLoadClear });
     OORendererEndPass();
-    OOGL(glDepthFunc(GL_LESS)); // depth buffer
+    OOGLDepthFunc(GL_LESS); // depth buffer
 
     if (UNIVERSE) {
         [UNIVERSE setLighting];
@@ -505,15 +506,15 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
     }
 
     if ([extMgr usePointSmoothing]) {
-        OOGL(glEnable(GL_POINT_SMOOTH));
+        OOGLEnable(GL_POINT_SMOOTH);
     }
 
     if ([extMgr useLineSmoothing]) {
-        OOGL(glEnable(GL_LINE_SMOOTH));
+        OOGLEnable(GL_LINE_SMOOTH);
     }
 
-    OOGL(glDisable(GL_NORMALIZE));
-    OOGL(glDisable(GL_RESCALE_NORMAL));
+    OOGLDisable(GL_NORMALIZE);
+    OOGLDisable(GL_RESCALE_NORMAL);
 
     OOGL(glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR));
 }
@@ -744,7 +745,7 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
 
     glViewport(0, 0, dest.w * pixelDensity, dest.h * pixelDensity);
 
-    glEnable(GL_TEXTURE_2D);
+    OOGLEnable(GL_TEXTURE_2D);
     OORendererSetClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
@@ -782,7 +783,7 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
     }
 
     glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
+    OOGLBindTexture(GL_TEXTURE_2D, texture);
 
     // Set the texture's stretching properties
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -792,7 +793,7 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
     glTexImage2D(GL_TEXTURE_2D, 0, nOfColors, image->w, image->h, 0,
         texture_format, GL_UNSIGNED_BYTE, image->pixels);
 
-    glBindTexture(GL_TEXTURE_2D, texture);
+    OOGLBindTexture(GL_TEXTURE_2D, texture);
     OOImmediateBegin(kOOPrimitiveQuads);
 
     OOImmediateTexCoord2f(0, 0);
@@ -814,9 +815,9 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
     if (image) {
         SDL_DestroySurface(image);
     }
-    glDeleteTextures(1, &texture);
+    OOGLDeleteTextures(1, &texture);
 
-    glDisable(GL_TEXTURE_2D);
+    OOGLDisable(GL_TEXTURE_2D);
     OOVerifyOpenGLState();
 
     SDL_DestroySurface(image);

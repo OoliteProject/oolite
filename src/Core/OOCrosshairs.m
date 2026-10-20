@@ -30,6 +30,7 @@ SOFTWARE.
 #import "MyOpenGLView.h"
 #import "OOCollectionExtractors.h"
 #import "OOColor.h"
+#import "OOGLStateCompat.h"
 #import "OOMacroOpenGL.h"
 #import "OOVertexArray.h"
 #import "Universe.h"
@@ -78,9 +79,9 @@ SOFTWARE.
         OO_ENTER_OPENGL();
         OOSetOpenGLState(OPENGL_STATE_OVERLAY);
 
-        OOGL(glPushAttrib(GL_ENABLE_BIT));
-        OOGL(glDisable(GL_LIGHTING));
-        OOGL(glDisable(GL_TEXTURE_2D));
+        OOGLPushAttrib(GL_ENABLE_BIT);
+        OOGLDisable(GL_LIGHTING);
+        OOGLDisable(GL_TEXTURE_2D);
         OOGLPushModelView();
         OOGLTranslateModelView(make_vector(0.0, 0.0, [[UNIVERSE gameView] display_z]));
 
@@ -93,7 +94,7 @@ SOFTWARE.
         OORendererDrawArrays(kOONativePrimitiveLines, &layout, 0, _count * 2);
 
         OOGLPopModelView();
-        OOGL(glPopAttrib());
+        OOGLPopAttrib();
 
         OOVerifyOpenGLState();
         OOCheckOpenGLErrors(@"OOCrosshairs after rendering");

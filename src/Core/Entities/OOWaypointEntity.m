@@ -25,6 +25,7 @@ MA 02110-1301, USA.
 #import "OOWaypointEntity.h"
 #import "Entity.h"
 #import "OOCollectionExtractors.h"
+#import "OOGLStateCompat.h"
 #import "OOImmediateMode.h"
 #import "OOMacroOpenGL.h"
 #import "OOOpenGL.h"
@@ -147,7 +148,7 @@ MA 02110-1301, USA.
 
     OO_ENTER_OPENGL();
     OOSetOpenGLState(OPENGL_STATE_TRANSLUCENT_PASS);
-    OOGL(glEnable(GL_BLEND));
+    OOGLEnable(GL_BLEND);
     GLScaledLineWidth(1.0);
 
     OOImmediateColor4f(0.0, 0.0, 1.0, a);
@@ -179,7 +180,7 @@ MA 02110-1301, USA.
     }
     OOImmediateEnd();
 
-    OOGL(glDisable(GL_BLEND));
+    OOGLDisable(GL_BLEND);
     OOVerifyOpenGLState();
 }
 

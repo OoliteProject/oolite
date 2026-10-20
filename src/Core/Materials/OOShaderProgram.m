@@ -25,6 +25,7 @@ SOFTWARE.
 
 */
 
+#import "OOGLStateCompat.h"
 #import "OOOpenGLExtensionManager.h"
 
 #if OO_SHADERS
@@ -193,7 +194,7 @@ static NSString* GetGLSLInfoLog(GLhandleARB shaderObject);
     if (sActiveProgram != self) {
         [sActiveProgram release];
         sActiveProgram = [self retain];
-        OOGL(glUseProgramObjectARB(program));
+        OOGLUseProgramObject(program);
         [self bindStandardMatrixUniforms];
     }
 }
@@ -205,7 +206,7 @@ static NSString* GetGLSLInfoLog(GLhandleARB shaderObject);
     if (sActiveProgram != nil) {
         [sActiveProgram release];
         sActiveProgram = nil;
-        OOGL(glUseProgramObjectARB(NULL_SHADER));
+        OOGLUseProgramObject(NULL_SHADER);
     }
 }
 

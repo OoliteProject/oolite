@@ -35,6 +35,7 @@
 #import "OOCPUInfo.h"
 #import "OOCache.h"
 #import "OOCollectionExtractors.h"
+#import "OOGLStateCompat.h"
 #import "OOMacroOpenGL.h"
 #import "OOOpenGLExtensionManager.h"
 #import "OOPixMap.h"
@@ -263,15 +264,15 @@ static NSString* sGlobalTraceContext = nil;
 + (void)applyNone
 {
     OO_ENTER_OPENGL();
-    OOGL(glBindTexture(GL_TEXTURE_2D, 0));
+    OOGLBindTexture(GL_TEXTURE_2D, 0);
 #if OO_TEXTURE_CUBE_MAP
     if (OOCubeMapsAvailable())
-        OOGL(glBindTexture(GL_TEXTURE_CUBE_MAP, 0));
+        OOGLBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 #endif
 
 #if GL_EXT_texture_lod_bias
     if (gOOTextureInfo.textureLODBiasAvailable)
-        OOGL(glTexEnvf(GL_TEXTURE_FILTER_CONTROL_EXT, GL_TEXTURE_LOD_BIAS_EXT, 0));
+        OOGLTexEnvf(GL_TEXTURE_FILTER_CONTROL_EXT, GL_TEXTURE_LOD_BIAS_EXT, 0);
 #endif
 }
 

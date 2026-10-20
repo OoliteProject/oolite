@@ -32,6 +32,7 @@ MA 02110-1301, USA.
 
 #import "AI.h"
 #import "OOCollectionExtractors.h"
+#import "OOGLStateCompat.h"
 #import "OOImmediateMode.h"
 #import "OOLoggingExtended.h"
 #import "OORoleSet.h"
@@ -648,8 +649,8 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
         GLfloat color_fv[4] = OO_WORMHOLE_COLOR_FVEC4;
 
         OOSetOpenGLState(OPENGL_STATE_TRANSLUCENT_PASS);
-        OOGL(glDisable(GL_CULL_FACE));
-        OOGL(glEnable(GL_BLEND));
+        OOGLDisable(GL_CULL_FACE);
+        OOGLEnable(GL_BLEND);
 
         OOImmediateColor4fv(color_fv);
         OOImmediateBegin(kOOPrimitiveTriangleFan);
@@ -659,8 +660,8 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
         color_fv[3] = fmin(color_fv[3] * 2.0, 1.0);
         DrawWormholeCorona(0.45 * collision_radius, collision_radius, 4, srzd, color_fv);
 
-        OOGL(glEnable(GL_CULL_FACE));
-        OOGL(glDisable(GL_BLEND));
+        OOGLEnable(GL_CULL_FACE);
+        OOGLDisable(GL_BLEND);
     }
 
     OOVerifyOpenGLState();

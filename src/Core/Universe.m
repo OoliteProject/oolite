@@ -94,6 +94,7 @@ MA 02110-1301, USA.
 #import "WormholeEntity.h"
 
 #import "OOFixedFunction.h"
+#import "OOGLStateCompat.h"
 #import "OOImmediateMode.h"
 #import "OORenderPass.h"
 
@@ -376,9 +377,9 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     OOGL(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, msaaTextureID));
 #else
     OOGL(glGenTextures(1, &msaaTextureID));
-    OOGL(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, msaaTextureID));
+    OOGLBindTexture(GL_TEXTURE_2D_MULTISAMPLE, msaaTextureID);
     OOGL(glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGBA16F, (GLsizei)viewSize.width, (GLsizei)viewSize.height, GL_TRUE));
-    OOGL(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0));
+    OOGLBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
     OOGL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, msaaTextureID, 0));
 #endif
 
@@ -399,7 +400,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
     // creating texture that should be rendered into
     OOGL(glGenTextures(1, &targetTextureID));
-    OOGL(glBindTexture(GL_TEXTURE_2D, targetTextureID));
+    OOGLBindTexture(GL_TEXTURE_2D, targetTextureID);
     OOGL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, (GLsizei)viewSize.width, (GLsizei)viewSize.height, 0, GL_RGBA, GL_FLOAT, NULL));
     OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
     OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
@@ -436,7 +437,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     // creating textures that should be rendered into
     OOGL(glGenTextures(2, passthroughTextureID));
     for (unsigned int i = 0; i < 2; i++) {
-        OOGL(glBindTexture(GL_TEXTURE_2D, passthroughTextureID[i]));
+        OOGLBindTexture(GL_TEXTURE_2D, passthroughTextureID[i]);
         OOGL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, (GLsizei)viewSize.width, (GLsizei)viewSize.height, 0, GL_RGBA, GL_FLOAT, NULL));
         OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
         OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
@@ -458,7 +459,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     OOGL(glGenTextures(2, pingpongColorbuffers));
     for (unsigned int i = 0; i < 2; i++) {
         OOGL(glBindFramebuffer(GL_FRAMEBUFFER, pingpongFBO[i]));
-        OOGL(glBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[i]));
+        OOGLBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[i]);
         OOGL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, (GLsizei)viewSize.width, (GLsizei)viewSize.height, 0, GL_RGBA, GL_FLOAT, NULL));
         OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
         OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
@@ -476,7 +477,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     _currentPostFX = _colorblindMode = OO_POSTFX_NONE;
 
     /* TODO: in OOEnvironmentCubeMap.m call these bind functions not with 0 but with "previousXxxID"s:
-      - OOGL(glBindTexture(GL_TEXTURE_CUBE_MAP, 0));
+      - OOGLBindTexture(GL_TEXTURE_CUBE_MAP, 0);
       - OOGL(glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0));
       - OOGL(glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, 0));
     */
@@ -523,8 +524,8 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     OOGL(glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float))));
 
     // restoring previous bindings
-    OOGL(glUseProgram(previousProgramID));
-    OOGL(glBindTexture(GL_TEXTURE_2D, previousTextureID));
+    OOGLUseProgram(previousProgramID);
+    OOGLBindTexture(GL_TEXTURE_2D, previousTextureID);
     OOGL(glBindVertexArray(previousVAO));
     OOGL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, previousElementBuffer));
     OOGL(glBindBuffer(GL_ARRAY_BUFFER, previousArrayBuffer));
@@ -535,11 +536,11 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 #if OO_MSAA_COLOR_RENDERBUFFER
     OOGL(glDeleteRenderbuffers(1, &msaaTextureID));
 #else
-    OOGL(glDeleteTextures(1, &msaaTextureID));
+    OOGLDeleteTextures(1, &msaaTextureID);
 #endif
-    OOGL(glDeleteTextures(1, &targetTextureID));
-    OOGL(glDeleteTextures(2, passthroughTextureID));
-    OOGL(glDeleteTextures(2, pingpongColorbuffers));
+    OOGLDeleteTextures(1, &targetTextureID);
+    OOGLDeleteTextures(2, passthroughTextureID);
+    OOGLDeleteTextures(2, pingpongColorbuffers);
     OOGL(glDeleteRenderbuffers(1, &msaaDepthBufferID));
     OOGL(glDeleteRenderbuffers(1, &targetDepthBufferID));
     OOGL(glDeleteFramebuffers(1, &msaaFramebufferID));
@@ -563,9 +564,9 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     OOGL(glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_RGBA16F, (GLsizei)viewSize.width, (GLsizei)viewSize.height));
     OOGL(glBindRenderbuffer(GL_RENDERBUFFER, 0));
 #else
-    OOGL(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, msaaTextureID));
+    OOGLBindTexture(GL_TEXTURE_2D_MULTISAMPLE, msaaTextureID);
     OOGL(glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGBA16F, (GLsizei)viewSize.width, (GLsizei)viewSize.height, GL_TRUE));
-    OOGL(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0));
+    OOGLBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
 #endif
 
     // resize MSAA depth attachment
@@ -574,20 +575,20 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     OOGL(glBindRenderbuffer(GL_RENDERBUFFER, 0));
 
     // resize color attachments
-    OOGL(glBindTexture(GL_TEXTURE_2D, targetTextureID));
+    OOGLBindTexture(GL_TEXTURE_2D, targetTextureID);
     OOGL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, (GLsizei)viewSize.width, (GLsizei)viewSize.height, 0, GL_RGBA, GL_FLOAT, NULL));
-    OOGL(glBindTexture(GL_TEXTURE_2D, 0));
+    OOGLBindTexture(GL_TEXTURE_2D, 0);
 
     for (i = 0; i < 2; i++) {
-        OOGL(glBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[i]));
+        OOGLBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[i]);
         OOGL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, (GLsizei)viewSize.width, (GLsizei)viewSize.height, 0, GL_RGBA, GL_FLOAT, NULL));
-        OOGL(glBindTexture(GL_TEXTURE_2D, 0));
+        OOGLBindTexture(GL_TEXTURE_2D, 0);
     }
 
     for (i = 0; i < 2; i++) {
-        OOGL(glBindTexture(GL_TEXTURE_2D, passthroughTextureID[i]));
+        OOGLBindTexture(GL_TEXTURE_2D, passthroughTextureID[i]);
         OOGL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, (GLsizei)viewSize.width, (GLsizei)viewSize.height, 0, GL_RGBA, GL_FLOAT, NULL));
-        OOGL(glBindTexture(GL_TEXTURE_2D, 0));
+        OOGLBindTexture(GL_TEXTURE_2D, 0);
     }
 
     // resize depth attachment
@@ -615,7 +616,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
     OOGL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
     // fixes transparency issue for some reason
-    OOGL(glDisable(GL_BLEND));
+    OOGLDisable(GL_BLEND);
 
     GLuint program = OOGLProgramName([textureProgram program]);
     GLuint blur = OOGLProgramName([blurProgram program]);
@@ -626,8 +627,8 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     OOGL(glBindFramebuffer(GL_FRAMEBUFFER, passthroughFramebufferID));
     OOGL(glClear(GL_COLOR_BUFFER_BIT));
 
-    OOGL(glUseProgram(program));
-    OOGL(glBindTexture(GL_TEXTURE_2D, targetTextureID));
+    OOGLUseProgram(program);
+    OOGLBindTexture(GL_TEXTURE_2D, targetTextureID);
     OOGL(glUniform1i(glGetUniformLocation(program, "image"), 0));
 
     OOGL(glBindVertexArray(quadTextureVAO));
@@ -638,13 +639,13 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
     BOOL horizontal = YES, firstIteration = YES;
     unsigned int amount = [self bloom] ? 10 : 0; // if not blooming, why bother with the heavy calculations?
-    OOGL(glUseProgram(blur));
+    OOGLUseProgram(blur);
     for (unsigned int i = 0; i < amount; i++) {
         OOGL(glBindFramebuffer(GL_FRAMEBUFFER, pingpongFBO[horizontal]));
         OOGL(glUniform1i(glGetUniformLocation(blur, "horizontal"), horizontal));
-        OOGL(glActiveTexture(GL_TEXTURE0));
+        OOGLActiveTexture(GL_TEXTURE0);
         // bind texture of other framebuffer (or scene if first iteration)
-        OOGL(glBindTexture(GL_TEXTURE_2D, firstIteration ? passthroughTextureID[1] : pingpongColorbuffers[!horizontal]));
+        OOGLBindTexture(GL_TEXTURE_2D, firstIteration ? passthroughTextureID[1] : pingpongColorbuffers[!horizontal]);
         OOGL(glUniform1i(glGetUniformLocation(blur, "imageIn"), 0));
         OOGL(glBindVertexArray(quadTextureVAO));
         OOGL(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0));
@@ -654,10 +655,10 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     }
     OOGL(glBindFramebuffer(GL_FRAMEBUFFER, defaultDrawFBO));
 
-    OOGL(glUseProgram(final));
+    OOGLUseProgram(final);
 
-    OOGL(glActiveTexture(GL_TEXTURE0));
-    OOGL(glBindTexture(GL_TEXTURE_2D, passthroughTextureID[0]));
+    OOGLActiveTexture(GL_TEXTURE0);
+    OOGLBindTexture(GL_TEXTURE_2D, passthroughTextureID[0]);
     OOGL(glUniform1i(glGetUniformLocation(final, "scene"), 0));
     OOGL(glUniform1i(glGetUniformLocation(final, "bloom"), [self bloom]));
     OOGL(glUniform1f(glGetUniformLocation(final, "uTime"), [self getTime]));
@@ -672,8 +673,8 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 #endif
     OOGL(glUniform1i(glGetUniformLocation(final, "uSDRToneMapper"), [gameView sdrToneMapper]));
 
-    OOGL(glActiveTexture(GL_TEXTURE1));
-    OOGL(glBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[!horizontal]));
+    OOGLActiveTexture(GL_TEXTURE1);
+    OOGLBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[!horizontal]);
     OOGL(glUniform1i(glGetUniformLocation(final, "bloomBlur"), 1));
     OOGL(glUniform1f(glGetUniformLocation(final, "uSaturation"), [gameView colorSaturation]));
 
@@ -682,15 +683,15 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
     // restore GL_TEXTURE1 to 0, just in case we are returning from a
     // DETAIL_LEVEL_NORMAL to DETAIL_LEVEL_SHADERS
-    OOGL(glBindTexture(GL_TEXTURE_2D, 0));
+    OOGLBindTexture(GL_TEXTURE_2D, 0);
 
     // restore previous bindings
     OOGL(glBindFramebuffer(GL_FRAMEBUFFER, previousFBO));
-    OOGL(glActiveTexture(previousActiveTexture));
-    OOGL(glBindTexture(GL_TEXTURE_2D, previousTextureID));
-    OOGL(glUseProgram(previousProgramID));
+    OOGLActiveTexture(previousActiveTexture);
+    OOGLBindTexture(GL_TEXTURE_2D, previousTextureID);
+    OOGLUseProgram(previousProgramID);
     OOGL(glBindVertexArray(previousVAO));
-    OOGL(glEnable(GL_BLEND));
+    OOGLEnable(GL_BLEND);
 }
 
 - (id)initWithGameView:(MyOpenGLView*)inGameView
@@ -4134,11 +4135,11 @@ static BOOL IsFriendlyStationPredicate(Entity* entity, void* parameter)
     if (GUILight != demo_light_on) {
         if (![self useShaders]) {
             if (GUILight) {
-                OOGL(glEnable(GL_LIGHT0));
-                OOGL(glDisable(GL_LIGHT1));
+                OOGLEnable(GL_LIGHT0);
+                OOGLDisable(GL_LIGHT1);
             } else {
-                OOGL(glEnable(GL_LIGHT1));
-                OOGL(glDisable(GL_LIGHT0));
+                OOGLEnable(GL_LIGHT1);
+                OOGLDisable(GL_LIGHT0);
             }
         }
         // There should be nothing to do for shaders, they use the same (always on) light source
@@ -4148,7 +4149,7 @@ static BOOL IsFriendlyStationPredicate(Entity* entity, void* parameter)
         // making the following line necessary.
 
         else
-            OOGL(glEnable(GL_LIGHT1)); // make sure we have a light, even with shaders (!)
+            OOGLEnable(GL_LIGHT1); // make sure we have a light, even with shaders (!)
 
         demo_light_on = GUILight;
     }
@@ -4168,12 +4169,12 @@ static BOOL IsFriendlyStationPredicate(Entity* entity, void* parameter)
         } else {
             if (!demo_light_on) {
                 if (isLit)
-                    OOGL(glEnable(GL_LIGHT1));
+                    OOGLEnable(GL_LIGHT1);
                 else
-                    OOGL(glDisable(GL_LIGHT1));
+                    OOGLDisable(GL_LIGHT1);
             } else {
                 // If we're in demo/GUI mode we should always have a lit object.
-                OOGL(glEnable(GL_LIGHT0));
+                OOGLEnable(GL_LIGHT0);
 
                 // Redundant, see above.
                 // if (isLit)  OOGL(glEnable(GL_LIGHT0));
@@ -4587,7 +4588,7 @@ static const OOMatrix starboard_matrix = { { { 0.0f, 0.0f, 1.0f, 0.0f },
                             if (fogging) {
                                 fog_scale = BILLBOARD_DEPTH * fogFactor;
                                 half_scale = fog_scale * 0.50;
-                                OOGL(glEnable(GL_FOG));
+                                OOGLEnable(GL_FOG);
                                 OOGL(glFogi(GL_FOG_MODE, GL_LINEAR));
                                 OOGL(glFogfv(GL_FOG_COLOR, skyClearColor));
                                 OOGL(glFogf(GL_FOG_START, half_scale));
@@ -4607,7 +4608,7 @@ static const OOMatrix starboard_matrix = { { { 0.0f, 0.0f, 1.0f, 0.0f },
                             // atmospheric fog
                             if (fogging) {
                                 [drawthing setAtmosphereFogging:[OOColor colorWithRed:0.0 green:0.0 blue:0.0 alpha:0.0]];
-                                OOGL(glDisable(GL_FOG));
+                                OOGLDisable(GL_FOG);
                             }
                         }
 
@@ -4634,7 +4635,7 @@ static const OOMatrix starboard_matrix = { { { 0.0f, 0.0f, 1.0f, 0.0f },
                             if (fogging) {
                                 fog_scale = BILLBOARD_DEPTH * fogFactor;
                                 half_scale = fog_scale * 0.50;
-                                OOGL(glEnable(GL_FOG));
+                                OOGLEnable(GL_FOG);
                                 OOGL(glFogi(GL_FOG_MODE, GL_LINEAR));
                                 OOGL(glFogfv(GL_FOG_COLOR, skyClearColor));
                                 OOGL(glFogf(GL_FOG_START, half_scale));
@@ -4650,7 +4651,7 @@ static const OOMatrix starboard_matrix = { { { 0.0f, 0.0f, 1.0f, 0.0f },
                             // atmospheric fog
                             if (fogging) {
                                 [drawthing setAtmosphereFogging:[OOColor colorWithRed:0.0 green:0.0 blue:0.0 alpha:0.0]];
-                                OOGL(glDisable(GL_FOG));
+                                OOGLDisable(GL_FOG);
                             }
 
                             OOGLPopModelView();
@@ -4824,7 +4825,7 @@ static const OOMatrix starboard_matrix = { { { 0.0f, 0.0f, 1.0f, 0.0f },
 {
     OOSetOpenGLState(OPENGL_STATE_OVERLAY);
 
-    OOGL(glDisable(GL_TEXTURE_2D)); // for background sheets
+    OOGLDisable(GL_TEXTURE_2D); // for background sheets
 
     float overallAlpha = [[PLAYER hud] overallAlpha];
     if (displayGUI) {

@@ -28,6 +28,7 @@ MA 02110-1301, USA.
 #import "OOCollectionExtractors.h"
 #import "OODebugFlags.h"
 #import "OODebugGLDrawing.h"
+#import "OOGLStateCompat.h"
 #import "OOImmediateMode.h"
 #import "OOMacroOpenGL.h"
 #import "OOMaths.h"
@@ -168,7 +169,7 @@ static Vector offsetForOctant(int oct, GLfloat r)
     OODebugWFState state = OODebugBeginWireframe(NO);
 
     OO_ENTER_OPENGL();
-    OOGL(glEnable(GL_BLEND));
+    OOGLEnable(GL_BLEND);
     OOImmediateBegin(kOOPrimitiveLines);
     OOImmediateColor4f(0.4f, 0.4f, 0.4f, 0.5f);
 
@@ -284,9 +285,9 @@ static BOOL drawTestForCollisions;
         _collisionOctree[loc]--;
 
         // draw a cube
-        OOGL(glDisable(GL_CULL_FACE)); // face culling
+        OOGLDisable(GL_CULL_FACE); // face culling
 
-        OOGL(glDisable(GL_TEXTURE_2D));
+        OOGLDisable(GL_TEXTURE_2D);
 
         OOImmediateBegin(kOOPrimitiveLineStrip);
         OOImmediateVertex3f(-scale + offset.x, -scale + offset.y, -scale + offset.z);
@@ -318,7 +319,7 @@ static BOOL drawTestForCollisions;
         OOImmediateVertex3f(scale + offset.x, -scale + offset.y, scale + offset.z);
         OOImmediateEnd();
 
-        OOGL(glEnable(GL_CULL_FACE)); // face culling
+        OOGLEnable(GL_CULL_FACE); // face culling
     }
     if (_octree[loc] > 0) {
         GLfloat sc = 0.5f * scale;

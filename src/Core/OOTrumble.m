@@ -24,6 +24,7 @@ MA 02110-1301, USA.
 
 #import "OOTrumble.h"
 #import "MyOpenGLView.h"
+#import "OOGLStateCompat.h"
 #import "OOImmediateMode.h"
 #import "OOMaths.h"
 #import "OOSound.h"
@@ -373,8 +374,8 @@ static void PlayTrumbleSqueal(void);
     */
     GLfloat wd = 96 * size;
     GLfloat ht = 96 * size;
-    OOGL(glShadeModel(GL_SMOOTH));
-    OOGL(glEnable(GL_TEXTURE_2D));
+    OOGLShadeModel(GL_SMOOTH);
+    OOGLEnable(GL_TEXTURE_2D);
 
     OOGLPushModelView();
 
@@ -485,7 +486,7 @@ static void PlayTrumbleSqueal(void);
 
     // finally..
     OOGLPopModelView();
-    OOGL(glDisable(GL_TEXTURE_2D));
+    OOGLDisable(GL_TEXTURE_2D);
 }
 
 - (void)updateTrumble:(double)delta_t

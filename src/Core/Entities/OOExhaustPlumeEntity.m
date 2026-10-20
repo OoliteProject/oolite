@@ -32,6 +32,7 @@ MA 02110-1301, USA.
 #import "ShipEntity.h"
 #import "Universe.h"
 
+#import "OOGLStateCompat.h"
 #import "OOGraphicsResetManager.h"
 #import "OOTexture.h"
 
@@ -387,16 +388,16 @@ static GLfloat pA[6] = { 0.01, 0.0, 2.0, 4.0, 6.0, 10.0 }; // phase adjustments
         }
     }
 
-    OOGL(glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT));
+    OOGLPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT);
 
-    OOGL(glDisable(GL_LIGHTING));
-    OOGL(glEnable(GL_BLEND));
-    OOGL(glDepthMask(GL_FALSE));
-    OOGL(glEnable(GL_TEXTURE_2D));
+    OOGLDisable(GL_LIGHTING);
+    OOGLEnable(GL_BLEND);
+    OOGLDepthMask(GL_FALSE);
+    OOGLEnable(GL_TEXTURE_2D);
     [[self texture] apply];
 
     //	OOGL(glDisable(GL_CULL_FACE));		// face culling
-    OOGL(glShadeModel(GL_SMOOTH));
+    OOGLShadeModel(GL_SMOOTH);
 
     const OORendererBuffer* positions = OORendererTransientBuffer(_glVertices, sizeof _glVertices);
 
@@ -528,9 +529,9 @@ static GLfloat pA[6] = { 0.01, 0.0, 2.0, 4.0, 6.0, 10.0 }; // phase adjustments
     OOVertexLayoutAdd(&layout, kOOVertexTexCoord, 0, 2, 0, OORendererTransientBuffer(fanTextures, sizeof fanTextures), 0);
     OORendererDrawPrimitiveElements(kOOPrimitiveTriangleFan, &layout, OORendererTransientBuffer(tfan1, sizeof tfan1), 0, kOOIndex32, 10);
 
-    OOGL(glDisable(GL_TEXTURE_2D));
+    OOGLDisable(GL_TEXTURE_2D);
 
-    OOGL(glPopAttrib());
+    OOGLPopAttrib();
 
     OOVerifyOpenGLState();
 }

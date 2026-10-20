@@ -55,6 +55,7 @@ MA 02110-1301, USA.
 #import "Universe.h"
 
 #import "OODebugStandards.h"
+#import "OOGLStateCompat.h"
 #import "OOImmediateMode.h"
 #import "OOJavaScriptEngine.h"
 
@@ -413,8 +414,8 @@ static NSString* NormalModeDescription(OOMeshNormalMode mode)
     // channel in shaders - note, this is a bit of cheating the system,
     // which expects blending to be disabled at this point
     if (meshBelongsToVisualEffect) {
-        OOGL(glEnable(GL_BLEND));
-        OOGL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+        OOGLEnable(GL_BLEND);
+        OOGLBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     }
 
 #if OO_SHADERS
@@ -468,20 +469,20 @@ static NSString* NormalModeDescription(OOMeshNormalMode mode)
                 for (unit = 0; unit < _textureUnitCount; unit++) {
                     if (_textureUnitCount > 1) {
                         OOGL(glClientActiveTextureARB(GL_TEXTURE0_ARB + unit));
-                        OOGL(glActiveTextureARB(GL_TEXTURE0_ARB + unit));
+                        OOGLActiveTexture(GL_TEXTURE0_ARB + unit);
                     }
 #endif
                     if (!wantsNormalsAsTextureCoordinates) {
-                        OOGL(glDisable(GL_TEXTURE_CUBE_MAP));
+                        OOGLDisable(GL_TEXTURE_CUBE_MAP);
                         /*	FIXME: Not including the line below breaks multitexturing in no-shaders mode.
                                 However, the OpenGL state manager should probably be handling this;
                                 TEXTURE_2D is part of OPENGL_STATE_OPAQUE, which has already been set.
                                 - Nikos 20130103
                         */
-                        OOGL(glEnable(GL_TEXTURE_2D));
+                        OOGLEnable(GL_TEXTURE_2D);
                     } else {
-                        OOGL(glDisable(GL_TEXTURE_2D));
-                        OOGL(glEnable(GL_TEXTURE_CUBE_MAP));
+                        OOGLDisable(GL_TEXTURE_2D);
+                        OOGLEnable(GL_TEXTURE_CUBE_MAP);
                     }
 #if OO_MULTITEXTURE
                 }
@@ -528,7 +529,7 @@ static NSString* NormalModeDescription(OOMeshNormalMode mode)
 #if OO_MULTITEXTURE
     if (_textureUnitCount > 1) {
         OOGL(glClientActiveTextureARB(GL_TEXTURE0_ARB));
-        OOGL(glActiveTextureARB(GL_TEXTURE0_ARB));
+        OOGLActiveTexture(GL_TEXTURE0_ARB);
     }
 #endif
 
@@ -541,7 +542,7 @@ static NSString* NormalModeDescription(OOMeshNormalMode mode)
 
     // visual effect - disable previously enabled blending
     if (meshBelongsToVisualEffect)
-        OOGL(glDisable(GL_BLEND));
+        OOGLDisable(GL_BLEND);
 
     OOVerifyOpenGLState();
 }

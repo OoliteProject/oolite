@@ -27,6 +27,7 @@ MA 02110-1301, USA.
 
 #import "OOBreakPatternEntity.h"
 #import "OOColor.h"
+#import "OOGLStateCompat.h"
 #import "OOMacroOpenGL.h"
 #import "OOVertexArray.h"
 #import "Universe.h"
@@ -124,20 +125,20 @@ MA 02110-1301, USA.
         OO_ENTER_OPENGL();
         OOSetOpenGLState(OPENGL_STATE_OPAQUE);
 
-        OOGL(glDisable(GL_LIGHTING));
-        OOGL(glDisable(GL_TEXTURE_2D));
-        OOGL(glEnable(GL_BLEND));
-        OOGL(glDepthMask(GL_FALSE));
+        OOGLDisable(GL_LIGHTING);
+        OOGLDisable(GL_TEXTURE_2D);
+        OOGLEnable(GL_BLEND);
+        OOGLDepthMask(GL_FALSE);
 
         OOVertexLayout layout = { .count = 0 };
         OOVertexLayoutAdd(&layout, kOOVertexPosition, 0, 3, 0, OORendererTransientBuffer(_vertexPosition, _vertexCount * 3 * sizeof(GLfloat)), 0);
         OOVertexLayoutAdd(&layout, kOOVertexColor, 0, 4, 0, OORendererTransientBuffer(_vertexColor, _vertexCount * 4 * sizeof(GLfloat)), 0);
         OORendererDrawArrays(kOONativePrimitiveTriangleStrip, &layout, 0, _vertexCount);
 
-        OOGL(glEnable(GL_LIGHTING));
-        OOGL(glEnable(GL_TEXTURE_2D));
-        OOGL(glDisable(GL_BLEND));
-        OOGL(glDepthMask(GL_TRUE));
+        OOGLEnable(GL_LIGHTING);
+        OOGLEnable(GL_TEXTURE_2D);
+        OOGLDisable(GL_BLEND);
+        OOGLDepthMask(GL_TRUE);
 
         OOVerifyOpenGLState();
         OOCheckOpenGLErrors(@"OOBreakPatternEntity after drawing %@", self);

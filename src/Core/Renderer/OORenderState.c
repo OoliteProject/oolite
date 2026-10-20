@@ -23,6 +23,7 @@ MA 02110-1301, USA.
 */
 
 #include "OORenderState.h"
+#include "OORenderStateMachine.h"
 #include "OORendererBackend.h"
 
 #include <assert.h>
@@ -59,8 +60,28 @@ void OORendererPushDrawState(const OODrawState* state)
     if (sDepth >= kOORendererMaxDrawStateDepth)
         return;
     sStack[sDepth] = *state;
+    // Keep the state machine in step: save it before the backend applies the
+    // state (applying a texture records its binding), record what the push
+    // applied, and put it all back on pop.
+    OORendererPushAttributes(0xFFFFFFFFu);
     OORendererBackendPushDrawState(state, sDepth);
     sDepth++;
+
+    OORendererSetCapability(kOOCapBlend, state->blend != kOOBlendOff);
+    OORendererSetBlendFunc(kOOBlendFactorSrcAlpha, state->blend == kOOBlendAdditive ? kOOBlendFactorOne : kOOBlendFactorOneMinusSrcAlpha);
+    OORendererSetCapability(kOOCapDepthTest, state->depthTest);
+    OORendererSetDepthMask(state->depthWrite);
+    OORendererSetCapability(kOOCapCullFace, state->cullBack);
+    OORendererSetCullFace(kOOCullBack);
+    OORendererSetFrontFaceCCW(true);
+    OORendererSetCapability(kOOCapLighting, state->lighting);
+    OORendererSetCapability(kOOCapFog, state->fog);
+    OORendererSetCapability(kOOCapScissorTest, state->scissor);
+    if (state->scissor)
+        OORendererSetScissorRect(state->scissorRect[0], state->scissorRect[1], state->scissorRect[2], state->scissorRect[3]);
+    OORendererSetActiveTexture(0);
+    OORendererSetTextureEnabled(false, state->texture2D);
+    OORendererSetTextureBinding(false, OORendererBackendTextureName(state->texture));
 }
 
 void OORendererPopDrawState(void)
@@ -70,6 +91,7 @@ void OORendererPopDrawState(void)
         return;
     sDepth--;
     OORendererBackendPopDrawState(sDepth);
+    OORendererPopAttributes();
 }
 
 const OODrawState* OORendererCurrentDrawState(void)

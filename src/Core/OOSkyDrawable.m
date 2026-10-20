@@ -30,6 +30,7 @@ SOFTWARE.
 #import "NSObjectOOExtensions.h"
 #import "OOCollectionExtractors.h"
 #import "OOColor.h"
+#import "OOGLStateCompat.h"
 #import "OOGraphicsResetManager.h"
 #import "OOMacroOpenGL.h"
 #import "OOProbabilisticTextureManager.h"
@@ -182,8 +183,8 @@ static OOColor* SaturatedColorInRange(OOColor* color1, OOColor* color2, BOOL hue
     OO_ENTER_OPENGL();
     OOSetOpenGLState(OPENGL_STATE_ADDITIVE_BLENDING);
 
-    OOGL(glDisable(GL_DEPTH_TEST)); // don't read the depth buffer
-    OOGL(glEnable(GL_TEXTURE_2D));
+    OOGLDisable(GL_DEPTH_TEST); // don't read the depth buffer
+    OOGLEnable(GL_TEXTURE_2D);
 
     // Make stars dim in atmosphere. Note: works OK on night side because sky is dark blue, not black.
     GLfloat fogColor[4] = { 0.02, 0.02, 0.02, 1.0 };
@@ -194,8 +195,8 @@ static OOColor* SaturatedColorInRange(OOColor* color1, OOColor* color2, BOOL hue
     [_quadSets makeObjectsPerformSelector:@selector(render)];
 
     // Restore state
-    OOGL(glEnable(GL_DEPTH_TEST));
-    OOGL(glDisable(GL_TEXTURE_2D));
+    OOGLEnable(GL_DEPTH_TEST);
+    OOGLDisable(GL_TEXTURE_2D);
 
     // Resetting fog is draw loop's responsibility.
 
