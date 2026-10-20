@@ -177,6 +177,9 @@ this.$checkStale = function ()
 	$try("Vector3D from entity", function () { return Vector3D(player.ship).squaredDistanceTo(player.ship.position); });
 	$try("Quaternion from entity", function () { return Quaternion(player.ship).dot(player.ship.orientation) > 0.999; });
 	$try("bad method this", function () { return Ship.prototype.hasRole.call({}, "trader"); });
+	// SpiderMonkey 1.8.5 const: function-scoped, usable before its declaration.
+	$try("legacy const outside block", function () { function f() { if (true) { const k = 5; } return k; } return f(); });
+	$try("legacy const before declaration", function () { function g() { var r = typeof c2; const c2 = 1; return r; } return g(); });
 
 	// Soak: fly for a while so AI scripts, timers and frame callbacks run; exceptions show in the comparison.
 	$p("launching");

@@ -122,6 +122,162 @@ MA 02110-1301, USA.
 	{
 		return "(new " + this.name + "(" + quote(this.message) + ", " + quote(this.fileName || "") + ", " + (this.lineNumber || 0) + "))";
 	});
+	/*	Rewrite SpiderMonkey 1.8.5 style const declarations as var.
+
+		In SpiderMonkey 1.8.5, const was function-scoped like var and could be
+		used before its declaration; modern engines make it block-scoped with a
+		temporal dead zone, which breaks some OXPs. Replacing the keyword with
+		"var  " (same length, so columns and line numbers are unchanged) restores
+		the old scoping; only the read-only check is lost.
+
+		The scanner understands comments, strings, template literals (with nested
+		substitutions) and regular expression literals, so only const keywords in
+		code are replaced. It is not a full parser: it decides whether "/" starts a
+		regular expression from the previous significant token.
+	*/
+	function oojsRewriteLegacyConst(source)
+	{
+		if (source.indexOf("const") === -1) return source;
+
+		var out = [];
+		var length = source.length;
+		var i = 0, last = 0;
+		var prevToken = "";           // previous significant token (for the regex/division decision)
+		var templateDepth = [];       // brace depth at each open template substitution
+		var braceDepth = 0;
+		var parenOwners = [];         // token before each open "(", to spot if (...) /re/
+
+		var regexAfterWords = { "return": 1, "typeof": 1, "instanceof": 1, "in": 1, "of": 1, "new": 1, "delete": 1, "void": 1, "throw": 1, "case": 1, "do": 1, "else": 1, "yield": 1, "await": 1 };
+
+		function isIdentStart(c) { return (c >= "a" && c <= "z") || (c >= "A" && c <= "Z") || c === "_" || c === "$" || c > "\x7f"; }
+		function isIdentPart(c) { return isIdentStart(c) || (c >= "0" && c <= "9"); }
+		function regexAllowed()
+		{
+			if (prevToken === "") return true;
+			if (prevToken === ")" || prevToken === "]" || prevToken === "}") return false;
+			if (/^[A-Za-z_$\x80-￿][\w$\x80-￿]*$/.test(prevToken)) return regexAfterWords.hasOwnProperty(prevToken);
+			if (/^[0-9.]/.test(prevToken) || prevToken === "string" || prevToken === "template" || prevToken === "regex") return false;
+			return true; // operator or punctuation
+		}
+		function skipString(quote)
+		{
+			i++;
+			while (i < length && source[i] !== quote)
+			{
+				if (source[i] === "\\") i++;
+				else if (source[i] === "\n" && quote !== "`") break;
+				i++;
+			}
+			i++;
+		}
+		// Scan template text from i (just after ` or }) to the closing ` or an opening ${.
+		function scanTemplateText()
+		{
+			while (i < length)
+			{
+				var c = source[i];
+				if (c === "\\") { i += 2; continue; }
+				if (c === "`") { i++; return false; }
+				if (c === "$" && source[i + 1] === "{") { i += 2; return true; }
+				i++;
+			}
+			return false;
+		}
+
+		while (i < length)
+		{
+			var c = source[i];
+			var next = source[i + 1];
+
+			if (c === " " || c === "\t" || c === "\n" || c === "\r" || c === "\v" || c === "\f" || c === " " || c === "﻿") { i++; continue; }
+			if (c === "/" && next === "/") { while (i < length && source[i] !== "\n" && source[i] !== "\r") i++; continue; }
+			if (c === "/" && next === "*") { var end = source.indexOf("*/", i + 2); i = end === -1 ? length : end + 2; continue; }
+			if (c === "\"" || c === "'") { skipString(c); prevToken = "string"; continue; }
+			if (c === "`")
+			{
+				i++;
+				if (scanTemplateText()) { templateDepth.push(braceDepth); prevToken = "{"; braceDepth++; }
+				else prevToken = "template";
+				continue;
+			}
+			if (c === "}" && templateDepth.length && templateDepth[templateDepth.length - 1] === braceDepth - 1)
+			{
+				braceDepth--;
+				templateDepth.pop();
+				i++;
+				if (scanTemplateText()) { templateDepth.push(braceDepth); prevToken = "{"; braceDepth++; }
+				else prevToken = "template";
+				continue;
+			}
+			if (c === "/" && regexAllowed())
+			{
+				i++;
+				var inClass = false;
+				while (i < length)
+				{
+					var r = source[i];
+					if (r === "\\") { i += 2; continue; }
+					if (r === "\n") break;
+					if (r === "[") inClass = true;
+					else if (r === "]") inClass = false;
+					else if (r === "/" && !inClass) { i++; break; }
+					i++;
+				}
+				while (i < length && isIdentPart(source[i])) i++; // flags
+				prevToken = "regex";
+				continue;
+			}
+			if (isIdentStart(c))
+			{
+				var start = i;
+				while (i < length && isIdentPart(source[i])) i++;
+				var word = source.slice(start, i);
+				if (word === "const" && prevToken !== ".")
+				{
+					// Not an object literal key ({ const: 1 }).
+					var j = i;
+					while (j < length && /\s/.test(source[j])) j++;
+					if (source[j] !== ":")
+					{
+						out.push(source.slice(last, start), "var  ");
+						last = i;
+					}
+				}
+				prevToken = word;
+				continue;
+			}
+			if (c >= "0" && c <= "9" || (c === "." && next >= "0" && next <= "9"))
+			{
+				while (i < length && /[\w.$]/.test(source[i])) i++;
+				prevToken = "0";
+				continue;
+			}
+			if (c === "{") braceDepth++;
+			else if (c === "}") braceDepth--;
+			else if (c === "(") parenOwners.push(prevToken);
+			else if (c === ")")
+			{
+				var owner = parenOwners.pop();
+				if (owner === "if" || owner === "while" || owner === "for" || owner === "with")
+				{
+					// A statement follows the condition, so "/" starts a regular expression.
+					prevToken = ";";
+					i++;
+					continue;
+				}
+			}
+			prevToken = c;
+			i++;
+		}
+
+		if (last === 0) return source;
+		out.push(source.slice(last));
+		return out.join("");
+	}
+
+	// Called by the engine on every script before it is compiled (OOJSScript.m).
+	define(global, "__ooliteRewriteLegacyConst", oojsRewriteLegacyConst);
+
 	// SpiderMonkey returned decompiled source; QuickJS keeps the original source text.
 	define(Function.prototype, "toSource", function toSource() { return Function.prototype.toString.call(this); });
 })(globalThis);
