@@ -1,0 +1,11 @@
+# Probe lines whose values differ between two runs of the same build (random
+# equipment, crew and orientation of the spawned ship). Matched as prefixes
+# of the line before " = " or " -> ".
+[oojs.probe]: spawned.accuracy
+[oojs.probe]: spawned.crew
+[oojs.probe]: spawned.entityPersonality
+[oojs.probe]: spawned.heading
+[oojs.probe]: spawned.orientation
+[oojs.probe]: spawned.vectorForward
+[oojs.probe]: spawned.vectorRight
+[oojs.probe]: spawned.vectorUp
