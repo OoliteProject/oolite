@@ -34,4 +34,5 @@ tools-make/
 
 # Meson subproject checkouts (wrap files are tracked)
 /subprojects/*/
+!/subprojects/packagefiles/
 /subprojects/packagecache/
