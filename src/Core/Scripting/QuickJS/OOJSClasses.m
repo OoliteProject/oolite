@@ -49,10 +49,14 @@ typedef struct
 
 static SharedPropertyTable sSharedProperties[kOOJSMaxClassID];
 
-static JSClassExoticMethods sSharedPermanentExoticMethods = {
-    .get_own_property = OOJSGetSharedPermanentOwnProperty,
-    .get_own_property_names = OOJSGetSharedPermanentOwnPropertyNames,
-};
+/*	Each class without exotic methods of its own gets its own, initially
+        empty, JSClassExoticMethods; the hooks are only filled in when
+        OOJSInitClass() records shared properties for it. Classes without
+        accessor properties (Script, Timer...) therefore pay nothing on property
+        lookups, which matters for Script objects: they are the with() scope of
+        every script, so all bare identifier lookups pass through them.
+*/
+static JSClassExoticMethods* sOwnExoticMethods[kOOJSMaxClassID];
 
 JSClassID OOJSRegisterClass(JSClassID* ioClassID, const JSClassDef* classDef)
 {
@@ -65,7 +69,8 @@ JSClassID OOJSRegisterClass(JSClassID* ioClassID, const JSClassDef* classDef)
     if (!JS_IsRegisteredClass(runtime, classID)) {
         JSClassDef def = *classDef;
         if (def.exotic == NULL) {
-            def.exotic = &sSharedPermanentExoticMethods;
+            sOwnExoticMethods[classID] = calloc(1, sizeof(JSClassExoticMethods));
+            def.exotic = sOwnExoticMethods[classID];
         }
         JS_NewClass(runtime, classID, &def);
         sClassNames[classID] = classDef->class_name;
@@ -134,6 +139,12 @@ static void RecordSharedProperties(JSContext* context, JSClassID classID, const 
     }
     memcpy(table->sortedAtoms, table->atoms, sizeof(JSAtom) * table->count);
     qsort(table->sortedAtoms, table->count, sizeof(JSAtom), CompareAtoms);
+
+    JSClassExoticMethods* exotic = sOwnExoticMethods[classID];
+    if (exotic != NULL && table->count != 0) {
+        exotic->get_own_property = OOJSGetSharedPermanentOwnProperty;
+        exotic->get_own_property_names = OOJSGetSharedPermanentOwnPropertyNames;
+    }
 }
 
 static BOOL TableContainsAtom(const SharedPropertyTable* table, JSAtom atom)
