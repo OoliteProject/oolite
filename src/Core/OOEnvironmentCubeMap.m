@@ -35,6 +35,7 @@ SOFTWARE.
 #import "OODrawable.h"
 #import "OOEntityFilterPredicate.h"
 #import "OOPlanetEntity.h"
+#import "OORenderPass.h"
 #import "OOSunEntity.h"
 #import "PlayerEntity.h"
 #import "SkyEntity.h"
@@ -131,8 +132,8 @@ SOFTWARE.
 {
     OO_ENTER_OPENGL();
 
-    OOGL(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
-    OOGL(glClearDepth(MAX_CLEAR_DEPTH));
+    OORendererSetClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    OORendererSetClearDepth(MAX_CLEAR_DEPTH);
     OOGL(glClear(_planets ? GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT : GL_COLOR_BUFFER_BIT));
 
     OOGL(glDepthMask(GL_FALSE));

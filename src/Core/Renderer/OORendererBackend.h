@@ -31,6 +31,7 @@ MA 02110-1301, USA.
 
 #include "OOFixedFunction.h"
 #include "OOImmediateMode.h"
+#include "OORenderPass.h"
 #include "OORenderState.h"
 #include "OOVertexArray.h"
 
@@ -69,6 +70,12 @@ void OORendererBackendSetLightModelAmbient(const float rgba[4]);
 void OORendererBackendSetMaterialColor(OOMaterialFace face, OOMaterialColor which, const float rgba[4]);
 void OORendererBackendSetMaterialShininess(OOMaterialFace face, float shininess);
 void OORendererBackendSetFog(const OOFogValues* fog);
+
+// Passes. clearColor and clearDepth are the current clear values.
+void OORendererBackendSetClearValues(const float clearColor[4], float clearDepth);
+void OORendererBackendBeginPass(const OORenderPassDescriptor* pass, const float clearColor[4], float clearDepth);
+void OORendererBackendEndPass(void);
+void OORendererBackendReadPixels(int x, int y, int width, int height, OOPixelFormat format, void* pixels);
 
 /*  Texture glue, in Objective-C (OORendererTexture.m). texture is an
     OOTexture or NULL. The save and restore pair covers the 2D binding and

@@ -96,6 +96,7 @@ MA 02110-1301, USA.
 #if OO_LOCALIZATION_TOOLS
 #import "OOConvertSystemDescriptions.h"
 #import "OOFixedFunction.h"
+#import "OORenderPass.h"
 #endif
 
 enum {
@@ -4361,12 +4362,10 @@ static const OOMatrix starboard_matrix = { { { 0.0f, 0.0f, 1.0f, 0.0f },
             [self resizeTargetFramebufferWithViewSize:viewSize];
         }
 
+        // With shaders the scene is drawn into an offscreen target for post-processing.
+        OORenderTarget sceneTarget = kOORenderTargetCurrent;
         if ([self useShaders]) {
-            if ([gameView msaa]) {
-                OOGL(glBindFramebuffer(GL_FRAMEBUFFER, msaaFramebufferID));
-            } else {
-                OOGL(glBindFramebuffer(GL_FRAMEBUFFER, targetFramebufferID));
-            }
+            sceneTarget = [gameView msaa] ? msaaFramebufferID : targetFramebufferID;
         }
         @try {
             no_update = YES; // block other attempts to draw
@@ -4410,12 +4409,13 @@ static const OOMatrix starboard_matrix = { { { 0.0f, 0.0f, 1.0f, 0.0f },
 
             OOSetOpenGLState(OPENGL_STATE_OPAQUE); // FIXME: should be redundant.
 
-            OOGL(glClear(GL_COLOR_BUFFER_BIT));
+            // The scene pass. Its clear colour is the one set below, in the previous frame.
+            OORendererBeginPass(&(OORenderPassDescriptor) { .target = sceneTarget, .colorLoad = kOOLoadClear, .depthLoad = kOOLoadKeep });
 
             if (!displayGUI) {
-                OOGL(glClearColor(skyClearColor[0], skyClearColor[1], skyClearColor[2], skyClearColor[3]));
+                OORendererSetClearColor(skyClearColor[0], skyClearColor[1], skyClearColor[2], skyClearColor[3]);
             } else {
-                OOGL(glClearColor(0.0, 0.0, 0.0, 0.0));
+                OORendererSetClearColor(0.0, 0.0, 0.0, 0.0);
                 // If set, display background GUI image. Must be done before enabling lights to avoid dim backgrounds
                 OOGLResetProjection();
                 OOGLFrustum(-0.5, 0.5, -aspect * 0.5, aspect * 0.5, 1.0, MAX_CLEAR_DEPTH);
@@ -4479,10 +4479,10 @@ static const OOMatrix starboard_matrix = { { { 0.0f, 0.0f, 1.0f, 0.0f },
                  */
 
                 OOSetOpenGLState(OPENGL_STATE_OPAQUE);
-                // clearing the depth buffer waits until we've set
-                // STATE_OPAQUE so that depth writes are definitely
-                // available.
-                OOGL(glClear(GL_DEPTH_BUFFER_BIT));
+                // Each depth range starts a new pass that clears depth and keeps colour.
+                OORenderTarget passTarget = OORendererCurrentPassTarget();
+                OORendererEndPass();
+                OORendererBeginPass(&(OORenderPassDescriptor) { .target = passTarget, .colorLoad = kOOLoadKeep, .depthLoad = kOOLoadClear });
 
                 // Set up view transformation matrix
                 OOMatrix flipMatrix = kIdentityMatrix;
@@ -4669,6 +4669,7 @@ static const OOMatrix starboard_matrix = { { { 0.0f, 0.0f, 1.0f, 0.0f },
                 OOCheckOpenGLErrors(@"Universe after drawing entities");
                 OOSetOpenGLState(OPENGL_STATE_OVERLAY); // FIXME: should be redundant.
 
+                OORendererEndPass(); // the scene
                 [self prepareToRenderIntoDefaultFramebuffer];
                 OOGL(glBindFramebuffer(GL_FRAMEBUFFER, defaultDrawFBO));
 
@@ -4676,6 +4677,9 @@ static const OOMatrix starboard_matrix = { { { 0.0f, 0.0f, 1.0f, 0.0f },
                 [self drawTargetTextureIntoDefaultFramebuffer];
                 OOCheckOpenGLErrors(@"Universe after drawing from custom framebuffer to screen framebuffer");
                 OOLog(@"universe.profile.secondPassDraw", @"%@", @"End second pass drawing");
+
+                // The HUD is drawn over the post-processed scene, in the window.
+                OORendererBeginPass(&(OORenderPassDescriptor) { .target = kOORenderTargetCurrent, .colorLoad = kOOLoadKeep, .depthLoad = kOOLoadKeep });
 
                 OOLog(@"universe.profile.drawHUD", @"%@", @"Begin HUD drawing");
             }
@@ -4741,6 +4745,7 @@ static const OOMatrix starboard_matrix = { { { 0.0f, 0.0f, 1.0f, 0.0f },
             OOLog(@"universe.profile.drawHUD", @"%@", @"End HUD drawing");
             OOCheckOpenGLErrors(@"Universe after drawing HUD");
 
+            OORendererEndPass(); // the scene, or the HUD if it was drawn separately
             OOGL(glFlush()); // don't wait around for drawing to complete
 
             no_update = NO; // allow other attempts to draw
@@ -4753,6 +4758,7 @@ static const OOMatrix starboard_matrix = { { { 0.0f, 0.0f, 1.0f, 0.0f },
         }
         @catch (NSException* exception) {
             no_update = NO; // make sure we don't get stuck in all subsequent frames.
+            OORendererEndPassIfActive();
 
             if ([[exception name] hasPrefix:@"Oolite"]) {
                 [self handleOoliteException:exception];

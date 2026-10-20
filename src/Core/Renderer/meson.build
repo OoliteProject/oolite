@@ -4,6 +4,7 @@ oolite_sources += files(
     'OOFixedFunction.c',
     'OOImmediateMode.c',
     'OOVertexArray.c',
+    'OORenderPass.c',
     'OORenderState.c',
     'OORendererGL.c',
     'OORendererLog.m',

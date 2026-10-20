@@ -39,6 +39,7 @@ MA 02110-1301, USA.
 
 #include "OOFixedFunction.h"
 #include "OOImmediateMode.h"
+#include "OORenderPass.h"
 #include "OORenderState.h"
 #include "OOVertexArray.h"
 
@@ -616,6 +617,53 @@ int main(int argc, char* argv[])
         printf("%-4s vertex-array draw leaves client-array state as it was\n", stateKept ? "OK" : "FAIL");
         total += 2;
         failures += !drawOK + !stateKept;
+    }
+
+    /*  Passes: a pass binds its target and clears with the current clear
+        values, clearing depth even with depth writes off, which it puts back.
+    */
+    {
+        GLuint depth;
+        glGenRenderbuffersEXT(1, &depth);
+        glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, depth);
+        glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT24, kSize, kSize);
+        glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, depth);
+        glClearDepth(0.25);
+        glClear(GL_DEPTH_BUFFER_BIT);
+        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+        glDepthMask(GL_FALSE);
+
+        OORendererSetClearColor(0.0f, 0.5f, 1.0f, 1.0f);
+        OORendererSetClearDepth(0.75f);
+        OORendererBeginPass(&(OORenderPassDescriptor) { .target = fbo, .colorLoad = kOOLoadClear, .depthLoad = kOOLoadClear });
+        GLint bound;
+        glGetIntegerv(GL_FRAMEBUFFER_BINDING_EXT, &bound);
+        OORendererEndPass();
+        uint8_t pixel[4];
+        float depthValue;
+        glReadPixels(5, 5, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixel);
+        glReadPixels(5, 5, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depthValue);
+        GLboolean mask;
+        glGetBooleanv(GL_DEPTH_WRITEMASK, &mask);
+
+        // A keep-colour pass leaves the colour alone.
+        OORendererSetClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+        OORendererBeginPass(&(OORenderPassDescriptor) { .target = kOORenderTargetCurrent, .colorLoad = kOOLoadKeep, .depthLoad = kOOLoadClear });
+        OORendererEndPass();
+        uint8_t kept[4];
+        glReadPixels(5, 5, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, kept);
+        glDepthMask(GL_TRUE);
+        glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, 0);
+        glDeleteRenderbuffersEXT(1, &depth);
+        OORendererSetClearColor(0, 0, 0, 1);
+        OORendererSetClearDepth(1.0f);
+
+        bool passOK = (GLuint)bound == fbo && pixel[0] == 0 && pixel[1] >= 127 && pixel[1] <= 128 && pixel[2] == 255
+            && fabsf(depthValue - 0.75f) < 1e-3f && !mask && kept[0] == 0 && kept[2] == 255;
+        printf("%-4s pass binds its target, clears colour and depth, restores the depth mask, keeps colour on request (depth %.3f)\n",
+            passOK ? "OK" : "FAIL", depthValue);
+        total += 1;
+        failures += !passOK;
     }
 
     /*  Fixed-function values: what GL stores must be the same whether set

@@ -47,6 +47,7 @@ MA 02110-1301, USA.
 extern PFNGLACTIVETEXTUREPROC glActiveTexturePtr;
 extern PFNGLCLIENTACTIVETEXTUREARBPROC glClientActiveTextureARBPtr;
 extern PFNGLBINDBUFFERPROC glBindBuffer;
+extern PFNGLBINDFRAMEBUFFERPROC glBindFramebuffer;
 extern PFNGLENABLEVERTEXATTRIBARRAYARBPROC glEnableVertexAttribArrayARB;
 extern PFNGLDISABLEVERTEXATTRIBARRAYARBPROC glDisableVertexAttribArrayARB;
 extern PFNGLVERTEXATTRIBPOINTERARBPROC glVertexAttribPointerARB;
@@ -447,4 +448,51 @@ void OORendererBackendDrawArrays(OONativePrimitive primitive, const OOVertexLayo
     glClientActiveTexture((GLenum)clientActiveTexture);
     if (arrayBuffer != 0)
         glBindBuffer(GL_ARRAY_BUFFER, (GLuint)arrayBuffer);
+}
+
+#pragma mark - Passes
+
+void OORendererBackendSetClearValues(const float clearColor[4], float clearDepth)
+{
+    glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
+    glClearDepth(clearDepth);
+}
+
+void OORendererBackendBeginPass(const OORenderPassDescriptor* pass, const float clearColor[4], float clearDepth)
+{
+    if (pass->target != kOORenderTargetCurrent)
+        glBindFramebuffer(GL_FRAMEBUFFER, pass->target);
+
+    GLbitfield mask = 0;
+    if (pass->colorLoad == kOOLoadClear)
+        mask |= GL_COLOR_BUFFER_BIT;
+    if (pass->depthLoad == kOOLoadClear)
+        mask |= GL_DEPTH_BUFFER_BIT;
+    if (mask == 0)
+        return;
+
+    GLboolean depthMask = GL_TRUE;
+    if (mask & GL_DEPTH_BUFFER_BIT) {
+        glGetBooleanv(GL_DEPTH_WRITEMASK, &depthMask);
+        if (!depthMask)
+            glDepthMask(GL_TRUE);
+    }
+    glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
+    glClearDepth(clearDepth);
+    glClear(mask);
+    if (!depthMask)
+        glDepthMask(GL_FALSE);
+}
+
+void OORendererBackendEndPass(void)
+{
+    // GL has nothing to do; SDL_GPU ends the render pass here.
+}
+
+void OORendererBackendReadPixels(int x, int y, int width, int height, OOPixelFormat format, void* pixels)
+{
+    if (format == kOOPixelsRGBFloat)
+        glReadPixels(x, y, width, height, GL_RGB, GL_FLOAT, pixels);
+    else
+        glReadPixels(x, y, width, height, GL_BGRA, GL_UNSIGNED_BYTE, pixels);
 }

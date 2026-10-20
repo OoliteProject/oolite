@@ -44,6 +44,7 @@ MA 02110-1301, USA.
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #import "OOFixedFunction.h"
 #import "OOOpenGLMatrixManager.h"
+#import "OORenderPass.h"
 #import "stb_image_write.h"
 
 #define kOOLogUnconvertedNSLog @"unclassified.MyOpenGLView"
@@ -482,9 +483,10 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
 {
     OOOpenGLExtensionManager* extMgr = [OOOpenGLExtensionManager sharedManager];
 
-    OOGL(glClearColor(0.0, 0.0, 0.0, 0.0));
-    OOGL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-    OOGL(glClearDepth(1.0));
+    OORendererSetClearColor(0.0, 0.0, 0.0, 0.0);
+    OORendererSetClearDepth(1.0);
+    OORendererBeginPass(&(OORenderPassDescriptor) { .target = kOORenderTargetCurrent, .colorLoad = kOOLoadClear, .depthLoad = kOOLoadClear });
+    OORendererEndPass();
     OOGL(glDepthFunc(GL_LESS)); // depth buffer
 
     if (UNIVERSE) {
@@ -700,7 +702,7 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
     if (UNIVERSE) {
         [UNIVERSE drawUniverse]; // do all the drawing!
     } else {
-        glClearColor(0.0, 0.0, 0.0, 0.0); // not set up yet, draw a black screen
+        OORendererSetClearColor(0.0, 0.0, 0.0, 0.0); // not set up yet, draw a black screen
         glClear(GL_COLOR_BUFFER_BIT);
     }
 
@@ -742,7 +744,7 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
     glViewport(0, 0, dest.w * pixelDensity, dest.h * pixelDensity);
 
     glEnable(GL_TEXTURE_2D);
-    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+    OORendererSetClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
     [matrixManager resetProjection];
@@ -1049,7 +1051,7 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
     else
         glPixelStorei(GL_PACK_ALIGNMENT, 4);
     for (y = surface->h - 1, off = 0; y >= 0; y--, off += pitch) {
-        glReadPixels(0, y, surface->w, 1, GL_BGRA, GL_UNSIGNED_BYTE, pixls + off);
+        OORendererReadPixels(0, y, surface->w, 1, kOOPixelsBGRA8, pixls + off);
     }
 
     tmpSurface = SDL_CreateSurfaceFrom(surface->w, surface->h, surface->format, pixls, surface->pitch);
@@ -1084,7 +1086,7 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
         OOLog(@"screenshot", @"Saving screen shot \"%@\" (%u x %u pixels).", pathToPicHDR, surface->w, surface->h);
         GLfloat* pixlsf = (GLfloat*)malloc(pitch * surface->h * sizeof(GLfloat));
         for (y = surface->h - 1, off = 0; y >= 0; y--, off += pitch) {
-            glReadPixels(0, y, surface->w, 1, GL_RGB, GL_FLOAT, pixlsf + off);
+            OORendererReadPixels(0, y, surface->w, 1, kOOPixelsRGBFloat, pixlsf + off);
         }
 
         if (([fileExtension isEqual:SNAPSHOTHDR_EXTENSION_EXR] && SaveEXRSnapshot([pathToPicHDR cStringUsingEncoding:NSUTF8StringEncoding], surface->w, surface->h, pixlsf) != 0) // TINYEXR_SUCCESS
