@@ -63,7 +63,8 @@ typedef uint64_t OOHighResTimeValue;
 #elif OOLITE_WINDOWS
 
 // Windows: if standalone, use timeGetTime...
-#if OOSTOPWATCH_STANDALONE
+// TODO (port): QuickJS has no JS_Now(), so timeGetTime is also used with QuickJS (millisecond resolution).
+#if OOSTOPWATCH_STANDALONE || OOJS_QUICKJS
 #define OO_PROFILING_STOPWATCH_WINDOWS 1
 typedef DWORD OOHighResTimeValue; // Rolls over once every 50 days, but we can live with that.
 

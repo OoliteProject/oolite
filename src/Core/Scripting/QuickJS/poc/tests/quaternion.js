@@ -52,6 +52,7 @@ this.runTests = function ()
 	check("construct from quaternion", new Quaternion(q).toString(), "(1 + 0i + 0j + 0k)");
 	check("call without new", Quaternion(1, 0, 0, 0).toString(), "(1 + 0i + 0j + 0k)");
 	check("constructor length", Quaternion.length, 4);
+	check("inherits Object.prototype", typeof q.hasOwnProperty, "function");
 	check("prototype is a zero quaternion", Quaternion.prototype.toString(), "(0 + 0i + 0j + 0k)");
 
 	// Properties (read back at single precision, as in SpiderMonkey)

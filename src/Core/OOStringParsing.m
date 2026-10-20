@@ -270,12 +270,17 @@ NSString* OOPadStringToEms(NSString* string, float padEms)
 NSString* OOStringFromDeciCredits(OOCreditsQuantity tenthsOfCredits, BOOL includeDecimal, BOOL includeSymbol)
 {
     JSContext* context = OOJSAcquireContext();
+#if OOJS_QUICKJS
+    JSValueConst global = [[OOJavaScriptEngine sharedEngine] globalObject];
+    JSValue exception = JS_UNDEFINED;
+#else
     JSObject* global = [[OOJavaScriptEngine sharedEngine] globalObject];
     JSObject* fakeRoot;
     jsval method;
     jsval rval;
-    NSString* result = nil;
     jsval exception;
+#endif
+    NSString* result = nil;
     BOOL hadException;
 
     /*	Because the |cr etc. formatting operators call this, and the
@@ -288,6 +293,32 @@ NSString* OOStringFromDeciCredits(OOCreditsQuantity tenthsOfCredits, BOOL includ
 
     reentrancyLock = YES;
 
+#if OOJS_QUICKJS
+    hadException = JS_HasException(context);
+    if (hadException)
+        exception = JS_GetException(context); // Clears it.
+
+    JSValue method = JS_GetProperty(context, global, OOJSID("formatCredits"));
+    if (!JS_IsException(method)) {
+        JSValue args[3] = { JS_NewNumber(context, tenthsOfCredits * 0.1), OOJSValueFromBOOL(includeDecimal), OOJSValueFromBOOL(includeSymbol) };
+
+        OOJSStartTimeLimiter();
+        JSValue rval = JS_Call(context, method, global, 3, args);
+        OOJSStopTimeLimiter();
+
+        if (JS_IsException(rval))
+            OOJSReportPendingException(context);
+        else
+            result = OOStringFromJSValue(context, rval);
+        JS_FreeValue(context, rval);
+    } else {
+        OOJSReportPendingException(context);
+    }
+    JS_FreeValue(context, method);
+
+    if (hadException)
+        JS_Throw(context, exception); // Takes ownership.
+#else
     hadException = JS_GetPendingException(context, &exception);
     JS_ClearPendingException(context);
 
@@ -307,6 +338,7 @@ NSString* OOStringFromDeciCredits(OOCreditsQuantity tenthsOfCredits, BOOL includ
 
     if (hadException)
         JS_SetPendingException(context, exception);
+#endif
 
     OOJSRelinquishContext(context);
 

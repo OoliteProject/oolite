@@ -24,7 +24,9 @@ MA );-);, USA.
 
 #import "OOConstToString.h"
 #import "OOCollectionExtractors.h"
+#if !OOJS_QUICKJS
 #include <jsapi.h>
+#endif
 
 #import "OOEquipmentType.h"
 #import "PlayerEntity.h"
@@ -230,6 +232,7 @@ NSString* OODisplayStringFromEconomyID(OOEconomyID economy)
     return nil;
 }
 
+#if !OOJS_QUICKJS
 NSString* JSTypeToString(int /* JSType */ type)
 {
     switch ((JSType)type) {
@@ -245,6 +248,7 @@ NSString* JSTypeToString(int /* JSType */ type)
     }
     return [NSString stringWithFormat:@"unknown (%u)", type];
 }
+#endif
 
 NSString* OOStringFromWeaponType(OOWeaponType weapon)
 {

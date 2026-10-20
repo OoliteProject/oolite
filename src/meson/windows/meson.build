@@ -22,15 +22,16 @@ dep_libs = [
     'ws2_32',
     'objc',
     'gnustep-base',
-    'js' + win_js_suffix,
 ]
+if not use_quickjs
+    dep_libs += ['js' + win_js_suffix]
+endif
 foreach lib : dep_libs
     oolite_dependencies += [cc.find_library(lib, required: true)]
 endforeach
 if (ccid == 'gcc')
-    add_project_arguments(
-        '-DSTATIC_JS_API',
-        '-D_WIN32_WINNT=0x0A00',
-        language: c_family
-    )
+    add_project_arguments('-D_WIN32_WINNT=0x0A00', language: c_family)
+    if not use_quickjs
+        add_project_arguments('-DSTATIC_JS_API', language: c_family)
+    endif
 endif
