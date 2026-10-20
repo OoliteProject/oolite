@@ -29,6 +29,9 @@ FUNCTIONS = {
     "glVertex2f": "OOImmediateVertex2f",
     "glVertex3f": "OOImmediateVertex3f",
     "glVertex3fv": "OOImmediateVertex3fv",
+    # Integer arguments convert to float implicitly.
+    "glVertex2i": "OOImmediateVertex2f",
+    "glVertex3i": "OOImmediateVertex3f",
     "glColor3f": "OOImmediateColor3f",
     "glColor4f": "OOImmediateColor4f",
     "glColor4fv": "OOImmediateColor4fv",
@@ -37,7 +40,7 @@ FUNCTIONS = {
 }
 
 # Calls wrapped in OOGL(...): OOGL(glColor4f(a, b, c, d)); -> OOImmediateColor4f(a, b, c, d);
-OOGL_WRAPPED = re.compile(r"OOGL\((gl(?:Vertex[23]fv?|Color[34]fv?|TexCoord2f|Normal3f))\((.*)\)\);")
+OOGL_WRAPPED = re.compile(r"OOGL\((gl(?:Vertex[23][fi]v?|Color[34]fv?|TexCoord2f|Normal3f))\((.*)\)\);")
 BEGIN = re.compile(r"\b(?:OOGLBEGIN|glBegin)\(\s*(\w+)\s*\)")
 END = re.compile(r"\b(?:OOGLEND|glEnd)\(\s*\)")
 CALL = re.compile(r"\b(" + "|".join(sorted(FUNCTIONS, key=len, reverse=True)) + r")\(")
