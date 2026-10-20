@@ -4589,10 +4589,9 @@ static const OOMatrix starboard_matrix = { { { 0.0f, 0.0f, 1.0f, 0.0f },
                                 fog_scale = BILLBOARD_DEPTH * fogFactor;
                                 half_scale = fog_scale * 0.50;
                                 OOGLEnable(GL_FOG);
-                                OOGL(glFogi(GL_FOG_MODE, GL_LINEAR));
-                                OOGL(glFogfv(GL_FOG_COLOR, skyClearColor));
-                                OOGL(glFogf(GL_FOG_START, half_scale));
-                                OOGL(glFogf(GL_FOG_END, fog_scale));
+                                OORendererSetFogMode(kOOFogLinear);
+                                OORendererSetFogColor(skyClearColor);
+                                OORendererSetFogRange(half_scale, fog_scale);
                                 fog_blend = OOClamp_0_1_f((magnitude([drawthing cameraRelativePosition]) - half_scale) / half_scale);
                                 [drawthing setAtmosphereFogging:[OOColor colorWithRed:skyClearColor[0] green:skyClearColor[1] blue:skyClearColor[2] alpha:fog_blend]];
                             }
@@ -4636,10 +4635,9 @@ static const OOMatrix starboard_matrix = { { { 0.0f, 0.0f, 1.0f, 0.0f },
                                 fog_scale = BILLBOARD_DEPTH * fogFactor;
                                 half_scale = fog_scale * 0.50;
                                 OOGLEnable(GL_FOG);
-                                OOGL(glFogi(GL_FOG_MODE, GL_LINEAR));
-                                OOGL(glFogfv(GL_FOG_COLOR, skyClearColor));
-                                OOGL(glFogf(GL_FOG_START, half_scale));
-                                OOGL(glFogf(GL_FOG_END, fog_scale));
+                                OORendererSetFogMode(kOOFogLinear);
+                                OORendererSetFogColor(skyClearColor);
+                                OORendererSetFogRange(half_scale, fog_scale);
                                 fog_blend = OOClamp_0_1_f((magnitude([drawthing cameraRelativePosition]) - half_scale) / half_scale);
                                 [drawthing setAtmosphereFogging:[OOColor colorWithRed:skyClearColor[0] green:skyClearColor[1] blue:skyClearColor[2] alpha:fog_blend]];
                             }

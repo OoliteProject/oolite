@@ -30,6 +30,7 @@ SOFTWARE.
 #import "NSObjectOOExtensions.h"
 #import "OOCollectionExtractors.h"
 #import "OOColor.h"
+#import "OOFixedFunction.h"
 #import "OOGLStateCompat.h"
 #import "OOGraphicsResetManager.h"
 #import "OOMacroOpenGL.h"
@@ -188,7 +189,7 @@ static OOColor* SaturatedColorInRange(OOColor* color1, OOColor* color2, BOOL hue
 
     // Make stars dim in atmosphere. Note: works OK on night side because sky is dark blue, not black.
     GLfloat fogColor[4] = { 0.02, 0.02, 0.02, 1.0 };
-    OOGL(glFogfv(GL_FOG_COLOR, fogColor));
+    OORendererSetFogColor(fogColor);
 
     // Drawn directly each frame: SDL_GPU has no display lists.
     [self ensureTexturesLoaded];

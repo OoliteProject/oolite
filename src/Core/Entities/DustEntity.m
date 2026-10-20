@@ -38,6 +38,7 @@ MA 02110-1301, USA.
 #import "OOShaderUniform.h"
 #endif
 
+#import "OOFixedFunction.h"
 #import "OOGLStateCompat.h"
 #import "OOImmediateMode.h"
 #import "PlayerEntity.h"
@@ -317,11 +318,10 @@ enum {
 #endif
         {
             OOGLEnable(GL_FOG);
-            OOGL(glFogi(GL_FOG_MODE, GL_LINEAR));
-            OOGL(glFogfv(GL_FOG_COLOR, fogcolor));
+            OORendererSetFogMode(kOOFogLinear);
+            OORendererSetFogColor(fogcolor);
             OOGL(glHint(GL_FOG_HINT, GL_NICEST));
-            OOGL(glFogf(GL_FOG_START, NEAR_PLANE));
-            OOGL(glFogf(GL_FOG_END, FAR_PLANE));
+            OORendererSetFogRange(NEAR_PLANE, FAR_PLANE);
         }
 
         OOGLEnable(GL_BLEND);
