@@ -235,6 +235,20 @@ static void LoadCompatibilityScript(JSContext* context);
         gOOJSMainThreadContext = NULL;
 
         JS_RunGC(_runtime);
+
+#ifndef NDEBUG
+        /*	Every native object holding a JSValue should have let go of it on
+                kOOJavaScriptEngineWillResetNotification, so nothing should be
+                left. Anything that is indicates a reference counting error.
+        */
+        JSMemoryUsage usage;
+        JS_ComputeMemoryUsage(_runtime, &usage);
+        if (usage.obj_count != 0) {
+            OOLogWARN(@"script.javaScript.reset.liveObjects", @"%lli JavaScript objects are still alive after the context was destroyed; something is holding a JSValue it does not own, or has not freed one it does.", (long long)usage.obj_count);
+        } else {
+            OOLog(@"script.javaScript.reset.liveObjects", @"%@", @"No JavaScript objects left alive after the context was destroyed.");
+        }
+#endif
     }
 }
 
@@ -256,10 +270,35 @@ static void LoadCompatibilityScript(JSContext* context);
     return YES;
 }
 
+// YES if JavaScript code is on the stack (e.g. quitGame() called from a script).
+static BOOL IsRunningJavaScript(JSContext* context)
+{
+    if (context == NULL)
+        return NO;
+    for (int level = 0; level < 16; level++) {
+        JSAtom name = JS_GetScriptOrModuleName(context, level);
+        if (name != JS_ATOM_NULL) {
+            JS_FreeAtom(context, name);
+            return YES;
+        }
+    }
+    return NO;
+}
+
 - (NSUInteger)shutDown
 {
     if (_runtime == NULL)
         return 0;
+
+    /*	The game can quit from inside a script (quitGame()). The frames on the
+            stack then legitimately hold JS values, and a function keeps its whole
+            context alive, so the leak check would be meaningless, and freeing the
+            context under running code is unsafe.
+    */
+    if (IsRunningJavaScript(_context)) {
+        OOLog(@"script.javaScript.shutDown", @"%@", @"Not shutting down the JavaScript runtime (and skipping its leak check): quitting from inside a script.");
+        return 0;
+    }
 
     OOJSFrameCallbacksRemoveAll();
     [[NSNotificationCenter defaultCenter] postNotificationName:kOOJavaScriptEngineWillResetNotification object:self];
