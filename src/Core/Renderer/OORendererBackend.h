@@ -29,6 +29,7 @@ MA 02110-1301, USA.
 #ifndef OORENDERERBACKEND_H
 #define OORENDERERBACKEND_H
 
+#include "OOFixedFunction.h"
 #include "OOImmediateMode.h"
 #include "OORenderState.h"
 
@@ -51,6 +52,14 @@ void OORendererBackendPopDrawState(int depth);
 
 // Debug builds: report where the context no longer matches state.
 void OORendererBackendVerifyDrawState(const OODrawState* state);
+
+// Fixed-function values. Light positions are already in eye space.
+void OORendererBackendSetLightColor(unsigned light, OOLightColor which, const float rgba[4]);
+void OORendererBackendSetLightPosition(unsigned light, const float eyePosition[4]);
+void OORendererBackendSetLightModelAmbient(const float rgba[4]);
+void OORendererBackendSetMaterialColor(OOMaterialFace face, OOMaterialColor which, const float rgba[4]);
+void OORendererBackendSetMaterialShininess(OOMaterialFace face, float shininess);
+void OORendererBackendSetFog(const OOFogValues* fog);
 
 /*  Texture glue, in Objective-C (OORendererTexture.m). texture is an
     OOTexture or NULL. The save and restore pair covers the 2D binding and

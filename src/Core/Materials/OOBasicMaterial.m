@@ -27,8 +27,10 @@ SOFTWARE.
 
 #import "OOBasicMaterial.h"
 #import "OOCollectionExtractors.h"
+#import "OOFixedFunction.h"
 #import "OOFunctionAttributes.h"
 #import "OOMaterialSpecifier.h"
+#import "OOOpenGLMatrixManager.h"
 #import "OOTexture.h"
 #import "Universe.h"
 
@@ -106,11 +108,11 @@ static OOBasicMaterial* sDefaultMaterial = nil;
 
 - (BOOL)doApply
 {
-    OOGL(glMaterialfv(FACE, GL_DIFFUSE, diffuse));
-    OOGL(glMaterialfv(FACE, GL_SPECULAR, specular));
-    OOGL(glMaterialfv(FACE, GL_AMBIENT, ambient));
-    OOGL(glMaterialfv(FACE, GL_EMISSION, emission));
-    OOGL(glMateriali(FACE, GL_SHININESS, shininess));
+    OORendererSetMaterialColor(kOOMaterialFrontAndBack, kOOMaterialDiffuse, diffuse);
+    OORendererSetMaterialColor(kOOMaterialFrontAndBack, kOOMaterialSpecular, specular);
+    OORendererSetMaterialColor(kOOMaterialFrontAndBack, kOOMaterialAmbient, ambient);
+    OORendererSetMaterialColor(kOOMaterialFrontAndBack, kOOMaterialEmission, emission);
+    OORendererSetMaterialShininess(kOOMaterialFrontAndBack, shininess);
     if ([self isMemberOfClass:[OOBasicMaterial class]]) {
         [OOTexture applyNone];
     }

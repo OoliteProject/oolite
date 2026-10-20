@@ -123,3 +123,6 @@ void OOGLOrtho(double left, double right, double bottom, double top, double near
 void OOGLPerspective(double fovy, double aspect, double zNear, double zFar);
 
 OOMatrix OOGLGetModelViewProjection(void);
+
+// Like glLightfv(GL_LIGHTn, GL_POSITION, position): position is transformed by the current modelview.
+void OOGLSetLightPosition(unsigned light, const GLfloat position[4]);

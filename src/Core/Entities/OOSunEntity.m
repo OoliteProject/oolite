@@ -32,7 +32,9 @@ MA 02110-1301, USA.
 #import "OOCollectionExtractors.h"
 #import "OOColor.h"
 #import "OODebugFlags.h"
+#import "OOFixedFunction.h"
 #import "OOImmediateMode.h"
+#import "OOOpenGLMatrixManager.h"
 #import "OOStringExpander.h"
 #import "OOStringParsing.h"
 #import "PlayerEntity.h"
@@ -97,9 +99,9 @@ MA 02110-1301, USA.
     sun_specular[2] = b;
     sun_specular[3] = 1.0;
 
-    OOGL(glLightfv(GL_LIGHT1, GL_AMBIENT, sun_ambient));
-    OOGL(glLightfv(GL_LIGHT1, GL_DIFFUSE, sun_diffuse));
-    OOGL(glLightfv(GL_LIGHT1, GL_SPECULAR, sun_specular));
+    OORendererSetLightColor(1, kOOLightAmbient, sun_ambient);
+    OORendererSetLightColor(1, kOOLightDiffuse, sun_diffuse);
+    OORendererSetLightColor(1, kOOLightSpecular, sun_specular);
 
     // main disc less saturation (partially taken care of by the ACES tonemapper) more brightness
     color = [OOColor colorWithHue:hue saturation:sat * 0.75f brightness:1.0f alpha:1.0f];

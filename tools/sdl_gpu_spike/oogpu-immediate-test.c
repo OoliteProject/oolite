@@ -37,6 +37,7 @@ MA 02110-1301, USA.
 #define GL_GLEXT_PROTOTYPES 1
 #define GL_SILENCE_DEPRECATION 1
 
+#include "OOFixedFunction.h"
 #include "OOImmediateMode.h"
 #include "OORenderState.h"
 
@@ -557,6 +558,87 @@ int main(int argc, char* argv[])
         printf("%-4s raw GL change inside a pushed state is reported\n", reported ? "OK" : "FAIL");
         total += 3;
         failures += !drawOK + !restored + !reported;
+    }
+
+    /*  Fixed-function values: what GL stores must be the same whether set
+        directly or through the renderer, including a light position set
+        under a non-trivial modelview.
+    */
+    {
+        float mv[16];
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+        glTranslatef(3.0f, -2.0f, -7.5f);
+        glRotatef(37.0f, 0.3f, 0.8f, 0.5f);
+        glScalef(1.0f, 1.5f, 0.75f);
+        glGetFloatv(GL_MODELVIEW_MATRIX, mv);
+        const float position[4] = { 1.5f, -2.25f, 4.0f, 1.0f };
+        const float direction[4] = { -0.6f, 0.5f, 0.8f, 0.0f };
+        const float color[4] = { 0.9f, 0.7f, 0.3f, 1.0f };
+        float legacy[4][4], viaRenderer[4][4];
+
+        glLightfv(GL_LIGHT1, GL_POSITION, position);
+        glLightfv(GL_LIGHT2, GL_POSITION, direction);
+        glLightfv(GL_LIGHT1, GL_DIFFUSE, color);
+        glGetLightfv(GL_LIGHT1, GL_POSITION, legacy[0]);
+        glGetLightfv(GL_LIGHT2, GL_POSITION, legacy[1]);
+        glGetLightfv(GL_LIGHT1, GL_DIFFUSE, legacy[2]);
+        glLightfv(GL_LIGHT1, GL_POSITION, (const float[4]) { 0, 0, 0, 1 });
+        glLightfv(GL_LIGHT2, GL_POSITION, (const float[4]) { 0, 0, 0, 1 });
+        glLightfv(GL_LIGHT1, GL_DIFFUSE, (const float[4]) { 0, 0, 0, 1 });
+
+        OORendererSetLightPosition(1, position, mv);
+        OORendererSetLightPosition(2, direction, mv);
+        OORendererSetLightColor(1, kOOLightDiffuse, color);
+        glGetLightfv(GL_LIGHT1, GL_POSITION, viaRenderer[0]);
+        glGetLightfv(GL_LIGHT2, GL_POSITION, viaRenderer[1]);
+        glGetLightfv(GL_LIGHT1, GL_DIFFUSE, viaRenderer[2]);
+        float modelviewAfter[16];
+        glGetFloatv(GL_MODELVIEW_MATRIX, modelviewAfter);
+
+        double worst = 0;
+        for (int v = 0; v < 3; v++) {
+            for (int k = 0; k < 4; k++) {
+                double d = fabs((double)legacy[v][k] - viaRenderer[v][k]);
+                if (d > worst)
+                    worst = d;
+            }
+        }
+        bool modelviewKept = memcmp(mv, modelviewAfter, sizeof mv) == 0;
+        bool lightsOK = worst < 1e-5 && modelviewKept;
+
+        const float shine = 12.0f, ambdiff[4] = { 0.4f, 0.5f, 0.6f, 1.0f }, emission[4] = { 0.1f, 0.0f, 0.2f, 1.0f };
+        OORendererSetMaterialColor(kOOMaterialFrontAndBack, kOOMaterialAmbientAndDiffuse, ambdiff);
+        OORendererSetMaterialColor(kOOMaterialFrontAndBack, kOOMaterialEmission, emission);
+        OORendererSetMaterialShininess(kOOMaterialFrontAndBack, shine);
+        float gotDiffuse[4], gotEmission[4], gotShine;
+        glGetMaterialfv(GL_BACK, GL_DIFFUSE, gotDiffuse);
+        glGetMaterialfv(GL_FRONT, GL_EMISSION, gotEmission);
+        glGetMaterialfv(GL_FRONT, GL_SHININESS, &gotShine);
+        const OOFixedFunctionValues* stored = OORendererGetFixedFunctionValues();
+        bool materialOK = memcmp(gotDiffuse, ambdiff, sizeof ambdiff) == 0 && memcmp(gotEmission, emission, sizeof emission) == 0
+            && gotShine == shine && memcmp(stored->frontMaterial.ambient, ambdiff, sizeof ambdiff) == 0
+            && fabsf(stored->lights[1].position[0] - legacy[0][0]) < 1e-5f;
+
+        const float fogColor[4] = { 0.1f, 0.2f, 0.3f, 1.0f };
+        OORendererSetFogMode(kOOFogLinear);
+        OORendererSetFogColor(fogColor);
+        OORendererSetFogRange(5.0f, 50.0f);
+        GLint fogMode;
+        float gotFog[4], fogStart, fogEnd;
+        glGetIntegerv(GL_FOG_MODE, &fogMode);
+        glGetFloatv(GL_FOG_COLOR, gotFog);
+        glGetFloatv(GL_FOG_START, &fogStart);
+        glGetFloatv(GL_FOG_END, &fogEnd);
+        bool fogOK = fogMode == GL_LINEAR && memcmp(gotFog, fogColor, sizeof fogColor) == 0 && fogStart == 5.0f && fogEnd == 50.0f;
+        glLoadIdentity();
+
+        printf("%-4s light positions and colours match glLightfv (worst difference %.2g), modelview untouched: %s\n",
+            lightsOK ? "OK" : "FAIL", worst, modelviewKept ? "yes" : "no");
+        printf("%-4s material values reach GL and the stored copy\n", materialOK ? "OK" : "FAIL");
+        printf("%-4s fog values reach GL\n", fogOK ? "OK" : "FAIL");
+        total += 3;
+        failures += !lightsOK + !materialOK + !fogOK;
     }
 
     // Interoperation with legacy GL: a colour set through GL is picked up,

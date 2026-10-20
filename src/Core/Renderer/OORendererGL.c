@@ -296,3 +296,60 @@ void OORendererBackendVerifyDrawState(const OODrawState* state)
     (void)state;
 #endif
 }
+
+#pragma mark - Fixed-function values
+
+void OORendererBackendSetLightColor(unsigned light, OOLightColor which, const float rgba[4])
+{
+    static const GLenum kParameters[] = { GL_AMBIENT, GL_DIFFUSE, GL_SPECULAR };
+    glLightfv(GL_LIGHT0 + light, kParameters[which], rgba);
+}
+
+void OORendererBackendSetLightPosition(unsigned light, const float eyePosition[4])
+{
+    // GL transforms the position by the current modelview; it is already in
+    // eye space, so give GL the identity. The matrix manager's copy of the
+    // modelview is untouched.
+    GLint matrixMode = GL_MODELVIEW;
+    glGetIntegerv(GL_MATRIX_MODE, &matrixMode);
+    if (matrixMode != GL_MODELVIEW)
+        glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+    glLightfv(GL_LIGHT0 + light, GL_POSITION, eyePosition);
+    glPopMatrix();
+    if (matrixMode != GL_MODELVIEW)
+        glMatrixMode((GLenum)matrixMode);
+}
+
+void OORendererBackendSetLightModelAmbient(const float rgba[4])
+{
+    glLightModelfv(GL_LIGHT_MODEL_AMBIENT, rgba);
+}
+
+static GLenum GLFace(OOMaterialFace face)
+{
+    return face == kOOMaterialFront ? GL_FRONT : face == kOOMaterialBack ? GL_BACK
+                                                                         : GL_FRONT_AND_BACK;
+}
+
+void OORendererBackendSetMaterialColor(OOMaterialFace face, OOMaterialColor which, const float rgba[4])
+{
+    static const GLenum kParameters[] = { GL_AMBIENT, GL_DIFFUSE, GL_SPECULAR, GL_EMISSION, GL_AMBIENT_AND_DIFFUSE };
+    glMaterialfv(GLFace(face), kParameters[which], rgba);
+}
+
+void OORendererBackendSetMaterialShininess(OOMaterialFace face, float shininess)
+{
+    glMaterialf(GLFace(face), GL_SHININESS, shininess);
+}
+
+void OORendererBackendSetFog(const OOFogValues* fog)
+{
+    static const GLint kModes[] = { GL_LINEAR, GL_EXP, GL_EXP2 };
+    glFogi(GL_FOG_MODE, kModes[fog->mode]);
+    glFogfv(GL_FOG_COLOR, fog->color);
+    glFogf(GL_FOG_START, fog->start);
+    glFogf(GL_FOG_END, fog->end);
+    glFogf(GL_FOG_DENSITY, fog->density);
+}

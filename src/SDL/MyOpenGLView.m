@@ -42,6 +42,8 @@ MA 02110-1301, USA.
 #include <SDL3/SDL_init.h>
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
+#import "OOFixedFunction.h"
+#import "OOOpenGLMatrixManager.h"
 #import "stb_image_write.h"
 
 #define kOOLogUnconvertedNSLog @"unclassified.MyOpenGLView"
@@ -492,11 +494,11 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
         GLfloat white[] = { 1.0, 1.0, 1.0, 1.0 };
         GLfloat stars_ambient[] = { 0.25, 0.2, 0.25, 1.0 };
 
-        OOGL(glLightfv(GL_LIGHT1, GL_AMBIENT, black));
-        OOGL(glLightfv(GL_LIGHT1, GL_SPECULAR, white));
-        OOGL(glLightfv(GL_LIGHT1, GL_DIFFUSE, white));
-        OOGL(glLightfv(GL_LIGHT1, GL_POSITION, black));
-        OOGL(glLightModelfv(GL_LIGHT_MODEL_AMBIENT, stars_ambient));
+        OORendererSetLightColor(1, kOOLightAmbient, black);
+        OORendererSetLightColor(1, kOOLightSpecular, white);
+        OORendererSetLightColor(1, kOOLightDiffuse, white);
+        OOGLSetLightPosition(1, black);
+        OORendererSetLightModelAmbient(stars_ambient);
     }
 
     if ([extMgr usePointSmoothing]) {
@@ -1085,8 +1087,8 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
             glReadPixels(0, y, surface->w, 1, GL_RGB, GL_FLOAT, pixlsf + off);
         }
 
-        if (([fileExtension isEqual:SNAPSHOTHDR_EXTENSION_EXR] && SaveEXRSnapshot([pathToPicHDR cStringUsingEncoding:NSUTF8StringEncoding], surface -> w, surface -> h, pixlsf) != 0) // TINYEXR_SUCCESS
-            || ([fileExtension isEqual:SNAPSHOTHDR_EXTENSION_HDR] && !stbi_write_hdr([pathToPicHDR cStringUsingEncoding:NSUTF8StringEncoding], surface -> w, surface -> h, 3, pixlsf))) {
+        if (([fileExtension isEqual:SNAPSHOTHDR_EXTENSION_EXR] && SaveEXRSnapshot([pathToPicHDR cStringUsingEncoding:NSUTF8StringEncoding], surface->w, surface->h, pixlsf) != 0) // TINYEXR_SUCCESS
+            || ([fileExtension isEqual:SNAPSHOTHDR_EXTENSION_HDR] && !stbi_write_hdr([pathToPicHDR cStringUsingEncoding:NSUTF8StringEncoding], surface->w, surface->h, 3, pixlsf))) {
             OOLog(@"screenshotHDR", @"Failed to save %@", pathToPicHDR);
             snapShotOK = NO;
         }

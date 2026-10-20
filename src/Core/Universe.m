@@ -95,6 +95,7 @@ MA 02110-1301, USA.
 
 #if OO_LOCALIZATION_TOOLS
 #import "OOConvertSystemDescriptions.h"
+#import "OOFixedFunction.h"
 #endif
 
 enum {
@@ -1907,9 +1908,9 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     if (the_sun) {
         [the_sun getDiffuseComponents:sun_diffuse];
         [the_sun getSpecularComponents:sun_specular];
-        OOGL(glLightfv(GL_LIGHT1, GL_AMBIENT, sun_ambient));
-        OOGL(glLightfv(GL_LIGHT1, GL_DIFFUSE, sun_diffuse));
-        OOGL(glLightfv(GL_LIGHT1, GL_SPECULAR, sun_specular));
+        OORendererSetLightColor(1, kOOLightAmbient, sun_ambient);
+        OORendererSetLightColor(1, kOOLightDiffuse, sun_diffuse);
+        OORendererSetLightColor(1, kOOLightSpecular, sun_specular);
         sun_pos[0] = the_sun->position.x;
         sun_pos[1] = the_sun->position.y;
         sun_pos[2] = the_sun->position.z;
@@ -1927,12 +1928,12 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
         sun_specular[1] = 1.0;
         sun_specular[2] = 0.95;
         sun_specular[3] = 1.0;
-        OOGL(glLightfv(GL_LIGHT1, GL_AMBIENT, sun_ambient));
-        OOGL(glLightfv(GL_LIGHT1, GL_DIFFUSE, sun_diffuse));
-        OOGL(glLightfv(GL_LIGHT1, GL_SPECULAR, sun_specular));
+        OORendererSetLightColor(1, kOOLightAmbient, sun_ambient);
+        OORendererSetLightColor(1, kOOLightDiffuse, sun_diffuse);
+        OORendererSetLightColor(1, kOOLightSpecular, sun_specular);
     }
 
-    OOGL(glLightfv(GL_LIGHT1, GL_POSITION, sun_pos));
+    OOGLSetLightPosition(1, sun_pos);
 
     if (the_sky) {
         // ambient lighting!
@@ -1949,11 +1950,11 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     }
 
     // light for demo ships display..
-    OOGL(glLightfv(GL_LIGHT0, GL_AMBIENT, docked_light_ambient));
-    OOGL(glLightfv(GL_LIGHT0, GL_DIFFUSE, docked_light_diffuse));
-    OOGL(glLightfv(GL_LIGHT0, GL_SPECULAR, docked_light_specular));
-    OOGL(glLightfv(GL_LIGHT0, GL_POSITION, demo_light_position));
-    OOGL(glLightModelfv(GL_LIGHT_MODEL_AMBIENT, stars_ambient));
+    OORendererSetLightColor(0, kOOLightAmbient, docked_light_ambient);
+    OORendererSetLightColor(0, kOOLightDiffuse, docked_light_diffuse);
+    OORendererSetLightColor(0, kOOLightSpecular, docked_light_specular);
+    OOGLSetLightPosition(0, demo_light_position);
+    OORendererSetLightModelAmbient(stars_ambient);
 }
 
 // Call this method to avoid lighting glich after windowed/fullscreen transition on macs.
@@ -4149,11 +4150,11 @@ static BOOL IsFriendlyStationPredicate(Entity* entity, void* parameter)
     if (isLit != object_light_on) {
         if ([self useShaders]) {
             if (isLit) {
-                OOGL(glLightfv(GL_LIGHT1, GL_DIFFUSE, sun_diffuse));
-                OOGL(glLightfv(GL_LIGHT1, GL_SPECULAR, sun_specular));
+                OORendererSetLightColor(1, kOOLightDiffuse, sun_diffuse);
+                OORendererSetLightColor(1, kOOLightSpecular, sun_specular);
             } else {
-                OOGL(glLightfv(GL_LIGHT1, GL_DIFFUSE, sun_off));
-                OOGL(glLightfv(GL_LIGHT1, GL_SPECULAR, sun_off));
+                OORendererSetLightColor(1, kOOLightDiffuse, sun_off);
+                OORendererSetLightColor(1, kOOLightSpecular, sun_off);
             }
         } else {
             if (!demo_light_on) {
@@ -4498,7 +4499,7 @@ static const OOMatrix starboard_matrix = { { { 0.0f, 0.0f, 1.0f, 0.0f },
                         OOGLMultModelView([player rotationMatrix]);
                         // translate the view
                         // HPVect: camera-relative position
-                        OOGL(glLightModelfv(GL_LIGHT_MODEL_AMBIENT, stars_ambient));
+                        OORendererSetLightModelAmbient(stars_ambient);
                         // main light position, no shaders, in-flight / shaders, in-flight and docked.
                         if (cachedSun) {
                             [self setMainLightPosition:[cachedSun cameraRelativePosition]];
@@ -4506,13 +4507,13 @@ static const OOMatrix starboard_matrix = { { { 0.0f, 0.0f, 1.0f, 0.0f },
                             // in witchspace
                             [self setMainLightPosition:HPVectorToVector(HPvector_flip([PLAYER viewpointPosition]))];
                         }
-                        OOGL(glLightfv(GL_LIGHT1, GL_POSITION, main_light_position));
+                        OOGLSetLightPosition(1, main_light_position);
                     } else {
-                        OOGL(glLightModelfv(GL_LIGHT_MODEL_AMBIENT, docked_light_ambient));
+                        OORendererSetLightModelAmbient(docked_light_ambient);
                         // main_light_position no shaders, docked/GUI.
-                        OOGL(glLightfv(GL_LIGHT0, GL_POSITION, main_light_position));
+                        OOGLSetLightPosition(0, main_light_position);
                         // main light position, no shaders, in-flight / shaders, in-flight and docked.
-                        OOGL(glLightfv(GL_LIGHT1, GL_POSITION, main_light_position));
+                        OOGLSetLightPosition(1, main_light_position);
                     }
 
                     OOGL([self useGUILightSource:demoShipMode]);
@@ -4554,8 +4555,8 @@ static const OOMatrix starboard_matrix = { { { 0.0f, 0.0f, 1.0f, 0.0f },
                         {
                             // reset material properties
                             // FIXME: should be part of SetState
-                            OOGL(glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, flat_ambdiff));
-                            OOGL(glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, mat_no));
+                            OORendererSetMaterialColor(kOOMaterialFrontAndBack, kOOMaterialAmbientAndDiffuse, flat_ambdiff);
+                            OORendererSetMaterialColor(kOOMaterialFrontAndBack, kOOMaterialEmission, mat_no);
 
                             OOGLPushModelView();
                             if (EXPECT(drawthing != player)) {

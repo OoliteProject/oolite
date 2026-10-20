@@ -7,13 +7,15 @@ Each command is JavaScript sent to the game's debug console, or "sleep:<s>".
 The game runs with -novsync (a locked macOS screen otherwise blocks GL
 buffer swaps), no sound, and OO_FREEZE_DEMO_SHIPS=1, so in debug builds the
 title screen ship holds still and the whole title screen is reproducible:
-two runs differ by at most 1/255. Snapshots and Latest.log go to the output
+two runs differ by at most 1/255. The GUI cursor follows the mouse, so on
+macOS the pointer is first moved to the top left corner of the main display.
+Snapshots and Latest.log go to the output
 directory. Example, for the title screen:
 
     game-snapshot.py build/meson_dev/oolite.app/Contents/MacOS/oolite out \
         sleep:5 "takeSnapShot();" sleep:2 "quit();"
 """
-import os, select, socket, subprocess, sys, time
+import ctypes, os, select, socket, subprocess, sys, time
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "tests"))
 import launch_snapshot as ls  # noqa: E402
@@ -26,6 +28,13 @@ server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 server.bind((ls.HOST, ls.PORT))
 server.listen(1)
+
+if sys.platform == "darwin":
+    class CGPoint(ctypes.Structure):
+        _fields_ = [("x", ctypes.c_double), ("y", ctypes.c_double)]
+    cg = ctypes.CDLL("/System/Library/Frameworks/CoreGraphics.framework/CoreGraphics")
+    cg.CGWarpMouseCursorPosition.argtypes = [CGPoint]
+    cg.CGWarpMouseCursorPosition(CGPoint(0, 0))
 
 env = os.environ.copy()
 env.update({"SDL_AUDIODRIVER": "dummy", "ALSOFT_DRIVERS": "null", "OO_SNAPSHOTSDIR": outdir, "OO_LOGSDIR": outdir,

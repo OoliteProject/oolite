@@ -34,7 +34,9 @@ MA 02110-1301, USA.
 #import "OOCollectionExtractors.h"
 #import "OOColor.h"
 #import "OODebugFlags.h"
+#import "OOFixedFunction.h"
 #import "OOGraphicsResetManager.h"
+#import "OOOpenGLMatrixManager.h"
 #import "OOPixMapTextureLoader.h"
 #import "OOStringParsing.h"
 #import "OOTexture.h"
@@ -761,8 +763,8 @@ static const BaseFace kTexturedFaces[][3] = {
     //	OOGL(glEnable(GL_LIGHTING));
     //	OOGL(glEnable(GL_LIGHT1));
     GLfloat specular[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-    OOGL(glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specular));
-    OOGL(glMateriali(GL_FRONT_AND_BACK, GL_SHININESS, 0));
+    OORendererSetMaterialColor(kOOMaterialFrontAndBack, kOOMaterialSpecular, specular);
+    OORendererSetMaterialShininess(kOOMaterialFrontAndBack, 0);
 
     /*
 
@@ -831,7 +833,7 @@ static const BaseFace kTexturedFaces[][3] = {
             }
 
             OOGL(glColor4fv(mat1));
-            OOGL(glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat1));
+            OORendererSetMaterialColor(kOOMaterialFront, kOOMaterialAmbientAndDiffuse, mat1);
 
             OOGL(glEnableClientState(GL_COLOR_ARRAY));
             OOGL(glColorPointer(4, GL_FLOAT, 0, vertexdata.color_array));

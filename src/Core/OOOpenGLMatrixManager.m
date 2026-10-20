@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 
 #import "OOOpenGLMatrixManager.h"
 #import "MyOpenGLView.h"
+#import "OOFixedFunction.h"
 #import "OOMacroOpenGL.h"
 #import "OOOpenGLExtensionManager.h"
 #import "Universe.h"
@@ -588,4 +589,10 @@ OOMatrix OOGLGetModelViewProjection()
 {
     OOOpenGLMatrixManager* matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
     return [matrixManager getMatrix:OOLITE_GL_MATRIX_MODELVIEW_PROJECTION];
+}
+
+void OOGLSetLightPosition(unsigned light, const GLfloat position[4])
+{
+    OOMatrix modelView = OOGLGetModelView();
+    OORendererSetLightPosition(light, position, OOMatrixValuesForOpenGL(modelView));
 }
