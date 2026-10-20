@@ -517,7 +517,7 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
     OOGLDisable(GL_NORMALIZE);
     OOGLDisable(GL_RESCALE_NORMAL);
 
-    OOGL(glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR));
+    OORendererSetLightModelSeparateSpecular(true);
 }
 
 - (void)initialiseGLWithSize:(NSSize)v_size

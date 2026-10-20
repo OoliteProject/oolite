@@ -176,6 +176,11 @@ void OORendererSetTexEnvColor(const float rgba[4])
     memcpy(ActiveUnit()->envColor, rgba, sizeof ActiveUnit()->envColor);
 }
 
+void OORendererSetTexEnvCombineRGB(OOCombineOp op)
+{
+    ActiveUnit()->combineRGB = op;
+}
+
 void OORendererSetTextureLODBias(float bias)
 {
     ActiveUnit()->lodBias = bias;

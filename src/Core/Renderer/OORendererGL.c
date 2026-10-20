@@ -348,6 +348,11 @@ void OORendererBackendSetLightPosition(unsigned light, const float eyePosition[4
         glMatrixMode((GLenum)matrixMode);
 }
 
+void OORendererBackendSetLightModelSeparateSpecular(bool separate)
+{
+    glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, separate ? GL_SEPARATE_SPECULAR_COLOR : GL_SINGLE_COLOR);
+}
+
 void OORendererBackendSetLightModelAmbient(const float rgba[4])
 {
     glLightModelfv(GL_LIGHT_MODEL_AMBIENT, rgba);

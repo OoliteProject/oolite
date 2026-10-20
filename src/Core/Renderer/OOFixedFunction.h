@@ -95,6 +95,7 @@ typedef struct {
 typedef struct {
     OOLightValues lights[kOOFixedFunctionMaxLights];
     float lightModelAmbient[4];
+    bool separateSpecular; // GL_SEPARATE_SPECULAR_COLOR: specular added after texturing
     OOMaterialValues frontMaterial; // GL_BACK values are only passed to GL
     OOFogValues fog;
 } OOFixedFunctionValues;
@@ -105,6 +106,7 @@ void OORendererSetLightColor(unsigned light, OOLightColor which, const float rgb
 */
 void OORendererSetLightPosition(unsigned light, const float position[4], const float* modelView);
 void OORendererSetLightModelAmbient(const float rgba[4]);
+void OORendererSetLightModelSeparateSpecular(bool separate);
 
 void OORendererSetMaterialColor(OOMaterialFace face, OOMaterialColor which, const float rgba[4]);
 void OORendererSetMaterialShininess(OOMaterialFace face, float shininess);

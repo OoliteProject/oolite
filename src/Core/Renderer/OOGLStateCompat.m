@@ -242,6 +242,14 @@ void OOGLDeleteTextures(GLsizei count, const GLuint* textures)
 
 static void RecordTexEnvMode(GLenum target, GLenum name, GLint value)
 {
+#ifdef GL_COMBINE_RGB_ARB
+    if (target == GL_TEXTURE_ENV && name == GL_COMBINE_RGB_ARB) {
+        OORendererSetTexEnvCombineRGB(value == GL_MODULATE ? kOOCombineModulate : value == GL_ADD ? kOOCombineAdd
+                : value == GL_REPLACE                                                             ? kOOCombineReplace
+                                                                                                  : kOOCombineOther);
+        return;
+    }
+#endif
     if (target != GL_TEXTURE_ENV || name != GL_TEXTURE_ENV_MODE)
         return;
     OOTexEnvMode mode = kOOTexEnvModulate;

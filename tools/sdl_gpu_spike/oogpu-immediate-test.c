@@ -919,12 +919,19 @@ int main(int argc, char* argv[])
         glGetFloatv(GL_FOG_START, &fogStart);
         glGetFloatv(GL_FOG_END, &fogEnd);
         bool fogOK = fogMode == GL_LINEAR && memcmp(gotFog, fogColor, sizeof fogColor) == 0 && fogStart == 5.0f && fogEnd == 50.0f;
+        OORendererSetLightModelSeparateSpecular(true);
+        GLint colorControl;
+        glGetIntegerv(GL_LIGHT_MODEL_COLOR_CONTROL, &colorControl);
+        fogOK = fogOK && colorControl == GL_SEPARATE_SPECULAR_COLOR && OORendererGetFixedFunctionValues()->separateSpecular;
+        OORendererSetLightModelSeparateSpecular(false);
+        glGetIntegerv(GL_LIGHT_MODEL_COLOR_CONTROL, &colorControl);
+        fogOK = fogOK && colorControl == GL_SINGLE_COLOR;
         glLoadIdentity();
 
         printf("%-4s light positions and colours match glLightfv (worst difference %.2g), modelview untouched: %s\n",
             lightsOK ? "OK" : "FAIL", worst, modelviewKept ? "yes" : "no");
         printf("%-4s material values reach GL and the stored copy\n", materialOK ? "OK" : "FAIL");
-        printf("%-4s fog values reach GL\n", fogOK ? "OK" : "FAIL");
+        printf("%-4s fog values and separate specular reach GL\n", fogOK ? "OK" : "FAIL");
         total += 3;
         failures += !lightsOK + !materialOK + !fogOK;
     }

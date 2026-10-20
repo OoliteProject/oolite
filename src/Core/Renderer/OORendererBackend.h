@@ -89,6 +89,7 @@ void OORendererBackendVerifyStateMachine(void);
 void OORendererBackendSetLightColor(unsigned light, OOLightColor which, const float rgba[4]);
 void OORendererBackendSetLightPosition(unsigned light, const float eyePosition[4]);
 void OORendererBackendSetLightModelAmbient(const float rgba[4]);
+void OORendererBackendSetLightModelSeparateSpecular(bool separate);
 void OORendererBackendSetMaterialColor(OOMaterialFace face, OOMaterialColor which, const float rgba[4]);
 void OORendererBackendSetMaterialShininess(OOMaterialFace face, float shininess);
 void OORendererBackendSetFog(const OOFogValues* fog);
