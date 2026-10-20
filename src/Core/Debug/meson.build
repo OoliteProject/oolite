@@ -5,10 +5,14 @@ oolite_sources += files(
     'OODebugStandards.m',
     'OODebugSupport.m',
     'OODebugTCPConsoleClient.m',
-    'OOJSConsole.m',
     'OOTCPStreamDecoder.c',
     'OOTCPStreamDecoderAbstractionLayer.m',
 )
 
-oolite_includes += include_directories('.')
+# TODO (port, phase 4): debug console. The JS console object is not yet
+# ported to QuickJS.
+if not use_quickjs
+    oolite_sources += files('OOJSConsole.m')
+endif
 
+oolite_includes += include_directories('.')

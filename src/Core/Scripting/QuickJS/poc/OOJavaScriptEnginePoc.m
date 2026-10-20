@@ -22,6 +22,9 @@ MA 02110-1301, USA.
 */
 
 #import "OOJavaScriptEngine.h"
+
+// This minimal engine implements only what the harness uses of the full engine header.
+#pragma clang diagnostic ignored "-Wincomplete-implementation"
 #import "OOJSQuaternion.h"
 #import "OOJSScript.h"
 #import "OOJSVector.h"
@@ -35,6 +38,7 @@ MA 02110-1301, USA.
 #define OOJS_TIME_LIMIT (1) // seconds
 
 static OOJavaScriptEngine* sSharedEngine = nil;
+JSContext* gOOJSMainThreadContext = NULL;
 
 static int InterruptHandler(JSRuntime* runtime, void* opaque);
 static JSValue GlobalLog(OOJS_NATIVE_ARGS);
@@ -82,6 +86,7 @@ static const JSCFunctionListEntry sGlobalMethods[] = {
 #endif
 
     _context = JS_NewContext(_runtime);
+    gOOJSMainThreadContext = _context;
     if (_context == NULL) {
         OOLog(@"script.javaScript.init.error", @"%@", @"***** FATAL ERROR: failed to create JavaScript context.");
         exit(1);
@@ -107,6 +112,7 @@ static const JSCFunctionListEntry sGlobalMethods[] = {
     _globalObject = JS_UNDEFINED;
     JS_FreeContext(_context);
     _context = NULL;
+    gOOJSMainThreadContext = NULL;
 
     JS_RunGC(_runtime);
     JSMemoryUsage usage;
@@ -181,6 +187,22 @@ static const JSCFunctionListEntry sGlobalMethods[] = {
 }
 
 @end
+
+JSAtom OOJSIDFromString(NSString* string)
+{
+    // Interned for the life of the process, as in the full engine.
+    return JS_NewAtom(OOJSAcquireContext(), [string UTF8String]);
+}
+
+JSValue OOJSNativeFailure(JSContext* context)
+{
+    if (JS_HasException(context))
+        return JS_EXCEPTION;
+
+    JSValue error = JS_NewError(context);
+    JS_SetUncatchableError(context, error);
+    return JS_Throw(context, error);
+}
 
 NSString* OOJSWrapScriptSource(NSString* source)
 {
@@ -581,13 +603,6 @@ BOOL OOJSArgumentListGetNumberNoError(JSContext* context, int argc, JSValueConst
 // Value conversion
 //===========================================================================
 
-JSValue OOJSValueFromNativeObject(JSContext* context, id object)
-{
-    if (object == nil)
-        return JS_NULL;
-    return [object oo_jsValueInContext:context];
-}
-
 NSString* OOStringFromJSValueEvenIfNull(JSContext* context, JSValueConst value)
 {
     size_t length;
@@ -696,7 +711,7 @@ NSString* OOJSDescribeValue(JSContext* context, JSValueConst value, BOOL abbrevi
     return DescribeValue(context, value, abbreviateObjects, NO);
 }
 
-@implementation NSObject (OOJavaScriptConversion)
+@implementation NSObject (OOJavaScript)
 
 - (JSValue)oo_jsValueInContext:(JSContext*)context
 {

@@ -65,7 +65,9 @@ SOFTWARE.
 
     // JavaScript console support.
     OOJSScript* _script;
-    struct JSObject* _jsSelf;
+#if !OOJS_QUICKJS
+    struct JSObject* _jsSelf; // TODO (port, phase 4): debug console
+#endif
 
     NSDictionary* _configFromOXPs; // Settings from debugConfig.plist
     NSMutableDictionary* _configOverrides; // Settings from preferences, modifiable through JS.

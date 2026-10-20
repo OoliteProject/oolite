@@ -49,6 +49,7 @@ this.runTests = function ()
 	check("default construction", new Vector3D().toString(), "(0, 0, 0)");
 	check("fractional components", new Vector3D(0.5, -1.25, 1e21).toString(), "(0.5, -1.25, 1e+21)");
 	check("instanceof", v instanceof Vector3D, true);
+	check("inherits Object.prototype", typeof v.hasOwnProperty, "function");
 	check("prototype is a zero vector", Vector3D.prototype.toString(), "(0, 0, 0)");
 
 	// Properties
@@ -66,6 +67,16 @@ this.runTests = function ()
 		keys.push(key);
 	}
 	check("enumerable properties", keys.join(","), "x,y,z");
+
+	// SpiderMonkey reported prototype accessors as own properties of instances.
+	var w = new Vector3D(1, 2, 3);
+	check("own property", w.hasOwnProperty("x"), true);
+	check("Object.keys", Object.keys(w).join(","), "x,y,z");
+	check("JSON.stringify", JSON.stringify(w), "{\"x\":1,\"y\":2,\"z\":3}");
+	w.y = 9;
+	check("set after own-property lookup goes through setter", w.toString(), "(1, 9, 3)");
+	check("no shadowing data property", Object.getOwnPropertyDescriptor(w, "y").get !== undefined, true);
+	check("methods are not own", w.hasOwnProperty("add"), false);
 
 	// Methods
 	check("add", new Vector3D(1, 2, 3).add([1, 1, 1]).toString(), "(2, 3, 4)");

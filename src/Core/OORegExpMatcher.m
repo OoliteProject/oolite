@@ -56,7 +56,11 @@ static OORegExpMatcher* sActiveInstance;
 
         JSContext* context = OOJSAcquireContext();
         _tester = [[OOJSFunction alloc] initWithName:@"matchesRegExp"
+#if OOJS_QUICKJS
+                                               scope:JS_UNDEFINED
+#else
                                                scope:NULL
+#endif
                                                 code:code
                                        argumentCount:2
                                        argumentNames:argumentNames
@@ -105,6 +109,29 @@ static OORegExpMatcher* sActiveInstance;
         DESTROY(_cachedRegExpString);
         DESTROY(_cachedRegExpObject);
 
+#if OOJS_QUICKJS
+        // QuickJS has no API to create a RegExp directly, so call the RegExp constructor.
+        _cachedRegExpString = [regExp retain];
+        NSString* flagString = [NSString stringWithFormat:@"%@%@",
+            (flags & kOORegExpCaseInsensitive) ? @"i" : @"",
+            (flags & kOORegExpMultiLine) ? @"m" : @""];
+        JSValue global = JS_GetGlobalObject(context);
+        JSValue constructor = JS_GetPropertyStr(context, global, "RegExp");
+        JSValue args[2] = { OOJSValueFromNativeObject(context, regExp), OOJSValueFromNativeObject(context, flagString) };
+        JSValue regExpObj = JS_CallConstructor(context, constructor, 2, args);
+        if (JS_IsException(regExpObj)) {
+            OOJSReportPendingException(context);
+            regExpObj = JS_NULL;
+        }
+        _cachedRegExpObject = [[OOJSValue alloc] initWithJSValue:regExpObj inContext:context];
+        _cachedFlags = flags;
+
+        JS_FreeValue(context, regExpObj);
+        JS_FreeValue(context, args[0]);
+        JS_FreeValue(context, args[1]);
+        JS_FreeValue(context, constructor);
+        JS_FreeValue(context, global);
+#else
         unichar* buffer;
         buffer = malloc(expLength * sizeof *buffer);
         if (EXPECT_NOT(buffer == NULL))
@@ -117,6 +144,7 @@ static OORegExpMatcher* sActiveInstance;
         _cachedFlags = flags;
 
         free(buffer);
+#endif
     }
 
     BOOL result = [_tester evaluatePredicateWithContext:context
