@@ -36,6 +36,7 @@ MA 02110-1301, USA.
 #include "OORenderPass.h"
 #include "OORenderState.h"
 #include "OORenderStateMachine.h"
+#include "OORendererProgram.h"
 #include "OORendererTexture.h"
 #include "OOVertexArray.h"
 
@@ -164,6 +165,20 @@ static void SetLightEnabled(unsigned light, bool enabled)
         glEnable(GL_LIGHT0 + light);
     else
         glDisable(GL_LIGHT0 + light);
+#endif
+}
+
+static void BindTextureUnit(unsigned unit, uint32_t texture)
+{
+    OORendererSetActiveTexture(unit);
+    OORendererSetTextureBinding(false, texture);
+#if !OO_BACKEND_GPU
+    glActiveTexture(GL_TEXTURE0 + unit);
+    glBindTexture(GL_TEXTURE_2D, texture);
+#endif
+    OORendererSetActiveTexture(0);
+#if !OO_BACKEND_GPU
+    glActiveTexture(GL_TEXTURE0);
 #endif
 }
 
@@ -607,6 +622,125 @@ static void SceneMRT(void)
     DrawTargetQuad(sMRT, 1);
 }
 
+// A custom legacy GLSL program, as materials and OXPs supply: uniforms of
+// several types, a sampler on texture unit 1, the normal matrix, a light,
+// and a generic "tangent" attribute bound by name, from indexed arrays.
+static const char* const kProgramVertex = "attribute vec3 tangent;\n"
+                                          "uniform float uScale;\n"
+                                          "varying vec3 vNormal;\n"
+                                          "varying vec3 vTangent;\n"
+                                          "varying vec2 vTexCoord;\n"
+                                          "void main(void)\n"
+                                          "{\n"
+                                          "    vNormal = normalize(gl_NormalMatrix * gl_Normal);\n"
+                                          "    vTangent = tangent;\n"
+                                          "    vTexCoord = gl_MultiTexCoord0.st * uScale;\n"
+                                          "    gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;\n"
+                                          "}\n";
+static const char* const kProgramFragment = "uniform sampler2D uTexture;\n"
+                                            "uniform vec4 uTint;\n"
+                                            "uniform bool uShowTangent;\n"
+                                            "varying vec3 vNormal;\n"
+                                            "varying vec3 vTangent;\n"
+                                            "varying vec2 vTexCoord;\n"
+                                            "void main(void)\n"
+                                            "{\n"
+                                            "    vec3 l = normalize(gl_LightSource[1].position.xyz);\n"
+                                            "    float d = max(dot(normalize(vNormal), l), 0.0);\n"
+                                            "    vec3 c = texture2D(uTexture, vTexCoord).rgb * uTint.rgb * (0.15 + d * gl_LightSource[1].diffuse.rgb);\n"
+                                            "    if (uShowTangent) c += 0.3 * abs(vTangent);\n"
+                                            "    gl_FragColor = vec4(c, 1.0);\n"
+                                            "}\n";
+
+enum {
+    kSphereStacks = 16,
+    kSphereSlices = 24,
+    kSphereVertices = (kSphereStacks + 1) * (kSphereSlices + 1),
+    kSphereIndices = kSphereStacks * kSphereSlices * 6,
+    kTangentLocation = 5
+};
+
+static void SceneProgram(void)
+{
+    static float positions[kSphereVertices * 3], normals[kSphereVertices * 3], texCoords[kSphereVertices * 2], tangents[kSphereVertices * 3];
+    static uint16_t indices[kSphereIndices];
+    static OORendererBuffer *positionBuffer, *normalBuffer, *texCoordBuffer, *tangentBuffer, *indexBuffer;
+    static OORendererProgram* program;
+    if (program == NULL) {
+        size_t v = 0, n = 0;
+        for (int i = 0; i <= kSphereStacks; i++) {
+            for (int j = 0; j <= kSphereSlices; j++, v++) {
+                float phi = kPi * ((float)i / kSphereStacks - 0.5f), theta = 2.0f * kPi * j / kSphereSlices;
+                float p[3] = { cosf(phi) * cosf(theta), sinf(phi), cosf(phi) * sinf(theta) };
+                memcpy(&positions[v * 3], p, sizeof p);
+                memcpy(&normals[v * 3], p, sizeof p);
+                texCoords[v * 2] = (float)j / kSphereSlices;
+                texCoords[v * 2 + 1] = (float)i / kSphereStacks;
+                tangents[v * 3] = -sinf(theta);
+                tangents[v * 3 + 1] = 0;
+                tangents[v * 3 + 2] = cosf(theta);
+            }
+        }
+        for (int i = 0; i < kSphereStacks; i++) {
+            for (int j = 0; j < kSphereSlices; j++) {
+                uint16_t a = (uint16_t)(i * (kSphereSlices + 1) + j), b = (uint16_t)(a + kSphereSlices + 1);
+                uint16_t quad[6] = { a, (uint16_t)(a + 1), b, b, (uint16_t)(a + 1), (uint16_t)(b + 1) };
+                memcpy(&indices[n], quad, sizeof quad);
+                n += 6;
+            }
+        }
+        positionBuffer = OORendererCreateBuffer(positions, sizeof positions);
+        normalBuffer = OORendererCreateBuffer(normals, sizeof normals);
+        texCoordBuffer = OORendererCreateBuffer(texCoords, sizeof texCoords);
+        tangentBuffer = OORendererCreateBuffer(tangents, sizeof tangents);
+        indexBuffer = OORendererCreateBuffer(indices, sizeof indices);
+        OOAttributeBinding binding = { "tangent", kTangentLocation };
+        OOProgramError error;
+        program = OORendererCreateProgram(kProgramVertex, kProgramFragment, NULL, &binding, 1, &error);
+        if (program == NULL) {
+            fprintf(stderr, "program: stage %d failed:\n%s\n", error.stage, error.log ? error.log : "");
+            OORendererBackendWarn("program creation failed");
+            return;
+        }
+    }
+    if (sChecker == 0) {
+        OORendererBackendWarn("the texture scene must run first, to create the checkerboard");
+        return;
+    }
+    float mv[16], p[16], identity[16];
+    Identity(identity);
+    Translation(mv, 0, 0, -3);
+    Perspective(p, 50, 1, 1, 10);
+    SetMatrices(identity, p);
+    const float diffuse[4] = { 1, 0.85f, 0.7f, 1 }, direction[4] = { -0.4f, 0.5f, 0.77f, 0 };
+    OORendererSetLightColor(1, kOOLightDiffuse, diffuse);
+    OORendererSetLightPosition(1, direction, NULL);
+    SetMatrices(mv, p);
+    BindTextureUnit(1, sChecker);
+
+    OODrawState state = Plain();
+    state.depthTest = true;
+    state.depthWrite = true;
+    state.cullBack = true;
+    OORendererPushDrawState(&state);
+    OORendererUseProgram(program);
+    const float scale = 2.0f, tint[4] = { 1.0f, 0.8f, 0.9f, 1.0f };
+    const int32_t unit = 1, show = 1;
+    OORendererSetUniform(OORendererProgramUniform(program, "uScale"), kOOUniformFloat, &scale);
+    OORendererSetUniform(OORendererProgramUniform(program, "uTint"), kOOUniformVec4, tint);
+    OORendererSetUniform(OORendererProgramUniform(program, "uShowTangent"), kOOUniformInt, &show);
+    OORendererSetUniform(OORendererProgramUniform(program, "uTexture"), kOOUniformInt, &unit);
+    OOVertexLayout layout = { 0 };
+    OOVertexLayoutAdd(&layout, kOOVertexPosition, 0, 3, 0, positionBuffer, 0);
+    OOVertexLayoutAdd(&layout, kOOVertexNormal, 0, 3, 0, normalBuffer, 0);
+    OOVertexLayoutAdd(&layout, kOOVertexTexCoord, 0, 2, 0, texCoordBuffer, 0);
+    OOVertexLayoutAdd(&layout, kOOVertexAttribute, kTangentLocation, 3, 0, tangentBuffer, 0);
+    OORendererDrawElements(kOONativePrimitiveTriangles, &layout, indexBuffer, 0, kOOIndex16, kSphereIndices);
+    OORendererUseProgram(NULL);
+    OORendererPopDrawState();
+    BindTextureUnit(1, 0);
+}
+
 typedef struct {
     const char* name;
     void (*draw)(void);
@@ -627,6 +761,7 @@ static const Scene kScenes[] = {
     { "target", SceneTarget, { 0, 0, 0, 1 }, PrepareTarget },
     { "msaa", SceneMSAA, { 0, 0, 0, 1 }, PrepareMSAA },
     { "mrt", SceneMRT, { 0, 0, 0, 1 }, PrepareMRT },
+    { "program", SceneProgram, { 0, 0, 0, 1 }, NULL },
 };
 
 static bool Save(const char* dir, const char* name, const uint8_t* bgraBottomUp)

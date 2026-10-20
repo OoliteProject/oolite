@@ -29,6 +29,7 @@ MA 02110-1301, USA.
 
 #include "OORenderStateMachine.h"
 #include "OORendererBackend.h"
+#include "OORendererProgram.h"
 
 // OOOpenGLOnly.h keys GL_GLEXT_PROTOTYPES on OOLITE_LINUX, which comes from
 // Objective-C headers this C file doesn't use.
@@ -67,6 +68,24 @@ extern PFNGLRENDERBUFFERSTORAGEMULTISAMPLEPROC glRenderbufferStorageMultisample;
 extern PFNGLTEXIMAGE2DMULTISAMPLEPROC glTexImage2DMultisample;
 extern PFNGLDRAWBUFFERSPROC glDrawBuffers;
 extern PFNGLBLITFRAMEBUFFERPROC glBlitFramebuffer;
+extern PFNGLUSEPROGRAMOBJECTARBPROC glUseProgramObjectARB;
+extern PFNGLGETUNIFORMLOCATIONARBPROC glGetUniformLocationARB;
+extern PFNGLUNIFORM1IARBPROC glUniform1iARB;
+extern PFNGLUNIFORM1FARBPROC glUniform1fARB;
+extern PFNGLUNIFORM2FVARBPROC glUniform2fvARB;
+extern PFNGLUNIFORM4FVARBPROC glUniform4fvARB;
+extern PFNGLUNIFORMMATRIX3FVARBPROC glUniformMatrix3fvARB;
+extern PFNGLUNIFORMMATRIX4FVARBPROC glUniformMatrix4fvARB;
+extern PFNGLGETOBJECTPARAMETERIVARBPROC glGetObjectParameterivARB;
+extern PFNGLCREATESHADEROBJECTARBPROC glCreateShaderObjectARB;
+extern PFNGLGETINFOLOGARBPROC glGetInfoLogARB;
+extern PFNGLCREATEPROGRAMOBJECTARBPROC glCreateProgramObjectARB;
+extern PFNGLATTACHOBJECTARBPROC glAttachObjectARB;
+extern PFNGLDELETEOBJECTARBPROC glDeleteObjectARB;
+extern PFNGLLINKPROGRAMARBPROC glLinkProgramARB;
+extern PFNGLCOMPILESHADERARBPROC glCompileShaderARB;
+extern PFNGLSHADERSOURCEARBPROC glShaderSourceARB;
+extern PFNGLBINDATTRIBLOCATIONARBPROC glBindAttribLocationARB;
 #define glActiveTexture glActiveTexturePtr
 #define glClientActiveTexture glClientActiveTextureARBPtr
 #endif
@@ -897,4 +916,165 @@ void OORendererBackendDeleteRenderTarget(OORenderTarget target)
     GLuint framebuffer = target;
     glDeleteFramebuffers(1, &framebuffer);
     memset(record, 0, sizeof *record);
+}
+
+#pragma mark - Programs
+
+struct OORendererProgram {
+    GLhandleARB object;
+};
+
+static OORendererProgram* sCurrentProgram = NULL;
+
+static uint32_t ProgramName(GLhandleARB object)
+{
+    return (uint32_t)(uintptr_t)object;
+}
+
+static char* InfoLog(GLhandleARB object)
+{
+    GLint length = 0;
+    glGetObjectParameterivARB(object, GL_OBJECT_INFO_LOG_LENGTH_ARB, &length);
+    char* log = malloc((size_t)length + 1);
+    if (log == NULL)
+        return NULL;
+    if (length > 0)
+        glGetInfoLogARB(object, length, NULL, log);
+    log[length] = '\0';
+    return log;
+}
+
+static GLhandleARB CompileStage(GLenum type, OOProgramStage stage, const char* prefix, const char* source, OOProgramError* outError)
+{
+    // As OOShaderProgram always did: the prefix, then "#line 0", then the source.
+    const GLcharARB* strings[3] = { prefix != NULL ? prefix : "", "#line 0\n", source };
+    GLhandleARB shader = glCreateShaderObjectARB(type);
+    if (shader == (GLhandleARB)0) {
+        if (outError != NULL)
+            *outError = (OOProgramError) { stage, NULL };
+        return shader;
+    }
+    glShaderSourceARB(shader, 3, strings, NULL);
+    glCompileShaderARB(shader);
+    GLint status = GL_FALSE;
+    glGetObjectParameterivARB(shader, GL_OBJECT_COMPILE_STATUS_ARB, &status);
+    if (status == GL_FALSE) {
+        if (outError != NULL)
+            *outError = (OOProgramError) { stage, InfoLog(shader) };
+        glDeleteObjectARB(shader);
+        return (GLhandleARB)0;
+    }
+    return shader;
+}
+
+OORendererProgram* OORendererCreateProgram(const char* vertexSource, const char* fragmentSource, const char* prefix,
+    const OOAttributeBinding* bindings, size_t bindingCount, OOProgramError* outError)
+{
+    if (outError != NULL)
+        *outError = (OOProgramError) { kOOProgramStageLink, NULL };
+    if (vertexSource == NULL && fragmentSource == NULL)
+        return NULL;
+
+    GLhandleARB vertex = (GLhandleARB)0, fragment = (GLhandleARB)0;
+    if (vertexSource != NULL && (vertex = CompileStage(GL_VERTEX_SHADER_ARB, kOOProgramStageVertex, prefix, vertexSource, outError)) == (GLhandleARB)0)
+        return NULL;
+    if (fragmentSource != NULL && (fragment = CompileStage(GL_FRAGMENT_SHADER_ARB, kOOProgramStageFragment, prefix, fragmentSource, outError)) == (GLhandleARB)0) {
+        if (vertex != (GLhandleARB)0)
+            glDeleteObjectARB(vertex);
+        return NULL;
+    }
+
+    GLhandleARB program = glCreateProgramObjectARB();
+    bool linked = false;
+    if (program != (GLhandleARB)0) {
+        if (vertex != (GLhandleARB)0)
+            glAttachObjectARB(program, vertex);
+        if (fragment != (GLhandleARB)0)
+            glAttachObjectARB(program, fragment);
+        for (size_t i = 0; i < bindingCount; i++)
+            glBindAttribLocationARB(program, bindings[i].location, bindings[i].name);
+        glLinkProgramARB(program);
+        GLint status = GL_FALSE;
+        glGetObjectParameterivARB(program, GL_OBJECT_LINK_STATUS_ARB, &status);
+        linked = status != GL_FALSE;
+        if (!linked && outError != NULL)
+            *outError = (OOProgramError) { kOOProgramStageLink, InfoLog(program) };
+    }
+    if (vertex != (GLhandleARB)0)
+        glDeleteObjectARB(vertex);
+    if (fragment != (GLhandleARB)0)
+        glDeleteObjectARB(fragment);
+    if (!linked) {
+        if (program != (GLhandleARB)0)
+            glDeleteObjectARB(program);
+        return NULL;
+    }
+
+    OORendererProgram* result = malloc(sizeof *result);
+    if (result == NULL) {
+        glDeleteObjectARB(program);
+        return NULL;
+    }
+    result->object = program;
+    return result;
+}
+
+void OORendererReleaseProgram(OORendererProgram* program)
+{
+    if (program == NULL)
+        return;
+    if (program == sCurrentProgram)
+        OORendererUseProgram(NULL);
+    glDeleteObjectARB(program->object);
+    free(program);
+}
+
+void OORendererUseProgram(OORendererProgram* program)
+{
+    sCurrentProgram = program;
+    GLhandleARB object = program != NULL ? program->object : (GLhandleARB)0;
+    OORendererSetProgram(ProgramName(object));
+    glUseProgramObjectARB(object);
+}
+
+OORendererProgram* OORendererCurrentProgram(void)
+{
+    return sCurrentProgram;
+}
+
+uint32_t OORendererProgramGLName(const OORendererProgram* program)
+{
+    return program != NULL ? ProgramName(program->object) : 0;
+}
+
+OOProgramUniform OORendererProgramUniform(OORendererProgram* program, const char* name)
+{
+    if (program == NULL)
+        return -1;
+    return glGetUniformLocationARB(program->object, name);
+}
+
+void OORendererSetUniform(OOProgramUniform uniform, OOUniformType type, const void* values)
+{
+    const float* f = values;
+    switch (type) {
+    case kOOUniformInt:
+        glUniform1iARB(uniform, *(const int32_t*)values);
+        break;
+    case kOOUniformFloat:
+        glUniform1fARB(uniform, *f);
+        break;
+    case kOOUniformVec2:
+        glUniform2fvARB(uniform, 1, f);
+        break;
+    case kOOUniformVec4:
+        glUniform4fvARB(uniform, 1, f);
+        break;
+    case kOOUniformMat3:
+        glUniformMatrix3fvARB(uniform, 1, GL_FALSE, f);
+        break;
+    case kOOUniformMat4:
+        glUniformMatrix4fvARB(uniform, 1, GL_FALSE, f);
+        break;
+    }
 }

@@ -62,6 +62,7 @@ MA 02110-1301, USA.
 #include "OOGLSLTranslator.h"
 #include "OORenderStateMachine.h"
 #include "OORendererBackend.h"
+#include "OORendererProgram.h"
 
 #include <math.h>
 #include <stdio.h>
@@ -100,6 +101,7 @@ typedef struct {
     float color[4];
     float texCoord[4];
     float normal[3];
+    float generic[4]; // one generic attribute, such as a program's "tangent"
 } GPUVertex;
 
 typedef enum {
@@ -107,11 +109,42 @@ typedef enum {
     kInputColor,
     kInputTexCoord,
     kInputNormal,
+    kInputGeneric,
     kInputNone,
 } InputKind;
 
-static SDL_GPUVertexAttribute sAttributes[8];
+static SDL_GPUVertexAttribute sAttributes[16];
 static uint32_t sAttributeCount = 0;
+static OOGLSLOutputFormats sFormats = 0;
+
+enum {
+    kMaxSamplers = 16
+};
+
+// A uniform as both stages see it; -1 where a stage doesn't have it.
+typedef struct {
+    char* name;
+    const OOGLSLUniform* uniform[kOOGLSLStageCount];
+    int samplerSlot[kOOGLSLStageCount];
+} ProgramUniform;
+
+struct OORendererProgram {
+    OOGLSLProgram translated;
+    SDL_GPUShader* shaders[kOOGLSLStageCount];
+    SDL_GPUVertexAttribute attributes[16];
+    uint32_t attributeCount;
+    int genericLocation; // the generic attribute bound to GPUVertex.generic, or -1
+    ProgramUniform* uniforms;
+    size_t uniformCount;
+    // Current values, which persist as GL program state does.
+    uint8_t* blocks[kOOGLSLStageCount];
+    uint32_t blockSize[kOOGLSLStageCount];
+    int samplerUnits[kOOGLSLStageCount][kMaxSamplers];
+    bool samplerIsCube[kOOGLSLStageCount][kMaxSamplers];
+    uint32_t samplerCount[kOOGLSLStageCount];
+};
+
+static OORendererProgram* sCurrentProgram = NULL;
 
 static SDL_GPUShader* CreateShader(const OOGLSLStageResult* stage, SDL_GPUShaderStage gpuStage)
 {
@@ -137,8 +170,10 @@ static SDL_GPUShader* CreateShader(const OOGLSLStageResult* stage, SDL_GPUShader
     return SDL_CreateGPUShader(sDevice, &info);
 }
 
-static InputKind InputForName(const char* name)
+static InputKind InputForName(const char* name, const char* genericName)
 {
+    if (genericName != NULL && strcmp(name, genericName) == 0)
+        return kInputGeneric;
     if (strcmp(name, "oo_Vertex") == 0)
         return kInputPosition;
     if (strcmp(name, "oo_Color") == 0)
@@ -166,6 +201,48 @@ static SDL_GPUTexture* CreateTarget(SDL_GPUTextureFormat format, SDL_GPUTextureU
 
 static void CreateWhiteTexture(void);
 
+// Every shader input reads from the one interleaved vertex; unknown inputs are left unfed.
+static uint32_t BuildAttributes(const OOGLSLStageResult* vertex, const char* genericName, SDL_GPUVertexAttribute out[16])
+{
+    uint32_t count = 0;
+    for (size_t i = 0; i < vertex->vertexInputCount && count < 16; i++) {
+        size_t offset;
+        SDL_GPUVertexElementFormat format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT4;
+        switch (InputForName(vertex->vertexInputs[i].name, genericName)) {
+        case kInputPosition:
+            offset = offsetof(GPUVertex, position);
+            break;
+        case kInputColor:
+            offset = offsetof(GPUVertex, color);
+            break;
+        case kInputTexCoord:
+            offset = offsetof(GPUVertex, texCoord);
+            break;
+        case kInputNormal:
+            offset = offsetof(GPUVertex, normal);
+            format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3;
+            break;
+        case kInputGeneric:
+            offset = offsetof(GPUVertex, generic);
+            break;
+        default:
+            continue;
+        }
+        static const SDL_GPUVertexElementFormat kFormats[5] = { SDL_GPU_VERTEXELEMENTFORMAT_FLOAT4, SDL_GPU_VERTEXELEMENTFORMAT_FLOAT,
+            SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2, SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, SDL_GPU_VERTEXELEMENTFORMAT_FLOAT4 };
+        // Feed the components the shader declares; the vertex supplies four.
+        if (format == SDL_GPU_VERTEXELEMENTFORMAT_FLOAT4 && vertex->vertexInputs[i].vectorSize < 4)
+            format = kFormats[vertex->vertexInputs[i].vectorSize];
+        out[count++] = (SDL_GPUVertexAttribute) {
+            .location = vertex->vertexInputs[i].location,
+            .buffer_slot = 0,
+            .format = format,
+            .offset = (Uint32)offset,
+        };
+    }
+    return count;
+}
+
 bool OORendererSDLGPUInit(SDL_GPUDevice* device, unsigned width, unsigned height)
 {
     sDevice = device;
@@ -183,6 +260,7 @@ bool OORendererSDLGPUInit(SDL_GPUDevice* device, unsigned width, unsigned height
         return false;
     OOGLSLOutputFormats formats = (SDL_GetGPUShaderFormats(device) & SDL_GPU_SHADERFORMAT_MSL) ? kOOGLSLOutputMSL : kOOGLSLOutputSPIRV;
     formats |= kOOGLSLOutputGLOrientation;
+    sFormats = formats;
     if (!OOGLSLTranslateProgram(NULL, NULL, NULL, formats, &sFixedFunction)) {
         fprintf(stderr, "fixed-function emulation: %s\n", sFixedFunction.log);
         return false;
@@ -197,35 +275,7 @@ bool OORendererSDLGPUInit(SDL_GPUDevice* device, unsigned width, unsigned height
             sTextureSamplerSlot = fragment->samplers[i].slot;
     }
 
-    // Every emulation input reads from the one interleaved vertex.
-    const OOGLSLStageResult* vertex = &sFixedFunction.stages[kOOGLSLStageVertex];
-    for (size_t i = 0; i < vertex->vertexInputCount && sAttributeCount < 8; i++) {
-        size_t offset;
-        SDL_GPUVertexElementFormat format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT4;
-        switch (InputForName(vertex->vertexInputs[i].name)) {
-        case kInputPosition:
-            offset = offsetof(GPUVertex, position);
-            break;
-        case kInputColor:
-            offset = offsetof(GPUVertex, color);
-            break;
-        case kInputTexCoord:
-            offset = offsetof(GPUVertex, texCoord);
-            break;
-        case kInputNormal:
-            offset = offsetof(GPUVertex, normal);
-            format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3;
-            break;
-        default:
-            continue;
-        }
-        sAttributes[sAttributeCount++] = (SDL_GPUVertexAttribute) {
-            .location = vertex->vertexInputs[i].location,
-            .buffer_slot = 0,
-            .format = format,
-            .offset = (Uint32)offset,
-        };
-    }
+    sAttributeCount = BuildAttributes(&sFixedFunction.stages[kOOGLSLStageVertex], NULL, sAttributes);
     CreateWhiteTexture();
     return true;
 }
@@ -233,6 +283,7 @@ bool OORendererSDLGPUInit(SDL_GPUDevice* device, unsigned width, unsigned height
 #pragma mark - Pipelines
 
 typedef struct {
+    const OORendererProgram* program; // NULL for the fixed-function emulation
     SDL_GPUPrimitiveType topology;
     // The pass's target.
     SDL_GPUTextureFormat colorFormat;
@@ -306,22 +357,24 @@ static SDL_GPUCompareOp GPUCompareOp(OOCompareOp op)
 static PipelineKey CurrentKey(SDL_GPUPrimitiveType topology)
 {
     const OORenderStateMachine* s = OORendererState();
-    PipelineKey key = {
-        .topology = topology,
-        .colorFormat = sPassTarget ? kTargetColorFormat : kColorFormat,
-        .colorCount = TargetColorCount(),
-        .hasDepth = TargetHasDepth(),
-        .samples = TargetMultisampled() ? SDL_GPU_SAMPLECOUNT_4 : SDL_GPU_SAMPLECOUNT_1,
-        .blend = s->caps[kOOCapBlend],
-        .blendSrc = s->blendSrc,
-        .blendDst = s->blendDst,
-        .depthTest = s->caps[kOOCapDepthTest],
-        .depthWrite = s->depthMask,
-        .depthFunc = s->depthFunc,
-        .cull = SDL_GPU_CULLMODE_NONE,
-        .frontFaceCCW = s->frontFaceCCW,
-        .wireframe = s->wireframe,
-    };
+    // Zeroed first: the cache compares keys with memcmp, padding included.
+    PipelineKey key;
+    memset(&key, 0, sizeof key);
+    key.program = sCurrentProgram;
+    key.topology = topology;
+    key.colorFormat = sPassTarget ? kTargetColorFormat : kColorFormat;
+    key.colorCount = TargetColorCount();
+    key.hasDepth = TargetHasDepth();
+    key.samples = TargetMultisampled() ? SDL_GPU_SAMPLECOUNT_4 : SDL_GPU_SAMPLECOUNT_1;
+    key.blend = s->caps[kOOCapBlend];
+    key.blendSrc = s->blendSrc;
+    key.blendDst = s->blendDst;
+    key.depthTest = s->caps[kOOCapDepthTest];
+    key.depthWrite = s->depthMask;
+    key.depthFunc = s->depthFunc;
+    key.cull = SDL_GPU_CULLMODE_NONE;
+    key.frontFaceCCW = s->frontFaceCCW;
+    key.wireframe = s->wireframe;
     if (s->caps[kOOCapCullFace]) {
         // GL_FRONT_AND_BACK draws nothing; SDL_GPU has no such mode.
         key.cull = s->cullFace == kOOCullFront ? SDL_GPU_CULLMODE_FRONT : SDL_GPU_CULLMODE_BACK;
@@ -366,13 +419,13 @@ static SDL_GPUGraphicsPipeline* PipelineFor(const PipelineKey* key)
         .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
     };
     SDL_GPUGraphicsPipelineCreateInfo info = {
-        .vertex_shader = sFixedVertex,
-        .fragment_shader = sFixedFragment,
+        .vertex_shader = key->program ? key->program->shaders[kOOGLSLStageVertex] : sFixedVertex,
+        .fragment_shader = key->program ? key->program->shaders[kOOGLSLStageFragment] : sFixedFragment,
         .vertex_input_state = {
             .vertex_buffer_descriptions = &buffer,
             .num_vertex_buffers = 1,
-            .vertex_attributes = sAttributes,
-            .num_vertex_attributes = sAttributeCount,
+            .vertex_attributes = key->program ? key->program->attributes : sAttributes,
+            .num_vertex_attributes = key->program ? key->program->attributeCount : sAttributeCount,
         },
         .primitive_type = key->topology,
         .rasterizer_state = {
@@ -474,7 +527,11 @@ static void Copy4(float* out, const float* in)
     memcpy(out, in, 4 * sizeof(float));
 }
 
-static void BuildLegacyState(OOGLSLLegacyStateBlock* L)
+/*  GL's built-in uniform state. Shaders see every light's values whether it
+    is enabled or not, as in GL; the fixed-function emulation instead reads
+    zeroed products for a disabled light.
+*/
+static void BuildLegacyState(OOGLSLLegacyStateBlock* L, bool fixedFunction)
 {
     const OORenderStateMachine* s = OORendererState();
     const OOFixedFunctionValues* ff = OORendererGetFixedFunctionValues();
@@ -511,16 +568,15 @@ static void BuildLegacyState(OOGLSLLegacyStateBlock* L)
     for (int i = 0; i < kOOGLSLMaxLights && i < kOOFixedFunctionMaxLights; i++) {
         OOGLSLLightSource* light = &L->lightSource[i];
         const OOLightValues* values = &ff->lights[i];
-        // A disabled light contributes nothing; the emulation reads zeroed colours.
-        if (s->lights[i]) {
-            Copy4(light->ambient, values->ambient);
-            Copy4(light->diffuse, values->diffuse);
-            Copy4(light->specular, values->specular);
-        }
+        Copy4(light->ambient, values->ambient);
+        Copy4(light->diffuse, values->diffuse);
+        Copy4(light->specular, values->specular);
         Copy4(light->position, values->position);
         light->spotCutoff = 180;
         light->spotCosCutoff = -1;
         light->constantAttenuation = 1;
+        if (fixedFunction && !s->lights[i])
+            continue;
         for (int k = 0; k < 4; k++) {
             L->frontLightProduct[i].ambient[k] = material->ambient[k] * light->ambient[k];
             L->frontLightProduct[i].diffuse[k] = material->diffuse[k] * light->diffuse[k];
@@ -640,12 +696,24 @@ void OORendererBackendUploadTexture(uint32_t texture, unsigned face, unsigned le
         ExpandToRGBA(record->descriptor.format, texels, (size_t)width * height) };
 }
 
+static uint32_t sBlackTexture = 0, sBlackCube = 0;
+
+/*  White stands in for texturing switched off in the fixed-function
+    emulation. Black stands in for a program's sampler with nothing bound,
+    which GL samples as (0, 0, 0, 1).
+*/
 static void CreateWhiteTexture(void)
 {
     OOTextureDescriptor descriptor = { .width = 1, .height = 1, .levels = 1, .format = kOOTexelRGBA8 };
     sWhiteTexture = OORendererBackendCreateTexture(&descriptor);
-    static const uint8_t white[4] = { 255, 255, 255, 255 };
+    static const uint8_t white[4] = { 255, 255, 255, 255 }, black[4] = { 0, 0, 0, 255 };
     OORendererBackendUploadTexture(sWhiteTexture, 0, 0, 1, 1, white);
+    sBlackTexture = OORendererBackendCreateTexture(&descriptor);
+    OORendererBackendUploadTexture(sBlackTexture, 0, 0, 1, 1, black);
+    descriptor.cube = true;
+    sBlackCube = OORendererBackendCreateTexture(&descriptor);
+    for (unsigned face = 0; face < 6; face++)
+        OORendererBackendUploadTexture(sBlackCube, face, 0, 1, 1, black);
 }
 
 static void FlushUploads(SDL_GPUCopyPass* copy)
@@ -879,6 +947,9 @@ typedef struct {
     size_t firstVertex, vertexCount;
     size_t uniformIndex;
     uint32_t texture;
+    // Programs: the uniform blocks' offsets into sBlockBytes, and each sampler slot's texture.
+    size_t blockOffset[kOOGLSLStageCount];
+    uint32_t samplerTextures[kOOGLSLStageCount][kMaxSamplers];
     SDL_Rect viewport;
     bool scissor;
     SDL_Rect scissorRect;
@@ -890,6 +961,21 @@ static OOGLSLLegacyStateBlock* sUniforms = NULL;
 static size_t sUniformCount = 0, sUniformCapacity = 0;
 static RecordedDraw* sDraws = NULL;
 static size_t sDrawCount = 0, sDrawCapacity = 0;
+static uint8_t* sBlockBytes = NULL;
+static size_t sBlockUsed = 0, sBlockCapacity = 0;
+
+static size_t CopyBlock(const uint8_t* block, uint32_t size)
+{
+    if (sBlockUsed + size > sBlockCapacity) {
+        while (sBlockUsed + size > sBlockCapacity)
+            sBlockCapacity = sBlockCapacity ? sBlockCapacity * 2 : 65536;
+        sBlockBytes = realloc(sBlockBytes, sBlockCapacity);
+    }
+    size_t offset = sBlockUsed;
+    memcpy(sBlockBytes + offset, block, size);
+    sBlockUsed += size;
+    return offset;
+}
 
 static GPUVertex* ReserveVertices(size_t count)
 {
@@ -933,7 +1019,7 @@ static void RecordDraw(SDL_GPUPrimitiveType topology, size_t first, size_t count
         sUniformCapacity = sUniformCapacity ? sUniformCapacity * 2 : 64;
         sUniforms = realloc(sUniforms, sUniformCapacity * sizeof *sUniforms);
     }
-    BuildLegacyState(&sUniforms[sUniformCount]);
+    BuildLegacyState(&sUniforms[sUniformCount], sCurrentProgram == NULL);
 
     const OOTextureUnitState* unit = &s->units[0];
     uint32_t texture = unit->texture2D && unit->binding2D != 0 && strcmp(sFault, "texture") != 0 ? unit->binding2D : sWhiteTexture;
@@ -952,11 +1038,34 @@ static void RecordDraw(SDL_GPUPrimitiveType topology, size_t first, size_t count
         .scissor = s->caps[kOOCapScissorTest],
         .scissorRect = TargetRect(s->scissor),
     };
+    RecordedDraw* draw = &sDraws[sDrawCount - 1];
+    const OORendererProgram* program = sCurrentProgram;
+    if (program != NULL) {
+        for (int stage = 0; stage < kOOGLSLStageCount; stage++) {
+            draw->blockOffset[stage] = CopyBlock(program->blocks[stage], program->blockSize[stage]);
+            for (uint32_t slot = 0; slot < program->samplerCount[stage]; slot++) {
+                int unit = program->samplerUnits[stage][slot];
+                bool cube = program->samplerIsCube[stage][slot];
+                uint32_t texture = 0;
+                if (unit >= 0 && unit < kOOMaxTextureUnits)
+                    texture = cube ? s->units[unit].bindingCube : s->units[unit].binding2D;
+                if (TextureFor(texture) == NULL || strcmp(sFault, "sampler") == 0)
+                    texture = cube ? sBlackCube : sBlackTexture;
+                draw->samplerTextures[stage][slot] = texture;
+            }
+        }
+    }
 }
 
 static void SetVertex(GPUVertex* out, const float* position, unsigned positionComponents, const float* color,
-    unsigned colorComponents, const float* texCoord, unsigned texCoordComponents, const float* normal)
+    unsigned colorComponents, const float* texCoord, unsigned texCoordComponents, const float* normal,
+    const float* generic, unsigned genericComponents)
 {
+    // GL's default for a generic attribute without an array is (0, 0, 0, 1).
+    static const float kDefaultGeneric[4] = { 0, 0, 0, 1 };
+    memcpy(out->generic, kDefaultGeneric, sizeof out->generic);
+    for (unsigned i = 0; generic != NULL && i < genericComponents; i++)
+        out->generic[i] = generic[i];
     static const float kDefaultPosition[4] = { 0, 0, 0, 1 }, kDefaultTexCoord[4] = { 0, 0, 0, 1 };
     const OOImmediateAttributes current = OOImmediateGetAttributes();
     memcpy(out->position, kDefaultPosition, sizeof out->position);
@@ -1043,7 +1152,7 @@ void OORendererBackendDrawImmediate(OONativePrimitive primitive, const OOImmedia
     GPUVertex* out = ReserveVertices(n);
     for (size_t i = 0; i < n; i++) {
         const OOImmediateVertex* v = &vertices[order[i]];
-        SetVertex(&out[i], v->position, 3, v->color, 4, v->texCoord, 2, v->normal);
+        SetVertex(&out[i], v->position, 3, v->color, 4, v->texCoord, 2, v->normal, NULL, 0);
     }
     free(order);
     if (n > 0)
@@ -1059,7 +1168,8 @@ static const float* StreamElement(const OOVertexStream* stream, size_t index, un
 static void DrawLayout(OONativePrimitive primitive, const OOVertexLayout* layout, size_t first, size_t count,
     const void* indices, OOIndexType indexType)
 {
-    const OOVertexStream *position = NULL, *color = NULL, *texCoord = NULL, *normal = NULL;
+    const OOVertexStream *position = NULL, *color = NULL, *texCoord = NULL, *normal = NULL, *generic = NULL;
+    int genericLocation = sCurrentProgram ? sCurrentProgram->genericLocation : -1;
     for (unsigned i = 0; i < layout->count; i++) {
         const OOVertexStream* stream = &layout->streams[i];
         switch (stream->semantic) {
@@ -1080,6 +1190,8 @@ static void DrawLayout(OONativePrimitive primitive, const OOVertexLayout* layout
             // Generic attribute 0 stands in for gl_Vertex, as in GL.
             if (stream->index == 0 && position == NULL)
                 position = stream;
+            else if ((int)stream->index == genericLocation && strcmp(sFault, "generic") != 0)
+                generic = stream;
             break;
         }
     }
@@ -1099,7 +1211,8 @@ static void DrawLayout(OONativePrimitive primitive, const OOVertexLayout* layout
         SetVertex(&out[i], StreamElement(position, index, 3), position->components,
             color ? StreamElement(color, index, 4) : NULL, color ? color->components : 0,
             texCoord ? StreamElement(texCoord, index, 2) : NULL, texCoord ? texCoord->components : 0,
-            normal ? StreamElement(normal, index, 3) : NULL);
+            normal ? StreamElement(normal, index, 3) : NULL,
+            generic ? StreamElement(generic, index, 4) : NULL, generic ? generic->components : 0);
     }
     free(order);
     if (n > 0)
@@ -1140,7 +1253,7 @@ void OORendererBackendBeginPass(const OORenderPassDescriptor* pass, const float 
     sPass = *pass;
     memcpy(sClearColor, clearColor, sizeof sClearColor);
     sClearDepth = clearDepth;
-    sVertexCount = sUniformCount = sDrawCount = 0;
+    sVertexCount = sUniformCount = sDrawCount = sBlockUsed = 0;
 }
 
 static SDL_GPULoadOp LoadOp(OOLoadOp op)
@@ -1229,11 +1342,35 @@ void OORendererBackendEndPass(void)
         SDL_SetGPUViewport(pass, &viewport);
         SDL_Rect scissor = draw->scissor ? draw->scissorRect : (SDL_Rect) { 0, 0, (int)TargetWidth(), (int)TargetHeight() };
         SDL_SetGPUScissor(pass, &scissor);
-        SDL_GPUTextureSamplerBinding sampler = { .texture = texture->texture, .sampler = texture->sampler };
-        SDL_BindGPUFragmentSamplers(pass, sTextureSamplerSlot, &sampler, 1);
         const OOGLSLLegacyStateBlock* uniforms = &sUniforms[draw->uniformIndex];
         SDL_PushGPUVertexUniformData(commands, kOOGLSLLegacyStateSlot, uniforms, sizeof *uniforms);
         SDL_PushGPUFragmentUniformData(commands, kOOGLSLLegacyStateSlot, uniforms, sizeof *uniforms);
+        const OORendererProgram* program = draw->key.program;
+        if (program == NULL) {
+            SDL_GPUTextureSamplerBinding sampler = { .texture = texture->texture, .sampler = texture->sampler };
+            SDL_BindGPUFragmentSamplers(pass, sTextureSamplerSlot, &sampler, 1);
+        } else {
+            for (int stage = 0; stage < kOOGLSLStageCount; stage++) {
+                SDL_GPUTextureSamplerBinding samplers[kMaxSamplers];
+                uint32_t count = program->samplerCount[stage];
+                for (uint32_t slot = 0; slot < count; slot++) {
+                    const TextureRecord* t = TextureFor(draw->samplerTextures[stage][slot]);
+                    samplers[slot] = (SDL_GPUTextureSamplerBinding) { .texture = t->texture, .sampler = t->sampler };
+                }
+                const uint8_t* block = sBlockBytes + draw->blockOffset[stage];
+                if (stage == kOOGLSLStageVertex) {
+                    if (count > 0)
+                        SDL_BindGPUVertexSamplers(pass, 0, samplers, count);
+                    if (program->blockSize[stage] > 0)
+                        SDL_PushGPUVertexUniformData(commands, kOOGLSLUniformsSlot, block, program->blockSize[stage]);
+                } else {
+                    if (count > 0)
+                        SDL_BindGPUFragmentSamplers(pass, 0, samplers, count);
+                    if (program->blockSize[stage] > 0)
+                        SDL_PushGPUFragmentUniformData(commands, kOOGLSLUniformsSlot, block, program->blockSize[stage]);
+                }
+            }
+        }
         SDL_DrawGPUPrimitives(pass, (Uint32)draw->vertexCount, 1, (Uint32)draw->firstVertex, 0);
     }
     SDL_EndGPURenderPass(pass);
@@ -1241,7 +1378,7 @@ void OORendererBackendEndPass(void)
     WaitFor(commands);
     if (transfer != NULL)
         SDL_ReleaseGPUTransferBuffer(sDevice, transfer);
-    sVertexCount = sUniformCount = sDrawCount = 0;
+    sVertexCount = sUniformCount = sDrawCount = sBlockUsed = 0;
     sPassTarget = NULL;
 }
 
@@ -1362,4 +1499,192 @@ void OORendererBackendSetGLAttributes(const OOImmediateAttributes* attributes)
 void OORendererBackendCheckGLAttributes(const OOImmediateAttributes* expected)
 {
     (void)expected;
+}
+
+#pragma mark - Programs
+
+static ProgramUniform* FindOrAddUniform(OORendererProgram* program, const char* name)
+{
+    for (size_t i = 0; i < program->uniformCount; i++) {
+        if (strcmp(program->uniforms[i].name, name) == 0)
+            return &program->uniforms[i];
+    }
+    program->uniforms = realloc(program->uniforms, (program->uniformCount + 1) * sizeof *program->uniforms);
+    ProgramUniform* entry = &program->uniforms[program->uniformCount++];
+    memset(entry, 0, sizeof *entry);
+    entry->name = SDL_strdup(name);
+    for (int stage = 0; stage < kOOGLSLStageCount; stage++)
+        entry->samplerSlot[stage] = -1;
+    return entry;
+}
+
+OORendererProgram* OORendererCreateProgram(const char* vertexSource, const char* fragmentSource, const char* prefix,
+    const OOAttributeBinding* bindings, size_t bindingCount, OOProgramError* outError)
+{
+    if (outError != NULL)
+        *outError = (OOProgramError) { kOOProgramStageLink, NULL };
+    if (vertexSource == NULL && fragmentSource == NULL)
+        return NULL;
+    OORendererProgram* program = calloc(1, sizeof *program);
+    program->genericLocation = -1;
+    if (!OOGLSLTranslateProgram(vertexSource, fragmentSource, prefix, sFormats, &program->translated)) {
+        // The translator compiles and links in one go; its log names the stage.
+        if (outError != NULL)
+            outError->log = SDL_strdup(program->translated.log ? program->translated.log : "");
+        OOGLSLProgramFree(&program->translated);
+        free(program);
+        return NULL;
+    }
+    const OOGLSLStageResult* vertex = &program->translated.stages[kOOGLSLStageVertex];
+    program->shaders[kOOGLSLStageVertex] = CreateShader(vertex, SDL_GPU_SHADERSTAGE_VERTEX);
+    program->shaders[kOOGLSLStageFragment] = CreateShader(&program->translated.stages[kOOGLSLStageFragment], SDL_GPU_SHADERSTAGE_FRAGMENT);
+
+    // The first bound attribute the shader reads feeds GPUVertex.generic.
+    const char* genericName = NULL;
+    for (size_t b = 0; b < bindingCount && genericName == NULL; b++) {
+        for (size_t i = 0; i < vertex->vertexInputCount; i++) {
+            if (strcmp(vertex->vertexInputs[i].name, bindings[b].name) == 0) {
+                genericName = bindings[b].name;
+                program->genericLocation = (int)bindings[b].location;
+                break;
+            }
+        }
+    }
+    program->attributeCount = BuildAttributes(vertex, genericName, program->attributes);
+
+    for (int stage = 0; stage < kOOGLSLStageCount; stage++) {
+        const OOGLSLStageResult* result = &program->translated.stages[stage];
+        for (size_t i = 0; i < result->uniformCount; i++)
+            FindOrAddUniform(program, result->uniforms[i].name)->uniform[stage] = &result->uniforms[i];
+        for (size_t i = 0; i < result->samplerCount; i++) {
+            const OOGLSLSampler* sampler = &result->samplers[i];
+            if (sampler->slot >= kMaxSamplers)
+                continue;
+            FindOrAddUniform(program, sampler->name)->samplerSlot[stage] = (int)sampler->slot;
+            program->samplerIsCube[stage][sampler->slot] = sampler->isCube;
+            if (sampler->slot + 1 > program->samplerCount[stage])
+                program->samplerCount[stage] = sampler->slot + 1;
+        }
+        program->blockSize[stage] = result->uniformBlockSize > 0 ? result->uniformBlockSize + 16 : 0;
+        program->blocks[stage] = calloc(1, program->blockSize[stage] + 16);
+    }
+    if (program->shaders[kOOGLSLStageVertex] == NULL || program->shaders[kOOGLSLStageFragment] == NULL) {
+        if (outError != NULL)
+            outError->log = SDL_strdup(SDL_GetError());
+        OORendererReleaseProgram(program);
+        return NULL;
+    }
+    return program;
+}
+
+void OORendererReleaseProgram(OORendererProgram* program)
+{
+    if (program == NULL)
+        return;
+    if (program == sCurrentProgram)
+        OORendererUseProgram(NULL);
+    // Pipelines built for it go too.
+    for (size_t i = 0; i < sPipelineCount;) {
+        if (sPipelines[i].key.program == program) {
+            SDL_ReleaseGPUGraphicsPipeline(sDevice, sPipelines[i].pipeline);
+            sPipelines[i] = sPipelines[--sPipelineCount];
+        } else
+            i++;
+    }
+    for (int stage = 0; stage < kOOGLSLStageCount; stage++) {
+        if (program->shaders[stage] != NULL)
+            SDL_ReleaseGPUShader(sDevice, program->shaders[stage]);
+        free(program->blocks[stage]);
+    }
+    for (size_t i = 0; i < program->uniformCount; i++)
+        SDL_free(program->uniforms[i].name);
+    free(program->uniforms);
+    OOGLSLProgramFree(&program->translated);
+    free(program);
+}
+
+void OORendererUseProgram(OORendererProgram* program)
+{
+    sCurrentProgram = program;
+    // The mirror holds a GL program name; any non-zero value says "a program".
+    OORendererSetProgram(program != NULL ? (uint32_t)(uintptr_t)program : 0);
+}
+
+OORendererProgram* OORendererCurrentProgram(void)
+{
+    return sCurrentProgram;
+}
+
+uint32_t OORendererProgramGLName(const OORendererProgram* program)
+{
+    (void)program;
+    return 0;
+}
+
+OOProgramUniform OORendererProgramUniform(OORendererProgram* program, const char* name)
+{
+    if (program == NULL)
+        return -1;
+    for (size_t i = 0; i < program->uniformCount; i++) {
+        if (strcmp(program->uniforms[i].name, name) == 0)
+            return (OOProgramUniform)i;
+    }
+    return -1;
+}
+
+static void WriteUniform(uint8_t* block, const OOGLSLUniform* u, OOUniformType type, const void* values)
+{
+    uint8_t* at = block + u->offset;
+    const float* f = values;
+    switch (type) {
+    case kOOUniformInt: {
+        int32_t value = *(const int32_t*)values;
+        // As glUniform1i: ints and bools only.
+        if (u->baseType == kOOGLSLTypeInt || u->baseType == kOOGLSLTypeUInt)
+            memcpy(at, &value, 4);
+        else if (u->baseType == kOOGLSLTypeBool) {
+            uint32_t b = value != 0;
+            memcpy(at, &b, 4);
+        }
+        return;
+    }
+    case kOOUniformFloat:
+        if (u->baseType == kOOGLSLTypeFloat && u->columns == 1)
+            memcpy(at, f, 4);
+        else if (u->baseType == kOOGLSLTypeBool) {
+            uint32_t b = *f != 0.0f;
+            memcpy(at, &b, 4);
+        }
+        return;
+    case kOOUniformVec2:
+    case kOOUniformVec4: {
+        uint32_t n = type == kOOUniformVec2 ? 2 : 4;
+        if (u->baseType == kOOGLSLTypeFloat && u->columns == 1 && u->vectorSize == n)
+            memcpy(at, f, n * 4);
+        return;
+    }
+    case kOOUniformMat3:
+    case kOOUniformMat4: {
+        uint32_t n = type == kOOUniformMat3 ? 3 : 4;
+        if (u->baseType != kOOGLSLTypeFloat || u->columns != n || u->vectorSize != n)
+            return;
+        for (uint32_t c = 0; c < n; c++)
+            memcpy(at + c * u->matrixStride, f + c * n, n * 4);
+        return;
+    }
+    }
+}
+
+void OORendererSetUniform(OOProgramUniform uniform, OOUniformType type, const void* values)
+{
+    OORendererProgram* program = sCurrentProgram;
+    if (program == NULL || uniform < 0 || (size_t)uniform >= program->uniformCount || strcmp(sFault, "uniform") == 0)
+        return;
+    const ProgramUniform* entry = &program->uniforms[uniform];
+    for (int stage = 0; stage < kOOGLSLStageCount; stage++) {
+        if (entry->samplerSlot[stage] >= 0 && type == kOOUniformInt)
+            program->samplerUnits[stage][entry->samplerSlot[stage]] = *(const int32_t*)values;
+        if (entry->uniform[stage] != NULL)
+            WriteUniform(program->blocks[stage], entry->uniform[stage], type, values);
+    }
 }
