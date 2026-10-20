@@ -354,7 +354,7 @@ enum {
     OOShaderProgram* textureProgram;
     OOShaderProgram* blurProgram;
     OOShaderProgram* finalProgram;
-    GLuint quadTextureVBO, quadTextureVAO, quadTextureEBO;
+    struct OORendererBuffer *_quadVertices, *_quadIndices; // the fullscreen quad for post-processing
     OORenderTarget _pingpongTargets[2]; // the bloom blur
     BOOL _bloom;
     int _currentPostFX;

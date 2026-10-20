@@ -97,6 +97,7 @@ MA 02110-1301, USA.
 #import "OOGLStateCompat.h"
 #import "OOImmediateMode.h"
 #import "OORenderPass.h"
+#import "OOVertexArray.h"
 
 #if OO_LOCALIZATION_TOOLS
 #import "OOConvertSystemDescriptions.h"
@@ -214,6 +215,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void* context);
 - (void)resizeTargetFramebufferWithViewSize:(NSSize)viewSize;
 - (void)prepareToRenderIntoDefaultFramebuffer;
 - (void)drawTargetTextureIntoDefaultFramebuffer;
+- (void)drawFramebufferQuad;
 
 - (BOOL)doRemoveEntity:(Entity*)entity;
 - (void)setUpCargoPods;
@@ -357,12 +359,6 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     OOGL(glGetIntegerv(GL_CURRENT_PROGRAM, &previousProgramID));
     GLint previousTextureID;
     OOGL(glGetIntegerv(GL_TEXTURE_BINDING_2D, &previousTextureID));
-    GLint previousVAO;
-    OOGL(glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &previousVAO));
-    GLint previousArrayBuffer;
-    OOGL(glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &previousArrayBuffer));
-    GLint previousElementBuffer;
-    OOGL(glGetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING, &previousElementBuffer));
 
     OORendererSetWindowTarget((OORenderTarget)windowFramebuffer);
     unsigned width = (unsigned)viewSize.width, height = (unsigned)viewSize.height;
@@ -418,31 +414,22 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
                                                          attributeBindings:[NSDictionary dictionary]] retain];
     }
 
-    OOGL(glGenVertexArrays(1, &quadTextureVAO));
-    OOGL(glGenBuffers(1, &quadTextureVBO));
-    OOGL(glGenBuffers(1, &quadTextureEBO));
-
-    OOGL(glBindVertexArray(quadTextureVAO));
-
-    OOGL(glBindBuffer(GL_ARRAY_BUFFER, quadTextureVBO));
-    OOGL(glBufferData(GL_ARRAY_BUFFER, sizeof(framebufferQuadVertices), framebufferQuadVertices, GL_STATIC_DRAW));
-
-    OOGL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, quadTextureEBO));
-    OOGL(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(framebufferQuadIndices), framebufferQuadIndices, GL_STATIC_DRAW));
-
-    OOGL(glEnableVertexAttribArray(0));
-    // position attribute
-    OOGL(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0));
-    OOGL(glEnableVertexAttribArray(1));
-    // texture coord attribute
-    OOGL(glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float))));
+    _quadVertices = OORendererCreateBuffer(framebufferQuadVertices, sizeof framebufferQuadVertices);
+    _quadIndices = OORendererCreateBuffer(framebufferQuadIndices, sizeof framebufferQuadIndices);
 
     // restoring previous bindings
     OOGLUseProgram(previousProgramID);
     OOGLBindTexture(GL_TEXTURE_2D, previousTextureID);
-    OOGL(glBindVertexArray(previousVAO));
-    OOGL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, previousElementBuffer));
-    OOGL(glBindBuffer(GL_ARRAY_BUFFER, previousArrayBuffer));
+}
+
+// The post-processing shaders read the position from attribute 0 and the
+// texture co-ordinates from attribute 1.
+- (void)drawFramebufferQuad
+{
+    OOVertexLayout layout = { 0 };
+    OOVertexLayoutAdd(&layout, kOOVertexAttribute, 0, 2, 4 * sizeof(float), _quadVertices, 0);
+    OOVertexLayoutAdd(&layout, kOOVertexAttribute, 1, 2, 4 * sizeof(float), _quadVertices, 2 * sizeof(float));
+    OORendererDrawElements(kOONativePrimitiveTriangles, &layout, _quadIndices, 0, kOOIndex32, 6);
 }
 
 - (void)deleteOpenGLObjects
@@ -452,9 +439,9 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     OORendererDeleteRenderTarget(_passthroughTarget);
     OORendererDeleteRenderTarget(_pingpongTargets[0]);
     OORendererDeleteRenderTarget(_pingpongTargets[1]);
-    OOGL(glDeleteVertexArrays(1, &quadTextureVAO));
-    OOGL(glDeleteBuffers(1, &quadTextureVBO));
-    OOGL(glDeleteBuffers(1, &quadTextureEBO));
+    OORendererReleaseBuffer(_quadVertices);
+    OORendererReleaseBuffer(_quadIndices);
+    _quadVertices = _quadIndices = NULL;
     [textureProgram release];
     [blurProgram release];
     [finalProgram release];
@@ -480,9 +467,6 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     unsigned previousActiveTexture = state->activeTexture;
     uint32_t previousTextureID = state->units[previousActiveTexture].binding2D;
     uint32_t previousProgramID = state->program;
-    GLint previousVAO;
-    OOGL(glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &previousVAO));
-
     OORenderTarget window = OORendererWindowTarget();
     OORendererBeginPass(&(OORenderPassDescriptor) { .target = window, .colorLoad = kOOLoadClear, .depthLoad = kOOLoadClear });
     OORendererEndPass();
@@ -502,9 +486,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     OOGLBindTexture(GL_TEXTURE_2D, OORendererRenderTargetTexture(_sceneTarget, 0));
     OOGL(glUniform1i(glGetUniformLocation(program, "image"), 0));
 
-    OOGL(glBindVertexArray(quadTextureVAO));
-    OOGL(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0));
-    OOGL(glBindVertexArray(0));
+    [self drawFramebufferQuad];
     OORendererEndPass();
 
     BOOL horizontal = YES, firstIteration = YES;
@@ -518,9 +500,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
         // bind texture of other framebuffer (or scene if first iteration)
         OOGLBindTexture(GL_TEXTURE_2D, firstIteration ? OORendererRenderTargetTexture(_passthroughTarget, 1) : OORendererRenderTargetTexture(_pingpongTargets[!horizontal], 0));
         OOGL(glUniform1i(glGetUniformLocation(blur, "imageIn"), 0));
-        OOGL(glBindVertexArray(quadTextureVAO));
-        OOGL(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0));
-        OOGL(glBindVertexArray(0));
+        [self drawFramebufferQuad];
         OORendererEndPass();
         horizontal = !horizontal;
         firstIteration = NO;
@@ -551,8 +531,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     OOGL(glUniform1i(glGetUniformLocation(final, "bloomBlur"), 1));
     OOGL(glUniform1f(glGetUniformLocation(final, "uSaturation"), [gameView colorSaturation]));
 
-    OOGL(glBindVertexArray(quadTextureVAO));
-    OOGL(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0));
+    [self drawFramebufferQuad];
     OORendererEndPass();
 
     // restore GL_TEXTURE1 to 0, just in case we are returning from a
@@ -563,7 +542,6 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     OOGLActiveTexture(GL_TEXTURE0 + previousActiveTexture);
     OOGLBindTexture(GL_TEXTURE_2D, previousTextureID);
     OOGLUseProgram(previousProgramID);
-    OOGL(glBindVertexArray(previousVAO));
     OOGLEnable(GL_BLEND);
 }
 
