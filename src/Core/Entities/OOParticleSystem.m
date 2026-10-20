@@ -25,6 +25,7 @@ MA 02110-1301, USA.
 #import "OOParticleSystem.h"
 
 #import "MyOpenGLView.h"
+#import "OOImmediateMode.h"
 #import "OOLightParticleEntity.h"
 #import "OOMacroOpenGL.h"
 #import "OOTexture.h"
@@ -121,16 +122,16 @@ MA 02110-1301, USA.
         [UNIVERSE removeEntity:self];
 }
 
-#define DrawQuadForView(x, y, z, sz)   \
-    do {                               \
-        glTexCoord2f(0.0, 1.0);        \
-        glVertex3f(x - sz, y - sz, z); \
-        glTexCoord2f(1.0, 1.0);        \
-        glVertex3f(x + sz, y - sz, z); \
-        glTexCoord2f(1.0, 0.0);        \
-        glVertex3f(x + sz, y + sz, z); \
-        glTexCoord2f(0.0, 0.0);        \
-        glVertex3f(x - sz, y + sz, z); \
+#define DrawQuadForView(x, y, z, sz)            \
+    do {                                        \
+        OOImmediateTexCoord2f(0.0, 1.0);        \
+        OOImmediateVertex3f(x - sz, y - sz, z); \
+        OOImmediateTexCoord2f(1.0, 1.0);        \
+        OOImmediateVertex3f(x + sz, y - sz, z); \
+        OOImmediateTexCoord2f(1.0, 0.0);        \
+        OOImmediateVertex3f(x + sz, y + sz, z); \
+        OOImmediateTexCoord2f(0.0, 0.0);        \
+        OOImmediateVertex3f(x - sz, y + sz, z); \
     } while (0)
 
 - (void)drawImmediate:(bool)immediate translucent:(bool)translucent
@@ -161,12 +162,12 @@ MA 02110-1301, USA.
         OOGLPushModelView();
         OOGLMultModelView(OOMatrixForBillboard(selfPosition, viewPosition));
 
-        OOGLBEGIN(GL_QUADS);
+        OOImmediateBegin(kOOPrimitiveQuads);
         for (i = 0; i < count; i++) {
-            glColor4fv(particleColor[i]);
+            OOImmediateColor4fv(particleColor[i]);
             DrawQuadForView(particlePosition[i].x, particlePosition[i].y, particlePosition[i].z, particleSize[i]);
         }
-        OOGLEND();
+        OOImmediateEnd();
 
         OOGLPopModelView();
     } else {
@@ -186,10 +187,10 @@ MA 02110-1301, USA.
                 OOGLTranslateModelView(particlePosition[i]);
                 OOGLMultModelView(bbMatrix);
 
-                glColor4fv(particleColor[i]);
-                OOGLBEGIN(GL_QUADS);
+                OOImmediateColor4fv(particleColor[i]);
+                OOImmediateBegin(kOOPrimitiveQuads);
                 DrawQuadForView(0, 0, 0, particleSize[i]);
-                OOGLEND();
+                OOImmediateEnd();
 
                 OOGLPopModelView();
             }
@@ -206,10 +207,10 @@ MA 02110-1301, USA.
                 OOGLTranslateModelView(particlePosition[i]);
                 OOGLMultModelView(OOMatrixForBillboard(HPvector_add(selfPosition, vectorToHPVector(vector_multiply_scalar(particlePosition[i], individuality))), viewPosition));
 
-                glColor4fv(particleColor[i]);
-                OOGLBEGIN(GL_QUADS);
+                OOImmediateColor4fv(particleColor[i]);
+                OOImmediateBegin(kOOPrimitiveQuads);
                 DrawQuadForView(0, 0, 0, particleSize[i]);
-                OOGLEND();
+                OOImmediateEnd();
 
                 OOGLPopModelView();
             }

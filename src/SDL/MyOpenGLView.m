@@ -43,6 +43,7 @@ MA 02110-1301, USA.
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #import "OOFixedFunction.h"
+#import "OOImmediateMode.h"
 #import "OOOpenGLMatrixManager.h"
 #import "OORenderPass.h"
 #import "stb_image_write.h"
@@ -792,18 +793,18 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
         texture_format, GL_UNSIGNED_BYTE, image->pixels);
 
     glBindTexture(GL_TEXTURE_2D, texture);
-    glBegin(GL_QUADS);
+    OOImmediateBegin(kOOPrimitiveQuads);
 
-    glTexCoord2i(0, 0);
-    glVertex2i(0, 0);
-    glTexCoord2i(1, 0);
-    glVertex2i(1, 0);
-    glTexCoord2i(1, 1);
-    glVertex2i(1, 1);
-    glTexCoord2i(0, 1);
-    glVertex2i(0, 1);
+    OOImmediateTexCoord2f(0, 0);
+    OOImmediateVertex2f(0, 0);
+    OOImmediateTexCoord2f(1, 0);
+    OOImmediateVertex2f(1, 0);
+    OOImmediateTexCoord2f(1, 1);
+    OOImmediateVertex2f(1, 1);
+    OOImmediateTexCoord2f(0, 1);
+    OOImmediateVertex2f(0, 1);
 
-    glEnd();
+    OOImmediateEnd();
     glFinish();
 
     SDL_GL_SwapWindow(window);

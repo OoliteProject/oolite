@@ -55,6 +55,7 @@ MA 02110-1301, USA.
 #import "Universe.h"
 
 #import "OODebugStandards.h"
+#import "OOImmediateMode.h"
 #import "OOJavaScriptEngine.h"
 
 // If set, collision octree depth varies depending on the size of the mesh.
@@ -1887,7 +1888,7 @@ static float FaceAreaCorrect(GLuint* vertIndices, Vector* vertices)
     state = OODebugBeginWireframe(NO);
 
     // Draw
-    OOGLBEGIN(GL_LINES);
+    OOImmediateBegin(kOOPrimitiveLines);
     for (i = 0; i < _displayLists.count; ++i) {
         v = _displayLists.vertexArray[i];
         n = _displayLists.normalArray[i];
@@ -1900,26 +1901,26 @@ static float FaceAreaCorrect(GLuint* vertIndices, Vector* vertices)
         color[0] = MIN(blend, 1.0f);
         color[1] = 1.0f - color[0];
         color[2] = color[1];
-        glColor3fv(color);
+        OOImmediateColor3fv(color);
 
-        glVertex3f(v.x, v.y, v.z);
+        OOImmediateVertex3f(v.x, v.y, v.z);
         scale_vector(&n, 5.0f);
         n = vector_add(n, v);
-        glVertex3f(n.x, n.y, n.z);
+        OOImmediateVertex3f(n.x, n.y, n.z);
 
         // Draw tangent
-        glColor3f(1.0f, 1.0f, 0.0f);
+        OOImmediateColor3f(1.0f, 1.0f, 0.0f);
         t = vector_add(v, vector_multiply_scalar(t, 3.0f));
-        glVertex3f(v.x, v.y, v.z);
-        glVertex3f(t.x, t.y, t.z);
+        OOImmediateVertex3f(v.x, v.y, v.z);
+        OOImmediateVertex3f(t.x, t.y, t.z);
 
         // Draw bitangent
-        glColor3f(0.0f, 1.0f, 0.0f);
+        OOImmediateColor3f(0.0f, 1.0f, 0.0f);
         b = vector_add(v, vector_multiply_scalar(b, 3.0f));
-        glVertex3f(v.x, v.y, v.z);
-        glVertex3f(b.x, b.y, b.z);
+        OOImmediateVertex3f(v.x, v.y, v.z);
+        OOImmediateVertex3f(b.x, b.y, b.z);
     }
-    OOGLEND();
+    OOImmediateEnd();
 
     OODebugEndWireframe(state);
 }

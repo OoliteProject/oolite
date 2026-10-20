@@ -388,7 +388,7 @@ MA 02110-1301, USA.
         if (ignoreDepthBuffer)
             OOGL(glDisable(GL_DEPTH_TEST));
 
-        OOGL(glColor3fv(discColor));
+        OOImmediateColor3fv(discColor);
         // FIXME: use vertex arrays
         OOGL(glDisable(GL_BLEND));
         OOImmediateBegin(kOOPrimitiveTriangleFan);
@@ -572,14 +572,14 @@ MA 02110-1301, USA.
         GLfloat sunGlareFilterMultiplierLocal = [PLAYER sunGlareFilter];
         GLfloat directVisionSunGlareColor[4] = { discColor[0], discColor[1], discColor[2], directVisionSunGlare * atmosphericReductionFactor * distanceReductionFactor * (1.0f - sunGlareFilterMultiplierLocal) * 0.0085f };
 
-        OOGL(glColor4fv(directVisionSunGlareColor));
+        OOImmediateColor4fv(directVisionSunGlareColor);
 
-        OOGLBEGIN(GL_QUADS);
-        glVertex3f(siz.width, siz.height, z);
-        glVertex3f(siz.width, -siz.height, z);
-        glVertex3f(-siz.width, -siz.height, z);
-        glVertex3f(-siz.width, siz.height, z);
-        OOGLEND();
+        OOImmediateBegin(kOOPrimitiveQuads);
+        OOImmediateVertex3f(siz.width, siz.height, z);
+        OOImmediateVertex3f(siz.width, -siz.height, z);
+        OOImmediateVertex3f(-siz.width, -siz.height, z);
+        OOImmediateVertex3f(-siz.width, siz.height, z);
+        OOImmediateEnd();
     }
 #endif
 }
@@ -605,14 +605,14 @@ MA 02110-1301, USA.
         MyOpenGLView* gameView = [UNIVERSE gameView];
         GLfloat aspectRatio = ([gameView viewSize].width / [gameView viewSize].height);
         GLfloat z = [gameView display_z] / (aspectRatio > 4.0f / 3.0f ? aspectRatio : 1.0f / aspectRatio);
-        OOGL(glColor4fv(glareColor));
+        OOImmediateColor4fv(glareColor);
 
-        OOGLBEGIN(GL_QUADS);
-        glVertex3f(siz.width, siz.height, z);
-        glVertex3f(siz.width, -siz.height, z);
-        glVertex3f(-siz.width, -siz.height, z);
-        glVertex3f(-siz.width, siz.height, z);
-        OOGLEND();
+        OOImmediateBegin(kOOPrimitiveQuads);
+        OOImmediateVertex3f(siz.width, siz.height, z);
+        OOImmediateVertex3f(siz.width, -siz.height, z);
+        OOImmediateVertex3f(-siz.width, -siz.height, z);
+        OOImmediateVertex3f(-siz.width, siz.height, z);
+        OOImmediateEnd();
     }
 }
 

@@ -22,6 +22,7 @@
 
  */
 
+#import "OOImmediateMode.h"
 #import "OOStellarBody.h"
 #if NEW_PLANETS
 
@@ -339,7 +340,7 @@
     const OOPlanetDataLevel* data = &kPlanetData[_lod];
     unsigned i;
 
-    OOGLBEGIN(GL_LINES);
+    OOImmediateBegin(kOOPrimitiveLines);
     for (i = 0; i < data->vertexCount; i++) {
         /*	Fun sphere facts: the normalized coordinates of a point on a sphere at the origin
                 is equal to the object-space normal of the surface at that point.
@@ -355,22 +356,22 @@
         Vector n = v;
         v = OOVectorMultiplyMatrix(v, _transform);
 
-        glColor3f(0.0f, 1.0f, 1.0f);
+        OOImmediateColor3f(0.0f, 1.0f, 1.0f);
         GLVertexOOVector(v);
         GLVertexOOVector(vector_add(v, vector_multiply_scalar(n, _radius * 0.05)));
 
         Vector b = cross_product(n, kBasisYVector);
         Vector t = vector_flip(true_cross_product(n, b));
 
-        glColor3f(1.0f, 1.0f, 0.0f);
+        OOImmediateColor3f(1.0f, 1.0f, 0.0f);
         GLVertexOOVector(v);
         GLVertexOOVector(vector_add(v, vector_multiply_scalar(t, _radius * 0.03)));
 
-        glColor3f(0.0f, 1.0f, 0.0f);
+        OOImmediateColor3f(0.0f, 1.0f, 0.0f);
         GLVertexOOVector(v);
         GLVertexOOVector(vector_add(v, vector_multiply_scalar(b, _radius * 0.03)));
     }
-    OOGLEND();
+    OOImmediateEnd();
 
     OODebugEndWireframe(state);
 }

@@ -24,6 +24,7 @@ MA 02110-1301, USA.
 */
 
 #import "OORingEffectEntity.h"
+#import "OOImmediateMode.h"
 #import "OOMacroOpenGL.h"
 #import "Universe.h"
 
@@ -131,14 +132,14 @@ static struct {
     GLfloat ex_em_hi[4] = { 0.6, 0.8, 1.0, alpha }; // pale blue
     GLfloat ex_em_lo[4] = { 0.2, 0.0, 1.0, 0.0 }; // purplish-blue-black
 
-    OOGLBEGIN(GL_TRIANGLE_STRIP);
+    OOImmediateBegin(kOOPrimitiveTriangleStrip);
     for (unsigned i = 0; i < kCircleSegments; i++) {
-        glColor4fv(ex_em_lo);
-        glVertex3f(_innerRadius * sCircleVerts[i].x, _innerRadius * sCircleVerts[i].y, 0.0f);
-        glColor4fv(ex_em_hi);
-        glVertex3f(_outerRadius * sCircleVerts[i].x, _outerRadius * sCircleVerts[i].y, 0.0f);
+        OOImmediateColor4fv(ex_em_lo);
+        OOImmediateVertex3f(_innerRadius * sCircleVerts[i].x, _innerRadius * sCircleVerts[i].y, 0.0f);
+        OOImmediateColor4fv(ex_em_hi);
+        OOImmediateVertex3f(_outerRadius * sCircleVerts[i].x, _outerRadius * sCircleVerts[i].y, 0.0f);
     }
-    OOGLEND();
+    OOImmediateEnd();
 
     OOVerifyOpenGLState();
     OOCheckOpenGLErrors(@"OOQuiriumCascadeEntity after drawing %@", self);

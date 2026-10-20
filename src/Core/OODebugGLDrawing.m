@@ -26,6 +26,7 @@ SOFTWARE.
 */
 
 #import "OODebugGLDrawing.h"
+#import "OOImmediateMode.h"
 #import "OOMacroOpenGL.h"
 #import "OOMaterial.h"
 
@@ -40,7 +41,7 @@ OOINLINE void ApplyColor(OOColor* color)
     if (EXPECT_NOT(color == nil))
         color = [OOColor lightGrayColor];
     [color getRed:&r green:&g blue:&b alpha:&a];
-    OOGL(glColor4f(r, g, b, a));
+    OOImmediateColor4f(r, g, b, a);
 }
 
 void OODebugDrawColoredBoundingBoxBetween(Vector min, Vector max, OOColor* color)
@@ -49,26 +50,26 @@ void OODebugDrawColoredBoundingBoxBetween(Vector min, Vector max, OOColor* color
     OO_ENTER_OPENGL();
 
     ApplyColor(color);
-    OOGLBEGIN(GL_LINE_LOOP);
-    glVertex3f(min.x, min.y, min.z);
-    glVertex3f(max.x, min.y, min.z);
-    glVertex3f(max.x, max.y, min.z);
-    glVertex3f(min.x, max.y, min.z);
-    glVertex3f(min.x, max.y, max.z);
-    glVertex3f(max.x, max.y, max.z);
-    glVertex3f(max.x, min.y, max.z);
-    glVertex3f(min.x, min.y, max.z);
-    OOGLEND();
-    OOGLBEGIN(GL_LINES);
-    glVertex3f(max.x, min.y, min.z);
-    glVertex3f(max.x, min.y, max.z);
-    glVertex3f(max.x, max.y, min.z);
-    glVertex3f(max.x, max.y, max.z);
-    glVertex3f(min.x, min.y, min.z);
-    glVertex3f(min.x, max.y, min.z);
-    glVertex3f(min.x, min.y, max.z);
-    glVertex3f(min.x, max.y, max.z);
-    OOGLEND();
+    OOImmediateBegin(kOOPrimitiveLineLoop);
+    OOImmediateVertex3f(min.x, min.y, min.z);
+    OOImmediateVertex3f(max.x, min.y, min.z);
+    OOImmediateVertex3f(max.x, max.y, min.z);
+    OOImmediateVertex3f(min.x, max.y, min.z);
+    OOImmediateVertex3f(min.x, max.y, max.z);
+    OOImmediateVertex3f(max.x, max.y, max.z);
+    OOImmediateVertex3f(max.x, min.y, max.z);
+    OOImmediateVertex3f(min.x, min.y, max.z);
+    OOImmediateEnd();
+    OOImmediateBegin(kOOPrimitiveLines);
+    OOImmediateVertex3f(max.x, min.y, min.z);
+    OOImmediateVertex3f(max.x, min.y, max.z);
+    OOImmediateVertex3f(max.x, max.y, min.z);
+    OOImmediateVertex3f(max.x, max.y, max.z);
+    OOImmediateVertex3f(min.x, min.y, min.z);
+    OOImmediateVertex3f(min.x, max.y, min.z);
+    OOImmediateVertex3f(min.x, min.y, max.z);
+    OOImmediateVertex3f(min.x, max.y, max.z);
+    OOImmediateEnd();
 
     OODebugEndWireframe(state);
 }
@@ -80,10 +81,10 @@ void OODebugDrawColoredLine(Vector start, Vector end, OOColor* color)
 
     ApplyColor(color);
 
-    OOGLBEGIN(GL_LINES);
-    glVertex3f(start.x, start.y, start.z);
-    glVertex3f(end.x, end.y, end.z);
-    OOGLEND();
+    OOImmediateBegin(kOOPrimitiveLines);
+    OOImmediateVertex3f(start.x, start.y, start.z);
+    OOImmediateVertex3f(end.x, end.y, end.z);
+    OOImmediateEnd();
 
     OODebugEndWireframe(state);
 }
@@ -93,19 +94,19 @@ void OODebugDrawBasis(Vector position, GLfloat scale)
     OODebugWFState state = OODebugBeginWireframe(YES);
     OO_ENTER_OPENGL();
 
-    OOGLBEGIN(GL_LINES);
-    glColor4f(1.0f, 0.0f, 0.0f, 1.0f);
-    glVertex3f(position.x, position.y, position.z);
-    glVertex3f(position.x + scale, position.y, position.z);
+    OOImmediateBegin(kOOPrimitiveLines);
+    OOImmediateColor4f(1.0f, 0.0f, 0.0f, 1.0f);
+    OOImmediateVertex3f(position.x, position.y, position.z);
+    OOImmediateVertex3f(position.x + scale, position.y, position.z);
 
-    glColor4f(0.0f, 1.0f, 0.0f, 1.0f);
-    glVertex3f(position.x, position.y, position.z);
-    glVertex3f(position.x, position.y + scale, position.z);
+    OOImmediateColor4f(0.0f, 1.0f, 0.0f, 1.0f);
+    OOImmediateVertex3f(position.x, position.y, position.z);
+    OOImmediateVertex3f(position.x, position.y + scale, position.z);
 
-    glColor4f(0.0f, 0.0f, 1.0f, 1.0f);
-    glVertex3f(position.x, position.y, position.z);
-    glVertex3f(position.x, position.y, position.z + scale);
-    OOGLEND();
+    OOImmediateColor4f(0.0f, 0.0f, 1.0f, 1.0f);
+    OOImmediateVertex3f(position.x, position.y, position.z);
+    OOImmediateVertex3f(position.x, position.y, position.z + scale);
+    OOImmediateEnd();
 
     OODebugEndWireframe(state);
 }
@@ -118,9 +119,9 @@ void OODebugDrawPoint(Vector position, OOColor* color)
     ApplyColor(color);
     OOGL(GLScaledPointSize(10));
 
-    OOGLBEGIN(GL_POINTS);
-    glVertex3f(position.x, position.y, position.z);
-    OOGLEND();
+    OOImmediateBegin(kOOPrimitivePoints);
+    OOImmediateVertex3f(position.x, position.y, position.z);
+    OOImmediateEnd();
 
     OODebugEndWireframe(state);
 }

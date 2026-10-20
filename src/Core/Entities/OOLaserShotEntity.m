@@ -32,6 +32,7 @@ MA 02110-1301, USA.
 #import "OOTexture.h"
 
 #import "MyOpenGLView.h"
+#import "OOImmediateMode.h"
 
 #define kLaserDuration (0.09) // seconds
 
@@ -229,18 +230,18 @@ static const GLfloat kLaserVertices[] = {
         0.0f, phase3, 0.0f, phase4, 1.0f, phase4, 1.0f, phase3
     };
 
-    OOGL(glColor4fv(_color));
+    OOImmediateColor4fv(_color);
     glVertexPointer(3, GL_FLOAT, 0, kLaserVertices);
     glTexCoordPointer(2, GL_FLOAT, 0, laserTexCoords2);
     glDrawArrays(GL_QUADS, 0, 8);
 
     OOGLScaleModelView(make_vector(kLaserCoreWidth / kLaserHalfWidth, kLaserCoreWidth / kLaserHalfWidth, 1.0));
-    OOGL(glColor4f(kLaserBrightness, kLaserBrightness, kLaserBrightness, 0.9));
+    OOImmediateColor4f(kLaserBrightness, kLaserBrightness, kLaserBrightness, 0.9);
     glDrawArrays(GL_QUADS, 0, 8);
 
     [[self texture2] apply];
     OOGLScaleModelView(make_vector(kLaserFlareWidth / kLaserCoreWidth, kLaserFlareWidth / kLaserCoreWidth, 1.0));
-    OOGL(glColor4f(_color[0], _color[1], _color[2], 0.9));
+    OOImmediateColor4f(_color[0], _color[1], _color[2], 0.9);
     glTexCoordPointer(2, GL_FLOAT, 0, laserTexCoords);
     glDrawArrays(GL_QUADS, 0, 8);
 

@@ -23,6 +23,7 @@ MA 02110-1301, USA.
 */
 
 #import "OOTextureSprite.h"
+#import "OOImmediateMode.h"
 #import "OOMacroOpenGL.h"
 #import "OOMaths.h"
 #import "OOTexture.h"
@@ -68,24 +69,24 @@ MA 02110-1301, USA.
 
     a = OOClamp_0_1_f(a);
     OOGL(glEnable(GL_TEXTURE_2D));
-    OOGL(glColor4f(1.0, 1.0, 1.0, a));
+    OOImmediateColor4f(1.0, 1.0, 1.0, a);
 
     // Note that the textured Quad is drawn ACW from the top left.
 
     [texture apply];
-    OOGLBEGIN(GL_QUADS);
-    glTexCoord2f(0.0, 0.0);
-    glVertex3f(x, y + size.height, z);
+    OOImmediateBegin(kOOPrimitiveQuads);
+    OOImmediateTexCoord2f(0.0, 0.0);
+    OOImmediateVertex3f(x, y + size.height, z);
 
-    glTexCoord2f(0.0, 1.0);
-    glVertex3f(x, y, z);
+    OOImmediateTexCoord2f(0.0, 1.0);
+    OOImmediateVertex3f(x, y, z);
 
-    glTexCoord2f(1.0, 1.0);
-    glVertex3f(x + size.width, y, z);
+    OOImmediateTexCoord2f(1.0, 1.0);
+    OOImmediateVertex3f(x + size.width, y, z);
 
-    glTexCoord2f(1.0, 0.0);
-    glVertex3f(x + size.width, y + size.height, z);
-    OOGLEND();
+    OOImmediateTexCoord2f(1.0, 0.0);
+    OOImmediateVertex3f(x + size.width, y + size.height, z);
+    OOImmediateEnd();
 
     OOGL(glDisable(GL_TEXTURE_2D));
 

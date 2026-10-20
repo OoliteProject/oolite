@@ -28,6 +28,7 @@ MA 02110-1301, USA.
 #import "OOCollectionExtractors.h"
 #import "OODebugFlags.h"
 #import "OODebugGLDrawing.h"
+#import "OOImmediateMode.h"
 #import "OOMacroOpenGL.h"
 #import "OOMaths.h"
 #import "OOOpenGL.h"
@@ -168,20 +169,20 @@ static Vector offsetForOctant(int oct, GLfloat r)
 
     OO_ENTER_OPENGL();
     OOGL(glEnable(GL_BLEND));
-    OOGLBEGIN(GL_LINES);
-    glColor4f(0.4f, 0.4f, 0.4f, 0.5f);
+    OOImmediateBegin(kOOPrimitiveLines);
+    OOImmediateColor4f(0.4f, 0.4f, 0.4f, 0.5f);
 
     // it's a series of cubes
     [self drawOctreeFromLocation:0 scale:_radius offset:kZeroVector];
 
-    OOGLEND();
+    OOImmediateEnd();
 
     OODebugEndWireframe(state);
     OOCheckOpenGLErrors(@"Octree after drawing %@", self);
 }
 
 #if 0
-#define OCTREE_COLOR(r, g, b, a) glColor4f(r, g, b, a)
+#define OCTREE_COLOR(r, g, b, a) OOImmediateColor4f(r, g, b, a)
 #else
 #define OCTREE_COLOR(r, g, b, a) \
     do {                         \
@@ -199,35 +200,35 @@ static Vector offsetForOctant(int oct, GLfloat r)
     if (_octree[loc] == -1) // full
     {
         // draw a cube
-        glVertex3f(-scale + offset.x, -scale + offset.y, -scale + offset.z);
-        glVertex3f(-scale + offset.x, scale + offset.y, -scale + offset.z);
-        glVertex3f(-scale + offset.x, scale + offset.y, -scale + offset.z);
-        glVertex3f(scale + offset.x, scale + offset.y, -scale + offset.z);
-        glVertex3f(scale + offset.x, scale + offset.y, -scale + offset.z);
-        glVertex3f(scale + offset.x, -scale + offset.y, -scale + offset.z);
-        glVertex3f(scale + offset.x, -scale + offset.y, -scale + offset.z);
-        glVertex3f(-scale + offset.x, -scale + offset.y, -scale + offset.z);
+        OOImmediateVertex3f(-scale + offset.x, -scale + offset.y, -scale + offset.z);
+        OOImmediateVertex3f(-scale + offset.x, scale + offset.y, -scale + offset.z);
+        OOImmediateVertex3f(-scale + offset.x, scale + offset.y, -scale + offset.z);
+        OOImmediateVertex3f(scale + offset.x, scale + offset.y, -scale + offset.z);
+        OOImmediateVertex3f(scale + offset.x, scale + offset.y, -scale + offset.z);
+        OOImmediateVertex3f(scale + offset.x, -scale + offset.y, -scale + offset.z);
+        OOImmediateVertex3f(scale + offset.x, -scale + offset.y, -scale + offset.z);
+        OOImmediateVertex3f(-scale + offset.x, -scale + offset.y, -scale + offset.z);
 
-        glVertex3f(-scale + offset.x, -scale + offset.y, scale + offset.z);
-        glVertex3f(-scale + offset.x, scale + offset.y, scale + offset.z);
-        glVertex3f(-scale + offset.x, scale + offset.y, scale + offset.z);
-        glVertex3f(scale + offset.x, scale + offset.y, scale + offset.z);
-        glVertex3f(scale + offset.x, scale + offset.y, scale + offset.z);
-        glVertex3f(scale + offset.x, -scale + offset.y, scale + offset.z);
-        glVertex3f(scale + offset.x, -scale + offset.y, scale + offset.z);
-        glVertex3f(-scale + offset.x, -scale + offset.y, scale + offset.z);
+        OOImmediateVertex3f(-scale + offset.x, -scale + offset.y, scale + offset.z);
+        OOImmediateVertex3f(-scale + offset.x, scale + offset.y, scale + offset.z);
+        OOImmediateVertex3f(-scale + offset.x, scale + offset.y, scale + offset.z);
+        OOImmediateVertex3f(scale + offset.x, scale + offset.y, scale + offset.z);
+        OOImmediateVertex3f(scale + offset.x, scale + offset.y, scale + offset.z);
+        OOImmediateVertex3f(scale + offset.x, -scale + offset.y, scale + offset.z);
+        OOImmediateVertex3f(scale + offset.x, -scale + offset.y, scale + offset.z);
+        OOImmediateVertex3f(-scale + offset.x, -scale + offset.y, scale + offset.z);
 
-        glVertex3f(-scale + offset.x, -scale + offset.y, -scale + offset.z);
-        glVertex3f(-scale + offset.x, -scale + offset.y, scale + offset.z);
+        OOImmediateVertex3f(-scale + offset.x, -scale + offset.y, -scale + offset.z);
+        OOImmediateVertex3f(-scale + offset.x, -scale + offset.y, scale + offset.z);
 
-        glVertex3f(-scale + offset.x, scale + offset.y, -scale + offset.z);
-        glVertex3f(-scale + offset.x, scale + offset.y, scale + offset.z);
+        OOImmediateVertex3f(-scale + offset.x, scale + offset.y, -scale + offset.z);
+        OOImmediateVertex3f(-scale + offset.x, scale + offset.y, scale + offset.z);
 
-        glVertex3f(scale + offset.x, scale + offset.y, -scale + offset.z);
-        glVertex3f(scale + offset.x, scale + offset.y, scale + offset.z);
+        OOImmediateVertex3f(scale + offset.x, scale + offset.y, -scale + offset.z);
+        OOImmediateVertex3f(scale + offset.x, scale + offset.y, scale + offset.z);
 
-        glVertex3f(scale + offset.x, -scale + offset.y, -scale + offset.z);
-        glVertex3f(scale + offset.x, -scale + offset.y, scale + offset.z);
+        OOImmediateVertex3f(scale + offset.x, -scale + offset.y, -scale + offset.z);
+        OOImmediateVertex3f(scale + offset.x, -scale + offset.y, scale + offset.z);
     } else if (_octree[loc] > 0) {
         GLfloat sc = 0.5f * scale;
         OCTREE_COLOR(0.4f, 0.4f, 0.4f, 0.5f);
@@ -277,7 +278,7 @@ static BOOL drawTestForCollisions;
         OO_ENTER_OPENGL();
 
         GLfloat red = (GLfloat)(_collisionOctree[loc]) / 255.0;
-        glColor4f(1.0, 0.0, 0.0, red); // 50% translucent
+        OOImmediateColor4f(1.0, 0.0, 0.0, red); // 50% translucent
 
         drawTestForCollisions = YES;
         _collisionOctree[loc]--;
@@ -287,35 +288,35 @@ static BOOL drawTestForCollisions;
 
         OOGL(glDisable(GL_TEXTURE_2D));
 
-        OOGLBEGIN(GL_LINE_STRIP);
-        glVertex3f(-scale + offset.x, -scale + offset.y, -scale + offset.z);
-        glVertex3f(-scale + offset.x, scale + offset.y, -scale + offset.z);
-        glVertex3f(scale + offset.x, scale + offset.y, -scale + offset.z);
-        glVertex3f(scale + offset.x, -scale + offset.y, -scale + offset.z);
-        glVertex3f(-scale + offset.x, -scale + offset.y, -scale + offset.z);
-        OOGLEND();
+        OOImmediateBegin(kOOPrimitiveLineStrip);
+        OOImmediateVertex3f(-scale + offset.x, -scale + offset.y, -scale + offset.z);
+        OOImmediateVertex3f(-scale + offset.x, scale + offset.y, -scale + offset.z);
+        OOImmediateVertex3f(scale + offset.x, scale + offset.y, -scale + offset.z);
+        OOImmediateVertex3f(scale + offset.x, -scale + offset.y, -scale + offset.z);
+        OOImmediateVertex3f(-scale + offset.x, -scale + offset.y, -scale + offset.z);
+        OOImmediateEnd();
 
-        OOGLBEGIN(GL_LINE_STRIP);
-        glVertex3f(-scale + offset.x, -scale + offset.y, scale + offset.z);
-        glVertex3f(-scale + offset.x, scale + offset.y, scale + offset.z);
-        glVertex3f(scale + offset.x, scale + offset.y, scale + offset.z);
-        glVertex3f(scale + offset.x, -scale + offset.y, scale + offset.z);
-        glVertex3f(-scale + offset.x, -scale + offset.y, scale + offset.z);
-        OOGLEND();
+        OOImmediateBegin(kOOPrimitiveLineStrip);
+        OOImmediateVertex3f(-scale + offset.x, -scale + offset.y, scale + offset.z);
+        OOImmediateVertex3f(-scale + offset.x, scale + offset.y, scale + offset.z);
+        OOImmediateVertex3f(scale + offset.x, scale + offset.y, scale + offset.z);
+        OOImmediateVertex3f(scale + offset.x, -scale + offset.y, scale + offset.z);
+        OOImmediateVertex3f(-scale + offset.x, -scale + offset.y, scale + offset.z);
+        OOImmediateEnd();
 
-        OOGLBEGIN(GL_LINES);
-        glVertex3f(-scale + offset.x, -scale + offset.y, -scale + offset.z);
-        glVertex3f(-scale + offset.x, -scale + offset.y, scale + offset.z);
+        OOImmediateBegin(kOOPrimitiveLines);
+        OOImmediateVertex3f(-scale + offset.x, -scale + offset.y, -scale + offset.z);
+        OOImmediateVertex3f(-scale + offset.x, -scale + offset.y, scale + offset.z);
 
-        glVertex3f(-scale + offset.x, scale + offset.y, -scale + offset.z);
-        glVertex3f(-scale + offset.x, scale + offset.y, scale + offset.z);
+        OOImmediateVertex3f(-scale + offset.x, scale + offset.y, -scale + offset.z);
+        OOImmediateVertex3f(-scale + offset.x, scale + offset.y, scale + offset.z);
 
-        glVertex3f(scale + offset.x, scale + offset.y, -scale + offset.z);
-        glVertex3f(scale + offset.x, scale + offset.y, scale + offset.z);
+        OOImmediateVertex3f(scale + offset.x, scale + offset.y, -scale + offset.z);
+        OOImmediateVertex3f(scale + offset.x, scale + offset.y, scale + offset.z);
 
-        glVertex3f(scale + offset.x, -scale + offset.y, -scale + offset.z);
-        glVertex3f(scale + offset.x, -scale + offset.y, scale + offset.z);
-        OOGLEND();
+        OOImmediateVertex3f(scale + offset.x, -scale + offset.y, -scale + offset.z);
+        OOImmediateVertex3f(scale + offset.x, -scale + offset.y, scale + offset.z);
+        OOImmediateEnd();
 
         OOGL(glEnable(GL_CULL_FACE)); // face culling
     }

@@ -20,9 +20,9 @@ import os
 import re
 import sys
 
-# GLVertexOOVector/GLVertexOOHPVector are macros around glVertex3f.
-RAW_VERTEX = re.compile(r"\b(?:glVertex[234][fdis]v?|GLVertexOO(?:HP)?Vector)\s*\(")
-OO_VERTEX = re.compile(r"\bOOImmediateVertex\w*\s*\(")
+RAW_VERTEX = re.compile(r"\bglVertex[234][fdis]v?\s*\(")
+# GLVertexOOVector/GLVertexOOHPVector are macros around OOImmediateVertex3f.
+OO_VERTEX = re.compile(r"\b(?:OOImmediateVertex\w*|GLVertexOO(?:HP)?Vector)\s*\(")
 RAW_BEGIN = re.compile(r"\b(?:glBegin|OOGLBEGIN)\s*\(")
 RAW_END = re.compile(r"\b(?:glEnd|OOGLEND)\s*\(")
 OO_BEGIN = re.compile(r"\bOOImmediateBegin\s*\(")

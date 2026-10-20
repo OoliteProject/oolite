@@ -690,7 +690,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
     halfStep = 0.5f * delta;
     theta = 0.0f;
 
-    OOGLBEGIN(GL_TRIANGLE_STRIP);
+    OOImmediateBegin(kOOPrimitiveTriangleStrip);
     for (i = 0; i < 360; i += step) {
         rv0 = randf();
         rv1 = randf();
@@ -699,13 +699,13 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 
         s0 = r0 * sin(theta);
         c0 = r0 * cos(theta);
-        glColor4f(col4v1[0] * q, col4v1[1] * q, col4v1[2] * q, col4v1[3] * rv0);
-        glVertex3f(s0, c0, 0.0);
+        OOImmediateColor4f(col4v1[0] * q, col4v1[1] * q, col4v1[2] * q, col4v1[3] * rv0);
+        OOImmediateVertex3f(s0, c0, 0.0);
 
         s1 = r1 * sin(theta - halfStep) * 0.5 * (1.0 + rv1);
         c1 = r1 * cos(theta - halfStep) * 0.5 * (1.0 + rv1);
-        glColor4f(col4v1[0] * OO_WORMHOLE_COLOR_BOOST, col4v1[1] * OO_WORMHOLE_COLOR_BOOST, col4v1[2] * OO_WORMHOLE_COLOR_BOOST, col4v1[3] * rv0);
-        glVertex3f(s1, c1, 0.0);
+        OOImmediateColor4f(col4v1[0] * OO_WORMHOLE_COLOR_BOOST, col4v1[1] * OO_WORMHOLE_COLOR_BOOST, col4v1[2] * OO_WORMHOLE_COLOR_BOOST, col4v1[3] * rv0);
+        OOImmediateVertex3f(s1, c1, 0.0);
 
         theta += delta;
     }
@@ -717,14 +717,14 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 
     s0 = 0.0f; // r0 * sin(0);
     c0 = r0; // r0 * cos(0);
-    glColor4f(col4v1[0] * q, col4v1[1] * q, col4v1[2] * q, col4v1[3] * rv0);
-    glVertex3f(s0, c0, 0.0);
+    OOImmediateColor4f(col4v1[0] * q, col4v1[1] * q, col4v1[2] * q, col4v1[3] * rv0);
+    OOImmediateVertex3f(s0, c0, 0.0);
 
     s1 = r1 * sin(halfStep) * 0.5 * (1.0 + rv1);
     c1 = r1 * cos(halfStep) * 0.5 * (1.0 + rv1);
-    glColor4f(col4v1[0] * OO_WORMHOLE_COLOR_BOOST, col4v1[1] * OO_WORMHOLE_COLOR_BOOST, col4v1[2] * OO_WORMHOLE_COLOR_BOOST, col4v1[3] * rv0);
-    glVertex3f(s1, c1, 0.0);
-    OOGLEND();
+    OOImmediateColor4f(col4v1[0] * OO_WORMHOLE_COLOR_BOOST, col4v1[1] * OO_WORMHOLE_COLOR_BOOST, col4v1[2] * OO_WORMHOLE_COLOR_BOOST, col4v1[3] * rv0);
+    OOImmediateVertex3f(s1, c1, 0.0);
+    OOImmediateEnd();
 }
 
 - (NSDictionary*)getDict

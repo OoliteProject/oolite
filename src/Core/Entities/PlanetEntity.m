@@ -23,6 +23,7 @@ MA 02110-1301, USA.
 */
 
 #import "PlanetEntity.h"
+#import "OOImmediateMode.h"
 
 #if !NEW_PLANETS
 
@@ -832,7 +833,7 @@ static const BaseFace kTexturedFaces[][3] = {
                 OOGL(glDisable(GL_DEPTH_TEST));
             }
 
-            OOGL(glColor4fv(mat1));
+            OOImmediateColor4fv(mat1);
             OORendererSetMaterialColor(kOOMaterialFront, kOOMaterialAmbientAndDiffuse, mat1);
 
             OOGL(glEnableClientState(GL_COLOR_ARRAY));

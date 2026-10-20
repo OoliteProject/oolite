@@ -85,6 +85,11 @@ void OOImmediateColor3f(float r, float g, float b)
     OOImmediateColor4f(r, g, b, 1.0f);
 }
 
+void OOImmediateColor3fv(const float* rgb)
+{
+    OOImmediateColor4f(rgb[0], rgb[1], rgb[2], 1.0f);
+}
+
 void OOImmediateColor4f(float r, float g, float b, float a)
 {
     sCurrent.color[0] = r;

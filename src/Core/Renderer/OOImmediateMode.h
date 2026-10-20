@@ -104,6 +104,7 @@ void OOImmediateVertex3f(float x, float y, float z);
 void OOImmediateVertex3fv(const float* v);
 
 void OOImmediateColor3f(float r, float g, float b);
+void OOImmediateColor3fv(const float* rgb);
 void OOImmediateColor4f(float r, float g, float b, float a);
 void OOImmediateColor4fv(const float* rgba);
 void OOImmediateTexCoord2f(float s, float t);

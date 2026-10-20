@@ -37,6 +37,7 @@ MA 02110-1301, USA.
 #import "OOShaderUniform.h"
 #endif
 
+#import "OOImmediateMode.h"
 #import "PlayerEntity.h"
 
 #define FAR_PLANE (DUST_SCALE * 0.50f)
@@ -305,7 +306,7 @@ enum {
             color = color_fv;
         else
             color = UNIVERSE->stars_ambient;
-        OOGL(glColor4f(color[0], color[1], color[2], dustIntensity));
+        OOImmediateColor4f(color[0], color[1], color[2], dustIntensity);
 
 #if OO_SHADERS
         if (useShader) {

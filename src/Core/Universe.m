@@ -94,6 +94,7 @@ MA 02110-1301, USA.
 #import "WormholeEntity.h"
 
 #import "OOFixedFunction.h"
+#import "OOImmediateMode.h"
 #import "OORenderPass.h"
 
 #if OO_LOCALIZATION_TOOLS
@@ -4844,7 +4845,7 @@ static const OOMatrix starboard_matrix = { { { 0.0f, 0.0f, 1.0f, 0.0f },
 {
     NSSize watermarkStringSize = OORectFromString(watermarkString, 0.0f, 0.0f, NSMakeSize(10, 10)).size;
 
-    OOGL(glColor4f(0.0, 1.0, 0.0, 1.0));
+    OOImmediateColor4f(0.0, 1.0, 0.0, 1.0);
     // position the watermark string on the top right hand corner of the game window and right-align it
     OODrawString(watermarkString, MAIN_GUI_PIXEL_WIDTH / 2 - watermarkStringSize.width + 80,
         MAIN_GUI_PIXEL_HEIGHT / 2 - watermarkStringSize.height, [gameView display_z], NSMakeSize(10, 10));

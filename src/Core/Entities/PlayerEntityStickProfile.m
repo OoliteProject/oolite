@@ -24,6 +24,7 @@ MA 02110-1301, USA.
 
 #import "PlayerEntityStickProfile.h"
 #import "HeadUpDisplay.h"
+#import "OOImmediateMode.h"
 #import "OOJoystickManager.h"
 #import "OOJoystickProfile.h"
 #import "OOMacroOpenGL.h"
@@ -448,21 +449,21 @@ static BOOL stickProfileArrow_pressed;
         return;
     graphRect = NSMakeRect(at.x, at.y, size.width, size.height);
     OO_ENTER_OPENGL();
-    OOGL(glColor4f(0.2, 0.2, 0.5, alpha));
-    OOGLBEGIN(GL_QUADS);
-    glVertex3f(at.x, at.y, at.z);
-    glVertex3f(at.x + size.width, at.y, at.z);
-    glVertex3f(at.x + size.width, at.y + size.height, at.z);
-    glVertex3f(at.x, at.y + size.height, at.z);
-    OOGLEND();
-    OOGL(glColor4f(0.9, 0.9, 0.9, alpha));
+    OOImmediateColor4f(0.2, 0.2, 0.5, alpha);
+    OOImmediateBegin(kOOPrimitiveQuads);
+    OOImmediateVertex3f(at.x, at.y, at.z);
+    OOImmediateVertex3f(at.x + size.width, at.y, at.z);
+    OOImmediateVertex3f(at.x + size.width, at.y + size.height, at.z);
+    OOImmediateVertex3f(at.x, at.y + size.height, at.z);
+    OOImmediateEnd();
+    OOImmediateColor4f(0.9, 0.9, 0.9, alpha);
     OOGL(GLScaledLineWidth(2.0f));
-    OOGLBEGIN(GL_LINE_STRIP);
+    OOImmediateBegin(kOOPrimitiveLineStrip);
     for (i = 0; i <= size.width - 20; i++) {
-        glVertex3f(at.x + i + 10, at.y + 10 + (size.height - 20) * [profile rawValue:((float)i) / (size.width - 20)], at.z);
+        OOImmediateVertex3f(at.x + i + 10, at.y + 10 + (size.height - 20) * [profile rawValue:((float)i) / (size.width - 20)], at.z);
     }
-    OOGLEND();
-    OOGL(glColor4f(0.5, 0.0, 0.5, alpha));
+    OOImmediateEnd();
+    OOImmediateColor4f(0.5, 0.0, 0.5, alpha);
     GLDrawFilledOval(at.x + 10, at.y + 10, at.z, NSMakeSize(4, 4), 20);
     GLDrawFilledOval(at.x + size.width - 10, at.y + size.height - 10, at.z, NSMakeSize(4, 4), 20);
     if ([profile isKindOfClass:[OOJoystickSplineAxisProfile class]]) {
@@ -470,15 +471,15 @@ static BOOL stickProfileArrow_pressed;
         control_points = [spline_profile controlPoints];
         for (i = 0; i < (NSInteger)[control_points count]; i++) {
             if (i == selected_control_point) {
-                OOGL(glColor4f(1.0, 0.0, 0.0, alpha));
+                OOImmediateColor4f(1.0, 0.0, 0.0, alpha);
             } else {
-                OOGL(glColor4f(0.0, 1.0, 0.0, alpha));
+                OOImmediateColor4f(0.0, 1.0, 0.0, alpha);
             }
             point = [[control_points objectAtIndex:i] pointValue];
             GLDrawFilledOval(at.x + 10 + point.x * (size.width - 20), at.y + 10 + point.y * (size.height - 20), at.z, NSMakeSize(4, 4), 20);
         }
     }
-    OOGL(glColor4f(0.9, 0.9, 0.0, alpha));
+    OOImmediateColor4f(0.9, 0.9, 0.0, alpha);
     OODrawStringAligned(DESC(@"oolite-stickprofile-movement"), at.x + size.width - 5, at.y, at.z, NSMakeSize(8, 10), YES);
     OODrawString(DESC(@"oolite-stickprofile-response"), at.x, at.y + size.height - 10, at.z, NSMakeSize(8, 10));
     return;
