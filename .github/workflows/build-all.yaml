@@ -123,6 +123,11 @@ jobs:
 
   build-ubuntu:
     needs: clang-format-check
+    strategy:
+      fail-fast: false
+      matrix:
+        js_engine: [spidermonkey, quickjs]
+    name: build-ubuntu (${{ matrix.js_engine }})
     runs-on: ubuntu-latest
     container:
       image: ubuntu:26.04
@@ -157,18 +162,19 @@ jobs:
           echo "/usr/local/lib" | tee -a /etc/ld.so.conf
           ldconfig
       - name: Install Mozilla static library
+        if: matrix.js_engine == 'spidermonkey'
         run: |
           ShellScripts/Linux/install_mozilla_js.sh system
       - name: Build Oolite
         run: |
-          ./mk.sh build dev --setup-flags="-Ddocs=enabled"
+          ./mk.sh build dev --setup-flags="-Ddocs=enabled -Djs_engine=${{ matrix.js_engine }}"
       - name: Test Oolite
         if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
         run: |
-          ./mk.sh test dev
+          ./mk.sh test dev --setup-flags="-Djs_engine=${{ matrix.js_engine }}"
       - name: Build AppImage
         run: |
-          ./mk.sh pkg-appimage dev
+          ./mk.sh pkg-appimage dev --setup-flags="-Djs_engine=${{ matrix.js_engine }}"
 
   build-fedora:
     needs: clang-format-check
@@ -253,6 +259,11 @@ jobs:
 
   build-windows:
     needs: clang-format-check
+    strategy:
+      fail-fast: false
+      matrix:
+        js_engine: [spidermonkey, quickjs]
+    name: build-windows (${{ matrix.js_engine }})
     runs-on: windows-latest
     steps:
       ## This is for debugging only and helps developing the workflow.
@@ -290,7 +301,7 @@ jobs:
           MSYSTEM: UCRT64
           PYTHONUTF8: "1"
         run: |
-          ./mk.sh build deployment --setup-flags="-Ddocs=enabled" --github-repository="$GITHUB_REPOSITORY"
+          ./mk.sh build deployment --github-repository="$GITHUB_REPOSITORY" --setup-flags="-Ddocs=enabled -Djs_engine=${{ matrix.js_engine }}"
       - name: Test Oolite
         if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
         shell: msys2 {0}
@@ -298,7 +309,7 @@ jobs:
           MSYSTEM: UCRT64
           PYTHONUTF8: "1"
         run: |
-          if ./mk.sh test deployment; then
+          if ./mk.sh test deployment --setup-flags="-Djs_engine=${{ matrix.js_engine }}"; then
             echo "✅ Oolite test completed successfully"
           else
             echo "❌ Oolite test failed" >&2
@@ -306,7 +317,9 @@ jobs:
             ntldd -R oolite.exe
             exit 1
           fi
+      # Only the SpiderMonkey build is packaged and released.
       - name: Package Oolite
+        if: matrix.js_engine == 'spidermonkey'
         shell: msys2 {0}
         env:
           MSYSTEM: UCRT64
@@ -314,6 +327,7 @@ jobs:
         run: |
           ./mk.sh pkg-win deployment
       - name: Archive installer
+        if: matrix.js_engine == 'spidermonkey'
         uses: actions/upload-artifact@v6
         with:
           name: oolite-windows-nsis-deployment
@@ -323,6 +337,11 @@ jobs:
 
   build-macos:
     needs: clang-format-check
+    strategy:
+      fail-fast: false
+      matrix:
+        js_engine: [spidermonkey, quickjs]
+    name: build-macos (${{ matrix.js_engine }})
     runs-on: macos-latest
     env:
       HOMEBREW_NO_AUTO_UPDATE: 1
@@ -336,30 +355,34 @@ jobs:
         run: |
           ShellScripts/macOS/install_packages.sh
       - name: Restore Mozilla static library
+        if: matrix.js_engine == 'spidermonkey'
         id: mozilla-js-cache
         uses: actions/cache@v4
         with:
           path: build/mozilla_js
           key: mozilla-js-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('ShellScripts/macOS/build_mozilla_js.sh', 'ShellScripts/macOS/mozilla_js_arm64.patch') }}
       - name: Build Mozilla static library
-        if: steps.mozilla-js-cache.outputs.cache-hit != 'true'
+        if: matrix.js_engine == 'spidermonkey' && steps.mozilla-js-cache.outputs.cache-hit != 'true'
         run: |
           ShellScripts/macOS/build_mozilla_js.sh
       - name: Build Oolite
         run: |
-          ./mk.sh build deployment --setup-flags="-Ddocs=enabled" --github-repository="$GITHUB_REPOSITORY"
+          ./mk.sh build deployment --github-repository="$GITHUB_REPOSITORY" --setup-flags="-Ddocs=enabled -Djs_engine=${{ matrix.js_engine }}"
       - name: Test Oolite
         if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
         run: |
-          ./mk.sh test deployment
+          ./mk.sh test deployment --setup-flags="-Djs_engine=${{ matrix.js_engine }}"
       # The app is only ad-hoc signed, so Gatekeeper blocks the downloaded DMG's app until the
       # user allows it in System Settings (issue #779). Fixing that needs Developer ID signing
       # and notarisation, i.e. signing keys and Apple credentials added as repository secrets.
       # See sign_app_bundle in ShellScripts/macOS/create_app_bundle_fn.sh.
+      # Only the SpiderMonkey build is packaged and released.
       - name: Package Oolite
+        if: matrix.js_engine == 'spidermonkey'
         run: |
           ./mk.sh pkg-dmg deployment
       - name: Archive installer
+        if: matrix.js_engine == 'spidermonkey'
         uses: actions/upload-artifact@v6
         with:
           name: oolite-macos-dmg-deployment
