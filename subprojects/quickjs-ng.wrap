@@ -1,0 +1,7 @@
+[wrap-git]
+url = https://github.com/quickjs-ng/quickjs.git
+revision = v0.17.0
+depth = 1
+
+[provide]
+dependency_names = quickjs-ng
