@@ -9,3 +9,5 @@
 [oojs.probe]: spawned.vectorForward
 [oojs.probe]: spawned.vectorRight
 [oojs.probe]: spawned.vectorUp
+# missileLoadTime is 2.0 when the (random) accuracy is high enough, else 0 (ShipEntity.m).
+[oojs.probe]: spawned.missileLoadTime
