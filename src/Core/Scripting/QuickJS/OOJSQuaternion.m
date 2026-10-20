@@ -24,6 +24,9 @@ MA 02110-1301, USA.
 
 #import "OOJSQuaternion.h"
 #import "OOJSVector.h"
+#if !OOJS_POC_HARNESS
+#import "OOJSEntity.h"
+#endif
 #import "OOJavaScriptEngine.h"
 
 static JSClassID sQuaternionClassID;
@@ -102,21 +105,11 @@ static const JSCFunctionListEntry sQuaternionStaticMethods[] = {
 
 void InitOOJSQuaternion(JSContext* context, JSValueConst global)
 {
-    JSRuntime* runtime = JS_GetRuntime(context);
-    JS_NewClassID(runtime, &sQuaternionClassID);
-    JS_NewClass(runtime, sQuaternionClassID, &sQuaternionClass);
+    OOJSRegisterClass(&sQuaternionClassID, &sQuaternionClass);
 
-    // As in SpiderMonkey, the prototype is itself a Quaternion with no private data.
-    JSValue prototype = JS_NewObjectClass(context, sQuaternionClassID);
-    JS_SetPropertyFunctionList(context, prototype, sQuaternionProperties, OOJS_COUNT(sQuaternionProperties));
-    JS_SetPropertyFunctionList(context, prototype, sQuaternionMethods, OOJS_COUNT(sQuaternionMethods));
-
-    JSValue constructor = JS_NewCFunction2(context, QuaternionConstruct, "Quaternion", 4, JS_CFUNC_constructor_or_func, 0);
-    JS_SetConstructor(context, constructor, prototype);
-    JS_SetPropertyFunctionList(context, constructor, sQuaternionStaticMethods, OOJS_COUNT(sQuaternionStaticMethods));
-
-    JS_SetClassProto(context, sQuaternionClassID, prototype); // Takes ownership of prototype.
-    JS_SetPropertyStr(context, global, "Quaternion", constructor); // Takes ownership of constructor.
+    // As in SpiderMonkey, the prototype is itself an instance with no private data, treated as zero.
+    OOJSInitClass(context, global, sQuaternionClassID, JS_UNDEFINED, QuaternionConstruct, 4,
+        sQuaternionProperties, OOJS_COUNT(sQuaternionProperties), sQuaternionMethods, OOJS_COUNT(sQuaternionMethods), sQuaternionStaticMethods, OOJS_COUNT(sQuaternionStaticMethods));
 }
 
 JSValue JSQuaternionWithQuaternion(JSContext* context, Quaternion quaternion)
@@ -223,7 +216,15 @@ private
         }
     }
 
-    // TODO (phase 3): if it's an entity, use its orientation.
+#if !OOJS_POC_HARNESS
+    // If it's an entity, use its orientation.
+    if (OOJSIsMemberOfSubclass(context, quaternionObj, JSEntityClassID())) {
+        JSClassID ignored;
+        Entity* entity = [(id)JS_GetAnyOpaque(quaternionObj, &ignored) weakRefUnderlyingObject];
+        *outQuaternion = [entity orientation];
+        return YES;
+    }
+#endif
 
     /*
             If it's actually a Quaternion but with no private field (this happens for
