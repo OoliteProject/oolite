@@ -41,6 +41,8 @@ MA 02110-1301, USA.
 #include "OOImmediateMode.h"
 #include "OORenderPass.h"
 #include "OORenderState.h"
+#include "OORenderStateMachine.h"
+#include "OORendererTexture.h"
 #include "OOVertexArray.h"
 
 #include <SDL3/SDL.h>
@@ -925,6 +927,69 @@ int main(int argc, char* argv[])
         printf("%-4s fog values reach GL\n", fogOK ? "OK" : "FAIL");
         total += 3;
         failures += !lightsOK + !materialOK + !fogOK;
+    }
+
+    // Textures: every format, with mipmaps down to the odd narrow levels whose
+    // rows aren't four-byte aligned, and a cube map. Each level reads back as
+    // uploaded, and creating or uploading leaves the binding alone.
+    {
+        static const struct {
+            const char* name;
+            OOTexelFormat format;
+            unsigned components, width, height;
+            bool cube;
+        } kTextures[] = {
+            { "RGBA8 8x4", kOOTexelRGBA8, 4, 8, 4, false },
+            { "Gray8 8x8", kOOTexelGray8, 1, 8, 8, false },
+            { "Alpha8 4x8", kOOTexelAlpha8, 1, 4, 8, false },
+            { "GrayAlpha8 8x8", kOOTexelGrayAlpha8, 2, 8, 8, false },
+            { "Gray8 cube 4x4", kOOTexelGray8, 1, 4, 4, true },
+            { "RGBA8 cube 4x4", kOOTexelRGBA8, 4, 4, 4, true },
+        };
+        GLuint bound = 0;
+        glGenTextures(1, &bound);
+        glBindTexture(GL_TEXTURE_2D, bound);
+        OORendererSetTextureBinding(false, bound);
+        for (size_t t = 0; t < sizeof kTextures / sizeof *kTextures; t++) {
+            OOTextureDescriptor descriptor = { 0 };
+            descriptor.cube = kTextures[t].cube;
+            descriptor.width = kTextures[t].width;
+            descriptor.height = kTextures[t].height;
+            descriptor.format = kTextures[t].format;
+            descriptor.levels = OOTextureMipLevelCount(descriptor.width, descriptor.height);
+            descriptor.minFilter = kOOFilterLinearMipmapLinear;
+            descriptor.magFilter = kOOFilterLinear;
+            uint32_t texture = OORendererCreateTexture(&descriptor);
+            bool ok = texture != 0;
+            unsigned faces = descriptor.cube ? 6 : 1;
+            uint8_t in[256], out[256 + 16];
+            for (unsigned face = 0; face < faces && ok; face++) {
+                unsigned w = descriptor.width, h = descriptor.height;
+                for (unsigned level = 0; level < descriptor.levels; level++) {
+                    size_t size = (size_t)w * h * kTextures[t].components;
+                    for (size_t i = 0; i < size; i++)
+                        in[i] = (uint8_t)(i * 37 + level * 11 + face * 101 + t);
+                    OORendererUploadTexture(texture, face, level, w, h, in);
+                    memset(out, 0xEE, sizeof out);
+                    OORendererReadTexture(texture, face, level, w, h, out);
+                    if (memcmp(in, out, size) != 0 || out[size] != 0xEE)
+                        ok = false;
+                    w >>= 1;
+                    h >>= 1;
+                }
+            }
+            GLint nowBound;
+            glGetIntegerv(GL_TEXTURE_BINDING_2D, &nowBound);
+            bool bindingKept = (GLuint)nowBound == bound;
+            OORendererDeleteTexture(texture);
+            printf("%-4s texture %-16s %u level(s) x %u face(s) read back as uploaded, binding kept: %s\n",
+                ok && bindingKept ? "OK" : "FAIL", kTextures[t].name, descriptor.levels, faces, bindingKept ? "yes" : "no");
+            total++;
+            failures += !(ok && bindingKept);
+        }
+        glBindTexture(GL_TEXTURE_2D, 0);
+        OORendererSetTextureBinding(false, 0);
+        glDeleteTextures(1, &bound);
     }
 
     // Interoperation with legacy GL: a colour set through GL is picked up,

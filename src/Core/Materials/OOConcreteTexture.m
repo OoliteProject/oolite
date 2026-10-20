@@ -31,6 +31,7 @@
 #import "OOMacroOpenGL.h"
 #import "OOOpenGLExtensionManager.h"
 #import "OOPixMap.h"
+#import "OORendererTexture.h"
 #import "OOTextureInternal.h"
 #import "OOTextureLoader.h"
 #import "ResourceManager.h"
@@ -40,22 +41,11 @@
 #import "OOTextureGenerator.h"
 #endif
 
-#if OOLITE_BIG_ENDIAN
-#define RGBA_IMAGE_TYPE GL_UNSIGNED_INT_8_8_8_8_REV
-#elif OOLITE_LITTLE_ENDIAN
-#define RGBA_IMAGE_TYPE GL_UNSIGNED_BYTE
-#else
-#error Neither OOLITE_BIG_ENDIAN nor OOLITE_LITTLE_ENDIAN is defined as nonzero!
-#endif
-
 @interface OOConcreteTexture (Private)
 
 - (void)setUpTexture;
 - (void)uploadTexture;
-- (void)uploadTextureDataWithMipMap:(BOOL)mipMap format:(OOTextureDataFormat)format;
-#if OO_TEXTURE_CUBE_MAP
-- (void)uploadTextureCubeMapDataWithMipMap:(BOOL)mipMap format:(OOTextureDataFormat)format;
-#endif
+- (void)uploadLevels:(const OOTextureDescriptor*)descriptor;
 
 - (GLenum)glTextureTarget;
 
@@ -65,7 +55,7 @@
 
 @end
 
-static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum* outFormat, GLenum* outInternalFormat, GLenum* outType);
+static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, OOTexelFormat* outFormat, bool* outSRGB);
 
 @implementation OOConcreteTexture
 
@@ -141,7 +131,7 @@ static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum* o
     if (_loaded) {
         if (_textureName != 0) {
             OO_ENTER_OPENGL();
-            OOGLDeleteTextures(1, &_textureName);
+            OORendererDeleteTexture(_textureName);
             _textureName = 0;
         }
         free(_bytes);
@@ -290,36 +280,17 @@ static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum* o
     }
 #if OOTEXTURE_RELOADABLE
     else {
-        // Otherwise, read it back from OpenGL.
-        OO_ENTER_OPENGL();
-
-        GLenum format, internalFormat, type;
-        if (!DecodeFormat(_format, _options, &format, &internalFormat, &type)) {
+        // Otherwise, read it back from the renderer.
+        unsigned faces = [self isCubeMap] ? 6 : 1;
+        px = OOAllocatePixMap(_width, _height, _format, 0, 0); // cube maps: six faces stacked
+        if (!OOIsValidPixMap(px))
             return kOONullPixMap;
+        uint8_t* pixels = px.pixels;
+        unsigned height = faces == 6 ? _width : _height;
+        for (unsigned face = 0; face < faces; face++) {
+            OORendererReadTexture(_textureName, face, 0, _width, height, pixels);
+            pixels += OOPixMapBytesPerPixelForFormat(_format) * _width * height;
         }
-
-        if (![self isCubeMap]) {
-
-            px = OOAllocatePixMap(_width, _height, _format, 0, 0);
-            if (!OOIsValidPixMap(px))
-                return kOONullPixMap;
-
-            glGetTexImage(GL_TEXTURE_2D, 0, format, type, px.pixels);
-        }
-#if OO_TEXTURE_CUBE_MAP
-        else {
-            px = OOAllocatePixMap(_width, _width * 6, _format, 0, 0);
-            if (!OOIsValidPixMap(px))
-                return kOONullPixMap;
-            uint8_t* pixels = px.pixels;
-
-            unsigned i;
-            for (i = 0; i < 6; i++) {
-                glGetTexImage(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, format, type, pixels);
-                pixels += OOPixMapBytesPerPixelForFormat(_format) * _width * _width;
-            }
-        }
-#endif
     }
 #endif
 
@@ -418,72 +389,43 @@ static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum* o
 
 - (void)uploadTexture
 {
-    GLint filter;
-    BOOL mipMap = NO;
-
-    OO_ENTER_OPENGL();
-
     if (!_uploaded) {
-        GLenum texTarget = [self glTextureTarget];
+        BOOL cube = [self isCubeMap];
+        OOTextureDescriptor descriptor = { 0 };
+        descriptor.cube = cube;
+        descriptor.width = _width;
+        descriptor.height = cube ? _width : _height;
+        if (!DecodeFormat(_format, _options, &descriptor.format, &descriptor.srgb))
+            return;
 
-        OOGL(glGenTextures(1, &_textureName));
-        OOGLBindTexture(texTarget, _textureName);
-
-        // Select wrap mode
-        GLint clampMode = gOOTextureInfo.clampToEdgeAvailable ? GL_CLAMP_TO_EDGE : GL_CLAMP;
-        GLint wrapS = (_options & kOOTextureRepeatS) ? GL_REPEAT : clampMode;
-        GLint wrapT = (_options & kOOTextureRepeatT) ? GL_REPEAT : clampMode;
-
-#if OO_TEXTURE_CUBE_MAP
-        if (texTarget == GL_TEXTURE_CUBE_MAP) {
-            wrapS = wrapT = clampMode;
-            OOGL(glTexParameteri(texTarget, GL_TEXTURE_WRAP_R, clampMode));
-        }
-#endif
-
-        OOGL(glTexParameteri(texTarget, GL_TEXTURE_WRAP_S, wrapS));
-        OOGL(glTexParameteri(texTarget, GL_TEXTURE_WRAP_T, wrapT));
-
-        // Select min filter
-        filter = _options & kOOTextureMinFilterMask;
+        BOOL mipMap = NO;
+        uint32_t filter = _options & kOOTextureMinFilterMask;
         if (filter == kOOTextureMinFilterNearest)
-            filter = GL_NEAREST;
+            descriptor.minFilter = kOOFilterNearest;
         else if (filter == kOOTextureMinFilterMipMap) {
             mipMap = YES;
-            filter = GL_LINEAR_MIPMAP_LINEAR;
+            descriptor.minFilter = kOOFilterLinearMipmapLinear;
         } else
-            filter = GL_LINEAR;
-        OOGL(glTexParameteri(texTarget, GL_TEXTURE_MIN_FILTER, filter));
-
+            descriptor.minFilter = kOOFilterLinear;
+        descriptor.magFilter = (_options & kOOTextureMagFilterMask) == kOOTextureMagFilterNearest ? kOOFilterNearest : kOOFilterLinear;
+        descriptor.levels = mipMap ? OOTextureMipLevelCount(descriptor.width, descriptor.height) : 1;
+        descriptor.repeatS = (_options & kOOTextureRepeatS) != 0;
+        descriptor.repeatT = (_options & kOOTextureRepeatT) != 0;
 #if GL_EXT_texture_filter_anisotropic
-        if (gOOTextureInfo.anisotropyAvailable && mipMap && 1.0 < _anisotropy) {
-            OOGL(glTexParameterf(texTarget, GL_TEXTURE_MAX_ANISOTROPY_EXT, _anisotropy));
-        }
+        if (gOOTextureInfo.anisotropyAvailable && mipMap)
+            descriptor.anisotropy = _anisotropy;
 #endif
 
-        // Select mag filter
-        filter = _options & kOOTextureMagFilterMask;
-        if (filter == kOOTextureMagFilterNearest)
-            filter = GL_NEAREST;
-        else
-            filter = GL_LINEAR;
-        OOGL(glTexParameteri(texTarget, GL_TEXTURE_MAG_FILTER, filter));
+        _textureName = OORendererCreateTexture(&descriptor);
+        [self uploadLevels:&descriptor];
+        if (mipMap && !cube)
+            _mipLevels = descriptor.levels - 1;
+        OOGLBindTexture([self glTextureTarget], _textureName);
 
-        //	if (gOOTextureInfo.clientStorageAvailable)  EnableClientStorage();
-
-        if (texTarget == GL_TEXTURE_2D) {
-            [self uploadTextureDataWithMipMap:mipMap format:_format];
-            OOLog(@"texture.upload", @"Uploaded texture %u (%ux%u pixels, %@)", _textureName, _width, _height, _key);
-        }
-#if OO_TEXTURE_CUBE_MAP
-        else if (texTarget == GL_TEXTURE_CUBE_MAP) {
-            [self uploadTextureCubeMapDataWithMipMap:mipMap format:_format];
+        if (cube)
             OOLog(@"texture.upload", @"Uploaded cube map texture %u (%ux%ux6 pixels, %@)", _textureName, _width, _width, _key);
-        }
-#endif
-        else {
-            [NSException raise:NSInternalInconsistencyException format:@"Unhandled texture target 0x%X.", texTarget];
-        }
+        else
+            OOLog(@"texture.upload", @"Uploaded texture %u (%ux%u pixels, %@)", _textureName, _width, _height, _key);
 
         _valid = YES;
         _uploaded = YES;
@@ -497,68 +439,30 @@ static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum* o
     }
 }
 
-- (void)uploadTextureDataWithMipMap:(BOOL)mipMap format:(OOTextureDataFormat)format
+- (void)uploadLevels:(const OOTextureDescriptor*)descriptor
 {
-    GLenum glFormat = 0, internalFormat = 0, type = 0;
-    unsigned w = _width,
-             h = _height,
-             level = 0;
-    char* bytes = _bytes;
-    uint8_t components = OOTextureComponentsForFormat(format);
+    uint8_t components = OOTextureComponentsForFormat(_format);
+    unsigned faces = descriptor->cube ? 6 : 1;
 
-    OO_ENTER_OPENGL();
-
-    if (!DecodeFormat(format, _options, &glFormat, &internalFormat, &type))
-        return;
-
-    while (0 < w && 0 < h) {
-        OOGL(glTexImage2D(GL_TEXTURE_2D, level++, internalFormat, w, h, 0, glFormat, type, bytes));
-        if (!mipMap)
-            return;
-        bytes += w * components * h;
-        w >>= 1;
-        h >>= 1;
+    // Cube map faces are stored one after another, each followed by its
+    // mipmaps and padded to 16 bytes.
+    size_t faceSize = (size_t)descriptor->width * descriptor->height * components;
+    if (descriptor->levels > 1) {
+        faceSize = faceSize * 4 / 3;
+        faceSize = (faceSize + 15) & ~(size_t)15;
     }
 
-    // Note: we only reach here if (mipMap).
-    _mipLevels = level - 1;
-    OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, _mipLevels));
-}
-
-#if OO_TEXTURE_CUBE_MAP
-- (void)uploadTextureCubeMapDataWithMipMap:(BOOL)mipMap format:(OOTextureDataFormat)format
-{
-    OO_ENTER_OPENGL();
-
-    GLenum glFormat = 0, internalFormat = 0, type = 0;
-    if (!DecodeFormat(format, _options, &glFormat, &internalFormat, &type))
-        return;
-    uint8_t components = OOTextureComponentsForFormat(format);
-
-    // Calculate stride between cube map sides.
-    size_t sideSize = _width * _width * components;
-    if (mipMap) {
-        sideSize = sideSize * 4 / 3;
-        sideSize = (sideSize + 15) & ~15;
-    }
-
-    unsigned side;
-    for (side = 0; side < 6; side++) {
-        char* bytes = _bytes;
-        bytes += side * sideSize;
-
-        unsigned w = _width, level = 0;
-
-        while (0 < w) {
-            OOGL(glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + side, level++, internalFormat, w, w, 0, glFormat, type, bytes));
-            if (!mipMap)
-                break;
-            bytes += w * w * components;
+    for (unsigned face = 0; face < faces; face++) {
+        const char* bytes = (const char*)_bytes + face * faceSize;
+        unsigned w = descriptor->width, h = descriptor->height;
+        for (unsigned level = 0; level < descriptor->levels; level++) {
+            OORendererUploadTexture(_textureName, face, level, w, h, bytes);
+            bytes += (size_t)w * h * components;
             w >>= 1;
+            h >>= 1;
         }
     }
 }
-#endif
 
 - (GLenum)glTextureTarget
 {
@@ -577,7 +481,7 @@ static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum* o
         OO_ENTER_OPENGL();
 
         _uploaded = NO;
-        OOGLDeleteTextures(1, &_textureName);
+        OORendererDeleteTexture(_textureName);
         _textureName = 0;
 
 #if OOTEXTURE_RELOADABLE
@@ -607,32 +511,23 @@ static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum* o
 
 @end
 
-static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum* outFormat, GLenum* outInternalFormat, GLenum* outType)
+static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, OOTexelFormat* outFormat, bool* outSRGB)
 {
-    NSCParameterAssert(outFormat != NULL && outInternalFormat != NULL && outType != NULL);
+    NSCParameterAssert(outFormat != NULL && outSRGB != NULL);
 
+    *outSRGB = false;
     switch (format) {
     case kOOTextureDataRGBA:
-        *outFormat = GL_RGBA;
-        *outInternalFormat = options & kOOTextureSRGBA ? GL_SRGB_ALPHA : GL_RGBA;
-        *outType = RGBA_IMAGE_TYPE;
+        *outFormat = kOOTexelRGBA8;
+        *outSRGB = (options & kOOTextureSRGBA) != 0;
         return YES;
 
     case kOOTextureDataGrayscale:
-        if (options & kOOTextureAlphaMask) {
-            *outFormat = GL_ALPHA;
-            *outInternalFormat = GL_ALPHA8;
-        } else {
-            *outFormat = GL_LUMINANCE;
-            *outInternalFormat = GL_LUMINANCE8;
-        }
-        *outType = GL_UNSIGNED_BYTE;
+        *outFormat = (options & kOOTextureAlphaMask) ? kOOTexelAlpha8 : kOOTexelGray8;
         return YES;
 
     case kOOTextureDataGrayscaleAlpha:
-        *outFormat = GL_LUMINANCE_ALPHA;
-        *outInternalFormat = GL_LUMINANCE8_ALPHA8;
-        *outType = GL_UNSIGNED_BYTE;
+        *outFormat = kOOTexelGrayAlpha8;
         return YES;
 
     default:

@@ -176,6 +176,11 @@ void OORendererSetTexEnvColor(const float rgba[4])
     memcpy(ActiveUnit()->envColor, rgba, sizeof ActiveUnit()->envColor);
 }
 
+void OORendererSetTextureLODBias(float bias)
+{
+    ActiveUnit()->lodBias = bias;
+}
+
 void OORendererSetProgram(uint32_t program)
 {
     State()->program = program;

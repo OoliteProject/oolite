@@ -33,6 +33,7 @@ MA 02110-1301, USA.
 #include "OOImmediateMode.h"
 #include "OORenderPass.h"
 #include "OORenderState.h"
+#include "OORendererTexture.h"
 #include "OOVertexArray.h"
 
 #ifdef __cplusplus
@@ -62,6 +63,15 @@ void OORendererBackendDrawImmediate(OONativePrimitive primitive, const OOImmedia
 */
 void OORendererBackendPushDrawState(const OODrawState* state, int depth);
 void OORendererBackendPopDrawState(int depth);
+
+// Logs once per message through rendering.renderer.
+void OORendererBackendWarn(const char* message);
+
+// Textures (OORendererTexture.h); descriptors are already validated.
+uint32_t OORendererBackendCreateTexture(const OOTextureDescriptor* descriptor);
+void OORendererBackendUploadTexture(uint32_t texture, unsigned face, unsigned level, unsigned width, unsigned height, const void* texels);
+void OORendererBackendReadTexture(uint32_t texture, unsigned face, unsigned level, unsigned width, unsigned height, void* texels);
+void OORendererBackendDeleteTexture(uint32_t texture);
 
 // Debug builds: report where the context no longer matches state.
 void OORendererBackendVerifyDrawState(const OODrawState* state);

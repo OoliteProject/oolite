@@ -110,6 +110,7 @@ typedef struct {
     uint32_t binding2D, bindingCube; // texture names on OpenGL
     OOTexEnvMode envMode;
     float envColor[4];
+    float lodBias; // GL_TEXTURE_LOD_BIAS_EXT; SDL_GPU puts it in the sampler
 } OOTextureUnitState;
 
 typedef struct {
@@ -147,6 +148,7 @@ void OORendererSetTextureEnabled(bool cube, bool enabled); // on the active unit
 void OORendererSetTextureBinding(bool cube, uint32_t texture); // on the active unit
 void OORendererSetTexEnvMode(OOTexEnvMode mode); // on the active unit
 void OORendererSetTexEnvColor(const float rgba[4]); // on the active unit
+void OORendererSetTextureLODBias(float bias); // on the active unit
 void OORendererSetProgram(uint32_t program);
 // A texture was deleted: GL unbinds it from every unit.
 void OORendererForgetTexture(uint32_t texture);

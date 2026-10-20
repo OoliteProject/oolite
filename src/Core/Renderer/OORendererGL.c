@@ -27,6 +27,7 @@ MA 02110-1301, USA.
 
 */
 
+#include "OORenderStateMachine.h"
 #include "OORendererBackend.h"
 
 // OOOpenGLOnly.h keys GL_GLEXT_PROTOTYPES on OOLITE_LINUX, which comes from
@@ -38,6 +39,8 @@ MA 02110-1301, USA.
 
 #include <math.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #ifdef _WIN32
 /*  On Windows, GL functions after 1.1 are pointers that
@@ -54,8 +57,6 @@ extern PFNGLVERTEXATTRIBPOINTERARBPROC glVertexAttribPointerARB;
 #define glActiveTexture glActiveTexturePtr
 #define glClientActiveTexture glClientActiveTextureARBPtr
 #endif
-
-void OORendererBackendWarn(const char* message);
 
 static GLenum GLPrimitive(OONativePrimitive primitive)
 {
@@ -510,4 +511,182 @@ void OORendererBackendDrawElements(OONativePrimitive primitive, const OOVertexLa
     const void* indices, OOIndexType indexType, size_t count)
 {
     DrawLayout(primitive, layout, 0, count, indices, indexType);
+}
+
+static GLenum TextureTarget(bool cube)
+{
+#ifdef GL_TEXTURE_CUBE_MAP
+    if (cube)
+        return GL_TEXTURE_CUBE_MAP;
+#endif
+    (void)cube;
+    return GL_TEXTURE_2D;
+}
+
+// Bind texture on the active unit for creation or upload, returning what was bound.
+static uint32_t BindForUpload(bool cube, uint32_t texture)
+{
+    const OOTextureUnitState* unit = &OORendererState()->units[OORendererState()->activeTexture];
+    uint32_t previous = cube ? unit->bindingCube : unit->binding2D;
+    glBindTexture(TextureTarget(cube), texture);
+    return previous;
+}
+
+static GLint GLFilter(OOTextureFilter filter)
+{
+    switch (filter) {
+    case kOOFilterNearest:
+        return GL_NEAREST;
+    case kOOFilterLinearMipmapLinear:
+        return GL_LINEAR_MIPMAP_LINEAR;
+    case kOOFilterLinear:
+        break;
+    }
+    return GL_LINEAR;
+}
+
+/*  GL names are handed out by glGenTextures, so the backend has to remember
+    whether each one is a cube map and what format it holds for uploads.
+*/
+typedef struct {
+    uint8_t cube;
+    uint8_t format;
+    uint8_t srgb;
+} TextureRecord;
+
+static TextureRecord* sTextures = NULL;
+static size_t sTextureCapacity = 0;
+
+static TextureRecord* Record(uint32_t texture, bool grow)
+{
+    if (texture >= sTextureCapacity) {
+        if (!grow)
+            return NULL;
+        size_t capacity = sTextureCapacity ? sTextureCapacity : 256;
+        while (capacity <= texture)
+            capacity *= 2;
+        TextureRecord* records = realloc(sTextures, capacity * sizeof *records);
+        if (records == NULL)
+            return NULL;
+        memset(records + sTextureCapacity, 0, (capacity - sTextureCapacity) * sizeof *records);
+        sTextures = records;
+        sTextureCapacity = capacity;
+    }
+    return &sTextures[texture];
+}
+
+static void GLFormat(const TextureRecord* record, GLenum* outFormat, GLenum* outInternalFormat, GLenum* outType)
+{
+    *outType = GL_UNSIGNED_BYTE;
+    switch ((OOTexelFormat)record->format) {
+    case kOOTexelGray8:
+        *outFormat = GL_LUMINANCE;
+        *outInternalFormat = GL_LUMINANCE8;
+        return;
+    case kOOTexelAlpha8:
+        *outFormat = GL_ALPHA;
+        *outInternalFormat = GL_ALPHA8;
+        return;
+    case kOOTexelGrayAlpha8:
+        *outFormat = GL_LUMINANCE_ALPHA;
+        *outInternalFormat = GL_LUMINANCE8_ALPHA8;
+        return;
+    case kOOTexelRGBA8:
+        break;
+    }
+    *outFormat = GL_RGBA;
+    *outInternalFormat = record->srgb ? GL_SRGB_ALPHA : GL_RGBA;
+#ifdef __BIG_ENDIAN__
+    *outType = GL_UNSIGNED_INT_8_8_8_8_REV;
+#endif
+}
+
+static GLenum ImageTarget(const TextureRecord* record, unsigned face)
+{
+#ifdef GL_TEXTURE_CUBE_MAP
+    if (record->cube)
+        return GL_TEXTURE_CUBE_MAP_POSITIVE_X + face;
+#endif
+    (void)record;
+    (void)face;
+    return GL_TEXTURE_2D;
+}
+
+uint32_t OORendererBackendCreateTexture(const OOTextureDescriptor* descriptor)
+{
+    GLuint name = 0;
+    glGenTextures(1, &name);
+    TextureRecord* record = Record(name, true);
+    if (name == 0 || record == NULL) {
+        OORendererBackendWarn("OORendererCreateTexture: no texture name");
+        return 0;
+    }
+    record->cube = descriptor->cube;
+    record->format = (uint8_t)descriptor->format;
+    record->srgb = descriptor->srgb;
+
+    GLenum target = TextureTarget(descriptor->cube);
+    uint32_t previous = BindForUpload(descriptor->cube, name);
+    GLint wrapS = descriptor->repeatS && !descriptor->cube ? GL_REPEAT : GL_CLAMP_TO_EDGE;
+    GLint wrapT = descriptor->repeatT && !descriptor->cube ? GL_REPEAT : GL_CLAMP_TO_EDGE;
+#ifdef GL_TEXTURE_CUBE_MAP
+    if (descriptor->cube)
+        glTexParameteri(target, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+#endif
+    glTexParameteri(target, GL_TEXTURE_WRAP_S, wrapS);
+    glTexParameteri(target, GL_TEXTURE_WRAP_T, wrapT);
+    glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GLFilter(descriptor->minFilter));
+#ifdef GL_TEXTURE_MAX_ANISOTROPY_EXT
+    if (descriptor->anisotropy > 1.0f)
+        glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, descriptor->anisotropy);
+#endif
+    glTexParameteri(target, GL_TEXTURE_MAG_FILTER, descriptor->magFilter == kOOFilterNearest ? GL_NEAREST : GL_LINEAR);
+    if (descriptor->levels > 1)
+        glTexParameteri(target, GL_TEXTURE_MAX_LEVEL, (GLint)descriptor->levels - 1);
+    glBindTexture(target, previous);
+    return name;
+}
+
+void OORendererBackendUploadTexture(uint32_t texture, unsigned face, unsigned level, unsigned width, unsigned height, const void* texels)
+{
+    const TextureRecord* record = Record(texture, false);
+    if (record == NULL)
+        return;
+
+    GLenum format, internalFormat, type;
+    GLFormat(record, &format, &internalFormat, &type);
+
+    GLenum imageTarget = ImageTarget(record, face);
+    uint32_t previous = BindForUpload(record->cube, texture);
+    // Rows are tightly packed; GL's default of 4-byte rows would misread
+    // one- and two-channel levels narrower than four bytes.
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glTexImage2D(imageTarget, (GLint)level, (GLint)internalFormat, (GLsizei)width, (GLsizei)height, 0, format, type, texels);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+    glBindTexture(TextureTarget(record->cube), previous);
+}
+
+void OORendererBackendReadTexture(uint32_t texture, unsigned face, unsigned level, unsigned width, unsigned height, void* texels)
+{
+    const TextureRecord* record = Record(texture, false);
+    if (record == NULL)
+        return;
+    (void)width;
+    (void)height; // GL knows the level's size
+    GLenum format, internalFormat, type;
+    GLFormat(record, &format, &internalFormat, &type);
+    uint32_t previous = BindForUpload(record->cube, texture);
+    glPixelStorei(GL_PACK_ALIGNMENT, 1);
+    glGetTexImage(ImageTarget(record, face), (GLint)level, format, type, texels);
+    glPixelStorei(GL_PACK_ALIGNMENT, 4);
+    glBindTexture(TextureTarget(record->cube), previous);
+}
+
+void OORendererBackendDeleteTexture(uint32_t texture)
+{
+    GLuint name = texture;
+    glDeleteTextures(1, &name);
+    TextureRecord* record = Record(texture, false);
+    if (record != NULL)
+        memset(record, 0, sizeof *record);
 }

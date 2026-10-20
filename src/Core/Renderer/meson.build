@@ -10,6 +10,7 @@ oolite_sources += files(
     'OORendererGL.c',
     'OORendererLog.m',
     'OORendererTexture.m',
+    'OOTextureUpload.c',
     'OOVertexArray.c',
 )
 

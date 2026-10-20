@@ -280,6 +280,10 @@ void OOGLTexEnvf(GLenum target, GLenum name, GLfloat value)
 {
     OO_ENTER_OPENGL();
     RecordTexEnvMode(target, name, (GLint)value);
+#if GL_EXT_texture_lod_bias
+    if (target == GL_TEXTURE_FILTER_CONTROL_EXT && name == GL_TEXTURE_LOD_BIAS_EXT)
+        OORendererSetTextureLODBias(value);
+#endif
     OOGL(glTexEnvf(target, name, value));
 }
 
