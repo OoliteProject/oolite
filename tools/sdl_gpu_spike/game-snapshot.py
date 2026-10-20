@@ -19,6 +19,10 @@ directory. Example, for the title screen:
 
     game-snapshot.py build/meson_dev/oolite.app/Contents/MacOS/oolite out \
         sleep:5 "takeSnapShot();" sleep:2 "quit();"
+
+Set OO_SNAPSHOT_ARGS to pass extra launch arguments, such as settings that
+Foundation reads as defaults for this run only: "-detailLevel 3
+-anti-aliasing YES".
 """
 import ctypes, os, select, socket, subprocess, sys, time
 
@@ -50,7 +54,10 @@ env.update({"SDL_AUDIODRIVER": "dummy", "ALSOFT_DRIVERS": "null", "OO_SNAPSHOTSD
             "OO_FREEZE_DEMO_SHIPS": "1", "OO_DETERMINISTIC_TEST": "1"})
 if scenario:
     env["OO_ADDITIONALADDONSDIRS"] = os.path.join(os.path.dirname(os.path.abspath(__file__)), "scenarios")
-proc = subprocess.Popen([binary, "--no-splash", "-novsync"], cwd=os.path.dirname(binary), env=env,
+# OO_SNAPSHOT_ARGS adds launch arguments. Foundation reads "-key value" pairs
+# as defaults for this run only, e.g. "-detailLevel 3 -anti-aliasing YES".
+extra = os.environ.get("OO_SNAPSHOT_ARGS", "").split()
+proc = subprocess.Popen([binary, "--no-splash", "-novsync"] + extra, cwd=os.path.dirname(binary), env=env,
                         stdout=open(os.path.join(outdir, "stdout.txt"), "w"), stderr=subprocess.STDOUT)
 conn = None
 deadline = time.time() + 30
