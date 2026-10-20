@@ -47,6 +47,7 @@ MA 02110-1301, USA.
 #import "OOImmediateMode.h"
 #import "OOOpenGLMatrixManager.h"
 #import "OORenderPass.h"
+#import "OORendererTexture.h"
 #import "stb_image_write.h"
 
 #define kOOLogUnconvertedNSLog @"unclassified.MyOpenGLView"
@@ -705,7 +706,8 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
         [UNIVERSE drawUniverse]; // do all the drawing!
     } else {
         OORendererSetClearColor(0.0, 0.0, 0.0, 0.0); // not set up yet, draw a black screen
-        glClear(GL_COLOR_BUFFER_BIT);
+        OORendererBeginPass(&(OORenderPassDescriptor) { .target = kOORenderTargetCurrent, .colorLoad = kOOLoadClear, .depthLoad = kOOLoadKeep });
+        OORendererEndPass();
     }
 
     SDL_GL_SwapWindow(window);
@@ -745,9 +747,18 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
 
     glViewport(0, 0, dest.w * pixelDensity, dest.h * pixelDensity);
 
+    // The splash as RGBA bytes, whatever the BMP's layout.
+    SDL_Surface* rgba = SDL_ConvertSurface(image, SDL_PIXELFORMAT_RGBA32);
+    SDL_DestroySurface(image);
+    if (rgba == NULL) {
+        OOLog(@"Sdl.GameStart", @"%@", @"----- Encoding error within image 'splash.bmp'");
+        [self endSplashScreen];
+        return;
+    }
+
     OOGLEnable(GL_TEXTURE_2D);
     OORendererSetClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
+    OORendererBeginPass(&(OORenderPassDescriptor) { .target = kOORenderTargetCurrent, .colorLoad = kOOLoadClear, .depthLoad = kOOLoadKeep });
 
     [matrixManager resetProjection];
     [matrixManager orthoLeft:0.0f right:1.0f bottom:1.0f top:0.0f near:-1.0f far:1.0f];
@@ -756,42 +767,31 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
     [matrixManager resetModelView];
     [matrixManager syncModelView];
 
-    GLuint texture;
-    GLenum texture_format;
-    GLint nOfColors;
-
-    // get the number of channels in the SDL image
-    const SDL_PixelFormatDetails* pixelFormat = SDL_GetPixelFormatDetails(image->format);
-    nOfColors = pixelFormat->bytes_per_pixel;
-    if (nOfColors == 4) // contains an alpha channel
-    {
-        if (pixelFormat->Rmask == 0x000000ff)
-            texture_format = GL_RGBA;
-        else
-            texture_format = GL_BGRA;
-    } else if (nOfColors == 3) // no alpha channel
-    {
-        if (pixelFormat->Rmask == 0x000000ff)
-            texture_format = GL_RGB;
-        else
-            texture_format = GL_BGR;
+    OOTextureDescriptor descriptor = {
+        .width = (unsigned)rgba->w,
+        .height = (unsigned)rgba->h,
+        .levels = 1,
+        .format = kOOTexelRGBA8,
+        .repeatS = true, // GL's default wrap, as before
+        .repeatT = true,
+        .minFilter = kOOFilterLinear,
+        .magFilter = kOOFilterLinear,
+    };
+    uint32_t texture = OORendererCreateTexture(&descriptor);
+    size_t rowBytes = descriptor.width * 4;
+    if ((size_t)rgba->pitch == rowBytes) {
+        OORendererUploadTexture(texture, 0, 0, descriptor.width, descriptor.height, rgba->pixels);
     } else {
-        SDL_DestroySurface(image);
-        OOLog(@"Sdl.GameStart", @"%@", @"----- Encoding error within image 'splash.bmp'");
-        [self endSplashScreen];
-        return;
+        // Uploads take tightly packed rows.
+        uint8_t* packed = malloc(rowBytes * descriptor.height);
+        if (packed != NULL) {
+            for (unsigned row = 0; row < descriptor.height; row++)
+                memcpy(packed + row * rowBytes, (const uint8_t*)rgba->pixels + row * rgba->pitch, rowBytes);
+            OORendererUploadTexture(texture, 0, 0, descriptor.width, descriptor.height, packed);
+            free(packed);
+        }
     }
-
-    glGenTextures(1, &texture);
-    OOGLBindTexture(GL_TEXTURE_2D, texture);
-
-    // Set the texture's stretching properties
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    // Set the texture image data with the information  from SDL_Surface
-    glTexImage2D(GL_TEXTURE_2D, 0, nOfColors, image->w, image->h, 0,
-        texture_format, GL_UNSIGNED_BYTE, image->pixels);
+    SDL_DestroySurface(rgba);
 
     OOGLBindTexture(GL_TEXTURE_2D, texture);
     OOImmediateBegin(kOOPrimitiveQuads);
@@ -806,22 +806,18 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
     OOImmediateVertex2f(0, 1);
 
     OOImmediateEnd();
+    OORendererEndPass();
     glFinish();
 
     SDL_GL_SwapWindow(window);
     [matrixManager resetModelView];
     [matrixManager syncModelView];
 
-    if (image) {
-        SDL_DestroySurface(image);
-    }
-    OOGLDeleteTextures(1, &texture);
+    OOGLBindTexture(GL_TEXTURE_2D, 0);
+    OORendererDeleteTexture(texture);
 
     OOGLDisable(GL_TEXTURE_2D);
     OOVerifyOpenGLState();
-
-    SDL_DestroySurface(image);
-    return;
 }
 
 - (void)getDisplayDimensions:(unsigned*)width height:(unsigned*)height
