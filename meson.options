@@ -49,3 +49,7 @@ option('docs', type: 'feature', value: 'auto',
 # Windows Specific Customizations
 option('pdb', type: 'boolean', value: false,
        description: 'Windows Clang builds only: Generate native .pdb debug symbol files')
+
+# JavaScript engine migration (issue #580)
+option('quickjs_poc', type: 'boolean', value: false,
+       description: 'Build the QuickJS-ng proof-of-concept test harness (oojs-quickjs-poc)')
