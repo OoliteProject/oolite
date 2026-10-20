@@ -296,21 +296,56 @@ chart.
 - As an in-game negative control, a raw `glDisable(GL_BLEND)` inside the
   text scope is logged.
 
-**Still to do in phase 1.**
-- **Lines and points.** Line width and point size are still GL state
-  (`GLScaledLineWidth`). Under SDL_GPU they become per-batch parameters
-  for expanding lines and points on the CPU.
-- **Wide-line and point expansion** needs explicit matrices and viewport.
-  Matrices already go entirely through `OOOpenGLMatrixManager`: no raw
-  `glMatrixMode`/`glLoadMatrix` calls remain outside it. The viewport and
-  render target still come from the GL context.
-- **Passes:** begin and end with load/clear operations, render targets
-  (post-processing FBOs, environment cube maps), and readback for snapshots.
-- **Fixed-function values as data:** light and material values, fog
-  parameters, and texture combine modes.
-- **Uniforms by name** through programs, instead of `OOShaderUniform`'s
-  direct `glUniform` calls.
-- **Vertex-array drawing:** `OOMesh`, planets, particles and so on.
+**Rest of phase 1, one commit each.** Each is checked against the frozen
+title screen (below), and each has a negative control: a deliberate error
+that must change the screenshot.
+- **Uniforms** go through `OOShaderProgram` by handle, a location on GL
+  and an index into the reflected layout under SDL_GPU. `OOShaderUniform`
+  and the standard matrices use it. Control: halving float uniforms
+  changes 2% of pixels.
+- **Lights, material and fog as data** (`OOFixedFunction.h`). Light
+  positions are converted to eye space at the call, as GL does, using the
+  manager's modelview. In the harness, GL ends up with exactly the legacy
+  values. All `glLight`/`glMaterial` callers are converted; the fog
+  callers are left for phase 2 (no testable screen uses fog). Control: a
+  nudged light changes the ship.
+- **Vertex arrays** (`OOVertexArray.h`): renderer buffers created once,
+  plus a per-draw layout. `OOMesh`, which draws every ship, uses them; GL
+  still draws from client memory. Control: dropping normals changes 3% of
+  pixels.
+- **Passes and readback** (`OORenderPass.h`):
+  - the main frame is a scene pass, with a new pass for each depth range
+    and a HUD pass when the HUD is drawn separately;
+  - the clear colour and depth are renderer state, so the frame keeps
+    clearing with the previous frame's colour;
+  - the snapshot reads back through the renderer.
+
+  Control: a different GUI clear colour changes 95% of pixels.
+- **Line width and point size** are per-batch immediate-mode state.
+  `OOExpandLinesToTriangles` and `OOExpandPointsToTriangles` produce the
+  triangles SDL_GPU will draw. Without smoothing they overlap GL's own
+  output by at least 0.999 on Apple's GL and on Mesa; a wrong offset rule
+  scores 0.98, under the 0.995 threshold. The game still draws natively.
+
+**Reproducible title screen.** In debug builds, `OO_FREEZE_DEMO_SHIPS`
+stops the demo ship rotating. `game-snapshot.py` sets it and pins the mouse
+pointer, because the GUI cursor follows it. Two runs then differ by at most
+1/255 over the whole screen, including the lit, textured, shader-drawn
+ship. The hook is worth keeping upstream for tests.
+
+**Left for phase 2** (no API changes needed):
+- **Remaining passes:** the post-processing chain and environment cube
+  maps, and the splash and fallback clears.
+- **Fixed-function state:** fog callers, point sprites, texture combine
+  modes beyond the pilot's, and `GL_LIGHT_MODEL_COLOR_CONTROL` (separate
+  specular, which the emulation shader must reproduce).
+- **Migration:** the remaining immediate-mode and vertex-array callers
+  (HUD, entities, planets, particles, debug drawing). Use the migration
+  scripts and `audit_immediate.py`.
+- **Not verified in-game:** the flight HUD, planets, the sun and fog are
+  only covered by the harness.
+- **Windows** builds are untested; the C backend declares the extension
+  manager's function pointers by name.
 
 Broad in-game coverage needs scripted navigation of the GUI screens. A
 Linux game build under Xvfb, driven by simulated keys, is the likely route.
