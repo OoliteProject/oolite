@@ -29,6 +29,7 @@ MA 02110-1301, USA.
 #import "OOMacroOpenGL.h"
 #import "OOOpenGLExtensionManager.h"
 #import "OORendererBackend.h"
+#import "OOTextureInternal.h"
 
 static bool CapabilityForGL(GLenum cap, OOCapability* outCap)
 {
@@ -143,44 +144,45 @@ void OOGLDepthMask(GLboolean flag)
     OOGL(glDepthMask(flag));
 }
 
+static OOCompareOp CompareOpForGL(GLenum func)
+{
+    switch (func) {
+    case GL_NEVER:
+        return kOOCompareNever;
+    case GL_EQUAL:
+        return kOOCompareEqual;
+    case GL_LEQUAL:
+        return kOOCompareLessOrEqual;
+    case GL_GREATER:
+        return kOOCompareGreater;
+    case GL_NOTEQUAL:
+        return kOOCompareNotEqual;
+    case GL_GEQUAL:
+        return kOOCompareGreaterOrEqual;
+    case GL_ALWAYS:
+        return kOOCompareAlways;
+    default:
+        return kOOCompareLess;
+    }
+}
+
 void OOGLDepthFunc(GLenum func)
 {
     OO_ENTER_OPENGL();
-    OOCompareOp op = kOOCompareLess;
-    switch (func) {
-    case GL_NEVER:
-        op = kOOCompareNever;
-        break;
-    case GL_EQUAL:
-        op = kOOCompareEqual;
-        break;
-    case GL_LEQUAL:
-        op = kOOCompareLessOrEqual;
-        break;
-    case GL_GREATER:
-        op = kOOCompareGreater;
-        break;
-    case GL_NOTEQUAL:
-        op = kOOCompareNotEqual;
-        break;
-    case GL_GEQUAL:
-        op = kOOCompareGreaterOrEqual;
-        break;
-    case GL_ALWAYS:
-        op = kOOCompareAlways;
-        break;
-    default:
-        break;
-    }
-    OORendererSetDepthFunc(op);
+    OORendererSetDepthFunc(CompareOpForGL(func));
     OOGL(glDepthFunc(func));
+}
+
+static OOCullFace CullFaceForGL(GLenum mode)
+{
+    return mode == GL_FRONT ? kOOCullFront : mode == GL_FRONT_AND_BACK ? kOOCullFrontAndBack
+                                                                       : kOOCullBack;
 }
 
 void OOGLCullFace(GLenum mode)
 {
     OO_ENTER_OPENGL();
-    OORendererSetCullFace(mode == GL_FRONT ? kOOCullFront : mode == GL_FRONT_AND_BACK ? kOOCullFrontAndBack
-                                                                                      : kOOCullBack);
+    OORendererSetCullFace(CullFaceForGL(mode));
     OOGL(glCullFace(mode));
 }
 
@@ -240,41 +242,50 @@ void OOGLDeleteTextures(GLsizei count, const GLuint* textures)
     OOGL(glDeleteTextures(count, textures));
 }
 
-static void RecordTexEnvMode(GLenum target, GLenum name, GLint value)
+static OOCombineOp CombineOpForGL(GLint value)
 {
-#ifdef GL_COMBINE_RGB_ARB
-    if (target == GL_TEXTURE_ENV && name == GL_COMBINE_RGB_ARB) {
-        OORendererSetTexEnvCombineRGB(value == GL_MODULATE ? kOOCombineModulate : value == GL_ADD ? kOOCombineAdd
-                : value == GL_REPLACE                                                             ? kOOCombineReplace
-                                                                                                  : kOOCombineOther);
-        return;
+    switch (value) {
+    case GL_MODULATE:
+        return kOOCombineModulate;
+    case GL_ADD:
+        return kOOCombineAdd;
+    case GL_REPLACE:
+        return kOOCombineReplace;
+    default:
+        return kOOCombineOther;
     }
-#endif
-    if (target != GL_TEXTURE_ENV || name != GL_TEXTURE_ENV_MODE)
-        return;
-    OOTexEnvMode mode = kOOTexEnvModulate;
+}
+
+static OOTexEnvMode TexEnvModeForGL(GLint value)
+{
     switch (value) {
     case GL_REPLACE:
-        mode = kOOTexEnvReplace;
-        break;
+        return kOOTexEnvReplace;
     case GL_DECAL:
-        mode = kOOTexEnvDecal;
-        break;
+        return kOOTexEnvDecal;
     case GL_BLEND:
-        mode = kOOTexEnvBlend;
-        break;
+        return kOOTexEnvBlend;
     case GL_ADD:
-        mode = kOOTexEnvAdd;
-        break;
+        return kOOTexEnvAdd;
 #ifdef GL_COMBINE_ARB
     case GL_COMBINE_ARB:
-        mode = kOOTexEnvCombine;
-        break;
+        return kOOTexEnvCombine;
 #endif
     default:
-        break;
+        return kOOTexEnvModulate;
     }
-    OORendererSetTexEnvMode(mode);
+}
+
+static void RecordTexEnvMode(GLenum target, GLenum name, GLint value)
+{
+    if (target != GL_TEXTURE_ENV)
+        return;
+#ifdef GL_COMBINE_RGB_ARB
+    if (name == GL_COMBINE_RGB_ARB)
+        OORendererSetTexEnvCombineRGB(CombineOpForGL(value));
+#endif
+    if (name == GL_TEXTURE_ENV_MODE)
+        OORendererSetTexEnvMode(TexEnvModeForGL(value));
 }
 
 void OOGLTexEnvi(GLenum target, GLenum name, GLint value)
@@ -356,6 +367,14 @@ void OORendererBackendVerifyStateMachine(void)
     OOGLVerifyStateMachine();
 }
 
+static void Report(NSMutableArray* bad, NSString* format, ...)
+{
+    va_list args;
+    va_start(args, format);
+    [bad addObject:[[[NSString alloc] initWithFormat:format arguments:args] autorelease]];
+    va_end(args);
+}
+
 void OOGLVerifyStateMachine(void)
 {
     static int sEnabled = -1;
@@ -371,6 +390,7 @@ void OOGLVerifyStateMachine(void)
     const OORenderStateMachine* state = OORendererState();
     NSMutableArray* bad = [NSMutableArray array];
 
+    // Every field of the mirror, so the SDL_GPU backend can rely on all of it.
     static const struct {
         GLenum gl;
         OOCapability cap;
@@ -383,40 +403,113 @@ void OOGLVerifyStateMachine(void)
         { GL_FOG, kOOCapFog, "GL_FOG" },
         { GL_COLOR_MATERIAL, kOOCapColorMaterial, "GL_COLOR_MATERIAL" },
         { GL_SCISSOR_TEST, kOOCapScissorTest, "GL_SCISSOR_TEST" },
+#ifdef GL_POINT_SPRITE_ARB
+        { GL_POINT_SPRITE_ARB, kOOCapPointSprite, "GL_POINT_SPRITE" },
+#endif
         { GL_LINE_SMOOTH, kOOCapLineSmooth, "GL_LINE_SMOOTH" },
         { GL_POINT_SMOOTH, kOOCapPointSmooth, "GL_POINT_SMOOTH" },
+        { GL_NORMALIZE, kOOCapNormalize, "GL_NORMALIZE" },
+#ifdef GL_RESCALE_NORMAL
+        { GL_RESCALE_NORMAL, kOOCapRescaleNormal, "GL_RESCALE_NORMAL" },
+#endif
     };
     for (size_t i = 0; i < sizeof kCaps / sizeof *kCaps; i++) {
         if ((glIsEnabled(kCaps[i].gl) != GL_FALSE) != state->caps[kCaps[i].cap])
-            [bad addObject:[NSString stringWithUTF8String:kCaps[i].name]];
+            Report(bad, @"%s", kCaps[i].name);
     }
-    for (unsigned i = 0; i < 2; i++) {
+    for (unsigned i = 0; i < kOOMaxStateLights; i++) {
         if ((glIsEnabled(GL_LIGHT0 + i) != GL_FALSE) != state->lights[i])
-            [bad addObject:[NSString stringWithFormat:@"GL_LIGHT%u", i]];
+            Report(bad, @"GL_LIGHT%u", i);
     }
+
     GLboolean depthMask;
     glGetBooleanv(GL_DEPTH_WRITEMASK, &depthMask);
     if ((depthMask != GL_FALSE) != state->depthMask)
-        [bad addObject:@"depth mask"];
-    GLint value;
+        Report(bad, @"depth mask");
+    GLint value, values[4];
+    glGetIntegerv(GL_BLEND_SRC, &value);
+    if (BlendFactorForGL((GLenum)value) != state->blendSrc)
+        Report(bad, @"blend source factor");
     glGetIntegerv(GL_BLEND_DST, &value);
     if (BlendFactorForGL((GLenum)value) != state->blendDst)
-        [bad addObject:@"blend function"];
-    glGetIntegerv(GL_ACTIVE_TEXTURE, &value);
-    if ((unsigned)(value - GL_TEXTURE0) != state->activeTexture)
-        [bad addObject:@"active texture unit"];
-    else {
-        const OOTextureUnitState* unit = &state->units[state->activeTexture];
+        Report(bad, @"blend destination factor");
+    glGetIntegerv(GL_DEPTH_FUNC, &value);
+    if (CompareOpForGL((GLenum)value) != state->depthFunc)
+        Report(bad, @"depth function");
+    glGetIntegerv(GL_CULL_FACE_MODE, &value);
+    if (CullFaceForGL((GLenum)value) != state->cullFace)
+        Report(bad, @"cull face");
+    glGetIntegerv(GL_FRONT_FACE, &value);
+    if ((value != GL_CW) != state->frontFaceCCW)
+        Report(bad, @"front face");
+    glGetIntegerv(GL_SHADE_MODEL, &value);
+    if ((value == GL_FLAT) != state->flatShading)
+        Report(bad, @"shade model");
+    glGetIntegerv(GL_POLYGON_MODE, values);
+    if ((values[0] == GL_LINE) != state->wireframe || (values[1] == GL_LINE) != state->wireframe)
+        Report(bad, @"polygon mode");
+    // GL's initial box is the window; it only matters once the test is on.
+    if (state->caps[kOOCapScissorTest]) {
+        glGetIntegerv(GL_SCISSOR_BOX, values);
+        if (memcmp(values, state->scissor, sizeof state->scissor) != 0)
+            Report(bad, @"scissor box (GL %d %d %d %d, recorded %d %d %d %d)", values[0], values[1], values[2], values[3],
+                state->scissor[0], state->scissor[1], state->scissor[2], state->scissor[3]);
+    }
+    glGetIntegerv(GL_CURRENT_PROGRAM, &value);
+    if ((uint32_t)value != state->program)
+        Report(bad, @"program (GL %d, recorded %u)", value, state->program);
+
+    GLint activeTexture;
+    glGetIntegerv(GL_ACTIVE_TEXTURE, &activeTexture);
+    if ((unsigned)(activeTexture - GL_TEXTURE0) != state->activeTexture)
+        Report(bad, @"active texture unit");
+    GLint unitCount = 1;
+    glGetIntegerv(GL_MAX_TEXTURE_UNITS, &unitCount);
+    if (unitCount > kOOMaxTextureUnits)
+        unitCount = kOOMaxTextureUnits;
+    for (GLint u = 0; u < unitCount; u++) {
+        const OOTextureUnitState* unit = &state->units[u];
+        glActiveTextureARB(GL_TEXTURE0 + u);
         if ((glIsEnabled(GL_TEXTURE_2D) != GL_FALSE) != unit->texture2D)
-            [bad addObject:@"GL_TEXTURE_2D"];
+            Report(bad, @"GL_TEXTURE_2D on unit %d", u);
         glGetIntegerv(GL_TEXTURE_BINDING_2D, &value);
         if ((uint32_t)value != unit->binding2D)
-            [bad addObject:[NSString stringWithFormat:@"2D texture binding (GL %d, recorded %u)", value, unit->binding2D]];
+            Report(bad, @"2D texture binding on unit %d (GL %d, recorded %u)", u, value, unit->binding2D);
+#if OO_TEXTURE_CUBE_MAP
+        if ((glIsEnabled(GL_TEXTURE_CUBE_MAP) != GL_FALSE) != unit->textureCube)
+            Report(bad, @"GL_TEXTURE_CUBE_MAP on unit %d", u);
+        glGetIntegerv(GL_TEXTURE_BINDING_CUBE_MAP, &value);
+        if ((uint32_t)value != unit->bindingCube)
+            Report(bad, @"cube map binding on unit %d (GL %d, recorded %u)", u, value, unit->bindingCube);
+#endif
+        glGetTexEnviv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, &value);
+        if (TexEnvModeForGL(value) != unit->envMode)
+            Report(bad, @"texture environment mode on unit %d", u);
+#ifdef GL_COMBINE_RGB_ARB
+        glGetTexEnviv(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, &value);
+        if (CombineOpForGL(value) != unit->combineRGB)
+            Report(bad, @"RGB combine op on unit %d", u);
+#endif
+        GLfloat color[4];
+        glGetTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, color);
+        if (memcmp(color, unit->envColor, sizeof color) != 0)
+            Report(bad, @"texture environment colour on unit %d", u);
+#if GL_EXT_texture_lod_bias
+        if (gOOTextureInfo.textureLODBiasAvailable) {
+            GLfloat bias;
+            glGetTexEnvfv(GL_TEXTURE_FILTER_CONTROL_EXT, GL_TEXTURE_LOD_BIAS_EXT, &bias);
+            if (bias != unit->lodBias)
+                Report(bad, @"LOD bias on unit %d (GL %g, recorded %g)", u, bias, unit->lodBias);
+        }
+#endif
     }
+    glActiveTextureARB((GLenum)activeTexture);
 
     for (NSString* field in bad) {
-        if (![sReported containsObject:field]) {
-            [sReported addObject:field];
+        // Report each kind of mismatch once, keyed without the values.
+        NSString* key = [[field componentsSeparatedByString:@" ("] objectAtIndex:0];
+        if (![sReported containsObject:key]) {
+            [sReported addObject:key];
             OOLogWARN(@"rendering.renderer.stateMachine", @"GL %@ changed without the OOGL* wrappers; first seen at a draw from %@.", field, [NSThread callStackSymbols].count > 3 ? [[NSThread callStackSymbols] objectAtIndex:3] : @"?");
         }
     }
