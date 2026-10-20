@@ -1336,6 +1336,12 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
  * separated to allow Javascript startUp routines to be run in-between */
 - (void)setUpSpace
 {
+#ifndef NDEBUG
+    // Renderer regression tests: the same system on every run, however many
+    // random numbers the title screen used.
+    if (getenv("OO_DETERMINISTIC_TEST") != NULL)
+        ranrot_srand(0x0071173);
+#endif
     Entity* thing;
     //	ShipEntity			*nav_buoy;
     StationEntity* a_station;

@@ -95,6 +95,7 @@ MA 02110-1301, USA.
 
     BOOL stayInFullScreenMode;
     BOOL _finishedLaunching;
+    BOOL _deterministicTest; // debug builds: OO_DETERMINISTIC_TEST
 #endif
 }
 

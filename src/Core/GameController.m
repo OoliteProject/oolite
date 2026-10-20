@@ -91,6 +91,16 @@ static GameController* sSharedController = nil;
         // rather than seeding this with the date repeatedly, seed it
         // once here at startup
         ranrot_srand((uint32_t)[[NSDate date] timeIntervalSince1970]); // reset randomiser with current time
+#ifndef NDEBUG
+        /*  Renderer regression tests: a fixed seed and a fixed game tick make
+            the frames after a given action repeatable.
+        */
+        if (getenv("OO_DETERMINISTIC_TEST") != NULL) {
+            _deterministicTest = YES;
+            ranrot_srand(0x0071173);
+            srandom(0x0071173);
+        }
+#endif
 
         _splashStart = [[NSDate alloc] init];
     }
@@ -343,6 +353,13 @@ static GameController* sSharedController = nil;
             last_timeInterval += delta_t;
             if (delta_t > MINIMUM_GAME_TICK)
                 delta_t = MINIMUM_GAME_TICK; // peg the maximum pause (at 0.5->1.0 seconds) to protect against when the machine sleeps
+#ifndef NDEBUG
+            /*  A fixed tick, and none on the title screens, whose length in
+                real time varies between runs.
+            */
+            if (_deterministicTest)
+                delta_t = [PLAYER status] == STATUS_START_GAME ? 0.0 : 1.0 / 60.0;
+#endif
         }
 
         [UNIVERSE update:delta_t];

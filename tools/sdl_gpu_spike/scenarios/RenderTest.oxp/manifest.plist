@@ -1,0 +1,10 @@
+{
+	identifier = "org.oolite.test.render";
+	version = "1.0";
+	title = "Renderer regression scenario";
+	category = "Miscellaneous";
+	description = "Drives the game through a fixed set of screens and snapshots them, for renderer tests. Loaded only by tools/sdl_gpu_spike/game-snapshot.py.";
+	author = "Oolite contributors";
+	license = "GPL 2+";
+	required_oolite_version = "1.93";
+}

@@ -1,0 +1,11 @@
+{
+	/*	Lave (galaxy 0, system 7) with a fixed texture and no atmosphere:
+		the procedurally generated planet textures differ slightly from
+		run to run, which would hide what the snapshots are for.
+	*/
+	"0 7" =
+	{
+		texture = "rendertest-planet.png";
+		has_atmosphere = 0;
+	};
+}

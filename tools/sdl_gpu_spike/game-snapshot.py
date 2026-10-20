@@ -3,7 +3,12 @@
 
 Usage: game-snapshot.py <oolite binary> <output dir> <command>...
 
-Each command is JavaScript sent to the game's debug console, or "sleep:<s>".
+Each command is JavaScript sent to the game's debug console, "sleep:<s>", or
+"key:<SDL key name>" to press and release a key (debug builds), or
+"script:<file>" to send a JavaScript file. With --scenario as the first
+command, the RenderTest OXP in scenarios/ is loaded; it drives the game
+through a fixed list of screens and quits (see its Config/script.js), so
+no further commands are needed.
 The game runs with -novsync (a locked macOS screen otherwise blocks GL
 buffer swaps), no sound, and OO_FREEZE_DEMO_SHIPS=1, so in debug builds the
 title screen ship holds still and the whole title screen is reproducible:
@@ -22,6 +27,10 @@ import launch_snapshot as ls  # noqa: E402
 
 binary, outdir = os.path.abspath(sys.argv[1]), os.path.abspath(sys.argv[2])
 commands = sys.argv[3:]
+scenario = bool(commands) and commands[0] == "--scenario"
+if scenario:
+    # The title screens are static; world scripts take over once the game starts.
+    commands = ["sleep:5", "takeSnapShot();", "sleep:1", "key:Return", "sleep:2", "takeSnapShot();", "sleep:1", "key:Return"] + commands[1:]
 os.makedirs(outdir, exist_ok=True)
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -38,7 +47,9 @@ if sys.platform == "darwin":
 
 env = os.environ.copy()
 env.update({"SDL_AUDIODRIVER": "dummy", "ALSOFT_DRIVERS": "null", "OO_SNAPSHOTSDIR": outdir, "OO_LOGSDIR": outdir,
-            "OO_FREEZE_DEMO_SHIPS": "1"})
+            "OO_FREEZE_DEMO_SHIPS": "1", "OO_DETERMINISTIC_TEST": "1"})
+if scenario:
+    env["OO_ADDITIONALADDONSDIRS"] = os.path.join(os.path.dirname(os.path.abspath(__file__)), "scenarios")
 proc = subprocess.Popen([binary, "--no-splash", "-novsync"], cwd=os.path.dirname(binary), env=env,
                         stdout=open(os.path.join(outdir, "stdout.txt"), "w"), stderr=subprocess.STDOUT)
 conn = None
@@ -59,10 +70,19 @@ for cmd in commands:
     if cmd.startswith("sleep:"):
         time.sleep(float(cmd[6:]))
         continue
+    if cmd.startswith("script:"):
+        cmd = open(cmd[7:], encoding="utf-8").read()
+    if cmd.startswith("key:"):
+        name = cmd[4:].replace("'", "\\'")
+        ls.send_plist_packet(conn, {ls.PACKET_TYPE_KEY: ls.PERFORM_COMMAND, ls.MESSAGE_KEY: f"console.simulateKey('{name}', true)"})
+        time.sleep(0.3)
+        ls.send_plist_packet(conn, {ls.PACKET_TYPE_KEY: ls.PERFORM_COMMAND, ls.MESSAGE_KEY: f"console.simulateKey('{name}', false)"})
+        time.sleep(0.5)
+        continue
     ls.send_plist_packet(conn, {ls.PACKET_TYPE_KEY: ls.PERFORM_COMMAND, ls.MESSAGE_KEY: cmd})
     time.sleep(0.5)
 try:
-    proc.wait(timeout=20)
+    proc.wait(timeout=120 if scenario else 20)
 except subprocess.TimeoutExpired:
     proc.kill()
 print("snapshots:", sorted(f for f in os.listdir(outdir) if f.endswith(".png")))
