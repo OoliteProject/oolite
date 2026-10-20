@@ -40,7 +40,8 @@ Not yet done:
 - The compiled-script cache: SpiderMonkey's XDR bytecode cache is not used.
   QuickJS bytecode (`JS_WriteObject()`) could be cached the same way, under a
   different cache name.
-- Windows and macOS builds are untested.
+- Windows builds are untested. Linux (amd64) and macOS (arm64, the
+  `macos-arm64-port` branch) build and pass the parity probe.
 
 ## Conventions
 
