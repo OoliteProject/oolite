@@ -174,8 +174,47 @@ jobs:
             build/OoliteInstall*.exe
           retention-days: 5
 
-  # The SDL_GPU renderer (-Drenderer=sdl_gpu), built but not packaged or
-  # released: the runners have no GPU to run it on.
+  # The SDL_GPU renderer (-Drenderer=sdl_gpu) on Linux, built but not
+  # packaged or released.
+  build-linux-sdl-gpu:
+    needs: clang-format-check
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:latest
+    steps:
+      - name: Update Arch
+        run: |
+          pacman -Syu --noconfirm
+          pacman -S --noconfirm --needed git
+      - name: Pre-setup ownership & curl token
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE"
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          echo 'header = "Authorization: Bearer '$GITHUB_TOKEN'"' >> ~/.curlrc
+          echo 'header = "Accept: application/vnd.github+json"' >> ~/.curlrc
+      - name: Checkout Oolite
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Install packages
+        run: |
+          ShellScripts/Linux/install_packages_root.sh --core
+          pacman -S --noconfirm --needed glslang spirv-cross
+      - name: Build GNUstep
+        run: |
+          ShellScripts/Linux/build_gnustep.sh system
+      - name: Install Mozilla static library
+        run: |
+          ShellScripts/Linux/install_mozilla_js.sh system
+          echo "/usr/local/lib" | tee -a /etc/ld.so.conf
+          ldconfig
+      - name: Build Oolite with SDL_GPU
+        run: |
+          ./mk.sh build dev --setup-flags="-Drenderer=sdl_gpu" --github-repository="$GITHUB_REPOSITORY"
+
+  # The same on Windows. The runners have no GPU to run either on.
   build-windows-sdl-gpu:
     needs: clang-format-check
     runs-on: windows-latest
