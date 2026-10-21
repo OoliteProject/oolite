@@ -709,6 +709,9 @@ Windows' own `D3DCompile` (d3dcompiler_47.dll, loaded at run time). SDL
 offers it only when `SDL_GPU_DRIVER=direct3d12` asks for it, or after
 creating a SPIR-V device has failed. Until D3D12 has run on Windows,
 Windows users stay on Vulkan.
+On CI's Windows runner, which has no GPU, `oogpu-hlsl-check` compiles
+all 11 built-in programs to DXBC with the real `D3DCompile`, the SDR and
+HDR final passes included (345 and 427 ms; the rest take 6–119 ms).
 
 **Licensing, for the maintainers:** SPIRV-Cross is Apache-2.0, which is
 compatible with GPLv3 but not GPLv2, and glslang's licence file mixes
@@ -759,6 +762,12 @@ Checked on Metal, on the MacBook's display (SDR white 1.0, headroom 2.0):
   (the headroom) at paper white 200 and at 80; uncapped, it would be 5
   and 12.5. Single channels reach about 2.6, from the gamut expansion
   after tone mapping.
+
+On Linux (x86_64, lavapipe under Xvfb, no HDR swapchain), `-hdr` warns
+and falls back to SDR. The title-screen snapshots then match an SDR run
+exactly. Under qemu emulation on macOS, the same run once stopped
+logging right after the fallback warning; natively it doesn't, so that
+looks like an emulation artefact.
 
 Not checked yet:
 - Windows on SDL_GPU, and Linux on an HDR display. Vulkan needs
