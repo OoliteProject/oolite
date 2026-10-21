@@ -6644,24 +6644,7 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity* e2, float range)
          */
         update_stage = @"JS Garbage Collection";
         OOLog(@"universe.profile.update", @"%@", update_stage);
-#if !defined(NDEBUG) && !OOJS_QUICKJS
-        /*	TODO (port): unplanned collection logging is not available with
-                QuickJS, which has no cheap heap size query (JS_ComputeMemoryUsage()
-                walks the whole heap, too slow to call every frame).
-        */
-        JSContext* context = OOJSAcquireContext();
-        uint32 gcbytes1 = JS_GetGCParameter(JS_GetRuntime(context), JSGC_BYTES);
-        OOJSRelinquishContext(context);
-#endif
         [[OOJavaScriptEngine sharedEngine] garbageCollectionOpportunity:NO];
-#if !defined(NDEBUG) && !OOJS_QUICKJS
-        context = OOJSAcquireContext();
-        uint32 gcbytes2 = JS_GetGCParameter(JS_GetRuntime(context), JSGC_BYTES);
-        OOJSRelinquishContext(context);
-        if (gcbytes2 < gcbytes1) {
-            OOLog(@"universe.profile.jsgc", @"Unplanned JS Garbage Collection from %d to %d", gcbytes1, gcbytes2);
-        }
-#endif
 
     } else {
         // always perform player's dead updates: allows deferred JS resets.
