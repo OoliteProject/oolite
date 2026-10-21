@@ -379,6 +379,17 @@ static GameController* sSharedController = nil;
         [gameView updateScreen];
     }
     @catch (id exception) {
+        // Drawing that throws every frame would otherwise just stop the picture; say why, once per message.
+        static NSMutableSet* reported = nil;
+        if (reported == nil)
+            reported = [[NSMutableSet alloc] init];
+        NSString* description = [exception description];
+        if (description != nil && ![reported containsObject:description]) {
+            [reported addObject:description];
+            OOLogERR(@"rendering.exception", @"Exception while drawing a frame: %@", description);
+            if ([exception respondsToSelector:@selector(callStackSymbols)])
+                OOLog(@"rendering.exception", @"%@", [exception callStackSymbols]);
+        }
     }
 }
 
