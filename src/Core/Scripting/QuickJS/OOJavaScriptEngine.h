@@ -73,6 +73,13 @@ MA 02110-1301, USA.
 
 #define OOJSENGINE_MONITOR_SUPPORT OOLITE_DEBUG
 
+/*	Profiling of native functions (the debug console's profile(), getProfile()
+        and trace()), as in SpiderMonkey builds without MOZ_TRACE_JSCALLS: time
+        is attributed to natives bracketed by OOJS_NATIVE_ENTER/EXIT or
+        OOJS_PROFILE_ENTER/EXIT, and everything else counts as JavaScript time.
+*/
+#define OOJS_PROFILE (OOLITE_DEBUG && !OOJS_POC_HARNESS)
+
 // Number of entries in a JSCFunctionListEntry (or other) array.
 #define OOJS_COUNT(array) (sizeof(array) / sizeof *(array))
 
@@ -666,9 +673,71 @@ JSValue OOJSObjectWrapperToString(JSContext* context, JSValueConst this, int arg
 
 /*	OOJS_NATIVE_ENTER()/OOJS_NATIVE_EXIT bracket natives that call into
         Objective-C code which may throw; the exception is converted into a JS
-        error. OOJS_PROFILE_ENTER/EXIT bracket natives that cannot throw. The
-        JS profiler hooks are not ported yet, so the latter are plain blocks.
+        error. OOJS_PROFILE_ENTER/EXIT bracket natives that cannot throw. When
+        OOJS_PROFILE is set, both also record the time spent in the native for
+        the profiler.
 */
+#if OOJS_PROFILE
+
+#import "OOProfilingStopwatch.h"
+
+/*
+        Profiler implementation details. This should be internal to
+        OOJSEngineTimeManagement.m, but needs to be declared on the stack by the
+        macros below when profiling is enabled.
+*/
+typedef struct OOJSProfileStackFrame OOJSProfileStackFrame;
+struct OOJSProfileStackFrame {
+    OOJSProfileStackFrame* back; // Stack link
+    const void* key; // Key to look up profile entries: the function name.
+    const char* function; // Name of function.
+    OOHighResTimeValue startTime; // Time frame was entered.
+    OOTimeDelta subTime; // Time spent in subroutine calls.
+    OOTimeDelta* total; // Pointer to accumulator for this type of frame.
+};
+
+void OOJSProfileEnter(OOJSProfileStackFrame* frame, const char* function);
+void OOJSProfileExit(OOJSProfileStackFrame* frame);
+
+#define OOJS_PROFILE_ENTER_NAMED(NAME)                \
+    {                                                 \
+        OOJSProfileStackFrame oojsProfilerStackFrame; \
+        @try {                                        \
+            OOJSProfileEnter(&oojsProfilerStackFrame, NAME);
+
+#define OOJS_PROFILE_EXIT                         \
+    }                                             \
+    @finally                                      \
+    {                                             \
+        OOJSProfileExit(&oojsProfilerStackFrame); \
+    }                                             \
+    }
+
+#define OOJS_NATIVE_ENTER(cx)                             \
+    {                                                     \
+        JSContext* oojsNativeContext = (cx);              \
+        OOJSProfileStackFrame oojsProfilerStackFrame;     \
+        @try {                                            \
+            OOJSProfileEnter(&oojsProfilerStackFrame, __FUNCTION__);
+
+#define OOJS_NATIVE_EXIT                                          \
+    }                                                             \
+    @catch (id exception)                                         \
+    {                                                             \
+        OOJSReportWrappedException(oojsNativeContext, exception); \
+        return JS_EXCEPTION;                                      \
+    }                                                             \
+    @finally                                                      \
+    {                                                             \
+        OOJSProfileExit(&oojsProfilerStackFrame);                 \
+    }                                                             \
+    }
+
+#else
+
+#define OOJS_PROFILE_ENTER_NAMED(NAME) {
+#define OOJS_PROFILE_EXIT }
+
 #define OOJS_NATIVE_ENTER(cx)                \
     {                                        \
         JSContext* oojsNativeContext = (cx); \
@@ -683,9 +752,10 @@ JSValue OOJSObjectWrapperToString(JSContext* context, JSValueConst this, int arg
     }                                                             \
     }
 
-#define OOJS_PROFILE_ENTER {
-#define OOJS_PROFILE_EXIT }
-#define OOJS_PROFILE_EXIT_VOID }
+#endif // OOJS_PROFILE
+
+#define OOJS_PROFILE_ENTER OOJS_PROFILE_ENTER_NAMED(__FUNCTION__)
+#define OOJS_PROFILE_EXIT_VOID OOJS_PROFILE_EXIT
 
 #define OOJS_BEGIN_FULL_NATIVE(context) \
     {                                   \
