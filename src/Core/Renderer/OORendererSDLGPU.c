@@ -257,8 +257,11 @@ bool OORendererSDLGPUInit(SDL_GPUDevice* device, unsigned width, unsigned height
     sDevice = device;
     sWindowWidth = width;
     sWindowHeight = height;
+#ifndef NDEBUG
+    // Negative controls for the backend harness; never in release builds.
     const char* fault = getenv("OO_BACKEND_FAULT");
     sFault = fault != NULL ? fault : "";
+#endif
 
     sWindowColor = CreateTarget(kColorFormat, SDL_GPU_TEXTUREUSAGE_COLOR_TARGET | SDL_GPU_TEXTUREUSAGE_SAMPLER, width, height);
     sWindowDepth = CreateTarget(kDepthFormat, SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET, width, height);
@@ -1647,11 +1650,6 @@ void OORendererBackendVerifyDrawState(const OODrawState* state)
 
 void OORendererBackendVerifyStateMachine(void)
 {
-}
-
-void OORendererBackendNoteDrawOutsidePass(void)
-{
-    OORendererBackendWarn("SDL_GPU backend: a draw outside any pass is dropped");
 }
 
 void OORendererBackendSetLightColor(unsigned light, OOLightColor which, const float rgba[4])

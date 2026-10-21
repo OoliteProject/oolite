@@ -443,7 +443,11 @@ static char* BuildStageSource(OOGLSLStage stage, const char* prefix, const char*
         StrAppend(&out, "    oo_user_main();\n");
         // GL clip-space depth is [-w, w]; SDL_GPU's is [0, w]. OO_TRANSLATOR_FAULT=depthremap
         // leaves it out, as a negative control for the backend harness.
+#ifndef NDEBUG
         const char* fault = getenv("OO_TRANSLATOR_FAULT");
+#else
+        const char* fault = NULL; // the harness's negative controls are debug-only
+#endif
         if (fault == NULL || strcmp(fault, "depthremap") != 0)
             StrAppend(&out, "    gl_Position.z = (gl_Position.z + gl_Position.w) * 0.5;\n");
         if (glOrientation && (fault == NULL || strcmp(fault, "orientation") != 0))

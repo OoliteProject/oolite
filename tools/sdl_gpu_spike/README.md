@@ -464,7 +464,7 @@ its variants):
 - Every GL state read left in game code is a startup query of device limits
   or debug-only dumping.
 
-**First backend slice** (`OORendererSDLGPU.c`, spike build only). It
+**First backend slice** (`src/Core/Renderer/OORendererSDLGPU.c`, at first in the spike build only). It
 implements `OORendererBackend.h` on SDL_GPU from the state mirror and the
 fixed-function values, drawing with the translator's own fixed-function
 emulation shaders.
@@ -573,6 +573,15 @@ both platforms, and 18 planted faults each fail only their scenes.
 **Frames in flight and readback.** Passes are submitted without waiting;
 only readback waits. Texture readback works on SDL_GPU, and the backend
 test round-trips every format, level and cube face on both backends.
+
+**In the game build.** The translator and the backend live in
+`src/Core/Renderer/` now, and the spike builds them from there. A meson
+option chooses the backend: `-Drenderer=gl` (the default) or
+`-Drenderer=sdl_gpu`. Only `sdl_gpu` needs glslang and SPIRV-Cross, which
+are found the way the spike found them, so default builds, CI and
+packaging are unchanged. In `sdl_gpu` builds the `OOGL*` wrappers only
+record state, and the GL-only backend glue is left out. The fault hooks
+for the harness are debug-only.
 
 **Next:**
 - **Needs a decision:** moving the translator and backend into

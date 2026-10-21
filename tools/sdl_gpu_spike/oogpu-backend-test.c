@@ -124,12 +124,10 @@ void OORendererBackendVerifyStateMachine(void)
 }
 #endif
 
-#if !OO_BACKEND_GPU
 void OORendererBackendNoteDrawOutsidePass(void)
 {
     OORendererBackendWarn("a draw outside any pass");
 }
-#endif
 
 #pragma mark - State the game sets through the OOGL* wrappers
 

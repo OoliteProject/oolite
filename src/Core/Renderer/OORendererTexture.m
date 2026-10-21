@@ -29,6 +29,13 @@ MA 02110-1301, USA.
 #import "OORendererBackend.h"
 #import "OOTextureInternal.h"
 
+// On SDL_GPU the state mirror's push and pop carry the binding; there is no GL to save.
+#if OO_RENDERER_SDL_GPU
+#define GLCALL(call) ((void)0)
+#else
+#define GLCALL(call) OOGL(call)
+#endif
+
 static GLint sSavedBinding[kOORendererMaxDrawStateDepth];
 static GLfloat sSavedLODBias[kOORendererMaxDrawStateDepth];
 
@@ -38,7 +45,7 @@ void OORendererBackendApplyTexture(const void* texture)
     if (texture != NULL)
         [(OOTexture*)texture apply];
     else
-        OOGL(glBindTexture(GL_TEXTURE_2D, 0));
+        GLCALL(glBindTexture(GL_TEXTURE_2D, 0));
 }
 
 unsigned OORendererBackendTextureName(const void* texture)
@@ -49,19 +56,19 @@ unsigned OORendererBackendTextureName(const void* texture)
 void OORendererBackendSaveTexture(int depth)
 {
     OO_ENTER_OPENGL();
-    OOGL(glGetIntegerv(GL_TEXTURE_BINDING_2D, &sSavedBinding[depth]));
+    GLCALL(glGetIntegerv(GL_TEXTURE_BINDING_2D, &sSavedBinding[depth]));
 #if GL_EXT_texture_lod_bias
     if (gOOTextureInfo.textureLODBiasAvailable)
-        OOGL(glGetTexEnvfv(GL_TEXTURE_FILTER_CONTROL_EXT, GL_TEXTURE_LOD_BIAS_EXT, &sSavedLODBias[depth]));
+        GLCALL(glGetTexEnvfv(GL_TEXTURE_FILTER_CONTROL_EXT, GL_TEXTURE_LOD_BIAS_EXT, &sSavedLODBias[depth]));
 #endif
 }
 
 void OORendererBackendRestoreTexture(int depth)
 {
     OO_ENTER_OPENGL();
-    OOGL(glBindTexture(GL_TEXTURE_2D, (GLuint)sSavedBinding[depth]));
+    GLCALL(glBindTexture(GL_TEXTURE_2D, (GLuint)sSavedBinding[depth]));
 #if GL_EXT_texture_lod_bias
     if (gOOTextureInfo.textureLODBiasAvailable)
-        OOGL(glTexEnvf(GL_TEXTURE_FILTER_CONTROL_EXT, GL_TEXTURE_LOD_BIAS_EXT, sSavedLODBias[depth]));
+        GLCALL(glTexEnvf(GL_TEXTURE_FILTER_CONTROL_EXT, GL_TEXTURE_LOD_BIAS_EXT, sSavedLODBias[depth]));
 #endif
 }

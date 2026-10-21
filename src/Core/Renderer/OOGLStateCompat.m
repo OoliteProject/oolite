@@ -31,6 +31,15 @@ MA 02110-1301, USA.
 #import "OORendererBackend.h"
 #import "OOTextureInternal.h"
 
+/*  On SDL_GPU the wrappers only record: the state mirror is what the
+    backend draws from, and there is no GL context to keep in step.
+*/
+#if OO_RENDERER_SDL_GPU
+#define GLCALL(call) ((void)0)
+#else
+#define GLCALL(call) OOGL(call)
+#endif
+
 static bool CapabilityForGL(GLenum cap, OOCapability* outCap)
 {
     switch (cap) {
@@ -98,14 +107,14 @@ void OOGLEnable(GLenum cap)
 {
     OO_ENTER_OPENGL();
     RecordCapability(cap, true);
-    OOGL(glEnable(cap));
+    GLCALL(glEnable(cap));
 }
 
 void OOGLDisable(GLenum cap)
 {
     OO_ENTER_OPENGL();
     RecordCapability(cap, false);
-    OOGL(glDisable(cap));
+    GLCALL(glDisable(cap));
 }
 
 static OOBlendFactor BlendFactorForGL(GLenum factor)
@@ -134,14 +143,14 @@ void OOGLBlendFunc(GLenum src, GLenum dst)
 {
     OO_ENTER_OPENGL();
     OORendererSetBlendFunc(BlendFactorForGL(src), BlendFactorForGL(dst));
-    OOGL(glBlendFunc(src, dst));
+    GLCALL(glBlendFunc(src, dst));
 }
 
 void OOGLDepthMask(GLboolean flag)
 {
     OO_ENTER_OPENGL();
     OORendererSetDepthMask(flag != GL_FALSE);
-    OOGL(glDepthMask(flag));
+    GLCALL(glDepthMask(flag));
 }
 
 static OOCompareOp CompareOpForGL(GLenum func)
@@ -170,7 +179,7 @@ void OOGLDepthFunc(GLenum func)
 {
     OO_ENTER_OPENGL();
     OORendererSetDepthFunc(CompareOpForGL(func));
-    OOGL(glDepthFunc(func));
+    GLCALL(glDepthFunc(func));
 }
 
 static OOCullFace CullFaceForGL(GLenum mode)
@@ -183,21 +192,21 @@ void OOGLCullFace(GLenum mode)
 {
     OO_ENTER_OPENGL();
     OORendererSetCullFace(CullFaceForGL(mode));
-    OOGL(glCullFace(mode));
+    GLCALL(glCullFace(mode));
 }
 
 void OOGLFrontFace(GLenum mode)
 {
     OO_ENTER_OPENGL();
     OORendererSetFrontFaceCCW(mode != GL_CW);
-    OOGL(glFrontFace(mode));
+    GLCALL(glFrontFace(mode));
 }
 
 void OOGLShadeModel(GLenum mode)
 {
     OO_ENTER_OPENGL();
     OORendererSetFlatShading(mode == GL_FLAT);
-    OOGL(glShadeModel(mode));
+    GLCALL(glShadeModel(mode));
 }
 
 void OOGLPolygonMode(GLenum face, GLenum mode)
@@ -205,44 +214,44 @@ void OOGLPolygonMode(GLenum face, GLenum mode)
     OO_ENTER_OPENGL();
     // Oolite only switches both faces at once.
     OORendererSetWireframe(mode == GL_LINE);
-    OOGL(glPolygonMode(face, mode));
+    GLCALL(glPolygonMode(face, mode));
 }
 
 void OOGLScissor(GLint x, GLint y, GLsizei width, GLsizei height)
 {
     OO_ENTER_OPENGL();
     OORendererSetScissorRect(x, y, width, height);
-    OOGL(glScissor(x, y, width, height));
+    GLCALL(glScissor(x, y, width, height));
 }
 
 void OOGLViewport(GLint x, GLint y, GLsizei width, GLsizei height)
 {
     OO_ENTER_OPENGL();
     OORendererSetViewport(x, y, width, height);
-    OOGL(glViewport(x, y, width, height));
+    GLCALL(glViewport(x, y, width, height));
 }
 
 void OOGLLoadModelViewMatrix(const GLfloat matrix[16])
 {
     OO_ENTER_OPENGL();
     OORendererSetModelViewMatrix(matrix);
-    OOGL(glMatrixMode(GL_MODELVIEW));
-    OOGL(glLoadMatrixf(matrix));
+    GLCALL(glMatrixMode(GL_MODELVIEW));
+    GLCALL(glLoadMatrixf(matrix));
 }
 
 void OOGLLoadProjectionMatrix(const GLfloat matrix[16])
 {
     OO_ENTER_OPENGL();
     OORendererSetProjectionMatrix(matrix);
-    OOGL(glMatrixMode(GL_PROJECTION));
-    OOGL(glLoadMatrixf(matrix));
+    GLCALL(glMatrixMode(GL_PROJECTION));
+    GLCALL(glLoadMatrixf(matrix));
 }
 
 void OOGLActiveTexture(GLenum unit)
 {
     OO_ENTER_OPENGL();
     OORendererSetActiveTexture(unit - GL_TEXTURE0);
-    OOGL(glActiveTextureARB(unit));
+    GLCALL(glActiveTextureARB(unit));
 }
 
 void OOGLBindTexture(GLenum target, GLuint texture)
@@ -254,7 +263,7 @@ void OOGLBindTexture(GLenum target, GLuint texture)
     else if (target == GL_TEXTURE_CUBE_MAP)
         OORendererSetTextureBinding(true, texture);
 #endif
-    OOGL(glBindTexture(target, texture));
+    GLCALL(glBindTexture(target, texture));
 }
 
 void OOGLDeleteTextures(GLsizei count, const GLuint* textures)
@@ -262,7 +271,7 @@ void OOGLDeleteTextures(GLsizei count, const GLuint* textures)
     OO_ENTER_OPENGL();
     for (GLsizei i = 0; i < count; i++)
         OORendererForgetTexture(textures[i]);
-    OOGL(glDeleteTextures(count, textures));
+    GLCALL(glDeleteTextures(count, textures));
 }
 
 static OOCombineOp CombineOpForGL(GLint value)
@@ -315,7 +324,7 @@ void OOGLTexEnvi(GLenum target, GLenum name, GLint value)
 {
     OO_ENTER_OPENGL();
     RecordTexEnvMode(target, name, value);
-    OOGL(glTexEnvi(target, name, value));
+    GLCALL(glTexEnvi(target, name, value));
 }
 
 void OOGLTexEnvf(GLenum target, GLenum name, GLfloat value)
@@ -326,7 +335,7 @@ void OOGLTexEnvf(GLenum target, GLenum name, GLfloat value)
     if (target == GL_TEXTURE_FILTER_CONTROL_EXT && name == GL_TEXTURE_LOD_BIAS_EXT)
         OORendererSetTextureLODBias(value);
 #endif
-    OOGL(glTexEnvf(target, name, value));
+    GLCALL(glTexEnvf(target, name, value));
 }
 
 void OOGLTexEnvfv(GLenum target, GLenum name, const GLfloat* values)
@@ -334,21 +343,21 @@ void OOGLTexEnvfv(GLenum target, GLenum name, const GLfloat* values)
     OO_ENTER_OPENGL();
     if (target == GL_TEXTURE_ENV && name == GL_TEXTURE_ENV_COLOR)
         OORendererSetTexEnvColor(values);
-    OOGL(glTexEnvfv(target, name, values));
+    GLCALL(glTexEnvfv(target, name, values));
 }
 
 void OOGLUseProgramObject(GLhandleARB program)
 {
     OO_ENTER_OPENGL();
     OORendererSetProgram((uint32_t)OOGLProgramName(program));
-    OOGL(glUseProgramObjectARB(program));
+    GLCALL(glUseProgramObjectARB(program));
 }
 
 void OOGLUseProgram(GLuint program)
 {
     OO_ENTER_OPENGL();
     OORendererSetProgram(program);
-    OOGL(glUseProgram(program));
+    GLCALL(glUseProgram(program));
 }
 
 enum {
@@ -368,13 +377,13 @@ void OOGLPushAttrib(GLbitfield mask)
         sAttribDepth++;
     }
     OORendererPushAttributes(mask);
-    OOGL(glPushAttrib(mask));
+    GLCALL(glPushAttrib(mask));
 }
 
 void OOGLPopAttrib(void)
 {
     OO_ENTER_OPENGL();
-    OOGL(glPopAttrib());
+    GLCALL(glPopAttrib());
     OORendererPopAttributes();
     if (sAttribDepth > 0) {
         sAttribDepth--;
@@ -385,10 +394,12 @@ void OOGLPopAttrib(void)
 
 #ifndef NDEBUG
 
+#if !OO_RENDERER_SDL_GPU
 void OORendererBackendVerifyStateMachine(void)
 {
     OOGLVerifyStateMachine();
 }
+#endif
 
 void OORendererBackendNoteDrawOutsidePass(void)
 {
@@ -428,6 +439,9 @@ static void Report(NSMutableArray* bad, NSString* format, ...)
 
 void OOGLVerifyStateMachine(void)
 {
+#if OO_RENDERER_SDL_GPU
+    return; // no GL context to compare
+#endif
     static int sEnabled = -1;
     if (sEnabled < 0)
         sEnabled = getenv("OO_VERIFY_RENDER_STATE") != NULL;

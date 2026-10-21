@@ -33,10 +33,11 @@ if not spirv_cross.found()
     spirv_cross = declare_dependency(dependencies: spirv_cross_libs)
 endif
 
-translator = static_library('ooglsltranslator', 'OOGLSLTranslator.c',
+# The translator and the SDL_GPU backend live in the game's renderer now.
+translator = static_library('ooglsltranslator', '../../src/Core/Renderer/OOGLSLTranslator.c',
     dependencies: [glslang, spirv_cross])
 translator_dep = declare_dependency(link_with: translator, dependencies: [glslang, spirv_cross],
-    include_directories: include_directories('.'))
+    include_directories: include_directories('.', '../../src/Core/Renderer'))
 
 common = static_library('oogpuspike', 'OOGPUSpikeCommon.c', dependencies: [translator_dep, sdl3])
 common_dep = declare_dependency(link_with: common, dependencies: [translator_dep, sdl3])
@@ -69,7 +70,7 @@ renderer_common = [renderer_src / 'OOFixedFunction.c', renderer_src / 'OOImmedia
 executable('oogpu-backend-test-gl', 'oogpu-backend-test.c', renderer_common, renderer_src / 'OORendererGL.c',
     include_directories: include_directories(renderer_src, '../../src/Core'),
     dependencies: [sdl3, gl, cc.find_library('m', required: false)])
-executable('oogpu-backend-test-gpu', 'oogpu-backend-test.c', 'OORendererSDLGPU.c', renderer_common,
+executable('oogpu-backend-test-gpu', 'oogpu-backend-test.c', renderer_src / 'OORendererSDLGPU.c', renderer_common,
     c_args: ['-DOO_BACKEND_GPU=1'],
     include_directories: include_directories(renderer_src, '../../src/Core'),
     dependencies: [translator_dep, sdl3, cc.find_library('m', required: false)], link_language: 'cpp')
