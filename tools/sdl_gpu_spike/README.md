@@ -610,6 +610,22 @@ for the harness are debug-only.
   149. Detail levels 1 and 2 both sit at the 240 fps frame cap on either
   backend.
 
+**Vulkan.** The same scenario through SDL_GPU's Vulkan driver on macOS
+(MoltenVK) matches GL as closely as Metal does. On Linux (Arch, amd64
+under emulation, Mesa lavapipe and llvmpipe), both renderers build. The
+backend harness passes all 18 scenes there, and the game's title screen
+on SDL_GPU matches Linux GL to a mean of 0.31/255.
+- Getting there needed two fixes. The post chain's GLSL 3.30 is now
+  rewritten to 1.20 on every platform in SDL_GPU builds, as macOS
+  always did, so the translator always gets attribute bindings. And the
+  translator's `strdup` became its own `StrDup`, for strict C11.
+- **Known issue:** on Linux the very first frame is white where the post
+  chain draws; later frames are correct. Under emulation one frame with
+  bloom takes over 20 s, which is why early snapshots kept catching it.
+  It still needs explaining.
+- The full scenario can't run under emulation in reasonable time;
+  native Linux hardware is needed for that.
+
 **The no-shader detail levels are gone** wherever shaders run. They were
 no faster, only different (fixed-function lighting). A saved lower level
 is raised to `DETAIL_LEVEL_SHADERS`, and hardware without GLSL still falls
