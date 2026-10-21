@@ -55,6 +55,17 @@ CONTINUATION_PATTERN = re.compile(r"\]: {2,}")
 LEAK_CHECK_PASSED = "JavaScript runtime shut down with no leaked objects."
 
 
+def scaled(seconds):
+    """
+    Scales a timeout by $OOLITE_TEST_TIMEOUT_SCALE, for slow machines (for
+    example an emulated CPU, where the game runs many times slower).
+    """
+    try:
+        return seconds * float(os.environ.get("OOLITE_TEST_TIMEOUT_SCALE", "1"))
+    except ValueError:
+        return seconds
+
+
 class HarnessError(Exception):
     pass
 
@@ -108,6 +119,9 @@ def game_environment(test_output):
 def resolve_binary(path):
     """Returns (directory, binary name) for an Oolite directory or binary path."""
     target = os.path.abspath(path)
+    bundle_binary = os.path.join(target, "Contents", "MacOS", "oolite")
+    if os.path.isfile(bundle_binary):  # macOS app bundle
+        return os.path.dirname(bundle_binary), "oolite"
     if os.path.isfile(target):
         return os.path.dirname(target), os.path.basename(target)
     return target, "oolite.exe" if IS_WINDOWS else "oolite"
@@ -135,7 +149,7 @@ class OoliteConsole:
 
     def accept(self, timeout, proc=None):
         """Waits for the game to connect and completes the handshake."""
-        deadline = time.time() + timeout
+        deadline = time.time() + scaled(timeout)
         while time.time() < deadline:
             if proc is not None and proc.poll() is not None:
                 raise HarnessError(f"Oolite exited with status {proc.returncode} before connecting.")
@@ -209,7 +223,7 @@ class OoliteConsole:
         )
         exceptions_before = len(self.exceptions)
         self.perform(command)
-        deadline = time.time() + timeout
+        deadline = time.time() + scaled(timeout)
         while True:
             remaining = deadline - time.time()
             if remaining <= 0:
@@ -229,10 +243,21 @@ class OoliteConsole:
                 raise JSException(message)
 
     def wait_for(self, expression, timeout, interval=0.5):
-        """Evaluates expression repeatedly until it is truthy; returns its value."""
-        deadline = time.time() + timeout
+        """
+        Evaluates expression repeatedly until it is truthy; returns its value.
+        The game does not answer while it is busy (loading a game, say), so a
+        slow answer only counts against the overall timeout.
+        """
+        deadline = time.time() + scaled(timeout)
         while True:
-            value = self.evaluate(expression)
+            try:
+                value = self.evaluate(expression, timeout=max(1, min(30, deadline - time.time())))
+            except JSException:
+                raise
+            except HarnessError:
+                if self.closed.is_set():
+                    raise
+                value = None
             if value:
                 return value
             if time.time() > deadline:
@@ -251,7 +276,7 @@ class OoliteConsole:
 class OoliteGame:
     """An Oolite process connected to an OoliteConsole."""
 
-    def __init__(self, path, test_output, load=None, extra_args=()):
+    def __init__(self, path, test_output, load=None, extra_args=(), extra_env=None):
         self.directory, self.binary = resolve_binary(path)
         self.test_output = os.path.abspath(test_output)
         self.log_path = os.path.join(self.test_output, "Latest.log")
@@ -259,6 +284,7 @@ class OoliteGame:
         if load:
             self.args += ["-load", os.path.abspath(load)]
         self.args += list(extra_args)
+        self.extra_env = dict(extra_env or {})
         self.proc = None
         self.console = None
 
@@ -270,7 +296,7 @@ class OoliteGame:
         self.proc = subprocess.Popen(
             cmd,
             cwd=self.directory,
-            env=game_environment(self.test_output),
+            env={**game_environment(self.test_output), **self.extra_env},
             stdout=sys.stdout,
             stderr=sys.stderr,
         )
@@ -283,6 +309,21 @@ class OoliteGame:
             raise
         return self.console
 
+    def wait_for_log(self, text, timeout):
+        """Waits until text appears in the game's log; returns False if the game exits or time runs out."""
+        deadline = time.time() + scaled(timeout)
+        while time.time() < deadline:
+            try:
+                with open(self.log_path, encoding="utf-8", errors="replace") as f:
+                    if text in f.read():
+                        return True
+            except OSError:
+                pass
+            if self.proc.poll() is not None:
+                return False
+            time.sleep(1)
+        return False
+
     def quit(self, timeout=30):
         """
         Asks the game to quit through quitGame(), which takes effect after the
@@ -292,7 +333,7 @@ class OoliteGame:
         print("[*] Requesting quit...")
         self.console.perform("quitGame();")
         try:
-            self.proc.wait(timeout=timeout)
+            self.proc.wait(timeout=scaled(timeout))
         except subprocess.TimeoutExpired:
             raise HarnessError("Oolite ignored the quit command.")
         print(f"[*] Oolite exited with status {self.proc.returncode}")
