@@ -23,6 +23,9 @@ directory. Example, for the title screen:
     game-snapshot.py build/meson_dev/oolite.app/Contents/MacOS/oolite out \
         sleep:5 "takeSnapShot();" sleep:2 "quit();"
 
+The window is always 1280 x 720 points, whatever size the player last
+left it at, so snapshots stay comparable. On macOS the player's saved
+window size is put back afterwards, in case the game saved ours over it.
 Set OO_SNAPSHOT_ARGS to pass extra launch arguments, such as settings that
 Foundation reads as defaults for this run only: "-detailLevel 3
 -anti-aliasing YES".
@@ -68,7 +71,31 @@ elif scenario:
 # OO_SNAPSHOT_ARGS adds launch arguments. Foundation reads "-key value" pairs
 # as defaults for this run only, e.g. "-detailLevel 3 -anti-aliasing YES".
 extra = os.environ.get("OO_SNAPSHOT_ARGS", "").split()
-proc = subprocess.Popen([binary, "--no-splash", "-novsync"] + extra, cwd=os.path.dirname(binary), env=env,
+window = ["-window_width", "1280", "-window_height", "720"]
+
+
+def saved_window_size():
+    if sys.platform != "darwin":
+        return None
+    values = []
+    for key in ("window_width", "window_height"):
+        result = subprocess.run(["defaults", "read", "oolite", key], capture_output=True, text=True)
+        values.append(result.stdout.strip() if result.returncode == 0 else None)
+    return values
+
+
+def restore_window_size(values):
+    if values is None or saved_window_size() == values:
+        return
+    for key, value in zip(("window_width", "window_height"), values):
+        if value is None:
+            subprocess.run(["defaults", "delete", "oolite", key], capture_output=True)
+        else:
+            subprocess.run(["defaults", "write", "oolite", key, "-int", value], capture_output=True)
+
+
+player_window = saved_window_size()
+proc = subprocess.Popen([binary, "--no-splash", "-novsync"] + window + extra, cwd=os.path.dirname(binary), env=env,
                         stdout=open(os.path.join(outdir, "stdout.txt"), "w"), stderr=subprocess.STDOUT)
 conn = None
 deadline = time.time() + 30
@@ -79,6 +106,7 @@ if conn is None:
     print("no connection")
     subprocess.run(["sample", str(proc.pid), "2"], stdout=subprocess.DEVNULL)
     proc.kill()
+    restore_window_size(player_window)
     sys.exit(1)
 pkt = ls.receive_plist_packet(conn)
 ls.send_plist_packet(conn, {ls.PACKET_TYPE_KEY: ls.APPROVE_CONNECTION, ls.CONSOLE_IDENTITY_KEY: "game-snapshot"})
@@ -103,4 +131,5 @@ try:
     proc.wait(timeout=120 if scenario else 20)
 except subprocess.TimeoutExpired:
     proc.kill()
+restore_window_size(player_window)
 print("snapshots:", sorted(f for f in os.listdir(outdir) if f.endswith(".png")))
