@@ -436,11 +436,7 @@ static id ShipGroupIterate(OOShipGroupEnumerator* enumerator)
 */
 - (BOOL)suppressClangStuff
 {
-#if OOJS_QUICKJS
     return !JS_IsObject(_jsSelf);
-#else
-    return !_jsSelf;
-#endif
 }
 
 @end
