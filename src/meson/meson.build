@@ -18,7 +18,9 @@ if use_quickjs
     oolite_dependencies += dependency(
         'quickjs-ng',
         version: '>=0.17.0',
-        default_options: ['default_library=static', 'libc=false'],
+        # No LTO for QuickJS: with clang on Windows (MSYS2), the static library's
+        # LTO objects are archived without a symbol index, so linking fails.
+        default_options: ['default_library=static', 'libc=false', 'b_lto=false'],
     )
     add_project_arguments('-DOOJS_QUICKJS=1', language: c_family)
 endif
