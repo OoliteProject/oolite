@@ -8,7 +8,10 @@ Each command is JavaScript sent to the game's debug console, "sleep:<s>", or
 "script:<file>" to send a JavaScript file. With --scenario as the first
 command, the RenderTest OXP in scenarios/ is loaded; it drives the game
 through a fixed list of screens and quits (see its Config/script.js), so
-no further commands are needed.
+no further commands are needed. With --gallery <OXZ dir> instead, the
+OXPGallery OXP in gallery/ and the OXZs in that directory (fetched by
+gallery/fetch-gallery.py) are loaded; it launches, snapshots a list of OXP
+ships one by one and quits.
 The game runs with -novsync (a locked macOS screen otherwise blocks GL
 buffer swaps), no sound, and OO_FREEZE_DEMO_SHIPS=1, so in debug builds the
 title screen ship holds still and the whole title screen is reproducible:
@@ -32,6 +35,11 @@ import launch_snapshot as ls  # noqa: E402
 binary, outdir = os.path.abspath(sys.argv[1]), os.path.abspath(sys.argv[2])
 commands = sys.argv[3:]
 scenario = bool(commands) and commands[0] == "--scenario"
+gallery = None
+if len(commands) >= 2 and commands[0] == "--gallery":
+    gallery = os.path.abspath(commands[1])
+    commands = ["--scenario"] + commands[2:]
+    scenario = True
 if scenario:
     # The title screens are static; world scripts take over once the game starts.
     commands = ["sleep:5", "takeSnapShot();", "sleep:1", "key:Return", "sleep:2", "takeSnapShot();", "sleep:1", "key:Return"] + commands[1:]
@@ -52,8 +60,11 @@ if sys.platform == "darwin":
 env = os.environ.copy()
 env.update({"SDL_AUDIODRIVER": "dummy", "ALSOFT_DRIVERS": "null", "OO_SNAPSHOTSDIR": outdir, "OO_LOGSDIR": outdir,
             "OO_FREEZE_DEMO_SHIPS": "1", "OO_DETERMINISTIC_TEST": "1"})
-if scenario:
-    env["OO_ADDITIONALADDONSDIRS"] = os.path.join(os.path.dirname(os.path.abspath(__file__)), "scenarios")
+here = os.path.dirname(os.path.abspath(__file__))
+if gallery:
+    env["OO_ADDITIONALADDONSDIRS"] = os.path.join(here, "gallery") + "," + gallery
+elif scenario:
+    env["OO_ADDITIONALADDONSDIRS"] = os.path.join(here, "scenarios")
 # OO_SNAPSHOT_ARGS adds launch arguments. Foundation reads "-key value" pairs
 # as defaults for this run only, e.g. "-detailLevel 3 -anti-aliasing YES".
 extra = os.environ.get("OO_SNAPSHOT_ARGS", "").split()

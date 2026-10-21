@@ -667,6 +667,25 @@ on Metal. Six OXPs couldn't be fetched (one host refused connections,
   scenario, all 13 programs together take 113 ms. A shader cache isn't
   worth it yet.
 
+**OXP ships in the game.** The corpus checks programs on their own. In
+the game, OXP shaders also depend on `OOShaderMaterial`'s uniform
+bindings (timers, engine level, damage and so on) and on real textures
+and models. `game-snapshot.py --gallery <dir>` loads the OXZs that
+`gallery/fetch-gallery.py` downloads into `<dir>` (Griff's ships and
+retextures, Cobra Mk III-XT, Cougar ST, Stormbrewer; about 60 MB), plus
+the `OXPGallery` driver. The driver launches, pitches up so the planet's
+clouds stay out of view (they vary from run to run with these OXPs
+loaded), then spawns 20 ships one at a time ahead of the player and
+snapshots each.
+- Two GL runs give identical images.
+- SDL_GPU differs from GL on 0.64% of pixels per frame (over 16/255).
+  Nearly all of that is in an almost empty frame too: the HUD's text and
+  line edges, the sun and stars. Only 0.006–0.019% of pixels per frame
+  (at most 686) differ because of the ship itself, at its edges.
+- No OXP shader fails to build, and nothing is logged as an error.
+- Vulkan through MoltenVK gives the same result (at most 0.575% of
+  pixels over 16/255 per frame, against GL).
+
 **Direct3D 12.** The translator can emit HLSL (shader model 5.1) with
 SDL_GPU's D3D12 registers, and `OOHLSLCompiler` compiles it to DXBC with
 Windows' own `D3DCompile` (d3dcompiler_47.dll, loaded at run time). SDL
