@@ -302,6 +302,7 @@
 	script.javaScript.timeLimit.debug		= no;					// Time limiter debugging info
 	script.javaScript.willLoad				= no;
 	script.javaScript.cache					= no;					// Compiled script cache (QuickJS builds)
+	script.javaScript.load.modern			= no;					// Scripts that opt out of SpiderMonkey scope emulation (QuickJS builds)
 	
 	script.load								= no;
 	script.load.badName						= $scriptError;
