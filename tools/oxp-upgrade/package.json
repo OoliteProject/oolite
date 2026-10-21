@@ -12,7 +12,7 @@
     "node": ">=18"
   },
   "scripts": {
-    "test": "node --test test/"
+    "test": "node --test test/upgrade.test.js"
   },
   "dependencies": {
     "acorn": "^8.19.0",
