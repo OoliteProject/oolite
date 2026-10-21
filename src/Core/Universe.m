@@ -348,9 +348,6 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 - (void)initTargetFramebufferWithViewSize:(NSSize)viewSize
 {
     // liberate us from the 0.0 to 1.0 rgb range!
-    OOGL(glClampColor(GL_CLAMP_VERTEX_COLOR, GL_FALSE));
-    OOGL(glClampColor(GL_CLAMP_READ_COLOR, GL_FALSE));
-    OOGL(glClampColor(GL_CLAMP_FRAGMENT_COLOR, GL_FALSE));
 
     // have to do this because on my machine the default framebuffer is not zero
     GLint windowFramebuffer;
@@ -4392,7 +4389,7 @@ static const OOMatrix starboard_matrix = { { { 0.0f, 0.0f, 1.0f, 0.0f },
                     GLfloat mat_no[4] = { 0.0, 0.0, 0.0, 1.0 }; // nothing
                     GLfloat fog_blend;
 
-                    OOGL(glHint(GL_FOG_HINT, [self reducedDetail] ? GL_FASTEST : GL_NICEST));
+                    OORendererSetFogHint(![self reducedDetail]);
 
                     [self defineFrustum]; // camera is set up for this frame
 
@@ -4605,7 +4602,7 @@ static const OOMatrix starboard_matrix = { { { 0.0f, 0.0f, 1.0f, 0.0f },
             OOCheckOpenGLErrors(@"Universe after drawing HUD");
 
             OORendererEndPass(); // the scene, or the HUD if it was drawn separately
-            OOGL(glFlush()); // don't wait around for drawing to complete
+            OORendererFlush(); // don't wait around for drawing to complete
 
             no_update = NO; // allow other attempts to draw
 

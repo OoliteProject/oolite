@@ -92,6 +92,10 @@ void OORendererReadTexture(uint32_t texture, unsigned face, unsigned level, unsi
 
 void OORendererDeleteTexture(uint32_t texture);
 
+// Device limits: the largest texture side, and the largest anisotropy (1 for none).
+unsigned OORendererMaxTextureSize(void);
+float OORendererMaxAnisotropy(void);
+
 #ifdef __cplusplus
 }
 #endif

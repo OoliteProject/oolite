@@ -40,6 +40,7 @@ MA 02110-1301, USA.
 #import "png.h"
 #include <SDL3/SDL_clipboard.h>
 #include <SDL3/SDL_init.h>
+#include <SDL3/SDL_timer.h>
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #import "OOFixedFunction.h"
@@ -807,7 +808,7 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
 
     OOImmediateEnd();
     OORendererEndPass();
-    glFinish();
+    OORendererFinish();
 
     SDL_GL_SwapWindow(window);
     [matrixManager resetModelView];
@@ -981,11 +982,6 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
     BOOL snapShotOK = YES;
     SDL_Surface* tmpSurface;
 
-#if OOLITE_MAC_OS_X
-    // The back buffer is undefined after a swap on macOS, so read the frame currently on screen.
-    OOGL(glReadBuffer(GL_FRONT));
-#endif
-
     // backup the previous directory
     NSString* originalDirectory = [[NSFileManager defaultManager] currentDirectoryPath];
     // use the snapshots directory
@@ -1044,10 +1040,6 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
     int y;
     int off;
 
-    if (surface->w % 4)
-        glPixelStorei(GL_PACK_ALIGNMENT, 1);
-    else
-        glPixelStorei(GL_PACK_ALIGNMENT, 4);
     for (y = surface->h - 1, off = 0; y >= 0; y--, off += pitch) {
         OORendererReadPixels(0, y, surface->w, 1, kOOPixelsBGRA8, pixls + off);
     }
@@ -1098,7 +1090,6 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
 
 #if OOLITE_MAC_OS_X
     SDL_DestroySurface(surface);
-    OOGL(glReadBuffer(GL_BACK));
 #endif
 
     // return to the previous directory
@@ -1424,6 +1415,23 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
                          rowBytes:width];
     }
     free(grayBytes);
+}
+#endif
+
+#ifndef NDEBUG
+- (BOOL)simulateKeyNamed:(NSString*)name down:(BOOL)down
+{
+    SDL_Scancode scancode = SDL_GetScancodeFromName([name UTF8String]);
+    if (scancode == SDL_SCANCODE_UNKNOWN)
+        return NO;
+    SDL_Event event = { 0 };
+    event.type = down ? SDL_EVENT_KEY_DOWN : SDL_EVENT_KEY_UP;
+    event.key.timestamp = SDL_GetTicksNS();
+    event.key.scancode = scancode;
+    event.key.key = SDL_GetKeyFromScancode(scancode, SDL_KMOD_NONE, false);
+    event.key.down = down;
+    SDL_PushEvent(&event);
+    return YES;
 }
 #endif
 

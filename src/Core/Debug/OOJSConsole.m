@@ -32,6 +32,7 @@ SOFTWARE.
 #import "OODebugMonitor.h"
 #include <stdint.h>
 
+#import "MyOpenGLView.h"
 #import "OOConstToString.h"
 #import "OODebugFlags.h"
 #import "OODebugMonitor.h"
@@ -44,7 +45,6 @@ SOFTWARE.
 #import "OOOpenGLExtensionManager.h"
 #import "OOProfilingStopwatch.h"
 #import "ResourceManager.h"
-#include <SDL3/SDL.h>
 
 @interface Entity (OODebugInspector)
 
@@ -666,19 +666,10 @@ static JSBool ConsoleSimulateKey(JSContext* context, uintN argc, jsval* vp)
     JSBool down = YES;
     if (argc > 1)
         JS_ValueToBoolean(context, OOJS_ARGV[1], &down);
-    SDL_Scancode scancode = name ? SDL_GetScancodeFromName([name UTF8String]) : SDL_SCANCODE_UNKNOWN;
-    if (scancode == SDL_SCANCODE_UNKNOWN) {
+    if (name == nil || ![[UNIVERSE gameView] simulateKeyNamed:name down:down]) {
         OOJSReportBadArguments(context, @"Console", @"simulateKey", argc, OOJS_ARGV, nil, @"SDL key name");
         return NO;
     }
-
-    SDL_Event event = { 0 };
-    event.type = down ? SDL_EVENT_KEY_DOWN : SDL_EVENT_KEY_UP;
-    event.key.timestamp = SDL_GetTicksNS();
-    event.key.scancode = scancode;
-    event.key.key = SDL_GetKeyFromScancode(scancode, SDL_KMOD_NONE, false);
-    event.key.down = down;
-    SDL_PushEvent(&event);
     OOJS_RETURN_VOID;
 
     OOJS_NATIVE_EXIT

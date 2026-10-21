@@ -357,6 +357,11 @@ extern int debug;
                       rowBytes:(NSUInteger)rowBytes;
 #endif
 
+#ifndef NDEBUG
+// Renderer regression tests (console.simulateKey): push a key event named as SDL names it. NO if the name is unknown.
+- (BOOL)simulateKeyNamed:(NSString*)name down:(BOOL)down;
+#endif
+
 @end
 
 #import "MyOpenGLView+Input.h"

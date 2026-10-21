@@ -82,6 +82,11 @@ void OORendererSetLightPosition(unsigned light, const float position[4], const f
     OORendererBackendSetLightPosition(light, eye);
 }
 
+void OORendererSetFogHint(bool nicest)
+{
+    OORendererBackendSetFogHint(nicest);
+}
+
 void OORendererSetLightModelSeparateSpecular(bool separate)
 {
     sValues.separateSpecular = separate;

@@ -107,6 +107,8 @@ void OORendererSetLightColor(unsigned light, OOLightColor which, const float rgb
 void OORendererSetLightPosition(unsigned light, const float position[4], const float* modelView);
 void OORendererSetLightModelAmbient(const float rgba[4]);
 void OORendererSetLightModelSeparateSpecular(bool separate);
+// GL_FOG_HINT: nicest (per-pixel) or fastest. SDL_GPU always fogs per pixel.
+void OORendererSetFogHint(bool nicest);
 
 void OORendererSetMaterialColor(OOMaterialFace face, OOMaterialColor which, const float rgba[4]);
 void OORendererSetMaterialShininess(OOMaterialFace face, float shininess);

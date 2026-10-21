@@ -320,7 +320,7 @@ enum {
             OOGLEnable(GL_FOG);
             OORendererSetFogMode(kOOFogLinear);
             OORendererSetFogColor(fogcolor);
-            OOGL(glHint(GL_FOG_HINT, GL_NICEST));
+            OORendererSetFogHint(true);
             OORendererSetFogRange(NEAR_PLANE, FAR_PLANE);
         }
 

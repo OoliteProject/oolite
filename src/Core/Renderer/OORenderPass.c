@@ -80,6 +80,16 @@ OORenderTarget OORendererCurrentPassTarget(void)
     return sTarget;
 }
 
+void OORendererFinish(void)
+{
+    OORendererBackendFinish();
+}
+
+void OORendererFlush(void)
+{
+    OORendererBackendFlush();
+}
+
 void OORendererReadPixels(int x, int y, int width, int height, OOPixelFormat format, void* pixels)
 {
     assert(!sInPass);

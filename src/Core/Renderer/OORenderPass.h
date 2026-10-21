@@ -124,6 +124,11 @@ typedef enum {
 */
 void OORendererReadPixels(int x, int y, int width, int height, OOPixelFormat format, void* pixels);
 
+// Wait until the GPU has finished all submitted work (glFinish).
+void OORendererFinish(void);
+// Start submitted work without waiting for it (glFlush).
+void OORendererFlush(void);
+
 #ifdef __cplusplus
 }
 #endif

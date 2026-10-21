@@ -79,6 +79,10 @@ uint32_t OORendererBackendCreateTexture(const OOTextureDescriptor* descriptor);
 void OORendererBackendUploadTexture(uint32_t texture, unsigned face, unsigned level, unsigned width, unsigned height, const void* texels);
 void OORendererBackendReadTexture(uint32_t texture, unsigned face, unsigned level, unsigned width, unsigned height, void* texels);
 void OORendererBackendDeleteTexture(uint32_t texture);
+unsigned OORendererBackendMaxTextureSize(void);
+float OORendererBackendMaxAnisotropy(void);
+void OORendererBackendFinish(void);
+void OORendererBackendFlush(void);
 
 // Debug builds: report where the context no longer matches state.
 void OORendererBackendVerifyDrawState(const OODrawState* state);
@@ -94,6 +98,7 @@ void OORendererBackendSetLightColor(unsigned light, OOLightColor which, const fl
 void OORendererBackendSetLightPosition(unsigned light, const float eyePosition[4]);
 void OORendererBackendSetLightModelAmbient(const float rgba[4]);
 void OORendererBackendSetLightModelSeparateSpecular(bool separate);
+void OORendererBackendSetFogHint(bool nicest);
 void OORendererBackendSetMaterialColor(OOMaterialFace face, OOMaterialColor which, const float rgba[4]);
 void OORendererBackendSetMaterialShininess(OOMaterialFace face, float shininess);
 void OORendererBackendSetFog(const OOFogValues* fog);

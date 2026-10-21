@@ -72,6 +72,16 @@ void OORendererReadTexture(uint32_t texture, unsigned face, unsigned level, unsi
     OORendererBackendReadTexture(texture, face, level, width, height, texels);
 }
 
+unsigned OORendererMaxTextureSize(void)
+{
+    return OORendererBackendMaxTextureSize();
+}
+
+float OORendererMaxAnisotropy(void)
+{
+    return OORendererBackendMaxAnisotropy();
+}
+
 void OORendererDeleteTexture(uint32_t texture)
 {
     if (texture == 0)

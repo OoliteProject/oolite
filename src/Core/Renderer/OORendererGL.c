@@ -68,6 +68,7 @@ extern PFNGLRENDERBUFFERSTORAGEMULTISAMPLEPROC glRenderbufferStorageMultisample;
 extern PFNGLTEXIMAGE2DMULTISAMPLEPROC glTexImage2DMultisample;
 extern PFNGLDRAWBUFFERSPROC glDrawBuffers;
 extern PFNGLBLITFRAMEBUFFERPROC glBlitFramebuffer;
+extern PFNGLCLAMPCOLORPROC glClampColor;
 extern PFNGLUSEPROGRAMOBJECTARBPROC glUseProgramObjectARB;
 extern PFNGLGETUNIFORMLOCATIONARBPROC glGetUniformLocationARB;
 extern PFNGLUNIFORM1IARBPROC glUniform1iARB;
@@ -367,6 +368,11 @@ void OORendererBackendSetLightPosition(unsigned light, const float eyePosition[4
         glMatrixMode((GLenum)matrixMode);
 }
 
+void OORendererBackendSetFogHint(bool nicest)
+{
+    glHint(GL_FOG_HINT, nicest ? GL_NICEST : GL_FASTEST);
+}
+
 void OORendererBackendSetLightModelSeparateSpecular(bool separate)
 {
     glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, separate ? GL_SEPARATE_SPECULAR_COLOR : GL_SINGLE_COLOR);
@@ -533,10 +539,51 @@ void OORendererBackendEndPass(void)
 
 void OORendererBackendReadPixels(int x, int y, int width, int height, OOPixelFormat format, void* pixels)
 {
+    GLint alignment = 4;
+    glGetIntegerv(GL_PACK_ALIGNMENT, &alignment);
+    glPixelStorei(GL_PACK_ALIGNMENT, 1); // rows are tightly packed
+#ifdef __APPLE__
+    // The back buffer is undefined after a swap on macOS, so read the frame on screen.
+    GLint readFramebuffer = 0;
+    glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &readFramebuffer);
+    if (readFramebuffer == 0)
+        glReadBuffer(GL_FRONT);
+#endif
     if (format == kOOPixelsRGBFloat)
         glReadPixels(x, y, width, height, GL_RGB, GL_FLOAT, pixels);
     else
         glReadPixels(x, y, width, height, GL_BGRA, GL_UNSIGNED_BYTE, pixels);
+#ifdef __APPLE__
+    if (readFramebuffer == 0)
+        glReadBuffer(GL_BACK);
+#endif
+    glPixelStorei(GL_PACK_ALIGNMENT, alignment);
+}
+
+void OORendererBackendFinish(void)
+{
+    glFinish();
+}
+
+void OORendererBackendFlush(void)
+{
+    glFlush();
+}
+
+unsigned OORendererBackendMaxTextureSize(void)
+{
+    GLint size = 0;
+    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &size);
+    return size > 0 ? (unsigned)size : 0;
+}
+
+float OORendererBackendMaxAnisotropy(void)
+{
+    GLfloat anisotropy = 1.0f;
+#ifdef GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT
+    glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &anisotropy);
+#endif
+    return anisotropy;
 }
 
 void OORendererBackendDrawArrays(OONativePrimitive primitive, const OOVertexLayout* layout, size_t first, size_t count)
@@ -807,6 +854,14 @@ static void AllocateStorage(const RenderTargetRecord* record)
 
 OORenderTarget OORendererBackendCreateRenderTarget(const OORenderTargetDescriptor* descriptor)
 {
+    // Float targets hold values outside 0-1; GL clamps colours unless told not to.
+    static bool sUnclamped = false;
+    if (!sUnclamped) {
+        glClampColor(GL_CLAMP_VERTEX_COLOR, GL_FALSE);
+        glClampColor(GL_CLAMP_READ_COLOR, GL_FALSE);
+        glClampColor(GL_CLAMP_FRAGMENT_COLOR, GL_FALSE);
+        sUnclamped = true;
+    }
     GLint previousFramebuffer;
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &previousFramebuffer);
 

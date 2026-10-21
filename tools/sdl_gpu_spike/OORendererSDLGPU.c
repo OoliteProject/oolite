@@ -1642,6 +1642,31 @@ void OORendererBackendSetMaterialShininess(OOMaterialFace face, float shininess)
     (void)shininess;
 }
 
+void OORendererBackendSetFogHint(bool nicest)
+{
+    (void)nicest; // fog is always per pixel
+}
+
+unsigned OORendererBackendMaxTextureSize(void)
+{
+    return 16384; // the size SDL_GPU's backends all support
+}
+
+float OORendererBackendMaxAnisotropy(void)
+{
+    return 16.0f;
+}
+
+void OORendererBackendFinish(void)
+{
+    SDL_WaitForGPUIdle(sDevice);
+}
+
+void OORendererBackendFlush(void)
+{
+    // Passes are submitted as they end.
+}
+
 void OORendererBackendSetFog(const OOFogValues* fog)
 {
     (void)fog;

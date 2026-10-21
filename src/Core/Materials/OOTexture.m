@@ -39,6 +39,7 @@
 #import "OOMacroOpenGL.h"
 #import "OOOpenGLExtensionManager.h"
 #import "OOPixMap.h"
+#import "OORendererTexture.h"
 #import "ResourceManager.h"
 #import "Universe.h"
 
@@ -491,7 +492,7 @@ static NSString* sGlobalTraceContext = nil;
 
 #if GL_EXT_texture_filter_anisotropic
     gOOTextureInfo.anisotropyAvailable = [extMgr haveExtension:@"GL_EXT_texture_filter_anisotropic"];
-    OOGL(glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &gOOTextureInfo.anisotropyScale));
+    gOOTextureInfo.anisotropyScale = OORendererMaxAnisotropy();
     gOOTextureInfo.anisotropyScale *= OOClamp_0_1_f([[NSUserDefaults standardUserDefaults] oo_floatForKey:@"texture-anisotropy-scale" defaultValue:0.5]);
 #endif
 
