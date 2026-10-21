@@ -773,13 +773,15 @@ static void CacheCompiledScript(JSContext* context, NSString* path, NSData* sour
         return;
     }
 
+    NSData* bytecode = [NSData dataWithBytes:bytes length:length];
+    js_free(context, bytes);
+
     NSDictionary* entry = [NSDictionary dictionaryWithObjectsAndKeys:
-            [NSData dataWithBytes:bytes length:length], kCompiledScriptKeyBytecode,
+            bytecode, kCompiledScriptKeyBytecode,
         SourceHash(source), kCompiledScriptKeyHash,
         [NSString stringWithUTF8String:JS_GetVersion()], kCompiledScriptKeyEngine,
         [NSNumber numberWithUnsignedInt:kCompiledScriptFormat], kCompiledScriptKeyFormat,
         nil];
-    js_free(context, bytes);
 
     [[OOCacheManager sharedCache] setObject:entry forKey:path inCache:kCompiledScriptCache];
     OOLog(@"script.javaScript.cache.store", @"Cached compiled script %@.", path);
