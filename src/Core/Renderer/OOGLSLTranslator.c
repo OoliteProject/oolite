@@ -120,10 +120,31 @@ static bool UsesToken(const char* src, const char* tok)
     return false;
 }
 
+/*  GLSL 1.20 lets a uniform have an initializer, as the post chain's blur
+    weights do; a uniform block member can't. Oolite never sets those, so
+    an initialised uniform becomes a constant ("uniform" turns into
+    "const  ", the same length, so error positions still match).
+*/
+static char* ConstifyInitialisedUniforms(const char* src)
+{
+    char* copy = strdup(src);
+    for (char* p = strstr(copy, "uniform"); p != NULL; p = strstr(p + 1, "uniform")) {
+        if ((p > copy && IsIdentChar(p[-1])) || IsIdentChar(p[7]))
+            continue;
+        char* end = strchr(p, ';');
+        char* equals = strchr(p, '=');
+        if (end != NULL && equals != NULL && equals < end)
+            memcpy(p, "const  ", 7);
+    }
+    return copy;
+}
+
 // Copy source, blanking out #version lines (they are replaced by our own)
 // while keeping line numbers intact.
-static void AppendUserSource(Str* out, const char* src)
+static void AppendUserSource(Str* out, const char* originalSrc)
 {
+    char* constified = ConstifyInitialisedUniforms(originalSrc);
+    const char* src = constified;
     const char* line = src;
     while (*line != '\0') {
         const char* end = strchr(line, '\n');
@@ -144,6 +165,7 @@ static void AppendUserSource(Str* out, const char* src)
     }
     if (out->len > 0 && out->s[out->len - 1] != '\n')
         StrAppend(out, "\n");
+    free(constified);
 }
 
 #pragma mark - Prelude
@@ -190,6 +212,8 @@ static const char* const kCommonPrelude = "#version 410\n"
                                           "    float oo_FogMode;\n"
                                           "    vec2 oo_TextureMode;\n"
                                           "    vec2 oo_TextureEnabled;\n"
+                                          "    vec2 oo_TextureAlphaOnly;\n"
+                                          "    float oo_ClampColor;\n"
                                           "};\n"
                                           "#define gl_ModelViewMatrix oo_ModelViewMatrix\n"
                                           "#define gl_ProjectionMatrix oo_ProjectionMatrix\n"
@@ -245,6 +269,8 @@ static const char* const kCommonPrelude = "#version 410\n"
                                           "vec4 oo_shadow2DProj(sampler2DShadow s, vec4 c) { return vec4(textureProj(s, c)); }\n"
                                           "vec4 oo_shadow2DLod(sampler2DShadow s, vec3 c, float l) { return vec4(textureLod(s, c, l)); }\n"
                                           "#define texture2D oo_texture2D\n"
+                                          // GL_EXT_gpu_shader4, which the game's GLSL 3.30 rewrite uses.
+                                          "#define textureSize2D textureSize\n"
                                           "#define texture2DProj oo_texture2DProj\n"
                                           "#define texture2DLod oo_texture2DLod\n"
                                           "#define texture2DLodEXT oo_texture2DLod\n"
@@ -343,20 +369,22 @@ static const char* const kFixedFunctionVertexSource = "void main(void)\n"
                                                       "    }\n"
                                                       // GL_SEPARATE_SPECULAR_COLOR adds the specular after texturing.
                                                       "    if (oo_SeparateSpecular > 0.5)\n"
-                                                      "        gl_FrontSecondaryColor = clamp(vec4(specular.rgb, 0.0), 0.0, 1.0);\n"
+                                                      "        gl_FrontSecondaryColor = oo_ClampColor > 0.5 ? clamp(vec4(specular.rgb, 0.0), 0.0, 1.0) : vec4(specular.rgb, 0.0);\n"
                                                       "    else\n"
                                                       "    {\n"
                                                       "        color.rgb += specular.rgb;\n"
                                                       "        gl_FrontSecondaryColor = vec4(0.0);\n"
                                                       "    }\n"
-                                                      "    gl_FrontColor = clamp(color, 0.0, 1.0);\n"
+                                                      "    gl_FrontColor = oo_ClampColor > 0.5 ? clamp(color, 0.0, 1.0) : color;\n"
                                                       "}\n";
 
 static const char* const kFixedFunctionFragmentSource = "uniform sampler2D oo_FixedFunctionTexture0;\n"
                                                         "uniform sampler2D oo_FixedFunctionTexture1;\n"
                                                         // GL's texture environments, applied unit by unit.
-                                                        "vec4 oo_TexEnv(float mode, vec4 previous, vec4 texel)\n"
+                                                        "vec4 oo_TexEnv(float mode, vec4 previous, vec4 texel, float alphaOnly)\n"
                                                         "{\n"
+                                                        // GL's alpha textures: modulate, replace and add keep the colour.
+                                                        "    if (alphaOnly > 0.5 && mode < 2.5) return vec4(previous.rgb, mode < 1.5 && mode > 0.5 ? texel.a : previous.a * texel.a);\n"
                                                         "    if (mode < 0.5) return previous * texel;\n"
                                                         "    if (mode < 1.5) return texel;\n"
                                                         "    if (mode < 2.5) return vec4(previous.rgb + texel.rgb, previous.a * texel.a);\n"
@@ -368,9 +396,9 @@ static const char* const kFixedFunctionFragmentSource = "uniform sampler2D oo_Fi
                                                         "{\n"
                                                         "    vec4 color = gl_Color;\n"
                                                         "    if (oo_TextureEnabled.x > 0.5)\n"
-                                                        "        color = oo_TexEnv(oo_TextureMode.x, color, texture2D(oo_FixedFunctionTexture0, gl_TexCoord[0].st));\n"
+                                                        "        color = oo_TexEnv(oo_TextureMode.x, color, texture2D(oo_FixedFunctionTexture0, gl_TexCoord[0].st), oo_TextureAlphaOnly.x);\n"
                                                         "    if (oo_TextureEnabled.y > 0.5)\n"
-                                                        "        color = oo_TexEnv(oo_TextureMode.y, color, texture2D(oo_FixedFunctionTexture1, gl_TexCoord[1].st));\n"
+                                                        "        color = oo_TexEnv(oo_TextureMode.y, color, texture2D(oo_FixedFunctionTexture1, gl_TexCoord[1].st), oo_TextureAlphaOnly.y);\n"
                                                         "    color.rgb += gl_SecondaryColor.rgb;\n"
                                                         "    if (oo_FogEnabled > 0.5)\n"
                                                         "    {\n"
@@ -458,8 +486,9 @@ static char* BuildStageSource(OOGLSLStage stage, const char* prefix, const char*
     }
     free(combined.s);
 
+    // The prefix may bring its own #version (the game's post-processing shaders do); ours stands.
     if (prefix != NULL)
-        StrAppend(&out, prefix);
+        AppendUserSource(&out, prefix);
     StrAppend(&out, "\n#line 1\n");
     AppendUserSource(&out, source);
 

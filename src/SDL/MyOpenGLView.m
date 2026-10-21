@@ -41,6 +41,10 @@ MA 02110-1301, USA.
 #include <SDL3/SDL_clipboard.h>
 #include <SDL3/SDL_init.h>
 #include <SDL3/SDL_timer.h>
+#if OO_RENDERER_SDL_GPU
+#import "OORendererSDLGPU.h"
+#include <SDL3/SDL_gpu.h>
+#endif
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #import "OOFixedFunction.h"
@@ -146,7 +150,11 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
     }
 
     NSString* windowCaption = [self getWindowCaption];
+#if OO_RENDERER_SDL_GPU
+    Uint32 windowFlags = SDL_WINDOW_BORDERLESS | SDL_WINDOW_HIGH_PIXEL_DENSITY;
+#else
     Uint32 windowFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_BORDERLESS | SDL_WINDOW_HIGH_PIXEL_DENSITY;
+#endif
 
     // Define modern SDL3 properties for window configuration
     SDL_PropertiesID props = SDL_CreateProperties();
@@ -192,12 +200,46 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
         OOLogERR(@"display.mode.error", @"Could not create window: %s", errStr);
         exit(1);
     }
+#if OO_RENDERER_SDL_GPU
+    // The shadow GL context, in a hidden window of its own.
+    shadowGLWindow = SDL_CreateWindow("Oolite GL", 16, 16, SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN);
+    glContext = shadowGLWindow ? SDL_GL_CreateContext(shadowGLWindow) : NULL;
+#else
     glContext = SDL_GL_CreateContext(window);
+#endif
     if (!glContext) {
         OOLog(@"sdl.create_context", @"%@", @"Could not create OpenGL context");
         exit(1);
     }
-#if !OOLITE_MAC_OS_X
+#if OO_RENDERER_SDL_GPU
+    SDL_GL_MakeCurrent(shadowGLWindow, glContext);
+#ifndef NDEBUG
+    bool gpuDebug = true;
+#else
+    bool gpuDebug = false;
+#endif
+    gpuDevice = SDL_CreateGPUDevice(SDL_GPU_SHADERFORMAT_MSL | SDL_GPU_SHADERFORMAT_SPIRV, gpuDebug, NULL);
+    if (gpuDevice == NULL || !SDL_ClaimWindowForGPUDevice(gpuDevice, window)) {
+        OOLogERR(@"display.gpu", @"Could not set up SDL_GPU: %s", SDL_GetError());
+        exit(1);
+    }
+    SDL_GPUPresentMode presentMode = SDL_GPU_PRESENTMODE_VSYNC;
+    if (!vSyncPreference) {
+        presentMode = SDL_WindowSupportsGPUPresentMode(gpuDevice, window, SDL_GPU_PRESENTMODE_IMMEDIATE) ? SDL_GPU_PRESENTMODE_IMMEDIATE
+                                                                                                         : SDL_GPU_PRESENTMODE_MAILBOX;
+        if (!SDL_WindowSupportsGPUPresentMode(gpuDevice, window, presentMode))
+            presentMode = SDL_GPU_PRESENTMODE_VSYNC;
+    }
+    SDL_SetGPUSwapchainParameters(gpuDevice, window, SDL_GPU_SWAPCHAINCOMPOSITION_SDR, presentMode);
+    int gpuWidth, gpuHeight;
+    SDL_GetWindowSizeInPixels(window, &gpuWidth, &gpuHeight);
+    if (!OORendererSDLGPUInit(gpuDevice, (unsigned)gpuWidth, (unsigned)gpuHeight)) {
+        OOLogERR(@"display.gpu", @"Could not start the SDL_GPU renderer: %s", SDL_GetError());
+        exit(1);
+    }
+    OOLog(@"display.gpu", @"Rendering with SDL_GPU (%s), present mode %d.", SDL_GetGPUDeviceDriver(gpuDevice), (int)presentMode);
+#endif
+#if !OOLITE_MAC_OS_X && !OO_RENDERER_SDL_GPU
     // On macOS a window surface replaces the OpenGL drawable, so it must not be created there.
     SDL_Surface* surface = SDL_GetWindowSurface(window);
     if (!SDL_SetSurfaceColorspace(surface, SDL_COLORSPACE_SRGB_LINEAR)) {
@@ -242,7 +284,9 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
 
     _sdrToneMapper = OOSDRToneMapperFromString([prefs oo_stringForKey:@"sdr-tone-mapper" defaultValue:@"OOSDR_TONEMAPPER_ACES"]);
 
-#if OOLITE_MAC_OS_X
+#if OO_RENDERER_SDL_GPU
+    // The present mode, above.
+#elif OOLITE_MAC_OS_X
     SDL_GL_SetSwapInterval(vSyncPreference ? 1 : 0);
 #else
     SDL_SetWindowSurfaceVSync(window, vSyncPreference);
@@ -270,8 +314,10 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
 
     // Verify V-sync successfully set - report it if not
 
-    int hasVsync;
-#if OOLITE_MAC_OS_X
+    int hasVsync = 1;
+#if OO_RENDERER_SDL_GPU
+    if (0) {
+#elif OOLITE_MAC_OS_X
     if (vSyncPreference && (!SDL_GL_GetSwapInterval(&hasVsync) || !hasVsync)) {
 #else
     if (vSyncPreference && (!SDL_GetWindowSurfaceVSync(window, &hasVsync) || !hasVsync)) {
@@ -460,10 +506,22 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
     [self autoShowMouse];
 }
 
+- (void)presentFrame
+{
+#if OO_RENDERER_SDL_GPU
+    OORendererSDLGPUPresent(window);
+#else
+    SDL_GL_SwapWindow(window);
+#endif
+}
+
 - (void)updateGLSize:(NSSize)size
 {
     bounds.size = size;
     viewSize = size;
+#if OO_RENDERER_SDL_GPU
+    OORendererSDLGPUResize((unsigned)size.width, (unsigned)size.height);
+#endif
 
     if (bounds.size.width / bounds.size.height > 4.0 / 3.0) {
         display_z = 480.0 * bounds.size.width / bounds.size.height;
@@ -532,7 +590,7 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
     OOLog(@"display.initGL", @"Requested a new surface of %d x %d, %@.", (int)viewSize.width, (int)viewSize.height,
         (fullScreen ? @"fullscreen" : @"windowed"));
 
-    SDL_GL_SwapWindow(window); // clear the buffer before resize
+    [self presentFrame]; // clear the buffer before resize
 
     SDL_SetWindowFullscreen(window, fullScreen);
 
@@ -564,7 +622,7 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
 
     [self setUpBasicOpenGLStateWithSize];
 
-    SDL_GL_SwapWindow(window);
+    [self presentFrame];
 
     squareX = 0.0f;
 }
@@ -577,6 +635,13 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
     if (screenSizes)
         [screenSizes release];
 
+#if OO_RENDERER_SDL_GPU
+    // Release the window from the device before either goes.
+    if (gpuDevice != NULL) {
+        SDL_ReleaseWindowFromGPUDevice(gpuDevice, window);
+        SDL_DestroyGPUDevice(gpuDevice);
+    }
+#endif
     if (window) {
         SDL_DestroyWindow(window);
     }
@@ -584,6 +649,10 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
     if (glContext) {
         SDL_GL_DestroyContext(glContext);
     }
+#if OO_RENDERER_SDL_GPU
+    if (shadowGLWindow != NULL)
+        SDL_DestroyWindow(shadowGLWindow);
+#endif
 
     if (keyMappings_normal)
         [keyMappings_normal release];
@@ -711,7 +780,7 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
         OORendererEndPass();
     }
 
-    SDL_GL_SwapWindow(window);
+    [self presentFrame];
 }
 
 - (void)initSplashScreen
@@ -810,7 +879,7 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
     OORendererEndPass();
     OORendererFinish();
 
-    SDL_GL_SwapWindow(window);
+    [self presentFrame];
     [matrixManager resetModelView];
     [matrixManager syncModelView];
 

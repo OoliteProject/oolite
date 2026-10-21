@@ -44,7 +44,8 @@ typedef enum {
 #define OOGLProgramName(handle) ((GLuint)(uintptr_t)(handle))
 
 // Whether to use state verifier. Will be changed to equal OO_CHECK_GL_HEAVY in future.
-#ifdef NDEBUG
+// SDL_GPU builds have only a shadow GL context, which no longer sees state changes.
+#if defined(NDEBUG) || OO_RENDERER_SDL_GPU
 #define OO_GL_STATE_VERIFICATION 0
 #else
 #define OO_GL_STATE_VERIFICATION 1

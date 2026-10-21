@@ -753,6 +753,7 @@ static bool RenderGPU(const Scene* scene, const OOGLSLProgram* program, uint8_t*
     legacy.lightingEnabled = scene->fixedFunctionVertex ? 1.0f : 0.0f;
     // The GL reference textures unit 0 with GL_MODULATE.
     legacy.textureEnabled[0] = scene->fixedFunctionFragment ? 1.0f : 0.0f;
+    legacy.clampColor = 1.0f; // as GL by default
     uint8_t* blocks[kOOGLSLStageCount];
     for (int stage = 0; stage < kOOGLSLStageCount; stage++) {
         const OOGLSLStageResult* result = &program->stages[stage];

@@ -212,6 +212,13 @@ extern int debug;
     SDL_Window* splashWindow;
     SDL_Window* window;
     SDL_GLContext glContext;
+#if OO_RENDERER_SDL_GPU
+    /*  SDL_GPU draws into window; a hidden window holds a GL context for the
+        GL calls the game still makes (start-up probing, error checks).
+    */
+    SDL_Window* shadowGLWindow;
+    struct SDL_GPUDevice* gpuDevice;
+#endif
     int bitsPerColorComponent;
     BOOL vSyncPreference;
 
@@ -361,6 +368,9 @@ extern int debug;
 // Renderer regression tests (console.simulateKey): push a key event named as SDL names it. NO if the name is unknown.
 - (BOOL)simulateKeyNamed:(NSString*)name down:(BOOL)down;
 #endif
+
+// Show the frame: a GL buffer swap, or an SDL_GPU present.
+- (void)presentFrame;
 
 @end
 

@@ -37,4 +37,14 @@ MA 02110-1301, USA.
 */
 bool OORendererSDLGPUInit(SDL_GPUDevice* device, unsigned width, unsigned height);
 
+// The window was resized: the window target follows, in backing pixels.
+void OORendererSDLGPUResize(unsigned width, unsigned height);
+
+/*  Show the window target in window, which the device has claimed: a blit
+    to the swapchain texture, flipped from GL's bottom-up rows. Doesn't
+    block; returns false and skips the frame if no swapchain texture is
+    free (for example while the window is hidden).
+*/
+bool OORendererSDLGPUPresent(SDL_Window* window);
+
 #endif

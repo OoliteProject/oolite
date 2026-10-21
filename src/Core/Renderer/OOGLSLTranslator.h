@@ -113,7 +113,11 @@ typedef struct {
     */
     float textureMode[2];
     float textureEnabled[2];
-    float pad[2];
+    // An alpha-only texture leaves the colour alone under modulate, replace and add, as in GL.
+    float textureAlphaOnly[2];
+    // GL_CLAMP_VERTEX_COLOR: off once the game draws into float targets.
+    float clampColor;
+    float pad[3];
 } OOGLSLLegacyStateBlock;
 
 enum {
