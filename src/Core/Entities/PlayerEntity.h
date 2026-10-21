@@ -1228,12 +1228,8 @@ typedef enum {
 // In general, script events should be sent through doScriptEvent:..., which
 // will forward to the world scripts.
 - (BOOL)doWorldEventUntilMissionScreen:(OOJSPropID)message;
-// argv is borrowed: with QuickJS, the caller remains responsible for freeing the values.
-#if OOJS_QUICKJS
+// argv is borrowed: the caller remains responsible for freeing the values.
 - (void)doWorldScriptEvent:(OOJSPropID)message inContext:(JSContext*)context withArguments:(JSValue*)argv count:(int)argc timeLimit:(OOTimeDelta)limit;
-#else
-- (void)doWorldScriptEvent:(OOJSPropID)message inContext:(JSContext*)context withArguments:(jsval*)argv count:(int)argc timeLimit:(OOTimeDelta)limit;
-#endif
 
 - (BOOL)showInfoFlag;
 

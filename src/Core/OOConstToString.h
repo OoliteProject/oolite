@@ -82,10 +82,6 @@ declaration, in particular:
 
 */
 
-#if !OOJS_QUICKJS
-NSString* JSTypeToString(int /* JSType */ type) CONST_FUNC;
-#endif
-
 NSString* CargoTypeToString(OOCargoType cargo) CONST_FUNC;
 OOCargoType StringToCargoType(NSString* string) PURE_FUNC;
 

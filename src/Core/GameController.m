@@ -43,7 +43,7 @@ MA 02110-1301, USA.
 #import "Universe.h"
 #import "legacy_random.h"
 #include <stdlib.h>
-#if OOJS_QUICKJS && !defined(NDEBUG)
+#ifndef NDEBUG
 #import "OOJavaScriptEngine.h"
 #endif
 
@@ -789,7 +789,7 @@ static NSMutableArray* sMessageStack;
 #endif
     [[NSUserDefaults standardUserDefaults] synchronize];
     OOLog(@"gameController.exitApp", @"%@", @".GNUstepDefaults synchronized.");
-#if OOJS_QUICKJS && !defined(NDEBUG)
+#ifndef NDEBUG
     // Leak check: tears down the JavaScript runtime and logs any objects still alive.
     [[OOJavaScriptEngine sharedEngine] shutDown];
 #endif
