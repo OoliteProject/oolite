@@ -166,9 +166,11 @@ def run_test(bin_name, test_output):
         send_plist_packet(conn, cmd_packet)
 
         # 4. WAIT FOR PROCESS EXIT
+        # Generous: on CI's macOS runners (Apple's software renderer) loading
+        # alone has taken 19 s, and the snapshot waits for that and ten frames.
         print("[*] Waiting for process to exit...")
         try:
-            proc.wait(timeout=15)
+            proc.wait(timeout=90)
 
             # 5. VERIFY OUTPUT
             snaps = [f for f in os.listdir(test_output) if f.endswith(".png")]
