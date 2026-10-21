@@ -583,18 +583,51 @@ packaging are unchanged. In `sdl_gpu` builds the `OOGL*` wrappers only
 record state, and the GL-only backend glue is left out. The fault hooks
 for the harness are debug-only.
 
+**The game on SDL_GPU** (`-Drenderer=sdl_gpu`, macOS/Metal so far).
+- The game window is claimed by an SDL_GPU device, and frames present
+  through a non-blocking swapchain acquire and a flipped blit.
+- A hidden window keeps a shadow GL context for the GL calls still made
+  at start-up.
+- What the first runs found, all fixed:
+  - `#version` lines in prefixes, and `textureSize2D`;
+  - the post-processing quad's attributes (location 0 is the position);
+  - text drawn dark (GL keeps the colour for alpha-only textures);
+  - washed-out ships (`uGammaCorrect` is a bool set with a float, and
+    the translator reflects bools as `uint`);
+  - no bloom (an initialised uniform, which becomes a constant);
+  - a flat sun (GL stops clamping vertex colours once the game makes
+    float targets);
+  - per-unit LOD bias.
+- **Results:** the 17 screens and the MSAA, grayscale, detail 2 and
+  detail 1 runs all match the GL baselines at the edges of text and
+  lines only: at most 1.7% of pixels differ by more than 16/255, and
+  0.12% by more than 64/255. No renderer warnings, and no draws outside
+  a pass.
+- **Cost:** start-up takes 0.39 s against GL's 0.33 s. Translating a
+  program averages 4.9 ms (worst 10.9 ms, 13 programs in the scenario),
+  so a shader cache can wait.
+- **Speed:** with bloom, the title screen runs at 217 fps against GL's
+  149. Detail levels 1 and 2 both sit at the 240 fps frame cap on either
+  backend.
+
+**The no-shader detail levels are gone** wherever shaders run. They were
+no faster, only different (fixed-function lighting). A saved lower level
+is raised to `DETAIL_LEVEL_SHADERS`, and hardware without GLSL still falls
+back on the GL backend.
+
+**Licensing, for the maintainers:** SPIRV-Cross is Apache-2.0, which is
+compatible with GPLv3 but not GPLv2, and glslang's licence file mixes
+several licences. Oolite is "GPLv2 or later", so `sdl_gpu` binaries would
+have to be distributed under GPLv3 terms. This needs the maintainers'
+confirmation before such binaries ship.
+
 **Next:**
-- **Needs a decision:** moving the translator and backend into
-  `src/Core/Renderer` makes glslang and SPIRV-Cross game dependencies,
-  which probably means bundling them (Debian's glslang is too old), and
-  that affects CI and packaging on every platform. After that: a build
-  option that selects the backend, a swapchain with the final flip, and
-  the 17-screen scenario on SDL_GPU.
+- CI and packaging for `sdl_gpu` builds: glslang and SPIRV-Cross on each
+  platform (Debian's glslang is too old, so likely bundled there).
+- Linux (Vulkan) and Windows (Vulkan first; D3D12 needs DXIL from the
+  translator).
 - Frames in flight instead of waiting after each pass; device limits in
   place of the GL queries.
-- Whether the no-shader detail level survives on SDL_GPU, where
-  everything is a shader anyway, is a maintainer question. Its texture
-  combining is emulated now, in case it does.
 
 ## Reproducing
 
