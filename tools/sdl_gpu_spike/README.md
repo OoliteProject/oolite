@@ -636,12 +636,15 @@ on SDL_GPU matches Linux GL to a mean of 0.31/255.
   rewritten to 1.20 on every platform in SDL_GPU builds, as macOS
   always did, so the translator always gets attribute bindings. And the
   translator's `strdup` became its own `StrDup`, for strict C11.
-- A white title screen seen in early Linux runs is gone. Every white
-  snapshot was taken before the post chain's shaders got the 330→120
-  rewrite on Linux (65e94a82); since then each run, including one that
-  snaps the first frames after loading, shows the title screen correctly.
-  The harness's `postchain` scene, which runs the game's own post shaders,
-  also passes under lavapipe.
+- A white title screen seen in early Linux runs is gone. It came from
+  builds without the 330→120 rewrite on Linux (65e94a82), and every
+  snapshot from them is white, two taken 0.6 s apart included. The earlier
+  note that only the first frame was white came from a directory holding
+  one snapshot from before the fix and one from after it. Every run since
+  shows the title screen correctly, in snapshots taken 19–44 s after
+  loading (several frames, under emulation). The harness's `postchain`
+  scene, which runs the game's own post shaders, also passes under
+  lavapipe.
 - The full scenario can't run under emulation in reasonable time;
   native Linux hardware is needed for that.
 
