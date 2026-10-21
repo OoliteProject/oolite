@@ -35,8 +35,9 @@ Conventions handled here:
 - SDL_GPU has no luminance or alpha-only formats; they are expanded to
   RGBA on upload.
 
-Not yet: colour material (Oolite never enables it), multitexture combine,
-and texture environment modes other than modulate.
+Not yet: colour material (Oolite never enables it), and the BLEND and
+DECAL texture environments (Oolite uses neither); multitexturing covers
+units 0 and 1, as OOMultiTextureMaterial does.
 
 
 Copyright (C) 2026 Oolite contributors
@@ -92,7 +93,7 @@ static bool TargetMultisampled(void);
 static OOGLSLProgram sFixedFunction;
 static SDL_GPUShader* sFixedVertex = NULL;
 static SDL_GPUShader* sFixedFragment = NULL;
-static uint32_t sTextureSamplerSlot = 0;
+static uint32_t sTextureSamplerSlot = 0, sTexture1SamplerSlot = 1;
 
 // Deliberate faults for the harness's negative controls (OO_BACKEND_FAULT).
 static const char* sFault = "";
@@ -101,6 +102,7 @@ typedef struct {
     float position[4];
     float color[4];
     float texCoord[4];
+    float texCoord1[4]; // unit 1, for the fixed-function emulation's second texture
     float normal[3];
     float generic[4]; // one generic attribute, such as a program's "tangent"
 } GPUVertex;
@@ -109,6 +111,7 @@ typedef enum {
     kInputPosition,
     kInputColor,
     kInputTexCoord,
+    kInputTexCoord1,
     kInputNormal,
     kInputGeneric,
     kInputNone,
@@ -181,6 +184,8 @@ static InputKind InputForName(const char* name, const char* genericName)
         return kInputColor;
     if (strcmp(name, "oo_MultiTexCoord0") == 0)
         return kInputTexCoord;
+    if (strcmp(name, "oo_MultiTexCoord1") == 0)
+        return kInputTexCoord1;
     if (strcmp(name, "oo_Normal") == 0)
         return kInputNormal;
     return kInputNone;
@@ -218,6 +223,9 @@ static uint32_t BuildAttributes(const OOGLSLStageResult* vertex, const char* gen
             break;
         case kInputTexCoord:
             offset = offsetof(GPUVertex, texCoord);
+            break;
+        case kInputTexCoord1:
+            offset = offsetof(GPUVertex, texCoord1);
             break;
         case kInputNormal:
             offset = offsetof(GPUVertex, normal);
@@ -274,6 +282,8 @@ bool OORendererSDLGPUInit(SDL_GPUDevice* device, unsigned width, unsigned height
     for (size_t i = 0; i < fragment->samplerCount; i++) {
         if (strcmp(fragment->samplers[i].name, "oo_FixedFunctionTexture0") == 0)
             sTextureSamplerSlot = fragment->samplers[i].slot;
+        if (strcmp(fragment->samplers[i].name, "oo_FixedFunctionTexture1") == 0)
+            sTexture1SamplerSlot = fragment->samplers[i].slot;
     }
 
     sAttributeCount = BuildAttributes(&sFixedFunction.stages[kOOGLSLStageVertex], NULL, sAttributes);
@@ -601,6 +611,28 @@ static void BuildLegacyState(OOGLSLLegacyStateBlock* L, bool fixedFunction)
     L->viewportHeight = (float)TargetHeight();
     L->pointSize = 1;
     L->lightingEnabled = s->caps[kOOCapLighting] ? 1.0f : 0.0f;
+    for (int unit = 0; unit < 2; unit++) {
+        const OOTextureUnitState* u = &s->units[unit];
+        float mode = kOOGLSLTexEnvModulate;
+        switch (u->envMode) {
+        case kOOTexEnvReplace:
+            mode = kOOGLSLTexEnvReplace;
+            break;
+        case kOOTexEnvAdd:
+            mode = kOOGLSLTexEnvAdd;
+            break;
+        case kOOTexEnvCombine:
+            mode = u->combineRGB == kOOCombineAdd ? kOOGLSLTexEnvCombineAdd : u->combineRGB == kOOCombineReplace ? kOOGLSLTexEnvCombineReplace
+                                                                                                                 : kOOGLSLTexEnvCombineModulate;
+            break;
+        default:
+            break;
+        }
+        L->textureMode[unit] = strcmp(sFault, "texenv") == 0 ? (float)kOOGLSLTexEnvModulate : mode;
+        L->textureEnabled[unit] = u->texture2D && u->binding2D != 0 ? 1.0f : 0.0f;
+    }
+    if (strcmp(sFault, "multitexture") == 0)
+        L->textureEnabled[1] = 0.0f;
 }
 
 #pragma mark - Textures
@@ -989,7 +1021,7 @@ typedef struct {
     PipelineKey key;
     size_t firstVertex, vertexCount;
     size_t uniformIndex;
-    uint32_t texture;
+    uint32_t texture, texture1; // the emulation's two units
     // Programs: the uniform blocks' offsets into sBlockBytes, and each sampler slot's texture.
     size_t blockOffset[kOOGLSLStageCount];
     uint32_t samplerTextures[kOOGLSLStageCount][kMaxSamplers];
@@ -1094,6 +1126,7 @@ static void RecordDraw(SDL_GPUPrimitiveType topology, size_t first, size_t count
         .vertexCount = count,
         .uniformIndex = sUniformCount++,
         .texture = texture,
+        .texture1 = s->units[1].texture2D && s->units[1].binding2D != 0 ? s->units[1].binding2D : sWhiteTexture,
         .viewport = TargetRect(s->viewportSet ? s->viewport : full),
         .scissor = s->caps[kOOCapScissorTest],
         .scissorRect = TargetRect(s->scissor),
@@ -1121,6 +1154,9 @@ static void SetVertex(GPUVertex* out, const float* position, unsigned positionCo
     unsigned colorComponents, const float* texCoord, unsigned texCoordComponents, const float* normal,
     const float* generic, unsigned genericComponents)
 {
+    // GL's current unit 1 co-ordinate, without an array, is (0, 0, 0, 1).
+    static const float kDefaultTexCoord1[4] = { 0, 0, 0, 1 };
+    memcpy(out->texCoord1, kDefaultTexCoord1, sizeof out->texCoord1);
     // GL's default for a generic attribute without an array is (0, 0, 0, 1).
     static const float kDefaultGeneric[4] = { 0, 0, 0, 1 };
     memcpy(out->generic, kDefaultGeneric, sizeof out->generic);
@@ -1292,7 +1328,7 @@ static const float* StreamElement(const OOVertexStream* stream, size_t index, un
 static void DrawLayout(OONativePrimitive primitive, const OOVertexLayout* layout, size_t first, size_t count,
     const void* indices, OOIndexType indexType)
 {
-    const OOVertexStream *position = NULL, *color = NULL, *texCoord = NULL, *normal = NULL, *generic = NULL;
+    const OOVertexStream *position = NULL, *color = NULL, *texCoord = NULL, *texCoord1 = NULL, *normal = NULL, *generic = NULL;
     int genericLocation = sCurrentProgram ? sCurrentProgram->genericLocation : -1;
     for (unsigned i = 0; i < layout->count; i++) {
         const OOVertexStream* stream = &layout->streams[i];
@@ -1306,6 +1342,8 @@ static void DrawLayout(OONativePrimitive primitive, const OOVertexLayout* layout
         case kOOVertexTexCoord:
             if (stream->index == 0)
                 texCoord = stream;
+            else if (stream->index == 1)
+                texCoord1 = stream;
             break;
         case kOOVertexNormal:
             normal = stream;
@@ -1366,6 +1404,11 @@ static void DrawLayout(OONativePrimitive primitive, const OOVertexLayout* layout
             texCoord ? StreamElement(texCoord, index, 2) : NULL, texCoord ? texCoord->components : 0,
             normal ? StreamElement(normal, index, 3) : NULL,
             generic ? StreamElement(generic, index, 4) : NULL, generic ? generic->components : 0);
+        if (texCoord1 != NULL) {
+            const float* t = StreamElement(texCoord1, index, 2);
+            for (unsigned c = 0; c < texCoord1->components && c < 4; c++)
+                out[i].texCoord1[c] = t[c];
+        }
     }
     free(order);
     if (n > 0)
@@ -1502,6 +1545,11 @@ void OORendererBackendEndPass(void)
         if (program == NULL) {
             SDL_GPUTextureSamplerBinding sampler = { .texture = texture->texture, .sampler = texture->sampler };
             SDL_BindGPUFragmentSamplers(pass, sTextureSamplerSlot, &sampler, 1);
+            TextureRecord* texture1 = TextureFor(draw->texture1);
+            if (texture1 == NULL)
+                texture1 = TextureFor(sWhiteTexture);
+            SDL_GPUTextureSamplerBinding sampler1 = { .texture = texture1->texture, .sampler = texture1->sampler };
+            SDL_BindGPUFragmentSamplers(pass, sTexture1SamplerSlot, &sampler1, 1);
         } else {
             for (int stage = 0; stage < kOOGLSLStageCount; stage++) {
                 SDL_GPUTextureSamplerBinding samplers[kMaxSamplers];

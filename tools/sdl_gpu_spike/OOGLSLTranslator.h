@@ -108,8 +108,22 @@ typedef struct {
     float fogEnabled;
     float separateSpecular; // GL_SEPARATE_SPECULAR_COLOR: specular added after texturing
     float fogMode; // 0 linear, 1 exp, 2 exp2
+    /*  Texture units 0 and 1: the environment mode, as kOOGLSLTexEnv*, and
+        whether the unit is enabled.
+    */
+    float textureMode[2];
+    float textureEnabled[2];
     float pad[2];
 } OOGLSLLegacyStateBlock;
+
+enum {
+    kOOGLSLTexEnvModulate,
+    kOOGLSLTexEnvReplace,
+    kOOGLSLTexEnvAdd,
+    kOOGLSLTexEnvCombineModulate, // GL_COMBINE with the default sources: texture, previous
+    kOOGLSLTexEnvCombineAdd,
+    kOOGLSLTexEnvCombineReplace,
+};
 
 typedef enum {
     kOOGLSLStageVertex,

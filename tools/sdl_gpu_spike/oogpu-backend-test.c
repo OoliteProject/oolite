@@ -206,6 +206,28 @@ static void SetPointSize(float size)
 #endif
 }
 
+// The texture environment of a unit, as OOMultiTextureMaterial and the state presets set it.
+static void SetTexEnv(unsigned unit, OOTexEnvMode mode, OOCombineOp combine, bool enabled)
+{
+    OORendererSetActiveTexture(unit);
+    OORendererSetTexEnvMode(mode);
+    OORendererSetTexEnvCombineRGB(combine);
+    OORendererSetTextureEnabled(false, enabled);
+#if !OO_BACKEND_GPU
+    glActiveTexture(GL_TEXTURE0 + unit);
+    static const GLint kModes[] = { GL_MODULATE, GL_REPLACE, GL_DECAL, GL_BLEND, GL_ADD, GL_COMBINE };
+    static const GLint kCombine[] = { GL_MODULATE, GL_ADD, GL_REPLACE, GL_MODULATE };
+    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, kModes[mode]);
+    glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, kCombine[combine]);
+    if (enabled)
+        glEnable(GL_TEXTURE_2D);
+    else
+        glDisable(GL_TEXTURE_2D);
+    glActiveTexture(GL_TEXTURE0);
+#endif
+    OORendererSetActiveTexture(0);
+}
+
 static void SetDepthFunc(OOCompareOp op)
 {
     OORendererSetDepthFunc(op);
@@ -904,6 +926,68 @@ static void SceneWide(void)
     OORendererPopDrawState();
 }
 
+// Two texture units, as OOMultiTextureMaterial uses them without shaders:
+// diffuse modulated on unit 0, emission added on unit 1.
+static void SceneMultitexture(void)
+{
+    static uint32_t emission;
+    static OORendererBuffer *positionBuffer, *uvBuffer, *uv1Buffer;
+    static const float positions[] = { 20, 20, 236, 20, 236, 150, 20, 150 };
+    static const float uv[] = { 0, 0, 2, 0, 2, 1, 0, 1 };
+    static const float uv1[] = { 0, 0, 1, 0, 1, 1, 0, 1 };
+    if (emission == 0) {
+        uint8_t texels[8 * 8 * 4];
+        for (int i = 0; i < 64; i++) {
+            uint8_t* t = &texels[i * 4];
+            t[0] = (uint8_t)(i % 8 * 24);
+            t[1] = 0;
+            t[2] = (uint8_t)(i / 8 * 20);
+            t[3] = 255;
+        }
+        OOTextureDescriptor descriptor = { .width = 8, .height = 8, .levels = 1, .format = kOOTexelRGBA8, .minFilter = kOOFilterNearest, .magFilter = kOOFilterNearest };
+        emission = OORendererCreateTexture(&descriptor);
+        OORendererUploadTexture(emission, 0, 0, 8, 8, texels);
+        positionBuffer = OORendererCreateBuffer(positions, sizeof positions);
+        uvBuffer = OORendererCreateBuffer(uv, sizeof uv);
+        uv1Buffer = OORendererCreateBuffer(uv1, sizeof uv1);
+    }
+    if (sChecker == 0) {
+        OORendererBackendWarn("the texture scene must run first, to create the checkerboard");
+        return;
+    }
+    SetOrtho2D();
+    OODrawState state = Plain();
+    state.texture2D = true;
+    state.texture = (const void*)(uintptr_t)sChecker;
+    OORendererPushDrawState(&state);
+    SetTexEnv(0, kOOTexEnvCombine, kOOCombineModulate, true);
+    BindTextureUnit(1, emission);
+    SetTexEnv(1, kOOTexEnvCombine, kOOCombineAdd, true);
+    OOImmediateColor4f(0.7f, 0.7f, 0.7f, 1);
+    OOVertexLayout layout = { 0 };
+    OOVertexLayoutAdd(&layout, kOOVertexPosition, 0, 2, 0, positionBuffer, 0);
+    OOVertexLayoutAdd(&layout, kOOVertexTexCoord, 0, 2, 0, uvBuffer, 0);
+    OOVertexLayoutAdd(&layout, kOOVertexTexCoord, 1, 2, 0, uv1Buffer, 0);
+    OORendererDrawPrimitive(kOOPrimitiveQuads, &layout, 0, 4);
+    SetTexEnv(1, kOOTexEnvModulate, kOOCombineModulate, false);
+    BindTextureUnit(1, 0);
+    // Replace on unit 0 ignores the vertex colour.
+    SetTexEnv(0, kOOTexEnvReplace, kOOCombineModulate, true);
+    OOImmediateBegin(kOOPrimitiveQuads);
+    OOImmediateColor4f(1, 0, 0, 1);
+    OOImmediateTexCoord2f(0, 0);
+    OOImmediateVertex2f(40, 170);
+    OOImmediateTexCoord2f(1, 0);
+    OOImmediateVertex2f(216, 170);
+    OOImmediateTexCoord2f(1, 0.5f);
+    OOImmediateVertex2f(216, 240);
+    OOImmediateTexCoord2f(0, 0.5f);
+    OOImmediateVertex2f(40, 240);
+    OOImmediateEnd();
+    SetTexEnv(0, kOOTexEnvModulate, kOOCombineModulate, true);
+    OORendererPopDrawState();
+}
+
 typedef struct {
     const char* name;
     void (*draw)(void);
@@ -928,6 +1012,7 @@ static const Scene kScenes[] = {
     { "specular", SceneSpecular, { 0, 0, 0, 1 }, NULL },
     { "fog", SceneFog, { 0, 0, 0, 1 }, NULL },
     { "wide", SceneWide, { 0, 0, 0, 1 }, NULL },
+    { "multitexture", SceneMultitexture, { 0, 0, 0, 1 }, NULL },
 };
 
 static bool Save(const char* dir, const char* name, const uint8_t* bgraBottomUp)
