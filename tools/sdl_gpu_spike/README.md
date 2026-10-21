@@ -722,7 +722,49 @@ confirmation before such binaries ship.
 - CI builds `sdl_gpu` on all three platforms (build only). Packaging still
   needs glslang and SPIRV-Cross bundled or depended on (Debian's and
   Ubuntu's glslang is too old for C-style casts).
-- Phase 4: HDR.
+- Phase 4: HDR (below).
+
+## Phase 4: HDR
+
+HDR output used to exist only in Windows' GL build, which renders into an
+FP16 scRGB back buffer. SDL_GPU offers the same on every platform as the
+`HDR_EXTENDED_LINEAR` swapchain composition, so SDL_GPU builds now have
+HDR wherever the window supports it (`-hdr`, or the `hdr` default).
+- `OOLITE_HDR` (Windows, or any SDL_GPU build) now guards the HDR
+  settings, options rows, `oolite.hdrToneMapper` and the choice of
+  `oolite-final-hdr.fragment`.
+- The view asks for the HDR swapchain and logs SDL's SDR white level and
+  headroom. If the window can't have one, it warns and runs in SDR.
+- In HDR mode the backend's window target is RGBA16F, and readback
+  converts half floats for PNG and HDR snapshots.
+- The HDR shader writes scRGB, where 1.0 is 80 nits. That is right for
+  Windows and for Vulkan's extended sRGB. macOS's EDR puts SDR white at
+  1.0 instead, so there the output is scaled by 80 / paper white
+  (`uOutputScale`, which Windows sets to 1).
+- EXR snapshots now work on every platform. Before, they were a silent
+  stub off Windows, and the float rows were spaced at a 32-bit surface's
+  pitch, though the writers read them packed.
+
+Checked on Metal, on the MacBook's display (SDR white 1.0, headroom 2.0):
+- The scenario runs in HDR without errors, and snapshot values reach
+  4.66 × SDR white.
+- With tone mapping off, the scene scales by 0.402 between paper white
+  200 and 80 nits (expected 0.4).
+- SDR output is unchanged on both backends.
+- The HDR final shader also goes through `oogpu-hlsl-check`, so CI's
+  Windows job compiles it with `D3DCompile`.
+- On macOS the tone mappers aim at max brightness or paper white ×
+  headroom, whichever is lower, re-read each frame, since the headroom
+  follows the display's brightness. With DICE, peak luminance is 2.00
+  (the headroom) at paper white 200 and at 80; uncapped, it would be 5
+  and 12.5. Single channels reach about 2.6, from the gamut expansion
+  after tone mapping.
+
+Not checked yet:
+- Windows on SDL_GPU, and Linux on an HDR display. Vulkan needs
+  `VK_EXT_swapchain_colorspace`; on Linux that means Wayland with colour
+  management.
+- How the result looks to the eye on an HDR display.
 
 ## Reproducing
 
