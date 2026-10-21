@@ -62,6 +62,7 @@ MA 02110-1301, USA.
 #include "OORendererSDLGPU.h"
 
 #include "OOGLSLTranslator.h"
+#include "OOHLSLCompiler.h"
 #include "OORenderStateMachine.h"
 #include "OORendererBackend.h"
 #include "OORendererProgram.h"
@@ -159,6 +160,25 @@ static SDL_GPUShader* CreateShader(const OOGLSLStageResult* stage, SDL_GPUShader
     for (size_t i = 0; i < stage->samplerCount; i++) {
         if (stage->samplers[i].slot + 1 > info.num_samplers)
             info.num_samplers = stage->samplers[i].slot + 1;
+    }
+    if (stage->hlsl != NULL) {
+        // Direct3D 12: compiled here, as SDL_GPU only takes the bytecode.
+        void* dxbc = NULL;
+        size_t size = 0;
+        char* log = NULL;
+        if (!OOHLSLCompileToDXBC(stage->hlsl, gpuStage == SDL_GPU_SHADERSTAGE_VERTEX, &dxbc, &size, &log)) {
+            SDL_SetError("HLSL compilation failed: %s", log != NULL ? log : "d3dcompiler_47.dll not loaded");
+            free(log);
+            return NULL;
+        }
+        free(log);
+        info.format = SDL_GPU_SHADERFORMAT_DXBC;
+        info.code = dxbc;
+        info.code_size = size;
+        info.entrypoint = "main";
+        SDL_GPUShader* shader = SDL_CreateGPUShader(sDevice, &info);
+        free(dxbc);
+        return shader;
     }
     if (stage->msl != NULL) {
         info.format = SDL_GPU_SHADERFORMAT_MSL;
@@ -273,7 +293,12 @@ bool OORendererSDLGPUInit(SDL_GPUDevice* device, unsigned width, unsigned height
 
     if (!OOGLSLTranslatorInit())
         return false;
-    OOGLSLOutputFormats formats = (SDL_GetGPUShaderFormats(device) & SDL_GPU_SHADERFORMAT_MSL) ? kOOGLSLOutputMSL : kOOGLSLOutputSPIRV;
+    SDL_GPUShaderFormat deviceFormats = SDL_GetGPUShaderFormats(device);
+    OOGLSLOutputFormats formats = kOOGLSLOutputSPIRV;
+    if (deviceFormats & SDL_GPU_SHADERFORMAT_MSL)
+        formats = kOOGLSLOutputMSL;
+    else if (!(deviceFormats & SDL_GPU_SHADERFORMAT_SPIRV) && (deviceFormats & SDL_GPU_SHADERFORMAT_DXBC))
+        formats = kOOGLSLOutputHLSL;
     formats |= kOOGLSLOutputGLOrientation;
     sFormats = formats;
     if (!OOGLSLTranslateProgram(NULL, NULL, NULL, formats, &sFixedFunction)) {

@@ -966,6 +966,58 @@ static bool ReflectStage(OOGLSLStage stage, SPIRVModule* module, OOGLSLOutputFor
     return OK;
 }
 
+/*  HLSL for D3D12, with SDL_GPU's registers: a vertex shader's textures and
+    samplers in space0 and its uniform buffers in space1, a fragment shader's
+    in space2 and space3, matching the SPIR-V descriptor sets.
+*/
+static bool EmitHLSL(OOGLSLStage stage, const SPIRVModule* module, OOGLSLStageResult* result, Str* log)
+{
+    Reflector r;
+    bool OK = ReflectorCreate(&r, module, SPVC_BACKEND_HLSL, log);
+    if (OK) {
+        spvc_compiler_options options = NULL;
+        spvc_compiler_create_compiler_options(r.compiler, &options);
+        spvc_compiler_options_set_uint(options, SPVC_COMPILER_OPTION_HLSL_SHADER_MODEL, 51);
+        // D3D has no point size; SPIRV-Cross drops writes to gl_PointSize with this.
+        spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_HLSL_POINT_SIZE_COMPAT, SPVC_TRUE);
+        spvc_compiler_install_compiler_options(r.compiler, options);
+
+        SpvExecutionModel model = stage == kOOGLSLStageVertex ? SpvExecutionModelVertex : SpvExecutionModelFragment;
+        unsigned samplerSet = stage == kOOGLSLStageVertex ? kVertexSamplerSet : kFragmentSamplerSet;
+        unsigned uniformSet = stage == kOOGLSLStageVertex ? kVertexUniformSet : kFragmentUniformSet;
+        for (unsigned slot = 0; slot < 2; slot++) {
+            spvc_hlsl_resource_binding binding;
+            spvc_hlsl_resource_binding_init(&binding);
+            binding.stage = model;
+            binding.desc_set = uniformSet;
+            binding.binding = slot;
+            binding.cbv.register_space = uniformSet;
+            binding.cbv.register_binding = slot;
+            spvc_compiler_hlsl_add_resource_binding(r.compiler, &binding);
+        }
+        for (size_t i = 0; i < result->samplerCount; i++) {
+            spvc_hlsl_resource_binding binding;
+            spvc_hlsl_resource_binding_init(&binding);
+            binding.stage = model;
+            binding.desc_set = samplerSet;
+            binding.binding = result->samplers[i].slot;
+            binding.srv.register_space = samplerSet;
+            binding.srv.register_binding = result->samplers[i].slot;
+            binding.sampler.register_space = samplerSet;
+            binding.sampler.register_binding = result->samplers[i].slot;
+            spvc_compiler_hlsl_add_resource_binding(r.compiler, &binding);
+        }
+
+        const char* hlsl = NULL;
+        if (spvc_compiler_compile(r.compiler, &hlsl) == SPVC_SUCCESS)
+            result->hlsl = StrDup(hlsl);
+        else
+            OK = false;
+    }
+    ReflectorDestroy(&r);
+    return OK;
+}
+
 #pragma mark - Public interface
 
 bool OOGLSLTranslateProgram(const char* vertexSource, const char* fragmentSource,
@@ -1004,6 +1056,8 @@ bool OOGLSLTranslateProgram(const char* vertexSource, const char* fragmentSource
     for (int stage = 0; stage < kOOGLSLStageCount && OK; stage++) {
         OOGLSLStageResult* result = &outProgram->stages[stage];
         OK = ReflectStage(stage, &modules[stage], formats, result, &log);
+        if (OK && (formats & kOOGLSLOutputHLSL))
+            OK = EmitHLSL(stage, &modules[stage], result, &log);
         if (OK && (formats & kOOGLSLOutputSPIRV)) {
             result->spirv = modules[stage].words;
             result->spirvWordCount = modules[stage].count;
@@ -1025,6 +1079,7 @@ static void FreeStage(OOGLSLStageResult* stage)
 {
     free(stage->spirv);
     free(stage->msl);
+    free(stage->hlsl);
     for (size_t i = 0; i < stage->uniformCount; i++)
         free(stage->uniforms[i].name);
     free(stage->uniforms);

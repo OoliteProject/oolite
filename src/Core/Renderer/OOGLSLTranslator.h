@@ -174,6 +174,8 @@ typedef struct {
     size_t spirvWordCount;
     // MSL source for SDL_GPU_SHADERFORMAT_MSL, entry point "main0".
     char* msl;
+    // HLSL (shader model 5.1) for compiling to SDL_GPU_SHADERFORMAT_DXBC, entry point "main".
+    char* hlsl;
     // Reflection.
     bool usesLegacyState;
     uint32_t uniformBlockSize; // 0 if the stage has no loose uniforms.
@@ -202,6 +204,7 @@ typedef enum {
         output has SDL_GPU's top-left orientation.
     */
     kOOGLSLOutputGLOrientation = 1 << 2,
+    kOOGLSLOutputHLSL = 1 << 3,
 } OOGLSLOutputFormats;
 
 bool OOGLSLTranslatorInit(void);

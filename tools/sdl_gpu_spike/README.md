@@ -636,10 +636,12 @@ on SDL_GPU matches Linux GL to a mean of 0.31/255.
   rewritten to 1.20 on every platform in SDL_GPU builds, as macOS
   always did, so the translator always gets attribute bindings. And the
   translator's `strdup` became its own `StrDup`, for strict C11.
-- **Known issue:** on Linux the very first frame is white where the post
-  chain draws; later frames are correct. Under emulation one frame with
-  bloom takes over 20 s, which is why early snapshots kept catching it.
-  It still needs explaining.
+- A white title screen seen in early Linux runs is gone. Every white
+  snapshot was taken before the post chain's shaders got the 330→120
+  rewrite on Linux (65e94a82); since then each run, including one that
+  snaps the first frames after loading, shows the title screen correctly.
+  The harness's `postchain` scene, which runs the game's own post shaders,
+  also passes under lavapipe.
 - The full scenario can't run under emulation in reasonable time;
   native Linux hardware is needed for that.
 

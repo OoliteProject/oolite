@@ -101,6 +101,10 @@ int main(int argc, char* argv[])
     fprintf(stderr, "GPU driver: %s\n", SDL_GetGPUDeviceDriver(device));
     spv_context spvContext = spvContextCreate(SPV_ENV_VULKAN_1_0);
     OOGLSLOutputFormats formats = OOGPUFormatsForDevice(device) | kOOGLSLOutputSPIRV;
+    // OO_CHECK_HLSL_DIR: also translate to HLSL, writing <n>.vs.hlsl and <n>.ps.hlsl there for an HLSL compiler.
+    const char* hlslDir = getenv("OO_CHECK_HLSL_DIR");
+    if (hlslDir != NULL)
+        formats |= kOOGLSLOutputHLSL;
 
     unsigned total = 0, passed = 0;
     char* cursor = manifest;
@@ -127,7 +131,10 @@ int main(int argc, char* argv[])
 
         OOGLSLProgram program = { 0 };
         fprintf(log, "==== %s\n", label);
-        if (!ok || !OOGLSLTranslateProgram(vs, fs, prefix, formats, &program)) {
+        Uint64 start = SDL_GetTicksNS();
+        bool translated = ok && OOGLSLTranslateProgram(vs, fs, prefix, formats, &program);
+        double translateMs = (SDL_GetTicksNS() - start) / 1e6;
+        if (!translated) {
             status = "TRANSLATE";
             if (ok)
                 fprintf(log, "%s", program.log);
@@ -135,6 +142,18 @@ int main(int argc, char* argv[])
             for (int stage = 0; stage < kOOGLSLStageCount; stage++) {
                 if (!ValidateSPIRV(spvContext, &program.stages[stage], log))
                     status = "SPIRV_VAL";
+                if (hlslDir != NULL) {
+                    char path[1024];
+                    snprintf(path, sizeof path, "%s/%u.%s.hlsl", hlslDir, total, stage == kOOGLSLStageVertex ? "vs" : "ps");
+                    FILE* file = fopen(path, "w");
+                    if (file != NULL && program.stages[stage].hlsl != NULL) {
+                        fprintf(file, "// %s\n%s", label, program.stages[stage].hlsl);
+                    } else {
+                        status = "HLSL";
+                    }
+                    if (file != NULL)
+                        fclose(file);
+                }
             }
             if (strcmp(status, "PASS") == 0) {
                 OOGPUProgram gpu;
@@ -152,7 +171,7 @@ int main(int argc, char* argv[])
         }
         if (strcmp(status, "PASS") == 0)
             passed++;
-        printf("%s\t%s\n", status, label);
+        printf("%s\t%s\t%.2f\n", status, label, translateMs);
         fflush(stdout);
         OOGLSLProgramFree(&program);
         free(vs);

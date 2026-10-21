@@ -42,6 +42,7 @@ MA 02110-1301, USA.
 #include <SDL3/SDL_init.h>
 #include <SDL3/SDL_timer.h>
 #if OO_RENDERER_SDL_GPU
+#import "OOHLSLCompiler.h"
 #import "OORendererSDLGPU.h"
 #include <SDL3/SDL_gpu.h>
 #endif
@@ -213,7 +214,11 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
 #else
     bool gpuDebug = false;
 #endif
-    gpuDevice = SDL_CreateGPUDevice(SDL_GPU_SHADERFORMAT_MSL | SDL_GPU_SHADERFORMAT_SPIRV, gpuDebug, NULL);
+    SDL_GPUShaderFormat shaderFormats = SDL_GPU_SHADERFORMAT_MSL | SDL_GPU_SHADERFORMAT_SPIRV;
+    // Direct3D 12, where there's no Vulkan: the translator's HLSL, compiled by Windows' own D3DCompile.
+    if (OOHLSLCompilerAvailable())
+        shaderFormats |= SDL_GPU_SHADERFORMAT_DXBC;
+    gpuDevice = SDL_CreateGPUDevice(shaderFormats, gpuDebug, NULL);
     if (gpuDevice == NULL || !SDL_ClaimWindowForGPUDevice(gpuDevice, window)) {
         OOLogERR(@"display.gpu", @"Could not set up SDL_GPU: %s", SDL_GetError());
         exit(1);

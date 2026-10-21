@@ -15,7 +15,7 @@ oolite_sources += files(
 
 if get_option('renderer') == 'sdl_gpu'
     # SDL_GPU, with Oolite's and OXPs' GLSL translated by glslang and SPIRV-Cross.
-    oolite_sources += files('OOGLSLTranslator.c', 'OORendererSDLGPU.c')
+    oolite_sources += files('OOGLSLTranslator.c', 'OOHLSLCompiler.c', 'OORendererSDLGPU.c')
     add_project_arguments('-DOO_RENDERER_SDL_GPU=1', language: ['c', 'objc'])
 
     cc = meson.get_compiler('c')
