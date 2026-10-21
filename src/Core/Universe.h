@@ -749,6 +749,7 @@ enum {
 - (void)setWireframeGraphics:(BOOL)value;
 - (BOOL)wireframeGraphics;
 
+- (OOGraphicsDetail)minimumDetailLevel; // the lowest level offered
 - (BOOL)reducedDetail;
 - (void)setDetailLevel:(OOGraphicsDetail)value;
 - (OOGraphicsDetail)detailLevel;

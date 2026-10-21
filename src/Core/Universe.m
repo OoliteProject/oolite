@@ -8857,6 +8857,17 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void* context)
     return wireframeGraphics;
 }
 
+/*  The no-shader detail levels are only for hardware without shaders. They
+    were no faster than DETAIL_LEVEL_SHADERS on either backend (both run at
+    the frame cap), and SDL_GPU emulates fixed function with shaders anyway,
+    so anything that can run shaders starts at DETAIL_LEVEL_SHADERS; saved
+    lower levels are raised to it.
+*/
+- (OOGraphicsDetail)minimumDetailLevel
+{
+    return [[OOOpenGLExtensionManager sharedManager] shadersSupported] ? DETAIL_LEVEL_SHADERS : DETAIL_LEVEL_MINIMUM;
+}
+
 - (BOOL)reducedDetail
 {
     return detailLevel == DETAIL_LEVEL_MINIMUM;
@@ -8867,11 +8878,8 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void* context)
 {
     if (value >= DETAIL_LEVEL_MAXIMUM) {
         value = DETAIL_LEVEL_MAXIMUM;
-    } else if (value <= DETAIL_LEVEL_MINIMUM) {
-        value = DETAIL_LEVEL_MINIMUM;
-    }
-    if (![[OOOpenGLExtensionManager sharedManager] shadersSupported]) {
-        value = DETAIL_LEVEL_MINIMUM;
+    } else if (value <= [self minimumDetailLevel]) {
+        value = [self minimumDetailLevel];
     }
     detailLevel = value;
 }

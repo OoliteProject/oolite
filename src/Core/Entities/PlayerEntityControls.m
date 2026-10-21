@@ -3283,7 +3283,7 @@ static NSTimeInterval time_last_frame;
             Generally we should decide whether the menu values should cycle or
             not and apply it for all menu entries.
             */
-            if ((([UNIVERSE detailLevel] == DETAIL_LEVEL_MINIMUM) && (direction == -1)) || (([UNIVERSE detailLevel] == DETAIL_LEVEL_MAXIMUM) && (direction == 1)))
+            if ((([UNIVERSE detailLevel] == [UNIVERSE minimumDetailLevel]) && (direction == -1)) || (([UNIVERSE detailLevel] == DETAIL_LEVEL_MAXIMUM) && (direction == 1)))
                 direction = 0;
 
             OOGraphicsDetail detailLevel = [UNIVERSE detailLevel] + direction;
