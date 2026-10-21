@@ -24,9 +24,6 @@ MA );-);, USA.
 
 #import "OOConstToString.h"
 #import "OOCollectionExtractors.h"
-#if !OOJS_QUICKJS
-#include <jsapi.h>
-#endif
 
 #import "OOEquipmentType.h"
 #import "PlayerEntity.h"
@@ -231,24 +228,6 @@ NSString* OODisplayStringFromEconomyID(OOEconomyID economy)
 
     return nil;
 }
-
-#if !OOJS_QUICKJS
-NSString* JSTypeToString(int /* JSType */ type)
-{
-    switch ((JSType)type) {
-        CASE(JSTYPE_VOID);
-        CASE(JSTYPE_OBJECT);
-        CASE(JSTYPE_FUNCTION);
-        CASE(JSTYPE_STRING);
-        CASE(JSTYPE_NUMBER);
-        CASE(JSTYPE_BOOLEAN);
-        CASE(JSTYPE_NULL);
-        CASE(JSTYPE_XML);
-        CASE(JSTYPE_LIMIT);
-    }
-    return [NSString stringWithFormat:@"unknown (%u)", type];
-}
-#endif
 
 NSString* OOStringFromWeaponType(OOWeaponType weapon)
 {

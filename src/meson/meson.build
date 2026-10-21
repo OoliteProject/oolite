@@ -23,7 +23,6 @@ quickjs_dep = dependency(
     default_options: ['default_library=static', 'libc=false', 'b_lto=false', 'warning_level=2'],
 )
 oolite_dependencies += quickjs_dep
-add_project_arguments('-DOOJS_QUICKJS=1', language: c_family)
 # Oolite's QuickJS-ng patch 0004 adds the function call hook the profiler uses
 # to time JavaScript functions. A subproject checkout made before the patch was
 # added lacks it. (Compiler checks can't use a subproject's dependency, so read
