@@ -81,6 +81,8 @@ static SDL_GPUTexture* sWindowColor = NULL;
 static SDL_GPUTexture* sWindowDepth = NULL;
 static unsigned sWindowWidth = 0, sWindowHeight = 0;
 static const SDL_GPUTextureFormat kColorFormat = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM;
+static const SDL_GPUTextureFormat kHDRColorFormat = SDL_GPU_TEXTUREFORMAT_R16G16B16A16_FLOAT;
+static SDL_GPUTextureFormat sWindowFormat = kColorFormat;
 static const SDL_GPUTextureFormat kDepthFormat = SDL_GPU_TEXTUREFORMAT_D32_FLOAT;
 static const SDL_GPUTextureFormat kTargetColorFormat = SDL_GPU_TEXTUREFORMAT_R16G16B16A16_FLOAT;
 
@@ -288,7 +290,7 @@ bool OORendererSDLGPUInit(SDL_GPUDevice* device, unsigned width, unsigned height
     sFault = fault != NULL ? fault : "";
 #endif
 
-    sWindowColor = CreateTarget(kColorFormat, SDL_GPU_TEXTUREUSAGE_COLOR_TARGET | SDL_GPU_TEXTUREUSAGE_SAMPLER, width, height);
+    sWindowColor = CreateTarget(sWindowFormat, SDL_GPU_TEXTUREUSAGE_COLOR_TARGET | SDL_GPU_TEXTUREUSAGE_SAMPLER, width, height);
     sWindowDepth = CreateTarget(kDepthFormat, SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET, width, height);
     if (sWindowColor == NULL || sWindowDepth == NULL)
         return false;
@@ -324,6 +326,11 @@ bool OORendererSDLGPUInit(SDL_GPUDevice* device, unsigned width, unsigned height
     return true;
 }
 
+void OORendererSDLGPUSetHDR(bool hdr)
+{
+    sWindowFormat = hdr ? kHDRColorFormat : kColorFormat;
+}
+
 const char* OORendererSDLGPUDriverName(void)
 {
     return sDevice != NULL ? SDL_GetGPUDeviceDriver(sDevice) : NULL;
@@ -338,7 +345,7 @@ void OORendererSDLGPUResize(unsigned width, unsigned height)
     SDL_ReleaseGPUTexture(sDevice, sWindowDepth);
     sWindowWidth = width;
     sWindowHeight = height;
-    sWindowColor = CreateTarget(kColorFormat, SDL_GPU_TEXTUREUSAGE_COLOR_TARGET | SDL_GPU_TEXTUREUSAGE_SAMPLER, width, height);
+    sWindowColor = CreateTarget(sWindowFormat, SDL_GPU_TEXTUREUSAGE_COLOR_TARGET | SDL_GPU_TEXTUREUSAGE_SAMPLER, width, height);
     sWindowDepth = CreateTarget(kDepthFormat, SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET, width, height);
 }
 
@@ -446,7 +453,7 @@ static PipelineKey CurrentKey(SDL_GPUPrimitiveType topology)
     memset(&key, 0, sizeof key);
     key.program = sCurrentProgram;
     key.topology = topology;
-    key.colorFormat = sPassTarget ? kTargetColorFormat : kColorFormat;
+    key.colorFormat = sPassTarget ? kTargetColorFormat : sWindowFormat;
     key.colorCount = TargetColorCount();
     key.hasDepth = TargetHasDepth();
     key.samples = TargetMultisampled() ? SDL_GPU_SAMPLECOUNT_4 : SDL_GPU_SAMPLECOUNT_1;
@@ -1733,13 +1740,46 @@ void OORendererBackendEndPass(void)
     sPassTarget = NULL;
 }
 
+static float HalfToFloat(uint16_t half)
+{
+    uint32_t sign = (uint32_t)(half & 0x8000) << 16, exponent = (half >> 10) & 0x1F, mantissa = half & 0x3FF, bits;
+    if (exponent == 0) {
+        if (mantissa == 0) {
+            bits = sign;
+        } else { // subnormal: normalise it
+            exponent = 1;
+            while (!(mantissa & 0x400)) {
+                mantissa <<= 1;
+                exponent--;
+            }
+            bits = sign | ((exponent + 112) << 23) | ((mantissa & 0x3FF) << 13);
+        }
+    } else if (exponent == 31) {
+        bits = sign | 0x7F800000 | (mantissa << 13);
+    } else {
+        bits = sign | ((exponent + 112) << 23) | (mantissa << 13);
+    }
+    float result;
+    memcpy(&result, &bits, sizeof result);
+    return result;
+}
+
+static uint8_t UnitToByte(float value)
+{
+    if (!(value > 0.0f))
+        return 0;
+    return value >= 1.0f ? 255 : (uint8_t)(value * 255.0f + 0.5f);
+}
+
 void OORendererBackendReadPixels(int x, int y, int width, int height, OOPixelFormat format, void* pixels)
 {
-    if (format != kOOPixelsBGRA8) {
-        OORendererBackendWarn("SDL_GPU backend: only BGRA8 readback is implemented");
+    bool hdr = sWindowFormat == kHDRColorFormat;
+    if (format != kOOPixelsBGRA8 && !(format == kOOPixelsRGBFloat && hdr)) {
+        OORendererBackendWarn("SDL_GPU backend: float readback needs an HDR window target");
         return;
     }
-    Uint32 size = (Uint32)(width * height * 4);
+    size_t texel = hdr ? 8 : 4;
+    Uint32 size = (Uint32)(width * height * texel);
     SDL_GPUTransferBufferCreateInfo transferInfo = { .usage = SDL_GPU_TRANSFERBUFFERUSAGE_DOWNLOAD, .size = size };
     SDL_GPUTransferBuffer* transfer = SDL_CreateGPUTransferBuffer(sDevice, &transferInfo);
     SDL_GPUCommandBuffer* commands = SDL_AcquireGPUCommandBuffer(sDevice);
@@ -1752,8 +1792,31 @@ void OORendererBackendReadPixels(int x, int y, int width, int height, OOPixelFor
     SDL_EndGPUCopyPass(copy);
     WaitFor(commands);
 
-    // Rendered in GL's orientation, the rows are already bottom-up. RGBA to BGRA.
+    // Rendered in GL's orientation, the rows are already bottom-up.
     const uint8_t* source = SDL_MapGPUTransferBuffer(sDevice, transfer, false);
+    if (hdr) {
+        // RGBA16F to float RGB, or to BGRA8 clamped as GL clamps an FP16 back buffer read as bytes.
+        const uint16_t* in = (const uint16_t*)source;
+        for (size_t i = 0; i < (size_t)width * height; i++) {
+            float r = HalfToFloat(in[i * 4]), g = HalfToFloat(in[i * 4 + 1]), b = HalfToFloat(in[i * 4 + 2]);
+            if (format == kOOPixelsRGBFloat) {
+                float* o = (float*)pixels + i * 3;
+                o[0] = r;
+                o[1] = g;
+                o[2] = b;
+            } else {
+                uint8_t* o = (uint8_t*)pixels + i * 4;
+                o[0] = UnitToByte(b);
+                o[1] = UnitToByte(g);
+                o[2] = UnitToByte(r);
+                o[3] = UnitToByte(HalfToFloat(in[i * 4 + 3]));
+            }
+        }
+        SDL_UnmapGPUTransferBuffer(sDevice, transfer);
+        SDL_ReleaseGPUTransferBuffer(sDevice, transfer);
+        return;
+    }
+    // RGBA to BGRA.
     uint8_t* out = pixels;
     for (int row = 0; row < height; row++) {
         const uint8_t* in = source + (size_t)row * width * 4;

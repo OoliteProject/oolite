@@ -230,6 +230,14 @@ enum {
 #define OOLITE_SDL 0
 #endif
 
+/*  HDR output: Windows' GL front end (FP16 scRGB back buffer), and the
+    SDL_GPU renderer on every platform (an HDR_EXTENDED_LINEAR swapchain).
+*/
+#ifndef OO_RENDERER_SDL_GPU
+#define OO_RENDERER_SDL_GPU 0
+#endif
+#define OOLITE_HDR (OOLITE_WINDOWS || OO_RENDERER_SDL_GPU)
+
 // The Cocoa (AppKit) front end, as opposed to Apple Foundation with SDL.
 #define OOLITE_MAC_COCOA_UI (OOLITE_MAC_OS_X && !OOLITE_SDL)
 

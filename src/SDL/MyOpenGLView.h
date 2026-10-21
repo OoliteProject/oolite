@@ -225,10 +225,12 @@ extern int debug;
     unsigned keyboardMap; // *** FLAGGED for deletion
     HWND windowHandle;
     RECT lastGoodRect;
+
+#endif
+#if OOLITE_HDR
     float _hdrMaxBrightness;
     float _hdrPaperWhiteBrightness;
     int _hdrToneMapper;
-
 #endif
 
     int _sdrToneMapper;
@@ -275,6 +277,10 @@ extern int debug;
 - (void)getDisplayDimensions:(unsigned*)width height:(unsigned*)height;
 #if OOLITE_WINDOWS
 - (BOOL)atDesktopResolution;
+#endif
+#if OOLITE_HDR
+// What the HDR final pass multiplies its scRGB output by for this platform's swapchain.
+- (float)hdrOutputScale;
 - (float)hdrMaxBrightness;
 - (void)setHDRMaxBrightness:(float)newMaxBrightness;
 - (float)hdrPaperWhiteBrightness;

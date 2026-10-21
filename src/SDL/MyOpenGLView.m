@@ -241,7 +241,24 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
         if (!SDL_WindowSupportsGPUPresentMode(gpuDevice, window, presentMode))
             presentMode = SDL_GPU_PRESENTMODE_VSYNC;
     }
-    SDL_SetGPUSwapchainParameters(gpuDevice, window, SDL_GPU_SWAPCHAINCOMPOSITION_SDR, presentMode);
+    /*  HDR: an extended linear (scRGB) FP16 swapchain, which is what the
+        HDR final shader writes. Where the window can't have one, carry on in SDR.
+    */
+    SDL_GPUSwapchainComposition composition = SDL_GPU_SWAPCHAINCOMPOSITION_SDR;
+    if (_hdrOutput) {
+        if (SDL_WindowSupportsGPUSwapchainComposition(gpuDevice, window, SDL_GPU_SWAPCHAINCOMPOSITION_HDR_EXTENDED_LINEAR)) {
+            composition = SDL_GPU_SWAPCHAINCOMPOSITION_HDR_EXTENDED_LINEAR;
+            SDL_PropertiesID windowProperties = SDL_GetWindowProperties(window);
+            OOLog(@"display.gpu", @"HDR output: extended linear swapchain; SDR white level %.2f, headroom %.2f.",
+                SDL_GetFloatProperty(windowProperties, SDL_PROP_WINDOW_SDR_WHITE_LEVEL_FLOAT, 1.0f),
+                SDL_GetFloatProperty(windowProperties, SDL_PROP_WINDOW_HDR_HEADROOM_FLOAT, 1.0f));
+        } else {
+            OOLogWARN(@"display.gpu", @"%@", @"HDR was requested, but this window can't have an HDR swapchain; using SDR.");
+            _hdrOutput = NO;
+        }
+    }
+    SDL_SetGPUSwapchainParameters(gpuDevice, window, composition, presentMode);
+    OORendererSDLGPUSetHDR(_hdrOutput);
     int gpuWidth, gpuHeight;
     SDL_GetWindowSizeInPixels(window, &gpuWidth, &gpuHeight);
     if (!OORendererSDLGPUInit(gpuDevice, (unsigned)gpuWidth, (unsigned)gpuHeight)) {
@@ -287,7 +304,7 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
 
     _colorSaturation = 1.0f;
 
-#if OOLITE_WINDOWS
+#if OOLITE_HDR
     _hdrMaxBrightness = [prefs oo_floatForKey:@"hdr-max-brightness" defaultValue:1000.0f];
     _hdrPaperWhiteBrightness = [prefs oo_floatForKey:@"hdr-paperwhite-brightness" defaultValue:200.0f];
     _hdrToneMapper = OOHDRToneMapperFromString([prefs oo_stringForKey:@"hdr-tone-mapper" defaultValue:@"OOHDR_TONEMAPPER_ACES_APPROX"]);
@@ -946,6 +963,9 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
 {
     return atDesktopResolution;
 }
+#endif
+
+#if OOLITE_HDR
 
 - (BOOL)hdrOutput
 {
@@ -968,6 +988,18 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
     result = SDL_GetBooleanProperty(props, SDL_PROP_DISPLAY_HDR_ENABLED_BOOLEAN, false); // Query for HDR enabling
     OOLog(@"gameView.isOutputDisplayHDREnabled", @"HDR display output requested - checking availability: %@", result ? @"YES" : @"NO");
     return result;
+}
+
+- (float)hdrOutputScale
+{
+#if OOLITE_MAC_OS_X && OO_RENDERER_SDL_GPU
+    /*  The HDR final shader writes scRGB, where 1.0 is 80 nits. macOS's EDR
+        instead puts SDR white at 1.0, so paper white goes there.
+    */
+    return 80.0f / _hdrPaperWhiteBrightness;
+#else
+    return 1.0f;
+#endif
 }
 
 - (float)hdrMaxBrightness
@@ -1016,7 +1048,7 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
     _hdrToneMapper = newToneMapper;
 }
 
-#else // Linus stub methods
+#else // no HDR output
 
 - (BOOL)hdrOutput
 {
@@ -1028,7 +1060,7 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
     return NO;
 }
 
-#endif // OOLITE_WINDOWS
+#endif // OOLITE_HDR
 
 - (OOSDRToneMapper)sdrToneMapper
 {

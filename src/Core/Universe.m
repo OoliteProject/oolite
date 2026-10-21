@@ -404,7 +404,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
                                                         attributeBindings:[NSDictionary dictionary]] retain];
         // shader for applying bloom and any necessary post-proc fx, tonemapping and gamma correction
         finalProgram = [[OOShaderProgram shaderProgramWithVertexShaderName:@"oolite-final.vertex"
-#if OOLITE_WINDOWS
+#if OOLITE_HDR
                                                         fragmentShaderName:[[UNIVERSE gameView] hdrOutput] ? @"oolite-final-hdr.fragment" : @"oolite-final.fragment"
 #else
                                                         fragmentShaderName:@"oolite-final.fragment"
@@ -517,11 +517,12 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     [finalProgram setUniform:[finalProgram uniformHandleForName:@"uTime"] floatValue:[self getTime]];
     [finalProgram setUniform:[finalProgram uniformHandleForName:@"uResolution"] vec2Value:fboResolution];
     [finalProgram setUniform:[finalProgram uniformHandleForName:@"uPostFX"] intValue:[self currentPostFX]];
-#if OOLITE_WINDOWS
+#if OOLITE_HDR
     if ([gameView hdrOutput]) {
         [finalProgram setUniform:[finalProgram uniformHandleForName:@"uMaxBrightness"] floatValue:[gameView hdrMaxBrightness]];
         [finalProgram setUniform:[finalProgram uniformHandleForName:@"uPaperWhiteBrightness"] floatValue:[gameView hdrPaperWhiteBrightness]];
         [finalProgram setUniform:[finalProgram uniformHandleForName:@"uHDRToneMapper"] intValue:[gameView hdrToneMapper]];
+        [finalProgram setUniform:[finalProgram uniformHandleForName:@"uOutputScale"] floatValue:[gameView hdrOutputScale]];
     }
 #endif
     [finalProgram setUniform:[finalProgram uniformHandleForName:@"uSDRToneMapper"]
@@ -3943,7 +3944,7 @@ static BOOL IsFriendlyStationPredicate(Entity* entity, void* parameter)
 
     [result oo_setFloat:[gameView fov:NO] forKey:@"fovValue"];
 
-#if OOLITE_WINDOWS
+#if OOLITE_HDR
     if ([gameView hdrOutput]) {
         [result oo_setFloat:[gameView hdrMaxBrightness] forKey:@"hdr-max-brightness"];
         [result oo_setFloat:[gameView hdrPaperWhiteBrightness] forKey:@"hdr-paperwhite-brightness"];

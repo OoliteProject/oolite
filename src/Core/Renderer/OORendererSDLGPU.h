@@ -41,6 +41,12 @@ MA 02110-1301, USA.
 */
 bool OORendererSDLGPUInit(SDL_GPUDevice* device, unsigned width, unsigned height);
 
+/*  HDR output: call before OORendererSDLGPUInit. The window target is then
+    RGBA16F, holding the final pass's extended linear values for an
+    HDR_EXTENDED_LINEAR swapchain.
+*/
+void OORendererSDLGPUSetHDR(bool hdr);
+
 // The window was resized: the window target follows, in backing pixels.
 void OORendererSDLGPUResize(unsigned width, unsigned height);
 
