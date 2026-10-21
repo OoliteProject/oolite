@@ -22,11 +22,9 @@ MA 02110-1301, USA.
 
 */
 
-/*	TODO (port): compiled script caching. The SpiderMonkey version cached XDR
-        bytecode in the "compiled JavaScript scripts" cache; QuickJS bytecode
-        (JS_WriteObject()/JS_ReadObject()) could be cached the same way, under a
-        different cache name so SpiderMonkey entries are never read back.
-*/
+#ifndef OO_CACHE_JS_SCRIPTS
+#define OO_CACHE_JS_SCRIPTS 1
+#endif
 
 #import "OOJSScript.h"
 #import "OOJSEngineTimeManagement.h"
@@ -36,6 +34,9 @@ MA 02110-1301, USA.
 #import "EntityOOJavaScriptExtensions.h"
 #import "NSStringOOExtensions.h"
 #import "OOCollectionExtractors.h"
+#if OO_CACHE_JS_SCRIPTS
+#import "OOCacheManager.h"
+#endif
 #import "OOConstToJSString.h"
 #import "OOConstToString.h"
 #import "OODebugStandards.h"
@@ -58,6 +59,11 @@ static BOOL RunScriptWithName(JSContext* context, NSString* path, JSValueConst o
 
 static NSString* StrippedName(NSString* string);
 static NSString* RewriteLegacyConst(JSContext* context, NSString* source);
+
+#if OO_CACHE_JS_SCRIPTS
+static JSValue CachedCompiledScript(JSContext* context, NSString* path, NSData* source);
+static void CacheCompiledScript(JSContext* context, NSString* path, NSData* source, JSValueConst compiled);
+#endif
 
 static JSClassDef sScriptClass = {
     .class_name = "Script",
@@ -649,33 +655,136 @@ static BOOL RunScriptWithName(JSContext* context, NSString* path, JSValueConst o
 
     fileContents = RewriteLegacyConst(context, fileContents);
 
-    NSData* source = [OOJSWrapScriptSource(fileContents) dataUsingEncoding:NSUTF8StringEncoding];
-    NSMutableData* terminated = [NSMutableData dataWithData:source];
-    [terminated appendBytes:"" length:1]; // JS_Eval requires a terminating NUL.
+    /*	QuickJS runs compiled (and cached) code only with the global object as
+            its this (JS_EvalFunction()), so the wrapped script is compiled as a
+            function expression, which is then called with the script object as
+            this. The extra prefix is on the first line, so line numbers are
+            unchanged.
+    */
+    NSString* wrapped = [NSString stringWithFormat:@"(function(){%@})", OOJSWrapScriptSource(fileContents)];
+    NSData* source = [wrapped dataUsingEncoding:NSUTF8StringEncoding];
+
+    JSValue compiled = JS_UNDEFINED;
+#if OO_CACHE_JS_SCRIPTS
+    compiled = CachedCompiledScript(context, path, source);
+#endif
+
+    if (JS_IsUndefined(compiled)) {
+        NSMutableData* terminated = [NSMutableData dataWithData:source];
+        [terminated appendBytes:"" length:1]; // JS_Eval requires a terminating NUL.
+
+        compiled = JS_Eval(context, [terminated bytes], [source length], [path UTF8String], JS_EVAL_TYPE_GLOBAL | JS_EVAL_FLAG_COMPILE_ONLY);
+        if (JS_IsException(compiled)) {
+            OOJSReportPendingException(context);
+            *outErrorMessage = @"compilation failed";
+            return NO;
+        }
+#if OO_CACHE_JS_SCRIPTS
+        CacheCompiledScript(context, path, source, compiled);
+#endif
+    }
 
     OOJSStartTimeLimiterWithTimeLimit(kOOJSLongTimeLimit);
-    JSValue result = JS_EvalThis(context, object, [terminated bytes], [source length], [path UTF8String], JS_EVAL_TYPE_GLOBAL);
+    JSValue result;
+    JSValue function = JS_EvalFunction(context, compiled); // Takes ownership of compiled.
+    if (JS_IsException(function)) {
+        result = function;
+    } else {
+        result = JS_Call(context, function, object, 0, NULL);
+        JS_FreeValue(context, function);
+    }
     OOJSStopTimeLimiter();
 
     if (JS_IsException(result)) {
-        // QuickJS compiles and runs in one step; tell syntax errors apart for the log, as before.
-        JSValue exception = JS_GetException(context);
-        BOOL isSyntaxError = NO;
-        if (JS_IsError(exception)) {
-            JSValue errorName = JS_GetPropertyStr(context, exception, "name");
-            isSyntaxError = [OOStringFromJSValue(context, errorName) isEqualToString:@"SyntaxError"];
-            JS_FreeValue(context, errorName);
-        }
-        JS_Throw(context, exception); // Takes ownership; report it below.
-
         OOJSReportPendingException(context);
-        *outErrorMessage = isSyntaxError ? @"compilation failed" : @"could not run script";
+        *outErrorMessage = @"could not run script";
         return NO;
     }
 
     JS_FreeValue(context, result);
     return YES;
 }
+
+#if OO_CACHE_JS_SCRIPTS
+/*	Compiled scripts are cached by path, like the SpiderMonkey version's XDR
+        data, but under a different cache name. Each entry also records a hash of
+        the exact text that was compiled (after the const rewrite and wrapping),
+        the QuickJS version and the entry format, and is only used if all three
+        match. As before, the whole cache is cleared when the Oolite version or
+        the search paths change (see OOCacheManager and ResourceManager).
+*/
+static NSString* const kCompiledScriptCache = @"compiled QuickJS scripts";
+static NSString* const kCompiledScriptKeyHash = @"source hash";
+static NSString* const kCompiledScriptKeyEngine = @"engine";
+static NSString* const kCompiledScriptKeyFormat = @"format";
+static NSString* const kCompiledScriptKeyBytecode = @"bytecode";
+enum {
+    kCompiledScriptFormat = 1 // Increment when the compiled text or the way it is run changes.
+};
+
+// 64-bit FNV-1a and length. Only needs to detect changed source, not resist tampering.
+static NSString* SourceHash(NSData* source)
+{
+    const uint8_t* bytes = [source bytes];
+    NSUInteger length = [source length];
+    uint64_t hash = 0xcbf29ce484222325ULL;
+    for (NSUInteger i = 0; i < length; i++) {
+        hash ^= bytes[i];
+        hash *= 0x100000001b3ULL;
+    }
+    return [NSString stringWithFormat:@"%016llx:%lu", (unsigned long long)hash, (unsigned long)length];
+}
+
+// Owned compiled script from the cache, or JS_UNDEFINED if there is no usable entry.
+static JSValue CachedCompiledScript(JSContext* context, NSString* path, NSData* source)
+{
+    NSDictionary* entry = [[OOCacheManager sharedCache] objectForKey:path inCache:kCompiledScriptCache];
+    if (![entry isKindOfClass:[NSDictionary class]])
+        return JS_UNDEFINED;
+
+    NSData* bytecode = [entry objectForKey:kCompiledScriptKeyBytecode];
+    if (![bytecode isKindOfClass:[NSData class]]
+        || [entry oo_unsignedIntForKey:kCompiledScriptKeyFormat] != kCompiledScriptFormat
+        || ![[entry oo_stringForKey:kCompiledScriptKeyEngine] isEqualToString:[NSString stringWithUTF8String:JS_GetVersion()]]
+        || ![[entry oo_stringForKey:kCompiledScriptKeyHash] isEqualToString:SourceHash(source)]) {
+        OOLog(@"script.javaScript.cache.stale", @"Compiled script cache entry for %@ is out of date.", path);
+        return JS_UNDEFINED;
+    }
+
+    // Trusted input: the cache is written only by CacheCompiledScript().
+    JSValue compiled = JS_ReadObject(context, [bytecode bytes], [bytecode length], JS_READ_OBJ_BYTECODE);
+    if (JS_IsException(compiled)) {
+        JS_FreeValue(context, JS_GetException(context));
+        OOLog(@"script.javaScript.cache.readFailed", @"Could not read compiled script cache entry for %@; compiling instead.", path);
+        return JS_UNDEFINED;
+    }
+
+    OOLog(@"script.javaScript.cache.load", @"Loaded compiled script %@ from cache.", path);
+    return compiled;
+}
+
+static void CacheCompiledScript(JSContext* context, NSString* path, NSData* source, JSValueConst compiled)
+{
+    size_t length = 0;
+    uint8_t* bytes = JS_WriteObject(context, &length, compiled, JS_WRITE_OBJ_BYTECODE);
+    if (bytes == NULL) {
+        if (JS_HasException(context))
+            JS_FreeValue(context, JS_GetException(context));
+        return;
+    }
+
+    NSDictionary* entry = [NSDictionary dictionaryWithObjectsAndKeys:
+            [NSData dataWithBytes:bytes length:length], kCompiledScriptKeyBytecode,
+        SourceHash(source), kCompiledScriptKeyHash,
+        [NSString stringWithUTF8String:JS_GetVersion()], kCompiledScriptKeyEngine,
+        [NSNumber numberWithUnsignedInt:kCompiledScriptFormat], kCompiledScriptKeyFormat,
+        nil];
+    js_free(context, bytes);
+
+    [[OOCacheManager sharedCache] setObject:entry forKey:path inCache:kCompiledScriptCache];
+    OOLog(@"script.javaScript.cache.store", @"Cached compiled script %@.", path);
+}
+#endif
 
 /*	In SpiderMonkey 1.8.5, const declarations were function-scoped and usable
         before the declaration, like var; under ES2015 rules they are
