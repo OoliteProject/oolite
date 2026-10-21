@@ -689,6 +689,19 @@ snapshots each.
 - Vulkan through MoltenVK gives the same result (at most 0.575% of
   pixels over 16/255 per frame, against GL).
 
+**Vsync.** On an unlocked 60 Hz display, the title screen (with the
+splash, as users launch it) ran these frames in 5 s:
+
+| Backend | vsync | `-novsync` |
+|---|---|---|
+| GL | 331 | 799 |
+| SDL_GPU, Metal | 327 | 1156 |
+| SDL_GPU, Vulkan (MoltenVK) | 316 | 997 |
+
+So vsync paces SDL_GPU as it does GL, despite the non-blocking swapchain
+acquire. (On a locked screen, SDL_GPU on Metal with vsync ran at the
+240 fps frame cap; GL wasn't measured that way.)
+
 **Direct3D 12.** The translator can emit HLSL (shader model 5.1) with
 SDL_GPU's D3D12 registers, and `OOHLSLCompiler` compiles it to DXBC with
 Windows' own `D3DCompile` (d3dcompiler_47.dll, loaded at run time). SDL
@@ -709,12 +722,6 @@ confirmation before such binaries ship.
 - CI builds `sdl_gpu` on all three platforms (build only). Packaging still
   needs glslang and SPIRV-Cross bundled or depended on (Debian's and
   Ubuntu's glslang is too old for C-style casts).
-- Vsync pacing: with vsync on, SDL_GPU frames are presented with a
-  non-blocking acquire, so the game loop may run past the display's
-  rate, dropping frames rather than waiting. A launch with vsync on ran
-  at the 240 fps cap, but on a locked screen, which says little. Check it
-  on an unlocked display before choosing a blocking acquire, which a
-  locked screen could stall.
 - Phase 4: HDR.
 
 ## Reproducing
