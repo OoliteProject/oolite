@@ -73,8 +73,8 @@ struct OORendererProgram;
 - (void)apply;
 + (void)applyNone;
 
-// The OpenGL program name, for code that still binds programs by name.
-- (GLuint)programName;
+// The renderer's program, for code that binds it directly rather than through -apply.
+- (struct OORendererProgram*)rendererProgram;
 
 // kOOUniformHandleInvalid if the program has no active uniform of that name.
 - (OOUniformHandle)uniformHandleForName:(NSString*)name;

@@ -209,9 +209,9 @@ static NSString* TranslateGLSL330To120(NSString* source, BOOL isVertexShader, NS
     }
 }
 
-- (GLuint)programName
+- (struct OORendererProgram*)rendererProgram
 {
-    return OORendererProgramGLName(program);
+    return program;
 }
 
 - (OOUniformHandle)uniformHandleForName:(NSString*)name

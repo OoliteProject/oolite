@@ -97,6 +97,7 @@ MA 02110-1301, USA.
 #import "OOGLStateCompat.h"
 #import "OOImmediateMode.h"
 #import "OORenderPass.h"
+#import "OORendererProgram.h"
 #import "OOVertexArray.h"
 
 #if OO_LOCALIZATION_TOOLS
@@ -356,7 +357,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     OOGL(glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &windowFramebuffer));
 
     const OORenderStateMachine* state = OORendererState();
-    uint32_t previousProgramID = state->program;
+    OORendererProgram* previousProgram = OORendererCurrentProgram();
     uint32_t previousTextureID = state->units[state->activeTexture].binding2D;
 
     OORendererSetWindowTarget((OORenderTarget)windowFramebuffer);
@@ -417,7 +418,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     _quadIndices = OORendererCreateBuffer(framebufferQuadIndices, sizeof framebufferQuadIndices);
 
     // restoring previous bindings
-    OOGLUseProgram(previousProgramID);
+    OORendererUseProgram(previousProgram);
     OOGLBindTexture(GL_TEXTURE_2D, previousTextureID);
 }
 
@@ -465,23 +466,24 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     const OORenderStateMachine* state = OORendererState();
     unsigned previousActiveTexture = state->activeTexture;
     uint32_t previousTextureID = state->units[previousActiveTexture].binding2D;
-    uint32_t previousProgramID = state->program;
+    // Restored afterwards, so OOShaderProgram's record of the active program stays true.
+    OORendererProgram* previousProgram = OORendererCurrentProgram();
     OORenderTarget window = OORendererWindowTarget();
     OORendererBeginPass(&(OORenderPassDescriptor) { .target = window, .colorLoad = kOOLoadClear, .depthLoad = kOOLoadClear });
     OORendererEndPass();
     // fixes transparency issue for some reason
     OOGLDisable(GL_BLEND);
 
-    GLuint program = [textureProgram programName];
-    GLuint blur = [blurProgram programName];
-    GLuint final = [finalProgram programName];
+    OORendererProgram* program = [textureProgram rendererProgram];
+    OORendererProgram* blur = [blurProgram rendererProgram];
+    OORendererProgram* final = [finalProgram rendererProgram];
     NSSize viewSize = [gameView backingViewSize];
     float fboResolution[2] = { viewSize.width, viewSize.height };
 
     // Both attachments: the scene, and its bright parts for the blur.
     OORendererBeginPass(&(OORenderPassDescriptor) { .target = _passthroughTarget, .colorLoad = kOOLoadClear, .depthLoad = kOOLoadDontCare });
 
-    OOGLUseProgram(program);
+    OORendererUseProgram(program);
     OOGLBindTexture(GL_TEXTURE_2D, OORendererRenderTargetTexture(_sceneTarget, 0));
     [textureProgram setUniform:[textureProgram uniformHandleForName:@"image"] intValue:0];
 
@@ -490,7 +492,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
     BOOL horizontal = YES, firstIteration = YES;
     unsigned int amount = [self bloom] ? 10 : 0; // if not blooming, why bother with the heavy calculations?
-    OOGLUseProgram(blur);
+    OORendererUseProgram(blur);
     for (unsigned int i = 0; i < amount; i++) {
         // Every pixel is drawn, so the old contents don't matter.
         OORendererBeginPass(&(OORenderPassDescriptor) { .target = _pingpongTargets[horizontal], .colorLoad = kOOLoadDontCare, .depthLoad = kOOLoadDontCare });
@@ -507,7 +509,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
     // The final composite, over the cleared window.
     OORendererBeginPass(&(OORenderPassDescriptor) { .target = window, .colorLoad = kOOLoadKeep, .depthLoad = kOOLoadKeep });
-    OOGLUseProgram(final);
+    OORendererUseProgram(final);
 
     OOGLActiveTexture(GL_TEXTURE0);
     OOGLBindTexture(GL_TEXTURE_2D, OORendererRenderTargetTexture(_passthroughTarget, 0));
@@ -541,7 +543,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     // restore previous bindings; the window is still the bound target
     OOGLActiveTexture(GL_TEXTURE0 + previousActiveTexture);
     OOGLBindTexture(GL_TEXTURE_2D, previousTextureID);
-    OOGLUseProgram(previousProgramID);
+    OORendererUseProgram(previousProgram);
     OOGLEnable(GL_BLEND);
 }
 
