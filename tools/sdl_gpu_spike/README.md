@@ -565,6 +565,11 @@ agreement, to get Windows builds.
   headers. Both are fixed.
 - Every push publishes a prerelease on the fork, from the release job.
 
+**Multitexturing.** The emulation samples units 0 and 1 with GL's modulate,
+replace, add and combine (modulate, add or replace RGB) environments, as
+`OOMultiTextureMaterial` uses them without shaders. 17 scenes now match on
+both platforms, and 18 planted faults each fail only their scenes.
+
 **Frames in flight and readback.** Passes are submitted without waiting;
 only readback waits. Texture readback works on SDL_GPU, and the backend
 test round-trips every format, level and cube face on both backends.
@@ -578,10 +583,9 @@ test round-trips every format, level and cube face on both backends.
   the 17-screen scenario on SDL_GPU.
 - Frames in flight instead of waiting after each pass; device limits in
   place of the GL queries.
-- Multitexture combine and texture environment modes other than
-  modulate, which only the no-shader detail level uses. Whether that
-  level survives on SDL_GPU, where everything is a shader anyway, is a
-  maintainer question.
+- Whether the no-shader detail level survives on SDL_GPU, where
+  everything is a shader anyway, is a maintainer question. Its texture
+  combining is emulated now, in case it does.
 
 ## Reproducing
 
