@@ -270,16 +270,8 @@ NSString* OOPadStringToEms(NSString* string, float padEms)
 NSString* OOStringFromDeciCredits(OOCreditsQuantity tenthsOfCredits, BOOL includeDecimal, BOOL includeSymbol)
 {
     JSContext* context = OOJSAcquireContext();
-#if OOJS_QUICKJS
     JSValueConst global = [[OOJavaScriptEngine sharedEngine] globalObject];
     JSValue exception = JS_UNDEFINED;
-#else
-    JSObject* global = [[OOJavaScriptEngine sharedEngine] globalObject];
-    JSObject* fakeRoot;
-    jsval method;
-    jsval rval;
-    jsval exception;
-#endif
     NSString* result = nil;
     BOOL hadException;
 
@@ -293,7 +285,6 @@ NSString* OOStringFromDeciCredits(OOCreditsQuantity tenthsOfCredits, BOOL includ
 
     reentrancyLock = YES;
 
-#if OOJS_QUICKJS
     hadException = JS_HasException(context);
     if (hadException)
         exception = JS_GetException(context); // Clears it.
@@ -318,27 +309,6 @@ NSString* OOStringFromDeciCredits(OOCreditsQuantity tenthsOfCredits, BOOL includ
 
     if (hadException)
         JS_Throw(context, exception); // Takes ownership.
-#else
-    hadException = JS_GetPendingException(context, &exception);
-    JS_ClearPendingException(context);
-
-    if (JS_GetMethodById(context, global, OOJSID("formatCredits"), &fakeRoot, &method)) {
-        jsval args[3];
-        if (JS_NewNumberValue(context, tenthsOfCredits * 0.1, &args[0])) {
-            args[1] = OOJSValueFromBOOL(includeDecimal);
-            args[2] = OOJSValueFromBOOL(includeSymbol);
-
-            OOJSStartTimeLimiter();
-            JS_CallFunctionValue(context, global, method, 3, args, &rval);
-            OOJSStopTimeLimiter();
-
-            result = OOStringFromJSValue(context, rval);
-        }
-    }
-
-    if (hadException)
-        JS_SetPendingException(context, exception);
-#endif
 
     OOJSRelinquishContext(context);
 

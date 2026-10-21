@@ -20,7 +20,6 @@ oolite_dependencies += dependency(
     # LTO objects are archived without a symbol index, so linking fails.
     default_options: ['default_library=static', 'libc=false', 'b_lto=false'],
 )
-add_project_arguments('-DOOJS_QUICKJS=1', language: c_family)
 
 if get_option('b_lto')
     if ccid == 'clang'

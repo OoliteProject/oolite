@@ -2079,11 +2079,7 @@
         // Stuff expression in a function.
         predicateCode = [NSString stringWithFormat:@"return %@;", predicateExpression];
         function = [[OOJSFunction alloc] initWithName:@"_oo_AIScanPredicate"
-#if OOJS_QUICKJS
                                                 scope:JS_UNDEFINED
-#else
-                                                scope:NULL
-#endif
                                                  code:predicateCode
                                         argumentCount:1
                                         argumentNames:argNames
@@ -2101,7 +2097,6 @@
     }
 
     if (function != nil) {
-#if OOJS_QUICKJS
         JSValue jsThis = OOJSObjectFromNativeObject(context, self); // Owned.
         JSFunctionPredicateParameter param = {
             .context = context,
@@ -2110,14 +2105,6 @@
         };
         [self scanForNearestShipWithPredicate:JSFunctionPredicate parameter:&param];
         JS_FreeValue(context, jsThis);
-#else
-        JSFunctionPredicateParameter param = {
-            .context = context,
-            .function = [function functionValue],
-            .jsThis = OOJSObjectFromNativeObject(context, self)
-        };
-        [self scanForNearestShipWithPredicate:JSFunctionPredicate parameter:&param];
-#endif
     } else {
         // Report error (once per occurrence)
         static NSMutableSet* errorCache = nil;
