@@ -46,7 +46,7 @@ static NSMutableDictionary* sShaderCache = nil;
 static OOShaderProgram* sActiveProgram = nil;
 
 static BOOL GetShaderSource(NSString* fileName, NSString* shaderType, NSString* prefix, NSString** outResult);
-#if OOLITE_MAC_OS_X
+#if OOLITE_MAC_OS_X || OO_RENDERER_SDL_GPU
 static NSString* TranslateGLSL330To120(NSString* source, BOOL isVertexShader, NSMutableDictionary* attributeBindings);
 #endif
 
@@ -129,9 +129,11 @@ static NSString* TranslateGLSL330To120(NSString* source, BOOL isVertexShader, NS
             return nil;
         if (!GetShaderSource(fragmentShaderName, @"fragment", prefixString, &fragmentSource))
             return nil;
-#if OOLITE_MAC_OS_X
+#if OOLITE_MAC_OS_X || OO_RENDERER_SDL_GPU
         /*	The macOS legacy OpenGL context only supports GLSL 1.20, so shaders
-                written for #version 330 are translated when loaded.
+                written for #version 330 are translated when loaded. SDL_GPU
+                builds do the same everywhere, so the GLSL translator always sees
+                legacy GLSL with attribute bindings.
         */
         if ([prefixString hasPrefix:@"#version 330"]) {
             NSMutableDictionary* bindings = [NSMutableDictionary dictionaryWithDictionary:attributeBindings ?: [NSDictionary dictionary]];
@@ -402,7 +404,7 @@ static BOOL GetShaderSource(NSString* fileName, NSString* shaderType, NSString* 
 
 #endif // OO_SHADERS
 
-#if OOLITE_MAC_OS_X
+#if OOLITE_MAC_OS_X || OO_RENDERER_SDL_GPU
 static NSString* ReplaceRegex(NSString* source, NSString* pattern, NSString* replacement)
 {
     NSRegularExpression* regex = [NSRegularExpression regularExpressionWithPattern:pattern options:NSRegularExpressionAnchorsMatchLines error:NULL];

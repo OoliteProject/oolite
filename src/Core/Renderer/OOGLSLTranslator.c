@@ -127,7 +127,7 @@ static bool UsesToken(const char* src, const char* tok)
 */
 static char* ConstifyInitialisedUniforms(const char* src)
 {
-    char* copy = strdup(src);
+    char* copy = StrDup(src);
     for (char* p = strstr(copy, "uniform"); p != NULL; p = strstr(p + 1, "uniform")) {
         if ((p > copy && IsIdentChar(p[-1])) || IsIdentChar(p[7]))
             continue;

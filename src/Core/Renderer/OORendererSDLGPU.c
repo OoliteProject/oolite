@@ -1879,17 +1879,21 @@ OORendererProgram* OORendererCreateProgram(const char* vertexSource, const char*
         GPUVertex.generic.
     */
     const char *genericName = NULL, *positionName = NULL;
-    for (size_t b = 0; b < bindingCount; b++) {
-        for (size_t i = 0; i < vertex->vertexInputCount; i++) {
-            if (strcmp(vertex->vertexInputs[i].name, bindings[b].name) != 0)
-                continue;
-            if (bindings[b].location == 0)
-                positionName = bindings[b].name;
-            else if (genericName == NULL) {
-                genericName = bindings[b].name;
-                program->genericLocation = (int)bindings[b].location;
-            }
-            break;
+    for (size_t i = 0; i < vertex->vertexInputCount; i++) {
+        const char* name = vertex->vertexInputs[i].name;
+        if (strncmp(name, "oo_", 3) == 0)
+            continue; // a built-in
+        // Its GL location: the binding's, or failing that its own (layout(location = N)).
+        int location = (int)vertex->vertexInputs[i].location;
+        for (size_t b = 0; b < bindingCount; b++) {
+            if (strcmp(name, bindings[b].name) == 0)
+                location = (int)bindings[b].location;
+        }
+        if (location == 0)
+            positionName = name;
+        else if (genericName == NULL) {
+            genericName = name;
+            program->genericLocation = location;
         }
     }
     program->attributeCount = BuildAttributes(vertex, genericName, positionName, program->attributes);
