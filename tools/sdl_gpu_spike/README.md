@@ -692,8 +692,10 @@ snapshots each.
 **Direct3D 12.** The translator can emit HLSL (shader model 5.1) with
 SDL_GPU's D3D12 registers, and `OOHLSLCompiler` compiles it to DXBC with
 Windows' own `D3DCompile` (d3dcompiler_47.dll, loaded at run time). SDL
-prefers Vulkan, so D3D12 is used only where Vulkan is missing, or with
-`SDL_GPU_DRIVER=direct3d12`. It hasn't run on Windows yet.
+3.4 tries D3D12 before Vulkan whenever the app offers DXBC, so the game
+offers it only when `SDL_GPU_DRIVER=direct3d12` asks for it, or after
+creating a SPIR-V device has failed. Until D3D12 has run on Windows,
+Windows users stay on Vulkan.
 
 **Licensing, for the maintainers:** SPIRV-Cross is Apache-2.0, which is
 compatible with GPLv3 but not GPLv2, and glslang's licence file mixes

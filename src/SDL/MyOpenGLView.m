@@ -214,11 +214,21 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
 #else
     bool gpuDebug = false;
 #endif
+    /*  SDL prefers Direct3D 12 to Vulkan, but the D3D12 path (the translator's
+        HLSL, compiled by Windows' own D3DCompile) is the less tested one. So
+        DXBC is only offered when SDL_GPU_DRIVER=direct3d12 asks for it, or
+        when there's no Vulkan device to be had.
+    */
     SDL_GPUShaderFormat shaderFormats = SDL_GPU_SHADERFORMAT_MSL | SDL_GPU_SHADERFORMAT_SPIRV;
-    // Direct3D 12, where there's no Vulkan: the translator's HLSL, compiled by Windows' own D3DCompile.
-    if (OOHLSLCompilerAvailable())
+    const char* requestedDriver = SDL_GetHint(SDL_HINT_GPU_DRIVER);
+    bool d3d12Requested = requestedDriver != NULL && SDL_strcasecmp(requestedDriver, "direct3d12") == 0;
+    if (d3d12Requested && OOHLSLCompilerAvailable())
         shaderFormats |= SDL_GPU_SHADERFORMAT_DXBC;
     gpuDevice = SDL_CreateGPUDevice(shaderFormats, gpuDebug, NULL);
+    if (gpuDevice == NULL && !(shaderFormats & SDL_GPU_SHADERFORMAT_DXBC) && OOHLSLCompilerAvailable()) {
+        OOLog(@"display.gpu", @"No SDL_GPU device for SPIR-V (%s); trying Direct3D 12.", SDL_GetError());
+        gpuDevice = SDL_CreateGPUDevice(shaderFormats | SDL_GPU_SHADERFORMAT_DXBC, gpuDebug, NULL);
+    }
     if (gpuDevice == NULL || !SDL_ClaimWindowForGPUDevice(gpuDevice, window)) {
         OOLogERR(@"display.gpu", @"Could not set up SDL_GPU: %s", SDL_GetError());
         exit(1);
