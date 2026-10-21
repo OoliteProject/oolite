@@ -23,11 +23,11 @@ if get_option('renderer') == 'sdl_gpu'
     # and meson doesn't count /opt/... as an absolute path on Windows.
     is_windows = host_machine.system() == 'windows'
     brew_lib = is_windows ? [] : ['/opt/homebrew/lib', '/usr/local/lib', '/usr/lib', '/usr/lib64']
-    # Homebrew's glslang ships no pkg-config file; look for the libraries directly.
+    # Older Homebrew glslang ships no pkg-config file; then look for the libraries directly.
     glslang = dependency('glslang', required: false)
     if glslang.found()
         # Debian's static glslang also needs the SPIRV-Tools optimiser.
-        glslang = declare_dependency(dependencies: [glslang, cc.find_library('glslang-default-resource-limits'),
+        glslang = declare_dependency(dependencies: [glslang, cc.find_library('glslang-default-resource-limits', dirs: brew_lib),
             cc.find_library('SPIRV-Tools-opt', required: false), dependency('SPIRV-Tools-shared', 'SPIRV-Tools', required: false)])
     elif is_windows
         glslang = declare_dependency(

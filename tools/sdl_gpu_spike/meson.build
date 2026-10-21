@@ -9,11 +9,11 @@ cc = meson.get_compiler('c')
 # "#pragma mark" sections, as in the rest of Oolite; GCC doesn't know them.
 add_project_arguments(cc.get_supported_arguments('-Wno-unknown-pragmas'), language: 'c')
 brew_lib = ['/opt/homebrew/lib', '/usr/local/lib']
-# Homebrew's glslang ships no pkg-config file; look for the libraries directly.
+# Older Homebrew glslang ships no pkg-config file; then look for the libraries directly.
 glslang = dependency('glslang', required: false)
 if glslang.found()
     # Debian's static glslang also needs the SPIRV-Tools optimiser.
-    glslang = declare_dependency(dependencies: [glslang, cc.find_library('glslang-default-resource-limits'),
+    glslang = declare_dependency(dependencies: [glslang, cc.find_library('glslang-default-resource-limits', dirs: brew_lib),
         cc.find_library('SPIRV-Tools-opt', required: false), spirv_tools])
 else
     glslang = declare_dependency(

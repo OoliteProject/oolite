@@ -153,10 +153,15 @@ def run_test(bin_name, test_output):
         time.sleep(5)
 
         # 3. THE COMMAND
+        # The game runs console commands only once loading is complete, which
+        # can be after the sleep above on a slow machine; snapshotting then
+        # catches a frame not yet drawn. So the snapshot waits for frames the
+        # game has actually drawn since the command arrived.
         print("[*] Requesting snapshot and quit...")
         cmd_packet = {
             PACKET_TYPE_KEY: PERFORM_COMMAND,
-            MESSAGE_KEY: "takeSnapShot(); quit();",
+            MESSAGE_KEY: "(function () { var frames = 0, callback = addFrameCallback(function () {"
+            " if (++frames === 10) { removeFrameCallback(callback); takeSnapShot(); quit(); } }); }());",
         }
         send_plist_packet(conn, cmd_packet)
 
