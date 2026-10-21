@@ -9,10 +9,6 @@ oolite_sources += files(
     'OOTCPStreamDecoderAbstractionLayer.m',
 )
 
-if use_quickjs
-    oolite_sources += files('QuickJS/OOJSConsole.m')
-else
-    oolite_sources += files('OOJSConsole.m')
-endif
+oolite_sources += files('QuickJS/OOJSConsole.m')
 
 oolite_includes += include_directories('.')

@@ -13,8 +13,8 @@ packages=(
     # Build tools (bash 4+, GNU coreutils and gitversion are used by the build scripts)
     bash coreutils gitversion jq meson ninja pkgconf
     # Libraries
-    sdl3 libpng openal-soft libvorbis nspr espeak-ng
+    sdl3 libpng openal-soft libvorbis espeak-ng
 )
 
 brew install "${packages[@]}"
-echo "✅ Homebrew packages installed. Next run ShellScripts/macOS/build_mozilla_js.sh"
+echo "✅ Homebrew packages installed."
