@@ -1569,8 +1569,30 @@ static void WaitFor(SDL_GPUCommandBuffer* commands)
     }
 }
 
+#ifndef NDEBUG
+// OO_GPU_TRACE: log the first passes, to debug a platform without a GPU debugger at hand.
+static void TracePass(void)
+{
+    static int sTraced = -1;
+    if (sTraced < 0)
+        sTraced = getenv("OO_GPU_TRACE") != NULL ? 0 : 1000000;
+    if (sTraced >= 400)
+        return;
+    sTraced++;
+    size_t programDraws = 0;
+    for (size_t i = 0; i < sDrawCount; i++)
+        programDraws += sDraws[i].key.program != NULL;
+    fprintf(stderr, "GPU pass %d: target %s %ux%u colours %u load %d/%d clear %.2f %.2f %.2f %.2f, %zu draws (%zu with programs), %zu vertices\n",
+        sTraced, sPassTarget ? "offscreen" : "window", TargetWidth(), TargetHeight(), TargetColorCount(), (int)sPass.colorLoad, (int)sPass.depthLoad,
+        sClearColor[0], sClearColor[1], sClearColor[2], sClearColor[3], sDrawCount, programDraws, sVertexCount);
+}
+#endif
+
 void OORendererBackendEndPass(void)
 {
+#ifndef NDEBUG
+    TracePass();
+#endif
     SDL_GPUCommandBuffer* commands = SDL_AcquireGPUCommandBuffer(sDevice);
     Uint32 vertexBytes = (Uint32)(sVertexCount * sizeof(GPUVertex));
 
