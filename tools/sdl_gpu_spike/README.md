@@ -709,6 +709,12 @@ confirmation before such binaries ship.
 - CI builds `sdl_gpu` on all three platforms (build only). Packaging still
   needs glslang and SPIRV-Cross bundled or depended on (Debian's and
   Ubuntu's glslang is too old for C-style casts).
+- Vsync pacing: with vsync on, SDL_GPU frames are presented with a
+  non-blocking acquire, so the game loop may run past the display's
+  rate, dropping frames rather than waiting. A launch with vsync on ran
+  at the 240 fps cap, but on a locked screen, which says little. Check it
+  on an unlocked display before choosing a blocking acquire, which a
+  locked screen could stall.
 - Phase 4: HDR.
 
 ## Reproducing
