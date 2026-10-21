@@ -30,6 +30,8 @@ Conventions handled here:
   rectangles and readback use GL's co-ordinates unchanged. The front face
   is inverted to match. Only presenting to a window will need a flip;
 - flat shading: GL uses the last vertex of each primitive;
+- frames in flight: passes are submitted without waiting; only readback
+  waits for the GPU;
 - SDL_GPU has no luminance or alpha-only formats; they are expanded to
   RGBA on upload.
 
@@ -928,7 +930,7 @@ void OORendererBackendResolveRenderTarget(OORenderTarget source, OORenderTarget 
         return;
     }
     SDL_EndGPURenderPass(SDL_BeginGPURenderPass(commands, &color, 1, NULL));
-    WaitFor(commands);
+    SDL_SubmitGPUCommandBuffer(commands);
 }
 
 void OORendererBackendDeleteRenderTarget(OORenderTarget target)
@@ -1491,8 +1493,12 @@ void OORendererBackendEndPass(void)
         SDL_DrawGPUPrimitives(pass, (Uint32)draw->vertexCount, 1, (Uint32)draw->firstVertex, 0);
     }
     SDL_EndGPURenderPass(pass);
-    // The harness reads back after each pass; the game will pipeline frames.
-    WaitFor(commands);
+    /*  No wait: command buffers run in submission order, SDL_GPU keeps
+        released resources alive until the GPU is done with them, the vertex
+        buffer upload cycles, and everything the CPU wrote has already been
+        copied. Only readback waits.
+    */
+    SDL_SubmitGPUCommandBuffer(commands);
     if (transfer != NULL)
         SDL_ReleaseGPUTransferBuffer(sDevice, transfer);
     sVertexCount = sUniformCount = sDrawCount = sBlockUsed = 0;
