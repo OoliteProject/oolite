@@ -9,6 +9,21 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  oxp-upgrade:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Oolite
+        uses: actions/checkout@v6
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - name: Test the OXP upgrade tool
+        working-directory: tools/oxp-upgrade
+        run: |
+          npm ci
+          npm test
+
   ubuntu:
     strategy:
       fail-fast: false
