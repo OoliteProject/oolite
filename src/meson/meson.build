@@ -1,6 +1,5 @@
 cc = meson.get_compiler('c')
 ccid = cc.get_id()
-use_quickjs = get_option('js_engine') == 'quickjs'
 
 if (host_os == 'windows' or host_os == 'cygwin')
     subdir('windows')
@@ -14,14 +13,12 @@ if ccid == 'gcc'
     oolite_override_options += 'c_std=gnu99'
 endif
 
-if use_quickjs
-    oolite_dependencies += dependency(
-        'quickjs-ng',
-        version: '>=0.17.0',
-        default_options: ['default_library=static', 'libc=false'],
-    )
-    add_project_arguments('-DOOJS_QUICKJS=1', language: c_family)
-endif
+oolite_dependencies += dependency(
+    'quickjs-ng',
+    version: '>=0.17.0',
+    default_options: ['default_library=static', 'libc=false'],
+)
+add_project_arguments('-DOOJS_QUICKJS=1', language: c_family)
 
 if get_option('b_lto')
     if ccid == 'clang'

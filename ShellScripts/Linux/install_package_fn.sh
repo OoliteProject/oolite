@@ -86,13 +86,6 @@ install_package() {
                 arch) pkg_name="zlib" ;;
             esac ;;
 
-        "nspr-dev")
-            case "$CURRENT_DISTRO" in
-                debian) pkg_name="libnspr4-dev" ;;
-                redhat) pkg_name="nspr-devel" ;;
-                arch) pkg_name="nspr" ;;
-            esac ;;
-
         "espeak-ng-dev")
             case "$CURRENT_DISTRO" in
                 debian) pkg_name="libespeak-ng-dev" ;;

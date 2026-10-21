@@ -8,7 +8,6 @@ oolite_dependencies = [
     dependency('openal'),
     dependency('vorbisfile'),
     dependency('vorbis'),
-    dependency('nspr'),
     dependency('zlib'),
 ]
 

@@ -10,6 +10,9 @@ project(
     ).stdout().strip(),
     default_options: [
         'optimization=2',
+        # Always use the bundled, patched QuickJS-ng (see subprojects/quickjs-ng.wrap):
+        # an unpatched system build breaks OXPs that rely on SpiderMonkey behaviour.
+        'force_fallback_for=quickjs-ng',
     ],
 )
 
@@ -90,10 +93,6 @@ if get_option('dev_release')
         '-DDEV_RELEASE',
         language: c_family,
     )
-endif
-
-if get_option('oo_javascript_trace')
-    add_project_arguments('-DMOZ_TRACE_JSCALLS=1', language: c_family)
 endif
 
 gnustep_folder = ''  # Not needed for Windows

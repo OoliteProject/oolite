@@ -62,14 +62,6 @@ run_script() {
         curl -L "$url" -o "$clean_filename"
     done
 
-    echo "Installing common packages"
-    local package_names=(spidermonkey)
-    for packagename in "${package_names[@]}"; do
-        if ! install $packagename; then
-            return 1
-        fi
-    done
-
     if [[ -z "$1" || "$1" == "clang" ]]; then
         pacboy -S clang --noconfirm
         pacboy -S lld --noconfirm
