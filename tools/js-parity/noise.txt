@@ -16,3 +16,5 @@
 [oojs.probe]: system.populatorSettings
 # Missile types are chosen at random when the ship is spawned.
 [oojs.probe]: spawned.missiles
+# Station order is not stable between runs.
+[oojs.probe]: system.stations
