@@ -1000,6 +1000,37 @@ int main(int argc, char* argv[])
         if (!Save(argv[1], scene->name, pixels))
             failures++;
     }
+    // Texture round trips: every format, every level, and a cube map.
+    {
+        static const struct {
+            OOTexelFormat format;
+            unsigned components;
+            bool cube;
+        } kFormats[] = { { kOOTexelRGBA8, 4, false }, { kOOTexelGray8, 1, false }, { kOOTexelAlpha8, 1, false },
+            { kOOTexelGrayAlpha8, 2, false }, { kOOTexelRGBA8, 4, true } };
+        for (size_t f = 0; f < sizeof kFormats / sizeof *kFormats; f++) {
+            OOTextureDescriptor descriptor = { .cube = kFormats[f].cube, .width = 8, .height = 8, .levels = 4, .format = kFormats[f].format, .minFilter = kOOFilterLinearMipmapLinear, .magFilter = kOOFilterLinear };
+            uint32_t texture = OORendererCreateTexture(&descriptor);
+            bool ok = texture != 0;
+            for (unsigned face = 0; face < (kFormats[f].cube ? 6u : 1u) && ok; face++) {
+                for (unsigned level = 0, w = 8; level < 4; level++, w >>= 1) {
+                    uint8_t in[256], out[256];
+                    size_t bytes = (size_t)w * w * kFormats[f].components;
+                    for (size_t i = 0; i < bytes; i++)
+                        in[i] = (uint8_t)(i * 29 + level * 7 + face * 53 + f);
+                    OORendererUploadTexture(texture, face, level, w, w, in);
+                    memset(out, 0xEE, sizeof out);
+                    OORendererReadTexture(texture, face, level, w, w, out);
+                    ok = ok && memcmp(in, out, bytes) == 0;
+                }
+            }
+            OORendererDeleteTexture(texture);
+            if (!ok) {
+                fprintf(stderr, "texture round trip failed for format %d%s\n", kFormats[f].format, kFormats[f].cube ? " (cube)" : "");
+                failures++;
+            }
+        }
+    }
     printf("%zu scenes drawn, %u renderer warnings\n", sizeof kScenes / sizeof *kScenes, sWarnings);
     free(pixels);
     return failures != 0 || sWarnings != 0;

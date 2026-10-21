@@ -753,15 +753,49 @@ static void FlushUploads(SDL_GPUCopyPass* copy)
     sUploadCount = 0;
 }
 
+static void WaitFor(SDL_GPUCommandBuffer* commands);
+static void FlushUploads(SDL_GPUCopyPass* copy);
+
 void OORendererBackendReadTexture(uint32_t texture, unsigned face, unsigned level, unsigned width, unsigned height, void* texels)
 {
-    (void)texture;
-    (void)face;
-    (void)level;
-    (void)width;
-    (void)height;
-    (void)texels;
-    OORendererBackendWarn("SDL_GPU backend: texture readback isn't implemented yet");
+    TextureRecord* record = TextureFor(texture);
+    if (record == NULL || texels == NULL)
+        return;
+    Uint32 size = width * height * 4;
+    SDL_GPUTransferBufferCreateInfo transferInfo = { .usage = SDL_GPU_TRANSFERBUFFERUSAGE_DOWNLOAD, .size = size };
+    SDL_GPUTransferBuffer* transfer = SDL_CreateGPUTransferBuffer(sDevice, &transferInfo);
+    SDL_GPUCommandBuffer* commands = SDL_AcquireGPUCommandBuffer(sDevice);
+    SDL_GPUCopyPass* copy = SDL_BeginGPUCopyPass(commands);
+    FlushUploads(copy); // uploads still waiting for a pass
+    SDL_GPUTextureRegion region = { .texture = record->texture, .mip_level = level, .layer = face, .w = width, .h = height, .d = 1 };
+    SDL_GPUTextureTransferInfo destination = { .transfer_buffer = transfer };
+    SDL_DownloadFromGPUTexture(copy, &region, &destination);
+    SDL_EndGPUCopyPass(copy);
+    WaitFor(commands);
+
+    // Back from the RGBA the texture is stored as to its own format.
+    const uint8_t* rgba = SDL_MapGPUTransferBuffer(sDevice, transfer, false);
+    uint8_t* out = texels;
+    for (size_t i = 0; i < (size_t)width * height; i++) {
+        const uint8_t* t = &rgba[i * 4];
+        switch (record->descriptor.format) {
+        case kOOTexelRGBA8:
+            memcpy(&out[i * 4], t, 4);
+            break;
+        case kOOTexelGray8:
+            out[i] = t[0];
+            break;
+        case kOOTexelAlpha8:
+            out[i] = t[3];
+            break;
+        case kOOTexelGrayAlpha8:
+            out[i * 2] = t[0];
+            out[i * 2 + 1] = t[3];
+            break;
+        }
+    }
+    SDL_UnmapGPUTransferBuffer(sDevice, transfer);
+    SDL_ReleaseGPUTransferBuffer(sDevice, transfer);
 }
 
 void OORendererBackendDeleteTexture(uint32_t texture)
