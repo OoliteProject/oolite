@@ -37,3 +37,6 @@ tools-make/
 !/subprojects/packagefiles/
 /subprojects/packagecache/
 /subprojects/.wraplock
+
+# Node packages (tools/oxp-upgrade, eslint)
+node_modules/
