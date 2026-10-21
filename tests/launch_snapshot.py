@@ -14,7 +14,7 @@ import os
 import sys
 import time
 
-from oolite_harness import HarnessError, OoliteGame, output_log
+from oolite_harness import HarnessError, OoliteGame, scaled
 
 MIN_FILE_SIZE_KB = 100  # Threshold for a valid render
 
@@ -41,12 +41,12 @@ def run_test(path, test_output, load):
 
         if load:
             print("[*] Waiting for the saved game to load...")
-            console.wait_for("player.ship.docked && player.ship.dockedStation.isMainStation", timeout=60)
+            console.wait_for("player.ship.docked && player.ship.dockedStation.isMainStation", timeout=180)
             print("[*] Launching...")
             console.evaluate("player.ship.launch(), true")
             console.wait_for('player.ship.status === "STATUS_IN_FLIGHT"', timeout=120)
             # Let a few frames of flight run.
-            time.sleep(5)
+            time.sleep(scaled(5))
         else:
             # Allow time for engine state transition
             time.sleep(5)
@@ -54,7 +54,7 @@ def run_test(path, test_output, load):
         print("[*] Requesting snapshot...")
         console.evaluate("takeSnapShot()")
         # The snapshot is written on the next frame.
-        time.sleep(2)
+        time.sleep(scaled(2))
         game.quit()
     except HarnessError as e:
         print(f"[!] Failure: {e}")
