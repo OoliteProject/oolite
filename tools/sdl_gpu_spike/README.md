@@ -650,6 +650,29 @@ no faster, only different (fixed-function lighting). A saved lower level
 is raised to `DETAIL_LEVEL_SHADERS`, and hardware without GLSL still falls
 back on the GL backend.
 
+**The OXP corpus, again.** The translator has changed a good deal since
+phase 0, so the catalog corpus was fetched again on 2026-10-21 and rerun
+on Metal. Six OXPs couldn't be fetched (one host refused connections,
+`cotbs` among them), leaving 388 configured programs.
+- All 388 translate, pass `spirv-val` and build Metal shaders and pipelines.
+- With unset uniforms = 1, 335 of the 336 programs OpenGL can render match
+  it exactly. The one exception is the same noisy program as in phase 0
+  (Griff's Boa engines, 0.54% of pixels, mean 0.014/255). The other five
+  are rejected by Apple's GL, so there's nothing to compare with.
+- The HLSL for D3D12, all 776 stages, compiles with glslang's HLSL front
+  end. Microsoft's `dxc` crashes under qemu, and nothing here can run
+  `D3DCompile`, so this is the closest available check until Windows.
+- Translation takes 4.7 ms per program on average (median 4.2, 95th
+  percentile 7.8, worst 26.8). Pipelines cost about 0.3 ms each. In the
+  scenario, all 13 programs together take 113 ms. A shader cache isn't
+  worth it yet.
+
+**Direct3D 12.** The translator can emit HLSL (shader model 5.1) with
+SDL_GPU's D3D12 registers, and `OOHLSLCompiler` compiles it to DXBC with
+Windows' own `D3DCompile` (d3dcompiler_47.dll, loaded at run time). SDL
+prefers Vulkan, so D3D12 is used only where Vulkan is missing, or with
+`SDL_GPU_DRIVER=direct3d12`. It hasn't run on Windows yet.
+
 **Licensing, for the maintainers:** SPIRV-Cross is Apache-2.0, which is
 compatible with GPLv3 but not GPLv2, and glslang's licence file mixes
 several licences. Oolite is "GPLv2 or later", so `sdl_gpu` binaries would
@@ -657,12 +680,12 @@ have to be distributed under GPLv3 terms. This needs the maintainers'
 confirmation before such binaries ship.
 
 **Next:**
-- CI and packaging for `sdl_gpu` builds: glslang and SPIRV-Cross on each
-  platform (Debian's glslang is too old, so likely bundled there).
-- Linux (Vulkan) and Windows (Vulkan first; D3D12 needs DXIL from the
-  translator).
-- Frames in flight instead of waiting after each pass; device limits in
-  place of the GL queries.
+- Run on real hardware: Windows (Vulkan, then D3D12 with
+  `SDL_GPU_DRIVER=direct3d12`) and native Linux, with the full scenario.
+- CI builds `sdl_gpu` on all three platforms (build only). Packaging still
+  needs glslang and SPIRV-Cross bundled or depended on (Debian's and
+  Ubuntu's glslang is too old for C-style casts).
+- Phase 4: HDR.
 
 ## Reproducing
 
