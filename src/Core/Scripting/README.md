@@ -1,44 +1,27 @@
-# QuickJS-ng scripting engine
+# JavaScript engine
 
-This directory is a port of Oolite's JavaScript layer (`src/Core/Scripting`)
-from SpiderMonkey 1.8.5 to [QuickJS-ng](https://github.com/quickjs-ng/quickjs)
-v0.17.0. See issue #580.
+Oolite's JavaScript layer uses [QuickJS-ng](https://github.com/quickjs-ng/quickjs)
+v0.17.0. Up to 1.92 it used SpiderMonkey 1.8.5; the port is issue #580, and
+this file describes how existing OXP scripts are kept working.
 
 ## Building
 
-```
-meson setup build/qjs --native-file clang.ini -Djs_engine=quickjs
-meson compile -C build/qjs
-```
+QuickJS-ng is built from source as a Meson subproject
+(`subprojects/quickjs-ng.wrap`), with Oolite's patch from
+`subprojects/packagefiles/quickjs-ng/` applied. The bundled copy is always
+used, even if a system `quickjs-ng` is installed (`force_fallback_for` in the
+top-level `meson.build`), because an unpatched build changes behaviour OXPs rely
+on. The flatpak manifest provides the same source and patch, since
+flatpak-builder has no network access; update both when changing the version.
 
-`js_engine` defaults to `spidermonkey`, which builds exactly as before. With
-`quickjs`, the files here replace the SpiderMonkey files of the same name in
-the parent directory (this directory comes first on the include path), and
-QuickJS-ng is built from source as a meson subproject
-(`subprojects/quickjs-ng.wrap`) unless a system `quickjs-ng` is found. No
-SpiderMonkey headers or libraries are needed.
+Game code uses the engine-neutral names `OOJSVal`, `OOJSPropID`,
+`OOJSFreeValue()` etc. from the SpiderMonkey to QuickJS transition.
 
-Files that don't use a JavaScript engine API (`OOScript.m`, `OOPListScript.m`,
-`OOScriptTimer.m`, `OOLegacyScriptWhitelist.m`) are shared by both engines.
-Game code outside `src/Core/Scripting` builds with either engine, using the
-engine-neutral names `OOJSVal`, `OOJSPropID`, `OOJSFreeValue()` etc. and
-`#if OOJS_QUICKJS` for engine-specific declarations.
-
-## Status
-
-The game builds, boots, loads saved games, launches and flies with QuickJS.
-The parity probe (below) gives the same results as SpiderMonkey apart from
-the differences listed below, and in debug builds no JavaScript objects are
-left alive when the engine resets or shuts down.
-
-Not yet done:
+## Not yet done
 
 - Stack dumps with local variables: QuickJS has no frame inspection API.
   Stack dumps (`dumpStackForErrors` and friends) list the call stack with
   function names, files and lines, but not `this` or local variables.
-
-Linux (amd64) and macOS (arm64) builds pass the parity probe, and CI builds and
-runs the launch test with QuickJS on Ubuntu, Windows and macOS.
 
 ## Conventions
 
@@ -79,8 +62,8 @@ Behaviour that needed emulating, all in the engine core:
   `"str".foo = 1` even in strict code (Route Planner relies on this); QuickJS
   throws. QuickJS-ng is patched to match
   (`subprojects/packagefiles/quickjs-ng/`), and a warning
-  (`script.javaScript.init.unpatchedEngine`) is logged if Oolite is linked
-  against an unpatched system QuickJS-ng. An upstream option to replace the
+  (`script.javaScript.init.unpatchedEngine`) is logged if Oolite is somehow
+  linked against an unpatched QuickJS-ng. An upstream option to replace the
   patch has been requested (quickjs-ng/quickjs#1837).
 - **Profiling.** In debug builds `OOJS_PROFILE` is on, as with SpiderMonkey:
   natives bracketed by `OOJS_NATIVE_ENTER`/`OOJS_PROFILE_ENTER` are timed, and
@@ -124,16 +107,17 @@ numbers don't change. Cache activity is logged under `script.javaScript.cache`
 ## Testing
 
 - `tools/js-parity`: runs the game headless (Xvfb) with a probe OXP and
-  compares what scripts see with a SpiderMonkey baseline. See `run_probe.sh`.
+  compares what scripts see with SpiderMonkey baselines recorded before
+  SpiderMonkey was removed. See `run_probe.sh`.
   Accepted differences are listed in `tools/js-parity/expected-differences.txt`.
 - `poc/`: a standalone harness for the engine core, Vector3D, Quaternion and
   script wrapping (`-Dquickjs_poc=true`).
-- Debug QuickJS builds log `script.javaScript.reset.liveObjects` after every
+- Debug builds log `script.javaScript.reset.liveObjects` after every
   context teardown; anything other than zero is a reference counting bug.
 
-## Known behaviour differences
+## Known behaviour differences from SpiderMonkey 1.8.5
 
-- Debug console (`src/Core/Debug/QuickJS/OOJSConsole.m`): `pedanticMode` is
+- Debug console (`src/Core/Debug/OOJSConsole.m`): `pedanticMode` is
   remembered but has no effect, `dumpNamedRoots()` is gone, `dumpHeap()`
   writes QuickJS's memory usage summary, and console error reports have no
   "Error" or "strict mode" variants (QuickJS reports every error as an
