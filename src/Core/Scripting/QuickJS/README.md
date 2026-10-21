@@ -90,6 +90,20 @@ Behaviour that needed emulating, all in the engine core:
 - The time limiter uses QuickJS's interrupt handler; error locations come from
   the exception's stack.
 
+## Opting out of the emulation
+
+A script whose directive prologue includes `"use oolite modern"` runs without
+the scope chain and `const` emulation above. It is compiled as a plain
+function called with the script object as `this`. `tools/oxp-upgrade` rewrites
+OXP scripts so that they don't need the emulation, and adds the directive; its
+README explains what changes and why. Marked scripts are logged under
+`script.javaScript.load.modern` (off by default). The other compatibility
+measures (own properties, `toSource()`/`uneval()` and the primitive property
+patch) apply to every script.
+
+The emulation is intended to stay until OXPs have had time to upgrade; the
+proposed timeline is in the tool's README.
+
 ## Compiled-script cache
 
 As with SpiderMonkey's XDR cache, compiled scripts are kept in the data cache
