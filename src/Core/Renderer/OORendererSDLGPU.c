@@ -59,6 +59,8 @@ MA 02110-1301, USA.
 
 */
 
+#include <SDL3/SDL.h>
+
 #include "OORendererSDLGPU.h"
 
 #include "OOGLSLTranslator.h"

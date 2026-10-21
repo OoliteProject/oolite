@@ -28,7 +28,11 @@ MA 02110-1301, USA.
 #ifndef OORENDERERSDLGPU_H
 #define OORENDERERSDLGPU_H
 
-#include <SDL3/SDL.h>
+/*  Only SDL_gpu.h: all of SDL.h brings in SDL_assert.h, and with it, on
+    Windows, intrin.h, which breaks once Oolite's headers have defined
+    tgmath.h's macros.
+*/
+#include <SDL3/SDL_gpu.h>
 #include <stdbool.h>
 
 /*  Use device, drawing the window target into an offscreen RGBA8 texture

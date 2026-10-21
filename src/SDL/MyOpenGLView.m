@@ -45,6 +45,7 @@ MA 02110-1301, USA.
 #import "OOHLSLCompiler.h"
 #import "OORendererSDLGPU.h"
 #include <SDL3/SDL_gpu.h>
+#include <SDL3/SDL_hints.h>
 #endif
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
