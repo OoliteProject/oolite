@@ -502,24 +502,50 @@ build/sdl_gpu_spike/oogpu-backend-test-gpu out/gpu
 tools/sdl_gpu_spike/oogpu-backend-compare.py out/gl out/gpu
 ```
 
+**Orientation.** A target SDL_GPU draws into the usual way, then sampled
+with GL texture co-ordinates, comes out upside down. With
+`kOOGLSLOutputGLOrientation` the translator negates clip-space y in every
+vertex shader, next to the depth remap, and leaves gl_FragCoord unflipped.
+That also covers shaders that don't use the matrices, like the
+post-processing quad. The backend draws that way with its front face
+inverted, so every target holds GL's bottom-up rows, as uploaded textures
+do. Viewports, scissor rectangles and readback use GL co-ordinates
+unchanged; only presenting to a window will flip.
+
+**Render targets** in the backend: RGBA16F colour (sampleable, so draw
+states can bind it), float depth and 4x MSAA. A resize recreates the
+textures under the same handles, and the resolve is an empty pass with a
+resolve store op. Scenes render into a target, a resolved MSAA target and
+a two-attachment target, then sample them in the window.
+
+**Programs** (`OORendererProgram.h`): create from legacy GLSL, a prefix and
+attribute bindings; use; uniforms by handle; samplers by texture unit.
+- The GL backend compiles exactly as `OOShaderProgram` did.
+- `OOShaderProgram` now goes through the API, so every material and OXP
+  shader is backend-neutral. In the game this matches all baselines; a
+  broken shader logs the same failure message as before, and dropping
+  mat4 uniforms changes the ship frame.
+- On SDL_GPU, the translator's reflection gives a per-program uniform
+  table. Values persist per program, as in GL, and are snapshotted at each
+  draw. An unbound sampler reads black, as GL's incomplete texture does,
+  and the bound "tangent" attribute is fed from its vertex stream.
+
+13 scenes now match GL on Metal and on lavapipe Vulkan, and 13 planted
+faults (11 in the backend, 2 in the translator) each fail only their
+scenes.
+
 **Next:**
-- **Orientation of render targets.** A target SDL_GPU draws into the
-  usual way, sampled with GL texture co-ordinates, comes out upside down,
-  which the post chain would show. The likely fix is to render everything
-  flipped (negate clip-space y, invert the front face) so every target
-  holds GL's bottom-up layout. Uploaded textures and render targets then
-  agree, readback and the viewport and scissor need no flipping, and only
-  the final present to the swapchain flips. The translator's gl_FragCoord
-  flip then goes away.
-- Render targets, MSAA resolve (as a store op), and passes into them.
 - Fog, colour material, separate specular (added after texturing),
-  multitexture combine, and point sprites in the emulation shaders.
-- `OOShaderProgram` on the translator, so materials and OXP shaders draw.
+  multitexture combine and point sprites in the emulation shaders.
 - Wide lines and large points through the CPU expansion.
-- Frames in flight instead of waiting after each pass; a swapchain;
-  device limits in place of the GL queries.
-- Then a game build option that selects the backend, and the 17-screen
-  scenario on SDL_GPU.
+- Frames in flight instead of waiting after each pass; a swapchain with
+  the final flip; device limits in place of the GL queries.
+- Uploads from the game's own textures (`OOConcreteTexture` already uses
+  the texture API) and the remaining direct GL in game code: snapshot
+  readback, the fog hints, and the post chain binding programs by name.
+- Move the backend and translator into `src/Core/Renderer`, then a game
+  build option that selects the backend, and the 17-screen scenario on
+  SDL_GPU.
 
 ## Reproducing
 
