@@ -63,6 +63,24 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
 
 #include <ctype.h>
 
+#if OOLITE_HDR
+/*  One channel of an HDR frame, as the PNG beside the HDR snapshot shows it:
+    scaled so paper white is 1.0, highlights above 0.8 rolled off smoothly
+    towards 1.0 rather than clipped, then sRGB-encoded.
+*/
+static uint8_t SDRByteFromHDR(float value, float scale)
+{
+    const float knee = 0.8f;
+    float x = value * scale;
+    if (x > knee)
+        x = knee + (1.0f - knee) * (1.0f - expf(-(x - knee) / (1.0f - knee)));
+    if (!(x > 0.0f))
+        return 0;
+    float encoded = x <= 0.0031308f ? 12.92f * x : 1.055f * powf(x, 1.0f / 2.4f) - 0.055f;
+    return (uint8_t)fminf(255.0f, encoded * 255.0f + 0.5f);
+}
+#endif
+
 @interface MyOpenGLView (OOPrivate)
 
 @end
@@ -1164,9 +1182,36 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
     unsigned char* pixls = malloc(pitch * surface->h);
     int y;
     int off;
+    // In HDR, three floats per pixel, rows packed, as SaveEXRSnapshot and stbi_write_hdr read them.
+    GLfloat* pixlsf = NULL;
 
-    for (y = surface->h - 1, off = 0; y >= 0; y--, off += pitch) {
-        OORendererReadPixels(0, y, surface->w, 1, kOOPixelsBGRA8, pixls + off);
+#if OOLITE_HDR
+    if ([self hdrOutput]) {
+        /*  The frame is linear and runs past 1.0, so reading it as bytes
+            would clip it and leave it unencoded. Read the floats once; the
+            PNG is made from them and the HDR snapshot below saves them.
+        */
+        pixlsf = (GLfloat*)malloc((size_t)surface->w * surface->h * 3 * sizeof(GLfloat));
+        for (y = surface->h - 1, off = 0; y >= 0; y--, off += surface->w * 3) {
+            OORendererReadPixels(0, y, surface->w, 1, kOOPixelsRGBFloat, pixlsf + off);
+        }
+        float scale = 80.0f / (_hdrPaperWhiteBrightness * [self hdrOutputScale]);
+        for (y = 0; y < surface->h; y++) {
+            const GLfloat* in = pixlsf + (size_t)y * surface->w * 3;
+            unsigned char* out = pixls + (size_t)y * pitch;
+            for (int x = 0; x < surface->w; x++) {
+                out[x * 4 + 0] = SDRByteFromHDR(in[x * 3 + 2], scale);
+                out[x * 4 + 1] = SDRByteFromHDR(in[x * 3 + 1], scale);
+                out[x * 4 + 2] = SDRByteFromHDR(in[x * 3 + 0], scale);
+                out[x * 4 + 3] = 255;
+            }
+        }
+    } else
+#endif
+    {
+        for (y = surface->h - 1, off = 0; y >= 0; y--, off += pitch) {
+            OORendererReadPixels(0, y, surface->w, 1, kOOPixelsBGRA8, pixls + off);
+        }
     }
 
     tmpSurface = SDL_CreateSurfaceFrom(surface->w, surface->h, surface->format, pixls, surface->pitch);
@@ -1185,7 +1230,7 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
     free(pixls);
 
     // if outputting HDR signal, save also either an .exr or a Radiance .hdr snapshot
-    if ([self hdrOutput]) {
+    if (pixlsf != NULL) {
         NSString* fileExtension = [[NSUserDefaults standardUserDefaults] oo_stringForKey:@"hdr-snapshot-format" defaultValue:SNAPSHOTHDR_EXTENSION_DEFAULT];
 
         // we accept file extension with or without a leading dot; if it is without, insert it at the beginning now
@@ -1199,11 +1244,6 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
 
         NSString* pathToPicHDR = [pathToPic stringByReplacingOccurrencesOfString:@".png" withString:fileExtension];
         OOLog(@"screenshot", @"Saving screen shot \"%@\" (%u x %u pixels).", pathToPicHDR, surface->w, surface->h);
-        // Three floats per pixel, rows packed, as SaveEXRSnapshot and stbi_write_hdr read them.
-        GLfloat* pixlsf = (GLfloat*)malloc((size_t)surface->w * surface->h * 3 * sizeof(GLfloat));
-        for (y = surface->h - 1, off = 0; y >= 0; y--, off += surface->w * 3) {
-            OORendererReadPixels(0, y, surface->w, 1, kOOPixelsRGBFloat, pixlsf + off);
-        }
 
         if (([fileExtension isEqual:SNAPSHOTHDR_EXTENSION_EXR] && SaveEXRSnapshot([pathToPicHDR cStringUsingEncoding:NSUTF8StringEncoding], surface->w, surface->h, pixlsf) != 0) // TINYEXR_SUCCESS
             || ([fileExtension isEqual:SNAPSHOTHDR_EXTENSION_HDR] && !stbi_write_hdr([pathToPicHDR cStringUsingEncoding:NSUTF8StringEncoding], surface->w, surface->h, 3, pixlsf))) {
