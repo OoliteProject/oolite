@@ -98,7 +98,6 @@ static GameController* sSharedController = nil;
         if (getenv("OO_DETERMINISTIC_TEST") != NULL) {
             _deterministicTest = YES;
             ranrot_srand(0x0071173);
-            srandom(0x0071173);
         }
 #endif
 
