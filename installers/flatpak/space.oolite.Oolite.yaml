@@ -112,3 +112,13 @@ modules:
         url: https://github.com/OoliteProject/oolite.git
         tag: "1.92.1.0"
         commit: dd117d31c2f0e756d478e64584120d3d5cbf64d8
+      # QuickJS-ng, from subprojects/quickjs-ng.wrap: flatpak-builder has no network
+      # access, so the source and the wrap's diff_files patch are provided here.
+      - type: git
+        url: https://github.com/quickjs-ng/quickjs.git
+        tag: v0.17.0
+        commit: 6d46d07d04041b40f4f49eaa7fdebe44c314c699
+        dest: subprojects/quickjs-ng
+      - type: patch
+        path: ../../subprojects/packagefiles/quickjs-ng/0001-oolite-primitive-property-assignment.patch
+        dest: subprojects/quickjs-ng
