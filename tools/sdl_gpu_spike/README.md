@@ -610,6 +610,16 @@ for the harness are debug-only.
   149. Detail levels 1 and 2 both sit at the 240 fps frame cap on either
   backend.
 
+**No GL context.** SDL_GPU builds no longer create one: the extension
+manager describes the backend's capabilities instead of probing GL, and
+the remaining GL calls (error checks, client-array state, line width,
+the window framebuffer query, the GL drawable report) are compiled out.
+The binary imports no OpenGL functions (a GL build imports 109). Only
+GLU's CPU tessellator, used by `OOPolygonSprite`, is still linked. Two
+things the first try missed: the shader check requires
+`GL_ARB_multitexture`, without which shaders were silently off; and
+`SDL_GL_GetAttribute` hung at start-up under the Vulkan driver.
+
 **Vulkan.** The same scenario through SDL_GPU's Vulkan driver on macOS
 (MoltenVK) matches GL as closely as Metal does. On Linux (Arch, amd64
 under emulation, Mesa lavapipe and llvmpipe), both renderers build. The
