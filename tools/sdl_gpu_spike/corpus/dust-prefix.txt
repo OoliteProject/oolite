@@ -1,0 +1,3 @@
+#define OODUST_SCALE_MAX    (float(2))
+#define OODUST_SCALE_FACTOR (float(0.002))
+#define OODUST_SIZE         (float(2000))
