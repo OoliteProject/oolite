@@ -82,16 +82,6 @@ modules:
       - type: git
         url: https://github.com/gnustep/libs-base.git
         commit: 68f3d75694f0a7edf9fb1c6c7f19582e8cff1b5f
-  - name: mozilla-js-static
-    buildsystem: simple
-    build-commands:
-      - mkdir -p /app/lib /app/include
-      - cp -r include/* /app/include/
-      - cp -r lib/* /app/lib/
-    sources:
-      - type: archive
-        url: https://github.com/OoliteProject/mozillajs-linux/releases/download/0.0.1/mozilla-js-static-lib.tar.gz
-        sha256: ac8c18b4655e4798d348eb300201e46aa1574dfc683041f41e2b87f50ae72346
   - name: sdl3
     buildsystem: cmake-ninja
     build-options:
