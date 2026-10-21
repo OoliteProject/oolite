@@ -1002,6 +1002,19 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
 #endif
 }
 
+- (float)hdrToneMappingMaxBrightness
+{
+#if OOLITE_MAC_OS_X && OO_RENDERER_SDL_GPU
+    /*  EDR can show up to headroom x SDR white, and the headroom follows the
+        display's brightness setting, so aim the tone mappers no higher.
+    */
+    float headroom = SDL_GetFloatProperty(SDL_GetWindowProperties(window), SDL_PROP_WINDOW_HDR_HEADROOM_FLOAT, 0.0f);
+    if (headroom > 1.0f)
+        return fminf(_hdrMaxBrightness, _hdrPaperWhiteBrightness * headroom);
+#endif
+    return _hdrMaxBrightness;
+}
+
 - (float)hdrMaxBrightness
 {
     return _hdrMaxBrightness;

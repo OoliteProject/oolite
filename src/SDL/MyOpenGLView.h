@@ -281,6 +281,8 @@ extern int debug;
 #if OOLITE_HDR
 // What the HDR final pass multiplies its scRGB output by for this platform's swapchain.
 - (float)hdrOutputScale;
+// The peak the tone mappers aim for: the max brightness setting, or less where the display can't reach it.
+- (float)hdrToneMappingMaxBrightness;
 - (float)hdrMaxBrightness;
 - (void)setHDRMaxBrightness:(float)newMaxBrightness;
 - (float)hdrPaperWhiteBrightness;

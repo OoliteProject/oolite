@@ -519,7 +519,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     [finalProgram setUniform:[finalProgram uniformHandleForName:@"uPostFX"] intValue:[self currentPostFX]];
 #if OOLITE_HDR
     if ([gameView hdrOutput]) {
-        [finalProgram setUniform:[finalProgram uniformHandleForName:@"uMaxBrightness"] floatValue:[gameView hdrMaxBrightness]];
+        [finalProgram setUniform:[finalProgram uniformHandleForName:@"uMaxBrightness"] floatValue:[gameView hdrToneMappingMaxBrightness]];
         [finalProgram setUniform:[finalProgram uniformHandleForName:@"uPaperWhiteBrightness"] floatValue:[gameView hdrPaperWhiteBrightness]];
         [finalProgram setUniform:[finalProgram uniformHandleForName:@"uHDRToneMapper"] intValue:[gameView hdrToneMapper]];
         [finalProgram setUniform:[finalProgram uniformHandleForName:@"uOutputScale"] floatValue:[gameView hdrOutputScale]];
