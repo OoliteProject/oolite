@@ -19,16 +19,22 @@ if get_option('renderer') == 'sdl_gpu'
     add_project_arguments('-DOO_RENDERER_SDL_GPU=1', language: ['c', 'objc'])
 
     cc = meson.get_compiler('c')
-    brew_lib = ['/opt/homebrew/lib', '/usr/local/lib', '/usr/lib', '/usr/lib64']
+    # MSYS2's compiler already searches its own lib and include directories,
+    # and meson doesn't count /opt/... as an absolute path on Windows.
+    is_windows = host_machine.system() == 'windows'
+    brew_lib = is_windows ? [] : ['/opt/homebrew/lib', '/usr/local/lib', '/usr/lib', '/usr/lib64']
     # Homebrew's glslang ships no pkg-config file; look for the libraries directly.
     glslang = dependency('glslang', required: false)
     if glslang.found()
         # Debian's static glslang also needs the SPIRV-Tools optimiser.
         glslang = declare_dependency(dependencies: [glslang, cc.find_library('glslang-default-resource-limits'),
             cc.find_library('SPIRV-Tools-opt', required: false), dependency('SPIRV-Tools-shared', 'SPIRV-Tools', required: false)])
+    elif is_windows
+        glslang = declare_dependency(
+            dependencies: [cc.find_library('glslang'), cc.find_library('glslang-default-resource-limits')])
     else
         glslang_include = run_command('sh', '-c',
-            'for d in /opt/homebrew/include /usr/local/include /usr/include /ucrt64/include /mingw64/include; do [ -d $d/glslang ] && echo $d && break; done',
+            'for d in /opt/homebrew/include /usr/local/include /usr/include; do [ -d $d/glslang ] && echo $d && break; done',
             check: true).stdout().strip()
         glslang = declare_dependency(
             dependencies: [cc.find_library('glslang', dirs: brew_lib), cc.find_library('glslang-default-resource-limits', dirs: brew_lib)],
