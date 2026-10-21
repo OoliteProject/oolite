@@ -154,8 +154,9 @@ require this step:
 ./mk.sh clean dev
 ```
 
-You can run a test of the development build that launches the game and takes a snapshot from your Bash or MSYS2 prompt 
-as follows:
+You can run a test of the development build from your Bash or MSYS2 prompt as follows. It loads the standard starting
+game, launches into space and takes a snapshot, and fails if any script reports an error or the JavaScript runtime
+leaks objects at shutdown:
 
 ```bash
 ./mk.sh test dev
