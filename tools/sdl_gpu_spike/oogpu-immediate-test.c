@@ -77,6 +77,11 @@ void OORendererBackendVerifyStateMachine(void)
     // The game checks this against GL; the harness drives GL directly.
 }
 
+void OORendererBackendNoteDrawOutsidePass(void)
+{
+    // The harness draws without passes on purpose.
+}
+
 void OORendererBackendApplyTexture(const void* texture);
 unsigned OORendererBackendTextureName(const void* texture);
 void OORendererBackendSaveTexture(int depth);

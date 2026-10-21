@@ -1444,6 +1444,11 @@ void OORendererBackendVerifyStateMachine(void)
 {
 }
 
+void OORendererBackendNoteDrawOutsidePass(void)
+{
+    OORendererBackendWarn("SDL_GPU backend: a draw outside any pass is dropped");
+}
+
 void OORendererBackendSetLightColor(unsigned light, OOLightColor which, const float rgba[4])
 {
     (void)light;
@@ -1503,6 +1508,16 @@ void OORendererBackendCheckGLAttributes(const OOImmediateAttributes* expected)
 
 #pragma mark - Programs
 
+// OOProgramError's log is released with free(), so it can't come from SDL's allocator.
+static char* CopyString(const char* string)
+{
+    size_t length = strlen(string);
+    char* copy = malloc(length + 1);
+    if (copy != NULL)
+        memcpy(copy, string, length + 1);
+    return copy;
+}
+
 static ProgramUniform* FindOrAddUniform(OORendererProgram* program, const char* name)
 {
     for (size_t i = 0; i < program->uniformCount; i++) {
@@ -1528,9 +1543,11 @@ OORendererProgram* OORendererCreateProgram(const char* vertexSource, const char*
     OORendererProgram* program = calloc(1, sizeof *program);
     program->genericLocation = -1;
     if (!OOGLSLTranslateProgram(vertexSource, fragmentSource, prefix, sFormats, &program->translated)) {
-        // The translator compiles and links in one go; its log names the stage.
+        /*  The translator compiles and links both stages together, so every
+            failure is reported as a link failure; its log has the details.
+        */
         if (outError != NULL)
-            outError->log = SDL_strdup(program->translated.log ? program->translated.log : "");
+            outError->log = CopyString(program->translated.log ? program->translated.log : "");
         OOGLSLProgramFree(&program->translated);
         free(program);
         return NULL;
@@ -1570,7 +1587,7 @@ OORendererProgram* OORendererCreateProgram(const char* vertexSource, const char*
     }
     if (program->shaders[kOOGLSLStageVertex] == NULL || program->shaders[kOOGLSLStageFragment] == NULL) {
         if (outError != NULL)
-            outError->log = SDL_strdup(SDL_GetError());
+            outError->log = CopyString(SDL_GetError());
         OORendererReleaseProgram(program);
         return NULL;
     }

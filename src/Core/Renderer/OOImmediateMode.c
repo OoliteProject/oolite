@@ -189,6 +189,8 @@ void OOImmediateEnd(void)
     if (state != NULL)
         OORendererBackendVerifyDrawState(state);
     OORendererBackendVerifyStateMachine();
+    if (!OORendererInPass())
+        OORendererBackendNoteDrawOutsidePass();
 #endif
 
     size_t count = OOExpandedVertexCount(sPrimitive, sVertexCount);

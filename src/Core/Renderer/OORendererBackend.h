@@ -84,6 +84,10 @@ void OORendererBackendDeleteTexture(uint32_t texture);
 void OORendererBackendVerifyDrawState(const OODrawState* state);
 // Debug builds: report where the context no longer matches the state machine.
 void OORendererBackendVerifyStateMachine(void);
+/*  Debug builds: a draw while no pass is open. GL draws it anyway; SDL_GPU
+    has nowhere to record it.
+*/
+void OORendererBackendNoteDrawOutsidePass(void);
 
 // Fixed-function values. Light positions are already in eye space.
 void OORendererBackendSetLightColor(unsigned light, OOLightColor which, const float rgba[4]);

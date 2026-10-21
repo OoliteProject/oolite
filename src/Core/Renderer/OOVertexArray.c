@@ -23,6 +23,7 @@ MA 02110-1301, USA.
 */
 
 #include "OOVertexArray.h"
+#include "OORenderPass.h"
 #include "OORendererBackend.h"
 
 #include <assert.h>
@@ -67,6 +68,8 @@ static void VerifyState(void)
     if (state != NULL)
         OORendererBackendVerifyDrawState(state);
     OORendererBackendVerifyStateMachine();
+    if (!OORendererInPass())
+        OORendererBackendNoteDrawOutsidePass();
 #endif
 }
 

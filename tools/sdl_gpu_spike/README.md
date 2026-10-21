@@ -529,10 +529,21 @@ attribute bindings; use; uniforms by handle; samplers by texture unit.
   table. Values persist per program, as in GL, and are snapshotted at each
   draw. An unbound sampler reads black, as GL's incomplete texture does,
   and the bound "tangent" attribute is fed from its vertex stream.
+- Known difference: the translator compiles and links both stages
+  together, so on SDL_GPU every shader failure is logged as "shader program
+  linking failed", where GL names the failing stage. The log underneath is
+  the compiler's, with the stage's line numbers.
 
 13 scenes now match GL on Metal and on lavapipe Vulkan, and 13 planted
 faults (11 in the backend, 2 in the translator) each fail only their
 scenes.
+
+**Draws outside a pass.** SDL_GPU can only record a draw inside a render
+pass, while GL draws whenever it is asked. Debug builds now log any draw
+made while no pass is open, once per call site
+(`rendering.renderer.outsidePass`). The scenario and its MSAA,
+grayscale and no-shader variants make none; an immediate-mode batch
+planted after the frame's last pass is reported.
 
 **Next:**
 - Fog, colour material, separate specular (added after texturing),

@@ -390,6 +390,34 @@ void OORendererBackendVerifyStateMachine(void)
     OOGLVerifyStateMachine();
 }
 
+void OORendererBackendNoteDrawOutsidePass(void)
+{
+    // Once per calling function: the first frames outside the renderer.
+    static NSMutableSet* sReported = nil;
+    if (sReported == nil)
+        sReported = [[NSMutableSet alloc] init];
+    NSArray* stack = [NSThread callStackSymbols];
+    NSString* caller = @"?";
+    for (NSString* frame in stack) {
+        if ([frame rangeOfString:@"OORenderer"].location == NSNotFound && [frame rangeOfString:@"OOImmediate"].location == NSNotFound
+            && [frame rangeOfString:@"NoteDrawOutsidePass"].location == NSNotFound && [frame rangeOfString:@"VerifyState"].location == NSNotFound
+            && [frame rangeOfString:@"callStackSymbols"].location == NSNotFound) {
+            caller = frame;
+            break;
+        }
+    }
+    NSRange space = [caller rangeOfString:@"0x"];
+    NSString* key = space.location != NSNotFound ? [caller substringFromIndex:space.location] : caller;
+    // Drop the address so each function is reported once.
+    NSRange name = [key rangeOfString:@" "];
+    if (name.location != NSNotFound)
+        key = [key substringFromIndex:name.location + 1];
+    if (![sReported containsObject:key]) {
+        [sReported addObject:key];
+        OOLogWARN(@"rendering.renderer.outsidePass", @"A draw outside any render pass, from %@. SDL_GPU will drop it.", key);
+    }
+}
+
 static void Report(NSMutableArray* bad, NSString* format, ...)
 {
     va_list args;
