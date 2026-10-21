@@ -4,18 +4,19 @@
 # Runs the game headless (Xvfb) from the standard scenario with the
 # oojs_probe OXP installed, and writes the probe's log lines, with timestamps
 # stripped, to the output file. Compare outputs from two builds with
-# compare.sh. Needs xvfb-run, xdotool and a software OpenGL (Mesa llvmpipe).
+# compare.sh, or with the SpiderMonkey baselines recorded before SpiderMonkey
+# was removed (baseline-spidermonkey.txt on Linux amd64,
+# baseline-spidermonkey-macos.txt on macOS arm64). Needs xvfb-run, xdotool
+# and a software OpenGL (Mesa llvmpipe).
 #
 # When the probe is done it asks to be quit from outside JavaScript; this
-# script then presses Shift-Escape, so a debug QuickJS build's shutdown leak
+# script then presses Shift-Escape, so a debug build's shutdown leak
 # check runs with no script on the stack.
 #
-# Under qemu-user emulation (e.g. an amd64 container on an arm64 host),
-# SpiderMonkey 1.8.5 builds need QEMU_RESERVED_VA=0x7fffffffffff: its value
-# representation assumes pointers fit in 47 bits. PROBE_TIMEOUT (seconds,
-# default 600) bounds the run; flight is slow under software rendering.
-# PROBE_EXTRA_ADDONS, if set, is a directory whose .oxz/.oxp contents are
-# also installed, to compare real OXPs' errors and warnings between engines.
+# PROBE_TIMEOUT (seconds, default 600) bounds the run; flight is slow under
+# software rendering. PROBE_EXTRA_ADDONS, if set, is a directory whose
+# .oxz/.oxp contents are also installed, to compare real OXPs' errors and
+# warnings between builds.
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
 SRC="$(cd "$HERE/../.." && pwd)"

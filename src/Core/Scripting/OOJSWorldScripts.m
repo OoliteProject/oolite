@@ -86,8 +86,8 @@ static int WorldScriptsGetOwnProperty(JSContext* context, JSPropertyDescriptor* 
                 if (desc != NULL) {
                     /*	If script is an OOJSScript, this should return a JS Script
                             object. For other OOScript subclasses, it will return
-                            JSVAL_NULL. If no script exists, the value will be
-                            JSVAL_VOID.
+                            null. If no script exists, the value will be
+                            undefined.
                     */
                     desc->flags = OOJS_PROP_READONLY;
                     desc->value = [script oo_jsValueInContext:context];
