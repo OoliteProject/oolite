@@ -67,10 +67,12 @@ executable('oogpu-immediate-test', 'oogpu-immediate-test.c',
 renderer_common = [renderer_src / 'OOFixedFunction.c', renderer_src / 'OOImmediateMode.c', renderer_src / 'OORenderPass.c',
     renderer_src / 'OORenderState.c', renderer_src / 'OORenderStateMachine.c', renderer_src / 'OOTextureUpload.c',
     renderer_src / 'OOVertexArray.c']
+postchain_arg = '-DOO_POSTCHAIN_DIR="' + meson.current_source_dir() / 'postchain' + '"'
 executable('oogpu-backend-test-gl', 'oogpu-backend-test.c', renderer_common, renderer_src / 'OORendererGL.c',
+    c_args: [postchain_arg],
     include_directories: include_directories(renderer_src, '../../src/Core'),
     dependencies: [sdl3, gl, cc.find_library('m', required: false)])
 executable('oogpu-backend-test-gpu', 'oogpu-backend-test.c', renderer_src / 'OORendererSDLGPU.c', renderer_common,
-    c_args: ['-DOO_BACKEND_GPU=1'],
+    c_args: ['-DOO_BACKEND_GPU=1', postchain_arg],
     include_directories: include_directories(renderer_src, '../../src/Core'),
     dependencies: [translator_dep, sdl3, cc.find_library('m', required: false)], link_language: 'cpp')

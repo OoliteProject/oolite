@@ -1059,6 +1059,181 @@ static void SceneBloom(void)
     DrawAttachment(1, 132, 248);
 }
 
+// The game's post-processing chain, with its real shaders (postchain/):
+// scene target, passthrough into two attachments (the scene and its bright
+// parts), ten blur passes, then the final composite into the window.
+// Cut source after its leading #version and #extension lines, returning the rest.
+static char* SplitPrefix(char* source)
+{
+    char* line = source;
+    while (strncmp(line, "#version", 8) == 0 || strncmp(line, "#extension", 10) == 0 || *line == '\n') {
+        char* end = strchr(line, '\n');
+        if (end == NULL)
+            break;
+        line = end + 1;
+    }
+    size_t length = strlen(line);
+    char* body = SDL_malloc(length + 1);
+    memcpy(body, line, length + 1);
+    *line = '\0';
+    return body;
+}
+
+static OORendererProgram* LoadPostProgram(const char* name, const char* attribute0, const char* attribute1)
+{
+    char vsPath[1024], fsPath[1024];
+    snprintf(vsPath, sizeof vsPath, "%s/%s.vertex", OO_POSTCHAIN_DIR, name);
+    snprintf(fsPath, sizeof fsPath, "%s/%s.fragment", OO_POSTCHAIN_DIR, name);
+    char* vs = SDL_LoadFile(vsPath, NULL);
+    char* fs = SDL_LoadFile(fsPath, NULL);
+    if (vs == NULL || fs == NULL) {
+        OORendererBackendWarn("post-processing shaders not found");
+        return NULL;
+    }
+    // The game passes #version and #extension in the prefix; split them off again.
+    char* vsBody = SplitPrefix(vs);
+    char* fsBody = SplitPrefix(fs);
+    if (strcmp(vs, fs) != 0)
+        OORendererBackendWarn("post-processing shader prefixes differ");
+    OOAttributeBinding bindings[2] = { { attribute0, 0 }, { attribute1, 1 } };
+    OOProgramError error;
+    OORendererProgram* program = OORendererCreateProgram(vsBody, fsBody, vs, bindings, 2, &error);
+    if (program == NULL) {
+        fprintf(stderr, "%s: stage %d failed:\n%s\n", name, error.stage, error.log ? error.log : "");
+        OORendererBackendWarn("post-processing program creation failed");
+    }
+    SDL_free(vsBody);
+    SDL_free(fsBody);
+    SDL_free(vs);
+    SDL_free(fs);
+    return program;
+}
+
+static const float kPostQuad[] = { 1, 1, 1, 1, 1, -1, 1, 0, -1, -1, 0, 0, -1, 1, 0, 1 };
+static const uint32_t kPostQuadIndices[] = { 0, 1, 3, 1, 2, 3 };
+
+static void DrawPostQuad(void)
+{
+    static OORendererBuffer *vertices, *indices;
+    if (vertices == NULL) {
+        vertices = OORendererCreateBuffer(kPostQuad, sizeof kPostQuad);
+        indices = OORendererCreateBuffer(kPostQuadIndices, sizeof kPostQuadIndices);
+    }
+    OOVertexLayout layout = { 0 };
+    OOVertexLayoutAdd(&layout, kOOVertexAttribute, 0, 2, 4 * sizeof(float), vertices, 0);
+    OOVertexLayoutAdd(&layout, kOOVertexAttribute, 1, 2, 4 * sizeof(float), vertices, 2 * sizeof(float));
+    OORendererDrawElements(kOONativePrimitiveTriangles, &layout, indices, 0, kOOIndex32, 6);
+}
+
+static void SetIntUniform(OORendererProgram* program, const char* name, int32_t value)
+{
+    OORendererSetUniform(OORendererProgramUniform(program, name), kOOUniformInt, &value);
+}
+
+static void SetFloatUniform(OORendererProgram* program, const char* name, float value)
+{
+    OORendererSetUniform(OORendererProgramUniform(program, name), kOOUniformFloat, &value);
+}
+
+static OORenderTarget sPostScene, sPostPassthrough, sPostPingpong[2];
+static bool sPostLastHorizontal;
+static OORendererProgram *sTextureProgram, *sBlurProgram, *sFinalProgram;
+static bool sPostBlack;
+
+static void PreparePostChain(void)
+{
+    if (sTextureProgram == NULL) {
+        sTextureProgram = LoadPostProgram("oolite-texture", "vert_position", "texture_coordinate");
+        sBlurProgram = LoadPostProgram("oolite-blur", "aPos", "aTexCoords");
+        sFinalProgram = LoadPostProgram("oolite-final", "aPos", "aTexCoords");
+        sPostScene = OORendererCreateRenderTarget(&(OORenderTargetDescriptor) { kSize, kSize, 1, true, 1 });
+        sPostPassthrough = OORendererCreateRenderTarget(&(OORenderTargetDescriptor) { kSize, kSize, 2, false, 1 });
+        for (int i = 0; i < 2; i++)
+            sPostPingpong[i] = OORendererCreateRenderTarget(&(OORenderTargetDescriptor) { kSize, kSize, 1, false, 1 });
+    }
+    if (sTextureProgram == NULL || sBlurProgram == NULL || sFinalProgram == NULL)
+        return;
+
+    // The scene: a gradient with a spot brighter than 1, which blooms.
+    OORendererSetClearColor(0, 0, 0, 1);
+    OORendererBeginPass(&(OORenderPassDescriptor) { .target = sPostScene, .colorLoad = kOOLoadClear, .depthLoad = kOOLoadClear });
+    if (!sPostBlack) {
+        SetOrtho2D();
+        OODrawState state = Plain();
+        OORendererPushDrawState(&state);
+        OOImmediateBegin(kOOPrimitiveQuads);
+        Vertex(20, 20, 0.1f, 0.2f, 0.5f, 1);
+        Vertex(236, 20, 0.5f, 0.2f, 0.1f, 1);
+        Vertex(236, 236, 0.2f, 0.5f, 0.2f, 1);
+        Vertex(20, 236, 0.4f, 0.4f, 0.4f, 1);
+        OOImmediateEnd();
+        OOImmediateBegin(kOOPrimitiveTriangleFan);
+        Vertex(140, 120, 4, 3.5f, 2.5f, 1);
+        for (int i = 0; i <= 16; i++)
+            Vertex(140 + 30 * cosf(2 * kPi * i / 16), 120 + 30 * sinf(2 * kPi * i / 16), 1.2f, 1, 0.8f, 1);
+        OOImmediateEnd();
+        OORendererPopDrawState();
+    }
+    OORendererEndPass();
+
+    OODrawState state = Plain();
+    OORendererPushDrawState(&state);
+    OORendererBeginPass(&(OORenderPassDescriptor) { .target = sPostPassthrough, .colorLoad = kOOLoadClear, .depthLoad = kOOLoadDontCare });
+    OORendererUseProgram(sTextureProgram);
+    BindTextureUnit(0, OORendererRenderTargetTexture(sPostScene, 0));
+    SetIntUniform(sTextureProgram, "image", 0);
+    DrawPostQuad();
+    OORendererEndPass();
+
+    bool horizontal = true, first = true;
+    OORendererUseProgram(sBlurProgram);
+    for (int i = 0; i < 10; i++) {
+        OORendererBeginPass(&(OORenderPassDescriptor) { .target = sPostPingpong[horizontal], .colorLoad = kOOLoadDontCare, .depthLoad = kOOLoadDontCare });
+        SetIntUniform(sBlurProgram, "horizontal", horizontal);
+        BindTextureUnit(0, first ? OORendererRenderTargetTexture(sPostPassthrough, 1) : OORendererRenderTargetTexture(sPostPingpong[!horizontal], 0));
+        SetIntUniform(sBlurProgram, "imageIn", 0);
+        DrawPostQuad();
+        OORendererEndPass();
+        horizontal = !horizontal;
+        first = false;
+    }
+    OORendererUseProgram(NULL);
+    OORendererPopDrawState();
+    sPostLastHorizontal = horizontal;
+}
+
+static void ScenePostChain(void)
+{
+    if (sFinalProgram == NULL)
+        return;
+    OODrawState state = Plain();
+    OORendererPushDrawState(&state);
+    OORendererUseProgram(sFinalProgram);
+    BindTextureUnit(0, OORendererRenderTargetTexture(sPostPassthrough, 0));
+    BindTextureUnit(1, OORendererRenderTargetTexture(sPostPingpong[!sPostLastHorizontal], 0));
+    SetIntUniform(sFinalProgram, "scene", 0);
+    SetIntUniform(sFinalProgram, "bloomBlur", 1);
+    SetIntUniform(sFinalProgram, "bloom", 1);
+    SetFloatUniform(sFinalProgram, "uTime", 0);
+    const float resolution[2] = { kSize, kSize };
+    OORendererSetUniform(OORendererProgramUniform(sFinalProgram, "uResolution"), kOOUniformVec2, resolution);
+    SetIntUniform(sFinalProgram, "uPostFX", 0);
+    SetIntUniform(sFinalProgram, "uSDRToneMapper", 0);
+    SetFloatUniform(sFinalProgram, "uSaturation", 1);
+    DrawPostQuad();
+    OORendererUseProgram(NULL);
+    OORendererPopDrawState();
+    BindTextureUnit(1, 0);
+    BindTextureUnit(0, 0);
+}
+
+static void PreparePostChainBlack(void)
+{
+    sPostBlack = true;
+    PreparePostChain();
+    sPostBlack = false;
+}
+
 typedef struct {
     const char* name;
     void (*draw)(void);
@@ -1085,6 +1260,8 @@ static const Scene kScenes[] = {
     { "wide", SceneWide, { 0, 0, 0, 1 }, NULL },
     { "multitexture", SceneMultitexture, { 0, 0, 0, 1 }, NULL },
     { "bloom", SceneBloom, { 0, 0, 0, 1 }, PrepareBloom },
+    { "postchain", ScenePostChain, { 0, 0, 0, 1 }, PreparePostChain },
+    { "postchain-black", ScenePostChain, { 0, 0, 0, 1 }, PreparePostChainBlack },
 };
 
 static bool Save(const char* dir, const char* name, const uint8_t* bgraBottomUp)

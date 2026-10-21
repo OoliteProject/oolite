@@ -610,6 +610,13 @@ for the harness are debug-only.
   149. Detail levels 1 and 2 both sit at the 240 fps frame cap on either
   backend.
 
+**The real post-processing chain.** `postchain/` holds the game's three
+post-processing shaders as `OOShaderProgram` hands them to the renderer,
+after the 330→120 rewrite. The harness's `postchain` scene runs them as
+`Universe` does: the scene target, the passthrough into two attachments,
+ten blur passes, then the final composite. `postchain-black` does the same
+with an empty scene. Both match on Metal, so the harness now has 20 scenes.
+
 **No GL context.** SDL_GPU builds no longer create one: the extension
 manager describes the backend's capabilities instead of probing GL, and
 the remaining GL calls (error checks, client-array state, line width,

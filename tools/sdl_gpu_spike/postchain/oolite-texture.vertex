@@ -1,0 +1,14 @@
+#version 120
+#extension GL_EXT_gpu_shader4 : enable
+
+attribute vec2 vert_position;
+attribute vec2 texture_coordinate;
+
+varying vec2 vs_out_texture_coordinate;
+
+
+void main()
+{
+	gl_Position = vec4(vert_position, 0.0, 1.0);
+	vs_out_texture_coordinate = texture_coordinate;
+}
