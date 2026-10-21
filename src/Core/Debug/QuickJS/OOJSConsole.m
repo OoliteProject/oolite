@@ -57,7 +57,8 @@ NSString* OOPlatformDescription(void);
           JSOPTION_STRICT extra warnings have no QuickJS equivalent.
         - dumpNamedRoots() does not exist (QuickJS has no named roots), and
           dumpHeap() writes QuickJS's memory usage summary.
-        - profile(), getProfile() and trace() do not exist (OOJS_PROFILE is 0).
+        - profile(), getProfile() and trace() only profile natives, as in
+          SpiderMonkey builds without MOZ_TRACE_JSCALLS.
         - ConsoleSettings properties are provided by the class's exotic methods
           rather than get/set/delete hooks. As before, they are not enumerable.
 */
@@ -87,6 +88,13 @@ static JSValue ConsoleWriteJSMemoryStats(OOJS_NATIVE_ARGS);
 static JSValue ConsoleGarbageCollect(OOJS_NATIVE_ARGS);
 #if DEBUG
 static JSValue ConsoleDumpHeap(OOJS_NATIVE_ARGS);
+#endif
+#if OOJS_PROFILE
+static JSValue ConsoleProfile(OOJS_NATIVE_ARGS);
+static JSValue ConsoleGetProfile(OOJS_NATIVE_ARGS);
+static JSValue ConsoleTrace(OOJS_NATIVE_ARGS);
+
+static BOOL PerformProfiling(JSContext* context, NSString* nominalFunction, int argc, JSValueConst* argv, JSValue* outRval, BOOL trace, OOTimeProfile** outProfile);
 #endif
 
 static int ConsoleSettingsGetOwnProperty(JSContext* context, JSPropertyDescriptor* desc, JSValueConst object, JSAtom propID);
@@ -186,6 +194,11 @@ static const JSCFunctionListEntry sConsoleMethods[] = {
     JS_CFUNC_DEF("garbageCollect", 0, ConsoleGarbageCollect),
 #if DEBUG
     JS_CFUNC_DEF("dumpHeap", 0, ConsoleDumpHeap),
+#endif
+#if OOJS_PROFILE
+    JS_CFUNC_DEF("profile", 1, ConsoleProfile),
+    JS_CFUNC_DEF("getProfile", 1, ConsoleGetProfile),
+    JS_CFUNC_DEF("trace", 1, ConsoleTrace),
 #endif
 };
 
@@ -896,5 +909,146 @@ static JSValue ConsoleDumpHeap(OOJS_NATIVE_ARGS)
     OOJS_NATIVE_EXIT
 }
 #endif
+
+#if OOJS_PROFILE
+
+// function profile(func : function [, Object this = debugConsole.script]) : String
+static JSValue ConsoleProfile(OOJS_NATIVE_ARGS)
+{
+    OOJS_NATIVE_ENTER(context)
+
+    if (EXPECT_NOT(OOJSIsProfiling())) {
+        OOJSReportError(context, @"Profiling functions may not be called while already profiling.");
+        return OOJSNativeFailure(context);
+    }
+
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    OOTimeProfile* profile = nil;
+    JSValue result = JS_UNDEFINED;
+
+    if (PerformProfiling(context, @"profile", argc, OOJS_ARGV, NULL, NO, &profile)) {
+        result = OOJSValueFromNativeObject(context, [profile description]);
+    } else {
+        result = OOJSNativeFailure(context);
+    }
+
+    [pool release];
+    return result;
+
+    OOJS_NATIVE_EXIT
+}
+
+// function getProfile(func : function [, Object this = debugConsole.script]) : Object { totalTime : Number, jsTime : Number, extensionTime : Number }
+static JSValue ConsoleGetProfile(OOJS_NATIVE_ARGS)
+{
+    OOJS_NATIVE_ENTER(context)
+
+    if (EXPECT_NOT(OOJSIsProfiling())) {
+        OOJSReportError(context, @"Profiling functions may not be called while already profiling.");
+        return OOJSNativeFailure(context);
+    }
+
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    OOTimeProfile* profile = nil;
+    JSValue result = JS_UNDEFINED;
+
+    if (PerformProfiling(context, @"getProfile", argc, OOJS_ARGV, NULL, NO, &profile)) {
+        result = OOJSValueFromNativeObject(context, profile);
+    } else {
+        result = OOJSNativeFailure(context);
+    }
+
+    [pool release];
+    return result;
+
+    OOJS_NATIVE_EXIT
+}
+
+// function trace(func : function [, Object this = debugConsole.script]) : [return type of func]
+static JSValue ConsoleTrace(OOJS_NATIVE_ARGS)
+{
+    OOJS_NATIVE_ENTER(context)
+
+    if (EXPECT_NOT(OOJSIsProfiling())) {
+        OOJSReportError(context, @"Profiling functions may not be called while already profiling.");
+        return OOJSNativeFailure(context);
+    }
+
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    JSValue rval = JS_UNDEFINED;
+    JSValue result;
+
+    if (PerformProfiling(context, @"trace", argc, OOJS_ARGV, &rval, YES, NULL)) {
+        result = rval;
+    } else {
+        result = OOJSNativeFailure(context);
+    }
+
+    [pool release];
+    return result;
+
+    OOJS_NATIVE_EXIT
+}
+
+/*	Calls argv[0] with argv[1] (or debugConsole.script) as this, profiling it.
+        *outRval, if not NULL, is owned by the caller. On failure, any exception
+        has been reported.
+*/
+static BOOL PerformProfiling(JSContext* context, NSString* nominalFunction, int argc, JSValueConst* argv, JSValue* outRval, BOOL trace, OOTimeProfile** outProfile)
+{
+    // Get function.
+    if (argc < 1 || !OOJSValueIsFunction(context, argv[0])) {
+        OOJSReportBadArguments(context, @"Console", nominalFunction, MIN(argc, 1), argv, nil, @"function");
+        return NO;
+    }
+    JSValueConst function = argv[0];
+
+    // Get "this" object.
+    JSValue this;
+    if (argc > 1)
+        this = JS_DupValue(context, argv[1]);
+    else {
+        JSValue debugConsole = OOJSValueFromNativeObject(context, [OODebugMonitor sharedDebugMonitor]);
+        this = JS_GetPropertyStr(context, debugConsole, "script");
+        JS_FreeValue(context, debugConsole);
+    }
+
+    // Fiddle with time limiter.
+    // We want to save the current limit, reset the limiter, and set the time limit to a long time.
+#define LONG_TIME (1e7) // A long time - 115.7 days - but, crucially, finite.
+
+    OOTimeDelta originalLimit = OOJSGetTimeLimiterLimit();
+    OOJSSetTimeLimiterLimit(LONG_TIME);
+    OOJSResetTimeLimiter();
+
+    OOJSBeginProfiling(trace);
+
+    // Call the function.
+    JSValue rval = JS_Call(context, function, this, 0, NULL);
+
+    // Get results.
+    OOTimeProfile* profile = OOJSEndProfiling();
+    if (outProfile != NULL)
+        *outProfile = profile;
+
+    // Restore original timer state.
+    OOJSSetTimeLimiterLimit(originalLimit);
+    OOJSResetTimeLimiter();
+
+    JS_FreeValue(context, this);
+
+    if (JS_IsException(rval)) {
+        OOJSReportPendingException(context);
+        return NO;
+    }
+
+    if (outRval != NULL)
+        *outRval = rval;
+    else
+        JS_FreeValue(context, rval);
+    return YES;
+}
+
+#endif // OOJS_PROFILE
 
 #endif /* NDEBUG */

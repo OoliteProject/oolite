@@ -33,8 +33,9 @@ left alive when the engine resets or shuts down.
 
 Not yet done:
 
-- JavaScript profiling (`OOJS_PROFILE`) and stack dumps with local variables:
-  QuickJS has no function-call hooks or frame inspection API.
+- Stack dumps with local variables: QuickJS has no frame inspection API.
+  Stack dumps (`dumpStackForErrors` and friends) list the call stack with
+  function names, files and lines, but not `this` or local variables.
 - The compiled-script cache: SpiderMonkey's XDR bytecode cache is not used.
   QuickJS bytecode (`JS_WriteObject()`) could be cached the same way, under a
   different cache name.
@@ -83,6 +84,11 @@ Behaviour that needed emulating, all in the engine core:
   (`script.javaScript.init.unpatchedEngine`) is logged if Oolite is linked
   against an unpatched system QuickJS-ng. An upstream option to replace the
   patch has been requested (quickjs-ng/quickjs#1837).
+- **Profiling.** In debug builds `OOJS_PROFILE` is on, as with SpiderMonkey:
+  natives bracketed by `OOJS_NATIVE_ENTER`/`OOJS_PROFILE_ENTER` are timed, and
+  the debug console's `profile()`, `getProfile()` and `trace()` work. As in
+  SpiderMonkey builds without `MOZ_TRACE_JSCALLS` (the usual case), only
+  natives are profiled; other time is reported as JavaScript time.
 - The time limiter uses QuickJS's interrupt handler; error locations come from
   the exception's stack.
 
