@@ -7,7 +7,14 @@ extern "C" {
 int SaveEXRSnapshot(const char* outfilename, int width, int height, const float* rgb);
 }
 
-#ifdef WIN32
+/*  Windows compresses with the bundled miniz. Elsewhere tinyexr uses the
+    system zlib, which the game links already (for libpng); miniz there
+    would clash with it.
+*/
+#ifndef WIN32
+#define TINYEXR_USE_MINIZ 0
+#include <zlib.h>
+#endif
 #define TINYEXR_IMPLEMENTATION
 #include "tinyexr.h"
 
@@ -86,10 +93,3 @@ int SaveEXRSnapshot(const char* outfilename, int width, int height, const float*
 
     return ret;
 }
-#else // Linux EXR snaphsots not supported yet
-int SaveEXRSnapshot(const char* outfilename, int width, int height, const float* rgb)
-{
-    fprintf(stderr, "EXR Snapshot not supported yet under Linux!\n");
-    return 0;
-}
-#endif

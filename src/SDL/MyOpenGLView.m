@@ -1186,8 +1186,9 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
 
         NSString* pathToPicHDR = [pathToPic stringByReplacingOccurrencesOfString:@".png" withString:fileExtension];
         OOLog(@"screenshot", @"Saving screen shot \"%@\" (%u x %u pixels).", pathToPicHDR, surface->w, surface->h);
-        GLfloat* pixlsf = (GLfloat*)malloc(pitch * surface->h * sizeof(GLfloat));
-        for (y = surface->h - 1, off = 0; y >= 0; y--, off += pitch) {
+        // Three floats per pixel, rows packed, as SaveEXRSnapshot and stbi_write_hdr read them.
+        GLfloat* pixlsf = (GLfloat*)malloc((size_t)surface->w * surface->h * 3 * sizeof(GLfloat));
+        for (y = surface->h - 1, off = 0; y >= 0; y--, off += surface->w * 3) {
             OORendererReadPixels(0, y, surface->w, 1, kOOPixelsRGBFloat, pixlsf + off);
         }
 
