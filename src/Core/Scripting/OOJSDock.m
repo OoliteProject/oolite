@@ -1,5 +1,5 @@
 /*
-OOJSDock.m
+OOJSDock.m (QuickJS-ng)
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -22,6 +22,8 @@ MA 02110-1301, USA.
  */
 
 #import "OOJSDock.h"
+#import "DockEntity.h"
+#import "EntityOOJavaScriptExtensions.h"
 #import "OOJSEntity.h"
 #import "OOJSPlayer.h"
 #import "OOJSShip.h"
@@ -29,29 +31,19 @@ MA 02110-1301, USA.
 
 #import "GameController.h"
 
-static JSObject* sDockPrototype;
+static JSClassID sDockClassID;
 
-static BOOL JSDockGetDockEntity(JSContext* context, JSObject* stationObj, DockEntity** outEntity);
-static BOOL JSDockGetShipEntity(JSContext* context, JSObject* shipObj, ShipEntity** outEntity);
+static BOOL JSDockGetDockEntity(JSContext* context, JSValueConst stationObj, DockEntity** outEntity);
+static BOOL JSDockGetShipEntity(JSContext* context, JSValueConst shipObj, ShipEntity** outEntity);
 
-static JSBool DockIsQueued(JSContext* context, uintN argc, jsval* vp);
+static JSValue DockIsQueued(OOJS_NATIVE_ARGS);
 
-static JSBool DockGetProperty(JSContext* context, JSObject* this, jsid propID, jsval* value);
-static JSBool DockSetProperty(JSContext* context, JSObject* this, jsid propID, JSBool strict, jsval* value);
+static JSValue DockGetProperty(OOJS_GETTER_ARGS);
+static JSValue DockSetProperty(OOJS_SETTER_ARGS);
 
-static JSClass sDockClass = {
-    "Dock",
-    JSCLASS_HAS_PRIVATE,
-
-    JS_PropertyStub, // addProperty
-    JS_PropertyStub, // delProperty
-    DockGetProperty, // getProperty
-    DockSetProperty, // setProperty
-    JS_EnumerateStub, // enumerate
-    JS_ResolveStub, // resolve
-    JS_ConvertStub, // convert
-    OOJSObjectWrapperFinalize, // finalize
-    JSCLASS_NO_OPTIONAL_MEMBERS
+static JSClassDef sDockClass = {
+    .class_name = "Dock",
+    .finalizer = OOJSObjectWrapperFinalize,
 };
 
 enum {
@@ -63,30 +55,44 @@ enum {
     kDock_launchingQueueLength
 };
 
-static JSPropertySpec sDockProperties[] = {
-    // JS name						ID									flags
-    { "allowsDocking", kDock_allowsDocking, OOJS_PROP_READWRITE_CB },
-    { "disallowedDockingCollides", kDock_disallowedDockingCollides, OOJS_PROP_READWRITE_CB },
-    { "allowsLaunching", kDock_allowsLaunching, OOJS_PROP_READWRITE_CB },
-    { "dockingQueueLength", kDock_dockingQueueLength, OOJS_PROP_READONLY_CB },
-    { "launchingQueueLength", kDock_launchingQueueLength, OOJS_PROP_READONLY_CB },
-    { 0 }
+static const JSCFunctionListEntry sDockProperties[] = {
+    // JS name, getter, setter, ID
+    OOJS_PROPERTY_RW("allowsDocking", DockGetProperty, DockSetProperty, kDock_allowsDocking),
+    OOJS_PROPERTY_RW("disallowedDockingCollides", DockGetProperty, DockSetProperty, kDock_disallowedDockingCollides),
+    OOJS_PROPERTY_RW("allowsLaunching", DockGetProperty, DockSetProperty, kDock_allowsLaunching),
+    OOJS_PROPERTY_RO("dockingQueueLength", DockGetProperty, kDock_dockingQueueLength),
+    OOJS_PROPERTY_RO("launchingQueueLength", DockGetProperty, kDock_launchingQueueLength),
 };
 
-static JSFunctionSpec sDockMethods[] = {
-    // JS name					Function						min args
-    { "isQueued", DockIsQueued, 1 },
-    { 0 }
+static const JSCFunctionListEntry sDockMethods[] = {
+    // JS name, min args, function
+    JS_CFUNC_DEF("isQueued", 1, DockIsQueued),
 };
 
-void InitOOJSDock(JSContext* context, JSObject* global)
+void InitOOJSDock(JSContext* context, JSValueConst global)
 {
-    sDockPrototype = JS_InitClass(context, global, JSShipPrototype(), &sDockClass, OOJSUnconstructableConstruct, 0, sDockProperties, sDockMethods, NULL, NULL);
-    OOJSRegisterObjectConverter(&sDockClass, OOJSBasicPrivateObjectConverter);
-    OOJSRegisterSubclass(&sDockClass, JSShipClass());
+    OOJSRegisterClass(&sDockClassID, &sDockClass);
+
+    JSValue parentPrototype = JS_GetClassProto(context, JSShipClassID());
+    NSCAssert(JS_IsObject(parentPrototype), @"Ship must be initialized before Dock.");
+    OOJSInitClass(context, global, sDockClassID, parentPrototype, OOJSUnconstructableConstruct, 0,
+        sDockProperties, OOJS_COUNT(sDockProperties), sDockMethods, OOJS_COUNT(sDockMethods), NULL, 0);
+    JS_FreeValue(context, parentPrototype);
+
+    OOJSRegisterObjectConverter(sDockClassID, OOJSBasicPrivateObjectConverter);
+    OOJSRegisterSubclass(sDockClassID, JSShipClassID());
 }
 
-static BOOL JSDockGetDockEntity(JSContext* context, JSObject* dockObj, DockEntity** outEntity)
+JSClassID JSDockClassID(void)
+{
+    return sDockClassID;
+}
+
+/*	As in the SpiderMonkey version, these return NO without an exception for
+        stale references (nil entity) and for entities of the wrong native class;
+        OOJSEntityGetEntity() throws if the object is not an Entity at all.
+*/
+static BOOL JSDockGetDockEntity(JSContext* context, JSValueConst dockObj, DockEntity** outEntity)
 {
     OOJS_PROFILE_ENTER
 
@@ -110,7 +116,7 @@ static BOOL JSDockGetDockEntity(JSContext* context, JSObject* dockObj, DockEntit
     OOJS_PROFILE_EXIT
 }
 
-static BOOL JSDockGetShipEntity(JSContext* context, JSObject* shipObj, ShipEntity** outEntity)
+static BOOL JSDockGetShipEntity(JSContext* context, JSValueConst shipObj, ShipEntity** outEntity)
 {
     OOJS_PROFILE_ENTER
 
@@ -136,10 +142,9 @@ static BOOL JSDockGetShipEntity(JSContext* context, JSObject* shipObj, ShipEntit
 
 @implementation DockEntity (OOJavaScriptExtensions)
 
-- (void)getJSClass:(JSClass**)outClass andPrototype:(JSObject**)outPrototype
+- (JSClassID)oo_jsClassID
 {
-    *outClass = &sDockClass;
-    *outPrototype = sDockPrototype;
+    return sDockClassID;
 }
 
 - (NSString*)oo_jsClassName
@@ -149,101 +154,91 @@ static BOOL JSDockGetShipEntity(JSContext* context, JSObject* shipObj, ShipEntit
 
 @end
 
-static JSBool DockGetProperty(JSContext* context, JSObject* this, jsid propID, jsval* value)
+static JSValue DockGetProperty(OOJS_GETTER_ARGS)
 {
-    if (!JSID_IS_INT(propID))
-        return YES;
-
     OOJS_NATIVE_ENTER(context)
 
     DockEntity* entity = nil;
 
     if (!JSDockGetDockEntity(context, this, &entity))
-        return NO;
+        return OOJSNativeFailure(context);
     if (entity == nil) {
-        *value = JSVAL_VOID;
-        return YES;
+        return JS_UNDEFINED;
     }
 
-    switch (JSID_TO_INT(propID)) {
+    switch (magic) {
     case kDock_allowsDocking:
-        *value = OOJSValueFromBOOL([entity allowsDocking]);
-        return YES;
+        return OOJSValueFromBOOL([entity allowsDocking]);
 
     case kDock_disallowedDockingCollides:
-        *value = OOJSValueFromBOOL([entity disallowedDockingCollides]);
-        return YES;
+        return OOJSValueFromBOOL([entity disallowedDockingCollides]);
 
     case kDock_allowsLaunching:
-        *value = OOJSValueFromBOOL([entity allowsLaunching]);
-        return YES;
+        return OOJSValueFromBOOL([entity allowsLaunching]);
 
     case kDock_dockingQueueLength:
-        return JS_NewNumberValue(context, [entity countOfShipsInDockingQueue], value);
+        return JS_NewNumber(context, [entity countOfShipsInDockingQueue]);
 
     case kDock_launchingQueueLength:
-        return JS_NewNumberValue(context, [entity countOfShipsInLaunchQueue], value);
+        return JS_NewNumber(context, [entity countOfShipsInLaunchQueue]);
 
     default:
-        OOJSReportBadPropertySelector(context, this, propID, sDockProperties);
-        return NO;
+        OOJSReportBadPropertySelector(context, this, magic, sDockProperties, OOJS_COUNT(sDockProperties));
+        return OOJSNativeFailure(context);
     }
 
     OOJS_NATIVE_EXIT
 }
 
-static JSBool DockSetProperty(JSContext* context, JSObject* this, jsid propID, JSBool strict, jsval* value)
+static JSValue DockSetProperty(OOJS_SETTER_ARGS)
 {
-    if (!JSID_IS_INT(propID))
-        return YES;
-
     OOJS_NATIVE_ENTER(context)
 
     DockEntity* entity = nil;
-    JSBool bValue;
-    //	int32						iValue;
+    int bValue;
+    //	int32_t						iValue;
 
     if (!JSDockGetDockEntity(context, this, &entity))
-        return NO;
+        return OOJSNativeFailure(context);
     if (entity == nil)
-        return YES;
+        return JS_UNDEFINED;
 
-    switch (JSID_TO_INT(propID)) {
+    switch (magic) {
     case kDock_allowsDocking:
-        if (JS_ValueToBoolean(context, *value, &bValue)) {
+        if ((bValue = JS_ToBool(context, value)) >= 0) {
             [entity setAllowsDocking:bValue];
-            return YES;
+            return JS_UNDEFINED;
         }
         break;
 
     case kDock_allowsLaunching:
-        if (JS_ValueToBoolean(context, *value, &bValue)) {
+        if ((bValue = JS_ToBool(context, value)) >= 0) {
             [entity setAllowsLaunching:bValue];
-            return YES;
+            return JS_UNDEFINED;
         }
         break;
 
     case kDock_disallowedDockingCollides:
-        if (JS_ValueToBoolean(context, *value, &bValue)) {
+        if ((bValue = JS_ToBool(context, value)) >= 0) {
             [entity setDisallowedDockingCollides:bValue];
-            return YES;
+            return JS_UNDEFINED;
         }
         break;
 
     default:
-        OOJSReportBadPropertySelector(context, this, propID, sDockProperties);
-        return NO;
+        OOJSReportBadPropertySelector(context, this, magic, sDockProperties, OOJS_COUNT(sDockProperties));
+        return OOJSNativeFailure(context);
     }
 
-    OOJSReportBadPropertyValue(context, this, propID, sDockProperties, *value);
-    return NO;
+    OOJSReportBadPropertyValue(context, this, magic, sDockProperties, OOJS_COUNT(sDockProperties), value);
+    return OOJSNativeFailure(context);
 
     OOJS_NATIVE_EXIT
 }
 
 // *** Methods ***
 
-static JSBool DockIsQueued(JSContext* context, uintN argc, jsval* vp)
+static JSValue DockIsQueued(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
@@ -251,12 +246,20 @@ static JSBool DockIsQueued(JSContext* context, uintN argc, jsval* vp)
     DockEntity* dock = nil;
 
     JSDockGetDockEntity(context, OOJS_THIS, &dock);
+    // SpiderMonkey tolerated returning normally with an error pending; QuickJS does not.
+    if (JS_HasException(context))
+        return JS_EXCEPTION;
     if (argc == 0) {
-        OOJSReportBadArguments(context, @"Dock", @"isQueued", MIN(argc, 1U), OOJS_ARGV, nil, @"ship");
-        return NO;
+        OOJSReportBadArguments(context, @"Dock", @"isQueued", MIN(argc, 1), OOJS_ARGV, nil, @"ship");
+        return OOJSNativeFailure(context);
     }
     ShipEntity* ship = nil;
-    JSDockGetShipEntity(context, JSVAL_TO_OBJECT(OOJS_ARGV[0]), &ship);
+    // The SpiderMonkey version did not check that argv[0] is an object; a non-object is treated as no ship.
+    if (JS_IsObject(OOJS_ARGV[0])) {
+        JSDockGetShipEntity(context, OOJS_ARGV[0], &ship);
+        if (JS_HasException(context))
+            return JS_EXCEPTION;
+    }
     if (ship != nil) {
         result = [dock shipIsInDockingQueue:ship];
     }
