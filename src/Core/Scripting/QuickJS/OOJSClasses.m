@@ -230,6 +230,10 @@ JSValueConst OOJSInitClass(JSContext* context, JSValueConst global, JSClassID cl
         JS_DefinePropertyValueStr(context, global, name, ctor, JS_PROP_WRITABLE | JS_PROP_CONFIGURABLE);
     }
 
+    // The calls above don't report failures; don't leave an exception for the next script to find.
+    if (JS_HasException(context))
+        OOJSReportPendingException(context);
+
     // The context's class prototype table takes ownership, so the value stays valid as a borrowed reference.
     JS_SetClassProto(context, classID, prototype);
     return prototype;
