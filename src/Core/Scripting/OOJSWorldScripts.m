@@ -28,83 +28,113 @@ MA 02110-1301, USA.
 #import "OOJavaScriptEngine.h"
 #import "PlayerEntity.h"
 
-static JSBool WorldScriptsGetProperty(JSContext* context, JSObject* this, jsid propID, jsval* value);
-static JSBool WorldScriptsEnumerate(JSContext* cx, JSObject* obj);
+/*	SpiderMonkey called the WorldScripts class's getProperty hook for every
+        property access and its enumerate hook defined each script's name on
+        demand. QuickJS has no such hooks; instead, the class's exotic
+        get_own_property and get_own_property_names methods make every world
+        script appear as an enumerable, read-only own property.
+*/
+static int WorldScriptsGetOwnProperty(JSContext* context, JSPropertyDescriptor* desc, JSValueConst object, JSAtom propID);
+static int WorldScriptsGetOwnPropertyNames(JSContext* context, JSPropertyEnum** outTable, uint32_t* outCount, JSValueConst object);
 
-static JSClass sWorldScriptsClass = {
-    "WorldScripts",
-    0,
-
-    JS_PropertyStub,
-    JS_PropertyStub,
-    WorldScriptsGetProperty,
-    JS_StrictPropertyStub,
-    WorldScriptsEnumerate,
-    JS_ResolveStub,
-    JS_ConvertStub,
-    JS_FinalizeStub
+static JSClassExoticMethods sWorldScriptsExoticMethods = {
+    .get_own_property = WorldScriptsGetOwnProperty,
+    .get_own_property_names = WorldScriptsGetOwnPropertyNames,
 };
 
-void InitOOJSWorldScripts(JSContext* context, JSObject* global)
+static JSClassID sWorldScriptsClassID;
+static JSClassDef sWorldScriptsClass = {
+    .class_name = "WorldScripts",
+    .exotic = &sWorldScriptsExoticMethods,
+};
+
+void InitOOJSWorldScripts(JSContext* context, JSValueConst global)
 {
-    JS_DefineObject(context, global, "worldScripts", &sWorldScriptsClass, NULL, OOJS_PROP_READONLY);
+    OOJSRegisterClass(&sWorldScriptsClassID, &sWorldScriptsClass);
+
+    // As with JS_DefineObject() with a NULL prototype, the prototype is Object.prototype.
+    JSValue objectPrototype = OOJSObjectPrototype(context);
+    JSValue worldScripts = JS_NewObjectProtoClass(context, objectPrototype, sWorldScriptsClassID);
+    JS_FreeValue(context, objectPrototype);
+    JS_DefinePropertyValueStr(context, global, "worldScripts", worldScripts, OOJS_PROP_READONLY);
 }
 
-static JSBool WorldScriptsGetProperty(JSContext* context, JSObject* this, jsid propID, jsval* value)
+// Name of a world script for a string property ID, or nil for other IDs (symbols and integers).
+static NSString* ScriptNameForPropertyID(JSContext* context, JSAtom propID)
 {
-    OOJS_NATIVE_ENTER(context)
+    NSString* result = nil;
+    JSValue idValue = JS_AtomToValue(context, propID);
+    if (JS_IsString(idValue)) {
+        result = OOStringFromJSValue(context, idValue);
+    }
+    JS_FreeValue(context, idValue);
+    return result;
+}
 
-    PlayerEntity* player = OOPlayerForScripting();
-    NSString* scriptName = nil;
-    id script = nil;
+static int WorldScriptsGetOwnProperty(JSContext* context, JSPropertyDescriptor* desc, JSValueConst object, JSAtom propID)
+{
+    @try {
+        PlayerEntity* player = OOPlayerForScripting();
+        NSString* scriptName = nil;
+        id script = nil;
 
-    if (!JSID_IS_STRING(propID))
-        return YES;
-    scriptName = OOStringFromJSString(context, JSID_TO_STRING(propID));
+        scriptName = ScriptNameForPropertyID(context, propID);
 
-    if (scriptName != nil) {
-        script = [[player worldScriptsByName] objectForKey:scriptName];
-        if (script != nil) {
-            /*	If script is an OOJSScript, this should return a JS Script
-                    object. For other OOScript subclasses, it will return
-                    JSVAL_NULL. If no script exists, the value will be
-                    JSVAL_VOID.
-            */
-            *value = [script oo_jsValueInContext:context];
-        } else {
-            *value = JSVAL_VOID;
+        if (scriptName != nil) {
+            script = [[player worldScriptsByName] objectForKey:scriptName];
+            if (script != nil) {
+                if (desc != NULL) {
+                    /*	If script is an OOJSScript, this should return a JS Script
+                            object. For other OOScript subclasses, it will return
+                            JSVAL_NULL. If no script exists, the value will be
+                            JSVAL_VOID.
+                    */
+                    desc->flags = OOJS_PROP_READONLY;
+                    desc->value = [script oo_jsValueInContext:context];
+                    desc->getter = JS_UNDEFINED;
+                    desc->setter = JS_UNDEFINED;
+                }
+                return YES;
+            }
         }
+
+        return NO;
     }
-
-    return YES;
-
-    OOJS_NATIVE_EXIT
+    @catch (id exception) {
+        OOJSReportWrappedException(context, exception);
+        return -1;
+    }
 }
 
-static JSBool WorldScriptsEnumerate(JSContext* context, JSObject* object)
+static int WorldScriptsGetOwnPropertyNames(JSContext* context, JSPropertyEnum** outTable, uint32_t* outCount, JSValueConst object)
 {
-    OOJS_NATIVE_ENTER(context)
-
     /*	In order to support enumeration of world scripts (e.g.,
-            for (name in worldScripts) { ... }), define each property on demand.
-            Since world scripts cannot be deleted, we don't need to worry about
-            that case (as in OOJSMissionVariables).
-
-            Since WorldScriptsGetProperty() will be called for each access anyway,
-            we define the value as null here.
+            for (name in worldScripts) { ... }), report each name.
+            QuickJS frees the table and its atoms.
     */
+    @try {
+        NSArray* names = [OOPlayerForScripting() worldScriptNames];
+        uint32_t i, count = (uint32_t)[names count];
 
-    NSArray* names = nil;
-    NSString* name = nil;
+        JSPropertyEnum* table = js_malloc(context, sizeof *table * MAX(count, 1U));
+        if (table == NULL)
+            return -1;
 
-    names = [OOPlayerForScripting() worldScriptNames];
+        for (i = 0; i < count; i++) {
+            table[i].is_enumerable = true;
+            table[i].atom = JS_NewAtom(context, [[names objectAtIndex:i] UTF8String]);
+            if (table[i].atom == JS_ATOM_NULL) {
+                JS_FreePropertyEnum(context, table, i);
+                return -1;
+            }
+        }
 
-    foreach (name, names) {
-        if (!JS_DefineProperty(context, object, [name UTF8String], JSVAL_NULL, WorldScriptsGetProperty, NULL, OOJS_PROP_READONLY_CB))
-            return NO;
+        *outTable = table;
+        *outCount = count;
+        return 0;
     }
-
-    return YES;
-
-    OOJS_NATIVE_EXIT
+    @catch (id exception) {
+        OOJSReportWrappedException(context, exception);
+        return -1;
+    }
 }
