@@ -495,7 +495,7 @@ static void SceneLit(void)
     for (int i = 0; i < kStacks; i++) {
         OOImmediateBegin(kOOPrimitiveTriangleStrip);
         for (int j = 0; j <= kSlices; j++) {
-            for (int k = 1; k >= 0; k--) {
+            for (int k = 0; k <= 1; k++) {
                 float phi = kPi * ((float)(i + k) / kStacks - 0.5f);
                 float theta = 2.0f * kPi * j / kSlices;
                 float n[3] = { cosf(phi) * cosf(theta), sinf(phi), cosf(phi) * sinf(theta) };
@@ -748,6 +748,105 @@ static void SceneProgram(void)
     BindTextureUnit(1, 0);
 }
 
+// Separate specular: highlights added after texturing, over a dark texture,
+// where adding them before texturing would darken them.
+static void SceneSpecular(void)
+{
+    static uint32_t dark;
+    if (dark == 0) {
+        uint8_t texels[4 * 4 * 4];
+        for (int i = 0; i < 16; i++) {
+            uint8_t* t = &texels[i * 4];
+            t[0] = 50;
+            t[1] = 60 + 8 * (i % 4);
+            t[2] = 90;
+            t[3] = 255;
+        }
+        OOTextureDescriptor descriptor = { .width = 4, .height = 4, .levels = 1, .format = kOOTexelRGBA8, .repeatS = true, .repeatT = true, .minFilter = kOOFilterNearest, .magFilter = kOOFilterNearest };
+        dark = OORendererCreateTexture(&descriptor);
+        OORendererUploadTexture(dark, 0, 0, 4, 4, texels);
+    }
+    float mv[16], p[16], identity[16];
+    Identity(identity);
+    Translation(mv, 0, 0, -3);
+    Perspective(p, 50, 1, 1, 10);
+    SetMatrices(identity, p);
+    const float ambient[4] = { 0.05f, 0.05f, 0.05f, 1 }, diffuse[4] = { 0.6f, 0.6f, 0.6f, 1 }, specular[4] = { 1, 1, 1, 1 };
+    const float direction[4] = { -0.3f, 0.4f, 0.87f, 0 };
+    OORendererSetLightColor(1, kOOLightAmbient, ambient);
+    OORendererSetLightColor(1, kOOLightDiffuse, diffuse);
+    OORendererSetLightColor(1, kOOLightSpecular, specular);
+    OORendererSetLightPosition(1, direction, NULL);
+    const float matAmbient[4] = { 0.3f, 0.3f, 0.3f, 1 }, matDiffuse[4] = { 0.8f, 0.8f, 0.8f, 1 }, matSpecular[4] = { 0.9f, 0.9f, 0.9f, 1 }, black[4] = { 0, 0, 0, 1 };
+    OORendererSetMaterialColor(kOOMaterialFrontAndBack, kOOMaterialAmbient, matAmbient);
+    OORendererSetMaterialColor(kOOMaterialFrontAndBack, kOOMaterialDiffuse, matDiffuse);
+    OORendererSetMaterialColor(kOOMaterialFrontAndBack, kOOMaterialSpecular, matSpecular);
+    OORendererSetMaterialColor(kOOMaterialFrontAndBack, kOOMaterialEmission, black);
+    OORendererSetMaterialShininess(kOOMaterialFrontAndBack, 3);
+    OORendererSetLightModelSeparateSpecular(true);
+    SetLightEnabled(1, true);
+    SetMatrices(mv, p);
+
+    OODrawState state = Plain();
+    state.depthTest = true;
+    state.depthWrite = true;
+    state.cullBack = true;
+    state.lighting = true;
+    state.texture2D = true;
+    state.texture = (const void*)(uintptr_t)dark;
+    OORendererPushDrawState(&state);
+    enum {
+        kStacks = 24,
+        kSlices = 32
+    };
+    for (int i = 0; i < kStacks; i++) {
+        OOImmediateBegin(kOOPrimitiveTriangleStrip);
+        for (int j = 0; j <= kSlices; j++) {
+            for (int k = 0; k <= 1; k++) {
+                float phi = kPi * ((float)(i + k) / kStacks - 0.5f);
+                float theta = 2.0f * kPi * j / kSlices;
+                float n[3] = { cosf(phi) * cosf(theta), sinf(phi), cosf(phi) * sinf(theta) };
+                OOImmediateTexCoord2f(2.0f * j / kSlices, (float)(i + k) / kStacks);
+                OOImmediateNormal3f(n[0], n[1], n[2]);
+                OOImmediateVertex3f(n[0], n[1], n[2]);
+            }
+        }
+        OOImmediateEnd();
+    }
+    OORendererPopDrawState();
+    SetLightEnabled(1, false);
+    OORendererSetLightModelSeparateSpecular(false);
+}
+
+// Linear fog over quads receding from the camera.
+static void SceneFog(void)
+{
+    float mv[16], p[16];
+    Identity(mv);
+    Perspective(p, 60, 1, 1, 30);
+    SetMatrices(mv, p);
+    const float fogColor[4] = { 0.4f, 0.5f, 0.7f, 1 };
+    OORendererSetFogMode(kOOFogLinear);
+    OORendererSetFogColor(fogColor);
+    OORendererSetFogRange(2.0f, 20.0f);
+    OODrawState state = Plain();
+    state.fog = true;
+    state.depthTest = true;
+    state.depthWrite = true;
+    OORendererPushDrawState(&state);
+    OOImmediateBegin(kOOPrimitiveQuads);
+    for (int i = 0; i < 6; i++) {
+        float z = -2.5f - 3.5f * i, x = -3.0f + 1.1f * i;
+        OOImmediateColor4f(i % 2 ? 1.0f : 0.2f, 0.9f - 0.12f * i, i % 3 ? 0.3f : 1.0f, 1);
+        OOImmediateVertex3f(x, -1.5f, z);
+        OOImmediateVertex3f(x + 2.5f, -1.5f, z);
+        OOImmediateVertex3f(x + 2.5f, 1.5f, z);
+        OOImmediateVertex3f(x, 1.5f, z);
+    }
+    OOImmediateEnd();
+    OORendererPopDrawState();
+}
+
 typedef struct {
     const char* name;
     void (*draw)(void);
@@ -769,6 +868,8 @@ static const Scene kScenes[] = {
     { "msaa", SceneMSAA, { 0, 0, 0, 1 }, PrepareMSAA },
     { "mrt", SceneMRT, { 0, 0, 0, 1 }, PrepareMRT },
     { "program", SceneProgram, { 0, 0, 0, 1 }, NULL },
+    { "specular", SceneSpecular, { 0, 0, 0, 1 }, NULL },
+    { "fog", SceneFog, { 0, 0, 0, 1 }, NULL },
 };
 
 static bool Save(const char* dir, const char* name, const uint8_t* bgraBottomUp)

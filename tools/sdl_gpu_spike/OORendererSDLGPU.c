@@ -33,9 +33,9 @@ Conventions handled here:
 - SDL_GPU has no luminance or alpha-only formats; they are expanded to
   RGBA on upload.
 
-Not in this slice: fog, colour material, separate specular,
-multitexturing, custom shader programs, and wide lines and large points
-(the CPU expansion exists for them).
+Not yet: colour material (Oolite never enables it), multitexture combine,
+texture environment modes other than modulate, and wide lines and large
+points (the CPU expansion exists for them).
 
 
 Copyright (C) 2026 Oolite contributors
@@ -586,9 +586,17 @@ static void BuildLegacyState(OOGLSLLegacyStateBlock* L, bool fixedFunction)
     for (int k = 0; k < 4; k++)
         L->frontLightModelProductSceneColor[k] = material->emission[k] + material->ambient[k] * ff->lightModelAmbient[k];
     L->frontLightModelProductSceneColor[3] = material->diffuse[3];
-    L->fogDensity = 1;
-    L->fogEnd = 1;
-    L->fogScale = 1;
+    const OOFogValues* fog = &ff->fog;
+    Copy4(L->fogColor, fog->color);
+    L->fogDensity = fog->density;
+    L->fogStart = fog->start;
+    L->fogEnd = fog->end;
+    L->fogScale = fog->end != fog->start ? 1.0f / (fog->end - fog->start) : 1.0f;
+    L->fogMode = fog->mode == kOOFogExp ? 1.0f : fog->mode == kOOFogExp2 ? 2.0f
+                                                                         : 0.0f;
+    L->fogEnabled = s->caps[kOOCapFog] && strcmp(sFault, "fog") != 0 ? 1.0f : 0.0f;
+    // The colour sum only applies with lighting.
+    L->separateSpecular = ff->separateSpecular && s->caps[kOOCapLighting] && strcmp(sFault, "specular") != 0 ? 1.0f : 0.0f;
     L->viewportHeight = (float)TargetHeight();
     L->pointSize = 1;
     L->lightingEnabled = s->caps[kOOCapLighting] ? 1.0f : 0.0f;

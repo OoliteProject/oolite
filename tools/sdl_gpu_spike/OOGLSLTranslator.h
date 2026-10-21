@@ -103,8 +103,12 @@ typedef struct {
     float fogColor[4];
     float fogDensity, fogStart, fogEnd, fogScale;
     float viewportHeight, pointSize;
-    float lightingEnabled; // Used by the fixed-function vertex emulation.
-    float pad;
+    // Used by the fixed-function emulation.
+    float lightingEnabled;
+    float fogEnabled;
+    float separateSpecular; // GL_SEPARATE_SPECULAR_COLOR: specular added after texturing
+    float fogMode; // 0 linear, 1 exp, 2 exp2
+    float pad[2];
 } OOGLSLLegacyStateBlock;
 
 typedef enum {
