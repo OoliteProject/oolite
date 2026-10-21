@@ -1,6 +1,6 @@
 /*
 
-OOJSVector.m
+OOJSVector.m (QuickJS-ng proof of concept)
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -23,67 +23,49 @@ MA 02110-1301, USA.
 */
 
 #import "OOJSVector.h"
+#import "OOJSQuaternion.h"
+#if !OOJS_POC_HARNESS
+#import "OOJSEntity.h"
+#endif
 #import "OOJavaScriptEngine.h"
 
-#if OOLITE_GNUSTEP
-#import <GNUstepBase/GSObjCRuntime.h>
-#else
-#import <objc/objc-runtime.h>
-#endif
+static JSClassID sVectorClassID;
 
-#import "OOConstToString.h"
-#import "OOJSEntity.h"
-#import "OOJSQuaternion.h"
+static BOOL GetThisVector(JSContext* context, JSValueConst vectorObj, HPVector* outVector, NSString* method) NONNULL_FUNC;
 
-static JSObject* sVectorPrototype;
-
-static BOOL GetThisVector(JSContext* context, JSObject* vectorObj, HPVector* outVector, NSString* method) NONNULL_FUNC;
-
-static JSBool VectorGetProperty(JSContext* context, JSObject* this, jsid propID, jsval* value);
-static JSBool VectorSetProperty(JSContext* context, JSObject* this, jsid propID, JSBool strict, jsval* value);
-static void VectorFinalize(JSContext* context, JSObject* this);
-static JSBool VectorConstruct(JSContext* context, uintN argc, jsval* vp);
+static JSValue VectorGetProperty(JSContext* context, JSValueConst this, int magic);
+static JSValue VectorSetProperty(JSContext* context, JSValueConst this, JSValueConst value, int magic);
+static void VectorFinalize(JSRuntime* runtime, JSValueConst this);
+static JSValue VectorConstruct(JSContext* context, JSValueConst newTarget, int argc, JSValueConst* argv);
 
 // Methods
-static JSBool VectorToString(JSContext* context, uintN argc, jsval* vp);
-static JSBool VectorToSource(JSContext* context, uintN argc, jsval* vp);
-static JSBool VectorAdd(JSContext* context, uintN argc, jsval* vp);
-static JSBool VectorSubtract(JSContext* context, uintN argc, jsval* vp);
-static JSBool VectorDistanceTo(JSContext* context, uintN argc, jsval* vp);
-static JSBool VectorSquaredDistanceTo(JSContext* context, uintN argc, jsval* vp);
-static JSBool VectorMultiply(JSContext* context, uintN argc, jsval* vp);
-static JSBool VectorDot(JSContext* context, uintN argc, jsval* vp);
-static JSBool VectorAngleTo(JSContext* context, uintN argc, jsval* vp);
-static JSBool VectorFromCoordinateSystem(JSContext* context, uintN argc, jsval* vp);
-static JSBool VectorToCoordinateSystem(JSContext* context, uintN argc, jsval* vp);
-static JSBool VectorCross(JSContext* context, uintN argc, jsval* vp);
-static JSBool VectorTripleProduct(JSContext* context, uintN argc, jsval* vp);
-static JSBool VectorDirection(JSContext* context, uintN argc, jsval* vp);
-static JSBool VectorMagnitude(JSContext* context, uintN argc, jsval* vp);
-static JSBool VectorSquaredMagnitude(JSContext* context, uintN argc, jsval* vp);
-static JSBool VectorRotationTo(JSContext* context, uintN argc, jsval* vp);
-static JSBool VectorRotateBy(JSContext* context, uintN argc, jsval* vp);
-static JSBool VectorToArray(JSContext* context, uintN argc, jsval* vp);
+static JSValue VectorToString(OOJS_NATIVE_ARGS);
+static JSValue VectorToSource(OOJS_NATIVE_ARGS);
+static JSValue VectorAdd(OOJS_NATIVE_ARGS);
+static JSValue VectorSubtract(OOJS_NATIVE_ARGS);
+static JSValue VectorDistanceTo(OOJS_NATIVE_ARGS);
+static JSValue VectorSquaredDistanceTo(OOJS_NATIVE_ARGS);
+static JSValue VectorMultiply(OOJS_NATIVE_ARGS);
+static JSValue VectorDot(OOJS_NATIVE_ARGS);
+static JSValue VectorAngleTo(OOJS_NATIVE_ARGS);
+static JSValue VectorCross(OOJS_NATIVE_ARGS);
+static JSValue VectorTripleProduct(OOJS_NATIVE_ARGS);
+static JSValue VectorDirection(OOJS_NATIVE_ARGS);
+static JSValue VectorMagnitude(OOJS_NATIVE_ARGS);
+static JSValue VectorSquaredMagnitude(OOJS_NATIVE_ARGS);
+static JSValue VectorRotationTo(OOJS_NATIVE_ARGS);
+static JSValue VectorRotateBy(OOJS_NATIVE_ARGS);
+static JSValue VectorToArray(OOJS_NATIVE_ARGS);
 
 // Static methods
-static JSBool VectorStaticInterpolate(JSContext* context, uintN argc, jsval* vp);
-static JSBool VectorStaticRandom(JSContext* context, uintN argc, jsval* vp);
-static JSBool VectorStaticRandomDirection(JSContext* context, uintN argc, jsval* vp);
-static JSBool VectorStaticRandomDirectionAndLength(JSContext* context, uintN argc, jsval* vp);
+static JSValue VectorStaticInterpolate(OOJS_NATIVE_ARGS);
+static JSValue VectorStaticRandom(OOJS_NATIVE_ARGS);
+static JSValue VectorStaticRandomDirection(OOJS_NATIVE_ARGS);
+static JSValue VectorStaticRandomDirectionAndLength(OOJS_NATIVE_ARGS);
 
-static JSClass sVectorClass = {
-    "Vector3D",
-    JSCLASS_HAS_PRIVATE,
-
-    JS_PropertyStub, // addProperty
-    JS_PropertyStub, // delProperty
-    VectorGetProperty, // getProperty
-    VectorSetProperty, // setProperty
-    JS_EnumerateStub, // enumerate
-    JS_ResolveStub, // resolve
-    JS_ConvertStub, // convert
-    VectorFinalize, // finalize
-    JSCLASS_NO_OPTIONAL_MEMBERS
+static JSClassDef sVectorClass = {
+    .class_name = "Vector3D",
+    .finalizer = VectorFinalize,
 };
 
 enum {
@@ -93,373 +75,187 @@ enum {
     kVector_z
 };
 
-static JSPropertySpec sVectorProperties[] = {
-    // JS name					ID							flags
-    { "x", kVector_x, OOJS_PROP_READWRITE_CB },
-    { "y", kVector_y, OOJS_PROP_READWRITE_CB },
-    { "z", kVector_z, OOJS_PROP_READWRITE_CB },
-    { 0 }
+static const JSCFunctionListEntry sVectorProperties[] = {
+    // JS name, getter, setter, ID, flags
+    JS_CGETSET_MAGIC_DEF2("x", VectorGetProperty, VectorSetProperty, kVector_x, OOJS_PROP_READWRITE_CB),
+    JS_CGETSET_MAGIC_DEF2("y", VectorGetProperty, VectorSetProperty, kVector_y, OOJS_PROP_READWRITE_CB),
+    JS_CGETSET_MAGIC_DEF2("z", VectorGetProperty, VectorSetProperty, kVector_z, OOJS_PROP_READWRITE_CB),
 };
 
-static JSFunctionSpec sVectorMethods[] = {
-    // JS name					Function					min args
-    {
-        "toSource",
-        VectorToSource,
-        0,
-    },
-    {
-        "toString",
-        VectorToString,
-        0,
-    },
-    {
-        "add",
-        VectorAdd,
-        1,
-    },
-    {
-        "angleTo",
-        VectorAngleTo,
-        1,
-    },
-    {
-        "cross",
-        VectorCross,
-        1,
-    },
-    {
-        "direction",
-        VectorDirection,
-        0,
-    },
-    {
-        "distanceTo",
-        VectorDistanceTo,
-        1,
-    },
-    {
-        "dot",
-        VectorDot,
-        1,
-    },
-    {
-        "fromCoordinateSystem",
-        VectorFromCoordinateSystem,
-        1,
-    },
-    {
-        "magnitude",
-        VectorMagnitude,
-        0,
-    },
-    {
-        "multiply",
-        VectorMultiply,
-        1,
-    },
-    {
-        "rotateBy",
-        VectorRotateBy,
-        1,
-    },
-    {
-        "rotationTo",
-        VectorRotationTo,
-        1,
-    },
-    {
-        "squaredDistanceTo",
-        VectorSquaredDistanceTo,
-        1,
-    },
-    {
-        "squaredMagnitude",
-        VectorSquaredMagnitude,
-        0,
-    },
-    {
-        "subtract",
-        VectorSubtract,
-        1,
-    },
-    {
-        "toArray",
-        VectorToArray,
-        0,
-    },
-    {
-        "toCoordinateSystem",
-        VectorToCoordinateSystem,
-        1,
-    },
-    {
-        "tripleProduct",
-        VectorTripleProduct,
-        2,
-    },
-    { 0 }
+/*	TODO (phase 3): toCoordinateSystem() and fromCoordinateSystem() need
+        Universe, which is not part of the proof-of-concept harness.
+*/
+static const JSCFunctionListEntry sVectorMethods[] = {
+    // JS name, min args, function
+    JS_CFUNC_DEF("toSource", 0, VectorToSource),
+    JS_CFUNC_DEF("toString", 0, VectorToString),
+    JS_CFUNC_DEF("add", 1, VectorAdd),
+    JS_CFUNC_DEF("angleTo", 1, VectorAngleTo),
+    JS_CFUNC_DEF("cross", 1, VectorCross),
+    JS_CFUNC_DEF("direction", 0, VectorDirection),
+    JS_CFUNC_DEF("distanceTo", 1, VectorDistanceTo),
+    JS_CFUNC_DEF("dot", 1, VectorDot),
+    JS_CFUNC_DEF("magnitude", 0, VectorMagnitude),
+    JS_CFUNC_DEF("multiply", 1, VectorMultiply),
+    JS_CFUNC_DEF("rotateBy", 1, VectorRotateBy),
+    JS_CFUNC_DEF("rotationTo", 1, VectorRotationTo),
+    JS_CFUNC_DEF("squaredDistanceTo", 1, VectorSquaredDistanceTo),
+    JS_CFUNC_DEF("squaredMagnitude", 0, VectorSquaredMagnitude),
+    JS_CFUNC_DEF("subtract", 1, VectorSubtract),
+    JS_CFUNC_DEF("toArray", 0, VectorToArray),
+    JS_CFUNC_DEF("tripleProduct", 2, VectorTripleProduct),
 };
 
-static JSFunctionSpec sVectorStaticMethods[] = {
-    // JS name						Function							min args
-    {
-        "interpolate",
-        VectorStaticInterpolate,
-        3,
-    },
-    {
-        "random",
-        VectorStaticRandom,
-        0,
-    },
-    {
-        "randomDirection",
-        VectorStaticRandomDirection,
-        0,
-    },
-    {
-        "randomDirectionAndLength",
-        VectorStaticRandomDirectionAndLength,
-        0,
-    },
-    { 0 }
+static const JSCFunctionListEntry sVectorStaticMethods[] = {
+    // JS name, min args, function
+    JS_CFUNC_DEF("interpolate", 3, VectorStaticInterpolate),
+    JS_CFUNC_DEF("random", 0, VectorStaticRandom),
+    JS_CFUNC_DEF("randomDirection", 0, VectorStaticRandomDirection),
+    JS_CFUNC_DEF("randomDirectionAndLength", 0, VectorStaticRandomDirectionAndLength),
 };
 
 // *** Public ***
 
-void InitOOJSVector(JSContext* context, JSObject* global)
+void InitOOJSVector(JSContext* context, JSValueConst global)
 {
-    sVectorPrototype = JS_InitClass(context, global, NULL, &sVectorClass, VectorConstruct, 0, sVectorProperties, sVectorMethods, NULL, sVectorStaticMethods);
+    OOJSRegisterClass(&sVectorClassID, &sVectorClass);
+
+    // As in SpiderMonkey, the prototype is itself an instance with no private data, treated as zero.
+    OOJSInitClass(context, global, sVectorClassID, JS_UNDEFINED, VectorConstruct, 0,
+        sVectorProperties, OOJS_COUNT(sVectorProperties), sVectorMethods, OOJS_COUNT(sVectorMethods), sVectorStaticMethods, OOJS_COUNT(sVectorStaticMethods));
 }
 
-JSObject* JSVectorWithVector(JSContext* context, Vector vector)
+JSValue JSVectorWithVector(JSContext* context, Vector vector)
 {
-    OOJS_PROFILE_ENTER
-
-    JSObject* result = NULL;
-    HPVector* private = NULL;
-
-private
-    = malloc(sizeof *private);
-    if (EXPECT_NOT(private == NULL))
-        return NULL;
-
-    *private = vectorToHPVector(vector);
-
-    result = JS_NewObject(context, &sVectorClass, sVectorPrototype, NULL);
-    if (result != NULL) {
-        if (EXPECT_NOT(!JS_SetPrivate(context, result, private)))
-            result = NULL;
-    }
-
-    if (EXPECT_NOT(result == NULL))
-        free(private);
-
-    return result;
-
-    OOJS_PROFILE_EXIT
+    return JSVectorWithHPVector(context, vectorToHPVector(vector));
 }
 
-BOOL VectorToJSValue(JSContext* context, Vector vector, jsval* outValue)
+BOOL VectorToJSValue(JSContext* context, Vector vector, JSValue* outValue)
 {
-    OOJS_PROFILE_ENTER
-
-    JSObject* object = NULL;
-
     assert(outValue != NULL);
 
-    object = JSVectorWithVector(context, vector);
-    if (EXPECT_NOT(object == NULL))
-        return NO;
-
-    *outValue = OBJECT_TO_JSVAL(object);
-    return YES;
-
-    OOJS_PROFILE_EXIT
+    return HPVectorToJSValue(context, vectorToHPVector(vector), outValue);
 }
 
-JSObject* JSVectorWithHPVector(JSContext* context, HPVector vector)
+JSValue JSVectorWithHPVector(JSContext* context, HPVector vector)
 {
     OOJS_PROFILE_ENTER
 
-    JSObject* result = NULL;
     HPVector* private = NULL;
 
 private
     = malloc(sizeof *private);
     if (EXPECT_NOT(private == NULL))
-        return NULL;
+        return JS_ThrowOutOfMemory(context);
 
     *private = vector;
 
-    result = JS_NewObject(context, &sVectorClass, sVectorPrototype, NULL);
-    if (result != NULL) {
-        if (EXPECT_NOT(!JS_SetPrivate(context, result, private)))
-            result = NULL;
-    }
-
-    if (EXPECT_NOT(result == NULL))
+    JSValue result = JS_NewObjectClass(context, sVectorClassID);
+    if (EXPECT_NOT(JS_IsException(result))) {
         free(private);
+        return result;
+    }
+    JS_SetOpaque(result, private);
 
     return result;
 
     OOJS_PROFILE_EXIT
 }
 
-BOOL HPVectorToJSValue(JSContext* context, HPVector vector, jsval* outValue)
+BOOL HPVectorToJSValue(JSContext* context, HPVector vector, JSValue* outValue)
 {
     OOJS_PROFILE_ENTER
 
-    JSObject* object = NULL;
-
     assert(outValue != NULL);
 
-    object = JSVectorWithHPVector(context, vector);
-    if (EXPECT_NOT(object == NULL))
+    JSValue object = JSVectorWithHPVector(context, vector);
+    if (EXPECT_NOT(JS_IsException(object))) {
+        *outValue = JS_UNDEFINED;
         return NO;
+    }
 
-    *outValue = OBJECT_TO_JSVAL(object);
+    *outValue = object;
     return YES;
 
     OOJS_PROFILE_EXIT
 }
 
-BOOL NSPointToVectorJSValue(JSContext* context, NSPoint point, jsval* outValue)
+BOOL NSPointToVectorJSValue(JSContext* context, NSPoint point, JSValue* outValue)
 {
     return VectorToJSValue(context, make_vector(point.x, point.y, 0), outValue);
 }
 
-BOOL JSValueToHPVector(JSContext* context, jsval value, HPVector* outVector)
+BOOL JSValueToHPVector(JSContext* context, JSValueConst value, HPVector* outVector)
 {
-    if (EXPECT_NOT(!JSVAL_IS_OBJECT(value)))
+    if (EXPECT_NOT(!JS_IsObject(value)))
         return NO;
 
-    return JSObjectGetVector(context, JSVAL_TO_OBJECT(value), outVector);
+    return JSObjectGetVector(context, value, outVector);
 }
 
-BOOL JSValueToVector(JSContext* context, jsval value, Vector* outVector)
+BOOL JSValueToVector(JSContext* context, JSValueConst value, Vector* outVector)
 {
-    if (EXPECT_NOT(!JSVAL_IS_OBJECT(value)))
+    if (EXPECT_NOT(!JS_IsObject(value)))
         return NO;
     HPVector tmp = kZeroHPVector;
-    BOOL result = JSObjectGetVector(context, JSVAL_TO_OBJECT(value), &tmp);
+    BOOL result = JSObjectGetVector(context, value, &tmp);
     *outVector = HPVectorToVector(tmp);
     return result;
 }
 
-#if OO_DEBUG
-
-typedef struct
+// Get array element as a number. Like JS_ValueToNumber(), non-numbers give NaN rather than failing.
+static BOOL GetArrayElementNumber(JSContext* context, JSValueConst array, uint32_t index, double* outNumber)
 {
-    NSUInteger vectorCount;
-    NSUInteger entityCount;
-    NSUInteger arrayCount;
-    NSUInteger protoCount;
-    NSUInteger nullCount;
-    NSUInteger failCount;
-} VectorStatistics;
-static VectorStatistics sVectorConversionStats;
-
-@implementation PlayerEntity (JSVectorStatistics)
-
-// :setM vectorStats PS.callObjC("reportJSVectorStatistics")
-// :vectorStats
-
-- (NSString*)reportJSVectorStatistics
-{
-    VectorStatistics* stats = &sVectorConversionStats;
-
-    NSUInteger sum = stats->vectorCount + stats->entityCount + stats->arrayCount + stats->protoCount;
-    double convFac = 100.0 / sum;
-    if (sum == 0)
-        convFac = 0;
-
-    return [NSString stringWithFormat:
-            @" vector-to-vector conversions: %zu (%g %%)\n"
-             " entity-to-vector conversions: %zu (%g %%)\n"
-             "  array-to-vector conversions: %zu (%g %%)\n"
-             "prototype-to-zero conversions: %zu (%g %%)\n"
-             "             null conversions: %zu (%g %%)\n"
-             "           failed conversions: %zu (%g %%)\n"
-             "                        total: %zu",
-        (long)stats->vectorCount, stats->vectorCount * convFac,
-        (long)stats->entityCount, stats->entityCount * convFac,
-        (long)stats->arrayCount, stats->arrayCount * convFac,
-        (long)stats->protoCount, stats->protoCount * convFac,
-        (long)stats->nullCount, stats->nullCount * convFac,
-        (long)stats->failCount, stats->failCount * convFac,
-        (long)sum];
+    JSValue element = JS_GetPropertyUint32(context, array, index);
+    int status = JS_IsException(element) ? -1 : JS_ToFloat64(context, outNumber, element);
+    JS_FreeValue(context, element);
+    return status == 0;
 }
 
-- (void)clearJSVectorStatistics
-{
-    memset(&sVectorConversionStats, 0, sizeof sVectorConversionStats);
-}
-
-@end
-
-#define COUNT(FIELD)                    \
-    do {                                \
-        sVectorConversionStats.FIELD++; \
-    } while (0)
-
-#else
-
-#define COUNT(FIELD) \
-    do {             \
-    } while (0)
-
-#endif
-
-BOOL JSObjectGetVector(JSContext* context, JSObject* vectorObj, HPVector* outVector)
+BOOL JSObjectGetVector(JSContext* context, JSValueConst vectorObj, HPVector* outVector)
 {
     OOJS_PROFILE_ENTER
 
     assert(outVector != NULL);
 
     HPVector* private = NULL;
-    jsuint arrayLength;
-    jsval arrayX, arrayY, arrayZ;
-    jsdouble x, y, z;
+    int64_t arrayLength;
+    double x, y, z;
 
-    // vectorObj can legitimately be NULL, e.g. when JS_NULL is converted to a JSObject *.
-    if (EXPECT_NOT(vectorObj == NULL)) {
-        COUNT(nullCount);
+    // vectorObj can legitimately be null or a primitive.
+    if (EXPECT_NOT(!JS_IsObject(vectorObj))) {
         return NO;
     }
 
     // If this is a (JS) Vector...
 private
-    = JS_GetInstancePrivate(context, vectorObj, &sVectorClass, NULL);
+    = JS_GetOpaque(vectorObj, sVectorClassID);
     if (EXPECT(private != NULL)) {
-        COUNT(vectorCount);
         *outVector = *private;
         return YES;
     }
 
     // If it's an array...
-    if (EXPECT(JS_IsArrayObject(context, vectorObj))) {
+    if (EXPECT(JS_IsArray(vectorObj))) {
         // ...and it has exactly three elements...
-        if (JS_GetArrayLength(context, vectorObj, &arrayLength) && arrayLength == 3) {
-            if (JS_LookupElement(context, vectorObj, 0, &arrayX) && JS_LookupElement(context, vectorObj, 1, &arrayY) && JS_LookupElement(context, vectorObj, 2, &arrayZ)) {
-                // ...use the three numbers as [x, y, z]
-                if (JS_ValueToNumber(context, arrayX, &x) && JS_ValueToNumber(context, arrayY, &y) && JS_ValueToNumber(context, arrayZ, &z)) {
-                    COUNT(arrayCount);
-                    *outVector = make_HPvector(x, y, z);
-                    return YES;
-                }
+        if (JS_GetLength(context, vectorObj, &arrayLength) == 0 && arrayLength == 3) {
+            // ...use the three numbers as [x, y, z]
+            if (GetArrayElementNumber(context, vectorObj, 0, &x) && GetArrayElementNumber(context, vectorObj, 1, &y) && GetArrayElementNumber(context, vectorObj, 2, &z)) {
+                *outVector = make_HPvector(x, y, z);
+                return YES;
             }
         }
     }
 
+#if !OOJS_POC_HARNESS
     // If it's an entity, use its position.
-    if (OOJSIsMemberOfSubclass(context, vectorObj, JSEntityClass())) {
-        COUNT(entityCount);
-        Entity* entity = [(id)JS_GetPrivate(context, vectorObj) weakRefUnderlyingObject];
+    if (OOJSIsMemberOfSubclass(context, vectorObj, JSEntityClassID())) {
+        JSClassID ignored;
+        Entity* entity = [(id)JS_GetAnyOpaque(vectorObj, &ignored) weakRefUnderlyingObject];
         *outVector = [entity position];
         return YES;
     }
+#endif
 
     /*
             If it's actually a Vector3D but with no private field (this happens for
@@ -468,51 +264,48 @@ private
             NOTE: it would be prettier to do this at the top when we handle normal
             Vector3Ds, but it's a rare case which should be kept off the fast path.
     */
-    if (JS_InstanceOf(context, vectorObj, &sVectorClass, NULL)) {
-        COUNT(protoCount);
+    if (JS_GetClassID(vectorObj) == sVectorClassID) {
         *outVector = kZeroHPVector;
         return YES;
     }
 
-    COUNT(failCount);
     return NO;
 
     OOJS_PROFILE_EXIT
 }
 
-static BOOL GetThisVector(JSContext* context, JSObject* vectorObj, HPVector* outVector, NSString* method)
+static BOOL GetThisVector(JSContext* context, JSValueConst vectorObj, HPVector* outVector, NSString* method)
 {
     if (EXPECT(JSObjectGetVector(context, vectorObj, outVector)))
         return YES;
 
-    jsval arg = OBJECT_TO_JSVAL(vectorObj);
-    OOJSReportBadArguments(context, @"Vector3D", method, 1, &arg, @"Invalid target object", @"Vector3D");
+    OOJSReportBadArguments(context, @"Vector3D", method, 1, &vectorObj, @"Invalid target object", @"Vector3D");
     return NO;
 }
 
-BOOL JSVectorSetVector(JSContext* context, JSObject* vectorObj, Vector vector)
+BOOL JSVectorSetVector(JSContext* context, JSValueConst vectorObj, Vector vector)
 {
     return JSVectorSetHPVector(context, vectorObj, vectorToHPVector(vector));
 }
 
-BOOL JSVectorSetHPVector(JSContext* context, JSObject* vectorObj, HPVector vector)
+BOOL JSVectorSetHPVector(JSContext* context, JSValueConst vectorObj, HPVector vector)
 {
     OOJS_PROFILE_ENTER
 
     HPVector* private = NULL;
 
-    if (EXPECT_NOT(vectorObj == NULL))
+    if (EXPECT_NOT(!JS_IsObject(vectorObj)))
         return NO;
 
 private
-    = JS_GetInstancePrivate(context, vectorObj, &sVectorClass, NULL);
+    = JS_GetOpaque(vectorObj, sVectorClassID);
     if (private != NULL) // If this is a (JS) Vector...
     {
         *private = vector;
         return YES;
     }
 
-    if (JS_InstanceOf(context, vectorObj, &sVectorClass, NULL)) {
+    if (JS_GetClassID(vectorObj) == sVectorClassID) {
         // Silently fail for the prototype.
         return YES;
     }
@@ -522,7 +315,7 @@ private
     OOJS_PROFILE_EXIT
 }
 
-static BOOL VectorFromArgumentListNoErrorInternal(JSContext* context, uintN argc, jsval* argv, HPVector* outVector, uintN* outConsumed, BOOL permitNumberList)
+static BOOL VectorFromArgumentListNoErrorInternal(JSContext* context, int argc, JSValueConst* argv, HPVector* outVector, int* outConsumed, BOOL permitNumberList)
 {
     OOJS_PROFILE_ENTER
 
@@ -536,8 +329,8 @@ static BOOL VectorFromArgumentListNoErrorInternal(JSContext* context, uintN argc
         *outConsumed = 0;
 
     // Is first object a vector, array or entity?
-    if (JSVAL_IS_OBJECT(argv[0])) {
-        if (JSObjectGetVector(context, JSVAL_TO_OBJECT(argv[0]), outVector)) {
+    if (JS_IsObject(argv[0])) {
+        if (JSObjectGetVector(context, argv[0], outVector)) {
             if (outConsumed != NULL)
                 *outConsumed = 1;
             return YES;
@@ -551,12 +344,12 @@ static BOOL VectorFromArgumentListNoErrorInternal(JSContext* context, uintN argc
     if (argc < 3)
         return NO;
 
-    // Given a string, JS_ValueToNumber() returns YES but provides a NaN number.
-    if (EXPECT_NOT(!JS_ValueToNumber(context, argv[0], &x) || isnan(x)))
+    // Given a string, JS_ToFloat64() succeeds but provides a NaN number.
+    if (EXPECT_NOT(JS_ToFloat64(context, &x, argv[0]) < 0 || isnan(x)))
         return NO;
-    if (EXPECT_NOT(!JS_ValueToNumber(context, argv[1], &y) || isnan(y)))
+    if (EXPECT_NOT(JS_ToFloat64(context, &y, argv[1]) < 0 || isnan(y)))
         return NO;
-    if (EXPECT_NOT(!JS_ValueToNumber(context, argv[2], &z) || isnan(z)))
+    if (EXPECT_NOT(JS_ToFloat64(context, &z, argv[2]) < 0 || isnan(z)))
         return NO;
 
     // We got our three numbers.
@@ -570,7 +363,7 @@ static BOOL VectorFromArgumentListNoErrorInternal(JSContext* context, uintN argc
 }
 
 // EMMSTRAN: remove outConsumed, since it can only be 1 except in failure (constructor is an exception, but it uses VectorFromArgumentListNoErrorInternal() directly).
-BOOL VectorFromArgumentList(JSContext* context, NSString* scriptClass, NSString* function, uintN argc, jsval* argv, HPVector* outVector, uintN* outConsumed)
+BOOL VectorFromArgumentList(JSContext* context, NSString* scriptClass, NSString* function, int argc, JSValueConst* argv, HPVector* outVector, int* outConsumed)
 {
     if (VectorFromArgumentListNoErrorInternal(context, argc, argv, outVector, outConsumed, NO))
         return YES;
@@ -582,27 +375,24 @@ BOOL VectorFromArgumentList(JSContext* context, NSString* scriptClass, NSString*
     }
 }
 
-BOOL VectorFromArgumentListNoError(JSContext* context, uintN argc, jsval* argv, HPVector* outVector, uintN* outConsumed)
+BOOL VectorFromArgumentListNoError(JSContext* context, int argc, JSValueConst* argv, HPVector* outVector, int* outConsumed)
 {
     return VectorFromArgumentListNoErrorInternal(context, argc, argv, outVector, outConsumed, NO);
 }
 
 // *** Implementation stuff ***
 
-static JSBool VectorGetProperty(JSContext* context, JSObject* this, jsid propID, jsval* value)
+static JSValue VectorGetProperty(JSContext* context, JSValueConst this, int magic)
 {
-    if (!JSID_IS_INT(propID))
-        return YES;
-
     OOJS_PROFILE_ENTER
 
     HPVector vector;
     OOHPScalar fValue;
 
     if (EXPECT_NOT(!JSObjectGetVector(context, this, &vector)))
-        return NO;
+        return JS_UNDEFINED;
 
-    switch (JSID_TO_INT(propID)) {
+    switch (magic) {
     case kVector_x:
         fValue = vector.x;
         break;
@@ -616,33 +406,31 @@ static JSBool VectorGetProperty(JSContext* context, JSObject* this, jsid propID,
         break;
 
     default:
-        OOJSReportBadPropertySelector(context, this, propID, sVectorProperties);
-        return NO;
+        OOJSReportBadPropertySelector(context, this, magic, sVectorProperties, OOJS_COUNT(sVectorProperties));
+        return JS_EXCEPTION;
     }
 
-    return JS_NewNumberValue(context, fValue, value);
+    return JS_NewFloat64(context, fValue);
 
     OOJS_PROFILE_EXIT
 }
 
-static JSBool VectorSetProperty(JSContext* context, JSObject* this, jsid propID, JSBool strict, jsval* value)
+static JSValue VectorSetProperty(JSContext* context, JSValueConst this, JSValueConst value, int magic)
 {
-    if (!JSID_IS_INT(propID))
-        return YES;
-
     OOJS_PROFILE_ENTER
 
     HPVector vector;
-    jsdouble dval;
+    double dval;
 
     if (EXPECT_NOT(!JSObjectGetVector(context, this, &vector)))
-        return NO;
-    if (EXPECT_NOT(!JS_ValueToNumber(context, *value, &dval))) {
-        OOJSReportBadPropertyValue(context, this, propID, sVectorProperties, *value);
-        return NO;
+        return JS_UNDEFINED;
+    if (EXPECT_NOT(JS_ToFloat64(context, &dval, value) < 0)) {
+        JS_FreeValue(context, JS_GetException(context));
+        OOJSReportBadPropertyValue(context, this, magic, sVectorProperties, OOJS_COUNT(sVectorProperties), value);
+        return JS_EXCEPTION;
     }
 
-    switch (JSID_TO_INT(propID)) {
+    switch (magic) {
     case kVector_x:
         vector.x = dval;
         break;
@@ -656,65 +444,41 @@ static JSBool VectorSetProperty(JSContext* context, JSObject* this, jsid propID,
         break;
 
     default:
-        OOJSReportBadPropertySelector(context, this, propID, sVectorProperties);
-        return NO;
+        OOJSReportBadPropertySelector(context, this, magic, sVectorProperties, OOJS_COUNT(sVectorProperties));
+        return JS_EXCEPTION;
     }
 
-    return JSVectorSetHPVector(context, this, vector);
+    JSVectorSetHPVector(context, this, vector);
+    return JS_UNDEFINED;
 
     OOJS_PROFILE_EXIT
 }
 
-static void VectorFinalize(JSContext* context, JSObject* this)
+static void VectorFinalize(JSRuntime* runtime, JSValueConst this)
 {
     OOJS_PROFILE_ENTER
 
-    Vector* private = NULL;
-
-private
-    = JS_GetInstancePrivate(context, this, &sVectorClass, NULL);
-    if (private != NULL) {
-        free(private);
-    }
+    free(JS_GetOpaque(this, sVectorClassID));
 
     OOJS_PROFILE_EXIT_VOID
 }
 
-static JSBool VectorConstruct(JSContext* context, uintN argc, jsval* vp)
+static JSValue VectorConstruct(JSContext* context, JSValueConst newTarget, int argc, JSValueConst* argv)
 {
     OOJS_PROFILE_ENTER
 
     HPVector vector = kZeroHPVector;
-    HPVector* private = NULL;
-    JSObject* this = NULL;
-
-private
-    = malloc(sizeof *private);
-    if (EXPECT_NOT(private == NULL))
-        return NO;
-
-    this = JS_NewObject(context, &sVectorClass, NULL, NULL);
-    if (EXPECT_NOT(this == NULL))
-        return NO;
 
     if (argc != 0) {
-        if (EXPECT_NOT(!VectorFromArgumentListNoErrorInternal(context, argc, OOJS_ARGV, &vector, NULL, YES))) {
-            free(private);
-            OOJSReportBadArguments(context, NULL, NULL, argc, OOJS_ARGV,
+        if (EXPECT_NOT(!VectorFromArgumentListNoErrorInternal(context, argc, argv, &vector, NULL, YES))) {
+            OOJSReportBadArguments(context, NULL, NULL, argc, argv,
                 @"Could not construct vector from parameters",
                 @"Vector, Entity or array of three numbers");
-            return NO;
+            return JS_EXCEPTION;
         }
     }
 
-    *private = vector;
-
-    if (EXPECT_NOT(!JS_SetPrivate(context, this, private))) {
-        free(private);
-        return NO;
-    }
-
-    OOJS_RETURN_JSOBJECT(this);
+    return JSVectorWithHPVector(context, vector);
 
     OOJS_PROFILE_EXIT
 }
@@ -722,14 +486,14 @@ private
 // *** Methods ***
 
 // toString() : String
-static JSBool VectorToString(JSContext* context, uintN argc, jsval* vp)
+static JSValue VectorToString(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
     HPVector thisv;
 
     if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, @"toString")))
-        return NO;
+        return JS_EXCEPTION;
 
     OOJS_RETURN_OBJECT(HPVectorDescription(thisv));
 
@@ -737,14 +501,14 @@ static JSBool VectorToString(JSContext* context, uintN argc, jsval* vp)
 }
 
 // toSource() : String
-static JSBool VectorToSource(JSContext* context, uintN argc, jsval* vp)
+static JSValue VectorToSource(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
     HPVector thisv;
 
     if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, @"toSource")))
-        return NO;
+        return JS_EXCEPTION;
 
     NSString* str = [NSString stringWithFormat:@"Vector3D(%g, %g, %g)", thisv.x, thisv.y, thisv.z];
     OOJS_RETURN_OBJECT(str);
@@ -753,16 +517,16 @@ static JSBool VectorToSource(JSContext* context, uintN argc, jsval* vp)
 }
 
 // add(v : vectorExpression) : Vector3D
-static JSBool VectorAdd(JSContext* context, uintN argc, jsval* vp)
+static JSValue VectorAdd(OOJS_NATIVE_ARGS)
 {
     OOJS_PROFILE_ENTER
 
     HPVector thisv, thatv, result;
 
     if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, @"add")))
-        return NO;
+        return JS_EXCEPTION;
     if (EXPECT_NOT(!VectorFromArgumentList(context, @"Vector3D", @"add", argc, OOJS_ARGV, &thatv, NULL)))
-        return NO;
+        return JS_EXCEPTION;
 
     result = HPvector_add(thisv, thatv);
 
@@ -772,16 +536,16 @@ static JSBool VectorAdd(JSContext* context, uintN argc, jsval* vp)
 }
 
 // subtract(v : vectorExpression) : Vector3D
-static JSBool VectorSubtract(JSContext* context, uintN argc, jsval* vp)
+static JSValue VectorSubtract(OOJS_NATIVE_ARGS)
 {
     OOJS_PROFILE_ENTER
 
     HPVector thisv, thatv, result;
 
     if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, @"subtract")))
-        return NO;
+        return JS_EXCEPTION;
     if (EXPECT_NOT(!VectorFromArgumentList(context, @"Vector3D", @"subtract", argc, OOJS_ARGV, &thatv, NULL)))
-        return NO;
+        return JS_EXCEPTION;
 
     result = HPvector_subtract(thisv, thatv);
 
@@ -791,7 +555,7 @@ static JSBool VectorSubtract(JSContext* context, uintN argc, jsval* vp)
 }
 
 // distanceTo(v : vectorExpression) : Number
-static JSBool VectorDistanceTo(JSContext* context, uintN argc, jsval* vp)
+static JSValue VectorDistanceTo(OOJS_NATIVE_ARGS)
 {
     OOJS_PROFILE_ENTER
 
@@ -799,9 +563,9 @@ static JSBool VectorDistanceTo(JSContext* context, uintN argc, jsval* vp)
     double result;
 
     if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, @"distanceTo")))
-        return NO;
+        return JS_EXCEPTION;
     if (EXPECT_NOT(!VectorFromArgumentList(context, @"Vector3D", @"distanceTo", argc, OOJS_ARGV, &thatv, NULL)))
-        return NO;
+        return JS_EXCEPTION;
 
     result = HPdistance(thisv, thatv);
 
@@ -811,7 +575,7 @@ static JSBool VectorDistanceTo(JSContext* context, uintN argc, jsval* vp)
 }
 
 // squaredDistanceTo(v : vectorExpression) : Number
-static JSBool VectorSquaredDistanceTo(JSContext* context, uintN argc, jsval* vp)
+static JSValue VectorSquaredDistanceTo(OOJS_NATIVE_ARGS)
 {
     OOJS_PROFILE_ENTER
 
@@ -819,9 +583,9 @@ static JSBool VectorSquaredDistanceTo(JSContext* context, uintN argc, jsval* vp)
     double result;
 
     if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, @"squaredDistanceTo")))
-        return NO;
+        return JS_EXCEPTION;
     if (EXPECT_NOT(!VectorFromArgumentList(context, @"Vector3D", @"squaredDistanceTo", argc, OOJS_ARGV, &thatv, NULL)))
-        return NO;
+        return JS_EXCEPTION;
 
     result = HPdistance2(thisv, thatv);
 
@@ -831,7 +595,7 @@ static JSBool VectorSquaredDistanceTo(JSContext* context, uintN argc, jsval* vp)
 }
 
 // multiply(n : Number) : Vector3D
-static JSBool VectorMultiply(JSContext* context, uintN argc, jsval* vp)
+static JSValue VectorMultiply(OOJS_NATIVE_ARGS)
 {
     OOJS_PROFILE_ENTER
 
@@ -839,9 +603,9 @@ static JSBool VectorMultiply(JSContext* context, uintN argc, jsval* vp)
     double scalar;
 
     if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, @"multiply")))
-        return NO;
+        return JS_EXCEPTION;
     if (EXPECT_NOT(!OOJSArgumentListGetNumber(context, @"Vector3D", @"multiply", argc, OOJS_ARGV, &scalar, NULL)))
-        return NO;
+        return JS_EXCEPTION;
 
     result = HPvector_multiply_scalar(thisv, scalar);
 
@@ -851,7 +615,7 @@ static JSBool VectorMultiply(JSContext* context, uintN argc, jsval* vp)
 }
 
 // dot(v : vectorExpression) : Number
-static JSBool VectorDot(JSContext* context, uintN argc, jsval* vp)
+static JSValue VectorDot(OOJS_NATIVE_ARGS)
 {
     OOJS_PROFILE_ENTER
 
@@ -859,9 +623,9 @@ static JSBool VectorDot(JSContext* context, uintN argc, jsval* vp)
     double result;
 
     if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, @"dot")))
-        return NO;
+        return JS_EXCEPTION;
     if (EXPECT_NOT(!VectorFromArgumentList(context, @"Vector3D", @"dot", argc, OOJS_ARGV, &thatv, NULL)))
-        return NO;
+        return JS_EXCEPTION;
 
     result = HPdot_product(thisv, thatv);
 
@@ -871,7 +635,7 @@ static JSBool VectorDot(JSContext* context, uintN argc, jsval* vp)
 }
 
 // angleTo(v : vectorExpression) : Number
-static JSBool VectorAngleTo(JSContext* context, uintN argc, jsval* vp)
+static JSValue VectorAngleTo(OOJS_NATIVE_ARGS)
 {
     OOJS_PROFILE_ENTER
 
@@ -879,9 +643,9 @@ static JSBool VectorAngleTo(JSContext* context, uintN argc, jsval* vp)
     double result;
 
     if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, @"angleTo")))
-        return NO;
+        return JS_EXCEPTION;
     if (EXPECT_NOT(!VectorFromArgumentList(context, @"Vector3D", @"angleTo", argc, OOJS_ARGV, &thatv, NULL)))
-        return NO;
+        return JS_EXCEPTION;
 
     result = HPdot_product(HPvector_normal(thisv), HPvector_normal(thatv));
     if (result > 1.0)
@@ -898,16 +662,16 @@ static JSBool VectorAngleTo(JSContext* context, uintN argc, jsval* vp)
 }
 
 // cross(v : vectorExpression) : Vector3D
-static JSBool VectorCross(JSContext* context, uintN argc, jsval* vp)
+static JSValue VectorCross(OOJS_NATIVE_ARGS)
 {
     OOJS_PROFILE_ENTER
 
     HPVector thisv, thatv, result;
 
     if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, @"cross")))
-        return NO;
+        return JS_EXCEPTION;
     if (EXPECT_NOT(!VectorFromArgumentList(context, @"Vector3D", @"cross", argc, OOJS_ARGV, &thatv, NULL)))
-        return NO;
+        return JS_EXCEPTION;
 
     result = HPtrue_cross_product(thisv, thatv);
 
@@ -917,23 +681,23 @@ static JSBool VectorCross(JSContext* context, uintN argc, jsval* vp)
 }
 
 // tripleProduct(v : vectorExpression, u : vectorExpression) : Number
-static JSBool VectorTripleProduct(JSContext* context, uintN argc, jsval* vp)
+static JSValue VectorTripleProduct(OOJS_NATIVE_ARGS)
 {
     OOJS_PROFILE_ENTER
 
     HPVector thisv, thatv, theotherv;
     double result;
-    uintN consumed;
-    jsval* argv = OOJS_ARGV;
+    int consumed;
+    JSValueConst* argv = OOJS_ARGV;
 
     if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, @"tripleProduct")))
-        return NO;
+        return JS_EXCEPTION;
     if (EXPECT_NOT(!VectorFromArgumentList(context, @"Vector3D", @"tripleProduct", argc, argv, &thatv, &consumed)))
-        return NO;
+        return JS_EXCEPTION;
     argc -= consumed;
     argv += consumed;
     if (EXPECT_NOT(!VectorFromArgumentList(context, @"Vector3D", @"tripleProduct", argc, argv, &theotherv, NULL)))
-        return NO;
+        return JS_EXCEPTION;
 
     result = HPtriple_product(thisv, thatv, theotherv);
 
@@ -943,14 +707,14 @@ static JSBool VectorTripleProduct(JSContext* context, uintN argc, jsval* vp)
 }
 
 // direction() : Vector3D
-static JSBool VectorDirection(JSContext* context, uintN argc, jsval* vp)
+static JSValue VectorDirection(OOJS_NATIVE_ARGS)
 {
     OOJS_PROFILE_ENTER
 
     HPVector thisv, result;
 
     if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, @"direction")))
-        return NO;
+        return JS_EXCEPTION;
 
     result = HPvector_normal(thisv);
 
@@ -960,7 +724,7 @@ static JSBool VectorDirection(JSContext* context, uintN argc, jsval* vp)
 }
 
 // magnitude() : Number
-static JSBool VectorMagnitude(JSContext* context, uintN argc, jsval* vp)
+static JSValue VectorMagnitude(OOJS_NATIVE_ARGS)
 {
     OOJS_PROFILE_ENTER
 
@@ -968,7 +732,7 @@ static JSBool VectorMagnitude(JSContext* context, uintN argc, jsval* vp)
     double result;
 
     if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, @"magnitude")))
-        return NO;
+        return JS_EXCEPTION;
 
     result = HPmagnitude(thisv);
 
@@ -978,7 +742,7 @@ static JSBool VectorMagnitude(JSContext* context, uintN argc, jsval* vp)
 }
 
 // squaredMagnitude() : Number
-static JSBool VectorSquaredMagnitude(JSContext* context, uintN argc, jsval* vp)
+static JSValue VectorSquaredMagnitude(OOJS_NATIVE_ARGS)
 {
     OOJS_PROFILE_ENTER
 
@@ -986,7 +750,7 @@ static JSBool VectorSquaredMagnitude(JSContext* context, uintN argc, jsval* vp)
     double result;
 
     if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, @"squaredMagnitude")))
-        return NO;
+        return JS_EXCEPTION;
 
     result = HPmagnitude2(thisv);
 
@@ -996,7 +760,7 @@ static JSBool VectorSquaredMagnitude(JSContext* context, uintN argc, jsval* vp)
 }
 
 // rotationTo(v : vectorExpression [, limit : Number]) : Quaternion
-static JSBool VectorRotationTo(JSContext* context, uintN argc, jsval* vp)
+static JSValue VectorRotationTo(OOJS_NATIVE_ARGS)
 {
     OOJS_PROFILE_ENTER
 
@@ -1004,20 +768,20 @@ static JSBool VectorRotationTo(JSContext* context, uintN argc, jsval* vp)
     double limit;
     BOOL gotLimit;
     Quaternion result;
-    uintN consumed;
-    jsval* argv = OOJS_ARGV;
+    int consumed;
+    JSValueConst* argv = OOJS_ARGV;
 
     if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, @"rotationTo")))
-        return NO;
+        return JS_EXCEPTION;
     if (EXPECT_NOT(!VectorFromArgumentList(context, @"Vector3D", @"rotationTo", argc, OOJS_ARGV, &thatv, &consumed)))
-        return NO;
+        return JS_EXCEPTION;
 
     argc -= consumed;
     argv += consumed;
     if (argc != 0) // limit parameter is optional.
     {
         if (EXPECT_NOT(!OOJSArgumentListGetNumber(context, @"Vector3D", @"rotationTo", argc, argv, &limit, NULL)))
-            return NO;
+            return JS_EXCEPTION;
         gotLimit = YES;
     } else
         gotLimit = NO;
@@ -1033,7 +797,7 @@ static JSBool VectorRotationTo(JSContext* context, uintN argc, jsval* vp)
 }
 
 // rotateBy(q : quaternionExpression) : Vector3D
-static JSBool VectorRotateBy(JSContext* context, uintN argc, jsval* vp)
+static JSValue VectorRotateBy(OOJS_NATIVE_ARGS)
 {
     OOJS_PROFILE_ENTER
 
@@ -1041,9 +805,9 @@ static JSBool VectorRotateBy(JSContext* context, uintN argc, jsval* vp)
     Quaternion q;
 
     if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, @"rotateBy")))
-        return NO;
+        return JS_EXCEPTION;
     if (EXPECT_NOT(!QuaternionFromArgumentList(context, @"Vector3D", @"rotateBy", argc, OOJS_ARGV, &q, NULL)))
-        return NO;
+        return JS_EXCEPTION;
 
     result = quaternion_rotate_HPvector(q, thisv);
 
@@ -1053,118 +817,61 @@ static JSBool VectorRotateBy(JSContext* context, uintN argc, jsval* vp)
 }
 
 // toArray() : Array
-static JSBool VectorToArray(JSContext* context, uintN argc, jsval* vp)
+static JSValue VectorToArray(OOJS_NATIVE_ARGS)
 {
     OOJS_PROFILE_ENTER
 
     HPVector thisv;
-    JSObject* result = NULL;
-    jsval nVal;
 
     if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, @"toArray")))
-        return NO;
+        return JS_EXCEPTION;
 
-    result = JS_NewArrayObject(context, 0, NULL);
-    if (result != NULL) {
-        // We do this at the top because the return value slot is a GC root.
-        OOJS_SET_RVAL(OBJECT_TO_JSVAL(result));
+    JSValue result = JS_NewArray(context);
+    if (EXPECT_NOT(JS_IsException(result)))
+        return result;
 
-        if (JS_NewNumberValue(context, thisv.x, &nVal) && JS_SetElement(context, result, 0, &nVal) && JS_NewNumberValue(context, thisv.y, &nVal) && JS_SetElement(context, result, 1, &nVal) && JS_NewNumberValue(context, thisv.z, &nVal) && JS_SetElement(context, result, 2, &nVal)) {
-            return YES;
-        }
-        // If we get here, the conversion and stuffing in the previous condition failed.
-        OOJS_SET_RVAL(JSVAL_VOID);
+    // JS_SetPropertyUint32() takes ownership of the element values.
+    if (JS_SetPropertyUint32(context, result, 0, JS_NewFloat64(context, thisv.x)) < 0 || JS_SetPropertyUint32(context, result, 1, JS_NewFloat64(context, thisv.y)) < 0 || JS_SetPropertyUint32(context, result, 2, JS_NewFloat64(context, thisv.z)) < 0) {
+        JS_FreeValue(context, result);
+        return JS_EXCEPTION;
     }
 
-    return YES;
+    return result;
 
     OOJS_PROFILE_EXIT
-}
-
-// toCoordinateSystem(coordScheme : String)
-static JSBool VectorToCoordinateSystem(JSContext* context, uintN argc, jsval* vp)
-{
-    OOJS_NATIVE_ENTER(context)
-
-    HPVector thisv;
-    NSString* coordScheme = nil;
-    HPVector result;
-
-    if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, @"toCoordinateSystem")))
-        return NO;
-
-    if (EXPECT_NOT(argc < 1 || (coordScheme = OOStringFromJSValue(context, OOJS_ARGV[0])) == nil)) {
-        OOJSReportBadArguments(context, @"Vector3D", @"toCoordinateSystem", MIN(argc, 1U), OOJS_ARGV, nil, @"coordinate system");
-        return NO;
-    }
-
-    OOJS_BEGIN_FULL_NATIVE(context)
-    result = [UNIVERSE legacyPositionFrom:thisv asCoordinateSystem:coordScheme];
-    OOJS_END_FULL_NATIVE
-
-    OOJS_RETURN_HPVECTOR(result);
-
-    OOJS_NATIVE_EXIT
-}
-
-// fromCoordinateSystem(coordScheme : String)
-static JSBool VectorFromCoordinateSystem(JSContext* context, uintN argc, jsval* vp)
-{
-    OOJS_NATIVE_ENTER(context)
-
-    HPVector thisv;
-    NSString* coordScheme = nil;
-    HPVector result;
-
-    if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, @"fromCoordinateSystem")))
-        return NO;
-
-    if (EXPECT_NOT(argc < 1 || (coordScheme = OOStringFromJSValue(context, OOJS_ARGV[0])) == nil)) {
-        OOJSReportBadArguments(context, @"Vector3D", @"fromCoordinateSystem", MIN(argc, 1U), OOJS_ARGV, nil, @"coordinate system");
-        return NO;
-    }
-
-    OOJS_BEGIN_FULL_NATIVE(context)
-    NSString* arg = [NSString stringWithFormat:@"%@ %f %f %f", coordScheme, thisv.x, thisv.y, thisv.z];
-    result = [UNIVERSE coordinatesFromCoordinateSystemString:arg];
-    OOJS_END_FULL_NATIVE
-
-    OOJS_RETURN_HPVECTOR(result);
-
-    OOJS_NATIVE_EXIT
 }
 
 // *** Static methods ***
 
 // interpolate(v : Vector3D, u : Vector3D, alpha : Number) : Vector3D
-static JSBool VectorStaticInterpolate(JSContext* context, uintN argc, jsval* vp)
+static JSValue VectorStaticInterpolate(OOJS_NATIVE_ARGS)
 {
     OOJS_PROFILE_ENTER
 
     HPVector av, bv;
     double interp;
     HPVector result;
-    uintN consumed;
-    uintN inArgc = argc;
-    jsval* argv = OOJS_ARGV;
-    jsval* inArgv = argv;
+    int consumed;
+    int inArgc = argc;
+    JSValueConst* argv = OOJS_ARGV;
+    JSValueConst* inArgv = argv;
 
     if (EXPECT_NOT(argc < 3))
         goto INSUFFICIENT_ARGUMENTS;
     if (EXPECT_NOT(!VectorFromArgumentList(context, @"Vector3D", @"interpolate", argc, argv, &av, &consumed)))
-        return NO;
+        return JS_EXCEPTION;
     argc -= consumed;
     argv += consumed;
     if (EXPECT_NOT(argc < 2))
         goto INSUFFICIENT_ARGUMENTS;
     if (EXPECT_NOT(!VectorFromArgumentList(context, @"Vector3D", @"interpolate", argc, argv, &bv, &consumed)))
-        return NO;
+        return JS_EXCEPTION;
     argc -= consumed;
     argv += consumed;
     if (EXPECT_NOT(argc < 1))
         goto INSUFFICIENT_ARGUMENTS;
     if (EXPECT_NOT(!OOJSArgumentListGetNumber(context, @"Vector3D", @"interpolate", argc, argv, &interp, NULL)))
-        return NO;
+        return JS_EXCEPTION;
 
     result = OOHPVectorInterpolate(av, bv, interp);
 
@@ -1174,13 +881,13 @@ INSUFFICIENT_ARGUMENTS:
     OOJSReportBadArguments(context, @"Vector3D", @"interpolate", inArgc, inArgv,
         @"Insufficient parameters",
         @"vector expression, vector expression and number");
-    return NO;
+    return JS_EXCEPTION;
 
     OOJS_PROFILE_EXIT
 }
 
 // random([maxLength : Number]) : Vector3D
-static JSBool VectorStaticRandom(JSContext* context, uintN argc, jsval* vp)
+static JSValue VectorStaticRandom(OOJS_NATIVE_ARGS)
 {
     OOJS_PROFILE_ENTER
 
@@ -1195,7 +902,7 @@ static JSBool VectorStaticRandom(JSContext* context, uintN argc, jsval* vp)
 }
 
 // randomDirection([scale : Number]) : Vector3D
-static JSBool VectorStaticRandomDirection(JSContext* context, uintN argc, jsval* vp)
+static JSValue VectorStaticRandomDirection(OOJS_NATIVE_ARGS)
 {
     OOJS_PROFILE_ENTER
 
@@ -1210,7 +917,7 @@ static JSBool VectorStaticRandomDirection(JSContext* context, uintN argc, jsval*
 }
 
 // randomDirectionAndLength([maxLength : Number]) : Vector3D
-static JSBool VectorStaticRandomDirectionAndLength(JSContext* context, uintN argc, jsval* vp)
+static JSValue VectorStaticRandomDirectionAndLength(OOJS_NATIVE_ARGS)
 {
     OOJS_PROFILE_ENTER
 

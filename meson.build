@@ -104,5 +104,5 @@ gnustep_folder = ''  # Not needed for Windows
 subdir('src')
 
 if get_option('quickjs_poc')
-    subdir('src/Core/Scripting/QuickJS/poc')
+    subdir('src/Core/Scripting/poc')
 endif

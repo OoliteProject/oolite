@@ -1,6 +1,6 @@
 /*
 
-OOJSFlasher.h
+OOJSFlasher.h (QuickJS-ng)
 
 JavaScript proxy for OOFlasherEntity.
 
@@ -28,13 +28,16 @@ MA 02110-1301, USA.
 
 #import "OOFlasherEntity.h"
 #import <Foundation/Foundation.h>
-#include <jsapi.h>
+#include <quickjs.h>
 
-void InitOOJSFlasher(JSContext* context, JSObject* global);
+void InitOOJSFlasher(JSContext* context, JSValueConst global);
+
+JSClassID JSFlasherClassID(void);
 
 @interface OOFlasherEntity (OOJavaScriptExtensions)
 
-- (void)getJSClass:(JSClass**)outClass andPrototype:(JSObject**)outPrototype;
+// Replaces SpiderMonkey's -getJSClass:andPrototype:.
+- (JSClassID)oo_jsClassID;
 - (NSString*)oo_jsClassName;
 - (BOOL)isVisibleToScripts;
 
