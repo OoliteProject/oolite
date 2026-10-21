@@ -390,6 +390,30 @@ static const char* const kFixedFunctionFragmentSource = "uniform sampler2D oo_Fi
 // appended to the vertex prelude (declarations) and extraInit to the vertex
 // epilogue; both are used to supply varyings the fragment shader reads but
 // the vertex shader never writes.
+/*  The number of gl_FragData outputs a shader writes: one more than its
+    highest constant index, or one if it only uses computed indices.
+*/
+static unsigned FragDataCount(const char* source)
+{
+    unsigned count = 1;
+    for (const char* p = strstr(source, "gl_FragData"); p != NULL; p = strstr(p + 1, "gl_FragData")) {
+        const char* q = p + strlen("gl_FragData");
+        while (*q == ' ' || *q == '\t')
+            q++;
+        if (*q != '[')
+            continue;
+        q++;
+        while (*q == ' ' || *q == '\t')
+            q++;
+        if (*q >= '0' && *q <= '9') {
+            unsigned index = (unsigned)strtoul(q, NULL, 10);
+            if (index + 1 > count && index < 8)
+                count = index + 1;
+        }
+    }
+    return count;
+}
+
 static char* BuildStageSource(OOGLSLStage stage, const char* prefix, const char* source,
     const char* extraOutputs, const char* extraInit, bool glOrientation)
 {
@@ -424,8 +448,13 @@ static char* BuildStageSource(OOGLSLStage stage, const char* prefix, const char*
         }
         if (UsesToken(combined.s, "gl_FragColor"))
             StrAppend(&out, "layout(location = 0) out vec4 oo_FragColor;\n#define gl_FragColor oo_FragColor\n");
-        else if (UsesToken(combined.s, "gl_FragData"))
-            StrAppend(&out, "layout(location = 0) out vec4 oo_FragData[1];\n#define gl_FragData oo_FragData\n");
+        else if (UsesToken(combined.s, "gl_FragData")) {
+            // As many outputs as the highest constant index written, as the post chain's bloom pass writes two.
+            char declaration[128];
+            snprintf(declaration, sizeof declaration, "layout(location = 0) out vec4 oo_FragData[%u];\n#define gl_FragData oo_FragData\n",
+                FragDataCount(combined.s));
+            StrAppend(&out, declaration);
+        }
     }
     free(combined.s);
 

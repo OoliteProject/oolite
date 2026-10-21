@@ -986,6 +986,79 @@ static void SceneMultitexture(void)
     OORendererPopDrawState();
 }
 
+// Two outputs into a two-attachment target, as the post chain's bloom pass
+// writes the scene and its bright parts once its GLSL 3.30 is rewritten.
+static OORenderTarget sBloomTarget;
+
+static void PrepareBloom(void)
+{
+    static OORendererProgram* program;
+    if (program == NULL) {
+        OOProgramError error;
+        program = OORendererCreateProgram("void main(void) { gl_FrontColor = gl_Color; gl_Position = ftransform(); }\n",
+            "void main(void)\n"
+            "{\n"
+            "    gl_FragData[0] = gl_Color;\n"
+            "    float brightness = dot(gl_Color.rgb, vec3(0.2126, 0.7152, 0.0722));\n"
+            "    gl_FragData[1] = brightness > 0.5 ? vec4(gl_Color.rgb, 1.0) : vec4(0.0, 0.0, 0.0, 1.0);\n"
+            "}\n",
+            NULL, NULL, 0, &error);
+        if (program == NULL) {
+            fprintf(stderr, "bloom program: stage %d failed:\n%s\n", error.stage, error.log ? error.log : "");
+            OORendererBackendWarn("bloom program creation failed");
+            return;
+        }
+        sBloomTarget = OORendererCreateRenderTarget(&(OORenderTargetDescriptor) { kTargetSize, kTargetSize, 2, false, 1 });
+    }
+    OORendererSetClearColor(0, 0, 0, 1);
+    OORendererBeginPass(&(OORenderPassDescriptor) { .target = sBloomTarget, .colorLoad = kOOLoadClear, .depthLoad = kOOLoadDontCare });
+    SetViewport(0, 0, kTargetSize, kTargetSize);
+    float mv[16], p[16];
+    Identity(mv);
+    Ortho(p, 0, kTargetSize, 0, kTargetSize, -1, 1);
+    SetMatrices(mv, p);
+    OODrawState state = Plain();
+    OORendererPushDrawState(&state);
+    OORendererUseProgram(program);
+    OOImmediateBegin(kOOPrimitiveQuads);
+    Vertex(0, 0, 0.1f, 0.1f, 0.2f, 1);
+    Vertex(kTargetSize, 0, 1, 0.9f, 0.2f, 1);
+    Vertex(kTargetSize, kTargetSize, 0.2f, 1, 1, 1);
+    Vertex(0, kTargetSize, 0.6f, 0.1f, 0.8f, 1);
+    OOImmediateEnd();
+    OORendererUseProgram(NULL);
+    OORendererPopDrawState();
+    SetViewport(0, 0, kSize, kSize);
+    OORendererEndPass();
+}
+
+static void DrawAttachment(unsigned attachment, float x0, float x1)
+{
+    OODrawState state = Plain();
+    state.texture2D = true;
+    state.texture = (const void*)(uintptr_t)OORendererRenderTargetTexture(sBloomTarget, attachment);
+    OORendererPushDrawState(&state);
+    OOImmediateBegin(kOOPrimitiveQuads);
+    OOImmediateColor4f(1, 1, 1, 1);
+    OOImmediateTexCoord2f(0, 0);
+    OOImmediateVertex2f(x0, 40);
+    OOImmediateTexCoord2f(1, 0);
+    OOImmediateVertex2f(x1, 40);
+    OOImmediateTexCoord2f(1, 1);
+    OOImmediateVertex2f(x1, 216);
+    OOImmediateTexCoord2f(0, 1);
+    OOImmediateVertex2f(x0, 216);
+    OOImmediateEnd();
+    OORendererPopDrawState();
+}
+
+static void SceneBloom(void)
+{
+    SetOrtho2D();
+    DrawAttachment(0, 8, 124);
+    DrawAttachment(1, 132, 248);
+}
+
 typedef struct {
     const char* name;
     void (*draw)(void);
@@ -1011,6 +1084,7 @@ static const Scene kScenes[] = {
     { "fog", SceneFog, { 0, 0, 0, 1 }, NULL },
     { "wide", SceneWide, { 0, 0, 0, 1 }, NULL },
     { "multitexture", SceneMultitexture, { 0, 0, 0, 1 }, NULL },
+    { "bloom", SceneBloom, { 0, 0, 0, 1 }, PrepareBloom },
 };
 
 static bool Save(const char* dir, const char* name, const uint8_t* bgraBottomUp)
