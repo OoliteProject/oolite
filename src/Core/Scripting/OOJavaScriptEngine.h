@@ -69,8 +69,6 @@ MA 02110-1301, USA.
 #import "Universe.h"
 #endif
 
-#define OOJS_QUICKJS 1
-
 #define OOJSENGINE_MONITOR_SUPPORT OOLITE_DEBUG
 
 /*	Profiling of native functions (the debug console's profile(), getProfile()

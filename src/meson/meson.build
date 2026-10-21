@@ -18,7 +18,6 @@ oolite_dependencies += dependency(
     version: '>=0.17.0',
     default_options: ['default_library=static', 'libc=false'],
 )
-add_project_arguments('-DOOJS_QUICKJS=1', language: c_family)
 
 if get_option('b_lto')
     if ccid == 'clang'
