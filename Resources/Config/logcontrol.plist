@@ -301,6 +301,7 @@
 	script.javaScript.timeLimit				= yes;					// Script ran for too long and has been killed.
 	script.javaScript.timeLimit.debug		= no;					// Time limiter debugging info
 	script.javaScript.willLoad				= no;
+	script.javaScript.cache					= no;					// Compiled script cache (QuickJS builds)
 	
 	script.load								= no;
 	script.load.badName						= $scriptError;

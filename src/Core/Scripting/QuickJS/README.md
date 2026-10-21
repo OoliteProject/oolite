@@ -36,11 +36,9 @@ Not yet done:
 - Stack dumps with local variables: QuickJS has no frame inspection API.
   Stack dumps (`dumpStackForErrors` and friends) list the call stack with
   function names, files and lines, but not `this` or local variables.
-- The compiled-script cache: SpiderMonkey's XDR bytecode cache is not used.
-  QuickJS bytecode (`JS_WriteObject()`) could be cached the same way, under a
-  different cache name.
-- Windows builds are untested. Linux (amd64) and macOS (arm64, the
-  `macos-arm64-port` branch) build and pass the parity probe.
+
+Linux (amd64) and macOS (arm64) builds pass the parity probe, and CI builds and
+runs the launch test with QuickJS on Ubuntu, Windows and macOS.
 
 ## Conventions
 
@@ -91,6 +89,23 @@ Behaviour that needed emulating, all in the engine core:
   natives are profiled; other time is reported as JavaScript time.
 - The time limiter uses QuickJS's interrupt handler; error locations come from
   the exception's stack.
+
+## Compiled-script cache
+
+As with SpiderMonkey's XDR cache, compiled scripts are kept in the data cache
+(OOCacheManager), keyed by path, in a separate cache named "compiled QuickJS
+scripts". Entries hold `JS_WriteObject()` bytecode, plus a hash of the exact
+text that was compiled (after the `const` rewrite and wrapping), the QuickJS
+version and a format number (`kCompiledScriptFormat` in `OOJSScript.m`). An
+entry is only used if all three match, so editing a script recompiles it even
+when the data cache is otherwise up to date. As before, the whole data cache is
+cleared when the Oolite version or the search paths change.
+
+Because `JS_EvalFunction()` runs compiled code with the global object as
+`this`, the wrapped script is compiled as a function expression and then called
+with the script object as `this`. The prefix is on the first line, so line
+numbers don't change. Cache activity is logged under `script.javaScript.cache`
+(off by default).
 
 ## Testing
 
