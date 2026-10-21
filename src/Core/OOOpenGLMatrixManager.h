@@ -26,6 +26,8 @@ MA 02110-1301, USA.
 
 #import "OOMaths.h"
 
+struct OORendererProgram;
+
 extern const char* ooliteStandardMatrixUniforms[];
 
 enum {
@@ -94,7 +96,7 @@ enum {
 - (OOMatrix)getProjection;
 - (void)syncProjection;
 - (OOMatrix)getMatrix:(int)which;
-- (NSArray*)standardMatrixUniformLocations:(GLhandleARB)program;
+- (NSArray*)standardMatrixUniformLocations:(struct OORendererProgram*)program;
 
 @end
 

@@ -39,17 +39,19 @@ SOFTWARE.
 
 /*  Uniforms are set through the program by handle. Resolve the handle once by
     name, then set typed values with it. On OpenGL the handle is the uniform
-    location; under SDL_GPU it will index the program's reflected uniform
-    layout (offset and type in its uniform block), which is why values go
-    through the program rather than straight to GL. A program must be
+    location; under SDL_GPU it indexes the program's reflected uniforms
+    (offset and type in its uniform block), which is why values go through
+    the renderer (OORendererProgram.h) rather than straight to GL. A program must be
     applied before its uniforms are set.
 */
 typedef GLint OOUniformHandle;
 #define kOOUniformHandleInvalid ((OOUniformHandle) - 1)
 
+struct OORendererProgram;
+
 @interface OOShaderProgram : NSObject {
 @private
-    GLhandleARB program;
+    struct OORendererProgram* program;
     NSString* key;
     NSArray* standardMatrixUniformLocations;
 }
@@ -71,7 +73,8 @@ typedef GLint OOUniformHandle;
 - (void)apply;
 + (void)applyNone;
 
-- (GLhandleARB)program;
+// The OpenGL program name, for code that still binds programs by name.
+- (GLuint)programName;
 
 // kOOUniformHandleInvalid if the program has no active uniform of that name.
 - (OOUniformHandle)uniformHandleForName:(NSString*)name;

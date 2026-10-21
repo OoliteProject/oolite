@@ -30,6 +30,7 @@ MA 02110-1301, USA.
 #import "OOGLStateCompat.h"
 #import "OOMacroOpenGL.h"
 #import "OOOpenGLExtensionManager.h"
+#import "OORendererProgram.h"
 #import "Universe.h"
 
 const char* ooliteStandardMatrixUniforms[] = {
@@ -397,7 +398,7 @@ const char* ooliteStandardMatrixUniforms[] = {
     return matrices[which];
 }
 
-- (NSArray*)standardMatrixUniformLocations:(GLhandleARB)program
+- (NSArray*)standardMatrixUniformLocations:(struct OORendererProgram*)program
 {
     GLint location;
     NSUInteger i;
@@ -406,7 +407,7 @@ const char* ooliteStandardMatrixUniforms[] = {
     OO_ENTER_OPENGL();
 
     for (i = 0; i < OOLITE_GL_MATRIX_END; i++) {
-        location = glGetUniformLocationARB(program, ooliteStandardMatrixUniforms[i]);
+        location = OORendererProgramUniform(program, ooliteStandardMatrixUniforms[i]);
         if (location >= 0) {
             if (i == OOLITE_GL_MATRIX_NORMAL) {
                 [locationSet addObject:

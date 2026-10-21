@@ -36,6 +36,7 @@ SOFTWARE.
 #import "OOFunctionAttributes.h"
 #import "OOMacroOpenGL.h"
 #import "OOOpenGLExtensionManager.h"
+#import "OORendererProgram.h"
 #import "OOShaderProgram.h"
 #import "OOStringParsing.h"
 #import "ResourceManager.h"
@@ -48,7 +49,6 @@ static BOOL GetShaderSource(NSString* fileName, NSString* shaderType, NSString* 
 #if OOLITE_MAC_OS_X
 static NSString* TranslateGLSL330To120(NSString* source, BOOL isVertexShader, NSMutableDictionary* attributeBindings);
 #endif
-static NSString* GetGLSLInfoLog(GLhandleARB shaderObject);
 
 @interface OOShaderProgram (OOPrivate)
 
@@ -60,7 +60,6 @@ static NSString* GetGLSLInfoLog(GLhandleARB shaderObject);
                attributeBindings:(NSDictionary*)attributeBindings
                              key:(NSString*)key;
 
-- (void)bindAttributes:(NSDictionary*)attributeBindings;
 - (void)bindStandardMatrixUniforms;
 
 @end
@@ -182,7 +181,7 @@ static NSString* GetGLSLInfoLog(GLhandleARB shaderObject);
         [standardMatrixUniformLocations release];
     }
 
-    OOGL(glDeleteObjectARB(program));
+    OORendererReleaseProgram(program);
 
     [super dealloc];
 }
@@ -194,7 +193,7 @@ static NSString* GetGLSLInfoLog(GLhandleARB shaderObject);
     if (sActiveProgram != self) {
         [sActiveProgram release];
         sActiveProgram = [self retain];
-        OOGLUseProgramObject(program);
+        OORendererUseProgram(program);
         [self bindStandardMatrixUniforms];
     }
 }
@@ -206,120 +205,74 @@ static NSString* GetGLSLInfoLog(GLhandleARB shaderObject);
     if (sActiveProgram != nil) {
         [sActiveProgram release];
         sActiveProgram = nil;
-        OOGLUseProgramObject(NULL_SHADER);
+        OORendererUseProgram(NULL);
     }
 }
 
-- (GLhandleARB)program
+- (GLuint)programName
 {
-    return program;
+    return OORendererProgramGLName(program);
 }
 
 - (OOUniformHandle)uniformHandleForName:(NSString*)name
 {
-    OO_ENTER_OPENGL();
-    return glGetUniformLocationARB(program, [name UTF8String]);
+    return OORendererProgramUniform(program, [name UTF8String]);
 }
 
 - (void)setUniform:(OOUniformHandle)handle intValue:(GLint)value
 {
-    OO_ENTER_OPENGL();
-    OOGL(glUniform1iARB(handle, value));
+    int32_t v = value;
+    OORendererSetUniform(handle, kOOUniformInt, &v);
 }
 
 - (void)setUniform:(OOUniformHandle)handle floatValue:(GLfloat)value
 {
-    OO_ENTER_OPENGL();
-    OOGL(glUniform1fARB(handle, value));
+    OORendererSetUniform(handle, kOOUniformFloat, &value);
 }
 
 - (void)setUniform:(OOUniformHandle)handle vec2Value:(const GLfloat*)value
 {
-    OO_ENTER_OPENGL();
-    OOGL(glUniform2fvARB(handle, 1, value));
+    OORendererSetUniform(handle, kOOUniformVec2, value);
 }
 
 - (void)setUniform:(OOUniformHandle)handle vec4Value:(const GLfloat*)value
 {
-    OO_ENTER_OPENGL();
-    OOGL(glUniform4fvARB(handle, 1, value));
+    OORendererSetUniform(handle, kOOUniformVec4, value);
 }
 
 - (void)setUniform:(OOUniformHandle)handle matrixValue:(OOMatrix)value
 {
-    OO_ENTER_OPENGL();
-    GLUniformMatrix(handle, value);
+    OORendererSetUniform(handle, kOOUniformMat4, OOMatrixValuesForOpenGL(value));
 }
 
 - (void)setUniform:(OOUniformHandle)handle mat3Value:(OOMatrix)value
 {
-    OO_ENTER_OPENGL();
-    GLUniformMatrix3(handle, value);
+    // The upper left 3x3, column by column, as GLUniformMatrix3 did.
+    float m[9] = {
+        value.m[0][0], value.m[0][1], value.m[0][2],
+        value.m[1][0], value.m[1][1], value.m[1][2],
+        value.m[2][0], value.m[2][1], value.m[2][2]
+    };
+    OORendererSetUniform(handle, kOOUniformMat3, m);
 }
 
 @end
 
-static BOOL ValidateShaderObject(GLhandleARB object, NSString* name)
+// Log a failed compile or link as OOShaderProgram always has.
+static void LogProgramError(const OOProgramError* error, NSString* vertexName, NSString* fragmentName)
 {
-    GLint type, subtype = 0, status;
-    GLenum statusType;
-    NSString* subtypeString = nil;
-    NSString* actionString = nil;
-
-    OO_ENTER_OPENGL();
-
-    OOGL(glGetObjectParameterivARB(object, GL_OBJECT_TYPE_ARB, &type));
-    BOOL linking = type == GL_PROGRAM_OBJECT_ARB;
-
-    if (linking) {
-        subtypeString = @"shader program";
-        actionString = @"linking";
-        statusType = GL_OBJECT_LINK_STATUS_ARB;
-    } else {
-        // FIXME
-        OOGL(glGetObjectParameterivARB(object, GL_OBJECT_SUBTYPE_ARB, &subtype));
-        switch (subtype) {
-        case GL_VERTEX_SHADER_ARB:
-            subtypeString = @"vertex shader";
-            break;
-
-        case GL_FRAGMENT_SHADER_ARB:
-            subtypeString = @"fragment shader";
-            break;
-
-#if GL_EXT_geometry_shader4
-        case GL_GEOMETRY_SHADER_EXT:
-            subtypeString = @"geometry shader";
-            break;
-#endif
-
-        default:
-            subtypeString = [NSString stringWithFormat:@"<unknown shader type 0x%.4X>", subtype];
-        }
+    NSString* subtypeString = @"shader program";
+    NSString* actionString = @"linking";
+    NSString* name = [NSString stringWithFormat:@"%@/%@", vertexName, fragmentName];
+    BOOL linking = error->stage == kOOProgramStageLink;
+    if (!linking) {
+        subtypeString = error->stage == kOOProgramStageVertex ? @"vertex shader" : @"fragment shader";
         actionString = @"compilation";
-        statusType = GL_OBJECT_COMPILE_STATUS_ARB;
+        name = error->stage == kOOProgramStageVertex ? vertexName : fragmentName;
     }
-
-    OOGL(glGetObjectParameterivARB(object, statusType, &status));
-    if (status == GL_FALSE) {
-        NSString* msgClass = [NSString stringWithFormat:@"shader.%@.failure", linking ? @"link" : @"compile"];
-        OOLogERR(msgClass, @"GLSL %@ %@ failed for %@:\n>>>>> GLSL log:\n%@\n", subtypeString, actionString, name, GetGLSLInfoLog(object));
-        return NO;
-    }
-
-#ifndef NDEBUG
-    if (gDebugFlags & DEBUG_SHADER_VALIDATION && 0) {
-        OOGL(glValidateProgramARB(object));
-        OOGL(glGetObjectParameterivARB(object, GL_OBJECT_VALIDATE_STATUS_ARB, &status));
-        if (status == GL_FALSE) {
-            NSString* msgClass = [NSString stringWithFormat:@"shader.%@.validationFailure", linking ? @"link" : @"compile"];
-            OOLogWARN(msgClass, @"GLSL %@ %@ failed for %@:\n>>>>> GLSL log:\n%@\n", subtypeString, @"validation", name, GetGLSLInfoLog(object));
-            return NO;
-        }
-    }
-#endif
-
-    return YES;
+    NSString* msgClass = [NSString stringWithFormat:@"shader.%@.failure", linking ? @"link" : @"compile"];
+    NSString* log = error->log != NULL ? [NSString stringWithUTF8String:error->log] : @"";
+    OOLogERR(msgClass, @"GLSL %@ %@ failed for %@:\n>>>>> GLSL log:\n%@\n", subtypeString, actionString, name, log);
 }
 
 @implementation OOShaderProgram (OOPrivate)
@@ -333,9 +286,6 @@ static BOOL ValidateShaderObject(GLhandleARB object, NSString* name)
                              key:(NSString*)inKey
 {
     BOOL OK = YES;
-    const GLcharARB* sourceStrings[3] = { "", "#line 0\n", NULL };
-    GLhandleARB vertexShader = NULL_SHADER;
-    GLhandleARB fragmentShader = NULL_SHADER;
 
     OO_ENTER_OPENGL();
 
@@ -346,86 +296,38 @@ static BOOL ValidateShaderObject(GLhandleARB object, NSString* name)
     if (OK && vertexSource == nil && fragmentSource == nil)
         OK = NO; // Must have at least one shader!
 
-    if (OK && prefixString != nil) {
-        sourceStrings[0] = [prefixString UTF8String];
-    }
-
-    if (OK && vertexSource != nil) {
-        // Compile vertex shader.
-        OOGL(vertexShader = glCreateShaderObjectARB(GL_VERTEX_SHADER_ARB));
-        if (vertexShader != NULL_SHADER) {
-            sourceStrings[2] = [vertexSource UTF8String];
-            OOGL(glShaderSourceARB(vertexShader, 3, sourceStrings, NULL));
-            OOGL(glCompileShaderARB(vertexShader));
-
-            OK = ValidateShaderObject(vertexShader, vertexName);
-        } else
-            OK = NO;
-    }
-
-    if (OK && fragmentSource != nil) {
-        // Compile fragment shader.
-        OOGL(fragmentShader = glCreateShaderObjectARB(GL_FRAGMENT_SHADER_ARB));
-        if (fragmentShader != NULL_SHADER) {
-            sourceStrings[2] = [fragmentSource UTF8String];
-            OOGL(glShaderSourceARB(fragmentShader, 3, sourceStrings, NULL));
-            OOGL(glCompileShaderARB(fragmentShader));
-
-            OK = ValidateShaderObject(fragmentShader, fragmentName);
-        } else
-            OK = NO;
-    }
-
     if (OK) {
-        // Link shader.
-        OOGL(program = glCreateProgramObjectARB());
-        if (program != NULL_SHADER) {
-            if (vertexShader != NULL_SHADER)
-                OOGL(glAttachObjectARB(program, vertexShader));
-            if (fragmentShader != NULL_SHADER)
-                OOGL(glAttachObjectARB(program, fragmentShader));
-            [self bindAttributes:attributeBindings];
-            OOGL(glLinkProgramARB(program));
-
-            OK = ValidateShaderObject(program, [NSString stringWithFormat:@"%@/%@", vertexName, fragmentName]);
-        } else
+        NSUInteger bindingCount = [attributeBindings count];
+        OOAttributeBinding* bindings = bindingCount > 0 ? malloc(bindingCount * sizeof *bindings) : NULL;
+        NSUInteger i = 0;
+        NSString* attrKey = nil;
+        foreachkey(attrKey, attributeBindings)
+        {
+            bindings[i++] = (OOAttributeBinding) { [attrKey UTF8String], [attributeBindings oo_unsignedIntForKey:attrKey] };
+        }
+        OOProgramError error = { kOOProgramStageLink, NULL };
+        program = OORendererCreateProgram([vertexSource UTF8String], [fragmentSource UTF8String], [prefixString UTF8String],
+            bindings, bindingCount, &error);
+        free(bindings);
+        if (program == NULL) {
+            LogProgramError(&error, vertexName, fragmentName);
             OK = NO;
+        }
+        free(error.log);
     }
 
     if (OK) {
         key = [inKey copy];
     }
 
-    if (vertexShader != NULL_SHADER)
-        OOGL(glDeleteObjectARB(vertexShader));
-    if (fragmentShader != NULL_SHADER)
-        OOGL(glDeleteObjectARB(fragmentShader));
-
     if (OK) {
         OOOpenGLMatrixManager* matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
         standardMatrixUniformLocations = [matrixManager standardMatrixUniformLocations:program];
     } else {
-        if (self != nil && program != NULL_SHADER) {
-            OOGL(glDeleteObjectARB(program));
-            program = NULL_SHADER;
-        }
-
         [self release];
         self = nil;
     }
     return self;
-}
-
-- (void)bindAttributes:(NSDictionary*)attributeBindings
-{
-    OO_ENTER_OPENGL();
-
-    NSString* attrKey = nil;
-
-    foreachkey(attrKey, attributeBindings)
-    {
-        OOGL(glBindAttribLocationARB(program, [attributeBindings oo_unsignedIntForKey:attrKey], [attrKey UTF8String]));
-    }
 }
 
 - (void)bindStandardMatrixUniforms
@@ -496,35 +398,6 @@ static BOOL GetShaderSource(NSString* fileName, NSString* shaderType, NSString* 
     if (outResult != NULL)
         *outResult = result;
     return YES;
-}
-
-static NSString* GetGLSLInfoLog(GLhandleARB shaderObject)
-{
-    GLint length;
-    GLcharARB* log = NULL;
-    NSString* result = nil;
-
-    OO_ENTER_OPENGL();
-
-    if (EXPECT_NOT(shaderObject == NULL_SHADER))
-        return nil;
-
-    OOGL(glGetObjectParameterivARB(shaderObject, GL_OBJECT_INFO_LOG_LENGTH_ARB, &length));
-    log = malloc(length);
-    if (log == NULL) {
-        length = 1024;
-        log = malloc(length);
-        if (log == NULL)
-            return @"<out of memory>";
-    }
-    OOGL(glGetInfoLogARB(shaderObject, length, NULL, log));
-
-    result = [NSString stringWithUTF8String:log];
-    if (result == nil)
-        result = [[[NSString alloc] initWithBytes:log length:length - 1 encoding:NSISOLatin1StringEncoding] autorelease];
-    free(log);
-
-    return result;
 }
 
 #endif // OO_SHADERS

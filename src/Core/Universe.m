@@ -472,9 +472,9 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     // fixes transparency issue for some reason
     OOGLDisable(GL_BLEND);
 
-    GLuint program = OOGLProgramName([textureProgram program]);
-    GLuint blur = OOGLProgramName([blurProgram program]);
-    GLuint final = OOGLProgramName([finalProgram program]);
+    GLuint program = [textureProgram programName];
+    GLuint blur = [blurProgram programName];
+    GLuint final = [finalProgram programName];
     NSSize viewSize = [gameView backingViewSize];
     float fboResolution[2] = { viewSize.width, viewSize.height };
 
