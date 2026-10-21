@@ -34,8 +34,7 @@ Conventions handled here:
   RGBA on upload.
 
 Not yet: colour material (Oolite never enables it), multitexture combine,
-texture environment modes other than modulate, and wide lines and large
-points (the CPU expansion exists for them).
+and texture environment modes other than modulate.
 
 
 Copyright (C) 2026 Oolite contributors
@@ -1011,6 +1010,21 @@ static SDL_Rect TargetRect(const int r[4])
 /*  Record count vertices, already expanded to a list topology. A flat-shaded
     primitive takes its colour from its last vertex, as in GL.
 */
+// Set while recording expanded lines and points, whose positions are already NDC.
+static bool sDrawInNDC = false;
+
+static void SetIdentityMatrices(OOGLSLLegacyStateBlock* L)
+{
+    float identity[16] = { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 };
+    float* matrices[] = { L->modelViewMatrix, L->projectionMatrix, L->modelViewProjectionMatrix, L->modelViewMatrixInverse,
+        L->projectionMatrixInverse, L->modelViewProjectionMatrixInverse, L->modelViewMatrixTranspose, L->modelViewMatrixInverseTranspose };
+    for (size_t i = 0; i < sizeof matrices / sizeof *matrices; i++)
+        memcpy(matrices[i], identity, sizeof identity);
+    memset(L->normalMatrix, 0, sizeof L->normalMatrix);
+    for (int c = 0; c < 3; c++)
+        L->normalMatrix[c * 5] = 1.0f;
+}
+
 static void RecordDraw(SDL_GPUPrimitiveType topology, size_t first, size_t count)
 {
     const OORenderStateMachine* s = OORendererState();
@@ -1028,6 +1042,8 @@ static void RecordDraw(SDL_GPUPrimitiveType topology, size_t first, size_t count
         sUniforms = realloc(sUniforms, sUniformCapacity * sizeof *sUniforms);
     }
     BuildLegacyState(&sUniforms[sUniformCount], sCurrentProgram == NULL);
+    if (sDrawInNDC)
+        SetIdentityMatrices(&sUniforms[sUniformCount]);
 
     const OOTextureUnitState* unit = &s->units[0];
     uint32_t texture = unit->texture2D && unit->binding2D != 0 && strcmp(sFault, "texture") != 0 ? unit->binding2D : sWhiteTexture;
@@ -1152,8 +1168,72 @@ static size_t ListCapacity(size_t count)
     return count * 3 + 3;
 }
 
+/*  SDL_GPU has no wide lines, and point size isn't portable (Metal needs
+    the shader to write it), so points and lines wider than a pixel are
+    expanded into triangles, as GL would rasterise them, and drawn with
+    identity matrices. Expanded geometry that is lit or fogged would use its
+    NDC position as the eye position; Oolite's wide lines and points are
+    neither.
+*/
+static bool NeedsExpansion(OONativePrimitive primitive, float lineWidth)
+{
+    if (primitive == kOONativePrimitivePoints)
+        return true;
+    return (primitive == kOONativePrimitiveLines || primitive == kOONativePrimitiveLineStrip) && lineWidth > 1.0f;
+}
+
+static void ExpandAndRecord(OONativePrimitive primitive, const OOImmediateVertex* in, size_t count, float lineWidth, float pointSize)
+{
+    const OORenderStateMachine* s = OORendererState();
+    float mvp[16];
+    Multiply(s->projection, s->modelView, mvp);
+    float viewport[4] = { 0, 0, (float)TargetWidth(), (float)TargetHeight() };
+    if (s->viewportSet) {
+        for (int i = 0; i < 4; i++)
+            viewport[i] = (float)s->viewport[i];
+    }
+
+    OOImmediateVertex* lines = NULL;
+    OOImmediateVertex* out = NULL;
+    size_t n = 0;
+    if (primitive == kOONativePrimitivePoints) {
+        bool smooth = s->caps[kOOCapPointSmooth];
+        out = malloc(OOExpandPointsCapacity(count, smooth) * sizeof *out);
+        n = OOExpandPointsToTriangles(in, count, pointSize, smooth, mvp, viewport, out);
+    } else {
+        // Separate segments, so a flat-shaded line can take its last vertex's colour throughout, as in GL.
+        size_t segments = primitive == kOONativePrimitiveLineStrip ? (count > 1 ? count - 1 : 0) : count / 2;
+        lines = malloc((segments * 2 + 1) * sizeof *lines);
+        for (size_t i = 0; i < segments; i++) {
+            size_t a = primitive == kOONativePrimitiveLineStrip ? i : i * 2;
+            lines[i * 2] = in[a];
+            lines[i * 2 + 1] = in[a + 1];
+            if (s->flatShading)
+                memcpy(lines[i * 2].color, lines[i * 2 + 1].color, sizeof lines[i * 2].color);
+        }
+        bool smooth = s->caps[kOOCapLineSmooth];
+        out = malloc(OOExpandLinesCapacity(kOONativePrimitiveLines, segments * 2) * sizeof *out);
+        n = OOExpandLinesToTriangles(kOONativePrimitiveLines, lines, segments * 2, lineWidth, smooth, mvp, viewport, out);
+    }
+    size_t first = sVertexCount;
+    GPUVertex* gpu = ReserveVertices(n);
+    for (size_t i = 0; i < n; i++)
+        SetVertex(&gpu[i], out[i].position, 3, out[i].color, 4, out[i].texCoord, 2, out[i].normal, NULL, 0);
+    free(out);
+    free(lines);
+    if (n > 0 && strcmp(sFault, "wide") != 0) {
+        sDrawInNDC = true;
+        RecordDraw(SDL_GPU_PRIMITIVETYPE_TRIANGLELIST, first, n);
+        sDrawInNDC = false;
+    }
+}
+
 void OORendererBackendDrawImmediate(OONativePrimitive primitive, const OOImmediateVertex* vertices, size_t count)
 {
+    if (NeedsExpansion(primitive, OOImmediateBatchLineWidth())) {
+        ExpandAndRecord(primitive, vertices, count, OOImmediateBatchLineWidth(), OOImmediateBatchPointSize());
+        return;
+    }
     size_t* order = malloc(ListCapacity(count) * sizeof *order);
     size_t n = ListIndices(primitive, count, order);
     size_t first = sVertexCount;
@@ -1205,6 +1285,35 @@ static void DrawLayout(OONativePrimitive primitive, const OOVertexLayout* layout
     }
     if (position == NULL) {
         OORendererBackendWarn("SDL_GPU backend: a vertex layout without positions");
+        return;
+    }
+
+    if (NeedsExpansion(primitive, OOImmediateLineWidth())) {
+        // Gather the vertices in order, then expand them as immediate mode does.
+        OOImmediateVertex* gathered = malloc((count + 1) * sizeof *gathered);
+        OOImmediateAttributes current = OOImmediateGetAttributes();
+        for (size_t i = 0; i < count; i++) {
+            size_t index = first + i;
+            if (indices != NULL)
+                index = indexType == kOOIndex16 ? ((const uint16_t*)indices)[i] : ((const uint32_t*)indices)[i];
+            OOImmediateVertex* v = &gathered[i];
+            memset(v, 0, sizeof *v);
+            const float* p = StreamElement(position, index, 3);
+            for (unsigned c = 0; c < position->components && c < 3; c++)
+                v->position[c] = p[c];
+            memcpy(v->color, current.color, sizeof v->color);
+            if (color != NULL) {
+                const float* c4 = StreamElement(color, index, 4);
+                v->color[3] = 1.0f;
+                for (unsigned c = 0; c < color->components && c < 4; c++)
+                    v->color[c] = c4[c];
+            }
+            memcpy(v->texCoord, current.texCoord, sizeof v->texCoord);
+            if (texCoord != NULL)
+                memcpy(v->texCoord, StreamElement(texCoord, index, 2), sizeof v->texCoord);
+        }
+        ExpandAndRecord(primitive, gathered, count, OOImmediateLineWidth(), OOImmediatePointSize());
+        free(gathered);
         return;
     }
 

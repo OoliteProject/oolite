@@ -189,6 +189,23 @@ static void BindTextureUnit(unsigned unit, uint32_t texture)
 #endif
 }
 
+// As GLScaledLineWidth()/GLScaledPointSize(): the batch value, and GL's own.
+static void SetLineWidth(float width)
+{
+    OOImmediateSetLineWidth(width);
+#if !OO_BACKEND_GPU
+    glLineWidth(width);
+#endif
+}
+
+static void SetPointSize(float size)
+{
+    OOImmediateSetPointSize(size);
+#if !OO_BACKEND_GPU
+    glPointSize(size);
+#endif
+}
+
 static void SetDepthFunc(OOCompareOp op)
 {
     OORendererSetDepthFunc(op);
@@ -847,6 +864,46 @@ static void SceneFog(void)
     OORendererPopDrawState();
 }
 
+// Wide lines and large points: GL draws them natively, SDL_GPU expands them.
+static void SceneWide(void)
+{
+    SetOrtho2D();
+    OODrawState state = Plain();
+    OORendererPushDrawState(&state);
+    SetLineWidth(3);
+    OOImmediateBegin(kOOPrimitiveLineStrip);
+    Vertex(20, 20, 1, 0, 0, 1);
+    Vertex(120, 60, 0, 1, 0, 1);
+    Vertex(60, 130, 0, 0, 1, 1);
+    Vertex(140, 110, 1, 1, 0, 1);
+    OOImmediateEnd();
+    SetLineWidth(5);
+    OOImmediateBegin(kOOPrimitiveLines);
+    Vertex(150, 20, 1, 0, 1, 1);
+    Vertex(240, 120, 0, 1, 1, 1);
+    Vertex(160, 140, 1, 1, 1, 1);
+    Vertex(250, 150, 1, 0.5f, 0, 1);
+    OOImmediateEnd();
+    SetLineWidth(1);
+    SetPointSize(6);
+    OOImmediateBegin(kOOPrimitivePoints);
+    for (int i = 0; i < 8; i++)
+        Vertex(20.0f + 28.0f * i, 190.0f + (i % 3) * 9.0f, i % 2 ? 1.0f : 0.3f, (i % 3) * 0.4f, 1.0f - i * 0.1f, 1);
+    OOImmediateEnd();
+    // Points from vertex arrays too.
+    static const float positions[] = { 30, 235, 90, 240, 150, 232, 210, 238 };
+    static OORendererBuffer* buffer;
+    if (buffer == NULL)
+        buffer = OORendererCreateBuffer(positions, sizeof positions);
+    SetPointSize(9);
+    OOImmediateColor4f(0.9f, 0.9f, 0.2f, 1);
+    OOVertexLayout layout = { 0 };
+    OOVertexLayoutAdd(&layout, kOOVertexPosition, 0, 2, 0, buffer, 0);
+    OORendererDrawArrays(kOONativePrimitivePoints, &layout, 0, 4);
+    SetPointSize(1);
+    OORendererPopDrawState();
+}
+
 typedef struct {
     const char* name;
     void (*draw)(void);
@@ -870,6 +927,7 @@ static const Scene kScenes[] = {
     { "program", SceneProgram, { 0, 0, 0, 1 }, NULL },
     { "specular", SceneSpecular, { 0, 0, 0, 1 }, NULL },
     { "fog", SceneFog, { 0, 0, 0, 1 }, NULL },
+    { "wide", SceneWide, { 0, 0, 0, 1 }, NULL },
 };
 
 static bool Save(const char* dir, const char* name, const uint8_t* bgraBottomUp)
