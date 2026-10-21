@@ -19,7 +19,7 @@ if get_option('renderer') == 'sdl_gpu'
     add_project_arguments('-DOO_RENDERER_SDL_GPU=1', language: ['c', 'objc'])
 
     cc = meson.get_compiler('c')
-    brew_lib = ['/opt/homebrew/lib', '/usr/local/lib']
+    brew_lib = ['/opt/homebrew/lib', '/usr/local/lib', '/usr/lib', '/usr/lib64']
     # Homebrew's glslang ships no pkg-config file; look for the libraries directly.
     glslang = dependency('glslang', required: false)
     if glslang.found()
