@@ -27,9 +27,7 @@ MA 02110-1301, USA.
 #import "OOFoundation.h"
 #import "OOWeakReference.h"
 
-#if OOJS_QUICKJS
 #include <quickjs.h>
-#endif
 
 @class ShipEntity;
 
@@ -41,11 +39,7 @@ MA 02110-1301, USA.
     OOWeakReference* _leader;
     NSString* _name;
 
-#if OOJS_QUICKJS
     JSValue _jsSelf; // Zero-filled (not an object) until created; test with JS_IsObject().
-#else
-    struct JSObject* _jsSelf;
-#endif
 }
 
 - (id)init;

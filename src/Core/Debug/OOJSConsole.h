@@ -33,15 +33,7 @@ SOFTWARE.
 
 @class OODebugMonitor;
 
-#if OOJS_QUICKJS
 #include <quickjs.h>
 
 // Create the JS console object for the debug monitor. The caller owns the result.
 JSValue DebugMonitorToJSConsole(JSContext* context, OODebugMonitor* monitor);
-#else
-#include <jsapi.h>
-
-JSObject* DebugMonitorToJSConsole(JSContext* context, OODebugMonitor* monitor);
-
-void OOJSConsoleDestroy(void);
-#endif

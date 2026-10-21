@@ -22,7 +22,6 @@ oolite_dependencies += dependency(
     # clang uses to flag QuickJS's "return f();" in void functions.
     default_options: ['default_library=static', 'libc=false', 'b_lto=false', 'warning_level=2'],
 )
-add_project_arguments('-DOOJS_QUICKJS=1', language: c_family)
 
 if get_option('b_lto')
     if ccid == 'clang'
