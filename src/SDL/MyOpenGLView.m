@@ -1099,8 +1099,10 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
         imageNo = tmpImageNo;
     }
 
-#if OOLITE_MAC_OS_X
-    // No window surface on macOS (see createWindowWithSize:); describe the GL drawable instead.
+#if OOLITE_MAC_OS_X || OO_RENDERER_SDL_GPU
+    /*  No window surface on macOS (see createWindowWithSize:), nor where the
+        window belongs to the SDL_GPU device; describe the drawable instead.
+    */
     SDL_Surface* surface = NULL;
     {
         int pixelWidth, pixelHeight;
@@ -1165,7 +1167,7 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
         free(pixlsf);
     }
 
-#if OOLITE_MAC_OS_X
+#if OOLITE_MAC_OS_X || OO_RENDERER_SDL_GPU
     SDL_DestroySurface(surface);
 #endif
 
