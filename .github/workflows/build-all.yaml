@@ -77,11 +77,6 @@ jobs:
 
   build-appimage:
     needs: clang-format-check
-    strategy:
-      fail-fast: false
-      matrix:
-        js_engine: [spidermonkey, quickjs]
-    name: build-appimage (${{ matrix.js_engine }})
     runs-on: ubuntu-latest
     container:
       image: archlinux:latest
@@ -118,37 +113,28 @@ jobs:
       - name: Build GNUstep
         run: |
           ShellScripts/Linux/build_gnustep.sh system
-      - name: Install Mozilla static library
-        if: matrix.js_engine == 'spidermonkey'
-        run: |
-          ShellScripts/Linux/install_mozilla_js.sh system
           echo "/usr/local/lib" | tee -a /etc/ld.so.conf
           ldconfig
       - name: Build Oolite
         run: |
-          ./mk.sh build deployment --setup-flags="-Ddocs=enabled -Djs_engine=${{ matrix.js_engine }}" --github-repository="$GITHUB_REPOSITORY"
+          ./mk.sh build deployment --setup-flags="-Ddocs=enabled" --github-repository="$GITHUB_REPOSITORY"
       - name: Test Oolite
         if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
         run: |
-          ./mk.sh test deployment --setup-flags="-Djs_engine=${{ matrix.js_engine }}"
+          ./mk.sh test deployment
       - name: Package Oolite
         run: |
           ./mk.sh pkg-appimage deployment
       - name: Archive installer
         uses: actions/upload-artifact@v6
         with:
-          name: oolite-linux-appimage-deployment${{ matrix.js_engine == 'quickjs' && '-quickjs' || '' }}
+          name: oolite-linux-appimage-deployment
           path: |
             build/Oolite*.AppImage
           retention-days: 5
 
   build-ubuntu:
     needs: clang-format-check
-    strategy:
-      fail-fast: false
-      matrix:
-        js_engine: [spidermonkey, quickjs]
-    name: build-ubuntu (${{ matrix.js_engine }})
     runs-on: ubuntu-latest
     container:
       image: ubuntu:26.04
@@ -182,20 +168,16 @@ jobs:
           ShellScripts/Linux/build_gnustep.sh system
           echo "/usr/local/lib" | tee -a /etc/ld.so.conf
           ldconfig
-      - name: Install Mozilla static library
-        if: matrix.js_engine == 'spidermonkey'
-        run: |
-          ShellScripts/Linux/install_mozilla_js.sh system
       - name: Build Oolite
         run: |
-          ./mk.sh build dev --setup-flags="-Ddocs=enabled -Djs_engine=${{ matrix.js_engine }}"
+          ./mk.sh build dev --setup-flags="-Ddocs=enabled"
       - name: Test Oolite
         if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
         run: |
-          ./mk.sh test dev --setup-flags="-Djs_engine=${{ matrix.js_engine }}"
+          ./mk.sh test dev
       - name: Build AppImage
         run: |
-          ./mk.sh pkg-appimage dev --setup-flags="-Djs_engine=${{ matrix.js_engine }}"
+          ./mk.sh pkg-appimage dev
 
   build-fedora:
     needs: clang-format-check
@@ -230,9 +212,6 @@ jobs:
       - name: Build GNUstep
         run: |
           ShellScripts/Linux/build_gnustep.sh system
-      - name: Install Mozilla static library
-        run: |
-          ShellScripts/Linux/install_mozilla_js.sh system
           echo "/usr/local/lib64" | tee -a /etc/ld.so.conf
           ldconfig
       - name: Build Oolite
@@ -245,11 +224,6 @@ jobs:
 
   build-flatpak:
     needs: clang-format-check
-    strategy:
-      fail-fast: false
-      matrix:
-        js_engine: [spidermonkey, quickjs]
-    name: build-flatpak (${{ matrix.js_engine }})
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-25.08
@@ -274,22 +248,17 @@ jobs:
           source ShellScripts/Linux/install_gitversion_fn.sh
           mkdir -p /usr/local/bin
           install_gitversion /usr/local/bin "."
-          ./mk.sh pkg-flatpak deployment --github-repository="$GITHUB_REPOSITORY" --setup-flags="-Djs_engine=${{ matrix.js_engine }}"
+          ./mk.sh pkg-flatpak deployment --github-repository="$GITHUB_REPOSITORY"
       - name: Archive installer
         uses: actions/upload-artifact@v6
         with:
-          name: oolite-linux-flatpak-deployment${{ matrix.js_engine == 'quickjs' && '-quickjs' || '' }}
+          name: oolite-linux-flatpak-deployment
           path: |
             build/space.oolite.Oolite*.flatpak
           retention-days: 5
 
   build-windows:
     needs: clang-format-check
-    strategy:
-      fail-fast: false
-      matrix:
-        js_engine: [spidermonkey, quickjs]
-    name: build-windows (${{ matrix.js_engine }})
     runs-on: windows-latest
     steps:
       ## This is for debugging only and helps developing the workflow.
@@ -327,7 +296,7 @@ jobs:
           MSYSTEM: UCRT64
           PYTHONUTF8: "1"
         run: |
-          ./mk.sh build deployment --github-repository="$GITHUB_REPOSITORY" --setup-flags="-Ddocs=enabled -Djs_engine=${{ matrix.js_engine }}"
+          ./mk.sh build deployment --setup-flags="-Ddocs=enabled" --github-repository="$GITHUB_REPOSITORY"
       - name: Test Oolite
         if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
         shell: msys2 {0}
@@ -335,7 +304,7 @@ jobs:
           MSYSTEM: UCRT64
           PYTHONUTF8: "1"
         run: |
-          if ./mk.sh test deployment --setup-flags="-Djs_engine=${{ matrix.js_engine }}"; then
+          if ./mk.sh test deployment; then
             echo "✅ Oolite test completed successfully"
           else
             echo "❌ Oolite test failed" >&2
@@ -353,18 +322,13 @@ jobs:
       - name: Archive installer
         uses: actions/upload-artifact@v6
         with:
-          name: oolite-windows-nsis-deployment${{ matrix.js_engine == 'quickjs' && '-quickjs' || '' }}
+          name: oolite-windows-nsis-deployment
           path: |
             build/OoliteInstall*.exe
           retention-days: 5
 
   build-macos:
     needs: clang-format-check
-    strategy:
-      fail-fast: false
-      matrix:
-        js_engine: [spidermonkey, quickjs]
-    name: build-macos (${{ matrix.js_engine }})
     runs-on: macos-latest
     env:
       HOMEBREW_NO_AUTO_UPDATE: 1
@@ -377,24 +341,13 @@ jobs:
       - name: Install packages
         run: |
           ShellScripts/macOS/install_packages.sh
-      - name: Restore Mozilla static library
-        if: matrix.js_engine == 'spidermonkey'
-        id: mozilla-js-cache
-        uses: actions/cache@v4
-        with:
-          path: build/mozilla_js
-          key: mozilla-js-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('ShellScripts/macOS/build_mozilla_js.sh', 'ShellScripts/macOS/mozilla_js_arm64.patch') }}
-      - name: Build Mozilla static library
-        if: matrix.js_engine == 'spidermonkey' && steps.mozilla-js-cache.outputs.cache-hit != 'true'
-        run: |
-          ShellScripts/macOS/build_mozilla_js.sh
       - name: Build Oolite
         run: |
-          ./mk.sh build deployment --github-repository="$GITHUB_REPOSITORY" --setup-flags="-Ddocs=enabled -Djs_engine=${{ matrix.js_engine }}"
+          ./mk.sh build deployment --setup-flags="-Ddocs=enabled" --github-repository="$GITHUB_REPOSITORY"
       - name: Test Oolite
         if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
         run: |
-          ./mk.sh test deployment --setup-flags="-Djs_engine=${{ matrix.js_engine }}"
+          ./mk.sh test deployment
       # The app is only ad-hoc signed, so Gatekeeper blocks the downloaded DMG's app until the
       # user allows it in System Settings (issue #779). Fixing that needs Developer ID signing
       # and notarisation, i.e. signing keys and Apple credentials added as repository secrets.
@@ -405,7 +358,7 @@ jobs:
       - name: Archive installer
         uses: actions/upload-artifact@v6
         with:
-          name: oolite-macos-dmg-deployment${{ matrix.js_engine == 'quickjs' && '-quickjs' || '' }}
+          name: oolite-macos-dmg-deployment
           path: |
             build/Oolite*.dmg
           retention-days: 5
@@ -432,18 +385,17 @@ jobs:
         id: version
         run: |
           set -x          
-          # 1. Check that there are exactly 12 files recursively in the artifacts directory: for each
-          #    of SpiderMonkey and QuickJS an AppImage, two flatpaks (app and debug), an NSIS installer
-          #    and a DMG, plus the documentation zip and the artifact.tar produced by GitHub pages
+          # 1. Check that there are exactly 7 files recursively in the artifacts directory
+          # (includes artifact.tar produced by GitHub pages and 2 Flatpak files)
           FILE_COUNT=$(find artifacts -type f | wc -l)
           echo "Total files found: $FILE_COUNT"          
-          if [[ "$FILE_COUNT" -ne 12 ]]; then
+          if [[ "$FILE_COUNT" -ne 7 ]]; then
             FILE_LIST=$(find artifacts -type f | tr '\n' ',' | sed 's/,$//')
-            echo "❌ Expected exactly 12 files, but found $FILE_COUNT: ($FILE_LIST)." >&2
+            echo "❌ Expected exactly 7 files, but found $FILE_COUNT: ($FILE_LIST)." >&2
             exit 1
           fi
-          # 2. Get the path of the SpiderMonkey AppImage
-          APPIMAGE_PATH=$(find artifacts/oolite-linux-appimage-deployment -type f -name "*.AppImage" | head -n 1)          
+          # 2. Get the path of the first available AppImage
+          APPIMAGE_PATH=$(find artifacts -type f -name "*.AppImage" | head -n 1)          
           if [[ -z "$APPIMAGE_PATH" ]]; then
             echo "❌ No AppImages found in the downloaded artifacts!" >&2
             exit 1
@@ -483,10 +435,6 @@ jobs:
             artifacts/oolite-linux-appimage-deployment/*.AppImage
             artifacts/oolite-linux-flatpak-deployment/space.oolite.Oolite-[0-9]*.flatpak
             artifacts/oolite-macos-dmg-deployment/*.dmg
-            artifacts/oolite-windows-nsis-deployment-quickjs/OoliteInstall-*.exe
-            artifacts/oolite-linux-appimage-deployment-quickjs/*.AppImage
-            artifacts/oolite-linux-flatpak-deployment-quickjs/space.oolite.Oolite-[0-9]*.flatpak
-            artifacts/oolite-macos-dmg-deployment-quickjs/*.dmg
             artifacts/oolite-documentation/*.zip
 
       - name: Remove old workflow runs

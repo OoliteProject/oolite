@@ -2,7 +2,6 @@
 
 add_project_arguments(
     '-DWIN32',
-    '-DXP_WIN',
     '-DWINVER=0x0A00',
     language: c_family,
 )
@@ -13,7 +12,6 @@ if ccid == 'clang' and get_option('pdb')
     oolite_link_args += ['-Wl,-pdb=']
 endif
 
-win_js_suffix = (get_option('optimization') == '0' or get_option('debug')) ? 'dbg' : ''
 dep_libs = [
     'glu32',
     'opengl32',
@@ -23,15 +21,9 @@ dep_libs = [
     'objc',
     'gnustep-base',
 ]
-if not use_quickjs
-    dep_libs += ['js' + win_js_suffix]
-endif
 foreach lib : dep_libs
     oolite_dependencies += [cc.find_library(lib, required: true)]
 endforeach
 if (ccid == 'gcc')
     add_project_arguments('-D_WIN32_WINNT=0x0A00', language: c_family)
-    if not use_quickjs
-        add_project_arguments('-DSTATIC_JS_API', language: c_family)
-    endif
 endif

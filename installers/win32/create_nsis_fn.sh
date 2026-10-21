@@ -11,8 +11,6 @@ create_nsis() {
     pushd "$script_dir"
     cd ../..
     source ShellScripts/common/parse_manifest_fn.sh
-    source ShellScripts/common/js_engine_fn.sh
-    local pkg_suffix=$(js_engine_pkg_suffix "$(meson_js_engine "build/$(dirname "$build_folder")")")
 
     mkdir -p build/nsis
     cd build/nsis
@@ -29,7 +27,6 @@ create_nsis() {
     echo "!define VER_GITHASH ${ver_githash}" >> OoliteVersions.nsh
     echo "!define VERSION ${ver_quad}" >> OoliteVersions.nsh
     echo "!define VER_FULL ${ver_full}" >> OoliteVersions.nsh
-    echo "!define PKG_SUFFIX \"${pkg_suffix}\"" >> OoliteVersions.nsh
     echo "!define BUILDTIME \"${buildtime}\"" >> OoliteVersions.nsh
     echo "!define BUILDHOST_IS64BIT 1" >> OoliteVersions.nsh
 
