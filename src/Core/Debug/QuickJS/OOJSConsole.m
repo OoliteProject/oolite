@@ -430,6 +430,16 @@ static BOOL DoWeDefineAllDebugFlags(enum OODebugFlags flags)
 
 // *** Settings ***
 
+/*	The ConsoleSettings prototype is itself an instance of the class (see
+        OOJSInitClass()), but has no monitor. It has no settings: properties
+        defined on it while the class is set up, such as constructor, are
+        ignored, and reads fall through to Object.prototype.
+*/
+static BOOL IsSettingsPrototype(JSValueConst object)
+{
+    return JS_GetOpaque(object, sConsoleSettingsClassID) == NULL;
+}
+
 // Setting key for a string property ID, or nil for other IDs (symbols).
 static NSString* SettingKeyForPropertyID(JSContext* context, JSAtom propID)
 {
@@ -456,7 +466,7 @@ static JSValue ConsoleSettingsGetProperty(JSContext* context, JSValueConst objec
     OOJS_NATIVE_ENTER(context)
 
     NSString* key = SettingKeyForPropertyID(context, propID);
-    if (key == nil) {
+    if (key == nil || IsSettingsPrototype(object)) {
         // Symbols, such as Symbol.toPrimitive: look them up on the prototype.
         JSValue prototype = JS_GetPrototype(context, object);
         JSValue result = JS_GetProperty(context, prototype, propID);
@@ -479,7 +489,7 @@ static JSValue ConsoleSettingsGetProperty(JSContext* context, JSValueConst objec
 static int SetSetting(JSContext* context, JSValueConst object, JSAtom propID, JSValueConst value)
 {
     NSString* key = SettingKeyForPropertyID(context, propID);
-    if (key == nil)
+    if (key == nil || IsSettingsPrototype(object))
         return YES;
 
     OODebugMonitor* monitor = MonitorForConsoleObject(context, object, __PRETTY_FUNCTION__);
@@ -532,7 +542,7 @@ static int ConsoleSettingsDeleteProperty(JSContext* context, JSValueConst object
 {
     @try {
         NSString* key = SettingKeyForPropertyID(context, propID);
-        if (key == nil)
+        if (key == nil || IsSettingsPrototype(object))
             return NO;
 
         OODebugMonitor* monitor = MonitorForConsoleObject(context, object, __PRETTY_FUNCTION__);
