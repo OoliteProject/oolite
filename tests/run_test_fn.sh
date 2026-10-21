@@ -41,7 +41,8 @@ run_test() {
     if [[ "$(uname -s)" == "Darwin" ]]; then
         LAUNCH_PATH="$TARGET_DIR/Contents/MacOS/oolite"  # app bundle
     fi
-    if ! $PYTHON_CMD launch_snapshot.py --path="$LAUNCH_PATH" --test_output="$TEST_OUTPUT"; then
+    if ! $PYTHON_CMD -u launch_snapshot.py --path="$LAUNCH_PATH" --test_output="$TEST_OUTPUT" \
+            --load="$script_dir/../Resources/Scenarios/oolite-standard.oolite-save"; then
         output_log "$OOLITE_LOG"
         echo "❌ Oolite test failed!" >&2
         echo "   If this is a windows build try creating a new release of the Windows dependencies in the GitHub UI here:" >&2
