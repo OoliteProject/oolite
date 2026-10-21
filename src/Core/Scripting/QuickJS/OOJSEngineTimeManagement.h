@@ -60,18 +60,86 @@ SOFTWARE.
         calls.
 */
 
-/*	Profiling
+#if OOJS_PROFILE
 
-        The SpiderMonkey build's profiler (OOJSBeginProfiling(),
-        OOJSEndProfiling(), OOJSIsProfiling(), OOTimeProfile and
-        OOTimeProfileEntry, used by the debug console's profile(), getProfile()
-        and trace()) depended on SpiderMonkey's function call hook and on
-        per-native OOJS_PROFILE_ENTER/EXIT bookkeeping. QuickJS has no function
-        call hook, and OOJS_PROFILE_ENTER/EXIT are plain blocks, so profiling is
-        not available: OOJS_PROFILE is 0 and the profiling API is not declared.
+/*
+        Profiling support.
+
+        OOJSBeginProfiling(trace), OOJSEndProfiling(), OOJSIsProfiling()
+        Start, stop, and query profiling mode. It is a hard error to start
+        profiling while already profiling.
+
+        If trace is set, all profileable functions will be logged. The actual
+        profile will be of little use in this case because of logging overhead.
+
+        As in SpiderMonkey builds without MOZ_TRACE_JSCALLS, only natives are
+        profiled (QuickJS has no function call hook); time not spent in natives
+        is reported as JavaScript time.
+
+        OOJSExcludeTimeFromLimiter()
+        Extend the current time limit by the given time, unless the limiter is
+        paused. Used to keep profiler overhead from counting towards the limit.
+
+        NOTE: the profiler declarations that need to be visible to functions that
+        are profiled are found in OOJavaScriptEngine.h.
 */
-#ifndef OOJS_PROFILE
-#define OOJS_PROFILE 0
+
+@class OOTimeProfile, OOTimeProfileEntry;
+
+void OOJSBeginProfiling(BOOL trace);
+OOTimeProfile* OOJSEndProfiling(void);
+BOOL OOJSIsProfiling(void);
+
+void OOJSExcludeTimeFromLimiter(OOTimeDelta time);
+
+@interface OOTimeProfile : NSObject {
+@private
+    double _totalTime;
+    double _nativeTime;
+    double _extensionTime;
+    double _profilerOverhead;
+
+    NSArray* _profileEntries;
+}
+
+- (double)totalTime;
+- (double)javaScriptTime;
+- (double)nativeTime;
+- (double)extensionTime;
+- (double)nonExtensionTime;
+- (double)profilerOverhead;
+
+- (NSArray*)profileEntries; // Array of OOTimeProfileEntry
+
+@end
+
+@interface OOTimeProfileEntry : NSObject {
+@private
+    NSString* _function;
+    unsigned long _hitCount;
+    double _totalTimeSum;
+    double _selfTimeSum;
+    double _totalTimeMax;
+    double _selfTimeMax;
+}
+
+- (NSString*)function;
+- (NSUInteger)hitCount;
+- (double)totalTimeSum;
+- (double)selfTimeSum;
+- (double)totalTimeAverage;
+- (double)selfTimeAverage;
+- (double)totalTimeMax;
+- (double)selfTimeMax;
+- (BOOL)isJavaScriptFrame;
+
+- (NSComparisonResult)compareByTotalTime:(OOTimeProfileEntry*)other;
+- (NSComparisonResult)compareByTotalTimeReverse:(OOTimeProfileEntry*)other;
+- (NSComparisonResult)compareBySelfTime:(OOTimeProfileEntry*)other;
+- (NSComparisonResult)compareBySelfTimeReverse:(OOTimeProfileEntry*)other;
+
+@end
+
 #endif
 
 @class OOJavaScriptEngine;

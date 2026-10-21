@@ -23,6 +23,7 @@ MA 02110-1301, USA.
 
 #import "OOJavaScriptEngine.h"
 #import "OOJSScript.h"
+#import "OOJSEngineTimeManagement.h"
 
 #import "EntityOOJavaScriptExtensions.h"
 #import "NSNumberOOExtensions.h"
@@ -616,6 +617,18 @@ OOTimeDelta OOJSGetTimeLimiterLimit(void)
 void OOJSSetTimeLimiterLimit(OOTimeDelta limit)
 {
     sLimiterTimeLimit = limit;
+}
+#endif
+
+#if OOJS_PROFILE
+void OOJSExcludeTimeFromLimiter(OOTimeDelta time)
+{
+    /*	Equivalent of pausing/resuming time limiter, except that it guarantees
+            excluded time will match profiler overhead if there are no other
+            pauses happening.
+    */
+    if (sLimiterPauseDepth == 0)
+        sLimiterTimeLimit += time;
 }
 #endif
 
