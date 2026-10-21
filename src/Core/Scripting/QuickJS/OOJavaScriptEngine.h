@@ -713,11 +713,11 @@ void OOJSProfileExit(OOJSProfileStackFrame* frame);
     }                                             \
     }
 
-#define OOJS_NATIVE_ENTER(cx)                             \
-    {                                                     \
-        JSContext* oojsNativeContext = (cx);              \
-        OOJSProfileStackFrame oojsProfilerStackFrame;     \
-        @try {                                            \
+#define OOJS_NATIVE_ENTER(cx)                         \
+    {                                                 \
+        JSContext* oojsNativeContext = (cx);          \
+        OOJSProfileStackFrame oojsProfilerStackFrame; \
+        @try {                                        \
             OOJSProfileEnter(&oojsProfilerStackFrame, __FUNCTION__);
 
 #define OOJS_NATIVE_EXIT                                          \
