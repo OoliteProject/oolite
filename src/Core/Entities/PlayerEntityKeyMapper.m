@@ -494,7 +494,7 @@ static NSArray* camera_keys = nil;
                        forRow:GUI_ROW_KC_MOD1 + skiprows];
             }
 
-#if OOLITE_MAC_OS_X
+#if OOLITE_MAC_COCOA_UI
             [gui setArray:[NSArray arrayWithObjects:
                                   DESC(@"oolite-keyconfig-update-mod2-mac"), mod2, nil]
                    forRow:GUI_ROW_KC_MOD2 + skiprows];
@@ -1148,7 +1148,7 @@ static NSArray* camera_keys = nil;
 #if OOLITE_LINUX
     map = @"keymappings_linux.plist";
 #endif
-#if OOLITE_MAC_OS_X
+#if OOLITE_MAC_COCOA_UI
     map = @"keymappings_mac.plist";
 #endif
     NSDictionary* kmap = [NSDictionary dictionaryWithDictionary:[ResourceManager dictionaryFromFilesNamed:map inFolder:@"Config" mergeMode:MERGE_BASIC cache:NO]];
@@ -1165,7 +1165,7 @@ static NSArray* camera_keys = nil;
 #if OOLITE_LINUX
     map = @"keymappings_linux.plist";
 #endif
-#if OOLITE_MAC_OS_X
+#if OOLITE_MAC_COCOA_UI
     map = @"keymappings_mac.plist";
 #endif
     NSDictionary* kmap = [NSDictionary dictionaryWithDictionary:[ResourceManager dictionaryFromFilesNamed:map inFolder:@"Config" mergeMode:MERGE_BASIC cache:NO]];

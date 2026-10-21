@@ -17,6 +17,18 @@ run_script() {
     local appname=$(basename "$stageprogpath")
     local progdir=$(dirname "$stageprogpath")
     local installdir="$MESON_INSTALL_DESTDIR_PREFIX"
+    if [[ "$host_os" == "darwin" ]]; then
+        # macOS: install the self-contained app bundle into /Applications
+        local app_dst="${DESTDIR:-}/Applications/Oolite.app"
+        rm -rf "$app_dst"
+        if ! mkdir -p "$(dirname "$app_dst")" || ! ditto "$progdir" "$app_dst"; then
+            echo "❌ Failed to copy '$progdir' to '$app_dst'!" >&2
+            return 1
+        fi
+        echo "✅ Oolite install completed successfully: $app_dst"
+        popd > /dev/null
+        return 0
+    fi
     local fullbindir="$installdir/$bindir"
     rm -f "$fullbindir/oolite"
     if [[ "$host_os" == "linux" ]]; then

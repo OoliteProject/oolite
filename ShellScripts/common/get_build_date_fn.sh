@@ -18,18 +18,22 @@ get_build_date() {
     local -n _buildtime="$3"
     local -n _builder="$4"
     local buildtime="$5"
+    local date_cmd="date"
+    if [[ "$(uname -s)" == "Darwin" ]]; then
+        date_cmd="gdate"  # GNU date from Homebrew coreutils; BSD date has no -d
+    fi
 
 
     if [[ -z "$buildtime" ]]; then
         local getversion_timestamp=$(git log -1 --format=%ct)
-        _buildtime=$(date -u -d "@$getversion_timestamp" "+%Y.%m.%d %H:%M")
+        _buildtime=$($date_cmd -u -d "@$getversion_timestamp" "+%Y.%m.%d %H:%M")
     else
         _buildtime="$buildtime"
     fi
 
     local clean_date="${_buildtime//./-}"
-    _cpp_date=$(date -u -d "$clean_date" +"%b%e %Y")
-    _app_date=$(date -u -d "$clean_date" +"%Y-%m-%d")
+    _cpp_date=$($date_cmd -u -d "$clean_date" +"%b%e %Y")
+    _app_date=$($date_cmd -u -d "$clean_date" +"%Y-%m-%d")
 
     if [[ "$GITHUB_REPOSITORY" == "OoliteProject/oolite" ]]; then
         _builder="OoliteProject"

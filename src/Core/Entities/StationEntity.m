@@ -444,14 +444,14 @@ NSDictionary* OOMakeDockingInstructions(StationEntity* station, HPVector coords,
             docking = [sub canAcceptShipForDocking:ship];
             if ([docking isEqualToString:@"DOCK_CLOSED"]) {
                 JSContext* context = OOJSAcquireContext();
-                jsval rval = JSVAL_VOID;
-                jsval args[] = { OOJSValueFromNativeObject(context, sub),
+                OOJSVal rval = OOJSUndefinedValue();
+                OOJSVal args[] = { OOJSValueFromNativeObject(context, sub),
                     OOJSValueFromNativeObject(context, ship) };
-                JSBool tempreject = NO;
+                BOOL tempreject = NO;
 
                 BOOL OK = [[self script] callMethod:OOJSID("willOpenDockingPortFor") inContext:context withArguments:args count:2 result:&rval];
                 if (OK)
-                    OK = JS_ValueToBoolean(context, rval, &tempreject);
+                    tempreject = OOJSValueToBOOL(context, rval);
                 if (!OK)
                     tempreject = NO; // default to permreject
                 if (tempreject) {
@@ -460,6 +460,9 @@ NSDictionary* OOMakeDockingInstructions(StationEntity* station, HPVector coords,
                     docking = @"TOO_BIG_TO_DOCK";
                 }
 
+                OOJSFreeValue(context, rval);
+                OOJSFreeValue(context, args[0]);
+                OOJSFreeValue(context, args[1]);
                 OOJSRelinquishContext(context);
             }
 
@@ -1200,7 +1203,7 @@ NSDictionary* OOMakeDockingInstructions(StationEntity* station, HPVector coords,
         OOStationAlertLevel oldLevel = alertLevel;
         alertLevel = level;
         if (signallingScript) {
-            ShipScriptEventNoCx(self, "alertConditionChanged", INT_TO_JSVAL(level), INT_TO_JSVAL(oldLevel));
+            [self doScriptEvent:OOJSID("alertConditionChanged") withArgument:[NSNumber numberWithInt:level] andArgument:[NSNumber numberWithInt:oldLevel]];
         }
         switch (level) {
         case STATION_ALERT_LEVEL_GREEN:
@@ -1916,19 +1919,23 @@ NSDictionary* OOMakeDockingInstructions(StationEntity* station, HPVector coords,
                 NSString* docking = [sub canAcceptShipForDocking:other];
                 if ([docking isEqualToString:@"DOCK_CLOSED"]) {
                     JSContext* context = OOJSAcquireContext();
-                    jsval rval = JSVAL_VOID;
-                    jsval args[] = { OOJSValueFromNativeObject(context, sub),
+                    OOJSVal rval = OOJSUndefinedValue();
+                    OOJSVal args[] = { OOJSValueFromNativeObject(context, sub),
                         OOJSValueFromNativeObject(context, other) };
-                    JSBool tempreject = NO;
+                    BOOL tempreject = NO;
 
                     BOOL OK = [[self script] callMethod:OOJSID("willOpenDockingPortFor") inContext:context withArguments:args count:2 result:&rval];
                     if (OK)
-                        OK = JS_ValueToBoolean(context, rval, &tempreject);
+                        tempreject = OOJSValueToBOOL(context, rval);
                     if (!OK)
                         tempreject = NO; // default to permreject
                     if (tempreject) {
                         openLater = YES;
                     }
+
+                    OOJSFreeValue(context, rval);
+                    OOJSFreeValue(context, args[0]);
+                    OOJSFreeValue(context, args[1]);
                     OOJSRelinquishContext(context);
                 }
                 if (openLater)
