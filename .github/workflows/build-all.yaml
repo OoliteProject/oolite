@@ -21,6 +21,21 @@ jobs:
           clang-format-version: '22'
           check-path: 'src'
 
+  oxp-upgrade:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Oolite
+        uses: actions/checkout@v6
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - name: Test the OXP upgrade tool
+        working-directory: tools/oxp-upgrade
+        run: |
+          npm ci
+          npm test
+
   build-appimage:
     needs: clang-format-check
     runs-on: ubuntu-latest
