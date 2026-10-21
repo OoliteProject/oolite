@@ -251,6 +251,15 @@ jobs:
           PYTHONUTF8: "1"
         run: |
           ./mk.sh build dev --setup-flags="-Drenderer=sdl_gpu" --github-repository="$GITHUB_REPOSITORY"
+      # No GPU here, but Windows' D3DCompile is: compile the built-in shaders
+      # as the Direct3D 12 path would.
+      - name: Compile the shaders for Direct3D 12
+        shell: msys2 {0}
+        env:
+          MSYSTEM: UCRT64
+        run: |
+          meson compile -C build/meson_dev oogpu-hlsl-check
+          build/meson_dev/src/Core/Renderer/oogpu-hlsl-check.exe tools/sdl_gpu_spike/builtin-programs.tsv
 
   build-macos:
     needs: clang-format-check

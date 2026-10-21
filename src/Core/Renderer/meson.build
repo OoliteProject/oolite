@@ -52,6 +52,14 @@ if get_option('renderer') == 'sdl_gpu'
     endif
     # Both are C++ libraries behind C interfaces.
     oolite_dependencies += [glslang, spirv_cross, cc.find_library('stdc++', required: false)]
+
+    # Translates and compiles shaders for Direct3D 12 without a GPU, for CI's
+    # Windows runners: meson compile oogpu-hlsl-check.
+    executable('oogpu-hlsl-check', meson.project_source_root() / 'tools/sdl_gpu_spike/oogpu-hlsl-check.c',
+        'OOGLSLTranslator.c', 'OOHLSLCompiler.c',
+        include_directories: include_directories('.'),
+        dependencies: [glslang, spirv_cross, cc.find_library('stdc++', required: false)],
+        link_language: 'cpp', build_by_default: false)
 else
     oolite_sources += files('OORendererGL.c')
 endif

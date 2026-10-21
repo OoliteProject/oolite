@@ -1,0 +1,11 @@
+# Oolite's built-in programs, for oogpu-hlsl-check: label, vertex, fragment, prefix ('-' for none). Paths are relative to the checkout.
+ship	Resources/Shaders/oolite-tangent-space-vertex.vertex	Resources/Shaders/oolite-default-shader.fragment	tools/sdl_gpu_spike/corpus/ship-prefix.txt
+ship-plain	Resources/Shaders/oolite-standard-vertex.vertex	Resources/Shaders/oolite-default-shader.fragment	-
+planet	Resources/Shaders/oolite-default-planet.vertex	Resources/Shaders/oolite-default-planet.fragment	-
+atmosphere	Resources/Shaders/oolite-default-atmosphere.vertex	Resources/Shaders/oolite-default-atmosphere.fragment	-
+clouds	Resources/Shaders/oolite-default-clouds.vertex	Resources/Shaders/oolite-default-clouds.fragment	-
+dust	Resources/Shaders/oolite-dust.vertex	Resources/Shaders/oolite-dust.fragment	-
+fixed-function	-	-	-
+post-texture	tools/sdl_gpu_spike/postchain/oolite-texture.vertex	tools/sdl_gpu_spike/postchain/oolite-texture.fragment	-
+post-blur	tools/sdl_gpu_spike/postchain/oolite-blur.vertex	tools/sdl_gpu_spike/postchain/oolite-blur.fragment	-
+post-final	tools/sdl_gpu_spike/postchain/oolite-final.vertex	tools/sdl_gpu_spike/postchain/oolite-final.fragment	-
