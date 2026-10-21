@@ -468,7 +468,9 @@ static NSString* NormalModeDescription(OOMeshNormalMode mode)
 #if OO_MULTITEXTURE
                 for (unit = 0; unit < _textureUnitCount; unit++) {
                     if (_textureUnitCount > 1) {
+#if !OO_RENDERER_SDL_GPU
                         OOGL(glClientActiveTextureARB(GL_TEXTURE0_ARB + unit));
+#endif
                         OOGLActiveTexture(GL_TEXTURE0_ARB + unit);
                     }
 #endif
@@ -528,7 +530,9 @@ static NSString* NormalModeDescription(OOMeshNormalMode mode)
 
 #if OO_MULTITEXTURE
     if (_textureUnitCount > 1) {
+#if !OO_RENDERER_SDL_GPU
         OOGL(glClientActiveTextureARB(GL_TEXTURE0_ARB));
+#endif
         OOGLActiveTexture(GL_TEXTURE0_ARB);
     }
 #endif

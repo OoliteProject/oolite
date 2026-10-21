@@ -26,6 +26,9 @@ SOFTWARE.
 */
 
 #import "OOOpenGLExtensionManager.h"
+#if OO_RENDERER_SDL_GPU
+#import "OORendererSDLGPU.h"
+#endif
 #import "NSThreadOOExtensions.h"
 #import "OOFunctionAttributes.h"
 #import "OOLogging.h"
@@ -208,6 +211,21 @@ static NSArray* ArrayOfExtensions(NSString* extensionString)
     DESTROY(vendor);
     DESTROY(renderer);
 
+#if OO_RENDERER_SDL_GPU
+    /*	No GL context to ask: describe what the SDL_GPU backend provides, in
+            the terms the rest of the game asks about.
+    */
+    NSString* extensionsStr = @"GL_ARB_multitexture GL_ARB_shader_objects GL_ARB_vertex_shader GL_ARB_fragment_shader GL_ARB_shading_language_100 "
+                               "GL_ARB_texture_env_combine GL_EXT_framebuffer_object GL_ARB_framebuffer_object GL_ARB_vertex_buffer_object "
+                               "GL_ARB_texture_cube_map GL_EXT_texture_lod_bias GL_SGIS_texture_lod GL_SGIS_texture_edge_clamp "
+                               "GL_EXT_texture_filter_anisotropic GL_ARB_texture_float GL_ARB_color_buffer_float GL_ARB_draw_buffers "
+                               "GL_ARB_point_sprite GL_EXT_texture_sRGB";
+    extensions = [[NSSet alloc] initWithArray:ArrayOfExtensions(extensionsStr)];
+    vendor = [@"SDL_GPU" retain];
+    const char* driver = OORendererSDLGPUDriverName();
+    renderer = [[NSString alloc] initWithUTF8String:driver ? driver : "unknown"];
+    versionString = (const GLubyte*)"3.3 SDL_GPU";
+#else
     NSString* extensionsStr = [NSString stringWithUTF8String:(char*)glGetString(GL_EXTENSIONS)];
     extensions = [[NSSet alloc] initWithArray:ArrayOfExtensions(extensionsStr)];
 
@@ -215,6 +233,7 @@ static NSArray* ArrayOfExtensions(NSString* extensionString)
     renderer = [[NSString alloc] initWithUTF8String:(const char*)glGetString(GL_RENDERER)];
 
     versionString = glGetString(GL_VERSION);
+#endif
     if (versionString != NULL) {
         /*	String is supposed to be "major.minorFOO" or
          "major.minor.releaseFOO" where FOO is an empty string or
@@ -579,7 +598,11 @@ static unsigned IntegerFromString(const GLubyte** ioString)
     glValidateProgramARB = (PFNGLVALIDATEPROGRAMARBPROC)wglGetProcAddress("glValidateProgramARB");
 #endif
 
+#if OO_RENDERER_SDL_GPU
+    textureImageUnitCount = 16; // the backend's sampler slots per stage
+#else
     glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS_ARB, &textureImageUnitCount);
+#endif
 
     shadersAvailable = YES;
 }
@@ -668,7 +691,11 @@ static unsigned IntegerFromString(const GLubyte** ioString)
     textureCombinersSupported = [self haveExtension:@"GL_ARB_texture_env_combine"];
 
     if (textureCombinersSupported) {
+#if OO_RENDERER_SDL_GPU
+        textureUnitCount = 2; // the fixed-function emulation's units
+#else
         OOGL(glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, &textureUnitCount));
+#endif
 
 #if OOLITE_WINDOWS
         // Duplicated in checkShadersSupported. but that's not really a problem.

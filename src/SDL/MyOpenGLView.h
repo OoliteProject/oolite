@@ -213,11 +213,7 @@ extern int debug;
     SDL_Window* window;
     SDL_GLContext glContext;
 #if OO_RENDERER_SDL_GPU
-    /*  SDL_GPU draws into window; a hidden window holds a GL context for the
-        GL calls the game still makes (start-up probing, error checks).
-    */
-    SDL_Window* shadowGLWindow;
-    struct SDL_GPUDevice* gpuDevice;
+    struct SDL_GPUDevice* gpuDevice; // draws into window; there is no GL context
 #endif
     int bitsPerColorComponent;
     BOOL vSyncPreference;

@@ -223,10 +223,12 @@ typedef GLvoid (*TessFuncPtr)();
 #if OO_USE_VBO
     OO_ENTER_OPENGL();
 
+#if !OO_RENDERER_SDL_GPU
     if (_solidVBO != 0)
         glDeleteBuffersARB(1, &_solidVBO);
     if (_outlineVBO != 0)
         glDeleteBuffersARB(1, &_outlineVBO);
+#endif
 
     _solidVBO = 0;
     _outlineVBO = 0;

@@ -39,6 +39,10 @@ static GLfloat sDisplayScaleFactor = 1.0f;
 
 BOOL OOCheckOpenGLErrors(NSString* format, ...)
 {
+#if OO_RENDERER_SDL_GPU
+    (void)format;
+    return NO; // no GL context; SDL_GPU reports its own errors
+#else
     GLenum errCode;
     const GLubyte* errString = NULL;
     BOOL errorOccurred = NO;
@@ -82,6 +86,7 @@ BOOL OOCheckOpenGLErrors(NSString* format, ...)
 
     noReenter = NO;
     return errorOccurred;
+#endif
 }
 
 void OOGLWireframeModeOn(void)
@@ -209,14 +214,19 @@ void GLScaledLineWidth(GLfloat width)
 {
     OO_ENTER_OPENGL();
     OOImmediateSetLineWidth(width * sDisplayScaleFactor);
+#if !OO_RENDERER_SDL_GPU
+    // The GL backend draws wide lines natively; SDL_GPU expands them from the batch value.
     glLineWidth(width * sDisplayScaleFactor);
+#endif
 }
 
 void GLScaledPointSize(GLfloat size)
 {
     OO_ENTER_OPENGL();
     OOImmediateSetPointSize(size * sDisplayScaleFactor);
+#if !OO_RENDERER_SDL_GPU
     glPointSize(size * sDisplayScaleFactor);
+#endif
 }
 
 GLfloat GLGetDisplayScaleFactor(void)
@@ -242,6 +252,7 @@ static void GLDumpStateFlags(void);
 
 void LogOpenGLState(void)
 {
+#if !OO_RENDERER_SDL_GPU // the GL state isn't used
     unsigned i;
 
     if (!OOLogWillDisplayMessagesInClass(kOOLogOpenGLStateDump))
@@ -269,6 +280,7 @@ void LogOpenGLState(void)
     OOCheckOpenGLErrors(@"After state dump");
 
     OOLogOutdent();
+#endif
 }
 
 NSString* OOGLColorToString(GLfloat color[4])

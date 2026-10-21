@@ -350,8 +350,10 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     // liberate us from the 0.0 to 1.0 rgb range!
 
     // have to do this because on my machine the default framebuffer is not zero
-    GLint windowFramebuffer;
+    GLint windowFramebuffer = 0;
+#if !OO_RENDERER_SDL_GPU
     OOGL(glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &windowFramebuffer));
+#endif
 
     const OORenderStateMachine* state = OORendererState();
     OORendererProgram* previousProgram = OORendererCurrentProgram();

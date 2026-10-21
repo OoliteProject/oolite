@@ -200,19 +200,14 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
         OOLogERR(@"display.mode.error", @"Could not create window: %s", errStr);
         exit(1);
     }
-#if OO_RENDERER_SDL_GPU
-    // The shadow GL context, in a hidden window of its own.
-    shadowGLWindow = SDL_CreateWindow("Oolite GL", 16, 16, SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN);
-    glContext = shadowGLWindow ? SDL_GL_CreateContext(shadowGLWindow) : NULL;
-#else
+#if !OO_RENDERER_SDL_GPU
     glContext = SDL_GL_CreateContext(window);
-#endif
     if (!glContext) {
         OOLog(@"sdl.create_context", @"%@", @"Could not create OpenGL context");
         exit(1);
     }
-#if OO_RENDERER_SDL_GPU
-    SDL_GL_MakeCurrent(shadowGLWindow, glContext);
+#else
+    // No GL at all: everything draws through the SDL_GPU backend.
 #ifndef NDEBUG
     bool gpuDebug = true;
 #else
@@ -293,6 +288,7 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
 #endif
     OOLog(@"display.initGL", @"V-Sync %@requested.", vSyncPreference ? @"" : @"not ");
 
+#if !OO_RENDERER_SDL_GPU // there is no GL drawable to describe
     int testAttrib = -1;
     OOLog(@"display.initGL", @"%@", @"Achieved color / depth buffer sizes (bits):");
     SDL_GL_GetAttribute(SDL_GL_RED_SIZE, &testAttrib);
@@ -308,6 +304,7 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
 
     SDL_GL_GetAttribute(SDL_GL_FLOATBUFFERS, &testAttrib);
     OOLog(@"display.initGL", @"Pixel type is float : %d", testAttrib);
+#endif
 
     SDL_PixelFormat format = SDL_GetWindowPixelFormat(window);
     OOLog(@"display.initGL", @"Window Pixel Format: %s", SDL_GetPixelFormatName(format));
@@ -649,10 +646,6 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
     if (glContext) {
         SDL_GL_DestroyContext(glContext);
     }
-#if OO_RENDERER_SDL_GPU
-    if (shadowGLWindow != NULL)
-        SDL_DestroyWindow(shadowGLWindow);
-#endif
 
     if (keyMappings_normal)
         [keyMappings_normal release];

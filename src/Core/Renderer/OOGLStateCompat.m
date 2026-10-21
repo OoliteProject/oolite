@@ -439,9 +439,7 @@ static void Report(NSMutableArray* bad, NSString* format, ...)
 
 void OOGLVerifyStateMachine(void)
 {
-#if OO_RENDERER_SDL_GPU
-    return; // no GL context to compare
-#endif
+#if !OO_RENDERER_SDL_GPU // no GL context to compare otherwise
     static int sEnabled = -1;
     if (sEnabled < 0)
         sEnabled = getenv("OO_VERIFY_RENDER_STATE") != NULL;
@@ -592,6 +590,7 @@ void OOGLVerifyStateMachine(void)
             OOLogWARN(@"rendering.renderer.stateMachine", @"GL %@ changed without the OOGL* wrappers; first seen at a draw from %@.", field, [NSThread callStackSymbols].count > 3 ? [[NSThread callStackSymbols] objectAtIndex:3] : @"?");
         }
     }
+#endif
 }
 
 #endif

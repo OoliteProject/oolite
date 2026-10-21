@@ -13,6 +13,8 @@ oolite_link_args += [
     '-Wl,-sectcreate,__TEXT,__info_plist,' + meson.project_source_root() / 'Resources/Info-gnustep.plist',
 ]
 
+# SDL_GPU builds make no OpenGL calls, but OOPolygonSprite still uses GLU's
+# tessellator (CPU only), which lives in the OpenGL framework.
 oolite_dependencies += [
     dependency('appleframeworks', modules: ['Foundation', 'OpenGL']),
 ]

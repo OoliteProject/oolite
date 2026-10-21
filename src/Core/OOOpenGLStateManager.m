@@ -147,7 +147,11 @@ static inline GLenum GetState_CLIENT_ACTIVE_TEXTURE(void)
 }
 #endif
 
+#if OO_RENDERER_SDL_GPU
+#define SetState_CLIENT_ACTIVE_TEXTURE(VALUE) ((void)(VALUE))
+#else
 #define SetState_CLIENT_ACTIVE_TEXTURE(VALUE) OOGL(glClientActiveTextureARB(VALUE))
+#endif
 
 #else
 static inline GLenum GetState_ACTIVE_TEXTURE(void) { }
@@ -408,6 +412,10 @@ static void SwitchOpenGLStateInternal(const OOOpenGLState* sourceState, const OO
             OOGLDisable(GL_##NAME);                                                                                       \
         }                                                                                                                 \
     }
+#if OO_RENDERER_SDL_GPU
+// Client arrays are GL's; every draw states its own vertex layout.
+#define ITEM_CLIENTSTATEFLAG(NAME)
+#else
 #define ITEM_CLIENTSTATEFLAG(NAME)                 \
     if (sourceState->NAME != targetState->NAME) {  \
         if (targetState->NAME) {                   \
@@ -416,6 +424,7 @@ static void SwitchOpenGLStateInternal(const OOOpenGLState* sourceState, const OO
             OOGL(glDisableClientState(GL_##NAME)); \
         }                                          \
     }
+#endif
 #define ITEM_SPECIAL(NAME, TYPE, _)               \
     if (sourceState->NAME != targetState->NAME) { \
         SetState_##NAME(targetState->NAME);       \

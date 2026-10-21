@@ -297,6 +297,11 @@ bool OORendererSDLGPUInit(SDL_GPUDevice* device, unsigned width, unsigned height
     return true;
 }
 
+const char* OORendererSDLGPUDriverName(void)
+{
+    return sDevice != NULL ? SDL_GetGPUDeviceDriver(sDevice) : NULL;
+}
+
 void OORendererSDLGPUResize(unsigned width, unsigned height)
 {
     if (width == 0 || height == 0 || (width == sWindowWidth && height == sWindowHeight))

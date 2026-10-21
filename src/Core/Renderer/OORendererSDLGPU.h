@@ -47,4 +47,7 @@ void OORendererSDLGPUResize(unsigned width, unsigned height);
 */
 bool OORendererSDLGPUPresent(SDL_Window* window);
 
+// The SDL_GPU driver in use ("metal", "vulkan", "direct3d12"), or NULL before set-up.
+const char* OORendererSDLGPUDriverName(void);
+
 #endif
