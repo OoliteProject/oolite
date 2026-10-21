@@ -293,6 +293,36 @@ jobs:
             build/Oolite*.dmg
           retention-days: 5
 
+  # The SDL_GPU renderer on macOS (Metal), built but not packaged or released.
+  build-macos-sdl-gpu:
+    needs: clang-format-check
+    runs-on: macos-latest
+    env:
+      HOMEBREW_NO_AUTO_UPDATE: 1
+      HOMEBREW_NO_INSTALL_CLEANUP: 1
+    steps:
+      - name: Checkout Oolite
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Install packages
+        run: |
+          ShellScripts/macOS/install_packages.sh
+          brew install glslang spirv-cross
+      - name: Restore Mozilla static library
+        id: mozilla-js-cache
+        uses: actions/cache@v4
+        with:
+          path: build/mozilla_js
+          key: mozilla-js-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('ShellScripts/macOS/build_mozilla_js.sh', 'ShellScripts/macOS/mozilla_js_arm64.patch') }}
+      - name: Build Mozilla static library
+        if: steps.mozilla-js-cache.outputs.cache-hit != 'true'
+        run: |
+          ShellScripts/macOS/build_mozilla_js.sh
+      - name: Build Oolite with SDL_GPU
+        run: |
+          ./mk.sh build dev --setup-flags="-Drenderer=sdl_gpu" --github-repository="$GITHUB_REPOSITORY"
+
   release:
     needs: [build-linux, build-flatpak, build-windows, build-macos]
     runs-on: ubuntu-22.04
