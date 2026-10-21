@@ -1,0 +1,10 @@
+{
+	identifier = "org.oolite.test.oxpgallery";
+	version = "1.0";
+	title = "OXP shader gallery";
+	category = "Miscellaneous";
+	description = "Launches, then spawns a fixed list of OXP ships ahead of the player and snapshots each, for renderer tests. Loaded only by tools/sdl_gpu_spike/game-snapshot.py --gallery.";
+	author = "Oolite contributors";
+	license = "GPL 2+";
+	required_oolite_version = "1.93";
+}

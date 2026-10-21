@@ -121,7 +121,7 @@ static BOOL leftRightKeyPressed;
 static BOOL musicModeKeyPressed;
 static BOOL volumeControlPressed;
 static BOOL fovControlPressed;
-#if OOLITE_WINDOWS
+#if OOLITE_HDR
 static BOOL hdrMaxBrightnessControlPressed;
 static BOOL hdrPaperWhiteControlPressed;
 #endif
@@ -278,7 +278,7 @@ static NSTimeInterval time_last_frame;
 
     keyShiftText = [DESC(@"oolite-keyconfig-shift") retain];
     keyMod1Text = [DESC(@"oolite-keyconfig-mod1") retain];
-#if OOLITE_MAC_OS_X
+#if OOLITE_MAC_COCOA_UI
     keyMod2Text = [DESC(@"oolite-keyconfig-mod2-mac") retain];
 #else
     keyMod2Text = [DESC(@"oolite-keyconfig-mod2-pc") retain];
@@ -2919,7 +2919,7 @@ static NSTimeInterval time_last_frame;
         [self setGuiToKeyMapperScreen:0 resetCurrentRow:YES];
     }
 
-#if OOLITE_WINDOWS
+#if OOLITE_HDR
     if ([gameView hdrOutput]) {
         if ((guiSelectedRow == GUI_ROW(GAME, HDRMAXBRIGHTNESS)) && (([self checkKeyPress:n_key_gui_arrow_right]) || ([self checkKeyPress:n_key_gui_arrow_left]))) {
             if (!hdrMaxBrightnessControlPressed) {
@@ -3217,7 +3217,7 @@ static NSTimeInterval time_last_frame;
                 [gui setText:DESC(@"gameoptions-wireframe-graphics-no") forRow:GUI_ROW(GAME, WIREFRAMEGRAPHICS) align:GUI_ALIGN_CENTER];
         }
     }
-#if OOLITE_WINDOWS
+#if OOLITE_HDR
     else {
         if ((guiSelectedRow == GUI_ROW(GAME, HDRPAPERWHITE))
             && (([self checkKeyPress:n_key_gui_arrow_right]) || ([self checkKeyPress:n_key_gui_arrow_left]))) {
@@ -3283,7 +3283,7 @@ static NSTimeInterval time_last_frame;
             Generally we should decide whether the menu values should cycle or
             not and apply it for all menu entries.
             */
-            if ((([UNIVERSE detailLevel] == DETAIL_LEVEL_MINIMUM) && (direction == -1)) || (([UNIVERSE detailLevel] == DETAIL_LEVEL_MAXIMUM) && (direction == 1)))
+            if ((([UNIVERSE detailLevel] == [UNIVERSE minimumDetailLevel]) && (direction == -1)) || (([UNIVERSE detailLevel] == DETAIL_LEVEL_MAXIMUM) && (direction == 1)))
                 direction = 0;
 
             OOGraphicsDetail detailLevel = [UNIVERSE detailLevel] + direction;

@@ -93,6 +93,13 @@ MA 02110-1301, USA.
 #import "StationEntity.h"
 #import "WormholeEntity.h"
 
+#import "OOFixedFunction.h"
+#import "OOGLStateCompat.h"
+#import "OOImmediateMode.h"
+#import "OORenderPass.h"
+#import "OORendererProgram.h"
+#import "OOVertexArray.h"
+
 #if OO_LOCALIZATION_TOOLS
 #import "OOConvertSystemDescriptions.h"
 #endif
@@ -209,6 +216,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void* context);
 - (void)resizeTargetFramebufferWithViewSize:(NSSize)viewSize;
 - (void)prepareToRenderIntoDefaultFramebuffer;
 - (void)drawTargetTextureIntoDefaultFramebuffer;
+- (void)drawFramebufferQuad;
 
 - (BOOL)doRemoveEntity:(Entity*)entity;
 - (void)setUpCargoPods;
@@ -340,76 +348,24 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 - (void)initTargetFramebufferWithViewSize:(NSSize)viewSize
 {
     // liberate us from the 0.0 to 1.0 rgb range!
-    OOGL(glClampColor(GL_CLAMP_VERTEX_COLOR, GL_FALSE));
-    OOGL(glClampColor(GL_CLAMP_READ_COLOR, GL_FALSE));
-    OOGL(glClampColor(GL_CLAMP_FRAGMENT_COLOR, GL_FALSE));
 
     // have to do this because on my machine the default framebuffer is not zero
-    OOGL(glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &defaultDrawFBO));
+    GLint windowFramebuffer = 0;
+#if !OO_RENDERER_SDL_GPU
+    OOGL(glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &windowFramebuffer));
+#endif
 
-    GLint previousProgramID;
-    OOGL(glGetIntegerv(GL_CURRENT_PROGRAM, &previousProgramID));
-    GLint previousTextureID;
-    OOGL(glGetIntegerv(GL_TEXTURE_BINDING_2D, &previousTextureID));
-    GLint previousVAO;
-    OOGL(glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &previousVAO));
-    GLint previousArrayBuffer;
-    OOGL(glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &previousArrayBuffer));
-    GLint previousElementBuffer;
-    OOGL(glGetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING, &previousElementBuffer));
+    const OORenderStateMachine* state = OORendererState();
+    OORendererProgram* previousProgram = OORendererCurrentProgram();
+    uint32_t previousTextureID = state->units[state->activeTexture].binding2D;
 
-    // create MSAA framebuffer and attach MSAA texture and depth buffer to framebuffer
-    OOGL(glGenFramebuffers(1, &msaaFramebufferID));
-    OOGL(glBindFramebuffer(GL_FRAMEBUFFER, msaaFramebufferID));
+    OORendererSetWindowTarget((OORenderTarget)windowFramebuffer);
+    unsigned width = (unsigned)viewSize.width, height = (unsigned)viewSize.height;
 
-    // creating MSAA texture that should be rendered into
-    OOGL(glGenTextures(1, &msaaTextureID));
-    OOGL(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, msaaTextureID));
-    OOGL(glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGBA16F, (GLsizei)viewSize.width, (GLsizei)viewSize.height, GL_TRUE));
-    OOGL(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0));
-    OOGL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, msaaTextureID, 0));
-
-    // create necessary MSAA depth render buffer
-    OOGL(glGenRenderbuffers(1, &msaaDepthBufferID));
-    OOGL(glBindRenderbuffer(GL_RENDERBUFFER, msaaDepthBufferID));
-    OOGL(glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_DEPTH_COMPONENT32F, (GLsizei)viewSize.width, (GLsizei)viewSize.height));
-    OOGL(glBindRenderbuffer(GL_RENDERBUFFER, 0));
-    OOGL(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, msaaDepthBufferID));
-
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-        OOLogERR(@"initTargetFramebufferWithViewSize.result", @"%@", @"***** Error: Multisample framebuffer not complete");
-    }
-
-    // create framebuffer and attach texture and depth buffer to framebuffer
-    OOGL(glGenFramebuffers(1, &targetFramebufferID));
-    OOGL(glBindFramebuffer(GL_FRAMEBUFFER, targetFramebufferID));
-
-    // creating texture that should be rendered into
-    OOGL(glGenTextures(1, &targetTextureID));
-    OOGL(glBindTexture(GL_TEXTURE_2D, targetTextureID));
-    OOGL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, (GLsizei)viewSize.width, (GLsizei)viewSize.height, 0, GL_RGBA, GL_FLOAT, NULL));
-    OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-    OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-    OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
-    OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
-    OOGL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, targetTextureID, 0));
-
-    // create necessary depth render buffer
-    OOGL(glGenRenderbuffers(1, &targetDepthBufferID));
-    OOGL(glBindRenderbuffer(GL_RENDERBUFFER, targetDepthBufferID));
-    OOGL(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32F, (GLsizei)viewSize.width, (GLsizei)viewSize.height));
-    OOGL(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, targetDepthBufferID));
-
-    GLenum attachment[1] = { GL_COLOR_ATTACHMENT0 };
-    OOGL(glDrawBuffers(1, attachment));
-
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-        OOLogERR(@"initTargetFramebufferWithViewSize.result", @"%@", @"***** Error: Framebuffer not complete");
-    }
-
-    OOGL(glBindFramebuffer(GL_FRAMEBUFFER, defaultDrawFBO));
-
-    targetFramebufferSize = viewSize;
+    // The scene is drawn into a multisampled target when MSAA is on, and
+    // resolved into the single-sampled one the post-processing reads.
+    _msaaTarget = OORendererCreateRenderTarget(&(OORenderTargetDescriptor) { width, height, 1, true, 4 });
+    _sceneTarget = OORendererCreateRenderTarget(&(OORenderTargetDescriptor) { width, height, 1, true, 1 });
 
     // passthrough buffer
     // This is a framebuffer whose sole purpose is to pass on the texture rendered from the game to the blur and the final bloom
@@ -417,53 +373,20 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     // us to perform multiple render target operations needed for bloom. The alternative would be to not use this and change all our
     // shaders to be OpenGL 3.3 compatible, but given how Oolite synthesizes them and the work needed to port them over, well yeah no,
     // not doing it at this time - Nikos 20220814.
-    OOGL(glGenFramebuffers(1, &passthroughFramebufferID));
-    OOGL(glBindFramebuffer(GL_FRAMEBUFFER, passthroughFramebufferID));
+    _passthroughTarget = OORendererCreateRenderTarget(&(OORenderTargetDescriptor) { width, height, 2, false, 1 });
 
-    // creating textures that should be rendered into
-    OOGL(glGenTextures(2, passthroughTextureID));
+    // ping-pong targets for blurring; render targets clamp to the edge, as the blur filter would otherwise sample repeated texture values
     for (unsigned int i = 0; i < 2; i++) {
-        OOGL(glBindTexture(GL_TEXTURE_2D, passthroughTextureID[i]));
-        OOGL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, (GLsizei)viewSize.width, (GLsizei)viewSize.height, 0, GL_RGBA, GL_FLOAT, NULL));
-        OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-        OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-        OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
-        OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
-        OOGL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, passthroughTextureID[i], 0));
+        _pingpongTargets[i] = OORendererCreateRenderTarget(&(OORenderTargetDescriptor) { width, height, 1, false, 1 });
     }
 
-    GLenum attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
-    OOGL(glDrawBuffers(2, attachments));
-
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-        OOLogERR(@"initTargetFramebufferWithViewSize.result", @"%@", @"***** Error: Passthrough framebuffer not complete");
-    }
-    OOGL(glBindFramebuffer(GL_FRAMEBUFFER, defaultDrawFBO));
-
-    // ping-pong-framebuffer for blurring
-    OOGL(glGenFramebuffers(2, pingpongFBO));
-    OOGL(glGenTextures(2, pingpongColorbuffers));
-    for (unsigned int i = 0; i < 2; i++) {
-        OOGL(glBindFramebuffer(GL_FRAMEBUFFER, pingpongFBO[i]));
-        OOGL(glBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[i]));
-        OOGL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, (GLsizei)viewSize.width, (GLsizei)viewSize.height, 0, GL_RGBA, GL_FLOAT, NULL));
-        OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-        OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-        OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)); // we clamp to the edge as the blur filter would otherwise sample repeated texture values!
-        OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
-        OOGL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, pingpongColorbuffers[i], 0));
-        // check if framebuffers are complete (no need for depth buffer)
-        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-            OOLogERR(@"initTargetFramebufferWithViewSize.result", @"%@", @"***** Error: Pingpong framebuffers not complete");
-        }
-    }
-    OOGL(glBindFramebuffer(GL_FRAMEBUFFER, defaultDrawFBO));
+    targetFramebufferSize = viewSize;
 
     _bloom = [self detailLevel] >= DETAIL_LEVEL_EXTRAS;
     _currentPostFX = _colorblindMode = OO_POSTFX_NONE;
 
     /* TODO: in OOEnvironmentCubeMap.m call these bind functions not with 0 but with "previousXxxID"s:
-      - OOGL(glBindTexture(GL_TEXTURE_CUBE_MAP, 0));
+      - OOGLBindTexture(GL_TEXTURE_CUBE_MAP, 0);
       - OOGL(glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0));
       - OOGL(glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, 0));
     */
@@ -481,7 +404,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
                                                         attributeBindings:[NSDictionary dictionary]] retain];
         // shader for applying bloom and any necessary post-proc fx, tonemapping and gamma correction
         finalProgram = [[OOShaderProgram shaderProgramWithVertexShaderName:@"oolite-final.vertex"
-#if OOLITE_WINDOWS
+#if OOLITE_HDR
                                                         fragmentShaderName:[[UNIVERSE gameView] hdrOutput] ? @"oolite-final-hdr.fragment" : @"oolite-final.fragment"
 #else
                                                         fragmentShaderName:@"oolite-final.fragment"
@@ -490,48 +413,34 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
                                                          attributeBindings:[NSDictionary dictionary]] retain];
     }
 
-    OOGL(glGenVertexArrays(1, &quadTextureVAO));
-    OOGL(glGenBuffers(1, &quadTextureVBO));
-    OOGL(glGenBuffers(1, &quadTextureEBO));
-
-    OOGL(glBindVertexArray(quadTextureVAO));
-
-    OOGL(glBindBuffer(GL_ARRAY_BUFFER, quadTextureVBO));
-    OOGL(glBufferData(GL_ARRAY_BUFFER, sizeof(framebufferQuadVertices), framebufferQuadVertices, GL_STATIC_DRAW));
-
-    OOGL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, quadTextureEBO));
-    OOGL(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(framebufferQuadIndices), framebufferQuadIndices, GL_STATIC_DRAW));
-
-    OOGL(glEnableVertexAttribArray(0));
-    // position attribute
-    OOGL(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0));
-    OOGL(glEnableVertexAttribArray(1));
-    // texture coord attribute
-    OOGL(glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float))));
+    _quadVertices = OORendererCreateBuffer(framebufferQuadVertices, sizeof framebufferQuadVertices);
+    _quadIndices = OORendererCreateBuffer(framebufferQuadIndices, sizeof framebufferQuadIndices);
 
     // restoring previous bindings
-    OOGL(glUseProgram(previousProgramID));
-    OOGL(glBindTexture(GL_TEXTURE_2D, previousTextureID));
-    OOGL(glBindVertexArray(previousVAO));
-    OOGL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, previousElementBuffer));
-    OOGL(glBindBuffer(GL_ARRAY_BUFFER, previousArrayBuffer));
+    OORendererUseProgram(previousProgram);
+    OOGLBindTexture(GL_TEXTURE_2D, previousTextureID);
+}
+
+// The post-processing shaders read the position from attribute 0 and the
+// texture co-ordinates from attribute 1.
+- (void)drawFramebufferQuad
+{
+    OOVertexLayout layout = { 0 };
+    OOVertexLayoutAdd(&layout, kOOVertexAttribute, 0, 2, 4 * sizeof(float), _quadVertices, 0);
+    OOVertexLayoutAdd(&layout, kOOVertexAttribute, 1, 2, 4 * sizeof(float), _quadVertices, 2 * sizeof(float));
+    OORendererDrawElements(kOONativePrimitiveTriangles, &layout, _quadIndices, 0, kOOIndex32, 6);
 }
 
 - (void)deleteOpenGLObjects
 {
-    OOGL(glDeleteTextures(1, &msaaTextureID));
-    OOGL(glDeleteTextures(1, &targetTextureID));
-    OOGL(glDeleteTextures(2, passthroughTextureID));
-    OOGL(glDeleteTextures(2, pingpongColorbuffers));
-    OOGL(glDeleteRenderbuffers(1, &msaaDepthBufferID));
-    OOGL(glDeleteRenderbuffers(1, &targetDepthBufferID));
-    OOGL(glDeleteFramebuffers(1, &msaaFramebufferID));
-    OOGL(glDeleteFramebuffers(1, &targetFramebufferID));
-    OOGL(glDeleteFramebuffers(2, pingpongFBO));
-    OOGL(glDeleteFramebuffers(1, &passthroughFramebufferID));
-    OOGL(glDeleteVertexArrays(1, &quadTextureVAO));
-    OOGL(glDeleteBuffers(1, &quadTextureVBO));
-    OOGL(glDeleteBuffers(1, &quadTextureEBO));
+    OORendererDeleteRenderTarget(_msaaTarget);
+    OORendererDeleteRenderTarget(_sceneTarget);
+    OORendererDeleteRenderTarget(_passthroughTarget);
+    OORendererDeleteRenderTarget(_pingpongTargets[0]);
+    OORendererDeleteRenderTarget(_pingpongTargets[1]);
+    OORendererReleaseBuffer(_quadVertices);
+    OORendererReleaseBuffer(_quadIndices);
+    _quadVertices = _quadIndices = NULL;
     [textureProgram release];
     [blurProgram release];
     [finalProgram release];
@@ -539,38 +448,12 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
 - (void)resizeTargetFramebufferWithViewSize:(NSSize)viewSize
 {
-    int i;
-    // resize MSAA color attachment
-    OOGL(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, msaaTextureID));
-    OOGL(glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGBA16F, (GLsizei)viewSize.width, (GLsizei)viewSize.height, GL_TRUE));
-    OOGL(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0));
-
-    // resize MSAA depth attachment
-    OOGL(glBindRenderbuffer(GL_RENDERBUFFER, msaaDepthBufferID));
-    OOGL(glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_DEPTH_COMPONENT32F, (GLsizei)viewSize.width, (GLsizei)viewSize.height));
-    OOGL(glBindRenderbuffer(GL_RENDERBUFFER, 0));
-
-    // resize color attachments
-    OOGL(glBindTexture(GL_TEXTURE_2D, targetTextureID));
-    OOGL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, (GLsizei)viewSize.width, (GLsizei)viewSize.height, 0, GL_RGBA, GL_FLOAT, NULL));
-    OOGL(glBindTexture(GL_TEXTURE_2D, 0));
-
-    for (i = 0; i < 2; i++) {
-        OOGL(glBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[i]));
-        OOGL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, (GLsizei)viewSize.width, (GLsizei)viewSize.height, 0, GL_RGBA, GL_FLOAT, NULL));
-        OOGL(glBindTexture(GL_TEXTURE_2D, 0));
-    }
-
-    for (i = 0; i < 2; i++) {
-        OOGL(glBindTexture(GL_TEXTURE_2D, passthroughTextureID[i]));
-        OOGL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, (GLsizei)viewSize.width, (GLsizei)viewSize.height, 0, GL_RGBA, GL_FLOAT, NULL));
-        OOGL(glBindTexture(GL_TEXTURE_2D, 0));
-    }
-
-    // resize depth attachment
-    OOGL(glBindRenderbuffer(GL_RENDERBUFFER, targetDepthBufferID));
-    OOGL(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32F, (GLsizei)viewSize.width, (GLsizei)viewSize.height));
-    OOGL(glBindRenderbuffer(GL_RENDERBUFFER, 0));
+    unsigned width = (unsigned)viewSize.width, height = (unsigned)viewSize.height;
+    OORendererResizeRenderTarget(_msaaTarget, width, height);
+    OORendererResizeRenderTarget(_sceneTarget, width, height);
+    OORendererResizeRenderTarget(_pingpongTargets[0], width, height);
+    OORendererResizeRenderTarget(_pingpongTargets[1], width, height);
+    OORendererResizeRenderTarget(_passthroughTarget, width, height);
 
     targetFramebufferSize.width = viewSize.width;
     targetFramebufferSize.height = viewSize.height;
@@ -579,95 +462,89 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 - (void)drawTargetTextureIntoDefaultFramebuffer
 {
     // save previous bindings state
-    GLint previousFBO;
-    OOGL(glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &previousFBO));
-    GLint previousProgramID;
-    OOGL(glGetIntegerv(GL_CURRENT_PROGRAM, &previousProgramID));
-    GLint previousTextureID;
-    OOGL(glGetIntegerv(GL_TEXTURE_BINDING_2D, &previousTextureID));
-    GLint previousVAO;
-    OOGL(glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &previousVAO));
-    GLint previousActiveTexture;
-    OOGL(glGetIntegerv(GL_ACTIVE_TEXTURE, &previousActiveTexture));
-
-    OOGL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+    const OORenderStateMachine* state = OORendererState();
+    unsigned previousActiveTexture = state->activeTexture;
+    uint32_t previousTextureID = state->units[previousActiveTexture].binding2D;
+    // Restored afterwards, so OOShaderProgram's record of the active program stays true.
+    OORendererProgram* previousProgram = OORendererCurrentProgram();
+    OORenderTarget window = OORendererWindowTarget();
+    OORendererBeginPass(&(OORenderPassDescriptor) { .target = window, .colorLoad = kOOLoadClear, .depthLoad = kOOLoadClear });
+    OORendererEndPass();
     // fixes transparency issue for some reason
-    OOGL(glDisable(GL_BLEND));
+    OOGLDisable(GL_BLEND);
 
-    GLhandleARB program = [textureProgram program];
-    GLhandleARB blur = [blurProgram program];
-    GLhandleARB final = [finalProgram program];
+    OORendererProgram* program = [textureProgram rendererProgram];
+    OORendererProgram* blur = [blurProgram rendererProgram];
+    OORendererProgram* final = [finalProgram rendererProgram];
     NSSize viewSize = [gameView backingViewSize];
     float fboResolution[2] = { viewSize.width, viewSize.height };
 
-    OOGL(glBindFramebuffer(GL_FRAMEBUFFER, passthroughFramebufferID));
-    OOGL(glClear(GL_COLOR_BUFFER_BIT));
+    // Both attachments: the scene, and its bright parts for the blur.
+    OORendererBeginPass(&(OORenderPassDescriptor) { .target = _passthroughTarget, .colorLoad = kOOLoadClear, .depthLoad = kOOLoadDontCare });
 
-    OOGL(glUseProgram(program));
-    OOGL(glBindTexture(GL_TEXTURE_2D, targetTextureID));
-    OOGL(glUniform1i(glGetUniformLocation(program, "image"), 0));
+    OORendererUseProgram(program);
+    OOGLBindTexture(GL_TEXTURE_2D, OORendererRenderTargetTexture(_sceneTarget, 0));
+    [textureProgram setUniform:[textureProgram uniformHandleForName:@"image"] intValue:0];
 
-    OOGL(glBindVertexArray(quadTextureVAO));
-    OOGL(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0));
-    OOGL(glBindVertexArray(0));
-
-    OOGL(glBindFramebuffer(GL_FRAMEBUFFER, defaultDrawFBO));
+    [self drawFramebufferQuad];
+    OORendererEndPass();
 
     BOOL horizontal = YES, firstIteration = YES;
     unsigned int amount = [self bloom] ? 10 : 0; // if not blooming, why bother with the heavy calculations?
-    OOGL(glUseProgram(blur));
+    OORendererUseProgram(blur);
     for (unsigned int i = 0; i < amount; i++) {
-        OOGL(glBindFramebuffer(GL_FRAMEBUFFER, pingpongFBO[horizontal]));
-        OOGL(glUniform1i(glGetUniformLocation(blur, "horizontal"), horizontal));
-        OOGL(glActiveTexture(GL_TEXTURE0));
+        // Every pixel is drawn, so the old contents don't matter.
+        OORendererBeginPass(&(OORenderPassDescriptor) { .target = _pingpongTargets[horizontal], .colorLoad = kOOLoadDontCare, .depthLoad = kOOLoadDontCare });
+        [blurProgram setUniform:[blurProgram uniformHandleForName:@"horizontal"] intValue:horizontal];
+        OOGLActiveTexture(GL_TEXTURE0);
         // bind texture of other framebuffer (or scene if first iteration)
-        OOGL(glBindTexture(GL_TEXTURE_2D, firstIteration ? passthroughTextureID[1] : pingpongColorbuffers[!horizontal]));
-        OOGL(glUniform1i(glGetUniformLocation([blurProgram program], "imageIn"), 0));
-        OOGL(glBindVertexArray(quadTextureVAO));
-        OOGL(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0));
-        OOGL(glBindVertexArray(0));
+        OOGLBindTexture(GL_TEXTURE_2D, firstIteration ? OORendererRenderTargetTexture(_passthroughTarget, 1) : OORendererRenderTargetTexture(_pingpongTargets[!horizontal], 0));
+        [blurProgram setUniform:[blurProgram uniformHandleForName:@"imageIn"] intValue:0];
+        [self drawFramebufferQuad];
+        OORendererEndPass();
         horizontal = !horizontal;
         firstIteration = NO;
     }
-    OOGL(glBindFramebuffer(GL_FRAMEBUFFER, defaultDrawFBO));
 
-    OOGL(glUseProgram(final));
+    // The final composite, over the cleared window.
+    OORendererBeginPass(&(OORenderPassDescriptor) { .target = window, .colorLoad = kOOLoadKeep, .depthLoad = kOOLoadKeep });
+    OORendererUseProgram(final);
 
-    OOGL(glActiveTexture(GL_TEXTURE0));
-    OOGL(glBindTexture(GL_TEXTURE_2D, passthroughTextureID[0]));
-    OOGL(glUniform1i(glGetUniformLocation(final, "scene"), 0));
-    OOGL(glUniform1i(glGetUniformLocation(final, "bloom"), [self bloom]));
-    OOGL(glUniform1f(glGetUniformLocation(final, "uTime"), [self getTime]));
-    OOGL(glUniform2fv(glGetUniformLocation(final, "uResolution"), 1, fboResolution));
-    OOGL(glUniform1i(glGetUniformLocation(final, "uPostFX"), [self currentPostFX]));
-#if OOLITE_WINDOWS
+    OOGLActiveTexture(GL_TEXTURE0);
+    OOGLBindTexture(GL_TEXTURE_2D, OORendererRenderTargetTexture(_passthroughTarget, 0));
+    [finalProgram setUniform:[finalProgram uniformHandleForName:@"scene"] intValue:0];
+    [finalProgram setUniform:[finalProgram uniformHandleForName:@"bloom"] intValue:[self bloom]];
+    [finalProgram setUniform:[finalProgram uniformHandleForName:@"uTime"] floatValue:[self getTime]];
+    [finalProgram setUniform:[finalProgram uniformHandleForName:@"uResolution"] vec2Value:fboResolution];
+    [finalProgram setUniform:[finalProgram uniformHandleForName:@"uPostFX"] intValue:[self currentPostFX]];
+#if OOLITE_HDR
     if ([gameView hdrOutput]) {
-        OOGL(glUniform1f(glGetUniformLocation(final, "uMaxBrightness"), [gameView hdrMaxBrightness]));
-        OOGL(glUniform1f(glGetUniformLocation(final, "uPaperWhiteBrightness"), [gameView hdrPaperWhiteBrightness]));
-        OOGL(glUniform1i(glGetUniformLocation(final, "uHDRToneMapper"), [gameView hdrToneMapper]));
+        [finalProgram setUniform:[finalProgram uniformHandleForName:@"uMaxBrightness"] floatValue:[gameView hdrToneMappingMaxBrightness]];
+        [finalProgram setUniform:[finalProgram uniformHandleForName:@"uPaperWhiteBrightness"] floatValue:[gameView hdrPaperWhiteBrightness]];
+        [finalProgram setUniform:[finalProgram uniformHandleForName:@"uHDRToneMapper"] intValue:[gameView hdrToneMapper]];
+        [finalProgram setUniform:[finalProgram uniformHandleForName:@"uOutputScale"] floatValue:[gameView hdrOutputScale]];
     }
 #endif
-    OOGL(glUniform1i(glGetUniformLocation(final, "uSDRToneMapper"), [gameView sdrToneMapper]));
+    [finalProgram setUniform:[finalProgram uniformHandleForName:@"uSDRToneMapper"]
+                    intValue:[gameView sdrToneMapper]];
 
-    OOGL(glActiveTexture(GL_TEXTURE1));
-    OOGL(glBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[!horizontal]));
-    OOGL(glUniform1i(glGetUniformLocation(final, "bloomBlur"), 1));
-    OOGL(glUniform1f(glGetUniformLocation(final, "uSaturation"), [gameView colorSaturation]));
+    OOGLActiveTexture(GL_TEXTURE1);
+    OOGLBindTexture(GL_TEXTURE_2D, OORendererRenderTargetTexture(_pingpongTargets[!horizontal], 0));
+    [finalProgram setUniform:[finalProgram uniformHandleForName:@"bloomBlur"] intValue:1];
+    [finalProgram setUniform:[finalProgram uniformHandleForName:@"uSaturation"] floatValue:[gameView colorSaturation]];
 
-    OOGL(glBindVertexArray(quadTextureVAO));
-    OOGL(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0));
+    [self drawFramebufferQuad];
+    OORendererEndPass();
 
     // restore GL_TEXTURE1 to 0, just in case we are returning from a
     // DETAIL_LEVEL_NORMAL to DETAIL_LEVEL_SHADERS
-    OOGL(glBindTexture(GL_TEXTURE_2D, 0));
+    OOGLBindTexture(GL_TEXTURE_2D, 0);
 
-    // restore previous bindings
-    OOGL(glBindFramebuffer(GL_FRAMEBUFFER, previousFBO));
-    OOGL(glActiveTexture(previousActiveTexture));
-    OOGL(glBindTexture(GL_TEXTURE_2D, previousTextureID));
-    OOGL(glUseProgram(previousProgramID));
-    OOGL(glBindVertexArray(previousVAO));
-    OOGL(glEnable(GL_BLEND));
+    // restore previous bindings; the window is still the bound target
+    OOGLActiveTexture(GL_TEXTURE0 + previousActiveTexture);
+    OOGLBindTexture(GL_TEXTURE_2D, previousTextureID);
+    OORendererUseProgram(previousProgram);
+    OOGLEnable(GL_BLEND);
 }
 
 - (id)initWithGameView:(MyOpenGLView*)inGameView
@@ -741,7 +618,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
     // Set up speech synthesizer.
 #if OOLITE_SPEECH_SYNTH
-#if OOLITE_MAC_OS_X
+#if OOLITE_MAC_COCOA_UI
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_LOW, 0),
         ^{
             /*
@@ -887,7 +764,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
 #if OOLITE_SPEECH_SYNTH
     [speechArray release];
-#if OOLITE_MAC_OS_X
+#if OOLITE_MAC_COCOA_UI
     [speechSynthesizer release];
 #elif OOLITE_ESPEAK
     espeak_Cancel();
@@ -1314,6 +1191,12 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
  * separated to allow Javascript startUp routines to be run in-between */
 - (void)setUpSpace
 {
+#ifndef NDEBUG
+    // Renderer regression tests: the same system on every run, however many
+    // random numbers the title screen used.
+    if (getenv("OO_DETERMINISTIC_TEST") != NULL)
+        ranrot_srand(0x0071173);
+#endif
     Entity* thing;
     //	ShipEntity			*nav_buoy;
     StationEntity* a_station;
@@ -1888,9 +1771,9 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     if (the_sun) {
         [the_sun getDiffuseComponents:sun_diffuse];
         [the_sun getSpecularComponents:sun_specular];
-        OOGL(glLightfv(GL_LIGHT1, GL_AMBIENT, sun_ambient));
-        OOGL(glLightfv(GL_LIGHT1, GL_DIFFUSE, sun_diffuse));
-        OOGL(glLightfv(GL_LIGHT1, GL_SPECULAR, sun_specular));
+        OORendererSetLightColor(1, kOOLightAmbient, sun_ambient);
+        OORendererSetLightColor(1, kOOLightDiffuse, sun_diffuse);
+        OORendererSetLightColor(1, kOOLightSpecular, sun_specular);
         sun_pos[0] = the_sun->position.x;
         sun_pos[1] = the_sun->position.y;
         sun_pos[2] = the_sun->position.z;
@@ -1908,12 +1791,12 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
         sun_specular[1] = 1.0;
         sun_specular[2] = 0.95;
         sun_specular[3] = 1.0;
-        OOGL(glLightfv(GL_LIGHT1, GL_AMBIENT, sun_ambient));
-        OOGL(glLightfv(GL_LIGHT1, GL_DIFFUSE, sun_diffuse));
-        OOGL(glLightfv(GL_LIGHT1, GL_SPECULAR, sun_specular));
+        OORendererSetLightColor(1, kOOLightAmbient, sun_ambient);
+        OORendererSetLightColor(1, kOOLightDiffuse, sun_diffuse);
+        OORendererSetLightColor(1, kOOLightSpecular, sun_specular);
     }
 
-    OOGL(glLightfv(GL_LIGHT1, GL_POSITION, sun_pos));
+    OOGLSetLightPosition(1, sun_pos);
 
     if (the_sky) {
         // ambient lighting!
@@ -1930,11 +1813,11 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     }
 
     // light for demo ships display..
-    OOGL(glLightfv(GL_LIGHT0, GL_AMBIENT, docked_light_ambient));
-    OOGL(glLightfv(GL_LIGHT0, GL_DIFFUSE, docked_light_diffuse));
-    OOGL(glLightfv(GL_LIGHT0, GL_SPECULAR, docked_light_specular));
-    OOGL(glLightfv(GL_LIGHT0, GL_POSITION, demo_light_position));
-    OOGL(glLightModelfv(GL_LIGHT_MODEL_AMBIENT, stars_ambient));
+    OORendererSetLightColor(0, kOOLightAmbient, docked_light_ambient);
+    OORendererSetLightColor(0, kOOLightDiffuse, docked_light_diffuse);
+    OORendererSetLightColor(0, kOOLightSpecular, docked_light_specular);
+    OOGLSetLightPosition(0, demo_light_position);
+    OORendererSetLightModelAmbient(stars_ambient);
 }
 
 // Call this method to avoid lighting glich after windowed/fullscreen transition on macs.
@@ -4061,7 +3944,7 @@ static BOOL IsFriendlyStationPredicate(Entity* entity, void* parameter)
 
     [result oo_setFloat:[gameView fov:NO] forKey:@"fovValue"];
 
-#if OOLITE_WINDOWS
+#if OOLITE_HDR
     if ([gameView hdrOutput]) {
         [result oo_setFloat:[gameView hdrMaxBrightness] forKey:@"hdr-max-brightness"];
         [result oo_setFloat:[gameView hdrPaperWhiteBrightness] forKey:@"hdr-paperwhite-brightness"];
@@ -4105,11 +3988,11 @@ static BOOL IsFriendlyStationPredicate(Entity* entity, void* parameter)
     if (GUILight != demo_light_on) {
         if (![self useShaders]) {
             if (GUILight) {
-                OOGL(glEnable(GL_LIGHT0));
-                OOGL(glDisable(GL_LIGHT1));
+                OOGLEnable(GL_LIGHT0);
+                OOGLDisable(GL_LIGHT1);
             } else {
-                OOGL(glEnable(GL_LIGHT1));
-                OOGL(glDisable(GL_LIGHT0));
+                OOGLEnable(GL_LIGHT1);
+                OOGLDisable(GL_LIGHT0);
             }
         }
         // There should be nothing to do for shaders, they use the same (always on) light source
@@ -4119,7 +4002,7 @@ static BOOL IsFriendlyStationPredicate(Entity* entity, void* parameter)
         // making the following line necessary.
 
         else
-            OOGL(glEnable(GL_LIGHT1)); // make sure we have a light, even with shaders (!)
+            OOGLEnable(GL_LIGHT1); // make sure we have a light, even with shaders (!)
 
         demo_light_on = GUILight;
     }
@@ -4130,21 +4013,21 @@ static BOOL IsFriendlyStationPredicate(Entity* entity, void* parameter)
     if (isLit != object_light_on) {
         if ([self useShaders]) {
             if (isLit) {
-                OOGL(glLightfv(GL_LIGHT1, GL_DIFFUSE, sun_diffuse));
-                OOGL(glLightfv(GL_LIGHT1, GL_SPECULAR, sun_specular));
+                OORendererSetLightColor(1, kOOLightDiffuse, sun_diffuse);
+                OORendererSetLightColor(1, kOOLightSpecular, sun_specular);
             } else {
-                OOGL(glLightfv(GL_LIGHT1, GL_DIFFUSE, sun_off));
-                OOGL(glLightfv(GL_LIGHT1, GL_SPECULAR, sun_off));
+                OORendererSetLightColor(1, kOOLightDiffuse, sun_off);
+                OORendererSetLightColor(1, kOOLightSpecular, sun_off);
             }
         } else {
             if (!demo_light_on) {
                 if (isLit)
-                    OOGL(glEnable(GL_LIGHT1));
+                    OOGLEnable(GL_LIGHT1);
                 else
-                    OOGL(glDisable(GL_LIGHT1));
+                    OOGLDisable(GL_LIGHT1);
             } else {
                 // If we're in demo/GUI mode we should always have a lit object.
-                OOGL(glEnable(GL_LIGHT0));
+                OOGLEnable(GL_LIGHT0);
 
                 // Redundant, see above.
                 // if (isLit)  OOGL(glEnable(GL_LIGHT0));
@@ -4341,12 +4224,10 @@ static const OOMatrix starboard_matrix = { { { 0.0f, 0.0f, 1.0f, 0.0f },
             [self resizeTargetFramebufferWithViewSize:viewSize];
         }
 
+        // With shaders the scene is drawn into an offscreen target for post-processing.
+        OORenderTarget sceneTarget = kOORenderTargetCurrent;
         if ([self useShaders]) {
-            if ([gameView msaa]) {
-                OOGL(glBindFramebuffer(GL_FRAMEBUFFER, msaaFramebufferID));
-            } else {
-                OOGL(glBindFramebuffer(GL_FRAMEBUFFER, targetFramebufferID));
-            }
+            sceneTarget = [gameView msaa] ? _msaaTarget : _sceneTarget;
         }
         @try {
             no_update = YES; // block other attempts to draw
@@ -4390,12 +4271,13 @@ static const OOMatrix starboard_matrix = { { { 0.0f, 0.0f, 1.0f, 0.0f },
 
             OOSetOpenGLState(OPENGL_STATE_OPAQUE); // FIXME: should be redundant.
 
-            OOGL(glClear(GL_COLOR_BUFFER_BIT));
+            // The scene pass. Its clear colour is the one set below, in the previous frame.
+            OORendererBeginPass(&(OORenderPassDescriptor) { .target = sceneTarget, .colorLoad = kOOLoadClear, .depthLoad = kOOLoadKeep });
 
             if (!displayGUI) {
-                OOGL(glClearColor(skyClearColor[0], skyClearColor[1], skyClearColor[2], skyClearColor[3]));
+                OORendererSetClearColor(skyClearColor[0], skyClearColor[1], skyClearColor[2], skyClearColor[3]);
             } else {
-                OOGL(glClearColor(0.0, 0.0, 0.0, 0.0));
+                OORendererSetClearColor(0.0, 0.0, 0.0, 0.0);
                 // If set, display background GUI image. Must be done before enabling lights to avoid dim backgrounds
                 OOGLResetProjection();
                 OOGLFrustum(-0.5, 0.5, -aspect * 0.5, aspect * 0.5, 1.0, MAX_CLEAR_DEPTH);
@@ -4459,10 +4341,10 @@ static const OOMatrix starboard_matrix = { { { 0.0f, 0.0f, 1.0f, 0.0f },
                  */
 
                 OOSetOpenGLState(OPENGL_STATE_OPAQUE);
-                // clearing the depth buffer waits until we've set
-                // STATE_OPAQUE so that depth writes are definitely
-                // available.
-                OOGL(glClear(GL_DEPTH_BUFFER_BIT));
+                // Each depth range starts a new pass that clears depth and keeps colour.
+                OORenderTarget passTarget = OORendererCurrentPassTarget();
+                OORendererEndPass();
+                OORendererBeginPass(&(OORenderPassDescriptor) { .target = passTarget, .colorLoad = kOOLoadKeep, .depthLoad = kOOLoadClear });
 
                 // Set up view transformation matrix
                 OOMatrix flipMatrix = kIdentityMatrix;
@@ -4479,7 +4361,7 @@ static const OOMatrix starboard_matrix = { { { 0.0f, 0.0f, 1.0f, 0.0f },
                         OOGLMultModelView([player rotationMatrix]);
                         // translate the view
                         // HPVect: camera-relative position
-                        OOGL(glLightModelfv(GL_LIGHT_MODEL_AMBIENT, stars_ambient));
+                        OORendererSetLightModelAmbient(stars_ambient);
                         // main light position, no shaders, in-flight / shaders, in-flight and docked.
                         if (cachedSun) {
                             [self setMainLightPosition:[cachedSun cameraRelativePosition]];
@@ -4487,13 +4369,13 @@ static const OOMatrix starboard_matrix = { { { 0.0f, 0.0f, 1.0f, 0.0f },
                             // in witchspace
                             [self setMainLightPosition:HPVectorToVector(HPvector_flip([PLAYER viewpointPosition]))];
                         }
-                        OOGL(glLightfv(GL_LIGHT1, GL_POSITION, main_light_position));
+                        OOGLSetLightPosition(1, main_light_position);
                     } else {
-                        OOGL(glLightModelfv(GL_LIGHT_MODEL_AMBIENT, docked_light_ambient));
+                        OORendererSetLightModelAmbient(docked_light_ambient);
                         // main_light_position no shaders, docked/GUI.
-                        OOGL(glLightfv(GL_LIGHT0, GL_POSITION, main_light_position));
+                        OOGLSetLightPosition(0, main_light_position);
                         // main light position, no shaders, in-flight / shaders, in-flight and docked.
-                        OOGL(glLightfv(GL_LIGHT1, GL_POSITION, main_light_position));
+                        OOGLSetLightPosition(1, main_light_position);
                     }
 
                     OOGL([self useGUILightSource:demoShipMode]);
@@ -4510,7 +4392,7 @@ static const OOMatrix starboard_matrix = { { { 0.0f, 0.0f, 1.0f, 0.0f },
                     GLfloat mat_no[4] = { 0.0, 0.0, 0.0, 1.0 }; // nothing
                     GLfloat fog_blend;
 
-                    OOGL(glHint(GL_FOG_HINT, [self reducedDetail] ? GL_FASTEST : GL_NICEST));
+                    OORendererSetFogHint(![self reducedDetail]);
 
                     [self defineFrustum]; // camera is set up for this frame
 
@@ -4535,8 +4417,8 @@ static const OOMatrix starboard_matrix = { { { 0.0f, 0.0f, 1.0f, 0.0f },
                         {
                             // reset material properties
                             // FIXME: should be part of SetState
-                            OOGL(glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, flat_ambdiff));
-                            OOGL(glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, mat_no));
+                            OORendererSetMaterialColor(kOOMaterialFrontAndBack, kOOMaterialAmbientAndDiffuse, flat_ambdiff);
+                            OORendererSetMaterialColor(kOOMaterialFrontAndBack, kOOMaterialEmission, mat_no);
 
                             OOGLPushModelView();
                             if (EXPECT(drawthing != player)) {
@@ -4559,11 +4441,10 @@ static const OOMatrix starboard_matrix = { { { 0.0f, 0.0f, 1.0f, 0.0f },
                             if (fogging) {
                                 fog_scale = BILLBOARD_DEPTH * fogFactor;
                                 half_scale = fog_scale * 0.50;
-                                OOGL(glEnable(GL_FOG));
-                                OOGL(glFogi(GL_FOG_MODE, GL_LINEAR));
-                                OOGL(glFogfv(GL_FOG_COLOR, skyClearColor));
-                                OOGL(glFogf(GL_FOG_START, half_scale));
-                                OOGL(glFogf(GL_FOG_END, fog_scale));
+                                OOGLEnable(GL_FOG);
+                                OORendererSetFogMode(kOOFogLinear);
+                                OORendererSetFogColor(skyClearColor);
+                                OORendererSetFogRange(half_scale, fog_scale);
                                 fog_blend = OOClamp_0_1_f((magnitude([drawthing cameraRelativePosition]) - half_scale) / half_scale);
                                 [drawthing setAtmosphereFogging:[OOColor colorWithRed:skyClearColor[0] green:skyClearColor[1] blue:skyClearColor[2] alpha:fog_blend]];
                             }
@@ -4579,7 +4460,7 @@ static const OOMatrix starboard_matrix = { { { 0.0f, 0.0f, 1.0f, 0.0f },
                             // atmospheric fog
                             if (fogging) {
                                 [drawthing setAtmosphereFogging:[OOColor colorWithRed:0.0 green:0.0 blue:0.0 alpha:0.0]];
-                                OOGL(glDisable(GL_FOG));
+                                OOGLDisable(GL_FOG);
                             }
                         }
 
@@ -4606,11 +4487,10 @@ static const OOMatrix starboard_matrix = { { { 0.0f, 0.0f, 1.0f, 0.0f },
                             if (fogging) {
                                 fog_scale = BILLBOARD_DEPTH * fogFactor;
                                 half_scale = fog_scale * 0.50;
-                                OOGL(glEnable(GL_FOG));
-                                OOGL(glFogi(GL_FOG_MODE, GL_LINEAR));
-                                OOGL(glFogfv(GL_FOG_COLOR, skyClearColor));
-                                OOGL(glFogf(GL_FOG_START, half_scale));
-                                OOGL(glFogf(GL_FOG_END, fog_scale));
+                                OOGLEnable(GL_FOG);
+                                OORendererSetFogMode(kOOFogLinear);
+                                OORendererSetFogColor(skyClearColor);
+                                OORendererSetFogRange(half_scale, fog_scale);
                                 fog_blend = OOClamp_0_1_f((magnitude([drawthing cameraRelativePosition]) - half_scale) / half_scale);
                                 [drawthing setAtmosphereFogging:[OOColor colorWithRed:skyClearColor[0] green:skyClearColor[1] blue:skyClearColor[2] alpha:fog_blend]];
                             }
@@ -4622,7 +4502,7 @@ static const OOMatrix starboard_matrix = { { { 0.0f, 0.0f, 1.0f, 0.0f },
                             // atmospheric fog
                             if (fogging) {
                                 [drawthing setAtmosphereFogging:[OOColor colorWithRed:0.0 green:0.0 blue:0.0 alpha:0.0]];
-                                OOGL(glDisable(GL_FOG));
+                                OOGLDisable(GL_FOG);
                             }
 
                             OOGLPopModelView();
@@ -4649,13 +4529,16 @@ static const OOMatrix starboard_matrix = { { { 0.0f, 0.0f, 1.0f, 0.0f },
                 OOCheckOpenGLErrors(@"Universe after drawing entities");
                 OOSetOpenGLState(OPENGL_STATE_OVERLAY); // FIXME: should be redundant.
 
+                OORendererEndPass(); // the scene
                 [self prepareToRenderIntoDefaultFramebuffer];
-                OOGL(glBindFramebuffer(GL_FRAMEBUFFER, defaultDrawFBO));
 
                 OOLog(@"universe.profile.secondPassDraw", @"%@", @"Begin second pass draw");
                 [self drawTargetTextureIntoDefaultFramebuffer];
                 OOCheckOpenGLErrors(@"Universe after drawing from custom framebuffer to screen framebuffer");
                 OOLog(@"universe.profile.secondPassDraw", @"%@", @"End second pass drawing");
+
+                // The HUD is drawn over the post-processed scene, in the window.
+                OORendererBeginPass(&(OORenderPassDescriptor) { .target = OORendererWindowTarget(), .colorLoad = kOOLoadKeep, .depthLoad = kOOLoadKeep });
 
                 OOLog(@"universe.profile.drawHUD", @"%@", @"Begin HUD drawing");
             }
@@ -4721,7 +4604,8 @@ static const OOMatrix starboard_matrix = { { { 0.0f, 0.0f, 1.0f, 0.0f },
             OOLog(@"universe.profile.drawHUD", @"%@", @"End HUD drawing");
             OOCheckOpenGLErrors(@"Universe after drawing HUD");
 
-            OOGL(glFlush()); // don't wait around for drawing to complete
+            OORendererEndPass(); // the scene, or the HUD if it was drawn separately
+            OORendererFlush(); // don't wait around for drawing to complete
 
             no_update = NO; // allow other attempts to draw
 
@@ -4733,6 +4617,7 @@ static const OOMatrix starboard_matrix = { { { 0.0f, 0.0f, 1.0f, 0.0f },
         }
         @catch (NSException* exception) {
             no_update = NO; // make sure we don't get stuck in all subsequent frames.
+            OORendererEndPassIfActive();
 
             if ([[exception name] hasPrefix:@"Oolite"]) {
                 [self handleOoliteException:exception];
@@ -4749,7 +4634,6 @@ static const OOMatrix starboard_matrix = { { { 0.0f, 0.0f, 1.0f, 0.0f },
     if (!hudSeparateRenderPass) {
         if ([self useShaders]) {
             [self prepareToRenderIntoDefaultFramebuffer];
-            OOGL(glBindFramebuffer(GL_FRAMEBUFFER, defaultDrawFBO));
 
             OOLog(@"universe.profile.secondPassDraw", @"%@", @"Begin second pass draw");
             [self drawTargetTextureIntoDefaultFramebuffer];
@@ -4760,13 +4644,9 @@ static const OOMatrix starboard_matrix = { { { 0.0f, 0.0f, 1.0f, 0.0f },
 
 - (void)prepareToRenderIntoDefaultFramebuffer
 {
-    NSSize viewSize = [gameView backingViewSize];
     if ([self useShaders]) {
         if ([gameView msaa]) {
-            // resolve MSAA framebuffer to target framebuffer
-            OOGL(glBindFramebuffer(GL_READ_FRAMEBUFFER, msaaFramebufferID));
-            OOGL(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, targetFramebufferID));
-            OOGL(glBlitFramebuffer(0, 0, (GLint)viewSize.width, (GLint)viewSize.height, 0, 0, (GLint)viewSize.width, (GLint)viewSize.height, GL_COLOR_BUFFER_BIT, GL_NEAREST));
+            OORendererResolveRenderTarget(_msaaTarget, _sceneTarget);
         }
     }
 }
@@ -4790,7 +4670,7 @@ static const OOMatrix starboard_matrix = { { { 0.0f, 0.0f, 1.0f, 0.0f },
 {
     OOSetOpenGLState(OPENGL_STATE_OVERLAY);
 
-    OOGL(glDisable(GL_TEXTURE_2D)); // for background sheets
+    OOGLDisable(GL_TEXTURE_2D); // for background sheets
 
     float overallAlpha = [[PLAYER hud] overallAlpha];
     if (displayGUI) {
@@ -4811,7 +4691,7 @@ static const OOMatrix starboard_matrix = { { { 0.0f, 0.0f, 1.0f, 0.0f },
 {
     NSSize watermarkStringSize = OORectFromString(watermarkString, 0.0f, 0.0f, NSMakeSize(10, 10)).size;
 
-    OOGL(glColor4f(0.0, 1.0, 0.0, 1.0));
+    OOImmediateColor4f(0.0, 1.0, 0.0, 1.0);
     // position the watermark string on the top right hand corner of the game window and right-align it
     OODrawString(watermarkString, MAIN_GUI_PIXEL_WIDTH / 2 - watermarkStringSize.width + 80,
         MAIN_GUI_PIXEL_HEIGHT / 2 - watermarkStringSize.height, [gameView display_z], NSMakeSize(10, 10));
@@ -6296,7 +6176,7 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity* e2, float range)
                 NSString* original_phrase = [thePair oo_stringAtIndex:0];
 
                 NSUInteger replacementIndex;
-#if OOLITE_MAC_OS_X
+#if OOLITE_MAC_COCOA_UI
                 replacementIndex = 1;
 #elif OOLITE_ESPEAK
                 replacementIndex = [thePair count] > 2 ? 2 : 1;
@@ -8980,6 +8860,17 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void* context)
     return wireframeGraphics;
 }
 
+/*  The no-shader detail levels are only for hardware without shaders. They
+    were no faster than DETAIL_LEVEL_SHADERS on either backend (both run at
+    the frame cap), and SDL_GPU emulates fixed function with shaders anyway,
+    so anything that can run shaders starts at DETAIL_LEVEL_SHADERS; saved
+    lower levels are raised to it.
+*/
+- (OOGraphicsDetail)minimumDetailLevel
+{
+    return [[OOOpenGLExtensionManager sharedManager] shadersSupported] ? DETAIL_LEVEL_SHADERS : DETAIL_LEVEL_MINIMUM;
+}
+
 - (BOOL)reducedDetail
 {
     return detailLevel == DETAIL_LEVEL_MINIMUM;
@@ -8990,11 +8881,8 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void* context)
 {
     if (value >= DETAIL_LEVEL_MAXIMUM) {
         value = DETAIL_LEVEL_MAXIMUM;
-    } else if (value <= DETAIL_LEVEL_MINIMUM) {
-        value = DETAIL_LEVEL_MINIMUM;
-    }
-    if (![[OOOpenGLExtensionManager sharedManager] shadersSupported]) {
-        value = DETAIL_LEVEL_MINIMUM;
+    } else if (value <= [self minimumDetailLevel]) {
+        value = [self minimumDetailLevel];
     }
     detailLevel = value;
 }
@@ -9050,7 +8938,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void* context)
 }
 
 // speech routines
-#if OOLITE_MAC_OS_X
+#if OOLITE_MAC_COCOA_UI
 
 - (void)startSpeakingString:(NSString*)text
 {

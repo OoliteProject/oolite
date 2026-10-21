@@ -30,10 +30,13 @@ SOFTWARE.
 #import "NSObjectOOExtensions.h"
 #import "OOCollectionExtractors.h"
 #import "OOColor.h"
+#import "OOFixedFunction.h"
+#import "OOGLStateCompat.h"
 #import "OOGraphicsResetManager.h"
 #import "OOMacroOpenGL.h"
 #import "OOProbabilisticTextureManager.h"
 #import "OOTexture.h"
+#import "OOVertexArray.h"
 #import "ResourceManager.h"
 #import "Universe.h"
 
@@ -169,8 +172,6 @@ static OOColor* SaturatedColorInRange(OOColor* color1, OOColor* color2, BOOL hue
 
     [_quadSets release];
     [[OOGraphicsResetManager sharedManager] unregisterClient:self];
-    if (_displayListName != 0)
-        glDeleteLists(_displayListName, 1);
 
     [super dealloc];
 }
@@ -183,36 +184,20 @@ static OOColor* SaturatedColorInRange(OOColor* color1, OOColor* color2, BOOL hue
     OO_ENTER_OPENGL();
     OOSetOpenGLState(OPENGL_STATE_ADDITIVE_BLENDING);
 
-    OOGL(glDisable(GL_DEPTH_TEST)); // don't read the depth buffer
-    OOGL(glEnable(GL_TEXTURE_2D));
+    OOGLDisable(GL_DEPTH_TEST); // don't read the depth buffer
+    OOGLEnable(GL_TEXTURE_2D);
 
     // Make stars dim in atmosphere. Note: works OK on night side because sky is dark blue, not black.
     GLfloat fogColor[4] = { 0.02, 0.02, 0.02, 1.0 };
-    OOGL(glFogfv(GL_FOG_COLOR, fogColor));
+    OORendererSetFogColor(fogColor);
 
-    if (_displayListName != 0) {
-        OOGL(glCallList(_displayListName));
-    } else {
-        // Set up display list
-        [self ensureTexturesLoaded];
-        _displayListName = glGenLists(1);
-
-        OOGL(glNewList(_displayListName, GL_COMPILE));
-
-        OOGL(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
-        OOGL(glEnableClientState(GL_COLOR_ARRAY));
-
-        [_quadSets makeObjectsPerformSelector:@selector(render)];
-
-        OOGL(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
-        OOGL(glDisableClientState(GL_COLOR_ARRAY));
-
-        OOGL(glEndList());
-    }
+    // Drawn directly each frame: SDL_GPU has no display lists.
+    [self ensureTexturesLoaded];
+    [_quadSets makeObjectsPerformSelector:@selector(render)];
 
     // Restore state
-    OOGL(glEnable(GL_DEPTH_TEST));
-    OOGL(glDisable(GL_TEXTURE_2D));
+    OOGLEnable(GL_DEPTH_TEST);
+    OOGLDisable(GL_TEXTURE_2D);
 
     // Resetting fog is draw loop's responsibility.
 
@@ -457,12 +442,7 @@ static OOColor* DebugColor(Vector orientation)
 
 - (void)resetGraphicsState
 {
-    OO_ENTER_OPENGL();
-
-    if (_displayListName != 0) {
-        glDeleteLists(_displayListName, 1);
-        _displayListName = 0;
-    }
+    // Nothing is cached in GL any more.
 }
 
 @end
@@ -638,11 +618,15 @@ static OOColor* DebugColor(Vector orientation)
 
     [_texture apply];
 
-    OOGL(glVertexPointer(kSkyQuadSetPositionEntriesPerVertex, GL_FLOAT, 0, _positions));
-    OOGL(glTexCoordPointer(kSkyQuadSetTexCoordEntriesPerVertex, GL_FLOAT, 0, _texCoords));
-    OOGL(glColorPointer(kSkyQuadSetColorEntriesPerVertex, GL_FLOAT, 0, _colors));
-
-    OOGL(glDrawArrays(GL_QUADS, 0, 4 * _count));
+    size_t vertices = 4 * _count;
+    OOVertexLayout layout = { .count = 0 };
+    OOVertexLayoutAdd(&layout, kOOVertexPosition, 0, kSkyQuadSetPositionEntriesPerVertex, 0,
+        OORendererTransientBuffer(_positions, vertices * kSkyQuadSetPositionEntriesPerVertex * sizeof(GLfloat)), 0);
+    OOVertexLayoutAdd(&layout, kOOVertexTexCoord, 0, kSkyQuadSetTexCoordEntriesPerVertex, 0,
+        OORendererTransientBuffer(_texCoords, vertices * kSkyQuadSetTexCoordEntriesPerVertex * sizeof(GLfloat)), 0);
+    OOVertexLayoutAdd(&layout, kOOVertexColor, 0, kSkyQuadSetColorEntriesPerVertex, 0,
+        OORendererTransientBuffer(_colors, vertices * kSkyQuadSetColorEntriesPerVertex * sizeof(GLfloat)), 0);
+    OORendererDrawPrimitive(kOOPrimitiveQuads, &layout, 0, vertices);
 }
 
 #ifndef NDEBUG

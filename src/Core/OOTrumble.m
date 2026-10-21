@@ -24,6 +24,8 @@ MA 02110-1301, USA.
 
 #import "OOTrumble.h"
 #import "MyOpenGLView.h"
+#import "OOGLStateCompat.h"
+#import "OOImmediateMode.h"
 #import "OOMaths.h"
 #import "OOSound.h"
 #import "OOStringParsing.h"
@@ -372,8 +374,8 @@ static void PlayTrumbleSqueal(void);
     */
     GLfloat wd = 96 * size;
     GLfloat ht = 96 * size;
-    OOGL(glShadeModel(GL_SMOOTH));
-    OOGL(glEnable(GL_TEXTURE_2D));
+    OOGLShadeModel(GL_SMOOTH);
+    OOGLEnable(GL_TEXTURE_2D);
 
     OOGLPushModelView();
 
@@ -385,31 +387,31 @@ static void PlayTrumbleSqueal(void);
     //
     // Body..
     //
-    OOGLBEGIN(GL_TRIANGLE_FAN);
-    glColor4fv(pointColor[3]);
-    glTexCoord2f(0.25, 0.5);
-    glVertex2f(0.0, -0.5 * ht);
+    OOImmediateBegin(kOOPrimitiveTriangleFan);
+    OOImmediateColor4fv(pointColor[3]);
+    OOImmediateTexCoord2f(0.25, 0.5);
+    OOImmediateVertex2f(0.0, -0.5 * ht);
 
-    glColor4fv(pointColor[0]);
-    glTexCoord2f(0.0, 0.5);
-    glVertex2f(-0.5 * wd, -0.5 * ht);
+    OOImmediateColor4fv(pointColor[0]);
+    OOImmediateTexCoord2f(0.0, 0.5);
+    OOImmediateVertex2f(-0.5 * wd, -0.5 * ht);
 
-    glColor4fv(pointColor[1]);
-    glTexCoord2f(0.0, 0.0);
-    glVertex2f(-0.5 * wd, 0.5 * ht);
+    OOImmediateColor4fv(pointColor[1]);
+    OOImmediateTexCoord2f(0.0, 0.0);
+    OOImmediateVertex2f(-0.5 * wd, 0.5 * ht);
 
-    glColor4fv(pointColor[2]);
-    glTexCoord2f(0.25, 0.0);
-    glVertex2f(0.0, 0.5 * ht);
+    OOImmediateColor4fv(pointColor[2]);
+    OOImmediateTexCoord2f(0.25, 0.0);
+    OOImmediateVertex2f(0.0, 0.5 * ht);
 
-    glColor4fv(pointColor[4]);
-    glTexCoord2f(0.5, 0.0);
-    glVertex2f(0.5 * wd, 0.5 * ht);
+    OOImmediateColor4fv(pointColor[4]);
+    OOImmediateTexCoord2f(0.5, 0.0);
+    OOImmediateVertex2f(0.5 * wd, 0.5 * ht);
 
-    glColor4fv(pointColor[5]);
-    glTexCoord2f(0.5, 0.5);
-    glVertex2f(0.5 * wd, -0.5 * ht);
-    OOGLEND();
+    OOImmediateColor4fv(pointColor[5]);
+    OOImmediateTexCoord2f(0.5, 0.5);
+    OOImmediateVertex2f(0.5 * wd, -0.5 * ht);
+    OOImmediateEnd();
 
     //
     // Eyes
@@ -430,20 +432,20 @@ static void PlayTrumbleSqueal(void);
 
     OOGLTranslateModelView(make_vector(eye_position.x * wd, eye_position.y * ht, 0.0));
 
-    OOGL(glColor4fv(colorEyes));
-    OOGLBEGIN(GL_QUADS);
-    glTexCoord2f(0.5, eyeTextureOffset);
-    glVertex2f(-0.5 * wd, 0.20 * ht);
+    OOImmediateColor4fv(colorEyes);
+    OOImmediateBegin(kOOPrimitiveQuads);
+    OOImmediateTexCoord2f(0.5, eyeTextureOffset);
+    OOImmediateVertex2f(-0.5 * wd, 0.20 * ht);
 
-    glTexCoord2f(1.0, eyeTextureOffset);
-    glVertex2f(0.5 * wd, 0.20 * ht);
+    OOImmediateTexCoord2f(1.0, eyeTextureOffset);
+    OOImmediateVertex2f(0.5 * wd, 0.20 * ht);
 
-    glTexCoord2f(1.0, eyeTextureOffset + 0.25);
-    glVertex2f(0.5 * wd, -0.30 * ht);
+    OOImmediateTexCoord2f(1.0, eyeTextureOffset + 0.25);
+    OOImmediateVertex2f(0.5 * wd, -0.30 * ht);
 
-    glTexCoord2f(0.5, eyeTextureOffset + 0.25);
-    glVertex2f(-0.5 * wd, -0.30 * ht);
-    OOGLEND();
+    OOImmediateTexCoord2f(0.5, eyeTextureOffset + 0.25);
+    OOImmediateVertex2f(-0.5 * wd, -0.30 * ht);
+    OOImmediateEnd();
 
     //
     // Mouth
@@ -467,24 +469,24 @@ static void PlayTrumbleSqueal(void);
 
     OOGLTranslateModelView(make_vector(mouth_position.x * wd, mouth_position.y * ht, 0.0));
 
-    OOGL(glColor4fv(colorBase));
-    OOGLBEGIN(GL_QUADS);
-    glTexCoord2f(0.0, mouthTextureOffset);
-    glVertex2f(-0.25 * wd, -0.10 * ht);
+    OOImmediateColor4fv(colorBase);
+    OOImmediateBegin(kOOPrimitiveQuads);
+    OOImmediateTexCoord2f(0.0, mouthTextureOffset);
+    OOImmediateVertex2f(-0.25 * wd, -0.10 * ht);
 
-    glTexCoord2f(0.25, mouthTextureOffset);
-    glVertex2f(0.25 * wd, -0.10 * ht);
+    OOImmediateTexCoord2f(0.25, mouthTextureOffset);
+    OOImmediateVertex2f(0.25 * wd, -0.10 * ht);
 
-    glTexCoord2f(0.25, mouthTextureOffset + 0.125);
-    glVertex2f(0.25 * wd, -0.35 * ht);
+    OOImmediateTexCoord2f(0.25, mouthTextureOffset + 0.125);
+    OOImmediateVertex2f(0.25 * wd, -0.35 * ht);
 
-    glTexCoord2f(0.0, mouthTextureOffset + 0.125);
-    glVertex2f(-0.25 * wd, -0.35 * ht);
-    OOGLEND();
+    OOImmediateTexCoord2f(0.0, mouthTextureOffset + 0.125);
+    OOImmediateVertex2f(-0.25 * wd, -0.35 * ht);
+    OOImmediateEnd();
 
     // finally..
     OOGLPopModelView();
-    OOGL(glDisable(GL_TEXTURE_2D));
+    OOGLDisable(GL_TEXTURE_2D);
 }
 
 - (void)updateTrumble:(double)delta_t

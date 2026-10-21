@@ -79,7 +79,15 @@ MA 02110-1301, USA.
 #define OOLITE_GCC_VERSION (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
 #endif
 
-#if OOLITE_GNUSTEP
+#if OOLITE_MAC_OS_X && defined(OOLITE_SDL_MAC)
+/*	macOS build using Apple Foundation with the SDL front end (the Cocoa
+        front end no longer exists). OOLITE_MAC_OS_X selects Apple Foundation and
+        OS-level behaviour; UI-level code takes the OOLITE_SDL path.
+ */
+#define OOLITE_SDL 1
+#endif
+
+#if OOLITE_GNUSTEP || OOLITE_SDL
 #include <limits.h> // to get UINT_MAX
 #include <stdint.h>
 
@@ -96,8 +104,10 @@ MA 02110-1301, USA.
 #define OOLITE_LINUX 1
 #endif
 
+#if OOLITE_GNUSTEP
 #define true 1
 #define false 0
+#endif
 
 #if !defined(MAX)
 #define MAX(A, B) ({ __typeof__(A) __a = (A); __typeof__(B) __b = (B); __a > __b ? __a : __b; })
@@ -219,6 +229,17 @@ enum {
 #ifndef OOLITE_SDL
 #define OOLITE_SDL 0
 #endif
+
+/*  HDR output: Windows' GL front end (FP16 scRGB back buffer), and the
+    SDL_GPU renderer on every platform (an HDR_EXTENDED_LINEAR swapchain).
+*/
+#ifndef OO_RENDERER_SDL_GPU
+#define OO_RENDERER_SDL_GPU 0
+#endif
+#define OOLITE_HDR (OOLITE_WINDOWS || OO_RENDERER_SDL_GPU)
+
+// The Cocoa (AppKit) front end, as opposed to Apple Foundation with SDL.
+#define OOLITE_MAC_COCOA_UI (OOLITE_MAC_OS_X && !OOLITE_SDL)
 
 #ifndef OOLITE_SPEECH_SYNTH
 #define OOLITE_SPEECH_SYNTH 0

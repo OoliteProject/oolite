@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 */
 
 #import "OOFunctionAttributes.h"
+#import "OOGLStateCompat.h"
 #import "OOLogging.h"
 #import "OOMacroOpenGL.h"
 #import "OOMaths.h"
@@ -38,7 +39,7 @@ MA 02110-1301, USA.
         and-paste errors. The state it manages is defined in OOOpenGLStates.tbl,
         which is included each time something needs to be done for each state item
         (currently six times in total). The exception is the GL blend mode, which
-        is represented by two variables but set with a single glBlendFunc() call;
+        is represented by two variables but set with a single OOGLBlendFunc() call;
         this needs to be managed separately.
 
         For the meanings of the different ITEM_FOO macro used, see OOOpenGLStates.tbl.
@@ -104,9 +105,9 @@ static inline bool GetState_DEPTH_WRITEMASK(void)
 }
 #endif
 
-#define SetState_DEPTH_WRITEMASK(VALUE) OOGL(glDepthMask(VALUE))
+#define SetState_DEPTH_WRITEMASK(VALUE) OOGLDepthMask(VALUE)
 
-#define SetState_SHADE_MODEL(VALUE) OOGL(glShadeModel(VALUE))
+#define SetState_SHADE_MODEL(VALUE) OOGLShadeModel(VALUE)
 
 #ifndef NDEBUG
 static inline GLenum GetState_TEXTURE_ENV_MODE(void)
@@ -119,7 +120,7 @@ static inline GLenum GetState_TEXTURE_ENV_MODE(void)
 }
 #endif
 
-#define SetState_TEXTURE_ENV_MODE(VALUE) OOGL(glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, VALUE))
+#define SetState_TEXTURE_ENV_MODE(VALUE) OOGLTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, VALUE)
 
 #if OO_MULTITEXTURE
 #ifndef NDEBUG
@@ -133,7 +134,7 @@ static inline GLenum GetState_ACTIVE_TEXTURE(void)
 }
 #endif
 
-#define SetState_ACTIVE_TEXTURE(VALUE) OOGL(glActiveTextureARB(VALUE))
+#define SetState_ACTIVE_TEXTURE(VALUE) OOGLActiveTexture(VALUE)
 
 #ifndef NDEBUG
 static inline GLenum GetState_CLIENT_ACTIVE_TEXTURE(void)
@@ -146,7 +147,11 @@ static inline GLenum GetState_CLIENT_ACTIVE_TEXTURE(void)
 }
 #endif
 
+#if OO_RENDERER_SDL_GPU
+#define SetState_CLIENT_ACTIVE_TEXTURE(VALUE) ((void)(VALUE))
+#else
 #define SetState_CLIENT_ACTIVE_TEXTURE(VALUE) OOGL(glClientActiveTextureARB(VALUE))
+#endif
 
 #else
 static inline GLenum GetState_ACTIVE_TEXTURE(void) { }
@@ -159,10 +164,10 @@ static inline void SetState_CULL_FACE_MODE(GLint value)
 {
     OO_ENTER_OPENGL();
 
-    OOGL(glCullFace(value));
+    OOGLCullFace(value);
 }
 
-#define SetState_FRONT_FACE(VALUE) OOGL(glFrontFace(VALUE))
+#define SetState_FRONT_FACE(VALUE) OOGLFrontFace(VALUE)
 
 #if OO_GL_STATE_VERIFICATION
 /*	Debug mode implementation.
@@ -402,11 +407,15 @@ static void SwitchOpenGLStateInternal(const OOOpenGLState* sourceState, const OO
 #define ITEM_STATEFLAG(NAME)                                                                                              \
     if (sourceState->NAME != targetState->NAME && sourceState->NAME != kStateMaybe && targetState->NAME != kStateMaybe) { \
         if (targetState->NAME) {                                                                                          \
-            OOGL(glEnable(GL_##NAME));                                                                                    \
+            OOGLEnable(GL_##NAME);                                                                                        \
         } else {                                                                                                          \
-            OOGL(glDisable(GL_##NAME));                                                                                   \
+            OOGLDisable(GL_##NAME);                                                                                       \
         }                                                                                                                 \
     }
+#if OO_RENDERER_SDL_GPU
+// Client arrays are GL's; every draw states its own vertex layout.
+#define ITEM_CLIENTSTATEFLAG(NAME)
+#else
 #define ITEM_CLIENTSTATEFLAG(NAME)                 \
     if (sourceState->NAME != targetState->NAME) {  \
         if (targetState->NAME) {                   \
@@ -415,6 +424,7 @@ static void SwitchOpenGLStateInternal(const OOOpenGLState* sourceState, const OO
             OOGL(glDisableClientState(GL_##NAME)); \
         }                                          \
     }
+#endif
 #define ITEM_SPECIAL(NAME, TYPE, _)               \
     if (sourceState->NAME != targetState->NAME) { \
         SetState_##NAME(targetState->NAME);       \
@@ -431,7 +441,7 @@ static void SwitchOpenGLStateInternal(const OOOpenGLState* sourceState, const OO
      * always reset the blend function even if this should be unnecessary
      * CIM: 3/1/13 */
     if (sourceState->BLEND_SRC != targetState->BLEND_SRC || sourceState->BLEND_DST != targetState->BLEND_DST || !sourceState->BLEND) {
-        OOGL(glBlendFunc(targetState->BLEND_SRC, targetState->BLEND_DST));
+        OOGLBlendFunc(targetState->BLEND_SRC, targetState->BLEND_DST);
     }
 
 #undef ITEM_STATEFLAG

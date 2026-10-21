@@ -25,6 +25,8 @@ MA 02110-1301, USA.
 #import "OOWaypointEntity.h"
 #import "Entity.h"
 #import "OOCollectionExtractors.h"
+#import "OOGLStateCompat.h"
+#import "OOImmediateMode.h"
 #import "OOMacroOpenGL.h"
 #import "OOOpenGL.h"
 #import "OOPolygonSprite.h"
@@ -146,39 +148,39 @@ MA 02110-1301, USA.
 
     OO_ENTER_OPENGL();
     OOSetOpenGLState(OPENGL_STATE_TRANSLUCENT_PASS);
-    OOGL(glEnable(GL_BLEND));
+    OOGLEnable(GL_BLEND);
     GLScaledLineWidth(1.0);
 
-    OOGL(glColor4f(0.0, 0.0, 1.0, a));
-    OOGLBEGIN(GL_LINES);
+    OOImmediateColor4f(0.0, 0.0, 1.0, a);
+    OOImmediateBegin(kOOPrimitiveLines);
     for (i = -1; i <= 1; i += 2) {
         for (j = -1; j <= 1; j += 2) {
             for (k = -1; k <= 1; k += 2) {
-                glVertex3f(i * s0, j * s0, k * s1);
-                glVertex3f(i * s0, j * s1, k * s0);
-                glVertex3f(i * s0, j * s1, k * s0);
-                glVertex3f(i * s1, j * s0, k * s0);
-                glVertex3f(i * s1, j * s0, k * s0);
-                glVertex3f(i * s0, j * s0, k * s1);
+                OOImmediateVertex3f(i * s0, j * s0, k * s1);
+                OOImmediateVertex3f(i * s0, j * s1, k * s0);
+                OOImmediateVertex3f(i * s0, j * s1, k * s0);
+                OOImmediateVertex3f(i * s1, j * s0, k * s0);
+                OOImmediateVertex3f(i * s1, j * s0, k * s0);
+                OOImmediateVertex3f(i * s0, j * s0, k * s1);
             }
         }
     }
     if (oriented) {
         while (s1 > 20.0f) {
-            glVertex3f(-20.0, 0, -s1 - 20.0f);
-            glVertex3f(0, 0, -s1);
-            glVertex3f(20.0, 0, -s1 - 20.0f);
-            glVertex3f(0, 0, -s1);
-            glVertex3f(-20.0, 0, s1 - 20.0f);
-            glVertex3f(0, 0, s1);
-            glVertex3f(20.0, 0, s1 - 20.0f);
-            glVertex3f(0, 0, s1);
+            OOImmediateVertex3f(-20.0, 0, -s1 - 20.0f);
+            OOImmediateVertex3f(0, 0, -s1);
+            OOImmediateVertex3f(20.0, 0, -s1 - 20.0f);
+            OOImmediateVertex3f(0, 0, -s1);
+            OOImmediateVertex3f(-20.0, 0, s1 - 20.0f);
+            OOImmediateVertex3f(0, 0, s1);
+            OOImmediateVertex3f(20.0, 0, s1 - 20.0f);
+            OOImmediateVertex3f(0, 0, s1);
             s1 *= 0.5;
         }
     }
-    OOGLEND();
+    OOImmediateEnd();
 
-    OOGL(glDisable(GL_BLEND));
+    OOGLDisable(GL_BLEND);
     OOVerifyOpenGLState();
 }
 

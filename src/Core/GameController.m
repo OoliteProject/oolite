@@ -44,14 +44,14 @@ MA 02110-1301, USA.
 #import "legacy_random.h"
 #include <stdlib.h>
 
-#if OOLITE_MAC_OS_X
+#if OOLITE_MAC_COCOA_UI
 #import "JAPersistentFileReference.h"
 #import "OOMacJoystickManager.h"
 #import "OoliteApp.h"
 #import <Sparkle/Sparkle.h>
 
 static void SetUpSparkle(void);
-#elif (OOLITE_GNUSTEP && !defined(NDEBUG))
+#elif (OOLITE_SDL && !defined(NDEBUG))
 #import "OODebugMonitor.h"
 #endif
 
@@ -91,6 +91,15 @@ static GameController* sSharedController = nil;
         // rather than seeding this with the date repeatedly, seed it
         // once here at startup
         ranrot_srand((uint32_t)[[NSDate date] timeIntervalSince1970]); // reset randomiser with current time
+#ifndef NDEBUG
+        /*  Renderer regression tests: a fixed seed and a fixed game tick make
+            the frames after a given action repeatable.
+        */
+        if (getenv("OO_DETERMINISTIC_TEST") != NULL) {
+            _deterministicTest = YES;
+            ranrot_srand(0x0071173);
+        }
+#endif
 
         _splashStart = [[NSDate alloc] init];
     }
@@ -100,7 +109,7 @@ static GameController* sSharedController = nil;
 
 - (void)dealloc
 {
-#if OOLITE_MAC_OS_X
+#if OOLITE_MAC_COCOA_UI
     [[[NSWorkspace sharedWorkspace] notificationCenter] removeObserver:UNIVERSE];
 #endif
 
@@ -229,7 +238,7 @@ static GameController* sSharedController = nil;
         [self beginSplashScreen];
 #endif
 
-#if OOLITE_MAC_OS_X
+#if OOLITE_MAC_COCOA_UI
         [OOJoystickManager setStickHandlerClass:[OOMacJoystickManager class]];
         SetUpSparkle();
 #endif
@@ -275,7 +284,7 @@ static GameController* sSharedController = nil;
     // Release anything allocated above that is not required.
     [pool release];
 
-#if !OOLITE_MAC_OS_X
+#if !OOLITE_MAC_COCOA_UI
     [[NSRunLoop currentRunLoop] run];
 #endif
 }
@@ -299,7 +308,7 @@ static GameController* sSharedController = nil;
 
 - (void)beginSplashScreen
 {
-#if !OOLITE_MAC_OS_X
+#if !OOLITE_MAC_COCOA_UI
     if (!gameView) {
         gameView = [MyOpenGLView alloc];
         [gameView init];
@@ -311,7 +320,7 @@ static GameController* sSharedController = nil;
 #endif
 }
 
-#if OOLITE_MAC_OS_X
+#if OOLITE_MAC_COCOA_UI
 
 - (void)performGameTick:(id)sender
 {
@@ -343,6 +352,13 @@ static GameController* sSharedController = nil;
             last_timeInterval += delta_t;
             if (delta_t > MINIMUM_GAME_TICK)
                 delta_t = MINIMUM_GAME_TICK; // peg the maximum pause (at 0.5->1.0 seconds) to protect against when the machine sleeps
+#ifndef NDEBUG
+            /*  A fixed tick, and none on the title screens, whose length in
+                real time varies between runs.
+            */
+            if (_deterministicTest)
+                delta_t = [PLAYER status] == STATUS_START_GAME ? 0.0 : 1.0 / 60.0;
+#endif
         }
 
         [UNIVERSE update:delta_t];
@@ -363,6 +379,17 @@ static GameController* sSharedController = nil;
         [gameView updateScreen];
     }
     @catch (id exception) {
+        // Drawing that throws every frame would otherwise just stop the picture; say why, once per message.
+        static NSMutableSet* reported = nil;
+        if (reported == nil)
+            reported = [[NSMutableSet alloc] init];
+        NSString* description = [exception description];
+        if (description != nil && ![reported containsObject:description]) {
+            [reported addObject:description];
+            OOLogERR(@"rendering.exception", @"Exception while drawing a frame: %@", description);
+            if ([exception respondsToSelector:@selector(callStackSymbols)])
+                OOLog(@"rendering.exception", @"%@", [exception callStackSymbols]);
+        }
     }
 }
 
@@ -374,7 +401,7 @@ static GameController* sSharedController = nil;
         timer = [[NSTimer timerWithTimeInterval:ti target:self selector:@selector(performGameTick:) userInfo:nil repeats:YES] retain];
 
         [[NSRunLoop currentRunLoop] addTimer:timer forMode:NSDefaultRunLoopMode];
-#if OOLITE_MAC_OS_X
+#if OOLITE_MAC_COCOA_UI
         [[NSRunLoop currentRunLoop] addTimer:timer
                                      forMode:NSEventTrackingRunLoopMode];
 #endif
@@ -390,7 +417,7 @@ static GameController* sSharedController = nil;
     }
 }
 
-#if OOLITE_MAC_OS_X
+#if OOLITE_MAC_COCOA_UI
 
 - (void)recenterVirtualJoystick
 {
@@ -619,7 +646,7 @@ static void RemovePreference(NSString* key)
     if (![UNIVERSE doingStartUp])
         return;
 
-#if OOLITE_MAC_OS_X
+#if OOLITE_MAC_COCOA_UI
     [splashProgressTextField setStringValue:message];
     [splashProgressTextField display];
 #endif
@@ -629,7 +656,7 @@ static void RemovePreference(NSString* key)
 }
 
 #if OO_DEBUG
-#if OOLITE_MAC_OS_X
+#if OOLITE_MAC_COCOA_UI
 - (BOOL)debugMessageTrackingIsOn
 {
     return splashProgressTextField != nil;
@@ -701,7 +728,7 @@ static NSMutableArray* sMessageStack;
 {
     OOLogSetDisplayMessagesInClass(@"startup.progress", NO);
 
-#if OOLITE_MAC_OS_X
+#if OOLITE_MAC_COCOA_UI
     // These views will be released when we replace the content view.
     splashProgressTextField = nil;
     splashView = nil;
@@ -714,7 +741,7 @@ static NSMutableArray* sMessageStack;
 #endif
 }
 
-#if OOLITE_MAC_OS_X
+#if OOLITE_MAC_COCOA_UI
 
 // NIB methods
 - (void)awakeFromNib
@@ -773,7 +800,7 @@ static NSMutableArray* sMessageStack;
 - (void)exitAppWithContext:(NSString*)context
 {
     OOLog(@"exit.context", @"Exiting: %@.", context);
-#if (OOLITE_GNUSTEP && !defined(NDEBUG))
+#if (OOLITE_SDL && !defined(NDEBUG))
     [[OODebugMonitor sharedDebugMonitor] applicationWillTerminate];
 #endif
 #if OOLITE_WINDOWS
@@ -855,7 +882,7 @@ static NSMutableArray* sMessageStack;
 {
     OOLog(@"startup.exception", @"***** Unhandled exception during startup: %@ (%@).", [exception name], [exception reason]);
 
-#if OOLITE_MAC_OS_X
+#if OOLITE_MAC_COCOA_UI
     // Display an error alert.
     // TODO: provide better information on reporting bugs in the manual, and refer to it here.
     NSRunCriticalAlertPanel(@"Oolite failed to start up, because an unhandled exception occurred.", @"An exception of type %@ occurred. If this problem persists, please file a bug report.", @"OK", NULL, NULL, [exception name]);
@@ -874,7 +901,7 @@ static NSMutableArray* sMessageStack;
 
 @end
 
-#if OOLITE_MAC_OS_X
+#if OOLITE_MAC_COCOA_UI
 
 static void SetUpSparkle(void)
 {

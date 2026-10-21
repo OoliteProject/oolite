@@ -89,7 +89,8 @@ def run_test(bin_name, test_output):
 
     # Environment configuration for pure headless software offscreen rendering
     env = os.environ.copy()
-    if not IS_WINDOWS:
+    # SDL's offscreen driver has no OpenGL on macOS, so a real window is used there
+    if not IS_WINDOWS and sys.platform != "darwin":
         env["SDL_VIDEODRIVER"] = "offscreen"
     env["LIBGL_ALWAYS_SOFTWARE"] = "1"
     env["GALLIUM_DRIVER"] = "llvmpipe"
@@ -124,6 +125,9 @@ def run_test(bin_name, test_output):
 
         if not conn:
             print("[!] Failure: Oolite failed to connect.")
+            if sys.platform == "darwin" and proc.poll() is None:
+                # Show where a hung process is stuck
+                subprocess.run(["sample", str(proc.pid), "3"], stdout=sys.stdout, stderr=sys.stderr)
             return False
 
         # 2. THE HANDSHAKE
@@ -149,17 +153,24 @@ def run_test(bin_name, test_output):
         time.sleep(5)
 
         # 3. THE COMMAND
+        # The game runs console commands only once loading is complete, which
+        # can be after the sleep above on a slow machine; snapshotting then
+        # catches a frame not yet drawn. So the snapshot waits for frames the
+        # game has actually drawn since the command arrived.
         print("[*] Requesting snapshot and quit...")
         cmd_packet = {
             PACKET_TYPE_KEY: PERFORM_COMMAND,
-            MESSAGE_KEY: "takeSnapShot(); quit();",
+            MESSAGE_KEY: "(function () { var frames = 0, callback = addFrameCallback(function () {"
+            " if (++frames === 10) { removeFrameCallback(callback); takeSnapShot(); quit(); } }); }());",
         }
         send_plist_packet(conn, cmd_packet)
 
         # 4. WAIT FOR PROCESS EXIT
+        # Generous: on CI's macOS runners (Apple's software renderer) loading
+        # alone has taken 19 s, and the snapshot waits for that and ten frames.
         print("[*] Waiting for process to exit...")
         try:
-            proc.wait(timeout=15)
+            proc.wait(timeout=90)
 
             # 5. VERIFY OUTPUT
             snaps = [f for f in os.listdir(test_output) if f.endswith(".png")]

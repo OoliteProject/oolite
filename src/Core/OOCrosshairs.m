@@ -30,7 +30,9 @@ SOFTWARE.
 #import "MyOpenGLView.h"
 #import "OOCollectionExtractors.h"
 #import "OOColor.h"
+#import "OOGLStateCompat.h"
 #import "OOMacroOpenGL.h"
+#import "OOVertexArray.h"
 #import "Universe.h"
 
 @interface OOCrosshairs (Private)
@@ -77,25 +79,22 @@ SOFTWARE.
         OO_ENTER_OPENGL();
         OOSetOpenGLState(OPENGL_STATE_OVERLAY);
 
-        OOGL(glPushAttrib(GL_ENABLE_BIT));
-        OOGL(glDisable(GL_LIGHTING));
-        OOGL(glDisable(GL_TEXTURE_2D));
+        OOGLPushAttrib(GL_ENABLE_BIT);
+        OOGLDisable(GL_LIGHTING);
+        OOGLDisable(GL_TEXTURE_2D);
         OOGLPushModelView();
         OOGLTranslateModelView(make_vector(0.0, 0.0, [[UNIVERSE gameView] display_z]));
 
-        OOGL(glVertexPointer(2, GL_FLOAT, sizeof(GLfloat) * 6, _data));
-        OOGL(glColorPointer(4, GL_FLOAT, sizeof(GLfloat) * 6, _data + 2));
-
-        OOGL(glEnableClientState(GL_VERTEX_ARRAY));
-        OOGL(glEnableClientState(GL_COLOR_ARRAY));
-
-        OOGL(glDrawArrays(GL_LINES, 0, _count * 2));
-
-        OOGL(glDisableClientState(GL_VERTEX_ARRAY));
-        OOGL(glDisableClientState(GL_COLOR_ARRAY));
+        // Interleaved: x, y, then r, g, b, a for each vertex.
+        const unsigned stride = sizeof(GLfloat) * 6;
+        const OORendererBuffer* buffer = OORendererTransientBuffer(_data, _count * 2 * stride);
+        OOVertexLayout layout = { .count = 0 };
+        OOVertexLayoutAdd(&layout, kOOVertexPosition, 0, 2, stride, buffer, 0);
+        OOVertexLayoutAdd(&layout, kOOVertexColor, 0, 4, stride, buffer, 2 * sizeof(GLfloat));
+        OORendererDrawArrays(kOONativePrimitiveLines, &layout, 0, _count * 2);
 
         OOGLPopModelView();
-        OOGL(glPopAttrib());
+        OOGLPopAttrib();
 
         OOVerifyOpenGLState();
         OOCheckOpenGLErrors(@"OOCrosshairs after rendering");

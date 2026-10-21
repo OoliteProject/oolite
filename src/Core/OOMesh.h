@@ -100,11 +100,13 @@ typedef struct
 
     // Redundancy! Needs fixing.
     OOMeshDisplayLists _displayLists;
+    // Renderer buffers over _displayLists' arrays (OOVertexArray.h).
+    struct OORendererBuffer *_vertexBuffer, *_normalBuffer, *_tangentBuffer, *_uvBuffer;
+    const void* _rendererBufferSource;
 
     NSRange triangle_range[kOOMeshMaxMaterials];
     NSString* materialKeys[kOOMeshMaxMaterials];
     OOMaterial* materials[kOOMeshMaxMaterials];
-    GLuint displayList0;
 
     GLfloat collisionRadius;
     GLfloat maxDrawDistance;

@@ -1,0 +1,1286 @@
+#version 120
+#extension GL_EXT_gpu_shader4 : enable
+
+#define FragColor gl_FragData[0]
+
+varying vec2 TexCoords;
+
+uniform sampler2D	scene;
+uniform sampler2D	bloomBlur;
+uniform bool		bloom;
+uniform int			uPostFX;
+uniform float		uTime;
+uniform vec2		uResolution;
+uniform float		uMaxBrightness;
+uniform float		uPaperWhiteBrightness;
+uniform int			uHDRToneMapper;
+uniform float		uOutputScale;	// 1 for scRGB; 80 / paper white where SDR white is 1.0 (macOS EDR)
+uniform float		uSaturation;
+
+
+#define SMPTE_ST2084MAXNITS	10000.0
+#define MAXCLLNITS			1000.0
+#define HDR_HEATMAP			0
+#define SATURATION_ADJUSTMENT	0.825 //adjustment factor to better approach SDR saturation
+#define GAMUT_EXPANSION_AMOUNT	0.4 //0.0f .. 1.0f - best results if this is kept low
+
+
+
+vec3 reinhardHDR(vec3 x)
+{
+	x.r /= MAXCLLNITS * 0.0125;
+	x.g /= MAXCLLNITS * 0.0125;
+	x.b /= MAXCLLNITS * 0.0125;
+	
+	x = x / (x + vec3(1.0));
+	
+	x.r *= uMaxBrightness * 0.0125;
+	x.g *= uMaxBrightness * 0.0125;
+	x.b *= uMaxBrightness * 0.0125;
+	
+	return x;
+}
+
+
+vec3 ACESFilmRec2020( vec3 x, float a, float b, float c, float d, float e )
+{
+	x *= 0.6;
+	return ( x * ( a * x + b ) ) / ( x * ( c * x + d ) + e );
+}
+
+
+vec3 ACESFilmRec2020OrReinhardHDR(vec3 x)
+{
+	float use400 = 1.0 - abs(sign(uMaxBrightness - 400.0));
+	float use500 = 1.0 - abs(sign(uMaxBrightness - 500.0));
+	float use600 = 1.0 - abs(sign(uMaxBrightness - 600.0));
+	float use800 = 1.0 - abs(sign(uMaxBrightness - 800.0));
+	float use1000 = 1.0 - abs(sign(uMaxBrightness - 1000.0));
+	float useACES = use400 + use500 + use600 + use800 + use1000;
+	// only one column of coefficients will be used, based on current max brightness
+	float a = 15.8f	* use1000	+	15.8f * use800	+	27.7f * use600	+	27.7f * use500	+	19.2f * use400;
+	float b = 2.12f	* use1000	+	2.12f * use800	+	1.22f * use600	+	1.22f * use500	+	1.22f * use400;
+	float c = 1.20f	* use1000	+	1.58f * use800	+	3.70f * use600	+	4.80f * use500	+	4.80f * use400;
+	float d = 5.92f	* use1000	+	5.92f * use800	+	9.80f * use600	+	9.80f * use500	+	15.0f * use400;
+	float e = 1.90f	* use1000	+	1.90f *	use800	+	3.90f * use600	+	3.90f * use500	+	3.90f * use400;
+	return useACES == 1.0 ? ACESFilmRec2020(x, a, b, c, d, e) : reinhardHDR(x);
+}
+
+
+vec3 ACESFilmRec2020Alt( vec3 x )
+{
+	//x *= 0.6;
+	const float ACESLuminancePercentage = 100.0;
+	float a = 0.98;
+	float b = 0.3;
+	float c = 0.22;
+	float d = 0.0;
+	float e = 0.025;
+	x = x * ACESLuminancePercentage * 0.006f;
+	return ( x * ( a * x + b ) ) / ( x * ( c * x + d ) + e );
+}
+
+
+//============================================================================================
+// ACES Reference Rendering Transform
+//
+
+const mat3 AP0_2_XYZ_MAT =
+mat3(
+	0.9525523959, 0.3439664498, 0.0000000000,
+	0.0000000000, 0.7281660966, 0.0000000000,
+	0.0000936786, -0.0721325464, 1.0088251844	// xposed
+);
+
+const mat3 XYZ_2_AP0_MAT =
+mat3(
+	1.0498110175, -0.4959030231, 0.0000000000,
+	0.0000000000, 1.3733130458, 0.0000000000,
+	-0.0000974845, 0.0982400361, 0.9912520182	// xposed
+);
+
+const mat3 AP1_2_XYZ_MAT = 
+mat3(
+	0.6624541811, 0.2722287168, -0.0055746495,
+	0.1340042065, 0.6740817658, 0.0040607335,
+	0.1561876870, 0.0536895174, 1.0103391003	// xposed
+);
+
+const mat3 XYZ_2_AP1_MAT =
+mat3(
+	1.6410233797, -0.6636628587, 0.0117218943,
+	-0.3248032942, 1.6153315917, -0.0082844420,
+	-0.2364246952, 0.0167563477, 0.9883948585	// xposed
+);
+
+const mat3 AP0_2_AP1_MAT = mat3(XYZ_2_AP1_MAT * AP0_2_XYZ_MAT);
+const mat3 AP1_2_AP0_MAT = mat3(XYZ_2_AP0_MAT * AP1_2_XYZ_MAT);
+//const mat3 AP0_2_AP1_MAT = mat3(AP0_2_XYZ_MAT * XYZ_2_AP1_MAT);
+//const mat3 AP1_2_AP0_MAT = mat3(AP1_2_XYZ_MAT * XYZ_2_AP0_MAT);
+
+const mat3 BT2020_TO_AP1_MAT = mat3(
+	0.9748949779, 0.0021795628, 0.0047972397,
+	0.0195991086, 0.9955354689, 0.0245320166,
+	0.0055059134, 0.0022849683, 0.9706707437	// xposed
+);
+
+const mat3 AP1_TO_BT2020_MAT = mat3(
+	1.0258247477, -0.0022343695, -0.0050133515,
+	-0.0200531908, 1.0045865019, -0.0252900718,
+	-0.0057715568, -0.0023521324, 1.0303034233	// xposed
+);
+
+const vec3 AP1_RGB2Y = //AP1_TO_XYZ_MAT[1].rgb;
+vec3(
+	0.2722287168, //AP1_2_XYZ_MAT[0][1],
+	0.6740817658, //AP1_2_XYZ_MAT[1][1],
+	0.0536895174 //AP1_2_XYZ_MAT[2][1]
+);
+
+const mat3 sRGB_2_XYZ_MAT =
+mat3(
+	0.4124564, 0.3575761, 0.1804375,
+	0.2126729, 0.7151522, 0.0721750,
+	0.0193339, 0.1191920, 0.9503041				// don't care
+);
+
+// REC 2020 primaries
+const mat3 XYZ_2_Rec2020_MAT =
+mat3(
+	1.7166084, -0.6666829, 0.0176422,
+	-0.3556621, 1.6164776, -0.0427763,
+	-0.2533601, 0.0157685, 0.94222867	// xposed
+);
+
+const mat3 Rec2020_2_XYZ_MAT =
+mat3(
+	0.6369736, 0.2627066, 0.0000000,
+	0.1446172, 0.6779996, 0.0280728,
+	0.1688585, 0.0592938, 1.0608437		 // xposed
+);
+
+// With Bradford (D60 to D65)
+const mat3 AP1_TO_BT709_MAT =
+mat3(
+	1.7050509927, -0.1302564175, -0.0240033568,
+	-0.6217921207, 1.1408047366, -0.1289689761,
+	-0.0832588720, -0.0105483191, 1.1529723329	// xposed
+);
+
+   // with Bradford (D65 to D60)
+const mat3 BT709_TO_AP1_MAT =
+mat3(
+	0.6130974024, 0.0701937225, 0.0206155929,
+	0.3395231462, 0.9163538791, 0.1095697729,
+	0.0473794514, 0.0134523985, 0.8698146342	// xposed
+);
+
+// Bradford chromatic adaptation transforms between ACES white point (D60) and sRGB white point (D65)
+const mat3 D65_2_D60_CAT =
+mat3(
+	1.01303, 0.00769823, -0.00284131,
+	0.00610531, 0.998165, 0.00468516,
+	-0.014971, -0.00503203, 0.924507			// xposed
+);
+
+const mat3 D60_2_D65_CAT =
+mat3(
+	 0.987224, -0.00759836, 0.00307257,
+	-0-0.00611327, 1.00186, -0.00509595,
+	0.0159533, 0.00533002, 1.08168				// xposed
+);
+
+const mat3 sRGB_2_AP0 = (sRGB_2_XYZ_MAT * D65_2_D60_CAT) * XYZ_2_AP0_MAT;	// don't care
+
+const float HALF_MAX = 65504.0;
+
+float rgb_2_saturation( vec3 rgb )
+{
+	float minrgb = min( min(rgb.r, rgb.g ), rgb.b );
+	float maxrgb = max( max(rgb.r, rgb.g ), rgb.b );
+	return ( max( maxrgb, 1e-10 ) - max( minrgb, 1e-10 ) ) / max( maxrgb, 1e-2 );
+}
+
+
+float glow_fwd( float ycIn, float glowGainIn, float glowMid)
+{
+   float glowGainOut;
+
+   if (ycIn <= 2./3. * glowMid) {
+	 glowGainOut = glowGainIn;
+   } else if ( ycIn >= 2 * glowMid) {
+	 glowGainOut = 0;
+   } else {
+	 glowGainOut = glowGainIn * (glowMid / ycIn - 0.5);
+   }
+
+   return glowGainOut;
+}
+
+
+float sigmoid_shaper( float x)
+{
+	// Sigmoid function in the range 0 to 1 spanning -2 to +2.
+
+	float t = max( 1 - abs( 0.5 * x ), 0 );
+	float y = 1 + sign(x) * (1 - t*t);
+	return 0.5 * y;
+}
+
+float cubic_basis_shaper
+( 
+  float x, 
+  float w   // full base width of the shaper function (in degrees)
+)
+{
+	//return Square( smoothstep( 0, 1, 1 - abs( 2 * x/w ) ) );
+
+	float M[16] =
+	float[16](
+		-1.0/6.0,  3.0/6.0, -3.0/6.0,  1.0/6.0,
+		 3.0/6.0, -6.0/6.0,  3.0/6.0,  0.0/6.0,
+		-3.0/6.0,  0.0/6.0,  3.0/6.0,  0.0/6.0,
+		 1.0/6.0,  4.0/6.0,  1.0/6.0,  0.0/6.0
+    );
+  
+	float knots[5] = float[5]( -0.5 * w, -0.25 * w, 0, 0.25 * w, 0.5 * w );
+  
+	float y = 0.0;
+	if ((x > knots[0]) && (x < knots[4]))
+	{  
+		float knot_coord = (x - knots[0]) * 4.0 / w;
+		int j = int(knot_coord);
+		float t = knot_coord - float(j);
+	  
+		float monomials[4] = float[4](t*t*t, t*t, t, 1.0);
+
+		// (if/else structure required for compatibility with CTL < v1.5.)
+		if ( j == 3) {
+			y = monomials[0] * M[0] + monomials[1] * M[1] + 
+				monomials[2] * M[2] + monomials[3] * M[3];
+		} else if ( j == 2) {
+			y = monomials[0] * M[4] + monomials[1] * M[5] + 
+				monomials[2] * M[6] + monomials[3] * M[7];
+		} else if ( j == 1) {
+			y = monomials[0] * M[8] + monomials[1] * M[9] + 
+				monomials[2] * M[10] + monomials[3] * M[11];
+		} else if ( j == 0) {
+			y = monomials[0] * M[12] + monomials[1] * M[13] + 
+				monomials[2] * M[14] + monomials[3] * M[15];
+		} else {
+			y = 0.0;
+		}
+	}
+  
+	return y * 1.5;
+}
+
+
+float center_hue( float hue, float centerH)
+{
+	float hueCentered = hue - centerH;
+	if (hueCentered < -180.)
+		hueCentered += 360;
+	else if (hueCentered > 180.)
+		hueCentered -= 360;
+	return hueCentered;
+}
+
+
+// Textbook monomial to basis-function conversion matrix.
+const mat3 M =
+mat3(
+	0.5, -1.0, 0.5,
+	-1.0,  1.0, 0.5,
+	0.5,  0.0, 0.0
+);
+
+
+float log10(float x)
+{
+	return log(x) / log(10.0); //(1.0 / log(10.0)) * log(x);
+}
+
+
+vec3 log10(vec3 a)
+{
+	float x = log10(a.x);
+	float y = log10(a.y);
+	float z = log10(a.z);
+	return vec3(x, y, z);
+}
+
+
+// Transformations from RGB to other color representations
+float rgb_2_hue( vec3 rgb ) 
+{
+	const float pi = 3.1415926;
+	// Returns a geometric hue angle in degrees (0-360) based on RGB values.
+	// For neutral colors, hue is undefined and the function will return a quiet NaN value.
+	float hue;
+	if (rgb[0] == rgb[1] && rgb[1] == rgb[2])
+	{
+		//hue = FLT_NAN; // RGB triplets where RGB are equal have an undefined hue
+		hue = 0;
+	}
+	else
+	{
+		hue = (180.0 / pi) * atan(2.0 * rgb[0] - rgb[1] - rgb[2], sqrt(3.0) * (rgb[1] - rgb[2]));
+	}
+
+	if (hue < 0.)
+		hue = hue + 360;
+
+	return clamp( hue, 0, 360 );
+}
+
+float rgb_2_yc( vec3 rgb, float ycRadiusWeight)
+{
+	// Converts RGB to a luminance proxy, here called YC
+	// YC is ~ Y + K * Chroma
+	// Constant YC is a cone-shaped surface in RGB space, with the tip on the 
+	// neutral axis, towards white.
+	// YC is normalized: RGB 1 1 1 maps to YC = 1
+	//
+	// ycRadiusWeight defaults to 1.75, although can be overridden in function 
+	// call to rgb_2_yc
+	// ycRadiusWeight = 1 -> YC for pure cyan, magenta, yellow == YC for neutral 
+	// of same value
+	// ycRadiusWeight = 2 -> YC for pure red, green, blue  == YC for  neutral of 
+	// same value.
+
+	float r = rgb[0]; 
+	float g = rgb[1]; 
+	float b = rgb[2];
+  
+	float chroma = sqrt(b*(b-g)+g*(g-r)+r*(r-b));
+
+	return ( b + g + r + ycRadiusWeight * chroma) / 3.;
+}
+
+float rgb_2_yc( vec3 rgb)
+{
+return rgb_2_yc(rgb, 1.75);
+}
+
+// 
+// Reference Rendering Transform (RRT)
+//
+//   Input is ACES
+//   Output is still AP1 in this modification!
+//
+vec3 RRT( vec3 aces )
+{
+	mat3 highlightsFixLMT = mat3(
+	0.9404372683, -0.0183068787, 0.0778696104,
+	0.0083786969, 0.8286599939, 0.1629613092,
+	0.0005471261, -0.0008833746, 1.0003362486
+	);
+	
+	// "Glow" module constants
+	const float RRT_GLOW_GAIN = 0.05;
+	const float RRT_GLOW_MID = 0.8;
+
+	aces = aces * highlightsFixLMT;
+	float saturation = rgb_2_saturation( aces );
+	float ycIn = rgb_2_yc( aces );
+	float s = sigmoid_shaper( (saturation - 0.4) / 0.2);
+	float addedGlow = 1 + glow_fwd( ycIn, RRT_GLOW_GAIN * s, RRT_GLOW_MID);
+	aces *= addedGlow;
+  
+	// --- Red modifier --- //
+	const float RRT_RED_SCALE = 0.82;
+	const float RRT_RED_PIVOT = 0.03;
+	const float RRT_RED_HUE = 0;
+	const float RRT_RED_WIDTH = 135;
+	float hue = rgb_2_hue( aces );
+	float centeredHue = center_hue( hue, RRT_RED_HUE );
+	float hueWeight = cubic_basis_shaper( centeredHue, RRT_RED_WIDTH );
+	//{
+	//	float hueWeight = smoothstep(0.0, 1.0, 1.0 - abs(2.0 * centeredHue / RRT_RED_WIDTH));
+	//	hueWeight *= hueWeight;
+	//}
+		
+	aces.r += hueWeight * saturation * (RRT_RED_PIVOT - aces.r) * (1. - RRT_RED_SCALE);
+
+	// --- ACES to RGB rendering space --- //
+	aces = clamp( aces, 0, 65535 );  // avoids saturated negative colors from becoming positive in the matrix
+
+	vec3 rgbPre = AP0_2_AP1_MAT * aces;
+
+	rgbPre = clamp( rgbPre, 0, 65535 );
+
+	// --- Global desaturation --- //
+	//const float RRT_SAT_FACTOR = 0.96;
+	//rgbPre = mix( vec3(dot( rgbPre, AP1_RGB2Y )), rgbPre, RRT_SAT_FACTOR );
+	
+	return rgbPre;
+}
+
+
+vec3 applyRRTACES(vec3 hdrColor)
+{
+	hdrColor = BT709_TO_AP1_MAT * hdrColor;
+	hdrColor = AP1_2_AP0_MAT * hdrColor;
+	hdrColor = RRT(hdrColor);
+	hdrColor = AP1_TO_BT709_MAT * hdrColor; // RRT returns color in AP1
+	return hdrColor;
+}
+
+
+// ============================================================================================
+// grayscale
+// ============================================================================================
+vec3 grayscale(vec3 col)
+{
+	vec3 luma = vec3(0.2126, 0.7152, 0.0722);
+	col = vec3(dot(col, luma));
+	
+	return col;
+}
+// --------------------------------------------------------------------------------------------
+
+
+//=============================================================================================
+// DICE tone mapper by luminance
+// translation to GLSL from original RenoDX code by Carlos Lopez Jr. (clshortfuse), MIT License
+
+const float FLT_MAX = 3.402823466e+38;
+const float FLT_MIN = 1.175494351e-38;
+
+float RangeCompress(float x, float max_value, float modulation)
+{
+    if (modulation == 1.0 && max_value == FLT_MAX)
+	{
+        return 1.0 - exp(-x);
+    }
+    if (modulation == 1.0 && max_value != FLT_MAX)
+	{
+        float lost_range = exp(-max_value);
+        float restore_range_scale = 1.0 / (1.0 - lost_range);
+        return (1.0 - exp(-x)) * restore_range_scale;
+    }
+    if (modulation != 1.0 && max_value == FLT_MAX)
+	{
+        return 1.0 - pow(exp(-x), modulation);
+    }
+    float lost_range = pow(exp(-max_value), modulation);
+    float restore_range_scale = 1.0 / (1.0 - lost_range);
+    return (1.0 - pow(exp(-x), modulation)) * restore_range_scale;
+}
+
+float LuminanceCompress(float value_in, float value_out_max, float shoulder_start, bool use_value_max,
+						float value_in_max, float modulation_pow)
+{
+    float compressable_value = value_in - shoulder_start;
+    float compressable_range = value_in_max - shoulder_start;
+    float compressed_range = max(value_out_max - shoulder_start, FLT_MIN);
+    float max_val = use_value_max ? (compressable_range / compressed_range) : FLT_MAX;
+    float possible_out_value = shoulder_start + (compressed_range * RangeCompress(compressable_value / compressed_range, max_val, modulation_pow));
+    return (value_in <= shoulder_start) ? value_in : possible_out_value;
+}
+
+// original function was
+// float3 BT709(float3 color, float output_luminance_max, float highlights_shoulder_start = 0.f, float highlights_modulation_pow = 1.f)
+vec3 DICEToneMap(vec3 color, float output_luminance_max, float highlights_shoulder_start, float highlights_modulation_pow)
+{
+    float source_luminance = grayscale(color).x;
+    if (source_luminance > 0.0)
+	{
+        float compressed_luminance = LuminanceCompress(source_luminance, output_luminance_max, highlights_shoulder_start, false, FLT_MAX, highlights_modulation_pow);
+        color *= compressed_luminance / source_luminance;
+    }
+    return color;
+}
+
+//==============================DICE Tone Mapper===============================================
+
+
+//=============================================================================================
+// Uchimura 2017, "HDR theory and practice"
+// https://www.slideshare.net/nikuque/hdr-theory-and-practicce-jp
+vec3 uchimura(vec3 x, float P, float a, float m, float l, float c, float b)
+{
+  float l0 = ((P - m) * l) / a;
+  float L0 = m - m / a;
+  float L1 = m + (1.0 - m) / a;
+  float S0 = m + l0;
+  float S1 = m + a * l0;
+  float C2 = (a * P) / (P - S1);
+  float CP = -C2 / P;
+
+  vec3 w0 = vec3(1.0 - smoothstep(0.0, m, x));
+  vec3 w2 = vec3(step(m + l0, x));
+  vec3 w1 = vec3(1.0 - w0 - w2);
+
+  vec3 T = vec3(m * pow(x / m, vec3(c)) + b);
+  vec3 S = vec3(P - (P - S1) * exp(CP * (x - S0)));
+  vec3 L = vec3(m + a * (x - m));
+
+  return T * w0 + L * w1 + S * w2;
+}
+
+
+vec3 uchimura(vec3 x)
+{
+  float P = uMaxBrightness * 0.0125;  // max display brightness
+  const float a = 1.0;  // contrast
+  const float m = 0.22; // linear section start
+  const float l = 0.4;  // linear section length
+  const float c = 1.33; // black
+  const float b = 0.0;  // pedestal
+
+  return uchimura(x, P, a, m, l, c, b);
+}
+//==============================Uchimura Tone Mapper===========================================
+
+
+vec3 ApplySMPTE_ST2084Curve(vec3 L)
+{
+    float m1 = 2610.0 / 4096.0 / 4.0;
+    float m2 = 2523.0 / 4096.0 * 128.0;
+    float c1 = 3424.0 / 4096.0;
+    float c2 = 2413.0 / 4096.0 * 32.0;
+    float c3 = 2392.0 / 4096.0 * 32.0;
+    vec3 Lp = pow(L, vec3(m1));
+    return pow((c1 + c2 * Lp) / (1.0 + c3 * Lp), vec3(m2));
+}
+
+
+vec3 RemoveSMPTE_ST2084Curve(vec3 N)
+{
+    float m1 = 2610.0 / 4096.0 / 4.0;
+    float m2 = 2523.0 / 4096.0 * 128.0;
+    float c1 = 3424.0 / 4096.0;
+    float c2 = 2413.0 / 4096.0 * 32.0;
+    float c3 = 2392.0 / 4096.0 * 32.0;
+    vec3 Np = pow(N, vec3(1.0 / m2));
+    return pow(max(Np - c1, 0) / (c2 - c3 * Np), vec3(1.0 / m1));
+}
+
+
+vec3 Rec709toRec2020(vec3 rgb709)
+{
+	const mat3 convMat = mat3(
+		0.627402, 0.069095, 0.016394,
+		0.329292, 0.919544, 0.088028,
+		0.043306, 0.011360, 0.895578
+	);
+	return convMat * rgb709;
+}
+
+
+vec3 Rec2020toRec709(vec3 rgb2020)
+{
+	const mat3 convMat = mat3(
+		1.660496, -0.124547, -0.018154,
+		-0.587656, 1.132895, -0.100597,
+		-0.072840, -0.008348, 1.118751
+	);
+	return convMat * rgb2020;
+}
+
+
+mat3 saturationMatrix( float saturation )
+{
+	vec3 luminance = vec3(0.2126, 0.7152, 0.0722);
+    float oneMinusSat = 1.0 - saturation;
+	
+    vec3 red = vec3( luminance.x * oneMinusSat );
+    red.r += saturation;
+    
+    vec3 green = vec3( luminance.y * oneMinusSat );
+    green.g += saturation;
+    
+    vec3 blue = vec3( luminance.z * oneMinusSat );
+    blue.b += saturation;
+		
+	return mat3( 
+        red,     
+        green,   
+        blue);
+}
+
+
+// ============================================================================================
+// cloak vision - original code by Nikos Papadopoulos, https://www.shadertoy.com/view/Xsl3zf
+// ============================================================================================
+float hash(float n)
+{
+	return fract(sin(n)*43758.5453123);
+}
+
+vec3 cloakVision(vec3 c)
+{
+	vec2 p = TexCoords;
+	vec2 u = p * 2. - 1.;
+	vec2 n = u;
+	float time = uTime;
+    
+    
+	// flicker, grain, vignette, fade in
+	c += sin(hash(uTime)) * 0.01;
+	c += hash((hash(n.x) + n.y) * uTime) * 0.25;
+	c *= smoothstep(length(n * n * n * vec2(0.075, 0.4)), 1.0, 0.4);
+    c *= smoothstep(0.001, 3.5, uTime) * 1.5;
+	 
+	c = grayscale(c) * vec3(0.2, 0.4, 1.5 - hash(uTime) * 0.3);
+	
+	return c;
+}
+// --------------------------------------------------------------------------------------------
+
+// ============================================================================================
+// color blindness correction - see https://terra-howard.com/thesis/
+// ============================================================================================
+const mat3 RGBtoOpponentMat = mat3(0.2814, -0.0971, -0.0930, 0.6938, 0.1458,-0.2529, 0.0638, -0.0250, 0.4665);
+const mat3 OpponentToRGBMat = mat3(1.1677, 0.9014, 0.7214, -6.4315, 2.5970, 0.1257, -0.5044, 0.0159, 2.0517);
+
+//const int NONE = 0;
+const int PROTANOPIA = 1;
+const int DEUTERANOPIA = 2;
+const int TRITANOPIA = 3;
+
+int blindnessType = uPostFX;
+
+void blindnessFilter( out vec3 myoutput, in vec3 myinput )
+{
+	if (blindnessType == PROTANOPIA) {
+			vec3 opponentColor = RGBtoOpponentMat * myinput;
+			opponentColor.x -= opponentColor.y * 1.5; // reds (y <= 0) become lighter, greens (y >= 0) become darker
+			vec3 rgbColor = OpponentToRGBMat * opponentColor;
+			myoutput = max(vec3(0.0),rgbColor);
+	} else if (blindnessType == DEUTERANOPIA) {
+			vec3 opponentColor = RGBtoOpponentMat * myinput;
+			opponentColor.x -= opponentColor.y * 1.5; // reds (y <= 0) become lighter, greens (y >= 0) become darker
+			vec3 rgbColor = OpponentToRGBMat * opponentColor;
+			myoutput = max(vec3(0.0),rgbColor);
+	} else if (blindnessType == TRITANOPIA) {
+			vec3 opponentColor = RGBtoOpponentMat * myinput;
+			opponentColor.x -= ((3.0 * opponentColor.z) - opponentColor.y) * 0.25;
+			vec3 rgbColor = OpponentToRGBMat * opponentColor;
+			myoutput = max(vec3(0.0),rgbColor);
+    } else {
+			myoutput = myinput;
+	}	
+}
+
+void blindnessVision( out vec3 myoutput, in vec3 myinput )
+{
+	vec4 blindVisionR;
+	vec4 blindVisionG;
+	vec4 blindVisionB;
+	if (blindnessType == PROTANOPIA) {
+			blindVisionR = vec4( 0.20,  0.99, -0.19, 0.0);
+			blindVisionG = vec4( 0.16,  0.79,  0.04, 0.0);
+			blindVisionB = vec4( 0.01, -0.01,  1.00, 0.0);
+	} else if (blindnessType == DEUTERANOPIA) {
+			blindVisionR = vec4( 0.43,  0.72, -0.15, 0.0 );
+			blindVisionG = vec4( 0.34,  0.57,  0.09, 0.0 );
+			blindVisionB = vec4(-0.02,  0.03,  1.00, 0.0 );		
+	} else if (blindnessType == TRITANOPIA) {
+			blindVisionR = vec4( 0.97,  0.11, -0.08, 0.0 );
+			blindVisionG = vec4( 0.02,  0.82,  0.16, 0.0 );
+			blindVisionB = vec4(-0.06,  0.88,  0.18, 0.0 );
+	} else {
+        	blindVisionR = vec4(1.0,  0.0,  0.0, 0.0 );
+        	blindVisionG = vec4(0.0,  1.0,  0.0, 0.0 );
+        	blindVisionB = vec4(0.0,  0.0,  1.0, 0.0 );			
+	}
+	myoutput = max(vec3(0.0), vec3(dot(myinput, blindVisionR.rgb), dot(myinput, blindVisionG.rgb), dot(myinput, blindVisionB.rgb)));	
+}
+
+vec3 colorBlindness(vec3 inColor)
+{
+	vec3 texColor = inColor;
+	vec3 tmp;
+	vec3 colorBlindColor = inColor;
+    blindnessFilter(tmp, texColor);    
+    blindnessVision(colorBlindColor, tmp);
+	//blindnessVision(colorBlindColor, texColor);
+	
+	return colorBlindColor;
+}
+// --------------------------------------------------------------------------------------------
+
+
+// ============================================================================================
+// old movie - based on https://www.shadertoy.com/view/Xdl3D8
+// ============================================================================================
+#define BLACK_AND_WHITE
+#define LINES_AND_FLICKER
+#define BLOTCHES
+#define GRAIN
+//#define ROLLING_FILM
+
+#define FREQUENCY 15.0
+#define sepia mat3(0.393, 0.769, 0.189, 0.349, 0.686, 0.168, 0.272, 0.534, 0.131)
+
+float rand(vec2 co)
+{
+    return fract(sin(dot(co.xy, vec2(12.9898,78.233))) * 43758.5453);
+}
+
+float rand(float c){
+	return rand(vec2(c,1.0));
+}
+
+float randomLine(float seed, vec2 uv)
+{
+	float b = 0.01 * rand(seed);
+	float a = rand(seed+1.0);
+	float c = rand(seed+2.0) - 0.5;
+	float mu = rand(seed+3.0);
+	
+	float l = 1.0;
+	
+	if ( mu > 0.2)
+		l = pow(  abs(a * uv.x + b * uv.y + c ), 1.0/8.0 );
+	else
+		l = 2.0 - pow( abs(a * uv.x + b * uv.y + c), 1.0/8.0 );				
+	
+	return mix(0.5, 1.0, l);
+}
+
+// Generate some blotches.
+float randomBlotch(float seed, vec2 uv)
+{
+	float x = rand(seed);
+	float y = rand(seed+1.0);
+	float s = 0.01 * rand(seed+2.0);
+	
+	vec2 p = vec2(x,y) - uv;
+	p.x *= uResolution.x / uResolution.y;
+	float a = atan(p.y,p.x);
+	float v = 1.0;
+	float ss = s*s * (sin(6.2831*a*x)*0.1 + 1.0);
+	
+	if ( dot(p,p) < ss ) v = 0.2;
+	else
+		v = pow(dot(p,p) - ss, 1.0/16.0);
+	
+	return mix(0.3 + 0.2 * (1.0 - (s / 0.02)), 1.0, v);
+}
+
+vec3 oldMovie(sampler2D inImage, vec2 fragCoord) 
+{
+    vec3 fragColor = vec3(0.0);
+	vec2 uv = fragCoord;		
+	// Set frequency of global effect to 15 variations per second
+	float t = float(int(uTime * FREQUENCY));
+	
+	// Get some image movement
+	vec2 suv = uv + 0.002 * vec2( rand(t), rand(t + 23.0));
+	
+	// Get the image
+	vec3 image = texture2D( inImage, vec2(suv.x, suv.y) ).xyz;
+	
+	#ifdef BLACK_AND_WHITE
+	// Convert it to B/W
+	//float luma = dot( vec3(0.2126, 0.7152, 0.0722), image );
+	//vec3 oldImage = luma * vec3(0.7, 0.7, 0.7);
+	vec3 oldImage = image * sepia;
+	#else
+	vec3 oldImage = image;
+	#endif
+	
+	#ifdef ROLLING_FILM
+	// rolling film effect
+	vec2 nos_pos = fragCoord - 0.5 + vec2(min(fract(uTime) - 0.02, 0.0), 0.0);
+    vec2 abs_n_p = vec2(abs(nos_pos));
+	if(abs_n_p.x > 0.40)
+    {
+        if(abs_n_p.x > 0.42 && abs_n_p.x < 0.48)
+        	oldImage = vec3(0.7) * step(mod(10.0 * (nos_pos.y + fract(uTime)), 1.0), 0.8);
+    	else
+            oldImage = vec3(0.0);
+    }
+	#endif
+	
+	// Create a time-varying vignetting effect
+	float vI = 16.0 * (uv.x * (1.0-uv.x) * uv.y * (1.0-uv.y));
+	vI *= mix( 0.7, 1.0, rand(t + 0.5));
+	
+	// Add additive flicker
+	vI += 1.0 + 0.4 * rand(t+8.);
+	
+	// Add a fixed vignetting (independent of the flicker)
+	vI *= pow(16.0 * uv.x * (1.0-uv.x) * uv.y * (1.0-uv.y), 0.4);
+	
+	// Add some random lines and some multiplicative flicker
+	#ifdef LINES_AND_FLICKER
+	int l = int(8.0 * rand(t+7.0));
+	
+	if ( 0 < l ) vI *= randomLine( t+6.0+17.* float(0), uv);
+	if ( 1 < l ) vI *= randomLine( t+6.0+17.* float(1), uv);
+	if ( 2 < l ) vI *= randomLine( t+6.0+17.* float(2), uv);		
+	if ( 3 < l ) vI *= randomLine( t+6.0+17.* float(3), uv);
+	if ( 4 < l ) vI *= randomLine( t+6.0+17.* float(4), uv);
+	if ( 5 < l ) vI *= randomLine( t+6.0+17.* float(5), uv);
+	if ( 6 < l ) vI *= randomLine( t+6.0+17.* float(6), uv);
+	if ( 7 < l ) vI *= randomLine( t+6.0+17.* float(7), uv);
+	
+	#endif
+	
+	// Add some random blotches.
+	#ifdef BLOTCHES
+	int s = int( max(8.0 * rand(t+18.0) -2.0, 0.0 ));
+    
+	if ( 0 < s ) vI *= randomBlotch( t+6.0+19.* float(0), uv);
+	if ( 1 < s ) vI *= randomBlotch( t+6.0+19.* float(1), uv);
+	if ( 2 < s ) vI *= randomBlotch( t+6.0+19.* float(2), uv);
+	if ( 3 < s ) vI *= randomBlotch( t+6.0+19.* float(3), uv);
+	if ( 4 < s ) vI *= randomBlotch( t+6.0+19.* float(4), uv);
+	if ( 5 < s ) vI *= randomBlotch( t+6.0+19.* float(5), uv);
+	
+	#endif
+	
+	// Show the image modulated by the defects
+    fragColor = oldImage * vI;
+	
+	// Add some grain
+	#ifdef GRAIN
+    fragColor *= (1.0+(rand(uv+t*.01)-.2)*.15);		
+    #endif
+	
+	return fragColor;
+}
+// --------------------------------------------------------------------------------------------
+
+// ============================================================================================
+// gravitational lensing - based on https://www.shadertoy.com/view/llyyRm
+// ============================================================================================
+#define S_RADIUS 0.1
+#define HALO_BRIGHTNESS .25
+
+#define PI 3.14159265358979
+
+vec3 hsv2rgb(vec3 c) {
+  vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+  vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+  return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+}
+
+vec3 gravLens( sampler2D inImage, vec2 fragCoord )
+{
+	vec3 fragColor = vec3(0.0);
+	// Normalized pixel coordinates (from 0 to 1)
+	vec2 uv = fragCoord;
+	float aspectRatio = uResolution.x/uResolution.y;
+	
+	vec2 blackHolePos = vec2(
+		sin(uTime) + aspectRatio,
+		(cos(uTime * 1.22) + sin(uTime * .57))
+		) * .2 + .5;
+	vec2 coord = uv - blackHolePos;
+    
+	//really cheap gravitational lensing approximation follows
+	float len = 1. + (length(coord) - S_RADIUS) / S_RADIUS;
+    
+	if (len < S_RADIUS)
+	{
+		fragColor = vec3(0.0);
+		return fragColor;
+	}
+	
+	vec2 k = (coord / (len * len));
+	vec2 sCoord = uv - k;
+	
+	// compute halo
+	float haloBrightness = 0.2;
+	haloBrightness = pow(haloBrightness, 4.);
+	vec3 hsv = vec3(sCoord.x * .3, .6, haloBrightness);
+	vec3 haloColor = hsv2rgb(hsv);
+	haloBrightness = (haloColor.r + haloColor.g + haloColor.b) * HALO_BRIGHTNESS;
+	haloColor = haloColor * HALO_BRIGHTNESS + vec3(haloBrightness);
+	
+	fragColor = (texture2D(inImage, sCoord).rgb + haloColor);
+	return fragColor;
+}
+// --------------------------------------------------------------------------------------------
+
+// ============================================================================================
+// CRT - based on https://www.shadertoy.com/view/Xtccz4
+// ============================================================================================
+vec2 crt_coords(vec2 uv, float bend)
+{
+	uv -= 0.5;
+    uv *= 2.;
+    uv.x *= 1. + pow(abs(uv.y)/bend, 2.);
+    uv.y *= 1. + pow(abs(uv.x)/bend, 2.);
+    
+    uv /= 2.02;
+    return uv + .5;
+}
+
+float vignette(vec2 uv, float size, float smoothness, float edgeRounding)
+{
+ 	uv -= .5;
+    uv *= size;
+    float amount = sqrt(pow(abs(uv.x), edgeRounding) + pow(abs(uv.y), edgeRounding));
+    amount = 1. - amount;
+    return smoothstep(0., smoothness, amount);
+}
+
+float scanline(vec2 uv, float lines, float speed)
+{
+    return sin(uv.y * lines + uTime * speed);
+}
+
+float random(vec2 uv)
+{
+ 	return fract(sin(dot(uv, vec2(15.5151, 42.2561))) * 12341.14122 * sin(uTime * 0.03));   
+}
+
+float noise(vec2 uv)
+{
+ 	vec2 i = floor(uv);
+    vec2 f = fract(uv);
+    
+    float a = random(i);
+    float b = random(i + vec2(1.,0.));
+	float c = random(i + vec2(0., 1.));
+    float d = random(i + vec2(1.));
+    
+    vec2 u = smoothstep(0., 1., f);
+    
+    return mix(a,b, u.x) + (c - a) * u.y * (1. - u.x) + (d - b) * u.x * u.y; 
+                     
+}
+
+vec3 CRT(sampler2D inImage, vec2 inCoords)
+{
+	vec2 uv = inCoords;
+	vec2 crt_uv = crt_coords(uv, 8.);
+    
+    float s1 = scanline(uv, 1500., -10.);
+    float s2 = scanline(uv, 10., -3.);
+    
+    vec3 col = texture2D(inImage, crt_uv).rgb;
+    col.r = texture2D(inImage, crt_uv + vec2(0., 0.0025)).r;
+    col.g = texture2D(inImage, crt_uv).g;
+    col.b = texture2D(inImage, crt_uv + vec2(0., -0.0025)).b;
+    
+    col = mix(col, max(vec3(s1 + s2), vec3(0.0)), 0.05);
+	col = mix(col, vec3(noise(uv * 500.)), 0.05) * vignette(uv, 1.9, .6, 8.);
+	
+	return col;
+}
+// --------------------------------------------------------------------------------------------
+
+// ============================================================================================
+// CRTBadSignal - original at https://www.shadertoy.com/view/ltV3z1
+// ============================================================================================
+vec3 CRTBadSignal(sampler2D inImage, vec2 inCoords)
+{
+	vec2 uv = inCoords;
+	float t = uTime;
+	float fx = 0.001 + 25.0 * abs(sin(t) / 10.0) - mod(1.0 + t, 7.0);
+	const float s = 50.0; // noise intensity
+	float x = (floor(uv.x * 300.0)) + (floor(uv.y * 300.0)) * (t * 0.1);
+	vec4 dtv = vec4(mod((mod(x, 2.0) + 1.0) * (mod(x, 0.0) + 0.0), 0.01) - 0.005) * s;
+	vec3 col = clamp(vec3(0.1, 0.1, 0.1) + dtv.xyz / fx, vec3(0.0), vec3(0.1));
+	
+	col.xyz += texture2D(inImage,uv).xyz;
+	
+	return col;
+}
+// --------------------------------------------------------------------------------------------
+
+
+// ============================================================================================
+// FXAA - original at https://www.shadertoy.com/view/MdyyRt
+// ============================================================================================
+#define FXAA_STRENGTH 10.
+vec3 FXAA(sampler2D _Tex, vec2 uv)
+{
+	vec3 e = vec3(1./uResolution.xy,0.);
+	float reducemul = 0.125;// 1. / 8.;
+	float reducemin = 0.0078125;// 1. / 128.;
+	
+	vec4 Or = texture2D(_Tex,uv);
+	vec4 LD = texture2D(_Tex,uv - e.xy);
+	vec4 RD = texture2D(_Tex,uv + vec2( e.x,-e.y));
+	vec4 LT = texture2D(_Tex,uv + vec2(-e.x, e.y));
+	vec4 RT = texture2D(_Tex,uv + e.xy);
+	float Or_Lum = grayscale(Or.rgb).x;
+	float LD_Lum = grayscale(LD.rgb).x;
+	float RD_Lum = grayscale(RD.rgb).x;
+	float LT_Lum = grayscale(LT.rgb).x;
+	float RT_Lum = grayscale(RT.rgb).x;
+	
+	float min_Lum = min(Or_Lum,min(min(LD_Lum,RD_Lum),min(LT_Lum,RT_Lum)));
+	float max_Lum = max(Or_Lum,max(max(LD_Lum,RD_Lum),max(LT_Lum,RT_Lum)));
+	
+	//x direction,-y direction
+	vec2 dir = vec2((LT_Lum+RT_Lum)-(LD_Lum+RD_Lum),(LD_Lum+LT_Lum)-(RD_Lum+RT_Lum));
+	float dir_reduce = max((LD_Lum+RD_Lum+LT_Lum+RT_Lum)*reducemul*0.25,reducemin);
+	float dir_min = 1./(min(abs(dir.x),abs(dir.y))+dir_reduce);
+	dir = min(vec2(FXAA_STRENGTH),max(-vec2(FXAA_STRENGTH),dir*dir_min)) * e.xy;
+	
+	vec4 resultA = 0.5*(texture2D(_Tex,uv-0.166667*dir)+texture2D(_Tex,uv+0.166667*dir));
+	vec4 resultB = resultA*0.5+0.25*(texture2D(_Tex,uv-0.5*dir)+texture2D(_Tex,uv+0.5*dir));
+	float B_Lum = grayscale(resultB.rgb).x;
+	
+	if(B_Lum < min_Lum || B_Lum > max_Lum)
+	{
+		return resultA.rgb;
+	}
+	else
+	{
+		return resultB.rgb;
+	}
+}
+//---------------------------------------------------------------------------------------------
+
+
+//=============================================================================================
+//Gamut expansion - modified from original code, courtesy of the HDR Den Discord server devs
+//=============================================================================================
+vec3 okLabFromBT709 (vec3 bt709)
+{
+	const mat3 BT709_2_OKLABLMS = mat3(
+		0.4122214708f, 0.5363325363f, 0.0514459929f,
+		0.2119034982f, 0.6806995451f, 0.1073969566f,
+		0.0883024619f, 0.2817188376f, 0.6299787005f);
+	
+	const mat3 OKLABLMS_2_OKLAB = mat3(
+		0.2104542553f,  0.7936177850f, -0.0040720468f,
+		1.9779984951f, -2.4285922050f,  0.4505937099f,
+		0.0259040371f,  0.7827717662f, -0.8086757660f);
+	
+	vec3 lms = bt709 * BT709_2_OKLABLMS;
+	lms = sign(lms) * pow(abs(lms), vec3(1.0f / 3.0f));
+	
+	return lms * OKLABLMS_2_OKLAB;
+}
+
+
+vec3 bt709FromOKLab (vec3 oklab)
+{
+	const mat3 OKLAB_2_OKLABLMS = mat3(
+		1.0f,  0.3963377774f,  0.2158037573f,
+		1.0f, -0.1055613458f, -0.0638541728f,
+		1.0f, -0.0894841775f, -1.2914855480f);
+	
+	const mat3 OKLABLMS_2_BT709 = mat3(
+		4.0767416621f, -3.3077115913f,  0.2309699292f,
+		-1.2684380046f,  2.6097574011f, -0.3413193965f,
+		-0.0041960863f, -0.7034186147f,  1.7076147010f);
+	
+	vec3 lms = oklab * OKLAB_2_OKLABLMS;
+
+	lms = lms * lms * lms;
+
+	return lms * OKLABLMS_2_BT709;
+}
+
+
+vec3 expandGamut(vec3 color, float gamutExpansionAmount)
+{
+	vec3 colorOKLab = okLabFromBT709(color);
+	
+	// Extract L, C, h from OKLab
+	float L = colorOKLab[0];
+	float b = colorOKLab[1];
+	float a = colorOKLab[2];
+	float C = sqrt(a * a + b * b);
+	float h = atan(a, b);
+	
+	// Calculate the exponential weighting factor based on luminance and chroma
+	float chromaWeight = 1.0f - exp(-4.0f * C);
+	float luminanceWeight = 1.0f - exp(-4.0f * L * L);
+	float weight = chromaWeight * luminanceWeight * gamutExpansionAmount;
+	
+	// Apply the expansion factor
+	C *= (1.0f + weight);
+	
+	// Convert back to OKLab with adjusted chroma
+	a = C * cos(h);
+	b = C * sin(h);
+	vec3 adjustedOKLab = vec3(L, a, b);
+	
+	vec3 adjustedColor = bt709FromOKLab(adjustedOKLab);
+	vec3 colorBT2020 = Rec709toRec2020(adjustedColor);
+	colorBT2020 = max(vec3(0.0), colorBT2020); // Clamp to BT2020
+	
+	return Rec2020toRec709(colorBT2020);
+}
+
+
+float desaturationFraction(vec3 hdrColor, float Kd)
+{
+	// we desaturate colors as they become brighter
+	// Kd is rate of desaturation
+	return 1.0 - 1.0 / (Kd * max(hdrColor.r, max(hdrColor.g, hdrColor.b)) + 1.0);
+}
+
+
+float desaturationFraction2(vec3 luma, float slope)
+{
+	// lowering slope increases highlights desaturation rate
+	float t = luma.r;
+	t = t * t / (slope + t); 
+	return clamp(t, 0.0, 1.0);
+}
+//---------------------------------------------------------------------------------------------
+
+
+void main()
+{    
+	float exposure = 1.0;
+	vec3 hdrColor = texture2D(scene, TexCoords).rgb;      
+	vec3 bloomColor = texture2D(bloomBlur, TexCoords).rgb;
+	
+	if(bloom)
+	{
+		hdrColor += bloomColor;
+	}
+	
+	hdrColor *= exposure;
+	
+	// post processing effects here
+	switch(uPostFX)
+	{
+		case 1:
+		case 2:
+		case 3:
+			hdrColor = colorBlindness(hdrColor);
+			break;
+		case 4:
+			hdrColor = cloakVision(hdrColor);
+			break;
+		case 5:
+			hdrColor = FXAA(scene, TexCoords);
+			bloomColor = FXAA(bloomBlur, TexCoords);
+			if(bloom)  hdrColor += bloomColor;
+			hdrColor *= exposure;
+			break;
+		case 6:
+			hdrColor = oldMovie(scene, TexCoords);
+			bloomColor = oldMovie(bloomBlur, TexCoords);
+			if(bloom)  hdrColor += bloomColor;
+			hdrColor *= exposure;
+			break;
+		case 7:
+			hdrColor = CRT(scene, TexCoords);
+			bloomColor = CRT(bloomBlur, TexCoords);
+			if(bloom)  hdrColor += bloomColor;
+			hdrColor *= exposure;
+			break;
+		case 8:
+			hdrColor = CRTBadSignal(scene, TexCoords);
+			bloomColor = CRT(bloomBlur, TexCoords); // yes CRT, not a typo
+			if(bloom)  hdrColor += bloomColor;
+			hdrColor *= exposure;
+			break;
+		case 9:
+			hdrColor = gravLens(scene, TexCoords);
+			bloomColor = gravLens(bloomBlur, TexCoords);
+			if(bloom)  hdrColor += bloomColor;
+			hdrColor *= exposure;
+			break;
+		default:
+			break;
+	}
+	
+	// calculate highlights desaturation - ACES Approx uses its own method for better visuals
+	vec3 luma = grayscale(hdrColor);
+	float desaturationFraction = uHDRToneMapper == 0 ?	desaturationFraction2(luma, 11.0) :
+														desaturationFraction(hdrColor, 0.175);
+	
+	// apply saturation
+	hdrColor = max(saturationMatrix(uSaturation * SATURATION_ADJUSTMENT) * hdrColor, vec3(0.0));
+	
+	// mastering to 1000 nits max luminance
+	hdrColor = min(hdrColor, vec3(MAXCLLNITS * 0.0125));
+	
+	// tone mapper selection
+	vec3 result;
+	switch(uHDRToneMapper)
+	{
+		case 0: // OOHDR_TONEMAPPER_ACES_APPROX - ACES for the max luminances for which we have sigmoid parameters, Reinhard for everything else, based on Krzysztof Narkowicz's approximation
+			hdrColor = applyRRTACES(hdrColor);
+			result = ACESFilmRec2020OrReinhardHDR(mix(hdrColor, luma, desaturationFraction) * uPaperWhiteBrightness * 0.0125);
+			break;
+		case 1:	// OOHDR_TONEMAPPER_DICE - Based on the RenoDX HLSL code
+			result = DICEToneMap(hdrColor * uPaperWhiteBrightness * 0.0125, uMaxBrightness * 0.0125, 0.8, 1.6);
+			break;
+		case 2: // OOHDR_TONEMAPPER_UCHIMURA
+			result = uchimura(mix(hdrColor, luma, desaturationFraction) * uPaperWhiteBrightness * 0.0125);
+			break;
+		case 3: // OOHDR_TONEMAPPER_REINHARD - good for any value of uMaxBrightness, rather than selected values
+			result = reinhardHDR(mix(hdrColor, luma, desaturationFraction) * uPaperWhiteBrightness * 0.0125);
+			break;
+		default: // OOHDR_TONEMAPPER_NONE - mainly for testing purposes
+			result = hdrColor;
+			break;
+	}
+	
+	// gamut expansion here
+	result = expandGamut(result, GAMUT_EXPANSION_AMOUNT);
+	
+#if HDR_HEATMAP
+	{
+		// This code is based on the luminance heatmap effect from https://github.com/13thsymphony/HDRImageViewer
+		// Define constants: 9 "stops" for a piecewise linear gradient in scRGB space.
+		#define STOP0_NITS 0.00f
+		#define STOP1_NITS 3.16f
+		#define STOP2_NITS 10.0f
+		#define STOP3_NITS 31.6f
+		#define STOP4_NITS 100.f
+		#define STOP5_NITS 316.f
+		#define STOP6_NITS 1000.f
+		#define STOP7_NITS 3160.f
+		#define STOP8_NITS 10000.f
+		
+		#define STOP0_COLOR vec3(0.0f, 0.0f, 0.0f) // Black
+		#define STOP1_COLOR vec3(0.0f, 0.0f, 1.0f) // Blue
+		#define STOP2_COLOR vec3(0.0f, 1.0f, 1.0f) // Cyan
+		#define STOP3_COLOR vec3(0.0f, 1.0f, 0.0f) // Green
+		#define STOP4_COLOR vec3(1.0f, 1.0f, 0.0f) // Yellow
+		#define STOP5_COLOR vec3(1.0f, 0.2f, 0.0f) // Orange
+		#define STOP6_COLOR vec3(1.0f, 0.0f, 0.0f) // Red
+		#define STOP7_COLOR vec3(1.0f, 0.0f, 1.0f) // Magenta
+		#define STOP8_COLOR vec3(1.0f, 1.0f, 1.0f) // White
+		
+		float nits = grayscale(result).r * 80.0;
+		
+		// Determine which gradient segment will be used.
+		// Only one of useSegmentN will be 1 (true) for a given nits value.
+		float useSegment0 = sign(nits - STOP0_NITS) - sign(nits - STOP1_NITS);
+		float useSegment1 = sign(nits - STOP1_NITS) - sign(nits - STOP2_NITS);
+		float useSegment2 = sign(nits - STOP2_NITS) - sign(nits - STOP3_NITS);
+		float useSegment3 = sign(nits - STOP3_NITS) - sign(nits - STOP4_NITS);
+		float useSegment4 = sign(nits - STOP4_NITS) - sign(nits - STOP5_NITS);
+		float useSegment5 = sign(nits - STOP5_NITS) - sign(nits - STOP6_NITS);
+		float useSegment6 = sign(nits - STOP6_NITS) - sign(nits - STOP7_NITS);
+		float useSegment7 = sign(nits - STOP7_NITS) - sign(nits - STOP8_NITS);
+		
+		// Calculate the interpolated color.
+		float lerpSegment0 = (nits - STOP0_NITS) / (STOP1_NITS - STOP0_NITS);
+		float lerpSegment1 = (nits - STOP1_NITS) / (STOP2_NITS - STOP1_NITS);
+		float lerpSegment2 = (nits - STOP2_NITS) / (STOP3_NITS - STOP2_NITS);
+		float lerpSegment3 = (nits - STOP3_NITS) / (STOP4_NITS - STOP3_NITS);
+		float lerpSegment4 = (nits - STOP4_NITS) / (STOP5_NITS - STOP4_NITS);
+		float lerpSegment5 = (nits - STOP5_NITS) / (STOP6_NITS - STOP5_NITS);
+		float lerpSegment6 = (nits - STOP6_NITS) / (STOP7_NITS - STOP6_NITS);
+		float lerpSegment7 = (nits - STOP7_NITS) / (STOP8_NITS - STOP7_NITS);
+		
+		//  Only the "active" gradient segment contributes to the output color.
+		vec3 output =
+			mix(STOP0_COLOR, STOP1_COLOR, lerpSegment0) * useSegment0 +
+			mix(STOP1_COLOR, STOP2_COLOR, lerpSegment1) * useSegment1 +
+			mix(STOP2_COLOR, STOP3_COLOR, lerpSegment2) * useSegment2 +
+			mix(STOP3_COLOR, STOP4_COLOR, lerpSegment3) * useSegment3 +
+			mix(STOP4_COLOR, STOP5_COLOR, lerpSegment4) * useSegment4 +
+			mix(STOP5_COLOR, STOP6_COLOR, lerpSegment5) * useSegment5 +
+			mix(STOP6_COLOR, STOP7_COLOR, lerpSegment6) * useSegment6 +
+			mix(STOP7_COLOR, STOP8_COLOR, lerpSegment7) * useSegment7;
+			
+		result = output;
+	}
+#endif
+	
+	FragColor = vec4(result * uOutputScale, 1.0);
+}

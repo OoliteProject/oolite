@@ -25,6 +25,7 @@ SOFTWARE.
 
 */
 
+#import "OOGLStateCompat.h"
 #import "OOOpenGLExtensionManager.h"
 
 #if OO_SHADERS
@@ -35,6 +36,7 @@ SOFTWARE.
 #import "OOFunctionAttributes.h"
 #import "OOMacroOpenGL.h"
 #import "OOOpenGLExtensionManager.h"
+#import "OORendererProgram.h"
 #import "OOShaderProgram.h"
 #import "OOStringParsing.h"
 #import "ResourceManager.h"
@@ -44,7 +46,9 @@ static NSMutableDictionary* sShaderCache = nil;
 static OOShaderProgram* sActiveProgram = nil;
 
 static BOOL GetShaderSource(NSString* fileName, NSString* shaderType, NSString* prefix, NSString** outResult);
-static NSString* GetGLSLInfoLog(GLhandleARB shaderObject);
+#if OOLITE_MAC_OS_X || OO_RENDERER_SDL_GPU
+static NSString* TranslateGLSL330To120(NSString* source, BOOL isVertexShader, NSMutableDictionary* attributeBindings);
+#endif
 
 @interface OOShaderProgram (OOPrivate)
 
@@ -56,7 +60,6 @@ static NSString* GetGLSLInfoLog(GLhandleARB shaderObject);
                attributeBindings:(NSDictionary*)attributeBindings
                              key:(NSString*)key;
 
-- (void)bindAttributes:(NSDictionary*)attributeBindings;
 - (void)bindStandardMatrixUniforms;
 
 @end
@@ -126,6 +129,20 @@ static NSString* GetGLSLInfoLog(GLhandleARB shaderObject);
             return nil;
         if (!GetShaderSource(fragmentShaderName, @"fragment", prefixString, &fragmentSource))
             return nil;
+#if OOLITE_MAC_OS_X || OO_RENDERER_SDL_GPU
+        /*	The macOS legacy OpenGL context only supports GLSL 1.20, so shaders
+                written for #version 330 are translated when loaded. SDL_GPU
+                builds do the same everywhere, so the GLSL translator always sees
+                legacy GLSL with attribute bindings.
+        */
+        if ([prefixString hasPrefix:@"#version 330"]) {
+            NSMutableDictionary* bindings = [NSMutableDictionary dictionaryWithDictionary:attributeBindings ?: [NSDictionary dictionary]];
+            vertexSource = TranslateGLSL330To120(vertexSource, YES, bindings);
+            fragmentSource = TranslateGLSL330To120(fragmentSource, NO, bindings);
+            attributeBindings = bindings;
+            prefixString = [@"#version 120\n#extension GL_EXT_gpu_shader4 : enable\n" stringByAppendingString:[prefixString substringFromIndex:[@"#version 330" length]]];
+        }
+#endif
         result = [[OOShaderProgram alloc] initWithVertexShaderSource:vertexSource
                                                 fragmentShaderSource:fragmentSource
                                                         prefixString:prefixString
@@ -166,7 +183,7 @@ static NSString* GetGLSLInfoLog(GLhandleARB shaderObject);
         [standardMatrixUniformLocations release];
     }
 
-    OOGL(glDeleteObjectARB(program));
+    OORendererReleaseProgram(program);
 
     [super dealloc];
 }
@@ -178,7 +195,7 @@ static NSString* GetGLSLInfoLog(GLhandleARB shaderObject);
     if (sActiveProgram != self) {
         [sActiveProgram release];
         sActiveProgram = [self retain];
-        OOGL(glUseProgramObjectARB(program));
+        OORendererUseProgram(program);
         [self bindStandardMatrixUniforms];
     }
 }
@@ -190,78 +207,74 @@ static NSString* GetGLSLInfoLog(GLhandleARB shaderObject);
     if (sActiveProgram != nil) {
         [sActiveProgram release];
         sActiveProgram = nil;
-        OOGL(glUseProgramObjectARB(NULL_SHADER));
+        OORendererUseProgram(NULL);
     }
 }
 
-- (GLhandleARB)program
+- (struct OORendererProgram*)rendererProgram
 {
     return program;
 }
 
+- (OOUniformHandle)uniformHandleForName:(NSString*)name
+{
+    return OORendererProgramUniform(program, [name UTF8String]);
+}
+
+- (void)setUniform:(OOUniformHandle)handle intValue:(GLint)value
+{
+    int32_t v = value;
+    OORendererSetUniform(handle, kOOUniformInt, &v);
+}
+
+- (void)setUniform:(OOUniformHandle)handle floatValue:(GLfloat)value
+{
+    OORendererSetUniform(handle, kOOUniformFloat, &value);
+}
+
+- (void)setUniform:(OOUniformHandle)handle vec2Value:(const GLfloat*)value
+{
+    OORendererSetUniform(handle, kOOUniformVec2, value);
+}
+
+- (void)setUniform:(OOUniformHandle)handle vec4Value:(const GLfloat*)value
+{
+    OORendererSetUniform(handle, kOOUniformVec4, value);
+}
+
+- (void)setUniform:(OOUniformHandle)handle matrixValue:(OOMatrix)value
+{
+    OORendererSetUniform(handle, kOOUniformMat4, OOMatrixValuesForOpenGL(value));
+}
+
+- (void)setUniform:(OOUniformHandle)handle mat3Value:(OOMatrix)value
+{
+    // The upper left 3x3, column by column, as GLUniformMatrix3 did.
+    float m[9] = {
+        value.m[0][0], value.m[0][1], value.m[0][2],
+        value.m[1][0], value.m[1][1], value.m[1][2],
+        value.m[2][0], value.m[2][1], value.m[2][2]
+    };
+    OORendererSetUniform(handle, kOOUniformMat3, m);
+}
+
 @end
 
-static BOOL ValidateShaderObject(GLhandleARB object, NSString* name)
+// Log a failed compile or link as OOShaderProgram always has.
+static void LogProgramError(const OOProgramError* error, NSString* vertexName, NSString* fragmentName)
 {
-    GLint type, subtype = 0, status;
-    GLenum statusType;
-    NSString* subtypeString = nil;
-    NSString* actionString = nil;
-
-    OO_ENTER_OPENGL();
-
-    OOGL(glGetObjectParameterivARB(object, GL_OBJECT_TYPE_ARB, &type));
-    BOOL linking = type == GL_PROGRAM_OBJECT_ARB;
-
-    if (linking) {
-        subtypeString = @"shader program";
-        actionString = @"linking";
-        statusType = GL_OBJECT_LINK_STATUS_ARB;
-    } else {
-        // FIXME
-        OOGL(glGetObjectParameterivARB(object, GL_OBJECT_SUBTYPE_ARB, &subtype));
-        switch (subtype) {
-        case GL_VERTEX_SHADER_ARB:
-            subtypeString = @"vertex shader";
-            break;
-
-        case GL_FRAGMENT_SHADER_ARB:
-            subtypeString = @"fragment shader";
-            break;
-
-#if GL_EXT_geometry_shader4
-        case GL_GEOMETRY_SHADER_EXT:
-            subtypeString = @"geometry shader";
-            break;
-#endif
-
-        default:
-            subtypeString = [NSString stringWithFormat:@"<unknown shader type 0x%.4X>", subtype];
-        }
+    NSString* subtypeString = @"shader program";
+    NSString* actionString = @"linking";
+    NSString* name = [NSString stringWithFormat:@"%@/%@", vertexName, fragmentName];
+    BOOL linking = error->stage == kOOProgramStageLink;
+    if (!linking) {
+        subtypeString = error->stage == kOOProgramStageVertex ? @"vertex shader" : @"fragment shader";
         actionString = @"compilation";
-        statusType = GL_OBJECT_COMPILE_STATUS_ARB;
+        name = error->stage == kOOProgramStageVertex ? vertexName : fragmentName;
     }
-
-    OOGL(glGetObjectParameterivARB(object, statusType, &status));
-    if (status == GL_FALSE) {
-        NSString* msgClass = [NSString stringWithFormat:@"shader.%@.failure", linking ? @"link" : @"compile"];
-        OOLogERR(msgClass, @"GLSL %@ %@ failed for %@:\n>>>>> GLSL log:\n%@\n", subtypeString, actionString, name, GetGLSLInfoLog(object));
-        return NO;
-    }
-
-#ifndef NDEBUG
-    if (gDebugFlags & DEBUG_SHADER_VALIDATION && 0) {
-        OOGL(glValidateProgramARB(object));
-        OOGL(glGetObjectParameterivARB(object, GL_OBJECT_VALIDATE_STATUS_ARB, &status));
-        if (status == GL_FALSE) {
-            NSString* msgClass = [NSString stringWithFormat:@"shader.%@.validationFailure", linking ? @"link" : @"compile"];
-            OOLogWARN(msgClass, @"GLSL %@ %@ failed for %@:\n>>>>> GLSL log:\n%@\n", subtypeString, @"validation", name, GetGLSLInfoLog(object));
-            return NO;
-        }
-    }
-#endif
-
-    return YES;
+    NSString* msgClass = [NSString stringWithFormat:@"shader.%@.failure", linking ? @"link" : @"compile"];
+    NSString* log = error->log != NULL ? [NSString stringWithUTF8String:error->log] : @"";
+    OOLogERR(msgClass, @"GLSL %@ %@ failed for %@:\n>>>>> GLSL log:\n%@\n", subtypeString, actionString, name, log);
 }
 
 @implementation OOShaderProgram (OOPrivate)
@@ -275,9 +288,6 @@ static BOOL ValidateShaderObject(GLhandleARB object, NSString* name)
                              key:(NSString*)inKey
 {
     BOOL OK = YES;
-    const GLcharARB* sourceStrings[3] = { "", "#line 0\n", NULL };
-    GLhandleARB vertexShader = NULL_SHADER;
-    GLhandleARB fragmentShader = NULL_SHADER;
 
     OO_ENTER_OPENGL();
 
@@ -288,86 +298,38 @@ static BOOL ValidateShaderObject(GLhandleARB object, NSString* name)
     if (OK && vertexSource == nil && fragmentSource == nil)
         OK = NO; // Must have at least one shader!
 
-    if (OK && prefixString != nil) {
-        sourceStrings[0] = [prefixString UTF8String];
-    }
-
-    if (OK && vertexSource != nil) {
-        // Compile vertex shader.
-        OOGL(vertexShader = glCreateShaderObjectARB(GL_VERTEX_SHADER_ARB));
-        if (vertexShader != NULL_SHADER) {
-            sourceStrings[2] = [vertexSource UTF8String];
-            OOGL(glShaderSourceARB(vertexShader, 3, sourceStrings, NULL));
-            OOGL(glCompileShaderARB(vertexShader));
-
-            OK = ValidateShaderObject(vertexShader, vertexName);
-        } else
-            OK = NO;
-    }
-
-    if (OK && fragmentSource != nil) {
-        // Compile fragment shader.
-        OOGL(fragmentShader = glCreateShaderObjectARB(GL_FRAGMENT_SHADER_ARB));
-        if (fragmentShader != NULL_SHADER) {
-            sourceStrings[2] = [fragmentSource UTF8String];
-            OOGL(glShaderSourceARB(fragmentShader, 3, sourceStrings, NULL));
-            OOGL(glCompileShaderARB(fragmentShader));
-
-            OK = ValidateShaderObject(fragmentShader, fragmentName);
-        } else
-            OK = NO;
-    }
-
     if (OK) {
-        // Link shader.
-        OOGL(program = glCreateProgramObjectARB());
-        if (program != NULL_SHADER) {
-            if (vertexShader != NULL_SHADER)
-                OOGL(glAttachObjectARB(program, vertexShader));
-            if (fragmentShader != NULL_SHADER)
-                OOGL(glAttachObjectARB(program, fragmentShader));
-            [self bindAttributes:attributeBindings];
-            OOGL(glLinkProgramARB(program));
-
-            OK = ValidateShaderObject(program, [NSString stringWithFormat:@"%@/%@", vertexName, fragmentName]);
-        } else
+        NSUInteger bindingCount = [attributeBindings count];
+        OOAttributeBinding* bindings = bindingCount > 0 ? malloc(bindingCount * sizeof *bindings) : NULL;
+        NSUInteger i = 0;
+        NSString* attrKey = nil;
+        foreachkey(attrKey, attributeBindings)
+        {
+            bindings[i++] = (OOAttributeBinding) { [attrKey UTF8String], [attributeBindings oo_unsignedIntForKey:attrKey] };
+        }
+        OOProgramError error = { kOOProgramStageLink, NULL };
+        program = OORendererCreateProgram([vertexSource UTF8String], [fragmentSource UTF8String], [prefixString UTF8String],
+            bindings, bindingCount, &error);
+        free(bindings);
+        if (program == NULL) {
+            LogProgramError(&error, vertexName, fragmentName);
             OK = NO;
+        }
+        free(error.log);
     }
 
     if (OK) {
         key = [inKey copy];
     }
 
-    if (vertexShader != NULL_SHADER)
-        OOGL(glDeleteObjectARB(vertexShader));
-    if (fragmentShader != NULL_SHADER)
-        OOGL(glDeleteObjectARB(fragmentShader));
-
     if (OK) {
         OOOpenGLMatrixManager* matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
         standardMatrixUniformLocations = [matrixManager standardMatrixUniformLocations:program];
     } else {
-        if (self != nil && program != NULL_SHADER) {
-            OOGL(glDeleteObjectARB(program));
-            program = NULL_SHADER;
-        }
-
         [self release];
         self = nil;
     }
     return self;
-}
-
-- (void)bindAttributes:(NSDictionary*)attributeBindings
-{
-    OO_ENTER_OPENGL();
-
-    NSString* attrKey = nil;
-
-    foreachkey(attrKey, attributeBindings)
-    {
-        OOGL(glBindAttribLocationARB(program, [attributeBindings oo_unsignedIntForKey:attrKey], [attrKey UTF8String]));
-    }
 }
 
 - (void)bindStandardMatrixUniforms
@@ -384,9 +346,9 @@ static BOOL ValidateShaderObject(GLhandleARB object, NSString* name)
             if ([obj isKindOfClass:[NSArray class]]) {
                 pair = (NSArray*)obj;
                 if ([[pair oo_stringAtIndex:2] compare:@"mat3"] == 0) {
-                    OOGL(GLUniformMatrix3([pair oo_intAtIndex:0], [matrixManager getMatrix:[pair oo_intAtIndex:1]]));
+                    [self setUniform:[pair oo_intAtIndex:0] mat3Value:[matrixManager getMatrix:[pair oo_intAtIndex:1]]];
                 } else {
-                    GLUniformMatrix([pair oo_intAtIndex:0], [matrixManager getMatrix:[pair oo_intAtIndex:1]]);
+                    [self setUniform:[pair oo_intAtIndex:0] matrixValue:[matrixManager getMatrix:[pair oo_intAtIndex:1]]];
                 }
             }
         }
@@ -440,33 +402,65 @@ static BOOL GetShaderSource(NSString* fileName, NSString* shaderType, NSString* 
     return YES;
 }
 
-static NSString* GetGLSLInfoLog(GLhandleARB shaderObject)
+#endif // OO_SHADERS
+
+#if OOLITE_MAC_OS_X || OO_RENDERER_SDL_GPU
+static NSString* ReplaceRegex(NSString* source, NSString* pattern, NSString* replacement)
 {
-    GLint length;
-    GLcharARB* log = NULL;
-    NSString* result = nil;
-
-    OO_ENTER_OPENGL();
-
-    if (EXPECT_NOT(shaderObject == NULL_SHADER))
-        return nil;
-
-    OOGL(glGetObjectParameterivARB(shaderObject, GL_OBJECT_INFO_LOG_LENGTH_ARB, &length));
-    log = malloc(length);
-    if (log == NULL) {
-        length = 1024;
-        log = malloc(length);
-        if (log == NULL)
-            return @"<out of memory>";
-    }
-    OOGL(glGetInfoLogARB(shaderObject, length, NULL, log));
-
-    result = [NSString stringWithUTF8String:log];
-    if (result == nil)
-        result = [[[NSString alloc] initWithBytes:log length:length - 1 encoding:NSISOLatin1StringEncoding] autorelease];
-    free(log);
-
-    return result;
+    NSRegularExpression* regex = [NSRegularExpression regularExpressionWithPattern:pattern options:NSRegularExpressionAnchorsMatchLines error:NULL];
+    return [regex stringByReplacingMatchesInString:source options:0 range:NSMakeRange(0, [source length]) withTemplate:replacement];
 }
 
-#endif // OO_SHADERS
+/*	Translate the subset of GLSL 3.30 used by Oolite's post-processing shaders
+        to GLSL 1.20 (plus GL_EXT_gpu_shader4). Only top-level declarations are
+        rewritten, so in/out parameter qualifiers inside functions are untouched.
+*/
+static NSString* TranslateGLSL330To120(NSString* source, BOOL isVertexShader, NSMutableDictionary* attributeBindings)
+{
+    if (source == nil)
+        return nil;
+
+    NSRegularExpression* regex = nil;
+    NSArray* matches = nil;
+    NSTextCheckingResult* match = nil;
+
+    if (isVertexShader) {
+        // layout(location = N) in TYPE NAME;  ->  attribute binding NAME = N
+        regex = [NSRegularExpression regularExpressionWithPattern:@"^\\s*layout\\s*\\(\\s*location\\s*=\\s*(\\d+)\\s*\\)\\s*in\\s+\\w+\\s+(\\w+)\\s*;" options:NSRegularExpressionAnchorsMatchLines error:NULL];
+        matches = [regex matchesInString:source options:0 range:NSMakeRange(0, [source length])];
+        foreach (match, matches) {
+            NSString* location = [source substringWithRange:[match rangeAtIndex:1]];
+            NSString* name = [source substringWithRange:[match rangeAtIndex:2]];
+            [attributeBindings setObject:[NSNumber numberWithInt:[location intValue]] forKey:name];
+        }
+    } else {
+        // [layout(location = N)] out vec4 NAME;  ->  #define NAME gl_FragData[N]
+        NSMutableString* result = [NSMutableString stringWithString:source];
+        regex = [NSRegularExpression regularExpressionWithPattern:@"^\\s*(?:layout\\s*\\(\\s*location\\s*=\\s*(\\d+)\\s*\\)\\s*)?out\\s+vec4\\s+(\\w+)\\s*;" options:NSRegularExpressionAnchorsMatchLines error:NULL];
+        matches = [regex matchesInString:source options:0 range:NSMakeRange(0, [source length])];
+        foreach (match, [matches reverseObjectEnumerator]) {
+            NSRange locationRange = [match rangeAtIndex:1];
+            NSString* location = locationRange.location != NSNotFound ? [source substringWithRange:locationRange] : @"0";
+            NSString* name = [source substringWithRange:[match rangeAtIndex:2]];
+            [result replaceCharactersInRange:[match range] withString:[NSString stringWithFormat:@"#define %@ gl_FragData[%@]", name, location]];
+        }
+        source = result;
+    }
+
+    source = ReplaceRegex(source, @"layout\\s*\\([^)]*\\)\\s*", @"");
+    if (isVertexShader) {
+        source = ReplaceRegex(source, @"^(\\s*)in\\s+", @"$1attribute ");
+        source = ReplaceRegex(source, @"^(\\s*)out\\s+", @"$1varying ");
+    } else {
+        source = ReplaceRegex(source, @"^(\\s*)in\\s+", @"$1varying ");
+    }
+    source = ReplaceRegex(source, @"\\btexture\\s*\\(", @"texture2D(");
+    source = ReplaceRegex(source, @"\\btextureSize\\s*\\(", @"textureSize2D(");
+    if ([source rangeOfString:@"isnan("].location != NSNotFound) {
+        // isnan() is not available before GLSL 1.30.
+        source = [@"bool oo_isnan(float x) { return !(x < 0.0 || x > 0.0 || x == 0.0); }\n" stringByAppendingString:ReplaceRegex(source, @"\\bisnan\\s*\\(", @"oo_isnan(")];
+    }
+
+    return source;
+}
+#endif

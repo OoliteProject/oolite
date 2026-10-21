@@ -31,6 +31,7 @@ MA 02110-1301, USA.
 #import "OOJSPropID.h"
 #import "OOMaths.h"
 #import "OOOpenGL.h"
+#import "OORenderPass.h"
 #import "OOShaderProgram.h"
 #import "OOSound.h"
 #import "OOStellarBody.h"
@@ -319,7 +320,7 @@ enum {
     NSUInteger drawCounter;
 
 #if OOLITE_SPEECH_SYNTH
-#if OOLITE_MAC_OS_X
+#if OOLITE_MAC_COCOA_UI
     NSSpeechSynthesizer* speechSynthesizer;
 #elif OOLITE_ESPEAK
     const espeak_VOICE** espeak_voices;
@@ -346,22 +347,15 @@ enum {
     BOOL _dockingClearanceProtocolActive;
     BOOL _doingStartUp;
 
-    GLuint msaaTextureID;
-    GLuint targetTextureID;
-    GLuint passthroughTextureID[2];
+    OORenderTarget _msaaTarget; // the scene, multisampled, when MSAA is on
+    OORenderTarget _sceneTarget; // the scene, or _msaaTarget resolved
+    OORenderTarget _passthroughTarget; // the scene, and its bright parts for bloom
     NSSize targetFramebufferSize;
-    GLuint msaaFramebufferID;
-    GLuint msaaDepthBufferID;
-    GLuint targetDepthBufferID;
-    GLuint targetFramebufferID;
-    GLuint passthroughFramebufferID;
     OOShaderProgram* textureProgram;
     OOShaderProgram* blurProgram;
     OOShaderProgram* finalProgram;
-    GLuint quadTextureVBO, quadTextureVAO, quadTextureEBO;
-    GLint defaultDrawFBO;
-    GLuint pingpongFBO[2];
-    GLuint pingpongColorbuffers[2];
+    struct OORendererBuffer *_quadVertices, *_quadIndices; // the fullscreen quad for post-processing
+    OORenderTarget _pingpongTargets[2]; // the bloom blur
     BOOL _bloom;
     int _currentPostFX;
     int _colorblindMode;
@@ -755,6 +749,7 @@ enum {
 - (void)setWireframeGraphics:(BOOL)value;
 - (BOOL)wireframeGraphics;
 
+- (OOGraphicsDetail)minimumDetailLevel; // the lowest level offered
 - (BOOL)reducedDetail;
 - (void)setDetailLevel:(OOGraphicsDetail)value;
 - (OOGraphicsDetail)detailLevel;

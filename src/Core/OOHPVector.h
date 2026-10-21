@@ -132,11 +132,12 @@ NSArray* ArrayFromHPVector(HPVector vector);
 
 #endif
 
-/*	OpenGL conveniences. Need to be macros to work with OOMacroOpenGL. */
-#define GLVertexOOHPVector(v)         \
-    do {                              \
-        HPVector v_ = v;              \
-        glVertex3f(v_.x, v_.y, v_.z); \
+/*	OpenGL conveniences. Need to be macros to work with OOMacroOpenGL.
+        GLVertexOO*Vector emits into an OOImmediate batch (OOImmediateMode.h). */
+#define GLVertexOOHPVector(v)                  \
+    do {                                       \
+        HPVector v_ = v;                       \
+        OOImmediateVertex3f(v_.x, v_.y, v_.z); \
     } while (0)
 #define GLTranslateOOHPVector(v)              \
     do {                                      \

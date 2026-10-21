@@ -212,6 +212,9 @@ extern int debug;
     SDL_Window* splashWindow;
     SDL_Window* window;
     SDL_GLContext glContext;
+#if OO_RENDERER_SDL_GPU
+    struct SDL_GPUDevice* gpuDevice; // draws into window; there is no GL context
+#endif
     int bitsPerColorComponent;
     BOOL vSyncPreference;
 
@@ -222,10 +225,12 @@ extern int debug;
     unsigned keyboardMap; // *** FLAGGED for deletion
     HWND windowHandle;
     RECT lastGoodRect;
+
+#endif
+#if OOLITE_HDR
     float _hdrMaxBrightness;
     float _hdrPaperWhiteBrightness;
     int _hdrToneMapper;
-
 #endif
 
     int _sdrToneMapper;
@@ -272,6 +277,12 @@ extern int debug;
 - (void)getDisplayDimensions:(unsigned*)width height:(unsigned*)height;
 #if OOLITE_WINDOWS
 - (BOOL)atDesktopResolution;
+#endif
+#if OOLITE_HDR
+// What the HDR final pass multiplies its scRGB output by for this platform's swapchain.
+- (float)hdrOutputScale;
+// The peak the tone mappers aim for: the max brightness setting, or less where the display can't reach it.
+- (float)hdrToneMappingMaxBrightness;
 - (float)hdrMaxBrightness;
 - (void)setHDRMaxBrightness:(float)newMaxBrightness;
 - (float)hdrPaperWhiteBrightness;
@@ -356,6 +367,14 @@ extern int debug;
                         height:(NSUInteger)height
                       rowBytes:(NSUInteger)rowBytes;
 #endif
+
+#ifndef NDEBUG
+// Renderer regression tests (console.simulateKey): push a key event named as SDL names it. NO if the name is unknown.
+- (BOOL)simulateKeyNamed:(NSString*)name down:(BOOL)down;
+#endif
+
+// Show the frame: a GL buffer swap, or an SDL_GPU present.
+- (void)presentFrame;
 
 @end
 

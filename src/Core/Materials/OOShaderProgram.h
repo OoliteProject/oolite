@@ -35,9 +35,23 @@ SOFTWARE.
 
 #if OO_SHADERS
 
+#import "OOMatrix.h"
+
+/*  Uniforms are set through the program by handle. Resolve the handle once by
+    name, then set typed values with it. On OpenGL the handle is the uniform
+    location; under SDL_GPU it indexes the program's reflected uniforms
+    (offset and type in its uniform block), which is why values go through
+    the renderer (OORendererProgram.h) rather than straight to GL. A program must be
+    applied before its uniforms are set.
+*/
+typedef GLint OOUniformHandle;
+#define kOOUniformHandleInvalid ((OOUniformHandle) - 1)
+
+struct OORendererProgram;
+
 @interface OOShaderProgram : NSObject {
 @private
-    GLhandleARB program;
+    struct OORendererProgram* program;
     NSString* key;
     NSArray* standardMatrixUniformLocations;
 }
@@ -59,7 +73,19 @@ SOFTWARE.
 - (void)apply;
 + (void)applyNone;
 
-- (GLhandleARB)program;
+// The renderer's program, for code that binds it directly rather than through -apply.
+- (struct OORendererProgram*)rendererProgram;
+
+// kOOUniformHandleInvalid if the program has no active uniform of that name.
+- (OOUniformHandle)uniformHandleForName:(NSString*)name;
+
+- (void)setUniform:(OOUniformHandle)handle intValue:(GLint)value;
+- (void)setUniform:(OOUniformHandle)handle floatValue:(GLfloat)value;
+- (void)setUniform:(OOUniformHandle)handle vec2Value:(const GLfloat*)value;
+- (void)setUniform:(OOUniformHandle)handle vec4Value:(const GLfloat*)value;
+- (void)setUniform:(OOUniformHandle)handle matrixValue:(OOMatrix)value;
+// The upper left 3x3 of value, for a mat3 uniform.
+- (void)setUniform:(OOUniformHandle)handle mat3Value:(OOMatrix)value;
 
 @end
 

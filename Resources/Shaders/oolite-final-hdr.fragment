@@ -11,6 +11,7 @@ uniform vec2		uResolution;
 uniform float		uMaxBrightness;
 uniform float		uPaperWhiteBrightness;
 uniform int			uHDRToneMapper;
+uniform float		uOutputScale;	// 1 for scRGB; 80 / paper white where SDR white is 1.0 (macOS EDR)
 uniform float		uSaturation;
 
 
@@ -1278,5 +1279,5 @@ void main()
 	}
 #endif
 	
-	FragColor = vec4(result, 1.0);
+	FragColor = vec4(result * uOutputScale, 1.0);
 }

@@ -32,6 +32,7 @@ SOFTWARE.
 #import "OODebugMonitor.h"
 #include <stdint.h>
 
+#import "MyOpenGLView.h"
 #import "OOConstToString.h"
 #import "OODebugFlags.h"
 #import "OODebugMonitor.h"
@@ -77,6 +78,9 @@ static JSBool ConsoleWriteLogMarker(JSContext* context, uintN argc, jsval* vp);
 static JSBool ConsoleWriteMemoryStats(JSContext* context, uintN argc, jsval* vp);
 static JSBool ConsoleWriteJSMemoryStats(JSContext* context, uintN argc, jsval* vp);
 static JSBool ConsoleGarbageCollect(JSContext* context, uintN argc, jsval* vp);
+#ifndef NDEBUG
+static JSBool ConsoleSimulateKey(JSContext* context, uintN argc, jsval* vp);
+#endif
 #if DEBUG
 static JSBool ConsoleDumpNamedRoots(JSContext* context, uintN argc, jsval* vp);
 static JSBool ConsoleDumpHeap(JSContext* context, uintN argc, jsval* vp);
@@ -194,6 +198,9 @@ static JSFunctionSpec sConsoleMethods[] = {
     { "writeMemoryStats", ConsoleWriteMemoryStats, 0 },
     { "writeJSMemoryStats", ConsoleWriteJSMemoryStats, 0 },
     { "garbageCollect", ConsoleGarbageCollect, 0 },
+#ifndef NDEBUG
+    { "simulateKey", ConsoleSimulateKey, 2 },
+#endif
 #if DEBUG
     { "dumpNamedRoots", ConsoleDumpNamedRoots, 0 },
     { "dumpHeap", ConsoleDumpHeap, 0 },
@@ -645,6 +652,30 @@ static JSBool ConsoleConsoleMessage(JSContext* context, uintN argc, jsval* vp)
 }
 
 // function clearConsole() : void
+#ifndef NDEBUG
+/*  console.simulateKey(name, down): queue an SDL key event, for automated
+    tests that need to navigate the game. name is an SDL key name such as
+    "Return" or "F5". Press and release in different frames, or the game
+    sees neither.
+*/
+static JSBool ConsoleSimulateKey(JSContext* context, uintN argc, jsval* vp)
+{
+    OOJS_NATIVE_ENTER(context)
+
+    NSString* name = argc > 0 ? OOStringFromJSValue(context, OOJS_ARGV[0]) : nil;
+    JSBool down = YES;
+    if (argc > 1)
+        JS_ValueToBoolean(context, OOJS_ARGV[1], &down);
+    if (name == nil || ![[UNIVERSE gameView] simulateKeyNamed:name down:down]) {
+        OOJSReportBadArguments(context, @"Console", @"simulateKey", argc, OOJS_ARGV, nil, @"SDL key name");
+        return NO;
+    }
+    OOJS_RETURN_VOID;
+
+    OOJS_NATIVE_EXIT
+}
+#endif
+
 static JSBool ConsoleClearConsole(JSContext* context, uintN argc, jsval* vp)
 {
     OOJS_NATIVE_ENTER(context)

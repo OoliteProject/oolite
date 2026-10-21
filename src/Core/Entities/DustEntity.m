@@ -23,6 +23,7 @@ MA 02110-1301, USA.
 */
 
 #import "DustEntity.h"
+#import "OOVertexArray.h"
 
 #import "MyOpenGLView.h"
 #import "OODebugFlags.h"
@@ -37,6 +38,9 @@ MA 02110-1301, USA.
 #import "OOShaderUniform.h"
 #endif
 
+#import "OOFixedFunction.h"
+#import "OOGLStateCompat.h"
+#import "OOImmediateMode.h"
 #import "PlayerEntity.h"
 
 #define FAR_PLANE (DUST_SCALE * 0.50f)
@@ -275,7 +279,6 @@ enum {
 
     OO_ENTER_OPENGL();
     OOSetOpenGLState(OPENGL_STATE_OPAQUE);
-    OOGL(glDisableClientState(GL_NORMAL_ARRAY));
 
     if (!warp_stars) {
         // Draw points.
@@ -305,7 +308,7 @@ enum {
             color = color_fv;
         else
             color = UNIVERSE->stars_ambient;
-        OOGL(glColor4f(color[0], color[1], color[2], dustIntensity));
+        OOImmediateColor4f(color[0], color[1], color[2], dustIntensity);
 
 #if OO_SHADERS
         if (useShader) {
@@ -314,23 +317,24 @@ enum {
         } else
 #endif
         {
-            OOGL(glEnable(GL_FOG));
-            OOGL(glFogi(GL_FOG_MODE, GL_LINEAR));
-            OOGL(glFogfv(GL_FOG_COLOR, fogcolor));
-            OOGL(glHint(GL_FOG_HINT, GL_NICEST));
-            OOGL(glFogf(GL_FOG_START, NEAR_PLANE));
-            OOGL(glFogf(GL_FOG_END, FAR_PLANE));
+            OOGLEnable(GL_FOG);
+            OORendererSetFogMode(kOOFogLinear);
+            OORendererSetFogColor(fogcolor);
+            OORendererSetFogHint(true);
+            OORendererSetFogRange(NEAR_PLANE, FAR_PLANE);
         }
 
-        OOGL(glEnable(GL_BLEND));
-        OOGL(glDepthMask(GL_FALSE));
+        OOGLEnable(GL_BLEND);
+        OOGLDepthMask(GL_FALSE);
 
         if (warp_stars) {
-            OOGL(glDisable(GL_TEXTURE_2D));
+            OOGLDisable(GL_TEXTURE_2D);
+            OOVertexLayout layout = { .count = 0 };
+            OOVertexLayoutAdd(&layout, kOOVertexPosition, 0, 3, 0, OORendererTransientBuffer(vertices, sizeof vertices), 0);
 #if OO_SHADERS
             if (useShader) {
-                OOGL(glEnableVertexAttribArrayARB(kTangentAttributeIndex));
-                OOGL(glVertexAttribPointerARB(kTangentAttributeIndex, 1, GL_FLOAT, GL_FALSE, 0, warpinessAttr));
+                // The dust shader binds "aWarpiness" to the tangent attribute.
+                OOVertexLayoutAdd(&layout, kOOVertexAttribute, kTangentAttributeIndex, 1, 0, OORendererTransientBuffer(warpinessAttr, sizeof warpinessAttr), 0);
             } else
 #endif
             {
@@ -341,34 +345,27 @@ enum {
                 }
             }
 
-            OOGL(glVertexPointer(3, GL_FLOAT, 0, vertices));
-            OOGL(glDrawElements(GL_LINES, DUST_N_PARTICLES * 2, GL_UNSIGNED_SHORT, indices));
-
-#if OO_SHADERS
-            if (useShader) {
-                OOGL(glDisableVertexAttribArrayARB(kTangentAttributeIndex));
-            }
-#endif
-            OOGL(glEnable(GL_TEXTURE_2D));
+            OORendererDrawElements(kOONativePrimitiveLines, &layout, OORendererTransientBuffer(indices, sizeof indices), 0, kOOIndex16, DUST_N_PARTICLES * 2);
+            OOGLEnable(GL_TEXTURE_2D);
 
         } else {
+            OOVertexLayout pointLayout = { .count = 0 };
+            OOVertexLayoutAdd(&pointLayout, kOOVertexPosition, 0, 3, 0, OORendererTransientBuffer(vertices, DUST_N_PARTICLES * sizeof *vertices), 0);
             if (hasPointSprites) {
 #if OO_SHADERS
                 if (!useShader)
 #endif
                 {
-                    OOGL(glBlendFunc(GL_SRC_ALPHA, GL_ONE));
+                    OOGLBlendFunc(GL_SRC_ALPHA, GL_ONE);
                 }
-                OOGL(glEnable(GL_POINT_SPRITE_ARB));
+                OOGLEnable(GL_POINT_SPRITE_ARB);
                 [texture apply];
-                OOGL(glVertexPointer(3, GL_FLOAT, 0, vertices));
-                OOGL(glDrawArrays(GL_POINTS, 0, DUST_N_PARTICLES));
-                OOGL(glDisable(GL_POINT_SPRITE_ARB));
+                OORendererDrawArrays(kOONativePrimitivePoints, &pointLayout, 0, DUST_N_PARTICLES);
+                OOGLDisable(GL_POINT_SPRITE_ARB);
             } else {
-                OOGL(glDisable(GL_TEXTURE_2D));
-                OOGL(glVertexPointer(3, GL_FLOAT, 0, vertices));
-                OOGL(glDrawArrays(GL_POINTS, 0, DUST_N_PARTICLES));
-                OOGL(glEnable(GL_TEXTURE_2D));
+                OOGLDisable(GL_TEXTURE_2D);
+                OORendererDrawArrays(kOONativePrimitivePoints, &pointLayout, 0, DUST_N_PARTICLES);
+                OOGLEnable(GL_TEXTURE_2D);
             }
         }
 
@@ -379,14 +376,13 @@ enum {
         } else
 #endif
         {
-            OOGL(glDisable(GL_FOG));
-            OOGL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+            OOGLDisable(GL_FOG);
+            OOGLBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         }
 
-        OOGL(glDisable(GL_BLEND));
-        OOGL(glDepthMask(GL_TRUE));
+        OOGLDisable(GL_BLEND);
+        OOGLDepthMask(GL_TRUE);
     }
-    OOGL(glEnableClientState(GL_NORMAL_ARRAY));
 
     OOVerifyOpenGLState();
     OOCheckOpenGLErrors(@"DustEntity after drawing %@", self);

@@ -27,6 +27,7 @@ SOFTWARE.
 
 #import "OOGraphicsResetManager.h"
 #import "OOOpenGLExtensionManager.h"
+#import "OORenderPass.h"
 #import "OOTexture.h"
 
 static OOGraphicsResetManager* sSingleton = nil;
@@ -68,7 +69,7 @@ static OOGraphicsResetManager* sSingleton = nil;
     NSEnumerator* clientEnum = nil;
     id client = nil;
 
-    OOGL(glFinish());
+    OORendererFinish();
 
     OOLog(@"rendering.reset.start", @"%@", @"Resetting graphics state.");
     OOLogIndentIf(@"rendering.reset.start");

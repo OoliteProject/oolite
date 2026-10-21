@@ -22,7 +22,7 @@ MA 02110-1301, USA.
 
 */
 
-#ifdef GNUSTEP_BASE_LIBRARY
+#if defined(GNUSTEP_BASE_LIBRARY) || defined(OOLITE_SDL_MAC)
 #import <Foundation/NSAutoreleasePool.h>
 #if (GNUSTEP_BASE_MAJOR_VERSION == 1 && (GNUSTEP_BASE_MINOR_VERSION == 24 && GNUSTEP_BASE_SUBMINOR_VERSION >= 9) || (GNUSTEP_BASE_MINOR_VERSION > 24)) || (GNUSTEP_BASE_MAJOR_VERSION > 1)
 #import <Foundation/NSDate.h>
@@ -41,6 +41,9 @@ __declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
 __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
 #elif OOLITE_LINUX
 #include <unistd.h>
+#elif OOLITE_MAC_OS_X
+#include <mach-o/dyld.h>
+#include <unistd.h>
 #endif
 
 GameController* controller;
@@ -48,6 +51,11 @@ GameController* controller;
 
 #ifndef NDEBUG
 uint32_t gDebugFlags = 0;
+#endif
+
+#ifndef STRINGIFY // provided by GNUstep
+#define STRINGIFY_(s) #s
+#define STRINGIFY(s) STRINGIFY_(s)
 #endif
 
 // This macro is normally defined in the build command
@@ -67,7 +75,7 @@ uint32_t gDebugFlags = 0;
  */
 int main(int argc, char* argv[])
 {
-#ifdef GNUSTEP_BASE_LIBRARY
+#if defined(GNUSTEP_BASE_LIBRARY) || defined(OOLITE_SDL_MAC)
     int i;
 
 #if (GNUSTEP_BASE_MAJOR_VERSION == 1 && (GNUSTEP_BASE_MINOR_VERSION == 24 && GNUSTEP_BASE_SUBMINOR_VERSION >= 9) || (GNUSTEP_BASE_MINOR_VERSION > 24)) || (GNUSTEP_BASE_MAJOR_VERSION > 1)
@@ -141,6 +149,23 @@ int main(int argc, char* argv[])
         *last_slash = '\0'; // Chop off the executable name, leaving just the directory
     }
     chdir(result);
+#elif OOLITE_MAC_OS_X
+    // Run from the folder holding Resources and AddOns: Contents in an app bundle
+    // (executable in Contents/MacOS), otherwise the folder holding the executable.
+    char result[PATH_MAX];
+    uint32_t resultSize = sizeof(result);
+    char resolved[PATH_MAX];
+    if (_NSGetExecutablePath(result, &resultSize) == 0 && realpath(result, resolved) != NULL) {
+        char* last_slash = strrchr(resolved, '/');
+        if (last_slash != NULL) {
+            *last_slash = '\0';
+        }
+        chdir(resolved);
+        size_t length = strlen(resolved);
+        if (length >= 15 && strcmp(resolved + length - 15, "/Contents/MacOS") == 0) {
+            chdir("..");
+        }
+    }
 #endif
 #define OO_SHOW_MSG(ooMsg, ooTitle, ooFlags) fprintf(stdout, "%s", ooMsg)
 #define TABS1 "\t\t"
@@ -175,7 +200,7 @@ int main(int argc, char* argv[])
                                        "Options can be any of the following: \n\n"
                                        "--compile-sysdesc" TABS2 "Compile system descriptions *\n"
                                        "--export-sysdesc" TABS2 "Export system descriptions *\n"
-#if OOLITE_WINDOWS
+#if OOLITE_HDR
                                        "-hdr" TABS3 "Start up in HDR mode\n"
 #endif
                                        "-load [filepath]" TABS2 "Load commander from [filepath]\n" TABS3 TABS4 "(\"-load\" is optional)\n"

@@ -35,9 +35,11 @@
 #import "OOCPUInfo.h"
 #import "OOCache.h"
 #import "OOCollectionExtractors.h"
+#import "OOGLStateCompat.h"
 #import "OOMacroOpenGL.h"
 #import "OOOpenGLExtensionManager.h"
 #import "OOPixMap.h"
+#import "OORendererTexture.h"
 #import "ResourceManager.h"
 #import "Universe.h"
 
@@ -263,15 +265,15 @@ static NSString* sGlobalTraceContext = nil;
 + (void)applyNone
 {
     OO_ENTER_OPENGL();
-    OOGL(glBindTexture(GL_TEXTURE_2D, 0));
+    OOGLBindTexture(GL_TEXTURE_2D, 0);
 #if OO_TEXTURE_CUBE_MAP
     if (OOCubeMapsAvailable())
-        OOGL(glBindTexture(GL_TEXTURE_CUBE_MAP, 0));
+        OOGLBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 #endif
 
 #if GL_EXT_texture_lod_bias
     if (gOOTextureInfo.textureLODBiasAvailable)
-        OOGL(glTexEnvf(GL_TEXTURE_FILTER_CONTROL_EXT, GL_TEXTURE_LOD_BIAS_EXT, 0));
+        OOGLTexEnvf(GL_TEXTURE_FILTER_CONTROL_EXT, GL_TEXTURE_LOD_BIAS_EXT, 0);
 #endif
 }
 
@@ -490,7 +492,7 @@ static NSString* sGlobalTraceContext = nil;
 
 #if GL_EXT_texture_filter_anisotropic
     gOOTextureInfo.anisotropyAvailable = [extMgr haveExtension:@"GL_EXT_texture_filter_anisotropic"];
-    OOGL(glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &gOOTextureInfo.anisotropyScale));
+    gOOTextureInfo.anisotropyScale = OORendererMaxAnisotropy();
     gOOTextureInfo.anisotropyScale *= OOClamp_0_1_f([[NSUserDefaults standardUserDefaults] oo_floatForKey:@"texture-anisotropy-scale" defaultValue:0.5]);
 #endif
 

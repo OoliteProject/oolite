@@ -40,8 +40,21 @@ MA 02110-1301, USA.
 #import "png.h"
 #include <SDL3/SDL_clipboard.h>
 #include <SDL3/SDL_init.h>
+#include <SDL3/SDL_timer.h>
+#if OO_RENDERER_SDL_GPU
+#import "OOHLSLCompiler.h"
+#import "OORendererSDLGPU.h"
+#include <SDL3/SDL_gpu.h>
+#include <SDL3/SDL_hints.h>
+#endif
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
+#import "OOFixedFunction.h"
+#import "OOGLStateCompat.h"
+#import "OOImmediateMode.h"
+#import "OOOpenGLMatrixManager.h"
+#import "OORenderPass.h"
+#import "OORendererTexture.h"
 #import "stb_image_write.h"
 
 #define kOOLogUnconvertedNSLog @"unclassified.MyOpenGLView"
@@ -49,6 +62,24 @@ MA 02110-1301, USA.
 extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const float* rgb);
 
 #include <ctype.h>
+
+#if OOLITE_HDR
+/*  One channel of an HDR frame, as the PNG beside the HDR snapshot shows it:
+    scaled so paper white is 1.0, highlights above 0.8 rolled off smoothly
+    towards 1.0 rather than clipped, then sRGB-encoded.
+*/
+static uint8_t SDRByteFromHDR(float value, float scale)
+{
+    const float knee = 0.8f;
+    float x = value * scale;
+    if (x > knee)
+        x = knee + (1.0f - knee) * (1.0f - expf(-(x - knee) / (1.0f - knee)));
+    if (!(x > 0.0f))
+        return 0;
+    float encoded = x <= 0.0031308f ? 12.92f * x : 1.055f * powf(x, 1.0f / 2.4f) - 0.055f;
+    return (uint8_t)fminf(255.0f, encoded * 255.0f + 0.5f);
+}
+#endif
 
 @interface MyOpenGLView (OOPrivate)
 
@@ -139,7 +170,11 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
     }
 
     NSString* windowCaption = [self getWindowCaption];
+#if OO_RENDERER_SDL_GPU
+    Uint32 windowFlags = SDL_WINDOW_BORDERLESS | SDL_WINDOW_HIGH_PIXEL_DENSITY;
+#else
     Uint32 windowFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_BORDERLESS | SDL_WINDOW_HIGH_PIXEL_DENSITY;
+#endif
 
     // Define modern SDL3 properties for window configuration
     SDL_PropertiesID props = SDL_CreateProperties();
@@ -185,16 +220,79 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
         OOLogERR(@"display.mode.error", @"Could not create window: %s", errStr);
         exit(1);
     }
+#if !OO_RENDERER_SDL_GPU
     glContext = SDL_GL_CreateContext(window);
     if (!glContext) {
         OOLog(@"sdl.create_context", @"%@", @"Could not create OpenGL context");
         exit(1);
     }
+#else
+    // No GL at all: everything draws through the SDL_GPU backend.
+#ifndef NDEBUG
+    bool gpuDebug = true;
+#else
+    bool gpuDebug = false;
+#endif
+    /*  SDL prefers Direct3D 12 to Vulkan, but the D3D12 path (the translator's
+        HLSL, compiled by Windows' own D3DCompile) is the less tested one. So
+        DXBC is only offered when SDL_GPU_DRIVER=direct3d12 asks for it, or
+        when there's no Vulkan device to be had.
+    */
+    SDL_GPUShaderFormat shaderFormats = SDL_GPU_SHADERFORMAT_MSL | SDL_GPU_SHADERFORMAT_SPIRV;
+    const char* requestedDriver = SDL_GetHint(SDL_HINT_GPU_DRIVER);
+    bool d3d12Requested = requestedDriver != NULL && SDL_strcasecmp(requestedDriver, "direct3d12") == 0;
+    if (d3d12Requested && OOHLSLCompilerAvailable())
+        shaderFormats |= SDL_GPU_SHADERFORMAT_DXBC;
+    gpuDevice = SDL_CreateGPUDevice(shaderFormats, gpuDebug, NULL);
+    if (gpuDevice == NULL && !(shaderFormats & SDL_GPU_SHADERFORMAT_DXBC) && OOHLSLCompilerAvailable()) {
+        OOLog(@"display.gpu", @"No SDL_GPU device for SPIR-V (%s); trying Direct3D 12.", SDL_GetError());
+        gpuDevice = SDL_CreateGPUDevice(shaderFormats | SDL_GPU_SHADERFORMAT_DXBC, gpuDebug, NULL);
+    }
+    if (gpuDevice == NULL || !SDL_ClaimWindowForGPUDevice(gpuDevice, window)) {
+        OOLogERR(@"display.gpu", @"Could not set up SDL_GPU: %s", SDL_GetError());
+        exit(1);
+    }
+    SDL_GPUPresentMode presentMode = SDL_GPU_PRESENTMODE_VSYNC;
+    if (!vSyncPreference) {
+        presentMode = SDL_WindowSupportsGPUPresentMode(gpuDevice, window, SDL_GPU_PRESENTMODE_IMMEDIATE) ? SDL_GPU_PRESENTMODE_IMMEDIATE
+                                                                                                         : SDL_GPU_PRESENTMODE_MAILBOX;
+        if (!SDL_WindowSupportsGPUPresentMode(gpuDevice, window, presentMode))
+            presentMode = SDL_GPU_PRESENTMODE_VSYNC;
+    }
+    /*  HDR: an extended linear (scRGB) FP16 swapchain, which is what the
+        HDR final shader writes. Where the window can't have one, carry on in SDR.
+    */
+    SDL_GPUSwapchainComposition composition = SDL_GPU_SWAPCHAINCOMPOSITION_SDR;
+    if (_hdrOutput) {
+        if (SDL_WindowSupportsGPUSwapchainComposition(gpuDevice, window, SDL_GPU_SWAPCHAINCOMPOSITION_HDR_EXTENDED_LINEAR)) {
+            composition = SDL_GPU_SWAPCHAINCOMPOSITION_HDR_EXTENDED_LINEAR;
+            SDL_PropertiesID windowProperties = SDL_GetWindowProperties(window);
+            OOLog(@"display.gpu", @"HDR output: extended linear swapchain; SDR white level %.2f, headroom %.2f.",
+                SDL_GetFloatProperty(windowProperties, SDL_PROP_WINDOW_SDR_WHITE_LEVEL_FLOAT, 1.0f),
+                SDL_GetFloatProperty(windowProperties, SDL_PROP_WINDOW_HDR_HEADROOM_FLOAT, 1.0f));
+        } else {
+            OOLogWARN(@"display.gpu", @"%@", @"HDR was requested, but this window can't have an HDR swapchain; using SDR.");
+            _hdrOutput = NO;
+        }
+    }
+    SDL_SetGPUSwapchainParameters(gpuDevice, window, composition, presentMode);
+    OORendererSDLGPUSetHDR(_hdrOutput);
+    int gpuWidth, gpuHeight;
+    SDL_GetWindowSizeInPixels(window, &gpuWidth, &gpuHeight);
+    if (!OORendererSDLGPUInit(gpuDevice, (unsigned)gpuWidth, (unsigned)gpuHeight)) {
+        OOLogERR(@"display.gpu", @"Could not start the SDL_GPU renderer: %s", SDL_GetError());
+        exit(1);
+    }
+    OOLog(@"display.gpu", @"Rendering with SDL_GPU (%s), present mode %d.", SDL_GetGPUDeviceDriver(gpuDevice), (int)presentMode);
+#endif
+#if !OOLITE_MAC_OS_X && !OO_RENDERER_SDL_GPU
+    // On macOS a window surface replaces the OpenGL drawable, so it must not be created there.
     SDL_Surface* surface = SDL_GetWindowSurface(window);
     if (!SDL_SetSurfaceColorspace(surface, SDL_COLORSPACE_SRGB_LINEAR)) {
         OOLogWARN(@"sdl.use_edr_surface", @"%@ %s", @"Failed to set SDR linear surface - falling back to SDR. Error was:", SDL_GetError());
         SDL_SetSurfaceColorspace(surface, SDL_COLORSPACE_SRGB);
     }
+#endif
 
 #if OOLITE_WINDOWS
     // capture the window handle for later (only needed for ugly hack later when transitioning between
@@ -224,7 +322,7 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
 
     _colorSaturation = 1.0f;
 
-#if OOLITE_WINDOWS
+#if OOLITE_HDR
     _hdrMaxBrightness = [prefs oo_floatForKey:@"hdr-max-brightness" defaultValue:1000.0f];
     _hdrPaperWhiteBrightness = [prefs oo_floatForKey:@"hdr-paperwhite-brightness" defaultValue:200.0f];
     _hdrToneMapper = OOHDRToneMapperFromString([prefs oo_stringForKey:@"hdr-tone-mapper" defaultValue:@"OOHDR_TONEMAPPER_ACES_APPROX"]);
@@ -232,9 +330,16 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
 
     _sdrToneMapper = OOSDRToneMapperFromString([prefs oo_stringForKey:@"sdr-tone-mapper" defaultValue:@"OOSDR_TONEMAPPER_ACES"]);
 
+#if OO_RENDERER_SDL_GPU
+    // The present mode, above.
+#elif OOLITE_MAC_OS_X
+    SDL_GL_SetSwapInterval(vSyncPreference ? 1 : 0);
+#else
     SDL_SetWindowSurfaceVSync(window, vSyncPreference);
+#endif
     OOLog(@"display.initGL", @"V-Sync %@requested.", vSyncPreference ? @"" : @"not ");
 
+#if !OO_RENDERER_SDL_GPU // there is no GL drawable to describe
     int testAttrib = -1;
     OOLog(@"display.initGL", @"%@", @"Achieved color / depth buffer sizes (bits):");
     SDL_GL_GetAttribute(SDL_GL_RED_SIZE, &testAttrib);
@@ -250,14 +355,21 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
 
     SDL_GL_GetAttribute(SDL_GL_FLOATBUFFERS, &testAttrib);
     OOLog(@"display.initGL", @"Pixel type is float : %d", testAttrib);
+#endif
 
     SDL_PixelFormat format = SDL_GetWindowPixelFormat(window);
     OOLog(@"display.initGL", @"Window Pixel Format: %s", SDL_GetPixelFormatName(format));
 
     // Verify V-sync successfully set - report it if not
 
-    int hasVsync;
+    int hasVsync = 1;
+#if OO_RENDERER_SDL_GPU
+    if (0) {
+#elif OOLITE_MAC_OS_X
+    if (vSyncPreference && (!SDL_GL_GetSwapInterval(&hasVsync) || !hasVsync)) {
+#else
     if (vSyncPreference && (!SDL_GetWindowSurfaceVSync(window, &hasVsync) || !hasVsync)) {
+#endif
         OOLogWARN(@"display.initGL", @"Could not enable V-Sync. Please check that your graphics driver supports the %@_swap_control extension.",
             OOLITE_WINDOWS ? @"WGL_EXT" : @"[GLX_SGI/GLX_MESA]");
     } else {
@@ -442,10 +554,22 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
     [self autoShowMouse];
 }
 
+- (void)presentFrame
+{
+#if OO_RENDERER_SDL_GPU
+    OORendererSDLGPUPresent(window);
+#else
+    SDL_GL_SwapWindow(window);
+#endif
+}
+
 - (void)updateGLSize:(NSSize)size
 {
     bounds.size = size;
     viewSize = size;
+#if OO_RENDERER_SDL_GPU
+    OORendererSDLGPUResize((unsigned)size.width, (unsigned)size.height);
+#endif
 
     if (bounds.size.width / bounds.size.height > 4.0 / 3.0) {
         display_z = 480.0 * bounds.size.width / bounds.size.height;
@@ -460,7 +584,7 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
     float ratio = 0.5;
     float aspect = bounds.size.height / bounds.size.width;
 
-    OOGL(glViewport(0, 0, bounds.size.width, bounds.size.height));
+    OOGLViewport(0, 0, bounds.size.width, bounds.size.height);
     OOGLResetProjection();
     OOGLFrustum(-ratio, ratio, -aspect * ratio, aspect * ratio, 1.0, MAX_CLEAR_DEPTH);
 }
@@ -469,10 +593,11 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
 {
     OOOpenGLExtensionManager* extMgr = [OOOpenGLExtensionManager sharedManager];
 
-    OOGL(glClearColor(0.0, 0.0, 0.0, 0.0));
-    OOGL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-    OOGL(glClearDepth(1.0));
-    OOGL(glDepthFunc(GL_LESS)); // depth buffer
+    OORendererSetClearColor(0.0, 0.0, 0.0, 0.0);
+    OORendererSetClearDepth(1.0);
+    OORendererBeginPass(&(OORenderPassDescriptor) { .target = kOORenderTargetCurrent, .colorLoad = kOOLoadClear, .depthLoad = kOOLoadClear });
+    OORendererEndPass();
+    OOGLDepthFunc(GL_LESS); // depth buffer
 
     if (UNIVERSE) {
         [UNIVERSE setLighting];
@@ -481,25 +606,25 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
         GLfloat white[] = { 1.0, 1.0, 1.0, 1.0 };
         GLfloat stars_ambient[] = { 0.25, 0.2, 0.25, 1.0 };
 
-        OOGL(glLightfv(GL_LIGHT1, GL_AMBIENT, black));
-        OOGL(glLightfv(GL_LIGHT1, GL_SPECULAR, white));
-        OOGL(glLightfv(GL_LIGHT1, GL_DIFFUSE, white));
-        OOGL(glLightfv(GL_LIGHT1, GL_POSITION, black));
-        OOGL(glLightModelfv(GL_LIGHT_MODEL_AMBIENT, stars_ambient));
+        OORendererSetLightColor(1, kOOLightAmbient, black);
+        OORendererSetLightColor(1, kOOLightSpecular, white);
+        OORendererSetLightColor(1, kOOLightDiffuse, white);
+        OOGLSetLightPosition(1, black);
+        OORendererSetLightModelAmbient(stars_ambient);
     }
 
     if ([extMgr usePointSmoothing]) {
-        OOGL(glEnable(GL_POINT_SMOOTH));
+        OOGLEnable(GL_POINT_SMOOTH);
     }
 
     if ([extMgr useLineSmoothing]) {
-        OOGL(glEnable(GL_LINE_SMOOTH));
+        OOGLEnable(GL_LINE_SMOOTH);
     }
 
-    OOGL(glDisable(GL_NORMALIZE));
-    OOGL(glDisable(GL_RESCALE_NORMAL));
+    OOGLDisable(GL_NORMALIZE);
+    OOGLDisable(GL_RESCALE_NORMAL);
 
-    OOGL(glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR));
+    OORendererSetLightModelSeparateSpecular(true);
 }
 
 - (void)initialiseGLWithSize:(NSSize)v_size
@@ -513,7 +638,7 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
     OOLog(@"display.initGL", @"Requested a new surface of %d x %d, %@.", (int)viewSize.width, (int)viewSize.height,
         (fullScreen ? @"fullscreen" : @"windowed"));
 
-    SDL_GL_SwapWindow(window); // clear the buffer before resize
+    [self presentFrame]; // clear the buffer before resize
 
     SDL_SetWindowFullscreen(window, fullScreen);
 
@@ -545,7 +670,7 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
 
     [self setUpBasicOpenGLStateWithSize];
 
-    SDL_GL_SwapWindow(window);
+    [self presentFrame];
 
     squareX = 0.0f;
 }
@@ -558,6 +683,13 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
     if (screenSizes)
         [screenSizes release];
 
+#if OO_RENDERER_SDL_GPU
+    // Release the window from the device before either goes.
+    if (gpuDevice != NULL) {
+        SDL_ReleaseWindowFromGPUDevice(gpuDevice, window);
+        SDL_DestroyGPUDevice(gpuDevice);
+    }
+#endif
     if (window) {
         SDL_DestroyWindow(window);
     }
@@ -626,7 +758,7 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
     return fullScreen;
 }
 
-#ifdef GNUSTEP_BASE_LIBRARY
+#if OOLITE_SDL
 - (void)setFullScreenMode:(BOOL)fsm
 {
     fullScreen = fsm;
@@ -687,11 +819,12 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
     if (UNIVERSE) {
         [UNIVERSE drawUniverse]; // do all the drawing!
     } else {
-        glClearColor(0.0, 0.0, 0.0, 0.0); // not set up yet, draw a black screen
-        glClear(GL_COLOR_BUFFER_BIT);
+        OORendererSetClearColor(0.0, 0.0, 0.0, 0.0); // not set up yet, draw a black screen
+        OORendererBeginPass(&(OORenderPassDescriptor) { .target = kOORenderTargetCurrent, .colorLoad = kOOLoadClear, .depthLoad = kOOLoadKeep });
+        OORendererEndPass();
     }
 
-    SDL_GL_SwapWindow(window);
+    [self presentFrame];
 }
 
 - (void)initSplashScreen
@@ -726,11 +859,20 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
         pixelDensity = 1.0f;
     }
 
-    glViewport(0, 0, dest.w * pixelDensity, dest.h * pixelDensity);
+    OOGLViewport(0, 0, dest.w * pixelDensity, dest.h * pixelDensity);
 
-    glEnable(GL_TEXTURE_2D);
-    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
+    // The splash as RGBA bytes, whatever the BMP's layout.
+    SDL_Surface* rgba = SDL_ConvertSurface(image, SDL_PIXELFORMAT_RGBA32);
+    SDL_DestroySurface(image);
+    if (rgba == NULL) {
+        OOLog(@"Sdl.GameStart", @"%@", @"----- Encoding error within image 'splash.bmp'");
+        [self endSplashScreen];
+        return;
+    }
+
+    OOGLEnable(GL_TEXTURE_2D);
+    OORendererSetClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+    OORendererBeginPass(&(OORenderPassDescriptor) { .target = kOORenderTargetCurrent, .colorLoad = kOOLoadClear, .depthLoad = kOOLoadKeep });
 
     [matrixManager resetProjection];
     [matrixManager orthoLeft:0.0f right:1.0f bottom:1.0f top:0.0f near:-1.0f far:1.0f];
@@ -739,72 +881,57 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
     [matrixManager resetModelView];
     [matrixManager syncModelView];
 
-    GLuint texture;
-    GLenum texture_format;
-    GLint nOfColors;
-
-    // get the number of channels in the SDL image
-    const SDL_PixelFormatDetails* pixelFormat = SDL_GetPixelFormatDetails(image->format);
-    nOfColors = pixelFormat->bytes_per_pixel;
-    if (nOfColors == 4) // contains an alpha channel
-    {
-        if (pixelFormat->Rmask == 0x000000ff)
-            texture_format = GL_RGBA;
-        else
-            texture_format = GL_BGRA;
-    } else if (nOfColors == 3) // no alpha channel
-    {
-        if (pixelFormat->Rmask == 0x000000ff)
-            texture_format = GL_RGB;
-        else
-            texture_format = GL_BGR;
+    OOTextureDescriptor descriptor = {
+        .width = (unsigned)rgba->w,
+        .height = (unsigned)rgba->h,
+        .levels = 1,
+        .format = kOOTexelRGBA8,
+        .repeatS = true, // GL's default wrap, as before
+        .repeatT = true,
+        .minFilter = kOOFilterLinear,
+        .magFilter = kOOFilterLinear,
+    };
+    uint32_t texture = OORendererCreateTexture(&descriptor);
+    size_t rowBytes = descriptor.width * 4;
+    if ((size_t)rgba->pitch == rowBytes) {
+        OORendererUploadTexture(texture, 0, 0, descriptor.width, descriptor.height, rgba->pixels);
     } else {
-        SDL_DestroySurface(image);
-        OOLog(@"Sdl.GameStart", @"%@", @"----- Encoding error within image 'splash.bmp'");
-        [self endSplashScreen];
-        return;
+        // Uploads take tightly packed rows.
+        uint8_t* packed = malloc(rowBytes * descriptor.height);
+        if (packed != NULL) {
+            for (unsigned row = 0; row < descriptor.height; row++)
+                memcpy(packed + row * rowBytes, (const uint8_t*)rgba->pixels + row * rgba->pitch, rowBytes);
+            OORendererUploadTexture(texture, 0, 0, descriptor.width, descriptor.height, packed);
+            free(packed);
+        }
     }
+    SDL_DestroySurface(rgba);
 
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
+    OOGLBindTexture(GL_TEXTURE_2D, texture);
+    OOImmediateBegin(kOOPrimitiveQuads);
 
-    // Set the texture's stretching properties
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    OOImmediateTexCoord2f(0, 0);
+    OOImmediateVertex2f(0, 0);
+    OOImmediateTexCoord2f(1, 0);
+    OOImmediateVertex2f(1, 0);
+    OOImmediateTexCoord2f(1, 1);
+    OOImmediateVertex2f(1, 1);
+    OOImmediateTexCoord2f(0, 1);
+    OOImmediateVertex2f(0, 1);
 
-    // Set the texture image data with the information  from SDL_Surface
-    glTexImage2D(GL_TEXTURE_2D, 0, nOfColors, image->w, image->h, 0,
-        texture_format, GL_UNSIGNED_BYTE, image->pixels);
+    OOImmediateEnd();
+    OORendererEndPass();
+    OORendererFinish();
 
-    glBindTexture(GL_TEXTURE_2D, texture);
-    glBegin(GL_QUADS);
-
-    glTexCoord2i(0, 0);
-    glVertex2i(0, 0);
-    glTexCoord2i(1, 0);
-    glVertex2i(1, 0);
-    glTexCoord2i(1, 1);
-    glVertex2i(1, 1);
-    glTexCoord2i(0, 1);
-    glVertex2i(0, 1);
-
-    glEnd();
-    glFinish();
-
-    SDL_GL_SwapWindow(window);
+    [self presentFrame];
     [matrixManager resetModelView];
     [matrixManager syncModelView];
 
-    if (image) {
-        SDL_DestroySurface(image);
-    }
-    glDeleteTextures(1, &texture);
+    OOGLBindTexture(GL_TEXTURE_2D, 0);
+    OORendererDeleteTexture(texture);
 
-    glDisable(GL_TEXTURE_2D);
+    OOGLDisable(GL_TEXTURE_2D);
     OOVerifyOpenGLState();
-
-    SDL_DestroySurface(image);
-    return;
 }
 
 - (void)getDisplayDimensions:(unsigned*)width height:(unsigned*)height
@@ -854,6 +981,9 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
 {
     return atDesktopResolution;
 }
+#endif
+
+#if OOLITE_HDR
 
 - (BOOL)hdrOutput
 {
@@ -876,6 +1006,31 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
     result = SDL_GetBooleanProperty(props, SDL_PROP_DISPLAY_HDR_ENABLED_BOOLEAN, false); // Query for HDR enabling
     OOLog(@"gameView.isOutputDisplayHDREnabled", @"HDR display output requested - checking availability: %@", result ? @"YES" : @"NO");
     return result;
+}
+
+- (float)hdrOutputScale
+{
+#if OOLITE_MAC_OS_X && OO_RENDERER_SDL_GPU
+    /*  The HDR final shader writes scRGB, where 1.0 is 80 nits. macOS's EDR
+        instead puts SDR white at 1.0, so paper white goes there.
+    */
+    return 80.0f / _hdrPaperWhiteBrightness;
+#else
+    return 1.0f;
+#endif
+}
+
+- (float)hdrToneMappingMaxBrightness
+{
+#if OOLITE_MAC_OS_X && OO_RENDERER_SDL_GPU
+    /*  EDR can show up to headroom x SDR white, and the headroom follows the
+        display's brightness setting, so aim the tone mappers no higher.
+    */
+    float headroom = SDL_GetFloatProperty(SDL_GetWindowProperties(window), SDL_PROP_WINDOW_HDR_HEADROOM_FLOAT, 0.0f);
+    if (headroom > 1.0f)
+        return fminf(_hdrMaxBrightness, _hdrPaperWhiteBrightness * headroom);
+#endif
+    return _hdrMaxBrightness;
 }
 
 - (float)hdrMaxBrightness
@@ -924,7 +1079,7 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
     _hdrToneMapper = newToneMapper;
 }
 
-#else // Linus stub methods
+#else // no HDR output
 
 - (BOOL)hdrOutput
 {
@@ -936,7 +1091,7 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
     return NO;
 }
 
-#endif // OOLITE_WINDOWS
+#endif // OOLITE_HDR
 
 - (OOSDRToneMapper)sdrToneMapper
 {
@@ -1008,20 +1163,55 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
         imageNo = tmpImageNo;
     }
 
+#if OOLITE_MAC_OS_X || OO_RENDERER_SDL_GPU
+    /*  No window surface on macOS (see createWindowWithSize:), nor where the
+        window belongs to the SDL_GPU device; describe the drawable instead.
+    */
+    SDL_Surface* surface = NULL;
+    {
+        int pixelWidth, pixelHeight;
+        SDL_GetWindowSizeInPixels(window, &pixelWidth, &pixelHeight);
+        surface = SDL_CreateSurface(pixelWidth, pixelHeight, SDL_PIXELFORMAT_ARGB8888);
+    }
+#else
     SDL_Surface* surface = SDL_GetWindowSurface(window);
+#endif
     OOLog(@"screenshot", @"Saving screen shot \"%@\" (%u x %u pixels).", pathToPic, surface->w, surface->h);
 
     int pitch = surface->pitch;
     unsigned char* pixls = malloc(pitch * surface->h);
     int y;
     int off;
+    // In HDR, three floats per pixel, rows packed, as SaveEXRSnapshot and stbi_write_hdr read them.
+    GLfloat* pixlsf = NULL;
 
-    if (surface->w % 4)
-        glPixelStorei(GL_PACK_ALIGNMENT, 1);
-    else
-        glPixelStorei(GL_PACK_ALIGNMENT, 4);
-    for (y = surface->h - 1, off = 0; y >= 0; y--, off += pitch) {
-        glReadPixels(0, y, surface->w, 1, GL_BGRA, GL_UNSIGNED_BYTE, pixls + off);
+#if OOLITE_HDR
+    if ([self hdrOutput]) {
+        /*  The frame is linear and runs past 1.0, so reading it as bytes
+            would clip it and leave it unencoded. Read the floats once; the
+            PNG is made from them and the HDR snapshot below saves them.
+        */
+        pixlsf = (GLfloat*)malloc((size_t)surface->w * surface->h * 3 * sizeof(GLfloat));
+        for (y = surface->h - 1, off = 0; y >= 0; y--, off += surface->w * 3) {
+            OORendererReadPixels(0, y, surface->w, 1, kOOPixelsRGBFloat, pixlsf + off);
+        }
+        float scale = 80.0f / (_hdrPaperWhiteBrightness * [self hdrOutputScale]);
+        for (y = 0; y < surface->h; y++) {
+            const GLfloat* in = pixlsf + (size_t)y * surface->w * 3;
+            unsigned char* out = pixls + (size_t)y * pitch;
+            for (int x = 0; x < surface->w; x++) {
+                out[x * 4 + 0] = SDRByteFromHDR(in[x * 3 + 2], scale);
+                out[x * 4 + 1] = SDRByteFromHDR(in[x * 3 + 1], scale);
+                out[x * 4 + 2] = SDRByteFromHDR(in[x * 3 + 0], scale);
+                out[x * 4 + 3] = 255;
+            }
+        }
+    } else
+#endif
+    {
+        for (y = surface->h - 1, off = 0; y >= 0; y--, off += pitch) {
+            OORendererReadPixels(0, y, surface->w, 1, kOOPixelsBGRA8, pixls + off);
+        }
     }
 
     tmpSurface = SDL_CreateSurfaceFrom(surface->w, surface->h, surface->format, pixls, surface->pitch);
@@ -1040,7 +1230,7 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
     free(pixls);
 
     // if outputting HDR signal, save also either an .exr or a Radiance .hdr snapshot
-    if ([self hdrOutput]) {
+    if (pixlsf != NULL) {
         NSString* fileExtension = [[NSUserDefaults standardUserDefaults] oo_stringForKey:@"hdr-snapshot-format" defaultValue:SNAPSHOTHDR_EXTENSION_DEFAULT];
 
         // we accept file extension with or without a leading dot; if it is without, insert it at the beginning now
@@ -1052,21 +1242,21 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
             fileExtension = SNAPSHOTHDR_EXTENSION_DEFAULT;
         }
 
-        NSString* pathToPicHDR = [pathToPic stringByReplacingString:@".png" withString:fileExtension];
+        NSString* pathToPicHDR = [pathToPic stringByReplacingOccurrencesOfString:@".png" withString:fileExtension];
         OOLog(@"screenshot", @"Saving screen shot \"%@\" (%u x %u pixels).", pathToPicHDR, surface->w, surface->h);
-        GLfloat* pixlsf = (GLfloat*)malloc(pitch * surface->h * sizeof(GLfloat));
-        for (y = surface->h - 1, off = 0; y >= 0; y--, off += pitch) {
-            glReadPixels(0, y, surface->w, 1, GL_RGB, GL_FLOAT, pixlsf + off);
-        }
 
-        if (([fileExtension isEqual:SNAPSHOTHDR_EXTENSION_EXR] && SaveEXRSnapshot([pathToPicHDR cStringUsingEncoding:NSUTF8StringEncoding], surface -> w, surface -> h, pixlsf) != 0) // TINYEXR_SUCCESS
-            || ([fileExtension isEqual:SNAPSHOTHDR_EXTENSION_HDR] && !stbi_write_hdr([pathToPicHDR cStringUsingEncoding:NSUTF8StringEncoding], surface -> w, surface -> h, 3, pixlsf))) {
+        if (([fileExtension isEqual:SNAPSHOTHDR_EXTENSION_EXR] && SaveEXRSnapshot([pathToPicHDR cStringUsingEncoding:NSUTF8StringEncoding], surface->w, surface->h, pixlsf) != 0) // TINYEXR_SUCCESS
+            || ([fileExtension isEqual:SNAPSHOTHDR_EXTENSION_HDR] && !stbi_write_hdr([pathToPicHDR cStringUsingEncoding:NSUTF8StringEncoding], surface->w, surface->h, 3, pixlsf))) {
             OOLog(@"screenshotHDR", @"Failed to save %@", pathToPicHDR);
             snapShotOK = NO;
         }
 
         free(pixlsf);
     }
+
+#if OOLITE_MAC_OS_X || OO_RENDERER_SDL_GPU
+    SDL_DestroySurface(surface);
+#endif
 
     // return to the previous directory
     [[NSFileManager defaultManager] changeCurrentDirectoryPath:originalDirectory];
@@ -1391,6 +1581,23 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
                          rowBytes:width];
     }
     free(grayBytes);
+}
+#endif
+
+#ifndef NDEBUG
+- (BOOL)simulateKeyNamed:(NSString*)name down:(BOOL)down
+{
+    SDL_Scancode scancode = SDL_GetScancodeFromName([name UTF8String]);
+    if (scancode == SDL_SCANCODE_UNKNOWN)
+        return NO;
+    SDL_Event event = { 0 };
+    event.type = down ? SDL_EVENT_KEY_DOWN : SDL_EVENT_KEY_UP;
+    event.key.timestamp = SDL_GetTicksNS();
+    event.key.scancode = scancode;
+    event.key.key = SDL_GetKeyFromScancode(scancode, SDL_KMOD_NONE, false);
+    event.key.down = down;
+    SDL_PushEvent(&event);
+    return YES;
 }
 #endif
 

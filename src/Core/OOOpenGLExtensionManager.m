@@ -26,6 +26,9 @@ SOFTWARE.
 */
 
 #import "OOOpenGLExtensionManager.h"
+#if OO_RENDERER_SDL_GPU
+#import "OORendererSDLGPU.h"
+#endif
 #import "NSThreadOOExtensions.h"
 #import "OOFunctionAttributes.h"
 #import "OOLogging.h"
@@ -33,11 +36,12 @@ SOFTWARE.
 
 #import "OOCollectionExtractors.h"
 #import "OOConstToString.h"
+#import "OOGLStateCompat.h"
 #import "OORegExpMatcher.h"
 #import "ResourceManager.h"
 
 /*	OpenGL version required, currently 1.1 or later (basic stuff like
-        glBindTexture(), glDrawArrays()). We probably have implicit requirements
+        OOGLBindTexture(), glDrawArrays()). We probably have implicit requirements
         for later versions, but I don't feel like auditing.
         -- Ahruman
         We need at least 3.0 for the Frame Buffer Objects now in use. Might as
@@ -207,6 +211,21 @@ static NSArray* ArrayOfExtensions(NSString* extensionString)
     DESTROY(vendor);
     DESTROY(renderer);
 
+#if OO_RENDERER_SDL_GPU
+    /*	No GL context to ask: describe what the SDL_GPU backend provides, in
+            the terms the rest of the game asks about.
+    */
+    NSString* extensionsStr = @"GL_ARB_multitexture GL_ARB_shader_objects GL_ARB_vertex_shader GL_ARB_fragment_shader GL_ARB_shading_language_100 "
+                               "GL_ARB_texture_env_combine GL_EXT_framebuffer_object GL_ARB_framebuffer_object GL_ARB_vertex_buffer_object "
+                               "GL_ARB_texture_cube_map GL_EXT_texture_lod_bias GL_SGIS_texture_lod GL_SGIS_texture_edge_clamp "
+                               "GL_EXT_texture_filter_anisotropic GL_ARB_texture_float GL_ARB_color_buffer_float GL_ARB_draw_buffers "
+                               "GL_ARB_point_sprite GL_EXT_texture_sRGB";
+    extensions = [[NSSet alloc] initWithArray:ArrayOfExtensions(extensionsStr)];
+    vendor = [@"SDL_GPU" retain];
+    const char* driver = OORendererSDLGPUDriverName();
+    renderer = [[NSString alloc] initWithUTF8String:driver ? driver : "unknown"];
+    versionString = (const GLubyte*)"3.3 SDL_GPU";
+#else
     NSString* extensionsStr = [NSString stringWithUTF8String:(char*)glGetString(GL_EXTENSIONS)];
     extensions = [[NSSet alloc] initWithArray:ArrayOfExtensions(extensionsStr)];
 
@@ -214,6 +233,7 @@ static NSArray* ArrayOfExtensions(NSString* extensionString)
     renderer = [[NSString alloc] initWithUTF8String:(const char*)glGetString(GL_RENDERER)];
 
     versionString = glGetString(GL_VERSION);
+#endif
     if (versionString != NULL) {
         /*	String is supposed to be "major.minorFOO" or
          "major.minor.releaseFOO" where FOO is an empty string or
@@ -240,7 +260,15 @@ static NSArray* ArrayOfExtensions(NSString* extensionString)
     OOLog(@"rendering.opengl.version", @"OpenGL renderer version: %u.%u.%u (\"%s\"). Vendor: \"%@\". Renderer: \"%@\".", major, minor, release, versionString, vendor, renderer);
     OOLog(@"rendering.opengl.extensions", @"OpenGL extensions (%zu):\n%@", [extensions count], [[extensions allObjects] componentsJoinedByString:@", "]);
 
-    if (![self versionIsAtLeastMajor:kMinMajorVersion minor:kMinMinorVersion]) {
+#if OOLITE_MAC_OS_X
+    /*	macOS only offers a 2.1 legacy context alongside fixed-function GL, but
+            it provides what Oolite needs from 3.3 as extensions.
+    */
+    if ([self versionIsAtLeastMajor:2 minor:1] && [self haveExtension:@"GL_ARB_framebuffer_object"] && [self haveExtension:@"GL_APPLE_vertex_array_object"] && [self haveExtension:@"GL_ARB_texture_float"] && [self haveExtension:@"GL_ARB_color_buffer_float"] && [self haveExtension:@"GL_ARB_draw_buffers"]) {
+        // OK
+    } else
+#endif
+        if (![self versionIsAtLeastMajor:kMinMajorVersion minor:kMinMinorVersion]) {
         OOLog(@"rendering.opengl.version.insufficient", @"***** Oolite requires OpenGL version %u.%u or later.", kMinMajorVersion, kMinMinorVersion);
         [NSException raise:@"OoliteOpenGLTooOldException"
                     format:@"Oolite requires at least OpenGL %u.%u. You have %u.%u (\"%s\").", kMinMajorVersion, kMinMinorVersion, major, minor, versionString];
@@ -570,7 +598,11 @@ static unsigned IntegerFromString(const GLubyte** ioString)
     glValidateProgramARB = (PFNGLVALIDATEPROGRAMARBPROC)wglGetProcAddress("glValidateProgramARB");
 #endif
 
+#if OO_RENDERER_SDL_GPU
+    textureImageUnitCount = 16; // the backend's sampler slots per stage
+#else
     glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS_ARB, &textureImageUnitCount);
+#endif
 
     shadersAvailable = YES;
 }
@@ -659,7 +691,11 @@ static unsigned IntegerFromString(const GLubyte** ioString)
     textureCombinersSupported = [self haveExtension:@"GL_ARB_texture_env_combine"];
 
     if (textureCombinersSupported) {
+#if OO_RENDERER_SDL_GPU
+        textureUnitCount = 2; // the fixed-function emulation's units
+#else
         OOGL(glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, &textureUnitCount));
+#endif
 
 #if OOLITE_WINDOWS
         // Duplicated in checkShadersSupported. but that's not really a problem.

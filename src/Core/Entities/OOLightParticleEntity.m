@@ -28,7 +28,9 @@ MA 02110-1301, USA.
 #import "OOCollectionExtractors.h"
 #import "OOColor.h"
 #import "OOFunctionAttributes.h"
+#import "OOGLStateCompat.h"
 #import "OOGraphicsResetManager.h"
+#import "OOImmediateMode.h"
 #import "OOMacroOpenGL.h"
 #import "OOTexture.h"
 #import "PlayerEntity.h"
@@ -147,20 +149,20 @@ static OOTexture* sBlobTexture = nil;
     OO_ENTER_OPENGL();
     OOSetOpenGLState(OPENGL_STATE_ADDITIVE_BLENDING);
 
-    OOGL(glPushAttrib(GL_COLOR_BUFFER_BIT | GL_ENABLE_BIT));
-    OOGL(glEnable(GL_BLEND));
-    OOGL(glBlendFunc(GL_SRC_ALPHA, GL_ONE));
+    OOGLPushAttrib(GL_COLOR_BUFFER_BIT | GL_ENABLE_BIT);
+    OOGLEnable(GL_BLEND);
+    OOGLBlendFunc(GL_SRC_ALPHA, GL_ONE);
 
-    OOGL(glEnable(GL_TEXTURE_2D));
-    OOGL(glDepthMask(GL_FALSE));
+    OOGLEnable(GL_TEXTURE_2D);
+    OOGLDepthMask(GL_FALSE);
 
     GLfloat distanceAttenuation = cam_zero_distance / no_draw_distance;
     distanceAttenuation = 1.0 - distanceAttenuation;
     GLfloat components[4] = { _colorComponents[0], _colorComponents[1], _colorComponents[2], _colorComponents[3] * distanceAttenuation };
-    OOGL(glColor4fv(components));
+    OOImmediateColor4fv(components);
 
-    OOGL(glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, components));
-    OOGL(glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND));
+    OOGLTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, components);
+    OOGLTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
 
     OOViewID viewDir = [UNIVERSE viewDirection];
     if (viewDir != VIEW_GUI_DISPLAY)
@@ -174,63 +176,63 @@ static OOTexture* sBlobTexture = nil;
     */
     float viewOffset = _diameter * 0.5f;
 
-    OOGLBEGIN(GL_QUADS);
+    OOImmediateBegin(kOOPrimitiveQuads);
     switch (viewDir) {
     case VIEW_FORWARD:
     case VIEW_GUI_DISPLAY:
-        glTexCoord2f(0.0, 1.0);
-        glVertex3f(-_diameter, -_diameter, -viewOffset);
+        OOImmediateTexCoord2f(0.0, 1.0);
+        OOImmediateVertex3f(-_diameter, -_diameter, -viewOffset);
 
-        glTexCoord2f(1.0, 1.0);
-        glVertex3f(_diameter, -_diameter, -viewOffset);
+        OOImmediateTexCoord2f(1.0, 1.0);
+        OOImmediateVertex3f(_diameter, -_diameter, -viewOffset);
 
-        glTexCoord2f(1.0, 0.0);
-        glVertex3f(_diameter, _diameter, -viewOffset);
+        OOImmediateTexCoord2f(1.0, 0.0);
+        OOImmediateVertex3f(_diameter, _diameter, -viewOffset);
 
-        glTexCoord2f(0.0, 0.0);
-        glVertex3f(-_diameter, _diameter, -viewOffset);
+        OOImmediateTexCoord2f(0.0, 0.0);
+        OOImmediateVertex3f(-_diameter, _diameter, -viewOffset);
         break;
 
     case VIEW_AFT:
-        glTexCoord2f(0.0, 1.0);
-        glVertex3f(_diameter, -_diameter, viewOffset);
+        OOImmediateTexCoord2f(0.0, 1.0);
+        OOImmediateVertex3f(_diameter, -_diameter, viewOffset);
 
-        glTexCoord2f(1.0, 1.0);
-        glVertex3f(-_diameter, -_diameter, viewOffset);
+        OOImmediateTexCoord2f(1.0, 1.0);
+        OOImmediateVertex3f(-_diameter, -_diameter, viewOffset);
 
-        glTexCoord2f(1.0, 0.0);
-        glVertex3f(-_diameter, _diameter, viewOffset);
+        OOImmediateTexCoord2f(1.0, 0.0);
+        OOImmediateVertex3f(-_diameter, _diameter, viewOffset);
 
-        glTexCoord2f(0.0, 0.0);
-        glVertex3f(_diameter, _diameter, viewOffset);
+        OOImmediateTexCoord2f(0.0, 0.0);
+        OOImmediateVertex3f(_diameter, _diameter, viewOffset);
         break;
 
     case VIEW_STARBOARD:
-        glTexCoord2f(0.0, 1.0);
-        glVertex3f(-viewOffset, -_diameter, _diameter);
+        OOImmediateTexCoord2f(0.0, 1.0);
+        OOImmediateVertex3f(-viewOffset, -_diameter, _diameter);
 
-        glTexCoord2f(1.0, 1.0);
-        glVertex3f(-viewOffset, -_diameter, -_diameter);
+        OOImmediateTexCoord2f(1.0, 1.0);
+        OOImmediateVertex3f(-viewOffset, -_diameter, -_diameter);
 
-        glTexCoord2f(1.0, 0.0);
-        glVertex3f(-viewOffset, _diameter, -_diameter);
+        OOImmediateTexCoord2f(1.0, 0.0);
+        OOImmediateVertex3f(-viewOffset, _diameter, -_diameter);
 
-        glTexCoord2f(0.0, 0.0);
-        glVertex3f(-viewOffset, _diameter, _diameter);
+        OOImmediateTexCoord2f(0.0, 0.0);
+        OOImmediateVertex3f(-viewOffset, _diameter, _diameter);
         break;
 
     case VIEW_PORT:
-        glTexCoord2f(0.0, 1.0);
-        glVertex3f(viewOffset, -_diameter, -_diameter);
+        OOImmediateTexCoord2f(0.0, 1.0);
+        OOImmediateVertex3f(viewOffset, -_diameter, -_diameter);
 
-        glTexCoord2f(1.0, 1.0);
-        glVertex3f(viewOffset, -_diameter, _diameter);
+        OOImmediateTexCoord2f(1.0, 1.0);
+        OOImmediateVertex3f(viewOffset, -_diameter, _diameter);
 
-        glTexCoord2f(1.0, 0.0);
-        glVertex3f(viewOffset, _diameter, _diameter);
+        OOImmediateTexCoord2f(1.0, 0.0);
+        OOImmediateVertex3f(viewOffset, _diameter, _diameter);
 
-        glTexCoord2f(0.0, 0.0);
-        glVertex3f(viewOffset, _diameter, -_diameter);
+        OOImmediateTexCoord2f(0.0, 0.0);
+        OOImmediateVertex3f(viewOffset, _diameter, -_diameter);
         break;
 
     case VIEW_CUSTOM: {
@@ -247,34 +249,34 @@ static OOTexture* sBlobTexture = nil;
         vk.x *= viewOffset;
         vk.y *= viewOffset;
         vk.z *= viewOffset;
-        glTexCoord2f(0.0, 1.0);
-        glVertex3f(-vi.x - vj.x - vk.x, -vi.y - vj.y - vk.y, -vi.z - vj.z - vk.z);
-        glTexCoord2f(1.0, 1.0);
-        glVertex3f(+vi.x - vj.x - vk.x, +vi.y - vj.y - vk.y, +vi.z - vj.z - vk.z);
-        glTexCoord2f(1.0, 0.0);
-        glVertex3f(+vi.x + vj.x - vk.x, +vi.y + vj.y - vk.y, +vi.z + vj.z - vk.z);
-        glTexCoord2f(0.0, 0.0);
-        glVertex3f(-vi.x + vj.x - vk.x, -vi.y + vj.y - vk.y, -vi.z + vj.z - vk.z);
+        OOImmediateTexCoord2f(0.0, 1.0);
+        OOImmediateVertex3f(-vi.x - vj.x - vk.x, -vi.y - vj.y - vk.y, -vi.z - vj.z - vk.z);
+        OOImmediateTexCoord2f(1.0, 1.0);
+        OOImmediateVertex3f(+vi.x - vj.x - vk.x, +vi.y - vj.y - vk.y, +vi.z - vj.z - vk.z);
+        OOImmediateTexCoord2f(1.0, 0.0);
+        OOImmediateVertex3f(+vi.x + vj.x - vk.x, +vi.y + vj.y - vk.y, +vi.z + vj.z - vk.z);
+        OOImmediateTexCoord2f(0.0, 0.0);
+        OOImmediateVertex3f(-vi.x + vj.x - vk.x, -vi.y + vj.y - vk.y, -vi.z + vj.z - vk.z);
     } break;
 
     default:
-        glTexCoord2f(0.0, 1.0);
-        glVertex3f(-_diameter, -_diameter, -_diameter);
+        OOImmediateTexCoord2f(0.0, 1.0);
+        OOImmediateVertex3f(-_diameter, -_diameter, -_diameter);
 
-        glTexCoord2f(1.0, 1.0);
-        glVertex3f(_diameter, -_diameter, -_diameter);
+        OOImmediateTexCoord2f(1.0, 1.0);
+        OOImmediateVertex3f(_diameter, -_diameter, -_diameter);
 
-        glTexCoord2f(1.0, 0.0);
-        glVertex3f(_diameter, _diameter, -_diameter);
+        OOImmediateTexCoord2f(1.0, 0.0);
+        OOImmediateVertex3f(_diameter, _diameter, -_diameter);
 
-        glTexCoord2f(0.0, 0.0);
-        glVertex3f(-_diameter, _diameter, -_diameter);
+        OOImmediateTexCoord2f(0.0, 0.0);
+        OOImmediateVertex3f(-_diameter, _diameter, -_diameter);
         break;
     }
-    OOGLEND();
+    OOImmediateEnd();
 
-    OOGL(glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE));
-    OOGL(glPopAttrib());
+    OOGLTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+    OOGLPopAttrib();
 
     OOVerifyOpenGLState();
 }

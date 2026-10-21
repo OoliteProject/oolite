@@ -1,0 +1,23 @@
+#version 120
+#extension GL_EXT_gpu_shader4 : enable
+
+#define out_color gl_FragData[0]
+#define bright_color gl_FragData[1]
+
+varying vec2 vs_out_texture_coordinate;
+
+uniform sampler2D image;
+
+
+void main()
+{
+	const float bloomThreshold = 1.0;
+	const float bloomStrength = 0.05;
+	out_color = texture2D(image, vs_out_texture_coordinate);
+	
+	float brightness = dot(out_color.rgb, vec3(0.2126, 0.7152, 0.0722));	
+	if(brightness > bloomThreshold)
+		bright_color = vec4(out_color.rgb * bloomStrength, 1.0);
+	else
+		bright_color = vec4(0.0, 0.0, 0.0, 1.0);
+}

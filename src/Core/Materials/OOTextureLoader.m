@@ -34,6 +34,7 @@ SOFTWARE.
 #import "OOOpenGLExtensionManager.h"
 #import "OOPNGTextureLoader.h"
 #import "OOPixMapChannelOperations.h"
+#import "OORendererTexture.h"
 #import "OOTextureScaling.h"
 #import "ResourceManager.h"
 #import "Universe.h"
@@ -268,8 +269,7 @@ static BOOL sHaveSetUp = NO;
 + (void)setUp
 {
     // Load two maximum sizes - graphics hardware limit and user-specified limit.
-    GLint maxSize;
-    OOGL(glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxSize));
+    GLint maxSize = (GLint)OORendererMaxTextureSize();
     sGLMaxSize = MAX(maxSize, 64);
     OOLog(@"texture.load.rescale.maxSize", @"GL maximum texture size: %u", sGLMaxSize);
 

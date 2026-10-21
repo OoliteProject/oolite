@@ -6,6 +6,9 @@
 option('no_shaders', type: 'boolean', value: false,
        description: 'Disable shader support entirely')
 
+option('renderer', type: 'combo', choices: ['gl', 'sdl_gpu'], value: 'gl',
+       description: 'Rendering backend: OpenGL, or SDL_GPU (Metal, Vulkan, D3D12; needs glslang and SPIRV-Cross)')
+
 option('espeak', type: 'boolean', value: true,
        description: 'Enable eSpeak-ng text-to-speech support')
 

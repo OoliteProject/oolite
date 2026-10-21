@@ -420,5 +420,10 @@ void GLUniformMatrix3(int location, OOMatrix M)
     m[6] = M.m[2][0];
     m[7] = M.m[2][1];
     m[8] = M.m[2][2];
+#if !OO_RENDERER_SDL_GPU
     OOGL(glUniformMatrix3fvARB(location, 1, NO, m));
+#else
+    (void)location;
+    (void)m;
+#endif
 }

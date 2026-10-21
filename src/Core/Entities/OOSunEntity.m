@@ -25,6 +25,7 @@ MA 02110-1301, USA.
 #import "OOSunEntity.h"
 #import "OOMacroOpenGL.h"
 #import "OOOpenGLExtensionManager.h"
+#import "OOVertexArray.h"
 
 #import "AI.h"
 #import "MyOpenGLView.h"
@@ -32,6 +33,10 @@ MA 02110-1301, USA.
 #import "OOCollectionExtractors.h"
 #import "OOColor.h"
 #import "OODebugFlags.h"
+#import "OOFixedFunction.h"
+#import "OOGLStateCompat.h"
+#import "OOImmediateMode.h"
+#import "OOOpenGLMatrixManager.h"
 #import "OOStringExpander.h"
 #import "OOStringParsing.h"
 #import "PlayerEntity.h"
@@ -96,9 +101,9 @@ MA 02110-1301, USA.
     sun_specular[2] = b;
     sun_specular[3] = 1.0;
 
-    OOGL(glLightfv(GL_LIGHT1, GL_AMBIENT, sun_ambient));
-    OOGL(glLightfv(GL_LIGHT1, GL_DIFFUSE, sun_diffuse));
-    OOGL(glLightfv(GL_LIGHT1, GL_SPECULAR, sun_specular));
+    OORendererSetLightColor(1, kOOLightAmbient, sun_ambient);
+    OORendererSetLightColor(1, kOOLightDiffuse, sun_diffuse);
+    OORendererSetLightColor(1, kOOLightSpecular, sun_specular);
 
     // main disc less saturation (partially taken care of by the ACES tonemapper) more brightness
     color = [OOColor colorWithHue:hue saturation:sat * 0.75f brightness:1.0f alpha:1.0f];
@@ -383,33 +388,27 @@ MA 02110-1301, USA.
 
         // Close enough not to draw flat?
         if (ignoreDepthBuffer)
-            OOGL(glDisable(GL_DEPTH_TEST));
+            OOGLDisable(GL_DEPTH_TEST);
 
-        OOGL(glColor3fv(discColor));
+        OOImmediateColor3fv(discColor);
         // FIXME: use vertex arrays
-        OOGL(glDisable(GL_BLEND));
-        OOGLBEGIN(GL_TRIANGLE_FAN);
+        OOGLDisable(GL_BLEND);
+        OOImmediateBegin(kOOPrimitiveTriangleFan);
         GLDrawBallBillboard(effective_radius, steps, sqrt_zero_distance);
-        OOGLEND();
-        OOGL(glEnable(GL_BLEND));
+        OOImmediateEnd();
+        OOGLEnable(GL_BLEND);
 
         if (ignoreDepthBuffer)
-            OOGL(glEnable(GL_DEPTH_TEST));
+            OOGLEnable(GL_DEPTH_TEST);
 
     } else {
         [self calculateGLArrays:effective_radius
                           width:effective_cor16k
                       zDistance:sqrt_zero_distance];
-        OOGL(glDisable(GL_BLEND));
-        OOGL(glVertexPointer(3, GL_FLOAT, 0, sunVertices));
-
-        OOGL(glEnableClientState(GL_COLOR_ARRAY));
-        OOGL(glColorPointer(4, GL_FLOAT, 0, sunColors));
-
-        OOGL(glDrawElements(GL_TRIANGLES, 3 * 360, GL_UNSIGNED_INT, sunTriangles));
-
-        OOGL(glDisableClientState(GL_COLOR_ARRAY));
-        OOGL(glEnable(GL_BLEND));
+        OOGLDisable(GL_BLEND);
+        OOVertexLayout layout = [self sunLayout];
+        OORendererDrawElements(kOONativePrimitiveTriangles, &layout, OORendererTransientBuffer(sunTriangles, sizeof sunTriangles), 0, kOOIndex32, 3 * 360);
+        OOGLEnable(GL_BLEND);
     }
 
     OOVerifyOpenGLState();
@@ -426,13 +425,18 @@ MA 02110-1301, USA.
 
     OOSetOpenGLState(OPENGL_STATE_ADDITIVE_BLENDING);
 
-    OOGL(glVertexPointer(3, GL_FLOAT, 0, sunVertices));
+    OOVertexLayout layout = [self sunLayout];
+    OORendererDrawElements(kOONativePrimitiveTriangles, &layout, OORendererTransientBuffer(sunTriangles, sizeof sunTriangles),
+        3 * 360 * sizeof *sunTriangles, kOOIndex32, 24 * 360);
+}
 
-    OOGL(glEnableClientState(GL_COLOR_ARRAY));
-    OOGL(glColorPointer(4, GL_FLOAT, 0, sunColors));
-    OOGL(glDrawElements(GL_TRIANGLES, 24 * 360, GL_UNSIGNED_INT, sunTriangles + (3 * 360)));
-
-    OOGL(glDisableClientState(GL_COLOR_ARRAY));
+// The corona's per-frame vertices and colours.
+- (OOVertexLayout)sunLayout
+{
+    OOVertexLayout layout = { .count = 0 };
+    OOVertexLayoutAdd(&layout, kOOVertexPosition, 0, 3, 0, OORendererTransientBuffer(sunVertices, sizeof sunVertices), 0);
+    OOVertexLayoutAdd(&layout, kOOVertexColor, 0, 4, 0, OORendererTransientBuffer(sunColors, sizeof sunColors), 0);
+    return layout;
 }
 
 - (void)calculateGLArrays:(GLfloat)inner_radius width:(GLfloat)width zDistance:(GLfloat)z_distance
@@ -569,14 +573,14 @@ MA 02110-1301, USA.
         GLfloat sunGlareFilterMultiplierLocal = [PLAYER sunGlareFilter];
         GLfloat directVisionSunGlareColor[4] = { discColor[0], discColor[1], discColor[2], directVisionSunGlare * atmosphericReductionFactor * distanceReductionFactor * (1.0f - sunGlareFilterMultiplierLocal) * 0.0085f };
 
-        OOGL(glColor4fv(directVisionSunGlareColor));
+        OOImmediateColor4fv(directVisionSunGlareColor);
 
-        OOGLBEGIN(GL_QUADS);
-        glVertex3f(siz.width, siz.height, z);
-        glVertex3f(siz.width, -siz.height, z);
-        glVertex3f(-siz.width, -siz.height, z);
-        glVertex3f(-siz.width, siz.height, z);
-        OOGLEND();
+        OOImmediateBegin(kOOPrimitiveQuads);
+        OOImmediateVertex3f(siz.width, siz.height, z);
+        OOImmediateVertex3f(siz.width, -siz.height, z);
+        OOImmediateVertex3f(-siz.width, -siz.height, z);
+        OOImmediateVertex3f(-siz.width, siz.height, z);
+        OOImmediateEnd();
     }
 #endif
 }
@@ -602,14 +606,14 @@ MA 02110-1301, USA.
         MyOpenGLView* gameView = [UNIVERSE gameView];
         GLfloat aspectRatio = ([gameView viewSize].width / [gameView viewSize].height);
         GLfloat z = [gameView display_z] / (aspectRatio > 4.0f / 3.0f ? aspectRatio : 1.0f / aspectRatio);
-        OOGL(glColor4fv(glareColor));
+        OOImmediateColor4fv(glareColor);
 
-        OOGLBEGIN(GL_QUADS);
-        glVertex3f(siz.width, siz.height, z);
-        glVertex3f(siz.width, -siz.height, z);
-        glVertex3f(-siz.width, -siz.height, z);
-        glVertex3f(-siz.width, siz.height, z);
-        OOGLEND();
+        OOImmediateBegin(kOOPrimitiveQuads);
+        OOImmediateVertex3f(siz.width, siz.height, z);
+        OOImmediateVertex3f(siz.width, -siz.height, z);
+        OOImmediateVertex3f(-siz.width, -siz.height, z);
+        OOImmediateVertex3f(-siz.width, siz.height, z);
+        OOImmediateEnd();
     }
 }
 

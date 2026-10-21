@@ -22,6 +22,8 @@
 
  */
 
+#import "OOGLStateCompat.h"
+#import "OOImmediateMode.h"
 #import "OOStellarBody.h"
 #if NEW_PLANETS
 
@@ -31,6 +33,7 @@
 #import "OOPlanetData.h"
 #import "OOPlanetDrawable.h"
 #import "OOSingleTextureMaterial.h"
+#import "OOVertexArray.h"
 #import "Universe.h"
 
 #ifndef NDEBUG
@@ -51,6 +54,33 @@
 - (void)renderCommonParts;
 
 @end
+
+/*  The planet data's index lists, as 16- or 32-bit indices: the renderer,
+    like SDL_GPU, has no 8-bit index type, so the small levels that use one
+    are widened once.
+*/
+static const void* PlanetIndices(unsigned level, OOIndexType* outType)
+{
+    static uint16_t* sWidened[kOOPlanetDataLevels];
+    const OOPlanetDataLevel* data = &kPlanetData[level];
+    switch (data->type) {
+    case GL_UNSIGNED_BYTE:
+        if (sWidened[level] == NULL) {
+            size_t count = data->faceCount * 3;
+            sWidened[level] = malloc(count * sizeof *sWidened[level]);
+            for (size_t i = 0; i < count; i++)
+                sWidened[level][i] = ((const uint8_t*)data->indices)[i];
+        }
+        *outType = kOOIndex16;
+        return sWidened[level];
+    case GL_UNSIGNED_SHORT:
+        *outType = kOOIndex16;
+        return data->indices;
+    default:
+        *outType = kOOIndex32;
+        return data->indices;
+    }
+}
 
 @implementation OOPlanetDrawable
 
@@ -202,9 +232,9 @@
     // yes, opaque - necessary changes made later
     OOSetOpenGLState(OPENGL_STATE_OPAQUE);
 
-    OOGL(glDisable(GL_DEPTH_TEST));
+    OOGLDisable(GL_DEPTH_TEST);
     [self renderCommonParts];
-    OOGL(glEnable(GL_DEPTH_TEST));
+    OOGLEnable(GL_DEPTH_TEST);
 
     OOVerifyOpenGLState();
 }
@@ -215,14 +245,14 @@
 
     OO_ENTER_OPENGL();
 
-    OOGL(glPushAttrib(GL_ENABLE_BIT | GL_DEPTH_BUFFER_BIT));
-    OOGL(glShadeModel(GL_SMOOTH));
+    OOGLPushAttrib(GL_ENABLE_BIT | GL_DEPTH_BUFFER_BIT);
+    OOGLShadeModel(GL_SMOOTH);
 
     if (_isAtmosphere) {
-        OOGL(glEnable(GL_BLEND));
-        OOGL(glDepthMask(GL_FALSE));
+        OOGLEnable(GL_BLEND);
+        OOGLDepthMask(GL_FALSE);
     } else {
-        OOGL(glDisable(GL_BLEND));
+        OOGLDisable(GL_BLEND);
     }
 
     // Scale the ball.
@@ -231,32 +261,35 @@
 
     [_material apply];
 
-    OOGL(glEnable(GL_LIGHTING));
-    OOGL(glEnable(GL_TEXTURE_2D));
+    OOGLEnable(GL_LIGHTING);
+    OOGLEnable(GL_TEXTURE_2D);
 
 #if OO_TEXTURE_CUBE_MAP
     if ([_material wantsNormalsAsTextureCoordinates]) {
-        OOGL(glDisable(GL_TEXTURE_2D));
-        OOGL(glEnable(GL_TEXTURE_CUBE_MAP));
+        OOGLDisable(GL_TEXTURE_2D);
+        OOGLEnable(GL_TEXTURE_CUBE_MAP);
     }
 #endif
 
-    OOGL(glDisableClientState(GL_COLOR_ARRAY));
-
-    OOGL(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
-
-    OOGL(glVertexPointer(3, GL_FLOAT, 0, kOOPlanetVertices));
+    // The unit sphere's positions are also its normals, and its cube-map co-ordinates.
+    OOVertexLayout layout = { .count = 0 };
+    const OORendererBuffer* vertices = OORendererTransientBuffer(kOOPlanetVertices, sizeof kOOPlanetVertices);
+    OOVertexLayoutAdd(&layout, kOOVertexPosition, 0, 3, 0, vertices, 0);
+    OOVertexLayoutAdd(&layout, kOOVertexNormal, 0, 3, 0, vertices, 0);
     if ([_material wantsNormalsAsTextureCoordinates]) {
-        OOGL(glTexCoordPointer(3, GL_FLOAT, 0, kOOPlanetVertices));
+        OOVertexLayoutAdd(&layout, kOOVertexTexCoord, 0, 3, 0, vertices, 0);
     } else {
-        OOGL(glTexCoordPointer(2, GL_FLOAT, 0, kOOPlanetTexCoords));
+        OOVertexLayoutAdd(&layout, kOOVertexTexCoord, 0, 2, 0, OORendererTransientBuffer(kOOPlanetTexCoords, sizeof kOOPlanetTexCoords), 0);
     }
 
     // FIXME: instead of GL_RESCALE_NORMAL, consider copying and transforming the vertex array for each planet.
-    OOGL(glEnable(GL_RESCALE_NORMAL));
-    OOGL(glNormalPointer(GL_FLOAT, 0, kOOPlanetVertices));
+    OOGLEnable(GL_RESCALE_NORMAL);
 
-    OOGL(glDrawElements(GL_TRIANGLES, data->faceCount * 3, data->type, data->indices));
+    OOIndexType indexType;
+    const void* indices = PlanetIndices(_lod, &indexType);
+    size_t indexCount = data->faceCount * 3;
+    OORendererDrawElements(kOONativePrimitiveTriangles, &layout,
+        OORendererTransientBuffer(indices, indexCount * (indexType == kOOIndex16 ? 2 : 4)), 0, indexType, indexCount);
 
 #ifndef NDEBUG
     if ([UNIVERSE wireframeGraphics]) {
@@ -266,8 +299,8 @@
 
 #if OO_TEXTURE_CUBE_MAP
     if ([_material wantsNormalsAsTextureCoordinates]) {
-        OOGL(glEnable(GL_TEXTURE_2D));
-        OOGL(glDisable(GL_TEXTURE_CUBE_MAP));
+        OOGLEnable(GL_TEXTURE_2D);
+        OOGLDisable(GL_TEXTURE_CUBE_MAP);
     }
 #endif
 
@@ -278,9 +311,7 @@
 #endif
 
     [OOMaterial applyNone];
-    OOGL(glPopAttrib());
-
-    OOGL(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
+    OOGLPopAttrib();
 }
 
 - (BOOL)hasOpaqueParts
@@ -339,7 +370,7 @@
     const OOPlanetDataLevel* data = &kPlanetData[_lod];
     unsigned i;
 
-    OOGLBEGIN(GL_LINES);
+    OOImmediateBegin(kOOPrimitiveLines);
     for (i = 0; i < data->vertexCount; i++) {
         /*	Fun sphere facts: the normalized coordinates of a point on a sphere at the origin
                 is equal to the object-space normal of the surface at that point.
@@ -355,22 +386,22 @@
         Vector n = v;
         v = OOVectorMultiplyMatrix(v, _transform);
 
-        glColor3f(0.0f, 1.0f, 1.0f);
+        OOImmediateColor3f(0.0f, 1.0f, 1.0f);
         GLVertexOOVector(v);
         GLVertexOOVector(vector_add(v, vector_multiply_scalar(n, _radius * 0.05)));
 
         Vector b = cross_product(n, kBasisYVector);
         Vector t = vector_flip(true_cross_product(n, b));
 
-        glColor3f(1.0f, 1.0f, 0.0f);
+        OOImmediateColor3f(1.0f, 1.0f, 0.0f);
         GLVertexOOVector(v);
         GLVertexOOVector(vector_add(v, vector_multiply_scalar(t, _radius * 0.03)));
 
-        glColor3f(0.0f, 1.0f, 0.0f);
+        OOImmediateColor3f(0.0f, 1.0f, 0.0f);
         GLVertexOOVector(v);
         GLVertexOOVector(vector_add(v, vector_multiply_scalar(b, _radius * 0.03)));
     }
-    OOGLEND();
+    OOImmediateEnd();
 
     OODebugEndWireframe(state);
 }

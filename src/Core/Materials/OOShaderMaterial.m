@@ -26,6 +26,7 @@ SOFTWARE.
 */
 
 #import "OOShaderMaterial.h"
+#import "OOGLStateCompat.h"
 
 #if OO_SHADERS
 
@@ -597,11 +598,11 @@ static NSString* MacrosToString(NSDictionary* macros);
     [shaderProgram apply];
 
     for (i = 0; i != texCount; ++i) {
-        OOGL(glActiveTextureARB(GL_TEXTURE0_ARB + i));
+        OOGLActiveTexture(GL_TEXTURE0_ARB + i);
         [textures[i] apply];
     }
     if (texCount > 1)
-        OOGL(glActiveTextureARB(GL_TEXTURE0_ARB));
+        OOGLActiveTexture(GL_TEXTURE0_ARB);
 
     @try {
         foreach (uniform, [uniforms allValues]) {
@@ -658,11 +659,11 @@ static NSString* MacrosToString(NSDictionary* macros);
         */
         count = texCount ? texCount : 1;
         for (i = 0; i != count; ++i) {
-            OOGL(glActiveTextureARB(GL_TEXTURE0_ARB + i));
+            OOGLActiveTexture(GL_TEXTURE0_ARB + i);
             [OOTexture applyNone];
         }
         if (count != 1)
-            OOGL(glActiveTextureARB(GL_TEXTURE0_ARB));
+            OOGLActiveTexture(GL_TEXTURE0_ARB);
     }
 }
 

@@ -26,8 +26,11 @@ MA 02110-1301, USA.
 
 #import "OOOpenGLMatrixManager.h"
 #import "MyOpenGLView.h"
+#import "OOFixedFunction.h"
+#import "OOGLStateCompat.h"
 #import "OOMacroOpenGL.h"
 #import "OOOpenGLExtensionManager.h"
+#import "OORendererProgram.h"
 #import "Universe.h"
 
 const char* ooliteStandardMatrixUniforms[] = {
@@ -231,8 +234,8 @@ const char* ooliteStandardMatrixUniforms[] = {
 - (void)syncModelView
 {
     OO_ENTER_OPENGL();
-    OOGL(glMatrixMode(GL_MODELVIEW));
-    GLLoadOOMatrix([self getModelView]);
+    OOMatrix matrix = [self getModelView];
+    OOGLLoadModelViewMatrix(OOMatrixValuesForOpenGL(matrix));
     return;
 }
 
@@ -328,8 +331,8 @@ const char* ooliteStandardMatrixUniforms[] = {
 - (void)syncProjection
 {
     OO_ENTER_OPENGL();
-    OOGL(glMatrixMode(GL_PROJECTION));
-    GLLoadOOMatrix([self getProjection]);
+    OOMatrix matrix = [self getProjection];
+    OOGLLoadProjectionMatrix(OOMatrixValuesForOpenGL(matrix));
     return;
 }
 
@@ -395,7 +398,7 @@ const char* ooliteStandardMatrixUniforms[] = {
     return matrices[which];
 }
 
-- (NSArray*)standardMatrixUniformLocations:(GLhandleARB)program
+- (NSArray*)standardMatrixUniformLocations:(struct OORendererProgram*)program
 {
     GLint location;
     NSUInteger i;
@@ -404,7 +407,7 @@ const char* ooliteStandardMatrixUniforms[] = {
     OO_ENTER_OPENGL();
 
     for (i = 0; i < OOLITE_GL_MATRIX_END; i++) {
-        location = glGetUniformLocationARB(program, ooliteStandardMatrixUniforms[i]);
+        location = OORendererProgramUniform(program, ooliteStandardMatrixUniforms[i]);
         if (location >= 0) {
             if (i == OOLITE_GL_MATRIX_NORMAL) {
                 [locationSet addObject:
@@ -588,4 +591,10 @@ OOMatrix OOGLGetModelViewProjection()
 {
     OOOpenGLMatrixManager* matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
     return [matrixManager getMatrix:OOLITE_GL_MATRIX_MODELVIEW_PROJECTION];
+}
+
+void OOGLSetLightPosition(unsigned light, const GLfloat position[4])
+{
+    OOMatrix modelView = OOGLGetModelView();
+    OORendererSetLightPosition(light, position, OOMatrixValuesForOpenGL(modelView));
 }

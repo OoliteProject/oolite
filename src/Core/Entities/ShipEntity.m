@@ -12735,6 +12735,13 @@ static BOOL AuthorityPredicate(Entity* entity, void* parameter)
 
 - (void)setDemoShip:(OOScalar)rate
 {
+#ifndef NDEBUG
+    /*  Renderer regression tests snapshot the title screen and need the
+        demo ship to stay at its starting orientation.
+    */
+    if (getenv("OO_FREEZE_DEMO_SHIPS") != NULL)
+        rate = 0;
+#endif
     demoStartOrientation = orientation;
     demoRate = rate;
     isDemoShip = YES;

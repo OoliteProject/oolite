@@ -31,11 +31,14 @@ MA 02110-1301, USA.
 #import "OOCrosshairs.h"
 #import "OOEncodingConverter.h"
 #import "OOFoundation.h"
+#import "OOGLStateCompat.h"
+#import "OOImmediateMode.h"
 #import "OOJavaScriptEngine.h"
 #import "OOJoystickManager.h"
 #import "OOPlanetEntity.h"
 #import "OOPolygonSprite.h"
 #import "OOQuiriumCascadeEntity.h"
+#import "OORenderState.h"
 #import "OOStringExpander.h"
 #import "OOStringParsing.h"
 #import "OOSunEntity.h"
@@ -203,7 +206,7 @@ static void prefetchData(NSDictionary* info, struct CachedInfo* data);
 OOINLINE void GLColorWithOverallAlpha(const GLfloat* color, GLfloat alpha)
 {
     // NO OOGL(), this is called within immediate mode blocks.
-    glColor4f(color[0], color[1], color[2], color[3] * alpha);
+    OOImmediateColor4f(color[0], color[1], color[2], color[3] * alpha);
 }
 
 - (id)initWithDictionary:(NSDictionary*)hudinfo
@@ -1120,7 +1123,7 @@ static void prefetchData(NSDictionary* info, struct CachedInfo* data)
     }
 
     if (!emptyDial) {
-        OOGL(glColor4fv(scanner_color));
+        OOImmediateColor4fv(scanner_color);
         drawScannerGrid(x, y, z1, siz, [UNIVERSE viewDirection], lineWidth, zoom, nonlinear_scanner, minimalistic_scanner);
     }
 
@@ -1275,21 +1278,21 @@ static void prefetchData(NSDictionary* info, struct CachedInfo* data)
                         }
                         // draw the diamond
                         //
-                        OOGLBEGIN(GL_QUADS);
-                        glColor4f(col[0], col[1], col[2], 0.33333 * col[3]);
-                        glVertex3f(bounds[0].x, bounds[0].y, bounds[0].z);
-                        glVertex3f(bounds[4].x, bounds[4].y, bounds[4].z);
-                        glVertex3f(bounds[1].x, bounds[1].y, bounds[1].z);
-                        glVertex3f(bounds[5].x, bounds[5].y, bounds[5].z);
-                        glVertex3f(bounds[2].x, bounds[2].y, bounds[2].z);
-                        glVertex3f(bounds[4].x, bounds[4].y, bounds[4].z);
-                        glVertex3f(bounds[3].x, bounds[3].y, bounds[3].z);
-                        glVertex3f(bounds[5].x, bounds[5].y, bounds[5].z);
-                        glVertex3f(bounds[2].x, bounds[2].y, bounds[2].z);
-                        glVertex3f(bounds[0].x, bounds[0].y, bounds[0].z);
-                        glVertex3f(bounds[3].x, bounds[3].y, bounds[3].z);
-                        glVertex3f(bounds[1].x, bounds[1].y, bounds[1].z);
-                        OOGLEND();
+                        OOImmediateBegin(kOOPrimitiveQuads);
+                        OOImmediateColor4f(col[0], col[1], col[2], 0.33333 * col[3]);
+                        OOImmediateVertex3f(bounds[0].x, bounds[0].y, bounds[0].z);
+                        OOImmediateVertex3f(bounds[4].x, bounds[4].y, bounds[4].z);
+                        OOImmediateVertex3f(bounds[1].x, bounds[1].y, bounds[1].z);
+                        OOImmediateVertex3f(bounds[5].x, bounds[5].y, bounds[5].z);
+                        OOImmediateVertex3f(bounds[2].x, bounds[2].y, bounds[2].z);
+                        OOImmediateVertex3f(bounds[4].x, bounds[4].y, bounds[4].z);
+                        OOImmediateVertex3f(bounds[3].x, bounds[3].y, bounds[3].z);
+                        OOImmediateVertex3f(bounds[5].x, bounds[5].y, bounds[5].z);
+                        OOImmediateVertex3f(bounds[2].x, bounds[2].y, bounds[2].z);
+                        OOImmediateVertex3f(bounds[0].x, bounds[0].y, bounds[0].z);
+                        OOImmediateVertex3f(bounds[3].x, bounds[3].y, bounds[3].z);
+                        OOImmediateVertex3f(bounds[1].x, bounds[1].y, bounds[1].z);
+                        OOImmediateEnd();
                     }
                 }
 
@@ -1304,45 +1307,45 @@ static void prefetchData(NSDictionary* info, struct CachedInfo* data)
                         GLfloat l2 = r1 * r1 - relativePosition.y * relativePosition.y;
                         GLfloat r0 = (l2 > 0) ? sqrt(l2) : 0;
                         if (r0 > 0) {
-                            OOGL(glColor4f(1.0, 0.5, 1.0, alpha));
+                            OOImmediateColor4f(1.0, 0.5, 1.0, alpha);
                             GLDrawOval(x1 - 0.5, y1 + 1.5, z1, NSMakeSize(r0, r0 * siz.height / siz.width), 20);
                         }
-                        OOGL(glColor4f(0.5, 0.0, 1.0, 0.33333 * alpha));
+                        OOImmediateColor4f(0.5, 0.0, 1.0, 0.33333 * alpha);
                         GLDrawFilledOval(x1 - 0.5, y2 + 1.5, z1, NSMakeSize(r1, r1), 15);
                     }
                 } else {
 
 #if IDENTIFY_SCANNER_LOLLIPOPS
                     if ([scannedEntity isShip]) {
-                        glColor4f(1.0, 1.0, 0.5, alpha);
+                        OOImmediateColor4f(1.0, 1.0, 0.5, alpha);
                         OODrawString([(ShipEntity*)scannedEntity displayName], x1 + 2, y2 + 2, z1, NSMakeSize(8, 8));
                     }
 #endif
-                    glColor4fv(col);
+                    OOImmediateColor4fv(col);
                     if (inColorBlindMode && isHostile) {
                         // in colorblind mode turn hostile blips into X shapes for easier recognition
-                        OOGLBEGIN(GL_LINES);
-                        glVertex3f(x1 + 2, y2 + 3, z1);
-                        glVertex3f(x1 - 3, y2, z1);
-                        glVertex3f(x1 + 2, y2, z1);
-                        glVertex3f(x1 - 3, y2 + 3, z1);
-                        OOGLEND();
+                        OOImmediateBegin(kOOPrimitiveLines);
+                        OOImmediateVertex3f(x1 + 2, y2 + 3, z1);
+                        OOImmediateVertex3f(x1 - 3, y2, z1);
+                        OOImmediateVertex3f(x1 + 2, y2, z1);
+                        OOImmediateVertex3f(x1 - 3, y2 + 3, z1);
+                        OOImmediateEnd();
                     } else {
-                        OOGLBEGIN(GL_QUADS);
-                        glVertex3f(x1 - 3, y2, z1);
-                        glVertex3f(x1 + 2, y2, z1);
-                        glVertex3f(x1 + 2, y2 + 3, z1);
-                        glVertex3f(x1 - 3, y2 + 3, z1);
-                        OOGLEND();
+                        OOImmediateBegin(kOOPrimitiveQuads);
+                        OOImmediateVertex3f(x1 - 3, y2, z1);
+                        OOImmediateVertex3f(x1 + 2, y2, z1);
+                        OOImmediateVertex3f(x1 + 2, y2 + 3, z1);
+                        OOImmediateVertex3f(x1 - 3, y2 + 3, z1);
+                        OOImmediateEnd();
                     }
-                    OOGLBEGIN(GL_QUADS); // lollipop tail
+                    OOImmediateBegin(kOOPrimitiveQuads); // lollipop tail
                     col[3] *= 0.3333; // one third the alpha
-                    glColor4fv(col);
-                    glVertex3f(x1, y1, z1);
-                    glVertex3f(x1 + 2, y1, z1);
-                    glVertex3f(x1 + 2, y2, z1);
-                    glVertex3f(x1, y2, z1);
-                    OOGLEND();
+                    OOImmediateColor4fv(col);
+                    OOImmediateVertex3f(x1, y1, z1);
+                    OOImmediateVertex3f(x1 + 2, y1, z1);
+                    OOImmediateVertex3f(x1 + 2, y2, z1);
+                    OOImmediateVertex3f(x1, y2, z1);
+                    OOImmediateEnd();
                 }
             }
         }
@@ -1434,19 +1437,19 @@ static void prefetchData(NSDictionary* info, struct CachedInfo* data)
     if (scanner_ultra_zoom)
         zl = pow(2, zl - 1);
     GLColorWithOverallAlpha(zoom_color, alpha);
-    OOGL(glEnable(GL_TEXTURE_2D));
+    OOGLEnable(GL_TEXTURE_2D);
     [sFontTexture apply];
 
-    OOGLBEGIN(GL_QUADS);
+    OOImmediateBegin(kOOPrimitiveQuads);
     if (zl / 10 > 0)
         drawCharacterQuad(48 + zl / 10, cx - 0.8 * siz.width, cy, z1, siz);
     drawCharacterQuad(48 + zl % 10, cx - 0.4 * siz.width, cy, z1, siz);
     drawCharacterQuad(58, cx, cy, z1, siz);
     drawCharacterQuad(49, cx + 0.3 * siz.width, cy, z1, siz);
-    OOGLEND();
+    OOImmediateEnd();
 
     [OOTexture applyNone];
-    OOGL(glDisable(GL_TEXTURE_2D));
+    OOGLDisable(GL_TEXTURE_2D);
 }
 
 - (void)drawCompass:(NSDictionary*)info
@@ -1476,19 +1479,19 @@ static void prefetchData(NSDictionary* info, struct CachedInfo* data)
     GLfloat w1 = siz.width * 0.125;
     GLfloat w3 = siz.width * 0.375;
     OOGL(GLScaledLineWidth(2.0 * lineWidth)); // thicker
-    OOGL(glColor4f(compass_color[0], compass_color[1], compass_color[2], alpha));
+    OOImmediateColor4f(compass_color[0], compass_color[1], compass_color[2], alpha);
     GLDrawOval(x, y, z1, siz, 12);
-    OOGL(glColor4f(compass_color[0], compass_color[1], compass_color[2], 0.5f * alpha));
-    OOGLBEGIN(GL_LINES);
-    glVertex3f(x - w1, y, z1);
-    glVertex3f(x - w3, y, z1);
-    glVertex3f(x + w1, y, z1);
-    glVertex3f(x + w3, y, z1);
-    glVertex3f(x, y - h1, z1);
-    glVertex3f(x, y - h3, z1);
-    glVertex3f(x, y + h1, z1);
-    glVertex3f(x, y + h3, z1);
-    OOGLEND();
+    OOImmediateColor4f(compass_color[0], compass_color[1], compass_color[2], 0.5f * alpha);
+    OOImmediateBegin(kOOPrimitiveLines);
+    OOImmediateVertex3f(x - w1, y, z1);
+    OOImmediateVertex3f(x - w3, y, z1);
+    OOImmediateVertex3f(x + w1, y, z1);
+    OOImmediateVertex3f(x + w3, y, z1);
+    OOImmediateVertex3f(x, y - h1, z1);
+    OOImmediateVertex3f(x, y - h3, z1);
+    OOImmediateVertex3f(x, y + h1, z1);
+    OOImmediateVertex3f(x, y + h3, z1);
+    OOImmediateEnd();
     OOGL(GLScaledLineWidth(lineWidth)); // thinner
 
     if ([self checkPlayerInSystemFlight] && [PLAYER status] != STATUS_LAUNCHING) // normal system
@@ -1552,21 +1555,21 @@ static void prefetchData(NSDictionary* info, struct CachedInfo* data)
 OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 {
     if (relativeZ >= 0.0f) {
-        OOGL(glColor4f(0.0f, 1.0f, 0.0f, alpha));
+        OOImmediateColor4f(0.0f, 1.0f, 0.0f, alpha);
     } else {
-        OOGL(glColor4f(1.0f, 0.0f, 0.0f, alpha));
+        OOImmediateColor4f(1.0f, 0.0f, 0.0f, alpha);
     }
 }
 
 - (void)drawCompassPlanetBlipAt:(Vector)relativePosition Size:(NSSize)siz Alpha:(GLfloat)alpha
 {
     if (relativePosition.z >= 0) {
-        OOGL(glColor4f(0.0, 1.0, 0.0, 0.75 * alpha));
+        OOImmediateColor4f(0.0, 1.0, 0.0, 0.75 * alpha);
         GLDrawFilledOval(relativePosition.x, relativePosition.y, z1, siz, 30);
-        OOGL(glColor4f(0.0, 1.0, 0.0, alpha));
+        OOImmediateColor4f(0.0, 1.0, 0.0, alpha);
         GLDrawOval(relativePosition.x, relativePosition.y, z1, siz, 30);
     } else {
-        OOGL(glColor4f(1.0, 0.0, 0.0, alpha));
+        OOImmediateColor4f(1.0, 0.0, 0.0, alpha);
         GLDrawOval(relativePosition.x, relativePosition.y, z1, siz, 30);
     }
 }
@@ -1575,17 +1578,17 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 {
     SetCompassBlipColor(relativePosition.z, alpha);
 
-    OOGLBEGIN(GL_LINE_LOOP);
-    glVertex3f(relativePosition.x - 0.5 * siz.width, relativePosition.y - 0.5 * siz.height, z1);
-    glVertex3f(relativePosition.x + 0.5 * siz.width, relativePosition.y - 0.5 * siz.height, z1);
-    glVertex3f(relativePosition.x + 0.5 * siz.width, relativePosition.y + 0.5 * siz.height, z1);
-    glVertex3f(relativePosition.x - 0.5 * siz.width, relativePosition.y + 0.5 * siz.height, z1);
-    OOGLEND();
+    OOImmediateBegin(kOOPrimitiveLineLoop);
+    OOImmediateVertex3f(relativePosition.x - 0.5 * siz.width, relativePosition.y - 0.5 * siz.height, z1);
+    OOImmediateVertex3f(relativePosition.x + 0.5 * siz.width, relativePosition.y - 0.5 * siz.height, z1);
+    OOImmediateVertex3f(relativePosition.x + 0.5 * siz.width, relativePosition.y + 0.5 * siz.height, z1);
+    OOImmediateVertex3f(relativePosition.x - 0.5 * siz.width, relativePosition.y + 0.5 * siz.height, z1);
+    OOImmediateEnd();
 }
 
 - (void)drawCompassSunBlipAt:(Vector)relativePosition Size:(NSSize)siz Alpha:(GLfloat)alpha
 {
-    OOGL(glColor4f(1.0, 1.0, 0.0, 0.75 * alpha));
+    OOImmediateColor4f(1.0, 1.0, 0.0, 0.75 * alpha);
     GLDrawFilledOval(relativePosition.x, relativePosition.y, z1, siz, 30);
 
     SetCompassBlipColor(relativePosition.z, alpha);
@@ -1597,12 +1600,12 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 {
     SetCompassBlipColor(relativePosition.z, alpha);
 
-    OOGLBEGIN(GL_LINES);
-    glVertex3f(relativePosition.x - siz.width, relativePosition.y, z1);
-    glVertex3f(relativePosition.x + siz.width, relativePosition.y, z1);
-    glVertex3f(relativePosition.x, relativePosition.y - siz.height, z1);
-    glVertex3f(relativePosition.x, relativePosition.y + siz.height, z1);
-    OOGLEND();
+    OOImmediateBegin(kOOPrimitiveLines);
+    OOImmediateVertex3f(relativePosition.x - siz.width, relativePosition.y, z1);
+    OOImmediateVertex3f(relativePosition.x + siz.width, relativePosition.y, z1);
+    OOImmediateVertex3f(relativePosition.x, relativePosition.y - siz.height, z1);
+    OOImmediateVertex3f(relativePosition.x, relativePosition.y + siz.height, z1);
+    OOImmediateEnd();
 
     GLDrawOval(relativePosition.x, relativePosition.y, z1, siz, 30);
 }
@@ -1611,28 +1614,28 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 {
     SetCompassBlipColor(relativePosition.z, alpha);
 
-    OOGLBEGIN(GL_LINES);
-    /*		glVertex3f(relativePosition.x - 0.5 * siz.width, relativePosition.y - 0.5 * siz.height, z1);
-            glVertex3f(relativePosition.x, relativePosition.y + 0.5 * siz.height, z1);
+    OOImmediateBegin(kOOPrimitiveLines);
+    /*		OOImmediateVertex3f(relativePosition.x - 0.5 * siz.width, relativePosition.y - 0.5 * siz.height, z1);
+            OOImmediateVertex3f(relativePosition.x, relativePosition.y + 0.5 * siz.height, z1);
 
-            glVertex3f(relativePosition.x + 0.5 * siz.width, relativePosition.y - 0.5 * siz.height, z1);
-            glVertex3f(relativePosition.x, relativePosition.y + 0.5 * siz.height, z1);
+            OOImmediateVertex3f(relativePosition.x + 0.5 * siz.width, relativePosition.y - 0.5 * siz.height, z1);
+            OOImmediateVertex3f(relativePosition.x, relativePosition.y + 0.5 * siz.height, z1);
 
-            glVertex3f(relativePosition.x - 0.5 * siz.width, relativePosition.y - 0.5 * siz.height, z1);
-            glVertex3f(relativePosition.x + 0.5 * siz.width, relativePosition.y - 0.5 * siz.height, z1); */
-    glVertex3f(relativePosition.x + 0.6 * siz.width, relativePosition.y, z1);
-    glVertex3f(relativePosition.x, relativePosition.y + 0.6 * siz.height, z1);
+            OOImmediateVertex3f(relativePosition.x - 0.5 * siz.width, relativePosition.y - 0.5 * siz.height, z1);
+            OOImmediateVertex3f(relativePosition.x + 0.5 * siz.width, relativePosition.y - 0.5 * siz.height, z1); */
+    OOImmediateVertex3f(relativePosition.x + 0.6 * siz.width, relativePosition.y, z1);
+    OOImmediateVertex3f(relativePosition.x, relativePosition.y + 0.6 * siz.height, z1);
 
-    glVertex3f(relativePosition.x - 0.6 * siz.width, relativePosition.y, z1);
-    glVertex3f(relativePosition.x, relativePosition.y + 0.6 * siz.height, z1);
+    OOImmediateVertex3f(relativePosition.x - 0.6 * siz.width, relativePosition.y, z1);
+    OOImmediateVertex3f(relativePosition.x, relativePosition.y + 0.6 * siz.height, z1);
 
-    glVertex3f(relativePosition.x + 0.6 * siz.width, relativePosition.y, z1);
-    glVertex3f(relativePosition.x, relativePosition.y - 0.6 * siz.height, z1);
+    OOImmediateVertex3f(relativePosition.x + 0.6 * siz.width, relativePosition.y, z1);
+    OOImmediateVertex3f(relativePosition.x, relativePosition.y - 0.6 * siz.height, z1);
 
-    glVertex3f(relativePosition.x - 0.6 * siz.width, relativePosition.y, z1);
-    glVertex3f(relativePosition.x, relativePosition.y - 0.6 * siz.height, z1);
+    OOImmediateVertex3f(relativePosition.x - 0.6 * siz.width, relativePosition.y, z1);
+    OOImmediateVertex3f(relativePosition.x, relativePosition.y - 0.6 * siz.height, z1);
 
-    OOGLEND();
+    OOImmediateEnd();
 }
 
 - (void)drawAegis:(NSDictionary*)info
@@ -1660,29 +1663,13 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 
     GLfloat strip[] = { -7, 8, -6, 5, 5, 8, 3, 5, 7, 2, 4, 2, 6, -1, 4, 2, -4, -1, -6, 2, -4, -1, -7, -1, -3, -4, -5, -7, 6, -4, 7, -7 };
 
-#if 1
-    OOGL(glColor4f(0.0f, 1.0f, 0.0f, alpha));
-    OOGLBEGIN(GL_QUAD_STRIP);
+    OOImmediateColor4f(0.0f, 1.0f, 0.0f, alpha);
+    OOImmediateBegin(kOOPrimitiveQuadStrip);
     int i;
     for (i = 0; i < 32; i += 2) {
-        glVertex3f(x + w * strip[i], y - h * strip[i + 1], z1);
+        OOImmediateVertex3f(x + w * strip[i], y - h * strip[i + 1], z1);
     }
-    OOGLEND();
-#else
-    OOGLPushModelView();
-    OOGLTranslateModelView(make_vector(x, y, z1));
-    OOGLScaleModelView(make_vector(w, -h, 1.0f));
-
-    OOGL(glColor4f(0.0f, 1.0f, 0.0f, alpha));
-    OOGL(glVertexPointer(2, GL_FLOAT, 0, strip));
-    OOGL(glEnableClientState(GL_VERTEX_ARRAY));
-    OOGL(glDisableClientState(GL_COLOR_ARRAY));
-
-    OOGL(glDrawArrays(GL_QUAD_STRIP, 0, sizeof strip / sizeof *strip / 2));
-    OOGL(glDisableClientState(GL_VERTEX_ARRAY));
-
-    OOGLPopModelView();
-#endif
+    OOImmediateEnd();
 }
 
 - (void)drawCustomBar:(NSDictionary*)info
@@ -1801,13 +1788,13 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
             alpha:&light_color[3]];
 
     GLColorWithOverallAlpha(light_color, alpha);
-    OOGLBEGIN(GL_POLYGON);
+    OOImmediateBegin(kOOPrimitivePolygon);
     hudDrawStatusIconAt(x, y, z1, siz);
-    OOGLEND();
-    OOGL(glColor4f(0.25, 0.25, 0.25, alpha));
-    OOGLBEGIN(GL_LINE_LOOP);
+    OOImmediateEnd();
+    OOImmediateColor4f(0.25, 0.25, 0.25, alpha);
+    OOImmediateBegin(kOOPrimitiveLineLoop);
     hudDrawStatusIconAt(x, y, z1, siz);
-    OOGLEND();
+    OOImmediateEnd();
 }
 
 - (void)drawCustomImage:(NSDictionary*)info
@@ -2472,12 +2459,12 @@ static OOPolygonSprite* IconForMissileRole(NSString* role)
             GLColorWithOverallAlpha(red_color, alpha);
             break;
         }
-        OOGLBEGIN(GL_QUADS);
-        glVertex3i(x, y, z1);
-        glVertex3i(x + siz.width, y, z1);
-        glVertex3i(x + siz.width, y + siz.height, z1);
-        glVertex3i(x, y + siz.height, z1);
-        OOGLEND();
+        OOImmediateBegin(kOOPrimitiveQuads);
+        OOImmediateVertex3f(x, y, z1);
+        OOImmediateVertex3f(x + siz.width, y, z1);
+        OOImmediateVertex3f(x + siz.width, y + siz.height, z1);
+        OOImmediateVertex3f(x, y + siz.height, z1);
+        OOImmediateEnd();
         GLColorWithOverallAlpha(green_color, alpha);
         OODrawString([PLAYER dialTargetName], x + sp, y - 1, z1, NSMakeSize(siz.width, siz.height));
     }
@@ -2584,13 +2571,13 @@ static OOPolygonSprite* IconForMissileRole(NSString* role)
     }
     status_color[3] = flash_alpha;
     GLColorWithOverallAlpha(status_color, alpha);
-    OOGLBEGIN(GL_POLYGON);
+    OOImmediateBegin(kOOPrimitivePolygon);
     hudDrawStatusIconAt(x, y, z1, siz);
-    OOGLEND();
-    OOGL(glColor4f(0.25, 0.25, 0.25, alpha));
-    OOGLBEGIN(GL_LINE_LOOP);
+    OOImmediateEnd();
+    OOImmediateColor4f(0.25, 0.25, 0.25, alpha);
+    OOImmediateBegin(kOOPrimitiveLineLoop);
     hudDrawStatusIconAt(x, y, z1, siz);
-    OOGLEND();
+    OOImmediateEnd();
 }
 
 - (void)drawDirectionCue:(NSDictionary*)info
@@ -2667,14 +2654,14 @@ static OOPolygonSprite* IconForMissileRole(NSString* role)
                 [directionCueColor alphaComponent] };
             drawPos.z = 0.0f; // flatten vector
             drawPos = vector_normal(drawPos);
-            OOGLBEGIN(GL_LINE_STRIP);
-            glColor4fv(clearColorArray);
-            glVertex3f(drawPos.x * innerSize - drawPos.y * width, drawPos.y * innerSize + drawPos.x * width, z1);
+            OOImmediateBegin(kOOPrimitiveLineStrip);
+            OOImmediateColor4fv(clearColorArray);
+            OOImmediateVertex3f(drawPos.x * innerSize - drawPos.y * width, drawPos.y * innerSize + drawPos.x * width, z1);
             GLColorWithOverallAlpha(directionCueColorArray, alpha);
-            glVertex3f(drawPos.x * outerSize, drawPos.y * outerSize, z1);
-            glColor4fv(clearColorArray);
-            glVertex3f(drawPos.x * innerSize + drawPos.y * width, drawPos.y * innerSize - drawPos.x * width, z1);
-            OOGLEND();
+            OOImmediateVertex3f(drawPos.x * outerSize, drawPos.y * outerSize, z1);
+            OOImmediateColor4fv(clearColorArray);
+            OOImmediateVertex3f(drawPos.x * innerSize + drawPos.y * width, drawPos.y * innerSize - drawPos.x * width, z1);
+            OOImmediateEnd();
         }
     }
 }
@@ -2696,7 +2683,7 @@ static OOPolygonSprite* IconForMissileRole(NSString* role)
     GetRGBAArrayFromInfo(info, itemColor);
     itemColor[3] *= overallAlpha;
 
-    OOGL(glColor4f(itemColor[0], itemColor[1], itemColor[2], itemColor[3]));
+    OOImmediateColor4f(itemColor[0], itemColor[1], itemColor[2], itemColor[3]);
     OODrawString([PLAYER dial_clock], x, y, z1, siz);
 }
 
@@ -2732,7 +2719,7 @@ static OOPolygonSprite* IconForMissileRole(NSString* role)
     itemColor[3] *= overallAlpha;
 
     if (lines == 1) {
-        OOGL(glColor4f(itemColor[0], itemColor[1], itemColor[2], itemColor[3]));
+        OOImmediateColor4f(itemColor[0], itemColor[1], itemColor[2], itemColor[3]);
         NSString* equipmentName = [PLAYER primedEquipmentName:0];
         OODrawString(OOExpandKey(@"equipment-primed-hud", equipmentName), x, y, z1, size);
     } else {
@@ -2743,7 +2730,7 @@ static OOPolygonSprite* IconForMissileRole(NSString* role)
                 // don't display loops if we have more equipment than lines
                 // instead compact the display towards its centre
                 GLfloat alphaScale = 1.0 / ((i < 0) ? (1.0 - i) : (1.0 + i));
-                OOGL(glColor4f(itemColor[0], itemColor[1], itemColor[2], itemColor[3] * alphaScale));
+                OOImmediateColor4f(itemColor[0], itemColor[1], itemColor[2], itemColor[3] * alphaScale);
                 OODrawString([PLAYER primedEquipmentName:i], x, y, z1, size);
             }
             y -= size.height;
@@ -2775,7 +2762,7 @@ static OOPolygonSprite* IconForMissileRole(NSString* role)
     GetRGBAArrayFromInfo(info, itemColor);
     itemColor[3] *= overallAlpha;
 
-    OOGL(glColor4f(itemColor[0], itemColor[1], itemColor[2], itemColor[3]));
+    OOImmediateColor4f(itemColor[0], itemColor[1], itemColor[2], itemColor[3]);
     if ([info oo_intForKey:@"align"] == 1) {
         OODrawStringAligned([PLAYER compassTargetLabel], x, y, z1, size, YES);
     } else {
@@ -2809,7 +2796,7 @@ static OOPolygonSprite* IconForMissileRole(NSString* role)
         GetRGBAArrayFromInfo(info, textColor);
         textColor[3] *= overallAlpha;
 
-        OOGL(glColor4f(textColor[0], textColor[1], textColor[2], textColor[3]));
+        OOImmediateColor4f(textColor[0], textColor[1], textColor[2], textColor[3]);
         // TODO: some caching required...
         OODrawString(DESC(@"weapons-systems-offline"), x, y, z1, siz);
     }
@@ -2839,7 +2826,7 @@ static OOPolygonSprite* IconForMissileRole(NSString* role)
     // We would normally set a variable alpha value here, but in this case we don't.
     // We prefer the FPS counter to be always visible - Nikos 20100405
     GetRGBAArrayFromInfo(info, textColor);
-    OOGL(glColor4f(textColor[0], textColor[1], textColor[2], 1.0f));
+    OOImmediateColor4f(textColor[0], textColor[1], textColor[2], 1.0f);
     OODrawString([PLAYER dial_fpsinfo], x, y, z1, siz);
 
 #ifndef NDEBUG
@@ -2924,35 +2911,35 @@ static OOPolygonSprite* IconForMissileRole(NSString* role)
     GLfloat h3 = 3.0 * h1;
     GLfloat h4 = 4.0 * h1;
 
-    OOGL(glDisable(GL_TEXTURE_2D));
-    OOGLBEGIN(GL_QUADS);
+    OOGLDisable(GL_TEXTURE_2D);
+    OOImmediateBegin(kOOPrimitiveQuads);
     // section 1
     GLColorWithOverallAlpha(s1c, overallAlpha);
-    glVertex3f(x, y + h1, z1);
-    glVertex3f(x - w2, y + h2, z1);
-    glVertex3f(x, y + h3, z1);
-    glVertex3f(x + w2, y + h2, z1);
+    OOImmediateVertex3f(x, y + h1, z1);
+    OOImmediateVertex3f(x - w2, y + h2, z1);
+    OOImmediateVertex3f(x, y + h3, z1);
+    OOImmediateVertex3f(x + w2, y + h2, z1);
     // section 2
     GLColorWithOverallAlpha(s2c, overallAlpha);
-    glVertex3f(x, y - h1, z1);
-    glVertex3f(x - w4, y + h1, z1);
-    glVertex3f(x - w4, y + h2, z1);
-    glVertex3f(x, y, z1);
-    glVertex3f(x, y - h1, z1);
-    glVertex3f(x + w4, y + h1, z1);
-    glVertex3f(x + w4, y + h2, z1);
-    glVertex3f(x, y, z1);
+    OOImmediateVertex3f(x, y - h1, z1);
+    OOImmediateVertex3f(x - w4, y + h1, z1);
+    OOImmediateVertex3f(x - w4, y + h2, z1);
+    OOImmediateVertex3f(x, y, z1);
+    OOImmediateVertex3f(x, y - h1, z1);
+    OOImmediateVertex3f(x + w4, y + h1, z1);
+    OOImmediateVertex3f(x + w4, y + h2, z1);
+    OOImmediateVertex3f(x, y, z1);
     // section 3
     GLColorWithOverallAlpha(s3c, overallAlpha);
-    glVertex3f(x, y - h4, z1);
-    glVertex3f(x - w2, y - h2, z1);
-    glVertex3f(x - w2, y - h1, z1);
-    glVertex3f(x, y - h2, z1);
-    glVertex3f(x, y - h4, z1);
-    glVertex3f(x + w2, y - h2, z1);
-    glVertex3f(x + w2, y - h1, z1);
-    glVertex3f(x, y - h2, z1);
-    OOGLEND();
+    OOImmediateVertex3f(x, y - h4, z1);
+    OOImmediateVertex3f(x - w2, y - h2, z1);
+    OOImmediateVertex3f(x - w2, y - h1, z1);
+    OOImmediateVertex3f(x, y - h2, z1);
+    OOImmediateVertex3f(x, y - h4, z1);
+    OOImmediateVertex3f(x + w2, y - h2, z1);
+    OOImmediateVertex3f(x + w2, y - h1, z1);
+    OOImmediateVertex3f(x, y - h2, z1);
+    OOImmediateEnd();
 }
 
 - (void)drawStickSensitivityIndicator:(NSDictionary*)info
@@ -3096,12 +3083,12 @@ static OOPolygonSprite* IconForMissileRole(NSString* role)
     GLfloat x1 = (GLfloat)(x + cached.width / 2);
     GLfloat y1 = (GLfloat)(y - cached.height / 2);
     GLColorWithOverallAlpha(mfd_color, alpha * 0.3);
-    OOGLBEGIN(GL_QUADS);
-    glVertex3f(x0 - 2, y0 + 2, z1);
-    glVertex3f(x0 - 2, y1 - 2, z1);
-    glVertex3f(x1 + 2, y1 - 2, z1);
-    glVertex3f(x1 + 2, y0 + 2, z1);
-    OOGLEND();
+    OOImmediateBegin(kOOPrimitiveQuads);
+    OOImmediateVertex3f(x0 - 2, y0 + 2, z1);
+    OOImmediateVertex3f(x0 - 2, y1 - 2, z1);
+    OOImmediateVertex3f(x1 + 2, y1 - 2, z1);
+    OOImmediateVertex3f(x1 + 2, y0 + 2, z1);
+    OOImmediateEnd();
 
     NSString* line = nil;
     NSArray* lines = [text componentsSeparatedByString:@"\n"];
@@ -3134,21 +3121,21 @@ static void hudDrawIndicatorAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfl
     if (siz.width > siz.height) {
         GLfloat dial_oy = y - siz.height / 2;
         GLfloat position = x + amount * siz.width / 2;
-        OOGLBEGIN(GL_QUADS);
-        glVertex3f(position, dial_oy, z);
-        glVertex3f(position + 2, y, z);
-        glVertex3f(position, dial_oy + siz.height, z);
-        glVertex3f(position - 2, y, z);
-        OOGLEND();
+        OOImmediateBegin(kOOPrimitiveQuads);
+        OOImmediateVertex3f(position, dial_oy, z);
+        OOImmediateVertex3f(position + 2, y, z);
+        OOImmediateVertex3f(position, dial_oy + siz.height, z);
+        OOImmediateVertex3f(position - 2, y, z);
+        OOImmediateEnd();
     } else {
         GLfloat dial_ox = x - siz.width / 2;
         GLfloat position = y + amount * siz.height / 2;
-        OOGLBEGIN(GL_QUADS);
-        glVertex3f(dial_ox, position, z);
-        glVertex3f(x, position + 2, z);
-        glVertex3f(dial_ox + siz.width, position, z);
-        glVertex3f(x, position - 2, z);
-        OOGLEND();
+        OOImmediateBegin(kOOPrimitiveQuads);
+        OOImmediateVertex3f(dial_ox, position, z);
+        OOImmediateVertex3f(x, position + 2, z);
+        OOImmediateVertex3f(dial_ox + siz.width, position, z);
+        OOImmediateVertex3f(x, position - 2, z);
+        OOImmediateEnd();
     }
 }
 
@@ -3157,21 +3144,21 @@ static void hudDrawMarkerAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat
     if (siz.width > siz.height) {
         GLfloat dial_oy = y - siz.height / 2;
         GLfloat position = x + amount * siz.width - siz.width / 2;
-        OOGLBEGIN(GL_QUADS);
-        glVertex3f(position + 1, dial_oy + 1, z);
-        glVertex3f(position + 1, dial_oy + siz.height - 1, z);
-        glVertex3f(position - 1, dial_oy + siz.height - 1, z);
-        glVertex3f(position - 1, dial_oy + 1, z);
-        OOGLEND();
+        OOImmediateBegin(kOOPrimitiveQuads);
+        OOImmediateVertex3f(position + 1, dial_oy + 1, z);
+        OOImmediateVertex3f(position + 1, dial_oy + siz.height - 1, z);
+        OOImmediateVertex3f(position - 1, dial_oy + siz.height - 1, z);
+        OOImmediateVertex3f(position - 1, dial_oy + 1, z);
+        OOImmediateEnd();
     } else {
         GLfloat dial_ox = x - siz.width / 2;
         GLfloat position = y + amount * siz.height - siz.height / 2;
-        OOGLBEGIN(GL_QUADS);
-        glVertex3f(dial_ox + 1, position + 1, z);
-        glVertex3f(dial_ox + siz.width - 1, position + 1, z);
-        glVertex3f(dial_ox + siz.width - 1, position - 1, z);
-        glVertex3f(dial_ox + 1, position - 1, z);
-        OOGLEND();
+        OOImmediateBegin(kOOPrimitiveQuads);
+        OOImmediateVertex3f(dial_ox + 1, position + 1, z);
+        OOImmediateVertex3f(dial_ox + siz.width - 1, position + 1, z);
+        OOImmediateVertex3f(dial_ox + siz.width - 1, position - 1, z);
+        OOImmediateVertex3f(dial_ox + 1, position - 1, z);
+        OOImmediateEnd();
     }
 }
 
@@ -3182,21 +3169,21 @@ static void hudDrawBarAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat am
     if (fabs(siz.width) > fabs(siz.height)) {
         GLfloat position = dial_ox + amount * siz.width;
 
-        OOGLBEGIN(GL_QUADS);
-        glVertex3f(dial_ox, dial_oy, z);
-        glVertex3f(position, dial_oy, z);
-        glVertex3f(position, dial_oy + siz.height, z);
-        glVertex3f(dial_ox, dial_oy + siz.height, z);
-        OOGLEND();
+        OOImmediateBegin(kOOPrimitiveQuads);
+        OOImmediateVertex3f(dial_ox, dial_oy, z);
+        OOImmediateVertex3f(position, dial_oy, z);
+        OOImmediateVertex3f(position, dial_oy + siz.height, z);
+        OOImmediateVertex3f(dial_ox, dial_oy + siz.height, z);
+        OOImmediateEnd();
     } else {
         GLfloat position = dial_oy + amount * siz.height;
 
-        OOGLBEGIN(GL_QUADS);
-        glVertex3f(dial_ox, dial_oy, z);
-        glVertex3f(dial_ox, position, z);
-        glVertex3f(dial_ox + siz.width, position, z);
-        glVertex3f(dial_ox + siz.width, dial_oy, z);
-        OOGLEND();
+        OOImmediateBegin(kOOPrimitiveQuads);
+        OOImmediateVertex3f(dial_ox, dial_oy, z);
+        OOImmediateVertex3f(dial_ox, position, z);
+        OOImmediateVertex3f(dial_ox + siz.width, position, z);
+        OOImmediateVertex3f(dial_ox + siz.width, dial_oy, z);
+        OOImmediateEnd();
     }
 }
 
@@ -3205,12 +3192,12 @@ static void hudDrawSurroundAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz)
     GLfloat dial_ox = x - siz.width / 2;
     GLfloat dial_oy = y - siz.height / 2;
 
-    OOGLBEGIN(GL_LINE_LOOP);
-    glVertex3f(dial_ox - 2, dial_oy - 2, z);
-    glVertex3f(dial_ox + siz.width + 2, dial_oy - 2, z);
-    glVertex3f(dial_ox + siz.width + 2, dial_oy + siz.height + 2, z);
-    glVertex3f(dial_ox - 2, dial_oy + siz.height + 2, z);
-    OOGLEND();
+    OOImmediateBegin(kOOPrimitiveLineLoop);
+    OOImmediateVertex3f(dial_ox - 2, dial_oy - 2, z);
+    OOImmediateVertex3f(dial_ox + siz.width + 2, dial_oy - 2, z);
+    OOImmediateVertex3f(dial_ox + siz.width + 2, dial_oy + siz.height + 2, z);
+    OOImmediateVertex3f(dial_ox - 2, dial_oy + siz.height + 2, z);
+    OOImmediateEnd();
 }
 
 static void hudDrawStatusIconAt(int x, int y, int z, NSSize siz)
@@ -3220,14 +3207,14 @@ static void hudDrawStatusIconAt(int x, int y, int z, NSSize siz)
     int w = siz.width / 4.0;
     int h = siz.height / 4.0;
 
-    glVertex3i(ox, oy + h, z);
-    glVertex3i(ox, oy + 3 * h, z);
-    glVertex3i(ox + w, oy + 4 * h, z);
-    glVertex3i(ox + 3 * w, oy + 4 * h, z);
-    glVertex3i(ox + 4 * w, oy + 3 * h, z);
-    glVertex3i(ox + 4 * w, oy + h, z);
-    glVertex3i(ox + 3 * w, oy, z);
-    glVertex3i(ox + w, oy, z);
+    OOImmediateVertex3f(ox, oy + h, z);
+    OOImmediateVertex3f(ox, oy + 3 * h, z);
+    OOImmediateVertex3f(ox + w, oy + 4 * h, z);
+    OOImmediateVertex3f(ox + 3 * w, oy + 4 * h, z);
+    OOImmediateVertex3f(ox + 4 * w, oy + 3 * h, z);
+    OOImmediateVertex3f(ox + 4 * w, oy + h, z);
+    OOImmediateVertex3f(ox + 3 * w, oy, z);
+    OOImmediateVertex3f(ox + w, oy, z);
 }
 
 static void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1,
@@ -3357,27 +3344,27 @@ static void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloa
             GLColorWithOverallAlpha(reticleDisplayColorArray, alpha);
         }
     }
-    OOGLBEGIN(GL_LINES);
-    glVertex2f(rs0, rs2);
-    glVertex2f(rs0, rs0);
-    glVertex2f(rs0, rs0);
-    glVertex2f(rs2, rs0);
+    OOImmediateBegin(kOOPrimitiveLines);
+    OOImmediateVertex2f(rs0, rs2);
+    OOImmediateVertex2f(rs0, rs0);
+    OOImmediateVertex2f(rs0, rs0);
+    OOImmediateVertex2f(rs2, rs0);
 
-    glVertex2f(rs0, -rs2);
-    glVertex2f(rs0, -rs0);
-    glVertex2f(rs0, -rs0);
-    glVertex2f(rs2, -rs0);
+    OOImmediateVertex2f(rs0, -rs2);
+    OOImmediateVertex2f(rs0, -rs0);
+    OOImmediateVertex2f(rs0, -rs0);
+    OOImmediateVertex2f(rs2, -rs0);
 
-    glVertex2f(-rs0, rs2);
-    glVertex2f(-rs0, rs0);
-    glVertex2f(-rs0, rs0);
-    glVertex2f(-rs2, rs0);
+    OOImmediateVertex2f(-rs0, rs2);
+    OOImmediateVertex2f(-rs0, rs0);
+    OOImmediateVertex2f(-rs0, rs0);
+    OOImmediateVertex2f(-rs2, rs0);
 
-    glVertex2f(-rs0, -rs2);
-    glVertex2f(-rs0, -rs0);
-    glVertex2f(-rs0, -rs0);
-    glVertex2f(-rs2, -rs0);
-    OOGLEND();
+    OOImmediateVertex2f(-rs0, -rs2);
+    OOImmediateVertex2f(-rs0, -rs0);
+    OOImmediateVertex2f(-rs0, -rs0);
+    OOImmediateVertex2f(-rs2, -rs0);
+    OOImmediateEnd();
 
     if (showText) {
         // add text for reticle here
@@ -3451,30 +3438,30 @@ static void hudDrawWaypoint(OOWaypointEntity* waypoint, PlayerEntity* player1, G
         GLColorWithOverallAlpha(blue_color, alpha * 0.25);
     }
 
-    OOGLBEGIN(GL_LINES);
-    glVertex2f(rs0, rs2);
-    glVertex2f(rs2, rs2);
-    glVertex2f(rs2, rs0);
-    glVertex2f(rs2, rs2);
+    OOImmediateBegin(kOOPrimitiveLines);
+    OOImmediateVertex2f(rs0, rs2);
+    OOImmediateVertex2f(rs2, rs2);
+    OOImmediateVertex2f(rs2, rs0);
+    OOImmediateVertex2f(rs2, rs2);
 
-    glVertex2f(-rs0, rs2);
-    glVertex2f(-rs2, rs2);
-    glVertex2f(-rs2, rs0);
-    glVertex2f(-rs2, rs2);
+    OOImmediateVertex2f(-rs0, rs2);
+    OOImmediateVertex2f(-rs2, rs2);
+    OOImmediateVertex2f(-rs2, rs0);
+    OOImmediateVertex2f(-rs2, rs2);
 
-    glVertex2f(-rs0, -rs2);
-    glVertex2f(-rs2, -rs2);
-    glVertex2f(-rs2, -rs0);
-    glVertex2f(-rs2, -rs2);
+    OOImmediateVertex2f(-rs0, -rs2);
+    OOImmediateVertex2f(-rs2, -rs2);
+    OOImmediateVertex2f(-rs2, -rs0);
+    OOImmediateVertex2f(-rs2, -rs2);
 
-    glVertex2f(rs0, -rs2);
-    glVertex2f(rs2, -rs2);
-    glVertex2f(rs2, -rs0);
-    glVertex2f(rs2, -rs2);
+    OOImmediateVertex2f(rs0, -rs2);
+    OOImmediateVertex2f(rs2, -rs2);
+    OOImmediateVertex2f(rs2, -rs0);
+    OOImmediateVertex2f(rs2, -rs2);
 
     //		glVertex2f(0,-rs2);	glVertex2f(0,rs2);
     //		glVertex2f(rs2,0);	glVertex2f(-rs2,0);
-    OOGLEND();
+    OOImmediateEnd();
 
     if (selected) {
         GLfloat range = HPdistance([player1 position], [waypoint position]) * 0.001f;
@@ -3606,14 +3593,14 @@ static GLfloat drawCharacterQuad(uint8_t chr, GLfloat x, GLfloat y, GLfloat z, N
         if (chr > 32)
             y += ONE_EIGHTH * siz.height; // Adjust for baseline offset change in 1.71 (needed to keep accented characters in box)
 
-        glTexCoord2f(texture_x, texture_y + ONE_SIXTEENTH);
-        glVertex3f(x, y, z);
-        glTexCoord2f(texture_x + ONE_SIXTEENTH, texture_y + ONE_SIXTEENTH);
-        glVertex3f(x + siz.width, y, z);
-        glTexCoord2f(texture_x + ONE_SIXTEENTH, texture_y);
-        glVertex3f(x + siz.width, y + siz.height, z);
-        glTexCoord2f(texture_x, texture_y);
-        glVertex3f(x, y + siz.height, z);
+        OOImmediateTexCoord2f(texture_x, texture_y + ONE_SIXTEENTH);
+        OOImmediateVertex3f(x, y, z);
+        OOImmediateTexCoord2f(texture_x + ONE_SIXTEENTH, texture_y + ONE_SIXTEENTH);
+        OOImmediateVertex3f(x + siz.width, y, z);
+        OOImmediateTexCoord2f(texture_x + ONE_SIXTEENTH, texture_y);
+        OOImmediateVertex3f(x + siz.width, y + siz.height, z);
+        OOImmediateTexCoord2f(texture_x, texture_y);
+        OOImmediateVertex3f(x, y + siz.height, z);
     }
     return siz.width * sGlyphWidths[chr];
 }
@@ -3641,33 +3628,51 @@ CGFloat OOStringWidthInEm(NSString* text)
     return OORectFromString(text, 0, 0, NSMakeSize(1.0 / (GLYPH_SCALE_FACTOR * 8.0), 1.0)).size.width;
 }
 
+// Text is drawn as an overlay, clipped like whatever it is drawn inside.
+static OODrawState TextDrawState(BOOL textured)
+{
+    OODrawState enclosing = OORendererInheritedDrawState(kOODrawStateOverlay);
+    OODrawState state = OODrawStateForPreset(kOODrawStateOverlay);
+    state.scissor = enclosing.scissor;
+    memcpy(state.scissorRect, enclosing.scissorRect, sizeof state.scissorRect);
+    if (textured) {
+        state.texture2D = true;
+        state.texture = sFontTexture;
+    }
+    return state;
+}
+
 void drawHighlight(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat alpha)
 {
+    OODrawState state = TextDrawState(NO);
+    OORendererPushDrawState(&state);
     // Rounded corners, fading 'shadow' version
-    OOGL(glColor4f(0.0f, 0.0f, 0.0f, alpha * 0.4f)); // dark translucent shadow
+    OOImmediateColor4f(0.0f, 0.0f, 0.0f, alpha * 0.4f); // dark translucent shadow
 
-    OOGLBEGIN(GL_POLYGON);
+    OOImmediateBegin(kOOPrimitivePolygon);
     // thin 'halo' around the 'solid' highlight
-    glVertex3f(x + 1.0f, y + siz.height + 2.5f, z);
-    glVertex3f(x + siz.width + 3.0f, y + siz.height + 2.5f, z);
-    glVertex3f(x + siz.width + 4.5f, y + siz.height + 1.0f, z);
-    glVertex3f(x + siz.width + 4.5f, y + 3.0f, z);
-    glVertex3f(x + siz.width + 3.0f, y + 1.5f, z);
-    glVertex3f(x + 1.0f, y + 1.5f, z);
-    glVertex3f(x - 0.5f, y + 3.0f, z);
-    glVertex3f(x - 0.5f, y + siz.height + 1.0f, z);
-    OOGLEND();
+    OOImmediateVertex3f(x + 1.0f, y + siz.height + 2.5f, z);
+    OOImmediateVertex3f(x + siz.width + 3.0f, y + siz.height + 2.5f, z);
+    OOImmediateVertex3f(x + siz.width + 4.5f, y + siz.height + 1.0f, z);
+    OOImmediateVertex3f(x + siz.width + 4.5f, y + 3.0f, z);
+    OOImmediateVertex3f(x + siz.width + 3.0f, y + 1.5f, z);
+    OOImmediateVertex3f(x + 1.0f, y + 1.5f, z);
+    OOImmediateVertex3f(x - 0.5f, y + 3.0f, z);
+    OOImmediateVertex3f(x - 0.5f, y + siz.height + 1.0f, z);
+    OOImmediateEnd();
 
-    OOGLBEGIN(GL_POLYGON);
-    glVertex3f(x + 1.0f, y + siz.height + 2.0f, z);
-    glVertex3f(x + siz.width + 3.0f, y + siz.height + 2.0f, z);
-    glVertex3f(x + siz.width + 4.0f, y + siz.height + 1.0f, z);
-    glVertex3f(x + siz.width + 4.0f, y + 3.0f, z);
-    glVertex3f(x + siz.width + 3.0f, y + 2.0f, z);
-    glVertex3f(x + 1.0f, y + 2.0f, z);
-    glVertex3f(x, y + 3.0f, z);
-    glVertex3f(x, y + siz.height + 1.0f, z);
-    OOGLEND();
+    OOImmediateBegin(kOOPrimitivePolygon);
+    OOImmediateVertex3f(x + 1.0f, y + siz.height + 2.0f, z);
+    OOImmediateVertex3f(x + siz.width + 3.0f, y + siz.height + 2.0f, z);
+    OOImmediateVertex3f(x + siz.width + 4.0f, y + siz.height + 1.0f, z);
+    OOImmediateVertex3f(x + siz.width + 4.0f, y + 3.0f, z);
+    OOImmediateVertex3f(x + siz.width + 3.0f, y + 2.0f, z);
+    OOImmediateVertex3f(x + 1.0f, y + 2.0f, z);
+    OOImmediateVertex3f(x, y + 3.0f, z);
+    OOImmediateVertex3f(x, y + siz.height + 1.0f, z);
+    OOImmediateEnd();
+
+    OORendererPopDrawState();
 }
 
 void OODrawString(NSString* text, GLfloat x, GLfloat y, GLfloat z, NSSize siz)
@@ -3686,9 +3691,9 @@ void OOStartDrawingStrings()
 {
     OOSetOpenGLState(OPENGL_STATE_OVERLAY);
 
-    OOGL(glEnable(GL_TEXTURE_2D));
-    [sFontTexture apply];
-    OOGLBEGIN(GL_QUADS);
+    OODrawState state = TextDrawState(YES);
+    OORendererPushDrawState(&state);
+    OOImmediateBegin(kOOPrimitiveQuads);
 }
 
 void OODrawStringQuadsAligned(NSString* text, GLfloat x, GLfloat y, GLfloat z, NSSize siz, BOOL rightAlign)
@@ -3713,30 +3718,25 @@ void OODrawStringQuadsAligned(NSString* text, GLfloat x, GLfloat y, GLfloat z, N
 
 void OOStopDrawingStrings()
 {
-    OOGLEND();
-
-    [OOTexture applyNone];
-    OOGL(glDisable(GL_TEXTURE_2D));
+    OOImmediateEnd();
+    OORendererPopDrawState();
 
     OOVerifyOpenGLState();
 }
 
 void OODrawHilightedString(NSString* text, GLfloat x, GLfloat y, GLfloat z, NSSize siz)
 {
-    GLfloat color[4];
-
     // get the physical dimensions of the string
     NSSize strsize = OORectFromString(text, 0.0f, 0.0f, siz).size;
     strsize.width += 0.5f;
 
     OOSetOpenGLState(OPENGL_STATE_OVERLAY);
 
-    OOGL(glPushAttrib(GL_CURRENT_BIT)); // save the text colour
-    OOGL(glGetFloatv(GL_CURRENT_COLOR, color)); // we need the original colour's alpha.
+    OOImmediateAttributes textAttributes = OOImmediateGetAttributes(); // save the text colour; we need its alpha.
 
-    drawHighlight(x, y, z, strsize, color[3]);
+    drawHighlight(x, y, z, strsize, textAttributes.color[3]);
 
-    OOGL(glPopAttrib()); // restore the colour
+    OOImmediateSetAttributes(textAttributes); // restore the colour
 
     OODrawString(text, x, y, z, siz);
 
@@ -3760,10 +3760,10 @@ void OODrawPlanetInfo(int gov, int eco, int tec, GLfloat x, GLfloat y, GLfloat z
 
     OOSetOpenGLState(OPENGL_STATE_OVERLAY);
 
-    OOGL(glEnable(GL_TEXTURE_2D));
-    [sFontTexture apply];
+    OODrawState state = TextDrawState(YES);
+    OORendererPushDrawState(&state);
 
-    OOGLBEGIN(GL_QUADS);
+    OOImmediateBegin(kOOPrimitiveQuads);
     {
         [[UNIVERSE gui] setGLColorFromSetting:[NSString stringWithFormat:kGuiChartEconomyUColor, (size_t)eco]
                                  defaultValue:[OOColor colorWithRed:ce1 green:1.0f blue:0.0f alpha:1.0f]
@@ -3786,19 +3786,17 @@ void OODrawPlanetInfo(int gov, int eco, int tec, GLfloat x, GLfloat y, GLfloat z
         }
         cx += drawCharacterQuad(48 + (tl % 10), cx, y - 2.0f, z, siz);
     }
-    OOGLEND();
+    OOImmediateEnd();
 
     (void)cx; // Suppress "value not used" analyzer issue.
 
-    [OOTexture applyNone];
-    OOGL(glDisable(GL_TEXTURE_2D));
+    OORendererPopDrawState();
 
     OOVerifyOpenGLState();
 }
 
 void OODrawHilightedPlanetInfo(int gov, int eco, int tec, GLfloat x, GLfloat y, GLfloat z, NSSize siz)
 {
-    float color[4];
     int tl = tec + 1;
 
     NSSize hisize;
@@ -3816,12 +3814,11 @@ void OODrawHilightedPlanetInfo(int gov, int eco, int tec, GLfloat x, GLfloat y, 
 
     OOSetOpenGLState(OPENGL_STATE_OVERLAY);
 
-    OOGL(glPushAttrib(GL_CURRENT_BIT)); // save the text colour
-    OOGL(glGetFloatv(GL_CURRENT_COLOR, color)); // we need the original colour's alpha.
+    OOImmediateAttributes textAttributes = OOImmediateGetAttributes(); // save the text colour; we need its alpha.
 
-    drawHighlight(x, y - 2.0f, z, hisize, color[3]);
+    drawHighlight(x, y - 2.0f, z, hisize, textAttributes.color[3]);
 
-    OOGL(glPopAttrib()); // restore the colour
+    OOImmediateSetAttributes(textAttributes); // restore the colour
 
     OODrawPlanetInfo(gov, eco, tec, x, y, z, siz);
 
@@ -3839,7 +3836,7 @@ static void GLDrawNonlinearCascadeWeapon(GLfloat x, GLfloat y, GLfloat z, NSSize
 
     if (radius * radius > centre.y * centre.y) {
         GLfloat r0 = sqrt(radius * radius - centre.y * centre.y);
-        OOGL(glColor4f(1.0, 0.5, 1.0, alpha));
+        OOImmediateColor4f(1.0, 0.5, 1.0, alpha);
         spacepos.y = 0;
         for (i = 0; i < 24; i++) {
             theta = i * 2 * M_PI / 24;
@@ -3859,7 +3856,7 @@ static void GLDrawNonlinearCascadeWeapon(GLfloat x, GLfloat y, GLfloat z, NSSize
         points[24].z = z;
         GLDrawPoints(points, 25);
     }
-    OOGL(glColor4f(0.5, 0.0, 1.0, 0.33333 * alpha));
+    OOImmediateColor4f(0.5, 0.0, 1.0, 0.33333 * alpha);
     free(points);
     // Here, we draw a sphere distorted by the nonlinear function. We draw the sphere as a set of horizontal strips
     // The even indices of points are the points on the upper edge of the strip, while odd indices are points
@@ -3929,12 +3926,12 @@ static void drawScannerGrid(GLfloat x, GLfloat y, GLfloat z, NSSize siz, int v_d
     GLDrawOval(x, y, z, siz, 4);
     OOGL(GLScaledLineWidth(thickness)); // reset (thickness = lineWidth)
 
-    OOGLBEGIN(GL_LINES);
+    OOImmediateBegin(kOOPrimitiveLines);
     if (!minimalistic) {
-        glVertex3f(x, y - hh, z);
-        glVertex3f(x, y + hh, z);
-        glVertex3f(x - ww, y, z);
-        glVertex3f(x + ww, y, z);
+        OOImmediateVertex3f(x, y - hh, z);
+        OOImmediateVertex3f(x, y + hh, z);
+        OOImmediateVertex3f(x - ww, y, z);
+        OOImmediateVertex3f(x + ww, y, z);
 
         if (nonlinear) {
             if (nonlinearScannerFunc(4000.0, zoom, hh) - nonlinearScannerFunc(3000.0, zoom, hh) > 2)
@@ -3964,10 +3961,10 @@ static void drawScannerGrid(GLfloat x, GLfloat y, GLfloat z, NSSize siz, int v_d
                 }
                 if (drawdiv) {
                     h1 = nonlinearScannerFunc(i * 1000.0, zoom, hh);
-                    glVertex3f(x - w1, y + h1, z);
-                    glVertex3f(x + w1, y + h1, z);
-                    glVertex3f(x - w1, y - h1, z);
-                    glVertex3f(x + w1, y - h1, z);
+                    OOImmediateVertex3f(x - w1, y + h1, z);
+                    OOImmediateVertex3f(x + w1, y + h1, z);
+                    OOImmediateVertex3f(x - w1, y - h1, z);
+                    OOImmediateVertex3f(x + w1, y - h1, z);
                 }
             }
         } else {
@@ -3990,10 +3987,10 @@ static void drawScannerGrid(GLfloat x, GLfloat y, GLfloat z, NSSize siz, int v_d
                     w1 = w1 * 2.0;
                 if (w1 > 3.5) // don't draw tiny marks
                 {
-                    glVertex3f(x - w1, y + h1, z);
-                    glVertex3f(x + w1, y + h1, z);
-                    glVertex3f(x - w1, y - h1, z);
-                    glVertex3f(x + w1, y - h1, z);
+                    OOImmediateVertex3f(x - w1, y + h1, z);
+                    OOImmediateVertex3f(x + w1, y + h1, z);
+                    OOImmediateVertex3f(x - w1, y - h1, z);
+                    OOImmediateVertex3f(x + w1, y - h1, z);
                 }
             }
         }
@@ -4012,34 +4009,34 @@ static void drawScannerGrid(GLfloat x, GLfloat y, GLfloat z, NSSize siz, int v_d
     case VIEW_GUI_DISPLAY:
     case VIEW_FORWARD:
     case VIEW_NONE:
-        glVertex3f(x, y, z);
-        glVertex3f(x - ww * sinfov, y + hh * cosfov, z);
-        glVertex3f(x, y, z);
-        glVertex3f(x + ww * sinfov, y + hh * cosfov, z);
+        OOImmediateVertex3f(x, y, z);
+        OOImmediateVertex3f(x - ww * sinfov, y + hh * cosfov, z);
+        OOImmediateVertex3f(x, y, z);
+        OOImmediateVertex3f(x + ww * sinfov, y + hh * cosfov, z);
         break;
 
     case VIEW_AFT:
-        glVertex3f(x, y, z);
-        glVertex3f(x - ww * sinfov, y - hh * cosfov, z);
-        glVertex3f(x, y, z);
-        glVertex3f(x + ww * sinfov, y - hh * cosfov, z);
+        OOImmediateVertex3f(x, y, z);
+        OOImmediateVertex3f(x - ww * sinfov, y - hh * cosfov, z);
+        OOImmediateVertex3f(x, y, z);
+        OOImmediateVertex3f(x + ww * sinfov, y - hh * cosfov, z);
         break;
 
     case VIEW_PORT:
-        glVertex3f(x, y, z);
-        glVertex3f(x - ww * cosfov, y + hh * sinfov, z);
-        glVertex3f(x, y, z);
-        glVertex3f(x - ww * cosfov, y - hh * sinfov, z);
+        OOImmediateVertex3f(x, y, z);
+        OOImmediateVertex3f(x - ww * cosfov, y + hh * sinfov, z);
+        OOImmediateVertex3f(x, y, z);
+        OOImmediateVertex3f(x - ww * cosfov, y - hh * sinfov, z);
         break;
 
     case VIEW_STARBOARD:
-        glVertex3f(x, y, z);
-        glVertex3f(x + ww * cosfov, y + hh * sinfov, z);
-        glVertex3f(x, y, z);
-        glVertex3f(x + ww * cosfov, y - hh * sinfov, z);
+        OOImmediateVertex3f(x, y, z);
+        OOImmediateVertex3f(x + ww * cosfov, y + hh * sinfov, z);
+        OOImmediateVertex3f(x, y, z);
+        OOImmediateVertex3f(x + ww * cosfov, y - hh * sinfov, z);
         break;
     }
-    OOGLEND();
+    OOImmediateEnd();
 
     OOVerifyOpenGLState();
 }
@@ -4054,13 +4051,13 @@ static void DrawSpecialOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat
 
     delta = step * M_PI / 180.0f;
 
-    OOGLBEGIN(GL_LINE_LOOP);
+    OOImmediateBegin(kOOPrimitiveLineLoop);
     for (theta = 0.0f; theta < (2.0f * M_PI); theta += delta) {
         s = sin(theta);
-        glColor4f(color4v[0], color4v[1], color4v[2], fabs(s * color4v[3]));
-        glVertex3f(x + ww * s, y + hh * cos(theta), z);
+        OOImmediateColor4f(color4v[0], color4v[1], color4v[2], fabs(s * color4v[3]));
+        OOImmediateVertex3f(x + ww * s, y + hh * cos(theta), z);
     }
-    OOGLEND();
+    OOImmediateEnd();
 }
 
 - (void)setLineWidth:(GLfloat)value
@@ -4113,7 +4110,7 @@ static void DrawSpecialOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat
     OOGLTranslateModelView(make_vector(ox, oy, z));
     OOGLScaleModelView(make_vector(width, height, 1.0f));
     [self drawFilled];
-    glColor4f(0.0, 0.0, 0.0, 0.5 * alpha);
+    OOImmediateColor4f(0.0, 0.0, 0.0, 0.5 * alpha);
     [self drawOutline];
     OOGLPopModelView();
 }

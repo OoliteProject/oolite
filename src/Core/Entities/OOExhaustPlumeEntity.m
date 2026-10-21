@@ -27,10 +27,12 @@ MA 02110-1301, USA.
 #import "MyOpenGLView.h"
 #import "OOCollectionExtractors.h"
 #import "OOMacroOpenGL.h"
+#import "OOVertexArray.h"
 #import "PlayerEntity.h"
 #import "ShipEntity.h"
 #import "Universe.h"
 
+#import "OOGLStateCompat.h"
 #import "OOGraphicsResetManager.h"
 #import "OOTexture.h"
 
@@ -386,21 +388,18 @@ static GLfloat pA[6] = { 0.01, 0.0, 2.0, 4.0, 6.0, 10.0 }; // phase adjustments
         }
     }
 
-    OOGL(glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT));
+    OOGLPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT);
 
-    OOGL(glDisable(GL_LIGHTING));
-    OOGL(glEnable(GL_BLEND));
-    OOGL(glDepthMask(GL_FALSE));
-    OOGL(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
-    OOGL(glEnable(GL_TEXTURE_2D));
+    OOGLDisable(GL_LIGHTING);
+    OOGLEnable(GL_BLEND);
+    OOGLDepthMask(GL_FALSE);
+    OOGLEnable(GL_TEXTURE_2D);
     [[self texture] apply];
 
     //	OOGL(glDisable(GL_CULL_FACE));		// face culling
-    OOGL(glShadeModel(GL_SMOOTH));
+    OOGLShadeModel(GL_SMOOTH);
 
-    OOGL(glEnableClientState(GL_COLOR_ARRAY));
-    OOGL(glVertexPointer(3, GL_FLOAT, 0, _glVertices));
-    OOGL(glColorPointer(4, GL_FLOAT, 0, _exhaustBaseColors));
+    const OORendererBuffer* positions = OORendererTransientBuffer(_glVertices, sizeof _glVertices);
 
     double intpart, dphase = 1.0 - modf((double)[UNIVERSE getTime] * 2.5, &intpart);
     GLfloat phase = (GLfloat)dphase;
@@ -480,19 +479,22 @@ static GLfloat pA[6] = { 0.01, 0.0, 2.0, 4.0, 6.0, 10.0 }; // phase adjustments
         0.5,
         phase + pA[5],
     };
-    OOGL(glTexCoordPointer(2, GL_FLOAT, 0, texCoords));
+    OOVertexLayout layout = { .count = 0 };
+    OOVertexLayoutAdd(&layout, kOOVertexPosition, 0, 3, 0, positions, 0);
+    OOVertexLayoutAdd(&layout, kOOVertexColor, 0, 4, 0, OORendererTransientBuffer(_exhaustBaseColors, sizeof _exhaustBaseColors), 0);
+    OOVertexLayoutAdd(&layout, kOOVertexTexCoord, 0, 2, 0, OORendererTransientBuffer(texCoords, sizeof texCoords), 0);
 
     // reduced detail for internal view to avoid rendering artefacts
     if ([[self owner] isPlayer] && [UNIVERSE viewDirection] != VIEW_CUSTOM) {
-        OOGL(glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_INT, afttstr1));
-        OOGL(glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_INT, afttstr2));
-        OOGL(glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_INT, afttstr3));
-        OOGL(glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_INT, afttstr4));
+        OORendererDrawElements(kOONativePrimitiveTriangleStrip, &layout, OORendererTransientBuffer(afttstr1, sizeof afttstr1), 0, kOOIndex32, 4);
+        OORendererDrawElements(kOONativePrimitiveTriangleStrip, &layout, OORendererTransientBuffer(afttstr2, sizeof afttstr2), 0, kOOIndex32, 4);
+        OORendererDrawElements(kOONativePrimitiveTriangleStrip, &layout, OORendererTransientBuffer(afttstr3, sizeof afttstr3), 0, kOOIndex32, 4);
+        OORendererDrawElements(kOONativePrimitiveTriangleStrip, &layout, OORendererTransientBuffer(afttstr4, sizeof afttstr4), 0, kOOIndex32, 4);
     } else {
-        OOGL(glDrawElements(GL_TRIANGLE_STRIP, 9, GL_UNSIGNED_INT, tstr1));
-        OOGL(glDrawElements(GL_TRIANGLE_STRIP, 9, GL_UNSIGNED_INT, tstr2));
-        OOGL(glDrawElements(GL_TRIANGLE_STRIP, 9, GL_UNSIGNED_INT, tstr3));
-        OOGL(glDrawElements(GL_TRIANGLE_STRIP, 9, GL_UNSIGNED_INT, tstr4));
+        OORendererDrawElements(kOONativePrimitiveTriangleStrip, &layout, OORendererTransientBuffer(tstr1, sizeof tstr1), 0, kOOIndex32, 9);
+        OORendererDrawElements(kOONativePrimitiveTriangleStrip, &layout, OORendererTransientBuffer(tstr2, sizeof tstr2), 0, kOOIndex32, 9);
+        OORendererDrawElements(kOONativePrimitiveTriangleStrip, &layout, OORendererTransientBuffer(tstr3, sizeof tstr3), 0, kOOIndex32, 9);
+        OORendererDrawElements(kOONativePrimitiveTriangleStrip, &layout, OORendererTransientBuffer(tstr4, sizeof tstr4), 0, kOOIndex32, 9);
     }
 
     /* Need a different texture and color array for this segment */
@@ -507,7 +509,6 @@ static GLfloat pA[6] = { 0.01, 0.0, 2.0, 4.0, 6.0, 10.0 }; // phase adjustments
         0.2f, 0.2f + phase,
         0.2f, 0.1f + phase
     };
-    OOGL(glTexCoordPointer(2, GL_FLOAT, 0, fanTextures));
 
     GLfloat fanColors[36];
     GLfloat fr = _exhaustBaseColors[0], fg = _exhaustBaseColors[1], fb = _exhaustBaseColors[2];
@@ -522,16 +523,15 @@ static GLfloat pA[6] = { 0.01, 0.0, 2.0, 4.0, 6.0, 10.0 }; // phase adjustments
         fanColors[i++] = fb;
         fanColors[i++] = 0.5;
     }
-    OOGL(glColorPointer(4, GL_FLOAT, 0, fanColors));
+    layout.count = 0;
+    OOVertexLayoutAdd(&layout, kOOVertexPosition, 0, 3, 0, positions, 0);
+    OOVertexLayoutAdd(&layout, kOOVertexColor, 0, 4, 0, OORendererTransientBuffer(fanColors, sizeof fanColors), 0);
+    OOVertexLayoutAdd(&layout, kOOVertexTexCoord, 0, 2, 0, OORendererTransientBuffer(fanTextures, sizeof fanTextures), 0);
+    OORendererDrawPrimitiveElements(kOOPrimitiveTriangleFan, &layout, OORendererTransientBuffer(tfan1, sizeof tfan1), 0, kOOIndex32, 10);
 
-    OOGL(glDrawElements(GL_TRIANGLE_FAN, 10, GL_UNSIGNED_INT, tfan1));
+    OOGLDisable(GL_TEXTURE_2D);
 
-    OOGL(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
-    OOGL(glDisable(GL_TEXTURE_2D));
-
-    OOGL(glDisableClientState(GL_COLOR_ARRAY));
-
-    OOGL(glPopAttrib());
+    OOGLPopAttrib();
 
     OOVerifyOpenGLState();
 }
