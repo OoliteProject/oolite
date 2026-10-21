@@ -548,6 +548,27 @@ attribute bindings; use; uniforms by handle; samplers by texture unit.
 faults (14 in the backend, 2 in the translator) each fail only their
 scenes.
 
+**Game code is backend-neutral.** The post chain binds renderer programs.
+GL's context housekeeping now lives in the GL backend: snapshot read
+buffer and alignment, finish and flush, the fog hint, colour clamping for
+float targets, and the texture limits. What's left in game code is the
+extension manager's start-up probing, and debug-only state dumps and
+checks.
+
+**CI.** The branch was pushed to the fork on 2026-10-21, with the user's
+agreement, to get Windows builds.
+- Linux (Arch, Ubuntu, Fedora; dev, test, deployment) and macOS built and
+  passed. A local Arch build of dev and deployment passed too.
+- Windows found two problems: `srandom`, which MinGW lacks, in the
+  deterministic-test seed; and the SDL header added to `OOJSConsole.m`
+  for `console.simulateKey`, which clashed with `intrin.h` after Oolite's
+  headers. Both are fixed.
+- Every push publishes a prerelease on the fork, from the release job.
+
+**Frames in flight and readback.** Passes are submitted without waiting;
+only readback waits. Texture readback works on SDL_GPU, and the backend
+test round-trips every format, level and cube face on both backends.
+
 **Next:**
 - **Needs a decision:** moving the translator and backend into
   `src/Core/Renderer` makes glslang and SPIRV-Cross game dependencies,
@@ -561,8 +582,6 @@ scenes.
   modulate, which only the no-shader detail level uses. Whether that
   level survives on SDL_GPU, where everything is a shader anyway, is a
   maintainer question.
-- The remaining direct GL in game code: snapshot readback, the fog hints,
-  and the post chain binding programs by name.
 
 ## Reproducing
 
