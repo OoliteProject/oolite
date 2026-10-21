@@ -28,7 +28,7 @@ if get_option('renderer') == 'sdl_gpu'
             cc.find_library('SPIRV-Tools-opt', required: false), dependency('SPIRV-Tools-shared', 'SPIRV-Tools', required: false)])
     else
         glslang_include = run_command('sh', '-c',
-            'for d in /opt/homebrew/include /usr/local/include /usr/include; do [ -d $d/glslang ] && echo $d && break; done',
+            'for d in /opt/homebrew/include /usr/local/include /usr/include /ucrt64/include /mingw64/include; do [ -d $d/glslang ] && echo $d && break; done',
             check: true).stdout().strip()
         glslang = declare_dependency(
             dependencies: [cc.find_library('glslang', dirs: brew_lib), cc.find_library('glslang-default-resource-limits', dirs: brew_lib)],

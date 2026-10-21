@@ -174,6 +174,45 @@ jobs:
             build/OoliteInstall*.exe
           retention-days: 5
 
+  # The SDL_GPU renderer (-Drenderer=sdl_gpu), built but not packaged or
+  # released: the runners have no GPU to run it on.
+  build-windows-sdl-gpu:
+    needs: clang-format-check
+    runs-on: windows-latest
+    steps:
+      - name: Git line endings & curl token
+        run: |
+          git config --global core.autocrlf false
+          git config --global core.eol lf
+      - name: Set up MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          MSYSTEM: UCRT64
+          update: true
+          cache: false
+      - name: Checkout Oolite
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Install packages
+        shell: msys2 {0}
+        env:
+          MSYSTEM: UCRT64
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo 'header = "Authorization: Bearer '$GITHUB_TOKEN'"' >> ~/.curlrc
+          echo 'header = "Accept: application/vnd.github+json"' >> ~/.curlrc
+          cp ~/.curlrc /c/Users/runneradmin/.curlrc 2>/dev/null || true
+          ShellScripts/Windows/install_deps.sh clang
+          pacboy -S --noconfirm glslang:p spirv-cross:p
+      - name: Build Oolite with SDL_GPU
+        shell: msys2 {0}
+        env:
+          MSYSTEM: UCRT64
+          PYTHONUTF8: "1"
+        run: |
+          ./mk.sh build dev --setup-flags="-Drenderer=sdl_gpu" --github-repository="$GITHUB_REPOSITORY"
+
   build-macos:
     needs: clang-format-check
     runs-on: macos-latest
