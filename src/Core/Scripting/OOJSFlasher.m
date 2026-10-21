@@ -1,5 +1,5 @@
 /*
-OOJSFlasher.m
+OOJSFlasher.m (QuickJS-ng)
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -30,28 +30,18 @@ MA 02110-1301, USA.
 #import "OOVisualEffectEntity.h"
 #import "ShipEntity.h"
 
-static JSObject* sFlasherPrototype;
+static JSClassID sFlasherClassID;
 
-static BOOL JSFlasherGetFlasherEntity(JSContext* context, JSObject* jsobj, OOFlasherEntity** outEntity);
+static BOOL JSFlasherGetFlasherEntity(JSContext* context, JSValueConst jsobj, OOFlasherEntity** outEntity);
 
-static JSBool FlasherGetProperty(JSContext* context, JSObject* this, jsid propID, jsval* value);
-static JSBool FlasherSetProperty(JSContext* context, JSObject* this, jsid propID, JSBool strict, jsval* value);
+static JSValue FlasherGetProperty(OOJS_GETTER_ARGS);
+static JSValue FlasherSetProperty(OOJS_SETTER_ARGS);
 
-static JSBool FlasherRemove(JSContext* context, uintN argc, jsval* vp);
+static JSValue FlasherRemove(OOJS_NATIVE_ARGS);
 
-static JSClass sFlasherClass = {
-    "Flasher",
-    JSCLASS_HAS_PRIVATE,
-
-    JS_PropertyStub, // addProperty
-    JS_PropertyStub, // delProperty
-    FlasherGetProperty, // getProperty
-    FlasherSetProperty, // setProperty
-    JS_EnumerateStub, // enumerate
-    JS_ResolveStub, // resolve
-    JS_ConvertStub, // convert
-    OOJSObjectWrapperFinalize, // finalize
-    JSCLASS_NO_OPTIONAL_MEMBERS
+static JSClassDef sFlasherClass = {
+    .class_name = "Flasher",
+    .finalizer = OOJSObjectWrapperFinalize,
 };
 
 enum {
@@ -64,32 +54,41 @@ enum {
     kFlasher_size
 };
 
-static JSPropertySpec sFlasherProperties[] = {
-    // JS name						ID									flags
-    { "active", kFlasher_active, OOJS_PROP_READWRITE_CB },
-    { "color", kFlasher_color, OOJS_PROP_READWRITE_CB },
-    { "fraction", kFlasher_fraction, OOJS_PROP_READWRITE_CB },
-    { "frequency", kFlasher_frequency, OOJS_PROP_READWRITE_CB },
-    { "phase", kFlasher_phase, OOJS_PROP_READWRITE_CB },
-    { "size", kFlasher_size, OOJS_PROP_READWRITE_CB },
-    { 0 }
+static const JSCFunctionListEntry sFlasherProperties[] = {
+    // JS name, getter, setter, ID
+    OOJS_PROPERTY_RW("active", FlasherGetProperty, FlasherSetProperty, kFlasher_active),
+    OOJS_PROPERTY_RW("color", FlasherGetProperty, FlasherSetProperty, kFlasher_color),
+    OOJS_PROPERTY_RW("fraction", FlasherGetProperty, FlasherSetProperty, kFlasher_fraction),
+    OOJS_PROPERTY_RW("frequency", FlasherGetProperty, FlasherSetProperty, kFlasher_frequency),
+    OOJS_PROPERTY_RW("phase", FlasherGetProperty, FlasherSetProperty, kFlasher_phase),
+    OOJS_PROPERTY_RW("size", FlasherGetProperty, FlasherSetProperty, kFlasher_size),
 };
 
-static JSFunctionSpec sFlasherMethods[] = {
-    // JS name					Function						min args
-    { "remove", FlasherRemove, 0 },
-
-    { 0 }
+static const JSCFunctionListEntry sFlasherMethods[] = {
+    // JS name, min args, function
+    JS_CFUNC_DEF("remove", 0, FlasherRemove),
 };
 
-void InitOOJSFlasher(JSContext* context, JSObject* global)
+void InitOOJSFlasher(JSContext* context, JSValueConst global)
 {
-    sFlasherPrototype = JS_InitClass(context, global, JSEntityPrototype(), &sFlasherClass, OOJSUnconstructableConstruct, 0, sFlasherProperties, sFlasherMethods, NULL, NULL);
-    OOJSRegisterObjectConverter(&sFlasherClass, OOJSBasicPrivateObjectConverter);
-    OOJSRegisterSubclass(&sFlasherClass, JSEntityClass());
+    OOJSRegisterClass(&sFlasherClassID, &sFlasherClass);
+
+    JSValue parentPrototype = JS_GetClassProto(context, JSEntityClassID());
+    NSCAssert(JS_IsObject(parentPrototype), @"Entity must be initialized before Flasher.");
+    OOJSInitClass(context, global, sFlasherClassID, parentPrototype, OOJSUnconstructableConstruct, 0,
+        sFlasherProperties, OOJS_COUNT(sFlasherProperties), sFlasherMethods, OOJS_COUNT(sFlasherMethods), NULL, 0);
+    JS_FreeValue(context, parentPrototype);
+
+    OOJSRegisterObjectConverter(sFlasherClassID, OOJSBasicPrivateObjectConverter);
+    OOJSRegisterSubclass(sFlasherClassID, JSEntityClassID());
 }
 
-static BOOL JSFlasherGetFlasherEntity(JSContext* context, JSObject* jsobj, OOFlasherEntity** outEntity)
+JSClassID JSFlasherClassID(void)
+{
+    return sFlasherClassID;
+}
+
+static BOOL JSFlasherGetFlasherEntity(JSContext* context, JSValueConst jsobj, OOFlasherEntity** outEntity)
 {
     OOJS_PROFILE_ENTER
 
@@ -115,10 +114,9 @@ static BOOL JSFlasherGetFlasherEntity(JSContext* context, JSObject* jsobj, OOFla
 
 @implementation OOFlasherEntity (OOJavaScriptExtensions)
 
-- (void)getJSClass:(JSClass**)outClass andPrototype:(JSObject**)outPrototype
+- (JSClassID)oo_jsClassID
 {
-    *outClass = &sFlasherClass;
-    *outPrototype = sFlasherPrototype;
+    return sFlasherClassID;
 }
 
 - (NSString*)oo_jsClassName
@@ -133,129 +131,120 @@ static BOOL JSFlasherGetFlasherEntity(JSContext* context, JSObject* jsobj, OOFla
 
 @end
 
-static JSBool FlasherGetProperty(JSContext* context, JSObject* this, jsid propID, jsval* value)
+static JSValue FlasherGetProperty(OOJS_GETTER_ARGS)
 {
-    if (!JSID_IS_INT(propID))
-        return YES;
-
     OOJS_NATIVE_ENTER(context)
 
     OOFlasherEntity* entity = nil;
     id result = nil;
 
     if (!JSFlasherGetFlasherEntity(context, this, &entity))
-        return NO;
+        return OOJSNativeFailure(context);
     if (entity == nil) {
-        *value = JSVAL_VOID;
-        return YES;
+        return JS_UNDEFINED;
     }
 
-    switch (JSID_TO_INT(propID)) {
+    switch (magic) {
     case kFlasher_active:
-        *value = OOJSValueFromBOOL([entity isActive]);
-        return YES;
+        return OOJSValueFromBOOL([entity isActive]);
 
     case kFlasher_color:
         result = [[entity color] normalizedArray];
         break;
 
     case kFlasher_frequency:
-        return JS_NewNumberValue(context, [entity frequency], value);
+        return JS_NewNumber(context, [entity frequency]);
 
     case kFlasher_fraction:
-        return JS_NewNumberValue(context, [entity fraction], value);
+        return JS_NewNumber(context, [entity fraction]);
 
     case kFlasher_phase:
-        return JS_NewNumberValue(context, [entity phase], value);
+        return JS_NewNumber(context, [entity phase]);
 
     case kFlasher_size:
-        return JS_NewNumberValue(context, [entity diameter], value);
+        return JS_NewNumber(context, [entity diameter]);
 
     default:
-        OOJSReportBadPropertySelector(context, this, propID, sFlasherProperties);
-        return NO;
+        OOJSReportBadPropertySelector(context, this, magic, sFlasherProperties, OOJS_COUNT(sFlasherProperties));
+        return OOJSNativeFailure(context);
     }
 
-    *value = OOJSValueFromNativeObject(context, result);
-    return YES;
+    return OOJSValueFromNativeObject(context, result);
 
     OOJS_NATIVE_EXIT
 }
 
-static JSBool FlasherSetProperty(JSContext* context, JSObject* this, jsid propID, JSBool strict, jsval* value)
+static JSValue FlasherSetProperty(OOJS_SETTER_ARGS)
 {
-    if (!JSID_IS_INT(propID))
-        return YES;
-
     OOJS_NATIVE_ENTER(context)
 
     OOFlasherEntity* entity = nil;
-    jsdouble fValue;
-    JSBool bValue;
+    double fValue;
+    int bValue;
     OOColor* colorForScript = nil;
 
     if (!JSFlasherGetFlasherEntity(context, this, &entity))
-        return NO;
+        return OOJSNativeFailure(context);
     if (entity == nil)
-        return YES;
+        return JS_UNDEFINED;
 
-    switch (JSID_TO_INT(propID)) {
+    switch (magic) {
     case kFlasher_active:
-        if (JS_ValueToBoolean(context, *value, &bValue)) {
+        if ((bValue = JS_ToBool(context, value)) >= 0) {
             [entity setActive:bValue];
-            return YES;
+            return JS_UNDEFINED;
         }
         break;
 
     case kFlasher_color:
-        colorForScript = [OOColor colorWithDescription:OOJSNativeObjectFromJSValue(context, *value)];
-        if (colorForScript != nil || JSVAL_IS_NULL(*value)) {
+        colorForScript = [OOColor colorWithDescription:OOJSNativeObjectFromJSValue(context, value)];
+        if (colorForScript != nil || JS_IsNull(value)) {
             [entity setColor:colorForScript];
-            return YES;
+            return JS_UNDEFINED;
         }
         break;
 
     case kFlasher_frequency:
-        if (JS_ValueToNumber(context, *value, &fValue)) {
+        if (JS_ToFloat64(context, &fValue, value) == 0) {
             if (fValue >= 0.0) {
                 [entity setFrequency:fValue];
-                return YES;
+                return JS_UNDEFINED;
             }
         }
         break;
 
     case kFlasher_fraction:
-        if (JS_ValueToNumber(context, *value, &fValue)) {
+        if (JS_ToFloat64(context, &fValue, value) == 0) {
             if (fValue > 0.0 && fValue <= 1.0) {
                 [entity setFraction:fValue];
-                return YES;
+                return JS_UNDEFINED;
             }
         }
         break;
 
     case kFlasher_phase:
-        if (JS_ValueToNumber(context, *value, &fValue)) {
+        if (JS_ToFloat64(context, &fValue, value) == 0) {
             [entity setPhase:fValue];
-            return YES;
+            return JS_UNDEFINED;
         }
         break;
 
     case kFlasher_size:
-        if (JS_ValueToNumber(context, *value, &fValue)) {
+        if (JS_ToFloat64(context, &fValue, value) == 0) {
             if (fValue > 0.0) {
                 [entity setDiameter:fValue];
-                return YES;
+                return JS_UNDEFINED;
             }
         }
         break;
 
     default:
-        OOJSReportBadPropertySelector(context, this, propID, sFlasherProperties);
-        return NO;
+        OOJSReportBadPropertySelector(context, this, magic, sFlasherProperties, OOJS_COUNT(sFlasherProperties));
+        return OOJSNativeFailure(context);
     }
 
-    OOJSReportBadPropertyValue(context, this, propID, sFlasherProperties, *value);
-    return NO;
+    OOJSReportBadPropertyValue(context, this, magic, sFlasherProperties, OOJS_COUNT(sFlasherProperties), value);
+    return OOJSNativeFailure(context);
 
     OOJS_NATIVE_EXIT
 }
@@ -265,12 +254,12 @@ static JSBool FlasherSetProperty(JSContext* context, JSObject* this, jsid propID
 #define GET_THIS_FLASHER(THISENT)                                                 \
     do {                                                                          \
         if (EXPECT_NOT(!JSFlasherGetFlasherEntity(context, OOJS_THIS, &THISENT))) \
-            return NO; /* Exception */                                            \
+            return OOJSNativeFailure(context); /* Exception */                    \
         if (OOIsStaleEntity(THISENT))                                             \
             OOJS_RETURN_VOID;                                                     \
     } while (0)
 
-static JSBool FlasherRemove(JSContext* context, uintN argc, jsval* vp)
+static JSValue FlasherRemove(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
