@@ -59,6 +59,7 @@ static BOOL RunScriptWithName(JSContext* context, NSString* path, JSValueConst o
 
 static NSString* StrippedName(NSString* string);
 static NSString* RewriteLegacyConst(JSContext* context, NSString* source);
+static BOOL HasModernScopeDirective(NSString* source);
 
 #if OO_CACHE_JS_SCRIPTS
 static JSValue CachedCompiledScript(JSContext* context, NSString* path, NSData* source);
@@ -624,7 +625,10 @@ static void AddStackToArrayReversed(NSMutableArray* array, RunningStack* stack)
     }
 }
 
-// Compile and run a script file with object as its this and at the head of its scope chain.
+/*	Compile and run a script file with object as its this and, unless the
+        script opts out with the "use oolite modern" directive, at the head of
+        its scope chain.
+*/
 static BOOL RunScriptWithName(JSContext* context, NSString* path, JSValueConst object, NSString** outErrorMessage)
 {
     NSString* fileContents = nil;
@@ -653,7 +657,18 @@ static BOOL RunScriptWithName(JSContext* context, NSString* path, JSValueConst o
     }
 #endif
 
-    fileContents = RewriteLegacyConst(context, fileContents);
+    /*	Scripts marked with the "use oolite modern" directive (for example by
+            tools/oxp-upgrade) don't rely on SpiderMonkey 1.8.5 scoping, so they
+            run without its emulation: no with(this) and no const rewrite.
+    */
+    BOOL modern = HasModernScopeDirective(fileContents);
+    if (modern) {
+        OOLog(@"script.javaScript.load.modern", @"Script %@ uses modern scoping.", path);
+        NSString* lineEnd = [fileContents hasSuffix:@"\n"] ? @"" : @"\n";
+        fileContents = [NSString stringWithFormat:@"(function(){%@%@})", fileContents, lineEnd];
+    } else {
+        fileContents = [NSString stringWithFormat:@"(function(){%@})", OOJSWrapScriptSource(RewriteLegacyConst(context, fileContents))];
+    }
 
     /*	QuickJS runs compiled (and cached) code only with the global object as
             its this (JS_EvalFunction()), so the wrapped script is compiled as a
@@ -661,7 +676,7 @@ static BOOL RunScriptWithName(JSContext* context, NSString* path, JSValueConst o
             this. The extra prefix is on the first line, so line numbers are
             unchanged.
     */
-    NSString* wrapped = [NSString stringWithFormat:@"(function(){%@})", OOJSWrapScriptSource(fileContents)];
+    NSString* wrapped = fileContents;
     NSData* source = [wrapped dataUsingEncoding:NSUTF8StringEncoding];
 
     JSValue compiled = JS_UNDEFINED;
@@ -787,6 +802,85 @@ static void CacheCompiledScript(JSContext* context, NSString* path, NSData* sour
     OOLog(@"script.javaScript.cache.store", @"Cached compiled script %@.", path);
 }
 #endif
+
+/*	Whether the script's directive prologue (the string literal statements
+        at its start, like "use strict") includes "use oolite modern".
+*/
+static BOOL HasModernScopeDirective(NSString* source)
+{
+    NSUInteger length = [source length];
+    NSUInteger i = 0;
+    if (length > 0 && [source characterAtIndex:0] == 0xFEFF)
+        i = 1;
+
+    for (;;) {
+        // Skip white space and comments.
+        BOOL skipped = YES;
+        while (skipped && i < length) {
+            skipped = NO;
+            unichar c = [source characterAtIndex:i];
+            if (c == ' ' || c == '\t' || c == '\r' || c == '\n' || c == 0xA0 || c == 0xFEFF) {
+                i++;
+                skipped = YES;
+            } else if (c == '/' && i + 1 < length && [source characterAtIndex:i + 1] == '/') {
+                while (i < length && [source characterAtIndex:i] != '\n')
+                    i++;
+                skipped = YES;
+            } else if (c == '/' && i + 1 < length && [source characterAtIndex:i + 1] == '*') {
+                NSRange end = [source rangeOfString:@"*/" options:0 range:NSMakeRange(i + 2, length - i - 2)];
+                if (end.location == NSNotFound)
+                    return NO;
+                i = end.location + 2;
+                skipped = YES;
+            }
+        }
+        if (i >= length)
+            return NO;
+
+        // A directive: a string literal, followed by ; or a line break.
+        unichar quote = [source characterAtIndex:i];
+        if (quote != '"' && quote != '\'')
+            return NO;
+        NSUInteger start = ++i;
+        BOOL escaped = NO;
+        while (i < length && [source characterAtIndex:i] != quote) {
+            unichar c = [source characterAtIndex:i];
+            if (c == '\\') {
+                escaped = YES;
+                i++;
+            }
+            if (c == '\n')
+                return NO;
+            i++;
+        }
+        if (i >= length)
+            return NO;
+        NSString* directive = [source substringWithRange:NSMakeRange(start, i - start)];
+        i++;
+
+        BOOL lineBreak = NO;
+        while (i < length) {
+            unichar c = [source characterAtIndex:i];
+            if (c == '\n') {
+                lineBreak = YES;
+            } else if (c == '/' && i + 1 < length && [source characterAtIndex:i + 1] == '/') {
+                while (i < length && [source characterAtIndex:i] != '\n')
+                    i++;
+                continue;
+            } else if (c != ' ' && c != '\t' && c != '\r') {
+                break;
+            }
+            i++;
+        }
+        if (i < length && [source characterAtIndex:i] == ';')
+            i++;
+        else if (!lineBreak && i < length && [source characterAtIndex:i] != '}')
+            return NO; // Part of a larger expression, so not a directive.
+
+        if (!escaped && [directive isEqualToString:@"use oolite modern"])
+            return YES;
+    }
+}
 
 /*	In SpiderMonkey 1.8.5, const declarations were function-scoped and usable
         before the declaration, like var; under ES2015 rules they are
