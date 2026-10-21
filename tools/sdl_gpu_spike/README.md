@@ -534,29 +534,35 @@ attribute bindings; use; uniforms by handle; samplers by texture unit.
   linking failed", where GL names the failing stage. The log underneath is
   the compiler's, with the stage's line numbers.
 
-13 scenes now match GL on Metal and on lavapipe Vulkan, and 13 planted
-faults (11 in the backend, 2 in the translator) each fail only their
+**Fixed function and wide primitives.**
+- The emulation adds separate specular after texturing, as Oolite always
+  asks, and applies linear, exp and exp2 fog.
+- Points, and lines wider than a pixel, are expanded on the CPU and drawn
+  with identity matrices. This matches Apple's GL exactly and llvmpipe
+  within 0.21% of pixels.
+- A lesson from the specular scene: both spheres were wound inside out,
+  and since the two backends agreed, only the undetected control showed
+  it.
+
+16 scenes now match GL on Metal and on lavapipe Vulkan, and 16 planted
+faults (14 in the backend, 2 in the translator) each fail only their
 scenes.
 
-**Draws outside a pass.** SDL_GPU can only record a draw inside a render
-pass, while GL draws whenever it is asked. Debug builds now log any draw
-made while no pass is open, once per call site
-(`rendering.renderer.outsidePass`). The scenario and its MSAA,
-grayscale and no-shader variants make none; an immediate-mode batch
-planted after the frame's last pass is reported.
-
 **Next:**
-- Fog, colour material, separate specular (added after texturing),
-  multitexture combine and point sprites in the emulation shaders.
-- Wide lines and large points through the CPU expansion.
-- Frames in flight instead of waiting after each pass; a swapchain with
-  the final flip; device limits in place of the GL queries.
-- Uploads from the game's own textures (`OOConcreteTexture` already uses
-  the texture API) and the remaining direct GL in game code: snapshot
-  readback, the fog hints, and the post chain binding programs by name.
-- Move the backend and translator into `src/Core/Renderer`, then a game
-  build option that selects the backend, and the 17-screen scenario on
-  SDL_GPU.
+- **Needs a decision:** moving the translator and backend into
+  `src/Core/Renderer` makes glslang and SPIRV-Cross game dependencies,
+  which probably means bundling them (Debian's glslang is too old), and
+  that affects CI and packaging on every platform. After that: a build
+  option that selects the backend, a swapchain with the final flip, and
+  the 17-screen scenario on SDL_GPU.
+- Frames in flight instead of waiting after each pass; device limits in
+  place of the GL queries.
+- Multitexture combine and texture environment modes other than
+  modulate, which only the no-shader detail level uses. Whether that
+  level survives on SDL_GPU, where everything is a shader anyway, is a
+  maintainer question.
+- The remaining direct GL in game code: snapshot readback, the fog hints,
+  and the post chain binding programs by name.
 
 ## Reproducing
 
