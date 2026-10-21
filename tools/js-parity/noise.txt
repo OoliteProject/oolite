@@ -14,7 +14,8 @@
 # Random traffic in the system.
 [oojs.probe]: system.allShips
 [oojs.probe]: system.populatorSettings
-# Missile types are chosen at random when the ship is spawned.
+# Missile types and other equipment are chosen at random when the ship is spawned.
 [oojs.probe]: spawned.missiles
+[oojs.probe]: spawned.equipment
 # Station order is not stable between runs.
 [oojs.probe]: system.stations
