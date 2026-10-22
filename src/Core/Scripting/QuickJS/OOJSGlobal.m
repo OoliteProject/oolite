@@ -801,7 +801,10 @@ static JSValue GlobalQuitGame(OOJS_NATIVE_ARGS)
 
     OOLog(@"script.debug.quit", @"%@", @"Quit requested via JavaScript global.quitGame()");
 
-    [UNIVERSE quitGame];
+    /*	Quit once the calling script has returned, so that the JavaScript
+            runtime can be shut down and leak-checked with no script on the stack.
+    */
+    [UNIVERSE performSelector:@selector(quitGame) withObject:nil afterDelay:0.0];
 
     OOJS_RETURN_BOOL(YES);
 
