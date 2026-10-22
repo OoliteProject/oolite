@@ -3,8 +3,10 @@ Smoke test: starts Oolite, optionally from a saved game, and checks that it
 renders and shuts down cleanly.
 
 With --load, the game starts docked from that save; the test then launches
-the player into space and takes the snapshot there, which runs the world
-scripts, the populator and the ship AIs. In every case the test fails if the
+the player into space and takes a snapshot there, which runs the world
+scripts, the populator and the ship AIs. It fires a missile at an asteroid
+and checks that one fewer missile remains, then docks with the docking
+computer and takes a second snapshot. In every case the test fails if the
 log shows a JavaScript exception or error, a script that ran too long, or a
 JavaScript runtime that did not pass its shutdown leak check.
 """
@@ -14,24 +16,75 @@ import os
 import sys
 import time
 
-from oolite_harness import HarnessError, OoliteGame, scaled
+from oolite_harness import HarnessError, JSException, OoliteGame, scaled
 
 MIN_FILE_SIZE_KB = 100  # Threshold for a valid render
 
 
-def check_snapshot(test_output):
-    snaps = [f for f in os.listdir(test_output) if f.endswith(".png")]
-    if not snaps:
-        print("[!] Failure: no snapshot was found.")
+def check_snapshots(test_output, expected):
+    snaps = sorted(f for f in os.listdir(test_output) if f.endswith(".png"))
+    if len(snaps) < expected:
+        print(f"[!] Failure: expected {expected} snapshot(s), found {len(snaps)}.")
         return False
-    snap_path = os.path.join(test_output, snaps[0])
-    file_size_kb = os.path.getsize(snap_path) // 1024
-    print(f"[*] Captured {snap_path} ({file_size_kb} KB)")
-    if file_size_kb < MIN_FILE_SIZE_KB:
-        print(f"[!] Failure: snapshot is too small ({file_size_kb} KB). Likely a black frame.")
-        return False
-    print("[+] Snapshot passed quality check.")
-    return True
+    success = True
+    for snap in snaps:
+        snap_path = os.path.join(test_output, snap)
+        file_size_kb = os.path.getsize(snap_path) // 1024
+        print(f"[*] Captured {snap_path} ({file_size_kb} KB)")
+        if file_size_kb < MIN_FILE_SIZE_KB:
+            print(f"[!] Failure: snapshot is too small ({file_size_kb} KB). Likely a black frame.")
+            success = False
+    if success:
+        print("[+] Snapshots passed quality check.")
+    return success
+
+
+def take_snapshot(console):
+    print("[*] Requesting snapshot...")
+    console.evaluate("takeSnapShot()")
+    # The snapshot is written on the next frame.
+    time.sleep(scaled(2))
+
+
+def fire_missile(console):
+    """Fires a missile at an asteroid spawned ahead (a legal target), and checks one fewer remains."""
+    before = console.evaluate("player.ship.missiles.length")
+    console.evaluate(
+        "(function () { var ps = player.ship;"
+        " var rock = system.addShips('asteroid', 1, ps.position.add(ps.vectorForward.multiply(6000)), 0)[0];"
+        " ps.target = rock; return ps.target === rock; })()"
+    )
+    print(f"[*] Firing a missile ({before} loaded)...")
+    missile = console.evaluate("String(player.ship.fireMissile())")
+    after = console.evaluate("player.ship.missiles.length")
+    print(f"[*] Fired {missile}; {after} missiles left")
+    if missile == "null" or after != before - 1:
+        raise HarnessError(f"Firing a missile failed: {before} missiles before, {after} after.")
+
+
+def dock(console):
+    """Docks at the main station with the docking computer (the autopilot)."""
+    print("[*] Docking with the docking computer...")
+    if not console.evaluate("player.ship.engageAutopilotToStation(system.mainStation)"):
+        raise HarnessError("The docking computer could not be engaged.")
+    deadline = time.time() + scaled(600)
+    while True:
+        try:
+            state = console.evaluate(
+                "[player.ship.docked, player.ship.status, Math.round(player.ship.position.distanceTo(system.mainStation))]"
+            )
+        except JSException:
+            raise
+        except HarnessError:
+            state = None  # Busy; try again.
+        if state and state[0]:
+            break
+        if time.time() > deadline:
+            raise HarnessError(f"Not docked after {scaled(600):.0f} seconds (status, distance: {state and state[1:]}).")
+        if state:
+            print(f"[*]   {state[1]}, {state[2]} m from the station")
+        time.sleep(30)
+    print("[*] Docked.")
 
 
 def run_test(path, test_output, load):
@@ -51,10 +104,12 @@ def run_test(path, test_output, load):
             # Allow time for engine state transition
             time.sleep(5)
 
-        print("[*] Requesting snapshot...")
-        console.evaluate("takeSnapShot()")
-        # The snapshot is written on the next frame.
-        time.sleep(scaled(2))
+        take_snapshot(console)
+
+        if load:
+            fire_missile(console)
+            dock(console)
+            take_snapshot(console)
         game.quit()
     except HarnessError as e:
         print(f"[!] Failure: {e}")
@@ -62,7 +117,7 @@ def run_test(path, test_output, load):
     finally:
         game.stop()
 
-    success = check_snapshot(test_output)
+    success = check_snapshots(test_output, 2 if load else 1)
 
     problems = game.check_log()
     for problem in problems:
