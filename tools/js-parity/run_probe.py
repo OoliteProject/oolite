@@ -30,7 +30,7 @@ sys.path.insert(0, os.path.join(SRC, "tests"))
 from oolite_harness import HarnessError, OoliteGame  # noqa: E402
 
 READY = "ready for external quit"
-PROBE_LINE = re.compile(r"\[oojs\.probe(\.quit)?\]|\[script\.javaScript\.(exception|error|warning)")
+PROBE_LINE = re.compile(r"\[oojs\.probe(\.quit)?\]|\[script\.javaScript\.(exception|error|warning|timeLimit\])")
 TIMESTAMP = re.compile(r"^[0-9:.]+ ")
 
 
