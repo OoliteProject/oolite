@@ -14,12 +14,25 @@ JavaScript runtime that did not pass its shutdown leak check.
 
 import argparse
 import os
+import struct
 import sys
 import time
 
 from oolite_harness import HarnessError, JSException, OoliteGame, scaled
 
-MIN_FILE_SIZE_KB = 100  # Threshold for a valid render
+# Threshold for a valid render at the default window size (1280x720); scaled by a snapshot's pixel count.
+MIN_FILE_SIZE_KB = 100
+DEFAULT_PIXELS = 1280 * 720
+
+
+def png_pixels(path):
+    """Returns a PNG's width times height, from its IHDR chunk, or None if it is not a PNG."""
+    with open(path, "rb") as f:
+        header = f.read(24)
+    if len(header) < 24 or header[:8] != b"\x89PNG\r\n\x1a\n":
+        return None
+    width, height = struct.unpack(">II", header[16:24])
+    return width * height
 
 
 def check_snapshots(test_output, expected):
@@ -31,9 +44,12 @@ def check_snapshots(test_output, expected):
     for snap in snaps:
         snap_path = os.path.join(test_output, snap)
         file_size_kb = os.path.getsize(snap_path) // 1024
+        pixels = png_pixels(snap_path) or DEFAULT_PIXELS
+        minimum = MIN_FILE_SIZE_KB * pixels / DEFAULT_PIXELS
         print(f"[*] Captured {snap_path} ({file_size_kb} KB)")
-        if file_size_kb < MIN_FILE_SIZE_KB:
-            print(f"[!] Failure: snapshot is too small ({file_size_kb} KB). Likely a black frame.")
+        if file_size_kb < minimum:
+            print(f"[!] Failure: snapshot is too small ({file_size_kb} KB, expected at least {minimum:.0f}). "
+                  "Likely a black frame.")
             success = False
     if success:
         print("[+] Snapshots passed quality check.")
