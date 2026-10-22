@@ -46,7 +46,10 @@ Behaviour that needed emulating, all in the engine core:
   scope chain, so bare names resolve to script properties. Scripts are wrapped
   in `with(this){(function(){ ... }).call(this)}` (`OOJSWrapScriptSource()`);
   strict mode and line numbers are unaffected. Top-level `var`s are local to the
-  script rather than global.
+  script rather than global. One consequence: in a ship, AI, equipment or
+  other per-entity script, SpiderMonkey's global top-level `var`s were shared
+  by every instance of the script, whereas now each instance has its own
+  (`tests/js/flight/50-compat-setup.js` checks both).
 - **Own properties.** SpiderMonkey reported a prototype's accessor properties
   as own properties of instances, so `JSON.stringify(vector)` and
   `Object.keys(ship)` see them (`OOJSClasses.m`).
@@ -111,7 +114,10 @@ numbers don't change. Cache activity is logged under `script.javaScript.cache`
   recorded before SpiderMonkey was removed. See `tools/js-parity/README.md`.
   Accepted differences are listed in `tools/js-parity/expected-differences.txt`.
 - `poc/`: a standalone harness for the engine core, Vector3D, Quaternion and
-  script wrapping (`-Dquickjs_poc=true`).
+  script wrapping (`-Dquickjs_poc=true`, which `./mk.sh` sets for `dev` and
+  `debug` builds; `./mk.sh test` runs it). It has its own cut-down engine core
+  and script loader, so the compatibility behaviour of the real ones is
+  tested in the game instead (`tests/js`, with the scripts in `tests/oxp`).
 - Debug builds log `script.javaScript.reset.liveObjects` after every
   context teardown; anything other than zero is a reference counting bug.
 
