@@ -9,8 +9,8 @@ or against `$OOLITE_TEST_APP` if that is set:
    snapshot, fires a missile at an asteroid and checks that one fewer missile
    remains, docks with the docking computer and takes a second snapshot.
 2. **JavaScript tests** (`run_js_tests.py`, tests in `js/`): runs assertion
-   tests inside the game, first docked (`js/docked`) and then in flight
-   (`js/flight`), with no OXPs installed.
+   tests inside the game as it moves through five phases (see below), with
+   only the event recorder OXP (`oxp/`) installed.
 3. **Parity probe** (`tools/js-parity`): flies through hyperspace, docking and
    a galactic jump, and compares what scripts see with the stored output for
    this platform (Linux x86-64 and macOS arm64; elsewhere it only checks for
@@ -37,8 +37,26 @@ machine. On slow machines (for example under CPU emulation) set
 
 ## Writing JavaScript tests
 
-Each file in `js/docked` or `js/flight` runs as the body of one function, in
-the debug console's script, after `js/prelude.js`:
+The JavaScript tests run in five phases, each in its own directory under
+`js/`; `run_js_tests.py` moves the game from one to the next:
+
+| Phase | State |
+|---|---|
+| `docked` | Docked at Lave, as the standard scenario starts. |
+| `flight` | Launched; in flight near the station. |
+| `arrived` | After 10 seconds of flight, a hyperspace jump to the neighbouring system with the most stable government. |
+| `redocked` | Docked there with `dockPlayer()`. |
+| `galactic` | Launched again, and after a galactic jump. |
+
+`oxp/oolite-test-recorder.oxp` records every world-script event, filed under
+the phase that the runner was moving to when it happened. Tests can check
+them with `phaseEvents()`, `eventNames()`, `eventArgs(name)` and
+`assertEventOrder([names])`. `$state` persists from one test file and phase
+to the next, so a test can start something (a timer, a frame callback) in
+one phase and check what it did in the next.
+
+Each test file runs as the body of one function, in the debug console's
+script, after `js/prelude.js`:
 
 ```js
 test("credits can be changed", function ()
@@ -53,8 +71,8 @@ test("credits can be changed", function ()
 `prelude.js` provides `assert`, `assertEqual` (structural for arrays, objects,
 vectors and quaternions), `assertClose`, `assertThrows`, `assertType` and
 `fail`. Tests run synchronously within a frame, so they cannot wait for
-events; put a test in the phase whose state it needs, and undo any changes
-that later tests could see. Run a subset with `--filter`, for example
+events; put a test in the phase whose state it needs (or check in a later
+phase), and undo any changes that later tests could see. Run a subset with `--filter`, for example
 `python3 tests/run_js_tests.py --path build/meson_dev/oolite.app --filter galaxy`.
 
 ## Test OXPs
