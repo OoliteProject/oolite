@@ -49,7 +49,10 @@ Behaviour that needed emulating, all in the engine core:
   script rather than global. One consequence: in a ship, AI, equipment or
   other per-entity script, SpiderMonkey's global top-level `var`s were shared
   by every instance of the script, whereas now each instance has its own
-  (`tests/js/flight/50-compat-setup.js` checks both).
+  (`tests/js/flight/50-compat-setup.js` checks both). No OXP is known to rely
+  on the sharing: of the 88 ship, AI, visual effect and character scripts in
+  the 189 catalogue OXZs surveyed, 7 have top-level `var`s, and none of them
+  reassigns or modifies one after the script has loaded.
 - **Own properties.** SpiderMonkey reported a prototype's accessor properties
   as own properties of instances, so `JSON.stringify(vector)` and
   `Object.keys(ship)` see them (`OOJSClasses.m`).
