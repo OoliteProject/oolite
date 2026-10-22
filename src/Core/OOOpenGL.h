@@ -40,6 +40,9 @@ typedef enum {
 
 #define NULL_SHADER ((GLhandleARB)0)
 
+// GLhandleARB is a pointer type on macOS; convert to a GLuint for the core GL 2.0+ shader API.
+#define OOGLProgramName(handle) ((GLuint)(uintptr_t)(handle))
+
 // Whether to use state verifier. Will be changed to equal OO_CHECK_GL_HEAVY in future.
 #ifdef NDEBUG
 #define OO_GL_STATE_VERIFICATION 0

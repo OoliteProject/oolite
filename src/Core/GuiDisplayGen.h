@@ -28,7 +28,7 @@ MA 02110-1301, USA.
 #import "OOFoundation.h"
 #import "OOMaths.h"
 #import "OOTypes.h"
-#include <jsapi.h>
+#include <quickjs.h>
 
 #define GUI_DEFAULT_COLUMNS 6
 #define GUI_DEFAULT_ROWS 30
@@ -349,7 +349,7 @@ typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 
         Requires a request on context.
 */
-- (NSDictionary*)textureDescriptorFromJSValue:(jsval)value inContext:(JSContext*)context callerDescription:(NSString*)callerDescription;
+- (NSDictionary*)textureDescriptorFromJSValue:(JSValue)value inContext:(JSContext*)context callerDescription:(NSString*)callerDescription;
 
 - (void)clearBackground;
 

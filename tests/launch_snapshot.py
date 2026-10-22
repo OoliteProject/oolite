@@ -89,7 +89,8 @@ def run_test(bin_name, test_output):
 
     # Environment configuration for pure headless software offscreen rendering
     env = os.environ.copy()
-    if not IS_WINDOWS:
+    # SDL's offscreen driver has no OpenGL on macOS, so a real window is used there
+    if not IS_WINDOWS and sys.platform != "darwin":
         env["SDL_VIDEODRIVER"] = "offscreen"
     env["LIBGL_ALWAYS_SOFTWARE"] = "1"
     env["GALLIUM_DRIVER"] = "llvmpipe"
@@ -124,6 +125,9 @@ def run_test(bin_name, test_output):
 
         if not conn:
             print("[!] Failure: Oolite failed to connect.")
+            if sys.platform == "darwin" and proc.poll() is None:
+                # Show where a hung process is stuck
+                subprocess.run(["sample", str(proc.pid), "3"], stdout=sys.stdout, stderr=sys.stderr)
             return False
 
         # 2. THE HANDSHAKE

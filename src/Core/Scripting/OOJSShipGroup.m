@@ -23,34 +23,26 @@ MA 02110-1301, USA.
 
 */
 
+#import "OOJSShipGroup.h"
+#import "EntityOOJavaScriptExtensions.h"
 #import "OOJavaScriptEngine.h"
 #import "OOShipGroup.h"
-#import "Universe.h"
+#import "ShipEntity.h"
 
-static JSObject* sShipGroupPrototype;
+static JSClassID sShipGroupClassID;
 
-static JSBool ShipGroupGetProperty(JSContext* context, JSObject* this, jsid propID, jsval* value);
-static JSBool ShipGroupSetProperty(JSContext* context, JSObject* this, jsid propID, JSBool strict, jsval* value);
-static JSBool ShipGroupConstruct(JSContext* context, uintN argc, jsval* vp);
+static JSValue ShipGroupGetProperty(OOJS_GETTER_ARGS);
+static JSValue ShipGroupSetProperty(OOJS_SETTER_ARGS);
+static JSValue ShipGroupConstruct(OOJS_NATIVE_ARGS);
 
 // Methods
-static JSBool ShipGroupAddShip(JSContext* context, uintN argc, jsval* vp);
-static JSBool ShipGroupRemoveShip(JSContext* context, uintN argc, jsval* vp);
-static JSBool ShipGroupContainsShip(JSContext* context, uintN argc, jsval* vp);
+static JSValue ShipGroupAddShip(OOJS_NATIVE_ARGS);
+static JSValue ShipGroupRemoveShip(OOJS_NATIVE_ARGS);
+static JSValue ShipGroupContainsShip(OOJS_NATIVE_ARGS);
 
-static JSClass sShipGroupClass = {
-    "ShipGroup",
-    JSCLASS_HAS_PRIVATE,
-
-    JS_PropertyStub, // addProperty
-    JS_PropertyStub, // delProperty
-    ShipGroupGetProperty, // getProperty
-    ShipGroupSetProperty, // setProperty
-    JS_EnumerateStub, // enumerate
-    JS_ResolveStub, // resolve
-    JS_ConvertStub, // convert
-    OOJSObjectWrapperFinalize, // finalize
-    JSCLASS_NO_OPTIONAL_MEMBERS
+static JSClassDef sShipGroupClass = {
+    .class_name = "ShipGroup",
+    .finalizer = OOJSObjectWrapperFinalize,
 };
 
 enum {
@@ -61,46 +53,43 @@ enum {
     kShipGroup_count, // number of ships, integer, read-only
 };
 
-static JSPropertySpec sShipGroupProperties[] = {
-    // JS name					ID							flags
-    { "count", kShipGroup_count, OOJS_PROP_READONLY_CB },
-    { "leader", kShipGroup_leader, OOJS_PROP_READWRITE_CB },
-    { "name", kShipGroup_name, OOJS_PROP_READWRITE_CB },
-    { "ships", kShipGroup_ships, OOJS_PROP_READONLY_CB },
-    { 0 }
+static const JSCFunctionListEntry sShipGroupProperties[] = {
+    // JS name, getter, setter, ID
+    OOJS_PROPERTY_RO("count", ShipGroupGetProperty, kShipGroup_count),
+    OOJS_PROPERTY_RW("leader", ShipGroupGetProperty, ShipGroupSetProperty, kShipGroup_leader),
+    OOJS_PROPERTY_RW("name", ShipGroupGetProperty, ShipGroupSetProperty, kShipGroup_name),
+    OOJS_PROPERTY_RO("ships", ShipGroupGetProperty, kShipGroup_ships),
 };
 
-static JSFunctionSpec sShipGroupMethods[] = {
-    // JS name					Function					min args
-    { "toString", OOJSObjectWrapperToString, 0 },
-    { "addShip", ShipGroupAddShip, 1 },
-    { "containsShip", ShipGroupContainsShip, 1 },
-    { "removeShip", ShipGroupRemoveShip, 1 },
-    { 0 }
+static const JSCFunctionListEntry sShipGroupMethods[] = {
+    // JS name, min args, function
+    JS_CFUNC_DEF("toString", 0, OOJSObjectWrapperToString),
+    JS_CFUNC_DEF("addShip", 1, ShipGroupAddShip),
+    JS_CFUNC_DEF("containsShip", 1, ShipGroupContainsShip),
+    JS_CFUNC_DEF("removeShip", 1, ShipGroupRemoveShip),
 };
 
-DEFINE_JS_OBJECT_GETTER(JSShipGroupGetShipGroup, &sShipGroupClass, sShipGroupPrototype, OOShipGroup);
+DEFINE_JS_OBJECT_GETTER(JSShipGroupGetShipGroup, sShipGroupClassID, OOShipGroup)
 
-void InitOOJSShipGroup(JSContext* context, JSObject* global)
+void InitOOJSShipGroup(JSContext* context, JSValueConst global)
 {
-    sShipGroupPrototype = JS_InitClass(context, global, NULL, &sShipGroupClass, ShipGroupConstruct, 0, sShipGroupProperties, sShipGroupMethods, NULL, NULL);
-    OOJSRegisterObjectConverter(&sShipGroupClass, OOJSBasicPrivateObjectConverter);
+    OOJSRegisterClass(&sShipGroupClassID, &sShipGroupClass);
+    OOJSInitClass(context, global, sShipGroupClassID, JS_UNDEFINED, ShipGroupConstruct, 0,
+        sShipGroupProperties, OOJS_COUNT(sShipGroupProperties), sShipGroupMethods, OOJS_COUNT(sShipGroupMethods), NULL, 0);
+    OOJSRegisterObjectConverter(sShipGroupClassID, OOJSBasicPrivateObjectConverter);
 }
 
-static JSBool ShipGroupGetProperty(JSContext* context, JSObject* this, jsid propID, jsval* value)
+static JSValue ShipGroupGetProperty(OOJS_GETTER_ARGS)
 {
-    if (!JSID_IS_INT(propID))
-        return YES;
-
     OOJS_NATIVE_ENTER(context)
 
     OOShipGroup* group = nil;
     id result = nil;
 
     if (EXPECT_NOT(!JSShipGroupGetShipGroup(context, this, &group)))
-        return NO;
+        return OOJSNativeFailure(context);
 
-    switch (JSID_TO_INT(propID)) {
+    switch (magic) {
     case kShipGroup_ships:
         result = [group memberArray];
         if (result == nil)
@@ -118,83 +107,83 @@ static JSBool ShipGroupGetProperty(JSContext* context, JSObject* this, jsid prop
         break;
 
     case kShipGroup_count:
-        return JS_NewNumberValue(context, [group count], value);
+        return JS_NewNumber(context, [group count]);
 
     default:
-        OOJSReportBadPropertySelector(context, this, propID, sShipGroupProperties);
-        return NO;
+        OOJSReportBadPropertySelector(context, this, magic, sShipGroupProperties, OOJS_COUNT(sShipGroupProperties));
+        return OOJSNativeFailure(context);
     }
 
-    *value = OOJSValueFromNativeObject(context, result);
-    return YES;
+    return OOJSValueFromNativeObject(context, result);
 
     OOJS_NATIVE_EXIT
 }
 
-static JSBool ShipGroupSetProperty(JSContext* context, JSObject* this, jsid propID, JSBool strict, jsval* value)
+static JSValue ShipGroupSetProperty(OOJS_SETTER_ARGS)
 {
-    if (!JSID_IS_INT(propID))
-        return YES;
-
     OOJS_NATIVE_ENTER(context)
 
     OOShipGroup* group = nil;
     ShipEntity* shipValue = nil;
 
     if (EXPECT_NOT(!JSShipGroupGetShipGroup(context, this, &group)))
-        return NO;
+        return OOJSNativeFailure(context);
 
-    switch (JSID_TO_INT(propID)) {
+    switch (magic) {
     case kShipGroup_leader:
-        shipValue = OOJSNativeObjectOfClassFromJSValue(context, *value, [ShipEntity class]);
-        if (shipValue != nil || JSVAL_IS_NULL(*value)) {
+        shipValue = OOJSNativeObjectOfClassFromJSValue(context, value, [ShipEntity class]);
+        if (shipValue != nil || JS_IsNull(value)) {
             [group setLeader:shipValue];
-            return YES;
+            return JS_UNDEFINED;
         }
         break;
 
     case kShipGroup_name:
-        [group setName:OOStringFromJSValueEvenIfNull(context, *value)];
-        return YES;
+        [group setName:OOStringFromJSValueEvenIfNull(context, value)];
+        return JS_UNDEFINED;
         break;
 
     default:
-        OOJSReportBadPropertySelector(context, this, propID, sShipGroupProperties);
-        return NO;
+        OOJSReportBadPropertySelector(context, this, magic, sShipGroupProperties, OOJS_COUNT(sShipGroupProperties));
+        return OOJSNativeFailure(context);
     }
 
-    OOJSReportBadPropertyValue(context, this, propID, sShipGroupProperties, *value);
-    return NO;
+    OOJSReportBadPropertyValue(context, this, magic, sShipGroupProperties, OOJS_COUNT(sShipGroupProperties), value);
+    return OOJSNativeFailure(context);
 
     OOJS_NATIVE_EXIT
 }
 
 // new ShipGroup([name : String [, leader : Ship]]) : ShipGroup
-static JSBool ShipGroupConstruct(JSContext* context, uintN argc, jsval* vp)
+static JSValue ShipGroupConstruct(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    if (EXPECT_NOT(!JS_IsConstructing(context, vp))) {
+    /*	QuickJS has no JS_IsConstructing(). When a constructor_or_func native is
+            called with new, this is new.target (a constructor); when it is
+            called as a function, this is the caller's this.
+    */
+    if (EXPECT_NOT(!OOJS_IS_CONSTRUCTING)) {
         OOJSReportError(context, @"ShipGroup() cannot be called as a function, it must be used as a constructor (as in new ShipGroup(...)).");
-        return NO;
+        return JS_EXCEPTION;
     }
 
     NSString* name = nil;
     ShipEntity* leader = nil;
 
     if (argc >= 1) {
-        if (!JSVAL_IS_STRING(OOJS_ARGV[0])) {
+        if (!JS_IsString(OOJS_ARGV[0])) {
             OOJSReportBadArguments(context, nil, @"ShipGroup()", 1, OOJS_ARGV, @"Could not create ShipGroup", @"group name");
-            return NO;
+            return OOJSNativeFailure(context);
         }
         name = OOStringFromJSValue(context, OOJS_ARGV[0]);
     }
 
     if (argc >= 2) {
         leader = OOJSNativeObjectOfClassFromJSValue(context, OOJS_ARGV[1], [ShipEntity class]);
-        if (leader == nil && !JSVAL_IS_NULL(OOJS_ARGV[1])) {
+        if (leader == nil && !JS_IsNull(OOJS_ARGV[1])) {
             OOJSReportBadArguments(context, nil, @"ShipGroup()", 1, OOJS_ARGV + 1, @"Could not create ShipGroup", @"ship");
-            return NO;
+            return OOJSNativeFailure(context);
         }
     }
 
@@ -205,28 +194,32 @@ static JSBool ShipGroupConstruct(JSContext* context, uintN argc, jsval* vp)
 
 @implementation OOShipGroup (OOJavaScriptExtensions)
 
-- (jsval)oo_jsValueInContext:(JSContext*)context
+/*	As with SpiderMonkey, the JS object retains the group, and _jsSelf is a
+        weak (uncounted) reference to the JS object, cleared by -oo_clearJSSelf:
+        when the JS object is finalized.
+*/
+- (JSValue)oo_jsValueInContext:(JSContext*)context
 {
-    jsval result = JSVAL_NULL;
-
-    if (_jsSelf == NULL) {
-        _jsSelf = JS_NewObject(context, &sShipGroupClass, sShipGroupPrototype, NULL);
-        if (_jsSelf != NULL) {
-            if (!JS_SetPrivate(context, _jsSelf, [self retain]))
-                _jsSelf = NULL;
+    if (!JS_IsObject(_jsSelf)) {
+        JSValue jsSelf = JS_NewObjectClass(context, (int)sShipGroupClassID);
+        if (JS_IsException(jsSelf)) {
+            JS_FreeValue(context, JS_GetException(context));
+            return JS_NULL;
         }
+        JS_SetOpaque(jsSelf, [self retain]);
+
+        // Weak: the caller gets the only reference.
+        _jsSelf = jsSelf;
+        return jsSelf;
     }
 
-    if (_jsSelf != NULL)
-        result = OBJECT_TO_JSVAL(_jsSelf);
-
-    return result;
+    return JS_DupValue(context, _jsSelf);
 }
 
-- (void)oo_clearJSSelf:(JSObject*)selfVal
+- (void)oo_clearJSSelf:(JSValueConst)selfVal
 {
-    if (_jsSelf == selfVal)
-        _jsSelf = NULL;
+    if (JS_IsObject(_jsSelf) && JS_VALUE_GET_PTR(_jsSelf) == JS_VALUE_GET_PTR(selfVal))
+        _jsSelf = JS_UNDEFINED;
 }
 
 @end
@@ -234,7 +227,7 @@ static JSBool ShipGroupConstruct(JSContext* context, uintN argc, jsval* vp)
 // *** Methods ***
 
 // addShip(ship : Ship)
-static JSBool ShipGroupAddShip(JSContext* context, uintN argc, jsval* vp)
+static JSValue ShipGroupAddShip(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
@@ -243,16 +236,16 @@ static JSBool ShipGroupAddShip(JSContext* context, uintN argc, jsval* vp)
     BOOL OK = YES;
 
     if (EXPECT_NOT(!JSShipGroupGetShipGroup(context, OOJS_THIS, &thisGroup)))
-        return NO;
+        return OOJSNativeFailure(context);
 
     if (argc > 0)
         ship = OOJSNativeObjectOfClassFromJSValue(context, OOJS_ARGV[0], [ShipEntity class]);
     if (ship == nil) {
-        if (argc > 0 && JSVAL_IS_NULL(OOJS_ARGV[0]))
+        if (argc > 0 && JS_IsNull(OOJS_ARGV[0]))
             OOJS_RETURN_VOID; // OK, do nothing for null ship.
 
-        OOJSReportBadArguments(context, @"ShipGroup", @"addShip", MIN(argc, 1U), OOJS_ARGV, nil, @"ship");
-        return NO;
+        OOJSReportBadArguments(context, @"ShipGroup", @"addShip", MIN(argc, 1), OOJS_ARGV, nil, @"ship");
+        return OOJSNativeFailure(context);
     }
 
     if ([thisGroup containsShip:ship]) {
@@ -295,7 +288,7 @@ static JSBool ShipGroupAddShip(JSContext* context, uintN argc, jsval* vp)
 }
 
 // removeShip(ship : Ship)
-static JSBool ShipGroupRemoveShip(JSContext* context, uintN argc, jsval* vp)
+static JSValue ShipGroupRemoveShip(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
@@ -303,16 +296,16 @@ static JSBool ShipGroupRemoveShip(JSContext* context, uintN argc, jsval* vp)
     ShipEntity* ship = nil;
 
     if (EXPECT_NOT(!JSShipGroupGetShipGroup(context, OOJS_THIS, &thisGroup)))
-        return NO;
+        return OOJSNativeFailure(context);
 
     if (argc > 0)
         ship = OOJSNativeObjectOfClassFromJSValue(context, OOJS_ARGV[0], [ShipEntity class]);
     if (ship == nil) {
-        if (argc > 0 && JSVAL_IS_NULL(OOJS_ARGV[0]))
+        if (argc > 0 && JS_IsNull(OOJS_ARGV[0]))
             OOJS_RETURN_VOID; // OK, do nothing for null ship.
 
-        OOJSReportBadArguments(context, @"ShipGroup", @"removeShip", MIN(argc, 1U), OOJS_ARGV, nil, @"ship");
-        return NO;
+        OOJSReportBadArguments(context, @"ShipGroup", @"removeShip", MIN(argc, 1), OOJS_ARGV, nil, @"ship");
+        return OOJSNativeFailure(context);
     }
 
     OOJS_RETURN_BOOL([thisGroup removeShip:ship]);
@@ -321,7 +314,7 @@ static JSBool ShipGroupRemoveShip(JSContext* context, uintN argc, jsval* vp)
 }
 
 // containsShip(ship : Ship) : Boolean
-static JSBool ShipGroupContainsShip(JSContext* context, uintN argc, jsval* vp)
+static JSValue ShipGroupContainsShip(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
@@ -329,16 +322,16 @@ static JSBool ShipGroupContainsShip(JSContext* context, uintN argc, jsval* vp)
     ShipEntity* ship = nil;
 
     if (EXPECT_NOT(!JSShipGroupGetShipGroup(context, OOJS_THIS, &thisGroup)))
-        return NO;
+        return OOJSNativeFailure(context);
 
     if (argc > 0)
         ship = OOJSNativeObjectOfClassFromJSValue(context, OOJS_ARGV[0], [ShipEntity class]);
     if (ship == nil) {
-        if (argc > 0 && JSVAL_IS_NULL(OOJS_ARGV[0]))
+        if (argc > 0 && JS_IsNull(OOJS_ARGV[0]))
             OOJS_RETURN_BOOL(NO); // OK, return false for null ship.
 
-        OOJSReportBadArguments(context, @"ShipGroup", @"containsShip", MIN(argc, 1U), OOJS_ARGV, nil, @"ship");
-        return NO;
+        OOJSReportBadArguments(context, @"ShipGroup", @"containsShip", MIN(argc, 1), OOJS_ARGV, nil, @"ship");
+        return OOJSNativeFailure(context);
     }
 
     OOJS_RETURN_BOOL([thisGroup containsShip:ship]);
