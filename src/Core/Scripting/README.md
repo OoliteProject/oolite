@@ -106,9 +106,9 @@ numbers don't change. Cache activity is logged under `script.javaScript.cache`
 
 ## Testing
 
-- `tools/js-parity`: runs the game headless (Xvfb) with a probe OXP and
-  compares what scripts see with SpiderMonkey baselines recorded before
-  SpiderMonkey was removed. See `run_probe.sh`.
+- `tools/js-parity`: runs the game with a probe OXP that flies through the
+  main game states, and compares what scripts see with SpiderMonkey baselines
+  recorded before SpiderMonkey was removed. See `tools/js-parity/README.md`.
   Accepted differences are listed in `tools/js-parity/expected-differences.txt`.
 - `poc/`: a standalone harness for the engine core, Vector3D, Quaternion and
   script wrapping (`-Dquickjs_poc=true`).
