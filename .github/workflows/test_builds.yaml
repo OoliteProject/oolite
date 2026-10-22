@@ -60,6 +60,12 @@ jobs:
       - name: Build Oolite
         run: |
           ./mk.sh build dev
+      - name: Cache test OXPs
+        if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
+        uses: actions/cache@v4
+        with:
+          path: build/test-oxz-cache
+          key: test-oxps-${{ hashFiles('tests/test-oxps.txt') }}
       - name: Test Oolite
         if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
         run: |
@@ -104,6 +110,12 @@ jobs:
       - name: Build Oolite
         run: |
           ./mk.sh build dev
+      - name: Cache test OXPs
+        if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
+        uses: actions/cache@v4
+        with:
+          path: build/test-oxz-cache
+          key: test-oxps-${{ hashFiles('tests/test-oxps.txt') }}
       - name: Test Oolite
         if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
         run: |
@@ -148,6 +160,12 @@ jobs:
       - name: Build Oolite
         run: |
           ./mk.sh build dev
+      - name: Cache test OXPs
+        if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
+        uses: actions/cache@v4
+        with:
+          path: build/test-oxz-cache
+          key: test-oxps-${{ hashFiles('tests/test-oxps.txt') }}
       - name: Test Oolite
         if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
         run: |
@@ -187,6 +205,12 @@ jobs:
         run: |
           ./mk.sh build dev
 
+      - name: Cache test OXPs
+        if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
+        uses: actions/cache@v4
+        with:
+          path: build/test-oxz-cache
+          key: test-oxps-${{ hashFiles('tests/test-oxps.txt') }}
       - name: Test Oolite
         if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
         shell: msys2 {0}
@@ -218,6 +242,12 @@ jobs:
       - name: Build Oolite
         run: |
           ./mk.sh build dev
+      - name: Cache test OXPs
+        if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
+        uses: actions/cache@v4
+        with:
+          path: build/test-oxz-cache
+          key: test-oxps-${{ hashFiles('tests/test-oxps.txt') }}
       - name: Test Oolite
         if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
         run: |
