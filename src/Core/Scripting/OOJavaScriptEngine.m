@@ -336,6 +336,7 @@ static BOOL IsRunningJavaScript(JSContext* context)
 
     JS_FreeRuntime(_runtime);
     _runtime = NULL;
+    OOLog(@"script.javaScript.shutDown", @"%@", @"JavaScript runtime shut down with no leaked objects.");
     return 0;
 }
 
@@ -881,7 +882,8 @@ void OOJSReportWarningWithArguments(JSContext* context, NSString* format, va_lis
     @try {
         msg = [[NSString alloc] initWithFormat:format arguments:args];
         OOJSPauseTimeLimiter();
-        LogProblem(context, @"warning", @"warning", msg, CurrentStack(context));
+        // SpiderMonkey reported Oolite's own warnings as error number 206, "ooliteDefined" in javascript-errors.plist.
+        LogProblem(context, @"warning", @"ooliteDefined", msg, CurrentStack(context));
         OOJSResumeTimeLimiter();
     }
     @catch (id exception) {
