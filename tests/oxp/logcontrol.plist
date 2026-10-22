@@ -1,0 +1,7 @@
+{
+	/*	Log settings for the JavaScript tests (tests/run_js_tests.py). A loose
+		logcontrol.plist in an AddOns folder overrides the built-in settings.
+	*/
+	// Let run_js_tests.py see the compiled-script cache at work.
+	script.javaScript.cache = yes;
+}
