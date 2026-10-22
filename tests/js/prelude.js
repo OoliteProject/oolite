@@ -90,3 +90,36 @@ function assertType(value, type, message)
 {
 	if (typeof value !== type)  fail((message ? message + ": " : "") + "expected a " + type + ", got " + $show(value) + " (" + typeof value + ")");
 }
+
+// Persists from one test file and phase to the next (it lives on the debug console's script).
+var $state = this.$testState || (this.$testState = {});
+
+// World-script events recorded since the runner began moving to the current phase (or the named one).
+function phaseEvents(phase)
+{
+	var recorder = worldScripts["oolite-test-recorder"];
+	return recorder.$events[phase || recorder.$phase] || [];
+}
+
+function eventNames(phase)
+{
+	return phaseEvents(phase).map(function (e) { return e.name; });
+}
+
+// Passes if the named events occurred in this order (other events may come between them).
+function assertEventOrder(names, phase)
+{
+	var seen = eventNames(phase), at = 0;
+	names.forEach(function (name)
+	{
+		var found = seen.indexOf(name, at);
+		if (found === -1)  fail("event " + name + " missing or out of order in " + JSON.stringify(seen.filter(function (n) { return names.indexOf(n) !== -1; })));
+		at = found + 1;
+	});
+}
+
+function eventArgs(name, phase)
+{
+	var e = phaseEvents(phase).filter(function (e) { return e.name === name; })[0];
+	return e ? e.args : undefined;
+}
