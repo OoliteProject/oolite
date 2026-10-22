@@ -63,3 +63,17 @@ test("spawned ships carry cargo and equipment", function ()
 	assertEqual(s.bounty, 30);
 	s.remove(true);
 });
+
+test("setCrew rejects bad arguments without crashing", function ()
+{
+	// SpiderMonkey builds crashed on some of these, so the parity probe's method sweep leaves setCrew out.
+	var s = spawnAhead("[adder]", 1)[0];
+	[[], [undefined], [null], ["nonsense"], [-1], [NaN], [{}], [[1, 2]]].forEach(function (args)
+	{
+		try { s.setCrew.apply(s, args); } catch (e) {}
+	});
+	assert(s.isValid, "the ship was lost");
+	assert(s.setCrew({ name: "Test Pilot", short_description: "a test pilot", species: "human" }), "a valid crew was refused");
+	assertEqual(s.crew.length, 1);
+	s.remove(true);
+});
