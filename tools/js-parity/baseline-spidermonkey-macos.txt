@@ -449,7 +449,7 @@
 [oojs.probe]: spawned.AIScript = {aiStarted:function, author:"Giles Williams, Jens Ayton and contributors", license:"GPL 2+ / CC-BY-NC-SA 3.0 - see LICENSE.md for details", name:"Oolite Scavenger AI", oolite_manifest_identifier:"org.oolite.oolite", ship:<adder>, version:"1.93.1-quickjs-poc.1"}
 [oojs.probe]: spawned.AIScriptWakeTime = 0
 [oojs.probe]: spawned.AIState = "GLOBAL"
-[oojs.probe]: spawned.accuracy = 1.503754
+[oojs.probe]: spawned.accuracy = -3.204498
 [oojs.probe]: spawned.aftWeapon = null
 [oojs.probe]: spawned.alertCondition = 2
 [oojs.probe]: spawned.autoAI = true
@@ -468,7 +468,7 @@
 [oojs.probe]: spawned.commodity = null
 [oojs.probe]: spawned.commodityAmount = 0
 [oojs.probe]: spawned.contracts = []
-[oojs.probe]: spawned.crew = [{description:"a human colonial from Vebege", homeSystem:212, insuranceCredits:0, legalStatus:0, name:"Et O’Kirson", species:"human colonial"}]
+[oojs.probe]: spawned.crew = [{description:"a human colonial from Sorace", homeSystem:183, insuranceCredits:125, legalStatus:0, name:"Cea’alon Lyttlelyng", species:"human colonial"}]
 [oojs.probe]: spawned.cruiseSpeed = 192
 [oojs.probe]: spawned.currentWeapon = {calculatedPrice:4000, canBeDamaged:true, canCarryMultiple:false, damageProbability:1, defaultActivateKey:null, defaultModeKey:null, description:"High powered pulse laser, a basic defense configuration.", displayColor:null, effectiveTechLevel:3, equipmentKey:"EQ_WEAPON_PULSE_LASER", fastAffinityDefensive:false, fastAffinityOffensive:false, incompatibleEquipment:null, installationTime:4600, isAvailableToAll:true, isAvailableToNPCs:true, isAvailableToPlayer:true, isExternalStore:false, isPortableBetweenShips:false, isVisible:true, name:"Pulse Laser", price:4000, provides:[], repairTime:0, requiredCargoSpace:0, requiresAnyEquipment:null, requiresCleanLegalRecord:false, requiresEmptyPylon:false, requiresEquipment:null, requiresFreePassengerBerth:false, requiresFullFuel:false, requiresMountedPylon:false, requiresNonCleanLegalRecord:false, requiresNonFullFuel:false, scriptInfo:{}, scriptName:"", techLevel:3, weaponInfo:{color:"redColor", damage:"15.0", energy:"0.8", range:"12500", recharge_rate:"0.5", shot_temperature:"7.0", threat_assessment:"0.0"}}
 [oojs.probe]: spawned.dataKey = "adder"
@@ -482,7 +482,7 @@
 [oojs.probe]: spawned.dockingInstructions = null
 [oojs.probe]: spawned.energy = 85
 [oojs.probe]: spawned.energyRechargeRate = 2
-[oojs.probe]: spawned.entityPersonality = 31236
+[oojs.probe]: spawned.entityPersonality = 30125
 [oojs.probe]: spawned.equipment = [{calculatedPrice:5250, canBeDamaged:true, canCarryMultiple:false, damageProbability:1, defaultActivateKey:null, defaultModeKey:null, description:"Wide cargo entrance and magnetic scoops enable in-flight capture of mined materials, fuel gasses from the solar corona, and salvage of space debris.", displayColor:null, effectiveTechLevel:5, equipmentKey:"EQ_FUEL_SCOOPS", fastAffinityDefensive:false, fastAffinityOffensive:false, incompatibleEquipment:null, installationTime:5850, isAvailableToAll:false, isAvailableToNPCs:true, isAvailableToPlayer:true, isExternalStore:false, isPortableBetweenShips:false, isVisible:true, name:"Fuel Scoops", price:5250, provides:[array 1], repairTime:0, requiredCargoSpace:0, requiresAnyEquipment:null, requiresCleanLegalRecord:false, requiresEmptyPylon:false, requiresEquipment:null, requiresFreePassengerBerth:false, requiresFullFuel:false, requiresMountedPylon:false, requiresNonCleanLegalRecord:false, requiresNonFullFuel:false, scriptInfo:{object}, scriptName:"", techLevel:5, weaponInfo:{object}}]
 [oojs.probe]: spawned.escortGroup = {count:1, leader:<adder>, name:"escort group", ships:[<adder>]}
 [oojs.probe]: spawned.escorts = []
@@ -497,7 +497,7 @@
 [oojs.probe]: spawned.hasHostileTarget = false
 [oojs.probe]: spawned.hasHyperspaceMotor = true
 [oojs.probe]: spawned.hasSuspendedAI = false
-[oojs.probe]: spawned.heading = Vector3D0.4867,-0.7606,-0.4296
+[oojs.probe]: spawned.heading = Vector3D0.9766,-0.1626,-0.1409
 [oojs.probe]: spawned.heatInsulation = 1
 [oojs.probe]: spawned.homeSystem = 7
 [oojs.probe]: spawned.hyperspaceSpinTime = 15
@@ -552,10 +552,10 @@
 [oojs.probe]: spawned.maxThrust = 30
 [oojs.probe]: spawned.maxYaw = 2
 [oojs.probe]: spawned.missileCapacity = 1
-[oojs.probe]: spawned.missileLoadTime = 2
+[oojs.probe]: spawned.missileLoadTime = 0
 [oojs.probe]: spawned.missiles = [{calculatedPrice:300, canBeDamaged:false, canCarryMultiple:true, damageProbability:0, defaultActivateKey:null, defaultModeKey:null, description:"Faulcon de Lacy HM3 homing missile, fast and accurate when used in conjunction with standard targeting scanners.", displayColor:null, effectiveTechLevel:1, equipmentKey:"EQ_MISSILE", fastAffinityDefensive:false, fastAffinityOffensive:false, incompatibleEquipment:null, installationTime:900, isAvailableToAll:true, isAvailableToNPCs:true, isAvailableToPlayer:true, isExternalStore:true, isPortableBetweenShips:false, isVisible:true, name:"Missile", price:300, provides:[array 0], repairTime:0, requiredCargoSpace:0, requiresAnyEquipment:null, requiresCleanLegalRecord:false, requiresEmptyPylon:true, requiresEquipment:null, requiresFreePassengerBerth:false, requiresFullFuel:false, requiresMountedPylon:false, requiresNonCleanLegalRecord:false, requiresNonFullFuel:false, scriptInfo:{object}, scriptName:"", techLevel:1, weaponInfo:{object}}]
 [oojs.probe]: spawned.name = "Adder"
-[oojs.probe]: spawned.orientation = Quaternion0.2675,0.0377,-0.8446,0.4622
+[oojs.probe]: spawned.orientation = Quaternion-0.2227,0.7428,0.1365,0.6164
 [oojs.probe]: spawned.owner = null
 [oojs.probe]: spawned.parcelCount = 0
 [oojs.probe]: spawned.parcels = []
@@ -599,9 +599,9 @@
 [oojs.probe]: spawned.thrust = 30
 [oojs.probe]: spawned.thrustVector = Vector3D0,0,0
 [oojs.probe]: spawned.trackCloseContacts = false
-[oojs.probe]: spawned.vectorForward = Vector3D0.4867,-0.7606,-0.4296
-[oojs.probe]: spawned.vectorRight = Vector3D-0.854,-0.311,-0.417
-[oojs.probe]: spawned.vectorUp = Vector3D0.1836,0.5699,-0.801
+[oojs.probe]: spawned.vectorForward = Vector3D0.9766,-0.1626,-0.1409
+[oojs.probe]: spawned.vectorRight = Vector3D0.2028,0.4774,0.855
+[oojs.probe]: spawned.vectorUp = Vector3D-0.0718,-0.8635,0.4992
 [oojs.probe]: spawned.velocity = Vector3D0,0,0
 [oojs.probe]: spawned.weaponFacings = 1
 [oojs.probe]: spawned.weaponPositionAft = [Vector3D0,0,-22.5]
@@ -623,7 +623,7 @@
 [oojs.probe]: system keys: 29
 [oojs.probe]: system.ID = 7
 [oojs.probe]: system.allDemoShips = []
-[oojs.probe]: system.allShips = [<cobra3-player>, <coriolis-station>, <buoy>, <viper>, <viper>, <viper>, <viper>, <adder>, <mamba>, <cobramk1>, <python-blackdog>, <gecko>, <mamba-escort>, <krait>, <krait>, <ferdelance>, <sidewinder>, <moray>, <cobra3-alternate>, <mamba>, <ferdelance>, <asteroid-alternative>, <asteroid>, <asteroid-alternative>, <cobra3-alternate>, <boa>, <adder>, <python>, <gecko>, <python-trader>, <sidewinder>, <krait>, <asteroid-alternative>, <asteroid>, <asteroid>, <asteroid>, <asteroid>, <asteroid>, <asteroid>, <moray>, <mamba-escort>, <krait>, <cobramk1>, <asteroid>, <asteroid>, <adder>, <adder>, <ferdelance>, <sidewinder>, <cobramk1>, <moray>, <cobra3-alternate>, <krait>, <krait>, <buoy-witchpoint>, <moray>, <moray>, <moray>, <krait>, <moray>, <ferdelance>, <asteroid-alternative>, <rock-hermit-chaotic>, <asteroid-alternative>, <gecko>, <anaconda>, <cobramk1>, <asteroid>, <asteroid>, <asteroid>, <asteroid>, <asteroid-alternative>, <asteroid-alternative>, <asteroid>, <asteroid-alternative>]
+[oojs.probe]: system.allShips = [<cobra3-player>, <coriolis-station>, <buoy>, <viper>, <gecko>, <mamba-escort>, <gecko>, <cobramk1>, <krait>, <boa-mk2>, <cobramk1>, <mamba>, <cobramk1-alt>, <mamba-escort>, <asp>, <asp>, <asteroid-alternative>, <asteroid>, <cobramk1>, <boa>, <gecko>, <asteroid-alternative>, <cobramk1>, <adder>, <mamba>, <cobramk1>, <cobramk1>, <adder>, <asteroid-alternative>, <asteroid>, <asteroid>, <asteroid>, <asteroid>, <asteroid>, <asteroid>, <cobramk1>, <sidewinder>, <krait>, <asteroid>, <asteroid>, <adder>, <krait>, <cobra3-alternate>, <krait>, <cobramk1>, <mamba>, <cobramk1>, <gecko>, <buoy-witchpoint>, <asteroid-alternative>, <rock-hermit-chaotic>, <asteroid-alternative>, <asteroid>, <asteroid>, <sidewinder>, <python>, <mamba>, <cobramk1-alt>, <asteroid>, <asteroid>, <asteroid-alternative>, <asteroid-alternative>, <asteroid>, <asteroid-alternative>]
 [oojs.probe]: system.allVisualEffects = []
 [oojs.probe]: system.ambientLevel = 0.1
 [oojs.probe]: system.breakPattern = false
@@ -640,12 +640,12 @@
 [oojs.probe]: system.name = "Lave"
 [oojs.probe]: system.planets = [<Lave>]
 [oojs.probe]: system.population = 25
-[oojs.probe]: system.populatorSettings = {oolite-assassins:{groupCount:2, location:"WITCHPOINT", priority:40}, oolite-couriers-route1:{groupCount:1, location:"LANE_WP", priority:40}, oolite-couriers-route3:{groupCount:2, location:"LANE_WS", priority:40}, oolite-freighters:{groupCount:5, location:"LANE_WP", priority:40}, oolite-freighters-docking:{groupCount:0, location:"STATION_AEGIS", priority:40}, oolite-hunters-heavy-route1:{groupCount:0, location:"LANE_WP", priority:40}, oolite-hunters-heavy-route3:{groupCount:0, location:"LANE_WS", priority:40}, oolite-hunters-medium-route1:{groupCount:0, location:"LANE_WP", priority:40}, oolite-hunters-medium-route3:{groupCount:0, location:"LANE_WS", priority:40}, oolite-hunters-route1:{groupCount:0, location:"LANE_WP", priority:40}, oolite-hunters-triangle:{groupCount:1, location:"LANE_WPS", priority:40}, oolite-interceptors-route1:{groupCount:0, location:"LANE_WP", priority:40}, oolite-interceptors-witchpoint:{groupCount:0, location:"WITCHPOINT", priority:40}, oolite-nav-buoy:{coordinates:[array 3], deterministic:1, location:"COORDINATES", priority:5}, oolite-offlane-hermit:{deterministic:1, groupCount:1, location:"PLANET_ORBIT_HIGH", locationSeed:71258, priority:99}, oolite-pirate-heavy-remote:{groupCount:0, location:"LANE_WP", priority:40}, oolite-pirate-heavy-route1:{groupCount:0, location:"LANE_WP", priority:40}, oolite-pirate-heavy-triangle:{groupCount:0, location:"LANE_WPS", priority:40}, oolite-pirate-independent-route1:{groupCount:1, location:"LANE_WP", priority:40}, oolite-pirate-independent-route2:{groupCount:0, location:"LANE_PS", priority:40}, oolite-pirate-independent-route3:{groupCount:1, location:"LANE_WS", priority:40}, oolite-pirate-light-remote:{groupCount:0, location:"LANE_WP", priority:40}, oolite-pirate-light-route1:{groupCount:1, location:"LANE_WP", priority:40}, oolite-pirate-light-triangle:{groupCount:1, location:"LANE_WPS", priority:40}, oolite-pirate-medium-remote:{groupCount:0, location:"LANE_WP", priority:40}, oolite-pirate-medium-route1:{groupCount:1, location:"LANE_WP", priority:40}, oolite-pirate-medium-triangle:{groupCount:0, location:"LANE_WPS", priority:40}, oolite-police-route1:{groupCount:1, location:"LANE_WP", priority:40}, oolite-police-stationpatrol:{location:"STATION_AEGIS", priority:40}, oolite-police-triangle:{groupCount:0, location:"LANE_WPS", priority:40}, oolite-route1-asteroids:{deterministic:1, groupCount:1, location:"LANE_WP", locationSeed:51728, priority:20}, oolite-route2-asteroids:{deterministic:1, groupCount:3, location:"LANE_PS", locationSeed:82715, priority:20}, oolite-smugglers:{groupCount:1, location:"LANE_WP", priority:40}, oolite-thargoid-scouts:{groupCount:0, location:"LANE_WPS", priority:40}, oolite-thargoid-strike:{groupCount:0, location:"LANE_WPS", priority:40}, oolite-witch-buoy:{coordinates:[array 3], deterministic:1, location:"COORDINATES", priority:10}}
+[oojs.probe]: system.populatorSettings = {oolite-assassins:{groupCount:1, location:"WITCHPOINT", priority:40}, oolite-couriers-route1:{groupCount:0, location:"LANE_WP", priority:40}, oolite-couriers-route3:{groupCount:1, location:"LANE_WS", priority:40}, oolite-freighters:{groupCount:4, location:"LANE_WP", priority:40}, oolite-freighters-docking:{groupCount:0, location:"STATION_AEGIS", priority:40}, oolite-hunters-heavy-route1:{groupCount:0, location:"LANE_WP", priority:40}, oolite-hunters-heavy-route3:{groupCount:0, location:"LANE_WS", priority:40}, oolite-hunters-medium-route1:{groupCount:0, location:"LANE_WP", priority:40}, oolite-hunters-medium-route3:{groupCount:0, location:"LANE_WS", priority:40}, oolite-hunters-route1:{groupCount:1, location:"LANE_WP", priority:40}, oolite-hunters-triangle:{groupCount:0, location:"LANE_WPS", priority:40}, oolite-interceptors-route1:{groupCount:0, location:"LANE_WP", priority:40}, oolite-interceptors-witchpoint:{groupCount:0, location:"WITCHPOINT", priority:40}, oolite-nav-buoy:{coordinates:[array 3], deterministic:1, location:"COORDINATES", priority:5}, oolite-offlane-hermit:{deterministic:1, groupCount:1, location:"PLANET_ORBIT_HIGH", locationSeed:71258, priority:99}, oolite-pirate-heavy-remote:{groupCount:0, location:"LANE_WP", priority:40}, oolite-pirate-heavy-route1:{groupCount:0, location:"LANE_WP", priority:40}, oolite-pirate-heavy-triangle:{groupCount:0, location:"LANE_WPS", priority:40}, oolite-pirate-independent-route1:{groupCount:2, location:"LANE_WP", priority:40}, oolite-pirate-independent-route2:{groupCount:0, location:"LANE_PS", priority:40}, oolite-pirate-independent-route3:{groupCount:1, location:"LANE_WS", priority:40}, oolite-pirate-light-remote:{groupCount:0, location:"LANE_WP", priority:40}, oolite-pirate-light-route1:{groupCount:1, location:"LANE_WP", priority:40}, oolite-pirate-light-triangle:{groupCount:0, location:"LANE_WPS", priority:40}, oolite-pirate-medium-remote:{groupCount:0, location:"LANE_WP", priority:40}, oolite-pirate-medium-route1:{groupCount:0, location:"LANE_WP", priority:40}, oolite-pirate-medium-triangle:{groupCount:0, location:"LANE_WPS", priority:40}, oolite-police-route1:{groupCount:0, location:"LANE_WP", priority:40}, oolite-police-stationpatrol:{location:"STATION_AEGIS", priority:40}, oolite-police-triangle:{groupCount:0, location:"LANE_WPS", priority:40}, oolite-route1-asteroids:{deterministic:1, groupCount:1, location:"LANE_WP", locationSeed:51728, priority:20}, oolite-route2-asteroids:{deterministic:1, groupCount:3, location:"LANE_PS", locationSeed:82715, priority:20}, oolite-smugglers:{groupCount:1, location:"LANE_WP", priority:40}, oolite-thargoid-scouts:{groupCount:0, location:"LANE_WPS", priority:40}, oolite-thargoid-strike:{groupCount:0, location:"LANE_WPS", priority:40}, oolite-witch-buoy:{coordinates:[array 3], deterministic:1, location:"COORDINATES", priority:10}}
 [oojs.probe]: system.productivity = 7000
 [oojs.probe]: system.pseudoRandom100 = 57
 [oojs.probe]: system.pseudoRandom256 = 41
 [oojs.probe]: system.pseudoRandomNumber = 0.161093
-[oojs.probe]: system.stations = [<coriolis-station>, <rock-hermit-chaotic>]
+[oojs.probe]: system.stations = [<rock-hermit-chaotic>, <coriolis-station>]
 [oojs.probe]: system.sun = <Star>
 [oojs.probe]: system.techLevel = 4
 [oojs.probe]: system.waypoints = {}
@@ -697,7 +697,135 @@
 [oojs.probe]: strict assign to primitive -> undefined
 [oojs.probe]: legacy const outside block -> 5
 [oojs.probe]: legacy const before declaration -> "undefined"
+[oojs.probe]: set targetSystem -> 55
 [oojs.probe]: launching
 [oojs.probe]: event soakEnd
 [oojs.probe]: in space -> true
+[oojs.probe]: stage space
+[oojs.probe]: vector add/subtract/multiply -> [Vector3D-1,2.5,7, Vector3D3,1.5,-1, Vector3D-1.5,-3,-4.5]
+[oojs.probe]: vector dot/cross/tripleProduct -> [11, Vector3D6.5,-10,4.5, -10]
+[oojs.probe]: vector angleTo/distanceTo/magnitude -> [0.858854, 3.5, 12.25, 3.741657, 14]
+[oojs.probe]: vector direction/rotateBy/rotationTo -> [Vector3D0.2673,0.5345,0.8018, Vector3D-0.5607,2.7078,2.5206, Quaternion2.4495,1.3268,-2.0412,0.9186, Quaternion2.4495,1.3268,-2.0412,0.9186]
+[oojs.probe]: vector interpolate -> Vector3D0.25,1.625,3.25
+[oojs.probe]: vector from array/string THREW Error: Could not construct vector from parameters ("1 2 3") -- expected Vector, Entity or array of three numbers.
+[oojs.probe]: vector random lengths -> [true, 3, true]
+[oojs.probe]: vector toString -> "(1, 2, 3)"
+[oojs.probe]: vector bad argument THREW Error: Vector3D.add: Could not construct vector from parameters ("not a vector") -- expected Vector, Entity or array of three numbers.
+[oojs.probe]: quaternion multiply/dot/conjugate -> [Quaternion0.8484,0.2323,0.472,-0.0593, 0.848398, Quaternion0.9614,-0.1208,-0.2455,0.0308]
+[oojs.probe]: quaternion rotate/normalize -> [Quaternion0.8585,0.2237,0.1575,0.4338, Quaternion0.8832,0.0225,0.2727,-0.3808, Quaternion1,0,0,0]
+[oojs.probe]: quaternion vectors -> [Vector3D-0.4794,0.2171,0.8503, Vector3D0,0.9689,-0.2474, Vector3D0.8776,0.1186,0.4645]
+[oojs.probe]: quaternion toString/toArray -> ["(0.961353 + 0.120799i + 0.245474j - 0.030845k)", [0.961353, 0.120799, 0.245474, -0.030845]]
+[oojs.probe]: quaternion random unit -> true
+[oojs.probe]: system id/name/government -> [7, "Lave", 3, 5, 4]
+[oojs.probe]: system lookups -> ["Lave", 7, "Esrilees"]
+[oojs.probe]: main bodies -> [<coriolis-station>, 41160, true, 1]
+[oojs.probe]: system.locationFromCode -> Vector3D14825.7813,-8790.625,1789.0625
+[oojs.probe]: count buoys -> [1, 1]
+[oojs.probe]: routeToSystem -> [[7, 129], 5.6, 31.36]
+[oojs.probe]: routeToSystem by distance -> 2
+[oojs.probe]: distanceToSystem -> 5.6
+[oojs.probe]: systemsInRange -> [39, 46, 55, 129, 147, 255]
+[oojs.probe]: filteredSystems -> 0
+[oojs.probe]: samplePrice -> [36, 900]
+[oojs.probe]: addGroup -> [3, false, true]
+[oojs.probe]: ship setCargo/cargoList -> [true, []]
+[oojs.probe]: ship equipment -> [true, true, "EQUIPMENT_OK", true, "EQUIPMENT_DAMAGED", false, true, "EQUIPMENT_UNAVAILABLE"]
+[oojs.probe]: ship bounty -> 25
+[oojs.probe]: ship roles -> ["oojs-probe", true, 1]
+[oojs.probe]: ship spawn -> 2
+[oojs.probe]: ship AI script -> "Oolite Trader AI"
+[oojs.probe]: ship script -> "oolite-default-ship-script"
+[oojs.probe]: ship dumpCargo -> false
+[oojs.probe]: ship explode/stale -> false
+[oojs.probe]: player speed/maxSpeed -> [350, 32, 7]
+[oojs.probe]: player compass -> ["COMPASS_MODE_BASIC", <coriolis-station>]
+[oojs.probe]: player scanner zoom -> undefined
+[oojs.probe]: player custom view THREW Error: PlayerShip.setCustomView only works when custom view is active.
+[oojs.probe]: player MFD text -> undefined
+[oojs.probe]: player crosshairs -> null
+[oojs.probe]: player escape pod destination THREW Error: Player.setEscapePodDestination() only works while the escape pod is in flight.
+[oojs.probe]: set targetSystem in flight THREW Error: player.ship.targetSystem is read-only unless called when docked.
+[oojs.probe]: begin countdown bad argument THREW Error: PlayerShip.beginHyperspaceCountdown: Invalid arguments (2) -- expected between 5 and 60 seconds.
+[oojs.probe]: world event playerStartedJumpCountdown("standard", 5)
+[oojs.probe]: world event playerCancelledJumpCountdown()
+[oojs.probe]: begin/cancel countdown -> [true, "STATUS_IN_FLIGHT"]
+[oojs.probe]: world event playerStartedJumpCountdown("standard", 5)
+[oojs.probe]: begin countdown -> true
+[oojs.probe]: world event shipWillEnterWitchspace("standard jump", 55)
+[oojs.probe]: world event systemWillPopulate()
+[oojs.probe]: world event shipWillExitWitchspace("standard jump")
+[oojs.probe]: world event dayChanged(2084005)
+[oojs.probe]: world event shipExitedWitchspace("standard jump")
+[oojs.probe]: stage arrival
+[oojs.probe]: arrived system -> [55, "Leesti", 0, 55]
+[oojs.probe]: fuel after jump -> 3.4
+[oojs.probe]: arrival bodies -> [true, true, 1]
+[oojs.probe]: previous system -> [true]
+[oojs.probe]: world event shipWillDockWithStation(<coriolis-station>)
+[oojs.probe]: dockPlayer -> undefined
+[oojs.probe]: world event shipDockedWithStation(<coriolis-station>)
+[oojs.probe]: world event guiScreenChanged("GUI_SCREEN_STATUS", "GUI_SCREEN_MAIN")
+[oojs.probe]: world event missionScreenOpportunity()
+[oojs.probe]: stage docked
+[oojs.probe]: docked at -> [true, true, "STATUS_DOCKED"]
+[oojs.probe]: market food -> ["number", "number", "0", 127]
+[oojs.probe]: setMarketPrice/Quantity -> [99, 7]
+[oojs.probe]: credits -> 1000.5
+[oojs.probe]: manifest set -> [3, 1, 4, 16]
+[oojs.probe]: manifest list -> ["food:3", "computers:1"]
+[oojs.probe]: manifest comment -> ["probe", ""]
+[oojs.probe]: removeAllCargo -> 0
+[oojs.probe]: displayNameForCommodity -> ["Food", "Gem-Stones"]
+[oojs.probe]: EquipmentInfo -> ["Fuel Scoops", 5250, 5, true, 0]
+[oojs.probe]: world event equipmentAdded("EQ_FUEL_SCOOPS")
+[oojs.probe]: world event equipmentRemoved("EQ_FUEL_SCOOPS")
+[oojs.probe]: award/remove equipment -> [true, "EQUIPMENT_OK", true, "EQUIPMENT_UNAVAILABLE"]
+[oojs.probe]: award unknown equipment THREW Error: Ship.awardEquipment: Invalid arguments ("EQ_OOJS_NONSENSE") -- expected equipment type.
+[oojs.probe]: primed equipment -> false
+[oojs.probe]: addPassenger -> false
+[oojs.probe]: world event playerEnteredContract("parcel", {object})
+[oojs.probe]: addParcel -> true
+[oojs.probe]: world event playerEnteredContract("cargo", {object})
+[oojs.probe]: awardContract -> true
+[oojs.probe]: contract lists -> [0, 1, 1, undefined]
+[oojs.probe]: removePassenger/Parcel/Contract -> [false, true, true]
+[oojs.probe]: reputation -> ["number", "number", "number"]
+[oojs.probe]: mission markSystem -> true
+[oojs.probe]: mission instructions -> true
+[script.javaScript.warning.ooliteDefined]: ----- JavaScript warning (oojs_probe 1.0): Unknown expansion key [oojs_probe_nonexistent] in string.
+[script.javaScript.warning.ooliteDefined]:       <AddOns>/oojs_probe.oxp/Config/script.js, line 384.
+[script.javaScript.warning.ooliteDefined]: ----- JavaScript warning (oojs_probe 1.0): Unknown expansion key [credits_word] in string.
+[script.javaScript.warning.ooliteDefined]:       <AddOns>/oojs_probe.oxp/Config/script.js, line 384.
+[oojs.probe]: expandDescription -> ["Leesti is in galaxy [oojs_probe_nonexistent]", "[credits_word]"]
+[oojs.probe]: expandMissionText -> null
+[oojs.probe]: formatting -> ["1234.5 ₢", "1 234 567", "0000011:13:46:40"]
+[oojs.probe]: oolite.compareVersion -> [-1, 1]
+[oojs.probe]: Ship data -> ["Adder", "trader(0.25) trader-courier(0.5) trader-smuggler pirate-light-fighter(0.25) pirate(0.2) scavenger shuttle hermit-ship", null]
+[oojs.probe]: Ship keysForRole -> [null, true]
+[script.javaScript.warning.ooliteDefined]: ----- JavaScript warning (oojs_probe 1.0): setScreenBackground(): texture "oojs-missing.png" could not be found.
+[script.javaScript.warning.ooliteDefined]:       <AddOns>/oojs_probe.oxp/Config/script.js, line 390.
+[oojs.probe]: setScreenBackground -> [false, true]
+[oojs.probe]: world event guiScreenChanged("GUI_SCREEN_MISSION", "GUI_SCREEN_STATUS")
+[oojs.probe]: runScreen -> true
+[oojs.probe]: mission screen state -> [undefined, "oojs-probe"]
+[oojs.probe]: addMessageText -> true
+[oojs.probe]: world event equipmentAdded("EQ_GAL_DRIVE")
+[oojs.probe]: award galactic drive -> true
+[oojs.probe]: mission callback null
+[oojs.probe]: world event guiScreenChanged("GUI_SCREEN_MAIN", "GUI_SCREEN_MISSION")
+[oojs.probe]: world event shipWillLaunchFromStation(<coriolis-station>)
+[oojs.probe]: launch from mission screen -> "STATUS_LAUNCHING"
+[oojs.probe]: world event shipLaunchedFromStation(<coriolis-station>)
+[oojs.probe]: stage galactic
+[oojs.probe]: begin galactic countdown -> true
+[oojs.probe]: world event shipWillEnterWitchspace("galactic jump", 1)
+[oojs.probe]: world event equipmentRemoved("EQ_GAL_DRIVE")
+[oojs.probe]: world event systemWillPopulate()
+[oojs.probe]: world event playerEnteredNewGalaxy(1)
+[oojs.probe]: world event shipWillExitWitchspace("galactic jump")
+[oojs.probe]: stage new galaxy
+[oojs.probe]: galaxy -> [1, false]
+[oojs.probe]: world event shipExitedWitchspace("galactic jump")
+[oojs.probe]: galaxy system -> [1, 217, "Lemaed"]
+[oojs.probe]: galaxy lookups -> ["Ausis", "Ausis"]
 [oojs.probe]: ready for external quit
