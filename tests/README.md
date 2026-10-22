@@ -89,9 +89,11 @@ phase), and undo any changes that later tests could see. Run a subset with `--fi
 
 `fetch_oxps.py` downloads the OXZs listed in `test-oxps.txt` into
 `build/test-oxz-cache` (or `$OOLITE_TEST_OXZ_CACHE`), checking their
-SHA-256. CI caches that directory. A download that fails is skipped with a
-warning, since the files are hosted on the Oolite wiki, which is sometimes
-down; a checksum mismatch fails the test. To change the list, take the
+SHA-256. CI caches that directory once all of them have been downloaded. A
+download that fails is skipped with a warning (in CI, a warning on the run),
+since the files are hosted on the Oolite wiki, which is sometimes down; a
+checksum mismatch fails the test. When a CI test step fails, the test output
+(logs, snapshots and probe output) is uploaded as an artifact. To change the list, take the
 download URL from the add-ons catalogue
 (https://addons.oolite.space/api/1.0/overview) and record the file's
 `shasum -a 256`.
