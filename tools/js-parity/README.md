@@ -15,7 +15,16 @@ Starting docked at Lave from the standard scenario, the probe:
 3. jumps to the neighbouring system with the most stable government;
 4. docks (`dockPlayer()`), then uses the market, cargo manifest, equipment,
    contracts, mission text and a mission screen;
-5. launches from the mission screen and makes a galactic jump.
+5. launches from the mission screen and makes a galactic jump;
+6. sweeps every script method (`$sweepNames`, from the method tables in
+   `src/Core/Scripting`): each is called with a wrong `this`, on a removed
+   ship (for Entity and Ship methods), and with bad arguments (none,
+   `undefined`, `null`, a string, -1, NaN, an object, an array) on a
+   throwaway object, and one line per method records what each call did.
+   Methods that act on the player, the system or the mission without
+   checking `this`, and calls that would derail the run, are skipped
+   (`$sweepSkip`); entity descriptions, numbers and addresses in messages
+   are normalised so that the lines are stable between runs.
 
 From step 2 on it also records the world-script events that its own actions
 cause, with their arguments. When it has finished it logs
@@ -56,8 +65,16 @@ a machine. On slow machines set `OOLITE_TEST_TIMEOUT_SCALE` (for example
 - `noise.txt`: lines that differ between two runs of the same build (random
   equipment, traffic, prices); `compare.sh` ignores them.
 - `expected-differences.txt`: accepted differences between SpiderMonkey and
-  QuickJS; `compare.sh` ignores them too.
+  QuickJS, each with its reason. `compare.sh` ignores lines containing them
+  only when one of the files it compares has `spidermonkey` in its name, so
+  QuickJS-to-QuickJS comparisons still check those lines.
 
 Linux and macOS outputs differ slightly (float formatting in one ship's
 collision radius, the station's shipyard and the build version string), so
 compare each platform with its own baseline.
+
+The sweep found two crashes in SpiderMonkey debug builds that QuickJS does
+not have, and which the probe therefore avoids: `Ship.setCrew()` with bad
+arguments (a segmentation fault), and most Station methods called with a
+wrong `this` (an assertion). `tests/js` checks `setCrew()` under QuickJS, and
+the Station sweep runs only under QuickJS.
