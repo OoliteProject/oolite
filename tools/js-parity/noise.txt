@@ -19,3 +19,6 @@
 [oojs.probe]: spawned.equipment
 # Station order is not stable between runs.
 [oojs.probe]: system.stations
+# Market prices fluctuate, and system locations such as the witchpoint are randomised.
+[oojs.probe]: samplePrice
+[oojs.probe]: system.locationFromCode
