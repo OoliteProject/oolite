@@ -28,6 +28,9 @@ MA 02110-1301, USA.
 #import "OOJSEntity.h"
 #endif
 #import "OOJavaScriptEngine.h"
+#ifndef OOJS_POC_HARNESS
+#import "Universe.h"
+#endif
 
 static JSClassID sVectorClassID;
 
@@ -56,6 +59,10 @@ static JSValue VectorSquaredMagnitude(OOJS_NATIVE_ARGS);
 static JSValue VectorRotationTo(OOJS_NATIVE_ARGS);
 static JSValue VectorRotateBy(OOJS_NATIVE_ARGS);
 static JSValue VectorToArray(OOJS_NATIVE_ARGS);
+#ifndef OOJS_POC_HARNESS // These need Universe, which the proof-of-concept harness does not have.
+static JSValue VectorToCoordinateSystem(OOJS_NATIVE_ARGS);
+static JSValue VectorFromCoordinateSystem(OOJS_NATIVE_ARGS);
+#endif
 
 // Static methods
 static JSValue VectorStaticInterpolate(OOJS_NATIVE_ARGS);
@@ -82,9 +89,6 @@ static const JSCFunctionListEntry sVectorProperties[] = {
     JS_CGETSET_MAGIC_DEF2("z", VectorGetProperty, VectorSetProperty, kVector_z, OOJS_PROP_READWRITE_CB),
 };
 
-/*	TODO (phase 3): toCoordinateSystem() and fromCoordinateSystem() need
-        Universe, which is not part of the proof-of-concept harness.
-*/
 static const JSCFunctionListEntry sVectorMethods[] = {
     // JS name, min args, function
     JS_CFUNC_DEF("toSource", 0, VectorToSource),
@@ -93,6 +97,9 @@ static const JSCFunctionListEntry sVectorMethods[] = {
     JS_CFUNC_DEF("angleTo", 1, VectorAngleTo),
     JS_CFUNC_DEF("cross", 1, VectorCross),
     JS_CFUNC_DEF("direction", 0, VectorDirection),
+#ifndef OOJS_POC_HARNESS
+    JS_CFUNC_DEF("fromCoordinateSystem", 1, VectorFromCoordinateSystem),
+#endif
     JS_CFUNC_DEF("distanceTo", 1, VectorDistanceTo),
     JS_CFUNC_DEF("dot", 1, VectorDot),
     JS_CFUNC_DEF("magnitude", 0, VectorMagnitude),
@@ -103,6 +110,9 @@ static const JSCFunctionListEntry sVectorMethods[] = {
     JS_CFUNC_DEF("squaredMagnitude", 0, VectorSquaredMagnitude),
     JS_CFUNC_DEF("subtract", 1, VectorSubtract),
     JS_CFUNC_DEF("toArray", 0, VectorToArray),
+#ifndef OOJS_POC_HARNESS
+    JS_CFUNC_DEF("toCoordinateSystem", 1, VectorToCoordinateSystem),
+#endif
     JS_CFUNC_DEF("tripleProduct", 2, VectorTripleProduct),
 };
 
@@ -930,3 +940,62 @@ static JSValue VectorStaticRandomDirectionAndLength(OOJS_NATIVE_ARGS)
 
     OOJS_PROFILE_EXIT
 }
+
+#ifndef OOJS_POC_HARNESS
+// toCoordinateSystem(coordScheme : String) : Vector3D
+static JSValue VectorToCoordinateSystem(OOJS_NATIVE_ARGS)
+{
+    OOJS_NATIVE_ENTER(context)
+
+    HPVector thisv;
+    NSString* coordScheme = nil;
+    HPVector result;
+
+    if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, @"toCoordinateSystem")))
+        return JS_EXCEPTION;
+
+    if (argc > 0)
+        coordScheme = OOStringFromJSValue(context, OOJS_ARGV[0]);
+    if (EXPECT_NOT(coordScheme == nil)) {
+        OOJSReportBadArguments(context, @"Vector3D", @"toCoordinateSystem", MIN(argc, 1), OOJS_ARGV, nil, @"coordinate system");
+        return OOJSNativeFailure(context);
+    }
+
+    OOJS_BEGIN_FULL_NATIVE(context)
+    result = [UNIVERSE legacyPositionFrom:thisv asCoordinateSystem:coordScheme];
+    OOJS_END_FULL_NATIVE
+
+    OOJS_RETURN_HPVECTOR(result);
+
+    OOJS_NATIVE_EXIT
+}
+
+// fromCoordinateSystem(coordScheme : String) : Vector3D
+static JSValue VectorFromCoordinateSystem(OOJS_NATIVE_ARGS)
+{
+    OOJS_NATIVE_ENTER(context)
+
+    HPVector thisv;
+    NSString* coordScheme = nil;
+    HPVector result;
+
+    if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, @"fromCoordinateSystem")))
+        return JS_EXCEPTION;
+
+    if (argc > 0)
+        coordScheme = OOStringFromJSValue(context, OOJS_ARGV[0]);
+    if (EXPECT_NOT(coordScheme == nil)) {
+        OOJSReportBadArguments(context, @"Vector3D", @"fromCoordinateSystem", MIN(argc, 1), OOJS_ARGV, nil, @"coordinate system");
+        return OOJSNativeFailure(context);
+    }
+
+    OOJS_BEGIN_FULL_NATIVE(context)
+    NSString* arg = [NSString stringWithFormat:@"%@ %f %f %f", coordScheme, thisv.x, thisv.y, thisv.z];
+    result = [UNIVERSE coordinatesFromCoordinateSystemString:arg];
+    OOJS_END_FULL_NATIVE
+
+    OOJS_RETURN_HPVECTOR(result);
+
+    OOJS_NATIVE_EXIT
+}
+#endif
