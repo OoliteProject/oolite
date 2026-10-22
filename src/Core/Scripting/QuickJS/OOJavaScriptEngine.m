@@ -1911,6 +1911,17 @@ static id JSBooleanConverter(JSContext* context, JSValueConst object)
 
 static id JSObjectConverter(JSContext* context, JSValueConst object)
 {
+    /*	SpiderMonkey's global object had a class of its own, with no converter,
+            so it converted to nil. QuickJS's is a plain object, and converting it
+            as one recurses until the stack overflows, since globalThis refers to
+            itself; a Timer whose this is the global object did that on firing.
+    */
+    JSValue global = JS_GetGlobalObject(context);
+    BOOL isGlobal = JS_IsStrictEqual(context, global, object);
+    JS_FreeValue(context, global);
+    if (isGlobal)
+        return nil;
+
     return OOJSDictionaryFromJSObject(context, object);
 }
 
