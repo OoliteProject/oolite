@@ -279,8 +279,12 @@ class OoliteGame:
     def __init__(self, path, test_output, load=None, extra_args=(), extra_env=None):
         self.directory, self.binary = resolve_binary(path)
         self.test_output = os.path.abspath(test_output)
+        os.makedirs(self.test_output, exist_ok=True)
         self.log_path = os.path.join(self.test_output, "Latest.log")
         self.args = ["--no-splash"]
+        if sys.platform == "darwin":
+            # After a crash, macOS otherwise asks (in a modal alert) whether to reopen windows, which blocks the game.
+            self.args += ["-ApplePersistenceIgnoreState", "YES"]
         if load:
             self.args += ["-load", os.path.abspath(load)]
         self.args += list(extra_args)

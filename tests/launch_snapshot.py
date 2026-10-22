@@ -90,16 +90,20 @@ def dock(console):
 
 def run_test(path, test_output, load, addons=None):
     # Only the given OXPs are loaded, not any installed for normal play.
-    isolated = os.path.join(test_output, "NoAddOns")
-    os.makedirs(isolated, exist_ok=True)
-    addons = os.path.abspath(addons) if addons else isolated
+    managed = os.path.join(test_output, "ManagedAddOns")
+    os.makedirs(managed, exist_ok=True)
+    if addons:
+        addons = os.path.abspath(addons)
+    else:
+        addons = os.path.join(test_output, "AddOns")
+        os.makedirs(addons, exist_ok=True)
     oxps = sorted(f for f in os.listdir(addons) if f.endswith((".oxz", ".oxp")))
     print(f"[*] OXPs: {', '.join(oxps) if oxps else 'none'}")
     game = OoliteGame(
         path,
         test_output,
         load=load,
-        extra_env={"OO_ADDITIONALADDONSDIRS": addons, "OO_MANAGEDADDONSDIR": isolated},
+        extra_env={"OO_ADDITIONALADDONSDIRS": addons, "OO_MANAGEDADDONSDIR": managed},
     )
     try:
         console = game.start()
