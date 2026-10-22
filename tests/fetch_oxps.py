@@ -7,6 +7,10 @@ Usage: fetch_oxps.py <cache directory>
 Prints the number of OXPs available. A download that fails (the host is down,
 say) is skipped with a warning; a file whose SHA-256 does not match is an
 error, since that means the list or the download is wrong.
+
+In GitHub Actions, a skipped download is also reported as a warning on the
+run, and when every OXP is available the step's output test-oxps-complete is
+set to true, so that the workflow only caches a complete set.
 """
 
 import hashlib
@@ -35,6 +39,12 @@ def entries():
                 yield checksum, identifier, url
 
 
+def warn(message):
+    print(message)
+    if os.environ.get("GITHUB_ACTIONS") == "true":
+        print(f"::warning title=Test OXPs::{message.removeprefix('[?] ')}")
+
+
 def fetch(cache):
     os.makedirs(cache, exist_ok=True)
     available = 0
@@ -50,7 +60,7 @@ def fetch(cache):
             with urllib.request.urlopen(request, timeout=120) as response, open(partial, "wb") as out:
                 out.write(response.read())
         except OSError as e:
-            print(f"[?] Could not download {identifier} ({e}); testing without it.")
+            warn(f"[?] Could not download {identifier} ({e}); testing without it.")
             if os.path.exists(partial):
                 os.remove(partial)
             continue
@@ -70,5 +80,9 @@ if __name__ == "__main__":
     if len(sys.argv) != 2:
         sys.exit(__doc__)
     available, errors = fetch(sys.argv[1])
-    print(f"[*] {available} test OXP(s) available in {sys.argv[1]}")
+    total = sum(1 for _ in entries())
+    print(f"[*] {available} of {total} test OXP(s) available in {sys.argv[1]}")
+    if available == total and os.environ.get("GITHUB_OUTPUT"):
+        with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+            out.write("test-oxps-complete=true\n")
     sys.exit(1 if errors else 0)
