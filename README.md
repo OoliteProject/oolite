@@ -154,10 +154,10 @@ require this step:
 ./mk.sh clean dev
 ```
 
-You can run a test of the development build from your Bash or MSYS2 prompt as follows. It loads the standard starting
-game, launches into space and takes a snapshot, fires a missile, docks with the docking computer and takes a second
-snapshot. It fails if any of those steps fails, if any script reports an error, or if the JavaScript runtime leaks
-objects at shutdown:
+You can test the development build from your Bash or MSYS2 prompt as follows. A smoke test loads the standard starting
+game with a few OXPs, launches, fires a missile and docks with the docking computer, taking snapshots; JavaScript tests
+then run inside the game, and a probe flies through hyperspace and compares what scripts see with stored output. Any
+script error, or JavaScript objects leaked at shutdown, fails the test. See [tests/README.md](tests/README.md):
 
 ```bash
 ./mk.sh test dev
