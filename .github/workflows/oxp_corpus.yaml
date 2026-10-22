@@ -42,6 +42,10 @@ jobs:
           key: oxp-corpus-${{ hashFiles('tools/js-parity/oxp-corpus.txt') }}
       - name: Check OXPs
         id: corpus
+        env:
+          # As in test_builds.yaml: the runner renders OpenGL in software.
+          OOLITE_TEST_WINDOW: 640x360
+          OOLITE_TEST_TIMEOUT_SCALE: 2
         run: |
           python3 -u tools/js-parity/oxp_corpus.py build/meson_dev/oolite.app
       - name: Save corpus OXPs
