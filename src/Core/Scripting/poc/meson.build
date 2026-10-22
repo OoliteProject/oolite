@@ -1,8 +1,8 @@
 # QuickJS-ng proof of concept (issue #580).
 #
 # Builds a standalone test harness, oojs-quickjs-poc, from the ported engine
-# core, Vector3D and Quaternion bindings and a minimal script loader. Linux
-# only for now; needs the same GNUstep install as the game. From the repository root:
+# core, Vector3D and Quaternion bindings and a minimal script loader, on Linux
+# (with the same GNUstep install as the game) or macOS. From the repository root:
 #   meson setup build/quickjs-poc --native-file clang.ini -Dquickjs_poc=true -Ddebug=true -Doptimization=0
 #   meson compile -C build/quickjs-poc oojs-quickjs-poc
 #   meson test -C build/quickjs-poc quickjs-poc --print-errorlogs
@@ -19,13 +19,22 @@ quickjs_dep = dependency(
 )
 
 if host_os == 'windows' or host_os == 'cygwin'
-    error('The QuickJS proof-of-concept harness currently supports Linux only.')
+    warning('The QuickJS proof-of-concept harness supports Linux and macOS only; not building it.')
+    subdir_done()
 endif
 
-poc_gnustep_dep = declare_dependency(
-    dependencies: [gs_lib, objc_lib, dependency('gl')],
-    include_directories: include_directories(found_gs_inc, is_system: true),
-)
+if host_os == 'darwin'
+    # The OpenGL headers come by way of SDL's.
+    poc_gnustep_dep = [
+        dependency('appleframeworks', modules: ['Foundation', 'OpenGL']),
+        dependency('sdl3').partial_dependency(compile_args: true, includes: true),
+    ]
+else
+    poc_gnustep_dep = declare_dependency(
+        dependencies: [gs_lib, objc_lib, dependency('gl')],
+        include_directories: include_directories(found_gs_inc, is_system: true),
+    )
+endif
 
 poc_sources = files(
     '../OOJSClasses.m',
