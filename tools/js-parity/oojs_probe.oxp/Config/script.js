@@ -417,8 +417,194 @@ this.$stageNewGalaxy = function ()
 	{
 		$try("galaxy system", function () { return [galaxyNumber, system.ID, system.name]; });
 		$try("galaxy lookups", function () { return [System.infoForSystem(galaxyNumber, 0).name, System.systemNameForID(0)]; });
-		this.$finish();
+		this.$stageSweep();
 	});
+};
+
+/*	Method sweep: calls every script method with a wrong this, on a stale
+	entity, and with bad arguments, and logs one line per method with what
+	each call did. Nothing should crash; differences from the baseline show
+	changed argument checking or error messages. Natives that act on the
+	player, the system or the mission without checking this, and calls that
+	would end or derail the run, are left out (see $sweepSkip).
+*/
+this.$sweepArgs = [
+	["none", []], ["undef", [undefined]], ["null", [null]], ["str", ["oojs-nonsense"]],
+	["neg", [-1]], ["nan", [NaN]], ["obj", [{}]], ["arr", [[1, 2]]]
+];
+
+this.$sweepSkip = {
+	// Would destroy the player or everything nearby, or fire at random targets.
+	"Ship.becomeCascadeExplosion": true, "Ship.broadcastCascadeImminent": true, "Ship.dealEnergyDamage": true,
+	"Ship.fireMissile": true, "Ship.__runLegacyScriptActions": true,
+	// SpiderMonkey builds crash (segmentation fault) on bad arguments; checked by tests/js instead.
+	"Ship.setCrew": true,
+	// Its warning includes the ship's (random) position.
+	"Ship.fireECM": true,
+	// Log large dumps.
+	"Entity.dumpState": true, "Entity.inspect": true,
+	// Change persistent settings, screens or the run itself.
+	"global.setScreenBackground": true, "global.setScreenBackgroundForKey": true, "global.setScreenOverlay": true,
+	"global.setGuiColorSettingForKey": true, "global.setExtraGuiScreenKeys": true, "global.clearExtraGuiScreenKeys": true,
+	"global.takeSnapShot": true, "global.quitGame": true, "global.pauseGame": true, "global.consoleMessage": true,
+	"global.log": true, "global.eval": true, "global.queueMicrotask": true,
+	"System.sendAllShipsAway": true, "System.setPopulator": true, "System.setWaypoint": true,
+	"Mission.runScreen": true, "Mission.runShipLibrary": true, "Sound.playMusic": true,
+	"SystemInfo.setInterstellarProperty": true
+};
+
+/*	The methods swept, by class: the method tables in src/Core/Scripting.
+	Fixed lists, rather than reflection, so that both engines are asked about
+	the same names (SpiderMonkey and QuickJS put some methods on different
+	objects); a method that does not exist is logged as missing.
+*/
+this.$sweepNames = {
+	"Entity": ["toString"],
+	"Ship": ["abandonShip", "addCargoEntity", "addCollisionException", "addDefenseTarget", "adjustCargo", "awardEquipment", "becomeCascadeExplosion", "broadcastCascadeImminent", "broadcastDistressMessage", "canAwardEquipment", "checkCourseToDestination", "checkScanner", "clearDefenseTargets", "commsMessage", "damageAssessment", "dealEnergyDamage", "deployEscorts", "dockEscorts", "dumpCargo", "ejectItem", "ejectSpecificItem", "enterWormhole", "equipmentStatus", "exitAI", "exitSystem", "explode", "fireECM", "fireMissile", "findNearestStation", "getMaterials", "getSafeCourseToDestination", "getShaders", "hasEquipmentProviding", "hasRole", "markTargetForFines", "notifyGroupOfWormhole", "offerToEscort", "patrolReportIn", "performAttack", "performCollect", "performEscort", "performFaceDestination", "performFlee", "performFlyToRangeFromDestination", "performHold", "performIdle", "performIntercept", "performLandOnPlanet", "performMining", "performScriptedAI", "performScriptedAttackAI", "performStop", "performTumble", "reactToAIMessage", "remove", "removeCollisionException", "removeDefenseTarget", "removeEquipment", "requestHelpFromGroup", "requestDockingInstructions", "recallDockingInstructions", "restoreSubEntities", "selectNewMissile", "sendAIMessage", "setAI", "setBounty", "setCargo", "setCargoType", "setCrew", "setEquipmentStatus", "setMaterials", "setScript", "setShaders", "spawn", "spawnOne", "switchAI", "threatAssessment", "throwSpark", "updateEscortFormation"],
+	"ShipStatic": ["keys", "keysForRole", "roleIsInCategory", "setCharacterRoleKey", "shipDataForKey"],
+	"Station": ["abortAllDockings", "abortDockingForShip", "canDockShip", "dockPlayer", "increaseAlertLevel", "decreaseAlertLevel", "launchDefenseShip", "launchEscort", "launchMiner", "launchPatrol", "launchPirateShip", "launchPolice", "launchScavenger", "launchShipWithRole", "launchShuttle", "setInterface", "setMarketPrice", "setMarketQuantity", "addShipToShipyard", "removeShipFromShipyard"],
+	"VisualEffect": ["getMaterials", "getShaders", "remove", "restoreSubEntities", "scale", "setMaterials", "setShaders"],
+	"Vector3D": ["toSource", "toString", "add", "angleTo", "cross", "direction", "distanceTo", "dot", "fromCoordinateSystem", "magnitude", "multiply", "rotateBy", "rotationTo", "squaredDistanceTo", "squaredMagnitude", "subtract", "toArray", "toCoordinateSystem", "tripleProduct"],
+	"Vector3DStatic": ["interpolate"],
+	"Quaternion": ["toString", "toSource", "dot", "multiply", "normalize", "conjugate", "rotate", "rotateX", "rotateY", "rotateZ", "toArray", "vectorForward", "vectorRight", "vectorUp"],
+	"SystemInfo": ["toString", "distanceToSystem", "routeToSystem", "samplePrice", "setProperty", "systemsInRange"],
+	"SystemInfoStatic": ["filteredSystems", "systemsInRange"],
+	"SystemStatic": ["infoForSystem", "systemIDForName", "systemNameForID"],
+	"System": ["addGroup", "addGroupToRoute", "addMoon", "addPlanet", "addShips", "addShipsToRoute", "addVisualEffect", "countEntitiesWithScanClass", "countShipsWithPrimaryRole", "countShipsWithRole", "entitiesWithScanClass", "filteredEntities", "locationFromCode", "shipsWithPrimaryRole", "shipsWithRole", "legacy_addShips", "legacy_addSystemShips", "legacy_addShipsAt", "legacy_addShipsAtPrecisely", "legacy_addShipsWithinRadius", "legacy_spawnShip", "scrambledPseudoRandomNumber"],
+	"Timer": ["toString", "start", "stop"],
+	"SoundSource": ["toString", "play", "playOrRepeat", "stop", "playSound"],
+	"ShipGroup": ["toString", "addShip", "containsShip", "removeShip"],
+	"EquipmentInfoStatic": ["infoForKey"],
+	"SoundStatic": ["load", "musicSoundSource", "stopMusic"],
+	"Mission": ["addMessageText", "markSystem", "setInstructions", "setInstructionsKey", "unmarkSystem"],
+	"global": ["addFrameCallback", "autoAIForRole", "displayNameForCommodity", "expandDescription", "expandMissionText", "formatCredits", "formatInteger", "getGuiColorSettingForKey", "getScreenBackgroundForKey", "isValidFrameCallback", "keyBindingDescription", "randomInhabitantsDescription", "randomName", "removeFrameCallback", "uneval"]
+};
+
+this.$outcome = function (fn)
+{
+	try
+	{
+		var r = fn();
+		var kind = r === null ? "null" : typeof r;
+		if (kind === "object")  kind = Array.isArray(r) ? "array" : ((r.isValid !== undefined) ? "entity" : (r.constructor && r.constructor.name) || "object");
+		return "ok:" + kind;
+	}
+	catch (e)
+	{
+		var message = String(e && e.message !== undefined ? e.message : e);
+		// Native (Objective-C) exceptions name classes and addresses that differ between runs and platforms.
+		if (message.indexOf("Native exception") === 0)  message = "Native exception";
+		message = message.replace(/\[(Ship|Station|PlayerShip|Entity|Planet|Sun|Wormhole|VisualEffect)\b[^\]]*\]/g, "[$1]").replace(/-?\d+\.\d+(e[-+]?\d+)?/g, "#");
+		return (e && e.name || "throw") + ":" + message.slice(0, 120);
+	}
+};
+
+this.$sweepMethod = function (label, names, makeTarget, options)
+{
+	var self = this;
+	// Queued, and run a few at a time by $stageSweep's timer, to stay well within the script time limit.
+	names.forEach(function (name) { self.$sweepQueue.push(function ()
+	{
+		var key = label + "." + name;
+		if (self.$sweepSkip[key])  return;
+		var parts = [];
+		var probeTarget = makeTarget ? makeTarget() : null;
+		var fn = probeTarget ? probeTarget[name] : options.holder[name];
+		if (typeof fn !== "function")
+		{
+			parts.push("missing");
+		}
+		else
+		{
+			if (options.wrongThis)
+			{
+				parts.push("this{}=" + self.$outcome(function () { return fn.call({}); }));
+				parts.push("thisVec=" + self.$outcome(function () { return fn.call(new Vector3D(1, 2, 3)); }));
+			}
+			if (options.stale)  parts.push("stale=" + self.$outcome(function () { return fn.call(options.stale, "oojs-nonsense"); }));
+			if (options.args !== false)
+			{
+				self.$sweepArgs.forEach(function (argSet)
+				{
+					var target = makeTarget ? makeTarget() : options.holder;
+					parts.push(argSet[0] + "=" + self.$outcome(function () { return target[name].apply(target, argSet[1]); }));
+					if (options.cleanUp)  options.cleanUp(target);
+				});
+			}
+		}
+		if (probeTarget && options.cleanUp)  options.cleanUp(probeTarget);
+		$p("sweep " + key + ": " + parts.join("; "));
+	}); });
+};
+
+this.$stageSweep = function ()
+{
+	$p("stage sweep");
+	var self = this;
+	var ps = player.ship;
+	var where = ps.position.add([0, 50000, 0]);
+	function freshShip() { return system.addShips("[adder]", 1, where, 0)[0]; }
+	function removeShip(s) { if (s && s.isValid)  s.remove(true); }
+	var N = this.$sweepNames;
+	var global = Function("return this")();  // This script is strict, so a plain call would give undefined.
+	var stale = freshShip();
+	stale.remove(true);
+
+	// The batches only queue their calls; the timer below makes them.
+	this.$sweepQueue = [];
+	var batches = [
+		function () { self.$sweepMethod("Entity", N.Entity, freshShip, { wrongThis: true, stale: stale, cleanUp: removeShip }); },
+		function () { self.$sweepMethod("Ship", N.Ship.slice(0, 30), freshShip, { wrongThis: true, stale: stale, cleanUp: removeShip }); },
+		function () { self.$sweepMethod("Ship", N.Ship.slice(30, 60), freshShip, { wrongThis: true, stale: stale, cleanUp: removeShip }); },
+		function () { self.$sweepMethod("Ship", N.Ship.slice(60), freshShip, { wrongThis: true, stale: stale, cleanUp: removeShip }); },
+		function () { self.$sweepMethod("Ship", N.ShipStatic, null, { holder: Ship }); },
+		function ()
+		{
+			// SpiderMonkey debug builds abort (JS_Assert) on most of these; see expected-differences.txt.
+			if (oolite.jsVersionString.indexOf("QuickJS") !== -1)  self.$sweepMethod("Station", N.Station, null, { holder: system.mainStation, wrongThis: true, args: false });
+			self.$sweepMethod("VisualEffect", N.VisualEffect, null, { holder: VisualEffect.prototype, wrongThis: true, args: false });
+			self.$sweepMethod("Sun", ["cancelNova"], null, { holder: system.sun, wrongThis: true, args: false });
+			self.$sweepMethod("Dock", ["isQueued"], null, { holder: Dock.prototype, wrongThis: true, args: false });
+		},
+		function ()
+		{
+			self.$sweepMethod("Vector3D", N.Vector3D, function () { return new Vector3D(1, 2, 3); }, { wrongThis: true });
+			self.$sweepMethod("Vector3D", N.Vector3DStatic, null, { holder: Vector3D });
+			self.$sweepMethod("Quaternion", N.Quaternion, function () { return new Quaternion(1, 0, 0, 0); }, { wrongThis: true });
+		},
+		function ()
+		{
+			self.$sweepMethod("SystemInfo", N.SystemInfo, function () { return System.infoForSystem(galaxyNumber, 0); }, { wrongThis: true });
+			self.$sweepMethod("SystemInfo", N.SystemInfoStatic, null, { holder: SystemInfo });
+			self.$sweepMethod("System", N.SystemStatic, null, { holder: System });
+			self.$sweepMethod("System", N.System, null, { holder: system });
+		},
+		function ()
+		{
+			self.$sweepMethod("Timer", N.Timer, function () { return new Timer(self, function () {}, 1000); }, { wrongThis: true, cleanUp: function (t) { t.stop(); } });
+			self.$sweepMethod("SoundSource", N.SoundSource, function () { return new SoundSource(); }, { wrongThis: true });
+			self.$sweepMethod("ShipGroup", N.ShipGroup, function () { return new ShipGroup("oojs-probe"); }, { wrongThis: true });
+			self.$sweepMethod("EquipmentInfo", N.EquipmentInfoStatic, null, { holder: EquipmentInfo });
+			self.$sweepMethod("Sound", N.SoundStatic, null, { holder: Sound });
+			self.$sweepMethod("Mission", N.Mission, null, { holder: mission });
+			self.$sweepMethod("global", N.global, null, { holder: global });
+		}
+	];
+	batches.forEach(function (batch) { batch(); });
+	this.$sweepTimer = new Timer(this, function ()
+	{
+		var start = Date.now();
+		while (this.$sweepQueue.length > 0 && Date.now() - start < 50)
+		{
+			this.$sweepQueue.shift()();
+		}
+		if (this.$sweepQueue.length === 0)
+		{
+			this.$sweepTimer.stop();
+			$p("sweep done");
+			this.$finish();
+		}
+	}, 0.1, 0.1);
 };
 
 this.$finish = function ()
