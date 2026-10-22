@@ -46,7 +46,9 @@ runtime's leak check runs.
 
 Because the port is fixed, only one game can be tested at a time on a
 machine. On slow machines (for example under CPU emulation) set
-`OOLITE_TEST_TIMEOUT_SCALE` to multiply every timeout.
+`OOLITE_TEST_TIMEOUT_SCALE` to multiply every timeout. Where OpenGL is
+rendered in software, a smaller window makes the game run faster: set
+`OOLITE_TEST_WINDOW`, for example to `640x360` (CI does this on macOS).
 
 ## Writing JavaScript tests
 
