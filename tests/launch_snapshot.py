@@ -6,7 +6,8 @@ With --load, the game starts docked from that save; the test then launches
 the player into space and takes a snapshot there, which runs the world
 scripts, the populator and the ship AIs. It fires a missile at an asteroid
 and checks that one fewer missile remains, then docks with the docking
-computer and takes a second snapshot. In every case the test fails if the
+computer and takes a second snapshot. With --addons, the OXPs in that
+directory are loaded too (run_test_fn.sh uses those listed in test-oxps.txt). In every case the test fails if the
 log shows a JavaScript exception or error, a script that ran too long, or a
 JavaScript runtime that did not pass its shutdown leak check.
 """
@@ -87,8 +88,19 @@ def dock(console):
     print("[*] Docked.")
 
 
-def run_test(path, test_output, load):
-    game = OoliteGame(path, test_output, load=load)
+def run_test(path, test_output, load, addons=None):
+    # Only the given OXPs are loaded, not any installed for normal play.
+    isolated = os.path.join(test_output, "NoAddOns")
+    os.makedirs(isolated, exist_ok=True)
+    addons = os.path.abspath(addons) if addons else isolated
+    oxps = sorted(f for f in os.listdir(addons) if f.endswith((".oxz", ".oxp")))
+    print(f"[*] OXPs: {', '.join(oxps) if oxps else 'none'}")
+    game = OoliteGame(
+        path,
+        test_output,
+        load=load,
+        extra_env={"OO_ADDITIONALADDONSDIRS": addons, "OO_MANAGEDADDONSDIR": isolated},
+    )
     try:
         console = game.start()
 
@@ -133,11 +145,12 @@ if __name__ == "__main__":
     parser.add_argument("--path", default="./", help="Path to the Oolite directory or binary (default: ./)")
     parser.add_argument("--test_output", default="./test_output", help="Path to test output (default: ./test_output)")
     parser.add_argument("--load", help="Saved game to start from (for example Resources/Scenarios/oolite-standard.oolite-save)")
+    parser.add_argument("--addons", help="Directory of OXPs/OXZs to load (see fetch_oxps.py)")
     args = parser.parse_args()
 
     success = False
     try:
-        success = run_test(args.path, os.path.abspath(args.test_output), args.load)
+        success = run_test(args.path, os.path.abspath(args.test_output), args.load, args.addons)
     except Exception as e:
         print(f"[!] Critical Error: {e!r}")
     if success:
