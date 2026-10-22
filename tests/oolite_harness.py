@@ -349,12 +349,18 @@ class OoliteGame:
             self.proc.kill()
             self.proc.wait()
 
-    def check_log(self, require_leak_check=True):
+    def check_log(self, require_leak_check=True, allowed=()):
         """Returns a list of problems found in the game's log."""
-        return check_log(self.log_path, require_leak_check)
+        return check_log(self.log_path, require_leak_check, allowed)
 
 
-def check_log(log_path, require_leak_check=True):
+def check_log(log_path, require_leak_check=True, allowed=()):
+    """
+    Returns a list of problems found in the log. Failure lines matching any of
+    the regular expressions in allowed (problems a test causes on purpose)
+    are not problems.
+    """
+    allowed = [re.compile(a) for a in allowed]
     problems = []
     try:
         with open(log_path, encoding="utf-8", errors="replace") as f:
@@ -366,6 +372,10 @@ def check_log(log_path, require_leak_check=True):
     previous_failed = False
     for number, line in enumerate(lines, 1):
         if any(p.search(line) for p in LOG_FAILURE_PATTERNS):
+            if any(a.search(line) for a in allowed):
+                print(f"[*] Expected in Latest.log line {number}: {line}")
+                previous_failed = False
+                continue
             # A message's further lines repeat its class, indented after the "]: ".
             if previous_failed and CONTINUATION_PATTERN.search(line):
                 problems[-1] += "\n" + line
