@@ -43,6 +43,17 @@ run_test() {
         LAUNCH_PATH="$TARGET_DIR/Contents/MacOS/oolite"  # app bundle
     fi
 
+    # 0. Unit tests of the JavaScript engine (src/Core/Scripting/poc), in builds that include them.
+    local BUILD_DIR=$(dirname "$TARGET_DIR")
+    if grep -q '"quickjs-poc"' "$BUILD_DIR/meson-info/intro-tests.json" 2>/dev/null; then
+        if ! meson test -C "$BUILD_DIR" quickjs-poc --print-errorlogs; then
+            echo "❌ JavaScript engine unit tests failed!" >&2
+            popd
+            return 1
+        fi
+        echo "✅ JavaScript engine unit tests passed"
+    fi
+
     # 1. Smoke test, with the OXPs in test-oxps.txt (cached between runs).
     local OXZ_CACHE="${OOLITE_TEST_OXZ_CACHE:-$script_dir/../build/test-oxz-cache}"
     if ! $PYTHON_CMD -u fetch_oxps.py "$OXZ_CACHE"; then
