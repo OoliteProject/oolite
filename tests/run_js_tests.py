@@ -25,6 +25,7 @@ Usage: run_js_tests.py --path <oolite.app or binary> [--test_output DIR] [--filt
 import argparse
 import glob
 import os
+import re
 import sys
 import time
 
@@ -61,6 +62,24 @@ def run_file(console, prelude, path):
     if not isinstance(results, list):
         return [(os.path.basename(path), f"the file returned {results!r} instead of test results")]
     return [(name, error) for name, error in results]
+
+
+def check_script_cache(log_path):
+    """
+    The compat test OXP turns on the compiled-script cache's log messages.
+    Reports how the cache was used, and fails if a cached script could not be
+    read back (which would mean cached bytecode no longer matches the engine).
+    """
+    try:
+        with open(log_path, encoding="utf-8", errors="replace") as f:
+            log = f.read()
+    except OSError:
+        return []
+    counts = {kind: log.count(f"[script.javaScript.cache.{kind}]") for kind in ("load", "store", "stale", "readFailed")}
+    print("[*] Compiled-script cache: " + ", ".join(f"{n} {kind}" for kind, n in counts.items()))
+    if counts["readFailed"]:
+        return [f"{counts['readFailed']} compiled script(s) could not be read back from the cache"]
+    return []
 
 
 def require(console, expression, what):
@@ -161,11 +180,17 @@ def main():
     finally:
         game.stop()
 
+    # Test files declare log lines they cause on purpose with "// expect-log: <regular expression>".
+    allowed = [m.group(1).strip() for phase in PHASES for path in files[phase]
+               for m in re.finditer(r"^// expect-log:(.*)$", read(path), re.MULTILINE)]
     if game.proc is not None and game.proc.returncode not in (0, None):
         problems.append(f"Oolite exited with status {game.proc.returncode}")
-    problems += game.check_log(require_leak_check=not args.no_leak_check)
-    if game.console and game.console.exceptions:
-        problems.append(f"the console reported {len(game.console.exceptions)} exception(s)")
+    problems += game.check_log(require_leak_check=not args.no_leak_check, allowed=allowed)
+    problems += check_script_cache(game.log_path)
+    unexpected = [e for e in (game.console.exceptions if game.console else [])
+                  if not any(re.search(a, e) for a in allowed)]
+    if unexpected:
+        problems.append(f"the console reported {len(unexpected)} exception(s)")
     for problem in problems:
         print(f"[!] {problem}")
     print(f"[*] {passed} passed, {failed} failed")
