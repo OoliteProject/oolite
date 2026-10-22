@@ -51,6 +51,28 @@ The console port is fixed (8563), so only one game can be driven at a time on
 a machine. On slow machines set `OOLITE_TEST_TIMEOUT_SCALE` (for example
 `10` under CPU emulation).
 
+## Checking OXPs
+
+`oxp_corpus.py <oolite.app or binary>` runs the probe with the 19 OXPs in
+`oxp-corpus.txt` installed (popular, script-heavy OXPs and the libraries
+they need, pinned by SHA-256), and compares the script problems they cause
+(exceptions, errors, warnings and time-limit stops; the probe's own lines
+are left out) with `oxp-corpus-known.txt`. A new exception, error or warning
+fails the run; a new time-limit stop is only a warning, since it depends on
+the machine's speed. Known problems that no longer occur are listed. After an
+intended change, or a change to the list, regenerate the known problems with
+`--update` (which needs every OXP to be available).
+
+The OXPs are downloaded into `build/oxp-corpus-cache`. One that cannot be
+downloaded, or whose file has changed (OXPs on the wiki are sometimes
+replaced in place), is skipped with a warning; if none can be downloaded,
+nothing is checked and the run says so rather than failing.
+
+`.github/workflows/oxp_corpus.yaml` runs it nightly on macOS arm64 (where the
+known list was recorded), on demand, and on pushes that change these files.
+Scheduled and on-demand runs only happen once the workflow is on the
+repository's default branch.
+
 ## Files
 
 - `baseline-spidermonkey.txt` (Linux amd64, from upstream master before the
@@ -64,6 +86,8 @@ a machine. On slow machines set `OOLITE_TEST_TIMEOUT_SCALE` (for example
   change the output, and explain the difference in the commit.
 - `noise.txt`: lines that differ between two runs of the same build (random
   equipment, traffic, prices); `compare.sh` ignores them.
+- `oxp-corpus.txt` and `oxp-corpus-known.txt`: the OXPs `oxp_corpus.py`
+  installs, and the problems they are known to cause.
 - `expected-differences.txt`: accepted differences between SpiderMonkey and
   QuickJS, each with its reason. `compare.sh` ignores lines containing them
   only when one of the files it compares has `spidermonkey` in its name, so

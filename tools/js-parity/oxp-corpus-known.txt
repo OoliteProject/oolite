@@ -1,0 +1,4 @@
+# Script problems that the OXPs in oxp-corpus.txt cause with the parity probe
+# (macOS arm64). Regenerate with: oxp_corpus.py <oolite.app> --update
+***** JavaScript exception (IST_masterScript <n>): ReferenceError: novelSubScenario_multiplyByMember is not defined | <AddOns>/oolite.oxp.UK_Eliter.InterstellarTweaks.oxz/Scripts/IST_masterScript.js, line 2561.
+***** JavaScript exception (IST_masterScript <n>): TypeError: not a function | <AddOns>/oolite.oxp.UK_Eliter.InterstellarTweaks.oxz/Scripts/IST_masterScript.js, line 2043.
