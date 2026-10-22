@@ -1,0 +1,24 @@
+# OXPs that oxp_corpus.py installs with the parity probe, to catch changes in the
+# script errors and warnings they cause. From the Oolite add-ons catalogue
+# (https://addons.oolite.space/api/1.0/overview): popular, script-heavy OXPs,
+# with the libraries they need. Format: <sha256> <identifier> <download URL>,
+# as for tests/test-oxps.txt.
+aa7f8892e1b500d0f4371ffd4135583863a720eb138fe928fe9f278cb3b9b32a oolite.oxp.Alnivel.RoutePlanner         https://www.dl.dropboxusercontent.com/s/sc0ncl2bil8fcfe/RoutePlanner.0.3.oxz
+089cf7c18ce812328a2a9159a0e1a1fbf6ea375cca5a28f4c530b58b76afd07a oolite.oxp.CaptMurphy.EscortContracts   https://wiki.alioth.net/img_auth.php/7/7a/Escort_Contracts_1.7.2.oxz
+d9bd578ef637d3b971a917205e0a18ccba378c6785994588ac9e79c7da86ba80 oolite.oxp.Day.Diplomacy                https://wiki.alioth.net/img_auth.php/1/19/Diplomacy.oxz
+666bb8f0b24a61dbbdfe32adca97168a7eddf7c9d819b77e9cb96dfc3b9a5246 oolite.oxp.Norby.EscortDeck             https://wiki.alioth.net/img_auth.php/0/02/EscortDeck_1.13.oxz
+04ca1db5ca06fcdcca1314f30d4a4871c67f59a1081fa5328b570b0f7da63f2a oolite.oxp.Norby.HUDSelector            https://wiki.alioth.net/img_auth.php/7/75/HUDSelector-1.28.oxz
+f4f6e84faaa34e5de0d55ada0e2f7c104964d1d75525766742751a0ee933fc87 oolite.oxp.Norby.Telescope              https://wiki.alioth.net/img_auth.php/7/77/Telescope_1.15.oxz
+6d2e3df52b15715dadb0d8a5e7651e43dd2989ada6157422b0bad89795814cd4 oolite.oxp.Ramirez.FeudalStates         https://wiki.alioth.net/img_auth.php/4/4c/Feudal_States_1.16.3.oxz
+8700246195cc14397dd3ed7e3b415a29d65a564571431c00f63214033edf65e8 oolite.oxp.Reval.Defence_Rider_Drones   https://wiki.alioth.net/img_auth.php/3/3e/Defence_Rider_Drones.oxz
+5c07406a7bdfc5d4040afed9b975ef8b3c04931cbedc2c470148e16629aa5877 oolite.oxp.Svengali.Library             https://wiki.alioth.net/img_auth.php/8/82/Library_1.10.5.oxz
+e4468b3a737c1cf7eddbd16120e93dca457ba083306cf3ece804ea8261f7c897 oolite.oxp.UK_Eliter.InterstellarTweaks https://wiki.alioth.net/img_auth.php/7/7c/Oolite.oxp.UK_Eliter.InterstellarTweaks.oxz
+181e24b2c0f254494aed133702cc7df365043eb9b903fecd067ce14db749046a oolite.oxp.cag.station_options          https://wiki.alioth.net/img_auth.php/2/24/Cag.station_options.oxz
+6944dad56c675205eb8e849bb4285ab1f889b853ee695b035d06a04e4bf4b6b0 oolite.oxp.phkb.BountySystem            https://wiki.alioth.net/img_auth.php/5/5d/BountySystem.oxz
+d03a403f8cb9989d2c1d0f4f66e769364de6f1e9629171efdc626a7c2e32fd7b oolite.oxp.phkb.BulletinBoardSystem     https://wiki.alioth.net/img_auth.php/8/8a/BulletinBoardSystem_2.11.oxz
+4984f03abafc3be8821812c0f2a6afa62bd674505f028573417f8399fea60a1a oolite.oxp.phkb.EmailSystem             https://wiki.alioth.net/img_auth.php/f/f1/EmailSystem.oxz
+172bcc37f4a70f09c29d2256ca01b357e5c1027babf0d09861dae2573d877410 oolite.oxp.phkb.FuelTweaks              https://wiki.alioth.net/img_auth.php/3/35/FuelTweaks.oxz
+cf2eb62f3ec40b76c6c2f01bca764860a451ca4703c3f6dcb15ed15e4d88df43 oolite.oxp.phkb.ShipConfiguration       https://wiki.alioth.net/img_auth.php/8/81/ShipConfiguration.oxz
+d315a014efd626fb5df709a86a4939a3f0477c351e018285c13ceef6fdc21df4 oolite.oxp.phkb.Smugglers_TGU           https://wiki.alioth.net/img_auth.php/4/4c/Smugglers_2.13.oxz
+d10895e209efba65f59915b35ca15fea0cd44dfc930bee8f0d14c9848e85a49a oolite.oxp.popsch.Stashes               https://wiki.alioth.net/img_auth.php/c/c3/Stashes-0.3.2.oxz
+0f4bca0febcd4d0c84433856fcd58248445752db2ccd71adaa311a3f8f83cfa4 oolite.oxp.spara.trophy_collector       https://wiki.alioth.net/img_auth.php/9/9e/TrophyCollector.oxz

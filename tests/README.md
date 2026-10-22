@@ -24,6 +24,11 @@ or against `$OOLITE_TEST_APP` if that is set:
    this platform (Linux x86-64 and macOS arm64; elsewhere it only checks for
    exceptions). See `tools/js-parity/README.md`.
 
+Not part of `./mk.sh test`, because it is slower and depends on downloads:
+`tools/js-parity/oxp_corpus.py` runs the probe with 19 popular OXPs and fails
+on script problems they cause that are not already known. CI runs it nightly
+(see `tools/js-parity/README.md`).
+
 Every stage fails if the game logs a JavaScript exception or error, kills a
 script for running too long, or (in builds with debug support) shuts down
 with leaked JavaScript objects.
