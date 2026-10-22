@@ -1,0 +1,8 @@
+{
+	"oolite-test-compat-ship" =
+	{
+		like_ship = "adder";
+		roles = "oolite-test-compat-ship";
+		script = "oolite-test-compat-ship.js";
+	};
+}
