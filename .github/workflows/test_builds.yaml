@@ -319,6 +319,11 @@ jobs:
       - name: Test Oolite
         id: test
         if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
+        env:
+          # The runner renders OpenGL in software ("Apple Software Renderer"), slowly: a smaller window
+          # draws faster, and the docking computer still needs longer than elsewhere.
+          OOLITE_TEST_WINDOW: 640x360
+          OOLITE_TEST_TIMEOUT_SCALE: 2
         run: |
           ./mk.sh test deployment
       - name: Save test OXPs

@@ -285,6 +285,11 @@ class OoliteGame:
         if sys.platform == "darwin":
             # After a crash, macOS otherwise asks (in a modal alert) whether to reopen windows, which blocks the game.
             self.args += ["-ApplePersistenceIgnoreState", "YES"]
+        # A smaller window renders faster where OpenGL is done in software (for example "640x360").
+        window = os.environ.get("OOLITE_TEST_WINDOW")
+        if window:
+            width, height = window.lower().split("x")
+            self.args += ["-window_width", width, "-window_height", height]
         if load:
             self.args += ["-load", os.path.abspath(load)]
         self.args += list(extra_args)
