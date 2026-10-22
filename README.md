@@ -155,8 +155,9 @@ require this step:
 ```
 
 You can run a test of the development build from your Bash or MSYS2 prompt as follows. It loads the standard starting
-game, launches into space and takes a snapshot, and fails if any script reports an error or the JavaScript runtime
-leaks objects at shutdown:
+game, launches into space and takes a snapshot, fires a missile, docks with the docking computer and takes a second
+snapshot. It fails if any of those steps fails, if any script reports an error, or if the JavaScript runtime leaks
+objects at shutdown:
 
 ```bash
 ./mk.sh test dev
