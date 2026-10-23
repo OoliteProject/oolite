@@ -80,11 +80,15 @@ def fire_missile(console):
 
 
 def dock(console):
-    """Docks at the main station with the docking computer (the autopilot)."""
-    print("[*] Docking with the docking computer...")
+    """Docks at the main station with the docking computer (the autopilot), with game time sped up."""
+    acceleration = os.environ.get("OOLITE_TEST_DOCKING_ACCELERATION", "16")
+    acceleration = console.evaluate(f"timeAccelerationFactor = {float(acceleration)}, timeAccelerationFactor")
+    print(f"[*] Docking with the docking computer (time acceleration {acceleration}x)...")
     if not console.evaluate("player.ship.engageAutopilotToStation(system.mainStation)"):
         raise HarnessError("The docking computer could not be engaged.")
-    deadline = time.time() + scaled(600)
+    start = time.time()
+    deadline = start + scaled(600)
+    reported = None
     while True:
         try:
             state = console.evaluate(
@@ -98,10 +102,12 @@ def dock(console):
             break
         if time.time() > deadline:
             raise HarnessError(f"Not docked after {scaled(600):.0f} seconds (status, distance: {state and state[1:]}).")
-        if state:
+        if state and (reported is None or time.time() - reported >= 30):
             print(f"[*]   {state[1]}, {state[2]} m from the station")
-        time.sleep(30)
-    print("[*] Docked.")
+            reported = time.time()
+        time.sleep(1)
+    console.evaluate("timeAccelerationFactor = 1")
+    print(f"[*] Docked after {time.time() - start:.0f} seconds.")
 
 
 def run_test(path, test_output, load, addons=None):
