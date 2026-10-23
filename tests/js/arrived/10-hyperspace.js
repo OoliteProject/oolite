@@ -27,7 +27,9 @@ test("the new system is populated", function ()
 	assert(system.mainPlanet && system.mainPlanet.isValid, "no main planet");
 	assert(system.sun && system.sun.isValid, "no sun");
 	assertEqual(system.countShipsWithRole("buoy-witchpoint"), 1, "witchpoint buoys");
-	assert(player.ship.position.distanceTo(system.locationFromCode("WITCHPOINT")) < 30000, "not near the witchpoint");
+	// Not system.locationFromCode("WITCHPOINT"): that is a random point within scanner range of it.
+	var buoy = system.shipsWithRole("buoy-witchpoint")[0];
+	assert(player.ship.position.distanceTo(buoy) < 30000, "not near the witchpoint");
 });
 
 test("time passed", function ()

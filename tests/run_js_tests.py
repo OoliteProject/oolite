@@ -27,15 +27,15 @@ import glob
 import os
 import re
 import sys
-import time
 
-from oolite_harness import HarnessError, OoliteGame, scaled
+from oolite_harness import HarnessError, OoliteGame
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 JS_DIR = os.path.join(HERE, "js")
 SAVE = os.path.join(os.path.dirname(HERE), "Resources", "Scenarios", "oolite-standard.oolite-save")
 PHASES = ["docked", "flight", "arrived", "redocked", "galactic"]
 RECORDER = 'worldScripts["oolite-test-recorder"]'
+TIME_ACCELERATION = 16  # The most the game allows.
 
 # Puts the player far from the main station, clear of anything that would block a jump.
 MOVE_CLEAR = (
@@ -92,6 +92,9 @@ def enter_phase(console, phase):
     if phase == "docked":
         # The game only answers once the saved game has loaded.
         console.wait_for("player.ship.docked && player.ship.dockedStation.isMainStation", timeout=180)
+        # Launches, countdowns and jumps take game time: run it as fast as the game allows (16x).
+        # Loading a game resets this, so it is set once the save has loaded; deployment builds ignore it.
+        print(f"[*] Time acceleration: {console.evaluate(f'timeAccelerationFactor = {TIME_ACCELERATION}, timeAccelerationFactor')}x")
     console.evaluate(f"{RECORDER}.$begin({phase!r}), true")
     if phase == "docked":
         pass
@@ -105,8 +108,9 @@ def enter_phase(console, phase):
         require(console, "player.ship.launch(), true", "launch")
         console.wait_for('player.ship.status === "STATUS_IN_FLIGHT"', timeout=120)
     elif phase == "arrived":
-        # Fly for a while first, so that AIs, timers and frame callbacks run.
-        time.sleep(scaled(10))
+        # Fly for a while first (in game time), so that AIs, timers and frame callbacks run.
+        start = console.evaluate("clock.seconds")
+        console.wait_for(f"clock.seconds >= {start + 10}", timeout=60, interval=0.1)
         require(console, MOVE_CLEAR, "move clear of the station")
         require(console, "player.ship.beginHyperspaceCountdown(5)", "start the hyperspace countdown")
         console.wait_for(
