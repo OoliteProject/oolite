@@ -108,9 +108,16 @@ def enter_phase(console, phase):
         require(console, "player.ship.launch(), true", "launch")
         console.wait_for('player.ship.status === "STATUS_IN_FLIGHT"', timeout=120)
     elif phase == "arrived":
-        # Fly for a while first (in game time), so that AIs, timers and frame callbacks run.
+        # Fly for a while first, so that AIs, timers and frame callbacks run: 10 seconds of game time, and
+        # enough frames for the frame callback tests where frames are slow (4 fps on CI, where 10 seconds
+        # at 16x is only a few frames). The count is kept on the console's this, which lasts between commands.
         start = console.evaluate("clock.seconds")
-        console.wait_for(f"clock.seconds >= {start + 10}", timeout=60, interval=0.1)
+        console.evaluate(
+            "(function () { var s = this; s.$flightFrames = 0;"
+            " s.$flightCallback = addFrameCallback(function () { s.$flightFrames++; }); return true; }).call(this)"
+        )
+        console.wait_for(f"clock.seconds >= {start + 10} && this.$flightFrames >= 30", timeout=60, interval=0.1)
+        console.evaluate("removeFrameCallback(this.$flightCallback), true")
         require(console, MOVE_CLEAR, "move clear of the station")
         require(console, "player.ship.beginHyperspaceCountdown(5)", "start the hyperspace countdown")
         console.wait_for(
