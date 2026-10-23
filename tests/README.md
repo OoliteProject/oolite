@@ -52,10 +52,12 @@ rendered in software, a smaller window makes the game run faster: set
 
 The smoke test and the JavaScript tests speed up game time with
 `timeAccelerationFactor` (which only debug builds honour): the JavaScript
-tests run at 16x while moving from one phase to the next, and the smoke
-test docks at 16x. Set `OOLITE_TEST_DOCKING_ACCELERATION` to dock at
-another rate (1 to 16), for example if the docking computer misses the
-station where frames are slow.
+tests run at 16x while moving from one phase to the next. The smoke test
+docks as fast as the frame rate allows: the docking computer misses the
+station when a frame takes much more than half a second of game time, so
+it measures the frame rate and keeps each frame to a quarter of a second
+(16x at 64 fps or more, 2x at 10 fps). Set
+`OOLITE_TEST_DOCKING_ACCELERATION` (1 to 16) to override this.
 
 ## Writing JavaScript tests
 
