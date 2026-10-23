@@ -527,7 +527,9 @@ this.$sweepMethod = function (label, names, makeTarget, options)
 				self.$sweepArgs.forEach(function (argSet)
 				{
 					var target = makeTarget ? makeTarget() : options.holder;
-					parts.push(argSet[0] + "=" + self.$outcome(function () { return target[name].apply(target, argSet[1]); }));
+					var outcome = self.$outcome(function () { return target[name].apply(target, argSet[1]); });
+					if (self.$sweepWorldResult[key] && (outcome === "ok:null" || outcome === "ok:entity"))  outcome = "ok:entity-or-null";
+					parts.push(argSet[0] + "=" + outcome);
 					if (options.cleanUp)  options.cleanUp(target);
 				});
 			}
@@ -535,6 +537,14 @@ this.$sweepMethod = function (label, names, makeTarget, options)
 		if (probeTarget && options.cleanUp)  options.cleanUp(probeTarget);
 		$p("sweep " + key + ": " + parts.join("; "));
 	}); });
+};
+
+/*	Methods whose result depends on where things are in the system, not on
+	their arguments: an entity or null is logged as either.
+*/
+this.$sweepWorldResult = {
+	// The hazard on the ship's course, if any (Universe -hazardOnRouteFromEntity:...).
+	"Ship.checkCourseToDestination": true
 };
 
 this.$stageSweep = function ()
