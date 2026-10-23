@@ -1,6 +1,6 @@
 /*
 
-OOJSPlayer.h
+OOJSPlayer.h (QuickJS-ng)
 
 JavaScript proxy for the player.
 
@@ -28,15 +28,19 @@ MA 02110-1301, USA.
 
 #import "PlayerEntity.h"
 #import <Foundation/Foundation.h>
-#include <jsapi.h>
+#include <quickjs.h>
 
 @class PlayerEntity;
 
-void InitOOJSPlayer(JSContext* context, JSObject* global);
+void InitOOJSPlayer(JSContext* context, JSValueConst global);
 
-JSClass* JSPlayerClass(void);
-JSObject* JSPlayerPrototype(void);
-JSObject* JSPlayerObject(void);
+JSClassID JSPlayerClassID(void);
+
+/*	The global player object. The returned value is owned by the caller, who
+        must JS_FreeValue() it. (SpiderMonkey's JSPlayerPrototype() is no
+        longer needed; use JS_GetClassProto(context, JSPlayerClassID()).)
+*/
+JSValue JSPlayerObject(void);
 
 /*	All JS functions which talk to the player entity should call
         OOOPlayerForScripting() to ensure that the script target (for the legacy

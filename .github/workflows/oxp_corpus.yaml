@@ -1,0 +1,66 @@
+name: Check OXPs with the parity probe
+# Runs the parity probe with the OXPs in tools/js-parity/oxp-corpus.txt installed, and fails on script
+# errors or warnings that are not in tools/js-parity/oxp-corpus-known.txt. Too slow for every push, so it
+# runs nightly, on demand, and when the corpus or its tools change.
+on:
+  schedule:
+    - cron: "0 17 * * *"
+  workflow_dispatch:
+  push:
+    paths:
+      - .github/workflows/oxp_corpus.yaml
+      - tools/js-parity/oxp_corpus.py
+      - tools/js-parity/oxp-corpus.txt
+      - tools/js-parity/oxp-corpus-known.txt
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  macos:
+    # The known list is recorded on macOS arm64, natively, as on this runner.
+    runs-on: macos-latest
+    env:
+      HOMEBREW_NO_AUTO_UPDATE: 1
+      HOMEBREW_NO_INSTALL_CLEANUP: 1
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Install packages
+        run: |
+          ShellScripts/macOS/install_packages.sh
+      - name: Build Oolite
+        run: |
+          ./mk.sh build dev
+      - name: Restore corpus OXPs
+        id: oxz
+        uses: actions/cache/restore@v4
+        with:
+          path: build/oxp-corpus-cache
+          key: oxp-corpus-${{ hashFiles('tools/js-parity/oxp-corpus.txt') }}
+      - name: Check OXPs
+        id: corpus
+        env:
+          # As in test_builds.yaml: the runner renders OpenGL in software.
+          OOLITE_TEST_WINDOW: 640x360
+          OOLITE_TEST_TIMEOUT_SCALE: 2
+        run: |
+          python3 -u tools/js-parity/oxp_corpus.py build/meson_dev/oolite.app
+      - name: Save corpus OXPs
+        # Only a complete set, so that a run while the OXPs' host is down does not cache a partial one.
+        if: always() && steps.corpus.outputs.oxp-corpus-complete == 'true' && steps.oxz.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: build/oxp-corpus-cache
+          key: oxp-corpus-${{ hashFiles('tools/js-parity/oxp-corpus.txt') }}
+      - name: Upload output
+        if: failure() && steps.corpus.conclusion == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: oxp-corpus-output
+          path: |
+            build/oxp-corpus-output
+            !build/oxp-corpus-output/**/AddOns
+          if-no-files-found: ignore

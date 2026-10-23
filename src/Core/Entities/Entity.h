@@ -33,6 +33,8 @@ MA 02110-1301, USA.
 #import "OOTypes.h"
 #import "OOWeakReference.h"
 
+#include <quickjs.h>
+
 @class Universe, CollisionRegion, ShipEntity, OOVisualEffectEntity;
 
 #ifndef NDEBUG
@@ -141,7 +143,7 @@ enum OOScanClass {
 
     OOTimeAbsolute spawnTime;
 
-    struct JSObject* _jsSelf;
+    JSValue _jsSelf; // Zero-filled (not an object) until created; test with JS_IsObject().
     NSUInteger lastDrawCounter;
 
 @private

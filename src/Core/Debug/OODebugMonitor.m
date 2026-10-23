@@ -68,7 +68,7 @@ static OODebugMonitor* sSingleton = nil;
 @end
 
 @implementation OODebugMonitor
-#if OOLITE_GNUSTEP
+#if OOLITE_SDL
 NSString* NSApplicationWillTerminateNotification = @"ApplicationWillTerminate";
 #endif
 
@@ -129,8 +129,9 @@ NSString* NSApplicationWillTerminateNotification = @"ApplicationWillTerminate";
     [_bgColors release];
     [_sourceFiles release];
 
-    if (_jsSelf != NULL) {
-        [[OOJavaScriptEngine sharedEngine] removeGCObjectRoot:&_jsSelf];
+    if (JS_IsObject(_jsSelf)) {
+        JS_FreeValue(OOJSAcquireContext(), _jsSelf);
+        _jsSelf = JS_UNDEFINED;
     }
 
     [super dealloc];
@@ -181,10 +182,11 @@ NSString* NSApplicationWillTerminateNotification = @"ApplicationWillTerminate";
 - (oneway void)performJSConsoleCommand:(in NSString*)command
 {
     JSContext* context = OOJSAcquireContext();
-    jsval commandVal = OOJSValueFromNativeObject(context, command);
+    OOJSVal commandVal = OOJSValueFromNativeObject(context, command);
     OOJSStartTimeLimiterWithTimeLimit(kOOJSLongTimeLimit);
     [_script callMethod:OOJSID("consolePerformJSCommand") inContext:context withArguments:&commandVal count:1 result:NULL];
     OOJSStopTimeLimiter();
+    OOJSFreeValue(context, commandVal);
     OOJSRelinquishContext(context);
 }
 
@@ -567,13 +569,17 @@ typedef struct
     JSContext* context = OOJSAcquireContext();
 
     JSRuntime* runtime = JS_GetRuntime(context);
-    size_t jsSize = JS_GetGCParameter(runtime, JSGC_BYTES);
-    size_t jsMax = JS_GetGCParameter(runtime, JSGC_MAX_BYTES);
-    uint32_t jsGCCount = JS_GetGCParameter(runtime, JSGC_NUMBER);
+    /*	QuickJS has no heap limit or collection count; report the allocated
+            size and the threshold for the next cycle collection instead.
+    */
+    JSMemoryUsage usage;
+    JS_ComputeMemoryUsage(runtime, &usage);
+    size_t jsSize = (size_t)usage.malloc_size;
+    size_t jsGCThreshold = JS_GetGCThreshold(runtime);
 
     OOJSRelinquishContext(context);
 
-    [self writeMemStat:@"JavaScript heap: %@ (limit %@, %u collections to date)", SizeString(jsSize), SizeString(jsMax), jsGCCount];
+    [self writeMemStat:@"JavaScript heap: %@ (%lli objects, next collection at %@)", SizeString(jsSize), (long long)usage.obj_count, SizeString(jsGCThreshold)];
     return jsSize;
 }
 
@@ -636,7 +642,7 @@ typedef struct
     }
 }
 
-#if OOLITE_GNUSTEP
+#if OOLITE_SDL
 - (void)applicationWillTerminate
 {
     [[NSNotificationCenter defaultCenter] postNotificationName:NSApplicationWillTerminateNotification object:nil];
@@ -669,17 +675,19 @@ typedef struct
         path = [[ResourceManager pathForFileNamed:@"oolite-debug-console.js" inFolder:@"Scripts"] retain];
     }
     if (path != nil) {
+        JSValue special = JSSpecialFunctionsObjectWrapper(context);
+        OOJSValue* specialWrapper = [OOJSValue valueWithJSValue:special inContext:context];
+        JS_FreeValue(context, special);
         NSDictionary* jsProps = [NSDictionary dictionaryWithObjectsAndKeys:
                 self, @"console",
-            JSSpecialFunctionsObjectWrapper(context), @"special",
+            specialWrapper, @"special",
             nil];
         _script = [[OOJSScript scriptWithPath:path properties:jsProps] retain];
     }
 
     // If no script, just make console visible globally as debugConsole.
     if (_script == nil) {
-        JSObject* global = [[OOJavaScriptEngine sharedEngine] globalObject];
-        JS_DefineProperty(context, global, "debugConsole", [self oo_jsValueInContext:context], NULL, NULL, JSPROP_ENUMERATE);
+        JS_DefinePropertyValueStr(context, [[OOJavaScriptEngine sharedEngine] globalObject], "debugConsole", [self oo_jsValueInContext:context], JS_PROP_ENUMERABLE);
     }
 
     OOJSRelinquishContext(context);
@@ -688,9 +696,10 @@ typedef struct
 - (void)javaScriptEngineWillReset:(NSNotification*)notification
 {
     DESTROY(_script);
-    _jsSelf = NULL;
-
-    OOJSConsoleDestroy();
+    if (JS_IsObject(_jsSelf)) {
+        JS_FreeValue(OOJSAcquireContext(), _jsSelf);
+    }
+    _jsSelf = JS_UNDEFINED;
 }
 
 - (void)disconnectDebuggerWithMessage:(NSString*)message
@@ -778,36 +787,32 @@ FIXME: this works with CRLF and LF, but not CR.
 
 - (oneway void)jsEngine:(in byref OOJavaScriptEngine*)engine
                 context:(in JSContext*)context
-                  error:(in JSErrorReport*)errorReport
+      problemOfSeverity:(in NSString*)severity
+                 inFile:(in NSString*)filePath
+                   line:(in unsigned)line
               stackSkip:(in unsigned)stackSkip
         showingLocation:(in BOOL)showLocation
             withMessage:(in NSString*)message
 {
     NSString* colorKey = nil;
     NSString* prefix = nil;
-    NSString* filePath = nil;
     NSString* sourceLine = nil;
     NSString* scriptLine = nil;
     NSMutableString* formattedMessage = nil;
     NSRange emphasisRange;
     NSString* showKey = nil;
+    BOOL isWarning = [severity isEqualToString:@"warning"];
 
     if (_debugger == nil)
         return;
 
-    if (errorReport->flags & JSREPORT_WARNING) {
+    // QuickJS reports errors as exceptions; there are no non-exception errors or strict mode warnings.
+    if (isWarning) {
         colorKey = @"warning";
         prefix = @"Warning";
-    } else if (errorReport->flags & JSREPORT_EXCEPTION) {
+    } else {
         colorKey = @"exception";
         prefix = @"Exception";
-    } else {
-        colorKey = @"error";
-        prefix = @"Error";
-    }
-
-    if (errorReport->flags & JSREPORT_STRICT) {
-        prefix = [prefix stringByAppendingString:@" (strict mode)"];
     }
 
     // Prefix and subsequent colon should be bold:
@@ -827,18 +832,14 @@ FIXME: this works with CRLF and LF, but not CR.
         [formattedMessage appendFormat:@"\n    Active script: %@", scriptLine];
     }
 
-    if (showLocation && stackSkip == 0) {
+    if (showLocation && stackSkip == 0 && [filePath length] != 0) {
         // Append file name and line
-        if (errorReport->filename != NULL)
-            filePath = [NSString stringWithUTF8String:errorReport->filename];
-        if ([filePath length] != 0) {
-            [formattedMessage appendFormat:@"\n    %@, line %u", [filePath lastPathComponent], errorReport -> lineno];
+        [formattedMessage appendFormat:@"\n    %@, line %u", [filePath lastPathComponent], line];
 
-            // Append source code
-            sourceLine = [self sourceCodeForFile:filePath line:errorReport->lineno];
-            if (sourceLine != nil) {
-                [formattedMessage appendFormat:@":\n    %@", sourceLine];
-            }
+        // Append source code
+        sourceLine = [self sourceCodeForFile:filePath line:line];
+        if (sourceLine != nil) {
+            [formattedMessage appendFormat:@":\n    %@", sourceLine];
         }
     }
 
@@ -846,7 +847,7 @@ FIXME: this works with CRLF and LF, but not CR.
                      colorKey:colorKey
                 emphasisRange:emphasisRange];
 
-    if (errorReport->flags & JSREPORT_WARNING)
+    if (isWarning)
         showKey = @"show-console-on-warning";
     else
         showKey = @"show-console-on-error"; // if not a warning, it's a proper error.
@@ -866,21 +867,12 @@ FIXME: this works with CRLF and LF, but not CR.
     }
 }
 
-- (jsval)oo_jsValueInContext:(JSContext*)context
+- (JSValue)oo_jsValueInContext:(JSContext*)context
 {
-    if (_jsSelf == NULL) {
+    if (!JS_IsObject(_jsSelf)) {
         _jsSelf = DebugMonitorToJSConsole(context, self);
-        if (_jsSelf != NULL) {
-            if (!OOJSAddGCObjectRoot(context, &_jsSelf, "debug console")) {
-                _jsSelf = NULL;
-            }
-        }
     }
-
-    if (_jsSelf != NULL)
-        return OBJECT_TO_JSVAL(_jsSelf);
-    else
-        return JSVAL_NULL;
+    return JS_DupValue(context, _jsSelf);
 }
 
 @end

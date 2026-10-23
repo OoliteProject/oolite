@@ -436,7 +436,7 @@ static id ShipGroupIterate(OOShipGroupEnumerator* enumerator)
 */
 - (BOOL)suppressClangStuff
 {
-    return !_jsSelf;
+    return !JS_IsObject(_jsSelf);
 }
 
 @end

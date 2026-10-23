@@ -1,5 +1,16 @@
 #!/bin/bash
 
+# macOS ships bash 3.2; the build scripts need bash 4+, e.g. from Homebrew.
+if ((BASH_VERSINFO[0] < 4)); then
+    for newer_bash in /opt/homebrew/bin/bash /usr/local/bin/bash; do
+        if [[ -x "$newer_bash" ]]; then
+            exec "$newer_bash" "$0" "$@"
+        fi
+    done
+    echo "❌ bash 4 or later is required (on macOS: brew install bash)" >&2
+    exit 1
+fi
+
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
 pushd "$SCRIPT_DIR" > /dev/null
 
@@ -144,6 +155,7 @@ show_help() {  # Script Help Menu
     echo -e "  \033[36mpkg-flatpak <build_type>\033[0m       Package a Flatpak application"
     echo -e "  \033[36mpkg-appimage <build_type>\033[0m      Package a Linux AppImage installer"
     echo -e "  \033[36mpkg-win <build_type>\033[0m           Package a Windows NSIS installer"
+    echo -e "  \033[36mpkg-dmg <build_type>\033[0m           Package a macOS disk image (.dmg)"
     echo ""
     echo "Global Actions:"
     echo -e "  \033[36mclean-all\033[0m                      Remove generated artifacts for all builds"
@@ -174,9 +186,10 @@ execute_target() {  # Target Execution Logic
             elif [[ "$build_type" == "test" ]]; then
                 meson_setup "test" "-Ddebug=false" "-Dstrip_bin=true" "-Db_lto=true"
             elif [[ "$build_type" == "dev" ]]; then
-                meson_setup "dev" "-Ddev_release=true" "-Ddebug=false" "-Dstrip_bin=false"
+                # quickjs_poc: the JavaScript engine's unit tests, run by ./mk.sh test
+                meson_setup "dev" "-Ddev_release=true" "-Ddebug=false" "-Dstrip_bin=false" "-Dquickjs_poc=true"
             elif [[ "$build_type" == "debug" ]]; then
-                meson_setup "debug" "-Ddebug=true" "-Dstrip_bin=false"
+                meson_setup "debug" "-Ddebug=true" "-Dstrip_bin=false" "-Dquickjs_poc=true"
             fi
             ;;
         compile)
@@ -277,6 +290,17 @@ execute_target() {  # Target Execution Logic
             fi
             if ! create_nsis "$build_type" "meson_${build_type}/oolite.app"; then
                 echo "❌ NSIS generation failed!" >&2
+                exit 1
+            fi
+            ;;
+        pkg-dmg)
+            validate_build_type "$build_type"
+            if ! source installers/macos/create_dmg_fn.sh; then
+                echo "❌ Failed to source create_dmg_fn.sh!" >&2
+                exit 1
+            fi
+            if ! create_dmg "$build_type" "meson_${build_type}/oolite.app"; then
+                echo "❌ DMG generation failed!" >&2
                 exit 1
             fi
             ;;
@@ -383,7 +407,11 @@ if [[ -z "$BUILD_TYPE" ]]; then
 fi
 
 if [[ -z "$NATIVE_FILE" ]]; then
-    NATIVE_FILE="clang.ini"  # Apply default if it wasn't passed as an option
+    if [[ "$(uname -s)" == "Darwin" ]]; then
+        NATIVE_FILE="darwin.ini"  # Apple clang with the system linker
+    else
+        NATIVE_FILE="clang.ini"  # Apply default if it wasn't passed as an option
+    fi
 fi
 
 execute_target "$ACTION" "$BUILD_TYPE"

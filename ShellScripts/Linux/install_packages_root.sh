@@ -77,7 +77,7 @@ run_script() {
     if [[ "$INSTALL_CORE" == true ]]; then  # Core dependencies
         echo "📦 Installing Core Build Dependencies..."
         pkgs=(
-            procps base-devel clang cmake jq meson gnutls-dev icu-dev ffi-dev xslt-dev png-dev zlib-dev nspr-dev
+            procps base-devel clang cmake jq meson gnutls-dev icu-dev ffi-dev xslt-dev png-dev zlib-dev
             espeak-ng-dev vorbis-dev openal-dev opengl-dev glu-dev sdl3 x11-dev
         )
         for pkg in "${pkgs[@]}"; do

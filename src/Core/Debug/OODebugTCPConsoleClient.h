@@ -43,7 +43,11 @@ typedef enum {
 
 @interface OODebugTCPConsoleClient : NSObject <OODebuggerInterface> {
 @private
+#if OOLITE_MAC_OS_X
+    NSString* _host; // NSHost does blocking DNS lookups on macOS, so keep the address
+#else
     NSHost* _host;
+#endif
     NSOutputStream* _outStream;
     NSInputStream* _inStream;
     OOTCPClientConnectionStatus _status;

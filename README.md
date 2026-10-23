@@ -111,13 +111,7 @@ Next run the following to build the GNUstep libraries needed by Oolite:
 ShellScripts/Linux/build_gnustep.sh
 ```
 
-Run the following to install the Mozilla JavaScript library needed by Oolite:
-
-```bash
-ShellScripts/Linux/install_mozilla_js.sh
-```
-
-By default, the above two commands will install to $HOME/.local, but you can supply an argument system or build
+By default, the above command will install to $HOME/.local, but you can supply an argument system or build
 to specify /usr/local or the project build folder respectively. When installing to /usr/local, sudo is used by 
 default, but you can supply a further argument to specify an alternative like doas.
 
@@ -129,6 +123,9 @@ meson setup, compile, configure and install flags. Type the following for help:
 ```bash
 ./mk.sh help
 ```
+
+Oolite's JavaScript engine, [QuickJS-ng](https://github.com/quickjs-ng/quickjs), is downloaded, patched and built as a
+Meson subproject (`subprojects/quickjs-ng.wrap`) the first time the build is set up, so that needs network access.
 
 Oolite has various build types:
 
@@ -157,8 +154,10 @@ require this step:
 ./mk.sh clean dev
 ```
 
-You can run a test of the development build that launches the game and takes a snapshot from your Bash or MSYS2 prompt 
-as follows:
+You can test the development build from your Bash or MSYS2 prompt as follows. A smoke test loads the standard starting
+game with a few OXPs, launches, fires a missile and docks with the docking computer, taking snapshots; JavaScript tests
+then run inside the game, and a probe flies through hyperspace and compares what scripts see with stored output. Any
+script error, or JavaScript objects leaked at shutdown, fails the test. See [tests/README.md](tests/README.md):
 
 ```bash
 ./mk.sh test dev
@@ -200,10 +199,29 @@ This action builds a Windows NSIS installer for development which can be found i
 ./mk.sh pkg-win dev
 ```
 
+### Other macOS ./mk.sh Actions
+
+This action builds a disk image (.dmg) containing the app bundle, which can be found in the `build` folder:
+
+```bash
+./mk.sh pkg-dmg deployment
+```
+
 ### Mac OS
 
-Intel-based Macs can run old builds of Oolite, but current Macs are unsupported. It is hoped that they can be supported
-in future.
+Apple Silicon Macs can build and run Oolite from source. The macOS build uses Apple's Foundation framework instead of
+GNUstep, with the same SDL front end as Linux and Windows. It needs Xcode (or the Xcode command line tools) and
+[Homebrew](https://brew.sh). After checking out the repository, install the required packages:
+
+```bash
+ShellScripts/macOS/install_packages.sh
+```
+
+Then build with `./mk.sh` as described below. The result is a self-contained application bundle, for example
+`build/meson_dev/oolite.app`, which you can open from Finder or with `open build/meson_dev/oolite.app`. The Homebrew
+libraries it needs are copied into the bundle, so it also runs on Apple Silicon Macs without Homebrew installed (same
+macOS version or later). `./mk.sh install dev` copies it to `/Applications/Oolite.app`. The bundle is only ad-hoc
+signed, so on another Mac you may need to right-click it and choose Open the first time.
 
 ### Objective-C
 
@@ -221,12 +239,11 @@ guide to the source tree.
 - **DebugOXP**:  [Debug.oxp](http://wiki.alioth.net/index.php/Debug_OXP), the expansion pack that enables console
   support in debug and test release builds
 - **Doc**:  Documentation (including user guides)
-- **ShellScripts**:  Scripts to build from source on Windows and Linux
+- **ShellScripts**:  Scripts to build from source on Windows, Linux and macOS
 - **installers**:  Files used to create various installers
 - **Resources**:  Game assets and resource files for Mac and GNUstep application bundles
     - **Schemata**:  Plist schema files for the [OXP Verifier](http://wiki.alioth.net/index.php/OXP_howto#OXP_Verifier)
 - **src**:  Objective-C and C sources, incuding header files
-    - **Cocoa**:  Files that are only compiled on Mac OS X
     - **Core**:  Files that are compiled on all platforms
     - **SDL**:  Files that are only compiled for platforms that use SDL
 - **tests**:  A mixed bag of test cases for manual testing and ad-hoc code tests.

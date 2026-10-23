@@ -23,7 +23,8 @@ run_test() {
     pushd "$script_dir"
 
     local BUILD_TYPE="${1:-dev}"
-    local TARGET_DIR=$(readlink -f "../build/meson_${BUILD_TYPE}/oolite.app")
+    # OOLITE_TEST_APP tests an oolite.app somewhere other than build/meson_<build type>.
+    local TARGET_DIR=$(readlink -f "${OOLITE_TEST_APP:-../build/meson_${BUILD_TYPE}/oolite.app}")
     if [[ -v MINGW_PREFIX ]]; then
         local MESA_DLL="${MINGW_PREFIX}/bin/opengl32.dll"
         if [[ -f "$MESA_DLL" ]]; then
@@ -37,15 +38,81 @@ run_test() {
     mkdir -p "$TEST_OUTPUT"
     local OOLITE_LOG="$TEST_OUTPUT/Latest.log"
 
-    if ! $PYTHON_CMD launch_snapshot.py --path="$TARGET_DIR" --test_output="$TEST_OUTPUT"; then
+    local LAUNCH_PATH="$TARGET_DIR"
+    if [[ "$(uname -s)" == "Darwin" ]]; then
+        LAUNCH_PATH="$TARGET_DIR/Contents/MacOS/oolite"  # app bundle
+    fi
+
+    # 0. Unit tests of the JavaScript engine (src/Core/Scripting/poc), in builds that include them.
+    local BUILD_DIR=$(dirname "$TARGET_DIR")
+    if grep -q '"quickjs-poc"' "$BUILD_DIR/meson-info/intro-tests.json" 2>/dev/null; then
+        if ! meson test -C "$BUILD_DIR" quickjs-poc --print-errorlogs; then
+            echo "❌ JavaScript engine unit tests failed!" >&2
+            popd
+            return 1
+        fi
+        echo "✅ JavaScript engine unit tests passed"
+    fi
+
+    # 1. Smoke test, with the OXPs in test-oxps.txt (cached between runs).
+    local OXZ_CACHE="${OOLITE_TEST_OXZ_CACHE:-$script_dir/../build/test-oxz-cache}"
+    if ! $PYTHON_CMD -u fetch_oxps.py "$OXZ_CACHE"; then
+        echo "❌ Fetching the test OXPs failed!" >&2
+        popd
+        return 1
+    fi
+    if ! $PYTHON_CMD -u launch_snapshot.py --path="$LAUNCH_PATH" --test_output="$TEST_OUTPUT" \
+            --load="$script_dir/../Resources/Scenarios/oolite-standard.oolite-save" --addons="$OXZ_CACHE"; then
         output_log "$OOLITE_LOG"
         echo "❌ Oolite test failed!" >&2
         echo "   If this is a windows build try creating a new release of the Windows dependencies in the GitHub UI here:" >&2
         echo "   https://github.com/OoliteProject/oolite_windeps_build/releases" >&2
         echo "   Then rerun this build." >&2
+        popd
         return 1
     fi
     output_log "$OOLITE_LOG"
+    echo "✅ Smoke test passed"
+
+    # 2. JavaScript tests (tests/js).
+    if ! $PYTHON_CMD -u run_js_tests.py --path="$LAUNCH_PATH" --test_output="$TEST_OUTPUT/js"; then
+        output_log "$TEST_OUTPUT/js/Latest.log"
+        echo "❌ JavaScript tests failed!" >&2
+        popd
+        return 1
+    fi
+    echo "✅ JavaScript tests passed"
+
+    # 3. Parity probe, compared with the stored QuickJS output for this platform.
+    local PROBE_DIR="$script_dir/../tools/js-parity"
+    local BASELINE=""
+    case "$(uname -s)-$(uname -m)" in
+        Linux-x86_64) BASELINE="$PROBE_DIR/baseline-quickjs.txt" ;;
+        Darwin-arm64) BASELINE="$PROBE_DIR/baseline-quickjs-macos.txt" ;;
+    esac
+    local PROBE_OUT="$TEST_OUTPUT/probe.txt"
+    if ! $PYTHON_CMD -u "$PROBE_DIR/run_probe.py" "$LAUNCH_PATH" "$PROBE_OUT" --check-leaks; then
+        output_log "$PROBE_OUT.full.log"
+        echo "❌ The parity probe did not finish cleanly!" >&2
+        popd
+        return 1
+    fi
+    if [[ -n "$BASELINE" ]]; then
+        if ! "$PROBE_DIR/compare.sh" "$BASELINE" "$PROBE_OUT"; then
+            echo "❌ The parity probe's output differs from $(basename "$BASELINE")!" >&2
+            echo "   If the change is intended, update the baseline (see tools/js-parity/README.md)." >&2
+            popd
+            return 1
+        fi
+    elif grep -q "script.javaScript.exception" "$PROBE_OUT"; then
+        grep "script.javaScript.exception" "$PROBE_OUT" >&2
+        echo "❌ The parity probe reported JavaScript exceptions!" >&2
+        popd
+        return 1
+    else
+        echo "ℹ️  No probe baseline for $(uname -s) $(uname -m); checked for exceptions only."
+    fi
+    echo "✅ Parity probe passed"
 
     echo "✅ Oolite test completed successfully"
     popd
