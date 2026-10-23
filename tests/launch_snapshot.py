@@ -23,6 +23,8 @@ from oolite_harness import HarnessError, JSException, OoliteGame, scaled
 # Threshold for a valid render at the default window size (1280x720); scaled by a snapshot's pixel count.
 MIN_FILE_SIZE_KB = 100
 DEFAULT_PIXELS = 1280 * 720
+# The most game time a frame may take while docking, in seconds (see dock()).
+MAX_DOCKING_STEP = 0.25
 
 
 def png_pixels(path):
@@ -79,11 +81,35 @@ def fire_missile(console):
         raise HarnessError(f"Firing a missile failed: {before} missiles before, {after} after.")
 
 
+def frame_time(console):
+    """Measures the game's average frame time in seconds, over about a second of real time."""
+    # The counts are kept on the console's this, which lasts from one command to the next.
+    console.evaluate(
+        "(function () { var s = this; s.$frames = 0; s.$frameTime = 0;"
+        " s.$frameCallback = addFrameCallback(function (delta) { s.$frames++; s.$frameTime += delta; });"
+        " return true; }).call(this)"
+    )
+    time.sleep(1)
+    frames, total = console.evaluate(
+        "(function () { removeFrameCallback(this.$frameCallback); return [this.$frames, this.$frameTime]; }).call(this)"
+    )
+    return total / max(frames, 1)
+
+
 def dock(console):
-    """Docks at the main station with the docking computer (the autopilot), with game time sped up."""
-    acceleration = os.environ.get("OOLITE_TEST_DOCKING_ACCELERATION", "16")
+    """
+    Docks at the main station with the docking computer (the autopilot), with
+    game time sped up as far as is safe. The docking computer copes with up to
+    about half a second of game time a frame (it misses the station with
+    several), so where frames are slow (OpenGL rendered in software) the
+    acceleration is lower.
+    """
+    frame = frame_time(console)
+    acceleration = os.environ.get("OOLITE_TEST_DOCKING_ACCELERATION")
+    if acceleration is None:
+        acceleration = max(1, min(16, int(MAX_DOCKING_STEP / frame)))
     acceleration = console.evaluate(f"timeAccelerationFactor = {float(acceleration)}, timeAccelerationFactor")
-    print(f"[*] Docking with the docking computer (time acceleration {acceleration}x)...")
+    print(f"[*] Docking with the docking computer ({1 / frame:.0f} fps, time acceleration {acceleration}x)...")
     if not console.evaluate("player.ship.engageAutopilotToStation(system.mainStation)"):
         raise HarnessError("The docking computer could not be engaged.")
     start = time.time()
