@@ -27,7 +27,7 @@ SOFTWARE.
 
 */
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 
 #import "OODebugMonitor.h"
 #import "NSStringOOExtensions.h"
@@ -929,4 +929,4 @@ NOTE: assumes single-threaded access.
 
 @end
 
-#endif /* NDEBUG */
+#endif /* OO_DEBUG_MONITOR_ENABLED */

@@ -27,14 +27,14 @@ MA 02110-1301, USA.
 #include <jsdbgapi.h>
 
 static JSBool SpecialJSWarning(JSContext* context, uintN argc, jsval* vp);
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 static JSBool SpecialMarkConsoleEntryPoint(JSContext* context, uintN argc, jsval* vp);
 #endif
 
 static JSFunctionSpec sSpecialFunctionsMethods[] = {
     // JS name					Function						min args
     { "jsWarning", SpecialJSWarning, 1 },
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     { "markConsoleEntryPoint", SpecialMarkConsoleEntryPoint, 0 },
 #endif
     { 0 }
@@ -86,7 +86,7 @@ static JSBool SpecialJSWarning(JSContext* context, uintN argc, jsval* vp)
     OOJS_PROFILE_EXIT
 }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 static JSBool SpecialMarkConsoleEntryPoint(JSContext* context, uintN argc, jsval* vp)
 {
     // First stack frame will be in eval() in console.script.evaluate(), unless someone is playing silly buggers.

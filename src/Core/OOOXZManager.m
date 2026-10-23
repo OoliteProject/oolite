@@ -1127,7 +1127,7 @@ static OOOXZManager* sSingleton = nil;
               forRow:0
                align:GUI_ALIGN_LEFT];
         [gui addLongText:DESC(@"oolite-oxzmanager-extract-info") startingAtRow:2 align:GUI_ALIGN_LEFT];
-#ifdef NDEBUG
+#ifndef OO_DEBUG_MONITOR_ENABLED
         [gui addLongText:DESC(@"oolite-oxzmanager-extract-releasebuild")
             startingAtRow:7
                     align:GUI_ALIGN_LEFT];

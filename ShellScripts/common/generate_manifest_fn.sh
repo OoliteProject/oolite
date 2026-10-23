@@ -1,6 +1,6 @@
 generate_manifest() {
     local output_file="$1"
-    local deployment_release="$2"
+    local debug_monitor="$2"
     local ver_full="$3"
     local ver_quad="$4"
     local ver_githash="$5"
@@ -20,12 +20,8 @@ generate_manifest() {
         echo "    git_commit_hash = \"$ver_githash\";"
         echo "    build_time = \"$build_time\";"
         echo "    git_remote_url = \"$git_remote\";"
+        echo "    debug_functionality_support = $debug_monitor;"
 
-        if [[ "$deployment_release" == "yes" ]]; then
-            echo "    debug_functionality_support = no;"
-        else
-            echo "    debug_functionality_support = yes;"
-        fi
         IFS='.' read -r major minor rest <<< "$ver_full"
         local ver_short="$major.$minor"
         echo "    required_oolite_version = \"${ver_short}\";"

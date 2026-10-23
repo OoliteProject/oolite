@@ -947,7 +947,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     return [entities count];
 }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 - (void)debugDumpEntities
 {
     int i;
@@ -6655,7 +6655,7 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity* e2, float range)
     OOLog(@"universe.profile.update", @"%@", @"Update complete");
 }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 - (double)timeAccelerationFactor
 {
     return timeAccelerationFactor;
@@ -9253,7 +9253,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void* context)
     //
 
     time_delta = 0.0;
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     [self setTimeAccelerationFactor:TIME_ACCELERATION_FACTOR_DEFAULT];
 #endif
     universal_time = 0.0;

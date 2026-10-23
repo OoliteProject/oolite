@@ -26,7 +26,7 @@ SOFTWARE.
 
 */
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 
 #import "OOJSConsole.h"
 #import "OODebugMonitor.h"
@@ -292,7 +292,7 @@ static JSBool ConsoleGetProperty(JSContext* context, JSObject* this, jsid propID
     OOJS_NATIVE_ENTER(context)
 
     switch (JSID_TO_INT(propID)) {
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     case kConsole_debugFlags:
         *value = INT_TO_JSVAL((uint32_t)gDebugFlags);
         break;
@@ -391,7 +391,7 @@ static JSBool ConsoleSetProperty(JSContext* context, JSObject* this, jsid propID
     NSString* sValue;
 
     switch (JSID_TO_INT(propID)) {
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     case kConsole_debugFlags:
         if (JS_ValueToInt32(context, *value, &iValue)) {
             gDebugFlags = iValue;
@@ -1050,4 +1050,4 @@ static JSBool PerformProfiling(JSContext* context, NSString* nominalFunction, ui
 
 #endif // OOJS_PROFILE
 
-#endif /* NDEBUG */
+#endif /* OO_DEBUG_MONITOR_ENABLED */

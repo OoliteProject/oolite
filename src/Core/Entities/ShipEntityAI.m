@@ -641,7 +641,7 @@
 - (BOOL)suggestEscortTo:(ShipEntity*)mother
 {
     if (mother) {
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
         if (reportAIMessages) {
             OOLog(@"ai.suggestEscort", @"DEBUG: %@ suggests escorting %@", self, mother);
         }
@@ -662,7 +662,7 @@
             return YES;
         }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
         if (reportAIMessages) {
             OOLog(@"ai.suggestEscort.refused", @"DEBUG: %@ refused by %@", self, mother);
         }

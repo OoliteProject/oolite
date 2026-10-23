@@ -119,7 +119,7 @@ typedef struct
 
 - (void)drawUnconditionally;
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 - (PlanetEntity*)atmosphere;
 #endif
 

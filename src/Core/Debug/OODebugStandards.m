@@ -32,7 +32,7 @@ SOFTWARE.
 #import "OOCollectionExtractors.h"
 #import "OOLogging.h"
 
-#ifdef NDEBUG
+#ifndef OO_DEBUG_MONITOR_ENABLED
 // in release mode, stubs
 void OOStandardsDeprecated(NSString* message) { }
 void OOStandardsError(NSString* message) { }
@@ -57,7 +57,14 @@ typedef enum {
     STANDARDS_ENFORCEMENT_QUIT
 } OOStandardsEnforcement;
 
-static OOStandardsEnforcement sEnforcement = STANDARDS_ENFORCEMENT_WARN;
+// Deployment builds stay quiet unless an OXP developer opts in with enforce-oxp-standards.
+#ifdef NDEBUG
+#define STANDARDS_ENFORCEMENT_DEFAULT STANDARDS_ENFORCEMENT_OFF
+#else
+#define STANDARDS_ENFORCEMENT_DEFAULT STANDARDS_ENFORCEMENT_WARN
+#endif
+
+static OOStandardsEnforcement sEnforcement = STANDARDS_ENFORCEMENT_DEFAULT;
 
 void OOStandardsSetup()
 {
@@ -66,7 +73,7 @@ void OOStandardsSetup()
     }
     NSUserDefaults* prefs = [NSUserDefaults standardUserDefaults];
     int s = [prefs oo_intForKey:@"enforce-oxp-standards"
-                   defaultValue:STANDARDS_ENFORCEMENT_WARN];
+                   defaultValue:STANDARDS_ENFORCEMENT_DEFAULT];
     if (s < STANDARDS_ENFORCEMENT_OFF) {
         s = STANDARDS_ENFORCEMENT_OFF;
     } else if (s > STANDARDS_ENFORCEMENT_QUIT) {

@@ -46,7 +46,7 @@ SOFTWARE.
 
 #import "OOShaderUniformMethodType.h"
 
-#if OO_SHADERS || !defined(NDEBUG)
+#if OO_SHADERS || defined(OO_DEBUG_MONITOR_ENABLED)
 
 #import "OOMaths.h"
 

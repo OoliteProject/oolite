@@ -22,6 +22,9 @@ option('oo_check_gl_heavy', type: 'boolean', value: false,
 option('oo_exclude_debug_support', type: 'boolean', value: false,
        description: 'Force exclude developer debug features (strips diagnostic tools)')
 
+option('oo_debug_monitor_enabled', type: 'boolean', value: true,
+       description: 'Enable Oolite debug monitor')
+
 option('oo_oxp_verifier_enabled', type: 'boolean', value: true,
        description: 'Enable Oolite Expansion Pack (OXP) checking and verification stages')
 

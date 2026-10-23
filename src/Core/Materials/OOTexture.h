@@ -107,7 +107,7 @@ enum {
 typedef OOPixMapFormat OOTextureDataFormat;
 
 @interface OOTexture : OOWeakRefObject {
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 @protected
     BOOL _trace;
 #endif
@@ -249,7 +249,7 @@ typedef OOPixMapFormat OOTextureDataFormat;
 // Called by OOGraphicsResetManager as necessary.
 + (void)rebindAllTextures;
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 - (void)setTrace:(BOOL)trace;
 
 + (NSArray*)cachedTexturesByAge;
