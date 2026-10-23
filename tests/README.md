@@ -50,6 +50,13 @@ machine. On slow machines (for example under CPU emulation) set
 rendered in software, a smaller window makes the game run faster: set
 `OOLITE_TEST_WINDOW`, for example to `640x360` (CI does this on macOS).
 
+The smoke test and the JavaScript tests speed up game time with
+`timeAccelerationFactor` (which only debug builds honour): the JavaScript
+tests run at 16x while moving from one phase to the next, and the smoke
+test docks at 16x. Set `OOLITE_TEST_DOCKING_ACCELERATION` to dock at
+another rate (1 to 16), for example if the docking computer misses the
+station where frames are slow.
+
 ## Writing JavaScript tests
 
 The JavaScript tests run in five phases, each in its own directory under
