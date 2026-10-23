@@ -496,7 +496,7 @@ void OOJSRegisterObjectConverter(JSClass* theClass, OOJSClassConverterCallback c
         In debug builds, this will deliberately cause an error if name is not a
         string literal.
 */
-#ifdef OO_DEBUG_MONITOR_ENABLED
+#ifdef NDEBUG
 #define OOJSAddGCValueRoot(context, root, name) JS_AddValueRoot((context), (root))
 #define OOJSAddGCStringRoot(context, root, name) JS_AddStringRoot((context), (root))
 #define OOJSAddGCObjectRoot(context, root, name) JS_AddObjectRoot((context), (root))
@@ -559,7 +559,7 @@ void OOJSResumeTimeLimiter(void);
         console, so that matching locations can be described specially by
         OOJSDescribeLocation().
 */
-#ifndef NDEBUG
+#if OOLITE_DEBUG || defined(OO_DEBUG_MONITOR_ENABLED)
 void OOJSDumpStack(JSContext* context);
 
 NSString* OOJSDescribeLocation(JSContext* context, JSStackFrame* stackFrame);

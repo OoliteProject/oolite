@@ -35,7 +35,7 @@
 #import "ResourceManager.h"
 #import "Universe.h"
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 #import "OOTextureGenerator.h"
 #endif
 
@@ -93,7 +93,7 @@ static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum* o
     _lodBias = lodBias;
 #endif
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     if ([loader isKindOfClass:[OOTextureGenerator class]]) {
         _name = [[NSString alloc] initWithFormat:@"<%@>", [loader class]];
     }

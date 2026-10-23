@@ -55,6 +55,9 @@ jobs:
       - name: Build AppImage
         run: |
           ./mk.sh pkg-appimage deployment
+      - name: Build Oolite (dev, compile check only)
+        run: |
+          ./mk.sh build dev
 
   fedora:
     runs-on: ubuntu-latest

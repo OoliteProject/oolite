@@ -66,7 +66,7 @@ static JSBool ConsoleConsoleMessage(JSContext* context, uintN argc, jsval* vp);
 static JSBool ConsoleClearConsole(JSContext* context, uintN argc, jsval* vp);
 static JSBool ConsoleScriptStack(JSContext* context, uintN argc, jsval* vp);
 static JSBool ConsoleInspectEntity(JSContext* context, uintN argc, jsval* vp);
-#ifdef OO_DEBUG_MONITOR_ENABLED
+#if OO_DEBUG
 static JSBool ConsoleCallObjCMethod(JSContext* context, uintN argc, jsval* vp);
 static JSBool ConsoleSetUpCallObjC(JSContext* context, uintN argc, jsval* vp);
 #endif
@@ -184,7 +184,7 @@ static JSFunctionSpec sConsoleMethods[] = {
     { "clearConsole", ConsoleClearConsole, 0 },
     { "scriptStack", ConsoleScriptStack, 0 },
     { "inspectEntity", ConsoleInspectEntity, 1 },
-#ifdef OO_DEBUG_MONITOR_ENABLED
+#if OO_DEBUG
     { "__setUpCallObjC", ConsoleSetUpCallObjC, 1 },
 #endif
     { "isExecutableJavaScript", ConsoleIsExecutableJavaScript, 2 },
@@ -693,7 +693,7 @@ static JSBool ConsoleInspectEntity(JSContext* context, uintN argc, jsval* vp)
     OOJS_NATIVE_EXIT
 }
 
-#ifdef OO_DEBUG_MONITOR_ENABLED
+#if OO_DEBUG
 // function callObjC(selector : String [, ...]) : Object
 static JSBool ConsoleCallObjCMethod(JSContext* context, uintN argc, jsval* vp)
 {

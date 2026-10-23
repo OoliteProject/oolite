@@ -662,7 +662,7 @@ static JSTrapStatus DebuggerHook(JSContext* context, JSScript* script, jsbytecod
 
 #endif
 
-#ifndef NDEBUG
+#if OOLITE_DEBUG || defined(OO_DEBUG_MONITOR_ENABLED)
 
 static void DumpVariable(JSContext* context, JSPropertyDesc* prop)
 {

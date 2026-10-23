@@ -258,7 +258,7 @@
 
     OOGL(glDrawElements(GL_TRIANGLES, data->faceCount * 3, data->type, data->indices));
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     if ([UNIVERSE wireframeGraphics]) {
         OODebugDrawBasisAtOrigin(1.5);
     }
