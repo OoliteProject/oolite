@@ -1,4 +1,6 @@
-#import "OOFunctionAttributes.h"
+#pragma once
+
+#include "OOFunctionAttributes.h"
 #include <tgmath.h>
 
 

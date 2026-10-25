@@ -2,6 +2,9 @@
 
 OOPlasmaShotEntity.h
 
+C++20 since bead oo-z9md, a leaf of the Entities seam under OOLightParticleEntity (proposed
+ADR-0056, amendments oo-bj8 item 12 and oo-peql), as OOPlasmaBurstEntity (oo-l2s5).
+
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -23,19 +26,36 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOLightParticleEntity.h"
+#pragma once
+
+#include "OOLightParticleEntity.h"
 
 
-@interface OOPlasmaShotEntity: OOLightParticleEntity
+/*	A converted leaf (amendment oo-bj8 item 12): global, over OOLightParticleEntity, with no
+	facade of its own. ShipEntity makes one with shotWithPosition() and hands it to Objective-C
+	with oo::NewEntityFacade, whose object is an OOLightParticleEntity.
+*/
+class OOPlasmaShotEntity : public OOLightParticleEntity
 {
-@private
-	OOTimeDelta					_duration;
-}
+public:
+	// [[OOPlasmaShotEntity alloc] initWithPosition:...]: a new shot, initialised.
+	static oo::Ref<OOPlasmaShotEntity> shotWithPosition(HPVector position,
+														Vector velocity,
+														float energy,
+														OOTimeDelta duration,
+														OOColor *color);
 
-- (id) initWithPosition:(HPVector)position
-			   velocity:(Vector)velocity
-				 energy:(float)energy
-			   duration:(OOTimeDelta)duration
-				  color:(OOColor *)color;
+	// -initWithPosition:...'s body, run once right after construction (amendment oo-vl43 item 2).
+	void initWithPosition(HPVector position,
+						  Vector velocity,
+						  float energy,
+						  OOTimeDelta duration,
+						  OOColor *color);
 
-@end
+	bool canCollide() override;
+	bool checkCloseCollisionWith(Entity *other) override;
+	void update(double delta_t) override;
+
+private:
+	OOTimeDelta					_duration = {};
+};

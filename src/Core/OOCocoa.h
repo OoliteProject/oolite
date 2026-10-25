@@ -30,6 +30,8 @@ MA 02110-1301, USA.
  causing a warning in Clang. This lets us write #define FOO (1 && OOLITE_DEBUG)
  instead.
  */
+#pragma once
+
 #ifdef NDEBUG
 #define OOLITE_DEBUG 0
 #else
@@ -41,23 +43,43 @@ MA 02110-1301, USA.
 #endif
 
 
+/*	OO_DEBUG is set by the build system for debug builds (meson.build adds -DOO_DEBUG when
+	optimization==0 or debug==true; the deployment/test/dev flavours never do).
+
+	Hoisted here from further down the file because the enumeration macros below have to
+	test it, and a macro cannot be defined in terms of one the preprocessor has not seen
+	yet. Nothing between here and the old site defines it, so the meaning is unchanged.
+*/
+#ifndef OO_DEBUG
+// Defined by makefile/Xcode in debug builds.
+#define OO_DEBUG					0
+#endif
+
+
 #include <math.h>
 #include <stdbool.h>
-#import <Foundation/Foundation.h>
 
 #ifdef GNUSTEP_BASE_LIBRARY
+	/*	No Foundation (oo-qps.17, ADR-0055): the C types it gave (NSInteger, NSRange, NSPoint...)
+		come from the floor's header, which #errors beside any Foundation header, so nothing on
+		this path can reach one. GNUSTEP_BASE_LIBRARY is the build's own define (src/meson).
+	*/
+	#if defined(_WIN32)
+		/*	What gnustep-base's GSConfig.h gave every file through Foundation: the Windows API
+			and Winsock, with the Windows BOOL renamed so Objective-C's stays BOOL.
+		*/
+		#define BOOL WinBOOL
+		#define __OBJC_BOOL 1
+		#include <winsock2.h>
+		#include <windows.h>
+		#undef __OBJC_BOOL
+		#undef BOOL
+	#endif
+	#include <assert.h>
+	#include "oofnd/objc/OOFoundationTypes.h"
 	#define OOLITE_GNUSTEP			1
 	
-	#if (GNUSTEP_BASE_MAJOR_VERSION == 1 && GNUSTEP_BASE_MINOR_VERSION < 28)
-		#error Oolite cannot be built using GNUstep earlier than 1.28.
-	#endif
-
-	#ifndef NSIntegerMax
-		// Missing in GNUstep-base prior to 1.23.
-		#define NSIntegerMax	INTPTR_MAX
-		#define NSIntegerMin	INTPTR_MIN
-		#define NSUIntegerMax	UINTPTR_MAX
-	#endif
+	// gnustep-base's macro; the Mac OS X path below defines the same one.
 	
 #else
 	#import <AppKit/AppKit.h>
@@ -71,9 +93,6 @@ MA 02110-1301, USA.
 	
 	/*	Useful macro copied from GNUstep.
 	*/
-	#ifndef DESTROY
-		#define DESTROY(x) do { id x_ = x; x = nil; [x_ release]; } while (0)
-	#endif
 	
 	#if defined MAC_OS_X_VERSION_10_7 && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_7
 		#define OOLITE_MAC_OS_X_10_7	1
@@ -83,7 +102,7 @@ MA 02110-1301, USA.
 		#define OOLITE_MAC_OS_X_10_8	1
 	#endif
 
-	#ifndef MAC_OS_X_VERSION_10_12
+	#if OOLITE_MAC_OS_X && !defined(MAC_OS_X_VERSION_10_12)
 		typedef NSUInteger NSWindowStyleMask;
 	#endif
 #endif
@@ -130,6 +149,20 @@ MA 02110-1301, USA.
 #endif
 
 
+#if defined(__cplusplus)
+/*	Objective-C++ is built as C++20 (ADR-0011; proposed ADR-0028). The true/false macros below
+	stay exactly as they were (game code keeps its int-typed true/false), but a C++20 standard
+	header parsed after them breaks: <optional> has `bool(__x) <=> false`, i.e. bool <=> int.
+	So those headers are parsed here first, with the real keywords; their include guards make
+	every later #include of them a no-op. extern "C++" because OOCocoa.h is sometimes reached
+	from inside an extern "C" block (OOMaths.h).
+*/
+extern "C++" {
+#include <compare>
+#include <optional>
+}
+#endif
+
 #define true						1
 #define false						0
 
@@ -156,83 +189,6 @@ MA 02110-1301, USA.
 #endif
 
 
-#import "Comparison.h"
-
-/* Define AppKit constants for events */
-enum {
-  NSUpArrowFunctionKey = 0xF700,
-  NSDownArrowFunctionKey = 0xF701,
-  NSLeftArrowFunctionKey = 0xF702,
-  NSRightArrowFunctionKey = 0xF703,
-  NSF1FunctionKey  = 0xF704,
-  NSF2FunctionKey  = 0xF705,
-  NSF3FunctionKey  = 0xF706,
-  NSF4FunctionKey  = 0xF707,
-  NSF5FunctionKey  = 0xF708,
-  NSF6FunctionKey  = 0xF709,
-  NSF7FunctionKey  = 0xF70A,
-  NSF8FunctionKey  = 0xF70B,
-  NSF9FunctionKey  = 0xF70C,
-  NSF10FunctionKey = 0xF70D,
-  NSF11FunctionKey = 0xF70E,
-  NSF12FunctionKey = 0xF70F,
-  NSF13FunctionKey = 0xF710,
-  NSF14FunctionKey = 0xF711,
-  NSF15FunctionKey = 0xF712,
-  NSF16FunctionKey = 0xF713,
-  NSF17FunctionKey = 0xF714,
-  NSF18FunctionKey = 0xF715,
-  NSF19FunctionKey = 0xF716,
-  NSF20FunctionKey = 0xF717,
-  NSF21FunctionKey = 0xF718,
-  NSF22FunctionKey = 0xF719,
-  NSF23FunctionKey = 0xF71A,
-  NSF24FunctionKey = 0xF71B,
-  NSF25FunctionKey = 0xF71C,
-  NSF26FunctionKey = 0xF71D,
-  NSF27FunctionKey = 0xF71E,
-  NSF28FunctionKey = 0xF71F,
-  NSF29FunctionKey = 0xF720,
-  NSF30FunctionKey = 0xF721,
-  NSF31FunctionKey = 0xF722,
-  NSF32FunctionKey = 0xF723,
-  NSF33FunctionKey = 0xF724,
-  NSF34FunctionKey = 0xF725,
-  NSF35FunctionKey = 0xF726,
-  NSInsertFunctionKey = 0xF727,
-  NSDeleteFunctionKey = 0xF728,
-  NSHomeFunctionKey = 0xF729,
-  NSBeginFunctionKey = 0xF72A,
-  NSEndFunctionKey = 0xF72B,
-  NSPageUpFunctionKey = 0xF72C,
-  NSPageDownFunctionKey = 0xF72D,
-  NSPrintScreenFunctionKey = 0xF72E,
-  NSScrollLockFunctionKey = 0xF72F,
-  NSPauseFunctionKey = 0xF730,
-  NSSysReqFunctionKey = 0xF731,
-  NSBreakFunctionKey = 0xF732,
-  NSResetFunctionKey = 0xF733,
-  NSStopFunctionKey = 0xF734,
-  NSMenuFunctionKey = 0xF735,
-  NSUserFunctionKey = 0xF736,
-  NSSystemFunctionKey = 0xF737,
-  NSPrintFunctionKey = 0xF738,
-  NSClearLineFunctionKey = 0xF739,
-  NSClearDisplayFunctionKey = 0xF73A,
-  NSInsertLineFunctionKey = 0xF73B,
-  NSDeleteLineFunctionKey = 0xF73C,
-  NSInsertCharFunctionKey = 0xF73D,
-  NSDeleteCharFunctionKey = 0xF73E,
-  NSPrevFunctionKey = 0xF73F,
-  NSNextFunctionKey = 0xF740,
-  NSSelectFunctionKey = 0xF741,
-  NSExecuteFunctionKey = 0xF742,
-  NSUndoFunctionKey = 0xF743,
-  NSRedoFunctionKey = 0xF744,
-  NSFindFunctionKey = 0xF745,
-  NSHelpFunctionKey = 0xF746,
-  NSModeSwitchFunctionKey = 0xF747
-};
 
 #endif
 
@@ -273,34 +229,15 @@ enum {
 #define OOLITE_PROPERTY_SYNTAX	(OOLITE_MAC_OS_X || OOLITE_HAVE_CLANG)
 
 
-#import "OOLogging.h"
+#include "OOLogging.h"
 
 
-@interface NSObject (OODescriptionComponents)
+#include "oofnd/objc/OOObject.h"
 
-/*	In order to allow implementations of -description to inherit description
-	components from superclasses, and to allow implementations of -description
-	and -oo_jsDescription to share code, both are implemented as wrappers
-	around -descriptionComponents. -descriptionComponents should provide
-	information about an object without a class name or surrounding
-	punctuation. -description will wrap the components like this:
-		<ClassName 0xnnnnnnnn>{descriptionComponents}
-	and -oo_jsDescription will wrap them like this:
-		[oo_jsClassName descriptionComponents]
+/*	The description family (-cxx_descriptionComponents & co., oo::DescriptionOf), Foundation-free
+	(proposed ADR-0055 item 1).
 */
-- (NSString *)descriptionComponents;
-
-
-/*	A lot of Oolite's -description implementations are rather long, and many
-	embed other descriptions. -shortDescription provides a truncated
-	alternative, while -shortDescriptionComponents provides a
-	-descriptionComponents-like mechanism to simplify implementation.
-*/
-- (NSString *) shortDescription;
-- (NSString *) shortDescriptionComponents;
-
-@end
-
+#include "OODescription.h"
 
 #if OOLITE_MAC_OS_X
 	#define OOLITE_RELEASE_PLIST_ERROR_STRINGS 1
@@ -309,57 +246,26 @@ enum {
 #endif
 
 
-/*	For some reason, return types for some comparison callbacks are typed
-	NSInteger/int under OS X but (more sensibly) NSComparisonResult under
-	GNUstep.
+/*	The ordering type and values under Oolite's own names (bead oo-3yh0): game code spells
+	OOComparisonResult / OOOrdered*, never the NS names. Since oo-qps.17 it is Oolite's own
+	NSInteger enum with Foundation's values; the Mac OS X path (Phase 5) keeps AppKit's NSInteger
+	callbacks and Foundation's constants.
 */
 #if OOLITE_MAC_OS_X
 	typedef NSInteger OOComparisonResult;
-#else
-	typedef NSComparisonResult OOComparisonResult;
+	#ifdef __cplusplus
+	inline constexpr OOComparisonResult OOOrderedAscending = NSOrderedAscending;
+	inline constexpr OOComparisonResult OOOrderedSame = NSOrderedSame;
+	inline constexpr OOComparisonResult OOOrderedDescending = NSOrderedDescending;
+	#endif
+#elif defined(__cplusplus)
+	enum OOComparisonResult: NSInteger
+	{
+		OOOrderedAscending = -1,
+		OOOrderedSame = 0,
+		OOOrderedDescending = 1
+	};
 #endif
-
-
-/*	Fast enumeration (for (x in y) syntax) is supported in all Mac compilers
-	when targeting 10.5 or later, and in gcc 4.6 with the GNU libobjc runtime.
-	At the time of writing, GNUstep stable does not support gcc 4.6, but it
-	already has support for the fast enumeration protocol in its collection
-	classes.
-	
-	All release versions of clang support fast enumeration, assuming libobjc2
-	or ObjectiveC2.framework is being used. We shall make that assumption.
-	
-	References:
-		http://lists.gnu.org/archive/html/discuss-gnustep/2011-02/msg00019.html
-		http://wiki.gnustep.org/index.php/ObjC2_FAQ
-	-- Ahruman 2011-02-04
-*/
-
-/*	Enumeration macros:
-	foreach(VAR, COLLECTION) enumerates the members of an array or set, setting
-	the variable VAR to a member on each pass.
-	foreachkey(VAR, DICT) enumerates the keys of a dictionary the same way.
-	
-	Example:
-		id element = nil;
-		foreach (element, array)
-		{
-			OOLog(@"element", @"%@", element);
-		}
-	
-    These are based on macros by Jens Alfke.
-*/
-#define foreach(VAR, COLLECTION)	for(VAR in COLLECTION)
-#define foreachkey(VAR, DICT)		for(VAR in DICT)
-
-
-/*	Support for foreach() with NSEnumerators in GCC.
-	It works without this with for (x in y) support, but we leave it defined
-	to reduce differences between different build environments.
-*/
-@interface NSEnumerator (OOForEachSupport)
-- (NSEnumerator *) objectEnumerator;
-@end
 
 
 /*	@optional directive for protocols: added in Objective-C 2.0.
@@ -367,7 +273,7 @@ enum {
 	As a nasty, nasty hack, the OOLITE_OPTIONAL(foo) macro allows an optional
 	section with or without @optional. If @optional is not available, it
 	actually ends the protocol and starts an appropriately-named informal
-	protocol, i.e. a category on NSObject. Since it ends the protocol, there
+	protocol, i.e. a category on the root class. Since it ends the protocol, there
 	can only be one and there's no way to switch back to @required.
 */
 #ifndef OOLITE_HAVE_PROTOCOL_OPTIONAL
@@ -377,7 +283,7 @@ enum {
 #if OOLITE_HAVE_PROTOCOL_OPTIONAL
 #define OOLITE_OPTIONAL(protocolName) @optional
 #else
-#define OOLITE_OPTIONAL(protocolName) @end @interface NSObject (protocolName ## Optional)
+#define OOLITE_OPTIONAL(protocolName) @end @interface OOObject (protocolName ## Optional)
 #endif
 
 
@@ -388,7 +294,7 @@ enum {
 	instance of that class.
 	
 	For example, given:
-		@interface Foo: NSObject
+		@interface Foo: OOObject
 		+ (instancetype) fooWithProperty:(id)property;
 		@end
 		
@@ -413,15 +319,9 @@ enum {
 	(Such factory methods should be implemented in terms of [[self alloc]
 	init...].)
 */
-#if __OBJC__ && !__has_feature(objc_instancetype)
-typedef id instancetype;
-#endif
 
 
-#ifndef OO_DEBUG
-// Defined by makefile/Xcode in debug builds.
-#define OO_DEBUG					0
-#endif
+// OO_DEBUG is defined at the top of this file, where the enumeration macros can test it.
 
 #if OOLITE_WINDOWS
 #ifndef OO_GAME_DATA_TO_USER_FOLDER

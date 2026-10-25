@@ -25,22 +25,51 @@ MA 02110-1301, USA.
 
 */
 
-#include <jsapi.h>
-#import "OOCocoa.h"
+#pragma once
 
-@class OOEquipmentType;
+#include "OOCocoa.h"
+#include "ooscript/JSEngine.hpp"
+#include "oofnd/StdLib.hpp"
 
 
-void InitOOJSEquipmentInfo(JSContext *context, JSObject *global);
 
-/*	Given a jsval representing a string (equipment key) or a JS EquipmentInfo,
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void InitOOJSEquipmentInfo(ooscript::Context context, ooscript::Object global);
+
+#ifdef __cplusplus
+}
+#endif
+
+/*	Given a ooscript::Value representing a string (equipment key) or a JS EquipmentInfo,
 	return the corresponding EquipmentType or key. Note that
 	JSValueToEquipmentKey() will not return arbitrary strings, only valid
 	equipment keys.
 	JSValueToEquipmentKeyRelaxed() will return any string that does not end
 	with _DAMAGED.
  */
-OOEquipmentType *JSValueToEquipmentType(JSContext *context, jsval value);
-NSString *JSValueToEquipmentKey(JSContext *context, jsval value);
+class OOEquipmentType;	// C++ since bead oo-9ht.28 (OOEquipmentType.h)
 
-NSString *JSValueToEquipmentKeyRelaxed(JSContext *context, jsval value, BOOL *outExists);
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+OOEquipmentType *JSValueToEquipmentType(ooscript::Context context, ooscript::Value value);
+extern "C++" {	// C++ results (proposed ADR-0043, bead oo-xcqk); nullopt where these returned nil
+std::optional<std::string> JSValueToEquipmentKey(ooscript::Context context, ooscript::Value value);
+
+// outExists stays BOOL *: its callers pass the address of a BOOL of their own (bead oo-supk).
+std::optional<std::string> JSValueToEquipmentKeyRelaxed(ooscript::Context context, ooscript::Value value, BOOL *outExists);
+}
+
+#ifdef __cplusplus
+}
+#endif
+
+
+/*	The JS class name of OOEquipmentType's OOJSPrivateObject members, defined in
+	OOJSEquipmentInfo.mm (proposed ADR-0056 amendment oo-6symp).
+*/
+std::optional<std::string> OOJSEquipmentInfoJSClassName(void);

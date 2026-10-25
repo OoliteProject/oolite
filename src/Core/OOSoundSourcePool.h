@@ -9,6 +9,9 @@ the same priority that has expired, or a sound of lower priority that has not
 expired.
 
 All sounds are specified by customsounds.plist key.
+
+C++20 since bead oo-d2y9 (proposed ADR-0056, the Audio module: amendment oo-2en). Its Objective-C
+facade was deleted by bead oo-9ht.89, and the class left namespace cxx.
  
 
 Copyright (C) 2008-2013 Jens Ayton
@@ -33,49 +36,56 @@ SOFTWARE.
 
 */
 
-#import <Foundation/Foundation.h>
-#import "OOTypes.h"
-#import "OOMaths.h"
+#ifndef OOSOUNDSOURCEPOOL_H
+#define OOSOUNDSOURCEPOOL_H
 
-@interface OOSoundSourcePool: NSObject
+#include "OOCocoa.h"
+#include "oofnd/objc/OOObject.h"
+#include "OOTypes.h"
+#include "OOMaths.h"
+
+#include "oofnd/StdLib.hpp"
+#include "oofnd/Ref.hpp"
+
+struct OOSoundSourcePoolElement;	// OOSoundSourcePool.mm
+
+
+class OOSoundSourcePool : public oo::RefCounted
 {
-@private
-	struct OOSoundSourcePoolElement	*_sources;
-	uint8_t							_count;
-	uint8_t							_latest;
-	uint8_t							_reserved;
-	OOTimeDelta						_minRepeat;
-	OOTimeAbsolute					_nextRepeat;
-	NSString						*_lastKey;
-}
+public:
+	/*	Was +poolWithCount:minRepeatTime:, alloc and -initWithCount:minRepeatTime:, which answered
+		nil when the sources could not be allocated: null then.
+	*/
+	static oo::Ref<OOSoundSourcePool> poolWithCount(uint8_t count, OOTimeDelta minRepeat);
 
-+ (instancetype) poolWithCount:(uint8_t)count minRepeatTime:(OOTimeDelta)minRepeat;
-- (id) initWithCount:(uint8_t)count minRepeatTime:(OOTimeDelta)minRepeat;
+	~OOSoundSourcePool() override;
 
-- (void) playSoundWithKey:(NSString *)key
-				 priority:(float)priority
-			   expiryTime:(OOTimeDelta)expiryTime
-				  overlap:(BOOL)overlap
-				 position:(Vector)position;
+	/*	The selectors that share playSoundWithKey: are overloads (ADR-0056 item 3), told apart by
+		the types of their arguments: a priority is a float and an overlap a bool, so a caller
+		passes each with its own type (1.0f, true).
+	*/
+	void playSoundWithKey(const std::string &key, float priority, OOTimeDelta expiryTime, bool overlap, Vector position);
+	void playSoundWithKey(const std::string &key, float priority, OOTimeDelta expiryTime);
+	void playSoundWithKey(const std::string &key, float priority);	// expiryTime:0.1 +/- 0.5
+	void playSoundWithKey(const std::string &key, float priority, Vector position);	// expiryTime:0.1 +/- 0.5
+	void playSoundWithKey(const std::string &key, Vector position);	// expiryTime:0.1 +/- 0.5
+	void playSoundWithKey(const std::string &key);	// priority: 1.0, expiryTime:0.1 +/- 0.5
+	void playSoundWithKey(const std::string &key, bool overlap);	// if overlap == NO it waits for key to finish before playing key again
+	void playSoundWithKey(const std::string &key, bool overlap, Vector position);
 
-- (void) playSoundWithKey:(NSString *)key
-				 priority:(float)priority
-			   expiryTime:(OOTimeDelta)expiryTime;
+private:
+	bool initWithCount(uint8_t count, OOTimeDelta minRepeat);
+	uint8_t selectSlotForPriority(float priority);
 
-- (void) playSoundWithKey:(NSString *)key
-				 priority:(float)priority;	// expiryTime:0.1 +/- 0.5
-
-- (void) playSoundWithKey:(NSString *)key
-				 priority:(float)priority
-				 position:(Vector)position;	// expiryTime:0.1 +/- 0.5
-
-- (void) playSoundWithKey:(NSString *)key
-				 position:(Vector)position;	// expiryTime:0.1 +/- 0.5
-
-- (void) playSoundWithKey:(NSString *)key;	// priority: 1.0, expiryTime:0.1 +/- 0.5
-
-- (void) playSoundWithKey:(NSString *)key overlap:(BOOL)overlap;	// if overlap == NO it waits for key to finish before playing key again
-- (void) playSoundWithKey:(NSString *)key overlap:(BOOL)overlap position:(Vector)position;
+	::OOSoundSourcePoolElement		*_sources = {};
+	uint8_t							_count = {};
+	uint8_t							_latest = {};
+	uint8_t							_reserved = {};
+	OOTimeDelta						_minRepeat = {};
+	OOTimeAbsolute					_nextRepeat = {};
+	std::optional<std::string>		_lastKey;	// nullopt until a repeat-limited sound plays (proposed ADR-0043)
+};
 
 
-@end
+
+#endif	// OOSOUNDSOURCEPOOL_H

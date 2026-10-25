@@ -2,6 +2,10 @@
 
 OOJSPopulatorDefinition.h
 
+C++20 since bead oo-1h0h (proposed ADR-0056, the OOColor house style). An oo::RefCounted, global
+namespace since bead oo-9ht.60: OOJSSystem makes it with oo::makeRef and Universe keeps it as a
+PList::Object node (OOJSPopulatorDefinitionToPList / OOJSPopulatorDefinitionIn below).
+
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -23,24 +27,44 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOJSScript.h"
-#include <jsapi.h>
-#import "OOMaths.h"
+#ifndef OOJSPOPULATORDEFINITION_H
+#define OOJSPOPULATORDEFINITION_H
 
-@interface OOJSPopulatorDefinition: OOWeakRefObject
+#include "OOCocoa.h"
+#include "ooscript/JSEngine.hpp"
+#include "OOMaths.h"
+#include "oofnd/Ref.hpp"
+#include "oofnd/PList.hpp"
+#include "oofnd/Ref.hpp"
+
+class OOJSScript;	// imported by the .mm, so that a test can stand in for it (ADR-0056 amendment oo-fg7i item 5)
+
+
+class OOJSPopulatorDefinition : public oo::RefCounted
 {
-@private
-	jsval				_callback;
-	JSObject			*_callbackThis;
-	OOJSScript			*_owningScript;
-}
+public:
+	OOJSPopulatorDefinition();
+	~OOJSPopulatorDefinition() override;
 
-- (jsval)callback;
-- (void)setCallback:(jsval)callback;
-- (JSObject *)callbackThis;
-- (void)setCallbackThis:(JSObject *)callbackthis;
+	ooscript::Value callback();
+	void setCallback(ooscript::Value callback);
+	ooscript::Object callbackThis();
+	void setCallbackThis(ooscript::Object callbackthis);
 
-- (void)runCallback:(HPVector)location;
+	void runPopulatorCallback(HPVector location);
 
-@end
+private:
+	void deleteJSPointers();
 
+	ooscript::Value				_callback = {};
+	ooscript::Object _callbackThis = {};
+	oo::WeakRef<OOJSScript>		_owningScript;	// a weak reference (was the facade's weak reference proxy)
+};
+
+
+// A PList::Object node holding the definition (strongly), as the settings' callbackObj.
+oo::PList OOJSPopulatorDefinitionToPList(oo::Ref<OOJSPopulatorDefinition> definition);
+// The definition inside such a node; nullptr for any other node.
+OOJSPopulatorDefinition *OOJSPopulatorDefinitionIn(const oo::PList &plist);
+
+#endif	// OOJSPOPULATORDEFINITION_H

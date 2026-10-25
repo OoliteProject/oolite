@@ -31,14 +31,35 @@ MA 02110-1301, USA.
 
 */
 
-#import <Foundation/Foundation.h>
-#include <jsapi.h>
+#pragma once
 
-@class PlayerEntity;
+#include "OOCocoa.h"
+#include "ooscript/JSEngine.hpp"
+#include "oofnd/Notification.hpp"
+#include <optional>
+#include <string>
+class PlayerEntity;
 
 
-void InitOOJSPlayerShip(JSContext *context, JSObject *global);
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-JSClass *JSPlayerShipClass(void);
-JSObject *JSPlayerShipPrototype(void);
-JSObject *JSPlayerShipObject(void);
+void InitOOJSPlayerShip(ooscript::Context context, ooscript::Object global);
+
+ooscript::ClassDef *JSPlayerShipClass(void);
+ooscript::Object JSPlayerShipPrototype(void);
+ooscript::Object JSPlayerShipObject(void);
+
+#ifdef __cplusplus
+}
+#endif
+
+
+/*	PlayerEntity (OOJavaScriptExtensions), whose methods the engine and the player send by selector:
+	the bodies, as free functions (ADR-0056 amendments oo-ppc item 3, oo-ykoy). The C++ player
+	calls them (PlayerEntity::jsClassName(), bead oo-9ht.177).
+*/
+std::optional<std::string> OOJSPlayerShipJSClassName(void);
+void OOJSPlayerShipSetJSSelf(PlayerEntity *player, ooscript::Object val, ooscript::Context context);
+void OOJSPlayerShipJavaScriptEngineWillReset(PlayerEntity *player, const oo::Notification &notification);

@@ -2,6 +2,9 @@
 
 OOTextureSprite.h
 
+C++20 since bead oo-ljhc (Phase 3, proposed ADR-0056). The Objective-C facade was deleted by
+bead oo-9ht.71, which moved the class out of namespace cxx.
+
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
 
@@ -22,31 +25,41 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOCocoa.h"
-#import "OOOpenGL.h"
+#ifndef OOTEXTURESPRITE_H
+#define OOTEXTURESPRITE_H
 
-@class OOTexture;
+#include "OOCocoa.h"
+#include "oofnd/objc/OOObject.h"
+#include "OOOpenGL.h"
+
+#include "oofnd/Ref.hpp"
+
+class OOTexture;
 
 
 #define	OPEN_GL_SPRITE_MIN_WIDTH	64.0
 #define	OPEN_GL_SPRITE_MIN_HEIGHT	64.0
 
 
-@interface OOTextureSprite: NSObject
+class OOTextureSprite : public oo::RefCounted
 {
-@private
-	OOTexture	*texture;
-	NSSize		size;
-}
+public:
+	// Null for a nil texture (-initWithTexture:... answered nil). The first is the texture's
+	// original dimensions.
+	static oo::Ref<OOTextureSprite> initWithTexture(OOTexture *texture);
+	static oo::Ref<OOTextureSprite> initWithTexture(OOTexture *texture, NSSize spriteSize);
 
+	NSSize getSize();	// -size (the ivar keeps its name: amendment oo-862e item 1)
 
-- (id) initWithTexture:(OOTexture *)texture;
-- (id) initWithTexture:(OOTexture *)texture size:(NSSize)spriteSize;
+	void blitToX(float x, float y, float z, float a);
+	void blitCentredToX(float x, float y, float z, float a);
+	void blitBackgroundCentredToX(float x, float y, float z, float a);
 
-- (NSSize) size;
+private:
+	OOTextureSprite(OOTexture *inTexture, NSSize spriteSize);	// initWithTexture() checks the texture
 
-- (void) blitToX:(float)x Y:(float)y Z:(float)z alpha:(float)a;
-- (void) blitCentredToX:(float)x Y:(float)y Z:(float)z alpha:(float)a;
-- (void) blitBackgroundCentredToX:(float)x Y:(float)y Z:(float)z alpha:(float)a;
+	oo::Ref<OOTexture>	texture;
+	NSSize					size = {};
+};
 
-@end
+#endif	// OOTEXTURESPRITE_H

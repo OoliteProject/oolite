@@ -23,7 +23,18 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOCocoa.h"
+#pragma once
+
+#if defined(__cplusplus) && !defined(OO_PLAIN_CPP_UNIT)	// was __OBJC__: a game unit (an Objective-C++ unit until bead oo-dbz), not a plain C++ one
+#include "OOCocoa.h"
+#else
+/*	Plain C++ translation unit (OOMouseInteractionMode.cpp, ADR-0012): only BOOL is needed, and OOCocoa.h
+	imports Foundation, which does not compile outside Objective-C.
+*/
+#include "oofnd/objc/OOFoundationTypes.h"	// BOOL, which <objc/runtime.h> gave until bead oo-dbz.2
+#endif
+
+#include "oofnd/StdLib.hpp"
 
 
 /*
@@ -52,6 +63,6 @@ typedef enum
 } OOMouseInteractionMode;
 
 
-NSString *OOStringFromMouseInteractionMode(OOMouseInteractionMode mode);
+std::string OOStringFromMouseInteractionMode(OOMouseInteractionMode mode);
 BOOL OOMouseInteractionModeIsUIScreen(OOMouseInteractionMode mode);
 BOOL OOMouseInteractionModeIsFlightMode(OOMouseInteractionMode mode);

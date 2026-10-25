@@ -27,17 +27,38 @@ SOFTWARE.
 
 */
 
-#import "OOTextureGenerator.h"
-#import "OOPixMap.h"
+#ifndef OOPIXMAPTEXTURELOADER_H
+#define OOPIXMAPTEXTURELOADER_H
+
+#include "OOTexture.h"
+#include "OOTextureGenerator.h"
+#include "OOPixMap.h"
 
 
-@interface OOPixMapTextureLoader: OOTextureGenerator
+/*	Phase 3 (bead oo-kvqq, proposed ADR-0056 amendments oo-bj8 item 12, oo-2c6g item 2, oo-rr2x
+	and oo-z889): a converted leaf of the texture generators, global, over OOTextureGenerator,
+	with no facade of its own. Its callers (the planets) make it with loaderWithPixMap and hand
+	the texture the C++ loader (the generators' facade until bead oo-9ht.118 deleted it).
+*/
+class OOPixMapTextureLoader : public OOTextureGenerator
 {
-@private
-	OOPixMap			_pixMap;
-	uint32_t			_texOptions;
-}
+public:
+	~OOPixMapTextureLoader() override;	// was -dealloc
 
-- (id) initWithPixMap:(OOPixMap)pixMap textureOptions:(uint32_t)options freeWhenDone:(BOOL)freeWhenDone;
+	/*	Was [[OOPixMapTextureLoader alloc] initWithPixMap:textureOptions:freeWhenDone:]: null where
+		that answered nil (amendment oo-novu).
+	*/
+	static oo::Ref<OOPixMapTextureLoader> loaderWithPixMap(OOPixMap pixMap, uint32_t options, bool freeWhenDone);
 
-@end
+	// Was -initWithPixMap:textureOptions:freeWhenDone:; false where it answered nil.
+	bool initWithPixMap(OOPixMap pixMap, uint32_t options, bool freeWhenDone);
+
+	void loadTexture() override;
+	uint32_t textureOptions() override;
+
+private:
+	OOPixMap			_pixMap = {};
+	uint32_t			_texOptions = {};
+};
+
+#endif	// OOPIXMAPTEXTURELOADER_H

@@ -1,9 +1,11 @@
-#import "OOSound.h"
+#pragma once
+
+#include "OOSound.h"
 
 #if OOLITE_OPENAL
 
-#import "OOALSoundMixer.h"
-#import "OOALSoundChannel.h"
+#include "OOALSoundMixer.h"
+#include "OOALSoundChannel.h"
 
 #define OOSoundAcquireLock() do {} while(0)
 #define OOSoundReleaseLock() do {} while(0)

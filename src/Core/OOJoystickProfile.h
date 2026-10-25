@@ -12,6 +12,11 @@ splines between the set of control points - the segment between (0,0)
 and the first control point is linear, the remaining segments
 quadratic with the gradients matching at the control point.
 
+C++20 since bead oo-fn2f (proposed ADR-0056 and its hierarchy amendments oo-cwz/oo-up4b). The
+three profile classes are C++ classes, the curve (rawValue) virtual; the spline's segments are
+the private OOJoystickSplineSegment. Bead oo-9ht.16 deleted their Objective-C facades and moved
+the classes to the global namespace.
+
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
 
@@ -32,61 +37,78 @@ MA 02110-1301, USA.
 
 */
 
+#ifndef OOJOYSTICKPROFILE_H
+#define OOJOYSTICKPROFILE_H
+
+#include "OOCocoa.h"
+#include "oofnd/StdLib.hpp"
+#include "oofnd/Ref.hpp"
+
 #define STICKPROFILE_TYPE_STANDARD	1
 #define STICKPROFILE_TYPE_SPLINE	2
 #define STICKPROFILE_MAX_POWER		10.0
 
-@interface OOJoystickAxisProfile : NSObject <NSCopying>
+class OOJoystickSplineSegment;	// private to OOJoystickProfile.mm
+
+
+class OOJoystickAxisProfile : public oo::RefCounted
 {
-@private
-	double deadzone;
-}
+public:
+	OOJoystickAxisProfile();	// -init
+	virtual oo::Ref<OOJoystickAxisProfile> copy();	// -copyWithZone:
+	virtual double rawValue(double x);
+	double value(double x);
+	double deadzone();
+	void setDeadzone(double newValue);
 
-- (id) init;
-- (id) copyWithZone: (NSZone *) zone;
-- (double) rawValue: (double) x;
-- (double) value: (double) x;
-- (double) deadzone;
-- (void) setDeadzone: (double) newValue;
+private:
+	double deadzone_ = {};	// the ivar deadzone (amendment oo-z1s4 item 1: it clashes with deadzone())
+};
 
-@end
 
-@interface OOJoystickStandardAxisProfile: OOJoystickAxisProfile
+class OOJoystickStandardAxisProfile : public OOJoystickAxisProfile
 {
-@private
-	double power;
-	double parameter;
-}
+public:
+	OOJoystickStandardAxisProfile();	// -init
+	oo::Ref<OOJoystickAxisProfile> copy() override;
+	void setPower(double newValue);
+	double power();
+	void setParameter(double newValue);
+	double parameter();
+	double rawValue(double x) override;
 
-- (id) init;
-- (id) copyWithZone: (NSZone *) zone;
-- (void) setPower: (double) newValue;
-- (double) power;
-- (void) setParameter: (double) newValue;
-- (double) parameter;
-- (double) rawValue: (double) x;
+private:
+	double power_ = {};		// the ivars power and parameter (clash with power(), parameter())
+	double parameter_ = {};
+};
 
-@end
 
-@interface OOJoystickSplineAxisProfile: OOJoystickAxisProfile
+class OOJoystickSplineAxisProfile : public OOJoystickAxisProfile
 {
-@private
-	NSMutableArray *controlPoints;
-	NSArray *segments;
-}
+public:
+	OOJoystickSplineAxisProfile();	// -init
+	~OOJoystickSplineAxisProfile() override;	// -dealloc
+	oo::Ref<OOJoystickAxisProfile> copy() override;
+	int addControl(NSPoint point);
+	NSPoint pointAtIndex(NSInteger index);
+	int countPoints();
+	void removeControl(NSInteger index);
+	void clearControlPoints();
+	void moveControl(NSInteger index, NSPoint point);
+	double rawValue(double x) override;
+	double gradient(double x);
+	std::vector<NSPoint> controlPoints();
 
-- (id) init;
-- (void) dealloc;
-- (id) copyWithZone: (NSZone *) zone;
-- (int) addControl: (NSPoint) point;
-- (NSPoint) pointAtIndex: (NSInteger) index;
-- (int) countPoints;
-- (void) removeControl: (NSInteger) index;
-- (void) clearControlPoints;
-- (void) moveControl: (NSInteger) index point: (NSPoint) point;
-- (double) rawValue: (double) x;
-- (double) gradient: (double) x;
-- (NSArray *) controlPoints;
+private:
+	// Create the segments from the control points.  If there's a problem, e.g. control points not in order or overlapping,
+	// leave segments as they are and return NO.  Otherwise return YES.
+	bool makeSegments();
 
-@end
+	// Was a Foundation mutable array of valueWithPoint: boxes (bead oo-3rb.48). The ivar
+	// controlPoints (clashes with controlPoints()).
+	std::vector<NSPoint> controlPoints_ = {};
+	// Was a Foundation array of segments (Foundation sweep, proposed ADR-0043, bead oo-r71k).
+	std::vector<oo::Ref<OOJoystickSplineSegment>> segments;	// no `= {}`: GCC instantiates ~Ref<T> at a default member initializer, and T is incomplete here (bead oo-1q4)
+};
 
+#endif	// OOJOYSTICKPROFILE_H

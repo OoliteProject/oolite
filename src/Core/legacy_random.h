@@ -61,6 +61,10 @@ typedef struct RANROTSeed
 } RANROTSeed;
 
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern const Random_Seed	kNilRandomSeed;
 
 
@@ -74,7 +78,13 @@ double cunningFee(double value, double precision); // precision is the fraction 
 // an implementation of RANROT
 // pseudo random number generator
 void ranrot_srand(uint32_t seed);
+#ifdef __cplusplus
+extern "C" {
+#endif
 unsigned Ranrot(void);
+#ifdef __cplusplus
+}
+#endif
 #define ranrot_rand() ((int)Ranrot())	// Some uses perform arithmetic that does weird things if result is unsigned -- DustEntity.m, for instance.
 float randf(void);
 float bellf(int n);
@@ -95,13 +105,25 @@ OOINLINE double accurateDistanceBetweenPlanetPositions(int x1, int y1, int x2, i
 
 void seed_for_planet_description(Random_Seed s_seed);
 void seed_RNG_only_for_planet_description(Random_Seed s_seed);
+#ifdef __cplusplus
+extern "C" {
+#endif
 RNG_Seed currentRandomSeed(void);
 void setRandomSeed(RNG_Seed a_seed);
+#ifdef __cplusplus
+}
+#endif
 
 // Range: 0..255
 int gen_rnd_number (void);
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 void make_pseudo_random_seed (Random_Seed *seed_ptr);
+#ifdef __cplusplus
+}
+#endif
 
 OOINLINE int is_nil_seed(Random_Seed a_seed) INLINE_CONST_FUNC;
 
@@ -189,5 +211,9 @@ OOINLINE double travelTimeBetweenPlanetPositions(int x1, int y1, int x2, int y2)
 	double distance = distanceBetweenPlanetPositions(x1, y1, x2, y2);
 	return distance * distance;
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

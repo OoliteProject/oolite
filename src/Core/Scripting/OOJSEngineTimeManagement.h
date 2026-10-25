@@ -4,6 +4,11 @@ OOJSEngineTimeManagement.h
 
 Functionality related to time limiting and profiling of JavaScript code.
 
+C++20 since bead oo-cn4o (proposed ADR-0056; amendment oo-ppc for the scripting files): the
+profile classes are OOTimeProfile and OOTimeProfileEntry (no Objective-C facades since bead
+oo-9ht.63). The watchdog is a function of this file; it was a category of the engine
+that nothing else sent.
+
 
 Copyright (C) 2010-2013 Jens Ayton
 
@@ -28,7 +33,15 @@ SOFTWARE.
 */
 
 
-#import "OOJavaScriptEngine.h"
+#pragma once
+
+#include "OOJavaScriptEngine.h"
+#include "oofnd/StdLib.hpp"
+#include "oofnd/Ref.hpp"
+
+#include <optional>
+#include <string>
+#include <vector>
 
 
 /*	Time Limiter
@@ -52,8 +65,18 @@ SOFTWARE.
 #ifndef NDEBUG
 #define OOJSStartTimeLimiterWithTimeLimit(limit)  OOJSStartTimeLimiterWithTimeLimit_(limit, OOLOG_FILE_NAME, __LINE__)
 #define OOJSStopTimeLimiter()  OOJSStopTimeLimiter_(OOLOG_FILE_NAME, __LINE__)
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void OOJSStartTimeLimiterWithTimeLimit_(OOTimeDelta limit, const char *file, unsigned line);
 void OOJSStopTimeLimiter_(const char *file, unsigned line);
+
+#ifdef __cplusplus
+}
+#endif
+
 #else
 void OOJSStartTimeLimiterWithTimeLimit(OOTimeDelta limit);
 void OOJSStopTimeLimiter(void);
@@ -64,7 +87,7 @@ void OOJSStopTimeLimiter(void);
 
 
 #if OOJS_PROFILE
-#import "OOProfilingStopwatch.h"
+#include "OOProfilingStopwatch.h"
 
 /*
 	Profiling support.
@@ -89,18 +112,27 @@ void OOJSStopTimeLimiter(void);
 */
 
 
-@class OOTimeProfile, OOTimeProfileEntry;
+class OOTimeProfile;
 
 
-void OOJSBeginProfiling(BOOL trace);
-OOTimeProfile *OOJSEndProfiling(void);
-BOOL OOJSIsProfiling(void);
+oo::Ref<OOTimeProfile> OOJSEndProfiling(void);
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void OOJSBeginProfiling(bool trace);
+bool OOJSIsProfiling(void);
 
 OOHighResTimeValue OOJSCopyTimeLimiterNominalStartTime(void);
 
 void OOJSResetTimeLimiter(void);
 OOTimeDelta OOJSGetTimeLimiterLimit(void);
 void OOJSSetTimeLimiterLimit(OOTimeDelta limit);
+
+#ifdef __cplusplus
+}
+#endif
 
 
 /*
@@ -109,69 +141,106 @@ void OOJSSetTimeLimiterLimit(OOTimeDelta limit);
 */
 
 
-@interface OOTimeProfile: NSObject
+class OOTimeProfileEntry;
+
+
+class OOTimeProfile : public oo::RefCounted
 {
-@private
-	double						_totalTime;
-	double						_nativeTime;
-	double						_extensionTime;
+public:
+	std::optional<std::string> description();
+
+	double totalTime();
+	double javaScriptTime();
+	double nativeTime();
+	double extensionTime();
+	double nonExtensionTime();
+	double profilerOverhead();
+
+	std::vector<oo::Ref<OOTimeProfileEntry>> profileEntries();	// sorted by self time, longest first
+
+	ooscript::Value oo_jsValueInContext(ooscript::Context context);
+
+	// Set by OOJSEndProfiling() (the old private category).
+	void setTotalTime(double value);
+	void setNativeTime(double value);
 #ifdef MOZ_TRACE_JSCALLS
-	double						_javaScriptTime;
+	void setJavaScriptTime(double value);
 #endif
-	
-	double						_profilerOverhead;
-	
-	NSArray						*_profileEntries;
-}
+	void setProfilerOverhead(double value);
+	void setExtensionTime(double value);
+	void setProfileEntries(const std::vector<oo::Ref<OOTimeProfileEntry>> &value);
 
-- (double) totalTime;
-- (double) javaScriptTime;
-- (double) nativeTime;
-- (double) extensionTime;
-- (double) nonExtensionTime;
-- (double) profilerOverhead;
+private:
+	oo::PList propertyListRepresentation();
 
-- (NSArray *) profileEntries;	// Array of OOTimeProfileEntry
+	double						_totalTime = {};
+	double						_nativeTime = {};
+	double						_extensionTime = {};
+#ifdef MOZ_TRACE_JSCALLS
+	double						_javaScriptTime = {};
+#endif
 
-@end
+	double						_profilerOverhead = {};
+
+	std::vector<oo::Ref<OOTimeProfileEntry>>	_profileEntries;
+};
 
 
-@interface OOTimeProfileEntry: NSObject
+class OOTimeProfileEntry : public oo::RefCounted
 {
-@private
-	NSString					*_function;
-	unsigned long				_hitCount;
-	double						_totalTimeSum;
-	double						_selfTimeSum;
-	double						_totalTimeMax;
-	double						_selfTimeMax;
+public:
+	// The profiler's (the old private category): only while profiling.
+	explicit OOTimeProfileEntry(const char *name);
 #ifdef MOZ_TRACE_JSCALLS
-	JSFunction					*_jsFunction;
+	OOTimeProfileEntry(ooscript::Function function, ooscript::Context context);
 #endif
+
+	void addSampleWithTotalTime(OOTimeDelta totalTime, OOTimeDelta selfTime);
+
+	std::optional<std::string> description();
+
+	std::optional<std::string> function();	// nullopt: none (bead oo-3rb.291.3)
+	NSUInteger hitCount();
+	double totalTimeSum();
+	double selfTimeSum();
+	double totalTimeAverage();
+	double selfTimeAverage();
+	double totalTimeMax();
+	double selfTimeMax();
+	bool isJavaScriptFrame();
+
+	OOComparisonResult compareByTotalTime(OOTimeProfileEntry *other);
+	OOComparisonResult compareByTotalTimeReverse(OOTimeProfileEntry *other);
+	OOComparisonResult compareBySelfTime(OOTimeProfileEntry *other);
+	OOComparisonResult compareBySelfTimeReverse(OOTimeProfileEntry *other);
+
+	ooscript::Value oo_jsValueInContext(ooscript::Context context);
+	oo::PList propertyListRepresentation();
+
+private:
+	std::optional<std::string>	_function;	// nullopt when created without a name
+	unsigned long				_hitCount = {};
+	double						_totalTimeSum = {};
+	double						_selfTimeSum = {};
+	double						_totalTimeMax = {};
+	double						_selfTimeMax = {};
+#ifdef MOZ_TRACE_JSCALLS
+	ooscript::Function _jsFunction = {};
+#endif
+};
+
+#endif
+
+
+class OOJavaScriptEngine;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void OOJSTimeManagementInit(OOJavaScriptEngine *engine, ooscript::Runtime runtime);
+
+#ifdef __cplusplus
 }
-
-- (NSString *) description;
-
-- (NSString *) function;
-- (NSUInteger) hitCount;
-- (double) totalTimeSum;
-- (double) selfTimeSum;
-- (double) totalTimeAverage;
-- (double) selfTimeAverage;
-- (double) totalTimeMax;
-- (double) selfTimeMax;
-- (BOOL) isJavaScriptFrame;
-
-- (NSComparisonResult) compareByTotalTime:(OOTimeProfileEntry *)other;
-- (NSComparisonResult) compareByTotalTimeReverse:(OOTimeProfileEntry *)other;
-- (NSComparisonResult) compareBySelfTime:(OOTimeProfileEntry *)other;
-- (NSComparisonResult) compareBySelfTimeReverse:(OOTimeProfileEntry *)other;
-
-@end
-
 #endif
 
-
-@class OOJavaScriptEngine;
-
-void OOJSTimeManagementInit(OOJavaScriptEngine *engine, JSRuntime *runtime);

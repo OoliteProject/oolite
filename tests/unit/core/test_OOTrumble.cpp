@@ -1,0 +1,624 @@
+/*	test_OOTrumble.mm
+	Unit tests for OOTrumble (src/Core/OOTrumble.h): bead oo-862e (Phase 3, proposed ADR-0056); the Objective-C facade went with bead oo-9ht.17.
+
+	A trumble is set up from a two-character digram (its colours, pattern, maximum size, and the
+	RNG seed for its position, motion and animation timings), and then lives by updateTrumble:, which
+	moves it against the player's dials and view, grows it, makes it hungry and uncomfortable, feeds
+	it from the player's cargo, and steps its animations: idle, blink, proot, snarl, shudder, sleep,
+	spawn (which asks the player to add a trumble) and pop (which asks the player to remove it).
+	The test pins that state, the savegame dictionary, and what it asks of the game.
+
+	The game around it is replaced (ADR-0056 amendments oo-zffj, oo-8kx7): UNIVERSE, the player, the
+	cargo pods, the commodity market, textures and sounds are fakes below that answer from fields and
+	record what they are asked (the sound and the sound source are C++ stand-ins since beads
+	oo-9ht.68 and oo-9ht.88 deleted the facades they stood in for); drawTrumble: is GL and its
+	matrix calls are aborting link stubs. The
+	RNG is the game's own (legacy_random.c). The expectations were written against the Objective-C
+	class and run on it first, reading its private state through the runtime; they now run through
+	the C++ API and read that state through the class's test friend. Run: bash tools/check-core-tests.sh
+*/
+
+#include "OOTrumble.h"
+#include "OOSoundSource.h"
+#include "OOALSound.h"
+#include "OOCommodityMarket.h"
+
+#include "oo_test.hpp"
+
+#include "OOEntityHold.h"	// the cargo list (bead oo-xn1j1)
+
+
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <map>
+#include <string>
+#include <vector>
+
+#include "OOTypes.h"
+#include "OOMaths.h"
+#include "OOTexture.h"
+#include "oofnd/String.hpp"
+
+
+// --- The game around the class --------------------------------------------------------------
+
+static std::vector<std::string> gLog;	// what the trumble asked of the game, in order
+
+// The C++ OOTexture (bead oo-9ht.99 deleted the Objective-C facade this stood in for): the factory
+// the trumble calls, recorded, answering a texture; and the root's own members, which a texture
+// needs (OOTexture.mm links the loaders and the game). The trumble never applies it here.
+oo::Ref<OOTexture> OOTexture::textureWithName(const std::optional<std::string> &name, const std::optional<std::string> &directory, OOTextureFlags options, GLfloat anisotropy, GLfloat lodBias)
+{
+	gLog.push_back("texture " + name.value_or("-") + " in " + directory.value_or("-") + " options " + std::to_string(options) + " anisotropy " + std::to_string(anisotropy) + " lodBias " + std::to_string(lodBias));
+	return oo::makeRef<OOTexture>();
+}
+OOTexture::OOTexture()	{}
+OOTexture::~OOTexture()	{}
+void OOTexture::apply()	{ std::abort(); }
+void OOTexture::ensureFinishedLoading()	{}
+bool OOTexture::isFinishedLoading()	{ return true; }
+std::optional<std::string> OOTexture::cacheKey()	{ return std::nullopt; }
+NSSize OOTexture::dimensions()	{ return NSSize{}; }
+NSSize OOTexture::originalDimensions()	{ return dimensions(); }
+bool OOTexture::isMipMapped()	{ return false; }
+OOPixMap OOTexture::copyPixMapRepresentation()	{ return OOPixMap{}; }
+bool OOTexture::isRectangleTexture()	{ return false; }
+bool OOTexture::isCubeMap()	{ return false; }
+NSSize OOTexture::texCoordsScale()	{ return NSSize{1.0, 1.0}; }
+GLint OOTexture::glTextureName()	{ return 0; }
+#ifndef NDEBUG
+std::optional<std::string> OOTexture::name()	{ return std::nullopt; }
+#endif
+std::optional<std::string> OOTexture::descriptionComponents() const	{ return std::nullopt; }
+std::optional<std::string> OOTexture::shortDescriptionComponents() const	{ return std::nullopt; }
+std::string OOTexture::description() const	{ return oo::str::format("<OOTexture %s>", oo::str::pointerDescription(this).c_str()); }
+std::string OOTexture::shortDescription() const	{ return description(); }
+std::string OOTexture::className() const	{ return "OOTexture"; }
+void OOTexture::forceRebind()	{}
+
+
+// A sound is its key: the root's members its vtable names (OOALSound.mm is not linked), and the
+// custom-sound look-up the trumbles call (Universe.h), which keeps each sound as the resource
+// manager's cache does.
+OOSound::OOSound()  {}
+std::optional<std::string> OOSound::name()  { return std::nullopt; }
+ALuint OOSound::soundBuffer()  { return 0; }
+bool OOSound::soundIncomplete()  { return false; }
+void OOSound::rewind()  {}
+std::optional<std::string> OOSound::descriptionComponents() const  { return std::nullopt; }
+
+class TestSound final : public OOSound
+{
+public:
+	explicit TestSound(const std::string &aKey) : key(aKey)  {}
+
+	std::string key;
+};
+
+::OOSound *OOSoundWithCustomSoundKey(const std::string &key);
+
+::OOSound *OOSoundWithCustomSoundKey(const std::string &aKey)
+{
+	static std::vector<oo::Ref<OOSound>> sKept;
+	gLog.push_back("sound " + aKey);
+	sKept.push_back(oo::makeRef<TestSound>(aKey));
+	return sKept.back().get();
+}
+
+
+// The one sound source the trumbles make: the members they call (and the ones its vtable names).
+static BOOL gSoundSourcePlaying = NO;
+static OOSound *gSourceSound = nullptr;
+
+OOSoundSource::OOSoundSource()  {}
+OOSoundSource::~OOSoundSource()  {}
+void OOSoundSource::channel(OOSoundChannel *, OOSound *)  {}
+bool OOSoundSource::isPlaying()					{ return gSoundSourcePlaying; }
+OOSound *OOSoundSource::sound()					{ return gSourceSound; }
+void OOSoundSource::setPosition(Vector v)		{ (void)v; }
+void OOSoundSource::playOOSound(OOSound *s)		{ gSourceSound = s; gLog.push_back("play " + static_cast<TestSound *>(s)->key); }
+
+
+// The cargo pods: C++ ships since bead oo-9ht.144 deleted the Objective-C ship this stood in for,
+// held as their objects, the root's (which holds the C++ part, oo::ToCxx reads it, and which
+// oo::ToObjC answers for it), declared as Entity.h and ShipEntity.h declare them (the test imports
+// neither) with the stand-in's answers. The object is C++ since bead oo-4aq6a.2 (it was rooted on
+// the Objective-C root class OOObject, which Phase 4 deletes).
+class Entity : public oo::RefCounted
+{
+public:
+	virtual ~Entity();
+};
+
+class TestEntityObject final : public oo::RefCounted
+{
+public:
+	const char *className() const  { return "Entity"; }	// its Objective-C class's runtime name
+
+	oo::Ref<Entity> _cxxEntity;
+};
+
+Entity::~Entity() = default;
+
+
+// The market: food is loved (1), furs liked (0.5), anything else refused. The C++ market's one
+// member OOTrumble.mm calls (bead oo-9ht.21 deleted the facade an Objective-C Market stood in for).
+float OOCommodityMarket::trumbleOpinionForGood(const std::string &good)
+{
+	return (good == "food") ? 1.0f : (good == "furs") ? 0.5f : 0.0f;
+}
+
+
+// PLAYER: C++ since bead oo-9ht.177 deleted the Objective-C player this stood in for: the members
+// the code under test calls, declared as the game headers declare them (the test imports none
+// that defines the classes), with the stand-in's answers.
+class ShipEntity : public Entity
+{
+public:
+	GLfloat hullHeatLevel();
+	std::vector<oo::EntityHold> *getCargo();
+	std::optional<std::string> commodityType();
+
+	std::string commodity;	// a cargo pod's
+};
+
+class PlayerEntity : public ShipEntity
+{
+public:
+	GLfloat dialRoll();
+	GLfloat dialPitch();
+	float trumbleAppetiteAccumulator();
+	void setTrumbleAppetiteAccumulator(float value);
+	void addTrumble(OOTrumble *papaTrumble);
+	void removeTrumble(OOTrumble *deadTrumble);
+
+	GLfloat pitch = {}, roll = {}, heat = {};
+	float appetite = {};
+	std::vector<oo::EntityHold> cargo;
+	std::vector<OOTrumble *> added, removed;
+};
+
+GLfloat PlayerEntity::dialRoll()  { return roll; }
+GLfloat PlayerEntity::dialPitch()  { return pitch; }
+GLfloat ShipEntity::hullHeatLevel()  { return static_cast<PlayerEntity *>(this)->heat; }
+std::vector<oo::EntityHold> *ShipEntity::getCargo()  { return &static_cast<PlayerEntity *>(this)->cargo; }
+std::optional<std::string> ShipEntity::commodityType()  { return commodity; }
+float PlayerEntity::trumbleAppetiteAccumulator()  { return appetite; }
+void PlayerEntity::setTrumbleAppetiteAccumulator(float value)  { appetite = value; }
+void PlayerEntity::addTrumble(OOTrumble *t)  { added.push_back(t); }
+void PlayerEntity::removeTrumble(OOTrumble *t)  { removed.push_back(t); }
+
+
+#include "UniverseStandIn.h"
+
+// The universe as the code under test sees it: a stand-in for the C++ class (bead oo-ql9rn deleted
+// the Objective-C facade the test's Objective-C stand-in stood in for), with the header's names and signatures.
+// It answers virtual members, so it has the game's vtable (UniverseStandIn.h) and StandInUniverse overrides them.
+class Universe : public oo::RefCounted
+{
+public:
+	OO_UNIVERSE_STAND_IN_VIRTUAL_MEMBERS
+
+	OOViewID view;
+	oo::Ref<OOCommodityMarket> market;
+
+	::OOCommodityMarket *getCommodityMarket();
+	std::optional<std::string> displayNameForCommodity(const std::string &);
+};
+
+class StandInUniverse : public Universe
+{
+public:
+	OOViewID getViewDirection() override	{ return view; }
+	void addMessage(const std::optional<std::string> &text, OOTimeDelta count) override	{ gLog.push_back("message " + text.value_or("-") + " for " + std::to_string(count)); }
+};
+
+::OOCommodityMarket *Universe::getCommodityMarket()	{ return market.get(); }
+std::optional<std::string> Universe::displayNameForCommodity(const std::string &co_type)	{ return "Display " + co_type; }
+
+Universe *gSharedUniverse = nil;
+
+
+// The savegame's point strings, as OOStringParsing.mm writes and reads them.
+std::string cxx_StringFromPoint(NSPoint point)
+{
+	char buffer[128];
+	std::snprintf(buffer, sizeof buffer, "%f %f", point.x, point.y);
+	return buffer;
+}
+
+NSPoint cxx_PointFromString(const std::string &xyString)
+{
+	NSPoint result = NSZeroPoint;
+	double x, y;
+	if (std::sscanf(xyString.c_str(), "%lf %lf", &x, &y) == 2)  result = NSMakePoint(x, y);
+	return result;
+}
+
+std::string cxx_OOLookUpDescriptionPRIV(const std::string &key)
+{
+	return (key == "trumbles-eat-@") ? "trumbles ate the %@" : "desc:" + key;
+}
+
+// Link stubs: drawTrumble:. The test never draws; a call is a test bug.
+void OOGLPushModelView(void)				{ std::abort(); }
+OOMatrix OOGLPopModelView(void)				{ std::abort(); }
+void OOGLTranslateModelView(Vector)			{ std::abort(); }
+void OOGLMultModelView(OOMatrix)			{ std::abort(); }
+#if OO_CHECK_GL_HEAVY
+// OOGL()/OOGLBEGIN() in the debug flavour (OOOpenGLCheck.h; bead oo-iimku).
+bool cxx_OOCheckOpenGLErrors(const char *, ...)	{ std::abort(); }
+#if OO_GL_STATE_VERIFICATION
+void OOGLNoteCurrentFunction(const char *, unsigned)	{ std::abort(); }
+#endif
+#endif
+
+
+static std::string Colour(const GLfloat *c)
+{
+	char buffer[128];
+	std::snprintf(buffer, sizeof buffer, "(%.4g %.4g %.4g %.4g)", c[0], c[1], c[2], c[3]);
+	return buffer;
+}
+
+
+// The private state, through the class's test friend (the unconverted test read the same ivars
+// through the runtime).
+struct OOTrumbleTestAccess
+{
+	static std::string State(OOTrumble *t)
+	{
+		const OOTrumble &c = *t;
+		char buffer[1024];
+		uint16_t *digram = t->getDigram();
+		std::snprintf(buffer, sizeof buffer,
+			"digram %u %u size %.5g/%.5g growth %.5g hunger %.5g discomfort %.5g rot %.5g vel %.5g pos (%.5g %.5g) mov (%.5g %.5g) anim %d next %d time %.5g dur %.5g eyes %d mouth %d eye %.5g mouth %.5g spawn %d",
+			digram[0], digram[1], t->getSize(), c.max_size, c.growth_rate, t->getHunger(), t->getDiscomfort(),
+			t->getRotation(), c.rotational_velocity, t->getPosition().x, t->getPosition().y, t->getMovement().x, t->getMovement().y,
+			(int)c.animation, (int)c.nextAnimation,
+			c.animationTime, c.animationDuration,
+			(int)c.eyeFrame, (int)c.mouthFrame,
+			c.eye_position.y, c.mouth_position.y, (int)c.readyToSpawn);
+		return std::string(buffer) + " colours " + Colour(c.colorPoint1) + Colour(c.colorPoint2)
+			+ Colour(c.colorEyes) + Colour(c.colorBase);
+	}
+};
+
+
+namespace {
+
+// A cargo pod: a C++ ship under its object (autoreleased, as [[[ShipEntity alloc] init] autorelease]
+// was), carrying the good.
+std::map<Entity *, ::TestEntityObject *> sObjects;	// what TestObjectOf answers (oo::ToObjC until bead oo-4aq6a.2)
+
+::TestEntityObject *NewPod(const char *good)
+{
+	oo::Ref<ShipEntity> ship = oo::makeRef<ShipEntity>();
+	ship->commodity = good;
+	::TestEntityObject *pod = oo::autorelease(oo::makeRef<::TestEntityObject>());
+	pod->_cxxEntity = ship;
+	sObjects[ship.get()] = pod;
+	return pod;
+}
+
+
+PlayerEntity *Player()
+{
+	static PlayerEntity *player = new PlayerEntity;
+	return player;
+}
+
+
+void Reset()
+{
+	if (gSharedUniverse == nil)
+	{
+		gSharedUniverse = new StandInUniverse();
+		gSharedUniverse->market = oo::makeRef<OOCommodityMarket>();
+	}
+	gSharedUniverse->view = VIEW_FORWARD;
+	PlayerEntity *p = Player();
+	p->pitch = p->roll = p->heat = 0.0f;
+	p->appetite = 0.0f;
+	p->cargo.clear();
+	p->added.clear();
+	p->removed.clear();
+	gLog.clear();
+	gSoundSourcePlaying = NO;
+	ranrot_srand(20260930);
+}
+
+
+// Everything a trumble is, in one line.
+std::string State(const oo::Ref<OOTrumble> &t)
+{
+	return OOTrumbleTestAccess::State(t.get());
+}
+
+// The savegame dictionary, one key=value per entry.
+std::string Dictionary(const oo::PList &dict)
+{
+	std::string result;
+	for (const auto &[key, value] : *dict.getIf<oo::PList::Dict>())
+	{
+		char buffer[64];
+		if (value.isString())  result += key + "=" + *value.getIf<std::string>() + " ";
+		else
+		{
+			std::snprintf(buffer, sizeof buffer, "%.6g", value.doubleValue());
+			result += key + "=" + buffer + " ";
+		}
+	}
+	return result;
+}
+
+
+oo::Ref<OOTrumble> Trumble(const char *digram)
+{
+	return oo::makeRef<OOTrumble>(Player(), digram);
+}
+
+
+void Run(const oo::Ref<OOTrumble> &t, int ticks, double dt = 0.1)
+{
+	for (int i = 0; i < ticks; i++)  t->updateTrumble(dt);
+}
+
+
+// The expected values of one test, in the order it checks them; a mismatch prints both sides.
+class Expected
+{
+public:
+	Expected(std::initializer_list<const char *> values) : values_(values.begin(), values.end()) {}
+	~Expected()  { if (next_ != values_.size())  std::fprintf(stderr, "  %zu expected value(s) not checked\n", values_.size() - next_); }
+
+	bool operator()(const std::string &actual)
+	{
+		const std::string expected = (next_ < values_.size()) ? values_[next_] : "(no more expected values)";
+		next_++;
+		if (actual == expected)  return true;
+		std::fprintf(stderr, "  actual:   %s\n  expected: %s\n", actual.c_str(), expected.c_str());
+		return false;
+	}
+
+private:
+	std::vector<std::string>	values_;
+	size_t						next_ = 0;
+};
+
+
+std::string Log()
+{
+	std::string result;
+	for (const std::string &line : gLog)  result += line + "; ";
+	return result;
+}
+
+}	// namespace
+
+
+OO_TEST(setUp)
+{
+	Expected expect{
+		"digram 97 49 size 0.71506/1.2016 growth 0.0040491 hunger 0 discomfort 0 rot -7.0848 vel -0.60638 pos (-182 -98) mov (-6.8647 9.7904) anim 1 next 1 time 0 dur 4.0683 eyes 1 mouth 4 eye -0.012613 mouth 0.0072381 spawn 0 colours (1 0 0 1)(1 0 0 1)(1 0.2 0.2 1)(1 0 0 1)",
+		"texture trumblekit.png in Textures options 20 anisotropy 0.000000 lodBias -0.250000; sound [trumble-idle]; sound [trumble-squeal]; ",
+		"digram 90 113 size 0.91782/1.1381 growth 0.0019354 hunger 0 discomfort 0 rot -7.2588 vel -2.2403 pos (14 -126) mov (6.0117 16.861) anim 1 next 1 time 0 dur 2.0538 eyes 1 mouth 4 eye -0.045637 mouth -0.0014003 spawn 0 colours (0 1 0 1)(1 0 0 1)(0.6 0.6 0.2 1)(0.5 0.5 0 1)",
+		"texture trumblekit.png in Textures options 20 anisotropy 0.000000 lodBias -0.250000; ",
+		"digram 64 71 size 0.89981/0.9 growth 2.1023e-06 hunger 0 discomfort 0 rot -11.982 vel -0.29419 pos (-42 14) mov (3.5513 -14.518) anim 1 next 1 time 0 dur 1.6434 eyes 1 mouth 4 eye -0.031936 mouth -0.0037299 spawn 0 colours (0.6 0.5 0.5 1)(1 1 0 1)(0.68 0.6 0.6 1)(0.6 0.5 0.5 1)",
+		"texture trumblekit.png in Textures options 20 anisotropy 0.000000 lodBias -0.250000; ",
+		"digram 56 0 size 0.74725/1.3444 growth 0.0044419 hunger 0 discomfort 0 rot 5.7328 vel 3.225 pos (-70 126) mov (-17.547 -15.743) anim 1 next 1 time 0 dur 4.0409 eyes 1 mouth 4 eye -0.02327 mouth -0.0080958 spawn 0 colours (1 1 0 1)(0.5 0.6 0.5 1)(0.8 0.84 0.4 1)(0.75 0.8 0.25 1)",
+		"texture trumblekit.png in Textures options 20 anisotropy 0.000000 lodBias -0.250000; ",
+		"digram 0 0 size 0.78384/0.9 growth 0.0012907 hunger 0 discomfort 0 rot 6.414 vel 3.1342 pos (154 -182) mov (19.823 16.954) anim 1 next 1 time 0 dur 4.3708 eyes 1 mouth 4 eye 0.018987 mouth 0.0042976 spawn 0 colours (0.9 1 0.9 1)(1 1 0 1)(0.92 1 0.92 1)(0.9 1 0.9 1)",
+		"texture trumblekit.png in Textures options 20 anisotropy 0.000000 lodBias -0.250000; ",
+		"digram 0 0 size 0/0 growth 0 hunger 0 discomfort 0 rot 0 vel 0 pos (0 0) mov (0 0) anim 0 next 0 time 0 dur 0 eyes 0 mouth 0 eye 0 mouth 0 spawn 0 colours (1 1 1 1)(1 1 1 1)(0 0 0 0)(0 0 0 0)",
+	};
+
+	{
+		oo::AutoreleaseScope pool;
+		Reset();
+		oo::Ref<OOTrumble> t = oo::makeRef<OOTrumble>(Player());
+		OO_CHECK(expect(State(t)));
+		OO_CHECK(expect(Log()));
+		for (const char *digram : { "Zq", "@G", "8", "" })
+		{
+			Reset();
+			OO_CHECK(expect(State(oo::makeRef<OOTrumble>(Player(), digram))));
+			OO_CHECK(expect(Log()));
+		}
+		OO_CHECK(expect(State(oo::makeRef<OOTrumble>())));
+	}
+}
+
+
+OO_TEST(spawningAndActions)
+{
+	Expected expect{
+		"digram 122 81 size 0.5/1.3603 growth 0.0063244 hunger 0.25 discomfort 0 rot -7.2588 vel -0.16373 pos (14 -126) mov (6.0117 24.861) anim 1 next 8 time 0 dur 19.806 eyes 1 mouth 4 eye -0.038568 mouth 0.0081001 spawn 0 colours (0 1 0 1)(1 0 0 1)(0.6 0.6 0.2 1)(0.5 0.5 0 1)",
+		"digram 97 49 size 0.5/1.2016 growth 0.0058388 hunger 0.25 discomfort 0 rot -1.6294 vel -0.69031 pos (-210 -182) mov (-15.155 14.051) anim 1 next 8 time 0 dur 18.947 eyes 1 mouth 4 eye -0.012613 mouth 0.0072381 spawn 0 colours (1 0 0 1)(1 0 0 1)(1 0.2 0.2 1)(1 0 0 1)",
+		"next 1 time 0 dur 3.6965 eyes 1 mouth 4 eye -0.012613 mouth 0.0072381 spawn 0 colours (1 0 0 1)(1 0 0 1)(1 0.2 0.2 1)(1 0 0 1) / next 2 time 0 dur 0.57935 eyes 1 mouth 4 eye -0.012613 mouth 0.0072381 spawn 0 colours (1 0 0 1)(1 0 0 1)(1 0.2 0.2 1)(1 0 0 1) / next 3 time 0 dur 4.1346 eyes 1 mouth 4 eye -0.012613 mouth 0.0072381 spawn 0 colours (1 0 0 1)(1 0 0 1)(1 0.2 0.2 1)(1 0 0 1) / next 4 time 0 dur 1.727 eyes 1 mouth 4 eye -0.012613 mouth 0.0072381 spawn 0 colours (1 0 0 1)(1 0 0 1)(1 0.2 0.2 1)(1 0 0 1) / next 5 time 0 dur 3.4901 eyes 1 mouth 4 eye -0.012613 mouth 0.0072381 spawn 0 colours (1 0 0 1)(1 0 0 1)(1 0.2 0.2 1)(1 0 0 1) / next 6 time 0 dur 4.0042 eyes 1 mouth 4 eye -0.012613 mouth 0.0072381 spawn 0 colours (1 0 0 1)(1 0 0 1)(1 0.2 0.2 1)(1 0 0 1) / next 9 time 0 dur 1.7563 eyes 1 mouth 4 eye -0.012613 mouth 0.0072381 spawn 0 colours (1 0 0 1)(1 0 0 1)(1 0.2 0.2 1)(1 0 0 1) / next 8 time 0 dur 19.656 eyes 1 mouth 4 eye -0.012613 mouth 0.0072381 spawn 0 colours (1 0 0 1)(1 0 0 1)(1 0.2 0.2 1)(1 0 0 1) / next 7 time 0 dur 10.359 eyes 1 mouth 4 eye -0.012613 mouth 0.0072381 spawn 0 colours (1 0 0 1)(1 0 0 1)(1 0.2 0.2 1)(1 0 0 1) / digram 97 49 size 0.71506/1.2016 growth 0.0040491 hunger 0 discomfort 0 rot -7.0848 vel 3.868 pos (-182 -98) mov (4.2165 4.8422) anim 1 next 7 time 0 dur 10.359 eyes 1 mouth 4 eye -0.012613 mouth 0.0072381 spawn 0 colours (1 0 0 1)(1 0 0 1)(1 0.2 0.2 1)(1 0 0 1)",
+	};
+
+	{
+		oo::AutoreleaseScope pool;
+		Reset();
+		oo::Ref<OOTrumble> parent = Trumble("Zq");
+		oo::Ref<OOTrumble> child = Trumble("a1");
+		child->spawnFrom(parent.get());
+		OO_CHECK(expect(State(child)));
+		oo::Ref<OOTrumble> orphan = Trumble("a1");
+		orphan->spawnFrom(nullptr);
+		OO_CHECK(expect(State(orphan)));
+
+		Reset();
+		oo::Ref<OOTrumble> t = Trumble("a1");
+		std::string actions;
+		t->actionIdle();		actions += State(t).substr(State(t).find("next")) + " / ";
+		t->actionBlink();	actions += State(t).substr(State(t).find("next")) + " / ";
+		t->actionSnarl();	actions += State(t).substr(State(t).find("next")) + " / ";
+		t->actionProot();	actions += State(t).substr(State(t).find("next")) + " / ";
+		t->actionShudder();	actions += State(t).substr(State(t).find("next")) + " / ";
+		t->actionStoned();	actions += State(t).substr(State(t).find("next")) + " / ";
+		t->actionPop();		actions += State(t).substr(State(t).find("next")) + " / ";
+		t->actionSleep();	actions += State(t).substr(State(t).find("next")) + " / ";
+		t->actionSpawn();	actions += State(t).substr(State(t).find("next")) + " / ";
+		t->randomizeMotionX();	t->randomizeMotionY();	t->calcGrowthRate();
+		actions += State(t);
+		OO_CHECK(expect(actions));
+	}
+}
+
+
+OO_TEST(living)
+{
+	Expected expect{
+		"digram 90 113 size 0.9273/1.1381 growth 0.0018522 hunger 0.059472 discomfort 0.01014 rot -6.7916 vel 4.5333 pos (44.058 -91.697) mov (6.0117 16.861) anim 1 next 1 time 2.9 dur 3.3873 eyes 1 mouth 4 eye -0.045637 mouth -0.0014003 spawn 0 colours (0 1 0 1)(1 0 0 1)(0.6 0.6 0.2 1)(0.5 0.5 0 1)",
+		"digram 90 113 size 0.98979/1.1381 growth 0.0013031 hunger 0.52196 discomfort 0.21945 rot -5.1535 vel -1.7835 pos (284.29 77.07) mov (6.0117 -16.158) anim 1 next 1 time 3.2 dur 3.5719 eyes 1 mouth 4 eye -0.045637 mouth -0.0014003 spawn 0 colours (0 1 0 1)(1 0 0 1)(0.6 0.6 0.2 1)(0.5 0.5 0 1)",
+		"texture trumblekit.png in Textures options 20 anisotropy 0.000000 lodBias -0.250000; play [trumble-idle]; ",
+		"digram 90 113 size 0.9273/1.1381 growth 0.0018522 hunger 0.059472 discomfort 0.01014 rot -12.21 vel -2.2403 pos (44.058 8.3033) mov (6.0117 16.861) anim 1 next 1 time 2.9 dur 3.3873 eyes 1 mouth 4 eye -0.045637 mouth -0.0014003 spawn 0 colours (0 1 0 1)(1 0 0 1)(0.6 0.6 0.2 1)(0.5 0.5 0 1)",
+		"digram 90 113 size 0.98979/1.1381 growth 0.0013031 hunger 0.52196 discomfort 0.21945 rot -6.2917 vel -1.7835 pos (-266.55 225.77) mov (-18.801 -16.158) anim 1 next 1 time 0.6 dur 1.9207 eyes 1 mouth 4 eye -0.045637 mouth -0.0014003 spawn 0 colours (0 1 0 1)(1 0 0 1)(0.6 0.6 0.2 1)(0.5 0.5 0 1)",
+		"texture trumblekit.png in Textures options 20 anisotropy 0.000000 lodBias -0.250000; play [trumble-idle]; ",
+		"digram 90 113 size 0.9273/1.1381 growth 0.0018522 hunger 0.059472 discomfort 0.01014 rot -5.9602 vel -2.2403 pos (44.058 -66.697) mov (6.0117 16.861) anim 1 next 1 time 2.9 dur 3.3873 eyes 1 mouth 4 eye -0.045637 mouth -0.0014003 spawn 0 colours (0 1 0 1)(1 0 0 1)(0.6 0.6 0.2 1)(0.5 0.5 0 1)",
+		"digram 90 113 size 0.98979/1.1381 growth 0.0013031 hunger 0.52196 discomfort 0.21945 rot -3.867 vel -3.7748 pos (284.52 -244.88) mov (6.0117 -18.801) anim 1 next 1 time 0.7 dur 2.8609 eyes 1 mouth 4 eye -0.045637 mouth -0.0014003 spawn 0 colours (0 1 0 1)(1 0 0 1)(0.6 0.6 0.2 1)(0.5 0.5 0 1)",
+		"texture trumblekit.png in Textures options 20 anisotropy 0.000000 lodBias -0.250000; ",
+		"digram 90 113 size 0.9273/1.1381 growth 0.0018522 hunger 0.059472 discomfort 0.01014 rot -11.914 vel 3.6022 pos (44.058 -92.476) mov (6.0117 -9.2702) anim 2 next 2 time 0.1 dur 0.5701 eyes 2 mouth 4 eye -0.045637 mouth -0.0014003 spawn 0 colours (0 1 0 1)(1 0 0 1)(0.6 0.6 0.2 1)(0.5 0.5 0 1)",
+		"digram 90 113 size 0.98979/1.1381 growth 0.0013031 hunger 0.52196 discomfort 0.21945 rot -9.9373 vel -2.247 pos (152.17 311.65) mov (-3.7924 -5.4146) anim 1 next 1 time 1.1 dur 2.9626 eyes 1 mouth 4 eye -0.045637 mouth -0.0014003 spawn 0 colours (0 1 0 1)(1 0 0 1)(0.6 0.6 0.2 1)(0.5 0.5 0 1)",
+		"texture trumblekit.png in Textures options 20 anisotropy 0.000000 lodBias -0.250000; ",
+	};
+
+	{
+		oo::AutoreleaseScope pool;
+		for (OOViewID view : { VIEW_FORWARD, VIEW_AFT, VIEW_STARBOARD, VIEW_PORT })
+		{
+			Reset();
+			gSharedUniverse->view = view;
+			PlayerEntity *p = Player();
+			p->pitch = 0.5f;	p->roll = -0.25f;	p->heat = 0.5f;
+			oo::Ref<OOTrumble> t = Trumble("Zq");
+			Run(t, 50);
+			OO_CHECK(expect(State(t)));
+			Run(t, 400);
+			OO_CHECK(expect(State(t)));
+			OO_CHECK(expect(Log()));
+		}
+	}
+}
+
+
+OO_TEST(savegame)
+{
+	Expected expect{
+		"digram=Zq discomfort=0.00108162 growth_rate=0.00188507 hunger=0.0357329 movement=6.011658 16.860657 position=32.034973 -75.418030 rotation=-13.9796 rotational_velocity=-2.2403 size=0.923557 ",
+		"digram 90 113 size 0.92356/1.1381 growth 0.0018851 hunger 0.035733 discomfort 0.0010816 rot -13.98 vel -2.2403 pos (32.035 -75.418) mov (6.0117 16.861) anim 1 next 1 time 0 dur 2.0538 eyes 1 mouth 4 eye -0.045637 mouth -0.0014003 spawn 0 colours (0 1 0 1)(1 0 0 1)(0.6 0.6 0.2 1)(0.5 0.5 0 1)",
+		"digram=Zq discomfort=0.00108162 growth_rate=0.00188507 hunger=0.0357329 movement=6.011658 16.860657 position=32.034973 -75.418030 rotation=-13.9796 rotational_velocity=-2.2403 size=0.923557 ",
+	};
+
+	{
+		oo::AutoreleaseScope pool;
+		Reset();
+		oo::Ref<OOTrumble> t = Trumble("Zq");
+		Run(t, 30);
+		oo::PList dict = t->dictionary();
+		OO_CHECK(expect(Dictionary(dict)));
+		oo::Ref<OOTrumble> copy = Trumble("a1");
+		copy->setFromDictionary(dict);
+		OO_CHECK(expect(State(copy)));
+		OO_CHECK(expect(Dictionary(copy->dictionary())));
+	}
+}
+
+
+OO_TEST(feedingPopAndSpawn)
+{
+	Expected expect{
+		"digram 90 113 size 1.1002/1.1381 growth 0 hunger 0 discomfort 0 rot -7.4828 vel -2.2403 pos (14.601 -124.31) mov (6.0117 16.861) anim 1 next 1 time 0.1 dur 2.0538 eyes 1 mouth 4 eye -0.045637 mouth -0.0014003 spawn 1 colours (0 1 0 1)(1 0 0 1)(0.6 0.6 0.2 1)(0.5 0.5 0 1)",
+		"texture trumblekit.png in Textures options 20 anisotropy 0.000000 lodBias -0.250000; texture trumblekit.png in Textures options 20 anisotropy 0.000000 lodBias -0.250000; message trumbles ate the Display food for 4.500000; ",
+		"digram 90 113 size 1.1039/1.1381 growth 0.00030021 hunger 0.12273 discomfort 0.013521 rot -0.0010076 vel 0.3978 pos (31.366 -73.732) mov (14.262 0.0004976) anim 4 next 4 time 0 dur 1.9864 eyes 1 mouth 4 eye 0 mouth 0 spawn 0 colours (0 1 0 1)(1 0 0 1)(0.6 0.6 0.2 1)(0.5 0.5 0 1)",
+		"digram 64 71 size 0.27375/0.9 growth 0.0069504 hunger 0.050959 discomfort 1 rot -1198.5 vel -1352.1 pos (-27.795 -253.47) mov (3.5513 -222.4) anim 9 next 9 time 2.3 dur 2.2589 eyes 2 mouth 2 eye -0.031936 mouth -0.0037299 spawn 0 colours (0.6 0.04431 0.04431 0.02607)(1 0.08863 0 0.02607)(0.68 0.6 0.6 1)(0.6 0.5 0.5 0.02607)",
+		"texture trumblekit.png in Textures options 20 anisotropy 0.000000 lodBias -0.250000; texture trumblekit.png in Textures options 20 anisotropy 0.000000 lodBias -0.250000; play [trumble-squeal]; ",
+	};
+
+	{
+		oo::AutoreleaseScope pool;
+		// Hungry, full grown and content: eats the tastiest pod; past 10 the cargo is gone, and it
+		// is ready to spawn.
+		Reset();
+		PlayerEntity *p = Player();
+		for (const char *good : { "gems", "furs", "food" })
+		{
+			p->cargo.push_back(oo::EntityHold(NewPod(good)->_cxxEntity.get()));
+		}
+		Entity *food = p->cargo[2].get();
+		p->appetite = 9.5f;
+		oo::Ref<OOTrumble> t = Trumble("Zq");
+		oo::PList::Dict state = *t->dictionary().getIf<oo::PList::Dict>();
+		state["hunger"] = oo::PList(0.9);
+		state["size"] = oo::PList(1.1);
+		state["discomfort"] = oo::PList(0.1);
+		t->setFromDictionary(oo::PList(state));
+		Run(t, 1);
+		OO_CHECK(expect(State(t)));
+		OO_CHECK(expect(Log()));
+		OO_CHECK(p->cargo.size() == 2 && p->cargo[0].get() != food && p->cargo[1].get() != food);
+		OO_CHECK(std::fabs(p->appetite - 0.401194f) < 1e-5f);
+		int ticks = 0;
+		while (p->added.empty() && ticks < 5000)  { Run(t, 1); ticks++; }
+		OO_CHECK(ticks == 119);
+		OO_CHECK(p->added.size() == 1 && p->added[0] == t.get());
+		OO_CHECK(expect(State(t)));
+
+		// Too uncomfortable: pops, and asks to be removed.
+		Reset();
+		t = Trumble("@G");
+		state = *t->dictionary().getIf<oo::PList::Dict>();
+		state["discomfort"] = oo::PList(1.0);
+		t->setFromDictionary(oo::PList(state));
+		ticks = 0;
+		while (p->removed.empty() && ticks < 5000)  { Run(t, 1); ticks++; }
+		OO_CHECK(ticks == 40);
+		OO_CHECK(p->removed.size() == 1 && p->removed[0] == t.get());
+		OO_CHECK(expect(State(t)));
+		OO_CHECK(expect(Log()));
+	}
+}
+
+
+OO_TEST(cxxClass)
+{
+	// The C++ API: a trumble and its growth.
+	Reset();
+	oo::Ref<OOTrumble> t = oo::makeRef<OOTrumble>(Player(), "Zq");
+	OO_CHECK(t->getDigram()[0] == 'Z' && t->getDigram()[1] == 'q');
+	OO_CHECK(std::fabs(t->getSize() - 0.91782f) < 1e-5f && t->getHunger() == 0.0f && t->getDiscomfort() == 0.0f);
+	OO_CHECK(t->getPosition().x == 14 && t->getPosition().y == -126);
+	OO_CHECK(std::fabs(t->getRotation() - -7.2588f) < 1e-4f);
+	OO_CHECK(std::fabs(t->getMovement().y - 16.861f) < 1e-3f);
+	Reset();
+	OO_CHECK(State(Trumble("Zq")) == State(t));
+
+	oo::Ref<OOTrumble> child = oo::makeRef<OOTrumble>(Player());
+	child->spawnFrom(t.get());
+	OO_CHECK(child->getSize() == 0.5f && child->getHunger() == 0.25f);
+	child->spawnFrom(nullptr);
+	OO_CHECK(child->getSize() == 0.5f);
+
+	oo::Ref<OOTrumble> blank = oo::makeRef<OOTrumble>();
+	OO_CHECK(blank->getSize() == 0.0f && blank->getDigram()[0] == 0);
+	OO_CHECK(blank->dictionary().count() == 9);
+}
+
+
+// The pods' objects (Entity+ObjCBridge.mm's oo::ToObjC, which the test does not link, until bead
+// oo-4aq6a.2 made the object C++).
+::TestEntityObject *TestObjectOf(Entity *entity);
+#define OO_ENTITY_HELPERS_STAND_IN_NO_DESCRIPTIONS 1	// the test links no OODescription.mm
+#define OO_ENTITY_HELPERS_STAND_IN_CXX
+#include "EntityHelpersStandIn.h"	// EntityHelpers.mm's, on the test's objects (bead oo-dpyk8)
+::TestEntityObject *TestObjectOf(Entity *entity)
+{
+	auto found = sObjects.find(entity);
+	return found != sObjects.end() ? found->second : nullptr;
+}
+
+
+OO_TEST_MAIN()

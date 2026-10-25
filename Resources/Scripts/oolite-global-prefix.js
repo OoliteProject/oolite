@@ -207,3 +207,190 @@ if (global.timeAccelerationFactor === undefined)
 }
 
 })(special);
+
+
+/*	Mozilla-compatibility polyfills for expansions written against SpiderMonkey (Phase 1 bead
+	oo-1gc.6, ADR-0023): toSource()/quote()/uneval(), exactly as tools/oxp-compat-shim ships them
+	(bead oo-864), now built in so an expansion whose author is unreachable keeps working without
+	the user installing the shim. Each install is guarded, so under SpiderMonkey this is a no-op.
+*/
+(function ()
+{
+	// quoteString(): produce a double-quoted, backslash-escaped string
+	// literal, the piece both toSource() and quote() need.
+	function quoteString(s)
+	{
+		var out = "\"";
+		for (var i = 0; i < s.length; i++)
+		{
+			var c = s.charAt(i);
+			var code = s.charCodeAt(i);
+			if (c === "\"" || c === "\\")
+			{
+				out += "\\" + c;
+			}
+			else if (c === "\n")
+			{
+				out += "\\n";
+			}
+			else if (c === "\r")
+			{
+				out += "\\r";
+			}
+			else if (c === "\t")
+			{
+				out += "\\t";
+			}
+			else if (code < 0x20 || code === 0x7f)
+			{
+				var hex = code.toString(16);
+				while (hex.length < 2)  hex = "0" + hex;
+				out += "\\x" + hex;
+			}
+			else
+			{
+				out += c;
+			}
+		}
+		return out + "\"";
+	}
+
+
+	// toSourceValue(): best-effort Object.prototype.toSource()/
+	// Array.prototype.toSource() replacement. Recurses through plain
+	// objects and arrays; anything else falls back to String(value) inside
+	// an eval-safe wrapper where practical, matching the common debug-log
+	// use case (logging a data object), not full source reflection.
+	function toSourceValue(value, seen)
+	{
+		if (value === null)  return "null";
+		if (value === undefined)  return "undefined";
+
+		var t = typeof value;
+		if (t === "string")  return quoteString(value);
+		if (t === "number" || t === "boolean")  return String(value);
+		if (t === "function")
+		{
+			return value.name ? "(function " + value.name + "() {...})" : "(function () {...})";
+		}
+
+		if (t === "object")
+		{
+			if (seen.indexOf(value) !== -1)  return "<circular>";
+			seen = seen.concat([value]);
+
+			if (Array.isArray(value))
+			{
+				var items = [];
+				for (var i = 0; i < value.length; i++)
+				{
+					items.push(toSourceValue(value[i], seen));
+				}
+				return "[" + items.join(", ") + "]";
+			}
+
+			var parts = [];
+			for (var key in value)
+			{
+				if (!Object.prototype.hasOwnProperty.call(value, key))  continue;
+				parts.push(quoteString(key) + ":" + toSourceValue(value[key], seen));
+			}
+			return "({" + parts.join(", ") + "})";
+		}
+
+		// Unrecognised primitive type (e.g. symbol): fall back to String().
+		return String(value);
+	}
+
+
+	// Object.prototype.toSource(): SpiderMonkey removed in Firefox 74.
+	if (typeof Object.prototype.toSource !== "function")
+	{
+		Object.defineProperty(Object.prototype, "toSource", {
+			value: function toSource()
+			{
+				return toSourceValue(this, []);
+			},
+			writable: true,
+			configurable: true,
+			enumerable: false
+		});
+	}
+
+	// Array.prototype.toSource(): same removal; own definition so it wins
+	// over the generic Object.prototype one and formats as "[...]" per the
+	// historical SpiderMonkey behaviour rather than "({0:..., 1:...})".
+	// Own-property test: once Object.prototype.toSource exists, Array.prototype inherits it.
+	if (!Object.prototype.hasOwnProperty.call(Array.prototype, "toSource"))
+	{
+		Object.defineProperty(Array.prototype, "toSource", {
+			value: function toSource()
+			{
+				return toSourceValue(this, []);
+			},
+			writable: true,
+			configurable: true,
+			enumerable: false
+		});
+	}
+
+	// String.prototype.quote(): SpiderMonkey-only, removed in Firefox 37.
+	if (typeof String.prototype.quote !== "function")
+	{
+		Object.defineProperty(String.prototype, "quote", {
+			value: function quote()
+			{
+				return quoteString(this.toString());
+			},
+			writable: true,
+			configurable: true,
+			enumerable: false
+		});
+	}
+
+	// uneval(): SpiderMonkey-only global, removed in Firefox 74. Polyfilled
+	// alongside toSource()/quote() since it is the same source-reflection
+	// family and the same abandoned expansions that call .toSource() are
+	// the ones most likely to also call the bare global.
+	if (typeof global.uneval !== "function")
+	{
+		// Non-enumerable, like SpiderMonkey's own global functions.
+		Object.defineProperty(global, "uneval", {
+			value: function uneval(value)
+			{
+				return toSourceValue(value, []);
+			},
+			writable: true,
+			configurable: true,
+			enumerable: false
+		});
+	}
+}).call(this);
+
+/*	SpiderMonkey's Array and String "generics" (Array.forEach(array, fn), String.replace(string,
+	...)): Mozilla-only statics that call the prototype method with the first argument as `this`.
+	Installed only where the engine lacks them, so they are a no-op under SpiderMonkey 1.8.5
+	(Phase 1 bead oo-1gc.6, ADR-0023).
+*/
+(function ()
+{
+	function installGenerics(ctor, names)
+	{
+		names.forEach(function (name)
+		{
+			var method = ctor.prototype[name];
+			if (typeof method !== "function" || typeof ctor[name] === "function")  return;
+			Object.defineProperty(ctor, name, {
+				value: function (self) { return method.apply(self, Array.prototype.slice.call(arguments, 1)); },
+				writable: true,
+				configurable: true,
+				enumerable: false
+			});
+		});
+	}
+	installGenerics(Array, ["concat", "every", "filter", "forEach", "indexOf", "join", "lastIndexOf", "map", "pop", "push",
+	                        "reduce", "reduceRight", "reverse", "shift", "slice", "some", "sort", "splice", "unshift"]);
+	installGenerics(String, ["charAt", "charCodeAt", "concat", "indexOf", "lastIndexOf", "localeCompare", "match", "replace",
+	                         "search", "slice", "split", "substr", "substring", "toLocaleLowerCase", "toLocaleUpperCase",
+	                         "toLowerCase", "toUpperCase", "trim", "trimLeft", "trimRight"]);
+}).call(this);

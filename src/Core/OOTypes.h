@@ -25,8 +25,19 @@ MA 02110-1301, USA.
 
 */
 
+#ifndef INCLUDED_OOTYPES_h
+#define INCLUDED_OOTYPES_h
+
 #include "OOFunctionAttributes.h"
+#if defined(__cplusplus) && !defined(OO_PLAIN_CPP_UNIT)	// was __OBJC__: a game unit (an Objective-C++ unit until bead oo-dbz), not a plain C++ one
 #include "OOCocoa.h"
+#else
+/*	A plain C or C++ translation unit (bead oo-9ht.64: OOConstToJSString) needs only the C types
+	OOCocoa.h's floor gives (NSInteger, NSUInteger). OOCocoa.h itself declares @interfaces.
+*/
+#include <limits.h>
+#include "oofnd/objc/OOFoundationTypes.h"
+#endif
 
 
 typedef enum
@@ -103,7 +114,6 @@ enum
 };
 typedef NSInteger OOCommodityType;
 */
-typedef NSString* OOCommodityType;
 
 typedef enum
 {
@@ -123,7 +133,8 @@ typedef enum
 {
 	UNITS_TONS,
 	UNITS_KILOGRAMS,
-	UNITS_GRAMS
+	UNITS_GRAMS,
+	UNITS_UNKNOWN		// a quantity_unit that is none of the above (ADR-0036); displays as "??"
 } OOMassUnit;
 
 
@@ -250,3 +261,6 @@ typedef enum
 
 	DETAIL_LEVEL_MAXIMUM		= 3
 } OOGraphicsDetail;
+
+
+#endif	// INCLUDED_OOTYPES_h

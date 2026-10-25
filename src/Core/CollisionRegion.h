@@ -25,63 +25,86 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOCocoa.h"
-#import "OOMaths.h"
+#ifndef COLLISIONREGION_H
+#define COLLISIONREGION_H
+
+#include "OOCocoa.h"
+#include "oofnd/objc/OOObject.h"
+#include "OOMaths.h"
+
+#include "oofnd/StdLib.hpp"
+#include "oofnd/Ref.hpp"
 
 
 #define	COLLISION_REGION_BORDER_RADIUS	32000.0f
 #define	COLLISION_MAX_ENTITIES			128
 #define MINIMUM_SHADOWING_ENTITY_RADIUS 75.0
 
-@class Entity, OOSunEntity;
+class Entity;
+class Entity;	// the regions list the entities' C++ parts (bead oo-9ht.39.4)
+class OOSunEntity;	// C++ since bead oo-9ht.111
 
 
-@interface CollisionRegion: NSObject
+class CollisionRegion : public oo::RefCounted
 {
-@private
-	BOOL				isUniverse;			// if YES location is origin and radius is 0.0f
+public:
+	struct AsUniverse {};
+	explicit CollisionRegion(AsUniverse);	// -initAsUniverse
+	CollisionRegion(HPVector locn, GLfloat rad, CollisionRegion *otherRegion);	// -initAtLocation:withRadius:withinRegion:
+	~CollisionRegion() override;
+
+	void clearSubregions();
+	void addSubregionAtPosition(HPVector pos, GLfloat rad);
+
+	// collision checking
+	void clearEntityList();
+	void addEntity(Entity *ent);
+	bool checkEntity(Entity *ent);
+
+	void findCollisions();
+	void findShadowedEntities();
+
+	// Description for FPS HUD
+	std::string collisionDescription();	// flipped with its family (bead oo-3rb.277)
+
+	std::optional<std::string> debugOut();
+
+	// What "%@" prints between the braces of <CollisionRegion 0x...>{...} (OODescription.h).
+	std::optional<std::string> descriptionComponents() const;
+
+private:
+	CollisionRegion();	// the designated -init, less [super init]
+
+	// update routines to check if a position is within the radius or within its borders
+	static bool positionIsWithinRegion(HPVector position, CollisionRegion *region);
+	static bool sphereIsWithinRegion(HPVector position, GLfloat rad, CollisionRegion *region);
+	static bool positionIsWithinBorders(HPVector position, CollisionRegion *region);
+
+	bool				isUniverse = {};			// if YES location is origin and radius is 0.0f
 	
-	int					crid;				// identifier
-	HPVector				location;			// center of the region
-	GLfloat				radius;				// inner radius of the region
-	GLfloat				border_radius;		// additiønal, border radius of the region (typically 32km or some value > the scanner range)
+	int					crid = {};				// identifier
+	HPVector				location = {};			// center of the region
+	GLfloat				radius = {};				// inner radius of the region
+	GLfloat				border_radius = {};		// additiønal, border radius of the region (typically 32km or some value > the scanner range)
 
-	unsigned			checks_this_tick;
-	unsigned			checks_within_range;
+	unsigned			checks_this_tick = {};
+	unsigned			checks_within_range = {};
 
-	NSMutableArray		*subregions;
+	std::vector<oo::Ref<CollisionRegion>>	subregions;	// Foundation sweep (proposed ADR-0043, bead oo-a87x)
 	
-	BOOL				isPlayerInRegion;
+	bool				isPlayerInRegion = {};
 	
-	Entity				**entity_array;	// entities within the region
-	unsigned			n_entities;		// number of entities
-	unsigned			max_entities;	// so storage can be expanded
+	Entity			**entity_array = {};	// entities within the region: their C++ parts, borrowed (bead oo-9ht.39.4)
+	unsigned			n_entities = {};		// number of entities
+	unsigned			max_entities = {};	// so storage can be expanded
 	
-	CollisionRegion		*parentRegion;
-}
-
-- (id) initAsUniverse;
-- (id) initAtLocation:(HPVector) locn withRadius:(GLfloat) rad withinRegion:(CollisionRegion*) otherRegion;
-
-- (void) clearSubregions;
-- (void) addSubregionAtPosition:(HPVector) pos withRadius:(GLfloat) rad;
-
-// collision checking
-- (void) clearEntityList;
-- (void) addEntity:(Entity *)ent;
-- (BOOL) checkEntity:(Entity *)ent;
-
-- (void) findCollisions;
-- (void) findShadowedEntities;
-
-// Description for FPS HUD
-- (NSString *) collisionDescription;
-
-- (NSString *) debugOut;
-
-@end
+	CollisionRegion		*parentRegion = {};
+};
 
 /* Given a region centred at e1pos with a radius of e1rad, the depth
  * of shadowing cast by e2 from the_sun is recorded in outValue, with
  * >1 = no shadow, <1 = shadow */
 BOOL shadowAtPointOcclusionToValue(HPVector e1pos, GLfloat e1rad, Entity *e2, OOSunEntity *the_sun, float *outValue);
+
+
+#endif	// COLLISIONREGION_H

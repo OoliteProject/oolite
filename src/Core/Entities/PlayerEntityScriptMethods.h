@@ -25,57 +25,17 @@ MA 02110-1301, USA.
 
 */
 
-#import "PlayerEntity.h"
+#pragma once
+
+#include "PlayerEntity.h"
 
 
-@interface PlayerEntity (ScriptMethods)
-
-- (unsigned) score;
-- (void) setScore:(unsigned)value;
-
-- (double) creditBalance;
-- (void) setCreditBalance:(double)value;
-
-- (NSString *) dockedStationName;
-- (NSString *) dockedStationDisplayName;
-- (BOOL) dockedAtMainStation;
-
-- (void) awardCommodityType:(NSString *)type amount:(OOCargoQuantity)amount;
-
-- (void) resetScannerZoom;
-
-- (OOGalaxyID) currentGalaxyID;
-- (OOSystemID) currentSystemID;
-
-- (void) setMissionChoice:(NSString *)newChoice;
-- (void) setMissionChoice:(NSString *)newChoice withEvent:(BOOL) withEvent;
-- (void) setMissionChoice:(NSString *)newChoice keyPress:(NSString *)keyPress;
-- (void) setMissionChoice:(NSString *)newChoice keyPress:(NSString *)keyPress withEvent:(BOOL) withEvent;
-- (void) allowMissionInterrupt;
-
-- (OOTimeDelta) scriptTimer;
-
-- (unsigned) systemPseudoRandom100;
-- (unsigned) systemPseudoRandom256;
-- (double) systemPseudoRandomFloat;
-
-- (NSDictionary *) passengerContractMarker:(OOSystemID)system;
-- (NSDictionary *) parcelContractMarker:(OOSystemID)system;
-- (NSDictionary *) cargoContractMarker:(OOSystemID)system;
-- (NSDictionary *) defaultMarker:(OOSystemID)system;
-- (NSDictionary *) validatedMarker:(NSDictionary *)marker;
-
-- (NSString *) keyBindingDescription2:(NSString *)binding;
-- (NSString *) getKeyBindingDescription:(NSArray *)keyList;
-- (NSString *) keyCodeDescription:(OOKeyCode)code;
-- (NSString *) keyCodeDescriptionShort:(OOKeyCode)code;
-
-- (NSString *) commanderKillsAsString;
-- (NSString *) commanderBountyAsString;
-- (NSString *) creditsFormattedForSubstitution;
-- (NSString *) creditsFormattedForLegacySubstitution;
-
-@end
+/*	Bead oo-50zg (ADR-0056 amendments oo-o89 item 4 and oo-42dr): the category PlayerEntity
+	(ScriptMethods) is members of PlayerEntity, declared in PlayerEntity.h and defined in
+	PlayerEntityScriptMethods.mm. Its Objective-C interface, for the callers that remain, is the
+	category of the same name in PlayerEntity+ObjCBridge.h (deleted by bead oo-9ht.177), which PlayerEntity.h imported. This header
+	stays for the files that import it.
+*/
 
 
 /*	OOGalacticCoordinatesFromInternal()
@@ -89,5 +49,13 @@ MA 02110-1301, USA.
 	For valid floating-point comparisons, it is imperative that the same
 	calculation be used consistently.
  */
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 Vector OOGalacticCoordinatesFromInternal(NSPoint internalCoordinates);
 NSPoint OOInternalCoordinatesFromGalactic(Vector galacticCoordinates);
+
+#ifdef __cplusplus
+}
+#endif

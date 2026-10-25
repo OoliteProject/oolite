@@ -27,8 +27,13 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOCocoa.h"
-#import "OOOpenGLOnly.h"
+#pragma once
+
+#if defined(__cplusplus) && !defined(OO_PLAIN_CPP_UNIT)	// was __OBJC__: a game unit (an Objective-C++ unit until bead oo-dbz), not a plain C++ one
+#include "OOCocoa.h"
+#endif
+#include "OOOpenGLOnly.h"
+#include "OOOpenGLCheck.h"
 
 
 typedef enum
@@ -43,13 +48,6 @@ typedef enum
 
 #define NULL_SHADER ((GLhandleARB)0)
 
-
-// Whether to use state verifier. Will be changed to equal OO_CHECK_GL_HEAVY in future.
-#ifdef NDEBUG
-#define OO_GL_STATE_VERIFICATION 0
-#else
-#define OO_GL_STATE_VERIFICATION 1
-#endif
 
 /*
 	OOSetOpenGLState(stateType)
@@ -70,7 +68,7 @@ typedef enum
 	  3. Draw
 	  4. Reverse state changes from stage 2
 	  5. Call OOVerifyOpenGLState()
-	  6. Call OOCheckOpenGLErrors().
+	  6. Call cxx_OOCheckOpenGLErrors().
 	
 	
 	The states are:
@@ -129,6 +127,10 @@ typedef enum
 } OOOpenGLStateID;
 
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #if OO_GL_STATE_VERIFICATION
 void OOSetOpenGLState_(OOOpenGLStateID state, const char *function, unsigned line);
 void OOVerifyOpenGLState_(const char *function, unsigned line);
@@ -143,15 +145,6 @@ void OOSetOpenGLState(OOOpenGLStateID state);
 // Inform the SetState/VerifyState mechanism that the OpenGL context has been reset to its initial state.
 void OOResetGLStateVerifier(void);
 
-
-/*	OOCheckOpenGLErrors()
-	Check for and log OpenGL errors, and returns YES if an error occurred.
-	NOTE: this is controlled by the log message class rendering.opengl.error.
-		  If logging is disabled, no error checking will occur. This is done
-		  because glGetError() is quite expensive, requiring a full OpenGL
-		  state sync.
-*/
-BOOL OOCheckOpenGLErrors(NSString *format, ...);
 
 /*	LogOpenGLState()
 	Write a bunch of OpenGL state information to the log.
@@ -193,8 +186,10 @@ void GLDrawBallBillboard(GLfloat radius, GLfloat step, GLfloat z_distance);
 /*	GLDrawOval(), GLDrawFilledOval()
 	Draw axis-alligned ellipses, as outline and fill respectively.
 */
+#if defined(__cplusplus) && !defined(OO_PLAIN_CPP_UNIT)	// was __OBJC__ (bead oo-dbz). NSSize is Foundation's; a plain C++ unit (OODebugGLDrawing.cpp, bead oo-9ht.185) does not see these
 void GLDrawOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat step);
 void GLDrawFilledOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat step);
+#endif
 
 /*	GLDrawPoints(), GLDrawFilledPoints()
 	Draw array of points, as outline and fill respectively.
@@ -210,68 +205,26 @@ void GLDrawPoints(OOGLVector *points, int n);
 void GLDrawFilledPoints(OOGLVector *points, int n);
 void GLDrawQuadStrip(OOGLVector *points, int n);
 
-/*	OO_CHECK_GL_HEAVY and error-checking stuff
-	
-	If OO_CHECK_GL_HEAVY is non-zero, the following error-checking facilities
-	come into play:
-	OOGL(foo) checks for GL errors before and after performing the statement foo.
-	OOGLBEGIN(mode) checks for GL errors, then calls glBegin(mode).
-	OOGLEND() calls glEnd(), then checks for GL errors.
-	CheckOpenGLErrorsHeavy() checks for errors exactly like OOCheckOpenGLErrors().
-	
-	If OO_CHECK_GL_HEAVY is zero, these macros don't perform error checking,
-	but otherwise continue to work as before, so:
-	OOGL(foo) performs the statement foo.
-	OOGLBEGIN(mode) calls glBegin(mode);
-	OOGLEND() calls glEnd().
-	CheckOpenGLErrorsHeavy() does nothing (including not performing any parameter side-effects).
-*/
-#ifndef OO_CHECK_GL_HEAVY
-#define OO_CHECK_GL_HEAVY 0
+#ifdef __cplusplus
+}
 #endif
-
-
-#if OO_CHECK_GL_HEAVY
-
-#if OO_GL_STATE_VERIFICATION
-void OOGLNoteCurrentFunction(const char *func, unsigned line);
-#else
-#define OOGLNoteCurrentFunction(FUNC, line)  do {} while (0)
-#endif
-
-NSString *OOLogAbbreviatedFileName(const char *inName);
-#define OOGL_PERFORM_CHECK(label, code)  OOCheckOpenGLErrors(@"%s %@:%u (%s)%s", label, OOLogAbbreviatedFileName(__FILE__), __LINE__, __PRETTY_FUNCTION__, code)
-#define OOGL(statement)  do { OOGLNoteCurrentFunction(__FUNCTION__, __LINE__); OOGL_PERFORM_CHECK("PRE", " -- " #statement); statement; OOGL_PERFORM_CHECK("POST", " -- " #statement); } while (0)
-#define CheckOpenGLErrorsHeavy OOCheckOpenGLErrors
-#define OOGLBEGIN(mode) do { OOGLNoteCurrentFunction(__FUNCTION__, __LINE__); OOGL_PERFORM_CHECK("PRE-BEGIN", " -- " #mode); glBegin(mode); } while (0)
-#define OOGLEND() do { glEnd(); OOGLNoteCurrentFunction(__FUNCTION__, __LINE__); OOGL_PERFORM_CHECK("POST-END", ""); } while (0)
-
-#else
-
-#define OOGL(statement)  do { statement; } while (0)
-#define CheckOpenGLErrorsHeavy(...) do {} while (0)
-#define OOGLBEGIN glBegin
-#define OOGLEND glEnd
-
-#endif
-
 
 enum 
 {
 	kOOShaderSettingDefault		= SHADERS_NOT_SUPPORTED
 };
 
-// Programmer-readable shader mode strings.
-OOShaderSetting OOShaderSettingFromString(NSString *string);
-NSString *OOStringFromShaderSetting(OOShaderSetting setting);
-// Localized shader mode strings.
-NSString *OODisplayStringFromShaderSetting(OOShaderSetting setting);
+// The shader mode strings (OOShaderSettingFromString() and friends) are declared in OOConstToString.h.
 
 
 #ifndef NDEBUG
 
-NSString *OOGLColorToString(GLfloat color[4]);
-NSString *OOGLEnumToString(GLenum value);
-NSString *OOGLFlagToString(bool value);
+#ifdef __cplusplus
+extern "C++" {	// (this header is sometimes reached from inside OOMaths.h's extern "C" block)
+std::string OOGLColorToString(GLfloat color[4]);
+std::string OOGLEnumToString(GLenum value);
+std::string OOGLFlagToString(bool value);
+}
+#endif
 
 #endif

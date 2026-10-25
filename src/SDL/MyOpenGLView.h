@@ -22,13 +22,22 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOCocoa.h"
-#import "OOOpenGL.h"
-#import "OOMouseInteractionMode.h"
-#import "OOOpenGLMatrixManager.h"
+#pragma once
+
+#include "OOCocoa.h"
+#include "oofnd/objc/OOObject.h"
+#include "OOOpenGL.h"
+#include "OOMouseInteractionMode.h"
+#include "OOOpenGLMatrixManager.h"
+#include "oofnd/Ref.hpp"
+
+#include "oofnd/StdLib.hpp"
+#include "oofnd/PList.hpp"
 
 
+#include <SDL3/SDL_events.h>
 #include <SDL3/SDL_video.h>
+#include <string_view>
 
 #define WINDOW_SIZE_DEFAULT_WIDTH	1280
 #define WINDOW_SIZE_DEFAULT_HEIGHT	720
@@ -61,11 +70,12 @@ MA 02110-1301, USA.
 #define OOMOUSEWHEEL_DELTA	120 // Same as Windows WHEEL_DELTA
 
 #define SNAPSHOTS_PNG_FORMAT		1
-#define SNAPSHOTHDR_EXTENSION_EXR	@".exr"
-#define SNAPSHOTHDR_EXTENSION_HDR	@".hdr"
+inline constexpr std::string_view SNAPSHOTHDR_EXTENSION_EXR	= ".exr";
+inline constexpr std::string_view SNAPSHOTHDR_EXTENSION_HDR	= ".hdr";
 #define SNAPSHOTHDR_EXTENSION_DEFAULT	SNAPSHOTHDR_EXTENSION_EXR
 
-@class Entity, GameController, OpenGLSprite;
+class Entity;
+class GameController;
 
 enum GameViewKeys
 {
@@ -168,213 +178,224 @@ typedef enum
 
 extern int debug;
 
-@interface MyOpenGLView : NSObject
+// The game view: a global class since the Objective-C facade was deleted (bead oo-9ht.153).
+class MyOpenGLView : public oo::RefCounted
 {
-	GameController		*gameController;
-	BOOL				keys[NUM_KEYS];
-	int					scancode2Unicode[NUM_KEYS];
-	NSDictionary 		*keyMappings_normal;
-	NSDictionary		*keyMappings_shifted;
+public:
+	MyOpenGLView() = default;	// the object -init fills; see init()
+	// The members marked virtual are the ones the whole-game tests' recording views answer
+	// (test_GameController, test_OOOXZManager, test_OOPlanetDrawable; ADR-0056 amendment oo-9ht.153
+	// item 4); nothing in the game overrides them.
+	~MyOpenGLView() override;
 
-	BOOL				suppressKeys;    // DJS
+	/**
+	 * \ingroup cli
+	 * Scans the command line for -nosplash, --nosplash, -splash, --splash- -novsync and --novsync arguments.
+	 */
+	// -init's body, run on the new view by its maker (GameController::beginSplashScreen(); amendment
+	// oo-3bgz item 3). false where -init answered nil (SDL could not start).
+	bool init();
+	std::optional<std::string> getWindowCaption();
+	void createWindowWithSize(NSSize size);
+	void initSplashScreen();
+	virtual void endSplashScreen();
+	void initialiseGLWithSize(NSSize v_size);
+	void updateGLSize(NSSize size);
+	virtual void updateScreen();
+	SDL_DisplayID getDisplayId();
+	oo::PList getNativeSize();
 
-	BOOL				opt, ctrl, command, shift, lastKeyShifted;
-	enum StringInput	allowingStringInput;
-	BOOL				isAlphabetKeyDown;
+	// Slice 2 (bead oo-72cz): accessors, display modes, settings, display / HDR, FOV and MSAA. A getter
+	// named like its member is get<Name> (ADR-0056 amendment oo-862e).
+	NSRect getBounds();
+	virtual NSSize getViewSize();
+	NSSize backingViewSize();
+	GLfloat getDisplay_z();
+	GLfloat getX_offset();
+	GLfloat getY_offset();
+	::GameController *getGameController();
+	virtual void setGameController(::GameController *controller);
+	bool isRunningOnPrimaryDisplayDevice();
+#if OOLITE_WINDOWS
+	void getDisplayDimensions(unsigned *width, unsigned *height);
+	void refreshDarKOrLightMode();
+	bool isDarkModeOn();
+	bool getAtDesktopResolution();
+	float hdrMaxBrightness();
+	void setHDRMaxBrightness(float newMaxBrightness);
+	float hdrPaperWhiteBrightness();
+	void setHDRPaperWhiteBrightness(float newPaperWhiteBrightness);
+	OOHDRToneMapper hdrToneMapper();
+	void setHDRToneMapper(OOHDRToneMapper newToneMapper);
+#endif
+	OOSDRToneMapper sdrToneMapper();
+	void setSDRToneMapper(OOSDRToneMapper newToneMapper);
+	float colorSaturation();
+	void adjustColorSaturation(float colorSaturationAdjustment);
+	bool hdrOutput();
+	bool isOutputDisplayHDREnabled();
+	void grabMouseInsideGameWindow(bool value);
+	virtual void stringToClipboard(const std::string &stringToCopy);
+	void setFullScreenMode(bool fsm);
+	virtual bool inFullScreenMode();
+	void toggleScreenMode();
+	void setDisplayMode(int mode, bool fsm);
+	void setScreenSize(int sizeIndex);
+	virtual std::vector<oo::PList> getScreenSizeArray();
+	void populateFullScreenModelist();
+	NSSize modeAsSize(int sizeIndex);
+	void saveWindowSize(NSSize windowSize);
+	NSSize loadWindowSize();
+	int loadFullscreenSettings();
+	int indexOfDisplayModeForWidth(unsigned int d_width, unsigned int d_height, unsigned int d_refresh);
+	virtual NSSize currentScreenSize();
+	virtual oo::PList currentScreenMode();	// null: no mode
+	void setFov(float value, bool fromFraction);
+	float fov(bool inFraction);
+	void setMsaa(bool newMsaa);
+	bool msaa();
+	static bool pollShiftKey();
+	OOOpenGLMatrixManager *getOpenGLMatrixManager();	// borrowed
 
-	int					keycodetrans[255];
+	// Slice 3 (bead oo-299r): snapshots and debug image dumps.
+	bool snapShot(const std::optional<std::string> &filename);	// nullopt: auto-numbered "oolite-NNN"
+#ifndef NDEBUG
+	// General image-dumping method.
+	void dumpRGBAToFileNamed(const std::string &name, uint8_t *bytes, NSUInteger width, NSUInteger height, NSUInteger rowBytes);
+	void dumpRGBToFileNamed(const std::string &name, uint8_t *bytes, NSUInteger width, NSUInteger height, NSUInteger rowBytes);
+	void dumpGrayToFileNamed(const std::string &name, uint8_t *bytes, NSUInteger width, NSUInteger height, NSUInteger rowBytes);
+	void dumpGrayAlphaToFileNamed(const std::string &name, uint8_t *bytes, NSUInteger width, NSUInteger height, NSUInteger rowBytes);
+	// A nullopt name skips that file.
+	void dumpRGBAToRGBFileNamed(const std::optional<std::string> &rgbName, const std::optional<std::string> &grayName, uint8_t *bytes, NSUInteger width, NSUInteger height, NSUInteger rowBytes);
+#endif
 
-    NSPoint				mouseDragStartPoint;
+	// Input (bead oo-0806, MyOpenGLView+Input.mm): the former (Input) category. A getter named like its
+	// member is get<Name> (ADR-0056 amendment oo-862e).
+	void initKeyMappingData();
+	void autoShowMouse();
+	void setStringInput(enum StringInput value);
+	void allowStringInput(bool value);
+	enum StringInput getAllowingStringInput();
+	std::optional<std::string> getTypedString();
+	virtual void resetTypedString();
+	void setTypedString(const std::string &value);
+	virtual void noteMouseInteractionModeChangedFrom(OOMouseInteractionMode oldMode, OOMouseInteractionMode newMode);
+	void pollControls();
+	void setVirtualJoystick(double vmx, double vmy);
+	NSPoint getVirtualJoystickPosition();
+	void clearKeys();
+	void clearMouse();
+	void clearKey(int theKey);
+	void resetMouse();
+	bool getIsAlphabetKeyDown();
+	void suppressKeysUntilKeyUp();	// DJS
+	bool isDown(int key);
+	bool isOptDown();	// opt == alt key
+	bool isCtrlDown();
+	bool isCommandDown();
+	bool isShiftDown();
+	bool isCapsLockOn();
+	bool lastKeyWasShifted();
+	int numKeys();
+	int mouseWheelState();
+	float mouseWheelDelta();
+	void setMouseWheelDelta(float newWheelDelta);
+	// Command-key combinations need special handling. SDL stubs for these mac functions.
+	bool isCommandQDown();
+	bool isCommandFDown();
+	void clearCommandF();
+	void setMouseInDeltaMode(bool inDelta);
+	// DJS: String input handler. Since for SDL versions we're also handling freeform typing this has
+	// necessarily got more complex than the non-SDL versions.
+	void handleStringInput(SDL_KeyboardEvent *kbd_event, Uint16 key_id);
 
-	BOOL				mouseWarped;
+	// tests/unit/core/test_MyOpenGLView.mm and test_OOOpenGLMatrixManager.mm read and set the state
+	// below (bead oo-mlpcc).
+	friend struct MyOpenGLViewTestAccess;
 
-	NSTimeInterval		timeIntervalAtLastClick;
-	NSTimeInterval		timeSinceLastMouseWheel;
-	BOOL				doubleClick;
+private:
+	/*	Internal: the view's state, read by the members above and by the other slices. Private again
+		since bead oo-mlpcc (public from oo-9ht.153 to it).
+	*/
+	::GameController		*gameController = {};	// not retained
+	bool				keys[NUM_KEYS] = {};
+	int					scancode2Unicode[NUM_KEYS] = {};
+	oo::PList			keyMappings_normal;		// the keyboard's mapping_normal / mapping_shifted (null if none)
+	oo::PList			keyMappings_shifted;
+	bool				suppressKeys = {};    // DJS
+	bool				opt = {}, ctrl = {}, command = {}, shift = {}, lastKeyShifted = {};
+	enum StringInput	allowingStringInput = {};
+	bool				isAlphabetKeyDown = {};
 
-	NSMutableString		*typedString;
+	int					keycodetrans[255] = {};
 
-	NSPoint				virtualJoystickPosition;
+	NSPoint				mouseDragStartPoint = {};
+	bool				mouseWarped = {};
 
-	float				_mouseVirtualStickSensitivityFactor;
+	NSTimeInterval		timeIntervalAtLastClick = {};
+	NSTimeInterval		timeSinceLastMouseWheel = {};
+	bool				doubleClick = {};
 
-	NSSize				viewSize;
-	GLfloat				display_z;
-	GLfloat				x_offset, y_offset;
+	std::string			typedString;	// UTF-8; empty, never nil
 
-    double				squareX,squareY;
-	NSRect				bounds;
+	NSPoint				virtualJoystickPosition = {};
+	float				_mouseVirtualStickSensitivityFactor = {};
 
-	float				_fov;
-	BOOL				_msaa;
+	NSSize				viewSize = {};
+	GLfloat				display_z = {};
+	GLfloat				x_offset = {}, y_offset = {};
 
-   // Full screen sizes
-	NSMutableArray		*screenSizes;
-	int					currentSize;	//we need an int!
-	BOOL				fullScreen;
+	double				squareX = {}, squareY = {};
+	NSRect				bounds = {};
+
+	float				_fov = {};
+	bool				_msaa = {};
+
+	// Full screen sizes
+	std::vector<oo::PList>	screenSizes;	// mode Dicts: Width, Height (integers), RefreshRate (a single real; the native mode's an integer 0)
+	int					currentSize = {};	//we need an int!
+	bool				fullScreen = {};
 
 	// Windowed mode
-	NSSize				currentWindowSize;
+	NSSize				currentWindowSize = {};
 
-	BOOL				showSplashScreen;
-	SDL_Window			*splashWindow;
-	SDL_Window			*window;
-	SDL_GLContext			glContext;
-	int				bitsPerColorComponent;
-	BOOL				vSyncPreference;
+	bool				showSplashScreen = {};
+	SDL_Window			*splashWindow = {};
+	SDL_Window			*window = {};
+	SDL_GLContext			glContext = {};
+	int				bitsPerColorComponent = {};
+
+	bool				vSyncPreference = {};
 
 #if OOLITE_WINDOWS
 
-	BOOL				saveSize;
-	BOOL				atDesktopResolution;
-	unsigned			keyboardMap; // *** FLAGGED for deletion
-	HWND 				windowHandle;
-	RECT				lastGoodRect;
-	float				_hdrMaxBrightness;
-	float				_hdrPaperWhiteBrightness;
-	int					_hdrToneMapper;
+	bool				saveSize = {};
+	bool				atDesktopResolution = {};
+	unsigned			keyboardMap = {}; // *** FLAGGED for deletion
+	HWND 				windowHandle = {};
+	RECT				lastGoodRect = {};
+	float				_hdrMaxBrightness = {};
+	float				_hdrPaperWhiteBrightness = {};
+	int					_hdrToneMapper = {};
 
 #endif
 
-	int					_sdrToneMapper;
+	int					_sdrToneMapper = {};
+	float				_colorSaturation = {};
 
-	float				_colorSaturation;
+	bool				_hdrOutput = {};
 
-	BOOL				_hdrOutput;
+	bool				grabMouseStatus = {};
 
-	BOOL				grabMouseStatus;
+	NSSize				firstScreen = {};
 
-	NSSize				firstScreen;
+	oo::Ref<OOOpenGLMatrixManager>	matrixManager;	// C++ since bead oo-vt0o
 
-	OOOpenGLMatrixManager		*matrixManager;
+	// Mouse mode indicator (for mouse movement model)
+	bool				mouseInDeltaMode = {};
+	float				_mouseWheelDelta = {};
 
-   // Mouse mode indicator (for mouse movement model)
-   BOOL					mouseInDeltaMode;
+private:
+	void setUpBasicOpenGLStateWithSize();
+};
 
-   float				_mouseWheelDelta;
-}
-
-/**
- * \ingroup cli
- * Scans the command line for -nosplash, --nosplash, -splash, --splash- -novsync and --novsync arguments.
- */
-- (id) init;
-
-- (NSString*) getWindowCaption;
-- (void) createWindowWithSize: (NSSize) size;
-- (void) initSplashScreen;
-- (void) endSplashScreen;
-
-
-
-- (NSSize) viewSize;
-- (NSSize) backingViewSize;
-- (GLfloat) display_z;
-- (GLfloat) x_offset;
-- (GLfloat) y_offset;
-
-- (GameController *) gameController;
-- (void) setGameController:(GameController *) controller;
-
-
-- (void) initialiseGLWithSize:(NSSize) v_size;
-- (void) updateGLSize:(NSSize) size;
-- (BOOL) isRunningOnPrimaryDisplayDevice;
-#if OOLITE_WINDOWS
-- (void)getDisplayDimensions:(unsigned *)width height:(unsigned *)height;
-- (void) refreshDarKOrLightMode;
-- (BOOL) isDarkModeOn;
-- (BOOL) atDesktopResolution;
-- (float) hdrMaxBrightness;
-- (void) setHDRMaxBrightness:(float)newMaxBrightness;
-- (float) hdrPaperWhiteBrightness;
-- (void) setHDRPaperWhiteBrightness:(float)newPaperWhiteBrightness;
-- (OOHDRToneMapper) hdrToneMapper;
-- (void) setHDRToneMapper: (OOHDRToneMapper)newToneMapper;
-#endif
-- (OOSDRToneMapper) sdrToneMapper;
-- (void) setSDRToneMapper: (OOSDRToneMapper)newToneMapper;
-- (float) colorSaturation;
-- (void) adjustColorSaturation:(float)colorSaturationAdjustment;
-- (BOOL) hdrOutput;
-- (BOOL) isOutputDisplayHDREnabled;
-
-- (void) grabMouseInsideGameWindow:(BOOL) value;
-
-- (void) stringToClipboard:(NSString *)stringToCopy;
-
-- (void) updateScreen;
-
-- (BOOL) snapShot:(NSString *)filename;
-
-- (SDL_DisplayID) getDisplayId;
-- (NSMutableDictionary *) getNativeSize;
-
-- (void) setFullScreenMode:(BOOL)fsm;
-- (BOOL) inFullScreenMode;
-- (void) toggleScreenMode;
-- (void) setDisplayMode:(int)mode fullScreen:(BOOL)fsm;
-
-- (void) setScreenSize: (int)sizeIndex;
-- (NSMutableArray *)getScreenSizeArray;
-- (void) populateFullScreenModelist;
-- (NSSize) modeAsSize: (int)sizeIndex;
-- (void) saveWindowSize: (NSSize) windowSize;
-- (NSSize) loadWindowSize;
-- (int) loadFullscreenSettings;
-- (int) findDisplayModeForWidth: (unsigned int) d_width Height:(unsigned int) d_height
-                        Refresh: (unsigned int)d_refresh;
-- (NSSize) currentScreenSize;
-- (NSDictionary*) currentScreenMode;
-
-
-
-
-// Command-key combinations need special handling. SDL stubs for these mac functions.
-
-
-- (void) setFov:(float)value fromFraction:(BOOL)fromFraction;
-- (float) fov:(BOOL)inFraction;
-
-- (void) setMsaa:(BOOL)newMsaa;
-- (BOOL) msaa;
-
-// Check current state of shift key rather than relying on last event.
-+ (BOOL)pollShiftKey;
-
-- (OOOpenGLMatrixManager *) getOpenGLMatrixManager;
-
-#ifndef NDEBUG
-// General image-dumping method.
-- (void) dumpRGBAToFileNamed:(NSString *)name
-					   bytes:(uint8_t *)bytes
-					   width:(NSUInteger)width
-					  height:(NSUInteger)height
-					rowBytes:(NSUInteger)rowBytes;
-- (void) dumpRGBToFileNamed:(NSString *)name
-					   bytes:(uint8_t *)bytes
-					   width:(NSUInteger)width
-					  height:(NSUInteger)height
-					rowBytes:(NSUInteger)rowBytes;
-- (void) dumpGrayToFileNamed:(NSString *)name
-					   bytes:(uint8_t *)bytes
-					   width:(NSUInteger)width
-					  height:(NSUInteger)height
-					rowBytes:(NSUInteger)rowBytes;
-- (void) dumpGrayAlphaToFileNamed:(NSString *)name
-							bytes:(uint8_t *)bytes
-							width:(NSUInteger)width
-						   height:(NSUInteger)height
-						 rowBytes:(NSUInteger)rowBytes;
-- (void) dumpRGBAToRGBFileNamed:(NSString *)rgbName
-			   andGrayFileNamed:(NSString *)grayName
-						  bytes:(uint8_t *)bytes
-						  width:(NSUInteger)width
-						 height:(NSUInteger)height
-					   rowBytes:(NSUInteger)rowBytes;
-#endif
-
-@end
-
-#include <SDL3/SDL_events.h>
-#import "MyOpenGLView+Input.h"

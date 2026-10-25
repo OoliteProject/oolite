@@ -27,32 +27,79 @@ SOFTWARE.
 
 */
 
-#import "OODrawable.h"
-#import "OOOpenGL.h"
+#pragma once
 
-@class OOColor, OOTexture;
+#include "OODrawable.h"
+#include "OOOpenGL.h"
+#include "OOGraphicsResetManager.h"
+
+#include "oofnd/StdLib.hpp"
+#include "oofnd/Ref.hpp"
+
+class OOColor;
+class OOSkyQuadSet;
+struct OOSkyQuadDesc;
 
 
-@interface OOSkyDrawable: OODrawable
+/*	Phase 3 (bead oo-4jjl, proposed ADR-0056 amendments oo-smy, oo-zffj, oo-mw4u and oo-4jjl): a
+	drawable with no facade. Its one caller, SkyEntity, makes it with oo::makeRef and hands it to
+	the entity (the root facade until bead oo-hahfg). It is a graphics reset client through the C++ client
+	interface (amendment oo-jpd8 item 3), which this bead added.
+*/
+class OOSkyDrawable : public OODrawable, public OOGraphicsResetClient
 {
-@private
-	unsigned				_starCount;
-	unsigned				_nebulaCount;
-	
-	NSMutableArray			*_quadSets;
-	
-	GLint					_displayListName;
-}
+public:
+	// -initWithColor1:Color2:Color3:Color4:starCount:nebulaCount:nebulaHueFix:clusterFactor:alpha:scale:
+	OOSkyDrawable(OOColor *color1,
+				  OOColor *color2,
+				  OOColor *color3,
+				  OOColor *color4,
+				  unsigned starCount,
+				  unsigned nebulaCount,
+				  bool nebulaHueFix,
+				  float nebulaClusterFactor,
+				  float nebulaAlpha,
+				  float nebulaScale);
+	~OOSkyDrawable() override;
 
-- (id)initWithColor1:(OOColor *)color1
-			  Color2:(OOColor *)color2
-			  Color3:(OOColor *)color3
-			  Color4:(OOColor *)color4
-		   starCount:(unsigned)starCount
-		 nebulaCount:(unsigned)nebulaCount
-	    nebulaHueFix:(BOOL)nebulaHueFix
-	   clusterFactor:(float)nebulaClusterFactor
-			   alpha:(float)nebulaAlpha
-			   scale:(float)nebulaScale;
+	void renderOpaqueParts() override;
+	bool hasOpaqueParts() override;
+	GLfloat maxDrawDistance() override;
+#ifndef NDEBUG
+	std::vector<oo::Ref<OOTexture>> allTextures() override;
+	size_t totalSize() override;
+	size_t objectSize() const override	{ return sizeof *this; }
+#endif
 
-@end
+	// OOGraphicsResetClient
+	void resetGraphicsState() override;
+
+private:
+	friend struct OOSkyDrawableTestAccess;
+
+	void setUpStars(OOColor *color1, OOColor *color2);
+	void setUpNebulae(OOColor *color1,
+					  OOColor *color2,
+					  float nebulaClusterFactor,
+					  bool nebulaHueFix,
+					  float nebulaAlpha,
+					  float nebulaScale);
+
+	void loadStarTextures();
+	void loadNebulaTextures();
+
+	void addQuads(OOSkyQuadDesc *quads, unsigned count);
+
+	void ensureTexturesLoaded();
+
+	// The unit test's stand-in for setUpStars(), which needs the game's star textures (decision
+	// oo-jsx0h); null in the game.
+	static void (*sSetUpStarsStandIn)(OOSkyDrawable *sky, OOColor *color1, OOColor *color2);
+
+	unsigned				_starCount = {};
+	unsigned				_nebulaCount = {};
+
+	std::vector<oo::Ref<OOSkyQuadSet>>	_quadSets;	// no `= {}` (GCC, incomplete T; bead oo-1q4);	// one per texture (Foundation sweep, proposed ADR-0043)
+
+	GLint					_displayListName = {};
+};

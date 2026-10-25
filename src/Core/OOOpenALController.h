@@ -4,6 +4,9 @@ OOOpenALController.h
 
 Singleton controller for Open AL interfaces
 
+C++20 since bead oo-r7m0 (proposed ADR-0056). Every caller was adapted in that bead, so there is
+no Objective-C facade and the class is global.
+
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
 
@@ -24,35 +27,47 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOOpenAL.h"
+#ifndef OOOPENALCONTROLLER_H
+#define OOOPENALCONTROLLER_H
+
+#include "OOOpenAL.h"
+
+#include "oofnd/StdLib.hpp"
+#include "oofnd/Ref.hpp"
 
 
-static NSString * const kOOLogSoundInitError		= @"sound.initialization.error";
-static NSString * const kOOLogSoundLoadingSuccess	= @"sound.load.success";
-static NSString * const kOOLogSoundLoadingError		= @"sound.load.error";
+// Log message classes, UTF-8 (Foundation sweep, proposed ADR-0043): an OOLog call passes
+// oo::NSStringFrom(kOOLogSound...) until it is converted to OO_LOG.
+static constexpr const char *kOOLogSoundInitError		= "sound.initialization.error";
+static constexpr const char *kOOLogSoundLoadingSuccess	= "sound.load.success";
+static constexpr const char *kOOLogSoundLoadingError	= "sound.load.error";
 
 
-@interface OOOpenALController : NSObject 
+class OOOpenALController : public oo::RefCounted
 {
-@private
-	ALCdevice *device;
-	ALCcontext *context;
-}
- 
-+ (OOOpenALController *) sharedController;
+public:
+	/*	The shared controller, made on first use; borrowed (it is never released). Null when
+		init() refused it, and then the next call makes and asks a new one.
+	*/
+	static OOOpenALController *sharedController();
 
-- (void) setMasterVolume:(ALfloat) fraction;
-- (ALfloat) masterVolume;
+	void setMasterVolume(ALfloat fraction);
+	ALfloat masterVolume();
 
-- (void) shutdown;
+	void shutdown();
 
-/**
- * \ingroup cli
- * Scans the command line for -nosound or --nosound arguments.
- *
- * @return returns the instance to OOOpenALController if sound
- *         shall be played and can be played, otherwise null
- */
-- (id) init;
+	/**
+	 * \ingroup cli
+	 * Scans the command line for -nosound or --nosound arguments.
+	 *
+	 * @return returns true if sound shall be played and can be played,
+	 *         otherwise false (the controller is then discarded)
+	 */
+	bool init();
 
-@end
+private:
+	ALCdevice *device = {};
+	ALCcontext *context = {};
+};
+
+#endif	// OOOPENALCONTROLLER_H

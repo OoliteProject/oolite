@@ -25,10 +25,9 @@ MA 02110-1301, USA.
 
 */
 
-#import "Entity.h"
+#pragma once
 
-@class OOColor;
-
+#include "Entity.h"
 
 enum
 {
@@ -41,26 +40,34 @@ enum
 #define BREAK_PATTERN_RING_SPEED		200.0
 
 
-@interface OOBreakPatternEntity: Entity
+struct OOBreakPatternEntityTestAccess;
+
+
+class OOBreakPatternEntity : public Entity
 {
-@private
-	Vector					_vertexPosition[kOOBreakPatternMaxVertices];
-	GLfloat					_vertexColor[kOOBreakPatternMaxVertices][4];
-	NSUInteger				_vertexCount;
-	double					_lifetime;
-}
+public:
+	// +breakPatternWithPolygonSides:startAngle:aspectRatio:: a new ring, initialised.
+	static oo::Ref<OOBreakPatternEntity> breakPatternWithPolygonSides(NSUInteger sides, float startAngleDegrees, float aspectRatio);
 
-+ (instancetype) breakPatternWithPolygonSides:(NSUInteger)sides startAngle:(float)startAngleDegrees aspectRatio:(float)aspectRatio;
+	void setInnerColor(OOColor *color1, OOColor *color2);
 
-- (void) setInnerColor:(OOColor *)color1 outerColor:(OOColor *)color2;
+	void setLifetime(double lifetime);
 
-- (void) setLifetime:(double)lifetime;
+	void update(OOTimeDelta delta_t) override;
+	void drawImmediate(bool immediate, bool translucent) override;
+	bool canCollide() override;
 
-@end
+private:
+	friend struct ::OOBreakPatternEntityTestAccess;
 
+	// -initWithPolygonSides:startAngle:aspectRatio:'s body, run once right after construction
+	// (amendment oo-vl43 item 2).
+	void initWithPolygonSides(NSUInteger sides, float startAngleDegrees, float aspectRatio);
 
-@interface Entity (OOBreakPatternEntity)
+	void setInnerColorComponents(GLfloat color1[4], GLfloat color2[4]);
 
-- (BOOL) isBreakPattern;
-
-@end
+	Vector					_vertexPosition[kOOBreakPatternMaxVertices] = {};
+	GLfloat					_vertexColor[kOOBreakPatternMaxVertices][4] = {};
+	NSUInteger				_vertexCount = {};
+	double					_lifetime = {};
+};

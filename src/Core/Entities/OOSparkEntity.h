@@ -23,20 +23,37 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOLightParticleEntity.h"
+#pragma once
+
+#include "OOLightParticleEntity.h"
 
 
-@interface OOSparkEntity: OOLightParticleEntity
+/*	A converted leaf (amendment oo-bj8 item 12): global, over OOLightParticleEntity, with no
+	facade of its own. Unconverted code makes one with sparkWithPosition() and hands it to
+	Objective-C with oo::NewEntityFacade, whose object is an OOLightParticleEntity.
+*/
+class OOSparkEntity : public OOLightParticleEntity
 {
-@private
-	GLfloat				_baseRGBA[4];
-	GLfloat				_duration, _timeRemaining;
-}
+public:
+	// [[OOSparkEntity alloc] initWithPosition:...]: a new spark, initialised.
+	static oo::Ref<OOSparkEntity> sparkWithPosition(HPVector position,
+													Vector velocity,
+													OOTimeDelta duration,
+													float size,
+													OOColor *color);
 
-- (id) initWithPosition:(HPVector)position
-			   velocity:(Vector)velocity
-			   duration:(OOTimeDelta)duration
-				   size:(float)size
-				  color:(OOColor *)color;
+	// -initWithPosition:...'s body, run once right after construction (amendment oo-vl43 item 2).
+	void initWithPosition(HPVector position,
+						  Vector velocity,
+						  OOTimeDelta duration,
+						  float size,
+						  OOColor *color);
 
-@end
+	void update(OOTimeDelta delta_t) override;
+
+private:
+	void performUpdate(OOTimeDelta delta_t);
+
+	GLfloat				_baseRGBA[4] = {};
+	GLfloat				_duration = {}, _timeRemaining = {};
+};

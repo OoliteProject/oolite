@@ -27,6 +27,8 @@ SOFTWARE.
 
 */
 
+#pragma once
+
 #ifndef NDEBUG
 
 void OOInitDebugSupport(void);

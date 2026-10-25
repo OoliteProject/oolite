@@ -28,8 +28,10 @@ SOFTWARE.
 
 */
 
-#import "OOMaths.h"
-#import "OOColor.h"
+#pragma once
+
+#include "OOMaths.h"
+#include "OOColor.h"
 
 
 #if !defined(OODEBUGLDRAWING_DISABLE) && defined(NDEBUG)
@@ -39,15 +41,15 @@ SOFTWARE.
 
 #ifndef OODEBUGLDRAWING_DISABLE
 
-@class OOMaterial;
+class OOMaterial;
 
 typedef struct
 {
-	OOMaterial			*material;
+	OOMaterial			*material;	// retained by OODebugBeginWireframe(), released by OODebugEndWireframe() (bead oo-9ht.8)
 } OODebugWFState;
 
 
-OODebugWFState OODebugBeginWireframe(BOOL ignoreZ);
+OODebugWFState OODebugBeginWireframe(bool ignoreZ);	// bool, not BOOL: the .cpp's BOOL is windows.h's int (bead oo-9ht.185)
 void OODebugEndWireframe(OODebugWFState state);
 
 OOINLINE void OODebugDrawBoundingBox(BoundingBox box);
@@ -80,7 +82,7 @@ void OODebugDrawPoint(Vector position, OOColor *color);
 
 OOINLINE void OODebugDrawBoundingBoxBetween(Vector min, Vector max)
 {
-	OODebugDrawColoredBoundingBoxBetween(min, max, [OOColor blueColor]);
+	OODebugDrawColoredBoundingBoxBetween(min, max, OOColor::blueColor().get());
 }
 
 
@@ -98,7 +100,7 @@ OOINLINE void OODebugDrawColoredBoundingBox(BoundingBox box, OOColor *color)
 
 OOINLINE void OODebugDrawNormal(Vector position, Vector normal, GLfloat scale)
 {
-	OODebugDrawColoredVector(position, vector_add(position, vector_multiply_scalar(normal, scale)), [OOColor cyanColor]);
+	OODebugDrawColoredVector(position, vector_add(position, vector_multiply_scalar(normal, scale)), OOColor::cyanColor().get());
 }
 
 
@@ -116,7 +118,7 @@ OOINLINE void OODebugDrawColoredVector(Vector position, Vector v, OOColor *color
 
 OOINLINE void OODebugDrawVector(Vector position, Vector v)
 {
-	OODebugDrawColoredVector(position, v, [OOColor magentaColor]);
+	OODebugDrawColoredVector(position, v, OOColor::magentaColor().get());
 }
 
 
@@ -134,7 +136,7 @@ OOINLINE void OODebugDrawColoredVectorAtOrigin(Vector v, OOColor *color)
 
 OOINLINE void OODebugDrawLine(Vector start, Vector end)
 {
-	OODebugDrawColoredLine(start, end, [OOColor whiteColor]);
+	OODebugDrawColoredLine(start, end, OOColor::whiteColor().get());
 }
 
 

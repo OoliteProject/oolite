@@ -4,6 +4,10 @@ OORingEffectEntity.h
 
 Entity subclass for expanding-ring effect, used for hyperspace entry and for
 some large explosions.
+C++20 since bead oo-peql, a leaf of the Entities seam (proposed ADR-0056, amendment oo-bj8 item
+12). A global class over Entity, with no facade: nothing messages it by its own selectors.
+Its callers (ShipEntity, Universe) make it with a factory and hand the universe the Entity facade
+oo::NewEntityFacade makes, which is its Objective-C object from then on.
 
 
 Oolite
@@ -26,20 +30,31 @@ MA 02110-1301, USA.
 
 */
 
-#import "Entity.h"
+#pragma once
+
+#include "Entity.h"
 
 
-@interface OORingEffectEntity: Entity
+class OORingEffectEntity : public Entity
 {
-@private
-	GLfloat				_timePassed;
-	GLfloat				_innerRadius,
-						_outerRadius,
-						_innerGrowthRate,
-						_outerGrowthRate;
-}
+public:
+	// Null for a nil source (the Objective-C factories answered nil).
+	static oo::Ref<OORingEffectEntity> ringFromEntity(Entity *sourceEntity);
+	static oo::Ref<OORingEffectEntity> shrinkingRingFromEntity(Entity *sourceEntity);
 
-+ (instancetype) ringFromEntity:(Entity *)sourceEntity;
-+ (instancetype) shrinkingRingFromEntity:(Entity *)sourceEntity;
+	std::optional<std::string> descriptionComponents() const override;
+	void update(OOTimeDelta delta_t) override;
+	void drawImmediate(bool immediate, bool translucent) override;
+	bool isEffect() override;
+	bool canCollide() override;
 
-@end
+private:
+	static void initialize();
+	bool initRingFromEntity(Entity *sourceEntity);
+
+	GLfloat				_timePassed = {};
+	GLfloat				_innerRadius = {},
+						_outerRadius = {},
+						_innerGrowthRate = {},
+						_outerGrowthRate = {};
+};

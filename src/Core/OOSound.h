@@ -41,18 +41,20 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOCocoa.h"
+#pragma once
+
+#include "OOCocoa.h"
 
 #define OOLITE_OPENAL 1
 
 #if OOLITE_OPENAL
-	#import "OOALSound.h"
-	#import "OOALMusic.h"
-	#import "OOBasicSoundReferencePoint.h"
+	#include "OOALSound.h"
+	#include "OOALMusic.h"
+	#include "OOBasicSoundReferencePoint.h"
 #else
 
 #warning No sound implementation selected. Currently, the only option is OOLITE_OPENAL. There are SDL and Mac CoreAudio implementations in the revision history.
 
 #endif
 
-#import "OOSoundSource.h"
+#include "OOSoundSource.h"

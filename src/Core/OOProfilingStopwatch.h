@@ -28,11 +28,28 @@ SOFTWARE.
 
 */
 
+#ifndef INCLUDED_OOPROFILINGSTOPWATCH_h
+#define INCLUDED_OOPROFILINGSTOPWATCH_h
+
 #ifndef OOSTOPWATCH_STANDALONE
-#import "OOCocoa.h"
-#import "OOFunctionAttributes.h"
-#import "OOTypes.h"
+#if defined(__cplusplus) && !defined(OO_PLAIN_CPP_UNIT)	// was __OBJC__: a game unit (an Objective-C++ unit until bead oo-dbz), not a plain C++ one
+#include "OOCocoa.h"
+#else
+/*	A plain C++ translation unit (bead oo-9ht.72: the JS bindings, through
+	OOJSEngineNativeWrappers.h) cannot parse OOCocoa.h's Objective-C class declarations. The one platform switch
+	below that differs from its default on this build is set as OOCocoa.h sets it (WIN32 is only
+	defined on the GNUstep build), so
+	OOHighResTimeValue is the same type in both kinds of translation unit.
+*/
+#if defined(WIN32) && !defined(OOLITE_WINDOWS)
+#define OOLITE_WINDOWS 1
 #endif
+#endif
+#include "OOFunctionAttributes.h"
+#include "OOTypes.h"
+#endif
+
+#include "oofnd/Ref.hpp"
 
 
 /*	Platform-specific high-resolution timer:
@@ -73,11 +90,11 @@ typedef DWORD OOHighResTimeValue;	// Rolls over once every 50 days, but we can l
 #define OOCopyHighResTime(time) ((OOHighResTimeValue)time)
 
 #else
-/*	...otherwise, use JS_Now() for higher precision. The Windows implementation
-	does the messy work of calibrating performance counters against low-res
-	timers.
+/*	...otherwise, use a microsecond count from std::chrono::steady_clock for higher
+	precision (formerly the script engine's own clock; bead oo-1gc.3). Only
+	differences between two readings are ever used.
 */
-#define OO_PROFILING_STOPWATCH_JS_NOW 1
+#define OO_PROFILING_STOPWATCH_MICROSECONDS 1
 #endif
 
 #else
@@ -101,11 +118,15 @@ OOINLINE OOHighResTimeValue OOGetHighResTime(void)
 
 #endif
 
-#if OO_PROFILING_STOPWATCH_JS_NOW
-#include <jsapi.h>
-typedef int64 OOHighResTimeValue;
+#if OO_PROFILING_STOPWATCH_MICROSECONDS
+#include <chrono>
+#include <cstdint>
+typedef int64_t OOHighResTimeValue;
 
-#define OOGetHighResTime JS_Now
+OOINLINE OOHighResTimeValue OOGetHighResTime(void)
+{
+	return std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
+}
 #define OODisposeHighResTime(time)  do { (void)time; } while (0)
 #define OOCopyHighResTime(time) ((OOHighResTimeValue)time)
 #endif
@@ -113,24 +134,28 @@ typedef int64 OOHighResTimeValue;
 OOTimeDelta OOHighResTimeDeltaInSeconds(OOHighResTimeValue startTime, OOHighResTimeValue endTime);
 
 
-@interface OOProfilingStopwatch: NSObject
+class OOProfilingStopwatch : public oo::RefCounted
 {
-@private
-	OOHighResTimeValue	_start;
-	OOHighResTimeValue	_end;
-	BOOL				_running;
-}
+public:
+	OOProfilingStopwatch();
+	~OOProfilingStopwatch() override;
 
-+ (instancetype) stopwatch;		// New stopwatch is initially started.
+	static oo::Ref<OOProfilingStopwatch> stopwatch();		// New stopwatch is initially started.
 
-- (void) start;
-- (void) stop;
-- (OOTimeDelta) currentTime;	// Returns stop time - start time if stopped, or now - start time if running.
+	void start();
+	void stop();
+	OOTimeDelta currentTime();	// Returns stop time - start time if stopped, or now - start time if running.
 
-/*	Resets timer to zero, returning the current value. This is drift-free, i.e.
-	if it is called twice in a row while running the sum is an accurate time
-	since the timer started.
-*/
-- (OOTimeDelta) reset;
+	/*	Resets timer to zero, returning the current value. This is drift-free, i.e.
+		if it is called twice in a row while running the sum is an accurate time
+		since the timer started.
+	*/
+	OOTimeDelta reset();
 
-@end
+private:
+	OOHighResTimeValue	_start = {};
+	OOHighResTimeValue	_end = {};
+	bool				_running = {};
+};
+
+#endif	// INCLUDED_OOPROFILINGSTOPWATCH_h

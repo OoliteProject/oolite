@@ -42,10 +42,18 @@ typedef void (*OOTCPStreamDecoderErrorCallback)(void *cbInfo, OOALStringRef erro
 typedef void (*OOTCPStreamDecoderFinalizeCallback)(void *cbInfo);
 
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 OOTCPStreamDecoderRef OOTCPStreamDecoderCreate(OOTCPStreamDecoderPacketCallback packetCB, OOTCPStreamDecoderErrorCallback errorCB, OOTCPStreamDecoderFinalizeCallback finalizeCB, void *cbInfo);
 void OOTCPStreamDecoderDestroy(OOTCPStreamDecoderRef decoder);
 
 void OOTCPStreamDecoderReceiveData(OOTCPStreamDecoderRef decoder, OOALDataRef data);
 void OOTCPStreamDecoderReceiveBytes(OOTCPStreamDecoderRef decoder, const void *bytes, size_t length);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* INCLUDED_OOTCPStreamDecoder_h */

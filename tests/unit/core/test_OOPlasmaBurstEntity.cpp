@@ -1,0 +1,148 @@
+/*	test_OOPlasmaBurstEntity.mm
+	Unit tests for OOPlasmaBurstEntity (src/Core/Entities/OOPlasmaBurstEntity.h), the burst a plasma
+	shot leaves where it hits: bead oo-l2s5, a leaf of the Entities pattern seam (amendment oo-bj8
+	item 12).
+
+	Its object needs the game graph, so the test links the whole game but main (['*']) and uses a
+	Universe that was never initialised, of a test subclass that answers the time the test sets and
+	records what is removed, and a plain entity as PLAYER. The expectations were written against the
+	Objective-C API and run on the unconverted class first: what the initialiser sets (position,
+	size, red, status), the growth and fade with the time since it was spawned, and its removal after
+	two seconds. Making a burst and reading its colour components go through the helpers below, the
+	only lines the conversion ported: since then a burst is made by its factory and handed to
+	Objective-C as its facade, an OOLightParticleEntity.
+	Run: bash tools/check-core-tests.sh
+*/
+
+#include "OOPlasmaBurstEntity.h"
+#include "PlayerEntity.h"	// PLAYER is C++ (bead oo-9ht.177)
+#include "OODescription.h"
+#include "Universe.h"
+
+#include "oo_test.hpp"
+
+#include <cmath>
+
+
+// main.mm defines the debug flags, and the test has its own main.
+#ifndef NDEBUG
+uint32_t gDebugFlags = 0;
+#endif
+
+class PlayerEntity;
+extern PlayerEntity *gOOPlayer;
+extern Universe *gSharedUniverse;
+
+
+class TestPlayer : public PlayerEntity	// C++ since bead oo-9ht.177 deleted the Objective-C player
+{
+public:
+	HPVector viewpointPosition() override	{ return kZeroHPVector; }
+};
+
+// NewTestPlayer<TestPlayer>() (bead oo-9ht.177): a C++ player under the ship's facade, as
+// PlayerEntity::sharedPlayer() makes the game's, retained (+1) as +alloc's object was.
+template <class T>
+T *NewTestPlayer()
+{
+	oo::Ref<T> player = oo::makeRef<T>();
+	{
+		oo::RetainEntity(oo::MadeEntity(player));
+	}
+	return player.get();
+}
+
+
+static Entity *sRemoved = nil;
+
+
+// UNIVERSE: never initialised; answers the time the test sets and records what is removed.
+class TestUniverse : public Universe
+{
+public:
+	bool removeEntity(Entity *entity) override	{ sRemoved = entity; return YES; }	// the C++ entity since bead oo-9ht.39.26; the record is its object, as before
+};
+
+// The time the test sets is the universe's own clock, which getTime() answers (bead oo-ql9rn).
+Universe *SharedTestUniverse()	{ static Universe *universe = new TestUniverse(); return universe; }	// never released
+#define sTime	(SharedTestUniverse()->universal_time)
+
+
+namespace {
+
+// --- How a burst is made, and its colour (a @protected ivar), and nothing else -------------------
+
+Entity *MakeBurst(HPVector position)
+{
+	return oo::MadeEntity(OOPlasmaBurstEntity::burstWithPosition(position));
+}
+
+// The object is the root Entity's facade since bead oo-9ht.76; its C++ part is the particle.
+OOLightParticleEntity *Particle(Entity *e)				{ return static_cast<OOLightParticleEntity *>(e); }
+const GLfloat *ColorComponents(Entity *e)				{ return Particle(e)->_colorComponents; }
+
+// --------------------------------------------------------------------------------------------------
+
+
+void SetUp()
+{
+	static Universe *universe = nil;
+	if (universe == nil)
+	{
+		universe = SharedTestUniverse();
+	}
+	gSharedUniverse = universe;
+	static TestPlayer *player = nullptr;
+	if (player == nullptr)  player = NewTestPlayer<TestPlayer>();
+	gOOPlayer = player;
+	sRemoved = nil;
+	sTime = 0;
+}
+
+
+bool ComponentsAre(Entity *e, GLfloat r, GLfloat g, GLfloat b, GLfloat a)
+{
+	const GLfloat *c = ColorComponents(e);
+	return c[0] == r && c[1] == g && c[2] == b && c[3] == a;
+}
+
+}	// namespace
+
+
+OO_TEST(initWithPosition)
+{
+	{
+		SetUp();
+		Entity *burst = MakeBurst(make_HPvector(4, 5, 6));
+		OO_CHECK(burst != nil);
+		OO_CHECK(HPvector_equal(burst->getPosition(), make_HPvector(4, 5, 6)));
+		OO_CHECK(Particle(burst)->diameter() == 64.0f && burst->collisionRadius() == 2.0f);
+		OO_CHECK(burst->status() == STATUS_EFFECT && burst->getScanClass() == CLASS_NO_DRAW && burst->isEffect());
+		OO_CHECK(ComponentsAre(burst, 1.0f, 0.0f, 0.0f, 1.0f));
+		OO_CHECK(oo::EntityDescription(burst).starts_with("<OOPlasmaBurstEntity 0x"));
+	}
+}
+
+
+OO_TEST(growsFadesAndIsRemoved)
+{
+	{
+		SetUp();
+		Entity *burst = MakeBurst(make_HPvector(4, 5, 6));
+
+		sTime = 1.0;
+		burst->update(0.1);
+		OO_CHECK(Particle(burst)->diameter() == 128.0f);
+		OO_CHECK(ComponentsAre(burst, 1.0f, 0.0f, 0.0f, 0.5f));
+		OO_CHECK(sRemoved == nil);
+
+		sTime = 2.5;
+		burst->update(0.1);
+		OO_CHECK(Particle(burst)->diameter() == 64.0f + 2.5f * 64.0f);
+		OO_CHECK(ComponentsAre(burst, 1.0f, 0.0f, 0.0f, 0.0f));
+		OO_CHECK(sRemoved == burst);
+	}
+}
+
+
+OO_TEST_MAIN()

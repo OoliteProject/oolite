@@ -25,20 +25,38 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOLightParticleEntity.h"
+#pragma once
+
+#include "OOLightParticleEntity.h"
 
 
-@interface OOFlashEffectEntity: OOLightParticleEntity
+/*	C++ only since bead oo-9ht.106 deleted its Objective-C facade (ADR-0056 amendments oo-9ht.107,
+	oo-9ht.23 and oo-9ht.106): the ship and the universe call the factories and hand the flash to
+	Objective-C with oo::NewEntityFacade, whose object is the root Entity's facade.
+*/
+class OOFlashEffectEntity : public OOLightParticleEntity
 {
-@private
-	float				_duration;
-	float				_growthRate;
-	float				_alpha;
-}
+public:
+	// +explosionFlashFromEntity: and +laserFlashWithPosition:velocity:color:: a new flash,
+	// initialised. Callers hand it to Objective-C with oo::NewEntityFacade.
+	static oo::Ref<OOFlashEffectEntity> explosionFlashFromEntity(Entity *entity);	// the C++ entity (bead oo-al52f)
+	static oo::Ref<OOFlashEffectEntity> laserFlashWithPosition(HPVector position, Vector vel, OOColor *color);
 
-+ (instancetype) explosionFlashFromEntity:(Entity *)entity;
-+ (instancetype) laserFlashWithPosition:(HPVector)position velocity:(Vector)vel color:(OOColor *)color;
+	static void setUpTexture();
+	// Called by the texture's file-local graphics reset client.
+	static void resetGraphicsState();
 
-+ (void) setUpTexture;
+	void update(OOTimeDelta delta_t) override;
+	OOTexture *texture() override;
 
-@end
+private:
+	// The initialisers' bodies, run once right after construction (amendment oo-vl43 item 2).
+	void initExplosionFlashWithPosition(HPVector pos, Vector vel, float size);
+	void initLaserFlashWithPosition(HPVector pos, Vector vel, OOColor *color);
+	// Designated initializer.
+	void initWithPosition(HPVector pos, float size, OOColor *color, float duration);
+
+	float				_duration = {};
+	float				_growthRate = {};
+	float				_alpha = {};
+};

@@ -24,33 +24,40 @@ MA 02110-1301, USA.
 
 */
 
-#import <Foundation/Foundation.h>
-#include <jsapi.h>
-#import "OOMaths.h"
+#pragma once
+
+#include "OOCocoa.h"
+#include "ooscript/JSEngine.hpp"
+#include "OOMaths.h"
+#include "oofnd/StdLib.hpp"
 
 
-void InitOOJSVector(JSContext *context, JSObject *global);
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void InitOOJSVector(ooscript::Context context, ooscript::Object global);
 
 
-JSObject *JSVectorWithVector(JSContext *context, Vector vector)  NONNULL_FUNC;
-JSObject *JSVectorWithHPVector(JSContext *context, HPVector vector)  NONNULL_FUNC;
+ooscript::Object JSVectorWithVector(ooscript::Context context, Vector vector)  NONNULL_FUNC;
+ooscript::Object JSVectorWithHPVector(ooscript::Context context, HPVector vector)  NONNULL_FUNC;
 
-BOOL VectorToJSValue(JSContext *context, Vector vector, jsval *outValue)  NONNULL_FUNC;
-BOOL HPVectorToJSValue(JSContext *context, HPVector vector, jsval *outValue)  NONNULL_FUNC;
-BOOL NSPointToVectorJSValue(JSContext *context, NSPoint point, jsval *outValue)  NONNULL_FUNC;
-BOOL JSValueToVector(JSContext *context, jsval value, Vector *outVector)  NONNULL_FUNC;
-BOOL JSValueToHPVector(JSContext *context, jsval value, HPVector *outVector)  NONNULL_FUNC;
+bool VectorToJSValue(ooscript::Context context, Vector vector, ooscript::Value *outValue)  NONNULL_FUNC;
+bool HPVectorToJSValue(ooscript::Context context, HPVector vector, ooscript::Value *outValue)  NONNULL_FUNC;
+bool NSPointToVectorJSValue(ooscript::Context context, NSPoint point, ooscript::Value *outValue)  NONNULL_FUNC;
+bool JSValueToVector(ooscript::Context context, ooscript::Value value, Vector *outVector)  NONNULL_FUNC;
+bool JSValueToHPVector(ooscript::Context context, ooscript::Value value, HPVector *outVector)  NONNULL_FUNC;
 
 /*	Given a JS Vector object, get the corresponding Vector struct. Given a JS
 	Entity, get its position. Given a JS Array with exactly three elements,
 	all of them numbers, treat them as [x, y, z]  components. For anything
 	else, return NO. (Other implicit conversions may be added in future.)
 */
-BOOL JSObjectGetVector(JSContext *context, JSObject *vectorObj, HPVector *outVector)  GCC_ATTR((nonnull (1, 3)));
+bool JSObjectGetVector(ooscript::Context context, ooscript::Object vectorObj, HPVector *outVector)  GCC_ATTR((nonnull (1, 3)));
 
 //	Set the value of a JS vector object.
-BOOL JSVectorSetVector(JSContext *context, JSObject *vectorObj, Vector vector)  GCC_ATTR((nonnull (1)));
-BOOL JSVectorSetHPVector(JSContext *context, JSObject *vectorObj, HPVector vector)  GCC_ATTR((nonnull (1)));
+bool JSVectorSetVector(ooscript::Context context, ooscript::Object vectorObj, Vector vector)  GCC_ATTR((nonnull (1)));
+bool JSVectorSetHPVector(ooscript::Context context, ooscript::Object vectorObj, HPVector vector)  GCC_ATTR((nonnull (1)));
 
 
 /*	VectorFromArgumentList()
@@ -66,13 +73,31 @@ BOOL JSVectorSetHPVector(JSContext *context, JSObject *vectorObj, HPVector vecto
 	DEPRECATED in favour of JSObjectGetVector(), since the list-of-number form
 	is no longer used.
 */
-BOOL VectorFromArgumentList(JSContext *context, NSString *scriptClass, NSString *function, uintN argc, jsval *argv, HPVector *outVector, uintN *outConsumed)  GCC_ATTR((nonnull (1, 5, 6)));
+extern "C++" {	// C++ parameters (proposed ADR-0043, bead oo-yhle)
+bool VectorFromArgumentList(ooscript::Context context, const std::string &scriptClass, const std::string &function, unsigned argc, ooscript::Value *argv, HPVector *outVector, unsigned *outConsumed)  GCC_ATTR((nonnull (1, 5, 6)));
+}
 
 /*	VectorFromArgumentListNoError()
 	
 	Like VectorFromArgumentList(), but does not report an error on failure.
 */
-BOOL VectorFromArgumentListNoError(JSContext *context, uintN argc, jsval *argv, HPVector *outVector, uintN *outConsumed)  GCC_ATTR((nonnull (1, 3, 4)));
+bool VectorFromArgumentListNoError(ooscript::Context context, unsigned argc, ooscript::Value *argv, HPVector *outVector, unsigned *outConsumed)  GCC_ATTR((nonnull (1, 3, 4)));
 
+
+#ifdef __cplusplus
+}
+#endif
+
+
+#if OO_DEBUG
+#include "oofnd/PList.hpp"
+
+/*	The vector-conversion statistics the debug console reads with
+	PS.callObjC("reportJSVectorStatistics"): the C++ PlayerEntity's static members of the same
+	names forward here, reached by callObjC's name table (bead oo-9ht.15).
+*/
+oo::PList reportJSVectorStatistics(void);
+void clearJSVectorStatistics(void);
+#endif
 
 

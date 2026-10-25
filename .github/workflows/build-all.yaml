@@ -49,9 +49,8 @@ jobs:
       - name: Build GNUstep
         run: |
           ShellScripts/Linux/build_gnustep.sh system
-      - name: Install Mozilla static library
+      - name: Configure library path
         run: |
-          ShellScripts/Linux/install_mozilla_js.sh system
           echo "/usr/local/lib" | tee -a /etc/ld.so.conf
           ldconfig
       - name: Build Oolite

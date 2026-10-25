@@ -4,6 +4,10 @@ OOMusicController.h
 
 Singleton controller for music playback.
 
+C++20 since bead oo-lfkq (proposed ADR-0056, the Audio module: amendment oo-2en; a singleton:
+amendment oo-r7m0). Its Objective-C facade was deleted by bead oo-9ht.90, and the class left
+namespace cxx.
+
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -25,10 +29,17 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOCocoa.h"
-#import "OOSoundSource.h"
+#ifndef OOMUSICCONTROLLER_H
+#define OOMUSICCONTROLLER_H
 
-@class OOMusic;
+#include "OOCocoa.h"
+#include "oofnd/objc/OOObject.h"
+#include "OOSoundSource.h"
+
+#include "oofnd/StdLib.hpp"
+#include "oofnd/Ref.hpp"
+
+#include "OOALMusic.h"
 
 
 #define OOLITE_ITUNES_SUPPORT OOLITE_MAC_OS_X
@@ -48,43 +59,54 @@ typedef enum
 } OOMusicMode;
 
 
-@interface OOMusicController: NSObject
+class OOMusicController : public oo::RefCounted
 {
-@private
-	OOMusicMode				_mode;
-	NSString				*_missionMusic;
-	OOMusic					*_current;
-	uint8_t					_special;
-}
+public:
+	/*	Was +sharedController (amendment oo-r7m0 item 1): the one controller, made on first use and
+		never released; borrowed.
+	*/
+	static OOMusicController *sharedController();
 
-+ (OOMusicController *) sharedController;
+	OOMusicController();	// was -init
 
-- (void) playMusicNamed:(NSString *)name loop:(BOOL)loop;
-- (void) playMusicNamed:(NSString *)name loop:(BOOL)loop gain:(float)gain;
+	void playMusicNamed(const std::string &name, bool loop);
+	void playMusicNamed(const std::string &name, bool loop, float gain);
 
-- (void) playThemeMusic;
-- (void) playDockingMusic;
-- (void) playDockedMusic;
+	void playThemeMusic();
+	void playDockingMusic();
+	void playDockedMusic();
 
-- (void) setMissionMusic:(NSString *)missionMusicName;
-- (void) playMissionMusic;
+	void setMissionMusic(const std::optional<std::string> &missionMusicName);	// was -cxx_setMissionMusic:; nullopt: none
+	void playMissionMusic();
 
-- (void) justStop;
-- (void) stop;
-- (void) stopMusicNamed:(NSString *)name;	// Stop only if name == playingMusic
-- (void) stopThemeMusic;
-- (void) stopDockingMusic;
-- (void) stopMissionMusic;
+	void justStop();
+	void stop();
+	void stopMusicNamed(const std::string &name);	// Stop only if name == playingMusic
+	void stopThemeMusic();
+	void stopDockingMusic();
+	void stopMissionMusic();
 
-- (void) toggleDockingMusic;	// Start docking music if none playing, stop docking music if currently playing docking music.
+	void toggleDockingMusic();	// Start docking music if none playing, stop docking music if currently playing docking music.
 
-- (OOSoundSource *) soundSource;
+	::OOSoundSource *soundSource();	// C++ since bead oo-9ht.88
 
-- (NSString *) playingMusic;
-- (BOOL) isPlaying;
+	std::optional<std::string> playingMusic();	// nullopt: nothing playing
+	bool isPlaying();
 
-- (OOMusicMode) mode;
-- (void) setMode:(OOMusicMode)mode;
+	OOMusicMode mode();
+	void setMode(OOMusicMode mode);
+
+private:
+	// The private category (the iTunes integration, Mac only).
+	void playiTunesPlaylist(const char *playlistName);
+	void pauseiTunes();
+
+	OOMusicMode				_mode = {};
+	std::optional<std::string>	_missionMusic;
+	oo::Ref<OOMusic>		_current;
+	uint8_t					_special = {};
+};
 
 
-@end
+
+#endif	// OOMUSICCONTROLLER_H

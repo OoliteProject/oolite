@@ -23,11 +23,23 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOLightParticleEntity.h"
+#pragma once
+
+#include "OOLightParticleEntity.h"
 
 
-@interface OOPlasmaBurstEntity: OOLightParticleEntity
+/*	A converted leaf (amendment oo-bj8 item 12): global, over OOLightParticleEntity, with no
+	facade of its own. Unconverted code makes one with burstWithPosition() and hands it to
+	Objective-C with oo::NewEntityFacade, whose object is an OOLightParticleEntity.
+*/
+class OOPlasmaBurstEntity : public OOLightParticleEntity
+{
+public:
+	// [[OOPlasmaBurstEntity alloc] initWithPosition:]: a new burst, initialised.
+	static oo::Ref<OOPlasmaBurstEntity> burstWithPosition(HPVector position);
 
-- (id) initWithPosition:(HPVector)position;
+	// -initWithPosition:'s body, run once right after construction (amendment oo-vl43 item 2).
+	void initWithPosition(HPVector position);
 
-@end
+	void update(OOTimeDelta delta_t) override;
+};

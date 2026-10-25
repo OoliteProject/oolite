@@ -24,18 +24,29 @@ MA 02110-1301, USA.
 
 */
 
-#import <Foundation/Foundation.h>
-#include <jsapi.h>
+#pragma once
 
-@class WormholeEntity;
+#include "OOCocoa.h"
+#include "ooscript/JSEngine.hpp"
+class WormholeEntity;	// C++ since bead oo-9ht.112
 
 
-void InitOOJSWormhole(JSContext *context, JSObject *global);
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-@interface WormholeEntity (OOJavaScriptExtensions)
+void InitOOJSWormhole(ooscript::Context context, ooscript::Object global);
 
-- (void)getJSClass:(JSClass **)outClass andPrototype:(JSObject **)outPrototype;
-- (NSString *) oo_jsClassName;
-- (BOOL) isVisibleToScripts;
+#ifdef __cplusplus
+}
+#endif
 
-@end
+
+/*	The bodies of WormholeEntity (OOJavaScriptExtensions), which the engine reaches by selector. Its
+	methods are one-line forwarders to these on the WormholeEntity facade, in
+	WormholeEntity+ObjCBridge.mm (bead oo-9ht.43), until that facade goes (oo-9ht.112; proposed
+	ADR-0056 amendments oo-ppc, oo-ykoy and oo-6ia4).
+*/
+void OOJSWormholeGetJSClass(ooscript::ClassDef **outClass, ooscript::Object *outPrototype);
+std::optional<std::string> OOJSWormholeJSClassName(void);
+bool OOJSWormholeIsVisibleToScripts(void);

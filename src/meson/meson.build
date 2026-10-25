@@ -28,24 +28,6 @@ add_project_arguments(
     '-DGNUSTEP_BASE_LIBRARY=1',
     language: c_family,
 )
-add_project_arguments(
-    '-fexceptions',
-    '-fobjc-exceptions',
-    language: 'objc',
-)
-
-if ccid == 'clang'
-    add_project_arguments(
-        '-DGNUSTEP_RUNTIME=1',
-        '-D_NONFRAGILE_ABI=1',
-        '-fobjc-runtime=gnustep-2.2',
-        '-fblocks',
-        language: 'objc',
-    )
-else
-    add_project_arguments(
-        '-DGNU_RUNTIME=1',
-        '-fconstant-string-class=NSConstantString',
-        language: 'objc',
-    )
-endif
+# The Objective-C and Objective-C++ arguments (the libobjc2 runtime ABI, Objective-C exceptions,
+# blocks) went with the languages, bead oo-dbz.5: every game unit is C++, which has exceptions by
+# default.

@@ -27,7 +27,9 @@ SOFTWARE.
 
 */
 
-#import "OOPixMap.h"
+#pragma once
+
+#include "OOPixMap.h"
 
 
 /*	OOExtractPixMapChannel()
@@ -40,14 +42,14 @@ SOFTWARE.
 	pixmap, a pixmap whose channel count is not 4, or a channel index greater
 	than 3.
 */
-BOOL OOExtractPixMapChannel(OOPixMap *ioPixMap, uint8_t channelIndex, BOOL compactWhenDone);
+bool OOExtractPixMapChannel(OOPixMap *ioPixMap, uint8_t channelIndex, bool compactWhenDone);
 
 
 /*	OOPixMapToRGBA()
 	Convert a pixmap to RGBA format.
 	NOTE: if successful, this will free() the original buffer and replace it.
 */
-BOOL OOPixMapToRGBA(OOPixMap *ioPixMap);
+bool OOPixMapToRGBA(OOPixMap *ioPixMap);
 
 
 /*	OOPixMapModulateUniform()
@@ -56,7 +58,7 @@ BOOL OOPixMapToRGBA(OOPixMap *ioPixMap);
 	undefined.
 	OOPixMapToRGBA() is called on ioPixMap.
 */
-BOOL OOPixMapModulateUniform(OOPixMap *ioPixMap, float f0, float f1, float f2, float f3);
+bool OOPixMapModulateUniform(OOPixMap *ioPixMap, float f0, float f1, float f2, float f3);
 
 
 /*	OOPixMapModulatePixMap()
@@ -64,7 +66,7 @@ BOOL OOPixMapModulateUniform(OOPixMap *ioPixMap, float f0, float f1, float f2, f
 	writing the result to ioDstPixMap.
 	OOPixMapToRGBA() is called on ioDstPixMap; otherPixMap must be RGBA.
 */
-BOOL OOPixMapModulatePixMap(OOPixMap *ioDstPixMap, OOPixMap otherPixMap);
+bool OOPixMapModulatePixMap(OOPixMap *ioDstPixMap, OOPixMap otherPixMap);
 
 
 /*	OOPixMapAddPixMap()
@@ -72,4 +74,4 @@ BOOL OOPixMapModulatePixMap(OOPixMap *ioDstPixMap, OOPixMap otherPixMap);
 	writing the result to ioDstPixMap.
 	OOPixMapToRGBA() is called on ioDstPixMap; otherPixMap must be RGBA.
 */
-BOOL OOPixMapAddPixMap(OOPixMap *ioDstPixMap, OOPixMap otherPixMap);
+bool OOPixMapAddPixMap(OOPixMap *ioDstPixMap, OOPixMap otherPixMap);

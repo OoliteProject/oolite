@@ -105,9 +105,30 @@ run_script() {
     fi
 
     if [[ "$host_os" == "windows" ]]; then
-        # Determine and copy DLL dependencies
+        # Determine and copy DLL dependencies, walking the transitive closure:
+        # a newly-copied DLL may itself depend on other MINGW_PREFIX DLLs that
+        # are not direct dependencies of the binary (e.g. libtre-5.dll pulls in
+        # libsystre-0.dll). Repeat ldd over newly-staged DLLs until a fixed
+        # point is reached (no new DLL gets copied in a pass).
         local unix_prefix=$(cygpath -u "$MINGW_PREFIX")
-        ldd "$progpath" | grep "$unix_prefix" | awk '{print $3}' | xargs -I {} cp -rfu {} "$progdir"
+        local -A staged_dlls=()
+        local pending=("$progpath")
+        while [[ ${#pending[@]} -gt 0 ]]; do
+            local next_pending=()
+            local dep
+            for dep_target in "${pending[@]}"; do
+                while IFS= read -r dep; do
+                    [[ -z "$dep" ]] && continue
+                    local depname=$(basename "$dep")
+                    if [[ -z "${staged_dlls[$depname]+x}" ]]; then
+                        staged_dlls[$depname]=1
+                        cp -rfu "$dep" "$progdir"
+                        next_pending+=("$progdir/$depname")
+                    fi
+                done < <(ldd "$dep_target" | grep "$unix_prefix" | awk '{print $3}')
+            done
+            pending=("${next_pending[@]}")
+        done
     else
         # Copy Linux-specific wrapper script
         cp -fu ShellScripts/Linux/run_oolite.sh "$progdir"

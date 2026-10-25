@@ -26,151 +26,168 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOJavaScriptEngine.h"
+/*	Plain includes (bead oo-9ht.64): this header and OOConstToJSString's translation unit are C++,
+	not Objective-C. The script engine facade, OOINLINE, NSInteger/NSUInteger and the constant
+	enumerations are all the inlines below need.
+*/
+#pragma once
+
+#include "ooscript/JSEngine.hpp"
+#include "OOFunctionAttributes.h"
+#include "OOTypes.h"
+#include "OOEntityEnums.h"
 
 
-void OOConstToJSStringInit(JSContext *context);
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void OOConstToJSStringInit(ooscript::Context context);
 void OOConstToJSStringDestroy(void);
 
 struct ConstTable;
 
 
 // Private functions, don't use directly.
-JSString *OOJSStringFromConstantPRIVATE(JSContext *context, NSInteger value, struct ConstTable *table);
-NSUInteger OOConstantFromJSStringPRIVATE(JSContext *context, JSString *string, struct ConstTable *table, NSInteger defaultValue);
-NSUInteger OOConstantFromJSValuePRIVATE(JSContext *context, jsval value, struct ConstTable *table, NSInteger defaultValue);
+ooscript::String OOJSStringFromConstantPRIVATE(ooscript::Context context, NSInteger value, struct ConstTable *table);
+NSUInteger OOConstantFromJSStringPRIVATE(ooscript::Context context, ooscript::String string, struct ConstTable *table, NSInteger defaultValue);
+NSUInteger OOConstantFromJSValuePRIVATE(ooscript::Context context, ooscript::Value value, struct ConstTable *table, NSInteger defaultValue);
+
+#ifdef __cplusplus
+}
+#endif
 
 
-/*	JSString *OOJSStringFromEntityStatus(JSContext *, OOEntityStatus)
-	jsval OOJSValueFromEntityStatus(JSContext *, OOEntityStatus)
-	OOEntityStatus OOEntityStatusFromJSString(JSContext *, JSString *)
-	OOEntityStatus OOEntityStatusFromJSValue(JSContext *, jsval)
+/*	ooscript::String OOJSStringFromEntityStatus(ooscript::Context, OOEntityStatus)
+	ooscript::Value OOJSValueFromEntityStatus(ooscript::Context, OOEntityStatus)
+	OOEntityStatus OOEntityStatusFromJSString(ooscript::Context, ooscript::String)
+	OOEntityStatus OOEntityStatusFromJSValue(ooscript::Context, ooscript::Value)
 	
 	Convert between JavaScript strings and OOEntityStatus.
 */
-OOINLINE JSString *OOJSStringFromEntityStatus(JSContext *context, OOEntityStatus value)
+OOINLINE ooscript::String OOJSStringFromEntityStatus(ooscript::Context context, OOEntityStatus value)
 {
 	extern struct ConstTable gOOEntityStatusConstTable;
 	return OOJSStringFromConstantPRIVATE(context, value, &gOOEntityStatusConstTable);
 }
 
 
-OOINLINE jsval OOJSValueFromEntityStatus(JSContext *context, OOEntityStatus value)
+OOINLINE ooscript::Value OOJSValueFromEntityStatus(ooscript::Context context, OOEntityStatus value)
 {
-	return STRING_TO_JSVAL(OOJSStringFromEntityStatus(context, value));
+	return ooscript::stringValue(OOJSStringFromEntityStatus(context, value));
 }
 
 
-OOINLINE OOEntityStatus OOEntityStatusFromJSString(JSContext *context, JSString *string)
+OOINLINE OOEntityStatus OOEntityStatusFromJSString(ooscript::Context context, ooscript::String string)
 {
 	extern struct ConstTable gOOEntityStatusConstTable;
 	return (OOEntityStatus)OOConstantFromJSStringPRIVATE(context, string, &gOOEntityStatusConstTable, kOOEntityStatusDefault);
 }
 
 
-OOINLINE OOEntityStatus OOEntityStatusFromJSValue(JSContext *context, jsval value)
+OOINLINE OOEntityStatus OOEntityStatusFromJSValue(ooscript::Context context, ooscript::Value value)
 {
 	extern struct ConstTable gOOEntityStatusConstTable;
 	return (OOEntityStatus)OOConstantFromJSValuePRIVATE(context, value, &gOOEntityStatusConstTable, kOOEntityStatusDefault);
 }
 
 
-/*	JSString *OOJSStringFromScanClass(JSContext *, OOScanClass)
-	jsval OOJSValueFromScanClass(JSContext *, OOScanClass)
-	OOScanClass OOScanClassFromJSString(JSContext *, JSString *)
-	OOScanClass OOScanClassFromJSValue(JSContext *, jsval)
+/*	ooscript::String OOJSStringFromScanClass(ooscript::Context, OOScanClass)
+	ooscript::Value OOJSValueFromScanClass(ooscript::Context, OOScanClass)
+	OOScanClass OOScanClassFromJSString(ooscript::Context, ooscript::String)
+	OOScanClass OOScanClassFromJSValue(ooscript::Context, ooscript::Value)
 	
 	Convert between JavaScript strings and OOScanClass.
 */
-OOINLINE JSString *OOJSStringFromScanClass(JSContext *context, OOScanClass value)
+OOINLINE ooscript::String OOJSStringFromScanClass(ooscript::Context context, OOScanClass value)
 {
 	extern struct ConstTable gOOScanClassConstTable;
 	return OOJSStringFromConstantPRIVATE(context, value, &gOOScanClassConstTable);
 }
 
 
-OOINLINE jsval OOJSValueFromScanClass(JSContext *context, OOScanClass value)
+OOINLINE ooscript::Value OOJSValueFromScanClass(ooscript::Context context, OOScanClass value)
 {
-	return STRING_TO_JSVAL(OOJSStringFromScanClass(context, value));
+	return ooscript::stringValue(OOJSStringFromScanClass(context, value));
 }
 
 
-OOINLINE OOScanClass OOScanClassFromJSString(JSContext *context, JSString *string)
+OOINLINE OOScanClass OOScanClassFromJSString(ooscript::Context context, ooscript::String string)
 {
 	extern struct ConstTable gOOScanClassConstTable;
 	return (OOScanClass)OOConstantFromJSStringPRIVATE(context, string, &gOOScanClassConstTable, kOOScanClassDefault);
 }
 
 
-OOINLINE OOScanClass OOScanClassFromJSValue(JSContext *context, jsval value)
+OOINLINE OOScanClass OOScanClassFromJSValue(ooscript::Context context, ooscript::Value value)
 {
 	extern struct ConstTable gOOScanClassConstTable;
 	return (OOScanClass)OOConstantFromJSValuePRIVATE(context, value, &gOOScanClassConstTable, kOOScanClassDefault);
 }
 
 
-/*	JSString *OOJSStringFromCompassMode(JSContext *, OOCompassMode)
-	jsval OOJSValueFromCompassMode(JSContext *, OOCompassMode)
-	OOCompassMode OOCompassModeFromJSString(JSContext *, JSString *)
-	OOCompassMode OOCompassModeFromJSValue(JSContext *, jsval)
+/*	ooscript::String OOJSStringFromCompassMode(ooscript::Context, OOCompassMode)
+	ooscript::Value OOJSValueFromCompassMode(ooscript::Context, OOCompassMode)
+	OOCompassMode OOCompassModeFromJSString(ooscript::Context, ooscript::String)
+	OOCompassMode OOCompassModeFromJSValue(ooscript::Context, ooscript::Value)
 	
 	Convert between JavaScript strings and OOCompassMode.
 */
-OOINLINE JSString *OOJSStringFromCompassMode(JSContext *context, OOCompassMode value)
+OOINLINE ooscript::String OOJSStringFromCompassMode(ooscript::Context context, OOCompassMode value)
 {
 	extern struct ConstTable gOOCompassModeConstTable;
 	return OOJSStringFromConstantPRIVATE(context, value, &gOOCompassModeConstTable);
 }
 
 
-OOINLINE jsval OOJSValueFromCompassMode(JSContext *context, OOCompassMode value)
+OOINLINE ooscript::Value OOJSValueFromCompassMode(ooscript::Context context, OOCompassMode value)
 {
-	return STRING_TO_JSVAL(OOJSStringFromCompassMode(context, value));
+	return ooscript::stringValue(OOJSStringFromCompassMode(context, value));
 }
 
 
-OOINLINE OOCompassMode OOCompassModeFromJSString(JSContext *context, JSString *string)
+OOINLINE OOCompassMode OOCompassModeFromJSString(ooscript::Context context, ooscript::String string)
 {
 	extern struct ConstTable gOOCompassModeConstTable;
 	return (OOCompassMode)OOConstantFromJSStringPRIVATE(context, string, &gOOCompassModeConstTable, kOOCompassModeDefault);
 }
 
 
-OOINLINE OOCompassMode OOCompassModeFromJSValue(JSContext *context, jsval value)
+OOINLINE OOCompassMode OOCompassModeFromJSValue(ooscript::Context context, ooscript::Value value)
 {
 	extern struct ConstTable gOOCompassModeConstTable;
 	return (OOCompassMode)OOConstantFromJSValuePRIVATE(context, value, &gOOCompassModeConstTable, kOOCompassModeDefault);
 }
 
 
-/*	JSString *OOJSStringFromGUIScreenID(JSContext *, OOGUIScreenID)
-	jsval OOJSValueFromGUIScreenID(JSContext *, OOGUIScreenID)
-	OOGUIScreenID OOGUIScreenIDFromJSString(JSContext *, JSString *)
-	OOGUIScreenID OOGUIScreenIDFromJSValue(JSContext *, jsval)
+/*	ooscript::String OOJSStringFromGUIScreenID(ooscript::Context, OOGUIScreenID)
+	ooscript::Value OOJSValueFromGUIScreenID(ooscript::Context, OOGUIScreenID)
+	OOGUIScreenID OOGUIScreenIDFromJSString(ooscript::Context, ooscript::String)
+	OOGUIScreenID OOGUIScreenIDFromJSValue(ooscript::Context, ooscript::Value)
 	
 	Convert between JavaScript strings and OOGUIScreenID.
 */
-OOINLINE JSString *OOJSStringFromGUIScreenID(JSContext *context, OOGUIScreenID value)
+OOINLINE ooscript::String OOJSStringFromGUIScreenID(ooscript::Context context, OOGUIScreenID value)
 {
 	extern struct ConstTable gOOGUIScreenIDConstTable;
 	return OOJSStringFromConstantPRIVATE(context, value, &gOOGUIScreenIDConstTable);
 }
 
 
-OOINLINE jsval OOJSValueFromGUIScreenID(JSContext *context, OOGUIScreenID value)
+OOINLINE ooscript::Value OOJSValueFromGUIScreenID(ooscript::Context context, OOGUIScreenID value)
 {
-	return STRING_TO_JSVAL(OOJSStringFromGUIScreenID(context, value));
+	return ooscript::stringValue(OOJSStringFromGUIScreenID(context, value));
 }
 
 
-OOINLINE OOGUIScreenID OOGUIScreenIDFromJSString(JSContext *context, JSString *string)
+OOINLINE OOGUIScreenID OOGUIScreenIDFromJSString(ooscript::Context context, ooscript::String string)
 {
 	extern struct ConstTable gOOGUIScreenIDConstTable;
 	return (OOGUIScreenID)OOConstantFromJSStringPRIVATE(context, string, &gOOGUIScreenIDConstTable, kOOGUIScreenIDDefault);
 }
 
 
-OOINLINE OOGUIScreenID OOGUIScreenIDFromJSValue(JSContext *context, jsval value)
+OOINLINE OOGUIScreenID OOGUIScreenIDFromJSValue(ooscript::Context context, ooscript::Value value)
 {
 	extern struct ConstTable gOOGUIScreenIDConstTable;
 	return (OOGUIScreenID)OOConstantFromJSValuePRIVATE(context, value, &gOOGUIScreenIDConstTable, kOOGUIScreenIDDefault);
@@ -178,34 +195,34 @@ OOINLINE OOGUIScreenID OOGUIScreenIDFromJSValue(JSContext *context, jsval value)
 
 
 
-/*	JSString *OOJSStringFromGalacticHyperspaceBehaviour(JSContext *, OOGalacticHyperspaceBehaviour)
-	jsval OOJSValueFromGalacticHyperspaceBehaviour(JSContext *, OOGalacticHyperspaceBehaviour)
-	OOGalacticHyperspaceBehaviour OOGalacticHyperspaceBehaviourFromJSString(JSContext *, JSString *)
-	OOGalacticHyperspaceBehaviour OOGalacticHyperspaceBehaviourFromJSValue(JSContext *, jsval)
+/*	ooscript::String OOJSStringFromGalacticHyperspaceBehaviour(ooscript::Context, OOGalacticHyperspaceBehaviour)
+	ooscript::Value OOJSValueFromGalacticHyperspaceBehaviour(ooscript::Context, OOGalacticHyperspaceBehaviour)
+	OOGalacticHyperspaceBehaviour OOGalacticHyperspaceBehaviourFromJSString(ooscript::Context, ooscript::String)
+	OOGalacticHyperspaceBehaviour OOGalacticHyperspaceBehaviourFromJSValue(ooscript::Context, ooscript::Value)
 	
 	Convert between JavaScript strings and OOGalacticHyperspaceBehaviour.
 */
-OOINLINE JSString *OOJSStringFromGalacticHyperspaceBehaviour(JSContext *context, OOGalacticHyperspaceBehaviour value)
+OOINLINE ooscript::String OOJSStringFromGalacticHyperspaceBehaviour(ooscript::Context context, OOGalacticHyperspaceBehaviour value)
 {
 	extern struct ConstTable gOOGalacticHyperspaceBehaviourConstTable;
 	return OOJSStringFromConstantPRIVATE(context, value, &gOOGalacticHyperspaceBehaviourConstTable);
 }
 
 
-OOINLINE jsval OOJSValueFromGalacticHyperspaceBehaviour(JSContext *context, OOGalacticHyperspaceBehaviour value)
+OOINLINE ooscript::Value OOJSValueFromGalacticHyperspaceBehaviour(ooscript::Context context, OOGalacticHyperspaceBehaviour value)
 {
-	return STRING_TO_JSVAL(OOJSStringFromGalacticHyperspaceBehaviour(context, value));
+	return ooscript::stringValue(OOJSStringFromGalacticHyperspaceBehaviour(context, value));
 }
 
 
-OOINLINE OOGalacticHyperspaceBehaviour OOGalacticHyperspaceBehaviourFromJSString(JSContext *context, JSString *string)
+OOINLINE OOGalacticHyperspaceBehaviour OOGalacticHyperspaceBehaviourFromJSString(ooscript::Context context, ooscript::String string)
 {
 	extern struct ConstTable gOOGalacticHyperspaceBehaviourConstTable;
 	return (OOGalacticHyperspaceBehaviour)OOConstantFromJSStringPRIVATE(context, string, &gOOGalacticHyperspaceBehaviourConstTable, kOOGalacticHyperspaceBehaviourDefault);
 }
 
 
-OOINLINE OOGalacticHyperspaceBehaviour OOGalacticHyperspaceBehaviourFromJSValue(JSContext *context, jsval value)
+OOINLINE OOGalacticHyperspaceBehaviour OOGalacticHyperspaceBehaviourFromJSValue(ooscript::Context context, ooscript::Value value)
 {
 	extern struct ConstTable gOOGalacticHyperspaceBehaviourConstTable;
 	return (OOGalacticHyperspaceBehaviour)OOConstantFromJSValuePRIVATE(context, value, &gOOGalacticHyperspaceBehaviourConstTable, kOOGalacticHyperspaceBehaviourDefault);
@@ -213,34 +230,34 @@ OOINLINE OOGalacticHyperspaceBehaviour OOGalacticHyperspaceBehaviourFromJSValue(
 
 
 
-/*	JSString *OOJSStringFromViewID(JSContext *, OOViewID)
-	jsval OOJSValueFromViewID(JSContext *, OOViewID)
-	OOViewID OOViewIDFromJSString(JSContext *, JSString *)
-	OOViewID OOViewIDFromJSValue(JSContext *, jsval)
+/*	ooscript::String OOJSStringFromViewID(ooscript::Context, OOViewID)
+	ooscript::Value OOJSValueFromViewID(ooscript::Context, OOViewID)
+	OOViewID OOViewIDFromJSString(ooscript::Context, ooscript::String)
+	OOViewID OOViewIDFromJSValue(ooscript::Context, ooscript::Value)
 	
 	Convert between JavaScript strings and OOViewID.
 */
-OOINLINE JSString *OOJSStringFromViewID(JSContext *context, OOViewID value)
+OOINLINE ooscript::String OOJSStringFromViewID(ooscript::Context context, OOViewID value)
 {
 	extern struct ConstTable gOOViewIDConstTable;
 	return OOJSStringFromConstantPRIVATE(context, value, &gOOViewIDConstTable);
 }
 
 
-OOINLINE jsval OOJSValueFromViewID(JSContext *context, OOViewID value)
+OOINLINE ooscript::Value OOJSValueFromViewID(ooscript::Context context, OOViewID value)
 {
-	return STRING_TO_JSVAL(OOJSStringFromViewID(context, value));
+	return ooscript::stringValue(OOJSStringFromViewID(context, value));
 }
 
 
-OOINLINE OOViewID OOViewIDFromJSString(JSContext *context, JSString *string)
+OOINLINE OOViewID OOViewIDFromJSString(ooscript::Context context, ooscript::String string)
 {
 	extern struct ConstTable gOOViewIDConstTable;
 	return (OOViewID)OOConstantFromJSStringPRIVATE(context, string, &gOOViewIDConstTable, kOOViewIDDefault);
 }
 
 
-OOINLINE OOViewID OOViewIDFromJSValue(JSContext *context, jsval value)
+OOINLINE OOViewID OOViewIDFromJSValue(ooscript::Context context, ooscript::Value value)
 {
 	extern struct ConstTable gOOViewIDConstTable;
 	return (OOViewID)OOConstantFromJSValuePRIVATE(context, value, &gOOViewIDConstTable, kOOViewIDDefault);
@@ -248,33 +265,33 @@ OOINLINE OOViewID OOViewIDFromJSValue(JSContext *context, jsval value)
 
 
 
-/*	JSString *OOJSStringFromShipDamageType(JSContext *, OOShipDamageType)
-	jsval OOJSValueFromShipDamageType(JSContext *, OOShipDamageType)
+/*	ooscript::String OOJSStringFromShipDamageType(ooscript::Context, OOShipDamageType)
+	ooscript::Value OOJSValueFromShipDamageType(ooscript::Context, OOShipDamageType)
 	
 	Convert OOShipDamageType to JavaScript strings.
 */
-OOINLINE JSString *OOJSStringFromShipDamageType(JSContext *context, OOShipDamageType value)
+OOINLINE ooscript::String OOJSStringFromShipDamageType(ooscript::Context context, OOShipDamageType value)
 {
 	extern struct ConstTable gOOShipDamageTypeConstTable;
 	return OOJSStringFromConstantPRIVATE(context, value, &gOOShipDamageTypeConstTable);
 }
 
 
-OOINLINE jsval OOJSValueFromShipDamageType(JSContext *context, OOShipDamageType value)
+OOINLINE ooscript::Value OOJSValueFromShipDamageType(ooscript::Context context, OOShipDamageType value)
 {
-	return STRING_TO_JSVAL(OOJSStringFromShipDamageType(context, value));
+	return ooscript::stringValue(OOJSStringFromShipDamageType(context, value));
 }
 
 
 
-OOINLINE JSString *OOJSStringFromLegalStatusReason(JSContext *context, OOLegalStatusReason value)
+OOINLINE ooscript::String OOJSStringFromLegalStatusReason(ooscript::Context context, OOLegalStatusReason value)
 {
 	extern struct ConstTable gOOLegalStatusReasonConstTable;
 	return OOJSStringFromConstantPRIVATE(context, value, &gOOLegalStatusReasonConstTable);
 }
 
 
-OOINLINE jsval OOJSValueFromLegalStatusReason(JSContext *context, OOLegalStatusReason value)
+OOINLINE ooscript::Value OOJSValueFromLegalStatusReason(ooscript::Context context, OOLegalStatusReason value)
 {
-	return STRING_TO_JSVAL(OOJSStringFromLegalStatusReason(context, value));
+	return ooscript::stringValue(OOJSStringFromLegalStatusReason(context, value));
 }

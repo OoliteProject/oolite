@@ -8,7 +8,6 @@ oolite_dependencies = [
     dependency('openal'),
     dependency('vorbisfile'),
     dependency('vorbis'),
-    dependency('nspr'),
     dependency('zlib'),
 ]
 
@@ -17,7 +16,42 @@ if get_option('espeak')
     add_project_arguments('-DHAVE_LIBESPEAK=1', language: c_family)
 endif
 
+# The JavaScript engine behind ooscript/JSEngine.hpp: the vendored QuickJS-ng, linked statically
+# (Phase 1; SpiderMonkey 1.8.5 and NSPR were removed by bead oo-7wx).
+# QuickJS-ng is part of the game binary, so it is held to the same golden flag policy as Oolite's own
+# code (meson.build; tests/golden/check_build_flags.py): its dtoa/number code produces floats that
+# land in the dumps. Its own project() defaults to buildtype=release (-O3). Passing only
+# buildtype=debugoptimized from the parent is NOT enough on current meson: the subproject still
+# emits an effective -O3 (measured 2026-09-27, oo-6ece; 10 TUs). Pass optimization=2 explicitly
+# so the last -O on each QuickJS compile line is the pinned level. b_ndebug=true keeps release
+# NDEBUG semantics. -ffp-contract=off reaches it through add_global_arguments in meson.build.
+# Bead oo-bipqn: QuickJS-ng adds dependency('threads') (-pthread) to its link line, and every target
+# that links it. The MinGW clang driver does not use -pthread when linking (cutils.h takes Win32
+# threads under _WIN32), so each link printed "argument unused during compilation: '-pthread'".
+# On Windows the threads dependency is the same compile flag without the unused link flag, so the
+# objects and the links are unchanged and the driver has nothing to report.
+if host_machine.system() == 'windows'
+    meson.override_dependency('threads', declare_dependency(compile_args: ['-pthread']))
+endif
+quickjs_ng_proj = subproject(
+    'quickjs-ng',
+    default_options: [
+        'default_library=static',
+        'buildtype=debugoptimized',
+        'optimization=2',
+        'b_ndebug=true',
+    ],
+)
+oolite_dependencies += [quickjs_ng_proj.get_variable('qjs_dep')]
+
 subdir('meson')
+subdir('oofnd')
+# Game sources include oofnd headers, which are C++20 (ADR-0011): the game builds as gnu++20.
+oolite_dependencies += [oofnd_dep]
+# oofnd/objc's support (OORaiseException, OOCAssert's failure path). The game linked libobjc2 alone
+# for its Objective-C floor (ADR-0029) from oo-qps.18 until bead oo-dbz.5: no unit is Objective-C.
+oolite_dependencies += [oofnd_objc_dep]
+oolite_override_options += ['cpp_std=gnu++20']
 subdir('Core')
 subdir('SDL')
 

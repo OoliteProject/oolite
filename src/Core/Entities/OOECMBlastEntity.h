@@ -4,6 +4,12 @@ OOECMBlastEntity.h
 
 Invisible entity which radiates ECM blast energy.
 
+C++20 since bead oo-ryhi, a leaf of the Entities seam (proposed ADR-0056, amendment oo-bj8 item
+12). A global class over Entity, with no facade: nothing messages it by its own selectors.
+ShipEntity's -fireECM makes it with initFromShip() and hands the universe the Entity facade
+oo::NewEntityFacade makes, which is its Objective-C object from then on. The category of Entity
+the header declared, -isECMBlast, which nothing sent, went with its bridge (bead oo-9ht.75): ask
+the C++ part, dynamic_cast<OOECMBlastEntity *>(...)->isECMBlast().
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -25,27 +31,28 @@ MA 02110-1301, USA.
 
 */
 
-#import "Entity.h"
+#pragma once
 
-@class ShipEntity;
+#include "Entity.h"
+
+class ShipEntity;	// C++ since bead oo-9ht.144
 
 
-@interface OOECMBlastEntity: Entity
+class OOECMBlastEntity : public Entity
 {
-@private
-	OOTimeDelta			_nextBlast;
-	uint8_t		_blastsRemaining;
-	OOWeakReference		*_ship;
-}
+public:
+	// -initFromShip:, which answered nil for a nil ship: null then (amendment oo-novu item 1).
+	static oo::Ref<OOECMBlastEntity> initFromShip(ShipEntity *ship);
 
+	void update(OOTimeDelta delta_t) override;
+	void drawImmediate(bool immediate, bool translucent) override;
 
-- (id) initFromShip:(ShipEntity *)ship;
+	bool isECMBlast();
 
-@end
+private:
+	explicit OOECMBlastEntity(ShipEntity *ship);
 
-
-@interface Entity (OOECMBlastEntity)
-
-- (BOOL) isECMBlast;
-
-@end
+	OOTimeDelta			_nextBlast = {};
+	uint8_t		_blastsRemaining = {};
+	oo::WeakRef<Entity>	_ship;	// the ship's C++ part (bead oo-9ht.39.5.2; was its object's weak reference, never released)
+};

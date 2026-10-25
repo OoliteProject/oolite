@@ -6,7 +6,7 @@ Standards-Version: 3.8.0
 Build-Depends: debhelper (>= 5),
 	libsdl1.2-dev, libsdl-mixer1.2-dev, libespeak-dev,
 	libgnustep-base-dev, gnustep-core-devel,
-	libpng-dev, mesa-common-dev, libnspr4-dev,
+	libpng-dev, mesa-common-dev,
 	curl, zip, python
 Homepage: https://oolite.space/
 Vcs-Svn: https://github.com/OoliteProject/oolite.git

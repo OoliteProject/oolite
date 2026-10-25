@@ -29,6 +29,8 @@ MA 02110-1301, USA.
 
 */
 
+#pragma once
+
 #if OOLITE_MAC_OS_X && !defined(OOLITE_NO_CGL_MACRO)
 
 #if MAC_OS_X_VERSION_10_4 <= MAC_OS_X_VERSION_MAX_ALLOWED

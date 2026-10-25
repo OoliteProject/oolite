@@ -28,10 +28,18 @@ MA 02110-1301, USA.
 
 */
 
-#import "PlayerEntity.h"
-#import "GuiDisplayGen.h"
-#import "MyOpenGLView.h"
-#import "Universe.h"
+#pragma once
+
+#include "PlayerEntity.h"
+
+/*	Beads oo-xmvt, oo-rczn (ADR-0056 amendment oo-lmdi8): the category PlayerEntity (LoadSave) is members of
+	PlayerEntity, declared in PlayerEntity.h and defined in PlayerEntityLoadSave.mm. Its Objective-C interface,
+	for the callers that remained, was the category of the same name in PlayerEntity+ObjCBridge.h (deleted by bead oo-9ht.177),
+	which PlayerEntity.h imports. This header stays for the files that import it.
+*/
+#include "GuiDisplayGen.h"
+#include "MyOpenGLView.h"
+#include "Universe.h"
 
 #define EXITROW 1
 #define LABELROW 2
@@ -48,49 +56,14 @@ MA 02110-1301, USA.
 #define SAVE_OVERWRITE_NO_ROW	9
 
 
-// Set to 1 to use custom load/save dialogs in windowed mode on Macs in debug builds. No effect on other platforms.
-#define USE_CUSTOM_LOAD_SAVE_ON_MAC_DEBUG		0
-
-// OOLITE_USE_APPKIT_LOAD_SAVE is true if we ever want AppKit dialogs.
-#define OOLITE_USE_APPKIT_LOAD_SAVE				(OOLITE_MAC_OS_X && !USE_CUSTOM_LOAD_SAVE_ON_MAC_DEBUG)
-
-// Mac 64-bit builds: never use custom load/save dialogs.
-#define OO_USE_APPKIT_LOAD_SAVE_ALWAYS			(OOLITE_USE_APPKIT_LOAD_SAVE && OOLITE_64_BIT)
-
-// OO_USE_CUSTOM_LOAD_SAVE is true if we will ever want custom dialogs.
-#define OO_USE_CUSTOM_LOAD_SAVE					(!OO_USE_APPKIT_LOAD_SAVE_ALWAYS)
-
-
-@interface PlayerEntity (LoadSave)
-
-- (BOOL) loadPlayer;	// Returns NO on immediate failure, i.e. when using an OS X modal open panel which is cancelled.
-- (void) savePlayer;
-- (void) quicksavePlayer;
-- (void) autosavePlayer;
-
-- (void) setGuiToScenarioScreen:(int)page;
-- (void) addScenarioModel:(NSString *)shipKey;
-- (void) showScenarioDetails;
-- (BOOL) startScenario;
-
-
-#if OO_USE_CUSTOM_LOAD_SAVE
-
-// Interface for PlayerEntityControls
-- (NSString *) commanderSelector;
-- (void) saveCommanderInputHandler;
-- (void) overwriteCommanderInputHandler;
-
-#endif
-
-- (BOOL) loadPlayerFromFile:(NSString *)fileToOpen asNew:(BOOL)asNew;
-
-@end
+// The load / save macros (USE_CUSTOM_LOAD_SAVE_ON_MAC_DEBUG, OOLITE_USE_APPKIT_LOAD_SAVE,
+// OO_USE_APPKIT_LOAD_SAVE_ALWAYS, OO_USE_CUSTOM_LOAD_SAVE) are in PlayerEntity.h, whose member
+// declarations of this file's categories they condition (ADR-0056 amendment oo-lmdi8).
 
 
 OOCreditsQuantity OODeciCreditsFromDouble(double doubleDeciCredits);
 
-/*	Object is either a floating-point NSNumber or something that can be duck-
-	typed to an integer using OOUnsignedLongLongFromObject().
+/*	Value is either a real or something that can be duck-typed to an integer as
+	oo::plist_get::unsignedLongLongFrom() reads it (nullptr: 0).
 */
-OOCreditsQuantity OODeciCreditsFromObject(id object);
+OOCreditsQuantity OODeciCreditsFromPList(const oo::PList *value);

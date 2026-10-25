@@ -95,8 +95,12 @@ void quaternion_rotate_about_axis(Quaternion *quat, Vector axis, OOScalar angle)
 /* Normalize quaternion */
 OOINLINE void quaternion_normalize(Quaternion *quat) NONNULL_FUNC ALWAYS_INLINE_FUNC;
 
-#if __OBJC__
-NSString *QuaternionDescription(Quaternion quaternion);	// @"(w + xi + yj + zk)"
+#ifdef __cplusplus
+/*	C++ only: OOMaths.h is included inside extern "C" (proposed ADR-0043, bead oo-dupk). */
+extern "C++" {
+#include "oofnd/StdLib.hpp"
+std::string QuaternionDescription(Quaternion quaternion);	// "(w + xi + yj + zk)"
+}
 #endif
 
 

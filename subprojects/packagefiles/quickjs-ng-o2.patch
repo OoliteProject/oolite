@@ -1,0 +1,19 @@
+--- a/meson.build
++++ b/meson.build
+@@ -3,10 +3,14 @@
+   'c',
+   version: '0.16.2',
++  # OoliteMigration oo-d5et: pin -O2 to match PINNED_O / check_build_flags.
++  # Upstream wrapdb uses buildtype=release (-O3); parent subproject() default_options
++  # do not stick on this meson/wrap combo (measured oo-6ece / oo-d5et).
+   default_options: [
+     'c_std=gnu11,c11',
+     'warning_level=3',
+-    'buildtype=release',
+-    'b_ndebug=if-release',
++    'buildtype=debugoptimized',
++    'optimization=2',
++    'b_ndebug=true',
+   ],
+   license: 'MIT',
+   license_files: 'LICENSE',

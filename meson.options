@@ -9,9 +9,6 @@ option('no_shaders', type: 'boolean', value: false,
 option('espeak', type: 'boolean', value: true,
        description: 'Enable eSpeak-ng text-to-speech support')
 
-option('oo_javascript_trace', type: 'boolean', value: true,
-       description: 'Enable Mozilla SpiderMonkey JavaScript call tracing')
-
 option('oo_fov_inflight_control_enabled', type: 'boolean', value: false,
        description: 'Enable in-flight Field of View (FOV) control adjustments')
 

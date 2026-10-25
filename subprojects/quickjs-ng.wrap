@@ -1,0 +1,12 @@
+[wrap-file]
+directory = quickjs-0.16.2
+source_url = https://github.com/quickjs-ng/quickjs/archive/refs/tags/v0.16.2.tar.gz
+source_filename = quickjs-ng-0.16.2.tar.gz
+source_hash = 97c80625b26775a4c7ca618c004d4ea24cf99cbf867e4eba78bd927a8b23d106
+source_fallback_url = https://wrapdb.mesonbuild.com/v2/quickjs-ng_0.16.2-1/get_source/quickjs-ng-0.16.2.tar.gz
+wrapdb_version = 0.16.2-1
+diff_files = quickjs-ng-o2.patch
+
+[provide]
+dependency_names = quickjs-ng
+program_names = qjsc, qjs

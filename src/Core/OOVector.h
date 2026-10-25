@@ -25,6 +25,8 @@ MA 02110-1301, USA.
 */
 
 
+#pragma once
+
 #ifndef INCLUDED_OOMATHS_h
 	#error Do not include OOVector.h directly; include OOMaths.h.
 #else
@@ -129,19 +131,31 @@ OOINLINE OOScalar triple_product(Vector first, Vector second, Vector third) INLI
 /* Given three points on a surface, returns the normal to the surface. */
 OOINLINE Vector normal_to_surface(Vector v1, Vector v2, Vector v3) CONST_FUNC;
 
-#if __OBJC__
-NSString *VectorDescription(Vector vector);	// @"(x, y, z)"
+#if defined(__cplusplus) && !defined(OO_PLAIN_CPP_UNIT)	// was __OBJC__: a game unit (an Objective-C++ unit until bead oo-dbz), not a plain C++ one
+/*	Objective-C++ only: OOMaths.h is included inside extern "C" (proposed ADR-0043, bead oo-g7k5). */
+extern "C++" {
+#include "oofnd/StdLib.hpp"
+#include "oofnd/PList.hpp"
+std::string VectorDescription(Vector vector);	// "(x, y, z)"
 
-/* For storing vectors in NSArrays */
-@interface OONativeVector: NSObject
+/*	For storing vectors in property lists: a PList::Object node holds the box (OOJSShip.mm makes
+	them, OOPListGameTypes.mm and the JavaScript engine read them). Its Objective-C facade was
+	deleted by bead oo-9ht.5; the box is the node's foreign object itself.
+*/
+class OONativeVector : public oo::PListForeign
 {
-@private
-	Vector v;
-}
-- (id) initWithVector:(Vector)vect;
-- (Vector) getVector;
+public:
+	explicit OONativeVector(Vector vect);
+	Vector getVector();
 
-@end
+	// oo::PListForeign: what the facade answered (its class, and "%@" as <OONativeVector 0x...>).
+	std::string className() const override;
+	std::string description() const override;
+
+private:
+	Vector			v = {};
+};
+}
 
 #endif
 

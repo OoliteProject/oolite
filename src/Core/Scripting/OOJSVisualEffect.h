@@ -24,19 +24,32 @@ MA 02110-1301, USA.
 
 */
 
-#import <Foundation/Foundation.h>
-#include <jsapi.h>
+#pragma once
 
-@class OOVisualEffectEntity;
+#include "OOCocoa.h"
+#include "ooscript/JSEngine.hpp"
+#include <vector>
+class Entity;
+class OOVisualEffectEntity;	// C++ since bead oo-9ht.165
 
 
-void InitOOJSVisualEffect(JSContext *context, JSObject *global);
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-@interface OOVisualEffectEntity (OOJavaScriptExtensions)
+void InitOOJSVisualEffect(ooscript::Context context, ooscript::Object global);
 
-- (void)getJSClass:(JSClass **)outClass andPrototype:(JSObject **)outPrototype;
-- (NSString *) oo_jsClassName;
-- (BOOL) isVisibleToScripts;
-- (NSArray *) subEntitiesForScript;
+#ifdef __cplusplus
+}
+#endif
 
-@end
+
+/*	The bodies of OOVisualEffectEntity (OOJavaScriptExtensions), which the engine reaches by
+	selector: the effect's facade forwarded to these (bead oo-9ht.93) until bead oo-9ht.165 deleted
+	it; the C++ effect's getJSClass()/jsClassName()/isVisibleToScripts() overrides call them now
+	(proposed ADR-0056 amendments oo-ppc, oo-ykoy, oo-6ia4 and oo-9ht.165).
+*/
+void OOJSVisualEffectGetJSClass(ooscript::ClassDef **outClass, ooscript::Object *outPrototype);
+std::optional<std::string> OOJSVisualEffectJSClassName(void);
+bool OOJSVisualEffectIsVisibleToScripts(void);
+std::vector<oo::EntityHold> OOJSVisualEffectSubEntitiesForScript(OOVisualEffectEntity *effect);

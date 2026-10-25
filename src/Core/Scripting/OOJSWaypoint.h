@@ -24,19 +24,28 @@ MA 02110-1301, USA.
 
 */
 
-#import <Foundation/Foundation.h>
-#include <jsapi.h>
+#pragma once
+
+#include "OOCocoa.h"
+#include "ooscript/JSEngine.hpp"
 
 
-@class OOWaypointEntity;
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void InitOOJSWaypoint(ooscript::Context context, ooscript::Object global);
+
+#ifdef __cplusplus
+}
+#endif
 
 
-void InitOOJSWaypoint(JSContext *context, JSObject *global);
-
-@interface OOWaypointEntity (OOJavaScriptExtensions)
-
-- (void)getJSClass:(JSClass **)outClass andPrototype:(JSObject **)outPrototype;
-- (NSString *) oo_jsClassName;
-- (BOOL) isVisibleToScripts;
-
-@end
+/*	The bodies of OOWaypointEntity (OOJavaScriptExtensions), which the engine reaches through the
+	root's JS members: the C++ class's overrides call these (the OOWaypointEntity facade forwarded
+	to them from bead oo-9ht.50 until bead oo-9ht.108 deleted it; proposed ADR-0056 amendments
+	oo-ppc, oo-ykoy, oo-6ia4 and oo-9ht.107).
+*/
+void OOJSWaypointGetJSClass(ooscript::ClassDef **outClass, ooscript::Object *outPrototype);
+std::optional<std::string> OOJSWaypointJSClassName(void);
+bool OOJSWaypointIsVisibleToScripts(void);

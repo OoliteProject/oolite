@@ -13,16 +13,14 @@ if ccid == 'clang' and get_option('pdb')
     oolite_link_args += ['-Wl,-pdb=']
 endif
 
-win_js_suffix = (get_option('optimization') == '0' or get_option('debug')) ? 'dbg' : ''
 dep_libs = [
     'glu32',
     'opengl32',
     'dwmapi',
     'winmm',
     'ws2_32',
-    'objc',
-    'gnustep-base',
-    'js' + win_js_suffix,
+    'winhttp',      # oofnd/Http.hpp, the OXZ manager's downloads (proposed ADR-0044)
+    # libobjc2 went with the last Objective-C unit (bead oo-dbz.5)
 ]
 foreach lib : dep_libs
     oolite_dependencies += [cc.find_library(lib, required: true)]

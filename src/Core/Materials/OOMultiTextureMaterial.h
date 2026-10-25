@@ -4,7 +4,11 @@ OOMultiTextureMaterial.h
 
 A material that uses multitexturing and texture combiners.
 
- 
+C++20 since bead oo-lh0x (proposed ADR-0056, amendments oo-smy and oo-vl43). Its Objective-C
+facade was deleted by bead oo-9ht.42 (ADR-0056 amendment "deleting a facade"): the class is global,
+and Objective-C sees one as an OOMaterial (OOBasicMaterial's facade was deleted by bead oo-9ht.33).
+
+
 Copyright (C) 2010-2013 Jens Ayton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -27,29 +31,49 @@ SOFTWARE.
 
 */
 
+#ifndef OOMULTITEXTUREMATERIAL_H
+#define OOMULTITEXTUREMATERIAL_H
 
-#import "OOOpenGLExtensionManager.h"
+#include "OOOpenGLExtensionManager.h"
 
 #if OO_MULTITEXTURE
 
-#import "OOBasicMaterial.h"
+#include "OOBasicMaterial.h"
 
-@class OOTexture;
+class OOTexture;
 
 
-@interface OOMultiTextureMaterial: OOBasicMaterial
+class OOMultiTextureMaterial : public OOBasicMaterial
 {
-@private
-	OOTexture			*_diffuseMap;
-	OOTexture			*_emissionMap;
-	
-	NSUInteger			_unitsUsed;
-}
+public:
+	/*	A new material, initialised by initWithName() (below); null where it failed (it answered
+		nil: no texture combiners). It was [[OOMultiTextureMaterial alloc] initWithName:configuration:].
+	*/
+	static oo::Ref<OOMultiTextureMaterial> materialWithName(const std::optional<std::string> &name, const oo::PList &configuration);
 
-- (id)initWithName:(NSString *)name configuration:(NSDictionary *)configuration;
+	// Runs once, right after construction (proposed ADR-0056, amendment oo-vl43); false where the
+	// Objective-C initialiser answered nil.
+	bool initWithName(const std::optional<std::string> &name, const oo::PList &configuration);	// shared with OOBasicMaterial
 
-- (NSUInteger) textureUnitCount;
+	NSUInteger textureUnitCount();
 
-@end
+	std::optional<std::string> descriptionComponents() const override;
+	NSUInteger countOfTextureUnitsWithBaseCoordinates() override;
+	void ensureFinishedLoading() override;
+	void apply() override;
+	void unapplyWithNext(OOMaterial *next) override;
+	size_t objectSize() const override	{ return sizeof *this; }
+#ifndef NDEBUG
+	std::vector<oo::Ref<OOTexture>> allTextures() override;
+#endif
+
+private:
+	oo::Ref<OOTexture>	_diffuseMap = {};
+	oo::Ref<OOTexture>	_emissionMap = {};
+
+	NSUInteger					_unitsUsed = {};
+};
 
 #endif	/* OO_MULTITEXTURE */
+
+#endif	// OOMULTITEXTUREMATERIAL_H

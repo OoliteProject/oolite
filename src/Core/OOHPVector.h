@@ -26,6 +26,8 @@ MA 02110-1301, USA.
 */
 
 
+#pragma once
+
 #ifndef INCLUDED_OOMATHS_h
 	#error Do not include OOHPVector.h directly; include OOMaths.h.
 #else
@@ -136,9 +138,13 @@ OOINLINE OOHPScalar HPtriple_product(HPVector first, HPVector second, HPVector t
 /* Given three points on a surface, returns the normal to the surface. */
 OOINLINE HPVector HPnormal_to_surface(HPVector v1, HPVector v2, HPVector v3) CONST_FUNC;
 
-#if __OBJC__
-NSString *HPVectorDescription(HPVector vector);	// @"(x, y, z)"
-NSArray *ArrayFromHPVector(HPVector vector);
+#if defined(__cplusplus) && !defined(OO_PLAIN_CPP_UNIT)	// was __OBJC__: a game unit (an Objective-C++ unit until bead oo-dbz), not a plain C++ one
+/*	Objective-C++ only: OOMaths.h is included inside extern "C" (proposed ADR-0043, bead oo-dlox). */
+extern "C++" {
+#include "oofnd/StdLib.hpp"
+std::string cxx_HPVectorDescription(HPVector vector);	// "(x, y, z)"
+std::vector<double> cxx_ArrayFromHPVector(HPVector vector);	// { x, y, z }
+}
 
 #endif
 
@@ -355,6 +361,7 @@ OOINLINE HPVector HPnormal_to_surface(HPVector v1, HPVector v2, HPVector v3)
 	d1 = HPvector_subtract(v3, v2);
 	return HPcross_product(d0, d1);
 }
+
 
 
 #endif	/* INCLUDED_OOMATHS_h */

@@ -24,17 +24,22 @@ MA 02110-1301, USA.
 
 */
 
-#import <Foundation/Foundation.h>
-#include <jsapi.h>
+#pragma once
 
-@class PlayerEntity;
+#include "OOCocoa.h"
+#include "ooscript/JSEngine.hpp"
+class PlayerEntity;
 
 
-void InitOOJSPlayer(JSContext *context, JSObject *global);
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-JSClass *JSPlayerClass(void);
-JSObject *JSPlayerPrototype(void);
-JSObject *JSPlayerObject(void);
+void InitOOJSPlayer(ooscript::Context context, ooscript::Object global);
+
+ooscript::ClassDef *JSPlayerClass(void);
+ooscript::Object JSPlayerPrototype(void);
+ooscript::Object JSPlayerObject(void);
 
 
 /*	All JS functions which talk to the player entity should call
@@ -44,3 +49,7 @@ JSObject *JSPlayerObject(void);
 	consistent state.
 */
 PlayerEntity *OOPlayerForScripting(void);
+
+#ifdef __cplusplus
+}
+#endif
