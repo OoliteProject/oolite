@@ -97,11 +97,19 @@ Afterwards no context is current. `glXMakeCurrent` (and so `SDL_GL_MakeCurrent(w
 drawable and a context to the thread together, and a context is not owned by a window. So the splash window can
 be destroyed as the commit intends, as long as `glContext` is bound to the new window again afterwards.
 
-## Fix (`src/SDL/MyOpenGLView.m`, +10 lines)
-1. In `createWindowWithSize:`, after the `SDL_GetWindowSurface` / colorspace block, call
-   `SDL_GL_MakeCurrent(window, glContext)` to undo the renderer's context.
-2. In `endSplashScreen`, after `SDL_DestroyWindow(splashWindow)`, call `SDL_GL_MakeCurrent(window, glContext)`
-   because the destroy leaves no context current.
+## Fix (`src/SDL/MyOpenGLView.m`)
+`BindGLContextToWindow(window, glContext)` wraps `SDL_GL_MakeCurrent`. The helper name makes clear that SDL
+binds a drawable and a context together; a context alone cannot be made current on X11. The
+`kReuseGLContextForAllWindows` constant guards both rebinds:
+
+1. In `createWindowWithSize:`, after the `SDL_GetWindowSurface` / colorspace block, bind the game's context
+   to the new window again. This restores it after SDL's framebuffer renderer has made its own context current.
+2. In `endSplashScreen`, after `SDL_DestroyWindow(previousWindow)`, bind the game's context to the new window
+   again. Destroying the old window releases SDL's renderer context and leaves no context current.
+
+The splash replacement still uses `window` for the old window, rather than the declared `splashWindow` ivar.
+That ivar is unused and is marked as such in the header; using a dedicated splash-window reference and
+clearing it on destruction is a separate cleanup to propose upstream.
 
 ## Verification
 - Debug build, 15-25 s runs: no crash, 0 `Incorrect OpenGL state` lines in `~/.Oolite/Logs/Latest.log`.
