@@ -209,7 +209,7 @@ extern int debug;
     NSSize currentWindowSize;
 
     BOOL showSplashScreen;
-    SDL_Window* splashWindow;
+    SDL_Window* splashWindow; // Unused: never assigned or read. The splash screen is shown in 'window'. Candidate for removal.
     SDL_Window* window;
     SDL_GLContext glContext;
     int bitsPerColorComponent;

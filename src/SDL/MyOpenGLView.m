@@ -54,6 +54,20 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
 
 @end
 
+// Every window shares the single glContext, which owns Universe's GL objects (VAOs, FBOs,
+// shaders). SDL can switch to another context behind our back (see createWindowWithSize:),
+// so rebind glContext after any SDL window call that may do that. Harmless if SDL did not.
+static const BOOL kReuseGLContextForAllWindows = YES;
+
+// SDL_GL_MakeCurrent() binds a window (the drawable) and a context together; the context
+// cannot be made current without a window on X11. This rebinds our one context to the
+// given window.
+static bool BindGLContextToWindow(SDL_Window *window, SDL_GLContext context)
+{
+    return SDL_GL_MakeCurrent(window, context);
+}
+
+
 @implementation MyOpenGLView
 
 - (SDL_DisplayID)getDisplayId
@@ -212,6 +226,13 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
         SDL_SetSurfaceColorspace(surface, SDL_COLORSPACE_SRGB);
     }
 #endif
+    // SDL_GetWindowSurface() may create an internal GL renderer context for the window and
+    // leave it current. Make glContext current again, or Universe's GL objects (VAOs, FBOs,
+    // shaders) are not visible to subsequent GL calls.
+    if (kReuseGLContextForAllWindows && !BindGLContextToWindow(window, glContext)) {
+        OOLog(@"sdl.create_context", @"Could not make OpenGL context current: %s", SDL_GetError());
+        exit(1);
+    }
 
 #if OOLITE_WINDOWS
     // capture the window handle for later (only needed for ugly hack later when transitioning between
@@ -452,10 +473,18 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
         // Replace it with a new window that has its final size, border and centred
         // position before it is mapped. The splash window is destroyed before the new one
         // is shown, so no other Oolite window holds focus when the new one is mapped.
-        SDL_Window* splashWindow = window;
+        SDL_Window* previousWindow = window; // the window in use so far, which showed the splash
         window = NULL;
         [self createWindowWithSize:firstScreen];
-        SDL_DestroyWindow(splashWindow);
+        SDL_DestroyWindow(previousWindow);
+        // createWindowWithSize: left glContext current, and SDL_DestroyWindow does not destroy
+        // it. But destroying the old window frees the GL context of its SDL framebuffer renderer,
+        // which SDL makes current and then releases, so no context is current afterwards.
+        // Rebind glContext before anything draws.
+        if (kReuseGLContextForAllWindows)
+        {
+            BindGLContextToWindow(window, glContext);
+        }
         SDL_ShowWindow(window);
     } else {
         SDL_HideWindow(window);
