@@ -55,7 +55,7 @@ MA 02110-1301, USA.
 static NSString* const kOOLogDebugMessage = @"script.debug.message";
 
 static JSValue GlobalGetProperty(OOJS_GETTER_ARGS);
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 static JSValue GlobalSetProperty(OOJS_SETTER_ARGS);
 #endif
 
@@ -77,7 +77,7 @@ static JSValue GlobalSetGuiColorSettingForKey(OOJS_NATIVE_ARGS);
 static JSValue GlobalSetExtraGuiScreenKeys(OOJS_NATIVE_ARGS);
 static JSValue GlobalClearExtraGuiScreenKeys(OOJS_NATIVE_ARGS);
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 static JSValue GlobalTakeSnapShot(OOJS_NATIVE_ARGS);
 static JSValue GlobalQuitGame(OOJS_NATIVE_ARGS);
 #endif
@@ -92,7 +92,7 @@ enum {
     kGlobal_galaxyNumber, // galaxy number, integer, read-only
     kGlobal_global, // global.global.global.global, integer, read-only
     kGlobal_guiScreen, // current GUI screen, string, read-only
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     kGlobal_timeAccelerationFactor // time acceleration, float, read/write
 #endif
 };
@@ -101,7 +101,7 @@ static const JSCFunctionListEntry sGlobalProperties[] = {
     // JS name					Getter				Setter				ID
     OOJS_PROPERTY_RO("galaxyNumber", GlobalGetProperty, kGlobal_galaxyNumber),
     OOJS_PROPERTY_RO("guiScreen", GlobalGetProperty, kGlobal_guiScreen),
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     OOJS_PROPERTY_RW("timeAccelerationFactor", GlobalGetProperty, GlobalSetProperty, kGlobal_timeAccelerationFactor),
 #endif
 };
@@ -125,7 +125,7 @@ static const JSCFunctionListEntry sGlobalMethods[] = {
     JS_CFUNC_DEF("setExtraGuiScreenKeys", 2, GlobalSetExtraGuiScreenKeys),
     JS_CFUNC_DEF("clearExtraGuiScreenKeys", 2, GlobalClearExtraGuiScreenKeys),
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     JS_CFUNC_DEF("takeSnapShot", 1, GlobalTakeSnapShot),
     JS_CFUNC_DEF("quitGame", 0, GlobalQuitGame),
 #endif
@@ -151,7 +151,7 @@ static JSValue GlobalGetProperty(OOJS_GETTER_ARGS)
     case kGlobal_guiScreen:
         return OOJSValueFromGUIScreenID(context, [player guiScreen]);
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     case kGlobal_timeAccelerationFactor:
         return JS_NewNumber(context, [UNIVERSE timeAccelerationFactor]);
 #endif
@@ -164,7 +164,7 @@ static JSValue GlobalGetProperty(OOJS_GETTER_ARGS)
     OOJS_NATIVE_EXIT
 }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 static JSValue GlobalSetProperty(OOJS_SETTER_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
@@ -707,7 +707,7 @@ static JSValue GlobalSetGuiColorSettingForKey(OOJS_NATIVE_ARGS)
     OOJS_NATIVE_EXIT
 }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 // takeSnapShot([name : alphanumeric String]) : Boolean
 static JSValue GlobalTakeSnapShot(OOJS_NATIVE_ARGS)
 {
@@ -793,7 +793,7 @@ static JSValue GlobalPauseGame(OOJS_NATIVE_ARGS)
     OOJS_NATIVE_EXIT
 }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 // quitGame() : Boolean
 static JSValue GlobalQuitGame(OOJS_NATIVE_ARGS)
 {
