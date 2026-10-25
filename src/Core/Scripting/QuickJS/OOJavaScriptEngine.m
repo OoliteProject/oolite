@@ -150,7 +150,7 @@ static void LoadCompatibilityScript(JSContext* context);
     _showErrorLocations = YES;
 
     NSUserDefaults* defaults = [NSUserDefaults standardUserDefaults];
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     /*	Set stack trace preferences from preferences. These will be overriden
             by the debug OXP script if installed, but being able to enable traces
             without setting up the debug console could be useful for debugging
@@ -403,7 +403,7 @@ static BOOL IsRunningJavaScript(JSContext* context)
     _showErrorLocations = !!value;
 }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 - (BOOL)dumpStackForErrors
 {
     return _dumpStackForErrors;
@@ -646,7 +646,7 @@ static int InterruptHandler(JSRuntime* runtime, void* opaque)
         return 0;
 
     OOLogERR(@"script.javaScript.timeLimit", @"Script \"%@\" ran for %g seconds and has been terminated.", [[OOJSScript currentlyRunningScript] name], elapsed);
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     OOJSDumpStack(gOOJSMainThreadContext);
 #endif
     return 1;
@@ -728,7 +728,7 @@ static void LogProblem(JSContext* context, NSString* severity, NSString* errorNa
         OOLog(messageClass, @"      %@, line %u.", file, line);
     }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     BOOL dump = [severity isEqualToString:@"warning"] ? [jsEng dumpStackForWarnings] : [jsEng dumpStackForErrors];
     if (dump && stack != nil)
         OOLog(@"script.javaScript.stackTrace", @"%@", stack);
@@ -937,7 +937,7 @@ void OOJSSetWarningOrErrorStackSkip(unsigned skip)
     sErrorHandlerStackSkip = skip;
 }
 
-#ifndef NDEBUG
+#if OOLITE_DEBUG || defined(OO_DEBUG_MONITOR_ENABLED)
 void OOJSDumpStack(JSContext* context)
 {
     NSString* stack = CurrentStack(context);
