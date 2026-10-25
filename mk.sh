@@ -182,7 +182,8 @@ execute_target() {  # Target Execution Logic
             validate_build_type "$build_type"
             if [[ "$build_type" == "deployment" ]]; then
                 # Arguments passed individually (acts like an array)
-                meson_setup "deployment" "-Ddeployment_release=true" "-Ddebug=false" "-Dstrip_bin=true" "-Db_lto=true"
+                # quickjs_poc: the JavaScript engine's unit tests, run by ./mk.sh test (not packaged)
+                meson_setup "deployment" "-Ddeployment_release=true" "-Ddebug=false" "-Dstrip_bin=true" "-Db_lto=true" "-Dquickjs_poc=true"
             elif [[ "$build_type" == "test" ]]; then
                 meson_setup "test" "-Ddebug=false" "-Dstrip_bin=true" "-Db_lto=true"
             elif [[ "$build_type" == "dev" ]]; then
