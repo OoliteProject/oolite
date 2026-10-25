@@ -224,11 +224,11 @@ jobs:
           ShellScripts/macOS/build_mozilla_js.sh
       - name: Build Oolite
         run: |
-          ./mk.sh build dev
+          ./mk.sh build deployment
       - name: Test Oolite
         if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
         run: |
-          ./mk.sh test dev
+          ./mk.sh test deployment
       - name: Build DMG
         run: |
-          ./mk.sh pkg-dmg dev
+          ./mk.sh pkg-dmg deployment
