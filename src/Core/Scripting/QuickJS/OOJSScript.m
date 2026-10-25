@@ -642,7 +642,7 @@ static BOOL RunScriptWithName(JSContext* context, NSString* path, JSValueConst o
         return NO;
     }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     /* FIXME: this isn't strictly the right test, since strict
      * mode can be enabled with this string within a function
      * definition, but it seems unlikely anyone is actually doing
