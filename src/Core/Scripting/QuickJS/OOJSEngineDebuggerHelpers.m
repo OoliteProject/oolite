@@ -73,7 +73,7 @@ MA 02110-1301, USA.
         JSContext called "context". In QuickJS functions, it's called "ctx".
 */
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 
 #import "OOJavaScriptEngine.h"
 

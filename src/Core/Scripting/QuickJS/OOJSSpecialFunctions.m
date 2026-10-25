@@ -26,14 +26,14 @@ MA 02110-1301, USA.
 #import "OOJSSpecialFunctions.h"
 
 static JSValue SpecialJSWarning(OOJS_NATIVE_ARGS);
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 static JSValue SpecialMarkConsoleEntryPoint(OOJS_NATIVE_ARGS);
 #endif
 
 static const JSCFunctionListEntry sSpecialFunctionsMethods[] = {
     // JS name					Function						min args
     JS_CFUNC_DEF("jsWarning", 1, SpecialJSWarning),
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     JS_CFUNC_DEF("markConsoleEntryPoint", 0, SpecialMarkConsoleEntryPoint),
 #endif
 };
@@ -83,7 +83,7 @@ static JSValue SpecialJSWarning(OOJS_NATIVE_ARGS)
     OOJS_PROFILE_EXIT
 }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 static JSValue SpecialMarkConsoleEntryPoint(OOJS_NATIVE_ARGS)
 {
     /*	The SpiderMonkey version recorded the calling stack frame (in eval() in

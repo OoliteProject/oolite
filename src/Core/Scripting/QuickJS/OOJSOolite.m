@@ -66,7 +66,7 @@ enum {
     kOolite_postFX, // current post processing effect, integer, read/write
     kOolite_hdrToneMapper, // currently active HDR tone mapper, string, read/write
     kOolite_sdrToneMapper, // currently active SDR tone mapper, string, read/write
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     kOolite_timeAccelerationFactor, // time acceleration, float, read/write
 #endif
 };
@@ -83,7 +83,7 @@ static const JSCFunctionListEntry sOoliteProperties[] = {
     OOJS_PROPERTY_RW("postFX", OoliteGetProperty, OoliteSetProperty, kOolite_postFX),
     OOJS_PROPERTY_RW("hdrToneMapper", OoliteGetProperty, OoliteSetProperty, kOolite_hdrToneMapper),
     OOJS_PROPERTY_RW("sdrToneMapper", OoliteGetProperty, OoliteSetProperty, kOolite_sdrToneMapper),
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     OOJS_PROPERTY_RW("timeAccelerationFactor", OoliteGetProperty, OoliteSetProperty, kOolite_timeAccelerationFactor),
 #endif
 };
@@ -159,7 +159,7 @@ static JSValue OoliteGetProperty(OOJS_GETTER_ARGS)
         break;
     }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     case kOolite_timeAccelerationFactor:
         return JS_NewNumber(context, [UNIVERSE timeAccelerationFactor]);
 #endif
@@ -228,7 +228,7 @@ static JSValue OoliteSetProperty(OOJS_SETTER_ARGS)
         }
         break;
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     case kOolite_timeAccelerationFactor:
         if (JS_ToFloat64(context, &fValue, value) == 0) {
             [UNIVERSE setTimeAccelerationFactor:fValue];

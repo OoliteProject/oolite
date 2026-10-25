@@ -71,7 +71,7 @@ MA 02110-1301, USA.
 
 #define OOJS_QUICKJS 1
 
-#define OOJSENGINE_MONITOR_SUPPORT OOLITE_DEBUG
+#define OOJSENGINE_MONITOR_SUPPORT OO_DEBUG_MONITOR_ENABLED
 
 /*	Profiling of native functions (the debug console's profile(), getProfile()
         and trace()), as in SpiderMonkey builds without MOZ_TRACE_JSCALLS: time
@@ -95,7 +95,7 @@ MA 02110-1301, USA.
     JSValue _globalObject;
     BOOL _showErrorLocations;
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     BOOL _dumpStackForErrors;
     BOOL _dumpStackForWarnings;
 #endif
@@ -128,7 +128,7 @@ MA 02110-1301, USA.
 - (BOOL)showErrorLocations;
 - (void)setShowErrorLocations:(BOOL)value;
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 - (BOOL)dumpStackForErrors;
 - (void)setDumpStackForErrors:(BOOL)value;
 
@@ -592,7 +592,7 @@ void OOJSSetTimeLimiterLimit(OOTimeDelta limit);
         Write the current JavaScript stack to the log. QuickJS provides only
         function names and locations, not local variables.
 */
-#ifndef NDEBUG
+#if OOLITE_DEBUG || defined(OO_DEBUG_MONITOR_ENABLED)
 void OOJSDumpStack(JSContext* context);
 #else
 #define OOJSDumpStack(cx) \
