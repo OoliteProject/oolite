@@ -31,7 +31,7 @@ SOFTWARE.
 
 @interface NSObject (OOExtensions)
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 
 + (size_t)oo_instanceSize;
 - (size_t)oo_objectSize;

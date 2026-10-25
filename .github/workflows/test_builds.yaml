@@ -47,14 +47,17 @@ jobs:
           ShellScripts/Linux/install_mozilla_js.sh system
       - name: Build Oolite
         run: |
-          ./mk.sh build dev
+          ./mk.sh build deployment
       - name: Test Oolite
         if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
         run: |
-          ./mk.sh test dev
+          ./mk.sh test deployment
       - name: Build AppImage
         run: |
-          ./mk.sh pkg-appimage dev
+          ./mk.sh pkg-appimage deployment
+      - name: Build Oolite (dev, compile check only)
+        run: |
+          ./mk.sh build dev
 
   fedora:
     runs-on: ubuntu-latest
@@ -94,14 +97,14 @@ jobs:
           ldconfig
       - name: Build Oolite
         run: |
-          ./mk.sh build dev
+          ./mk.sh build deployment
       - name: Test Oolite
         if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
         run: |
-          ./mk.sh test dev
+          ./mk.sh test deployment
       - name: Build AppImage
         run: |
-          ./mk.sh pkg-appimage dev
+          ./mk.sh pkg-appimage deployment
 
   arch:
     runs-on: ubuntu-latest
@@ -141,14 +144,14 @@ jobs:
           ldconfig
       - name: Build Oolite
         run: |
-          ./mk.sh build dev
+          ./mk.sh build deployment
       - name: Test Oolite
         if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
         run: |
-          ./mk.sh test dev
+          ./mk.sh test deployment
       - name: Build AppImage
         run: |
-          ./mk.sh pkg-appimage dev
+          ./mk.sh pkg-appimage deployment
 
   windows:
     runs-on: windows-latest
@@ -179,7 +182,7 @@ jobs:
           MSYSTEM: UCRT64
           PYTHONUTF8: "1"
         run: |
-          ./mk.sh build dev
+          ./mk.sh build deployment
 
       - name: Test Oolite
         if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
@@ -188,11 +191,11 @@ jobs:
           MSYSTEM: UCRT64
           PYTHONUTF8: "1"
         run: |
-          if ./mk.sh test dev; then
+          if ./mk.sh test deployment; then
             echo "✅ Oolite test completed successfully"
           else
             echo "❌ Oolite test failed" >&2
-            cd build/meson_dev/oolite.app
+            cd build/meson_deployment/oolite.app
             ntldd -R oolite.exe
             exit 1
           fi

@@ -25,7 +25,7 @@ SOFTWARE.
 
 */
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 
 #include "OOTCPStreamDecoder.h"
 #include "OODebugTCPConsoleProtocol.h"
@@ -219,4 +219,4 @@ static void Error(OOTCPStreamDecoderRef decoder, OOALStringRef format, ...)
     }
 }
 
-#endif /* NDEBUG */
+#endif /* OO_DEBUG_MONITOR_ENABLED */

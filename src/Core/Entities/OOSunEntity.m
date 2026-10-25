@@ -223,7 +223,7 @@ MA 02110-1301, USA.
     return YES;
 }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 - (BOOL)checkCloseCollisionWith:(Entity*)other
 {
     if (gDebugFlags & DEBUG_COLLISIONS) {

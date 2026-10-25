@@ -33,8 +33,12 @@ MA 02110-1301, USA.
 #import "ResourceManager.h"
 #import "Universe.h"
 
-// Don't bother with syntax warnings in Deployment builds.
-#define WARNINGS OOLITE_DEBUG
+// Syntax warnings are for OXP developers, so include them wherever the debug console is.
+#if OOLITE_DEBUG || defined(OO_DEBUG_MONITOR_ENABLED)
+#define WARNINGS 1
+#else
+#define WARNINGS 0
+#endif
 
 #define OO_EXPANDER_RANDOM (context->useGoodRNG ? (Ranrot() & 0xFF) : gen_rnd_number())
 

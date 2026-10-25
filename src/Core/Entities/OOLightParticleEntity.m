@@ -319,7 +319,7 @@ static OOTexture* sBlobTexture = nil;
     return NO;
 }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 - (NSSet*)allTextures
 {
     return [NSSet setWithObject:[self texture]];

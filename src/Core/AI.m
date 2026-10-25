@@ -224,7 +224,7 @@ extern void GenerateGraphVizForAIStateMachine(NSDictionary* stateMachine, NSStri
              pendingMessages:pendingMessages
                     jsScript:[stateMachine objectForKey:@"jsScript"]];
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     if ([[self owner] reportAIMessages])
         OOLog(@"ai.stack.push", @"Pushing state machine for %@", self);
 #endif
@@ -241,7 +241,7 @@ extern void GenerateGraphVizForAIStateMachine(NSDictionary* stateMachine, NSStri
 
     OOPreservedAIStateMachine* preservedMachine = [aiStack lastObject];
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     if ([[self owner] reportAIMessages])
         OOLog(@"ai.stack.pop", @"Popping previous state machine for %@", self);
 #endif
@@ -421,7 +421,7 @@ static AIStackElement* sStack = NULL;
     if (messagesForState == nil)
         return;
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     if (currentState != nil && ![message isEqual:@"UPDATE"] && [owner reportAIMessages]) {
         OOLog(@"ai.message.receive", @"AI %@ for %@ in state '%@' receives message '%@'. Context: %@, stack depth: %u", stateMachineName, ownerDesc, currentState, message, debugContext, recursionLimiter);
     }
@@ -462,7 +462,7 @@ static AIStackElement* sStack = NULL;
 {
     ShipEntity* owner = [self owner];
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     BOOL report = [owner reportAIMessages];
     if (report) {
         OOLog(@"ai.takeAction", @"%@ to take action %@", ownerDesc, action);
@@ -498,13 +498,13 @@ static AIStackElement* sStack = NULL;
             OOLog(@"ai.takeAction.orphaned", @"***** AI %@, trying to perform %@, is orphaned (no owner)", stateMachineName, selectorStr);
         }
     } else {
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
         if (report)
             OOLog(@"ai.takeAction.noAction", @"DEBUG: - no action '%@'", action);
 #endif
     }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     if (report) {
         OOLogOutdent();
     }

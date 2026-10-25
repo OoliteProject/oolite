@@ -6,7 +6,7 @@
         Foundation implementation.
 */
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 
 #import "OOTCPStreamDecoderAbstractionLayer.h"
 #import "OOFoundation.h"
@@ -109,4 +109,4 @@ OOALObjectRef OOALPropertyListFromData(OOALMutableDataRef data, OOALStringRef* e
     return result;
 }
 
-#endif /* NDEBUG */
+#endif /* OO_DEBUG_MONITOR_ENABLED */

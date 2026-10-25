@@ -665,7 +665,7 @@ static JSScript* LoadScriptWithName(JSContext* context, NSString* path, JSObject
         fileContents = [NSString stringWithContentsOfUnicodeFile:path];
 
         if (fileContents != nil) {
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
             /* FIXME: this isn't strictly the right test, since strict
              * mode can be enabled with this string within a function
              * definition, but it seems unlikely anyone is actually doing

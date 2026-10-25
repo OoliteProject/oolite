@@ -39,12 +39,12 @@ MA 02110-1301, USA.
 #import "NSScannerOOExtensions.h"
 #import "OODebugFlags.h"
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 uint32_t gLiveEntityCount = 0;
 size_t gTotalEntityMemory = 0;
 #endif
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 static NSString* const kOOLogEntityAddToList = @"entity.linkedList.add";
 static NSString* const kOOLogEntityAddToListError = @"entity.linkedList.add.error";
 static NSString* const kOOLogEntityRemoveFromList = @"entity.linkedList.remove";
@@ -86,7 +86,7 @@ static NSString* const kOOLogEntityVerificationError = @"entity.linkedList.verif
 
     atmosphereFogging = [[OOColor colorWithRed:0.0 green:0.0 blue:0.0 alpha:0.0] retain];
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     gLiveEntityCount++;
     gTotalEntityMemory += [self oo_objectSize];
 #endif
@@ -104,7 +104,7 @@ static NSString* const kOOLogEntityVerificationError = @"entity.linkedList.verif
     [self setOwner:nil];
     [atmosphereFogging release];
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     gLiveEntityCount--;
     gTotalEntityMemory -= [self oo_objectSize];
 #endif
@@ -206,7 +206,7 @@ static NSString* const kOOLogEntityVerificationError = @"entity.linkedList.verif
 
 - (void)addToLinkedLists
 {
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     if (gDebugFlags & DEBUG_LINKED_LISTS)
         OOLog(kOOLogEntityAddToList, @"DEBUG adding entity %@ to linked lists", self);
 #endif
@@ -256,7 +256,7 @@ static NSString* const kOOLogEntityVerificationError = @"entity.linkedList.verif
             UNIVERSE->z_list_start = self;
     }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     if (gDebugFlags & DEBUG_LINKED_LISTS) {
         if (![self checkLinkedLists]) {
             OOLog(kOOLogEntityAddToListError, @"DEBUG LINKED LISTS - problem encountered while adding %@ to linked lists", self);
@@ -268,7 +268,7 @@ static NSString* const kOOLogEntityVerificationError = @"entity.linkedList.verif
 
 - (void)removeFromLinkedLists
 {
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     if (gDebugFlags & DEBUG_LINKED_LISTS)
         OOLog(kOOLogEntityRemoveFromList, @"DEBUG removing entity %@ from linked lists", self);
 #endif
@@ -308,7 +308,7 @@ static NSString* const kOOLogEntityVerificationError = @"entity.linkedList.verif
     z_previous = nil;
     z_next = nil;
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     if (gDebugFlags & DEBUG_LINKED_LISTS) {
         if (![self checkLinkedLists]) {
             OOLog(kOOLogEntityRemoveFromListError, @"DEBUG LINKED LISTS - problem encountered while removing %@ from linked lists", self);
@@ -397,7 +397,7 @@ static NSString* const kOOLogEntityVerificationError = @"entity.linkedList.verif
     if ((x_next == nil) && (x_previous == nil))
         return; // not in the lists - don't do this!
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     if (gDebugFlags & DEBUG_LINKED_LISTS) {
         if (![self checkLinkedLists]) {
             OOLog(kOOLogEntityVerificationError, @"DEBUG LINKED LISTS problem encountered before updating linked lists for %@", self);
@@ -476,7 +476,7 @@ static NSString* const kOOLogEntityVerificationError = @"entity.linkedList.verif
         UNIVERSE->z_list_start = self;
 
     // done
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     if (gDebugFlags & DEBUG_LINKED_LISTS) {
         if (![self checkLinkedLists]) {
             OOLog(kOOLogEntityUpdateError, @"DEBUG LINKED LISTS problem encountered after updating linked lists for %@", self);
@@ -998,7 +998,7 @@ static NSString* const kOOLogEntityVerificationError = @"entity.linkedList.verif
     return [[atmosphereFogging retain] autorelease];
 }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 - (NSString*)descriptionForObjDumpBasic
 {
     NSString* result = [self descriptionComponents];

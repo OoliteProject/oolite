@@ -32,7 +32,7 @@ MA 02110-1301, USA.
 #import "OOMaths.h"
 #import "OOOpenGL.h"
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 #define OctreeDebugLog(format, ...)                         \
     do {                                                    \
         if (EXPECT_NOT(gDebugFlags & DEBUG_OCTREE_LOGGING)) \
@@ -718,7 +718,7 @@ static Vector randomFullNodeFrom(Octree_details details, Vector offset)
     return randomFullNodeFrom([self octreeDetails], kZeroVector);
 }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 - (size_t)totalSize
 {
     return [self oo_objectSize] + _nodeCount * [_data oo_objectSize] + [_data length] + _nodeCount * sizeof *_collisionOctree;

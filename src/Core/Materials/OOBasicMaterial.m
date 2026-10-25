@@ -304,7 +304,7 @@ static OOBasicMaterial* sDefaultMaterial = nil;
     return ![UNIVERSE reducedDetail];
 }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 - (NSSet*)allTextures
 {
     return [NSSet set];

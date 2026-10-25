@@ -105,7 +105,7 @@ SOFTWARE.
     return [_texture isCubeMap];
 }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 - (NSSet*)allTextures
 {
     return [NSSet setWithObject:_texture];

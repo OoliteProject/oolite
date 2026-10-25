@@ -27,7 +27,7 @@ SOFTWARE.
 
 */
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 
 #import "OODebugTCPConsoleClient.h"
 #import "NSDictionaryOOExtensions.h"
@@ -671,4 +671,4 @@ static void LogSendPacket(NSDictionary* packet)
 }
 #endif
 
-#endif /* NDEBUG */
+#endif /* OO_DEBUG_MONITOR_ENABLED */

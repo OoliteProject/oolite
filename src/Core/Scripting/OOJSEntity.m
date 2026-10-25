@@ -37,7 +37,7 @@ JSObject* gOOEntityJSPrototype;
 
 static JSBool EntityGetProperty(JSContext* context, JSObject* this, jsid propID, jsval* value);
 static JSBool EntitySetProperty(JSContext* context, JSObject* this, jsid propID, JSBool strict, jsval* value);
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 static JSBool EntityDumpState(JSContext* context, uintN argc, jsval* vp);
 #endif
 
@@ -118,7 +118,7 @@ static JSPropertySpec sEntityProperties[] = {
 static JSFunctionSpec sEntityMethods[] = {
     // JS name					Function					min args
     { "toString", OOJSObjectWrapperToString, 0 },
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     { "dumpState", EntityDumpState, 0 },
 #endif
     { 0 }
@@ -372,7 +372,7 @@ static JSBool EntitySetProperty(JSContext* context, JSObject* this, jsid propID,
     OOJS_NATIVE_EXIT
 }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 static JSBool EntityDumpState(JSContext* context, uintN argc, jsval* vp)
 {
     OOJS_PROFILE_ENTER

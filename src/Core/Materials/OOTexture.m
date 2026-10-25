@@ -105,7 +105,7 @@ OOTextureInfo gOOTextureInfo;
 
 + (void)checkExtensions;
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 - (id)retainInContext:(NSString*)context;
 - (void)releaseInContext:(NSString*)context;
 - (id)autoreleaseInContext:(NSString*)context;
@@ -113,7 +113,7 @@ OOTextureInfo gOOTextureInfo;
 
 @end
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 static NSString* sGlobalTraceContext = nil;
 
 #define SET_TRACE_CONTEXT(str)       \
@@ -360,7 +360,7 @@ static NSString* sGlobalTraceContext = nil;
     }
 }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 - (void)setTrace:(BOOL)trace
 {
     if (trace && !_trace) {
@@ -526,7 +526,7 @@ static NSString* sGlobalTraceContext = nil;
 #endif
 }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 - (id)retainInContext:(NSString*)context
 {
     if (_trace) {
