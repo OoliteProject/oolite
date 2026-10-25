@@ -43,9 +43,7 @@ MA 02110-1301, USA.
 #import "Universe.h"
 #import "legacy_random.h"
 #include <stdlib.h>
-#ifndef NDEBUG
 #import "OOJavaScriptEngine.h"
-#endif
 
 #if OOLITE_MAC_COCOA_UI
 #import "JAPersistentFileReference.h"
@@ -777,7 +775,11 @@ static NSMutableArray* sMessageStack;
 {
     OOLog(@"exit.context", @"Exiting: %@.", context);
 #if (OOLITE_SDL && defined(OO_DEBUG_MONITOR_ENABLED))
+    // Deployment builds leak-check only for a connected debug console (OXP developers and the test harness).
+    BOOL checkJavaScriptLeaks = OOLITE_DEBUG || [[OODebugMonitor sharedDebugMonitor] debuggerConnected];
     [[OODebugMonitor sharedDebugMonitor] applicationWillTerminate];
+#else
+    BOOL checkJavaScriptLeaks = OOLITE_DEBUG;
 #endif
 #if OOLITE_WINDOWS
     // This should not be required normally but we have to ensure that
@@ -789,10 +791,10 @@ static NSMutableArray* sMessageStack;
 #endif
     [[NSUserDefaults standardUserDefaults] synchronize];
     OOLog(@"gameController.exitApp", @"%@", @".GNUstepDefaults synchronized.");
-#ifndef NDEBUG
-    // Leak check: tears down the JavaScript runtime and logs any objects still alive.
-    [[OOJavaScriptEngine sharedEngine] shutDown];
-#endif
+    if (checkJavaScriptLeaks) {
+        // Leak check: tears down the JavaScript runtime and logs any objects still alive.
+        [[OOJavaScriptEngine sharedEngine] shutDown];
+    }
     OOLoggingTerminate();
     SDL_Quit();
     [[OOOpenALController sharedController] shutdown];

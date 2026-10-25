@@ -1,12 +1,12 @@
 # Tests
 
-`./mk.sh test <build type>` (any build type except `deployment`, which has no
-debug console) runs these stages against `build/meson_<build type>/oolite.app`,
+`./mk.sh test <build type>` (any build type with the debug console; CI tests
+`deployment`) runs these stages against `build/meson_<build type>/oolite.app`,
 or against `$OOLITE_TEST_APP` if that is set:
 
 0. **Engine unit tests** (`meson test quickjs-poc`): in builds configured with
-   `-Dquickjs_poc=true` (`./mk.sh` does that for `dev` and `debug` builds, on
-   Linux and macOS), a standalone harness checks the Vector3D and Quaternion
+   `-Dquickjs_poc=true` (`./mk.sh` does that for `deployment`, `dev` and `debug`
+   builds, on Linux and macOS), a standalone harness checks the Vector3D and Quaternion
    bindings, script wrapping, error reporting, the time limiter and the leak
    check, without starting the game. See `src/Core/Scripting/poc/meson.build`.
 1. **Smoke test** (`launch_snapshot.py`): loads the standard starting game with
@@ -30,12 +30,13 @@ on script problems they cause that are not already known. CI runs it nightly
 (see `tools/js-parity/README.md`).
 
 Every stage fails if the game logs a JavaScript exception or error, kills a
-script for running too long, or (in builds with debug support) shuts down
-with leaked JavaScript objects.
+script for running too long, or shuts down with leaked JavaScript objects
+(deployment builds check for leaks only while a debug console is connected,
+as it is during these tests).
 
 ## How it works
 
-Builds with debug support connect to a debug console on TCP port 8563 at
+Builds with the debug console connect to one on TCP port 8563 at
 startup. `oolite_harness.py` plays the console: it starts the game, accepts
 the connection, sends JavaScript to be evaluated and reads the results. It
 also isolates the game from OXPs installed for normal play (through
@@ -51,7 +52,7 @@ rendered in software, a smaller window makes the game run faster: set
 `OOLITE_TEST_WINDOW`, for example to `640x360` (CI does this on macOS).
 
 The smoke test and the JavaScript tests speed up game time with
-`timeAccelerationFactor` (which only debug builds honour): the JavaScript
+`timeAccelerationFactor` (which only builds with the debug console honour): the JavaScript
 tests run at 16x while moving from one phase to the next. The smoke test
 docks as fast as the frame rate allows: the docking computer misses the
 station when a frame takes much more than half a second of game time, so
@@ -99,7 +100,7 @@ declares it with a line `// expect-log: <regular expression>` in its file.
 Tests run synchronously within a frame, so they cannot wait for
 events; put a test in the phase whose state it needs (or check in a later
 phase), and undo any changes that later tests could see. Run a subset with `--filter`, for example
-`python3 tests/run_js_tests.py --path build/meson_dev/oolite.app --filter galaxy`.
+`python3 tests/run_js_tests.py --path build/meson_deployment/oolite.app --filter galaxy`.
 
 ## Test OXPs
 
