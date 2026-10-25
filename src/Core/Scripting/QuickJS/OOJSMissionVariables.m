@@ -70,7 +70,7 @@ static int MissionVariablesDefineOwnProperty(JSContext* context, JSValueConst ob
 static JSValue MissionVariablesGetProperty(JSContext* context, JSValueConst object, JSAtom propID, JSValueConst receiver);
 static int MissionVariablesSetProperty(JSContext* context, JSValueConst object, JSAtom propID, JSValueConst value, JSValueConst receiver, int flags);
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 static id MissionVariablesConverter(JSContext* context, JSValueConst object);
 #endif
 
@@ -99,13 +99,13 @@ void InitOOJSMissionVariables(JSContext* context, JSValueConst global)
     JS_FreeValue(context, objectPrototype);
     JS_DefinePropertyValueStr(context, global, "missionVariables", missionVariables, OOJS_PROP_READONLY);
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     // Allow callObjC() on missionVariables to call methods on the mission variables dictionary.
     OOJSRegisterObjectConverter(sMissionVariablesClassID, MissionVariablesConverter);
 #endif
 }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 static id MissionVariablesConverter(JSContext* context, JSValueConst object)
 {
     return [PLAYER missionVariables];

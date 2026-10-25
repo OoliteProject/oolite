@@ -37,7 +37,7 @@ static JSClassID sEntityClassID;
 
 static JSValue EntityGetProperty(OOJS_GETTER_ARGS);
 static JSValue EntitySetProperty(OOJS_SETTER_ARGS);
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 static JSValue EntityDumpState(OOJS_NATIVE_ARGS);
 #endif
 
@@ -107,7 +107,7 @@ static const JSCFunctionListEntry sEntityProperties[] = {
 static const JSCFunctionListEntry sEntityMethods[] = {
     // JS name, min args, function
     JS_CFUNC_DEF("toString", 0, OOJSObjectWrapperToString),
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     JS_CFUNC_DEF("dumpState", 0, EntityDumpState),
 #endif
 };
@@ -348,7 +348,7 @@ static JSValue EntitySetProperty(OOJS_SETTER_ARGS)
     OOJS_NATIVE_EXIT
 }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 static JSValue EntityDumpState(OOJS_NATIVE_ARGS)
 {
     OOJS_PROFILE_ENTER
