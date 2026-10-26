@@ -38,6 +38,7 @@ SOFTWARE.
 #import "OODebuggerInterface.h"
 #import "OOFoundation.h"
 #import "OOWeakReference.h"
+#include <quickjs.h>
 
 @class OOJSScript;
 
@@ -65,7 +66,7 @@ SOFTWARE.
 
     // JavaScript console support.
     OOJSScript* _script;
-    struct JSObject* _jsSelf;
+    JSValue _jsSelf; // Owned; released when the JS engine resets.
 
     NSDictionary* _configFromOXPs; // Settings from debugConfig.plist
     NSMutableDictionary* _configOverrides; // Settings from preferences, modifiable through JS.

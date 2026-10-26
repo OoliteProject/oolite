@@ -1,0 +1,14 @@
+--- a/quickjs.c
++++ b/quickjs.c
+@@ -10732,7 +10732,10 @@
+     }
+ 
+     if (unlikely(!p)) {
+-        ret = JS_ThrowTypeErrorOrFalse(ctx, flags, "not an object");
++        /* Oolite: SpiderMonkey 1.8.5 silently ignored creating a property on
++           a primitive value (e.g. "str".foo = 1), even in strict mode, and
++           OXPs rely on it. ES5+ requires a TypeError in strict mode. */
++        ret = false;
+         goto done;
+     }
+ 

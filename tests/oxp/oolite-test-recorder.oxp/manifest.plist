@@ -1,0 +1,10 @@
+{
+	identifier = "org.oolite.tests.recorder";
+	required_oolite_version = "1.90";
+	title = "Oolite test event recorder";
+	version = "1.0";
+	category = "Miscellaneous";
+	author = "Oolite";
+	license = "GPL 2+";
+	description = "Records world-script events for tests/run_js_tests.py. Not for play.";
+}

@@ -1,6 +1,6 @@
 /*
 
-OOJSSound.m
+OOJSSound.m (QuickJS-ng)
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -28,31 +28,21 @@ MA 02110-1301, USA.
 #import "ResourceManager.h"
 #import "Universe.h"
 
-static JSObject* sSoundPrototype;
+static JSClassID sSoundClassID;
 
 static OOSound* GetNamedSound(NSString* name);
 
-static JSBool SoundGetProperty(JSContext* context, JSObject* this, jsid propID, jsval* value);
+static JSValue SoundGetProperty(OOJS_GETTER_ARGS);
 
 // Static methods
-static JSBool SoundStaticLoad(JSContext* context, uintN argc, jsval* vp);
-static JSBool SoundStaticMusicSoundSource(JSContext* context, uintN argc, jsval* vp);
-static JSBool SoundStaticPlayMusic(JSContext* context, uintN argc, jsval* vp);
-static JSBool SoundStaticStopMusic(JSContext* context, uintN argc, jsval* vp);
+static JSValue SoundStaticLoad(OOJS_NATIVE_ARGS);
+static JSValue SoundStaticMusicSoundSource(OOJS_NATIVE_ARGS);
+static JSValue SoundStaticPlayMusic(OOJS_NATIVE_ARGS);
+static JSValue SoundStaticStopMusic(OOJS_NATIVE_ARGS);
 
-static JSClass sSoundClass = {
-    "Sound",
-    JSCLASS_HAS_PRIVATE,
-
-    JS_PropertyStub, // addProperty
-    JS_PropertyStub, // delProperty
-    SoundGetProperty, // getProperty
-    JS_StrictPropertyStub, // setProperty
-    JS_EnumerateStub, // enumerate
-    JS_ResolveStub, // resolve
-    JS_ConvertStub, // convert
-    OOJSObjectWrapperFinalize, // finalize
-    JSCLASS_NO_OPTIONAL_MEMBERS
+static JSClassDef sSoundClass = {
+    .class_name = "Sound",
+    .finalizer = OOJSObjectWrapperFinalize,
 };
 
 enum {
@@ -60,94 +50,77 @@ enum {
     kSound_name
 };
 
-static JSPropertySpec sSoundProperties[] = {
-    // JS name					ID							flags
-    { "name", kSound_name, OOJS_PROP_READONLY_CB },
-    { 0 }
+static const JSCFunctionListEntry sSoundProperties[] = {
+    // JS name, getter, ID
+    OOJS_PROPERTY_RO("name", SoundGetProperty, kSound_name),
 };
 
-static JSFunctionSpec sSoundMethods[] = {
-    // JS name					Function					min args
-    {
-        "toString",
-        OOJSObjectWrapperToString,
-        0,
-    },
-    { 0 }
+static const JSCFunctionListEntry sSoundMethods[] = {
+    // JS name, min args, function
+    JS_CFUNC_DEF("toString", 0, OOJSObjectWrapperToString),
 };
 
-static JSFunctionSpec sSoundStaticMethods[] = {
-    // JS name					Function					min args
-    {
-        "load",
-        SoundStaticLoad,
-        1,
-    },
-    {
-        "musicSoundSource",
-        SoundStaticMusicSoundSource,
-        0,
-    },
-    {
-        "playMusic",
-        SoundStaticPlayMusic,
-        1,
-    },
-    {
-        "stopMusic",
-        SoundStaticStopMusic,
-        0,
-    },
-    { 0 }
+static const JSCFunctionListEntry sSoundStaticMethods[] = {
+    // JS name, min args, function
+    JS_CFUNC_DEF("load", 1, SoundStaticLoad),
+    JS_CFUNC_DEF("musicSoundSource", 0, SoundStaticMusicSoundSource),
+    JS_CFUNC_DEF("playMusic", 1, SoundStaticPlayMusic),
+    JS_CFUNC_DEF("stopMusic", 0, SoundStaticStopMusic),
 };
 
-DEFINE_JS_OBJECT_GETTER(JSSoundGetSound, &sSoundClass, sSoundPrototype, OOSound)
+DEFINE_JS_OBJECT_GETTER(JSSoundGetSound, sSoundClassID, OOSound)
 
 // *** Public ***
 
-void InitOOJSSound(JSContext* context, JSObject* global)
+void InitOOJSSound(JSContext* context, JSValueConst global)
 {
-    sSoundPrototype = JS_InitClass(context, global, NULL, &sSoundClass, OOJSUnconstructableConstruct, 0, sSoundProperties, sSoundMethods, NULL, sSoundStaticMethods);
-    OOJSRegisterObjectConverter(&sSoundClass, OOJSBasicPrivateObjectConverter);
+    OOJSRegisterClass(&sSoundClassID, &sSoundClass);
+    OOJSInitClass(context, global, sSoundClassID, JS_UNDEFINED, OOJSUnconstructableConstruct, 0,
+        sSoundProperties, OOJS_COUNT(sSoundProperties), sSoundMethods, OOJS_COUNT(sSoundMethods),
+        sSoundStaticMethods, OOJS_COUNT(sSoundStaticMethods));
+    OOJSRegisterObjectConverter(sSoundClassID, OOJSBasicPrivateObjectConverter);
 }
 
-OOSound* SoundFromJSValue(JSContext* context, jsval value)
+OOSound* SoundFromJSValue(JSContext* context, JSValueConst value)
 {
     OOJS_PROFILE_ENTER
 
+    OOSound* result = nil;
+
+    /*	The SpiderMonkey version returned before resuming the time limiter,
+            leaving it paused; the pause is balanced here.
+    */
     OOJSPauseTimeLimiter();
-    if ([PLAYER status] != STATUS_START_GAME && JSVAL_IS_STRING(value)) {
-        return GetNamedSound(OOStringFromJSValue(context, value));
+    if ([PLAYER status] != STATUS_START_GAME && JS_IsString(value)) {
+        result = GetNamedSound(OOStringFromJSValue(context, value));
     } else {
-        return OOJSNativeObjectOfClassFromJSValue(context, value, [OOSound class]);
+        result = OOJSNativeObjectOfClassFromJSValue(context, value, [OOSound class]);
     }
     OOJSResumeTimeLimiter();
+
+    return result;
 
     OOJS_PROFILE_EXIT
 }
 
 // *** Implementation stuff ***
 
-static JSBool SoundGetProperty(JSContext* context, JSObject* this, jsid propID, jsval* value)
+static JSValue SoundGetProperty(OOJS_GETTER_ARGS)
 {
-    if (!JSID_IS_INT(propID))
-        return YES;
-
     OOJS_NATIVE_ENTER(context)
 
     OOSound* sound = nil;
 
     if (EXPECT_NOT(!JSSoundGetSound(context, this, &sound)))
-        return NO;
+        return OOJSNativeFailure(context);
 
-    switch (JSID_TO_INT(propID)) {
+    switch (magic) {
     case kSound_name:
-        *value = OOJSValueFromNativeObject(context, [sound name]);
-        return YES;
+        return OOJSValueFromNativeObject(context, [sound name]);
 
     default:
-        OOJSReportBadPropertySelector(context, this, propID, sSoundProperties);
-        return NO;
+        OOJSReportBadPropertySelector(context, this, magic, sSoundProperties, OOJS_COUNT(sSoundProperties));
+        return OOJSNativeFailure(context);
     }
 
     OOJS_NATIVE_EXIT
@@ -169,7 +142,7 @@ static OOSound* GetNamedSound(NSString* name)
 // *** Static methods ***
 
 // load(name : String) : Sound
-static JSBool SoundStaticLoad(JSContext* context, uintN argc, jsval* vp)
+static JSValue SoundStaticLoad(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
@@ -179,8 +152,8 @@ static JSBool SoundStaticLoad(JSContext* context, uintN argc, jsval* vp)
     if (argc > 0)
         name = OOStringFromJSValue(context, OOJS_ARGV[0]);
     if (name == nil) {
-        OOJSReportBadArguments(context, @"Sound", @"load", MIN(argc, 1U), OOJS_ARGV, nil, @"string");
-        return NO;
+        OOJSReportBadArguments(context, @"Sound", @"load", MIN(argc, 1), OOJS_ARGV, nil, @"string");
+        return OOJSNativeFailure(context);
     }
 
     OOJS_BEGIN_FULL_NATIVE(context)
@@ -192,7 +165,7 @@ static JSBool SoundStaticLoad(JSContext* context, uintN argc, jsval* vp)
     OOJS_NATIVE_EXIT
 }
 
-static JSBool SoundStaticMusicSoundSource(JSContext* context, uintN argc, jsval* vp)
+static JSValue SoundStaticMusicSoundSource(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
     OOSoundSource* musicSource = nil;
@@ -204,31 +177,33 @@ static JSBool SoundStaticMusicSoundSource(JSContext* context, uintN argc, jsval*
 }
 
 // playMusic(name : String [, loop : Boolean] [, gain : float])
-static JSBool SoundStaticPlayMusic(JSContext* context, uintN argc, jsval* vp)
+static JSValue SoundStaticPlayMusic(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
     NSString* name = nil;
-    JSBool loop = NO;
+    BOOL loop = NO;
     double gain = OO_DEFAULT_SOUNDSOURCE_GAIN;
 
     if (argc > 0)
         name = OOStringFromJSValue(context, OOJS_ARGV[0]);
     if (name == nil) {
-        OOJSReportBadArguments(context, @"Sound", @"playMusic", MIN(argc, 1U), OOJS_ARGV, nil, @"string");
-        return NO;
+        OOJSReportBadArguments(context, @"Sound", @"playMusic", MIN(argc, 1), OOJS_ARGV, nil, @"string");
+        return OOJSNativeFailure(context);
     }
     if (argc > 1) {
-        if (!JS_ValueToBoolean(context, OOJS_ARGV[1], &loop)) {
+        int b = JS_ToBool(context, OOJS_ARGV[1]);
+        if (b < 0) {
             OOJSReportBadArguments(context, @"Sound", @"playMusic", 1, OOJS_ARGV + 1, nil, @"boolean");
-            return NO;
+            return OOJSNativeFailure(context);
         }
+        loop = b;
     }
 
     if (argc > 2) {
         if (!OOJSArgumentListGetNumber(context, @"Sound", @"playMusic", 2, OOJS_ARGV + 2, &gain, NULL)) {
             OOJSReportBadArguments(context, @"Sound", @"playMusic", 1, OOJS_ARGV + 2, nil, @"float");
-            return NO;
+            return OOJSNativeFailure(context);
         }
     }
 
@@ -242,7 +217,7 @@ static JSBool SoundStaticPlayMusic(JSContext* context, uintN argc, jsval* vp)
 }
 
 // Sound.stopMusic([name : String])
-static JSBool SoundStaticStopMusic(JSContext* context, uintN argc, jsval* vp)
+static JSValue SoundStaticStopMusic(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
@@ -252,7 +227,7 @@ static JSBool SoundStaticStopMusic(JSContext* context, uintN argc, jsval* vp)
         name = OOStringFromJSValue(context, OOJS_ARGV[0]);
         if (EXPECT_NOT(name == nil)) {
             OOJSReportBadArguments(context, @"Sound", @"stopMusic", argc, OOJS_ARGV, nil, @"string or no argument");
-            return NO;
+            return OOJSNativeFailure(context);
         }
     }
 
@@ -270,18 +245,14 @@ static JSBool SoundStaticStopMusic(JSContext* context, uintN argc, jsval* vp)
 
 @implementation OOSound (OOJavaScriptExtentions)
 
-- (jsval)oo_jsValueInContext:(JSContext*)context
+- (JSValue)oo_jsValueInContext:(JSContext*)context
 {
-    JSObject* jsSelf = NULL;
-    jsval result = JSVAL_NULL;
-
-    jsSelf = JS_NewObject(context, &sSoundClass, sSoundPrototype, NULL);
-    if (jsSelf != NULL) {
-        if (!JS_SetPrivate(context, jsSelf, [self retain]))
-            jsSelf = NULL;
+    JSValue result = JS_NewObjectClass(context, (int)sSoundClassID);
+    if (JS_IsException(result)) {
+        JS_FreeValue(context, JS_GetException(context));
+        return JS_NULL;
     }
-    if (jsSelf != NULL)
-        result = OBJECT_TO_JSVAL(jsSelf);
+    JS_SetOpaque(result, [self retain]);
 
     return result;
 }
