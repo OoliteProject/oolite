@@ -44,6 +44,9 @@ static NSMutableDictionary* sShaderCache = nil;
 static OOShaderProgram* sActiveProgram = nil;
 
 static BOOL GetShaderSource(NSString* fileName, NSString* shaderType, NSString* prefix, NSString** outResult);
+#if OOLITE_MAC_OS_X
+static NSString* TranslateGLSL330To120(NSString* source, BOOL isVertexShader, NSMutableDictionary* attributeBindings);
+#endif
 static NSString* GetGLSLInfoLog(GLhandleARB shaderObject);
 
 @interface OOShaderProgram (OOPrivate)
@@ -126,6 +129,18 @@ static NSString* GetGLSLInfoLog(GLhandleARB shaderObject);
             return nil;
         if (!GetShaderSource(fragmentShaderName, @"fragment", prefixString, &fragmentSource))
             return nil;
+#if OOLITE_MAC_OS_X
+        /*	The macOS legacy OpenGL context only supports GLSL 1.20, so shaders
+                written for #version 330 are translated when loaded.
+        */
+        if ([prefixString hasPrefix:@"#version 330"]) {
+            NSMutableDictionary* bindings = [NSMutableDictionary dictionaryWithDictionary:attributeBindings ?: [NSDictionary dictionary]];
+            vertexSource = TranslateGLSL330To120(vertexSource, YES, bindings);
+            fragmentSource = TranslateGLSL330To120(fragmentSource, NO, bindings);
+            attributeBindings = bindings;
+            prefixString = [@"#version 120\n#extension GL_EXT_gpu_shader4 : enable\n" stringByAppendingString:[prefixString substringFromIndex:[@"#version 330" length]]];
+        }
+#endif
         result = [[OOShaderProgram alloc] initWithVertexShaderSource:vertexSource
                                                 fragmentShaderSource:fragmentSource
                                                         prefixString:prefixString
@@ -470,3 +485,66 @@ static NSString* GetGLSLInfoLog(GLhandleARB shaderObject)
 }
 
 #endif // OO_SHADERS
+
+
+#if OOLITE_MAC_OS_X
+static NSString* ReplaceRegex(NSString* source, NSString* pattern, NSString* replacement)
+{
+    NSRegularExpression* regex = [NSRegularExpression regularExpressionWithPattern:pattern options:NSRegularExpressionAnchorsMatchLines error:NULL];
+    return [regex stringByReplacingMatchesInString:source options:0 range:NSMakeRange(0, [source length]) withTemplate:replacement];
+}
+
+
+/*	Translate the subset of GLSL 3.30 used by Oolite's post-processing shaders
+        to GLSL 1.20 (plus GL_EXT_gpu_shader4). Only top-level declarations are
+        rewritten, so in/out parameter qualifiers inside functions are untouched.
+*/
+static NSString* TranslateGLSL330To120(NSString* source, BOOL isVertexShader, NSMutableDictionary* attributeBindings)
+{
+    if (source == nil)
+        return nil;
+
+    NSRegularExpression* regex = nil;
+    NSArray* matches = nil;
+    NSTextCheckingResult* match = nil;
+
+    if (isVertexShader) {
+        // layout(location = N) in TYPE NAME;  ->  attribute binding NAME = N
+        regex = [NSRegularExpression regularExpressionWithPattern:@"^\\s*layout\\s*\\(\\s*location\\s*=\\s*(\\d+)\\s*\\)\\s*in\\s+\\w+\\s+(\\w+)\\s*;" options:NSRegularExpressionAnchorsMatchLines error:NULL];
+        matches = [regex matchesInString:source options:0 range:NSMakeRange(0, [source length])];
+        foreach (match, matches) {
+            NSString* location = [source substringWithRange:[match rangeAtIndex:1]];
+            NSString* name = [source substringWithRange:[match rangeAtIndex:2]];
+            [attributeBindings setObject:[NSNumber numberWithInt:[location intValue]] forKey:name];
+        }
+    } else {
+        // [layout(location = N)] out vec4 NAME;  ->  #define NAME gl_FragData[N]
+        NSMutableString* result = [NSMutableString stringWithString:source];
+        regex = [NSRegularExpression regularExpressionWithPattern:@"^\\s*(?:layout\\s*\\(\\s*location\\s*=\\s*(\\d+)\\s*\\)\\s*)?out\\s+vec4\\s+(\\w+)\\s*;" options:NSRegularExpressionAnchorsMatchLines error:NULL];
+        matches = [regex matchesInString:source options:0 range:NSMakeRange(0, [source length])];
+        foreach (match, [matches reverseObjectEnumerator]) {
+            NSRange locationRange = [match rangeAtIndex:1];
+            NSString* location = locationRange.location != NSNotFound ? [source substringWithRange:locationRange] : @"0";
+            NSString* name = [source substringWithRange:[match rangeAtIndex:2]];
+            [result replaceCharactersInRange:[match range] withString:[NSString stringWithFormat:@"#define %@ gl_FragData[%@]", name, location]];
+        }
+        source = result;
+    }
+
+    source = ReplaceRegex(source, @"layout\\s*\\([^)]*\\)\\s*", @"");
+    if (isVertexShader) {
+        source = ReplaceRegex(source, @"^(\\s*)in\\s+", @"$1attribute ");
+        source = ReplaceRegex(source, @"^(\\s*)out\\s+", @"$1varying ");
+    } else {
+        source = ReplaceRegex(source, @"^(\\s*)in\\s+", @"$1varying ");
+    }
+    source = ReplaceRegex(source, @"\\btexture\\s*\\(", @"texture2D(");
+    source = ReplaceRegex(source, @"\\btextureSize\\s*\\(", @"textureSize2D(");
+    if ([source rangeOfString:@"isnan("].location != NSNotFound) {
+        // isnan() is not available before GLSL 1.30.
+        source = [@"bool oo_isnan(float x) { return !(x < 0.0 || x > 0.0 || x == 0.0); }\n" stringByAppendingString:ReplaceRegex(source, @"\\bisnan\\s*\\(", @"oo_isnan(")];
+    }
+
+    return source;
+}
+#endif

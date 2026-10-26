@@ -28,8 +28,8 @@ MA 02110-1301, USA.
 #pragma once
 // SDL OpenGL includes...
 
-// GL_GLEXT_PROTOTYPES must be defined for the Linux build to use shaders.
-#if OOLITE_LINUX
+// GL_GLEXT_PROTOTYPES must be defined for the Linux and macOS builds to use shaders.
+#if OOLITE_LINUX || defined(__APPLE__)
 #ifndef GL_GLEXT_PROTOTYPES
 #define GL_GLEXT_PROTOTYPES
 #define __DEFINED_GL_GLEXT_PROTOTYPES
@@ -40,8 +40,26 @@ MA 02110-1301, USA.
 #include <SDL3/SDL_opengl.h>
 
 // include an up-to-date version of glext.h
+#ifdef __APPLE__
+#include <OpenGL/glext.h>
+#include <OpenGL/glu.h>
+#else
 #include <GL/glext.h>
 #include <GL/glu.h>
+#endif
+
+#ifdef __APPLE__
+/*	The macOS legacy (2.1) context provides the GL 3.x features Oolite uses
+        through extensions. Map the core names onto them.
+ */
+#define glGenVertexArrays glGenVertexArraysAPPLE
+#define glBindVertexArray glBindVertexArrayAPPLE
+#define glDeleteVertexArrays glDeleteVertexArraysAPPLE
+#define glClampColor glClampColorARB
+#define OO_MSAA_COLOR_RENDERBUFFER 1
+#else
+#define OO_MSAA_COLOR_RENDERBUFFER 0
+#endif
 
 #ifdef __DEFINED_GL_GLEXT_PROTOTYPES
 #undef GL_GLEXT_PROTOTYPES

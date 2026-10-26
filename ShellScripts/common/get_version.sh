@@ -17,6 +17,10 @@ if [[ -v MINGW_PREFIX ]]; then
     fi
 else
     PARENT_PROCESS=$(ps -p $PPID -o comm= 2>/dev/null || true)
+    # On macOS meson runs under the Python framework binary, so check its arguments instead
+    if [[ "$PARENT_PROCESS" != "meson" ]] && ps -p $PPID -o args= 2>/dev/null | grep -q "/meson\b"; then
+        PARENT_PROCESS="meson"
+    fi
 fi
 if [[ "$PARENT_PROCESS" != "meson" ]] || [[ -z "$MESON_BUILD_ROOT" ]]; then
     SUITE_PARENT=$(basename "${BASH_SOURCE[1]}")  # Get the name of the script that is sourcing this file
@@ -100,7 +104,7 @@ run_script() {
         fi
         output_ver_quad="$ver_maj.$ver_min.$ver_rev.$ver_dist"
     else
-        local ver_uncommitted=$(git status --porcelain 2>/dev/null | wc -l)  # Dirty repo: get uncommitted file count
+        local ver_uncommitted=$(git status --porcelain 2>/dev/null | wc -l | tr -d " ")  # Dirty repo: get uncommitted file count
         output_ver_quad="$ver_maj.$ver_min.$ver_rev.$ver_uncommitted"
     fi
 

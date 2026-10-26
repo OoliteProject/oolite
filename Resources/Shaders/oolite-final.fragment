@@ -764,49 +764,49 @@ void main()
 	
 	hdrColor *= exposure;
 	
-	// post processing effects here
-	switch(uPostFX)
+	// post processing effects here (if/else rather than switch for GLSL 1.20 on macOS)
+	if (uPostFX >= 1 && uPostFX <= 3)
 	{
-		case 1:
-		case 2:
-		case 3:
-			hdrColor = colorBlindness(hdrColor);
-			break;
-		case 4:
-			hdrColor = cloakVision(hdrColor);
-			break;
-		case 5:
-			hdrColor = FXAA(scene, TexCoords);
-			bloomColor = FXAA(bloomBlur, TexCoords);
-			if(bloom)  hdrColor += bloomColor;
-			hdrColor *= exposure;
-			break;
-		case 6:
-			hdrColor = oldMovie(scene, TexCoords);
-			bloomColor = oldMovie(bloomBlur, TexCoords);
-			if(bloom)  hdrColor += bloomColor;
-			hdrColor *= exposure;
-			break;
-		case 7:
-			hdrColor = CRT(scene, TexCoords);
-			bloomColor = CRT(bloomBlur, TexCoords);
-			if(bloom)  hdrColor += bloomColor;
-			hdrColor *= exposure;
-			break;
-		case 8:
-			hdrColor = CRTBadSignal(scene, TexCoords);
-			bloomColor = CRT(bloomBlur, TexCoords); // yes CRT, not a typo
-			if(bloom)  hdrColor += bloomColor;
-			hdrColor *= exposure;
-			break;
-		case 9:
-			hdrColor = gravLens(scene, TexCoords);
-			bloomColor = gravLens(bloomBlur, TexCoords);
-			if(bloom)  hdrColor += bloomColor;
-			hdrColor *= exposure;
-			break;
-		default:
-			break;
+		hdrColor = colorBlindness(hdrColor);
+	}
+	else if (uPostFX == 4)
+	{
+		hdrColor = cloakVision(hdrColor);
+	}
+	else if (uPostFX == 5)
+	{
+		hdrColor = FXAA(scene, TexCoords);
+		bloomColor = FXAA(bloomBlur, TexCoords);
+		if(bloom)  hdrColor += bloomColor;
+		hdrColor *= exposure;
+	}
+	else if (uPostFX == 6)
+	{
+		hdrColor = oldMovie(scene, TexCoords);
+		bloomColor = oldMovie(bloomBlur, TexCoords);
+		if(bloom)  hdrColor += bloomColor;
+		hdrColor *= exposure;
+	}
+	else if (uPostFX == 7)
+	{
+		hdrColor = CRT(scene, TexCoords);
+		bloomColor = CRT(bloomBlur, TexCoords);
+		if(bloom)  hdrColor += bloomColor;
+		hdrColor *= exposure;
+	}
+	else if (uPostFX == 8)
+	{
+		hdrColor = CRTBadSignal(scene, TexCoords);
+		bloomColor = CRT(bloomBlur, TexCoords); // yes CRT, not a typo
+		if(bloom)  hdrColor += bloomColor;
+		hdrColor *= exposure;
+	}
+	else if (uPostFX == 9)
+	{
+		hdrColor = gravLens(scene, TexCoords);
+		bloomColor = gravLens(bloomBlur, TexCoords);
+		if(bloom)  hdrColor += bloomColor;
+		hdrColor *= exposure;
 	}
 	
 	// apply saturation
@@ -814,36 +814,34 @@ void main()
 
 	vec3 result;
 	bool gammaCorrectionRequired = true;
-	switch(uSDRToneMapper)
+	if (uSDRToneMapper == 0) // ACES
 	{
-		case 0: // ACES
-			result = ACESFilm(hdrColor);
-			break;
-			
-		case 1: //AgX Punchy
-			result = AgX(hdrColor, AGX_LOOK_PUNCHY);
-			break;
-			
-		case 2: // Hejl / Burgess - Dawson filmic
-			result = hejlBurgessDawson(desaturateHighlights(hdrColor));
-			gammaCorrectionRequired = false;
-			break;
-			
-		case 3: // Uncharted 2
-			result = uc2(desaturateHighlights(hdrColor));
-			break;
-			
-		case 4: // Uchimura
-			result = uchimura(desaturateHighlights(hdrColor));
-			break;
-			
-		case 5: // Reinhard
-			result = reinhard(desaturateHighlights(hdrColor));
-			break;
-		
-		default: // no tone map - mainly for testing
-			result = hdrColor;
-			break;	
+		result = ACESFilm(hdrColor);
+	}
+	else if (uSDRToneMapper == 1) //AgX Punchy
+	{
+		result = AgX(hdrColor, AGX_LOOK_PUNCHY);
+	}
+	else if (uSDRToneMapper == 2) // Hejl / Burgess - Dawson filmic
+	{
+		result = hejlBurgessDawson(desaturateHighlights(hdrColor));
+		gammaCorrectionRequired = false;
+	}
+	else if (uSDRToneMapper == 3) // Uncharted 2
+	{
+		result = uc2(desaturateHighlights(hdrColor));
+	}
+	else if (uSDRToneMapper == 4) // Uchimura
+	{
+		result = uchimura(desaturateHighlights(hdrColor));
+	}
+	else if (uSDRToneMapper == 5) // Reinhard
+	{
+		result = reinhard(desaturateHighlights(hdrColor));
+	}
+	else // no tone map - mainly for testing
+	{
+		result = hdrColor;
 	}
 
 	// gamma correction       
