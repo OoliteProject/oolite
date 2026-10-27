@@ -44,7 +44,7 @@ create_appimage() {
 
     # quick-sharun.sh only looks for libc in /usr/lib/<arch>-linux-gnu and /usr/lib, so it stops with
     # "no library directory found" on distributions that keep 64-bit libraries in /usr/lib64 (Fedora, openSUSE)
-    if [[ -z "$LIB_DIR" ]] && ! compgen -G "/usr/lib/$arch-linux-gnu/libc.so*" > /dev/null \
+    if [[ -z "${LIB_DIR:-}" ]] && ! compgen -G "/usr/lib/$arch-linux-gnu/libc.so*" > /dev/null \
         && ! compgen -G "/usr/lib/libc.so*" > /dev/null && compgen -G "/usr/lib64/libc.so*" > /dev/null; then
         LIB_DIR=/usr/lib64
         export LIB_DIR
