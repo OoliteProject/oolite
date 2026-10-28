@@ -453,11 +453,7 @@ static bool BindGLContextToWindow(SDL_Window *window, SDL_GLContext context)
     }
 
 #endif
-#if OOLITE_LINUX
     BOOL replaceSplashWindow = showSplashScreen && !fullScreen && window && glContext;
-#else
-    BOOL replaceSplashWindow = NO;
-#endif
     if (!replaceSplashWindow) {
         SDL_SetWindowResizable(window, true);
         SDL_SetWindowBordered(window, true);
@@ -467,7 +463,7 @@ static bool BindGLContextToWindow(SDL_Window *window, SDL_GLContext context)
 
     if (fullScreen) {
         SDL_SetWindowFullscreen(window, true);
-    } else if (replaceSplashWindow) {
+    } else {
         // Some window managers (e.g. Marco) leave the borderless splash window unframed
         // after it gains a border, and some (e.g. Mutter under XWayland) drop its focus.
         // Replace it with a new window that has its final size, border and centred
@@ -485,12 +481,6 @@ static bool BindGLContextToWindow(SDL_Window *window, SDL_GLContext context)
         {
             BindGLContextToWindow(window, glContext);
         }
-        SDL_ShowWindow(window);
-    } else {
-        SDL_HideWindow(window);
-        SDL_SetWindowFullscreen(window, false);
-        SDL_SetWindowSize(window, firstScreen.width, firstScreen.height);
-        SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
         SDL_ShowWindow(window);
     }
 
