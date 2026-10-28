@@ -11,7 +11,7 @@ create_venv() {
 
     if [ ! -d "$VENV_DIR" ]; then
         echo "Creating virtual environment..."
-        python -m venv "$VENV_DIR"
+        python -m venv --system-site-packages "$VENV_DIR"
     fi
 
     # Windows/MSYS2 uses 'Scripts' directory for the activation script

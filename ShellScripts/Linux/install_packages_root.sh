@@ -79,6 +79,9 @@ run_script() {
 
     if [[ "$INSTALL_CORE" == true ]]; then  # Core dependencies
         echo "📦 Installing Core Build Dependencies..."
+        if ! python3 --version >/dev/null 2>&1; then  # Check Python
+            install_package python
+        fi
         pkgs=(
             procps base-devel clang cmake jq meson gnutls-dev icu-dev ffi-dev xslt-dev png-dev zlib-dev nspr-dev
             espeak-ng-dev vorbis-dev openal-dev opengl-dev glu-dev sdl3 x11-dev doxygen weasyprint-deps
@@ -86,9 +89,6 @@ run_script() {
         for pkg in "${pkgs[@]}"; do
             install_package "$pkg"
         done
-        if ! python3 --version >/dev/null 2>&1; then  # Check Python
-            install_package python
-        fi
         install_gitversion "$outputdir"
         local espeak_folder="$(uname -m 2>/dev/null || echo x86_64)-linux-gnu"
         if [[ ! -d "/usr/share/espeak-ng-data" &&
