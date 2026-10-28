@@ -46,7 +46,7 @@ install_package() {
 
         "python")
             case "$CURRENT_DISTRO" in
-                debian) pkg_name="python3-pip" ;;
+                debian) pkg_name="python3-pip python3-venv" ;;
                 redhat) pkg_name="python3-pip" ;;
                 arch) pkg_name="python-pip" ;;
             esac ;;
