@@ -43,7 +43,7 @@ run_script() {
 
     pacman -Syu --noconfirm
     pacman -S --noconfirm dos2unix git jq pactoys unzip
-    pacboy -S --noconfirm binutils curl espeak-ng libffi libpng libvorbis mesa meson ninja nsis ntldd openal pcaudiolib python-pip sdl3 shared-mime-info cairo fontconfig harfbuzz gdk-pixbuf2 python-cffi pango
+    pacboy -S --noconfirm binutils curl espeak-ng libffi libpng libvorbis mesa meson ninja nsis ntldd openal pcaudiolib python-pip sdl3 shared-mime-info brotli cairo fontconfig harfbuzz gdk-pixbuf2 pillow python-cffi pango
     mkdir -p ../../build/packages
     cd ../../build
     install_gitversion "."
