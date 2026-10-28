@@ -33,24 +33,23 @@ install() {
 
 run_script() {
     local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
-    source "$script_dir/../common/download_github_release_fn.sh"
+    source "$script_dir/install_gitversion_fn.sh"
+    source "$script_dir/install_pandoc_fn.sh"
+    source "$script_dir/install_weasyprint_fn.sh"
+    source "$script_dir/install_typst_fn.sh"
     pushd "$script_dir"
 
     local oolite_deps_url="https://api.github.com/repos/OoliteProject/oolite_windeps_build/releases/latest"
 
     pacman -Syu --noconfirm
     pacman -S --noconfirm dos2unix git jq pactoys unzip
-    pacboy -S --noconfirm binutils curl espeak-ng libpng libvorbis mesa meson ninja nsis ntldd openal pcaudiolib python-pip sdl3
+    pacboy -S --noconfirm binutils curl espeak-ng libpng libvorbis mesa meson ninja nsis ntldd openal pcaudiolib python-pip sdl3 pango libffi shared-mime-info
     mkdir -p ../../build/packages
     cd ../../build
-    # install gitversion
-    local gitversion_zip
-    local outputdir="."
-    download_github_release gitversion_zip "GitTools" "GitVersion" "win-x64" "$outputdir"
-    unzip -o ${gitversion_zip} -d "$outputdir"
-    chmod +x "$outputdir/gitversion.exe"
-    mv "$outputdir/gitversion.exe" "$MINGW_PREFIX/bin/gitversion.exe"
-    rm -f ${gitversion_zip}
+    install_gitversion "."
+    install_pandoc "."
+    install_weasyprint
+    install_typst "."
 
     cd packages
     curl -s "$oolite_deps_url" | \

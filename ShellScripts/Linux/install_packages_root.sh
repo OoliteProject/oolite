@@ -70,6 +70,9 @@ run_script() {
     source ./install_package_fn.sh
     source ../common/download_fn.sh
     source ./install_gitversion_fn.sh
+    source ./install_pandoc_fn.sh
+    source ./install_weasyprint_fn.sh
+    source ./install_typst_fn.sh
 
     local outputdir="../../build"
     mkdir -p "$outputdir"
@@ -78,7 +81,7 @@ run_script() {
         echo "📦 Installing Core Build Dependencies..."
         pkgs=(
             procps base-devel clang cmake jq meson gnutls-dev icu-dev ffi-dev xslt-dev png-dev zlib-dev nspr-dev
-            espeak-ng-dev vorbis-dev openal-dev opengl-dev glu-dev sdl3 x11-dev
+            espeak-ng-dev vorbis-dev openal-dev opengl-dev glu-dev sdl3 x11-dev doxygen weasyprint-deps
         )
         for pkg in "${pkgs[@]}"; do
             install_package "$pkg"
@@ -94,6 +97,10 @@ run_script() {
             echo "❌ espeak-ng-data not in /usr/share, /usr/local/share or /usr/lib/$espeak_folder!"
             return 1
         fi
+
+        install_pandoc "$outputdir"
+        install_weasyprint
+        install_typst "$outputdir"
     fi
 
     if [[ "$INSTALL_APPIMAGE" == true ]]; then  # For building AppImage

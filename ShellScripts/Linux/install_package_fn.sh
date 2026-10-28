@@ -151,6 +151,21 @@ install_package() {
 
         "flatpak") pkg_name="flatpak flatpak-builder" ;;
 
+        "doxygen") pkg_name="doxygen graphviz" ;;
+
+        "weasyprint-deps")
+            case "$CURRENT_DISTRO" in
+                debian)
+                    pkg_name="libpango-1.0-0 libharfbuzz0b libpangoft2-1.0-0 shared-mime-info"
+                    ;;
+                redhat)
+                    pkg_name="pango harfbuzz shared-mime-info"
+                    ;;
+                arch)
+                    pkg_name="pango harfbuzz shared-mime-info"
+                    ;;
+            esac ;;
+
         *)
             echo "❌ Could not translate '$generic_name' for $CURRENT_DISTRO!" >&2
             return 1
