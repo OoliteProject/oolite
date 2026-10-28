@@ -54,20 +54,6 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
 
 @end
 
-// Every window shares the single glContext, which owns Universe's GL objects (VAOs, FBOs,
-// shaders). SDL can switch to another context behind our back (see createWindowWithSize:),
-// so rebind glContext after any SDL window call that may do that. Harmless if SDL did not.
-static const BOOL kReuseGLContextForAllWindows = YES;
-
-// SDL_GL_MakeCurrent() binds a window (the drawable) and a context together; the context
-// cannot be made current without a window on X11. This rebinds our one context to the
-// given window.
-static bool BindGLContextToWindow(SDL_Window *window, SDL_GLContext context)
-{
-    return SDL_GL_MakeCurrent(window, context);
-}
-
-
 @implementation MyOpenGLView
 
 - (SDL_DisplayID)getDisplayId
@@ -226,10 +212,10 @@ static bool BindGLContextToWindow(SDL_Window *window, SDL_GLContext context)
         SDL_SetSurfaceColorspace(surface, SDL_COLORSPACE_SRGB);
     }
 #endif
-    // SDL_GetWindowSurface() may create an internal GL renderer context for the window and
-    // leave it current. Make glContext current again, or Universe's GL objects (VAOs, FBOs,
-    // shaders) are not visible to subsequent GL calls.
-    if (kReuseGLContextForAllWindows && !BindGLContextToWindow(window, glContext)) {
+    // Every window shares the single glContext, which owns Universe's GL objects (VAOs, FBOs,
+    // shaders). SDL_GetWindowSurface() may create an internal GL renderer context for the window
+    // and leave it current, so make glContext current again before any GL call.
+    if (!SDL_GL_MakeCurrent(window, glContext)) {
         OOLog(@"sdl.create_context", @"Could not make OpenGL context current: %s", SDL_GetError());
         exit(1);
     }
@@ -477,9 +463,9 @@ static bool BindGLContextToWindow(SDL_Window *window, SDL_GLContext context)
         // it. But destroying the old window frees the GL context of its SDL framebuffer renderer,
         // which SDL makes current and then releases, so no context is current afterwards.
         // Rebind glContext before anything draws.
-        if (kReuseGLContextForAllWindows)
-        {
-            BindGLContextToWindow(window, glContext);
+        if (!SDL_GL_MakeCurrent(window, glContext)) {
+            OOLog(@"sdl.create_context", @"Could not make OpenGL context current: %s", SDL_GetError());
+            exit(1);
         }
         SDL_ShowWindow(window);
     }
