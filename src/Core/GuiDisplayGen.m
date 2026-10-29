@@ -1032,7 +1032,7 @@ static OOTextureSprite* NewTextureSpriteWithDescriptor(NSDictionary* descriptor,
     return TextureForGUITexture(descriptor, kOOTextureSRGBA) != nil;
 }
 
-- (NSDictionary*)textureDescriptorFromJSValue:(jsval)value
+- (NSDictionary*)textureDescriptorFromJSValue:(OOJSVal)value
                                     inContext:(JSContext*)context
                             callerDescription:(NSString*)callerDescription
 {

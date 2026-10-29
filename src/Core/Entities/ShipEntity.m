@@ -997,7 +997,7 @@ static ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other);
     */
     [weakSelf weakRefDrop];
     weakSelf = nil;
-    ShipScriptEventNoCx(self, "entityDestroyed");
+    [self doScriptEvent:OOJSID("entityDestroyed")];
 
     [self setTrackCloseContacts:NO]; // deallocs tracking dictionary
     [[self parentEntity] subEntityReallyDied:self]; // Will do nothing if we're not really a subentity
@@ -3085,9 +3085,9 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
             {
                 JSContext* JScontext = OOJSAcquireContext();
                 BOOL OK;
-                JSBool allow_addition = false;
-                jsval result;
-                jsval args[] = { OOJSValueFromNativeObject(JScontext, equipmentKey), OOJSValueFromNativeObject(JScontext, self), OOJSValueFromNativeObject(JScontext, context) };
+                BOOL allow_addition = NO;
+                OOJSVal result = OOJSUndefinedValue();
+                OOJSVal args[] = { OOJSValueFromNativeObject(JScontext, equipmentKey), OOJSValueFromNativeObject(JScontext, self), OOJSValueFromNativeObject(JScontext, context) };
 
                 OK = [condScript callMethod:OOJSID("allowAwardEquipment")
                                   inContext:JScontext
@@ -3096,8 +3096,12 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
                                      result:&result];
 
                 if (OK)
-                    OK = JS_ValueToBoolean(JScontext, result, &allow_addition);
+                    allow_addition = OOJSValueToBOOL(JScontext, result);
 
+                OOJSFreeValue(JScontext, result);
+                OOJSFreeValue(JScontext, args[0]);
+                OOJSFreeValue(JScontext, args[1]);
+                OOJSFreeValue(JScontext, args[2]);
                 OOJSRelinquishContext(JScontext);
 
                 if (OK && !allow_addition) {
@@ -5297,22 +5301,21 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 {
 
     JSContext* context = OOJSAcquireContext();
-    jsval rval = JSVAL_VOID;
-    jsval deltaJS = JSVAL_VOID;
+    OOJSVal rval = OOJSUndefinedValue();
+    OOJSVal deltaJS = OOJSValueFromDouble(context, delta_t);
     NSDictionary* result = nil;
 
-    BOOL OK = JS_NewNumberValue(context, delta_t, &deltaJS);
-    if (OK) {
-        OK = [[self script] callMethod:OOJSID("scriptedAI")
-                             inContext:context
-                         withArguments:&deltaJS
-                                 count:1
-                                result:&rval];
-    }
+    BOOL OK = [[self script] callMethod:OOJSID("scriptedAI")
+                              inContext:context
+                          withArguments:&deltaJS
+                                  count:1
+                                 result:&rval];
+    OOJSFreeValue(context, deltaJS);
 
     if (!OK) {
         OOLog(@"ai.error", @"Could not call scriptedAI in ship script of %@, reverting to idle", self);
         behaviour = BEHAVIOUR_IDLE;
+        OOJSFreeValue(context, rval);
         OOJSRelinquishContext(context);
         return;
     }
@@ -5320,11 +5323,13 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
     if (!JSVAL_IS_OBJECT(rval)) {
         OOLog(@"ai.error", @"Invalid return value of scriptedAI in ship script of %@, reverting to idle", self);
         behaviour = BEHAVIOUR_IDLE;
+        OOJSFreeValue(context, rval);
         OOJSRelinquishContext(context);
         return;
     }
 
     result = OOJSNativeObjectFromJSObject(context, JSVAL_TO_OBJECT(rval));
+    OOJSFreeValue(context, rval);
     OOJSRelinquishContext(context);
 
     // roll or roll factor
@@ -7117,12 +7122,11 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
     } else {
         JSContext* context = OOJSAcquireContext();
 
-        jsval amountVal = JSVAL_VOID;
-        JS_NewNumberValue(context, (int)amount - (int)bounty, &amountVal);
+        OOJSVal amountVal = OOJSValueFromDouble(context, (int)amount - (int)bounty);
 
         bounty = amount; // can't set the new bounty until the size of the change is known
 
-        jsval reasonVal = OOJSValueFromNativeObject(context, reason);
+        OOJSVal reasonVal = OOJSValueFromNativeObject(context, reason);
 
         ShipScriptEvent(context, self, "shipBountyChanged", amountVal, reasonVal);
 
@@ -7714,10 +7718,9 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 
     JSContext* context = OOJSAcquireContext();
 
-    jsval amountVal = JSVAL_VOID;
-    JS_NewNumberValue(context, amount, &amountVal);
-    jsval entityVal = OOJSValueFromNativeObject(context, entity);
-    jsval typeVal = OOJSValueFromShipDamageType(context, type);
+    OOJSVal amountVal = OOJSValueFromDouble(context, amount);
+    OOJSVal entityVal = OOJSValueFromNativeObject(context, entity);
+    OOJSVal typeVal = OOJSValueFromShipDamageType(context, type);
 
     ShipScriptEvent(context, self, "shipTakingDamage", amountVal, entityVal, typeVal);
     OOJSRelinquishContext(context);
@@ -7746,14 +7749,15 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 
     JSContext* context = OOJSAcquireContext();
 
-    jsval whomVal = OOJSValueFromNativeObject(context, whom);
-    jsval typeVal = OOJSValueFromShipDamageType(context, type);
+    OOJSVal whomVal = OOJSValueFromNativeObject(context, whom);
+    OOJSVal typeVal = OOJSValueFromShipDamageType(context, type);
     OOEntityStatus originalStatus = [self status];
     [self setStatus:STATUS_DEAD];
 
-    ShipScriptEvent(context, self, "shipDied", whomVal, typeVal);
+    ShipScriptEvent(context, self, "shipDied", whomVal, typeVal); // Frees whomVal and typeVal.
     if ([whom isShip]) {
-        jsval selfVal = OOJSValueFromNativeObject(context, self);
+        OOJSVal selfVal = OOJSValueFromNativeObject(context, self);
+        typeVal = OOJSValueFromShipDamageType(context, type);
         ShipScriptEvent(context, (ShipEntity*)whom, "shipKilledOther", selfVal, typeVal);
     }
 
@@ -11837,12 +11841,11 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
             JSContext* context = OOJSAcquireContext();
 
-            jsval amountVal = JSVAL_VOID;
-            JS_NewNumberValue(context, (bounty | offence_value) - bounty, &amountVal);
+            OOJSVal amountVal = OOJSValueFromDouble(context, (bounty | offence_value) - bounty);
 
             bounty |= offence_value; // can't set the new bounty until the size of the change is known
 
-            jsval reasonVal = OOJSValueFromLegalStatusReason(context, reason);
+            OOJSVal reasonVal = OOJSValueFromLegalStatusReason(context, reason);
 
             ShipScriptEvent(context, self, "shipBountyChanged", amountVal, reasonVal);
 
@@ -11994,8 +11997,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 {
     if (!_escortPositionsValid) {
         JSContext* context = OOJSAcquireContext();
-        jsval result;
-        jsval args[] = { INT_TO_JSVAL(0), INT_TO_JSVAL(_maxEscortCount) };
+        OOJSVal result;
+        OOJSVal args[] = { OOJSValueFromDouble(context, 0), OOJSValueFromDouble(context, _maxEscortCount) };
         BOOL OK;
 
         // Reset validity first so updateEscortFormation can be called from the update callback.
@@ -12003,7 +12006,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
         uint8_t i;
         for (i = 0; i < _maxEscortCount; i++) {
-            args[0] = INT_TO_JSVAL(i);
+            args[0] = OOJSValueFromDouble(context, i); // Numbers need not be freed.
+            result = OOJSUndefinedValue();
             OK = [script callMethod:OOJSID("coordinatesForEscortPosition")
                           inContext:context
                       withArguments:args
@@ -12012,6 +12016,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
             if (OK)
                 OK = JSValueToVector(context, result, &_escortPositions[i]);
+            OOJSFreeValue(context, result);
 
             if (!OK)
                 _escortPositions[i] = kZeroVector;
@@ -12758,43 +12763,46 @@ static BOOL AuthorityPredicate(Entity* entity, void* parameter)
 }
 
 // *** Script event dispatch.
-- (void)doScriptEvent:(jsid)message
+- (void)doScriptEvent:(OOJSPropID)message
 {
     JSContext* context = OOJSAcquireContext();
     [self doScriptEvent:message inContext:context withArguments:NULL count:0];
     OOJSRelinquishContext(context);
 }
 
-- (void)doScriptEvent:(jsid)message withArgument:(id)argument
+- (void)doScriptEvent:(OOJSPropID)message withArgument:(id)argument
 {
     JSContext* context = OOJSAcquireContext();
 
-    jsval value = OOJSValueFromNativeObject(context, argument);
+    OOJSVal value = OOJSValueFromNativeObject(context, argument);
     [self doScriptEvent:message inContext:context withArguments:&value count:1];
+    OOJSFreeValue(context, value);
 
     OOJSRelinquishContext(context);
 }
 
-- (void)doScriptEvent:(jsid)message
+- (void)doScriptEvent:(OOJSPropID)message
          withArgument:(id)argument1
           andArgument:(id)argument2
 {
     JSContext* context = OOJSAcquireContext();
 
-    jsval argv[2] = { OOJSValueFromNativeObject(context, argument1), OOJSValueFromNativeObject(context, argument2) };
+    OOJSVal argv[2] = { OOJSValueFromNativeObject(context, argument1), OOJSValueFromNativeObject(context, argument2) };
     [self doScriptEvent:message inContext:context withArguments:argv count:2];
+    OOJSFreeValue(context, argv[0]);
+    OOJSFreeValue(context, argv[1]);
 
     OOJSRelinquishContext(context);
 }
 
-- (void)doScriptEvent:(jsid)message withArguments:(NSArray*)arguments
+- (void)doScriptEvent:(OOJSPropID)message withArguments:(NSArray*)arguments
 {
     JSContext* context = OOJSAcquireContext();
-    uintN i, argc;
-    jsval* argv = NULL;
+    int i, argc;
+    OOJSVal* argv = NULL;
 
     // Convert arguments to JS values and make them temporarily un-garbage-collectable.
-    argc = (uintN)[arguments count];
+    argc = (int)[arguments count];
     if (argc != 0) {
         argv = malloc(sizeof *argv * argc);
         if (argv != NULL) {
@@ -12808,7 +12816,7 @@ static BOOL AuthorityPredicate(Entity* entity, void* parameter)
 
     [self doScriptEvent:message inContext:context withArguments:argv count:argc];
 
-    // Re-garbage-collectibalize the arguments and free the array.
+    // Re-garbage-collectibalize (or, with QuickJS, release) the arguments and free the array.
     if (argv != NULL) {
         for (i = 0; i != argc; ++i) {
             JS_RemoveValueRoot(context, &argv[i]);
@@ -12819,14 +12827,14 @@ static BOOL AuthorityPredicate(Entity* entity, void* parameter)
     OOJSRelinquishContext(context);
 }
 
-- (void)doScriptEvent:(jsid)message withArguments:(jsval*)argv count:(uintN)argc
+- (void)doScriptEvent:(OOJSPropID)message withArguments:(OOJSVal*)argv count:(int)argc
 {
     JSContext* context = OOJSAcquireContext();
     [self doScriptEvent:message inContext:context withArguments:argv count:argc];
     OOJSRelinquishContext(context);
 }
 
-- (void)doScriptEvent:(jsid)message inContext:(JSContext*)context withArguments:(jsval*)argv count:(uintN)argc
+- (void)doScriptEvent:(OOJSPropID)message inContext:(JSContext*)context withArguments:(OOJSVal*)argv count:(int)argc
 {
     // This method is a bottleneck so that PlayerEntity can override at one point.
     [script callMethod:message inContext:context withArguments:argv count:argc result:NULL];
@@ -12843,13 +12851,13 @@ static BOOL AuthorityPredicate(Entity* entity, void* parameter)
     [shipAI message:message];
 }
 
-- (void)doScriptEvent:(jsid)scriptEvent andReactToAIMessage:(NSString*)aiMessage
+- (void)doScriptEvent:(OOJSPropID)scriptEvent andReactToAIMessage:(NSString*)aiMessage
 {
     [self doScriptEvent:scriptEvent];
     [self reactToAIMessage:aiMessage context:nil];
 }
 
-- (void)doScriptEvent:(jsid)scriptEvent withArgument:(id)argument andReactToAIMessage:(NSString*)aiMessage
+- (void)doScriptEvent:(OOJSPropID)scriptEvent withArgument:(id)argument andReactToAIMessage:(NSString*)aiMessage
 {
     [self doScriptEvent:scriptEvent withArgument:argument];
     [self reactToAIMessage:aiMessage context:nil];
