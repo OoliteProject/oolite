@@ -209,7 +209,6 @@ extern int debug;
     NSSize currentWindowSize;
 
     BOOL showSplashScreen;
-    SDL_Window* splashWindow;
     SDL_Window* window;
     SDL_GLContext glContext;
     int bitsPerColorComponent;

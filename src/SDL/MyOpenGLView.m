@@ -140,6 +140,11 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
 
     NSString* windowCaption = [self getWindowCaption];
     Uint32 windowFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_BORDERLESS | SDL_WINDOW_HIGH_PIXEL_DENSITY;
+    if (glContext) {
+        // Game window replacing the splash window: create it hidden with its final
+        // decorations so it is mapped only once (see endSplashScreen).
+        windowFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN | SDL_WINDOW_HIGH_PIXEL_DENSITY;
+    }
 
     // Define modern SDL3 properties for window configuration
     SDL_PropertiesID props = SDL_CreateProperties();
@@ -185,7 +190,16 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
         OOLogERR(@"display.mode.error", @"Could not create window: %s", errStr);
         exit(1);
     }
-    glContext = SDL_GL_CreateContext(window);
+    if (glContext) {
+        // Keep the splash screen's context (and its textures); the GL attributes are unchanged,
+        // so the new window's pixel format matches.
+        if (!SDL_GL_MakeCurrent(window, glContext)) {
+            OOLog(@"sdl.create_context", @"Could not make OpenGL context current: %s", SDL_GetError());
+            exit(1);
+        }
+    } else {
+        glContext = SDL_GL_CreateContext(window);
+    }
     if (!glContext) {
         OOLog(@"sdl.create_context", @"%@", @"Could not create OpenGL context");
         exit(1);
@@ -198,6 +212,13 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
         SDL_SetSurfaceColorspace(surface, SDL_COLORSPACE_SRGB);
     }
 #endif
+    // Every window shares the single glContext, which owns Universe's GL objects (VAOs, FBOs,
+    // shaders). SDL_GetWindowSurface() may create an internal GL renderer context for the window
+    // and leave it current, so make glContext current again before any GL call.
+    if (!SDL_GL_MakeCurrent(window, glContext)) {
+        OOLog(@"sdl.create_context", @"Could not make OpenGL context current: %s", SDL_GetError());
+        exit(1);
+    }
 
 #if OOLITE_WINDOWS
     // capture the window handle for later (only needed for ugly hack later when transitioning between
@@ -418,18 +439,34 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
     }
 
 #endif
-    SDL_SetWindowResizable(window, true);
-    SDL_SetWindowBordered(window, true);
+    BOOL replaceSplashWindow = showSplashScreen && !fullScreen && window && glContext;
+    if (!replaceSplashWindow) {
+        SDL_SetWindowResizable(window, true);
+        SDL_SetWindowBordered(window, true);
+    }
     if (!showSplashScreen)
         return;
 
     if (fullScreen) {
         SDL_SetWindowFullscreen(window, true);
     } else {
-        SDL_HideWindow(window);
-        SDL_SetWindowFullscreen(window, false);
-        SDL_SetWindowSize(window, firstScreen.width, firstScreen.height);
-        SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+        // Some window managers (e.g. Marco) leave the borderless splash window unframed
+        // after it gains a border, and some (e.g. Mutter under XWayland) drop its focus.
+        // Replace it with a new window that has its final size, border and centred
+        // position before it is mapped. The splash window is destroyed before the new one
+        // is shown, so no other Oolite window holds focus when the new one is mapped.
+        SDL_Window* previousWindow = window; // the window in use so far, which showed the splash
+        window = NULL;
+        [self createWindowWithSize:firstScreen];
+        SDL_DestroyWindow(previousWindow);
+        // createWindowWithSize: left glContext current, and SDL_DestroyWindow does not destroy
+        // it. But destroying the old window frees the GL context of its SDL framebuffer renderer,
+        // which SDL makes current and then releases, so no context is current afterwards.
+        // Rebind glContext before anything draws.
+        if (!SDL_GL_MakeCurrent(window, glContext)) {
+            OOLog(@"sdl.create_context", @"Could not make OpenGL context current: %s", SDL_GetError());
+            exit(1);
+        }
         SDL_ShowWindow(window);
     }
 
