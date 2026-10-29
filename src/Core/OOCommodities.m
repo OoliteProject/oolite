@@ -197,11 +197,11 @@ MA 02110-1301, USA.
 {
     NSDictionary* result = nil;
     JSContext* context = OOJSAcquireContext();
-    jsval rval;
-    jsval args[] = {
+    OOJSVal rval = OOJSUndefinedValue();
+    OOJSVal args[] = {
         OOJSValueFromNativeObject(context, good),
         OOJSValueFromNativeObject(context, station),
-        INT_TO_JSVAL(system)
+        OOJSValueFromDouble(context, system)
     };
     BOOL OK = YES;
     NSString* errorType = nil;
@@ -221,20 +221,26 @@ MA 02110-1301, USA.
                           count:3
                          result:&rval];
     }
+    OOJSFreeValue(context, args[0]);
+    OOJSFreeValue(context, args[1]);
+    OOJSFreeValue(context, args[2]);
 
     if (!OK) {
         OOLog(@"script.commodityScript.error", @"Could not update %@ commodity definition for %@ - unable to call updateLocalCommodityDefinition", errorType, [good oo_stringForKey:kOOCommodityName]);
+        OOJSFreeValue(context, rval);
         OOJSRelinquishContext(context);
         return good;
     }
 
     if (!JSVAL_IS_OBJECT(rval)) {
         OOLog(@"script.commodityScript.error", @"Could not update %@ commodity definition for %@ - return value invalid", errorType, [good oo_stringForKey:kOOCommodityKey]);
+        OOJSFreeValue(context, rval);
         OOJSRelinquishContext(context);
         return good;
     }
 
     result = OOJSNativeObjectFromJSObject(context, JSVAL_TO_OBJECT(rval));
+    OOJSFreeValue(context, rval);
     OOJSRelinquishContext(context);
     if (![result isKindOfClass:[NSDictionary class]]) {
         OOLog(@"script.commodityScript.error", @"Could not update %@ commodity definition for %@ - return value invalid", errorType, [good oo_stringForKey:kOOCommodityKey]);
