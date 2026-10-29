@@ -9,7 +9,27 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  oxp-upgrade:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Oolite
+        uses: actions/checkout@v6
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - name: Test the OXP upgrade tool
+        working-directory: tools/oxp-upgrade
+        run: |
+          npm ci
+          npm test
+
   ubuntu:
+    strategy:
+      fail-fast: false
+      matrix:
+        js_engine: [spidermonkey, quickjs]
+    name: ubuntu (${{ matrix.js_engine }})
     runs-on: ubuntu-latest
     container:
       image: ubuntu:26.04
@@ -43,21 +63,22 @@ jobs:
           echo "/usr/local/lib" | tee -a /etc/ld.so.conf
           ldconfig
       - name: Install Mozilla static library
+        if: matrix.js_engine == 'spidermonkey'
         run: |
           ShellScripts/Linux/install_mozilla_js.sh system
       - name: Build Oolite
         run: |
-          ./mk.sh build deployment
+          ./mk.sh build deployment --setup-flags="-Djs_engine=${{ matrix.js_engine }}"
       - name: Test Oolite
         if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
         run: |
-          ./mk.sh test deployment
+          ./mk.sh test deployment --setup-flags="-Djs_engine=${{ matrix.js_engine }}"
       - name: Build AppImage
         run: |
-          ./mk.sh pkg-appimage deployment
+          ./mk.sh pkg-appimage deployment --setup-flags="-Djs_engine=${{ matrix.js_engine }}"
       - name: Build Oolite (dev, compile check only)
         run: |
-          ./mk.sh build dev
+          ./mk.sh build dev --setup-flags="-Djs_engine=${{ matrix.js_engine }}"
 
   fedora:
     runs-on: ubuntu-latest
@@ -154,6 +175,11 @@ jobs:
           ./mk.sh pkg-appimage deployment
 
   windows:
+    strategy:
+      fail-fast: false
+      matrix:
+        js_engine: [spidermonkey, quickjs]
+    name: windows (${{ matrix.js_engine }})
     runs-on: windows-latest
     steps:
       - name: Set up MSYS2
@@ -182,7 +208,7 @@ jobs:
           MSYSTEM: UCRT64
           PYTHONUTF8: "1"
         run: |
-          ./mk.sh build deployment
+          ./mk.sh build deployment --setup-flags="-Djs_engine=${{ matrix.js_engine }}"
 
       - name: Test Oolite
         if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
@@ -191,7 +217,7 @@ jobs:
           MSYSTEM: UCRT64
           PYTHONUTF8: "1"
         run: |
-          if ./mk.sh test deployment; then
+          if ./mk.sh test deployment --setup-flags="-Djs_engine=${{ matrix.js_engine }}"; then
             echo "✅ Oolite test completed successfully"
           else
             echo "❌ Oolite test failed" >&2
@@ -201,6 +227,11 @@ jobs:
           fi
 
   macos:
+    strategy:
+      fail-fast: false
+      matrix:
+        js_engine: [spidermonkey, quickjs]
+    name: macos (${{ matrix.js_engine }})
     runs-on: macos-latest
     env:
       HOMEBREW_NO_AUTO_UPDATE: 1
@@ -213,22 +244,23 @@ jobs:
         run: |
           ShellScripts/macOS/install_packages.sh
       - name: Restore Mozilla static library
+        if: matrix.js_engine == 'spidermonkey'
         id: mozilla-js-cache
         uses: actions/cache@v4
         with:
           path: build/mozilla_js
           key: mozilla-js-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('ShellScripts/macOS/build_mozilla_js.sh', 'ShellScripts/macOS/mozilla_js_arm64.patch') }}
       - name: Build Mozilla static library
-        if: steps.mozilla-js-cache.outputs.cache-hit != 'true'
+        if: matrix.js_engine == 'spidermonkey' && steps.mozilla-js-cache.outputs.cache-hit != 'true'
         run: |
           ShellScripts/macOS/build_mozilla_js.sh
       - name: Build Oolite
         run: |
-          ./mk.sh build deployment
+          ./mk.sh build deployment --setup-flags="-Djs_engine=${{ matrix.js_engine }}"
       - name: Test Oolite
         if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
         run: |
-          ./mk.sh test deployment
+          ./mk.sh test deployment --setup-flags="-Djs_engine=${{ matrix.js_engine }}"
       - name: Build DMG
         run: |
-          ./mk.sh pkg-dmg deployment
+          ./mk.sh pkg-dmg deployment --setup-flags="-Djs_engine=${{ matrix.js_engine }}"

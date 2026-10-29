@@ -135,6 +135,46 @@ OOINLINE void OOJSRelinquishContext(JSContext* context)
 extern NSString* const kOOJavaScriptEngineWillResetNotification;
 extern NSString* const kOOJavaScriptEngineDidResetNotification;
 
+/*	Engine-neutral names, also defined by the QuickJS header, so code outside
+        src/Core/Scripting can be built against either engine. With QuickJS,
+        values are reference counted and OOJSFreeValue() must be called on owned
+        values; with SpiderMonkey it does nothing.
+*/
+typedef jsval OOJSVal;
+#define OOJSFreeValue(context, value) \
+    do {                              \
+        (void)(context);              \
+        (void)(value);                \
+    } while (0)
+#define OOJSUndefinedValue() JSVAL_VOID
+#define OOJSNullValue() JSVAL_NULL
+OOINLINE BOOL OOJSValueIsUndefined(jsval value)
+{
+    return JSVAL_IS_VOID(value);
+}
+OOINLINE jsval OOJSValueFromDouble(JSContext* context, double value)
+{
+    jsval result = JSVAL_VOID;
+    JS_NewNumberValue(context, value, &result);
+    return result;
+}
+// Truthiness of value; NO if conversion fails.
+OOINLINE BOOL OOJSValueToBOOL(JSContext* context, jsval value)
+{
+    JSBool result;
+    if (!JS_ValueToBoolean(context, value, &result))
+        return NO;
+    return result;
+}
+OOINLINE BOOL OOJSValueToInt32(JSContext* context, jsval value, int32_t* outValue)
+{
+    return JS_ValueToInt32(context, value, outValue);
+}
+OOINLINE void OOJSReportPendingException(JSContext* context)
+{
+    JS_ReportPendingException(context);
+}
+
 /*	Error and warning reporters.
 
         Note that after reporting an error in a JavaScript callback, the caller
