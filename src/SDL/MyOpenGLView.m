@@ -105,10 +105,6 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
 
 - (void)createWindowWithSize:(NSSize)size
 {
-    Uint32 colorkey;
-    SDL_Surface* icon = NULL;
-    NSString* imagesDir;
-
     NSUserDefaults* prefs = [NSUserDefaults standardUserDefaults];
 
     OOLog(@"display.initGL", @"Trying %d-bpcc, 24-bit depth buffer", bitsPerColorComponent);
@@ -234,17 +230,21 @@ extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const
 
 #endif // OOLITE_WINDOWS
 
-    imagesDir = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"Images"];
-    icon = SDL_LoadBMP([[imagesDir stringByAppendingPathComponent:@"WMicon.bmp"] UTF8String]);
+#if !OOLITE_MAC_OS_X
+    // On macOS SDL would set this 32x32 image as the Dock icon, replacing the bundle's
+    // high-resolution oolite-icon.icns.
+    NSString* imagesDir = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"Images"];
+    SDL_Surface* icon = SDL_LoadBMP([[imagesDir stringByAppendingPathComponent:@"WMicon.bmp"] UTF8String]);
 
     if (icon != NULL) {
         const SDL_PixelFormatDetails* pixelFormat = SDL_GetPixelFormatDetails(icon->format);
         const SDL_Palette* palette = SDL_GetSurfacePalette(icon);
-        colorkey = SDL_MapRGB(pixelFormat, palette, 128, 0, 128);
+        Uint32 colorkey = SDL_MapRGB(pixelFormat, palette, 128, 0, 128);
         SDL_SetSurfaceColorKey(icon, YES, colorkey);
         SDL_SetWindowIcon(window, icon);
     }
     SDL_DestroySurface(icon);
+#endif
 
     _colorSaturation = 1.0f;
 
