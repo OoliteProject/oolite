@@ -87,6 +87,11 @@ bundle_dylibs() {
 }
 
 # Ad-hoc signs the bundle (required for arm64 binaries after install_name_tool changes them).
+# An ad-hoc signature is enough to run a local build, but Gatekeeper blocks a downloaded copy
+# until the user allows it in System Settings > Privacy & Security (issue #779). Stopping that
+# needs a Developer ID Application certificate (Apple Developer Program), signing with
+# --options runtime --timestamp, then notarising and stapling the DMG (xcrun notarytool,
+# xcrun stapler). CI would need the certificate and notarisation credentials as secrets.
 #   $1 = .app path
 sign_app_bundle() {
     codesign --force --sign - "$1"/Contents/Frameworks/*.dylib 2> /dev/null

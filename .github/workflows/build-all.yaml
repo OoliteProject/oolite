@@ -204,6 +204,10 @@ jobs:
       - name: Build Oolite
         run: |
           ./mk.sh build ${{matrix.flavour}} --github-repository="$GITHUB_REPOSITORY"
+      # The app is only ad-hoc signed, so Gatekeeper blocks the downloaded DMG's app until the
+      # user allows it in System Settings (issue #779). Fixing that needs Developer ID signing
+      # and notarisation, i.e. signing keys and Apple credentials added as repository secrets.
+      # See sign_app_bundle in ShellScripts/macOS/create_app_bundle_fn.sh.
       - name: Package Oolite
         run: |
           ./mk.sh pkg-dmg ${{matrix.flavour}}
