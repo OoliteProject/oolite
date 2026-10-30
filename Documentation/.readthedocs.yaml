@@ -8,7 +8,7 @@ build:
     - graphviz
   jobs:
     pre_build:
-      - . ./ShellScripts/Linux/install_doc_packages_fn.sh && install_doc_packages
+      - ./ShellScripts/Linux/install_doc_packages.sh
       - ./Documentation/build_doxygen.sh
       - ./Documentation/build_mds.sh
       - ./Documentation/build_referencesheet.sh
