@@ -2,7 +2,7 @@ install_typst() {
     local outputdir="${1:-/tmp}"
 
     # If current user ID is NOT 0 (root)
-    if [[ $EUID -ne 0 ]]; then
+    if [[ $EUID -ne 0 && "${READTHEDOCS:-}" != "True" ]]; then
         echo "This script requires root to install dependencies. Rerun and escalate privileges (eg. sudo ...)"
         return 1
     fi
