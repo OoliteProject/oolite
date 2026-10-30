@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block header %}
+{{ super() }}
+{% if page and page.file %}
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var headerActions = document.querySelector(".md-header__inner .md-header__source");
+
+        if (headerActions) {
+            // 1. Determine the expected PDF path.
+            // Maps a page's src_uri (minus extension) to the PDF file name
+            // produced for it by build_mds_fn.sh.
+            var pdfMap = {
+                "index": "OoliteReadMe",
+                "advice": "AdviceForNewCommanders",
+                "privacy": "Privacy",
+                "license": "License"
+            };
+            var fullPath = "{{ page.file.src_uri }}";
+            var fileName = fullPath.replace(/\.[^/.]+$/, "");
+            if (!pdfMap[fileName]) {
+                console.log("No PDF mapped for this page, skipping button.");
+                return;
+            }
+            var pdfUrl = "{{ base_url }}/assets/pdfs/" + pdfMap[fileName] + ".pdf";
+
+            // 2. Check if the file exists before creating the button
+            fetch(pdfUrl, { method: 'HEAD' })
+                .then(function(response) {
+                    if (response.ok) {
+                        // 3. Only if the PDF exists, create and inject the button
+                        var a = document.createElement("a");
+                        a.href = pdfUrl;
+                        a.title = "Download PDF version";
+                        a.className = "md-header__pdf-icon"; // Uses the CSS we wrote earlier
+
+                        a.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 10.5h1V13h-1v-2.5m3.5 0h.75s.5 0 .5.5v.5s0 .5-.5.5h-.75v1h-1v-2.5m0 .5v.5h.75v-.5h-.75M9 13h1v-1h.5v1h1v-2.5h-2.5V13m-1 2.5h11V6H13V2H6v13.5M14 3.5L18.5 8H14V3.5M6 0h8l6 6v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2Z"/></svg>';
+
+                        headerActions.parentNode.insertBefore(a, headerActions);
+                    } else {
+                        console.log("PDF not found for this page, skipping button.");
+                    }
+                })
+                .catch(function() {
+                    // Handle cases where the fetch itself fails (e.g., CORS or offline)
+                    console.log("Could not verify PDF existence.");
+                });
+        }
+    });
+</script>
+{% endif %}
+{% endblock %}

@@ -10,6 +10,7 @@ markdown_extensions:
 
 theme:
   name: material
+  custom_dir: overrides
   features:
     - navigation.tabs
     - navigation.sections
@@ -34,12 +35,10 @@ extra_css:
 plugins:
   - search
   - mkdocs-pdf
-  - page-to-pdf: # Note: the internal name is often page-to-pdf
-      exclude:
-        - "reference.md"
-        - "customization.md"
-        - "extensions.md"
-        - "tricks.md"
+
+validation:
+  links:
+    not_found: ignore
 
 nav:
   - Home: index.md

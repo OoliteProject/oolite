@@ -17,6 +17,15 @@ build_doxygen() {
     tar -xvzf doxygen-awesome-css.tar.gz --strip-components=1
 
     cp -r ../../Documentation/* ./
+
+    # Flatten docs/md/ up to docs/ in the BUILD TREE ONLY (repo sources stay
+    # put). Page URLs therefore stay top-level (/advice/, /privacy/, ...) on
+    # both ReadTheDocs and local builds, while build_mds_fn.sh keeps reading
+    # the sources from docs/md/.
+    mv docs/md/*.md docs/
+    mv docs/md/assets/* docs/assets/
+    rm -rf docs/md
+
     if ! doxygen; then
         echo "❌ Doxygen build failed!" >&2
         return 1

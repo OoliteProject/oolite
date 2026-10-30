@@ -7,12 +7,25 @@ run_script() {
     rm -rf ../build/documentation
     source ./build_doxygen_fn.sh
     source ./build_referencesheet_fn.sh
+    source ./build_mds_fn.sh
 
     if ! build_doxygen; then
         return 1
     fi
 
     if ! build_referencesheet; then
+        return 1
+    fi
+
+    if ! build_mds; then
+        return 1
+    fi
+
+    # build_mds() outputs into Documentation/docs/; stage the PDFs into the
+    # build tree where mkdocs expects them (mirrors the ReadTheDocs pre_build)
+    mkdir -p ../build/documentation/docs/assets/pdfs
+    if ! cp docs/assets/pdfs/*.pdf ../build/documentation/docs/assets/pdfs/; then
+        echo "❌ Could not stage PDFs into build tree!" >&2
         return 1
     fi
 
@@ -26,7 +39,6 @@ run_script() {
     fi
 
     cd ../build/documentation/
-    cp -r ../../Documentation/* ./
     cp ../../LICENSE.md ./docs/license.md
     VENV_DIR=".venv"
     if [ ! -d "$VENV_DIR" ]; then
@@ -39,12 +51,11 @@ run_script() {
         source "$VENV_DIR/bin/activate"
     fi
 
-    if ! pip install -r requirements.txt; then
-        echo "❌ Could not install MKDocs requirements!" >&2
+    # Install the docs requirements, as ReadTheDocs does
+    if ! "$PYTHON_CMD" -m pip install -r ../../Documentation/requirements.txt; then
+        echo "❌ Could not install documentation requirements!" >&2
         return 1
     fi
-    "$PYTHON_CMD" -m playwright install chromium
-    # If PDF generation fails, run: "$PYTHON_CMD" -m playwright install-deps chromium
 
     if ! mkdocs build --clean; then
         echo "❌ MKDocs build failed!" >&2
@@ -64,4 +75,3 @@ status=$?
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     exit $status
 fi
-

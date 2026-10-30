@@ -4,20 +4,19 @@ build_referencesheet() {
     local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
     pushd "$script_dir"
 
-    PKG_OK=$(command -v soffice)
+    PKG_OK=$(command -v typst)
     if [ "" = "$PKG_OK" ]; then
-      echo "❌ LibreOffice soffice not found!" >&2
+      echo "❌ Typst not found!" >&2
       return 1
     fi
 
     cd ..
-    mkdir -p build/documentation/docs/reference
-    cd build/documentation/
-    cp ../../Doc/OoliteRS.odt ./reference.odt
+    mkdir -p build/documentation/docs/assets/pdfs
+    cd build/documentation/docs/assets/pdfs
 
-    rm -rf docs/reference/reference.pdf
-    if ! soffice --headless --convert-to pdf --outdir ./docs/reference reference.odt; then
-        echo "❌ PDF conversion with soffice failed!" >&2
+    rm -f reference.pdf
+    if ! typst compile ../../../../../Documentation/docs/typst/reference.typ reference.pdf; then
+        echo "❌ PDF conversion with Typst failed!" >&2
         return 1
     fi
     echo "✅ PDF conversion completed successfully"
