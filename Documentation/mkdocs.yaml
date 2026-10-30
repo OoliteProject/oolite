@@ -35,10 +35,6 @@ extra_css:
 plugins:
   - search
 
-validation:
-  links:
-    not_found: ignore
-
 nav:
   - Home: index.md
   - Advice For New Commanders: advice.md
