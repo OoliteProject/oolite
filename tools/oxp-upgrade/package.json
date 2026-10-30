@@ -1,0 +1,21 @@
+{
+  "name": "oolite-oxp-upgrade",
+  "version": "1.0.0",
+  "description": "Upgrades OXP JavaScript so it no longer needs Oolite's SpiderMonkey 1.8.5 scope emulation",
+  "license": "GPL-2.0-or-later",
+  "private": true,
+  "type": "commonjs",
+  "bin": {
+    "oxp-upgrade": "oxp-upgrade.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node --test test/upgrade.test.js"
+  },
+  "dependencies": {
+    "acorn": "^8.19.0",
+    "eslint-scope": "^8.4.0"
+  }
+}

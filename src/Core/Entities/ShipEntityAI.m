@@ -2079,7 +2079,7 @@
         // Stuff expression in a function.
         predicateCode = [NSString stringWithFormat:@"return %@;", predicateExpression];
         function = [[OOJSFunction alloc] initWithName:@"_oo_AIScanPredicate"
-                                                scope:NULL
+                                                scope:JS_UNDEFINED
                                                  code:predicateCode
                                         argumentCount:1
                                         argumentNames:argNames
@@ -2097,12 +2097,14 @@
     }
 
     if (function != nil) {
+        JSValue jsThis = OOJSObjectFromNativeObject(context, self); // Owned.
         JSFunctionPredicateParameter param = {
             .context = context,
-            .function = [function functionValue],
-            .jsThis = OOJSObjectFromNativeObject(context, self)
+            .function = [function function], // Borrowed.
+            .jsThis = jsThis
         };
         [self scanForNearestShipWithPredicate:JSFunctionPredicate parameter:&param];
+        JS_FreeValue(context, jsThis);
     } else {
         // Report error (once per occurrence)
         static NSMutableSet* errorCache = nil;
@@ -2119,7 +2121,7 @@
         [[self getAI] message:@"NOTHING_FOUND"];
     }
 
-    JS_ReportPendingException(context);
+    OOJSReportPendingException(context);
     OOJSRelinquishContext(context);
 }
 

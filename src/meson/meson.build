@@ -13,6 +13,14 @@ if ccid == 'gcc'
     oolite_override_options += 'c_std=gnu99'
 endif
 
+oolite_dependencies += dependency(
+    'quickjs-ng',
+    version: '>=0.17.0',
+    # No LTO for QuickJS: with clang on Windows (MSYS2), the static library's
+    # LTO objects are archived without a symbol index, so linking fails.
+    default_options: ['default_library=static', 'libc=false', 'b_lto=false'],
+)
+
 if get_option('b_lto')
     if ccid == 'clang'
         add_project_arguments('-flto=thin', language: c_family)

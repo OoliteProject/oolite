@@ -9,6 +9,21 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  oxp-upgrade:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Oolite
+        uses: actions/checkout@v6
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - name: Test the OXP upgrade tool
+        working-directory: tools/oxp-upgrade
+        run: |
+          npm ci
+          npm test
+
   ubuntu:
     runs-on: ubuntu-latest
     container:
@@ -42,9 +57,6 @@ jobs:
           ShellScripts/Linux/build_gnustep.sh system
           echo "/usr/local/lib" | tee -a /etc/ld.so.conf
           ldconfig
-      - name: Install Mozilla static library
-        run: |
-          ShellScripts/Linux/install_mozilla_js.sh system
       - name: Build Oolite
         run: |
           ./mk.sh build deployment
@@ -90,9 +102,6 @@ jobs:
       - name: Build GNUstep
         run: |
           ShellScripts/Linux/build_gnustep.sh system
-      - name: Install Mozilla static library
-        run: |
-          ShellScripts/Linux/install_mozilla_js.sh system
           echo "/usr/local/lib64" | tee -a /etc/ld.so.conf
           ldconfig
       - name: Build Oolite
@@ -137,9 +146,6 @@ jobs:
       - name: Build GNUstep
         run: |
           ShellScripts/Linux/build_gnustep.sh system
-      - name: Install Mozilla static library
-        run: |
-          ShellScripts/Linux/install_mozilla_js.sh system
           echo "/usr/local/lib" | tee -a /etc/ld.so.conf
           ldconfig
       - name: Build Oolite
@@ -212,16 +218,6 @@ jobs:
       - name: Install packages
         run: |
           ShellScripts/macOS/install_packages.sh
-      - name: Restore Mozilla static library
-        id: mozilla-js-cache
-        uses: actions/cache@v4
-        with:
-          path: build/mozilla_js
-          key: mozilla-js-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('ShellScripts/macOS/build_mozilla_js.sh', 'ShellScripts/macOS/mozilla_js_arm64.patch') }}
-      - name: Build Mozilla static library
-        if: steps.mozilla-js-cache.outputs.cache-hit != 'true'
-        run: |
-          ShellScripts/macOS/build_mozilla_js.sh
       - name: Build Oolite
         run: |
           ./mk.sh build deployment

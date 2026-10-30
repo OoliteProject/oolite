@@ -123,7 +123,5 @@ OOTimeDelta OOHighResTimeDeltaInSeconds(OOHighResTimeValue startTime, OOHighResT
     double result = deltaU;
     result = (result * 1e-6) + deltaS;
     return result;
-#elif OO_PROFILING_STOPWATCH_JS_NOW
-    return 1e-6 * (double)(endTime - startTime);
 #endif
 }

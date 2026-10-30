@@ -72,7 +72,7 @@ MA 02110-1301, USA.
 - (void)setLegacyScript:(NSArray*)scriptActions;
 - (OOJSScript*)script;
 - (void)setCharacterScript:(NSString*)scriptName;
-- (void)doScriptEvent:(jsid)message;
+- (void)doScriptEvent:(OOJSPropID)message;
 
 - (NSDictionary*)infoForScripting;
 
