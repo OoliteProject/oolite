@@ -34,7 +34,6 @@ extra_css:
 
 plugins:
   - search
-  - mkdocs-pdf
 
 validation:
   links:

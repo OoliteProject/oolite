@@ -1,4 +1,16 @@
-![](./assets/oolite-logo.png){ width="10%" }
+<div class="no-print" style="text-align: right; margin-bottom: 12px;">
+  <a id="pdf-download-link" href="../assets/pdfs/AdviceForNewCommanders.pdf" download style="display: inline-flex; align-items: center; gap: 8px; text-decoration: none;">
+    <img src="../assets/images/PDF_file_icon.svg" width="24" height="24" alt="Download PDF" style="display: inline-block; vertical-align: middle; margin: 0;" onerror="
+      // If the icon fails to load, transform this link into a full primary button with text
+      this.style.display = 'none';
+      var link = document.getElementById('pdf-download-link');
+      link.className = 'md-button md-button--primary';
+      link.innerText = 'Download PDF';
+    ">
+  </a>
+</div>
+
+![](./assets/images/oolite-logo.png){ width="10%" }
 
 **File:** OAfNC2009
 
@@ -18,7 +30,7 @@ make their mark on the GCW.
 ■ Mr Gimlet’s advice comes from over 40 years of experience of being the Dock Master to the
 busiest station in the Galactic Cooperative of Worlds.
 
-![](./assets/dockmaster.png){ width="20%" }
+![](./assets/images/dockmaster.png){ width="20%" }
 
 ■ The Transcript has been edited for brevity and relevance. The
 original can be source in the Oolite Central Archives (the Oolite Wiki).
@@ -33,7 +45,7 @@ since the first one rolled off the line right here on Lave, and it’s still one
 me? It ain’t the fastest, and it ain’t the strongest, nor the most killing neither, and it definitely ain’t the biggest,
 by a long shot, but a sweet little number in her own right, no error.
 
-![](./assets/cobra3.png){ width="70%" }
+![](./assets/images/cobra3.png){ width="70%" }
 
 Let’s take a tour around ... Hoo boy, she is mint, ain’t she! I just love that new-ship smell. Take a sniff, go on:
 yeah, well, most of them long-chain monomers is carcinogenic, so don’t you snort too deep ...
@@ -42,7 +54,7 @@ Hah! I’m just funnin’ ya, kid. If pulling a tick from sniffing the command c
 life would be gravy! No, there’s more’n enough out there to kill you plenty quick, if you don’t watch out, shiny new
 ship or no.
 
-![](./assets/jameson.png){ width="70%" }
+![](./assets/images/jameson.png){ width="70%" }
 
 I see a lot of blanks on this here board ... I’m guessing your ship is, whadda they call it, a basic model, yeah? Legal
 minimum? Uh-huh, I thought so. Man oh man, they shouldn’t oughta let kids out in a machine like this; it’s a sin, is
@@ -61,7 +73,7 @@ ECM can pop those too, if you’re lucky. You get one of those running on you, y
 you can. A warhead’s nasty, but no sense in giving it a kinetic advantage too, right? Keep slapping the ECM as you go,
 if you’ve got the energy for it: if the first burst don’t kill it, maybe the next one will.
 
-![](./assets/witchdrive.png){ width="70%" }
+![](./assets/images/witchdrive.png){ width="70%" }
 
 Speaking of running ... over here is where you’d control your Witchdrive Fuel Injectors, if’n you had ’em ... dumps fuel
 straight from the tanks into the drive, and shoots you off like an Oresquan on a hot date. Good for whatever ails ya,
@@ -88,7 +100,7 @@ Boosters, now they’re a no-brainer. And – okay, most of this junk is too hig
 at Zaonce, though, just a wormhole away. Dull kinda burg, Zaonce, but they know their quarks from their quaternions.
 Shouldn’t set you back more’n ten, twenty thou.
 
-![](./assets/leesti.png){ width="70%" }
+![](./assets/images/leesti.png){ width="70%" }
 
 You got how much? One hundred creds. One ... hundred ... creds. Ayoha. All right then. Let’s break it down. Your problem
 here is financial, not technical. Maybe at bottom it’s psychological, but I’ll give you the benefit.
@@ -104,7 +116,7 @@ pretty, well, used, if you know what I mean, and come with problems of their own
 a head designed for some other guy’s anatomy? And the resale sucks, if’n you ever want to move on up. But it’s an
 option.
 
-![](./assets/zaonce.png){ width="70%" }
+![](./assets/images/zaonce.png){ width="70%" }
 
 Slow money, now, that’s less chancy. You buy up what’s cheap, you take it to where it’s expensive, and you sell it at a
 profit. Rinse and repeat. What’s cheap where, and what’s expensive? Supply and demand, kid. Like the philosopher said,
@@ -125,7 +137,7 @@ more you carry, the more you make. This Cobra III here can take twenty tons, rig
 get a Cargo Bay Expansion to take you up to thirty-five. That extra fifteen tons of space will pay for itself and more
 in one good run, if you can fill it up.
 
-![](./assets/lave.png){ width="70%" }
+![](./assets/images/lave.png){ width="70%" }
 
 <div class="page-break"></div>
 It ain’t all bulk, though. Watch the board for cheap deals on precious metals and gemstones: they might not offer the
@@ -138,14 +150,14 @@ cracking rocks … you can learn that for yourself, if’n you get a Mining Lase
 mind scraping carbon scoring off the scoop every few jumps. Only don’t, for any sake, put the Mining Laser on the nose!
 It’s a tool, not a weapon.
 
-![](./assets/illegal.png){ width="70%" }
+![](./assets/images/illegal.png){ width="70%" }
 
 What “other” products? What you winking for, kid? You mean slaves, narcotics and firearms? Why don’t you just damn well
 say so? They ain’t illegal. They’s what we call controlled merchandise. You find ’em out there, you can bring ’em in,
 much as you want, all nice and legal ... what will get you into trouble with the Blues is shipping them out of a main
 system station.
 
-![](./assets/parcel.png){ width="70%" }
+![](./assets/images/parcel.png){ width="70%" }
 
 There’s long-range shipping contracts on offer, too, in some stations: F4 will bring ’em up, if there’s any there. You
 buy the deal and then get paid a bonus if you make the delivery on time. They’ll be out your price-range just now, and

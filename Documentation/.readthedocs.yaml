@@ -11,6 +11,7 @@ build:
   jobs:
     pre_build:
       - ./Documentation/build_doxygen.sh
+      - ./Documentation/build_mds.sh
       - ./Documentation/build_referencesheet.sh
       - cp ./LICENSE.md ./build/documentation/docs/license.md
 
