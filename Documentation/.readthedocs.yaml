@@ -13,7 +13,7 @@ build:
     - shared-mime-info
   jobs:
     pre_build:
-      - ./build_readthedocs.sh
+      - ./Documentation/build_readthedocs.sh
 
 mkdocs:
   configuration: build/documentation/mkdocs.yaml
