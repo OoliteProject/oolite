@@ -7,7 +7,10 @@ build:
     - doxygen
     - graphviz
     - jq
-    - weasyprint-deps
+    - libharfbuzz0b
+    - libpango-1.0-0
+    - libpangoft2-1.0-0
+    - shared-mime-info
   jobs:
     pre_build:
       - mkdir -p ~/.local/bin && export PATH="$HOME/.local/bin:$PATH"

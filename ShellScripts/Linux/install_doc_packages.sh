@@ -11,7 +11,7 @@ run_script() {
     fi
 
     source ./install_package_fn.sh
-    install_package doxygen graphviz jq weasyprint-deps
+    install_package doxygen jq weasyprint-deps
     source ./install_doc_packages_fn.sh
 
     if ! install_doc_packages; then

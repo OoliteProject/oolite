@@ -156,7 +156,7 @@ install_package() {
         "weasyprint-deps")
             case "$CURRENT_DISTRO" in
                 debian)
-                    pkg_name="libpango-1.0-0 libharfbuzz0b libpangoft2-1.0-0 shared-mime-info"
+                    pkg_name="libharfbuzz0b libpango-1.0-0 libpangoft2-1.0-0 shared-mime-info"
                     ;;
                 redhat)
                     pkg_name="pango harfbuzz shared-mime-info"
