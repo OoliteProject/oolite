@@ -6,6 +6,8 @@ build:
   apt_packages:
     - doxygen
     - graphviz
+    - jq
+    - weasyprint-deps
   jobs:
     pre_build:
       - mkdir -p ~/.local/bin && export PATH="$HOME/.local/bin:$PATH"
