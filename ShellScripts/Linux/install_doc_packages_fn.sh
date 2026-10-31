@@ -3,7 +3,8 @@
 # This script must be run as root (for example with sudo).
 
 install_doc_packages() {
-    local outputdir="${1:-/tmp}"
+    local installdir="${1:-/usr/local}"
+    local tmpdir="${2:-/tmp}"
 
     # If current user ID is NOT 0 (root)
     if [[ $EUID -ne 0 && "${READTHEDOCS:-}" != "True" ]]; then
@@ -15,14 +16,14 @@ install_doc_packages() {
     pushd "$script_dir" > /dev/null
 
     source ./install_package_fn.sh
+    install_package doxygen jq weasyprint-deps
     source ./install_pandoc_fn.sh
     source ./install_weasyprint_fn.sh
     source ./install_typst_fn.sh
 
-    install_package doxygen weasyprint-deps
-    install_pandoc "$outputdir"
+    install_pandoc "$installdir" "$tmpdir"
     install_weasyprint
-    install_typst "$outputdir"
+    install_typst "$installdir" "$tmpdir"
 
 	popd
 }

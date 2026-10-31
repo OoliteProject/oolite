@@ -1,5 +1,6 @@
 install_pandoc() {
-    local outputdir="${1:-/tmp}"
+    local installdir="${1:-/usr/local/bin}"
+    local tmpdir="${2:-/tmp}"
 
     # If current user ID is NOT 0 (root)
     if [[ $EUID -ne 0 && "${READTHEDOCS:-}" != "True" ]]; then
@@ -11,16 +12,16 @@ install_pandoc() {
     source "$script_dir/../common/download_github_release_fn.sh"
 
     local pandoc_tgz
-    download_github_release pandoc_tgz "jgm" "pandoc" "linux-amd64.tar.gz" "$outputdir"
-    if ! tar xfz ${pandoc_tgz} --directory "$outputdir"; then
+    download_github_release pandoc_tgz "jgm" "pandoc" "linux-amd64.tar.gz" "$tmpdir"
+    if ! tar xfz ${pandoc_tgz} --directory "$tmpdir"; then
         echo "❌ Could not unpack pandoc tgz!" >&2
         return 1
     fi
-    chmod +x "$outputdir"/pandoc-*/bin/pandoc
-    if ! mv "$outputdir"/pandoc-*/bin/pandoc /usr/local/bin/pandoc; then
-        echo "❌ Could not move pandoc to /usr/local/bin!" >&2
+    chmod +x "$tmpdir"/pandoc-*/bin/pandoc
+    if ! mv "$tmpdir"/pandoc-*/bin/pandoc "$installdir/pandoc"; then
+        echo "❌ Could not move pandoc to $installdir!" >&2
         return 1
     fi
-    rm -rf "$outputdir"/pandoc-*
+    rm -rf "$tmpdir"/pandoc-*
     rm -f ${pandoc_tgz}
 }

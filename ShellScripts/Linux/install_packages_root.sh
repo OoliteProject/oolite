@@ -87,7 +87,7 @@ run_script() {
         for pkg in "${pkgs[@]}"; do
             install_package "$pkg"
         done
-        install_gitversion "$outputdir"
+        install_gitversion /usr/local/bin "$outputdir"
         local espeak_folder="$(uname -m 2>/dev/null || echo x86_64)-linux-gnu"
         if [[ ! -d "/usr/share/espeak-ng-data" &&
               ! -d "/usr/local/share/espeak-ng-data" &&
@@ -95,7 +95,7 @@ run_script() {
             echo "❌ espeak-ng-data not in /usr/share, /usr/local/share or /usr/lib/$espeak_folder!"
             return 1
         fi
-        install_doc_packages "$outputdir"
+        install_doc_packages /usr/local/bin "$outputdir"
     fi
 
     if [[ "$INSTALL_APPIMAGE" == true ]]; then  # For building AppImage

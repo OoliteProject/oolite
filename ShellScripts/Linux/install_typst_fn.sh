@@ -1,5 +1,6 @@
 install_typst() {
-    local outputdir="${1:-/tmp}"
+    local installdir="${1:-/usr/local/bin}"
+    local tmpdir="${2:-/tmp}"
 
     # If current user ID is NOT 0 (root)
     if [[ $EUID -ne 0 && "${READTHEDOCS:-}" != "True" ]]; then
@@ -12,16 +13,16 @@ install_typst() {
 
     local arch="$(uname -m 2>/dev/null || echo x86_64)"
     local typst_txz
-    download_github_release typst_txz "typst" "typst" "${arch}-unknown-linux-musl.tar.xz" "$outputdir"
-    if ! tar xf ${typst_txz} --directory "$outputdir"; then
+    download_github_release typst_txz "typst" "typst" "${arch}-unknown-linux-musl.tar.xz" "$tmpdir"
+    if ! tar xf ${typst_txz} --directory "$tmpdir"; then
         echo "❌ Could not unpack typst archive!" >&2
         return 1
     fi
-    chmod +x "$outputdir"/typst-*/typst
-    if ! mv "$outputdir"/typst-*/typst /usr/local/bin/typst; then
-        echo "❌ Could not move typst to /usr/local/bin!" >&2
+    chmod +x "$tmpdir"/typst-*/typst
+    if ! mv "$tmpdir"/typst-*/typst "$installdir/typst"; then
+        echo "❌ Could not move typst to $installdir!" >&2
         return 1
     fi
-    rm -rf "$outputdir"/typst-*
+    rm -rf "$tmpdir"/typst-*
     rm -f ${typst_txz}
 }
