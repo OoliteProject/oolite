@@ -13,11 +13,7 @@ build:
     - shared-mime-info
   jobs:
     pre_build:
-      - mkdir -p ~/.local/bin && export PATH="$HOME/.local/bin:$PATH"
-      - ./ShellScripts/Linux/install_doc_packages.sh ~/.local/bin
-      - ./Documentation/build_doxygen.sh
-      - ./Documentation/build_mds.sh
-      - ./Documentation/build_referencesheet.sh
+      - ./build_readthedocs.sh
 
 mkdocs:
   configuration: build/documentation/mkdocs.yaml
