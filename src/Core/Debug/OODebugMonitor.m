@@ -181,10 +181,11 @@ NSString* NSApplicationWillTerminateNotification = @"ApplicationWillTerminate";
 - (oneway void)performJSConsoleCommand:(in NSString*)command
 {
     JSContext* context = OOJSAcquireContext();
-    jsval commandVal = OOJSValueFromNativeObject(context, command);
+    OOJSVal commandVal = OOJSValueFromNativeObject(context, command);
     OOJSStartTimeLimiterWithTimeLimit(kOOJSLongTimeLimit);
     [_script callMethod:OOJSID("consolePerformJSCommand") inContext:context withArguments:&commandVal count:1 result:NULL];
     OOJSStopTimeLimiter();
+    OOJSFreeValue(context, commandVal);
     OOJSRelinquishContext(context);
 }
 

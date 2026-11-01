@@ -1037,7 +1037,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     JSContext* context = OOJSAcquireContext();
     [player setJumpCause:@"carried"];
     [player setPreviousSystemID:[player systemID]];
-    ShipScriptEvent(context, player, "shipWillEnterWitchspace", STRING_TO_JSVAL(JS_InternString(context, [[player jumpCause] UTF8String])), INT_TO_JSVAL(dest));
+    ShipScriptEvent(context, player, "shipWillEnterWitchspace", OOJSValueFromNativeObject(context, [player jumpCause]), OOJSValueFromDouble(context, dest));
     OOJSRelinquishContext(context);
 
     [self allShipsDoScriptEvent:OOJSID("playerWillEnterWitchspace") andReactToAIMessage:@"PLAYER WITCHSPACE"];
@@ -3535,9 +3535,9 @@ static BOOL IsFriendlyStationPredicate(Entity* entity, void* parameter)
         {
             JSContext* context = OOJSAcquireContext();
             BOOL OK;
-            JSBool allow_instantiation;
-            jsval result;
-            jsval args[] = { OOJSValueFromNativeObject(context, shipKey) };
+            BOOL allow_instantiation = NO;
+            OOJSVal result = OOJSUndefinedValue();
+            OOJSVal args[] = { OOJSValueFromNativeObject(context, shipKey) };
 
             OK = [condScript callMethod:OOJSID("allowSpawnShip")
                               inContext:context
@@ -3546,8 +3546,10 @@ static BOOL IsFriendlyStationPredicate(Entity* entity, void* parameter)
                                  result:&result];
 
             if (OK)
-                OK = JS_ValueToBoolean(context, result, &allow_instantiation);
+                allow_instantiation = OOJSValueToBOOL(context, result);
 
+            OOJSFreeValue(context, result);
+            OOJSFreeValue(context, args[0]);
             OOJSRelinquishContext(context);
 
             if (OK && !allow_instantiation) {
@@ -8178,9 +8180,9 @@ static void VerifyDesc(NSString* key, id desc)
                 {
                     JSContext* context = OOJSAcquireContext();
                     BOOL OK;
-                    JSBool allow_purchase;
-                    jsval result;
-                    jsval args[] = { OOJSValueFromNativeObject(context, key) };
+                    BOOL allow_purchase = NO;
+                    OOJSVal result = OOJSUndefinedValue();
+                    OOJSVal args[] = { OOJSValueFromNativeObject(context, key) };
 
                     OK = [condScript callMethod:OOJSID("allowOfferShip")
                                       inContext:context
@@ -8189,8 +8191,10 @@ static void VerifyDesc(NSString* key, id desc)
                                          result:&result];
 
                     if (OK)
-                        OK = JS_ValueToBoolean(context, result, &allow_purchase);
+                        allow_purchase = OOJSValueToBOOL(context, result);
 
+                    OOJSFreeValue(context, result);
+                    OOJSFreeValue(context, args[0]);
                     OOJSRelinquishContext(context);
 
                     if (OK && !allow_purchase) {
@@ -8320,9 +8324,9 @@ static void VerifyDesc(NSString* key, id desc)
                         {
                             JSContext* JScontext = OOJSAcquireContext();
                             BOOL OK;
-                            JSBool allow_addition;
-                            jsval result;
-                            jsval args[] = { OOJSValueFromNativeObject(JScontext, equipmentKey), OOJSValueFromNativeObject(JScontext, testship), OOJSValueFromNativeObject(JScontext, @"newShip") };
+                            BOOL allow_addition = NO;
+                            OOJSVal result = OOJSUndefinedValue();
+                            OOJSVal args[] = { OOJSValueFromNativeObject(JScontext, equipmentKey), OOJSValueFromNativeObject(JScontext, testship), OOJSValueFromNativeObject(JScontext, @"newShip") };
 
                             OK = [condScript callMethod:OOJSID("allowAwardEquipment")
                                               inContext:JScontext
@@ -8331,8 +8335,12 @@ static void VerifyDesc(NSString* key, id desc)
                                                  result:&result];
 
                             if (OK)
-                                OK = JS_ValueToBoolean(JScontext, result, &allow_addition);
+                                allow_addition = OOJSValueToBOOL(JScontext, result);
 
+                            OOJSFreeValue(JScontext, result);
+                            OOJSFreeValue(JScontext, args[0]);
+                            OOJSFreeValue(JScontext, args[1]);
+                            OOJSFreeValue(JScontext, args[2]);
                             OOJSRelinquishContext(JScontext);
 
                             if (OK && !allow_addition) {
@@ -8891,7 +8899,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void* context)
     return [result sortedArrayUsingSelector:@selector(compareBeaconCodeWith:)];
 }
 
-- (void)allShipsDoScriptEvent:(jsid)event andReactToAIMessage:(NSString*)message
+- (void)allShipsDoScriptEvent:(OOJSPropID)event andReactToAIMessage:(NSString*)message
 {
     int i;
     int ent_count = n_entities;

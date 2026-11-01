@@ -98,7 +98,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary* dict);
     tmp_name = [self lastsaveName];
     tmp_path = save_path;
 
-    ShipScriptEventNoCx(self, "playerWillSaveGame", OOJSSTR("AUTO_SAVE"));
+    [self doScriptEvent:OOJSID("playerWillSaveGame") withArgument:@"AUTO_SAVE"];
 
     NSString* saveName = [self lastsaveName];
     NSString* autosaveSuffix = DESC(@"autosave-commander-suffix");
@@ -138,7 +138,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary* dict);
                     format:@"ERROR no file name returned by [[gameView gameController] playerFileToLoad]"];
     }
 
-    ShipScriptEventNoCx(self, "playerWillSaveGame", OOJSSTR("QUICK_SAVE"));
+    [self doScriptEvent:OOJSID("playerWillSaveGame") withArgument:@"QUICK_SAVE"];
 
     [self writePlayerToPath:path];
     [[UNIVERSE gameView] suppressKeysUntilKeyUp];
@@ -716,7 +716,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary* dict);
     NSString* dir = [[UNIVERSE gameController] playerFileDirectory];
     NSString* savePath = [dir stringByAppendingPathComponent:[cdrName stringByAppendingPathExtension:@"oolite-save"]];
 
-    ShipScriptEventNoCx(self, "playerWillSaveGame", OOJSSTR("STANDARD_SAVE"));
+    [self doScriptEvent:OOJSID("playerWillSaveGame") withArgument:@"STANDARD_SAVE"];
 
     [self setLastsaveName:cdrName];
 

@@ -731,7 +731,7 @@ enum {
 
 - (NSArray*)listBeaconsWithCode:(NSString*)code;
 
-- (void)allShipsDoScriptEvent:(jsid)event andReactToAIMessage:(NSString*)message;
+- (void)allShipsDoScriptEvent:(OOJSPropID)event andReactToAIMessage:(NSString*)message;
 
 ///////////////////////////////////////
 

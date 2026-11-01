@@ -114,7 +114,7 @@
 - (void)setScript:(NSString*)script_name;
 - (OOJSScript*)script;
 - (NSDictionary*)scriptInfo;
-- (void)doScriptEvent:(jsid)message;
+- (void)doScriptEvent:(OOJSPropID)message;
 - (void)remove;
 
 - (GLfloat)scaleMax; // used for calculating frustum cull size
