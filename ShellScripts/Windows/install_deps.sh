@@ -33,11 +33,11 @@ install() {
 
 run_script() {
     local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+    source "$script_dir/install_gitversion_fn.sh"
+    source "$script_dir/install_pandoc_fn.sh"
+    source "$script_dir/install_weasyprint_fn.sh"
+    source "$script_dir/install_typst_fn.sh"
     pushd "$script_dir"
-    source "./install_gitversion_fn.sh"
-    source "./install_pandoc_fn.sh"
-    source "./install_weasyprint_fn.sh"
-    source "./install_typst_fn.sh"
 
     local oolite_deps_url="https://api.github.com/repos/OoliteProject/oolite_windeps_build/releases/latest"
 
