@@ -19,7 +19,7 @@ create_nsis() {
 
     mkdir -p build/nsis
     cd build/nsis
-    cp ../build/documentation/docs/assets/pdfs/* ./
+    cp ../documentation/docs/assets/pdfs/* ./
     local oolite_dir="../$build_folder"
     local ver_full ver_quad ver_githash buildtime app_date
     parse_manifest ver_full ver_quad ver_githash buildtime app_date "$oolite_dir/Resources/manifest.plist"

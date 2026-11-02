@@ -13,12 +13,8 @@ build_mds() {
         return 1
     fi
 
-    local -r prev_xtrace=$-
-    set -x
-
     if ! "$python_cmd" -m weasyprint --version >/dev/null 2>&1; then
         echo "❌ WeasyPrint or Pango libraries not found in environment!" >&2
-        [[ "$prev_xtrace" =~ x ]] || set +x
         if command -v deactivate >/dev/null 2>&1; then
             deactivate
         fi
