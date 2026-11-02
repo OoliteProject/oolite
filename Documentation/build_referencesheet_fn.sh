@@ -7,7 +7,7 @@ build_referencesheet() {
       return 1
     fi
 
-    local outputfile="docs/assets/pdfs/reference.pdf"
+    local outputfile="docs/assets/pdfs/OoliteRS.pdf"
     rm -f "$outputfile"
     if ! typst compile ../../Documentation/docs/typst/reference.typ "$outputfile"; then
         echo "❌ Typst to PDF conversion failed!" >&2

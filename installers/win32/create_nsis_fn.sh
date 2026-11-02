@@ -9,34 +9,21 @@ create_nsis() {
     local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
     pushd "$script_dir"
     source ../../ShellScripts/common/parse_manifest_fn.sh
+    source ../../Documentation/build_mds_fn.sh
+    source ../../Documentation/build_referencesheet_fn.sh
 
-    mkdir -p ../../build/nsis
-    cd ../../build/nsis
+    mkdir -p ../../build/documentation
+    cd ../../build/documentation
+    build_mds "python"
+    build_referencesheet
+
+    mkdir -p ../nsis
+    cd ../nsis
+    cp ../build/documentation/docs/assets/pdfs/* ./
     local oolite_dir="../$build_folder"
     local ver_full ver_quad ver_githash buildtime app_date
     parse_manifest ver_full ver_quad ver_githash buildtime app_date "$oolite_dir/Resources/manifest.plist"
     cp ../../installers/win32/* ./
-
-    if ! curl -o OoliteReadMe.pdf -L https://oolite.readthedocs.io/en/latest/index.pdf; then
-       echo "❌ OoliteReadMe.pdf (index.pdf) download failed!" >&2
-       return 1
-    fi
-    if ! curl -o AdviceForNewCommanders.pdf -L https://oolite.readthedocs.io/en/latest/advice/advice.pdf; then
-       echo "❌ AdviceForNewCommanders.pdf (advice.pdf) download failed!" >&2
-       return 1
-    fi
-    if ! curl -o OoliteRS.pdf -L https://oolite.readthedocs.io/en/latest/reference/reference.pdf; then
-       echo "❌ OoliteRS.pdf (reference.pdf) download failed!" >&2
-       return 1
-    fi
-    if ! curl -o Privacy.pdf -L https://oolite.readthedocs.io/en/latest/privacy/privacy.pdf; then
-       echo "❌ Privacy.pdf (privacy.pdf) download failed!" >&2
-       return 1
-    fi
-    if ! curl -o License.pdf -L https://oolite.readthedocs.io/en/latest/license/license.pdf; then
-       echo "❌ License.pdf (license.pdf) download failed!" >&2
-       return 1
-    fi
 
     # Passing arguments can cause problems with NSIS so we generate them into a separate file and include them.
     echo "; Version Definitions for Oolite" > OoliteVersions.nsh
