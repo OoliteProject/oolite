@@ -2916,11 +2916,13 @@ static NSTimeInterval time_last_frame;
     if ((guiSelectedRow == GUI_ROW(GAME, STICKMAPPER)) && selectKeyPress) {
         selFunctionIdx = 0;
         [self resetStickFunctions]; // reset the list of stick functions, so changes in oxp equipment are reflected
+        [[OOJoystickManager sharedStickHandler] clearStickStates];
         [self setGuiToStickMapperScreen:0 resetCurrentRow:YES];
     }
     if ((guiSelectedRow == GUI_ROW(GAME, KEYMAPPER)) && selectKeyPress) {
         selFunctionIdx = 0;
         [self resetKeyFunctions]; // reset the list of key functions, so changes in oxp equipment are reflected
+        [[OOJoystickManager sharedStickHandler] clearStickStates];
         [self setGuiToKeyMapperScreen:0 resetCurrentRow:YES];
     }
 
@@ -3367,15 +3369,18 @@ static NSTimeInterval time_last_frame;
             }
         }
     }
+    [[OOJoystickManager sharedStickHandler] clearStickStates];
 }
 
 - (void)handleKeyboardLayoutKeys
 {
     MyOpenGLView* gameView = [UNIVERSE gameView];
     GuiDisplayGen* gui = [UNIVERSE gui];
+    const BOOL* joyButtonState = [[OOJoystickManager sharedStickHandler] getAllButtonStates];
 
     [self handleKeyboardLayoutEntryKeys:gui view:gameView];
-    leftRightKeyPressed = [self checkKeyPress:n_key_gui_arrow_right] || [self checkKeyPress:n_key_gui_arrow_left] || [self checkKeyPress:n_key_gui_page_up] || [self checkKeyPress:n_key_gui_page_down];
+    leftRightKeyPressed = [self checkKeyPress:n_key_gui_arrow_right] || [self checkKeyPress:n_key_gui_arrow_left] || [self checkKeyPress:n_key_gui_page_up] || [self checkKeyPress:n_key_gui_page_down] 
+        || joyButtonState[BUTTON_GUILEFT] || joyButtonState[BUTTON_GUIRIGHT] || joyButtonState[BUTTON_GUIPAGEUP] || joyButtonState[BUTTON_GUIPAGEDOWN];
     if (leftRightKeyPressed) {
         NSString* key = [gui keyForRow:[gui selectedRow]];
         if ([self checkKeyPress:n_key_gui_arrow_right] || [self checkKeyPress:n_key_gui_page_down]) {
@@ -3400,21 +3405,24 @@ static NSTimeInterval time_last_frame;
             }
         }
     }
+    [[OOJoystickManager sharedStickHandler] clearStickStates];
 }
 
 - (void)handleStickMapperScreenKeys
 {
     MyOpenGLView* gameView = [UNIVERSE gameView];
     GuiDisplayGen* gui = [UNIVERSE gui];
+    const BOOL* joyButtonState = [[OOJoystickManager sharedStickHandler] getAllButtonStates];
 
     [self stickMapperInputHandler:gui view:gameView];
-    leftRightKeyPressed = [self checkKeyPress:n_key_gui_arrow_right] || [self checkKeyPress:n_key_gui_arrow_left] || [self checkKeyPress:n_key_gui_page_up] || [self checkKeyPress:n_key_gui_page_down];
+    leftRightKeyPressed = [self checkKeyPress:n_key_gui_arrow_right] || [self checkKeyPress:n_key_gui_arrow_left] || [self checkKeyPress:n_key_gui_page_up] || [self checkKeyPress:n_key_gui_page_down] ||
+        joyButtonState[BUTTON_GUIRIGHT] || joyButtonState[BUTTON_GUILEFT] || joyButtonState[BUTTON_GUIPAGEUP] || joyButtonState[BUTTON_GUIPAGEDOWN];
     if (leftRightKeyPressed) {
         NSString* key = [gui keyForRow:[gui selectedRow]];
-        if ([self checkKeyPress:n_key_gui_arrow_right] || [self checkKeyPress:n_key_gui_page_down]) {
+        if ([self checkKeyPress:n_key_gui_arrow_right] || [self checkKeyPress:n_key_gui_page_down] || joyButtonState[BUTTON_GUIRIGHT] || joyButtonState[BUTTON_GUIPAGEDOWN]) {
             key = [gui keyForRow:GUI_ROW_FUNCEND];
         }
-        if ([self checkKeyPress:n_key_gui_arrow_left] || [self checkKeyPress:n_key_gui_page_up]) {
+        if ([self checkKeyPress:n_key_gui_arrow_left] || [self checkKeyPress:n_key_gui_page_up] || joyButtonState[BUTTON_GUILEFT] || joyButtonState[BUTTON_GUIPAGEUP]) {
             key = [gui keyForRow:GUI_ROW_FUNCSTART];
         }
         int from_function = 0;
@@ -3433,6 +3441,7 @@ static NSTimeInterval time_last_frame;
             }
         }
     }
+    [[OOJoystickManager sharedStickHandler] clearStickStates];
     if ([gameView isDown:' '])
         [self setGuiToGameOptionsScreen];
 }

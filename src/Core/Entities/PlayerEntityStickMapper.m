@@ -125,7 +125,6 @@ MA 02110-1301, USA.
                            view:(MyOpenGLView*)gameView
 {
     OOJoystickManager* stickHandler = [OOJoystickManager sharedStickHandler];
-
     // Don't do anything if the user is supposed to be selecting
     // a function - other than look for Escape.
     if (waitingForStickCallback) {
@@ -140,10 +139,11 @@ MA 02110-1301, USA.
         // Break out now.
         return;
     }
-
+    const BOOL* joyButtonState = [stickHandler getAllButtonStates];
     [self handleGUIUpDownArrowKeys];
+    BOOL selectKeyPress = ([self checkKeyPress:n_key_gui_select] || joyButtonState[BUTTON_GUISELECT] || [gameView isDown:gvMouseDoubleClick]);
 
-    if ([gui selectedRow] == GUI_ROW_STICKPROFILE && [gameView isDown:13]) {
+    if ([gui selectedRow] == GUI_ROW_STICKPROFILE && selectKeyPress) {
         [self setGuiToStickProfileScreen:gui];
         return;
     }
@@ -154,7 +154,7 @@ MA 02110-1301, USA.
     else
         selFunctionIdx = -1;
 
-    if ([gameView isDown:13]) {
+    if (selectKeyPress) {
         if ([key hasPrefix:@"More:"]) {
             int from_function = [[[key componentsSeparatedByString:@":"] objectAtIndex:1] intValue];
             if (from_function < 0)
