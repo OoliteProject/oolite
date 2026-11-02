@@ -10,9 +10,12 @@ install_pandoc() {
         echo "❌ Could not unpack pandoc zip!" >&2
         return 1
     fi
-    chmod +x "$outputdir"/pandoc-*/pandoc.exe
     if ! mv "$outputdir"/pandoc-*/pandoc.exe "$MINGW_PREFIX/bin/pandoc.exe"; then
         echo "❌ Could not move pandoc to $MINGW_PREFIX/bin!" >&2
+        return 1
+    fi
+    if ! command -v pandoc >/dev/null 2>&1; then
+        echo "❌ pandoc not found after install!" >&2
         return 1
     fi
     rm -rf "$outputdir"/pandoc-*

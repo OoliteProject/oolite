@@ -10,9 +10,12 @@ install_gitversion() {
         echo "❌ Could not unpack gitversion zip!" >&2
         return 1
     fi
-    chmod +x "$outputdir/gitversion.exe"
     if ! mv "$outputdir/gitversion.exe" "$MINGW_PREFIX/bin/gitversion.exe"; then
         echo "❌ Could not move gitversion to $MINGW_PREFIX/bin!" >&2
+        return 1
+    fi
+    if ! command -v gitversion >/dev/null 2>&1; then
+        echo "❌ gitversion not found after install!" >&2
         return 1
     fi
     rm -f "${gitversion_zip}"

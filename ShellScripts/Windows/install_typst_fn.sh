@@ -11,11 +11,15 @@ install_typst() {
         echo "❌ Could not unpack typst zip!" >&2
         return 1
     fi
-    chmod +x "$outputdir"/typst-*/typst.exe
     if ! mv "$outputdir"/typst-*/typst.exe "$MINGW_PREFIX/bin/typst.exe"; then
         echo "❌ Could not move typst to $MINGW_PREFIX/bin!" >&2
         return 1
     fi
+    if ! command -v typst >/dev/null 2>&1; then
+        echo "❌ typst not found after install!" >&2
+        return 1
+    fi
+
     rm -rf "$outputdir"/typst-*
     rm -f "${typst_zip}"
 }
