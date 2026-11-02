@@ -2,7 +2,7 @@
 
 build_doxygen() {
     pkg_ok=$(command -v doxygen)
-    if [ "" = "$pkg_ok" ]; then
+    if [[ -z "$pkg_ok" ]]; then
       echo "❌ Doxygen executable not found!" >&2
       return 1
     fi
