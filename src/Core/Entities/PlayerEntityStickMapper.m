@@ -264,8 +264,12 @@ MA 02110-1301, USA.
         NSUserDefaults* defaults = [NSUserDefaults standardUserDefaults];
         [defaults setObject:customEquipActivation forKey:KEYCONFIG_CUSTOMEQUIP];
     } else {
-        [stickHandler setFunction:function withDict:hwDict];
-        [self checkCustomEquipButtons:hwDict ignore:-1];
+        if (function >= BUTTON_GUILEFT && function <= BUTTON_GUISELECT) {
+            [stickHandler setFunction:function withDict:hwDict];
+        } else {
+            [stickHandler setFunction:function withDict:hwDict];
+            [self checkCustomEquipButtons:hwDict ignore:-1];
+        }
         [stickHandler saveStickSettings];
     }
 
@@ -370,6 +374,7 @@ MA 02110-1301, USA.
     }
     NSDictionary* assignedAxes = [stickHandler axisFunctions];
     NSDictionary* assignedButs = [stickHandler buttonFunctions];
+    NSDictionary* assignedGuiButs = [stickHandler guiButtonFunctions];
 
     NSUInteger i, n_functions = [stickFunctions count];
     NSInteger n_rows, start_row, previous = 0;
@@ -424,8 +429,13 @@ MA 02110-1301, USA.
                     allowedThings = @"Button";
                     int bf = [butFuncKey integerValue];
                     if (bf < 10000) {
-                        assignment = [self describeStickDict:
+                        if (bf >= BUTTON_GUILEFT && bf <= BUTTON_GUISELECT) {
+                            assignment = [self describeStickDict:
+                                [assignedGuiButs objectForKey:butFuncKey]];
+                        } else {
+                            assignment = [self describeStickDict:
                                 [assignedButs objectForKey:butFuncKey]];
+                        }
                     } else {
                         NSString* key = CUSTOMEQUIP_BUTTONACTIVATE;
                         bf -= 10000;
@@ -443,9 +453,16 @@ MA 02110-1301, USA.
                     // axis has priority
                     assignment = [self describeStickDict:
                             [assignedAxes objectForKey:axFuncKey]];
-                    if (!assignment)
-                        assignment = [self describeStickDict:
+                    if (!assignment) {
+                        int bf = [butFuncKey integerValue];
+                        if (bf >= BUTTON_GUILEFT && bf <= BUTTON_GUISELECT) {
+                            assignment = [self describeStickDict:
+                                [assignedGuiButs objectForKey:butFuncKey]];
+                        } else {
+                            assignment = [self describeStickDict:
                                 [assignedButs objectForKey:butFuncKey]];
+                        }
+                    }
                 }
 
                 // Find out what's assigned for this function currently.
@@ -768,6 +785,43 @@ MA 02110-1301, USA.
                          allowable:HW_BUTTON
                             axisfn:STICK_NOFUNCTION
                              butfn:BUTTON_ENERGYBOMB]];
+
+    [funcList addObject:[self makeStickGuiDictHeader:DESC(@"stickmapper-header-gui")]];
+    [funcList addObject:
+        [self makeStickGuiDict:DESC(@"stickmapper-gui-left")
+                         allowable:HW_BUTTON
+                            axisfn:STICK_NOFUNCTION
+                             butfn:BUTTON_GUILEFT]];
+    [funcList addObject:
+        [self makeStickGuiDict:DESC(@"stickmapper-gui-right")
+                         allowable:HW_BUTTON
+                            axisfn:STICK_NOFUNCTION
+                             butfn:BUTTON_GUIRIGHT]];
+    [funcList addObject:
+        [self makeStickGuiDict:DESC(@"stickmapper-gui-up")
+                         allowable:HW_BUTTON
+                            axisfn:STICK_NOFUNCTION
+                             butfn:BUTTON_GUIUP]];
+    [funcList addObject:
+        [self makeStickGuiDict:DESC(@"stickmapper-gui-down")
+                         allowable:HW_BUTTON
+                            axisfn:STICK_NOFUNCTION
+                             butfn:BUTTON_GUIDOWN]];
+    [funcList addObject:
+        [self makeStickGuiDict:DESC(@"stickmapper-gui-page-up")
+                         allowable:HW_BUTTON
+                            axisfn:STICK_NOFUNCTION
+                             butfn:BUTTON_GUIPAGEUP]];
+    [funcList addObject:
+        [self makeStickGuiDict:DESC(@"stickmapper-gui-page-down")
+                         allowable:HW_BUTTON
+                            axisfn:STICK_NOFUNCTION
+                             butfn:BUTTON_GUIPAGEDOWN]];
+    [funcList addObject:
+        [self makeStickGuiDict:DESC(@"stickmapper-gui-select")
+                         allowable:HW_BUTTON
+                            axisfn:STICK_NOFUNCTION
+                             butfn:BUTTON_GUISELECT]];
 
     // misc
     [funcList addObject:[self makeStickGuiDictHeader:DESC(@"stickmapper-header-misc")]];

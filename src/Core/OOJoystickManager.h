@@ -111,6 +111,13 @@ enum {
     BUTTON_DOCKINGMUSIC,
     BUTTON_PAUSE,
     BUTTON_TOGGLEHUD,
+    BUTTON_GUILEFT,
+    BUTTON_GUIRIGHT,
+    BUTTON_GUIUP,
+    BUTTON_GUIDOWN,
+    BUTTON_GUIPAGEUP,
+    BUTTON_GUIPAGEDOWN,
+    BUTTON_GUISELECT,
     BUTTON_end
 };
 
@@ -143,6 +150,7 @@ enum {
 // Dictionary keys - used in the defaults file
 #define AXIS_SETTINGS @"JoystickAxes" // NSUserDefaults
 #define BUTTON_SETTINGS @"JoystickButs" // NSUserDefaults
+#define GUI_BUTTON_SETTINGS @"GuiJoystickButs" // NSUserDefaults
 #define STICK_ISAXIS @"isAxis" // YES=axis NO=button
 #define STICK_NUMBER @"stickNum" // Stick number 0 to 4
 #define STICK_AXBUT @"stickAxBt" // Axis or button number
@@ -160,6 +168,7 @@ enum {
     // Axis/button mapping arrays
     int8_t axismap[MAX_STICKS][MAX_AXES];
     int8_t buttonmap[MAX_STICKS][MAX_BUTTONS];
+    int8_t guibuttonmap[MAX_STICKS][MAX_BUTTONS];
     BOOL true_butstate[MAX_STICKS][MAX_BUTTONS];
     double axstate[AXIS_end];
     BOOL butstate[BUTTON_end];
@@ -199,6 +208,7 @@ enum {
 - (void)setFunction:(int)function withDict:(NSDictionary*)stickFn;
 - (void)unsetAxisFunction:(int)function;
 - (void)unsetButtonFunction:(int)function;
+- (void)unsetGuiButtonFunction:(int)function;
 
 // Accessors and discovery about the hardware.
 // These work directly on the internal lookup table so to be fast
@@ -225,6 +235,7 @@ enum {
 // loop and are needed for loading/saving defaults.
 - (NSDictionary*)axisFunctions;
 - (NSDictionary*)buttonFunctions;
+- (NSDictionary*)guiButtonFunctions;
 
 // Set a callback for the next moved axis/pressed button. hwflags
 // is in the form HW_AXIS | HW_BUTTON (or just one of).

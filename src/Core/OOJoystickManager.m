@@ -324,6 +324,28 @@ static id sSharedStickHandler = nil;
     return fnList;
 }
 
+- (NSDictionary*)guiButtonFunctions
+{
+    int i, j;
+    NSMutableDictionary* fnList = [NSMutableDictionary dictionary];
+
+    // Add buttons
+    for (i = 0; i < MAX_BUTTONS; i++) {
+        for (j = 0; j < MAX_STICKS; j++) {
+            if (guibuttonmap[j][i] >= 0) {
+                NSDictionary* fnDict = [NSDictionary dictionaryWithObjectsAndKeys:
+                        [NSNumber numberWithBool:NO], STICK_ISAXIS,
+                    [NSNumber numberWithInt:j], STICK_NUMBER,
+                    [NSNumber numberWithInt:i], STICK_AXBUT,
+                    nil];
+                [fnList setValue:fnDict
+                          forKey:ENUMKEY(guibuttonmap[j][i])];
+            }
+        }
+    }
+    return fnList;
+}
+
 - (void)setFunction:(int)function withDict:(NSDictionary*)stickFn
 {
     BOOL isAxis = [stickFn oo_boolForKey:STICK_ISAXIS];
@@ -335,9 +357,17 @@ static id sSharedStickHandler = nil;
                         function:function
                            stick:stickNum];
     } else {
-        [self setFunctionForButton:stickAxBt
+        if (function >= BUTTON_GUILEFT && function <= BUTTON_GUISELECT) 
+        {
+            [self setGuiFunctionForButton:stickAxBt
                           function:function
                              stick:stickNum];
+        } 
+        else {
+            [self setFunctionForButton:stickAxBt
+                          function:function
+                             stick:stickNum];
+        }
     }
 }
 
@@ -379,6 +409,24 @@ static id sSharedStickHandler = nil;
     buttonmap[stickNum][button] = function;
 }
 
+- (void)setGuiFunctionForButton:(int)button
+                    function:(int)function
+                       stick:(int)stickNum
+{
+    NSParameterAssert(button < MAX_BUTTONS && stickNum < MAX_STICKS);
+
+    int i, j;
+    for (i = 0; i < MAX_BUTTONS; i++) {
+        for (j = 0; j < MAX_STICKS; j++) {
+            if (guibuttonmap[j][i] == function) {
+                guibuttonmap[j][i] = STICK_NOFUNCTION;
+                break;
+            }
+        }
+    }
+    guibuttonmap[stickNum][button] = function;
+}
+
 - (void)unsetAxisFunction:(int)function
 {
     int i, j;
@@ -400,6 +448,19 @@ static id sSharedStickHandler = nil;
         for (j = 0; j < MAX_STICKS; j++) {
             if (buttonmap[j][i] == function) {
                 buttonmap[j][i] = STICK_NOFUNCTION;
+                break;
+            }
+        }
+    }
+}
+
+- (void)unsetGuiButtonFunction:(int)function
+{
+    int i, j;
+    for (i = 0; i < MAX_BUTTONS; i++) {
+        for (j = 0; j < MAX_STICKS; j++) {
+            if (guibuttonmap[j][i] == function) {
+                guibuttonmap[j][i] = STICK_NOFUNCTION;
                 break;
             }
         }
@@ -469,6 +530,8 @@ static id sSharedStickHandler = nil;
                  forKey:AXIS_SETTINGS];
     [defaults setObject:[self buttonFunctions]
                  forKey:BUTTON_SETTINGS];
+    [defaults setObject:[self guiButtonFunctions]
+                 forKey:GUI_BUTTON_SETTINGS];
     [self saveProfileForAxis:AXIS_ROLL];
     [self saveProfileForAxis:AXIS_PITCH];
     [self saveProfileForAxis:AXIS_YAW];
@@ -482,6 +545,8 @@ static id sSharedStickHandler = nil;
     NSUserDefaults* defaults = [NSUserDefaults standardUserDefaults];
     NSDictionary* axisSettings = [defaults objectForKey:AXIS_SETTINGS];
     NSDictionary* buttonSettings = [defaults objectForKey:BUTTON_SETTINGS];
+    NSDictionary* guiButtonSettings = [defaults objectForKey:GUI_BUTTON_SETTINGS];
+    
     if (axisSettings) {
         NSArray* keys = [axisSettings allKeys];
         for (i = 0; i < [keys count]; i++) {
@@ -500,6 +565,14 @@ static id sSharedStickHandler = nil;
     } else {
         // Nothing to load - set useful defaults
         [self setDefaultMapping];
+    }
+    if (guiButtonSettings) {
+        NSArray* keys = [guiButtonSettings allKeys];
+        for (i = 0; i < [keys count]; i++) {
+            NSString* key = [keys objectAtIndex:i];
+            [self setFunction:[key intValue]
+                     withDict:[guiButtonSettings objectForKey:key]];
+        }
     }
     [self loadProfileForAxis:AXIS_ROLL];
     [self loadProfileForAxis:AXIS_PITCH];
