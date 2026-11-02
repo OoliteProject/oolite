@@ -8,16 +8,17 @@ create_nsis() {
 
     local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
     pushd "$script_dir"
-    source ../../ShellScripts/common/parse_manifest_fn.sh
-    source ../../Documentation/build_documentation_fn.sh
+    cd ../..
+    source ShellScripts/common/parse_manifest_fn.sh
+    source Documentation/build_documentation_fn.sh
 
     if ! build_documentation "python" "YES" "NO"; then
         popd
         return 1
     fi
 
-    mkdir -p ../nsis
-    cd ../nsis
+    mkdir -p build/nsis
+    cd build/nsis
     cp ../build/documentation/docs/assets/pdfs/* ./
     local oolite_dir="../$build_folder"
     local ver_full ver_quad ver_githash buildtime app_date
