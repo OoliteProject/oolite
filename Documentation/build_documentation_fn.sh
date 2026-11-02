@@ -29,7 +29,8 @@ build_documentation() {
     rm -rf build/documentation
     mkdir -p build/documentation/docs/assets/pdfs
     cd build/documentation
-    rsync -av --exclude='*.sh' ../../Documentation/ ./
+    cp -rf ../../Documentation/* ./
+    rm -f *.sh
 
     # Flatten docs/md/ up to docs/ so Page URLs stay top-level (/advice/, /privacy/, ...)
     mv docs/md/*.md docs/
