@@ -7,9 +7,9 @@ build_documentation() {
     local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
     pushd "$script_dir"
 
-    source ./build_doxygen_fn.sh
-    source ./build_referencesheet_fn.sh
     source ./build_mds_fn.sh
+    source ./build_referencesheet_fn.sh
+    source ./build_doxygen_fn.sh
 
     cd ..
     if [[ ! -d ".venv" ]]; then
@@ -37,7 +37,7 @@ build_documentation() {
     mv docs/md/assets/* docs/assets/
     rm -rf docs/md
 
-    if ! build_doxygen; then
+    if ! build_mds "$python_cmd"; then
         popd
         return 1
     fi
@@ -47,7 +47,7 @@ build_documentation() {
         return 1
     fi
 
-    if ! build_mds "$python_cmd"; then
+    if ! build_doxygen; then
         popd
         return 1
     fi
