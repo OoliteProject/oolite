@@ -9,13 +9,12 @@ create_nsis() {
     local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
     pushd "$script_dir"
     source ../../ShellScripts/common/parse_manifest_fn.sh
-    source ../../Documentation/build_mds_fn.sh
-    source ../../Documentation/build_referencesheet_fn.sh
+    source ../../Documentation/build_documentation_fn.sh
 
-    mkdir -p ../../build/documentation
-    cd ../../build/documentation
-    build_mds "python"
-    build_referencesheet
+    if ! build_documentation "python" "YES" "NO"; then
+        popd
+        return 1
+    fi
 
     mkdir -p ../nsis
     cd ../nsis

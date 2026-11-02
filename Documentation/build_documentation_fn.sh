@@ -3,6 +3,7 @@
 build_documentation() {
     local python_cmd="$1"
     local deactivate_venv="${2:-YES}"
+    local include_doxygen="${3:-YES}"
 
     local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
     pushd "$script_dir"
@@ -47,9 +48,11 @@ build_documentation() {
         return 1
     fi
 
-    if ! build_doxygen; then
-        popd
-        return 1
+    if [[ "$include_doxygen" == "YES" ]]; then
+        if ! build_doxygen; then
+            popd
+            return 1
+        fi
     fi
 
     if [[ "$deactivate_venv" == "YES" ]]; then
