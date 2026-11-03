@@ -29,7 +29,7 @@ MA 02110-1301, USA.
 #ifndef OOJSGUISCREENKEYDEFINITION_H
 #define OOJSGUISCREENKEYDEFINITION_H
 
-#import "OOFoundation.h"
+#include "OOFoundation.h"
 #include <quickjs.h>
 
 #include "oofnd/PList.hpp"

@@ -41,16 +41,15 @@ SOFTWARE.
 #ifndef OOMATERIAL_H
 #define OOMATERIAL_H
 
-#import "OOFoundation.h"
-#import "OOOpenGL.h"
-#import "OOOpenGLExtensionManager.h"
-#import "oofnd/objc/OOObject.h"
+#include "OOFoundation.h"
+#include "OOOpenGL.h"
+#include "OOOpenGLExtensionManager.h"
+#include "oofnd/objc/OOObject.h"
 class Entity; // Entity.h: the shader binding target (bead oo-9ht.39.6)
 
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
-#include "oofnd/objc/OOObjCRef.h"
 #include <vector>
 
 #include "OOTexture.h" // allTextures() answers oo::Ref<OOTexture>, which needs the class (bead oo-9ht.99)

@@ -28,7 +28,9 @@ SOFTWARE.
 
 */
 
-#import "OOLogging.h"
+#pragma once
+
+#include "OOLogging.h"
 
 void OOLoggingInit(void);
 void OOLoggingTerminate(void);

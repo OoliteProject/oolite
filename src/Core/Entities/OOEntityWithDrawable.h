@@ -28,9 +28,11 @@ MA 02110-1301, USA.
 
 */
 
-#import "Entity.h"
+#pragma once
 
-#import "OODrawable.h" // the drawable is held by oo::Ref (a complete type wherever the entity is destroyed)
+#include "Entity.h"
+
+#include "OODrawable.h" // the drawable is held by oo::Ref (a complete type wherever the entity is destroyed)
 
 class OOEntityWithDrawable : public Entity {
 public:

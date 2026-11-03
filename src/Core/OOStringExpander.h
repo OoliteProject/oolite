@@ -25,8 +25,10 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOFoundation.h"
-#import "OOMaths.h"
+#pragma once
+
+#include "OOFoundation.h"
+#include "OOMaths.h"
 
 // Option flags for OOExpandDescriptionString().
 enum {
@@ -111,23 +113,6 @@ typedef NSUInteger OOExpandOptions;
 std::optional<std::string> cxx_OOExpandDescriptionString(Random_Seed seed, const std::string& string, const oo::PList& overrides, const oo::PList& legacyLocals, const std::optional<std::string>& systemName, OOExpandOptions options);
 #endif
 
-/*	The Foundation form, kept (bead oo-m2nh, proposed ADR-0052): it is the tested surface of the
-        differential expander test (tests/unit/expander/test_string_expander.mm, run by
-        tools/check-string-expander.sh), whose digests were taken through it. Game code does not call
-        it. It forwards to cxx_OOExpandDescriptionString, converting the overrides and legacy locals
-        with oo::PListFrom (nil for none) and the strings unit for unit; nil in, nil out. It goes with
-        the test's Foundation adapter when that leaves Foundation (oo-qps).
-        Fenced out of the game build (bead oo-qps.29, ADR-0054 item 4): only
-        tools/check-string-expander.sh defines OO_EXPANDER_TEST_SURFACE, and it compiles the test as
-        Objective-C++, so the fenced block needs no __cplusplus guard. OOGenerateSystemDescription()
-        below is fenced the same way.
-*/
-#if OO_EXPANDER_TEST_SURFACE
-extern "C" {
-NSString* OOExpandDescriptionString(Random_Seed seed, NSString* string, NSDictionary* overrides, NSDictionary* legacyLocals, NSString* systemName, OOExpandOptions options);
-}
-#endif
-
 /*
         OOGenerateSystemDescription(seed, name)
 
@@ -140,11 +125,6 @@ NSString* OOExpandDescriptionString(Random_Seed seed, NSString* string, NSDictio
 */
 #ifdef __cplusplus
 std::optional<std::string> cxx_OOGenerateSystemDescription(Random_Seed seed, const std::optional<std::string>& name);
-#endif
-
-// The Foundation form, kept (and fenced) as the expander test's surface as OOExpandDescriptionString() is.
-#if OO_EXPANDER_TEST_SURFACE
-NSString* OOGenerateSystemDescription(Random_Seed seed, NSString* name);
 #endif
 
 // Equivalent to [[UNIVERSE systemManager] getRandomSeedForCurrentSystem], without pulling in Universe.h.

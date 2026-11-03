@@ -25,10 +25,12 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOMaths.h"
-#import "OOTexture.h"
-#import "OOTypes.h"
-#import "ShipEntity.h"
+#pragma once
+
+#include "OOMaths.h"
+#include "OOTexture.h"
+#include "OOTypes.h"
+#include "ShipEntity.h"
 
 struct OOLaserShotEntityTestAccess;
 

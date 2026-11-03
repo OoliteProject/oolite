@@ -38,18 +38,16 @@ MA 02110-1301, USA.
 #include <string>
 #include <vector>
 
-#import "OOEntityEnums.h" // OOScanClass
-#import "OOEntityHold.h" // owning entity references
-#import "OOFoundation.h"
-#import "OOMaths.h"
-#import "OOSystemDescriptionManager.h" // OOSystemLayer
-#import "OOTypes.h"
+#include "OOEntityEnums.h" // OOScanClass
+#include "OOEntityHold.h" // owning entity references
+#include "OOFoundation.h"
+#include "OOMaths.h"
+#include "OOSystemDescriptionManager.h" // OOSystemLayer
+#include "OOTypes.h"
 #include "oofnd/PList.hpp"
-#include "oofnd/objc/OOObjCRef.h"
 
 class Entity;
 class MyOpenGLView;
-@protocol OOBeaconEntity;
 class StationEntity;
 class OOPlanetEntity;
 class OOSunEntity;

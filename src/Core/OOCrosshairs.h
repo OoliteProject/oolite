@@ -32,7 +32,7 @@ SOFTWARE.
 #ifndef OOCROSSHAIRS_H
 #define OOCROSSHAIRS_H
 
-#import "OOOpenGL.h"
+#include "OOOpenGL.h"
 
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"

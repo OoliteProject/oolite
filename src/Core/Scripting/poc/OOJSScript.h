@@ -4,7 +4,7 @@ OOJSScript.h (QuickJS-ng proof of concept)
 
 Minimal JavaScript script loader: enough to load a world script and call its
 event handlers. The full OOJSScript (manifest properties, script caching,
-OOScript subclassing) is ported in a later phase.
+OOScript subclassing) is the game's, in src/Core/Scripting.
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -26,42 +26,43 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOJavaScriptEngine.h"
-#import "oofnd/objc/OOObject.h"
+#pragma once
+
+#include "OOJavaScriptEngine.h"
+#include "oofnd/Ref.hpp"
 
 #include <optional>
 #include <string>
 
-@interface OOJSScript : OOObject {
-@private
-    JSValue _jsSelf; // Owned; freed in -dealloc.
+class OOJSScript : public oo::RefCounted {
+public:
+    // Null (after logging) if the script cannot be loaded or its top level throws.
+    static oo::Ref<OOJSScript> scriptWithPath(const std::string& path);
+    ~OOJSScript() override;
+
+    static OOJSScript* currentlyRunningScript();
+
+    std::optional<std::string> name();
+    std::optional<std::string> version();
+    std::optional<std::string> displayName();
+
+    JSValueConst scriptObject();
+
+    /*	Call a method of the script object with the script as this, as the
+            game's OOJSScript::callMethod() does. Returns false if the method does
+            not exist or throws. *outResult, if requested, is owned by the caller.
+    */
+    bool callMethodNamed(const std::string& methodName, JSValueConst* argv, int argc, JSValue* outResult);
+
+private:
+    bool initWithPath(const std::string& path);
+    bool loadScriptWithContext(JSContext* context);
+    std::optional<std::string> stringPropertyNamed(const char* name, JSContext* context);
+
+    JSValue _jsSelf = JS_UNDEFINED; // Owned; freed in the destructor.
     std::optional<std::string> _name;
     std::optional<std::string> _version;
     std::string _path;
-}
-
-// Returns nil (after logging) if the script cannot be loaded or its top level throws.
-+ (id)scriptWithPath:(const std::string&)path;
-- (id)initWithPath:(const std::string&)path;
-
-+ (OOJSScript*)currentlyRunningScript;
-
-// nullopt where the NSString forms returned nil.
-- (std::optional<std::string>)name;
-- (std::optional<std::string>)version;
-- (std::optional<std::string>)displayName;
-
-- (JSValueConst)scriptObject;
-
-/*	Call a method of the script object with the script as this, as
-        -[OOJSScript callMethod:...] did. Returns NO if the method does not exist
-        or throws. *outResult, if requested, is owned by the caller.
-*/
-- (BOOL)callMethodNamed:(const std::string&)methodName
-          withArguments:(JSValueConst*)argv
-                  count:(int)argc
-                 result:(JSValue*)outResult;
-
-@end
+};
 
 void InitOOJSScript(JSContext* context, JSValueConst global);

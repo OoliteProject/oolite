@@ -4,7 +4,7 @@
 
             Foundation                                    oofnd
             --------------------------------------------  ----------------------------------------------
-            [NSThread detachNewThreadSelector:s           oo::thread::detach([obj] { @autoreleasepool {
+            [NSThread detachNewThreadSelector:s           oo::thread::detach([obj] { { oo::AutoreleaseScope p;
                                      toTarget:obj                              [obj s]; } ... })
                                    withObject:arg]        (the caller retains obj for the thread's life
                                                           and opens the pool: see below)
@@ -20,7 +20,7 @@
           * detach() runs the callable on a new, detached std::thread. NSThread retained its target
             until the selector returned and gave the thread no autorelease pool; an Objective-C caller
             therefore retains the target before detach() and releases it at the end of the callable,
-            and opens @autoreleasepool inside it (a thread without a pool leaks what it autoreleases).
+            and opens an oo::AutoreleaseScope inside it (a thread without one leaks what it autoreleases).
           * The main thread is the thread that ran static initialisation, i.e. the one that calls
             main(): its id is captured then (kMainThreadId below), before any code in main() runs.
             isMainThread() is false only when asked during another TU's static initialisation before

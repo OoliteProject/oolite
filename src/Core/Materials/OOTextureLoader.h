@@ -34,14 +34,13 @@ SOFTWARE.
 #ifndef OOTEXTURELOADER_H
 #define OOTEXTURELOADER_H
 
-#import "OOAsyncWorkManager.h"
-#import "OOOpenGL.h"
-#import "OOPixMap.h"
+#include "OOAsyncWorkManager.h"
+#include "OOOpenGL.h"
+#include "OOPixMap.h"
 
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
-#include "oofnd/objc/OOObjCRef.h"
 
 class OOTexture;
 

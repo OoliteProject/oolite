@@ -39,10 +39,10 @@ SOFTWARE.
 #ifndef OOSOUNDSOURCEPOOL_H
 #define OOSOUNDSOURCEPOOL_H
 
-#import "OOFoundation.h"
-#import "OOMaths.h"
-#import "OOTypes.h"
-#import "oofnd/objc/OOObject.h"
+#include "OOFoundation.h"
+#include "OOMaths.h"
+#include "OOTypes.h"
+#include "oofnd/objc/OOObject.h"
 
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"

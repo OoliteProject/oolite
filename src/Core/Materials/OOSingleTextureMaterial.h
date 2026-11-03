@@ -34,7 +34,7 @@ SOFTWARE.
 #ifndef OOSINGLETEXTUREMATERIAL_H
 #define OOSINGLETEXTUREMATERIAL_H
 
-#import "OOBasicMaterial.h"
+#include "OOBasicMaterial.h"
 
 class OOTexture;
 

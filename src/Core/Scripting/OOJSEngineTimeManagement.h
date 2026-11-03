@@ -31,10 +31,11 @@ SOFTWARE.
 
 */
 
-#import "OOJavaScriptEngine.h"
+#pragma once
+
+#include "OOJavaScriptEngine.h"
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
-#include "oofnd/objc/OOObjCRef.h"
 
 #include <optional>
 #include <string>

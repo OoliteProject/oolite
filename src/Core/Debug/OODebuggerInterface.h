@@ -38,7 +38,7 @@ SOFTWARE.
 #ifndef OODEBUGGERINTERFACE_H
 #define OODEBUGGERINTERFACE_H
 
-#import "OOFoundation.h" // NSRange
+#include "OOFoundation.h" // NSRange
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"
 #include <optional>

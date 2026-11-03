@@ -1,6 +1,6 @@
 project(
     'oolite',
-    ['c', 'cpp', 'objc', 'objcpp'],
+    ['c', 'cpp'],	# the Objective-C languages went with libobjc2 (bead oo-dbz.5): every game unit is C++
     meson_version: '>= 1.4.0',
     version: run_command(
         'bash',
@@ -17,7 +17,7 @@ project(
 )
 
 host_os = host_machine.system()
-c_family = ['c', 'cpp', 'objc', 'objcpp']
+c_family = ['c', 'cpp']
 
 version_string = meson.project_version()
 cat_cmd = find_program('cat', required: true)

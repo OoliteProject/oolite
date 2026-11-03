@@ -33,13 +33,12 @@ MA 02110-1301, USA.
 
 #pragma once
 
-#import "OOJSInterfaceDefinition.h"
-#import "ShipEntity.h"
-#import "Universe.h"
+#include "OOJSInterfaceDefinition.h"
+#include "ShipEntity.h"
+#include "Universe.h"
 
 #include "oofnd/PList.hpp"
 #include "oofnd/StdLib.hpp"
-#include "oofnd/objc/OOObjCRef.h"
 
 typedef enum {
     STATION_ALERT_LEVEL_GREEN = ALERT_CONDITION_GREEN,

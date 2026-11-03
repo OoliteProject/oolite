@@ -34,11 +34,11 @@ SOFTWARE.
 #ifndef OOMULTITEXTUREMATERIAL_H
 #define OOMULTITEXTUREMATERIAL_H
 
-#import "OOOpenGLExtensionManager.h"
+#include "OOOpenGLExtensionManager.h"
 
 #if OO_MULTITEXTURE
 
-#import "OOBasicMaterial.h"
+#include "OOBasicMaterial.h"
 
 class OOTexture;
 

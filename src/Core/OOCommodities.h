@@ -30,7 +30,7 @@ MA 02110-1301, USA.
 #ifndef OOCOMMODITIES_H
 #define OOCOMMODITIES_H
 
-#import "OOTypes.h"
+#include "OOTypes.h"
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"
 

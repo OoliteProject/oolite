@@ -35,8 +35,8 @@ An entity's method is called by its name through oo::CallEntityByName (below): t
 
 oo-qps.72 deleted the transitional form that passed an id parameter the argument as an
 Objective-C object: such a method is logged (callByName.badSignature) and not called.
-tools/check-selector-types.py --check --strict-called-by-name rejects an object parameter, or an
-id result, on a selector a dispatcher calls by name.
+tools/check-selector-types.py --check --strict-called-by-name rejected an object parameter, or an
+id result, on a selector a dispatcher calls by name, until no selector was left (retired, bead oo-ebds4).
 
 A nil target does nothing (as messaging nil). A target that does not answer <selector>, or whose
 method has no signature above, is logged (callByName.unknownSelector / callByName.badSignature)
@@ -66,7 +66,7 @@ MA 02110-1301, USA.
 #ifndef OOCALLBYNAME_H
 #define OOCALLBYNAME_H
 
-#import "oofnd/objc/OOObject.h"
+#include "oofnd/objc/OOObject.h"
 
 // extern "C++": reachable from inside an extern "C" block, as OOLogging.h is.
 extern "C++" {
@@ -74,15 +74,9 @@ extern "C++" {
 #include "oofnd/PList.hpp"
 #include "oofnd/StdLib.hpp"
 
-oo::PList OOCallByName(id target, SEL selector);
-oo::PList OOCallByName(id target, SEL selector, const std::string& argument);
-oo::PList OOCallByName(id target, SEL selector, const oo::PList& argument);
-
-// A literal argument is a string (without this, "text" converts to std::string and oo::PList alike).
-inline oo::PList OOCallByName(id target, SEL selector, const char* argument)
-{
-    return OOCallByName(target, selector, std::string(argument));
-}
+// OOCallByName(id target, name...), the call on an Objective-C object, was deleted with
+// OOCallByName.mm by bead oo-6e1.2: since oo-4aq6a.5 its only callers were the string-expander
+// harness and its own floor test. The signatures above are the entity call's (below).
 
 /*	An entity's method called by name: the
         same call on the entity's C++ part. A name of the facade's by-name categories (the generated

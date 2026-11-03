@@ -29,6 +29,8 @@ SOFTWARE.
 
 */
 
+#pragma once
+
 #include <quickjs.h>
 
 void InitOOJSFont(JSContext* context, JSValueConst global);

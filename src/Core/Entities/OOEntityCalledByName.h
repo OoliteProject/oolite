@@ -31,9 +31,9 @@ MA 02110-1301, USA.
 #ifndef OOENTITYCALLEDBYNAME_H
 #define OOENTITYCALLEDBYNAME_H
 
-#import "OOMaths.h"
+#include "OOMaths.h"
 #include "oofnd/PList.hpp"
-#import "oofnd/objc/OOObject.h"
+#include "oofnd/objc/OOObject.h"
 #include <cstdint>
 #include <span>
 #include <string>
@@ -60,13 +60,13 @@ enum class OOEntityByNameArgument : std::uint8_t {
 
 // A typed call's result, kept by its type: an integer, enum or BOOL result
 // as a long long (as OOCallIntegerMethod() converted it), a float or double as a double, a vector,
-// a quaternion, an object, a property list. callObjC() reads the member its row's type names.
+// a quaternion, an entity, a colour, a property list. callObjC() reads the member its row's type
+// names. (An Objective-C object result, which no row answers, went with bead oo-4aq6a.5.)
 struct OOEntityByNameValue {
     long long integer = 0;
     double real = 0;
     Vector vector { };
     Quaternion quaternion { };
-    id object = nil;
     Entity* entity = nullptr; // an entity result, borrowed: the C++ entity (its object, in object, before)
     OOColor* color = nullptr; // a colour result, borrowed (fogUniform)
     oo::PList plist;
@@ -97,7 +97,7 @@ struct OOEntityFacadeRow {
 
 /*	Every name a C++ entity's Objective-C object (the root's facade) answered outside the by-name
         table: its own methods, its categories' and
-        its root classes' (OOWeakRefObject, OOObject and their categories), measured on the facade by the
+        its root classes' (the weak-reference root, OOObject and their categories), measured on the facade by the
         selector path OOCallByName took (OOEntityObjectNamesTable.h). oo::EntityRespondsToName answers
         each for the entities the object answered it for, and oo::CallEntityByName no longer asks the
         object: a facade row's method with no argument that OOCallByName could call is the row's body;

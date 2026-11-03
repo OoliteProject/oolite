@@ -31,7 +31,7 @@ SOFTWARE.
 #ifndef OONULLTEXTURE_H
 #define OONULLTEXTURE_H
 
-#import "OOTexture.h"
+#include "OOTexture.h"
 
 /*	C++20 (bead oo-jvm6). Its Objective-C facade was deleted by bead oo-9ht.100 (ADR-0056 amendment
         "deleting a facade"): the class is global. Since bead oo-9ht.99 deleted the root's facade too,

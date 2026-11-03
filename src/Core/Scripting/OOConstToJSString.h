@@ -30,6 +30,8 @@ MA 02110-1301, USA.
         not Objective-C. QuickJS-ng, OOINLINE, NSInteger/NSUInteger and the constant
         enumerations are all the inlines below need.
 */
+#pragma once
+
 #include <quickjs.h>
 
 #include "OOEntityEnums.h"

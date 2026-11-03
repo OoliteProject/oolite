@@ -28,8 +28,10 @@ SOFTWARE.
 
 */
 
-#import "OOFoundation.h"
-#import "OOFunctionAttributes.h"
+#pragma once
+
+#include "OOFoundation.h"
+#include "OOFunctionAttributes.h"
 #include <stdarg.h>
 
 // OO_LOG / oo::log (ADR-0035): the Foundation-free logging API. extern "C++" because this header

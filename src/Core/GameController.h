@@ -24,11 +24,13 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOFoundation.h"
-#import "OOFullScreenController.h"
-#import "OOFunctionAttributes.h"
-#import "OOMouseInteractionMode.h"
-#import "oofnd/objc/OOObject.h"
+#pragma once
+
+#include "OOFoundation.h"
+#include "OOFullScreenController.h"
+#include "OOFunctionAttributes.h"
+#include "OOMouseInteractionMode.h"
+#include "oofnd/objc/OOObject.h"
 
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"
@@ -102,7 +104,7 @@ public:
 
     // The frame loop (bead oo-hn0fw, slice 2).
 #if !OOLITE_MAC_COCOA_UI
-    void performGameTick(id sender);
+    void performGameTick(); // took the unused sender, an Objective-C id, until the runtime went
 #endif
     void startAnimationTimer();
     void stopAnimationTimer();
@@ -155,7 +157,7 @@ public:
     oo::PList findDisplayModeForWidth(unsigned int d_width, unsigned int d_height, unsigned int d_refresh); // a mode dictionary; null: none
     oo::PList getDisplayModes(); // an array of mode dictionaries
     NSUInteger indexOfCurrentDisplayMode();
-    void pauseFullScreenModeToPerform(SEL selector, id target);
+    void pauseFullScreenModeToPerform(const char* selectorName, oo::RefCounted* target); // by name since bead oo-xu228.3 (was a SEL); the target C++ since bead oo-4aq6a.4 (was an object on the Objective-C root)
 #endif
 
     // tests/unit/core/test_GameController.mm reads and sets the state below.
@@ -187,8 +189,8 @@ private:
 
     NSTimeInterval _splashStart = { }; // oo::date::monotonicSeconds() at start-up
 
-    SEL pauseSelector = { };
-    OOObject* pauseTarget = { };
+    std::string pauseSelector = { }; // the selector's name (a SEL until bead oo-xu228.3); "" none
+    oo::RefCounted* pauseTarget = { }; // not retained, as before; never performed on SDL (an OOObject * until bead oo-4aq6a.4)
 
     bool gameIsPaused = { };
 
@@ -227,21 +229,15 @@ private:
 #endif
 };
 
-/*	OOScheduleDeferredCall(target, selector, argument, delay): what Foundation's
-        performer-after-delay did (bead oo-3rb.57, proposed ADR-0040). [target
-        performSelector:selector withObject:argument] runs on the first frame-loop
-        pass at least delay seconds from now (a delay <= 0 is 0.0001 s), after that
-        pass's tick; target and argument are retained until then. Due calls fire in
-        the order they were scheduled, at most two per pass, as the run loop fired
-        its timers. Main thread only: a call scheduled on another thread never fires,
-        as a performer on that thread's never-run run loop did not.
-*/
-void OOScheduleDeferredCall(id target, SEL selector, id argument, NSTimeInterval delay);
-
-/*	The same queue for a C++ call: call() runs where the
-        perform ran, in the same order and pass, and is destroyed after it (what it captures is kept alive
-        until then, as the target was retained). An OOException from it is caught and logged as the
-        perform's was, and the call is then never destroyed, as the performer leaked its target.
+/*	OOScheduleDeferredCall(call, delay): what Foundation's performer-after-delay did, for a C++ call.
+        call() runs on the first frame-loop pass at least delay seconds from now (a delay <= 0 is 0.0001 s),
+        after that pass's tick, and is destroyed after it (what it captures is kept alive until then, as the
+        performer retained its target and argument). Due calls fire in the order they were scheduled, at
+        most two per pass, as the run loop fired its timers. Main thread only: a call scheduled on another
+        thread never fires, as a performer on that thread's never-run run loop did not. An OOException from
+        it is caught and logged as the perform's was, and the call is then never destroyed, as the
+        performer leaked its target. (The Objective-C form, of a target, a selector and an argument, was
+        deleted: no caller was left.)
 */
 void OOScheduleDeferredCall(std::function<void()> call, NSTimeInterval delay);
 
@@ -260,11 +256,3 @@ void OOScheduleDeferredCall(std::function<void()> call, NSTimeInterval delay);
     do {                        \
     } while (0)
 #endif
-
-/*	[target performSelector:selector withObject:argument] for a deferred call (OOScheduleDeferredCall):
-        false when it raised an OOException, which is caught and its name and reason (the exception's own
-        strings, alive until the pool drains) written out (the caller logs them as the Foundation timer
-        did); anything else propagates. The free function FireOneDueDeferredCall() calls it (its
-        @try/@catch and send stay Objective-C, in GameController.mm).
-*/
-bool GameControllerPerformSelectorWithObject(id target, SEL selector, id argument, const char** outName, const char** outReason);

@@ -34,17 +34,17 @@ SOFTWARE.
 #ifndef OOSHADERUNIFORM_H
 #define OOSHADERUNIFORM_H
 
-#import "OOShaderMaterial.h"
+#include "OOShaderMaterial.h"
 
 #if OO_SHADERS
 
-#import "OOColor.h"
-#import "OOMaths.h"
+#include "OOColor.h"
+#include "OOMaths.h"
 
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
 
-#import "OOWeakReference.h" // the Objective-C binding target's weak reference (an entity's object; oo-9ht.39.28)
+#include "OOFoundation.h"
 
 struct OOShaderBindingValue; // OOShaderUniformMethodType.h (bead oo-9ht.158)
 class Entity; // Entity.h: the materials' binding target (bead oo-9ht.39.6)
@@ -62,7 +62,7 @@ public:
 
     /*	The initialisers, as static factories of the same name (proposed ADR-0056 amendment
             oo-novu): null where the initialiser answered nil (no program, no uniform of that name in
-            it, a nil colour, no selector).
+            it, a nil colour, no property name).
     */
     static oo::Ref<OOShaderUniform> initWithName(const std::string& uniformName, OOShaderProgram* shaderProgram, GLint constValue); // intValue:
     static oo::Ref<OOShaderUniform> initWithName(const std::string& uniformName, OOShaderProgram* shaderProgram, GLfloat constValue); // floatValue:
@@ -76,15 +76,11 @@ public:
             For vector types, it normalizes.
             For quaternions, it converts to rotation matrix (instead of vec4).
     */
-    static oo::Ref<OOShaderUniform> initWithName(const std::string& uniformName,
-        OOShaderProgram* shaderProgram,
-        id<OOWeakReferenceSupport> target, // boundToObject:
-        SEL selector, // property:
-        OOUniformConvertOptions options); // convertOptions:
-
     /*	Bound to a C++ target's member (bead oo-t0e2m): property names the member (for the
-            description and the log), type is the uniform type of its value (what the selector path read
-            from the replaced method's return type), get reads it. Null where there is no program, no
+            description and the log), type is the uniform type of its value (what the deleted selector
+            path read from the bound method's return type), get reads it. (The Objective-C target's
+            factory, boundToObject:property:convertOptions:, and its setBindingTarget() went with bead
+            oo-4aq6a.7: no game code bound an Objective-C object.) Null where there is no program, no
             uniform of that name in it, no getter or an unbindable type. A null target binds nothing.
     */
     static oo::Ref<OOShaderUniform> initWithName(const std::string& uniformName,
@@ -98,13 +94,14 @@ public:
     /*	Bound to an entity (bead oo-9ht.39.6, ADR-0056 amendment oo-9ht.39.6): the materials' binding
             target is the C++ entity. The property is read through the entities' member table where a
             row binds it (OOShaderEntityHooks, OOShaderUniformMethodType.h), the entity held weakly;
-            any other name, or an entity whose object is an Objective-C subclass's, binds to the
-            entity's object by selector as the initialiser above does. A null target binds nothing.
+            any other name binds nothing and is logged, as the selector path that bound the entity's
+            object did once that object had gone (bead oo-dpyk8). A null target binds nothing.
+            The property is named (NULL for none), where it was the selector (bead oo-xu228.3.2).
     */
     static oo::Ref<OOShaderUniform> initWithEntityTarget(const std::string& uniformName,
         OOShaderProgram* shaderProgram,
         Entity* target,
-        SEL selector,
+        const char* property,
         OOUniformConvertOptions options);
 
     // The whole of what -cxx_description printed (amendment oo-3lj8 item 4).
@@ -112,7 +109,6 @@ public:
 
     void apply();
 
-    void setBindingTarget(id<OOWeakReferenceSupport> target);
     void setEntityBindingTarget(Entity* target); // bead oo-9ht.39.6: as initWithEntityTarget() binds
 
 private:
@@ -133,8 +129,7 @@ private:
                         convertNormalize : 1 = { },
                         convertToMatrix : 1 = { },
                         bindToSuper : 1 = { },
-                        // bound to a C++ target by its factory, once (bead oo-t0e2m); else a member
-                        // binding's C++ object is its Objective-C target's part (bead oo-9ht.39.6.1)
+                        // bound to a C++ target by its factory, once (bead oo-t0e2m)
         cxxTargetOnly : 1 = { },
                         // an entity's member through the table, the entity cxxTarget (bead oo-9ht.39.6)
         entityMember : 1 = { };
@@ -146,13 +141,10 @@ private:
         OOMatrix constMatrix;
         struct
         {
-            ::OOWeakReference* object;
-            SEL selector;
-            IMP method;
-            // A C++ target's getter (bead oo-t0e2m), or a member of the Objective-C target found in
-            // its class's member table (bead oo-9ht.158; since bead oo-9ht.39.6.1 the row reads the
-            // target's C++ part), or NULL where the binding calls method (the selector path). The
-            // C++ object is cxxTarget; a C++ target's property name is cxxProperty.
+            // A C++ target's getter (bead oo-t0e2m), or the entity's member found in the entities'
+            // member table (bead oo-9ht.39.6), or NULL where nothing is bound. The C++ object is
+            // cxxTarget; the property's name is cxxProperty (an entity binding's too, where it was
+            // the selector's name until bead oo-4aq6a.7 deleted the Objective-C target).
             OOShaderCxxBindingGetter cxxGet;
         } binding;
     } value = { };

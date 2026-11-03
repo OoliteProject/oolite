@@ -117,7 +117,7 @@ OOINLINE OOScalar triple_product(Vector first, Vector second, Vector third) INLI
 /* Given three points on a surface, returns the normal to the surface. */
 OOINLINE Vector normal_to_surface(Vector v1, Vector v2, Vector v3) CONST_FUNC;
 
-#if __OBJC__
+#if defined(__cplusplus) && !defined(OO_PLAIN_CPP_UNIT) // was __OBJC__: a game unit (an Objective-C++ unit until bead oo-dbz), not a plain C++ one
 /*	Objective-C++ only: OOMaths.h is included inside extern "C" (proposed ADR-0043, bead oo-g7k5). */
 extern "C++" {
 #include "oofnd/PList.hpp"

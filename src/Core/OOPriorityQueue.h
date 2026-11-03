@@ -4,11 +4,11 @@ OOPriorityQueue.h
 
 A prority queue is a collection into which objects may be inserted in any
 order, but (primarily) extracted in sorted order. The order is defined by the
-comparison selector specified at creation time, which is assumed to have the
-same signature as a compare method used for array sorting:
-- (OOComparisonResult)compare:(id)other
-and must define a partial order on the objects in the priority queue. The
-behaviour when provided with an inconsistent comparison method is undefined.
+comparison function specified at creation time, which must define a partial
+order on the objects in the priority queue. The behaviour when provided with an
+inconsistent comparison function is undefined. (The Objective-C OOPriorityQueue,
+which ordered Objective-C objects by a comparator selector, was deleted by bead
+oo-4aq6a.3: no game code used it after bead oo-9ht.35.)
 
 The implementation is the standard one, a binary heap. It is described in
 detail in most algorithm textbooks.
@@ -41,94 +41,18 @@ SOFTWARE.
 #ifndef OOPRIORITYQUEUE_H
 #define OOPRIORITYQUEUE_H
 
-#import "OOFoundation.h"
-#import "oofnd/objc/OOObject.h"
+#include "OOFoundation.h" // OOComparisonResult
 
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
-#include "oofnd/objc/OOObjCRef.h"
 
 #include <utility>
 #include <vector>
 
-#ifndef OO_PQ_STRONG
-#if __has_feature(objc_arc)
-#define OO_PQ_STRONG __strong
-#else
-#define OO_PQ_STRONG
-#endif
-#endif
-
-/*	C++20 since bead oo-3lj8 (proposed ADR-0056, the OOColor house style). Its one caller,
-        OOScriptTimer, was adapted in the same bead, so there is no Objective-C facade and the class is
-        global. The elements are Objective-C objects, ordered by a comparator selector that each of
-        them implements. The timer queue, its one game caller, holds C++ timers in OOPriorityQueueOf
-        (below) since bead oo-9ht.35.
-*/
-class OOPriorityQueue : public oo::RefCounted {
-public:
-    // The Objective-C initialiser's factory: null where -initWithComparator: returned nil (a NULL
-    // comparator). (-init, which gave the comparator compare:, had no sender.)
-    static oo::Ref<OOPriorityQueue> queueWithComparator(SEL comparator);
-
-    ~OOPriorityQueue() override;
-
-    void addObject(id object); // May throw OOInvalidArgumentException or OOMallocException.
-    void removeObject(id object); // Uses comparator (looking for NSOrderedEqual) to find object. Note: relatively expensive.
-    void removeExactObject(id object); // Uses pointer comparison to find object. Note: still relatively expensive.
-
-    NSUInteger count();
-
-    id nextObject();
-    id peekAtNextObject(); // Returns next object without removing it.
-    void removeNextObject();
-
-    std::vector<oo::ObjCRef<id>> sortedObjects(); // Returns the objects in -nextObject order and empties the heap. To get the objects without emptying the heap, copy the priority queue first.
-    std::vector<oo::ObjCRef<id>> objectEnumerator(); // sortedObjects(): C++ iteration in nextObject() order (empties the heap)
-
-    // -isEqual:, -hash and -copyWithZone: (a copy's capacity is its count).
-    bool isEqual(OOPriorityQueue* object);
-    NSUInteger hash();
-    oo::Ref<OOPriorityQueue> copy();
-
-    // The whole of what "%@" printed: <OOPriorityQueue 0x...>{count=n, capacity=n}.
-    std::optional<std::string> description();
-
-#if OO_DEBUG
-    std::string debugDescription(); // (was -debugDescription, an Objective-C string)
-#endif
-
-#if DEBUG_GRAPHVIZ
-    std::string generateGraphViz();
-    void writeGraphVizToPath(const std::string& path);
-#endif
-
-private:
-    bool initWithComparator(SEL comparator);
-
-    void makeObjectsPerformSelector(SEL selector);
-
-    void bubbleUpFrom(NSUInteger i);
-    void bubbleDownFrom(NSUInteger i);
-
-    void growBuffer();
-    void shrinkBuffer();
-
-    void removeObjectAtIndex(NSUInteger i);
-
-#if OO_DEBUG
-    void appendDebugDataToString(std::string& string, NSUInteger i, NSUInteger depth);
-#endif
-
-    SEL _comparator = { };
-    OO_PQ_STRONG id* _heap = { };
-    NSUInteger _count = { },
-               _capacity = { };
-};
-
-/*	The same queue for C++ elements (bead oo-9ht.35, which deleted the OOScriptTimer facade the
+/*	The queue for C++ elements (bead oo-9ht.35, which deleted the OOScriptTimer facade the
         timer queue held): the elements are held by oo::Ref and ordered by a comparator function where
-        OOPriorityQueue sends a selector. The heap is OOPriorityQueue's, step for step (bubbling up on
+        the Objective-C OOPriorityQueue (deleted by bead oo-4aq6a.3) sent a selector. The heap is the
+        Objective-C queue's, step for step (bubbling up on
         insertion; on removal the last element takes the removed one's place and bubbles down; the
         exact-object search goes on past a match), so elements that compare the same come out in the
         same order. Capacity is the vector's. The element type must be complete where it is used.

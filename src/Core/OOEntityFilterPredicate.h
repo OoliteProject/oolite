@@ -31,7 +31,9 @@ MA 02110-1301, USA.
 
 */
 
-#import "Universe.h"
+#pragma once
+
+#include "Universe.h"
 
 typedef struct
 {

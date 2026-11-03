@@ -28,9 +28,11 @@ SOFTWARE.
 
 */
 
+#pragma once
+
 #ifndef OOENCODINGCONVERTER_EXCLUDE // For the convenience of fonttexgen
 
-#import "OOFoundation.h"
+#include "OOFoundation.h"
 
 #include "oofnd/Encoding.hpp"
 #include "oofnd/PList.hpp"

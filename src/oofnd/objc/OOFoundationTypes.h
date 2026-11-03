@@ -38,7 +38,20 @@
 #error "oofnd/objc/OOFoundationTypes.h replaces Foundation's C types and cannot be used together with Foundation"
 #endif
 
-#include <objc/runtime.h> // BOOL
+/*	The Objective-C boolean and null names, as libobjc2's <objc/runtime.h> gave them to the game's
+        Objective-C++ (built with STRICT_APPLE_COMPATIBILITY: BOOL is signed char, YES and NO are BOOL,
+        nil and Nil are nullptr), kept for the game's C and C++ since libobjc2 went (bead oo-dbz).
+*/
+typedef signed char BOOL;
+#define YES ((BOOL)1)
+#define NO ((BOOL)0)
+#ifdef __cplusplus
+#define nil nullptr
+#define Nil nullptr
+#else
+#define nil ((void*)0)
+#define Nil ((void*)0)
+#endif
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>

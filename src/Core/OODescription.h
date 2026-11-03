@@ -31,7 +31,13 @@ descriptionComponents() const.
 oo::DescriptionOf(x) is the text "%@" put in a formatted string for x: "(null)" for nil, the
 class name for a class object, -cxx_description for an OOObject; for an oo::PList, what "%@"
 printed for its object graph (oo::describe). oo::ShortDescriptionOf(x) is
-its short twin. OOConstantString describes itself as its text.
+its short twin. OOConstantString describes itself as its text in both, in C++ (the category
+OOConstantString (OODescription) is deleted, bead oo-8sql7).
+
+Since bead oo-8sql7 the category OOObject (OODescription) is deleted too: the four methods are the
+@optional protocol OODescription, which a class implements to describe itself. A class without its
+own method gets the root's default in C++ (oo::ObjectDescription & co. below, what the category's
+methods answered); nil gets what the message to nil gave (nullopt).
 
 An object not rooted on OOObject (none in the game since oo-3rb.4 / oo-qps.18) describes as
 <ClassName 0xnnnnnnnn> in both. The transitional forwarding to legacy id-typed
@@ -60,8 +66,7 @@ MA 02110-1301, USA.
 #ifndef OODESCRIPTION_H
 #define OODESCRIPTION_H
 
-#import "oofnd/objc/OOConstantString.h"
-#import "oofnd/objc/OOObject.h"
+#include "oofnd/objc/OOObject.h"
 
 // extern "C++" because this header is reached from inside an extern "C" block (OOMaths.h ->
 // OOFoundation.h), as OOLogging.h is.
@@ -70,36 +75,15 @@ extern "C++" {
 #include "oofnd/PListDescription.hpp"
 #include "oofnd/StdLib.hpp"
 
-@interface OOObject (OODescription)
-
-// What this object adds between the braces; nullopt for none (the root's default).
-- (std::optional<std::string>)cxx_descriptionComponents;
-- (std::optional<std::string>)cxx_shortDescriptionComponents;
-
-// <ClassName 0xnnnnnnnn>{components}, or <ClassName 0xnnnnnnnn> without components.
-- (std::optional<std::string>)cxx_description;
-- (std::optional<std::string>)cxx_shortDescription;
-
-@end
-
-// A string literal describes itself as its text.
-@interface OOConstantString (OODescription)
-
-- (std::optional<std::string>)cxx_description;
-- (std::optional<std::string>)cxx_shortDescription;
-
-@end
+// (The protocol's methods were declared on the root OOObject, which went with bead oo-4aq6a.8.)
 
 namespace oo {
 
-    // The text "%@" printed for <object>: "(null)" for nil, a class's name, else its description.
-    std::string DescriptionOf(id object);
+    // (DescriptionOf/ShortDescriptionOf/DescriptionWithComponents of an Objective-C object and the
+    // OODescription protocol went with libobjc2, bead oo-dbz: the game describes no Objective-C object.)
 
-    // The same with -cxx_shortDescription.
-    std::string ShortDescriptionOf(id object);
-
-    // <ClassName 0xnnnnnnnn>{components} for <object>; without the braces when <components> is nullopt.
-    std::string DescriptionWithComponents(id object, const std::optional<std::string>& components);
+    // (oo::ObjectDescription & co., what the protocol's messages answered for an object rooted on
+    // OOObject, went with OOObject, bead oo-4aq6a.8.)
 
     // The text "%@" printed for the property list's object graph (oo::ObjectFromPList of it):
     // oo::describe (oofnd/PListDescription.hpp), GNUstep's -description byte for byte.

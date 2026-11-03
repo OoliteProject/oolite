@@ -46,8 +46,8 @@ MA 02110-1301, USA.
 
 #pragma once
 
-#import "OOFoundation.h"
-#import "oofnd/objc/OOObject.h"
+#include "OOFoundation.h"
+#include "oofnd/objc/OOObject.h"
 
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"
@@ -170,7 +170,7 @@ inline constexpr std::string_view GUI_BUTTON_SETTINGS = "GuiJoystickButs"; // oo
 inline constexpr std::string_view STICK_ISAXIS = "isAxis"; // YES=axis NO=button
 inline constexpr std::string_view STICK_NUMBER = "stickNum"; // Stick number 0 to 4
 inline constexpr std::string_view STICK_AXBUT = "stickAxBt"; // Axis or button number
-#define STICK_FUNCTION @"stickFunc" // Function of axis/button
+#define STICK_FUNCTION "stickFunc" // Function of axis/button
 inline constexpr std::string_view STICK_ROLL_AXIS_PROFILE_SETTING = "RollAxisProfile"; // Joystick Profiles
 inline constexpr std::string_view STICK_PITCH_AXIS_PROFILE_SETTING = "PitchAxisProfile"; // Joystick Profiles
 inline constexpr std::string_view STICK_YAW_AXIS_PROFILE_SETTING = "YawAxisProfile"; // Joystick Profiles
@@ -178,7 +178,7 @@ inline constexpr std::string_view STICK_YAW_AXIS_PROFILE_SETTING = "YawAxisProfi
 // a dictionary: a std::string (oofnd/String.hpp)
 #define ENUMKEY(x) oo::str::format("%d", x)
 
-#import "OOJoystickProfile.h"
+#include "OOJoystickProfile.h"
 #include "oofnd/String.hpp"
 
 class OOJoystickManager : public oo::RefCounted {

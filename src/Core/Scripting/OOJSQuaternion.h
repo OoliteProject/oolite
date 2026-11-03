@@ -24,8 +24,10 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOFoundation.h"
-#import "OOMaths.h"
+#pragma once
+
+#include "OOFoundation.h"
+#include "OOMaths.h"
 #include "oofnd/StdLib.hpp"
 #include <quickjs.h>
 

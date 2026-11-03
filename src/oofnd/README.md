@@ -46,15 +46,14 @@ Rules that hold for every component:
 | `src/oofnd/LogFile.hpp` | `oo::log::FileWriter`, `logFileBytes`, `consoleBytes`, `rotateToPrevious`: the Latest.log writer (OOLogOutputHandler's OOAsyncLogger) without Foundation, byte for byte: CRLF, lone-surrogate lines dropped, 1 GiB saturation, Previous.log rotation ([ADR-0042](../../../../docs/decisions/0042-oofnd-log-file-writer.md)) |
 | `src/oofnd/Http.hpp` | `oo::http::Download`, `parseUrl`: the OXZ manager's `NSURLConnection` without Foundation: one GET on its own thread (WinHTTP on Windows), its response/data/finish/failure callbacks taken in order on the main thread; every status delivers its body, Content-Length or -1, no cookies, redirects followed, file: URLs read from disk ([ADR-0044](../../../../docs/decisions/0044-oofnd-http-client.md)) |
 | `src/Core/OOStringBridge.h` (game side) | deleted by oo-qps.16 (ADR-0055): it was `oo::StdString` / `oo::NSStringFrom` / `oo::StringMap`, the `NSString` <-> `std::string` bridge; the Phase 5 Mac port restores what it needs from `git show <oo-qps.16>^` (ADR-0055 item 7) |
-| `src/oofnd/objc/OOObjCRef.h` | `oo::ObjCRef<T *>`: a retaining reference to an Objective-C object for std containers (`objc_retain`/`objc_release`; `Ref<T>`'s API); `test_objc_ref.mm` also pins the nil-message zero-fill the sweep's return types rest on (proposed [ADR-0043](../../../../docs/decisions/0043-foundation-sweep-recipe.md)) |
+| ~~`src/oofnd/objc/OOObjCRef.h`~~ | deleted with libobjc2 (bead oo-dbz.2): `oo::ObjCRef<T *>`, a retaining reference to an Objective-C object, had no user left; its test `test_objc_ref.mm` retired with it |
 | `src/Core/OOFoundationBridge.h` (game side) | deleted by oo-qps.16 (ADR-0055): it held the Foundation sweep's boundary helpers; Object nodes moved to `src/Core/OOObjCPList.h`, `%@` text to `src/Core/OODescription.h` |
-| `tools/check-selector-types.py` | which of a header's selectors are shared (keep `id`) and the tree-wide guard against a selector family disagreeing on a C++ type |
+| ~~`tools/check-selector-types.py`~~ | retired by bead oo-ebds4 (ADR-0043 Amendment 4): it found which of a header's Objective-C selectors were shared (keep `id`) and guarded selector families against disagreeing C++ types; with libobjc2 gone (oo-dbz.5) no selector is declared or sent, so it checked nothing. `git show oo-ebds4^:tools/check-selector-types.py` restores it |
 | `src/oofnd/Defaults.hpp` | `oo::Defaults`: preferences store matching former `NSUserDefaults`+Override/`NSBundle+Override` behaviour: same `GNUstep/Defaults/oolite.plist`, same search list and coercions, `oo::writeOpenStepPList` (GNUstep's OpenStep writer, byte-identical) ([ADR-0032](../../../../docs/decisions/0032-oofnd-defaults.md)); shim deleted by oo-iobt |
-| `src/oofnd/objc/OOObject.h`, `.mm` | `OOObject`: the Foundation-free Objective-C root class on libobjc2's own refcount and pool; `OOObjCInstallFloor()` ([ADR-0029](../../../../docs/decisions/0029-objc-floor-without-foundation.md)). Objective-C++, not linked into the game until the reroot bead |
-| `src/oofnd/objc/OOObject.h`, `.mm` | `OOObject`: the Foundation-free Objective-C root class on libobjc2's own refcount and pool; `OOObjCInstallFloor()` ([ADR-0029](../../../../docs/decisions/0029-objc-floor-without-foundation.md)). Objective-C++; linked into the game by bead oo-3rb.2 (exemplar reroot: `Core/OORoleSet`), but `OOObjCInstallFloor()` is not called until the constant-string flip |
-| `src/oofnd/objc/OOConstantString.h`, `.mm` | `OOConstantString`/`OOTinyString`: the classes behind `@"..."` under `-fconstant-string-class=OOConstantString` (ADR-0029) |
-| `src/oofnd/objc/OOObjCPeer.h` | `oo::ObjCPeers`: at most one live Objective-C façade per C++ object, held weakly (libobjc2 weak refs), for the Phase 3 `X+ObjCBridge` façades; `test_objc_peer.mm` ([ADR-0056](../../../../docs/decisions/0056-phase3-class-conversion-house-style.md)) |
-| `src/oofnd/objc/OORuntime.h` | `OOClassFromName`/`OOClassName`/`OOSelectorFromName`/`OOSelectorName`/`OOSelectorsEqual`: `NSClassFromString` & co. on the libobjc2 calls GNUstep makes, UTF-8 in and out; header-only |
+| `src/oofnd/objc/OOObject.h`, `.mm` | `OOObject`: the Foundation-free Objective-C root class on libobjc2's own refcount and pool; `OOObjCInstallFloor()` ([ADR-0029](../../../../docs/decisions/0029-objc-floor-without-foundation.md)). Objective-C++, not linked into the game until the reroot bead. Deleted by bead oo-4aq6a.8 (OOObject.h stays as a forwarding header) |
+| `src/oofnd/objc/OOObject.h`, `.mm` | `OOObject`: the Foundation-free Objective-C root class on libobjc2's own refcount and pool; `OOObjCInstallFloor()` ([ADR-0029](../../../../docs/decisions/0029-objc-floor-without-foundation.md)). Objective-C++; linked into the game by bead oo-3rb.2 (exemplar reroot: `Core/OORoleSet`), but `OOObjCInstallFloor()` is not called until the constant-string flip. Deleted by bead oo-4aq6a.8 (OOObject.h stays as a forwarding header) |
+| `src/oofnd/objc/OOConstantString.h`, `.mm` | `OOConstantString`/`OOTinyString`: the classes behind `@"..."` under `-fconstant-string-class=OOConstantString` (ADR-0029). Deleted by bead oo-4aq6a.8 (OOObject.h stays as a forwarding header) |
+| ~~`src/oofnd/objc/OORuntime.h`~~ | deleted with libobjc2 (bead oo-dbz.2): `OOClassFromName` & co., libobjc2's class and selector lookups, had no user left; its test `test_objc_runtime.mm` retired with it |
 | `src/oofnd/objc/OOException.h`, `.mm` | `OOException`: `NSException` without Foundation; `@try`/`@catch` stay Objective-C (ADR-0029 Decision 4). `+raise:format:` is printf-style; `OOInvalidArgumentException` & co. are `const char *` with Foundation's text |
 | `src/oofnd/objc/OOFoundationTypes.h` | Foundation's C types (`NSInteger`/`NSUInteger`, `NSRange`, `NSNotFound`, `NSPoint`/`NSSize`/`NSRect`, `NSMake*`, `NSEqual*`, `NSTimeInterval`, `CGFloat`) with GNUstep's exact definitions and names (ADR-0029 Decision 5); refuses to compile beside Foundation, so OOFoundation.h includes it only from oo-qps. Pinned by `tests/unit/oofnd/test_foundation_types.cpp` |
 | `src/oofnd/meson.build` | `oofnd_dep` (include path `src/`, so consumers write `#include "oofnd/X.hpp"`) |
@@ -267,8 +266,9 @@ acceptance grep matches (comments included), the whole tree builds, and the game
 
 Use `oofnd/StdLib.hpp` for standard containers (never `<vector>` directly: OOFoundation.h's
 `true`/`false` macros), `oofnd/String.hpp` for `oo::str`, `oofnd/PList.hpp` for `oo::PList`,
-`oofnd/objc/OOObjCRef.h` for `oo::ObjCRef`, `Core/OOObjCPList.h` for an Objective-C object inside a
-property list (`oo::PListObject`, `oo::ObjectIn`, `oo::PListFromObjects`, `oo::ObjCRefsIn`), and
+`oofnd/objc/OOObjCRef.h` for `oo::ObjCRef`, a C++ `oo::PListForeign` for an object inside a
+property list (the Objective-C object's node, `Core/OOObjCPList.h`'s `oo::PListObject` & co., went with
+it), and
 `oo::DescriptionOf` (`Core/OODescription.h`, imported by `OOFoundation.h`) for `%@` text. The boundary
 helpers this step used to name (`oo::StdString`, `oo::NSStringFrom`, `oo::NSStringOrNil`,
 `oo::NSArrayFromStrings` & co.) lived in `OOFoundationBridge.h` / `OOStringBridge.h`, deleted by
@@ -537,8 +537,14 @@ hand residue) and deletes the legacy root in `OOFoundation.h/.mm`: the root's `c
 legacy `- (id) descriptionComponents` (& co.) override while a class has one, and `oo::DescriptionOf`
 of an object not rooted on `OOObject` asks its `-description` (oo-qps.72 deletes both). Do not flip
 one class's override by hand before oo-qps.43: a converted superclass hides an unconverted
-subclass's override (the exemplar has no subclass). `tests/unit/oofnd/test_objc_description.mm` pins the text and the forwarding,
-linked against libobjc2 alone.
+subclass's override (the exemplar has no subclass).
+
+Since oo-8sql7 the root has no description category: the four methods are the `@optional` protocol
+`OODescription`, and an object whose class has no method of its own gets the root's default from the
+C++ functions `oo::ObjectDescription`, `oo::ObjectShortDescription`, `oo::ObjectDescriptionComponents`
+and `oo::ObjectShortDescriptionComponents` (what the deleted category answered; nullopt for nil).
+Send none of the four to an object directly; ask those functions. `tests/unit/oofnd/test_objc_plist.mm`
+links `OODescription.mm` against libobjc2 alone.
 
 ### Describing a property list: `oo::DescriptionOf(const oo::PList &)` (item 1, oo-qps.32)
 
@@ -565,8 +571,9 @@ HUD dial, a deferred call) calls `OOCallByName(target, selector [, argument])` i
 signatures in every declaring class at once (the family rule); `python3 tools/check-selector-types.py --check`
 accepts exactly those and the transitional `id` form, and `--strict-called-by-name` (oo-qps.72)
 rejects the `id` form. Until then OOCallByName bridges an `id`-typed method's argument and result,
-so selectors flip file by file. `tests/unit/oofnd/test_objc_call_by_name.mm` pins the signatures'
-type encodings on this toolchain and the dispatch, linked against libobjc2 alone.
+so selectors flip file by file. `OOCallByName.mm` (the call on an Objective-C object) and its test,
+`test_objc_call_by_name.mm`, were deleted by bead oo-6e1.2; the entity call (`OOEntityCalledByName.mm`) keeps
+the signatures.
 
 ## Testing
 

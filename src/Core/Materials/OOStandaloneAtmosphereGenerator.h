@@ -29,8 +29,8 @@ MA 02110-1301, USA.
 #ifndef OOSTANDALONEATMOSPHEREGENERATOR_H
 #define OOSTANDALONEATMOSPHEREGENERATOR_H
 
-#import "OOMaths.h"
-#import "OOTextureGenerator.h"
+#include "OOMaths.h"
+#include "OOTextureGenerator.h"
 #include "oofnd/PList.hpp"
 
 typedef struct OOStandaloneAtmosphereGeneratorInfo {

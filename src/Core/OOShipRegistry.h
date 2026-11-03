@@ -27,13 +27,14 @@ SOFTWARE.
 
 */
 
-#import "OOFoundation.h"
-#import "oofnd/objc/OOObject.h"
+#pragma once
+
+#include "OOFoundation.h"
+#include "oofnd/objc/OOObject.h"
 
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
-#include "oofnd/objc/OOObjCRef.h"
 
 class OOProbabilitySet; // C++ since bead oo-489v
 class OOMutableProbabilitySet;

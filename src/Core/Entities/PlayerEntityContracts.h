@@ -24,15 +24,17 @@ MA 02110-1301, USA.
 
 */
 
-#import "PlayerEntity.h"
+#pragma once
+
+#include "PlayerEntity.h"
 
 /*	The category PlayerEntity (Contracts) is members of
         PlayerEntity, declared in PlayerEntity.h and defined in PlayerEntityContracts.mm. Its Objective-C interface,
         for the callers that remained, was the category of the same name in PlayerEntity+ObjCBridge.h (deleted),
         which PlayerEntity.h imports. This header stays for the files that import it.
 */
-#import "GuiDisplayGen.h"
-#import "PlayerEntityLegacyScriptEngine.h"
+#include "GuiDisplayGen.h"
+#include "PlayerEntityLegacyScriptEngine.h"
 #include <string_view>
 
 inline constexpr std::string_view PASSENGER_KEY_NAME = "name";
@@ -44,8 +46,8 @@ inline constexpr std::string_view CARGO_KEY_DESCRIPTION = "cargo_description";
 
 inline constexpr std::string_view CONTRACT_KEY_START = "start";
 inline constexpr std::string_view CONTRACT_KEY_DESTINATION = "destination";
-#define CONTRACT_KEY_DESTINATION_NAME @"destination_name"
-#define CONTRACT_KEY_LONG_DESCRIPTION @"long_description"
+#define CONTRACT_KEY_DESTINATION_NAME "destination_name"
+#define CONTRACT_KEY_LONG_DESCRIPTION "long_description"
 inline constexpr std::string_view CONTRACT_KEY_DEPARTURE_TIME = "departure_time";
 inline constexpr std::string_view CONTRACT_KEY_ARRIVAL_TIME = "arrival_time";
 inline constexpr std::string_view CONTRACT_KEY_FEE = "fee";

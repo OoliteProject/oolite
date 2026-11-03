@@ -24,11 +24,13 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOStellarBody.h"
+#pragma once
 
-#import "Entity.h"
-#import "OOColor.h"
-#import "OOGraphicsResetManager.h"
+#include "OOStellarBody.h"
+
+#include "Entity.h"
+#include "OOColor.h"
+#include "OOGraphicsResetManager.h"
 
 #include "legacy_random.h"
 #include "oofnd/PList.hpp"

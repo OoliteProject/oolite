@@ -24,7 +24,9 @@ MA 02110-1301, USA.
 
 */
 
-#import "PlayerEntity.h"
+#pragma once
+
+#include "PlayerEntity.h"
 
 /*	The category PlayerEntity (Scripting) is members of
         PlayerEntity, declared in PlayerEntity.h and defined in PlayerEntityLegacyScriptEngine.mm. Its Objective-C interface,

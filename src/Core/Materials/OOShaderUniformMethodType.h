@@ -28,12 +28,13 @@ SOFTWARE.
 
 */
 
-#import "OOOpenGLExtensionManager.h"
+#pragma once
+
+#include "OOOpenGLExtensionManager.h"
 
 #if OO_SHADERS || defined(OO_DEBUG_MONITOR_ENABLED)
 
-#import "OOMaths.h"
-#include <objc/runtime.h>
+#include "OOMaths.h"
 #include <string>
 
 typedef enum {
@@ -62,14 +63,11 @@ typedef enum {
     kOOShaderUniformTypeCount // Not valid for bindings or constants
 } OOShaderUniformType;
 
-/*	The uniform type of a method's return value, from the runtime's type encoding (its
-        arguments are not considered, as the method signature object's -methodReturnType did not
-        consider them; bead oo-3rb.15). NULL gives kOOShaderUniformTypeInvalid.
+/*	The uniform type of a return type's encoding (@encode() of the type; NULL gives invalid): the
+        member tables below give their rows' types this way, so a row's type is the method's it
+        replaced. (OOShaderUniformTypeFromMethod(), which read a method's encoding from the runtime for
+        the Objective-C binding target, went with that target in bead oo-4aq6a.7.)
 */
-OOShaderUniformType OOShaderUniformTypeFromMethod(Method method);
-
-// The same for a type encoding (@encode() of the return type; NULL gives invalid): the member
-// tables below give their rows' types this way, so a row's type is the method's it replaced.
 OOShaderUniformType OOShaderUniformTypeFromEncoding(const char* typeCode);
 
 /*	Binding to a target's C++ members (bead oo-9ht.158, ADR-0056 amendment oo-9ht.158): a uniform
@@ -106,15 +104,6 @@ struct OOShaderMemberBinding {
     oo::RefCounted* target; // the C++ object get reads (the entity's part), borrowed: the uniform holds it weakly
 };
 
-/*	The member tables are registered by their classes (the entities': Entity+ObjCBridge.mm, the table
-        itself in EntityShaderBindings.mm), so the uniform links without them. A lookup answers false
-        where the target's class has no row for the name, the row does not apply to this target, or its
-        type is not bindable: the uniform then binds by selector as before.
-*/
-typedef bool (*OOShaderMemberBindingLookup)(id target, SEL selector, OOShaderMemberBinding* outBinding);
-void OOSetShaderMemberBindingLookup(OOShaderMemberBindingLookup lookup) noexcept;
-bool OOShaderMemberBindingFor(id target, SEL selector, OOShaderMemberBinding* outBinding);
-
 /*	A material's binding target is the C++ entity (bead oo-9ht.39.6, ADR-0056 amendment
         oo-9ht.39.6). What the uniform and the material asked of the entity's Objective-C object they
         ask through these, which the entities register (EntityShaderBindings.mm), so the materials
@@ -137,35 +126,9 @@ struct OOShaderEntityHooks {
 void OOSetShaderEntityHooks(const OOShaderEntityHooks& hooks) noexcept;
 const OOShaderEntityHooks* OOShaderEntityHooksIfSet() noexcept; // null where none is registered
 
-/*	The selector path, for a name no member table answers (a material may bind any method without
-        arguments; bead oo-9ht.158 keeps that until a decision restricts the set): what the uniform did
-        before, moved here from OOShaderUniform.mm. False with *outProblem set where it cannot bind.
+/*	(The selector path for an Objective-C target - OOShaderUniformBindMethod(), OOCallIntegerMethod(),
+        OOCallFloatMethod() and the return-type casts of the method's IMP - went with that target in bead
+        oo-4aq6a.7: no game code bound an Objective-C object, and callObjC() calls only C++ tables.)
 */
-bool OOShaderUniformBindMethod(id target, SEL selector, IMP* outMethod, OOShaderUniformType* outType, std::string* outProblem);
-
-long long OOCallIntegerMethod(id object, SEL selector, IMP method, OOShaderUniformType type);
-double OOCallFloatMethod(id object, SEL selector, IMP method, OOShaderUniformType type);
-
-typedef char (*CharReturnMsgSend)(id, SEL);
-typedef unsigned char (*UnsignedCharReturnMsgSend)(id, SEL);
-typedef short (*ShortReturnMsgSend)(id, SEL);
-typedef unsigned short (*UnsignedShortReturnMsgSend)(id, SEL);
-typedef int (*IntReturnMsgSend)(id, SEL);
-typedef unsigned int (*UnsignedIntReturnMsgSend)(id, SEL);
-typedef long (*LongReturnMsgSend)(id, SEL);
-typedef unsigned long (*UnsignedLongReturnMsgSend)(id, SEL);
-typedef long long (*LongLongReturnMsgSend)(id, SEL);
-typedef unsigned long long (*UnsignedLongLongReturnMsgSend)(id, SEL);
-typedef float (*FloatReturnMsgSend)(id, SEL);
-typedef double (*DoubleReturnMsgSend)(id, SEL);
-typedef Vector (*VectorReturnMsgSend)(id, SEL);
-typedef HPVector (*HPVectorReturnMsgSend)(id, SEL);
-typedef Quaternion (*QuaternionReturnMsgSend)(id, SEL);
-typedef OOMatrix (*MatrixReturnMsgSend)(id, SEL);
-typedef NSPoint (*PointReturnMsgSend)(id, SEL);
-typedef id (*ObjectReturnMsgSend)(id, SEL);
-// kOOShaderUniformTypeColor: a colour binding answers the C++ colour, borrowed (bead oo-9ht.1).
-class OOColor;
-typedef OOColor* (*ColorReturnMsgSend)(id, SEL);
 
 #endif // OO_SHADERS

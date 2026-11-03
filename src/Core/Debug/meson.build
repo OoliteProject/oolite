@@ -1,13 +1,13 @@
 # Generated Meson configuration for sub-module: Debug
 
 oolite_sources += files(
-    'OODebugMonitor.mm',
-    'OODebugStandards.mm',
-    'OODebugSupport.mm',
-    'OODebugTCPConsoleClient.mm',
-    'OOJSConsole.mm',
+    'OODebugMonitor.cpp',
+    'OODebugStandards.cpp',
+    'OODebugSupport.cpp',
+    'OODebugTCPConsoleClient.cpp',
+    'OOJSConsole.cpp',
     'OOTCPStreamDecoder.c',
-    'OOTCPStreamDecoderAbstractionLayer.mm',
+    'OOTCPStreamDecoderAbstractionLayer.cpp',
 )
 
 oolite_includes += include_directories('.')

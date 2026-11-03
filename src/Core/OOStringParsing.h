@@ -24,10 +24,12 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOFoundation.h"
-#import "OOMaths.h"
-#import "OOTypes.h"
-#import "legacy_random.h"
+#pragma once
+
+#include "OOFoundation.h"
+#include "OOMaths.h"
+#include "OOTypes.h"
+#include "legacy_random.h"
 
 #include "oofnd/StdLib.hpp"
 

@@ -27,7 +27,9 @@ SOFTWARE.
 
 */
 
-#import "OOPixMap.h"
+#pragma once
+
+#include "OOPixMap.h"
 
 /*	OOExtractPixMapChannel()
         Given a 4-channel pixmap, extract one channel, producing a single-channel

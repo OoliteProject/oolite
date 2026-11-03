@@ -25,7 +25,9 @@ MA 02110-1301, USA.
 
 */
 
-#import "ShipEntity.h"
+#pragma once
+
+#include "ShipEntity.h"
 
 class AI; // C++ (AI.h)
 class Universe;

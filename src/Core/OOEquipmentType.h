@@ -38,13 +38,12 @@ SOFTWARE.
 #ifndef OOEQUIPMENTTYPE_H
 #define OOEQUIPMENTTYPE_H
 
-#import "OOColor.h"
-#import "OOFoundation.h"
-#import "OOOpenGL.h"
-#import "OOTypes.h"
+#include "OOColor.h"
+#include "OOFoundation.h"
+#include "OOOpenGL.h"
+#include "OOTypes.h"
 #include "oofnd/Ref.hpp"
-#include "oofnd/objc/OOObjCRef.h"
-#import "oofnd/objc/OOObject.h"
+#include "oofnd/objc/OOObject.h"
 
 #include <quickjs.h>
 

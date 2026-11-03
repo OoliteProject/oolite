@@ -34,11 +34,11 @@
 #ifndef OOFND_OBJC_OOASSERT_H
 #define OOFND_OBJC_OOASSERT_H
 
-#ifdef __OBJC__
-/*	The method forms raise through OOException and name self/_cmd; a plain C or C++ translation
-        unit (bead oo-9ht.64: OOConstToJSString) gets only the function forms, OOCAssert and
-        OOCParameterAssert, which need no Objective-C type.
+/*	The method forms (OOAssert, OOParameterAssert: self/_cmd) went with libobjc2: no game
+        code called them. A game unit (an Objective-C++ unit until then) still gets OOException.h from
+        here, as it did; a plain C or C++ translation unit (OOConstToJSString) does not.
 */
+#if defined(__cplusplus) && !defined(OO_PLAIN_CPP_UNIT) // was __OBJC__
 #include "oofnd/objc/OOException.h"
 #endif
 
@@ -47,10 +47,6 @@ extern "C" {
 #endif
 
 // Log and raise; never return. Called by the macros below, not directly.
-#ifdef __OBJC__
-void OOAssertFailedInMethod(id object, SEL selector, const char* file, long line, const char* format, ...)
-    __attribute__((format(printf, 5, 6), noreturn));
-#endif
 void OOAssertFailedInFunction(const char* function, const char* file, long line, const char* format, ...)
     __attribute__((format(printf, 4, 5), noreturn));
 
@@ -59,18 +55,12 @@ void OOAssertFailedInFunction(const char* function, const char* file, long line,
 #endif
 
 // Not conditional on NDEBUG: see the head of this file.
-#define OOAssert(condition, ...)                                                 \
-    do {                                                                         \
-        if (!(condition))                                                        \
-            OOAssertFailedInMethod(self, _cmd, __FILE__, __LINE__, __VA_ARGS__); \
-    } while (0)
 #define OOCAssert(condition, ...)                                                           \
     do {                                                                                    \
         if (!(condition))                                                                   \
             OOAssertFailedInFunction(__PRETTY_FUNCTION__, __FILE__, __LINE__, __VA_ARGS__); \
     } while (0)
 
-#define OOParameterAssert(condition) OOAssert((condition), "Invalid parameter not satisfying: %s", #condition)
 #define OOCParameterAssert(condition) OOCAssert((condition), "Invalid parameter not satisfying: %s", #condition)
 
 #endif // OOFND_OBJC_OOASSERT_H

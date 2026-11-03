@@ -90,34 +90,4 @@
     } while (0)
 #endif
 
-#if __OBJC__
-/*	OOConsumeReference()
-        Decrements the Clang Static Analyzer's notion of an object's reference
-        count. This is used to work around cases where the analyzer claims an
-        object is being leaked but it actually isn't, due to a pattern the
-        analyzer doesn't understand (like singletons, or references being stored
-        in JavaScript objects' private field).
-        Do not use this blindly. If you aren't absolutely certain it's appropriate,
-        don't use it.
-        -- Ahruman 2011-01-28
-*/
-#if NDEBUG
-OOINLINE id OOConsumeReference(id OO_NS_CONSUMED value) ALWAYS_INLINE_FUNC;
-OOINLINE id OOConsumeReference(id OO_NS_CONSUMED value)
-{
-    return value;
-}
-#else
-// Externed to work around analyzer being too "clever" and ignoring attributes
-// when it's inlined.
-#ifdef __cplusplus
-extern "C" {
-#endif
-id OOConsumeReference(id OO_NS_CONSUMED value);
-#ifdef __cplusplus
-}
-#endif
-#endif
-#endif
-
 #endif /* INCLUDED_OOFUNCTIONATTRIBUTES_h */

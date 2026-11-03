@@ -25,7 +25,9 @@ MA 02110-1301, USA.
 
 */
 
-#import "Entity.h"
+#pragma once
+
+#include "Entity.h"
 
 /*	A converted leaf: global, over Entity, with no facade of its own.
         Unconverted code makes one with quiriumCascadeFromShip() and hands it to Objective-C with

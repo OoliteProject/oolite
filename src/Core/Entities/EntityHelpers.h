@@ -66,8 +66,8 @@ std::string EntityDescription(Entity* entity);
 // facade's -dealloc wrote describing itself.
 std::string EntityOwnDescription(Entity* entity);
 
-/*	What -oo_objectSize answered for an entity's object, which the live-entity memory count and the
-        debug monitor's dump add up: the root facade's instance size (isa, OOWeakRefObject's weakSelf and
+/*	What the root's debug size method answered for an entity's object, which the live-entity
+        memory count and the debug monitor's dump add up: the root facade's instance size (isa, the weak-reference root's weakSelf and
         its reference to the C++ entity; every entity's object was of the root facade's class). Kept as that
         size, so the debug output is unchanged.
 */

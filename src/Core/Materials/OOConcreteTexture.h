@@ -30,12 +30,12 @@ SOFTWARE.
 
 #pragma once
 
-#import "OOOpenGLExtensionManager.h"
 #ifndef OOCONCRETETEXTURE_H
 #define OOCONCRETETEXTURE_H
 
-#import "OOTexture.h"
-#import "OOTextureLoader.h"
+#include "OOOpenGLExtensionManager.h" // OO_TEXTURE_CUBE_MAP, which the members below test (upstream #748)
+#include "OOTexture.h"
+#include "OOTextureLoader.h"
 
 #include "oofnd/StdLib.hpp"
 

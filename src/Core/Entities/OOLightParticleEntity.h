@@ -25,7 +25,9 @@ MA 02110-1301, USA.
 
 */
 
-#import "Entity.h"
+#pragma once
+
+#include "Entity.h"
 
 class OOTexture;
 

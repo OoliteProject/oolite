@@ -24,7 +24,9 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOEntityWithDrawable.h"
+#pragma once
+
+#include "OOEntityWithDrawable.h"
 
 #include "oofnd/PList.hpp"
 #include "oofnd/StdLib.hpp"

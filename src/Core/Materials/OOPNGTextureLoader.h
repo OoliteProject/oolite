@@ -30,9 +30,12 @@ SOFTWARE.
 #ifndef OOPNGTEXTURELOADER_H
 #define OOPNGTEXTURELOADER_H
 
-#import "OOTexture.h"
-#import "OOTextureLoader.h"
-#import "png.h"
+// png.h first, in a block of its own: which header comes first decides whether MinGW's or the
+// UCRT's printf family is used by the files that include this one first.
+#include "png.h"
+
+#include "OOTexture.h"
+#include "OOTextureLoader.h"
 
 #include "oofnd/Data.hpp"
 #include "oofnd/StdLib.hpp"

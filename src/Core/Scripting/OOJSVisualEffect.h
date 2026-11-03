@@ -26,9 +26,8 @@ MA 02110-1301, USA.
 
 #pragma once
 
-#import "OOFoundation.h"
-#import "OOVisualEffectEntity.h"
-#include "oofnd/objc/OOObjCRef.h"
+#include "OOEntityHold.h"
+#include "OOFoundation.h"
 #include <quickjs.h>
 #include <vector>
 

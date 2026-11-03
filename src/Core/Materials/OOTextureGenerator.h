@@ -30,7 +30,7 @@ SOFTWARE.
 #ifndef OOTEXTUREGENERATOR_H
 #define OOTEXTUREGENERATOR_H
 
-#import "OOTextureLoader.h"
+#include "OOTextureLoader.h"
 
 typedef struct
 {

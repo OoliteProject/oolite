@@ -22,7 +22,9 @@ MA 02110-1301, USA.
 
 */
 
-#import "PlayerEntity.h"
+#pragma once
+
+#include "PlayerEntity.h"
 
 #include "oofnd/StdLib.hpp"
 

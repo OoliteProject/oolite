@@ -24,16 +24,18 @@ MA 02110-1301, USA.
 
 */
 
-#import "Entity.h"
-#import "OOGraphicsResetManager.h"
-#import "OOOpenGLExtensionManager.h"
-#import "OOTexture.h"
+#pragma once
+
+#include "Entity.h"
+#include "OOGraphicsResetManager.h"
+#include "OOOpenGLExtensionManager.h"
+#include "OOTexture.h"
 
 #include "oofnd/StdLib.hpp"
 
 #if OO_SHADERS
-#import "OOShaderProgram.h"
-#import "OOShaderUniform.h"
+#include "OOShaderProgram.h"
+#include "OOShaderUniform.h"
 #endif
 
 #define DUST_SCALE 2000

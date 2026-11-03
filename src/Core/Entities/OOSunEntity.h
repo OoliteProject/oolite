@@ -24,11 +24,13 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOPlanetEntity.h"
+#pragma once
 
-#import "Entity.h"
-#import "OOColor.h"
-#import "legacy_random.h"
+#include "OOPlanetEntity.h"
+
+#include "Entity.h"
+#include "OOColor.h"
+#include "legacy_random.h"
 
 #include "oofnd/PList.hpp"
 #include "oofnd/StdLib.hpp"

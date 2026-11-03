@@ -23,12 +23,12 @@ MA 02110-1301, USA.
 */
 #pragma once
 
-#import "OOFoundation.h"
-#import "OOMouseInteractionMode.h"
-#import "OOOpenGL.h"
-#import "OOOpenGLMatrixManager.h"
+#include "OOFoundation.h"
+#include "OOMouseInteractionMode.h"
+#include "OOOpenGL.h"
+#include "OOOpenGLMatrixManager.h"
 #include "oofnd/Ref.hpp"
-#import "oofnd/objc/OOObject.h"
+#include "oofnd/objc/OOObject.h"
 
 #include "oofnd/PList.hpp"
 #include "oofnd/StdLib.hpp"
@@ -72,7 +72,6 @@ inline constexpr std::string_view SNAPSHOTHDR_EXTENSION_HDR = ".hdr";
 #define SNAPSHOTHDR_EXTENSION_DEFAULT SNAPSHOTHDR_EXTENSION_EXR
 
 class Entity;
-@class OpenGLSprite;
 class GameController;
 
 enum GameViewKeys {

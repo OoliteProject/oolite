@@ -30,9 +30,9 @@ SOFTWARE.
 #ifndef OOPIXMAPTEXTURELOADER_H
 #define OOPIXMAPTEXTURELOADER_H
 
-#import "OOPixMap.h"
-#import "OOTexture.h"
-#import "OOTextureGenerator.h"
+#include "OOPixMap.h"
+#include "OOTexture.h"
+#include "OOTextureGenerator.h"
 
 /*	Phase 3 (bead oo-kvqq, proposed ADR-0056 amendments oo-bj8 item 12, oo-2c6g item 2, oo-rr2x
         and oo-z889): a converted leaf of the texture generators, global, over OOTextureGenerator,

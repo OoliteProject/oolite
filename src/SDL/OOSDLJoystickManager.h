@@ -43,9 +43,9 @@ MA 02110-1301, USA.
 #ifndef OOSDLJOYSTICKMANAGER_H
 #define OOSDLJOYSTICKMANAGER_H
 
-#import "OOFoundation.h"
-#import "OOJoystickManager.h"
-#import <SDL3/SDL_events.h>
+#include "OOFoundation.h"
+#include "OOJoystickManager.h"
+#include <SDL3/SDL_events.h>
 
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"

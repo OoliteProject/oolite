@@ -24,6 +24,8 @@ MA 02110-1301, USA.
 
 */
 
+#pragma once
+
 #include "PlayerEntity.h"
 
 /*	The categories PlayerEntity (Controls) and (OOControlsPrivate) are members of

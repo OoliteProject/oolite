@@ -31,7 +31,7 @@ MA 02110-1301, USA.
 #ifndef OOSHIPGROUP_H
 #define OOSHIPGROUP_H
 
-#import "OOFoundation.h"
+#include "OOFoundation.h"
 
 #include <quickjs.h>
 
@@ -40,7 +40,6 @@ MA 02110-1301, USA.
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
-#include "oofnd/objc/OOObjCRef.h"
 
 #include <vector>
 

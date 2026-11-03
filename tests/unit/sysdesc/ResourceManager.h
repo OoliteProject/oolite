@@ -1,7 +1,8 @@
 // Stub for tests/unit/sysdesc (bead oo-vjwp): only what src/Core/OOConvertSystemDescriptions.mm uses.
+#pragma once
 // ResourceManager is C++ since its Objective-C facade was deleted: the stub declares the
 // two statics the tools call.
-#import "OOFoundation.h"
+#include "OOFoundation.h"
 #include "oofnd/PList.hpp"
 #include "oofnd/Data.hpp"
 class ResourceManager

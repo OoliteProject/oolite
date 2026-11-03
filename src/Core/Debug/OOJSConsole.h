@@ -29,7 +29,9 @@ SOFTWARE.
 
 */
 
-#import "OOFoundation.h"
+#pragma once
+
+#include "OOFoundation.h"
 class OODebugMonitor; // C++: its Objective-C facade is deleted
 
 #include <quickjs.h>

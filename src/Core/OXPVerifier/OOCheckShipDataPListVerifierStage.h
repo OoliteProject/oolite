@@ -25,7 +25,9 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOTextureVerifierStage.h"
+#pragma once
+
+#include "OOTextureVerifierStage.h"
 
 #if OO_OXP_VERIFIER_ENABLED
 
@@ -33,7 +35,7 @@ MA 02110-1301, USA.
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
 
-#import "OOPListSchemaVerifier.h" // the delegate interface; C++ since bead oo-9ht.119
+#include "OOPListSchemaVerifier.h" // the delegate interface; C++ since bead oo-9ht.119
 
 class OOAIStateMachineVerifierStage; // C++ since bead oo-94qk
 

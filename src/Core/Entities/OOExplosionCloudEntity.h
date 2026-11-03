@@ -28,10 +28,11 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOParticleSystem.h"
+#pragma once
+
+#include "OOParticleSystem.h"
 
 #include "oofnd/PList.hpp"
-#include "oofnd/objc/OOObjCRef.h"
 
 /*	Foundation sweep (proposed ADR-0043, bead oo-8sel): the explosion settings are an oo::PList (a
         Dict; an empty one where the settings were nil).
