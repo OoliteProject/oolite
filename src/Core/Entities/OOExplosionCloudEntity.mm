@@ -54,12 +54,12 @@ constexpr std::string_view kExplosionSpread = "spread";
 constexpr std::string_view kExplosionTexture = "texture";
 } // namespace
 
-bool OOExplosionCloudEntity::initExplosionCloudWithEntity(::Entity* entity, float size, const oo::PList& settings)
+bool OOExplosionCloudEntity::initExplosionCloudWithEntity(Entity* entity, float size, const oo::PList& settings)
 {
     unsigned i;
-    unsigned maxCount = [UNIVERSE detailLevel] <= DETAIL_LEVEL_SHADERS ? 10 : 25;
-    HPVector pos = [entity position];
-    Vector vel = [entity velocity];
+    unsigned maxCount = (UNIVERSE != nullptr ? UNIVERSE->getDetailLevel() : OOGraphicsDetail { }) <= DETAIL_LEVEL_SHADERS ? 10 : 25;
+    HPVector pos = entity != nullptr ? entity->getPosition() : kZeroHPVector; // the C++ entity; nil answered zero
+    Vector vel = entity != nullptr ? entity->getVelocity() : kZeroVector;
 
     if (settings.isNull()) {
         _settings = oo::PList(oo::PList::Dict { });
@@ -73,7 +73,7 @@ bool OOExplosionCloudEntity::initExplosionCloudWithEntity(::Entity* entity, floa
     }
 
     if (size == 0.0) {
-        size = [entity collisionRadius] * _settings.get<float>(kExplosionSize, kExplosionDefaultSize);
+        size = (entity != nullptr ? entity->collisionRadius() : 0.0f) * _settings.get<float>(kExplosionSize, kExplosionDefaultSize);
     }
 
     _growthRate = _settings.get<float>(kExplosionGrowth, kGrowthRateFactor) * size;
@@ -87,11 +87,7 @@ bool OOExplosionCloudEntity::initExplosionCloudWithEntity(::Entity* entity, floa
 
     std::string textureFile = _settings.get<std::string>(kExplosionTexture, "oolite-particle-cloud2.png");
 
-    _texture = oo::ObjCRef<OOTexture*>([OOTexture cxx_textureWithName:textureFile
-                                                             inFolder:std::string("Textures")
-                                                              options:kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear | kOOTextureAlphaMask
-                                                           anisotropy:kOOTextureDefaultAnisotropy
-                                                              lodBias:0.0]);
+    _texture = oo::Ref<OOTexture>(OOTexture::textureWithName(textureFile, std::string("Textures"), kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear | kOOTextureAlphaMask, kOOTextureDefaultAnisotropy, 0.0));
     if (_texture == nullptr) {
         return false;
     }
@@ -159,7 +155,7 @@ bool OOExplosionCloudEntity::initExplosionCloudWithEntity(::Entity* entity, floa
 
 // -dealloc released the texture: _texture does.
 
-oo::Ref<OOExplosionCloudEntity> OOExplosionCloudEntity::explosionCloudFromEntity(::Entity* entity, const oo::PList& settings)
+oo::Ref<OOExplosionCloudEntity> OOExplosionCloudEntity::explosionCloudFromEntity(Entity* entity, const oo::PList& settings)
 {
     oo::Ref<OOExplosionCloudEntity> result = oo::makeRef<OOExplosionCloudEntity>();
     if (!result->initExplosionCloudWithEntity(entity, 0, settings))
@@ -167,7 +163,7 @@ oo::Ref<OOExplosionCloudEntity> OOExplosionCloudEntity::explosionCloudFromEntity
     return result;
 }
 
-oo::Ref<OOExplosionCloudEntity> OOExplosionCloudEntity::explosionCloudFromEntity(::Entity* entity, float size, const oo::PList& settings)
+oo::Ref<OOExplosionCloudEntity> OOExplosionCloudEntity::explosionCloudFromEntity(Entity* entity, float size, const oo::PList& settings)
 {
     oo::Ref<OOExplosionCloudEntity> result = oo::makeRef<OOExplosionCloudEntity>();
     if (!result->initExplosionCloudWithEntity(entity, size, settings))

@@ -64,7 +64,7 @@ T *NewTestPlayer()
 	oo::Ref<T> player = oo::makeRef<T>();
 	@autoreleasepool
 	{
-		[oo::NewEntityFacade(player) retain];
+		oo::RetainEntity(oo::MadeEntity(player));
 	}
 	return player.get();
 }
@@ -73,37 +73,22 @@ T *NewTestPlayer()
 
 
 // UNIVERSE: never initialised; records what the sun sets.
-@interface TestUniverse: Universe
+class TestUniverse : public Universe
 {
-@public
-	Vector							_mainLight;
+public:
+	Vector _mainLight = {};
 	GLfloat							_sky[4];
-	int								_skySets;
-	std::map<std::string, oo::PList>	_systemData;
-}
-@end
+	int _skySets = {};
+	std::map<std::string, oo::PList> _systemData = {};
 
-
-@implementation TestUniverse
-
-- (OOTimeAbsolute) getTime	{ return 0; }
-
-- (void) setMainLightPosition:(Vector)sunPos	{ _mainLight = sunPos; }
-
-
-- (void) setSkyColorRed:(GLfloat)red green:(GLfloat)green blue:(GLfloat)blue alpha:(GLfloat)alpha
-{
-	_sky[0] = red;  _sky[1] = green;  _sky[2] = blue;  _sky[3] = alpha;
-	_skySets++;
-}
-
-
-- (void) cxx_setSystemDataKey:(const std::string &)key value:(const oo::PList &)value fromManifest:(const std::optional<std::string> &)manifest
-{
-	_systemData[key] = value;
-}
-
-@end
+	void setMainLightPosition(Vector sunPos) override	{ _mainLight = sunPos; }
+	void setSkyColorRed(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha) override
+	{
+		_sky[0] = red;  _sky[1] = green;  _sky[2] = blue;  _sky[3] = alpha;
+		_skySets++;
+	}
+	void setSystemDataKey(const std::string &key, const oo::PList &value, const std::optional<std::string> &/*manifest*/) override	{ _systemData[key] = value; }
+};
 
 
 namespace {
@@ -116,8 +101,7 @@ void SetUp()
 {
 	if (sUniverse == nil)
 	{
-		sUniverse = (TestUniverse *)class_createInstance([TestUniverse class], 0);	// never released
-		sUniverse->_cxxUniverse = oo::makeRef<cxx::Universe>(sUniverse);	// what -initWithGameView: makes first (ADR-0056 amendment oo-riqmz)
+		sUniverse = new TestUniverse();	// never released
 		new (&sUniverse->_systemData) std::map<std::string, oo::PList>();
 		sPlayer = NewTestPlayer<TestPlayer>();
 	}
@@ -132,7 +116,7 @@ void SetUp()
 
 // --- Ivars the test reads, and nothing else ---------------------------------------------------------
 
-Vector CameraRelativePosition(cxx::Entity *e)	{ return e->cameraRelativePosition; }	// the C++ sun since bead oo-9ht.111
+Vector CameraRelativePosition(Entity *e)	{ return e->cameraRelativePosition; }	// the C++ sun
 
 // --------------------------------------------------------------------------------------------------
 
@@ -154,7 +138,7 @@ bool Near(double a, double b)
 OOSunEntity *Sun(OOColor *color, double radius)
 {
 	oo::Ref<OOSunEntity> sun = oo::makeRef<OOSunEntity>();
-	(void)oo::NewEntityFacade(sun);
+	(void)oo::MadeEntity(sun);
 	sun->initSunWithColor(color, Dict({
 		{ "sun_name", oo::PList("Sol") },
 		{ "sun_radius", oo::PList(radius) },
@@ -179,7 +163,7 @@ OO_TEST(made)
 	{
 		SetUp();
 		OOSunEntity *sun = RedSun();
-		OO_CHECK(sun != nullptr && dynamic_cast<OOSunEntity *>(static_cast<cxx::Entity *>(sun)) != nullptr);
+		OO_CHECK(sun != nullptr && dynamic_cast<OOSunEntity *>(static_cast<Entity *>(sun)) != nullptr);
 		OO_CHECK(sun->radius() == 1000.0 && sun->collisionRadius() == 1000.0f);
 		OO_CHECK(sun->name() == std::optional<std::string>("Sol"));
 		OO_CHECK(sun->planetType() == STELLAR_TYPE_SUN);
@@ -301,7 +285,7 @@ OO_TEST(description)
 		SetUp();
 		OOSunEntity *sun = RedSun();
 		sun->setGoingNova(YES, 10.0);
-		const std::string description = oo::DescriptionOf(oo::ToObjC(sun));
+		const std::string description = oo::EntityDescription(sun);
 		OO_CHECK(description.find("radius: 1.000km") != std::string::npos);
 		OO_CHECK(description.find("(will go nova)") != std::string::npos);
 	}
@@ -336,11 +320,10 @@ OO_TEST(facade)
 		SetUp();
 		OOSunEntity *sun = RedSun();
 		// Its Objective-C object is the root's facade since bead oo-9ht.111 (amendment oo-9ht.107).
-		::Entity *object = oo::ToObjC(sun);
-		OO_CHECK(object != nil && [object class] == [Entity class]);
+		Entity *object = sun;
+		OO_CHECK(object != nil);	// (and its object's class, the root facade: retired with the facade, under oo-9n5p9)
 		// A C++ entity (amendment oo-0mxi), not an Objective-C entity's adapter.
-		OO_CHECK(dynamic_cast<OOSunEntity *>(oo::ToCxx(object)) == sun);
-		OO_CHECK(oo::AsObjCEntity(sun) == nullptr);
+		OO_CHECK(dynamic_cast<OOSunEntity *>(object) == sun);
 	}
 }
 
@@ -368,12 +351,12 @@ OO_TEST(jsExtensions)
 		SetUp();
 		OOSunEntity *sun = RedSun();
 		RegisterJSClasses(InitOOJSSun);
-		::Entity *object = oo::ToObjC(sun);	// what the engine asks (the root's facade)
-		const JSClassID jsClass = [object oo_jsClassID];
+		Entity *object = sun;	// what the engine asks (the root's facade)
+		const JSClassID jsClass = OOJSEntityJSClassID(object);
 		const JSClassID expectedClass = JSSunClassID();
 		OO_CHECK(jsClass != 0 && jsClass == expectedClass);
-		OO_CHECK([object cxx_oo_jsClassName] == std::optional<std::string>("Sun"));
-		OO_CHECK([object isVisibleToScripts] == YES);
+		OO_CHECK(OOJSEntityJSClassName(object) == std::optional<std::string>("Sun"));
+		OO_CHECK(OOJSEntityIsVisibleToScripts(object) == YES);
 	}
 }
 

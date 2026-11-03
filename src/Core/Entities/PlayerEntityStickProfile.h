@@ -37,9 +37,7 @@ MA 02110-1301, USA.
 #import "Universe.h"
 #include "oofnd/Ref.hpp"
 
-namespace cxx {
-class OOJoystickManager;
-}
+class OOJoystickManager; // OOJoystickManager.h (global C++)
 
 /*	C++20 since bead oo-movn (proposed ADR-0056 amendment oo-zffj): the player is the screen's one
         caller (PlayerEntity.mm makes it, the category above drives it), so it has no facade; the
@@ -73,7 +71,7 @@ public:
     std::optional<std::string> profileType();
 
 private:
-    cxx::OOJoystickManager* stickHandler = nullptr; // the shared handler, not retained, as before
+    OOJoystickManager* stickHandler = nullptr; // the shared handler, not retained, as before
     NSUInteger current_axis = 0;
     oo::Ref<OOJoystickAxisProfile> profiles[3][2] = { };
     GuiDisplayGen* gui = nil; // not retained, as before

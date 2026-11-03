@@ -121,7 +121,7 @@ bool OOMusic::isPlaying()
 
 
 // The resource manager: each name is a new music (as a cache miss is), from the "Music" folder.
-oo::Ref<OOMusic> cxx::ResourceManager::ooMusicNamed(const std::string &fileName, const std::optional<std::string> &folderName)
+oo::Ref<OOMusic> ResourceManager::ooMusicNamed(const std::string &fileName, const std::optional<std::string> &folderName)
 {
 	if (fileName == "missing.ogg" || folderName != std::optional<std::string>("Music"))  return nullptr;
 	return OOMusic::initWithContentsOfFile(fileName);	// the stand-in names the music by its path

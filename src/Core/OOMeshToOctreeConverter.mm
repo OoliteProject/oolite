@@ -800,7 +800,7 @@ static NO_INLINE_FUNC void AddTriangle_slow(GeometryData* data, Triangle tri)
     OOCParameterAssert(data->count == data->capacity);
 
     if (data->capacity == kOOMeshToOctreeConverterSmallDataCapacity) {
-        data->capacity = MAX(data->pendingCapacity, kOOMeshToOctreeConverterSmallDataCapacity * 2);
+        data->capacity = MAX(data->pendingCapacity, static_cast<uint32_t>(kOOMeshToOctreeConverterSmallDataCapacity * 2));
         data->triangles = (Triangle*)malloc(data->capacity * sizeof(Triangle));
         memcpy(data->triangles, data->smallData, sizeof data->smallData);
     } else {

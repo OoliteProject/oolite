@@ -27,7 +27,6 @@ SOFTWARE.
 
 #import "OOSkyDrawable.h"
 #import "GameController.h"
-#import "NSObjectOOExtensions.h"
 #import "OOColor.h"
 #import "OOGraphicsResetManager.h"
 #import "OOMacroOpenGL.h"
@@ -97,7 +96,7 @@ public:
 #endif
 
 private:
-    oo::ObjCRef<OOTexture*> _texture;
+    oo::Ref<OOTexture> _texture;
     unsigned _count = { };
     GLfloat* _positions = nullptr; // 3 entries per vertex, 12 per quad
     GLfloat* _texCoords = nullptr; // 2 entries per vertex, 8 per quad
@@ -145,7 +144,7 @@ OOSkyDrawable::OOSkyDrawable(OOColor* color1,
     @autoreleasepool {
         setUpStars(color1, color2);
 
-        if (![UNIVERSE reducedDetail]) {
+        if (!(UNIVERSE != nullptr ? UNIVERSE->reducedDetail() : false)) {
             setUpNebulae(color3,
                 color4,
                 nebulaClusterFactor,
@@ -224,9 +223,9 @@ GLfloat OOSkyDrawable::maxDrawDistance()
 }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-std::vector<oo::ObjCRef<OOTexture*>> OOSkyDrawable::allTextures()
+std::vector<oo::Ref<OOTexture>> OOSkyDrawable::allTextures()
 {
-    std::vector<oo::ObjCRef<OOTexture*>> result;
+    std::vector<oo::Ref<OOTexture>> result;
     result.reserve(_quadSets.size());
 
     for (const oo::Ref<OOSkyQuadSet>& quadSet : _quadSets) {
@@ -465,7 +464,7 @@ void OOSkyDrawable::resetGraphicsState()
 
 void OOSkyQuadSet::addQuads(OOSkyQuadDesc* quads, unsigned count, std::vector<oo::Ref<OOSkyQuadSet>>& ioArray)
 {
-    std::vector<oo::ObjCRef<OOTexture*>> seenTextures; // by identity (textures do not override -isEqual:)
+    std::vector<oo::Ref<OOTexture>> seenTextures; // by identity (textures do not override -isEqual:)
     OOTexture* texture = nil;
     oo::Ref<OOSkyQuadSet> quadSet;
     unsigned i;
@@ -592,8 +591,8 @@ oo::Ref<OOSkyQuadSet> OOSkyQuadSet::initWithQuadsWithTexture(OOTexture* texture,
             }
         }
 
-        self->_texture = oo::ObjCRef<OOTexture*>(texture);
-        OO_LOG("sky.setup", "Generated quadset with {} quads for texture {}", static_cast<unsigned>(count), oo::DescriptionOf(self->_texture.get()));
+        self->_texture = oo::Ref<OOTexture>(texture);
+        OO_LOG("sky.setup", "Generated quadset with {} quads for texture {}", static_cast<unsigned>(count), (self->_texture != nullptr) ? self->_texture->description() : std::string("(null)"));
     }
 
     if (!OK) {
@@ -617,15 +616,15 @@ OOSkyQuadSet::~OOSkyQuadSet()
 
 std::optional<std::string> OOSkyQuadSet::descriptionComponents() const
 {
-    return oo::str::format("%u quads, texture: %s", _count, oo::DescriptionOf(_texture.get()).c_str());
+    return oo::str::format("%u quads, texture: %s", _count, ((_texture != nullptr) ? _texture->description() : std::string("(null)")).c_str());
 }
 
 void OOSkyQuadSet::render()
 {
     OO_ENTER_OPENGL();
 
-    if (cxx::OOTexture* texture = oo::ToCxx(_texture.get()))
-        texture->apply(); // a message to nil did nothing
+    if (_texture != nullptr)
+        _texture->apply(); // a message to nil did nothing
 
     OOGL(glVertexPointer(kSkyQuadSetPositionEntriesPerVertex, GL_FLOAT, 0, _positions));
     OOGL(glTexCoordPointer(kSkyQuadSetTexCoordEntriesPerVertex, GL_FLOAT, 0, _texCoords));
@@ -637,7 +636,7 @@ void OOSkyQuadSet::render()
 #ifdef OO_DEBUG_MONITOR_ENABLED
 size_t OOSkyQuadSet::totalSize()
 {
-    // sizeof *this stands for -oo_objectSize (the object's own size).
+    // sizeof *this stands for the Objective-C instance size (the object's own size).
     return sizeof *this + static_cast<size_t>(_count) * 4 * (sizeof *_positions + sizeof *_texCoords + sizeof *_colors);
 }
 

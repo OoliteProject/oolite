@@ -11,7 +11,7 @@
 	statement. These expectations were written against the Objective-C file and run on it first
 	(commit 45775d64b), against Objective-C stand-ins of the monitor and the
 	client; since the conversion the stand-ins are those classes' C++ members that the debug support
-	calls, and the client's oo::ToObjC.
+	calls (the client is the C++ debugger itself, with no facade).
 
 	What it reaches would bring the game into the link, so this file stands in for it (proposed
 	ADR-0056, amendment oo-z1s4 item 4): the resource manager (the configuration and the beacon's
@@ -43,9 +43,9 @@ struct Record
 	std::optional<std::string>					beaconPath;			// DebugOXPLocatorBeacon.magic
 	bool										clientFails = false;
 	std::vector<std::pair<std::optional<std::string>, uint16_t>>	clientsMade;
-	id											lastClient = nil;
+	const void									*lastClient = nullptr;	// the client made (no facade)
 	std::vector<bool>							usingPlugInController;
-	std::vector<id>								debuggersSet;
+	std::vector<const void *>					debuggersSet;
 	int											debuggerStatementsEnabled = 0;
 };
 
@@ -56,109 +56,106 @@ const bool kTrue = (1 == 1);	// a Bool node (OOCocoa.h defines true as 1)
 }	// namespace
 
 
-typedef enum
-{
-	MERGE_NONE,
-	MERGE_BASIC,
-	MERGE_SMART
-} OOResourceMergeMode;
+#import "ResourceManager.h"	// OOResourceMergeMode, as the stand-in declared it
 
-
-@interface ResourceManager: OOObject
-+ (oo::PList) cxx_dictionaryFromFilesNamed:(const std::string &)fileName
-								  inFolder:(const std::optional<std::string> &)folderName
-								 mergeMode:(OOResourceMergeMode)mergeMode
-									 cache:(BOOL)useCache;
-+ (std::optional<std::string>) cxx_pathForFileNamed:(const std::string &)fileName inFolder:(const std::optional<std::string> &)folderName;
-@end
-
-@implementation ResourceManager
-
-+ (oo::PList) cxx_dictionaryFromFilesNamed:(const std::string &)fileName
-								  inFolder:(const std::optional<std::string> &)folderName
-								 mergeMode:(OOResourceMergeMode)mergeMode
-									 cache:(BOOL)useCache
+// ResourceManager is C++ since its Objective-C facade was deleted: C++ definitions of the
+// statics the code under test calls, with the Objective-C stand-in's answers.
+oo::PList ResourceManager::dictionaryFromFilesNamed(const std::string &fileName, const std::optional<std::string> &folderName, OOResourceMergeMode mergeMode, bool useCache)
 {
 	if (fileName == "debugConfig.plist" && folderName == "Config" && mergeMode == MERGE_BASIC && !useCache)  return sRecord.configuration;
 	return oo::PList();
 }
 
 
-+ (std::optional<std::string>) cxx_pathForFileNamed:(const std::string &)fileName inFolder:(const std::optional<std::string> &)folderName
+std::optional<std::string> ResourceManager::pathForFileNamed(const std::string &fileName, const std::optional<std::string> &folderName)
 {
 	// The beacon is looked for in the folder named "nil" (sic).
 	if (fileName == "DebugOXPLocatorBeacon.magic" && folderName == "nil")  return sRecord.beaconPath;
 	return std::nullopt;
 }
 
-@end
 
 
-@interface OOJavaScriptEngine: OOObject
-+ (OOJavaScriptEngine *) sharedEngine;
-- (void) enableDebuggerStatement;
-@end
-
-@implementation OOJavaScriptEngine
-
-+ (OOJavaScriptEngine *) sharedEngine
+// The engine (OOJavaScriptEngine.h; a C++ class since its facade was deleted), declared
+// with the header's names and signatures but not its class; the stand-in's answers are kept.
+class OOJavaScriptEngine
 {
-	static OOJavaScriptEngine *engine = nil;
-	if (engine == nil)  engine = [[OOJavaScriptEngine alloc] init];
+public:
+	static OOJavaScriptEngine *sharedEngine();
+	void enableDebuggerStatement();
+};
+
+
+OOJavaScriptEngine *OOJavaScriptEngine::sharedEngine()
+{
+	static OOJavaScriptEngine *engine = new OOJavaScriptEngine;
 	return engine;
 }
 
 
-- (void) enableDebuggerStatement
+void OOJavaScriptEngine::enableDebuggerStatement()
 {
 	sRecord.debuggerStatementsEnabled++;
 }
 
-@end
+
+// The C++ monitor's and TCP client's members that the debug support calls; the client's debugger
+// interface members are never reached (the monitor is a stand-in).
+// The engine-monitor members, which give the C++ monitor its vtable (they are virtual); never
+// reached here.
+void OODebugMonitor::jsEngine(::OOJavaScriptEngine *, JSContext *, const std::string &, const std::optional<std::string> &, unsigned, unsigned, bool, const std::string &)	{}
+void OODebugMonitor::jsEngine(::OOJavaScriptEngine *, JSContext *, const std::string &, const std::optional<std::string> &)	{}
+// The monitor's JS glue and description, also virtual; never reached here.
+JSValue OODebugMonitor::jsValueInContext(JSContext *)	{ return JS_UNDEFINED; }
+void OODebugMonitor::clearJSSelf(JSValueConst)	{}
+std::string OODebugMonitor::className() const	{ return "OODebugMonitor"; }
+std::string OODebugMonitor::description() const	{ return "<OODebugMonitor>"; }
 
 
-// The C++ monitor's and TCP client's members that the debug support calls, and the client's
-// crossing to its facade (an object of the test's standing for it).
-cxx::OODebugMonitor *cxx::OODebugMonitor::sharedDebugMonitor()
+OODebugMonitor *OODebugMonitor::sharedDebugMonitor()
 {
-	static cxx::OODebugMonitor *monitor = nullptr;
-	if (monitor == nullptr)  monitor = oo::makeRef<cxx::OODebugMonitor>().leakRef();
+	static OODebugMonitor *monitor = nullptr;
+	if (monitor == nullptr)  monitor = oo::makeRef<OODebugMonitor>().leakRef();
 	return monitor;
 }
 
 
-bool cxx::OODebugMonitor::setDebugger(id<OODebuggerInterface> debugger)
+bool OODebugMonitor::setDebugger(OODebuggerInterface *debugger)
 {
 	sRecord.debuggersSet.push_back(debugger);
-	return debugger != nil;
+	return debugger != nullptr;
 }
 
 
-void cxx::OODebugMonitor::setUsingPlugInController(bool flag)
+void OODebugMonitor::setUsingPlugInController(bool flag)
 {
 	sRecord.usingPlugInController.push_back(flag);
 }
 
 
-oo::Ref<cxx::OODebugTCPConsoleClient> cxx::OODebugTCPConsoleClient::clientWithAddress(const std::optional<std::string> &address, uint16_t port)
+oo::Ref<OODebugTCPConsoleClient> OODebugTCPConsoleClient::clientWithAddress(const std::optional<std::string> &address, uint16_t port)
 {
 	sRecord.clientsMade.emplace_back(address, port);
-	if (sRecord.clientFails)  return oo::Ref<cxx::OODebugTCPConsoleClient>();
-	return oo::adopt(new cxx::OODebugTCPConsoleClient);
+	if (sRecord.clientFails)  return oo::Ref<OODebugTCPConsoleClient>();
+	oo::Ref<OODebugTCPConsoleClient> client = oo::adopt(new OODebugTCPConsoleClient);
+	sRecord.lastClient = client.get();
+	return client;
 }
 
 
-cxx::OODebugTCPConsoleClient::~OODebugTCPConsoleClient()
+OODebugTCPConsoleClient::~OODebugTCPConsoleClient()
 {
 }
 
 
-OODebugTCPConsoleClient *oo::ToObjC(cxx::OODebugTCPConsoleClient *client)
-{
-	if (client == nullptr)  return nil;
-	sRecord.lastClient = [[[OOObject alloc] init] autorelease];
-	return (OODebugTCPConsoleClient *)sRecord.lastClient;
-}
+bool OODebugTCPConsoleClient::connectDebugMonitor(OODebugMonitor *, std::optional<std::string> *)	{ return true; }
+void OODebugTCPConsoleClient::disconnectDebugMonitor(OODebugMonitor *, const std::optional<std::string> &)	{}
+void OODebugTCPConsoleClient::debugMonitor(OODebugMonitor *, const std::string &, const std::optional<std::string> &, NSRange)	{}
+void OODebugTCPConsoleClient::debugMonitorClearConsole(OODebugMonitor *)	{}
+void OODebugTCPConsoleClient::debugMonitorShowConsole(OODebugMonitor *)	{}
+void OODebugTCPConsoleClient::debugMonitor(OODebugMonitor *, const oo::PList &)	{}
+void OODebugTCPConsoleClient::debugMonitor(OODebugMonitor *, const oo::PList &, const std::string &)	{}
+std::string OODebugTCPConsoleClient::description() const	{ return "<OODebugTCPConsoleClient>"; }
 
 
 namespace {

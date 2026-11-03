@@ -15,15 +15,13 @@ and for use in areas where portability/ease of coding are more important
 than performance such as the GUI)
 
 C++20 since bead oo-6bux (proposed ADR-0056, Amendment 1 of bead oo-cwz: a hierarchy root). The
-manager is cxx::OOJoystickManager. Its one subclass, the SDL manager's facade
-(OOSDLJoystickManager+ObjCBridge.h), is still Objective-C, as are the callers, so the Objective-C
-OOJoystickManager in OOJoystickManager+ObjCBridge.h (imported at the end of this header) is both
-their facade and the subclass's superclass. The methods a subclass overrides (joystickCount,
-nameOfJoystick, getAxisWithStick) are virtual; an Objective-C subclass's C++ part is an adapter
-whose overrides message it. -init's body is init(), run after construction because it reaches
-those virtual members (amendment oo-vl43 item 2). The event decoders are the SDL manager's
-(upstream #742): they read and set this class's state, which cxx::OOSDLJoystickManager, until it
-derives from this class, reaches as a friend in its facade's C++ part.
+methods a subclass overrides (joystickCount, nameOfJoystick, getAxisWithStick) are virtual;
+-init's body is init(), run after construction because it reaches those virtual members. Since
+the Objective-C facades were deleted the class is global, its one subclass is the C++
+OOSDLJoystickManager, the shared handler is made by a registered factory function (was
++setStickHandlerClass:) and the stick-mapper callback is a C++ function (was a selector and an
+object). The event decoders are the SDL manager's (upstream #742): they read and set this
+class's protected state.
 
 
 Oolite
@@ -54,6 +52,7 @@ MA 02110-1301, USA.
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
+#include <functional>
 #include <string_view>
 
 // Enums are used here rather than a more complex ObjC object because
@@ -182,13 +181,17 @@ inline constexpr std::string_view STICK_YAW_AXIS_PROFILE_SETTING = "YawAxisProfi
 #import "OOJoystickProfile.h"
 #include "oofnd/String.hpp"
 
-namespace cxx {
-
-class OOSDLJoystickManager;
-
 class OOJoystickManager : public oo::RefCounted {
 public:
     OOJoystickManager() = default;
+
+    // The shared handler, made on first use by the registered factory (else a plain manager) and
+    // init()ed; never null, never destroyed. Was +sharedStickHandler.
+    static OOJoystickManager* sharedStickHandler();
+    // Registers the platform's handler, before the first sharedStickHandler(). Was
+    // +setStickHandlerClass: (the class is a function that makes the manager).
+    using StickHandlerFactory = oo::Ref<OOJoystickManager> (*)();
+    static bool setStickHandlerFactory(StickHandlerFactory factory);
 
     // General.
     // Note: handleSDLEvent returns a BOOL (YES we handled it or NO we
@@ -237,9 +240,10 @@ public:
     oo::PList guiButtonFunctions();
 
     // Set a callback for the next moved axis/pressed button. hwflags
-    // is in the form HW_AXIS | HW_BUTTON (or just one of). obj is an Objective-C object, called
-    // by name (OOCallByName) with the stick function's dictionary.
-    void setCallback(SEL selector, id obj, char hwflags);
+    // is in the form HW_AXIS | HW_BUTTON (or just one of). The callback is called once, with the
+    // stick function's dictionary (was a selector called by name on an object).
+    using StickCallback = std::function<void(const oo::PList&)>;
+    void setCallback(StickCallback callback, char hwflags);
     void clearCallback();
 
     // Methods generally only used by this class.
@@ -261,12 +265,6 @@ private:
     void setFunctionForButton(int button, int function, int stickNum);
     void setGuiFunctionForButton(int button, int function, int stickNum);
 
-    // Transitional: the SDL manager's event decoders read and set the state below, as they did
-    // OOJoystickManager's ivars. cxx::OOSDLJoystickManager does not derive from this class yet
-    // (its facade, an Objective-C subclass, does), so it reaches the state of its facade's C++
-    // part as a friend. Removed when cxx::OOSDLJoystickManager derives from this class.
-    friend class OOSDLJoystickManager;
-
 protected:
     // Axis/button mapping arrays (the platform manager's event decoders read
     // and set them, as the Objective-C ivars were)
@@ -279,10 +277,9 @@ protected:
     uint8_t hatstate[MAX_STICKS][MAX_HATS] = { };
     bool precisionMode = { };
 
-    // Handle callbacks - the object, selector to call
-    // the desired function, and the hardware (axis or button etc.)
-    id cbObject = { }; // not retained, as before
-    SEL cbSelector = { };
+    // Handle callbacks - the function to call
+    // and the hardware (axis or button etc.)
+    StickCallback cbCallback = { }; // empty: none (was a nil object)
     char cbHardware = { };
     bool invertPitch = { };
 
@@ -291,9 +288,3 @@ private:
     oo::Ref<OOJoystickAxisProfile> pitch_profile = { };
     oo::Ref<OOJoystickAxisProfile> yaw_profile = { };
 };
-
-} // namespace cxx
-
-// Transitional: the Objective-C OOJoystickManager, the facade of its callers and the superclass of
-// the SDL manager's facade. Deleted, with namespace cxx above, by the bridge's deletion bead.
-#import "OOJoystickManager+ObjCBridge.h"

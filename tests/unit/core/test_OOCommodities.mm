@@ -78,17 +78,16 @@ oo::PList TradeGoods()
 }	// namespace
 
 
-@interface ResourceManager: OOObject
-+ (oo::PList) cxx_dictionaryFromFilesNamed:(const std::string &)fileName inFolder:(const std::optional<std::string> &)folderName mergeMode:(int)mergeMode cache:(BOOL)useCache;
-@end
+#import "ResourceManager.h"
 
-@implementation ResourceManager
-+ (oo::PList) cxx_dictionaryFromFilesNamed:(const std::string &)fileName inFolder:(const std::optional<std::string> &)folderName mergeMode:(int)mergeMode cache:(BOOL)useCache
+// ResourceManager is C++ since its Objective-C facade was deleted: C++ definitions of the
+// statics the code under test calls, with the Objective-C stand-in's answers.
+oo::PList ResourceManager::dictionaryFromFilesNamed(const std::string &fileName, const std::optional<std::string> &folderName, OOResourceMergeMode mergeMode, bool useCache)
 {
 	gLog.push_back("resources " + fileName + " in " + folderName.value_or("-") + " merge " + std::to_string(mergeMode) + " cache " + std::to_string((int)useCache));
 	return TradeGoods();
 }
-@end
+
 
 
 // PLAYER: C++ since bead oo-9ht.177 deleted the Objective-C player this stood in for; the member
@@ -110,19 +109,20 @@ public:
 PlayerEntity *gOOPlayer = nullptr;
 
 
-@interface Universe: OOObject
+// The universe as the code under test sees it: a stand-in for the C++ class (its Objective-C facade,
+// deleted, was what this stood in for), with the header's names and signatures.
+class Universe
 {
-@public
+public:
 	oo::Ref<OOCommodityMarket> mainMarket;	// the C++ market (bead oo-9ht.21 deleted its facade)
-}
-- (OOSystemID) currentSystemID;
-- (OOCommodityMarket *) commodityMarket;
-@end
 
-@implementation Universe
-- (OOSystemID) currentSystemID				{ return 7; }
-- (OOCommodityMarket *) commodityMarket		{ return mainMarket.get(); }
-@end
+	OOSystemID currentSystemID();
+	::OOCommodityMarket *getCommodityMarket();
+};
+
+OOSystemID Universe::currentSystemID()	{ return 7; }
+::OOCommodityMarket *Universe::getCommodityMarket()	{ return mainMarket.get(); }
+
 
 Universe *gSharedUniverse = nil;
 
@@ -149,15 +149,10 @@ std::optional<std::string> StationEntity::getMarketScriptName()	{ return scriptN
 OOCargoQuantity StationEntity::getMarketCapacity()				{ return capacity; }
 bool StationEntity::getMarketMonitored()						{ return monitored; }
 
-// Link stub: the station's Objective-C object, which only a commodity script (never run here) is given.
-@class Entity;
-namespace cxx { class Entity; }
-namespace oo { ::Entity *ToObjC(cxx::Entity *entity); }
-::Entity *oo::ToObjC(cxx::Entity *)	{ std::abort(); }
 
 
 // The expander: "<string>".
-std::optional<std::string> cxx_OOExpandDescriptionString(Random_Seed seed, const std::string &string, const oo::PList &overrides, const oo::PList &legacyLocals, const std::optional<std::string> &systemName, OOExpandOptions options)
+std::optional<std::string> cxx_OOExpandDescriptionString(Random_Seed /*seed*/, const std::string &string, const oo::PList &/*overrides*/, const oo::PList &/*legacyLocals*/, const std::optional<std::string> &/*systemName*/, OOExpandOptions /*options*/)
 {
 	return "<" + string + ">";
 }
@@ -171,7 +166,6 @@ Random_Seed OOStringExpanderDefaultRandomSeed(void)
 // Link stubs: commodity scripts. The fakes answer no script, so the test never runs one.
 JSContext *gOOJSMainThreadContext = nullptr;
 JSAtom OOJSInternAtomPRIVATE(const char *)							{ std::abort(); }
-JSValue OOJSValueFromNativeObject(JSContext *, id)					{ std::abort(); }
 JSValue OOJSValueFromPList(JSContext *, const oo::PList &)				{ std::abort(); }
 oo::PList cxx_OOJSPListFromJSObject(JSContext *, JSValueConst)			{ std::abort(); }
 
@@ -180,7 +174,7 @@ namespace {
 
 void Reset()
 {
-	if (gSharedUniverse == nil)  gSharedUniverse = [[Universe alloc] init];
+	if (gSharedUniverse == nil)  gSharedUniverse = new Universe();
 	if (gOOPlayer == nullptr)  gOOPlayer = new PlayerEntity;	// never deleted
 	gLog.clear();
 	ranrot_srand(20260930);

@@ -65,7 +65,7 @@ class TestPlayer : public PlayerEntity	// C++: the Objective-C player is deleted
 {
 public:
 	HPVector viewpointPosition() override	{ return kZeroHPVector; }
-	::Entity *nextBeacon() override	{ return sNextBeacon; }
+	Entity *nextBeacon() override	{ return sNextBeacon; }	// the C++ entity
 	void setCompassMode(OOCompassMode value) override	{ sLog.push_back(oo::str::format("setCompassMode %d", static_cast<int>(value))); }
 	void setScriptTarget(::ShipEntity * ship) override	{ sLog.push_back("setScriptTarget " + (ship != nullptr ? ship->getName() : std::optional<std::string>()).value_or("(nil)")); }
 	unsigned score() override	{ return 1000; }
@@ -76,40 +76,34 @@ public:
 
 
 // The universe: never initialised (test_ShipEntity.mm's), recording what the beacon setter tells it.
-@interface TestUniverse: Universe
-@end
-
-
-@implementation TestUniverse
-
-- (void) setNextBeacon:(Entity <OOBeaconEntity> *)beaconShip  { sLog.push_back("setNextBeacon " + [beaconShip beaconCode].value_or("(none)")); }
-- (void) clearBeacon:(Entity <OOBeaconEntity> *)beaconShip  { sLog.push_back("clearBeacon"); }
-- (StationEntity *) station  { return nil; }
-- (void) unMagicMainStation  { sLog.push_back("unMagicMainStation"); }
-- (std::vector<oo::ObjCRef<::Entity *>>) cxx_stations  { return {}; }	// the stations' objects (the ship's facade)
-- (OOCommodities *) commodities  { return nil; }
-- (Entity *) hazardOnRouteFromEntity:(Entity *)e1 toDistance:(double)dist fromPoint:(HPVector)p2
+class TestUniverse : public Universe
 {
-	sLog.push_back(oo::str::format("hazardOnRoute %g (%g, %g, %g)", dist, p2.x, p2.y, p2.z));
-	return nil;
-}
-- (BOOL) cxx_role:(const std::string &)role isInCategory:(const std::string &)category
-{
-	sLog.push_back("role " + role + " isInCategory " + category);
-	return role == "trader";
-}
-- (std::vector<oo::ObjCRef<::Entity *>>) cxx_getContainersOfCommodity:(const std::string &)commodity_name :(OOCargoQuantity)how_many
-{
-	sLog.push_back(oo::str::format("getContainersOfCommodity %s %u", commodity_name.c_str(), static_cast<unsigned>(how_many)));
-	return {};
-}
-- (HPVector) getSafeVectorFromEntity:(Entity *)e1 toDistance:(double)dist fromPoint:(HPVector)p2
-{
-	sLog.push_back(oo::str::format("getSafeVector %g (%g, %g, %g)", dist, p2.x, p2.y, p2.z));
-	return make_HPvector(10, 20, 30);
-}
-
-@end
+public:
+	// The C++ entity (its object's -beaconCode was the ship's).
+	void setNextBeacon(Entity *beacon) override	{ ShipEntity *ship = dynamic_cast<ShipEntity *>(beacon); sLog.push_back("setNextBeacon " + (ship != nullptr ? ship->beaconCode() : std::optional<std::string>()).value_or("(none)")); }
+	void clearBeacon(Entity *beacon) override	{ (void)beacon; sLog.push_back("clearBeacon"); }
+	void unMagicMainStation() override	{ sLog.push_back("unMagicMainStation"); }
+	Entity *hazardOnRouteFromEntity(Entity * /*e1*/, double dist, HPVector p2) override	// the C++ entities
+	{
+		sLog.push_back(oo::str::format("hazardOnRoute %g (%g, %g, %g)", dist, p2.x, p2.y, p2.z));
+		return nullptr;
+	}
+	bool role(const std::string &role, const std::string &category) override
+	{
+		sLog.push_back("role " + role + " isInCategory " + category);
+		return role == "trader";
+	}
+	std::vector<oo::EntityHold> getContainersOfCommodity(const std::string &commodity_name, OOCargoQuantity how_many) override	// held C++ entities
+	{
+		sLog.push_back(oo::str::format("getContainersOfCommodity %s %u", commodity_name.c_str(), static_cast<unsigned>(how_many)));
+		return {};
+	}
+	HPVector getSafeVectorFromEntity(Entity * /*e1*/, double dist, HPVector p2) override	// the C++ entity
+	{
+		sLog.push_back(oo::str::format("getSafeVector %g (%g, %g, %g)", dist, p2.x, p2.y, p2.z));
+		return make_HPvector(10, 20, 30);
+	}
+};
 
 
 // A ship that keeps ShipEntity's own set-up (test_ShipEntity.mm's).
@@ -148,7 +142,7 @@ T *NewTestPlayer()
 	oo::Ref<T> player = oo::makeRef<T>();
 	@autoreleasepool
 	{
-		[oo::NewEntityFacade(player) retain];
+		oo::RetainEntity(oo::MadeEntity(player));
 	}
 	return player.get();
 }
@@ -222,18 +216,17 @@ void SetUp()
 	stdfs::current_path(sRoot);
 	const std::string info = "{ CFBundleVersion = \"9.9.9-test\"; }";
 	OO_CHECK(oo::fs::writeFile(sRoot / "Resources" / "Info-gnustep.plist", oo::Data(info.data(), info.size()), oo::fs::WriteMode::direct).has_value());
-	[ResourceManager cxx_setUseAddOns:std::string(SCENARIO_OXP_DEFINITION_NONE)];	// strict: the built-in Resources alone
+	ResourceManager::setUseAddOns(std::string(SCENARIO_OXP_DEFINITION_NONE));	// strict: the built-in Resources alone
 	// The engine's player is a TestPlayerShip: made first, so InitOOJSPlayerShip()'s
 	// PlayerEntity::sharedPlayer() answers it (the C++ player cannot change class, as
 	// object_setClass() made the Objective-C one a TestPlayerShip).
 	gOOPlayer = NewTestPlayer<TestPlayerShip>();
-	(void)[OOJavaScriptEngine sharedEngine];
+	(void)OOJavaScriptEngine::sharedEngine();
 
 	sRealPlayer = gOOPlayer;	// the one InitOOJSPlayerShip() made, which player.ship holds
 	sRealPlayer->isPlayer = true;	// what the player's set-up sets, which the engine's player has not run
 
-	Universe *universe = (Universe *)class_createInstance([TestUniverse class], 0);	// never released
-	universe->_cxxUniverse = oo::makeRef<cxx::Universe>(universe);	// what -initWithGameView: makes first
+	Universe *universe = new TestUniverse();	// never released
 	gSharedUniverse = universe;
 	gOOPlayer = NewTestPlayer<TestPlayer>();
 
@@ -264,10 +257,10 @@ std::string Eval(const std::string &src)
 {
 	SetUp();
 	JSContext *context = OOJSAcquireContext();
-	JSValueConst global = [[OOJavaScriptEngine sharedEngine] globalObject];
+	JSValueConst global = OOJavaScriptEngine::sharedEngine()->globalObject();
 	// JS_SetPropertyStr takes the owned values.
-	JS_SetPropertyStr(context, global, "ship", OOJSValueFromNativeObject(context, oo::ToObjC(sShip)));
-	JS_SetPropertyStr(context, global, "other", OOJSValueFromNativeObject(context, oo::ToObjC(sOther)));
+	JS_SetPropertyStr(context, global, "ship", sShip->jsValueInContext(context));
+	JS_SetPropertyStr(context, global, "other", sOther->jsValueInContext(context));
 	std::string wrapped = "(function () { try { return String(" + src + "); } catch (e) { return 'threw: ' + (e && e.message !== undefined ? e.message : e); } })()";
 	std::string text;
 	JSValue result = JS_Eval(context, wrapped.c_str(), wrapped.size(), "test.js", JS_EVAL_TYPE_GLOBAL);
@@ -577,7 +570,7 @@ OO_TEST(setterBeaconCode)
 	Log();
 	OO_CHECK_EVAL(SET("beaconCode", "'C'"), "C");	// already a beacon: only the code changes
 	OO_CHECK_LOG("");
-	sNextBeacon = oo::ToObjC(sShip);	// the compass is on this beacon
+	sNextBeacon = sShip;	// the compass is on this beacon
 	OO_CHECK_EVAL(SET("beaconCode", "''"), "C");	// cleared from the universe's list, code kept
 	OO_CHECK_LOG("clearBeacon; setCompassMode " + std::to_string(static_cast<int>(COMPASS_MODE_PLANET)));
 	sNextBeacon = nil;
@@ -827,14 +820,14 @@ OO_TEST(methodsRemoveAndExplode)
 	PlainShip *queued = static_cast<PlainShip *>(oo::ToShip(oo::NewShipObject(oo::makeRef<PlainShip>(), "queued", oo::PList(oo::PList::Dict{ { "name", oo::PList(std::string("Queued")) } }))));
 	if (queued != nullptr)  queued->setStatus(STATUS_DOCKED);
 	JSContext *context = OOJSAcquireContext();
-	JS_SetPropertyStr(context, [[OOJavaScriptEngine sharedEngine] globalObject], "queued", OOJSValueFromNativeObject(context, oo::ToObjC(queued)));
+	JS_SetPropertyStr(context, OOJavaScriptEngine::sharedEngine()->globalObject(), "queued", queued->jsValueInContext(context));
 	OOJSRelinquishContext(context);
 	Log();
 	OO_CHECK_EVAL("queued.remove(true)", "undefined");
 	OO_CHECK((queued != nullptr ? queued->status() : OOEntityStatus{}) == STATUS_DEAD);
 	OO_CHECK((queued != nullptr ? queued->shipScript() : (OOScript *)nullptr) == nil);	// suppressing the death event drops the script
 	OO_CHECK_LOG("");
-	if (queued != nullptr)  [oo::ToObjC(queued) release];
+	if (queued != nullptr)  oo::ReleaseEntity(queued);
 }
 
 

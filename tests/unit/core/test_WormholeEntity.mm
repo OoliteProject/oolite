@@ -73,7 +73,7 @@ T *NewTestPlayer()
 	oo::Ref<T> player = oo::makeRef<T>();
 	@autoreleasepool
 	{
-		[oo::NewEntityFacade(player) retain];
+		oo::RetainEntity(oo::MadeEntity(player));
 	}
 	return player.get();
 }
@@ -81,26 +81,29 @@ T *NewTestPlayer()
 
 
 
-// An effect, for the collision test.
-@interface TestEffect: Entity
-@end
-
-
-@implementation TestEffect
-
-- (BOOL) isEffect	{ return YES; }
-
-@end
+// An effect, for the collision test (an Objective-C subclass before; a C++ one
+// overriding the member its selector became).
+class TestEffect : public Entity
+{
+public:
+	bool isEffect() override	{ return true; }
+};
 
 
 // UNIVERSE: never initialised; answers the system and the system manager, and records removals.
-@interface TestUniverse: Universe
+class TestUniverse : public Universe
 {
-@public
-	OOSystemID		_system;
-	Entity			*_removed;
-}
-@end
+public:
+	OOSystemID &_system = systemID;	// the universe's own state, which its getter answers
+	Entity			*_removed = {};
+
+	std::optional<std::string> getSystemName(OOSystemID sys, OOGalaxyID /*gnum*/) override	{ return "System " + std::to_string(sys); }	// getSystemName(sys) asks it
+	bool removeEntity(Entity *entity) override	// the C++ entity; the record is its object, as before
+	{
+		_removed = entity;
+		return YES;
+	}
+};
 
 
 extern JSContext *gOOJSMainThreadContext;	// the engine's (OOJavaScriptEngine.mm)
@@ -113,32 +116,6 @@ OOSystemDescriptionManager *sManager = nullptr;
 }
 
 
-@implementation TestUniverse
-
-- (OOTimeAbsolute) getTime								{ return 0; }
-- (OOSystemID) currentSystemID							{ return _system; }
-- (OOSunEntity *) sun									{ return nil; }
-- (OOSystemDescriptionManager *) systemManager			{ return sManager; }
-- (std::optional<std::string>) cxx_getSystemName:(OOSystemID)sys	{ return "System " + std::to_string(sys); }
-
-
-// The game's clock format (descriptions.plist), for the description's arrival time.
-- (std::optional<std::string>) cxx_descriptionForKey:(const std::string &)key
-{
-	if (key == "clock-format")  return "%07d:%02d:%02d:%02d";
-	return std::nullopt;
-}
-
-
-- (BOOL) removeEntity:(Entity *)entity
-{
-	_removed = entity;
-	return YES;
-}
-
-@end
-
-
 namespace {
 
 TestUniverse *sUniverse = nil;
@@ -149,8 +126,7 @@ void SetUp()
 {
 	if (sUniverse == nil)
 	{
-		sUniverse = (TestUniverse *)class_createInstance([TestUniverse class], 0);	// never released
-		sUniverse->_cxxUniverse = oo::makeRef<cxx::Universe>(sUniverse);	// what -initWithGameView: makes first (ADR-0056 amendment oo-riqmz)
+		sUniverse = new TestUniverse();	// never released
 		sPlayer = NewTestPlayer<TestPlayer>();
 		// Systems 7 at (10, 20) and 9 at (13, 24) of galaxy 0: 5 light-year units apart, 2.0 LY.
 		oo::Ref<OOSystemDescriptionManager> manager = oo::makeRef<OOSystemDescriptionManager>();
@@ -158,6 +134,10 @@ void SetUp()
 		manager->setProperties(oo::PList(oo::PList::Dict{ { "coordinates", oo::PList("13 24") } }), "0 9");
 		manager->buildRouteCache();	// fills the coordinates cache
 		sManager = manager.leakRef();	// never released
+		// What -systemManager and -cxx_descriptionForKey: answered: the universe's own manager and
+		// descriptions (the game's clock format, for the description's arrival time).
+		sUniverse->systemManager = oo::Ref<OOSystemDescriptionManager>(sManager);
+		sUniverse->_descriptions = oo::PList(oo::PList::Dict{ { "clock-format", oo::PList("%07d:%02d:%02d:%02d") } });
 	}
 	sUniverse->_system = 7;
 	sUniverse->_removed = nil;
@@ -174,7 +154,7 @@ void SetUp()
 
 // --- Ivars the test sets and reads, and nothing else ----------------------------------------------
 
-void SetMass(Entity *e, GLfloat mass)		{ e->_cxxEntity->mass = mass; }
+void SetMass(Entity *e, GLfloat mass)		{ e->mass = mass; }
 
 // --------------------------------------------------------------------------------------------------
 
@@ -189,9 +169,9 @@ bool Near(double a, double b)
 // (oo::NewEntityFacade, autoreleased as the plain entity was), never set up.
 Entity *Ship(GLfloat mass)
 {
-	Entity *ship = oo::NewEntityFacade(oo::makeRef<::ShipEntity>());
+	Entity *ship = oo::MadeEntity(oo::makeRef<::ShipEntity>());
 	SetMass(ship, mass);
-	[ship setPosition:make_HPvector(1, 2, 3)];
+	ship->setPosition(make_HPvector(1, 2, 3));
 	return ship;
 }
 
@@ -200,7 +180,7 @@ Entity *Ship(GLfloat mass)
 WormholeEntity *ToNine(Entity *ship)
 {
 	oo::Ref<WormholeEntity> wh = oo::makeRef<WormholeEntity>();
-	(void)oo::NewEntityFacade(wh);
+	(void)oo::MadeEntity(wh);
 	wh->initWormholeTo(9, oo::ToShip(ship));
 	return wh.get();
 }
@@ -209,7 +189,7 @@ WormholeEntity *ToNine(Entity *ship)
 WormholeEntity *FromDict(const oo::PList &dict)
 {
 	oo::Ref<WormholeEntity> wh = oo::makeRef<WormholeEntity>();
-	(void)oo::NewEntityFacade(wh);
+	(void)oo::MadeEntity(wh);
 	wh->initWithDict(dict);
 	return wh.get();
 }
@@ -236,7 +216,7 @@ OO_TEST(madeByShip)
 	{
 		SetUp();
 		WormholeEntity *wh = ToNine(Ship(1000.0f));
-		OO_CHECK(wh != nil && dynamic_cast<WormholeEntity *>(static_cast<cxx::Entity *>(wh)) != nullptr && wh->getIsWormhole());
+		OO_CHECK(wh != nil && dynamic_cast<WormholeEntity *>(static_cast<Entity *>(wh)) != nullptr && wh->getIsWormhole());
 		OO_CHECK(wh->status() == STATUS_EFFECT && wh->getScanClass() == CLASS_WORMHOLE);
 		OO_CHECK(wh->getOrigin() == 7 && wh->getDestination() == 9);
 		NSPoint o = wh->originCoordinates(), d = wh->destinationCoordinates();
@@ -345,8 +325,8 @@ OO_TEST(collisions)
 		OO_CHECK(!wh->canCollide());
 		sPlayer->_coordinates = NSMakePoint(10, 20);
 
-		OO_CHECK(wh->checkCloseCollisionWith(oo::ToCxx(Ship(1.0f))));
-		OO_CHECK(!wh->checkCloseCollisionWith(oo::ToCxx([[[TestEffect alloc] init] autorelease])));
+		OO_CHECK(wh->checkCloseCollisionWith(Ship(1.0f)));
+		OO_CHECK(!wh->checkCloseCollisionWith(oo::MadeEntity(oo::makeRef<TestEffect>())));
 	}
 }
 
@@ -362,7 +342,7 @@ OO_TEST(update)
 		OO_CHECK(sUniverse->_removed == nil);
 		sPlayer->_clock = 1600.0;						// past its expiry
 		saved->update(0.1);
-		OO_CHECK(sUniverse->_removed == oo::ToObjC(saved));
+		OO_CHECK(sUniverse->_removed == saved);
 
 		sPlayer->_clock = 1000.0;
 		WormholeEntity *wh = ToNine(Ship(1000.0f));
@@ -381,7 +361,7 @@ OO_TEST(suckInRefused)
 		WormholeEntity *wh = ToNine(Ship(1000.0f));
 		OO_CHECK(!wh->suckInShip(nullptr));
 		Entity *leaving = Ship(10.0f);
-		[leaving setStatus:STATUS_ENTERING_WITCHSPACE];
+		leaving->setStatus(STATUS_ENTERING_WITCHSPACE);
 		OO_CHECK(!wh->suckInShip(oo::ToShip(leaving)));
 		sUniverse->_system = 8;
 		OO_CHECK(!wh->suckInShip(oo::ToShip(Ship(10.0f))));
@@ -418,10 +398,10 @@ OO_TEST(description)
 	{
 		SetUp();
 		WormholeEntity *wh = ToNine(Ship(1000.0f));
-		const std::string description = oo::DescriptionOf(oo::ToObjC(wh));
+		const std::string description = oo::EntityDescription(wh);
 		OO_CHECK(description.find("destination: System 9 ttl: 50.00s arrival: 0000000:") != std::string::npos);
 		wh->setMisjump();
-		OO_CHECK(oo::DescriptionOf(oo::ToObjC(wh)).find("destination: Interstellar Space") != std::string::npos);
+		OO_CHECK(oo::EntityDescription(wh).find("destination: Interstellar Space") != std::string::npos);
 	}
 }
 
@@ -433,11 +413,10 @@ OO_TEST(facade)
 		SetUp();
 		WormholeEntity *wh = ToNine(Ship(1000.0f));
 		// Its Objective-C object is the root's facade since bead oo-9ht.112 (amendment oo-9ht.107).
-		::Entity *object = oo::ToObjC(wh);
-		OO_CHECK(object != nil && [object class] == [Entity class]);
+		Entity *object = wh;
+		OO_CHECK(object != nil);	// (and its object's class, the root facade: retired with the facade, under oo-9n5p9)
 		// A C++ entity (amendment oo-0mxi), not an Objective-C entity's adapter.
-		OO_CHECK(dynamic_cast<WormholeEntity *>(oo::ToCxx(object)) == wh);
-		OO_CHECK(oo::AsObjCEntity(wh) == nullptr);
+		OO_CHECK(dynamic_cast<WormholeEntity *>(object) == wh);
 	}
 }
 
@@ -465,12 +444,12 @@ OO_TEST(jsExtensions)
 		SetUp();
 		WormholeEntity *wh = ToNine(Ship(1000.0f));
 		RegisterJSClasses(InitOOJSWormhole);
-		::Entity *object = oo::ToObjC(wh);	// what the engine asks (the root's facade)
-		const JSClassID jsClass = [object oo_jsClassID];
+		Entity *object = wh;	// what the engine asks (the root's facade)
+		const JSClassID jsClass = OOJSEntityJSClassID(object);
 		const JSClassID expectedClass = JSWormholeClassID();
 		OO_CHECK(jsClass != 0 && jsClass == expectedClass);
-		OO_CHECK([object cxx_oo_jsClassName] == std::optional<std::string>("Wormhole"));
-		OO_CHECK([object isVisibleToScripts] == YES);
+		OO_CHECK(OOJSEntityJSClassName(object) == std::optional<std::string>("Wormhole"));
+		OO_CHECK(OOJSEntityIsVisibleToScripts(object) == YES);
 	}
 }
 

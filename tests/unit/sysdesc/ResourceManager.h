@@ -1,9 +1,12 @@
 // Stub for tests/unit/sysdesc (bead oo-vjwp): only what src/Core/OOConvertSystemDescriptions.mm uses.
+// ResourceManager is C++ since its Objective-C facade was deleted: the stub declares the
+// two statics the tools call.
 #import "OOFoundation.h"
 #include "oofnd/PList.hpp"
-@interface ResourceManager : NSObject
-+ (oo::PList) cxx_dictionaryFromFilesNamed:(const std::string &)fileName
-								  inFolder:(const std::optional<std::string> &)folderName
-								  andMerge:(BOOL)mergeFiles;
-+ (BOOL) cxx_writeDiagnosticData:(const oo::Data &)data toFileNamed:(const std::string &)name;
-@end
+#include "oofnd/Data.hpp"
+class ResourceManager
+{
+public:
+	static oo::PList dictionaryFromFilesNamed(const std::string &fileName, const std::optional<std::string> &folderName, bool mergeFiles);
+	static bool writeDiagnosticData(const oo::Data &data, const std::string &name);
+};

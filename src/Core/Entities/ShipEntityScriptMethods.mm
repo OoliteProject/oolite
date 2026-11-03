@@ -38,7 +38,7 @@ MA 02110-1301, USA.
     ::ShipEntity* item = nil;
 
     if (shipKey.has_value()) {
-        item = oo::ToShip([oo::ToObjC([UNIVERSE cxx_newShipWithName:*shipKey]) autorelease]);
+        item = oo::ToShip(oo::AutoreleaseEntity((UNIVERSE != nullptr ? UNIVERSE->newShipWithName(*shipKey) : (::ShipEntity*)nil)));
         if (item != nil)
             dumpItem(item);
     }
@@ -51,7 +51,7 @@ MA 02110-1301, USA.
     ::ShipEntity* item = nil;
 
     if (role.has_value()) {
-        item = oo::ToShip([oo::ToObjC([UNIVERSE cxx_newShipWithRole:*role]) autorelease]);
+        item = oo::ToShip(oo::AutoreleaseEntity((UNIVERSE != nullptr ? UNIVERSE->newShipWithRole(*role) : (::ShipEntity*)nil)));
         if (item != nil)
             dumpItem(item);
     }
@@ -59,27 +59,27 @@ MA 02110-1301, USA.
     return item;
 }
 
-std::vector<oo::ObjCRef<::Entity*>> ShipEntity::spawnShipsWithRole(const std::string& role, NSUInteger count)
+std::vector<oo::EntityHold> ShipEntity::spawnShipsWithRole(const std::string& role, NSUInteger count)
 {
     ::ShipEntity* ship = oo::ToShip(rootShipEntity()); // FIXME: (EMMSTRAN) implement an -absolutePosition method, use that in spawnShipWithRole:near:, and use self instead of root.
     ::ShipEntity* spawned = nil;
-    std::vector<oo::ObjCRef<::Entity*>> result;
+    std::vector<oo::EntityHold> result;
 
     if (count == 0)
         return result;
 
-    OO_LOG("script.debug.note.addShips", "Spawning {} x '{}' near {} {}", count, role, oo::ShortDescriptionOf(oo::ToObjC(this)), getUniversalID());
+    OO_LOG("script.debug.note.addShips", "Spawning {} x '{}' near {} {}", count, role, oo::EntityShortDescription(this), getUniversalID());
 
     result.reserve(count);
 
     do {
-        spawned = [UNIVERSE cxx_spawnShipWithRole:role near:oo::ToObjC(ship)];
+        spawned = (UNIVERSE != nullptr ? UNIVERSE->spawnShipWithRole(role, ship) : (::ShipEntity*)nil);
         if (spawned != nil) {
             if (spawned != nullptr)
                 spawned->setTemperature(randomEjectaTemperature());
             if (isMissileFlagSet() && (spawned != nullptr ? spawned->shipInfoDictionary() : oo::PList()).get<bool>("is_submunition")) {
                 if (spawned != nullptr)
-                    spawned->setOwner(oo::ToCxx((::Entity*)owner()));
+                    spawned->setOwner(ownerEntity()); // owner()'s C++ entity
                 if (spawned != nullptr)
                     spawned->addTarget(primaryTarget());
                 if (spawned != nullptr)
@@ -89,7 +89,7 @@ std::vector<oo::ObjCRef<::Entity*>> ShipEntity::spawnShipsWithRole(const std::st
                 if (spawned != nullptr)
                     spawned->setOwner(this);
             }
-            result.emplace_back(oo::ToObjC(spawned));
+            result.emplace_back(spawned);
         }
     } while (--count);
 

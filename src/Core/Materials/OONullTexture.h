@@ -3,7 +3,7 @@
 OONullTexture.h
 
 Singleton subclass of OOTexture representing the empty texture. Applying
-OONullTexture is equivalent to [OOTexture applyNone].
+OONullTexture is equivalent to OOTexture::applyNone().
 
 
 Copyright (C) 2008-2013 Jens Ayton
@@ -34,10 +34,10 @@ SOFTWARE.
 #import "OOTexture.h"
 
 /*	C++20 (bead oo-jvm6). Its Objective-C facade was deleted by bead oo-9ht.100 (ADR-0056 amendment
-        "deleting a facade"): the class is global, and Objective-C sees the null texture as an OOTexture
-        facade (the root's oo::ToObjC), which OOTexture's nullTexture() keeps for the process.
+        "deleting a facade"): the class is global. Since bead oo-9ht.99 deleted the root's facade too,
+        OOTexture's nullTexture() answers the shared instance itself.
 */
-class OONullTexture : public cxx::OOTexture {
+class OONullTexture : public OOTexture {
 public:
     /*	The one null texture, made on first use and never released (it was an immortal singleton;
             proposed ADR-0056 amendments oo-r7m0 item 1 and oo-489v item 3). Borrowed.

@@ -15,6 +15,7 @@
 #import "OOTextureScaling.h"
 #import "OOLogging.h"
 #import "Universe.h"
+#import "MyOpenGLView.h"
 #include "oofnd/objc/OOException.h"
 
 #include "oo_test.hpp"
@@ -39,6 +40,14 @@ void OOLogGenericParameterErrorForFunction(const char *inFunction)
 
 const char *const cxx_kOOLogParameterError = "general.error.parameterError";	// OOLogging.mm's
 Universe *gSharedUniverse = nil;	// OODumpPixMap's UNIVERSE (debug builds); never called here
+
+// OODumpPixMap's view dumps: members since bead oo-9ht.153 deleted the view's facade (they were
+// sends); never called here.
+#ifndef NDEBUG
+void MyOpenGLView::dumpGrayToFileNamed(const std::string &, uint8_t *, NSUInteger, NSUInteger, NSUInteger)  { std::abort(); }
+void MyOpenGLView::dumpGrayAlphaToFileNamed(const std::string &, uint8_t *, NSUInteger, NSUInteger, NSUInteger)  { std::abort(); }
+void MyOpenGLView::dumpRGBAToRGBFileNamed(const std::optional<std::string> &, const std::optional<std::string> &, uint8_t *, NSUInteger, NSUInteger, NSUInteger)  { std::abort(); }
+#endif
 
 
 namespace {
@@ -153,6 +162,54 @@ OO_TEST(squeezesHorizontally)
 	OOPixMap grayAlpha = OOScalePixMap(MakePatterned(4, 2, kOOPixMapGrayscaleAlpha), 2, 2, NO);
 	Pinned("grayAlpha", grayAlpha, 2, 2, { 50, 87, 198, 107, 90, 127, 110, 147 });
 	free(grayAlpha.pixels);
+}
+
+
+// oo-snnh6: StretchVertically() (2x3 -> 2x4 and 2x2 -> 2x4, into a new buffer; RGBA and
+// gray+alpha take the 4-byte path StretchVerticallyN_x4, 2-wide grayscale the byte path
+// StretchVerticallyN_x1) and the last row of StretchHorizontally() (3x1 -> 4x1, one row, so only
+// the last-row loop runs). The last output row of a vertical stretch is the last source row and
+// the last output pixel of a horizontal one is the last source pixel. 2x3 -> 2x4 and every
+// horizontal case gave these same bytes before the fix; 2x2 -> 2x4 copied its last row from one
+// row past the source buffer (an ASan heap-buffer-overflow READ), as 3x1 -> 4x1 read one pixel
+// past it at weight 0.
+OO_TEST(stretchesVerticallyAndKeepsTheEdges)
+{
+	OOPixMap rgba = OOScalePixMap(MakePatterned(2, 3, kOOPixMapRGBA), 2, 4, NO);
+	Pinned("rgba 2x3 -> 2x4", rgba, 2, 4, { 13, 50, 87, 124, 161, 198, 235, 16, 33, 70, 107, 144, 181, 218, 127, 36, 63, 100, 137, 174, 211, 184, 29, 66, 93, 130, 167, 204, 241, 22, 59, 96 });
+	free(rgba.pixels);
+
+	OOPixMap gray = OOScalePixMap(MakePatterned(2, 3, kOOPixMapGrayscale), 2, 4, NO);
+	Pinned("gray 2x3 -> 2x4", gray, 2, 4, { 13, 50, 50, 87, 105, 142, 161, 198 });
+	free(gray.pixels);
+
+	OOPixMap grayAlpha = OOScalePixMap(MakePatterned(2, 3, kOOPixMapGrayscaleAlpha), 2, 4, NO);
+	Pinned("grayAlpha 2x3 -> 2x4", grayAlpha, 2, 4, { 13, 50, 87, 124, 87, 124, 161, 70, 134, 171, 208, 53, 53, 90, 127, 164 });
+	free(grayAlpha.pixels);
+
+	OOPixMap rgbaDouble = OOScalePixMap(MakePatterned(2, 2, kOOPixMapRGBA), 2, 4, NO);
+	Pinned("rgba 2x2 -> 2x4", rgbaDouble, 2, 4, { 13, 50, 87, 124, 161, 198, 235, 16, 13, 50, 87, 124, 161, 198, 235, 16, 53, 90, 127, 164, 201, 238, 19, 56, 53, 90, 127, 164, 201, 238, 19, 56 });
+	free(rgbaDouble.pixels);
+
+	OOPixMap grayDouble = OOScalePixMap(MakePatterned(2, 2, kOOPixMapGrayscale), 2, 4, NO);
+	Pinned("gray 2x2 -> 2x4", grayDouble, 2, 4, { 13, 50, 13, 50, 87, 124, 87, 124 });
+	free(grayDouble.pixels);
+
+	OOPixMap grayAlphaDouble = OOScalePixMap(MakePatterned(2, 2, kOOPixMapGrayscaleAlpha), 2, 4, NO);
+	Pinned("grayAlpha 2x2 -> 2x4", grayAlphaDouble, 2, 4, { 13, 50, 87, 124, 13, 50, 87, 124, 161, 198, 235, 16, 161, 198, 235, 16 });
+	free(grayAlphaDouble.pixels);
+
+	OOPixMap rgbaRow = OOScalePixMap(MakePatterned(3, 1, kOOPixMapRGBA), 4, 1, NO);
+	Pinned("rgba 3x1 -> 4x1", rgbaRow, 4, 1, { 13, 50, 87, 124, 87, 124, 161, 70, 134, 171, 208, 53, 53, 90, 127, 164 });
+	free(rgbaRow.pixels);
+
+	OOPixMap grayRow = OOScalePixMap(MakePatterned(3, 1, kOOPixMapGrayscale), 4, 1, NO);
+	Pinned("gray 3x1 -> 4x1", grayRow, 4, 1, { 13, 31, 59, 87 });
+	free(grayRow.pixels);
+
+	OOPixMap grayAlphaRow = OOScalePixMap(MakePatterned(3, 1, kOOPixMapGrayscaleAlpha), 4, 1, NO);
+	Pinned("grayAlpha 3x1 -> 4x1", grayAlphaRow, 4, 1, { 13, 50, 50, 87, 105, 142, 161, 198 });
+	free(grayAlphaRow.pixels);
 }
 
 

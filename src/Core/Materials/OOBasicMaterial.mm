@@ -118,7 +118,7 @@ bool OOBasicMaterial::doApply()
     OOGL(glMateriali(FACE, GL_SHININESS, _shininess));
     // -isMemberOfClass: (an Objective-C subclass's C++ part is its adapter, another class)
     if (typeid(*this) == typeid(OOBasicMaterial)) {
-        [::OOTexture applyNone];
+        OOTexture::applyNone();
     }
 
     return true;
@@ -308,11 +308,11 @@ void OOBasicMaterial::setShininess(uint8_t value)
 
 bool OOBasicMaterial::permitSpecular()
 {
-    return ![UNIVERSE reducedDetail];
+    return !(UNIVERSE != nullptr ? UNIVERSE->reducedDetail() : false);
 }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-std::vector<oo::ObjCRef<::OOTexture*>> OOBasicMaterial::allTextures()
+std::vector<oo::Ref<OOTexture>> OOBasicMaterial::allTextures()
 {
     return { };
 }

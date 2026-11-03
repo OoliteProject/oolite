@@ -45,23 +45,20 @@ const char *const cxx_kOOLogFileNotFound = "files.notFound";
 static std::map<std::string, std::string> gShaderFiles;
 static std::vector<std::string> gShaderFileRequests;
 
-@interface ResourceManager: OOObject
-+ (std::vector<std::string>) cxx_paths;
-+ (oo::PList) cxx_dictionaryFromFilesNamed:(const std::string &)fileName inFolder:(const std::string &)folderName andMerge:(BOOL)mergeFiles;
-+ (std::optional<std::string>) cxx_stringFromFilesNamed:(const std::string &)fileName inFolder:(const std::string &)folderName;
-@end
+#import "ResourceManager.h"
 
-@implementation ResourceManager
-+ (std::vector<std::string>) cxx_paths  { return {}; }
-+ (oo::PList) cxx_dictionaryFromFilesNamed:(const std::string &)fileName inFolder:(const std::string &)folderName andMerge:(BOOL)mergeFiles  { return oo::PList(oo::PList::Dict{}); }
-+ (std::optional<std::string>) cxx_stringFromFilesNamed:(const std::string &)fileName inFolder:(const std::string &)folderName
+// ResourceManager is C++ since bead oo-9ht.150 deleted its Objective-C facade: C++ definitions of the
+// statics the code under test calls, with the Objective-C stand-in's answers.
+std::vector<std::string> ResourceManager::paths()  { return {}; }
+oo::PList ResourceManager::dictionaryFromFilesNamed(const std::string &/*fileName*/, const std::optional<std::string> &/*folderName*/, bool /*mergeFiles*/)  { return oo::PList(oo::PList::Dict{}); }
+std::optional<std::string> ResourceManager::stringFromFilesNamed(const std::string &fileName, const std::optional<std::string> &folderName)
 {
-	gShaderFileRequests.push_back(folderName + "/" + fileName);
+	gShaderFileRequests.push_back(folderName.value_or("") + "/" + fileName);
 	auto found = gShaderFiles.find(fileName);
 	if (found == gShaderFiles.end())  return std::nullopt;
 	return found->second;
 }
-@end
+
 
 
 // OORegExpMatcher is C++ since its facade was deleted (bead oo-9ht.12): the stub answers no match.
@@ -77,12 +74,12 @@ OOShaderSetting cxx_OOShaderSettingFromString(const std::string &string)
 
 
 // UNIVERSE is gSharedUniverse: nil, so there is no game view and no matrix manager. The view is
-// C++ (MyOpenGLView): its crossing answers none, and its manager accessor is never reached.
-@class Universe;
+// C++ (MyOpenGLView; its facade's crossing went with bead oo-9ht.153), and its manager accessor is
+// never reached.
+class Universe;
 Universe *gSharedUniverse = nil;
 
-cxx::MyOpenGLView *oo::ToCxx(MyOpenGLView *)  { return nullptr; }
-OOOpenGLMatrixManager *cxx::MyOpenGLView::getOpenGLMatrixManager()  { return matrixManager.get(); }
+OOOpenGLMatrixManager *MyOpenGLView::getOpenGLMatrixManager()  { return matrixManager.get(); }
 
 
 namespace {
@@ -107,7 +104,7 @@ IsProgramProc gIsProgram = nullptr;
 bool SetUp()
 {
 	if (!OOTestGLContext())  return false;
-	[OOOpenGLExtensionManager sharedManager];	// loads the ARB shader entry points
+	OOOpenGLExtensionManager::sharedManager();	// loads the ARB shader entry points
 	gGetAttribLocation = (GetAttribLocationProc)SDL_GL_GetProcAddress("glGetAttribLocationARB");
 	gIsProgram = (IsProgramProc)SDL_GL_GetProcAddress("glIsProgram");
 	return gGetAttribLocation != nullptr && gIsProgram != nullptr;
@@ -383,7 +380,7 @@ OO_TEST(translateGameShadersGLSL330To120)
 	};
 	const std::regex texture330(R"(\btexture\s*\()");
 	const std::regex inOut330(R"(^\s*(in|out)\s)", std::regex::ECMAScript | std::regex::multiline);
-	const bool canCompile = SetUp() && [[OOOpenGLExtensionManager sharedManager] haveExtension:"GL_EXT_gpu_shader4"];
+	const bool canCompile = SetUp() && OOOpenGLExtensionManager::sharedManager()->haveExtension("GL_EXT_gpu_shader4");
 	if (!canCompile)  std::printf("note: no GL_EXT_gpu_shader4, so the translated game shaders are not compiled\n");
 
 	for (const Program &program : programs)

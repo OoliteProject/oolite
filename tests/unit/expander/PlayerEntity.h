@@ -43,6 +43,22 @@ struct OOHarnessPlayer
 namespace oo {
 inline id ToObjC(OOHarnessPlayer *player)  { return player != nullptr ? OOGetPlayer() : nil; }
 }
+// The expander asks and calls the player's by-name methods on its C++ part (bead oo-9ht.39.7.2,
+// OOCallByName.h); the harness's player has no C++ table, so they go to its Objective-C stub by
+// selector, the path the game takes for a name its table does not hold.
+#import "OOCallByName.h"
+#include "oofnd/objc/OORuntime.h"
+namespace oo {
+inline bool EntityRespondsToName(OOHarnessPlayer *player, const std::string &name)
+{
+	id object = ToObjC(player);
+	return object != nil && [object respondsToSelector:OOSelectorFromName(name.c_str())];
+}
+inline PList CallEntityByName(OOHarnessPlayer *player, const std::string &name)
+{
+	return player != nullptr ? OOCallByName(ToObjC(player), OOSelectorFromName(name.c_str())) : PList();
+}
+}
 inline OOHarnessPlayer *OOHarnessGetPlayer()
 {
 	static OOHarnessPlayer player;

@@ -38,6 +38,7 @@
 #import "PlayerEntitySound.h"
 #import "PlayerEntityStickMapper.h"
 #import "OOJoystickManager.h"
+#import "OOCallByName.h"	// oo::EntityRespondsToName / oo::CallEntityByName (bead oo-9ht.39.7.3)
 
 #include "oo_test.hpp"
 #include "oofnd/Defaults.hpp"
@@ -206,8 +207,7 @@ void SetUp()
 	static Universe *universe = nil;
 	if (universe == nil)
 	{
-		universe = (Universe *)class_createInstance([Universe class], 0);	// never released
-		universe->_cxxUniverse = oo::makeRef<cxx::Universe>(universe);	// what -initWithGameView: makes first (ADR-0056 amendment oo-riqmz)
+		universe = new Universe();	// never released
 	}
 	gSharedUniverse = universe;
 	gOOPlayer = nullptr;	// making the player expects to make the only one
@@ -225,10 +225,10 @@ void SetUp()
 #ifndef NDEBUG
 // deferredInit() sends the ship's initialiser, and so the root's -init, a second time, which counts
 // the entity again, as it did.
-void UncountSecondInit(Class cls)
+void UncountSecondInit(Entity *entity)
 {
 	gLiveEntityCount--;
-	gTotalEntityMemory -= class_getInstanceSize(cls);
+	gTotalEntityMemory -= oo::EntityObjectSize(entity);	// its object's size (bead oo-dpyk8)
 }
 #endif
 
@@ -241,7 +241,7 @@ T *NewTestPlayer()
 	oo::Ref<T> player = oo::makeRef<T>();
 	@autoreleasepool
 	{
-		[oo::NewEntityFacade(player) retain];
+		oo::RetainEntity(oo::MadeEntity(player));
 	}
 	return player.get();
 }
@@ -249,7 +249,7 @@ T *NewTestPlayer()
 
 void Release(PlayerEntity *player)
 {
-	[oo::ToObjC(player) release];
+	oo::ReleaseEntity(player);
 }
 
 }	// namespace
@@ -304,13 +304,13 @@ OO_TEST(deferredInit)
 		SetUp();
 		TestPlayer *player = NewTestPlayer<TestPlayer>();
 		gOOPlayer = player;
-		Entity *asEntity = oo::ToObjC(player);
-		void *part = oo::ToCxx(asEntity);
+		Entity *asEntity = player;
+		void *part = asEntity;
 		player->setFuel(5);
 		PlayerEntityTestAccess::save_path(player) = std::string("some.oolite-save");
 
 		player->deferredInit();
-		OO_CHECK((void *)oo::ToCxx(asEntity) == part);
+		OO_CHECK((void *)asEntity == part);
 		OO_CHECK(sShipSetUps == 1 && sShipSetUpDict.isDict() && sShipSetUpDict.getIf<oo::PList::Dict>()->empty());
 		OO_CHECK(player->shipDataKey() == std::optional<std::string>(std::string(PLAYER_SHIP_DESC)));
 		OO_CHECK(player->getIsShip() && player->getIsPlayer());
@@ -327,7 +327,7 @@ OO_TEST(deferredInit)
 
 		gOOPlayer = nullptr;
 #ifndef NDEBUG
-		UncountSecondInit(object_getClass(asEntity));
+		UncountSecondInit(asEntity);
 #endif
 		Release(player);
 	}
@@ -338,45 +338,44 @@ OO_TEST(deferredInit)
 // -dealloc runs after it.
 OO_TEST(deallocReleasesWhatThePlayerHeld)
 {
-	// The missile's object (+1, as +alloc/-init's was): oo::ToObjC() would autorelease it again
+	// The missile's object (+1, as +alloc/-init's was):  would autorelease it again
 	// (bead oo-9ht.144, where the missile became a C++ ship).
-	::Entity *missile = nil;
+	Entity *missile = nil;
 	@autoreleasepool
 	{
 		SetUp();
 		missile = oo::NewShipObject(oo::makeRef<TestMissile>(), "missile", oo::PList());
 		TestPlayer *player = NewTestPlayer<TestPlayer>();
-		PlayerEntityTestAccess::missile_entity(player)[2] = oo::adoptObjC([missile retain]);	// held by oo::ObjCRef since bead oo-5q11i
-		OO_CHECK([missile retainCount] == 2);
+		PlayerEntityTestAccess::missile_entity(player)[2] = oo::EntityHold::adopt(oo::RetainEntity(missile));	// held by oo::ObjCRef since bead oo-5q11i, oo::EntityHold since bead oo-xn1j1
+		OO_CHECK(missile->retainCount() == 2);
 		OO_CHECK(PlayerEntityTestAccess::missile_entity(player)[2] == missile);
 		Release(player);
 	}
-	OO_CHECK([missile retainCount] == 1);
-	[missile release];
+	OO_CHECK(missile->retainCount() == 1);
+	oo::ReleaseEntity(missile);
 }
 
 
-// The crossing (bead oo-9ht.177): the player's object is a ship whose C++ part is the player; it
-// answers the player's selectors called by name (ADR-0056 amendment oo-9ht.177), which a ship's
-// object does not.
+// The crossing (bead oo-9ht.177): the player's object is a ship whose C++ part is the player; the
+// player answers the player's selectors called by name (ADR-0056 amendment oo-9ht.177), which a
+// ship does not (the by-name table's answer since bead oo-9ht.39.7.3, the object's until then).
 OO_TEST(playerObjectIsAShipWhosePartIsThePlayer)
 {
 	@autoreleasepool
 	{
 		SetUp();
 		TestPlayer *player = NewTestPlayer<TestPlayer>();
-		::Entity *object = oo::ToObjC(player);	// the drawable's facade since bead oo-9ht.144 (the ship's until then)
+		Entity *object = player;	// the drawable's facade since bead oo-9ht.144 (the ship's until then)
 		OO_CHECK(object != nil && oo::ToShip(object) != nullptr);	// a ship's object (-isKindOfClass:[ShipEntity class] until bead oo-9ht.144)
-		OO_CHECK(oo::ToCxx(object) == player);
-		OO_CHECK(dynamic_cast<PlayerEntity *>(oo::ToCxx(object)) == player);
-		OO_CHECK(oo::AsObjCEntity(player) == nullptr);	// a C++ player, not an adapter
-		OO_CHECK([object respondsToSelector:@selector(commanderName_string)]);
-		OO_CHECK([object respondsToSelector:@selector(credits_number)]);
-		OO_CHECK(![object respondsToSelector:@selector(noSuchPlayerSelector)]);
+		OO_CHECK(object == player);
+		OO_CHECK(dynamic_cast<PlayerEntity *>(object) == player);
+		OO_CHECK(oo::EntityRespondsToName(player, "commanderName_string"));
+		OO_CHECK(oo::EntityRespondsToName(player, "credits_number"));
+		OO_CHECK(!oo::EntityRespondsToName(player, "noSuchPlayerSelector"));
 
 		::ShipEntity *ship = static_cast<TestMissile *>(oo::ToShip(oo::NewShipObject(oo::makeRef<TestMissile>(), "missile", oo::PList())));
-		OO_CHECK(ship != nil && ![oo::ToObjC(ship) respondsToSelector:@selector(commanderName_string)]);
-		[oo::ToObjC(ship) release];
+		OO_CHECK(ship != nil && !oo::EntityRespondsToName(ship, "commanderName_string"));
+		oo::ReleaseEntity(ship);
 		Release(player);
 	}
 }
@@ -390,7 +389,7 @@ OO_TEST(membersStartZeroed)
 		SetUp();
 		TestPlayer *player = NewTestPlayer<TestPlayer>();
 		PlayerEntity *part = player;
-		OO_CHECK(PlayerEntityTestAccess::hud(part) == nil && PlayerEntityTestAccess::compassTarget(part) == nil && PlayerEntityTestAccess::wormhole(part) == nil);
+		OO_CHECK(PlayerEntityTestAccess::hud(part) == nil && PlayerEntityTestAccess::compassTarget(part).get() == nullptr && PlayerEntityTestAccess::wormhole(part) == nil);
 		OO_CHECK(PlayerEntityTestAccess::system_id(part) == 0 && PlayerEntityTestAccess::ship_clock(part) == 0 && PlayerEntityTestAccess::scoopsActive(part) == NO);
 		for (int i = 0; i < PLAYER_MAX_MISSILES; i++)  OO_CHECK(PlayerEntityTestAccess::missile_entity(part)[i] == nil);
 		OO_CHECK(!PlayerEntityTestAccess::save_path(part).has_value() && PlayerEntityTestAccess::worldScripts(part).empty());
@@ -410,7 +409,7 @@ TestPlayer *MakePlayer()
 {
 	gOOPlayer = nullptr;
 	TestPlayer *player = NewTestPlayer<TestPlayer>();
-	[oo::ToObjC(player) autorelease];
+	oo::AutoreleaseEntity(player);
 	return player;
 }
 
@@ -547,14 +546,14 @@ OO_TEST(slice3Wormhole)
 		OO_CHECK(player->getWormhole() == nil);
 		// A C++ wormhole since bead oo-9ht.112: the player retains its Objective-C object.
 		oo::Ref<WormholeEntity> holeRef = oo::makeRef<WormholeEntity>();
-		::Entity *object = [oo::NewEntityFacade(holeRef) retain];
+		Entity *object = oo::RetainEntity(oo::MadeEntity(holeRef));
 		WormholeEntity *hole = holeRef.get();
-		NSUInteger count = [object retainCount];
+		NSUInteger count = object->retainCount();
 		player->setWormhole(hole);
-		OO_CHECK(player->getWormhole() == hole && [object retainCount] == count + 1);
+		OO_CHECK(player->getWormhole() == hole && object->retainCount() == count + 1);
 		player->setWormhole(nullptr);
-		OO_CHECK(player->getWormhole() == nullptr && [object retainCount] == count);
-		[object release];
+		OO_CHECK(player->getWormhole() == nullptr && object->retainCount() == count);
+		oo::ReleaseEntity(object);
 	}
 }
 
@@ -588,7 +587,7 @@ OO_TEST(slice5SessionAndCollisions)
 	{
 		SetUp();
 		TestPlayer *player = MakePlayer();
-		OO_CHECK(player->sessionID() == [UNIVERSE sessionID]);
+		OO_CHECK(player->sessionID() == (UNIVERSE != nullptr ? UNIVERSE->sessionID() : 0));
 		player->setStatus(STATUS_IN_FLIGHT);
 		OO_CHECK(player->canCollide());
 		player->setStatus(STATUS_DOCKED);
@@ -627,7 +626,7 @@ OO_TEST(slice7MovementFlags)
 	{
 		SetUp();
 		TestPlayer *player = MakePlayer();
-		cxx::Entity *entity = player;
+		Entity *entity = player;
 		entity->position = make_HPvector(1, 2, 3);
 		entity->lastPosition = kZeroHPVector;
 		entity->orientation = kIdentityQuaternion;
@@ -789,13 +788,13 @@ OO_TEST(slice11CountMissiles)
 		TestPlayer *player = MakePlayer();
 		player->max_missiles = 4;
 		OO_CHECK(player->countMissiles() == 0);
-		PlayerEntityTestAccess::missile_entity(player)[1] = oo::adoptObjC([oo::ToObjC(missile) retain]);	// held by oo::ObjCRef since bead oo-5q11i
-		PlayerEntityTestAccess::missile_entity(player)[3] = oo::adoptObjC([oo::ToObjC(missile) retain]);	// held by oo::ObjCRef since bead oo-5q11i
+		PlayerEntityTestAccess::missile_entity(player)[1] = oo::EntityHold::adopt(oo::RetainEntity(missile));	// held by oo::ObjCRef since bead oo-5q11i, oo::EntityHold since bead oo-xn1j1
+		PlayerEntityTestAccess::missile_entity(player)[3] = oo::EntityHold::adopt(oo::RetainEntity(missile));	// held by oo::ObjCRef since bead oo-5q11i, oo::EntityHold since bead oo-xn1j1
 		OO_CHECK(player->countMissiles() == 2);
 		player->max_missiles = 2;
 		OO_CHECK(player->countMissiles() == 1);
 	}
-	if (missile != nullptr)  [oo::ToObjC(missile) release];
+	if (missile != nullptr)  oo::ReleaseEntity(missile);
 }
 
 // --- Slice 12: compass mode, missiles and pylons, special cargo, the multi-function displays, alert
@@ -961,7 +960,7 @@ RecordingPlayer *MakeRecordingPlayer()
 	sSent = Sent();
 	gOOPlayer = nullptr;
 	RecordingPlayer *player = NewTestPlayer<RecordingPlayer>();
-	[oo::ToObjC(player) autorelease];
+	oo::AutoreleaseEntity(player);
 	return player;
 }
 
@@ -1336,7 +1335,7 @@ public:
 	using RecordingPlayer::doScriptEvent;
 	using RecordingPlayer::addRoleToPlayer;
 
-	void doScriptEvent(OOJSPropID message, const std::vector<oo::PList> &arguments) override
+	void doScriptEvent(OOJSPropID /*message*/, const std::vector<oo::PList> &arguments) override
 	{
 		sSent.count++; sSent.number = (int)arguments.size();
 	}
@@ -1356,7 +1355,7 @@ public:
 
 	// The target the ident button finds: the unit test's universe has no descriptions to expand the
 	// "ident-on" message with (expanding one exits), so the case keeps a target.
-	id primaryTarget() override	{ return sCategoryTarget; }
+	Entity *primaryTarget() override	{ return sCategoryTarget; }	// the C++ entity since bead oo-9ht.39.23
 };
 
 
@@ -1375,7 +1374,7 @@ CategoryPlayer *MakeCategoryPlayer()
 	sSent = Sent();
 	gOOPlayer = nullptr;
 	CategoryPlayer *player = NewTestPlayer<CategoryPlayer>();
-	[oo::ToObjC(player) autorelease];
+	oo::AutoreleaseEntity(player);
 	return player;
 }
 
@@ -1454,7 +1453,7 @@ OO_TEST(controlsSlice7IdentButton)
 	{
 		SetUp();
 		CategoryPlayer *player = MakeCategoryPlayer();
-		sCategoryTarget = oo::ToObjC(player);
+		sCategoryTarget = player;
 		player->handleButtonIdent();
 		OO_CHECK(PlayerEntityTestAccess::ident_engaged(player));
 		OO_CHECK(sSent.count == 3 && !sSent.flag && sSent.number == 2);
@@ -1618,6 +1617,7 @@ OO_TEST(contractsSlice1PassengersVolumeAndReport)
 	{
 		SetUp();
 		CategoryPlayer *player = MakeCategoryPlayer();
+		gOOPlayer = player;	// addPassenger() reads PLAYER's clock, which the debug build asserts is set (bead oo-vdw34)
 		PlayerEntityTestAccess::max_passengers(player) = 2;
 		OO_CHECK(player->addPassenger("Ann", 1, 2, 100.0, 10.0, 1.0, 2));
 		OO_CHECK(sSent.count == 2 && sSent.text == "trader-courier+" && sSent.number == 2);
@@ -1633,6 +1633,7 @@ OO_TEST(contractsSlice1PassengersVolumeAndReport)
 		player->addMessageToReport("");
 		player->addMessageToReport("two");
 		OO_CHECK(PlayerEntityTestAccess::dockingReport(player) == "one\n\ntwo");
+		gOOPlayer = nullptr;
 	}
 }
 

@@ -38,7 +38,7 @@ static const JSCFunctionListEntry sSpecialFunctionsMethods[] = {
 #endif
 };
 
-void InitOOJSSpecialFunctions(JSContext* context, JSValueConst global)
+void InitOOJSSpecialFunctions(JSContext* /*context*/, JSValueConst /*global*/)
 {
 }
 

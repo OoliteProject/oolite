@@ -12,9 +12,10 @@
 	collision lists, the cursor row, the ambient star light), which go through the small block of
 	helpers below, the one place that knows where they live. The conversion ported two things:
 	those helpers, which read the members through the facade's _cxxUniverse, and the set-up, which
-	gives each never-initialised universe the C++ part -initWithGameView: makes first (ADR-0056
-	amendment oo-riqmz). The last case pins the crossing: oo::ToCxx / oo::ToObjC, the accessors
-	over the members, a new part's zeroes, and a universe released with no part.
+	gave each never-initialised universe the C++ part -initWithGameView: makes first (ADR-0056
+	amendment oo-riqmz). Since bead oo-ql9rn deleted the facade the universe is one C++ object
+	(new Universe(), never released) and the cases call its members; facadeAndPart pins the
+	accessors over the members and a new universe's zeroes (its crossings went with the facade).
 	Run: bash tools/check-core-tests.sh
 */
 
@@ -41,20 +42,19 @@ namespace {
 // A Universe that was never initialised, made UNIVERSE (-setAmbientLightLevel: asserts there is one).
 Universe *NewUniverse()
 {
-	Universe *universe = (Universe *)class_createInstance([Universe class], 0);	// never released
-	universe->_cxxUniverse = oo::makeRef<cxx::Universe>(universe);	// what -initWithGameView: makes first
+	Universe *universe = new Universe();	// never released
 	gSharedUniverse = universe;
 	return universe;
 }
 
 
-// The members other classes read directly: since the conversion, through the facade's _cxxUniverse
-// (ADR-0056 amendment oo-riqmz).
-unsigned EntityListCount(Universe *u)		{ return u->_cxxUniverse->n_entities; }
-Entity *SortedEntity(Universe *u, unsigned i)	{ return u->_cxxUniverse->sortedEntities[i]; }
-int CursorRow(Universe *u)					{ return u->_cxxUniverse->cursor_row; }
-GLfloat StarsAmbient(Universe *u, int i)	{ return u->_cxxUniverse->stars_ambient[i]; }
-bool ListHeadsEmpty(Universe *u)			{ return u->_cxxUniverse->x_list_start == nil && u->_cxxUniverse->y_list_start == nil && u->_cxxUniverse->z_list_start == nil; }
+// The members other classes read directly: through the facade's _cxxUniverse after the conversion
+// (ADR-0056 amendment oo-riqmz), the universe's own since bead oo-ql9rn.
+unsigned EntityListCount(Universe *u)		{ return u->n_entities; }
+Entity *SortedEntity(Universe *u, unsigned i)	{ return u->sortedEntities[i]; }
+int CursorRow(Universe *u)					{ return u->cursor_row; }
+GLfloat StarsAmbient(Universe *u, int i)	{ return u->stars_ambient[i]; }
+bool ListHeadsEmpty(Universe *u)			{ return u->x_list_start == nil && u->y_list_start == nil && u->z_list_start == nil; }
 
 }	// namespace
 
@@ -65,35 +65,35 @@ OO_TEST(defaults)
 	{
 		Universe *u = NewUniverse();
 
-		OO_CHECK([u sessionID] == 0);
-		OO_CHECK(![u doingStartUp]);
-		OO_CHECK([u entityCount] == 0);
-		OO_CHECK([u getTime] == 0.0 && [u getTimeDelta] == 0.0);
-		OO_CHECK([u currentSystemID] == 0);
-		OO_CHECK([u viewDirection] == VIEW_FORWARD);
-		OO_CHECK([u ambientLightLevel] == 0.0f);
-		OO_CHECK([u airResistanceFactor] == 0.0f);
-		GLfloat *sky = [u skyClearColor];
+		OO_CHECK(u->sessionID() == 0);
+		OO_CHECK(!u->doingStartUp());
+		OO_CHECK(u->entityCount() == 0);
+		OO_CHECK(u->getTime() == 0.0 && u->getTimeDelta() == 0.0);
+		OO_CHECK(u->currentSystemID() == 0);
+		OO_CHECK(u->getViewDirection() == VIEW_FORWARD);
+		OO_CHECK(u->getAmbientLightLevel() == 0.0f);
+		OO_CHECK(u->getAirResistanceFactor() == 0.0f);
+		GLfloat *sky = u->getSkyClearColor();
 		OO_CHECK(sky[0] == 0.0f && sky[1] == 0.0f && sky[2] == 0.0f && sky[3] == 0.0f);
 
-		OO_CHECK([u detailLevel] == DETAIL_LEVEL_MINIMUM);
-		OO_CHECK([u reducedDetail] && ![u useShaders]);
-		OO_CHECK(![u bloom]);
-		OO_CHECK([u currentPostFX] == OO_POSTFX_NONE && [u colorblindMode] == OO_POSTFX_NONE);
+		OO_CHECK(u->getDetailLevel() == DETAIL_LEVEL_MINIMUM);
+		OO_CHECK(u->reducedDetail() && !u->useShaders());
+		OO_CHECK(!u->bloom());
+		OO_CHECK(u->currentPostFX() == OO_POSTFX_NONE && u->colorblindMode() == OO_POSTFX_NONE);
 
-		OO_CHECK(![u displayGUI] && ![u displayFPS]);
-		OO_CHECK(![u autoSave] && ![u autoSaveNow] && ![u wireframeGraphics]);
-		OO_CHECK(![u doProcedurallyTexturedPlanets]);
-		OO_CHECK(![u ECMVisualFXEnabled]);
-		OO_CHECK([u framesDoneThisUpdate] == 0);
-		OO_CHECK(![u pauseMessageVisible]);
-		OO_CHECK(![u permanentCommLog] && ![u permanentMessageLog] && ![u autoMessageLogBg]);
-		OO_CHECK(![u witchspaceBreakPattern] && ![u dockingClearanceProtocolActive]);
-		OO_CHECK([u breakPatternOver]);
+		OO_CHECK(!u->getDisplayGUI() && !u->getDisplayFPS());
+		OO_CHECK(!u->getAutoSave() && !u->getAutoSaveNow() && !u->getWireframeGraphics());
+		OO_CHECK(!u->getDoProcedurallyTexturedPlanets());
+		OO_CHECK(!u->getECMVisualFXEnabled());
+		OO_CHECK(u->getFramesDoneThisUpdate() == 0);
+		OO_CHECK(!u->pauseMessageVisible());
+		OO_CHECK(!u->permanentCommLog() && !u->permanentMessageLog() && !u->autoMessageLogBg());
+		OO_CHECK(!u->witchspaceBreakPattern() && !u->dockingClearanceProtocolActive());
+		OO_CHECK(u->breakPatternOver());
 #ifndef NDEBUG
-		OO_CHECK([u timeAccelerationFactor] == 0.0);	// the zeroed ivar; -initWithGameView: never set it
+		OO_CHECK(u->getTimeAccelerationFactor() == 0.0);	// the zeroed ivar; -initWithGameView: never set it
 #else
-		OO_CHECK([u timeAccelerationFactor] == 1.0);
+		OO_CHECK(u->getTimeAccelerationFactor() == 1.0);
 #endif
 	}
 }
@@ -120,28 +120,28 @@ OO_TEST(lightAndAir)
 	{
 		Universe *u = NewUniverse();
 
-		[u setAmbientLightLevel:3.5f];
-		OO_CHECK([u ambientLightLevel] == 3.5f);
-		[u setAmbientLightLevel:12.0f];
-		OO_CHECK([u ambientLightLevel] == 10.0f);	// clamped to 0 ... 10
-		[u setAmbientLightLevel:-1.0f];
-		OO_CHECK([u ambientLightLevel] == 0.0f);
+		u->setAmbientLightLevel(3.5f);
+		OO_CHECK(u->getAmbientLightLevel() == 3.5f);
+		u->setAmbientLightLevel(12.0f);
+		OO_CHECK(u->getAmbientLightLevel() == 10.0f);	// clamped to 0 ... 10
+		u->setAmbientLightLevel(-1.0f);
+		OO_CHECK(u->getAmbientLightLevel() == 0.0f);
 
-		[u setAirResistanceFactor:0.25f];
-		OO_CHECK([u airResistanceFactor] == 0.25f);
-		[u setAirResistanceFactor:2.0f];
-		OO_CHECK([u airResistanceFactor] == 1.0f);	// clamped to 0 ... 1
-		[u setAirResistanceFactor:-1.0f];
-		OO_CHECK([u airResistanceFactor] == 0.0f);
+		u->setAirResistanceFactor(0.25f);
+		OO_CHECK(u->getAirResistanceFactor() == 0.25f);
+		u->setAirResistanceFactor(2.0f);
+		OO_CHECK(u->getAirResistanceFactor() == 1.0f);	// clamped to 0 ... 1
+		u->setAirResistanceFactor(-1.0f);
+		OO_CHECK(u->getAirResistanceFactor() == 0.0f);
 
 		// The sky colour's alpha is also the air resistance, clamped there but not in the colour.
-		[u setSkyColorRed:0.1f green:0.2f blue:0.3f alpha:0.5f];
-		GLfloat *sky = [u skyClearColor];
+		u->setSkyColorRed(0.1f, 0.2f, 0.3f, 0.5f);
+		GLfloat *sky = u->getSkyClearColor();
 		OO_CHECK(sky[0] == 0.1f && sky[1] == 0.2f && sky[2] == 0.3f && sky[3] == 0.5f);
-		OO_CHECK([u airResistanceFactor] == 0.5f);
-		[u setSkyColorRed:0.0f green:0.0f blue:0.0f alpha:3.0f];
-		OO_CHECK(sky[3] == 3.0f && [u airResistanceFactor] == 1.0f);
-		OO_CHECK(sky == [u skyClearColor]);	// the live array
+		OO_CHECK(u->getAirResistanceFactor() == 0.5f);
+		u->setSkyColorRed(0.0f, 0.0f, 0.0f, 3.0f);
+		OO_CHECK(sky[3] == 3.0f && u->getAirResistanceFactor() == 1.0f);
+		OO_CHECK(sky == u->getSkyClearColor());	// the live array
 	}
 }
 
@@ -152,33 +152,33 @@ OO_TEST(postFX)
 	{
 		Universe *u = NewUniverse();
 
-		[u setCurrentPostFX:OO_POSTFX_COLORBLINDNESS_DEUTER];
-		OO_CHECK([u currentPostFX] == OO_POSTFX_COLORBLINDNESS_DEUTER && [u colorblindMode] == OO_POSTFX_COLORBLINDNESS_DEUTER);
+		u->setCurrentPostFX(OO_POSTFX_COLORBLINDNESS_DEUTER);
+		OO_CHECK(u->currentPostFX() == OO_POSTFX_COLORBLINDNESS_DEUTER && u->colorblindMode() == OO_POSTFX_COLORBLINDNESS_DEUTER);
 
 		// A non-colour-blind effect leaves the colour-blind mode, which ending the effect restores.
-		[u setCurrentPostFX:OO_POSTFX_CLOAK];
-		OO_CHECK([u currentPostFX] == OO_POSTFX_CLOAK && [u colorblindMode] == OO_POSTFX_COLORBLINDNESS_DEUTER);
-		[u terminatePostFX:OO_POSTFX_GRAYSCALE];	// not the current one: nothing
-		OO_CHECK([u currentPostFX] == OO_POSTFX_CLOAK);
-		[u terminatePostFX:OO_POSTFX_CLOAK];
-		OO_CHECK([u currentPostFX] == OO_POSTFX_COLORBLINDNESS_DEUTER);
+		u->setCurrentPostFX(OO_POSTFX_CLOAK);
+		OO_CHECK(u->currentPostFX() == OO_POSTFX_CLOAK && u->colorblindMode() == OO_POSTFX_COLORBLINDNESS_DEUTER);
+		u->terminatePostFX(OO_POSTFX_GRAYSCALE);	// not the current one: nothing
+		OO_CHECK(u->currentPostFX() == OO_POSTFX_CLOAK);
+		u->terminatePostFX(OO_POSTFX_CLOAK);
+		OO_CHECK(u->currentPostFX() == OO_POSTFX_COLORBLINDNESS_DEUTER);
 
 		// Out of range (and 0) is none, which is also the colour-blind mode none.
-		[u setCurrentPostFX:OO_POSTFX_ENDOFLIST];
-		OO_CHECK([u currentPostFX] == OO_POSTFX_NONE && [u colorblindMode] == OO_POSTFX_NONE);
-		[u setCurrentPostFX:OO_POSTFX_CRT];
-		[u setCurrentPostFX:-3];
-		OO_CHECK([u currentPostFX] == OO_POSTFX_NONE && [u colorblindMode] == OO_POSTFX_NONE);
+		u->setCurrentPostFX(OO_POSTFX_ENDOFLIST);
+		OO_CHECK(u->currentPostFX() == OO_POSTFX_NONE && u->colorblindMode() == OO_POSTFX_NONE);
+		u->setCurrentPostFX(OO_POSTFX_CRT);
+		u->setCurrentPostFX(-3);
+		OO_CHECK(u->currentPostFX() == OO_POSTFX_NONE && u->colorblindMode() == OO_POSTFX_NONE);
 
 		// The colour-blind modes cycle through none, protan, deuter, tritan.
-		OO_CHECK([u nextColorblindMode:OO_POSTFX_NONE] == OO_POSTFX_COLORBLINDNESS_PROTAN);
-		OO_CHECK([u nextColorblindMode:OO_POSTFX_COLORBLINDNESS_TRITAN] == OO_POSTFX_NONE);
-		OO_CHECK([u prevColorblindMode:OO_POSTFX_NONE] == OO_POSTFX_COLORBLINDNESS_TRITAN);
-		OO_CHECK([u prevColorblindMode:OO_POSTFX_COLORBLINDNESS_DEUTER] == OO_POSTFX_COLORBLINDNESS_PROTAN);
+		OO_CHECK(u->nextColorblindMode(OO_POSTFX_NONE) == OO_POSTFX_COLORBLINDNESS_PROTAN);
+		OO_CHECK(u->nextColorblindMode(OO_POSTFX_COLORBLINDNESS_TRITAN) == OO_POSTFX_NONE);
+		OO_CHECK(u->prevColorblindMode(OO_POSTFX_NONE) == OO_POSTFX_COLORBLINDNESS_TRITAN);
+		OO_CHECK(u->prevColorblindMode(OO_POSTFX_COLORBLINDNESS_DEUTER) == OO_POSTFX_COLORBLINDNESS_PROTAN);
 
 		// Bloom needs the extras detail level; a universe never initialised is at the minimum.
-		[u setBloom:YES];
-		OO_CHECK(![u bloom]);
+		u->setBloom(YES);
+		OO_CHECK(!u->bloom());
 	}
 }
 
@@ -188,75 +188,63 @@ OO_TEST(flags)
 	@autoreleasepool
 	{
 		Universe *u = NewUniverse();
-		// Values other than YES and NO, which the setters must normalise; passed in ints, as the end
-		// target passes them to its bool setters.
-		int seven = 7, two = 2;
 
-		[u setDisplayFPS:seven];
-		OO_CHECK([u displayFPS] == YES);	// normalised
-		[u setAutoSaveNow:YES];
-		OO_CHECK([u autoSaveNow]);
-		[u setPauseMessageVisible:YES];
-		OO_CHECK([u pauseMessageVisible]);
-		[u setPermanentMessageLog:YES];
-		[u setAutoMessageLogBg:two];
-		[u setPermanentCommLog:YES];
-		OO_CHECK([u permanentMessageLog] && [u autoMessageLogBg] == YES && [u permanentCommLog]);
-		[u setWitchspaceBreakPattern:two];
-		OO_CHECK([u witchspaceBreakPattern] == YES);
-		[u setECMVisualFXEnabled:YES];
-		OO_CHECK([u ECMVisualFXEnabled]);
-		[u resetFramesDoneThisUpdate];
-		OO_CHECK([u framesDoneThisUpdate] == 0);
+		u->setDisplayFPS(7);
+		OO_CHECK(u->getDisplayFPS() == YES);	// normalised
+		u->setAutoSaveNow(YES);
+		OO_CHECK(u->getAutoSaveNow());
+		u->setPauseMessageVisible(YES);
+		OO_CHECK(u->pauseMessageVisible());
+		u->setPermanentMessageLog(YES);
+		u->setAutoMessageLogBg(2);
+		u->setPermanentCommLog(YES);
+		OO_CHECK(u->permanentMessageLog() && u->autoMessageLogBg() == YES && u->permanentCommLog());
+		u->setWitchspaceBreakPattern(2);
+		OO_CHECK(u->witchspaceBreakPattern() == YES);
+		u->setECMVisualFXEnabled(YES);
+		OO_CHECK(u->getECMVisualFXEnabled());
+		u->resetFramesDoneThisUpdate();
+		OO_CHECK(u->getFramesDoneThisUpdate() == 0);
 
 #ifndef NDEBUG
-		[u setTimeAccelerationFactor:2.0];
-		OO_CHECK([u timeAccelerationFactor] == 2.0);
-		[u setTimeAccelerationFactor:TIME_ACCELERATION_FACTOR_MAX * 2];
-		OO_CHECK([u timeAccelerationFactor] == TIME_ACCELERATION_FACTOR_DEFAULT);
-		[u setTimeAccelerationFactor:TIME_ACCELERATION_FACTOR_MIN / 2];
-		OO_CHECK([u timeAccelerationFactor] == TIME_ACCELERATION_FACTOR_DEFAULT);
+		u->setTimeAccelerationFactor(2.0);
+		OO_CHECK(u->getTimeAccelerationFactor() == 2.0);
+		u->setTimeAccelerationFactor(TIME_ACCELERATION_FACTOR_MAX * 2);
+		OO_CHECK(u->getTimeAccelerationFactor() == TIME_ACCELERATION_FACTOR_DEFAULT);
+		u->setTimeAccelerationFactor(TIME_ACCELERATION_FACTOR_MIN / 2);
+		OO_CHECK(u->getTimeAccelerationFactor() == TIME_ACCELERATION_FACTOR_DEFAULT);
 #endif
 
 		// Each universe has its own state.
 		Universe *other = NewUniverse();
-		OO_CHECK(![other displayFPS] && ![other pauseMessageVisible] && [u displayFPS]);
+		OO_CHECK(!other->getDisplayFPS() && !other->pauseMessageVisible() && u->getDisplayFPS());
 	}
 }
 
 
-// Since the conversion: the facade and its C++ part (ADR-0056 amendment oo-riqmz).
+// Since the conversion: the facade and its C++ part (ADR-0056 amendment oo-riqmz); since bead
+// oo-ql9rn one C++ object, whose accessors answer its members and which starts zeroed.
 OO_TEST(facadeAndPart)
 {
 	@autoreleasepool
 	{
 		Universe *u = NewUniverse();
-		cxx::Universe *part = oo::ToCxx(u);
-		OO_CHECK(part != nullptr && part == u->_cxxUniverse.get());
-		OO_CHECK(oo::ToObjC(part) == u);
-		OO_CHECK(oo::ToCxx(static_cast<Universe *>(nil)) == nullptr && oo::ToObjC(static_cast<cxx::Universe *>(nullptr)) == nil);
+		Universe *part = u;	// one object since bead oo-ql9rn deleted the facade (its crossings went with it)
 
 		// The accessors answer the part's members, and the setters set them.
-		[u setAmbientLightLevel:2.5f];
+		u->setAmbientLightLevel(2.5f);
 		OO_CHECK(part->ambientLightLevel == 2.5f);
 		part->universal_time = 42.0;
 		part->_sessionID = 3;
-		OO_CHECK([u getTime] == 42.0 && [u sessionID] == 3);
-		[u setCurrentPostFX:OO_POSTFX_COLORBLINDNESS_TRITAN];
+		OO_CHECK(u->getTime() == 42.0 && u->sessionID() == 3);
+		u->setCurrentPostFX(OO_POSTFX_COLORBLINDNESS_TRITAN);
 		OO_CHECK(part->_currentPostFX == OO_POSTFX_COLORBLINDNESS_TRITAN && part->_colorblindMode == OO_POSTFX_COLORBLINDNESS_TRITAN);
 
-		// A new part is zeroed, as the runtime zeroed the ivars.
-		oo::Ref<cxx::Universe> fresh = oo::makeRef<cxx::Universe>(nil);
+		// A new universe is zeroed, as the runtime zeroed the ivars.
+		Universe *fresh = new Universe();	// never released: its teardown is the facade's -dealloc, which clears UNIVERSE
 		OO_CHECK(fresh->n_entities == 0 && fresh->x_list_start == nil && fresh->gameView == nil);
 		OO_CHECK(fresh->sortedEntities[UNIVERSE_MAX_ENTITIES] == nil && fresh->frustum[5][3] == 0.0f);
 		OO_CHECK(fresh->entities.empty() && fresh->demo_ships.isNull() && !fresh->currentMessage.has_value());
-		OO_CHECK(oo::ToObjC(fresh.get()) == nil);
-
-		// A universe released before -initWithGameView: made its part tears nothing down (oo-s6ic6):
-		// the shared universe stays.
-		Universe *unused = [Universe alloc];
-		OO_CHECK(oo::ToCxx(unused) == nullptr);
-		[unused release];
 		OO_CHECK(gSharedUniverse == u);
 	}
 }
@@ -272,35 +260,35 @@ OO_TEST(slice2StartUpFlagsAddOnsAndEntityList)
 	@autoreleasepool
 	{
 		Universe *u = NewUniverse();
-		cxx::Universe *part = oo::ToCxx(u);
+		Universe *part = u;
 
 		part->_doingStartUp = YES;
 		part->_sessionID = 7;
-		OO_CHECK([u doingStartUp] && [u sessionID] == 7);
+		OO_CHECK(u->doingStartUp() && u->sessionID() == 7);
 
 		// The add-ons in use: a universe never initialised has the empty string, not none.
-		std::optional<std::string> addOns = [u cxx_useAddOns];
+		std::optional<std::string> addOns = u->getUseAddOns();
 		OO_CHECK(addOns.has_value() && addOns->empty());
 		part->useAddOns = "strict";
-		OO_CHECK([u cxx_useAddOns] == std::optional<std::string>("strict"));
+		OO_CHECK(u->getUseAddOns() == std::optional<std::string>("strict"));
 		// The same add-ons without forcing: nothing to reinitialise, YES.
-		OO_CHECK([u cxx_setUseAddOns:"strict" fromSaveGame:YES]);
-		OO_CHECK([u cxx_setUseAddOns:"strict" fromSaveGame:NO forceReinit:NO]);
+		OO_CHECK(u->setUseAddOns("strict", YES));
+		OO_CHECK(u->setUseAddOns("strict", NO, NO));
 		OO_CHECK(part->useAddOns == "strict");
 
-		OO_CHECK([u entityCount] == 0 && [u cxx_entityList].empty());
+		OO_CHECK(u->entityCount() == 0 && u->entityList().empty());
 
 		// The colour-blind modes step through the four in both directions, and wrap.
 		int mode = OO_POSTFX_NONE;
-		for (int i = 0; i < 4; i++)  mode = [u nextColorblindMode:mode];
+		for (int i = 0; i < 4; i++)  mode = u->nextColorblindMode(mode);
 		OO_CHECK(mode == OO_POSTFX_NONE);
-		for (int i = 0; i < 4; i++)  mode = [u prevColorblindMode:mode];
+		for (int i = 0; i < 4; i++)  mode = u->prevColorblindMode(mode);
 		OO_CHECK(mode == OO_POSTFX_NONE);
-		OO_CHECK([u nextColorblindMode:OO_POSTFX_COLORBLINDNESS_PROTAN] == OO_POSTFX_COLORBLINDNESS_DEUTER);
+		OO_CHECK(u->nextColorblindMode(OO_POSTFX_COLORBLINDNESS_PROTAN) == OO_POSTFX_COLORBLINDNESS_DEUTER);
 
 		// Bloom is the flag at the extras detail level only.
-		[u setBloom:YES];
-		OO_CHECK(part->_bloom == YES && ![u bloom]);
+		u->setBloom(YES);
+		OO_CHECK(part->_bloom == YES && !u->bloom());
 	}
 }
 
@@ -310,26 +298,26 @@ OO_TEST(slice4PopulatorSettings)
 	@autoreleasepool
 	{
 		Universe *u = NewUniverse();
-		cxx::Universe *part = oo::ToCxx(u);
+		Universe *part = u;
 
-		OO_CHECK([u cxx_getPopulatorSettings].isNull());	// none until cleared or set
-		OO_CHECK(![u deterministicPopulation]);
+		OO_CHECK(u->getPopulatorSettings().isNull());	// none until cleared or set
+		OO_CHECK(!u->deterministicPopulation());
 		part->deterministic_population = YES;
-		OO_CHECK([u deterministicPopulation]);
+		OO_CHECK(u->deterministicPopulation());
 
-		[u cxx_setPopulatorSetting:"pirates" to:oo::PList(std::string("some"))];
-		oo::PList settings = [u cxx_getPopulatorSettings];
+		u->setPopulatorSetting("pirates", oo::PList(std::string("some")));
+		oo::PList settings = u->getPopulatorSettings();
 		OO_CHECK(settings.isDict() && settings.getIf<oo::PList::Dict>()->size() == 1);
 		OO_CHECK(settings.find("pirates") != nullptr && settings.get<std::string>("pirates") == "some");
 
 		// A null setting removes the key.
-		[u cxx_setPopulatorSetting:"traders" to:oo::PList(std::string("more"))];
-		[u cxx_setPopulatorSetting:"pirates" to:oo::PList()];
-		settings = [u cxx_getPopulatorSettings];
+		u->setPopulatorSetting("traders", oo::PList(std::string("more")));
+		u->setPopulatorSetting("pirates", oo::PList());
+		settings = u->getPopulatorSettings();
 		OO_CHECK(settings.getIf<oo::PList::Dict>()->size() == 1 && settings.find("pirates") == nullptr && settings.find("traders") != nullptr);
 
-		[u clearSystemPopulator];
-		settings = [u cxx_getPopulatorSettings];
+		u->clearSystemPopulator();
+		settings = u->getPopulatorSettings();
 		OO_CHECK(settings.isDict() && settings.getIf<oo::PList::Dict>()->empty());
 	}
 }
@@ -340,14 +328,14 @@ OO_TEST(slice5MainLightPosition)
 	@autoreleasepool
 	{
 		Universe *u = NewUniverse();
-		cxx::Universe *part = oo::ToCxx(u);
+		Universe *part = u;
 
-		[u setMainLightPosition:make_vector(1.0f, -2.0f, 3.5f)];
+		u->setMainLightPosition(make_vector(1.0f, -2.0f, 3.5f));
 		OO_CHECK(part->main_light_position[0] == 1.0f && part->main_light_position[1] == -2.0f);
 		OO_CHECK(part->main_light_position[2] == 3.5f && part->main_light_position[3] == 1.0f);
 
-		[u setAmbientLightLevel:4.0f];
-		OO_CHECK([u ambientLightLevel] == 4.0f && part->ambientLightLevel == 4.0f);
+		u->setAmbientLightLevel(4.0f);
+		OO_CHECK(u->getAmbientLightLevel() == 4.0f && part->ambientLightLevel == 4.0f);
 	}
 }
 
@@ -359,11 +347,11 @@ OO_TEST(slice6CoordinateSystemStrings)
 		Universe *u = NewUniverse();
 
 		// Anything but four tokens is the origin, not an error.
-		HPVector v = [u cxx_coordinatesFromCoordinateSystemString:"wpu 1 2"];
+		HPVector v = u->coordinatesFromCoordinateSystemString("wpu 1 2");
 		OO_CHECK(v.x == 0.0 && v.y == 0.0 && v.z == 0.0);
-		v = [u cxx_coordinatesFromCoordinateSystemString:""];
+		v = u->coordinatesFromCoordinateSystemString("");
 		OO_CHECK(v.x == 0.0 && v.y == 0.0 && v.z == 0.0);
-		v = [u cxx_coordinatesFromCoordinateSystemString:"wpu 1 2 3 4"];
+		v = u->coordinatesFromCoordinateSystemString("wpu 1 2 3 4");
 		OO_CHECK(v.x == 0.0 && v.y == 0.0 && v.z == 0.0);
 	}
 }
@@ -374,25 +362,25 @@ OO_TEST(slice7RoleCategoriesAndFlags)
 	@autoreleasepool
 	{
 		Universe *u = NewUniverse();
-		cxx::Universe *part = oo::ToCxx(u);
+		Universe *part = u;
 
-		OO_CHECK(![u cxx_roleIsPirateVictim:"trader"]);	// no categories loaded
+		OO_CHECK(!u->roleIsPirateVictim("trader"));	// no categories loaded
 		part->roleCategories = oo::PList(oo::PList::Dict{
 			{"oolite-pirate-victim", oo::PList(oo::PList::Array{oo::PList(std::string("trader")), oo::PList(std::string("courier"))})},
 			{"oolite-hunters", oo::PList(oo::PList::Array{oo::PList(std::string("hunter"))})},
 		});
-		OO_CHECK([u cxx_roleIsPirateVictim:"trader"] && [u cxx_roleIsPirateVictim:"courier"]);
-		OO_CHECK(![u cxx_roleIsPirateVictim:"hunter"] && ![u cxx_roleIsPirateVictim:""]);
-		OO_CHECK([u cxx_role:"hunter" isInCategory:"oolite-hunters"]);
-		OO_CHECK(![u cxx_role:"hunter" isInCategory:"oolite-nothing"]);
+		OO_CHECK(u->roleIsPirateVictim("trader") && u->roleIsPirateVictim("courier"));
+		OO_CHECK(!u->roleIsPirateVictim("hunter") && !u->roleIsPirateVictim(""));
+		OO_CHECK(u->role("hunter", "oolite-hunters"));
+		OO_CHECK(!u->role("hunter", "oolite-nothing"));
 
 		// No witchpoint buoy among no entities: the minimum.
-		OO_CHECK([u safeWitchspaceExitDistance] == MIN_DISTANCE_TO_BUOY);
+		OO_CHECK(u->safeWitchspaceExitDistance() == MIN_DISTANCE_TO_BUOY);
 
 		part->_dockingClearanceProtocolActive = YES;
-		OO_CHECK([u dockingClearanceProtocolActive]);
-		[u setWitchspaceBreakPattern:NO];
-		OO_CHECK(![u witchspaceBreakPattern]);
+		OO_CHECK(u->dockingClearanceProtocolActive());
+		u->setWitchspaceBreakPattern(NO);
+		OO_CHECK(!u->witchspaceBreakPattern());
 	}
 }
 
@@ -404,10 +392,10 @@ OO_TEST(slice8StationsAndPlanets)
 		Universe *u = NewUniverse();
 
 		// No sun: no main station is looked for; no planets, no stations.
-		OO_CHECK([u station] == nil && [u planet] == nil);
-		OO_CHECK([u cxx_planets].empty() && [u cxx_stations].empty());
-		OO_CHECK([u cxx_stationWithRole:"" andPosition:make_HPvector(0, 0, 0)] == nil);
-		OO_CHECK([u cxx_stationWithRole:"coriolis" andPosition:make_HPvector(0, 0, 0)] == nil);
+		OO_CHECK(u->station() == nil && u->planet() == nil);
+		OO_CHECK(u->planets().empty() && u->stations().empty());
+		OO_CHECK(u->stationWithRole("", make_HPvector(0, 0, 0)) == nil);
+		OO_CHECK(u->stationWithRole("coriolis", make_HPvector(0, 0, 0)) == nil);
 	}
 }
 
@@ -417,29 +405,31 @@ OO_TEST(slice9BeaconsWaypointsBreakPatternAndAIs)
 	@autoreleasepool
 	{
 		Universe *u = NewUniverse();
-		cxx::Universe *part = oo::ToCxx(u);
+		Universe *part = u;
 
-		OO_CHECK([u firstBeacon] == nil && [u lastBeacon] == nil);
-		[u resetBeacons];
-		OO_CHECK([u firstBeacon] == nil && [u lastBeacon] == nil);
-		OO_CHECK([u cxx_wormholes].empty() && [u cxx_currentWaypoints].empty());
+		OO_CHECK(u->firstBeacon() == nil && u->lastBeacon() == nil);
+		u->resetBeacons();
+		OO_CHECK(u->firstBeacon() == nil && u->lastBeacon() == nil);
+		OO_CHECK(u->wormholes().empty() && u->currentWaypoints().empty());
 
 		part->breakPatternCounter = 3;
-		OO_CHECK(![u breakPatternOver]);
+		OO_CHECK(!u->breakPatternOver());
+#if !OO_DEBUG	// the debug build asserts that PLAYER is set (OOGetPlayer()), so only a release-style build can ask with none (bead oo-vdw34)
 		PlayerEntity *standIn = gOOPlayer;
 		gOOPlayer = nullptr;	// no player: an earlier case leaves its stand-in (slice 14's SetUpTestPlayer())
-		OO_CHECK([u breakPatternHide]);	// no player
+		OO_CHECK(u->breakPatternHide());	// no player
 		gOOPlayer = standIn;
+#endif
 		part->breakPatternCounter = 0;
-		OO_CHECK([u breakPatternOver]);
+		OO_CHECK(u->breakPatternOver());
 
-		OO_CHECK(![u defaultAIForRole:"pirate"].has_value());
+		OO_CHECK(!u->defaultAIForRole("pirate").has_value());
 		part->autoAIMap = oo::PList(oo::PList::Dict{{"pirate", oo::PList(std::string("pirateAI.plist"))}});
-		OO_CHECK([u defaultAIForRole:"pirate"] == std::optional<std::string>("pirateAI.plist"));
-		OO_CHECK(![u defaultAIForRole:"trader"].has_value());
+		OO_CHECK(u->defaultAIForRole("pirate") == std::optional<std::string>("pirateAI.plist"));
+		OO_CHECK(!u->defaultAIForRole("trader").has_value());
 
-		[u setSkyColorRed:0.5f green:0.25f blue:0.125f alpha:0.75f];
-		OO_CHECK(part->skyClearColor[0] == 0.5f && part->skyClearColor[3] == 0.75f && [u airResistanceFactor] == 0.75f);
+		u->setSkyColorRed(0.5f, 0.25f, 0.125f, 0.75f);
+		OO_CHECK(part->skyClearColor[0] == 0.5f && part->skyClearColor[3] == 0.75f && u->getAirResistanceFactor() == 0.75f);
 	}
 }
 
@@ -450,10 +440,10 @@ OO_TEST(slice10GameViewAndCommodities)
 	{
 		Universe *u = NewUniverse();
 
-		OO_CHECK([u gameView] == nil && [u gameController] == nil);
-		[u setGameView:nil];
-		OO_CHECK([u gameView] == nil);
-		OO_CHECK([u commodities] == nil);
+		OO_CHECK(u->getGameView() == nil && u->gameController() == nil);
+		u->setGameView(nullptr);
+		OO_CHECK(u->getGameView() == nil);
+		OO_CHECK(u->getCommodities() == nil);
 	}
 }
 
@@ -463,11 +453,11 @@ OO_TEST(slice11ViewFrustum)
 	@autoreleasepool
 	{
 		Universe *u = NewUniverse();
-		cxx::Universe *part = oo::ToCxx(u);
+		Universe *part = u;
 
 		// A zeroed frustum: every plane's distance is 0, which a sphere of radius r > 0 is not behind.
-		OO_CHECK([u viewFrustumIntersectsSphereAt:make_vector(1.0f, 2.0f, 3.0f) withRadius:1.0f]);
-		OO_CHECK(![u viewFrustumIntersectsSphereAt:make_vector(1.0f, 2.0f, 3.0f) withRadius:0.0f]);
+		OO_CHECK(u->viewFrustumIntersectsSphereAt(make_vector(1.0f, 2.0f, 3.0f), 1.0f));
+		OO_CHECK(!u->viewFrustumIntersectsSphereAt(make_vector(1.0f, 2.0f, 3.0f), 0.0f));
 
 		// One plane, x >= 0 (the others pass everything): a sphere is outside only when wholly behind it.
 		for (int p = 0; p < 6; p++)
@@ -477,9 +467,9 @@ OO_TEST(slice11ViewFrustum)
 		}
 		part->frustum[2][0] = 1.0f;
 		part->frustum[2][3] = 0.0f;
-		OO_CHECK([u viewFrustumIntersectsSphereAt:make_vector(5.0f, 0.0f, 0.0f) withRadius:1.0f]);
-		OO_CHECK([u viewFrustumIntersectsSphereAt:make_vector(-0.5f, 0.0f, 0.0f) withRadius:1.0f]);
-		OO_CHECK(![u viewFrustumIntersectsSphereAt:make_vector(-5.0f, 0.0f, 0.0f) withRadius:1.0f]);
+		OO_CHECK(u->viewFrustumIntersectsSphereAt(make_vector(5.0f, 0.0f, 0.0f), 1.0f));
+		OO_CHECK(u->viewFrustumIntersectsSphereAt(make_vector(-0.5f, 0.0f, 0.0f), 1.0f));
+		OO_CHECK(!u->viewFrustumIntersectsSphereAt(make_vector(-5.0f, 0.0f, 0.0f), 1.0f));
 	}
 }
 
@@ -489,17 +479,20 @@ OO_TEST(slice12FrameCounterAndViewMatrix)
 	@autoreleasepool
 	{
 		Universe *u = NewUniverse();
-		cxx::Universe *part = oo::ToCxx(u);
+		Universe *part = u;
 
 		part->framesDoneThisUpdate = 4;
-		OO_CHECK([u framesDoneThisUpdate] == 4);
-		[u resetFramesDoneThisUpdate];
-		OO_CHECK([u framesDoneThisUpdate] == 0 && part->framesDoneThisUpdate == 0);
+		OO_CHECK(u->getFramesDoneThisUpdate() == 4);
+		u->resetFramesDoneThisUpdate();
+		OO_CHECK(u->getFramesDoneThisUpdate() == 0 && part->framesDoneThisUpdate == 0);
 
 		part->viewMatrix = kIdentityMatrix;
-		OO_CHECK(OOMatrixEqual([u viewMatrix], kIdentityMatrix));
+		OO_CHECK(OOMatrixEqual(u->getViewMatrix(), kIdentityMatrix));
 	}
 }
+
+
+namespace { void SetUpTestPlayer(); }	// below (slice 14)
 
 
 OO_TEST(slice13EntityLookUp)
@@ -507,16 +500,17 @@ OO_TEST(slice13EntityLookUp)
 	@autoreleasepool
 	{
 		Universe *u = NewUniverse();
+		SetUpTestPlayer();	// PLAYER, which the debug build asserts is set (bead oo-vdw34); id 100 answers it
 
 		// No target, an empty slot and out of range are nil; 100 is the player's.
-		OO_CHECK([u entityForUniversalID:NO_TARGET] == nil);
-		OO_CHECK([u entityForUniversalID:MIN_ENTITY_UID + 1] == nil);
-		OO_CHECK([u entityForUniversalID:MAX_ENTITY_UID + 1] == nil);
-		OO_CHECK([u entityForUniversalID:100] == oo::ToObjC(PLAYER));
+		OO_CHECK(u->entityForUniversalID(NO_TARGET) == nil);
+		OO_CHECK(u->entityForUniversalID(MIN_ENTITY_UID + 1) == nil);
+		OO_CHECK(u->entityForUniversalID(MAX_ENTITY_UID + 1) == nil);
+		OO_CHECK(u->entityForUniversalID(100) == PLAYER);
 
 		// No demo ships among no entities: the demo ship is cleared.
-		[u removeDemoShips];
-		OO_CHECK(oo::ToCxx(u)->demo_ship == nil && [u entityCount] == 0);
+		u->removeDemoShips();
+		OO_CHECK(u->demo_ship == nil && u->entityCount() == 0);
 	}
 }
 
@@ -543,7 +537,7 @@ T *NewTestPlayer()
 	oo::Ref<T> player = oo::makeRef<T>();
 	@autoreleasepool
 	{
-		[oo::NewEntityFacade(player) retain];
+		oo::RetainEntity(oo::MadeEntity(player));
 	}
 	return player.get();
 }
@@ -563,30 +557,29 @@ void SetUpTestPlayer()
 void SetSortedEntities(Universe *u, std::initializer_list<Entity *> list)
 {
 	unsigned n = 0;
-	for (Entity *e : list)  u->_cxxUniverse->sortedEntities[n++] = e;
-	u->_cxxUniverse->sortedEntities[n] = nil;
-	u->_cxxUniverse->n_entities = n;
+	for (Entity *e : list)  u->sortedEntities[n++] = e;
+	u->sortedEntities[n] = nil;
+	u->n_entities = n;
 }
 
 
 Entity *MakeEntity(HPVector position, GLfloat radius)
 {
 	SetUpTestPlayer();
-	Entity *entity = [[[Entity alloc] init] autorelease];
-	[entity setPosition:position];
-	[entity setCollisionRadius:radius];
+	Entity *entity = oo::MadeEntity(oo::makeRef<Entity>());
+	entity->setPosition(position);
+	entity->setCollisionRadius(radius);
 	return entity;
 }
 
 }	// namespace
 
 
-@interface Slice14GhostEntity: Entity	// an entity nothing collides with
-@end
-
-@implementation Slice14GhostEntity
-- (BOOL) canCollide	{ return NO; }
-@end
+class Slice14GhostEntity : public Entity	// an entity nothing collides with (an Objective-C subclass until bead oo-j12i2)
+{
+public:
+	bool canCollide() override	{ return false; }
+};
 
 
 OO_TEST(slice14NoEntity)
@@ -596,13 +589,13 @@ OO_TEST(slice14NoEntity)
 		Universe *u = NewUniverse();
 		HPVector p2 = make_HPvector(0, 0, 1000);
 
-		OO_CHECK(![u isVectorClearFromEntity:nil toDistance:0 fromPoint:p2]);
-		OO_CHECK([u hazardOnRouteFromEntity:nil toDistance:0 fromPoint:p2] == nil);
-		OO_CHECK(HPvector_equal([u getSafeVectorFromEntity:nil toDistance:0 fromPoint:p2], kZeroHPVector));
-		OO_CHECK([u firstShipHitByLaserFromShip:nil inDirection:WEAPON_FACING_FORWARD offset:kZeroVector gettingRangeFound:NULL] == nil);
+		OO_CHECK(!u->isVectorClearFromEntity(nullptr, 0, p2));
+		OO_CHECK(u->hazardOnRouteFromEntity(nullptr, 0, p2) == nullptr);
+		OO_CHECK(HPvector_equal(u->getSafeVectorFromEntity(nullptr, 0, p2), kZeroHPVector));
+		OO_CHECK(u->firstShipHitByLaserFromShip(nullptr, WEAPON_FACING_FORWARD, kZeroVector, NULL) == nil);
 		// The demo ship needs a docked player; with none there is no ship.
 		SetUpTestPlayer();
-		OO_CHECK([u cxx_makeDemoShipWithRole:"oolite-test" spinning:YES] == nil);
+		OO_CHECK(u->makeDemoShipWithRole("oolite-test", YES) == nil);
 	}
 }
 
@@ -617,27 +610,27 @@ OO_TEST(slice14ClearRoute)
 
 		// Nothing else in the universe: clear, no hazard, the destination is safe as it is.
 		SetSortedEntities(u, { e1 });
-		OO_CHECK([u isVectorClearFromEntity:e1 toDistance:0 fromPoint:p2]);
-		OO_CHECK([u hazardOnRouteFromEntity:e1 toDistance:0 fromPoint:p2] == nil);
-		OO_CHECK(HPvector_equal([u getSafeVectorFromEntity:e1 toDistance:0 fromPoint:p2], p2));
+		OO_CHECK(u->isVectorClearFromEntity(e1, 0, p2));
+		OO_CHECK(u->hazardOnRouteFromEntity(e1, 0, p2) == nullptr);
+		OO_CHECK(HPvector_equal(u->getSafeVectorFromEntity(e1, 0, p2), p2));
 
 		// An entity off the route, behind the start, or beyond the destination is no hazard.
 		Entity *aside = MakeEntity(make_HPvector(500, 0, 500), 50);
 		Entity *behind = MakeEntity(make_HPvector(0, 0, -300), 50);
 		Entity *beyond = MakeEntity(make_HPvector(0, 0, 1500), 50);
 		SetSortedEntities(u, { e1, aside, behind, beyond });
-		OO_CHECK([u isVectorClearFromEntity:e1 toDistance:0 fromPoint:p2]);
-		OO_CHECK([u hazardOnRouteFromEntity:e1 toDistance:0 fromPoint:p2] == nil);
-		OO_CHECK(HPvector_equal([u getSafeVectorFromEntity:e1 toDistance:0 fromPoint:p2], p2));
+		OO_CHECK(u->isVectorClearFromEntity(e1, 0, p2));
+		OO_CHECK(u->hazardOnRouteFromEntity(e1, 0, p2) == nullptr);
+		OO_CHECK(HPvector_equal(u->getSafeVectorFromEntity(e1, 0, p2), p2));
 
 		// An entity nothing collides with is no hazard either.
-		Entity *ghost = [[[Slice14GhostEntity alloc] init] autorelease];
-		[ghost setPosition:make_HPvector(0, 0, 500)];
-		[ghost setCollisionRadius:50];
+		Entity *ghost = oo::MadeEntity(oo::makeRef<Slice14GhostEntity>());
+		ghost->setPosition(make_HPvector(0, 0, 500));
+		ghost->setCollisionRadius(50);
 		SetSortedEntities(u, { e1, ghost });
-		OO_CHECK([u isVectorClearFromEntity:e1 toDistance:0 fromPoint:p2]);
-		OO_CHECK([u hazardOnRouteFromEntity:e1 toDistance:0 fromPoint:p2] == nil);
-		u->_cxxUniverse->n_entities = 0;
+		OO_CHECK(u->isVectorClearFromEntity(e1, 0, p2));
+		OO_CHECK(u->hazardOnRouteFromEntity(e1, 0, p2) == nullptr);
+		u->n_entities = 0;
 	}
 }
 
@@ -652,22 +645,22 @@ OO_TEST(slice14Hazard)
 		HPVector p2 = make_HPvector(0, 0, 1000);
 		SetSortedEntities(u, { e1, rock });
 
-		OO_CHECK(![u isVectorClearFromEntity:e1 toDistance:0 fromPoint:p2]);
-		OO_CHECK([u hazardOnRouteFromEntity:e1 toDistance:0 fromPoint:p2] == rock);
+		OO_CHECK(!u->isVectorClearFromEntity(e1, 0, p2));
+		OO_CHECK(u->hazardOnRouteFromEntity(e1, 0, p2) == rock);
 
 		// The safe vector steers short of the rock and away from the side it is on.
-		HPVector safe = [u getSafeVectorFromEntity:e1 toDistance:0 fromPoint:p2];
+		HPVector safe = u->getSafeVectorFromEntity(e1, 0, p2);
 		OO_CHECK(!HPvector_equal(safe, p2));
 		OO_CHECK(safe.z < 500 && safe.x < 20);
 
 		// Within range of the destination already: clear, whatever is in the way.
-		OO_CHECK([u isVectorClearFromEntity:e1 toDistance:2000 fromPoint:p2]);
-		OO_CHECK([u hazardOnRouteFromEntity:e1 toDistance:2000 fromPoint:p2] == nil);
+		OO_CHECK(u->isVectorClearFromEntity(e1, 2000, p2));
+		OO_CHECK(u->hazardOnRouteFromEntity(e1, 2000, p2) == nullptr);
 
 		// Stopping short of the rock: the route is clear.
-		OO_CHECK([u isVectorClearFromEntity:e1 toDistance:600 fromPoint:p2]);
-		OO_CHECK([u hazardOnRouteFromEntity:e1 toDistance:600 fromPoint:p2] == nil);
-		u->_cxxUniverse->n_entities = 0;
+		OO_CHECK(u->isVectorClearFromEntity(e1, 600, p2));
+		OO_CHECK(u->hazardOnRouteFromEntity(e1, 600, p2) == nullptr);
+		u->n_entities = 0;
 	}
 }
 
@@ -675,28 +668,29 @@ OO_TEST(slice14Hazard)
 // Slice 15 (bead oo-dg9d1): counting and finding entities by predicate, time, collisions, the view
 // direction. Written against the Objective-C API and run on the unconverted class first; the
 // entities sit in the sorted list by hand, as slice 14's.
-@interface Slice15ShipLike: Entity	// counts as a ship for the ship predicates
-@end
-
-@implementation Slice15ShipLike
-- (BOOL) isShip	{ return YES; }
-@end
+// Counts as a ship for the ship predicates (an Objective-C subclass answering -isShip YES until bead
+// oo-j12i2; a C++ entity whose ship flag, which -isShip and the predicates read, is set).
+class Slice15ShipLike : public Entity
+{
+public:
+	Slice15ShipLike()	{ isShip = YES; }
+};
 
 
 namespace {
 
 Entity *MakeShipLike(HPVector position, GLfloat radius)
 {
-	Entity *entity = [[[Slice15ShipLike alloc] init] autorelease];
-	[entity setPosition:position];
-	[entity setCollisionRadius:radius];
+	Entity *entity = oo::MadeEntity(oo::makeRef<Slice15ShipLike>());
+	entity->setPosition(position);
+	entity->setCollisionRadius(radius);
 	return entity;
 }
 
 
 BOOL IsFarPredicate(Entity *entity, void *parameter)	// x beyond *(double *)parameter
 {
-	return [entity position].x > *(double *)parameter;
+	return entity->getPosition().x > *(double *)parameter;
 }
 
 }	// namespace
@@ -713,38 +707,38 @@ OO_TEST(slice15CountAndFind)
 		SetSortedEntities(u, { a, b, c });
 
 		// No predicate is every entity; no entity counts from the origin; the reference itself never counts.
-		OO_CHECK([u countEntitiesMatchingPredicate:NULL parameter:NULL inRange:-1 ofEntity:nil] == 3);
-		OO_CHECK([u countEntitiesMatchingPredicate:NULL parameter:NULL inRange:-1 ofEntity:a] == 2);
+		OO_CHECK(u->countEntitiesMatchingPredicate(NULL, NULL, -1, nullptr) == 3);
+		OO_CHECK(u->countEntitiesMatchingPredicate(NULL, NULL, -1, a) == 2);
 		// The range reaches the other entity's surface: b's is 90 away from a, c's 990.
-		OO_CHECK([u countEntitiesMatchingPredicate:NULL parameter:NULL inRange:95 ofEntity:a] == 1);
-		OO_CHECK([u countEntitiesMatchingPredicate:NULL parameter:NULL inRange:85 ofEntity:a] == 0);
+		OO_CHECK(u->countEntitiesMatchingPredicate(NULL, NULL, 95, a) == 1);
+		OO_CHECK(u->countEntitiesMatchingPredicate(NULL, NULL, 85, a) == 0);
 		double limit = 50;
-		OO_CHECK([u countEntitiesMatchingPredicate:IsFarPredicate parameter:&limit inRange:-1 ofEntity:nil] == 2);
+		OO_CHECK(u->countEntitiesMatchingPredicate(IsFarPredicate, &limit, -1, nullptr) == 2);
 
 		// Ships: only c.
-		OO_CHECK([u countShipsMatchingPredicate:NULL parameter:NULL inRange:-1 ofEntity:a] == 1);
-		OO_CHECK([u countShipsMatchingPredicate:IsFarPredicate parameter:&limit inRange:-1 ofEntity:nil] == 1);
-		OO_CHECK([u countShipsMatchingPredicate:NULL parameter:NULL inRange:500 ofEntity:a] == 0);
+		OO_CHECK(u->countShipsMatchingPredicate(NULL, NULL, -1, a) == 1);
+		OO_CHECK(u->countShipsMatchingPredicate(IsFarPredicate, &limit, -1, nullptr) == 1);
+		OO_CHECK(u->countShipsMatchingPredicate(NULL, NULL, 500, a) == 0);
 
-		std::vector<oo::ObjCRef<Entity *>> found = [u cxx_findEntitiesMatchingPredicate:NULL parameter:NULL inRange:-1 ofEntity:a];
+		std::vector<oo::EntityHold> found = u->findEntitiesMatchingPredicate(NULL, NULL, -1, a);	// the reference's C++ entity since bead oo-9ht.39.8.23
 		OO_CHECK(found.size() == 2 && found[0].get() == b && found[1].get() == c);	// in the sorted list's order
-		found = [u cxx_findEntitiesMatchingPredicate:IsFarPredicate parameter:&limit inRange:95 ofEntity:a];
+		found = u->findEntitiesMatchingPredicate(IsFarPredicate, &limit, 95, a);
 		OO_CHECK(found.size() == 1 && found[0].get() == b);
-		found = [u cxx_findShipsMatchingPredicate:NULL parameter:NULL inRange:-1 ofEntity:nil];
+		found = u->findShipsMatchingPredicate(NULL, NULL, -1, nullptr);
 		OO_CHECK(found.size() == 1 && found[0].get() == c);
-		OO_CHECK([u cxx_findVisualEffectsMatchingPredicate:NULL parameter:NULL inRange:-1 ofEntity:nil].empty());
+		OO_CHECK(u->findVisualEffectsMatchingPredicate(NULL, NULL, -1, nullptr).empty());
 
 		// Within range of an entity: the ships only; none for no entity.
-		OO_CHECK([u cxx_entitiesWithinRange:2000 ofEntity:a].size() == 1);
-		OO_CHECK([u cxx_entitiesWithinRange:500 ofEntity:a].empty());
-		OO_CHECK([u cxx_entitiesWithinRange:2000 ofEntity:nil].empty());
+		OO_CHECK(u->entitiesWithinRange(2000, a).size() == 1);
+		OO_CHECK(u->entitiesWithinRange(500, a).empty());
+		OO_CHECK(u->entitiesWithinRange(2000, nullptr).empty());
 
 		// The scan class.
-		[c setScanClass:CLASS_ROCK];
-		OO_CHECK([u countShipsWithScanClass:CLASS_ROCK inRange:-1 ofEntity:nil] == 1);
-		OO_CHECK([u countShipsWithScanClass:CLASS_NEUTRAL inRange:-1 ofEntity:nil] == 0);
+		c->setScanClass(CLASS_ROCK);
+		OO_CHECK(u->countShipsWithScanClass(CLASS_ROCK, -1, nullptr) == 1);
+		OO_CHECK(u->countShipsWithScanClass(CLASS_NEUTRAL, -1, nullptr) == 0);
 
-		u->_cxxUniverse->n_entities = 0;
+		u->n_entities = 0;
 	}
 }
 
@@ -761,21 +755,21 @@ OO_TEST(slice15FindOneAndNearest)
 		SetSortedEntities(u, { a, b, c, d });
 		double limit = 250;
 
-		OO_CHECK([u findOneEntityMatchingPredicate:NULL parameter:NULL] == a);
-		OO_CHECK([u findOneEntityMatchingPredicate:IsFarPredicate parameter:&limit] == b);
+		OO_CHECK(u->findOneEntityMatchingPredicate(NULL, NULL) == a);
+		OO_CHECK(u->findOneEntityMatchingPredicate(IsFarPredicate, &limit) == b);
 		limit = 5000;
-		OO_CHECK([u findOneEntityMatchingPredicate:IsFarPredicate parameter:&limit] == nil);
+		OO_CHECK(u->findOneEntityMatchingPredicate(IsFarPredicate, &limit) == nil);
 
-		OO_CHECK([u nearestEntityMatchingPredicate:NULL parameter:NULL relativeToEntity:a] == c);
-		OO_CHECK([u nearestEntityMatchingPredicate:NULL parameter:NULL relativeToEntity:nil] == a);
+		OO_CHECK(u->nearestEntityMatchingPredicate(NULL, NULL, a) == c);
+		OO_CHECK(u->nearestEntityMatchingPredicate(NULL, NULL, nullptr) == a);
 		limit = 250;
-		OO_CHECK([u nearestEntityMatchingPredicate:IsFarPredicate parameter:&limit relativeToEntity:a] == b);
-		OO_CHECK([u nearestShipMatchingPredicate:NULL parameter:NULL relativeToEntity:b] == c);
-		OO_CHECK([u nearestShipMatchingPredicate:IsFarPredicate parameter:&limit relativeToEntity:a] == nil);
+		OO_CHECK(u->nearestEntityMatchingPredicate(IsFarPredicate, &limit, a) == b);
+		OO_CHECK(u->nearestShipMatchingPredicate(NULL, NULL, b) == c);
+		OO_CHECK(u->nearestShipMatchingPredicate(IsFarPredicate, &limit, a) == nil);
 		limit = -1000;
-		OO_CHECK([u nearestShipMatchingPredicate:IsFarPredicate parameter:&limit relativeToEntity:c] == d);
+		OO_CHECK(u->nearestShipMatchingPredicate(IsFarPredicate, &limit, c) == d);
 
-		u->_cxxUniverse->n_entities = 0;
+		u->n_entities = 0;
 	}
 }
 
@@ -785,17 +779,17 @@ OO_TEST(slice15TimeAndCollisions)
 	@autoreleasepool
 	{
 		Universe *u = NewUniverse();
-		u->_cxxUniverse->universal_time = 12.5;
-		u->_cxxUniverse->time_delta = 0.25;
-		OO_CHECK([u getTime] == 12.5 && [u getTimeDelta] == 0.25);
+		u->universal_time = 12.5;
+		u->time_delta = 0.25;
+		OO_CHECK(u->getTime() == 12.5 && u->getTimeDelta() == 0.25);
 
 		// No collision region yet: the description is a dash.
-		OO_CHECK([u collisionDescription] == "-");
-		[u dumpCollisions];
-		OO_CHECK(u->_cxxUniverse->dumpCollisionInfo);
+		OO_CHECK(u->collisionDescription() == "-");
+		u->dumpCollisions();
+		OO_CHECK(u->dumpCollisionInfo);
 
-		u->_cxxUniverse->viewDirection = VIEW_AFT;
-		OO_CHECK([u viewDirection] == VIEW_AFT);
+		u->viewDirection = VIEW_AFT;
+		OO_CHECK(u->getViewDirection() == VIEW_AFT);
 	}
 }
 
@@ -807,9 +801,9 @@ OO_TEST(slice15TimeAndCollisions)
 // them (the current message and its repeat times).
 namespace {
 
-std::optional<std::string> CurrentMessage(Universe *u)	{ return u->_cxxUniverse->currentMessage; }
-OOTimeAbsolute MessageRepeatTime(Universe *u)			{ return u->_cxxUniverse->messageRepeatTime; }
-OOTimeAbsolute CountdownRepeatTime(Universe *u)		{ return u->_cxxUniverse->countdown_messageRepeatTime; }
+std::optional<std::string> CurrentMessage(Universe *u)	{ return u->currentMessage; }
+OOTimeAbsolute MessageRepeatTime(Universe *u)			{ return u->messageRepeatTime; }
+OOTimeAbsolute CountdownRepeatTime(Universe *u)		{ return u->countdown_messageRepeatTime; }
 
 }	// namespace
 
@@ -819,28 +813,28 @@ OO_TEST(slice16Messages)
 	@autoreleasepool
 	{
 		Universe *u = NewUniverse();
-		u->_cxxUniverse->universal_time = 10.0;
+		u->universal_time = 10.0;
 
-		[u cxx_displayMessage:std::string("a") forCount:3];
+		u->displayMessage(std::string("a"), 3);
 		OO_CHECK(CurrentMessage(u) == "a" && MessageRepeatTime(u) == 16.0);
-		u->_cxxUniverse->universal_time = 12.0;
-		[u cxx_displayMessage:std::string("a") forCount:3];	// the same message, too soon: nothing
+		u->universal_time = 12.0;
+		u->displayMessage(std::string("a"), 3);	// the same message, too soon: nothing
 		OO_CHECK(MessageRepeatTime(u) == 16.0);
-		[u cxx_displayMessage:std::string("b") forCount:3];
+		u->displayMessage(std::string("b"), 3);
 		OO_CHECK(CurrentMessage(u) == "b" && MessageRepeatTime(u) == 18.0);
-		u->_cxxUniverse->universal_time = 20.0;
-		[u cxx_displayMessage:std::string("b") forCount:3];	// the same, once the repeat time has passed
+		u->universal_time = 20.0;
+		u->displayMessage(std::string("b"), 3);	// the same, once the repeat time has passed
 		OO_CHECK(CurrentMessage(u) == "b" && MessageRepeatTime(u) == 26.0);
 
 		// A countdown message waits for its own repeat time, whatever the message.
-		[u cxx_displayCountdownMessage:std::string("c") forCount:5];
+		u->displayCountdownMessage(std::string("c"), 5);
 		OO_CHECK(CurrentMessage(u) == "c" && CountdownRepeatTime(u) == 25.0);
-		[u cxx_displayCountdownMessage:std::string("d") forCount:5];
+		u->displayCountdownMessage(std::string("d"), 5);
 		OO_CHECK(CurrentMessage(u) == "c" && CountdownRepeatTime(u) == 25.0);
-		[u cxx_displayCountdownMessage:std::string("c") forCount:5];	// the same message: nothing
+		u->displayCountdownMessage(std::string("c"), 5);	// the same message: nothing
 		OO_CHECK(CountdownRepeatTime(u) == 25.0);
 
-		[u clearPreviousMessage];
+		u->clearPreviousMessage();
 		OO_CHECK(!CurrentMessage(u).has_value());
 	}
 }
@@ -854,9 +848,9 @@ OO_TEST(slice16ViewDirection)
 
 		// The view it already has, with no GUI shown: nothing changes and nothing is said. (A
 		// change speaks through the player's script events, which need the whole game.)
-		u->_cxxUniverse->viewDirection = VIEW_AFT;
-		[u setViewDirection:VIEW_AFT];
-		OO_CHECK([u viewDirection] == VIEW_AFT && !CurrentMessage(u).has_value() && ![u displayGUI]);
+		u->viewDirection = VIEW_AFT;
+		u->setViewDirection(VIEW_AFT);
+		OO_CHECK(u->getViewDirection() == VIEW_AFT && !CurrentMessage(u).has_value() && !u->getDisplayGUI());
 	}
 }
 
@@ -866,30 +860,30 @@ OO_TEST(slice16SoundsAndBackgrounds)
 	@autoreleasepool
 	{
 		Universe *u = NewUniverse();
-		u->_cxxUniverse->customSounds = oo::PList(oo::PList::Dict{
+		u->customSounds = oo::PList(oo::PList::Dict{
 			{ "[slice16-boom]", oo::PList("boom.ogg") },
 			{ "[slice16-alias]", oo::PList("[slice16-boom]") },
 			{ "[slice16-loop1]", oo::PList("[slice16-loop2]") },
 			{ "[slice16-loop2]", oo::PList("[slice16-loop1]") },
 		});
 
-		OO_CHECK([u soundNameForCustomSoundKey:"[slice16-boom]"] == "boom.ogg");
-		OO_CHECK([u soundNameForCustomSoundKey:"[slice16-alias]"] == "boom.ogg");
-		OO_CHECK(![u soundNameForCustomSoundKey:"[slice16-missing]"].has_value());
-		OO_CHECK(![u soundNameForCustomSoundKey:"[slice16-loop1]"].has_value());	// recursion: no sound
+		OO_CHECK(u->soundNameForCustomSoundKey("[slice16-boom]") == "boom.ogg");
+		OO_CHECK(u->soundNameForCustomSoundKey("[slice16-alias]") == "boom.ogg");
+		OO_CHECK(!u->soundNameForCustomSoundKey("[slice16-missing]").has_value());
+		OO_CHECK(!u->soundNameForCustomSoundKey("[slice16-loop1]").has_value());	// recursion: no sound
 
 		// Backgrounds: none loaded, setting changes nothing; loaded, set and remove by key.
-		[u cxx_setScreenTextureDescriptorForKey:"slice16" descriptor:oo::PList("x.png")];
-		OO_CHECK(u->_cxxUniverse->screenBackgrounds.isNull());
-		u->_cxxUniverse->screenBackgrounds = oo::PList(oo::PList::Dict{});
-		[u cxx_setScreenTextureDescriptorForKey:"slice16" descriptor:oo::PList("x.png")];
-		const oo::PList *set = u->_cxxUniverse->screenBackgrounds.find("slice16");
+		u->setScreenTextureDescriptorForKey("slice16", oo::PList("x.png"));
+		OO_CHECK(u->screenBackgrounds.isNull());
+		u->screenBackgrounds = oo::PList(oo::PList::Dict{});
+		u->setScreenTextureDescriptorForKey("slice16", oo::PList("x.png"));
+		const oo::PList *set = u->screenBackgrounds.find("slice16");
 		OO_CHECK(set != nullptr && set->isString());
-		[u cxx_setScreenTextureDescriptorForKey:"slice16" descriptor:oo::PList()];
-		OO_CHECK(u->_cxxUniverse->screenBackgrounds.find("slice16") == nullptr);
+		u->setScreenTextureDescriptorForKey("slice16", oo::PList());
+		OO_CHECK(u->screenBackgrounds.find("slice16") == nullptr);
 		// With no GUI to preload it, no descriptor is answered.
-		[u cxx_setScreenTextureDescriptorForKey:"slice16" descriptor:oo::PList("x.png")];
-		OO_CHECK([u cxx_screenTextureDescriptorForKey:"slice16"].isNull());
+		u->setScreenTextureDescriptorForKey("slice16", oo::PList("x.png"));
+		OO_CHECK(u->screenTextureDescriptorForKey("slice16").isNull());
 	}
 }
 
@@ -903,19 +897,23 @@ OO_TEST(slice17UpdateOff)
 	{
 		Universe *u = NewUniverse();
 		SetUpTestPlayer();	// a player that is not dead: no dead player's update
-		u->_cxxUniverse->no_update = YES;
-		u->_cxxUniverse->universal_time = 5.0;
-		u->_cxxUniverse->time_delta = 0.5;
-		Entity *dead = [[Entity alloc] init];
-		u->_cxxUniverse->entitiesDeadThisUpdate.emplace_back(dead);
-		[dead release];
+		u->no_update = YES;
+		u->universal_time = 5.0;
+		u->time_delta = 0.5;
+		Entity *dead = nil;
+		@autoreleasepool	// the making's autoreleases drain here, as +alloc made none (bead oo-j12i2)
+		{
+			dead = oo::RetainEntity(oo::MadeEntity(oo::makeRef<Entity>()));
+			u->entitiesDeadThisUpdate.emplace_back(dead);	// held C++ entities since bead oo-9ht.39.26
+		}
+		oo::ReleaseEntity(dead);
 
 		@autoreleasepool
 		{
-			[u update:1.0];
-			OO_CHECK([u getTime] == 5.0 && [u getTimeDelta] == 0.5);	// no time passes
-			OO_CHECK(u->_cxxUniverse->entitiesDeadThisUpdate.empty());
-			OO_CHECK([dead retainCount] == 1);	// alive until the pool drains
+			u->update(1.0);
+			OO_CHECK(u->getTime() == 5.0 && u->getTimeDelta() == 0.5);	// no time passes
+			OO_CHECK(u->entitiesDeadThisUpdate.empty());
+			OO_CHECK(dead->retainCount() == 1);	// alive until the pool drains
 		}
 	}
 }
@@ -927,18 +925,18 @@ OO_TEST(slice17Settings)
 	{
 		Universe *u = NewUniverse();
 
-		[u setECMVisualFXEnabled:YES];
-		OO_CHECK([u ECMVisualFXEnabled] && u->_cxxUniverse->ECMVisualFXEnabled);
-		[u setECMVisualFXEnabled:NO];
-		OO_CHECK(![u ECMVisualFXEnabled]);
+		u->setECMVisualFXEnabled(YES);
+		OO_CHECK(u->getECMVisualFXEnabled() && u->ECMVisualFXEnabled);
+		u->setECMVisualFXEnabled(NO);
+		OO_CHECK(!u->getECMVisualFXEnabled());
 
-		[u setTimeAccelerationFactor:4.0];
+		u->setTimeAccelerationFactor(4.0);
 #ifndef NDEBUG
-		OO_CHECK([u timeAccelerationFactor] == 4.0);
-		[u setTimeAccelerationFactor:100.0];
-		OO_CHECK([u timeAccelerationFactor] == TIME_ACCELERATION_FACTOR_DEFAULT);
+		OO_CHECK(u->getTimeAccelerationFactor() == 4.0);
+		u->setTimeAccelerationFactor(100.0);
+		OO_CHECK(u->getTimeAccelerationFactor() == TIME_ACCELERATION_FACTOR_DEFAULT);
 #else
-		OO_CHECK([u timeAccelerationFactor] == 1.0);
+		OO_CHECK(u->getTimeAccelerationFactor() == 1.0);
 #endif
 	}
 }
@@ -954,14 +952,14 @@ void LinkLists(Universe *u, std::initializer_list<Entity *> list)
 	Entity *previous = nil;
 	for (Entity *e : list)
 	{
-		cxx::Entity *part = e->_cxxEntity.get();
+		Entity *part = e;
 		part->x_previous = part->y_previous = part->z_previous = previous;
 		part->x_next = part->y_next = part->z_next = nil;
-		if (previous != nil)  previous->_cxxEntity->x_next = previous->_cxxEntity->y_next = previous->_cxxEntity->z_next = e;
+		if (previous != nil)  previous->x_next = previous->y_next = previous->z_next = part;
 		previous = e;
 	}
 	Entity *first = list.size() > 0 ? *list.begin() : nil;
-	u->_cxxUniverse->x_list_start = u->_cxxUniverse->y_list_start = u->_cxxUniverse->z_list_start = first;
+	u->x_list_start = u->y_list_start = u->z_list_start = first;
 }
 
 }	// namespace
@@ -973,28 +971,28 @@ OO_TEST(slice18FilterSortedLists)
 	{
 		Universe *u = NewUniverse();
 		Entity *a = MakeEntity(make_HPvector(0, 0, 0), 10);
-		Entity *ghost = [[[Slice14GhostEntity alloc] init] autorelease];
-		[ghost setPosition:make_HPvector(0, 0, 5)];
-		[ghost setCollisionRadius:10];
+		Entity *ghost = oo::MadeEntity(oo::makeRef<Slice14GhostEntity>());
+		ghost->setPosition(make_HPvector(0, 0, 5));
+		ghost->setCollisionRadius(10);
 		Entity *b = MakeEntity(make_HPvector(0, 0, 15), 10);
 		Entity *c = MakeEntity(make_HPvector(0, 0, 1000), 10);
-		a->_cxxEntity->collision_chain = c;	// stale chains are cleared
-		c->_cxxEntity->collision_chain = a;
+		a->collision_chain = c;	// stale chains are cleared
+		c->collision_chain = a;
 		LinkLists(u, { a, ghost, b, c });
 
-		[u filterSortedLists];
+		u->filterSortedLists();
 
 		// a and b overlap on z: chained, past the entity that cannot collide; c is alone.
-		OO_CHECK(a->_cxxEntity->collision_chain == b);
-		OO_CHECK(b->_cxxEntity->collision_chain == nil);
-		OO_CHECK(c->_cxxEntity->collision_chain == nil && ghost->_cxxEntity->collision_chain == nil);
-		OO_CHECK(a->_cxxEntity->collisionTestFilter == 0 && b->_cxxEntity->collisionTestFilter == 0);
-		OO_CHECK(c->_cxxEntity->collisionTestFilter == 1);
-		OO_CHECK(ghost->_cxxEntity->collisionTestFilter == 3);
+		OO_CHECK(a->collision_chain == b);
+		OO_CHECK(b->collision_chain == nil);
+		OO_CHECK(c->collision_chain == nil && ghost->collision_chain == nil);
+		OO_CHECK(a->collisionTestFilter == 0 && b->collisionTestFilter == 0);
+		OO_CHECK(c->collisionTestFilter == 1);
+		OO_CHECK(ghost->collisionTestFilter == 3);
 
 		LinkLists(u, {});
-		[u filterSortedLists];	// no entities: nothing to do
-		OO_CHECK(u->_cxxUniverse->z_list_start == nil);
+		u->filterSortedLists();	// no entities: nothing to do
+		OO_CHECK(u->z_list_start == nil);
 	}
 }
 
@@ -1008,23 +1006,23 @@ OO_TEST(slice19Descriptions)
 	@autoreleasepool
 	{
 		Universe *u = NewUniverse();
-		u->_cxxUniverse->_descriptions = oo::PList(oo::PList::Dict{
+		u->_descriptions = oo::PList(oo::PList::Dict{
 			{ "slice19-text", oo::PList("Hello") },
 			{ "slice19-array", oo::PList(oo::PList::Array{ oo::PList("zero"), oo::PList("one") }) },
 			{ "slice19-flag", oo::PList(true) },
 		});
-		u->_cxxUniverse->_descriptionsGeneration = 7;
+		u->_descriptionsGeneration = 7;
 
-		const oo::PList *descriptions = [u cxx_descriptions];
-		OO_CHECK(descriptions == &u->_cxxUniverse->_descriptions);
-		OO_CHECK([u cxx_descriptionsGeneration] == 7);
-		OO_CHECK([u cxx_descriptionForKey:"slice19-text"] == "Hello");
-		OO_CHECK(![u cxx_descriptionForKey:"slice19-missing"].has_value());
-		OO_CHECK([u cxx_descriptionForArrayKey:"slice19-array" index:1] == "one");
-		OO_CHECK(![u cxx_descriptionForArrayKey:"slice19-array" index:2].has_value());
-		OO_CHECK(![u cxx_descriptionForArrayKey:"slice19-text" index:0].has_value());
-		OO_CHECK([u descriptionBooleanForKey:"slice19-flag"]);
-		OO_CHECK(![u descriptionBooleanForKey:"slice19-missing"]);
+		const oo::PList *descriptions = u->descriptions();
+		OO_CHECK(descriptions == &u->_descriptions);
+		OO_CHECK(u->descriptionsGeneration() == 7);
+		OO_CHECK(u->descriptionForKey("slice19-text") == "Hello");
+		OO_CHECK(!u->descriptionForKey("slice19-missing").has_value());
+		OO_CHECK(u->descriptionForArrayKey("slice19-array", 1) == "one");
+		OO_CHECK(!u->descriptionForArrayKey("slice19-array", 2).has_value());
+		OO_CHECK(!u->descriptionForArrayKey("slice19-text", 0).has_value());
+		OO_CHECK(u->descriptionBooleanForKey("slice19-flag"));
+		OO_CHECK(!u->descriptionBooleanForKey("slice19-missing"));
 		OO_CHECK(cxx_OOLookUpDescriptionPRIV("slice19-text") == "Hello");
 	}
 }
@@ -1035,32 +1033,32 @@ OO_TEST(slice19DataAndNames)
 	@autoreleasepool
 	{
 		Universe *u = NewUniverse();
-		u->_cxxUniverse->explosionSettings = oo::PList(oo::PList::Dict{ { "slice19-boom", oo::PList(oo::PList::Dict{ { "size", oo::PList(2.0) } }) } });
-		u->_cxxUniverse->_scenarios = oo::PList(oo::PList::Array{ oo::PList("s") });
-		u->_cxxUniverse->characters = oo::PList(oo::PList::Dict{ { "c", oo::PList("x") } });
-		u->_cxxUniverse->missiontext = oo::PList(oo::PList::Dict{ { "m", oo::PList("y") } });
-		u->_cxxUniverse->systemID = 42;
+		u->explosionSettings = oo::PList(oo::PList::Dict{ { "slice19-boom", oo::PList(oo::PList::Dict{ { "size", oo::PList(2.0) } }) } });
+		u->_scenarios = oo::PList(oo::PList::Array{ oo::PList("s") });
+		u->characters = oo::PList(oo::PList::Dict{ { "c", oo::PList("x") } });
+		u->missiontext = oo::PList(oo::PList::Dict{ { "m", oo::PList("y") } });
+		u->systemID = 42;
 
-		OO_CHECK([u cxx_explosionSetting:"slice19-boom"].get<double>("size") == 2.0);
-		OO_CHECK([u cxx_explosionSetting:"slice19-missing"].isNull());
-		OO_CHECK([u cxx_scenarios].count() == 1);
-		OO_CHECK([u cxx_characters].get<std::string>("c") == "x");
-		OO_CHECK([u cxx_missiontext].get<std::string>("m") == "y");
-		OO_CHECK([u currentSystemID] == 42);
-		OO_CHECK([u systemManager] == nil);
+		OO_CHECK(u->explosionSetting("slice19-boom").get<double>("size") == 2.0);
+		OO_CHECK(u->explosionSetting("slice19-missing").isNull());
+		OO_CHECK(u->scenarios().count() == 1);
+		OO_CHECK(u->getCharacters().get<std::string>("c") == "x");
+		OO_CHECK(u->getMissiontext().get<std::string>("m") == "y");
+		OO_CHECK(u->currentSystemID() == 42);
+		OO_CHECK(u->getSystemManager() == nil);
 
-		OO_CHECK([u cxx_keyForPlanetOverridesForSystem:7 inGalaxy:2] == "2 7");
-		OO_CHECK([u keyForInterstellarOverridesForSystems:3 s2:4 inGalaxy:2] == "interstellar: 2 3 4");
+		OO_CHECK(u->keyForPlanetOverridesForSystem(7, 2) == "2 7");
+		OO_CHECK(u->keyForInterstellarOverridesForSystems(3, 4, 2) == "interstellar: 2 3 4");
 
 		// Names are found whatever their case; a missing name matches nothing.
-		u->_cxxUniverse->system_names[5] = std::string("Lave");
-		u->_cxxUniverse->system_names[9] = std::string("Diso");
-		OO_CHECK([u cxx_findSystemFromName:"lave"] == 5);
-		OO_CHECK([u cxx_findSystemFromName:"DISO"] == 9);
-		OO_CHECK([u cxx_findSystemFromName:"Zaonce"] == -1);
+		u->system_names[5] = std::string("Lave");
+		u->system_names[9] = std::string("Diso");
+		OO_CHECK(u->findSystemFromName("lave") == 5);
+		OO_CHECK(u->findSystemFromName("DISO") == 9);
+		OO_CHECK(u->findSystemFromName("Zaonce") == -1);
 
 		// No sun in the universe: interstellar space.
-		OO_CHECK([u inInterstellarSpace]);
+		OO_CHECK(u->inInterstellarSpace());
 	}
 }
 
@@ -1074,23 +1072,23 @@ OO_TEST(slice20NamesAndRoutes)
 	@autoreleasepool
 	{
 		Universe *u = NewUniverse();
-		u->_cxxUniverse->system_names[5] = std::string("Lave");
-		OO_CHECK([u cxx_systemNameIndex:5] == "Lave");
-		OO_CHECK([u cxx_systemNameIndex:256 + 5] == "Lave");	// the index wraps at 256
-		OO_CHECK(![u cxx_systemNameIndex:6].has_value());
-		OO_CHECK([u systemsFound] == (BOOL *)u->_cxxUniverse->system_found);
+		u->system_names[5] = std::string("Lave");
+		OO_CHECK(u->systemNameIndex(5) == "Lave");
+		OO_CHECK(u->systemNameIndex(256 + 5) == "Lave");	// the index wraps at 256
+		OO_CHECK(!u->systemNameIndex(6).has_value());
+		OO_CHECK(u->systemsFound() == (BOOL *)u->system_found);
 
 		// No route from or to interstellar space, or outside the galaxy.
-		OO_CHECK([u cxx_routeFromSystem:-1 toSystem:7 optimizedBy:OPTIMIZED_BY_JUMPS].isNull());
-		OO_CHECK([u cxx_routeFromSystem:7 toSystem:-1 optimizedBy:OPTIMIZED_BY_TIME].isNull());
-		OO_CHECK([u cxx_routeFromSystem:300 toSystem:7 optimizedBy:OPTIMIZED_BY_JUMPS].isNull());
+		OO_CHECK(u->routeFromSystem(-1, 7, OPTIMIZED_BY_JUMPS).isNull());
+		OO_CHECK(u->routeFromSystem(7, -1, OPTIMIZED_BY_TIME).isNull());
+		OO_CHECK(u->routeFromSystem(300, 7, OPTIMIZED_BY_JUMPS).isNull());
 
 		// The current system's neighbours, once cached, are the cache.
-		u->_cxxUniverse->systemID = 3;
-		u->_cxxUniverse->closeSystems = std::vector<OOSystemID>{ 1, 2 };
-		OO_CHECK([u neighboursToSystem:3] == (std::vector<OOSystemID>{ 1, 2 }));
+		u->systemID = 3;
+		u->closeSystems = std::vector<OOSystemID>{ 1, 2 };
+		OO_CHECK(u->neighboursToSystem(3) == (std::vector<OOSystemID>{ 1, 2 }));
 
-		[u preloadPlanetTexturesForSystem:3];	// disabled: does nothing
+		u->preloadPlanetTexturesForSystem(3);	// disabled: does nothing
 	}
 }
 
@@ -1100,18 +1098,18 @@ OO_TEST(slice20DataAndTime)
 	@autoreleasepool
 	{
 		Universe *u = NewUniverse();
-		u->_cxxUniverse->globalSettings = oo::PList(oo::PList::Dict{ { "g", oo::PList("1") } });
-		u->_cxxUniverse->equipmentData = oo::PList(oo::PList::Array{ oo::PList("e") });
-		u->_cxxUniverse->equipmentDataOutfitting = oo::PList(oo::PList::Array{ oo::PList("o"), oo::PList("p") });
-		OO_CHECK([u cxx_globalSettings].get<std::string>("g") == "1");
-		OO_CHECK([u cxx_equipmentData].count() == 1);
-		OO_CHECK([u cxx_equipmentDataOutfitting].count() == 2);
-		OO_CHECK([u commodityMarket] == nil);
+		u->globalSettings = oo::PList(oo::PList::Dict{ { "g", oo::PList("1") } });
+		u->equipmentData = oo::PList(oo::PList::Array{ oo::PList("e") });
+		u->equipmentDataOutfitting = oo::PList(oo::PList::Array{ oo::PList("o"), oo::PList("p") });
+		OO_CHECK(u->getGlobalSettings().get<std::string>("g") == "1");
+		OO_CHECK(u->getEquipmentData().count() == 1);
+		OO_CHECK(u->getEquipmentDataOutfitting().count() == 2);
+		OO_CHECK(u->getCommodityMarket() == nil);
 
-		OO_CHECK([u timeDescription:90061] == "1 day 1 hour 1 minute 1 second");
-		OO_CHECK([u timeDescription:2 * 86400 + 7200 + 120 + 2.5] == "2 days 2 hours 2 minutes 2 seconds");
-		OO_CHECK([u timeDescription:3600] == "60 minutes");	// not more than an hour
-		OO_CHECK([u timeDescription:0] == "");
+		OO_CHECK(u->timeDescription(90061) == "1 day 1 hour 1 minute 1 second");
+		OO_CHECK(u->timeDescription(2 * 86400 + 7200 + 120 + 2.5) == "2 days 2 hours 2 minutes 2 seconds");
+		OO_CHECK(u->timeDescription(3600) == "60 minutes");	// not more than an hour
+		OO_CHECK(u->timeDescription(0) == "");
 	}
 }
 
@@ -1130,20 +1128,20 @@ OO_TEST(slice21ShortTimeAndMarkets)
 			words[std::string("contracts-") + unit + "-word%0"] = oo::PList(std::string(unit));
 			words[std::string("contracts-") + unit + "-word%1"] = oo::PList(std::string(unit) + "s");
 		}
-		u->_cxxUniverse->_descriptions = oo::PList(std::move(words));
+		u->_descriptions = oo::PList(std::move(words));
 
-		OO_CHECK([u cxx_shortTimeDescription:0] == "no time");
-		OO_CHECK([u cxx_shortTimeDescription:-5] == "no time");
-		OO_CHECK([u cxx_shortTimeDescription:90061] == "1 day 1 hour");	// two parts at most
-		OO_CHECK([u cxx_shortTimeDescription:2 * 3600 + 5] == "2 hours 5 seconds");
-		OO_CHECK([u cxx_shortTimeDescription:125] == "2 minutes 5 seconds");
-		OO_CHECK([u cxx_shortTimeDescription:1] == "1 second");
+		OO_CHECK(u->shortTimeDescription(0) == "no time");
+		OO_CHECK(u->shortTimeDescription(-5) == "no time");
+		OO_CHECK(u->shortTimeDescription(90061) == "1 day 1 hour");	// two parts at most
+		OO_CHECK(u->shortTimeDescription(2 * 3600 + 5) == "2 hours 5 seconds");
+		OO_CHECK(u->shortTimeDescription(125) == "2 minutes 5 seconds");
+		OO_CHECK(u->shortTimeDescription(1) == "1 second");
 
 		// No stations: no markets to save, and none to load into.
-		const oo::PList saved = [u cxx_getStationMarkets];
+		const oo::PList saved = u->getStationMarkets();
 		OO_CHECK(saved.isArray() && saved.count() == 0);
-		[u cxx_loadStationMarkets:oo::PList()];
-		[u cxx_loadStationMarkets:oo::PList(oo::PList::Array{ oo::PList(oo::PList::Dict{}) })];
+		u->loadStationMarkets(oo::PList());
+		u->loadStationMarkets(oo::PList(oo::PList::Array{ oo::PList(oo::PList::Dict{}) }));
 	}
 }
 
@@ -1157,17 +1155,17 @@ OO_TEST(slice23PositionsAndLists)
 	{
 		Universe *u = NewUniverse();
 
-		OO_CHECK(HPvector_equal([u getWitchspaceExitPosition], kZeroHPVector));
-		Quaternion q = [u getWitchspaceExitRotation];	// close to the identity, normalised
+		OO_CHECK(HPvector_equal(u->getWitchspaceExitPosition(), kZeroHPVector));
+		Quaternion q = u->getWitchspaceExitRotation();	// close to the identity, normalised
 		OO_CHECK(fabs(q.w * q.w + q.x * q.x + q.y * q.y + q.z * q.z - 1.0) < 1e-5);
 		OO_CHECK(q.w > 0.9f);
 
 		// No ship, or no sun: the origin.
-		OO_CHECK(HPvector_equal([u getSunSkimStartPositionForShip:nil], kZeroHPVector));
-		OO_CHECK(HPvector_equal([u getSunSkimEndPositionForShip:nil], kZeroHPVector));
+		OO_CHECK(HPvector_equal(u->getSunSkimStartPositionForShip(nullptr), kZeroHPVector));
+		OO_CHECK(HPvector_equal(u->getSunSkimEndPositionForShip(nullptr), kZeroHPVector));
 
 		// No beacons.
-		OO_CHECK([u cxx_listBeaconsWithCode:"A"].empty());
+		OO_CHECK(u->listBeaconsWithCode("A").empty());
 	}
 }
 
@@ -1177,20 +1175,20 @@ OO_TEST(slice23GUIsAndFlags)
 	@autoreleasepool
 	{
 		Universe *u = NewUniverse();
-		OO_CHECK([u gui] == nil && [u commLogGUI] == nil && [u messageGUI] == nil);
+		OO_CHECK(u->getGui() == nil && u->commLogGUI() == nil && u->messageGUI() == nil);
 
-		[u setDisplayText:YES];
-		OO_CHECK([u displayGUI] == YES && u->_cxxUniverse->displayGUI == YES);
-		[u setDisplayText:NO];
-		OO_CHECK(![u displayGUI]);
-		[u setDisplayFPS:YES];
-		OO_CHECK([u displayFPS]);
-		[u setDisplayFPS:NO];
-		OO_CHECK(![u displayFPS]);
-		[u setAutoSaveNow:YES];
-		OO_CHECK(u->_cxxUniverse->autoSaveNow == YES);
-		u->_cxxUniverse->autoSave = YES;
-		OO_CHECK([u autoSave]);
+		u->setDisplayText(YES);
+		OO_CHECK(u->getDisplayGUI() == YES && u->displayGUI == YES);
+		u->setDisplayText(NO);
+		OO_CHECK(!u->getDisplayGUI());
+		u->setDisplayFPS(YES);
+		OO_CHECK(u->getDisplayFPS());
+		u->setDisplayFPS(NO);
+		OO_CHECK(!u->getDisplayFPS());
+		u->setAutoSaveNow(YES);
+		OO_CHECK(u->autoSaveNow == YES);
+		u->autoSave = YES;
+		OO_CHECK(u->getAutoSave());
 	}
 }
 
@@ -1206,39 +1204,39 @@ OO_TEST(slice24DetailAndLogs)
 	{
 		Universe *u = NewUniverse();
 
-		u->_cxxUniverse->detailLevel = DETAIL_LEVEL_SHADERS;
-		OO_CHECK([u detailLevel] == DETAIL_LEVEL_SHADERS && [u useShaders] && ![u reducedDetail]);
-		u->_cxxUniverse->detailLevel = DETAIL_LEVEL_MINIMUM;
-		OO_CHECK([u reducedDetail] && ![u useShaders]);
-		u->_cxxUniverse->wireframeGraphics = YES;
-		OO_CHECK([u wireframeGraphics]);
+		u->detailLevel = DETAIL_LEVEL_SHADERS;
+		OO_CHECK(u->getDetailLevel() == DETAIL_LEVEL_SHADERS && u->useShaders() && !u->reducedDetail());
+		u->detailLevel = DETAIL_LEVEL_MINIMUM;
+		OO_CHECK(u->reducedDetail() && !u->useShaders());
+		u->wireframeGraphics = YES;
+		OO_CHECK(u->getWireframeGraphics());
 
-		[u setAutoSaveNow:YES];
-		OO_CHECK([u autoSaveNow]);
-		[u setAutoSaveNow:NO];
-		OO_CHECK(![u autoSaveNow]);
+		u->setAutoSaveNow(YES);
+		OO_CHECK(u->getAutoSaveNow());
+		u->setAutoSaveNow(NO);
+		OO_CHECK(!u->getAutoSaveNow());
 
-		[u setPauseMessageVisible:YES];
-		OO_CHECK([u pauseMessageVisible]);
-		[u setPauseMessageVisible:NO];
-		OO_CHECK(![u pauseMessageVisible]);
-		[u setAutoCommLog:YES];
-		OO_CHECK(u->_cxxUniverse->_autoCommLog);
-		[u setPermanentCommLog:NO];
-		[u setPermanentMessageLog:NO];
-		[u setAutoMessageLogBg:NO];
-		OO_CHECK(![u permanentCommLog] && ![u permanentMessageLog] && ![u autoMessageLogBg]);
+		u->setPauseMessageVisible(YES);
+		OO_CHECK(u->pauseMessageVisible());
+		u->setPauseMessageVisible(NO);
+		OO_CHECK(!u->pauseMessageVisible());
+		u->setAutoCommLog(YES);
+		OO_CHECK(u->_autoCommLog);
+		u->setPermanentCommLog(NO);
+		u->setPermanentMessageLog(NO);
+		u->setAutoMessageLogBg(NO);
+		OO_CHECK(!u->permanentCommLog() && !u->permanentMessageLog() && !u->autoMessageLogBg());
 
 		// Blocking remembers the player as stale.
 		SetUpTestPlayer();
-		[u setBlockJSPlayerShipProps:YES];
-		OO_CHECK([u blockJSPlayerShipProps]);
-		[u setBlockJSPlayerShipProps:NO];
-		OO_CHECK(![u blockJSPlayerShipProps]);
+		u->setBlockJSPlayerShipProps(YES);
+		OO_CHECK(u->blockJSPlayerShipProps());
+		u->setBlockJSPlayerShipProps(NO);
+		OO_CHECK(!u->blockJSPlayerShipProps());
 
 		// A non-fatal exception is only logged; nil is ignored.
-		[u handleOoliteException:[OOException exceptionWithName:"OoliteSlice24Exception" reason:"test"]];
-		[u handleOoliteException:nil];
+		u->handleOoliteException([OOException exceptionWithName:"OoliteSlice24Exception" reason:"test"]);
+		u->handleOoliteException(nullptr);
 	}
 }
 
@@ -1254,16 +1252,16 @@ OO_TEST(slice24Voices)
 		v1.name = "one";
 		v2.name = "two";
 		const espeak_VOICE *voices[] = { &v0, &v1, &v2, NULL };
-		u->_cxxUniverse->espeak_voices = voices;
-		u->_cxxUniverse->espeak_voice_count = 3;
+		u->espeak_voices = voices;
+		u->espeak_voice_count = 3;
 
-		OO_CHECK([u nextVoice:0] == 1 && [u nextVoice:2] == 0);
-		OO_CHECK([u prevVoice:1] == 0 && [u prevVoice:0] == 2);
-		OO_CHECK([u cxx_voiceName:1] == "one" && [u cxx_voiceName:3] == "-");
-		OO_CHECK([u cxx_voiceNumber:"two"] == 2 && [u cxx_voiceNumber:"nine"] == UINT_MAX);
+		OO_CHECK(u->nextVoice(0) == 1 && u->nextVoice(2) == 0);
+		OO_CHECK(u->prevVoice(1) == 0 && u->prevVoice(0) == 2);
+		OO_CHECK(u->voiceName(1) == "one" && u->voiceName(3) == "-");
+		OO_CHECK(u->voiceNumber("two") == 2 && u->voiceNumber("nine") == UINT_MAX);
 
-		u->_cxxUniverse->espeak_voices = nullptr;
-		u->_cxxUniverse->espeak_voice_count = 0;
+		u->espeak_voices = nullptr;
+		u->espeak_voice_count = 0;
 	}
 }
 #endif
@@ -1274,14 +1272,6 @@ OO_TEST(slice24Voices)
 // Objective-C API and run on the unconverted class first; the selectors only the private category
 // declared are declared here, as test_Entity's (TestPrivate). Reinitialising and the initial
 // universe need the whole game (the goldens).
-@interface Universe (Slice25TestPrivate)
-- (BOOL) doRemoveEntity:(Entity *)entity;
-- (float) randomDistanceWithinScanner;
-- (Vector) randomPlaceWithinScannerFrom:(Vector)pos alongRoute:(Vector)route withOffset:(double)offset;
-- (HPVector) fractionalPositionFrom:(HPVector)point0 to:(HPVector)point1 withFraction:(double)routeFraction;
-- (void) populateSpaceFromActiveWormholes;
-- (std::optional<std::string>) chooseStringForKey:(const std::string &)key inDictionary:(const oo::PList &)dictionary;
-@end
 
 
 OO_TEST(slice25RandomPositions)
@@ -1292,13 +1282,13 @@ OO_TEST(slice25RandomPositions)
 		const double half = SCANNER_MAX_RANGE / 2;
 		for (int i = 0; i < 20; i++)
 		{
-			float d = [u randomDistanceWithinScanner];
+			float d = u->randomDistanceWithinScanner();
 			OO_CHECK(d >= -half && d < half);
 
-			Vector v = [u randomPlaceWithinScannerFrom:make_vector(10, 20, 30) alongRoute:make_vector(1, 0, 0) withOffset:100];
+			Vector v = u->randomPlaceWithinScannerFrom(make_vector(10, 20, 30), make_vector(1, 0, 0), 100);
 			OO_CHECK(v.x >= 110 - half && v.x < 110 + half && v.y >= 20 - half && v.y < 20 + half && v.z >= 30 - half && v.z < 30 + half);
 
-			HPVector h = [u fractionalPositionFrom:make_HPvector(0, 0, 0) to:make_HPvector(1000, 0, 0) withFraction:0.5];
+			HPVector h = u->fractionalPositionFrom(make_HPvector(0, 0, 0), make_HPvector(1000, 0, 0), 0.5);
 			OO_CHECK(h.x >= 500 - SCANNER_MAX_RANGE && h.x <= 500 + SCANNER_MAX_RANGE && fabs(h.y) <= SCANNER_MAX_RANGE && fabs(h.z) <= SCANNER_MAX_RANGE);
 		}
 	}
@@ -1316,15 +1306,15 @@ OO_TEST(slice25ChooseStringAndWormholes)
 			{ "none", oo::PList(oo::PList::Array{}) },
 			{ "number", oo::PList(3.0) },
 		});
-		OO_CHECK([u chooseStringForKey:"one" inDictionary:dict] == "only");
-		std::optional<std::string> some = [u chooseStringForKey:"some" inDictionary:dict];
+		OO_CHECK(u->chooseStringForKey("one", dict) == "only");
+		std::optional<std::string> some = u->chooseStringForKey("some", dict);
 		OO_CHECK(some == "a" || some == "b");
-		OO_CHECK(![u chooseStringForKey:"none" inDictionary:dict].has_value());
-		OO_CHECK(![u chooseStringForKey:"number" inDictionary:dict].has_value());
-		OO_CHECK(![u chooseStringForKey:"missing" inDictionary:dict].has_value());
+		OO_CHECK(!u->chooseStringForKey("none", dict).has_value());
+		OO_CHECK(!u->chooseStringForKey("number", dict).has_value());
+		OO_CHECK(!u->chooseStringForKey("missing", dict).has_value());
 
-		[u populateSpaceFromActiveWormholes];	// none: nothing to do
-		OO_CHECK(u->_cxxUniverse->activeWormholes.empty());
+		u->populateSpaceFromActiveWormholes();	// none: nothing to do
+		OO_CHECK(u->activeWormholes.empty());
 	}
 }
 
@@ -1337,19 +1327,19 @@ OO_TEST(slice25DoRemoveEntity)
 		Entity *a = MakeEntity(make_HPvector(0, 0, 0), 1);
 		Entity *b = MakeEntity(make_HPvector(5, 0, 0), 1);
 		SetSortedEntities(u, { a, b });
-		a->_cxxEntity->zero_index = 0;
-		b->_cxxEntity->zero_index = 1;
-		u->_cxxUniverse->entities.emplace_back(a);
-		u->_cxxUniverse->entities.emplace_back(b);
+		a->zero_index = 0;
+		b->zero_index = 1;
+		u->entities.emplace_back(a);	// held C++ entities since bead oo-9ht.39.26
+		u->entities.emplace_back(b);
 
-		OO_CHECK([u doRemoveEntity:a]);
-		OO_CHECK(u->_cxxUniverse->n_entities == 1 && SortedEntity(u, 0) == b && SortedEntity(u, 1) == nil);
-		OO_CHECK(b->_cxxEntity->zero_index == 0 && a->_cxxEntity->zero_index == -1);
-		OO_CHECK(u->_cxxUniverse->entities.size() == 1 && u->_cxxUniverse->entities[0].get() == b);
-		OO_CHECK(![u doRemoveEntity:a]);	// gone already: not in the definitive list
+		OO_CHECK(u->doRemoveEntity(a));
+		OO_CHECK(u->n_entities == 1 && SortedEntity(u, 0) == b && SortedEntity(u, 1) == nil);
+		OO_CHECK(b->zero_index == 0 && a->zero_index == -1);
+		OO_CHECK(u->entities.size() == 1 && u->entities[0].get() == b);
+		OO_CHECK(!u->doRemoveEntity(a));	// gone already: not in the definitive list
 
-		u->_cxxUniverse->n_entities = 0;
-		u->_cxxUniverse->entities.clear();
+		u->n_entities = 0;
+		u->entities.clear();
 	}
 }
 
@@ -1359,13 +1349,6 @@ OO_TEST(slice25DoRemoveEntity)
 // Written against the Objective-C API and run on the unconverted class first. Loading a condition
 // script or a sound file needs the JavaScript engine and the game's files (the goldens): here only
 // what is missing.
-@interface Universe (Slice26TestPrivate)
-#if OO_LOCALIZATION_TOOLS
-- (void) addNumericRefsInString:(const std::string &)string toGraphViz:(std::string &)graphViz fromNode:(const std::string &)fromNode nodeCount:(NSUInteger)nodeCount;
-- (void) runLocalizationTools;
-#endif
-- (void) prunePreloadingPlanetMaterials;
-@end
 
 
 OO_TEST(slice26GraphVizAndTools)
@@ -1375,25 +1358,25 @@ OO_TEST(slice26GraphVizAndTools)
 		Universe *u = NewUniverse();
 #if OO_LOCALIZATION_TOOLS
 		std::string graphViz = "start\n";
-		[u addNumericRefsInString:"a [3] b %H" toGraphViz:graphViz fromNode:"from" nodeCount:10];
+		u->addNumericRefsInString("a [3] b %H", graphViz, "from", 10);
 		OO_CHECK(graphViz == "start\n"
 				 "\tfrom -> n3_0 [color=\"0.300000,0.75,0.8\" lhead=cluster_3]\n"
 				 "\tfrom -> percent_H [color=\"0,0,0.45\"]\n");
 		graphViz.clear();
-		[u addNumericRefsInString:"%I %R %J %G" toGraphViz:graphViz fromNode:"x" nodeCount:4];
+		u->addNumericRefsInString("%I %R %J %G", graphViz, "x", 4);
 		OO_CHECK(graphViz == "\tx -> percent_I [color=\"0,0,0.25\"]\n"
 				 "\tx -> percent_RN [color=\"0,0,0.65\"]\n"
 				 "\tx -> percent_J [color=\"0,0,0.75\"]\n"
 				 "\tx -> percent_G [color=\"0,0,0.85\"]\n");
 		graphViz.clear();
-		[u addNumericRefsInString:"no refs [unclosed" toGraphViz:graphViz fromNode:"x" nodeCount:4];
+		u->addNumericRefsInString("no refs [unclosed", graphViz, "x", 4);
 		OO_CHECK(graphViz.empty());
 
-		[u runLocalizationTools];	// no --compile-sysdesc / --export-sysdesc: nothing
+		u->runLocalizationTools();	// no --compile-sysdesc / --export-sysdesc: nothing
 #endif
 
-		[u prunePreloadingPlanetMaterials];	// none preloading
-		OO_CHECK(u->_cxxUniverse->_preloadingPlanetMaterials.empty());
+		u->prunePreloadingPlanetMaterials();	// none preloading
+		OO_CHECK(u->_preloadingPlanetMaterials.empty());
 	}
 }
 
@@ -1403,13 +1386,13 @@ OO_TEST(slice26ConditionScriptsAndSounds)
 	@autoreleasepool
 	{
 		Universe *u = NewUniverse();
-		[u addConditionScripts:std::vector<std::string>()];
-		OO_CHECK(u->_cxxUniverse->conditionScripts.empty());
-		OO_CHECK([u cxx_getConditionScript:"slice26-missing.js"] == nil);
+		u->addConditionScripts(std::vector<std::string>());
+		OO_CHECK(u->conditionScripts.empty());
+		OO_CHECK(u->getConditionScript("slice26-missing.js") == nil);
 
 		// A key with no custom sound makes no sound. (The OOSoundSource category's initialisers, which
 		// made no source for it, went with that facade: bead oo-9ht.88.)
-		u->_cxxUniverse->customSounds = oo::PList(oo::PList::Dict{});
+		u->customSounds = oo::PList(oo::PList::Dict{});
 		OO_CHECK(OOSoundWithCustomSoundKey("[slice26-missing]") == nullptr);
 	}
 }
@@ -1420,7 +1403,7 @@ OO_TEST(slice26PluralDescriptions)
 	@autoreleasepool
 	{
 		Universe *u = NewUniverse();
-		u->_cxxUniverse->_descriptions = oo::PList(oo::PList::Dict{
+		u->_descriptions = oo::PList(oo::PList::Dict{
 			{ "plural-rules", oo::PList(oo::PList::Array{ oo::PList("=1") }) },
 			{ "slice26-apple%0", oo::PList("apple") },
 			{ "slice26-apple%1", oo::PList("apples") },

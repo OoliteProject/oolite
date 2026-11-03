@@ -79,6 +79,8 @@ void OOSparkEntity::performUpdate(OOTimeDelta delta_t)
     _colorComponents[3] = mix * _baseRGBA[3];
 
     // Disappear when gone.
-    if (mix == 0)
-        [UNIVERSE removeEntity:oo::ToObjC(this)];
+    if (mix == 0) {
+        if (UNIVERSE != nullptr)
+            UNIVERSE->removeEntity(this);
+    }
 }

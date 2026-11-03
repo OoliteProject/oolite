@@ -27,9 +27,11 @@ MA 02110-1301, USA.
 
 */
 
+#ifdef __OBJC__
 #import "OOFoundation.h"
+#endif
 #include "OOOpenGLCheck.h"
-#import "OOOpenGLOnly.h"
+#include "OOOpenGLOnly.h"
 
 typedef enum {
     // NOTE: numerical values are available to scripts.
@@ -176,8 +178,10 @@ void GLDrawBallBillboard(GLfloat radius, GLfloat step, GLfloat z_distance);
 /*	GLDrawOval(), GLDrawFilledOval()
         Draw axis-alligned ellipses, as outline and fill respectively.
 */
+#ifdef __OBJC__ // NSSize is Foundation's; a plain C++ unit (OODebugGLDrawing.cpp, bead oo-9ht.185) does not see these
 void GLDrawOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat step);
 void GLDrawFilledOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat step);
+#endif
 
 /*	GLDrawPoints(), GLDrawFilledPoints()
         Draw array of points, as outline and fill respectively.

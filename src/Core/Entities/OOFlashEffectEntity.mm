@@ -72,11 +72,12 @@ void OOFlashEffectEntity::initLaserFlashWithPosition(HPVector pos, Vector vel, O
     }
 }
 
-// The entity stays its Objective-C object (amendment oo-bj8 item 4): messages to nil answer as before.
-oo::Ref<OOFlashEffectEntity> OOFlashEffectEntity::explosionFlashFromEntity(::Entity* entity)
+// The C++ entity (it was its Objective-C object, amendment oo-bj8 item 4): the
+// members -position, -velocity and -collisionRadius forwarded to; none answers zero, as nil did.
+oo::Ref<OOFlashEffectEntity> OOFlashEffectEntity::explosionFlashFromEntity(Entity* entity)
 {
     const oo::Ref<OOFlashEffectEntity> flash = oo::makeRef<OOFlashEffectEntity>();
-    flash->initExplosionFlashWithPosition([entity position], [entity velocity], [entity collisionRadius]);
+    flash->initExplosionFlashWithPosition(entity != nullptr ? entity->getPosition() : kZeroHPVector, entity != nullptr ? entity->getVelocity() : kZeroVector, entity != nullptr ? entity->collisionRadius() : 0.0f);
     return flash;
 }
 
@@ -115,11 +116,13 @@ void OOFlashEffectEntity::update(OOTimeDelta delta_t)
     _colorComponents[3] = _alpha * ((lifeTime < tf) ? (lifeTime / tf) : (_duration - lifeTime) / tf1);
 
     // Disappear as necessary.
-    if (lifeTime > _duration)
-        [UNIVERSE removeEntity:oo::ToObjC(this)];
+    if (lifeTime > _duration) {
+        if (UNIVERSE != nullptr)
+            UNIVERSE->removeEntity(this);
+    }
 }
 
-::OOTexture* OOFlashEffectEntity::texture()
+OOTexture* OOFlashEffectEntity::texture()
 {
     if (sFlashTexture == nil)
         OOFlashEffectEntity::setUpTexture();
@@ -129,17 +132,13 @@ void OOFlashEffectEntity::update(OOTimeDelta delta_t)
 void OOFlashEffectEntity::setUpTexture()
 {
     if (sFlashTexture == nil) {
-        sFlashTexture = [[::OOTexture cxx_textureWithName:"oolite-particle-flash.png"
-                                                 inFolder:"Textures"
-                                                  options:kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear | kOOTextureAlphaMask
-                                               anisotropy:kOOTextureDefaultAnisotropy
-                                                  lodBias:0.0] retain];
+        sFlashTexture = OOTexture::textureWithName("oolite-particle-flash.png", "Textures", kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear | kOOTextureAlphaMask, kOOTextureDefaultAnisotropy, 0.0).leakRef();
         OOGraphicsResetManager::sharedManager()->registerCxxClient(new FlashTextureResetClient);
     }
 }
 
 void OOFlashEffectEntity::resetGraphicsState()
 {
-    [sFlashTexture release];
-    sFlashTexture = nil;
+    oo::release(sFlashTexture);
+    sFlashTexture = nullptr;
 }

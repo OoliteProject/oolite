@@ -10,12 +10,17 @@
 	category sends with values the test sets; a system attribute that is not a number reads 0, as
 	-unsignedIntValue of nil did. The test links the whole game but main (['*']) for Entity. The
 	expectations were written against the Objective-C category and run on it first; the
-	conversion (amendment oo-9fwb: members of cxx::Entity, the category's forwarders in
+	conversion (amendment oo-9fwb: members of Entity, the category's forwarders in
 	EntityShaderBindings+ObjCBridge.mm) changed no line here. Since the uniforms bind the members
 	through the entities' member table (bead oo-9ht.158) and the forwarders went (bead oo-9ht.127),
 	the test asks the binding a uniform makes for each name on an entity's object, and pins the
 	uniform type the row gives, which is the one the method's return type encoding gave
-	('f' a float, 'I' an unsigned int); every expected value is kept.
+	('f' a float, 'I' an unsigned int); every expected value is kept. Since bead oo-9ht.39.6.1 moved
+	the table to EntityShaderBindings.mm, its rows read the entity's C++ part (the binding's target,
+	which the helpers below pass where they passed the object; no expected value changes), and
+	everyPermittedNameBindsAsBySelector (added) pins that every name whitelist.plist permits that the
+	facade still binds by selector binds through a row, with the type the selector path read (the
+	names whose facade methods earlier beads deleted bind by row only).
 	Run: bash tools/check-core-tests.sh
 */
 
@@ -26,6 +31,7 @@
 #include "oofnd/PList.hpp"
 
 #include <cmath>
+#include <cstdio>
 #include <cstring>
 
 
@@ -40,6 +46,7 @@ extern PlayerEntity *gOOPlayer;
 
 // The values under test, as the uniforms reach them: the binding for a name (bead oo-9ht.158).
 #import "OOShaderUniformMethodType.h"
+#import "OOEntityCalledByName.h"	// the by-name table's names (bead oo-9ht.39.7.3)
 
 
 // PLAYER: answers what the category asks for, with the test's values (C++ since bead oo-9ht.177
@@ -74,7 +81,7 @@ T *NewTestPlayer()
 	oo::Ref<T> player = oo::makeRef<T>();
 	@autoreleasepool
 	{
-		[oo::NewEntityFacade(player) retain];
+		oo::RetainEntity(oo::MadeEntity(player));
 	}
 	return player.get();
 }
@@ -102,15 +109,16 @@ void SetUp()
 
 Entity *AnEntity()
 {
-	return [[[Entity alloc] init] autorelease];
+	return oo::MadeEntity(oo::makeRef<Entity>());
 }
 
 
-// The binding a uniform bound to the name on the entity's object makes (the member table).
+// The binding a uniform bound to the name on the entity's object makes (the member table; the
+// entity's own since bead oo-dpyk8 deleted the object).
 OOShaderMemberBinding Binding(Entity *entity, const char *name)
 {
 	OOShaderMemberBinding binding = {};
-	if (!OOShaderMemberBindingFor(entity, sel_registerName(name), &binding))  binding = {};
+	if (!EntityShaderMemberBindingFor(entity, name, &binding))  binding = {};
 	return binding;
 }
 
@@ -119,7 +127,7 @@ long long BoundInt(Entity *entity, const char *name)
 {
 	OOShaderBindingValue value = {};
 	const OOShaderMemberBinding binding = Binding(entity, name);
-	if (binding.get != nullptr)  binding.get(entity, value);
+	if (binding.get != nullptr)  binding.get(binding.target, value);	// the entity's C++ part (bead oo-9ht.39.6.1)
 	return value.i;
 }
 
@@ -127,7 +135,7 @@ double BoundFloat(Entity *entity, const char *name)
 {
 	OOShaderBindingValue value = {};
 	const OOShaderMemberBinding binding = Binding(entity, name);
-	if (binding.get != nullptr)  binding.get(entity, value);
+	if (binding.get != nullptr)  binding.get(binding.target, value);	// the entity's C++ part (bead oo-9ht.39.6.1)
 	return value.f;
 }
 
@@ -227,7 +235,64 @@ OO_TEST(subclassesAnswerToo)
 		SetUp();
 		// A subclass of Entity (here the test's player) answers the category's selectors.
 		sPlayer->_random100 = 7;
-		OO_CHECK(BoundInt(oo::ToObjC(sPlayer), "pseudoFixedD100") == 7);	// the player's object (C++ player since bead oo-9ht.177)
+		OO_CHECK(BoundInt(sPlayer, "pseudoFixedD100") == 7);	// the player's object (C++ player since bead oo-9ht.177)
+	}
+}
+
+
+// Bead oo-9ht.39.6.1: every name whitelist.plist permits a shader to bind on an entity (its four
+// shader_*_binding_methods arrays) is a row of the member table where the root's facade answered it,
+// with the uniform type the selector path read from the facade's method; laserColor, which nothing
+// answers, and the NSUInteger names, whose type no uniform takes, bind neither way. The comparison
+// with the selector path on the entity's object (the root facade's methods) is retired with the
+// facade (bead oo-dpyk8, under oo-9n5p9): the rows and the bindings they make are still checked.
+OO_TEST(everyPermittedNameBindsAsBySelector)
+{
+	@autoreleasepool
+	{
+		SetUp();
+		static const char *const kNames[] =
+		{
+		"position", "orientation", "relativePosition", "cameraRelativePosition", "viewpointOffset",
+		"collisionRadius", "mass", "energy", "maxEnergy", "universalTime", "spawnTime",
+		"timeElapsedSinceSpawn", "throwingSparks", "fogUniform", "airColorAsVector",
+		"illuminationColorAsVector", "airColorMixRatio", "airDensity", "terminatorThresholdVector", "clock",
+		"pseudoFixedD100", "pseudoFixedD256", "systemGovernment", "systemEconomy", "systemTechLevel",
+		"systemPopulation", "systemProductivity", "isBeacon", "isFrangible", "isCloaked",
+		"isJammingScanning", "hasMilitaryScannerFilter", "messageTime", "escortCount", "hasHostileTarget",
+		"weaponRange", "scannerRange", "withinStationAegis", "fuel", "flightPitch", "flightRoll",
+		"flightYaw", "flightSpeed", "maxFlightSpeed", "speedFactor", "damage", "weaponRecoveryTime",
+		"laserHeatLevel", "laserHeatLevelAft", "laserHeatLevelForward", "laserHeatLevelPort",
+		"laserHeatLevelStarboard", "hullHeatLevel", "entityPersonality", "entityPersonalityInt",
+		"numberOfScannedShips", "destination", "rangeToDestination", "rangeToPrimaryTarget", "laserColor",
+		"isHulk", "lightsActive", "legalStatus", "velocity", "missileCapacity", "missileCount",
+		"alertCondition", "fuelLeakRate", "massLocked", "atHyperspeed", "dialForwardShield", "dialAftShield",
+		"dialMissileStatus", "dialFuelScoopStatus", "compassMode", "dialIdentEngaged", "trumbleCount",
+		"tradeInFactor", "forwardVector", "rightVector", "upVector", "shaderFloat1", "shaderFloat2",
+		"shaderInt1", "shaderInt2", "shaderVector1", "shaderVector2",
+		};
+		Entity *const objects[] = { AnEntity(), sPlayer };	// any entity; a player (a ship)
+		int rows = 0;
+		for (Entity *object : objects)
+		{
+			for (const char *name : kNames)
+			{
+				OOShaderMemberBinding binding = {};
+				const bool byRow = EntityShaderMemberBindingFor(object, name, &binding);
+				if (byRow)
+				{
+					OO_CHECK(binding.target == object);
+					rows++;
+				}
+			}
+		}
+		OO_CHECK(rows > 0);
+		OO_CHECK(Binding(AnEntity(), "laserColor").get == nullptr);
+		OO_CHECK(Binding(AnEntity(), "airColorAsVector").get == nullptr);	// a planet's only
+		OO_CHECK(Binding(AnEntity(), "cameraRelativePosition").type == kOOShaderUniformTypeVector);
+		OO_CHECK(Binding(AnEntity(), "fogUniform").type == kOOShaderUniformTypeColor);
+		OO_CHECK(Binding(sPlayer, "tradeInFactor").type == kOOShaderUniformTypeInt);
+		OO_CHECK(BoundInt(sPlayer, "tradeInFactor") == sPlayer->tradeInFactor());
 	}
 }
 

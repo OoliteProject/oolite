@@ -9,7 +9,7 @@ C++20 (the OOColor house style), a subclass of OOScript. Its Objective-C facade 
 so was the OOScript root's facade, which was then its object: the script's identity is the C++
 object. Holders keep it as oo::Ref (the timers and definitions as oo::WeakRef), the stack of running
 scripts holds it weakly, and the Script JS object's private slot holds a weak reference to it
-(OOJSPrivateObject glue), as it held the facade's OOWeakReference.
+(OOJSPrivateObject glue), as it held the facade's weak reference proxy.
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -62,8 +62,8 @@ public:
             timers. Failing to balance these will crash!
             Passing a nil script is valid for cases where JS is used which is not
             attached to a specific script.
-            The weak form is for a holder that keeps its script weakly (it pushed the OOWeakReference
-            -weakRetain gave it); pop it with its get().
+            The weak form is for a holder that keeps its script weakly (it pushed the weak reference
+            proxy the script's facade gave it); pop it with its get().
     */
     static void pushScript(OOJSScript* script);
     static void pushScript(const oo::WeakRef<OOJSScript>& script);
@@ -96,7 +96,7 @@ public:
     std::optional<std::string> name() override;
     std::optional<std::string> scriptDescription() override;
     std::optional<std::string> version() override;
-    void runWithTarget(::Entity* target) override;
+    void runWithTarget(Entity* target) override;
 
 private:
     void javaScriptEngineWillReset(const oo::Notification& notification);

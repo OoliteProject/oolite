@@ -45,7 +45,7 @@ SOFTWARE.
         only natives are profiled.
 */
 
-void OOJSTimeManagementInit(OOJavaScriptEngine* engine, JSRuntime* runtime)
+void OOJSTimeManagementInit(OOJavaScriptEngine* /*engine*/, JSRuntime* /*runtime*/)
 {
     // The interrupt handler is installed by -[OOJavaScriptEngine init].
 }
@@ -161,6 +161,7 @@ void OOJSProfileEnter(OOJSProfileStackFrame* frame, const char* function)
         .key = function,
         .function = function,
         .startTime = OOGetHighResTime(),
+        .subTime = 0,
         .total = &sProfilerTotalNativeTime
     };
     sProfileStack = frame;

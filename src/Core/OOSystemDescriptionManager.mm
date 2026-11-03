@@ -233,7 +233,7 @@ void OOSystemDescriptionManager::importScriptedChanges(const oo::PList& scripted
         const std::vector<std::string> key = oo::str::split(keyStr, kOOScriptedChangeJoiner);
         if (key.size() == 4) {
             const std::string& manifest = key[0];
-            if (![::ResourceManager cxx_manifestForIdentifier:manifest].isNull()) {
+            if (!ResourceManager::manifestForIdentifier(manifest).isNull()) {
                 //				OO_LOG("importing", "{} -> {}", oo::DescriptionOf(keyStr), oo::DescriptionOf([scripted objectForKey:keyStr]));
                 setProperty(key[2],
                     key[1],
@@ -295,7 +295,7 @@ oo::PList OOSystemDescriptionManager::exportScriptedChanges()
 
 oo::PList OOSystemDescriptionManager::getPropertiesForCurrentSystem()
 {
-    OOSystemID s = [UNIVERSE currentSystemID];
+    OOSystemID s = (UNIVERSE != nullptr ? UNIVERSE->currentSystemID() : 0);
     if (s >= 0) {
         NSUInteger index = ((PLAYER != nullptr ? PLAYER->PlayerEntity::galaxyNumber() : OOGalaxyID { }) * OO_SYSTEMS_PER_GALAXY) + s; // qualified: the final overrider (bead oo-9ht.177), so the binding test stands in for it
         if (index >= OO_SYSTEM_CACHE_LENGTH) {
@@ -518,10 +518,10 @@ std::vector<OOSystemID> OOSystemDescriptionManager::getNeighbourIDsForSystem(OOS
 
 Random_Seed OOSystemDescriptionManager::getRandomSeedForCurrentSystem()
 {
-    if ([UNIVERSE currentSystemID] < 0) {
+    if ((UNIVERSE != nullptr ? UNIVERSE->currentSystemID() : 0) < 0) {
         return kNilRandomSeed;
     } else {
-        OOSystemID s = [UNIVERSE currentSystemID];
+        OOSystemID s = (UNIVERSE != nullptr ? UNIVERSE->currentSystemID() : 0);
         NSUInteger index = ((PLAYER != nullptr ? PLAYER->PlayerEntity::galaxyNumber() : OOGalaxyID { }) * OO_SYSTEMS_PER_GALAXY) + s; // qualified: the final overrider (bead oo-9ht.177), so the binding test stands in for it
         if (index >= OO_SYSTEM_CACHE_LENGTH) {
             OO_LOG("system.description.error", "'{}' is an invalid system index for the current system. This is an internal error. Please report it.", static_cast<size_t>(index));

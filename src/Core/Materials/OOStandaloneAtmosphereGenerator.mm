@@ -101,7 +101,7 @@ bool OOStandaloneAtmosphereGenerator::initWithPlanetInfo(const oo::PList& planet
 
     // AllowCubeMap not used yet but might be in future
     if (initWithPath(oo::str::format("OOStandaloneAtmosphereTexture@%s", oo::str::pointerDescription(this).c_str()), kOOTextureAllowCubeMap)) {
-        OO_LOG("texture.planet.generate", "Extracting parameters for generator {}", oo::DescriptionOf(oo::ToObjC(this)));
+        OO_LOG("texture.planet.generate", "Extracting parameters for generator {}", description());
         _info.seed = seed; // was a value box under "noise_map_seed" in planetInfo (bead oo-3rb.48)
         OO_LOG("texture.planet.generate", "{}", "Extracting atmosphere parameters");
         // we are an atmosphere:
@@ -110,7 +110,7 @@ bool OOStandaloneAtmosphereGenerator::initWithPlanetInfo(const oo::PList& planet
         _info.cloudColor = FloatRGBFromDictColor(planetInfo, "cloud_color");
         _info.paleCloudColor = FloatRGBFromDictColor(planetInfo, "polar_cloud_color");
 
-        OOGraphicsDetail detailLevel = [UNIVERSE detailLevel];
+        OOGraphicsDetail detailLevel = (UNIVERSE != nullptr ? UNIVERSE->getDetailLevel() : OOGraphicsDetail { });
 
 #ifndef TEXGEN_TEST_RIG
         if (detailLevel < DETAIL_LEVEL_SHADERS) {
@@ -130,18 +130,18 @@ bool OOStandaloneAtmosphereGenerator::initWithPlanetInfo(const oo::PList& planet
     return false;
 }
 
-oo::ObjCRef<::OOTexture*> OOStandaloneAtmosphereGenerator::planetTextureWithInfo(const oo::PList& planetInfo, RANROTSeed seed)
+oo::Ref<OOTexture> OOStandaloneAtmosphereGenerator::planetTextureWithInfo(const oo::PList& planetInfo, RANROTSeed seed)
 {
-    oo::ObjCRef<::OOTexture*> result;
+    oo::Ref<OOTexture> result;
     const oo::Ref<OOStandaloneAtmosphereGenerator> generator = generatorWithPlanetInfo(planetInfo, seed);
     if (generator) {
-        result = cxx::OOTexture::textureWithGenerator(oo::ToObjC(generator.get()));
+        result = OOTexture::textureWithGenerator(generator.get());
     }
 
     return result;
 }
 
-bool OOStandaloneAtmosphereGenerator::generateAtmosphereTexture(oo::ObjCRef<::OOTexture*>* texture, const oo::PList& planetInfo, RANROTSeed seed)
+bool OOStandaloneAtmosphereGenerator::generateAtmosphereTexture(oo::Ref<OOTexture>* texture, const oo::PList& planetInfo, RANROTSeed seed)
 {
     OOCParameterAssert(texture != NULL);
 
@@ -149,7 +149,7 @@ bool OOStandaloneAtmosphereGenerator::generateAtmosphereTexture(oo::ObjCRef<::OO
     if (!atmoGen)
         return false;
 
-    *texture = cxx::OOTexture::textureWithGenerator(oo::ToObjC(atmoGen.get()));
+    *texture = OOTexture::textureWithGenerator(atmoGen.get());
 
     return texture->get() != nil;
 }
@@ -180,15 +180,15 @@ bool OOStandaloneAtmosphereGenerator::getResultFormatWidthHeight(OOPixMap* outDa
     BOOL waiting = NO;
     if (!isReady()) {
         waiting = true;
-        OO_LOG("texture.planet.generate.wait", "{} generator {}", "Waiting for", oo::DescriptionOf(oo::ToObjC(this)));
+        OO_LOG("texture.planet.generate.wait", "{} generator {}", "Waiting for", description());
     }
 
-    BOOL result = cxx::OOTextureGenerator::getResult(outData, outFormat, outWidth, outHeight);
+    BOOL result = OOTextureGenerator::getResult(outData, outFormat, outWidth, outHeight);
 
     if (waiting) {
-        OO_LOG("texture.planet.generate.dequeue", "{} generator {}", result ? "Dequeued" : "Failed to dequeue", oo::DescriptionOf(oo::ToObjC(this)));
+        OO_LOG("texture.planet.generate.dequeue", "{} generator {}", result ? "Dequeued" : "Failed to dequeue", description());
     } else {
-        OO_LOG("texture.planet.generate.dequeue", "{} generator {} without waiting.", result ? "Dequeued" : "Failed to dequeue", oo::DescriptionOf(oo::ToObjC(this)));
+        OO_LOG("texture.planet.generate.dequeue", "{} generator {} without waiting.", result ? "Dequeued" : "Failed to dequeue", description());
     }
 
     return result;
@@ -198,7 +198,7 @@ bool OOStandaloneAtmosphereGenerator::getResultFormatWidthHeight(OOPixMap* outDa
  * various noise, interpolation, etc. functions */
 void OOStandaloneAtmosphereGenerator::loadTexture()
 {
-    OO_LOG("texture.planet.generate.begin", "Started generator {}", oo::DescriptionOf(oo::ToObjC(this)));
+    OO_LOG("texture.planet.generate.begin", "Started generator {}", description());
 
     BOOL success = NO;
 
@@ -262,19 +262,19 @@ END:
         FREE(aBuffer);
     }
 
-    OO_LOG("texture.planet.generate.complete", "Completed generator {} {}successfully", oo::DescriptionOf(oo::ToObjC(this)), success ? "" : "un");
+    OO_LOG("texture.planet.generate.complete", "Completed generator {} {}successfully", description(), success ? "" : "un");
 
 #if DEBUG_DUMP
     if (success) {
         const std::string diffuseName = oo::str::format("atmosphere-%u-%u-diffuse-new", _info.seed.high, _info.seed.low);
         const std::string lightsName = oo::str::format("atmosphere-%u-%u-alpha-new", _info.seed.high, _info.seed.low);
 
-        [[UNIVERSE gameView] cxx_dumpRGBAToRGBFileNamed:diffuseName
-                                       andGrayFileNamed:lightsName
-                                                  bytes:aBuffer
-                                                  width:_width
-                                                 height:_height
-                                               rowBytes:_width * 4];
+        [(UNIVERSE != nullptr ? UNIVERSE->getGameView() : nullptr) cxx_dumpRGBAToRGBFileNamed:diffuseName
+                                                                             andGrayFileNamed:lightsName
+                                                                                        bytes:aBuffer
+                                                                                        width:_width
+                                                                                       height:_height
+                                                                                     rowBytes:_width * 4];
     }
 #endif
 }
@@ -293,11 +293,11 @@ void OOStandaloneAtmosphereGenerator::dumpNoiseBuffer(float* noise)
         }
     }
 
-    [[UNIVERSE gameView] cxx_dumpGrayToFileNamed:noiseName
-                                           bytes:noisePx
-                                           width:_width
-                                          height:_height
-                                        rowBytes:_width];
+    [(UNIVERSE != nullptr ? UNIVERSE->getGameView() : nullptr) cxx_dumpGrayToFileNamed:noiseName
+                                                                                 bytes:noisePx
+                                                                                 width:_width
+                                                                                height:_height
+                                                                              rowBytes:_width];
     FREE(noisePx);
 }
 

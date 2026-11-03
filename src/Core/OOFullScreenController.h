@@ -31,10 +31,9 @@ MA 02110-1301, USA.
 
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"
-#include "oofnd/objc/OOObjCRef.h"
 #include <string_view>
 
-@class MyOpenGLView;
+#import "MyOpenGLView.h" // oo::Ref<MyOpenGLView>
 
 /*	Display-mode dictionary keys. On Mac OS X they were CoreGraphics' kCGDisplay* constants, whose
         values are these same strings (CFSTR("Width") and so on), so a mode dictionary answers to either.
@@ -78,5 +77,5 @@ public:
     virtual void noteMouseInteractionModeChangedFrom(OOMouseInteractionMode oldMode, OOMouseInteractionMode newMode);
 
 private:
-    oo::ObjCRef<MyOpenGLView*> _gameView = { };
+    oo::Ref<MyOpenGLView> _gameView; // retained, as the Objective-C view was
 };

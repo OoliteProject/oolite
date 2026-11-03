@@ -172,7 +172,7 @@ static int ManifestGetOwnProperty(JSContext* context, JSPropertyDescriptor* desc
          * compatible-ish with 1.80 and earlier except that
          * alienItems and similar aliases don't work */
         std::optional<std::string> key = NameForPropertyID(context, propID);
-        OOCommodities* commodities = [UNIVERSE commodities]; // null: no good is defined, as a message to nil
+        OOCommodities* commodities = (UNIVERSE != nullptr ? UNIVERSE->getCommodities() : nullptr); // null: no good is defined, as a message to nil
         if (key.has_value() && commodities != nullptr && commodities->goodDefined(*key)) {
             if (desc != NULL) {
                 desc->flags = JS_PROP_C_W_E;
@@ -196,7 +196,7 @@ static bool ManifestSetProperty(JSContext* context, JSValueConst thisObj, const 
     PlayerEntity* entity = OOPlayerForScripting();
     int32_t iValue;
 
-    OOCommodityMarket* market = [UNIVERSE commodityMarket];
+    OOCommodityMarket* market = (UNIVERSE != nullptr ? UNIVERSE->getCommodityMarket() : nullptr);
     OOMassUnit unit = (market != nullptr) ? market->massUnitForGood(key) : UNITS_TONS; // UNITS_TONS (0): what a message to nil answered
     // we can always change gold, platinum & gem-stones quantities, even with special cargo
     if (unit == UNITS_TONS && (entity != nullptr ? entity->PlayerEntity::getSpecialCargo() : std::optional<std::string>()).has_value()) // qualified: the final overrider, so the binding test stands in for it
@@ -259,7 +259,7 @@ static int ManifestSetPropertyExotic(JSContext* context, JSValueConst object, JS
                 get hook overrode it; for other names, it was what later reads
                 returned.
         */
-        OOCommodities* commodities = [UNIVERSE commodities]; // null: no good is defined, as a message to nil
+        OOCommodities* commodities = (UNIVERSE != nullptr ? UNIVERSE->getCommodities() : nullptr); // null: no good is defined, as a message to nil
         if (commodities == nullptr || !commodities->goodDefined(*key)) {
             return JS_DefinePropertyValue(context, receiver, propID, JS_DupValue(context, value), JS_PROP_C_W_E);
         }

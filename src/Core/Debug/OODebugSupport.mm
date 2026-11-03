@@ -30,7 +30,6 @@ SOFTWARE.
 #import "OODebugSupport.h"
 #import "GameController.h"
 #import "OODebugMonitor.h"
-#import "OODebugSupport+ObjCBridge.h" // the plug-in controller's -setUpDebugger
 #import "OODebugTCPConsoleClient.h"
 #import "OOJavaScriptEngine.h"
 #import "ResourceManager.h"
@@ -38,34 +37,23 @@ SOFTWARE.
 #include "oofnd/Log.hpp"
 #include "oofnd/PListGet.hpp"
 
-#if OOLITE_MAC_COCOA_UI
-static id LoadDebugPlugIn(void);
-#else
-#define LoadDebugPlugIn() nil
-#endif
-
-static id sDebugPlugInController;
-
 void OOInitDebugSupport(void)
 {
     std::optional<std::string> debugOXPPath;
     oo::PList debugSettings;
     std::optional<std::string> consoleHost;
     unsigned short consolePort = 0;
-    id<OODebuggerInterface> debugger = nil;
+    oo::Ref<OODebuggerInterface> debugger; // a C++ interface
     bool activateDebugConsole = false;
 
     // Load debug settings.
-    debugSettings = [ResourceManager cxx_dictionaryFromFilesNamed:"debugConfig.plist"
-                                                         inFolder:"Config"
-                                                        mergeMode:MERGE_BASIC
-                                                            cache:NO];
+    debugSettings = ResourceManager::dictionaryFromFilesNamed("debugConfig.plist", "Config", MERGE_BASIC, NO);
 
     // Check that the debug OXP is installed. If not, we don't enable debug support.
-    debugOXPPath = [ResourceManager cxx_pathForFileNamed:"DebugOXPLocatorBeacon.magic" inFolder:"nil"];
+    debugOXPPath = ResourceManager::pathForFileNamed("DebugOXPLocatorBeacon.magic", "nil");
     if (debugOXPPath.has_value()) {
-        // Load plug-in debugging code on platforms where this is supported.
-        sDebugPlugInController = [(id)LoadDebugPlugIn() retain];
+        // The debug plug-in (Mac Contents/PlugIns/Debug.bundle) is never loaded on the platforms
+        // built (the loader answered nil everywhere), so its controller's debugger branch is gone.
 
         // oo_stringForKey: a string, or a number's string value; nil for anything else.
         const oo::PList* consoleHostValue = debugSettings.get<oo::PList>("console-host");
@@ -74,22 +62,14 @@ void OOInitDebugSupport(void)
         }
         consolePort = debugSettings.get<unsigned short>("console-port");
 
-        // If consoleHost is nil, and the debug plug-in can set up a debugger, use that.
-        if (!consoleHost.has_value() && OODebugPlugInControllerCanSetUpDebugger(sDebugPlugInController)) {
-            debugger = OODebugPlugInControllerSetUpDebugger(sDebugPlugInController);
-            cxx::OODebugMonitor::sharedDebugMonitor()->setUsingPlugInController(true);
+        // Use the TCP debugger connection.
+        {
+            // The client; null when it cannot connect.
+            debugger = OODebugTCPConsoleClient::clientWithAddress(consoleHost, consolePort);
+            OODebugMonitor::sharedDebugMonitor()->setUsingPlugInController(false);
         }
 
-        // Otherwise, use TCP debugger connection.
-        if (debugger == nil) {
-            // The client's facade, autoreleased as before; nil when it cannot connect.
-            debugger = oo::ToObjC(cxx::OODebugTCPConsoleClient::clientWithAddress(consoleHost,
-                consolePort)
-                    .get());
-            cxx::OODebugMonitor::sharedDebugMonitor()->setUsingPlugInController(false);
-        }
-
-        activateDebugConsole = (debugger != nil);
+        activateDebugConsole = (debugger != nullptr);
     }
 
     if (!activateDebugConsole) {
@@ -98,21 +78,9 @@ void OOInitDebugSupport(void)
 
     if (activateDebugConsole) {
         // Set up monitor and register debugger, if any.
-        cxx::OODebugMonitor::sharedDebugMonitor()->setDebugger(debugger);
-        [[OOJavaScriptEngine sharedEngine] enableDebuggerStatement];
+        OODebugMonitor::sharedDebugMonitor()->setDebugger(debugger.get());
+        OOJavaScriptEngine::sharedEngine()->enableDebuggerStatement();
     }
 }
-
-#if OOLITE_MAC_COCOA_UI
-
-static id LoadDebugPlugIn()
-{
-    // Mac Contents/PlugIns/Debug.bundle load used the application bundle APIs; ResourcePaths
-    // (ADR-0017) covers the SDL layout only. Until a PlugIns root exists there, skip the load.
-    OO_LOG("debugSupport.load.failed", "{}", "Debug plug-in load is unavailable on this platform layout.");
-    return nil;
-}
-
-#endif
 
 #endif /* OO_DEBUG_MONITOR_ENABLED */

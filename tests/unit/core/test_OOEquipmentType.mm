@@ -99,37 +99,38 @@ oo::PList EquipmentData()
 }	// namespace
 
 
-@interface Universe: OOObject
-- (oo::PList) cxx_equipmentData;
-- (oo::PList) cxx_equipmentDataOutfitting;
-@end
+// The universe as the code under test sees it: a stand-in for the C++ class (its Objective-C facade,
+// deleted, was what this stood in for), with the header's names and signatures.
+class Universe
+{
+public:
+	oo::PList getEquipmentData();
+	oo::PList getEquipmentDataOutfitting();
+};
 
-@implementation Universe
-- (oo::PList) cxx_equipmentData				{ return EquipmentData(); }
-- (oo::PList) cxx_equipmentDataOutfitting	{ return oo::PList(oo::PList::Array{ EquipmentData().at(0) != nullptr ? *EquipmentData().at(0) : oo::PList(), Item(9, 9, "Outfit", "EQ_OUTFIT", "Only outfitting") }); }
-@end
+oo::PList Universe::getEquipmentData()	{ return EquipmentData(); }
+oo::PList Universe::getEquipmentDataOutfitting()	{ return oo::PList(oo::PList::Array{ EquipmentData().at(0) != nullptr ? *EquipmentData().at(0) : oo::PList(), Item(9, 9, "Outfit", "EQ_OUTFIT", "Only outfitting") }); }
+
 
 Universe *gSharedUniverse = nil;
 
 
-@interface OOCacheManager: OOObject
-+ (OOCacheManager *) sharedCache;
-- (void) cxx_setPList:(const oo::PList &)value forKey:(const std::string &)key inCache:(const std::string &)cache;
-@end
+#import "OOCacheManager.h"
 
-@implementation OOCacheManager
-+ (OOCacheManager *) sharedCache
+// The cache manager is C++ since its facade was deleted: a C++ stand-in with the Objective-C
+// stand-in's answers.
+OOCacheManager *OOCacheManager::sharedCache()
 {
-	static OOCacheManager *cache = [[OOCacheManager alloc] init];
-	return cache;
+	static OOCacheManager *shared = new OOCacheManager;
+	return shared;
 }
-- (void) cxx_setPList:(const oo::PList &)value forKey:(const std::string &)key inCache:(const std::string &)cache
+OOCacheManager::~OOCacheManager()  {}
+void OOCacheManager::setPList(const oo::PList &value, const std::string &key, const std::string &cache)
 {
 	std::string items;
 	for (size_t i = 0; i < value.count(); i++)  items += value.at<std::string>(i) + ",";
 	gLog.push_back("cache " + cache + "/" + key + " = " + items);
 }
-@end
 
 
 #import "OOScript.h"
@@ -142,7 +143,7 @@ std::optional<std::string> OOScript::name()					{ return std::nullopt; }
 std::optional<std::string> OOScript::scriptDescription()		{ return std::nullopt; }
 std::optional<std::string> OOScript::version()				{ return std::nullopt; }
 bool OOScript::requiresTickle()								{ return false; }
-void OOScript::runWithTarget(::Entity *)						{}
+void OOScript::runWithTarget(Entity *)						{}
 bool OOScript::callMethod(JSAtom, JSContext *, JSValueConst *, int, JSValue *)	{ return false; }
 std::string OOScript::className() const						{ return "OOScript"; }
 std::string OOScript::description() const						{ return "<OOScript>"; }
@@ -206,7 +207,7 @@ namespace {
 
 void Reset()
 {
-	if (gSharedUniverse == nil)  gSharedUniverse = [[Universe alloc] init];
+	if (gSharedUniverse == nil)  gSharedUniverse = new Universe();
 	if (gOOPlayer == nullptr)  gOOPlayer = new PlayerEntity;	// never deleted
 	gLog.clear();
 	gEnforceStandards = NO;

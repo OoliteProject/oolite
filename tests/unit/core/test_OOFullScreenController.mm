@@ -20,6 +20,8 @@
 #import "OOLogging.h"
 #include "oo_test.hpp"
 
+#include <cstdlib>
+
 
 /*	The game's OOLogging.mm reaches the resource manager, so it is not linked. The one function of
 	it that the base calls is defined here instead, and counts.
@@ -31,6 +33,24 @@ void OOLogGenericSubclassResponsibilityForFunction(const char *inFunction)
 	(void)inFunction;
 	gSubclassResponsibilities++;
 }
+
+
+/*	The game view is C++ since bead oo-9ht.153 deleted its facade, so the view the controller keeps
+	is a C++ view. SDL/MyOpenGLView.mm is not linked: its destructor (a view made here has no window
+	or context to destroy) and its virtual members (never called) are defined here.
+*/
+MyOpenGLView::~MyOpenGLView()  {}
+void MyOpenGLView::endSplashScreen()  { std::abort(); }
+void MyOpenGLView::updateScreen()  { std::abort(); }
+void MyOpenGLView::setGameController(::GameController *)  { std::abort(); }
+bool MyOpenGLView::inFullScreenMode()  { std::abort(); }
+std::vector<oo::PList> MyOpenGLView::getScreenSizeArray()  { std::abort(); }
+NSSize MyOpenGLView::currentScreenSize()  { std::abort(); }
+oo::PList MyOpenGLView::currentScreenMode()  { std::abort(); }
+void MyOpenGLView::noteMouseInteractionModeChangedFrom(OOMouseInteractionMode, OOMouseInteractionMode)  { std::abort(); }
+void MyOpenGLView::resetTypedString()  { std::abort(); }
+void MyOpenGLView::stringToClipboard(const std::string &)  { std::abort(); }
+NSSize MyOpenGLView::getViewSize()  { std::abort(); }
 
 
 namespace {
@@ -78,12 +98,12 @@ OO_TEST(baseDefaults)
 {
 	@autoreleasepool
 	{
-		OOObject *view = [[OOObject alloc] init];
-		const NSUInteger viewRetains = [view retainCount];
-		oo::Ref<OOFullScreenController> controller = oo::makeRef<OOFullScreenController>((MyOpenGLView *)view);
+		MyOpenGLView *view = new MyOpenGLView();
+		const NSUInteger viewRetains = view->retainCount();
+		oo::Ref<OOFullScreenController> controller = oo::makeRef<OOFullScreenController>(view);
 		OO_CHECK(controller != nullptr);
-		OO_CHECK(controller->gameView() == (MyOpenGLView *)view);
-		OO_CHECK([view retainCount] == viewRetains + 1);
+		OO_CHECK(controller->gameView() == view);
+		OO_CHECK(view->retainCount() == viewRetains + 1);
 
 		gSubclassResponsibilities = 0;
 		OO_CHECK(!controller->inFullScreenMode());
@@ -108,8 +128,8 @@ OO_TEST(baseDefaults)
 		OO_CHECK(gSubclassResponsibilities == 7);
 
 		controller = nullptr;
-		OO_CHECK([view retainCount] == viewRetains);
-		[view release];
+		OO_CHECK(view->retainCount() == viewRetains);
+		view->release();
 	}
 }
 

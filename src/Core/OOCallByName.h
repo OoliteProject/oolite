@@ -31,6 +31,8 @@ reaches a (const oo::PList &) parameter as a string PList; a PList argument reac
         expander [selector] keys                                                    or a number)
         HUD dials (HeadUpDisplay.mm), joystick callbacks            PList           void
 
+An entity's method is called by its name through oo::CallEntityByName (below): the AI's actions and messages and the legacy script engine.
+
 oo-qps.72 deleted the transitional form that passed an id parameter the argument as an
 Objective-C object: such a method is logged (callByName.badSignature) and not called.
 tools/check-selector-types.py --check --strict-called-by-name rejects an object parameter, or an
@@ -38,7 +40,7 @@ id result, on a selector a dispatcher calls by name.
 
 A nil target does nothing (as messaging nil). A target that does not answer <selector>, or whose
 method has no signature above, is logged (callByName.unknownSelector / callByName.badSignature)
-and not called; the result is a null PList. A forwarding proxy (OOWeakReference) is followed.
+and not called; the result is a null PList. A forwarding proxy (an entity's weak reference) is followed.
 Phase 3 replaces the IMP lookup with a map from name to handler; the signatures stay.
 
 Oolite
@@ -81,6 +83,37 @@ inline oo::PList OOCallByName(id target, SEL selector, const char* argument)
 {
     return OOCallByName(target, selector, std::string(argument));
 }
+
+/*	An entity's method called by name: the
+        same call on the entity's C++ part. A name of the facade's by-name categories (the generated
+        table, OOEntityCalledByNameTable.h) is answered by the C++ part it applies to, as the facade's
+        -respondsToSelector: and its category method answered it; any other name, and a tabled name
+        whose signature the call cannot use, go to the entity's Objective-C object as before (that
+        path logs callByName.unknownSelector / callByName.badSignature). Now the
+        categories are deleted and the table is the source: a tabled name that applies but whose
+        signature the call cannot use is logged here (callByName.badSignature, with the type encoding
+        without frame offsets); a tabled name that does not apply still goes to the object, which no
+        longer has the method and logs callByName.unknownSelector as before. A null entity does nothing.
+        Defined in OOEntityCalledByName.mm.
+*/
+class Entity;
+
+namespace oo {
+
+    bool EntityRespondsToName(Entity* entity, const std::string& name);
+    PList CallEntityByName(Entity* entity, const std::string& name);
+    PList CallEntityByName(Entity* entity, const std::string& name, const std::string& argument);
+    PList CallEntityByName(Entity* entity, const std::string& name, const PList& argument);
+
+    /*	An entity's method called after <delay> seconds: what OOScheduleDeferredCall() of the method's selector on the entity's object
+            did (the afterburner sound's update, a ship's cargo dumped a canister at a time). The call holds
+            the entity, as the deferred call retained its object, which held it, and calls <call> with it
+            when it fires; <call> asks for the entity's class, as the facade's method did. A null entity
+            schedules nothing. Defined in OOEntityCalledByName.mm.
+    */
+    void ScheduleEntityCall(Entity* entity, void (*call)(Entity* entity), double delay);
+
+} // namespace oo
 
 } // extern "C++"
 

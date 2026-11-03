@@ -32,8 +32,6 @@ SOFTWARE.
 
 #import "OOTextureLoader.h"
 
-@class OOTextureGenerator;
-
 typedef struct
 {
     float r, g, b;
@@ -45,12 +43,10 @@ typedef struct
 } FloatRGBA;
 
 /*	Phase 3 (bead oo-rr2x, proposed ADR-0056 amendments oo-zl36 and oo-vl43): an intermediate C++
-        class of the texture loaders. OOPixMapTextureLoader and the planet, atmosphere and emission-map
-        generators are still Objective-C subclasses of its facade (OOTextureGenerator+ObjCBridge.h),
-        whose C++ part is an adapter derived from oo::ObjCTextureLoader<cxx::OOTextureGenerator>.
+        class of the texture loaders, which OOPixMapTextureLoader and the planet, atmosphere and
+        emission-map generators derive from. Its Objective-C facade was deleted by bead oo-9ht.118
+        (ADR-0056 amendment oo-9ht.114), which moved the class out of namespace cxx.
 */
-namespace cxx {
-
 class OOTextureGenerator : public OOTextureLoader {
 public:
     // Generators, unlike normal loaders, get to specify their own flags and other settings.
@@ -61,14 +57,8 @@ public:
     // Key for in-memory cache; nullopt for no cache.
     std::optional<std::string> cacheKey() override;
 
-    // For use by OOTexture: queues the generator (its Objective-C object) on the work manager.
+    // For use by OOTexture: queues the generator on the work manager.
     virtual bool enqueue();
 };
-
-} // namespace cxx
-
-// Transitional: the Objective-C OOTextureGenerator, for its callers and the generators not yet
-// converted. Deleted, with namespace cxx above, by the bridge's deletion bead.
-#import "OOTextureGenerator+ObjCBridge.h"
 
 #endif // OOTEXTUREGENERATOR_H

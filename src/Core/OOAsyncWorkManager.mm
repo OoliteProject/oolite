@@ -26,11 +26,9 @@ SOFTWARE.
 */
 
 #import "OOAsyncWorkManager.h"
-#import "OOAsyncQueue.h"
 #import "OOCPUInfo.h"
 #include "oofnd/Thread.hpp"
 #include "oofnd/objc/OOException.h"
-#include "oofnd/objc/OOObjCRef.h"
 
 // OOFoundation.h defines true/false as macros; the standard headers want the keywords (oofnd/Data.hpp).
 #pragma push_macro("true")
@@ -57,28 +55,72 @@ SOFTWARE.
 
 namespace {
 
-cxx::OOAsyncWorkManager* sSingleton = nullptr;
+OOAsyncWorkManager* sSingleton = nullptr;
+
+/*	A first-in-first-out queue of tasks whose dequeue() blocks until one is there: the part of
+        OOAsyncQueue the manager used, holding tasks (OOAsyncQueue holds Objective-C
+        objects). A queued task is retained, as OOAsyncQueue retained it.
+*/
+class TaskQueue {
+public:
+    bool enqueue(OOAsyncWorkTask* task) // false if task is null
+    {
+        if (task == nullptr)
+            return false;
+        {
+            std::lock_guard<std::mutex> lock(_mutex);
+            _tasks.emplace_back(task);
+        }
+        _available.notify_one();
+        return true;
+    }
+
+    oo::Ref<OOAsyncWorkTask> dequeue() // blocks until the queue is non-empty
+    {
+        std::unique_lock<std::mutex> lock(_mutex);
+        while (_tasks.empty())
+            _available.wait(lock);
+        oo::Ref<OOAsyncWorkTask> task = std::move(_tasks.front());
+        _tasks.pop_front();
+        return task;
+    }
+
+    oo::Ref<OOAsyncWorkTask> tryDequeue() // null if empty
+    {
+        std::lock_guard<std::mutex> lock(_mutex);
+        if (_tasks.empty())
+            return { };
+        oo::Ref<OOAsyncWorkTask> task = std::move(_tasks.front());
+        _tasks.pop_front();
+        return task;
+    }
+
+private:
+    std::mutex _mutex;
+    std::condition_variable _available;
+    std::deque<oo::Ref<OOAsyncWorkTask>> _tasks;
+};
 
 /*	OOAsyncWorkManagerInternal: shared superclass of our two implementations,
         which implements shared functionality but is not itself concrete.
 */
-class OOAsyncWorkManagerInternal : public cxx::OOAsyncWorkManager {
+class OOAsyncWorkManagerInternal : public OOAsyncWorkManager {
 public:
     void completePendingTasks() override;
-    void waitForTaskToComplete(id task) override;
+    void waitForTaskToComplete(OOAsyncWorkTask* task) override;
 
 protected:
     OOAsyncWorkManagerInternal();
 
-    void queueResult(id task);
+    void queueResult(OOAsyncWorkTask* task);
 
-    void noteTaskQueued(id task);
+    void noteTaskQueued(OOAsyncWorkTask* task);
 
 private:
-    oo::Ref<OOAsyncQueue> _readyQueue = { };
+    TaskQueue _readyQueue;
 
-    // Tasks awaiting completion, a set by identity (the task classes do not override -isEqual:).
-    std::vector<oo::ObjCRef<id>> _pendingCompletableOperations = { };
+    // Tasks awaiting completion, a set by identity (the task classes did not override -isEqual:).
+    std::vector<oo::Ref<OOAsyncWorkTask>> _pendingCompletableOperations = { };
     std::mutex _pendingOpsLock;
 };
 
@@ -86,12 +128,12 @@ class OOManualDispatchAsyncWorkManager : public OOAsyncWorkManagerInternal {
 public:
     OOManualDispatchAsyncWorkManager();
 
-    bool addTask(id task, OOAsyncWorkPriority priority) override;
+    bool addTask(OOAsyncWorkTask* task, OOAsyncWorkPriority priority) override;
 
 private:
     void queueTask(unsigned threadNumber);
 
-    oo::Ref<OOAsyncQueue> _taskQueue = { };
+    TaskQueue _taskQueue;
 };
 
 /*	The prioritised task queue Foundation's operation queue was (bead oo-3rb.6): highest priority
@@ -102,7 +144,7 @@ private:
 struct OOPrioritizedTaskQueue {
     std::mutex mutex;
     std::condition_variable available;
-    std::deque<id> tasks[3]; // indexed by OOAsyncWorkPriority: low, medium, high
+    std::deque<oo::Ref<OOAsyncWorkTask>> tasks[3]; // indexed by OOAsyncWorkPriority: low, medium, high
 };
 
 class OOOperationQueueAsyncWorkManager : public OOAsyncWorkManagerInternal {
@@ -111,11 +153,11 @@ public:
 
     static bool canBeUsed();
 
-    bool addTask(id task, OOAsyncWorkPriority priority) override;
+    bool addTask(OOAsyncWorkTask* task, OOAsyncWorkPriority priority) override;
 
 private:
     void workThread(unsigned threadNumber);
-    void dispatchTask(id task);
+    void dispatchTask(OOAsyncWorkTask* task);
 
     OOPrioritizedTaskQueue* _operationQueue = { };
 };
@@ -160,12 +202,12 @@ void SetUpWorkThread(unsigned threadNumber)
     oo::thread::setCurrentName("OOAsyncWorkManager thread " + std::to_string(threadNumber));
 }
 
-bool PendingContains(const std::vector<oo::ObjCRef<id>>& pending, id task)
+bool PendingContains(const std::vector<oo::Ref<OOAsyncWorkTask>>& pending, OOAsyncWorkTask* task)
 {
     return std::find(pending.begin(), pending.end(), task) != pending.end();
 }
 
-void PendingRemove(std::vector<oo::ObjCRef<id>>& pending, id task)
+void PendingRemove(std::vector<oo::Ref<OOAsyncWorkTask>>& pending, OOAsyncWorkTask* task)
 {
     const auto it = std::find(pending.begin(), pending.end(), task); // removes the one entry, as the set did
     if (it != pending.end())
@@ -205,8 +247,6 @@ static void InitAsyncWorkManager(void)
     OO_LOG("asyncWorkManager.dispatchMethod", "Selected async work manager: {}", className);
 }
 
-namespace cxx {
-
 OOAsyncWorkManager* OOAsyncWorkManager::sharedAsyncWorkManager()
 {
 #if USE_PTHREAD_ONCE
@@ -230,7 +270,7 @@ OOAsyncWorkManager::~OOAsyncWorkManager()
     abort();
 }
 
-bool OOAsyncWorkManager::addTask(id /*task*/, OOAsyncWorkPriority /*priority*/)
+bool OOAsyncWorkManager::addTask(OOAsyncWorkTask* /*task*/, OOAsyncWorkPriority /*priority*/)
 {
     OOLogGenericSubclassResponsibility();
     return false;
@@ -241,45 +281,42 @@ void OOAsyncWorkManager::completePendingTasks()
     OOLogGenericSubclassResponsibility();
 }
 
-void OOAsyncWorkManager::waitForTaskToComplete(id /*task*/)
+void OOAsyncWorkManager::waitForTaskToComplete(OOAsyncWorkTask* /*task*/)
 {
     OOLogGenericSubclassResponsibility();
     [OOException raise:OOInternalInconsistencyException format:"%s called.", __PRETTY_FUNCTION__];
 }
 
-} // namespace cxx
-
 namespace {
 
 OOAsyncWorkManagerInternal::OOAsyncWorkManagerInternal()
 {
-    // (oo::makeRef cannot answer null, so -init's release-and-return-nil branch is gone.)
-    _readyQueue = oo::makeRef<OOAsyncQueue>();
+    // (The ready queue is a member, so -init's release-and-return-nil branch is gone.)
 }
 
 void OOAsyncWorkManagerInternal::completePendingTasks()
 {
-    id next = nil;
+    oo::Ref<OOAsyncWorkTask> next;
 
     _pendingOpsLock.lock();
     for (;;) {
-        next = _readyQueue->tryDequeue();
-        if (next == nil)
+        next = _readyQueue.tryDequeue();
+        if (next == nullptr)
             break;
 
-        PendingRemove(_pendingCompletableOperations, next);
-        [next completeAsyncTask];
+        PendingRemove(_pendingCompletableOperations, next.get());
+        next->completeAsyncTask();
     }
     _pendingOpsLock.unlock();
 }
 
-void OOAsyncWorkManagerInternal::waitForTaskToComplete(id task)
+void OOAsyncWorkManagerInternal::waitForTaskToComplete(OOAsyncWorkTask* task)
 {
-    if (task == nil)
+    if (task == nullptr)
         return;
 
 #if OO_DEBUG
-    OOCParameterAssert([(id)task respondsToSelector:OOSelectorFromName("completeAsyncTask")]);
+    OOCParameterAssert(task->hasCompleteAsyncTask());
     OOCAssert(oo::thread::isMainThread(), "%s can only be called from the main thread.", __PRETTY_FUNCTION__);
 #endif
 
@@ -292,27 +329,27 @@ void OOAsyncWorkManagerInternal::waitForTaskToComplete(id task)
     if (!exists)
         return;
 
-    id next = nil;
+    oo::Ref<OOAsyncWorkTask> next;
     do {
         // Dequeue a task and complete it.
-        next = _readyQueue->dequeue();
+        next = _readyQueue.dequeue();
         _pendingOpsLock.lock();
-        PendingRemove(_pendingCompletableOperations, next);
+        PendingRemove(_pendingCompletableOperations, next.get());
         _pendingOpsLock.unlock();
 
-        [next completeAsyncTask];
+        next->completeAsyncTask();
 
-    } while (next != task); // We don't control order, so keep looking until we get the one we care about.
+    } while (next.get() != task); // We don't control order, so keep looking until we get the one we care about.
 }
 
-void OOAsyncWorkManagerInternal::queueResult(id task)
+void OOAsyncWorkManagerInternal::queueResult(OOAsyncWorkTask* task)
 {
-    if ([task respondsToSelector:OOSelectorFromName("completeAsyncTask")]) {
-        _readyQueue->enqueue(task);
+    if (task->hasCompleteAsyncTask()) {
+        _readyQueue.enqueue(task);
     }
 }
 
-void OOAsyncWorkManagerInternal::noteTaskQueued(id task)
+void OOAsyncWorkManagerInternal::noteTaskQueued(OOAsyncWorkTask* task)
 {
     _pendingOpsLock.lock();
     if (!PendingContains(_pendingCompletableOperations, task))
@@ -324,22 +361,21 @@ void OOAsyncWorkManagerInternal::noteTaskQueued(id task)
 
 OOManualDispatchAsyncWorkManager::OOManualDispatchAsyncWorkManager()
 {
-    // Set up work queue. (oo::makeRef cannot answer null, so -init's failure branch is gone.)
-    _taskQueue = oo::makeRef<OOAsyncQueue>();
+    // (The work queue is a member, so -init's failure branch is gone.)
 
     // Set up loading threads.
     StartWorkThreads([this](unsigned threadNumber) { queueTask(threadNumber); }, WorkThreadCount());
 }
 
-bool OOManualDispatchAsyncWorkManager::addTask(id task, OOAsyncWorkPriority /*priority*/)
+bool OOManualDispatchAsyncWorkManager::addTask(OOAsyncWorkTask* task, OOAsyncWorkPriority /*priority*/)
 {
-    if (EXPECT_NOT(task == nil))
+    if (EXPECT_NOT(task == nullptr))
         return false;
 
     noteTaskQueued(task);
 
     // Priority is ignored.
-    return _taskQueue->enqueue(task);
+    return _taskQueue.enqueue(task);
 }
 
 void OOManualDispatchAsyncWorkManager::queueTask(unsigned threadNumber)
@@ -349,13 +385,13 @@ void OOManualDispatchAsyncWorkManager::queueTask(unsigned threadNumber)
 
         for (;;) {
             @autoreleasepool {
-                id<OOAsyncWorkTask> task = _taskQueue->dequeue();
+                const oo::Ref<OOAsyncWorkTask> task = _taskQueue.dequeue();
                 @try {
-                    [task performAsyncTask];
+                    task->performAsyncTask();
                 }
                 @catch (id exception) {
                 }
-                queueResult(task);
+                queueResult(task.get());
             }
         }
     }
@@ -378,9 +414,9 @@ OOOperationQueueAsyncWorkManager::OOOperationQueueAsyncWorkManager()
     StartWorkThreads([this](unsigned threadNumber) { workThread(threadNumber); }, WorkThreadCount());
 }
 
-bool OOOperationQueueAsyncWorkManager::addTask(id task, OOAsyncWorkPriority priority)
+bool OOOperationQueueAsyncWorkManager::addTask(OOAsyncWorkTask* task, OOAsyncWorkPriority priority)
 {
-    if (EXPECT_NOT(task == nil))
+    if (EXPECT_NOT(task == nullptr))
         return false;
 
     unsigned index = kOOAsyncPriorityMedium;
@@ -391,7 +427,7 @@ bool OOOperationQueueAsyncWorkManager::addTask(id task, OOAsyncWorkPriority prio
 
     {
         std::lock_guard<std::mutex> lock(_operationQueue->mutex);
-        _operationQueue->tasks[index].push_back([task retain]);
+        _operationQueue->tasks[index].emplace_back(task);
     }
     _operationQueue->available.notify_one();
 
@@ -404,33 +440,33 @@ void OOOperationQueueAsyncWorkManager::workThread(unsigned threadNumber)
     SetUpWorkThread(threadNumber);
 
     for (;;) {
-        id<OOAsyncWorkTask> task = nil;
+        oo::Ref<OOAsyncWorkTask> task;
         {
             std::unique_lock<std::mutex> lock(_operationQueue->mutex);
-            while (task == nil) {
-                for (int index = kOOAsyncPriorityHigh; index >= (int)kOOAsyncPriorityLow && task == nil; index--) {
-                    std::deque<id>& queue = _operationQueue->tasks[index];
+            while (task == nullptr) {
+                for (int index = kOOAsyncPriorityHigh; index >= (int)kOOAsyncPriorityLow && task == nullptr; index--) {
+                    std::deque<oo::Ref<OOAsyncWorkTask>>& queue = _operationQueue->tasks[index];
                     if (!queue.empty()) {
-                        task = queue.front();
+                        task = std::move(queue.front());
                         queue.pop_front();
                     }
                 }
-                if (task == nil)
+                if (task == nullptr)
                     _operationQueue->available.wait(lock);
             }
         }
 
         @autoreleasepool {
-            dispatchTask(task);
+            dispatchTask(task.get());
         }
-        [task release];
+        task = nullptr; // the queue's retain, released after the pool as before
     }
 }
 
-void OOOperationQueueAsyncWorkManager::dispatchTask(id task)
+void OOOperationQueueAsyncWorkManager::dispatchTask(OOAsyncWorkTask* task)
 {
     @try {
-        [task performAsyncTask];
+        task->performAsyncTask();
     }
     @catch (id exception) {
     }

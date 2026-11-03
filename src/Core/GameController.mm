@@ -74,10 +74,14 @@ static void SetUpSparkle(void);
 #import "OODebugMonitor.h"
 #endif
 
-static cxx::GameController* sSharedController = nullptr;
+namespace {
+
+GameController* sSharedController = nullptr;
+
+} // namespace
 
 #if OOLITE_MAC_COCOA_UI
-// Only the fenced Mac category below still sends these; they are cxx::GameController members since
+// Only the fenced Mac category below still sends these; they are GameController members since
 // beads oo-hn0fw and oo-5ah4k (Phase 5 writes the Mac layer again).
 @interface GameController (OOPrivate)
 
@@ -141,7 +145,11 @@ struct OODeferredCall {
     id target;
     SEL selector;
     id argument;
+    std::function<void()>* call; // a C++ call (bead oo-pvhrh): target, selector and argument unused
 };
+
+// call() with the perform's @try/@catch (GameControllerPerformSelectorWithObject below).
+bool DeferredCallRunCatching(const std::function<void()>& call, const char** outName, const char** outReason);
 
 std::vector<OODeferredCall> sDeferredCalls; // in scheduling order
 
@@ -158,12 +166,37 @@ void OOScheduleDeferredCall(id target, SEL selector, id argument, NSTimeInterval
         std::chrono::steady_clock::now() + std::chrono::duration_cast<std::chrono::steady_clock::duration>(std::chrono::duration<double>(delay)),
         objc_retain(target),
         selector,
-        objc_retain(argument)
+        objc_retain(argument),
+        nullptr
     };
     sDeferredCalls.push_back(call);
 }
 
+void OOScheduleDeferredCall(std::function<void()> call, NSTimeInterval delay)
+{
+    if (!oo::thread::isMainThread() || !call)
+        return;
+
+    if (delay <= 0.0)
+        delay = 0.0001; // as the Foundation timer did
+    OODeferredCall entry = {
+        std::chrono::steady_clock::now() + std::chrono::duration_cast<std::chrono::steady_clock::duration>(std::chrono::duration<double>(delay)),
+        nil,
+        nullptr,
+        nil,
+        new std::function<void()>(std::move(call))
+    };
+    sDeferredCalls.push_back(entry);
+}
+
 namespace {
+
+// The Foundation timer's line for an exception from a deferred call (one line for both kinds, bead oo-pvhrh).
+void LogDeferredCallException(const char* exceptionName, const char* exceptionReason, const void* target)
+{
+    // The game's own exceptions (ADR-0037): the same line, name and reason bridged.
+    OO_LOG("unclassified", "*** NSTimer ignoring exception '{}' (reason '{}') raised during posting of timer with target {} and selector 'fire'", exceptionName, exceptionReason, oo::str::pointerDescription(target));
+}
 
 // One step of the run loop's timer firing: the first due call in scheduling order.
 void FireOneDueDeferredCall(void)
@@ -176,9 +209,16 @@ void FireOneDueDeferredCall(void)
 
             // The perform and its handler, in the bridge (ADR-0056 amendment oo-9ht.139 item 3).
             const char *exceptionName = NULL, *exceptionReason = NULL;
+            if (call.call != nullptr) {
+                if (!DeferredCallRunCatching(*call.call, &exceptionName, &exceptionReason)) {
+                    LogDeferredCallException(exceptionName, exceptionReason, call.call);
+                    return; // the call stays, as the performer leaked its target
+                }
+                delete call.call;
+                return;
+            }
             if (!GameControllerPerformSelectorWithObject(call.target, call.selector, call.argument, &exceptionName, &exceptionReason)) {
-                // The game's own exceptions (ADR-0037): the same line, name and reason bridged.
-                OO_LOG("unclassified", "*** NSTimer ignoring exception '{}' (reason '{}') raised during posting of timer with target {} and selector 'fire'", exceptionName, exceptionReason, oo::str::pointerDescription(call.target));
+                LogDeferredCallException(exceptionName, exceptionReason, call.target);
                 return; // target and argument stay retained, as the performer leaked them
             }
 
@@ -203,8 +243,6 @@ bool NextDeferredCallDeadline(std::chrono::steady_clock::time_point* outDeadline
 }
 
 }
-
-namespace cxx {
 
 GameController* GameController::sharedController()
 {
@@ -243,8 +281,10 @@ GameController::~GameController()
     [[[NSWorkspace sharedWorkspace] notificationCenter] removeObserver:UNIVERSE];
 #endif
 
-    [_gameView release];
-    [UNIVERSE release];
+    if (_gameView != nullptr)
+        _gameView->release();
+    if (UNIVERSE != nullptr)
+        UNIVERSE->release();
 }
 
 bool GameController::isGamePaused()
@@ -323,7 +363,8 @@ void GameController::setMouseInteractionMode(OOMouseInteractionMode mode)
     } else
 #endif
     {
-        [gameView() noteMouseInteractionModeChangedFrom:oldMode to:mode];
+        if (gameView() != nullptr)
+            gameView()->noteMouseInteractionModeChangedFrom(oldMode, mode);
     }
 }
 
@@ -344,10 +385,15 @@ void GameController::setMouseInteractionModeForUIWithMouseInteraction(bool inter
 
 void GameController::setGameView(::MyOpenGLView* view)
 {
-    [_gameView release];
-    _gameView = [view retain];
-    [_gameView setGameController:oo::ToObjC(this)];
-    [UNIVERSE setGameView:_gameView];
+    if (_gameView != nullptr)
+        _gameView->release();
+    if (view != nullptr)
+        view->retain();
+    _gameView = view;
+    if (_gameView != nullptr)
+        _gameView->setGameController(this);
+    if (UNIVERSE != nullptr)
+        UNIVERSE->setGameView(_gameView);
 }
 
 bool GameController::finishedLaunching()
@@ -371,7 +417,8 @@ void GameController::performGameTick(id /*sender*/)
 {
     void* pool = objc_autoreleasePoolPush();
 
-    [_gameView pollControls];
+    if (_gameView != nullptr)
+        _gameView->pollControls();
     doPerformGameTick();
 
     objc_autoreleasePoolPop(pool);
@@ -391,9 +438,11 @@ void GameController::doPerformGameTick()
                 delta_t = MINIMUM_GAME_TICK; // peg the maximum pause (at 0.5->1.0 seconds) to protect against when the machine sleeps
         }
 
-        [UNIVERSE update:delta_t];
+        if (UNIVERSE != nullptr)
+            UNIVERSE->update(delta_t);
         if (EXPECT_NOT((PLAYER != nullptr ? PLAYER->status() : OOEntityStatus { }) == STATUS_RESTART_GAME)) {
-            [UNIVERSE reinitAndShowDemo:YES];
+            if (UNIVERSE != nullptr)
+                UNIVERSE->reinitAndShowDemo(YES);
         }
         ::OOSound::update();
         if (!gameIsPaused) {
@@ -413,7 +462,8 @@ void GameController::doPerformGameTick()
 
     @
     try {
-        [_gameView updateScreen];
+        if (_gameView != nullptr)
+            _gameView->updateScreen();
     }
     @catch (id exception) {
     }
@@ -451,7 +501,7 @@ void GameController::performGameTickIfDue()
         next += sGameTickInterval;
     sNextGameTick = next;
 
-    performGameTick(oo::ToObjC(this));
+    performGameTick(nil); // the sender (the controller's object until bead oo-9ht.164) is unused
 }
 
 void GameController::fireDueDeadlines()
@@ -524,10 +574,6 @@ void GameController::runFrameLoop()
     }
 }
 
-} // namespace cxx
-
-namespace cxx {
-
 void GameController::applicationDidFinishLaunching()
 {
     void* pool = NULL;
@@ -563,7 +609,7 @@ void GameController::applicationDidFinishLaunching()
 
         // moved to before the Universe is created
         for (const std::string& expansionPath : expansionPathsToInclude) {
-            [::ResourceManager cxx_addExternalPath:expansionPath];
+            ResourceManager::addExternalPath(expansionPath);
         }
 
         // initialise OXZ manager
@@ -571,7 +617,7 @@ void GameController::applicationDidFinishLaunching()
 
         // moved here to try to avoid initialising this before having an Open GL context
         // logProgress(OO_DESC("Initialising universe")); // DESC expansions only possible after Universe init
-        [[::Universe alloc] initWithGameView:_gameView];
+        Universe::newUniverse(_gameView); // +1, kept in gSharedUniverse and released by the destructor
 
         loadPlayerIfRequired();
 
@@ -609,10 +655,16 @@ void GameController::loadPlayerIfRequired()
         logProgress(OO_DESC("loading-player"));
         // fix problem with non-shader lighting when starting skips
         // the splash screen
-        [UNIVERSE useGUILightSource:YES];
-        [UNIVERSE useGUILightSource:NO];
+        if (UNIVERSE != nullptr)
+            UNIVERSE->useGUILightSource(YES);
+        if (UNIVERSE != nullptr)
+            UNIVERSE->useGUILightSource(NO);
+        // A copy: loading resets the add-ons, whose demo screen resets _playerFileToLoad, and a
+        // reference into it would dangle while the load still reads it (oo-hpaeu: an ASan
+        // heap-use-after-free; the Objective-C original passed a retained string object).
+        const std::string fileToLoad = *_playerFileToLoad;
         if (PLAYER != nullptr)
-            PLAYER->loadPlayerFromFile(*_playerFileToLoad, NO);
+            PLAYER->loadPlayerFromFile(fileToLoad, NO);
     }
 }
 
@@ -620,10 +672,19 @@ void GameController::beginSplashScreen()
 {
 #if !OOLITE_MAC_COCOA_UI
     if (!_gameView) {
-        _gameView = [::MyOpenGLView alloc];
-        [_gameView init];
-        [_gameView setGameController:oo::ToObjC(this)];
-        [_gameView initSplashScreen];
+        /*	[[MyOpenGLView alloc] init], whose answer was not kept: a view whose init() fails (SDL could
+                not start) was released, which left _gameView dangling; it is null now, and the sends
+                below are skipped as messages to nil (ADR-0056 amendment oo-9ht.153 item 2).
+        */
+        _gameView = new ::MyOpenGLView();
+        if (!_gameView->init()) {
+            _gameView->release();
+            _gameView = nullptr;
+        }
+        if (_gameView != nullptr)
+            _gameView->setGameController(this);
+        if (_gameView != nullptr)
+            _gameView->initSplashScreen();
     }
 #else
     [_gameView updateScreen];
@@ -638,7 +699,7 @@ void GameController::beginSplashScreen()
 
 void GameController::logProgress(const std::string& message)
 {
-    if (![UNIVERSE doingStartUp])
+    if (!(UNIVERSE != nullptr ? UNIVERSE->doingStartUp() : false))
         return;
 
 #if OOLITE_MAC_COCOA_UI
@@ -669,7 +730,7 @@ void GameController::debugLogProgress(const std::string& message)
 }
 
 namespace {
-    std::vector<std::string> sMessageStack;
+std::vector<std::string> sMessageStack;
 }
 
 void GameController::debugPushProgressMessage(const std::string& message)
@@ -709,7 +770,8 @@ void GameController::endSplashScreen()
     [gameWindow setContentView:_gameView];
     [gameWindow makeFirstResponder:_gameView];
 #elif OOLITE_SDL
-    [_gameView endSplashScreen];
+    if (_gameView != nullptr)
+        _gameView->endSplashScreen();
 #endif
 }
 
@@ -718,12 +780,12 @@ void GameController::exitAppWithContext(const std::string& context)
 {
     OO_LOG("exit.context", "Exiting: {}.", context);
 #if (OOLITE_SDL && defined(OO_DEBUG_MONITOR_ENABLED))
-    [[::OODebugMonitor sharedDebugMonitor] applicationWillTerminate];
+    ::OODebugMonitor::sharedDebugMonitor()->applicationWillTerminate();
 #endif
 #if OOLITE_WINDOWS
     // This should not be required normally but we have to ensure that
     // desktop resolution is restored also on some Intel cards on Win10
-    if (![_gameView atDesktopResolution]) {
+    if (!(_gameView != nullptr ? _gameView->getAtDesktopResolution() : false)) {
         OO_LOG("gameController.exitApp", "{}", "Restoring desktop resolution.");
         ChangeDisplaySettingsEx(NULL, NULL, NULL, 0, NULL);
     }
@@ -732,7 +794,7 @@ void GameController::exitAppWithContext(const std::string& context)
     OO_LOG("gameController.exitApp", "{}", ".GNUstepDefaults synchronized.");
 #ifndef NDEBUG
     // Leak check: tears down the JavaScript runtime and logs any objects still alive.
-    [[::OOJavaScriptEngine sharedEngine] shutDown];
+    OOJavaScriptEngine::sharedEngine()->shutDown();
 #endif
     OOLoggingTerminate();
     SDL_Quit();
@@ -752,7 +814,8 @@ void GameController::exitAppCommandQ()
 
 void GameController::windowDidResize()
 {
-    [_gameView updateScreen];
+    if (_gameView != nullptr)
+        _gameView->updateScreen();
 }
 
 std::optional<std::string> GameController::playerFileToLoad()
@@ -762,9 +825,12 @@ std::optional<std::string> GameController::playerFileToLoad()
 
 void GameController::setPlayerFileToLoad(const std::string& filename)
 {
-    _playerFileToLoad = std::nullopt;
+    // filename may be *_playerFileToLoad itself (the load passes the file it is loading back
+    // here), so it is read in full before the member changes.
+    std::optional<std::string> toLoad;
     if (oo::str::lowercase(oo::str::pathExtension(filename)) == "oolite-save")
-        _playerFileToLoad = filename;
+        toLoad = filename;
+    _playerFileToLoad = std::move(toLoad);
 }
 
 std::optional<std::string> GameController::playerFileDirectory()
@@ -824,8 +890,6 @@ void GameController::reportUnhandledStartupExceptionName(const std::string& name
     NSRunCriticalAlertPanel(@"Oolite failed to start up, because an unhandled exception occurred.", @"An exception of type %@ occurred. If this problem persists, please file a bug report.", @"OK", NULL, NULL, oo::NSStringFrom(name));
 #endif
 }
-
-} // namespace cxx
 
 #if OOLITE_MAC_COCOA_UI
 
@@ -953,7 +1017,7 @@ static void RemovePreference(const std::string& key)
 
 - (IBAction)showAddOnsAction:sender
 {
-    const std::vector<std::string> paths = [ResourceManager cxx_userRootPaths];
+    const std::vector<std::string> paths = ResourceManager::userRootPaths();
 
     // Look for an AddOns directory that actually contains some AddOns.
     for (const std::string& path : paths) {
@@ -1020,7 +1084,7 @@ static void RemovePreference(const std::string& key)
 
     if (action == @selector(showAddOnsAction:)) {
         // Always enabled in unrestricted mode, to allow users to add OXPs more easily.
-        return [ResourceManager cxx_useAddOns].has_value();
+        return ResourceManager::useAddOns().has_value();
     }
 
     if (action == @selector(showSnapshotsAction:)) {
@@ -1102,7 +1166,7 @@ static void RemovePreference(const std::string& key)
 
 - (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication*)sender
 {
-    [[OOCacheManager sharedCache] finishOngoingFlush];
+    OOCacheManager::sharedCache()->finishOngoingFlush();
     OOLoggingTerminate();
     return NSTerminateNow;
 }
@@ -1134,3 +1198,33 @@ static void SetUpSparkle(void)
 }
 
 #endif
+
+namespace {
+
+bool DeferredCallRunCatching(const std::function<void()>& call, const char** outName, const char** outReason)
+{
+    @try {
+        call();
+    }
+    @catch (OOException* exception) {
+        *outName = [exception name];
+        *outReason = [exception reason];
+        return false;
+    }
+    return true;
+}
+
+}
+
+bool GameControllerPerformSelectorWithObject(id target, SEL selector, id argument, const char** outName, const char** outReason)
+{
+    @try {
+        [target performSelector:selector withObject:argument];
+    }
+    @catch (OOException* exception) {
+        *outName = [exception name];
+        *outReason = [exception reason];
+        return false;
+    }
+    return true;
+}

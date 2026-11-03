@@ -1,7 +1,6 @@
 /*	test_OODebugMonitor.mm
-	Unit tests for cxx::OODebugMonitor (src/Core/Debug/OODebugMonitor.h) and its Objective-C facade
-	(OODebugMonitor+ObjCBridge.h): bead oo-kq7, the Debug module's pattern seam (proposed ADR-0056,
-	amendment oo-kq7).
+	Unit tests for OODebugMonitor (src/Core/Debug/OODebugMonitor.h): bead oo-kq7, the Debug module's
+	pattern seam (proposed ADR-0056, amendment oo-kq7); its Objective-C facade is deleted.
 
 	OODebugMonitor is the singleton that connects a debugger (the TCP console client the golden
 	harness drives the game through) to the game: it keeps the debug configuration (the OXPs'
@@ -18,15 +17,16 @@
 	universe and the player (no entities), the texture registry (none). The JS context is a real
 	one (QuickJS-ng), for the heap statistics and the wrapper object. The user's defaults
 	are a scratch folder's (HOMEPATH). The monitor is a singleton, so the tests run in order on one
-	monitor. Since the conversion (commit b86b2b897 ran them on the Objective-C class) they run
-	through the facade, which is its forwarding test; cxxMonitorAndItsFacade adds the C++ API and
-	the facade's contract (one facade, its weak reference, nil). Run: bash tools/check-core-tests.sh
+	monitor. Since the conversion (commit b86b2b897 ran them on the Objective-C class) they ran
+	through the facade; since its deletion they call the same C++ members, with
+	every expectation kept but the facade's contract checks. Run: bash tools/check-core-tests.sh
 */
 
 #import "OODebugMonitor.h"
 #import "OOColor.h"
 #import "OOObjCPList.h"
 #import "OODescription.h"
+#import "OOEntityHold.h"	// the universe's entity list holds C++ entities
 
 #include "oofnd/Defaults.hpp"
 #include "oofnd/FileSystem.hpp"
@@ -77,44 +77,58 @@ uint32_t gLiveEntityCount = 0;
 
 // WormholeEntity.mm's (the wormhole is C++ since bead oo-9ht.112, so the monitor's dump asks it
 // through this function, where it sent -shipsInTransit): the test dumps no entity.
-@class Entity;
+class Entity;
 oo::PList WormholeEntityShipsInTransit(Entity *)  { return oo::PList(); }
 
-@class Universe;
+// UNIVERSE stays nil here, so the monitor's guarded call never reaches it; the stand-in only links
+// it (it was a message to nil).
+class Universe
+{
+public:
+	std::vector<oo::EntityHold> entityList();	// held C++ entities
+};
+std::vector<oo::EntityHold> Universe::entityList()  { return {}; }
+
 Universe *gSharedUniverse = nil;
 
 // The ship is C++ since bead oo-9ht.144 deleted the Objective-C ship: what the monitor's entity dump
 // links against (a ship's object, the root's, holds its C++ part, which oo::ToCxx reads), declared
 // as Entity.h and ShipEntity.h declare them (the test imports neither). The test dumps no entity,
 // so none is reached.
-namespace cxx {
 class Entity : public oo::RefCounted
 {
 public:
 	virtual ~Entity();
+	bool getIsShip();
+	bool getIsPlayer();
+	bool getIsWormhole();
 };
-}	// namespace cxx
 
-@interface Entity: OOObject
+__attribute__((objc_runtime_name("Entity")))
+@interface TestEntityObject: OOObject
 {
 @public
-	oo::Ref<cxx::Entity> _cxxEntity;
+	oo::Ref<Entity> _cxxEntity;
 }
 @end
 
-@implementation Entity
+@implementation TestEntityObject
 @end
 
-class ShipEntity : public cxx::Entity
+class ShipEntity : public Entity
 {
 public:
-	std::vector<oo::ObjCRef<::Entity *>> subEntityEnumerator();
+	std::vector<oo::EntityHold> subEntityEnumerator();
 };
 
-cxx::Entity::~Entity() = default;
-std::vector<oo::ObjCRef<::Entity *>> ShipEntity::subEntityEnumerator()  { std::abort(); }
-namespace oo { ::Entity *ToObjC(cxx::Entity *entity); }
-::Entity *oo::ToObjC(cxx::Entity *)  { std::abort(); }
+Entity::~Entity() = default;
+bool Entity::getIsShip()  { std::abort(); }
+bool Entity::getIsPlayer()  { std::abort(); }
+bool Entity::getIsWormhole()  { std::abort(); }
+std::vector<oo::EntityHold> ShipEntity::subEntityEnumerator()  { std::abort(); }
+namespace oo { ::TestEntityObject *ToObjC(Entity *entity); }
+::TestEntityObject *oo::ToObjC(Entity *)  { std::abort(); }
+#import "EntityHelpersStandIn.h"	// EntityHelpers.mm's, on the test's objects: never reached either
 
 // PLAYER: C++ since bead oo-9ht.177 deleted the Objective-C player; the members the monitor calls
 // on it (declared as PlayerEntity.h declares them; the test imports no game header that defines
@@ -124,12 +138,12 @@ class PlayerEntity
 public:
 	NSUInteger dialMaxMissiles();
 	::ShipEntity *missileForPylon(NSUInteger value);
-	std::vector<oo::ObjCRef<::Entity *>> getScannedWormholes();
+	std::vector<oo::EntityHold> getScannedWormholes();
 };
 
 NSUInteger PlayerEntity::dialMaxMissiles()  { std::abort(); }
-::ShipEntity *PlayerEntity::missileForPylon(NSUInteger value)  { std::abort(); }
-std::vector<oo::ObjCRef<::Entity *>> PlayerEntity::getScannedWormholes()  { std::abort(); }
+::ShipEntity *PlayerEntity::missileForPylon(NSUInteger /*value*/)  { std::abort(); }
+std::vector<oo::EntityHold> PlayerEntity::getScannedWormholes()  { return {}; }	// no wormholes (the memory statistics' stand-in player asks)
 
 PlayerEntity *gOOPlayer = nullptr;
 
@@ -141,105 +155,85 @@ const char * const kOOJavaScriptEngineWillResetNotificationName = "org.aegidian.
 const char * const kOOJavaScriptEngineDidResetNotificationName = "org.aegidian.oolite OOJavaScriptEngine did reset";
 
 
-@interface ResourceManager: OOObject
-+ (oo::PList) cxx_dictionaryFromFilesNamed:(const std::string &)fileName
-								  inFolder:(const std::optional<std::string> &)folderName
-								  andMerge:(BOOL)mergeFiles;
-+ (std::optional<std::string>) cxx_pathForFileNamed:(const std::string &)fileName inFolder:(const std::optional<std::string> &)folderName;
-@end
+#import "ResourceManager.h"
 
-@implementation ResourceManager
-
-+ (oo::PList) cxx_dictionaryFromFilesNamed:(const std::string &)fileName
-								  inFolder:(const std::optional<std::string> &)folderName
-								  andMerge:(BOOL)mergeFiles
+// ResourceManager is C++ since its Objective-C facade was deleted: C++ definitions of the
+// statics the code under test calls, with the Objective-C stand-in's answers.
+oo::PList ResourceManager::dictionaryFromFilesNamed(const std::string &fileName, const std::optional<std::string> &folderName, bool mergeFiles)
 {
 	if (fileName == "debugConfig.plist" && folderName == "Config" && mergeFiles)  return sOXPConfig;
 	return oo::PList();
 }
 
 
-+ (std::optional<std::string>) cxx_pathForFileNamed:(const std::string &)fileName inFolder:(const std::optional<std::string> &)folderName
+std::optional<std::string> ResourceManager::pathForFileNamed(const std::string &fileName, const std::optional<std::string> &folderName)
 {
 	if (fileName == "oolite-debug-console.js" && folderName == "Scripts")  return sConsoleScriptPath;
 	return std::nullopt;
 }
 
-@end
 
 
-// The engine's monitor protocol (OOJavaScriptEngine.h): a problem by severity ("warning" or
-// "exception"), file and line, and log lines.
-@protocol OOJavaScriptEngineMonitor <OOObject>
-- (void)jsEngine:(id)engine
-		  context:(JSContext *)context
-problemOfSeverity:(const std::string &)severity
-		   inFile:(const std::optional<std::string> &)file
-			 line:(unsigned)line
-		stackSkip:(unsigned)stackSkip
-  showingLocation:(BOOL)showLocation
-	  withMessage:(const std::string &)message;
-- (void)jsEngine:(id)engine
-		 context:(JSContext *)context
-	  logMessage:(const std::string &)message
-		 ofClass:(const std::optional<std::string> &)messageClass;
-@end
+// The engine's monitor interface is C++ (OOJavaScriptEngineMonitor.h, from OODebugMonitor.h); the
+// stand-in protocol that was here went with the Objective-C one.
 
 
-@interface OOJavaScriptEngine: OOObject
+// The engine and the one null (OOJavaScriptEngine.h; C++ classes since their facades were
+// deleted), declared with the header's names and signatures but not their classes; the null is its
+// own property-list node's foreign object, as in the game.
+class OOJavaScriptEngine
 {
-@public
-	id					_monitor;
-	JSValue				_global;	// owned
-}
-+ (OOJavaScriptEngine *) sharedEngine;
-- (void) setMonitor:(id)monitor;
-- (JSValueConst) globalObject;
-@end
+public:
+	static OOJavaScriptEngine *sharedEngine();
+	void setMonitor(OOJavaScriptEngineMonitor *monitor);
+	JSValueConst globalObject();
 
-@implementation OOJavaScriptEngine
+	OOJavaScriptEngineMonitor	*_monitor = nullptr;	// the C++ monitor interface
+	JSValue						_global = JS_UNDEFINED;	// owned
+};
 
-+ (OOJavaScriptEngine *) sharedEngine
+OOJavaScriptEngine *OOJavaScriptEngine::sharedEngine()
 {
-	static OOJavaScriptEngine *engine = nil;
-	if (engine == nil)  engine = [[OOJavaScriptEngine alloc] init];
+	static OOJavaScriptEngine *engine = new OOJavaScriptEngine;
 	return engine;
 }
 
 
-- (void) setMonitor:(id)monitor
+void OOJavaScriptEngine::setMonitor(OOJavaScriptEngineMonitor *monitor)
 {
 	_monitor = monitor;
 }
 
 
 // Borrowed, as the engine's.
-- (JSValueConst) globalObject
+JSValueConst OOJavaScriptEngine::globalObject()
 {
 	if (!JS_IsObject(_global))  _global = JS_GetGlobalObject(gOOJSMainThreadContext);
 	return _global;
 }
 
-@end
 
-
-@interface OONull: OOObject
-+ (OONull *) null;
-@end
-
-@implementation OONull
-+ (OONull *) null
+class OONull : public oo::PListForeign
 {
-	static OONull *sNull = nil;
-	if (sNull == nil)  sNull = [[OONull alloc] init];
+public:
+	static OONull *null();
+	std::string className() const override;
+	std::string description() const override;
+};
+
+OONull *OONull::null()
+{
+	static OONull *sNull = oo::makeRef<OONull>().leakRef();
 	return sNull;
 }
-@end
 
+std::string OONull::className() const	{ return "OONull"; }
+std::string OONull::description() const	{ return "<null>"; }
 
 
 
 #import "OOScript.h"
+#import "OOTexture.h"
 
 
 // OOJSScript (OOJSScript.h), which the code under test calls. Since bead oo-9ht.133 deleted the
@@ -266,7 +260,7 @@ std::optional<std::string> OOScript::name()					{ return std::nullopt; }
 std::optional<std::string> OOScript::scriptDescription()		{ return std::nullopt; }
 std::optional<std::string> OOScript::version()				{ return std::nullopt; }
 bool OOScript::requiresTickle()								{ return false; }
-void OOScript::runWithTarget(::Entity *)						{}
+void OOScript::runWithTarget(Entity *)						{}
 bool OOScript::callMethod(JSAtom, JSContext *, JSValueConst *, int, JSValue *)	{ return false; }
 std::string OOScript::className() const						{ return "OOScript"; }
 std::string OOScript::description() const						{ return "<OOScript>"; }
@@ -287,33 +281,22 @@ OOJSScript *OOJSScript::currentlyRunningScript()
 }
 
 
-// A held JS value (OOJavaScriptEngine.h): the special-functions object's wrapper. There is no
-// special-functions object here, so no wrapper (nil for a value that is not an object).
-@interface OOJSValue: OOObject
-+ (id) valueWithJSValue:(JSValueConst)value inContext:(JSContext *)context;
-@end
+#import "OOJSEngineCore.h"	// OOJSValue complete: GCC instantiates ~Ref<OOJSValue> where a Ref is returned
 
-@implementation OOJSValue
-+ (id) valueWithJSValue:(JSValueConst)value inContext:(JSContext *)context
-{
-	(void)context;
-	if (!JS_IsObject(value))  return nil;
-	return [[[OOJSValue alloc] init] autorelease];
-}
-@end
-
-
-// The engine's JavaScript glue for objects (OOJavaScriptEngine.h), which the monitor implements.
-@interface OOObject (OOJavaScriptConversion)
-- (JSValue) oo_jsValueInContext:(JSContext *)context;	// owned
-@end
-
-// The special-functions object (OOJSSpecialFunctions.h): none.
+// The special-functions object (OOJSSpecialFunctions.h): none, as the stand-in gave (nil).
 JSValue JSSpecialFunctionsObjectWrapper(JSContext *context)
 {
 	(void)context;
 	return JS_UNDEFINED;
 }
+
+
+// A held JS value (OOJSEngineCore.h): the special-functions object's wrapper, which the monitor
+// makes only for an object (never here).
+oo::Ref<OOJSValue> OOJSValue::valueWithJSValue(JSValueConst, JSContext *)	{ std::abort(); }
+OOJSValue::~OOJSValue()										{}
+std::string OOJSValue::className() const						{ return "OOJSValue"; }
+std::string OOJSValue::description() const					{ return "<OOJSValue>"; }
 
 
 // The console's JS object: a plain object (OOJSConsole.mm gives it the Console class), owned by
@@ -357,22 +340,18 @@ std::optional<oo::Data> OODataFromOXZFile(const std::string &path)
 
 
 // No textures, so the memory dump lists none; and no entity class is ever an entity.
-@interface OOTexture: OOObject
-+ (std::vector<oo::ObjCRef<OOTexture *>>) cxx_cachedTexturesByAge;
-+ (std::vector<oo::ObjCRef<OOTexture *>>) cxx_allTextures;
-@end
-
-@implementation OOTexture
-+ (std::vector<oo::ObjCRef<OOTexture *>>) cxx_cachedTexturesByAge	{ return {}; }
-+ (std::vector<oo::ObjCRef<OOTexture *>>) cxx_allTextures			{ return {}; }
-@end
+// The C++ OOTexture's static members (the Objective-C facade they stood in for is deleted),
+// and the member the dump calls on each texture (there are none: never reached).
+std::vector<oo::Ref<OOTexture>> OOTexture::cachedTexturesByAge()	{ return {}; }
+std::vector<oo::Ref<OOTexture>> OOTexture::allTextures()			{ return {}; }
+size_t OOTexture::dataSize()	{ std::abort(); }
 
 
 // An entity with a drawable: C++ since bead oo-9ht.40 deleted its Objective-C facade, the member
 // the monitor's entity dump calls (declared as OOEntityWithDrawable.h declares it). The test dumps
 // no entity, so none is reached.
 class OODrawable;
-class OOEntityWithDrawable : public cxx::Entity
+class OOEntityWithDrawable : public Entity
 {
 public:
 	OODrawable *getDrawable();
@@ -383,74 +362,83 @@ OODrawable *OOEntityWithDrawable::getDrawable()  { std::abort(); }
 
 // MARK: The debugger -------------------------------------------------------------------------------
 
-// Records what the monitor sends it. Refuses to connect, or raises, when told to.
-@interface TestDebugger: OOObject <OODebuggerInterface>
+// Records what the monitor sends it. Refuses to connect, or raises, when told to. A C++
+// OODebuggerInterface (it was an Objective-C object adopting the protocol);
+// the same members, the same records.
+namespace {
+
+// The records (the Objective-C class's @public ivars).
+struct TestDebuggerRecord : public OODebuggerInterface
 {
-@public
-	BOOL						_refuse;
-	BOOL						_raise;
-	int							_connects;
+	BOOL						_refuse = NO;
+	BOOL						_raise = NO;
+	int							_connects = 0;
 	std::vector<std::string>	_disconnects;	// the messages ("(none)" for nullopt)
 	std::vector<std::string>	_output;		// "colorKey|text|location,length"
-	int							_clears;
-	int							_shows;
+	int							_clears = 0;
+	int							_shows = 0;
 	oo::PList					_configuration;
 	std::vector<std::string>	_changes;		// "key=<description>"
-}
-@end
+};
 
-@implementation TestDebugger
 
-- (BOOL)connectDebugMonitor:(OODebugMonitor *)debugMonitor errorMessage:(std::optional<std::string> *)message
+class TestDebugger : public TestDebuggerRecord
 {
-	(void)debugMonitor;
-	_connects++;
-	if (_raise)  [OOException raise:"TestException" format:"%s", "no thanks"];
-	if (_refuse)
+public:
+	bool connectDebugMonitor(OODebugMonitor *debugMonitor, std::optional<std::string> *message) override
 	{
-		*message = "refused";
-		return NO;
+		(void)debugMonitor;
+		_connects++;
+		if (_raise)  [OOException raise:"TestException" format:"%s", "no thanks"];
+		if (_refuse)
+		{
+			*message = "refused";
+			return NO;
+		}
+		return YES;
 	}
-	return YES;
-}
 
 
-- (void)disconnectDebugMonitor:(OODebugMonitor *)debugMonitor message:(const std::optional<std::string> &)message
-{
-	(void)debugMonitor;
-	_disconnects.push_back(message.value_or("(none)"));
-}
+	void disconnectDebugMonitor(OODebugMonitor *debugMonitor, const std::optional<std::string> &message) override
+	{
+		(void)debugMonitor;
+		_disconnects.push_back(message.value_or("(none)"));
+	}
 
 
-- (void)debugMonitor:(OODebugMonitor *)debugMonitor
-	  jsConsoleOutput:(const std::string &)output
-			 colorKey:(const std::optional<std::string> &)colorKey
-		emphasisRange:(NSRange)emphasisRange
-{
-	(void)debugMonitor;
-	_output.push_back(oo::str::format("%s|%s|%lu,%lu", colorKey.value_or("(none)").c_str(), output.c_str(), (unsigned long)emphasisRange.location, (unsigned long)emphasisRange.length));
-}
+	void debugMonitor(OODebugMonitor *debugMonitor,
+					  const std::string &output,
+					  const std::optional<std::string> &colorKey,
+					  NSRange emphasisRange) override
+	{
+		(void)debugMonitor;
+		_output.push_back(oo::str::format("%s|%s|%lu,%lu", colorKey.value_or("(none)").c_str(), output.c_str(), (unsigned long)emphasisRange.location, (unsigned long)emphasisRange.length));
+	}
 
 
-- (void)debugMonitorClearConsole:(OODebugMonitor *)debugMonitor	{ (void)debugMonitor; _clears++; }
-- (void)debugMonitorShowConsole:(OODebugMonitor *)debugMonitor	{ (void)debugMonitor; _shows++; }
+	void debugMonitorClearConsole(OODebugMonitor *debugMonitor) override	{ (void)debugMonitor; _clears++; }
+	void debugMonitorShowConsole(OODebugMonitor *debugMonitor) override	{ (void)debugMonitor; _shows++; }
 
 
-- (void)debugMonitor:(OODebugMonitor *)debugMonitor noteConfiguration:(const oo::PList &)configuration
-{
-	(void)debugMonitor;
-	_configuration = configuration;
-}
+	void debugMonitor(OODebugMonitor *debugMonitor, const oo::PList &configuration) override
+	{
+		(void)debugMonitor;
+		_configuration = configuration;
+	}
 
 
-- (void)debugMonitor:(OODebugMonitor *)debugMonitor noteChangedConfigrationValue:(const oo::PList &)newValue forKey:(const std::string &)key
-{
-	(void)debugMonitor;
-	const oo::PList::Integer *integer = newValue.getIf<oo::PList::Integer>();
-	_changes.push_back(key + "=" + (newValue.isNull() ? std::string("(null)") : integer != nullptr ? std::to_string(integer->value) : std::string("(value)")));
-}
+	void debugMonitor(OODebugMonitor *debugMonitor, const oo::PList &newValue, const std::string &key) override
+	{
+		(void)debugMonitor;
+		const oo::PList::Integer *integer = newValue.getIf<oo::PList::Integer>();
+		_changes.push_back(key + "=" + (newValue.isNull() ? std::string("(null)") : integer != nullptr ? std::to_string(integer->value) : std::string("(value)")));
+	}
 
-@end
+
+	std::string description() const override	{ return oo::str::format("<TestDebugger %s>", oo::str::pointerDescription(this).c_str()); }
+};
+
+}	// namespace
 
 
 // MARK: Helpers ------------------------------------------------------------------------------------
@@ -478,7 +466,7 @@ void SetUp()
 	oxp.emplace("show-console-on-log", oo::PList(kFalse));
 	oxp.emplace("error-fg-color", oo::PList("redColor"));
 	oxp.emplace("bogus-color", oo::PList("not a colour"));
-	oxp.emplace("hidden", oo::PListObject([OONull null]));
+	oxp.emplace("hidden", oo::PList(oo::PList::Object(oo::Ref<oo::PListForeign>(OONull::null()))));	// [OONull null]
 	sOXPConfig = oo::PList(std::move(oxp));
 
 	oo::PList::Dict overrides;
@@ -535,7 +523,10 @@ int LogLinesContaining(std::string_view text)
 
 TestDebugger *NewDebugger()
 {
-	return [[[TestDebugger alloc] init] autorelease];
+	// Kept for the rest of the run (the Objective-C debugger lived until its test's pool drained).
+	static std::vector<oo::Ref<TestDebugger>> debuggers;
+	debuggers.push_back(oo::makeRef<TestDebugger>());
+	return debuggers.back().get();
 }
 
 }	// namespace
@@ -550,25 +541,21 @@ OO_TEST(sharedMonitorIsSetUpOnce)
 	SetUp();
 	@autoreleasepool
 	{
-		OODebugMonitor *monitor = [OODebugMonitor sharedDebugMonitor];
-		OO_CHECK(monitor != nil);
-		OO_CHECK([OODebugMonitor sharedDebugMonitor] == monitor);
-		OO_CHECK([OOJavaScriptEngine sharedEngine]->_monitor == monitor);
+		OODebugMonitor *monitor = OODebugMonitor::sharedDebugMonitor();
+		OO_CHECK(monitor != nullptr);
+		OO_CHECK(OODebugMonitor::sharedDebugMonitor() == monitor);
+		OO_CHECK(OOJavaScriptEngine::sharedEngine()->_monitor == static_cast<OOJavaScriptEngineMonitor *>(monitor));
 
 		OO_CHECK(sConsoleScriptsMade == 1);
+		// The console property is an Object node of the monitor itself (it was the facade's).
 		const oo::PList *console = sConsoleScriptProperties.find("console");
-		OO_CHECK(console != nullptr && oo::ObjectIn(*console) == monitor);
+		const oo::PList::Object *consoleNode = (console != nullptr) ? console->getIf<oo::PList::Object>() : nullptr;
+		OO_CHECK(consoleNode != nullptr && consoleNode->get() == monitor);
 		OO_CHECK(sConsoleScriptProperties.find("special") == nullptr);	// no special-functions object
 		OO_CHECK(sConsoleWrappersMade == 0);	// a script exists, so no global debugConsole
 
-		// The canonical singleton: no second instance, and retain/release do nothing.
-		OO_CHECK([OODebugMonitor alloc] == nil);
-		OO_CHECK([monitor retain] == monitor && [monitor autorelease] == monitor);
-		[monitor release];
-		OO_CHECK([monitor retainCount] == UINT_MAX);
-
-		OO_CHECK(![monitor debuggerConnected]);
-		OO_CHECK(![monitor TCPIgnoresDroppedPackets] && ![monitor usingPlugInController]);
+		OO_CHECK(!monitor->debuggerConnected());
+		OO_CHECK(!monitor->TCPIgnoresDroppedPackets() && !monitor->usingPlugInController());
 	}
 }
 
@@ -578,30 +565,30 @@ OO_TEST(sharedMonitorIsSetUpOnce)
 OO_TEST(configurationIsNormalisedAndOverridden)
 {
 	SetUp();
-	OODebugMonitor *monitor = [OODebugMonitor sharedDebugMonitor];
+	OODebugMonitor *monitor = OODebugMonitor::sharedDebugMonitor();
 
-	OO_CHECK([monitor configurationValueForKey:"console-host"] == oo::PList("127.0.0.1"));
-	OO_CHECK([monitor configurationValueForKey:"font-size"] == oo::PList(14));	// the override
-	OO_CHECK([monitor configurationValueForKey:"show-console-on-warning"] == oo::PList(kTrue));
-	OO_CHECK([monitor configurationValueForKey:"show-console-on-log"] == oo::PList(kFalse));
-	OO_CHECK([monitor configurationValueForKey:"error-fg-color"] == RGBA(1.0f, 0.0f, 0.0f, 1.0f));
-	OO_CHECK([monitor configurationValueForKey:"log-fg-colour"] == RGBA(0.0f, 1.0f, 0.0f, 1.0f));
-	OO_CHECK([monitor configurationValueForKey:"bogus-color"].isNull());
-	OO_CHECK([monitor configurationValueForKey:"hidden"].isNull());
-	OO_CHECK([monitor configurationValueForKey:"no-such-key"].isNull());
+	OO_CHECK(monitor->configurationValueForKey("console-host") == oo::PList("127.0.0.1"));
+	OO_CHECK(monitor->configurationValueForKey("font-size") == oo::PList(14));	// the override
+	OO_CHECK(monitor->configurationValueForKey("show-console-on-warning") == oo::PList(kTrue));
+	OO_CHECK(monitor->configurationValueForKey("show-console-on-log") == oo::PList(kFalse));
+	OO_CHECK(monitor->configurationValueForKey("error-fg-color") == RGBA(1.0f, 0.0f, 0.0f, 1.0f));
+	OO_CHECK(monitor->configurationValueForKey("log-fg-colour") == RGBA(0.0f, 1.0f, 0.0f, 1.0f));
+	OO_CHECK(monitor->configurationValueForKey("bogus-color").isNull());
+	OO_CHECK(monitor->configurationValueForKey("hidden").isNull());
+	OO_CHECK(monitor->configurationValueForKey("no-such-key").isNull());
 
-	OO_CHECK([monitor configurationIntValueForKey:"font-size" defaultValue:-1] == 14);
-	OO_CHECK([monitor configurationIntValueForKey:"Big-number" defaultValue:-1] == 42);
-	OO_CHECK([monitor configurationIntValueForKey:"real-number" defaultValue:-1] == 2);
-	OO_CHECK([monitor configurationIntValueForKey:"show-console-on-warning" defaultValue:-1] == 1);
-	OO_CHECK([monitor configurationIntValueForKey:"error-fg-color" defaultValue:-1] == -1);
-	OO_CHECK([monitor configurationIntValueForKey:"no-such-key" defaultValue:7] == 7);
+	OO_CHECK(monitor->configurationIntValueForKey("font-size", -1) == 14);
+	OO_CHECK(monitor->configurationIntValueForKey("Big-number", -1) == 42);
+	OO_CHECK(monitor->configurationIntValueForKey("real-number", -1) == 2);
+	OO_CHECK(monitor->configurationIntValueForKey("show-console-on-warning", -1) == 1);
+	OO_CHECK(monitor->configurationIntValueForKey("error-fg-color", -1) == -1);
+	OO_CHECK(monitor->configurationIntValueForKey("no-such-key", 7) == 7);
 
 	// Every key of both, sorted without regard to case.
 	// (The unreadable colour was dropped when the OXPs' configuration was normalised.)
 	const std::vector<std::string> expected = { "Big-number", "console-host", "error-fg-color", "font-size", "hidden",
 												"log-fg-colour", "real-number", "show-console-on-log", "show-console-on-warning" };
-	OO_CHECK([monitor configurationKeys] == expected);
+	OO_CHECK(monitor->configurationKeys() == expected);
 }
 
 
@@ -612,22 +599,22 @@ OO_TEST(debuggerConnectsAndReceivesTheConsole)
 	StartLog();
 	@autoreleasepool
 	{
-		OODebugMonitor *monitor = [OODebugMonitor sharedDebugMonitor];
+		OODebugMonitor *monitor = OODebugMonitor::sharedDebugMonitor();
 		TestDebugger *debugger = NewDebugger();
-		OO_CHECK([monitor setDebugger:debugger]);
-		OO_CHECK([monitor debuggerConnected]);
+		OO_CHECK(monitor->setDebugger(debugger));
+		OO_CHECK(monitor->debuggerConnected());
 		OO_CHECK(debugger->_connects == 1);
 		OO_CHECK(debugger->_configuration.find("font-size") != nullptr && *debugger->_configuration.find("font-size") == oo::PList(14));
 		OO_CHECK(debugger->_configuration.find("console-host") != nullptr);
 		OO_CHECK(debugger->_configuration.find("bogus-color") == nullptr);
-		OO_CHECK([monitor setDebugger:debugger]);	// the same one again: nothing happens
+		OO_CHECK(monitor->setDebugger(debugger));	// the same one again: nothing happens
 		OO_CHECK(debugger->_connects == 1 && debugger->_disconnects.empty());
 
 		const int pauses = sTimeLimiterPauses, resumes = sTimeLimiterResumes;
-		[monitor appendJSConsoleLine:"hello" colorKey:std::string("log") emphasisRange:NSMakeRange(1, 2)];
-		[monitor appendJSConsoleLine:"plain" colorKey:std::nullopt];
-		[monitor clearJSConsole];
-		[monitor showJSConsole];
+		monitor->appendJSConsoleLine("hello", std::string("log"), NSMakeRange(1, 2));
+		monitor->appendJSConsoleLine("plain", std::nullopt);
+		monitor->clearJSConsole();
+		monitor->showJSConsole();
 		OO_CHECK(debugger->_output.size() == 2);
 		OO_CHECK(debugger->_output.size() == 2 && debugger->_output[0] == "log|hello|1,2" && debugger->_output[1] == "(none)|plain|0,0");
 		OO_CHECK(debugger->_clears == 1 && debugger->_shows == 1);
@@ -635,24 +622,24 @@ OO_TEST(debuggerConnectsAndReceivesTheConsole)
 
 		// A configuration change is normalised, kept as an override and sent to the debugger;
 		// setting null removes the override and sends what is left (the OXPs' value).
-		[monitor setConfigurationValue:oo::PList("blueColor") forKey:"console-fg-color"];
-		OO_CHECK([monitor configurationValueForKey:"console-fg-color"] == RGBA(0.0f, 0.0f, 1.0f, 1.0f));
-		[monitor setConfigurationValue:oo::PList(20) forKey:"font-size"];
-		[monitor setConfigurationValue:oo::PList() forKey:"font-size"];
-		OO_CHECK([monitor configurationValueForKey:"font-size"] == oo::PList(12));
-		[monitor setConfigurationValue:oo::PList(1) forKey:""];	// ignored
+		monitor->setConfigurationValue(oo::PList("blueColor"), "console-fg-color");
+		OO_CHECK(monitor->configurationValueForKey("console-fg-color") == RGBA(0.0f, 0.0f, 1.0f, 1.0f));
+		monitor->setConfigurationValue(oo::PList(20), "font-size");
+		monitor->setConfigurationValue(oo::PList(), "font-size");
+		OO_CHECK(monitor->configurationValueForKey("font-size") == oo::PList(12));
+		monitor->setConfigurationValue(oo::PList(1), "");	// ignored
 		OO_CHECK(debugger->_changes.size() == 3);
 		OO_CHECK(debugger->_changes.size() == 3 && debugger->_changes[0] == "console-fg-color=(value)" && debugger->_changes[1] == "font-size=20" && debugger->_changes[2] == "font-size=12");
 
 		// Another debugger's disconnection is ignored; this one's is passed on.
-		[monitor disconnectDebugger:NewDebugger() message:std::string("not you")];
+		monitor->disconnectDebugger(NewDebugger(), std::string("not you"));
 		OO_CHECK(LogLinesContaining("which is not current debugger; ignoring.") == 1);
-		OO_CHECK([monitor debuggerConnected]);
-		[monitor disconnectDebugger:nil message:std::string("nobody")];
-		[monitor disconnectDebugger:debugger message:std::string("bye")];
-		OO_CHECK(![monitor debuggerConnected]);
+		OO_CHECK(monitor->debuggerConnected());
+		monitor->disconnectDebugger(nullptr, std::string("nobody"));
+		monitor->disconnectDebugger(debugger, std::string("bye"));
+		OO_CHECK(!monitor->debuggerConnected());
 		OO_CHECK(debugger->_disconnects.size() == 1 && debugger->_disconnects[0] == "bye");
-		[monitor showJSConsole];	// no debugger: nothing
+		monitor->showJSConsole();	// no debugger: nothing
 		OO_CHECK(debugger->_shows == 1);
 	}
 }
@@ -664,26 +651,26 @@ OO_TEST(debuggersThatRefuseOrRaise)
 	StartLog();
 	@autoreleasepool
 	{
-		OODebugMonitor *monitor = [OODebugMonitor sharedDebugMonitor];
+		OODebugMonitor *monitor = OODebugMonitor::sharedDebugMonitor();
 		TestDebugger *first = NewDebugger();
-		OO_CHECK([monitor setDebugger:first]);
+		OO_CHECK(monitor->setDebugger(first));
 
 		// A new debugger disconnects the old one first, even if it then fails.
 		TestDebugger *refusing = NewDebugger();
 		refusing->_refuse = YES;
-		OO_CHECK(![monitor setDebugger:refusing]);
+		OO_CHECK(!monitor->setDebugger(refusing));
 		OO_CHECK(first->_disconnects.size() == 1 && first->_disconnects[0] == "New debugger set.");
-		OO_CHECK(![monitor debuggerConnected]);
+		OO_CHECK(!monitor->debuggerConnected());
 		OO_CHECK(LogLinesContaining("because an error occurred: refused") == 1);
 
 		TestDebugger *raising = NewDebugger();
 		raising->_raise = YES;
-		OO_CHECK(![monitor setDebugger:raising]);
+		OO_CHECK(!monitor->setDebugger(raising));
 		OO_CHECK(LogLinesContaining("because an exception occurred: TestException -- no thanks") == 1);
 
 		TestDebugger *second = NewDebugger();
-		OO_CHECK([monitor setDebugger:second]);
-		OO_CHECK([monitor setDebugger:nil]);
+		OO_CHECK(monitor->setDebugger(second));
+		OO_CHECK(monitor->setDebugger(nullptr));
 		OO_CHECK(second->_disconnects.size() == 1 && second->_disconnects[0] == "Debugger disconnected programatically.");
 	}
 }
@@ -693,9 +680,9 @@ OO_TEST(debuggersThatRefuseOrRaise)
 OO_TEST(consoleCommandsRunInTheScript)
 {
 	SetUp();
-	OODebugMonitor *monitor = [OODebugMonitor sharedDebugMonitor];
+	OODebugMonitor *monitor = OODebugMonitor::sharedDebugMonitor();
 	const int commands = sConsoleCommands, starts = sTimeLimiterStarts, stops = sTimeLimiterStops;
-	[monitor performJSConsoleCommand:"1 + 1"];
+	monitor->performJSConsoleCommand("1 + 1");
 	OO_CHECK(sConsoleCommands == commands + 1);
 	OO_CHECK(sLastJSValuePList == oo::PList("1 + 1"));
 	OO_CHECK(sTimeLimiterStarts == starts + 1 && sTimeLimiterStops == stops + 1);
@@ -705,19 +692,19 @@ OO_TEST(consoleCommandsRunInTheScript)
 OO_TEST(sourceLinesAreServedAndCached)
 {
 	SetUp();
-	OODebugMonitor *monitor = [OODebugMonitor sharedDebugMonitor];
+	OODebugMonitor *monitor = OODebugMonitor::sharedDebugMonitor();
 	const std::string path = WriteSource("source.js", "first\nsecond\nthird");
-	OO_CHECK([monitor sourceCodeForFile:path line:2] == "second");
-	OO_CHECK([monitor sourceCodeForFile:path line:3] == "third");
-	OO_CHECK([monitor sourceCodeForFile:path line:0] == "<line out of range!>");
-	OO_CHECK([monitor sourceCodeForFile:path line:4] == "<line out of range!>");
+	OO_CHECK(monitor->sourceCodeForFile(path, 2) == "second");
+	OO_CHECK(monitor->sourceCodeForFile(path, 3) == "third");
+	OO_CHECK(monitor->sourceCodeForFile(path, 0) == "<line out of range!>");
+	OO_CHECK(monitor->sourceCodeForFile(path, 4) == "<line out of range!>");
 
 	WriteSource("source.js", "changed\n");
-	OO_CHECK([monitor sourceCodeForFile:path line:1] == "first");	// read once
+	OO_CHECK(monitor->sourceCodeForFile(path, 1) == "first");	// read once
 
 	const std::string missing = (sRoot / "missing.js").generic_string();
-	OO_CHECK([monitor sourceCodeForFile:missing line:1] == "<Can't load file " + missing + ">");
-	OO_CHECK([monitor sourceCodeForFile:missing line:2] == "<line out of range!>");
+	OO_CHECK(monitor->sourceCodeForFile(missing, 1) == "<Can't load file " + missing + ">");
+	OO_CHECK(monitor->sourceCodeForFile(missing, 2) == "<line out of range!>");
 }
 
 
@@ -728,37 +715,37 @@ OO_TEST(engineErrorsAndLogLinesReachTheConsole)
 	SetUp();
 	@autoreleasepool
 	{
-		OODebugMonitor *monitor = [OODebugMonitor sharedDebugMonitor];
-		id<OOJavaScriptEngineMonitor> engineMonitor = (id<OOJavaScriptEngineMonitor>)monitor;
+		OODebugMonitor *monitor = OODebugMonitor::sharedDebugMonitor();
+		OOJavaScriptEngineMonitor *engineMonitor = monitor;	// the C++ monitor interface
 		const std::string path = WriteSource("script.js", "line one\n  line two\n");
 
 		// The engine reports a problem by severity ("warning" or "exception"), file and line.
 
 		// No debugger: nothing at all.
-		[engineMonitor jsEngine:nil context:gOOJSMainThreadContext problemOfSeverity:"warning" inFile:path line:2 stackSkip:0 showingLocation:YES withMessage:"ignored"];
+		engineMonitor->jsEngine(nil, gOOJSMainThreadContext, "warning", path, 2, 0, YES, std::string("ignored"));
 
 		TestDebugger *debugger = NewDebugger();
-		OO_CHECK([monitor setDebugger:debugger]);
-		[engineMonitor jsEngine:nil context:gOOJSMainThreadContext problemOfSeverity:"warning" inFile:path line:2 stackSkip:0 showingLocation:YES withMessage:"careful"];
+		OO_CHECK(monitor->setDebugger(debugger));
+		engineMonitor->jsEngine(nil, gOOJSMainThreadContext, "warning", path, 2, 0, YES, std::string("careful"));
 		OO_CHECK(debugger->_output.size() == 1);
 		OO_CHECK(debugger->_output.size() == 1 && debugger->_output[0] == "warning|Warning: careful\n    script.js, line 2:\n      line two|0,8");
 		OO_CHECK(debugger->_shows == 1);	// show-console-on-warning is yes
 
 		// QuickJS has no strict-mode reports and no errors that are not exceptions (#768): an
 		// exception is the only other severity.
-		[engineMonitor jsEngine:nil context:gOOJSMainThreadContext problemOfSeverity:"exception" inFile:path line:2 stackSkip:1 showingLocation:YES withMessage:"boom"];
+		engineMonitor->jsEngine(nil, gOOJSMainThreadContext, "exception", path, 2, 1, YES, std::string("boom"));
 		OO_CHECK(debugger->_output.size() == 2 && debugger->_output[1] == "exception|Exception: boom|0,10");
 		OO_CHECK(debugger->_shows == 1);	// show-console-on-error is not set
 
-		[engineMonitor jsEngine:nil context:gOOJSMainThreadContext logMessage:"logged" ofClass:std::nullopt];
+		engineMonitor->jsEngine(nil, gOOJSMainThreadContext, std::string("logged"), std::nullopt);
 		OO_CHECK(debugger->_output.size() == 3 && debugger->_output[2] == "log|logged|0,0");
 		OO_CHECK(debugger->_shows == 1);	// show-console-on-log is no
-		[monitor setConfigurationValue:oo::PList("yes") forKey:"show-console-on-log"];
-		[engineMonitor jsEngine:nil context:gOOJSMainThreadContext logMessage:"again" ofClass:std::string("class")];
+		monitor->setConfigurationValue(oo::PList("yes"), "show-console-on-log");
+		engineMonitor->jsEngine(nil, gOOJSMainThreadContext, std::string("again"), std::string("class"));
 		OO_CHECK(debugger->_shows == 2);
-		[monitor setConfigurationValue:oo::PList() forKey:"show-console-on-log"];
+		monitor->setConfigurationValue(oo::PList(), "show-console-on-log");
 
-		OO_CHECK([monitor setDebugger:nil]);
+		OO_CHECK(monitor->setDebugger(nullptr));
 	}
 }
 
@@ -767,19 +754,19 @@ OO_TEST(settingsFlags)
 {
 	SetUp();
 	StartLog();
-	OODebugMonitor *monitor = [OODebugMonitor sharedDebugMonitor];
-	[monitor setTCPIgnoresDroppedPackets:YES];
-	[monitor setTCPIgnoresDroppedPackets:YES];
-	OO_CHECK([monitor TCPIgnoresDroppedPackets]);
-	[monitor setTCPIgnoresDroppedPackets:NO];
-	OO_CHECK(![monitor TCPIgnoresDroppedPackets]);
+	OODebugMonitor *monitor = OODebugMonitor::sharedDebugMonitor();
+	monitor->setTCPIgnoresDroppedPackets(YES);
+	monitor->setTCPIgnoresDroppedPackets(YES);
+	OO_CHECK(monitor->TCPIgnoresDroppedPackets());
+	monitor->setTCPIgnoresDroppedPackets(NO);
+	OO_CHECK(!monitor->TCPIgnoresDroppedPackets());
 	OO_CHECK(LogLinesContaining("The TCP console will try to stay connected, ignoring dropped TCP packets.") == 1);
 	OO_CHECK(LogLinesContaining("The TCP console will disconnect if an error affects TCP packets.") == 1);
 
-	[monitor setUsingPlugInController:YES];
-	OO_CHECK([monitor usingPlugInController]);
-	[monitor setUsingPlugInController:NO];
-	OO_CHECK(![monitor usingPlugInController]);
+	monitor->setUsingPlugInController(YES);
+	OO_CHECK(monitor->usingPlugInController());
+	monitor->setUsingPlugInController(NO);
+	OO_CHECK(!monitor->usingPlugInController());
 }
 
 
@@ -790,18 +777,21 @@ OO_TEST(memoryStatistics)
 	StartLog();
 	@autoreleasepool
 	{
-		OODebugMonitor *monitor = [OODebugMonitor sharedDebugMonitor];
+		OODebugMonitor *monitor = OODebugMonitor::sharedDebugMonitor();
 		TestDebugger *debugger = NewDebugger();
-		OO_CHECK([monitor setDebugger:debugger]);
+		OO_CHECK(monitor->setDebugger(debugger));
 
-		const size_t jsSize = [monitor dumpJSMemoryStatistics];
+		const size_t jsSize = monitor->dumpJSMemoryStatistics();
 		OO_CHECK(jsSize > 0);
 		OO_CHECK(LogLinesContaining("JavaScript heap: ") == 1);
 		OO_CHECK(debugger->_output.size() == 1 && debugger->_output[0].starts_with("command-result|JavaScript heap: "));
 
 		gLiveEntityCount = 3;
 		gLog.clear();
-		[monitor dumpMemoryStatistics];
+		static PlayerEntity sStandInPlayer;	// the debug build asserts that PLAYER is set (OOGetPlayer()): one with no wormholes
+		gOOPlayer = &sStandInPlayer;
+		monitor->dumpMemoryStatistics();
+		gOOPlayer = nullptr;
 		OO_CHECK(LogLinesContaining("Memory statistics:") == 1);
 		OO_CHECK(LogLinesContaining("Entitites:") == 1);
 		OO_CHECK(LogLinesContaining("Total entity size (excluding 3 entities not accounted for): 0 bytes (0 bytes entity objects, 0 bytes drawables)") == 1);
@@ -812,7 +802,7 @@ OO_TEST(memoryStatistics)
 		OO_CHECK(debugger->_output.size() == 7);	// the six written lines after the heap line ("Memory statistics:" is logged only)
 		gLiveEntityCount = 0;
 
-		OO_CHECK([monitor setDebugger:nil]);
+		OO_CHECK(monitor->setDebugger(nullptr));
 	}
 }
 
@@ -824,20 +814,20 @@ OO_TEST(javaScriptValueAndEngineReset)
 	SetUp();
 	@autoreleasepool
 	{
-		OODebugMonitor *monitor = [OODebugMonitor sharedDebugMonitor];
-		JSValue first = [monitor oo_jsValueInContext:gOOJSMainThreadContext];
+		OODebugMonitor *monitor = OODebugMonitor::sharedDebugMonitor();
+		JSValue first = monitor->jsValueInContext(gOOJSMainThreadContext);
 		OO_CHECK(JS_IsObject(first));
 		OO_CHECK(sConsoleWrappersMade == 1);
-		JSValue again = [monitor oo_jsValueInContext:gOOJSMainThreadContext];
+		JSValue again = monitor->jsValueInContext(gOOJSMainThreadContext);
 		OO_CHECK(JS_IsObject(again) && JS_VALUE_GET_PTR(again) == JS_VALUE_GET_PTR(first) && sConsoleWrappersMade == 1);
 		JS_FreeValue(gOOJSMainThreadContext, again);
 		JS_FreeValue(gOOJSMainThreadContext, first);
 
 		// The reset drops the console's JS object (#768 frees it; there is no OOJSConsoleDestroy()).
-		OOJavaScriptEngine *engine = [OOJavaScriptEngine sharedEngine];
+		OOJavaScriptEngine *engine = OOJavaScriptEngine::sharedEngine();
 		const int scripts = sConsoleScriptsMade;
 		oo::NotificationCenter::defaultCenter().post(kOOJavaScriptEngineWillResetNotificationName, engine);
-		JS_FreeValue(gOOJSMainThreadContext, [monitor oo_jsValueInContext:gOOJSMainThreadContext]);
+		JS_FreeValue(gOOJSMainThreadContext, monitor->jsValueInContext(gOOJSMainThreadContext));
 		OO_CHECK(sConsoleWrappersMade == 2);	// made again
 
 		oo::NotificationCenter::defaultCenter().post(kOOJavaScriptEngineDidResetNotificationName, engine);
@@ -856,37 +846,20 @@ OO_TEST(javaScriptValueAndEngineReset)
 }
 
 
-// The C++ monitor is the one behind the facade, and the facade is one object for the life of the
-// process, whose weak reference (OOWeakRefObject's state, which the console's JS object holds)
-// stays its own.
+// The one C++ monitor for the life of the process, described as its facade was ("%@"). The facade
+// and its contract checks (one facade, its weak reference, nil crossings) went with it.
 OO_TEST(cxxMonitorAndItsFacade)
 {
 	SetUp();
-	@autoreleasepool
-	{
-		OODebugMonitor *facade = [OODebugMonitor sharedDebugMonitor];
-		cxx::OODebugMonitor *monitor = cxx::OODebugMonitor::sharedDebugMonitor();
-		OO_CHECK(monitor != nullptr && cxx::OODebugMonitor::sharedDebugMonitor() == monitor);
-		OO_CHECK(oo::ToCxx(facade) == monitor && oo::ToObjC(monitor) == facade);
-		OO_CHECK(oo::ToCxx(static_cast<OODebugMonitor *>(nil)) == nullptr);
-		OO_CHECK(oo::ToObjC(static_cast<cxx::OODebugMonitor *>(nullptr)) == nil);
-		OO_CHECK(oo::DescriptionOf(facade).starts_with("<OODebugMonitor 0x"));
+	OODebugMonitor *monitor = OODebugMonitor::sharedDebugMonitor();
+	OO_CHECK(monitor != nullptr && OODebugMonitor::sharedDebugMonitor() == monitor);
+	if (monitor == nullptr)  return;
+	OO_CHECK(monitor->description().starts_with("<OODebugMonitor 0x"));
 
-		// Either side sees the other's changes.
-		monitor->setUsingPlugInController(true);
-		OO_CHECK([facade usingPlugInController]);
-		[facade setUsingPlugInController:NO];
-		OO_CHECK(!monitor->usingPlugInController());
-		OO_CHECK(monitor->configurationValueForKey("console-host") == [facade configurationValueForKey:"console-host"]);
-		OO_CHECK(monitor->configurationKeys() == [facade configurationKeys]);
-
-		OOWeakReference *ref = [facade weakRetain];
-		OO_CHECK([ref weakRefUnderlyingObject] == facade);
-		OOWeakReference *again = [facade weakRetain];
-		OO_CHECK(again == ref);
-		[again release];
-		[ref release];
-	}
+	monitor->setUsingPlugInController(true);
+	OO_CHECK(monitor->usingPlugInController());
+	monitor->setUsingPlugInController(false);
+	OO_CHECK(!monitor->usingPlugInController());
 }
 
 
@@ -896,14 +869,14 @@ OO_TEST(applicationWillTerminate)
 	SetUp();
 	@autoreleasepool
 	{
-		OODebugMonitor *monitor = [OODebugMonitor sharedDebugMonitor];
+		OODebugMonitor *monitor = OODebugMonitor::sharedDebugMonitor();
 		TestDebugger *debugger = NewDebugger();
-		OO_CHECK([monitor setDebugger:debugger]);
-		[monitor setConfigurationValue:oo::PList(16) forKey:"font-size"];
+		OO_CHECK(monitor->setDebugger(debugger));
+		monitor->setConfigurationValue(oo::PList(16), "font-size");
 
-		[monitor applicationWillTerminate];
+		monitor->applicationWillTerminate();
 		OO_CHECK(debugger->_disconnects.size() == 1 && debugger->_disconnects[0] == "Oolite is terminating.");
-		OO_CHECK(![monitor debuggerConnected]);
+		OO_CHECK(!monitor->debuggerConnected());
 		const oo::PList saved = oo::Defaults::standard().dictionaryForKey("debug-settings-override");
 		OO_CHECK(saved.find("font-size") != nullptr && *saved.find("font-size") == oo::PList(16));
 		OO_CHECK(saved.find("log-fg-colour") != nullptr && *saved.find("log-fg-colour") == RGBA(0.0f, 1.0f, 0.0f, 1.0f));

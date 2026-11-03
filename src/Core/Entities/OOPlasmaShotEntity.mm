@@ -4,7 +4,7 @@ OOPlasmaShotEntity.m
 
 C++20 since bead oo-z9md (see OOPlasmaShotEntity.h). The bodies are the Objective-C ones: a
 message to self is a member call, [super ...] the base's member, and the universe and the entity
-hit are handed the shot's Objective-C object, self = oo::ToObjC(this).
+hit are handed the shot (its C++ entity).
 
 
 Oolite
@@ -76,19 +76,17 @@ void OOPlasmaShotEntity::initWithPosition(HPVector inPosition,
 
 bool OOPlasmaShotEntity::canCollide()
 {
-    return [UNIVERSE getTime] > getSpawnTime() + kPlasmaShotActivationDelay;
+    return (UNIVERSE != nullptr ? UNIVERSE->getTime() : 0.0) > getSpawnTime() + kPlasmaShotActivationDelay;
 }
 
-// The other entity stays its Objective-C object (amendment oo-bj8 item 4): messages to nil answer as before.
-bool OOPlasmaShotEntity::checkCloseCollisionWith(cxx::Entity* otherEntity)
+// The other entity's members (its object's until the root facade went); null answers as a message to nil did.
+bool OOPlasmaShotEntity::checkCloseCollisionWith(Entity* otherEntity)
 {
-    ::Entity* other = oo::ToObjC(otherEntity);
-    return ([other rootShipEntity] != owner()) && ![other isEffect];
+    return ((otherEntity != nullptr ? otherEntity->rootShipEntity() : nullptr) != ownerEntity()) && !(otherEntity != nullptr && otherEntity->isEffect());
 }
 
 void OOPlasmaShotEntity::update(double delta_t)
 {
-    ::Entity* self = oo::ToObjC(this);
     OOLightParticleEntity::update(delta_t);
 
     OOTimeDelta lifeTime = timeElapsedSinceSpawn();
@@ -99,22 +97,23 @@ void OOPlasmaShotEntity::update(double delta_t)
     const float attenuation = 1.0f;
 #endif
 
-    const std::vector<oo::ObjCRef<::Entity*>> colliding = collidingEntities; // a snapshot (enumerating the live array while it changed raised)
+    const std::vector<oo::EntityHold> colliding = collidingEntities; // a snapshot (enumerating the live array while it changed raised)
     NSUInteger i, count = colliding.size();
     for (i = 0; i < count; i++) {
-        ::Entity* e = colliding[i].get();
-        if ([e rootShipEntity] != owner()) {
+        Entity* e = colliding[i].get();
+        if ((e != nullptr ? e->rootShipEntity() : nullptr) != ownerEntity()) // what [e rootShipEntity] != -owner compared
+        {
             // we're going to force the weapon id to be a phantom equipment key so there is something for
             // the PlayerEntitySound to reference. it allow allows for the sound effects to be overridden by OXP.
-            [e takeEnergyDamage:getEnergy() * attenuation
-                            from:self
-                       becauseOf:owner()
-                weaponIdentifier:"EQ_WEAPON_PLASMA_SHOT"];
-            [UNIVERSE removeEntity:self];
+            if (e != nullptr)
+                e->takeEnergyDamage(getEnergy() * attenuation, this, ownerEntity(), "EQ_WEAPON_PLASMA_SHOT");
+            if (UNIVERSE != nullptr)
+                UNIVERSE->removeEntity(this);
 
             // Spawn a plasma burst.
-            ::Entity* burst = oo::NewEntityFacade(OOPlasmaBurstEntity::burstWithPosition(getPosition()));
-            [UNIVERSE addEntity:burst];
+            Entity* burst = oo::MadeEntity(OOPlasmaBurstEntity::burstWithPosition(getPosition()));
+            if (UNIVERSE != nullptr)
+                UNIVERSE->addEntity(burst);
         }
     }
 
@@ -122,6 +121,8 @@ void OOPlasmaShotEntity::update(double delta_t)
     _colorComponents[3] = attenuation;
 #endif
 
-    if (lifeTime > _duration)
-        [UNIVERSE removeEntity:self];
+    if (lifeTime > _duration) {
+        if (UNIVERSE != nullptr)
+            UNIVERSE->removeEntity(this);
+    }
 }

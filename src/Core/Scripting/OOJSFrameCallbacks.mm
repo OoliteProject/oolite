@@ -34,7 +34,8 @@ SOFTWARE.
 /*	Converted in bead oo-n041 (proposed ADR-0056 amendment oo-ppc): a binding with no class of its
         own. BOOL/YES/NO are bool/true/false; the file statics and functions whose lines that touched
         are in an anonymous namespace, as the others already were. A deferred add still keeps its
-        callback in an Objective-C OOJSValue, and the universe's time acceleration is still a message.
+        callback in an OOJSValue (a C++ object), and the universe's time acceleration is still a
+        message.
 */
 
 /*
@@ -104,7 +105,7 @@ typedef struct
 {
     std::string operation; // "add" or "remove"
     uint32_t trackingID;
-    oo::ObjCRef<OOJSValue*> value; // the callback, for "add"
+    oo::Ref<OOJSValue> value; // the callback, for "add"
 } DeferredOperation;
 
 namespace {
@@ -166,7 +167,7 @@ void OOJSFrameCallbacksInvoke(OOTimeDelta inDeltaT)
     OOCAssert(!sRunning, "%s cannot be called while frame callbacks are running.", __PRETTY_FUNCTION__);
 
     if (sCount != 0) {
-        const OOTimeDelta delta = inDeltaT * [UNIVERSE timeAccelerationFactor];
+        const OOTimeDelta delta = inDeltaT * (UNIVERSE != nullptr ? UNIVERSE->getTimeAccelerationFactor() : 0.0);
         JSContext* context = OOJSAcquireContext();
         JSValue deltaVal = JS_NewNumber(context, delta);
         // As with JS_CallFunctionValue() with a NULL this, callbacks are called with the global object as this.
@@ -247,7 +248,7 @@ static JSValue GlobalAddFrameCallback(OOJS_NATIVE_ARGS)
     } else {
         // Defer mutations during callback invocation.
         FCBLog("script.frameCallback.debug.add.deferred", "Deferring addition of frame callback with tracking ID {}.", trackingID);
-        QueueDeferredOperation("add", trackingID, [OOJSValue valueWithJSValue:callback inContext:context]);
+        QueueDeferredOperation("add", trackingID, OOJSValue::valueWithJSValue(callback, context).get());
     }
 
     OOJS_RETURN_INT(trackingID);
@@ -277,7 +278,7 @@ static JSValue GlobalRemoveFrameCallback(OOJS_NATIVE_ARGS)
     } else {
         // Defer mutations during callback invocation.
         FCBLog("script.frameCallback.debug.remove.deferred", "Deferring removal of frame callback with tracking ID {}.", trackingID);
-        QueueDeferredOperation("remove", trackingID, nil);
+        QueueDeferredOperation("remove", trackingID, nullptr);
     }
 
     OOJS_RETURN_VOID;
@@ -427,7 +428,7 @@ static void QueueDeferredOperation(const std::string& opType, uint32_t trackingI
 
     if (sDeferredOps == NULL)
         sDeferredOps = new std::vector<DeferredOperation>;
-    sDeferredOps->push_back(DeferredOperation { opType, trackingID, oo::ObjCRef<OOJSValue*>(value) });
+    sDeferredOps->push_back(DeferredOperation { opType, trackingID, oo::Ref<OOJSValue>(value) });
 }
 } // namespace
 
@@ -444,7 +445,7 @@ static void RunDeferredOperations(JSContext* context)
             OOJSValue* callbackObj = operation.value.get();
             std::optional<std::string> errorString;
 
-            JSValue callback = OOJSValueFromNativeObject(context, callbackObj);
+            JSValue callback = (callbackObj != nullptr ? callbackObj->jsValueInContext(context) : JS_NULL);
             if (!AddCallback(context, callback, trackingID, &errorString)) {
                 OO_LOG_WARN("script.frameCallback.deferredAdd.failed", "Deferred frame callback insertion failed: {}", errorString.value_or("(null)"));
             }

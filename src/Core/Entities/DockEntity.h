@@ -117,18 +117,18 @@ public:
     bool isVisibleToScripts() override;
     bool setUpShipFromDictionary(const oo::PList& dict) override;
     void update(OOTimeDelta delta_t) override;
-    void noteTakingDamage(double amount, ::Entity* entity, OOShipDamageType type) override;
-    void takeEnergyDamage(double amount, cxx::Entity* ent, cxx::Entity* other, const std::string& weaponIdentifier) override;
+    void noteTakingDamage(double amount, Entity* entity, OOShipDamageType type) override;
+    void takeEnergyDamage(double amount, Entity* ent, Entity* other, const std::string& weaponIdentifier) override;
     void drawImmediate(bool immediate, bool translucent) override;
 
     // @private in Objective-C; still public (the tests read them), as the player's were after its
     // facade went
     std::map<unsigned short, std::vector<oo::PList>> shipsOnApproach; // coordinate stacks (Dicts) by ship ID (the old +numberWithUnsignedShort: key)
-    std::vector<oo::ObjCRef<::Entity*>> launchQueue;
+    std::vector<oo::EntityHold> launchQueue; // the ships' objects held
     double last_launch_time = { };
     //	double					approach_spacing; // not needed now holding pattern changed
 
-    ::OOWeakReference* id_lock[MAX_DOCKING_STAGES] = { }; // OOWeakReferences to a ship's object (typed as the ship until bead oo-9ht.144)
+    oo::WeakRef<Entity> id_lock[MAX_DOCKING_STAGES]; // weak references to a ship (its C++ part; its object's before)
 
     Vector port_dimensions = { };
     double port_corridor = { }; // corridor length inside station.
@@ -142,11 +142,10 @@ public:
 
 namespace oo {
 
-// The dock whose Objective-C object is <entity> (a dock's object is a ship's since bead
-// oo-9ht.180): nullptr for nil or any other entity, where -isKindOfClass:[DockEntity class] was NO.
-inline ::DockEntity* ToDock(::Entity* entity)
+// The same of a C++ entity (what an entity's JS object holds).
+inline ::DockEntity* ToDock(Entity* entity)
 {
-    return dynamic_cast<::DockEntity*>(ToCxx(entity));
+    return dynamic_cast<::DockEntity*>(entity);
 }
 
 // The same question of a C++ ship (a ship is C++ since bead oo-9ht.144): nullptr for null or another ship.

@@ -30,6 +30,7 @@
 #include "oofnd/String.hpp"
 #import "OODescription.h"
 #import "OOObjCPList.h"
+#include "EntityPListForeign.h"	// an entity's node
 
 
 // MARK: The classes, as far as the binding sees them ----------------------------------------------
@@ -42,24 +43,22 @@
 	declare them (the test imports neither). The object holds one reference to its JS object,
 	which lives as long as it does; the JS object's slot holds the object (not retained).
 */
-@class Entity;
+@class TestEntityObject;
 
-namespace cxx {
 class Entity : public oo::RefCounted
 {
 public:
 	virtual ~Entity();
 
-	::Entity *_object = nil;	// its object (not retained)
+	::TestEntityObject *_object = nil;	// its object (not retained)
 };
-}	// namespace cxx
 
-class ShipEntity : public cxx::Entity
+class ShipEntity : public Entity
 {
 public:
 	::OOShipGroup *group();
 	void setGroup(::OOShipGroup *group);
-	void setOwner(cxx::Entity *who_owns_entity);
+	void setOwner(Entity *who_owns_entity);
 	::OOShipGroup *escortGroup();
 	bool acceptAsEscort(::ShipEntity *other_ship);
 
@@ -70,18 +69,25 @@ public:
 	int _accepted = 0;
 };
 
-@interface Entity: OOWeakRefObject
+__attribute__((objc_runtime_name("Entity")))
+@interface TestEntityObject: OOWeakRefObject
 {
 @public
-	oo::Ref<cxx::Entity> _cxxEntity;
+	oo::Ref<Entity> _cxxEntity;
 	std::string _name;
 	JSValue _jsSelf;	// Zero-filled (not an object) until made; owned.
 }
 @end
 
-@interface OONull: OOObject
-+ (OONull *) null;
-@end
+// The one null (OOJavaScriptEngine.h; a C++ class since its facade was deleted), declared
+// with the header's names and signatures but not its class: its own property-list node's object.
+class OONull : public oo::PListForeign
+{
+public:
+	static OONull *null();
+	std::string className() const override;
+	std::string description() const override;
+};
 
 @interface OOObject (OOJSTestGlue)
 - (JSValue) oo_jsValueInContext:(JSContext *)context;	// owned by the caller
@@ -109,10 +115,10 @@ JSClassID sFakeShipClassID = 0;
 }
 
 
-cxx::Entity::~Entity() = default;
+Entity::~Entity() = default;
 OOShipGroup *ShipEntity::group()  { return _group.get(); }
 void ShipEntity::setGroup(OOShipGroup *group)  { _group = oo::Ref<OOShipGroup>(group); }
-void ShipEntity::setOwner(cxx::Entity *who_owns_entity)  { (void)who_owns_entity; }
+void ShipEntity::setOwner(Entity *who_owns_entity)  { (void)who_owns_entity; }
 OOShipGroup *ShipEntity::escortGroup()  { return _escortGroup.get(); }
 
 bool ShipEntity::acceptAsEscort(::ShipEntity *other_ship)
@@ -123,11 +129,12 @@ bool ShipEntity::acceptAsEscort(::ShipEntity *other_ship)
 	return YES;
 }
 
-namespace oo { ::Entity *ToObjC(cxx::Entity *entity); }	// Entity+ObjCBridge.mm's, which the test does not link
-::Entity *oo::ToObjC(cxx::Entity *entity)  { return entity != nullptr ? entity->_object : nil; }
+namespace oo { ::TestEntityObject *ToObjC(Entity *entity); }	// Entity+ObjCBridge.mm's, which the test does not link
+::TestEntityObject *oo::ToObjC(Entity *entity)  { return entity != nullptr ? entity->_object : nil; }
+#import "EntityHelpersStandIn.h"	// EntityHelpers.mm's, on the test's objects
 
 
-@implementation Entity
+@implementation TestEntityObject
 
 - (std::optional<std::string>) cxx_descriptionComponents  { return _name; }
 
@@ -144,15 +151,14 @@ namespace oo { ::Entity *ToObjC(cxx::Entity *entity); }	// Entity+ObjCBridge.mm'
 @end
 
 
-@implementation OONull
-
-+ (OONull *) null
+OONull *OONull::null()
 {
-	static OONull *null = [[OONull alloc] init];
+	static OONull *null = oo::makeRef<OONull>().leakRef();
 	return null;
 }
 
-@end
+std::string OONull::className() const	{ return "OONull"; }
+std::string OONull::description() const	{ return "<null>"; }
 
 
 // MARK: What the rest of the engine provides ------------------------------------------------------
@@ -266,7 +272,9 @@ JSValue OOJSValueFromPList(JSContext *context, const oo::PList &plist)
 	if (const oo::PList::Object *node = plist.getIf<oo::PList::Object>())	// a C++ object that is its own JS glue, as the engine asks it
 	{
 		if (OOJSPrivateObject *glue = dynamic_cast<OOJSPrivateObject *>(node->get()))  return OOJSValueFromCxxObject(context, glue);
+		if (dynamic_cast<OONull *>(node->get()) != nullptr)  return JS_NULL;	// OONull is null
 	}
+	if (Entity *entity = oo::EntityIn(plist))  return OOJSValueFromNativeObject(context, oo::ToObjC(entity));	// an entity's node: its object's value
 	if (id object = oo::ObjectIn(plist))  return OOJSValueFromNativeObject(context, object);
 	if (const oo::PList::Array *array = plist.getIf<oo::PList::Array>())
 	{
@@ -322,19 +330,11 @@ BOOL OOJSObjectGetterImplPRIVATE(JSContext *context, JSValueConst object, JSClas
 }
 
 
-// The engine's conversion asks the object for its JS value; nil and OONull are null.
+// The engine's conversion asks the object for its JS value; nil is null (OONull is a C++ node's, above).
 JSValue OOJSValueFromNativeObject(JSContext *context, id object)
 {
-	if (object == nil || [object isKindOfClass:[OONull class]])  return JS_NULL;
+	if (object == nil)  return JS_NULL;
 	return [object oo_jsValueInContext:context];
-}
-
-
-// The private object of a JS object, if it is of the class.
-id OOJSNativeObjectOfClassFromJSValue(JSContext *, JSValueConst value, Class requiredClass)
-{
-	id object = PrivateOf(value);
-	return [object isKindOfClass:requiredClass] ? object : nil;
 }
 
 
@@ -379,6 +379,18 @@ void OOJSUnreachable(const char *function, const char *, unsigned)
 #endif
 
 
+// OOJSEntity.mm's (not linked): the C++ entity of an entity's JS object, null for any other value,
+// with no error (OOJSNativeObjectOfClassFromJSValue(context, value, [TestEntityObject class]) before,
+// whose stand-in this was). The test's ships keep their object in the slot, as the game's slot held
+// the object's weak reference before.
+Entity *OOJSEntityFromJSValue(JSContext *, JSValueConst value)
+{
+	id object = PrivateOf(value);
+	TestEntityObject *entity = [object isKindOfClass:[TestEntityObject class]] ? object : nil;
+	return entity != nil ? entity->_cxxEntity.get() : nullptr;
+}
+
+
 oo::PList OOJSBasicPrivateObjectConverter(JSContext *, JSValueConst)
 {
 	return oo::PList();
@@ -418,7 +430,7 @@ void Define(const char *name, JSValue value)
 // A ship and its object (kept for the life of the test), defined by name.
 ShipEntity *NewShip(const char *name)
 {
-	::Entity *object = [[::Entity alloc] init];
+	::TestEntityObject *object = [[::TestEntityObject alloc] init];
 	oo::Ref<ShipEntity> ship = oo::makeRef<ShipEntity>();
 	ship->_object = object;
 	ship->_name = name;

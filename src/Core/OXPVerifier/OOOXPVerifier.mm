@@ -320,7 +320,7 @@ bool OOOXPVerifier::initWithPath(const std::optional<std::string>& path)
 
     // Any plist format; missing, unreadable or not a dictionary is no configuration, as
     // -dictionaryWithContentsOfFile: returned nil for them.
-    const std::optional<std::string> builtInPath = [::ResourceManager cxx_builtInPath];
+    const std::optional<std::string> builtInPath = ResourceManager::builtInPath();
     if (builtInPath.has_value()) {
         const std::string verifierPListPath = oo::str::appendingPathComponent(oo::str::appendingPathComponent(*builtInPath, "Config"), "verifyOXP.plist");
         if (const oo::fs::Result<oo::Data> bytes = oo::fs::readFile(oo::fs::pathFromUTF8(verifierPListPath)); bytes && !bytes->empty()) {
@@ -352,13 +352,13 @@ void OOOXPVerifier::run()
     /*	We need to be able to look up internal files, but not other OXP files.
             To do this without clobbering the disk cache, we disable cache writes.
     */
-    cxx::OOCacheManager::sharedCache()->flush();
-    cxx::OOCacheManager::sharedCache()->setAllowCacheWrites(false);
+    OOCacheManager::sharedCache()->flush();
+    OOCacheManager::sharedCache()->setAllowCacheWrites(false);
     /* FIXME: the OXP verifier should load files from OXPs which have
      * been explicitly listed as required_oxps in the
      * manifest. Reading the manifest from the OXP being verified and
      * setting 'id:<its identifier>' below will do this. */
-    [::ResourceManager cxx_setUseAddOns:std::string(SCENARIO_OXP_DEFINITION_NONE)];
+    ResourceManager::setUseAddOns(std::string(SCENARIO_OXP_DEFINITION_NONE));
 
     SwitchLogFile(_displayName);
     OO_LOG("verifyOXP.start", "Running OXP verifier for {}", _basePath); //_displayName);
@@ -696,7 +696,7 @@ void OOOXPVerifier::dumpDebugGraphviz()
 
     // Write file: what +[::ResourceManager writeDiagnosticString:toFileNamed:] did for a name with no
     // directory part (UTF-8, atomically, in the diagnostic directory).
-    const std::optional<std::string> directory = [::ResourceManager cxx_diagnosticFileLocation];
+    const std::optional<std::string> directory = ResourceManager::diagnosticFileLocation();
     if (directory.has_value()) {
         const std::string path = oo::str::appendingPathComponent(*directory, "OXPVerifierStageDependencies.dot");
         (void)oo::fs::writeFile(oo::fs::pathFromUTF8(path), oo::Data::fromString(graphViz));
@@ -721,7 +721,7 @@ void SwitchLogFile(const std::string& name)
 
 void NoteVerificationStage(const std::string& displayName, const std::string& stage)
 {
-    [[::GameController sharedController] cxx_logProgress:oo::str::format("Verifying %s\n%s", displayName.c_str(), stage.c_str())];
+    ::GameController::sharedController()->logProgress(oo::str::format("Verifying %s\n%s", displayName.c_str(), stage.c_str()));
 }
 
 void OpenLogFile()

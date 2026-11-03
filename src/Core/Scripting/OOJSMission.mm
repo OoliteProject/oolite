@@ -171,7 +171,7 @@ void MissionRunCallback()
     JSValue argval2 = JS_UNDEFINED;
     JSValue rval = JS_UNDEFINED;
     PlayerEntity* player = OOPlayerForScripting();
-    OOJavaScriptEngine* engine = [OOJavaScriptEngine sharedEngine];
+    OOJavaScriptEngine* engine = OOJavaScriptEngine::sharedEngine();
     JSContext* context = OOJSAcquireContext();
 
     /*	Take local (owned) copies of sCallbackFunction and sCallbackThis, then
@@ -213,11 +213,7 @@ void MissionRunCallback()
     // Call the callback.
     @try {
         OOJSScript::pushScript(cbScript);
-        [engine callJSFunction:cbFunction
-                     forObject:cbThis
-                          argc:2
-                          argv:args
-                        result:&rval];
+        engine->callJSFunction(cbFunction, cbThis, 2, args, &rval);
     }
     @catch (OOException* exception) {
         // Squash any exception, allow cleanup to happen and so forth.
@@ -543,7 +539,7 @@ static oo::PList GetParameterImageDescriptor(JSContext* context, JSValueConst ob
         OOJSReportPendingException(context);
         return oo::PList(); // was nil
     }
-    oo::PList result = [UNIVERSE gui]->textureDescriptorFromJSValue(value, context, std::string("mission.runScreen()"));
+    oo::PList result = UNIVERSE->getGui()->textureDescriptorFromJSValue(value, context, std::string("mission.runScreen()"));
     JS_FreeValue(context, value);
     return result;
 }
@@ -635,7 +631,7 @@ static JSValue MissionRunScreen(OOJS_NATIVE_ARGS)
     } else {
         std::optional<std::string> titleKey = GetParameterString(context, params, "titleKey");
         if (titleKey.has_value()) {
-            const oo::PList missionText = [UNIVERSE cxx_missiontext];
+            const oo::PList missionText = (UNIVERSE != nullptr ? UNIVERSE->getMissiontext() : oo::PList());
             std::optional<std::string> message = StringFromPList(missionText.find(*titleKey)); // -objectForKey:
             if (message.has_value()) {
                 if (player != nullptr)
@@ -703,7 +699,8 @@ static JSValue MissionRunScreen(OOJS_NATIVE_ARGS)
     }
     JS_FreeValue(context, value);
 
-    [UNIVERSE removeDemoShips]; // remove any demoship or miniature planet that may be remaining from previous screens
+    if (UNIVERSE != nullptr)
+        UNIVERSE->removeDemoShips(); // remove any demoship or miniature planet that may be remaining from previous screens
 
     ShipEntity* demoShip = nullptr;
     value = GetParameter(context, params, "model");
@@ -717,7 +714,7 @@ static JSValue MissionRunScreen(OOJS_NATIVE_ARGS)
             GetParameterBool(context, params, "spinModel", &spinning);
 
             //	[player showShipModel:oo::NSStringOrNil(cxx_OOStringFromJSValue(context, value))];
-            demoShip = [UNIVERSE cxx_makeDemoShipWithRole:role.value_or("") spinning:spinning];
+            demoShip = (UNIVERSE != nullptr ? UNIVERSE->makeDemoShipWithRole(role.value_or(""), spinning) : (::ShipEntity*)nullptr);
         }
     }
     JS_FreeValue(context, value);
@@ -733,7 +730,7 @@ static JSValue MissionRunScreen(OOJS_NATIVE_ARGS)
         }
         JS_FreeValue(context, value);
 
-        JSValue demoShipVal = [oo::ToObjC(demoShip) oo_jsValueInContext:context]; // the ship's object (the ship is C++)
+        JSValue demoShipVal = OOJSValueFromCxxObject(context, demoShip); // the C++ ship's JS value (its object's -oo_jsValueInContext: until the root Entity facade went)
         if (JS_SetPropertyStr(context, sMissionObject, "displayModel", demoShipVal) < 0) {
             OOJSReportPendingException(context);
         }
@@ -825,9 +822,9 @@ static JSValue MissionRunScreen(OOJS_NATIVE_ARGS)
 
     std::optional<std::string> firstKey = GetParameterString(context, params, "initialChoicesKey");
     if (firstKey.has_value()) {
-        OOGUIRow row = [UNIVERSE gui]->rowForKey(firstKey);
+        OOGUIRow row = UNIVERSE->getGui()->rowForKey(firstKey);
         if (row != -1) {
-            [UNIVERSE gui]->setSelectedRow(row);
+            UNIVERSE->getGui()->setSelectedRow(row);
         }
     }
 

@@ -107,7 +107,7 @@ void OOEquipmentType::loadEquipment()
     std::vector<std::string> conditionScripts; // first-seen order
     std::map<std::string, oo::Ref<OOEquipmentType>, std::less<>> byIdentifier;
 
-    for (const oo::PList& itemInfo : EquipmentItems([UNIVERSE cxx_equipmentData])) {
+    for (const oo::PList& itemInfo : EquipmentItems((UNIVERSE != nullptr ? UNIVERSE->getEquipmentData() : oo::PList()))) {
         oo::Ref<OOEquipmentType> item = createWithInfo(itemInfo);
         if (item != nullptr) {
             equipmentTypes.emplace_back(item);
@@ -124,14 +124,14 @@ void OOEquipmentType::loadEquipment()
     oo::PList::Array conditionScriptList; // an array of strings, as the Objective-C array was
     for (const std::string& conditionScript : conditionScripts)
         conditionScriptList.emplace_back(conditionScript);
-    [[::OOCacheManager sharedCache] cxx_setPList:oo::PList(std::move(conditionScriptList)) forKey:"equipment conditions" inCache:"condition scripts"];
+    OOCacheManager::sharedCache()->setPList(oo::PList(std::move(conditionScriptList)), "equipment conditions", "condition scripts");
 
     sEquipmentTypes = equipmentTypes;
     sEquipmentTypesByIdentifier = byIdentifier;
 
     // same for the outfitting dataset
     equipmentTypes.clear();
-    for (const oo::PList& itemInfo : EquipmentItems([UNIVERSE cxx_equipmentDataOutfitting])) {
+    for (const oo::PList& itemInfo : EquipmentItems((UNIVERSE != nullptr ? UNIVERSE->getEquipmentDataOutfitting() : oo::PList()))) {
         oo::Ref<OOEquipmentType> item = createWithInfo(itemInfo);
         if (item != nullptr) {
             equipmentTypes.emplace_back(item);

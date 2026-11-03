@@ -30,7 +30,7 @@ SOFTWARE.
 */
 
 #import "OOFoundation.h"
-@class OODebugMonitor;
+class OODebugMonitor; // C++: its Objective-C facade is deleted
 
 #include <quickjs.h>
 

@@ -24,27 +24,31 @@
 #include "oofnd/PList.hpp"
 
 #include <cmath>
+#include <cstdlib>
 #include <string>
 #include <vector>
 
 
 // --- Stubs --------------------------------------------------------------------------------------
 
-@interface ResourceManager: OOObject
-+ (std::vector<std::string>) cxx_paths;
-+ (oo::PList) cxx_dictionaryFromFilesNamed:(const std::string &)fileName inFolder:(const std::string &)folderName andMerge:(BOOL)mergeFiles;
-@end
+#import "ResourceManager.h"
 
-@implementation ResourceManager
-+ (std::vector<std::string>) cxx_paths  { return {}; }
-+ (oo::PList) cxx_dictionaryFromFilesNamed:(const std::string &)fileName inFolder:(const std::string &)folderName andMerge:(BOOL)mergeFiles  { return oo::PList(oo::PList::Dict{}); }
-@end
+// ResourceManager is C++ since bead oo-9ht.150 deleted its Objective-C facade: C++ definitions of the
+// statics the code under test calls, with the Objective-C stand-in's answers.
+std::vector<std::string> ResourceManager::paths()  { return {}; }
+oo::PList ResourceManager::dictionaryFromFilesNamed(const std::string &/*fileName*/, const std::optional<std::string> &/*folderName*/, bool /*mergeFiles*/)  { return oo::PList(oo::PList::Dict{}); }
+
 
 
 // OORegExpMatcher is C++ since its facade was deleted (bead oo-9ht.12): the stub answers no match.
 oo::Ref<OORegExpMatcher> OORegExpMatcher::regExpMatcher()  { return oo::makeRef<OORegExpMatcher>(); }
 bool OORegExpMatcher::string(const std::string &, const std::string &)  { return false; }
 OORegExpMatcher::~OORegExpMatcher()  {}
+
+// OOLogging.mm's (it would bring the resource manager into the link); in the debug flavour
+// OOOpenGL.mm's OOGL error check and state dump call them (bead oo-iimku).
+void OOLogIndent(void)  {}
+void OOLogOutdent(void)  {}
 
 
 OOShaderSetting cxx_OOShaderSettingFromString(const std::string &string)
@@ -53,39 +57,54 @@ OOShaderSetting cxx_OOShaderSettingFromString(const std::string &string)
 }
 
 
-// UNIVERSE is gSharedUniverse; its -gameView answers an OOTestView, which stands for the game
-// view's facade. The view is C++ (MyOpenGLView): the facade crosses to sView, whose manager the
-// OOGL* functions use. The C++ view's members they reach are stubbed here.
-@class Universe;
+// UNIVERSE is gSharedUniverse; its getGameView() answers sView, the C++ view (its facade, which
+// crossed to sView, was deleted by bead oo-9ht.153), whose manager the OOGL* functions use. The C++
+// view's members they reach are stubbed here, and its virtual members (never called).
+class Universe;
 Universe *gSharedUniverse = nil;
-
-@interface OOTestView: OOObject
-@end
-
-@implementation OOTestView
-@end
 
 namespace {
 
-oo::Ref<cxx::MyOpenGLView> sView;
+oo::Ref<MyOpenGLView> sView;
 
 }	// namespace
 
-cxx::MyOpenGLView::~MyOpenGLView()  {}
-OOOpenGLMatrixManager *cxx::MyOpenGLView::getOpenGLMatrixManager()  { return matrixManager.get(); }
-cxx::MyOpenGLView *oo::ToCxx(MyOpenGLView *view)  { return (view != nil) ? sView.get() : nullptr; }
+MyOpenGLView::~MyOpenGLView()  {}
+OOOpenGLMatrixManager *MyOpenGLView::getOpenGLMatrixManager()  { return matrixManager.get(); }
+void MyOpenGLView::endSplashScreen()  { std::abort(); }
+void MyOpenGLView::updateScreen()  { std::abort(); }
+void MyOpenGLView::setGameController(::GameController *)  { std::abort(); }
+bool MyOpenGLView::inFullScreenMode()  { std::abort(); }
+std::vector<oo::PList> MyOpenGLView::getScreenSizeArray()  { std::abort(); }
+NSSize MyOpenGLView::currentScreenSize()  { std::abort(); }
+oo::PList MyOpenGLView::currentScreenMode()  { std::abort(); }
+void MyOpenGLView::noteMouseInteractionModeChangedFrom(OOMouseInteractionMode, OOMouseInteractionMode)  { std::abort(); }
+void MyOpenGLView::resetTypedString()  { std::abort(); }
+void MyOpenGLView::stringToClipboard(const std::string &)  { std::abort(); }
+NSSize MyOpenGLView::getViewSize()  { std::abort(); }
 
-@interface OOTestUniverse: OOObject
+#import "UniverseStandIn.h"
+
+// The universe as the code under test sees it: a stand-in for the C++ class (bead oo-ql9rn deleted
+// the Objective-C facade the test's OOTestUniverse stood in for), with the header's names and signatures.
+// It answers virtual members, so it has the game's vtable (UniverseStandIn.h) and OOTestUniverse overrides them.
+class Universe : public oo::RefCounted
 {
-@public
-	OOTestView *view;
-}
-- (OOTestView *) gameView;
-@end
+public:
+	OO_UNIVERSE_STAND_IN_VIRTUAL_MEMBERS
 
-@implementation OOTestUniverse
-- (OOTestView *) gameView  { return view; }
-@end
+	MyOpenGLView *view;
+
+
+};
+
+class OOTestUniverse : public Universe
+{
+public:
+	::MyOpenGLView *getGameView() override	{ return view; }	// what -gameView answered
+};
+
+
 
 
 // --- Helpers ------------------------------------------------------------------------------------
@@ -328,7 +347,7 @@ OO_TEST(syncLoadsOpenGL)
 OO_TEST(standardUniformLocations)
 {
 	OO_CHECK(OOTestGLContext());
-	OO_CHECK(cxx::OOOpenGLExtensionManager::sharedManager()->shadersSupported());	// loads the ARB entry points
+	OO_CHECK(OOOpenGLExtensionManager::sharedManager()->shadersSupported());	// loads the ARB entry points
 	@autoreleasepool
 	{
 		oo::Ref<OOOpenGLMatrixManager> m = oo::makeRef<OOOpenGLMatrixManager>();
@@ -379,6 +398,14 @@ OO_TEST(standardUniformLocations)
 }
 
 
+// The view's state is private since bead oo-mlpcc; MyOpenGLView.h names this struct its friend so
+// the checks below read and set the same member (expected values unchanged).
+struct MyOpenGLViewTestAccess
+{
+	static auto &matrixManager(MyOpenGLView *view)	{ return view->matrixManager; }
+};
+
+
 OO_TEST(openGLFunctionsUseTheGameViewsManager)
 {
 	OO_CHECK(OOTestGLContext());
@@ -386,12 +413,11 @@ OO_TEST(openGLFunctionsUseTheGameViewsManager)
 	{
 		oo::Ref<OOOpenGLMatrixManager> manager = oo::makeRef<OOOpenGLMatrixManager>();
 		OOOpenGLMatrixManager *m = manager.get();
-		sView = oo::makeRef<cxx::MyOpenGLView>();
-		sView->matrixManager = manager;
-		OOTestView *view = [[[OOTestView alloc] init] autorelease];
-		OOTestUniverse *universe = [[[OOTestUniverse alloc] init] autorelease];
-		universe->view = view;
-		gSharedUniverse = (Universe *)universe;
+		sView = oo::makeRef<MyOpenGLView>();
+		MyOpenGLViewTestAccess::matrixManager(sView.get()) = manager;
+		OOTestUniverse *universe = new OOTestUniverse();
+		universe->view = sView.get();
+		gSharedUniverse = universe;
 
 		OOGLResetModelView();
 		OOGLLoadModelView(kSample);

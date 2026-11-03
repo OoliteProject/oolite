@@ -78,7 +78,7 @@ oo::Ref<OOJSTimer> OOJSTimer::timerWithDelay(OOTimeAbsolute delay, OOTimeDelta i
 
 bool OOJSTimer::initWithDelay(OOTimeAbsolute delay, OOTimeDelta interval, JSContext* context, JSValueConst function, JSValueConst jsThis)
 {
-    if (!initWithNextTime([UNIVERSE getTime] + delay, interval))
+    if (!initWithNextTime((UNIVERSE != nullptr ? UNIVERSE->getTime() : 0.0) + delay, interval))
         return false;
     {
         OOCAssert(OOJSValueIsFunction(context, function), "Attempt to init OOJSTimer with a function that isn't.");
@@ -118,7 +118,7 @@ bool OOJSTimer::initWithDelay(OOTimeAbsolute delay, OOTimeDelta interval, JSCont
         _owningScript = OOJSScript::currentlyRunningScript();
 
         oo::NotificationCenter::defaultCenter().addObserver(this, kOOJavaScriptEngineWillResetNotificationName,
-            [::OOJavaScriptEngine sharedEngine],
+            OOJavaScriptEngine::sharedEngine(),
             [this](const oo::Notification&) { deleteJSPointers(); });
     }
 
@@ -147,7 +147,7 @@ void OOJSTimer::releaseJSValues()
         _jsThis = JS_UNDEFINED;
 
         oo::NotificationCenter::defaultCenter().removeObserver(this, kOOJavaScriptEngineWillResetNotificationName,
-            [::OOJavaScriptEngine sharedEngine]);
+            OOJavaScriptEngine::sharedEngine());
 
         JSContext* context = OOJSAcquireContext();
         JS_FreeValue(context, function);
@@ -186,13 +186,15 @@ void OOJSTimer::timerFired()
     JSValue rval = JS_UNDEFINED;
     bool described = false; // was the description itself, used only to test for nil
 
-    ::OOJavaScriptEngine* engine = [::OOJavaScriptEngine sharedEngine];
+    ::OOJavaScriptEngine* engine = OOJavaScriptEngine::sharedEngine();
     JSContext* context = OOJSAcquireContext();
 
     // stop and remove the timer if _jsThis (the first parameter in the constructor) dies.
     const oo::PList thisValue = cxx_OOJSPListFromJSObject(context, _jsThis);
     id object = oo::ObjectIn(thisValue);
-    if (object != nil) {
+    if (oo::EntityIn(thisValue) != nullptr)
+        described = true; // an entity's object described itself
+    else if (object != nil) {
         described = [object cxx_oo_jsDescription].has_value();
         if (!described)
             described = oo::DescriptionOf(object) != "(null)"; // -description was nil

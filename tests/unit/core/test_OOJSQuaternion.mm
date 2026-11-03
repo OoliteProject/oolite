@@ -151,6 +151,14 @@ JSClassID JSEntityClassID(void)
 }
 
 
+// OOJSEntity.mm's (not linked): the position and orientation of the entity an Entity JS object
+// holds (it was the object, whose -position/-orientation the conversions sent). The test's
+// fake entities are put in the slot themselves; the orientation is the fake's (below). No case converts
+// an entity to a vector here.
+HPVector OOJSEntityPositionOfJSObject(JSContext *, JSValueConst)  { std::abort(); }
+Quaternion OOJSEntityOrientationOfJSObject(JSContext *context, JSValueConst object);
+
+
 #if OOJS_PROFILE
 namespace {
 int sProfileDepth = 0;
@@ -207,7 +215,21 @@ void OOJSUnreachable(const char *function, const char *, unsigned)
 
 @end
 
+
+// The fake entity's orientation, as the conversion asked its object (nil: zero).
+Quaternion OOJSEntityOrientationOfJSObject(JSContext *, JSValueConst object)
+{
+	JSClassID ignored;
+	FakeEntity *entity = [(id)JS_GetAnyOpaque(object, &ignored) weakRefUnderlyingObject];
+	return [entity orientation];
+}
+
 Universe *gSharedUniverse = nil;	// OOJSVector.mm's coordinate-system methods read it; not called here
+
+// Link stubs, never reached: OOJSVector.mm's coordinate-system methods call them on the universe,
+// which stays nil here (bead oo-ql9rn: they were messages to nil).
+HPVector Universe::legacyPositionFrom(HPVector, const std::string &)  { std::abort(); }
+HPVector Universe::coordinatesFromCoordinateSystemString(const std::string &)  { std::abort(); }
 
 
 // MARK: The context -------------------------------------------------------------------------------

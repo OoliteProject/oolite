@@ -237,7 +237,7 @@ void GenerateGraphVizForAIStateMachine(const oo::PList& stateMachine, const std:
     }
 
     graphViz += "}\n";
-    [ResourceManager cxx_writeDiagnosticString:graphViz toFileNamed:oo::str::format("AI Dumps/%s.dot", smName.c_str())];
+    ResourceManager::writeDiagnosticString(graphViz, oo::str::format("AI Dumps/%s.dot", smName.c_str()));
 }
 
 #endif

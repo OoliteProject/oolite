@@ -25,6 +25,8 @@
 #import "OOShaderMaterial.h"
 #import "OOOpenGLExtensionManager.h"
 #import "OODescription.h"
+#import "OOTexture.h"
+#include "oofnd/String.hpp"
 #import "MyOpenGLView.h"
 
 #include "oo_gl_test_context.hpp"
@@ -58,28 +60,25 @@ BOOL cxx_ScanQuaternionFromString(const std::optional<std::string> &, Quaternion
 
 
 // The binding whitelist, which the game implements elsewhere: everything.
-BOOL OOUniformBindingPermitted(const std::string &propertyName, id bindingTarget)	{ return YES; }
+BOOL OOUniformBindingPermitted(const std::string &/*propertyName*/, Entity * /*bindingTarget*/)	{ return YES; }
 
 
 // The resource manager: the extension manager's two class methods, and shader files from a table.
 static std::map<std::string, std::string> gShaderFiles;
 
-@interface ResourceManager: OOObject
-+ (std::vector<std::string>) cxx_paths;
-+ (oo::PList) cxx_dictionaryFromFilesNamed:(const std::string &)fileName inFolder:(const std::string &)folderName andMerge:(BOOL)mergeFiles;
-+ (std::optional<std::string>) cxx_stringFromFilesNamed:(const std::string &)fileName inFolder:(const std::string &)folderName;
-@end
+#import "ResourceManager.h"
 
-@implementation ResourceManager
-+ (std::vector<std::string>) cxx_paths  { return {}; }
-+ (oo::PList) cxx_dictionaryFromFilesNamed:(const std::string &)fileName inFolder:(const std::string &)folderName andMerge:(BOOL)mergeFiles  { return oo::PList(oo::PList::Dict{}); }
-+ (std::optional<std::string>) cxx_stringFromFilesNamed:(const std::string &)fileName inFolder:(const std::string &)folderName
+// ResourceManager is C++ since bead oo-9ht.150 deleted its Objective-C facade: C++ definitions of the
+// statics the code under test calls, with the Objective-C stand-in's answers.
+std::vector<std::string> ResourceManager::paths()  { return {}; }
+oo::PList ResourceManager::dictionaryFromFilesNamed(const std::string &/*fileName*/, const std::optional<std::string> &/*folderName*/, bool /*mergeFiles*/)  { return oo::PList(oo::PList::Dict{}); }
+std::optional<std::string> ResourceManager::stringFromFilesNamed(const std::string &fileName, const std::optional<std::string> &/*folderName*/)
 {
 	auto found = gShaderFiles.find(fileName);
 	if (found == gShaderFiles.end())  return std::nullopt;
 	return found->second;
 }
-@end
+
 
 
 // OORegExpMatcher is C++ since its facade was deleted (bead oo-9ht.12): the stub answers no match.
@@ -98,94 +97,107 @@ OOShaderSetting cxx_OOShaderSettingFromString(const std::string &string)
 static std::map<std::string, oo::PList> gCache;
 static std::vector<std::string> gCacheWrites;
 
-@interface OOCacheManager: OOObject
-+ (OOCacheManager *) sharedCache;
-- (oo::PList)cxx_pListForKey:(const std::string &)key inCache:(const std::string &)cache;
-- (void)cxx_setPList:(const oo::PList &)value forKey:(const std::string &)key inCache:(const std::string &)cache;
-@end
+#import "OOCacheManager.h"
 
-@implementation OOCacheManager
-+ (OOCacheManager *) sharedCache
+// The cache manager is C++ since bead oo-9ht.31 deleted its facade: a C++ stand-in with the Objective-C
+// stand-in's answers.
+OOCacheManager *OOCacheManager::sharedCache()
 {
-	static OOCacheManager *shared = nil;
-	if (shared == nil)  shared = [[OOCacheManager alloc] init];
+	static OOCacheManager *shared = new OOCacheManager;
 	return shared;
 }
-- (oo::PList)cxx_pListForKey:(const std::string &)key inCache:(const std::string &)cache
+OOCacheManager::~OOCacheManager()  {}
+oo::PList OOCacheManager::pListForKey(const std::string &key, const std::string &cache)
 {
 	auto found = gCache.find(cache + "|" + key);
 	return found != gCache.end() ? found->second : oo::PList();
 }
-- (void)cxx_setPList:(const oo::PList &)value forKey:(const std::string &)key inCache:(const std::string &)cache
+void OOCacheManager::setPList(const oo::PList &value, const std::string &key, const std::string &cache)
 {
 	gCacheWrites.push_back(cache + "|" + key);
 	gCache[cache + "|" + key] = value;
 }
-@end
 
 
 // The textures: any configuration but "missing" loads; a name with no configuration loads unless "missing".
-@interface OOTexture: OOObject
+// Since bead oo-9ht.99 deleted the Objective-C facade, the stand-in is C++: the root's static
+// members the creators call, TestTexture (what they answer), and the root's own members.
+class TestTexture final : public OOTexture
 {
-@public
+public:
 	oo::PList	_configuration;
-}
-+ (void) applyNone;
-+ (id) cxx_textureWithConfiguration:(const oo::PList &)configuration;
-+ (id) cxx_textureWithConfiguration:(const oo::PList &)configuration extraOptions:(uint32_t)extraOptions;
-+ (id) cxx_textureWithName:(const std::optional<std::string> &)name inFolder:(const std::optional<std::string> &)directory;
-+ (id) textureWithGenerator:(id)generator;
-+ (id) nullTexture;
-- (void) apply;
-- (void) ensureFinishedLoading;
-- (BOOL) isFinishedLoading;
-- (BOOL) isCubeMap;
-@end
+};
 
-@implementation OOTexture
-+ (void) applyNone	{}
-+ (id) cxx_textureWithConfiguration:(const oo::PList &)configuration
+void OOTexture::applyNone()	{}
+
+oo::Ref<OOTexture> OOTexture::textureWithConfiguration(const oo::PList &configuration)
 {
-	return [self cxx_textureWithConfiguration:configuration extraOptions:0];
+	return textureWithConfiguration(configuration, 0);
 }
-+ (id) cxx_textureWithConfiguration:(const oo::PList &)configuration extraOptions:(uint32_t)extraOptions
+
+oo::Ref<OOTexture> OOTexture::textureWithConfiguration(const oo::PList &configuration, OOTextureFlags)
 {
-	if (configuration.isNull() || configuration == oo::PList("missing"))  return nil;
-	OOTexture *texture = [[[OOTexture alloc] init] autorelease];
+	if (configuration.isNull() || configuration == oo::PList("missing"))  return nullptr;
+	oo::Ref<TestTexture> texture = oo::makeRef<TestTexture>();
 	texture->_configuration = configuration;
 	return texture;
 }
-+ (id) cxx_textureWithName:(const std::optional<std::string> &)name inFolder:(const std::optional<std::string> &)directory
+
+oo::Ref<OOTexture> OOTexture::textureWithName(const std::optional<std::string> &name, const std::optional<std::string> &)
 {
-	if (!name.has_value() || *name == "missing")  return nil;
-	return [self cxx_textureWithConfiguration:oo::PList(*name)];
+	if (!name.has_value() || *name == "missing")  return nullptr;
+	return textureWithConfiguration(oo::PList(*name));
 }
-+ (id) textureWithGenerator:(id)generator	{ return generator != nil ? [self cxx_textureWithConfiguration:oo::PList("generated")] : nil; }
-+ (id) nullTexture							{ return [self cxx_textureWithConfiguration:oo::PList("null")]; }
-- (void) apply								{}
-- (void) ensureFinishedLoading				{}
-- (BOOL) isFinishedLoading					{ return YES; }
-- (BOOL) isCubeMap							{ return NO; }
-@end
+
+oo::Ref<OOTexture> OOTexture::textureWithGenerator(::OOTextureGenerator *generator)	{ return generator != nullptr ? textureWithConfiguration(oo::PList("generated")) : nullptr; }
+oo::Ref<OOTexture> OOTexture::nullTexture()										{ return textureWithConfiguration(oo::PList("null")); }
+
+OOTexture::OOTexture()	{}
+OOTexture::~OOTexture()	{}
+void OOTexture::apply()	{}
+void OOTexture::ensureFinishedLoading()	{}
+bool OOTexture::isFinishedLoading()	{ return true; }
+std::optional<std::string> OOTexture::cacheKey()	{ return std::nullopt; }
+NSSize OOTexture::dimensions()	{ return NSSize{}; }
+NSSize OOTexture::originalDimensions()	{ return dimensions(); }
+bool OOTexture::isMipMapped()	{ return false; }
+OOPixMap OOTexture::copyPixMapRepresentation()	{ return OOPixMap{}; }
+bool OOTexture::isRectangleTexture()	{ return false; }
+bool OOTexture::isCubeMap()	{ return false; }
+NSSize OOTexture::texCoordsScale()	{ return NSSize{1.0, 1.0}; }
+GLint OOTexture::glTextureName()	{ return 0; }
+#ifndef NDEBUG
+std::optional<std::string> OOTexture::name()	{ return std::nullopt; }
+#endif
+std::optional<std::string> OOTexture::descriptionComponents() const	{ return std::nullopt; }
+std::optional<std::string> OOTexture::shortDescriptionComponents() const	{ return std::nullopt; }
+std::string OOTexture::description() const	{ return oo::str::format("<OOTexture %s>", oo::str::pointerDescription(this).c_str()); }
+std::string OOTexture::shortDescription() const	{ return description(); }
+std::string OOTexture::className() const	{ return "OOTexture"; }
+void OOTexture::forceRebind()	{}
 
 
 /*	The emission-map generator: C++ since bead oo-9ht.135 deleted its Objective-C facade. The
 	factories answer null for nothing to bake, as before; its own and its bases' other members are
-	no-ops (no texture loader is linked), and its Objective-C object is a plain object, which the
-	OOTexture stand-in only asks whether it is nil.
+	no-ops (no texture loader is linked). The material hands the C++ generator to the OOTexture
+	stand-in, which only asks whether it is nil (it handed a plain Objective-C object until bead
+	oo-9ht.118 deleted the generators' facade).
 */
-cxx::OOTextureLoader::OOTextureLoader()  {}
-cxx::OOTextureLoader::~OOTextureLoader()  {}
-bool cxx::OOTextureLoader::getResult(OOPixMap *, OOTextureDataFormat *, uint32_t *, uint32_t *)  { return false; }
-std::optional<std::string> cxx::OOTextureLoader::cacheKey()  { return std::nullopt; }
-std::optional<std::string> cxx::OOTextureLoader::descriptionComponents() const  { return std::nullopt; }
-std::optional<std::string> cxx::OOTextureLoader::shortDescriptionComponents() const  { return std::nullopt; }
-void cxx::OOTextureLoader::loadTexture()  {}
-uint32_t cxx::OOTextureGenerator::textureOptions()  { return 0; }
-GLfloat cxx::OOTextureGenerator::anisotropy()  { return 0; }
-GLfloat cxx::OOTextureGenerator::lodBias()  { return 0; }
-std::optional<std::string> cxx::OOTextureGenerator::cacheKey()  { return std::nullopt; }
-bool cxx::OOTextureGenerator::enqueue()  { return false; }
+OOTextureLoader::OOTextureLoader()  {}
+OOTextureLoader::~OOTextureLoader()  {}
+bool OOTextureLoader::getResult(OOPixMap *, OOTextureDataFormat *, uint32_t *, uint32_t *)  { return false; }
+std::optional<std::string> OOTextureLoader::cacheKey()  { return std::nullopt; }
+std::optional<std::string> OOTextureLoader::descriptionComponents() const  { return std::nullopt; }
+std::optional<std::string> OOTextureLoader::shortDescriptionComponents() const  { return std::nullopt; }
+void OOTextureLoader::loadTexture()  {}
+// The loader is the work manager's task since bead oo-9ht.14 (its vtable): never reached.
+void OOTextureLoader::performAsyncTask()  { std::abort(); }
+void OOTextureLoader::completeAsyncTask()  { std::abort(); }
+uint32_t OOTextureGenerator::textureOptions()  { return 0; }
+GLfloat OOTextureGenerator::anisotropy()  { return 0; }
+GLfloat OOTextureGenerator::lodBias()  { return 0; }
+std::optional<std::string> OOTextureGenerator::cacheKey()  { return std::nullopt; }
+bool OOTextureGenerator::enqueue()  { return false; }
 oo::Ref<OOCombinedEmissionMapGenerator> OOCombinedEmissionMapGenerator::generatorWithEmissionMapSpec(const oo::PList &emissionMapSpec, OOColor *, OOTexture *, OOColor *, const oo::PList &illuminationMapSpec, OOColor *, const oo::PList &)
 {
 	if (emissionMapSpec.isNull() && illuminationMapSpec.isNull())  return {};
@@ -204,13 +216,6 @@ GLfloat OOCombinedEmissionMapGenerator::anisotropy()  { return 0; }
 GLfloat OOCombinedEmissionMapGenerator::lodBias()  { return 0; }
 std::optional<std::string> OOCombinedEmissionMapGenerator::cacheKey()  { return std::nullopt; }
 void OOCombinedEmissionMapGenerator::loadTexture()  {}
-OOTextureGenerator *oo::ToObjC(cxx::OOTextureGenerator *generator)
-{
-	if (generator == nullptr)  return nil;
-	id object = [[[OOObject alloc] init] autorelease];	// not an OOTextureGenerator: nothing asks it anything
-	return object;
-}
-
 
 // OOTexture.mm's specifier of a map value: the value itself, or the default name, or none.
 oo::PList cxx_OOTextureSpecFromObject(const oo::PList &object, const std::optional<std::string> &defaultName)
@@ -221,31 +226,40 @@ oo::PList cxx_OOTextureSpecFromObject(const oo::PList &object, const std::option
 
 
 // The universe: the three settings the creators and the materials ask about.
-@class Universe;
+class Universe;
 Universe *gSharedUniverse = nil;
 
-// The game view is C++ (MyOpenGLView). There is none here: its crossing answers none, and its
-// manager accessor, which the shader program's matrix uniforms would use, is never reached.
-cxx::MyOpenGLView *oo::ToCxx(MyOpenGLView *)  { return nullptr; }
-OOOpenGLMatrixManager *cxx::MyOpenGLView::getOpenGLMatrixManager()  { return matrixManager.get(); }
+// The game view is C++ (MyOpenGLView; its facade's crossing went with bead oo-9ht.153). There is
+// none here: its manager accessor, which the shader program's matrix uniforms would use, is never
+// reached.
+OOOpenGLMatrixManager *MyOpenGLView::getOpenGLMatrixManager()  { return matrixManager.get(); }
 
-@interface TestUniverse: OOObject
+#import "UniverseStandIn.h"
+
+// The universe as the code under test sees it: a stand-in for the C++ class (bead oo-ql9rn deleted
+// the Objective-C facade the test's TestUniverse stood in for), with the header's names and signatures.
+// It answers virtual members, so it has the game's vtable (UniverseStandIn.h) and TestUniverse overrides them.
+class Universe : public oo::RefCounted
 {
-@public
+public:
+	OO_UNIVERSE_STAND_IN_VIRTUAL_MEMBERS
+
 	BOOL				_useShaders;
 	BOOL				_reducedDetail;
 	OOGraphicsDetail	_detailLevel;
-}
-- (BOOL) useShaders;
-- (BOOL) reducedDetail;
-- (OOGraphicsDetail) detailLevel;
-@end
 
-@implementation TestUniverse
-- (BOOL) useShaders					{ return _useShaders; }
-- (BOOL) reducedDetail				{ return _reducedDetail; }
-- (OOGraphicsDetail) detailLevel	{ return _detailLevel; }
-@end
+	bool useShaders();
+	OOGraphicsDetail getDetailLevel();
+};
+
+class TestUniverse : public Universe
+{
+public:
+	bool reducedDetail() override	{ return _reducedDetail; }
+};
+
+bool Universe::useShaders()	{ return _useShaders; }
+OOGraphicsDetail Universe::getDetailLevel()	{ return _detailLevel; }
 
 
 namespace {
@@ -259,12 +273,12 @@ const char *kFragment = "uniform sampler2D uDiffuseMap;\nvoid main() { gl_FragCo
 bool SetUp(BOOL useShaders, OOGraphicsDetail detail = DETAIL_LEVEL_MINIMUM)
 {
 	if (!OOTestGLContext())  return false;
-	[OOOpenGLExtensionManager sharedManager];
-	if (gUniverse == nil)  gUniverse = [[TestUniverse alloc] init];
+	OOOpenGLExtensionManager::sharedManager();
+	if (gUniverse == nil)  gUniverse = new TestUniverse();
 	gUniverse->_useShaders = useShaders;
 	gUniverse->_detailLevel = detail;
 	gUniverse->_reducedDetail = NO;
-	gSharedUniverse = (Universe *)gUniverse;
+	gSharedUniverse = gUniverse;
 	gShaderFiles = {
 		{ "oolite-tangent-space-vertex.vertex", kVertex },
 		{ "oolite-default-shader.fragment", kFragment },
@@ -277,9 +291,9 @@ bool SetUp(BOOL useShaders, OOGraphicsDetail detail = DETAIL_LEVEL_MINIMUM)
 }
 
 
-oo::Ref<cxx::OOMaterial> Make(const char *name, oo::PList::Dict config, bool smooth = false, const std::optional<std::string> &cacheKey = std::nullopt)
+oo::Ref<OOMaterial> Make(const char *name, oo::PList::Dict config, bool smooth = false, const std::optional<std::string> &cacheKey = std::nullopt)
 {
-	return cxx::OOMaterial::materialWithName(name != nullptr ? std::optional<std::string>(name) : std::nullopt,
+	return OOMaterial::materialWithName(name != nullptr ? std::optional<std::string>(name) : std::nullopt,
 											 cacheKey, oo::PList(std::move(config)), oo::PList(), nil, smooth);
 }
 
@@ -287,10 +301,10 @@ oo::Ref<cxx::OOMaterial> Make(const char *name, oo::PList::Dict config, bool smo
 // The material's C++ class, exactly: what -isMemberOfClass: asked of a subclass with a facade of
 // its own, before the facade-deletion beads (oo-9ht.42) made Objective-C see the nearest facade.
 template <typename T>
-bool IsExactly(const oo::Ref<cxx::OOMaterial> &material)
+bool IsExactly(const oo::Ref<OOMaterial> &material)
 {
 	if (material == nullptr)  return false;
-	const cxx::OOMaterial &object = *material.get();
+	const OOMaterial &object = *material.get();
 	return typeid(object) == typeid(T);
 }
 
@@ -327,7 +341,7 @@ OO_TEST(namedShaders)
 	if (!SetUp(YES))  { OO_CHECK(false); return; }
 	@autoreleasepool
 	{
-		oo::Ref<cxx::OOMaterial> m = Make("hull.png", { { "vertex_shader", oo::PList("named") }, { "fragment_shader", oo::PList("named") } });
+		oo::Ref<OOMaterial> m = Make("hull.png", { { "vertex_shader", oo::PList("named") }, { "fragment_shader", oo::PList("named") } });
 		OO_CHECK(IsExactly<OOShaderMaterial>(m));
 		OO_CHECK(gCacheWrites.empty());
 
@@ -345,7 +359,7 @@ OO_TEST(synthesizedShaders)
 	{
 		// Full shader detail: the configuration is synthesized into a shader material, and the
 		// synthesized configuration is cached under the cache key, the name and the configuration.
-		oo::Ref<cxx::OOMaterial> m = Make("hull.png", { { "emission_map", oo::PList("e.png") } }, false, std::string("ship"));
+		oo::Ref<OOMaterial> m = Make("hull.png", { { "emission_map", oo::PList("e.png") } }, false, std::string("ship"));
 		OO_CHECK(IsExactly<OOShaderMaterial>(m));
 		OO_CHECK(gCacheWrites.size() == 1 && gCacheWrites[0].starts_with("synthesized shader materials|ship/hull.png/"));
 
@@ -414,13 +428,13 @@ OO_TEST(fromDictionaries)
 
 		auto make = [&](const char *name, const oo::PList &m, const oo::PList &s)
 		{
-			return cxx::OOMaterial::materialWithName(std::string(name), std::nullopt, m, s, oo::PList(), nil, false);
+			return OOMaterial::materialWithName(std::string(name), std::nullopt, m, s, oo::PList(), nil, false);
 		};
 
 		// With shaders, the shaders dictionary's entry; without, the materials dictionary's.
 		OO_CHECK(IsExactly<OOShaderMaterial>(make("hull.png", materials, shaders)));
 		gUniverse->_useShaders = NO;
-		oo::Ref<cxx::OOMaterial> m = make("hull.png", materials, shaders);
+		oo::Ref<OOMaterial> m = make("hull.png", materials, shaders);
 		OO_CHECK(IsExactly<OOSingleTextureMaterial>(m));
 		// Neither: an empty configuration if the texture of that name loads, else nothing.
 		OO_CHECK(IsExactly<OOSingleTextureMaterial>(make("other.png", materials, shaders)));
@@ -452,8 +466,8 @@ OO_TEST(cxxStaticMembers)
 
 		const oo::PList materials = oo::PList(oo::PList::Dict{ { "hull.png", oo::PList(oo::PList::Dict{ { "diffuse_map", oo::PList("m.png") } }) } });
 		const oo::PList shaders = oo::PList(oo::PList::Dict{ { "hull.png", oo::PList(oo::PList::Dict{ { "vertex_shader", oo::PList("named") }, { "fragment_shader", oo::PList("named") } }) } });
-		OO_CHECK(IsExactly<OOShaderMaterial>(cxx::OOMaterial::materialWithName(std::string("hull.png"), std::nullopt, materials, shaders, oo::PList(), nil, false)));
-		OO_CHECK(cxx::OOMaterial::materialWithName(std::string("missing"), std::nullopt, oo::PList(), oo::PList(), oo::PList(), nil, false) == nullptr);
+		OO_CHECK(IsExactly<OOShaderMaterial>(OOMaterial::materialWithName(std::string("hull.png"), std::nullopt, materials, shaders, oo::PList(), nil, false)));
+		OO_CHECK(OOMaterial::materialWithName(std::string("missing"), std::nullopt, oo::PList(), oo::PList(), oo::PList(), nil, false) == nullptr);
 
 	}
 }

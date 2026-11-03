@@ -5,8 +5,9 @@ OOJSCall.h
 Basic JavaScript-to-ObjC bridge implementation.
 
 Converted in bead oo-81hy (proposed ADR-0056 amendment oo-ppc; no class of its own): bool for BOOL.
-The Objective-C it needs to read method signatures (the template class and the scalar-value
-protocol) is in OOJSCall+ObjCBridge.h/.mm, imported at the end of this header.
+An entity is called through its generated name table (OOJSCallEntityMethods.h) and the signature
+templates of any other object are @encode() strings: no Objective-C class or protocol of its own is
+left (the bridge files are deleted).
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -33,6 +34,7 @@ MA 02110-1301, USA.
 #import "OOFoundation.h"
 #include "oofnd/StdLib.hpp"
 #include <quickjs.h>
+#include <string>
 
 /*	OOJSCallObjCObjectMethod()
 
@@ -56,7 +58,14 @@ MA 02110-1301, USA.
 */
 bool OOJSCallObjCObjectMethod(JSContext* context, id object, const std::string& oo_jsClassName, int argc, JSValueConst* argv, JSValue* outResult);
 
-// Transitional: the Objective-C helpers of the call. Deleted by the bridge's deletion bead.
-#import "OOJSCall+ObjCBridge.h"
+/*	OOJSCallEntityMethod()
+
+        The same for an entity (callObjC()'s `this` is the C++ entity), by name table: only a name
+        of kOOJSCallEntityMethods that the entity answers (its object's per-part
+        -respondsToSelector:) is called, with the table's signature; any other name (a root-class
+        or lifetime selector, one with other arguments) does not respond.
+*/
+class Entity;
+bool OOJSCallEntityMethod(JSContext* context, Entity* entity, const std::string& oo_jsClassName, int argc, JSValueConst* argv, JSValue* outResult);
 
 #endif

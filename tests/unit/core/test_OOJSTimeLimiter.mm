@@ -74,7 +74,7 @@ void SetUp()
 	// after the notification centre has gone.
 	@autoreleasepool
 	{
-		(void)[OOJavaScriptEngine sharedEngine];
+		(void)OOJavaScriptEngine::sharedEngine();
 	}
 }
 

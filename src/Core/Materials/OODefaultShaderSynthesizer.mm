@@ -923,7 +923,7 @@ void OODefaultShaderSynthesizer::writeLightMaps()
         const oo::PList* binding = textureSpec.get<oo::PList::Dict>(cxx_kOOTextureSpecifierBindingKey);
         if (binding != nullptr) {
             std::string bindingName = binding->get<std::string>("binding");
-            oo::PList bindingTypes = [::ResourceManager cxx_shaderBindingTypesDictionary];
+            oo::PList bindingTypes = ResourceManager::shaderBindingTypesDictionary();
             const oo::PList* typeDict = bindingTypes.get<oo::PList::Dict>("player"); // FIXME: select appropriate binding subset.
             std::optional<std::string> bindingType = (typeDict != nullptr) ? OptionalStringFor(*typeDict, bindingName.c_str()) : std::nullopt;
             const char* glslType = nullptr;

@@ -445,18 +445,17 @@ OOTimeDelta OOJSGetTimeLimiterLimit(void);
 void OOJSSetTimeLimiterLimit(OOTimeDelta limit);
 #endif
 
-namespace cxx {
-
 /*	OOJSValue: an object whose purpose in life is to hold a JavaScript value.
-        This is somewhat useful for putting JavaScript objects in ObjC collections,
+        This is somewhat useful for putting JavaScript objects in property lists,
         for instance to pass as properties to script loaders. The value is held
         (with its own reference) until the OOJSValue is destroyed or the engine
         is reset.
 
-        The Objective-C OOJSValue (OOJavaScriptEngine+ObjCBridge.h) is its facade,
-        which the collections hold.
+        A property list holds it as an Object node: it is its own node's foreign
+        object (OOJSValueObjectNode(); the deletion of its Objective-C facade made it
+        a global class).
 */
-class OOJSValue : public oo::RefCounted {
+class OOJSValue : public oo::PListForeign {
 public:
     // context may be NULL (the main thread context is used).
     static oo::Ref<OOJSValue> valueWithJSValue(JSValueConst value, JSContext* context);
@@ -466,6 +465,10 @@ public:
     // The held value, owned by the caller (a new reference).
     JSValue jsValueInContext(JSContext* context);
 
+    // oo::PListForeign: what the facade answered (its class, and "%@" as <OOJSValue 0x...>).
+    std::string className() const override;
+    std::string description() const override;
+
 private:
     // The initialiser after [super init], which could not fail: run by the factory.
     void initWithJSValue(JSValueConst value, JSContext* context);
@@ -473,10 +476,16 @@ private:
     void deleteJSValue();
 
     JSValue _val = JS_UNDEFINED;
-    const void* _resetSender = { }; // the engine's facade, while _val is held
+    const void* _resetSender = { }; // the engine, the sender of its reset notifications, while _val is held
 };
 
-} // namespace cxx
+// A held value as a PList::Object node (what oo::PListObject() did for the facade); null -> null PList.
+inline oo::PList OOJSValueObjectNode(OOJSValue* value)
+{
+    if (value == nullptr)
+        return oo::PList();
+    return oo::PList(oo::PList::Object(oo::Ref<oo::PListForeign>(value)));
+}
 
 /*	OOJSDumpStack()
         Write the current JavaScript stack to the log. QuickJS provides only
@@ -501,14 +510,24 @@ JSValue OOJSUnconstructableConstruct(JSContext* context, JSValueConst thisObj, i
 /*	OOJSObjectWrapperFinalize
 
         Finalizer for JS classes whose private storage is a retained object
-        reference (generally an OOWeakReference, but doesn't have to be).
+        reference (generally a weak reference proxy, but doesn't have to be).
+
+        It, OOJSObjectWrapperToString(), OOJSBasicPrivateObjectConverter() and
+        DEFINE_JS_OBJECT_GETTER() (OOJavaScriptEngine.h) still read the slot as an
+        Objective-C object at this stage, while the Objective-C runtime is linked. Since
+        the root Entity facade's deletion no game object puts one there: every converted
+        class holds a C++ object (OOJSSetCxxPrivate(), OOJSCxxObjectWrapperFinalize(),
+        OOJSPrivateObject.h), and the classes that still name these (the player's and the
+        manifest's) have an empty slot, for which they do nothing. Only a test's
+        Objective-C stand-in on OOObject is still held here. They become the generic C++
+        ones when the Objective-C runtime goes.
 */
 void OOJSObjectWrapperFinalize(JSRuntime* runtime, JSValueConst thisObj);
 
 /*	OOJSObjectWrapperToString
 
         Implementation of toString() for JS classes whose private storage is an
-        Objective-C object reference (generally an OOWeakReference).
+        Objective-C object reference (generally a weak reference proxy).
 
         Calls -cxx_oo_jsDescription and, if that fails, -description.
 */

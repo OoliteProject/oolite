@@ -9,8 +9,8 @@
 	matching is pinned exactly: precedence order, a regexp array ANDed, the first match wins, and
 	what a match overrides. OORegExpMatcher and cxx_OOShaderSettingFromString are stubs as well
 	(the real ones reach the script engine and the Universe). The expectations were written
-	against the Objective-C API and run on the unconverted class first; the last test pins the
-	facade's contract once the class is C++.
+	against the Objective-C API and run on the unconverted class first. The facade's contract test
+	went with the facade (bead oo-9ht.13; standing approval oo-9n5p9).
 	Run: bash tools/check-core-tests.sh
 */
 
@@ -34,30 +34,24 @@ static unsigned sPathsCalls = 0;
 static oo::PList sGPUSettings = oo::PList(oo::PList::Dict{});
 
 
-@interface ResourceManager: OOObject
-
-+ (std::vector<std::string>) cxx_paths;
-+ (oo::PList) cxx_dictionaryFromFilesNamed:(const std::string &)fileName inFolder:(const std::string &)folderName andMerge:(BOOL)mergeFiles;
-
-@end
+#import "ResourceManager.h"
 
 
-@implementation ResourceManager
-
-+ (std::vector<std::string>) cxx_paths
+// ResourceManager is C++ since bead oo-9ht.150 deleted its Objective-C facade: C++ definitions of the
+// statics the code under test calls, with the Objective-C stand-in's answers.
+std::vector<std::string> ResourceManager::paths()
 {
 	sPathsCalls++;
 	return {};
 }
 
 
-+ (oo::PList) cxx_dictionaryFromFilesNamed:(const std::string &)fileName inFolder:(const std::string &)folderName andMerge:(BOOL)mergeFiles
+oo::PList ResourceManager::dictionaryFromFilesNamed(const std::string &fileName, const std::optional<std::string> &folderName, bool mergeFiles)
 {
 	if (fileName != "gpu-settings.plist" || folderName != "Config" || !mergeFiles)  return oo::PList();
 	return sGPUSettings;
 }
 
-@end
 
 
 // OORegExpMatcher is C++ since its facade was deleted (bead oo-9ht.12). sMatchersMade counts the
@@ -75,6 +69,11 @@ bool OORegExpMatcher::string(const std::string &string, const std::string &regEx
 {
 	return std::regex_search(string, std::regex(regExp));
 }
+
+// OOLogging.mm's (it would bring the resource manager into the link); in the debug flavour
+// OOOpenGL.mm's OOGL error check and state dump call them (bead oo-iimku).
+void OOLogIndent(void)  {}
+void OOLogOutdent(void)  {}
 
 
 OORegExpMatcher::~OORegExpMatcher()  {}
@@ -155,9 +154,9 @@ OO_TEST(readsTheDriver)
 
 	@autoreleasepool
 	{
-		cxx::OOOpenGLExtensionManager *manager = cxx::OOOpenGLExtensionManager::sharedManager();
+		OOOpenGLExtensionManager *manager = OOOpenGLExtensionManager::sharedManager();
 		OO_CHECK(manager != nullptr);
-		OO_CHECK(cxx::OOOpenGLExtensionManager::sharedManager() == manager);
+		OO_CHECK(OOOpenGLExtensionManager::sharedManager() == manager);
 		OO_CHECK(sPathsCalls == 1);	// the resource paths are set up while the manager initialises
 
 		unsigned major, minor, release;
@@ -214,7 +213,7 @@ OO_TEST(gpuSettingsMatchInPrecedenceOrder)
 	OO_CHECK(OOTestGLContext());
 	@autoreleasepool
 	{
-		cxx::OOOpenGLExtensionManager *manager = cxx::OOOpenGLExtensionManager::sharedManager();
+		OOOpenGLExtensionManager *manager = OOOpenGLExtensionManager::sharedManager();
 		const BOOL shaders = GLHasShaderExtensions() ? YES : NO;
 
 		sGPUSettings = Dict({
@@ -284,7 +283,7 @@ OO_TEST(gpuSettingsPassTakesOneMatcher)
 	OO_CHECK(OOTestGLContext());
 	@autoreleasepool
 	{
-		cxx::OOOpenGLExtensionManager *manager = cxx::OOOpenGLExtensionManager::sharedManager();
+		OOOpenGLExtensionManager *manager = OOOpenGLExtensionManager::sharedManager();
 
 		sGPUSettings = Dict({
 			{ "a-strict", Dict({ { "precedence", oo::PList(5) },
@@ -312,7 +311,7 @@ OO_TEST(noShadersArgument)
 	OO_CHECK(OOTestGLContext());
 	@autoreleasepool
 	{
-		cxx::OOOpenGLExtensionManager *manager = cxx::OOOpenGLExtensionManager::sharedManager();
+		OOOpenGLExtensionManager *manager = OOOpenGLExtensionManager::sharedManager();
 		SetArguments({ "test_OOOpenGLExtensionManager", "--noshaders" });
 		manager->reset();
 		OO_CHECK(manager->shadersForceDisabled() == YES);
@@ -326,41 +325,6 @@ OO_TEST(noShadersArgument)
 		OO_CHECK(manager->shadersForceDisabled() == NO);
 		OO_CHECK(manager->shadersSupported() == (GLHasShaderExtensions() ? YES : NO));
 	}
-}
-
-
-// After the conversion: the facade answers as the C++ class does, one facade for the process.
-OO_TEST(facadeContract)
-{
-	OO_CHECK(OOTestGLContext());
-	cxx::OOOpenGLExtensionManager *manager = cxx::OOOpenGLExtensionManager::sharedManager();
-	@autoreleasepool
-	{
-		OOOpenGLExtensionManager *facade = [OOOpenGLExtensionManager sharedManager];
-		OO_CHECK(facade != nil);
-		OO_CHECK(oo::ToCxx(facade) == manager);
-		OO_CHECK(oo::ToObjC(manager) == facade);
-		OO_CHECK([facade majorVersionNumber] == manager->majorVersionNumber());
-		OO_CHECK([facade minorVersionNumber] == manager->minorVersionNumber());
-		OO_CHECK([facade rendererString] == manager->rendererString());
-		OO_CHECK([facade haveExtension:"GL_OO_no_such_extension"] == NO);
-		OO_CHECK([facade shadersSupported] == manager->shadersSupported());
-		OO_CHECK([facade textureUnitCount] == manager->textureUnitCount());
-		unsigned major = 0;
-		[facade getVersionMajor:&major minor:NULL release:NULL];
-		OO_CHECK(major == manager->majorVersionNumber());
-	}
-	@autoreleasepool
-	{
-		// Still the same facade after its first pool drained.
-		OO_CHECK(oo::ToCxx([OOOpenGLExtensionManager sharedManager]) == manager);
-		OO_CHECK(oo::ToObjC(manager) == [OOOpenGLExtensionManager sharedManager]);
-	}
-
-	OOOpenGLExtensionManager *none = nil;
-	OO_CHECK(oo::ToCxx(none) == nullptr);
-	OO_CHECK(oo::ToObjC(static_cast<cxx::OOOpenGLExtensionManager *>(nullptr)) == nil);
-	OO_CHECK([none textureUnitCount] == 0);
 }
 
 

@@ -120,7 +120,7 @@ void OOWaypointEntity::drawImmediate(bool /*immediate*/, bool translucent)
     int8_t i, j, k;
 
     GLfloat a = 0.75;
-    if ((PLAYER != nullptr ? PLAYER->getCompassTarget() : (::Entity*)nullptr) != oo::ToObjC(this)) {
+    if ((PLAYER != nullptr ? PLAYER->getCompassTargetEntity() : nullptr) != this) {
         a *= 0.25;
     }
     if (cam_zero_distance > _size * _size) {
@@ -175,9 +175,9 @@ void OOWaypointEntity::drawImmediate(bool /*immediate*/, bool translucent)
 
 /* beacons */
 
-OOComparisonResult OOWaypointEntity::compareBeaconCodeWith(OOBeaconEntityObject* other)
+OOComparisonResult OOWaypointEntity::compareBeaconCodeWith(Entity* other)
 {
-    return (OOComparisonResult)oo::str::caseInsensitiveCompare(beaconCode().value_or(""), [other beaconCode].value_or(""));
+    return (OOComparisonResult)oo::str::caseInsensitiveCompare(beaconCode().value_or(""), oo::BeaconCode(other).value_or(""));
 }
 
 std::optional<std::string> OOWaypointEntity::beaconCode()
@@ -232,7 +232,7 @@ OOHUDBeaconIcon* OOWaypointEntity::beaconDrawable()
         NSUInteger length = beaconCode.size(); // -length: UTF-16 units
 
         if (length > 1) {
-            const oo::PList* iconEntry = [UNIVERSE cxx_descriptions]->find(*_beaconCode);
+            const oo::PList* iconEntry = UNIVERSE->descriptions()->find(*_beaconCode);
             const oo::PList iconData = (iconEntry != nullptr) ? *iconEntry : oo::PList();
             if (iconData.isArray())
                 _beaconDrawable = OOPolygonSprite::initWithDataArray(iconData, 0.5, *_beaconCode); // null where it answered nil
@@ -249,29 +249,27 @@ OOHUDBeaconIcon* OOWaypointEntity::beaconDrawable()
     return _beaconDrawable.get();
 }
 
-OOBeaconEntityObject* OOWaypointEntity::prevBeacon()
+Entity* OOWaypointEntity::prevBeacon()
 {
-    ::OOWeakReference* ref = _prevBeacon.get();
-    return ref != nil ? oo::ToCxx(ref)->weakRefUnderlyingObject() : nil;
+    return oo::LiveEntity(_prevBeacon);
 }
 
-OOBeaconEntityObject* OOWaypointEntity::nextBeacon()
+Entity* OOWaypointEntity::nextBeacon()
 {
-    ::OOWeakReference* ref = _nextBeacon.get();
-    return ref != nil ? oo::ToCxx(ref)->weakRefUnderlyingObject() : nil;
+    return oo::LiveEntity(_nextBeacon);
 }
 
-void OOWaypointEntity::setPrevBeacon(OOBeaconEntityObject* beaconShip)
+void OOWaypointEntity::setPrevBeacon(Entity* beaconShip)
 {
     if (beaconShip != prevBeacon()) {
-        _prevBeacon = oo::ObjCRef<::OOWeakReference*>::adopt([beaconShip weakRetain]);
+        _prevBeacon = oo::WeakRef<Entity>(beaconShip);
     }
 }
 
-void OOWaypointEntity::setNextBeacon(OOBeaconEntityObject* beaconShip)
+void OOWaypointEntity::setNextBeacon(Entity* beaconShip)
 {
     if (beaconShip != nextBeacon()) {
-        _nextBeacon = oo::ObjCRef<::OOWeakReference*>::adopt([beaconShip weakRetain]);
+        _nextBeacon = oo::WeakRef<Entity>(beaconShip);
     }
 }
 

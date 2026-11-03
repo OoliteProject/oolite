@@ -125,7 +125,7 @@ void OOCheckShipDataPListVerifierStage::run()
     // Get AI verifier stage (may be null). C++ since bead oo-94qk; the verifier holds it.
     _aiVerifierStage = static_cast<OOAIStateMachineVerifierStage*>(verifier()->stageWithName(OOAIStateMachineVerifierStage::nameForReverseDependencyForVerifier(verifier())));
 
-    const oo::PList ooliteShipDataPList = [ResourceManager cxx_dictionaryFromFilesNamed:"shipdata.plist" inFolder:"Config" andMerge:YES];
+    const oo::PList ooliteShipDataPList = ResourceManager::dictionaryFromFilesNamed("shipdata.plist", "Config", YES);
     if (const oo::PList::Dict* shipDataDict = ooliteShipDataPList.getIf<oo::PList::Dict>()) {
         for (const auto& [shipKey, shipEntry] : *shipDataDict)
             ooliteShipData.push_back(shipKey); // byte order of the key (hash order before; only used as a set)
@@ -158,7 +158,7 @@ void OOCheckShipDataPListVerifierStage::run()
     for (const std::string& key : _stationKeys)
         AddString(_allKeys, key);
 
-    _schemaVerifier = OOPListSchemaVerifier::verifierWithSchema([ResourceManager cxx_dictionaryFromFilesNamed:"shipdataEntrySchema.plist" inFolder:"Schemata" andMerge:NO]);
+    _schemaVerifier = OOPListSchemaVerifier::verifierWithSchema(ResourceManager::dictionaryFromFilesNamed("shipdataEntrySchema.plist", "Schemata", NO));
     if (_schemaVerifier != nullptr)
         _schemaVerifier->setDelegate(this); // the stage itself since bead oo-9ht.119 (a message to nil did nothing)
 

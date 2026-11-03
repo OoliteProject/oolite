@@ -31,12 +31,12 @@ MA 02110-1301, USA.
 #import "OORoleSet.h"
 #import "ShipEntity.h"
 
-BOOL YESPredicate(Entity* entity, void* parameter)
+BOOL YESPredicate(Entity* /*entity*/, void* /*parameter*/)
 {
     return YES;
 }
 
-BOOL NOPredicate(Entity* entity, void* parameter)
+BOOL NOPredicate(Entity* /*entity*/, void* /*parameter*/)
 {
     return NO;
 }
@@ -105,42 +105,40 @@ BOOL NANDPredicate(Entity* entity, void* parameter)
     return !(A && B);
 }
 
+/*	The predicates ask the C++ entity what the root facade's selectors forwarded to (an
+        Objective-C stand-in was messaged before).
+*/
 BOOL HasScanClassPredicate(Entity* entity, void* parameter)
 {
-    return *static_cast<const OOScanClass*>(parameter) == [entity scanClass]; // an OOScanClass, as the callers pass it
+    return *static_cast<const OOScanClass*>(parameter) == (entity != nullptr ? entity->getScanClass() : OOScanClass { }); // an OOScanClass, as the callers pass it
 }
 
-BOOL HasClassPredicate(Entity* entity, void* parameter)
+BOOL IsShipPredicate(Entity* entity, void* /*parameter*/)
 {
-    return [entity isKindOfClass:(Class)parameter];
+    return entity != nullptr && entity->getIsShip() && !entity->getIsSubEntity();
 }
 
-BOOL IsShipPredicate(Entity* entity, void* parameter)
+BOOL IsStationPredicate(Entity* entity, void* /*parameter*/)
 {
-    return [entity isShip] && ![entity isSubEntity];
+    return entity != nullptr && entity->getIsStation();
 }
 
-BOOL IsStationPredicate(Entity* entity, void* parameter)
+BOOL IsPlanetPredicate(Entity* entity, void* /*parameter*/)
 {
-    return [entity isStation];
-}
-
-BOOL IsPlanetPredicate(Entity* entity, void* parameter)
-{
-    if (![entity isPlanet])
+    if (!(entity != nullptr && entity->isPlanet()))
         return NO;
     OOStellarBodyType type = OOStellarBodyPlanetType(entity); // the planet is C++ since bead oo-9ht.129
     return (type == STELLAR_TYPE_NORMAL_PLANET || type == STELLAR_TYPE_MOON);
 }
 
-BOOL IsSunPredicate(Entity* entity, void* parameter)
+BOOL IsSunPredicate(Entity* entity, void* /*parameter*/)
 {
-    return [entity isSun];
+    return entity != nullptr && entity->isSun();
 }
 
-BOOL IsVisualEffectPredicate(Entity* entity, void* parameter)
+BOOL IsVisualEffectPredicate(Entity* entity, void* /*parameter*/)
 {
-    return [entity isVisualEffect] && ![entity isSubEntity];
+    return entity != nullptr && entity->getIsVisualEffect() && !entity->getIsSubEntity();
 }
 
 BOOL HasRolePredicate(Entity* ship, void* parameter)
@@ -183,5 +181,5 @@ BOOL HasPrimaryRoleInSetPredicate(Entity* ship, void* parameter)
 
 BOOL IsHostileAgainstTargetPredicate(Entity* ship, void* parameter)
 {
-    return (oo::ToShip(ship) != nullptr ? oo::ToShip(ship)->hasHostileTarget() : false) && (oo::ToShip(ship) != nullptr ? oo::ToShip(ship)->primaryTarget() : id { }) == oo::ToObjC(static_cast<::ShipEntity*>(parameter)); // the ship (its object until bead oo-9ht.144)
+    return (oo::ToShip(ship) != nullptr ? oo::ToShip(ship)->hasHostileTarget() : false) && (oo::ToShip(ship) != nullptr ? oo::ToShip(ship)->primaryTarget() : (Entity*)nullptr) == static_cast<::ShipEntity*>(parameter); // the ship (its object before ShipEntity was C++)
 }

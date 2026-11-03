@@ -138,20 +138,16 @@ NSString *OOHarnessCredits(OOCreditsQuantity tenths, BOOL decimal)
 
 Random_Seed OOHarnessSystemManager::getRandomSeedForCurrentSystem() { Random_Seed s = {1, 2, 3, 4, 5, 6}; return s; }
 
-@implementation Universe
-- (NSDictionary *) descriptions { return sDescriptions; }
-- (NSString *) getSystemName:(OOSystemID)sys { return [NSString stringWithFormat:@"Sys%d", (int)sys]; }
-- (NSString *) getSystemName:(OOSystemID)sys forGalaxy:(OOGalaxyID)gal { return [NSString stringWithFormat:@"G%dSys%d", (int)gal, (int)sys]; }
-- (OOHarnessSystemManager *) systemManager { static OOHarnessSystemManager manager; return &manager; }
-// The C++ forms (bead oo-qqz6): the same data, converted once / per call.
-- (const oo::PList *) cxx_descriptions
+// The C++ universe's members: the same data, converted once / per call, as the
+// Objective-C stub's C++ forms answered.
+const oo::PList *Universe::descriptions()
 {
 	static const oo::PList *descriptions = new oo::PList(oo::PListFrom(sDescriptions));
 	return descriptions;
 }
-- (std::optional<std::string>) cxx_getSystemName:(OOSystemID)sys { return oo::OptionalString([self getSystemName:sys]); }
-- (std::optional<std::string>) cxx_getSystemName:(OOSystemID)sys forGalaxy:(OOGalaxyID)gal { return oo::OptionalString([self getSystemName:sys forGalaxy:gal]); }
-@end
+std::optional<std::string> Universe::getSystemName(OOSystemID sys)  { return oo::OptionalString([NSString stringWithFormat:@"Sys%d", (int)sys]); }
+std::optional<std::string> Universe::getSystemName(OOSystemID sys, OOGalaxyID gal)  { return oo::OptionalString([NSString stringWithFormat:@"G%dSys%d", (int)gal, (int)sys]); }
+OOHarnessSystemManager *Universe::getSystemManager()  { static OOHarnessSystemManager manager; return &manager; }
 static Universe *sUniverse;
 Universe *OOGetUniverse(void) { return sUniverse; }
 
@@ -206,10 +202,7 @@ static oo::PList QueryIMP(id self, SEL _cmd)
 static PlayerEntity *sPlayer;
 PlayerEntity *OOGetPlayer(void) { return sPlayer; }
 
-@implementation ResourceManager
-+ (NSDictionary *) whitelistDictionary { return sWhitelist; }
-+ (oo::PList) cxx_whitelistDictionary { return oo::PListFrom(sWhitelist); }
-@end
+oo::PList ResourceManager::whitelistDictionary() { return oo::PListFrom(sWhitelist); }	// C++
 
 // --- recording -----------------------------------------------------------------------------
 
@@ -361,7 +354,7 @@ int main(int argc, char **argv)
 	oo::log::logger().setSink(&HarnessLogSink);
 	oo::log::logger().setInitialized(true);
 	oo::log::logger().setOptions(oo::log::Options{ .showFunction = true, .showFileAndLine = false, .showClass = true, .showTime = false });
-	sUniverse = [Universe new];
+	sUniverse = new Universe();
 	sPlayer = [PlayerEntity new];
 	sDescriptions = [[NSDictionary dictionaryWithContentsOfFile:[NSString stringWithUTF8String:argv[1]]] retain];
 	sWhitelist = [[NSDictionary dictionaryWithContentsOfFile:[NSString stringWithUTF8String:argv[2]]] retain];

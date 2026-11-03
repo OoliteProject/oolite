@@ -109,12 +109,12 @@ OO_TEST(cachedScripts)
 	{
 		const oo::PList metadata = Dict({ { "description", Str("A test script") }, { "version", Str("1.2") } });
 		const oo::PList actions = oo::PList(oo::PList::Array{ Str("set: mission_x 1") });
-		[[OOCacheManager sharedCache] cxx_setPList:Dict({
+		OOCacheManager::sharedCache()->setPList(Dict({
 				{ "zeta", Dict({ { "script", actions }, { "!metadata!", metadata } }) },
 				{ "alpha", Dict({ { "script", actions } }) },
 				{ "badScript", Dict({ { "script", Str("not an array") } }) },
 				{ "notADict", Str("x") },
-			}) forKey:"cached.plist" inCache:kCacheName];
+			}), "cached.plist", kCacheName);
 
 		const auto scripts = OOPListScript::scriptsInPListFile("cached.plist");
 		OO_CHECK(scripts.has_value());
@@ -135,7 +135,7 @@ OO_TEST(cachedScripts)
 		OO_CHECK(zeta->description().find("OOPListScript") != std::string::npos);
 
 		// A run whose target is not a ship logs and does nothing (it never reaches the player).
-		Entity *notAShip = [[[Entity alloc] init] autorelease];
+		Entity *notAShip = oo::MadeEntity(oo::makeRef<Entity>());
 		zeta->runWithTarget(notAShip);
 	}
 }
@@ -148,8 +148,7 @@ OO_TEST(metadataTypes)
 	{
 		// A description or version that is not a string reads as none.
 		const oo::PList metadata = Dict({ { "description", oo::PList(3) }, { "version", oo::PList(oo::PList::Array{}) } });
-		[[OOCacheManager sharedCache] cxx_setPList:Dict({ { "odd", Dict({ { "script", oo::PList(oo::PList::Array{}) }, { "!metadata!", metadata } }) } })
-											forKey:"odd.plist" inCache:kCacheName];
+		OOCacheManager::sharedCache()->setPList(Dict({ { "odd", Dict({ { "script", oo::PList(oo::PList::Array{}) }, { "!metadata!", metadata } }) } }), "odd.plist", kCacheName);
 		const auto scripts = OOPListScript::scriptsInPListFile("odd.plist");
 		OO_CHECK(scripts.has_value() && scripts->size() == 1);
 		if (!scripts.has_value() || scripts->size() != 1)  return;
@@ -160,8 +159,7 @@ OO_TEST(metadataTypes)
 		OO_CHECK_EQ(odd->name().value_or("<none>"), "odd");	// the name is the key, whatever the metadata says
 
 		// The metadata's own name does not win over the key.
-		[[OOCacheManager sharedCache] cxx_setPList:Dict({ { "key", Dict({ { "script", oo::PList(oo::PList::Array{}) }, { "!metadata!", Dict({ { "name", Str("other") } }) } }) } })
-											forKey:"named.plist" inCache:kCacheName];
+		OOCacheManager::sharedCache()->setPList(Dict({ { "key", Dict({ { "script", oo::PList(oo::PList::Array{}) }, { "!metadata!", Dict({ { "name", Str("other") } }) } }) } }), "named.plist", kCacheName);
 		const auto named = OOPListScript::scriptsInPListFile("named.plist");
 		OO_CHECK(named.has_value() && named->size() == 1 && (*named)[0]->name().value_or("<none>") == "key");
 	}
@@ -185,7 +183,7 @@ OO_TEST(files)
 		WriteText(sRoot / "empty.plist", "{ \"!metadata!\" = { version = \"2\"; }; notAScript = \"text\"; }");
 		const auto scripts = OOPListScript::scriptsInPListFile(path);
 		OO_CHECK(scripts.has_value() && scripts->empty());
-		const oo::PList cached = [[OOCacheManager sharedCache] cxx_pListForKey:path inCache:kCacheName];
+		const oo::PList cached = OOCacheManager::sharedCache()->pListForKey(path, kCacheName);
 		OO_CHECK(cached.isDict() && cached.count() == 0);
 		// The second read comes from the cache (the file is gone).
 		stdfs::remove(sRoot / "empty.plist");
@@ -202,8 +200,7 @@ OO_TEST(plistScriptIsItsOwnObject)
 	SetUp();
 	@autoreleasepool
 	{
-		[[OOCacheManager sharedCache] cxx_setPList:Dict({ { "one", Dict({ { "script", oo::PList(oo::PList::Array{}) }, { "!metadata!", Dict({ { "version", Str("3") } }) } }) } })
-											forKey:"facade.plist" inCache:kCacheName];
+		OOCacheManager::sharedCache()->setPList(Dict({ { "one", Dict({ { "script", oo::PList(oo::PList::Array{}) }, { "!metadata!", Dict({ { "version", Str("3") } }) } }) } }), "facade.plist", kCacheName);
 		const auto scripts = OOPListScript::scriptsInPListFile("facade.plist");
 		OO_CHECK(scripts.has_value() && scripts->size() == 1);
 		if (!scripts.has_value() || scripts->size() != 1)  return;

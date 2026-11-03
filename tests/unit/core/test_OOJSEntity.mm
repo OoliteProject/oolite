@@ -16,6 +16,13 @@
 	property both ways, the owner, a stale entity and the escape-pod player, the prototype,
 	dumpState(), a native's exception) and the C functions other bindings call
 	(JSValueToEntity(), EntityFromArgumentList()). Run: bash tools/check-core-tests.sh
+
+	Since bead oo-9ht.39.3 (ADR-0056 amendment oo-9ht.39.3) an entity's JS object holds its C++ part
+	(an OOJSEntityHolder) and the getters answer it. Since bead oo-9ht.39.8.21 the property blocks call
+	the C++ entity's members, the root facade's selectors' bodies: the stand-in for the C++ class has
+	the game's vtable (EntityStandIn.h) and answers as the Objective-C stand-in, its object, did (the
+	stand-ins re-based under the standing approval oo-9n5p9; no expectation changed). The engine's C++ slot glue (OOJSPrivateObject.h) is stood in
+	for as the Objective-C glue was (the same class check and error, the same toString()).
 */
 
 #import "OOFoundation.h"
@@ -38,18 +45,58 @@
 	One whose mass is 99 raises from -mass, one whose mass is 98 throws a C++ exception, so the test
 	sees what an exception under a native becomes.
 */
-namespace cxx {
-class Entity : public oo::RefCounted	// the C++ root, as far as a ship's part needs it
+#import "EntityStandIn.h"
+class Entity : public oo::RefCounted, public ::OOJSPrivateObject	// the C++ root, with the game's vtable (bead oo-9ht.39.8.21)
 {
 public:
+	OO_ENTITY_STAND_IN_VIRTUAL_MEMBERS
 	virtual ~Entity();
+	void dumpState();	// the binding calls it since bead oo-9ht.39.8.2 (the object's -dumpState did)
+	HPVector getPosition();	// OOJSEntityPositionOfJSObject's (bead oo-9ht.39.8.12), and the position property's
+	Quaternion getOrientation();	// OOJSEntityOrientationOfJSObject's (bead oo-9ht.39.8.12); no case reaches it
+	// The non-virtual members the property blocks call since bead oo-9ht.39.8.21; each answers what
+	// the entity's object (the Objective-C stand-in below) answered.
+	OOEntityStatus status();
+	GLfloat getMass();
+	Entity *ownerEntity();
+	GLfloat getEnergy();
+	void setEnergy(GLfloat amount);
+	GLfloat getMaxEnergy();
+	void setMaxEnergy(GLfloat amount);
+	void setScanClass(OOScanClass sClass);
+	GLfloat getDistanceTravelled();
+	GLfloat getSpawnTime();
+	bool getIsShip();
+	bool getIsStation();
+	bool getIsSubEntity();
+	bool getIsPlayer();
+	bool getIsSunlit();
+	bool getIsWormhole();
+	bool isInSpace();
 };
-}	// namespace cxx
 
-@interface Entity: OOObject
+// The C++ part of each of the test's entities: the virtual members the property blocks call (bead
+// oo-9ht.39.8.21), each answering what the entity's object answered.
+class TestEntityPart : public Entity
+{
+public:
+	GLfloat collisionRadius() override;
+	void setPosition(HPVector posn) override;
+	Quaternion normalOrientation() override;
+	void setNormalOrientation(Quaternion quat) override;
+	OOScanClass getScanClass() override;
+	bool isDock() override;
+	bool isPlanet() override;
+	bool isSun() override;
+	bool isVisible() override;
+	bool getIsVisualEffect() override;
+};
+
+__attribute__((objc_runtime_name("Entity")))
+@interface TestEntityObject: OOObject
 {
 @public
-	oo::Ref<cxx::Entity> _cxxEntity;	// the C++ part (oo::ToCxx reads it): a ship's
+	oo::Ref<Entity> _cxxEntity;	// the C++ part (oo::ToCxx reads it): a ship's
 	float _collisionRadius;
 	HPVector _position;
 	Quaternion _orientation;
@@ -95,13 +142,12 @@ public:
 - (BOOL) isVisualEffect;
 - (BOOL) isWormhole;
 - (BOOL) isInSpace;
-- (void) dumpState;
 @end
 
 // A ship: C++ since bead oo-9ht.144 deleted the Objective-C ship this stood in for, the C++ part of
 // an entity's object, declared as ShipEntity.h declares it (the test imports no game header that
 // defines the class), with the stand-in's answers.
-class ShipEntity : public cxx::Entity
+class ShipEntity : public TestEntityPart
 {
 public:
 	void resetExhaustPlumes();
@@ -113,6 +159,10 @@ public:
 
 
 #include "OOJSEngineCore.h"
+// What an entity's JS object holds since bead oo-9ht.39.3: a weak reference to the C++ entity.
+#include "OOJSEntityHolder.h"
+
+
 #include "oo_test.hpp"
 
 #include <cstdarg>
@@ -131,7 +181,7 @@ JSClassID JSEntityClassID(void);
 bool EntityFromArgumentList(JSContext *context, const std::optional<std::string> &scriptClass, const std::optional<std::string> &function, int argc, JSValueConst *argv, Entity **outEntity, int *outConsumed);
 
 
-@implementation Entity
+@implementation TestEntityObject
 
 - (id) weakRefUnderlyingObject  { return self; }
 - (float) collisionRadius  { return _collisionRadius; }
@@ -169,12 +219,11 @@ bool EntityFromArgumentList(JSContext *context, const std::optional<std::string>
 - (BOOL) isVisualEffect  { return _isVisualEffect; }
 - (BOOL) isWormhole  { return _isWormhole; }
 - (BOOL) isInSpace  { return _isInSpace; }
-- (void) dumpState  { _dumps++; }
 
 @end
 
 
-cxx::Entity::~Entity() = default;
+Entity::~Entity() = default;
 void ShipEntity::resetExhaustPlumes()  { _plumeResets++; }
 void ShipEntity::forceAegisCheck()  { _aegisChecks++; }
 
@@ -270,7 +319,8 @@ void OOLogGenericParameterErrorForFunction(const char *inFunction)
 
 namespace {
 std::map<JSClassID, int> sConverters;
-std::map<Entity *, JSValue> sEntityObjects;	// each holds a reference for the life of the test
+std::map<TestEntityObject *, JSValue> sEntityObjects;	// each holds a reference for the life of the test
+std::map<Entity *, TestEntityObject *> sObjects;	// what oo::ToObjC answers: each wrapped entity's object
 JSContext *sContext = nullptr;
 
 
@@ -299,16 +349,18 @@ bool JSValueToNumbers(JSContext *context, JSValueConst value, double *numbers, u
 }
 
 
-// An entity's JS object, as -[Entity oo_jsValueInContext:] makes it: the Entity class, and the
-// entity in the private slot. One per entity; owned by the caller.
-JSValue JSValueForEntity(Entity *entity)
+// An entity's JS object, as EntityJSValueInContext() makes it: the Entity class, and a holder of the
+// entity's C++ part in the private slot (a plain one for an entity made without). One per entity;
+// owned by the caller.
+JSValue JSValueForEntity(TestEntityObject *entity)
 {
 	auto found = sEntityObjects.find(entity);
 	if (found == sEntityObjects.end())
 	{
+		if (entity->_cxxEntity == nullptr)  entity->_cxxEntity = oo::makeRef<TestEntityPart>();
+		sObjects[entity->_cxxEntity.get()] = entity;
 		JSValue object = JS_NewObjectClass(sContext, static_cast<int>(JSEntityClassID()));
-		if (JS_IsException(object))  return JS_NULL;
-		if (JS_SetOpaque(object, entity) != 0)
+		if (JS_IsException(object) || !OOJSSetCxxPrivate(object, oo::makeRef<OOJSEntityHolder>(entity->_cxxEntity.get()).get()))
 		{
 			JS_FreeValue(sContext, object);
 			return JS_NULL;
@@ -320,7 +372,62 @@ JSValue JSValueForEntity(Entity *entity)
 
 } // namespace
 
-Entity *gOOJSPlayerIfStale = nil;
+Entity *gOOJSPlayerIfStale = nullptr;	// the player's C++ entity (bead oo-9ht.39.25)
+
+
+// oo::ToObjC (Entity+ObjCBridge.mm): the object of a C++ part the test wrapped, nil for any other.
+namespace oo { ::TestEntityObject *ToObjC(Entity *entity); }
+#import "EntityHelpersStandIn.h"	// EntityHelpers.mm's, on the test's objects (bead oo-dpyk8)
+::TestEntityObject *oo::ToObjC(Entity *entity)
+{
+	auto found = sObjects.find(entity);
+	return found != sObjects.end() ? found->second : nil;
+}
+
+// What the object's -dumpState counted until bead oo-9ht.39.8.2.
+void Entity::dumpState()  { oo::ToObjC(this)->_dumps++; }
+// What the object's -position/-orientation answered for the vector and quaternion conversions, which
+// read the C++ entity since bead oo-9ht.39.8.12 (link stand-ins: no case here converts an entity).
+HPVector Entity::getPosition()  { return oo::ToObjC(this)->_position; }
+Quaternion Entity::getOrientation()  { return oo::ToObjC(this)->_orientation; }
+
+// What the object's selectors answered, which the property blocks call the C++ members for since bead
+// oo-9ht.39.8.21: each asks the object, so the stand-in's state, its counters and -mass's raise and
+// throw are what they were.
+OOEntityStatus Entity::status()  { return [oo::ToObjC(this) status]; }
+GLfloat Entity::getMass()  { return [oo::ToObjC(this) mass]; }
+GLfloat Entity::getEnergy()  { return [oo::ToObjC(this) energy]; }
+void Entity::setEnergy(GLfloat amount)  { [oo::ToObjC(this) setEnergy:amount]; }
+GLfloat Entity::getMaxEnergy()  { return [oo::ToObjC(this) maxEnergy]; }
+void Entity::setMaxEnergy(GLfloat amount)  { [oo::ToObjC(this) setMaxEnergy:amount]; }
+void Entity::setScanClass(OOScanClass sClass)  { [oo::ToObjC(this) setScanClass:sClass]; }
+GLfloat Entity::getDistanceTravelled()  { return [oo::ToObjC(this) distanceTravelled]; }
+GLfloat Entity::getSpawnTime()  { return [oo::ToObjC(this) spawnTime]; }
+bool Entity::getIsShip()  { return [oo::ToObjC(this) isShip]; }
+bool Entity::getIsStation()  { return [oo::ToObjC(this) isStation]; }
+bool Entity::getIsSubEntity()  { return [oo::ToObjC(this) isSubEntity]; }
+bool Entity::getIsPlayer()  { return [oo::ToObjC(this) isPlayer]; }
+bool Entity::getIsSunlit()  { return [oo::ToObjC(this) isSunlit]; }
+bool Entity::getIsWormhole()  { return [oo::ToObjC(this) isWormhole]; }
+bool Entity::isInSpace()  { return [oo::ToObjC(this) isInSpace]; }
+
+// The owner's C++ part, as -owner answered its object (nil: none).
+Entity *Entity::ownerEntity()
+{
+	::TestEntityObject *owner = [oo::ToObjC(this) owner];
+	return owner != nil ? owner->_cxxEntity.get() : nullptr;
+}
+
+GLfloat TestEntityPart::collisionRadius()  { return [oo::ToObjC(this) collisionRadius]; }
+void TestEntityPart::setPosition(HPVector posn)  { [oo::ToObjC(this) setPosition:posn]; }
+Quaternion TestEntityPart::normalOrientation()  { return [oo::ToObjC(this) normalOrientation]; }
+void TestEntityPart::setNormalOrientation(Quaternion quat)  { [oo::ToObjC(this) setNormalOrientation:quat]; }
+OOScanClass TestEntityPart::getScanClass()  { return [oo::ToObjC(this) scanClass]; }
+bool TestEntityPart::isDock()  { return [oo::ToObjC(this) isDock]; }
+bool TestEntityPart::isPlanet()  { return [oo::ToObjC(this) isPlanet]; }
+bool TestEntityPart::isSun()  { return [oo::ToObjC(this) isSun]; }
+bool TestEntityPart::isVisible()  { return [oo::ToObjC(this) isVisible]; }
+bool TestEntityPart::getIsVisualEffect()  { return [oo::ToObjC(this) isVisualEffect]; }
 
 
 bool HPVectorToJSValue(JSContext *context, HPVector vector, JSValue *outValue)
@@ -382,41 +489,13 @@ void OOJSRegisterObjectConverter(JSClassID classID, OOJSClassConverterCallback)
 }
 
 
-// The engine's object getter: the JS class must be a subclass of the required one, and the
-// underlying object must be of the required Objective-C class.
-BOOL OOJSObjectGetterImplPRIVATE(JSContext *context, JSValueConst object, JSClassID requiredClassID, Class requiredObjCClass, const char *, id *outObject)
-{
-	if (!OOJSIsSubclass(JS_GetClassID(object), requiredClassID))
-	{
-		const char *className = OOJSClassName(requiredClassID);
-		cxx_OOJSReportError(context, "Native method expected %s, got %s.", className != nullptr ? className : "(null)", cxx_OOStringFromJSValue(context, object).value_or("(null)").c_str());
-		return NO;
-	}
-	JSClassID ignored;
-	*outObject = [(id)JS_GetAnyOpaque(object, &ignored) weakRefUnderlyingObject];
-	if (*outObject != nil && ![*outObject isKindOfClass:requiredObjCClass])
-	{
-		cxx_OOJSReportError(context, "Native method expected %s from %s.", class_getName(requiredObjCClass), OOJSClassName(requiredClassID));
-		*outObject = nil;
-		return NO;
-	}
-	return YES;
-}
-
-
 // What the engine makes of a native object: an entity's own JS object, null for nil. Owned by the
 // caller.
 JSValue OOJSValueFromNativeObject(JSContext *, id object)
 {
 	if (object == nil)  return JS_NULL;
-	if ([object isKindOfClass:[Entity class]])  return JSValueForEntity(object);
+	if ([object isKindOfClass:[TestEntityObject class]])  return JSValueForEntity(object);
 	return JS_UNDEFINED;
-}
-
-
-JSValue OOJSObjectWrapperToString(JSContext *context, JSValueConst, int, JSValueConst *)
-{
-	return JS_NewString(context, "[Entity]");
 }
 
 
@@ -424,11 +503,6 @@ JSValue OOJSUnconstructableConstruct(JSContext *context, JSValueConst, int, JSVa
 {
 	cxx_OOJSReportError(context, "unconstructable");
 	return JS_EXCEPTION;
-}
-
-
-void OOJSObjectWrapperFinalize(JSRuntime *, JSValueConst)
-{
 }
 
 
@@ -444,9 +518,54 @@ void OOJSPauseTimeLimiter(void)  { sLimiterPauses++; }
 void OOJSResumeTimeLimiter(void)  { sLimiterPauses--; }
 
 
-oo::PList OOJSBasicPrivateObjectConverter(JSContext *, JSValueConst)
+// The engine's C++ slot glue (OOJSPrivateObject.h), as the Objective-C glue was stood in for: the
+// getter's JS class check and error, the slot's retain, a finalizer that does nothing and the same
+// toString().
+bool OOJSGetCxxPrivateImpl(JSContext *context, JSValueConst object, JSClassID requiredClassID, oo::RefCounted **outObject)
 {
-	return oo::PList();
+	if (!OOJSIsSubclass(JS_GetClassID(object), requiredClassID))
+	{
+		const char *className = OOJSClassName(requiredClassID);
+		cxx_OOJSReportError(context, "Native method expected %s, got %s.", className != nullptr ? className : "(null)", cxx_OOStringFromJSValue(context, object).value_or("(null)").c_str());
+		return false;
+	}
+	JSClassID ignored;
+	*outObject = static_cast<oo::RefCounted *>(JS_GetAnyOpaque(object, &ignored));
+	return true;
+}
+
+
+bool OOJSSetCxxPrivate(JSValueConst jsObject, oo::RefCounted *object)
+{
+	if (object != nullptr)  object->retain();
+	if (JS_SetOpaque(jsObject, object) == 0)  return true;
+	if (object != nullptr)  object->release();
+	return false;
+}
+
+
+void OOJSCxxObjectWrapperFinalize(JSRuntime *, JSValueConst)
+{
+}
+
+
+JSValue OOJSCxxObjectWrapperToString(JSContext *context, JSValueConst, JSClassID)
+{
+	return JS_NewString(context, "[TestEntityObject]");
+}
+
+
+// The JS value of a C++ object: an entity's own JS object (the owner property's since bead
+// oo-9ht.39.8.21, what OOJSValueFromNativeObject made of its object), null for null; a holder's glue
+// is never reached (no case wraps a holder's value). Owned by the caller.
+JSValue OOJSValueFromCxxObject(JSContext *, OOJSPrivateObject *object)
+{
+	if (object == nullptr)  return JS_NULL;
+	if (auto *entity = dynamic_cast<Entity *>(object))
+	{
+		if (::TestEntityObject *entityObject = oo::ToObjC(entity))  return JSValueForEntity(entityObject);
+	}
+	return JS_UNDEFINED;
 }
 
 
@@ -456,10 +575,10 @@ namespace {
 
 JSRuntime *sRuntime = nullptr;
 JSValue sGlobal = JS_UNDEFINED;	// held for the life of the test
-Entity *sShip = nil;	// a ship's object and its C++ part (the Objective-C ship until bead oo-9ht.144)
+TestEntityObject *sShip = nil;	// a ship's object and its C++ part (the Objective-C ship until bead oo-9ht.144)
 ShipEntity *sShipPart = nullptr;
-Entity *sRock = nil;
-Entity *sMother = nil;
+TestEntityObject *sRock = nil;
+TestEntityObject *sMother = nil;
 
 
 // Defines a global; takes value's reference.
@@ -481,14 +600,14 @@ void SetUpContext()
 	InitOOJSEntity(sContext, sGlobal);
 
 	// Kept for the life of the test.
-	sMother = [[Entity alloc] init];
+	sMother = [[TestEntityObject alloc] init];
 	sMother->_cxxEntity = oo::makeRef<ShipEntity>();
 	sMother->_isShip = YES;
 	sMother->_isStation = YES;
 	sMother->_status = STATUS_ACTIVE;
 	sMother->_scanClass = CLASS_STATION;
 
-	sShip = [[Entity alloc] init];
+	sShip = [[TestEntityObject alloc] init];
 	sShip->_cxxEntity = oo::makeRef<ShipEntity>();
 	sShipPart = static_cast<ShipEntity *>(sShip->_cxxEntity.get());
 	sShip->_collisionRadius = 40.5f;
@@ -507,7 +626,7 @@ void SetUpContext()
 	sShip->_isVisible = YES;
 	sShip->_isInSpace = YES;
 
-	sRock = [[Entity alloc] init];
+	sRock = [[TestEntityObject alloc] init];
 	sRock->_status = STATUS_ACTIVE;
 	sRock->_scanClass = CLASS_ROCK;
 	sRock->_maxEnergy = 10;
@@ -560,7 +679,7 @@ OO_TEST(registration)
 	OO_CHECK_EVAL("ship instanceof Entity && Object.getPrototypeOf(ship) === Entity.prototype", "true");
 	OO_CHECK_EVAL("Object.keys(Entity.prototype).join()",
 				  "collisionRadius,distanceTravelled,energy,heading,mass,maxEnergy,orientation,owner,position,scanClass,spawnTime,status,isPlanet,isPlayer,isShip,isDock,isStation,isSubEntity,isSun,isSunlit,isValid,isInSpace,isVisible,isVisualEffect,isWormhole");
-	OO_CHECK_EVAL("String(ship)", "[Entity]");
+	OO_CHECK_EVAL("String(ship)", "[TestEntityObject]");
 }
 
 
@@ -642,11 +761,11 @@ OO_TEST(staleEntities)
 	OO_CHECK_EVAL("Entity.prototype.position", "undefined");
 	OO_CHECK_EVAL("(function () { Entity.prototype.energy = 5; return 'set'; })()", "set");
 	// The player while the escape pod is in flight is stale too.
-	gOOJSPlayerIfStale = sShip;
+	gOOJSPlayerIfStale = sShipPart;	// its C++ part (bead oo-9ht.39.25)
 	OO_CHECK_EVAL("ship.isValid + ':' + ship.mass + ':' + ship.owner", "false:undefined:undefined");
 	OO_CHECK_EVAL("(function () { ship.energy = 5; return 'set'; })()", "set");
 	OO_CHECK(sShip->_energy == 200);
-	gOOJSPlayerIfStale = nil;
+	gOOJSPlayerIfStale = nullptr;
 	OO_CHECK_EVAL("ship.isValid", "true");
 	// Not an entity at all.
 	OO_CHECK_EVAL("Object.getOwnPropertyDescriptor(Entity.prototype, 'mass').get.call({})", "threw: Native method expected Entity, got [object Object].");
@@ -670,16 +789,16 @@ OO_TEST(dumpState)
 OO_TEST(cFunctions)
 {
 	SetUpContext();
-	Entity *entity = nil;
+	Entity *entity = nullptr;
 	JSValue shipValue = JSValueForEntity(sShip);
-	OO_CHECK(JSValueToEntity(sContext, shipValue, &entity) && entity == sShip);
+	OO_CHECK(JSValueToEntity(sContext, shipValue, &entity) && oo::ToObjC(entity) == sShip);
 	OO_CHECK(!JSValueToEntity(sContext, JS_NewNumber(sContext, 3), &entity));
 
 	JSValueConst argv[2] = { shipValue, JS_NewNumber(sContext, 1) };
 	int consumed = 9;
-	entity = nil;
+	entity = nullptr;
 	OO_CHECK(EntityFromArgumentList(sContext, "Ship", "test", 2, argv, &entity, &consumed));
-	OO_CHECK(entity == sShip && consumed == 1);
+	OO_CHECK(oo::ToObjC(entity) == sShip && consumed == 1);
 
 	// Not an entity: a warning when given a class and function, and false either way.
 	JSValueConst bad[1] = { JS_NewNumber(sContext, 3) };

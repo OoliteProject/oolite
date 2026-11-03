@@ -150,6 +150,8 @@ size_t OOWeakReference::oo_objectSize()
     return [(id)_object oo_objectSize];
 }
 
+// The engine asks the C++ entity of a weak reference to an entity's object itself
+// (OOObject+OOJavaScript.mm), so these two are sent only to other objects.
 JSValue OOWeakReference::oo_jsValueInContext(JSContext* context)
 {
     if (_object == nil)

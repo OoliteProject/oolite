@@ -106,7 +106,7 @@ std::optional<std::string> DescriptorName(const oo::PList& descriptor)
     return descriptor.get<std::string>("name");
 }
 
-oo::ObjCRef<OOTexture*> TextureForGUITexture(const oo::PList& descriptor, uint32_t srgbaOption)
+oo::Ref<OOTexture> TextureForGUITexture(const oo::PList& descriptor, uint32_t srgbaOption)
 {
     /*
             GUI textures like backgrounds, foregrounds etc. are not processed in any way after loading. However, they are
@@ -119,7 +119,7 @@ oo::ObjCRef<OOTexture*> TextureForGUITexture(const oo::PList& descriptor, uint32
     */
     if (!GuiDisplayGenUniverseUseShaders())
         srgbaOption = 0;
-    return cxx::OOTexture::textureWithName(DescriptorName(descriptor),
+    return OOTexture::textureWithName(DescriptorName(descriptor),
         "Images",
         kOOTextureDefaultOptions | kOOTextureNoShrink | srgbaOption,
         kOOTextureDefaultAnisotropy,
@@ -131,7 +131,7 @@ oo::ObjCRef<OOTexture*> TextureForGUITexture(const oo::PList& descriptor, uint32
 */
 oo::Ref<OOTextureSprite> NewTextureSpriteWithDescriptor(const oo::PList& descriptor, uint32_t srgbaOption)
 {
-    oo::ObjCRef<OOTexture*> texture;
+    oo::Ref<OOTexture> texture;
     NSSize size;
 
     texture = TextureForGUITexture(descriptor, srgbaOption);
@@ -148,7 +148,7 @@ oo::Ref<OOTextureSprite> NewTextureSpriteWithDescriptor(const oo::PList& descrip
         size.width = specifiedWidth;
         size.height = specifiedHeight;
     } else {
-        NSSize originalDimensions = oo::ToCxx(texture.get())->originalDimensions();
+        NSSize originalDimensions = texture->originalDimensions();
 
         if (haveWidth) {
             // Width specified, but not height; preserve aspect ratio.
@@ -216,7 +216,7 @@ GuiDisplayGen::GuiDisplayGen()
 
     backgroundSpecial = GUI_BACKGROUND_SPECIAL_NONE;
 
-    guiUserSettings = [::ResourceManager cxx_dictionaryFromFilesNamed:"gui-settings.plist" inFolder:"Config" andMerge:YES];
+    guiUserSettings = ResourceManager::dictionaryFromFilesNamed("gui-settings.plist", "Config", YES);
 }
 
 GuiDisplayGen::GuiDisplayGen(NSSize gui_size,
@@ -1036,32 +1036,32 @@ void GuiDisplayGen::setBackgroundTextureSpecial(OOGUIBackgroundSpecial spec, boo
         case GUI_BACKGROUND_SPECIAL_CUSTOM:
         case GUI_BACKGROUND_SPECIAL_CUSTOM_ANA_SHORTEST:
         case GUI_BACKGROUND_SPECIAL_CUSTOM_ANA_QUICKEST:
-            bgDescriptor = [UNIVERSE cxx_screenTextureDescriptorForKey:"custom_chart_mission"];
+            bgDescriptor = (UNIVERSE != nullptr ? UNIVERSE->screenTextureDescriptorForKey("custom_chart_mission") : oo::PList());
             if (bgDescriptor.isNull()) {
-                bgDescriptor = [UNIVERSE cxx_screenTextureDescriptorForKey:"short_range_chart_mission"];
+                bgDescriptor = (UNIVERSE != nullptr ? UNIVERSE->screenTextureDescriptorForKey("short_range_chart_mission") : oo::PList());
                 if (bgDescriptor.isNull()) {
-                    bgDescriptor = [UNIVERSE cxx_screenTextureDescriptorForKey:"short_range_chart"];
+                    bgDescriptor = (UNIVERSE != nullptr ? UNIVERSE->screenTextureDescriptorForKey("short_range_chart") : oo::PList());
                 }
             }
             break;
         case GUI_BACKGROUND_SPECIAL_SHORT:
         case GUI_BACKGROUND_SPECIAL_SHORT_ANA_SHORTEST:
         case GUI_BACKGROUND_SPECIAL_SHORT_ANA_QUICKEST:
-            bgDescriptor = [UNIVERSE cxx_screenTextureDescriptorForKey:"short_range_chart_mission"];
+            bgDescriptor = (UNIVERSE != nullptr ? UNIVERSE->screenTextureDescriptorForKey("short_range_chart_mission") : oo::PList());
             if (bgDescriptor.isNull()) {
-                bgDescriptor = [UNIVERSE cxx_screenTextureDescriptorForKey:"short_range_chart"];
+                bgDescriptor = (UNIVERSE != nullptr ? UNIVERSE->screenTextureDescriptorForKey("short_range_chart") : oo::PList());
             }
             break;
         case GUI_BACKGROUND_SPECIAL_LONG:
         case GUI_BACKGROUND_SPECIAL_LONG_ANA_SHORTEST:
         case GUI_BACKGROUND_SPECIAL_LONG_ANA_QUICKEST:
-            bgDescriptor = [UNIVERSE cxx_screenTextureDescriptorForKey:oo::str::format("long_range_chart%d_mission", galaxy_number + 1)];
+            bgDescriptor = (UNIVERSE != nullptr ? UNIVERSE->screenTextureDescriptorForKey(oo::str::format("long_range_chart%d_mission", galaxy_number + 1)) : oo::PList());
             if (bgDescriptor.isNull()) {
-                bgDescriptor = [UNIVERSE cxx_screenTextureDescriptorForKey:"long_range_chart_mission"];
+                bgDescriptor = (UNIVERSE != nullptr ? UNIVERSE->screenTextureDescriptorForKey("long_range_chart_mission") : oo::PList());
                 if (bgDescriptor.isNull()) {
-                    bgDescriptor = [UNIVERSE cxx_screenTextureDescriptorForKey:oo::str::format("long_range_chart%d", galaxy_number + 1)];
+                    bgDescriptor = (UNIVERSE != nullptr ? UNIVERSE->screenTextureDescriptorForKey(oo::str::format("long_range_chart%d", galaxy_number + 1)) : oo::PList());
                     if (bgDescriptor.isNull()) {
-                        bgDescriptor = [UNIVERSE cxx_screenTextureDescriptorForKey:"long_range_chart"];
+                        bgDescriptor = (UNIVERSE != nullptr ? UNIVERSE->screenTextureDescriptorForKey("long_range_chart") : oo::PList());
                     }
                 }
             }
@@ -1087,19 +1087,19 @@ bool GuiDisplayGen::setBackgroundTextureDescriptor(const oo::PList& descriptor)
 bool GuiDisplayGen::setForegroundTextureDescriptor(const oo::PList& descriptor)
 {
     // FIXME: for some reason passing kOOTextureSRGBA when in SDR results in double gamma correction
-    uint32_t srgbaOption = [[UNIVERSE gameView] hdrOutput] ? kOOTextureSRGBA : 0;
+    uint32_t srgbaOption = (UNIVERSE != nullptr && UNIVERSE->getGameView() != nullptr ? UNIVERSE->getGameView()->hdrOutput() : false) ? kOOTextureSRGBA : 0;
     foregroundSprite = NewTextureSpriteWithDescriptor(descriptor, srgbaOption);
     return foregroundSprite.get() != nullptr;
 }
 
 bool GuiDisplayGen::setBackgroundTextureKey(const std::optional<std::string>& key)
 {
-    return setBackgroundTextureDescriptor([UNIVERSE cxx_screenTextureDescriptorForKey:key.value_or("")]);
+    return setBackgroundTextureDescriptor((UNIVERSE != nullptr ? UNIVERSE->screenTextureDescriptorForKey(key.value_or("")) : oo::PList()));
 }
 
 bool GuiDisplayGen::setForegroundTextureKey(const std::optional<std::string>& key)
 {
-    return setForegroundTextureDescriptor([UNIVERSE cxx_screenTextureDescriptorForKey:key.value_or("")]);
+    return setForegroundTextureDescriptor((UNIVERSE != nullptr ? UNIVERSE->screenTextureDescriptorForKey(key.value_or("")) : oo::PList()));
 }
 
 bool GuiDisplayGen::preloadGUITexture(const oo::PList& descriptor)
@@ -1189,7 +1189,8 @@ void GuiDisplayGen::drawEquipmentList(const oo::PList& eqptList, GLfloat z)
     i = itemsPerColumn * 2 + 2;
     if (eqptCount > i) // don't fit in one page?
     {
-        [[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:YES];
+        if (UNIVERSE != nullptr && UNIVERSE->gameController() != nullptr)
+            UNIVERSE->gameController()->setMouseInteractionModeForUIWithMouseInteraction(YES);
 
         i = itemsPerColumn * 4; // total items in the first and last pages
         itemsPerColumn--; // for all the middle pages.
@@ -1215,7 +1216,7 @@ void GuiDisplayGen::drawEquipmentList(const oo::PList& eqptList, GLfloat z)
         // pages earlier, but only one now, as e.g. in the case of a hud that wss
         // subsequently hidden, resulting in the equip list fitting in one page,
         // so we need to deactivate it
-        if (OOMouseInteractionModeIsUIScreen([[UNIVERSE gameController] mouseInteractionMode])) {
+        if (OOMouseInteractionModeIsUIScreen((UNIVERSE != nullptr && UNIVERSE->gameController() != nullptr ? UNIVERSE->gameController()->mouseInteractionMode() : OOMouseInteractionMode { }))) {
             // clear the gui-more and gui-back key rows first
             setText("", firstRow);
             setKey("SKIP-ROW", firstRow);
@@ -1223,7 +1224,8 @@ void GuiDisplayGen::drawEquipmentList(const oo::PList& eqptList, GLfloat z)
             setKey("SKIP-ROW", firstRow + STATUS_EQUIPMENT_MAX_ROWS);
             setSelectableRange(NSMakeRange(0, 0));
 
-            [[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:NO];
+            if (UNIVERSE != nullptr && UNIVERSE->gameController() != nullptr)
+                UNIVERSE->gameController()->setMouseInteractionModeForUIWithMouseInteraction(NO);
         }
     }
 
@@ -1247,7 +1249,7 @@ void GuiDisplayGen::drawEquipmentList(const oo::PList& eqptList, GLfloat z)
         }
     }
     if (statusPage > 1 && statusPage < pageCount) {
-        setSelectableRange(NSMakeRange(firstRow, MIN(firstRow + maxRows, GUI_DEFAULT_ROWS - firstRow)));
+        setSelectableRange(NSMakeRange(firstRow, MIN(firstRow + maxRows, static_cast<NSUInteger>(GUI_DEFAULT_ROWS - firstRow))));
         // default selected row to 'More -->' if we are looking at one of the middle pages
         if (getSelectedRow() == -1)
             setSelectedRow(firstRow + maxRows);
@@ -1290,7 +1292,7 @@ void GuiDisplayGen::drawGUIBackground()
 {
     GLfloat x = drawPosition.x;
     GLfloat y = drawPosition.y;
-    GLfloat z = [[UNIVERSE gameView] display_z];
+    GLfloat z = (UNIVERSE != nullptr && UNIVERSE->getGameView() != nullptr ? UNIVERSE->getGameView()->getDisplay_z() : 0.0f);
 
     if (backgroundSprite.get() != nullptr) {
         backgroundSprite->blitBackgroundCentredToX(x, y, z, 1.0f);
@@ -1306,14 +1308,14 @@ int GuiDisplayGen::drawGUI(GLfloat alpha, bool drawCursor)
 {
     GLfloat x = drawPosition.x;
     GLfloat y = drawPosition.y;
-    GLfloat z = [[UNIVERSE gameView] display_z];
+    GLfloat z = (UNIVERSE != nullptr && UNIVERSE->getGameView() != nullptr ? UNIVERSE->getGameView()->getDisplay_z() : 0.0f);
 
     if (alpha > 0.05f) {
         ::PlayerEntity* player = PLAYER;
 
         drawGLDisplay(x - 0.5f * size_in_pixels.width, y - 0.5f * size_in_pixels.height, z, alpha);
 
-        if (this == [UNIVERSE gui]) {
+        if (this == (UNIVERSE != nullptr ? UNIVERSE->getGui() : nullptr)) {
             if ((player != nullptr ? player->guiScreen() : OOGUIScreenID { }) == GUI_SCREEN_SHORT_RANGE_CHART || (player != nullptr ? player->guiScreen() : OOGUIScreenID { }) == GUI_SCREEN_LONG_RANGE_CHART || backgroundSpecial == GUI_BACKGROUND_SPECIAL_SHORT || backgroundSpecial == GUI_BACKGROUND_SPECIAL_SHORT_ANA_QUICKEST || backgroundSpecial == GUI_BACKGROUND_SPECIAL_SHORT_ANA_SHORTEST || backgroundSpecial == GUI_BACKGROUND_SPECIAL_CUSTOM || backgroundSpecial == GUI_BACKGROUND_SPECIAL_CUSTOM_ANA_QUICKEST || backgroundSpecial == GUI_BACKGROUND_SPECIAL_CUSTOM_ANA_SHORTEST) {
                 drawStarChart(x - 0.5f * size_in_pixels.width, y - 0.5f * size_in_pixels.height, z, alpha, NO);
             }
@@ -1330,7 +1332,7 @@ int GuiDisplayGen::drawGUI(GLfloat alpha, bool drawCursor)
         }
 
         if (fade_sign) {
-            fade_alpha += (float)(fade_sign * [UNIVERSE getTimeDelta]);
+            fade_alpha += (float)(fade_sign * (UNIVERSE != nullptr ? UNIVERSE->getTimeDelta() : 0.0));
             if (fade_alpha < 0.05f) // done fading out
             {
                 fade_alpha = 0.0f;
@@ -1347,7 +1349,7 @@ int GuiDisplayGen::drawGUI(GLfloat alpha, bool drawCursor)
     int cursor_row = 0;
 
     if (drawCursor) {
-        NSPoint vjpos = [[UNIVERSE gameView] virtualJoystickPosition];
+        NSPoint vjpos = (UNIVERSE != nullptr && UNIVERSE->getGameView() != nullptr ? UNIVERSE->getGameView()->getVirtualJoystickPosition() : NSPoint { });
         double cursor_x = size_in_pixels.width * vjpos.x;
         if (cursor_x < -size_in_pixels.width * 0.5)
             cursor_x = -size_in_pixels.width * 0.5f;
@@ -1368,7 +1370,8 @@ int GuiDisplayGen::drawGUI(GLfloat alpha, bool drawCursor)
 
         cursor_x += x;
         cursor_y += y;
-        [[UNIVERSE gameView] setVirtualJoystick:cursor_x / size_in_pixels.width vmy:-cursor_y / size_in_pixels.height];
+        if (UNIVERSE != nullptr && UNIVERSE->getGameView() != nullptr)
+            UNIVERSE->getGameView()->setVirtualJoystick(cursor_x / size_in_pixels.width, -cursor_y / size_in_pixels.height);
 
         OOGLBEGIN(GL_LINES);
         glVertex3f((float)cursor_x - h1, (float)cursor_y, z);
@@ -1390,10 +1393,10 @@ void GuiDisplayGen::drawGLDisplay(GLfloat x, GLfloat y, GLfloat z, GLfloat alpha
 {
     NSSize strsize;
     unsigned i;
-    OOTimeDelta delta_t = [UNIVERSE getTimeDelta];
+    OOTimeDelta delta_t = (UNIVERSE != nullptr ? UNIVERSE->getTimeDelta() : 0.0);
     NSSize characterSize = pixel_text_size;
     NSSize titleCharacterSize = pixel_title_size;
-    float backgroundAlpha = this == [UNIVERSE messageGUI] && ![UNIVERSE permanentMessageLog] ? 0.0f : alpha;
+    float backgroundAlpha = this == (UNIVERSE != nullptr ? UNIVERSE->messageGUI() : nullptr) && !(UNIVERSE != nullptr ? UNIVERSE->permanentMessageLog() : false) ? 0.0f : alpha;
     std::vector<float> row_alpha(n_rows);
 
     // calculate fade out time and alpha for each row. Do it before
@@ -1402,10 +1405,10 @@ void GuiDisplayGen::drawGLDisplay(GLfloat x, GLfloat y, GLfloat z, GLfloat alpha
     for (i = 0; i < n_rows; i++) {
         row_alpha[i] = alpha;
 
-        if (![UNIVERSE autoMessageLogBg] && (PLAYER != nullptr ? PLAYER->guiScreen() : OOGUIScreenID { }) == GUI_SCREEN_MAIN)
+        if (!(UNIVERSE != nullptr ? UNIVERSE->autoMessageLogBg() : false) && (PLAYER != nullptr ? PLAYER->guiScreen() : OOGUIScreenID { }) == GUI_SCREEN_MAIN)
             backgroundAlpha = alpha;
 
-        if (rowFadeTime[i] > 0.0f && ![UNIVERSE permanentMessageLog]) {
+        if (rowFadeTime[i] > 0.0f && !(UNIVERSE != nullptr ? UNIVERSE->permanentMessageLog() : false)) {
             rowFadeTime[i] -= (float)delta_t;
             if (rowFadeTime[i] <= 0.0f) {
                 rowText[i] = oo::PList("");
@@ -1518,7 +1521,7 @@ void GuiDisplayGen::drawGLDisplay(GLfloat x, GLfloat y, GLfloat z, GLfloat alpha
                     NSPoint cu = NSMakePoint(x + rowPosition[i].x + tr.size.width + 0.2f * characterSize.width, y + rowPosition[i].y);
                     tr.origin = cu;
                     tr.size.width = 0.5f * characterSize.width;
-                    GLfloat g_alpha = 0.5f * (1.0f + (float)sin(6 * [UNIVERSE getTime]));
+                    GLfloat g_alpha = 0.5f * (1.0f + (float)sin(6 * (UNIVERSE != nullptr ? UNIVERSE->getTime() : 0.0)));
                     OOStopDrawingStrings();
                     setGLColorFromSetting(cxx_kGuiTextInputCursorColor, OOColor::redColor().get(), row_alpha[i] * g_alpha);
                     OOGLBEGIN(GL_QUADS);
@@ -1593,7 +1596,7 @@ void GuiDisplayGen::drawGLDisplay(GLfloat x, GLfloat y, GLfloat z, GLfloat alpha
         }
     }
     OOStopDrawingStrings();
-    [::OOTexture applyNone];
+    OOTexture::applyNone();
 }
 
 void GuiDisplayGen::drawCrossHairsWithSize(GLfloat size, GLfloat x, GLfloat y, GLfloat z)
@@ -1614,18 +1617,18 @@ void GuiDisplayGen::setStarChartTitle()
 {
     ::PlayerEntity* player = PLAYER;
     OOGalaxyID galaxy_number = (player != nullptr ? player->galaxyNumber() : OOGalaxyID { });
-    NSInteger system_id = [UNIVERSE findSystemNumberAtCoords:(player != nullptr ? player->getCursor_coordinates() : NSPoint { }) withGalaxy:(player != nullptr ? player->galaxyNumber() : OOGalaxyID { }) includingHidden:NO];
+    NSInteger system_id = (UNIVERSE != nullptr ? UNIVERSE->findSystemNumberAtCoords((player != nullptr ? player->getCursor_coordinates() : NSPoint { }), (player != nullptr ? player->galaxyNumber() : OOGalaxyID { }), NO) : 0);
 
     const std::string location_key = oo::str::format("long-range-chart-title-%d-%ld", galaxy_number, (long)system_id);
-    if (![UNIVERSE cxx_descriptionForKey:location_key]) {
+    if (!(UNIVERSE != nullptr ? UNIVERSE->descriptionForKey(location_key) : std::optional<std::string>())) {
         const std::string gal_key = oo::str::format("long-range-chart-title-%d", galaxy_number);
-        if (![UNIVERSE cxx_descriptionForKey:gal_key]) {
+        if (!(UNIVERSE != nullptr ? UNIVERSE->descriptionForKey(gal_key) : std::optional<std::string>())) {
             setTitle(oo::str::formatRuntime(OO_DESC("long-range-chart-title-d"), { galaxy_number + 1 }));
         } else {
-            setTitle([UNIVERSE cxx_descriptionForKey:gal_key]);
+            setTitle((UNIVERSE != nullptr ? UNIVERSE->descriptionForKey(gal_key) : std::optional<std::string>()));
         }
     } else {
-        setTitle([UNIVERSE cxx_descriptionForKey:location_key]);
+        setTitle((UNIVERSE != nullptr ? UNIVERSE->descriptionForKey(location_key) : std::optional<std::string>()));
     }
 }
 
@@ -1697,7 +1700,7 @@ OOSystemID GuiDisplayGen::targetNextFoundSystem(int direction) // +1 , 0 , -1
     if ((PLAYER != nullptr ? PLAYER->guiScreen() : OOGUIScreenID { }) != GUI_SCREEN_SHORT_RANGE_CHART && (PLAYER != nullptr ? PLAYER->guiScreen() : OOGUIScreenID { }) != GUI_SCREEN_LONG_RANGE_CHART)
         return sys;
 
-    BOOL* systemsFound = [UNIVERSE systemsFound];
+    BOOL* systemsFound = (UNIVERSE != nullptr ? UNIVERSE->systemsFound() : nullptr);
     unsigned i, first = 0, last = 0, count = 0;
     int systemIndex = foundSystem + direction;
 
@@ -1745,7 +1748,7 @@ void GuiDisplayGen::drawAdvancedNavArrayAtX(float x, float y, float z, float alp
             star2 = NSZeroPoint,
             starabs = NSZeroPoint,
             star2abs = NSZeroPoint;
-    ::OOSystemDescriptionManager* systemManager = [UNIVERSE systemManager];
+    ::OOSystemDescriptionManager* systemManager = (UNIVERSE != nullptr ? UNIVERSE->getSystemManager() : nullptr);
     OOGalaxyID g = (PLAYER != nullptr ? PLAYER->galaxyNumber() : OOGalaxyID { });
     OOSystemID planetNumber = (PLAYER != nullptr ? PLAYER->systemID() : 0);
 
@@ -1880,14 +1883,14 @@ void GuiDisplayGen::drawAdvancedNavArrayAtX(float x, float y, float z, float alp
 
             // Label the route, if not already labelled
             if (zoom > CHART_ZOOM_SHOW_LABELS && concealment[loc] < OO_SYSTEMCONCEALMENT_NONAME) {
-                cxx_OODrawString([UNIVERSE cxx_systemNameIndex:loc].value_or(""), x + star.x + 2.0, y + star.y, z, NSMakeSize(8, 8));
+                cxx_OODrawString((UNIVERSE != nullptr ? UNIVERSE->systemNameIndex(loc) : std::optional<std::string>()).value_or(""), x + star.x + 2.0, y + star.y, z, NSMakeSize(8, 8));
             }
         }
         // Label the destination, which was not included in the above loop.
         if (zoom > CHART_ZOOM_SHOW_LABELS) {
             loc = route.at<int>(i);
             if (concealment[loc] < OO_SYSTEMCONCEALMENT_NONAME) {
-                cxx_OODrawString([UNIVERSE cxx_systemNameIndex:loc].value_or(""), x + star2.x + 2.0, y + star2.y, z, NSMakeSize(10, 10));
+                cxx_OODrawString((UNIVERSE != nullptr ? UNIVERSE->systemNameIndex(loc) : std::optional<std::string>()).value_or(""), x + star2.x + 2.0, y + star2.y, z, NSMakeSize(10, 10));
             }
         }
     }
@@ -1900,13 +1903,13 @@ void GuiDisplayGen::drawStarChart(GLfloat x, GLfloat y, GLfloat z, GLfloat alpha
     if (!player)
         return;
 
-    ::OOSystemDescriptionManager* systemManager = [UNIVERSE systemManager];
+    ::OOSystemDescriptionManager* systemManager = (UNIVERSE != nullptr ? UNIVERSE->getSystemManager() : nullptr);
 
     OOScalar zoom = (player != nullptr ? player->getChart_zoom() : OOScalar { });
     NSPoint chart_centre_coordinates = (player != nullptr ? player->adjusted_chart_centre() : NSPoint { });
     NSPoint galaxy_coordinates = (player != nullptr ? player->getGalaxy_coordinates() : NSPoint { });
     NSPoint cursor_coordinates = (player != nullptr ? player->getCursor_coordinates() : NSPoint { });
-    NSPoint info_system_coordinates = ([UNIVERSE systemManager] != nullptr ? [UNIVERSE systemManager]->getCoordinatesForSystem((player != nullptr ? player->infoSystemID() : 0), (player != nullptr ? player->galaxyNumber() : OOGalaxyID { })) : NSMakePoint(0, 0));
+    NSPoint info_system_coordinates = ((UNIVERSE != nullptr ? UNIVERSE->getSystemManager() : nullptr) != nullptr ? UNIVERSE->getSystemManager()->getCoordinatesForSystem((player != nullptr ? player->infoSystemID() : 0), (player != nullptr ? player->galaxyNumber() : OOGalaxyID { })) : NSMakePoint(0, 0));
     OOLongRangeChartMode chart_mode = (player != nullptr ? player->getLongRangeChartMode() : OOLongRangeChartMode { });
     OOGalaxyID galaxy_id = (player != nullptr ? player->galaxyNumber() : OOGalaxyID { });
     GLfloat r = 1.0, g = 1.0, b = 1.0;
@@ -1950,8 +1953,8 @@ void GuiDisplayGen::drawStarChart(GLfloat x, GLfloat y, GLfloat z, GLfloat alpha
         concealment[i] = systemInfo.get<int>("concealment", OO_SYSTEMCONCEALMENT_NONE);
     }
 
-    BOOL* systemsFound = [UNIVERSE systemsFound];
-    NSSize viewSize = [[UNIVERSE gameView] backingViewSize];
+    BOOL* systemsFound = (UNIVERSE != nullptr ? UNIVERSE->systemsFound() : nullptr);
+    NSSize viewSize = (UNIVERSE != nullptr && UNIVERSE->getGameView() != nullptr ? UNIVERSE->getGameView()->backingViewSize() : NSSize { });
     double aspect_ratio = viewSize.width / viewSize.height;
 
     // default colours - match those in HeadUpDisplay:OODrawPlanetInfo
@@ -2009,7 +2012,7 @@ void GuiDisplayGen::drawStarChart(GLfloat x, GLfloat y, GLfloat z, GLfloat alpha
         num_nearby_systems = 0;
         for (i = 0; i < 256; i++) {
 
-            const oo::PList sys_info = [UNIVERSE cxx_generateSystemData:i];
+            const oo::PList sys_info = (UNIVERSE != nullptr ? UNIVERSE->generateSystemData(i) : oo::PList());
             if (EXPECT_NOT(sys_info.get<bool>("sun_gone_nova"))) {
                 nearby_systems[num_nearby_systems].gov = -1; // Flag up nova systems!
             } else {
@@ -2019,7 +2022,7 @@ void GuiDisplayGen::drawStarChart(GLfloat x, GLfloat y, GLfloat z, GLfloat alpha
             }
             nearby_systems[num_nearby_systems].sysid = i;
             nearby_systems[num_nearby_systems].p_name = sys_info.get<std::string>(std::string(KEY_NAME));
-            nearby_systems[num_nearby_systems].nova = [UNIVERSE cxx_generateSystemData:i].get<bool>("sun_gone_nova");
+            nearby_systems[num_nearby_systems].nova = (UNIVERSE != nullptr ? UNIVERSE->generateSystemData(i) : oo::PList()).get<bool>("sun_gone_nova");
             num_nearby_systems++;
         }
         saved_galaxy_id = (player != nullptr ? player->galaxyNumber() : OOGalaxyID { });
@@ -2041,7 +2044,7 @@ void GuiDisplayGen::drawStarChart(GLfloat x, GLfloat y, GLfloat z, GLfloat alpha
         OOSystemID planetNumber = (PLAYER != nullptr ? PLAYER->systemID() : 0);
         OOSystemID destNumber = (PLAYER != nullptr ? PLAYER->targetSystemID() : 0);
         if (routeInfo.isNull() || planetNumber != savedPlanetNumber || destNumber != savedDestNumber || advancedNavArrayMode != savedArrayMode) {
-            routeInfo = [UNIVERSE cxx_routeFromSystem:planetNumber toSystem:destNumber optimizedBy:advancedNavArrayMode];
+            routeInfo = (UNIVERSE != nullptr ? UNIVERSE->routeFromSystem(planetNumber, destNumber, advancedNavArrayMode) : oo::PList());
             savedPlanetNumber = planetNumber;
             savedDestNumber = destNumber;
             savedArrayMode = advancedNavArrayMode;
@@ -2188,7 +2191,7 @@ void GuiDisplayGen::drawStarChart(GLfloat x, GLfloat y, GLfloat z, GLfloat alpha
             case OOLRC_MODE_SUNCOLOR:
                 if (EXPECT(noNova)) {
                     r = g = b = 1.0;
-                    oo::Ref<OOColor> sunColor = OOColor::colorWithDescription(([UNIVERSE systemManager] != nullptr ? [UNIVERSE systemManager]->getProperty("sun_color", i, galaxy_id) : oo::PList()));
+                    oo::Ref<OOColor> sunColor = OOColor::colorWithDescription(((UNIVERSE != nullptr ? UNIVERSE->getSystemManager() : nullptr) != nullptr ? UNIVERSE->getSystemManager()->getProperty("sun_color", i, galaxy_id) : oo::PList()));
                     if (sunColor != nil) {
                         sunColor->getRed(&r, &g, &b, &alpha);
                         alpha = 1.0; // reset
@@ -2253,11 +2256,11 @@ void GuiDisplayGen::drawStarChart(GLfloat x, GLfloat y, GLfloat z, GLfloat alpha
                         foundSystem = 0;
                     if (zoom > CHART_ZOOM_SHOW_LABELS && advancedNavArrayMode == OPTIMIZED_BY_NONE) {
                         setGLColorFromSetting(cxx_kGuiChartMatchLabelColor, OOColor::cyanColor().get(), alpha);
-                        cxx_OODrawString([UNIVERSE cxx_systemNameIndex:i].value_or(""), x + star.x + 2.0, y + star.y - 10.0f, z, NSMakeSize(10 * systemNameScale, 10 * systemNameScale));
+                        cxx_OODrawString((UNIVERSE != nullptr ? UNIVERSE->systemNameIndex(i) : std::optional<std::string>()).value_or(""), x + star.x + 2.0, y + star.y - 10.0f, z, NSMakeSize(10 * systemNameScale, 10 * systemNameScale));
                         setGLColorFromSetting(cxx_kGuiChartMatchBoxColor, OOColor::greenColor().get(), alpha);
                     }
                 } else if (zoom > CHART_ZOOM_SHOW_LABELS) {
-                    cxx_OODrawString([UNIVERSE cxx_systemNameIndex:i].value_or(""), x + star.x + 2.0, y + star.y - 10.0f, z, NSMakeSize(10 * systemNameScale, 10 * systemNameScale));
+                    cxx_OODrawString((UNIVERSE != nullptr ? UNIVERSE->systemNameIndex(i) : std::optional<std::string>()).value_or(""), x + star.x + 2.0, y + star.y - 10.0f, z, NSMakeSize(10 * systemNameScale, 10 * systemNameScale));
                 }
             }
         }
@@ -2353,7 +2356,7 @@ void GuiDisplayGen::drawStarChart(GLfloat x, GLfloat y, GLfloat z, GLfloat alpha
     tab_stops[2] = 288;
     overrideTabs(tab_stops, cxx_kGuiChartTraveltimeTabs, 3);
     setTabStops(tab_stops);
-    const std::string targetName = [UNIVERSE cxx_getSystemName:target].value_or(std::string());
+    const std::string targetName = (UNIVERSE != nullptr ? UNIVERSE->getSystemName(target) : std::optional<std::string>()).value_or(std::string());
 
     // distance-f & est-travel-time-f are identical between short & long range charts in standard Oolite, however can be alterered separately via OXPs
     std::string travelDistLine;
@@ -2400,5 +2403,5 @@ void GuiDisplayGen::drawStarChart(GLfloat x, GLfloat y, GLfloat z, GLfloat alpha
 // One-line bridge (amendment oo-9ht.139 item 3), moved from the GUI's deleted facade (bead oo-9ht.143).
 bool GuiDisplayGenUniverseUseShaders()
 {
-    return [UNIVERSE useShaders];
+    return (UNIVERSE != nullptr ? UNIVERSE->useShaders() : false);
 }

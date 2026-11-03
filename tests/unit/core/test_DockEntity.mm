@@ -54,7 +54,7 @@ T *NewTestPlayer()
 	oo::Ref<T> player = oo::makeRef<T>();
 	@autoreleasepool
 	{
-		[oo::NewEntityFacade(player) retain];
+		oo::RetainEntity(oo::MadeEntity(player));
 	}
 	return player.get();
 }
@@ -65,7 +65,7 @@ T *NewTestPlayer()
 class TestDockStation : public StationEntity
 {
 public:
-	bool setUpOneStandardSubentity(const oo::PList &subentDict, bool asTurret) override	{ return YES; }
+	bool setUpOneStandardSubentity(const oo::PList &/*subentDict*/, bool /*asTurret*/) override	{ return YES; }
 };
 
 
@@ -76,8 +76,7 @@ void SetUp()
 	static Universe *universe = nil;
 	if (universe == nil)
 	{
-		universe = (Universe *)class_createInstance([Universe class], 0);	// never released
-		universe->_cxxUniverse = oo::makeRef<cxx::Universe>(universe);	// what -initWithGameView: makes first
+		universe = new Universe();	// never released
 	}
 	gSharedUniverse = universe;
 	static TestDockPlayer *player = nullptr;
@@ -101,7 +100,7 @@ oo::PList Definition()
 DockEntity *MakeDock(const std::string &key)
 {
 	::ShipEntity *ship = DockEntity::newDockObject(key, Definition());
-	[oo::ToObjC(ship) autorelease];
+	oo::AutoreleaseEntity(ship);
 	return static_cast<DockEntity *>(ship);
 }
 
@@ -111,11 +110,11 @@ DockEntity *MakeDockOfStation(TestDockStation **outStation)
 {
 	// [[[TestDockStation alloc] cxx_initWithKey:definition:] autorelease] until bead oo-9ht.175: made as
 	// StationEntity::newStationObject() makes a station, its object (the ship's facade) autoreleased.
-	::ShipEntity *object = oo::ToShip([oo::NewShipObject(oo::makeRef<TestDockStation>(), "dock-station", Definition()) autorelease]);
+	::ShipEntity *object = oo::ToShip(oo::AutoreleaseEntity(oo::NewShipObject(oo::makeRef<TestDockStation>(), "dock-station", Definition())));
 	TestDockStation *station = static_cast<TestDockStation *>(object);
 	station->initStationDefaults();
 	DockEntity *dock = MakeDock("dock");
-	if (object != nullptr)  object->addSubEntity(oo::ToObjC(dock));
+	if (object != nullptr)  object->addSubEntity(dock);
 	*outStation = station;
 	return dock;
 }
@@ -150,7 +149,7 @@ OO_TEST(initAndSetUp)
 		OO_CHECK((dock != nullptr ? dock->shipDataKey() : std::optional<std::string>()) == std::optional<std::string>("dock"));
 		OO_CHECK((dock != nullptr ? dock->allowsDocking() : false) && (dock != nullptr ? dock->allowsLaunching() : false) && !(dock != nullptr ? dock->disallowedDockingCollides() : false));
 		OO_CHECK((dock != nullptr ? dock->countOfShipsInDockingQueue() : 0) == 0 && (dock != nullptr ? dock->countOfShipsInLaunchQueue() : 0) == 0);
-		OO_CHECK((dock != nullptr ? dock->parentEntity() : (::Entity *)nil) == nil);
+		OO_CHECK((dock != nullptr ? dock->parentEntity() : (Entity *)nullptr) == nullptr);
 	}
 }
 
@@ -208,7 +207,7 @@ OO_TEST(dimensionsAndPortUpVector)
 		SetUp();
 		TestDockStation *station = nullptr;
 		DockEntity *dock = MakeDockOfStation(&station);
-		OO_CHECK((dock != nullptr ? dock->parentEntity() : (::Entity *)nil) == oo::ToObjC(station));
+		OO_CHECK((dock != nullptr ? dock->parentEntity() : (Entity *)nullptr) == station);
 
 		if (dock != nullptr)  dock->setVirtual();
 		if (dock != nullptr)  dock->setDimensionsAndCorridor(NO, YES, NO);
@@ -251,7 +250,7 @@ namespace {
 // A ship with the universal ID the approach queue keys it by.
 ShipEntity *MakeQueuedShip(OOUniversalID shipID)
 {
-	ShipEntity *ship = oo::ToShip([oo::NewShipObject(oo::makeRef<::ShipEntity>(), "queued", Definition()) autorelease]);
+	ShipEntity *ship = oo::ToShip(oo::AutoreleaseEntity(oo::NewShipObject(oo::makeRef<::ShipEntity>(), "queued", Definition())));
 	ship->universalID = shipID;
 	return ship;
 }
@@ -358,7 +357,7 @@ OO_TEST(launchQueue)
 		dock->addShipToLaunchQueue(second, true);
 		OO_CHECK((dock != nullptr ? dock->countOfShipsInLaunchQueue() : 0) == 2);
 		DockEntity *part = dock;
-		OO_CHECK(part->launchQueue[0].get() == oo::ToObjC(second) && part->launchQueue[1].get() == oo::ToObjC(first));
+		OO_CHECK(part->launchQueue[0].get() == second && part->launchQueue[1].get() == first);	// the queue holds the C++ ships
 		OO_CHECK((first != nullptr ? first->status() : OOEntityStatus{}) == STATUS_DOCKED && (second != nullptr ? second->status() : OOEntityStatus{}) == STATUS_DOCKED);
 		OO_CHECK((dock != nullptr ? dock->countOfShipsInLaunchQueueWithPrimaryRole("no-such-role") : 0) == 0);
 		part->no_docking_while_launching = YES;
@@ -380,9 +379,9 @@ OO_TEST(objCDockPartIsADock)
 		DockEntity *dock = MakeDock("crossing");
 		DockEntity *part = dock;
 		OO_CHECK(part != nullptr);
-		OO_CHECK(oo::ToDock(oo::ToObjC(part)) == part);
+		OO_CHECK(oo::ToDock(part) == part);
 
-		cxx::Entity *asEntity = part;
+		Entity *asEntity = part;
 		OO_CHECK(asEntity->isDock());
 		OO_CHECK(part->allowsDocking() && part->allowsLaunching() && !part->disallowedDockingCollides());
 		part->setAllowsDocking(false);

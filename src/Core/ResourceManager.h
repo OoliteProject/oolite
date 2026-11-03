@@ -60,11 +60,10 @@ inline constexpr std::string_view SCENARIO_OXP_DEFINITION_BYID = "id:";
 inline constexpr std::string_view SCENARIO_OXP_DEFINITION_BYTAG = "tag:";
 inline constexpr std::string_view SCENARIO_OXP_DEFINITION_NOPLIST = "exc:";
 
-namespace cxx {
-
 /*	Class methods over file-scope state: the class is never made, and every member is static
         (ADR-0056 item 3; amendment oo-jfno item 1). All four slices of
-        docs/phases/3-slices/ResourceManager.md are members.
+        docs/phases/3-slices/ResourceManager.md are members. In the global namespace since the
+        Objective-C facade was deleted.
 */
 class ResourceManager {
 public:
@@ -93,13 +92,13 @@ public:
     // Clear ResourceManager-internal caches (not those handled by OOCacheManager)
     static void clearCaches();
 
-    static oo::Ref<::OOSystemDescriptionManager> systemDescriptionManager(); // a new manager (C++ since bead oo-0sr1)
+    static oo::Ref<OOSystemDescriptionManager> systemDescriptionManager(); // a new manager (C++)
     static oo::PList shaderBindingTypesDictionary();
     // nullopt when not found (was nil); folderName nullopt where nil was passed.
     static std::optional<std::string> pathForFileNamed(const std::string& fileName, const std::optional<std::string>& folderName);
     static std::optional<std::string> pathForFileNamed(const std::string& fileName, const std::optional<std::string>& folderName, bool useCache);
     static oo::Ref<OOMusic> ooMusicNamed(const std::string& fileName, const std::optional<std::string>& folderName); // a new music each call (not cached); null when none
-    static ::OOSound* ooSoundNamed(const std::string& fileName, const std::optional<std::string>& folderName); // borrowed: the cache keeps it (was autoreleased)
+    static OOSound* ooSoundNamed(const std::string& fileName, const std::optional<std::string>& folderName); // borrowed: the cache keeps it (was autoreleased)
     // nullopt when no file was found (was nil); folderName nullopt where nil was passed.
     static std::optional<std::string> stringFromFilesNamed(const std::string& fileName, const std::optional<std::string>& folderName);
     static std::optional<std::string> stringFromFilesNamed(const std::string& fileName, const std::optional<std::string>& folderName, bool useCache);
@@ -148,7 +147,7 @@ private:
     static void preloadFileListFromOXZ(const std::string& path, const std::vector<std::string>& folders);
     static void preloadFileListFromFolder(const std::string& path, const std::vector<std::string>& folders);
     static void preloadFilePathFor(const std::string& fileName, const std::string& subFolder, const std::string& path);
-    static ::OOSound* retrieveFileNamed(const std::string& fileName, const std::optional<std::string>& folderName, std::map<std::string, oo::Ref<::OOSound>, std::less<>>* ioCache, std::optional<std::string> key, bool useCache); // the class was always OOSound (C++ since bead oo-9ht.68); borrowed: the cache keeps it
+    static OOSound* retrieveFileNamed(const std::string& fileName, const std::optional<std::string>& folderName, std::map<std::string, oo::Ref<OOSound>, std::less<>>* ioCache, std::optional<std::string> key, bool useCache); // the class was always OOSound (C++ now); borrowed: the cache keeps it
     static bool directoryExists(const std::string& inPath, bool inCreate);
     static bool checkCacheUpToDateForPaths(const std::vector<std::string>& searchPaths);
     static void mergeRoleCategories(const oo::PList& catData, oo::PList& categories);
@@ -165,10 +164,3 @@ private:
     static bool manifestAllowedByScenarioWithTag(const oo::PList& manifest, const std::string& tag); // its own name: the overloads would collide (amendment oo-kyje item 2)
     static void addErrorWithKey(const std::string& descriptionKey, const std::string& param1, const std::string& param2);
 };
-
-} // namespace cxx
-
-// Transitional: the Objective-C ResourceManager, for the game's callers and the methods of this
-// file's slices 2-4, which are not yet converted. Deleted, with namespace cxx above, by the
-// bridge's deletion bead.
-#import "ResourceManager+ObjCBridge.h"

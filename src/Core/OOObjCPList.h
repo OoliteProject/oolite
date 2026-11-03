@@ -55,8 +55,9 @@ extern "C++" {
 
 namespace oo {
 
-    // A PList::Object node's payload: an Objective-C object, retained (Amendment 2 carrier).
-    class ObjCPListForeign final : public PListForeign {
+    // A PList::Object node's payload: an Objective-C object, retained (Amendment 2 carrier). Not final:
+    // an entity's node is a subclass that also answers its C++ part (oo::EntityPListForeign).
+    class ObjCPListForeign : public PListForeign {
     public:
         explicit ObjCPListForeign(id object)
             : object_(object)

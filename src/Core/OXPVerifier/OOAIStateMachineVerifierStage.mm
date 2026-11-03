@@ -84,7 +84,7 @@ bool OOAIStateMachineVerifierStage::shouldRun()
 void OOAIStateMachineVerifierStage::run()
 {
     // Build whitelist. Note that we merge in aliases since the distinction doesn't matter when just validating.
-    const oo::PList whitelist = [ResourceManager cxx_whitelistDictionary];
+    const oo::PList whitelist = ResourceManager::whitelistDictionary();
     for (const char* key : { "ai_methods", "ai_and_action_methods" }) {
         if (const oo::PList* methods = whitelist.get<oo::PList::Array>(key)) {
             for (const oo::PList& method : *methods->getIf<oo::PList::Array>()) {

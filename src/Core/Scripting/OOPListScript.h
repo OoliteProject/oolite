@@ -48,7 +48,7 @@ MA 02110-1301, USA.
 #include <string>
 #include <vector>
 
-@class Entity;
+class Entity;
 
 class OOPListScript : public OOScript {
 public:
@@ -64,7 +64,7 @@ public:
     std::optional<std::string> scriptDescription() override;
     std::optional<std::string> version() override;
     bool requiresTickle() override;
-    void runWithTarget(::Entity* target) override;
+    void runWithTarget(Entity* target) override;
 
 private:
     static std::vector<oo::Ref<OOScript>> scriptsFromDictionaryOfScripts(const oo::PList& dictionary, const std::string& filePath);

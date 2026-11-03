@@ -88,7 +88,7 @@ void SetUpLoaders()
 {
 	@autoreleasepool
 	{
-		(void)[OOTextureLoader cxx_loaderWithPath:std::string("unknown.type") options:0];
+		(void)OOTextureLoader::loaderWithPath(std::string("unknown.type"), 0);
 	}
 }
 
@@ -105,15 +105,21 @@ struct Result
 Result GetResult(OOTextureLoader *loader)
 {
 	Result result;
-	result.ok = [loader getResult:&result.pixMap format:&result.format originalWidth:&result.originalWidth originalHeight:&result.originalHeight];
+	result.ok = loader->getResult(&result.pixMap, &result.format, &result.originalWidth, &result.originalHeight);
 	return result;
 }
+
+
+// The loaders made, kept for the test's life (each was autoreleased in its case's pool).
+std::vector<oo::Ref<OOTextureLoader>> gKeptLoaders;
 
 
 // The factory's loader for a path, already queued.
 OOTextureLoader *Load(const std::string &path)
 {
-	return [OOTextureLoader cxx_loaderWithPath:path options:kOOTextureMinFilterLinear];
+	const oo::Ref<OOTextureLoader> loader = OOTextureLoader::loaderWithPath(path, kOOTextureMinFilterLinear);
+	if (loader != nullptr)  gKeptLoaders.push_back(loader);
+	return loader.get();
 }
 
 }	// namespace
@@ -129,17 +135,17 @@ OO_TEST(theFactoryMakesOneForAPNG)
 		OO_CHECK(!path.empty());
 		OOTextureLoader *loader = Load(path);
 		OO_CHECK(loader != nil);
-		OO_CHECK(oo::DescriptionOf(loader).starts_with("<OOPNGTextureLoader 0x"));
-		OO_CHECK([loader cxx_path] == std::optional<std::string>(path));
-		OO_CHECK([loader cxx_cacheKey] == std::optional<std::string>("made.png:0x0002"));
+		OO_CHECK(loader->description().starts_with("<OOPNGTextureLoader 0x"));
+		OO_CHECK(loader->path() == std::optional<std::string>(path));
+		OO_CHECK(loader->cacheKey() == std::optional<std::string>("made.png:0x0002"));
 		Result result = GetResult(loader);
-		OO_CHECK(result.ok && [loader isReady]);
+		OO_CHECK(result.ok && loader->isReady());
 		OOFreePixMap(&result.pixMap);
 
 		// The extension is matched without regard to case.
 		const std::string upper = WritePNG("UPPER.PNG", 8, 8, PNG_FORMAT_RGBA);
 		OOTextureLoader *upperLoader = Load(upper);
-		OO_CHECK(upperLoader != nil && oo::DescriptionOf(upperLoader).starts_with("<OOPNGTextureLoader 0x"));
+		OO_CHECK(upperLoader != nullptr && upperLoader->description().starts_with("<OOPNGTextureLoader 0x"));
 		Result upperResult = GetResult(upperLoader);
 		OO_CHECK(upperResult.ok);
 		OOFreePixMap(&upperResult.pixMap);
@@ -226,14 +232,14 @@ OO_TEST(failures)
 		OOTextureLoader *missing = Load((ScratchDirectory() / "missing.png").generic_string());
 		OO_CHECK(missing != nil);
 		Result none = GetResult(missing);
-		OO_CHECK(!none.ok && none.format == kOOPixMapInvalidFormat && [missing isReady]);
+		OO_CHECK(!none.ok && none.format == kOOPixMapInvalidFormat && missing->isReady());
 
 		// Not a PNG: libpng's error is caught, and nothing is answered.
 		const std::string garbage = (ScratchDirectory() / "garbage.png").generic_string();
 		WriteBytes(garbage, std::vector<char>(64, 'x'));
 		OOTextureLoader *garbageLoader = Load(garbage);
 		Result notPNG = GetResult(garbageLoader);
-		OO_CHECK(!notPNG.ok && OOIsNullPixMap(notPNG.pixMap) && [garbageLoader isReady]);
+		OO_CHECK(!notPNG.ok && OOIsNullPixMap(notPNG.pixMap) && garbageLoader->isReady());
 
 		// A file cut short: the read beyond its end is an error, and the pixels read are freed.
 		const std::vector<char> whole = ReadBytes(WritePNG("whole.png", 8, 8, PNG_FORMAT_RGBA));
@@ -242,8 +248,8 @@ OO_TEST(failures)
 		WriteBytes(truncated, std::vector<char>(whole.begin(), whole.begin() + (std::ptrdiff_t)(whole.size() / 2)));
 		OOTextureLoader *truncatedLoader = Load(truncated);
 		Result cutShort = GetResult(truncatedLoader);
-		OO_CHECK(!cutShort.ok && OOIsNullPixMap(cutShort.pixMap) && [truncatedLoader isReady]);
-		OO_CHECK(oo::DescriptionOf(truncatedLoader).ends_with(">{{" + truncated + " -- failed}}"));
+		OO_CHECK(!cutShort.ok && OOIsNullPixMap(cutShort.pixMap) && truncatedLoader->isReady());
+		OO_CHECK(truncatedLoader->description().ends_with(">{{" + truncated + " -- failed}}"));
 	}
 }
 
@@ -262,11 +268,10 @@ OO_TEST(cxxApi)
 		OO_CHECK(loader->initWithPath(path, kOOTextureMinFilterLinear));
 		OO_CHECK(loader->path() == std::optional<std::string>(path) && loader->cacheKey() == std::optional<std::string>("cxx.png:0x0002"));
 
-		// Its facade is an OOTextureLoader (it has none of its own), and the work manager takes it.
-		OOTextureLoader *facade = oo::ToObjC(loader.get());
-		OO_CHECK([facade class] == [OOTextureLoader class] && oo::ToCxx(facade) == loader.get());
-		OO_CHECK(oo::DescriptionOf(facade).starts_with("<OOPNGTextureLoader 0x"));
-		OO_CHECK([[OOAsyncWorkManager sharedAsyncWorkManager] addTask:facade priority:kOOAsyncPriorityMedium]);
+		// The work manager takes the C++ loader (its facade until bead oo-9ht.14 made the task C++;
+		// bead oo-9ht.114 deleted the facade).
+		OO_CHECK(loader->description().starts_with("<OOPNGTextureLoader 0x"));
+		OO_CHECK(OOAsyncWorkManager::sharedAsyncWorkManager()->addTask(loader.get(), kOOAsyncPriorityMedium));
 		OOPixMap pixMap = kOONullPixMap;
 		OOTextureDataFormat format = kOOPixMapInvalidFormat;
 		OO_CHECK(loader->getResult(&pixMap, &format, nullptr, nullptr) && loader->isReady());
@@ -274,9 +279,9 @@ OO_TEST(cxxApi)
 		OOFreePixMap(&pixMap);
 
 		// The factory's loader is one.
-		oo::ObjCRef<OOTextureLoader *> made = cxx::OOTextureLoader::loaderWithPath(path, kOOTextureMinFilterLinear);
-		OO_CHECK(dynamic_cast<OOPNGTextureLoader *>(oo::ToCxx(made.get())) != nullptr);
-		OO_CHECK(oo::ToCxx(made.get())->getResult(&pixMap, &format, nullptr, nullptr));
+		oo::Ref<OOTextureLoader> made = OOTextureLoader::loaderWithPath(path, kOOTextureMinFilterLinear);
+		OO_CHECK(dynamic_cast<OOPNGTextureLoader *>(made.get()) != nullptr);
+		OO_CHECK(made->getResult(&pixMap, &format, nullptr, nullptr));
 		OOFreePixMap(&pixMap);
 
 		// Reading on its own (as libpng's read callback does): the loader reads its file first.

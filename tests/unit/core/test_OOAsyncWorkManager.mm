@@ -1,15 +1,15 @@
 /*	test_OOAsyncWorkManager.mm
-	Unit tests for cxx::OOAsyncWorkManager (src/Core/OOAsyncWorkManager.h) and its Objective-C
-	facade (OOAsyncWorkManager+ObjCBridge.h): bead oo-x2wy, a Phase 3 conversion in the OOColor
-	house style (proposed ADR-0056; amendment oo-x2wy for the protocol and the private subclasses).
+	Unit tests for OOAsyncWorkManager (src/Core/OOAsyncWorkManager.h): a Phase 3
+	conversion in the OOColor house style.
 
-	Pins what the manager did before the conversion, with Objective-C tasks (its callers' tasks
-	are Objective-C): one shared manager; nil is refused; a task is performed on a work thread
+	Pins what the manager did before the conversion: one shared manager; nil is refused; a task is
+	performed on a work thread
 	and then completed on the thread that waits for it or collects pending tasks; a task without
 	-completeAsyncTask is performed and never collected; waiting for a task that was never added
 	returns at once; an exception thrown by -performAsyncTask is swallowed and the task still
-	completes; every priority is accepted and performed. The facade's contract: one immortal facade
-	for the one manager, the crossings, nil stays nil, and its methods reach the same manager.
+	completes; every priority is accepted and performed. The tasks were Objective-C objects
+	adopting OOAsyncWorkTask until the protocol became a C++ interface; they are C++
+	tasks with the same behaviour, and the facade's tests went with the facade.
 	Run: bash tools/check-core-tests.sh
 */
 
@@ -22,67 +22,48 @@
 #include <thread>
 
 
-@interface TestTask: OOObject <OOAsyncWorkTask>
+class TestTask : public OOAsyncWorkTask
 {
-@public
-	std::atomic<bool>	performed;
-	std::atomic<bool>	performedOnCallingThread;
-	std::atomic<int>	completions;
-	bool				completedAfterPerform;
-	bool				completedOnCallingThread;
-	bool				shouldThrow;
-	std::thread::id		callingThread;
-}
-@end
+public:
+	TestTask()  { callingThread = std::this_thread::get_id(); }
 
-
-@implementation TestTask
-
-- (id) init
-{
-	if ((self = [super init]))
+	void performAsyncTask() override
 	{
-		callingThread = std::this_thread::get_id();
+		performedOnCallingThread = (std::this_thread::get_id() == callingThread);
+		performed = true;
+		if (shouldThrow)  @throw [[[OOObject alloc] init] autorelease];
 	}
-	return self;
-}
+
+	bool hasCompleteAsyncTask() const override  { return true; }
+
+	void completeAsyncTask() override
+	{
+		completedAfterPerform = performed;
+		completedOnCallingThread = (std::this_thread::get_id() == callingThread);
+		completions++;
+	}
+
+	std::atomic<bool>	performed = false;
+	std::atomic<bool>	performedOnCallingThread = false;
+	std::atomic<int>	completions = 0;
+	bool				completedAfterPerform = false;
+	bool				completedOnCallingThread = false;
+	bool				shouldThrow = false;
+	std::thread::id		callingThread;
+};
 
 
-- (void) performAsyncTask
+// A task with no completion (the method was optional).
+class TestFireAndForgetTask : public OOAsyncWorkTask
 {
-	performedOnCallingThread = (std::this_thread::get_id() == callingThread);
-	performed = true;
-	if (shouldThrow)  @throw [[[OOObject alloc] init] autorelease];
-}
+public:
+	void performAsyncTask() override
+	{
+		performed = true;
+	}
 
-
-- (void) completeAsyncTask
-{
-	completedAfterPerform = performed;
-	completedOnCallingThread = (std::this_thread::get_id() == callingThread);
-	completions++;
-}
-
-@end
-
-
-// A task with no -completeAsyncTask (the method is optional).
-@interface TestFireAndForgetTask: OOObject <OOAsyncWorkTask>
-{
-@public
-	std::atomic<bool>	performed;
-}
-@end
-
-
-@implementation TestFireAndForgetTask
-
-- (void) performAsyncTask
-{
-	performed = true;
-}
-
-@end
+	std::atomic<bool>	performed = false;
+};
 
 
 // OOLogging.mm would link the game's log file and resource manager in; the abstract base
@@ -108,9 +89,9 @@ OO_TEST(oneSharedManager)
 {
 	@autoreleasepool
 	{
-		cxx::OOAsyncWorkManager *manager = cxx::OOAsyncWorkManager::sharedAsyncWorkManager();
+		OOAsyncWorkManager *manager = OOAsyncWorkManager::sharedAsyncWorkManager();
 		OO_CHECK(manager != nullptr);
-		OO_CHECK(cxx::OOAsyncWorkManager::sharedAsyncWorkManager() == manager);
+		OO_CHECK(OOAsyncWorkManager::sharedAsyncWorkManager() == manager);
 	}
 }
 
@@ -119,9 +100,9 @@ OO_TEST(nilIsRefused)
 {
 	@autoreleasepool
 	{
-		cxx::OOAsyncWorkManager *manager = cxx::OOAsyncWorkManager::sharedAsyncWorkManager();
-		OO_CHECK(!manager->addTask(nil, kOOAsyncPriorityMedium));
-		manager->waitForTaskToComplete(nil);	// returns at once
+		OOAsyncWorkManager *manager = OOAsyncWorkManager::sharedAsyncWorkManager();
+		OO_CHECK(!manager->addTask(nullptr, kOOAsyncPriorityMedium));
+		manager->waitForTaskToComplete(nullptr);	// returns at once
 	}
 }
 
@@ -130,10 +111,10 @@ OO_TEST(waitPerformsThenCompletesOnTheWaitingThread)
 {
 	@autoreleasepool
 	{
-		cxx::OOAsyncWorkManager *manager = cxx::OOAsyncWorkManager::sharedAsyncWorkManager();
-		TestTask *task = [[[TestTask alloc] init] autorelease];
-		OO_CHECK(manager->addTask(task, kOOAsyncPriorityMedium));
-		manager->waitForTaskToComplete(task);
+		OOAsyncWorkManager *manager = OOAsyncWorkManager::sharedAsyncWorkManager();
+		const oo::Ref<TestTask> task = oo::makeRef<TestTask>();
+		OO_CHECK(manager->addTask(task.get(), kOOAsyncPriorityMedium));
+		manager->waitForTaskToComplete(task.get());
 		OO_CHECK(task->performed);
 		OO_CHECK(!task->performedOnCallingThread);	// on a work thread
 		OO_CHECK_EQ(task->completions.load(), 1);
@@ -149,10 +130,10 @@ OO_TEST(completePendingTasksCollectsReadyTasks)
 {
 	@autoreleasepool
 	{
-		cxx::OOAsyncWorkManager *manager = cxx::OOAsyncWorkManager::sharedAsyncWorkManager();
-		TestTask *task = [[[TestTask alloc] init] autorelease];
-		OO_CHECK_EQ([task retainCount], 1u);
-		OO_CHECK(manager->addTask(task, kOOAsyncPriorityHigh));
+		OOAsyncWorkManager *manager = OOAsyncWorkManager::sharedAsyncWorkManager();
+		const oo::Ref<TestTask> task = oo::makeRef<TestTask>();
+		OO_CHECK_EQ(task->retainCount(), 1u);
+		OO_CHECK(manager->addTask(task.get(), kOOAsyncPriorityHigh));
 		OO_CHECK(WaitFor(task->performed));
 		// Performed, but completed only when collected: poll until it is ready.
 		for (int i = 0; i < 500 && task->completions == 0; i++)
@@ -162,7 +143,7 @@ OO_TEST(completePendingTasksCollectsReadyTasks)
 		}
 		OO_CHECK_EQ(task->completions.load(), 1);
 		OO_CHECK(task->completedOnCallingThread);
-		manager->waitForTaskToComplete(task);	// no longer pending: returns at once
+		manager->waitForTaskToComplete(task.get());	// no longer pending: returns at once
 		OO_CHECK_EQ(task->completions.load(), 1);
 	}
 }
@@ -172,8 +153,8 @@ OO_TEST(waitForATaskNeverAddedReturns)
 {
 	@autoreleasepool
 	{
-		TestTask *task = [[[TestTask alloc] init] autorelease];
-		cxx::OOAsyncWorkManager::sharedAsyncWorkManager()->waitForTaskToComplete(task);
+		const oo::Ref<TestTask> task = oo::makeRef<TestTask>();
+		OOAsyncWorkManager::sharedAsyncWorkManager()->waitForTaskToComplete(task.get());
 		OO_CHECK(!task->performed);
 		OO_CHECK_EQ(task->completions.load(), 0);
 	}
@@ -184,9 +165,9 @@ OO_TEST(taskWithoutCompletionIsPerformed)
 {
 	@autoreleasepool
 	{
-		cxx::OOAsyncWorkManager *manager = cxx::OOAsyncWorkManager::sharedAsyncWorkManager();
-		TestFireAndForgetTask *task = [[[TestFireAndForgetTask alloc] init] autorelease];
-		OO_CHECK(manager->addTask(task, kOOAsyncPriorityLow));
+		OOAsyncWorkManager *manager = OOAsyncWorkManager::sharedAsyncWorkManager();
+		const oo::Ref<TestFireAndForgetTask> task = oo::makeRef<TestFireAndForgetTask>();
+		OO_CHECK(manager->addTask(task.get(), kOOAsyncPriorityLow));
 		OO_CHECK(WaitFor(task->performed));
 		manager->completePendingTasks();	// nothing to collect for it; must not hang
 	}
@@ -197,11 +178,11 @@ OO_TEST(exceptionInPerformIsSwallowed)
 {
 	@autoreleasepool
 	{
-		cxx::OOAsyncWorkManager *manager = cxx::OOAsyncWorkManager::sharedAsyncWorkManager();
-		TestTask *task = [[[TestTask alloc] init] autorelease];
+		OOAsyncWorkManager *manager = OOAsyncWorkManager::sharedAsyncWorkManager();
+		const oo::Ref<TestTask> task = oo::makeRef<TestTask>();
 		task->shouldThrow = true;
-		OO_CHECK(manager->addTask(task, kOOAsyncPriorityMedium));
-		manager->waitForTaskToComplete(task);
+		OO_CHECK(manager->addTask(task.get(), kOOAsyncPriorityMedium));
+		manager->waitForTaskToComplete(task.get());
 		OO_CHECK(task->performed);
 		OO_CHECK_EQ(task->completions.load(), 1);
 	}
@@ -212,61 +193,17 @@ OO_TEST(everyPriorityIsPerformed)
 {
 	@autoreleasepool
 	{
-		cxx::OOAsyncWorkManager *manager = cxx::OOAsyncWorkManager::sharedAsyncWorkManager();
-		TestTask *low = [[[TestTask alloc] init] autorelease];
-		TestTask *medium = [[[TestTask alloc] init] autorelease];
-		TestTask *high = [[[TestTask alloc] init] autorelease];
-		OO_CHECK(manager->addTask(low, kOOAsyncPriorityLow));
-		OO_CHECK(manager->addTask(medium, kOOAsyncPriorityMedium));
-		OO_CHECK(manager->addTask(high, kOOAsyncPriorityHigh));
-		manager->waitForTaskToComplete(low);
-		manager->waitForTaskToComplete(medium);
-		manager->waitForTaskToComplete(high);
+		OOAsyncWorkManager *manager = OOAsyncWorkManager::sharedAsyncWorkManager();
+		const oo::Ref<TestTask> low = oo::makeRef<TestTask>();
+		const oo::Ref<TestTask> medium = oo::makeRef<TestTask>();
+		const oo::Ref<TestTask> high = oo::makeRef<TestTask>();
+		OO_CHECK(manager->addTask(low.get(), kOOAsyncPriorityLow));
+		OO_CHECK(manager->addTask(medium.get(), kOOAsyncPriorityMedium));
+		OO_CHECK(manager->addTask(high.get(), kOOAsyncPriorityHigh));
+		manager->waitForTaskToComplete(low.get());
+		manager->waitForTaskToComplete(medium.get());
+		manager->waitForTaskToComplete(high.get());
 		OO_CHECK(low->completions == 1 && medium->completions == 1 && high->completions == 1);
-	}
-}
-
-
-OO_TEST(facadeIsTheSharedManager)
-{
-	@autoreleasepool
-	{
-		OOAsyncWorkManager *facade = [OOAsyncWorkManager sharedAsyncWorkManager];
-		OO_CHECK(facade != nil);
-		OO_CHECK([OOAsyncWorkManager sharedAsyncWorkManager] == facade);
-		OO_CHECK(oo::ToCxx(facade) == cxx::OOAsyncWorkManager::sharedAsyncWorkManager());
-		OO_CHECK(oo::ToObjC(cxx::OOAsyncWorkManager::sharedAsyncWorkManager()) == facade);
-	}
-	@autoreleasepool
-	{
-		// Kept across pools, as the immortal singleton was.
-		OO_CHECK(oo::ToObjC(cxx::OOAsyncWorkManager::sharedAsyncWorkManager()) == [OOAsyncWorkManager sharedAsyncWorkManager]);
-	}
-}
-
-
-OO_TEST(facadeNilStaysNil)
-{
-	OOAsyncWorkManager *none = nil;
-	OO_CHECK(oo::ToCxx(none) == nullptr);
-	OO_CHECK(oo::ToObjC(static_cast<cxx::OOAsyncWorkManager *>(nullptr)) == nil);
-	OO_CHECK(![none addTask:nil priority:kOOAsyncPriorityMedium]);
-}
-
-
-OO_TEST(facadeForwards)
-{
-	@autoreleasepool
-	{
-		OOAsyncWorkManager *facade = [OOAsyncWorkManager sharedAsyncWorkManager];
-		OO_CHECK(![facade addTask:nil priority:kOOAsyncPriorityMedium]);
-		TestTask *task = [[[TestTask alloc] init] autorelease];
-		OO_CHECK([facade addTask:task priority:kOOAsyncPriorityMedium]);
-		[facade waitForTaskToComplete:task];
-		OO_CHECK(task->performed);
-		OO_CHECK_EQ(task->completions.load(), 1);
-		[facade completePendingTasks];
-		OO_CHECK_EQ(task->completions.load(), 1);
 	}
 }
 

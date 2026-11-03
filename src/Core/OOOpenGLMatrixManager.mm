@@ -390,7 +390,7 @@ namespace {
 // each OOGL function below then does what its messages to nil did: nothing, or a zero matrix.
 OOOpenGLMatrixManager* GameViewMatrixManager()
 {
-    cxx::MyOpenGLView* view = oo::ToCxx([UNIVERSE gameView]);
+    MyOpenGLView* view = (UNIVERSE != nullptr ? UNIVERSE->getGameView() : nullptr);
     return (view != nullptr) ? view->getOpenGLMatrixManager() : nullptr;
 }
 

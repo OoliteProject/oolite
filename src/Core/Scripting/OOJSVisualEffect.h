@@ -32,7 +32,7 @@ MA 02110-1301, USA.
 #include <quickjs.h>
 #include <vector>
 
-@class Entity;
+class Entity;
 class OOVisualEffectEntity;
 
 void InitOOJSVisualEffect(JSContext* context, JSValueConst global);
@@ -46,4 +46,4 @@ JSClassID JSVisualEffectClassID(void);
 */
 std::optional<std::string> OOJSVisualEffectJSClassName(void);
 bool OOJSVisualEffectIsVisibleToScripts(void);
-std::vector<oo::ObjCRef<Entity*>> OOJSVisualEffectSubEntitiesForScript(OOVisualEffectEntity* effect);
+std::vector<oo::EntityHold> OOJSVisualEffectSubEntitiesForScript(OOVisualEffectEntity* effect);

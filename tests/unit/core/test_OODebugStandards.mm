@@ -10,12 +10,13 @@
 	run in order. These expectations were written against the Objective-C file and run on it first.
 
 	The game controller would bring the whole game into the link, so it is this file's stand-in
-	(proposed ADR-0056, amendment oo-z1s4 item 4): it answers +sharedController and records the
-	contexts it is asked to exit with. The defaults are set in memory (setObject; nothing is
+	(proposed ADR-0056, amendment oo-z1s4 item 4; C++ now): it answers
+	sharedController() and records the contexts it is asked to exit with. The defaults are set in memory (setObject; nothing is
 	written without synchronize()). Run: bash tools/check-core-tests.sh test_OODebugStandards
 */
 
 #import "OODebugStandards.h"
+#import "GameController.h"
 
 #include "oofnd/Defaults.hpp"
 #include "oo_test.hpp"
@@ -31,27 +32,21 @@ std::vector<std::string> sExitContexts;
 }	// namespace
 
 
-@interface GameController: OOObject
-+ (GameController *) sharedController;
-- (void) cxx_exitAppWithContext:(const std::string &)context;
-@end
+// The controller is C++ since its Objective-C facade was deleted: C++ definitions of the
+// two members the code under test calls, with the stand-in's answers. The shared controller is
+// storage nothing constructs: exitAppWithContext() reads no state.
+alignas(GameController) unsigned char sControllerStorage[sizeof(GameController)];
 
-@implementation GameController
-
-+ (GameController *) sharedController
+GameController *GameController::sharedController()
 {
-	static GameController *controller = nil;
-	if (controller == nil)  controller = [[GameController alloc] init];
-	return controller;
+	return reinterpret_cast<GameController *>(sControllerStorage);
 }
 
 
-- (void) cxx_exitAppWithContext:(const std::string &)context
+void GameController::exitAppWithContext(const std::string &context)
 {
 	sExitContexts.push_back(context);
 }
-
-@end
 
 
 // First: an out-of-range setting (7) is clamped to quit mode, which enforces, logs and asks the

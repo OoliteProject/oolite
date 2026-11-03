@@ -19,7 +19,7 @@
 
 #import "oofnd/objc/OOObject.h"
 #import "OOTypes.h"
-#include "OOJSEngineCore.h"	// the engine API this stage declares (not OOJavaScriptEngine.h: the test defines OOJSValue)
+#include "OOJSEngineCore.h"	// the engine API this stage declares, and OOJSValue (not OOJavaScriptEngine.h: the test defines OOJSValue's members)
 #import "OOJSEngineNativeWrappers.h"
 #include "oofnd/String.hpp"
 
@@ -102,40 +102,26 @@ void OOJSReportPendingException(JSContext *context)
 }
 
 
-// A JS value kept alive for Objective-C, as the engine's OOJSValue does: it owns a reference.
-@interface OOJSValue: OOObject
+// A JS value kept alive for C++ (OOJSEngineCore.h; a C++ class since its facade was deleted): the
+// members the deferred add calls, defined here with the stand-in's answers. It owns a reference.
+oo::Ref<OOJSValue> OOJSValue::valueWithJSValue(JSValueConst value, JSContext *context)
 {
-@public
-	JSValue _val;
-}
-+ (id) valueWithJSValue:(JSValueConst)value inContext:(JSContext *)context;
-@end
-
-@implementation OOJSValue
-
-+ (id) valueWithJSValue:(JSValueConst)value inContext:(JSContext *)context
-{
-	OOJSValue *result = [[[OOJSValue alloc] init] autorelease];
+	oo::Ref<OOJSValue> result = oo::makeRef<OOJSValue>();
 	result->_val = JS_DupValue(context, value);
 	return result;
 }
 
 
-- (void) dealloc
+OOJSValue::~OOJSValue()
 {
 	JS_FreeValue(gOOJSMainThreadContext, _val);
-	[super dealloc];
 }
-
-@end
 
 
 // Returns an owned value, as the engine's does.
-JSValue OOJSValueFromNativeObject(JSContext *context, id object)
-{
-	if (object == nil)  return JS_NULL;
-	return JS_DupValue(context, static_cast<OOJSValue *>(object)->_val);
-}
+JSValue OOJSValue::jsValueInContext(JSContext *context)  { return JS_DupValue(context, _val); }
+std::string OOJSValue::className() const  { return "OOJSValue"; }
+std::string OOJSValue::description() const  { return "<OOJSValue>"; }
 
 
 void OOJSStartTimeLimiterWithTimeLimit(OOTimeDelta limit)  { sLimiterDepth++; sLastLimit = limit; }
@@ -159,15 +145,18 @@ void OOJSUnreachable(const char *function, const char *, unsigned)
 
 
 // The universe's time acceleration, which scales each frame's delta.
-@interface FakeUniverse: OOObject
-- (double) timeAccelerationFactor;
-@end
+// The universe as the code under test sees it: a stand-in for the C++ class (its Objective-C facade,
+// which the test's FakeUniverse stood in for, was deleted), with the header's names and signatures.
+class Universe
+{
+public:
+	double getTimeAccelerationFactor();
+};
+typedef Universe FakeUniverse;
 
-@implementation FakeUniverse
-- (double) timeAccelerationFactor  { return 2.0; }
-@end
+double Universe::getTimeAccelerationFactor()	{ return 2.0; }
 
-@class Universe;
+class Universe;
 Universe *gSharedUniverse = nil;
 
 
@@ -182,7 +171,7 @@ void SetUpContext()
 	JSValue global = JS_GetGlobalObject(gOOJSMainThreadContext);
 	InitOOJSFrameCallbacks(gOOJSMainThreadContext, global);
 	JS_FreeValue(gOOJSMainThreadContext, global);
-	gSharedUniverse = (Universe *)[[FakeUniverse alloc] init];
+	gSharedUniverse = new FakeUniverse();
 }
 
 

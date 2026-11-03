@@ -45,7 +45,7 @@ oo::Ref<OOMultiTextureMaterial> OOMultiTextureMaterial::materialWithName(const s
 
 bool OOMultiTextureMaterial::initWithName(const std::optional<std::string>& name, const oo::PList& configuration)
 {
-    if (!cxx::OOOpenGLExtensionManager::sharedManager()->textureCombinersSupported()) {
+    if (!OOOpenGLExtensionManager::sharedManager()->textureCombinersSupported()) {
         return false; // [self release]; return nil: the factory drops the object
     }
 
@@ -76,14 +76,14 @@ bool OOMultiTextureMaterial::initWithName(const std::optional<std::string>& name
     OOBasicMaterial::initWithName(name, mutableConfiguration);
     { // was if (self != nil): the superclass's initialiser cannot fail
         if (!diffuseSpec.isNull()) {
-            _diffuseMap = oo::ObjCRef<::OOTexture*>([::OOTexture cxx_textureWithConfiguration:diffuseSpec]);
+            _diffuseMap = oo::Ref<OOTexture>(OOTexture::textureWithConfiguration(diffuseSpec));
             if (_diffuseMap.get() != nil)
                 _unitsUsed++;
         }
 
         // Check for simplest cases, where we don't need to bake a derived emission map.
         if (!emissionSpec.isNull() && illuminationSpec.isNull() && emissionAndIlluminationSpec.isNull() && emissionColor == nil) {
-            _emissionMap = oo::ObjCRef<::OOTexture*>([::OOTexture cxx_textureWithConfiguration:emissionSpec extraOptions:kOOTextureExtraShrink]);
+            _emissionMap = oo::Ref<OOTexture>(OOTexture::textureWithConfiguration(emissionSpec, kOOTextureExtraShrink));
             if (_emissionMap.get() != nil)
                 _unitsUsed++;
         } else {
@@ -107,7 +107,7 @@ bool OOMultiTextureMaterial::initWithName(const std::optional<std::string>& name
                     optionsSpec);
             }
 
-            _emissionMap = oo::ObjCRef<::OOTexture*>([::OOTexture textureWithGenerator:oo::ToObjC(generator.get())]);
+            _emissionMap = oo::Ref<OOTexture>(OOTexture::textureWithGenerator(generator.get()));
             if (_emissionMap.get() != nil)
                 _unitsUsed++;
         }
@@ -123,9 +123,9 @@ std::optional<std::string> OOMultiTextureMaterial::descriptionComponents() const
 {
     std::vector<std::string> bits;
     if (_diffuseMap.get())
-        bits.push_back("diffuse map: " + oo::ShortDescriptionOf(_diffuseMap.get()));
+        bits.push_back("diffuse map: " + _diffuseMap->shortDescription());
     if (_emissionMap.get())
-        bits.push_back("emission map: " + oo::ShortDescriptionOf(_emissionMap.get()));
+        bits.push_back("emission map: " + _emissionMap->shortDescription());
 
     std::optional<std::string> result = OOBasicMaterial::descriptionComponents();
     if (!bits.empty()) {
@@ -149,8 +149,10 @@ NSUInteger OOMultiTextureMaterial::countOfTextureUnitsWithBaseCoordinates()
 
 void OOMultiTextureMaterial::ensureFinishedLoading()
 {
-    [_diffuseMap.get() ensureFinishedLoading];
-    [_emissionMap.get() ensureFinishedLoading];
+    if (_diffuseMap != nullptr)
+        _diffuseMap->ensureFinishedLoading();
+    if (_emissionMap != nullptr)
+        _emissionMap->ensureFinishedLoading();
 }
 
 void OOMultiTextureMaterial::apply()
@@ -165,14 +167,16 @@ void OOMultiTextureMaterial::apply()
         OOGL(glActiveTextureARB(textureUnit++));
         OOGL(glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB));
         OOGL(glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_MODULATE));
-        [_diffuseMap.get() apply];
+        if (_diffuseMap != nullptr)
+            _diffuseMap->apply();
     }
 
     if (_emissionMap.get() != nil) {
         OOGL(glActiveTextureARB(textureUnit++));
         OOGL(glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB));
         OOGL(glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_ADD));
-        [_emissionMap.get() apply];
+        if (_emissionMap != nullptr)
+            _emissionMap->apply();
     }
 
     OOCAssert(textureUnit - GL_TEXTURE0_ARB == _unitsUsed, "OOMultiTextureMaterial texture unit count invalid (expected %zu, actually using %u)", _unitsUsed, textureUnit - GL_TEXTURE0_ARB);
@@ -194,16 +198,16 @@ void OOMultiTextureMaterial::unapplyWithNext(OOMaterial* next)
     i = (nextMulti != nullptr) ? nextMulti->textureUnitCount() : 0;
     for (; i != _unitsUsed; ++i) {
         OOGL(glActiveTextureARB(GL_TEXTURE0_ARB + i));
-        [::OOTexture applyNone];
+        OOTexture::applyNone();
         OOGL(glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE));
     }
     OOGL(glActiveTextureARB(GL_TEXTURE0_ARB));
 }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-std::vector<oo::ObjCRef<::OOTexture*>> OOMultiTextureMaterial::allTextures()
+std::vector<oo::Ref<OOTexture>> OOMultiTextureMaterial::allTextures()
 {
-    std::vector<oo::ObjCRef<::OOTexture*>> result;
+    std::vector<oo::Ref<OOTexture>> result;
     if (_diffuseMap.get() == nil) {
         result.emplace_back(_emissionMap.get());
         return result;

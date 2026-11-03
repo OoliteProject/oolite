@@ -18,6 +18,7 @@
 #ifndef OOFND_TESTS_OO_TEST_HPP
 #define OOFND_TESTS_OO_TEST_HPP
 
+#include <csignal>
 #include <cstdio>
 #include <vector>
 
@@ -65,6 +66,7 @@ inline bool check(bool ok, const char* expr, const char* file, int line)
 	{
 		++failures();
 		std::printf("FAIL %s:%d [%s]: %s\n", file, line, currentTest(), expr);
+		std::fflush(stdout);
 	}
 	return ok;
 }
@@ -72,12 +74,19 @@ inline bool check(bool ok, const char* expr, const char* file, int line)
 inline int runAll(const char* file)
 {
 	const std::vector<Case>& cases = registry();
+	// An abort() (an uncaught exception, a failed debug assertion) ends the process with no summary
+	// line; name the case it happened in. Only async-signal-safe-enough calls here.
+	std::signal(SIGABRT, [](int) { std::fprintf(stderr, "oo_test: abort() in case %s\n", currentTest()); std::fflush(stderr); });
 	for (const Case& c : cases)
 	{
 		currentTest() = c.name;
 		const int before = failures();
 		c.fn();
 		std::printf("%s %s\n", failures() == before ? "ok  " : "FAIL", c.name);
+		// Flushed per case: stdout is a pipe under meson, so a process that dies mid-run (an abort,
+		// a fast-fail, a sanitizer exit) would otherwise lose every line, and with them which case
+		// was running.
+		std::fflush(stdout);
 	}
 	std::printf("oo_test: %s: %zu tests, %d checks, %d failures\n", file, cases.size(), checks(), failures());
 	if (cases.empty())

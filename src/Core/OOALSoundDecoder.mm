@@ -213,7 +213,7 @@ bool OOALSoundVorbisCodec::initWithPath(const std::optional<std::string>& path)
                     return false;
                 } else {
                     int err = UNZ_OK;
-                    unz_file_info64 file_info = { 0 };
+                    unz_file_info64 file_info = { };
                     err = unzGetCurrentFileInfo64(uf, &file_info, NULL, 0, NULL, 0, NULL, 0);
                     if (err != UNZ_OK) {
                         unzClose(uf);
@@ -472,7 +472,7 @@ static size_t OOReadOXZVorbis(void* ptr, size_t size, size_t nmemb, void* dataso
     return err;
 }
 
-static int OOCloseOXZVorbis(void* datasource)
+int OOCloseOXZVorbis(void* /*datasource*/)
 {
     //  doing this prevents replaying
     //	OOALSoundVorbisCodec *src = (OOALSoundVorbisCodec *)datasource;

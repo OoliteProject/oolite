@@ -53,22 +53,18 @@ T *NewTestPlayer()
 	oo::Ref<T> player = oo::makeRef<T>();
 	@autoreleasepool
 	{
-		[oo::NewEntityFacade(player) retain];
+		oo::RetainEntity(oo::MadeEntity(player));
 	}
 	return player.get();
 }
 
 
 // UNIVERSE: never initialised; answers the time the test sets.
-@interface TestUniverse: Universe
-@end
+class TestUniverse : public Universe
+{
+public:
 
-
-@implementation TestUniverse
-
-- (OOTimeAbsolute) getTime		{ return 0; }
-
-@end
+};
 
 
 // A subclass, as OOFlashEffectEntity is: counts its draws and answers its own texture. (An
@@ -84,20 +80,15 @@ public:
 		_draws++;
 	}
 
-	::OOTexture *texture() override
+	OOTexture *texture() override
 	{
 		return _texture;
 	}
 };
 
 
-// An owner whose camera distance the test sets.
-@interface TestOwner: Entity
-@end
-
-
-@implementation TestOwner
-@end
+// An owner whose camera distance the test sets: a plain entity (an Objective-C subclass that
+// overrode nothing before).
 
 
 namespace {
@@ -105,9 +96,9 @@ namespace {
 // --- Ivars the game reads directly, and nothing else ------------------------------------------------
 
 const GLfloat *ColorComponents(OOLightParticleEntity *e)	{ return e->_colorComponents; }
-GLfloat NoDrawDistance(Entity *e)							{ return e->_cxxEntity->no_draw_distance; }
-GLfloat CamZeroDistance(Entity *e)							{ return e->_cxxEntity->cam_zero_distance; }
-void SetCamZeroDistance(Entity *e, GLfloat value)			{ e->_cxxEntity->cam_zero_distance = value; }
+GLfloat NoDrawDistance(Entity *e)							{ return e->no_draw_distance; }
+GLfloat CamZeroDistance(Entity *e)							{ return e->cam_zero_distance; }
+void SetCamZeroDistance(Entity *e, GLfloat value)			{ e->cam_zero_distance = value; }
 
 // --------------------------------------------------------------------------------------------------
 
@@ -117,8 +108,7 @@ void SetUp()
 	static Universe *universe = nil;
 	if (universe == nil)
 	{
-		universe = (Universe *)class_createInstance([TestUniverse class], 0);	// never released
-		universe->_cxxUniverse = oo::makeRef<cxx::Universe>(universe);	// what -initWithGameView: makes first (ADR-0056 amendment oo-riqmz)
+		universe = new TestUniverse();	// never released
 	}
 	gSharedUniverse = universe;
 	static TestPlayer *player = nullptr;
@@ -142,7 +132,7 @@ template <class T>
 T *NewParticle(float diameter, Entity **outObject = nullptr)
 {
 	const oo::Ref<T> particle = oo::makeRef<T>();
-	Entity *object = oo::NewEntityFacade(particle);
+	Entity *object = oo::MadeEntity(particle);
 	particle->initWithDiameter(diameter);
 	if (outObject != nullptr)  *outObject = object;
 	return particle.get();
@@ -160,20 +150,20 @@ OO_TEST(initWithDiameter)
 		OOLightParticleEntity *particle = NewParticle<OOLightParticleEntity>(8.0f, &object);
 		OO_CHECK(particle != nullptr && typeid(*particle) == typeid(OOLightParticleEntity));
 		OO_CHECK(particle->diameter() == 8.0f);
-		OO_CHECK([object scanClass] == CLASS_NO_DRAW && [object status] == STATUS_EFFECT);
-		OO_CHECK([object isEffect] && ![object canCollide]);
+		OO_CHECK(object->getScanClass() == CLASS_NO_DRAW && object->status() == STATUS_EFFECT);
+		OO_CHECK(object->isEffect() && !object->canCollide());
 		OO_CHECK(ComponentsAre(particle, 1.0f, 1.0f, 1.0f, 1.0f));
 
 		// The draw distance grows with the diameter; reduced detail (a minimum detail level) scales it by 12.
 		GLfloat expected = pow(8.0f / 2.0, M_SQRT2) * NO_DRAW_DISTANCE_FACTOR * NO_DRAW_DISTANCE_FACTOR;
 		expected *= 12.0;
-		OO_CHECK([UNIVERSE reducedDetail]);
+		OO_CHECK((UNIVERSE != nullptr ? UNIVERSE->reducedDetail() : false));
 		OO_CHECK(NoDrawDistance(object) == expected);
 
 		// A subclass initialises the same way.
 		Entity *subObject = nil;
 		TestParticle *sub = NewParticle<TestParticle>(2.0f, &subObject);
-		OO_CHECK(sub->diameter() == 2.0f && [subObject status] == STATUS_EFFECT && [subObject isEffect]);
+		OO_CHECK(sub->diameter() == 2.0f && subObject->status() == STATUS_EFFECT && subObject->isEffect());
 	}
 }
 
@@ -208,8 +198,8 @@ OO_TEST(drawSubEntity)
 		SetUp();
 		Entity *object = nil;
 		TestParticle *particle = NewParticle<TestParticle>(1.0f, &object);
-		TestOwner *owner = [[[TestOwner alloc] init] autorelease];
-		[object setOwner:owner];
+		Entity *owner = oo::MadeEntity(oo::makeRef<Entity>());
+		object->setOwner(owner);
 
 		// Opaque pass: nothing.
 		SetCamZeroDistance(owner, 5.0f);
@@ -229,9 +219,9 @@ OO_TEST(drawSubEntity)
 		// The base's own draw does nothing in the opaque pass, or beyond the draw distance.
 		Entity *plain = nil;
 		(void)NewParticle<OOLightParticleEntity>(1.0f, &plain);
-		[plain drawImmediate:false translucent:false];
+		plain->drawImmediate(false, false);
 		SetCamZeroDistance(plain, NoDrawDistance(plain));
-		[plain drawImmediate:false translucent:true];
+		plain->drawImmediate(false, true);
 	}
 }
 
@@ -244,9 +234,10 @@ OO_TEST(texturesListTheSubclassTexture)
 		SetUp();
 		Entity *object = nil;
 		TestParticle *particle = NewParticle<TestParticle>(1.0f, &object);
-		OOTexture *texture = (OOTexture *)[[[OOObject alloc] init] autorelease];	// only retained and compared
+		const oo::Ref<OOTexture> kept = oo::makeRef<OOTexture>();	// a C++ texture; only retained and compared
+		OOTexture *texture = kept.get();
 		particle->_texture = texture;
-		const std::vector<oo::ObjCRef<OOTexture *>> textures = [object cxx_allTextures];
+		const std::vector<oo::Ref<OOTexture>> textures = object->allTextures();
 		OO_CHECK(textures.size() == 1 && textures[0].get() == texture);
 	}
 }
@@ -260,8 +251,8 @@ OO_TEST(description)
 		SetUp();
 		Entity *object = nil;
 		(void)NewParticle<TestParticle>(1.0f, &object);
-		OO_CHECK(oo::DescriptionOf(object).starts_with("<TestParticle 0x"));
-		OO_CHECK(oo::DescriptionOf(object).ends_with("scanClass: CLASS_NO_DRAW status: STATUS_EFFECT}"));
+		OO_CHECK(oo::EntityDescription(object).starts_with("<TestParticle 0x"));
+		OO_CHECK(oo::EntityDescription(object).ends_with("scanClass: CLASS_NO_DRAW status: STATUS_EFFECT}"));
 	}
 }
 
@@ -281,12 +272,12 @@ OO_TEST(cxxSubclassFacade)
 		SetUp();
 		const oo::Ref<TestCxxParticle> particle = oo::makeRef<TestCxxParticle>();
 		particle->initWithDiameter(6.0f);
-		Entity *facade = oo::NewEntityFacade(particle);
+		Entity *facade = oo::MadeEntity(particle);
 		OO_CHECK(facade != nil);
-		OO_CHECK(particle->diameter() == 6.0f && [facade isEffect] && ![facade canCollide] && [facade status] == STATUS_EFFECT);
+		OO_CHECK(particle->diameter() == 6.0f && facade->isEffect() && !facade->canCollide() && facade->status() == STATUS_EFFECT);
 		particle->setColor(OOColor::colorWithRed(0.5f, 0.25f, 0.0f, 1.0f).get(), 0.5f);
 		OO_CHECK(ComponentsAre(particle.get(), 0.5f, 0.25f, 0.0f, 0.5f));
-		OO_CHECK(oo::DescriptionOf(facade).starts_with("<TestCxxParticle 0x"));
+		OO_CHECK(oo::EntityDescription(facade).starts_with("<TestCxxParticle 0x"));
 	}
 }
 

@@ -39,12 +39,12 @@ SOFTWARE.
 #include "oofnd/StdLib.hpp"
 
 /*	Phase 3 (bead oo-e6xa, proposed ADR-0056 amendments oo-qa7c, oo-rmd7 item 3 and oo-rr2x): a
-        converted leaf of the texture generators, over cxx::OOTextureGenerator. Bead oo-9ht.135
+        converted leaf of the texture generators, over OOTextureGenerator. Bead oo-9ht.135
         deleted its Objective-C facade: its caller (OOMultiTextureMaterial) makes it with the factories
-        below, and Objective-C sees it as the nearest facade, OOTextureGenerator's (amendment oo-vl43
-        item 4).
+        below, and hands the C++ generator to the texture (the generators' facade it was seen as went
+        with bead oo-9ht.118).
 */
-class OOCombinedEmissionMapGenerator : public cxx::OOTextureGenerator {
+class OOCombinedEmissionMapGenerator : public OOTextureGenerator {
 public:
     ~OOCombinedEmissionMapGenerator() override; // was -dealloc
 
@@ -55,13 +55,13 @@ public:
     */
     static oo::Ref<OOCombinedEmissionMapGenerator> generatorWithEmissionMapSpec(const oo::PList& emissionMapSpec,
         OOColor* emissionColor,
-        ::OOTexture* diffuseMap,
+        OOTexture* diffuseMap,
         OOColor* diffuseColor,
         const oo::PList& illuminationMapSpec,
         OOColor* illuminationColor,
         const oo::PList& spec);
     static oo::Ref<OOCombinedEmissionMapGenerator> generatorWithEmissionAndIlluminationMapSpec(const oo::PList& emissionAndIlluminationMapSpec,
-        ::OOTexture* diffuseMap,
+        OOTexture* diffuseMap,
         OOColor* diffuseColor,
         OOColor* emissionColor,
         OOColor* illuminationColor,
@@ -81,7 +81,7 @@ public:
 private:
     bool initWithEmissionMapSpec(const oo::PList& emissionMapSpec,
         OOColor* emissionColor,
-        ::OOTexture* diffuseMap,
+        OOTexture* diffuseMap,
         OOColor* diffuseColor,
         const oo::PList& illuminationMapSpec,
         OOColor* illuminationColor,
@@ -94,7 +94,7 @@ private:
 
     oo::PList _emissionSpec;
     oo::PList _illuminationSpec;
-    oo::ObjCRef<::OOTexture*> _diffuseMap;
+    oo::Ref<OOTexture> _diffuseMap;
 
     OOPixMap _emissionPx = { };
     OOPixMap _diffusePx = { };

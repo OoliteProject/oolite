@@ -28,11 +28,12 @@
 #include "oofnd/PList.hpp"
 #include "oofnd/String.hpp"
 #import "OOObjCPList.h"
+#include "EntityPListForeign.h"	// an entity's node
 
 
 // MARK: The classes, as far as the binding sees them ----------------------------------------------
 
-@class Entity;
+@class TestEntityObject;
 
 // As ShipEntity.h and PlayerEntity.h declare them (the test imports neither).
 typedef enum
@@ -61,14 +62,15 @@ enum
 };
 
 
-namespace cxx { class Entity; }
+class Entity;
 
 // A ship's object: the root's, which holds the C++ part (oo::ToCxx reads it); a station's and the
 // player's were the Objective-C ship's until that was deleted.
-@interface Entity: OOObject
+__attribute__((objc_runtime_name("Entity")))
+@interface TestEntityObject: OOObject
 {
 @public
-	oo::Ref<cxx::Entity> _cxxEntity;
+	oo::Ref<Entity> _cxxEntity;
 	BOOL _isStation;
 	OOEntityStatus _status;
 }
@@ -83,17 +85,16 @@ namespace cxx { class Entity; }
 // PLAYER: C++ (the Objective-C player this stood in for was deleted): the members
 // the code under test calls, declared as the game headers declare them (the test imports none
 // that defines the classes), with the stand-in's answers.
-namespace cxx {
 class Entity : public oo::RefCounted
 {
 public:
 	virtual ~Entity();
 	OOEntityStatus status();
+	bool getIsStation();	// what its object's -isStation forwarded to
 };
-}	// namespace cxx
 
 // The ship: C++ (a station's part is a plain one).
-class ShipEntity : public cxx::Entity
+class ShipEntity : public Entity
 {
 public:
 	void doScriptEvent(JSAtom message, const std::vector<oo::PList> &arguments);
@@ -170,9 +171,16 @@ public:
 };
 
 
-@interface Universe: OOObject
+#import "UniverseStandIn.h"
+
+// The universe as the code under test sees it: a stand-in for the C++ class (the Objective-C facade
+// the test's Objective-C stand-in stood in for was deleted), with the header's names and signatures.
+// It answers virtual members, so it has the game's vtable (UniverseStandIn.h) and StandInUniverse overrides them.
+class Universe : public oo::RefCounted
 {
-@public
+public:
+	OO_UNIVERSE_STAND_IN_VIRTUAL_MEMBERS
+
 	std::vector<std::string> _comms;
 	std::vector<std::string> _console;
 	std::vector<double> _counts;
@@ -182,15 +190,20 @@ public:
 	BOOL _interstellar;
 	double _range;
 	oo::PList _destinations;
-}
-- (void) cxx_addCommsMessage:(const std::optional<std::string> &)text forCount:(OOTimeDelta)count;
-- (void) cxx_addMessage:(const std::optional<std::string> &)text forCount:(OOTimeDelta)count;
-- (void) cxx_startSpeakingString:(const std::string &)text;
-- (BOOL) isSpeaking;
-- (void) stopSpeaking;
-- (BOOL) inInterstellarSpace;
-- (oo::PList) cxx_nearbyDestinationsWithinRange:(double)range;
-@end
+
+	void addCommsMessage(const std::optional<std::string> &, OOTimeDelta);
+	void startSpeakingString(const std::string &);
+	bool isSpeaking();
+	void stopSpeaking();
+	oo::PList nearbyDestinationsWithinRange(double);
+};
+
+class StandInUniverse : public Universe
+{
+public:
+	void addMessage(const std::optional<std::string> &text, OOTimeDelta count) override	{ _console.push_back(text.value_or("(nil)")); _counts.push_back(count); }
+	bool inInterstellarSpace() override	{ return _interstellar; }
+};
 
 
 #import "OOJSPlayer.h"
@@ -219,11 +232,14 @@ std::string EventName(JSAtom propID)
 }
 
 
+::TestEntityObject *TestObjectOfPart(Entity *entity);	// below
+
 std::string Describe(const oo::PList &plist)
 {
 	if (plist.isNull())  return "null";
 	if (const std::string *str = plist.getIf<std::string>())  return *str;
 	if (plist.isNumber())  return oo::str::format("%g", plist.doubleValue());
+	if (Entity *entity = oo::EntityIn(plist))  return class_getName(object_getClass(TestObjectOfPart(entity)));	// an entity's node: its object's class
 	if (id object = oo::ObjectIn(plist))  return class_getName(object_getClass(object));
 	return "?";
 }
@@ -238,7 +254,7 @@ oo::PList Dict(std::initializer_list<std::pair<const char *, oo::PList>> entries
 }	// namespace
 
 
-@implementation Entity
+@implementation TestEntityObject
 
 - (BOOL) isStation  { return _isStation; }
 - (OOEntityStatus) status  { return _status; }
@@ -249,25 +265,38 @@ oo::PList Dict(std::initializer_list<std::pair<const char *, oo::PList>> entries
 // The player's Objective-C object (in the game the ship's facade over the C++ player), which
 // oo::ToObjC answers: a ship whose class is named PlayerEntity, as the game's player object was
 // before its Objective-C class was deleted, so the events name it as they did.
-::Entity *sPlayerObject = nil;
+::TestEntityObject *sPlayerObject = nil;
 
-::Entity *NewPlayerObject()
+::TestEntityObject *NewPlayerObject()
 {
 	Class playerClass = objc_getClass("PlayerEntity");
 	if (playerClass == Nil)
 	{
-		playerClass = objc_allocateClassPair([Entity class], "PlayerEntity", 0);
+		playerClass = objc_allocateClassPair([TestEntityObject class], "PlayerEntity", 0);
 		objc_registerClassPair(playerClass);
 	}
 	return [[playerClass alloc] init];
 }
 
 namespace oo {
-::Entity *ToObjC(cxx::Entity *entity)  { return entity != nullptr ? sPlayerObject : nil; }	// only the player crosses
+::TestEntityObject *ToObjC(Entity *entity)  { return entity != nullptr ? sPlayerObject : nil; }	// only the player crosses
 }
+#import "EntityHelpersStandIn.h"	// EntityHelpers.mm's, on the test's objects
 
-cxx::Entity::~Entity() = default;
-OOEntityStatus cxx::Entity::status()  { return static_cast<PlayerEntity *>(this)->_status; }
+Entity::~Entity() = default;
+OOEntityStatus Entity::status()  { return static_cast<PlayerEntity *>(this)->_status; }
+
+// The object of each C++ part the script handed over (a station's), and the player's for any other
+// (the binding hands over the C++ entity, where it handed over the object).
+namespace {
+std::map<Entity *, ::TestEntityObject *> sPartObjects;
+::TestEntityObject *TestObjectOfPart(Entity *entity)
+{
+	auto found = sPartObjects.find(entity);
+	return found != sPartObjects.end() ? found->second : oo::ToObjC(entity);
+}
+}	// namespace
+bool Entity::getIsStation()  { return [TestObjectOfPart(this) isStation]; }	// what its object's -isStation forwarded to
 void PlayerEntity::setScriptTargetToSelf()  { _scriptTargetSets++; }
 std::optional<std::string> PlayerEntity::commanderName()  { return _commanderName; }
 void PlayerEntity::setCommanderName(const std::optional<std::string> &value)  { _commanderName = value; }
@@ -331,17 +360,11 @@ void PlayerEntity::addRoleToPlayer(const std::string &role)  { _lastRole = role;
 void PlayerEntity::addRoleToPlayer(const std::string &role, NSUInteger slot)  { _lastRole = role; _lastRoleSlot = slot; }
 
 
-@implementation Universe
-
-- (void) cxx_addCommsMessage:(const std::optional<std::string> &)text forCount:(OOTimeDelta)count  { _comms.push_back(text.value_or("(nil)")); _counts.push_back(count); }
-- (void) cxx_addMessage:(const std::optional<std::string> &)text forCount:(OOTimeDelta)count  { _console.push_back(text.value_or("(nil)")); _counts.push_back(count); }
-- (void) cxx_startSpeakingString:(const std::string &)text  { _spoken.push_back(text); }
-- (BOOL) isSpeaking  { return _speaking; }
-- (void) stopSpeaking  { _stops++; _speaking = NO; }
-- (BOOL) inInterstellarSpace  { return _interstellar; }
-- (oo::PList) cxx_nearbyDestinationsWithinRange:(double)range  { _range = range; return _destinations; }
-
-@end
+void Universe::addCommsMessage(const std::optional<std::string> &text, OOTimeDelta count)	{ _comms.push_back(text.value_or("(nil)")); _counts.push_back(count); }
+void Universe::startSpeakingString(const std::string &text)	{ _spoken.push_back(text); }
+bool Universe::isSpeaking()	{ return _speaking; }
+void Universe::stopSpeaking()	{ _stops++; _speaking = NO; }
+oo::PList Universe::nearbyDestinationsWithinRange(double range)	{ _range = range; return _destinations; }
 
 
 // The display strings, as PlayerEntity.m and OOConstToString.mm make them, for what the test uses.
@@ -442,7 +465,10 @@ oo::PList cxx_OOJSPListFromJSValue(JSContext *context, JSValueConst value)
 	}
 	if (id object = (id)JS_GetOpaque(value, sFakeStationClassID))
 	{
-		return oo::PListObject(object);
+		// The station's C++ entity's node, as the game's converter makes it.
+		::TestEntityObject *station = (::TestEntityObject *)object;
+		sPartObjects[station->_cxxEntity.get()] = station;
+		return oo::EntityObjectNode(station->_cxxEntity.get());
 	}
 	return oo::PList(std::string("[object]"));
 }
@@ -471,7 +497,7 @@ std::map<JSClassID, int> sConverters;
 
 PlayerEntity *gOOPlayer = nullptr;
 Universe *gSharedUniverse = nil;
-Entity *gOOJSPlayerIfStale = nil;
+Entity *gOOJSPlayerIfStale = nullptr;	// the player's C++ entity
 
 
 void OOJSReportBadPropertySelector(JSContext *context, JSValueConst, int, const JSCFunctionListEntry *, size_t)
@@ -565,8 +591,8 @@ JSContext *sContext;
 JSValue sGlobal = JS_UNDEFINED;	// held for the life of the test
 PlayerEntity *sPlayer = nullptr;
 Universe *sUniverse = nil;
-::Entity *sStation = nil;	// a station's object and a ship's that is not one (C++ ships)
-::Entity *sNonStation = nil;
+::TestEntityObject *sStation = nil;	// a station's object and a ship's that is not one (C++ ships)
+::TestEntityObject *sNonStation = nil;
 ShipEntity *sStationShip = nullptr;
 
 
@@ -589,7 +615,7 @@ void SetUpContext()
 	OOJSRegisterClass(&sFakeStationClassID, &sFakeStationClass);
 
 	// Kept for the life of the test.
-	sUniverse = [[Universe alloc] init];
+	sUniverse = new StandInUniverse();
 	gSharedUniverse = sUniverse;
 	sPlayer = new PlayerEntity;
 	gOOPlayer = sPlayer;
@@ -609,11 +635,11 @@ void SetUpContext()
 	sPlayer->_roleWeights = { "trader", "pirate", "trader" };
 	sPlayer->_status = STATUS_DOCKED;
 	sPlayer->_targetSystem = -1;
-	sStation = [[Entity alloc] init];
+	sStation = [[TestEntityObject alloc] init];
 	sStation->_cxxEntity = oo::makeRef<ShipEntity>();
 	sStationShip = static_cast<ShipEntity *>(sStation->_cxxEntity.get());
 	sStation->_isStation = YES;
-	sNonStation = [[Entity alloc] init];
+	sNonStation = [[TestEntityObject alloc] init];
 	sNonStation->_cxxEntity = oo::makeRef<ShipEntity>();
 
 	InitOOJSPlayer(sContext, sGlobal);
@@ -847,7 +873,7 @@ OO_TEST(escapePodDestination)
 	SetUpContext();
 	// Only while the escape pod is in flight (the player is stale).
 	OO_CHECK_EVAL("player.setEscapePodDestination(null)", "threw: Player.setEscapePodDestination() only works while the escape pod is in flight.");
-	gOOJSPlayerIfStale = sPlayerObject;
+	gOOJSPlayerIfStale = sPlayer;	// the player's C++ entity (the stand-in object has no part)
 
 	sPlayer->_dockTargetSet = NO;
 	OO_CHECK_EVAL("(player.setEscapePodDestination(station), 'called')", "called");
@@ -886,7 +912,7 @@ OO_TEST(escapePodDestination)
 	OO_CHECK(sPlayer->_adjustTime >= (0.2 + 4.0) * 3600.0 + 0 && sPlayer->_adjustTime <= (0.2 + 4.0) * 3600.0 + 5400.0 * 127);
 	OO_CHECK(std::fmod(sPlayer->_adjustTime - (0.2 + 4.0) * 3600.0, 5400.0) == 0);
 
-	gOOJSPlayerIfStale = nil;
+	gOOJSPlayerIfStale = nullptr;
 	sPlayer->_targetSystem = -1;
 }
 

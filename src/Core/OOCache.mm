@@ -137,14 +137,14 @@ struct OOCacheImpl {
 
 struct OOCacheNode {
     // Payload (the key orders the tree by std::string::compare)
-    std::string key;
-    oo::PList value;
+    std::string key { };
+    oo::PList value { };
 
     // Splay tree
-    OOCacheNode *leftChild, *rightChild;
+    OOCacheNode *leftChild = nullptr, *rightChild = nullptr;
 
     // Age list
-    OOCacheNode *younger, *older;
+    OOCacheNode *younger = nullptr, *older = nullptr;
 };
 
 enum { kCountUnknown = -1U };

@@ -56,7 +56,7 @@ OOJSInterfaceDefinition::OOJSInterfaceDefinition()
 
     // Stays registered until destruction, so values set after a reset are also released on the next one.
     oo::NotificationCenter::defaultCenter().addObserver(this, kOOJavaScriptEngineWillResetNotificationName,
-        [::OOJavaScriptEngine sharedEngine],
+        OOJavaScriptEngine::sharedEngine(),
         [this](const oo::Notification&) { deleteJSPointers(); });
 }
 
@@ -73,7 +73,7 @@ void OOJSInterfaceDefinition::deleteJSPointers()
 OOJSInterfaceDefinition::~OOJSInterfaceDefinition()
 {
     oo::NotificationCenter::defaultCenter().removeObserver(this, kOOJavaScriptEngineWillResetNotificationName,
-        [::OOJavaScriptEngine sharedEngine]);
+        OOJavaScriptEngine::sharedEngine());
 
     _owningScript = nullptr;
 
@@ -140,7 +140,7 @@ void OOJSInterfaceDefinition::setCallbackThis(JSValueConst callbackThis)
 
 void OOJSInterfaceDefinition::runCallback(const std::string& key)
 {
-    ::OOJavaScriptEngine* engine = [::OOJavaScriptEngine sharedEngine];
+    ::OOJavaScriptEngine* engine = OOJavaScriptEngine::sharedEngine();
     JSContext* context = OOJSAcquireContext();
     JSValue rval = JS_UNDEFINED;
 
@@ -158,11 +158,7 @@ void OOJSInterfaceDefinition::runCallback(const std::string& key)
     // Hold our own references in case the callback replaces them.
     JSValue callback = JS_DupValue(context, _callback);
     JSValue callbackThis = JS_IsObject(_callbackThis) ? JS_DupValue(context, _callbackThis) : JS_UNDEFINED;
-    [engine callJSFunction:callback
-                 forObject:callbackThis
-                      argc:1
-                      argv:&cKey
-                    result:&rval];
+    engine->callJSFunction(callback, callbackThis, 1, &cKey, &rval);
     JS_FreeValue(context, callback);
     JS_FreeValue(context, callbackThis);
 

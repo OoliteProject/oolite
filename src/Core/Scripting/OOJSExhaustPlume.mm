@@ -44,7 +44,7 @@ MA 02110-1301, USA.
 
 static JSClassID sExhaustPlumeClassID;
 
-static bool JSExhaustPlumeGetExhaustPlumeEntity(JSContext* context, JSValueConst jsobj, OOExhaustPlumeEntity** outEntity, Entity** outObject = nullptr);
+static bool JSExhaustPlumeGetExhaustPlumeEntity(JSContext* context, JSValueConst jsobj, OOExhaustPlumeEntity** outEntity);
 
 static JSValue ExhaustPlumeGetProperty(OOJS_GETTER_ARGS);
 static JSValue ExhaustPlumeSetProperty(OOJS_SETTER_ARGS);
@@ -53,7 +53,7 @@ static JSValue ExhaustPlumeRemove(OOJS_NATIVE_ARGS);
 
 static JSClassDef sExhaustPlumeClass = {
     .class_name = "ExhaustPlume",
-    .finalizer = OOJSObjectWrapperFinalize,
+    .finalizer = OOJSCxxObjectWrapperFinalize, // the slot holds an OOJSEntityHolder
 };
 
 enum {
@@ -81,7 +81,7 @@ void InitOOJSExhaustPlume(JSContext* context, JSValueConst global)
         sExhaustPlumeProperties, OOJS_COUNT(sExhaustPlumeProperties), sExhaustPlumeMethods, OOJS_COUNT(sExhaustPlumeMethods), NULL, 0);
     JS_FreeValue(context, parentPrototype);
 
-    OOJSRegisterObjectConverter(sExhaustPlumeClassID, OOJSBasicPrivateObjectConverter);
+    OOJSRegisterObjectConverter(sExhaustPlumeClassID, OOJSEntityObjectConverter);
     OOJSRegisterSubclass(sExhaustPlumeClassID, JSEntityClassID());
 }
 
@@ -90,12 +90,12 @@ JSClassID JSExhaustPlumeClassID(void)
     return sExhaustPlumeClassID;
 }
 
-static bool JSExhaustPlumeGetExhaustPlumeEntity(JSContext* context, JSValueConst jsobj, OOExhaustPlumeEntity** outEntity, Entity** outObject)
+static bool JSExhaustPlumeGetExhaustPlumeEntity(JSContext* context, JSValueConst jsobj, OOExhaustPlumeEntity** outEntity)
 {
     OOJS_PROFILE_ENTER
 
     bool result;
-    Entity* entity = nil;
+    Entity* entity = nullptr; // the slot holds the C++ entity
 
     if (outEntity == NULL)
         return false;
@@ -105,14 +105,12 @@ static bool JSExhaustPlumeGetExhaustPlumeEntity(JSContext* context, JSValueConst
     if (!result)
         return false;
 
-    // The object is the root's facade: a plume is its C++ part.
-    OOExhaustPlumeEntity* exhaust = dynamic_cast<OOExhaustPlumeEntity*>(oo::ToCxx(entity));
+    // A plume is the C++ OOExhaustPlumeEntity; the natives no longer ask its object.
+    OOExhaustPlumeEntity* exhaust = dynamic_cast<OOExhaustPlumeEntity*>(entity);
     if (exhaust == nullptr)
         return false;
 
     *outEntity = exhaust;
-    if (outObject != NULL)
-        *outObject = entity;
     return true;
 
     OOJS_PROFILE_EXIT
@@ -190,12 +188,12 @@ static JSValue ExhaustPlumeSetProperty(OOJS_SETTER_ARGS)
 
 // *** Methods ***
 
-#define GET_THIS_EXHAUSTPLUME(THISENT, THISOBJECT)                                                           \
-    do {                                                                                                     \
-        if (EXPECT_NOT(!JSExhaustPlumeGetExhaustPlumeEntity(context, OOJS_THIS, &(THISENT), &(THISOBJECT)))) \
-            return OOJSNativeFailure(context); /* Exception */                                               \
-        if (OOIsStaleEntity(THISOBJECT))                                                                     \
-            OOJS_RETURN_VOID;                                                                                \
+#define GET_THIS_EXHAUSTPLUME(THISENT)                                                        \
+    do {                                                                                      \
+        if (EXPECT_NOT(!JSExhaustPlumeGetExhaustPlumeEntity(context, OOJS_THIS, &(THISENT)))) \
+            return OOJSNativeFailure(context); /* Exception */                                \
+        if (OOIsStaleEntity(THISENT))                                                         \
+            OOJS_RETURN_VOID; /* the C++ plume's */                                           \
     } while (0)
 
 static JSValue ExhaustPlumeRemove(OOJS_NATIVE_ARGS)
@@ -203,10 +201,9 @@ static JSValue ExhaustPlumeRemove(OOJS_NATIVE_ARGS)
     OOJS_NATIVE_ENTER(context)
 
     OOExhaustPlumeEntity* thisEnt = nullptr;
-    Entity* thisObject = nil; // its facade
-    GET_THIS_EXHAUSTPLUME(thisEnt, thisObject);
+    GET_THIS_EXHAUSTPLUME(thisEnt);
 
-    ShipEntity* parent = oo::ToShip([thisObject owner]);
+    ShipEntity* parent = oo::ToShip(thisEnt->owner()); // the C++ member its object's -owner answered
     if (parent != nullptr)
         parent->removeExhaust(thisEnt);
 

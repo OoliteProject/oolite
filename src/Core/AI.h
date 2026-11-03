@@ -4,13 +4,9 @@ AI.h
 
 Core NPC behaviour/artificial intelligence class.
 
-C++20 since bead oo-puw9 (proposed ADR-0056; its superclass is still Objective-C, amendment
-oo-o89). The AI is cxx::AI. Its superclass, OOWeakRefObject, is still Objective-C (ships hold
-their AI and weak references to it through that object), so the Objective-C AI in
-AI+ObjCBridge.h (imported at the end of this header) stays the object its callers hold. It makes
-and owns the C++ object in its -init, and oo::ToObjC answers that one facade, never a new one.
-The AI sends its owner's object its actions by name, as before; the owner is the C++ ShipEntity
-since bead oo-9ht.144, whose object the AI holds by weak reference.
+C++20. Its Objective-C facade is deleted: the AI is the global C++ class AI, held as oo::Ref<AI>, and a
+deferred call holds it. The AI sends its owner's object its actions by name, as before; the owner is
+the C++ ShipEntity, which the AI holds by weak reference (oo::WeakRef).
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -34,30 +30,38 @@ MA 02110-1301, USA.
 
 #import "OOFoundation.h"
 #import "OOTypes.h"
-#import "OOWeakReference.h"
 
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
-#include "oofnd/objc/OOObjCRef.h"
 
 #define AI_THINK_INTERVAL 0.125
 
 class ShipEntity; // C++ since bead oo-9ht.144
+class Entity;
 class OOPreservedAIStateMachine; // private to AI.mm; no facade, so global (amendment oo-fn2f item 4)
 
-namespace cxx {
-
+/*	A ship's AI: C++ only since its Objective-C facade was deleted. Held as oo::Ref<AI>; a ship's shipAI owns it.
+*/
 class AI : public oo::RefCounted {
 public:
     AI(); // -init
     ~AI() override; // -dealloc
 
-    static AI* currentlyRunningAI(); // borrowed; null: none
+    // [[AI alloc] cxx_initWithStateMachine:andState:]: a new AI running the state machine (nullopt:
+    // none) in the state (nullopt: none).
+    static oo::Ref<AI> newWithStateMachine(const std::optional<std::string>& smName, const std::optional<std::string>& stateName);
+
+    // What -description and -shortDescription printed: <AI 0xnnnnnnnn>{components}, the address the
+    // C++ object's where it was the facade's.
+    std::string description() const;
+    std::string shortDescription() const;
+
+    static AI* currentlyRunningAI(); // borrowed; null: none (+currentlyRunningAI)
     static std::optional<std::string> currentlyRunningAIDescription();
 
-    // -cxx_initWithStateMachine:andState:'s body after its [self init]. The facade runs it once it is
-    // the object's peer (std::nullopt where the Foundation version took nil).
+    // -cxx_initWithStateMachine:andState:'s body after its [self init] (std::nullopt where the
+    // Foundation version took nil); newWithStateMachine() runs it.
     void initWithStateMachine(const std::optional<std::string>& smName, const std::optional<std::string>& stateName);
 
     std::optional<std::string> descriptionComponents() const;
@@ -110,16 +114,16 @@ public:
 
     void dumpState();
 
-    // The target of setState(stateName, delay)'s deferred call, which the facade's -deferredSetState:
-    // (called by name) forwards here.
+    // The target of setState(stateName, delay)'s deferred call, found in the deferred calls' name
+    // table (AI.mm) where the facade's -deferredSetState: was found by name.
     void deferredSetState(const std::string& stateName);
 
 private:
     void reportStackOverflow();
 
-    // Wrapper for a deferred call (OOScheduleDeferredCall) to catch/fix bugs. <selector> is called by
-    // name with <argument> (OOCallByName.h).
-    void performDeferredCall(SEL selector, const std::string& argument, NSTimeInterval delay);
+    // Wrapper for a deferred call (OOScheduleDeferredCall) to catch/fix bugs. <selectorName> is found
+    // in the deferred calls' name table (AI.mm) and called with <argument>.
+    void performDeferredCall(const char* selectorName, const std::string& argument, NSTimeInterval delay);
 
     void refreshOwnerDesc();
 
@@ -132,7 +136,7 @@ private:
     oo::PList cleanHandlers(const oo::PList& handlers, const std::string& stateKey, const std::string& smName);
     oo::PList cleanActions(const oo::PList& actions, const std::string& handlerKey, const std::string& stateKey, const std::string& smName);
 
-    oo::ObjCRef<id> _owner = { }; // OOWeakReference to the object of the ShipEntity this is the AI for
+    oo::WeakRef<Entity> _owner = { }; // the ShipEntity this is the AI for, weakly (a weak reference proxy to its object before its facade was deleted)
     std::optional<std::string> ownerDesc = { }; // describes the object this is the AI for; nullopt until it has an owner
 
     oo::PList stateMachine = { }; // the loaded, whitelisted state machine; null: none (nil)
@@ -148,8 +152,9 @@ private:
     std::optional<std::string> jsScript = { };
 };
 
-} // namespace cxx
-
-// Transitional: the Objective-C AI, the object ships hold. Deleted, with namespace cxx above, by the
-// bridge's deletion bead once OOWeakRefObject's subclasses are C++ and no caller messages AI.
-#import "AI+ObjCBridge.h"
+/*	[ai autorelease], which the deleted facade answered: keeps the AI until the
+        current autorelease pool drains, so an AI a ship lets go of (replaced, or the ship set up again)
+        while it may still be running lives exactly as long as its autoreleased object did. Nothing for
+        null.
+*/
+void OOAIAutorelease(oo::Ref<AI> ai);

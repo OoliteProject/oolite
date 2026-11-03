@@ -65,7 +65,7 @@ BoundingBox OODrawable::boundingBox()
     return kZeroBoundingBox;
 }
 
-void OODrawable::setBindingTarget(id<OOWeakReferenceSupport> /*target*/)
+void OODrawable::setBindingTarget(Entity* /*target*/)
 {
 }
 
@@ -93,46 +93,24 @@ std::string OODrawable::description() const
 }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-std::vector<oo::ObjCRef<::OOTexture*>> OODrawable::allTextures()
+std::vector<oo::Ref<OOTexture>> OODrawable::allTextures()
 {
     return { };
 }
 
-// The object's own size (was [self oo_objectSize], the facade's instance size).
+// The object's own size (was the facade's Objective-C instance size).
 size_t OODrawable::totalSize()
 {
     return objectSize();
 }
 #endif
 
-/*	OODrawableAutorelease()'s keeper: an autoreleased Objective-C object that holds the drawable, so
-        the pool's drain releases it as it released the facade. Private to this file; nothing messages
-        it (as OOScript.mm's keeper).
+/*	OODrawableAutorelease(): the drawable goes to the Objective-C autorelease pool, whose drain releases it
+        where the keeper object that held it was released (oo::AutoreleaseInObjCPool).
 */
-@interface OODrawableAutoreleaseKeeper : OOObject {
-@private
-    oo::Ref<OODrawable> _drawable;
-}
-
-- (id)initWithDrawable:(oo::Ref<OODrawable>)drawable;
-
-@end
-
-@implementation OODrawableAutoreleaseKeeper
-
-- (id)initWithDrawable:(oo::Ref<OODrawable>)drawable
-{
-    self = [super init];
-    if (self != nil)
-        _drawable = std::move(drawable);
-    return self;
-}
-
-@end
-
 void OODrawableAutorelease(oo::Ref<OODrawable> drawable)
 {
     if (drawable == nullptr)
         return;
-    [[[OODrawableAutoreleaseKeeper alloc] initWithDrawable:std::move(drawable)] autorelease];
+    oo::AutoreleaseInObjCPool(std::move(drawable));
 }

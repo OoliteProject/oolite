@@ -35,6 +35,7 @@ SOFTWARE.
 #define OOCONCRETETEXTURE_H
 
 #import "OOTexture.h"
+#import "OOTextureLoader.h"
 
 #include "oofnd/StdLib.hpp"
 
@@ -43,17 +44,17 @@ SOFTWARE.
 /*	Foundation sweep (proposed ADR-0043, bead oo-pa9j): the path, cache key and debug name are
         nil-able strings (a generated texture has no path, and a generator may have no cache key).
 
-        Phase 3 (bead oo-qa7c, proposed ADR-0056 amendment oo-whzh): a C++ leaf of cxx::OOTexture. Its
-        loader is still Objective-C, so it is held as the Objective-C object. Its Objective-C facade was
-        deleted by bead oo-9ht.105 (ADR-0056 amendment "deleting a facade"): the class is global, and
-        Objective-C sees a concrete texture as the root's facade, an OOTexture.
+        Phase 3 (bead oo-qa7c, proposed ADR-0056 amendment oo-whzh): a C++ leaf of OOTexture. Its
+        loader is the C++ OOTextureLoader, held as oo::Ref since bead oo-9ht.114. Its Objective-C facade was
+        deleted by bead oo-9ht.105 (ADR-0056 amendment "deleting a facade"): the class is global; the
+        root's facade went with bead oo-9ht.99, so callers hold it as an oo::Ref<OOTexture>.
 */
-class OOConcreteTexture : public cxx::OOTexture {
+class OOConcreteTexture : public OOTexture {
 public:
     /*	Were -initWithLoader:key:options:anisotropy:lodBias: and -initWithPath:..., which answered
             nil for no loader (amendment oo-novu item 1): null here. The new texture is in the caches.
     */
-    static oo::Ref<OOConcreteTexture> initWithLoader(::OOTextureLoader* loader,
+    static oo::Ref<OOConcreteTexture> initWithLoader(OOTextureLoader* loader,
         const std::optional<std::string>& key,
         uint32_t options,
         GLfloat anisotropy,
@@ -90,7 +91,7 @@ public:
 
 private:
     // The part of -initWithLoader: that cannot fail; the factory adds the texture to the caches.
-    OOConcreteTexture(::OOTextureLoader* loader,
+    OOConcreteTexture(OOTextureLoader* loader,
         const std::optional<std::string>& key,
         uint32_t options,
         GLfloat anisotropy,
@@ -124,7 +125,7 @@ private:
                       _valid : 1 = 0;
     uint8_t _mipLevels = { };
 
-    oo::ObjCRef<::OOTextureLoader*> _loader = { };
+    oo::Ref<OOTextureLoader> _loader = { };
 
     void* _bytes = { };
     GLuint _textureName = { };

@@ -271,9 +271,7 @@ bool JSObjectGetVector(JSContext* context, JSValueConst vectorObj, HPVector* out
 #if !OOJS_POC_HARNESS
     // If it's an entity, use its position.
     if (OOJSIsMemberOfSubclass(context, vectorObj, JSEntityClassID())) {
-        JSClassID ignored;
-        Entity* entity = [(id)JS_GetAnyOpaque(vectorObj, &ignored) weakRefUnderlyingObject];
-        *outVector = [entity position];
+        *outVector = OOJSEntityPositionOfJSObject(context, vectorObj); // the C++ entity's
         return true;
     }
 #endif
@@ -971,7 +969,7 @@ static JSValue VectorToCoordinateSystem(OOJS_NATIVE_ARGS)
     }
 
     OOJS_BEGIN_FULL_NATIVE(context)
-    result = [UNIVERSE cxx_legacyPositionFrom:thisv asCoordinateSystem:*coordScheme];
+    result = (UNIVERSE != nullptr ? UNIVERSE->legacyPositionFrom(thisv, *coordScheme) : HPVector { });
     OOJS_END_FULL_NATIVE
 
     OOJS_RETURN_HPVECTOR(result);
@@ -1000,7 +998,7 @@ static JSValue VectorFromCoordinateSystem(OOJS_NATIVE_ARGS)
 
     OOJS_BEGIN_FULL_NATIVE(context)
     std::string arg = oo::str::format("%s %f %f %f", coordScheme->c_str(), thisv.x, thisv.y, thisv.z);
-    result = [UNIVERSE cxx_coordinatesFromCoordinateSystemString:arg];
+    result = (UNIVERSE != nullptr ? UNIVERSE->coordinatesFromCoordinateSystemString(arg) : HPVector { });
     OOJS_END_FULL_NATIVE
 
     OOJS_RETURN_HPVECTOR(result);

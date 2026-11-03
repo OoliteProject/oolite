@@ -359,7 +359,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 
 } // namespace
 
-void cxx::ResourceManager::reset()
+void ResourceManager::reset()
 {
     sFirstRun = YES;
     sUseAddOns.reset();
@@ -371,7 +371,7 @@ void cxx::ResourceManager::reset()
     sOXPManifests.clear();
 }
 
-void cxx::ResourceManager::resetManifestKnowledgeForOXZManager()
+void ResourceManager::resetManifestKnowledgeForOXZManager()
 {
     sUseAddOns.reset();
     sUseAddOnsParts.clear();
@@ -380,7 +380,7 @@ void cxx::ResourceManager::resetManifestKnowledgeForOXZManager()
     pathsWithAddOns();
 }
 
-std::optional<std::string> cxx::ResourceManager::errors()
+std::optional<std::string> ResourceManager::errors()
 {
     if (sErrors.empty())
         return std::nullopt;
@@ -389,7 +389,7 @@ std::optional<std::string> cxx::ResourceManager::errors()
     std::vector<std::string> result;
     result.reserve(sErrors.size());
     for (const ResourceManagerError& error : sErrors) {
-        std::optional<std::string> errStr = [UNIVERSE cxx_descriptionForKey:error.key];
+        std::optional<std::string> errStr = (UNIVERSE != nullptr ? UNIVERSE->descriptionForKey(error.key) : std::optional<std::string>());
         if (errStr.has_value()) {
             // The descriptions.plist entry is the format (data, not a literal): ADR-0043 item 19.
             result.push_back(oo::str::formatRuntime(*errStr, { error.param1, error.param2 }));
@@ -407,7 +407,7 @@ std::optional<std::string> cxx::ResourceManager::errors()
     return joined;
 }
 
-std::vector<std::string> cxx::ResourceManager::rootPaths()
+std::vector<std::string> ResourceManager::rootPaths()
 {
     /* Built-in data, then managed OXZs, then manually installed ones,
      * which may be useful for debugging/testing purposes.
@@ -424,7 +424,7 @@ std::vector<std::string> cxx::ResourceManager::rootPaths()
     return *sRootPaths;
 }
 
-std::vector<std::string> cxx::ResourceManager::userRootPaths()
+std::vector<std::string> ResourceManager::userRootPaths()
 {
     // the paths are now in order of preference as per yesterday's talk. -- Kaks 2010-05-05
     // (additional add-ons paths, <cwd>/../share/oolite/AddOns, <cwd>/AddOns, the extract path:
@@ -440,13 +440,13 @@ std::vector<std::string> cxx::ResourceManager::userRootPaths()
     return *sUserRootPaths;
 }
 
-std::optional<std::string> cxx::ResourceManager::builtInPath()
+std::optional<std::string> ResourceManager::builtInPath()
 {
     // Look for a "Resources" folder in the cwd, else cwd/../share/oolite/Resources (Windows & Linux)
     return oo::fs::utf8String(oo::ResourcePaths::current().builtInResourcesDirectory());
 }
 
-std::vector<std::string> cxx::ResourceManager::pathsWithAddOns()
+std::vector<std::string> ResourceManager::pathsWithAddOns()
 {
     if (sSearchPaths.has_value() && !sSearchPaths->empty())
         return *sSearchPaths;
@@ -563,7 +563,7 @@ std::vector<std::string> cxx::ResourceManager::pathsWithAddOns()
     return searchPaths;
 }
 
-void cxx::ResourceManager::preloadFileLists()
+void ResourceManager::preloadFileLists()
 {
     // folders which may contain files to be cached
     const std::vector<std::string> folders = { "AIs", "Images", "Models", "Music", "Scenarios", "Scripts", "Shaders", "Sounds", "Textures" };
@@ -579,7 +579,7 @@ void cxx::ResourceManager::preloadFileLists()
     }
 }
 
-void cxx::ResourceManager::preloadFileListFromOXZ(const std::string& path, const std::vector<std::string>& folders)
+void ResourceManager::preloadFileListFromOXZ(const std::string& path, const std::vector<std::string>& folders)
 {
     unzFile uf = NULL;
     const char* zipname = path.c_str();
@@ -616,7 +616,7 @@ void cxx::ResourceManager::preloadFileListFromOXZ(const std::string& path, const
     unzClose(uf);
 }
 
-void cxx::ResourceManager::preloadFileListFromFolder(const std::string& path, const std::vector<std::string>& folders)
+void ResourceManager::preloadFileListFromFolder(const std::string& path, const std::vector<std::string>& folders)
 {
     // search each subfolder for files
     for (const std::string& subFolder : folders) {
@@ -628,7 +628,7 @@ void cxx::ResourceManager::preloadFileListFromFolder(const std::string& path, co
     }
 }
 
-void cxx::ResourceManager::preloadFilePathFor(const std::string& fileName, const std::string& subFolder, const std::string& path)
+void ResourceManager::preloadFilePathFor(const std::string& fileName, const std::string& subFolder, const std::string& path)
 {
     OOCacheManager* cache = OOCacheManager::sharedCache(); // C++ since bead oo-rmd7
     const std::string cacheKey = subFolder + "/" + fileName;
@@ -639,7 +639,7 @@ void cxx::ResourceManager::preloadFilePathFor(const std::string& fileName, const
     }
 }
 
-std::vector<std::string> cxx::ResourceManager::paths()
+std::vector<std::string> ResourceManager::paths()
 {
     if (EXPECT_NOT(!sSearchPaths.has_value())) {
         sSearchPaths.emplace();
@@ -647,7 +647,7 @@ std::vector<std::string> cxx::ResourceManager::paths()
     return pathsWithAddOns();
 }
 
-std::vector<std::string> cxx::ResourceManager::maskUserNameInPathArray(const std::vector<std::string>& inputPathArray)
+std::vector<std::string> ResourceManager::maskUserNameInPathArray(const std::vector<std::string>& inputPathArray)
 {
     std::vector<std::string> maskedArray;
     maskedArray.reserve(inputPathArray.size());
@@ -664,17 +664,17 @@ std::vector<std::string> cxx::ResourceManager::maskUserNameInPathArray(const std
     return maskedArray;
 }
 
-std::optional<std::string> cxx::ResourceManager::maskUserName(const std::string& name, const std::string& path)
+std::optional<std::string> ResourceManager::maskUserName(const std::string& name, const std::string& path)
 {
     return oo::str::replaceOccurrences(path, name, "*", oo::str::Search::literal);
 }
 
-std::optional<std::string> cxx::ResourceManager::useAddOns()
+std::optional<std::string> ResourceManager::useAddOns()
 {
     return sUseAddOns;
 }
 
-void cxx::ResourceManager::setUseAddOns(const std::string& useAddOns)
+void ResourceManager::setUseAddOns(const std::string& useAddOns)
 {
     if (sFirstRun || useAddOns != sUseAddOns) {
         reset();
@@ -706,7 +706,7 @@ void cxx::ResourceManager::setUseAddOns(const std::string& useAddOns)
     }
 }
 
-void cxx::ResourceManager::addExternalPath(const std::string& path)
+void ResourceManager::addExternalPath(const std::string& path)
 {
     if (!sSearchPaths.has_value())
         sSearchPaths.emplace();
@@ -717,12 +717,12 @@ void cxx::ResourceManager::addExternalPath(const std::string& path)
     }
 }
 
-std::vector<std::string> cxx::ResourceManager::OXPsWithMessagesFound()
+std::vector<std::string> ResourceManager::OXPsWithMessagesFound()
 {
     return sOXPsWithMessagesFound;
 }
 
-oo::PList cxx::ResourceManager::manifestForIdentifier(const std::string& identifier)
+oo::PList ResourceManager::manifestForIdentifier(const std::string& identifier)
 {
     auto it = sOXPManifests.find(identifier);
     if (it == sOXPManifests.end())
@@ -730,7 +730,7 @@ oo::PList cxx::ResourceManager::manifestForIdentifier(const std::string& identif
     return it->second;
 }
 
-void cxx::ResourceManager::logPaths()
+void ResourceManager::logPaths()
 {
     // Prettify paths for logging, as -stringByStandardizingPath and -stringByAbbreviatingWithTildeInPath
     // did for these (AbbreviatedWithTilde).
@@ -748,13 +748,13 @@ void cxx::ResourceManager::logPaths()
     OO_LOG("searchPaths.dumpAll", "Resource paths: {}\n    {}", sUseAddOns.value_or("(null)"), displayPaths);
 }
 
-void cxx::ResourceManager::clearCaches()
+void ResourceManager::clearCaches()
 {
     sSoundCache.clear();
     sStringCache.clear();
 }
 
-void cxx::ResourceManager::checkOXPMessagesInPath(const std::string& path)
+void ResourceManager::checkOXPMessagesInPath(const std::string& path)
 {
     // OOArrayFromFile (OOPListParsing) is an unmigrated callee: its array arrives through oo::PListFrom.
     const oo::PList OXPMessageArray = PListArrayFromFile(oo::str::appendingPathComponent(path, "OXPMessages.plist"));
@@ -773,7 +773,7 @@ void cxx::ResourceManager::checkOXPMessagesInPath(const std::string& path)
 }
 
 // Given a path to an assumed OXP (or other location where files are permissible), check for a requires.plist or manifest.plist and add to search paths if acceptable.
-void cxx::ResourceManager::checkPotentialPath(const std::string& path, std::vector<std::string>& searchPaths)
+void ResourceManager::checkPotentialPath(const std::string& path, std::vector<std::string>& searchPaths)
 {
     oo::PList requirements;
     oo::PList manifest;
@@ -824,7 +824,7 @@ void cxx::ResourceManager::checkPotentialPath(const std::string& path, std::vect
     }
 }
 
-bool cxx::ResourceManager::validateManifest(const oo::PList& manifest, const std::string& path)
+bool ResourceManager::validateManifest(const oo::PList& manifest, const std::string& path)
 {
     BOOL OK = YES;
     const std::optional<std::string> identifier = ManifestString(manifest, std::string(kOOManifestIdentifier));
@@ -879,7 +879,7 @@ bool cxx::ResourceManager::validateManifest(const oo::PList& manifest, const std
     return YES;
 }
 
-bool cxx::ResourceManager::checkVersionCompatibility(const oo::PList& manifest, const std::optional<std::string>& title)
+bool ResourceManager::checkVersionCompatibility(const oo::PList& manifest, const std::optional<std::string>& title)
 {
     const std::optional<std::string> required = ManifestString(manifest, std::string(kOOManifestRequiredOoliteVersion));
     const std::optional<std::string> maxRequired = ManifestString(manifest, std::string(kOOManifestMaximumOoliteVersion));
@@ -894,7 +894,7 @@ bool cxx::ResourceManager::checkVersionCompatibility(const oo::PList& manifest, 
     return areRequirementsFulfilled(oo::PList(std::move(requirements)), title, "manifest.plist");
 }
 
-bool cxx::ResourceManager::areRequirementsFulfilled(const oo::PList& requirements, const std::optional<std::string>& path, const std::string& file)
+bool ResourceManager::areRequirementsFulfilled(const oo::PList& requirements, const std::optional<std::string>& path, const std::string& file)
 {
     BOOL OK = YES;
     unsigned conditionsHandled = 0;
@@ -950,7 +950,7 @@ bool cxx::ResourceManager::areRequirementsFulfilled(const oo::PList& requirement
     return OK;
 }
 
-bool cxx::ResourceManager::manifestHasConflicts(const oo::PList& manifest, bool logErrors)
+bool ResourceManager::manifestHasConflicts(const oo::PList& manifest, bool logErrors)
 {
     const oo::PList* conflicts = manifest.get<oo::PList::Array>(std::string(kOOManifestConflictOXPs), nullptr);
     // if it has a non-empty conflict_oxps list
@@ -975,7 +975,7 @@ bool cxx::ResourceManager::manifestHasConflicts(const oo::PList& manifest, bool 
     return NO;
 }
 
-void cxx::ResourceManager::filterSearchPathsForConflicts(std::vector<std::string>& searchPaths)
+void ResourceManager::filterSearchPathsForConflicts(std::vector<std::string>& searchPaths)
 {
     std::vector<std::string> identifiers; // identifier order (was hash order)
     identifiers.reserve(sOXPManifests.size());
@@ -997,7 +997,7 @@ void cxx::ResourceManager::filterSearchPathsForConflicts(std::vector<std::string
     }
 }
 
-bool cxx::ResourceManager::manifestHasMissingDependencies(const oo::PList& manifest, bool logErrors)
+bool ResourceManager::manifestHasMissingDependencies(const oo::PList& manifest, bool logErrors)
 {
     const oo::PList* requireds = manifest.get<oo::PList::Array>(std::string(kOOManifestRequiresOXPs), nullptr);
     // if it has a non-empty required_oxps list
@@ -1012,7 +1012,7 @@ bool cxx::ResourceManager::manifestHasMissingDependencies(const oo::PList& manif
     return NO;
 }
 
-bool cxx::ResourceManager::manifest(const oo::PList& manifest, const oo::PList& required, bool logErrors)
+bool ResourceManager::manifest(const oo::PList& manifest, const oo::PList& required, bool logErrors)
 {
     const std::optional<std::string> requiredID = ManifestString(required, std::string(kOOManifestRelationIdentifier));
     auto requiredManifest = requiredID.has_value() ? sOXPManifests.find(*requiredID) : sOXPManifests.end();
@@ -1060,7 +1060,7 @@ bool cxx::ResourceManager::manifest(const oo::PList& manifest, const oo::PList& 
     return NO;
 }
 
-bool cxx::ResourceManager::filterSearchPathsForRequirements(std::vector<std::string>& searchPaths)
+bool ResourceManager::filterSearchPathsForRequirements(std::vector<std::string>& searchPaths)
 {
     std::vector<std::string> identifiers; // identifier order (was hash order)
     identifiers.reserve(sOXPManifests.size());
@@ -1087,7 +1087,7 @@ bool cxx::ResourceManager::filterSearchPathsForRequirements(std::vector<std::str
     return sAllMet;
 }
 
-bool cxx::ResourceManager::matchVersions(const oo::PList& rangeDict, const std::string& version)
+bool ResourceManager::matchVersions(const oo::PList& rangeDict, const std::string& version)
 {
     const std::optional<std::string> minimum = ManifestString(rangeDict, std::string(kOOManifestRelationVersion));
     const std::optional<std::string> maximum = ManifestString(rangeDict, std::string(kOOManifestRelationMaxVersion));
@@ -1108,7 +1108,7 @@ bool cxx::ResourceManager::matchVersions(const oo::PList& rangeDict, const std::
     return YES;
 }
 
-void cxx::ResourceManager::filterSearchPathsToExcludeScenarioOnlyPaths(std::vector<std::string>& searchPaths)
+void ResourceManager::filterSearchPathsToExcludeScenarioOnlyPaths(std::vector<std::string>& searchPaths)
 {
     std::vector<std::string> identifiers; // identifier order (was hash order)
     identifiers.reserve(sOXPManifests.size());
@@ -1129,7 +1129,7 @@ void cxx::ResourceManager::filterSearchPathsToExcludeScenarioOnlyPaths(std::vect
     }
 }
 
-void cxx::ResourceManager::filterSearchPathsByScenario(std::vector<std::string>& searchPaths)
+void ResourceManager::filterSearchPathsByScenario(std::vector<std::string>& searchPaths)
 {
     std::vector<std::string> identifiers; // identifier order (was hash order)
     identifiers.reserve(sOXPManifests.size());
@@ -1151,7 +1151,7 @@ void cxx::ResourceManager::filterSearchPathsByScenario(std::vector<std::string>&
     }
 }
 
-bool cxx::ResourceManager::manifestAllowedByScenario(const oo::PList& manifest)
+bool ResourceManager::manifestAllowedByScenario(const oo::PList& manifest)
 {
     /* Checks for a couple of "never happens" cases */
 #ifndef NDEBUG
@@ -1183,7 +1183,7 @@ bool cxx::ResourceManager::manifestAllowedByScenario(const oo::PList& manifest)
     return result;
 }
 
-bool cxx::ResourceManager::manifestAllowedByScenario(const oo::PList& manifest, const std::string& identifier)
+bool ResourceManager::manifestAllowedByScenario(const oo::PList& manifest, const std::string& identifier)
 {
     if (ManifestString(manifest, std::string(kOOManifestIdentifier)) == identifier) {
         // manifest has the identifier - easy
@@ -1198,7 +1198,7 @@ bool cxx::ResourceManager::manifestAllowedByScenario(const oo::PList& manifest, 
     return NO;
 }
 
-bool cxx::ResourceManager::manifestAllowedByScenarioWithTag(const oo::PList& manifest, const std::string& tag)
+bool ResourceManager::manifestAllowedByScenarioWithTag(const oo::PList& manifest, const std::string& tag)
 {
     if (ManifestListContains(manifest, std::string(kOOManifestTags), tag)) {
         // manifest has the tag - easy
@@ -1217,13 +1217,13 @@ bool cxx::ResourceManager::manifestAllowedByScenarioWithTag(const oo::PList& man
     return NO;
 }
 
-void cxx::ResourceManager::addErrorWithKey(const std::string& descriptionKey, const std::string& param1, const std::string& param2)
+void ResourceManager::addErrorWithKey(const std::string& descriptionKey, const std::string& param1, const std::string& param2)
 {
     // Every caller passes a key; a nil parameter arrives as "" (was `param ?: @""`).
     sErrors.push_back({ descriptionKey, param1, param2 });
 }
 
-bool cxx::ResourceManager::checkCacheUpToDateForPaths(const std::vector<std::string>& searchPaths)
+bool ResourceManager::checkCacheUpToDateForPaths(const std::vector<std::string>& searchPaths)
 {
     /*	Check if caches are up to date.
             The strategy is to use a two-entry cache. One entry is an array
@@ -1239,7 +1239,7 @@ bool cxx::ResourceManager::checkCacheUpToDateForPaths(const std::vector<std::str
     if (EXPECT_NOT(oo::Defaults::standard().boolForKey("always-flush-cache"))) {
         OO_LOG("dataCache.rebuild.explicitFlush", "{}", "Cache explicitly flushed with always-flush-cache preference. Rebuilding from scratch.");
         upToDate = NO;
-    } else if ([::MyOpenGLView pollShiftKey]) {
+    } else if (::MyOpenGLView::pollShiftKey()) {
         OO_LOG("dataCache.rebuild.explicitFlush", "{}", "Cache explicitly flushed with shift key. Rebuilding from scratch.");
         upToDate = NO;
     }
@@ -1289,7 +1289,7 @@ bool cxx::ResourceManager::checkCacheUpToDateForPaths(const std::vector<std::str
  * excluded by not including the plists which reference them, and
  * everything else can be excluded by not referencing it from a plist.
  */
-bool cxx::ResourceManager::corePlist(const std::string& fileName, const std::string& path)
+bool ResourceManager::corePlist(const std::string& fileName, const std::string& path)
 {
     if (path != builtInPath()) {
         // non-core paths always okay
@@ -1308,14 +1308,14 @@ bool cxx::ResourceManager::corePlist(const std::string& fileName, const std::str
     return NO;
 }
 
-oo::PList cxx::ResourceManager::dictionaryFromFilesNamed(const std::string& fileName,
+oo::PList ResourceManager::dictionaryFromFilesNamed(const std::string& fileName,
     const std::optional<std::string>& folderName,
     bool mergeFiles)
 {
     return dictionaryFromFilesNamed(fileName, folderName, mergeFiles ? MERGE_BASIC : MERGE_NONE, YES);
 }
 
-oo::PList cxx::ResourceManager::dictionaryFromFilesNamed(const std::string& fileName,
+oo::PList ResourceManager::dictionaryFromFilesNamed(const std::string& fileName,
     const std::optional<std::string>& folderName,
     OOResourceMergeMode mergeMode,
     bool cache)
@@ -1410,12 +1410,12 @@ oo::PList cxx::ResourceManager::dictionaryFromFilesNamed(const std::string& file
     return result;
 }
 
-oo::PList cxx::ResourceManager::arrayFromFilesNamed(const std::string& fileName, const std::optional<std::string>& folderName, bool mergeFiles)
+oo::PList ResourceManager::arrayFromFilesNamed(const std::string& fileName, const std::optional<std::string>& folderName, bool mergeFiles)
 {
     return arrayFromFilesNamed(fileName, folderName, mergeFiles, YES);
 }
 
-oo::PList cxx::ResourceManager::arrayFromFilesNamed(const std::string& fileName, const std::optional<std::string>& folderName, bool mergeFiles, bool useCache)
+oo::PList ResourceManager::arrayFromFilesNamed(const std::string& fileName, const std::optional<std::string>& folderName, bool mergeFiles, bool useCache)
 {
     oo::PList result;
     std::string cacheKey;
@@ -1506,7 +1506,7 @@ oo::PList cxx::ResourceManager::arrayFromFilesNamed(const std::string& fileName,
 // A method for handling merging of arrays. Currently used with the equipment.plist entries.
 // The arrayToProcess array is scanned for repetitions of the item at lookup index location and, if found,
 // the latest entry replaces the earliest.
-void cxx::ResourceManager::handleEquipmentListMerging(oo::PList& arrayToProcess, unsigned lookupIndex)
+void ResourceManager::handleEquipmentListMerging(oo::PList& arrayToProcess, unsigned lookupIndex)
 {
     NSUInteger i, j, k;
     oo::PList::Array& lists = *arrayToProcess.getIf<oo::PList::Array>();
@@ -1538,7 +1538,7 @@ void cxx::ResourceManager::handleEquipmentListMerging(oo::PList& arrayToProcess,
 // format of file is slightly different to the standard equipment.plist file, in that it is a
 // dictionary of dictionary objects (rather than an array of arrays). this allows properties like
 // techlevel, price, name/short_description and description/long_description to be updated via the overrides file.
-void cxx::ResourceManager::handleEquipmentOverrides(oo::PList& arrayToProcess)
+void ResourceManager::handleEquipmentOverrides(oo::PList& arrayToProcess)
 {
     const oo::PList overrides = dictionaryFromFilesNamed("equipment-overrides.plist", std::string("Config"), MERGE_SMART, NO);
     const oo::PList::Dict* overrideEntries = overrides.getIf<oo::PList::Dict>();
@@ -1601,7 +1601,7 @@ void cxx::ResourceManager::handleEquipmentOverrides(oo::PList& arrayToProcess)
 
 // A method for handling merging of arrays. Currently used with the nebulatextures.plist and startextures.plist entries.
 // uses the "texture" filename as the key value, or "key" if found
-void cxx::ResourceManager::handleStarNebulaListMerging(oo::PList& arrayToProcess)
+void ResourceManager::handleStarNebulaListMerging(oo::PList& arrayToProcess)
 {
     NSUInteger i, j, k;
     oo::PList::Array& lists = *arrayToProcess.getIf<oo::PList::Array>();
@@ -1636,7 +1636,7 @@ void cxx::ResourceManager::handleStarNebulaListMerging(oo::PList& arrayToProcess
     // arrayToProcess has been processed at this point. Any necessary merging has been done.
 }
 
-oo::PList cxx::ResourceManager::whitelistDictionary()
+oo::PList ResourceManager::whitelistDictionary()
 {
     static std::optional<oo::PList> whitelistDictionary; // a missing whitelist is remembered as null, not retried
 
@@ -1647,7 +1647,7 @@ oo::PList cxx::ResourceManager::whitelistDictionary()
     return *whitelistDictionary;
 }
 
-oo::PList cxx::ResourceManager::logControlDictionary()
+oo::PList ResourceManager::logControlDictionary()
 {
     // Load built-in copy of logcontrol.plist.
     // OODictionaryFromFile (OOPListParsing) is an unmigrated callee: its dictionaries arrive through oo::PListFrom.
@@ -1709,7 +1709,7 @@ oo::PList cxx::ResourceManager::logControlDictionary()
     return logControl;
 }
 
-oo::PList cxx::ResourceManager::roleCategoriesDictionary()
+oo::PList ResourceManager::roleCategoriesDictionary()
 {
     oo::PList roleCategories = oo::PList(oo::PList::Dict());
 
@@ -1742,7 +1742,7 @@ oo::PList cxx::ResourceManager::roleCategoriesDictionary()
     return roleCategories;
 }
 
-void cxx::ResourceManager::mergeRoleCategories(const oo::PList& catData, oo::PList& categories)
+void ResourceManager::mergeRoleCategories(const oo::PList& catData, oo::PList& categories)
 {
     // A category is a set of roles: an array of unique values (by -isEqual:), in the order first seen.
     const oo::PList::Dict* catDataEntries = catData.getIf<oo::PList::Dict>();
@@ -1770,7 +1770,7 @@ void cxx::ResourceManager::mergeRoleCategories(const oo::PList& catData, oo::PLi
     }
 }
 
-oo::Ref<OOSystemDescriptionManager> cxx::ResourceManager::systemDescriptionManager()
+oo::Ref<OOSystemDescriptionManager> ResourceManager::systemDescriptionManager()
 {
     OO_LOG("resourceManager.planetinfo.load", "{}", "Initialising manager");
     oo::Ref<OOSystemDescriptionManager> manager = oo::makeRef<OOSystemDescriptionManager>();
@@ -1803,7 +1803,7 @@ oo::Ref<OOSystemDescriptionManager> cxx::ResourceManager::systemDescriptionManag
     return manager;
 }
 
-oo::PList cxx::ResourceManager::shaderBindingTypesDictionary()
+oo::PList ResourceManager::shaderBindingTypesDictionary()
 {
     static std::optional<oo::PList> shaderBindingTypesDictionary;
 
@@ -1845,13 +1845,13 @@ oo::PList cxx::ResourceManager::shaderBindingTypesDictionary()
     return *shaderBindingTypesDictionary;
 }
 
-std::optional<std::string> cxx::ResourceManager::pathForFileNamed(const std::string& fileName, const std::optional<std::string>& folderName)
+std::optional<std::string> ResourceManager::pathForFileNamed(const std::string& fileName, const std::optional<std::string>& folderName)
 {
     return pathForFileNamed(fileName, folderName, YES);
 }
 
 /* This is extremely expensive to call with useCache:NO */
-std::optional<std::string> cxx::ResourceManager::pathForFileNamed(const std::string& fileName, const std::optional<std::string>& folderName, bool useCache)
+std::optional<std::string> ResourceManager::pathForFileNamed(const std::string& fileName, const std::optional<std::string>& folderName, bool useCache)
 {
     std::optional<std::string> result;
     std::string cacheKey;
@@ -1901,7 +1901,7 @@ std::optional<std::string> cxx::ResourceManager::pathForFileNamed(const std::str
 
 /* use extreme caution in calling with usePathCache:NO - this can be
  * an extremely expensive operation */
-::OOSound* cxx::ResourceManager::retrieveFileNamed(const std::string& fileName,
+::OOSound* ResourceManager::retrieveFileNamed(const std::string& fileName,
     const std::optional<std::string>& folderName,
     std::map<std::string, oo::Ref<::OOSound>, std::less<>>* ioCache,
     std::optional<std::string> key,
@@ -1933,7 +1933,7 @@ std::optional<std::string> cxx::ResourceManager::pathForFileNamed(const std::str
     return oo::autorelease(result.leakRef());
 }
 
-oo::Ref<OOMusic> cxx::ResourceManager::ooMusicNamed(const std::string& fileName, const std::optional<std::string>& folderName)
+oo::Ref<OOMusic> ResourceManager::ooMusicNamed(const std::string& fileName, const std::optional<std::string>& folderName)
 {
     // Don't cache music objects; minimizing latency isn't really important.
     const std::optional<std::string> path = pathForFileNamed(fileName, folderName, YES);
@@ -1942,17 +1942,17 @@ oo::Ref<OOMusic> cxx::ResourceManager::ooMusicNamed(const std::string& fileName,
     return OOMusic::initWithContentsOfFile(path);
 }
 
-::OOSound* cxx::ResourceManager::ooSoundNamed(const std::string& fileName, const std::optional<std::string>& folderName)
+::OOSound* ResourceManager::ooSoundNamed(const std::string& fileName, const std::optional<std::string>& folderName)
 {
     return retrieveFileNamed(fileName, folderName, &sSoundCache, oo::str::format("OOSound:%s:%s", folderName.has_value() ? folderName->c_str() : "(null)", fileName.c_str()), YES);
 }
 
-std::optional<std::string> cxx::ResourceManager::stringFromFilesNamed(const std::string& fileName, const std::optional<std::string>& folderName)
+std::optional<std::string> ResourceManager::stringFromFilesNamed(const std::string& fileName, const std::optional<std::string>& folderName)
 {
     return stringFromFilesNamed(fileName, folderName, YES);
 }
 
-std::optional<std::string> cxx::ResourceManager::stringFromFilesNamed(const std::string& fileName, const std::optional<std::string>& folderName, bool useCache)
+std::optional<std::string> ResourceManager::stringFromFilesNamed(const std::string& fileName, const std::optional<std::string>& folderName, bool useCache)
 {
     std::optional<std::string> result;
     std::string key;
@@ -1981,7 +1981,7 @@ std::optional<std::string> cxx::ResourceManager::stringFromFilesNamed(const std:
     return result;
 }
 
-std::vector<std::pair<std::string, oo::Ref<OOScript>>> cxx::ResourceManager::loadScripts()
+std::vector<std::pair<std::string, oo::Ref<OOScript>>> ResourceManager::loadScripts()
 {
     // name -> script, in the order each name was first loaded (a later script of the same name replaces the earlier one in place)
     std::vector<std::pair<std::string, oo::Ref<OOScript>>> loadedScripts;
@@ -2013,7 +2013,7 @@ std::vector<std::pair<std::string, oo::Ref<OOScript>>> cxx::ResourceManager::loa
                     }
                 }
                 @catch (OOException* exception) {
-                    OO_LOG("script.load.exception", "***** {} encountered exception {} ({}) while trying to load script from {} -- ignoring this location.", "+[ResourceManager loadScripts]", [exception name], [exception reason], path);
+                    OO_LOG("script.load.exception", "***** {} encountered exception {} ({}) while trying to load script from {} -- ignoring this location.", "+ResourceManager::loadScripts()", [exception name], [exception reason], path);
                     // Ignore exception and keep loading other scripts.
                 }
             }
@@ -2046,7 +2046,7 @@ std::vector<std::pair<std::string, oo::Ref<OOScript>>> cxx::ResourceManager::loa
     return loadedScripts;
 }
 
-bool cxx::ResourceManager::writeDiagnosticData(const oo::Data& data, const std::string& name)
+bool ResourceManager::writeDiagnosticData(const oo::Data& data, const std::string& name)
 {
     std::optional<std::string> directory = diagnosticFileLocation();
     if (!directory.has_value())
@@ -2073,12 +2073,12 @@ bool cxx::ResourceManager::writeDiagnosticData(const oo::Data& data, const std::
     return oo::fs::writeFile(oo::fs::pathFromUTF8(oo::str::appendingPathComponent(*directory, fileName)), data, oo::fs::WriteMode::atomic).has_value();
 }
 
-bool cxx::ResourceManager::writeDiagnosticString(const std::string& string, const std::string& name)
+bool ResourceManager::writeDiagnosticString(const std::string& string, const std::string& name)
 {
     return writeDiagnosticData(oo::Data::fromString(string), name);
 }
 
-bool cxx::ResourceManager::writeDiagnosticPList(const oo::PList& plist, const std::string& name)
+bool ResourceManager::writeDiagnosticPList(const oo::PList& plist, const std::string& name)
 {
     // The old-school writer (oo::writeOldStylePList, the port of the retired Objective-C old-school plist writer). Its
     // XML fallback's result was never used, so a plist it cannot write is not written.
@@ -2089,12 +2089,12 @@ bool cxx::ResourceManager::writeDiagnosticPList(const oo::PList& plist, const st
     return writeDiagnosticData(*data, name);
 }
 
-oo::PList cxx::ResourceManager::materialDefaults()
+oo::PList ResourceManager::materialDefaults()
 {
     return dictionaryFromFilesNamed("material-defaults.plist", std::string("Config"), YES);
 }
 
-bool cxx::ResourceManager::directoryExists(const std::string& inPath, bool inCreate)
+bool ResourceManager::directoryExists(const std::string& inPath, bool inCreate)
 {
     const oo::fs::FileType type = oo::fs::fileType(oo::fs::pathFromUTF8(inPath));
     const BOOL exists = type != oo::fs::FileType::none;
@@ -2116,7 +2116,7 @@ bool cxx::ResourceManager::directoryExists(const std::string& inPath, bool inCre
     return YES;
 }
 
-std::optional<std::string> cxx::ResourceManager::diagnosticFileLocation()
+std::optional<std::string> ResourceManager::diagnosticFileLocation()
 {
     return cxx_OOLogHandlerGetLogBasePath();
 }

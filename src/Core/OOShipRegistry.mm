@@ -49,7 +49,7 @@ SOFTWARE.
 
 namespace {
 
-cxx::OOShipRegistry* sSingleton = nullptr; // the one +1 is never released (amendment oo-r7m0 item 1)
+OOShipRegistry* sSingleton = nullptr; // the one +1 is never released
 
 constexpr const char* kRoleWeightsCacheKey = "role weights";
 constexpr const char* kDefaultDemoShip = "coriolis-station";
@@ -155,8 +155,6 @@ std::string CaseInsensitiveSortedList(std::vector<std::string> keys)
 void DumpStringAddrs(const oo::PList& dict, const std::string& context);
 
 } // namespace
-
-namespace cxx {
 
 OOShipRegistry* OOShipRegistry::sharedRegistry()
 {
@@ -320,10 +318,6 @@ std::optional<std::string> OOShipRegistry::randomShipKeyForRole(const std::strin
     return std::nullopt;
 }
 
-} // namespace cxx
-
-namespace cxx {
-
 /*	-loadShipData
 
         Load the data for all ships. This consists of five stages:
@@ -340,10 +334,7 @@ void OOShipRegistry::loadShipData()
     _playerShips.clear();
 
     // Load shipdata.plist.
-    oo::PList result = [::ResourceManager cxx_dictionaryFromFilesNamed:"shipdata.plist"
-                                                              inFolder:"Config"
-                                                             mergeMode:MERGE_BASIC
-                                                                 cache:NO];
+    oo::PList result = ResourceManager::dictionaryFromFilesNamed("shipdata.plist", "Config", MERGE_BASIC, NO);
     if (result.isNull())
         return;
 
@@ -403,10 +394,7 @@ void OOShipRegistry::loadShipData()
 
     _effectData = oo::PList();
 
-    result = [::ResourceManager cxx_dictionaryFromFilesNamed:"effectdata.plist"
-                                                    inFolder:"Config"
-                                                   mergeMode:MERGE_BASIC
-                                                       cache:NO];
+    result = ResourceManager::dictionaryFromFilesNamed("effectdata.plist", "Config", MERGE_BASIC, NO);
     if (result.isNull())
         return;
 
@@ -446,10 +434,7 @@ void OOShipRegistry::loadDemoShipConditions()
     std::vector<std::string> conditionScripts;
 
     // OOCacheManager is an unmigrated callee: convert at the call.
-    const oo::PList initialDemoShips = [::ResourceManager cxx_arrayFromFilesNamed:"shiplibrary.plist"
-                                                                         inFolder:"Config"
-                                                                         andMerge:YES
-                                                                            cache:NO];
+    const oo::PList initialDemoShips = ResourceManager::arrayFromFilesNamed("shiplibrary.plist", "Config", YES, NO);
 
     if (const oo::PList::Array* entries = initialDemoShips.getIf<oo::PList::Array>()) {
         for (const oo::PList& key : *entries) {
@@ -476,10 +461,7 @@ void OOShipRegistry::loadDemoShips()
 {
     _demoShips = oo::PList();
 
-    const oo::PList initialDemoShips = [::ResourceManager cxx_arrayFromFilesNamed:"shiplibrary.plist"
-                                                                         inFolder:"Config"
-                                                                         andMerge:YES
-                                                                            cache:NO];
+    const oo::PList initialDemoShips = ResourceManager::arrayFromFilesNamed("shiplibrary.plist", "Config", YES, NO);
     const oo::PList::Array noShips;
     const oo::PList::Array* initialArray = initialDemoShips.getIf<oo::PList::Array>(); // null unless isArray()
     const oo::PList::Array& initialEntries = initialArray != nullptr ? *initialArray : noShips;
@@ -501,7 +483,7 @@ void OOShipRegistry::loadDemoShips()
                     // conditions always false here
                     removeEntry(key);
                 } else {
-                    ::OOScript* condScript = [UNIVERSE cxx_getConditionScript:*conditions];
+                    ::OOScript* condScript = (UNIVERSE != nullptr ? UNIVERSE->getConditionScript(*conditions) : nullptr);
                     if (condScript != nil) // should always be non-nil, but just in case
                     {
                         JSContext* context = OOJSAcquireContext();
@@ -772,10 +754,7 @@ bool OOShipRegistry::makeShipEntriesMutable(oo::PList& ioData)
 bool OOShipRegistry::loadAndApplyShipDataOverrides(oo::PList& ioData)
 {
     oo::PList::Dict& ships = Entries(ioData);
-    const oo::PList overrides = [::ResourceManager cxx_dictionaryFromFilesNamed:"shipdata-overrides.plist"
-                                                                       inFolder:"Config"
-                                                                      mergeMode:MERGE_SMART
-                                                                          cache:NO];
+    const oo::PList overrides = ResourceManager::dictionaryFromFilesNamed("shipdata-overrides.plist", "Config", MERGE_SMART, NO);
 
     if (const oo::PList::Dict* overrideEntries = overrides.getIf<oo::PList::Dict>()) {
         for (const auto& [shipKey, overridesEntry] : *overrideEntries) {
@@ -821,14 +800,8 @@ bool OOShipRegistry::loadAndMergeShipyard(oo::PList& ioData)
         Entries(ship.second).erase("_oo_shipyard");
     }
 
-    const oo::PList shipyard = [::ResourceManager cxx_dictionaryFromFilesNamed:"shipyard.plist"
-                                                                      inFolder:"Config"
-                                                                     mergeMode:MERGE_BASIC
-                                                                         cache:NO];
-    const oo::PList shipyardOverrides = [::ResourceManager cxx_dictionaryFromFilesNamed:"shipyard-overrides.plist"
-                                                                               inFolder:"Config"
-                                                                              mergeMode:MERGE_SMART
-                                                                                  cache:NO];
+    const oo::PList shipyard = ResourceManager::dictionaryFromFilesNamed("shipyard.plist", "Config", MERGE_BASIC, NO);
+    const oo::PList shipyardOverrides = ResourceManager::dictionaryFromFilesNamed("shipyard-overrides.plist", "Config", MERGE_SMART, NO);
 
     playerShips.reserve(shipyard.count());
 
@@ -885,7 +858,7 @@ bool OOShipRegistry::removeUnusableEntries(oo::PList& ioData, bool shipMode)
                 OO_LOG_ERR("shipData.load.error", "the shipdata.plist entry \"{}\" specifies no {}.", shipKey, "model");
                 cxx_OOStandardsError("Error in shipdata.plist");
                 remove = YES;
-            } else if (!modelName.empty() && ![::ResourceManager cxx_pathForFileNamed:modelName inFolder:"Models"].has_value()) {
+            } else if (!modelName.empty() && !ResourceManager::pathForFileNamed(modelName, "Models").has_value()) {
                 OO_LOG_ERR("shipData.load.error", "the shipdata.plist entry \"{}\" specifies non-existent model \"{}\".", shipKey, modelName);
                 cxx_OOStandardsError("Error in shipdata.plist");
                 remove = YES;
@@ -999,10 +972,6 @@ bool OOShipRegistry::sanitizeConditions(oo::PList& ioData)
 
     return true;
 }
-
-} // namespace cxx
-
-namespace cxx {
 
 bool OOShipRegistry::canonicalizeAndTagSubentities(oo::PList& ioData)
 {
@@ -1225,7 +1194,7 @@ oo::PList OOShipRegistry::translateOldStyleSubentityDeclaration(const std::strin
     }
 }
 
-oo::PList OOShipRegistry::translateOldStyleFlasherDeclaration(const oo::PList& tokens, const std::string& shipKey, BOOL* outFatalError)
+oo::PList OOShipRegistry::translateOldStyleFlasherDeclaration(const oo::PList& tokens, const std::string& /*shipKey*/, BOOL* /*outFatalError*/)
 {
     Vector position;
     float size, frequency, phase, hue;
@@ -1260,7 +1229,7 @@ oo::PList OOShipRegistry::translateOldStyleFlasherDeclaration(const oo::PList& t
     return resultPList;
 }
 
-oo::PList OOShipRegistry::translateOldStandardBasicSubentityDeclaration(const oo::PList& tokens, const std::string& shipKey, const oo::PList& shipData, BOOL* outFatalError)
+oo::PList OOShipRegistry::translateOldStandardBasicSubentityDeclaration(const oo::PList& tokens, const std::string& shipKey, const oo::PList& shipData, BOOL* /*outFatalError*/)
 {
     std::string subentityKey;
     Vector position;
@@ -1323,7 +1292,7 @@ oo::PList OOShipRegistry::validateNewStyleSubentityDeclaration(const oo::PList& 
     }
 }
 
-oo::PList OOShipRegistry::validateNewStyleFlasherDeclaration(const oo::PList& declaration, const std::string& shipKey, BOOL* outFatalError)
+oo::PList OOShipRegistry::validateNewStyleFlasherDeclaration(const oo::PList& declaration, const std::string& shipKey, BOOL* /*outFatalError*/)
 {
     Vector position = kZeroVector;
     float size, frequency, phase, brightfraction;
@@ -1501,8 +1470,6 @@ bool OOShipRegistry::shipIsBallTurretForKey(const std::string& shipKey, const oo
 
     return false;
 }
-
-} // namespace cxx
 
 namespace {
 

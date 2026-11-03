@@ -42,7 +42,6 @@ struct fd_set; // winsock2.h's, which the .mm includes
 #include <sys/select.h>
 #endif
 
-@class OODebugMonitor;
 struct OOTCPStreamDecoder;
 
 typedef enum {
@@ -63,8 +62,6 @@ typedef enum {
 bool OODebugTCPConsoleIsWaitingForInput(void);
 void OODebugTCPConsoleServiceInput(double timeout);
 
-namespace cxx {
-
 class OODebugMonitor;
 
 /*	The connection is one non-blocking TCP socket (bead oo-3rb.14, proposed ADR-0041), where it was a
@@ -73,11 +70,10 @@ class OODebugMonitor;
         connection-failure messages print; _pendingErrorCode is an error event the run loop would
         still have delivered to the stream delegate.
 
-        The debug monitor reaches the client through the OODebuggerInterface protocol, which the
-        Objective-C facade (OODebugTCPConsoleClient+ObjCBridge.h) adopts; its members below are the
-        protocol's, with the monitor as the C++ one.
+        The debug monitor reaches the client through the C++ OODebuggerInterface, which the client
+        implements (its Objective-C facade is deleted and it left namespace cxx).
 */
-class OODebugTCPConsoleClient : public oo::RefCounted {
+class OODebugTCPConsoleClient : public OODebuggerInterface {
 public:
     // [[OODebugTCPConsoleClient alloc] initWithAddress:port:]; null when the connection fails.
     static oo::Ref<OODebugTCPConsoleClient> clientWithAddress(const std::optional<std::string>& address, // Pass nullopt for localhost
@@ -87,20 +83,21 @@ public:
 
     // The debugger interface (OODebuggerInterface).
     bool connectDebugMonitor(OODebugMonitor* debugMonitor,
-        std::optional<std::string>* message);
+        std::optional<std::string>* message) override;
     void disconnectDebugMonitor(OODebugMonitor* debugMonitor,
-        const std::optional<std::string>& message);
+        const std::optional<std::string>& message) override;
     void debugMonitor(OODebugMonitor* debugMonitor,
         const std::string& output,
         const std::optional<std::string>& colorKey,
-        NSRange emphasisRange);
-    void debugMonitorClearConsole(OODebugMonitor* debugMonitor);
-    void debugMonitorShowConsole(OODebugMonitor* debugMonitor);
+        NSRange emphasisRange) override;
+    void debugMonitorClearConsole(OODebugMonitor* debugMonitor) override;
+    void debugMonitorShowConsole(OODebugMonitor* debugMonitor) override;
     void debugMonitor(OODebugMonitor* debugMonitor,
-        const oo::PList& configuration);
+        const oo::PList& configuration) override;
     void debugMonitor(OODebugMonitor* debugMonitor,
         const oo::PList& newValue,
-        const std::string& key);
+        const std::string& key) override;
+    std::string description() const override; // <OODebugTCPConsoleClient 0x...>, as the facade's %@ printed
 
 private:
     // The frame loop's functions below read the clients' sockets.
@@ -166,10 +163,3 @@ private:
     OODebugMonitor* _monitor = { };
     ::OOTCPStreamDecoder* _decoder = { };
 };
-
-} // namespace cxx
-
-// Transitional: the Objective-C OODebugTCPConsoleClient, for the debug support and the debug
-// monitor, which hold it as their debugger (id<OODebuggerInterface>). Deleted, with namespace cxx
-// above, by the bridge's deletion bead.
-#import "OODebugTCPConsoleClient+ObjCBridge.h"

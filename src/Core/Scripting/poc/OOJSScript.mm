@@ -154,7 +154,7 @@ static std::string ScriptNameFromPath(const std::string& path)
         };
         sRunningStack = &stackElement;
 
-        OK = cxx::OOJavaScriptEngine::sharedEngine()->callJSFunction(method, _jsSelf, argc, argv, outResult);
+        OK = OOJavaScriptEngine::sharedEngine()->callJSFunction(method, _jsSelf, argc, argv, outResult);
 
         sRunningStack = stackElement.back;
     } else if (JS_IsException(method)) {

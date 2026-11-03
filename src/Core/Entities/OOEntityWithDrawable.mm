@@ -24,6 +24,7 @@ MA 02110-1301, USA.
 
 #import "OOEntityWithDrawable.h"
 #import "OODrawable.h"
+#import "OOTexture.h" // allTextures() destroys oo::Ref<OOTexture>s
 #import "OOVisualEffectEntity.h"
 #import "ShipEntity.h"
 #import "Universe.h"
@@ -44,7 +45,7 @@ void OOEntityWithDrawable::setDrawable(OODrawable* inDrawable)
         // Messages to a nil drawable did nothing and answered 0.
         OODrawable* cxxDrawable = drawable.get();
         if (cxxDrawable != nullptr)
-            cxxDrawable->setBindingTarget(oo::ToObjC(this));
+            cxxDrawable->setBindingTarget(this); // the C++ entity
 
         collision_radius = cxxDrawable != nullptr ? cxxDrawable->collisionRadius() : 0.0f;
         no_draw_distance = cxxDrawable != nullptr ? cxxDrawable->maxDrawDistance() : 0.0f;
@@ -79,7 +80,7 @@ void OOEntityWithDrawable::drawImmediate(bool /*immediate*/, bool translucent)
             // unwanted disappearance maybe fix
             // http://aegidian.org/bb/viewtopic.php?f=3&t=13619 - CIM
             if (cam_zero_distance > (clipradius + 1000) * (clipradius + 1000)) {
-                if (![UNIVERSE viewFrustumIntersectsSphereAt:cameraRelativePosition withRadius:clipradius]) {
+                if (!(UNIVERSE != nullptr ? UNIVERSE->viewFrustumIntersectsSphereAt(cameraRelativePosition, clipradius) : false)) {
                     return;
                 }
             }
@@ -88,14 +89,14 @@ void OOEntityWithDrawable::drawImmediate(bool /*immediate*/, bool translucent)
             // don't bother with frustum culling within 1km, as above - CIM
             if (cam_zero_distance > (collision_radius + 1000) * (collision_radius + 1000)) {
                 // check correct sub-entity position
-                if (![UNIVERSE viewFrustumIntersectsSphereAt:cameraRelativePosition withRadius:collisionRadius()]) {
+                if (!(UNIVERSE != nullptr ? UNIVERSE->viewFrustumIntersectsSphereAt(cameraRelativePosition, collisionRadius()) : false)) {
                     return;
                 }
             }
         }
     }
 
-    if ([UNIVERSE wireframeGraphics])
+    if ((UNIVERSE != nullptr ? UNIVERSE->getWireframeGraphics() : false))
         OOGLWireframeModeOn();
 
     OODrawable* cxxDrawable = drawable.get();
@@ -106,14 +107,14 @@ void OOEntityWithDrawable::drawImmediate(bool /*immediate*/, bool translucent)
             cxxDrawable->renderOpaqueParts();
     }
 
-    if ([UNIVERSE wireframeGraphics])
+    if ((UNIVERSE != nullptr ? UNIVERSE->getWireframeGraphics() : false))
         OOGLWireframeModeOff();
 }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-std::vector<oo::ObjCRef<::OOTexture*>> OOEntityWithDrawable::allTextures()
+std::vector<oo::Ref<OOTexture>> OOEntityWithDrawable::allTextures()
 {
     OODrawable* cxxDrawable = getDrawable();
-    return cxxDrawable != nullptr ? cxxDrawable->allTextures() : std::vector<oo::ObjCRef<::OOTexture*>>();
+    return cxxDrawable != nullptr ? cxxDrawable->allTextures() : std::vector<oo::Ref<OOTexture>>();
 }
 #endif

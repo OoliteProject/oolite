@@ -25,7 +25,6 @@ MA 02110-1301, USA.
 */
 
 #import "OOJoystickManager.h"
-#import "OOCallByName.h"
 #include "oofnd/Defaults.hpp"
 #include "oofnd/Log.hpp"
 
@@ -33,10 +32,33 @@ MA 02110-1301, USA.
 #include "oofnd/objc/OOAssert.h"
 #include <cstring>
 
-// sStickHandlerClass, sSharedStickHandler, +sharedStickHandler and +setStickHandlerClass: are the
-// facade's (OOJoystickManager+ObjCBridge.mm): the shared handler is made from an Objective-C class.
+namespace {
 
-namespace cxx {
+OOJoystickManager::StickHandlerFactory sStickHandlerFactory = nullptr;
+OOJoystickManager* sSharedStickHandler = nullptr; // never released, as before
+
+} // namespace
+
+// +sharedStickHandler and +setStickHandlerClass: (moved from the deleted facade):
+// the class registered is a function that makes the manager; -init's body, init(), runs on the
+// new manager as [[class alloc] init] ran it.
+OOJoystickManager* OOJoystickManager::sharedStickHandler()
+{
+    if (sSharedStickHandler == nullptr) {
+        oo::Ref<OOJoystickManager> handler = (sStickHandlerFactory != nullptr) ? sStickHandlerFactory() : oo::makeRef<OOJoystickManager>();
+        handler->init();
+        sSharedStickHandler = handler.leakRef();
+    }
+    return sSharedStickHandler;
+}
+
+bool OOJoystickManager::setStickHandlerFactory(StickHandlerFactory factory)
+{
+    OOCAssert(sStickHandlerFactory == nullptr && sSharedStickHandler == nullptr, "Can't set joystick handler class after joystick handler is initialized.");
+
+    sStickHandlerFactory = factory;
+    return true;
+}
 
 void OOJoystickManager::init()
 {
@@ -474,18 +496,16 @@ void OOJoystickManager::clearStickButtonState(int stickButton)
     }
 }
 
-void OOJoystickManager::setCallback(SEL selector,
-    id obj,
+void OOJoystickManager::setCallback(StickCallback callback,
     char hwflags)
 {
-    cbObject = obj;
-    cbSelector = selector;
+    cbCallback = std::move(callback);
     cbHardware = hwflags;
 }
 
 void OOJoystickManager::clearCallback()
 {
-    cbObject = nullptr;
+    cbCallback = nullptr;
     cbHardware = 0;
 }
 
@@ -558,5 +578,3 @@ int16_t OOJoystickManager::getAxisWithStick(NSUInteger /*stickNum*/, NSUInteger 
 {
     return 0;
 }
-
-} // namespace cxx

@@ -26,8 +26,8 @@ SOFTWARE.
 */
 
 #import "OOShaderMaterial.h"
-#import "Entity.h" // the shader binding targets' informal protocols (-randomSeedForShaders)
 #import "OOObjCPList.h"
+#import "OOShaderUniformMethodType.h" // the binding target's hooks (bead oo-9ht.39.6)
 #include "oofnd/objc/OORuntime.h"
 
 #if OO_SHADERS
@@ -89,10 +89,29 @@ bool OOShaderMaterial::configurationDictionarySpecifiesShaderMaterial(const oo::
     return false;
 }
 
+// What the log lines printed for the binding target's Objective-C object (beads oo-9ht.39.6,
+// oo-dpyk8): its class's name and its description; "(null)" for none, or where the entities have
+// registered no hooks, as nil's.
+namespace {
+
+std::string TargetClassName(Entity* target)
+{
+    const OOShaderEntityHooks* hooks = OOShaderEntityHooksIfSet();
+    return (target != nullptr && hooks != nullptr) ? hooks->className(target) : std::string("(null)");
+}
+
+std::string TargetDescription(Entity* target)
+{
+    const OOShaderEntityHooks* hooks = OOShaderEntityHooksIfSet();
+    return (target != nullptr && hooks != nullptr) ? hooks->description(target) : std::string("(null)");
+}
+
+} // namespace
+
 oo::Ref<OOShaderMaterial> OOShaderMaterial::shaderMaterialWithName(const std::optional<std::string>& name,
     const oo::PList& configuration,
     const oo::PList& macros,
-    id<OOWeakReferenceSupport> target)
+    Entity* target)
 {
     oo::Ref<OOShaderMaterial> result = oo::makeRef<OOShaderMaterial>();
     if (!result->initWithName(name, configuration, macros, target))
@@ -103,13 +122,13 @@ oo::Ref<OOShaderMaterial> OOShaderMaterial::shaderMaterialWithName(const std::op
 bool OOShaderMaterial::initWithName(const std::optional<std::string>& name,
     const oo::PList& configuration,
     const oo::PList& macros,
-    id<OOWeakReferenceSupport> target)
+    Entity* target)
 {
     bool OK = true;
     std::optional<std::string> macroString;
     std::optional<std::string> vertexShader;
     std::optional<std::string> fragmentShader;
-    GLint textureUnits = cxx::OOOpenGLExtensionManager::sharedManager()->textureImageUnitCount();
+    GLint textureUnits = OOOpenGLExtensionManager::sharedManager()->textureImageUnitCount();
     oo::PList modifiedMacros;
     std::optional<std::string> vsName = "<synthesized>";
     std::optional<std::string> fsName = "<synthesized>";
@@ -223,10 +242,10 @@ bool OOShaderMaterial::initWithName(const std::optional<std::string>& name,
         const oo::PList* uniformDefs = configuration.find(kOOUniformsKey);
 
         // Texture objects from the configuration (Object nodes), else texture specifiers loaded.
-        std::vector<oo::ObjCRef<::OOTexture*>> textureObjects;
+        std::vector<oo::Ref<OOTexture>> textureObjects;
         if (const oo::PList* textureArray = configuration.get<oo::PList::Array>(kOOTextureObjectsKey)) {
             for (const oo::PList& entry : *textureArray->getIf<oo::PList::Array>()) {
-                textureObjects.push_back(oo::ObjCRef<::OOTexture*>(oo::ObjectIn(entry)));
+                textureObjects.push_back(oo::Ref<OOTexture>(OOTextureInObjectNode(entry)));
             }
         } else if (const oo::PList* textureSpecs = configuration.get<oo::PList::Array>(kOOTexturesKey)) {
             textureObjects = loadTexturesFromArray(*textureSpecs, textureUnits);
@@ -255,27 +274,28 @@ bool OOShaderMaterial::initWithName(const std::optional<std::string>& name,
 }
 
 // -dealloc's body, but for its first line ([self willDealloc], the root facade's: proposed ADR-0056,
-// amendment oo-smy item 3); the shader program and the binding target are oo::ObjCRefs.
+// amendment oo-smy item 3); the shader program is an oo::Ref. (The binding target the material kept
+// and never read went with bead oo-9ht.39.6: the uniforms hold it.)
 OOShaderMaterial::~OOShaderMaterial()
 {
     uint32_t i;
 
     if (textures != NULL) {
         for (i = 0; i != texCount; ++i) {
-            [textures[i] release];
+            oo::release(textures[i]);
         }
         free(textures);
     }
 }
 
 bool OOShaderMaterial::bindUniform(const std::string& uniformName,
-    id<OOWeakReferenceSupport> source,
+    Entity* source,
     SEL selector,
     OOUniformConvertOptions options)
 {
     oo::Ref<OOShaderUniform> uniform;
 
-    uniform = OOShaderUniform::initWithName(uniformName, shaderProgram.get(), source, selector, options);
+    uniform = OOShaderUniform::initWithEntityTarget(uniformName, shaderProgram.get(), source, selector, options);
     if (uniform != nullptr) {
         OO_LOG("shader.uniform.set", "Set up uniform {}", uniform->description().value_or("(null)"));
         uniforms[uniformName] = uniform;
@@ -288,7 +308,7 @@ bool OOShaderMaterial::bindUniform(const std::string& uniformName,
 }
 
 bool OOShaderMaterial::bindSafeUniform(const std::string& uniformName,
-    id<OOWeakReferenceSupport> target,
+    Entity* target,
     const std::optional<std::string>& property,
     OOUniformConvertOptions options)
 {
@@ -302,7 +322,7 @@ bool OOShaderMaterial::bindSafeUniform(const std::string& uniformName,
             selector,
             options);
     } else {
-        OO_LOG("shader.uniform.unpermittedMethod", "Did not bind uniform \"{}\" to property -[{} {}] - unpermitted method.", uniformName, oo::DescriptionOf([target class]), property.value_or("(null)"));
+        OO_LOG("shader.uniform.unpermittedMethod", "Did not bind uniform \"{}\" to property -[{} {}] - unpermitted method.", uniformName, TargetClassName(target), property.value_or("(null)"));
     }
 
     return false;
@@ -389,7 +409,7 @@ void OOShaderMaterial::setUniform(const std::string& uniformName, Quaternion val
     }
 }
 
-void OOShaderMaterial::addUniformsFromDictionary(const oo::PList& uniformDefs, id<OOWeakReferenceSupport> target)
+void OOShaderMaterial::addUniformsFromDictionary(const oo::PList& uniformDefs, Entity* target)
 {
     oo::PList value;
     std::optional<std::string> binding;
@@ -402,8 +422,9 @@ void OOShaderMaterial::addUniformsFromDictionary(const oo::PList& uniformDefs, i
     uint32_t randomSeed;
     RANROTSeed savedSeed;
 
-    if ([target respondsToSelector:OOSelectorFromName("randomSeedForShaders")]) {
-        randomSeed = [(id)target randomSeedForShaders];
+    const OOShaderEntityHooks* hooks = OOShaderEntityHooksIfSet();
+    if (target != nullptr && hooks != nullptr && hooks->randomSeed(target, &randomSeed)) {
+        // -randomSeedForShaders, where the target's object answered it (bead oo-9ht.39.6: the hook).
     } else {
         // The material's address, as (uint32_t)(uintptr_t)self was: now the C++ object's.
         randomSeed = (uint32_t)(uintptr_t)this;
@@ -508,7 +529,7 @@ void OOShaderMaterial::addUniformsFromDictionary(const oo::PList& uniformDefs, i
                 OOQuaternionFromPList(&value, kIdentityQuaternion),
                 quatAsMatrix);
             gotValue = YES;
-        } else if (target != nil && type == "binding") {
+        } else if (target != nullptr && type == "binding") {
             if (definition.isDict()) {
                 convertOptions = 0;
                 if (definition.get<bool>("clamped", false))
@@ -529,7 +550,7 @@ void OOShaderMaterial::addUniformsFromDictionary(const oo::PList& uniformDefs, i
         }
 
         if (!gotValue) {
-            OO_LOG("shader.uniform.badDescription", "----- Warning: could not bind uniform \"{}\" for target {} -- could not interpret definition:\n{}", name, oo::DescriptionOf(target), oo::DescriptionOf(definition));
+            OO_LOG("shader.uniform.badDescription", "----- Warning: could not bind uniform \"{}\" for target {} -- could not interpret definition:\n{}", name, TargetDescription(target), oo::DescriptionOf(definition));
         }
     }
 
@@ -547,7 +568,8 @@ bool OOShaderMaterial::doApply()
 
     for (i = 0; i != texCount; ++i) {
         OOGL(glActiveTextureARB(GL_TEXTURE0_ARB + i));
-        [textures[i] apply];
+        if (textures[i] != nullptr)
+            textures[i]->apply(); // a message to nil did nothing
     }
     if (texCount > 1)
         OOGL(glActiveTextureARB(GL_TEXTURE0_ARB));
@@ -572,7 +594,8 @@ void OOShaderMaterial::ensureFinishedLoading()
 
     if (textures != NULL) {
         for (i = 0; i != texCount; ++i) {
-            [textures[i] ensureFinishedLoading];
+            if (textures[i] != nullptr)
+                textures[i]->ensureFinishedLoading();
         }
     }
 }
@@ -583,8 +606,8 @@ bool OOShaderMaterial::isFinishedLoading()
 
     if (textures != NULL) {
         for (i = 0; i != texCount; ++i) {
-            if (![textures[i] isFinishedLoading])
-                return false;
+            if (textures[i] == nullptr || !textures[i]->isFinishedLoading())
+                return false; // nil answered NO
         }
     }
 
@@ -611,19 +634,18 @@ void OOShaderMaterial::unapplyWithNext(OOMaterial* next)
         count = texCount ? texCount : 1;
         for (i = 0; i != count; ++i) {
             OOGL(glActiveTextureARB(GL_TEXTURE0_ARB + i));
-            [::OOTexture applyNone];
+            OOTexture::applyNone();
         }
         if (count != 1)
             OOGL(glActiveTextureARB(GL_TEXTURE0_ARB));
     }
 }
 
-void OOShaderMaterial::setBindingTarget(id<OOWeakReferenceSupport> target)
+void OOShaderMaterial::setBindingTarget(Entity* target)
 {
     for (const auto& [name, uniform] : uniforms) {
-        uniform->setBindingTarget(target);
+        uniform->setEntityBindingTarget(target);
     }
-    bindingTarget = oo::ObjCRef<::OOWeakReference*>::adopt([target weakRetain]);
 }
 
 bool OOShaderMaterial::permitSpecular()
@@ -632,9 +654,9 @@ bool OOShaderMaterial::permitSpecular()
 }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-std::vector<oo::ObjCRef<::OOTexture*>> OOShaderMaterial::allTextures()
+std::vector<oo::Ref<OOTexture>> OOShaderMaterial::allTextures()
 {
-    std::vector<oo::ObjCRef<::OOTexture*>> result;
+    std::vector<oo::Ref<OOTexture>> result;
     result.reserve(texCount);
     for (uint32_t i = 0; i < texCount; i++) {
         result.emplace_back(textures[i]);
@@ -643,30 +665,30 @@ std::vector<oo::ObjCRef<::OOTexture*>> OOShaderMaterial::allTextures()
 }
 #endif
 
-std::vector<oo::ObjCRef<::OOTexture*>> OOShaderMaterial::loadTexturesFromArray(const oo::PList& textureSpecs, GLuint max)
+std::vector<oo::Ref<OOTexture>> OOShaderMaterial::loadTexturesFromArray(const oo::PList& textureSpecs, GLuint max)
 {
     GLuint i, count = (GLuint)MIN(textureSpecs.count(), (size_t)max);
-    std::vector<oo::ObjCRef<::OOTexture*>> result;
+    std::vector<oo::Ref<OOTexture>> result;
     result.reserve(count);
 
     for (i = 0; i < count; i++) {
-        ::OOTexture* texture = [::OOTexture cxx_textureWithConfiguration:*textureSpecs.at(i)];
-        if (texture == nil)
-            texture = [::OOTexture nullTexture];
-        result.push_back(oo::ObjCRef<::OOTexture*>(texture));
+        oo::Ref<OOTexture> texture = OOTexture::textureWithConfiguration(*textureSpecs.at(i));
+        if (texture == nullptr)
+            texture = OOTexture::nullTexture();
+        result.push_back(texture);
     }
 
     return result;
 }
 
-void OOShaderMaterial::addTexturesFromArray(const std::vector<oo::ObjCRef<::OOTexture*>>& textureObjects, GLuint max)
+void OOShaderMaterial::addTexturesFromArray(const std::vector<oo::Ref<OOTexture>>& textureObjects, GLuint max)
 {
     // Allocate space for texture object name array
     texCount = (uint32_t)MIN(textureObjects.size(), (size_t)max);
     if (texCount == 0)
         return;
 
-    textures = (::OOTexture**)malloc(texCount * sizeof *textures);
+    textures = (OOTexture**)malloc(texCount * sizeof *textures);
     if (textures == NULL) {
         texCount = 0;
         return;
@@ -675,8 +697,7 @@ void OOShaderMaterial::addTexturesFromArray(const std::vector<oo::ObjCRef<::OOTe
     // Set up texture object names and appropriate uniforms
     unsigned i;
     for (i = 0; i != texCount; ++i) {
-        textures[i] = textureObjects[i].get();
-        [textures[i] retain];
+        textures[i] = oo::Ref<OOTexture>(textureObjects[i]).leakRef(); // released in the destructor
     }
 }
 
@@ -724,7 +745,7 @@ BOOL GetShaderSource(const std::optional<std::string>& fileName, const std::stri
     if (!fileName.has_value())
         return YES; // It's OK for one or the other of the shaders to be undefined.
 
-    std::optional<std::string> result = [ResourceManager cxx_stringFromFilesNamed:*fileName inFolder:std::string("Shaders")];
+    std::optional<std::string> result = ResourceManager::stringFromFilesNamed(*fileName, std::string("Shaders"));
     if (!result.has_value()) {
         const std::vector<std::string> extensions = { shaderType, shaderType.substr(0, 4) }; // vertex and vert, or fragment and frag
 
@@ -732,8 +753,7 @@ BOOL GetShaderSource(const std::optional<std::string>& fileName, const std::stri
         if (!oo::str::pathHasExtensionIn(*fileName, extensions)) {
             for (const std::string& extension : extensions) {
                 const std::string nameWithExtension = oo::str::appendingPathExtension(*fileName, extension);
-                result = [ResourceManager cxx_stringFromFilesNamed:nameWithExtension
-                                                          inFolder:std::string("Shaders")];
+                result = ResourceManager::stringFromFilesNamed(nameWithExtension, std::string("Shaders"));
                 if (result.has_value())
                     break;
             }

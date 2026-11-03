@@ -75,7 +75,7 @@ void SetUp()
 			  "{\n\thud_dial_methods = (\"drawTrumbles:\", \"drawTargetReticle:\", \"drawCompass:\", \"drawScanner:\");\n}\n");
 	WriteFile(sRoot / "Resources" / "Config" / "testcross.plist",
 			  "{\n\tWEAPON_OFFLINE = (1, 2, 3, 4, 5, 6);\n}\n");
-	[ResourceManager cxx_setUseAddOns:std::string(SCENARIO_OXP_DEFINITION_NONE)];	// strict: the built-in Resources alone
+	ResourceManager::setUseAddOns(std::string(SCENARIO_OXP_DEFINITION_NONE));	// strict: the built-in Resources alone
 }
 
 
@@ -389,9 +389,12 @@ OO_TEST(cxxAPI)
 		hud->setHiddenSelector("drawCompass:", true);
 		OO_CHECK(hud->hasHidden(std::string("drawCompass:")));
 
-		// Neither the player nor the universe: not in flight.
+		// Neither the player nor the universe: not in flight. Only a release-style build can ask with no
+		// player: the debug build asserts that PLAYER is set (OOGetPlayer(); bead oo-vdw34).
+#if !OO_DEBUG
 		OO_CHECK(!hud->checkPlayerInFlight());
 		OO_CHECK(!hud->checkPlayerInSystemFlight());
+#endif
 
 		const Vector v = HeadUpDisplay::nonlinearScannerScale(make_vector(3000.0f, 0.0f, 4000.0f), 1.0f, 256.0);
 		OO_CHECK(std::fabs(magnitude(v) - 50.0f) < 1e-4f);

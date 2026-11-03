@@ -39,7 +39,8 @@ MA 02110-1301, USA.
 #define COLLISION_MAX_ENTITIES 128
 #define MINIMUM_SHADOWING_ENTITY_RADIUS 75.0
 
-@class Entity;
+class Entity;
+class Entity; // the regions list the entities' C++ parts
 class OOSunEntity; // C++ since bead oo-9ht.111
 
 class CollisionRegion : public oo::RefCounted {
@@ -54,8 +55,8 @@ public:
 
     // collision checking
     void clearEntityList();
-    void addEntity(::Entity* ent);
-    bool checkEntity(::Entity* ent);
+    void addEntity(Entity* ent);
+    bool checkEntity(Entity* ent);
 
     void findCollisions();
     void findShadowedEntities();
@@ -90,7 +91,7 @@ private:
 
     bool isPlayerInRegion = { };
 
-    ::Entity** entity_array = { }; // entities within the region
+    Entity** entity_array = { }; // entities within the region: their C++ parts, borrowed
     unsigned n_entities = { }; // number of entities
     unsigned max_entities = { }; // so storage can be expanded
 
@@ -100,6 +101,6 @@ private:
 /* Given a region centred at e1pos with a radius of e1rad, the depth
  * of shadowing cast by e2 from the_sun is recorded in outValue, with
  * >1 = no shadow, <1 = shadow */
-BOOL shadowAtPointOcclusionToValue(HPVector e1pos, GLfloat e1rad, ::Entity* e2, OOSunEntity* the_sun, float* outValue);
+BOOL shadowAtPointOcclusionToValue(HPVector e1pos, GLfloat e1rad, Entity* e2, OOSunEntity* the_sun, float* outValue);
 
 #endif // COLLISIONREGION_H

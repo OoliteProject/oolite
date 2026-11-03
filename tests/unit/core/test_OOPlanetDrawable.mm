@@ -20,6 +20,7 @@
 #import "OOPlanetData.h"
 #import "OOBasicMaterial.h"
 #import "Universe.h"
+#import "MyOpenGLView.h"	// the game view is C++
 
 #include "oo_test.hpp"
 
@@ -35,38 +36,26 @@ extern Universe *gSharedUniverse;
 
 
 // The game view, as far as the drawable asks it.
-@interface TestView: OOObject
+// The game view: a C++ subclass of the game's (the Objective-C facade the test's
+// Objective-C stand-in stood in for is deleted), overriding the one member it answered (virtual for it).
+class TestView : public MyOpenGLView
 {
-@public
-	NSSize	_size;
-}
-- (NSSize) viewSize;
-@end
+public:
+	NSSize	_size = {};
 
-
-@implementation TestView
-
-- (NSSize) viewSize  { return _size; }
-
-@end
+	NSSize getViewSize() override  { return _size; }
+};
 
 
 // UNIVERSE: never initialised; answers the detail setting and the game view.
-@interface TestUniverse: Universe
+class TestUniverse : public Universe
 {
-@public
-	BOOL		_reduced;
-	TestView	*_view;
-}
-@end
+public:
+	BOOL _reduced = {};
+	TestView	*_view = {};
 
-
-@implementation TestUniverse
-
-- (BOOL) reducedDetail				{ return _reduced; }
-- (MyOpenGLView *) gameView			{ return (MyOpenGLView *)_view; }
-
-@end
+	bool reducedDetail() override	{ return _reduced; }
+};
 
 
 namespace {
@@ -78,9 +67,9 @@ void SetUp()
 {
 	if (sUniverse == nil)
 	{
-		sUniverse = (TestUniverse *)class_createInstance([TestUniverse class], 0);	// never released
-		sUniverse->_cxxUniverse = oo::makeRef<cxx::Universe>(sUniverse);	// what -initWithGameView: makes first (ADR-0056 amendment oo-riqmz)
-		sUniverse->_view = [[TestView alloc] init];
+		sUniverse = new TestUniverse();	// never released
+		sUniverse->_view = new TestView();	// never released
+		sUniverse->gameView = sUniverse->_view;	// what -gameView answered
 	}
 	sUniverse->_reduced = NO;
 	sUniverse->_view->_size = NSMakeSize(800, 600);
@@ -103,9 +92,13 @@ float Level(float lod)
 }
 
 
+// A material kept until the pool drains, as the facade's autoreleased object was.
 OOMaterial *NamedMaterial(const char *name)
 {
-	return oo::ToObjC(static_cast<cxx::OOMaterial *>(OOBasicMaterial::materialWithName(std::string(name), oo::PList()).get()));
+	oo::Ref<OOMaterial> material = OOBasicMaterial::materialWithName(std::string(name), oo::PList());
+	OOMaterial *result = material.get();
+	OOMaterialAutorelease(std::move(material));
+	return result;
 }
 
 

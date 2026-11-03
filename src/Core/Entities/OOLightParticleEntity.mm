@@ -56,7 +56,7 @@ void OOLightParticleEntity::initWithDiameter(float diameter)
     {
         _diameter = diameter;
         no_draw_distance = pow(diameter / 2.0, M_SQRT2) * NO_DRAW_DISTANCE_FACTOR * NO_DRAW_DISTANCE_FACTOR;
-        no_draw_distance *= [UNIVERSE reducedDetail] ? PARTICLE_DISTANCE_SCALE_LOW : PARTICLE_DISTANCE_SCALE_HIGH;
+        no_draw_distance *= (UNIVERSE != nullptr ? UNIVERSE->reducedDetail() : false) ? PARTICLE_DISTANCE_SCALE_LOW : PARTICLE_DISTANCE_SCALE_HIGH;
 
         _colorComponents[0] = 1.0f;
         _colorComponents[1] = 1.0f;
@@ -100,30 +100,31 @@ void OOLightParticleEntity::drawSubEntityImmediate(bool immediate, bool transluc
             zero_distances are necessary for flashers, if they haven't already.
             -- Ahruman 2009-09-20
     */
-    cam_zero_distance = [owner() camZeroDistance];
+    Entity* ownerPart = oo::LiveOwner(this); // -owner's C++ entity
+    cam_zero_distance = ownerPart != nullptr ? ownerPart->camZeroDistance() : 0; // a message to nil answered 0
     if (no_draw_distance <= cam_zero_distance)
         return;
 
-    ::Entity* father = owner();
-    ::Entity* last = nil;
+    Entity* father = ownerPart;
+    Entity* last = nullptr;
     HPVector abspos = position;
 
-    while (father != nil && father != last) // && father != (Entity *)NO_TARGET, which is nil: NO_TARGET is 0
+    while (father != nullptr && father != last) // && father != (Entity *)NO_TARGET, which is nil: NO_TARGET is 0
     {
-        OOMatrix rM = [father drawRotationMatrix];
-        abspos = HPvector_add(OOHPVectorMultiplyMatrix(abspos, rM), [father position]);
+        OOMatrix rM = father->drawRotationMatrix();
+        abspos = HPvector_add(OOHPVectorMultiplyMatrix(abspos, rM), father->getPosition());
         last = father;
 
-        if (![father isSubEntity])
+        if (!oo::EntityIsSubEntity(father))
             break;
-        father = [father owner];
+        father = oo::LiveOwner(father); // [father owner]
     }
 
     OOMatrix temp_matrix = OOGLPopModelView();
     OOGLPushModelView();
 
     /* Flashers are drawn using the absolute view matrix */
-    OOGLLoadModelView([UNIVERSE viewMatrix]);
+    OOGLLoadModelView((UNIVERSE != nullptr ? UNIVERSE->getViewMatrix() : OOMatrix { }));
     /* ...modified by the aggregate translation calculated above */
     OOGLTranslateModelView(HPVectorToVector(HPvector_subtract(abspos, (PLAYER != nullptr ? PLAYER->viewpointPosition() : HPVector { })))); // move to camera-relative position
     drawImmediate(immediate, translucent);
@@ -135,15 +136,16 @@ void OOLightParticleEntity::drawImmediate(bool /*immediate*/, bool translucent)
 {
     if (!translucent)
         return;
-    if ([UNIVERSE breakPatternHide] && !getIsImmuneToBreakPatternHide()) {
-        ::Entity* father = owner();
-        while (father != nil) // && father != (Entity *)NO_TARGET, which is nil: NO_TARGET is 0
+    if ((UNIVERSE != nullptr ? UNIVERSE->breakPatternHide() : false) && !getIsImmuneToBreakPatternHide()) {
+        Entity* father = oo::LiveOwner(this); // -owner's C++ entity
+        while (father != nullptr) // && father != (Entity *)NO_TARGET, which is nil: NO_TARGET is 0
         {
-            if (![father isSubEntity])
+            if (!oo::EntityIsSubEntity(father))
                 break;
-            father = [father owner];
+            father = oo::LiveOwner(father); // [father owner]
         }
-        if (![father isImmuneToBreakPatternHide]) {
+        if (!(father != nullptr && father->getIsImmuneToBreakPatternHide())) // nil answered NO
+        {
             return;
         }
     }
@@ -168,10 +170,11 @@ void OOLightParticleEntity::drawImmediate(bool /*immediate*/, bool translucent)
     OOGL(glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, components));
     OOGL(glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND));
 
-    OOViewID viewDir = [UNIVERSE viewDirection];
+    OOViewID viewDir = (UNIVERSE != nullptr ? UNIVERSE->getViewDirection() : OOViewID { });
     if (viewDir != VIEW_GUI_DISPLAY)
         OOGLMultModelView((PLAYER != nullptr ? PLAYER->drawRotationMatrix() : OOMatrix { }));
-    [texture() apply];
+    if (OOTexture* blob = texture())
+        blob->apply(); // a message to nil did nothing
 
     /*	NOTE: nominal diameter is actual radius, because of the black border
             in the texture. However, the offset along the view axis is not
@@ -285,7 +288,7 @@ void OOLightParticleEntity::drawImmediate(bool /*immediate*/, bool translucent)
     OOVerifyOpenGLState();
 }
 
-::OOTexture* OOLightParticleEntity::texture()
+OOTexture* OOLightParticleEntity::texture()
 {
     return OOLightParticleEntity::defaultParticleTexture();
 }
@@ -293,16 +296,12 @@ void OOLightParticleEntity::drawImmediate(bool /*immediate*/, bool translucent)
 void OOLightParticleEntity::setUpTexture()
 {
     if (sBlobTexture == nil) {
-        sBlobTexture = [[::OOTexture cxx_textureWithName:"oolite-particle-blur.png"
-                                                inFolder:"Textures"
-                                                 options:kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear | kOOTextureAlphaMask
-                                              anisotropy:kOOTextureDefaultAnisotropy / 2.0
-                                                 lodBias:0.0] retain];
+        sBlobTexture = OOTexture::textureWithName("oolite-particle-blur.png", "Textures", kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear | kOOTextureAlphaMask, kOOTextureDefaultAnisotropy / 2.0, 0.0).leakRef();
         OOGraphicsResetManager::sharedManager()->registerCxxClient(new BlobTextureResetClient);
     }
 }
 
-::OOTexture* OOLightParticleEntity::defaultParticleTexture()
+OOTexture* OOLightParticleEntity::defaultParticleTexture()
 {
     if (sBlobTexture == nil)
         setUpTexture();
@@ -311,8 +310,8 @@ void OOLightParticleEntity::setUpTexture()
 
 void OOLightParticleEntity::resetGraphicsState()
 {
-    [sBlobTexture release];
-    sBlobTexture = nil;
+    oo::release(sBlobTexture);
+    sBlobTexture = nullptr;
 }
 
 bool OOLightParticleEntity::isEffect()
@@ -326,9 +325,9 @@ bool OOLightParticleEntity::canCollide()
 }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-std::vector<oo::ObjCRef<::OOTexture*>> OOLightParticleEntity::allTextures()
+std::vector<oo::Ref<OOTexture>> OOLightParticleEntity::allTextures()
 {
-    std::vector<oo::ObjCRef<::OOTexture*>> result;
+    std::vector<oo::Ref<OOTexture>> result;
     result.emplace_back(texture());
     return result;
 }

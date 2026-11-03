@@ -29,6 +29,8 @@
 #import "OORegExpMatcher.h"
 #import "OOOpenGLExtensionManager.h"
 #import "OODescription.h"
+#import "OOTexture.h"
+#include "oofnd/String.hpp"
 
 #include "oo_gl_test_context.hpp"
 #include "oo_test.hpp"
@@ -48,15 +50,13 @@ void OOLogOutdent(void)  {}
 
 
 // The extension manager's collaborators, as test_OOOpenGLExtensionManager stubs them.
-@interface ResourceManager: OOObject
-+ (std::vector<std::string>) cxx_paths;
-+ (oo::PList) cxx_dictionaryFromFilesNamed:(const std::string &)fileName inFolder:(const std::string &)folderName andMerge:(BOOL)mergeFiles;
-@end
+#import "ResourceManager.h"
 
-@implementation ResourceManager
-+ (std::vector<std::string>) cxx_paths  { return {}; }
-+ (oo::PList) cxx_dictionaryFromFilesNamed:(const std::string &)fileName inFolder:(const std::string &)folderName andMerge:(BOOL)mergeFiles  { return oo::PList(oo::PList::Dict{}); }
-@end
+// ResourceManager is C++ since its Objective-C facade was deleted: C++ definitions of the
+// statics the code under test calls, with the Objective-C stand-in's answers.
+std::vector<std::string> ResourceManager::paths()  { return {}; }
+oo::PList ResourceManager::dictionaryFromFilesNamed(const std::string &/*fileName*/, const std::optional<std::string> &/*folderName*/, bool /*mergeFiles*/)  { return oo::PList(oo::PList::Dict{}); }
+
 
 
 // OORegExpMatcher is C++ since its facade was deleted (bead oo-9ht.12): the stub answers no match.
@@ -82,83 +82,104 @@ static std::string Str(const oo::PList &plist)
 /*	OOTexture: a stand-in recording what the material asks (proposed ADR-0056, amendment oo-z1s4
 	item 4). A texture's configuration is the specifier it was made from, or "generated".
 */
-// kOOTextureExtraShrink: OOTexture.h is not imported, because the test defines OOTexture.
+// kOOTextureExtraShrink, spelled out as before.
 static const uint32_t kExtraShrink = 0x000020UL;
 
 static int gTextureApplyNones = 0;
 static int gTexturesDeallocated = 0;
 static std::vector<std::pair<oo::PList, uint32_t>> gTextureConfigurations;	// (specifier, extra options)
 
-@interface OOTexture: OOObject
+// Since the Objective-C facade was deleted, the stand-in is C++: the root's static
+// members the material calls, TestTexture (what they answer), and the root's own members; the
+// short description is every texture's here (they are all TestTextures).
+class TestTexture final : public OOTexture
 {
-@public
+public:
+	~TestTexture() override					{ gTexturesDeallocated++; }
+	void apply() override					{ _applies++; }
+	void ensureFinishedLoading() override	{ _ensures++; }
+
 	oo::PList	_configuration;
-	int			_applies;
-	int			_ensures;
-}
-+ (void) applyNone;
-+ (id) cxx_textureWithConfiguration:(const oo::PList &)configuration;
-+ (id) cxx_textureWithConfiguration:(const oo::PList &)configuration extraOptions:(uint32_t)extraOptions;
-+ (id) textureWithGenerator:(id)generator;
-- (void) apply;
-- (void) ensureFinishedLoading;
-@end
+	int			_applies = 0;
+	int			_ensures = 0;
+};
 
-@implementation OOTexture
+static TestTexture *AsTest(const oo::Ref<OOTexture> &texture)  { return static_cast<TestTexture *>(texture.get()); }
 
-+ (void) applyNone	{ gTextureApplyNones++; }
+void OOTexture::applyNone()	{ gTextureApplyNones++; }
 
-+ (id) cxx_textureWithConfiguration:(const oo::PList &)configuration
+oo::Ref<OOTexture> OOTexture::textureWithConfiguration(const oo::PList &configuration)
 {
-	return [self cxx_textureWithConfiguration:configuration extraOptions:0];
+	return textureWithConfiguration(configuration, 0);
 }
 
-+ (id) cxx_textureWithConfiguration:(const oo::PList &)configuration extraOptions:(uint32_t)extraOptions
+oo::Ref<OOTexture> OOTexture::textureWithConfiguration(const oo::PList &configuration, OOTextureFlags extraOptions)
 {
 	gTextureConfigurations.emplace_back(configuration, extraOptions);
-	if (configuration.isNull())  return nil;
-	OOTexture *texture = [[[OOTexture alloc] init] autorelease];
+	if (configuration.isNull())  return nullptr;
+	oo::Ref<TestTexture> texture = oo::makeRef<TestTexture>();
 	texture->_configuration = configuration;
 	return texture;
 }
 
-+ (id) textureWithGenerator:(id)generator
+oo::Ref<OOTexture> OOTexture::textureWithGenerator(::OOTextureGenerator *generator)
 {
-	if (generator == nil)  return nil;
-	OOTexture *texture = [[[OOTexture alloc] init] autorelease];
+	if (generator == nullptr)  return nullptr;
+	oo::Ref<TestTexture> texture = oo::makeRef<TestTexture>();
 	texture->_configuration = oo::PList("generated");
 	return texture;
 }
 
-- (void) dealloc						{ gTexturesDeallocated++; [super dealloc]; }
-- (void) apply							{ _applies++; }
-- (void) ensureFinishedLoading			{ _ensures++; }
-- (std::optional<std::string>) cxx_shortDescription	{ return "tex:" + Str(_configuration); }
-
-@end
+OOTexture::OOTexture()	{}
+OOTexture::~OOTexture()	{}
+void OOTexture::apply()	{}
+void OOTexture::ensureFinishedLoading()	{}
+bool OOTexture::isFinishedLoading()	{ return true; }
+std::optional<std::string> OOTexture::cacheKey()	{ return std::nullopt; }
+NSSize OOTexture::dimensions()	{ return NSSize{}; }
+NSSize OOTexture::originalDimensions()	{ return dimensions(); }
+bool OOTexture::isMipMapped()	{ return false; }
+OOPixMap OOTexture::copyPixMapRepresentation()	{ return OOPixMap{}; }
+bool OOTexture::isRectangleTexture()	{ return false; }
+bool OOTexture::isCubeMap()	{ return false; }
+NSSize OOTexture::texCoordsScale()	{ return NSSize{1.0, 1.0}; }
+GLint OOTexture::glTextureName()	{ return 0; }
+#ifndef NDEBUG
+std::optional<std::string> OOTexture::name()	{ return std::nullopt; }
+#endif
+std::optional<std::string> OOTexture::descriptionComponents() const	{ return std::nullopt; }
+std::optional<std::string> OOTexture::shortDescriptionComponents() const	{ return std::nullopt; }
+std::string OOTexture::description() const	{ return oo::str::format("<OOTexture %s>", oo::str::pointerDescription(this).c_str()); }
+std::string OOTexture::className() const	{ return "OOTexture"; }
+void OOTexture::forceRebind()	{}
+std::string OOTexture::shortDescription() const	{ return "tex:" + Str(static_cast<const TestTexture *>(this)->_configuration); }
 
 
 /*	OOCombinedEmissionMapGenerator: records which factory was called and with what. It answers
 	null when it would have nothing to bake (no emission map and no illumination map), as the
 	material's callers never see a generated map for none. It is C++ since bead oo-9ht.135 deleted
 	its Objective-C facade: the stand-in defines the factories, and its own and its bases' other
-	members as no-ops (no texture loader is linked); its Objective-C object (the material hands it
-	to the OOTexture stand-in, which only asks whether it is nil) is a plain object.
+	members as no-ops (no texture loader is linked). The material hands the C++ generator to the
+	OOTexture stand-in, which only asks whether it is nil (it handed the generator's Objective-C
+	object, here a plain object, until the generators' facade was deleted).
 */
 static std::vector<std::string> gGenerators;
 
-cxx::OOTextureLoader::OOTextureLoader()  {}
-cxx::OOTextureLoader::~OOTextureLoader()  {}
-bool cxx::OOTextureLoader::getResult(OOPixMap *, OOTextureDataFormat *, uint32_t *, uint32_t *)  { return false; }
-std::optional<std::string> cxx::OOTextureLoader::cacheKey()  { return std::nullopt; }
-std::optional<std::string> cxx::OOTextureLoader::descriptionComponents() const  { return std::nullopt; }
-std::optional<std::string> cxx::OOTextureLoader::shortDescriptionComponents() const  { return std::nullopt; }
-void cxx::OOTextureLoader::loadTexture()  {}
-uint32_t cxx::OOTextureGenerator::textureOptions()  { return 0; }
-GLfloat cxx::OOTextureGenerator::anisotropy()  { return 0; }
-GLfloat cxx::OOTextureGenerator::lodBias()  { return 0; }
-std::optional<std::string> cxx::OOTextureGenerator::cacheKey()  { return std::nullopt; }
-bool cxx::OOTextureGenerator::enqueue()  { return false; }
+OOTextureLoader::OOTextureLoader()  {}
+OOTextureLoader::~OOTextureLoader()  {}
+bool OOTextureLoader::getResult(OOPixMap *, OOTextureDataFormat *, uint32_t *, uint32_t *)  { return false; }
+std::optional<std::string> OOTextureLoader::cacheKey()  { return std::nullopt; }
+std::optional<std::string> OOTextureLoader::descriptionComponents() const  { return std::nullopt; }
+std::optional<std::string> OOTextureLoader::shortDescriptionComponents() const  { return std::nullopt; }
+void OOTextureLoader::loadTexture()  {}
+// The loader is the work manager's task (its vtable): never reached.
+void OOTextureLoader::performAsyncTask()  { std::abort(); }
+void OOTextureLoader::completeAsyncTask()  { std::abort(); }
+uint32_t OOTextureGenerator::textureOptions()  { return 0; }
+GLfloat OOTextureGenerator::anisotropy()  { return 0; }
+GLfloat OOTextureGenerator::lodBias()  { return 0; }
+std::optional<std::string> OOTextureGenerator::cacheKey()  { return std::nullopt; }
+bool OOTextureGenerator::enqueue()  { return false; }
 
 oo::Ref<OOCombinedEmissionMapGenerator> OOCombinedEmissionMapGenerator::generatorWithEmissionMapSpec(const oo::PList &emissionMapSpec,
 																									OOColor *emissionColor,
@@ -202,14 +223,6 @@ GLfloat OOCombinedEmissionMapGenerator::lodBias()  { return 0; }
 std::optional<std::string> OOCombinedEmissionMapGenerator::cacheKey()  { return std::nullopt; }
 void OOCombinedEmissionMapGenerator::loadTexture()  {}
 
-OOTextureGenerator *oo::ToObjC(cxx::OOTextureGenerator *generator)
-{
-	if (generator == nullptr)  return nil;
-	id object = [[[OOObject alloc] init] autorelease];	// not an OOTextureGenerator: nothing asks it anything
-	return object;
-}
-
-
 // OOTexture.mm's specifier of a map value: the value itself, or the default name, or none.
 oo::PList cxx_OOTextureSpecFromObject(const oo::PList &object, const std::optional<std::string> &defaultName)
 {
@@ -219,7 +232,15 @@ oo::PList cxx_OOTextureSpecFromObject(const oo::PList &object, const std::option
 
 
 // UNIVERSE is gSharedUniverse: nil, so not reduced detail and no shaders.
-@class Universe;
+// UNIVERSE stays nil here, so the code under test's guarded calls never reach it; the stand-in only
+// links them (they were messages to nil).
+class Universe
+{
+public:
+	bool useShaders();
+};
+bool Universe::useShaders()  { return false; }
+
 Universe *gSharedUniverse = nil;
 
 
@@ -227,7 +248,7 @@ namespace {
 
 bool CombinersSupported()
 {
-	return OOTestGLContext() && [[OOOpenGLExtensionManager sharedManager] textureCombinersSupported];
+	return OOTestGLContext() && OOOpenGLExtensionManager::sharedManager()->textureCombinersSupported();
 }
 
 
@@ -326,11 +347,11 @@ OO_TEST(texturesKeptAndAsked)
 	{
 		m->ensureFinishedLoading();
 #ifndef NDEBUG
-		const std::vector<oo::ObjCRef<OOTexture *>> textures = m->allTextures();
-		OO_CHECK(textures.size() == 2 && textures[0].get()->_ensures == 1 && textures[1].get()->_ensures == 1);
-		OO_CHECK(textures[0].get()->_configuration == oo::PList("d.png") && textures[1].get()->_configuration == oo::PList("e.png"));
+		const std::vector<oo::Ref<OOTexture>> textures = m->allTextures();
+		OO_CHECK(textures.size() == 2 && AsTest(textures[0])->_ensures == 1 && AsTest(textures[1])->_ensures == 1);
+		OO_CHECK(AsTest(textures[0])->_configuration == oo::PList("d.png") && AsTest(textures[1])->_configuration == oo::PList("e.png"));
 #endif
-		const std::string text = oo::DescriptionOf(oo::ToObjC(static_cast<cxx::OOMaterial *>(m.get())));
+		const std::string text = m->description();
 		OO_CHECK(text.starts_with("<OOMultiTextureMaterial 0x"));
 		OO_CHECK(text.ends_with(">{\"Hull\" - diffuse map: tex:d.png,emission map: tex:e.png}"));
 	}
@@ -346,7 +367,7 @@ OO_TEST(texturesKeptAndAsked)
 #ifndef NDEBUG
 		OO_CHECK(emissive->allTextures().size() == 1);
 #endif
-		OO_CHECK(oo::DescriptionOf(oo::ToObjC(static_cast<cxx::OOMaterial *>(emissive.get()))).ends_with(">{\"(null)\" - emission map: tex:e.png}"));
+		OO_CHECK(emissive->description().ends_with(">{\"(null)\" - emission map: tex:e.png}"));
 	}
 }
 
@@ -359,11 +380,11 @@ OO_TEST(applyAndUnapply)
 		const oo::Ref<OOMultiTextureMaterial> two = Make("Two", { { "diffuse_map", oo::PList("d.png") }, { "emission_map", oo::PList("e.png") } });
 		const oo::Ref<OOMultiTextureMaterial> one = Make("one.png", {});
 #ifndef NDEBUG
-		OOTexture *diffuse = two->allTextures()[0].get(), *emission = two->allTextures()[1].get();
+		TestTexture *diffuse = AsTest(two->allTextures()[0]), *emission = AsTest(two->allTextures()[1]);
 #endif
 
 		two->apply();
-		OO_CHECK(cxx::OOMaterial::current().get() == two.get());
+		OO_CHECK(OOMaterial::current().get() == two.get());
 #ifndef NDEBUG
 		OO_CHECK(diffuse->_applies == 1 && emission->_applies == 1);
 #endif
@@ -383,9 +404,9 @@ OO_TEST(applyAndUnapply)
 
 		// Nothing: the default material (no texture), then both units cleared.
 		applyNones = gTextureApplyNones;
-		cxx::OOMaterial::applyNone();
+		OOMaterial::applyNone();
 		OO_CHECK(gTextureApplyNones == applyNones + 3 && TexEnvMode(GL_TEXTURE0_ARB) == GL_MODULATE);
-		OO_CHECK(cxx::OOMaterial::current() == nullptr);
+		OO_CHECK(OOMaterial::current() == nullptr);
 		OO_CHECK(glGetError() == GL_NO_ERROR);
 	}
 }
@@ -407,35 +428,32 @@ OO_TEST(cxxAPI)
 		OO_CHECK(m->allTextures().size() == 2);
 #endif
 
-		// apply() is virtual: through a root pointer, and through the root facade's -apply.
-		cxx::OOMaterial *root = m.get();
+		// apply() is virtual: through a root pointer, twice (the second was the root facade's -apply).
+		OOMaterial *root = m.get();
 		root->apply();
 #ifndef NDEBUG
-		OO_CHECK(m->allTextures()[0].get()->_applies == 1 && m->allTextures()[1].get()->_applies == 1);
+		OO_CHECK(AsTest(m->allTextures()[0])->_applies == 1 && AsTest(m->allTextures()[1])->_applies == 1);
 #endif
-		OO_CHECK(cxx::OOMaterial::current().get() == m.get());
-		[oo::ToObjC(static_cast<cxx::OOMaterial *>(m.get())) apply];
+		OO_CHECK(OOMaterial::current().get() == m.get());
+		root->apply();
 #ifndef NDEBUG
-		OO_CHECK(m->allTextures()[0].get()->_applies == 2);
+		OO_CHECK(AsTest(m->allTextures()[0])->_applies == 2);
 #endif
 		const int applyNones = gTextureApplyNones;
-		cxx::OOMaterial::applyNone();
+		OOMaterial::applyNone();
 		OO_CHECK(gTextureApplyNones == applyNones + 3);
 	}
 }
 
 
-// Objective-C sees a multi-texture material as an OOMaterial (beads oo-9ht.42, oo-9ht.33).
-OO_TEST(crossesAsTheBasicMaterialFacade)
+// The description names the C++ class, as the facade's did.
+OO_TEST(descriptionNamesTheClass)
 {
 	if (!CombinersSupported())  { OO_CHECK(false); return; }
 	@autoreleasepool
 	{
 		const oo::Ref<OOMultiTextureMaterial> m = OOMultiTextureMaterial::materialWithName(std::string("Cxx"), oo::PList());
-		OOMaterial *facade = oo::ToObjC(static_cast<cxx::OOMaterial *>(m.get()));
-		OO_CHECK([facade isMemberOfClass:[OOMaterial class]] && oo::ToObjC(static_cast<cxx::OOMaterial *>(m.get())) == facade);
-		OO_CHECK(oo::ToCxx(facade) == m.get() && oo::AsObjCMaterial(m.get()) == nullptr);
-		OO_CHECK(oo::DescriptionOf(facade).starts_with("<OOMultiTextureMaterial 0x"));
+		OO_CHECK(m->description().starts_with("<OOMultiTextureMaterial 0x"));
 	}
 }
 

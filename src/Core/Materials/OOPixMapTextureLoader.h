@@ -35,11 +35,11 @@ SOFTWARE.
 #import "OOTextureGenerator.h"
 
 /*	Phase 3 (bead oo-kvqq, proposed ADR-0056 amendments oo-bj8 item 12, oo-2c6g item 2, oo-rr2x
-        and oo-z889): a converted leaf of the texture generators, global, over cxx::OOTextureGenerator,
+        and oo-z889): a converted leaf of the texture generators, global, over OOTextureGenerator,
         with no facade of its own. Its callers (the planets) make it with loaderWithPixMap and hand
-        the texture its facade, oo::ToObjC(loader), whose object is an OOTextureGenerator.
+        the texture the C++ loader (the generators' facade until bead oo-9ht.118 deleted it).
 */
-class OOPixMapTextureLoader : public cxx::OOTextureGenerator {
+class OOPixMapTextureLoader : public OOTextureGenerator {
 public:
     ~OOPixMapTextureLoader() override; // was -dealloc
 

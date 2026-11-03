@@ -35,8 +35,6 @@
 
 // MARK: The entity classes, as far as the binding sees them ---------------------------------------
 
-namespace cxx {
-
 // The C++ root, as far as the binding and the root's JS category reach it.
 class Entity : public oo::RefCounted
 {
@@ -45,15 +43,14 @@ public:
 	virtual JSClassID jsClassID();
 	virtual std::optional<std::string> jsClassName();
 	virtual bool isVisibleToScripts();
+	Entity *owner();	// the binding calls it (its object's -owner did); the C++ entity
 };
-
-}	// namespace cxx
 
 
 /*	A plume whose scale has x = -1 raises from scale(), one with x = -2 throws a C++ exception, so the
 	test sees what an exception under a native becomes.
 */
-class OOExhaustPlumeEntity : public cxx::Entity
+class OOExhaustPlumeEntity : public Entity
 {
 public:
 	Vector scale();
@@ -67,19 +64,23 @@ public:
 };
 
 
-@interface Entity: OOObject
+// What an entity's JS object holds: a weak reference to the C++ entity.
+#include "OOJSEntityHolder.h"
+
+
+__attribute__((objc_runtime_name("Entity")))
+@interface TestEntityObject: OOObject
 {
 @public
-	oo::Ref<cxx::Entity> _cxxEntity;	// the plume's C++ part (oo::ToCxx reads it)
+	oo::Ref<Entity> _cxxEntity;	// the plume's C++ part (oo::ToCxx reads it)
 	id _owner;
 }
 - (id) weakRefUnderlyingObject;
-- (id) owner;
 @end
 
 // A ship: C++ since bead oo-9ht.144 deleted the Objective-C ship this stood in for, the C++ part of
 // its object, with the one member the binding calls (declared as ShipEntity.h declares it).
-class ShipEntity : public cxx::Entity
+class ShipEntity : public Entity
 {
 public:
 	void removeExhaust(OOExhaustPlumeEntity *exhaust);
@@ -87,7 +88,7 @@ public:
 	OOExhaustPlumeEntity *_removed = nullptr;
 };
 
-@interface Entity (OOJavaScriptExtensions)
+@interface TestEntityObject (OOJavaScriptExtensions)
 - (JSClassID) oo_jsClassID;
 - (std::optional<std::string>) cxx_oo_jsClassName;
 - (BOOL) isVisibleToScripts;
@@ -110,10 +111,9 @@ bool OOJSExhaustPlumeIsVisibleToScripts(void);
 #include <string>
 
 
-@implementation Entity
+@implementation TestEntityObject
 
 - (id) weakRefUnderlyingObject  { return self; }
-- (id) owner  { return _owner; }
 
 @end
 
@@ -123,7 +123,7 @@ void ShipEntity::removeExhaust(OOExhaustPlumeEntity *exhaust)  { _removed = exha
 
 // The root's JS category, as the game's asks the C++ part (EntityOOJavaScriptExtensions+ObjCBridge.mm):
 // the engine sends these selectors to the wrapped object.
-@implementation Entity (OOJavaScriptExtensions)
+@implementation TestEntityObject (OOJavaScriptExtensions)
 
 - (JSClassID) oo_jsClassID  { return _cxxEntity->jsClassID(); }
 - (std::optional<std::string>) cxx_oo_jsClassName  { return _cxxEntity->jsClassName(); }
@@ -132,10 +132,10 @@ void ShipEntity::removeExhaust(OOExhaustPlumeEntity *exhaust)  { _removed = exha
 @end
 
 
-cxx::Entity::~Entity()  {}
-JSClassID cxx::Entity::jsClassID()  { return 0; }
-std::optional<std::string> cxx::Entity::jsClassName()  { return std::string("Entity"); }
-bool cxx::Entity::isVisibleToScripts()  { return false; }
+Entity::~Entity()  {}
+JSClassID Entity::jsClassID()  { return 0; }
+std::optional<std::string> Entity::jsClassName()  { return std::string("Entity"); }
+bool Entity::isVisibleToScripts()  { return false; }
 
 Vector OOExhaustPlumeEntity::scale()
 {
@@ -220,7 +220,7 @@ JSClassDef sFakeEntityClass = { .class_name = "Entity" };
 std::map<JSClassID, int> sConverters;
 } // namespace
 
-Entity *gOOJSPlayerIfStale = nil;
+Entity *gOOJSPlayerIfStale = nullptr;	// the player's C++ entity
 
 
 JSClassID JSEntityClassID(void)
@@ -247,24 +247,13 @@ void OOJSRegisterObjectConverter(JSClassID classID, OOJSClassConverterCallback)
 }
 
 
-// The engine's object getter: the JS class must be a subclass of the required one, and the
-// underlying object must be of the required Objective-C class.
-BOOL OOJSObjectGetterImplPRIVATE(JSContext *context, JSValueConst object, JSClassID requiredClassID, Class requiredObjCClass, const char *, id *outObject)
+// The engine's object getter is OOJSPrivateObject.cpp's (linked): the JS class must be a subclass
+// of the required one, and the slot holds the entity's holder.
+
+// The shared toString(), which OOJSCxxObjectWrapperToString() hands a `this` of another class.
+JSValue OOJSObjectWrapperToString(JSContext *context, JSValueConst, int, JSValueConst *)
 {
-	if (!OOJSIsSubclass(JS_GetClassID(object), requiredClassID))
-	{
-		cxx_OOJSReportError(context, "Native method expected %s, got %s.", OOJSClassName(requiredClassID), cxx_OOStringFromJSValue(context, object).value_or("(null)").c_str());
-		return NO;
-	}
-	JSClassID ignored;
-	*outObject = [(id)JS_GetAnyOpaque(object, &ignored) weakRefUnderlyingObject];
-	if (*outObject != nil && ![*outObject isKindOfClass:requiredObjCClass])
-	{
-		cxx_OOJSReportError(context, "Native method expected %s from %s.", class_getName(requiredObjCClass), OOJSClassName(requiredClassID));
-		*outObject = nil;
-		return NO;
-	}
-	return YES;
+	return JS_NewString(context, "[object]");
 }
 
 
@@ -278,11 +267,6 @@ JSValue OOJSUnconstructableConstruct(JSContext *context, JSValueConst, int, JSVa
 {
 	cxx_OOJSReportError(context, "unconstructable");
 	return JS_EXCEPTION;
-}
-
-
-void OOJSObjectWrapperFinalize(JSRuntime *, JSValueConst)
-{
 }
 
 
@@ -335,9 +319,35 @@ void OOJSUnreachable(const char *function, const char *, unsigned)
 #endif
 
 
-oo::PList OOJSBasicPrivateObjectConverter(JSContext *, JSValueConst)
+oo::PList OOJSEntityObjectConverter(JSContext *, JSValueConst)
 {
 	return oo::PList();
+}
+
+
+// The holder's glue is OOJSEntity.mm's, which the test does not link; the binding never asks it.
+JSValue OOJSEntityHolder::jsValueInContext(JSContext *)  { return JS_UNDEFINED; }
+void OOJSEntityHolder::clearJSSelf(JSValueConst)  {}
+std::optional<std::string> OOJSEntityHolder::jsDescription()  { return std::nullopt; }
+
+
+// oo::ToObjC (Entity+ObjCBridge.mm): the object of each C++ part the test wrapped, nil for any
+// other (the binding asks it where its natives still message the object).
+namespace {
+std::map<Entity *, TestEntityObject *> sObjects;
+}
+namespace oo { ::TestEntityObject *ToObjC(Entity *entity); }
+::TestEntityObject *oo::ToObjC(Entity *entity)
+{
+	auto found = sObjects.find(entity);
+	return found != sObjects.end() ? found->second : nil;
+}
+
+// The owner its object's -owner answered, on the same object field.
+Entity *Entity::owner()
+{
+	::TestEntityObject *object = (::TestEntityObject *)oo::ToObjC(this)->_owner;
+	return object != nil ? object->_cxxEntity.get() : nullptr;	// its C++ part
 }
 
 
@@ -348,29 +358,31 @@ namespace {
 JSRuntime *sRuntime = nullptr;
 JSContext *sContext = nullptr;
 JSValue sGlobal = JS_UNDEFINED;	// held for the life of the test
-Entity *sPlume = nil;						// the plume's object
+TestEntityObject *sPlume = nil;						// the plume's object
 OOExhaustPlumeEntity *sPlumePart = nullptr;	// its C++ part
-Entity *sShip = nil;	// a ship's object and its C++ part (the Objective-C ship until bead oo-9ht.144)
+TestEntityObject *sShip = nil;	// a ship's object and its C++ part (the Objective-C ship until bead oo-9ht.144)
 ShipEntity *sShipPart = nullptr;
 
 
-// A JS object of the class, with the class's prototype and the entity in the private slot; owned
-// by the caller.
-JSValue JSValueForObject(JSClassID jsClass, Entity *entity)
+// A JS object of the class, with the class's prototype and a holder of the entity's C++ part in
+// the private slot; owned by the caller.
+JSValue JSValueForObject(JSClassID jsClass, TestEntityObject *entity)
 {
 	JSValue object = JS_NewObjectClass(sContext, static_cast<int>(jsClass));
-	if (JS_IsException(object) || JS_SetOpaque(object, entity) != 0)
+	if (entity->_cxxEntity == nullptr)  entity->_cxxEntity = oo::makeRef<Entity>();	// a plain entity's C++ part
+	if (JS_IsException(object) || !OOJSSetCxxPrivate(object, oo::makeRef<OOJSEntityHolder>(entity->_cxxEntity.get()).get()))	// the slot holds the C++ entity
 	{
 		JS_FreeValue(sContext, object);
 		return JS_NULL;
 	}
+	sObjects[entity->_cxxEntity.get()] = entity;
 	return object;
 }
 
 
-// A JS object for an entity, as -[Entity oo_jsValueInContext:] makes it: the class the entity's
-// category names, and the entity in the private slot.
-JSValue JSValueForEntity(Entity *entity)
+// A JS object for an entity, as EntityJSValueInContext() makes it: the class the entity's
+// category names, and a holder of the entity in the private slot.
+JSValue JSValueForEntity(TestEntityObject *entity)
 {
 	return JSValueForObject([entity oo_jsClassID], entity);
 }
@@ -394,10 +406,10 @@ void SetUpContext()
 	OOJSInitClass(sContext, sGlobal, sFakeEntityClassID, JS_UNDEFINED, OOJSUnconstructableConstruct, 0, nullptr, 0, nullptr, 0, nullptr, 0);
 	InitOOJSExhaustPlume(sContext, sGlobal);
 
-	sShip = [[Entity alloc] init];	// kept for the life of the test
+	sShip = [[TestEntityObject alloc] init];	// kept for the life of the test
 	sShip->_cxxEntity = oo::makeRef<ShipEntity>();
 	sShipPart = static_cast<ShipEntity *>(sShip->_cxxEntity.get());
-	sPlume = [[Entity alloc] init];
+	sPlume = [[TestEntityObject alloc] init];
 	const oo::Ref<OOExhaustPlumeEntity> part = oo::makeRef<OOExhaustPlumeEntity>();
 	sPlume->_cxxEntity = part;
 	sPlumePart = part.get();

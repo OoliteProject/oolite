@@ -27,11 +27,11 @@ MA 02110-1301, USA.
 
 #import "Entity.h"
 
-/*	A converted leaf (amendment oo-bj8 item 12): global, over cxx::Entity, with no facade of its own.
+/*	A converted leaf: global, over Entity, with no facade of its own.
         Unconverted code makes one with quiriumCascadeFromShip() and hands it to Objective-C with
-        oo::NewEntityFacade, whose object is an Entity; -isCascadeWeapon (the category below) asks it.
+        oo::NewEntityFacade, whose object is an Entity; OOEntityIsCascadeWeapon() asks it.
 */
-class OOQuiriumCascadeEntity : public cxx::Entity {
+class OOQuiriumCascadeEntity : public Entity {
 public:
     // +quiriumCascadeFromShip:: a new cascade where the ship is, or null for a nil ship.
     static oo::Ref<OOQuiriumCascadeEntity> quiriumCascadeFromShip(ShipEntity* ship);
@@ -43,7 +43,7 @@ public:
     bool isEffect() override;
     bool isCascadeWeapon();
     bool canCollide() override;
-    bool checkCloseCollisionWith(cxx::Entity* other) override;
+    bool checkCloseCollisionWith(Entity* other) override;
 
 private:
     // -initQuiriumCascadeFromShip:'s body: false (no cascade) for a nil ship (amendment oo-novu).
@@ -53,6 +53,10 @@ private:
     GLfloat _color[4] = { };
 };
 
-// Transitional: the category the header declared, on the Objective-C Entity. Deleted with the
-// Entity facade.
-#import "OOQuiriumCascadeEntity+ObjCBridge.h"
+// -isCascadeWeapon of the Objective-C Entity's category, deleted: false for null
+// and for every entity but a cascade, whose answer it is.
+inline bool OOEntityIsCascadeWeapon(Entity* entity)
+{
+    OOQuiriumCascadeEntity* cascade = dynamic_cast<OOQuiriumCascadeEntity*>(entity);
+    return cascade != nullptr ? cascade->isCascadeWeapon() : false;
+}

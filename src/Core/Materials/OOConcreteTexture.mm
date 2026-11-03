@@ -53,13 +53,13 @@
 
 static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum* outFormat, GLenum* outInternalFormat, GLenum* outType);
 
-OOConcreteTexture::OOConcreteTexture(::OOTextureLoader* loader,
+OOConcreteTexture::OOConcreteTexture(OOTextureLoader* loader,
     const std::optional<std::string>& key,
     uint32_t options,
     GLfloat anisotropy,
     GLfloat lodBias)
 {
-    _loader = oo::ObjCRef<::OOTextureLoader*>(loader);
+    _loader = oo::Ref<OOTextureLoader>(loader);
     _options = options;
 
 #if GL_EXT_texture_filter_anisotropic
@@ -70,21 +70,23 @@ OOConcreteTexture::OOConcreteTexture(::OOTextureLoader* loader,
 #endif
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-    if ([loader isKindOfClass:[::OOTextureGenerator class]]) {
-        _name = "<" + oo::DescriptionOf([loader class]) + ">";
+    // "<" + [loader class] + ">" of a generator: the C++ class's name since bead oo-9ht.118 deleted
+    // the generator's facade (ADR-0056 amendment oo-9ht.114 item 4).
+    if (dynamic_cast<OOTextureGenerator*>(loader) != nullptr) {
+        _name = "<" + loader->className() + ">";
     }
 #endif
 
     _key = key;
 }
 
-oo::Ref<OOConcreteTexture> OOConcreteTexture::initWithLoader(::OOTextureLoader* loader,
+oo::Ref<OOConcreteTexture> OOConcreteTexture::initWithLoader(OOTextureLoader* loader,
     const std::optional<std::string>& key,
     uint32_t options,
     GLfloat anisotropy,
     GLfloat lodBias)
 {
-    if (loader == nil) {
+    if (loader == nullptr) {
         return nullptr;
     }
 
@@ -101,12 +103,12 @@ oo::Ref<OOConcreteTexture> OOConcreteTexture::initWithPath(const std::string& pa
     float anisotropy,
     GLfloat lodBias)
 {
-    ::OOTextureLoader* loader = [::OOTextureLoader cxx_loaderWithPath:path options:options];
-    if (loader == nil) {
+    const oo::Ref<OOTextureLoader> loader = OOTextureLoader::loaderWithPath(path, options);
+    if (loader == nullptr) {
         return nullptr;
     }
 
-    oo::Ref<OOConcreteTexture> self = initWithLoader(loader, key, options, anisotropy, lodBias);
+    oo::Ref<OOConcreteTexture> self = initWithLoader(loader.get(), key, options, anisotropy, lodBias);
     if (self != nullptr) {
 #if OOTEXTURE_RELOADABLE
         self->_path = path;
@@ -242,7 +244,7 @@ void OOConcreteTexture::ensureFinishedLoading()
 
 bool OOConcreteTexture::isFinishedLoading()
 {
-    return _loaded || [_loader.get() isReady];
+    return _loaded || (_loader != nullptr && _loader->isReady()); // a message to nil answered NO
 }
 
 std::optional<std::string> OOConcreteTexture::cacheKey()
@@ -376,7 +378,8 @@ void OOConcreteTexture::setUpTexture()
     OOPixMap pm;
 
     // This will block until loading is completed, if necessary.
-    if ([_loader.get() getResult:&pm format:&_format originalWidth:&_originalWidth originalHeight:&_originalHeight]) {
+    if (_loader != nullptr && _loader->getResult(&pm, &_format, &_originalWidth, &_originalHeight)) // a message to nil answered NO
+    {
         _bytes = pm.pixels;
         _width = pm.width;
         _height = pm.height;
@@ -391,7 +394,7 @@ void OOConcreteTexture::setUpTexture()
         if (_trace) {
             static unsigned dumpID = 0;
             const std::string name = oo::str::format("tex dump %u \"", ++dumpID) + this->name().value_or("(null)") + "\"";
-            OO_LOG("texture.trace.dump", "Dumped traced texture {} to '{}.png'", oo::DescriptionOf(oo::ToObjC(this)), name);
+            OO_LOG("texture.trace.dump", "Dumped traced texture {} to '{}.png'", description(), name);
             OODumpPixMap(pm, name);
         }
 #endif
@@ -574,7 +577,7 @@ void OOConcreteTexture::forceRebind()
 
 #if OOTEXTURE_RELOADABLE
         if (isReloadable()) {
-            OO_LOG("texture.reload", "Reloading texture {}", oo::DescriptionOf(oo::ToObjC(this)));
+            OO_LOG("texture.reload", "Reloading texture {}", description());
 
             free(_bytes);
             _bytes = NULL;
@@ -582,7 +585,7 @@ void OOConcreteTexture::forceRebind()
             _uploaded = NO;
             _valid = NO;
 
-            _loader = oo::ObjCRef<::OOTextureLoader*>([::OOTextureLoader cxx_loaderWithPath:_path options:_options]);
+            _loader = OOTextureLoader::loaderWithPath(_path, _options);
         }
 #endif
     }

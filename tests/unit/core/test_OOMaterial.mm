@@ -1,7 +1,9 @@
 /*	test_OOMaterial.mm
-	Unit tests for cxx::OOMaterial (src/Core/Materials/OOMaterial.h) and its Objective-C facade
-	(OOMaterial+ObjCBridge.h): bead oo-smy, the Materials module exemplar (proposed ADR-0056,
-	amendment oo-smy).
+	Unit tests for OOMaterial (src/Core/Materials/OOMaterial.h): bead oo-smy, the Materials module
+	exemplar (proposed ADR-0056, amendment oo-smy). Bead oo-9ht.8 deleted the Objective-C facade
+	(the material bridge): its crossing cases went with it (standing approval oo-9n5p9), the
+	Objective-C test materials are C++ subclasses named as they were, and the other cases call the
+	same members with every expectation kept.
 
 	OOMaterial is the root of the material hierarchy (OOBasicMaterial and the three materials
 	under it convert in their own beads) and owns the one piece of global render state, the
@@ -44,66 +46,56 @@ void OOLogGenericParameterErrorForFunction(const char *inFunction)
 }
 
 
-// Every -unapplyWithNext: sent to a test material, in order: (material, next).
-static std::vector<std::pair<id, id>> gUnapplied;
+// Every unapplyWithNext() sent to a test material, in order: (material, next).
+static std::vector<std::pair<OOMaterial *, OOMaterial *>> gUnapplied;
 static int gDeallocs = 0;
 
 
-// An unconverted material: an Objective-C subclass, as OOBasicMaterial is.
-@interface TestObjCMaterial: OOMaterial
+// An unconverted material was an Objective-C subclass, as OOBasicMaterial was; now a C++ subclass
+// with the same overrides, named as it was so that its description is unchanged.
+class TestObjCMaterial : public OOMaterial
 {
-@public
+public:
+	~TestObjCMaterial() override
+	{
+		willDealloc();
+		gDeallocs++;
+	}
+
+	std::optional<std::string> name() override		{ return _testName; }
+
+	bool doApply() override
+	{
+		_doApplies++;
+		return _applies;
+	}
+
+	void unapplyWithNext(OOMaterial *next) override
+	{
+		gUnapplied.emplace_back(this, next);
+		OOMaterial::unapplyWithNext(next);
+	}
+
 	std::string		_testName;
-	BOOL			_applies;
-	int				_doApplies;
-}
-@end
+	bool			_applies = false;
+	int				_doApplies = 0;
+};
 
 
-@implementation TestObjCMaterial
-
-- (void)dealloc
+// Asks its superclass, as OOBasicMaterial's allTextures() and doApply() do.
+class TestSuperCallingMaterial : public TestObjCMaterial
 {
-	[self willDealloc];
-	gDeallocs++;
-	[super dealloc];
-}
-
-- (std::optional<std::string>)cxx_name		{ return _testName; }
-
-- (BOOL)doApply
-{
-	_doApplies++;
-	return _applies;
-}
-
-- (void)unapplyWithNext:(OOMaterial *)next
-{
-	gUnapplied.emplace_back(self, next);
-	[super unapplyWithNext:next];
-}
-
-@end
-
-
-// Asks its superclass, as OOBasicMaterial's -cxx_allTextures and -doApply do.
-@interface TestSuperCallingMaterial: TestObjCMaterial
-@end
-
-
-@implementation TestSuperCallingMaterial
-
-- (BOOL)doApply									{ return [super doApply] || [self isFinishedLoading]; }
-- (BOOL)wantsNormalsAsTextureCoordinates		{ return ![super wantsNormalsAsTextureCoordinates]; }
-
-@end
+public:
+	bool doApply() override							{ return TestObjCMaterial::doApply() || isFinishedLoading(); }
+	bool wantsNormalsAsTextureCoordinates() override	{ return !TestObjCMaterial::wantsNormalsAsTextureCoordinates(); }
+};
 
 
 // A converted material: a C++ subclass that overrides the virtual members. Global, as a game class
 // is, so that its description names it as the game's would.
 static int gCxxDestroyed = 0;
 
-class TestCxxMaterial : public cxx::OOMaterial
+class TestCxxMaterial : public OOMaterial
 {
 public:
 	explicit TestCxxMaterial(std::string testName) : _testName(std::move(testName)) {}
@@ -112,10 +104,10 @@ public:
 	std::optional<std::string> name() override			{ return _testName; }
 	bool wantsNormalsAsTextureCoordinates() override	{ return true; }
 	bool doApply() override								{ doApplies++; return true; }
-	void unapplyWithNext(cxx::OOMaterial *next) override	{ unappliedNext.push_back(next); }
+	void unapplyWithNext(OOMaterial *next) override		{ unappliedNext.push_back(next); }
 
 	int								doApplies = 0;
-	std::vector<cxx::OOMaterial *>	unappliedNext;
+	std::vector<OOMaterial *>		unappliedNext;
 
 private:
 	std::string _testName;
@@ -124,18 +116,18 @@ private:
 
 namespace {
 
-TestObjCMaterial *MakeMaterial(const char *name, BOOL applies = YES)
+oo::Ref<TestObjCMaterial> MakeMaterial(const char *name, bool applies = true)
 {
-	TestObjCMaterial *material = [[[TestObjCMaterial alloc] init] autorelease];
+	oo::Ref<TestObjCMaterial> material = oo::makeRef<TestObjCMaterial>();
 	material->_testName = name;
 	material->_applies = applies;
 	return material;
 }
 
 
-bool Unapplied(std::initializer_list<std::pair<id, id>> expected)
+bool Unapplied(std::initializer_list<std::pair<OOMaterial *, OOMaterial *>> expected)
 {
-	const bool result = std::vector<std::pair<id, id>>(expected) == gUnapplied;
+	const bool result = std::vector<std::pair<OOMaterial *, OOMaterial *>>(expected) == gUnapplied;
 	gUnapplied.clear();
 	return result;
 }
@@ -147,28 +139,28 @@ OO_TEST(rootDefaults)
 {
 	@autoreleasepool
 	{
-		OOMaterial *material = [[[OOMaterial alloc] init] autorelease];
+		const oo::Ref<OOMaterial> material = oo::makeRef<OOMaterial>();
 		const int parameterErrors = gParameterErrors, responsibilities = gSubclassResponsibilities;
-		OO_CHECK(![material cxx_name].has_value());	// logs a parameter error, answers nil
+		OO_CHECK(!material->name().has_value());	// logs a parameter error, answers nil
 		OO_CHECK(gParameterErrors == parameterErrors + 1);
-		OO_CHECK(![material doApply]);	// subclass responsibility
+		OO_CHECK(!material->doApply());	// subclass responsibility
 		OO_CHECK(gSubclassResponsibilities == responsibilities + 1);
-		[material ensureFinishedLoading];
-		OO_CHECK([material isFinishedLoading]);
-		OO_CHECK(![material wantsNormalsAsTextureCoordinates]);
-		[material setBindingTarget:nil];
-		[material unapplyWithNext:nil];
+		material->ensureFinishedLoading();
+		OO_CHECK(material->isFinishedLoading());
+		OO_CHECK(!material->wantsNormalsAsTextureCoordinates());
+		material->setBindingTarget(nil);
+		material->unapplyWithNext(nullptr);
 #if OO_MULTITEXTURE
-		OO_CHECK([material countOfTextureUnitsWithBaseCoordinates] == 1);
+		OO_CHECK(material->countOfTextureUnitsWithBaseCoordinates() == 1);
 #endif
 #ifndef NDEBUG
-		OO_CHECK([material cxx_allTextures].empty());
+		OO_CHECK(material->allTextures().empty());
 #endif
-		[OOMaterial setUp];
+		OOMaterial::setUp();
 
-		// The root cannot apply: -doApply answers NO, so there is still no current material.
-		[material apply];
-		OO_CHECK([OOMaterial current] == nil);
+		// The root cannot apply: doApply() answers false, so there is still no current material.
+		material->apply();
+		OO_CHECK(OOMaterial::current() == nullptr);
 	}
 }
 
@@ -177,27 +169,27 @@ OO_TEST(applyMakesCurrent)
 {
 	@autoreleasepool
 	{
-		TestObjCMaterial *a = MakeMaterial("A"), *b = MakeMaterial("B");
+		const oo::Ref<TestObjCMaterial> a = MakeMaterial("A"), b = MakeMaterial("B");
 		gUnapplied.clear();
-		OO_CHECK([OOMaterial current] == nil);
+		OO_CHECK(OOMaterial::current() == nullptr);
 
-		[a apply];
-		OO_CHECK([OOMaterial current] == a && a->_doApplies == 1);
+		a->apply();
+		OO_CHECK(OOMaterial::current() == a.get() && a->_doApplies == 1);
 		OO_CHECK(Unapplied({}));
 
-		[b apply];	// the previous material is told what comes next
-		OO_CHECK([OOMaterial current] == b);
-		OO_CHECK(Unapplied({ { a, b } }));
+		b->apply();	// the previous material is told what comes next
+		OO_CHECK(OOMaterial::current() == b.get());
+		OO_CHECK(Unapplied({ { a.get(), b.get() } }));
 
-		[b apply];	// again: told itself
-		OO_CHECK([OOMaterial current] == b && b->_doApplies == 2);
-		OO_CHECK(Unapplied({ { b, b } }));
+		b->apply();	// again: told itself
+		OO_CHECK(OOMaterial::current() == b.get() && b->_doApplies == 2);
+		OO_CHECK(Unapplied({ { b.get(), b.get() } }));
 
-		[OOMaterial applyNone];
-		OO_CHECK([OOMaterial current] == nil);
-		OO_CHECK(Unapplied({ { b, nil } }));
+		OOMaterial::applyNone();
+		OO_CHECK(OOMaterial::current() == nullptr);
+		OO_CHECK(Unapplied({ { b.get(), nullptr } }));
 
-		[OOMaterial applyNone];	// nothing current: nothing told
+		OOMaterial::applyNone();	// nothing current: nothing told
 		OO_CHECK(Unapplied({}));
 	}
 }
@@ -207,13 +199,13 @@ OO_TEST(failedApplyLeavesNone)
 {
 	@autoreleasepool
 	{
-		TestObjCMaterial *a = MakeMaterial("A"), *failing = MakeMaterial("Failing", NO);
-		[a apply];
+		const oo::Ref<TestObjCMaterial> a = MakeMaterial("A"), failing = MakeMaterial("Failing", false);
+		a->apply();
 		gUnapplied.clear();
-		[failing apply];
-		OO_CHECK([OOMaterial current] == nil && failing->_doApplies == 1);
-		OO_CHECK(Unapplied({ { a, failing } }));
-		[OOMaterial applyNone];
+		failing->apply();
+		OO_CHECK(OOMaterial::current() == nullptr && failing->_doApplies == 1);
+		OO_CHECK(Unapplied({ { a.get(), failing.get() } }));
+		OOMaterial::applyNone();
 		OO_CHECK(Unapplied({}));
 	}
 }
@@ -222,21 +214,22 @@ OO_TEST(failedApplyLeavesNone)
 OO_TEST(currentIsRetained)
 {
 	const int deallocs = gDeallocs;
-	TestObjCMaterial *material = nil;
+	TestObjCMaterial *material = nullptr;
 	@autoreleasepool
 	{
-		material = MakeMaterial("Kept");
-		[material apply];
+		const oo::Ref<TestObjCMaterial> made = MakeMaterial("Kept");
+		material = made.get();
+		material->apply();
 	}
-	// The pool released the maker's reference; being current keeps it.
+	// The maker's reference is gone; being current keeps it.
 	OO_CHECK(gDeallocs == deallocs);
 	@autoreleasepool
 	{
-		OO_CHECK([OOMaterial current] == material);
-		OO_CHECK(oo::DescriptionOf([OOMaterial current]).ends_with(">{\"Kept\"}"));
+		OO_CHECK(OOMaterial::current() == material);
+		OO_CHECK(OOMaterial::current()->description().ends_with(">{\"Kept\"}"));
 		gUnapplied.clear();
-		[OOMaterial applyNone];
-		OO_CHECK(Unapplied({ { material, nil } }));
+		OOMaterial::applyNone();
+		OO_CHECK(Unapplied({ { material, nullptr } }));
 	}
 	OO_CHECK(gDeallocs == deallocs + 1);
 }
@@ -246,20 +239,20 @@ OO_TEST(willDeallocWhileCurrent)
 {
 	@autoreleasepool
 	{
-		TestObjCMaterial *material = MakeMaterial("Imbalanced");
-		[material apply];
-		const unsigned retained = [material retainCount];
+		const oo::Ref<TestObjCMaterial> material = MakeMaterial("Imbalanced");
+		material->apply();
+		const unsigned retained = material->retainCount();
 		gUnapplied.clear();
 
-		// What -dealloc does first. Current: unapplied with no next, and no longer current, but the
+		// What -dealloc did first. Current: unapplied with no next, and no longer current, but the
 		// reference that being current held is not released (the object was being deallocated).
-		[material willDealloc];
-		OO_CHECK(Unapplied({ { material, nil } }));
-		OO_CHECK([OOMaterial current] == nil);
-		OO_CHECK([material retainCount] == retained);
-		[material release];	// the reference being current held
+		material->willDealloc();
+		OO_CHECK(Unapplied({ { material.get(), nullptr } }));
+		OO_CHECK(OOMaterial::current() == nullptr);
+		OO_CHECK(material->retainCount() == retained);
+		material->release();	// the reference being current held
 
-		[material willDealloc];	// not current: nothing
+		material->willDealloc();	// not current: nothing
 		OO_CHECK(Unapplied({}));
 	}
 }
@@ -269,12 +262,12 @@ OO_TEST(superCallsReachTheRoot)
 {
 	@autoreleasepool
 	{
-		TestSuperCallingMaterial *material = [[[TestSuperCallingMaterial alloc] init] autorelease];
-		material->_applies = NO;
+		const oo::Ref<TestSuperCallingMaterial> material = oo::makeRef<TestSuperCallingMaterial>();
+		material->_applies = false;
 		const int responsibilities = gSubclassResponsibilities;
-		OO_CHECK([material doApply]);	// NO from TestObjCMaterial, then the root's -isFinishedLoading
+		OO_CHECK(material->doApply());	// false from TestObjCMaterial, then the root's isFinishedLoading()
 		OO_CHECK(gSubclassResponsibilities == responsibilities);
-		OO_CHECK([material wantsNormalsAsTextureCoordinates]);
+		OO_CHECK(material->wantsNormalsAsTextureCoordinates());
 	}
 }
 
@@ -283,37 +276,34 @@ OO_TEST(description)
 {
 	@autoreleasepool
 	{
-		const std::string text = oo::DescriptionOf(MakeMaterial("Hull"));
+		const std::string text = MakeMaterial("Hull")->description();
 		OO_CHECK(text.starts_with("<TestObjCMaterial 0x"));
 		OO_CHECK(text.ends_with(">{\"Hull\"}"));
-		OO_CHECK(oo::DescriptionOf([[[OOMaterial alloc] init] autorelease]).ends_with(">{\"(null)\"}"));
+		OO_CHECK(oo::makeRef<OOMaterial>()->description().ends_with(">{\"(null)\"}"));
 	}
 }
 
 
-OO_TEST(cxxMaterialBehindTheFacade)
+// A C++ material's overrides and the root's defaults, as its callers reach them (the C++ half of
+// cxxMaterialBehindTheFacade, whose facade half went with the facade).
+OO_TEST(cxxMaterial)
 {
 	@autoreleasepool
 	{
 		const oo::Ref<TestCxxMaterial> material = oo::makeRef<TestCxxMaterial>("Cxx");
-		OOMaterial *facade = oo::ToObjC(material.get());
-		OO_CHECK(facade != nil && facade == oo::ToObjC(material.get()));	// one live facade
-		OO_CHECK(oo::ToCxx(facade) == material.get());
+		OO_CHECK(material->name() == std::optional<std::string>("Cxx"));
+		OO_CHECK(material->wantsNormalsAsTextureCoordinates());
+		OO_CHECK(material->isFinishedLoading());
 
-		// The callers' messages reach the C++ overrides, and the root's defaults.
-		OO_CHECK([facade cxx_name] == std::optional<std::string>("Cxx"));
-		OO_CHECK([facade wantsNormalsAsTextureCoordinates]);
-		OO_CHECK([facade isFinishedLoading]);
-
-		[facade apply];
+		material->apply();
 		OO_CHECK(material->doApplies == 1);
-		OO_CHECK([OOMaterial current] == facade && cxx::OOMaterial::current().get() == material.get());
-		[OOMaterial applyNone];
-		OO_CHECK(material->unappliedNext == std::vector<cxx::OOMaterial *>{ nullptr });
-		OO_CHECK([OOMaterial current] == nil);
+		OO_CHECK(OOMaterial::current().get() == material.get());
+		OOMaterial::applyNone();
+		OO_CHECK(material->unappliedNext == std::vector<OOMaterial *>{ nullptr });
+		OO_CHECK(OOMaterial::current() == nullptr);
 
 		// Described with the C++ class's name, as [self class] named it.
-		const std::string text = oo::DescriptionOf(facade);
+		const std::string text = material->description();
 		OO_CHECK(text.starts_with("<TestCxxMaterial 0x"));
 		OO_CHECK(text.ends_with(">{\"Cxx\"}"));
 		OO_CHECK(material->descriptionComponents() == std::optional<std::string>("\"Cxx\""));
@@ -321,69 +311,11 @@ OO_TEST(cxxMaterialBehindTheFacade)
 }
 
 
-OO_TEST(objCMaterialBehindACxxPointer)
+// The current material is retained: a C++ material made current lives until it is no longer (the
+// C++ half of currentIsRetainedAcrossTheBridge).
+OO_TEST(currentRetainsACxxMaterial)
 {
-	@autoreleasepool
-	{
-		TestObjCMaterial *objCMaterial = MakeMaterial("ObjC");
-		cxx::OOMaterial *part = oo::ToCxx(objCMaterial);
-		OO_CHECK(part != nullptr && oo::ToObjC(part) == objCMaterial);	// the object itself
-
-		// Virtual calls from C++ reach the Objective-C overrides, or the root's own answers.
-		OO_CHECK(part->name() == std::optional<std::string>("ObjC"));
-		OO_CHECK(part->descriptionComponents() == std::optional<std::string>("\"ObjC\""));
-		OO_CHECK(part->isFinishedLoading() && !part->wantsNormalsAsTextureCoordinates());
-		TestSuperCallingMaterial *superCalling = [[[TestSuperCallingMaterial alloc] init] autorelease];
-		OO_CHECK(oo::ToCxx(superCalling)->wantsNormalsAsTextureCoordinates());
-
-		gUnapplied.clear();
-		part->apply();	// virtual doApply() reaches -doApply
-		OO_CHECK(objCMaterial->_doApplies == 1 && [OOMaterial current] == objCMaterial);
-		cxx::OOMaterial::applyNone();	// virtual unapplyWithNext() reaches -unapplyWithNext:
-		OO_CHECK(Unapplied({ { objCMaterial, nil } }));
-	}
-}
-
-
-OO_TEST(mixedApply)
-{
-	@autoreleasepool
-	{
-		const oo::Ref<TestCxxMaterial> cxxMaterial = oo::makeRef<TestCxxMaterial>("Cxx");
-		TestObjCMaterial *objCMaterial = MakeMaterial("ObjC");
-		gUnapplied.clear();
-
-		cxxMaterial->apply();
-		[objCMaterial apply];	// the C++ material is told the Objective-C one comes next
-		OO_CHECK(cxxMaterial->unappliedNext == std::vector<cxx::OOMaterial *>{ oo::ToCxx(objCMaterial) });
-		cxxMaterial->apply();	// and the other way round
-		OO_CHECK(Unapplied({ { objCMaterial, oo::ToObjC(cxxMaterial.get()) } }));
-		OO_CHECK(cxx::OOMaterial::current().get() == cxxMaterial.get());
-		[OOMaterial applyNone];
-	}
-}
-
-
-// The current material is retained whichever side made it current: an Objective-C material's C++
-// part does not retain its owner, so being current holds the Objective-C object.
-OO_TEST(currentIsRetainedAcrossTheBridge)
-{
-	const int deallocs = gDeallocs, destroyed = gCxxDestroyed;
-	cxx::OOMaterial *part = nullptr;
-	@autoreleasepool
-	{
-		part = oo::ToCxx(MakeMaterial("ObjC, made current from C++"));
-		part->apply();
-	}
-	OO_CHECK(gDeallocs == deallocs);
-	@autoreleasepool
-	{
-		OO_CHECK(cxx::OOMaterial::current().get() == part);
-		OO_CHECK(part->name() == std::optional<std::string>("ObjC, made current from C++"));
-		cxx::OOMaterial::applyNone();
-	}
-	OO_CHECK(gDeallocs == deallocs + 1);
-
+	const int destroyed = gCxxDestroyed;
 	@autoreleasepool
 	{
 		oo::makeRef<TestCxxMaterial>("Cxx")->apply();
@@ -391,29 +323,10 @@ OO_TEST(currentIsRetainedAcrossTheBridge)
 	OO_CHECK(gCxxDestroyed == destroyed);
 	@autoreleasepool
 	{
-		OO_CHECK(cxx::OOMaterial::current()->name() == std::optional<std::string>("Cxx"));
-		[OOMaterial applyNone];
+		OO_CHECK(OOMaterial::current()->name() == std::optional<std::string>("Cxx"));
+		OOMaterial::applyNone();
 	}
 	OO_CHECK(gCxxDestroyed == destroyed + 1);
-}
-
-
-OO_TEST(nilAndLifetime)
-{
-	OOMaterial *none = nil;
-	OO_CHECK(oo::ToCxx(none) == nullptr);
-	OO_CHECK(oo::ToObjC(static_cast<cxx::OOMaterial *>(nullptr)) == nil);
-	OO_CHECK(![none cxx_name].has_value());
-
-	// An Objective-C material's C++ part outlives it only as a reference C++ holds; it then answers
-	// as a message to the released material's nil would.
-	oo::Ref<cxx::OOMaterial> part;
-	@autoreleasepool
-	{
-		part = oo::Ref<cxx::OOMaterial>(oo::ToCxx(MakeMaterial("Gone")));
-	}
-	OO_CHECK(!part->name().has_value() && !part->doApply());
-	OO_CHECK(oo::ToObjC(part) == nil);
 }
 
 OO_TEST_MAIN()

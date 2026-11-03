@@ -71,9 +71,7 @@ public:
 
 class OOSoundSource;	// only handed on (OOSoundSource.h)
 
-@interface ResourceManager: OOObject
-+ (OOSound *) cxx_ooSoundNamed:(const std::string &)fileName inFolder:(const std::optional<std::string> &)folderName;
-@end
+#import "ResourceManager.h"
 
 /*	The music controller is C++ (its Objective-C facade was deleted): the members the binding
 	calls, declared as OOMusicController.h declares them (that header would bring the real
@@ -103,15 +101,13 @@ struct MusicRecord
 	status, the root entity's member (declared as Entity.h declares it; the test imports no game
 	header that defines the classes), answered from the test's value.
 */
-namespace cxx {
 class Entity
 {
 public:
 	OOEntityStatus status();
 };
-}	// namespace cxx
 
-class FakePlayer : public cxx::Entity
+class FakePlayer : public Entity
 {
 public:
 	OOEntityStatus _status = {};
@@ -156,15 +152,14 @@ OOSound *OOSoundWithCustomSoundKey(const std::string &key)
 }
 
 
-@implementation ResourceManager
-
-+ (OOSound *) cxx_ooSoundNamed:(const std::string &)fileName inFolder:(const std::optional<std::string> &)folderName
+// ResourceManager is C++ since its Objective-C facade was deleted: C++ definitions of the
+// statics the code under test calls, with the Objective-C stand-in's answers.
+OOSound * ResourceManager::ooSoundNamed(const std::string &fileName, const std::optional<std::string> &folderName)
 {
 	if (fileName == "missing.ogg")  return nullptr;
 	return MakeSound((fileName == "raise" || fileName == "throw") ? fileName : folderName.value_or("") + "/" + fileName);
 }
 
-@end
 
 
 // The SoundSource binding's JS value for a source (owned by the caller): a string naming the
@@ -196,7 +191,7 @@ void OOMusicController::playMusicNamed(const std::string &name, bool loop, float
 }
 
 
-OOEntityStatus cxx::Entity::status()  { return static_cast<FakePlayer *>(this)->_status; }
+OOEntityStatus Entity::status()  { return static_cast<FakePlayer *>(this)->_status; }
 
 
 // MARK: What the rest of the engine provides ------------------------------------------------------

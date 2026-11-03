@@ -68,7 +68,7 @@ void SetUp()
 	OO_CHECK(::_putenv_s("HOMEPATH", sRoot.string().c_str()) == 0);
 	stdfs::current_path(sRoot);
 	WriteText(sRoot / "Resources" / "Info-gnustep.plist", "{ CFBundleVersion = \"9.9.9-test\"; }");
-	(void)[OOJavaScriptEngine sharedEngine];
+	(void)OOJavaScriptEngine::sharedEngine();
 }
 
 
@@ -324,7 +324,7 @@ OO_TEST(engineReset)
 		const oo::Ref<OOJSScript> script = OOJSScript::scriptWithPath(Script("reset/reset.js", kNamedScript), oo::PList());
 		OO_CHECK(script != nullptr);
 		if (script == nullptr)  return;
-		oo::NotificationCenter::defaultCenter().post(kOOJavaScriptEngineWillResetNotificationName, [OOJavaScriptEngine sharedEngine]);
+		oo::NotificationCenter::defaultCenter().post(kOOJavaScriptEngineWillResetNotificationName, OOJavaScriptEngine::sharedEngine());
 
 		// Invalid from now on: no properties, no calls, and so described.
 		OO_CHECK(script->description().find("invalid script") != std::string::npos);

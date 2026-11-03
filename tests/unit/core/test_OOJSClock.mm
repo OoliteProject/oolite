@@ -182,14 +182,14 @@ std::string PlayerEntity::dial_clock()  { return oo::str::format("dial %.1f", sP
 void PlayerEntity::addToAdjustTime(double seconds)  { sPlayer->_added += seconds; }
 
 
-@interface FakeUniverse: OOObject
-@end
+/*	The universe is the C++ class since its Objective-C facade, which the test's FakeUniverse
+	stood in for, was deleted. Universe.h is included (through the headers above) and
+	Universe.mm is not linked, so the test defines the members the code under test calls, with the
+	stand-in's bodies, and UNIVERSE is storage nothing constructs: those members read no state.
+*/
+OOTimeAbsolute Universe::getTime()  { return 1234.5; }
 
-@implementation FakeUniverse
-
-- (double) getTime  { return 1234.5; }
-
-@end
+alignas(Universe) unsigned char sUniverseStorage[sizeof(Universe)];
 
 Universe *gSharedUniverse = nil;
 
@@ -215,7 +215,7 @@ void SetUpContext()
 	InitOOJSClock(sContext, global);
 	JS_FreeValue(sContext, global);
 	sPlayer = new FakePlayer;	// never deleted
-	gSharedUniverse = (Universe *)[[FakeUniverse alloc] init];
+	gSharedUniverse = reinterpret_cast<Universe *>(sUniverseStorage);
 }
 
 

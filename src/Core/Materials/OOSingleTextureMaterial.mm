@@ -37,7 +37,7 @@ oo::Ref<OOSingleTextureMaterial> OOSingleTextureMaterial::materialWithName(const
     return result;
 }
 
-oo::Ref<OOSingleTextureMaterial> OOSingleTextureMaterial::materialWithName(const std::optional<std::string>& name, ::OOTexture* texture, const oo::PList& configuration)
+oo::Ref<OOSingleTextureMaterial> OOSingleTextureMaterial::materialWithName(const std::optional<std::string>& name, OOTexture* texture, const oo::PList& configuration)
 {
     oo::Ref<OOSingleTextureMaterial> result = oo::makeRef<OOSingleTextureMaterial>();
     if (!result->initWithName(name, texture, configuration))
@@ -58,15 +58,15 @@ bool OOSingleTextureMaterial::initWithName(const std::optional<std::string>& nam
     }
 
     return initWithName(name,
-        [::OOTexture cxx_textureWithConfiguration:texSpec],
+        OOTexture::textureWithConfiguration(texSpec).get(),
         configuration);
 }
 
-bool OOSingleTextureMaterial::initWithName(const std::optional<std::string>& name, ::OOTexture* texture, const oo::PList& configuration)
+bool OOSingleTextureMaterial::initWithName(const std::optional<std::string>& name, OOTexture* texture, const oo::PList& configuration)
 {
     if (name.has_value() && texture != nil) {
         OOBasicMaterial::initWithName(name, configuration);
-        _texture = oo::ObjCRef<::OOTexture*>(texture);
+        _texture = oo::Ref<OOTexture>(texture);
     } else {
         return false; // DESTROY(self): the factory drops the object
     }
@@ -79,7 +79,10 @@ bool OOSingleTextureMaterial::initWithName(const std::optional<std::string>& nam
 
 std::optional<std::string> OOSingleTextureMaterial::descriptionComponents() const
 {
-    return [_texture.get() cxx_description];
+    // The texture's "%@" (-cxx_description; nil answered nullopt).
+    if (_texture == nullptr)
+        return std::nullopt;
+    return _texture->description();
 }
 
 bool OOSingleTextureMaterial::doApply()
@@ -87,7 +90,8 @@ bool OOSingleTextureMaterial::doApply()
     if (EXPECT_NOT(!OOBasicMaterial::doApply()))
         return false;
 
-    [_texture.get() apply];
+    if (_texture != nullptr)
+        _texture->apply(); // a message to nil did nothing
     return true;
 }
 
@@ -95,29 +99,30 @@ void OOSingleTextureMaterial::unapplyWithNext(OOMaterial* next)
 {
     // -isKindOfClass: (nil is not one)
     if (dynamic_cast<OOSingleTextureMaterial*>(next) == nullptr)
-        [::OOTexture applyNone];
+        OOTexture::applyNone();
     OOBasicMaterial::unapplyWithNext(next);
 }
 
 void OOSingleTextureMaterial::ensureFinishedLoading()
 {
-    [_texture.get() ensureFinishedLoading];
+    if (_texture != nullptr)
+        _texture->ensureFinishedLoading();
 }
 
 bool OOSingleTextureMaterial::isFinishedLoading()
 {
-    return [_texture.get() isFinishedLoading];
+    return _texture != nullptr && _texture->isFinishedLoading();
 }
 
 bool OOSingleTextureMaterial::wantsNormalsAsTextureCoordinates()
 {
-    return [_texture.get() isCubeMap];
+    return _texture != nullptr && _texture->isCubeMap();
 }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-std::vector<oo::ObjCRef<::OOTexture*>> OOSingleTextureMaterial::allTextures()
+std::vector<oo::Ref<OOTexture>> OOSingleTextureMaterial::allTextures()
 {
-    std::vector<oo::ObjCRef<::OOTexture*>> result;
+    std::vector<oo::Ref<OOTexture>> result;
     result.emplace_back(_texture.get());
     return result;
 }

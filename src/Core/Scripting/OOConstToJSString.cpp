@@ -71,9 +71,9 @@ static JSAtom sUndefinedAtom;
 /*
         Initialize table contents (with C strings, see above) from table files.
 */
-#define ENTRY(label, val) { .value = label, .cString = #label },
-#define GALACTIC_HYPERSPACE_ENTRY(label, val) { .value = GALACTIC_HYPERSPACE_##label, .cString = #label },
-#define DIFF_STRING_ENTRY(label, string) { .value = label, .cString = string },
+#define ENTRY(label, val) { .value = (label), .cString = #label, .atom = JS_ATOM_NULL },
+#define GALACTIC_HYPERSPACE_ENTRY(label, val) { .value = GALACTIC_HYPERSPACE_##label, .cString = #label, .atom = JS_ATOM_NULL },
+#define DIFF_STRING_ENTRY(label, string) { .value = (label), .cString = (string), .atom = JS_ATOM_NULL },
 
 static TableEntry sOOCompassModeTableEntries[] = {
 #include "OOCompassMode.tbl"

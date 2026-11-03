@@ -28,8 +28,8 @@ SOFTWARE.
 
 */
 
-#import "OOColor.h"
-#import "OOMaths.h"
+#include "OOColor.h"
+#include "OOMaths.h"
 
 #if !defined(OODEBUGLDRAWING_DISABLE) && !defined(OO_DEBUG_MONITOR_ENABLED)
 #define OODEBUGLDRAWING_DISABLE 1
@@ -37,14 +37,14 @@ SOFTWARE.
 
 #ifndef OODEBUGLDRAWING_DISABLE
 
-@class OOMaterial;
+class OOMaterial;
 
 typedef struct
 {
-    OOMaterial* material;
+    OOMaterial* material; // retained by OODebugBeginWireframe(), released by OODebugEndWireframe() (bead oo-9ht.8)
 } OODebugWFState;
 
-OODebugWFState OODebugBeginWireframe(BOOL ignoreZ);
+OODebugWFState OODebugBeginWireframe(bool ignoreZ); // bool, not BOOL: the .cpp's BOOL is windows.h's int (bead oo-9ht.185)
 void OODebugEndWireframe(OODebugWFState state);
 
 OOINLINE void OODebugDrawBoundingBox(BoundingBox box);

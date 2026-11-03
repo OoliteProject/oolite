@@ -5,13 +5,10 @@ Entity.h
 Base class for entities, i.e. drawable world objects.
 
 C++20 since bead oo-bj8, the Entities pattern seam (proposed ADR-0056, amendment oo-bj8). The
-class is cxx::Entity while Entity+ObjCBridge.h, imported at the end of this header, keeps the
-Objective-C Entity: the facade its callers message, the base its unconverted subclasses
-(ShipEntity, PlanetEntity, the effects, ...) derive from, and each entity's identity (the object
-the universe, weak references and JavaScript hold). The entity's state lives here, in the C++
-class. Unconverted code that read an ivar directly reads the member through the facade's one
-ivar: ent->_cxxEntity->position, and _cxxEntity->position in an Objective-C subclass's method.
-The bridge's deletion bead moves the class out of namespace cxx.
+Objective-C Entity facade (Entity+ObjCBridge.h) is deleted: the C++ entity is its own identity
+and owns itself (oo::RefCounted; its last release runs what the facade's -dealloc ran,
+willDispose()). EntityHelpers.h, imported at the end of this header, keeps the facade's questions.
+The class has left namespace cxx.
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -36,9 +33,12 @@ MA 02110-1301, USA.
 #pragma once
 
 #import "CollisionRegion.h"
+#import "EntityVirtualMembers.h" // the virtual members
 #import "OOCacheManager.h"
 #import "OOColor.h"
+#include "OOEntityHold.h" // the owning entity lists
 #import "OOFoundation.h"
+#include "OOJSPrivateObject.h"
 #import "OOMaths.h"
 #import "OOTypes.h"
 #import "OOWeakReference.h"
@@ -48,7 +48,9 @@ MA 02110-1301, USA.
 #include "oofnd/objc/OOObjCRef.h"
 #include <quickjs.h>
 
-@class Universe, OOTexture, Entity;
+class Entity;
+class Universe;
+#include "OOTexture.h" // allTextures() answers oo::Ref<OOTexture>, which needs the class
 class OOVisualEffectEntity; // C++
 class ShipEntity; // C++
 
@@ -71,8 +73,6 @@ extern size_t gTotalEntityMemory;
 // OOEntityStatus, OOScanClass and their defaults (bead oo-9ht.64: plain header).
 #include "OOEntityEnums.h"
 
-namespace cxx {
-
 /*	The base object for ships, stations, anything actually.
 
         Data members that were @public or @protected ivars are public: the game reads them directly
@@ -81,7 +81,7 @@ namespace cxx {
         amendment oo-862e), so the bodies, and the subclasses' reads, keep the names. The members
         that subclasses override are virtual (amendment oo-cwz item 2).
 */
-class Entity : public oo::RefCounted {
+class Entity : public oo::RefCounted, public ::OOJSPrivateObject {
 public:
     Entity();
 
@@ -89,34 +89,55 @@ public:
     // entity is sent -init (PlayerEntity's deferred initialisation). Only then does it re-run.
     void init();
 
+    // The facade's -dealloc zeroed the weak references to the C++ part where it dropped its own
+    // weak reference; willDispose() does so at the same points.
+    using oo::RefCounted::dropWeakReferences;
+
+    /*	The entity's object: it "has" one from the creator that made its facade
+            (oo::MadeEntity(), oo::NewShipObject(), ...) until its last release begins, which is when
+            oo::ToObjC() answered non-nil. Holds, retains, descriptions and nodes of an entity without
+            one answer as nil's did (EntityHelpers.h, OOEntityHold.h).
+    */
+    bool hasObject() const noexcept { return _hasObject && !_disposing; }
+    void setMadeWithObject() noexcept { _hasObject = true; } // the creators' (oo::MadeEntity())
+
+    // What the facade's -dealloc ran before the C++ part went, for an entity that
+    // had its object: the last release runs it (oo::RefCounted::willDispose()).
+    void willDispose() noexcept override;
+
+    // The virtual members, declared once in EntityVirtualMembers.h in this order,
+    // so that a narrow test's stand-in for the class has the same vtable (tests/unit/core/EntityStandIn.h).
+    OO_ENTITY_VIRTUAL_MEMBERS(;, ;)
+    OO_ENTITY_DEBUG_VIRTUAL_MEMBERS(;, ;)
+
     // The session in which the entity was created.
-    virtual NSUInteger sessionID();
+    // sessionID(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
 
     bool getIsShip();
-    virtual bool isDock();
+    // isDock(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
     bool getIsStation();
     bool getIsSubEntity();
     bool getIsPlayer();
-    virtual bool isPlanet();
-    virtual bool isSun();
+    // isPlanet(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
+    // isSun(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
     bool getIsSunlit();
     bool isStellarObject();
-    virtual bool isSky();
+    // isSky(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
     bool getIsWormhole();
-    virtual bool isEffect();
-    virtual bool getIsVisualEffect();
-    virtual bool isWaypoint();
+    // isEffect(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
+    // getIsVisualEffect(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
+    // isWaypoint(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
 
-    virtual bool validForAddToUniverse();
+    // validForAddToUniverse(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
     void addToLinkedLists();
     void removeFromLinkedLists();
 
     void updateLinkedLists();
 
-    virtual void wasAddedToUniverse();
-    virtual void wasRemovedFromUniverse();
+    // wasAddedToUniverse(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
+    // wasRemovedFromUniverse(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
 
-    virtual void warnAboutHostiles();
+    // warnAboutHostiles(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
 
     CollisionRegion* getCollisionRegion();
     void setCollisionRegion(CollisionRegion* region);
@@ -126,27 +147,28 @@ public:
 
     bool throwingSparks();
     void setThrowSparks(bool value);
-    virtual void throwSparks();
+    // throwSparks(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
 
-    virtual void setOwner(Entity* ent);
-    id owner();
+    // setOwner(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
+    Entity* owner(); // the owner while it has its object, null for none or once it has gone (what -owner answered the object of, +0)
+    Entity* ownerEntity(); // the owner's C++ entity, null once it has gone
     // The objects (a ship's, or a visual effect's for its subentities: the Objective-C ShipEntity the
     // declarations named was the type, not the answer).
-    ::Entity* parentEntity(); // owner if self is subentity of owner, otherwise nil.
-    ::Entity* rootShipEntity(); // like parentEntity, but recursive.
-    id<OOWeakReferenceSupport> superShaderBindingTarget();
+    Entity* parentEntity(); // owner if self is subentity of owner, otherwise null (the C++ entity).
+    Entity* rootShipEntity(); // like parentEntity, but recursive.
+    Entity* superShaderBindingTarget(); // the parent entity, +0 (what -superShaderBindingTarget answered the object of)
 
-    virtual void setPosition(HPVector posn);
+    // setPosition(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
     void setPositionX(OOHPScalar x, OOHPScalar y, OOHPScalar z);
     HPVector getPosition();
     Vector getCameraRelativePosition();
-    virtual GLfloat cameraRangeFront();
-    virtual GLfloat cameraRangeBack();
+    // cameraRangeFront(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
+    // cameraRangeBack(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
 
     // Exposed to uniform bindings.
     Vector relativePosition();
 
-    virtual void updateCameraRelativePosition();
+    // updateCameraRelativePosition(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
     // gets a low-position relative vector
     Vector vectorTo(Entity* entity);
 
@@ -155,30 +177,30 @@ public:
 
     double zeroDistance();
     double camZeroDistance();
-    virtual OOComparisonResult compareZeroDistance(Entity* otherEntity);
+    // compareZeroDistance(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
 
     BoundingBox getBoundingBox();
 
     GLfloat getMass();
 
     Quaternion getOrientation();
-    virtual void setOrientation(Quaternion quat);
-    virtual Quaternion normalOrientation(); // Historical wart: orientation.w is reversed for player; -normalOrientation corrects this.
-    virtual void setNormalOrientation(Quaternion quat);
-    virtual void orientationChanged();
+    // setOrientation(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
+    // normalOrientation(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
+    // setNormalOrientation(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
+    // orientationChanged(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
 
     void setVelocity(Vector vel);
-    virtual Vector getVelocity();
+    // getVelocity(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
     double speed();
 
     GLfloat getDistanceTravelled();
     void setDistanceTravelled(GLfloat value);
 
-    virtual void setStatus(OOEntityStatus stat);
+    // setStatus(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
     OOEntityStatus status();
 
     void setScanClass(OOScanClass sClass);
-    virtual OOScanClass getScanClass();
+    // getScanClass(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
 
     void setEnergy(GLfloat amount);
     GLfloat getEnergy();
@@ -186,40 +208,40 @@ public:
     void setMaxEnergy(GLfloat amount);
     GLfloat getMaxEnergy();
 
-    virtual void applyRoll(GLfloat roll, GLfloat climb);
-    virtual void applyRoll(GLfloat roll, GLfloat climb, GLfloat yaw);
-    virtual void moveForward(double amount);
+    // applyRoll(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
+    // applyRoll(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
+    // moveForward(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
 
     OOMatrix rotationMatrix();
-    virtual OOMatrix drawRotationMatrix();
+    // drawRotationMatrix(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
     OOMatrix transformationMatrix();
-    virtual OOMatrix drawTransformationMatrix();
+    // drawTransformationMatrix(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
 
-    virtual bool canCollide();
-    virtual GLfloat collisionRadius();
-    virtual GLfloat frustumRadius();
+    // canCollide(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
+    // collisionRadius(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
+    // frustumRadius(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
     void setCollisionRadius(GLfloat amount);
-    std::vector<oo::ObjCRef<::Entity*>>* getCollidingEntities(); // the live list (ADR-0043 item 22)
+    std::vector<oo::EntityHold>* getCollidingEntities(); // the live list
 
-    virtual void update(OOTimeDelta delta_t);
+    // update(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
 
     void applyVelocity(OOTimeDelta delta_t);
-    virtual bool checkCloseCollisionWith(Entity* other);
+    // checkCloseCollisionWith(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
 
-    virtual void takeEnergyDamage(double amount, Entity* ent, Entity* other, const std::string& weaponIdentifier);
+    // takeEnergyDamage(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
 
     void dumpState(); // General "describe situtation verbosely in log" command.
-    virtual void dumpSelfState(); // Subclasses should override this, not -dumpState, and call throught to super first.
+    // dumpSelfState(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
 
-    virtual void subEntityReallyDied(::ShipEntity* sub);
+    // subEntityReallyDied(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
 
     NSUInteger getLastDrawCounter();
     void setLastDrawCounter(NSUInteger drawCounter);
 
     // Subclass repsonsibilities
-    virtual double findCollisionRadius();
-    virtual void drawImmediate(bool immediate, bool translucent);
-    virtual bool isVisible();
+    // findCollisionRadius(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
+    // drawImmediate(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
+    // isVisible(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
     bool isInSpace();
     bool getIsImmuneToBreakPatternHide();
 
@@ -232,7 +254,7 @@ public:
 
     // The category ShaderBindings (EntityShaderBindings.mm, bead oo-aeev; amendment oo-9fwb): more
     // values the shader uniforms bind to by name, through the entities' shader binding member table
-    // (Entity+ObjCBridge.mm) since the category's forwarders were deleted.
+    // (EntityShaderBindings.mm) since the category's forwarders were deleted.
     GLfloat clock();
     unsigned pseudoFixedD100();
     unsigned pseudoFixedD256();
@@ -243,25 +265,39 @@ public:
     unsigned systemProductivity();
 
     // What "%@" prints between the braces of <Class 0x...>{...} (OODescription.h).
-    virtual std::optional<std::string> descriptionComponents() const;
+    // descriptionComponents(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
 
-    /*	Entity (OOJavaScriptExtensions)'s class questions, which the engine asks by selector: the
-            root category forwards them here, so a C++ entity whose own facade is gone answers for its
-            class by overriding them. The defaults are the category's bodies
-            (EntityOOJavaScriptExtensions.h). An Objective-C class, or a facade, that implements the
-            selectors still answers first. oo::ObjCEntity must not forward these: the category
-            reaches them only for an Objective-C entity with no override of its own, and a forwarding
-            adapter would send the selector back to the category, which would call the adapter again.
+    /*	The class questions the engine asked an entity's object by selector (the deleted category
+            Entity (OOJavaScriptExtensions)): a C++ entity answers for its class by overriding them.
+            The defaults are the category's bodies (EntityOOJavaScriptExtensions.h). The engine asks
+            the C++ entity (OOJSEntityIsVisibleToScripts(), OOJSEntityJSClassName(),
+            OOJSEntityJSClassID()); an Objective-C entity's class that implements the selectors still
+            answers first. oo::ObjCEntity must not forward these: those functions reach them only for
+            an Objective-C entity with no override of its own, and a forwarding adapter would send the
+            selector back.
     */
-    virtual JSClassID jsClassID();
-    virtual std::optional<std::string> jsClassName();
-    virtual bool isVisibleToScripts();
+    // jsClassID(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
+    // jsClassName(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
+    // isVisibleToScripts(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
+
+    /*	The entity's JS glue (OOJSPrivateObject):
+            what the root facade's -oo_jsValueInContext:, -oo_clearJSSelf: and -cxx_oo_jsDescription
+            answered, so the engine wraps a C++ entity with OOJSValueFromCxxObject(). Its JS object's
+            private slot holds an OOJSEntityHolder (OOJSEntity.h), a weak reference to the entity, as
+            the slot held the facade's weak reference. The bodies are EntityOOJavaScriptExtensions.mm's.
+            deleteJSSelf() is what the deleted -deleteJSSelf forwarded to (the engine's reset; the
+            facade's -dealloc calls it).
+    */
+    // jsValueInContext(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
+    // clearJSSelf(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
+    // jsDescription(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
+    void deleteJSSelf();
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
     std::optional<std::string> descriptionForObjDumpBasic();
-    virtual std::optional<std::string> descriptionForObjDump();
+    // descriptionForObjDump(): virtual, in OO_ENTITY_DEBUG_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
 
-    virtual std::vector<oo::ObjCRef<::OOTexture*>> allTextures();
+    // allTextures(): virtual, in OO_ENTITY_DEBUG_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
 #endif
 
     // the base object for ships/stations/anything actually
@@ -303,16 +339,16 @@ public:
     int zero_index = { };
 
     // Linked lists of entites, sorted by position on each (world) axis. Pointers to other entities
-    // are their Objective-C objects, the entities' identity while any entity class is Objective-C.
-    ::Entity *x_previous = { }, *x_next = { };
-    ::Entity *y_previous = { }, *y_next = { };
-    ::Entity *z_previous = { }, *z_next = { };
+    // are their C++ parts, borrowed as the objects were.
+    Entity *x_previous = { }, *x_next = { };
+    Entity *y_previous = { }, *y_next = { };
+    Entity *z_previous = { }, *z_next = { };
 
-    ::Entity* collision_chain = { };
+    Entity* collision_chain = { };
 
     OOUniversalID shadingEntityID = { };
 
-    ::Entity* collider = { };
+    Entity* collider = { };
 
     oo::Ref<CollisionRegion> collisionRegion; // initially nil - then maintained
 
@@ -332,7 +368,7 @@ public:
     BoundingBox boundingBox = { };
     GLfloat mass = { };
 
-    std::vector<oo::ObjCRef<::Entity*>> collidingEntities; // filled by CollisionRegion each frame
+    std::vector<oo::EntityHold> collidingEntities; // filled by CollisionRegion each frame
 
     OOTimeAbsolute spawnTime = { };
 
@@ -342,11 +378,16 @@ public:
 private:
     bool checkLinkedLists();
 
+    bool _hasObject = false; // made by a creator (the facade's -initWithCxxEntity:)
+    bool _disposing = false; // in its last release (-dealloc)
+
     NSUInteger _sessionID = { };
 
-    oo::ObjCRef<::OOWeakReference*> _owner;
+    oo::WeakRef<Entity> _owner; // the owner's C++ part (was its object's weak reference)
     OOEntityStatus _status = { };
 };
+
+namespace cxx {
 
 /*	The protocol OOSubEntity's methods, for a C++ subentity whose own facade is gone: the owner
         that sent a subentity -rescaleBy: or -drawSubEntityImmediate:translucent: calls these when the
@@ -376,8 +417,60 @@ OOEntityStatus cxx_OOEntityStatusFromString(const std::string& string);
 
 std::string cxx_OOStringFromScanClass(OOScanClass scanClass);
 OOScanClass cxx_OOScanClassFromString(const std::string& string);
+
+/*	The entities' shader binding member table (EntityShaderBindings.mm): the binding a uniform
+        bound to the property name on this entity makes, reading the entity itself. False where no
+        row has the name, the row does not apply to this entity, or its type is not bindable (as the
+        selector path failed).
+*/
+struct OOShaderMemberBinding; // OOShaderUniformMethodType.h
+bool EntityShaderMemberBindingFor(Entity* entity, const char* property, OOShaderMemberBinding* outBinding);
+
+#include "oofnd/PList.hpp"
+
+namespace oo {
+
+/*	An entity carried WEAKLY through plist data: what oo::PListObject() of the
+        entity's object's -weakRetain made (the docking instructions' station, the collision-avoidance
+        condition's primary target). The payload holds a weak reference to the C++ entity, which reads
+        null exactly when the object's weak reference did (the facade's -dealloc drops both at one
+        point), so the node keeps nothing alive, as before. Its JS value is the entity's, undefined
+        once it has gone (OOJSValueFromPList), as the weak reference forwarded.
+*/
+class EntityWeakPListForeign final : public PListForeign {
+public:
+    explicit EntityWeakPListForeign(Entity* entity)
+        : _entity(entity)
+    {
+    }
+    Entity* entity() const noexcept { return _entity.get(); }
+    std::string className() const override { return "OOWeakReference"; } // what the proxy's class was
+    std::string description() const override; // the entity's description, or <Dead OOWeakReference 0x...> (Entity.mm)
+
+private:
+    WeakRef<Entity> _entity;
+};
+
+// The entity's weak node; a null PList for null.
+inline PList EntityWeakNode(Entity* entity)
+{
+    if (entity == nullptr)
+        return PList();
+    return PList(PList::Object(makeRef<EntityWeakPListForeign>(entity)));
+}
+
+// The live C++ entity of a weak node; null once it has gone, and for any other node.
+inline Entity* EntityInWeakNode(const PList& plist)
+{
+    const PList::Object* node = plist.getIf<PList::Object>();
+    if (node == nullptr)
+        return nullptr;
+    const auto* payload = dynamic_cast<const EntityWeakPListForeign*>(node->get());
+    return payload != nullptr ? payload->entity() : nullptr;
+}
+
+} // namespace oo
 #endif
 
-// Transitional: the Objective-C Entity, for callers and subclasses not yet converted. Deleted,
-// with namespace cxx above, by the bridge's deletion bead.
-#import "Entity+ObjCBridge.h"
+// What the deleted facade's header kept for its callers: the questions it answered.
+#include "EntityHelpers.h"

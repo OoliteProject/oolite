@@ -113,14 +113,14 @@ std::optional<std::string> PlayerEntity::dockedStationDisplayName()
 
 bool PlayerEntity::dockedAtMainStation()
 {
-    return status() == STATUS_DOCKED && dockedStation() == [UNIVERSE station];
+    return status() == STATUS_DOCKED && dockedStation() == (UNIVERSE != nullptr ? UNIVERSE->station() : nullptr);
 }
 
 void PlayerEntity::awardCommodityType(const std::string& type, OOCargoQuantity amount)
 {
     OOMassUnit unit;
 
-    if (!([UNIVERSE commodities] != nullptr ? [UNIVERSE commodities]->goodDefined(type) : false)) {
+    if (!((UNIVERSE != nullptr ? UNIVERSE->getCommodities() : nullptr) != nullptr ? UNIVERSE->getCommodities()->goodDefined(type) : false)) {
         return;
     }
 
@@ -141,7 +141,7 @@ void PlayerEntity::awardCommodityType(const std::string& type, OOCargoQuantity a
                     while (amount > 0) {
                         int smaller_quantity = 1 + ((amount - 1) % amount_per_container);
                         if (cargo.size() < maxAvailableCargoSpace()) {
-                            ::ShipEntity* container = [UNIVERSE cxx_newShipWithRole:"1t-cargopod"];
+                            ::ShipEntity* container = (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole("1t-cargopod") : (::ShipEntity*)nil);
                             if (container) {
                                 // the cargopod ship is just being set up. If ejected,  will call UNIVERSE addEntity
                                 // [container wasAddedToUniverse]; // seems to be not needed anymore for pods
@@ -151,9 +151,9 @@ void PlayerEntity::awardCommodityType(const std::string& type, OOCargoQuantity a
                                     container->setStatus(STATUS_IN_HOLD);
                                 if (container != nullptr)
                                     container->setCommodity(type, smaller_quantity);
-                                cargo.emplace_back(oo::ToObjC(container));
+                                cargo.emplace_back(container);
                                 if (container != nullptr)
-                                    [oo::ToObjC(container) release];
+                                    oo::ReleaseEntity(container);
                             }
                         }
                         amount -= smaller_quantity;
@@ -165,7 +165,7 @@ void PlayerEntity::awardCommodityType(const std::string& type, OOCargoQuantity a
                 // put each ton in a separate container
                 while (amount) {
                     if (cargo.size() < maxAvailableCargoSpace()) {
-                        ::ShipEntity* container = [UNIVERSE cxx_newShipWithRole:"1t-cargopod"];
+                        ::ShipEntity* container = (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole("1t-cargopod") : (::ShipEntity*)nil);
                         if (container) {
                             // the cargopod ship is just being set up. If ejected, will call UNIVERSE addEntity
                             // [container wasAddedToUniverse]; // seems to be not needed anymore for pods
@@ -175,9 +175,9 @@ void PlayerEntity::awardCommodityType(const std::string& type, OOCargoQuantity a
                                 container->setStatus(STATUS_IN_HOLD);
                             if (container != nullptr)
                                 container->setCommodity(type, 1);
-                            cargo.emplace_back(oo::ToObjC(container));
+                            cargo.emplace_back(container);
                             if (container != nullptr)
-                                [oo::ToObjC(container) release];
+                                oo::ReleaseEntity(container);
                         }
                     }
                     amount--;
@@ -211,9 +211,9 @@ OOGalaxyID PlayerEntity::currentGalaxyID()
 
 OOSystemID PlayerEntity::currentSystemID()
 {
-    if ([UNIVERSE sun] == nil)
+    if ((UNIVERSE != nullptr ? UNIVERSE->sun() : nullptr) == nil)
         return -1; // Interstellar space
-    return [UNIVERSE currentSystemID];
+    return (UNIVERSE != nullptr ? UNIVERSE->currentSystemID() : 0);
 }
 
 void PlayerEntity::setMissionChoice(const std::optional<std::string>& newChoice)
@@ -265,19 +265,19 @@ OOTimeDelta PlayerEntity::scriptTimer()
  * reset it after generating the number. */
 unsigned PlayerEntity::systemPseudoRandom100()
 {
-    seed_RNG_only_for_planet_description(([UNIVERSE systemManager] != nullptr ? [UNIVERSE systemManager]->getRandomSeedForCurrentSystem() : Random_Seed()));
+    seed_RNG_only_for_planet_description(((UNIVERSE != nullptr ? UNIVERSE->getSystemManager() : nullptr) != nullptr ? UNIVERSE->getSystemManager()->getRandomSeedForCurrentSystem() : Random_Seed()));
     return (gen_rnd_number() * 256 + gen_rnd_number()) % 100;
 }
 
 unsigned PlayerEntity::systemPseudoRandom256()
 {
-    seed_RNG_only_for_planet_description(([UNIVERSE systemManager] != nullptr ? [UNIVERSE systemManager]->getRandomSeedForCurrentSystem() : Random_Seed()));
+    seed_RNG_only_for_planet_description(((UNIVERSE != nullptr ? UNIVERSE->getSystemManager() : nullptr) != nullptr ? UNIVERSE->getSystemManager()->getRandomSeedForCurrentSystem() : Random_Seed()));
     return gen_rnd_number();
 }
 
 double PlayerEntity::systemPseudoRandomFloat()
 {
-    seed_RNG_only_for_planet_description(([UNIVERSE systemManager] != nullptr ? [UNIVERSE systemManager]->getRandomSeedForCurrentSystem() : Random_Seed()));
+    seed_RNG_only_for_planet_description(((UNIVERSE != nullptr ? UNIVERSE->getSystemManager() : nullptr) != nullptr ? UNIVERSE->getSystemManager()->getRandomSeedForCurrentSystem() : Random_Seed()));
     unsigned a = gen_rnd_number();
     unsigned b = gen_rnd_number();
     unsigned c = gen_rnd_number();

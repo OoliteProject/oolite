@@ -59,7 +59,7 @@ bool OORegExpMatcher::init()
     unsigned codeLine = __LINE__ + 1; // NB: should remain line before code.
     const char* code = "return regexp.test(string);";
 
-    [::OOJavaScriptEngine sharedEngine]; // Summon the beast from the Pit.
+    OOJavaScriptEngine::sharedEngine(); // Summon the beast from the Pit.
 
     JSContext* context = OOJSAcquireContext();
     _tester = OOJSFunction::initWithName(std::string("matchesRegExp"),
@@ -85,7 +85,7 @@ OORegExpMatcher::~OORegExpMatcher()
         sActiveInstance = nullptr;
 
     _tester = nullptr;
-    DESTROY(_cachedRegExpObject);
+    _cachedRegExpObject = nullptr;
 }
 
 bool OORegExpMatcher::string(const std::string& string, const std::string& regExp)
@@ -107,7 +107,7 @@ bool OORegExpMatcher::string(const std::string& string, const std::string& regEx
     // Create new RegExp object if necessary.
     if (flags != _cachedFlags || _cachedRegExpString != regExp) {
         _cachedRegExpString.reset();
-        DESTROY(_cachedRegExpObject);
+        _cachedRegExpObject = nullptr;
 
         // QuickJS has no API to create a RegExp directly, so call the RegExp constructor.
         _cachedRegExpString = regExp;
@@ -124,7 +124,7 @@ bool OORegExpMatcher::string(const std::string& string, const std::string& regEx
             OOJSReportPendingException(context);
             regExpObj = JS_NULL;
         }
-        _cachedRegExpObject = [[::OOJSValue alloc] initWithJSValue:regExpObj inContext:context];
+        _cachedRegExpObject = OOJSValue::valueWithJSValue(regExpObj, context);
         _cachedFlags = flags;
 
         JS_FreeValue(context, regExpObj);
@@ -140,7 +140,7 @@ bool OORegExpMatcher::string(const std::string& string, const std::string& regEx
     // QuickJS leaves pending, is reported as it did.
     JSValue argv[2];
     argv[0] = OOJSValueFromPList(context, oo::PList(string));
-    argv[1] = (_cachedRegExpObject != nil) ? OOJSValueFromNativeObject(context, _cachedRegExpObject) : JSValue {}; // (a message to nil gave the zero value)
+    argv[1] = (_cachedRegExpObject != nullptr) ? _cachedRegExpObject->jsValueInContext(context) : JSValue {}; // (a message to nil gave the zero value)
     JSValue resultValue = JS_UNDEFINED;
     bool OK = _tester->evaluateWithContext(context, JS_UNDEFINED, 2, argv, &resultValue);
     int matched = 0;

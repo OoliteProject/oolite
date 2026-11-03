@@ -32,7 +32,7 @@ MA 02110-1301, USA.
 
 struct OOLaserShotEntityTestAccess;
 
-class OOLaserShotEntity : public cxx::Entity {
+class OOLaserShotEntity : public Entity {
 public:
     // A new shot, initialised. A caller that hands it to Objective-C gives it a facade
     // (oo::NewEntityFacade).
@@ -49,12 +49,12 @@ public:
     bool isEffect() override;
     bool canCollide() override;
 
-    ::OOTexture* texture1();
-    ::OOTexture* texture2();
+    OOTexture* texture1();
+    OOTexture* texture2();
 
     static void setUpTexture();
-    static ::OOTexture* innerTexture();
-    static ::OOTexture* outerTexture();
+    static OOTexture* innerTexture();
+    static OOTexture* outerTexture();
     // The graphics reset client is a file-local C++ one (OOLaserShotEntity.mm).
     static void resetGraphicsState();
 

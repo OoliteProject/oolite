@@ -420,8 +420,10 @@ static inline void SetFunctionTracking(bool value)
 
 #else
 
-static inline void OOGLNoteCurrentFunction(const char* function, unsigned line) { }
-static inline void SetFunctionTracking(bool value) { }
+namespace {
+inline void OOGLNoteCurrentFunction(const char* /*function*/, unsigned /*line*/) { }
+inline void SetFunctionTracking(bool /*value*/) { }
+}
 
 #endif
 

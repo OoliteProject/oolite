@@ -21,6 +21,7 @@
 #import "OOColor.h"
 #import "OOOpenGL.h"
 #import "OOOpenGLMatrixManager.h"
+#import "MyOpenGLView.h"
 
 #include "oo_test.hpp"
 
@@ -31,8 +32,9 @@
 
 // --- Link stubs: what render() references. The test never renders; a call is a test bug. -------
 
-@class Universe;
+class Universe;
 Universe *gSharedUniverse = nil;
+GLfloat MyOpenGLView::getDisplay_z()							{ std::abort(); }	// a member since bead oo-9ht.153 deleted the view's facade (was a send)
 
 void OOSetOpenGLState_(OOOpenGLStateID, const char *, unsigned)	{ std::abort(); }
 void OOVerifyOpenGLState_(const char *, unsigned)				{ std::abort(); }
@@ -40,6 +42,9 @@ void OOGLPushModelView(void)									{ std::abort(); }
 OOMatrix OOGLPopModelView(void)									{ std::abort(); }
 void OOGLTranslateModelView(Vector)								{ std::abort(); }
 bool cxx_OOCheckOpenGLErrors(const char *, ...)					{ std::abort(); }
+#if OO_CHECK_GL_HEAVY && OO_GL_STATE_VERIFICATION
+void OOGLNoteCurrentFunction(const char *, unsigned)			{ std::abort(); }	// OOGL() in the debug flavour (OOOpenGLCheck.h; bead oo-iimku)
+#endif
 
 
 // The vertex buffer: 12 floats (x, y, r, g, b, a of each endpoint) per line segment.

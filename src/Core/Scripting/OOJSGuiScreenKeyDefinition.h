@@ -69,7 +69,7 @@ private:
 
     JSValue _callback = JS_UNDEFINED; // Owned.
     JSValue _callbackThis = JS_UNDEFINED; // Owned.
-    oo::WeakRef<OOJSScript> _owningScript; // a weak reference (was -weakRetain)
+    oo::WeakRef<OOJSScript> _owningScript; // a weak reference (was the facade's weak reference proxy)
 
     std::optional<std::string> _name; // nullopt until set (was nil)
     oo::PList _registerKeys; // key name -> key definitions; null until set (was nil)
