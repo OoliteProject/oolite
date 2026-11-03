@@ -16,7 +16,7 @@ run_script() {
 
     source ./build_documentation_fn.sh
 
-    if ! build_documentation "$python_cmd" "NO"; then
+    if ! build_documentation "NO"; then
         popd
         return 1
     fi

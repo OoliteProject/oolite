@@ -21,6 +21,14 @@ run_script() {
     source "generate_manifest_fn.sh"
     cd ../..
 
+    source Documentation/build_documentation_fn.sh
+
+    if ! build_documentation "YES" "NO"; then
+        popd
+        return 1
+    fi
+    cp build/documentation/docs/assets/pdfs/* "$progdir"
+
     if [[ "$host_os" == "darwin" ]]; then
         cp() { gcp "$@"; }  # GNU cp from Homebrew coreutils; BSD cp has no -u
     fi

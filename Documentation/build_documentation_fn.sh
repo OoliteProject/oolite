@@ -1,9 +1,18 @@
 #!/bin/bash
 
 build_documentation() {
-    local python_cmd="$1"
-    local deactivate_venv="${2:-YES}"
-    local include_doxygen="${3:-YES}"
+    local deactivate_venv="${1:-YES}"
+    local include_doxygen="${2:-YES}"
+
+    local python_cmd
+    if python3 --version >/dev/null 2>&1; then
+        python_cmd="python3"
+    elif python --version >/dev/null 2>&1; then
+        python_cmd="python"
+    else
+        echo "❌ Python not found!" >&2
+        return 1
+    fi
 
     local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
     pushd "$script_dir"
