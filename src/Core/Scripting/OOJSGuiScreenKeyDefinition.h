@@ -54,6 +54,6 @@ MA 02110-1301, USA.
 
 - (void)runCallback:(id)key; // shared selector (proposed ADR-0043): key is an Objective-C string
 
-- (NSComparisonResult)interfaceCompare:(OOJSGuiScreenKeyDefinition*)other;
+- (OOComparisonResult)interfaceCompare:(OOJSGuiScreenKeyDefinition*)other;
 
 @end

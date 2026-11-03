@@ -65,6 +65,8 @@ MA 02110-1301, USA.
 #import "oofnd/objc/OOObject.h"
 #include <quickjs.h>
 
+#include "oofnd/objc/OOAssert.h"
+
 #if !OOJS_POC_HARNESS
 #import "PlayerEntity.h"
 #import "PlayerEntityLegacyScriptEngine.h"
@@ -168,13 +170,13 @@ MA 02110-1301, USA.
                    line:(in unsigned)line
               stackSkip:(in unsigned)stackSkip
         showingLocation:(in BOOL)showLocation
-            withMessage:(in NSString*)message;
+            withMessage:(in id)message; // shared selector (proposed ADR-0043): OODebugMonitor implements it with a string
 
 // Sent for JS log messages. Note: messageClass will be nil if Log() is used rather than LogWithClass().
 - (oneway void)jsEngine:(in byref OOJavaScriptEngine*)engine
                 context:(in JSContext*)context
-             logMessage:(in NSString*)message
-                ofClass:(in NSString*)messageClass;
+             logMessage:(in id)message
+                ofClass:(in id)messageClass; // shared selector (proposed ADR-0043): OODebugMonitor implements it with strings
 
 @end
 
@@ -190,7 +192,7 @@ MA 02110-1301, USA.
 OOINLINE JSContext* OOJSAcquireContext(void)
 {
     extern JSContext* gOOJSMainThreadContext;
-    NSCAssert(gOOJSMainThreadContext != NULL, @"Attempt to use JavaScript context before JavaScript engine is initialized.");
+    OOCAssert(gOOJSMainThreadContext != NULL, "Attempt to use JavaScript context before JavaScript engine is initialized.");
     return gOOJSMainThreadContext;
 }
 
@@ -198,10 +200,6 @@ OOINLINE void OOJSRelinquishContext(JSContext* context)
 {
     (void)context;
 }
-
-// Notifications sent when JavaScript engine is reset.
-extern NSString* const kOOJavaScriptEngineWillResetNotification;
-extern NSString* const kOOJavaScriptEngineDidResetNotification;
 
 /*	Engine-neutral names, also defined by the SpiderMonkey header, so code
         outside src/Core/Scripting can be built against either engine.
@@ -257,10 +255,9 @@ JSValueConst OOJSLegacyConstRewriter(void);
 // Report and clear a pending exception, as SpiderMonkey's error reporter did.
 void OOJSReportPendingException(JSContext* context);
 
-/*	The same notifications on oo::NotificationCenter (oofnd/Notification.hpp, bead oo-3rb.9),
-        posted with the engine as the object. Until the last NSNotificationCenter observer is
-        migrated, -reset posts each notification to both centers (oo::NotificationCenter first); the
-        NSString names above go with that last observer.
+/*	Notifications sent when JavaScript engine is reset, on oo::NotificationCenter
+        (oofnd/Notification.hpp, bead oo-3rb.9), posted with the engine as the object: will-reset
+        before the context is destroyed, did-reset after it is recreated.
 */
 extern const char* const kOOJavaScriptEngineWillResetNotificationName;
 extern const char* const kOOJavaScriptEngineDidResetNotificationName;
@@ -367,7 +364,7 @@ JSValue OOJSObjectFromNativeObject(JSContext* context, id object);
 
 /*	OONull: the placeholder for null inside native collections, which cannot
         hold nil (was Foundation's null singleton, ADR-0029 Decision 5). A JS array
-        element that is null or undefined becomes [OONull null] in the NSArray, and
+        element that is null or undefined becomes [OONull null] in the native array, and
         [OONull null] becomes JS null, so JS null round-trips as before. Game code
         uses it where a collection slot is empty (MFD settings, target memory,
         script event arguments). It describes itself as "<null>", as its
@@ -490,27 +487,35 @@ OOINLINE BOOL OOJSValueIsArray(JSContext* context, JSValueConst value)
 }
 
 /*	OOJSDictionaryFromJSValue(context, value)
-        OOJSDictionaryFromJSObject(context, object)
+        cxx_OOJSDictionaryFromJSObject(context, object)
 
         Converts a JavaScript value to a dictionary by calling
-        OOJSNativeObjectFromJSValue() on each of its values.
+        OOJSNativeObjectFromJSValue() on each of its values (a live object such as
+        an entity or OONull stays a PList::Object node).
 
-        Only enumerable own (i.e., not inherited) properties are included.
-        Integer keys become NSNumbers, as before.
+        Only enumerable own (i.e., not inherited) properties with string keys are
+        included; an object with an integer-like property gives a null PList, as
+        does a value that is not an object or cannot be enumerated.
+
+        The converter for plain JS Objects that OOJSNativeObjectFromJSValue() uses
+        is the Foundation OOJSDictionaryFromJSObject() in the bridge
+        (OOJavaScriptEngine+FoundationBridge.h), where integer keys become
+        NSNumbers, as before.
 */
-NSDictionary* OOJSDictionaryFromJSValue(JSContext* context, JSValueConst value);
-NSDictionary* OOJSDictionaryFromJSObject(JSContext* context, JSValueConst object);
+oo::PList OOJSDictionaryFromJSValue(JSContext* context, JSValueConst value);
+oo::PList cxx_OOJSDictionaryFromJSObject(JSContext* context, JSValueConst object);
 
 /*	OOJSDictionaryFromStringTable(context, value)
 
         Treat an arbitrary JavaScript object as a dictionary mapping strings to
-        strings, and convert to a corresponding NSDictionary. The values are
-        converted to strings.
+        strings, and convert to a corresponding dictionary. The values are
+        converted to strings. A null PList if the value is null or not an
+        object, or cannot be enumerated.
 
         Only enumerable own (i.e., not inherited) properties with string keys are
         included.
 */
-NSDictionary* OOJSDictionaryFromStringTable(JSContext* context, JSValueConst value);
+oo::PList OOJSDictionaryFromStringTable(JSContext* context, JSValueConst value);
 
 /*	Classes
 
@@ -587,7 +592,7 @@ JSValueConst OOJSInitClass(JSContext* context, JSValueConst global, JSClassID cl
     static BOOL NAME(JSContext* context, JSValueConst inObject, OBJCCLASSNAME** outObject) GCC_ATTR((unused)); \
     static BOOL NAME(JSContext* context, JSValueConst inObject, OBJCCLASSNAME** outObject)                     \
     {                                                                                                          \
-        NSCParameterAssert(outObject != NULL);                                                                 \
+        OOCParameterAssert(outObject != NULL);                                                                 \
         static Class cls = Nil;                                                                                \
         if (EXPECT_NOT(cls == Nil))                                                                            \
             cls = [OBJCCLASSNAME class];                                                                       \

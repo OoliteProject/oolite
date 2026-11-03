@@ -29,6 +29,9 @@ MA 02110-1301, USA.
 
 #include <quickjs.h>
 
+#include "oofnd/StdLib.hpp"
+#include "oofnd/objc/OOObjCRef.h"
+
 @class ShipEntity;
 
 @interface OOShipGroup : OOWeakRefObject {
@@ -37,29 +40,25 @@ MA 02110-1301, USA.
     unsigned long _updateCount;
     OOWeakReference** _members;
     OOWeakReference* _leader;
-    NSString* _name;
+    std::optional<std::string> _name;
 
     JSValue _jsSelf; // Zero-filled (not an object) until created; test with JS_IsObject().
 }
 
 - (id)init;
-- (id)initWithName:(NSString*)name;
-+ (instancetype)groupWithName:(NSString*)name;
-+ (instancetype)groupWithName:(NSString*)name leader:(ShipEntity*)leader;
+- (id)initWithName:(id)name; // shared selector: an Objective-C string, or nil
++ (instancetype)cxx_groupWithName:(const std::optional<std::string>&)name;
++ (instancetype)cxx_groupWithName:(const std::optional<std::string>&)name leader:(ShipEntity*)leader;
 
-- (NSString*)name;
-- (void)setName:(NSString*)name;
+- (id)name; // shared selector: an Objective-C string, or nil
+- (void)setName:(id)name; // shared selector: an Objective-C string, or nil
 
 - (ShipEntity*)leader;
 - (void)setLeader:(ShipEntity*)leader;
 
-- (NSEnumerator*)objectEnumerator;
-- (NSEnumerator*)mutationSafeEnumerator; // Enumerate over contents at time this is called, even if actual group is mutated.
-
-- (NSSet*)members;
-- (NSArray*)memberArray; // arbitrary order
-- (NSSet*)membersExcludingLeader;
-- (NSArray*)memberArrayExcludingLeader; // arbitrary order
+// The members at the time this is called, even if the group is mutated later.
+- (std::vector<oo::ObjCRef<ShipEntity*>>)cxx_memberArray; // arbitrary order
+- (std::vector<oo::ObjCRef<ShipEntity*>>)cxx_memberArrayExcludingLeader; // arbitrary order
 
 - (BOOL)containsShip:(ShipEntity*)ship;
 - (BOOL)addShip:(ShipEntity*)ship;
@@ -69,3 +68,29 @@ MA 02110-1301, USA.
 - (BOOL)isEmpty;
 
 @end
+
+/*	OOShipGroupCursor: steps through a group's live members in its internal order (the former
+        OOShipGroupEnumerator, bead oo-5l4w). It raises if the group is mutated while it is in use,
+        compacts dead references as it passes them, and unless told not to runs the group's clean-up
+        at the end. It keeps the group alive.
+*/
+class OOShipGroupCursor {
+public:
+    explicit OOShipGroupCursor(OOShipGroup* group);
+
+    ShipEntity* next(); // nil at the end
+    NSUInteger index() const { return _index; }
+    void setPerformCleanup(BOOL flag) { _considerCleanup = flag; }
+
+    // Public so ShipGroupIterate() can peek at both these and OOShipGroup's ivars. Naughty!
+    oo::ObjCRef<OOShipGroup*> _group;
+    NSUInteger _index = 0, _updateCount = 0;
+    BOOL _considerCleanup = YES, _cleanupNeeded = NO;
+};
+
+/*	TRANSITIONAL (proposed ADR-0043, "Transitional bridges"): the Foundation-typed API this header
+        declared before its sweep (bead oo-5l4w), forwarding to the cxx_ methods above, so unmigrated
+        callers compile unchanged. Callers move to the cxx_ API in their own sweep beads; the bridge
+        goes in its own bead.
+*/
+#import "OOShipGroup+FoundationBridge.h"

@@ -38,7 +38,7 @@ MA 02110-1301, USA.
         group pointers, is this struct. Both selectors are unique.
 */
 struct OOShipSaveContext {
-    std::map<OOShipGroup*, unsigned> groupIDs; // not retained, as the NSValue keys were not
+    std::map<OOShipGroup*, unsigned> groupIDs; // not retained, as the pointer-box keys were not
     unsigned nextGroupID = 0;
     std::vector<oo::ObjCRef<OOShipGroup*>> groups; // keeps the groups alive while they have IDs
     std::map<NSUInteger, oo::ObjCRef<OOShipGroup*>> groupsByID;

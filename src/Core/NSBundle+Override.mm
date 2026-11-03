@@ -10,6 +10,7 @@
 #import "OOFoundationBridge.h"
 
 #include "oofnd/FileSystem.hpp"
+#include "oofnd/Log.hpp"
 #include "oofnd/PListParsing.hpp"
 #include "oofnd/ResourcePaths.hpp"
 
@@ -38,7 +39,7 @@
     if (gnustepPlist.isNull()) {
         // Fallback block prevents runtime crashes if files are missing during dev/build refactors
         gnustepPlist = oo::PList(oo::PList::Dict { });
-        NSLog(@"[Oolite-Core] Warning: Failed to find info-gnustep.plist at calculated path: %@", oo::NSStringFrom(oo::fs::utf8String(plistPath)));
+        OO_LOG("unclassified", "[Oolite-Core] Warning: Failed to find info-gnustep.plist at calculated path: {}", oo::fs::utf8String(plistPath));
     }
 
     // A mutable copy, as before, returned autoreleased.

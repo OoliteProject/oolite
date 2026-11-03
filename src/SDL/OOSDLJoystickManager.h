@@ -33,8 +33,8 @@ MA 02110-1301, USA.
 
 */
 
+#import "OOFoundation.h"
 #import "OOJoystickManager.h"
-#import <Foundation/Foundation.h>
 #import <SDL3/SDL_events.h>
 
 #include "oofnd/StdLib.hpp"

@@ -62,7 +62,7 @@ BOOL NORPredicate(Entity* entity, void* parameter); // Parameter: BinaryOperatio
 BOOL XORPredicate(Entity* entity, void* parameter); // Parameter: BinaryOperationPredicateParameter. XOR operator.
 BOOL NANDPredicate(Entity* entity, void* parameter); // Parameter: BinaryOperationPredicateParameter. NAND operator.
 
-BOOL HasScanClassPredicate(Entity* entity, void* parameter); // Parameter: NSNumber (int)
+BOOL HasScanClassPredicate(Entity* entity, void* parameter); // Parameter: boxed int (responds to -intValue)
 BOOL HasClassPredicate(Entity* entity, void* parameter); // Parameter: Class
 BOOL IsShipPredicate(Entity* entity, void* parameter); // Parameter: ignored. Tests isShip and !isSubentity.
 BOOL IsStationPredicate(Entity* entity, void* parameter); // Parameter: ignored. Tests isStation.
@@ -71,10 +71,10 @@ BOOL IsSunPredicate(Entity* entity, void* parameter); // Parameter: ignored. Tes
 BOOL IsVisualEffectPredicate(Entity* entity, void* parameter); // Parameter: ignored. Tests isVisualEffect and !isSubentity.
 
 // These predicates assume their parameter is a ShipEntity.
-BOOL HasRolePredicate(Entity* ship, void* parameter); // Parameter: NSString
-BOOL HasPrimaryRolePredicate(Entity* ship, void* parameter); // Parameter: NSString
-BOOL HasRoleInSetPredicate(Entity* ship, void* parameter); // Parameter: NSSet
-BOOL HasPrimaryRoleInSetPredicate(Entity* ship, void* parameter); // Parameter: NSSet
+BOOL HasRolePredicate(Entity* ship, void* parameter); // Parameter: an Objective-C string
+BOOL HasPrimaryRolePredicate(Entity* ship, void* parameter); // Parameter: an Objective-C string
+BOOL HasRoleInSetPredicate(Entity* ship, void* parameter); // Parameter: an Objective-C set of role strings
+BOOL HasPrimaryRoleInSetPredicate(Entity* ship, void* parameter); // Parameter: an Objective-C set of role strings
 BOOL IsHostileAgainstTargetPredicate(Entity* ship, void* parameter); // Parameter: ShipEntity
 
 #ifdef __cplusplus

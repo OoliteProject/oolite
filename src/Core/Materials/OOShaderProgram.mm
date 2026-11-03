@@ -202,7 +202,7 @@ static NSString* TranslateGLSL330To120(NSString* source, BOOL isVertexShader, NS
 
 #ifndef NDEBUG
     if (EXPECT_NOT(sActiveProgram == self)) {
-        OOLog(@"shader.dealloc.imbalance", @"%@", @"***** OOShaderProgram deallocated while active, indicating a retain/release imbalance. Expect imminent crash.");
+        OO_LOG("shader.dealloc.imbalance", "{}", "***** OOShaderProgram deallocated while active, indicating a retain/release imbalance. Expect imminent crash.");
         [OOShaderProgram applyNone];
     }
 #endif
@@ -294,7 +294,7 @@ BOOL ValidateShaderObject(GLhandleARB object, const std::optional<std::string>& 
     OOGL(glGetObjectParameterivARB(object, statusType, &status));
     if (status == GL_FALSE) {
         const std::string msgClass = oo::str::format("shader.%s.failure", linking ? "link" : "compile");
-        OOLogERR(oo::NSStringFrom(msgClass), @"GLSL %@ %@ failed for %@:\n>>>>> GLSL log:\n%@\n", oo::NSStringFrom(subtypeString), oo::NSStringFrom(actionString), oo::NSStringOrNil(name), oo::NSStringFrom(GetGLSLInfoLog(object)));
+        OO_LOG_ERR(msgClass, "GLSL {} {} failed for {}:\n>>>>> GLSL log:\n{}\n", subtypeString, actionString, name.value_or("(null)"), GetGLSLInfoLog(object));
         return NO;
     }
 
@@ -304,7 +304,7 @@ BOOL ValidateShaderObject(GLhandleARB object, const std::optional<std::string>& 
         OOGL(glGetObjectParameterivARB(object, GL_OBJECT_VALIDATE_STATUS_ARB, &status));
         if (status == GL_FALSE) {
             const std::string msgClass = oo::str::format("shader.%s.validationFailure", linking ? "link" : "compile");
-            OOLogWARN(oo::NSStringFrom(msgClass), @"GLSL %@ %@ failed for %@:\n>>>>> GLSL log:\n%@\n", oo::NSStringFrom(subtypeString), @"validation", oo::NSStringOrNil(name), oo::NSStringFrom(GetGLSLInfoLog(object)));
+            OO_LOG_WARN(msgClass, "GLSL {} {} failed for {}:\n>>>>> GLSL log:\n{}\n", subtypeString, "validation", name.value_or("(null)"), GetGLSLInfoLog(object));
             return NO;
         }
     }
@@ -474,7 +474,7 @@ BOOL GetShaderSource(const std::optional<std::string>& fileName, const std::stri
             }
         }
         if (!result.has_value()) {
-            OOLog(kOOLogFileNotFound, @"GLSL ERROR: failed to find fragment program %@.", oo::NSStringFrom(*fileName));
+            OO_LOG(cxx_kOOLogFileNotFound, "GLSL ERROR: failed to find fragment program {}.", *fileName);
             return NO;
         }
     }

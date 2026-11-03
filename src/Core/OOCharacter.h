@@ -30,38 +30,41 @@ MA 02110-1301, USA.
 #import "oofnd/objc/OOObject.h"
 #import <Foundation/Foundation.h>
 
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
+
 @class OOJSScript;
 
 @interface OOCharacter : OOObject {
 @private
-    NSString* _name;
-    NSString* _shortDescription;
+    std::optional<std::string> _name;
+    std::optional<std::string> _shortDescription;
     OOSystemID _originSystem;
     Random_Seed _genSeed;
     int _legalStatus;
     OOCreditsQuantity _insuranceCredits;
-    NSArray* _scriptActions;
+    oo::PList _scriptActions; // an array; null: none
     OOJSScript* _script;
 }
 
-- (id)initWithRole:(NSString*)role andOriginalSystem:(OOSystemID)s;
+- (id)initWithRole:(const std::string&)role andOriginalSystem:(OOSystemID)s;
 
-+ (OOCharacter*)characterWithRole:(NSString*)c_role andOriginalSystem:(OOSystemID)s;
-+ (OOCharacter*)randomCharacterWithRole:(NSString*)c_role andOriginalSystem:(OOSystemID)s;
-+ (OOCharacter*)characterWithDictionary:(NSDictionary*)c_dict;
++ (OOCharacter*)characterWithRole:(const std::string&)c_role andOriginalSystem:(OOSystemID)s;
++ (OOCharacter*)randomCharacterWithRole:(const std::string&)c_role andOriginalSystem:(OOSystemID)s;
++ (OOCharacter*)characterWithDictionary:(id)c_dict; // an Objective-C dictionary (JS crew definitions may hold any object)
 
-- (NSString*)planetOfOrigin;
+- (std::optional<std::string>)planetOfOrigin;
 - (OOSystemID)planetIDOfOrigin;
-- (NSString*)species;
+- (std::optional<std::string>)species;
 
 - (void)basicSetUp;
-- (BOOL)castInRole:(NSString*)role;
+- (BOOL)castInRole:(const std::string&)role;
 
-- (NSString*)name;
-- (void)setName:(NSString*)value;
+- (id)name; // shared selector: an Objective-C string, or nil
+- (void)setName:(id)value; // shared selector: an Objective-C string, or nil
 
-- (NSString*)shortDescription;
-- (void)setShortDescription:(NSString*)value;
+- (id)shortDescription; // shared selector: an Objective-C string, or nil
+- (void)setShortDescription:(id)value; // shared selector: an Objective-C string, or nil
 
 - (int)legalStatus;
 - (void)setLegalStatus:(int)value;
@@ -69,12 +72,12 @@ MA 02110-1301, USA.
 - (OOCreditsQuantity)insuranceCredits;
 - (void)setInsuranceCredits:(OOCreditsQuantity)value;
 
-- (NSArray*)legacyScript;
-- (void)setLegacyScript:(NSArray*)scriptActions;
+- (oo::PList)legacyScript; // an array of script actions; null: none
+- (void)setLegacyScript:(const oo::PList&)scriptActions;
 - (OOJSScript*)script;
-- (void)setCharacterScript:(NSString*)scriptName;
+- (void)setCharacterScript:(const std::string&)scriptName;
 - (void)doScriptEvent:(OOJSPropID)message;
 
-- (NSDictionary*)infoForScripting;
+- (oo::PList)infoForScripting; // a dictionary
 
 @end

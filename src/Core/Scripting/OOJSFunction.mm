@@ -27,6 +27,8 @@ MA 02110-1301, USA.
 #import "OOFoundationBridge.h"
 #import "OOJSEngineTimeManagement.h"
 #import "OOJSScript.h"
+#include "oofnd/Notification.hpp"
+#include "oofnd/objc/OOAssert.h"
 
 #include <vector>
 
@@ -34,7 +36,7 @@ MA 02110-1301, USA.
 
 - (id)initWithFunction:(JSValueConst)function context:(JSContext*)context
 {
-    NSParameterAssert(context != NULL);
+    OOParameterAssert(context != NULL);
 
     if (!JS_IsFunction(context, function)) {
         [self release];
@@ -55,10 +57,9 @@ MA 02110-1301, USA.
         }
         JS_FreeValue(context, nameValue);
 
-        [[NSNotificationCenter defaultCenter] addObserver:self
-                                                 selector:@selector(deleteJSValue)
-                                                     name:kOOJavaScriptEngineWillResetNotification
-                                                   object:[OOJavaScriptEngine sharedEngine]];
+        oo::NotificationCenter::defaultCenter().addObserver(self, kOOJavaScriptEngineWillResetNotificationName,
+            [OOJavaScriptEngine sharedEngine],
+            [self](const oo::Notification&) { [self deleteJSValue]; });
     }
 
     return self;
@@ -152,9 +153,8 @@ MA 02110-1301, USA.
         OOJSRelinquishContext(context);
 
         _function = JS_NULL;
-        [[NSNotificationCenter defaultCenter] removeObserver:self
-                                                        name:kOOJavaScriptEngineWillResetNotification
-                                                      object:[OOJavaScriptEngine sharedEngine]];
+        oo::NotificationCenter::defaultCenter().removeObserver(self, kOOJavaScriptEngineWillResetNotificationName,
+            [OOJavaScriptEngine sharedEngine]);
     }
 }
 
@@ -201,7 +201,7 @@ MA 02110-1301, USA.
                        argv:(JSValueConst*)argv
                      result:(JSValue*)result
 {
-    NSParameterAssert(result != NULL);
+    OOParameterAssert(result != NULL);
 
     if (EXPECT_NOT(![self isValid])) {
         *result = JS_UNDEFINED;

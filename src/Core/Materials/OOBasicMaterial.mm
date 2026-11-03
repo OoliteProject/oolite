@@ -64,27 +64,28 @@ static OOBasicMaterial* sDefaultMaterial = nil;
     if (EXPECT_NOT(self == nil))
         return nil;
 
-    // An empty dictionary, not nil: the specifier defaults (a specular exponent of 10) apply.
-    if (configuration == nil)
-        configuration = oo::ObjectFromPList(oo::PList(oo::PList::Dict { }));
+    // An empty dictionary, not nil: the specifier defaults (a specular exponent of 10) apply. The
+    // configuration mixes plist data with live objects (colours): an oo::PList carries both
+    // exactly (proposed ADR-0043 Amendment 2).
+    const oo::PList config = (configuration != nil) ? oo::PListFrom(configuration) : oo::PList(oo::PList::Dict { });
 
-    colorDesc = [configuration oo_diffuseColor];
+    colorDesc = cxx_OOMaterialDiffuseColor(config);
     if (colorDesc != nil)
         [self setDiffuseColor:[OOColor colorWithDescription:colorDesc]];
 
-    colorDesc = [configuration oo_ambientColor];
+    colorDesc = cxx_OOMaterialAmbientColor(config);
     if (colorDesc != nil)
         [self setAmbientColor:[OOColor colorWithDescription:colorDesc]];
     else
         [self setAmbientColor:[self diffuseColor]];
 
-    colorDesc = [configuration oo_emissionColor];
+    colorDesc = cxx_OOMaterialEmissionColor(config);
     if (colorDesc != nil)
         [self setEmissionColor:[OOColor colorWithDescription:colorDesc]];
 
-    specularExponent = [configuration oo_specularExponent];
+    specularExponent = cxx_OOMaterialSpecularExponent(config);
     if (specularExponent != 0 && [self permitSpecular]) {
-        colorDesc = [configuration oo_specularColor];
+        colorDesc = cxx_OOMaterialSpecularColor(config);
         [self setShininess:specularExponent];
         if (colorDesc != nil)
             [self setSpecularColor:[OOColor colorWithDescription:colorDesc]];

@@ -54,7 +54,7 @@ typedef enum {
 - (double)radius;
 - (OOStellarBodyType)planetType;
 
-- (NSString*)name;
-- (void)setName:(NSString*)name;
+- (id)name; // shared selector (proposed ADR-0043): an Objective-C string, or nil
+- (void)setName:(id)name; // shared selector (proposed ADR-0043): an Objective-C string, or nil
 
 @end

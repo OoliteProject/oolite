@@ -129,7 +129,8 @@ void OOJSExcludeTimeFromLimiter(OOTimeDelta time);
 
 - (id)description; // shared selector (proposed ADR-0043)
 
-- (id)function; // shared selector (proposed ADR-0043): an Objective-C string, or nil
+- (id)function; // shared selector (Foundation declares -function too): -cxx_function as an Objective-C string, or nil
+- (std::optional<std::string>)cxx_function; // nullopt: none (bead oo-3rb.291.3)
 - (NSUInteger)hitCount;
 - (double)totalTimeSum;
 - (double)selfTimeSum;
@@ -139,10 +140,10 @@ void OOJSExcludeTimeFromLimiter(OOTimeDelta time);
 - (double)selfTimeMax;
 - (BOOL)isJavaScriptFrame;
 
-- (NSComparisonResult)compareByTotalTime:(OOTimeProfileEntry*)other;
-- (NSComparisonResult)compareByTotalTimeReverse:(OOTimeProfileEntry*)other;
-- (NSComparisonResult)compareBySelfTime:(OOTimeProfileEntry*)other;
-- (NSComparisonResult)compareBySelfTimeReverse:(OOTimeProfileEntry*)other;
+- (OOComparisonResult)compareByTotalTime:(OOTimeProfileEntry*)other;
+- (OOComparisonResult)compareByTotalTimeReverse:(OOTimeProfileEntry*)other;
+- (OOComparisonResult)compareBySelfTime:(OOTimeProfileEntry*)other;
+- (OOComparisonResult)compareBySelfTimeReverse:(OOTimeProfileEntry*)other;
 
 @end
 

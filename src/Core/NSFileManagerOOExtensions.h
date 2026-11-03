@@ -2,9 +2,10 @@
 
 NSFileManagerOOExtensions.h
 
-This extends NSFileManager and adds some methods to insulate the
-main oolite code from the gory details of creating/chdiring to the
-commander save directory, as well as handling OXZ inspection
+Category helpers that insulate the main oolite code from the gory details of
+creating/chdiring to the commander save directory, as well as handling OXZ
+inspection. Callers are moving to oo::fs (oofnd/FileSystem.hpp); this header
+is retained until oo-pwz0 retires it.
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors

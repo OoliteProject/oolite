@@ -506,9 +506,12 @@ namespace plist_detail {
             out += "<string>(nil)</string>"; // OAppend's nil branch (no newline)
             return;
         case PList::Type::Object:
-            // Not property-list data (Amendment 2 carrier); the game never writes one. Written as its
-            // description in a <string>, like a string (not captured from GNUstep).
-            appendXML(out, PList(v.getIf<PList::Object>()->get()->description()), level);
+            // Not property-list data (Amendment 2 carrier): its -description in a <string>, with NO
+            // line break after it (captured from gnustep-base 1.31.1, bead oo-3rb.149: GNUstep's
+            // XML writer falls through to the description without the string branch's newline).
+            out += "<string>";
+            appendXMLString(out, v.getIf<PList::Object>()->get()->description());
+            out += "</string>";
             return;
         }
     }

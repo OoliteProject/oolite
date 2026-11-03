@@ -32,6 +32,7 @@ MA 02110-1301, USA.
 #import "OOFoundationBridge.h"
 #import "OOJSPlayer.h"
 #import "OOStringBridge.h"
+#include "oofnd/objc/OOAssert.h"
 
 /*	SpiderMonkey called the MissionVariables class's get, set and delete hooks
         for every property access, and its enumerate hook for for-in. QuickJS

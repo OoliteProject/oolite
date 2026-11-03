@@ -39,8 +39,11 @@ Rules that hold for every component:
 | `src/oofnd/Process.hpp` | `oo::process` + `oo::env`: `NSProcessInfo` (arguments captured in `main`, `hasArgument`, `processName`, `processorCount`, `operatingSystemVersionString`) with GNUstep's measured semantics |
 | `src/oofnd/Thread.hpp` | `oo::thread`: `NSThread` on `std::thread`: `detach`, `isMainThread` (id captured at static init), `setCurrentName`, `setCurrentPriority` (GNUstep's measured Windows mapping) |
 | `src/oofnd/String.hpp` | `oo::str`: the `NSString` methods and Oolite `NSString` categories the game uses (`NSStringOOExtensions`, `OOStringParsing`'s `NSString (OOUtilities)`, `ScanTokensFromString`, the version helpers) over UTF-8 `std::string`, GNUstep 1.31.1's answers exactly: case tables, whitespace set, composed-sequence rules, `-pathExtension`, `-replaceOccurrencesOfString:`, `-hasPrefix:`, `-stringWithFormat:` without `%@` ([ADR-0034](../../../../docs/decisions/0034-oofnd-strings.md)) |
+| `src/oofnd/Scanner.hpp` | `oo::str::CharacterSet` / `oo::str::Scanner` and `trim` / `findFirstOf` / `findLastOf` / `splitByCharacters`: `NSCharacterSet` (the named sets as GNUstep 1.31.1 tables, custom, inverted), `NSScanner` (skipping, case-insensitive matching, failure locations, `scanInt`/`scanDouble`) and `NSScannerOOExtensions`, exactly (bead oo-3rb.12, [ADR-0039](../../../../docs/decisions/0039-oofnd-scanner.md)) |
 | `src/oofnd/Encoding.hpp` | `oo::str::Encoding` / `encodeLossy` / `convertForFont`: `OOEncodingConverter`'s conversion to the five Windows code pages, including libiconv's transliterations as GNUstep runs them; `stringWithContentsOfUnicodeFile` / `decodeUnicodeText`: `+[NSString stringWithContentsOfUnicodeFile:]` (UTF-16 by BOM, else UTF-8, else Latin-1; plain files, captured, oo-3rb.123) |
 | `src/oofnd/Log.hpp` | `oo::log`: OOLogging without Foundation: message-class switches (inheritance, `$metaclasses`, `_default`/`_override`), per-thread indentation, the exact Latest.log line layout, OOLogging's own diagnostics, and the `OO_LOG("cls", "{}", ...)` std::format front end. `src/Core/OOLogging.mm` is its Objective-C shell ([ADR-0035](../../../../docs/decisions/0035-oofnd-logging.md)) |
+| `src/oofnd/LogFile.hpp` | `oo::log::FileWriter`, `logFileBytes`, `consoleBytes`, `rotateToPrevious`: the Latest.log writer (OOLogOutputHandler's OOAsyncLogger) without Foundation, byte for byte: CRLF, lone-surrogate lines dropped, 1 GiB saturation, Previous.log rotation ([ADR-0042](../../../../docs/decisions/0042-oofnd-log-file-writer.md)) |
+| `src/oofnd/Http.hpp` | `oo::http::Download`, `parseUrl`: the OXZ manager's `NSURLConnection` without Foundation: one GET on its own thread (WinHTTP on Windows), its response/data/finish/failure callbacks taken in order on the main thread; every status delivers its body, Content-Length or -1, no cookies, redirects followed, file: URLs read from disk ([ADR-0044](../../../../docs/decisions/0044-oofnd-http-client.md)) |
 | `src/Core/OOStringBridge.h` (game side) | `oo::StdString` / `oo::NSStringFrom` / `oo::StringMap`: the exact `NSString` <-> `std::string` bridge for calling `oo::str` from files that still hold `NSString`s; see below |
 | `src/oofnd/objc/OOObjCRef.h` | `oo::ObjCRef<T *>`: a retaining reference to an Objective-C object for std containers (`objc_retain`/`objc_release`; `Ref<T>`'s API); `test_objc_ref.mm` also pins the nil-message zero-fill the sweep's return types rest on (proposed [ADR-0043](../../../../docs/decisions/0043-foundation-sweep-recipe.md)) |
 | `src/Core/OOFoundationBridge.h` (game side) | the Foundation sweep's boundary helpers: nil-able strings, kind tests, string and object collections, `oo::PList` <-> property-list objects, `%@` text; see "Migrating Foundation usage" |
@@ -157,6 +160,38 @@ When the Foundation sweep turns the file's strings into `std::string`, `oo::Stri
 becomes `f(s)` and the bridge header goes. Performance rule from the decision-4 benchmark
 ([2-string-benchmark.md](../../../../docs/phases/2-string-benchmark.md)): where Objective-C
 retained a string, take `std::string_view` / `const std::string&` or move; copy only where it copied.
+
+## Migrating NSScanner / NSCharacterSet calls (oo::str::Scanner)
+
+The recipe for the `NSScanner` / `NSCharacterSet` chunk beads (bead oo-3rb.12; proposed
+[ADR-0039](../../../../docs/decisions/0039-oofnd-scanner.md)); exemplars `src/Core/OOColor.mm`,
+`src/Core/OORoleSet.mm`, `src/Core/OOStringParsing.mm`. The file keeps its `NSString`s and bridges
+per call (`OOStringBridge.h`).
+
+1. **Include** `#import "OOStringBridge.h"` and `#include "oofnd/Scanner.hpp"` after the last `#import`.
+2. **Rewrite each call** (the full table is in `Scanner.hpp`'s banner):
+
+   | Objective-C | becomes |
+   |---|---|
+   | `NSScanner *sc = [NSScanner scannerWithString:s];` | `oo::str::Scanner sc(oo::StdString(s));` |
+   | `[sc scanFloat:&f]` / `scanInt:` / `scanDouble:` / `isAtEnd` | `sc.scanFloat(&f)` / `scanInt` / `scanDouble` / `isAtEnd()` |
+   | `[sc scanString:@"x" intoString:NULL]` | `sc.scanString("x")` |
+   | `[sc scanUpToString:@"x" intoString:&r]` | `std::string t; if (sc.scanUpToString("x", &t)) r = oo::NSStringFrom(t);` |
+   | `[NSCharacterSet whitespaceCharacterSet]` (and the other named sets) | `oo::str::CharacterSet::whitespace()` ... |
+   | `[NSCharacterSet characterSetWithCharactersInString:@"ab"]` / `[set invertedSet]` | `oo::str::CharacterSet::fromCharacters("ab")` / `set.inverted()` |
+   | `x = [s stringByTrimmingCharactersInSet:set]` | `x = oo::StringMap(s, [&](std::string_view v) { return oo::str::trim(v, set); })` |
+   | `[s rangeOfCharacterFromSet:set].location == NSNotFound` | `oo::str::findFirstOf(oo::StdString(s), set) == std::string_view::npos` |
+   | `[s rangeOfCharacterFromSet:set options:NSLiteralSearch range:r].location` (r to the end) | `oo::str::findFirstOf(oo::StdString(s), set, r.location)` |
+   | `[set longCharacterIsMember:[s characterAtIndex:i]]` | `set.contains([s characterAtIndex:i])` |
+
+   An `intoString:` target is assigned only when the scan succeeds, as before. A `static
+   NSCharacterSet *` cache becomes a local `const oo::str::CharacterSet` (construction is cheap).
+3. **nil:** `[NSScanner scannerWithString:nil]` scanned as an empty string (and GNUstep logged
+   "Scanner initialised with nil string", which is not reproduced: ADR-0039); `oo::StdString(nil)`
+   is `""`, so a scanner needs no nil test. A trim or find on a nil receiver still needs one
+   (`StringMap` keeps nil; `findFirstOf` of `""` is npos where messaging nil gave location 0).
+4. **Check:** the file no longer names `NSScanner`/`NSCharacterSet`, `tools/tier-a.sh <file>`
+   passes, and the goldens verify.
 
 ## Migrating OOLog calls (oo::log)
 
@@ -282,7 +317,9 @@ nothing else in the caller. A caller whose own bead has landed already holds C++
 directly.
 
 A header reached inside `extern "C"` (the `OOMaths.h` family) wraps its C++ declarations in
-`extern "C++" { ... }`, as `OOVector.h` does.
+`extern "C++" { ... }`, as `OOVector.h` does; the same goes for an `#include` of a C++ header (an
+oofnd `.hpp`, `oofnd/StdLib.hpp`) from such a header: `#ifdef __cplusplus` / `extern "C++" {
+#include "..." }` / `#endif`, the idiom `OOCocoa.h` and `OOLogging.h` use.
 
 ### 3. Shared selectors
 
@@ -432,30 +469,43 @@ it. oo-qps cannot compile any of them.
 | Bridge | Made by | Deleted by |
 |---|---|---|
 | `src/Core/OOColor+FoundationBridge.h/.mm` | oo-tms0 | oo-1hvf |
-| `src/Core/Debug/OODebugStandards+FoundationBridge.h/.mm` | oo-56ct | oo-4fah ("Delete OODebugStandards+FoundationBridge") |
 | `src/Core/Materials/OOMaterialSpecifier+FoundationBridge.h/.mm` (also where the NSDictionary category retires) | oo-hiis | oo-kvlo |
 | `src/Core/Materials/OOTexture+FoundationBridge.h/.mm` (also the NSString `kOOTextureSpecifier*Key` constants) | oo-japz | oo-x3ni ("Delete OOTexture+FoundationBridge") |
-| `src/Core/Materials/OOTextureLoader+FoundationBridge.h/.mm` | oo-wzti | oo-x1s2 ("Delete OOTextureLoader+FoundationBridge") |
 | `src/Core/OOHPVector+FoundationBridge.h/.mm` | oo-dlox | oo-75iu ("Delete OOHPVector+FoundationBridge") |
+| `src/Core/Entities/Entity+FoundationBridge.h` (header only: Entity.h's Foundation-typed C prototypes, defined in OOConstToString.mm) | oo-2qdy | oo-a8xp ("Delete Entity+FoundationBridge") |
 | `src/Core/OOCommodityMarket+FoundationBridge.h/.mm` | oo-rvit | oo-ctac ("Delete OOCommodityMarket+FoundationBridge") |
 | `src/Core/Entities/PlayerEntityScriptMethods+FoundationBridge.h/.mm` (category `PlayerEntity (ScriptMethodsFoundationBridge)`) | oo-8mxr | oo-tj5w ("Delete PlayerEntityScriptMethods+FoundationBridge") |
+| `src/Core/Entities/PlayerEntity+FoundationBridge.h/.mm` (category `PlayerEntity (FoundationBridge)`; PlayerEntity.mm chunks of oo-3rb.75 move their own selectors in) | oo-3rb.164 | oo-c8xj ("Delete PlayerEntity+FoundationBridge") |
 | `src/Core/OOCacheManager+FoundationBridge.h/.mm` | oo-19g0 | oo-5pae ("Delete OOCacheManager+FoundationBridge") |
+| `src/Core/Entities/PlayerEntityControls+FoundationBridge.h/.mm` (category `PlayerEntity (ControlsFoundationBridge)`; chunked: oo-3rb.214 made it; chunks oo-3rb.215-.219 move their own selectors in) | oo-3rb.214 (chunks of oo-3rb.77) | oo-kaap ("Delete PlayerEntityControls+FoundationBridge") |
 | `src/Core/GuiDisplayGen+FoundationBridge.h/.mm` (chunked: oo-3rb.92 made it; chunks oo-3rb.93-.96 move their own selectors in) | oo-3rb.92 (chunks of oo-ol63) | oo-q01b ("Delete GuiDisplayGen+FoundationBridge") |
 | `src/SDL/MyOpenGLView+FoundationBridge.h/.mm` (chunked: oo-3rb.110 made it; the later MyOpenGLView chunks move their own selectors in) | oo-3rb.110 | oo-xrkm ("Delete MyOpenGLView+FoundationBridge") |
 | `src/Core/AI+FoundationBridge.h/.mm` | oo-3rb.84 (AI.mm chunks oo-3rb.84..87) | oo-ag2w ("Delete AI+FoundationBridge") |
+| `src/Core/OOEquipmentType+FoundationBridge.h/.mm` (chunked: oo-3rb.156 made it; chunks oo-3rb.157-.159 move their own selectors in) | oo-3rb.156 (chunks of oo-fvnu) | oo-6nbt ("Delete OOEquipmentType+FoundationBridge") |
+| `src/Core/OOCommodities+FoundationBridge.h/.mm` | oo-3rb.154 (chunk 1 of oo-19d2) | oo-o92r ("Delete OOCommodities+FoundationBridge") |
+| `src/Core/OOConstToString+FoundationBridge.h/.mm` (chunked: oo-3rb.160 made it; chunks oo-3rb.161-.163 move their own functions in; some old prototypes stay in Entity.h / ShipEntity.h / PlayerEntity.h / Universe.h) | oo-3rb.160 (chunks of oo-nts1) | oo-jx3u ("Delete OOConstToString+FoundationBridge") |
 | `src/Core/OXPVerifier/OOFileScannerVerifierStage+FoundationBridge.h/.mm` | oo-56tr | oo-cjel ("Delete OOFileScannerVerifierStage+FoundationBridge") |
 | `src/Core/ResourceManager+FoundationBridge.h/.mm` | oo-3rb.98 (chunks of oo-2wwr) | oo-0f7h ("Delete ResourceManager+FoundationBridge") |
-| `src/Core/OOOpenGL+FoundationBridge.h/.mm` | oo-3rb.143 (chunks of oo-zpz4) | oo-hxi3 ("Delete OOOpenGL+FoundationBridge") |
-| `src/Core/OOPListParsing+FoundationBridge.h/.mm` | oo-3rb.132 (chunk of oo-crpp) | oo-uq2m ("Delete OOPListParsing+FoundationBridge") |
+| `src/Core/OOLogging+FoundationBridge.h/.mm` (the NSString message-class API and kOOLog* constants; the last bridge deleted) | oo-3rb.136 (chunks of oo-lskf) | oo-zcgz ("Delete OOLogging+FoundationBridge") |
 | `src/Core/OOSystemDescriptionManager+FoundationBridge.h/.mm` | oo-3rb.107 (chunks of oo-868e) | oo-caz5 ("Delete OOSystemDescriptionManager+FoundationBridge") |
 | `src/Core/Scripting/OOScript+FoundationBridge.h/.mm` | oo-du83 | oo-eu4j ("Delete OOScript+FoundationBridge") |
+| `src/Core/OOPListParsing+FoundationBridge.h/.mm` | oo-3rb.132 (chunk of oo-crpp) | oo-uq2m ("Delete OOPListParsing+FoundationBridge") |
 | `src/Core/OOStringParsing+FoundationBridge.h/.mm` (also where the NSString (OOUtilities) category retires) | oo-3rb.124 (chunks of oo-1886) | oo-0gzp ("Delete OOStringParsing+FoundationBridge") |
 | `src/Core/OXPVerifier/OOOXPVerifier+FoundationBridge.h/.mm` | oo-hkvv | oo-3rb.168 ("Delete OOOXPVerifier+FoundationBridge") |
+| `src/Core/Entities/PlayerEntityContracts+FoundationBridge.h/.mm` (category `PlayerEntity (ContractsFoundationBridge)`; chunked: oo-3rb.179 made it; chunks oo-3rb.180-.185 move their own selectors in) | oo-3rb.179 (chunks of oo-ldqo) | oo-t8p6 ("Delete PlayerEntityContracts+FoundationBridge") |
 | `src/Core/OOShipRegistry+FoundationBridge.h/.mm` | oo-3rb.114 (chunks of oo-92mj) | oo-b7xq ("Delete OOShipRegistry+FoundationBridge") |
+| `src/Core/OOLogOutputHandler+FoundationBridge.h/.mm` (gnustep-base's NSLog hook, Amendment 2 item 18(a); also the Foundation-typed functions until oo-vors removes them) | oo-vjts | oo-qps (with gnustep-base) |
+| `src/Core/OOShipGroup+FoundationBridge.h/.mm` (also where the NSEnumerator subclass OOShipGroupEnumerator lives on, around an OOShipGroupCursor) | oo-5l4w | oo-1a1v ("Delete OOShipGroup+FoundationBridge") |
 | `src/Core/Entities/PlayerEntitySound+FoundationBridge.h/.mm` (category `PlayerEntity (SoundFoundationBridge)`) | oo-14c5 | oo-qx1l ("Delete PlayerEntitySound+FoundationBridge") |
+| `src/Core/Entities/ShipEntity+FoundationBridge.h/.mm` (chunked: oo-3rb.232 made it; chunks oo-3rb.233-.242 of oo-3rb.73 move their own selectors in) | oo-3rb.232 | oo-pizp ("Delete ShipEntity+FoundationBridge") |
+| `src/Core/OOStringExpander+FoundationBridge.h/.mm` (also the OOExpand* macros and their argument-dictionary / boxing machinery; chunked: oo-3rb.145 made it) | oo-3rb.145 (chunks of oo-3il6) | oo-m2nh ("Delete OOStringExpander+FoundationBridge") |
+| `src/Core/NSUserDefaults+OODefaultsBridge.h/.mm` (backs the game's `+standardUserDefaults` with `oo::Defaults::standard()`: one store; ADR-0032 Amendment 1) | oo-mwo0 | oo-iobt ("Delete NSUserDefaults+OODefaultsBridge") |
+| `src/Core/GameController+FoundationBridge.h/.mm` (chunked: oo-3rb.88 made it; chunks oo-3rb.89-.91 move their own selectors in) | oo-3rb.88 (chunks of oo-m6ej) | oo-6abg ("Delete GameController+FoundationBridge") |
 | `src/Core/HeadUpDisplay+FoundationBridge.h/.mm` (chunked: oo-3rb.209 made it; chunks oo-3rb.210-.213 move their own selectors in; also carries the `NSString (OOHUDBeaconIcon)` category) | oo-3rb.209 (chunks of oo-3rb.81) | oo-f9rf ("Delete HeadUpDisplay+FoundationBridge") |
+| `src/Core/Universe+FoundationBridge.h/.mm` (chunked: oo-3rb.220 made it; chunks oo-3rb.221-.231 move their own selectors in; also the `OOLookUp*DescriptionPRIV` functions behind DESC()) | oo-3rb.220 (chunks of oo-3rb.79) | oo-mr9c ("Delete Universe+FoundationBridge") |
 | `src/Core/Entities/StationEntity+FoundationBridge.h/.mm` (chunked: oo-3rb.172 made it; chunks oo-3rb.173-.175 move their own selectors in) | oo-3rb.172 (chunks of oo-e7ab) | oo-nrkz ("Delete StationEntity+FoundationBridge") |
 | `src/Core/Scripting/OOJavaScriptEngine+FoundationBridge.h/.mm` (chunked: oo-3rb.198 made it; chunks oo-3rb.199-.203 move their own groups in, and the retiring JS-glue categories on Foundation classes, deleted just before oo-qps) | oo-3rb.198 (chunks of oo-rbqc) | oo-vp0y ("Delete OOJavaScriptEngine+FoundationBridge") |
+| `src/Core/Entities/PlayerEntityLegacyScriptEngine+FoundationBridge.h/.mm` (category `PlayerEntity (ScriptingFoundationBridge)`; chunked: oo-3rb.190 made it; chunks oo-3rb.191-.197 move their own selectors in) | oo-3rb.190 (chunks of oo-j924) | oo-53in ("Delete PlayerEntityLegacyScriptEngine+FoundationBridge") |
 
 ### Stop and report (do not stretch)
 

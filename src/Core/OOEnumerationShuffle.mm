@@ -34,7 +34,11 @@ MA 02110-1301, USA.
 #if OO_DEBUG
 
 #import "OOEnumerationShufflePRNG.h"
+#import "OOFoundationBridge.h"
 #import "OOLogging.h"
+
+#include "oofnd/Log.hpp"
+#include "oofnd/String.hpp"
 
 #include <stdlib.h>
 
@@ -66,9 +70,9 @@ static void InitShuffleState(void)
     sEnabled = YES;
     sSeed = (parsed == 1) ? kOOEnumerationShuffleDefaultSeed : (uint32_t)parsed;
 
-    OOLog(@"debug.shuffleEnumeration", @"NSDictionary/NSSet enumeration order is SHUFFLED, seed %u "
-                                       @"(OO_SHUFFLE_ENUMERATION=%s). This is instrumentation: gameplay differences from an "
-                                       @"unshuffled run are order-dependency bugs, not shuffle bugs.",
+    OO_LOG("debug.shuffleEnumeration", "Foundation dictionary/set enumeration order is SHUFFLED, seed {} "
+                                       "(OO_SHUFFLE_ENUMERATION={}). This is instrumentation: gameplay differences from an "
+                                       "unshuffled run are order-dependency bugs, not shuffle bugs.",
         sSeed, value);
 }
 
@@ -84,11 +88,11 @@ uint32_t OOEnumerationShuffleSeed(void)
     return sSeed;
 }
 
-NSString* OOEnumerationShuffleReport(void)
+std::optional<std::string> cxx_OOEnumerationShuffleReport(void)
 {
     if (!OOEnumerationShuffleEnabled())
-        return nil;
-    return [NSString stringWithFormat:@"enumeration shuffle active, seed %u", OOEnumerationShuffleSeed()];
+        return std::nullopt;
+    return oo::str::format("enumeration shuffle active, seed %u", OOEnumerationShuffleSeed());
 }
 
 /*	Canonical order before shuffling.
@@ -99,40 +103,54 @@ NSString* OOEnumerationShuffleReport(void)
         -description first makes the result a function of the contents alone.
 
         -description is used rather than -compare: because the keys of Oolite's dictionaries
-        are not all NSStrings and not everything implements -compare:. For plist-shaped data
+        are not all strings and not everything implements -compare:. For plist-shaped data
         (which is what these dictionaries hold) -description is content-derived, so the sort is
         stable across runs. For objects whose description embeds an address it is not, and the
         shuffle degrades to "still a permutation, not reproducible" - noted rather than fixed,
         because no dictionary in the tree is keyed by such an object.
 */
-static NSComparisonResult CompareByDescription(id a, id b, void* context)
-{
-    (void)context;
-    return [[a description] compare:[b description]];
-}
+namespace {
 
-static NSArray* ShuffledArrayFromCollection(NSArray* members)
+// The members (an array) in a shuffled order: sorted by -description (-compare: of the texts),
+// then permuted. Fewer than two members: the array itself.
+id ShuffledArrayFromCollection(id members)
 {
-    NSUInteger count = [members count];
+    std::vector<oo::ObjCRef<id>> canonical = oo::ObjCRefsFrom<id>(members);
+    const std::size_t count = canonical.size();
     if (count < 2)
         return members;
 
-    NSArray* canonical = [members sortedArrayUsingFunction:CompareByDescription context:NULL];
+    std::vector<std::pair<std::string, oo::ObjCRef<id>>> described;
+    described.reserve(count);
+    for (oo::ObjCRef<id>& member : canonical)
+        described.emplace_back(oo::DescriptionOf(member.get()), std::move(member));
+    std::stable_sort(described.begin(), described.end(), [](const auto& a, const auto& b) {
+        return oo::str::compare(a.first, b.first) < 0;
+    });
 
     uint32_t* order = static_cast<uint32_t*>(calloc(count, sizeof *order));
-    if (order == NULL)
-        return canonical; // Out of memory in instrumentation: degrade, do not crash.
+    if (order == NULL) {
+        // Out of memory in instrumentation: degrade, do not crash.
+        std::vector<id> sorted;
+        sorted.reserve(count);
+        for (const auto& member : described)
+            sorted.push_back(member.second.get());
+        return oo::NSArrayFromObjects(sorted);
+    }
 
-    OOEnumerationShufflePermutation(OOEnumerationShuffleSeed(), (size_t)count, order);
+    OOEnumerationShufflePermutation(OOEnumerationShuffleSeed(), count, order);
 
-    NSMutableArray* result = [NSMutableArray arrayWithCapacity:count];
-    for (NSUInteger i = 0; i < count; i++) {
-        [result addObject:[canonical objectAtIndex:(NSUInteger)order[i]]];
+    std::vector<id> result;
+    result.reserve(count);
+    for (std::size_t i = 0; i < count; i++) {
+        result.push_back(described[order[i]].second.get());
     }
     free(order);
 
-    return result;
+    return oo::NSArrayFromObjects(result);
 }
+
+} // namespace
 
 id OOShuffledKeys(id dictionary)
 {
@@ -140,7 +158,7 @@ id OOShuffledKeys(id dictionary)
     // enumerates precisely what it would have enumerated upstream.
     if (!OOEnumerationShuffleEnabled())
         return dictionary;
-    if (![dictionary isKindOfClass:[NSDictionary class]])
+    if (!oo::IsNSDictionary(dictionary))
         return dictionary;
 
     return ShuffledArrayFromCollection([dictionary allKeys]);
@@ -151,12 +169,12 @@ id OOShuffledObjects(id collection)
     if (!OOEnumerationShuffleEnabled())
         return collection;
 
-    // NSArray order is specified by its contract; reordering one would be a bug, not
-    // instrumentation. Only the unordered collections are touched.
-    if ([collection isKindOfClass:[NSSet class]]) {
+    // An array's order is specified by its contract; reordering one would be a bug, not
+    // instrumentation. Only the unordered collections (sets, dictionaries) are touched.
+    if (oo::IsNSSet(collection)) {
         return ShuffledArrayFromCollection([collection allObjects]);
     }
-    if ([collection isKindOfClass:[NSDictionary class]]) {
+    if (oo::IsNSDictionary(collection)) {
         // foreach over a dictionary yields keys under fast enumeration.
         return ShuffledArrayFromCollection([collection allKeys]);
     }

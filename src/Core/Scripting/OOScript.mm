@@ -76,17 +76,17 @@ static std::optional<std::vector<std::string>> StringsOrNil(id array)
                 foundScript = YES;
         }
         if (foundScript) {
-            OOLog(@"script.load.javaScript", @"Trying to load JavaScript script %@", oo::NSStringFrom(filePath));
-            OOLogIndentIf(@"script.load.javaScript");
+            OO_LOG("script.load.javaScript", "Trying to load JavaScript script {}", filePath);
+            oo::log::indentIf("script.load.javaScript");
 
             script = [OOJSScript scriptWithPath:filePath properties:oo::PList()];
             if (script != nil) {
                 result = std::vector<oo::ObjCRef<OOScript*>> { oo::ObjCRef<OOScript*>(script) };
-                OOLog(@"script.load.parseOK", @"Successfully loaded JavaScript script %@", oo::NSStringFrom(filePath));
+                OO_LOG("script.load.parseOK", "Successfully loaded JavaScript script {}", filePath);
             } else
-                OOLogERR(@"script.load.parseError", @"Failed to load JavaScript script %@", oo::NSStringFrom(filePath));
+                OO_LOG_ERR("script.load.parseError", "Failed to load JavaScript script {}", filePath);
 
-            OOLogOutdentIf(@"script.load.javaScript");
+            oo::log::outdentIf("script.load.javaScript");
         }
     }
 
@@ -97,22 +97,22 @@ static std::optional<std::vector<std::string>> StringsOrNil(id array)
             cxx_OOStandardsDeprecated(oo::str::format("Legacy script %s is deprecated", filePath.c_str()));
             if (!OOEnforceStandards()) {
                 foundScript = YES;
-                OOLog(@"script.load.pList", @"Trying to load property list script %@", oo::NSStringFrom(filePath));
-                OOLogIndentIf(@"script.load.pList");
+                OO_LOG("script.load.pList", "Trying to load property list script {}", filePath);
+                oo::log::indentIf("script.load.pList");
 
                 result = [OOPListScript scriptsInPListFile:filePath];
                 if (result.has_value())
-                    OOLog(@"script.load.parseOK", @"Successfully loaded property list script %@", oo::NSStringFrom(filePath));
+                    OO_LOG("script.load.parseOK", "Successfully loaded property list script {}", filePath);
                 else
-                    OOLogERR(@"script.load.parseError", @"Failed to load property list script %@", oo::NSStringFrom(filePath));
+                    OO_LOG_ERR("script.load.parseError", "Failed to load property list script {}", filePath);
 
-                OOLogOutdentIf(@"script.load.pList");
+                oo::log::outdentIf("script.load.pList");
             }
         }
     }
 
     if (!result.has_value() && foundScript) {
-        OOLog(@"script.load.none", @"No script could be loaded from %@", oo::NSStringFrom(path));
+        OO_LOG("script.load.none", "No script could be loaded from {}", path);
     }
 
     return result;
@@ -127,7 +127,7 @@ static std::optional<std::vector<std::string>> StringsOrNil(id array)
     }
 
     if (!result.has_value()) {
-        OOLogERR(@"script.load.notFound", @"Could not find script file %@.", oo::NSStringFrom(fileName));
+        OO_LOG_ERR("script.load.notFound", "Could not find script file {}.", fileName);
     }
 
     return result;
@@ -170,7 +170,7 @@ static std::optional<std::vector<std::string>> StringsOrNil(id array)
         return [OOPListScript scriptsInPListFile:filePath];
     }
 
-    OOLogERR(@"script.load.badName", @"Don't know how to load a script from %@.", oo::NSStringFrom(filePath));
+    OO_LOG_ERR("script.load.badName", "Don't know how to load a script from {}.", filePath);
     return std::nullopt;
 }
 
@@ -186,16 +186,16 @@ static std::optional<std::vector<std::string>> StringsOrNil(id array)
     if (extension == "js" || extension == "es") {
         path = oo::OptionalString([ResourceManager pathForFileNamed:oo::NSStringFrom(fileName) inFolder:@"Scripts"]);
         if (!path.has_value()) {
-            OOLogERR(@"script.load.notFound", @"Could not find script file %@.", oo::NSStringFrom(fileName));
+            OO_LOG_ERR("script.load.notFound", "Could not find script file {}.", fileName);
             return nil;
         }
         return [OOJSScript scriptWithPath:path properties:properties];
     } else if (extension == "plist") {
-        OOLogERR(@"script.load.badName", @"Can't load script named %@ - legacy scripts are not supported in this context.", oo::NSStringFrom(fileName));
+        OO_LOG_ERR("script.load.badName", "Can't load script named {} - legacy scripts are not supported in this context.", fileName);
         return nil;
     }
 
-    OOLogERR(@"script.load.badName", @"Don't know how to load a script from %@.", oo::NSStringFrom(fileName));
+    OO_LOG_ERR("script.load.badName", "Don't know how to load a script from {}.", fileName);
     return nil;
 }
 
@@ -211,16 +211,16 @@ static std::optional<std::vector<std::string>> StringsOrNil(id array)
     if (extension == "js" || extension == "es") {
         path = oo::OptionalString([ResourceManager pathForFileNamed:oo::NSStringFrom(fileName) inFolder:@"AIs"]);
         if (!path.has_value()) {
-            OOLogERR(@"script.load.notFound", @"Could not find script file %@.", oo::NSStringFrom(fileName));
+            OO_LOG_ERR("script.load.notFound", "Could not find script file {}.", fileName);
             return nil;
         }
         return [OOJSScript scriptWithPath:path properties:properties];
     } else if (extension == "plist") {
-        OOLogERR(@"script.load.badName", @"Can't load script named %@ - legacy scripts are not supported in this context.", oo::NSStringFrom(fileName));
+        OO_LOG_ERR("script.load.badName", "Can't load script named {} - legacy scripts are not supported in this context.", fileName);
         return nil;
     }
 
-    OOLogERR(@"script.load.badName", @"Don't know how to load a script from %@.", oo::NSStringFrom(fileName));
+    OO_LOG_ERR("script.load.badName", "Don't know how to load a script from {}.", fileName);
     return nil;
 }
 
@@ -231,26 +231,31 @@ static std::optional<std::vector<std::string>> StringsOrNil(id array)
 
 - (id)name // shared selector (proposed ADR-0043)
 {
-    OOLogERR(kOOLogSubclassResponsibility, @"%@", @"OOScript should not be used directly!");
+    OO_LOG_ERR(cxx_kOOLogSubclassResponsibility, "{}", "OOScript should not be used directly!");
     return nil;
 }
 
-- (id)scriptDescription // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)scriptDescription
 {
-    OOLogERR(kOOLogSubclassResponsibility, @"%@", @"OOScript should not be used directly!");
-    return nil;
+    OO_LOG_ERR(cxx_kOOLogSubclassResponsibility, "{}", "OOScript should not be used directly!");
+    return std::nullopt;
 }
 
-- (id)version // shared selector (proposed ADR-0043)
+- (id)version // shared selector (Foundation declares -version too; retires with oo-qps)
 {
-    OOLogERR(kOOLogSubclassResponsibility, @"%@", @"OOScript should not be used directly!");
-    return nil;
+    return oo::NSStringOrNil([self cxx_version]);
+}
+
+- (std::optional<std::string>)cxx_version
+{
+    OO_LOG_ERR(cxx_kOOLogSubclassResponsibility, "{}", "OOScript should not be used directly!");
+    return std::nullopt;
 }
 
 - (id)displayName // shared selector (proposed ADR-0043)
 {
     id name = [self name];
-    std::optional<std::string> version = oo::OptionalString([self version]);
+    std::optional<std::string> version = [self cxx_version];
 
     if (version.has_value())
         return oo::NSStringFrom(oo::str::format("%s %s", oo::DescriptionOf(name).c_str(), version->c_str()));
@@ -267,7 +272,7 @@ static std::optional<std::vector<std::string>> StringsOrNil(id array)
 
 - (void)runWithTarget:(Entity*)target
 {
-    OOLogERR(kOOLogSubclassResponsibility, @"%@", @"OOScript should not be used directly!");
+    OO_LOG_ERR(cxx_kOOLogSubclassResponsibility, "{}", "OOScript should not be used directly!");
 }
 
 @end

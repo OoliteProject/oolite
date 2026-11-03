@@ -102,9 +102,14 @@ id OOShuffledObjects(id collection);
 }
 #endif
 
-/*	OOEnumerationShuffleReport()
-        One line for the log at startup, or nil when disabled.
+/*	cxx_OOEnumerationShuffleReport()
+        One line for the log at startup, or nullopt when disabled.
 */
-NSString* OOEnumerationShuffleReport(void);
+#ifdef __cplusplus
+extern "C++" {
+#include "oofnd/StdLib.hpp"
+std::optional<std::string> cxx_OOEnumerationShuffleReport(void);
+}
+#endif
 
 #endif /* OO_DEBUG */

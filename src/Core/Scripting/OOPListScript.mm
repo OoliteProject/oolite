@@ -74,14 +74,21 @@ id ObjectForKey(const oo::PList& dictionary, const char* key)
     return ObjectForKey(_metadata, kMDKeyName);
 }
 
-- (id)scriptDescription // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)scriptDescription
 {
-    return ObjectForKey(_metadata, kMDKeyDescription);
+    // The metadata's "description" string. Nothing sends -scriptDescription (bead oo-3rb.266
+    // measured), so a non-string value, which the id-typed selector returned as the object, is
+    // nullopt here.
+    const oo::PList* value = _metadata.get<oo::PList>(kMDKeyDescription);
+    if (value == nullptr || !value->isString())
+        return std::nullopt;
+    return *value->getIf<std::string>();
 }
 
-- (id)version // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_version
 {
-    return ObjectForKey(_metadata, kMDKeyVersion);
+    // As -displayName read the id-typed -version: the metadata value through oo::OptionalString.
+    return oo::OptionalString(ObjectForKey(_metadata, kMDKeyVersion));
 }
 
 - (BOOL)requiresTickle
@@ -92,18 +99,18 @@ id ObjectForKey(const oo::PList& dictionary, const char* key)
 - (void)runWithTarget:(Entity*)target
 {
     if (target != nil && ![target isKindOfClass:[ShipEntity class]]) {
-        OOLog(@"script.legacy.run.badTarget", @"Expected ShipEntity or nil for target, got %@.", [target class]);
+        OO_LOG("script.legacy.run.badTarget", "Expected ShipEntity or nil for target, got {}.", oo::DescriptionOf([target class]));
         return;
     }
 
-    OOLog(@"script.legacy.run", @"Running script %@", [self displayName]);
-    OOLogIndentIf(@"script.legacy.run");
+    OO_LOG("script.legacy.run", "Running script {}", oo::DescriptionOf([self displayName]));
+    oo::log::indentIf("script.legacy.run");
 
     [PLAYER runScriptActions:oo::ObjectFromPList(_script)
              withContextName:[self name]
                    forTarget:(ShipEntity*)target];
 
-    OOLogOutdentIf(@"script.legacy.run");
+    oo::log::outdentIf("script.legacy.run");
 }
 
 @end
@@ -122,10 +129,10 @@ id ObjectForKey(const oo::PList& dictionary, const char* key)
     metadata = dictionary.get<oo::PList::Dict>(kKeyMetadata); // nil unless a dictionary
 
     // Order-sensitive: the scripts come out in key order (they came out in hash order).
-    for (const auto& [key, scriptArray] : *dictionary.getIf<oo::PList::Dict>()) {
+    for (const auto& [key, unsanitized] : *dictionary.getIf<oo::PList::Dict>()) {
         // (every key is a string: a dictionary with another key read as no dictionary)
-        if (scriptArray.isArray() && key != kKeyMetadata) {
-            const oo::PList sanitized = oo::PListFrom(OOSanitizeLegacyScript(oo::ObjectFromPList(scriptArray), oo::NSStringFrom(key), NO));
+        if (unsanitized.isArray() && key != kKeyMetadata) {
+            const oo::PList sanitized = OOSanitizeLegacyScript(unsanitized, key, NO);
             if (sanitized) {
                 script = [[self alloc] initWithName:key scriptArray:sanitized metadata:metadata];
                 if (script != nil) {

@@ -33,11 +33,11 @@ SOFTWARE.
 
 */
 
+#import "OOFoundation.h"
 #import "OOOpenGL.h"
 #import "OOOpenGLExtensionManager.h"
 #import "OOWeakReference.h"
 #import "oofnd/objc/OOObject.h"
-#import <Foundation/Foundation.h>
 
 @interface OOMaterial : OOObject
 

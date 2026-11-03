@@ -29,21 +29,33 @@ SOFTWARE.
 #define OOLOG_POISON_NSLOG 0
 
 #import "OOLogOutputHandler.h"
-#import "NSFileManagerOOExtensions.h"
-#import "OOAsyncQueue.h"
+#import "OOFoundation.h"
+#import "OOFoundationBridge.h"
 #import "OOLogging.h"
+#include "oofnd/Date.hpp"
+#include "oofnd/Defaults.hpp"
+#include "oofnd/FileSystem.hpp"
+#include "oofnd/Log.hpp"
+#include "oofnd/LogFile.hpp"
+#include "oofnd/PListParsing.hpp"
+#include "oofnd/ResourcePaths.hpp"
 #include "oofnd/StdLib.hpp"
-#include "oofnd/Thread.hpp"
 #include <SDL3/SDL_stdinc.h>
 #include <atomic>
 #include <chrono>
-#import <objc/objc-arc.h>
-#import <objc/runtime.h>
+#include <memory>
+#include <optional>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string>
 #include <thread>
 
-#undef NSLog // We need to be able to call the real NSLog.
+/*	The Latest.log writer is oo::log::FileWriter (oofnd/LogFile.hpp, bead oo-3rb.64, proposed
+        ADR-0042): the rotation to Previous.log, the writer thread, CRLF, the 1 GiB saturation and
+        the flush are its, byte for byte as OOAsyncLogger did them. What stays here is the glue: the
+        log directory, the logging-echo-to-stderr / stdout switches, the flush deadline of ADR-0033,
+        and, while gnustep-base is linked, the hook that brings its own Foundation log output into the log.
+*/
 
 #if OOLITE_MAC_OS_X
 
@@ -71,57 +83,39 @@ static LogCStringFunctionSetterProc _NSSetLogCStringFunction = NULL;
 static void LoadLogCStringFunctions(void);
 static void OONSLogCStringFunction(const char* string, unsigned length, BOOL withSyslogBanner);
 
-static NSString* GetAppName(void);
+static std::string GetAppName(void);
 
 static LogCStringFunctionProc sDefaultLogCStringFunction = NULL;
 
-#elif OOLITE_GNUSTEP
-
-static void OONSLogPrintfHandler(NSString* message);
-
-#else
+#elif !OOLITE_GNUSTEP
 #error Unknown platform!
 #endif
 
-static BOOL DirectoryExistCreatingIfNecessary(NSString* path);
+namespace {
+
+bool DirectoryExistCreatingIfNecessary(const std::string& path);
+const std::optional<std::string>& LogBasePath(void);
+std::optional<std::string> LogPath(void);
+std::string AppendPathComponent(std::string base, const std::string& component);
+std::unique_ptr<oo::log::FileWriter> StartLogger(void);
+void AsyncLogMessage(std::string_view message);
+
+} // namespace
 
 #define kFlushInterval 2.0 // Lower bound on interval between explicit log file flushes.
-
-@interface OOAsyncLogger : OOObject {
-@private
-    OOAsyncQueue* messageQueue;
-
-    /*	threadStateMonitor, a Foundation condition lock until bead oo-3rb.7, as its parts: the
-            lock, the state it guards (kCondition* below), the broadcast a change makes, and whether
-            there is a monitor at all (it was released and set to nil when the thread failed to
-            start, which made every later message to it a no-op).
-    */
-    std::mutex threadStateLock;
-    std::condition_variable threadStateChanged;
-    int threadState;
-    BOOL haveThreadStateMonitor;
-
-    NSFileHandle* logFile;
-}
-
-- (void)asyncLogMessage:(NSString*)message;
-- (void)endLogging;
-
-- (void)changeFile;
-
-// Internal
-- (BOOL)startLogging;
-- (void)loggerThread;
-- (void)flushLog;
-
-@end
 
 static BOOL sInited = NO;
 static BOOL sWriteToStderr = YES;
 static BOOL sWriteToStdout = NO;
-static BOOL sSaturated = NO;
-static OOAsyncLogger* sLogger = nil;
-static NSString* sLogFileName = @"Latest.log";
+
+namespace {
+
+std::atomic<bool> sSaturated { false };
+std::unique_ptr<oo::log::FileWriter> sLogger;
+const char* const kDefaultLogFileName = "Latest.log";
+std::string sLogFileName; // empty until first set: kDefaultLogFileName
+
+} // namespace
 
 /*	The pending flush (was a one-shot run-loop timer, proposed ADR-0033): a deadline on
         std::chrono::steady_clock that the frame loop checks. The timer was
@@ -129,10 +123,14 @@ static NSString* sLogFileName = @"Latest.log";
         loop ever runs, so a flush first requested from another thread never fired
         and blocked later ones; kFlushNever keeps that.
 */
-static const int64_t kFlushNever = INT64_MAX;
-static std::atomic<bool> sFlushPending { false };
-static std::atomic<int64_t> sFlushDeadline { kFlushNever }; // steady_clock ticks since its epoch
-static std::thread::id sMainThreadID;
+namespace {
+
+const int64_t kFlushNever = INT64_MAX;
+std::atomic<bool> sFlushPending { false };
+std::atomic<int64_t> sFlushDeadline { kFlushNever }; // steady_clock ticks since its epoch
+std::thread::id sMainThreadID;
+
+} // namespace
 
 void OOLogOutputHandlerInit(void)
 {
@@ -144,11 +142,11 @@ void OOLogOutputHandlerInit(void)
 #endif
 
     sMainThreadID = std::this_thread::get_id();
-    sLogger = [[OOAsyncLogger alloc] init];
+    sLogger = StartLogger();
     sInited = YES;
 
-    if (sLogger != nil) {
-        sWriteToStderr = [[NSUserDefaults standardUserDefaults] boolForKey:@"logging-echo-to-stderr"];
+    if (sLogger != nullptr) {
+        sWriteToStderr = oo::Defaults::standard().boolForKey("logging-echo-to-stderr");
     } else {
         sWriteToStderr = YES;
     }
@@ -159,17 +157,32 @@ void OOLogOutputHandlerInit(void)
         sDefaultLogCStringFunction = _NSLogCStringFunction();
         _NSSetLogCStringFunction(OONSLogCStringFunction);
     } else {
-        OOLog(@"logging.nsLogFilter.install.failed", @"Failed to install NSLog() filter; system messages will not be logged in log file.");
+        OO_LOG("logging.nsLogFilter.install.failed", "{}", "Failed to install Foundation log filter; system messages will not be logged in log file.");
     }
-#elif GNUSTEP_BASE_LIBRARY
-    // gnustep-base's own NSLog lock, not ours to replace: it goes with the NSLog hook (oo-qps).
-    [GSLogLock() lock];
-    _NSLog_printf_handler = OONSLogPrintfHandler;
-    [GSLogLock() unlock];
+#else
+    // gnustep-base's Foundation log hook lives in the bridge (OOLogOutputHandler+FoundationBridge.mm).
+    OOLogOutputHandlerInstallNSLogHook();
 #endif
 
     atexit(OOLogOutputHandlerClose);
 }
+
+namespace {
+
+// -endLogging's postamble.
+std::string Postamble(void)
+{
+    return "\nClosing log at " + oo::date::description() + ".";
+}
+
+const std::string& LogFileName(void)
+{
+    if (sLogFileName.empty())
+        sLogFileName = kDefaultLogFileName;
+    return sLogFileName;
+}
+
+} // namespace
 
 void OOLogOutputHandlerClose(void)
 {
@@ -177,18 +190,17 @@ void OOLogOutputHandlerClose(void)
         sWriteToStderr = YES;
         sInited = NO;
 
-        [sLogger endLogging];
-        DESTROY(sLogger);
+        if (sLogger != nullptr)
+            sLogger->end(Postamble());
+        sLogger.reset();
 
 #if OOLITE_MAC_OS_X
         if (sDefaultLogCStringFunction != NULL && _NSSetLogCStringFunction != NULL) {
             _NSSetLogCStringFunction(sDefaultLogCStringFunction);
             sDefaultLogCStringFunction = NULL;
         }
-#elif GNUSTEP_BASE_LIBRARY
-        [GSLogLock() lock];
-        _NSLog_printf_handler = NULL;
-        [GSLogLock() unlock];
+#else
+        OOLogOutputHandlerRemoveNSLogHook();
 #endif
     }
 }
@@ -204,17 +216,19 @@ void OOLogOutputHandlerStopLoggingToStdout()
 
 void OOLogOutputHandlerFlushIfDue(void)
 {
-    if (!sFlushPending || sLogger == nil)
+    if (!sFlushPending || sLogger == nullptr)
         return;
     if (std::chrono::steady_clock::now().time_since_epoch().count() < sFlushDeadline)
         return;
-    [sLogger flushLog];
+    sFlushDeadline = kFlushNever;
+    sFlushPending = false;
+    sLogger->flush();
 }
 
-void OOLogOutputHandlerPrint(NSString* string)
+void OOLogOutputHandlerPrintLine(std::string_view line)
 {
-    if (sInited && sLogger != nil && !sWriteToStdout)
-        [sLogger asyncLogMessage:string];
+    if (sInited && sLogger != nullptr && !sWriteToStdout)
+        AsyncLogMessage(line);
 
     BOOL doCStringStuff = sWriteToStderr || sWriteToStdout;
 #if SET_CRASH_REPORTER_INFO
@@ -222,279 +236,90 @@ void OOLogOutputHandlerPrint(NSString* string)
 #endif
 
     if (doCStringStuff) {
-        const char* cStr = [[string stringByAppendingString:@"\n"] UTF8String];
+        const std::string cStr = oo::log::consoleBytes(line);
         if (sWriteToStdout)
-            fputs(cStr, stdout);
+            fputs(cStr.c_str(), stdout);
         else if (sWriteToStderr)
-            fputs(cStr, stderr);
+            fputs(cStr.c_str(), stderr);
 
 #if SET_CRASH_REPORTER_INFO
         if (sCrashReporterInfoAvailable)
-            SetCrashReporterInfo(cStr);
+            SetCrashReporterInfo(cStr.c_str());
 #endif
     }
 }
 
-NSString* OOLogHandlerGetLogPath(void)
+std::optional<std::string> cxx_OOLogHandlerGetLogPath(void)
 {
-    return [OOLogHandlerGetLogBasePath() stringByAppendingPathComponent:sLogFileName];
+    return LogPath();
 }
 
-void OOLogOutputHandlerChangeLogFile(NSString* newLogName)
+void cxx_OOLogOutputHandlerChangeLogFile(const std::string& name)
 {
-    if (![sLogFileName isEqual:newLogName]) {
-        sLogFileName = [newLogName copy];
-        [sLogger changeFile];
-    }
-}
-
-enum {
-    kConditionReadyToDealloc = 1,
-    kConditionWorking
-};
-
-@implementation OOAsyncLogger
-
-- (id)init
-{
-    BOOL OK = YES;
-    NSString* logPath = nil;
-    NSString* oldPath = nil;
-    NSFileManager* fmgr = nil;
-
-    self = [super init];
-    if (self == nil)
-        OK = NO;
-
-    if (OK) {
-        fmgr = [NSFileManager defaultManager];
-        logPath = OOLogHandlerGetLogPath();
-
-        // If there is an existing file, move it to Previous.log.
-        if ([fmgr fileExistsAtPath:logPath]) {
-            oldPath = [OOLogHandlerGetLogBasePath() stringByAppendingPathComponent:@"Previous.log"];
-            [fmgr oo_removeItemAtPath:oldPath];
-            if (![fmgr oo_moveItemAtPath:logPath toPath:oldPath]) {
-                if (![fmgr oo_removeItemAtPath:logPath]) {
-                    NSLog(@"Log setup: could not move or delete existing log at %@, will log to stdout instead.", logPath);
-                    OK = NO;
-                }
+    if (LogFileName() != name) {
+        sLogFileName = name;
+        if (sLogger != nullptr) {
+            // -changeFile: end this file (postamble), start the new one (no rotation).
+            sLogger->end(Postamble());
+            std::optional<std::string> path = LogPath();
+            if (!path.has_value() || !sLogger->start(oo::fs::pathFromUTF8(*path))) {
+                if (path.has_value())
+                    OO_LOG("unclassified", "Log setup: could not open log at {}, will log to stdout instead.", *path);
+                sWriteToStderr = YES;
             }
         }
     }
-
-    if (OK)
-        OK = [self startLogging];
-
-    if (!OK)
-        DESTROY(self);
-
-    return self;
 }
 
-- (void)dealloc
-{
-    DESTROY(messageQueue);
-    DESTROY(logFile);
+/*	-[OOAsyncLogger init] and -startLogging: move an existing log to Previous.log, create the
+        new one and start the writer. nullptr when that fails; the handler then logs to stderr.
+*/
+namespace {
 
-    [super dealloc];
+std::unique_ptr<oo::log::FileWriter> StartLogger(void)
+{
+    std::optional<std::string> logPath = LogPath();
+    if (!logPath.has_value())
+        return nullptr;
+
+    const oo::fs::Path latest = oo::fs::pathFromUTF8(*logPath);
+    const oo::fs::Path previous = oo::fs::pathFromUTF8(AppendPathComponent(*LogBasePath(), "Previous.log"));
+    if (!oo::log::rotateToPrevious(latest, previous)) {
+        OO_LOG("unclassified", "Log setup: could not move or delete existing log at {}, will log to stdout instead.", *logPath);
+        return nullptr;
+    }
+
+    auto logger = std::make_unique<oo::log::FileWriter>(sSaturated);
+    if (!logger->start(latest)) {
+        OO_LOG("unclassified", "Log setup: could not open log at {}, will log to stdout instead.", *logPath);
+        return nullptr;
+    }
+    return logger;
 }
 
-- (BOOL)startLogging
+} // namespace
+
+// -asyncLogMessage:: the line to the writer, and the flush deadline.
+namespace {
+
+void AsyncLogMessage(std::string_view message)
 {
-    BOOL OK = YES;
-    NSString* logPath = nil;
-    NSFileManager* fmgr = nil;
-
-    fmgr = [NSFileManager defaultManager];
-
-    if (OK) {
-        messageQueue = [[OOAsyncQueue alloc] init];
-        if (messageQueue == nil)
-            OK = NO;
-    }
-
-    if (OK) {
-        // set up threadStateMonitor -- used as a binary semaphore of sorts to check when the worker thread starts and stops.
-        {
-            std::lock_guard<std::mutex> stateLock(threadStateLock);
-            threadState = kConditionReadyToDealloc;
-        }
-        haveThreadStateMonitor = YES;
-    }
-
-    if (OK) {
-        // Create work thread to actually handle messages.
-        // This needs to be done early to avoid messy state if something goes wrong.
-        // The thread holds the handler until -loggerThread returns, as a detached selector thread did.
-        [self retain];
-        oo::thread::detach([self]() {
-            @autoreleasepool {
-                [self loggerThread];
-            }
-            [self release];
-        });
-        // Wait for it to start.
-        const std::chrono::steady_clock::time_point startDeadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
-        std::unique_lock<std::mutex> stateLock(threadStateLock);
-        while (threadState != kConditionWorking && threadStateChanged.wait_until(stateLock, startDeadline) != std::cv_status::timeout) { }
-        if (threadState != kConditionWorking) {
-            stateLock.unlock();
-            // If it doesn't signal a start within five seconds, assume something's wrong.
-            // Send kill signal, just in case it comes to life...
-            [messageQueue enqueue:@"die"];
-            // ...and stop -dealloc from waiting for thread death
-            haveThreadStateMonitor = NO;
-            OK = NO;
-        } else {
-            threadState = kConditionWorking;
-            threadStateChanged.notify_all();
-            stateLock.unlock();
-        }
-    }
-
-    if (OK) {
-        logPath = OOLogHandlerGetLogPath();
-        OK = (logPath != nil);
-    }
-
-    if (OK) {
-        // Create shiny new log file
-        OK = [fmgr createFileAtPath:logPath contents:nil attributes:nil];
-        if (OK) {
-            logFile = [[NSFileHandle fileHandleForWritingAtPath:logPath] retain];
-            OK = (logFile != nil);
-        }
-        if (!OK) {
-            NSLog(@"Log setup: could not open log at %@, will log to stdout instead.", logPath);
-            OK = NO;
-        }
-    }
-
-    return OK;
-}
-
-- (void)endLogging
-{
-    NSString* postamble = nil;
-
-    if (messageQueue != nil && haveThreadStateMonitor) {
-        // We're fully inited; write postamble, wait for worker thread to terminate cleanly, and close file.
-        postamble = [NSString stringWithFormat:@"\nClosing log at %@.", [NSDate date]];
-        [self asyncLogMessage:postamble];
-        [messageQueue enqueue:@"die"]; // Kill message
-        {
-            std::unique_lock<std::mutex> stateLock(threadStateLock);
-            while (threadState != kConditionReadyToDealloc)
-                threadStateChanged.wait(stateLock);
-        }
-
-        [logFile closeFile];
-    }
-}
-
-- (void)changeFile
-{
-    [self endLogging];
-    if (![self startLogging])
-        sWriteToStderr = YES;
-}
-
-- (void)asyncLogMessage:(NSString*)message
-{
-    // Don't log of saturated flag is set.
+    // Don't log if saturated flag is set.
     if (sSaturated)
         return;
 
-    if (message != nil) {
-        message = [message stringByAppendingString:@"\n"];
+    sLogger->write(message);
 
-#if OOLITE_WINDOWS
-        // Convert Unix line endings to Windows ones.
-        NSArray* messageComponents = [message componentsSeparatedByString:@"\n"];
-        message = [messageComponents componentsJoinedByString:@"\r\n"];
-#endif
-
-        [messageQueue enqueue:[message dataUsingEncoding:NSUTF8StringEncoding]];
-
-        if (!sFlushPending.exchange(true)) {
-            // No pending flush
-            if (std::this_thread::get_id() == sMainThreadID) {
-                std::chrono::steady_clock::time_point deadline = std::chrono::steady_clock::now() + std::chrono::duration_cast<std::chrono::steady_clock::duration>(std::chrono::duration<double>(kFlushInterval));
-                sFlushDeadline = deadline.time_since_epoch().count();
-            }
+    if (!sFlushPending.exchange(true)) {
+        // No pending flush
+        if (std::this_thread::get_id() == sMainThreadID) {
+            std::chrono::steady_clock::time_point deadline = std::chrono::steady_clock::now() + std::chrono::duration_cast<std::chrono::steady_clock::duration>(std::chrono::duration<double>(kFlushInterval));
+            sFlushDeadline = deadline.time_since_epoch().count();
         }
     }
 }
 
-- (void)flushLog
-{
-    sFlushDeadline = kFlushNever;
-    sFlushPending = false;
-    [messageQueue enqueue:@"flush"];
-}
-
-- (void)loggerThread
-{
-    id message = nil;
-    void* pool = NULL;
-    NSUInteger size = 0;
-
-    @autoreleasepool {
-        oo::thread::setCurrentName("loggerThread");
-
-        // Signal readiness
-        [messageQueue retain];
-        if (haveThreadStateMonitor) {
-            std::lock_guard<std::mutex> stateLock(threadStateLock);
-            threadState = kConditionWorking;
-            threadStateChanged.notify_all();
-        }
-
-        @try {
-            for (;;) {
-                pool = objc_autoreleasePoolPush();
-
-                message = [messageQueue dequeue];
-
-                if (!sSaturated && [message isKindOfClass:[NSData class]]) {
-                    size += [message length];
-                    if (size > 1 << 30) // 1 GiB
-                    {
-                        sSaturated = YES;
-#if OOLITE_WINDOWS
-                        message = @"\r\n\r\n\r\n***** LOG TRUNCATED DUE TO EXCESSIVE LENGTH *****\r\n";
-#else
-                        message = @"\n\n\n***** LOG TRUNCATED DUE TO EXCESSIVE LENGTH *****\n";
-#endif
-                        message = [message dataUsingEncoding:NSUTF8StringEncoding];
-                    }
-
-                    [logFile writeData:message];
-                } else if ([message isEqual:@"flush"]) {
-                    [logFile synchronizeFile];
-                } else if ([message isEqual:@"die"]) {
-                    break;
-                }
-
-                objc_autoreleasePoolPop(pool);
-            }
-        }
-        @catch (NSException* exception) {
-        }
-        objc_autoreleasePoolPop(pool);
-
-        // Clean up; after this, ivars are out of bounds.
-        [messageQueue release];
-        if (haveThreadStateMonitor) {
-            std::lock_guard<std::mutex> stateLock(threadStateLock);
-            threadState = kConditionReadyToDealloc;
-            threadStateChanged.notify_all();
-        }
-    }
-}
-
-@end
+} // namespace
 
 #if OOLITE_MAC_OS_X
 
@@ -544,116 +369,163 @@ static void OONSLogCStringFunction(const char* string, unsigned length, BOOL wit
     }
 }
 
-#elif OOLITE_GNUSTEP
-
-static void OONSLogPrintfHandler(NSString* message)
-{
-    if (OOLogWillDisplayMessagesInClass(@"gnustep")) {
-        OOLogWithFunctionFileAndLine(@"gnustep", NULL, NULL, 0, @"%@", message);
-    }
-}
-
 #endif
 
-static BOOL DirectoryExistCreatingIfNecessary(NSString* path)
+namespace {
+
+bool DirectoryExistCreatingIfNecessary(const std::string& path)
 {
-    BOOL exists, directory;
-    NSFileManager* fmgr = [NSFileManager defaultManager];
+    const oo::fs::FileType type = oo::fs::fileType(oo::fs::pathFromUTF8(path));
 
-    exists = [fmgr fileExistsAtPath:path isDirectory:&directory];
-
-    if (exists && !directory) {
-        NSLog(@"Log setup: expected %@ to be a folder, but it is a file.", path);
-        return NO;
+    if (type != oo::fs::FileType::none && type != oo::fs::FileType::directory) {
+        OO_LOG("unclassified", "Log setup: expected {} to be a folder, but it is a file.", path);
+        return false;
     }
-    if (!exists) {
-        if (![fmgr oo_createDirectoryAtPath:path attributes:nil]) {
-            NSLog(@"Log setup: could not create folder %@.", path);
-            return NO;
+    if (type == oo::fs::FileType::none) {
+        if (!oo::fs::createDirectories(oo::fs::pathFromUTF8(path))) {
+            OO_LOG("unclassified", "Log setup: could not create folder {}.", path);
+            return false;
         }
     }
 
-    return YES;
+    return true;
 }
 
+} // namespace
+
 #if OOLITE_MAC_OS_X
-static void ExcludeFromTimeMachine(NSString* path)
+static void ExcludeFromTimeMachine(const std::string& path)
 {
     OSStatus (*CSBackupSetItemExcluded)(NSURL* item, Boolean exclude, Boolean excludeByPath) = NULL;
     CFBundleRef carbonCoreBundle = CFBundleGetBundleWithIdentifier(CFSTR("com.apple.CoreServices.CarbonCore"));
     if (carbonCoreBundle) {
         CSBackupSetItemExcluded = (OSStatus (*)(NSURL*, Boolean, Boolean))CFBundleGetFunctionPointerForName(carbonCoreBundle, CFSTR("CSBackupSetItemExcluded"));
         if (CSBackupSetItemExcluded != NULL) {
-            (void)CSBackupSetItemExcluded([NSURL fileURLWithPath:path], YES, NO);
+            (void)CSBackupSetItemExcluded([NSURL fileURLWithPath:oo::NSStringFrom(path)], YES, NO);
         }
     }
 }
 
-static NSString* GetAppName(void)
+static std::string GetAppName(void)
 {
-    static NSString* appName = nil;
-    NSBundle* bundle = nil;
+    static std::optional<std::string> appName;
 
-    if (appName == nil) {
-        bundle = [NSBundle mainBundle];
-        appName = [bundle objectForInfoDictionaryKey:@"CFBundleName"];
-        if (appName == nil)
-            appName = [bundle bundleIdentifier];
-        if (appName == nil)
-            appName = @"<unknown application>";
-        [appName retain];
+    if (!appName.has_value()) {
+        const oo::fs::Path plistPath = oo::ResourcePaths::current().builtInResourcesDirectory() / "Info-gnustep.plist";
+        oo::PList info;
+        if (const oo::fs::Result<oo::Data> bytes = oo::fs::readFile(plistPath); bytes && !bytes->empty()) {
+            if (oo::Expected<oo::PList, oo::PListError> parsed = oo::parsePropertyList(bytes->stringView());
+                parsed && parsed->isDict())
+                info = std::move(*parsed);
+        }
+        if (const oo::PList* name = info.find("CFBundleName"); name && name->isString())
+            appName = *name->getIf<std::string>();
+        if (!appName.has_value()) {
+            if (const oo::PList* ident = info.find("CFBundleIdentifier"); ident && ident->isString())
+                appName = *ident->getIf<std::string>();
+        }
+        if (!appName.has_value())
+            appName = "<unknown application>";
     }
 
-    return appName;
+    return *appName;
 }
 #endif
 
-NSString* OOLogHandlerGetLogBasePath(void)
-{
-    static NSString* basePath = nil;
+/*	Foundation's -stringByAppendingPathComponent: as GNUstep 1.31.1 answers it on Windows for the
+        paths used here (probed): trailing '/' and '\' of <base> are dropped, except a root's ("/",
+        "C:/"), and one '/' joins; an empty base gives the component, "C:" gives "C:<component>".
+        (A UNC root's separator is not normalised here as GNUstep does; no default path is one.)
+*/
+namespace {
 
-    if (basePath == nil) {
+std::string AppendPathComponent(std::string base, const std::string& component)
+{
+    if (base.empty())
+        return component;
+    const auto isSeparator = [](char c) { return c == '/' || c == '\\'; };
+    const size_t root = (base.size() >= 2 && base[1] == ':') ? 3 : 1;
+    while (base.size() > root && isSeparator(base.back()))
+        base.pop_back();
+    if (base.size() == 2 && base[1] == ':')
+        return base + component;
+    if (isSeparator(base.back()))
+        return base + component;
+    return base + "/" + component;
+}
+
+} // namespace
+
+/*	The log directory as a UTF-8 path string, spelled as Foundation's string path methods spelled it:
+        $OO_LOGSDIR as given, else <home>/Logs (Windows) or <home>/.Oolite/Logs (Linux), creating the
+        directories. Cached once found; nullopt (and tried again next time) when a directory cannot
+        be created.
+*/
+namespace {
+
+const std::optional<std::string>& LogBasePath(void)
+{
+    static std::optional<std::string> basePath;
+
+    if (!basePath.has_value()) {
+        std::string path;
         const char* logdirEnv = SDL_getenv("OO_LOGSDIR");
 
         if (logdirEnv) {
-            basePath = [NSString stringWithUTF8String:logdirEnv];
+            path = logdirEnv;
         } else {
 #if OOLITE_MAC_OS_X
             // ~/Library
-            basePath = [NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) objectAtIndex:0];
+            path = oo::StdString([NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) objectAtIndex:0]);
 #elif OOLITE_LINUX
-            // ~
-            basePath = NSHomeDirectory();
-
             // ~/.Oolite
-            basePath = [basePath stringByAppendingPathComponent:@".Oolite"];
-            if (!DirectoryExistCreatingIfNecessary(basePath))
-                return nil;
+            path = AppendPathComponent(oo::fs::utf8String(oo::ResourcePaths::current().homeDirectory()), ".Oolite");
+            if (!DirectoryExistCreatingIfNecessary(path))
+                return basePath;
 #elif OOLITE_WINDOWS
             // <Install path>\Oolite
-            basePath = NSHomeDirectory();
+            path = oo::fs::utf8String(oo::ResourcePaths::current().homeDirectory());
 #endif
 
             // .../Logs
-            basePath = [basePath stringByAppendingPathComponent:@"Logs"];
-            if (!DirectoryExistCreatingIfNecessary(basePath))
-                return nil;
+            path = AppendPathComponent(path, "Logs");
+            if (!DirectoryExistCreatingIfNecessary(path))
+                return basePath;
 
 #if OOLITE_MAC_OS_X
             // ~/Library/Logs/Oolite
-            basePath = [basePath stringByAppendingPathComponent:GetAppName()];
-            if (!DirectoryExistCreatingIfNecessary(basePath))
-                return nil;
+            path = AppendPathComponent(path, GetAppName());
+            if (!DirectoryExistCreatingIfNecessary(path))
+                return basePath;
 #endif
         }
 #if OOLITE_MAC_OS_X
-        ExcludeFromTimeMachine(basePath);
+        ExcludeFromTimeMachine(path);
 #endif
-        [basePath retain];
+        basePath = path;
     }
 
     return basePath;
 }
+
+} // namespace
+
+std::optional<std::string> cxx_OOLogHandlerGetLogBasePath(void)
+{
+    return LogBasePath();
+}
+
+namespace {
+
+std::optional<std::string> LogPath(void)
+{
+    const std::optional<std::string>& base = LogBasePath();
+    if (!base.has_value())
+        return std::nullopt;
+    return AppendPathComponent(*base, LogFileName());
+}
+
+} // namespace
 
 #if SET_CRASH_REPORTER_INFO
 

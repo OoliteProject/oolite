@@ -63,7 +63,7 @@ typedef uint16_t OOUniformConvertOptions;
     OOWeakReference* bindingTarget;
 }
 
-+ (BOOL)configurationDictionarySpecifiesShaderMaterial:(NSDictionary*)configuration;
++ (BOOL)configurationDictionarySpecifiesShaderMaterial:(const oo::PList&)configuration; // null -> NO
 
 /*	Set up an OOShaderMaterial.
 
@@ -89,14 +89,14 @@ typedef uint16_t OOUniformConvertOptions;
         will be transformed into:
                 #define OO_ENGINE_LEVEL 1
 */
-+ (instancetype)shaderMaterialWithName:(NSString*)name
-                         configuration:(NSDictionary*)configuration
-                                macros:(NSDictionary*)macros
++ (instancetype)shaderMaterialWithName:(const std::optional<std::string>&)name
+                         configuration:(const oo::PList&)configuration // null = nil
+                                macros:(const oo::PList&)macros // null = nil
                          bindingTarget:(id<OOWeakReferenceSupport>)target;
 
-- (id)initWithName:(NSString*)name
-     configuration:(NSDictionary*)configuration
-            macros:(NSDictionary*)macros
+- (id)initWithName:(const std::optional<std::string>&)name
+     configuration:(const oo::PList&)configuration // null = nil
+            macros:(const oo::PList&)macros // null = nil
      bindingTarget:(id<OOWeakReferenceSupport>)target;
 
 /*	Bind a uniform to a property of an object.
@@ -189,14 +189,14 @@ BOOL OOUniformBindingPermitted(const std::string& propertyName, id bindingTarget
 @end
 
 // Material specifier dictionary keys.
-extern NSString* const kOOVertexShaderSourceKey;
-extern NSString* const kOOVertexShaderNameKey;
-extern NSString* const kOOFragmentShaderSourceKey;
-extern NSString* const kOOFragmentShaderNameKey;
-extern NSString* const kOOTexturesKey;
-extern NSString* const kOOTextureObjectsKey;
-extern NSString* const kOOUniformsKey;
-extern NSString* const kOOIsSynthesizedMaterialConfigurationKey;
-extern NSString* const kOOIsSynthesizedMaterialMacrosKey;
+inline constexpr const char* kOOVertexShaderSourceKey = "_oo_vertex_shader_source";
+inline constexpr const char* kOOVertexShaderNameKey = "vertex_shader";
+inline constexpr const char* kOOFragmentShaderSourceKey = "_oo_fragment_shader_source";
+inline constexpr const char* kOOFragmentShaderNameKey = "fragment_shader";
+inline constexpr const char* kOOTexturesKey = "textures";
+inline constexpr const char* kOOTextureObjectsKey = "_oo_texture_objects";
+inline constexpr const char* kOOUniformsKey = "uniforms";
+inline constexpr const char* kOOIsSynthesizedMaterialConfigurationKey = "_oo_is_synthesized_config";
+inline constexpr const char* kOOIsSynthesizedMaterialMacrosKey = "_oo_synthesized_material_macros";
 
 #endif // OO_SHADERS

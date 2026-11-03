@@ -30,9 +30,11 @@ SOFTWARE.
 #import "OOLogging.h"
 #import "OOMaths.h"
 #import "OOStringBridge.h"
+#include "oofnd/objc/OOException.h"
 #include <stdlib.h>
 
 #include "oofnd/String.hpp"
+#include "oofnd/objc/OOAssert.h"
 
 #define DUMP_MIP_MAPS 0
 #define DUMP_SCALE 0
@@ -135,8 +137,8 @@ OOINLINE void SqueezeVertically(OOPixMap pixMap, OOPixMapDimension dstHeight)
     }
 
 #ifndef NDEBUG
-    [NSException raise:NSInternalInconsistencyException
-                format:@"Unsupported pixmap format in scaler: %@", oo::NSStringFrom(OOPixMapFormatName(pixMap.format))];
+    [OOException raise:OOInternalInconsistencyException
+                format:"Unsupported pixmap format in scaler: %s", OOPixMapFormatName(pixMap.format).c_str()];
 #else
     abort();
 #endif
@@ -144,7 +146,7 @@ OOINLINE void SqueezeVertically(OOPixMap pixMap, OOPixMapDimension dstHeight)
 
 OOINLINE void StretchHorizontally(OOPixMap srcPx, OOPixMap dstPx)
 {
-    NSCParameterAssert(srcPx.format == dstPx.format);
+    OOCParameterAssert(srcPx.format == dstPx.format);
 
     switch (srcPx.format) {
     case kOOPixMapRGBA:
@@ -164,8 +166,8 @@ OOINLINE void StretchHorizontally(OOPixMap srcPx, OOPixMap dstPx)
     }
 
 #ifndef NDEBUG
-    [NSException raise:NSInternalInconsistencyException
-                format:@"Unsupported pixmap format in scaler: %@", oo::NSStringFrom(OOPixMapFormatName(srcPx.format))];
+    [OOException raise:OOInternalInconsistencyException
+                format:"Unsupported pixmap format in scaler: %s", OOPixMapFormatName(srcPx.format).c_str()];
 #else
     abort();
 #endif
@@ -191,8 +193,8 @@ OOINLINE void SqueezeHorizontally(OOPixMap pixMap, OOPixMapDimension dstHeight)
     }
 
 #ifndef NDEBUG
-    [NSException raise:NSInternalInconsistencyException
-                format:@"Unsupported pixmap format in scaler: %@", oo::NSStringFrom(OOPixMapFormatName(pixMap.format))];
+    [OOException raise:OOInternalInconsistencyException
+                format:"Unsupported pixmap format in scaler: %s", OOPixMapFormatName(pixMap.format).c_str()];
 #else
     abort();
 #endif
@@ -339,11 +341,11 @@ FAIL:
 BOOL OOGenerateMipMaps(void* textureBytes, OOPixMapDimension width, OOPixMapDimension height, OOPixMapFormat format)
 {
     if (EXPECT_NOT(width != OORoundUpToPowerOf2_PixMap(width) || height != OORoundUpToPowerOf2_PixMap(height))) {
-        OOLog(kOOLogParameterError, @"Non-power-of-two dimensions (%ux%u) passed to %s() - ignoring, data will be junk.", width, height, __PRETTY_FUNCTION__);
+        OO_LOG(cxx_kOOLogParameterError, "Non-power-of-two dimensions ({}x{}) passed to {}() - ignoring, data will be junk.", static_cast<unsigned>(width), static_cast<unsigned>(height), __PRETTY_FUNCTION__);
         return NO;
     }
     if (EXPECT_NOT(textureBytes == NULL)) {
-        OOLog(kOOLogParameterError, @"%@", @"NULL texture pointer passed to GenerateMipMaps().");
+        OO_LOG(cxx_kOOLogParameterError, "{}", "NULL texture pointer passed to GenerateMipMaps().");
         return NO;
     }
 
@@ -361,7 +363,7 @@ BOOL OOGenerateMipMaps(void* textureBytes, OOPixMapDimension width, OOPixMapDime
         break;
     }
 
-    OOLog(kOOLogParameterError, @"%s(): bad pixmap format (%@) - ignoring, data will be junk.", __PRETTY_FUNCTION__, oo::NSStringFrom(OOPixMapFormatName(format)));
+    OO_LOG(cxx_kOOLogParameterError, "{}(): bad pixmap format ({}) - ignoring, data will be junk.", __PRETTY_FUNCTION__, OOPixMapFormatName(format));
     return NO;
 }
 
@@ -973,7 +975,7 @@ static void StretchHorizontally1(OOPixMap srcPx, OOPixMap dstPx)
     uint16_t weight0, weight1;
     uint32_t fractX, deltaX; // X coordinate, fixed-point (20.12), allowing widths up to 1 mebipixel
 
-    NSCParameterAssert(OOIsValidPixMap(srcPx) && OOPixMapBytesPerPixel(srcPx) == 1 && OOIsValidPixMap(dstPx) && OOPixMapBytesPerPixel(dstPx) == 1);
+    OOCParameterAssert(OOIsValidPixMap(srcPx) && OOPixMapBytesPerPixel(srcPx) == 1 && OOIsValidPixMap(dstPx) && OOPixMapBytesPerPixel(dstPx) == 1);
 
     srcStart = (uint8_t*)srcPx.pixels;
     srcRowBytes = srcPx.rowBytes;
@@ -1029,7 +1031,7 @@ static void StretchHorizontally2(OOPixMap srcPx, OOPixMap dstPx)
     uint16_t weight0, weight1;
     uint32_t fractX, deltaX; // X coordinate, fixed-point (20.12), allowing widths up to 1 mebipixel
 
-    NSCParameterAssert(OOIsValidPixMap(srcPx) && OOPixMapBytesPerPixel(srcPx) == 2 && OOIsValidPixMap(dstPx) && OOPixMapBytesPerPixel(dstPx) == 2);
+    OOCParameterAssert(OOIsValidPixMap(srcPx) && OOPixMapBytesPerPixel(srcPx) == 2 && OOIsValidPixMap(dstPx) && OOPixMapBytesPerPixel(dstPx) == 2);
 
     srcStart = (uint16_t*)srcPx.pixels;
     srcRowBytes = srcPx.rowBytes;
@@ -1091,7 +1093,7 @@ static void StretchHorizontally4(OOPixMap srcPx, OOPixMap dstPx)
     uint16_t weight0, weight1;
     uint32_t fractX, deltaX; // X coordinate, fixed-point (20.12), allowing widths up to 1 mebipixel
 
-    NSCParameterAssert(OOIsValidPixMap(srcPx) && OOPixMapBytesPerPixel(srcPx) == 4 && OOIsValidPixMap(dstPx) && OOPixMapBytesPerPixel(dstPx) == 4);
+    OOCParameterAssert(OOIsValidPixMap(srcPx) && OOPixMapBytesPerPixel(srcPx) == 4 && OOIsValidPixMap(dstPx) && OOPixMapBytesPerPixel(dstPx) == 4);
 
     srcStart = (uint32_t*)srcPx.pixels;
     srcRowBytes = srcPx.rowBytes;
@@ -1154,7 +1156,7 @@ static void SqueezeHorizontally1(OOPixMap srcPx, OOPixMapDimension dstWidth)
     uint32_t accum, weight;
     uint8_t borderWeight;
 
-    NSCParameterAssert(OOIsValidPixMap(srcPx) && OOPixMapBytesPerPixel(srcPx) == 1);
+    OOCParameterAssert(OOIsValidPixMap(srcPx) && OOPixMapBytesPerPixel(srcPx) == 1);
 
     srcStart = (uint8_t*)srcPx.pixels;
     dst = srcStart; // Output is placed in same buffer, without line padding.
@@ -1211,7 +1213,7 @@ static void SqueezeVertically1(OOPixMap srcPx, OOPixMapDimension dstHeight)
     uint32_t accum, weight;
     uint8_t startWeight, endWeight;
 
-    NSCParameterAssert(OOIsValidPixMap(srcPx) && OOPixMapBytesPerPixel(srcPx) == 1);
+    OOCParameterAssert(OOIsValidPixMap(srcPx) && OOPixMapBytesPerPixel(srcPx) == 1);
 
     dst = (uint8_t*)srcPx.pixels; // Output is placed in same buffer, without line padding.
     srcRowBytes = srcPx.rowBytes;
@@ -1293,7 +1295,7 @@ static void SqueezeHorizontally2(OOPixMap srcPx, OOPixMapDimension dstWidth)
     uint32_t accumHi, accumLo, weight;
     uint8_t borderWeight;
 
-    NSCParameterAssert(OOIsValidPixMap(srcPx) && OOPixMapBytesPerPixel(srcPx) == 2);
+    OOCParameterAssert(OOIsValidPixMap(srcPx) && OOPixMapBytesPerPixel(srcPx) == 2);
 
     srcStart = (uint16_t*)srcPx.pixels;
     dst = srcStart; // Output is placed in same buffer, without line padding.
@@ -1349,7 +1351,7 @@ static void SqueezeVertically2(OOPixMap srcPx, OOPixMapDimension dstHeight)
     uint32_t accumHi, accumLo, weight;
     uint8_t startWeight, endWeight;
 
-    NSCParameterAssert(OOIsValidPixMap(srcPx) && OOPixMapBytesPerPixel(srcPx) == 2);
+    OOCParameterAssert(OOIsValidPixMap(srcPx) && OOPixMapBytesPerPixel(srcPx) == 2);
 
     dst = (uint16_t*)srcPx.pixels; // Output is placed in same buffer, without line padding.
     srcRowBytes = srcPx.rowBytes;
@@ -1443,7 +1445,7 @@ static void SqueezeHorizontally4(OOPixMap srcPx, OOPixMapDimension dstWidth)
     uint32_t accum1, accum2, accum3, accum4, weight;
     uint8_t borderWeight;
 
-    NSCParameterAssert(OOIsValidPixMap(srcPx) && OOPixMapBytesPerPixel(srcPx) == 4);
+    OOCParameterAssert(OOIsValidPixMap(srcPx) && OOPixMapBytesPerPixel(srcPx) == 4);
 
     srcStart = (uint32_t*)srcPx.pixels;
     dst = srcStart; // Output is placed in same buffer, without line padding.
@@ -1500,7 +1502,7 @@ static void SqueezeVertically4(OOPixMap srcPx, OOPixMapDimension dstHeight)
     uint32_t accum1, accum2, accum3, accum4, weight;
     uint8_t startWeight, endWeight;
 
-    NSCParameterAssert(OOIsValidPixMap(srcPx) && OOPixMapBytesPerPixel(srcPx) == 4);
+    OOCParameterAssert(OOIsValidPixMap(srcPx) && OOPixMapBytesPerPixel(srcPx) == 4);
 
     dst = (uint32_t*)srcPx.pixels; // Output is placed in same buffer, without line padding.
     srcRowBytes = srcPx.rowBytes;
@@ -1556,7 +1558,7 @@ static BOOL EnsureCorrectDataSize(OOPixMap* pixMap, BOOL leaveSpaceForMipMaps)
     correctSize = pixMap->rowBytes * pixMap->height;
 
     // correctSize > 0 check is redundant, but static analyzer (checker-262) doesn't know that. -- Ahruman 2012-03-17
-    NSCParameterAssert(OOIsValidPixMap(*pixMap) && correctSize > 0);
+    OOCParameterAssert(OOIsValidPixMap(*pixMap) && correctSize > 0);
 
     /*	Ensure that the block is not too small. This needs to be done before
             adding the mip-map space, as the texture may have been shrunk in place

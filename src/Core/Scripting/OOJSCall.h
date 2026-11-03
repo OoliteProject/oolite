@@ -26,8 +26,8 @@ MA 02110-1301, USA.
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
 
+#import "OOFoundation.h"
 #include "oofnd/StdLib.hpp"
-#import <Foundation/Foundation.h>
 #include <quickjs.h>
 
 /*	OOJSCallObjCObjectMethod()

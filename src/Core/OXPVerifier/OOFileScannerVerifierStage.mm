@@ -52,6 +52,7 @@ SOFTWARE.
 #import "ResourceManager.h"
 
 #include "oofnd/FileSystem.hpp"
+#include "oofnd/Log.hpp"
 #include "oofnd/PListParsing.hpp"
 #include "oofnd/String.hpp"
 
@@ -59,6 +60,19 @@ namespace {
 
 const char* const kFileScannerStageName = "Scanning files";
 const char* const kUnusedListerStageName = "Checking for unused files";
+
+// The strings of a configuration array (was oo::StringsFrom of -configurationArrayForKey:).
+std::vector<std::string> StringsFromArray(const oo::PList& array)
+{
+    std::vector<std::string> result;
+    if (const oo::PList::Array* elements = array.getIf<oo::PList::Array>()) {
+        for (const oo::PList& element : *elements) {
+            if (const std::string* string = element.getIf<std::string>())
+                result.push_back(*string);
+        }
+    }
+    return result;
+}
 
 BOOL CheckNameConflict(const std::string& lcName, const std::map<std::string, std::string, std::less<>>& directoryCases, const std::map<std::string, std::string, std::less<>>& rootFiles, std::string* outExisting, std::string* outExistingType);
 
@@ -115,7 +129,7 @@ BOOL CheckNameConflict(const std::string& lcName, const std::map<std::string, st
 
 + (std::optional<std::string>)nameForDependencyForVerifier:(OOOXPVerifier*)verifier
 {
-    OOFileScannerVerifierStage* stage = [verifier stageWithName:oo::NSStringFrom(kFileScannerStageName)];
+    OOFileScannerVerifierStage* stage = [verifier cxx_stageWithName:kFileScannerStageName];
     if (stage == nil) {
         stage = [[OOFileScannerVerifierStage alloc] init];
         [verifier registerStage:stage];
@@ -176,7 +190,7 @@ BOOL CheckNameConflict(const std::string& lcName, const std::map<std::string, st
             // Case mismatch for folder name
             if (!_caseWarnings.contains(lcDirName)) {
                 _caseWarnings.insert(lcDirName);
-                OOLog(@"verifyOXP.files.caseMismatch", @"***** ERROR: case mismatch: directory '%@' should be called '%@'.", oo::NSStringFrom(*realDirName), oo::NSStringFrom(*folder));
+                OO_LOG("verifyOXP.files.caseMismatch", "***** ERROR: case mismatch: directory '{}' should be called '{}'.", *realDirName, *folder);
             }
         }
 
@@ -189,7 +203,7 @@ BOOL CheckNameConflict(const std::string& lcName, const std::map<std::string, st
 
                 const std::string contextText = context.has_value() ? " referenced in " + *context : std::string();
 
-                OOLog(@"verifyOXP.files.caseMismatch", @"***** ERROR: case mismatch: request for file '%@'%@ resolved to '%@'.", oo::NSStringOrNil(expectedPath), oo::NSStringFrom(contextText), oo::NSStringFrom(*path));
+                OO_LOG("verifyOXP.files.caseMismatch", "***** ERROR: case mismatch: request for file '{}'{} resolved to '{}'.", expectedPath.value_or("(null)"), contextText, *path);
             }
         }
 
@@ -262,17 +276,17 @@ BOOL CheckNameConflict(const std::string& lcName, const std::map<std::string, st
             errorKey = oo::str::lowercase(*displayName);
             if (!_badPLists.contains(errorKey)) {
                 _badPLists.insert(errorKey);
-                OOLog(@"verifyOXP.plist.parseError", @"Could not interpret property list %@.", oo::NSStringOrNil(displayName));
-                OOLogIndent();
+                OO_LOG("verifyOXP.plist.parseError", "Could not interpret property list {}.", displayName.value_or("(null)"));
+                oo::log::indent();
                 if (errorString.has_value()) {
                     for (std::string errorLine : oo::str::split(*errorString, "\n")) {
                         while (oo::str::hasPrefix(errorLine, "\t")) {
                             errorLine = "    " + errorLine.substr(1);
                         }
-                        OOLog(@"verifyOXP.plist.parseError", @"%@", oo::NSStringFrom(errorLine));
+                        OO_LOG("verifyOXP.plist.parseError", "{}", errorLine);
                     }
                 }
-                OOLogOutdent();
+                oo::log::outdent();
             }
         }
     }
@@ -328,11 +342,11 @@ BOOL CheckNameConflict(const std::string& lcName, const std::map<std::string, st
         rootFiles;
     std::set<std::string> readMeNames;
 
-    _basePath = oo::StdString([[self verifier] oxpPath]);
+    _basePath = [[self verifier] cxx_oxpPath].value_or("");
 
-    for (const std::string& junk : oo::StringsFrom([[self verifier] configurationSetForKey:@"junkFiles"]))
+    for (const std::string& junk : [[self verifier] cxx_configurationSetForKey:"junkFiles"].value_or(std::vector<std::string>()))
         _junkFileNames.insert(junk);
-    for (const std::string& skip : oo::StringsFrom([[self verifier] configurationSetForKey:@"skipDirectories"]))
+    for (const std::string& skip : [[self verifier] cxx_configurationSetForKey:"skipDirectories"].value_or(std::vector<std::string>()))
         _skipDirectoryNames.insert(skip);
 
     for (const std::string& readMe : [self constructReadMeNames])
@@ -354,31 +368,31 @@ BOOL CheckNameConflict(const std::string& lcName, const std::map<std::string, st
 
             if (_skipDirectoryNames.contains(name)) {
                 // Silently skip .svn and CVS
-                OOLog(@"verifyOXP.verbose.listFiles", @"- Skipping %@/", oo::NSStringFrom(name));
+                OO_LOG("verifyOXP.verbose.listFiles", "- Skipping {}/", name);
             } else if (!CheckNameConflict(lcName, directoryCases, rootFiles, &existing, &existingType)) {
-                OOLog(@"verifyOXP.verbose.listFiles", @"- %@/", oo::NSStringFrom(name));
-                OOLogIndentIf(@"verifyOXP.verbose.listFiles");
+                OO_LOG("verifyOXP.verbose.listFiles", "- {}/", name);
+                oo::log::indentIf("verifyOXP.verbose.listFiles");
                 directoryListings[lcName] = *[self scanDirectory:path];
                 directoryCases[lcName] = name;
-                OOLogOutdentIf(@"verifyOXP.verbose.listFiles");
+                oo::log::outdentIf("verifyOXP.verbose.listFiles");
             } else {
-                OOLog(@"verifyOXP.scanFiles.overloadedName", @"***** ERROR: %@ '%@' conflicts with %@ named '%@', ignoring. (OXPs must work on case-insensitive file systems!)", @"directory", oo::NSStringFrom(name), oo::NSStringFrom(existingType), oo::NSStringFrom(existing));
+                OO_LOG("verifyOXP.scanFiles.overloadedName", "***** ERROR: {} '{}' conflicts with {} named '{}', ignoring. (OXPs must work on case-insensitive file systems!)", "directory", name, existingType, existing);
             }
         } else if (type == oo::StdString(NSFileTypeRegular)) {
             if (_junkFileNames.contains(name)) {
-                OOLog(@"verifyOXP.scanFiles.skipJunk", @"NOTE: skipping junk file %@.", oo::NSStringFrom(name));
+                OO_LOG("verifyOXP.scanFiles.skipJunk", "NOTE: skipping junk file {}.", name);
             } else if (readMeNames.contains(lcName)) {
-                OOLog(@"verifyOXP.scanFiles.readMe", @"----- WARNING: apparent Read Me file (\"%@\") inside OXP. This is the wrong place for a Read Me file, because it will not be read.", oo::NSStringFrom(name));
+                OO_LOG("verifyOXP.scanFiles.readMe", "----- WARNING: apparent Read Me file (\"{}\") inside OXP. This is the wrong place for a Read Me file, because it will not be read.", name);
             } else if (!CheckNameConflict(lcName, directoryCases, rootFiles, &existing, &existingType)) {
-                OOLog(@"verifyOXP.verbose.listFiles", @"- %@", oo::NSStringFrom(name));
+                OO_LOG("verifyOXP.verbose.listFiles", "- {}", name);
                 rootFiles[lcName] = name;
             } else {
-                OOLog(@"verifyOXP.scanFiles.overloadedName", @"***** ERROR: %@ '%@' conflicts with %@ named '%@', ignoring. (OXPs must work on case-insensitive file systems!)", @"file", oo::NSStringFrom(name), oo::NSStringFrom(existingType), oo::NSStringFrom(existing));
+                OO_LOG("verifyOXP.scanFiles.overloadedName", "***** ERROR: {} '{}' conflicts with {} named '{}', ignoring. (OXPs must work on case-insensitive file systems!)", "file", name, existingType, existing);
             }
         } else if (type == oo::StdString(NSFileTypeSymbolicLink)) {
-            OOLog(@"verifyOXP.scanFiles.symLink", @"----- WARNING: \"%@\" is a symbolic link, ignoring.", oo::NSStringFrom(name));
+            OO_LOG("verifyOXP.scanFiles.symLink", "----- WARNING: \"{}\" is a symbolic link, ignoring.", name);
         } else {
-            OOLog(@"verifyOXP.scanFiles.nonStandardFile", @"----- WARNING: \"%@\" is a non-standard file (%@), ignoring.", oo::NSStringFrom(name), oo::NSStringOrNil(type));
+            OO_LOG("verifyOXP.scanFiles.nonStandardFile", "----- WARNING: \"{}\" is a non-standard file ({}), ignoring.", name, type.value_or("(null)"));
         }
     }
 
@@ -394,14 +408,14 @@ BOOL CheckNameConflict(const std::string& lcName, const std::map<std::string, st
 {
     std::string lcName;
 
-    for (const std::string& name : oo::StringsFrom([[self verifier] configurationArrayForKey:@"knownRootDirectories"])) {
+    for (const std::string& name : StringsFromArray([[self verifier] cxx_configurationArrayForKey:"knownRootDirectories"])) {
         lcName = oo::str::lowercase(name);
         const auto actual = _directoryCases.find(lcName);
         if (actual == _directoryCases.end())
             continue;
 
         if (actual->second != name) {
-            OOLog(@"verifyOXP.files.caseMismatch", @"***** ERROR: case mismatch: directory '%@' should be called '%@'.", oo::NSStringFrom(actual->second), oo::NSStringFrom(name));
+            OO_LOG("verifyOXP.files.caseMismatch", "***** ERROR: case mismatch: directory '{}' should be called '{}'.", actual->second, name);
         }
         _caseWarnings.insert(lcName);
     }
@@ -413,7 +427,7 @@ BOOL CheckNameConflict(const std::string& lcName, const std::map<std::string, st
     std::optional<std::string> realFileName;
     BOOL inConfigDir;
 
-    for (const std::string& name : oo::StringsFrom([[self verifier] configurationArrayForKey:@"knownConfigFiles"])) {
+    for (const std::string& name : StringsFromArray([[self verifier] cxx_configurationArrayForKey:"knownConfigFiles"])) {
         /*	In theory, we could use -fileExists:inFolder:referencedFrom:checkBuiltIn:
         here, but we want a different error message.
         */
@@ -429,7 +443,7 @@ BOOL CheckNameConflict(const std::string& lcName, const std::map<std::string, st
         if (*realFileName != name) {
             if (inConfigDir)
                 realFileName = oo::str::appendingPathComponent("Config", *realFileName);
-            OOLog(@"verifyOXP.files.caseMismatch", @"***** ERROR: case mismatch: configuration file '%@' should be called '%@'.", oo::NSStringFrom(*realFileName), oo::NSStringFrom(name));
+            OO_LOG("verifyOXP.files.caseMismatch", "***** ERROR: case mismatch: configuration file '{}' should be called '{}'.", *realFileName, name);
         }
     }
 }
@@ -442,7 +456,7 @@ BOOL CheckNameConflict(const std::string& lcName, const std::map<std::string, st
     BOOL inDirectory;
 
     // Folders in byte order of their names (they were in dictionary order).
-    const oo::PList directories = oo::PListFrom([[self verifier] configurationDictionaryForKey:@"knownFiles"]);
+    const oo::PList directories = [[self verifier] cxx_configurationDictionaryForKey:"knownFiles"];
     const oo::PList::Dict* directoryDict = directories.getIf<oo::PList::Dict>();
     if (directoryDict == nullptr)
         return;
@@ -473,7 +487,7 @@ BOOL CheckNameConflict(const std::string& lcName, const std::map<std::string, st
             if (*realFileName != *name) {
                 if (inDirectory)
                     realFileName = oo::str::appendingPathComponent(directory, *realFileName);
-                OOLog(@"verifyOXP.files.caseMismatch", @"***** ERROR: case mismatch: file '%@' should be called '%@'.", oo::NSStringFrom(*realFileName), oo::NSStringFrom(*name));
+                OO_LOG("verifyOXP.files.caseMismatch", "***** ERROR: case mismatch: file '{}' should be called '{}'.", *realFileName, *name);
             }
         }
     }
@@ -511,29 +525,29 @@ BOOL CheckNameConflict(const std::string& lcName, const std::map<std::string, st
         relativeName = oo::str::appendingPathComponent(dirName, name);
 
         if (_junkFileNames.contains(name)) {
-            OOLog(@"verifyOXP.scanFiles.skipJunk", @"NOTE: skipping junk file %@/%@.", oo::NSStringFrom(dirName), oo::NSStringFrom(name));
+            OO_LOG("verifyOXP.scanFiles.skipJunk", "NOTE: skipping junk file {}/{}.", dirName, name);
         } else if (type == oo::StdString(NSFileTypeRegular)) {
             lcName = oo::str::lowercase(name);
             const auto existing = result.find(lcName);
 
             if (existing == result.end()) {
-                OOLog(@"verifyOXP.verbose.listFiles", @"- %@", oo::NSStringFrom(name));
+                OO_LOG("verifyOXP.verbose.listFiles", "- {}", name);
                 result[lcName] = name;
             } else {
-                OOLog(@"verifyOXP.scanFiles.overloadedName", @"***** ERROR: %@ '%@' conflicts with %@ named '%@', ignoring. (OXPs must work on case-insensitive file systems!)", @"file", oo::NSStringFrom(relativeName), @"file", oo::NSStringFrom(oo::str::appendingPathComponent(dirName, existing->second)));
+                OO_LOG("verifyOXP.scanFiles.overloadedName", "***** ERROR: {} '{}' conflicts with {} named '{}', ignoring. (OXPs must work on case-insensitive file systems!)", "file", relativeName, "file", oo::str::appendingPathComponent(dirName, existing->second));
             }
         } else {
             if (type == oo::StdString(NSFileTypeDirectory)) {
                 [dirEnum skipDescendents];
                 if (!_skipDirectoryNames.contains(name)) {
-                    OOLog(@"verifyOXP.scanFiles.directory", @"----- WARNING: \"%@\" is a nested directory, ignoring.", oo::NSStringFrom(relativeName));
+                    OO_LOG("verifyOXP.scanFiles.directory", "----- WARNING: \"{}\" is a nested directory, ignoring.", relativeName);
                 } else {
-                    OOLog(@"verifyOXP.verbose.listFiles", @"- Skipping %@/%@/", oo::NSStringFrom(dirName), oo::NSStringFrom(name));
+                    OO_LOG("verifyOXP.verbose.listFiles", "- Skipping {}/{}/", dirName, name);
                 }
             } else if (type == oo::StdString(NSFileTypeSymbolicLink)) {
-                OOLog(@"verifyOXP.scanFiles.symLink", @"----- WARNING: \"%@\" is a symbolic link, ignoring.", oo::NSStringFrom(relativeName));
+                OO_LOG("verifyOXP.scanFiles.symLink", "----- WARNING: \"{}\" is a symbolic link, ignoring.", relativeName);
             } else {
-                OOLog(@"verifyOXP.scanFiles.nonStandardFile", @"----- WARNING: \"%@\" is a non-standard file (%@), ignoring.", oo::NSStringFrom(relativeName), oo::NSStringOrNil(type));
+                OO_LOG("verifyOXP.scanFiles.nonStandardFile", "----- WARNING: \"{}\" is a non-standard file ({}), ignoring.", relativeName, type.value_or("(null)"));
             }
         }
     }
@@ -574,7 +588,7 @@ BOOL CheckNameConflict(const std::string& lcName, const std::map<std::string, st
                 formatDesc = oo::str::format("unknown format (%i)", (int)format);
             }
 
-            OOLog(@"verifyOXP.plist.weirdFormat", @"----- WARNING: Property list %@ is in %@; OpenStep text format and XML format are the recommended formats for Oolite.", oo::NSStringOrNil(displayPath), oo::NSStringFrom(formatDesc));
+            OO_LOG("verifyOXP.plist.weirdFormat", "----- WARNING: Property list {} is in {}; OpenStep text format and XML format are the recommended formats for Oolite.", displayPath.value_or("(null)"), formatDesc);
         }
     }
 }
@@ -586,7 +600,7 @@ BOOL CheckNameConflict(const std::string& lcName, const std::map<std::string, st
     std::string stem,
         extension;
 
-    const oo::PList dict = oo::PListFrom([[self verifier] configurationDictionaryForKey:@"readMeNames"]);
+    const oo::PList dict = [[self verifier] cxx_configurationDictionaryForKey:"readMeNames"];
     const oo::PList* stems = dict.get<oo::PList::Array>("stems");
     const oo::PList* extensions = dict.get<oo::PList::Array>("extensions");
     stemCount = stems != nullptr ? stems->count() : 0;
@@ -622,26 +636,26 @@ BOOL CheckNameConflict(const std::string& lcName, const std::map<std::string, st
     return oo::NSStringFrom(kUnusedListerStageName);
 }
 
-- (id)dependencies // shared selector (proposed ADR-0043)
+- (std::optional<std::vector<std::string>>)cxx_dependencies
 {
-    return oo::NSSetFromStrings(std::vector<std::string> { kFileScannerStageName });
+    return std::vector<std::string> { kFileScannerStageName };
 }
 
 - (void)run
 {
-    OOLog(@"verifyOXP.unusedFiles.unimplemented", @"%@", @"TODO: implement unused files check.");
+    OO_LOG("verifyOXP.unusedFiles.unimplemented", "{}", "TODO: implement unused files check.");
 }
 
-+ (id)nameForReverseDependencyForVerifier:(OOOXPVerifier*)verifier // shared selector (proposed ADR-0043)
++ (std::string)nameForReverseDependencyForVerifier:(OOOXPVerifier*)verifier
 {
-    OOListUnusedFilesStage* stage = [verifier stageWithName:oo::NSStringFrom(kUnusedListerStageName)];
+    OOListUnusedFilesStage* stage = [verifier cxx_stageWithName:kUnusedListerStageName];
     if (stage == nil) {
         stage = [[OOListUnusedFilesStage alloc] init];
         [verifier registerStage:stage];
         [stage release];
     }
 
-    return oo::NSStringFrom(kUnusedListerStageName);
+    return kUnusedListerStageName;
 }
 
 @end
@@ -650,21 +664,21 @@ BOOL CheckNameConflict(const std::string& lcName, const std::map<std::string, st
 
 - (OOFileScannerVerifierStage*)fileScannerStage
 {
-    return [self stageWithName:oo::NSStringFrom(kFileScannerStageName)];
+    return [self cxx_stageWithName:kFileScannerStageName];
 }
 
 @end
 
 @implementation OOFileHandlingVerifierStage
 
-- (id)dependencies // shared selector (proposed ADR-0043)
+- (std::optional<std::vector<std::string>>)cxx_dependencies
 {
-    return oo::NSSetFromStrings(std::vector<std::string> { *[OOFileScannerVerifierStage nameForDependencyForVerifier:[self verifier]] });
+    return std::vector<std::string> { *[OOFileScannerVerifierStage nameForDependencyForVerifier:[self verifier]] };
 }
 
-- (id)dependents // shared selector (proposed ADR-0043)
+- (std::optional<std::vector<std::string>>)dependents
 {
-    return oo::NSSetFromStrings(std::vector<std::string> { oo::StdString([OOListUnusedFilesStage nameForReverseDependencyForVerifier:[self verifier]]) });
+    return std::vector<std::string> { [OOListUnusedFilesStage nameForReverseDependencyForVerifier:[self verifier]] };
 }
 
 @end

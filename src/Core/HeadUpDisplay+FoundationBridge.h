@@ -26,6 +26,25 @@ Copyright (C) 2004-2013 Giles C Williams and contributors (HeadUpDisplay.h)
 #ifndef HEADUPDISPLAY_FOUNDATIONBRIDGE_H
 #define HEADUPDISPLAY_FOUNDATIONBRIDGE_H
 
+@interface HeadUpDisplay (OOFoundationBridge)
+
+// Chunk 2 (oo-3rb.210): hidden selectors.
+- (void)setHiddenSelector:(NSString*)selectorName hidden:(BOOL)hide; // -> -cxx_setHiddenSelector:hidden:
+
+// Chunk 3 (oo-3rb.211): initialiser, GUI reset, names, crosshair definition.
+- (id)initWithDictionary:(NSDictionary*)hudinfo inFile:(NSString*)hudFileName; // -> -cxx_initWithDictionary:inFile:
+
+- (void)resetGuis:(NSDictionary*)info; // -> -cxx_resetGuis:
+
+- (NSString*)hudName; // -> -cxx_hudName
+
+- (void)setDeferredHudName:(NSString*)newDeferredHudName; // -> -cxx_setDeferredHudName:
+- (NSString*)deferredHudName; // -> -cxx_deferredHudName
+- (NSString*)crosshairDefinition; // -> -cxx_crosshairDefinition
+- (BOOL)setCrosshairDefinition:(NSString*)newDefinition; // -> -cxx_setCrosshairDefinition:
+
+@end
+
 // Chunk 1 (oo-3rb.209): the beacon-letter category and the text engine.
 @interface NSString (OOHUDBeaconIcon) <OOHUDBeaconIcon>
 @end

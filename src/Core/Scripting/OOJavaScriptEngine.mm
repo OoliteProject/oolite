@@ -25,16 +25,20 @@ MA 02110-1301, USA.
 #import "OOJSEngineTimeManagement.h"
 #import "OOJSScript.h"
 
+#include "oofnd/Defaults.hpp"
+#include "oofnd/Encoding.hpp"
+#include "oofnd/FileSystem.hpp"
+#include "oofnd/Log.hpp"
 #include "oofnd/Notification.hpp"
 #include "oofnd/PList.hpp"
+#include "oofnd/PListGet.hpp"
+#include "oofnd/Scanner.hpp"
+#include "oofnd/StdLib.hpp"
 #include "oofnd/String.hpp"
 
 #import "EntityOOJavaScriptExtensions.h"
-#import "NSNumberOOExtensions.h"
-#import "NSStringOOExtensions.h"
 #import "OOConstToJSString.h"
 #import "OOFoundationBridge.h"
-#import "OOPListView.h"
 #import "OOPlanetEntity.h"
 #import "OOVisualEffectEntity.h"
 #import "OOWaypointEntity.h"
@@ -75,6 +79,11 @@ MA 02110-1301, USA.
 #import "OOJSWorldScripts.h"
 #import "OOJSWormhole.h"
 
+#import "OOFoundationException.h"
+#import "OOStringBridge.h"
+
+#include "oofnd/objc/OOAssert.h"
+
 #include <time.h>
 #if OOLITE_WINDOWS
 #include <windows.h>
@@ -94,14 +103,16 @@ static OOJavaScriptEngine* sSharedEngine = nil;
 
 @interface OOJavaScriptEngine (OOMonitorSupportInternal)
 
-- (void)sendMonitorProblemOfSeverity:(NSString*)severity
-                              inFile:(NSString*)file
+// file is nullopt when the stack gives no location (a nil file before).
+- (void)sendMonitorProblemOfSeverity:(const std::string&)severity
+                              inFile:(const std::optional<std::string>&)file
                                 line:(unsigned)line
-                         withMessage:(NSString*)message
+                         withMessage:(const std::string&)message
                            inContext:(JSContext*)context;
 
-- (void)sendMonitorLogMessage:(NSString*)message
-             withMessageClass:(NSString*)messageClass
+// nullopt is meaningful to the monitor (Log() with a null message; no class for Log()).
+- (void)sendMonitorLogMessage:(const std::optional<std::string>&)message
+             withMessageClass:(const std::optional<std::string>&)messageClass
                     inContext:(JSContext*)context;
 
 @end
@@ -152,31 +163,32 @@ static void LoadCompatibilityScript(JSContext* context);
 
 - (id)init
 {
-    NSAssert(sSharedEngine == nil, @"Attempt to create multiple OOJavaScriptEngines.");
+    OOAssert(sSharedEngine == nil, "Attempt to create multiple OOJavaScriptEngines.");
 
     if (!(self = [super init]))
         return nil;
     sSharedEngine = self;
     _showErrorLocations = YES;
 
-    NSUserDefaults* defaults = [NSUserDefaults standardUserDefaults];
+    oo::Defaults& defaults = oo::Defaults::standard();
 #ifdef OO_DEBUG_MONITOR_ENABLED
     /*	Set stack trace preferences from preferences. These will be overriden
             by the debug OXP script if installed, but being able to enable traces
             without setting up the debug console could be useful for debugging
             users' problems.
     */
-    [self setDumpStackForErrors:[defaults boolForKey:@"dump-stack-for-errors"]];
-    [self setDumpStackForWarnings:[defaults boolForKey:@"dump-stack-for-warnings"]];
+    [self setDumpStackForErrors:defaults.boolForKey("dump-stack-for-errors")];
+    [self setDumpStackForWarnings:defaults.boolForKey("dump-stack-for-warnings")];
 #endif
 
     _runtime = JS_NewRuntime();
     if (_runtime == NULL) {
-        OOLog(@"script.javaScript.init.error", @"%@", @"***** FATAL ERROR: failed to create JavaScript runtime.");
+        OO_LOG("script.javaScript.init.error", "{}", "***** FATAL ERROR: failed to create JavaScript runtime.");
         exit(1);
     }
 
-    uint32_t jsRuntimeInMiB = oo::PListView(defaults).get<int>(@"jsruntime-size-mib", OOJS_RUNTIME_SIZE_MiB);
+    const oo::PList jsRuntimeSize = defaults.object("jsruntime-size-mib");
+    uint32_t jsRuntimeInMiB = static_cast<uint32_t>(oo::PListGet<int>::from(jsRuntimeSize.isNull() ? nullptr : &jsRuntimeSize, OOJS_RUNTIME_SIZE_MiB));
     JS_SetMemoryLimit(_runtime, jsRuntimeInMiB * 1024L * 1024L);
     JS_SetMaxStackSize(_runtime, OOJS_STACK_SIZE);
     JS_SetInterruptHandler(_runtime, InterruptHandler, NULL);
@@ -188,11 +200,11 @@ static void LoadCompatibilityScript(JSContext* context);
 
 - (void)createMainThreadContext
 {
-    NSAssert(gOOJSMainThreadContext == NULL, @"-[OOJavaScriptEngine createMainThreadContext] called while the main thread context exists.");
+    OOAssert(gOOJSMainThreadContext == NULL, "-[OOJavaScriptEngine createMainThreadContext] called while the main thread context exists.");
 
     gOOJSMainThreadContext = JS_NewContext(_runtime);
     if (gOOJSMainThreadContext == NULL) {
-        OOLog(@"script.javaScript.init.error", @"%@", @"***** FATAL ERROR: failed to create JavaScript context.");
+        OO_LOG("script.javaScript.init.error", "{}", "***** FATAL ERROR: failed to create JavaScript context.");
         exit(1);
     }
     _context = gOOJSMainThreadContext;
@@ -247,9 +259,9 @@ static void LoadCompatibilityScript(JSContext* context);
     OOJSValue* specialWrapper = [OOJSValue valueWithJSValue:special inContext:_context];
     JS_FreeValue(_context, special);
     [OOJSScript jsScriptFromFileNamed:@"oolite-global-prefix.js"
-                           properties:[NSDictionary dictionaryWithObject:specialWrapper forKey:@"special"]];
+                           properties:oo::ObjectFromPList(oo::PList(oo::PList::Dict { { "special", oo::PListObject(specialWrapper) } }))];
 
-    OOLog(@"script.javaScript.init.success", @"%@", @"Set up JavaScript context.");
+    OO_LOG("script.javaScript.init.success", "{}", "Set up JavaScript context.");
 }
 
 - (void)destroyMainThreadContext
@@ -277,9 +289,9 @@ static void LoadCompatibilityScript(JSContext* context);
         JSMemoryUsage usage;
         JS_ComputeMemoryUsage(_runtime, &usage);
         if (usage.obj_count != 0) {
-            OOLogWARN(@"script.javaScript.reset.liveObjects", @"%lli JavaScript objects are still alive after the context was destroyed; something is holding a JSValue it does not own, or has not freed one it does.", (long long)usage.obj_count);
+            OO_LOG_WARN("script.javaScript.reset.liveObjects", "{} JavaScript objects are still alive after the context was destroyed; something is holding a JSValue it does not own, or has not freed one it does.", static_cast<long long>(usage.obj_count));
         } else {
-            OOLog(@"script.javaScript.reset.liveObjects", @"%@", @"No JavaScript objects left alive after the context was destroyed.");
+            OO_LOG("script.javaScript.reset.liveObjects", "{}", "No JavaScript objects left alive after the context was destroyed.");
         }
 #endif
     }
@@ -287,21 +299,19 @@ static void LoadCompatibilityScript(JSContext* context);
 
 - (BOOL)reset
 {
-    NSAssert(gOOJSMainThreadContext != NULL, @"JavaScript engine not active. Can't reset.");
+    OOAssert(gOOJSMainThreadContext != NULL, "JavaScript engine not active. Can't reset.");
 
     OOJSFrameCallbacksRemoveAll();
 
     oo::NotificationCenter::defaultCenter().post(kOOJavaScriptEngineWillResetNotificationName, self);
-    [[NSNotificationCenter defaultCenter] postNotificationName:kOOJavaScriptEngineWillResetNotification object:self];
 
     [self destroyMainThreadContext];
     [self createMainThreadContext];
 
     oo::NotificationCenter::defaultCenter().post(kOOJavaScriptEngineDidResetNotificationName, self);
-    [[NSNotificationCenter defaultCenter] postNotificationName:kOOJavaScriptEngineDidResetNotification object:self];
 
     [self garbageCollectionOpportunity:YES];
-    OOLog(@"script.javascript.init", @"%@", @"JavaScript reset successful.");
+    OO_LOG("script.javascript.init", "{}", "JavaScript reset successful.");
     return YES;
 }
 
@@ -331,13 +341,12 @@ static BOOL IsRunningJavaScript(JSContext* context)
             context under running code is unsafe.
     */
     if (IsRunningJavaScript(_context)) {
-        OOLog(@"script.javaScript.shutDown", @"%@", @"Not shutting down the JavaScript runtime (and skipping its leak check): quitting from inside a script.");
+        OO_LOG("script.javaScript.shutDown", "{}", "Not shutting down the JavaScript runtime (and skipping its leak check): quitting from inside a script.");
         return 0;
     }
 
     OOJSFrameCallbacksRemoveAll();
     oo::NotificationCenter::defaultCenter().post(kOOJavaScriptEngineWillResetNotificationName, self);
-    [[NSNotificationCenter defaultCenter] postNotificationName:kOOJavaScriptEngineWillResetNotification object:self];
     [self destroyMainThreadContext];
 
     JSMemoryUsage usage;
@@ -346,14 +355,14 @@ static BOOL IsRunningJavaScript(JSContext* context)
         /*	JS_FreeRuntime() would assert. Dump what is left and abandon the
                 runtime instead, so the leak can be reported.
         */
-        OOLog(@"script.javaScript.shutDown.leak", @"***** JavaScript runtime shut down with %lli objects still alive; something is holding a JSValue it does not own, or has not freed one it does.", (long long)usage.obj_count);
+        OO_LOG("script.javaScript.shutDown.leak", "***** JavaScript runtime shut down with {} objects still alive; something is holding a JSValue it does not own, or has not freed one it does.", static_cast<long long>(usage.obj_count));
         _runtime = NULL;
         return (NSUInteger)usage.obj_count;
     }
 
     JS_FreeRuntime(_runtime);
     _runtime = NULL;
-    OOLog(@"script.javaScript.shutDown", @"%@", @"JavaScript runtime shut down with no leaked objects.");
+    OO_LOG("script.javaScript.shutDown", "{}", "JavaScript runtime shut down with no leaked objects.");
     return 0;
 }
 
@@ -381,7 +390,7 @@ static BOOL IsRunningJavaScript(JSContext* context)
                   argv:(JSValueConst*)argv
                 result:(JSValue*)outResult
 {
-    NSParameterAssert(JS_IsFunction(_context, function));
+    OOParameterAssert(JS_IsFunction(_context, function));
 
     OOJSStartTimeLimiter();
     JSValue result = JS_Call(_context, function, jsThis, argc, argv);
@@ -464,23 +473,23 @@ static BOOL IsRunningJavaScript(JSContext* context)
 
 @implementation OOJavaScriptEngine (OOMonitorSupportInternal)
 
-- (void)sendMonitorProblemOfSeverity:(NSString*)severity
-                              inFile:(NSString*)file
+- (void)sendMonitorProblemOfSeverity:(const std::string&)severity
+                              inFile:(const std::optional<std::string>&)file
                                 line:(unsigned)line
-                         withMessage:(NSString*)message
+                         withMessage:(const std::string&)message
                            inContext:(JSContext*)theContext
 {
     if ([_monitor respondsToSelector:@selector(jsEngine:context:problemOfSeverity:inFile:line:stackSkip:showingLocation:withMessage:)]) {
-        [_monitor jsEngine:self context:theContext problemOfSeverity:severity inFile:file line:line stackSkip:sErrorHandlerStackSkip showingLocation:[self showErrorLocations] withMessage:message];
+        [_monitor jsEngine:self context:theContext problemOfSeverity:oo::NSStringFrom(severity) inFile:oo::NSStringOrNil(file) line:line stackSkip:sErrorHandlerStackSkip showingLocation:[self showErrorLocations] withMessage:oo::NSStringFrom(message)];
     }
 }
 
-- (void)sendMonitorLogMessage:(NSString*)message
-             withMessageClass:(NSString*)messageClass
+- (void)sendMonitorLogMessage:(const std::optional<std::string>&)message
+             withMessageClass:(const std::optional<std::string>&)messageClass
                     inContext:(JSContext*)theContext
 {
     if ([_monitor respondsToSelector:@selector(jsEngine:context:logMessage:ofClass:)]) {
-        [_monitor jsEngine:self context:theContext logMessage:message ofClass:messageClass];
+        [_monitor jsEngine:self context:theContext logMessage:oo::NSStringOrNil(message) ofClass:oo::NSStringOrNil(messageClass)];
     }
 }
 
@@ -537,18 +546,20 @@ JSValueConst OOJSLegacyConstRewriter(void)
 */
 static void LoadCompatibilityScript(JSContext* context)
 {
-    NSString* path = [ResourceManager pathForFileNamed:@"oolite-quickjs-compat.js" inFolder:@"Scripts"];
-    NSString* source = (path != nil) ? [NSString stringWithContentsOfUnicodeFile:path] : nil;
-    if (source == nil) {
-        OOLogERR(@"script.javaScript.init.error", @"%@", @"Could not load oolite-quickjs-compat.js; SpiderMonkey compatibility functions such as toSource() will be missing.");
+    const std::optional<std::string> path = [ResourceManager cxx_pathForFileNamed:"oolite-quickjs-compat.js" inFolder:std::string("Scripts")];
+    std::optional<std::string> source;
+    // +stringWithContentsOfUnicodeFile: (it read through .oxz archives)
+    if (path.has_value()) {
+        if (const std::optional<oo::Data> bytes = OODataFromOXZFile(*path))
+            source = oo::str::decodeUnicodeText(bytes->stringView());
+    }
+    if (!source.has_value()) {
+        OO_LOG_ERR("script.javaScript.init.error", "{}", "Could not load oolite-quickjs-compat.js; SpiderMonkey compatibility functions such as toSource() will be missing.");
         return;
     }
 
-    NSData* utf8 = [source dataUsingEncoding:NSUTF8StringEncoding];
-    NSMutableData* terminated = [NSMutableData dataWithData:utf8];
-    [terminated appendBytes:"" length:1]; // JS_Eval requires a terminating NUL.
-
-    JSValue result = JS_Eval(context, (const char*)[terminated bytes], [utf8 length], [path UTF8String], JS_EVAL_TYPE_GLOBAL);
+    // JS_Eval requires a terminating NUL, which std::string's c_str() has.
+    JSValue result = JS_Eval(context, source->c_str(), source->size(), path->c_str(), JS_EVAL_TYPE_GLOBAL);
     if (JS_IsException(result))
         OOJSReportPendingException(context);
     else if (JS_IsFunction(context, result))
@@ -565,7 +576,7 @@ static void LoadCompatibilityScript(JSContext* context)
         const char* test = "(function () { 'use strict'; try { 'x'.oolite = 1; new Math.max(); return true; } catch (e) { return false; } })()";
         JSValue patched = JS_Eval(context, test, strlen(test), "<compatibility check>", JS_EVAL_TYPE_GLOBAL);
         if (!JS_IsException(patched) && !OOJSValueToBOOL(context, patched)) {
-            OOLogWARN(@"script.javaScript.init.unpatchedEngine", @"%@", @"This QuickJS-ng library lacks Oolite's compatibility patches; some OXPs that worked with SpiderMonkey may fail. Build with the bundled QuickJS-ng subproject.");
+            OO_LOG_WARN("script.javaScript.init.unpatchedEngine", "{}", "This QuickJS-ng library lacks Oolite's compatibility patches; some OXPs that worked with SpiderMonkey may fail. Build with the bundled QuickJS-ng subproject.");
         }
         if (JS_IsException(patched))
             JS_FreeValue(context, JS_GetException(context));
@@ -576,8 +587,8 @@ static void LoadCompatibilityScript(JSContext* context)
 NSString* OOJSWrapScriptSource(NSString* source)
 {
     // A newline before the closing part is needed if the last line is a // comment.
-    NSString* lineEnd = [source hasSuffix:@"\n"] ? @"" : @"\n";
-    return [NSString stringWithFormat:@"with(this){(function(){%@%@}).call(this)}", source, lineEnd];
+    const char* lineEnd = [source hasSuffix:@"\n"] ? "" : "\n";
+    return oo::NSStringFrom(oo::str::format("with(this){(function(){%s%s}).call(this)}", oo::DescriptionOf(source).c_str(), lineEnd));
 }
 
 BOOL OOJSValueToBOOL(JSContext* context, JSValueConst value)
@@ -598,7 +609,8 @@ BOOL OOJSValueToInt32(JSContext* context, JSValueConst value, int32_t* outValue)
 
     number = floor(number + 0.5);
     if (isnan(number) || number < INT32_MIN || number > INT32_MAX) {
-        OOJSReportError(context, @"can't convert %@ to an integer", OOStringFromJSValueEvenIfNull(context, value));
+        // ("%@" of a nil string printed "(null)")
+        cxx_OOJSReportError(context, "can't convert %s to an integer", cxx_OOStringFromJSValueEvenIfNull(context, value).value_or("(null)").c_str());
         return NO;
     }
 
@@ -646,7 +658,7 @@ void OOJSStartTimeLimiterWithTimeLimit(OOTimeDelta limit)
 void OOJSStopTimeLimiter(void)
 {
     if (sLimiterStartDepth == 0) {
-        OOLog(@"bug.javaScript.limiterDepth", @"%@", @"Attempt to stop JavaScript time limiter while it is already fully stopped. This is an internal bug, please report it.");
+        OO_LOG("bug.javaScript.limiterDepth", "{}", "Attempt to stop JavaScript time limiter while it is already fully stopped. This is an internal bug, please report it.");
         return;
     }
 
@@ -708,7 +720,7 @@ static int InterruptHandler(JSRuntime* runtime, void* opaque)
     if (elapsed <= sLimiterTimeLimit)
         return 0;
 
-    OOLogERR(@"script.javaScript.timeLimit", @"Script \"%@\" ran for %g seconds and has been terminated.", [[OOJSScript currentlyRunningScript] name], elapsed);
+    OO_LOG_ERR("script.javaScript.timeLimit", "Script \"{}\" ran for {} seconds and has been terminated.", oo::DescriptionOf([[OOJSScript currentlyRunningScript] name]), oo::str::format("%g", elapsed));
 #ifdef OO_DEBUG_MONITOR_ENABLED
     OOJSDumpStack(gOOJSMainThreadContext);
 #endif
@@ -719,17 +731,24 @@ static int InterruptHandler(JSRuntime* runtime, void* opaque)
 // Error reporting
 //===========================================================================
 
+static std::string_view TrimWhitespace(std::string_view text)
+{
+    static constexpr std::string_view kWhitespace = " \t";
+    const std::size_t first = text.find_first_not_of(kWhitespace);
+    if (first == std::string_view::npos)
+        return std::string_view();
+    const std::size_t last = text.find_last_not_of(kWhitespace);
+    return text.substr(first, last - first + 1);
+}
+
 /*	QuickJS records locations only in the stack property, as lines of the form
         "    at name (file:line:column)" or "    at file:line:column".
         Extract the file and line of the innermost frame with a location.
 */
-static BOOL GetLocationFromStack(NSString* stack, NSString** outFile, unsigned* outLine)
+static BOOL GetLocationFromStack(const std::optional<std::string>& stack, std::optional<std::string>* outFile, unsigned* outLine)
 {
-    for (NSString* frame in [stack componentsSeparatedByString:@"\n"]) {
-        frame = [frame stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
-        if (![frame hasPrefix:@"at "])
-            continue;
-        frame = [frame substringFromIndex:3];
+    if (!stack.has_value())
+        return NO;
 
         // The first "(" opens the location: the path may itself contain parentheses ("Program Files (x86)").
         NSRange open = [frame rangeOfString:@"("];
@@ -737,41 +756,45 @@ static BOOL GetLocationFromStack(NSString* stack, NSString** outFile, unsigned* 
             frame = [frame substringWithRange:NSMakeRange(open.location + 1, [frame length] - open.location - 2)];
         }
 
-        NSArray* parts = [frame componentsSeparatedByString:@":"];
-        if ([parts count] < 3)
+        // file:line:column; the file may itself contain colons.
+        const std::size_t lastColon = frame.rfind(':');
+        if (lastColon == std::string_view::npos || lastColon == 0)
+            continue;
+        const std::size_t lineColon = frame.rfind(':', lastColon - 1);
+        if (lineColon == std::string_view::npos)
             continue; // Native frame, e.g. "at log (native)".
 
-        NSUInteger count = [parts count];
-        *outFile = [[parts subarrayWithRange:NSMakeRange(0, count - 2)] componentsJoinedByString:@":"];
-        *outLine = (unsigned)[[parts objectAtIndex:count - 2] intValue];
+        const std::string lineText(frame.substr(lineColon + 1, lastColon - lineColon - 1));
+        *outFile = std::string(frame.substr(0, lineColon));
+        *outLine = static_cast<unsigned>(atoi(lineText.c_str()));
         return YES;
     }
     return NO;
 }
 
-static NSString* StackOfValue(JSContext* context, JSValueConst value)
+static std::optional<std::string> StackOfValue(JSContext* context, JSValueConst value)
 {
     if (!JS_IsObject(value))
-        return nil;
+        return std::nullopt;
     JSValue stack = JS_GetPropertyStr(context, value, "stack");
-    NSString* result = OOStringFromJSValue(context, stack);
+    std::optional<std::string> result = cxx_OOStringFromJSValue(context, stack);
     JS_FreeValue(context, stack);
     return result;
 }
 
-static NSString* CurrentStack(JSContext* context)
+static std::optional<std::string> CurrentStack(JSContext* context)
 {
     // A fresh Error object captures the current JS stack.
     JSValue error = JS_NewError(context);
-    NSString* result = StackOfValue(context, error);
+    std::optional<std::string> result = StackOfValue(context, error);
     JS_FreeValue(context, error);
     return result;
 }
 
-static void LogProblem(JSContext* context, NSString* severity, NSString* errorName, NSString* message, NSString* stack)
+static void LogProblem(JSContext* context, const std::string& severity, const std::string& errorName, const std::string& message, const std::optional<std::string>& stack)
 {
-    NSString* messageClass = [NSString stringWithFormat:@"script.javaScript.%@.%@", severity, errorName];
-    NSString* highlight = [severity isEqualToString:@"warning"] ? @"-----" : @"*****";
+    const std::string messageClass = "script.javaScript." + severity + "." + errorName;
+    const std::string highlight = (severity == "warning") ? "-----" : "*****";
     OOJavaScriptEngine* jsEng = [OOJavaScriptEngine sharedEngine];
 
     // Skip the rest if this is a warning being ignored. Errors and exceptions always go to the debug monitor.
@@ -780,26 +803,24 @@ static void LogProblem(JSContext* context, NSString* severity, NSString* errorNa
 
     // avoid windows DEP exceptions!
     OOJSScript* thisScript = [[OOJSScript currentlyRunningScript] weakRetain];
-    NSString* activeScript = [[thisScript weakRefUnderlyingObject] displayName];
+    const std::string activeScript = oo::OptionalString([[thisScript weakRefUnderlyingObject] displayName]).value_or("<unidentified script>");
     [thisScript release];
-    if (activeScript == nil)
-        activeScript = @"<unidentified script>";
-    OOLog(messageClass, @"%@ JavaScript %@ (%@): %@", highlight, severity, activeScript, message);
+    OO_LOG(messageClass, "{} JavaScript {} ({}): {}", highlight, severity, activeScript, message);
 
-    NSString* file = nil;
+    std::optional<std::string> file;
     unsigned line = 0;
     if ([jsEng showErrorLocations] && sErrorHandlerStackSkip == 0 && GetLocationFromStack(stack, &file, &line)) {
-        OOLog(messageClass, @"      %@, line %u.", file, line);
+        OO_LOG(messageClass, "      {}, line {}.", *file, line);
     }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-    BOOL dump = [severity isEqualToString:@"warning"] ? [jsEng dumpStackForWarnings] : [jsEng dumpStackForErrors];
-    if (dump && stack != nil)
-        OOLog(@"script.javaScript.stackTrace", @"%@", stack);
+    BOOL dump = (severity == "warning") ? [jsEng dumpStackForWarnings] : [jsEng dumpStackForErrors];
+    if (dump && stack.has_value())
+        OO_LOG("script.javaScript.stackTrace", "{}", *stack);
 #endif
 
 #if OOJSENGINE_MONITOR_SUPPORT
-    if (file == nil)
+    if (!file.has_value())
         GetLocationFromStack(stack, &file, &line);
     [jsEng sendMonitorProblemOfSeverity:severity
                                  inFile:file
@@ -821,19 +842,20 @@ void OOJSReportPendingException(JSContext* context)
 
     OOJSPauseTimeLimiter();
 
-    NSString* errorName = @"exception";
+    std::string errorName = "exception";
     if (JS_IsError(exception)) {
         JSValue name = JS_GetPropertyStr(context, exception, "name");
-        errorName = OOStringFromJSValue(context, name) ?: errorName;
+        errorName = cxx_OOStringFromJSValue(context, name).value_or(errorName);
         JS_FreeValue(context, name);
     }
 
-    NSString* message = OOStringFromJSValueEvenIfNull(context, exception);
+    // ("%@" of a nil message printed "(null)")
+    std::optional<std::string> message = cxx_OOStringFromJSValueEvenIfNull(context, exception);
     if (!JS_IsError(exception)) {
-        message = [@"uncaught exception: " stringByAppendingString:message ?: @"?"];
+        message = "uncaught exception: " + message.value_or("?");
     }
 
-    LogProblem(context, @"exception", errorName, message, StackOfValue(context, exception));
+    LogProblem(context, "exception", errorName, message.value_or("(null)"), StackOfValue(context, exception));
 
     JS_FreeValue(context, exception);
     OOJSResumeTimeLimiter();
@@ -887,8 +909,10 @@ void cxx_OOJSReportErrorWithArguments(JSContext* context, const char* format, va
 void OOJSReportWrappedException(JSContext* context, id exception)
 {
     if (!JS_HasException(context)) {
-        if ([exception isKindOfClass:[NSException class]])
-            cxx_OOJSReportError(context, "Native exception: %s", oo::DescriptionOf([exception reason]).c_str());
+        if ([exception isKindOfClass:[OOException class]])
+            cxx_OOJSReportError(context, "Native exception: %s", [(OOException*)exception reason]);
+        else if ([exception isKindOfClass:[OOFoundationException class]])
+            cxx_OOJSReportError(context, "Native exception: %s", oo::DescriptionOf([(OOFoundationException*)exception reason]).c_str());
         else
             cxx_OOJSReportError(context, "Unidentified native exception");
     }
@@ -937,7 +961,7 @@ void cxx_OOJSReportWarningWithArguments(JSContext* context, const char* format, 
         std::string msg = oo::str::vformat(format, args);
         OOJSPauseTimeLimiter();
         // SpiderMonkey reported Oolite's own warnings as error number 206, "ooliteDefined" in javascript-errors.plist.
-        LogProblem(context, @"warning", @"ooliteDefined", oo::NSStringFrom(msg), CurrentStack(context));
+        LogProblem(context, "warning", "ooliteDefined", msg, CurrentStack(context));
         OOJSResumeTimeLimiter();
     }
     @catch (id exception) {
@@ -995,8 +1019,7 @@ void OOJSSetWarningOrErrorStackSkip(unsigned skip)
 #if OOLITE_DEBUG || defined(OO_DEBUG_MONITOR_ENABLED)
 void OOJSDumpStack(JSContext* context)
 {
-    NSString* stack = CurrentStack(context);
-    OOLog(@"script.javaScript.stackTrace", @"%@", stack ?: @"<no JavaScript stack>");
+    OO_LOG("script.javaScript.stackTrace", "{}", CurrentStack(context).value_or("<no JavaScript stack>"));
 }
 #endif
 
@@ -1015,7 +1038,7 @@ BOOL OOJSArgumentListGetNumberNoError(JSContext* context, int argc, JSValueConst
 {
     double value;
 
-    NSCParameterAssert(context != NULL && (argv != NULL || argc == 0) && outNumber != NULL);
+    OOCParameterAssert(context != NULL && (argv != NULL || argc == 0) && outNumber != NULL);
 
     // Get value, if possible.
     if (EXPECT_NOT(argc < 1 || JS_ToFloat64(context, &value, argv[0]) < 0 || isnan(value))) {
@@ -1040,11 +1063,11 @@ BOOL OOJSArgumentListGetNumberNoError(JSContext* context, int argc, JSValueConst
 
 JSAtom OOJSInternAtomPRIVATE(const char* name)
 {
-    NSCParameterAssert(name != NULL && name[0] != '\0');
+    OOCParameterAssert(name != NULL && name[0] != '\0');
 
     JSAtom atom = JS_NewAtom(OOJSAcquireContext(), name);
     if (EXPECT_NOT(atom == JS_ATOM_NULL)) {
-        [NSException raise:NSGenericException format:@"Failed to initialize JS ID cache for \"%s\".", name];
+        [OOException raise:OOGenericException format:"Failed to initialize JS ID cache for \"%s\".", name];
     }
     return atom;
 }
@@ -1493,9 +1516,9 @@ BOOL JSFunctionPredicate(Entity* entity, void* parameter)
     JSFunctionPredicateParameter* param = (JSFunctionPredicateParameter*)parameter;
     BOOL result = NO;
 
-    NSCParameterAssert(entity != nil && param != NULL);
-    NSCParameterAssert(param->context != NULL);
-    NSCParameterAssert(OOJSValueIsFunction(param->context, param->function));
+    OOCParameterAssert(entity != nil && param != NULL);
+    OOCParameterAssert(param->context != NULL);
+    OOCParameterAssert(OOJSValueIsFunction(param->context, param->function));
 
     if (EXPECT_NOT(param->errorFlag))
         return NO;
@@ -1567,8 +1590,8 @@ BOOL JSEntityIsDemoShipPredicate(Entity* entity, void* parameter)
 
 BOOL OOJSObjectGetterImplPRIVATE(JSContext* context, JSValueConst object, JSClassID requiredClassID, Class requiredObjCClass, const char* name, id* outObject)
 {
-    NSCParameterAssert(requiredObjCClass != Nil);
-    NSCParameterAssert(context != NULL && requiredClassID != 0 && outObject != NULL);
+    OOCParameterAssert(requiredObjCClass != Nil);
+    OOCParameterAssert(context != NULL && requiredClassID != 0 && outObject != NULL);
 
     /*
             Ensure it's a valid type of JS object. This is absolutely necessary,
@@ -1602,97 +1625,112 @@ BOOL OOJSObjectGetterImplPRIVATE(JSContext* context, JSValueConst object, JSClas
 // JS to native conversion
 //===========================================================================
 
-NSDictionary* OOJSDictionaryFromJSValue(JSContext* context, JSValueConst value)
+oo::PList OOJSDictionaryFromJSValue(JSContext* context, JSValueConst value)
 {
     if (EXPECT_NOT(!JS_IsObject(value))) {
-        return nil;
+        return oo::PList();
     }
-    return OOJSDictionaryFromJSObject(context, value);
+    return cxx_OOJSDictionaryFromJSObject(context, value);
 }
 
-// Integer-like property names become NSNumbers, as SpiderMonkey's int jsids did.
-static id KeyForAtom(JSContext* context, JSAtom atom)
+/*	An integer-like property name, which SpiderMonkey had as an int jsid: the test of the
+        Foundation form's KeyForAtom() (OOJavaScriptEngine+FoundationBridge.mm), which makes such a
+        key an NSNumber.
+*/
+static bool IsIntegerLikeKey(const std::string& key)
 {
-    NSString* key = OOStringFromJSID(atom);
-    if ([key length] != 0 && [key length] < 10) {
-        unichar first = [key characterAtIndex:0];
-        if ((first >= '1' && first <= '9') || [key isEqualToString:@"0"]) {
-            NSScanner* scanner = [NSScanner scannerWithString:key];
+    const std::size_t length = oo::utf8ToUtf16(key).size(); // [key length]: UTF-16 units
+    if (length != 0 && length < 10) {
+        const char first = key[0];
+        if ((first >= '1' && first <= '9') || key == "0") {
+            oo::str::Scanner scanner(key);
             int intValue;
-            if ([scanner scanInt:&intValue] && [scanner isAtEnd]) {
-                return [NSNumber numberWithInt:intValue];
+            if (scanner.scanInt(&intValue) && scanner.isAtEnd()) {
+                return true;
             }
         }
     }
-    return key;
+    return false;
 }
 
-NSDictionary* OOJSDictionaryFromJSObject(JSContext* context, JSValueConst object)
+oo::PList cxx_OOJSDictionaryFromJSObject(JSContext* context, JSValueConst object)
 {
     JSPropertyEnum* properties = NULL;
     uint32_t i, count;
+    oo::PList::Dict result;
+    bool hasIntegerKey = false;
 
     if (JS_GetOwnPropertyNames(context, &properties, &count, object, JS_GPN_STRING_MASK | JS_GPN_ENUM_ONLY) < 0) {
         JS_FreeValue(context, JS_GetException(context));
-        return nil;
+        return oo::PList();
     }
 
-    NSMutableDictionary* result = [NSMutableDictionary dictionaryWithCapacity:count];
     for (i = 0; i != count; ++i) {
-        id objKey = KeyForAtom(context, properties[i].atom);
+        const std::optional<std::string> key = cxx_OOStringFromJSID(properties[i].atom);
+        /*	The Foundation form (OOJSDictionaryFromJSObject, in the bridge) keeps
+                an int32 property id as a number key; oo::PListFrom() made a dictionary
+                with a number key a null PList, so such an entry makes the whole result
+                null here. (CIM 15/2/13 asked whether the key should be a string.)
+        */
+        const bool isIntegerKey = key.has_value() && IsIntegerLikeKey(*key);
         JSValue value = JS_GetProperty(context, object, properties[i].atom);
         if (JS_IsException(value)) {
             JS_FreeValue(context, JS_GetException(context));
             continue;
         }
 
-        if (objKey != nil && !JS_IsUndefined(value)) {
+        if (key.has_value() && !JS_IsUndefined(value)) {
             id objValue = OOJSNativeObjectFromJSValue(context, value);
             if (objValue != nil) {
-                [result setObject:objValue forKey:objKey];
+                if (isIntegerKey)
+                    hasIntegerKey = true;
+                else
+                    result.insert_or_assign(*key, oo::PListFrom(objValue));
             }
         }
         JS_FreeValue(context, value);
     }
 
     JS_FreePropertyEnum(context, properties, count);
-    return result;
+    if (hasIntegerKey)
+        return oo::PList();
+    return oo::PList(std::move(result));
 }
 
-NSDictionary* OOJSDictionaryFromStringTable(JSContext* context, JSValueConst tableValue)
+oo::PList OOJSDictionaryFromStringTable(JSContext* context, JSValueConst tableValue)
 {
     JSPropertyEnum* properties = NULL;
     uint32_t i, count;
+    oo::PList::Dict result;
 
     if (EXPECT_NOT(JS_IsNull(tableValue) || JS_IsUndefined(tableValue))) {
-        return nil;
+        return oo::PList();
     }
 
     JSValue tableObject = JS_ToObject(context, tableValue);
     if (JS_IsException(tableObject)) {
         JS_FreeValue(context, JS_GetException(context));
-        return nil;
+        return oo::PList();
     }
 
     if (JS_GetOwnPropertyNames(context, &properties, &count, tableObject, JS_GPN_STRING_MASK | JS_GPN_ENUM_ONLY) < 0) {
         JS_FreeValue(context, JS_GetException(context));
         JS_FreeValue(context, tableObject);
-        return nil;
+        return oo::PList();
     }
 
-    NSMutableDictionary* result = [NSMutableDictionary dictionaryWithCapacity:count];
     for (i = 0; i != count; ++i) {
-        NSString* objKey = OOStringFromJSID(properties[i].atom);
+        const std::optional<std::string> key = cxx_OOStringFromJSID(properties[i].atom);
         JSValue value = JS_GetProperty(context, tableObject, properties[i].atom);
         if (JS_IsException(value)) {
             JS_FreeValue(context, JS_GetException(context));
             continue;
         }
 
-        if (objKey != nil && !JS_IsUndefined(value)) {
-            NSString* objValue = OOStringFromJSValueEvenIfNull(context, value);
-            if (objValue != nil) {
-                [result setObject:objValue forKey:objKey];
+        if (key.has_value() && !JS_IsUndefined(value)) {
+            std::optional<std::string> string = cxx_OOStringFromJSValueEvenIfNull(context, value);
+            if (string.has_value()) {
+                result.insert_or_assign(*key, oo::PList(std::move(*string)));
             }
         }
         JS_FreeValue(context, value);
@@ -1700,7 +1738,7 @@ NSDictionary* OOJSDictionaryFromStringTable(JSContext* context, JSValueConst tab
 
     JS_FreePropertyEnum(context, properties, count);
     JS_FreeValue(context, tableObject);
-    return result;
+    return oo::PList(std::move(result));
 }
 
 // Indexed by class ID; process lifetime.
@@ -1718,17 +1756,18 @@ id OOJSNativeObjectFromJSValue(JSContext* context, JSValueConst value)
 
     if (JS_VALUE_GET_TAG(value) == JS_TAG_INT) {
         JS_ToInt32(context, &intValue, value);
-        return [NSNumber numberWithInt:intValue];
+        // +numberWithLongLong: where this was +numberWithInt: (same value; bead oo-3rb.202).
+        return oo::ObjectFromPList(oo::PList::signedInteger(intValue));
     }
     if (JS_IsNumber(value)) {
         JS_ToFloat64(context, &doubleValue, value);
-        return [NSNumber numberWithDouble:doubleValue];
+        return oo::ObjectFromPList(oo::PList(doubleValue));
     }
     if (JS_IsBool(value)) {
-        return [NSNumber numberWithBool:JS_VALUE_GET_BOOL(value)];
+        return oo::ObjectFromPList(oo::PList(static_cast<bool>(JS_VALUE_GET_BOOL(value))));
     }
     if (JS_IsString(value)) {
-        return OOStringFromJSValue(context, value);
+        return oo::NSStringOrNil(cxx_OOStringFromJSValue(context, value));
     }
     if (JS_IsObject(value)) {
         return OOJSNativeObjectFromJSObject(context, value);
@@ -1786,8 +1825,9 @@ void OOJSRegisterObjectConverter(JSClassID classID, OOJSClassConverterCallback c
 static id JSArrayConverter(JSContext* context, JSValueConst array)
 {
     int64_t i, count;
+    std::vector<id> values;
 
-    // Convert a JS array to an NSArray by calling OOJSNativeObjectFromJSValue() on all its elements.
+    // Convert a JS array to a native array by calling OOJSNativeObjectFromJSValue() on all its elements.
     if (!JS_IsArray(array))
         return nil;
     if (JS_GetLength(context, array, &count) < 0) {
@@ -1795,7 +1835,7 @@ static id JSArrayConverter(JSContext* context, JSValueConst array)
         return nil;
     }
 
-    NSMutableArray* result = [NSMutableArray arrayWithCapacity:(NSUInteger)count];
+    values.reserve(static_cast<std::size_t>(count));
     for (i = 0; i != count; ++i) {
         JSValue value = JS_GetPropertyUint32(context, array, (uint32_t)i);
         if (JS_IsException(value)) {
@@ -1807,22 +1847,22 @@ static id JSArrayConverter(JSContext* context, JSValueConst array)
         JS_FreeValue(context, value);
         if (object == nil)
             object = [OONull null];
-        [result addObject:object];
+        values.push_back(object);
     }
 
-    return result;
+    return oo::NSArrayFromObjects(values);
 }
 
 static id JSStringConverter(JSContext* context, JSValueConst object)
 {
-    return OOStringFromJSValue(context, object);
+    return oo::NSStringOrNil(cxx_OOStringFromJSValue(context, object));
 }
 
 static id JSNumberConverter(JSContext* context, JSValueConst object)
 {
     double value;
     if (JS_ToFloat64(context, &value, object) == 0) {
-        return [NSNumber numberWithDouble:value];
+        return oo::ObjectFromPList(oo::PList(value));
     }
     JS_FreeValue(context, JS_GetException(context));
     return nil;
@@ -1836,7 +1876,7 @@ static id JSBooleanConverter(JSContext* context, JSValueConst object)
     */
     double value;
     if (JS_ToFloat64(context, &value, object) == 0) {
-        return [NSNumber numberWithBool:(value != 0)];
+        return oo::ObjectFromPList(oo::PList(value != 0));
     }
     JS_FreeValue(context, JS_GetException(context));
     return nil;

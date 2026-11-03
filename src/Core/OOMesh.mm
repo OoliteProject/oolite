@@ -47,7 +47,6 @@ MA 02110-1301, USA.
 #import "OOMaterialConvenienceCreators.h"
 #import "OOMeshToOctreeConverter.h"
 #import "OOOpenGLExtensionManager.h"
-#import "OOPListView.h"
 #import "OOProfilingStopwatch.h"
 #import "OOShaderMaterial.h"
 #import "Octree.h"
@@ -61,7 +60,10 @@ MA 02110-1301, USA.
 #import "OOFoundationException.h"
 #import "OOJavaScriptEngine.h"
 #import "OOStringBridge.h"
+#include "oofnd/Log.hpp"
+#include "oofnd/Scanner.hpp"
 #include "oofnd/String.hpp"
+#include "oofnd/objc/OOAssert.h"
 
 // If set, collision octree depth varies depending on the size of the mesh.
 #define ADAPTIVE_OCTREE_DEPTH 1
@@ -83,18 +85,18 @@ typedef enum {
     kNormalModeExplicit
 } OOMeshNormalMode;
 
-static NSString* const kOOLogMeshDataNotFound = @"mesh.load.failed.fileNotFound";
-static NSString* const kOOLogMeshTooManyMaterials = @"mesh.load.failed.tooManyMaterials";
+static const char* const kOOLogMeshDataNotFound = "mesh.load.failed.fileNotFound"; // an OO_LOG message class
+static const char* const kOOLogMeshTooManyMaterials = "mesh.load.failed.tooManyMaterials";
 
 #if OOMESH_PROFILE
 #define PROFILE(tag)                                                       \
     do {                                                                   \
         _stopwatchLastTime = Profile(tag, _stopwatch, _stopwatchLastTime); \
     } while (0)
-static OOTimeDelta Profile(NSString* tag, OOProfilingStopwatch* stopwatch, OOTimeDelta lastTime)
+static OOTimeDelta Profile(const char* tag, OOProfilingStopwatch* stopwatch, OOTimeDelta lastTime)
 {
     OOTimeDelta now = [stopwatch currentTime];
-    OOLog(@"mesh.profile", @"Mesh profile: stage %@, %g seconds (delta %g)", tag, now, now - lastTime);
+    OO_LOG("mesh.profile", "Mesh profile: stage {}, {:g} seconds (delta {:g})", tag, now, now - lastTime);
     return now;
 }
 #else
@@ -140,7 +142,7 @@ static NSUInteger VFRGetFaceAtIndex(VertexFaceRef* vfr, NSUInteger index);
             scaleFactor:(float)scale
          cacheWriteable:(BOOL)cacheWriteable;
 
-- (BOOL)loadData:(NSString*)filename scaleFactor:(float)scale;
+- (BOOL)loadData:(const std::string&)filename scaleFactor:(float)scale;
 - (void)checkNormalsAndAdjustWinding;
 - (void)generateFaceTangents;
 - (void)calculateVertexNormalsAndTangentsWithFaceRefs:(VertexFaceRef*)faceRefs;
@@ -213,8 +215,8 @@ static BOOL IsLegacyNormalMode(OOMeshNormalMode mode)
     }
 
 #ifndef NDEBUG
-    [NSException raise:NSInvalidArgumentException
-                format:@"Unexpected normal mode in %s", __PRETTY_FUNCTION__];
+    [OOException raise:OOInvalidArgumentException
+                format:"Unexpected normal mode in %s", __PRETTY_FUNCTION__];
 #endif
     return NO;
 }
@@ -233,8 +235,8 @@ static BOOL IsPerVertexNormalMode(OOMeshNormalMode mode)
     }
 
 #ifndef NDEBUG
-    [NSException raise:NSInvalidArgumentException
-                format:@"Unexpected normal mode in %s", __PRETTY_FUNCTION__];
+    [OOException raise:OOInvalidArgumentException
+                format:"Unexpected normal mode in %s", __PRETTY_FUNCTION__];
 #endif
     return NO;
 }
@@ -286,7 +288,8 @@ static BOOL IsPerVertexNormalMode(OOMeshNormalMode mode)
     static OOBasicMaterial* placeholderMaterial = nil;
 
     if (placeholderMaterial == nil) {
-        placeholderMaterial = [[OOBasicMaterial alloc] initWithName:@"/placeholder/" configuration:oo::PListView([ResourceManager materialDefaults]).get<NSDictionary*>(@"no-textures-material")];
+        const oo::PList* noTextures = [ResourceManager cxx_materialDefaults].find("no-textures-material");
+        placeholderMaterial = [[OOBasicMaterial alloc] initWithName:@"/placeholder/" configuration:oo::ObjectFromPList(noTextures != nullptr ? *noTextures : oo::PList())];
     }
 
     return placeholderMaterial;
@@ -435,7 +438,7 @@ const char* NormalModeDescription(OOMeshNormalMode mode)
         /*	It should not be possible to have multiple texture units if
                 texture combiners are not available.
         */
-        NSAssert2([[OOOpenGLExtensionManager sharedManager] textureCombinersSupported], @"Mesh %@ uses %zu texture units, but multitexturing is not available.", [self shortDescription], _textureUnitCount);
+        OOAssert([[OOOpenGLExtensionManager sharedManager] textureCombinersSupported], "Mesh %s uses %zu texture units, but multitexturing is not available.", oo::DescriptionOf([self shortDescription]).c_str(), _textureUnitCount);
 
         for (unit = 0; unit < _textureUnitCount; unit++) {
             OOGL(glClientActiveTextureARB(GL_TEXTURE0_ARB + unit));
@@ -496,7 +499,7 @@ const char* NormalModeDescription(OOMeshNormalMode mode)
     }
     @catch (OOException* exception) {
         if (!brokenInRender) {
-            OOLog(kOOLogException, @"***** %s for %@ encountered exception: %@ : %@ *****", __PRETTY_FUNCTION__, self, oo::NSStringFrom([exception name]), oo::NSStringFrom([exception reason]));
+            OO_LOG(cxx_kOOLogException, "***** {} for {} encountered exception: {} : {} *****", __PRETTY_FUNCTION__, oo::DescriptionOf(self), [exception name], [exception reason]);
             brokenInRender = YES;
         }
         if (strncmp([exception name], "Oolite", 6) == 0)
@@ -506,7 +509,7 @@ const char* NormalModeDescription(OOMeshNormalMode mode)
     }
     @catch (OOFoundationException* exception) {
         if (!brokenInRender) {
-            OOLog(kOOLogException, @"***** %s for %@ encountered exception: %@ : %@ *****", __PRETTY_FUNCTION__, self, [exception name], [exception reason]);
+            OO_LOG(cxx_kOOLogException, "***** {} for {} encountered exception: {} : {} *****", __PRETTY_FUNCTION__, oo::DescriptionOf(self), oo::DescriptionOf([exception name]), oo::DescriptionOf([exception reason]));
             brokenInRender = YES;
         }
         if ([[exception name] hasPrefix:@"Oolite"])
@@ -522,7 +525,7 @@ const char* NormalModeDescription(OOMeshNormalMode mode)
 #endif
 
     [OOMaterial applyNone];
-    OOCheckOpenGLErrors(@"OOMesh after drawing %@", self);
+    cxx_OOCheckOpenGLErrors([&]() -> std::string { return "OOMesh after drawing " + oo::DescriptionOf(self); });
 
 #if OO_MULTITEXTURE
     if (_textureUnitCount <= 1) {
@@ -560,20 +563,15 @@ const char* NormalModeDescription(OOMeshNormalMode mode)
     OOMaterial* material = nil;
 
     if (materialCount != 0) {
-        // OOMaterialConvenienceCreators is not migrated: hand it the same objects, converted once.
-        id materialDict = oo::ObjectFromPList(_materialDict);
-        id shadersDict = oo::ObjectFromPList(_shadersDict);
-        id shaderMacros = oo::ObjectFromPList(_shaderMacros);
-
         for (i = 0; i != materialCount; ++i) {
             OOMaterial* oldMaterial = materials[i];
 
             if (materialKeys[i] != "_oo_placeholder_material") {
-                material = [OOMaterial materialWithName:oo::NSStringFrom(materialKeys[i])
-                                               cacheKey:oo::NSStringOrNil(_cacheKey)
-                                     materialDictionary:materialDict
-                                      shadersDictionary:shadersDict
-                                                 macros:shaderMacros
+                material = [OOMaterial materialWithName:materialKeys[i]
+                                               cacheKey:_cacheKey
+                                     materialDictionary:_materialDict
+                                      shadersDictionary:_shadersDict
+                                                 macros:_shaderMacros
                                           bindingTarget:[_shaderBindingTarget weakRefUnderlyingObject] // Windows DEP fix.
                                         forSmoothedMesh:IsPerVertexNormalMode((OOMeshNormalMode)_normalMode)];
             } else {
@@ -650,7 +648,7 @@ const char* NormalModeDescription(OOMeshNormalMode mode)
             result++;
         }
 
-    OOLog(@"mesh.load.octree.size", @"Selected octree depth %u for size %g for %@", result, size, oo::NSStringOrNil(baseFile));
+    OO_LOG("mesh.load.octree.size", "Selected octree depth {} for size {:g} for {}", result, size, baseFile.value_or("(null)"));
     return result;
 }
 #else
@@ -684,7 +682,7 @@ const char* NormalModeDescription(OOMeshNormalMode mode)
                 }
             }
         } else {
-            OOLog(@"mesh.load.octreeCached", @"Retrieved octree \"%@\" from cache.", oo::NSStringOrNil(baseFileOctreeCacheRef));
+            OO_LOG("mesh.load.octreeCached", "Retrieved octree \"{}\" from cache.", baseFileOctreeCacheRef.value_or("(null)"));
         }
     }
 
@@ -788,9 +786,9 @@ const char* NormalModeDescription(OOMeshNormalMode mode)
     [super dumpSelfState];
 
     if (baseFile)
-        OOLog(@"dumpState.mesh", @"Model file: %@", oo::NSStringFrom(*baseFile));
-    OOLog(@"dumpState.mesh", @"Vertex count: %u, face count: %u", vertexCount, faceCount);
-    OOLog(@"dumpState.mesh", @"Normals: %@", oo::NSStringFrom(NormalModeDescription((OOMeshNormalMode)_normalMode)));
+        OO_LOG("dumpState.mesh", "Model file: {}", *baseFile);
+    OO_LOG("dumpState.mesh", "Vertex count: {}, face count: {}", static_cast<unsigned>(vertexCount), static_cast<unsigned>(faceCount));
+    OO_LOG("dumpState.mesh", "Normals: {}", NormalModeDescription((OOMeshNormalMode)_normalMode));
 }
 #endif
 
@@ -870,9 +868,9 @@ const char* NormalModeDescription(OOMeshNormalMode mode)
         _stopwatch = [[OOProfilingStopwatch alloc] init];
 #endif
 
-        if ([self loadData:oo::NSStringFrom(name) scaleFactor:scale]) {
+        if ([self loadData:name scaleFactor:scale]) {
             [self calculateBoundingVolumes];
-            PROFILE(@"finished calculateBoundingVolumes (again\?\?)");
+            PROFILE("finished calculateBoundingVolumes (again\?\?)");
 
             baseFile = name;
             baseFileOctreeCacheRef = oo::str::format("%s-%.3f", name.c_str(), scale);
@@ -888,7 +886,7 @@ const char* NormalModeDescription(OOMeshNormalMode mode)
             _shaderBindingTarget = [target weakRetain];
 
             [self rebindMaterials];
-            PROFILE(@"finished material setup");
+            PROFILE("finished material setup");
 
             [[OOGraphicsResetManager sharedManager] registerClient:self];
         } else {
@@ -1038,7 +1036,7 @@ const char* NormalModeDescription(OOMeshNormalMode mode)
 
     // Ensure we have all the required data elements.
     if (vertData == nullptr || faceData == nullptr || mtlKeys == nullptr) {
-        OOLog(@"mesh.load.error.badCacheData", @"Ignoring bad cache data for mesh \"%@\".", oo::NSStringFrom(fileName));
+        OO_LOG("mesh.load.error.badCacheData", "Ignoring bad cache data for mesh \"{}\".", fileName);
         return NO;
     }
 
@@ -1046,7 +1044,7 @@ const char* NormalModeDescription(OOMeshNormalMode mode)
         normData = dict.get<oo::PList::Data>("normal data");
         tanData = dict.get<oo::PList::Data>("tangent data");
         if (normData == nullptr || tanData == nullptr) {
-            OOLog(@"mesh.load.error.badCacheData", @"Ignoring bad normal/tangent cache data for mesh \"%@\".", oo::NSStringFrom(fileName));
+            OO_LOG("mesh.load.error.badCacheData", "Ignoring bad normal/tangent cache data for mesh \"{}\".", fileName);
             return NO;
         }
     }
@@ -1086,7 +1084,7 @@ const char* NormalModeDescription(OOMeshNormalMode mode)
         if (key.isString() || key.isNumber())
             materialKeys[i] = oo::PListGet<std::string>::from(&key, std::string());
         else {
-            OOLog(@"mesh.load.error.badCacheData", @"Ignoring bad cache data for mesh \"%@\".", oo::NSStringFrom(fileName));
+            OO_LOG("mesh.load.error.badCacheData", "Ignoring bad cache data for mesh \"{}\".", fileName);
             return NO;
         }
     }
@@ -1096,119 +1094,119 @@ const char* NormalModeDescription(OOMeshNormalMode mode)
     OOJS_PROFILE_EXIT
 }
 
-- (BOOL)loadData:(NSString*)filename scaleFactor:(float)scale
+- (BOOL)loadData:(const std::string&)filename scaleFactor:(float)scale
 {
     OOJS_PROFILE_ENTER
 
-    NSScanner* scanner;
+    std::optional<oo::str::Scanner> scanner; // made from the preprocessed text below
     BOOL failFlag = NO;
-    NSString* failString = @"***** ";
+    std::string failString = "***** ";
     unsigned i, j;
-    NSMutableDictionary* texFileName2Idx = nil;
-    NSString* cacheKey = nil;
+    std::map<std::string, unsigned, std::less<>> texFileName2Idx;
     BOOL using_preloaded = NO;
 
-    cacheKey = [NSString stringWithFormat:@"%@:%u:%.3f", filename, _normalMode, scale];
-    const oo::PList cacheData = [OOCacheManager meshDataForName:oo::StdString(cacheKey)];
+    const std::string cacheKey = oo::str::format("%s:%u:%.3f", filename.c_str(), _normalMode, scale);
+    const oo::PList cacheData = [OOCacheManager meshDataForName:cacheKey];
     if (cacheData) {
-        if ([self setModelFromModelData:cacheData name:oo::StdString(filename)]) {
+        if ([self setModelFromModelData:cacheData name:filename]) {
             using_preloaded = YES;
-            PROFILE(@"loaded from cache");
-            OOLog(@"mesh.load.cached", @"Retrieved mesh \"%@\" from cache.", filename);
+            PROFILE("loaded from cache");
+            OO_LOG("mesh.load.cached", "Retrieved mesh \"{}\" from cache.", filename);
         }
     }
 
     if (!using_preloaded) {
-        OOLog(@"mesh.load.uncached", @"Mesh \"%@\" is not in cache, loading.", cacheKey);
+        OO_LOG("mesh.load.uncached", "Mesh \"{}\" is not in cache, loading.", cacheKey);
 
-        NSCharacterSet* whitespaceCharSet = [NSCharacterSet whitespaceCharacterSet];
-        NSCharacterSet* whitespaceAndNewlineCharSet = [NSCharacterSet whitespaceAndNewlineCharacterSet];
-#if OOLITE_MAC_OS_X
-        NSCharacterSet* newlineCharSet = [NSCharacterSet newlineCharacterSet];
-#else
-        static NSCharacterSet* newlineCharSet = nil;
-        if (newlineCharSet == nil) {
-            NSMutableCharacterSet* temp = [[whitespaceAndNewlineCharSet mutableCopy] autorelease];
-            [temp formIntersectionWithCharacterSet:[whitespaceCharSet invertedSet]];
-            newlineCharSet = [temp copy];
-        }
-#endif
-
-        texFileName2Idx = [NSMutableDictionary dictionary];
+        const oo::str::CharacterSet whitespaceCharSet = oo::str::CharacterSet::whitespace();
+        const oo::str::CharacterSet whitespaceAndNewlineCharSet = oo::str::CharacterSet::whitespaceAndNewline();
+        // The newline set. The non-Mac build made it as whitespace-and-newline minus whitespace,
+        // which is the same set (U+000A-U+000D and U+0085: Scanner.hpp's tables).
+        const oo::str::CharacterSet newlineCharSet = oo::str::CharacterSet::newline();
 
         {
             void* pool = objc_autoreleasePoolPush();
-            NSString* data = [ResourceManager stringFromFilesNamed:filename inFolder:@"Models" cache:NO];
-            if (data == nil) {
+            const std::optional<std::string> dataOpt = oo::OptionalString([ResourceManager stringFromFilesNamed:oo::NSStringFrom(filename) inFolder:@"Models" cache:NO]);
+            if (!dataOpt) {
                 // Model not found
-                OOLog(kOOLogMeshDataNotFound, @"***** ERROR: could not find %@", filename);
-                OOStandardsError(@"Model file not found");
+                OO_LOG(kOOLogMeshDataNotFound, "***** ERROR: could not find {}", filename);
+                cxx_OOStandardsError("Model file not found");
+                objc_autoreleasePoolPop(pool);
                 return NO;
             }
 
             // strip out comments and commas between values
-            NSMutableArray* lines = [NSMutableArray arrayWithArray:[data componentsSeparatedByString:@"\n"]];
-            for (i = 0; i < [lines count]; i++) {
-                NSString* line = [lines objectAtIndex:i];
-                NSArray* parts;
+            std::vector<std::string> lines = oo::str::split(*dataOpt, "\n");
+            for (i = 0; i < lines.size(); i++) {
+                std::string line = lines[i];
+                std::vector<std::string> parts;
                 //
                 // comments
                 //
-                parts = [line componentsSeparatedByString:@"#"];
-                line = [parts objectAtIndex:0];
-                parts = [line componentsSeparatedByString:@"//"];
-                line = [parts objectAtIndex:0];
+                parts = oo::str::split(line, "#");
+                line = parts.empty() ? std::string() : parts[0];
+                parts = oo::str::split(line, "//");
+                line = parts.empty() ? std::string() : parts[0];
                 //
                 // commas
                 //
-                line = [[line componentsSeparatedByString:@","] componentsJoinedByString:@" "];
+                parts = oo::str::split(line, ",");
+                line.clear();
+                for (std::size_t p = 0; p < parts.size(); ++p) {
+                    if (p)
+                        line += ' ';
+                    line += parts[p];
+                }
                 //
-                [lines replaceObjectAtIndex:i withObject:line];
+                lines[i] = std::move(line);
             }
 
-            data = [lines componentsJoinedByString:@"\n"];
-            scanner = [NSScanner scannerWithString:data];
+            std::string data;
+            for (std::size_t li = 0; li < lines.size(); ++li) {
+                if (li)
+                    data += '\n';
+                data += lines[li];
+            }
+            scanner.emplace(data);
 
-            [scanner retain];
             objc_autoreleasePoolPop(pool);
-            [scanner autorelease];
         }
 
-        PROFILE(@"finished preprocessing");
+        PROFILE("finished preprocessing");
 
         // get number of vertices
         //
-        [scanner setScanLocation:0]; // reset
-        if ([scanner scanString:@"NVERTS" intoString:NULL]) {
+        scanner->setScanLocation(0); // reset
+        if (scanner->scanString("NVERTS")) {
             int n_v;
-            if ([scanner scanInt:&n_v])
+            if (scanner->scanInt(&n_v))
                 vertexCount = n_v;
             else {
                 failFlag = YES;
-                failString = [NSString stringWithFormat:@"%@Failed to read value of NVERTS\n", failString];
+                failString += "Failed to read value of NVERTS\n";
             }
         } else {
             failFlag = YES;
-            failString = [NSString stringWithFormat:@"%@Failed to read NVERTS\n", failString];
+            failString += "Failed to read NVERTS\n";
         }
 
         if (![self allocateVertexBuffersWithCount:vertexCount]) {
-            OOLog(kOOLogAllocationFailure, @"***** ERROR: failed to allocate memory for model %@ (%u vertices).", filename, vertexCount);
+            OO_LOG(cxx_kOOLogAllocationFailure, "***** ERROR: failed to allocate memory for model {} ({} vertices).", filename, static_cast<unsigned>(vertexCount));
             return NO;
         }
 
         // get number of faces
-        if ([scanner scanString:@"NFACES" intoString:NULL]) {
+        if (scanner->scanString("NFACES")) {
             int n_f;
-            if ([scanner scanInt:&n_f]) {
+            if (scanner->scanInt(&n_f)) {
                 faceCount = n_f;
             } else {
                 failFlag = YES;
-                failString = [NSString stringWithFormat:@"%@Failed to read value of NFACES\n", failString];
+                failString += "Failed to read value of NFACES\n";
             }
         } else {
             failFlag = YES;
-            failString = [NSString stringWithFormat:@"%@Failed to read NFACES\n", failString];
+            failString += "Failed to read NFACES\n";
         }
 
         // Allocate face->vertex table.
@@ -1216,90 +1214,90 @@ const char* NormalModeDescription(OOMeshNormalMode mode)
         VertexFaceRef* faceRefs = faceRefTable.data();
 
         if (![self allocateFaceBuffersWithCount:faceCount]) {
-            OOLog(kOOLogAllocationFailure, @"***** ERROR: failed to allocate memory for model %@ (%u vertices, %u faces).", filename, vertexCount, faceCount);
+            OO_LOG(cxx_kOOLogAllocationFailure, "***** ERROR: failed to allocate memory for model {} ({} vertices, {} faces).", filename, static_cast<unsigned>(vertexCount), static_cast<unsigned>(faceCount));
             return NO;
         }
 
         // get vertex data
-        if ([scanner scanString:@"VERTEX" intoString:NULL]) {
+        if (scanner->scanString("VERTEX")) {
             for (j = 0; j < vertexCount; j++) {
                 float x, y, z;
                 if (!failFlag) {
-                    if (![scanner scanFloat:&x])
+                    if (!scanner->scanFloat(&x))
                         failFlag = YES;
-                    if (![scanner scanFloat:&y])
+                    if (!scanner->scanFloat(&y))
                         failFlag = YES;
-                    if (![scanner scanFloat:&z])
+                    if (!scanner->scanFloat(&z))
                         failFlag = YES;
                     if (!failFlag) {
                         _vertices[j] = make_vector(x * scale, y * scale, z * scale);
                     } else {
-                        failString = [NSString stringWithFormat:@"%@Failed to read a value for vertex[%d] in %@\n", failString, j, @"VERTEX"];
+                        failString += oo::str::format("Failed to read a value for vertex[%d] in %s\n", j, "VERTEX");
                     }
                 }
             }
         } else {
             failFlag = YES;
-            failString = [NSString stringWithFormat:@"%@Failed to find VERTEX data\n", failString];
+            failString += "Failed to find VERTEX data\n";
         }
 
         // get face data
-        if ([scanner scanString:@"FACES" intoString:NULL]) {
+        if (scanner->scanString("FACES")) {
             for (j = 0; j < faceCount; j++) {
                 int r, g, b;
                 float nx, ny, nz;
                 int n_v;
                 if (!failFlag) {
                     // colors
-                    if (![scanner scanInt:&r])
+                    if (!scanner->scanInt(&r))
                         failFlag = YES;
-                    if (![scanner scanInt:&g])
+                    if (!scanner->scanInt(&g))
                         failFlag = YES;
-                    if (![scanner scanInt:&b])
+                    if (!scanner->scanInt(&b))
                         failFlag = YES;
                     if (!failFlag) {
                         _faces[j].smoothGroup = r;
                     } else {
-                        failString = [NSString stringWithFormat:@"%@Failed to read a color for face[%d] in FACES\n", failString, j];
+                        failString += oo::str::format("Failed to read a color for face[%d] in FACES\n", j);
                     }
 
                     // normal
-                    if (![scanner scanFloat:&nx])
+                    if (!scanner->scanFloat(&nx))
                         failFlag = YES;
-                    if (![scanner scanFloat:&ny])
+                    if (!scanner->scanFloat(&ny))
                         failFlag = YES;
-                    if (![scanner scanFloat:&nz])
+                    if (!scanner->scanFloat(&nz))
                         failFlag = YES;
                     if (!failFlag) {
                         _faces[j].normal = vector_normal(make_vector(nx, ny, nz));
                     } else {
-                        failString = [NSString stringWithFormat:@"%@Failed to read a normal for face[%d] in FACES\n", failString, j];
+                        failString += oo::str::format("Failed to read a normal for face[%d] in FACES\n", j);
                     }
 
                     // vertices
-                    if ([scanner scanInt:&n_v]) {
+                    if (scanner->scanInt(&n_v)) {
                         if (n_v < 3) {
                             failFlag = YES;
-                            failString = [NSString stringWithFormat:@"%@Face[%u] has fewer than three vertices.\n", failString, j];
+                            failString += oo::str::format("Face[%u] has fewer than three vertices.\n", j);
                         } else if (n_v > 3) {
-                            OOLogWARN(@"mesh.load.warning.nonTriangular", @"Face[%u] of %@ has %u vertices specified. Only the first three will be used.", j, oo::NSStringOrNil(baseFile), n_v);
+                            OO_LOG_WARN("mesh.load.warning.nonTriangular", "Face[{}] of {} has {} vertices specified. Only the first three will be used.", static_cast<unsigned>(j), baseFile.value_or("(null)"), static_cast<unsigned>(n_v));
                             n_v = 3;
                         }
                     } else {
                         failFlag = YES;
-                        failString = [NSString stringWithFormat:@"%@Failed to read number of vertices for face[%d] in FACES\n", failString, j];
+                        failString += oo::str::format("Failed to read number of vertices for face[%d] in FACES\n", j);
                     }
 
                     if (!failFlag) {
                         int vi;
                         for (i = 0; (int)i < n_v; i++) {
-                            if ([scanner scanInt:&vi]) {
+                            if (scanner->scanInt(&vi)) {
                                 _faces[j].vertex[i] = vi;
                                 if (faceRefs != NULL)
                                     VFRAddFace(&faceRefs[vi], j);
                             } else {
                                 failFlag = YES;
-                                failString = [NSString stringWithFormat:@"%@Failed to read vertex[%d] for face[%d] in FACES\n", failString, i, j];
+                                failString += oo::str::format("Failed to read vertex[%d] for face[%d] in FACES\n", i, j);
                             }
                         }
                     }
@@ -1307,35 +1305,36 @@ const char* NormalModeDescription(OOMeshNormalMode mode)
             }
         } else {
             failFlag = YES;
-            failString = [NSString stringWithFormat:@"%@Failed to find FACES data\n", failString];
+            failString += "Failed to find FACES data\n";
         }
 
         // Get textures data.
-        if ([scanner scanString:@"TEXTURES" intoString:NULL]) {
+        if (scanner->scanString("TEXTURES")) {
             for (j = 0; j < faceCount; j++) {
-                NSString* materialKey;
+                std::string materialKey;
                 float max_x, max_y;
                 float s, t;
                 if (!failFlag) {
                     // materialKey
                     //
-                    [scanner scanCharactersFromSet:whitespaceAndNewlineCharSet intoString:NULL];
-                    if (![scanner scanUpToCharactersFromSet:whitespaceCharSet intoString:&materialKey]) {
+                    scanner->scanCharactersFromSet(whitespaceAndNewlineCharSet);
+                    std::string scannedKey;
+                    if (!scanner->scanUpToCharactersFromSet(whitespaceCharSet, &scannedKey)) {
                         failFlag = YES;
-                        failString = [NSString stringWithFormat:@"%@Failed to read texture filename for face[%d] in TEXTURES\n", failString, j];
+                        failString += oo::str::format("Failed to read texture filename for face[%d] in TEXTURES\n", j);
                     } else {
-                        NSNumber* index = [texFileName2Idx objectForKey:materialKey];
-                        if (index != nil) {
-                            _faces[j].materialIndex = [index unsignedIntValue];
+                        materialKey = std::move(scannedKey);
+                        const auto indexIt = texFileName2Idx.find(materialKey);
+                        if (indexIt != texFileName2Idx.end()) {
+                            _faces[j].materialIndex = indexIt->second;
                         } else {
                             if (materialCount == kOOMeshMaxMaterials) {
-                                OOLog(kOOLogMeshTooManyMaterials, @"***** ERROR: model %@ has too many materials (maximum is %d)", filename, kOOMeshMaxMaterials);
+                                OO_LOG(kOOLogMeshTooManyMaterials, "***** ERROR: model {} has too many materials (maximum is {})", filename, static_cast<int>(kOOMeshMaxMaterials));
                                 return NO;
                             }
                             _faces[j].materialIndex = materialCount;
-                            materialKeys[materialCount] = oo::StdString(materialKey);
-                            index = [NSNumber numberWithUnsignedInt:materialCount];
-                            [texFileName2Idx setObject:index forKey:materialKey];
+                            materialKeys[materialCount] = materialKey;
+                            texFileName2Idx.emplace(materialKey, materialCount);
                             ++materialCount;
                         }
                     }
@@ -1343,34 +1342,34 @@ const char* NormalModeDescription(OOMeshNormalMode mode)
                     // texture size
                     //
                     if (!failFlag) {
-                        if (![scanner scanFloat:&max_x])
+                        if (!scanner->scanFloat(&max_x))
                             failFlag = YES;
-                        if (![scanner scanFloat:&max_y])
+                        if (!scanner->scanFloat(&max_y))
                             failFlag = YES;
                         if (failFlag)
-                            failString = [NSString stringWithFormat:@"%@Failed to read texture size for max_x and max_y in face[%d] in TEXTURES\n", failString, j];
+                            failString += oo::str::format("Failed to read texture size for max_x and max_y in face[%d] in TEXTURES\n", j);
                     }
 
                     // vertices
                     //
                     if (!failFlag) {
                         for (i = 0; i < 3; i++) {
-                            if (![scanner scanFloat:&s])
+                            if (!scanner->scanFloat(&s))
                                 failFlag = YES;
-                            if (![scanner scanFloat:&t])
+                            if (!scanner->scanFloat(&t))
                                 failFlag = YES;
                             if (!failFlag) {
                                 _faces[j].s[i] = s / max_x;
                                 _faces[j].t[i] = t / max_y;
                             } else
-                                failString = [NSString stringWithFormat:@"%@Failed to read s t coordinates for vertex[%d] in face[%d] in TEXTURES\n", failString, i, j];
+                                failString += oo::str::format("Failed to read s t coordinates for vertex[%d] in face[%d] in TEXTURES\n", i, j);
                         }
                     }
                 }
             }
         } else {
             failFlag = YES;
-            failString = [failString stringByAppendingString:@"Failed to find TEXTURES data (will use placeholder material)\n"];
+            failString += "Failed to find TEXTURES data (will use placeholder material)\n";
             materialKeys[0] = "_oo_placeholder_material";
             materialCount = 1;
 
@@ -1379,20 +1378,20 @@ const char* NormalModeDescription(OOMeshNormalMode mode)
             }
         }
 
-        if ([scanner scanString:@"NAMES" intoString:NULL]) {
+        if (scanner->scanString("NAMES")) {
             unsigned int count;
-            if (![scanner scanInt:(int*)&count]) {
+            if (!scanner->scanInt((int*)&count)) {
                 failFlag = YES;
-                failString = [failString stringByAppendingString:@"Expected count after NAMES\n"];
+                failString += "Expected count after NAMES\n";
             } else {
                 for (j = 0; j < count; j++) {
-                    NSString* name = nil;
-                    [scanner scanCharactersFromSet:whitespaceAndNewlineCharSet intoString:NULL];
-                    if (![scanner scanUpToCharactersFromSet:newlineCharSet intoString:&name]) {
+                    scanner->scanCharactersFromSet(whitespaceAndNewlineCharSet);
+                    std::string scannedName;
+                    if (!scanner->scanUpToCharactersFromSet(newlineCharSet, &scannedName)) {
                         failFlag = YES;
-                        failString = [failString stringByAppendingString:@"Expected file name\n"];
+                        failString += "Expected file name\n";
                     } else {
-                        [self renameTexturesFrom:oo::str::format("%u", j) to:oo::StdString(name)];
+                        [self renameTexturesFrom:oo::str::format("%u", j) to:scannedName];
                     }
                 }
             }
@@ -1401,94 +1400,94 @@ const char* NormalModeDescription(OOMeshNormalMode mode)
         BOOL explicitTangents = NO;
 
         // Get explicit normals.
-        if ([scanner scanString:@"NORMALS" intoString:NULL]) {
+        if (scanner->scanString("NORMALS")) {
             _normalMode = kNormalModeExplicit;
             if (![self allocateNormalBuffersWithCount:vertexCount]) {
-                OOLog(kOOLogAllocationFailure, @"***** ERROR: failed to allocate memory for model %@ (%u vertices).", filename, vertexCount);
+                OO_LOG(cxx_kOOLogAllocationFailure, "***** ERROR: failed to allocate memory for model {} ({} vertices).", filename, static_cast<unsigned>(vertexCount));
                 return NO;
             }
 
             for (j = 0; j < vertexCount; j++) {
                 float x, y, z;
                 if (!failFlag) {
-                    if (![scanner scanFloat:&x])
+                    if (!scanner->scanFloat(&x))
                         failFlag = YES;
-                    if (![scanner scanFloat:&y])
+                    if (!scanner->scanFloat(&y))
                         failFlag = YES;
-                    if (![scanner scanFloat:&z])
+                    if (!scanner->scanFloat(&z))
                         failFlag = YES;
                     if (!failFlag) {
                         _normals[j] = vector_normal(make_vector(x, y, z));
                     } else {
-                        failString = [NSString stringWithFormat:@"%@Failed to read a value for vertex[%d] in %@\n", failString, j, @"NORMALS"];
+                        failString += oo::str::format("Failed to read a value for vertex[%d] in %s\n", j, "NORMALS");
                     }
                 }
             }
 
             // Get explicit tangents (only together with vertices).
-            if ([scanner scanString:@"TANGENTS" intoString:NULL]) {
+            if (scanner->scanString("TANGENTS")) {
                 for (j = 0; j < vertexCount; j++) {
                     float x, y, z;
                     if (!failFlag) {
-                        if (![scanner scanFloat:&x])
+                        if (!scanner->scanFloat(&x))
                             failFlag = YES;
-                        if (![scanner scanFloat:&y])
+                        if (!scanner->scanFloat(&y))
                             failFlag = YES;
-                        if (![scanner scanFloat:&z])
+                        if (!scanner->scanFloat(&z))
                             failFlag = YES;
                         if (!failFlag) {
                             _tangents[j] = vector_normal(make_vector(x, y, z));
                         } else {
-                            failString = [NSString stringWithFormat:@"%@Failed to read a value for vertex[%d] in %@\n", failString, j, @"TANGENTS"];
+                            failString += oo::str::format("Failed to read a value for vertex[%d] in %s\n", j, "TANGENTS");
                         }
                     }
                 }
             }
         }
 
-        PROFILE(@"finished parsing");
+        PROFILE("finished parsing");
 
         if (IsLegacyNormalMode((OOMeshNormalMode)_normalMode)) {
             [self checkNormalsAndAdjustWinding];
-            PROFILE(@"finished checkNormalsAndAdjustWinding");
+            PROFILE("finished checkNormalsAndAdjustWinding");
         }
         if (!explicitTangents) {
             [self generateFaceTangents];
-            PROFILE(@"finished generateFaceTangents");
+            PROFILE("finished generateFaceTangents");
         }
 
         // check for smooth shading and recalculate normals
         if (_normalMode == kNormalModeSmooth) {
             if (![self allocateNormalBuffersWithCount:vertexCount]) {
-                OOLog(kOOLogAllocationFailure, @"***** ERROR: failed to allocate memory for model %@ (%u vertices).", filename, vertexCount);
+                OO_LOG(cxx_kOOLogAllocationFailure, "***** ERROR: failed to allocate memory for model {} ({} vertices).", filename, static_cast<unsigned>(vertexCount));
                 return NO;
             }
             [self calculateVertexNormalsAndTangentsWithFaceRefs:faceRefs];
-            PROFILE(@"finished calculateVertexNormalsAndTangents");
+            PROFILE("finished calculateVertexNormalsAndTangents");
 
         } else if (IsPerVertexNormalMode((OOMeshNormalMode)_normalMode) && !explicitTangents) {
             [self calculateVertexTangentsWithFaceRefs:faceRefs];
-            PROFILE(@"finished calculateVertexTangents");
+            PROFILE("finished calculateVertexTangents");
         }
 
         // save the resulting data for possible reuse
         if (EXPECT(_cacheWriteable)) {
-            [OOCacheManager setMeshData:[self modelData] forName:oo::StdString(cacheKey)];
-            PROFILE(@"saved to cache");
+            [OOCacheManager setMeshData:[self modelData] forName:cacheKey];
+            PROFILE("saved to cache");
         }
 
         if (failFlag) {
-            OOLog(@"mesh.error", @"%@ ..... from %@ %@", failString, filename, (using_preloaded) ? @"(from preloaded data)" : @"(from file)");
+            OO_LOG("mesh.error", "{} ..... from {} {}", failString, filename, (using_preloaded) ? "(from preloaded data)" : "(from file)");
         }
     }
 
     [self calculateBoundingVolumes];
-    PROFILE(@"finished calculateBoundingVolumes");
+    PROFILE("finished calculateBoundingVolumes");
 
     // set up vertex arrays for drawing
     if (![self setUpVertexArrays])
         return NO;
-    PROFILE(@"finished setUpVertexArrays");
+    PROFILE("finished setUpVertexArrays");
 
     return YES;
 
@@ -1502,7 +1501,7 @@ const char* NormalModeDescription(OOMeshNormalMode mode)
     Vector calculatedNormal;
     OOMeshFaceCount i;
 
-    NSParameterAssert(_normalMode != kNormalModeExplicit);
+    OOParameterAssert(_normalMode != kNormalModeExplicit);
 
     for (i = 0; i < faceCount; i++) {
         Vector v0, v1, v2, norm;
@@ -1591,12 +1590,12 @@ static float FaceArea(GLuint* vertIndices, Vector* vertices)
 {
     OOJS_PROFILE_ENTER
 
-    NSParameterAssert(faceRefs != NULL);
+    OOParameterAssert(faceRefs != NULL);
 
     NSUInteger i, j;
     std::vector<float> triangle_area(faceCount);
 
-    NSAssert1(_normals != NULL && _tangents != NULL, @"Normal/tangent buffers not allocated in %s", __PRETTY_FUNCTION__);
+    OOAssert(_normals != NULL && _tangents != NULL, "Normal/tangent buffers not allocated in %s", __PRETTY_FUNCTION__);
 
     for (i = 0; i < faceCount; i++) {
         triangle_area[i] = FaceArea(_faces[i].vertex, _vertices);
@@ -1645,7 +1644,7 @@ static float FaceAreaCorrect(GLuint* vertIndices, Vector* vertices)
 {
     OOJS_PROFILE_ENTER
 
-    NSParameterAssert(faceRefs != NULL);
+    OOParameterAssert(faceRefs != NULL);
 
     /*	This is conceptually broken.
             At the moment, it's calculating one tangent per "input" vertex. It should
@@ -1764,7 +1763,7 @@ static float FaceAreaCorrect(GLuint* vertIndices, Vector* vertices)
                         if (is_edge_vertex[v]) {
                             [self getNormal:&normal andTangent:&tangent forVertex:v inSmoothGroup:_faces[fi].smoothGroup];
                         } else {
-                            NSAssert1(_normals != NULL && _tangents != NULL, @"Normal/tangent buffers not allocated in %s", __PRETTY_FUNCTION__);
+                            OOAssert(_normals != NULL && _tangents != NULL, "Normal/tangent buffers not allocated in %s", __PRETTY_FUNCTION__);
 
                             normal = _normals[v];
                             tangent = _tangents[v];
@@ -2030,9 +2029,8 @@ static const char* const kOOCacheOctrees = "octrees";
     Octree* result = nil;
     OOCacheManager* cache = [self sharedCache];
 
-    // Octree is not migrated: its cached dictionary goes straight from the cache to it.
     if ([cache cxx_objectForKey:inKey inCache:kOOCacheOctrees] != nil) {
-        result = [[Octree alloc] initWithDictionary:[cache cxx_objectForKey:inKey inCache:kOOCacheOctrees]];
+        result = [[Octree alloc] cxx_initWithDictionary:oo::PListFrom([cache cxx_objectForKey:inKey inCache:kOOCacheOctrees])];
         [result autorelease];
     }
 
@@ -2042,13 +2040,13 @@ static const char* const kOOCacheOctrees = "octrees";
 + (void)setOctree:(Octree*)inOctree forModel:(const std::string&)inKey
 {
     if (inOctree != nil) {
-        [[self sharedCache] cxx_setObject:[inOctree dictionaryRepresentation] forKey:inKey inCache:kOOCacheOctrees];
+        [[self sharedCache] cxx_setObject:oo::ObjectFromPList([inOctree cxx_dictionaryRepresentation]) forKey:inKey inCache:kOOCacheOctrees];
     }
 }
 
 static void VFRAddFace(VertexFaceRef* vfr, NSUInteger index)
 {
-    NSCParameterAssert(vfr != NULL);
+    OOCParameterAssert(vfr != NULL);
 
     if (index < UINT16_MAX && vfr->internCount < kVertexFaceDefInternalCount) {
         vfr->internFaces[vfr->internCount++] = index;
@@ -2059,14 +2057,14 @@ static void VFRAddFace(VertexFaceRef* vfr, NSUInteger index)
 
 static NSUInteger VFRGetCount(VertexFaceRef* vfr)
 {
-    NSCParameterAssert(vfr != NULL);
+    OOCParameterAssert(vfr != NULL);
 
     return vfr->internCount + vfr->extra.size();
 }
 
 static NSUInteger VFRGetFaceAtIndex(VertexFaceRef* vfr, NSUInteger index)
 {
-    NSCParameterAssert(vfr != NULL && index < VFRGetCount(vfr));
+    OOCParameterAssert(vfr != NULL && index < VFRGetCount(vfr));
 
     if (index < vfr->internCount)
         return vfr->internFaces[index];

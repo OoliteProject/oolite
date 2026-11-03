@@ -46,6 +46,9 @@ MA 02110-1301, USA.
 #import "OOJSEquipmentInfo.h"
 
 #import "OOFoundationBridge.h"
+#include "oofnd/Notification.hpp"
+#include "oofnd/objc/OOAssert.h"
+#include "oofnd/objc/OOException.h"
 
 static JSClassID sPlayerShipClassID;
 
@@ -320,10 +323,9 @@ JSValue JSPlayerShipObject(void)
     // Released by -deleteJSSelf when the JavaScript engine resets.
     _jsSelf = JS_DupValue(context, val);
 
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(deleteJSSelf)
-                                                 name:kOOJavaScriptEngineWillResetNotification
-                                               object:[OOJavaScriptEngine sharedEngine]];
+    oo::NotificationCenter::defaultCenter().addObserver(self, kOOJavaScriptEngineWillResetNotificationName,
+        [OOJavaScriptEngine sharedEngine],
+        [self](const oo::Notification&) { [self deleteJSSelf]; });
 }
 
 @end
@@ -1391,7 +1393,7 @@ static JSValue PlayerShipSetCustomView(OOJS_NATIVE_ARGS)
         std::optional<std::string> facing = oo::OptionalString(OOStringFromJSValue(context, OOJS_ARGV[2]));
         // -setObject:forKey: raised on a nil facing (GNUstep 1.31.1's text).
         if (!facing.has_value())
-            [NSException raise:NSInvalidArgumentException format:@"Tried to add nil value for key '%@' to dictionary", @"weapon_facing"];
+            [OOException raise:OOInvalidArgumentException format:"Tried to add nil value for key '%s' to dictionary", "weapon_facing"];
         viewData["weapon_facing"] = *facing;
     }
 
@@ -1699,7 +1701,7 @@ static BOOL ValidateContracts(JSContext* context, int argc, JSValueConst* argv, 
 {
     OOJS_PROFILE_ENTER
 
-    NSCParameterAssert(context != NULL && argv != NULL && start != NULL && destination != NULL && eta != NULL && fee != NULL);
+    OOCParameterAssert(context != NULL && argv != NULL && start != NULL && destination != NULL && eta != NULL && fee != NULL);
 
     uint32_t uValue;
     int offset = isCargo ? 2 : 1;

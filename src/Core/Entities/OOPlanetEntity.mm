@@ -46,6 +46,7 @@ MA 02110-1301, USA.
 #import "OOEntityFilterPredicate.h"
 #import "OOFoundationBridge.h"
 #import "OOGraphicsResetManager.h"
+#import "OOJavaScriptEngine.h" // OONull
 #import "OOOpenGLMatrixManager.h"
 #import "OOPlanetTextureGenerator.h"
 #import "OOShaderMaterial.h"
@@ -53,6 +54,7 @@ MA 02110-1301, USA.
 #import "OOStandaloneAtmosphereGenerator.h"
 #import "OOStringExpander.h"
 
+#include "oofnd/Log.hpp"
 #include "oofnd/PListGet.hpp"
 #include "oofnd/String.hpp"
 
@@ -109,7 +111,7 @@ oo::PList DictionaryForKey(const oo::PList& dict, std::string_view key)
     return value != nullptr ? *value : oo::PList();
 }
 
-// -dictionaryWithValuesForKeys: of the planet info: NSNull for a missing key; nil for no info.
+// -dictionaryWithValuesForKeys: of the planet info: OONull for a missing key; nil for no info.
 oo::PList ValuesForKeys(const oo::PList& info, std::initializer_list<const char*> keys)
 {
     if (!info.isDict())
@@ -117,7 +119,7 @@ oo::PList ValuesForKeys(const oo::PList& info, std::initializer_list<const char*
     oo::PList::Dict result;
     for (const char* key : keys) {
         const oo::PList* value = info.find(key);
-        result[key] = value != nullptr ? *value : oo::PListObject([NSNull null]);
+        result[key] = value != nullptr ? *value : oo::PListObject([OONull null]);
     }
     return oo::PList(std::move(result));
 }
@@ -196,7 +198,7 @@ static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH; // atmosphere effect 
         if (!is_nil_seed(overrideSeed))
             seed = overrideSeed;
         else
-            OOLogERR(@"planet.fromDict", @"could not interpret \"%@\" as planet seed, using default.", oo::NSStringFrom(*seedStr));
+            OO_LOG_ERR("planet.fromDict", "could not interpret \"{}\" as planet seed, using default.", *seedStr);
     }
 
     // Generate various planet info.
@@ -260,7 +262,7 @@ static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH; // atmosphere effect 
         _airColorMixRatio = planetInfo.get<float>("air_color_mix_ratio");
 
         _airDensity = OOClamp_0_1_f(planetInfo.get<float>("air_density"));
-        // OOLog (@"planet.debug",@" translated air colour:%@ cloud colour:%@ polar cloud color:%@", [_airColor rgbaDescription],[(OOColor *)[planetInfo objectForKey:@"cloud_color"] rgbaDescription],[(OOColor *)[planetInfo objectForKey:@"polar_cloud_color"] rgbaDescription]);
+        // (debug) translated air colour / cloud colour / polar cloud color via descriptionComponents
 
         _materialParameters = ValuesForKeys(planetInfo, { "cloud_fraction", "air_color", "air_color_mix_ratio", "air_density", "cloud_color", "polar_cloud_color", "cloud_alpha", "land_fraction", "land_color", "sea_color", "polar_land_color", "polar_sea_color", "economy", "polar_fraction", "isMiniature", "perlin_3d", "terminator_threshold_vector" });
     } else
@@ -281,7 +283,7 @@ static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH; // atmosphere effect 
     _normSpecMapName = OptionalStringForKey(dict, "texture_normspec"); // must be set up before _textureName
 
     _textureName = OptionalStringForKey(dict, "texture");
-    [self setUpPlanetFromTexture:oo::NSStringOrNil(_textureName)];
+    [self setUpPlanetFromTexture:_textureName];
     [_planetDrawable setRadius:collision_radius];
 
     // Orientation should be handled by the code that calls this planetEntity. Starting with a default value anyway.
@@ -311,8 +313,8 @@ static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH; // atmosphere effect 
     quaternion_rotate_about_axis(&_atmosphereOrientation, kBasisYVector, _atmosphereRotationalVelocity * deltaT);
 
 #ifdef OO_DUMP_PLANETINFO
-#define CPROP(PROP) OOLog(@"planetinfo.record", @ #PROP " = %@;", [(OOColor*)ObjectForKey(planetInfo, #PROP) descriptionComponents]);
-#define FPROP(PROP) OOLog(@"planetinfo.record", @ #PROP " = %f;", planetInfo.get<float>(#PROP));
+#define CPROP(PROP) OO_LOG("planetinfo.record", #PROP " = {};", oo::DescriptionOf([(OOColor*)ObjectForKey(planetInfo, #PROP) descriptionComponents]));
+#define FPROP(PROP) OO_LOG("planetinfo.record", #PROP " = {:f};", planetInfo.get<float>(#PROP));
     CPROP(air_color);
     CPROP(illumination_color);
     FPROP(air_color_mix_ratio);
@@ -325,7 +327,7 @@ static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH; // atmosphere effect 
     CPROP(polar_land_color);
     CPROP(polar_sea_color);
     CPROP(sea_color);
-    OOLog(@"planetinfo.record", @"rotation_speed = %f", _rotationalVelocity);
+    OO_LOG("planetinfo.record", "rotation_speed = {:f}", _rotationalVelocity);
 #endif
 
     [self setStatus:STATUS_ACTIVE];
@@ -962,15 +964,15 @@ static OOColor* ColorWithHSBColor(Vector c)
 }
 
 // FIXME: need material model.
-- (id)textureFileName // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)textureFileName
 {
-    return oo::NSStringOrNil([_planetDrawable textureName]);
+    return [_planetDrawable textureName];
 }
 
 - (void)resetGraphicsState
 {
     // reset the texture if graphics mode changes
-    [self setUpPlanetFromTexture:oo::NSStringOrNil(_textureName)];
+    [self setUpPlanetFromTexture:_textureName];
 }
 
 - (void)setTextureFileName:(const std::optional<std::string>&)textureFileName
@@ -1022,7 +1024,7 @@ static OOColor* ColorWithHSBColor(Vector c)
     } else {
         [OOPlanetTextureGenerator generatePlanetTexture:&diffuseMap
                                        secondaryTexture:(detailLevel >= DETAIL_LEVEL_SHADERS) ? &normalMap : NULL
-                                               withInfo:oo::ObjectFromPList(_materialParameters)
+                                               withInfo:_materialParameters
                                                    seed:_noiseMapSeed];
 
         if (shadersOn) {
@@ -1033,14 +1035,14 @@ static OOColor* ColorWithHSBColor(Vector c)
 
     /* Generate atmosphere texture */
     if (!isMoon) {
-        OOLog(@"texture.planet.generate", @"Preparing atmosphere for planet %@", self);
+        OO_LOG("texture.planet.generate", "Preparing atmosphere for planet {}", oo::DescriptionOf(self));
         /* Generate a standalone atmosphere texture */
         OOTexture* atmosphere = nil;
         [OOStandaloneAtmosphereGenerator generateAtmosphereTexture:&atmosphere
-                                                          withInfo:oo::ObjectFromPList(_materialParameters)
+                                                          withInfo:_materialParameters
                                                               seed:_noiseMapSeed];
 
-        OOLog(@"texture.planet.generate", @"Planet %@ has atmosphere %@", self, atmosphere);
+        OO_LOG("texture.planet.generate", "Planet {} has atmosphere {}", oo::DescriptionOf(self), oo::DescriptionOf(atmosphere));
 
         OOSingleTextureMaterial* dynamicMaterial = [[OOSingleTextureMaterial alloc] initWithName:"dynamic" texture:atmosphere configuration:nil];
         [_atmosphereDrawable setMaterial:dynamicMaterial];
@@ -1050,9 +1052,9 @@ static OOColor* ColorWithHSBColor(Vector c)
 
             id amacros = oo::ObjectFromPList(DictionaryForKey(materialDefaults, "atmosphere-dynamic-macros"));
 
-            OOMaterial* dynamicShaderMaterial = [OOShaderMaterial shaderMaterialWithName:@"dynamic"
-                                                                           configuration:aConfig
-                                                                                  macros:amacros
+            OOMaterial* dynamicShaderMaterial = [OOShaderMaterial shaderMaterialWithName:"dynamic"
+                                                                           configuration:oo::PListFrom(aConfig)
+                                                                                  macros:oo::PListFrom(amacros)
                                                                            bindingTarget:self];
 
             if (dynamicShaderMaterial == nil) {
@@ -1064,9 +1066,9 @@ static OOColor* ColorWithHSBColor(Vector c)
             id cloudConfig = MaterialConfigWithTextures(DictionaryForKey(materialDefaults, "clouds-dynamic-material"), { atmosphere });
             id cloudMacros = oo::ObjectFromPList(DictionaryForKey(materialDefaults, "clouds-dynamic-macros"));
 
-            OOMaterial* cloudsMaterial = [OOShaderMaterial shaderMaterialWithName:@"dynamic"
-                                                                    configuration:cloudConfig
-                                                                           macros:cloudMacros
+            OOMaterial* cloudsMaterial = [OOShaderMaterial shaderMaterialWithName:"dynamic"
+                                                                    configuration:oo::PListFrom(cloudConfig)
+                                                                           macros:oo::PListFrom(cloudMacros)
                                                                     bindingTarget:self];
             if (cloudsMaterial == nil) {
                 DESTROY(_cloudsShaderDrawable);
@@ -1084,9 +1086,9 @@ static OOColor* ColorWithHSBColor(Vector c)
     if (shadersOn) {
         id config = MaterialConfigWithTextures(DictionaryForKey(materialDefaults, "planet-material"), { diffuseMap, normalMap });
 
-        material = [OOShaderMaterial shaderMaterialWithName:oo::NSStringOrNil(textureName)
-                                              configuration:config
-                                                     macros:oo::ObjectFromPList(macros)
+        material = [OOShaderMaterial shaderMaterialWithName:textureName
+                                              configuration:oo::PListFrom(config)
+                                                     macros:macros
                                               bindingTarget:self];
     }
 #endif
@@ -1097,9 +1099,9 @@ static OOColor* ColorWithHSBColor(Vector c)
     [_planetDrawable setMaterial:material];
 }
 
-- (BOOL)setUpPlanetFromTexture:(id)textureName // shared selector (proposed ADR-0043)
+- (BOOL)setUpPlanetFromTexture:(const std::optional<std::string>&)textureName
 {
-    [self setTextureFileName:oo::OptionalString(textureName)];
+    [self setTextureFileName:textureName];
     return YES;
 }
 

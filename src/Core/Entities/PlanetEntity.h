@@ -42,7 +42,7 @@ MA 02110-1301, USA.
 /*	Foundation sweep (proposed ADR-0043, bead oo-buk6). Compiled only with NEW_PLANETS off (it is
         on: OOStellarBody.h). -initFromDictionary:withAtmosphere:andSeed: is unique and takes the planet
         configuration as an oo::PList; -setUpPlanetFromTexture: and -textureFileName are shared with
-        OOPlanetEntity and keep id.
+        OOPlanetEntity and flipped with it (bead oo-3rb.269.1).
 */
 
 #define MAX_TRI_INDICES 3 * (20 + 80 + 320 + 1280 + 5120 + 20480)
@@ -98,13 +98,13 @@ typedef struct
 - (id)initFromDictionary:(const oo::PList&)dict withAtmosphere:(BOOL)atmo andSeed:(Random_Seed)p_seed;
 - (void)miniaturize;
 
-- (BOOL)setUpPlanetFromTexture:(id)fileName; // shared selector (proposed ADR-0043): an Objective-C string
+- (BOOL)setUpPlanetFromTexture:(const std::optional<std::string>&)fileName; // nullopt: NO
 
 - (int)planet_seed;
 - (BOOL)isTextured;
 - (BOOL)isExplicitlyTextured; // Specified texture, not synthesized.
 - (OOTexture*)texture;
-- (id)textureFileName; // shared selector (proposed ADR-0043): an Objective-C string or nil
+- (std::optional<std::string>)textureFileName; // nullopt: none
 
 - (double)polar_color_factor;
 - (GLfloat*)amb_land;

@@ -33,6 +33,7 @@
 #import "OOPlanetDrawable.h"
 #import "OOSingleTextureMaterial.h"
 #import "Universe.h"
+#include "oofnd/Log.hpp"
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
 #import "Entity.h"
@@ -320,8 +321,8 @@
 - (void)dumpSelfState
 {
     [super dumpSelfState];
-    OOLog(@"dumpState.planetDrawable", @"radius: %g", [self radius]);
-    OOLog(@"dumpState.planetDrawable", @"LOD: %g", [self levelOfDetail]);
+    OO_LOG("dumpState.planetDrawable", "radius: {:g}", [self radius]);
+    OO_LOG("dumpState.planetDrawable", "LOD: {:g}", [self levelOfDetail]);
 }
 
 - (void)recalculateTransform

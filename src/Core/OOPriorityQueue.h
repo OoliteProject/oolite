@@ -6,7 +6,7 @@ A prority queue is a collection into which objects may be inserted in any
 order, but (primarily) extracted in sorted order. The order is defined by the
 comparison selector specified at creation time, which is assumed to have the
 same signature as a compare method used for array sorting:
-- (NSComparisonResult)compare:(id)other
+- (OOComparisonResult)compare:(id)other
 and must define a partial order on the objects in the priority queue. The
 behaviour when provided with an inconsistent comparison method is undefined.
 
@@ -41,6 +41,9 @@ SOFTWARE.
 #import "OOFoundation.h"
 #import "oofnd/objc/OOObject.h"
 
+#include "oofnd/StdLib.hpp"
+#include "oofnd/objc/OOObjCRef.h"
+
 #ifndef OO_PQ_STRONG
 #if __has_feature(objc_arc)
 #define OO_PQ_STRONG __strong
@@ -61,7 +64,7 @@ SOFTWARE.
 + (instancetype)queueWithComparator:(SEL)comparator;
 - (id)initWithComparator:(SEL)comparator;
 
-- (void)addObject:(id)object; // May throw NSInvalidArgumentException or NSMallocException.
+- (void)addObject:(id)object; // May throw OOInvalidArgumentException or OOMallocException.
 - (void)removeObject:(id)object; // Uses comparator (looking for NSOrderedEqual) to find object. Note: relatively expensive.
 - (void)removeExactObject:(id)object; // Uses pointer comparison to find object. Note: still relatively expensive.
 
@@ -71,9 +74,9 @@ SOFTWARE.
 - (id)peekAtNextObject; // Returns next object without removing it.
 - (void)removeNextObject;
 
-- (void)addObjects:(id)collection; // collection must respond to -nextObject, or implement -objectEnumerator to return something that implements -nextObject -- such as an NSEnumerator.
+- (void)addObjects:(id)collection; // collection must respond to -nextObject, or implement -objectEnumerator to return something that implements -nextObject -- such as an Objective-C enumerator.
 
-- (NSArray*)sortedObjects; // Returns the objects in -nextObject order and empties the heap. To get the objects without emptying the heap, copy the priority queue first.
-- (NSEnumerator*)objectEnumerator; // Enumerator which pulls objects off the heap until it's empty. Note however that the queue itself behaves like an enumerator, as -nextObject has similar semantics (except that the enumerator's -nextObject can never start returning objects after it returns nil).
+- (std::vector<oo::ObjCRef<id>>)sortedObjects; // Returns the objects in -nextObject order and empties the heap. To get the objects without emptying the heap, copy the priority queue first.
+- (id)objectEnumerator; // shared selector: an enumerator over the objects in -nextObject order. Like -sortedObjects it empties the heap, now all at once rather than as it is enumerated. Note howeverthat the queue itself behaves like an enumerator, as -nextObject has similar semantics (except that the enumerator's -nextObject can never start returning objects after it returns nil).
 
 @end

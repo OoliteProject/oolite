@@ -30,6 +30,8 @@ SOFTWARE.
 #import "OOJSEngineTimeManagement.h"
 #import "OOPListView.h"
 #include "oofnd/Date.hpp"
+#include "oofnd/Log.hpp"
+#include "oofnd/objc/OOAssert.h"
 
 /*
         By default, tracking IDs are scrambled to discourage people from trying to
@@ -51,9 +53,9 @@ SOFTWARE.
 #endif
 
 #if DEBUG_FCB_VERBOSE_LOGGING
-#define FCBLog OOLog
-#define FCBLogIndentIf OOLogIndentIf
-#define FCBLogOutdentIf OOLogOutdentIf
+#define FCBLog OO_LOG
+#define FCBLogIndentIf(key) oo::log::indentIf(key)
+#define FCBLogOutdentIf(key) oo::log::outdentIf(key)
 #else
 #define FCBLog(...) \
     do {            \
@@ -151,7 +153,7 @@ void InitOOJSFrameCallbacks(JSContext* context, JSValueConst global)
 
 void OOJSFrameCallbacksInvoke(OOTimeDelta inDeltaT)
 {
-    NSCAssert1(!sRunning, @"%s cannot be called while frame callbacks are running.", __PRETTY_FUNCTION__);
+    OOCAssert(!sRunning, "%s cannot be called while frame callbacks are running.", __PRETTY_FUNCTION__);
 
     if (sCount != 0) {
         const OOTimeDelta delta = inDeltaT * [UNIVERSE timeAccelerationFactor];
@@ -197,7 +199,7 @@ void OOJSFrameCallbacksInvoke(OOTimeDelta inDeltaT)
 
 void OOJSFrameCallbacksRemoveAll(void)
 {
-    NSCAssert1(!sRunning, @"%s cannot be called while frame callbacks are running.", __PRETTY_FUNCTION__);
+    OOCAssert(!sRunning, "%s cannot be called while frame callbacks are running.", __PRETTY_FUNCTION__);
 
     if (sCount != 0) {
         JSContext* context = OOJSAcquireContext();
@@ -234,7 +236,7 @@ static JSValue GlobalAddFrameCallback(OOJS_NATIVE_ARGS)
         }
     } else {
         // Defer mutations during callback invocation.
-        FCBLog(@"script.frameCallback.debug.add.deferred", @"Deferring addition of frame callback with tracking ID %u.", trackingID);
+        FCBLog("script.frameCallback.debug.add.deferred", "Deferring addition of frame callback with tracking ID {}.", trackingID);
         QueueDeferredOperation("add", trackingID, [OOJSValue valueWithJSValue:callback inContext:context]);
     }
 
@@ -264,7 +266,7 @@ static JSValue GlobalRemoveFrameCallback(OOJS_NATIVE_ARGS)
         }
     } else {
         // Defer mutations during callback invocation.
-        FCBLog(@"script.frameCallback.debug.remove.deferred", @"Deferring removal of frame callback with tracking ID %u.", trackingID);
+        FCBLog("script.frameCallback.debug.remove.deferred", "Deferring removal of frame callback with tracking ID {}.", trackingID);
         QueueDeferredOperation("remove", trackingID, nil);
     }
 
@@ -301,16 +303,16 @@ static JSValue GlobalIsValidFrameCallback(OOJS_NATIVE_ARGS)
 namespace {
 static BOOL AddCallback(JSContext* context, JSValueConst callback, uint32_t trackingID, std::optional<std::string>* errorString)
 {
-    NSCParameterAssert(context != NULL);
-    NSCParameterAssert(errorString != NULL);
-    NSCAssert1(!sRunning, @"%s cannot be called while frame callbacks are running.", __PRETTY_FUNCTION__);
+    OOCParameterAssert(context != NULL);
+    OOCParameterAssert(errorString != NULL);
+    OOCAssert(!sRunning, "%s cannot be called while frame callbacks are running.", __PRETTY_FUNCTION__);
 
     if (EXPECT_NOT(sCount == sSpace)) {
         if (!GrowCallbackList(context, errorString))
             return NO;
     }
 
-    FCBLog(@"script.frameCallback.debug.add", @"Adding frame callback with tracking ID %u.", trackingID);
+    FCBLog("script.frameCallback.debug.add", "Adding frame callback with tracking ID {}.", trackingID);
 
     sCallbacks[sCount].callback = JS_DupValue(context, callback);
     sCallbacks[sCount].trackingID = trackingID;
@@ -323,8 +325,8 @@ static BOOL AddCallback(JSContext* context, JSValueConst callback, uint32_t trac
 namespace {
 static BOOL GrowCallbackList(JSContext* context, std::optional<std::string>* errorString)
 {
-    NSCParameterAssert(context != NULL);
-    NSCParameterAssert(errorString != NULL);
+    OOCParameterAssert(context != NULL);
+    OOCParameterAssert(errorString != NULL);
 
     NSUInteger newSpace = MAX(sSpace * 2, (NSUInteger)kMinCount);
 
@@ -349,7 +351,7 @@ static BOOL GrowCallbackList(JSContext* context, std::optional<std::string>* err
 
 static BOOL GetIndexForTrackingID(uint32_t trackingID, NSUInteger* outIndex)
 {
-    NSCParameterAssert(outIndex != NULL);
+    OOCParameterAssert(outIndex != NULL);
 
     /*	It is assumed that few frame callbacks will be active at once, so a
             linear search is reasonable. If they become unexpectedly popular, we
@@ -369,8 +371,8 @@ static BOOL GetIndexForTrackingID(uint32_t trackingID, NSUInteger* outIndex)
 
 static BOOL RemoveCallbackWithTrackingID(JSContext* context, uint32_t trackingID)
 {
-    NSCParameterAssert(context != NULL);
-    NSCAssert1(!sRunning, @"%s cannot be called while frame callbacks are running.", __PRETTY_FUNCTION__);
+    OOCParameterAssert(context != NULL);
+    OOCAssert(!sRunning, "%s cannot be called while frame callbacks are running.", __PRETTY_FUNCTION__);
 
     NSUInteger index = 0;
     if (GetIndexForTrackingID(trackingID, &index)) {
@@ -383,11 +385,11 @@ static BOOL RemoveCallbackWithTrackingID(JSContext* context, uint32_t trackingID
 
 static void RemoveCallbackAtIndex(JSContext* context, NSUInteger index)
 {
-    NSCParameterAssert(context != NULL);
-    NSCParameterAssert(index < sCount && sCallbacks != NULL);
-    NSCAssert1(!sRunning, @"%s cannot be called while frame callbacks are running.", __PRETTY_FUNCTION__);
+    OOCParameterAssert(context != NULL);
+    OOCParameterAssert(index < sCount && sCallbacks != NULL);
+    OOCAssert(!sRunning, "%s cannot be called while frame callbacks are running.", __PRETTY_FUNCTION__);
 
-    FCBLog(@"script.frameCallback.debug.remove", @"Removing frame callback with tracking ID %u.", sCallbacks[index].trackingID);
+    FCBLog("script.frameCallback.debug.remove", "Removing frame callback with tracking ID {}.", sCallbacks[index].trackingID);
 
     // Overwrite entry to be removed with last entry, and decrement count.
     JSValue removed = sCallbacks[index].callback;
@@ -398,7 +400,7 @@ static void RemoveCallbackAtIndex(JSContext* context, NSUInteger index)
 
 #if DEBUG_FCB_SIMPLE_TRACKING_IDS
     if (sCount == 0) {
-        OOLog(@"script.frameCallback.debug.reset", @"All frame callbacks removed, resetting next ID to 1.");
+        OO_LOG("script.frameCallback.debug.reset", "All frame callbacks removed, resetting next ID to 1.");
         sNextID = 1;
     }
 #endif
@@ -407,7 +409,7 @@ static void RemoveCallbackAtIndex(JSContext* context, NSUInteger index)
 namespace {
 static void QueueDeferredOperation(const std::string& opType, uint32_t trackingID, OOJSValue* value)
 {
-    NSCAssert1(sRunning, @"%s can only be called while frame callbacks are running.", __PRETTY_FUNCTION__);
+    OOCAssert(sRunning, "%s can only be called while frame callbacks are running.", __PRETTY_FUNCTION__);
 
     if (sDeferredOps == NULL)
         sDeferredOps = new std::vector<DeferredOperation>;
@@ -417,8 +419,8 @@ static void QueueDeferredOperation(const std::string& opType, uint32_t trackingI
 
 static void RunDeferredOperations(JSContext* context)
 {
-    FCBLog(@"script.frameCallback.debug.run-deferred", @"Running %zu deferred frame callback operations.", (long)sDeferredOps->size());
-    FCBLogIndentIf(@"script.frameCallback.debug.run-deferred");
+    FCBLog("script.frameCallback.debug.run-deferred", "Running {} deferred frame callback operations.", (long)sDeferredOps->size());
+    FCBLogIndentIf("script.frameCallback.debug.run-deferred");
 
     for (const DeferredOperation& operation : *sDeferredOps) {
         const std::string& opType = operation.operation;
@@ -430,7 +432,7 @@ static void RunDeferredOperations(JSContext* context)
 
             JSValue callback = OOJSValueFromNativeObject(context, callbackObj);
             if (!AddCallback(context, callback, trackingID, &errorString)) {
-                OOLogWARN(@"script.frameCallback.deferredAdd.failed", @"Deferred frame callback insertion failed: %@", oo::NSStringOrNil(errorString));
+                OO_LOG_WARN("script.frameCallback.deferredAdd.failed", "Deferred frame callback insertion failed: {}", errorString.value_or("(null)"));
             }
             JS_FreeValue(context, callback);
         } else if (opType == "remove") {
@@ -438,5 +440,5 @@ static void RunDeferredOperations(JSContext* context)
         }
     }
 
-    FCBLogOutdentIf(@"script.frameCallback.debug.run-deferred");
+    FCBLogOutdentIf("script.frameCallback.debug.run-deferred");
 }

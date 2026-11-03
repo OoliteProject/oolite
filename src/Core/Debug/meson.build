@@ -3,7 +3,6 @@
 oolite_sources += files(
     'OODebugMonitor.mm',
     'OODebugStandards.mm',
-    'OODebugStandards+FoundationBridge.mm',
     'OODebugSupport.mm',
     'OODebugTCPConsoleClient.mm',
     'OOJSConsole.mm',

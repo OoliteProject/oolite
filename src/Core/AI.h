@@ -59,7 +59,8 @@ MA 02110-1301, USA.
 
 - (id)name; // shared selector (proposed ADR-0043): the state machine's name, an Objective-C string
 - (std::optional<std::string>)cxx_associatedJS;
-- (id)state; // shared selector (proposed ADR-0043): the current state, an Objective-C string or nil
+- (id)state; // shared selector (Foundation declares -state too): -cxx_state as an Objective-C string or nil
+- (std::optional<std::string>)cxx_state; // the current state; nullopt: none (bead oo-3rb.291.2)
 
 - (void)cxx_setStateMachine:(const std::string&)smName withJSScript:(const std::string&)script;
 - (void)cxx_setState:(const std::string&)stateName;
@@ -91,9 +92,9 @@ MA 02110-1301, USA.
 
 - (void)think;
 
-- (void)message:(id)ms; // shared selector (proposed ADR-0043): ms is an Objective-C string
+- (void)message:(const std::string&)ms; // flipped with its family (bead oo-3rb.276)
 - (void)cxx_dropMessage:(const std::string&)ms;
-- (id)pendingMessages; // shared selector (proposed ADR-0043): an immutable Objective-C set of strings
+- (std::set<std::string>)pendingMessages; // in byte order
 - (void)debugDumpPendingMessages;
 
 - (void)setNextThinkTime:(OOTimeAbsolute)ntt;

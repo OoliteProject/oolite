@@ -37,6 +37,8 @@ MA 02110-1301, USA.
 #import "Universe.h"
 #include "oofnd/objc/OOException.h"
 
+#include "oofnd/Log.hpp"
+
 #include "oofnd/String.hpp"
 
 static BOOL positionIsWithinRegion(HPVector position, CollisionRegion* region);
@@ -260,7 +262,7 @@ static BOOL positionIsWithinBorders(HPVector position, CollisionRegion* region)
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
     if (gDebugFlags & DEBUG_COLLISIONS) {
-        OOLog(@"collisionRegion.debug", @"DEBUG in collision region %@ testing %d out of %d entities", self, n_entities_to_test, n_entities);
+        OO_LOG("collisionRegion.debug", "DEBUG in collision region {} testing {} out of {} entities", oo::DescriptionOf(self), n_entities_to_test, n_entities);
     }
 #endif
 
@@ -272,7 +274,8 @@ static BOOL positionIsWithinBorders(HPVector position, CollisionRegion* region)
     for (i = 0; i < n_entities_to_test; i++) {
         e1 = entities_to_test[i];
         if (e1->hasCollided) {
-            [[e1 collisionArray] removeAllObjects];
+            if (std::vector<oo::ObjCRef<Entity*>>* colliding = [e1 cxx_collidingEntities])
+                colliding->clear();
             e1->hasCollided = NO;
         }
         if (e1->isShip) {
@@ -307,8 +310,8 @@ static BOOL positionIsWithinBorders(HPVector position, CollisionRegion* region)
                 if (dist2 < PROXIMITY_WARN_DISTANCE2 * min_dist2) {
 #ifdef OO_DEBUG_MONITOR_ENABLED
                     if (gDebugFlags & DEBUG_COLLISIONS) {
-                        OOLog(@"collisionRegion.debug", @"DEBUG Testing collision between %@ (%@) and %@ (%@)",
-                            e1, (e1->collisionTestFilter == 3) ? @"YES" : @"NO", e2, (e2->collisionTestFilter == 3) ? @"YES" : @"NO");
+                        OO_LOG("collisionRegion.debug", "DEBUG Testing collision between {} ({}) and {} ({})",
+                            oo::DescriptionOf(e1), (e1->collisionTestFilter == 3) ? "YES" : "NO", oo::DescriptionOf(e2), (e2->collisionTestFilter == 3) ? "YES" : "NO");
                     }
 #endif
                     checks_within_range++;
@@ -353,16 +356,20 @@ static BOOL positionIsWithinBorders(HPVector position, CollisionRegion* region)
                         if (collision) {
                             // now we have no need to check the e2-e1 collision
                             if (e1->collider) {
-                                [[e1 collisionArray] addObject:e1->collider];
+                                if (std::vector<oo::ObjCRef<Entity*>>* colliding = [e1 cxx_collidingEntities])
+                                    colliding->push_back(oo::ObjCRef<Entity*>(e1->collider));
                             } else {
-                                [[e1 collisionArray] addObject:e2];
+                                if (std::vector<oo::ObjCRef<Entity*>>* colliding = [e1 cxx_collidingEntities])
+                                    colliding->push_back(oo::ObjCRef<Entity*>(e2));
                             }
                             e1->hasCollided = YES;
 
                             if (e2->collider) {
-                                [[e2 collisionArray] addObject:e2->collider];
+                                if (std::vector<oo::ObjCRef<Entity*>>* colliding = [e2 cxx_collidingEntities])
+                                    colliding->push_back(oo::ObjCRef<Entity*>(e2->collider));
                             } else {
-                                [[e2 collisionArray] addObject:e1];
+                                if (std::vector<oo::ObjCRef<Entity*>>* colliding = [e2 cxx_collidingEntities])
+                                    colliding->push_back(oo::ObjCRef<Entity*>(e1));
                             }
                             e2->hasCollided = YES;
                         }
@@ -376,7 +383,7 @@ static BOOL positionIsWithinBorders(HPVector position, CollisionRegion* region)
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
     if (gDebugFlags & DEBUG_COLLISIONS) {
-        OOLog(@"collisionRegion.debug", @"Collision test checks %d, within range %d, for %d entities", checks_this_tick, checks_within_range, n_entities_to_test);
+        OO_LOG("collisionRegion.debug", "Collision test checks {}, within range {}, for {} entities", checks_this_tick, checks_within_range, n_entities_to_test);
     }
 #endif
 }

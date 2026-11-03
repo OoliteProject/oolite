@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 #import "OOStringBridge.h"
 
 #include "oofnd/String.hpp"
+#include "oofnd/objc/OOAssert.h"
 
 /*
         DESIGN NOTES
@@ -74,9 +75,9 @@ MA 02110-1301, USA.
         models.
 */
 
-#import "OOLogging.h"
 #import "OOMaths.h"
 #import "Octree.h"
+#include "oofnd/Log.hpp"
 
 // MARK: GeometryData operations.
 
@@ -183,7 +184,7 @@ static void SplitGeometryZ(GeometryData* data, GeometryData* dPlus, GeometryData
 
 void InitGeometryData(GeometryData* data, uint32_t capacity)
 {
-    NSCParameterAssert(data != NULL);
+    OOCParameterAssert(data != NULL);
 
     data->count = 0;
     data->capacity = kOOMeshToOctreeConverterSmallDataCapacity;
@@ -193,11 +194,11 @@ void InitGeometryData(GeometryData* data, uint32_t capacity)
 
 OOINLINE void DestroyGeometryData(GeometryData* data)
 {
-    NSCParameterAssert(data != 0 && data->capacity >= kOOMeshToOctreeConverterSmallDataCapacity);
+    OOCParameterAssert(data != 0 && data->capacity >= kOOMeshToOctreeConverterSmallDataCapacity);
 
 #if OO_DEBUG
     Triangle* const kScribbleValue = (Triangle*)-1L;
-    NSCAssert(data->triangles != kScribbleValue, @"Attempt to destroy a GeometryData twice.");
+    OOCAssert(data->triangles != kScribbleValue, "Attempt to destroy a GeometryData twice.");
 #endif
 
     if (data->capacity != kOOMeshToOctreeConverterSmallDataCapacity) {
@@ -212,7 +213,7 @@ OOINLINE void DestroyGeometryData(GeometryData* data)
 
 OOINLINE void AddTriangle(GeometryData* data, Triangle tri)
 {
-    NSCParameterAssert(data != NULL);
+    OOCParameterAssert(data != NULL);
 
     if (data->count < data->capacity) {
         data->triangles[data->count++] = tri;
@@ -225,7 +226,7 @@ OOINLINE void AddTriangle(GeometryData* data, Triangle tri)
 
 - (id)initWithCapacity:(NSUInteger)capacity
 {
-    NSParameterAssert(capacity < UINT32_MAX);
+    OOParameterAssert(capacity < UINT32_MAX);
     if (capacity == 0)
         capacity = 1; // Happens for models with no faces.
 
@@ -274,7 +275,7 @@ OOINLINE void AddTriangle(GeometryData* data, Triangle tri)
 
 static OOScalar MaxDimensionFromOrigin(GeometryData* data)
 {
-    NSCParameterAssert(data != NULL);
+    OOCParameterAssert(data != NULL);
 
     OOScalar result = 0.0f;
     uint32_t i, j;
@@ -291,7 +292,7 @@ static OOScalar MaxDimensionFromOrigin(GeometryData* data)
 
 void BuildSubOctree(GeometryData* data, OOOctreeBuilder* builder, OOScalar halfWidth, NSUInteger depth)
 {
-    NSCParameterAssert(data != NULL);
+    OOCParameterAssert(data != NULL);
 
     OOScalar subHalfWidth = 0.5f * halfWidth;
 
@@ -416,7 +417,7 @@ void BuildSubOctree(GeometryData* data, OOOctreeBuilder* builder, OOScalar halfW
 
 static void TranslateGeometryX(GeometryData* data, OOScalar offset)
 {
-    NSCParameterAssert(data != NULL);
+    OOCParameterAssert(data != NULL);
 
     // Optimization note: offset is never zero, so no early return.
 
@@ -430,7 +431,7 @@ static void TranslateGeometryX(GeometryData* data, OOScalar offset)
 
 static void TranslateGeometryY(GeometryData* data, OOScalar offset)
 {
-    NSCParameterAssert(data != NULL);
+    OOCParameterAssert(data != NULL);
 
     // Optimization note: offset is never zero, so no early return.
 
@@ -444,7 +445,7 @@ static void TranslateGeometryY(GeometryData* data, OOScalar offset)
 
 static void TranslateGeometryZ(GeometryData* data, OOScalar offset)
 {
-    NSCParameterAssert(data != NULL);
+    OOCParameterAssert(data != NULL);
 
     // Optimization note: offset is never zero, so no early return.
 
@@ -458,7 +459,7 @@ static void TranslateGeometryZ(GeometryData* data, OOScalar offset)
 
 static void SplitGeometryX(GeometryData* data, GeometryData* dPlus, GeometryData* dMinus, OOScalar x)
 {
-    NSCParameterAssert(data != NULL && dPlus != NULL && dMinus != NULL);
+    OOCParameterAssert(data != NULL && dPlus != NULL && dMinus != NULL);
 
     // test each triangle splitting against x == 0.0
     uint32_t i, count = data->count;
@@ -567,7 +568,7 @@ static void SplitGeometryX(GeometryData* data, GeometryData* dPlus, GeometryData
 
 static void SplitGeometryY(GeometryData* data, GeometryData* dPlus, GeometryData* dMinus, OOScalar y)
 {
-    NSCParameterAssert(data != NULL && dPlus != NULL && dMinus != NULL);
+    OOCParameterAssert(data != NULL && dPlus != NULL && dMinus != NULL);
 
     // test each triangle splitting against y == 0.0
     uint32_t i, count = data->count;
@@ -678,7 +679,7 @@ static void SplitGeometryY(GeometryData* data, GeometryData* dPlus, GeometryData
 
 static void SplitGeometryZ(GeometryData* data, GeometryData* dPlus, GeometryData* dMinus, OOScalar z)
 {
-    NSCParameterAssert(data != NULL && dPlus != NULL && dMinus != NULL);
+    OOCParameterAssert(data != NULL && dPlus != NULL && dMinus != NULL);
 
     // test each triangle splitting against z == 0.0
     uint32_t i, count = data->count;
@@ -804,8 +805,8 @@ static void SplitGeometryZ(GeometryData* data, GeometryData* dPlus, GeometryData
 */
 static NO_INLINE_FUNC void AddTriangle_slow(GeometryData* data, Triangle tri)
 {
-    NSCParameterAssert(data != NULL);
-    NSCParameterAssert(data->count == data->capacity);
+    OOCParameterAssert(data != NULL);
+    OOCParameterAssert(data->count == data->capacity);
 
     if (data->capacity == kOOMeshToOctreeConverterSmallDataCapacity) {
         data->capacity = MAX(data->pendingCapacity, kOOMeshToOctreeConverterSmallDataCapacity * 2);
@@ -820,7 +821,7 @@ static NO_INLINE_FUNC void AddTriangle_slow(GeometryData* data, Triangle tri)
     }
 
     if (EXPECT_NOT(data->triangles == NULL)) {
-        OOLog(kOOLogAllocationFailure, @"%@", @"!!!!! Ran out of memory to allocate more geometry!");
+        OO_LOG("general.error.allocationFailure", "{}", "!!!!! Ran out of memory to allocate more geometry!");
         exit(EXIT_FAILURE);
     }
 

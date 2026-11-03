@@ -37,8 +37,8 @@ MA 02110-1301, USA.
 
 /*	Foundation sweep (proposed ADR-0043, bead oo-eofd): the planet configuration and material
         parameters are oo::PLists (mixed: colours are PList::Object nodes); texture and planet names are
-        std::optional (nullopt where they were nil). -textureFileName, -setUpPlanetFromTexture:, -name and
-        -setName: are shared selectors and keep id.
+        std::optional (nullopt where they were nil). -name and -setName: are shared selectors and keep
+        id; -textureFileName and -setUpPlanetFromTexture: flipped with PlanetEntity (bead oo-3rb.269.1).
 */
 
 @class OOPlanetDrawable, ShipEntity, OOMaterial;
@@ -91,10 +91,10 @@ MA 02110-1301, USA.
 - (BOOL)hasAtmosphere;
 
 // FIXME: need material model.
-- (id)textureFileName; // shared selector (proposed ADR-0043): an Objective-C string or nil
+- (std::optional<std::string>)textureFileName; // nullopt: none
 - (void)setTextureFileName:(const std::optional<std::string>&)textureName;
 
-- (BOOL)setUpPlanetFromTexture:(id)fileName; // shared selector (proposed ADR-0043): an Objective-C string or nil
+- (BOOL)setUpPlanetFromTexture:(const std::optional<std::string>&)fileName; // nullopt: none
 
 - (OOMaterial*)material;
 - (OOMaterial*)atmosphereMaterial;

@@ -33,6 +33,7 @@ MA 02110-1301, USA.
 #import "OOMaths.h"
 #import "Universe.h"
 
+#include "oofnd/Log.hpp"
 #include "oofnd/PListGet.hpp"
 #include "oofnd/String.hpp"
 
@@ -184,7 +185,7 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::stri
             [UNIVERSE setLighting];
         }
     } else {
-        OOLogWARN(@"script.warning", @"Change to property '%@' not applied, will apply only on leaving and re-entering this system.", oo::NSStringFrom(key));
+        OO_LOG_WARN("script.warning", "Change to property '{}' not applied, will apply only on leaving and re-entering this system.", key);
         return NO;
     }
     return YES;
@@ -198,7 +199,7 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::stri
     if (player != nil) {
         position = [player viewpointPosition];
     } else {
-        OOLog(@"sky.warning", @"%@", @"PLAYER is nil");
+        OO_LOG("sky.warning", "{}", "PLAYER is nil");
     }
 }
 
@@ -234,14 +235,14 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::stri
 
     [super drawImmediate:immediate translucent:translucent];
 
-    OOCheckOpenGLErrors(@"SkyEntity after drawing %@", self);
+    cxx_OOCheckOpenGLErrors([&]() -> std::string { return "SkyEntity after drawing " + oo::DescriptionOf(self); });
 }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
 - (id)descriptionForObjDump // shared selector (proposed ADR-0043)
 {
     // Don't include range and visibility flag as they're irrelevant.
-    return [self descriptionForObjDumpBasic];
+    return oo::NSStringOrNil([self descriptionForObjDumpBasic]);
 }
 #endif
 
@@ -274,7 +275,7 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::stri
             *ioColor1 = [OOColor colorWithRed:r1 green:g1 blue:b1 alpha:1.0];
             *ioColor2 = [OOColor colorWithRed:r2 green:g2 blue:b2 alpha:1.0];
         } else {
-            OOLogWARN(@"sky.fromDict", @"could not interpret \"%@\" as two RGB colours (must be six numbers).", oo::NSStringFrom(*string));
+            OO_LOG_WARN("sky.fromDict", "could not interpret \"{}\" as two RGB colours (must be six numbers).", *string);
         }
     }
     colorDesc = ObjectForKey(dictionary, "sky_color_1");
@@ -283,7 +284,7 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::stri
         if (color != nil)
             *ioColor1 = color;
         else
-            OOLogWARN(@"sky.fromDict", @"could not interpret \"%@\" as a colour.", colorDesc);
+            OO_LOG_WARN("sky.fromDict", "could not interpret \"{}\" as a colour.", oo::DescriptionOf(colorDesc));
     }
     colorDesc = ObjectForKey(dictionary, "sky_color_2");
     if (colorDesc != nil) {
@@ -291,7 +292,7 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::stri
         if (color != nil)
             *ioColor2 = color;
         else
-            OOLogWARN(@"sky.fromDict", @"could not interpret \"%@\" as a colour.", colorDesc);
+            OO_LOG_WARN("sky.fromDict", "could not interpret \"{}\" as a colour.", oo::DescriptionOf(colorDesc));
     }
 
     colorDesc = ObjectForKey(dictionary, "nebula_color_1");
@@ -301,7 +302,7 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::stri
             *ioColor3 = color;
             nebulaSet = YES;
         } else
-            OOLogWARN(@"sky.fromDict", @"could not interpret \"%@\" as a colour.", colorDesc);
+            OO_LOG_WARN("sky.fromDict", "could not interpret \"{}\" as a colour.", oo::DescriptionOf(colorDesc));
     } else {
         colorDesc = ObjectForKey(dictionary, "sky_color_1");
         if (colorDesc != nil) {
@@ -309,7 +310,7 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::stri
             if (color != nil)
                 *ioColor3 = color;
             else
-                OOLogWARN(@"sky.fromDict", @"could not interpret \"%@\" as a colour.", colorDesc);
+                OO_LOG_WARN("sky.fromDict", "could not interpret \"{}\" as a colour.", oo::DescriptionOf(colorDesc));
         }
     }
 
@@ -320,7 +321,7 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::stri
             *ioColor4 = color;
             nebulaSet = YES;
         } else
-            OOLogWARN(@"sky.fromDict", @"could not interpret \"%@\" as a colour.", colorDesc);
+            OO_LOG_WARN("sky.fromDict", "could not interpret \"{}\" as a colour.", oo::DescriptionOf(colorDesc));
     } else {
         colorDesc = ObjectForKey(dictionary, "sky_color_2");
         if (colorDesc != nil) {
@@ -328,7 +329,7 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::stri
             if (color != nil)
                 *ioColor4 = color;
             else
-                OOLogWARN(@"sky.fromDict", @"could not interpret \"%@\" as a colour.", colorDesc);
+                OO_LOG_WARN("sky.fromDict", "could not interpret \"{}\" as a colour.", oo::DescriptionOf(colorDesc));
         }
     }
     return nebulaSet;

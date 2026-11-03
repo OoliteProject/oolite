@@ -32,6 +32,7 @@ MA 02110-1301, USA.
 #import "PlayerEntity.h"
 #import "ResourceManager.h"
 #import "Universe.h"
+#include "oofnd/objc/OOAssert.h"
 
 namespace {
 
@@ -134,8 +135,8 @@ std::optional<std::string> StringForKey(const oo::PList& dict, const char* key)
     NSUInteger i, j, k, jIndex, kIndex;
     // firstly, cache all coordinates
     for (i = 0; i < OO_SYSTEM_CACHE_LENGTH; i++) {
-        // PointFromString (OOStringParsing) is an unmigrated callee: convert at the call.
-        coordinatesCache[i] = PointFromString(oo::NSStringOrNil(StringForKey(propertyCache[i], "coordinates")));
+        // (nil and "" both have no tokens: the zero point)
+        coordinatesCache[i] = cxx_PointFromString(StringForKey(propertyCache[i], "coordinates").value_or(""));
     }
     // now for each system find its neighbours
     for (i = 0; i < OO_GALAXIES_AVAILABLE; i++) {
@@ -192,7 +193,7 @@ std::optional<std::string> StringForKey(const oo::PList& dict, const char* key)
         OOSystemID s = tokens.at<NSUInteger>(1);
         NSUInteger index = (g * OO_SYSTEMS_PER_GALAXY) + s;
         if (index >= OO_SYSTEM_CACHE_LENGTH) {
-            OOLog(@"system.description.error", @"'%@' is an invalid system key. This is an internal error. Please report it.", oo::NSStringFrom(key));
+            OO_LOG("system.description.error", "'{}' is an invalid system key. This is an internal error. Please report it.", key);
         } else {
             [self updateCacheEntry:index];
         }
@@ -217,7 +218,7 @@ std::optional<std::string> StringForKey(const oo::PList& dict, const char* key)
         OOSystemID s = tokens.at<NSUInteger>(1);
         NSUInteger index = (g * OO_SYSTEMS_PER_GALAXY) + s;
         if (index >= OO_SYSTEM_CACHE_LENGTH) {
-            OOLog(@"system.description.error", @"'%@' is an invalid system key. This is an internal error. Please report it.", oo::NSStringFrom(key));
+            OO_LOG("system.description.error", "'{}' is an invalid system key. This is an internal error. Please report it.", key);
         } else {
             [self updateCacheEntry:index forProperty:property];
         }
@@ -234,7 +235,7 @@ std::optional<std::string> StringForKey(const oo::PList& dict, const char* key)
     if (!manifest.has_value()) {
         return;
     }
-    //	OOLog(@"saving change",@"%@ %@ %@ %d",manifest,key,property,layer);
+    //	OO_LOG("saving change", "{} {} {} {}", oo::DescriptionOf(manifest), oo::DescriptionOf(key), oo::DescriptionOf(property), static_cast<int>(layer));
     // The four parts (the layer as its number's text) joined into one key: the plist
     // format can't have array keys, so they couldn't be saved.
     std::string overrideKeyStr = *manifest;
@@ -263,7 +264,7 @@ std::optional<std::string> StringForKey(const oo::PList& dict, const char* key)
         if (key.size() == 4) {
             const std::string& manifest = key[0];
             if (![ResourceManager cxx_manifestForIdentifier:manifest].isNull()) {
-                //				OOLog(@"importing",@"%@ -> %@",keyStr,[scripted objectForKey:keyStr]);
+                //				OO_LOG("importing", "{} -> {}", oo::DescriptionOf(keyStr), oo::DescriptionOf([scripted objectForKey:keyStr]));
                 [self cxx_setProperty:key[2]
                          forSystemKey:key[1]
                              andLayer:OOSystemLayerFromNumber(static_cast<unsigned int>(oo::str::intValue(key[3])))
@@ -275,7 +276,7 @@ std::optional<std::string> StringForKey(const oo::PList& dict, const char* key)
             }
             // else OXP not installed, do not load
         } else {
-            OOLog(@"systemManager.import", @"Key '%@' has unexpected format - skipping", oo::NSStringFrom(keyStr));
+            OO_LOG("systemManager.import", "Key '{}' has unexpected format - skipping", keyStr);
         }
     }
 }
@@ -328,12 +329,12 @@ std::optional<std::string> StringForKey(const oo::PList& dict, const char* key)
     if (s >= 0) {
         NSUInteger index = ([PLAYER galaxyNumber] * OO_SYSTEMS_PER_GALAXY) + s;
         if (index >= OO_SYSTEM_CACHE_LENGTH) {
-            OOLog(@"system.description.error", @"'%zu' is an invalid system index for the current system. This is an internal error. Please report it.", index);
+            OO_LOG("system.description.error", "'{}' is an invalid system index for the current system. This is an internal error. Please report it.", static_cast<size_t>(index));
             return oo::PList(oo::PList::Dict());
         }
         return propertyCache[index];
     } else {
-        OOLog(@"system.description.error", @"%@", @"getPropertiesForCurrentSystem called while player in interstellar space. This is an internal error. Please report it.");
+        OO_LOG("system.description.error", "{}", "getPropertiesForCurrentSystem called while player in interstellar space. This is an internal error. Please report it.");
         // this shouldn't be called for interstellar space
         return oo::PList(oo::PList::Dict());
     }
@@ -347,7 +348,7 @@ std::optional<std::string> StringForKey(const oo::PList& dict, const char* key)
         OOSystemID s = tokens.at<NSUInteger>(1);
         NSUInteger index = (g * OO_SYSTEMS_PER_GALAXY) + s;
         if (index >= OO_SYSTEM_CACHE_LENGTH) {
-            OOLog(@"system.description.error", @"'%@' is an invalid system key. This is an internal error. Please report it.", oo::NSStringFrom(key));
+            OO_LOG("system.description.error", "'{}' is an invalid system key. This is an internal error. Please report it.", key);
             return oo::PList(oo::PList::Dict());
         }
         return propertyCache[index];
@@ -360,7 +361,7 @@ std::optional<std::string> StringForKey(const oo::PList& dict, const char* key)
 {
     NSUInteger index = (g * OO_SYSTEMS_PER_GALAXY) + s;
     if (index >= OO_SYSTEM_CACHE_LENGTH) {
-        OOLog(@"system.description.error", @"'%u, %u' is an invalid system. This is an internal error. Please report it.", g, s);
+        OO_LOG("system.description.error", "'{}, {}' is an invalid system. This is an internal error. Please report it.", static_cast<unsigned>(g), static_cast<unsigned>(s));
         return oo::PList(oo::PList::Dict());
     }
     return propertyCache[index];
@@ -374,12 +375,12 @@ std::optional<std::string> StringForKey(const oo::PList& dict, const char* key)
 - (oo::PList)cxx_getProperty:(const std::string&)property forSystem:(OOSystemID)s inGalaxy:(OOGalaxyID)g
 {
     if (s < 0) {
-        OOLog(@"system.description.error", @"'%d %d' is an invalid system key. This is an internal error. Please report it.", g, s);
+        OO_LOG("system.description.error", "'{} {}' is an invalid system key. This is an internal error. Please report it.", static_cast<int>(g), static_cast<int>(s));
         return oo::PList();
     }
     NSUInteger index = (g * OO_SYSTEMS_PER_GALAXY) + s;
     if (index >= OO_SYSTEM_CACHE_LENGTH) {
-        OOLog(@"system.description.error", @"'%d %d' is an invalid system key. This is an internal error. Please report it.", g, s);
+        OO_LOG("system.description.error", "'{} {}' is an invalid system key. This is an internal error. Please report it.", static_cast<int>(g), static_cast<int>(s));
         return oo::PList();
     }
     return ValueForKey(propertyCache[index], property);
@@ -459,7 +460,7 @@ std::optional<std::string> StringForKey(const oo::PList& dict, const char* key)
     // Range-checked as the number it is read as, then converted: the enum only ever holds a layer.
     unsigned int layerNumber = properties.get<unsigned int>(kOOSystemLayerProperty, OO_LAYER_OXP_STATIC);
     if (layerNumber > OO_LAYER_OXP_PRIORITY) {
-        OOLog(@"system.description.error", @"Layer %u is not a valid layer number in system information.", layerNumber);
+        OO_LOG("system.description.error", "Layer {} is not a valid layer number in system information.", static_cast<unsigned>(layerNumber));
     }
     OOSystemLayer layer = OOSystemLayerFromNumber(layerNumber);
     const oo::PList::Dict* entries = properties.getIf<oo::PList::Dict>();
@@ -498,14 +499,14 @@ std::optional<std::string> StringForKey(const oo::PList& dict, const char* key)
 
 - (void)updateCacheEntry:(NSUInteger)i
 {
-    NSAssert(i < OO_SYSTEM_CACHE_LENGTH, @"Invalid cache entry number");
+    OOAssert(i < OO_SYSTEM_CACHE_LENGTH, "Invalid cache entry number");
     const std::string key = oo::str::format("%zu %zu", i / OO_SYSTEMS_PER_GALAXY, i % OO_SYSTEMS_PER_GALAXY);
     propertyCache[i] = [self calculatePropertiesForSystemKey:key];
 }
 
 - (void)updateCacheEntry:(NSUInteger)i forProperty:(const std::string&)property
 {
-    NSAssert(i < OO_SYSTEM_CACHE_LENGTH, @"Invalid cache entry number");
+    OOAssert(i < OO_SYSTEM_CACHE_LENGTH, "Invalid cache entry number");
     const std::string key = oo::str::format("%zu %zu", i / OO_SYSTEMS_PER_GALAXY, i % OO_SYSTEMS_PER_GALAXY);
     oo::PList current = [self cxx_getProperty:property forSystemKey:key];
     oo::PList::Dict& cache = *propertyCache[i].getIf<oo::PList::Dict>();
@@ -519,12 +520,12 @@ std::optional<std::string> StringForKey(const oo::PList& dict, const char* key)
 - (NSPoint)getCoordinatesForSystem:(OOSystemID)s inGalaxy:(OOGalaxyID)g
 {
     if (s < 0) {
-        OOLog(@"system.description.error", @"'%d %d' is an invalid system key. This is an internal error. Please report it.", g, s);
+        OO_LOG("system.description.error", "'{} {}' is an invalid system key. This is an internal error. Please report it.", static_cast<int>(g), static_cast<int>(s));
         return (NSPoint) { 0, 0 };
     }
     NSUInteger index = (g * OO_SYSTEMS_PER_GALAXY) + s;
     if (index >= OO_SYSTEM_CACHE_LENGTH) {
-        OOLog(@"system.description.error", @"'%d %d' is an invalid system key. This is an internal error. Please report it.", g, s);
+        OO_LOG("system.description.error", "'{} {}' is an invalid system key. This is an internal error. Please report it.", static_cast<int>(g), static_cast<int>(s));
         return (NSPoint) { 0, 0 };
     }
     return coordinatesCache[index];
@@ -533,12 +534,12 @@ std::optional<std::string> StringForKey(const oo::PList& dict, const char* key)
 - (std::vector<OOSystemID>)cxx_getNeighbourIDsForSystem:(OOSystemID)s inGalaxy:(OOGalaxyID)g
 {
     if (s < 0) {
-        OOLog(@"system.description.error", @"'%d %d' is an invalid system key. This is an internal error. Please report it.", g, s);
+        OO_LOG("system.description.error", "'{} {}' is an invalid system key. This is an internal error. Please report it.", static_cast<int>(g), static_cast<int>(s));
         return { };
     }
     NSUInteger index = (g * OO_SYSTEMS_PER_GALAXY) + s;
     if (index >= OO_SYSTEM_CACHE_LENGTH) {
-        OOLog(@"system.description.error", @"'%d %d' is an invalid system key. This is an internal error. Please report it.", g, s);
+        OO_LOG("system.description.error", "'{} {}' is an invalid system key. This is an internal error. Please report it.", static_cast<int>(g), static_cast<int>(s));
         return { };
     }
 
@@ -553,26 +554,26 @@ std::optional<std::string> StringForKey(const oo::PList& dict, const char* key)
         OOSystemID s = [UNIVERSE currentSystemID];
         NSUInteger index = ([PLAYER galaxyNumber] * OO_SYSTEMS_PER_GALAXY) + s;
         if (index >= OO_SYSTEM_CACHE_LENGTH) {
-            OOLog(@"system.description.error", @"'%zu' is an invalid system index for the current system. This is an internal error. Please report it.", index);
+            OO_LOG("system.description.error", "'{}' is an invalid system index for the current system. This is an internal error. Please report it.", static_cast<size_t>(index));
             return kNilRandomSeed;
         }
-        // RandomSeedFromString (OOStringParsing) is an unmigrated callee: convert at the call.
-        return RandomSeedFromString(oo::NSStringOrNil(StringForKey(propertyCache[index], "random_seed")));
+        // (nullopt reads as nil did)
+        return cxx_RandomSeedFromString(StringForKey(propertyCache[index], "random_seed"));
     }
 }
 
 - (Random_Seed)getRandomSeedForSystem:(OOSystemID)s inGalaxy:(OOGalaxyID)g
 {
     if (s < 0) {
-        OOLog(@"system.description.error", @"'%d %d' is an invalid system key. This is an internal error. Please report it.", g, s);
+        OO_LOG("system.description.error", "'{} {}' is an invalid system key. This is an internal error. Please report it.", static_cast<int>(g), static_cast<int>(s));
         return kNilRandomSeed;
     }
     NSUInteger index = (g * OO_SYSTEMS_PER_GALAXY) + s;
     if (index >= OO_SYSTEM_CACHE_LENGTH) {
-        OOLog(@"system.description.error", @"'%d %d' is an invalid system key. This is an internal error. Please report it.", g, s);
+        OO_LOG("system.description.error", "'{} {}' is an invalid system key. This is an internal error. Please report it.", static_cast<int>(g), static_cast<int>(s));
         return kNilRandomSeed;
     }
-    return RandomSeedFromString(oo::NSStringOrNil(StringForKey(propertyCache[index], "random_seed")));
+    return cxx_RandomSeedFromString(StringForKey(propertyCache[index], "random_seed"));
 }
 
 @end
@@ -628,11 +629,11 @@ std::optional<std::string> StringForKey(const oo::PList& dict, const char* key)
         // must be a string with two numbers in it
         // TODO: convert two element arrays
         if (!value.isString()) {
-            OOLog(@"system.description.error", @"'%@' is not a valid format for coordinates", oo::ObjectFromPList(value));
+            OO_LOG("system.description.error", "'{}' is not a valid format for coordinates", oo::DescriptionOf(oo::ObjectFromPList(value)));
             return oo::PList();
         }
         if (oo::str::tokens(*value.getIf<std::string>()).size() != 2) {
-            OOLog(@"system.description.error", @"'%@' is not a valid format for coordinates (must have exactly two numbers)", oo::ObjectFromPList(value));
+            OO_LOG("system.description.error", "'{}' is not a valid format for coordinates (must have exactly two numbers)", oo::DescriptionOf(oo::ObjectFromPList(value)));
             return oo::PList();
         }
     } else if (property == "radius" || property == "government") {
@@ -642,14 +643,14 @@ std::optional<std::string> StringForKey(const oo::PList& dict, const char* key)
                 // -stringValue
                 return oo::PList(oo::plist_get::numberStringValue(value));
             } else {
-                OOLog(@"system.description.error", @"'%@' is not a valid value for '%@' (string required)", oo::ObjectFromPList(value), oo::NSStringFrom(property));
+                OO_LOG("system.description.error", "'{}' is not a valid value for '{}' (string required)", oo::DescriptionOf(oo::ObjectFromPList(value)), property);
                 return oo::PList();
             }
         }
     } else if (property == "inhabitant" || property == "inhabitants" || property == "name") {
         // read in a context which expects a string
         if (!value.isString()) {
-            OOLog(@"system.description.error", @"'%@' is not a valid value for '%@' (string required)", oo::ObjectFromPList(value), oo::NSStringFrom(property));
+            OO_LOG("system.description.error", "'{}' is not a valid value for '{}' (string required)", oo::DescriptionOf(oo::ObjectFromPList(value)), property);
             return oo::PList();
         }
     }

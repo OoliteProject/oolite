@@ -56,12 +56,17 @@ SOFTWARE.
 #import "OOCacheManager.h"
 #import "OODebugStandards.h"
 #import "OOFoundationBridge.h"
+#import "OOFoundationException.h"
 #import "OOLoggingExtended.h"
 #import "OOOXPVerifierStageInternal.h"
 #import "OOPListView.h"
+#import "OOStringBridge.h"
 #import "ResourceManager.h"
 #include "oofnd/Date.hpp"
+#include "oofnd/Defaults.hpp"
 #include "oofnd/FileSystem.hpp"
+#include "oofnd/Log.hpp"
+#include "oofnd/PListGet.hpp"
 #include "oofnd/PListParsing.hpp"
 #include "oofnd/Process.hpp"
 #include "oofnd/String.hpp"
@@ -75,7 +80,8 @@ void OpenLogFile();
 
 @interface OOOXPVerifier (OOPrivate)
 
-- (id)initWithPath:(id)path; // path: an Objective-C string. Shared selector (proposed ADR-0043).
+- (id)initWithPath:(id)path; // path: an Objective-C string. Shared selector (Foundation declares it too): -cxx_initWithPath:.
+- (id)cxx_initWithPath:(const std::optional<std::string>&)path OO_RETURNS_RETAINED; // nullopt: nil (bead oo-3rb.292.2)
 - (void)run;
 
 - (void)setUpLogOverrides;
@@ -121,7 +127,7 @@ void OpenLogFile();
             if (argIndex + 1 < arguments.size())
                 foundPath = arguments[argIndex + 1];
             if (!foundPath.has_value()) {
-                OOLog(@"verifyOXP.noPath", @"***** ERROR: %s passed without path argument; nothing to verify.", arg.c_str());
+                OO_LOG("verifyOXP.noPath", "***** ERROR: {} passed without path argument; nothing to verify.", arg.c_str());
                 objc_autoreleasePoolPop(pool);
                 return YES;
             }
@@ -140,11 +146,11 @@ void OpenLogFile();
     exists = (foundType != oo::fs::FileType::none);
     isDirectory = (foundType == oo::fs::FileType::directory);
     if (!exists) {
-        OOLog(@"verifyOXP.badPath", @"***** ERROR: no OXP exists at path \"%@\"; nothing to verify.", oo::NSStringFrom(*foundPath));
+        OO_LOG("verifyOXP.badPath", "***** ERROR: no OXP exists at path \"{}\"; nothing to verify.", *foundPath);
     } else if (!isDirectory) {
-        OOLog(@"verifyOXP.badPath", @"***** ERROR: \"%@\" is a file, not an OXP directory; nothing to verify.", oo::NSStringFrom(*foundPath));
+        OO_LOG("verifyOXP.badPath", "***** ERROR: \"{}\" is a file, not an OXP directory; nothing to verify.", *foundPath);
     } else {
-        verifier = [[OOOXPVerifier alloc] initWithPath:oo::NSStringFrom(*foundPath)];
+        verifier = [[OOOXPVerifier alloc] cxx_initWithPath:foundPath];
         objc_autoreleasePoolPop(pool);
         pool = objc_autoreleasePoolPush();
         [verifier run];
@@ -172,18 +178,18 @@ void OpenLogFile();
         return;
 
     if (![stage isKindOfClass:[OOOXPVerifierStage class]]) {
-        OOLog(@"verifyOXP.registration.failed", @"Attempt to register class %@ as a verifier stage, but it is not a subclass of OOOXPVerifierStage; ignoring.", [stage class]);
+        OO_LOG("verifyOXP.registration.failed", "Attempt to register class {} as a verifier stage, but it is not a subclass of OOOXPVerifierStage; ignoring.", oo::DescriptionOf([stage class]));
         return;
     }
 
     if (!_openForRegistration) {
-        OOLog(@"verifyOXP.registration.failed", @"Attempt to register verifier stage %@ after registration closed, ignoring.", stage);
+        OO_LOG("verifyOXP.registration.failed", "Attempt to register verifier stage {} after registration closed, ignoring.", oo::DescriptionOf(stage));
         return;
     }
 
     name = [stage name];
     if (name == nil) {
-        OOLog(@"verifyOXP.registration.failed", @"Attempt to register verifier stage %@ with nil name, ignoring.", stage);
+        OO_LOG("verifyOXP.registration.failed", "Attempt to register verifier stage {} with nil name, ignoring.", oo::DescriptionOf(stage));
         return;
     }
 
@@ -193,7 +199,7 @@ void OpenLogFile();
     if (existing == stage)
         return;
     if (existing != nil) {
-        OOLog(@"verifyOXP.registration.failed", @"Attempt to register verifier stage %@ with same name as stage %@, ignoring.", stage, existing);
+        OO_LOG("verifyOXP.registration.failed", "Attempt to register verifier stage {} with same name as stage {}, ignoring.", oo::DescriptionOf(stage), oo::DescriptionOf(existing));
         return;
     }
 
@@ -263,7 +269,12 @@ void OpenLogFile();
 
 @implementation OOOXPVerifier (OOPrivate)
 
-- (id)initWithPath:(id)path // shared selector (proposed ADR-0043)
+- (id)initWithPath:(id)path // shared selector (Foundation declares it too)
+{
+    return [self cxx_initWithPath:oo::OptionalString(path)];
+}
+
+- (id)cxx_initWithPath:(const std::optional<std::string>&)path
 {
     self = [super init];
 
@@ -281,11 +292,11 @@ void OpenLogFile();
         }
     }
 
-    _basePath = oo::StdString(path); // never nil: the path always came from the command line
+    _basePath = path.value_or(std::string()); // never nullopt: the path always came from the command line
     _displayName = oo::str::lastPathComponent(_basePath); // what GNUstep's -displayNameAtPath: returns
 
     if (_verifierPList.isNull()) {
-        OOLog(@"verifyOXP.setup.failed", @"%@", @"***** ERROR: failed to set up OXP verifier.");
+        OO_LOG("verifyOXP.setup.failed", "{}", "***** ERROR: failed to set up OXP verifier.");
         [self release];
         return nil;
     }
@@ -313,28 +324,26 @@ void OpenLogFile();
     [ResourceManager setUseAddOns:SCENARIO_OXP_DEFINITION_NONE];
 
     SwitchLogFile(_displayName);
-    OOLog(@"verifyOXP.start", @"Running OXP verifier for %@", oo::NSStringFrom(_basePath)); //_displayName);
+    OO_LOG("verifyOXP.start", "Running OXP verifier for {}", _basePath); //_displayName);
 
     [self registerBaseStages];
     [self buildDependencyGraph];
     [self runStages];
 
     NoteVerificationStage(_displayName, "");
-    OOLog(@"verifyOXP.done", @"%@", @"OXP verification complete.");
+    OO_LOG("verifyOXP.done", "{}", "OXP verification complete.");
 
     OpenLogFile();
 }
 
 - (void)setUpLogOverrides
 {
-    id verbose = nil;
-
     OOLogSetShowMessageClassTemporary(_verifierPList.get<bool>("logShowMessageClassOverride", NO));
 
     const oo::PList* overrides = _verifierPList.get<oo::PList::Dict>("logControlOverride");
     if (overrides != nullptr) {
         for (const auto& override : *overrides->getIf<oo::PList::Dict>()) {
-            OOLogSetDisplayMessagesInClass(oo::NSStringFrom(override.first), overrides->get<bool>(override.first, NO));
+            oo::log::logger().setDisplay(override.first, overrides->get<bool>(override.first, NO));
         }
     }
 
@@ -342,9 +351,11 @@ void OpenLogFile();
             overriding verifyOXP.verbose through user defaults. This is at least
             as much a pain under GNUstep, but very convenient under OS X.
     */
-    verbose = [[NSUserDefaults standardUserDefaults] objectForKey:@"oxp-verifier-verbose-logging"];
-    if (verbose != nil)
-        OOLogSetDisplayMessagesInClass(@"verifyOXP.verbose", OOBooleanFromObject(verbose, NO));
+    {
+        const oo::PList verbose = oo::Defaults::standard().object("oxp-verifier-verbose-logging");
+        if (!verbose.isNull())
+            oo::log::logger().setDisplay("verifyOXP.verbose", oo::PListGet<bool>::from(&verbose, false));
+    }
 }
 
 - (void)registerBaseStages
@@ -362,7 +373,7 @@ void OpenLogFile();
         for (const std::string& stageName : stages) {
             stageClass = OOClassFromName(stageName);
             if (stageClass == Nil) {
-                OOLog(@"verifyOXP.registration.failed", @"Attempt to register unknown class %@ as a verifier stage, ignoring.", oo::NSStringFrom(stageName));
+                OO_LOG("verifyOXP.registration.failed", "Attempt to register unknown class {} as a verifier stage, ignoring.", stageName);
                 continue;
             }
             stage = [[stageClass alloc] init];
@@ -378,8 +389,6 @@ void OpenLogFile();
     id name = nil;
     std::map<OOOXPVerifierStage*, std::vector<std::string>> dependenciesByStage,
         dependentsByStage;
-    id dependencies = nil,
-       dependents = nil;
 
     @autoreleasepool {
         /*	Iterate over all stages, getting dependency and dependent sets.
@@ -397,14 +406,16 @@ void OpenLogFile();
             _waitingStages.erase(_waitingStages.begin());
             stage = waiting.get();
 
-            dependencies = [stage dependencies];
-            if (dependencies != nil) {
-                dependenciesByStage[stage] = oo::StringsFrom(dependencies);
+            std::optional<std::vector<std::string>> dependencies = [stage cxx_dependencies];
+            if (dependencies.has_value()) {
+                dependenciesByStage[stage] = std::move(*dependencies);
             }
 
-            dependents = [stage dependents];
-            if (dependents != nil) {
-                dependentsByStage[stage] = oo::StringsFrom(dependents);
+            const std::optional<std::vector<std::string>> dependents = [stage dependents];
+            if (dependents.has_value()) {
+                // Through the Objective-C set the stages returned before, so the names keep its
+                // enumeration order (-setUpDependents: registers them in that order).
+                dependentsByStage[stage] = oo::StringsFrom(oo::NSSetFromStrings(*dependents));
             }
         }
         _waitingStages.clear();
@@ -424,7 +435,7 @@ void OpenLogFile();
             // Sanity check
             name = [stage name];
             if (!oo::IsNSString(name) || oo::StdString(name) != stageKey) {
-                OOLog(@"verifyOXP.buildDependencyGraph.badName", @"***** Stage name appears to have changed from \"%@\" to \"%@\" for verifier stage %@, removing.", oo::NSStringFrom(stageKey), name, stage);
+                OO_LOG("verifyOXP.buildDependencyGraph.badName", "***** Stage name appears to have changed from \"{}\" to \"{}\" for verifier stage {}, removing.", stageKey, oo::DescriptionOf(name), oo::DescriptionOf(stage));
                 _stagesByName.erase(stageKey);
                 continue;
             }
@@ -464,7 +475,7 @@ void OpenLogFile();
         for (const auto& waiting : _waitingStages)
             [waiting.get() dependencyRegistrationComplete];
 
-        if ([[NSUserDefaults standardUserDefaults] boolForKey:@"oxp-verifier-dump-debug-graphviz"]) {
+        if (oo::Defaults::standard().boolForKey("oxp-verifier-dump-debug-graphviz")) {
             [self dumpDebugGraphviz];
         }
     }
@@ -495,25 +506,30 @@ void OpenLogFile();
         }
 
         stageName = nil;
-        OOLogPushIndent();
+        oo::log::pushIndent();
         @try {
             stageName = [stageToRun name];
             if ([stageToRun shouldRun]) {
                 NoteVerificationStage(_displayName, oo::DescriptionOf(stageName)); // "%@" text, as the old format printed it
-                OOLog(@"verifyOXP.runStage", @"%@", stageName);
-                OOLogIndent();
+                OO_LOG("verifyOXP.runStage", "{}", oo::DescriptionOf(stageName));
+                oo::log::indent();
                 [stageToRun performRun];
             } else {
-                OOLog(@"verifyOXP.verbose.skipStage", @"- Skipping stage: %@ (nothing to do).", stageName);
+                OO_LOG("verifyOXP.verbose.skipStage", "- Skipping stage: {} (nothing to do).", oo::DescriptionOf(stageName));
                 [stageToRun noteSkipped];
             }
         }
-        @catch (NSException* exception) {
+        @catch (OOException* exception) {
             if (stageName == nil)
                 stageName = [[stageToRun class] description];
-            OOLog(@"verifyOXP.exception", @"***** Exception occurred when running OXP verifier stage \"%@\": %@: %@", stageName, [exception name], [exception reason]);
+            OO_LOG("verifyOXP.exception", "***** Exception occurred when running OXP verifier stage \"{}\": {}: {}", oo::DescriptionOf(stageName), [exception name], [exception reason]);
         }
-        OOLogPopIndent();
+        @catch (OOFoundationException* exception) {
+            if (stageName == nil)
+                stageName = [[stageToRun class] description];
+            OO_LOG("verifyOXP.exception", "***** Exception occurred when running OXP verifier stage \"{}\": {}: {}", oo::DescriptionOf(stageName), oo::DescriptionOf([exception name]), oo::DescriptionOf([exception reason]));
+        }
+        oo::log::popIndent();
 
         std::erase(_waitingStages, stageToRun);
         objc_autoreleasePoolPop(pool);
@@ -522,12 +538,12 @@ void OpenLogFile();
     pool = objc_autoreleasePoolPush();
 
     if (!_waitingStages.empty()) {
-        OOLog(@"verifyOXP.incomplete", @"%@", @"Some verifier stages could not be run:");
-        OOLogIndent();
+        OO_LOG("verifyOXP.incomplete", "{}", "Some verifier stages could not be run:");
+        oo::log::indent();
         for (const auto& candidateStage : _waitingStages) {
-            OOLog(@"verifyOXP.incomplete.item", @"%@", candidateStage.get());
+            OO_LOG("verifyOXP.incomplete.item", "{}", oo::DescriptionOf(candidateStage.get()));
         }
-        OOLogOutdent();
+        oo::log::outdent();
     }
     _waitingStages.clear();
 
@@ -543,12 +559,12 @@ void OpenLogFile();
     for (const std::string& depName : dependencies) {
         depStage = [self cxx_stageWithName:depName];
         if (depStage == nil) {
-            OOLog(@"verifyOXP.buildDependencyGraph.unresolved", @"Verifier stage %@ has unresolved dependency \"%@\", skipping.", stage, oo::NSStringFrom(depName));
+            OO_LOG("verifyOXP.buildDependencyGraph.unresolved", "Verifier stage {} has unresolved dependency \"{}\", skipping.", oo::DescriptionOf(stage), depName);
             return NO;
         }
 
         if ([depStage isDependentOf:stage]) {
-            OOLog(@"verifyOXP.buildDependencyGraph.circularReference", @"Verifier stages %@ and %@ have a dependency loop, skipping.", stage, depStage);
+            OO_LOG("verifyOXP.buildDependencyGraph.circularReference", "Verifier stages {} and {} have a dependency loop, skipping.", oo::DescriptionOf(stage), oo::DescriptionOf(depStage));
             _stagesByName.erase(depName);
             return NO;
         }
@@ -568,12 +584,12 @@ void OpenLogFile();
     for (const std::string& depName : dependents) {
         depStage = [self cxx_stageWithName:depName];
         if (depStage == nil) {
-            OOLog(@"verifyOXP.buildDependencyGraph.unresolved", @"Verifier stage %@ has unresolved dependent \"%@\".", stage, oo::NSStringFrom(depName));
+            OO_LOG("verifyOXP.buildDependencyGraph.unresolved", "Verifier stage {} has unresolved dependent \"{}\".", oo::DescriptionOf(stage), depName);
             continue; // Unresolved/conflicting dependents are non-fatal
         }
 
         if ([stage isDependentOf:depStage]) {
-            OOLog(@"verifyOXP.buildDependencyGraph.circularReference", @"Verifier stage %@ lists %@ as both dependent and dependency (possibly indirectly); will execute %@ after %@.", stage, depStage, stage, depStage);
+            OO_LOG("verifyOXP.buildDependencyGraph.circularReference", "Verifier stage {} lists {} as both dependent and dependency (possibly indirectly); will execute {} after {}.", oo::DescriptionOf(stage), oo::DescriptionOf(depStage), oo::DescriptionOf(stage), oo::DescriptionOf(depStage));
             continue;
         }
 
@@ -656,10 +672,10 @@ void SwitchLogFile(const std::string& name)
     // #ifndef OOLITE_LINUX
     //  -stringByAppendingPathExtension: has no oo::str form yet: it runs on the bridged string.
     const std::string logName = oo::StdString([oo::NSStringFrom(name) stringByAppendingPathExtension:@"log"]);
-    OOLog(@"verifyOXP.switchingLog", @"Switching log files -- logging to \"%@\".", oo::NSStringFrom(logName));
-    OOLogOutputHandlerChangeLogFile(oo::NSStringFrom(logName));
+    OO_LOG("verifyOXP.switchingLog", "Switching log files -- logging to \"{}\".", logName);
+    cxx_OOLogOutputHandlerChangeLogFile(logName);
     // #else
-    //	OOLog(@"verifyOXP.switchingLog", @"Switching logging to <stdout>.");
+    //	OO_LOG("verifyOXP.switchingLog", "Switching logging to <stdout>.");
     //	OOLogOutputHandlerStartLoggingToStdout();
     // #endif
 }
@@ -675,22 +691,23 @@ void OpenLogFile()
 
     if (oo::PListView([NSUserDefaults standardUserDefaults]).get<bool>(@"oxp-verifier-open-log", YES)) {
 #if OOLITE_MAC_COCOA_UI
-        [[NSWorkspace sharedWorkspace] openFile:OOLogHandlerGetLogPath()];
+            [[NSWorkspace sharedWorkspace] openFile:oo::NSStringOrNil(cxx_OOLogHandlerGetLogPath())];
 #elif OOLITE_WINDOWS
-        // ShellExecute will automatically use the app associated with .log files
-        ShellExecute(NULL, NULL, [OOLogHandlerGetLogPath() UTF8String], NULL, NULL, SW_SHOWNORMAL);
+            // ShellExecute will automatically use the app associated with .log files
+            ShellExecute(NULL, NULL, [oo::NSStringOrNil(cxx_OOLogHandlerGetLogPath()) UTF8String], NULL, NULL, SW_SHOWNORMAL);
 #elif OOLITE_LINUX
-        // MKW - needed to suppress 'ignoring return value' warning for system() call
-        //		int ret;
-        // CIM - and now the compiler complains about that too... casting return
-        // value to void seems to keep it quiet for now
-        // Nothing to do here, since we dump to stdout instead of to a file.
-        // OOLogOutputHandlerStopLoggingToStdout();
-        (void)system(oo::str::format("cat \"%s\"", oo::DescriptionOf(OOLogHandlerGetLogPath()).c_str()).c_str());
+            // MKW - needed to suppress 'ignoring return value' warning for system() call
+            //		int ret;
+            // CIM - and now the compiler complains about that too... casting return
+            // value to void seems to keep it quiet for now
+            // Nothing to do here, since we dump to stdout instead of to a file.
+            // OOLogOutputHandlerStopLoggingToStdout();
+            (void)system(oo::str::format("cat \"%s\"", oo::DescriptionOf(oo::NSStringOrNil(cxx_OOLogHandlerGetLogPath())).c_str()).c_str());
 #else
-        do {
-        } while (0);
+            do {
+            } while (0);
 #endif
+        }
     }
 }
 

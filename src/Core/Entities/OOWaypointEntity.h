@@ -34,7 +34,8 @@ MA 02110-1301, USA.
 
 /*	Foundation sweep (proposed ADR-0043, bead oo-tmna): +waypointWithDictionary: takes an oo::PList;
         -initWithDictionary: and the beacon accessors are shared and keep id; the beacon strings are
-        std::optional (nil stays nil).
+        std::optional (nil stays nil). Foundation declares -initWithDictionary: too, so its typed form
+        is the twin -cxx_initWithDictionary: (bead oo-3rb.292.1).
 */
 @interface OOWaypointEntity : Entity <OOBeaconEntity> {
 @private
@@ -50,7 +51,8 @@ MA 02110-1301, USA.
 
 + (instancetype)waypointWithDictionary:(const oo::PList&)info;
 
-- (id)initWithDictionary:(id)info; // shared selector (proposed ADR-0043): an Objective-C dictionary
+- (id)initWithDictionary:(id)info; // shared selector (Foundation declares -initWithDictionary: too): -cxx_initWithDictionary: with an Objective-C dictionary
+- (id)cxx_initWithDictionary:(const oo::PList&)info OO_RETURNS_RETAINED;
 
 - (BOOL)oriented;
 - (OOScalar)size;

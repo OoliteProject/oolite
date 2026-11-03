@@ -24,208 +24,218 @@ MA 02110-1301, USA.
 
 #if DEBUG_GRAPHVIZ
 
-#import "OOPListView.h"
+#import "AIGraphViz.h"
 #import "OOStringParsing.h"
 #import "ResourceManager.h"
+#include "oofnd/String.hpp"
 
-// Generate and track unique identifiers for state-handler pairs.
-static NSString* HandlerToken(NSString* state, NSString* handler, NSMutableDictionary* handlerKeys, NSMutableSet* uniqueSet);
-static void HandleOneCommand(NSMutableString* graphViz, NSString* stateKey, NSString* handlerKey, NSMutableDictionary* handlerKeys, NSArray* handlerCommands, NSUInteger commandIter, NSUInteger commandCount, NSMutableSet* specialNodes, NSMutableSet* uniqueSet, BOOL* haveSetOrSwichAI);
-static void AddSimpleSpecialNodeLink(NSMutableString* graphViz, NSString* handlerToken, NSString* name, NSString* shape, NSString* color, NSMutableSet* specialNodes);
-static void AddExitAINode(NSMutableString* graphViz, NSString* handlerToken, NSString* message, NSMutableSet* specialNodes);
-static void AddChangeAINode(NSMutableString* graphViz, NSString* handlerToken, NSString* method, NSArray* components, NSArray* handlerCommands, NSUInteger commandIter, NSUInteger commandCount, NSMutableSet* specialNodes);
+/*	Foundation sweep (proposed ADR-0043, bead oo-ndxe): the state machine is an oo::PList and the
+        dump is built as a std::string. States and handlers are visited in key order (byte order; they
+        were in the dictionaries' hash order), and the special nodes are written in sorted order (they
+        were in the set's hash order); the .dot text is a debug dump, not a golden.
+*/
+namespace {
 
-void GenerateGraphVizForAIStateMachine(NSDictionary* stateMachine, NSString* smName)
+using HandlerKeys = std::map<std::string, std::map<std::string, std::string>>;
+
+// A command string, where the Foundation code read nil for anything else: nullopt when the
+// element is missing or neither a string nor a number.
+std::optional<std::string> CommandAt(const oo::PList* handlerCommands, std::size_t index)
 {
-    NSMutableSet* uniqueSet = [NSMutableSet set];
-    NSMutableDictionary* handlerKeys = [NSMutableDictionary dictionary];
-
-    NSMutableString* graphViz =
-        [NSMutableString stringWithFormat:
-                @"digraph ai_flow\n{\n"
-                 "\tgraph [charset=\"UTF-8\", label=\"%@ transition diagram\", labelloc=t, labeljust=l rankdir=LR compound=true nodesep=0.1 ranksep=2.5 fontname=Helvetica]\n"
-                 "\tedge [arrowhead=normal]\n"
-                 "\tnode [shape=box height=0.2 width=3.5 fontname=Helvetica color=\"#808080\"]\n\t\n"
-                 "\tspecial_start [shape=ellipse color=\"#0000C0\" label=\"Start\"]\n\tspecial_start -> %@ [lhead=\"cluster_GLOBAL\" color=\"#0000A0\"]\n",
-            EscapedGraphVizString(smName), HandlerToken(@"GLOBAL", @"ENTER", handlerKeys, uniqueSet)];
-
-    NSString* stateKey = nil;
-
-    NSMutableSet* specialNodes = [NSMutableSet set];
-
-    foreachkey(stateKey, stateMachine)
-    {
-        @autoreleasepool {
-            [graphViz appendFormat:@"\t\n\tsubgraph cluster_%@\n\t{\n\t\tlabel=\"%@\"\n", stateKey, EscapedGraphVizString(stateKey)];
-
-            NSDictionary* state = oo::PListView(stateMachine).get<NSDictionary*>(stateKey);
-            NSString* handlerKey = nil;
-            foreachkey(handlerKey, state)
-            {
-                [graphViz appendFormat:@"\t\t%@ [label=\"%@\"]\n", HandlerToken(stateKey, handlerKey, handlerKeys, uniqueSet), EscapedGraphVizString(handlerKey)];
-            }
-
-            // Ensure there is an ENTER handler for arrows to point at.
-            if ([state objectForKey:@"ENTER"] == nil) {
-                [graphViz appendFormat:@"\t\t%@ [label=\"ENTER (implicit)\"] // No ENTER handler in file, but it's still the target of any incoming transitions.\n", HandlerToken(stateKey, @"ENTER", handlerKeys, uniqueSet)];
-            }
-
-            [graphViz appendString:@"\t}\n"];
-
-            // Go through each handler looking for interesting methods.
-            foreachkey(handlerKey, state)
-            {
-                NSArray* handlerCommands = oo::PListView(state).get<NSArray*>(handlerKey);
-                NSUInteger commandIter, commandCount = [handlerCommands count];
-                BOOL haveSetOrSwichAI = NO;
-
-                for (commandIter = 0; commandIter < commandCount; commandIter++) {
-                    HandleOneCommand(graphViz, stateKey, handlerKey, handlerKeys, handlerCommands, commandIter, commandCount, specialNodes, uniqueSet, &haveSetOrSwichAI);
-                }
-            }
-        }
-    }
-
-    if ([specialNodes count] != 0) {
-        [graphViz appendString:@"\t\n"];
-
-        NSString* special = nil;
-        foreach (special, specialNodes) {
-            [graphViz appendString:special];
-        }
-    }
-
-    [graphViz appendString:@"}\n"];
-    [ResourceManager writeDiagnosticString:graphViz toFileNamed:[NSString stringWithFormat:@"AI Dumps/%@.dot", smName]];
+    const oo::PList* value = (handlerCommands != nullptr) ? handlerCommands->at(index) : nullptr;
+    if (value == nullptr || !(value->isString() || value->isNumber()))
+        return std::nullopt;
+    return handlerCommands->at<std::string>(index);
 }
 
-static NSString* HandlerToken(NSString* state, NSString* handler, NSMutableDictionary* handlerKeys, NSMutableSet* uniqueSet)
+// Generate and track unique identifiers for state-handler pairs.
+std::string HandlerToken(const std::string& state, const std::string& handler, HandlerKeys& handlerKeys, std::set<std::string>& uniqueSet)
 {
-    NSString* result = oo::PListView(oo::PListView(handlerKeys).get<NSDictionary*>(state)).get<NSString*>(handler);
+    std::map<std::string, std::string>& stateDict = handlerKeys[state];
+    const auto found = stateDict.find(handler);
+    if (found != stateDict.end())
+        return found->second;
 
-    if (result == nil) {
-        result = [NSString stringWithFormat:@"%@_h_%@", state, handler];
-        result = GraphVizTokenString(result, uniqueSet);
+    std::string result = oo::str::format("%s_h_%s", state.c_str(), handler.c_str());
+    result = cxx_GraphVizTokenString(result, &uniqueSet);
 
-        NSMutableDictionary* stateDict = [handlerKeys objectForKey:state];
-        if (stateDict == nil) {
-            stateDict = [NSMutableDictionary dictionary];
-            [handlerKeys setObject:stateDict forKey:state];
-        }
-
-        [stateDict setObject:result forKey:handler];
-    }
+    stateDict[handler] = result;
 
     return result;
 }
 
-static void HandleOneCommand(NSMutableString* graphViz, NSString* stateKey, NSString* handlerKey, NSMutableDictionary* handlerKeys, NSArray* handlerCommands, NSUInteger commandIter, NSUInteger commandCount, NSMutableSet* specialNodes, NSMutableSet* uniqueSet, BOOL* haveSetOrSwichAI)
+void AddSimpleSpecialNodeLink(std::string& graphViz, const std::string& handlerToken, const std::string& name, const char* shape, const char* color, std::set<std::string>& specialNodes)
 {
-    NSString* command = oo::PListView(handlerCommands).at<NSString*>(commandIter);
-    if (EXPECT_NOT(command == nil))
+    std::string identifier = cxx_GraphVizTokenString("special_" + name, nullptr);
+    std::string declaration = oo::str::format("\t%s [label=\"%s\" color=\"#%s\" shape=%s]\n", identifier.c_str(), cxx_EscapedGraphVizString(name).c_str(), color, shape);
+    specialNodes.insert(declaration);
+
+    graphViz += oo::str::format("\t%s -> %s [color=\"#%s\"]\n", handlerToken.c_str(), identifier.c_str(), color);
+}
+
+void AddExitAINode(std::string& graphViz, const std::string& handlerToken, const std::optional<std::string>& message, std::set<std::string>& specialNodes)
+{
+    std::string token;
+    std::string label;
+    if (!message.has_value() || *message == "RESTARTED" || message->empty()) {
+        token = "exitAI";
+        label = "exitAI";
+    } else {
+        token = cxx_GraphVizTokenString("exitAI_" + *message, nullptr);
+        label = cxx_EscapedGraphVizString("exitAIWithMessage:\n" + *message);
+    }
+
+    specialNodes.insert(oo::str::format("\t%s [label=\"%s\" color=\"#0000A0\" shape=ellipse]\n", token.c_str(), label.c_str()));
+    graphViz += oo::str::format("\t%s -> %s [color=\"#0000C0\"]\n", handlerToken.c_str(), token.c_str());
+}
+
+void AddChangeAINode(std::string& graphViz, const std::string& handlerToken, const std::string& method, const std::vector<std::string>& components, const oo::PList* handlerCommands, std::size_t commandIter, std::size_t commandCount, std::set<std::string>& specialNodes)
+{
+    std::string methodTag = method.substr(0, method.size() - 3); // delete "To:".
+
+    if (components.size() > 1) {
+        const std::string& targetAI = components[1];
+        std::string token = oo::str::format("%s_%s", methodTag.c_str(), targetAI.c_str());
+        std::string label = oo::str::format("%s\n%s", method.c_str(), targetAI.c_str());
+
+        // Look through remaining commands for a setStateTo:, which applies to the new AI.
+        std::optional<std::string> targetState;
+        std::size_t j = commandIter;
+        for (; j < commandCount; j++) {
+            const std::optional<std::string> command = CommandAt(handlerCommands, j);
+            if (command.has_value() && oo::str::hasPrefix(*command, "setStateTo:")) {
+                const std::vector<std::string> stateComponents = oo::str::tokens(*command);
+                if (stateComponents.size() > 1)
+                    targetState = stateComponents[1];
+            }
+        }
+        if (targetState.has_value()) {
+            token = oo::str::format("%s_%s", token.c_str(), targetState->c_str());
+            label = oo::str::format("%s (%s)", label.c_str(), targetState->c_str());
+        }
+
+        token = cxx_GraphVizTokenString(token, nullptr);
+        label = cxx_EscapedGraphVizString(label);
+
+        specialNodes.insert(oo::str::format("\t%s [label=\"%s\" color=\"#408000\" shape=ellipse]\n", token.c_str(), label.c_str()));
+        graphViz += oo::str::format("\t%s -> %s [color=\"#408000\"]\n", handlerToken.c_str(), token.c_str());
+    } else {
+        specialNodes.insert(oo::str::format("\tspecial_broken_%s [label=\"Broken %s command!\\n(No target AI specified.)\" color=\"#C00000\" shape=diamond]\n", methodTag.c_str(), method.c_str()));
+        graphViz += oo::str::format("\t%s -> tspecial_broken_%s [color=\"#C00000\"]\n", handlerToken.c_str(), methodTag.c_str());
+    }
+}
+
+void HandleOneCommand(std::string& graphViz, const std::string& stateKey, const std::string& handlerKey, HandlerKeys& handlerKeys, const oo::PList* handlerCommands, std::size_t commandIter, std::size_t commandCount, std::set<std::string>& specialNodes, std::set<std::string>& uniqueSet, BOOL* haveSetOrSwichAI)
+{
+    const std::optional<std::string> command = CommandAt(handlerCommands, commandIter);
+    if (EXPECT_NOT(!command.has_value()))
         return;
 
-    NSArray* components = ScanTokensFromString(command);
-    NSString* method = [components objectAtIndex:0];
-    NSString* handlerToken = HandlerToken(stateKey, handlerKey, handlerKeys, uniqueSet);
+    const std::vector<std::string> components = oo::str::tokens(*command);
+    // (an empty command has no method: -objectAtIndex:0 raised there)
+    if (EXPECT_NOT(components.empty()))
+        return;
+    const std::string& method = components[0];
+    std::string handlerToken = HandlerToken(stateKey, handlerKey, handlerKeys, uniqueSet);
 
-    if (!*haveSetOrSwichAI && [method isEqualToString:@"setStateTo:"]) {
-        if ([components count] > 1) {
-            NSString* targetState = [components objectAtIndex:1];
-            NSString* targetLabel = HandlerToken(targetState, @"ENTER", handlerKeys, uniqueSet);
+    if (!*haveSetOrSwichAI && method == "setStateTo:") {
+        if (components.size() > 1) {
+            const std::string& targetState = components[1];
+            std::string targetLabel = HandlerToken(targetState, "ENTER", handlerKeys, uniqueSet);
             BOOL constraint = YES;
-            if ([targetState isEqualToString:stateKey])
-                constraint = NO;
-            else if ([targetState isEqualToString:@"GLOBAL"])
+            if (targetState == stateKey || targetState == "GLOBAL")
                 constraint = NO;
 
-            [graphViz appendFormat:@"\t%@ -> %@ [lhead=cluster_%@%@]\n", handlerToken, targetLabel, targetState, constraint ? @"" : @" constraint=false"];
+            graphViz += oo::str::format("\t%s -> %s [lhead=cluster_%s%s]\n", handlerToken.c_str(), targetLabel.c_str(), targetState.c_str(), constraint ? "" : " constraint=false");
         } else {
-            [specialNodes addObject:@"\tspecial_brokenSetStateTo [label=\"Broken setStateTo: command!\\n(No target state specified.)\" color=\"#C00000\" shape=diamond]\n"];
-            [graphViz appendFormat:@"\t%@ -> special_brokenSetStateTo [color=\"#C00000\"]\n", handlerToken];
+            specialNodes.insert("\tspecial_brokenSetStateTo [label=\"Broken setStateTo: command!\\n(No target state specified.)\" color=\"#C00000\" shape=diamond]\n");
+            graphViz += oo::str::format("\t%s -> special_brokenSetStateTo [color=\"#C00000\"]\n", handlerToken.c_str());
         }
-    } else if ([method isEqualToString:@"becomeExplosion"]) {
-        AddSimpleSpecialNodeLink(graphViz, handlerToken, @"becomeExplosion", @"diamond", @"804000", specialNodes);
-    } else if ([method isEqualToString:@"becomeEnergyBlast"]) {
-        AddSimpleSpecialNodeLink(graphViz, handlerToken, @"becomeEnergyBlast", @"diamond", @"804000", specialNodes);
-    } else if ([method isEqualToString:@"landOnPlanet"]) {
-        AddSimpleSpecialNodeLink(graphViz, handlerToken, @"landOnPlanet", @"diamond", @"008040", specialNodes);
-    } else if ([method isEqualToString:@"performHyperSpaceExit"]) {
-        AddSimpleSpecialNodeLink(graphViz, handlerToken, @"performHyperSpaceExit", @"box", @"008080", specialNodes);
-    } else if ([method isEqualToString:@"performHyperSpaceExitWithoutReplacing"]) {
-        AddSimpleSpecialNodeLink(graphViz, handlerToken, @"performHyperSpaceExitWithoutReplacing", @"box", @"008080", specialNodes);
-    } else if ([method isEqualToString:@"enterTargetWormhole"]) {
-        AddSimpleSpecialNodeLink(graphViz, handlerToken, @"enterTargetWormhole", @"box", @"008080", specialNodes);
-    } else if ([method isEqualToString:@"becomeUncontrolledThargon"]) {
-        AddSimpleSpecialNodeLink(graphViz, handlerToken, @"becomeUncontrolledThargon", @"ellipse", @"804000", specialNodes);
-    } else if ([method isEqualToString:@"exitAIWithMessage:"]) {
-        NSString* message = ([components count] > 1) ? [components objectAtIndex:1] : nil;
+    } else if (method == "becomeExplosion") {
+        AddSimpleSpecialNodeLink(graphViz, handlerToken, "becomeExplosion", "diamond", "804000", specialNodes);
+    } else if (method == "becomeEnergyBlast") {
+        AddSimpleSpecialNodeLink(graphViz, handlerToken, "becomeEnergyBlast", "diamond", "804000", specialNodes);
+    } else if (method == "landOnPlanet") {
+        AddSimpleSpecialNodeLink(graphViz, handlerToken, "landOnPlanet", "diamond", "008040", specialNodes);
+    } else if (method == "performHyperSpaceExit") {
+        AddSimpleSpecialNodeLink(graphViz, handlerToken, "performHyperSpaceExit", "box", "008080", specialNodes);
+    } else if (method == "performHyperSpaceExitWithoutReplacing") {
+        AddSimpleSpecialNodeLink(graphViz, handlerToken, "performHyperSpaceExitWithoutReplacing", "box", "008080", specialNodes);
+    } else if (method == "enterTargetWormhole") {
+        AddSimpleSpecialNodeLink(graphViz, handlerToken, "enterTargetWormhole", "box", "008080", specialNodes);
+    } else if (method == "becomeUncontrolledThargon") {
+        AddSimpleSpecialNodeLink(graphViz, handlerToken, "becomeUncontrolledThargon", "ellipse", "804000", specialNodes);
+    } else if (method == "exitAIWithMessage:") {
+        const std::optional<std::string> message = (components.size() > 1) ? std::optional<std::string>(components[1]) : std::nullopt;
         AddExitAINode(graphViz, handlerToken, message, specialNodes);
-    } else if ([method isEqualToString:@"setAITo:"] || [method isEqualToString:@"switchAITo:"]) {
+    } else if (method == "setAITo:" || method == "switchAITo:") {
         *haveSetOrSwichAI = YES;
         AddChangeAINode(graphViz, handlerToken, method, components, handlerCommands, commandIter, commandCount, specialNodes);
     }
 }
 
-static void AddSimpleSpecialNodeLink(NSMutableString* graphViz, NSString* handlerToken, NSString* name, NSString* shape, NSString* color, NSMutableSet* specialNodes)
+} // namespace
+
+void GenerateGraphVizForAIStateMachine(const oo::PList& stateMachine, const std::string& smName)
 {
-    NSString* identifier = GraphVizTokenString([@"special_" stringByAppendingString:name], nil);
-    NSString* declaration = [NSString stringWithFormat:@"\t%@ [label=\"%@\" color=\"#%@\" shape=%@]\n", identifier, EscapedGraphVizString(name), color, shape];
-    [specialNodes addObject:declaration];
+    std::set<std::string> uniqueSet;
+    HandlerKeys handlerKeys;
 
-    [graphViz appendFormat:@"\t%@ -> %@ [color=\"#%@\"]\n", handlerToken, identifier, color];
-}
+    std::string graphViz = oo::str::format(
+        "digraph ai_flow\n{\n"
+        "\tgraph [charset=\"UTF-8\", label=\"%s transition diagram\", labelloc=t, labeljust=l rankdir=LR compound=true nodesep=0.1 ranksep=2.5 fontname=Helvetica]\n"
+        "\tedge [arrowhead=normal]\n"
+        "\tnode [shape=box height=0.2 width=3.5 fontname=Helvetica color=\"#808080\"]\n\t\n"
+        "\tspecial_start [shape=ellipse color=\"#0000C0\" label=\"Start\"]\n\tspecial_start -> %s [lhead=\"cluster_GLOBAL\" color=\"#0000A0\"]\n",
+        cxx_EscapedGraphVizString(smName).c_str(), HandlerToken("GLOBAL", "ENTER", handlerKeys, uniqueSet).c_str());
 
-static void AddExitAINode(NSMutableString* graphViz, NSString* handlerToken, NSString* message, NSMutableSet* specialNodes)
-{
-    NSString* token = nil;
-    NSString* label = nil;
-    if ([message isEqualToString:@"RESTARTED"] || [message length] == 0) {
-        token = @"exitAI";
-        label = @"exitAI";
-    } else {
-        token = GraphVizTokenString([@"exitAI_" stringByAppendingString:message], nil);
-        label = EscapedGraphVizString([@"exitAIWithMessage:\n" stringByAppendingString:message]);
-    }
+    std::set<std::string> specialNodes;
 
-    [specialNodes addObject:[NSString stringWithFormat:@"\t%@ [label=\"%@\" color=\"#0000A0\" shape=ellipse]\n", token, label]];
-    [graphViz appendFormat:@"\t%@ -> %@ [color=\"#0000C0\"]\n", handlerToken, token];
-}
+    if (const oo::PList::Dict* states = stateMachine.getIf<oo::PList::Dict>()) {
+        for (const auto& [stateKey, stateValue] : *states) {
+            @autoreleasepool {
+                graphViz += oo::str::format("\t\n\tsubgraph cluster_%s\n\t{\n\t\tlabel=\"%s\"\n", stateKey.c_str(), cxx_EscapedGraphVizString(stateKey).c_str());
 
-static void AddChangeAINode(NSMutableString* graphViz, NSString* handlerToken, NSString* method, NSArray* components, NSArray* handlerCommands, NSUInteger commandIter, NSUInteger commandCount, NSMutableSet* specialNodes)
-{
-    NSString* methodTag = [method substringToIndex:[method length] - 3]; // delete "To:".
+                const oo::PList::Dict* state = stateValue.getIf<oo::PList::Dict>();
+                if (state != nullptr) {
+                    for (const auto& [handlerKey, handlerValue] : *state) {
+                        graphViz += oo::str::format("\t\t%s [label=\"%s\"]\n", HandlerToken(stateKey, handlerKey, handlerKeys, uniqueSet).c_str(), cxx_EscapedGraphVizString(handlerKey).c_str());
+                    }
+                }
 
-    if ([components count] > 1) {
-        NSString* targetAI = [components objectAtIndex:1];
-        NSString* token = [NSString stringWithFormat:@"%@_%@", methodTag, targetAI];
-        NSString* label = [NSString stringWithFormat:@"%@\n%@", method, targetAI];
+                // Ensure there is an ENTER handler for arrows to point at.
+                if (state == nullptr || state->find("ENTER") == state->end()) {
+                    graphViz += oo::str::format("\t\t%s [label=\"ENTER (implicit)\"] // No ENTER handler in file, but it's still the target of any incoming transitions.\n", HandlerToken(stateKey, "ENTER", handlerKeys, uniqueSet).c_str());
+                }
 
-        // Look through remaining commands for a setStateTo:, which applies to the new AI.
-        NSString* targetState = nil;
-        NSUInteger j = commandIter;
-        for (; j < commandCount; j++) {
-            NSString* command = oo::PListView(handlerCommands).at<NSString*>(j);
-            if ([command hasPrefix:@"setStateTo:"]) {
-                NSArray* components = ScanTokensFromString(command);
-                if ([components count] > 1)
-                    targetState = [components objectAtIndex:1];
+                graphViz += "\t}\n";
+
+                // Go through each handler looking for interesting methods.
+                if (state != nullptr) {
+                    for (const auto& [handlerKey, handlerValue] : *state) {
+                        const oo::PList* handlerCommands = handlerValue.isArray() ? &handlerValue : nullptr;
+                        std::size_t commandIter, commandCount = (handlerCommands != nullptr) ? handlerCommands->count() : 0;
+                        BOOL haveSetOrSwichAI = NO;
+
+                        for (commandIter = 0; commandIter < commandCount; commandIter++) {
+                            HandleOneCommand(graphViz, stateKey, handlerKey, handlerKeys, handlerCommands, commandIter, commandCount, specialNodes, uniqueSet, &haveSetOrSwichAI);
+                        }
+                    }
+                }
             }
         }
-        if (targetState != nil) {
-            token = [NSString stringWithFormat:@"%@_%@", token, targetState];
-            label = [NSString stringWithFormat:@"%@ (%@)", label, targetState];
-        }
-
-        token = GraphVizTokenString(token, nil);
-        label = EscapedGraphVizString(label);
-
-        [specialNodes addObject:[NSString stringWithFormat:@"\t%@ [label=\"%@\" color=\"#408000\" shape=ellipse]\n", token, label]];
-        [graphViz appendFormat:@"\t%@ -> %@ [color=\"#408000\"]\n", handlerToken, token];
-    } else {
-        [specialNodes addObject:[NSString stringWithFormat:@"\tspecial_broken_%@ [label=\"Broken %@ command!\\n(No target AI specified.)\" color=\"#C00000\" shape=diamond]\n", methodTag, method]];
-        [graphViz appendFormat:@"\t%@ -> tspecial_broken_%@ [color=\"#C00000\"]\n", handlerToken, methodTag];
     }
+
+    if (!specialNodes.empty()) {
+        graphViz += "\t\n";
+
+        for (const std::string& special : specialNodes) {
+            graphViz += special;
+        }
+    }
+
+    graphViz += "}\n";
+    [ResourceManager cxx_writeDiagnosticString:graphViz toFileNamed:oo::str::format("AI Dumps/%s.dot", smName.c_str())];
 }
 
 #endif

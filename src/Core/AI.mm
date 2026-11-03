@@ -29,9 +29,11 @@ MA 02110-1301, USA.
 #import "OOStringParsing.h"
 #import "OOWeakReference.h"
 #import "ResourceManager.h"
+#include "oofnd/objc/OORuntime.h"
 #import <objc/objc-arc.h>
 #import <objc/runtime.h>
 
+#import "GameController.h"
 #import "OOFoundationBridge.h"
 #import "OOFoundationException.h"
 #import "OOStringBridge.h"
@@ -39,6 +41,8 @@ MA 02110-1301, USA.
 #import "ShipEntityAI.h"
 #import "oofnd/objc/OOObject.h"
 
+#include "oofnd/Log.hpp"
+#include "oofnd/Scanner.hpp"
 #include "oofnd/String.hpp"
 
 enum {
@@ -53,7 +57,7 @@ typedef struct
     id parameter;
 } OOAIDeferredCallTrampolineInfo;
 
-/*	Carries the trampoline info through -performSelector:withObject:afterDelay:,
+/*	Carries the trampoline info through OOScheduleDeferredCall(),
         which retains it until the call fires, as it did the value box that held the
         struct before (bead oo-3rb.48).
 */
@@ -70,6 +74,15 @@ static AI* sCurrentlyRunningAI = nil;
 
 namespace {
 
+// OODictionaryFromFile (OOPListParsing's bridge) as a property list: the file's
+// property list when it is a dictionary, a null PList otherwise (its plist.wrongType log line,
+// which named the Foundation class, is not kept).
+oo::PList PListDictionaryFromFile(const std::string& path)
+{
+    oo::PList result = cxx_OOPropertyListFromFile(path);
+    return result.isDict() ? result : oo::PList();
+}
+
 // The state machine's "jsScript" entry as an Objective-C object, nil if it has none (what
 // -objectForKey:@"jsScript" answered).
 id JSScriptObjectOf(const oo::PList& stateMachine)
@@ -82,7 +95,7 @@ id JSScriptObjectOf(const oo::PList& stateMachine)
 
 @interface AI (OOPrivate)
 
-// Wrapper for performSelector:withObject:afterDelay: to catch/fix bugs.
+// Wrapper for a deferred call (OOScheduleDeferredCall) to catch/fix bugs.
 - (void)performDeferredCall:(SEL)selector withObject:(id)object afterDelay:(NSTimeInterval)delay;
 + (void)deferredCallTrampolineWithInfo:(OOAIDeferredCallTrampolineInfoHolder*)info;
 // The target of -cxx_setState:afterDelay:'s deferred call: stateName is an Objective-C string.
@@ -122,8 +135,8 @@ id JSScriptObjectOf(const oo::PList& stateMachine)
 
 - (oo::PList)stateMachine;
 - (id)name; // shared selector (proposed ADR-0043): an Objective-C string
-- (id)state; // shared selector (proposed ADR-0043): an Objective-C string or nil
-- (id)pendingMessages; // shared selector (proposed ADR-0043): an Objective-C set of strings
+- (std::optional<std::string>)cxx_state;
+- (std::set<std::string>)pendingMessages;
 - (std::optional<std::string>)jsScript;
 
 @end
@@ -138,7 +151,7 @@ id JSScriptObjectOf(const oo::PList& stateMachine)
 + (std::optional<std::string>)cxx_currentlyRunningAIDescription
 {
     if (sCurrentlyRunningAI != nil) {
-        return oo::str::format("%s in state %s", oo::DescriptionOf([sCurrentlyRunningAI name]).c_str(), oo::DescriptionOf([sCurrentlyRunningAI state]).c_str());
+        return oo::str::format("%s in state %s", oo::DescriptionOf([sCurrentlyRunningAI name]).c_str(), [sCurrentlyRunningAI cxx_state].value_or("(null)").c_str());
     } else {
         return "<no AI running>";
     }
@@ -213,7 +226,7 @@ id JSScriptObjectOf(const oo::PList& stateMachine)
         BOOL stackDump = OOLogWillDisplayMessagesInClass(@"ai.error.stackOverflow.dump");
 
         const char* trailer = stackDump ? " -- stack:" : ".";
-        OOLogERR(@"ai.error.stackOverflow", @"AI stack overflow for %@ in %@: %@%@\n", [_owner shortDescription], oo::NSStringFrom(stateMachineName), oo::NSStringOrNil(currentState), oo::NSStringFrom(trailer));
+        OO_LOG_ERR("ai.error.stackOverflow", "AI stack overflow for {} in {}: {}{}\n", oo::DescriptionOf([_owner shortDescription]), stateMachineName, currentState.value_or("(null)"), trailer);
 
         if (stackDump) {
             OOLogIndent();
@@ -221,7 +234,7 @@ id JSScriptObjectOf(const oo::PList& stateMachine)
             std::size_t count = aiStack.size();
             while (count--) {
                 OOPreservedAIStateMachine* preservedMachine = aiStack[count].get();
-                OOLog(@"ai.error.stackOverflow.dump", @"%3zu: %@: %@", count, [preservedMachine name], [preservedMachine state]);
+                OO_LOG("ai.error.stackOverflow.dump", "{}: {}: {}", count, oo::DescriptionOf([preservedMachine name]), [preservedMachine cxx_state].value_or("(null)"));
             }
 
             OOLogOutdent();
@@ -251,7 +264,7 @@ id JSScriptObjectOf(const oo::PList& stateMachine)
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
     if ([[self owner] reportAIMessages])
-        OOLog(@"ai.stack.push", @"Pushing state machine for %@", self);
+        OO_LOG("ai.stack.push", "Pushing state machine for {}", oo::DescriptionOf(self));
 #endif
 
     aiStack.push_back(std::move(preservedMachine)); // PUSH
@@ -266,19 +279,18 @@ id JSScriptObjectOf(const oo::PList& stateMachine)
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
     if ([[self owner] reportAIMessages])
-        OOLog(@"ai.stack.pop", @"Popping previous state machine for %@", self);
+        OO_LOG("ai.stack.pop", "Popping previous state machine for {}", oo::DescriptionOf(self));
 #endif
 
     [self directSetStateMachine:[preservedMachine.get() stateMachine]
                            name:oo::StdString([preservedMachine.get() name])];
 
-    [self directSetState:oo::OptionalString([preservedMachine.get() state])];
+    [self directSetState:[preservedMachine.get() cxx_state]];
 
     // restore JS script
-    [[self owner] setAIScript:oo::NSStringOrNil([preservedMachine.get() jsScript])];
+    [[self owner] setAIScript:[preservedMachine.get() jsScript].value_or("")];
 
-    const std::vector<std::string> preservedMessages = oo::StringsFrom([preservedMachine.get() pendingMessages]);
-    pendingMessages = std::set<std::string>(preservedMessages.begin(), preservedMessages.end());
+    pendingMessages = [preservedMachine.get() pendingMessages];
 
     aiStack.pop_back(); //  POP
 }
@@ -361,9 +373,14 @@ id JSScriptObjectOf(const oo::PList& stateMachine)
     return oo::OptionalString(JSScriptObjectOf(stateMachine));
 }
 
-- (id)state
+- (id)state // shared selector (Foundation declares -state too; retires with oo-qps)
 {
-    return oo::NSStringOrNil(currentState);
+    return oo::NSStringOrNil([self cxx_state]);
+}
+
+- (std::optional<std::string>)cxx_state
+{
+    return currentState;
 }
 
 - (NSUInteger)stackDepth
@@ -430,7 +447,7 @@ static AIStackElement* sStack = NULL;
         AIStackElement* stack = sStack;
         unsigned depth = 0;
         while (stack != NULL) {
-            OOLog(@"ai.error.recursion.stackTrace", @"%4u  %@ - %@:%@.%@ (%@)", depth++, [stack->owner shortDescription], oo::NSStringFrom(stack->aiName), oo::NSStringOrNil(stack->state), oo::NSStringFrom(*stack->message), oo::NSStringFrom(*stack->context));
+            OO_LOG("ai.error.recursion.stackTrace", "{}  {} - {}:{}.{} ({})", depth++, oo::DescriptionOf([stack->owner shortDescription]), stack->aiName, stack->state.value_or("(null)"), *stack->message, *stack->context);
             stack = stack->back;
         }
 
@@ -454,7 +471,7 @@ static AIStackElement* sStack = NULL;
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
     if (currentState.has_value() && message != "UPDATE" && [owner reportAIMessages]) {
-        OOLog(@"ai.message.receive", @"AI %@ for %@ in state '%@' receives message '%@'. Context: %@, stack depth: %u", oo::NSStringFrom(stateMachineName), oo::NSStringOrNil(ownerDesc), oo::NSStringOrNil(currentState), oo::NSStringFrom(message), oo::NSStringOrNil(debugContext), recursionLimiter);
+        OO_LOG("ai.message.receive", "AI {} for {} in state '{}' receives message '{}'. Context: {}, stack depth: {}", stateMachineName, ownerDesc.value_or("(null)"), currentState.value_or("(null)"), message, debugContext.value_or("(null)"), static_cast<unsigned>(recursionLimiter));
     }
 #endif
 
@@ -471,10 +488,10 @@ static AIStackElement* sStack = NULL;
             }
         }
         @catch (OOException* exception) {
-            OOLog(kOOLogException, @"Squashing exception %@:%@ in AI handler %@:%@.%@", oo::NSStringFrom([exception name]), oo::NSStringFrom([exception reason]), oo::NSStringFrom(stateMachineName), oo::NSStringOrNil(currentState), oo::NSStringFrom(message));
+            OO_LOG(cxx_kOOLogException, "Squashing exception {}:{} in AI handler {}:{}.{}", [exception name], [exception reason], stateMachineName, currentState.value_or("(null)"), message);
         }
         @catch (OOFoundationException* exception) {
-            OOLog(kOOLogException, @"Squashing exception %@:%@ in AI handler %@:%@.%@", [exception name], [exception reason], oo::NSStringFrom(stateMachineName), oo::NSStringOrNil(currentState), oo::NSStringFrom(message));
+            OO_LOG(cxx_kOOLogException, "Squashing exception {}:{} in AI handler {}:{}.{}", oo::DescriptionOf([exception name]), oo::DescriptionOf([exception reason]), stateMachineName, currentState.value_or("(null)"), message);
         }
 
         --recursionLimiter;
@@ -501,7 +518,7 @@ static AIStackElement* sStack = NULL;
 #ifdef OO_DEBUG_MONITOR_ENABLED
     BOOL report = [owner reportAIMessages];
     if (report) {
-        OOLog(@"ai.takeAction", @"%@ to take action %@", oo::NSStringOrNil(ownerDesc), oo::NSStringFrom(action));
+        OO_LOG("ai.takeAction", "{} to take action {}", ownerDesc.value_or("(null)"), action);
         OOLogIndent();
     }
 #endif
@@ -527,22 +544,22 @@ static AIStackElement* sStack = NULL;
                 dataString = std::move(joined);
             }
 
-            SEL selector = NSSelectorFromString(oo::NSStringFrom(selectorStr));
+            SEL selector = OOSelectorFromName(selectorStr);
             if ([owner respondsToSelector:selector]) {
                 if (dataString.has_value())
                     [owner performSelector:selector withObject:oo::NSStringFrom(*dataString)];
                 else
                     [owner performSelector:selector];
             } else {
-                OOLogERR(@"ai.takeAction.badSelector", @"in AI %@ in state %@: %@ does not respond to %@", oo::NSStringFrom(stateMachineName), oo::NSStringOrNil(currentState), oo::NSStringOrNil(ownerDesc), oo::NSStringFrom(selectorStr));
+                OO_LOG_ERR("ai.takeAction.badSelector", "in AI {} in state {}: {} does not respond to {}", stateMachineName, currentState.value_or("(null)"), ownerDesc.value_or("(null)"), selectorStr);
             }
         } else {
-            OOLog(@"ai.takeAction.orphaned", @"***** AI %@, trying to perform %@, is orphaned (no owner)", oo::NSStringFrom(stateMachineName), oo::NSStringFrom(selectorStr));
+            OO_LOG("ai.takeAction.orphaned", "***** AI {}, trying to perform {}, is orphaned (no owner)", stateMachineName, selectorStr);
         }
     } else {
 #ifdef OO_DEBUG_MONITOR_ENABLED
         if (report)
-            OOLog(@"ai.takeAction.noAction", @"DEBUG: - no action '%@'", oo::NSStringFrom(action));
+            OO_LOG("ai.takeAction.noAction", "DEBUG: - no action '{}'", action);
 #endif
     }
 
@@ -569,16 +586,16 @@ static AIStackElement* sStack = NULL;
     }
 }
 
-- (void)message:(id)ms
+- (void)message:(const std::string&)ms
 {
     if ([[self owner] universalID] == NO_TARGET)
         return; // don't think until launched
 
     if (EXPECT_NOT(pendingMessages.size() > 32)) {
         // Generate the error, but don't crash Oolite! Fixes bug #18055 - Pending message overflow for thargoids, -> crash !
-        OOLogERR(@"ai.message.failed.overflow", @"AI message \"%@\" received by '%@' AI while pending messages stack full; message discarded. Pending messages:\n%@", ms, oo::NSStringOrNil(ownerDesc), [self pendingMessages]);
+        OO_LOG_ERR("ai.message.failed.overflow", "AI message \"{}\" received by '{}' AI while pending messages stack full; message discarded. Pending messages:\n{}", ms, ownerDesc.value_or("(null)"), oo::DescriptionOf(oo::NSSetFromStrings([self pendingMessages])));
     } else {
-        pendingMessages.insert(oo::StdString(ms));
+        pendingMessages.insert(ms);
     }
 }
 
@@ -587,9 +604,9 @@ static AIStackElement* sStack = NULL;
     pendingMessages.erase(ms);
 }
 
-- (id)pendingMessages
+- (std::set<std::string>)pendingMessages
 {
-    return oo::NSSetFromStrings(pendingMessages);
+    return pendingMessages;
 }
 
 - (void)debugDumpPendingMessages
@@ -612,7 +629,7 @@ static AIStackElement* sStack = NULL;
         displayMessages = "none";
     }
 
-    OOLog(@"ai.debug.pendingMessages", @"Pending messages for AI %@: %@", [self descriptionComponents], oo::NSStringFrom(displayMessages));
+    OO_LOG("ai.debug.pendingMessages", "Pending messages for AI {}: {}", oo::DescriptionOf([self descriptionComponents]), displayMessages);
 }
 
 - (void)setNextThinkTime:(OOTimeAbsolute)ntt
@@ -653,10 +670,10 @@ static AIStackElement* sStack = NULL;
 
 - (void)dumpState
 {
-    OOLog(@"dumpState.ai", @"State machine name: %@", oo::NSStringFrom(stateMachineName));
-    OOLog(@"dumpState.ai", @"Current state: %@", oo::NSStringOrNil(currentState));
-    OOLog(@"dumpState.ai", @"Next think time: %g", nextThinkTime);
-    OOLog(@"dumpState.ai", @"Next think interval: %g", thinkTimeInterval);
+    OO_LOG("dumpState.ai", "State machine name: {}", stateMachineName);
+    OO_LOG("dumpState.ai", "Current state: {}", currentState.value_or("(null)"));
+    OO_LOG("dumpState.ai", "Next think time: {:g}", nextThinkTime);
+    OO_LOG("dumpState.ai", "Next think interval: {:g}", thinkTimeInterval);
 }
 
 @end
@@ -682,9 +699,7 @@ static AIStackElement* sStack = NULL;
         info = [[OOAIDeferredCallTrampolineInfoHolder alloc] init];
         info->info = infoStruct;
 
-        [[AI class] performSelector:@selector(deferredCallTrampolineWithInfo:)
-                         withObject:info
-                         afterDelay:delay];
+        OOScheduleDeferredCall([AI class], @selector(deferredCallTrampolineWithInfo:), info, delay);
         [info release];
     }
 }
@@ -747,23 +762,24 @@ static AIStackElement* sStack = NULL;
 
     if (newSM.isNull()) {
         pool = objc_autoreleasePoolPush();
-        OOLog(@"ai.load", @"Loading and sanitizing AI \"%@\"", oo::NSStringFrom(smName));
+        OO_LOG("ai.load", "Loading and sanitizing AI \"{}\"", smName);
         OOLogPushIndent();
-        OOLogIndentIf(@"ai.load");
+        oo::log::indentIf("ai.load");
 
         @try {
             // Load state machine and validate against whitelist.
             const std::optional<std::string> aiPath = oo::OptionalString([ResourceManager pathForFileNamed:oo::NSStringFrom(smName) inFolder:@"AIs"]);
             if (aiPath.has_value()) {
-                newSM = oo::PListFrom(OODictionaryFromFile(oo::NSStringFrom(*aiPath)));
+                newSM = PListDictionaryFromFile(*aiPath);
             }
             if (newSM.isNull()) {
                 [cacheMgr cxx_setObject:@"nil" forKey:smName inCache:"AIs"];
                 std::string fromString;
-                if ([self state] != nil) {
-                    fromString = oo::str::format(" from %s:%s", oo::DescriptionOf([self name]).c_str(), oo::DescriptionOf([self state]).c_str());
+                const std::optional<std::string> state = [self cxx_state];
+                if (state.has_value()) {
+                    fromString = oo::str::format(" from %s:%s", oo::DescriptionOf([self name]).c_str(), state->c_str());
                 }
-                OOLog(@"ai.load.failed.unknownAI", @"Can't switch AI for %@%@ to \"%@\" - could not load file.", [[self owner] shortDescription], oo::NSStringFrom(fromString), oo::NSStringFrom(smName));
+                OO_LOG("ai.load.failed.unknownAI", "Can't switch AI for {}{} to \"{}\" - could not load file.", oo::DescriptionOf([[self owner] shortDescription]), fromString, smName);
                 return oo::PList();
             }
 
@@ -773,7 +789,7 @@ static AIStackElement* sStack = NULL;
             const oo::PList::Dict* states = newSM.getIf<oo::PList::Dict>();
             for (const auto& [stateKey, stateHandlers] : states != nullptr ? *states : oo::PList::Dict()) {
                 if (!stateHandlers.isDict()) {
-                    OOLogWARN(@"ai.invalidFormat.state", @"State \"%@\" in AI \"%@\" is not a dictionary, ignoring.", oo::NSStringFrom(stateKey), oo::NSStringFrom(smName));
+                    OO_LOG_WARN("ai.invalidFormat.state", "State \"{}\" in AI \"{}\" is not a dictionary, ignoring.", stateKey, smName);
                     continue;
                 }
 
@@ -785,7 +801,7 @@ static AIStackElement* sStack = NULL;
 
 #if DEBUG_GRAPHVIZ
             if ([[NSUserDefaults standardUserDefaults] boolForKey:@"generate-ai-graphviz"]) {
-                GenerateGraphVizForAIStateMachine(oo::ObjectFromPList(newSM), oo::NSStringFrom(smName));
+                GenerateGraphVizForAIStateMachine(newSM, smName);
             }
 #endif
 
@@ -810,7 +826,7 @@ static AIStackElement* sStack = NULL;
     const oo::PList::Dict* entries = handlers.getIf<oo::PList::Dict>();
     for (const auto& [handlerKey, handlerActions] : entries != nullptr ? *entries : oo::PList::Dict()) {
         if (!handlerActions.isArray()) {
-            OOLogWARN(@"ai.invalidFormat.handler", @"Handler \"%@\" for state \"%@\" in AI \"%@\" is not an array, ignoring.", oo::NSStringFrom(handlerKey), oo::NSStringFrom(stateKey), oo::NSStringFrom(smName));
+            OO_LOG_WARN("ai.invalidFormat.handler", "Handler \"{}\" for state \"{}\" in AI \"{}\" is not an array, ignoring.", handlerKey, stateKey, smName);
             continue;
         }
 
@@ -843,19 +859,18 @@ static AIStackElement* sStack = NULL;
             aliases = *aliasDictionary;
     }
 
-    // -stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]: whitespace, not newlines.
-    NSCharacterSet* whitespace = [NSCharacterSet whitespaceCharacterSet];
-    auto isWhitespace = [whitespace](char16_t c) { return [whitespace characterIsMember:c] != NO; };
+    // The whitespace character set: whitespace, not newlines.
+    const oo::str::CharacterSet whitespace = oo::str::CharacterSet::whitespace();
 
     const oo::PList::Array* entries = actions.getIf<oo::PList::Array>();
     for (const oo::PList& entry : entries != nullptr ? *entries : oo::PList::Array()) {
         if (!entry.isString()) {
-            OOLogWARN(@"ai.invalidFormat.action", @"An action in handler \"%@\" for state \"%@\" in AI \"%@\" is not a string, ignoring.", oo::NSStringFrom(handlerKey), oo::NSStringFrom(stateKey), oo::NSStringFrom(smName));
+            OO_LOG_WARN("ai.invalidFormat.action", "An action in handler \"{}\" for state \"{}\" in AI \"{}\" is not a string, ignoring.", handlerKey, stateKey, smName);
             continue;
         }
 
         // Trim spaces from beginning and end.
-        std::string action = oo::str::trimTrailing(oo::str::trimLeading(*entry.getIf<std::string>(), isWhitespace), isWhitespace);
+        std::string action = oo::str::trim(*entry.getIf<std::string>(), whitespace);
 
         // Cut off parameters.
         const std::size_t space = action.find(' ');
@@ -892,7 +907,7 @@ static AIStackElement* sStack = NULL;
 
         // Check for selector in whitelist.
         if (!whitelist->contains(selector)) {
-            OOLog(@"ai.unpermittedMethod", @"Handler \"%@\" for state \"%@\" in AI \"%@\" uses \"%@\", which is not a permitted AI method.", oo::NSStringFrom(handlerKey), oo::NSStringFrom(stateKey), oo::NSStringFrom(smName), oo::NSStringFrom(selector));
+            OO_LOG("ai.unpermittedMethod", "Handler \"{}\" for state \"{}\" in AI \"{}\" uses \"{}\", which is not a permitted AI method.", handlerKey, stateKey, smName, selector);
             continue;
         }
 
@@ -933,14 +948,14 @@ static AIStackElement* sStack = NULL;
     return oo::NSStringFrom(_name);
 }
 
-- (id)state
+- (std::optional<std::string>)cxx_state
 {
-    return oo::NSStringOrNil(_state);
+    return _state;
 }
 
-- (id)pendingMessages
+- (std::set<std::string>)pendingMessages
 {
-    return oo::NSSetFromStrings(_pendingMessages);
+    return _pendingMessages;
 }
 
 - (std::optional<std::string>)jsScript

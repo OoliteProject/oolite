@@ -39,6 +39,12 @@ MA 02110-1301, USA.
 #import "OOWeakReference.h"
 #import "legacy_random.h"
 
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
+#include "oofnd/objc/OOObjCRef.h"
+
+@class OOMaterial;
+
 #if OOLITE_ESPEAK
 #include <espeak-ng/speak_lib.h>
 #endif
@@ -47,7 +53,7 @@ MA 02110-1301, USA.
     Entity, ShipEntity, StationEntity, OOPlanetEntity, OOSunEntity,
     OOVisualEffectEntity, PlayerEntity, OORoleSet, WormholeEntity,
     DockEntity, OOJSScript, OOWaypointEntity, OOSystemDescriptionManager,
-    OOException;
+    OOException, OOCharacter;
 
 typedef BOOL (*EntityFilterPredicate)(Entity* entity, void* parameter);
 
@@ -208,15 +214,15 @@ enum {
     int next_universal_id;
     Entity* entity_for_uid[MAX_ENTITY_UID];
 
-    NSMutableArray* entities;
+    std::vector<oo::ObjCRef<Entity*>> entities;
 
     OOWeakReference *_firstBeacon,
         *_lastBeacon;
-    NSMutableDictionary* waypoints;
+    std::map<std::string, oo::ObjCRef<OOWaypointEntity*>, std::less<>> waypoints; // by key
 
     GLfloat skyClearColor[4];
 
-    NSString* currentMessage;
+    std::optional<std::string> currentMessage;
     OOTimeAbsolute messageRepeatTime;
     OOTimeAbsolute countdown_messageRepeatTime; // Getafix(4/Aug/2010) - Quickfix countdown messages colliding with weapon overheat messages.
                                                 //                       For proper handling of message dispatching, code refactoring is needed.
@@ -246,7 +252,7 @@ enum {
     int demo_stage;
     NSUInteger demo_ship_index;
     NSUInteger demo_ship_subindex;
-    NSArray* demo_ships;
+    oo::PList demo_ships; // arrays (one per class) of demo ship dictionaries
 
     GLfloat main_light_position[4];
 
@@ -255,28 +261,29 @@ enum {
     OOCommodities* commodities;
     OOCommodityMarket* commodityMarket;
 
-    NSDictionary* _descriptions; // holds descriptive text for lots of stuff, loaded at initialisation
-    NSDictionary* customSounds; // holds descriptive audio for lots of stuff, loaded at initialisation
-    NSDictionary* characters; // holds descriptons of characters
-    NSArray* _scenarios; // game start scenarios
-    NSDictionary* globalSettings; // miscellaneous global game settings
+    oo::PList _descriptions; // holds descriptive text for lots of stuff, loaded at initialisation (a dict; null until loaded)
+    unsigned _descriptionsGeneration; // changes whenever _descriptions is assigned (the bridged -descriptions caches per generation)
+    oo::PList customSounds; // holds descriptive audio for lots of stuff, loaded at initialisation
+    oo::PList characters; // holds descriptons of characters
+    oo::PList _scenarios; // game start scenarios (an array)
+    oo::PList globalSettings; // miscellaneous global game settings
     OOSystemDescriptionManager* systemManager; // planetinfo data manager
-    NSDictionary* missiontext; // holds descriptive text for missions, loaded at initialisation
-    NSArray* equipmentData; // holds data on available equipment, loaded at initialisation
-    NSArray* equipmentDataOutfitting;
-    //	NSSet					*pirateVictimRoles;		// Roles listed in pirateVictimRoles.plist.
-    NSDictionary* roleCategories; // Categories for roles from role-categories.plist, extending the old pirate-victim-roles.plist
-    NSDictionary* autoAIMap; // Default AIs for roles from autoAImap.plist.
-    NSDictionary* screenBackgrounds; // holds filenames for various screens backgrounds, loaded at initialisation
-    NSDictionary* explosionSettings; // explosion settings from explosions.plist
+    oo::PList missiontext; // holds descriptive text for missions, loaded at initialisation
+    oo::PList equipmentData; // holds data on available equipment, loaded at initialisation (an array)
+    oo::PList equipmentDataOutfitting;
+    //	std::set<std::string>	pirateVictimRoles;		// Roles listed in pirateVictimRoles.plist.
+    oo::PList roleCategories; // Categories for roles from role-categories.plist, extending the old pirate-victim-roles.plist (category -> array of roles)
+    oo::PList autoAIMap; // Default AIs for roles from autoAImap.plist.
+    oo::PList screenBackgrounds; // holds filenames for various screens backgrounds, loaded at initialisation
+    oo::PList explosionSettings; // explosion settings from explosions.plist
 
-    NSDictionary* cargoPods; // template cargo pods
+    std::map<std::string, oo::ObjCRef<ShipEntity*>, std::less<>> cargoPods; // template cargo pods, by commodity key
 
     OOGalaxyID galaxyID;
     OOSystemID systemID;
     OOSystemID targetSystemID;
 
-    NSString* system_names[256]; // hold pregenerated universe info
+    std::optional<std::string> system_names[256]; // hold pregenerated universe info (nullopt where the name was nil)
     BOOL system_found[256]; // holds matches for input strings
 
     int breakPatternCounter;
@@ -286,19 +293,19 @@ enum {
     StationEntity* cachedStation;
     OOPlanetEntity* cachedPlanet;
     OOSunEntity* cachedSun;
-    NSMutableArray* allPlanets;
-    NSMutableSet* allStations;
+    std::vector<oo::ObjCRef<OOPlanetEntity*>> allPlanets;
+    std::vector<oo::ObjCRef<StationEntity*>> allStations; // each once, in the order added
 
     float ambientLightLevel;
 
-    NSMutableDictionary* populatorSettings;
+    oo::PList populatorSettings; // key -> populator block (a mixed configuration: each block's callbackObj is an Object node)
     OOTimeDelta next_repopulation;
-    NSString* system_repopulator;
+    std::optional<std::string> system_repopulator;
     BOOL deterministic_population;
 
-    NSArray* closeSystems;
+    std::optional<std::vector<OOSystemID>> closeSystems; // the current system's neighbours; nullopt until cached
 
-    NSString* useAddOns;
+    std::string useAddOns;
 
     BOOL no_update;
 
@@ -308,16 +315,16 @@ enum {
 
     BOOL ECMVisualFXEnabled;
 
-    NSMutableArray* activeWormholes;
+    std::vector<oo::ObjCRef<WormholeEntity*>> activeWormholes;
 
-    NSMutableArray* characterPool;
+    std::vector<oo::ObjCRef<OOCharacter*>> characterPool;
 
     CollisionRegion* universeRegion;
 
     // check and maintain linked lists occasionally
     BOOL doLinkedListMaintenanceThisUpdate;
 
-    NSMutableSet* entitiesDeadThisUpdate;
+    std::vector<oo::ObjCRef<Entity*>> entitiesDeadThisUpdate; // each once, in the order removed
     int framesDoneThisUpdate;
     NSUInteger drawCounter;
 
@@ -328,17 +335,17 @@ enum {
     const espeak_VOICE** espeak_voices;
     unsigned int espeak_voice_count;
 #endif
-    NSArray* speechArray;
+    oo::PList speechArray; // [original, replacement(, espeak replacement)] pairs
 #endif
 
 #if NEW_PLANETS
-    NSMutableArray* _preloadingPlanetMaterials;
+    std::vector<oo::ObjCRef<OOMaterial*>> _preloadingPlanetMaterials;
 #endif
     BOOL doProcedurallyTexturedPlanets;
 
     GLfloat frustum[6][4];
 
-    NSMutableDictionary* conditionScripts;
+    std::map<std::string, oo::ObjCRef<OOJSScript*>, std::less<>> conditionScripts;
 
     BOOL _pauseMessage;
     BOOL _autoCommLog;
@@ -385,9 +392,9 @@ enum {
 - (BOOL)doProcedurallyTexturedPlanets;
 - (void)setDoProcedurallyTexturedPlanets:(BOOL)value;
 
-- (NSString*)useAddOns;
-- (BOOL)setUseAddOns:(NSString*)newUse fromSaveGame:(BOOL)saveGame;
-- (BOOL)setUseAddOns:(NSString*)newUse fromSaveGame:(BOOL)saveGame forceReinit:(BOOL)force;
+- (std::optional<std::string>)cxx_useAddOns;
+- (BOOL)cxx_setUseAddOns:(const std::string&)newUse fromSaveGame:(BOOL)saveGame;
+- (BOOL)cxx_setUseAddOns:(const std::string&)newUse fromSaveGame:(BOOL)saveGame forceReinit:(BOOL)force;
 
 - (void)setUpSettings;
 
@@ -398,7 +405,7 @@ enum {
 - (NSUInteger)entityCount;
 #ifdef OO_DEBUG_MONITOR_ENABLED
 - (void)debugDumpEntities;
-- (NSArray*)entityList;
+- (std::vector<oo::ObjCRef<Entity*>>)cxx_entityList;
 #endif
 
 - (void)pauseGame;
@@ -415,9 +422,9 @@ enum {
 - (void)clearSystemPopulator;
 - (BOOL)deterministicPopulation;
 - (void)populateSystemFromDictionariesWithSun:(OOSunEntity*)sun andPlanet:(OOPlanetEntity*)planet;
-- (NSDictionary*)getPopulatorSettings;
-- (void)setPopulatorSetting:(NSString*)key to:(NSDictionary*)setting;
-- (HPVector)locationByCode:(NSString*)code withSun:(OOSunEntity*)sun andPlanet:(OOPlanetEntity*)planet;
+- (oo::PList)cxx_getPopulatorSettings; // a copy
+- (void)cxx_setPopulatorSetting:(const std::string&)key to:(const oo::PList&)setting; // a null setting removes
+- (HPVector)cxx_locationByCode:(const std::string&)code withSun:(OOSunEntity*)sun andPlanet:(OOPlanetEntity*)planet;
 - (void)setAmbientLightLevel:(float)newValue;
 - (float)ambientLightLevel;
 - (void)setLighting;
@@ -426,27 +433,28 @@ enum {
 - (OOPlanetEntity*)setUpPlanet;
 
 - (void)makeSunSkimmer:(ShipEntity*)ship andSetAI:(BOOL)setAI;
-- (void)addShipWithRole:(NSString*)desc nearRouteOneAt:(double)route_fraction;
-- (HPVector)coordinatesForPosition:(HPVector)pos withCoordinateSystem:(NSString*)system returningScalar:(GLfloat*)my_scalar;
-- (NSString*)expressPosition:(HPVector)pos inCoordinateSystem:(NSString*)system;
-- (HPVector)legacyPositionFrom:(HPVector)pos asCoordinateSystem:(NSString*)system;
-- (HPVector)coordinatesFromCoordinateSystemString:(NSString*)system_x_y_z;
-- (BOOL)addShipWithRole:(NSString*)desc nearPosition:(HPVector)pos withCoordinateSystem:(NSString*)system;
-- (BOOL)addShips:(int)howMany withRole:(NSString*)desc atPosition:(HPVector)pos withCoordinateSystem:(NSString*)system;
-- (BOOL)addShips:(int)howMany withRole:(NSString*)desc nearPosition:(HPVector)pos withCoordinateSystem:(NSString*)system;
-- (BOOL)addShips:(int)howMany withRole:(NSString*)desc nearPosition:(HPVector)pos withCoordinateSystem:(NSString*)system withinRadius:(GLfloat)radius;
-- (BOOL)addShips:(int)howMany withRole:(NSString*)desc intoBoundingBox:(BoundingBox)bbox;
-- (BOOL)spawnShip:(NSString*)shipdesc;
-- (void)witchspaceShipWithPrimaryRole:(NSString*)role;
-- (ShipEntity*)spawnShipWithRole:(NSString*)desc near:(Entity*)entity;
+- (void)cxx_addShipWithRole:(const std::string&)desc nearRouteOneAt:(double)route_fraction;
+- (HPVector)cxx_coordinatesForPosition:(HPVector)pos withCoordinateSystem:(const std::string&)system returningScalar:(GLfloat*)my_scalar;
+- (std::optional<std::string>)cxx_expressPosition:(HPVector)pos inCoordinateSystem:(const std::string&)system;
+- (HPVector)cxx_legacyPositionFrom:(HPVector)pos asCoordinateSystem:(const std::string&)system;
+- (HPVector)cxx_coordinatesFromCoordinateSystemString:(const std::string&)system_x_y_z;
+- (BOOL)cxx_addShipWithRole:(const std::string&)desc nearPosition:(HPVector)pos withCoordinateSystem:(const std::string&)system;
+- (BOOL)cxx_addShips:(int)howMany withRole:(const std::string&)desc atPosition:(HPVector)pos withCoordinateSystem:(const std::string&)system;
+- (BOOL)cxx_addShips:(int)howMany withRole:(const std::string&)desc nearPosition:(HPVector)pos withCoordinateSystem:(const std::string&)system;
+- (BOOL)cxx_addShips:(int)howMany withRole:(const std::string&)desc nearPosition:(HPVector)pos withCoordinateSystem:(const std::string&)system withinRadius:(GLfloat)radius;
+- (BOOL)cxx_addShips:(int)howMany withRole:(const std::string&)desc intoBoundingBox:(BoundingBox)bbox;
+- (BOOL)spawnShip:(id)shipdesc; // shared selector (proposed ADR-0043): an Objective-C string
+- (void)cxx_witchspaceShipWithPrimaryRole:(const std::string&)role;
+- (ShipEntity*)cxx_spawnShipWithRole:(const std::string&)desc near:(Entity*)entity;
 
-- (OOVisualEffectEntity*)addVisualEffectAt:(HPVector)pos withKey:(NSString*)key;
-- (ShipEntity*)addShipAt:(HPVector)pos withRole:(NSString*)role withinRadius:(GLfloat)radius;
-- (NSArray*)addShipsAt:(HPVector)pos withRole:(NSString*)role quantity:(unsigned)count withinRadius:(GLfloat)radius asGroup:(BOOL)isGroup;
-- (NSArray*)addShipsToRoute:(NSString*)route withRole:(NSString*)role quantity:(unsigned)count routeFraction:(double)routeFraction asGroup:(BOOL)isGroup;
+- (OOVisualEffectEntity*)cxx_addVisualEffectAt:(HPVector)pos withKey:(const std::string&)key;
+- (ShipEntity*)addShipAt:(HPVector)pos withRole:(const std::string&)role withinRadius:(GLfloat)radius;
+// Empty where the old methods returned nil (no ship added).
+- (std::vector<oo::ObjCRef<ShipEntity*>>)cxx_addShipsAt:(HPVector)pos withRole:(const std::string&)role quantity:(unsigned)count withinRadius:(GLfloat)radius asGroup:(BOOL)isGroup;
+- (std::vector<oo::ObjCRef<ShipEntity*>>)cxx_addShipsToRoute:(const std::string&)route withRole:(const std::string&)role quantity:(unsigned)count routeFraction:(double)routeFraction asGroup:(BOOL)isGroup;
 
-- (BOOL)roleIsPirateVictim:(NSString*)role;
-- (BOOL)role:(NSString*)role isInCategory:(NSString*)category;
+- (BOOL)cxx_roleIsPirateVictim:(const std::string&)role;
+- (BOOL)cxx_role:(const std::string&)role isInCategory:(const std::string&)category;
 
 - (void)forceWitchspaceEntries;
 - (void)addWitchspaceJumpEffectForShip:(ShipEntity*)ship;
@@ -470,10 +478,10 @@ enum {
 - (StationEntity*)station;
 - (OOPlanetEntity*)planet;
 - (OOSunEntity*)sun;
-- (NSArray*)planets; // Note: does not include sun.
-- (NSArray*)stations; // includes main station
-- (NSArray*)wormholes;
-- (StationEntity*)stationWithRole:(NSString*)role andPosition:(HPVector)position;
+- (std::vector<oo::ObjCRef<OOPlanetEntity*>>)cxx_planets; // Note: does not include sun.
+- (std::vector<oo::ObjCRef<StationEntity*>>)cxx_stations; // includes main station; in the order added
+- (std::vector<oo::ObjCRef<WormholeEntity*>>)cxx_wormholes;
+- (StationEntity*)cxx_stationWithRole:(const std::string&)role andPosition:(HPVector)position;
 
 // Turn main station into just another station, for blowUpStation.
 - (void)unMagicMainStation;
@@ -486,8 +494,8 @@ enum {
 - (void)setNextBeacon:(Entity<OOBeaconEntity>*)beaconShip;
 - (void)clearBeacon:(Entity<OOBeaconEntity>*)beaconShip;
 
-- (NSDictionary*)currentWaypoints;
-- (void)defineWaypoint:(NSDictionary*)definition forKey:(NSString*)key;
+- (std::map<std::string, oo::ObjCRef<OOWaypointEntity*>, std::less<>>)cxx_currentWaypoints;
+- (void)cxx_defineWaypoint:(const oo::PList&)definition forKey:(const std::string&)key; // a null definition removes
 
 - (GLfloat*)skyClearColor;
 // Note: the alpha value is also air resistance!
@@ -496,43 +504,43 @@ enum {
 - (BOOL)breakPatternOver;
 - (BOOL)breakPatternHide;
 
-- (NSString*)randomShipKeyForRoleRespectingConditions:(NSString*)role;
-- (ShipEntity*)newShipWithRole:(NSString*)role OO_RETURNS_RETAINED; // Selects ship using role weights, applies auto_ai, respects conditions
-- (ShipEntity*)newShipWithName:(NSString*)shipKey OO_RETURNS_RETAINED; // Does not apply auto_ai or respect conditions
-- (ShipEntity*)newSubentityWithName:(NSString*)shipKey andScaleFactor:(float)scale OO_RETURNS_RETAINED; // Does not apply auto_ai or respect conditions
-- (OOVisualEffectEntity*)newVisualEffectWithName:(NSString*)effectKey OO_RETURNS_RETAINED;
-- (DockEntity*)newDockWithName:(NSString*)shipKey andScaleFactor:(float)scale OO_RETURNS_RETAINED; // Does not apply auto_ai or respect conditions
-- (ShipEntity*)newShipWithName:(NSString*)shipKey usePlayerProxy:(BOOL)usePlayerProxy OO_RETURNS_RETAINED; // If usePlayerProxy, non-carriers are instantiated as ProxyPlayerEntity.
-- (ShipEntity*)newShipWithName:(NSString*)shipKey usePlayerProxy:(BOOL)usePlayerProxy isSubentity:(BOOL)isSubentity OO_RETURNS_RETAINED;
-- (ShipEntity*)newShipWithName:(NSString*)shipKey usePlayerProxy:(BOOL)usePlayerProxy isSubentity:(BOOL)isSubentity andScaleFactor:(float)scale OO_RETURNS_RETAINED;
+- (std::optional<std::string>)cxx_randomShipKeyForRoleRespectingConditions:(const std::string&)role; // nullopt: none
+- (ShipEntity*)cxx_newShipWithRole:(const std::string&)role OO_RETURNS_RETAINED; // Selects ship using role weights, applies auto_ai, respects conditions
+- (ShipEntity*)cxx_newShipWithName:(const std::string&)shipKey OO_RETURNS_RETAINED; // Does not apply auto_ai or respect conditions
+- (ShipEntity*)cxx_newSubentityWithName:(const std::string&)shipKey andScaleFactor:(float)scale OO_RETURNS_RETAINED; // Does not apply auto_ai or respect conditions
+- (OOVisualEffectEntity*)cxx_newVisualEffectWithName:(const std::string&)effectKey OO_RETURNS_RETAINED;
+- (DockEntity*)cxx_newDockWithName:(const std::string&)shipKey andScaleFactor:(float)scale OO_RETURNS_RETAINED; // Does not apply auto_ai or respect conditions
+- (ShipEntity*)cxx_newShipWithName:(const std::string&)shipKey usePlayerProxy:(BOOL)usePlayerProxy OO_RETURNS_RETAINED; // If usePlayerProxy, non-carriers are instantiated as ProxyPlayerEntity.
+- (ShipEntity*)cxx_newShipWithName:(const std::string&)shipKey usePlayerProxy:(BOOL)usePlayerProxy isSubentity:(BOOL)isSubentity OO_RETURNS_RETAINED;
+- (ShipEntity*)cxx_newShipWithName:(const std::string&)shipKey usePlayerProxy:(BOOL)usePlayerProxy isSubentity:(BOOL)isSubentity andScaleFactor:(float)scale OO_RETURNS_RETAINED;
 
-- (Class)shipClassForShipDictionary:(NSDictionary*)dict;
+- (Class)cxx_shipClassForShipDictionary:(const oo::PList&)dict; // Nil for a null PList
 
-- (NSString*)defaultAIForRole:(NSString*)role; // autoAImap.plist lookup
+- (std::optional<std::string>)defaultAIForRole:(const std::string&)role; // autoAImap.plist lookup
 
-- (OOCargoQuantity)maxCargoForShip:(NSString*)desc;
+- (OOCargoQuantity)cxx_maxCargoForShip:(const std::string&)desc;
 
-- (OOCreditsQuantity)getEquipmentPriceForKey:(NSString*)eq_key;
+- (OOCreditsQuantity)cxx_getEquipmentPriceForKey:(const std::string&)eq_key;
 
 - (OOCommodities*)commodities;
 
 - (ShipEntity*)reifyCargoPod:(ShipEntity*)cargoObj;
 - (ShipEntity*)cargoPodFromTemplate:(ShipEntity*)cargoObj;
-- (NSArray*)getContainersOfGoods:(OOCargoQuantity)how_many scarce:(BOOL)scarce legal:(BOOL)legal;
-- (NSArray*)getContainersOfCommodity:(OOCommodityType)commodity_name how_much:(OOCargoQuantity)how_much;
+- (std::vector<oo::ObjCRef<ShipEntity*>>)cxx_getContainersOfGoods:(OOCargoQuantity)how_many scarce:(BOOL)scarce legal:(BOOL)legal;
+- (std::vector<oo::ObjCRef<ShipEntity*>>)cxx_getContainersOfCommodity:(const std::string&)commodity_name how_much:(OOCargoQuantity)how_many;
 - (void)fillCargopodWithRandomCargo:(ShipEntity*)cargopod;
 
-- (NSString*)getRandomCommodity;
-- (OOCargoQuantity)getRandomAmountOfCommodity:(OOCommodityType)co_type;
+- (id)getRandomCommodity; // shared selector (proposed ADR-0043): an Objective-C string (a commodity key)
+- (OOCargoQuantity)cxx_getRandomAmountOfCommodity:(const std::string&)co_type;
 
-- (NSDictionary*)commodityDataForType:(OOCommodityType)type;
-- (NSString*)displayNameForCommodity:(OOCommodityType)co_type;
-- (NSString*)describeCommodity:(OOCommodityType)co_type amount:(OOCargoQuantity)co_amount;
+- (oo::PList)commodityDataForType:(const std::string&)type; // null: no such good
+- (std::optional<std::string>)cxx_displayNameForCommodity:(const std::string&)co_type;
+- (std::optional<std::string>)cxx_describeCommodity:(const std::string&)co_type amount:(OOCargoQuantity)co_amount;
 
 - (void)setGameView:(MyOpenGLView*)view;
 - (MyOpenGLView*)gameView;
 - (GameController*)gameController;
-- (NSDictionary*)gameSettings;
+- (oo::PList)cxx_gameSettings;
 
 - (void)useGUILightSource:(BOOL)GUILight;
 
@@ -543,7 +551,7 @@ enum {
 
 - (void)drawMessage;
 
-- (void)drawWatermarkString:(NSString*)watermarkString;
+- (void)drawWatermarkString:(const std::string&)watermarkString;
 
 // Used to draw subentities. Should be getting this from camera.
 - (OOMatrix)viewMatrix;
@@ -556,23 +564,23 @@ enum {
 - (void)removeAllEntitiesExceptPlayer;
 - (void)removeDemoShips;
 
-- (ShipEntity*)makeDemoShipWithRole:(NSString*)role spinning:(BOOL)spinning;
+- (ShipEntity*)cxx_makeDemoShipWithRole:(const std::string&)role spinning:(BOOL)spinning;
 
 - (BOOL)isVectorClearFromEntity:(Entity*)e1 toDistance:(double)dist fromPoint:(HPVector)p2;
 - (Entity*)hazardOnRouteFromEntity:(Entity*)e1 toDistance:(double)dist fromPoint:(HPVector)p2;
 - (HPVector)getSafeVectorFromEntity:(Entity*)e1 toDistance:(double)dist fromPoint:(HPVector)p2;
 
-- (ShipEntity*)addWreckageFrom:(ShipEntity*)ship withRole:(NSString*)wreckRole at:(HPVector)rpos scale:(GLfloat)scale lifetime:(GLfloat)lifetime;
+- (ShipEntity*)cxx_addWreckageFrom:(ShipEntity*)ship withRole:(const std::string&)wreckRole at:(HPVector)rpos scale:(GLfloat)scale lifetime:(GLfloat)lifetime;
 - (void)addLaserHitEffectsAt:(HPVector)pos against:(ShipEntity*)target damage:(float)damage color:(OOColor*)color;
 - (ShipEntity*)firstShipHitByLaserFromShip:(ShipEntity*)srcEntity inDirection:(OOWeaponFacing)direction offset:(Vector)offset gettingRangeFound:(GLfloat*)range_ptr;
 - (Entity*)firstEntityTargetedByPlayer;
 - (Entity*)firstEntityTargetedByPlayerPrecisely;
 
-- (NSArray*)entitiesWithinRange:(double)range ofEntity:(Entity*)entity;
-- (unsigned)countShipsWithRole:(NSString*)role inRange:(double)range ofEntity:(Entity*)entity;
-- (unsigned)countShipsWithRole:(NSString*)role;
-- (unsigned)countShipsWithPrimaryRole:(NSString*)role inRange:(double)range ofEntity:(Entity*)entity;
-- (unsigned)countShipsWithPrimaryRole:(NSString*)role;
+- (std::vector<oo::ObjCRef<Entity*>>)cxx_entitiesWithinRange:(double)range ofEntity:(Entity*)entity;
+- (unsigned)cxx_countShipsWithRole:(const std::string&)role inRange:(double)range ofEntity:(Entity*)entity;
+- (unsigned)cxx_countShipsWithRole:(const std::string&)role;
+- (unsigned)cxx_countShipsWithPrimaryRole:(const std::string&)role inRange:(double)range ofEntity:(Entity*)entity;
+- (unsigned)cxx_countShipsWithPrimaryRole:(const std::string&)role;
 - (unsigned)countShipsWithScanClass:(OOScanClass)scanClass inRange:(double)range ofEntity:(Entity*)entity;
 
 // General count/search methods. Pass range of -1 and entity of nil to search all of system.
@@ -584,20 +592,20 @@ enum {
                               parameter:(void*)parameter
                                 inRange:(double)range
                                ofEntity:(Entity*)entity;
-- (NSMutableArray*)findEntitiesMatchingPredicate:(EntityFilterPredicate)predicate
-                                       parameter:(void*)parameter
-                                         inRange:(double)range
-                                        ofEntity:(Entity*)entity;
+- (std::vector<oo::ObjCRef<Entity*>>)cxx_findEntitiesMatchingPredicate:(EntityFilterPredicate)predicate
+                                                             parameter:(void*)parameter
+                                                               inRange:(double)range
+                                                              ofEntity:(Entity*)entity;
 - (id)findOneEntityMatchingPredicate:(EntityFilterPredicate)predicate
                            parameter:(void*)parameter;
-- (NSMutableArray*)findShipsMatchingPredicate:(EntityFilterPredicate)predicate
-                                    parameter:(void*)parameter
-                                      inRange:(double)range
-                                     ofEntity:(Entity*)entity;
-- (NSMutableArray*)findVisualEffectsMatchingPredicate:(EntityFilterPredicate)predicate
-                                            parameter:(void*)parameter
-                                              inRange:(double)range
-                                             ofEntity:(Entity*)entity;
+- (std::vector<oo::ObjCRef<Entity*>>)cxx_findShipsMatchingPredicate:(EntityFilterPredicate)predicate
+                                                          parameter:(void*)parameter
+                                                            inRange:(double)range
+                                                           ofEntity:(Entity*)entity;
+- (std::vector<oo::ObjCRef<Entity*>>)cxx_findVisualEffectsMatchingPredicate:(EntityFilterPredicate)predicate
+                                                                  parameter:(void*)parameter
+                                                                    inRange:(double)range
+                                                                   ofEntity:(Entity*)entity;
 - (id)nearestEntityMatchingPredicate:(EntityFilterPredicate)predicate
                            parameter:(void*)parameter
                     relativeToEntity:(Entity*)entity;
@@ -609,29 +617,30 @@ enum {
 - (OOTimeDelta)getTimeDelta;
 
 - (void)findCollisionsAndShadows;
-- (NSString*)collisionDescription;
+- (id)collisionDescription; // shared selector (proposed ADR-0043): an Objective-C string, as CollisionRegion's
 - (void)dumpCollisions;
 
 - (OOViewID)viewDirection;
 - (void)setViewDirection:(OOViewID)vd;
 - (void)enterGUIViewModeWithMouseInteraction:(BOOL)mouseInteraction; // Use instead of setViewDirection:VIEW_GUI_DISPLAY
 
-- (NSString*)soundNameForCustomSoundKey:(NSString*)key;
-- (NSDictionary*)screenTextureDescriptorForKey:(NSString*)key;
-- (void)setScreenTextureDescriptorForKey:(NSString*)key descriptor:(NSDictionary*)desc;
+- (std::optional<std::string>)soundNameForCustomSoundKey:(const std::string&)key; // nullopt: no sound
+- (oo::PList)cxx_screenTextureDescriptorForKey:(const std::string&)key; // null: none
+- (void)cxx_setScreenTextureDescriptorForKey:(const std::string&)key descriptor:(const oo::PList&)desc; // a null descriptor removes
 
+// Message texts: nullopt where a nil text was passed (nothing is printed; it still counts as the message shown).
 - (void)clearPreviousMessage;
 - (void)setMessageGuiBackgroundColor:(OOColor*)some_color;
-- (void)displayMessage:(NSString*)text forCount:(OOTimeDelta)count;
-- (void)displayCountdownMessage:(NSString*)text forCount:(OOTimeDelta)count;
-- (void)addDelayedMessage:(NSString*)text forCount:(OOTimeDelta)count afterDelay:(OOTimeDelta)delay;
-- (void)addDelayedMessage:(NSDictionary*)textdict;
-- (void)addMessage:(NSString*)text forCount:(OOTimeDelta)count;
-- (void)addMessage:(NSString*)text forCount:(OOTimeDelta)count forceDisplay:(BOOL)forceDisplay;
-- (void)addCommsMessage:(NSString*)text forCount:(OOTimeDelta)count;
-- (void)addCommsMessage:(NSString*)text forCount:(OOTimeDelta)count andShowComms:(BOOL)showComms logOnly:(BOOL)logOnly;
+- (void)cxx_displayMessage:(const std::optional<std::string>&)text forCount:(OOTimeDelta)count;
+- (void)cxx_displayCountdownMessage:(const std::optional<std::string>&)text forCount:(OOTimeDelta)count;
+- (void)cxx_addDelayedMessage:(const std::optional<std::string>&)text forCount:(OOTimeDelta)count afterDelay:(OOTimeDelta)delay;
+- (void)addDelayedMessage:(id)textdict; // called by name (ADR-0043 item 21): the deferred call's dictionary
+- (void)cxx_addMessage:(const std::optional<std::string>&)text forCount:(OOTimeDelta)count;
+- (void)cxx_addMessage:(const std::optional<std::string>&)text forCount:(OOTimeDelta)count forceDisplay:(BOOL)forceDisplay;
+- (void)cxx_addCommsMessage:(const std::optional<std::string>&)text forCount:(OOTimeDelta)count;
+- (void)cxx_addCommsMessage:(const std::optional<std::string>&)text forCount:(OOTimeDelta)count andShowComms:(BOOL)showComms logOnly:(BOOL)logOnly;
 - (void)showCommsLog:(OOTimeDelta)how_long;
-- (void)showGUIMessage:(NSString*)text withScroll:(BOOL)scroll andColor:(OOColor*)selectedColor overDuration:(OOTimeDelta)how_long;
+- (void)showGUIMessage:(const std::optional<std::string>&)text withScroll:(BOOL)scroll andColor:(OOColor*)selectedColor overDuration:(OOTimeDelta)how_long;
 
 - (void)update:(OOTimeDelta)delta_t;
 
@@ -653,78 +662,82 @@ enum {
 
 - (OOSystemID)currentSystemID;
 
-- (NSDictionary*)descriptions;
-- (NSDictionary*)characters;
-- (NSDictionary*)missiontext;
-- (NSArray*)scenarios;
-- (NSDictionary*)explosionSetting:(NSString*)explosion;
+// The live descriptions dictionary (the built-in descriptions.plist until the merged one is loaded);
+// nullptr only for a nil receiver. The generation changes whenever it is replaced.
+- (const oo::PList*)cxx_descriptions;
+- (unsigned)cxx_descriptionsGeneration;
+- (oo::PList)cxx_characters;
+- (oo::PList)cxx_missiontext;
+- (oo::PList)cxx_scenarios;
+- (oo::PList)cxx_explosionSetting:(const std::string&)explosion; // a null PList for none
 
 - (OOSystemDescriptionManager*)systemManager;
 
-- (NSString*)descriptionForKey:(NSString*)key; // String, or random item from array
-- (NSString*)descriptionForArrayKey:(NSString*)key index:(unsigned)index; // Indexed item from array
-- (BOOL)descriptionBooleanForKey:(NSString*)key; // Boolean from descriptions.plist, for configuration.
+- (std::optional<std::string>)cxx_descriptionForKey:(const std::string&)key; // String, or random item from array; nullopt for none
+- (std::optional<std::string>)cxx_descriptionForArrayKey:(const std::string&)key index:(unsigned)index; // Indexed item from array; nullopt for none
+- (BOOL)descriptionBooleanForKey:(const std::string&)key; // Boolean from descriptions.plist, for configuration.
 
-- (NSString*)keyForPlanetOverridesForSystem:(OOSystemID)s inGalaxy:(OOGalaxyID)g;
-- (NSString*)keyForInterstellarOverridesForSystems:(OOSystemID)s1 s2:(OOSystemID)s2 inGalaxy:(OOGalaxyID)g;
-- (NSDictionary*)generateSystemData:(OOSystemID)s;
-- (NSDictionary*)generateSystemData:(OOSystemID)s useCache:(BOOL)useCache;
-- (NSDictionary*)currentSystemData; // Same as generateSystemData:systemSeed unless in interstellar space.
+- (std::optional<std::string>)cxx_keyForPlanetOverridesForSystem:(OOSystemID)s inGalaxy:(OOGalaxyID)g;
+- (std::optional<std::string>)keyForInterstellarOverridesForSystems:(OOSystemID)s1 s2:(OOSystemID)s2 inGalaxy:(OOGalaxyID)g;
+- (oo::PList)cxx_generateSystemData:(OOSystemID)s;
+- (oo::PList)cxx_generateSystemData:(OOSystemID)s useCache:(BOOL)useCache;
+- (oo::PList)cxx_currentSystemData; // Same as generateSystemData:systemSeed unless in interstellar space.
 
 - (BOOL)inInterstellarSpace;
 
-- (void)setSystemDataKey:(NSString*)key value:(NSObject*)object fromManifest:(NSString*)manifest;
-- (void)setSystemDataForGalaxy:(OOGalaxyID)gnum planet:(OOSystemID)pnum key:(NSString*)key value:(id)object fromManifest:(NSString*)manifest forLayer:(OOSystemLayer)layer;
-- (id)systemDataForGalaxy:(OOGalaxyID)gnum planet:(OOSystemID)pnum key:(NSString*)key;
-- (NSArray*)systemDataKeysForGalaxy:(OOGalaxyID)gnum planet:(OOSystemID)pnum;
-- (NSString*)getSystemName:(OOSystemID)sys;
-- (NSString*)getSystemName:(OOSystemID)sys forGalaxy:(OOGalaxyID)gnum;
+// value: a script value (an Objective-C object, nil to remove); manifest nullopt where nil was passed.
+- (void)cxx_setSystemDataKey:(const std::string&)key value:(id)object fromManifest:(const std::optional<std::string>&)manifest;
+- (void)cxx_setSystemDataForGalaxy:(OOGalaxyID)gnum planet:(OOSystemID)pnum key:(const std::string&)key value:(id)object fromManifest:(const std::optional<std::string>&)manifest forLayer:(OOSystemLayer)layer;
+- (id)cxx_systemDataForGalaxy:(OOGalaxyID)gnum planet:(OOSystemID)pnum key:(const std::string&)key; // a script value
+- (std::vector<std::string>)cxx_systemDataKeysForGalaxy:(OOGalaxyID)gnum planet:(OOSystemID)pnum; // byte order of the key
+- (std::optional<std::string>)cxx_getSystemName:(OOSystemID)sys;
+- (std::optional<std::string>)cxx_getSystemName:(OOSystemID)sys forGalaxy:(OOGalaxyID)gnum;
 - (OOGovernmentID)getSystemGovernment:(OOSystemID)sys;
-- (NSString*)getSystemInhabitants:(OOSystemID)sys;
-- (NSString*)getSystemInhabitants:(OOSystemID)sys plural:(BOOL)plural;
+- (std::optional<std::string>)cxx_getSystemInhabitants:(OOSystemID)sys;
+- (std::optional<std::string>)cxx_getSystemInhabitants:(OOSystemID)sys plural:(BOOL)plural;
 
 - (NSPoint)coordinatesForSystem:(OOSystemID)s;
-- (OOSystemID)findSystemFromName:(NSString*)sysName;
+- (OOSystemID)cxx_findSystemFromName:(const std::string&)sysName;
 
 /**
  * Finds systems within range.  If range is greater than 7.0LY then only look within 7.0LY.
  */
-- (NSMutableArray*)nearbyDestinationsWithinRange:(double)range;
+- (oo::PList)cxx_nearbyDestinationsWithinRange:(double)range; // an array of {distance, sysID, nova}
 
 - (OOSystemID)findNeighbouringSystemToCoords:(NSPoint)coords withGalaxy:(OOGalaxyID)gal;
 - (OOSystemID)findConnectedSystemAtCoords:(NSPoint)coords withGalaxy:(OOGalaxyID)gal;
 // old alias for findSystemNumberAtCoords
 - (OOSystemID)findSystemAtCoords:(NSPoint)coords withGalaxy:(OOGalaxyID)gal;
 - (OOSystemID)findSystemNumberAtCoords:(NSPoint)coords withGalaxy:(OOGalaxyID)gal includingHidden:(BOOL)hidden;
-- (NSPoint)findSystemCoordinatesWithPrefix:(NSString*)p_fix;
-- (NSPoint)findSystemCoordinatesWithPrefix:(NSString*)p_fix exactMatch:(BOOL)exactMatch;
+- (NSPoint)cxx_findSystemCoordinatesWithPrefix:(const std::string&)p_fix;
+- (NSPoint)cxx_findSystemCoordinatesWithPrefix:(const std::string&)p_fix exactMatch:(BOOL)exactMatch;
 - (BOOL*)systemsFound;
-- (NSString*)systemNameIndex:(OOSystemID)index;
-- (NSDictionary*)routeFromSystem:(OOSystemID)start toSystem:(OOSystemID)goal optimizedBy:(OORouteType)optimizeBy;
-- (NSArray*)neighboursToSystem:(OOSystemID)system_number;
+- (std::optional<std::string>)cxx_systemNameIndex:(OOSystemID)index;
+- (oo::PList)cxx_routeFromSystem:(OOSystemID)start toSystem:(OOSystemID)goal optimizedBy:(OORouteType)optimizeBy; // {route, distance, time, jumps}; null for no route
+- (std::vector<OOSystemID>)neighboursToSystem:(OOSystemID)system_number;
 
 - (void)preloadPlanetTexturesForSystem:(OOSystemID)system;
 - (void)preloadSounds;
 
-- (NSDictionary*)globalSettings;
+- (oo::PList)cxx_globalSettings;
 
-- (NSArray*)equipmentData;
-- (NSArray*)equipmentDataOutfitting;
+- (oo::PList)cxx_equipmentData;
+- (oo::PList)cxx_equipmentDataOutfitting;
 - (OOCommodityMarket*)commodityMarket;
 - (Random_Seed)marketSeed;
 
-- (NSString*)timeDescription:(OOTimeDelta)interval;
-- (NSString*)shortTimeDescription:(OOTimeDelta)interval;
+- (std::optional<std::string>)timeDescription:(OOTimeDelta)interval;
+- (std::optional<std::string>)cxx_shortTimeDescription:(OOTimeDelta)interval;
 
-- (void)loadStationMarkets:(NSArray*)marketData;
-- (NSArray*)getStationMarkets;
+- (void)cxx_loadStationMarkets:(const oo::PList&)marketData; // null: nothing to load
+- (oo::PList)cxx_getStationMarkets; // [{market, position}, ...] as saved in the savegame
 
-- (NSArray*)shipsForSaleForSystem:(OOSystemID)s withTL:(OOTechLevelID)specialTL atTime:(OOTimeAbsolute)current_time;
+- (oo::PList)cxx_shipsForSaleForSystem:(OOSystemID)s withTL:(OOTechLevelID)specialTL atTime:(OOTimeAbsolute)current_time; // an array of offer dictionaries, by name and price
 
 /* Calculate base cost, before depreciation */
-- (OOCreditsQuantity)tradeInValueForCommanderDictionary:(NSDictionary*)cmdr_dict;
+- (OOCreditsQuantity)cxx_tradeInValueForCommanderDictionary:(const oo::PList&)cmdr_dict;
 
-- (NSString*)brochureDescriptionWithDictionary:(NSDictionary*)dict standardEquipment:(NSArray*)extras optionalEquipment:(NSArray*)options;
+- (std::optional<std::string>)brochureDescriptionWithDictionary:(const oo::PList&)dict standardEquipment:(const std::vector<std::string>&)extras optionalEquipment:(const std::vector<std::string>&)options;
 
 - (HPVector)getWitchspaceExitPosition;
 - (Quaternion)getWitchspaceExitRotation;
@@ -732,9 +745,9 @@ enum {
 - (HPVector)getSunSkimStartPositionForShip:(ShipEntity*)ship;
 - (HPVector)getSunSkimEndPositionForShip:(ShipEntity*)ship;
 
-- (NSArray*)listBeaconsWithCode:(NSString*)code;
+- (std::vector<oo::ObjCRef<Entity<OOBeaconEntity>*>>)cxx_listBeaconsWithCode:(const std::string&)code; // sorted by beacon code
 
-- (void)allShipsDoScriptEvent:(OOJSPropID)event andReactToAIMessage:(NSString*)message;
+- (void)cxx_allShipsDoScriptEvent:(OOJSPropID)event andReactToAIMessage:(const std::optional<std::string>&)message; // nullopt: no AI message
 
 ///////////////////////////////////////
 
@@ -770,15 +783,15 @@ enum {
 
 // speech routines
 //
-- (void)startSpeakingString:(NSString*)text;
+- (void)cxx_startSpeakingString:(const std::string&)text;
 //
 - (void)stopSpeaking;
 //
 - (BOOL)isSpeaking;
 //
 #if OOLITE_ESPEAK
-- (NSString*)voiceName:(unsigned int)index;
-- (unsigned int)voiceNumber:(NSString*)name;
+- (std::optional<std::string>)cxx_voiceName:(unsigned int)index;
+- (unsigned int)cxx_voiceNumber:(const std::string&)name;
 - (unsigned int)nextVoice:(unsigned int)index;
 - (unsigned int)prevVoice:(unsigned int)index;
 - (unsigned int)setVoice:(unsigned int)index withGenderM:(BOOL)isMale;
@@ -812,8 +825,8 @@ enum {
 - (void)setBlockJSPlayerShipProps:(BOOL)value;
 
 - (void)loadConditionScripts;
-- (void)addConditionScripts:(NSEnumerator*)scripts;
-- (OOJSScript*)getConditionScript:(NSString*)scriptname;
+- (void)addConditionScripts:(const std::vector<std::string>&)scripts;
+- (OOJSScript*)cxx_getConditionScript:(const std::string&)scriptname;
 
 @end
 
@@ -836,39 +849,38 @@ OOINLINE Universe* OOGetUniverse(void)
 #define DESC_PLURAL(key, count) (OOLookUpPluralDescriptionPRIV(key "", count))
 
 // Not for direct use.
-NSComparisonResult populatorPrioritySort(id a, id b, void* context);
-NSComparisonResult equipmentSort(id a, id b, void* context);
-NSComparisonResult equipmentSortOutfitting(id a, id b, void* context);
-#ifdef __cplusplus
-extern "C" {
-#endif
-NSString* OOLookUpDescriptionPRIV(NSString* key);
-#ifdef __cplusplus
-}
-#endif
-NSString* OOLookUpPluralDescriptionPRIV(NSString* key, NSInteger count);
+// The lookups behind DESC() / DESC_PLURAL(): the description, or the key itself when there is none.
+std::string cxx_OOLookUpDescriptionPRIV(const std::string& key);
+std::string cxx_OOLookUpPluralDescriptionPRIV(const std::string& key, NSInteger count);
 
 @interface OOSound (OOCustomSounds)
 
-+ (id)soundWithCustomSoundKey:(NSString*)key;
-- (id)initWithCustomSoundKey:(NSString*)key;
++ (id)cxx_soundWithCustomSoundKey:(const std::string&)key;
+- (id)initWithCustomSoundKey:(id)key; // shared selector (proposed ADR-0043): an Objective-C string, as OOSoundSource's
 
 @end
 
 @interface OOSoundSource (OOCustomSounds)
 
-+ (id)sourceWithCustomSoundKey:(NSString*)key;
-- (id)initWithCustomSoundKey:(NSString*)key;
++ (id)sourceWithCustomSoundKey:(const std::string&)key;
+- (id)initWithCustomSoundKey:(id)key; // shared selector (proposed ADR-0043): an Objective-C string, as OOSound's
 
-- (void)playCustomSoundWithKey:(NSString*)key;
+- (void)cxx_playCustomSoundWithKey:(const std::string&)key;
 
 @end
 
 #ifdef __cplusplus
-extern "C" {
+#include "oofnd/StdLib.hpp"
+
+// C++ forms, defined in OOConstToString.mm (bead oo-nts1, chunk oo-3rb.162): nullopt where the
+// Foundation forms (Universe+FoundationBridge.h; they forward to these) gave nil.
+std::optional<std::string> cxx_OODisplayStringFromGovernmentID(OOGovernmentID government);
+std::optional<std::string> cxx_OODisplayStringFromEconomyID(OOEconomyID economy);
 #endif
-NSString* OODisplayStringFromGovernmentID(OOGovernmentID government);
-NSString* OODisplayStringFromEconomyID(OOEconomyID economy);
-#ifdef __cplusplus
-}
-#endif
+
+/*	TRANSITIONAL (proposed ADR-0043, "Transitional bridges"): the Foundation-typed API this header
+        declared before bead oo-3rb.220 (the Universe sweep oo-3rb.79, chunk 1), forwarding to the
+        cxx_ API above, so unmigrated callers compile unchanged. Callers move to the cxx_ API in their
+        own sweep beads; the bridge goes in its own bead.
+*/
+#import "Universe+FoundationBridge.h"

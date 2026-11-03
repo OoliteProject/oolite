@@ -14,7 +14,10 @@
 
 oofnd_inc = include_directories('..')
 oofnd_override_options = ['cpp_std=c++20', 'warning_level=2', 'werror=true']
-oofnd_dep = declare_dependency(include_directories: oofnd_inc)
+# ICU: oo::str::localizedCompare (String.hpp) collates with it, as GNUstep's -localizedCompare:
+# does (bead oo-r4d6). GNUstep-base already links the same ICU, so the game gains no new DLL.
+oofnd_icu_dep = dependency('icu-i18n', required: true)
+oofnd_dep = declare_dependency(include_directories: oofnd_inc, dependencies: oofnd_icu_dep)
 
 # The Foundation-free Objective-C floor (bead oo-3rb.1, proposed ADR-0029): the OOObject root
 # class and the OOConstantString class behind @"..." literals, on libobjc2 alone. Linked into the game

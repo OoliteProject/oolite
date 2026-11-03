@@ -33,8 +33,8 @@ MA 02110-1301, USA.
 
 #pragma once
 
+#import "OOFoundation.h"
 #import "PlayerEntity.h"
-#import <Foundation/Foundation.h>
 #include <quickjs.h>
 
 @class PlayerEntity;

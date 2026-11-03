@@ -10,9 +10,11 @@ gnustep-base.
 
 */
 
-#import "NSNumberOOExtensions.h"
 #import "OOFoundationBridge.h"
 #import "OOJavaScriptEngine.h" // declares the bridge at its end
+
+NSString* const kOOJavaScriptEngineWillResetNotification = @"org.aegidian.oolite OOJavaScriptEngine will reset";
+NSString* const kOOJavaScriptEngineDidResetNotification = @"org.aegidian.oolite OOJavaScriptEngine did reset";
 
 NSString* OOStringFromJSValueEvenIfNull(JSContext* context, JSValueConst value)
 {
@@ -313,7 +315,17 @@ static JSValue JSObjectFromNSDictionary(JSContext* context, NSDictionary* dictio
 - (JSValue)oo_jsValueInContext:(JSContext*)context
 {
     // As with SpiderMonkey, all NSNumbers (including booleans) become JS numbers.
-    if ([self oo_isFloatingPointNumber])
+    BOOL isFloat = NO;
+    // Former NSNumber (OOExtensions) float/double objCType test.
+#if __COREFOUNDATION_CFNUMBER__
+    isFloat = CFNumberIsFloatType((CFNumberRef)self);
+#else
+    {
+        const char* type = [self objCType];
+        isFloat = (strcmp(type, @encode(double)) == 0 || strcmp(type, @encode(float)) == 0);
+    }
+#endif
+    if (isFloat)
         return JS_NewFloat64(context, [self doubleValue]);
     return JS_NewNumber(context, (double)[self longLongValue]);
 }
@@ -325,3 +337,51 @@ static JSValue JSObjectFromNSDictionary(JSContext* context, NSDictionary* dictio
 
 @end
 
+// Integer-like property names become NSNumbers, as SpiderMonkey's int jsids did.
+static id KeyForAtom(JSContext* context, JSAtom atom)
+{
+    NSString* key = OOStringFromJSID(atom);
+    if ([key length] != 0 && [key length] < 10) {
+        unichar first = [key characterAtIndex:0];
+        if ((first >= '1' && first <= '9') || [key isEqualToString:@"0"]) {
+            NSScanner* scanner = [NSScanner scannerWithString:key];
+            int intValue;
+            if ([scanner scanInt:&intValue] && [scanner isAtEnd]) {
+                return [NSNumber numberWithInt:intValue];
+            }
+        }
+    }
+    return key;
+}
+
+NSDictionary* OOJSDictionaryFromJSObject(JSContext* context, JSValueConst object)
+{
+    JSPropertyEnum* properties = NULL;
+    uint32_t i, count;
+
+    if (JS_GetOwnPropertyNames(context, &properties, &count, object, JS_GPN_STRING_MASK | JS_GPN_ENUM_ONLY) < 0) {
+        JS_FreeValue(context, JS_GetException(context));
+        return nil;
+    }
+
+    NSMutableDictionary* result = [NSMutableDictionary dictionaryWithCapacity:count];
+    for (i = 0; i != count; ++i) {
+        id objKey = KeyForAtom(context, properties[i].atom);
+        JSValue value = JS_GetProperty(context, object, properties[i].atom);
+        if (JS_IsException(value)) {
+            JS_FreeValue(context, JS_GetException(context));
+            continue;
+        }
+
+        if (objKey != nil && !JS_IsUndefined(value)) {
+            id objValue = OOJSNativeObjectFromJSValue(context, value);
+            if (objValue != nil) {
+                [result setObject:objValue forKey:objKey];
+            }
+        }
+        JS_FreeValue(context, value);
+    }
+
+    JS_FreePropertyEnum(context, properties, count);
+    return result;
+}

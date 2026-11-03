@@ -23,18 +23,15 @@ MA 02110-1301, USA.
 */
 
 #if defined(GNUSTEP_BASE_LIBRARY) || defined(OOLITE_SDL_MAC)
-#import <objc/runtime.h>
-
-#import <objc/objc-arc.h>
-#if (GNUSTEP_BASE_MAJOR_VERSION == 1 && (GNUSTEP_BASE_MINOR_VERSION == 24 && GNUSTEP_BASE_SUBMINOR_VERSION >= 9) || (GNUSTEP_BASE_MINOR_VERSION > 24)) || (GNUSTEP_BASE_MAJOR_VERSION > 1)
-#import <Foundation/NSDate.h>
-#endif
 #import "GameController.h"
+#import "OOFoundationBridge.h"
 #import "OOFoundationException.h"
 #import "OOLoggingExtended.h"
 #import "OOStringBridge.h"
 #include "oofnd/Process.hpp"
 #include "oofnd/String.hpp"
+#import <objc/objc-arc.h>
+#import <objc/runtime.h>
 
 #if OOLITE_WINDOWS
 #include <SDL3/SDL_main.h>
@@ -85,10 +82,6 @@ int main(int argc, char* argv[])
 
 #if defined(GNUSTEP_BASE_LIBRARY) || defined(OOLITE_SDL_MAC)
     int i;
-
-#if (GNUSTEP_BASE_MAJOR_VERSION == 1 && (GNUSTEP_BASE_MINOR_VERSION == 24 && GNUSTEP_BASE_SUBMINOR_VERSION >= 9) || (GNUSTEP_BASE_MINOR_VERSION > 24)) || (GNUSTEP_BASE_MAJOR_VERSION > 1)
-    [NSDate class]; // See github issue #202
-#endif
 
 #if OOLITE_WINDOWS
 
@@ -243,7 +236,7 @@ int main(int argc, char* argv[])
                                            "\n\n",
                     processName);
                 OO_SHOW_MSG(s, processName, MB_OK);
-                OOLog(@"process.args", @"%s option detected, exiting after help page has been displayed.", argv[i]);
+                OO_LOG("process.args", "{} option detected, exiting after help page has been displayed.", argv[i]);
                 return 0;
             }
         }
@@ -257,11 +250,11 @@ int main(int argc, char* argv[])
         [controller applicationDidFinishLaunching];
     }
     @catch (OOException* exception) {
-        OOLogERR(kOOLogException, @"Root exception handler hit - terminating. This is an internal error, please report it. Exception name: %@, reason: %@", oo::NSStringFrom([exception name]), oo::NSStringFrom([exception reason]));
+        OO_LOG_ERR(cxx_kOOLogException, "Root exception handler hit - terminating. This is an internal error, please report it. Exception name: {}, reason: {}", [exception name], [exception reason]);
         return EXIT_FAILURE;
     }
     @catch (OOFoundationException* exception) {
-        OOLogERR(kOOLogException, @"Root exception handler hit - terminating. This is an internal error, please report it. Exception name: %@, reason: %@", [exception name], [exception reason]);
+        OO_LOG_ERR(cxx_kOOLogException, "Root exception handler hit - terminating. This is an internal error, please report it. Exception name: {}, reason: {}", oo::DescriptionOf([exception name]), oo::DescriptionOf([exception reason]));
         return EXIT_FAILURE;
     }
 #endif

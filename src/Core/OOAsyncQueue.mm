@@ -34,6 +34,7 @@ SOFTWARE.
 #import "OOStringBridge.h"
 #include <stdlib.h>
 
+#import "OOFoundationBridge.h"
 #include "oofnd/String.hpp"
 
 #ifndef OO_BUGGY_PTHREADS
@@ -103,7 +104,7 @@ OOINLINE void FreeElement(OOAsyncQueueElement* element)
     _lock.lock();
 
     if (_elemCount != 0) {
-        OOLogWARN(@"asyncQueue.nonEmpty", @"%@ deallocated while non-empty, flushing.", self);
+        OO_LOG_WARN("asyncQueue.nonEmpty", "{} deallocated while non-empty, flushing.", oo::DescriptionOf(self));
         [self doEmptyQueueWithAcquiredLock];
     }
 

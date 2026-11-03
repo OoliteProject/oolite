@@ -154,7 +154,7 @@ static JSValue PlanetGetProperty(OOJS_GETTER_ARGS)
         return OOJSValueFromBOOL([planet hasAtmosphere]);
 
     case kPlanet_texture:
-        return OOJSValueFromNativeObject(context, [planet textureFileName]);
+        return OOJSValueFromNativeObject(context, oo::NSStringOrNil([planet textureFileName]));
 
     case kPlanet_name:
         return OOJSValueFromNativeObject(context, [planet name]);
@@ -242,7 +242,7 @@ static JSValue PlanetSetProperty(OOJS_SETTER_ARGS)
         }
 
         if (OK) {
-            OK = [planet setUpPlanetFromTexture:oo::NSStringFrom(*sValue)];
+            OK = [planet setUpPlanetFromTexture:sValue]; // has a value here
             if (!OK)
                 OOJSReportWarning(context, @"Cannot find texture \"%@\". Value not set.", oo::NSStringFrom(*sValue));
         }

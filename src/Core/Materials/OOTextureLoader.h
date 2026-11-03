@@ -39,9 +39,8 @@ SOFTWARE.
 
 /*	Foundation sweep (proposed ADR-0043 Amendments 1-2, bead oo-wzti): the path is a UTF-8
         std::string (never empty once initialised: a nil path failed -init); paths passed in are
-        std::optional where the old code accepted nil; a texture specifier is an oo::PList. The
-        Foundation-typed API this header declared moved to OOTextureLoader+FoundationBridge.h
-        (transitional), forwarding to the cxx_ API below.
+        std::optional where the old code accepted nil; a texture specifier is an oo::PList.
+        Public loaders and subclass initialisers use the cxx_ API below.
 */
 @interface OOTextureLoader : OOObject <OOAsyncWorkTask> {
 @protected
@@ -116,10 +115,3 @@ SOFTWARE.
 - (void)loadTexture;
 
 @end
-
-/*	TRANSITIONAL (proposed ADR-0043, "Transitional bridges"): the Foundation-typed API this header
-        declared before bead oo-wzti, forwarding to the cxx_ API above, so unmigrated callers and
-        subclasses compile unchanged. Callers move to the cxx_ API in their own sweep beads; the bridge
-        goes in its own bead.
-*/
-#import "OOTextureLoader+FoundationBridge.h"

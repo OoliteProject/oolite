@@ -28,6 +28,7 @@ MA 02110-1301, USA.
 
 #import "OOMaths.h"
 #import "OOTextureGenerator.h"
+#include "oofnd/PList.hpp"
 
 typedef struct OOStandaloneAtmosphereGeneratorInfo {
     RANROTSeed seed;
@@ -58,13 +59,13 @@ typedef struct OOStandaloneAtmosphereGeneratorInfo {
     unsigned _planetScale;
 }
 
-/*	Foundation sweep (proposed ADR-0043, bead oo-2pmp): planetInfo is the planet's material
-        parameters, an Objective-C dictionary that holds OOColor objects (not a property list), so it
-        stays id at this boundary and is never round-tripped through oo::PList.
+/*	planetInfo is the planet's material parameters, a mixed configuration: plist values with the
+        colours as PList::Object nodes holding OOColors (proposed ADR-0043 Amendment 2; the
+        selector-family flip oo-3rb.269.2, which ended the id boundary of beads oo-lzk6 / oo-2pmp).
 */
-- (id)initWithPlanetInfo:(id)planetInfo seed:(RANROTSeed)seed; // Shared selector (proposed ADR-0043).
+- (id)initWithPlanetInfo:(const oo::PList&)planetInfo seed:(RANROTSeed)seed;
 
-+ (OOTexture*)planetTextureWithInfo:(id)planetInfo seed:(RANROTSeed)seed; // Shared selector (proposed ADR-0043).
-+ (BOOL)generateAtmosphereTexture:(OOTexture**)texture withInfo:(id)planetInfo seed:(RANROTSeed)seed;
++ (OOTexture*)planetTextureWithInfo:(const oo::PList&)planetInfo seed:(RANROTSeed)seed;
++ (BOOL)generateAtmosphereTexture:(OOTexture**)texture withInfo:(const oo::PList&)planetInfo seed:(RANROTSeed)seed;
 
 @end

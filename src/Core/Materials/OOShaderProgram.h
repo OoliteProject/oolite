@@ -6,7 +6,6 @@ Encapsulates a vertex + fragment shader combo. In general, this should only be
 used though OOShaderMaterial. The point of this separation is that more than
 one OOShaderMaterial can use the same OOShaderProgram.
 
-
 Copyright (C) 2007-2013 Jens Ayton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -29,10 +28,10 @@ SOFTWARE.
 
 */
 
+#import "OOFoundation.h"
 #import "OOOpenGL.h"
 #import "OOOpenGLExtensionManager.h"
 #import "oofnd/objc/OOObject.h"
-#import <Foundation/Foundation.h>
 
 #if OO_SHADERS
 

@@ -31,9 +31,16 @@ MA 02110-1301, USA.
 #import "OOTypes.h"
 #import "oofnd/objc/OOObject.h"
 
+#include "oofnd/PList.hpp"
+
+#include <cstdio>
 #include <optional>
 #include <string>
 #include <vector>
+
+namespace oo::http {
+class Download;
+}
 
 typedef enum {
     OXZ_DOWNLOAD_NONE = 0,
@@ -62,31 +69,32 @@ typedef enum {
 
 @interface OOOXZManager : OOObject {
 @private
-    NSArray* _oxzList;
-    NSArray* _managedList;
-    NSArray* _filteredList;
-    NSString* _currentFilter;
+    oo::PList _oxzList; // Array of manifests, sorted; null until a list is loaded
+    oo::PList _managedList; // Array of the managed OXZs' manifests; null: to be rebuilt
+    oo::PList _filteredList; // Array of the manifests on show
+    std::string _currentFilter; // lowercase; "*" initially
     NSString* _currentOXPURL;
 
     OXZInterfaceState _interfaceState;
     BOOL _interfaceShowingOXZDetail;
     BOOL _changesMade;
 
-    NSURLConnection* _currentDownload;
-    NSString* _currentDownloadName;
+    oo::http::Download* _currentDownload; // oofnd/Http.hpp; owned
+    std::string _currentDownloadName;
 
     OXZDownloadStatus _downloadStatus;
     NSUInteger _downloadProgress;
     NSUInteger _downloadExpected;
-    NSFileHandle* _fileWriter;
+    FILE* _fileWriter;
     NSUInteger _item;
 
     BOOL _downloadAllDependencies;
 
     NSUInteger _offset;
 
-    NSString* _progressStatus;
-    NSMutableSet* _dependencyStack;
+    std::string _progressStatus; // "" when there is none
+    // Unique by oo::PList::operator==; "any" is front() (order-sensitive: named in commit).
+    std::vector<oo::PList> _dependencyStack;
 }
 
 + (OOOXZManager*)sharedManager;
@@ -98,8 +106,14 @@ typedef enum {
 - (BOOL)updateManifests;
 - (BOOL)cancelUpdate;
 
-- (NSArray*)manifests;
-- (NSArray*)managedOXZs;
+/*	Deliver the current download's callbacks (response, data, finish, failure), in order,
+        on the main thread: GameController's frame loop calls this where it pumps the run loop,
+        which is where the old URL-connection callbacks were delivered. Proposed ADR-0044.
+*/
+- (void)processDownloadEvents;
+
+- (oo::PList)manifests; // an Array, or null before a list is loaded
+- (oo::PList)managedOXZs; // an Array
 
 - (void)gui;
 - (BOOL)isRestarting;
@@ -107,8 +121,8 @@ typedef enum {
 - (BOOL)isAcceptingGUIInput;
 
 - (void)processSelection;
-- (void)processTextInput:(NSString*)input;
-- (void)refreshTextInput:(NSString*)input;
+- (void)processTextInput:(const std::string&)input;
+- (void)refreshTextInput:(const std::string&)input;
 - (void)processFilterKey;
 - (void)processShowInfoKey;
 - (void)processCopyUrlKey;

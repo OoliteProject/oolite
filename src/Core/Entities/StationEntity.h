@@ -163,7 +163,7 @@ typedef enum {
 
 - (Vector)portUpVectorForShip:(ShipEntity*)ship;
 
-- (id)dockingInstructionsForShip:(ShipEntity*)ship; // shared selector (proposed ADR-0043)
+- (oo::PList)dockingInstructionsForShip:(ShipEntity*)ship; // null: none (bead oo-3rb.262)
 
 - (BOOL)shipIsInDockingCorridor:(ShipEntity*)ship;
 
@@ -186,7 +186,7 @@ typedef enum {
 
 - (void)launchShip:(ShipEntity*)ship;
 
-- (ShipEntity*)launchIndependentShip:(NSString*)role;
+- (ShipEntity*)launchIndependentShip:(id)role; // called by name (ADR-0043 item 21): an Objective-C string
 
 - (void)noteDockedShip:(ShipEntity*)ship;
 
@@ -202,7 +202,7 @@ typedef enum {
 - (void)increaseAlertLevel;
 - (void)decreaseAlertLevel;
 
-- (NSArray*)launchPolice;
+- (id)launchPolice; // called by name (ADR-0043 item 21): an Objective-C array of the ships launched
 - (ShipEntity*)launchDefenseShip;
 - (ShipEntity*)launchScavenger;
 - (ShipEntity*)launchMiner;
@@ -212,7 +212,7 @@ typedef enum {
 - (ShipEntity*)launchEscort;
 - (ShipEntity*)launchPatrol;
 
-- (void)launchShipWithRole:(NSString*)role;
+- (void)launchShipWithRole:(id)role; // called by name (ADR-0043 item 21): an Objective-C string
 
 - (void)acceptPatrolReportFrom:(ShipEntity*)patrol_ship;
 

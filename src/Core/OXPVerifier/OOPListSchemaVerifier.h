@@ -5,7 +5,6 @@ OOPListSchemaVerifier.h
 Utility class to verify the structure of a property list based on a schema
 (which is itself a property list).
 
-
 Copyright (C) 2007-2013 Jens Ayton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -32,9 +31,9 @@ SOFTWARE.
 
 #if OO_OXP_VERIFIER_ENABLED
 
+#import "OOFoundation.h"
 #import "OOFunctionAttributes.h"
 #import "oofnd/objc/OOObject.h"
-#import <Foundation/Foundation.h>
 
 #include "oofnd/PList.hpp"
 #include "oofnd/StdLib.hpp"

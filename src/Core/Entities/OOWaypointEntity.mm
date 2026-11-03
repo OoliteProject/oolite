@@ -41,12 +41,6 @@ MA 02110-1301, USA.
 #define OOWAYPOINT_KEY_CODE "beaconCode"
 #define OOWAYPOINT_KEY_LABEL "beaconLabel"
 
-@interface OOWaypointEntity (OOPrivate)
-
-- (id)initWithWaypointDictionary:(const oo::PList&)info;
-
-@end
-
 namespace {
 
 // -objectForKey: for a callee that still takes an Objective-C object (nil when absent).
@@ -62,15 +56,15 @@ id ObjectForKey(const oo::PList& dict, std::string_view key)
 
 + (instancetype)waypointWithDictionary:(const oo::PList&)info
 {
-    return [[[OOWaypointEntity alloc] initWithWaypointDictionary:info] autorelease];
+    return [[[OOWaypointEntity alloc] cxx_initWithDictionary:info] autorelease];
 }
 
-- (id)initWithDictionary:(id)info // shared selector (proposed ADR-0043)
+- (id)initWithDictionary:(id)info // shared selector (Foundation declares it too)
 {
-    return [self initWithWaypointDictionary:oo::PListFrom(info)];
+    return [self cxx_initWithDictionary:oo::PListFrom(info)];
 }
 
-- (id)initWithWaypointDictionary:(const oo::PList&)info
+- (id)cxx_initWithDictionary:(const oo::PList&)info
 {
     self = [super init];
     if (EXPECT_NOT(self == nil))

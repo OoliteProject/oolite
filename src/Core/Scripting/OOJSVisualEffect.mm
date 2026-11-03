@@ -606,9 +606,10 @@ static JSValue VisualEffectSetMaterialsInternal(OOJS_NATIVE_ARGS, OOVisualEffect
     std::optional<std::string> modelName;
     if (model != nullptr && (model->isString() || model->isNumber()))
         modelName = effectDict.get<std::string>("model");
-    oo::PList shaderMacros = oo::PListFrom([[ResourceManager materialDefaults] objectForKey:@"ship-prefix-macros"]);
-    if (!shaderMacros.isDict())
-        shaderMacros = oo::PList();
+    // The ship-prefix-macros default as the mesh call read it: a dictionary, else nothing.
+    const oo::PList materialDefaults = [ResourceManager cxx_materialDefaults];
+    const oo::PList* macros = materialDefaults.get<oo::PList::Dict>("ship-prefix-macros");
+    const oo::PList shaderMacros = (macros != nullptr) ? *macros : oo::PList();
 
     // First we test to see if we can create the mesh.
     OOMesh* mesh = [OOMesh meshWithName:modelName.value_or(std::string())

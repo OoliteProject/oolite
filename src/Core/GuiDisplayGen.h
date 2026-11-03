@@ -34,6 +34,7 @@ MA 02110-1301, USA.
 
 #include "oofnd/PList.hpp"
 #include "oofnd/StdLib.hpp"
+#include "oofnd/objc/OOObjCRef.h"
 
 #define GUI_DEFAULT_COLUMNS 6
 #define GUI_DEFAULT_ROWS 30
@@ -68,7 +69,7 @@ typedef enum {
 #define GUI_KEY_OK @"OK"
 #define GUI_KEY_SKIP @"SKIP-ROW"
 
-// globals: the gui-settings.plist keys (Foundation sweep chunk 3, oo-3rb.94). The NSString
+// globals: the gui-settings.plist keys (Foundation sweep chunk 3, oo-3rb.94). The string-object
 // kGui* constants callers use live in GuiDisplayGen+FoundationBridge.h until they move to these.
 inline constexpr const char* cxx_kGuiDefaultTextColor = "default_text_color";
 inline constexpr const char* cxx_kGuiScreenTitleColor = "screen_title_color";
@@ -185,11 +186,11 @@ typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
     OOTextureSprite* foregroundSprite;
     OOGUIBackgroundSpecial backgroundSpecial;
 
-    NSString* title;
+    std::optional<std::string> title; // none: no title bar
 
-    NSMutableArray* rowText;
-    NSMutableArray* rowKey;
-    NSMutableArray* rowColor;
+    std::vector<oo::PList> rowText; // each a string, or an array of column strings (chunk 5a, oo-3rb.165)
+    std::vector<std::string> rowKey;
+    std::vector<oo::ObjCRef<OOColor*>> rowColor;
 
     Vector drawPosition;
 
@@ -244,8 +245,8 @@ typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 - (unsigned)rowHeight;
 - (int)rowStart;
 
-- (NSString*)title;
-- (void)setTitle:(NSString*)str;
+- (id)title; // shared selector (proposed ADR-0043); a string, or nil for no title
+- (void)setTitle:(id)str; // shared selector (proposed ADR-0043); an empty string means no title
 
 - (void)dealloc;
 
@@ -377,6 +378,7 @@ typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 - (NSUInteger)statusPage;
 - (void)refreshStarChart;
 - (void)setStarChartTitle;
+- (void)cxx_drawEquipmentList:(const oo::PList&)eqptList z:(GLfloat)z;
 
 - (OOSystemID)targetNextFoundSystem:(int)direction;
 

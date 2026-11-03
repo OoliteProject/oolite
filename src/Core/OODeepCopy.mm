@@ -93,12 +93,15 @@ id OODeepCopy(id object)
 
 @end
 
-@implementation NSValue (OODeepCopy) // Includes NSNumber
+/*	Was the value-box class's category, which served NSNumber (a subclass). The game makes no other
+        value boxes any more (bead oo-3rb.50), so NSNumber is every receiver it had.
+*/
+@implementation NSNumber (OODeepCopy)
 
 - (id)ooDeepCopyWithSharedObjects:(NSMutableSet*)objects
 {
     id object = [objects member:self];
-    if (object != nil && [object isKindOfClass:[NSValue class]]) {
+    if (object != nil && [object isKindOfClass:[NSNumber class]]) {
         return [object retain];
     } else {
         object = [self copy];

@@ -30,6 +30,7 @@ MA 02110-1301, USA.
 #import "OOFileScannerVerifierStage.h"
 #import "OOFoundationBridge.h"
 
+#include "oofnd/Log.hpp"
 #include "oofnd/String.hpp"
 
 static const char* const kStageName = "Testing models";
@@ -45,16 +46,16 @@ static const char* const kStageName = "Testing models";
 
 @implementation OOModelVerifierStage
 
-+ (id)nameForReverseDependencyForVerifier:(OOOXPVerifier*)verifier
++ (std::string)nameForReverseDependencyForVerifier:(OOOXPVerifier*)verifier
 {
-    OOModelVerifierStage* stage = [verifier stageWithName:oo::NSStringFrom(kStageName)];
+    OOModelVerifierStage* stage = [verifier cxx_stageWithName:kStageName];
     if (stage == nil) {
         stage = [[OOModelVerifierStage alloc] init];
         [verifier registerStage:stage];
         [stage release];
     }
 
-    return oo::NSStringFrom(kStageName);
+    return kStageName;
 }
 
 - (id)name // shared selector (proposed ADR-0043)
@@ -69,7 +70,7 @@ static const char* const kStageName = "Testing models";
 
 - (void)run
 {
-    OOLog(@"verifyOXP.models.unimplemented", @"%@", @"TODO: implement model verifier.");
+    OO_LOG("verifyOXP.models.unimplemented", "{}", "TODO: implement model verifier.");
 
     for (const OOModelVerifierEntry& info : _modelsToCheck) {
         @autoreleasepool {
@@ -100,10 +101,7 @@ static const char* const kStageName = "Testing models";
         context = fileName;
 
     fileScanner = [[self verifier] fileScannerStage];
-    if (![fileScanner fileExists:oo::NSStringFrom(name)
-                        inFolder:@"Models"
-                  referencedFrom:oo::NSStringFrom(context)
-                    checkBuiltIn:YES]) {
+    if (![fileScanner cxx_fileExists:name inFolder:"Models" referencedFrom:context checkBuiltIn:YES]) {
         return NO;
     }
 
@@ -124,7 +122,7 @@ static const char* const kStageName = "Testing models";
          materials:(const oo::PList&)materials
            shaders:(const oo::PList&)shaders
 {
-    OOLog(@"verifyOXP.verbose.model.unimp", @"- Pretending to verify model %@ referenced in %@.", oo::NSStringFrom(name), oo::NSStringFrom(context));
+    OO_LOG("verifyOXP.verbose.model.unimp", "- Pretending to verify model {} referenced in {}.", name, context);
     // FIXME: this should check DAT files.
 }
 
@@ -134,7 +132,7 @@ static const char* const kStageName = "Testing models";
 
 - (OOModelVerifierStage*)modelVerifierStage
 {
-    return [self stageWithName:oo::NSStringFrom(kStageName)];
+    return [self cxx_stageWithName:kStageName];
 }
 
 @end

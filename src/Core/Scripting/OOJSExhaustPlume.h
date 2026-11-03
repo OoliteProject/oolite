@@ -25,7 +25,7 @@ MA 02110-1301, USA.
 */
 
 #import "OOExhaustPlumeEntity.h"
-#import <Foundation/Foundation.h>
+#import "OOFoundation.h"
 #include <quickjs.h>
 
 void InitOOJSExhaustPlume(JSContext* context, JSValueConst global);

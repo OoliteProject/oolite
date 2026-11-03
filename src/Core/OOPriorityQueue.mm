@@ -27,9 +27,15 @@ SOFTWARE.
 
 #include <assert.h>
 
+#import "OOFoundationBridge.h"
 #import "OOFunctionAttributes.h"
 #import "OOPriorityQueue.h"
+#include "oofnd/String.hpp"
 #include "oofnd/objc/OOException.h"
+#if DEBUG_GRAPHVIZ
+#include "oofnd/FileSystem.hpp"
+#endif
+#include "oofnd/objc/OORuntime.h"
 
 /*	Capacity grows by 50% each time. kMinCapacity must be at least 2 or Bad
         Things will happen. Some examples of growth patterns based on kMinCapacity:
@@ -108,18 +114,8 @@ OOINLINE NSComparisonResult PQCompare(id a, id b, SEL comparator)
 - (void)removeObjectAtIndex:(NSUInteger)i;
 
 #if OO_DEBUG
-- (void)appendDebugDataToString:(NSMutableString*)string index:(NSUInteger)i depth:(NSUInteger)depth;
+- (void)appendDebugDataToString:(std::string&)string index:(NSUInteger)i depth:(NSUInteger)depth;
 #endif
-
-@end
-
-// NSEnumerator subclass to pull objects from queue.
-@interface OOPriorityQueueEnumerator : NSEnumerator {
-@private
-    OOPriorityQueue* _queue;
-}
-
-- (id)initWithPriorityQueue:(OOPriorityQueue*)queue;
 
 @end
 
@@ -158,27 +154,26 @@ OOINLINE NSComparisonResult PQCompare(id a, id b, SEL comparator)
     [super dealloc];
 }
 
-- (NSString*)description
+- (id)description
 {
-    return [NSString stringWithFormat:@"<%@ %p>{count=%zu, capacity=%zu}", [self class], self, _count, _capacity];
+    return oo::NSStringFrom(oo::str::format("<%s %s>{count=%zu, capacity=%zu}", oo::DescriptionOf([self class]).c_str(), oo::str::pointerDescription(self).c_str(), _count, _capacity));
 }
 
 #if OO_DEBUG
-- (NSString*)debugDescription
+- (id)debugDescription
 {
-    NSMutableString* result = nil;
+    std::string result;
 
-    result = [NSMutableString string];
-    [result appendFormat:@"<%@ %p> (count=%zu, capacity=%zu, comparator=%@)", [self class], self, _count, _capacity, NSStringFromSelector(_comparator)];
+    result = oo::str::format("<%s %s> (count=%zu, capacity=%zu, comparator=%s)", oo::DescriptionOf([self class]).c_str(), oo::str::pointerDescription(self).c_str(), _count, _capacity, OOSelectorName(_comparator));
 
     if (_count != 0) {
-        [result appendString:@"\n{\n"];
+        result += "\n{\n";
         [self appendDebugDataToString:result index:0 depth:0];
-        [result appendString:@"}"];
+        result += "}";
     } else {
-        [result appendString:@" {}"];
+        result += " {}";
     }
-    return result;
+    return oo::NSStringFrom(result);
 }
 #endif
 
@@ -342,14 +337,21 @@ OOINLINE NSComparisonResult PQCompare(id a, id b, SEL comparator)
         [self addObject:value];
 }
 
-- (NSArray*)sortedObjects
+- (std::vector<oo::ObjCRef<id>>)sortedObjects
 {
-    return [[self objectEnumerator] allObjects];
+    std::vector<oo::ObjCRef<id>> result;
+    id value = nil;
+
+    result.reserve(_count);
+    while ((value = [self nextObject]))
+        result.emplace_back(value);
+    return result;
 }
 
-- (NSEnumerator*)objectEnumerator
+- (id)objectEnumerator
 {
-    return [[[OOPriorityQueueEnumerator alloc] initWithPriorityQueue:self] autorelease];
+    // The objects are pulled off the heap up front (the retired enumerator pulled them as it went).
+    return [oo::NSArrayFromObjects([self sortedObjects]) objectEnumerator];
 }
 
 @end
@@ -488,7 +490,7 @@ OOINLINE NSComparisonResult PQCompare(id a, id b, SEL comparator)
 }
 
 #if OO_DEBUG
-- (void)appendDebugDataToString:(NSMutableString*)string index:(NSUInteger)i depth:(NSUInteger)depth
+- (void)appendDebugDataToString:(std::string&)string index:(NSUInteger)i depth:(NSUInteger)depth
 {
     NSUInteger spaces;
 
@@ -497,9 +499,9 @@ OOINLINE NSComparisonResult PQCompare(id a, id b, SEL comparator)
 
     spaces = 2 + depth;
     while (spaces--)
-        [string appendString:@"  "];
-    [string appendString:[_heap[i] description]];
-    [string appendString:@"\n"];
+        string += "  ";
+    string += oo::DescriptionOf(_heap[i]);
+    string += "\n";
 
     [self appendDebugDataToString:string index:PQLeftChild(i) depth:depth + 1];
     [self appendDebugDataToString:string index:PQRightChild(i) depth:depth + 1];
@@ -508,133 +510,77 @@ OOINLINE NSComparisonResult PQCompare(id a, id b, SEL comparator)
 
 @end
 
-@implementation OOPriorityQueueEnumerator
-
-- (id)initWithPriorityQueue:(OOPriorityQueue*)queue
-{
-    if (queue == nil) {
-        [self release];
-        return nil;
-    }
-
-    self = [super init];
-    if (self != nil) {
-        _queue = [queue retain];
-    }
-    return self;
-}
-
-- (void)dealloc
-{
-    [_queue release];
-
-    [super dealloc];
-}
-
-- (id)nextObject
-{
-    id value = [_queue nextObject];
-    if (value == nil) {
-        // Maintain enumerator semantics by ensuring we don't start returning new values after returning nil.
-        [_queue release];
-        _queue = nil;
-    }
-    return value;
-}
-
-@end
-
 #if DEBUG_GRAPHVIZ
-@implementation OOPriorityQueue (DebugGraphViz)
+namespace {
 
-static NSString* EscapedString(NSString* string)
+std::string EscapedString(const std::string& string)
 {
-    NSString* srcStrings[] = {
+    const char* const srcStrings[] = {
         // Note: backslash must be first.
-        @"\\", @"\"", @"\'", @"\r", @"\n", @"\t", nil
+        "\\", "\"", "\'", "\r", "\n", "\t", nullptr
     };
-    NSString* subStrings[] = {
+    const char* const subStrings[] = {
         // Note: must be same order.
-        @"\\\\", @"\\\"", @"\\\'", @"\\r", @"\\n", @"\\t", nil
+        "\\\\", "\\\"", "\\\'", "\\r", "\\n", "\\t", nullptr
     };
 
-    NSString **src = srcStrings, **sub = subStrings;
-    NSMutableString* mutableString = nil;
-    NSString* result = nil;
+    const char *const *src = srcStrings, *const *sub = subStrings;
+    std::string result = string;
 
-    mutableString = [string mutableCopy];
-    while (*src != nil) {
-        [mutableString replaceOccurrencesOfString:*src++
-                                       withString:*sub++
-                                          options:0
-                                            range:NSMakeRange(0, [mutableString length])];
+    while (*src != nullptr) {
+        result = oo::str::replaceOccurrences(result, *src++, *sub++);
     }
 
-    if ([mutableString length] == [string length]) {
-        result = string;
-    } else {
-        result = [[mutableString copy] autorelease];
-    }
-    [mutableString release];
     return result;
 }
 
-- (NSString*)generateGraphViz
+} // namespace
+
+@implementation OOPriorityQueue (DebugGraphViz)
+
+- (std::string)generateGraphViz
 {
-    NSMutableString* result = nil;
+    std::string result;
     NSUInteger i;
     id node = nil;
-    NSString* desc = nil;
-
-    result = [NSMutableString string];
+    std::string desc;
 
     // Header
-    [result appendString:
-            @"// OOPriorityQueue partially ordered tree dump\n\n"
-             "digraph heap\n"
-             "{\n"
-             "\tgraph [charset=\"UTF-8\", label=\"OOPriorityQueue heap dump\", labelloc=t, labeljust=l];\n"
-             "\tnode [shape=record];\n\t\n\t"];
+    result += "// OOPriorityQueue partially ordered tree dump\n\n"
+              "digraph heap\n"
+              "{\n"
+              "\tgraph [charset=\"UTF-8\", label=\"OOPriorityQueue heap dump\", labelloc=t, labeljust=l];\n"
+              "\tnode [shape=record];\n\t\n\t";
 
     // Nodes
     for (i = 0; i < _count; ++i) {
         node = _heap[i];
-        desc = [node description];
-        if ([desc length] > 70) {
-            desc = [[desc substringToIndex:64] stringByAppendingString:@"..."];
+        desc = oo::DescriptionOf(node);
+        if (oo::str::length(desc) > 70) {
+            // (the first 64 UTF-16 units, as -substringToIndex: took)
+            desc = oo::utf16ToUtf8(oo::utf8ToUtf16(desc).substr(0, 64)) + "...";
         }
 
-        [result appendFormat:@"\tnode_%zu [label=\"<f0> | <f1> %@ | <f2>\"];\n", i, EscapedString(desc)];
+        result += oo::str::format("\tnode_%zu [label=\"<f0> | <f1> %s | <f2>\"];\n", i, EscapedString(desc).c_str());
     }
 
     // Arcs
     for (i = 0; PQLeftChild(i) < _count; ++i) {
-        [result appendFormat:@"\tnode_%zu:f0 -> node_%zu:f1;\n", i, PQLeftChild(i)];
+        result += oo::str::format("\tnode_%zu:f0 -> node_%zu:f1;\n", i, PQLeftChild(i));
         if (PQRightChild(i) < _count)
-            [result appendFormat:@"\tnode_%zu:f2 -> node_%zu:f1;\n", i, PQRightChild(i)];
+            result += oo::str::format("\tnode_%zu:f2 -> node_%zu:f1;\n", i, PQRightChild(i));
     }
 
-    [result appendString:@"}\n"];
+    result += "}\n";
 
     return result;
 }
 
-- (void)writeGraphVizToURL:(NSURL*)url
+// (-writeGraphVizToURL: folded in: its only sender was this method; bead oo-3rb.264)
+- (void)writeGraphVizToPath:(const std::string&)path
 {
-    NSString* graphViz = nil;
-    NSData* data = nil;
-
-    graphViz = [self generateGraphViz];
-    data = [graphViz dataUsingEncoding:NSUTF8StringEncoding];
-
-    if (data != nil) {
-        [data writeToURL:url atomically:YES];
-    }
-}
-
-- (void)writeGraphVizToPath:(NSString*)path
-{
-    [self writeGraphVizToURL:[NSURL fileURLWithPath:path]];
+    const std::string graphViz = [self generateGraphViz];
+    (void)oo::fs::writeFile(oo::fs::pathFromUTF8(path), oo::Data(graphViz.data(), graphViz.size())); // atomically, as before
 }
 
 @end

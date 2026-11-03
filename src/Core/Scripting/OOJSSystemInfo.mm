@@ -34,6 +34,8 @@ MA 02110-1301, USA.
 #import "Universe.h"
 
 #import "OOFoundationBridge.h"
+#include "oofnd/Notification.hpp"
+#include "oofnd/objc/OOAssert.h"
 #include <cstring>
 
 /*	SpiderMonkey implemented SystemInfo's dynamic per-system properties with
@@ -276,7 +278,7 @@ DEFINE_JS_OBJECT_GETTER(JSSystemInfoGetSystemInfo, sSystemInfoClassID, OOSystemI
 
 /*- (Random_Seed) systemSeed
 {
-        NSAssert([PLAYER currentGalaxyID] == _galaxy, @"Attempt to use -[OOSystemInfo systemSeed] from a different galaxy.");
+        OOAssert([PLAYER currentGalaxyID] == _galaxy, "Attempt to use -[OOSystemInfo systemSeed] from a different galaxy.");
         return [UNIVERSE systemSeedForSystemNumber:_system];
         }*/
 
@@ -300,7 +302,7 @@ DEFINE_JS_OBJECT_GETTER(JSSystemInfoGetSystemInfo, sSystemInfoClassID, OOSystemI
     return result;
 }
 
-+ (void)oo_javaScriptEngineWillReset:(NSNotification*)notification
++ (void)oo_javaScriptEngineWillReset:(const oo::Notification&)notification
 {
     JSValue oldCache = sCachedSystemInfo;
     sCachedSystemInfo = JS_UNDEFINED;
@@ -314,10 +316,9 @@ void InitOOJSSystemInfo(JSContext* context, JSValueConst global)
 {
     static BOOL observing = NO;
     if (!observing) {
-        [[NSNotificationCenter defaultCenter] addObserver:[OOSystemInfo class]
-                                                 selector:@selector(oo_javaScriptEngineWillReset:)
-                                                     name:kOOJavaScriptEngineWillResetNotification
-                                                   object:nil];
+        oo::NotificationCenter::defaultCenter().addObserver([OOSystemInfo class], kOOJavaScriptEngineWillResetNotificationName,
+            nullptr,
+            [](const oo::Notification& notification) { [OOSystemInfo oo_javaScriptEngineWillReset:notification]; });
         observing = YES;
     }
     sCachedSystemInfo = JS_UNDEFINED;

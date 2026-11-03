@@ -51,7 +51,10 @@ SOFTWARE.
 #import <objc/objc-arc.h>
 #import <objc/runtime.h>
 
+#include "oofnd/Defaults.hpp"
 #include "oofnd/String.hpp"
+#include "oofnd/objc/OOAssert.h"
+#include "oofnd/objc/OOException.h"
 
 #ifndef APIENTRY
 #define APIENTRY
@@ -196,7 +199,7 @@ typedef GLvoid (*TessFuncPtr)();
 {
     if (count == 0)
         return;
-    NSParameterAssert(vbo != NULL && data != NULL);
+    OOParameterAssert(vbo != NULL && data != NULL);
 
     OO_ENTER_OPENGL();
     OOSetOpenGLState(OPENGL_STATE_OVERLAY);
@@ -230,7 +233,7 @@ typedef GLvoid (*TessFuncPtr)();
 #endif
 
     OOVerifyOpenGLState();
-    OOCheckOpenGLErrors(@"OOPolygonSprite after rendering %@", self);
+    cxx_OOCheckOpenGLErrors([&]() -> std::string { return "OOPolygonSprite after rendering " + oo::DescriptionOf(self); });
 }
 
 - (void)drawFilled
@@ -273,7 +276,7 @@ typedef GLvoid (*TessFuncPtr)();
 // FIXME: this method is absolutely horrible.
 - (BOOL)loadPolygons:(const oo::PList&)dataArray outlineWidth:(float)outlineWidth
 {
-    NSParameterAssert(dataArray);
+    OOParameterAssert(dataArray);
 
     void* pool = objc_autoreleasePoolPush();
     GLUtesselator* tesselator = NULL;
@@ -284,7 +287,7 @@ typedef GLvoid (*TessFuncPtr)();
     polygonData.OK = YES;
 #ifndef NDEBUG
     polygonData.name = _name;
-    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"polygon-sprite-dump-svg"])
+    if (oo::Defaults::standard().boolForKey("polygon-sprite-dump-svg"))
         SVGDumpBegin(&polygonData);
 #endif
 
@@ -437,8 +440,8 @@ void SubmitVertices(GLUtesselator* tesselator, TessPolygonData* polygonData, con
 std::vector<OOPolygonContour> DataArrayToPoints(TessPolygonData* data, const oo::PList& dataArray)
 {
     /*	This converts an icon definition in the form of an array of array of
-            numbers to internal data in the form of an array of arrays of NSValues
-            containing NSPoint data. In addition to repacking the data, it performs
+            numbers to internal data in the form of a list of contours (lists of
+            NSPoints). In addition to repacking the data, it performs
             the following data processing:
               * Sequences of duplicate vertices are removed (including across the
                 beginning and end, in case of manually closed contours).
@@ -599,7 +602,7 @@ OOPolygonContour BuildOutlineContour(const OOPolygonContour& dataArray, GLfloat 
 
 static BOOL GrowTessPolygonData(TessPolygonData* data, size_t capacityHint)
 {
-    NSCParameterAssert(data != NULL);
+    OOCParameterAssert(data != NULL);
 
     size_t minCapacity = data->capacity + 1;
     size_t desiredCapacity = MAX(capacityHint, minCapacity);
@@ -617,7 +620,7 @@ static BOOL GrowTessPolygonData(TessPolygonData* data, size_t capacityHint)
     if (newData == NULL)
         return NO;
 
-    NSCAssert(newCapacity > data->capacity, @"Buffer regrow logic error");
+    OOCAssert(newCapacity > data->capacity, "Buffer regrow logic error");
 
     data->data = newData;
     data->capacity = newCapacity;
@@ -626,7 +629,7 @@ static BOOL GrowTessPolygonData(TessPolygonData* data, size_t capacityHint)
 
 static BOOL AppendVertex(TessPolygonData* data, NSPoint vertex)
 {
-    NSCParameterAssert(data != NULL);
+    OOCParameterAssert(data != NULL);
 
     if (data->capacity == data->count && !GrowTessPolygonData(data, data->capacity * 2))
         return NO;
@@ -640,7 +643,7 @@ static BOOL AppendVertex(TessPolygonData* data, NSPoint vertex)
 static void APIENTRY TessBeginCallback(GLenum type, void* polygonData)
 {
     TessPolygonData* data = (TessPolygonData*)polygonData;
-    NSCParameterAssert(data != NULL);
+    OOCParameterAssert(data != NULL);
 
     data->mode = type;
     data->vCount = 0;
@@ -652,7 +655,7 @@ static void APIENTRY TessVertexCallback(void* vertexData, void* polygonData)
 {
     TessPolygonData* data = (TessPolygonData*)polygonData;
     const NSPoint* vertPoint = static_cast<const NSPoint*>(vertexData);
-    NSCParameterAssert(vertPoint != NULL && data != NULL);
+    OOCParameterAssert(vertPoint != NULL && data != NULL);
     if (!data->OK)
         return;
 
@@ -730,7 +733,7 @@ static void APIENTRY TessVertexCallback(void* vertexData, void* polygonData)
         break;
 
     default:
-        OOLog(@"polygonSprite.tesselate.error", @"Unexpected tesselator primitive mode %u.", data->mode);
+        OO_LOG("polygonSprite.tesselate.error", "Unexpected tesselator primitive mode {}.", static_cast<unsigned>(data->mode));
         data->OK = NO;
     }
 }
@@ -746,7 +749,7 @@ static void APIENTRY TessCombineCallback(GLdouble coords[3], void* vertexData[4]
 static void APIENTRY TessEndCallback(void* polygonData)
 {
     TessPolygonData* data = (TessPolygonData*)polygonData;
-    NSCParameterAssert(data != NULL);
+    OOCParameterAssert(data != NULL);
 
     data->mode = 0;
     data->vCount = 0;
@@ -757,7 +760,7 @@ static void APIENTRY TessEndCallback(void* polygonData)
 static void APIENTRY ErrorCallback(GLenum error, void* polygonData)
 {
     TessPolygonData* data = (TessPolygonData*)polygonData;
-    NSCParameterAssert(data != NULL);
+    OOCParameterAssert(data != NULL);
 
     std::string name;
 #ifndef NDEBUG
@@ -766,7 +769,7 @@ static void APIENTRY ErrorCallback(GLenum error, void* polygonData)
 
     char* errStr = (char*)gluErrorString(error);
 
-    OOLog(@"polygonSprite.tesselate.error", @"Error %s (%u) while tesselating polygon%@.", errStr, error, oo::NSStringFrom(name));
+    OO_LOG("polygonSprite.tesselate.error", "Error {} ({}) while tesselating polygon{}.", errStr, static_cast<unsigned>(error), name);
     data->OK = NO;
 }
 
@@ -828,7 +831,7 @@ void SVGDumpAppendBaseContour(TessPolygonData* data, const OOPolygonContour& poi
 
     // Close and add a circle at the first vertex. (SVG has support for end markers, but this isn’t reliable across implementations.)
     if (points.empty())
-        [NSException raise:NSRangeException format:@"SVGDumpAppendBaseContour: empty contour"]; // -objectAtIndex:0 raised here
+        [OOException raise:OORangeException format:"SVGDumpAppendBaseContour: empty contour"]; // -objectAtIndex:0 raised here
     NSPoint p = points[0];
     *data->debugSVG += oo::str::format("z\"/>\n\t\t\t<circle cx=\"%f\" cy=\"%f\" r=\"0.1\" fill=\"#BBB\" stroke=\"none\"/>\n\t\t</g>\n", p.x, -p.y);
 }

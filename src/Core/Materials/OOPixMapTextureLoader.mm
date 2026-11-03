@@ -35,7 +35,7 @@ SOFTWARE.
 
 - (id)initWithPixMap:(OOPixMap)pixMap textureOptions:(uint32_t)options freeWhenDone:(BOOL)freeWhenDone
 {
-    self = [super initWithPath:oo::NSStringFrom(oo::str::format("OOPixMap@%s", oo::str::pointerDescription(self).c_str())) options:options];
+    self = [super cxx_initWithPath:oo::str::format("OOPixMap@%s", oo::str::pointerDescription(self).c_str()) options:options];
     if (self != nil) {
         if (freeWhenDone)
             _pixMap = pixMap;

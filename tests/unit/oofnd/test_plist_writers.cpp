@@ -911,4 +911,48 @@ OO_TEST(parsePropertyListDispatch)
 	OO_CHECK(oo::parsePropertyList(kW01In).value() == oo::parsePropertyListData(kW01In).value());
 }
 
+namespace {
+
+// An object that is not property-list data (the Amendment 2 carrier), describing itself.
+class DescribedForeign : public oo::PListForeign
+{
+public:
+	explicit DescribedForeign(std::string text) : text_(std::move(text)) {}
+	std::string className() const override { return "Foo"; }
+	std::string description() const override { return text_; }
+
+private:
+	std::string text_;
+};
+
+} // namespace
+
+// Captured from gnustep-base 1.31.1 (bead oo-3rb.149): +dataFromPropertyList:format:XML succeeds
+// on an object that is not property-list data, writing its -description in a <string> with no
+// line break after it, and reports no error.
+OO_TEST(xmlWritesForeignObjectAsItsDescription_capture)
+{
+	oo::PList::Dict inner;
+	inner["k"] = oo::PList(oo::PList::Object(oo::Ref<oo::PListForeign>::adopt(new DescribedForeign("<Foo thing>"))));
+	oo::PList::Dict outer;
+	outer["configuration"] = oo::PList(inner);
+	outer["packet type"] = oo::PList(std::string("Note Configuration"));
+	const oo::Expected<oo::Data, oo::PListError> r = oo::writeXMLPList(oo::PList(outer));
+	OO_CHECK(static_cast<bool>(r));
+	const std::string expected =
+		"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+		"<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n"
+		"<plist version=\"1.0\">\n"
+		"<dict>\n"
+		"    <key>configuration</key>\n"
+		"    <dict>\n"
+		"\t<key>k</key>\n"
+		"\t<string>&lt;Foo thing&gt;</string>    </dict>\n"
+		"    <key>packet type</key>\n"
+		"    <string>Note Configuration</string>\n"
+		"</dict>\n"
+		"</plist>";
+	OO_CHECK(r && r->toString() == expected);
+}
+
 OO_TEST_MAIN()
