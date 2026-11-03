@@ -94,20 +94,25 @@ void OOObjCInstallFloor(void)
 {
 }
 
+// As NSObject: +alloc goes through +allocWithZone:, so a subclass overriding +allocWithZone:
+// (the game's singletons) is honoured by +alloc and +new too.
 + (id)alloc
 {
-    return class_createInstance(self, 0);
+    return [self allocWithZone:nullptr];
 }
 
 + (id)allocWithZone:(OOZone*)zone
 {
     (void)zone;
-    return [self alloc];
+    return class_createInstance(self, 0);
 }
 
 + (id)new
 {
-    return [[self alloc] init];
+    // Two statements, not [[self alloc] init]: clang lowers that to libobjc2's objc_alloc_init(),
+    // which crashes when +allocWithZone: returns nil (measured: a singleton's second +new).
+    id instance = [self alloc];
+    return [instance init];
 }
 
 + (Class)class
@@ -248,8 +253,10 @@ void OOObjCInstallFloor(void)
 
 - (uintptr_t)hash
 {
+    // gnustep-base's NSObject value (measured: the address shifted right by 4), so a rerooted
+    // object lands in the same NSSet/NSDictionary bucket and iteration order does not change.
     const void* address = self;
-    return reinterpret_cast<uintptr_t>(address);
+    return reinterpret_cast<uintptr_t>(address) >> 4;
 }
 
 - (id)performSelector:(SEL)selector
@@ -268,6 +275,11 @@ void OOObjCInstallFloor(void)
 {
     IMP imp = class_getMethodImplementation(object_getClass(self), selector);
     return reinterpret_cast<OOObjectMethod2>(imp)(self, selector, object1, object2);
+}
+
+- (OOZone*)zone
+{
+    return nullptr;
 }
 
 - (id)copy

@@ -29,12 +29,12 @@ SOFTWARE.
 #import "GameController.h"
 #import "NSDictionaryOOExtensions.h"
 #import "OOCacheManager.h"
-#import "OOCollectionExtractors.h"
 #import "OOColor.h"
 #import "OODeepCopy.h"
 #import "OOJSScript.h"
 #import "OOLegacyScriptWhitelist.h"
 #import "OOMesh.h"
+#import "OOPListView.h"
 #import "OOProbabilitySet.h"
 #import "OORoleSet.h"
 #import "OOShipLibraryDescriptions.h"
@@ -44,6 +44,7 @@ SOFTWARE.
 #import "Universe.h"
 
 #import "OODebugStandards.h"
+#import "OOFoundationBridge.h"
 
 #define PRELOAD 0
 
@@ -141,38 +142,37 @@ static NSString* const kVisualEffectDataCacheKey = @"visual effect data";
 - (id)init
 {
     if ((self = [super init])) {
-        NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-        OOCacheManager* cache = [OOCacheManager sharedCache];
+        @autoreleasepool {
+            OOCacheManager* cache = [OOCacheManager sharedCache];
 
-        _shipData = [[cache objectForKey:kShipDataCacheKey inCache:kShipRegistryCacheName] retain];
-        _playerShips = [[cache objectForKey:kPlayerShipsCacheKey inCache:kShipRegistryCacheName] retain];
-        _effectData = [[cache objectForKey:kVisualEffectDataCacheKey inCache:kVisualEffectRegistryCacheName] retain];
-        if ([_shipData count] == 0) // Don't accept nil or empty
-        {
-            [self loadShipData];
-            if ([_shipData count] == 0) {
-                [NSException raise:@"OOShipRegistryLoadFailure" format:@"Could not load any ship data."];
+            _shipData = [[cache objectForKey:kShipDataCacheKey inCache:kShipRegistryCacheName] retain];
+            _playerShips = [[cache objectForKey:kPlayerShipsCacheKey inCache:kShipRegistryCacheName] retain];
+            _effectData = [[cache objectForKey:kVisualEffectDataCacheKey inCache:kVisualEffectRegistryCacheName] retain];
+            if ([_shipData count] == 0) // Don't accept nil or empty
+            {
+                [self loadShipData];
+                if ([_shipData count] == 0) {
+                    [NSException raise:@"OOShipRegistryLoadFailure" format:@"Could not load any ship data."];
+                }
+                if ([_playerShips count] == 0) {
+                    [NSException raise:@"OOShipRegistryLoadFailure" format:@"Could not load any player ships."];
+                }
             }
-            if ([_playerShips count] == 0) {
-                [NSException raise:@"OOShipRegistryLoadFailure" format:@"Could not load any player ships."];
+
+            [self loadDemoShipConditions];
+            [self loadDemoShips]; // testing only
+            if ([_demoShips count] == 0) {
+                [NSException raise:@"OOShipRegistryLoadFailure" format:@"Could not load or synthesize any demo ships."];
+            }
+
+            [self loadCachedRoleProbabilitySets];
+            if (_probabilitySets == nil) {
+                [self buildRoleProbabilitySets];
+                if ([_probabilitySets count] == 0) {
+                    [NSException raise:@"OOShipRegistryLoadFailure" format:@"Could not load or synthesize role probability sets."];
+                }
             }
         }
-
-        [self loadDemoShipConditions];
-        [self loadDemoShips]; // testing only
-        if ([_demoShips count] == 0) {
-            [NSException raise:@"OOShipRegistryLoadFailure" format:@"Could not load or synthesize any demo ships."];
-        }
-
-        [self loadCachedRoleProbabilitySets];
-        if (_probabilitySets == nil) {
-            [self buildRoleProbabilitySets];
-            if ([_probabilitySets count] == 0) {
-                [NSException raise:@"OOShipRegistryLoadFailure" format:@"Could not load or synthesize role probability sets."];
-            }
-        }
-
-        [pool release];
     }
     return self;
 }
@@ -392,7 +392,7 @@ static NSString* const kVisualEffectDataCacheKey = @"visual effect data";
                                                       cache:NO];
 
     foreach (key, initialDemoShips) {
-        NSString* conditions = [key oo_stringForKey:kOODemoShipConditions defaultValue:nil];
+        NSString* conditions = oo::PListView(key).get<NSString*>(kOODemoShipConditions, nil);
         if (conditions != nil) {
             [conditionScripts addObject:conditions];
         }
@@ -424,11 +424,11 @@ static NSString* const kVisualEffectDataCacheKey = @"visual effect data";
 
     // Note: iterate over initialDemoShips to avoid mutating the collection being enu,erated.
     foreach (key, initialDemoShips) {
-        NSString* shipKey = [key oo_stringForKey:kOODemoShipKey];
+        NSString* shipKey = oo::PListView(key).get<NSString*>(kOODemoShipKey);
         if (![key isKindOfClass:[NSDictionary class]] || [self shipInfoForKey:shipKey] == nil) {
             [demoShips removeObject:key];
         } else {
-            NSString* conditions = [key oo_stringForKey:kOODemoShipConditions defaultValue:nil];
+            NSString* conditions = oo::PListView(key).get<NSString*>(kOODemoShipConditions, nil);
             if (conditions != nil) {
                 if ([PLAYER status] == STATUS_START_GAME) {
                     // conditions always false here
@@ -481,9 +481,9 @@ static NSString* const kVisualEffectDataCacheKey = @"visual effect data";
     NSMutableDictionary* demoList = [NSMutableDictionary dictionaryWithCapacity:8];
     NSMutableArray* demoClass = nil;
     foreach (key, demoShips) {
-        NSString* klass = [key oo_stringForKey:kOODemoShipClass defaultValue:@"ship"];
+        NSString* klass = oo::PListView(key).get<NSString*>(kOODemoShipClass, @"ship");
         if ([OOShipLibraryCategoryPlural(klass) length] == 0) {
-            OOLog(@"shipdata.load.warning", @"Unexpected class '%@' in shiplibrary.plist for '%@'", klass, [key oo_stringForKey:kOODemoShipKey]);
+            OOLog(@"shipdata.load.warning", @"Unexpected class '%@' in shiplibrary.plist for '%@'", klass, oo::PListView(key).get<NSString*>(kOODemoShipKey));
             klass = @"ship";
         }
         demoClass = [demoList objectForKey:klass];
@@ -493,9 +493,9 @@ static NSString* const kVisualEffectDataCacheKey = @"visual effect data";
         }
         NSMutableDictionary* demoEntry = [NSMutableDictionary dictionaryWithDictionary:key];
         // add "name" object to dictionary from ship definition
-        [demoEntry setObject:[[self shipInfoForKey:[demoEntry oo_stringForKey:@"ship"]] oo_stringForKey:kOODemoShipName] forKey:kOODemoShipName];
+        [demoEntry setObject:oo::PListView([self shipInfoForKey:oo::PListView(demoEntry).get<NSString*>(@"ship")]).get<NSString*>(kOODemoShipName) forKey:kOODemoShipName];
         // set "class" object to standard ship if not otherwise set
-        if (![[demoEntry oo_stringForKey:kOODemoShipClass defaultValue:nil] isEqualToString:klass]) {
+        if (![oo::PListView(demoEntry).get<NSString*>(kOODemoShipClass, nil) isEqualToString:klass]) {
             [demoEntry setObject:klass forKey:kOODemoShipClass];
         }
         [demoClass addObject:demoEntry];
@@ -545,7 +545,7 @@ static NSString* const kVisualEffectDataCacheKey = @"visual effect data";
     foreachkey(shipKey, _shipData)
     {
         shipEntry = [_shipData objectForKey:shipKey];
-        roles = [shipEntry oo_stringForKey:@"roles"];
+        roles = oo::PListView(shipEntry).get<NSString*>(@"roles");
         [self mergeShipRoles:roles forShipKey:shipKey intoProbabilityMap:probabilitySets];
     }
 
@@ -592,7 +592,7 @@ static NSString* const kVisualEffectDataCacheKey = @"visual effect data";
     foreachkey(key, ioData)
     {
         shipEntry = [ioData objectForKey:key];
-        if ([shipEntry oo_stringForKey:likeKey] != nil) {
+        if (oo::PListView(shipEntry).get<NSString*>(likeKey) != nil) {
             [remainingLikeShips addObject:key];
         }
     }
@@ -622,7 +622,7 @@ static NSString* const kVisualEffectDataCacheKey = @"visual effect data";
             */
             reportedBadShips = [NSMutableArray array];
             foreach (key, remainingLikeShips) {
-                if (![[ioData oo_dictionaryForKey:key] oo_boolForKey:@"is_external_dependency"]) {
+                if (!oo::PListView(oo::PListView(ioData).get<NSDictionary*>(key)).get<BOOL>(@"is_external_dependency")) {
                     [reportedBadShips addObject:key];
                 }
                 [ioData removeObjectForKey:key];
@@ -651,9 +651,9 @@ static NSString* const kVisualEffectDataCacheKey = @"visual effect data";
     [result removeObjectForKey:@"like_ship"];
 
     // Certain properties cannot be inherited.
-    if ([child oo_stringForKey:@"display_name"] == nil)
+    if (oo::PListView(child).get<NSString*>(@"display_name") == nil)
         [result removeObjectForKey:@"display_name"];
-    if ([child oo_stringForKey:@"is_template"] == nil)
+    if (oo::PListView(child).get<NSString*>(@"is_template") == nil)
         [result removeObjectForKey:@"is_template"];
 
     // Since both 'scanClass' and 'scan_class' are accepted as valid keys for the scanClass property,
@@ -661,33 +661,33 @@ static NSString* const kVisualEffectDataCacheKey = @"visual effect data";
     // merged in the result dictionary. We want to always have the child overriding the parent setting
     // and we do that by determining which of the two keys belongs to the child dictionary and removing
     // the other one from the result - Nikos 20100512
-    if ([result oo_stringForKey:@"scan_class"] != nil && [result oo_stringForKey:@"scanClass"] != nil) {
-        if ([child oo_stringForKey:@"scanClass"] != nil)
+    if (oo::PListView(result).get<NSString*>(@"scan_class") != nil && oo::PListView(result).get<NSString*>(@"scanClass") != nil) {
+        if (oo::PListView(child).get<NSString*>(@"scanClass") != nil)
             [result removeObjectForKey:@"scan_class"];
         else
             [result removeObjectForKey:@"scanClass"];
     }
     // TODO: all normalised/non-normalised value name pairs need to be catered for. - Kaks 2010-05-13
-    if ([result oo_stringForKey:@"escort_role"] != nil && [result oo_stringForKey:@"escort-role"] != nil) {
-        if ([child oo_stringForKey:@"escort-role"] != nil)
+    if (oo::PListView(result).get<NSString*>(@"escort_role") != nil && oo::PListView(result).get<NSString*>(@"escort-role") != nil) {
+        if (oo::PListView(child).get<NSString*>(@"escort-role") != nil)
             [result removeObjectForKey:@"escort_role"];
         else
             [result removeObjectForKey:@"escort-role"];
     }
-    if ([result oo_stringForKey:@"escort_ship"] != nil && [result oo_stringForKey:@"escort-ship"] != nil) {
-        if ([child oo_stringForKey:@"escort-ship"] != nil)
+    if (oo::PListView(result).get<NSString*>(@"escort_ship") != nil && oo::PListView(result).get<NSString*>(@"escort-ship") != nil) {
+        if (oo::PListView(child).get<NSString*>(@"escort-ship") != nil)
             [result removeObjectForKey:@"escort_ship"];
         else
             [result removeObjectForKey:@"escort-ship"];
     }
-    if ([result oo_stringForKey:@"is_carrier"] != nil && [result oo_stringForKey:@"isCarrier"] != nil) {
-        if ([child oo_stringForKey:@"isCarrier"] != nil)
+    if (oo::PListView(result).get<NSString*>(@"is_carrier") != nil && oo::PListView(result).get<NSString*>(@"isCarrier") != nil) {
+        if (oo::PListView(child).get<NSString*>(@"isCarrier") != nil)
             [result removeObjectForKey:@"is_carrier"];
         else
             [result removeObjectForKey:@"isCarrier"];
     }
-    if ([result oo_stringForKey:@"has_shipyard"] != nil && [result oo_stringForKey:@"hasShipyard"] != nil) {
-        if ([child oo_stringForKey:@"hasShipyard"] != nil)
+    if (oo::PListView(result).get<NSString*>(@"has_shipyard") != nil && oo::PListView(result).get<NSString*>(@"hasShipyard") != nil) {
+        if (oo::PListView(child).get<NSString*>(@"hasShipyard") != nil)
             [result removeObjectForKey:@"has_shipyard"];
         else
             [result removeObjectForKey:@"hasShipyard"];
@@ -849,7 +849,7 @@ static NSString* const kVisualEffectDataCacheKey = @"visual effect data";
         badSubentities = nil;
 
         // Iterate over each subentity declaration of each ship
-        subentityDeclarations = [shipEntry oo_arrayForKey:@"subentities"];
+        subentityDeclarations = oo::PListView(shipEntry).get<NSArray*>(@"subentities");
         if (subentityDeclarations != nil) {
             okSubentities = [NSMutableArray arrayWithCapacity:[subentityDeclarations count]];
             foreach (subentityDecl, subentityDeclarations) {
@@ -863,8 +863,8 @@ static NSString* const kVisualEffectDataCacheKey = @"visual effect data";
                     [okSubentities addObject:subentityDict];
 
                     // Tag subentities.
-                    if (![[subentityDict oo_stringForKey:@"type"] isEqualToString:@"flasher"]) {
-                        subentityKey = [subentityDict oo_stringForKey:@"subentity_key"];
+                    if (![oo::PListView(subentityDict).get<NSString*>(@"type") isEqualToString:@"flasher"]) {
+                        subentityKey = oo::PListView(subentityDict).get<NSString*>(@"subentity_key");
                         subentityShipEntry = [ioData objectForKey:subentityKey];
                         if (subentityKey == nil || subentityShipEntry == nil) {
                             // Oops, reference to non-existent subent.
@@ -887,7 +887,7 @@ static NSString* const kVisualEffectDataCacheKey = @"visual effect data";
             }
 
             if (badSubentities != nil) {
-                if (![shipEntry oo_boolForKey:@"is_external_dependency"]) {
+                if (!oo::PListView(shipEntry).get<BOOL>(@"is_external_dependency")) {
                     badSubentitiesList = [[[badSubentities allObjects] sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)] componentsJoinedByString:@", "];
                     OOLogERR(@"shipData.load.error", @"the shipdata.plist entry \"%@\" has unresolved subentit%@ %@.", shipKey, ([badSubentities count] == 1) ? @"y" : @"ies", badSubentitiesList);
                     OOStandardsError(@"Bad subentity definition found");
@@ -917,14 +917,14 @@ static NSString* const kVisualEffectDataCacheKey = @"visual effect data";
         shipEntry = [ioData objectForKey:shipKey];
         remove = NO;
 
-        if ([shipEntry oo_boolForKey:@"is_template"] || [shipEntry oo_boolForKey:@"_oo_deferred_remove"])
+        if (oo::PListView(shipEntry).get<BOOL>(@"is_template") || oo::PListView(shipEntry).get<BOOL>(@"_oo_deferred_remove"))
             remove = YES;
-        else if (shipMode && [[shipEntry oo_stringForKey:@"roles"] length] == 0 && ![shipEntry oo_boolForKey:@"_oo_is_subentity"] && ![shipEntry oo_boolForKey:@"_oo_is_effect"]) {
+        else if (shipMode && [oo::PListView(shipEntry).get<NSString*>(@"roles") length] == 0 && !oo::PListView(shipEntry).get<BOOL>(@"_oo_is_subentity") && !oo::PListView(shipEntry).get<BOOL>(@"_oo_is_effect")) {
             OOLogERR(@"shipData.load.error", @"the shipdata.plist entry \"%@\" specifies no %@.", shipKey, @"roles");
             remove = YES;
             OOStandardsError(@"Error in shipdata.plist");
         } else {
-            modelName = [shipEntry oo_stringForKey:@"model"];
+            modelName = oo::PListView(shipEntry).get<NSString*>(@"model");
             if (shipMode && [modelName length] == 0) {
                 OOLogERR(@"shipData.load.error", @"the shipdata.plist entry \"%@\" specifies no %@.", shipKey, @"model");
                 OOStandardsError(@"Error in shipdata.plist");
@@ -962,7 +962,7 @@ static NSString* const kVisualEffectDataCacheKey = @"visual effect data";
     foreach (shipKey, [ioData allKeys]) {
         shipEntry = [ioData objectForKey:shipKey];
         conditions = [shipEntry objectForKey:@"conditions"];
-        condition_script = [shipEntry oo_stringForKey:@"condition_script"];
+        condition_script = oo::PListView(shipEntry).get<NSString*>(@"condition_script");
         if (condition_script != nil) {
             if (![conditionScripts containsObject:condition_script]) {
                 [conditionScripts addObject:condition_script];
@@ -977,8 +977,8 @@ static NSString* const kVisualEffectDataCacheKey = @"visual effect data";
             if (![hasShipyard isKindOfClass:[NSArray class]])
                 hasShipyard = nil; // May also be fuzzy boolean
         }
-        shipyardConditions = [[shipEntry oo_dictionaryForKey:@"_oo_shipyard"] objectForKey:@"conditions"];
-        shipyard_condition_script = [[shipEntry oo_dictionaryForKey:@"_oo_shipyard"] oo_stringForKey:@"condition_script"];
+        shipyardConditions = [oo::PListView(shipEntry).get<NSDictionary*>(@"_oo_shipyard") objectForKey:@"conditions"];
+        shipyard_condition_script = oo::PListView(oo::PListView(shipEntry).get<NSDictionary*>(@"_oo_shipyard")).get<NSString*>(@"condition_script");
         if (shipyard_condition_script != nil) {
             if (![conditionScripts containsObject:shipyard_condition_script]) {
                 [conditionScripts addObject:shipyard_condition_script];
@@ -1022,7 +1022,7 @@ static NSString* const kVisualEffectDataCacheKey = @"visual effect data";
         if (shipyardConditions != nil) {
             OOStandardsDeprecated([NSString stringWithFormat:@"The 'conditions' key is deprecated in shipyard entry %@", shipKey]);
             if (!OOEnforceStandards()) {
-                mutableShipyard = [[[shipEntry oo_dictionaryForKey:@"_oo_shipyard"] mutableCopy] autorelease];
+                mutableShipyard = [[oo::PListView(shipEntry).get<NSDictionary*>(@"_oo_shipyard") mutableCopy] autorelease];
 
                 if ([shipyardConditions isKindOfClass:[NSArray class]]) {
                     shipyardConditions = OOSanitizeLegacyScriptConditions(shipyardConditions, [NSString stringWithFormat:@"<shipyard.plist entry \"%@\">", shipKey]);
@@ -1057,29 +1057,26 @@ static NSString* const kVisualEffectDataCacheKey = @"visual effect data";
     BOOL remove;
     NSString* modelName = nil;
     OOMesh* mesh = nil;
-    NSAutoreleasePool* pool = nil;
     NSUInteger i = 0, count;
 
     count = [ioData count];
 
     // Preload ship meshes. (Iterates over a copy of keys since it mutates the dictionary.)
     for (shipKeyEnum = [[ioData allKeys] objectEnumerator]; (shipKey = [shipKeyEnum nextObject]);) {
-        pool = [[NSAutoreleasePool alloc] init];
+        @autoreleasepool {
+            [[GameController sharedController] setProgressBarValue:(float)i++ / (float)count];
 
-        [[GameController sharedController] setProgressBarValue:(float)i++ / (float)count];
+            shipEntry = [ioData objectForKey:shipKey];
+            remove = NO;
 
-        shipEntry = [ioData objectForKey:shipKey];
-        remove = NO;
-
-        modelName = [shipEntry oo_stringForKey:@"model"];
-        mesh = [OOMesh meshWithName:modelName
-                 materialDictionary:[shipEntry oo_dictionaryForKey:@"materials"]
-                  shadersDictionary:[shipEntry oo_dictionaryForKey:@"shaders"]
-                             smooth:[shipEntry oo_boolForKey:@"smooth"]
-                       shaderMacros:nil
-                shaderBindingTarget:nil];
-
-        [pool release]; // NOTE: mesh is now invalid, but pointer nil check is OK.
+            modelName = oo::PListView(shipEntry).get<NSString*>(@"model");
+            mesh = [OOMesh meshWithName:modelName
+                     materialDictionary:oo::PListView(shipEntry).get<NSDictionary*>(@"materials")
+                      shadersDictionary:oo::PListView(shipEntry).get<NSDictionary*>(@"shaders")
+                                 smooth:oo::PListView(shipEntry).get<BOOL>(@"smooth")
+                           shaderMacros:nil
+                    shaderBindingTarget:nil];
+        } // NOTE: mesh is now invalid, but pointer nil check is OK.
 
         if (mesh == nil) {
             // FIXME: what if it's a subentity? Need to rearrange things.
@@ -1110,9 +1107,11 @@ static NSString* const kVisualEffectDataCacheKey = @"visual effect data";
             to swap these roles here.
     */
 
-    rolesAndWeights = OOParseRolesFromString(roles);
     // add default [shipKey] role
-    NSMutableDictionary* mutableDict = [NSMutableDictionary dictionaryWithDictionary:rolesAndWeights];
+    NSMutableDictionary* mutableDict = [NSMutableDictionary dictionary];
+    for (const auto& [parsedRole, weight] : OOParseRolesFromString(oo::StdString(roles))) {
+        [mutableDict setObject:[NSNumber numberWithFloat:weight] forKey:oo::NSStringFrom(parsedRole)];
+    }
     [mutableDict setObject:[NSNumber numberWithFloat:1.0] forKey:[[[NSString alloc] initWithFormat:@"[%@]", shipKey] autorelease]];
     rolesAndWeights = mutableDict;
 
@@ -1131,7 +1130,7 @@ static NSString* const kVisualEffectDataCacheKey = @"visual effect data";
             [probabilitySets setObject:probSet forKey:role];
         }
 
-        [probSet setWeight:[rolesAndWeights oo_floatForKey:role] forObject:shipKey];
+        [probSet setWeight:oo::PListView(rolesAndWeights).get<float>(role) forObject:shipKey];
     }
 }
 
@@ -1171,7 +1170,7 @@ static NSString* const kVisualEffectDataCacheKey = @"visual effect data";
     }
 
     // For frangible ships, bad subentities are non-fatal.
-    if (*outFatalError && [[shipData oo_dictionaryForKey:shipKey] oo_boolForKey:@"frangible"])
+    if (*outFatalError && oo::PListView(oo::PListView(shipData).get<NSDictionary*>(shipKey)).get<BOOL>(@"frangible"))
         *outFatalError = NO;
 
     return result;
@@ -1223,14 +1222,14 @@ static NSString* const kVisualEffectDataCacheKey = @"visual effect data";
     NSDictionary* colorDict = nil;
     NSDictionary* result = nil;
 
-    position.x = [tokens oo_floatAtIndex:1];
-    position.y = [tokens oo_floatAtIndex:2];
-    position.z = [tokens oo_floatAtIndex:3];
+    position.x = oo::PListView(tokens).at<float>(1);
+    position.y = oo::PListView(tokens).at<float>(2);
+    position.z = oo::PListView(tokens).at<float>(3);
 
-    hue = [tokens oo_floatAtIndex:4];
-    frequency = [tokens oo_floatAtIndex:5];
-    phase = [tokens oo_floatAtIndex:6];
-    size = [tokens oo_floatAtIndex:7];
+    hue = oo::PListView(tokens).at<float>(4);
+    frequency = oo::PListView(tokens).at<float>(5);
+    phase = oo::PListView(tokens).at<float>(6);
+    size = oo::PListView(tokens).at<float>(7);
 
     colorDict = [NSDictionary dictionaryWithObject:[NSNumber numberWithFloat:hue] forKey:@"hue"];
 
@@ -1259,18 +1258,18 @@ static NSString* const kVisualEffectDataCacheKey = @"visual effect data";
     NSMutableDictionary* result = nil;
     BOOL isTurret, isDock = NO;
 
-    subentityKey = [tokens oo_stringAtIndex:0];
+    subentityKey = oo::PListView(tokens).at<NSString*>(0);
 
     isTurret = [self shipIsBallTurretForKey:subentityKey inShipData:shipData];
 
-    position.x = [tokens oo_floatAtIndex:1];
-    position.y = [tokens oo_floatAtIndex:2];
-    position.z = [tokens oo_floatAtIndex:3];
+    position.x = oo::PListView(tokens).at<float>(1);
+    position.y = oo::PListView(tokens).at<float>(2);
+    position.z = oo::PListView(tokens).at<float>(3);
 
-    orientation.w = [tokens oo_floatAtIndex:4];
-    orientation.x = [tokens oo_floatAtIndex:5];
-    orientation.y = [tokens oo_floatAtIndex:6];
-    orientation.z = [tokens oo_floatAtIndex:7];
+    orientation.w = oo::PListView(tokens).at<float>(4);
+    orientation.x = oo::PListView(tokens).at<float>(5);
+    orientation.y = oo::PListView(tokens).at<float>(6);
+    orientation.z = oo::PListView(tokens).at<float>(7);
 
     if (orientation.w == 0 && orientation.x == 0 && orientation.y == 0 && orientation.z == 0) {
         orientation.w = 1; // avoid dividing by zero.
@@ -1302,7 +1301,7 @@ static NSString* const kVisualEffectDataCacheKey = @"visual effect data";
 {
     NSString* type = nil;
 
-    type = [declaration oo_stringForKey:@"type"];
+    type = oo::PListView(declaration).get<NSString*>(@"type");
     if (type == nil)
         type = @"standard";
 
@@ -1331,7 +1330,7 @@ static NSString* const kVisualEffectDataCacheKey = @"visual effect data";
 #define kDefaultFlasherColor @"redColor"
 
     // "Validate" is really "clean up", since all values have defaults.
-    colors = [declaration oo_arrayForKey:@"colors"];
+    colors = oo::PListView(declaration).get<NSArray*>(@"colors");
     if ([colors count] == 0) {
         colorDesc = [declaration objectForKey:@"color"];
         if (colorDesc == nil)
@@ -1361,24 +1360,24 @@ static NSString* const kVisualEffectDataCacheKey = @"visual effect data";
     }
     colors = validColors;
 
-    position = [declaration oo_vectorForKey:@"position"];
+    position = oo::PListView(declaration).get<Vector>(@"position");
 
-    size = [declaration oo_floatForKey:@"size" defaultValue:8.0];
+    size = oo::PListView(declaration).get<float>(@"size", 8.0);
 
     if (size <= 0) {
         OOLogWARN(@"shipData.load.warning.flasher.badSize", @"skipping flasher of invalid size %g for ship %@.", size, shipKey);
         return nil;
     }
 
-    brightfraction = [declaration oo_floatForKey:@"bright_fraction" defaultValue:0.5];
+    brightfraction = oo::PListView(declaration).get<float>(@"bright_fraction", 0.5);
     if (brightfraction < 0.0 || brightfraction > 1.0) {
         OOLogWARN(@"shipData.load.warning.flasher.badFraction", @"skipping flasher of invalid bright fraction %g for ship %@.", brightfraction, shipKey);
         return nil;
     }
 
-    frequency = [declaration oo_floatForKey:@"frequency" defaultValue:2.0];
-    phase = [declaration oo_floatForKey:@"phase" defaultValue:0.0];
-    initiallyOn = [declaration oo_boolForKey:@"initially_on" defaultValue:YES];
+    frequency = oo::PListView(declaration).get<float>(@"frequency", 2.0);
+    phase = oo::PListView(declaration).get<float>(@"phase", 0.0);
+    initiallyOn = oo::PListView(declaration).get<BOOL>(@"initially_on", YES);
 
     result = [NSMutableDictionary dictionaryWithCapacity:8];
     [result setObject:@"flasher" forKey:@"type"];
@@ -1416,20 +1415,20 @@ static NSString* const kVisualEffectDataCacheKey = @"visual effect data";
         return nil;
     }
 
-    isTurret = [[declaration oo_stringForKey:@"type"] isEqualToString:@"ball_turret"];
+    isTurret = [oo::PListView(declaration).get<NSString*>(@"type") isEqualToString:@"ball_turret"];
     if (isTurret) {
-        fireRate = [declaration oo_floatForKey:@"fire_rate" defaultValue:-1.0f];
+        fireRate = oo::PListView(declaration).get<float>(@"fire_rate", -1.0f);
         if (fireRate < 0.25f && fireRate >= 0.0f) {
             OOLogWARN(@"shipData.load.warning.turret.badFireRate", @"ball turret fire rate of %g for subentity of ship %@ is invalid, using 0.25.", fireRate, shipKey);
             fireRate = 0.25f;
         }
-        weaponRange = [declaration oo_floatForKey:@"weapon_range" defaultValue:-1.0f];
+        weaponRange = oo::PListView(declaration).get<float>(@"weapon_range", -1.0f);
         if (weaponRange > TURRET_SHOT_RANGE * COMBAT_WEAPON_RANGE_FACTOR) {
             OOLogWARN(@"shipData.load.warning.turret.badWeaponRange", @"ball turret weapon range of %g for subentity of ship %@ is too high, using %.1f.", weaponRange, shipKey, TURRET_SHOT_RANGE * COMBAT_WEAPON_RANGE_FACTOR);
             weaponRange = TURRET_SHOT_RANGE * COMBAT_WEAPON_RANGE_FACTOR; // approx. range of primary plasma canon.
         }
 
-        weaponEnergy = [declaration oo_floatForKey:@"weapon_energy" defaultValue:-1.0f];
+        weaponEnergy = oo::PListView(declaration).get<float>(@"weapon_energy", -1.0f);
         if (weaponEnergy > 100.0f)
 
         {
@@ -1437,14 +1436,14 @@ static NSString* const kVisualEffectDataCacheKey = @"visual effect data";
             weaponEnergy = 100.0f;
         }
     } else {
-        isDock = [declaration oo_boolForKey:@"is_dock"];
+        isDock = oo::PListView(declaration).get<BOOL>(@"is_dock");
     }
 
-    position = [declaration oo_vectorForKey:@"position"];
-    orientation = [declaration oo_quaternionForKey:@"orientation"];
+    position = oo::PListView(declaration).get<Vector>(@"position");
+    orientation = oo::PListView(declaration).get<Quaternion>(@"orientation");
     quaternion_normalize(&orientation);
 
-    scriptInfo = [declaration oo_dictionaryForKey:@"script_info"];
+    scriptInfo = oo::PListView(declaration).get<NSDictionary*>(@"script_info");
 
     result = [NSMutableDictionary dictionaryWithCapacity:10];
     [result setObject:isTurret ? @"ball_turret" : @"standard" forKey:@"type"];
@@ -1454,12 +1453,12 @@ static NSString* const kVisualEffectDataCacheKey = @"visual effect data";
     if (isDock) {
         [result oo_setBool:YES forKey:@"is_dock"];
 
-        NSString* docklabel = [declaration oo_stringForKey:@"dock_label" defaultValue:@"the docking bay"];
+        NSString* docklabel = oo::PListView(declaration).get<NSString*>(@"dock_label", @"the docking bay");
         [result setObject:docklabel forKey:@"dock_label"];
 
-        BOOL dockable = [declaration oo_boolForKey:@"allow_docking" defaultValue:YES];
-        BOOL playerdockable = [declaration oo_boolForKey:@"disallowed_docking_collides" defaultValue:NO];
-        BOOL undockable = [declaration oo_boolForKey:@"allow_launching" defaultValue:YES];
+        BOOL dockable = oo::PListView(declaration).get<BOOL>(@"allow_docking", YES);
+        BOOL playerdockable = oo::PListView(declaration).get<BOOL>(@"disallowed_docking_collides", NO);
+        BOOL undockable = oo::PListView(declaration).get<BOOL>(@"allow_launching", YES);
 
         [result oo_setBool:dockable forKey:@"allow_docking"];
         [result oo_setBool:playerdockable forKey:@"disallowed_docking_collides"];
@@ -1489,7 +1488,7 @@ static NSString* const kVisualEffectDataCacheKey = @"visual effect data";
     NSArray* setupActions = nil;
     NSString* action = nil;
 
-    setupActions = [[shipData oo_dictionaryForKey:shipKey] oo_arrayForKey:@"setup_actions"];
+    setupActions = oo::PListView(oo::PListView(shipData).get<NSDictionary*>(shipKey)).get<NSArray*>(@"setup_actions");
 
     foreach (action, setupActions) {
         if ([[ScanTokensFromString(action) objectAtIndex:0] isEqualToString:@"initialiseTurret"])
@@ -1516,7 +1515,7 @@ static NSString* const kVisualEffectDataCacheKey = @"visual effect data";
         NOTE: assumes single-threaded access.
 */
 
-+ (id)allocWithZone:(NSZone*)inZone
++ (id)allocWithZone:(OOZone*)inZone
 {
     if (sSingleton == nil) {
         OOLog(@"shipData.load.begin", @"%@", @"Loading ship data.");
@@ -1526,7 +1525,7 @@ static NSString* const kVisualEffectDataCacheKey = @"visual effect data";
     return nil;
 }
 
-- (id)copyWithZone:(NSZone*)inZone
+- (id)copyWithZone:(OOZone*)inZone
 {
     return self;
 }
@@ -1565,24 +1564,24 @@ static void DumpStringAddrs(NSDictionary* dict, NSString* context)
     if (dump == NULL)
         return;
 
-    NSAutoreleasePool* pool = [NSAutoreleasePool new];
-    NSMutableSet* strings = [NSMutableSet set];
-    GatherStringAddrs(dict, strings, context);
+    @autoreleasepool {
+        NSMutableSet* strings = [NSMutableSet set];
+        GatherStringAddrs(dict, strings, context);
 
-    NSDictionary* entry = nil;
-    foreach (entry, strings) {
-        NSString* string = [entry objectForKey:@"string"];
-        NSString* context = [entry objectForKey:@"context"];
-        void* pointer = [[entry objectForKey:@"address"] pointerValue];
+        NSDictionary* entry = nil;
+        foreach (entry, strings) {
+            NSString* string = [entry objectForKey:@"string"];
+            NSString* context = [entry objectForKey:@"context"];
+            void* pointer = [[entry objectForKey:@"address"] pointerValue];
 
-        string = [NSString stringWithFormat:@"%p\t%@:  \"%@\"", pointer, context, string];
+            string = [NSString stringWithFormat:@"%p\t%@:  \"%@\"", pointer, context, string];
 
-        fprintf(dump, "%s\n", [string UTF8String]);
+            fprintf(dump, "%s\n", [string UTF8String]);
+        }
+
+        fprintf(dump, "\n");
+        fflush(dump);
     }
-
-    fprintf(dump, "\n");
-    fflush(dump);
-    [pool release];
 }
 
 static void GatherStringAddrsDict(NSDictionary* dict, NSMutableSet* strings, NSString* context)
@@ -1619,10 +1618,10 @@ static void GatherStringAddrs(id object, NSMutableSet* strings, NSString* contex
 
 static NSComparisonResult SortDemoShipsByName(id a, id b, void* context)
 {
-    return [[a oo_stringForKey:@"name"] compare:[b oo_stringForKey:@"name"]];
+    return [oo::PListView(a).get<NSString*>(@"name") compare:oo::PListView(b).get<NSString*>(@"name")];
 }
 
 static NSComparisonResult SortDemoCategoriesByName(id a, id b, void* context)
 {
-    return [OOShipLibraryCategoryPlural([[a oo_dictionaryAtIndex:0] oo_stringForKey:@"class"]) compare:OOShipLibraryCategoryPlural([[b oo_dictionaryAtIndex:0] oo_stringForKey:@"class"])];
+    return [OOShipLibraryCategoryPlural(oo::PListView(oo::PListView(a).at<NSDictionary*>(0)).get<NSString*>(@"class")) compare:OOShipLibraryCategoryPlural(oo::PListView(oo::PListView(b).at<NSDictionary*>(0)).get<NSString*>(@"class"))];
 }

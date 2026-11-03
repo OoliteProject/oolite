@@ -38,7 +38,7 @@ MA 02110-1301, USA.
 
 @end
 
-@interface StickProfileScreen : NSObject {
+@interface StickProfileScreen : OOObject {
 @private
     OOJoystickManager* stickHandler;
     NSUInteger current_axis;

@@ -43,11 +43,13 @@ MA 02110-1301, USA.
 #import "ResourceManager.h"
 #import "Universe.h"
 #import "legacy_random.h"
+#include <chrono>
 #import <objc/objc-arc.h>
 #include <stdlib.h>
 #ifndef NDEBUG
 #import "OOJavaScriptEngine.h"
 #endif
+#include <thread>
 
 #if OOLITE_MAC_COCOA_UI
 #import "JAPersistentFileReference.h"
@@ -127,7 +129,6 @@ static GameController* sSharedController = nil;
     [[[NSWorkspace sharedWorkspace] notificationCenter] removeObserver:UNIVERSE];
 #endif
 
-    [timer release];
     [gameView release];
     [UNIVERSE release];
 
@@ -229,7 +230,7 @@ static GameController* sSharedController = nil;
     [UNIVERSE setGameView:gameView];
 }
 
-- (void)applicationDidFinishLaunching:(NSNotification*)notification
+- (void)applicationDidFinishLaunching
 {
     void* pool = NULL;
     unsigned i;
@@ -299,7 +300,7 @@ static GameController* sSharedController = nil;
     objc_autoreleasePoolPop(pool);
 
 #if !OOLITE_MAC_COCOA_UI
-    [[NSRunLoop currentRunLoop] run];
+    [self runFrameLoop];
 #endif
 }
 
@@ -389,27 +390,94 @@ static GameController* sSharedController = nil;
     }
 }
 
+/*	The frame loop (ADR-0029 Decision 5; proposed ADR-0033).
+
+        The game tick was a repeating Foundation timer on the main run loop, which
+        -applicationDidFinishLaunching: then ran for ever. It is now a deadline on
+        std::chrono::steady_clock, created and advanced exactly as GNUstep created
+        and advanced that timer's fire date (measured, see the ADR):
+
+        * start: first deadline = now + interval (an interval <= 0 is 0.0001 s);
+        * fire when now >= deadline; before the tick runs, the next deadline is
+          deadline + interval, plus as many further intervals as needed to pass the
+          time sampled just before the tick (a late tick skips, it never bursts);
+        * stop/start inside a tick (the save/load critical section) replaces the
+          deadline, as a new timer did.
+
+        Each pass of the loop fires what is due (the tick first, then the log
+        flush), then runs the run loop once, up to the next deadline, for what still
+        lives on it (performSelector:afterDelay:, the debug console's streams, OXZ
+        downloads) until their own beads take it off.
+*/
+static bool sGameTickScheduled = false;
+static std::chrono::steady_clock::time_point sNextGameTick;
+static std::chrono::steady_clock::duration sGameTickInterval;
+
 - (void)startAnimationTimer
 {
-    if (timer == nil) {
+    if (!sGameTickScheduled) {
         NSTimeInterval ti = _animationTimerInterval; // default one two-hundredth of a second (should be a fair bit faster than expected frame rate ~60Hz to avoid problems with phase differences)
+        if (ti <= 0.0)
+            ti = 0.0001; // as the Foundation timer did
 
-        timer = [[NSTimer timerWithTimeInterval:ti target:self selector:@selector(performGameTick:) userInfo:nil repeats:YES] retain];
-
-        [[NSRunLoop currentRunLoop] addTimer:timer forMode:NSDefaultRunLoopMode];
-#if OOLITE_MAC_COCOA_UI
-        [[NSRunLoop currentRunLoop] addTimer:timer
-                                     forMode:NSEventTrackingRunLoopMode];
-#endif
+        sGameTickInterval = std::chrono::duration_cast<std::chrono::steady_clock::duration>(std::chrono::duration<double>(ti));
+        sNextGameTick = std::chrono::steady_clock::now() + sGameTickInterval;
+        sGameTickScheduled = true;
     }
 }
 
 - (void)stopAnimationTimer
 {
-    if (timer != nil) {
-        [timer invalidate];
-        [timer release];
-        timer = nil;
+    sGameTickScheduled = false;
+}
+
+- (void)performGameTickIfDue
+{
+    if (!sGameTickScheduled)
+        return;
+
+    std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
+    if (now < sNextGameTick)
+        return;
+
+    std::chrono::steady_clock::time_point next = sNextGameTick + sGameTickInterval;
+    while (next <= now)
+        next += sGameTickInterval;
+    sNextGameTick = next;
+
+    [self performGameTick:self];
+}
+
+- (void)fireDueDeadlines
+{
+    [self performGameTickIfDue];
+    OOLogOutputHandlerFlushIfDue();
+}
+
+- (void)fireDueTimers
+{
+    [self fireDueDeadlines];
+    [[NSRunLoop currentRunLoop] limitDateForMode:NSDefaultRunLoopMode];
+}
+
+- (void)runFrameLoop
+{
+    NSRunLoop* runLoop = [NSRunLoop currentRunLoop];
+
+    for (;;) {
+        @autoreleasepool {
+            [self fireDueDeadlines];
+
+            NSDate* limit = [NSDate distantFuture];
+            if (sGameTickScheduled) {
+                std::chrono::duration<double> wait = sNextGameTick - std::chrono::steady_clock::now();
+                limit = [NSDate dateWithTimeIntervalSinceNow:wait.count()];
+            }
+            if (![runLoop runMode:NSDefaultRunLoopMode beforeDate:limit] && sGameTickScheduled) {
+                // Nothing on the run loop to wait for: wait for the tick here.
+                std::this_thread::sleep_until(sNextGameTick);
+            }
+        }
     }
 }
 
@@ -828,7 +896,7 @@ static NSMutableArray* sMessageStack;
     [self exitAppWithContext:@"Command-Q"];
 }
 
-- (void)windowDidResize:(NSNotification*)aNotification
+- (void)windowDidResize
 {
     [gameView updateScreen];
 }

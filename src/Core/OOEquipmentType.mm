@@ -27,9 +27,9 @@ SOFTWARE.
 
 #import "OOEquipmentType.h"
 #import "OOCacheManager.h"
-#import "OOCollectionExtractors.h"
 #import "OODebugStandards.h"
 #import "OOLegacyScriptWhitelist.h"
+#import "OOPListView.h"
 #import "PlayerEntityControls.h"
 #import "PlayerEntityKeyMapper.h"
 #import "Universe.h"
@@ -126,7 +126,7 @@ static NSDictionary* sMissilesRegistry = nil;
 
 + (NSString*)getMissileRegistryRoleForShip:(NSString*)shipKey
 {
-    return [sMissilesRegistry oo_stringForKey:shipKey];
+    return oo::PListView(sMissilesRegistry).get<NSString*>(shipKey);
 }
 
 + (void)setMissileRegistryRole:(NSString*)role forShip:(NSString*)shipKey
@@ -182,11 +182,11 @@ static NSDictionary* sMissilesRegistry = nil;
 
     if (OK) {
         // Read required attributes
-        _techLevel = [info oo_unsignedIntAtIndex:EQUIPMENT_TECH_LEVEL_INDEX];
-        _price = [info oo_unsignedIntAtIndex:EQUIPMENT_PRICE_INDEX];
-        _name = [[info oo_stringAtIndex:EQUIPMENT_SHORT_DESC_INDEX] retain];
-        _identifier = [[info oo_stringAtIndex:EQUIPMENT_KEY_INDEX] retain];
-        _description = [[info oo_stringAtIndex:EQUIPMENT_LONG_DESC_INDEX] retain];
+        _techLevel = oo::PListView(info).at<unsigned int>(EQUIPMENT_TECH_LEVEL_INDEX);
+        _price = oo::PListView(info).at<unsigned int>(EQUIPMENT_PRICE_INDEX);
+        _name = [oo::PListView(info).at<NSString*>(EQUIPMENT_SHORT_DESC_INDEX) retain];
+        _identifier = [oo::PListView(info).at<NSString*>(EQUIPMENT_KEY_INDEX) retain];
+        _description = [oo::PListView(info).at<NSString*>(EQUIPMENT_LONG_DESC_INDEX) retain];
 
         if (_name == nil || _identifier == nil || _description == nil) {
             OOLog(@"equipment.load", @"***** ERROR: Invalid equipment.plist entry - missing name, identifier or description (\"%@\", %@, \"%@\")", _name, _identifier, _description);
@@ -213,38 +213,38 @@ static NSDictionary* sMissilesRegistry = nil;
 
     if (OK && [info count] > EQUIPMENT_EXTRA_INFO_INDEX) {
         // Read extra info dictionary
-        extra = [info oo_dictionaryAtIndex:EQUIPMENT_EXTRA_INFO_INDEX];
+        extra = oo::PListView(info).at<NSDictionary*>(EQUIPMENT_EXTRA_INFO_INDEX);
         if (extra != nil) {
 
-            _isAvailableToAll = [extra oo_boolForKey:@"available_to_all" defaultValue:_isAvailableToAll];
-            _isAvailableToPlayer = [extra oo_boolForKey:@"available_to_player" defaultValue:_isAvailableToPlayer];
-            _isAvailableToNPCs = [extra oo_boolForKey:@"available_to_NPCs" defaultValue:_isAvailableToNPCs];
+            _isAvailableToAll = (unsigned char)oo::PListView(extra).get<BOOL>(@"available_to_all", _isAvailableToAll);
+            _isAvailableToPlayer = (unsigned char)oo::PListView(extra).get<BOOL>(@"available_to_player", _isAvailableToPlayer);
+            _isAvailableToNPCs = (unsigned char)oo::PListView(extra).get<BOOL>(@"available_to_NPCs", _isAvailableToNPCs);
 
-            _isMissileOrMine = [extra oo_boolForKey:@"is_external_store" defaultValue:_isMissileOrMine];
-            _requiresEmptyPylon = [extra oo_boolForKey:@"requires_empty_pylon" defaultValue:_requiresEmptyPylon];
-            _requiresMountedPylon = [extra oo_boolForKey:@"requires_mounted_pylon" defaultValue:_requiresMountedPylon];
-            _requiresClean = [extra oo_boolForKey:@"requires_clean" defaultValue:_requiresClean];
-            _requiresNotClean = [extra oo_boolForKey:@"requires_not_clean" defaultValue:_requiresNotClean];
-            _portableBetweenShips = [extra oo_boolForKey:@"portable_between_ships" defaultValue:_portableBetweenShips];
-            _requiresFreePassengerBerth = [extra oo_boolForKey:@"requires_free_passenger_berth" defaultValue:_requiresFreePassengerBerth];
-            _requiresFullFuel = [extra oo_boolForKey:@"requires_full_fuel" defaultValue:_requiresFullFuel];
-            _requiresNonFullFuel = [extra oo_boolForKey:@"requires_non_full_fuel" defaultValue:_requiresNonFullFuel];
-            _isVisible = [extra oo_boolForKey:@"visible" defaultValue:_isVisible];
-            _canCarryMultiple = [extra oo_boolForKey:@"can_carry_multiple" defaultValue:NO];
-            _hideValues = [extra oo_boolForKey:@"hide_values" defaultValue:NO];
+            _isMissileOrMine = (unsigned char)oo::PListView(extra).get<BOOL>(@"is_external_store", _isMissileOrMine);
+            _requiresEmptyPylon = (unsigned char)oo::PListView(extra).get<BOOL>(@"requires_empty_pylon", _requiresEmptyPylon);
+            _requiresMountedPylon = (unsigned char)oo::PListView(extra).get<BOOL>(@"requires_mounted_pylon", _requiresMountedPylon);
+            _requiresClean = (unsigned char)oo::PListView(extra).get<BOOL>(@"requires_clean", _requiresClean);
+            _requiresNotClean = (unsigned char)oo::PListView(extra).get<BOOL>(@"requires_not_clean", _requiresNotClean);
+            _portableBetweenShips = (unsigned char)oo::PListView(extra).get<BOOL>(@"portable_between_ships", _portableBetweenShips);
+            _requiresFreePassengerBerth = (unsigned char)oo::PListView(extra).get<BOOL>(@"requires_free_passenger_berth", _requiresFreePassengerBerth);
+            _requiresFullFuel = (unsigned char)oo::PListView(extra).get<BOOL>(@"requires_full_fuel", _requiresFullFuel);
+            _requiresNonFullFuel = (unsigned char)oo::PListView(extra).get<BOOL>(@"requires_non_full_fuel", _requiresNonFullFuel);
+            _isVisible = (unsigned char)oo::PListView(extra).get<BOOL>(@"visible", _isVisible);
+            _canCarryMultiple = (unsigned char)oo::PListView(extra).get<BOOL>(@"can_carry_multiple", NO);
+            _hideValues = (unsigned char)oo::PListView(extra).get<BOOL>(@"hide_values", NO);
 
-            _requiredCargoSpace = [extra oo_unsignedIntForKey:@"requires_cargo_space" defaultValue:_requiredCargoSpace];
+            _requiredCargoSpace = oo::PListView(extra).get<unsigned int>(@"requires_cargo_space", _requiredCargoSpace);
 
-            _installTime = [extra oo_unsignedIntForKey:@"installation_time" defaultValue:0];
-            _repairTime = [extra oo_unsignedIntForKey:@"repair_time" defaultValue:0];
-            _provides = [[extra oo_arrayForKey:@"provides" defaultValue:[NSArray array]] retain];
+            _installTime = oo::PListView(extra).get<unsigned int>(@"installation_time", 0);
+            _repairTime = oo::PListView(extra).get<unsigned int>(@"repair_time", 0);
+            _provides = [oo::PListView(extra).get<NSArray*>(@"provides", [NSArray array]) retain];
 
-            id dispColor = [extra oo_objectForKey:@"display_color" defaultValue:nil];
+            id dispColor = oo::PListView(extra).get<id>(@"display_color", nil);
             _displayColor = [[OOColor colorWithDescription:dispColor] retain];
 
-            _weaponInfo = [[extra oo_dictionaryForKey:@"weapon_info" defaultValue:[NSDictionary dictionary]] retain];
+            _weaponInfo = [oo::PListView(extra).get<NSDictionary*>(@"weapon_info", [NSDictionary dictionary]) retain];
 
-            _damageProbability = [extra oo_floatForKey:@"damage_probability" defaultValue:(_isMissileOrMine ? 0.0 : 1.0)];
+            _damageProbability = oo::PListView(extra).get<float>(@"damage_probability", (_isMissileOrMine ? 0.0 : 1.0));
 
             id object = [extra objectForKey:@"requires_equipment"];
             if ([object isKindOfClass:[NSString class]])
@@ -303,16 +303,16 @@ static NSDictionary* sMissilesRegistry = nil;
              * scripts and ship scripts are not shared and get one instance
              * per item. */
 
-            _scriptInfo = [extra oo_dictionaryForKey:@"script_info"];
+            _scriptInfo = oo::PListView(extra).get<NSDictionary*>(@"script_info");
             [_scriptInfo retain];
 
-            _script = [extra oo_stringForKey:@"script"];
+            _script = oo::PListView(extra).get<NSString*>(@"script");
             if (_script != nil && ![OOScript jsScriptFromFileNamed:_script properties:nil])
                 _script = nil;
             [_script retain];
             if (_script != nil) {
-                _fastAffinityA = !![extra oo_boolForKey:@"fast_affinity_defensive"];
-                _fastAffinityB = !![extra oo_boolForKey:@"fast_affinity_offensive"];
+                _fastAffinityA = !!oo::PListView(extra).get<BOOL>(@"fast_affinity_defensive");
+                _fastAffinityB = !!oo::PListView(extra).get<BOOL>(@"fast_affinity_offensive");
 
                 // look for default activate and mode key settings
                 // note: the customEquipmentActivation array is only populated when starting a game
@@ -388,7 +388,7 @@ static NSDictionary* sMissilesRegistry = nil;
     [super dealloc];
 }
 
-- (id)copyWithZone:(NSZone*)zone
+- (id)copyWithZone:(OOZone*)zone
 {
     // OOEquipmentTypes are immutable.
     return [self retain];
@@ -639,12 +639,12 @@ static NSDictionary* sMissilesRegistry = nil;
 // weapon properties follow
 - (BOOL)isTurretLaser
 {
-    return [_weaponInfo oo_boolForKey:@"is_turret_laser" defaultValue:NO];
+    return oo::PListView(_weaponInfo).get<BOOL>(@"is_turret_laser", NO);
 }
 
 - (BOOL)isMiningLaser
 {
-    return [_weaponInfo oo_boolForKey:@"is_mining_laser" defaultValue:NO];
+    return oo::PListView(_weaponInfo).get<BOOL>(@"is_mining_laser", NO);
 }
 
 - (NSDictionary*)weaponInfo
@@ -654,32 +654,32 @@ static NSDictionary* sMissilesRegistry = nil;
 
 - (GLfloat)weaponRange
 {
-    return [_weaponInfo oo_floatForKey:@"range" defaultValue:12500.0];
+    return oo::PListView(_weaponInfo).get<float>(@"range", 12500.0);
 }
 
 - (GLfloat)weaponEnergyUse
 {
-    return [_weaponInfo oo_floatForKey:@"energy" defaultValue:0.8];
+    return oo::PListView(_weaponInfo).get<float>(@"energy", 0.8);
 }
 
 - (GLfloat)weaponDamage
 {
-    return [_weaponInfo oo_floatForKey:@"damage" defaultValue:15.0];
+    return oo::PListView(_weaponInfo).get<float>(@"damage", 15.0);
 }
 
 - (GLfloat)weaponRechargeRate
 {
-    return [_weaponInfo oo_floatForKey:@"recharge_rate" defaultValue:0.5];
+    return oo::PListView(_weaponInfo).get<float>(@"recharge_rate", 0.5);
 }
 
 - (GLfloat)weaponShotTemperature
 {
-    return [_weaponInfo oo_floatForKey:@"shot_temperature" defaultValue:7.0];
+    return oo::PListView(_weaponInfo).get<float>(@"shot_temperature", 7.0);
 }
 
 - (GLfloat)weaponThreatAssessment
 {
-    return [_weaponInfo oo_floatForKey:@"threat_assessment" defaultValue:1.0];
+    return oo::PListView(_weaponInfo).get<float>(@"threat_assessment", 1.0);
 }
 
 - (OOColor*)weaponColor
@@ -689,27 +689,27 @@ static NSDictionary* sMissilesRegistry = nil;
 
 - (NSString*)fxShotMissName
 {
-    return [_weaponInfo oo_stringForKey:@"fx_shot_miss_name" defaultValue:@"[player-laser-miss]"];
+    return oo::PListView(_weaponInfo).get<NSString*>(@"fx_shot_miss_name", @"[player-laser-miss]");
 }
 
 - (NSString*)fxShotHitName
 {
-    return [_weaponInfo oo_stringForKey:@"fx_shot_hit_name" defaultValue:@"[player-laser-hit]"];
+    return oo::PListView(_weaponInfo).get<NSString*>(@"fx_shot_hit_name", @"[player-laser-hit]");
 }
 
 - (NSString*)fxShieldHitName
 {
-    return [_weaponInfo oo_stringForKey:@"fx_hitplayer_shielded_name" defaultValue:@"[player-hit-by-weapon]"];
+    return oo::PListView(_weaponInfo).get<NSString*>(@"fx_hitplayer_shielded_name", @"[player-hit-by-weapon]");
 }
 
 - (NSString*)fxUnshieldedHitName
 {
-    return [_weaponInfo oo_stringForKey:@"fx_hitplayer_unshielded_name" defaultValue:@"[player-direct-hit]"];
+    return oo::PListView(_weaponInfo).get<NSString*>(@"fx_hitplayer_unshielded_name", @"[player-direct-hit]");
 }
 
 - (NSString*)fxWeaponLaunchedName
 {
-    return [_weaponInfo oo_stringForKey:@"fx_weapon_launch_name" defaultValue:([[self identifier] hasSuffix:@"_MINE"] ? @"[mine-launched]" : @"[missile-launched]")];
+    return oo::PListView(_weaponInfo).get<NSString*>(@"fx_weapon_launch_name", ([[self identifier] hasSuffix:@"_MINE"] ? @"[mine-launched]" : @"[missile-launched]"));
 }
 
 /*	This method exists purely to suppress Clang static analyzer warnings that

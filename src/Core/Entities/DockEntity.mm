@@ -25,7 +25,7 @@ MA 02110-1301, USA.
 #import "DockEntity.h"
 
 #include <vector>
-#import "OOCollectionExtractors.h"
+#import "OOPListView.h"
 #import "OOStringExpander.h"
 #import "OOStringParsing.h"
 #import "ShipEntityAI.h"
@@ -46,6 +46,7 @@ MA 02110-1301, USA.
 #import "OODebugFlags.h"
 #import "OODebugGLDrawing.h"
 #import "OOJSScript.h"
+#import "OOStringBridge.h"
 
 @interface DockEntity (OOPrivate)
 
@@ -313,15 +314,15 @@ MA 02110-1301, USA.
 
     // get the docking information from the instructions
     NSMutableDictionary* nextCoords = (NSMutableDictionary*)[coordinatesStack objectAtIndex:0];
-    int docking_stage = [nextCoords oo_intForKey:@"docking_stage"];
-    float speedAdvised = [nextCoords oo_floatForKey:@"speed"];
-    float rangeAdvised = [nextCoords oo_floatForKey:@"range"];
+    int docking_stage = oo::PListView(nextCoords).get<int>(@"docking_stage");
+    float speedAdvised = oo::PListView(nextCoords).get<float>(@"speed");
+    float rangeAdvised = oo::PListView(nextCoords).get<float>(@"range");
 
     // calculate world coordinates from relative coordinates
     HPVector rel_coords;
-    rel_coords.x = [nextCoords oo_doubleForKey:@"rx"];
-    rel_coords.y = [nextCoords oo_doubleForKey:@"ry"];
-    rel_coords.z = [nextCoords oo_doubleForKey:@"rz"];
+    rel_coords.x = oo::PListView(nextCoords).get<double>(@"rx");
+    rel_coords.y = oo::PListView(nextCoords).get<double>(@"ry");
+    rel_coords.z = oo::PListView(nextCoords).get<double>(@"rz");
     HPVector coords = [self absolutePositionForSubentity];
     coords.x += rel_coords.x * vi.x + rel_coords.y * vj.x + rel_coords.z * vk.x;
     coords.y += rel_coords.x * vi.y + rel_coords.y * vj.y + rel_coords.z * vk.y;
@@ -342,25 +343,25 @@ MA 02110-1301, USA.
     // else, reached the current coordinates okay..
 
     // get the NEXT coordinates
-    nextCoords = (NSMutableDictionary*)[coordinatesStack oo_dictionaryAtIndex:1];
+    nextCoords = (NSMutableDictionary*)oo::PListView(coordinatesStack).at<NSDictionary*>(1);
     if (nextCoords == nil) {
         return nil;
     }
 
-    docking_stage = [nextCoords oo_intForKey:@"docking_stage"];
-    speedAdvised = [nextCoords oo_floatForKey:@"speed"];
-    rangeAdvised = [nextCoords oo_floatForKey:@"range"];
-    BOOL match_rotation = [nextCoords oo_boolForKey:@"match_rotation"];
-    NSString* comms_message = [nextCoords oo_stringForKey:@"comms_message"];
+    docking_stage = oo::PListView(nextCoords).get<int>(@"docking_stage");
+    speedAdvised = oo::PListView(nextCoords).get<float>(@"speed");
+    rangeAdvised = oo::PListView(nextCoords).get<float>(@"range");
+    BOOL match_rotation = oo::PListView(nextCoords).get<BOOL>(@"match_rotation");
+    NSString* comms_message = oo::PListView(nextCoords).get<NSString*>(@"comms_message");
 
     if (comms_message) {
         [station sendExpandedMessage:comms_message toShip:ship];
     }
 
     // calculate world coordinates from relative coordinates
-    rel_coords.x = [nextCoords oo_doubleForKey:@"rx"];
-    rel_coords.y = [nextCoords oo_doubleForKey:@"ry"];
-    rel_coords.z = [nextCoords oo_doubleForKey:@"rz"];
+    rel_coords.x = oo::PListView(nextCoords).get<double>(@"rx");
+    rel_coords.y = oo::PListView(nextCoords).get<double>(@"ry");
+    rel_coords.z = oo::PListView(nextCoords).get<double>(@"rz");
     coords = [self absolutePositionForSubentity];
     coords.x += rel_coords.x * vi.x + rel_coords.y * vj.x + rel_coords.z * vk.x;
     coords.y += rel_coords.x * vi.y + rel_coords.y * vj.y + rel_coords.z * vk.y;
@@ -674,7 +675,7 @@ MA 02110-1301, USA.
 
         OOLog(@"docking.debug", @"Normalised port dimensions are %g x %g x %g.  Player bounding box is at %@-%@ -- %s (%X), range: %g",
             ww * 2.0, hh * 2.0, dd,
-            VectorDescription(arbb.min), VectorDescription(arbb.max),
+            oo::NSStringFrom(VectorDescription(arbb.min)), oo::NSStringFrom(VectorDescription(arbb.max)),
             inLane ? "in lane" : "out of lane", laneFlags,
             range);
     }

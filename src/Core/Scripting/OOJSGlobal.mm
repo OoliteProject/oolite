@@ -29,11 +29,11 @@ MA 02110-1301, USA.
 #import "GuiDisplayGen.h"
 #import "MyOpenGLView.h"
 #import "NSFileManagerOOExtensions.h"
-#import "OOCollectionExtractors.h"
 #import "OOConstToJSString.h"
 #import "OOConstToString.h"
 #import "OOJSGuiScreenKeyDefinition.h"
 #import "OOJSPlayer.h"
+#import "OOPListView.h"
 #import "OOStringExpander.h"
 #import "OOSystemDescriptionManager.h"
 #import "OOTexture.h"
@@ -301,7 +301,7 @@ static JSValue GlobalExpandMissionText(OOJS_NATIVE_ARGS)
         overrides = OOJSDictionaryFromStringTable(context, OOJS_ARGV[1]);
     }
 
-    string = [[UNIVERSE missiontext] oo_stringForKey:string];
+    string = oo::PListView([UNIVERSE missiontext]).get<NSString*>(string);
     string = OOExpandDescriptionString(kNilRandomSeed, string, overrides, nil, nil, kOOExpandForJavaScript | kOOExpandBackslashN | kOOExpandGoodRNG);
 
     OOJS_RETURN_OBJECT(string);
@@ -731,7 +731,7 @@ static JSValue GlobalTakeSnapShot(OOJS_NATIVE_ARGS)
     NSDictionary* attr = [[NSFileManager defaultManager] oo_fileSystemAttributesAtPath:playerFileDirectory];
 
     if (attr != nil) {
-        double freeSpace = [attr oo_doubleForKey:NSFileSystemFreeSize];
+        double freeSpace = oo::PListView(attr).get<double>(NSFileSystemFreeSize);
         if (freeSpace < 1073741824) // less than 1 GB free on disk?
         {
             OOJSReportWarning(context, @"takeSnapShot: function disabled when free disk space is less than 1GB.");
@@ -764,7 +764,7 @@ static JSValue GlobalAutoAIForRole(OOJS_NATIVE_ARGS)
     }
 
     NSDictionary* autoAIMap = [ResourceManager dictionaryFromFilesNamed:@"autoAImap.plist" inFolder:@"Config" andMerge:YES];
-    NSString* autoAI = [autoAIMap oo_stringForKey:string];
+    NSString* autoAI = oo::PListView(autoAIMap).get<NSString*>(string);
 
     OOJS_RETURN_OBJECT(autoAI);
 

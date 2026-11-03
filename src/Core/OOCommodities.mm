@@ -25,8 +25,8 @@ MA 02110-1301, USA.
 #import "OOCommodities.h"
 #import "OOCommodityMarket.h"
 
-#import "OOCollectionExtractors.h"
 #import "OOJSScript.h"
+#import "OOPListView.h"
 #import "OOStringExpander.h"
 #import "PlayerEntity.h"
 #import "ResourceManager.h"
@@ -134,7 +134,7 @@ MA 02110-1301, USA.
     NSMutableDictionary* good = nil;
     foreachkey(commodity, _commodityLists)
     {
-        good = [NSMutableDictionary dictionaryWithDictionary:[_commodityLists oo_dictionaryForKey:commodity]];
+        good = [NSMutableDictionary dictionaryWithDictionary:oo::PListView(_commodityLists).get<NSDictionary*>(commodity)];
         [good oo_setUnsignedInteger:0 forKey:kOOCommodityPriceCurrent];
         [good oo_setUnsignedInteger:0 forKey:kOOCommodityQuantityCurrent];
         /* The actual capacity of the player ship is a total, not
@@ -155,7 +155,7 @@ MA 02110-1301, USA.
     NSMutableDictionary* good = nil;
     foreachkey(commodity, _commodityLists)
     {
-        good = [NSMutableDictionary dictionaryWithDictionary:[_commodityLists oo_dictionaryForKey:commodity]];
+        good = [NSMutableDictionary dictionaryWithDictionary:oo::PListView(_commodityLists).get<NSDictionary*>(commodity)];
         [good oo_setUnsignedInteger:0 forKey:kOOCommodityPriceCurrent];
         [good oo_setUnsignedInteger:0 forKey:kOOCommodityQuantityCurrent];
         [good oo_setUnsignedInteger:0 forKey:kOOCommodityCapacity];
@@ -182,7 +182,7 @@ MA 02110-1301, USA.
         [definition oo_setUnsignedInteger:0 forKey:kOOCommodityLegalityImport];
     }
 
-    NSString* goodScriptName = [definition oo_stringForKey:kOOCommodityScript];
+    NSString* goodScriptName = oo::PListView(definition).get<NSString*>(kOOCommodityScript);
     if (goodScriptName == nil) {
         return definition;
     }
@@ -226,14 +226,14 @@ MA 02110-1301, USA.
     OOJSFreeValue(context, args[2]);
 
     if (!OK) {
-        OOLog(@"script.commodityScript.error", @"Could not update %@ commodity definition for %@ - unable to call updateLocalCommodityDefinition", errorType, [good oo_stringForKey:kOOCommodityName]);
+        OOLog(@"script.commodityScript.error", @"Could not update %@ commodity definition for %@ - unable to call updateLocalCommodityDefinition", errorType, oo::PListView(good).get<NSString*>(kOOCommodityName));
         OOJSFreeValue(context, rval);
         OOJSRelinquishContext(context);
         return good;
     }
 
     if (!JS_IsObject(rval)) { // Unlike JSVAL_IS_OBJECT(), false for null, which gets the same message below.
-        OOLog(@"script.commodityScript.error", @"Could not update %@ commodity definition for %@ - return value invalid", errorType, [good oo_stringForKey:kOOCommodityKey]);
+        OOLog(@"script.commodityScript.error", @"Could not update %@ commodity definition for %@ - return value invalid", errorType, oo::PListView(good).get<NSString*>(kOOCommodityKey));
         OOJSFreeValue(context, rval);
         OOJSRelinquishContext(context);
         return good;
@@ -243,7 +243,7 @@ MA 02110-1301, USA.
     OOJSFreeValue(context, rval);
     OOJSRelinquishContext(context);
     if (![result isKindOfClass:[NSDictionary class]]) {
-        OOLog(@"script.commodityScript.error", @"Could not update %@ commodity definition for %@ - return value invalid", errorType, [good oo_stringForKey:kOOCommodityKey]);
+        OOLog(@"script.commodityScript.error", @"Could not update %@ commodity definition for %@ - return value invalid", errorType, oo::PListView(good).get<NSString*>(kOOCommodityKey));
         return good;
     }
 
@@ -260,10 +260,10 @@ MA 02110-1301, USA.
     NSDictionary* good = nil;
     foreachkey(commodity, _commodityLists)
     {
-        good = [_commodityLists oo_dictionaryForKey:commodity];
+        good = oo::PListView(_commodityLists).get<NSDictionary*>(commodity);
         OOCargoQuantity q = [self generateQuantityForGood:good inEconomy:economy];
         // main system market limited to 127 units of each item
-        OOCargoQuantity cap = [good oo_unsignedIntForKey:kOOCommodityCapacity defaultValue:MAIN_SYSTEM_MARKET_LIMIT];
+        OOCargoQuantity cap = oo::PListView(good).get<unsigned int>(kOOCommodityCapacity, MAIN_SYSTEM_MARKET_LIMIT);
         if (q > cap) {
             q = cap;
         }
@@ -296,8 +296,8 @@ MA 02110-1301, USA.
     NSDictionary* good = nil;
     foreachkey(commodity, _commodityLists)
     {
-        good = [_commodityLists oo_dictionaryForKey:commodity];
-        OOCargoQuantity baseCapacity = [good oo_unsignedIntForKey:kOOCommodityCapacity defaultValue:MAIN_SYSTEM_MARKET_LIMIT];
+        good = oo::PListView(_commodityLists).get<NSDictionary*>(commodity);
+        OOCargoQuantity baseCapacity = oo::PListView(good).get<unsigned int>(kOOCommodityCapacity, MAIN_SYSTEM_MARKET_LIMIT);
 
         // important - ensure baseCapacity cannot be zero
         if (!baseCapacity)
@@ -307,12 +307,12 @@ MA 02110-1301, USA.
         OOCreditsQuantity p = [mainMarket priceForGood:commodity];
 
         if (marketScript == nil) {
-            NSDictionary* modifier = [self firstModifierForGood:commodity inClasses:[good oo_arrayForKey:kOOCommodityClasses] fromList:marketDefinition];
+            NSDictionary* modifier = [self firstModifierForGood:commodity inClasses:oo::PListView(good).get<NSArray*>(kOOCommodityClasses) fromList:marketDefinition];
             good = [self updateInfoFor:good byRule:modifier maxCapacity:capacity];
             p = [self adjustPrice:p byRule:modifier];
 
             // first, scale to this station's capacity for this good
-            OOCargoQuantity localCapacity = [good oo_unsignedIntForKey:kOOCommodityCapacity];
+            OOCargoQuantity localCapacity = oo::PListView(good).get<unsigned int>(kOOCommodityCapacity);
             if (localCapacity > capacity) {
                 localCapacity = capacity;
             }
@@ -348,7 +348,7 @@ MA 02110-1301, USA.
 
 - (BOOL)goodDefined:(NSString*)key
 {
-    return ([_commodityLists oo_dictionaryForKey:key] != nil);
+    return (oo::PListView(_commodityLists).get<NSDictionary*>(key) != nil);
 }
 
 - (NSString*)goodNamed:(NSString*)name
@@ -356,8 +356,8 @@ MA 02110-1301, USA.
     NSString* commodity = nil;
     foreachkey(commodity, _commodityLists)
     {
-        NSDictionary* good = [_commodityLists oo_dictionaryForKey:commodity];
-        if ([OOExpand([good oo_stringForKey:kOOCommodityName]) isEqualToString:name]) {
+        NSDictionary* good = oo::PListView(_commodityLists).get<NSDictionary*>(commodity);
+        if ([OOExpand(oo::PListView(good).get<NSString*>(kOOCommodityName)) isEqualToString:name]) {
             return commodity;
         }
     }
@@ -368,25 +368,28 @@ MA 02110-1301, USA.
 {
     NSArray* keys = [_commodityLists allKeys];
     NSUInteger idx = Ranrot() % [keys count];
-    return [keys oo_stringAtIndex:idx];
+    return oo::PListView(keys).at<NSString*>(idx);
 }
 
 - (OOMassUnit)massUnitForGood:(NSString*)good
 {
-    NSDictionary* definition = [_commodityLists oo_dictionaryForKey:good];
+    NSDictionary* definition = oo::PListView(_commodityLists).get<NSDictionary*>(good);
     if (definition == nil) {
         return UNITS_TONS;
     }
-    return (OOMassUnit)[definition oo_unsignedIntForKey:kOOCommodityContainer];
+    return OOMassUnitFromNumber(oo::PListView(definition).get<unsigned int>(kOOCommodityContainer));
 }
 
 - (OOCargoQuantity)generateQuantityForGood:(NSDictionary*)good inEconomy:(OOEconomyID)economy
 {
     float bias = [self economicBiasForGood:good inEconomy:economy];
 
-    float base = [good oo_floatForKey:kOOCommodityQuantityAverage];
-    float econ = base * [good oo_floatForKey:kOOCommodityQuantityEconomic] * bias;
-    float random = base * [good oo_floatForKey:kOOCommodityQuantityRandom] * (randf() - randf());
+    float base = oo::PListView(good).get<float>(kOOCommodityQuantityAverage);
+    float econ = base * oo::PListView(good).get<float>(kOOCommodityQuantityEconomic) * bias;
+    // Two draws, in the order clang evaluated the operands of the former (randf() - randf()).
+    float firstDraw = randf();
+    float secondDraw = randf();
+    float random = base * oo::PListView(good).get<float>(kOOCommodityQuantityRandom) * (firstDraw - secondDraw);
     base += econ + random;
     if (base < 0.0) {
         return 0;
@@ -399,9 +402,12 @@ MA 02110-1301, USA.
 {
     float bias = [self economicBiasForGood:good inEconomy:economy];
 
-    float base = [good oo_floatForKey:kOOCommodityPriceAverage];
-    float econ = base * [good oo_floatForKey:kOOCommodityPriceEconomic] * -bias;
-    float random = base * [good oo_floatForKey:kOOCommodityPriceRandom] * (randf() - randf());
+    float base = oo::PListView(good).get<float>(kOOCommodityPriceAverage);
+    float econ = base * oo::PListView(good).get<float>(kOOCommodityPriceEconomic) * -bias;
+    // Two draws, in the order clang evaluated the operands of the former (randf() - randf()).
+    float firstDraw = randf();
+    float secondDraw = randf();
+    float random = base * oo::PListView(good).get<float>(kOOCommodityPriceRandom) * (firstDraw - secondDraw);
     base += econ + random;
     if (base < 0.0) {
         return 0;
@@ -412,7 +418,7 @@ MA 02110-1301, USA.
 
 - (OOCreditsQuantity)samplePriceForCommodity:(OOCommodityType)commodity inEconomy:(OOEconomyID)economy withScript:(NSString*)scriptName inSystem:(OOSystemID)system
 {
-    NSDictionary* good = [_commodityLists oo_dictionaryForKey:commodity];
+    NSDictionary* good = oo::PListView(_commodityLists).get<NSDictionary*>(commodity);
     if (good == nil) {
         return 0;
     }
@@ -425,14 +431,14 @@ MA 02110-1301, USA.
             good = [self modifyGood:good withScript:script atStation:nil inSystem:system localMode:YES];
         }
     }
-    return [good oo_unsignedIntegerForKey:kOOCommodityPriceCurrent];
+    return oo::PListView(good).get<NSUInteger>(kOOCommodityPriceCurrent);
 }
 
 // positive = exporter; negative = importer; range -1.0 .. +1.0
 - (float)economicBiasForGood:(NSDictionary*)good inEconomy:(OOEconomyID)economy
 {
-    OOEconomyID exporter = [good oo_intForKey:kOOCommodityPeakExport];
-    OOEconomyID importer = [good oo_intForKey:kOOCommodityPeakImport];
+    OOEconomyID exporter = oo::PListView(good).get<int>(kOOCommodityPeakExport);
+    OOEconomyID importer = oo::PListView(good).get<int>(kOOCommodityPeakImport);
 
     // *2 and /2 to work in ints at this stage
     int exDiff = abs(economy - exporter) * 2;
@@ -455,10 +461,10 @@ MA 02110-1301, USA.
 {
     NSUInteger i;
     for (i = 0; i < [definitions count]; i++) {
-        NSDictionary* definition = [definitions oo_dictionaryAtIndex:i];
+        NSDictionary* definition = oo::PListView(definitions).at<NSDictionary*>(i);
         if (definition != nil) {
-            NSString* applicationType = [definition oo_stringForKey:kOOCommodityMarketType defaultValue:kOOCommodityMarketTypeValueDefault];
-            NSString* applicationName = [definition oo_stringForKey:kOOCommodityMarketName defaultValue:@""];
+            NSString* applicationType = oo::PListView(definition).get<NSString*>(kOOCommodityMarketType, kOOCommodityMarketTypeValueDefault);
+            NSString* applicationName = oo::PListView(definition).get<NSString*>(kOOCommodityMarketName, @"");
 
             if (
                 [applicationType isEqualToString:kOOCommodityMarketTypeValueDefault]
@@ -475,13 +481,13 @@ MA 02110-1301, USA.
 - (OOCreditsQuantity)adjustPrice:(OOCreditsQuantity)price byRule:(NSDictionary*)rule
 {
     float p = (float)price; // work in floats to avoid rounding problems
-    float pa = [rule oo_floatForKey:kOOCommodityMarketPriceAdder defaultValue:0.0];
-    float pm = [rule oo_floatForKey:kOOCommodityMarketPriceMultiplier defaultValue:1.0];
+    float pa = oo::PListView(rule).get<float>(kOOCommodityMarketPriceAdder, 0.0);
+    float pm = oo::PListView(rule).get<float>(kOOCommodityMarketPriceMultiplier, 1.0);
     if (pm <= 0.0 && pa <= 0.0) {
         // setting a price multiplier of 0 forces the price to zero
         return 0;
     }
-    float pr = [rule oo_floatForKey:kOOCommodityMarketPriceRandomiser defaultValue:0.0];
+    float pr = oo::PListView(rule).get<float>(kOOCommodityMarketPriceRandomiser, 0.0);
     p += pa;
     p = (p * pm) + (p * pr * (randf() - randf()));
     if (p < 1.0) {
@@ -495,13 +501,13 @@ MA 02110-1301, USA.
 - (OOCargoQuantity)adjustQuantity:(OOCargoQuantity)quantity byRule:(NSDictionary*)rule
 {
     float q = (float)quantity; // work in floats to avoid rounding problems
-    float qa = [rule oo_floatForKey:kOOCommodityMarketQuantityAdder defaultValue:0.0];
-    float qm = [rule oo_floatForKey:kOOCommodityMarketQuantityMultiplier defaultValue:1.0];
+    float qa = oo::PListView(rule).get<float>(kOOCommodityMarketQuantityAdder, 0.0);
+    float qm = oo::PListView(rule).get<float>(kOOCommodityMarketQuantityMultiplier, 1.0);
     if (qm <= 0.0 && qa <= 0.0) {
         // setting a price multiplier of 0 forces the price to zero
         return 0;
     }
-    float qr = [rule oo_floatForKey:kOOCommodityMarketQuantityRandomiser defaultValue:0.0];
+    float qr = oo::PListView(rule).get<float>(kOOCommodityMarketQuantityRandomiser, 0.0);
     q += qa;
     q = (q * qm) + (q * qr * (randf() - randf()));
     if (q < 0.0) {
@@ -516,17 +522,17 @@ MA 02110-1301, USA.
 - (NSDictionary*)updateInfoFor:(NSDictionary*)good byRule:(NSDictionary*)rule maxCapacity:(OOCargoQuantity)maxCapacity
 {
     NSMutableDictionary* tmp = [NSMutableDictionary dictionaryWithDictionary:good];
-    NSInteger import = [rule oo_integerForKey:kOOCommodityMarketLegalityImport defaultValue:-1];
+    NSInteger import = oo::PListView(rule).get<NSInteger>(kOOCommodityMarketLegalityImport, -1);
     if (import >= 0) {
         [tmp oo_setInteger:import forKey:kOOCommodityLegalityImport];
     }
 
-    NSInteger exportValue = [rule oo_integerForKey:kOOCommodityMarketLegalityExport defaultValue:-1];
+    NSInteger exportValue = oo::PListView(rule).get<NSInteger>(kOOCommodityMarketLegalityExport, -1);
     if (exportValue >= 0) {
         [tmp oo_setInteger:import forKey:kOOCommodityLegalityExport];
     }
 
-    NSInteger capacity = [rule oo_integerForKey:kOOCommodityMarketCapacity defaultValue:-1];
+    NSInteger capacity = oo::PListView(rule).get<NSInteger>(kOOCommodityMarketCapacity, -1);
     if (capacity >= 0 && capacity <= (NSInteger)maxCapacity) {
         [tmp oo_setInteger:capacity forKey:kOOCommodityCapacity];
     } else {

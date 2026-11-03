@@ -30,10 +30,10 @@ MA 02110-1301, USA.
 #import "OOJavaScriptEngine.h"
 
 #import "GuiDisplayGen.h"
-#import "OOCollectionExtractors.h"
 #import "OODebugStandards.h"
 #import "OOJSPlayer.h"
 #import "OOMusicController.h"
+#import "OOPListView.h"
 #import "OOStringExpander.h"
 #import "PlayerEntityScriptMethods.h"
 
@@ -315,7 +315,7 @@ static JSValue MissionMarkSystem(OOJS_NATIVE_ARGS)
         } else // must be object, from above
         {
             NSDictionary* marker = OOJSNativeObjectFromJSObject(context, OOJS_ARGV[i]);
-            OOSystemID system = [marker oo_intForKey:@"system" defaultValue:-1];
+            OOSystemID system = oo::PListView(marker).get<int>(@"system", -1);
             if (system >= 0) {
                 [player addMissionDestinationMarker:marker];
             }
@@ -357,7 +357,7 @@ static JSValue MissionUnmarkSystem(OOJS_NATIVE_ARGS)
         } else // must be object, from above
         {
             NSDictionary* marker = OOJSNativeObjectFromJSObject(context, OOJS_ARGV[i]);
-            OOSystemID system = [marker oo_intForKey:@"system" defaultValue:-1];
+            OOSystemID system = oo::PListView(marker).get<int>(@"system", -1);
             if (system >= 0) {
                 if (![player removeMissionDestinationMarker:marker]) {
                     result = NO;
@@ -578,7 +578,7 @@ static JSValue MissionRunScreen(OOJS_NATIVE_ARGS)
     } else {
         NSString* titleKey = GetParameterString(context, params, "titleKey");
         if (titleKey != nil) {
-            NSString* message = [[UNIVERSE missiontext] oo_stringForKey:titleKey];
+            NSString* message = oo::PListView([UNIVERSE missiontext]).get<NSString*>(titleKey);
             if (message != nil) {
                 [player setMissionTitle:OOExpand(message)];
             } else {

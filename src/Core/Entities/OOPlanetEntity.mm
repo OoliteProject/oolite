@@ -37,8 +37,8 @@ MA 02110-1301, USA.
 #import "ShipEntityAI.h"
 #import "Universe.h"
 
-#import "OOCollectionExtractors.h"
 #import "OOMaths.h"
+#import "OOPListView.h"
 #import "OOStringParsing.h"
 #import "OOSystemDescriptionManager.h"
 #import "ResourceManager.h"
@@ -64,7 +64,11 @@ MA 02110-1301, USA.
 
 @end
 
-@implementation OOPlanetEntity
+@implementation OOPlanetEntity {
+    // The texture generators' noise seed, handed to them directly; was a value box
+    // under "noise_map_seed" in planetInfo / _materialParameters (bead oo-3rb.48).
+    RANROTSeed _noiseMapSeed;
+}
 
 // this is exclusively called to initialise the main planet.
 - (id)initAsMainPlanetForSystem:(OOSystemID)s
@@ -76,7 +80,7 @@ MA 02110-1301, USA.
     if (s != [PLAYER systemID]) {
         [planetInfo oo_setBool:YES forKey:@"isMiniature"];
     }
-    return [self initFromDictionary:planetInfo withAtmosphere:[planetInfo oo_boolForKey:@"has_atmosphere" defaultValue:YES] andSeed:[[UNIVERSE systemManager] getRandomSeedForSystem:s inGalaxy:[PLAYER galaxyNumber]] forSystem:s];
+    return [self initFromDictionary:planetInfo withAtmosphere:oo::PListView(planetInfo).get<BOOL>(@"has_atmosphere", YES) andSeed:[[UNIVERSE systemManager] getRandomSeedForSystem:s inGalaxy:[PLAYER galaxyNumber]] forSystem:s];
 }
 
 static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH; // atmosphere effect starts at 10x the height of the clouds
@@ -101,7 +105,7 @@ static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH; // atmosphere effect 
     [self setUpTerrainParametersWithSourceInfo:dict targetInfo:planetInfo];
 
     // Load random seed override.
-    NSString* seedStr = [dict oo_stringForKey:@"seed"];
+    NSString* seedStr = oo::PListView(dict).get<NSString*>(@"seed");
     if (seedStr != nil) {
         Random_Seed overrideSeed = RandomSeedFromString(seedStr);
         if (!is_nil_seed(overrideSeed))
@@ -114,11 +118,11 @@ static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH; // atmosphere effect 
     seed_for_planet_description(seed);
 
     _name = nil;
-    [self setName:OOExpand([dict oo_stringForKey:KEY_PLANETNAME defaultValue:[planetInfo oo_stringForKey:KEY_PLANETNAME defaultValue:@"%H"]])];
+    [self setName:OOExpand(oo::PListView(dict).get<NSString*>(KEY_PLANETNAME, oo::PListView(planetInfo).get<NSString*>(KEY_PLANETNAME, @"%H")))];
 
-    int radius_km = [dict oo_intForKey:KEY_RADIUS defaultValue:[planetInfo oo_intForKey:KEY_RADIUS]];
+    int radius_km = oo::PListView(dict).get<int>(KEY_RADIUS, oo::PListView(planetInfo).get<int>(KEY_RADIUS));
     collision_radius = radius_km * 10.0; // Scale down by a factor of 100
-    OOTechLevelID techLevel = [dict oo_intForKey:KEY_TECHLEVEL defaultValue:[planetInfo oo_intForKey:KEY_TECHLEVEL]];
+    OOTechLevelID techLevel = oo::PListView(dict).get<int>(KEY_TECHLEVEL, oo::PListView(planetInfo).get<int>(KEY_TECHLEVEL));
 
     if (techLevel > 14)
         techLevel = 14;
@@ -127,21 +131,20 @@ static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH; // atmosphere effect 
     _lastLaunchTime = [UNIVERSE getTime] + 30.0 - _shuttleLaunchInterval; // launch 30s after player enters universe.
                                                                           // make delay > 0 to allow scripts adding a station nearby.
 
-    int percent_land = [planetInfo oo_intForKey:@"percent_land" defaultValue:24 + (gen_rnd_number() % 48)];
+    int percent_land = oo::PListView(planetInfo).get<int>(@"percent_land", 24 + (gen_rnd_number() % 48));
     [planetInfo setObject:[NSNumber numberWithFloat:0.01 * percent_land] forKey:@"land_fraction"];
 
-    int percent_ice = [planetInfo oo_intForKey:@"percent_ice" defaultValue:5];
+    int percent_ice = oo::PListView(planetInfo).get<int>(@"percent_ice", 5);
     [planetInfo setObject:[NSNumber numberWithFloat:0.01 * percent_ice] forKey:@"polar_fraction"];
 
     RNG_Seed savedRndSeed = currentRandomSeed();
 
     _planetDrawable = [[OOPlanetDrawable alloc] init];
 
-    _terminatorThresholdVector = [planetInfo oo_vectorForKey:@"terminator_threshold_vector" defaultValue:OO_TERMINATOR_THRESHOLD_VECTOR_DEFAULT];
+    _terminatorThresholdVector = oo::PListView(planetInfo).get<Vector>(@"terminator_threshold_vector", OO_TERMINATOR_THRESHOLD_VECTOR_DEFAULT);
 
     // Load material parameters, including atmosphere.
-    RANROTSeed planetNoiseSeed = RANROTGetFullSeed();
-    [planetInfo setObject:[NSValue valueWithBytes:&planetNoiseSeed objCType:@encode(RANROTSeed)] forKey:@"noise_map_seed"];
+    _noiseMapSeed = RANROTGetFullSeed();
     [self setUpLandParametersWithSourceInfo:dict targetInfo:planetInfo];
 
     _airColor = nil; // default to no air
@@ -161,17 +164,17 @@ static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH; // atmosphere effect 
         _atmosphereShaderDrawable = [[OOPlanetDrawable atmosphereWithRadius:collision_radius + ATMOSPHERE_DEPTH] retain];
 
         // convert the atmosphere settings to generic 'material parameters'
-        percent_land = 100 - [dict oo_intForKey:@"percent_cloud" defaultValue:100 - (3 + (gen_rnd_number() & 31) + (gen_rnd_number() & 31))];
+        percent_land = 100 - oo::PListView(dict).get<int>(@"percent_cloud", 100 - (3 + (gen_rnd_number() & 31) + (gen_rnd_number() & 31)));
         [planetInfo setObject:[NSNumber numberWithFloat:0.01 * percent_land] forKey:@"cloud_fraction"];
         [self setUpAtmosphereParametersWithSourceInfo:dict targetInfo:planetInfo];
         // planetInfo now contains a valid air_color
         _airColor = [[planetInfo objectForKey:@"air_color"] retain];
-        _airColorMixRatio = [planetInfo oo_floatForKey:@"air_color_mix_ratio"];
+        _airColorMixRatio = oo::PListView(planetInfo).get<float>(@"air_color_mix_ratio");
 
-        _airDensity = OOClamp_0_1_f([planetInfo oo_floatForKey:@"air_density"]);
+        _airDensity = OOClamp_0_1_f(oo::PListView(planetInfo).get<float>(@"air_density"));
         // OOLog (@"planet.debug",@" translated air colour:%@ cloud colour:%@ polar cloud color:%@", [_airColor rgbaDescription],[(OOColor *)[planetInfo objectForKey:@"cloud_color"] rgbaDescription],[(OOColor *)[planetInfo objectForKey:@"polar_cloud_color"] rgbaDescription]);
 
-        _materialParameters = [planetInfo dictionaryWithValuesForKeys:[NSArray arrayWithObjects:@"cloud_fraction", @"air_color", @"air_color_mix_ratio", @"air_density", @"cloud_color", @"polar_cloud_color", @"cloud_alpha", @"land_fraction", @"land_color", @"sea_color", @"polar_land_color", @"polar_sea_color", @"noise_map_seed", @"economy", @"polar_fraction", @"isMiniature", @"perlin_3d", @"terminator_threshold_vector", nil]];
+        _materialParameters = [planetInfo dictionaryWithValuesForKeys:[NSArray arrayWithObjects:@"cloud_fraction", @"air_color", @"air_color_mix_ratio", @"air_density", @"cloud_color", @"polar_cloud_color", @"cloud_alpha", @"land_fraction", @"land_color", @"sea_color", @"polar_land_color", @"polar_sea_color", @"economy", @"polar_fraction", @"isMiniature", @"perlin_3d", @"terminator_threshold_vector", nil]];
     } else
 #else
     // NEW_ATMOSPHERE is 0? still differentiate between normal planets and moons.
@@ -182,15 +185,15 @@ static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH; // atmosphere effect 
     if (YES) // create _materialParameters when NEW_ATMOSPHERE is set to 0
 #endif
     {
-        _materialParameters = [planetInfo dictionaryWithValuesForKeys:[NSArray arrayWithObjects:@"land_fraction", @"land_color", @"sea_color", @"polar_land_color", @"polar_sea_color", @"noise_map_seed", @"economy", @"polar_fraction", @"isMiniature", @"perlin_3d", @"terminator_threshold_vector", @"illumination_color", nil]];
+        _materialParameters = [planetInfo dictionaryWithValuesForKeys:[NSArray arrayWithObjects:@"land_fraction", @"land_color", @"sea_color", @"polar_land_color", @"polar_sea_color", @"economy", @"polar_fraction", @"isMiniature", @"perlin_3d", @"terminator_threshold_vector", @"illumination_color", nil]];
     }
     [_materialParameters retain];
 
     _mesopause2 = (atmosphere) ? (kMesosphere + collision_radius) * (kMesosphere + collision_radius) : 0.0;
 
-    _normSpecMapName = [[dict oo_stringForKey:@"texture_normspec"] retain]; // must be set up before _textureName
+    _normSpecMapName = [oo::PListView(dict).get<NSString*>(@"texture_normspec") retain]; // must be set up before _textureName
 
-    _textureName = [[dict oo_stringForKey:@"texture"] retain];
+    _textureName = [oo::PListView(dict).get<NSString*>(@"texture") retain];
     [self setUpPlanetFromTexture:_textureName];
     [_planetDrawable setRadius:collision_radius];
 
@@ -201,13 +204,13 @@ static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH; // atmosphere effect 
 
     // set speed of rotation.
     if ([dict objectForKey:@"rotational_velocity"]) {
-        _rotationalVelocity = [dict oo_floatForKey:@"rotational_velocity" defaultValue:0.01f * randf()]; // 0.0 .. 0.01 avr 0.005
+        _rotationalVelocity = oo::PListView(dict).get<float>(@"rotational_velocity", 0.01f * randf()); // 0.0 .. 0.01 avr 0.005
     } else {
-        _rotationalVelocity = [planetInfo oo_floatForKey:@"rotation_speed" defaultValue:0.005f * randf()]; // 0.0 .. 0.005 avr 0.0025
-        _rotationalVelocity *= [planetInfo oo_floatForKey:@"rotation_speed_factor" defaultValue:1.0f];
+        _rotationalVelocity = oo::PListView(planetInfo).get<float>(@"rotation_speed", 0.005f * randf()); // 0.0 .. 0.005 avr 0.0025
+        _rotationalVelocity *= oo::PListView(planetInfo).get<float>(@"rotation_speed_factor", 1.0f);
     }
 
-    _atmosphereRotationalVelocity = [dict oo_floatForKey:@"atmosphere_rotational_velocity" defaultValue:0.01f * randf()];
+    _atmosphereRotationalVelocity = oo::PListView(dict).get<float>(@"atmosphere_rotational_velocity", 0.01f * randf());
 
     // set energy
     energy = collision_radius * 1000.0f;
@@ -222,7 +225,7 @@ static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH; // atmosphere effect 
 
 #ifdef OO_DUMP_PLANETINFO
 #define CPROP(PROP) OOLog(@"planetinfo.record", @ #PROP " = %@;", [(OOColor*)[planetInfo objectForKey:@ #PROP] descriptionComponents]);
-#define FPROP(PROP) OOLog(@"planetinfo.record", @ #PROP " = %f;", [planetInfo oo_floatForKey:@"" #PROP]);
+#define FPROP(PROP) OOLog(@"planetinfo.record", @ #PROP " = %f;", oo::PListView(planetInfo).get<float>(@"" #PROP));
     CPROP(air_color);
     CPROP(illumination_color);
     FPROP(air_color_mix_ratio);
@@ -276,8 +279,8 @@ static OOColor* ColorWithHSBColor(Vector c)
 
 - (void)setUpTypeParametersWithSourceInfo:(NSDictionary*)sourceInfo targetInfo:(NSMutableDictionary*)targetInfo
 {
-    [targetInfo oo_setBool:[sourceInfo oo_boolForKey:@"mainForLocalSystem"] forKey:@"mainForLocalSystem"];
-    [targetInfo oo_setBool:[sourceInfo oo_boolForKey:@"isMiniature"] forKey:@"isMiniature"];
+    [targetInfo oo_setBool:oo::PListView(sourceInfo).get<BOOL>(@"mainForLocalSystem") forKey:@"mainForLocalSystem"];
+    [targetInfo oo_setBool:oo::PListView(sourceInfo).get<BOOL>(@"isMiniature") forKey:@"isMiniature"];
 }
 
 - (void)setUpTerrainParametersWithSourceInfo:(NSDictionary*)sourceInfo targetInfo:(NSMutableDictionary*)targetInfo
@@ -333,19 +336,19 @@ static OOColor* ColorWithHSBColor(Vector c)
         if (color != nil)
             landHSB = HSBColorWithColor(color);
         else
-            ScanVectorFromString([sourceInfo oo_stringForKey:@"land_hsb_color"], &landHSB);
+            ScanVectorFromString(oo::PListView(sourceInfo).get<NSString*>(@"land_hsb_color"), &landHSB);
 
         color = [OOColor colorWithDescription:[sourceInfo objectForKey:@"sea_color"]];
         if (color != nil)
             seaHSB = HSBColorWithColor(color);
         else
-            ScanVectorFromString([sourceInfo oo_stringForKey:@"sea_hsb_color"], &seaHSB);
+            ScanVectorFromString(oo::PListView(sourceInfo).get<NSString*>(@"sea_hsb_color"), &seaHSB);
 
         color = [OOColor colorWithDescription:[sourceInfo objectForKey:@"illumination_color"]];
         if (color != nil)
             illumHSB = HSBColorWithColor(color);
         else {
-            NSString* illumHSBColorString = [sourceInfo oo_stringForKey:@"illumination_hsb_color"];
+            NSString* illumHSBColorString = oo::PListView(sourceInfo).get<NSString*>(@"illumination_hsb_color");
             if (illumHSBColorString)
                 ScanVectorFromString(illumHSBColorString, &illumHSB);
             else
@@ -379,7 +382,7 @@ static OOColor* ColorWithHSBColor(Vector c)
         seaHSB = vector_add(landHSB, ((Vector) { 1.333, 0.6, 2 })); // 1 part cloud, 2 parts sky blue
         scale_vector(&seaHSB, 0.333);
 
-        float cloudAlpha = OOClamp_0_1_f([sourceInfo oo_floatForKey:@"cloud_alpha" defaultValue:1.0f]);
+        float cloudAlpha = OOClamp_0_1_f(oo::PListView(sourceInfo).get<float>(@"cloud_alpha", 1.0f));
         [targetInfo setObject:[NSNumber numberWithFloat:cloudAlpha] forKey:@"cloud_alpha"];
 
         // planetinfo overrides
@@ -402,9 +405,9 @@ static OOColor* ColorWithHSBColor(Vector c)
         [targetInfo setObject:ColorWithHSBColor(seaHSB) forKey:@"air_color"];
         [targetInfo setObject:ColorWithHSBColor(landHSB) forKey:@"cloud_color"];
         [targetInfo setObject:ColorWithHSBColor(landPolarHSB) forKey:@"polar_cloud_color"];
-        [targetInfo setObject:[NSNumber numberWithFloat:[sourceInfo oo_floatForKey:@"air_color_mix_ratio"]] forKey:@"air_color_mix_ratio"];
+        [targetInfo setObject:[NSNumber numberWithFloat:oo::PListView(sourceInfo).get<float>(@"air_color_mix_ratio")] forKey:@"air_color_mix_ratio"];
     }
-    terminatorThreshold = [sourceInfo oo_vectorForKey:@"terminator_threshold_vector" defaultValue:OO_TERMINATOR_THRESHOLD_VECTOR_DEFAULT];
+    terminatorThreshold = oo::PListView(sourceInfo).get<Vector>(@"terminator_threshold_vector", OO_TERMINATOR_THRESHOLD_VECTOR_DEFAULT);
     [targetInfo setObject:[NSString stringWithFormat:@"%f %f %f", terminatorThreshold.x, terminatorThreshold.y, terminatorThreshold.z] forKey:@"terminator_threshold_vector"];
 }
 
@@ -911,9 +914,9 @@ static OOColor* ColorWithHSBColor(Vector c)
         if (shadersOn) {
             [diffuseMap ensureFinishedLoading]; // only know if it is a cube map if it's loaded
             if ([diffuseMap isCubeMap]) {
-                macros = [materialDefaults oo_dictionaryForKey:isMoon ? @"moon-customized-cubemap-macros" : @"planet-customized-cubemap-macros"];
+                macros = oo::PListView(materialDefaults).get<NSDictionary*>(isMoon ? @"moon-customized-cubemap-macros" : @"planet-customized-cubemap-macros");
             } else {
-                macros = [materialDefaults oo_dictionaryForKey:isMoon ? @"moon-customized-macros" : @"planet-customized-macros"];
+                macros = oo::PListView(materialDefaults).get<NSDictionary*>(isMoon ? @"moon-customized-macros" : @"planet-customized-macros");
             }
         } else
             textureName = @"dynamic";
@@ -927,9 +930,9 @@ static OOColor* ColorWithHSBColor(Vector c)
                 if (shadersOn) {
                     [normalMap ensureFinishedLoading]; // only know if it is a cube map if it's loaded
                     if ([normalMap isCubeMap]) {
-                        macros = [materialDefaults oo_dictionaryForKey:isMoon ? @"moon-customized-cubemap-normspec-macros" : @"planet-customized-cubemap-normspec-macros"];
+                        macros = oo::PListView(materialDefaults).get<NSDictionary*>(isMoon ? @"moon-customized-cubemap-normspec-macros" : @"planet-customized-cubemap-normspec-macros");
                     } else {
-                        macros = [materialDefaults oo_dictionaryForKey:isMoon ? @"moon-customized-normspec-macros" : @"planet-customized-normspec-macros"];
+                        macros = oo::PListView(materialDefaults).get<NSDictionary*>(isMoon ? @"moon-customized-normspec-macros" : @"planet-customized-normspec-macros");
                     }
                 }
             }
@@ -937,10 +940,11 @@ static OOColor* ColorWithHSBColor(Vector c)
     } else {
         [OOPlanetTextureGenerator generatePlanetTexture:&diffuseMap
                                        secondaryTexture:(detailLevel >= DETAIL_LEVEL_SHADERS) ? &normalMap : NULL
-                                               withInfo:_materialParameters];
+                                               withInfo:_materialParameters
+                                                   seed:_noiseMapSeed];
 
         if (shadersOn) {
-            macros = [materialDefaults oo_dictionaryForKey:isMoon ? @"moon-dynamic-macros" : @"planet-dynamic-macros"];
+            macros = oo::PListView(materialDefaults).get<NSDictionary*>(isMoon ? @"moon-dynamic-macros" : @"planet-dynamic-macros");
         }
         textureName = @"dynamic";
     }
@@ -951,7 +955,8 @@ static OOColor* ColorWithHSBColor(Vector c)
         /* Generate a standalone atmosphere texture */
         OOTexture* atmosphere = nil;
         [OOStandaloneAtmosphereGenerator generateAtmosphereTexture:&atmosphere
-                                                          withInfo:_materialParameters];
+                                                          withInfo:_materialParameters
+                                                              seed:_noiseMapSeed];
 
         OOLog(@"texture.planet.generate", @"Planet %@ has atmosphere %@", self, atmosphere);
 
@@ -959,10 +964,10 @@ static OOColor* ColorWithHSBColor(Vector c)
         [_atmosphereDrawable setMaterial:dynamicMaterial];
 
         if (shadersOn) {
-            NSMutableDictionary* aConfig = [[[materialDefaults oo_dictionaryForKey:@"atmosphere-material"] mutableCopy] autorelease];
+            NSMutableDictionary* aConfig = [[oo::PListView(materialDefaults).get<NSDictionary*>(@"atmosphere-material") mutableCopy] autorelease];
             [aConfig setObject:[NSArray arrayWithObjects:diffuseMap, normalMap, nil] forKey:@"_oo_texture_objects"];
 
-            NSDictionary* amacros = [materialDefaults oo_dictionaryForKey:@"atmosphere-dynamic-macros"];
+            NSDictionary* amacros = oo::PListView(materialDefaults).get<NSDictionary*>(@"atmosphere-dynamic-macros");
 
             OOMaterial* dynamicShaderMaterial = [OOShaderMaterial shaderMaterialWithName:@"dynamic"
                                                                            configuration:aConfig
@@ -975,9 +980,9 @@ static OOColor* ColorWithHSBColor(Vector c)
                 [_atmosphereShaderDrawable setMaterial:dynamicShaderMaterial];
             }
 
-            NSMutableDictionary* cloudConfig = [[[materialDefaults oo_dictionaryForKey:@"clouds-dynamic-material"] mutableCopy] autorelease];
+            NSMutableDictionary* cloudConfig = [[oo::PListView(materialDefaults).get<NSDictionary*>(@"clouds-dynamic-material") mutableCopy] autorelease];
             [cloudConfig setObject:[NSArray arrayWithObjects:atmosphere, nil] forKey:@"_oo_texture_objects"];
-            NSDictionary* cloudMacros = [materialDefaults oo_dictionaryForKey:@"clouds-dynamic-macros"];
+            NSDictionary* cloudMacros = oo::PListView(materialDefaults).get<NSDictionary*>(@"clouds-dynamic-macros");
 
             OOMaterial* cloudsMaterial = [OOShaderMaterial shaderMaterialWithName:@"dynamic"
                                                                     configuration:cloudConfig
@@ -997,7 +1002,7 @@ static OOColor* ColorWithHSBColor(Vector c)
 
 #if OO_SHADERS
     if (shadersOn) {
-        NSMutableDictionary* config = [[[materialDefaults oo_dictionaryForKey:@"planet-material"] mutableCopy] autorelease];
+        NSMutableDictionary* config = [[oo::PListView(materialDefaults).get<NSDictionary*>(@"planet-material") mutableCopy] autorelease];
         [config setObject:[NSArray arrayWithObjects:diffuseMap, normalMap, nil] forKey:@"_oo_texture_objects"];
 
         material = [OOShaderMaterial shaderMaterialWithName:textureName

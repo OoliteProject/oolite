@@ -50,37 +50,32 @@ const char* ooliteStandardMatrixUniforms[] = {
 
 - (id)init
 {
-    if ((self = [super init])) {
-        stack = [[NSMutableArray alloc] init];
-    }
-    return self;
+    return [super init];
 }
 
 - (void)dealloc
 {
-    [stack release];
     [super dealloc];
 }
 
 - (void)push:(OOMatrix)matrix
 {
-    [stack addObject:[NSValue valueWithBytes:&matrix objCType:@encode(OOMatrix)]];
+    stack.push_back(matrix);
 }
 
 - (OOMatrix)pop
 {
-    if ([stack count] == 0) {
+    if (stack.empty()) {
         return kIdentityMatrix;
     }
-    OOMatrix matrix;
-    [[stack lastObject] getValue:&matrix];
-    [stack removeLastObject];
+    OOMatrix matrix = stack.back();
+    stack.pop_back();
     return matrix;
 }
 
 - (NSUInteger)stackCount
 {
-    return [stack count];
+    return stack.size();
 }
 
 @end

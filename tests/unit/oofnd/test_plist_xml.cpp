@@ -257,6 +257,95 @@ OO_TEST(whereGNUstepRaisesOofndFails_ADR0027)
 	OO_CHECK_EQ(parsed("<?xml version=\"1.0\"?><plist><date>junk</date></plist>"), "nil");
 }
 
+OO_TEST(aTokenCutAtTheEndOfTheDataMustBeUtf8)
+{
+	// Found by the GNUstep differential fuzzer (bead oo-g2k). At the end of the data cget() does
+	// not advance, so a tag, declaration word, attribute or run of text that reaches the end
+	// loses its last byte. GNUstep makes each an NSString with NewUTF8STR(); when the cut falls
+	// inside a character that is nil and the parse fails ("invalid character in tag", "...
+	// declaration name", "invalid character data"). Expectations captured from GNUstep 1.31.1.
+	const std::string h = "<?xml version=\"1.0\"?><plist><string>x</string></plist>";
+	const std::string e = "\xc3\xa9";
+	OO_CHECK_EQ(parsed(h + "<" + e), kFailed);                        // tag
+	OO_CHECK_EQ(parsed(h + "</" + e), kFailed);                       // closing tag
+	OO_CHECK_EQ(parsed(h + "<\xe2\x82\xac"), kFailed);
+	OO_CHECK_EQ(parsed("<?" + e), kFailed);                           // processing instruction
+	OO_CHECK_EQ(parsed(h + " " + e), kFailed);                        // character data
+	OO_CHECK_EQ(parsed(h + "x" + e), kFailed);
+	OO_CHECK_EQ(parsed(h + "<!" + e), kFailed);                       // declaration
+	OO_CHECK_EQ(parsed(h + "<!ELEMENT " + e), kFailed);               // declaration name
+	OO_CHECK_EQ(parsed(h + "<!DOCTYPE a" + e), kFailed);
+	OO_CHECK_EQ(parsed(h + "<!ATTLIST x a " + e), kFailed);           // attribute type
+	OO_CHECK_EQ(parsed(h + "<!DOCTYPE x [<!" + e), kFailed);          // nested declaration
+	OO_CHECK_EQ(parsed(h + "<a " + e), kFailed);                      // attribute name
+	// When the byte cut off is ASCII, or the character ends before the data does, all is well.
+	OO_CHECK_EQ(parsed(h + e + " "), "S\"x\"");
+	OO_CHECK_EQ(parsed(h + "a" + e + "b"), "S\"x\"");
+	OO_CHECK_EQ(parsed(h + "<!" + e + " "), "S\"x\"");
+	OO_CHECK_EQ(parsed(h + "<!DOCTYPE " + e + " "), "S\"x\"");
+	OO_CHECK_EQ(parsed(h + "<!DOCTYPE abc " + e), "S\"x\"");
+	OO_CHECK_EQ(parsed(h + "<a " + e + " "), "S\"x\"");
+	OO_CHECK_EQ(parsed(h + "<a"), "S\"x\"");
+}
+
+OO_TEST(namesLoseALeadingBomAsNSStringsDo)
+{
+	// Found by the GNUstep differential fuzzer (bead oo-g2k): tag names, declaration names and
+	// attribute names are NSStrings made from UTF-8, which drops a leading U+FEFF.
+	const std::string bom = "\xef\xbb\xbf";
+	const std::string x = "<?xml version=\"1.0\"?>";
+	OO_CHECK_EQ(parsed(x + "<plist><" + bom + "array><string>a</string></" + bom + "array></plist>"), "[S\"a\"]");
+	OO_CHECK_EQ(parsed(x + "<plist><array><string>a</string></" + bom + "array></plist>"), "[S\"a\"]");
+	OO_CHECK_EQ(parsed("<?xml version=\"1.0\"" + bom + " a=\"b\"?><plist><string>x</string></plist>"), kFailed);   // empty attribute name
+	OO_CHECK_EQ(parsed(x + "<plist " + bom + "=\"1\"><string>x</string></plist>"), kFailed);
+}
+
+OO_TEST(anEmptyOrUnknownEncodingNameReadsAsUtf8)
+{
+	// Found by the GNUstep differential fuzzer (bead oo-g2k): encoding="" (or a name GNUstep
+	// does not know) is GSUndefinedEncoding, which is read as UTF-8, not refused.
+	OO_CHECK_EQ(parsed("<?xml version=\"1.0\" encoding=\"\"?><plist><string>x</string></plist>"), "S\"x\"");
+	OO_CHECK_EQ(parsed("<?xml version=\"1.0\" encoding=\"\"UTF-8\"?><plist><string>x</string></plist>"), "S\"x\"");
+	OO_CHECK_EQ(parsed("<?xml version=\"1.0\" encoding=\"\"?><plist><string>\xe9</string></plist>"), "S\"\\u00E9\"");
+	OO_CHECK_EQ(parsed("<?xml version=\"1.0\" encoding=\"foo\"?><plist><string>\xc3\xa9</string></plist>"), "S\"\\u00E9\"");
+}
+
+OO_TEST(whereGNUstepNeverReturnsOofndFails_ADR0027)
+{
+	// Found by the GNUstep differential fuzzer (bead oo-g2k). An <!ATTLIST whose unquoted
+	// default runs to the end of the data: -_newQarg steps back onto the last byte and the
+	// declaration loop re-reads it forever, so GNUstep never returns. oofnd used to loop forever
+	// with it; it now fails the parse (ADR-0027 item 4).
+	const std::string h = "<?xml version=\"1.0\"?><plist><string>x</string></plist>";
+	OO_CHECK_EQ(parsed(h + "<!ATTLIST x a b c"), kFailed);
+	OO_CHECK_EQ(parsed(h + "<!ATTLIST x a b"), kFailed);
+	OO_CHECK_EQ(parsed(h + "<!ATTLIST x a b c d"), kFailed);
+	OO_CHECK_EQ(parsed(h + "<!ATTLIST x a b c\xc3\xa9"), kFailed);
+	// Ending inside a quote or a #keyword terminates in GNUstep too, and is not an error.
+	OO_CHECK_EQ(parsed(h + "<!ATTLIST x a b 'c"), "S\"x\"");
+	OO_CHECK_EQ(parsed(h + "<!ATTLIST x a b \"c\""), "S\"x\"");
+	OO_CHECK_EQ(parsed(h + "<!ATTLIST x a b #c"), "S\"x\"");
+	OO_CHECK_EQ(parsed(h + "<!ATTLIST x a b c>"), "S\"x\"");
+	// A '<' or '</' at the very end: GNUstep asks for a string of length -1 and raises
+	// NSMallocException.
+	OO_CHECK_EQ(parsed(h + "<"), kFailed);
+	OO_CHECK_EQ(parsed(h + "</"), kFailed);
+}
+
+OO_TEST(dateTextIsReadAsACStringInLatin1)
+{
+	// Found by the GNUstep differential fuzzer (bead oo-g2k). NSCalendarDate parses
+	// [description cString] (ISO-8859-1 in the game's build), which stops at a NUL; a character
+	// beyond U+00FF raises NSCharacterConversionException out of GNUstep's parser, and oofnd
+	// fails the parse (ADR-0027 item 7).
+	const std::string x = "<?xml version=\"1.0\"?><plist>";
+	OO_CHECK_EQ(parsed(x + "<array><date>2001-01-01 00:00:00 +0000\xc3\xa9</date></array></plist>"), "[T0.000]");
+	OO_CHECK_EQ(parsed(x + "<array><date>2001-01-01 00:00:00 +0000\xc4\x81</date></array></plist>"), kFailed);
+	OO_CHECK_EQ(parsed(x + "<date>2001-01-01 00:00:00 +0000\xe2\x82\xac</date></plist>"), kFailed);
+	OO_CHECK_EQ(parsed(x + "<date>2001-01-01 00:00:00 +0000&#0;1</date></plist>"), "T0.000");
+	OO_CHECK_EQ(parsed(x + "<date>2001-01-01 00:00:0&#0;5 +0000</date></plist>"), "nil");
+}
+
 OO_TEST(zuluDatesAreUtc_ADR0027)
 {
 	// GNUstep read these in the machine's local zone (T18000.000 and T15652800.000 on the UTC-5

@@ -91,9 +91,11 @@ MA 02110-1301, USA.
 #import "OODebugGLDrawing.h"
 #import "OODebugStandards.h"
 
+#import "OOFoundationBridge.h"
 #import "OOJSEngineTimeManagement.h"
 #import "OOJSScript.h"
 #import "OOJSVector.h"
+#import "OOStringBridge.h"
 
 #define USEMASC 1
 
@@ -626,7 +628,7 @@ static ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other);
     hasScoopMessage = [shipDict oo_boolForKey:@"has_scoop_message" defaultValue:YES];
 
     [roleSet release];
-    roleSet = [[[OORoleSet roleSetWithString:[shipDict oo_stringForKey:@"roles"]] roleSetWithRemovedRole:@"player"] retain];
+    roleSet = [[[OORoleSet roleSetWithString:oo::StdString([shipDict oo_stringForKey:@"roles"])] roleSetWithRemovedRole:"player"] retain];
     [primaryRole release];
     primaryRole = nil;
 
@@ -3395,10 +3397,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
         }
 
         if (isRandomMissile) {
-            id value;
-
-            foreach (value, [[missile roleSet] roles]) {
-                role = (NSString*)value;
+            for (const std::string& value : [[missile roleSet] roles]) {
+                role = oo::NSStringFrom(value);
                 missileType = [OOEquipmentType equipmentTypeWithIdentifier:role];
                 // ensure that we have a missile or mine
                 if ([missileType isMissileOrMine])
@@ -6270,8 +6270,8 @@ static GLfloat scripted_color[4] = { 0.0, 0.0, 0.0, 0.0 }; // to be defined by s
 - (OORoleSet*)roleSet
 {
     if (roleSet == nil)
-        roleSet = [[OORoleSet alloc] initWithRoleString:primaryRole];
-    return [[roleSet roleSetWithAddedRoleIfNotSet:primaryRole probability:1.0] roleSetWithAddedRoleIfNotSet:[self shipDataKeyAutoRole] probability:1.0];
+        roleSet = [[OORoleSet alloc] initWithRoleString:oo::StdString(primaryRole)];
+    return [[roleSet roleSetWithAddedRoleIfNotSet:oo::StdString(primaryRole) probability:1.0] roleSetWithAddedRoleIfNotSet:oo::StdString([self shipDataKeyAutoRole]) probability:1.0];
 }
 
 - (void)addRole:(NSString*)role
@@ -6284,9 +6284,9 @@ static GLfloat scripted_color[4] = { 0.0, 0.0, 0.0, 0.0 }; // to be defined by s
     if (![self hasRole:role]) {
         OORoleSet* newRoles = nil;
         if (roleSet != nil)
-            newRoles = [roleSet roleSetWithAddedRole:role probability:probability];
+            newRoles = [roleSet roleSetWithAddedRole:oo::StdString(role) probability:probability];
         else
-            newRoles = [OORoleSet roleSetWithRole:role probability:probability];
+            newRoles = [OORoleSet roleSetWithRole:oo::StdString(role) probability:probability];
         if (newRoles != nil) {
             [roleSet release];
             roleSet = [newRoles retain];
@@ -6297,7 +6297,7 @@ static GLfloat scripted_color[4] = { 0.0, 0.0, 0.0, 0.0 }; // to be defined by s
 - (void)removeRole:(NSString*)role
 {
     if ([self hasRole:role]) {
-        OORoleSet* newRoles = [roleSet roleSetWithRemovedRole:role];
+        OORoleSet* newRoles = [roleSet roleSetWithRemovedRole:oo::StdString(role)];
         if (newRoles != nil) {
             [roleSet release];
             roleSet = [newRoles retain];
@@ -6308,7 +6308,7 @@ static GLfloat scripted_color[4] = { 0.0, 0.0, 0.0, 0.0 }; // to be defined by s
 - (NSString*)primaryRole
 {
     if (primaryRole == nil) {
-        primaryRole = [roleSet anyRole];
+        primaryRole = oo::NSStringOrNil([roleSet anyRole]);
         if (primaryRole == nil)
             primaryRole = @"trader";
         [primaryRole retain];
@@ -10550,7 +10550,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
     if (start.x == 0.0f && start.y == 0.0f && start.z <= 0.0f) // The kZeroVector as start is illegal also.
     {
-        OOLog(@"ship.missileLaunch.invalidPosition", @"***** ERROR: The missile_launch_position defines a position %@ behind the %@. In future versions such missiles may explode on launch because they have to travel through the ship.", VectorDescription(start), self);
+        OOLog(@"ship.missileLaunch.invalidPosition", @"***** ERROR: The missile_launch_position defines a position %@ behind the %@. In future versions such missiles may explode on launch because they have to travel through the ship.", oo::NSStringFrom(VectorDescription(start)), self);
         start.x = 0.0f;
         start.y = boundingBox.min.y - 4.0f;
         start.z = boundingBox.max.z + 1.0f;
@@ -12679,7 +12679,7 @@ static BOOL AuthorityPredicate(Entity* entity, void* parameter)
         OOLogPopIndent();
     }
     OOLog(@"dumpState.shipEntity", @"Accuracy: %g", accuracy);
-    OOLog(@"dumpState.shipEntity", @"Jink position: %@", VectorDescription(jink));
+    OOLog(@"dumpState.shipEntity", @"Jink position: %@", oo::NSStringFrom(VectorDescription(jink)));
     OOLog(@"dumpState.shipEntity", @"Frustration: %g", frustration);
     OOLog(@"dumpState.shipEntity", @"Success factor: %g", success_factor);
     OOLog(@"dumpState.shipEntity", @"Shots fired: %u", shot_counter);

@@ -30,13 +30,13 @@ SOFTWARE.
 
 #if OO_SHADERS
 
-#import "OOCollectionExtractors.h"
 #import "OODebugFlags.h"
 #import "OOFunctionAttributes.h"
 #import "OOIsNumberLiteral.h"
 #import "OOLogging.h"
 #import "OOMacroOpenGL.h"
 #import "OOOpenGLExtensionManager.h"
+#import "OOPListView.h"
 #import "OOShaderProgram.h"
 #import "OOShaderUniform.h"
 #import "OOStringParsing.h"
@@ -74,13 +74,13 @@ static NSString* MacrosToString(NSDictionary* macros);
     if (configuration == nil)
         return NO;
 
-    if ([configuration oo_stringForKey:kOOVertexShaderSourceKey] != nil)
+    if (oo::PListView(configuration).get<NSString*>(kOOVertexShaderSourceKey) != nil)
         return YES;
-    if ([configuration oo_stringForKey:kOOFragmentShaderSourceKey] != nil)
+    if (oo::PListView(configuration).get<NSString*>(kOOFragmentShaderSourceKey) != nil)
         return YES;
-    if ([configuration oo_stringForKey:kOOVertexShaderNameKey] != nil)
+    if (oo::PListView(configuration).get<NSString*>(kOOVertexShaderNameKey) != nil)
         return YES;
-    if ([configuration oo_stringForKey:kOOVertexShaderNameKey] != nil)
+    if (oo::PListView(configuration).get<NSString*>(kOOVertexShaderNameKey) != nil)
         return YES;
 
     return NO;
@@ -129,9 +129,9 @@ static NSString* MacrosToString(NSDictionary* macros);
     }
 
     if (OK) {
-        vertexShader = [configuration oo_stringForKey:kOOVertexShaderSourceKey];
+        vertexShader = oo::PListView(configuration).get<NSString*>(kOOVertexShaderSourceKey);
         if (vertexShader == nil) {
-            vsName = [configuration oo_stringForKey:kOOVertexShaderNameKey];
+            vsName = oo::PListView(configuration).get<NSString*>(kOOVertexShaderNameKey);
             vsCacheKey = vsName;
             if (vsName != nil) {
                 if (!GetShaderSource(vsName, @"vertex", macroString, &vertexShader))
@@ -143,9 +143,9 @@ static NSString* MacrosToString(NSDictionary* macros);
     }
 
     if (OK) {
-        fragmentShader = [configuration oo_stringForKey:kOOFragmentShaderSourceKey];
+        fragmentShader = oo::PListView(configuration).get<NSString*>(kOOFragmentShaderSourceKey);
         if (fragmentShader == nil) {
-            fsName = [configuration oo_stringForKey:kOOFragmentShaderNameKey];
+            fsName = oo::PListView(configuration).get<NSString*>(kOOFragmentShaderNameKey);
             fsCacheKey = fsName;
             if (fsName != nil) {
                 if (!GetShaderSource(fsName, @"fragment", macroString, &fragmentShader))
@@ -182,7 +182,7 @@ static NSString* MacrosToString(NSDictionary* macros);
 			if (shaderProgram == nil)
 			{
 
-				BOOL canFallBack = ![modifiedMacros oo_boolForKey:@"OO_REDUCED_COMPLEXITY"];
+				BOOL canFallBack = !oo::PListView(modifiedMacros).get<BOOL>(@"OO_REDUCED_COMPLEXITY");
 #ifdef OO_DEBUG_MONITOR_ENABLED
 				if (gDebugFlags & DEBUG_NO_SHADER_FALLBACK)  canFallBack = NO;
 #endif
@@ -226,11 +226,11 @@ static NSString* MacrosToString(NSDictionary* macros);
 
     if (OK) {
         // Load uniforms and textures, which are a flavour of uniform for our purpose.
-        NSDictionary* uniformDefs = [configuration oo_dictionaryForKey:kOOUniformsKey];
+        NSDictionary* uniformDefs = oo::PListView(configuration).get<NSDictionary*>(kOOUniformsKey);
 
-        NSArray* textureArray = [configuration oo_arrayForKey:kOOTextureObjectsKey];
+        NSArray* textureArray = oo::PListView(configuration).get<NSArray*>(kOOTextureObjectsKey);
         if (textureArray == nil) {
-            NSArray* textureSpecs = [configuration oo_arrayForKey:kOOTexturesKey];
+            NSArray* textureSpecs = oo::PListView(configuration).get<NSArray*>(kOOTexturesKey);
             if (textureSpecs != nil) {
                 textureArray = [self loadTexturesFromArray:textureSpecs unitCount:textureUnits];
             }
@@ -245,13 +245,12 @@ static NSString* MacrosToString(NSDictionary* macros);
         // write gloss and gamma correction preference to the uniforms dictionary
 
         if (![uniforms objectForKey:@"uGloss"]) {
-            float gloss = OOClamp_0_1_f([configuration oo_floatForKey:@"gloss" defaultValue:0.5f]);
+            float gloss = OOClamp_0_1_f(oo::PListView(configuration).get<float>(@"gloss", 0.5f));
             [self setUniform:@"uGloss" floatValue:gloss];
         }
 
         if (![uniforms objectForKey:@"uGammaCorrect"]) {
-            BOOL gammaCorrect = [configuration oo_boolForKey:@"gamma_correct"
-                                                defaultValue:![[NSUserDefaults standardUserDefaults] boolForKey:@"no-gamma-correct"]];
+            BOOL gammaCorrect = oo::PListView(configuration).get<BOOL>(@"gamma_correct", ![[NSUserDefaults standardUserDefaults] boolForKey:@"no-gamma-correct"]);
             [self setUniform:@"uGammaCorrect" floatValue:(float)gammaCorrect];
         }
     }
@@ -479,9 +478,9 @@ static NSString* MacrosToString(NSDictionary* macros);
 
         if ([definition isKindOfClass:[NSDictionary class]]) {
             value = [(NSDictionary*)definition objectForKey:@"value"];
-            binding = [(NSDictionary*)definition oo_stringForKey:@"binding"];
-            type = [(NSDictionary*)definition oo_stringForKey:@"type"];
-            scale = [(NSDictionary*)definition oo_floatForKey:@"scale" defaultValue:1.0];
+            binding = oo::PListView((NSDictionary*)definition).get<NSString*>(@"binding");
+            type = oo::PListView((NSDictionary*)definition).get<NSString*>(@"type");
+            scale = oo::PListView((NSDictionary*)definition).get<float>(@"scale", 1.0);
             if (type == nil) {
                 if (value == nil && binding != nil)
                     type = @"binding";
@@ -553,7 +552,7 @@ static NSString* MacrosToString(NSDictionary* macros);
             gotValue = YES;
         } else if ([type isEqualToString:@"quaternion"]) {
             if ([definition isKindOfClass:[NSDictionary class]]) {
-                quatAsMatrix = [definition oo_boolForKey:@"asMatrix" defaultValue:quatAsMatrix];
+                quatAsMatrix = oo::PListView(definition).get<BOOL>(@"asMatrix", quatAsMatrix);
             }
             [self setUniform:name
                 quaternionValue:OOQuaternionFromObject(value, kIdentityQuaternion)
@@ -562,14 +561,14 @@ static NSString* MacrosToString(NSDictionary* macros);
         } else if (target != nil && [type isEqualToString:@"binding"]) {
             if ([definition isKindOfClass:[NSDictionary class]]) {
                 convertOptions = 0;
-                if ([definition oo_boolForKey:@"clamped" defaultValue:NO])
+                if (oo::PListView(definition).get<BOOL>(@"clamped", NO))
                     convertOptions |= kOOUniformConvertClamp;
-                if ([definition oo_boolForKey:@"normalized" defaultValue:[definition oo_boolForKey:@"normalised" defaultValue:NO]]) {
+                if (oo::PListView(definition).get<BOOL>(@"normalized", oo::PListView(definition).get<BOOL>(@"normalised", NO))) {
                     convertOptions |= kOOUniformConvertNormalize;
                 }
-                if ([definition oo_boolForKey:@"asMatrix" defaultValue:YES])
+                if (oo::PListView(definition).get<BOOL>(@"asMatrix", YES))
                     convertOptions |= kOOUniformConvertToMatrix;
-                if (![definition oo_boolForKey:@"bindToSubentity" defaultValue:NO])
+                if (!oo::PListView(definition).get<BOOL>(@"bindToSubentity", NO))
                     convertOptions |= kOOUniformBindToSuperTarget;
             } else {
                 convertOptions = kOOUniformConvertDefaults;

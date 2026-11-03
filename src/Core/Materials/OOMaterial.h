@@ -36,9 +36,10 @@ SOFTWARE.
 #import "OOOpenGL.h"
 #import "OOOpenGLExtensionManager.h"
 #import "OOWeakReference.h"
+#import "oofnd/objc/OOObject.h"
 #import <Foundation/Foundation.h>
 
-@interface OOMaterial : NSObject
+@interface OOMaterial : OOObject
 
 // Called once at startup (by -[Universe init]).
 + (void)setUp;

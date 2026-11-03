@@ -23,6 +23,7 @@ MA 02110-1301, USA.
 */
 
 #include "OOMaths.h"
+#include "oofnd/String.hpp"
 
 const Vector kZeroVector = { 0.0f, 0.0f, 0.0f };
 const Vector kBasisXVector = { 1.0f, 0.0f, 0.0f };
@@ -36,9 +37,9 @@ const Vector2D kBasisYVector2D = { 0.0f, 1.0f };
 const BoundingBox kZeroBoundingBox = { { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };
 
 #if __OBJC__
-NSString* VectorDescription(Vector vector)
+std::string VectorDescription(Vector vector)
 {
-    return [NSString stringWithFormat:@"(%g, %g, %g)", vector.x, vector.y, vector.z];
+    return oo::str::format("(%g, %g, %g)", vector.x, vector.y, vector.z);
 }
 
 @implementation OONativeVector

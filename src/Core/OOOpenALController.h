@@ -30,7 +30,7 @@ static NSString* const kOOLogSoundInitError = @"sound.initialization.error";
 static NSString* const kOOLogSoundLoadingSuccess = @"sound.load.success";
 static NSString* const kOOLogSoundLoadingError = @"sound.load.error";
 
-@interface OOOpenALController : NSObject {
+@interface OOOpenALController : OOObject {
 @private
     ALCdevice* device;
     ALCcontext* context;

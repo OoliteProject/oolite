@@ -34,10 +34,11 @@ MA 02110-1301, USA.
 
 #import "OOFoundation.h"
 #import "OOOpenGL.h"
+#import "oofnd/objc/OOObject.h"
 
 @class OOColor;
 
-@interface TextureStore : NSObject
+@interface TextureStore : OOObject
 
 // routines to create textures...
 + (BOOL)getPlanetTextureNameFor:(NSDictionary*)planetInfo

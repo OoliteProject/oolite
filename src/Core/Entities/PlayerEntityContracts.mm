@@ -34,11 +34,11 @@ MA 02110-1301, USA.
 #import "MyOpenGLView.h"
 #import "NSStringOOExtensions.h"
 #import "OOCharacter.h"
-#import "OOCollectionExtractors.h"
 #import "OOColor.h"
 #import "OOConstToString.h"
 #import "OOEquipmentType.h"
 #import "OOJavaScriptEngine.h"
+#import "OOPListView.h"
 #import "OOShipRegistry.h"
 #import "OOStringExpander.h"
 #import "OOStringParsing.h"
@@ -157,18 +157,18 @@ static unsigned RepForRisk(unsigned risk);
 
     // check passenger contracts
     for (i = 0; i < [passengers count]; i++) {
-        NSDictionary* passenger_info = [[passengers oo_dictionaryAtIndex:i] retain];
-        NSString* passenger_name = [passenger_info oo_stringForKey:PASSENGER_KEY_NAME];
-        int dest = [passenger_info oo_intForKey:CONTRACT_KEY_DESTINATION];
+        NSDictionary* passenger_info = [oo::PListView(passengers).at<NSDictionary*>(i) retain];
+        NSString* passenger_name = oo::PListView(passenger_info).get<NSString*>(PASSENGER_KEY_NAME);
+        int dest = oo::PListView(passenger_info).get<int>(CONTRACT_KEY_DESTINATION);
         // the system name can change via script
         NSString* passenger_dest_name = [UNIVERSE getSystemName:dest];
-        int dest_eta = [passenger_info oo_doubleForKey:CONTRACT_KEY_ARRIVAL_TIME] - ship_clock;
+        int dest_eta = oo::PListView(passenger_info).get<double>(CONTRACT_KEY_ARRIVAL_TIME) - ship_clock;
 
         if (system_id == dest) {
             // we've arrived in system!
             if (dest_eta > 0) {
                 // and in good time
-                long long fee = [passenger_info oo_longLongForKey:CONTRACT_KEY_FEE];
+                long long fee = oo::PListView(passenger_info).get<long long>(CONTRACT_KEY_FEE);
                 while ((randf() < 0.75) && (dest_eta > 3600)) // delivered with more than an hour to spare and a decent customer?
                 {
                     fee *= 110; // tip + 10%
@@ -178,22 +178,22 @@ static unsigned RepForRisk(unsigned risk);
                 credits += 10 * fee;
 
                 [result appendFormatLine:DESC(@"passenger-delivered-okay-@-@-@"), passenger_name, OOIntCredits(fee), passenger_dest_name];
-                if ([passenger_info oo_unsignedIntForKey:CONTRACT_KEY_RISK defaultValue:0] > 0) {
+                if (oo::PListView(passenger_info).get<unsigned int>(CONTRACT_KEY_RISK, 0) > 0) {
                     [self addRoleToPlayer:@"trader-courier+"];
                 }
 
-                [self increasePassengerReputation:RepForRisk([passenger_info oo_unsignedIntForKey:CONTRACT_KEY_RISK defaultValue:0])];
+                [self increasePassengerReputation:RepForRisk(oo::PListView(passenger_info).get<unsigned int>(CONTRACT_KEY_RISK, 0))];
                 [passengers removeObjectAtIndex:i--];
                 [self doScriptEvent:OOJSID("playerCompletedContract") withArguments:[NSArray arrayWithObjects:@"passenger", @"success", [NSNumber numberWithUnsignedInteger:(10 * fee)], passenger_info, nil]];
             } else {
                 // but we're late!
-                long long fee = [passenger_info oo_longLongForKey:CONTRACT_KEY_FEE] / 2; // halve fare
+                long long fee = oo::PListView(passenger_info).get<long long>(CONTRACT_KEY_FEE) / 2; // halve fare
                 while (randf() < 0.5) // maybe halve fare a few times!
                     fee /= 2;
                 credits += 10 * fee;
 
                 [result appendFormatLine:DESC(@"passenger-delivered-late-@-@-@"), passenger_name, OOIntCredits(fee), passenger_dest_name];
-                if ([passenger_info oo_unsignedIntForKey:CONTRACT_KEY_RISK defaultValue:0] > 0) {
+                if (oo::PListView(passenger_info).get<unsigned int>(CONTRACT_KEY_RISK, 0) > 0) {
                     [self addRoleToPlayer:@"trader-courier+"];
                 }
 
@@ -205,7 +205,7 @@ static unsigned RepForRisk(unsigned risk);
                 // we've run out of time!
                 [result appendFormatLine:DESC(@"passenger-failed-@"), passenger_name];
 
-                [self decreasePassengerReputation:RepForRisk([passenger_info oo_unsignedIntForKey:CONTRACT_KEY_RISK defaultValue:0])];
+                [self decreasePassengerReputation:RepForRisk(oo::PListView(passenger_info).get<unsigned int>(CONTRACT_KEY_RISK, 0))];
                 [passengers removeObjectAtIndex:i--];
                 [self doScriptEvent:OOJSID("playerCompletedContract") withArguments:[NSArray arrayWithObjects:@"passenger", @"failed", [NSNumber numberWithUnsignedInteger:0], passenger_info, nil]];
             }
@@ -215,16 +215,16 @@ static unsigned RepForRisk(unsigned risk);
 
     // check parcel contracts
     for (i = 0; i < [parcels count]; i++) {
-        NSDictionary* parcel_info = [[parcels oo_dictionaryAtIndex:i] retain];
-        NSString* parcel_name = [parcel_info oo_stringForKey:PASSENGER_KEY_NAME];
-        int dest = [parcel_info oo_intForKey:CONTRACT_KEY_DESTINATION];
-        int dest_eta = [parcel_info oo_doubleForKey:CONTRACT_KEY_ARRIVAL_TIME] - ship_clock;
+        NSDictionary* parcel_info = [oo::PListView(parcels).at<NSDictionary*>(i) retain];
+        NSString* parcel_name = oo::PListView(parcel_info).get<NSString*>(PASSENGER_KEY_NAME);
+        int dest = oo::PListView(parcel_info).get<int>(CONTRACT_KEY_DESTINATION);
+        int dest_eta = oo::PListView(parcel_info).get<double>(CONTRACT_KEY_ARRIVAL_TIME) - ship_clock;
 
         if (system_id == dest) {
             // we've arrived in system!
             if (dest_eta > 0) {
                 // and in good time
-                long long fee = [parcel_info oo_longLongForKey:CONTRACT_KEY_FEE];
+                long long fee = oo::PListView(parcel_info).get<long long>(CONTRACT_KEY_FEE);
                 while ((randf() < 0.75) && (dest_eta > 86400)) // delivered with more than a day to spare and a decent customer?
                 {
                     // lower tips than passengers
@@ -236,23 +236,23 @@ static unsigned RepForRisk(unsigned risk);
 
                 [result appendFormatLine:DESC(@"parcel-delivered-okay-@-@"), parcel_name, OOIntCredits(fee)];
 
-                [self increaseParcelReputation:RepForRisk([parcel_info oo_unsignedIntForKey:CONTRACT_KEY_RISK defaultValue:0])];
+                [self increaseParcelReputation:RepForRisk(oo::PListView(parcel_info).get<unsigned int>(CONTRACT_KEY_RISK, 0))];
 
                 [parcels removeObjectAtIndex:i--];
-                if ([parcel_info oo_unsignedIntForKey:CONTRACT_KEY_RISK defaultValue:0] > 0) {
+                if (oo::PListView(parcel_info).get<unsigned int>(CONTRACT_KEY_RISK, 0) > 0) {
                     [self addRoleToPlayer:@"trader-courier+"];
                 }
                 [self doScriptEvent:OOJSID("playerCompletedContract") withArguments:[NSArray arrayWithObjects:@"parcel", @"success", [NSNumber numberWithUnsignedInteger:10 * fee], parcel_info, nil]];
 
             } else {
                 // but we're late!
-                long long fee = [parcel_info oo_longLongForKey:CONTRACT_KEY_FEE] / 2; // halve fare
+                long long fee = oo::PListView(parcel_info).get<long long>(CONTRACT_KEY_FEE) / 2; // halve fare
                 while (randf() < 0.5) // maybe halve fare a few times!
                     fee /= 2;
                 credits += 10 * fee;
 
                 [result appendFormatLine:DESC(@"parcel-delivered-late-@-@"), parcel_name, OOIntCredits(fee)];
-                if ([parcel_info oo_unsignedIntForKey:CONTRACT_KEY_RISK defaultValue:0] > 0) {
+                if (oo::PListView(parcel_info).get<unsigned int>(CONTRACT_KEY_RISK, 0) > 0) {
                     [self addRoleToPlayer:@"trader-courier+"];
                 }
                 [parcels removeObjectAtIndex:i--];
@@ -263,7 +263,7 @@ static unsigned RepForRisk(unsigned risk);
                 // we've run out of time!
                 [result appendFormatLine:DESC(@"parcel-failed-@"), parcel_name];
 
-                [self decreaseParcelReputation:RepForRisk([parcel_info oo_unsignedIntForKey:CONTRACT_KEY_RISK defaultValue:0])];
+                [self decreaseParcelReputation:RepForRisk(oo::PListView(parcel_info).get<unsigned int>(CONTRACT_KEY_RISK, 0))];
                 [parcels removeObjectAtIndex:i--];
                 [self doScriptEvent:OOJSID("playerCompletedContract") withArguments:[NSArray arrayWithObjects:@"parcel", @"failed", [NSNumber numberWithUnsignedInteger:0], parcel_info, nil]];
             }
@@ -273,18 +273,18 @@ static unsigned RepForRisk(unsigned risk);
 
     // check cargo contracts
     for (i = 0; i < [contracts count]; i++) {
-        NSDictionary* contract_info = [[contracts oo_dictionaryAtIndex:i] retain];
-        NSString* contract_cargo_desc = [contract_info oo_stringForKey:CARGO_KEY_DESCRIPTION];
-        int dest = [contract_info oo_intForKey:CONTRACT_KEY_DESTINATION];
-        int dest_eta = [contract_info oo_doubleForKey:CONTRACT_KEY_ARRIVAL_TIME] - ship_clock;
+        NSDictionary* contract_info = [oo::PListView(contracts).at<NSDictionary*>(i) retain];
+        NSString* contract_cargo_desc = oo::PListView(contract_info).get<NSString*>(CARGO_KEY_DESCRIPTION);
+        int dest = oo::PListView(contract_info).get<int>(CONTRACT_KEY_DESTINATION);
+        int dest_eta = oo::PListView(contract_info).get<double>(CONTRACT_KEY_ARRIVAL_TIME) - ship_clock;
 
         if (system_id == dest) {
             // no longer needed
-            // int premium = 10 * [contract_info oo_floatForKey:CONTRACT_KEY_PREMIUM];
-            int fee = 10 * [contract_info oo_floatForKey:CONTRACT_KEY_FEE];
+            // int premium = 10 * oo::PListView(contract_info).get<float>(CONTRACT_KEY_PREMIUM);
+            int fee = 10 * oo::PListView(contract_info).get<float>(CONTRACT_KEY_FEE);
 
-            OOCommodityType contract_cargo_type = [contract_info oo_stringForKey:CARGO_KEY_TYPE];
-            int contract_amount = [contract_info oo_intForKey:CARGO_KEY_AMOUNT];
+            OOCommodityType contract_cargo_type = oo::PListView(contract_info).get<NSString*>(CARGO_KEY_TYPE);
+            int contract_amount = oo::PListView(contract_info).get<int>(CARGO_KEY_AMOUNT);
 
             int quantity_on_hand = [shipCommodityData quantityForGood:contract_cargo_type];
 
@@ -375,13 +375,13 @@ static unsigned RepForRisk(unsigned risk);
     // check passenger_record for expired contracts
     NSArray* names = [passenger_record allKeys];
     for (i = 0; i < [names count]; i++) {
-        double dest_eta = [passenger_record oo_doubleForKey:[names objectAtIndex:i]] - ship_clock;
+        double dest_eta = oo::PListView(passenger_record).get<double>([names objectAtIndex:i]) - ship_clock;
         if (dest_eta < 0) {
             // check they're not STILL on board
             BOOL on_board = NO;
             unsigned j;
             for (j = 0; j < [passengers count]; j++) {
-                NSDictionary* passenger_info = [passengers oo_dictionaryAtIndex:j];
+                NSDictionary* passenger_info = oo::PListView(passengers).at<NSDictionary*>(j);
                 if ([[passenger_info objectForKey:PASSENGER_KEY_NAME] isEqual:[names objectAtIndex:i]])
                     on_board = YES;
             }
@@ -423,10 +423,10 @@ static unsigned RepForRisk(unsigned risk);
 {
     OOCargoQuantity total = 0;
     for (unsigned i = 0; i < [contracts count]; i++) {
-        NSDictionary* contract_info = [contracts oo_dictionaryAtIndex:i];
-        OOCommodityType contract_cargo_type = [contract_info oo_stringForKey:CARGO_KEY_TYPE];
+        NSDictionary* contract_info = oo::PListView(contracts).at<NSDictionary*>(i);
+        OOCommodityType contract_cargo_type = oo::PListView(contract_info).get<NSString*>(CARGO_KEY_TYPE);
         if ([good isEqualToString:contract_cargo_type]) {
-            total += [contract_info oo_unsignedIntegerForKey:CARGO_KEY_AMOUNT];
+            total += oo::PListView(contract_info).get<NSUInteger>(CARGO_KEY_AMOUNT);
         }
     }
     return total;
@@ -449,9 +449,9 @@ static unsigned RepForRisk(unsigned risk);
 
 - (int)passengerReputation
 {
-    int good = [reputation oo_intForKey:PASSAGE_GOOD_KEY];
-    int bad = [reputation oo_intForKey:PASSAGE_BAD_KEY];
-    int unknown = [reputation oo_intForKey:PASSAGE_UNKNOWN_KEY];
+    int good = oo::PListView(reputation).get<int>(PASSAGE_GOOD_KEY);
+    int bad = oo::PListView(reputation).get<int>(PASSAGE_BAD_KEY);
+    int unknown = oo::PListView(reputation).get<int>(PASSAGE_UNKNOWN_KEY);
 
     if (unknown > 0)
         unknown = MAX_CONTRACT_REP - (((2 * unknown) + (market_rnd % unknown)) / 3);
@@ -463,9 +463,9 @@ static unsigned RepForRisk(unsigned risk);
 
 - (void)increasePassengerReputation:(unsigned)amount
 {
-    int good = [reputation oo_intForKey:PASSAGE_GOOD_KEY];
-    int bad = [reputation oo_intForKey:PASSAGE_BAD_KEY];
-    int unknown = [reputation oo_intForKey:PASSAGE_UNKNOWN_KEY];
+    int good = oo::PListView(reputation).get<int>(PASSAGE_GOOD_KEY);
+    int bad = oo::PListView(reputation).get<int>(PASSAGE_BAD_KEY);
+    int unknown = oo::PListView(reputation).get<int>(PASSAGE_UNKNOWN_KEY);
 
     for (unsigned i = 0; i < amount; i++) {
         if (bad > 0) {
@@ -488,9 +488,9 @@ static unsigned RepForRisk(unsigned risk);
 
 - (void)decreasePassengerReputation:(unsigned)amount
 {
-    int good = [reputation oo_intForKey:PASSAGE_GOOD_KEY];
-    int bad = [reputation oo_intForKey:PASSAGE_BAD_KEY];
-    int unknown = [reputation oo_intForKey:PASSAGE_UNKNOWN_KEY];
+    int good = oo::PListView(reputation).get<int>(PASSAGE_GOOD_KEY);
+    int bad = oo::PListView(reputation).get<int>(PASSAGE_BAD_KEY);
+    int unknown = oo::PListView(reputation).get<int>(PASSAGE_UNKNOWN_KEY);
 
     for (unsigned i = 0; i < amount; i++) {
         if (good > 0) {
@@ -513,9 +513,9 @@ static unsigned RepForRisk(unsigned risk);
 
 - (int)parcelReputation
 {
-    int good = [reputation oo_intForKey:PARCEL_GOOD_KEY];
-    int bad = [reputation oo_intForKey:PARCEL_BAD_KEY];
-    int unknown = [reputation oo_intForKey:PARCEL_UNKNOWN_KEY];
+    int good = oo::PListView(reputation).get<int>(PARCEL_GOOD_KEY);
+    int bad = oo::PListView(reputation).get<int>(PARCEL_BAD_KEY);
+    int unknown = oo::PListView(reputation).get<int>(PARCEL_UNKNOWN_KEY);
 
     if (unknown > 0)
         unknown = MAX_CONTRACT_REP - (((2 * unknown) + (market_rnd % unknown)) / 3);
@@ -527,9 +527,9 @@ static unsigned RepForRisk(unsigned risk);
 
 - (void)increaseParcelReputation:(unsigned)amount
 {
-    int good = [reputation oo_intForKey:PARCEL_GOOD_KEY];
-    int bad = [reputation oo_intForKey:PARCEL_BAD_KEY];
-    int unknown = [reputation oo_intForKey:PARCEL_UNKNOWN_KEY];
+    int good = oo::PListView(reputation).get<int>(PARCEL_GOOD_KEY);
+    int bad = oo::PListView(reputation).get<int>(PARCEL_BAD_KEY);
+    int unknown = oo::PListView(reputation).get<int>(PARCEL_UNKNOWN_KEY);
 
     for (unsigned i = 0; i < amount; i++) {
         if (bad > 0) {
@@ -552,9 +552,9 @@ static unsigned RepForRisk(unsigned risk);
 
 - (void)decreaseParcelReputation:(unsigned)amount
 {
-    int good = [reputation oo_intForKey:PARCEL_GOOD_KEY];
-    int bad = [reputation oo_intForKey:PARCEL_BAD_KEY];
-    int unknown = [reputation oo_intForKey:PARCEL_UNKNOWN_KEY];
+    int good = oo::PListView(reputation).get<int>(PARCEL_GOOD_KEY);
+    int bad = oo::PListView(reputation).get<int>(PARCEL_BAD_KEY);
+    int unknown = oo::PListView(reputation).get<int>(PARCEL_UNKNOWN_KEY);
 
     for (unsigned i = 0; i < amount; i++) {
         if (good > 0) {
@@ -577,9 +577,9 @@ static unsigned RepForRisk(unsigned risk);
 
 - (int)contractReputation
 {
-    int good = [reputation oo_intForKey:CONTRACTS_GOOD_KEY];
-    int bad = [reputation oo_intForKey:CONTRACTS_BAD_KEY];
-    int unknown = [reputation oo_intForKey:CONTRACTS_UNKNOWN_KEY];
+    int good = oo::PListView(reputation).get<int>(CONTRACTS_GOOD_KEY);
+    int bad = oo::PListView(reputation).get<int>(CONTRACTS_BAD_KEY);
+    int unknown = oo::PListView(reputation).get<int>(CONTRACTS_UNKNOWN_KEY);
 
     if (unknown > 0)
         unknown = MAX_CONTRACT_REP - (((2 * unknown) + (market_rnd % unknown)) / 3);
@@ -591,9 +591,9 @@ static unsigned RepForRisk(unsigned risk);
 
 - (void)increaseContractReputation:(unsigned)amount
 {
-    int good = [reputation oo_intForKey:CONTRACTS_GOOD_KEY];
-    int bad = [reputation oo_intForKey:CONTRACTS_BAD_KEY];
-    int unknown = [reputation oo_intForKey:CONTRACTS_UNKNOWN_KEY];
+    int good = oo::PListView(reputation).get<int>(CONTRACTS_GOOD_KEY);
+    int bad = oo::PListView(reputation).get<int>(CONTRACTS_BAD_KEY);
+    int unknown = oo::PListView(reputation).get<int>(CONTRACTS_UNKNOWN_KEY);
 
     for (unsigned i = 0; i < amount; i++) {
         if (bad > 0) {
@@ -616,9 +616,9 @@ static unsigned RepForRisk(unsigned risk);
 
 - (void)decreaseContractReputation:(unsigned)amount
 {
-    int good = [reputation oo_intForKey:CONTRACTS_GOOD_KEY];
-    int bad = [reputation oo_intForKey:CONTRACTS_BAD_KEY];
-    int unknown = [reputation oo_intForKey:CONTRACTS_UNKNOWN_KEY];
+    int good = oo::PListView(reputation).get<int>(CONTRACTS_GOOD_KEY);
+    int bad = oo::PListView(reputation).get<int>(CONTRACTS_BAD_KEY);
+    int unknown = oo::PListView(reputation).get<int>(CONTRACTS_UNKNOWN_KEY);
 
     for (unsigned i = 0; i < amount; i++) {
         if (good > 0) {
@@ -641,15 +641,15 @@ static unsigned RepForRisk(unsigned risk);
 
 - (void)erodeReputation
 {
-    int c_good = [reputation oo_intForKey:CONTRACTS_GOOD_KEY];
-    int c_bad = [reputation oo_intForKey:CONTRACTS_BAD_KEY];
-    int c_unknown = [reputation oo_intForKey:CONTRACTS_UNKNOWN_KEY];
-    int p_good = [reputation oo_intForKey:PASSAGE_GOOD_KEY];
-    int p_bad = [reputation oo_intForKey:PASSAGE_BAD_KEY];
-    int p_unknown = [reputation oo_intForKey:PASSAGE_UNKNOWN_KEY];
-    int pl_good = [reputation oo_intForKey:PARCEL_GOOD_KEY];
-    int pl_bad = [reputation oo_intForKey:PARCEL_BAD_KEY];
-    int pl_unknown = [reputation oo_intForKey:PARCEL_UNKNOWN_KEY];
+    int c_good = oo::PListView(reputation).get<int>(CONTRACTS_GOOD_KEY);
+    int c_bad = oo::PListView(reputation).get<int>(CONTRACTS_BAD_KEY);
+    int c_unknown = oo::PListView(reputation).get<int>(CONTRACTS_UNKNOWN_KEY);
+    int p_good = oo::PListView(reputation).get<int>(PASSAGE_GOOD_KEY);
+    int p_bad = oo::PListView(reputation).get<int>(PASSAGE_BAD_KEY);
+    int p_unknown = oo::PListView(reputation).get<int>(PASSAGE_UNKNOWN_KEY);
+    int pl_good = oo::PListView(reputation).get<int>(PARCEL_GOOD_KEY);
+    int pl_bad = oo::PListView(reputation).get<int>(PARCEL_BAD_KEY);
+    int pl_unknown = oo::PListView(reputation).get<int>(PARCEL_UNKNOWN_KEY);
 
     if (c_unknown < MAX_CONTRACT_REP) {
         if (c_bad > 0)
@@ -695,15 +695,15 @@ static unsigned RepForRisk(unsigned risk);
 /* Update reputation levels in case of change in MAX_CONTRACT_REP */
 - (void)normaliseReputation
 {
-    int c_good = [reputation oo_intForKey:CONTRACTS_GOOD_KEY];
-    int c_bad = [reputation oo_intForKey:CONTRACTS_BAD_KEY];
-    int c_unknown = [reputation oo_intForKey:CONTRACTS_UNKNOWN_KEY];
-    int p_good = [reputation oo_intForKey:PASSAGE_GOOD_KEY];
-    int p_bad = [reputation oo_intForKey:PASSAGE_BAD_KEY];
-    int p_unknown = [reputation oo_intForKey:PASSAGE_UNKNOWN_KEY];
-    int pl_good = [reputation oo_intForKey:PARCEL_GOOD_KEY];
-    int pl_bad = [reputation oo_intForKey:PARCEL_BAD_KEY];
-    int pl_unknown = [reputation oo_intForKey:PARCEL_UNKNOWN_KEY];
+    int c_good = oo::PListView(reputation).get<int>(CONTRACTS_GOOD_KEY);
+    int c_bad = oo::PListView(reputation).get<int>(CONTRACTS_BAD_KEY);
+    int c_unknown = oo::PListView(reputation).get<int>(CONTRACTS_UNKNOWN_KEY);
+    int p_good = oo::PListView(reputation).get<int>(PASSAGE_GOOD_KEY);
+    int p_bad = oo::PListView(reputation).get<int>(PASSAGE_BAD_KEY);
+    int p_unknown = oo::PListView(reputation).get<int>(PASSAGE_UNKNOWN_KEY);
+    int pl_good = oo::PListView(reputation).get<int>(PARCEL_GOOD_KEY);
+    int pl_bad = oo::PListView(reputation).get<int>(PARCEL_BAD_KEY);
+    int pl_unknown = oo::PListView(reputation).get<int>(PARCEL_UNKNOWN_KEY);
 
     int c = c_good + c_bad + c_unknown;
     if (c == 0) {
@@ -782,7 +782,7 @@ static unsigned RepForRisk(unsigned risk);
     unsigned i;
 
     for (i = 0; i < [passengers count]; i++) {
-        NSString* this_name = [[passengers oo_dictionaryAtIndex:i] oo_stringForKey:PASSENGER_KEY_NAME];
+        NSString* this_name = oo::PListView(oo::PListView(passengers).at<NSDictionary*>(i)).get<NSString*>(PASSENGER_KEY_NAME);
 
         if ([Name isEqualToString:this_name]) {
             [passengers removeObjectAtIndex:i];
@@ -834,7 +834,7 @@ static unsigned RepForRisk(unsigned risk);
     unsigned i;
 
     for (i = 0; i < [parcels count]; i++) {
-        NSString* this_name = [[parcels oo_dictionaryAtIndex:i] oo_stringForKey:PASSENGER_KEY_NAME];
+        NSString* this_name = oo::PListView(oo::PListView(parcels).at<NSDictionary*>(i)).get<NSString*>(PASSENGER_KEY_NAME);
 
         if ([Name isEqualToString:this_name]) {
             [parcels removeObjectAtIndex:i];
@@ -928,12 +928,12 @@ static unsigned RepForRisk(unsigned risk);
     unsigned i;
 
     for (i = 0; i < [contracts count]; i++) {
-        NSDictionary* contractInfo = [contracts oo_dictionaryAtIndex:i];
-        unsigned cargoDest = [contractInfo oo_intForKey:CONTRACT_KEY_DESTINATION];
-        OOCommodityType cargoType = [contractInfo oo_stringForKey:CARGO_KEY_TYPE];
+        NSDictionary* contractInfo = oo::PListView(contracts).at<NSDictionary*>(i);
+        unsigned cargoDest = oo::PListView(contractInfo).get<int>(CONTRACT_KEY_DESTINATION);
+        OOCommodityType cargoType = oo::PListView(contractInfo).get<NSString*>(CARGO_KEY_TYPE);
 
         if ([cargoType isEqualToString:type] && cargoDest == dest) {
-            [contract_record removeObjectForKey:[contractInfo oo_stringForKey:CARGO_KEY_ID]];
+            [contract_record removeObjectForKey:oo::PListView(contractInfo).get<NSString*>(CARGO_KEY_ID)];
             [contracts removeObjectAtIndex:i];
             return YES;
         }
@@ -965,13 +965,13 @@ static unsigned RepForRisk(unsigned risk);
     unsigned i;
     for (i = 0; i < [contracts_array count]; i++) {
         NSDictionary* contract_info = (NSDictionary*)[contracts_array objectAtIndex:i];
-        NSString* label = [contract_info oo_stringForKey:forCargo ? CARGO_KEY_DESCRIPTION : PASSENGER_KEY_NAME];
+        NSString* label = oo::PListView(contract_info).get<NSString*>(forCargo ? CARGO_KEY_DESCRIPTION : PASSENGER_KEY_NAME);
         // the system name can change via script. The following PASSENGER_KEYs are identical to the corresponding CONTRACT_KEYs
-        NSString* destination = [UNIVERSE getSystemName:[contract_info oo_intForKey:CONTRACT_KEY_DESTINATION]];
-        int dest_eta = [contract_info oo_doubleForKey:CONTRACT_KEY_ARRIVAL_TIME] - ship_clock;
+        NSString* destination = [UNIVERSE getSystemName:oo::PListView(contract_info).get<int>(CONTRACT_KEY_DESTINATION)];
+        int dest_eta = oo::PListView(contract_info).get<double>(CONTRACT_KEY_ARRIVAL_TIME) - ship_clock;
         NSString* deadline = [UNIVERSE shortTimeDescription:dest_eta];
 
-        OOCreditsQuantity fee = [contract_info oo_intForKey:CONTRACT_KEY_FEE];
+        OOCreditsQuantity fee = oo::PListView(contract_info).get<int>(CONTRACT_KEY_FEE);
         NSString* feeDesc = OOIntCredits(fee);
 
         [result addObject:OOExpandKey(formatString, label, destination, deadline, feeDesc)];
@@ -1254,8 +1254,8 @@ static NSMutableDictionary* currentShipyard = nil;
 
 - (OOCreditsQuantity)priceForShipKey:(NSString*)key
 {
-    NSDictionary* shipInfo = [currentShipyard oo_dictionaryForKey:key];
-    return [shipInfo oo_unsignedLongLongForKey:SHIPYARD_KEY_PRICE];
+    NSDictionary* shipInfo = oo::PListView(currentShipyard).get<NSDictionary*>(key);
+    return oo::PListView(shipInfo).get<unsigned long long>(SHIPYARD_KEY_PRICE);
 }
 
 - (void)setGuiToShipyardScreen:(NSUInteger)skip
@@ -1289,7 +1289,7 @@ static NSMutableDictionary* currentShipyard = nil;
 
     for (i = 0; i < [shipyard count]; i++) {
         [currentShipyard setObject:[shipyard objectAtIndex:i]
-                            forKey:[[shipyard oo_dictionaryAtIndex:i] oo_stringForKey:SHIPYARD_KEY_ID]];
+                            forKey:oo::PListView(oo::PListView(shipyard).at<NSDictionary*>(i)).get<NSString*>(SHIPYARD_KEY_ID)];
     }
 
     NSUInteger shipCount = [shipyard count];
@@ -1345,11 +1345,11 @@ static NSMutableDictionary* currentShipyard = nil;
                 [gui setKey:[NSString stringWithFormat:@"More:%zd", previous] forRow:GUI_ROW_SHIPYARD_START];
             }
             for (i = 0; i < (shipCount - skip) && (int)i < rowCount; i++) {
-                NSDictionary* ship_info = [shipyard oo_dictionaryAtIndex:i + skip];
-                OOCreditsQuantity ship_price = [ship_info oo_unsignedLongLongForKey:SHIPYARD_KEY_PRICE];
+                NSDictionary* ship_info = oo::PListView(shipyard).at<NSDictionary*>(i + skip);
+                OOCreditsQuantity ship_price = oo::PListView(ship_info).get<unsigned long long>(SHIPYARD_KEY_PRICE);
                 [gui setColor:[gui colorFromSetting:kGuiShipyardEntryColor defaultValue:nil] forRow:startRow + i];
                 [gui setArray:[NSArray arrayWithObjects:
-                                      [NSString stringWithFormat:@" %@ ", [[ship_info oo_dictionaryForKey:SHIPYARD_KEY_SHIP] oo_stringForKey:@"display_name" defaultValue:[[ship_info oo_dictionaryForKey:SHIPYARD_KEY_SHIP] oo_stringForKey:KEY_NAME]]],
+                                      [NSString stringWithFormat:@" %@ ", oo::PListView(oo::PListView(ship_info).get<NSDictionary*>(SHIPYARD_KEY_SHIP)).get<NSString*>(@"display_name", oo::PListView(oo::PListView(ship_info).get<NSDictionary*>(SHIPYARD_KEY_SHIP)).get<NSString*>(KEY_NAME))],
                                   OOIntCredits(ship_price),
                                   nil]
                        forRow:startRow + i];
@@ -1406,7 +1406,7 @@ static NSMutableDictionary* currentShipyard = nil;
 
     NSString* key = [gui keyForRow:sel_row];
 
-    NSDictionary* info = [currentShipyard oo_dictionaryForKey:key];
+    NSDictionary* info = oo::PListView(currentShipyard).get<NSDictionary*>(key);
 
     // clean up the display ready for the newly-selected ship (if there is one)
     [row_info replaceObjectAtIndex:2 withObject:@""];
@@ -1419,19 +1419,19 @@ static NSMutableDictionary* currentShipyard = nil;
 
     if (info) {
         // the key is a particular ship - show the details
-        NSString* salesPitch = [info oo_stringForKey:KEY_SHORT_DESCRIPTION];
-        NSDictionary* shipDict = [info oo_dictionaryForKey:SHIPYARD_KEY_SHIP];
+        NSString* salesPitch = oo::PListView(info).get<NSString*>(KEY_SHORT_DESCRIPTION);
+        NSDictionary* shipDict = oo::PListView(info).get<NSDictionary*>(SHIPYARD_KEY_SHIP);
 
-        int cargoRating = [shipDict oo_intForKey:@"max_cargo"];
+        int cargoRating = oo::PListView(shipDict).get<int>(@"max_cargo");
         int cargo_extra;
-        cargo_extra = [shipDict oo_intForKey:@"extra_cargo" defaultValue:15];
-        float speedRating = 0.001 * [shipDict oo_intForKey:@"max_flight_speed"];
+        cargo_extra = oo::PListView(shipDict).get<int>(@"extra_cargo", 15);
+        float speedRating = 0.001 * oo::PListView(shipDict).get<int>(@"max_flight_speed");
 
-        NSArray* shipExtras = [info oo_arrayForKey:KEY_EQUIPMENT_EXTRAS];
+        NSArray* shipExtras = oo::PListView(info).get<NSArray*>(KEY_EQUIPMENT_EXTRAS);
         for (i = 0; i < [shipExtras count]; i++) {
-            if ([[shipExtras oo_stringAtIndex:i] isEqualToString:@"EQ_CARGO_BAY"]) {
+            if ([oo::PListView(shipExtras).at<NSString*>(i) isEqualToString:@"EQ_CARGO_BAY"]) {
                 cargoRating += cargo_extra;
-            } else if ([[shipExtras oo_stringAtIndex:i] isEqualToString:@"EQ_PASSENGER_BERTH"]) {
+            } else if ([oo::PListView(shipExtras).at<NSString*>(i) isEqualToString:@"EQ_PASSENGER_BERTH"]) {
                 cargoRating -= PASSENGER_BERTH_SPACE;
             }
         }
@@ -1448,9 +1448,9 @@ static NSMutableDictionary* currentShipyard = nil;
         }
 
         // now display the ship
-        [self showShipyardModel:[info oo_stringForKey:SHIPYARD_KEY_SHIPDATA_KEY]
+        [self showShipyardModel:oo::PListView(info).get<NSString*>(SHIPYARD_KEY_SHIPDATA_KEY)
                        shipData:shipDict
-                    personality:[info oo_unsignedShortForKey:SHIPYARD_KEY_PERSONALITY]];
+                    personality:oo::PListView(info).get<unsigned short>(SHIPYARD_KEY_PERSONALITY)];
     } else {
         // the key is a particular model of ship which we must expand...
         // build an array from the entries for that model in the currentShipyard TODO
@@ -1518,7 +1518,7 @@ static NSMutableDictionary* currentShipyard = nil;
     NSString* key = [gui keyForRow:selectedRow];
 
     if ([key hasPrefix:@"More:"]) {
-        NSInteger fromShip = [[key componentsSeparatedByString:@":"] oo_integerAtIndex:1];
+        NSInteger fromShip = oo::PListView([key componentsSeparatedByString:@":"]).at<NSInteger>(1);
         if (fromShip < 0)
             fromShip = 0;
 
@@ -1548,8 +1548,8 @@ static NSMutableDictionary* currentShipyard = nil;
     }
 
     // first check you can afford it!
-    NSDictionary* shipInfo = [currentShipyard oo_dictionaryForKey:key];
-    OOCreditsQuantity price = [shipInfo oo_unsignedLongLongForKey:SHIPYARD_KEY_PRICE];
+    NSDictionary* shipInfo = oo::PListView(currentShipyard).get<NSDictionary*>(key);
+    OOCreditsQuantity price = oo::PListView(shipInfo).get<unsigned long long>(SHIPYARD_KEY_PRICE);
     OOCreditsQuantity tradeIn = [self tradeInValue];
 
     if (credits + tradeIn < price * 10)
@@ -1557,7 +1557,7 @@ static NSMutableDictionary* currentShipyard = nil;
 
     // from this point, the player is committed to buying - raise a pre-buy script event
     [self doScriptEvent:OOJSID("playerWillBuyNewShip")
-          withArguments:[NSArray arrayWithObjects:[shipInfo oo_stringForKey:SHIPYARD_KEY_SHIPDATA_KEY],
+          withArguments:[NSArray arrayWithObjects:oo::PListView(shipInfo).get<NSString*>(SHIPYARD_KEY_SHIPDATA_KEY),
                             [[[self dockedStation] localShipyard] objectAtIndex:selectedRow - GUI_ROW_SHIPYARD_START],
                             [NSNumber numberWithUnsignedLongLong:price],
                             [NSNumber numberWithUnsignedLongLong:(tradeIn / 10)], nil]];
@@ -1574,15 +1574,15 @@ static NSMutableDictionary* currentShipyard = nil;
     // pay over the mazoolah
     credits -= 10 * price - tradeIn;
 
-    NSDictionary* shipDict = [shipInfo oo_dictionaryForKey:SHIPYARD_KEY_SHIP];
-    [self newShipCommonSetup:[shipInfo oo_stringForKey:SHIPYARD_KEY_SHIPDATA_KEY] yardInfo:shipInfo baseInfo:shipDict];
+    NSDictionary* shipDict = oo::PListView(shipInfo).get<NSDictionary*>(SHIPYARD_KEY_SHIP);
+    [self newShipCommonSetup:oo::PListView(shipInfo).get<NSString*>(SHIPYARD_KEY_SHIPDATA_KEY) yardInfo:shipInfo baseInfo:shipDict];
 
     // this ship has a clean record
     legalStatus = 0;
 
-    NSArray* extras = [shipInfo oo_arrayForKey:KEY_EQUIPMENT_EXTRAS];
+    NSArray* extras = oo::PListView(shipInfo).get<NSArray*>(KEY_EQUIPMENT_EXTRAS);
     for (NSUInteger i = 0; i < [extras count]; i++) {
-        NSString* eq_key = [extras oo_stringAtIndex:i];
+        NSString* eq_key = oo::PListView(extras).at<NSString*>(i);
         if ([eq_key isEqualToString:@"EQ_PASSENGER_BERTH"]) {
             max_passengers++;
             max_cargo -= PASSENGER_BERTH_SPACE;
@@ -1603,7 +1603,7 @@ static NSMutableDictionary* currentShipyard = nil;
         return NO;
 
     [self setStatus:STATUS_DOCKED];
-    [self setEntityPersonalityInt:[shipInfo oo_unsignedShortForKey:SHIPYARD_KEY_PERSONALITY]];
+    [self setEntityPersonalityInt:oo::PListView(shipInfo).get<unsigned short>(SHIPYARD_KEY_PERSONALITY)];
 
     // adjust the clock forward by an hour
     ship_clock_adjust += 3600.0;
@@ -1639,9 +1639,9 @@ static NSMutableDictionary* currentShipyard = nil;
         return NO;
 
     // refill from ship_info
-    NSArray* extras = [NSMutableArray arrayWithArray:[[ship_info oo_dictionaryForKey:KEY_STANDARD_EQUIPMENT] oo_arrayForKey:KEY_EQUIPMENT_EXTRAS]];
+    NSArray* extras = [NSMutableArray arrayWithArray:oo::PListView(oo::PListView(ship_info).get<NSDictionary*>(KEY_STANDARD_EQUIPMENT)).get<NSArray*>(KEY_EQUIPMENT_EXTRAS)];
     for (unsigned i = 0; i < [extras count]; i++) {
-        NSString* eq_key = [extras oo_stringAtIndex:i];
+        NSString* eq_key = oo::PListView(extras).at<NSString*>(i);
         if ([eq_key isEqualToString:@"EQ_PASSENGER_BERTH"]) {
             max_passengers++;
             max_cargo -= PASSENGER_BERTH_SPACE;
@@ -1650,7 +1650,7 @@ static NSMutableDictionary* currentShipyard = nil;
         }
     }
 
-    [self setEntityPersonalityInt:[ship_info oo_unsignedShortForKey:SHIPYARD_KEY_PERSONALITY]];
+    [self setEntityPersonalityInt:oo::PListView(ship_info).get<unsigned short>(SHIPYARD_KEY_PERSONALITY)];
 
     return YES;
 }
@@ -1679,27 +1679,27 @@ static NSMutableDictionary* currentShipyard = nil;
     [self setFuel:[self fuelCapacity]];
 
     // get forward_weapon aft_weapon port_weapon starboard_weapon from ship_info
-    int base_facings = [shipDict oo_unsignedIntForKey:KEY_WEAPON_FACINGS defaultValue:15];
-    int available_facings = [ship_info oo_unsignedIntForKey:KEY_WEAPON_FACINGS defaultValue:base_facings];
+    int base_facings = oo::PListView(shipDict).get<unsigned int>(KEY_WEAPON_FACINGS, 15);
+    int available_facings = oo::PListView(ship_info).get<unsigned int>(KEY_WEAPON_FACINGS, base_facings);
 
     // not retained - weapon types are references to the objects in OOEquipmentType's cache
     if (available_facings & WEAPON_FACING_AFT)
-        aft_weapon_type = OOWeaponTypeFromEquipmentIdentifierSloppy([shipDict oo_stringForKey:@"aft_weapon_type"]);
+        aft_weapon_type = OOWeaponTypeFromEquipmentIdentifierSloppy(oo::PListView(shipDict).get<NSString*>(@"aft_weapon_type"));
     else
         aft_weapon_type = OOWeaponTypeFromEquipmentIdentifierSloppy(@"EQ_WEAPON_NONE");
 
     if (available_facings & WEAPON_FACING_PORT)
-        port_weapon_type = OOWeaponTypeFromEquipmentIdentifierSloppy([shipDict oo_stringForKey:@"port_weapon_type"]);
+        port_weapon_type = OOWeaponTypeFromEquipmentIdentifierSloppy(oo::PListView(shipDict).get<NSString*>(@"port_weapon_type"));
     else
         port_weapon_type = OOWeaponTypeFromEquipmentIdentifierSloppy(@"EQ_WEAPON_NONE");
 
     if (available_facings & WEAPON_FACING_STARBOARD)
-        starboard_weapon_type = OOWeaponTypeFromEquipmentIdentifierSloppy([shipDict oo_stringForKey:@"starboard_weapon_type"]);
+        starboard_weapon_type = OOWeaponTypeFromEquipmentIdentifierSloppy(oo::PListView(shipDict).get<NSString*>(@"starboard_weapon_type"));
     else
         starboard_weapon_type = OOWeaponTypeFromEquipmentIdentifierSloppy(@"EQ_WEAPON_NONE");
 
     if (available_facings & WEAPON_FACING_FORWARD)
-        forward_weapon_type = OOWeaponTypeFromEquipmentIdentifierSloppy([shipDict oo_stringForKey:@"forward_weapon_type"]);
+        forward_weapon_type = OOWeaponTypeFromEquipmentIdentifierSloppy(oo::PListView(shipDict).get<NSString*>(@"forward_weapon_type"));
     else
         forward_weapon_type = OOWeaponTypeFromEquipmentIdentifierSloppy(@"EQ_WEAPON_NONE");
 
@@ -1713,7 +1713,7 @@ static NSMutableDictionary* currentShipyard = nil;
     [self tidyMissilePylons];
 
     // get missiles from ship_info
-    missiles = [shipDict oo_unsignedIntForKey:@"missiles"];
+    missiles = oo::PListView(shipDict).get<unsigned int>(@"missiles");
 
     // reset max_passengers
     max_passengers = 0;
@@ -1745,7 +1745,7 @@ static NSMutableDictionary* currentShipyard = nil;
     [self setUpSubEntities];
 
     // clear old ship names
-    [self setShipClassName:[shipDict oo_stringForKey:@"name"]];
+    [self setShipClassName:oo::PListView(shipDict).get<NSString*>(@"name")];
     [self setShipUniqueName:@""];
 
     // new ship, so lose some memory of actions

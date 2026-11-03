@@ -26,8 +26,9 @@ SOFTWARE.
 */
 
 #import "OOJSFrameCallbacks.h"
-#import "OOCollectionExtractors.h"
 #import "OOJSEngineTimeManagement.h"
+#import "OOPListView.h"
+#include "oofnd/Date.hpp"
 
 /*
         By default, tracking IDs are scrambled to discourage people from trying to
@@ -129,7 +130,7 @@ void InitOOJSFrameCallbacks(JSContext* context, JSValueConst global)
     sNextID = 1;
 #else
     // Set randomish initial ID to catch bad habits.
-    sNextID = [[NSDate date] timeIntervalSinceReferenceDate];
+    sNextID = oo::date::timeIntervalSinceReferenceDate();
 #endif
 }
 
@@ -405,7 +406,7 @@ static void RunDeferredOperations(JSContext* context)
 
     foreach (operation, sDeferredOps) {
         NSString* opType = [operation objectForKey:@"operation"];
-        uint32_t trackingID = [operation oo_intForKey:@"trackingID"];
+        uint32_t trackingID = oo::PListView(operation).get<int>(@"trackingID");
 
         if ([opType isEqualToString:@"add"]) {
             OOJSValue* callbackObj = [operation objectForKey:@"value"];

@@ -37,6 +37,8 @@ SOFTWARE.
 #import "OOFunctionAttributes.h"
 #import "OOOpenGL.h"
 #import "OOTypes.h"
+#include "oofnd/StdLib.hpp"
+#import "oofnd/objc/OOObject.h"
 
 #ifndef OO_SHADERS
 #ifdef NO_SHADERS
@@ -106,10 +108,10 @@ SOFTWARE.
 
 #define OOOPENGLEXTMGR_LOCK_SET_ACCESS (!OOLITE_MAC_COCOA_UI)
 
-@interface OOOpenGLExtensionManager : NSObject {
+@interface OOOpenGLExtensionManager : OOObject {
 @private
 #if OOOPENGLEXTMGR_LOCK_SET_ACCESS
-    NSLock* lock;
+    std::mutex lock;
 #endif
     NSSet* extensions;
 

@@ -111,6 +111,28 @@ public:
 
 @end
 
+// A singleton that allocates in +allocWithZone:, as OODebugMonitor, OOSoundMixer and others do.
+static id sTestSingleton = nil;
+static int sTestSingletonAllocs = 0;
+
+@interface OOTestSingleton : OOObject
+@end
+
+@implementation OOTestSingleton
+
++ (id) allocWithZone:(OOZone *)zone
+{
+	++sTestSingletonAllocs;
+	if (sTestSingleton == nil)
+	{
+		sTestSingleton = [super allocWithZone:zone];
+		return sTestSingleton;
+	}
+	return nil;
+}
+
+@end
+
 @interface OOTestForwarder : OOObject
 {
 @public
@@ -324,6 +346,40 @@ OO_TEST(copyGoesThroughCopyWithZone)
 	[thing release];
 	OO_CHECK_EQ(gLog.size(), 2u);
 }
+
+OO_TEST(allocGoesThroughAllocWithZone)
+{
+	// NSObject's +alloc and +new send +allocWithZone:, so an override there sees every allocation.
+	id first = [OOTestSingleton alloc];
+	OO_CHECK(first != nil);
+	OO_CHECK(first == sTestSingleton);
+	OO_CHECK([OOTestSingleton new] == nil);
+	OO_CHECK_EQ(sTestSingletonAllocs, 2);
+	[[first init] release];
+	sTestSingleton = nil;
+}
+
+
+OO_TEST(zoneIsTheOneCopyPasses)
+{
+	// -zone is nil, the zone -copy/-mutableCopy pass, so "zone == [self zone]" (OOMesh,
+	// OOProbabilitySet) still recognises a plain -copy.
+	OOTestThing *thing = [[OOTestThing alloc] initWithName:"zone"];
+	OO_CHECK([thing zone] == nullptr);
+	[thing release];
+}
+
+
+OO_TEST(hashIsGNUstepNSObjects)
+{
+	// gnustep-base's -[NSObject hash] is the address >> 4 (measured, bead oo-3rb.42). Rerooting
+	// must keep it, or hashed collections of rerooted objects iterate in a different order.
+	OOTestThing *thing = [[OOTestThing alloc] initWithName:"hash"];
+	const void *address = thing;
+	OO_CHECK_EQ([thing hash], reinterpret_cast<uintptr_t>(address) >> 4);
+	[thing release];
+}
+
 
 OO_TEST(longLiteralIsAConstantString)
 {

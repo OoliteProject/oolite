@@ -86,7 +86,7 @@ static const JSCFunctionListEntry sManifestMethods[] = {
 };
 
 // Helper class wrapped by JS Manifest objects
-@interface OOManifest : NSObject
+@interface OOManifest : OOObject
 @end
 
 @implementation OOManifest

@@ -47,6 +47,8 @@ SOFTWARE.
 #import "OOMacroOpenGL.h"
 #import "OOMaths.h"
 #import "OOPointMaths.h"
+#import <objc/objc-arc.h>
+#import <objc/runtime.h>
 
 #ifndef APIENTRY
 #define APIENTRY
@@ -260,7 +262,7 @@ typedef GLvoid (*TessFuncPtr)();
 {
     NSParameterAssert(dataArray != nil);
 
-    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    void* pool = objc_autoreleasePoolPush();
     GLUtesselator* tesselator = NULL;
 
     TessPolygonData polygonData;
@@ -399,7 +401,7 @@ END:
     SVGDumpEnd(&polygonData);
     free(polygonData.data);
     gluDeleteTess(tesselator);
-    [pool release];
+    objc_autoreleasePoolPop(pool);
 #ifndef NDEBUG
     DESTROY(polygonData.debugSVG);
 #endif

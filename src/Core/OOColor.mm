@@ -23,8 +23,8 @@ MA 02110-1301, USA.
 */
 
 #import "OOColor.h"
-#import "OOCollectionExtractors.h"
 #import "OOMaths.h"
+#import "OOPListView.h"
 #include "oofnd/objc/OORuntime.h"
 
 @implementation OOColor
@@ -92,7 +92,7 @@ MA 02110-1301, USA.
     }
 }
 
-- (id)copyWithZone:(NSZone*)zone
+- (id)copyWithZone:(OOZone*)zone
 {
     // Copy is implemented as retain since OOColor is immutable.
     return [self retain];
@@ -165,25 +165,25 @@ MA 02110-1301, USA.
 
         if ([dict objectForKey:@"hue"] != nil) {
             // Treat as HSB(A) dictionary
-            float h = [dict oo_floatForKey:@"hue"];
-            float s = [dict oo_floatForKey:@"saturation" defaultValue:1.0f];
-            float b = [dict oo_floatForKey:@"brightness" defaultValue:-1.0f];
+            float h = oo::PListView(dict).get<float>(@"hue");
+            float s = oo::PListView(dict).get<float>(@"saturation", 1.0f);
+            float b = oo::PListView(dict).get<float>(@"brightness", -1.0f);
             if (b < 0.0f)
-                b = [dict oo_floatForKey:@"value" defaultValue:1.0f];
-            float a = [dict oo_floatForKey:@"alpha" defaultValue:-1.0f];
+                b = oo::PListView(dict).get<float>(@"value", 1.0f);
+            float a = oo::PListView(dict).get<float>(@"alpha", -1.0f);
             if (a < 0.0f)
-                a = [dict oo_floatForKey:@"opacity" defaultValue:1.0f];
+                a = oo::PListView(dict).get<float>(@"opacity", 1.0f);
 
             // Not "result =", because we handle the saturation scaling here to allow oversaturation.
             return [OOColor colorWithHue:h / 360.0f saturation:s * factor brightness:b alpha:a];
         } else {
             // Treat as RGB(A) dictionary
-            float r = [dict oo_floatForKey:@"red"];
-            float g = [dict oo_floatForKey:@"green"];
-            float b = [dict oo_floatForKey:@"blue"];
-            float a = [dict oo_floatForKey:@"alpha" defaultValue:-1.0f];
+            float r = oo::PListView(dict).get<float>(@"red");
+            float g = oo::PListView(dict).get<float>(@"green");
+            float b = oo::PListView(dict).get<float>(@"blue");
+            float a = oo::PListView(dict).get<float>(@"alpha", -1.0f);
             if (a < 0.0f)
-                a = [dict oo_floatForKey:@"opacity" defaultValue:1.0f];
+                a = oo::PListView(dict).get<float>(@"opacity", 1.0f);
 
             result = [OOColor colorWithRed:r green:g blue:b alpha:a];
         }

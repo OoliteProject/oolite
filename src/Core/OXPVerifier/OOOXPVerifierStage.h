@@ -31,7 +31,7 @@ SOFTWARE.
 
 #if OO_OXP_VERIFIER_ENABLED
 
-@interface OOOXPVerifierStage : NSObject {
+@interface OOOXPVerifierStage : OOObject {
 @private
     OOOXPVerifier* _verifier;
     NSMutableSet* _dependencies;

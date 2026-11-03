@@ -27,6 +27,7 @@ MA 02110-1301, USA.
 
 #import "OOFoundation.h"
 #import "OOMaths.h"
+#import "oofnd/objc/OOObject.h"
 
 @class ShipEntity, Octree;
 
@@ -34,7 +35,7 @@ enum {
     kOOMeshToOctreeConverterSmallDataCapacity = 16
 };
 
-@interface OOMeshToOctreeConverter : NSObject {
+@interface OOMeshToOctreeConverter : OOObject {
 @private
     struct OOMeshToOctreeConverterInternalData {
         Triangle* triangles;

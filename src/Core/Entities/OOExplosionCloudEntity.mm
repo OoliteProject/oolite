@@ -24,9 +24,9 @@ MA 02110-1301, USA.
 */
 
 #import "OOExplosionCloudEntity.h"
-#import "OOCollectionExtractors.h"
 #import "OOColor.h"
 #import "OOGraphicsResetManager.h"
+#import "OOPListView.h"
 #import "OOTexture.h"
 #import "PlayerEntity.h"
 #import "Universe.h"
@@ -67,25 +67,25 @@ static NSString* const kExplosionTexture = @"texture";
         _settings = [settings retain];
     }
 
-    unsigned count = [_settings oo_unsignedIntForKey:kExplosionCount defaultValue:25];
+    unsigned count = oo::PListView(_settings).get<unsigned int>(kExplosionCount, 25);
     if (count > maxCount) {
         count = maxCount;
     }
 
     if (size == 0.0) {
-        size = [entity collisionRadius] * [_settings oo_floatForKey:kExplosionSize defaultValue:kExplosionDefaultSize];
+        size = [entity collisionRadius] * oo::PListView(_settings).get<float>(kExplosionSize, kExplosionDefaultSize);
     }
 
-    _growthRate = [_settings oo_floatForKey:kExplosionGrowth defaultValue:kGrowthRateFactor] * size;
-    _alpha = [_settings oo_floatForKey:kExplosionAlpha defaultValue:kExplosionCloudAlpha];
-    _brightnessMult = [_settings oo_floatForKey:kExplosionBrightness defaultValue:kExplosionBrightnessMult];
+    _growthRate = oo::PListView(_settings).get<float>(kExplosionGrowth, kGrowthRateFactor) * size;
+    _alpha = oo::PListView(_settings).get<float>(kExplosionAlpha, kExplosionCloudAlpha);
+    _brightnessMult = oo::PListView(_settings).get<float>(kExplosionBrightness, kExplosionBrightnessMult);
     if (_brightnessMult < 1.0f)
         _brightnessMult = 1.0f;
-    _cloudDuration = [_settings oo_doubleForKey:kExplosionDuration defaultValue:kExplosionCloudDuration];
+    _cloudDuration = oo::PListView(_settings).get<double>(kExplosionDuration, kExplosionCloudDuration);
 
-    GLfloat spread = [_settings oo_floatForKey:kExplosionSpread defaultValue:1.0];
+    GLfloat spread = oo::PListView(_settings).get<float>(kExplosionSpread, 1.0);
 
-    NSString* textureFile = [_settings oo_stringForKey:kExplosionTexture defaultValue:@"oolite-particle-cloud2.png"];
+    NSString* textureFile = oo::PListView(_settings).get<NSString*>(kExplosionTexture, @"oolite-particle-cloud2.png");
 
     _texture = [[OOTexture textureWithName:textureFile
                                   inFolder:@"Textures"
@@ -105,7 +105,7 @@ static NSString* const kExplosionTexture = @"texture";
     }
 
     if ((self = [super initWithPosition:pos velocity:vel count:count minSpeed:size * 0.8f * spread maxSpeed:size * 1.2f * spread duration:_cloudDuration baseColor:baseColor])) {
-        NSString* color_order = [_settings oo_stringForKey:kExplosionColors defaultValue:@"rgb"];
+        NSString* color_order = oo::PListView(_settings).get<NSString*>(kExplosionColors, @"rgb");
 
         for (i = 0; i < count; i++) {
             if ([color_order isEqualToString:@"white"]) {
@@ -184,7 +184,7 @@ static NSString* const kExplosionTexture = @"texture";
     GLfloat(*particleColor)[4] = _particleColor;
 
     float newAlpha = _alpha * (1 - (_timePassed / _cloudDuration));
-    NSString* color_order = [_settings oo_stringForKey:kExplosionColors defaultValue:@"rgb"];
+    NSString* color_order = oo::PListView(_settings).get<NSString*>(kExplosionColors, @"rgb");
     NSUInteger primary = 0, secondary = 1, tertiary = 2;
 
     if ([color_order isEqualToString:@"rgb"]) {

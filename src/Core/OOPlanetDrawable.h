@@ -29,7 +29,7 @@ MA 02110-1301, USA.
 
 @class OOMaterial;
 
-@interface OOPlanetDrawable : OODrawable <NSCopying> {
+@interface OOPlanetDrawable : OODrawable <OOCopying> {
 @private
     OOMaterial* _material;
     BOOL _isAtmosphere;

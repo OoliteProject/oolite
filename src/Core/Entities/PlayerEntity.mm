@@ -4102,7 +4102,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void* market);
             if ([savedMFDs count] > i) {
                 [multiFunctionDisplaySettings addObject:[savedMFDs objectAtIndex:i]];
             } else {
-                [multiFunctionDisplaySettings addObject:[NSNull null]];
+                [multiFunctionDisplaySettings addObject:[OONull null]];
             }
         }
         if (lastMFD < [hud mfdCount])
@@ -4889,7 +4889,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void* market);
         // and blank any MFDs currently using it
         NSUInteger index;
         while ((index = [multiFunctionDisplaySettings indexOfObject:key]) != NSNotFound) {
-            [multiFunctionDisplaySettings replaceObjectAtIndex:index withObject:[NSNull null]];
+            [multiFunctionDisplaySettings replaceObjectAtIndex:index withObject:[OONull null]];
         }
     }
 }
@@ -4898,7 +4898,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void* market);
 {
     if (index >= [hud mfdCount]) {
         // is first inactive display
-        index = [multiFunctionDisplaySettings indexOfObject:[NSNull null]];
+        index = [multiFunctionDisplaySettings indexOfObject:[OONull null]];
         if (index == NSNotFound) {
             return NO;
         }
@@ -4906,7 +4906,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void* market);
 
     if (index < [hud mfdCount]) {
         if (key == nil) {
-            [multiFunctionDisplaySettings replaceObjectAtIndex:index withObject:[NSNull null]];
+            [multiFunctionDisplaySettings replaceObjectAtIndex:index withObject:[OONull null]];
         } else {
             [multiFunctionDisplaySettings replaceObjectAtIndex:index withObject:key];
         }
@@ -4927,7 +4927,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void* market);
         return;
     }
     id current = [multiFunctionDisplaySettings objectAtIndex:index];
-    if (current == [NSNull null]) {
+    if (current == [OONull null]) {
         key = [keys objectAtIndex:0];
         [self setMultiFunctionDisplay:index toKey:key];
     } else {
@@ -4957,7 +4957,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void* market);
         return;
     }
     id current = [multiFunctionDisplaySettings objectAtIndex:index];
-    if (current == [NSNull null]) {
+    if (current == [OONull null]) {
         key = [keys objectAtIndex:([keys count] - 1)];
         [self setMultiFunctionDisplay:index toKey:key];
     } else {
@@ -10815,7 +10815,7 @@ static NSString* last_outfitting_key = nil;
         if (i != NSNotFound) {
             target_memory_index = i;
         } else {
-            i = [target_memory indexOfObject:[NSNull null]];
+            i = [target_memory indexOfObject:[OONull null]];
             // find and use a blank space in memory
             if (i != NSNotFound) {
                 [target_memory replaceObjectAtIndex:i withObject:targetRef];
@@ -10852,9 +10852,9 @@ static NSString* last_outfitting_key = nil;
     NSUInteger memoryCount = [target_memory count];
     for (NSUInteger i = 0; i < PLAYER_TARGET_MEMORY_SIZE; i++) {
         if (i < memoryCount) {
-            [target_memory replaceObjectAtIndex:i withObject:[NSNull null]];
+            [target_memory replaceObjectAtIndex:i withObject:[OONull null]];
         } else {
-            [target_memory addObject:[NSNull null]];
+            [target_memory addObject:[OONull null]];
         }
     }
     target_memory_index = 0;
@@ -10902,7 +10902,7 @@ static NSString* last_outfitting_key = nil;
                     return YES;
                 }
             } else {
-                [target_memory replaceObjectAtIndex:target_memory_index withObject:[NSNull null]];
+                [target_memory replaceObjectAtIndex:target_memory_index withObject:[OONull null]];
             }
         }
     }

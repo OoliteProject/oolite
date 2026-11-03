@@ -33,9 +33,9 @@ MA 02110-1301, USA.
 #import "PlayerEntityLegacyScriptEngine.h"
 #import "PlayerEntityScriptMethods.h"
 
-#import "OOCollectionExtractors.h"
 #import "OOConstToString.h"
 #import "OOFunctionAttributes.h"
+#import "OOPListView.h"
 #import "OOStringParsing.h"
 
 static JSClassID sPlayerClassID;
@@ -585,7 +585,7 @@ static JSValue PlayerSetEscapePodDestination(OOJS_NATIVE_ARGS)
 
                 if (nDests > 0)
                     for (i = --nDests; i > 0; i--) {
-                        if ([[sDests oo_dictionaryAtIndex:i] oo_boolForKey:@"nova"]) {
+                        if (oo::PListView(oo::PListView(sDests).at<NSDictionary*>(i)).get<BOOL>(@"nova")) {
                             [sDests removeObjectAtIndex:i];
                         }
                     }
@@ -599,7 +599,7 @@ static JSValue PlayerSetEscapePodDestination(OOJS_NATIVE_ARGS)
                     NSDictionary* dest = [sDests objectAtIndex:i];
 
                     // add more time until rescue, with overheads for entering witchspace in case of overlapping systems.
-                    double dist = [dest oo_doubleForKey:@"distance"];
+                    double dist = oo::PListView(dest).get<double>(@"distance");
                     [player addToAdjustTime:(.2 + dist * dist) * 3600.0 + 5400.0 * (ranrot_rand() & 127)];
 
                     // at the end of the docking sequence we'll check if the target system is the same as the system we're in...

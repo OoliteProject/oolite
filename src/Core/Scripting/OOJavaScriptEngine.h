@@ -61,6 +61,7 @@ MA 02110-1301, USA.
 
 #import "OOFoundation.h"
 #import "OOTypes.h"
+#import "oofnd/objc/OOObject.h"
 #include <quickjs.h>
 
 #if !OOJS_POC_HARNESS
@@ -86,7 +87,7 @@ MA 02110-1301, USA.
 @class Entity;
 @protocol OOJavaScriptEngineMonitor;
 
-@interface OOJavaScriptEngine : NSObject {
+@interface OOJavaScriptEngine : OOObject {
 @private
     JSRuntime* _runtime;
     JSContext* _context;
@@ -255,6 +256,14 @@ JSValueConst OOJSLegacyConstRewriter(void);
 // Report and clear a pending exception, as SpiderMonkey's error reporter did.
 void OOJSReportPendingException(JSContext* context);
 
+/*	The same notifications on oo::NotificationCenter (oofnd/Notification.hpp, bead oo-3rb.9),
+        posted with the engine as the object. Until the last NSNotificationCenter observer is
+        migrated, -reset posts each notification to both centers (oo::NotificationCenter first); the
+        NSString names above go with that last observer.
+*/
+extern const char* const kOOJavaScriptEngineWillResetNotificationName;
+extern const char* const kOOJavaScriptEngineDidResetNotificationName;
+
 /*	Error and warning reporters.
 
         The error reporters throw an Error. The caller must return JS_EXCEPTION
@@ -337,6 +346,17 @@ OOINLINE JSValue OOJSValueFromBOOL(int b)
 
 @end
 
+// NSObject (OOJavaScript) above, for classes rooted on OOObject (ADR-0029).
+@interface OOObject (OOJavaScript)
+
+- (JSValue)oo_jsValueInContext:(JSContext*)context;
+- (NSString*)oo_jsDescription;
+- (NSString*)oo_jsDescriptionWithClassName:(NSString*)className;
+- (NSString*)oo_jsClassName;
+- (void)oo_clearJSSelf:(JSValueConst)selfVal;
+
+@end
+
 // Return an owned JavaScript value for an object, or null if passed nil.
 OOINLINE JSValue OOJSValueFromNativeObject(JSContext* context, id object)
 {
@@ -348,13 +368,27 @@ OOINLINE JSValue OOJSValueFromNativeObject(JSContext* context, id object)
 // Like OOJSValueFromNativeObject(), but primitives are boxed. Returns an owned object or JS_EXCEPTION.
 JSValue OOJSObjectFromNativeObject(JSContext* context, id object);
 
+/*	OONull: the placeholder for null inside native collections, which cannot
+        hold nil (was Foundation's null singleton, ADR-0029 Decision 5). A JS array
+        element that is null or undefined becomes [OONull null] in the NSArray, and
+        [OONull null] becomes JS null, so JS null round-trips as before. Game code
+        uses it where a collection slot is empty (MFD settings, target memory,
+        script event arguments). It describes itself as "<null>", as its
+        predecessor did, and -copy returns itself.
+*/
+@interface OONull : OOObject <OOCopying>
+
++ (OONull*)null;
+
+@end
+
 /*	OOJSValue: an object whose purpose in life is to hold a JavaScript value.
         This is somewhat useful for putting JavaScript objects in ObjC collections,
         for instance to pass as properties to script loaders. The value is held
         (with its own reference) until the OOJSValue is deallocated or the engine
         is reset.
 */
-@interface OOJSValue : NSObject {
+@interface OOJSValue : OOObject {
     JSValue _val;
 }
 

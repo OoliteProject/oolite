@@ -25,8 +25,8 @@ MA 02110-1301, USA.
 */
 
 #import "OOJoystickManager.h"
-#import "OOCollectionExtractors.h"
 #import "OOLogging.h"
+#import "OOPListView.h"
 
 static Class sStickHandlerClass = Nil;
 static id sSharedStickHandler = nil;
@@ -185,7 +185,7 @@ static id sSharedStickHandler = nil;
     OOJoystickAxisProfile* profile;
     OOJoystickStandardAxisProfile* standard_profile;
     OOJoystickSplineAxisProfile* spline_profile;
-    NSArray* controlPoints;
+    std::vector<NSPoint> controlPoints;
     NSMutableArray* points;
     NSPoint point;
     NSUInteger i;
@@ -202,10 +202,10 @@ static id sSharedStickHandler = nil;
     } else if ([profile isKindOfClass:[OOJoystickSplineAxisProfile class]]) {
         spline_profile = (OOJoystickSplineAxisProfile*)profile;
         [dict setObject:@"Spline" forKey:@"Type"];
-        controlPoints = [NSArray arrayWithArray:[spline_profile controlPoints]];
-        points = [[NSMutableArray alloc] initWithCapacity:[controlPoints count]];
-        for (i = 0; i < [controlPoints count]; i++) {
-            point = [[controlPoints objectAtIndex:i] pointValue];
+        controlPoints = [spline_profile controlPoints];
+        points = [[NSMutableArray alloc] initWithCapacity:controlPoints.size()];
+        for (i = 0; i < controlPoints.size(); i++) {
+            point = controlPoints[i];
             [points addObject:[NSArray arrayWithObjects:
                                       [NSNumber numberWithFloat:point.x],
                                   [NSNumber numberWithFloat:point.y],
@@ -348,9 +348,9 @@ static id sSharedStickHandler = nil;
 
 - (void)setFunction:(int)function withDict:(NSDictionary*)stickFn
 {
-    BOOL isAxis = [stickFn oo_boolForKey:STICK_ISAXIS];
-    int stickNum = [stickFn oo_intForKey:STICK_NUMBER];
-    int stickAxBt = [stickFn oo_intForKey:STICK_AXBUT];
+    BOOL isAxis = oo::PListView(stickFn).get<BOOL>(STICK_ISAXIS);
+    int stickNum = oo::PListView(stickFn).get<int>(STICK_NUMBER);
+    int stickAxBt = oo::PListView(stickFn).get<int>(STICK_AXBUT);
 
     if (isAxis) {
         [self setFunctionForAxis:stickAxBt

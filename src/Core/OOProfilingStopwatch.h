@@ -32,6 +32,7 @@ SOFTWARE.
 #import "OOFoundation.h"
 #import "OOFunctionAttributes.h"
 #import "OOTypes.h"
+#import "oofnd/objc/OOObject.h"
 #endif
 
 /*	Platform-specific high-resolution timer:
@@ -102,7 +103,7 @@ OOINLINE OOHighResTimeValue OOGetHighResTime(void)
 
 OOTimeDelta OOHighResTimeDeltaInSeconds(OOHighResTimeValue startTime, OOHighResTimeValue endTime);
 
-@interface OOProfilingStopwatch : NSObject {
+@interface OOProfilingStopwatch : OOObject {
 @private
     OOHighResTimeValue _start;
     OOHighResTimeValue _end;

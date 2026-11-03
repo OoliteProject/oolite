@@ -53,7 +53,7 @@ SOFTWARE.
 static int OOConnectTCPSocket(NSString* address, uint16_t port, int timeoutSeconds);
 #endif
 
-#import "OOCollectionExtractors.h"
+#import "OOPListView.h"
 #import "OOTCPStreamDecoder.h"
 
 #ifdef OO_LOG_DEBUG_PROTOCOL_PACKETS
@@ -527,7 +527,7 @@ OOINLINE BOOL StatusIsSendable(OOTCPClientConnectionStatus status)
         // Build "Connected..." message with two optional parts, console identity and host name.
         connectedMessage = [NSMutableString stringWithString:@"Connected to debug console"];
 
-        consoleIdentity = [packet oo_stringForKey:kOOTCPConsoleIdentity];
+        consoleIdentity = oo::PListView(packet).get<NSString*>(kOOTCPConsoleIdentity);
         if (consoleIdentity != nil)
             [connectedMessage appendFormat:@" \"%@\"", consoleIdentity];
 
@@ -556,7 +556,7 @@ OOINLINE BOOL StatusIsSendable(OOTCPClientConnectionStatus status)
         OOLog(@"debugTCP.protocolError.outOfOrder", @"Got %@ packet from debug console in wrong context.", kOOTCPPacket_RejectConnection);
     }
 
-    message = [packet oo_stringForKey:kOOTCPMessage];
+    message = oo::PListView(packet).get<NSString*>(kOOTCPMessage);
     if (message == nil)
         message = @"Console refused connection.";
     [self breakConnectionWithMessage:message];
@@ -569,7 +569,7 @@ OOINLINE BOOL StatusIsSendable(OOTCPClientConnectionStatus status)
     if (!StatusIsSendable(_status)) {
         OOLog(@"debugTCP.protocolError.outOfOrder", @"Got %@ packet from debug console in wrong context.", kOOTCPPacket_CloseConnection);
     }
-    message = [packet oo_stringForKey:kOOTCPMessage];
+    message = oo::PListView(packet).get<NSString*>(kOOTCPMessage);
     if (message == nil)
         message = @"Console closed connection.";
     [self breakConnectionWithMessage:message];
@@ -586,7 +586,7 @@ OOINLINE BOOL StatusIsSendable(OOTCPClientConnectionStatus status)
     if (_monitor == nil)
         return;
 
-    configuration = [packet oo_dictionaryForKey:kOOTCPConfiguration];
+    configuration = oo::PListView(packet).get<NSDictionary*>(kOOTCPConfiguration);
     if (configuration != nil) {
         foreachkey(key, configuration)
         {
@@ -595,7 +595,7 @@ OOINLINE BOOL StatusIsSendable(OOTCPClientConnectionStatus status)
         }
     }
 
-    removed = [configuration oo_arrayForKey:kOOTCPRemovedConfigurationKeys];
+    removed = oo::PListView(configuration).get<NSArray*>(kOOTCPRemovedConfigurationKeys);
     for (keyEnum = [removed objectEnumerator]; (key = [keyEnum nextObject]);) {
         [_monitor setConfigurationValue:nil forKey:key];
     }
@@ -605,7 +605,7 @@ OOINLINE BOOL StatusIsSendable(OOTCPClientConnectionStatus status)
 {
     NSString* message = nil;
 
-    message = [packet oo_stringForKey:kOOTCPMessage];
+    message = oo::PListView(packet).get<NSString*>(kOOTCPMessage);
     if (message != nil)
         [_monitor performJSConsoleCommand:message];
 }
@@ -615,7 +615,7 @@ OOINLINE BOOL StatusIsSendable(OOTCPClientConnectionStatus status)
     NSString* key = nil;
     id value = nil;
 
-    key = [packet oo_stringForKey:kOOTCPConfigurationKey];
+    key = oo::PListView(packet).get<NSString*>(kOOTCPConfigurationKey);
     if (key != nil) {
         value = [_monitor configurationValueForKey:key];
         [self debugMonitor:_monitor

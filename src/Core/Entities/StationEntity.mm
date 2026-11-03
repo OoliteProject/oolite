@@ -24,8 +24,8 @@
 
 #import "StationEntity.h"
 #import "DockEntity.h"
-#import "OOCollectionExtractors.h"
 #import "OOFilteringEnumerator.h"
+#import "OOPListView.h"
 #import "OOStringParsing.h"
 #import "ShipEntityAI.h"
 
@@ -81,7 +81,7 @@
 - (OOTechLevelID)equivalentTechLevel
 {
     if (equivalentTechLevel == NSNotFound) {
-        return [[UNIVERSE currentSystemData] oo_intForKey:KEY_TECHLEVEL];
+        return oo::PListView([UNIVERSE currentSystemData]).get<int>(KEY_TECHLEVEL);
     } else {
         return equivalentTechLevel;
     }
@@ -574,11 +574,11 @@ NSDictionary* OOMakeDockingInstructions(StationEntity* station, HPVector coords,
     isStation = YES;
     alertLevel = STATION_ALERT_LEVEL_GREEN;
 
-    port_radius = [dict oo_nonNegativeDoubleForKey:@"port_radius" defaultValue:500.0];
+    port_radius = oo::PListView(dict).get<oo::NonNegative<double>>(@"port_radius", 500.0);
 
     // port_dimensions is deprecated
     port_dimensions = make_vector(69, 69, 250);
-    NSString* portDimensionsStr = [dict oo_stringForKey:@"port_dimensions"];
+    NSString* portDimensionsStr = oo::PListView(dict).get<NSString*>(@"port_dimensions");
     if (portDimensionsStr != nil) {
         OOStandardsDeprecated(@"The port_dimensions key is deprecated");
         if (!OOEnforceStandards()) {
@@ -594,34 +594,34 @@ NSDictionary* OOMakeDockingInstructions(StationEntity* station, HPVector coords,
     if (![super setUpShipFromDictionary:dict])
         return NO;
 
-    equivalentTechLevel = [dict oo_unsignedIntegerForKey:@"equivalent_tech_level" defaultValue:NSNotFound];
-    max_scavengers = [dict oo_unsignedIntForKey:@"max_scavengers" defaultValue:3];
-    max_defense_ships = [dict oo_unsignedIntForKey:@"max_defense_ships" defaultValue:3];
-    max_police = [dict oo_unsignedIntForKey:@"max_police" defaultValue:STATION_MAX_POLICE];
-    equipmentPriceFactor = [dict oo_nonNegativeFloatForKey:@"equipment_price_factor" defaultValue:1.0];
+    equivalentTechLevel = oo::PListView(dict).get<NSUInteger>(@"equivalent_tech_level", NSNotFound);
+    max_scavengers = oo::PListView(dict).get<unsigned int>(@"max_scavengers", 3);
+    max_defense_ships = oo::PListView(dict).get<unsigned int>(@"max_defense_ships", 3);
+    max_police = oo::PListView(dict).get<unsigned int>(@"max_police", STATION_MAX_POLICE);
+    equipmentPriceFactor = oo::PListView(dict).get<oo::NonNegative<float>>(@"equipment_price_factor", 1.0);
     equipmentPriceFactor = fmax(equipmentPriceFactor, 0.5f);
-    hasNPCTraffic = [dict oo_fuzzyBooleanForKey:@"has_npc_traffic" defaultValue:(maxFlightSpeed == 0)]; // carriers default to NO
-    hasPatrolShips = [dict oo_fuzzyBooleanForKey:@"has_patrol_ships" defaultValue:NO];
-    suppress_arrival_reports = [dict oo_boolForKey:@"suppress_arrival_reports" defaultValue:NO];
-    [self setAllegiance:[dict oo_stringForKey:@"allegiance"]];
+    hasNPCTraffic = (unsigned char)oo::PListView(dict).get<oo::FuzzyBoolean>(@"has_npc_traffic", (maxFlightSpeed == 0)); // carriers default to NO
+    hasPatrolShips = oo::PListView(dict).get<oo::FuzzyBoolean>(@"has_patrol_ships", NO);
+    suppress_arrival_reports = (unsigned char)oo::PListView(dict).get<BOOL>(@"suppress_arrival_reports", NO);
+    [self setAllegiance:oo::PListView(dict).get<NSString*>(@"allegiance")];
 
-    marketCapacity = [dict oo_unsignedIntForKey:@"market_capacity" defaultValue:MAIN_SYSTEM_MARKET_LIMIT];
-    marketDefinition = [[dict oo_arrayForKey:@"market_definition" defaultValue:nil] retain];
-    marketScriptName = [[dict oo_stringForKey:@"market_script" defaultValue:nil] retain];
-    marketMonitored = [dict oo_boolForKey:@"market_monitored" defaultValue:NO];
-    marketBroadcast = [dict oo_boolForKey:@"market_broadcast" defaultValue:YES];
+    marketCapacity = oo::PListView(dict).get<unsigned int>(@"market_capacity", MAIN_SYSTEM_MARKET_LIMIT);
+    marketDefinition = [oo::PListView(dict).get<NSArray*>(@"market_definition", nil) retain];
+    marketScriptName = [oo::PListView(dict).get<NSString*>(@"market_script", nil) retain];
+    marketMonitored = (unsigned char)oo::PListView(dict).get<BOOL>(@"market_monitored", NO);
+    marketBroadcast = (unsigned char)oo::PListView(dict).get<BOOL>(@"market_broadcast", YES);
 
     // Non main stations may have requiresDockingClearance set to yes as a result of the code below,
     // but this variable should be irrelevant for them, as they do not make use of it anyway.
-    requiresDockingClearance = [dict oo_boolForKey:@"requires_docking_clearance" defaultValue:[UNIVERSE dockingClearanceProtocolActive]];
+    requiresDockingClearance = (unsigned char)oo::PListView(dict).get<BOOL>(@"requires_docking_clearance", [UNIVERSE dockingClearanceProtocolActive]);
 
-    allowsFastDocking = [dict oo_boolForKey:@"allows_fast_docking" defaultValue:NO];
+    allowsFastDocking = (unsigned char)oo::PListView(dict).get<BOOL>(@"allows_fast_docking", NO);
 
-    allowsAutoDocking = [dict oo_boolForKey:@"allows_auto_docking" defaultValue:YES];
+    allowsAutoDocking = (unsigned char)oo::PListView(dict).get<BOOL>(@"allows_auto_docking", YES);
 
     allowsSaving = [UNIVERSE deterministicPopulation];
 
-    interstellarUndockingAllowed = [dict oo_boolForKey:@"interstellar_undocking" defaultValue:NO];
+    interstellarUndockingAllowed = (unsigned char)oo::PListView(dict).get<BOOL>(@"interstellar_undocking", NO);
 
     double unitime = [UNIVERSE getTime];
 
@@ -1402,12 +1402,12 @@ NSDictionary* OOMakeDockingInstructions(StationEntity* station, HPVector coords,
         return nil;
     }
 
-    defense_ship_key = [shipinfoDictionary oo_stringForKey:@"defense_ship"];
+    defense_ship_key = oo::PListView(shipinfoDictionary).get<NSString*>(@"defense_ship");
     if (defense_ship_key != nil) {
         defense_ship = [UNIVERSE newShipWithName:defense_ship_key];
     }
     if (!defense_ship) {
-        defense_ship_role = [shipinfoDictionary oo_stringForKey:@"defense_ship_role" defaultValue:default_defense_ship_role];
+        defense_ship_role = oo::PListView(shipinfoDictionary).get<NSString*>(@"defense_ship_role", default_defense_ship_role);
         defense_ship = [UNIVERSE newShipWithRole:defense_ship_role];
     }
 
@@ -2039,7 +2039,7 @@ NSDictionary* OOMakeDockingInstructions(StationEntity* station, HPVector coords,
 
 - (BOOL)isRotatingStation
 {
-    if ([shipinfoDictionary oo_boolForKey:@"rotating" defaultValue:NO])
+    if (oo::PListView(shipinfoDictionary).get<BOOL>(@"rotating", NO))
         return YES;
     return [[shipinfoDictionary objectForKey:@"roles"] rangeOfString:@"rotating-station"].location != NSNotFound; // legacy
 }
@@ -2051,7 +2051,7 @@ NSDictionary* OOMakeDockingInstructions(StationEntity* station, HPVector coords,
     //				work properly with the various overrides.  The primary role will get
     //				used if either there is no market override, or the market wasn't
     //				defined.
-    return [shipinfoDictionary oo_stringForKey:@"market"];
+    return oo::PListView(shipinfoDictionary).get<NSString*>(@"market");
 }
 
 - (BOOL)hasShipyard
@@ -2092,7 +2092,7 @@ NSDictionary* OOMakeDockingInstructions(StationEntity* station, HPVector coords,
 
     // remove ships that the player has already bought
     for (i = 0; i < [shipyard count]; i++) {
-        NSString* shipID = [[shipyard oo_dictionaryAtIndex:i] oo_stringForKey:SHIPYARD_KEY_ID];
+        NSString* shipID = oo::PListView(oo::PListView(shipyard).at<NSDictionary*>(i)).get<NSString*>(SHIPYARD_KEY_ID);
         if ([[PLAYER shipyardRecord] objectForKey:shipID]) {
             [shipyard removeObjectAtIndex:i--];
         }

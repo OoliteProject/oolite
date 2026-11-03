@@ -34,8 +34,8 @@
 #define POLAR_CAPS 1
 #define ALBEDO_FACTOR 0.7f // Overall darkening of everything, allowing better contrast for snow and specular highlights.
 
-#import "OOCollectionExtractors.h"
 #import "OOColor.h"
+#import "OOPListView.h"
 #import "OOPlanetTextureGenerator.h"
 
 #ifndef TEXGEN_TEST_RIG
@@ -140,7 +140,7 @@ enum {
 
 @implementation OOPlanetTextureGenerator
 
-- (id)initWithPlanetInfo:(NSDictionary*)planetInfo
+- (id)initWithPlanetInfo:(NSDictionary*)planetInfo seed:(RANROTSeed)seed
 {
     OOLog(@"texture.planet.generate", @"%@", @"Initialising planetary generator");
 
@@ -148,18 +148,18 @@ enum {
     if ((self = [super initWithPath:[NSString stringWithFormat:@"OOPlanetTexture@%p", self] options:kOOTextureAllowCubeMap])) {
         OOLog(@"texture.planet.generate", @"Extracting parameters for generator %@", self);
 
-        _info.landFraction = OOClamp_0_1_f([planetInfo oo_floatForKey:@"land_fraction" defaultValue:0.3]);
-        _info.polarFraction = OOClamp_0_1_f([planetInfo oo_floatForKey:@"polar_fraction" defaultValue:0.05]);
+        _info.landFraction = OOClamp_0_1_f(oo::PListView(planetInfo).get<float>(@"land_fraction", 0.3));
+        _info.polarFraction = OOClamp_0_1_f(oo::PListView(planetInfo).get<float>(@"polar_fraction", 0.05));
         _info.landColor = FloatRGBFromDictColor(planetInfo, @"land_color");
         _info.seaColor = FloatRGBFromDictColor(planetInfo, @"sea_color");
         _info.paleLandColor = FloatRGBFromDictColor(planetInfo, @"polar_land_color");
         _info.polarSeaColor = FloatRGBFromDictColor(planetInfo, @"polar_sea_color");
-        [[planetInfo objectForKey:@"noise_map_seed"] getValue:&_info.seed];
+        _info.seed = seed; // was a value box under "noise_map_seed" in planetInfo (bead oo-3rb.48)
         if ([planetInfo objectForKey:@"cloud_alpha"]) {
             OOLog(@"texture.planet.generate", @"%@", @"Extracting atmosphere parameters");
             // we have an atmosphere:
-            _info.cloudAlpha = [planetInfo oo_floatForKey:@"cloud_alpha" defaultValue:1.0f];
-            _info.cloudFraction = OOClamp_0_1_f([planetInfo oo_floatForKey:@"cloud_fraction" defaultValue:0.3]);
+            _info.cloudAlpha = oo::PListView(planetInfo).get<float>(@"cloud_alpha", 1.0f);
+            _info.cloudFraction = OOClamp_0_1_f(oo::PListView(planetInfo).get<float>(@"cloud_fraction", 0.3));
             _info.cloudColor = FloatRGBFromDictColor(planetInfo, @"cloud_color");
             _info.paleCloudColor = FloatRGBFromDictColor(planetInfo, @"polar_cloud_color");
         }
@@ -167,7 +167,7 @@ enum {
         OOGraphicsDetail detailLevel = [UNIVERSE detailLevel];
 
 #ifndef TEXGEN_TEST_RIG
-        if (detailLevel < DETAIL_LEVEL_SHADERS || [planetInfo oo_boolForKey:@"isMiniature" defaultValue:NO]) {
+        if (detailLevel < DETAIL_LEVEL_SHADERS || oo::PListView(planetInfo).get<BOOL>(@"isMiniature", NO)) {
             _planetScale = kPlanetScaleReducedDetail;
         } else if (detailLevel == DETAIL_LEVEL_SHADERS) {
             _planetScale = kPlanetScaleFullDetail;
@@ -177,7 +177,7 @@ enum {
 #else
         _planetScale = kPlanetScale4096x4096;
 #endif
-        _info.perlin3d = [planetInfo oo_boolForKey:@"perlin_3d" defaultValue:detailLevel > DETAIL_LEVEL_SHADERS];
+        _info.perlin3d = oo::PListView(planetInfo).get<BOOL>(@"perlin_3d", detailLevel > DETAIL_LEVEL_SHADERS);
         _info.planetAspectRatio = _info.perlin3d ? 2 : 1;
         _info.planetScaleOffset = 8 - _info.planetAspectRatio;
     }
@@ -185,10 +185,10 @@ enum {
     return self;
 }
 
-+ (OOTexture*)planetTextureWithInfo:(NSDictionary*)planetInfo
++ (OOTexture*)planetTextureWithInfo:(NSDictionary*)planetInfo seed:(RANROTSeed)seed
 {
     OOTexture* result = nil;
-    OOPlanetTextureGenerator* generator = [[self alloc] initWithPlanetInfo:planetInfo];
+    OOPlanetTextureGenerator* generator = [[self alloc] initWithPlanetInfo:planetInfo seed:seed];
     if (generator != nil) {
         result = [OOTexture textureWithGenerator:generator];
         [generator release];
@@ -197,11 +197,11 @@ enum {
     return result;
 }
 
-+ (BOOL)generatePlanetTexture:(OOTexture**)texture andAtmosphere:(OOTexture**)atmosphere withInfo:(NSDictionary*)planetInfo
++ (BOOL)generatePlanetTexture:(OOTexture**)texture andAtmosphere:(OOTexture**)atmosphere withInfo:(NSDictionary*)planetInfo seed:(RANROTSeed)seed
 {
     NSParameterAssert(texture != NULL);
 
-    OOPlanetTextureGenerator* diffuseGen = [[[self alloc] initWithPlanetInfo:planetInfo] autorelease];
+    OOPlanetTextureGenerator* diffuseGen = [[[self alloc] initWithPlanetInfo:planetInfo seed:seed] autorelease];
     if (diffuseGen == nil)
         return NO;
 
@@ -218,13 +218,13 @@ enum {
     return *texture != nil;
 }
 
-+ (BOOL)generatePlanetTexture:(OOTexture**)texture secondaryTexture:(OOTexture**)secondaryTexture withInfo:(NSDictionary*)planetInfo
++ (BOOL)generatePlanetTexture:(OOTexture**)texture secondaryTexture:(OOTexture**)secondaryTexture withInfo:(NSDictionary*)planetInfo seed:(RANROTSeed)seed
 {
     NSParameterAssert(texture != NULL);
 
     BOOL enqueue = NO;
 
-    OOPlanetTextureGenerator* diffuseGen = [[[self alloc] initWithPlanetInfo:planetInfo] autorelease];
+    OOPlanetTextureGenerator* diffuseGen = [[[self alloc] initWithPlanetInfo:planetInfo seed:seed] autorelease];
     if (diffuseGen == nil)
         return NO;
 
@@ -244,13 +244,13 @@ enum {
     return *texture != nil;
 }
 
-+ (BOOL)generatePlanetTexture:(OOTexture**)texture secondaryTexture:(OOTexture**)secondaryTexture andAtmosphere:(OOTexture**)atmosphere withInfo:(NSDictionary*)planetInfo
++ (BOOL)generatePlanetTexture:(OOTexture**)texture secondaryTexture:(OOTexture**)secondaryTexture andAtmosphere:(OOTexture**)atmosphere withInfo:(NSDictionary*)planetInfo seed:(RANROTSeed)seed
 {
     NSParameterAssert(texture != NULL);
 
     BOOL enqueue = NO;
 
-    OOPlanetTextureGenerator* diffuseGen = [[[self alloc] initWithPlanetInfo:planetInfo] autorelease];
+    OOPlanetTextureGenerator* diffuseGen = [[[self alloc] initWithPlanetInfo:planetInfo seed:seed] autorelease];
     if (diffuseGen == nil)
         return NO;
 
@@ -412,7 +412,7 @@ enum {
         float normalScale = (1 << _planetScale)
 #ifndef NDEBUG
             // test-release only, make normalScale adjustable from within user defaults
-            * [[NSUserDefaults standardUserDefaults] oo_floatForKey:@"p3dnsf" defaultValue:1.0f]
+            * oo::PListView([NSUserDefaults standardUserDefaults]).get<float>(@"p3dnsf", 1.0f)
 #endif
             ; // float normalScale = ...
         if (!generateNormalMap)

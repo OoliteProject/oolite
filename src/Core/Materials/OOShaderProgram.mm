@@ -40,7 +40,30 @@ SOFTWARE.
 #import "ResourceManager.h"
 #import "Universe.h"
 
-static NSMutableDictionary* sShaderCache = nil;
+#include "oofnd/StdLib.hpp"
+
+/*	Cache key -> program, not retained: a program removes itself in -dealloc. Was an
+        NSMutableDictionary of boxed values (bead oo-3rb.10); keys are the NSString keys' UTF-8.
+        Allocated on first use and never freed, as the dictionary was, so a program deallocated
+        during exit never finds it destroyed.
+*/
+static std::unordered_map<std::string, OOShaderProgram*>* sShaderCache = NULL;
+
+static OOShaderProgram* CachedShaderProgram(NSString* cacheKey)
+{
+    if (cacheKey == nil || sShaderCache == NULL)
+        return nil;
+    auto it = sShaderCache->find([cacheKey UTF8String]);
+    return (it != sShaderCache->end()) ? it->second : nil;
+}
+
+static void CacheShaderProgram(NSString* cacheKey, OOShaderProgram* program)
+{
+    if (sShaderCache == NULL)
+        sShaderCache = new std::unordered_map<std::string, OOShaderProgram*>;
+    (*sShaderCache)[[cacheKey UTF8String]] = program;
+}
+
 static OOShaderProgram* sActiveProgram = nil;
 
 static BOOL GetShaderSource(NSString* fileName, NSString* shaderType, NSString* prefix, NSString** outResult);
@@ -81,7 +104,7 @@ static NSString* GetGLSLInfoLog(GLhandleARB shaderObject);
 
     // Use cache to avoid creating duplicate shader programs -- saves on GPU resources and potentially state changes.
     // FIXME: probably needs to respond to graphics resets.
-    result = (OOShaderProgram*)[[sShaderCache objectForKey:cacheKey] pointerValue];
+    result = CachedShaderProgram(cacheKey);
 
     if (result == nil) {
         // No cached program; create one...
@@ -96,9 +119,7 @@ static NSString* GetGLSLInfoLog(GLhandleARB shaderObject);
 
         if (result != nil && cacheKey != nil) {
             // ...and add it to the cache.
-            if (sShaderCache == nil)
-                sShaderCache = [[NSMutableDictionary alloc] init];
-            [sShaderCache setObject:[NSValue valueWithPointer:result] forKey:cacheKey]; // Use NSValue so dictionary doesn't retain program
+            CacheShaderProgram(cacheKey, result); // the cache doesn't retain the program
         }
     }
 
@@ -121,7 +142,7 @@ static NSString* GetGLSLInfoLog(GLhandleARB shaderObject);
     // Use cache to avoid creating duplicate shader programs -- saves on GPU resources and potentially state changes.
     // FIXME: probably needs to respond to graphics resets.
     cacheKey = [NSString stringWithFormat:@"vertex:%@\nfragment:%@\n----\n%@", vertexShaderName, fragmentShaderName, prefixString ?: (NSString*)@""];
-    result = (OOShaderProgram*)[[sShaderCache objectForKey:cacheKey] pointerValue];
+    result = CachedShaderProgram(cacheKey);
 
     if (result == nil) {
         // No cached program; create one...
@@ -152,9 +173,7 @@ static NSString* GetGLSLInfoLog(GLhandleARB shaderObject);
         if (result != nil) {
             // ...and add it to the cache.
             [result autorelease];
-            if (sShaderCache == nil)
-                sShaderCache = [[NSMutableDictionary alloc] init];
-            [sShaderCache setObject:[NSValue valueWithPointer:result] forKey:cacheKey]; // Use NSValue so dictionary doesn't retain program
+            CacheShaderProgram(cacheKey, result); // the cache doesn't retain the program
         }
     }
 
@@ -173,7 +192,8 @@ static NSString* GetGLSLInfoLog(GLhandleARB shaderObject);
 #endif
 
     if (key != nil) {
-        [sShaderCache removeObjectForKey:key];
+        if (sShaderCache != NULL)
+            sShaderCache->erase([key UTF8String]);
         [key release];
     }
 

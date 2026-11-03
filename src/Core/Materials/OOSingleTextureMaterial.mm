@@ -26,8 +26,8 @@ SOFTWARE.
 */
 
 #import "OOSingleTextureMaterial.h"
-#import "OOCollectionExtractors.h"
 #import "OOFunctionAttributes.h"
+#import "OOPListView.h"
 #import "OOTexture.h"
 
 @implementation OOSingleTextureMaterial
@@ -37,7 +37,7 @@ SOFTWARE.
     id texSpec = nil;
 
     if (configuration != nil) {
-        texSpec = [configuration oo_textureSpecifierForKey:@"diffuse_map" defaultName:name];
+        texSpec = oo::PListView(configuration).get<oo::TextureSpecifier>(@"diffuse_map", name);
     } else {
         texSpec = name;
     }

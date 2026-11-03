@@ -35,9 +35,10 @@ SOFTWARE.
 
 #import "OOMaths.h"
 #import "OOTypes.h"
+#import "oofnd/objc/OOObject.h"
 #import <Foundation/Foundation.h>
 
-@interface OOSoundSourcePool : NSObject {
+@interface OOSoundSourcePool : OOObject {
 @private
     struct OOSoundSourcePoolElement* _sources;
     uint8_t _count;

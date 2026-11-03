@@ -220,7 +220,7 @@ OOINLINE NSComparisonResult PQCompare(id a, id b, SEL comparator)
     return _count ^ [_heap[0] hash];
 }
 
-- (id)copyWithZone:(NSZone*)zone
+- (id)copyWithZone:(OOZone*)zone
 {
     OOPriorityQueue* copy = nil;
 

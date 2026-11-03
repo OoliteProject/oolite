@@ -41,6 +41,8 @@
 #import "ResourceManager.h"
 #import "Universe.h"
 
+#include "oofnd/StdLib.hpp"
+
 NSString* const kOOTextureSpecifierNameKey = @"name";
 NSString* const kOOTextureSpecifierSwizzleKey = @"extract_channel";
 NSString* const kOOTextureSpecifierMinFilterKey = @"min_filter";
@@ -65,11 +67,11 @@ static NSString* const kOOTextureSpecifierFlagValueInternalKey = @"_oo_internal_
 /*	Texture caching:
         two and a half parallel caching mechanisms are used. sLiveTextureCache
         tracks all live texture objects with cache keys, without retaining them
-        (using NSValues to refer to the objects).
+        (a std::unordered_map of raw pointers keyed by the cache key's UTF-8).
 
         sAllLiveTextures tracks all textures, including ones without cache keys,
-        so that they can be notified of graphics resets. This also uses NSValues
-        to avoid retaining the textures.
+        so that they can be notified of graphics resets. This also holds raw
+        pointers to avoid retaining the textures.
 
         sRecentTextures tracks up to kRecentTexturesCount textures which
         have been used recently, and retains them.
@@ -89,8 +91,10 @@ enum {
     kRecentTexturesCount = 50
 };
 
-static NSMutableDictionary* sLiveTextureCache;
-static NSMutableSet* sAllLiveTextures;
+// Allocated on first use and never freed, so a texture deallocated during exit never finds them
+// destroyed. Were an NSMutableDictionary / NSMutableSet of boxed pointers (bead oo-3rb.10).
+static std::unordered_map<std::string, OOTexture*>* sLiveTextureCache;
+static std::unordered_set<OOTexture*>* sAllLiveTextures;
 static OOCache* sRecentTextures;
 
 static BOOL sCheckedExtensions;
@@ -240,9 +244,9 @@ static NSString* sGlobalTraceContext = nil;
 - (id)init
 {
     if ((self = [super init])) {
-        if (EXPECT_NOT(sAllLiveTextures == nil))
-            sAllLiveTextures = [[NSMutableSet alloc] init];
-        [sAllLiveTextures addObject:[NSValue valueWithPointer:self]];
+        if (EXPECT_NOT(sAllLiveTextures == NULL))
+            sAllLiveTextures = new std::unordered_set<OOTexture*>;
+        sAllLiveTextures->insert(self);
     }
 
     return self;
@@ -250,7 +254,8 @@ static NSString* sGlobalTraceContext = nil;
 
 - (void)dealloc
 {
-    [sAllLiveTextures removeObject:[NSValue valueWithPointer:self]];
+    if (sAllLiveTextures != NULL)
+        sAllLiveTextures->erase(self);
 
     [super dealloc];
 }
@@ -338,8 +343,8 @@ static NSString* sGlobalTraceContext = nil;
             live texture objects.
     */
     SET_TRACE_CONTEXT(@"clearing sLiveTextureCache");
-    [sLiveTextureCache autorelease];
-    sLiveTextureCache = nil;
+    if (sLiveTextureCache != NULL)
+        sLiveTextureCache->clear();
 
     SET_TRACE_CONTEXT(@"clearing sRecentTextures");
     [sRecentTextures autorelease];
@@ -349,13 +354,14 @@ static NSString* sGlobalTraceContext = nil;
 
 + (void)rebindAllTextures
 {
-    NSEnumerator* textureEnum = nil;
-    id texture = nil;
-
     // Keeping around unused, cached textures is unhelpful at this point.
     DESTROY(sRecentTextures);
 
-    for (textureEnum = [sAllLiveTextures objectEnumerator]; (texture = (id)[[textureEnum nextObject] pointerValue]);) {
+    if (sAllLiveTextures == NULL)
+        return;
+    // A copy: the set is unordered (as the NSSet was) and must not change under the loop.
+    const std::vector<OOTexture*> textures(sAllLiveTextures->begin(), sAllLiveTextures->end());
+    for (OOTexture* texture : textures) {
         [texture forceRebind];
     }
 }
@@ -376,10 +382,11 @@ static NSString* sGlobalTraceContext = nil;
 
 + (NSSet*)allTextures
 {
-    NSMutableSet* result = [NSMutableSet setWithCapacity:[sAllLiveTextures count]];
-    NSValue* box = nil;
-    foreach (box, sAllLiveTextures) {
-        [result addObject:(id)[box pointerValue]];
+    NSMutableSet* result = [NSMutableSet setWithCapacity:(sAllLiveTextures != NULL) ? sAllLiveTextures->size() : 0];
+    if (sAllLiveTextures != NULL) {
+        for (OOTexture* texture : *sAllLiveTextures) {
+            [result addObject:texture];
+        }
     }
 
     return result;
@@ -416,12 +423,12 @@ static NSString* sGlobalTraceContext = nil;
     if (cacheKey == nil)
         return;
 
-    // Add self to in-use textures cache, wrapped in an NSValue so the texture isn't retained by the cache.
-    if (EXPECT_NOT(sLiveTextureCache == nil))
-        sLiveTextureCache = [[NSMutableDictionary alloc] init];
+    // Add self to in-use textures cache, as a raw pointer so the texture isn't retained by the cache.
+    if (EXPECT_NOT(sLiveTextureCache == NULL))
+        sLiveTextureCache = new std::unordered_map<std::string, OOTexture*>;
 
     SET_TRACE_CONTEXT(@"in-use textures cache - SHOULD NOT RETAIN");
-    [sLiveTextureCache setObject:[NSValue valueWithPointer:self] forKey:cacheKey];
+    (*sLiveTextureCache)[[cacheKey UTF8String]] = self;
     CLEAR_TRACE_CONTEXT();
 
     // Add self to recent textures cache.
@@ -445,7 +452,8 @@ static NSString* sGlobalTraceContext = nil;
     if (cacheKey == nil)
         return;
 
-    [sLiveTextureCache removeObjectForKey:cacheKey];
+    if (sLiveTextureCache != NULL)
+        sLiveTextureCache->erase([cacheKey UTF8String]);
     if (EXPECT_NOT([sRecentTextures objectForKey:cacheKey] == self)) {
         /* Experimental for now: I think the recent crash problems may
          * be because if the last reference to a texture is in
@@ -470,7 +478,10 @@ static NSString* sGlobalTraceContext = nil;
 {
 #ifndef OOTEXTURE_NO_CACHE
     if (key != nil) {
-        return (OOTexture*)[[sLiveTextureCache objectForKey:key] pointerValue];
+        if (sLiveTextureCache == NULL)
+            return nil;
+        auto it = sLiveTextureCache->find([key UTF8String]);
+        return (it != sLiveTextureCache->end()) ? it->second : nil;
     }
     return nil;
 #else

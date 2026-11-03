@@ -31,8 +31,9 @@ SOFTWARE.
 #import "OOMaths.h"
 #import "OOOpenGL.h"
 #import "OOWeakReference.h"
+#import "oofnd/objc/OOObject.h"
 
-@interface OODrawable : NSObject
+@interface OODrawable : OOObject
 
 - (void)renderOpaqueParts;
 - (void)renderTranslucentParts;

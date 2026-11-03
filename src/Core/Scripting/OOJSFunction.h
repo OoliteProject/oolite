@@ -26,9 +26,10 @@ MA 02110-1301, USA.
 */
 
 #import "OOFoundation.h"
+#import "oofnd/objc/OOObject.h"
 #include <quickjs.h>
 
-@interface OOJSFunction : NSObject {
+@interface OOJSFunction : OOObject {
 @private
     JSValue _function; // Owned; zero-filled (not an object) when invalid.
     NSString* _name;

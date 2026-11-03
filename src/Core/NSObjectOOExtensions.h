@@ -39,3 +39,15 @@ SOFTWARE.
 #endif
 
 @end
+
+// The same for classes rooted on OOObject (ADR-0029).
+@interface OOObject (OOExtensions)
+
+#ifndef NDEBUG
+
++ (size_t)oo_instanceSize;
+- (size_t)oo_objectSize;
+
+#endif
+
+@end

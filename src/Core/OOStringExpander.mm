@@ -186,37 +186,38 @@ NSString* OOExpandDescriptionString(Random_Seed seed, NSString* string, NSDictio
         OOSetReallyRandomRANROTAndRndSeeds();
     }
 
-    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-    NSString *result = nil, *intermediate = nil;
-    @try {
-        // TODO: profile caching the results. Would need to keep track of whether we've done something nondeterministic (array selection, %R etc).
-        if (options & kOOExpandKey) {
-            intermediate = ExpandStringKey(&context, string, kStackAllocationLimit, kRecursionLimit);
-        } else {
-            intermediate = Expand(&context, string, kStackAllocationLimit, kRecursionLimit);
+    NSString* result = nil;
+    @autoreleasepool {
+        NSString* intermediate = nil;
+        @try {
+            // TODO: profile caching the results. Would need to keep track of whether we've done something nondeterministic (array selection, %R etc).
+            if (options & kOOExpandKey) {
+                intermediate = ExpandStringKey(&context, string, kStackAllocationLimit, kRecursionLimit);
+            } else {
+                intermediate = Expand(&context, string, kStackAllocationLimit, kRecursionLimit);
+            }
+            if (!context.hasPercentR) {
+                result = intermediate;
+            } else {
+                result = ExpandPercentR(&context, intermediate);
+            }
         }
-        if (!context.hasPercentR) {
-            result = intermediate;
-        } else {
-            result = ExpandPercentR(&context, intermediate);
+        @finally {
+            [context.systemName release];
+            [context.overrides release];
+            [context.legacyLocals release];
+            [context.systemNameWithIan release];
+            [context.randomNameN release];
+            [context.randomNameR release];
+            [context.systemDescriptions release];
         }
-    }
-    @finally {
-        [context.systemName release];
-        [context.overrides release];
-        [context.legacyLocals release];
-        [context.systemNameWithIan release];
-        [context.randomNameN release];
-        [context.randomNameR release];
-        [context.systemDescriptions release];
-    }
 
-    if (options & kOOExpandReseedRNG) {
-        OORestoreRandomState(savedRandomState);
-    }
+        if (options & kOOExpandReseedRNG) {
+            OORestoreRandomState(savedRandomState);
+        }
 
-    result = [result copy];
-    [pool release];
+        result = [result copy];
+    }
     return [result autorelease];
 }
 

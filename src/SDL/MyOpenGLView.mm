@@ -28,10 +28,10 @@ MA 02110-1301, USA.
 #import "GuiDisplayGen.h"
 #import "MyOpenGLView+Input.h"
 #import "NSFileManagerOOExtensions.h" // to find savedir
-#import "OOCollectionExtractors.h" // for splash screen settings
 #import "OOConstToString.h"
 #import "OOFullScreenController.h"
 #import "OOGraphicsResetManager.h"
+#import "OOPListView.h" // for splash screen settings
 #import "OOSDLJoystickManager.h"
 #import "OOSound.h"
 #import "PlanetEntity.h"
@@ -49,6 +49,7 @@ MA 02110-1301, USA.
 
 extern "C" int SaveEXRSnapshot(const char* outfilename, int width, int height, const float* rgb);
 
+#include "oofnd/Date.hpp"
 #include <ctype.h>
 
 @interface MyOpenGLView (OOPrivate)
@@ -130,7 +131,7 @@ extern "C" int SaveEXRSnapshot(const char* outfilename, int width, int height, c
      * doesn't give any problems (other than speed on low-end graphics
      * cards) a game options entry might be useful. - CIM, 24 Aug 2013*/
 
-    if ([prefs oo_boolForKey:@"anti-aliasing" defaultValue:NO]) {
+    if (oo::PListView(prefs).get<BOOL>(@"anti-aliasing", NO)) {
         SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
         SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
     }
@@ -250,12 +251,12 @@ extern "C" int SaveEXRSnapshot(const char* outfilename, int width, int height, c
     _colorSaturation = 1.0f;
 
 #if OOLITE_WINDOWS
-    _hdrMaxBrightness = [prefs oo_floatForKey:@"hdr-max-brightness" defaultValue:1000.0f];
-    _hdrPaperWhiteBrightness = [prefs oo_floatForKey:@"hdr-paperwhite-brightness" defaultValue:200.0f];
-    _hdrToneMapper = OOHDRToneMapperFromString([prefs oo_stringForKey:@"hdr-tone-mapper" defaultValue:@"OOHDR_TONEMAPPER_ACES_APPROX"]);
+    _hdrMaxBrightness = oo::PListView(prefs).get<float>(@"hdr-max-brightness", 1000.0f);
+    _hdrPaperWhiteBrightness = oo::PListView(prefs).get<float>(@"hdr-paperwhite-brightness", 200.0f);
+    _hdrToneMapper = OOHDRToneMapperFromString(oo::PListView(prefs).get<NSString*>(@"hdr-tone-mapper", @"OOHDR_TONEMAPPER_ACES_APPROX"));
 #endif
 
-    _sdrToneMapper = OOSDRToneMapperFromString([prefs oo_stringForKey:@"sdr-tone-mapper" defaultValue:@"OOSDR_TONEMAPPER_ACES"]);
+    _sdrToneMapper = OOSDRToneMapperFromString(oo::PListView(prefs).get<NSString*>(@"sdr-tone-mapper", @"OOSDR_TONEMAPPER_ACES"));
 
 #if OOLITE_MAC_OS_X
     SDL_GL_SetSwapInterval(vSyncPreference ? 1 : 0);
@@ -314,9 +315,9 @@ extern "C" int SaveEXRSnapshot(const char* outfilename, int width, int height, c
     // SDL splash screen  settings
 
     NSUserDefaults* prefs = [NSUserDefaults standardUserDefaults];
-    showSplashScreen = [prefs oo_boolForKey:@"splash-screen" defaultValue:YES];
-    vSyncPreference = [prefs oo_boolForKey:@"v-sync" defaultValue:YES];
-    bitsPerColorComponent = [prefs oo_boolForKey:@"hdr" defaultValue:NO] ? 16 : 8;
+    showSplashScreen = oo::PListView(prefs).get<BOOL>(@"splash-screen", YES);
+    vSyncPreference = oo::PListView(prefs).get<BOOL>(@"v-sync", YES);
+    bitsPerColorComponent = oo::PListView(prefs).get<BOOL>(@"hdr", NO) ? 16 : 8;
 
     NSString* arg = nil;
     BOOL noSplashArgFound = NO;
@@ -404,7 +405,7 @@ extern "C" int SaveEXRSnapshot(const char* outfilename, int width, int height, c
     virtualJoystickPosition = NSMakePoint(0.0, 0.0);
     mouseWarped = NO;
 
-    _mouseVirtualStickSensitivityFactor = OOClamp_0_1_f([prefs oo_floatForKey:@"mouse-flight-sensitivity" defaultValue:0.95f]);
+    _mouseVirtualStickSensitivityFactor = OOClamp_0_1_f(oo::PListView(prefs).get<float>(@"mouse-flight-sensitivity", 0.95f));
     // ensure no chance of a divide by zero later on
     if (_mouseVirtualStickSensitivityFactor < 0.005f)
         _mouseVirtualStickSensitivityFactor = 0.005f;
@@ -413,7 +414,7 @@ extern "C" int SaveEXRSnapshot(const char* outfilename, int width, int height, c
     allowingStringInput = gvStringInputNo;
     isAlphabetKeyDown = NO;
 
-    timeIntervalAtLastClick = timeSinceLastMouseWheel = [NSDate timeIntervalSinceReferenceDate];
+    timeIntervalAtLastClick = timeSinceLastMouseWheel = oo::date::monotonicSeconds(); // intervals only (MyOpenGLView+Input.mm)
 
     _mouseWheelDelta = 0.0f;
 
@@ -1102,7 +1103,7 @@ extern "C" int SaveEXRSnapshot(const char* outfilename, int width, int height, c
 
     // if outputting HDR signal, save also either an .exr or a Radiance .hdr snapshot
     if ([self hdrOutput]) {
-        NSString* fileExtension = [[NSUserDefaults standardUserDefaults] oo_stringForKey:@"hdr-snapshot-format" defaultValue:SNAPSHOTHDR_EXTENSION_DEFAULT];
+        NSString* fileExtension = oo::PListView([NSUserDefaults standardUserDefaults]).get<NSString*>(@"hdr-snapshot-format", SNAPSHOTHDR_EXTENSION_DEFAULT);
 
         // we accept file extension with or without a leading dot; if it is without, insert it at the beginning now
         if (![[fileExtension substringToIndex:1] isEqual:@"."])

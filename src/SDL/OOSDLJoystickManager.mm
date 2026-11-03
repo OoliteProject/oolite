@@ -25,6 +25,7 @@ MA 02110-1301, USA.
 
 #import "OOSDLJoystickManager.h"
 #import "OOLogging.h"
+#include "oofnd/Log.hpp"
 
 #define kOOLogUnconvertedNSLog @"unclassified.OOSDLJoystickManager"
 
@@ -38,10 +39,10 @@ MA 02110-1301, USA.
 
     // Find and open the sticks. Make sure that we don't fail if more joysticks than MAX_STICKS are detected.
     SDL_JoystickID* joystickIds = SDL_GetJoysticks(&stickCount);
-    OOLog(@"joystick.init", @"Number of joysticks detected: %d", stickCount);
+    OO_LOG("joystick.init", "Number of joysticks detected: {}", stickCount);
     if (stickCount > MAX_STICKS) {
         stickCount = MAX_STICKS;
-        OOLog(@"joystick.init", @"Number of joysticks detected exceeds maximum number of joysticks allowed. Setting number of active joysticks to %d.", MAX_STICKS);
+        OO_LOG("joystick.init", "Number of joysticks detected exceeds maximum number of joysticks allowed. Setting number of active joysticks to {}.", MAX_STICKS);
     }
     if (stickCount) {
         for (i = 0; i < stickCount; i++) {
@@ -54,7 +55,7 @@ MA 02110-1301, USA.
             if (stick[i]) {
                 [idMap setObject:[NSNumber numberWithInt:i] forKey:[NSString stringWithFormat:@"%d", joystickIds[i]]];
             } else {
-                OOLog(@"joystick.init", @"Failed to open joystick #%d", i);
+                OO_LOG("joystick.init", "Failed to open joystick #{}", i);
             }
         }
         SDL_SetJoystickEventsEnabled(true);
@@ -287,7 +288,7 @@ MA 02110-1301, USA.
     }
 
     default:
-        OOLog(@"handleSDLEvent.unknownEvent", @"%@", @"JoystickHandler was sent an event it doesn't know");
+        OO_LOG("handleSDLEvent.unknownEvent", "{}", "JoystickHandler was sent an event it doesn't know");
     }
     return rc;
 }

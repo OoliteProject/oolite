@@ -29,10 +29,10 @@ SOFTWARE.
 #import "OOALSoundDecoder.h"
 #import "OOALSoundMixer.h"
 #import "OOALStreamedSound.h"
-#import "OOCollectionExtractors.h"
 #import "OOLogging.h"
 #import "OOMaths.h"
 #import "OOOpenALController.h"
+#import "OOPListView.h"
 
 #define KEY_VOLUME_CONTROL @"volume_control"
 
@@ -50,7 +50,7 @@ static BOOL sIsSoundOK = NO;
         OOOpenALController* controller = [OOOpenALController sharedController];
         if (controller != nil) {
             sIsSoundOK = YES;
-            float volume = [[NSUserDefaults standardUserDefaults] oo_floatForKey:KEY_VOLUME_CONTROL defaultValue:0.5];
+            float volume = oo::PListView([NSUserDefaults standardUserDefaults]).get<float>(KEY_VOLUME_CONTROL, 0.5);
             [self setMasterVolume:volume];
         }
     }

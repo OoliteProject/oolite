@@ -29,18 +29,16 @@ SOFTWARE.
 
 id OODeepCopy(id object)
 {
-    NSAutoreleasePool* pool = nil;
     NSMutableSet* objects = nil;
 
     if (object == nil)
         return nil;
 
-    pool = [[NSAutoreleasePool alloc] init];
-    objects = [NSMutableSet set];
+    @autoreleasepool {
+        objects = [NSMutableSet set];
 
-    object = [object ooDeepCopyWithSharedObjects:objects];
-
-    [pool release];
+        object = [object ooDeepCopyWithSharedObjects:objects];
+    }
 
     return object;
 }
@@ -50,6 +48,20 @@ id OODeepCopy(id object)
 - (id)ooDeepCopyWithSharedObjects:(NSMutableSet*)objects
 {
     if ([self conformsToProtocol:@protocol(NSCopying)]) {
+        return [self copy];
+    } else {
+        return [self retain];
+    }
+}
+
+@end
+
+// NSObject (OODeepCopy) above, for classes rooted on OOObject (ADR-0029).
+@implementation OOObject (OODeepCopy)
+
+- (id)ooDeepCopyWithSharedObjects:(NSMutableSet*)objects
+{
+    if ([self conformsToProtocol:@protocol(OOCopying)]) {
         return [self copy];
     } else {
         return [self retain];

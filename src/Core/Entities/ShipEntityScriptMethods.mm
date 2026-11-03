@@ -24,7 +24,7 @@ MA 02110-1301, USA.
 */
 
 #import "ShipEntityScriptMethods.h"
-#import "OOCollectionExtractors.h"
+#import "OOPListView.h"
 #import "Universe.h"
 
 static NSString* const kOOLogNoteAddShips = @"script.debug.note.addShips";
@@ -74,7 +74,7 @@ static NSString* const kOOLogNoteAddShips = @"script.debug.note.addShips";
         spawned = [UNIVERSE spawnShipWithRole:role near:ship];
         if (spawned != nil) {
             [spawned setTemperature:[self randomEjectaTemperature]];
-            if ([self isMissileFlagSet] && [[spawned shipInfoDictionary] oo_boolForKey:@"is_submunition"]) {
+            if ([self isMissileFlagSet] && oo::PListView([spawned shipInfoDictionary]).get<BOOL>(@"is_submunition")) {
                 [spawned setOwner:[self owner]];
                 [spawned addTarget:[self primaryTarget]];
                 [spawned setIsMissileFlag:YES];

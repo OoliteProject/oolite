@@ -382,8 +382,9 @@ namespace plist_detail {
     // " 2001" reads as 200), a space in the format skips any run of spaces, other literals must match
     // while input remains, trailing input is ignored, and out-of-range fields roll over (month 13 is
     // next January; absoluteGregorianDay counts every month past 12 as 31 days). nullopt where GNUstep
-    // returns nil. One deliberate difference (ADR-0027 item 7): GNUstep reads the "Z" format in the
-    // machine's LOCAL time zone (it has no %z); oofnd reads it as UTC, which is what the Z says.
+    // returns nil (including a day or month of 0). One deliberate difference (ADR-0027 item 7):
+    // GNUstep reads the "Z" format, and a %z offset beyond 18 hours, in the machine's LOCAL time zone;
+    // oofnd reads them as UTC, which is what the Z says.
     inline std::optional<double> parseCalendarDate(std::string_view s, bool zulu)
     {
         const std::string_view format = zulu ? "%Y-%m-%dT%H:%M:%SZ" : "%Y-%m-%d %H:%M:%S %z";
@@ -430,9 +431,13 @@ namespace plist_detail {
                 break;
             case 'm':
                 src += getDigits(2, &month);
+                if (!error && month < 1)
+                    error = true; // "Month of year is zero"
                 break;
             case 'd':
                 src += getDigits(2, &day);
+                if (!error && day < 1)
+                    error = true; // "Day of month is zero"
                 break;
             case 'H':
                 src += getDigits(2, &hour);
@@ -456,7 +461,10 @@ namespace plist_detail {
                     src += found;
                     if (found == 2)
                         zone *= 100;
-                    zoneSeconds = sign * ((zone / 100) * 60 + (zone % 100)) * 60;
+                    // +timeZoneForSecondsFromGMT: is nil beyond 18 hours, and a nil zone is the
+                    // local one: UTC in oofnd (ADR-0027 item 7).
+                    const long seconds = ((zone / 100) * 60 + (zone % 100)) * 60;
+                    zoneSeconds = seconds > 64800 ? 0 : sign * seconds;
                 }
                 break;
             }

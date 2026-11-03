@@ -29,9 +29,9 @@ MA 02110-1301, USA.
 #import "AI.h"
 #import "MyOpenGLView.h"
 #import "OOCharacter.h"
-#import "OOCollectionExtractors.h"
 #import "OOColor.h"
 #import "OODebugFlags.h"
+#import "OOPListView.h"
 #import "OOStringExpander.h"
 #import "OOStringParsing.h"
 #import "PlayerEntity.h"
@@ -130,15 +130,15 @@ MA 02110-1301, USA.
 
     scanClass = CLASS_NO_DRAW;
 
-    _sunBrightnessFactor = [[NSUserDefaults standardUserDefaults] oo_floatForKey:@"sbf" defaultValue:80.0f];
-    _sunCoronaAlphaFactor = [[NSUserDefaults standardUserDefaults] oo_floatForKey:@"scaf" defaultValue:0.005f];
+    _sunBrightnessFactor = oo::PListView([NSUserDefaults standardUserDefaults]).get<float>(@"sbf", 80.0f);
+    _sunCoronaAlphaFactor = oo::PListView([NSUserDefaults standardUserDefaults]).get<float>(@"scaf", 0.005f);
 
     [self setSunColor:sun_color];
 
-    [self setName:OOExpand([dict oo_stringForKey:KEY_SUNNAME defaultValue:@"[oolite-default-star-name]"])];
+    [self setName:OOExpand(oo::PListView(dict).get<NSString*>(KEY_SUNNAME, @"[oolite-default-star-name]"))];
 
-    corona_blending = OOClamp_0_1_f([dict oo_floatForKey:@"corona_hues" defaultValue:1.0f]);
-    corona_speed_factor = [dict oo_floatForKey:@"corona_shimmer" defaultValue:-1.0];
+    corona_blending = OOClamp_0_1_f(oo::PListView(dict).get<float>(@"corona_hues", 1.0f));
+    corona_speed_factor = oo::PListView(dict).get<float>(@"corona_shimmer", -1.0);
     if (corona_speed_factor < 0) {
         // from .22222 to 2
         corona_speed_factor = 1.0 / (0.5 + 2.0 * (randf() + randf()));
@@ -619,9 +619,9 @@ MA 02110-1301, USA.
     static GLfloat oldRadius = 0.0;
     if ([key isEqualToString:@"sun_radius"]) {
         oldRadius = [object doubleValue]; // clamp corona_flare in case planetinfo.plist / savegame contains the wrong value
-        [self setRadius:oldRadius andCorona:[dict oo_floatForKey:@"corona_flare" defaultValue:0.0f]];
+        [self setRadius:oldRadius andCorona:oo::PListView(dict).get<float>(@"corona_flare", 0.0f)];
     } else if ([key isEqualToString:KEY_SUNNAME]) {
-        [self setName:[dict oo_stringForKey:KEY_SUNNAME]];
+        [self setName:oo::PListView(dict).get<NSString*>(KEY_SUNNAME)];
     } else if ([key isEqualToString:@"corona_flare"]) {
         [self setRadius:collision_radius andCorona:[object floatValue]];
     } else if ([key isEqualToString:@"corona_shimmer"]) {
@@ -630,12 +630,12 @@ MA 02110-1301, USA.
         corona_blending = OOClamp_0_1_f([object floatValue]);
     } else if ([key isEqualToString:@"sun_gone_nova"]) {
 
-        if ([dict oo_boolForKey:key]) {
+        if (oo::PListView(dict).get<BOOL>(key)) {
             [self setGoingNova:YES inTime:0];
         } else {
             [self setGoingNova:NO inTime:0];
             // oldRadius is always the radius we had before going nova...
-            [self setRadius:oldRadius andCorona:[dict oo_floatForKey:@"corona_flare" defaultValue:0.0f]];
+            [self setRadius:oldRadius andCorona:oo::PListView(dict).get<float>(@"corona_flare", 0.0f)];
         }
     } else {
         OOLogWARN(@"script.warning", @"Change to property '%@' not applied, will apply only after leaving this system.", key);

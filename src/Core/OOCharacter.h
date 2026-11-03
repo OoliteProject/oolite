@@ -27,11 +27,12 @@ MA 02110-1301, USA.
 #import "OOJSPropID.h"
 #import "OOTypes.h"
 #import "legacy_random.h"
+#import "oofnd/objc/OOObject.h"
 #import <Foundation/Foundation.h>
 
 @class OOJSScript;
 
-@interface OOCharacter : NSObject {
+@interface OOCharacter : OOObject {
 @private
     NSString* _name;
     NSString* _shortDescription;

@@ -11,10 +11,17 @@ oofnd_tests = [
     'test_filesystem',
     'test_resourcepaths',
     'test_cocoa_macros',
+    'test_notification',
+    'test_date',
+    'test_stdlib',
     'test_process',
     'test_thread',
     'test_defaults',
     'test_foundation_types',
+    'test_string',
+    'test_string_compare',
+    'test_encoding',
+    'test_log',
 ]
 
 foreach t : oofnd_tests
@@ -57,6 +64,7 @@ oofnd_objc_tests = [
     'test_objc_floor',
     'test_objc_runtime',
     'test_objc_exception',
+    'test_objc_ref',
 ]
 
 foreach t : oofnd_objc_tests

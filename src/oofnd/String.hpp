@@ -1,0 +1,968 @@
+/*	oofnd/String.hpp
+        oo::str: string utilities over UTF-8 std::string (ADR-0013 decision 4), the C++ shape of the
+        NSString methods Oolite relies on and of its own NSString categories (bead oo-dps, proposed
+        ADR-0034). Every function reproduces what GNUstep base 1.31.1 does, character for character;
+        tests/unit/oofnd/test_string.cpp pins each one against output captured from it.
+
+            Foundation / Oolite category                  oo::str
+            --------------------------------------------  ----------------------------------------------
+            [s length] (UTF-16 units)                     oo::str::length(s)
+            [s uppercaseString] / lowercaseString         oo::str::uppercase(s) / lowercase(s)
+            [s capitalizedString]                         oo::str::capitalized(s)
+            [s caseInsensitiveCompare:t] == NSOrderedSame oo::str::equalsIgnoringCaseAscii(s, t)  (t ASCII)
+            [s stringByTrimmingLeadingWhitespace          oo::str::trimLeadingWhitespaceAndNewlines(s)
+                AndNewlineCharacters]   (NSStringOOExtensions)
+            ... TrailingWhitespaceAndNewlineCharacters    oo::str::trimTrailingWhitespaceAndNewlines(s)
+            [s stringByTrimmingCharactersInSet:           oo::str::trimWhitespaceAndNewlines(s)
+                whitespaceAndNewlineCharacterSet]
+            [s oo_hash]                                   oo::str::ooHash(s)
+            [s utf16DataWithBOM:b]                        oo::str::utf16Data(s, b)   (an oo::Data)
+            +stringWithUTF16String:                       oo::utf16ToUtf8(u16string_view(chars))  (PList.hpp)
+            OOTabString(n)                                oo::str::tabString(n)
+            [m appendLine:l]                              oo::str::appendLine(m, l)
+            [m deleteCharacterAtIndex:i]                  oo::str::deleteUnitAt(m, i)  (i in UTF-16 units)
+            [s pathExtension]                             oo::str::pathExtension(s)
+            [s pathHasExtension:e]  (OOStringParsing)     oo::str::pathHasExtension(s, e)
+            [s pathHasExtensionInArray:a]                 oo::str::pathHasExtensionIn(s, a)
+            [m replaceOccurrencesOfString:t withString:r  oo::str::replaceOccurrences(m, t, r)
+        options:0 range:<all>]                    (NSLiteralSearch: ..., Search::literal)
+    [s componentsSeparatedByString:sep]           oo::str::split(s, sep)
+            ScanTokensFromString(s)                       oo::str::tokens(s)
+            [s intValue] / longLongValue / doubleValue    oo::str::intValue(s) / longLongValue / doubleValue
+            [s hasPrefix:p] / hasSuffix:                  oo::str::hasPrefix(s, p) / hasSuffix(s, p)
+            [s compare:t] / [s caseInsensitiveCompare:t]  oo::str::compare(s, t) / caseInsensitiveCompare(s, t)  (<0, 0, >0)
+            ComponentsFromVersionString(s)                oo::str::versionComponents(s)
+            CompareVersions(a, b)                         oo::str::compareVersions(a, b)  (<0, 0, >0)
+            [NSString stringWithFormat:f, ...] (no %@)    oo::str::format(f, ...)
+
+        Strings are UTF-8 (WTF-8 for a lone surrogate, as oo::PList holds them). Where GNUstep's
+        answer depends on UTF-16 (case tables, character sets, lengths and indices), the function
+        works on the UTF-16 units exactly as NSString does and converts back.
+
+        Header-only, C++20, compiles with -fno-exceptions.
+*/
+
+#ifndef OOFND_STRING_HPP
+#define OOFND_STRING_HPP
+
+// Objective-C++ callers see OOCocoa.h's `#define true 1` / `#define false 0`; suspend them for
+// this header (proposed ADR-0028).
+#pragma push_macro("true")
+#pragma push_macro("false")
+#undef true
+#undef false
+
+#include "oofnd/Data.hpp"
+#include "oofnd/PList.hpp" // utf8ToUtf16 / utf16ToUtf8, and PListGet.hpp's GNUstep number readers
+
+#include <algorithm>
+#include <cstdarg>
+#include <cstdint>
+#include <cstdio>
+#include <iterator>
+#include <string>
+#include <string_view>
+#include <vector>
+
+namespace oo::str {
+
+// --- character classes and case, GNUstep 1.31.1's tables (probed over the BMP) ---------------
+
+// +[NSCharacterSet whitespaceAndNewlineCharacterSet]. The set GNUstep's trimming, tokenising,
+// NSScanner skipping and -capitalizedString word breaks all use.
+constexpr bool isWhitespaceOrNewline(char16_t c) noexcept { return plist_get::isScannerWhitespace(c); }
+
+namespace detail {
+
+    // A run of units first..last (every stride-th one) whose case mapping is c + delta.
+    struct CaseRun {
+        char16_t first, last;
+        std::int16_t delta;
+        std::uint8_t stride;
+    };
+
+    // uni_toupper / uni_tolower as -uppercaseString / -lowercaseString apply them, one unit to one
+    // unit (GNUstep maps no unit to several). Generated from the probe's full BMP table.
+    inline constexpr CaseRun kUpper[] = {
+        { 0x0061, 0x007A, -32, 1 },
+        { 0x00B5, 0x00B5, 743, 1 },
+        { 0x00E0, 0x00F6, -32, 1 },
+        { 0x00F8, 0x00FE, -32, 1 },
+        { 0x00FF, 0x00FF, 121, 1 },
+        { 0x0101, 0x012F, -1, 2 },
+        { 0x0131, 0x0131, -232, 1 },
+        { 0x0133, 0x0137, -1, 2 },
+        { 0x013A, 0x0148, -1, 2 },
+        { 0x014B, 0x0177, -1, 2 },
+        { 0x017A, 0x017E, -1, 2 },
+        { 0x017F, 0x017F, -300, 1 },
+        { 0x0183, 0x0185, -1, 2 },
+        { 0x0188, 0x0188, -1, 1 },
+        { 0x018C, 0x018C, -1, 1 },
+        { 0x0192, 0x0192, -1, 1 },
+        { 0x0195, 0x0195, 97, 1 },
+        { 0x0199, 0x0199, -1, 1 },
+        { 0x01A1, 0x01A5, -1, 2 },
+        { 0x01A8, 0x01A8, -1, 1 },
+        { 0x01AD, 0x01AD, -1, 1 },
+        { 0x01B0, 0x01B0, -1, 1 },
+        { 0x01B4, 0x01B6, -1, 2 },
+        { 0x01B9, 0x01B9, -1, 1 },
+        { 0x01BD, 0x01BD, -1, 1 },
+        { 0x01BF, 0x01BF, 56, 1 },
+        { 0x01C5, 0x01C5, -1, 1 },
+        { 0x01C6, 0x01C6, -2, 1 },
+        { 0x01C8, 0x01C8, -1, 1 },
+        { 0x01C9, 0x01C9, -2, 1 },
+        { 0x01CB, 0x01CB, -1, 1 },
+        { 0x01CC, 0x01CC, -2, 1 },
+        { 0x01CE, 0x01DC, -1, 2 },
+        { 0x01DD, 0x01DD, -79, 1 },
+        { 0x01DF, 0x01EF, -1, 2 },
+        { 0x01F2, 0x01F2, -1, 1 },
+        { 0x01F3, 0x01F3, -2, 1 },
+        { 0x01F5, 0x01F5, -1, 1 },
+        { 0x01F9, 0x021F, -1, 2 },
+        { 0x0223, 0x0233, -1, 2 },
+        { 0x0253, 0x0253, -210, 1 },
+        { 0x0254, 0x0254, -206, 1 },
+        { 0x0256, 0x0257, -205, 1 },
+        { 0x0259, 0x0259, -202, 1 },
+        { 0x025B, 0x025B, -203, 1 },
+        { 0x0260, 0x0260, -205, 1 },
+        { 0x0263, 0x0263, -207, 1 },
+        { 0x0268, 0x0268, -209, 1 },
+        { 0x0269, 0x0269, -211, 1 },
+        { 0x026F, 0x026F, -211, 1 },
+        { 0x0272, 0x0272, -213, 1 },
+        { 0x0275, 0x0275, -214, 1 },
+        { 0x0280, 0x0280, -218, 1 },
+        { 0x0283, 0x0283, -218, 1 },
+        { 0x0288, 0x0288, -218, 1 },
+        { 0x028A, 0x028B, -217, 1 },
+        { 0x0292, 0x0292, -219, 1 },
+        { 0x0345, 0x0345, 84, 1 },
+        { 0x03AC, 0x03AC, -38, 1 },
+        { 0x03AD, 0x03AF, -37, 1 },
+        { 0x03B1, 0x03C1, -32, 1 },
+        { 0x03C2, 0x03C2, -31, 1 },
+        { 0x03C3, 0x03CB, -32, 1 },
+        { 0x03CC, 0x03CC, -64, 1 },
+        { 0x03CD, 0x03CE, -63, 1 },
+        { 0x03D0, 0x03D0, -62, 1 },
+        { 0x03D1, 0x03D1, -57, 1 },
+        { 0x03D5, 0x03D5, -47, 1 },
+        { 0x03D6, 0x03D6, -54, 1 },
+        { 0x03DB, 0x03EF, -1, 2 },
+        { 0x03F0, 0x03F0, -86, 1 },
+        { 0x03F1, 0x03F1, -80, 1 },
+        { 0x03F2, 0x03F2, -79, 1 },
+        { 0x0430, 0x044F, -32, 1 },
+        { 0x0450, 0x045F, -80, 1 },
+        { 0x0461, 0x0481, -1, 2 },
+        { 0x048D, 0x04BF, -1, 2 },
+        { 0x04C2, 0x04C4, -1, 2 },
+        { 0x04C8, 0x04C8, -1, 1 },
+        { 0x04CC, 0x04CC, -1, 1 },
+        { 0x04D1, 0x04F5, -1, 2 },
+        { 0x04F9, 0x04F9, -1, 1 },
+        { 0x0561, 0x0586, -48, 1 },
+        { 0x1E01, 0x1E95, -1, 2 },
+        { 0x1E9B, 0x1E9B, -59, 1 },
+        { 0x1EA1, 0x1EF9, -1, 2 },
+        { 0x1F00, 0x1F07, 8, 1 },
+        { 0x1F10, 0x1F15, 8, 1 },
+        { 0x1F20, 0x1F27, 8, 1 },
+        { 0x1F30, 0x1F37, 8, 1 },
+        { 0x1F40, 0x1F45, 8, 1 },
+        { 0x1F51, 0x1F57, 8, 2 },
+        { 0x1F60, 0x1F67, 8, 1 },
+        { 0x1F70, 0x1F71, 74, 1 },
+        { 0x1F72, 0x1F75, 86, 1 },
+        { 0x1F76, 0x1F77, 100, 1 },
+        { 0x1F78, 0x1F79, 128, 1 },
+        { 0x1F7A, 0x1F7B, 112, 1 },
+        { 0x1F7C, 0x1F7D, 126, 1 },
+        { 0x1F80, 0x1F87, 8, 1 },
+        { 0x1F90, 0x1F97, 8, 1 },
+        { 0x1FA0, 0x1FA7, 8, 1 },
+        { 0x1FB0, 0x1FB1, 8, 1 },
+        { 0x1FB3, 0x1FB3, 9, 1 },
+        { 0x1FBE, 0x1FBE, -7205, 1 },
+        { 0x1FC3, 0x1FC3, 9, 1 },
+        { 0x1FD0, 0x1FD1, 8, 1 },
+        { 0x1FE0, 0x1FE1, 8, 1 },
+        { 0x1FE5, 0x1FE5, 7, 1 },
+        { 0x1FF3, 0x1FF3, 9, 1 },
+        { 0x2170, 0x217F, -16, 1 },
+        { 0x24D0, 0x24E9, -26, 1 },
+        { 0xFF41, 0xFF5A, -32, 1 },
+    };
+
+    inline constexpr CaseRun kLower[] = {
+        { 0x0041, 0x005A, 32, 1 },
+        { 0x00C0, 0x00D6, 32, 1 },
+        { 0x00D8, 0x00DE, 32, 1 },
+        { 0x0100, 0x012E, 1, 2 },
+        { 0x0130, 0x0130, -199, 1 },
+        { 0x0132, 0x0136, 1, 2 },
+        { 0x0139, 0x0147, 1, 2 },
+        { 0x014A, 0x0176, 1, 2 },
+        { 0x0178, 0x0178, -121, 1 },
+        { 0x0179, 0x017D, 1, 2 },
+        { 0x0181, 0x0181, 210, 1 },
+        { 0x0182, 0x0184, 1, 2 },
+        { 0x0186, 0x0186, 206, 1 },
+        { 0x0187, 0x0187, 1, 1 },
+        { 0x0189, 0x018A, 205, 1 },
+        { 0x018B, 0x018B, 1, 1 },
+        { 0x018E, 0x018E, 79, 1 },
+        { 0x018F, 0x018F, 202, 1 },
+        { 0x0190, 0x0190, 203, 1 },
+        { 0x0191, 0x0191, 1, 1 },
+        { 0x0193, 0x0193, 205, 1 },
+        { 0x0194, 0x0194, 207, 1 },
+        { 0x0196, 0x0196, 211, 1 },
+        { 0x0197, 0x0197, 209, 1 },
+        { 0x0198, 0x0198, 1, 1 },
+        { 0x019C, 0x019C, 211, 1 },
+        { 0x019D, 0x019D, 213, 1 },
+        { 0x019F, 0x019F, 214, 1 },
+        { 0x01A0, 0x01A4, 1, 2 },
+        { 0x01A6, 0x01A6, 218, 1 },
+        { 0x01A7, 0x01A7, 1, 1 },
+        { 0x01A9, 0x01A9, 218, 1 },
+        { 0x01AC, 0x01AC, 1, 1 },
+        { 0x01AE, 0x01AE, 218, 1 },
+        { 0x01AF, 0x01AF, 1, 1 },
+        { 0x01B1, 0x01B2, 217, 1 },
+        { 0x01B3, 0x01B5, 1, 2 },
+        { 0x01B7, 0x01B7, 219, 1 },
+        { 0x01B8, 0x01B8, 1, 1 },
+        { 0x01BC, 0x01BC, 1, 1 },
+        { 0x01C4, 0x01C4, 2, 1 },
+        { 0x01C5, 0x01C5, 1, 1 },
+        { 0x01C7, 0x01C7, 2, 1 },
+        { 0x01C8, 0x01C8, 1, 1 },
+        { 0x01CA, 0x01CA, 2, 1 },
+        { 0x01CB, 0x01DB, 1, 2 },
+        { 0x01DE, 0x01EE, 1, 2 },
+        { 0x01F1, 0x01F1, 2, 1 },
+        { 0x01F2, 0x01F4, 1, 2 },
+        { 0x01F6, 0x01F6, -97, 1 },
+        { 0x01F7, 0x01F7, -56, 1 },
+        { 0x01F8, 0x021E, 1, 2 },
+        { 0x0222, 0x0232, 1, 2 },
+        { 0x0386, 0x0386, 38, 1 },
+        { 0x0388, 0x038A, 37, 1 },
+        { 0x038C, 0x038C, 64, 1 },
+        { 0x038E, 0x038F, 63, 1 },
+        { 0x0391, 0x03A1, 32, 1 },
+        { 0x03A3, 0x03AB, 32, 1 },
+        { 0x03DA, 0x03EE, 1, 2 },
+        { 0x0400, 0x040F, 80, 1 },
+        { 0x0410, 0x042F, 32, 1 },
+        { 0x0460, 0x0480, 1, 2 },
+        { 0x048C, 0x04BE, 1, 2 },
+        { 0x04C1, 0x04C3, 1, 2 },
+        { 0x04C7, 0x04C7, 1, 1 },
+        { 0x04CB, 0x04CB, 1, 1 },
+        { 0x04D0, 0x04F4, 1, 2 },
+        { 0x04F8, 0x04F8, 1, 1 },
+        { 0x0531, 0x0556, 48, 1 },
+        { 0x1E00, 0x1E94, 1, 2 },
+        { 0x1EA0, 0x1EF8, 1, 2 },
+        { 0x1F08, 0x1F0F, -8, 1 },
+        { 0x1F18, 0x1F1D, -8, 1 },
+        { 0x1F28, 0x1F2F, -8, 1 },
+        { 0x1F38, 0x1F3F, -8, 1 },
+        { 0x1F48, 0x1F4D, -8, 1 },
+        { 0x1F59, 0x1F5F, -8, 2 },
+        { 0x1F68, 0x1F6F, -8, 1 },
+        { 0x1F88, 0x1F8F, -8, 1 },
+        { 0x1F98, 0x1F9F, -8, 1 },
+        { 0x1FA8, 0x1FAF, -8, 1 },
+        { 0x1FB8, 0x1FB9, -8, 1 },
+        { 0x1FBA, 0x1FBB, -74, 1 },
+        { 0x1FBC, 0x1FBC, -9, 1 },
+        { 0x1FC8, 0x1FCB, -86, 1 },
+        { 0x1FCC, 0x1FCC, -9, 1 },
+        { 0x1FD8, 0x1FD9, -8, 1 },
+        { 0x1FDA, 0x1FDB, -100, 1 },
+        { 0x1FE8, 0x1FE9, -8, 1 },
+        { 0x1FEA, 0x1FEB, -112, 1 },
+        { 0x1FEC, 0x1FEC, -7, 1 },
+        { 0x1FF8, 0x1FF9, -128, 1 },
+        { 0x1FFA, 0x1FFB, -126, 1 },
+        { 0x1FFC, 0x1FFC, -9, 1 },
+        { 0x2126, 0x2126, -7517, 1 },
+        { 0x212A, 0x212A, -8383, 1 },
+        { 0x212B, 0x212B, -8262, 1 },
+        { 0x2160, 0x216F, 16, 1 },
+        { 0x24B6, 0x24CF, 26, 1 },
+        { 0xFF21, 0xFF3A, 32, 1 },
+    };
+
+    template <std::size_t N>
+    constexpr char16_t mapCase(const CaseRun (&runs)[N], char16_t c) noexcept
+    {
+        std::size_t lo = 0, hi = N;
+        while (lo < hi) {
+            const std::size_t mid = (lo + hi) / 2;
+            if (runs[mid].last < c)
+                lo = mid + 1;
+            else
+                hi = mid;
+        }
+        if (lo == N || c < runs[lo].first || (c - runs[lo].first) % runs[lo].stride != 0)
+            return c;
+        return static_cast<char16_t>(c + runs[lo].delta);
+    }
+
+    template <class F>
+    std::string mapUnits(std::string_view s, F f)
+    {
+        std::u16string u = utf8ToUtf16(s);
+        for (char16_t& c : u)
+            c = f(c);
+        return utf16ToUtf8(u);
+    }
+
+} // namespace detail
+
+constexpr char16_t toUpper(char16_t c) noexcept { return detail::mapCase(detail::kUpper, c); }
+constexpr char16_t toLower(char16_t c) noexcept { return detail::mapCase(detail::kLower, c); }
+
+// -[NSString length]: UTF-16 units.
+inline std::size_t length(std::string_view s) { return utf8ToUtf16(s).size(); }
+
+inline std::string uppercase(std::string_view s) { return detail::mapUnits(s, toUpper); }
+inline std::string lowercase(std::string_view s) { return detail::mapUnits(s, toLower); }
+
+// -capitalizedString: the first unit of each run of non-whitespace is upper-cased, the rest of
+// the run lower-cased; whitespace (isWhitespaceOrNewline) is kept as it is.
+inline std::string capitalized(std::string_view s)
+{
+    std::u16string u = utf8ToUtf16(s);
+    bool wordStart = true;
+    for (char16_t& c : u) {
+        if (isWhitespaceOrNewline(c)) {
+            wordStart = true;
+            continue;
+        }
+        c = wordStart ? toUpper(c) : toLower(c);
+        wordStart = false;
+    }
+    return utf16ToUtf8(u);
+}
+
+// -caseInsensitiveCompare: == NSOrderedSame, against an ASCII string: true exactly when <s> is
+// ASCII too and equal ignoring ASCII case. (Captured: no non-ASCII unit, alone or in context,
+// compares equal to any printable ASCII character, and none is ignored.) GNUstep's comparison of
+// two non-ASCII strings also decomposes them, which this does not model: for a non-ASCII
+// <ascii> argument only an identical <s> is equal.
+inline bool equalsIgnoringCaseAscii(std::string_view s, std::string_view ascii) noexcept
+{
+    if (s.size() != ascii.size())
+        return false;
+    for (std::size_t i = 0; i < s.size(); ++i) {
+        const unsigned char a = static_cast<unsigned char>(s[i]), b = static_cast<unsigned char>(ascii[i]);
+        if (a >= 0x80 || b >= 0x80) {
+            if (a != b)
+                return false;
+            continue;
+        }
+        const auto fold = [](unsigned char c) { return (c >= 'A' && c <= 'Z') ? c + 32 : c; };
+        if (fold(a) != fold(b))
+            return false;
+    }
+    return true;
+}
+
+// --- trimming -----------------------------------------------------------------------------
+
+// NSStringOOExtensions' -stringByTrimmingLeading/TrailingCharactersInSet: for any unit predicate
+// (the characterSet's -characterIsMember:). All-member input gives "".
+template <class Pred>
+std::string trimLeading(std::string_view s, Pred isMember)
+{
+    const std::u16string u = utf8ToUtf16(s);
+    std::size_t i = 0;
+    while (i < u.size() && isMember(u[i]))
+        ++i;
+    return utf16ToUtf8(std::u16string_view(u).substr(i));
+}
+
+template <class Pred>
+std::string trimTrailing(std::string_view s, Pred isMember)
+{
+    const std::u16string u = utf8ToUtf16(s);
+    std::size_t n = u.size();
+    while (n > 0 && isMember(u[n - 1]))
+        --n;
+    return utf16ToUtf8(std::u16string_view(u).substr(0, n));
+}
+
+inline std::string trimLeadingWhitespaceAndNewlines(std::string_view s) { return trimLeading(s, isWhitespaceOrNewline); }
+inline std::string trimTrailingWhitespaceAndNewlines(std::string_view s) { return trimTrailing(s, isWhitespaceOrNewline); }
+inline std::string trimWhitespaceAndNewlines(std::string_view s)
+{
+    return trimTrailingWhitespaceAndNewlines(trimLeadingWhitespaceAndNewlines(s));
+}
+
+// --- hashing and UTF-16 data ----------------------------------------------------------------
+
+// -oo_hash: djb2 with xor over the UTF-16 units, stable across platforms and versions.
+inline std::uint32_t ooHash(std::string_view s)
+{
+    std::uint32_t hash = 5381;
+    for (char16_t c : utf8ToUtf16(s))
+        hash = ((hash << 5) + hash) ^ c;
+    return hash;
+}
+
+// -utf16DataWithBOM: native-endian (little-endian here) UTF-16, optionally led by U+FEFF.
+inline Data utf16Data(std::string_view s, bool includeByteOrderMark)
+{
+    std::u16string u = utf8ToUtf16(s);
+    if (includeByteOrderMark)
+        u.insert(u.begin(), char16_t(0xFEFF));
+    return Data(u.data(), u.size() * sizeof(char16_t));
+}
+
+// --- building -------------------------------------------------------------------------------
+
+// OOTabString(count): count tabs.
+inline std::string tabString(std::size_t count) { return std::string(count, '\t'); }
+
+// -[NSMutableString appendLine:]: the line and a "\n".
+inline void appendLine(std::string& out, std::string_view line)
+{
+    out += line;
+    out += '\n';
+}
+
+// -[NSMutableString deleteCharacterAtIndex:]: removes one UTF-16 unit. An index past the end is
+// ignored here (GNUstep raised NSRangeException; oofnd does not throw).
+inline void deleteUnitAt(std::string& s, std::size_t index)
+{
+    std::u16string u = utf8ToUtf16(s);
+    if (index >= u.size())
+        return;
+    u.erase(index, 1);
+    s = utf16ToUtf8(u);
+}
+
+// +[NSString stringWithFormat:] for formats without %@: vsnprintf into a std::string. GNUstep's
+// formatter gave the same bytes for 2,102 of 2,183 captured (conversion, value) pairs, every
+// conversion the game formats numbers with (test_string.cpp). Where they differ this follows C,
+// deliberately (proposed ADR-0034): %s passes UTF-8 through (GNUstep decoded the bytes as
+// Latin-1), %c / %lc above 0x7F, %p ("0x1234" / "(null)" in GNUstep), %hhd (GNUstep printed it
+// unsigned) and %f of magnitudes from about 1e22 (GNUstep dropped trailing digits).
+inline std::string vformat(const char* fmt, va_list args)
+{
+    va_list copy;
+    va_copy(copy, args);
+    char small[256];
+    const int n = std::vsnprintf(small, sizeof small, fmt, copy);
+    va_end(copy);
+    if (n < 0)
+        return std::string();
+    if (static_cast<std::size_t>(n) < sizeof small)
+        return std::string(small, static_cast<std::size_t>(n));
+    std::string out(static_cast<std::size_t>(n), '\0');
+    std::vsnprintf(out.data(), out.size() + 1, fmt, args);
+    return out;
+}
+
+#if defined(__GNUC__) || defined(__clang__)
+__attribute__((format(printf, 1, 2)))
+#endif
+inline std::string format(const char* fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+    std::string out = vformat(fmt, args);
+    va_end(args);
+    return out;
+}
+
+// --- paths ----------------------------------------------------------------------------------
+
+namespace detail {
+
+    constexpr bool isPathSeparator(char16_t c) noexcept { return c == u'/' || c == u'\\'; }
+
+    // Where the last path component may start: past a "~user/" prefix (all of "~user" when it has
+    // no separator) or a drive "X:" and its separator. UNC roots end in a separator, so the last
+    // separator finds past them anyway.
+    inline std::size_t pathRootLength(std::u16string_view u) noexcept
+    {
+        if (!u.empty() && u[0] == u'~') {
+            std::size_t i = 1;
+            while (i < u.size() && !isPathSeparator(u[i]))
+                ++i;
+            return i < u.size() ? i + 1 : i;
+        }
+        if (u.size() >= 2 && u[1] == u':' && ((u[0] >= u'A' && u[0] <= u'Z') || (u[0] >= u'a' && u[0] <= u'z'))) {
+            return (u.size() >= 3 && isPathSeparator(u[2])) ? 3 : 2;
+        }
+        return 0;
+    }
+
+    // A unit that continues the composed character sequence before it, so that a '.' it follows
+    // is not matched by -rangeOfString:@"." (non-literal search): combining and spacing marks,
+    // modifier letters, variation selectors and low surrogates. Probed over the BMP.
+    struct UnitRange {
+        char16_t first, last;
+    };
+
+    inline constexpr UnitRange kSequenceExtenders[] = {
+        { 0x02B0, 0x02C1 },
+        { 0x02C6, 0x02D1 },
+        { 0x02E0, 0x02E4 },
+        { 0x02EC, 0x02EC },
+        { 0x02EE, 0x02EE },
+        { 0x0300, 0x036F },
+        { 0x0374, 0x0374 },
+        { 0x037A, 0x037A },
+        { 0x0483, 0x0489 },
+        { 0x0559, 0x0559 },
+        { 0x0591, 0x05BD },
+        { 0x05BF, 0x05BF },
+        { 0x05C1, 0x05C2 },
+        { 0x05C4, 0x05C5 },
+        { 0x05C7, 0x05C7 },
+        { 0x0610, 0x061A },
+        { 0x0640, 0x0640 },
+        { 0x064B, 0x065F },
+        { 0x0670, 0x0670 },
+        { 0x06D6, 0x06DC },
+        { 0x06DF, 0x06E8 },
+        { 0x06EA, 0x06ED },
+        { 0x0711, 0x0711 },
+        { 0x0730, 0x074A },
+        { 0x07A6, 0x07B0 },
+        { 0x07EB, 0x07F5 },
+        { 0x07FA, 0x07FA },
+        { 0x07FD, 0x07FD },
+        { 0x0816, 0x082D },
+        { 0x0859, 0x085B },
+        { 0x08D3, 0x08E1 },
+        { 0x08E3, 0x0903 },
+        { 0x093A, 0x093C },
+        { 0x093E, 0x094F },
+        { 0x0951, 0x0957 },
+        { 0x0962, 0x0963 },
+        { 0x0971, 0x0971 },
+        { 0x0981, 0x0983 },
+        { 0x09BC, 0x09BC },
+        { 0x09BE, 0x09C4 },
+        { 0x09C7, 0x09C8 },
+        { 0x09CB, 0x09CD },
+        { 0x09D7, 0x09D7 },
+        { 0x09E2, 0x09E3 },
+        { 0x09FE, 0x09FE },
+        { 0x0A01, 0x0A03 },
+        { 0x0A3C, 0x0A3C },
+        { 0x0A3E, 0x0A42 },
+        { 0x0A47, 0x0A48 },
+        { 0x0A4B, 0x0A4D },
+        { 0x0A51, 0x0A51 },
+        { 0x0A70, 0x0A71 },
+        { 0x0A75, 0x0A75 },
+        { 0x0A81, 0x0A83 },
+        { 0x0ABC, 0x0ABC },
+        { 0x0ABE, 0x0AC5 },
+        { 0x0AC7, 0x0AC9 },
+        { 0x0ACB, 0x0ACD },
+        { 0x0AE2, 0x0AE3 },
+        { 0x0AFA, 0x0AFF },
+        { 0x0B01, 0x0B03 },
+        { 0x0B3C, 0x0B3C },
+        { 0x0B3E, 0x0B44 },
+        { 0x0B47, 0x0B48 },
+        { 0x0B4B, 0x0B4D },
+        { 0x0B55, 0x0B57 },
+        { 0x0B62, 0x0B63 },
+        { 0x0B82, 0x0B82 },
+        { 0x0BBE, 0x0BC2 },
+        { 0x0BC6, 0x0BC8 },
+        { 0x0BCA, 0x0BCD },
+        { 0x0BD7, 0x0BD7 },
+        { 0x0C00, 0x0C04 },
+        { 0x0C3E, 0x0C44 },
+        { 0x0C46, 0x0C48 },
+        { 0x0C4A, 0x0C4D },
+        { 0x0C55, 0x0C56 },
+        { 0x0C62, 0x0C63 },
+        { 0x0C81, 0x0C83 },
+        { 0x0CBC, 0x0CBC },
+        { 0x0CBE, 0x0CC4 },
+        { 0x0CC6, 0x0CC8 },
+        { 0x0CCA, 0x0CCD },
+        { 0x0CD5, 0x0CD6 },
+        { 0x0CE2, 0x0CE3 },
+        { 0x0D00, 0x0D03 },
+        { 0x0D3B, 0x0D3C },
+        { 0x0D3E, 0x0D44 },
+        { 0x0D46, 0x0D48 },
+        { 0x0D4A, 0x0D4D },
+        { 0x0D57, 0x0D57 },
+        { 0x0D62, 0x0D63 },
+        { 0x0D81, 0x0D83 },
+        { 0x0DCA, 0x0DCA },
+        { 0x0DCF, 0x0DD4 },
+        { 0x0DD6, 0x0DD6 },
+        { 0x0DD8, 0x0DDF },
+        { 0x0DF2, 0x0DF3 },
+        { 0x0E31, 0x0E31 },
+        { 0x0E34, 0x0E3A },
+        { 0x0E46, 0x0E4E },
+        { 0x0EB1, 0x0EB1 },
+        { 0x0EB4, 0x0EBC },
+        { 0x0EC6, 0x0EC6 },
+        { 0x0EC8, 0x0ECD },
+        { 0x0F18, 0x0F19 },
+        { 0x0F35, 0x0F35 },
+        { 0x0F37, 0x0F37 },
+        { 0x0F39, 0x0F39 },
+        { 0x0F3E, 0x0F3F },
+        { 0x0F71, 0x0F84 },
+        { 0x0F86, 0x0F87 },
+        { 0x0F8D, 0x0F97 },
+        { 0x0F99, 0x0FBC },
+        { 0x0FC6, 0x0FC6 },
+        { 0x102B, 0x103E },
+        { 0x1056, 0x1059 },
+        { 0x105E, 0x1060 },
+        { 0x1062, 0x1064 },
+        { 0x1067, 0x106D },
+        { 0x1071, 0x1074 },
+        { 0x1082, 0x108D },
+        { 0x108F, 0x108F },
+        { 0x109A, 0x109D },
+        { 0x10FC, 0x10FC },
+        { 0x135D, 0x135F },
+        { 0x1712, 0x1714 },
+        { 0x1732, 0x1734 },
+        { 0x1752, 0x1753 },
+        { 0x1772, 0x1773 },
+        { 0x17B4, 0x17D3 },
+        { 0x17D7, 0x17D7 },
+        { 0x17DD, 0x17DD },
+        { 0x180B, 0x180D },
+        { 0x1843, 0x1843 },
+        { 0x1885, 0x1886 },
+        { 0x18A9, 0x18A9 },
+        { 0x1920, 0x192B },
+        { 0x1930, 0x193B },
+        { 0x1A17, 0x1A1B },
+        { 0x1A55, 0x1A5E },
+        { 0x1A60, 0x1A7C },
+        { 0x1A7F, 0x1A7F },
+        { 0x1AA7, 0x1AA7 },
+        { 0x1AB0, 0x1AC0 },
+        { 0x1B00, 0x1B04 },
+        { 0x1B34, 0x1B44 },
+        { 0x1B6B, 0x1B73 },
+        { 0x1B80, 0x1B82 },
+        { 0x1BA1, 0x1BAD },
+        { 0x1BE6, 0x1BF3 },
+        { 0x1C24, 0x1C37 },
+        { 0x1C78, 0x1C7D },
+        { 0x1CD0, 0x1CD2 },
+        { 0x1CD4, 0x1CE8 },
+        { 0x1CED, 0x1CED },
+        { 0x1CF4, 0x1CF4 },
+        { 0x1CF7, 0x1CF9 },
+        { 0x1D2C, 0x1D6A },
+        { 0x1D78, 0x1D78 },
+        { 0x1D9B, 0x1DF9 },
+        { 0x1DFB, 0x1DFF },
+        { 0x2071, 0x2071 },
+        { 0x207F, 0x207F },
+        { 0x2090, 0x209C },
+        { 0x20D0, 0x20F0 },
+        { 0x2C7C, 0x2C7D },
+        { 0x2CEF, 0x2CF1 },
+        { 0x2D6F, 0x2D6F },
+        { 0x2D7F, 0x2D7F },
+        { 0x2DE0, 0x2DFF },
+        { 0x2E2F, 0x2E2F },
+        { 0x3005, 0x3005 },
+        { 0x302A, 0x302F },
+        { 0x3031, 0x3035 },
+        { 0x303B, 0x303B },
+        { 0x3099, 0x309A },
+        { 0x309D, 0x309E },
+        { 0x30FC, 0x30FE },
+        { 0xA015, 0xA015 },
+        { 0xA4F8, 0xA4FD },
+        { 0xA60C, 0xA60C },
+        { 0xA66F, 0xA672 },
+        { 0xA674, 0xA67D },
+        { 0xA67F, 0xA67F },
+        { 0xA69C, 0xA69F },
+        { 0xA6F0, 0xA6F1 },
+        { 0xA717, 0xA71F },
+        { 0xA770, 0xA770 },
+        { 0xA788, 0xA788 },
+        { 0xA7F8, 0xA7F9 },
+        { 0xA802, 0xA802 },
+        { 0xA806, 0xA806 },
+        { 0xA80B, 0xA80B },
+        { 0xA823, 0xA827 },
+        { 0xA82C, 0xA82C },
+        { 0xA880, 0xA881 },
+        { 0xA8B4, 0xA8C5 },
+        { 0xA8E0, 0xA8F1 },
+        { 0xA8FF, 0xA8FF },
+        { 0xA926, 0xA92D },
+        { 0xA947, 0xA953 },
+        { 0xA980, 0xA983 },
+        { 0xA9B3, 0xA9C0 },
+        { 0xA9CF, 0xA9CF },
+        { 0xA9E5, 0xA9E6 },
+        { 0xAA29, 0xAA36 },
+        { 0xAA43, 0xAA43 },
+        { 0xAA4C, 0xAA4D },
+        { 0xAA70, 0xAA70 },
+        { 0xAA7B, 0xAA7D },
+        { 0xAAB0, 0xAAB0 },
+        { 0xAAB2, 0xAAB4 },
+        { 0xAAB7, 0xAAB8 },
+        { 0xAABE, 0xAABF },
+        { 0xAAC1, 0xAAC1 },
+        { 0xAADD, 0xAADD },
+        { 0xAAEB, 0xAAEF },
+        { 0xAAF3, 0xAAF6 },
+        { 0xAB5C, 0xAB5F },
+        { 0xAB69, 0xAB69 },
+        { 0xABE3, 0xABEA },
+        { 0xABEC, 0xABED },
+        { 0xDC00, 0xDFFF },
+        { 0xFB1E, 0xFB1E },
+        { 0xFE00, 0xFE0F },
+        { 0xFE20, 0xFE2F },
+        { 0xFF70, 0xFF70 },
+        { 0xFF9E, 0xFF9F },
+    };
+
+    inline bool extendsSequence(char16_t c) noexcept
+    {
+        std::size_t lo = 0, hi = std::size(kSequenceExtenders);
+        while (lo < hi) {
+            const std::size_t mid = (lo + hi) / 2;
+            if (kSequenceExtenders[mid].last < c)
+                lo = mid + 1;
+            else
+                hi = mid;
+        }
+        return lo < std::size(kSequenceExtenders) && c >= kSequenceExtenders[lo].first;
+    }
+
+    // [start, end) of the last path component, trailing separators dropped.
+    inline std::pair<std::size_t, std::size_t> lastComponentRange(std::u16string_view u) noexcept
+    {
+        const std::size_t root = pathRootLength(u);
+        std::size_t end = u.size();
+        while (end > root && isPathSeparator(u[end - 1]))
+            --end;
+        std::size_t start = end;
+        while (start > root && !isPathSeparator(u[start - 1]))
+            --start;
+        return { start, end };
+    }
+
+} // namespace detail
+
+// -pathExtension: what follows the last '.' of the last component; "" when there is none or the
+// dot starts the component (".plist"). Both separators count (GNUstep on Windows). A '.' that a
+// combining unit follows is part of that composed sequence and is not a dot (see above).
+inline std::string pathExtension(std::string_view path)
+{
+    const std::u16string u = utf8ToUtf16(path);
+    const auto [start, end] = detail::lastComponentRange(u);
+    for (std::size_t i = end; i > start; --i) {
+        if (u[i - 1] == u'.' && !(i < u.size() && detail::extendsSequence(u[i]))) {
+            if (i - 1 == start)
+                return std::string();
+            return utf16ToUtf8(std::u16string_view(u).substr(i, end - i));
+        }
+    }
+    return std::string();
+}
+
+// -pathHasExtension: (OOStringParsing): pathExtension compared ignoring case.
+inline bool pathHasExtension(std::string_view path, std::string_view extension)
+{
+    return equalsIgnoringCaseAscii(pathExtension(path), extension);
+}
+
+// -pathHasExtensionInArray:.
+template <class Range>
+bool pathHasExtensionIn(std::string_view path, const Range& extensions)
+{
+    const std::string ext = pathExtension(path);
+    for (const auto& e : extensions) {
+        if (equalsIgnoringCaseAscii(ext, e))
+            return true;
+    }
+    return false;
+}
+
+// -[NSMutableString replaceOccurrencesOfString:t withString:r options:0 range:<all>] (t
+// non-empty): left to right, non-overlapping, case-sensitive; an occurrence that a combining unit
+// follows is inside a longer composed sequence and is left alone. With Search::literal
+// (NSLiteralSearch) every occurrence is replaced. No canonical equivalence: "e"
+// + U+0301 does not match U+00E9 (captured). GNUstep raises NSRangeException for a <target> that
+// starts with a combining unit; this does not.
+enum class Search {
+    composed, // options:0 - an occurrence must end on a composed-sequence boundary
+    literal, // NSLiteralSearch - unit-for-unit
+};
+
+inline std::string replaceOccurrences(std::string_view s, std::string_view target, std::string_view replacement,
+    Search search = Search::composed)
+{
+    const std::u16string u = utf8ToUtf16(s), t = utf8ToUtf16(target), r = utf8ToUtf16(replacement);
+    if (t.empty() || t.size() > u.size())
+        return std::string(s);
+    std::u16string out;
+    out.reserve(u.size());
+    std::size_t i = 0;
+    while (i < u.size()) {
+        const std::size_t end = i + t.size();
+        if (end <= u.size() && std::u16string_view(u).substr(i, t.size()) == t
+            && (search == Search::literal || !(end < u.size() && detail::extendsSequence(u[end])))) {
+            out += r;
+            i = end;
+        } else {
+            out += u[i++];
+        }
+    }
+    return utf16ToUtf8(out);
+}
+
+// -hasPrefix: / -hasSuffix:: literal UTF-16 comparison (a prefix that ends inside a composed
+// sequence or a surrogate pair still matches); an empty prefix or suffix never matches.
+inline bool hasPrefix(std::string_view s, std::string_view prefix)
+{
+    const std::u16string u = utf8ToUtf16(s), p = utf8ToUtf16(prefix);
+    return !p.empty() && p.size() <= u.size() && std::u16string_view(u).substr(0, p.size()) == p;
+}
+
+inline bool hasSuffix(std::string_view s, std::string_view suffix)
+{
+    const std::u16string u = utf8ToUtf16(s), x = utf8ToUtf16(suffix);
+    if (x.empty() || x.size() > u.size())
+        return false;
+    return std::u16string_view(u).substr(u.size() - x.size()) == x;
+}
+
+// --- splitting ------------------------------------------------------------------------------
+
+// -componentsSeparatedByString: (sep non-empty): n separators give n + 1 parts, empty ones kept.
+inline std::vector<std::string> split(std::string_view s, std::string_view separator)
+{
+    std::vector<std::string> parts;
+    std::size_t from = 0;
+    for (;;) {
+        const std::size_t at = separator.empty() ? std::string_view::npos : s.find(separator, from);
+        if (at == std::string_view::npos) {
+            parts.emplace_back(s.substr(from));
+            return parts;
+        }
+        parts.emplace_back(s.substr(from, at - from));
+        from = at + separator.size();
+    }
+}
+
+// ScanTokensFromString(): the maximal runs of non-whitespace (isWhitespaceOrNewline), in order.
+inline std::vector<std::string> tokens(std::string_view s)
+{
+    const std::u16string u = utf8ToUtf16(s);
+    std::vector<std::string> result;
+    std::size_t i = 0;
+    while (i < u.size()) {
+        while (i < u.size() && isWhitespaceOrNewline(u[i]))
+            ++i;
+        const std::size_t start = i;
+        while (i < u.size() && !isWhitespaceOrNewline(u[i]))
+            ++i;
+        if (i > start)
+            result.push_back(utf16ToUtf8(std::u16string_view(u).substr(start, i - start)));
+    }
+    return result;
+}
+
+// --- ordering -------------------------------------------------------------------------------
+
+// -compare: and -caseInsensitiveCompare: as orderings: < 0, 0, > 0 for NSOrderedAscending, Same,
+// Descending (the Foundation sweep, proposed ADR-0043; for sorting and ordered containers).
+// Both walk the UTF-16 units as NSString does; the caseInsensitive form first maps each unit
+// through toLower() (GNUstep folds to LOWER case: "_" sorts before "B", captured). Exact for every
+// ASCII pair (tests/unit/oofnd/test_string_compare.cpp pins digests captured from GNUstep 1.31.1).
+// Not modelled: GNUstep's composed-sequence equivalence between non-ASCII strings ("e" + U+0301
+// equals U+00E9 there, and orders by it); here the units decide.
+inline int compare(std::string_view a, std::string_view b)
+{
+    const std::u16string ua = utf8ToUtf16(a), ub = utf8ToUtf16(b);
+    const int c = ua.compare(ub);
+    return c < 0 ? -1 : (c > 0 ? 1 : 0);
+}
+
+inline int caseInsensitiveCompare(std::string_view a, std::string_view b)
+{
+    std::u16string ua = utf8ToUtf16(a), ub = utf8ToUtf16(b);
+    for (char16_t& u : ua)
+        u = toLower(u);
+    for (char16_t& u : ub)
+        u = toLower(u);
+    const int c = ua.compare(ub);
+    return c < 0 ? -1 : (c > 0 ? 1 : 0);
+}
+
+// --- numbers --------------------------------------------------------------------------------
+
+inline int intValue(std::string_view s) { return plist_get::intValue(utf8ToUtf16(s)); }
+inline long long longLongValue(std::string_view s) { return plist_get::longLongValue(utf8ToUtf16(s)); }
+inline double doubleValue(std::string_view s) { return plist_get::doubleValue(utf8ToUtf16(s)); }
+
+// --- versions (OOStringParsing) -------------------------------------------------------------
+
+// ComponentsFromVersionString(): "1.2.3-beta 4" -> {1, 2, 3}: up to the first space, then up to
+// the first '-', then each '.'-separated part's -intValue, negatives as 0.
+inline std::vector<unsigned> versionComponents(std::string_view s)
+{
+    std::string_view head = s.substr(0, s.find(' '));
+    head = head.substr(0, head.find('-'));
+    std::vector<unsigned> result;
+    for (const std::string& part : split(head, ".")) {
+        result.push_back(static_cast<unsigned>(std::max(intValue(part), 0)));
+    }
+    return result;
+}
+
+// CompareVersions(): most significant first, a missing component is 0 ("1.2.3.0" == "1.2.3").
+// Negative if a < b, 0 if equal, positive if a > b (NSOrderedAscending / Same / Descending).
+inline int compareVersions(const std::vector<unsigned>& a, const std::vector<unsigned>& b)
+{
+    const std::size_t n = std::max(a.size(), b.size());
+    for (std::size_t i = 0; i < n; ++i) {
+        const unsigned x = i < a.size() ? a[i] : 0u, y = i < b.size() ? b[i] : 0u;
+        if (x < y)
+            return -1;
+        if (x > y)
+            return 1;
+    }
+    return 0;
+}
+
+} // namespace oo::str
+
+#pragma pop_macro("false")
+#pragma pop_macro("true")
+
+#endif // OOFND_STRING_HPP

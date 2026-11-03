@@ -25,7 +25,6 @@ MA 02110-1301, USA.
 #import "PlayerEntityKeyMapper.h"
 #import "GameController.h"
 #import "HeadUpDisplay.h"
-#import "OOCollectionExtractors.h"
 #import "OOEquipmentType.h"
 #import "OOJoystickManager.h"
 #import "OOTexture.h"
@@ -79,7 +78,7 @@ static NSArray* camera_keys = nil;
 {
     NSMutableDictionary* kdicmaster = [NSMutableDictionary dictionaryWithDictionary:[ResourceManager dictionaryFromFilesNamed:@"keyconfig2.plist" inFolder:@"Config" mergeMode:MERGE_BASIC cache:NO]];
     NSUserDefaults* defaults = [NSUserDefaults standardUserDefaults];
-    NSString* kbd = [defaults oo_stringForKey:@"keyboard-code" defaultValue:@"default"];
+    NSString* kbd = oo::PListView(defaults).get<NSString*>(@"keyboard-code", @"default");
     NSMutableDictionary* kdic = [NSMutableDictionary dictionaryWithDictionary:[kdicmaster objectForKey:kbd]];
 
     NSUInteger i;
@@ -124,7 +123,7 @@ static NSArray* camera_keys = nil;
 - (void)setGuiToKeyMapperScreen:(unsigned)skip resetCurrentRow:(BOOL)resetCurrentRow
 {
     NSUserDefaults* defaults = [NSUserDefaults standardUserDefaults];
-    NSString* kbd = [defaults oo_stringForKey:@"keyboard-code" defaultValue:@"default"];
+    NSString* kbd = oo::PListView(defaults).get<NSString*>(@"keyboard-code", @"default");
 
     GuiDisplayGen* gui = [UNIVERSE gui];
     MyOpenGLView* gameView = [UNIVERSE gameView];
@@ -226,7 +225,7 @@ static NSArray* camera_keys = nil;
         if (![self entryIsDictCustomEquip:selected_entry]) {
             key_list = [[NSMutableArray alloc] initWithArray:(NSArray*)[keyconfig2_settings objectForKey:[selected_entry objectForKey:KEY_KC_DEFINITION]] copyItems:YES];
         } else {
-            key_list = [[NSMutableArray alloc] initWithArray:[self getCustomEquipArray:[selected_entry oo_stringForKey:KEY_KC_DEFINITION]]];
+            key_list = [[NSMutableArray alloc] initWithArray:[self getCustomEquipArray:oo::PListView(selected_entry).get<NSString*>(KEY_KC_DEFINITION)]];
         }
         [gameView clearKeys]; // try to stop key bounces
         [self setGuiToKeyConfigScreen:YES];
@@ -297,12 +296,12 @@ static NSArray* camera_keys = nil;
 
 - (BOOL)entryIsIndexCustomEquip:(NSUInteger)idx
 {
-    return [self entryIsCustomEquip:[[keyFunctions objectAtIndex:idx] oo_stringForKey:KEY_KC_DEFINITION]];
+    return [self entryIsCustomEquip:oo::PListView([keyFunctions objectAtIndex:idx]).get<NSString*>(KEY_KC_DEFINITION)];
 }
 
 - (BOOL)entryIsDictCustomEquip:(NSDictionary*)dict
 {
-    return [self entryIsCustomEquip:[dict oo_stringForKey:KEY_KC_DEFINITION]];
+    return [self entryIsCustomEquip:oo::PListView(dict).get<NSString*>(KEY_KC_DEFINITION)];
 }
 
 - (BOOL)entryIsCustomEquip:(NSString*)entry
@@ -329,8 +328,8 @@ static NSArray* camera_keys = nil;
     if (eq == nil)
         return nil;
     for (i = 0; i < [customEquipActivation count]; i++) {
-        if ([[[customEquipActivation objectAtIndex:i] oo_stringForKey:CUSTOMEQUIP_EQUIPKEY] isEqualToString:eq]) {
-            return [[customEquipActivation objectAtIndex:i] oo_arrayForKey:key];
+        if ([oo::PListView([customEquipActivation objectAtIndex:i]).get<NSString*>(CUSTOMEQUIP_EQUIPKEY) isEqualToString:eq]) {
+            return oo::PListView([customEquipActivation objectAtIndex:i]).get<NSArray*>(key);
         }
     }
     return nil;
@@ -349,7 +348,7 @@ static NSArray* camera_keys = nil;
     if (eq == nil)
         return -1;
     for (i = 0; i < [customEquipActivation count]; i++) {
-        if ([[[customEquipActivation objectAtIndex:i] oo_stringForKey:CUSTOMEQUIP_EQUIPKEY] isEqualToString:eq]) {
+        if ([oo::PListView([customEquipActivation objectAtIndex:i]).get<NSString*>(CUSTOMEQUIP_EQUIPKEY) isEqualToString:eq]) {
             return i;
         }
     }
@@ -741,8 +740,8 @@ static NSArray* camera_keys = nil;
         [gameView clearMouse];
 
     // Translation issue: we can't confidently use raw Y and N ascii as shortcuts. It's better to use the load-previous-commander keys.
-    id valueYes = [[[UNIVERSE descriptions] oo_stringForKey:@"load-previous-commander-yes" defaultValue:@"y"] lowercaseString];
-    id valueNo = [[[UNIVERSE descriptions] oo_stringForKey:@"load-previous-commander-no" defaultValue:@"n"] lowercaseString];
+    id valueYes = [oo::PListView([UNIVERSE descriptions]).get<NSString*>(@"load-previous-commander-yes", @"y") lowercaseString];
+    id valueNo = [oo::PListView([UNIVERSE descriptions]).get<NSString*>(@"load-previous-commander-no", @"n") lowercaseString];
     unsigned char cYes, cNo;
 
     cYes = [valueYes characterAtIndex:0] & 0x00ff; // Use lower byte of unichar.
@@ -821,10 +820,10 @@ static NSArray* camera_keys = nil;
                     override = ([overrides objectForKey:[entry objectForKey:KEY_KC_DEFINITION]] ? @"Yes" : @""); // work out whether this assignment is overriding the setting in keyconfig2.plist
                     validate = [self validateKey:[entry objectForKey:KEY_KC_DEFINITION] checkKeys:(NSArray*)[keyconfig2_settings objectForKey:[entry objectForKey:KEY_KC_DEFINITION]]];
                 } else {
-                    NSString* custom_keytype = [self getCustomEquipKeyDefType:[entry oo_stringForKey:KEY_KC_DEFINITION]];
-                    NSUInteger idx = [self getCustomEquipIndex:[entry oo_stringForKey:KEY_KC_DEFINITION]];
-                    assignment = [PLAYER getKeyBindingDescription:[[customEquipActivation objectAtIndex:idx] oo_arrayForKey:custom_keytype]];
-                    OOEquipmentType* item = [OOEquipmentType equipmentTypeWithIdentifier:[[customEquipActivation objectAtIndex:idx] oo_stringForKey:CUSTOMEQUIP_EQUIPKEY]];
+                    NSString* custom_keytype = [self getCustomEquipKeyDefType:oo::PListView(entry).get<NSString*>(KEY_KC_DEFINITION)];
+                    NSUInteger idx = [self getCustomEquipIndex:oo::PListView(entry).get<NSString*>(KEY_KC_DEFINITION)];
+                    assignment = [PLAYER getKeyBindingDescription:oo::PListView([customEquipActivation objectAtIndex:idx]).get<NSArray*>(custom_keytype)];
+                    OOEquipmentType* item = [OOEquipmentType equipmentTypeWithIdentifier:oo::PListView([customEquipActivation objectAtIndex:idx]).get<NSString*>(CUSTOMEQUIP_EQUIPKEY)];
                     bool result = true;
                     int j, k;
                     NSArray* defArray = nil;
@@ -832,11 +831,11 @@ static NSArray* camera_keys = nil;
 
                     if ([custom_keytype isEqualToString:CUSTOMEQUIP_KEYACTIVATE]) {
                         defArray = [item defaultActivateKey];
-                        compArray = [[customEquipActivation objectAtIndex:idx] oo_arrayForKey:custom_keytype];
+                        compArray = oo::PListView([customEquipActivation objectAtIndex:idx]).get<NSArray*>(custom_keytype);
                     }
                     if ([custom_keytype isEqualToString:CUSTOMEQUIP_KEYMODE]) {
                         defArray = [item defaultModeKey];
-                        compArray = [[customEquipActivation objectAtIndex:idx] oo_arrayForKey:custom_keytype];
+                        compArray = oo::PListView([customEquipActivation objectAtIndex:idx]).get<NSArray*>(custom_keytype);
                     }
                     for (j = 0; j < [defArray count]; j++) {
                         for (k = 0; k < [compArray count]; k++) {
@@ -850,7 +849,7 @@ static NSArray* camera_keys = nil;
                     }
 
                     override = (!result ? @"Yes" : @"");
-                    validate = [self validateKey:[entry objectForKey:KEY_KC_DEFINITION] checkKeys:(NSArray*)[[customEquipActivation objectAtIndex:idx] oo_arrayForKey:custom_keytype]];
+                    validate = [self validateKey:[entry objectForKey:KEY_KC_DEFINITION] checkKeys:(NSArray*)oo::PListView([customEquipActivation objectAtIndex:idx]).get<NSArray*>(custom_keytype)];
                 }
                 if (assignment == nil) {
                     assignment = @"   -   ";
@@ -1244,7 +1243,7 @@ static NSArray* camera_keys = nil;
         }
 
         NSUserDefaults* defaults = [NSUserDefaults standardUserDefaults];
-        NSString* kbd = [defaults oo_stringForKey:@"keyboard-code" defaultValue:@"default"];
+        NSString* kbd = oo::PListView(defaults).get<NSString*>(@"keyboard-code", @"default");
 
         for (i = 0; i < (n_functions - skip) && (int)i < n_rows; i++) {
             NSDictionary* entry = [kbdLayouts objectAtIndex:i + skip];
@@ -1336,8 +1335,8 @@ static NSArray* camera_keys = nil;
     if ([self entryIsCustomEquip:key]) {
         NSUInteger i;
         for (i = 0; i < [customEquipActivation count]; i++) {
-            [inflight_keys addObject:[NSString stringWithFormat:@"activate_%@", [[customEquipActivation objectAtIndex:i] oo_stringForKey:CUSTOMEQUIP_EQUIPKEY]]];
-            [inflight_keys addObject:[NSString stringWithFormat:@"mode_%@", [[customEquipActivation objectAtIndex:i] oo_stringForKey:CUSTOMEQUIP_EQUIPKEY]]];
+            [inflight_keys addObject:[NSString stringWithFormat:@"activate_%@", oo::PListView([customEquipActivation objectAtIndex:i]).get<NSString*>(CUSTOMEQUIP_EQUIPKEY)]];
+            [inflight_keys addObject:[NSString stringWithFormat:@"mode_%@", oo::PListView([customEquipActivation objectAtIndex:i]).get<NSString*>(CUSTOMEQUIP_EQUIPKEY)]];
         }
     }
 
@@ -1574,7 +1573,7 @@ static NSArray* camera_keys = nil;
     if ([customEquipActivation count] > 0) {
         NSUInteger i;
         for (i = 0; i < [customEquipActivation count]; i++) {
-            NSString* eq = [[customEquipActivation objectAtIndex:i] oo_stringForKey:CUSTOMEQUIP_EQUIPKEY];
+            NSString* eq = oo::PListView([customEquipActivation objectAtIndex:i]).get<NSString*>(CUSTOMEQUIP_EQUIPKEY);
             OOEquipmentType* item = [OOEquipmentType equipmentTypeWithIdentifier:eq];
             if ([item defaultActivateKey])
                 [[customEquipActivation objectAtIndex:i] setObject:[item defaultActivateKey] forKey:CUSTOMEQUIP_KEYACTIVATE];

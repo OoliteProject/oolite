@@ -59,7 +59,7 @@ static OOAsyncWorkManager* sSingleton = nil;
     OOAsyncQueue* _readyQueue;
 
     NSMutableSet* _pendingCompletableOperations;
-    NSLock* _pendingOpsLock;
+    std::mutex _pendingOpsLock;
 }
 
 - (void)queueResult:(id<OOAsyncWorkTask>)task;
@@ -135,7 +135,7 @@ static void SetUpWorkThread(NSNumber* threadNumber)
 }
 
 #if !USE_PTHREAD_ONCE
-static NSLock* sInitLock = nil;
+static std::mutex sInitLock;
 #endif
 
 static void InitAsyncWorkManager(void)
@@ -159,16 +159,6 @@ static void InitAsyncWorkManager(void)
 
 @implementation OOAsyncWorkManager
 
-#if !USE_PTHREAD_ONCE
-+ (void)initialize
-{
-    if (sInitLock == nil) {
-        sInitLock = [[NSLock alloc] init];
-        NSAssert(sInitLock != nil, @"Async Work Manager init failed");
-    }
-}
-#endif
-
 + (OOAsyncWorkManager*)sharedAsyncWorkManager
 {
 #if USE_PTHREAD_ONCE
@@ -176,18 +166,18 @@ static void InitAsyncWorkManager(void)
     pthread_once(&once, InitAsyncWorkManager);
     NSAssert(sSingleton != nil, @"Async Work Manager init failed");
 #else
-    [sInitLock lock];
+    sInitLock.lock();
     if (sSingleton == nil) {
         InitAsyncWorkManager();
         NSAssert(sSingleton != nil, @"Async Work Manager init failed");
     }
-    [sInitLock unlock];
+    sInitLock.unlock();
 #endif
 
     return sSingleton;
 }
 
-+ (id)allocWithZone:(NSZone*)inZone
++ (id)allocWithZone:(OOZone*)inZone
 {
     if (sSingleton == nil) {
         sSingleton = [super allocWithZone:inZone];
@@ -248,9 +238,8 @@ static void InitAsyncWorkManager(void)
         }
 
         _pendingCompletableOperations = [[NSMutableSet alloc] init];
-        _pendingOpsLock = [[NSLock alloc] init];
 
-        if (_pendingCompletableOperations == nil || _pendingOpsLock == nil) {
+        if (_pendingCompletableOperations == nil) {
             [self release];
             return nil;
         }
@@ -263,7 +252,7 @@ static void InitAsyncWorkManager(void)
 {
     id next = nil;
 
-    [_pendingOpsLock lock];
+    _pendingOpsLock.lock();
     for (;;) {
         next = [_readyQueue tryDequeue];
         if (next == nil)
@@ -272,7 +261,7 @@ static void InitAsyncWorkManager(void)
         [_pendingCompletableOperations removeObject:next];
         [next completeAsyncTask];
     }
-    [_pendingOpsLock unlock];
+    _pendingOpsLock.unlock();
 }
 
 - (void)waitForTaskToComplete:(id<OOAsyncWorkTask>)task
@@ -285,11 +274,11 @@ static void InitAsyncWorkManager(void)
     NSAssert1(oo::thread::isMainThread(), @"%s can only be called from the main thread.", __PRETTY_FUNCTION__);
 #endif
 
-    [_pendingOpsLock lock];
+    _pendingOpsLock.lock();
     BOOL exists = [_pendingCompletableOperations containsObject:task];
     if (exists)
         [_pendingCompletableOperations removeObject:task];
-    [_pendingOpsLock unlock];
+    _pendingOpsLock.unlock();
 
     if (!exists)
         return;
@@ -298,9 +287,9 @@ static void InitAsyncWorkManager(void)
     do {
         // Dequeue a task and complete it.
         next = [_readyQueue dequeue];
-        [_pendingOpsLock lock];
+        _pendingOpsLock.lock();
         [_pendingCompletableOperations removeObject:next];
-        [_pendingOpsLock unlock];
+        _pendingOpsLock.unlock();
 
         [next completeAsyncTask];
 
@@ -316,9 +305,9 @@ static void InitAsyncWorkManager(void)
 
 - (void)noteTaskQueued:(id<OOAsyncWorkTask>)task
 {
-    [_pendingOpsLock lock];
+    _pendingOpsLock.lock();
     [_pendingCompletableOperations addObject:task];
-    [_pendingOpsLock unlock];
+    _pendingOpsLock.unlock();
 }
 
 @end
@@ -357,27 +346,21 @@ static void InitAsyncWorkManager(void)
 
 - (void)queueTask:(NSNumber*)threadNumber
 {
-    NSAutoreleasePool *rootPool = nil, *pool = nil;
+    @autoreleasepool {
+        SetUpWorkThread(threadNumber);
 
-    rootPool = [[NSAutoreleasePool alloc] init];
-
-    SetUpWorkThread(threadNumber);
-
-    for (;;) {
-        pool = [[NSAutoreleasePool alloc] init];
-
-        id<OOAsyncWorkTask> task = [_taskQueue dequeue];
-        @try {
-            [task performAsyncTask];
+        for (;;) {
+            @autoreleasepool {
+                id<OOAsyncWorkTask> task = [_taskQueue dequeue];
+                @try {
+                    [task performAsyncTask];
+                }
+                @catch (id exception) {
+                }
+                [self queueResult:task];
+            }
         }
-        @catch (id exception) {
-        }
-        [self queueResult:task];
-
-        [pool release];
     }
-
-    [rootPool release];
 }
 
 @end

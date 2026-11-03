@@ -25,11 +25,13 @@ MA 02110-1301, USA.
 #import "OOJSEngineTimeManagement.h"
 #import "OOJSScript.h"
 
+#include "oofnd/Notification.hpp"
+
 #import "EntityOOJavaScriptExtensions.h"
 #import "NSNumberOOExtensions.h"
 #import "NSStringOOExtensions.h"
-#import "OOCollectionExtractors.h"
 #import "OOConstToJSString.h"
+#import "OOPListView.h"
 #import "OOPlanetEntity.h"
 #import "OOVisualEffectEntity.h"
 #import "OOWaypointEntity.h"
@@ -111,6 +113,8 @@ static JSValue sLegacyConstRewriter = JS_UNDEFINED;
 
 NSString* const kOOJavaScriptEngineWillResetNotification = @"org.aegidian.oolite OOJavaScriptEngine will reset";
 NSString* const kOOJavaScriptEngineDidResetNotification = @"org.aegidian.oolite OOJavaScriptEngine did reset";
+const char* const kOOJavaScriptEngineWillResetNotificationName = "org.aegidian.oolite OOJavaScriptEngine will reset";
+const char* const kOOJavaScriptEngineDidResetNotificationName = "org.aegidian.oolite OOJavaScriptEngine did reset";
 
 static int InterruptHandler(JSRuntime* runtime, void* opaque);
 static void RegisterStandardObjectConverters(JSContext* context);
@@ -169,7 +173,7 @@ static void LoadCompatibilityScript(JSContext* context);
         exit(1);
     }
 
-    uint32_t jsRuntimeInMiB = [defaults oo_intForKey:@"jsruntime-size-mib" defaultValue:OOJS_RUNTIME_SIZE_MiB];
+    uint32_t jsRuntimeInMiB = oo::PListView(defaults).get<int>(@"jsruntime-size-mib", OOJS_RUNTIME_SIZE_MiB);
     JS_SetMemoryLimit(_runtime, jsRuntimeInMiB * 1024L * 1024L);
     JS_SetMaxStackSize(_runtime, OOJS_STACK_SIZE);
     JS_SetInterruptHandler(_runtime, InterruptHandler, NULL);
@@ -284,11 +288,13 @@ static void LoadCompatibilityScript(JSContext* context);
 
     OOJSFrameCallbacksRemoveAll();
 
+    oo::NotificationCenter::defaultCenter().post(kOOJavaScriptEngineWillResetNotificationName, self);
     [[NSNotificationCenter defaultCenter] postNotificationName:kOOJavaScriptEngineWillResetNotification object:self];
 
     [self destroyMainThreadContext];
     [self createMainThreadContext];
 
+    oo::NotificationCenter::defaultCenter().post(kOOJavaScriptEngineDidResetNotificationName, self);
     [[NSNotificationCenter defaultCenter] postNotificationName:kOOJavaScriptEngineDidResetNotification object:self];
 
     [self garbageCollectionOpportunity:YES];
@@ -327,6 +333,7 @@ static BOOL IsRunningJavaScript(JSContext* context)
     }
 
     OOJSFrameCallbacksRemoveAll();
+    oo::NotificationCenter::defaultCenter().post(kOOJavaScriptEngineWillResetNotificationName, self);
     [[NSNotificationCenter defaultCenter] postNotificationName:kOOJavaScriptEngineWillResetNotification object:self];
     [self destroyMainThreadContext];
 
@@ -1202,6 +1209,48 @@ static JSValue JSObjectFromNSDictionary(JSContext* context, NSDictionary* dictio
 
 @end
 
+// NSObject (OOJavaScriptConversion) above, for classes rooted on OOObject (ADR-0029).
+@implementation OOObject (OOJavaScriptConversion)
+
+- (JSValue)oo_jsValueInContext:(JSContext*)context
+{
+    return JS_UNDEFINED;
+}
+
+- (NSString*)oo_jsClassName
+{
+    return nil;
+}
+
+- (NSString*)oo_jsDescription
+{
+    return [self oo_jsDescriptionWithClassName:[self oo_jsClassName]];
+}
+
+- (NSString*)oo_jsDescriptionWithClassName:(NSString*)className
+{
+    NSString* components = nil;
+    NSString* description = nil;
+
+    components = [self descriptionComponents];
+    if (className == nil)
+        className = [[self class] description];
+
+    if (components != nil) {
+        description = [NSString stringWithFormat:@"[%@ %@]", className, components];
+    } else {
+        description = [NSString stringWithFormat:@"[object %@]", className];
+    }
+
+    return description;
+}
+
+- (void)oo_clearJSSelf:(JSValueConst)selfVal
+{
+}
+
+@end
+
 JSValue OOJSObjectFromNativeObject(JSContext* context, id object)
 {
     JSValue value = OOJSValueFromNativeObject(context, object);
@@ -1229,10 +1278,9 @@ JSValue OOJSObjectFromNativeObject(JSContext* context, id object)
 
         _val = JS_DupValue(context, value);
         if (!JS_IsUndefined(_val)) {
-            [[NSNotificationCenter defaultCenter] addObserver:self
-                                                     selector:@selector(deleteJSValue)
-                                                         name:kOOJavaScriptEngineWillResetNotification
-                                                       object:[OOJavaScriptEngine sharedEngine]];
+            oo::NotificationCenter::defaultCenter().addObserver(self, kOOJavaScriptEngineWillResetNotificationName,
+                [OOJavaScriptEngine sharedEngine],
+                [self](const oo::Notification&) { [self deleteJSValue]; });
         }
     }
     return self;
@@ -1244,9 +1292,8 @@ JSValue OOJSObjectFromNativeObject(JSContext* context, id object)
         JS_FreeValue(OOJSAcquireContext(), _val);
         _val = JS_UNDEFINED;
 
-        [[NSNotificationCenter defaultCenter] removeObserver:self
-                                                        name:kOOJavaScriptEngineWillResetNotification
-                                                      object:[OOJavaScriptEngine sharedEngine]];
+        oo::NotificationCenter::defaultCenter().removeObserver(self, kOOJavaScriptEngineWillResetNotificationName,
+            [OOJavaScriptEngine sharedEngine]);
     }
 }
 
@@ -1544,7 +1591,25 @@ NSString* OOJSDescribeValue(JSContext* context, JSValueConst value, BOOL abbrevi
 
 @end
 
-@implementation NSNull (OOJavaScriptConversion)
+@implementation OONull
+
++ (OONull*)null
+{
+    static OONull* sNull = nil;
+    if (sNull == nil)
+        sNull = [[OONull alloc] init];
+    return sNull;
+}
+
+- (id)copyWithZone:(OOZone*)zone
+{
+    return [self retain];
+}
+
+- (NSString*)description
+{
+    return @"<null>";
+}
 
 - (JSValue)oo_jsValueInContext:(JSContext*)context
 {
@@ -1927,7 +1992,7 @@ static id JSArrayConverter(JSContext* context, JSValueConst array)
         id object = OOJSNativeObjectFromJSValue(context, value);
         JS_FreeValue(context, value);
         if (object == nil)
-            object = [NSNull null];
+            object = [OONull null];
         [result addObject:object];
     }
 

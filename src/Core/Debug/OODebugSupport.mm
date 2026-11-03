@@ -29,10 +29,10 @@ SOFTWARE.
 
 #import "OODebugSupport.h"
 #import "GameController.h"
-#import "OOCollectionExtractors.h"
 #import "OODebugMonitor.h"
 #import "OODebugTCPConsoleClient.h"
 #import "OOJavaScriptEngine.h"
+#import "OOPListView.h"
 #import "ResourceManager.h"
 
 #if OOLITE_MAC_COCOA_UI
@@ -70,8 +70,8 @@ void OOInitDebugSupport(void)
         // Load plug-in debugging code on platforms where this is supported.
         sDebugPlugInController = [(id)LoadDebugPlugIn() retain];
 
-        consoleHost = [debugSettings oo_stringForKey:@"console-host"];
-        consolePort = [debugSettings oo_unsignedShortForKey:@"console-port"];
+        consoleHost = oo::PListView(debugSettings).get<NSString*>(@"console-host");
+        consolePort = oo::PListView(debugSettings).get<unsigned short>(@"console-port");
 
         // If consoleHost is nil, and the debug plug-in can set up a debugger, use that.
         if (consoleHost == nil && [sDebugPlugInController respondsToSelector:@selector(setUpDebugger)]) {
@@ -91,7 +91,7 @@ void OOInitDebugSupport(void)
     }
 
     if (!activateDebugConsole) {
-        activateDebugConsole = [debugSettings oo_boolForKey:@"always-load-debug-console"];
+        activateDebugConsole = oo::PListView(debugSettings).get<BOOL>(@"always-load-debug-console");
     }
 
     if (activateDebugConsole) {
