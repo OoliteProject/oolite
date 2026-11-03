@@ -26,6 +26,7 @@ SOFTWARE.
 */
 
 #import "OOShaderMaterial.h"
+#include "oofnd/objc/OORuntime.h"
 
 #if OO_SHADERS
 
@@ -317,7 +318,7 @@ static NSString* MacrosToString(NSDictionary* macros);
 {
     SEL selector = NULL;
 
-    selector = NSSelectorFromString(property);
+    selector = OOSelectorFromName([property UTF8String]);
 
     if (selector != NULL && OOUniformBindingPermitted(property, target)) {
         return [self bindUniform:uniformName

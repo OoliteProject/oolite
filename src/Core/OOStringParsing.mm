@@ -462,58 +462,57 @@ static BOOL NameIsTaken(NSString* name, NSSet* uniqueSet);
 
 NSString* GraphVizTokenString(NSString* string, NSMutableSet* uniqueSet)
 {
-    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-
-    BOOL lastWasUnderscore = NO;
-    NSUInteger i, length = [string length], ri = 0;
-    std::vector<unichar> result(length);
     NSString* token = nil;
+    @autoreleasepool {
+        BOOL lastWasUnderscore = NO;
+        NSUInteger i, length = [string length], ri = 0;
+        std::vector<unichar> result(length);
 
-    if (length > 0) {
-        // Special case for first char - can't be digit.
-        unichar c = [string characterAtIndex:0];
-        if (!isalpha(c)) {
-            c = '_';
-            lastWasUnderscore = YES;
-        }
-        result[ri++] = c;
-
-        for (i = 1; i < length; i++) {
-            c = [string characterAtIndex:i];
-            if (!isalnum(c)) {
-                if (lastWasUnderscore)
-                    continue;
+        if (length > 0) {
+            // Special case for first char - can't be digit.
+            unichar c = [string characterAtIndex:0];
+            if (!isalpha(c)) {
                 c = '_';
                 lastWasUnderscore = YES;
-            } else {
-                lastWasUnderscore = NO;
+            }
+            result[ri++] = c;
+
+            for (i = 1; i < length; i++) {
+                c = [string characterAtIndex:i];
+                if (!isalnum(c)) {
+                    if (lastWasUnderscore)
+                        continue;
+                    c = '_';
+                    lastWasUnderscore = YES;
+                } else {
+                    lastWasUnderscore = NO;
+                }
+
+                result[ri++] = c;
             }
 
-            result[ri++] = c;
+            token = [NSString stringWithCharacters:result.data() length:ri];
+        } else {
+            token = @"_";
         }
 
-        token = [NSString stringWithCharacters:result.data() length:ri];
-    } else {
-        token = @"_";
-    }
+        if (NameIsTaken(token, uniqueSet)) {
+            if (!lastWasUnderscore)
+                token = [token stringByAppendingString:@"_"];
+            NSString* uniqueToken = nil;
+            unsigned uniqueID = 2;
 
-    if (NameIsTaken(token, uniqueSet)) {
-        if (!lastWasUnderscore)
-            token = [token stringByAppendingString:@"_"];
-        NSString* uniqueToken = nil;
-        unsigned uniqueID = 2;
-
-        for (;;) {
-            uniqueToken = [NSString stringWithFormat:@"%@%u", token, uniqueID];
-            if (!NameIsTaken(uniqueToken, uniqueSet))
-                break;
+            for (;;) {
+                uniqueToken = [NSString stringWithFormat:@"%@%u", token, uniqueID];
+                if (!NameIsTaken(uniqueToken, uniqueSet))
+                    break;
+            }
+            token = uniqueToken;
         }
-        token = uniqueToken;
-    }
-    [uniqueSet addObject:token];
+        [uniqueSet addObject:token];
 
-    [token retain];
-    [pool release];
+        [token retain];
+    }
     return [token autorelease];
 }
 

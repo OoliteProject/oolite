@@ -28,7 +28,6 @@ SOFTWARE.
 
 #include <assert.h>
 
-#import "NSThreadOOExtensions.h"
 #import "OOAsyncQueue.h"
 #import "OOFunctionAttributes.h"
 #import "OOLogging.h"

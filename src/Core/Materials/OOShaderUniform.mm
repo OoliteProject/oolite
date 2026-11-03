@@ -26,6 +26,7 @@ SOFTWARE.
 */
 
 #import "OOShaderUniform.h"
+#include "oofnd/objc/OORuntime.h"
 
 #if OO_SHADERS
 
@@ -150,7 +151,7 @@ SOFTWARE.
         location = glGetUniformLocationARB([shaderProgram program], [uniformName UTF8String]);
         if (location == -1) {
             OK = NO;
-            OOLog(@"shader.uniform.bind.failed", @"Could not bind uniform \"%@\" to -[%@ %@] (no uniform of that name could be found).", uniformName, [target class], NSStringFromSelector(selector));
+            OOLog(@"shader.uniform.bind.failed", @"Could not bind uniform \"%@\" to -[%@ %s] (no uniform of that name could be found).", uniformName, [target class], OOSelectorName(selector));
         }
     }
 
@@ -194,7 +195,7 @@ SOFTWARE.
     if (isBinding) {
         object = [value.binding.object weakRefUnderlyingObject];
         if (object != nil) {
-            valueDesc = [NSString stringWithFormat:@"[<%@ %p> %@]", [object class], value.binding.object, NSStringFromSelector(value.binding.selector)];
+            valueDesc = [NSString stringWithFormat:@"[<%@ %p> %s]", [object class], value.binding.object, OOSelectorName(value.binding.selector)];
         } else {
             valueDesc = @"0";
         }
@@ -282,7 +283,7 @@ SOFTWARE.
 - (void)setBindingTarget:(id<OOWeakReferenceSupport>)target
 {
     BOOL OK = YES;
-    NSMethodSignature* signature = nil;
+    Method method = NULL;
     NSUInteger argCount;
     NSString* methodProblem = nil;
     id<OOWeakReferenceSupport> superCandidate = nil;
@@ -327,15 +328,15 @@ SOFTWARE.
     }
 
     if (OK) {
-        signature = [(id)target methodSignatureForSelector:value.binding.selector];
-        if (signature == nil) {
+        method = class_getInstanceMethod(object_getClass((id)target), value.binding.selector);
+        if (method == NULL) {
             methodProblem = @"could not retrieve method signature";
             OK = NO;
         }
     }
 
     if (OK) {
-        argCount = [signature numberOfArguments];
+        argCount = method_getNumberOfArguments(method);
         if (argCount != 2) // "no-arguments" methods actually take two arguments, self and _msg.
         {
             methodProblem = @"only methods which do not require arguments may be bound to";
@@ -344,16 +345,18 @@ SOFTWARE.
     }
 
     if (OK) {
-        type = OOShaderUniformTypeFromMethodSignature(signature);
+        type = OOShaderUniformTypeFromMethod(method);
         if (type == kOOShaderUniformTypeInvalid) {
             OK = NO;
-            methodProblem = [NSString stringWithFormat:@"unsupported type \"%s\"", [signature methodReturnType]];
+            char* returnType = method_copyReturnType(method);
+            methodProblem = [NSString stringWithFormat:@"unsupported type \"%s\"", returnType];
+            free(returnType);
         }
     }
 
     isActiveBinding = OK;
     if (!OK)
-        OOLog(@"shader.uniform.bind.failed", @"Shader could not bind uniform \"%@\" to -[%@ %@] (%@).", name, [target class], NSStringFromSelector(value.binding.selector), methodProblem);
+        OOLog(@"shader.uniform.bind.failed", @"Shader could not bind uniform \"%@\" to -[%@ %s] (%@).", name, [target class], OOSelectorName(value.binding.selector), methodProblem);
 }
 
 @end

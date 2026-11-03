@@ -10,6 +10,8 @@
 
 #import "OOTCPStreamDecoderAbstractionLayer.h"
 #import "OOFoundation.h"
+#import <objc/objc-arc.h>
+#import <objc/runtime.h>
 
 // Simulate literal CF/NS strings. Each literal string that is used becomes a single object. Since it uses pointers as keys, it should only be used with literals.
 // Called from OOTCPStreamDecoder.c through OOALSTR(), so it keeps C linkage now that this file is Objective-C++.
@@ -93,7 +95,12 @@ size_t OOALDataGetLength(OOALDataRef data)
 
 OOALAutoreleasePoolRef OOALCreateAutoreleasePool(void)
 {
-    return [[NSAutoreleasePool alloc] init];
+    return objc_autoreleasePoolPush();
+}
+
+void OOALDestroyAutoreleasePool(OOALAutoreleasePoolRef pool)
+{
+    objc_autoreleasePoolPop(pool);
 }
 
 OOALObjectRef OOALPropertyListFromData(OOALMutableDataRef data, OOALStringRef* errStr)

@@ -922,17 +922,17 @@ static JSValue ConsoleProfile(OOJS_NATIVE_ARGS)
         return OOJSNativeFailure(context);
     }
 
-    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-    OOTimeProfile* profile = nil;
     JSValue result = JS_UNDEFINED;
+    @autoreleasepool {
+        OOTimeProfile* profile = nil;
 
-    if (PerformProfiling(context, @"profile", argc, OOJS_ARGV, NULL, NO, &profile)) {
-        result = OOJSValueFromNativeObject(context, [profile description]);
-    } else {
-        result = OOJSNativeFailure(context);
+        if (PerformProfiling(context, @"profile", argc, OOJS_ARGV, NULL, NO, &profile)) {
+            result = OOJSValueFromNativeObject(context, [profile description]);
+        } else {
+            result = OOJSNativeFailure(context);
+        }
     }
 
-    [pool release];
     return result;
 
     OOJS_NATIVE_EXIT
@@ -948,17 +948,17 @@ static JSValue ConsoleGetProfile(OOJS_NATIVE_ARGS)
         return OOJSNativeFailure(context);
     }
 
-    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-    OOTimeProfile* profile = nil;
     JSValue result = JS_UNDEFINED;
+    @autoreleasepool {
+        OOTimeProfile* profile = nil;
 
-    if (PerformProfiling(context, @"getProfile", argc, OOJS_ARGV, NULL, NO, &profile)) {
-        result = OOJSValueFromNativeObject(context, profile);
-    } else {
-        result = OOJSNativeFailure(context);
+        if (PerformProfiling(context, @"getProfile", argc, OOJS_ARGV, NULL, NO, &profile)) {
+            result = OOJSValueFromNativeObject(context, profile);
+        } else {
+            result = OOJSNativeFailure(context);
+        }
     }
 
-    [pool release];
     return result;
 
     OOJS_NATIVE_EXIT
@@ -974,17 +974,16 @@ static JSValue ConsoleTrace(OOJS_NATIVE_ARGS)
         return OOJSNativeFailure(context);
     }
 
-    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     JSValue rval = JS_UNDEFINED;
     JSValue result;
-
-    if (PerformProfiling(context, @"trace", argc, OOJS_ARGV, &rval, YES, NULL)) {
-        result = rval;
-    } else {
-        result = OOJSNativeFailure(context);
+    @autoreleasepool {
+        if (PerformProfiling(context, @"trace", argc, OOJS_ARGV, &rval, YES, NULL)) {
+            result = rval;
+        } else {
+            result = OOJSNativeFailure(context);
+        }
     }
 
-    [pool release];
     return result;
 
     OOJS_NATIVE_EXIT

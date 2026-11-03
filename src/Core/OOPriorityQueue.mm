@@ -29,6 +29,7 @@ SOFTWARE.
 
 #import "OOFunctionAttributes.h"
 #import "OOPriorityQueue.h"
+#include "oofnd/objc/OOException.h"
 
 /*	Capacity grows by 50% each time. kMinCapacity must be at least 2 or Bad
         Things will happen. Some examples of growth patterns based on kMinCapacity:
@@ -248,14 +249,14 @@ OOINLINE NSComparisonResult PQCompare(id a, id b, SEL comparator)
 
     // Validate object
     if (object == nil) {
-        [NSException raise:NSInvalidArgumentException
-                    format:@"Attempt to insert nil into OOPriorityQueue."];
+        [OOException raise:OOInvalidArgumentException
+                    format:"Attempt to insert nil into OOPriorityQueue."];
     }
 
     if (![object respondsToSelector:_comparator]) {
-        [NSException raise:NSInvalidArgumentException
-                    format:@"Attempt to insert object (%@) which does not support comparator %@ into OOPriorityQueue.",
-            object, NSStringFromSelector(_comparator)];
+        [OOException raise:OOInvalidArgumentException
+                    format:"Attempt to insert object (<%s: %p>) which does not support comparator %s into OOPriorityQueue.",
+            class_getName(object_getClass(object)), (void*)object, sel_getName(_comparator)];
     }
 
     // Ensure there is sufficent space.
@@ -432,8 +433,8 @@ OOINLINE NSComparisonResult PQCompare(id a, id b, SEL comparator)
 
         if (newBuffer == NULL) {
             // Failed to grow.
-            [NSException raise:NSMallocException
-                        format:@"Could not expand capacity of OOPriorityQueue."];
+            [OOException raise:OOMallocException
+                        format:"Could not expand capacity of OOPriorityQueue."];
         }
     }
 

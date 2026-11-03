@@ -26,11 +26,22 @@ SOFTWARE.
 */
 
 #import "OOAsyncWorkManager.h"
-#import "NSThreadOOExtensions.h"
 #import "OOAsyncQueue.h"
 #import "OOCPUInfo.h"
 #import "OOCollectionExtractors.h"
-#import "OONSOperation.h"
+#include "oofnd/Thread.hpp"
+
+// OOCocoa.h defines true/false as macros; the standard headers want the keywords (oofnd/Data.hpp).
+#pragma push_macro("true")
+#pragma push_macro("false")
+#undef true
+#undef false
+#include <condition_variable>
+#include <deque>
+#include <mutex>
+#include <string>
+#pragma pop_macro("false")
+#pragma pop_macro("true")
 
 #define USE_PTHREAD_ONCE (!OOLITE_WINDOWS)
 
@@ -39,13 +50,6 @@ SOFTWARE.
 #endif
 
 static OOAsyncWorkManager* sSingleton = nil;
-
-@interface NSThread (MethodsThatMayExistDependingOnSystem)
-
-- (BOOL)isMainThread;
-+ (BOOL)isMainThread;
-
-@end
 
 /*	OOAsyncWorkManagerInternal: shared superclass of our two implementations,
         which implements shared functionality but is not itself concrete.
@@ -64,7 +68,6 @@ static OOAsyncWorkManager* sSingleton = nil;
 
 @end
 
-#if !OO_HAVE_NSOPERATION
 @interface OOManualDispatchAsyncWorkManager : OOAsyncWorkManagerInternal {
 @private
     OOAsyncQueue* _taskQueue;
@@ -73,20 +76,63 @@ static OOAsyncWorkManager* sSingleton = nil;
 - (void)queueTask:(NSNumber*)threadNumber;
 
 @end
-#endif
+
+/*	The prioritised task queue Foundation's operation queue was (bead oo-3rb.6): highest priority
+        first and first-in-first-out within a priority, as the operation queue ordered operations by
+        queuePriority. A queued task is retained until a work thread has dispatched it, as the
+        invocation operation retained its argument.
+*/
+struct OOPrioritizedTaskQueue {
+    std::mutex mutex;
+    std::condition_variable available;
+    std::deque<id> tasks[3]; // indexed by OOAsyncWorkPriority: low, medium, high
+};
 
 @interface OOOperationQueueAsyncWorkManager : OOAsyncWorkManagerInternal {
 @private
-    OONSOperationQueue _operationQueue;
+    OOPrioritizedTaskQueue* _operationQueue;
 }
 
-#if !OO_HAVE_NSOPERATION
 + (BOOL)canBeUsed;
-#endif
 
+- (void)workThread:(NSNumber*)threadNumber;
 - (void)dispatchTask:(id<OOAsyncWorkTask>)task;
 
 @end
+
+enum {
+    kMaxWorkThreads = 8
+};
+
+static unsigned WorkThreadCount(void)
+{
+#if OO_DEBUG
+    return kMaxWorkThreads;
+#else
+    return MIN(OOCPUCount(), (unsigned)kMaxWorkThreads);
+#endif
+}
+
+/*	Starts `count` detached work threads running [manager selector:threadNumber], numbered from 1,
+        as Foundation's detachNewThreadSelector:toTarget:withObject: did. The manager is an immortal
+        singleton, so a thread needs no retain on it; the thread body opens its own pool.
+*/
+static void StartWorkThreads(OOAsyncWorkManager* manager, SEL selector, unsigned count)
+{
+    for (unsigned threadNumber = 1; threadNumber <= count; threadNumber++) {
+        oo::thread::detach([manager, selector, threadNumber]() {
+            @autoreleasepool {
+                [manager performSelector:selector withObject:[NSNumber numberWithUnsignedInt:threadNumber]];
+            }
+        });
+    }
+}
+
+static void SetUpWorkThread(NSNumber* threadNumber)
+{
+    oo::thread::setCurrentPriority(0.5);
+    oo::thread::setCurrentName("OOAsyncWorkManager thread " + std::to_string([threadNumber unsignedIntValue]));
+}
 
 #if !USE_PTHREAD_ONCE
 static NSLock* sInitLock = nil;
@@ -96,16 +142,12 @@ static void InitAsyncWorkManager(void)
 {
     NSCAssert(sSingleton == nil, @"Async Work Manager singleton not nil in one-time init");
 
-#if !OO_HAVE_NSOPERATION
     if ([OOOperationQueueAsyncWorkManager canBeUsed]) {
         sSingleton = [[OOOperationQueueAsyncWorkManager alloc] init];
     }
     if (sSingleton == nil) {
         sSingleton = [[OOManualDispatchAsyncWorkManager alloc] init];
     }
-#else
-    sSingleton = [[OOOperationQueueAsyncWorkManager alloc] init];
-#endif
 
     if (sSingleton == nil) {
         OOLog(@"asyncWorkManager.setUpDispatcher.failed", @"%@", @"***** FATAL ERROR: could not set up async work manager!");
@@ -240,7 +282,7 @@ static void InitAsyncWorkManager(void)
 
 #if OO_DEBUG
     NSParameterAssert([(id)task respondsToSelector:@selector(completeAsyncTask)]);
-    NSAssert1(![NSThread respondsToSelector:@selector(isMainThread)] || [[NSThread self] isMainThread], @"%s can only be called from the main thread.", __PRETTY_FUNCTION__);
+    NSAssert1(oo::thread::isMainThread(), @"%s can only be called from the main thread.", __PRETTY_FUNCTION__);
 #endif
 
     [_pendingOpsLock lock];
@@ -283,11 +325,6 @@ static void InitAsyncWorkManager(void)
 
 /******* OOManualDispatchAsyncWorkManager - manual thread management *******/
 
-enum {
-    kMaxWorkThreads = 8
-};
-
-#if !OO_HAVE_NSOPERATION
 @implementation OOManualDispatchAsyncWorkManager
 
 - (id)init
@@ -301,15 +338,7 @@ enum {
         }
 
         // Set up loading threads.
-        NSUInteger threadCount, threadNumber = 1;
-#if OO_DEBUG
-        threadCount = kMaxWorkThreads;
-#else
-        threadCount = MIN(OOCPUCount(), (unsigned)kMaxWorkThreads);
-#endif
-        do {
-            [NSThread detachNewThreadSelector:@selector(queueTask:) toTarget:self withObject:[NSNumber numberWithInt:threadNumber++]];
-        } while (--threadCount > 0);
+        StartWorkThreads(self, @selector(queueTask:), WorkThreadCount());
     }
 
     return self;
@@ -332,8 +361,7 @@ enum {
 
     rootPool = [[NSAutoreleasePool alloc] init];
 
-    [NSThread setThreadPriority:0.5];
-    [NSThread ooSetCurrentThreadName:[NSString stringWithFormat:@"OOAsyncWorkManager thread %@", threadNumber]];
+    SetUpWorkThread(threadNumber);
 
     for (;;) {
         pool = [[NSAutoreleasePool alloc] init];
@@ -353,40 +381,28 @@ enum {
 }
 
 @end
-#endif
 
-/******* OOOperationQueueAsyncWorkManager - dispatch through NSOperationQueue if available *******/
+/******* OOOperationQueueAsyncWorkManager - a prioritised queue on its own work threads *******/
+/*	This was Foundation's operation queue; it is now an OOPrioritizedTaskQueue served by
+        WorkThreadCount() detached std::threads (bead oo-3rb.6). The class name is kept: it is what the
+        asyncWorkManager.dispatchMethod log line prints.
+*/
 
 @implementation OOOperationQueueAsyncWorkManager
 
-#if !OO_HAVE_NSOPERATION
 + (BOOL)canBeUsed
 {
-    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"disable-operation-queue-work-manager"])
-        return NO;
-    return [OONSInvocationOperationClass() class] != Nil;
+    return ![[NSUserDefaults standardUserDefaults] boolForKey:@"disable-operation-queue-work-manager"];
 }
-#endif
 
 - (id)init
 {
     if ((self = [super init])) {
-        _operationQueue = [[OONSOperationQueueClass() alloc] init];
-
-        if (_operationQueue == nil) {
-            [self release];
-            return nil;
-        }
+        _operationQueue = new OOPrioritizedTaskQueue;
+        StartWorkThreads(self, @selector(workThread:), WorkThreadCount());
     }
 
     return self;
-}
-
-- (void)dealloc
-{
-    [_operationQueue release];
-
-    [super dealloc];
 }
 
 - (BOOL)addTask:(id<OOAsyncWorkTask>)task priority:(OOAsyncWorkPriority)priority
@@ -394,20 +410,48 @@ enum {
     if (EXPECT_NOT(task == nil))
         return NO;
 
-    id operation = [[OONSInvocationOperationClass() alloc] initWithTarget:self selector:@selector(dispatchTask:) object:task];
-    if (operation == nil)
-        return NO;
-
+    unsigned index = kOOAsyncPriorityMedium;
     if (priority == kOOAsyncPriorityLow)
-        [operation setQueuePriority:OONSOperationQueuePriorityLow];
+        index = kOOAsyncPriorityLow;
     else if (priority == kOOAsyncPriorityHigh)
-        [operation setQueuePriority:OONSOperationQueuePriorityHigh];
+        index = kOOAsyncPriorityHigh;
 
-    [_operationQueue addOperation:operation];
-    [operation release];
+    {
+        std::lock_guard<std::mutex> lock(_operationQueue->mutex);
+        _operationQueue->tasks[index].push_back([task retain]);
+    }
+    _operationQueue->available.notify_one();
 
     [super noteTaskQueued:task];
     return YES;
+}
+
+- (void)workThread:(NSNumber*)threadNumber
+{
+    SetUpWorkThread(threadNumber);
+
+    for (;;) {
+        id<OOAsyncWorkTask> task = nil;
+        {
+            std::unique_lock<std::mutex> lock(_operationQueue->mutex);
+            while (task == nil) {
+                for (int index = kOOAsyncPriorityHigh; index >= (int)kOOAsyncPriorityLow && task == nil; index--) {
+                    std::deque<id>& queue = _operationQueue->tasks[index];
+                    if (!queue.empty()) {
+                        task = queue.front();
+                        queue.pop_front();
+                    }
+                }
+                if (task == nil)
+                    _operationQueue->available.wait(lock);
+            }
+        }
+
+        @autoreleasepool {
+            [self dispatchTask:task];
+        }
+        [task release];
+    }
 }
 
 - (void)dispatchTask:(id<OOAsyncWorkTask>)task

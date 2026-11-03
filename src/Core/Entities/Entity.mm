@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 #import "EntityOOJavaScriptExtensions.h"
 #import "OOPlanetEntity.h"
 #import "PlayerEntity.h"
+#include "oofnd/objc/OORuntime.h"
 
 #import "GameController.h"
 #import "OOConstToString.h"
@@ -1003,7 +1004,7 @@ static NSString* const kOOLogEntityVerificationError = @"entity.linkedList.verif
 {
     NSString* result = [self descriptionComponents];
     if (result != nil)
-        result = [NSString stringWithFormat:@"%@ %@", NSStringFromClass([self class]), result];
+        result = [NSString stringWithFormat:@"%s %@", OOClassName([self class]), result];
     else
         result = [self description];
 

@@ -25,6 +25,7 @@ MA 02110-1301, USA.
 #import "OOColor.h"
 #import "OOCollectionExtractors.h"
 #import "OOMaths.h"
+#include "oofnd/objc/OORuntime.h"
 
 @implementation OOColor
 
@@ -150,7 +151,7 @@ MA 02110-1301, USA.
     } else if ([description isKindOfClass:[NSString class]]) {
         if ([description hasSuffix:@"Color"]) {
             // +fooColor selector
-            SEL selector = NSSelectorFromString(description);
+            SEL selector = OOSelectorFromName([description UTF8String]);
             if ([self respondsToSelector:selector])
                 result = [self performSelector:selector];
         } else {

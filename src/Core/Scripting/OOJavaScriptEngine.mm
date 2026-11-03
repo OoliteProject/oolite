@@ -1437,57 +1437,56 @@ NSString* OOJSDescribeValue(JSContext* context, JSValueConst value, BOOL abbrevi
     NSMutableString* result = nil;
     NSUInteger i, length;
     unichar c;
-    NSAutoreleasePool* pool = nil;
 
     length = [self length];
     result = [NSMutableString stringWithCapacity:length];
 
     // Not hugely efficient.
-    pool = [[NSAutoreleasePool alloc] init];
-    for (i = 0; i != length; ++i) {
-        c = [self characterAtIndex:i];
-        switch (c) {
-        case '\\':
-            [result appendString:@"\\\\"];
-            break;
+    @autoreleasepool {
+        for (i = 0; i != length; ++i) {
+            c = [self characterAtIndex:i];
+            switch (c) {
+            case '\\':
+                [result appendString:@"\\\\"];
+                break;
 
-        case '\b':
-            [result appendString:@"\\b"];
-            break;
+            case '\b':
+                [result appendString:@"\\b"];
+                break;
 
-        case '\f':
-            [result appendString:@"\\f"];
-            break;
+            case '\f':
+                [result appendString:@"\\f"];
+                break;
 
-        case '\n':
-            [result appendString:@"\\n"];
-            break;
+            case '\n':
+                [result appendString:@"\\n"];
+                break;
 
-        case '\r':
-            [result appendString:@"\\r"];
-            break;
+            case '\r':
+                [result appendString:@"\\r"];
+                break;
 
-        case '\t':
-            [result appendString:@"\\t"];
-            break;
+            case '\t':
+                [result appendString:@"\\t"];
+                break;
 
-        case '\v':
-            [result appendString:@"\\v"];
-            break;
+            case '\v':
+                [result appendString:@"\\v"];
+                break;
 
-        case '\'':
-            [result appendString:@"\\\'"];
-            break;
+            case '\'':
+                [result appendString:@"\\\'"];
+                break;
 
-        case '\"':
-            [result appendString:@"\\\""];
-            break;
+            case '\"':
+                [result appendString:@"\\\""];
+                break;
 
-        default:
-            [result appendString:[NSString stringWithCharacters:&c length:1]];
+            default:
+                [result appendString:[NSString stringWithCharacters:&c length:1]];
+            }
         }
     }
-    [pool release];
 
     return result;
 }

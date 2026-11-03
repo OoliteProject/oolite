@@ -50,6 +50,7 @@ MA 02110-1301, USA.
 #import "ResourceManager.h"
 #import "StationEntity.h"
 #import "Universe.h"
+#include "oofnd/objc/OORuntime.h"
 
 #define ONE_SIXTEENTH 0.0625
 #define ONE_SIXTYFOURTH 0.015625
@@ -696,7 +697,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat* color, GLfloat alpha)
         return;
     }
 
-    SEL selector = NSSelectorFromString(selectorString);
+    SEL selector = OOSelectorFromName([selectorString UTF8String]);
 
     NSAssert2([self respondsToSelector:selector], @"HUD dial in %@ uses selector \"%@\" which is in whitelist, but not implemented.", hudName, selectorString);
 

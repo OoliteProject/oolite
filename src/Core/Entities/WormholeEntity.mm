@@ -86,57 +86,56 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
     assert(dict != nil);
 
     if ((self = [self init])) {
-        NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+        @autoreleasepool {
+            // wormholes from pre-1.80 savegames using "origin_seed" and "dest_seed"
+            // currently get defaults set; will probably disappear unnoticed
+            origin = [dict oo_intForKey:@"origin_id" defaultValue:0];
+            destination = [dict oo_intForKey:@"dest_id" defaultValue:255];
 
-        // wormholes from pre-1.80 savegames using "origin_seed" and "dest_seed"
-        // currently get defaults set; will probably disappear unnoticed
-        origin = [dict oo_intForKey:@"origin_id" defaultValue:0];
-        destination = [dict oo_intForKey:@"dest_id" defaultValue:255];
+            originCoords = [[UNIVERSE systemManager] getCoordinatesForSystem:origin inGalaxy:[PLAYER galaxyNumber]];
+            destinationCoords = [[UNIVERSE systemManager] getCoordinatesForSystem:destination inGalaxy:[PLAYER galaxyNumber]];
 
-        originCoords = [[UNIVERSE systemManager] getCoordinatesForSystem:origin inGalaxy:[PLAYER galaxyNumber]];
-        destinationCoords = [[UNIVERSE systemManager] getCoordinatesForSystem:destination inGalaxy:[PLAYER galaxyNumber]];
+            // We only ever init from dictionary if we're loaded by the player, so
+            // by definition we have been scanned
+            scan_info = WH_SCANINFO_SCANNED;
 
-        // We only ever init from dictionary if we're loaded by the player, so
-        // by definition we have been scanned
-        scan_info = WH_SCANINFO_SCANNED;
+            // Remember, times are stored as Ship Clock - but anything
+            // saving/restoring wormholes from dictionaries should know this!
+            expiry_time = [dict oo_doubleForKey:@"expiry_time"];
+            arrival_time = [dict oo_doubleForKey:@"arrival_time"];
+            // just in case an old save game has one with crossed times
+            if (expiry_time > arrival_time) {
+                expiry_time = arrival_time - 1.0;
+            }
 
-        // Remember, times are stored as Ship Clock - but anything
-        // saving/restoring wormholes from dictionaries should know this!
-        expiry_time = [dict oo_doubleForKey:@"expiry_time"];
-        arrival_time = [dict oo_doubleForKey:@"arrival_time"];
-        // just in case an old save game has one with crossed times
-        if (expiry_time > arrival_time) {
-            expiry_time = arrival_time - 1.0;
-        }
+            // Since this is new for 1.75.1, we must give it a default values as we could be loading an old savegame
+            estimated_arrival_time = [dict oo_doubleForKey:@"estimated_arrival_time" defaultValue:arrival_time];
+            position = [dict oo_hpvectorForKey:@"position"];
+            _misjump = [dict oo_boolForKey:@"misjump" defaultValue:NO];
 
-        // Since this is new for 1.75.1, we must give it a default values as we could be loading an old savegame
-        estimated_arrival_time = [dict oo_doubleForKey:@"estimated_arrival_time" defaultValue:arrival_time];
-        position = [dict oo_hpvectorForKey:@"position"];
-        _misjump = [dict oo_boolForKey:@"misjump" defaultValue:NO];
+            // Setup shipsInTransit
+            NSArray* shipDictsArray = [dict oo_arrayForKey:@"ships"];
+            NSDictionary* currShipDict = nil;
+            [shipsInTransit removeAllObjects];
+            NSMutableDictionary* restoreContext = [NSMutableDictionary dictionary];
 
-        // Setup shipsInTransit
-        NSArray* shipDictsArray = [dict oo_arrayForKey:@"ships"];
-        NSDictionary* currShipDict = nil;
-        [shipsInTransit removeAllObjects];
-        NSMutableDictionary* restoreContext = [NSMutableDictionary dictionary];
-
-        foreach (currShipDict, shipDictsArray) {
-            NSDictionary* shipInfo = [currShipDict oo_dictionaryForKey:@"ship_info"];
-            if (shipInfo != nil) {
-                ShipEntity* ship = [ShipEntity shipRestoredFromDictionary:shipInfo
-                                                              useFallback:YES
-                                                                  context:restoreContext];
-                if (ship != nil) {
-                    [shipsInTransit addObject:[NSDictionary dictionaryWithObjectsAndKeys:
-                                                      ship, @"ship",
-                                                  [currShipDict objectForKey:@"time_delta"], @"time",
-                                                  nil]];
-                } else {
-                    OOLog(@"wormhole.load.warning", @"Wormhole ship \"%@\" failed to initialize - missing OXP or old-style saved wormhole data.", [shipInfo oo_stringForKey:@"ship_key"]);
+            foreach (currShipDict, shipDictsArray) {
+                NSDictionary* shipInfo = [currShipDict oo_dictionaryForKey:@"ship_info"];
+                if (shipInfo != nil) {
+                    ShipEntity* ship = [ShipEntity shipRestoredFromDictionary:shipInfo
+                                                                  useFallback:YES
+                                                                      context:restoreContext];
+                    if (ship != nil) {
+                        [shipsInTransit addObject:[NSDictionary dictionaryWithObjectsAndKeys:
+                                                          ship, @"ship",
+                                                      [currShipDict objectForKey:@"time_delta"], @"time",
+                                                      nil]];
+                    } else {
+                        OOLog(@"wormhole.load.warning", @"Wormhole ship \"%@\" failed to initialize - missing OXP or old-style saved wormhole data.", [shipInfo oo_stringForKey:@"ship_key"]);
+                    }
                 }
             }
         }
-        [pool release];
     }
     return self;
 }
