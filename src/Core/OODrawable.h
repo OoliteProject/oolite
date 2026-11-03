@@ -4,6 +4,12 @@ OODrawable.h
 
 Abstract base class for objects which can draw themselves.
 
+C++20 since bead oo-smy, with OOMaterial the Materials module exemplar (proposed ADR-0056,
+amendment oo-smy). The class is cxx::OODrawable while OODrawable+ObjCBridge.h, imported at the end
+of this header, keeps the Objective-C OODrawable that its callers message and its unconverted
+subclasses (OOMesh, OOPlanetDrawable, OOSkyDrawable) derive from; the bridge's deletion bead moves
+it out of namespace cxx.
+
 
 Copyright (C) 2007-2013 Jens Ayton
 
@@ -27,37 +33,55 @@ SOFTWARE.
 
 */
 
+#ifndef OODRAWABLE_H
+#define OODRAWABLE_H
+
 #import "OOFoundation.h"
 #import "OOMaths.h"
 #import "OOOpenGL.h"
 #import "OOWeakReference.h"
 #import "oofnd/objc/OOObject.h"
 
+#include "oofnd/Ref.hpp"
+#include "oofnd/StdLib.hpp"
 #include "oofnd/objc/OOObjCRef.h"
 #include <vector>
 
 @class OOTexture;
 
-@interface OODrawable : OOObject
+namespace cxx {
 
-- (void)renderOpaqueParts;
-- (void)renderTranslucentParts;
-- (BOOL)hasOpaqueParts;
-- (BOOL)hasTranslucentParts;
+class OODrawable : public oo::RefCounted {
+public:
+    virtual void renderOpaqueParts();
+    virtual void renderTranslucentParts();
+    virtual bool hasOpaqueParts();
+    virtual bool hasTranslucentParts();
 
-- (GLfloat)collisionRadius;
-- (GLfloat)maxDrawDistance;
+    virtual GLfloat collisionRadius();
+    virtual GLfloat maxDrawDistance();
 
-- (BoundingBox)boundingBox;
+    virtual BoundingBox boundingBox();
 
-// Passed to all materials.
-- (void)setBindingTarget:(id<OOWeakReferenceSupport>)target;
+    // Passed to all materials.
+    virtual void setBindingTarget(id<OOWeakReferenceSupport> target);
 
-- (void)dumpSelfState;
+    virtual void dumpSelfState();
+
+    // What "%@" prints between the braces of <Class 0x...>{...} (OODescription.h). None here, as
+    // OOObject answered; OOMesh and OOSkyDrawable override it.
+    virtual std::optional<std::string> descriptionComponents() const;
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-- (std::vector<oo::ObjCRef<OOTexture*>>)cxx_allTextures;
-- (size_t)totalSize; // Size including dynamic data, not counting textures.
+    virtual std::vector<oo::ObjCRef<OOTexture*>> allTextures();
+    virtual size_t totalSize(); // Size including dynamic data, not counting textures.
 #endif
+};
 
-@end
+} // namespace cxx
+
+// Transitional: the Objective-C OODrawable, for callers and subclasses not yet converted.
+// Deleted, with namespace cxx above, by the bridge's deletion bead.
+#import "OODrawable+ObjCBridge.h"
+
+#endif // OODRAWABLE_H

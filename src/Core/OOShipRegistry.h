@@ -31,10 +31,11 @@ SOFTWARE.
 #import "oofnd/objc/OOObject.h"
 
 #include "oofnd/PList.hpp"
+#include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
 #include "oofnd/objc/OOObjCRef.h"
 
-@class OOProbabilitySet;
+class OOProbabilitySet; // C++ since bead oo-489v
 
 @interface OOShipRegistry : OOObject {
 @private
@@ -42,7 +43,7 @@ SOFTWARE.
     oo::PList _effectData; // effect key -> effect dictionary (null until loaded)
     oo::PList _demoShips; // demo ship entries (dictionaries) grouped in arrays by class
     std::vector<std::string> _playerShips; // shipyard keys, in shipyard.plist key order
-    std::optional<std::map<std::string, oo::ObjCRef<OOProbabilitySet*>, std::less<>>> _probabilitySets; // role -> ship keys; nullopt: none cached yet
+    std::optional<std::map<std::string, oo::Ref<OOProbabilitySet>, std::less<>>> _probabilitySets; // role -> ship keys; nullopt: none cached yet
 }
 
 + (OOShipRegistry*)sharedRegistry;

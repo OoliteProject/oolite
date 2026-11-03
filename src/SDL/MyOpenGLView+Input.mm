@@ -8,7 +8,6 @@ Oolite
 
 #import "GameController.h"
 #import "MyOpenGLView.h"
-#import "OOFoundationBridge.h"
 #import "OOSDLJoystickManager.h"
 #import "PlayerEntity.h"
 #import "ResourceManager.h"

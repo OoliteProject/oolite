@@ -29,6 +29,12 @@ MA 02110-1301, USA.
 #import "PlayerEntityLegacyScriptEngine.h"
 #import "PlayerEntityScriptMethods.h"
 
+// -unsignedIntValue of the number a system-data query returned (nil: 0).
+static unsigned UnsignedIntValueOf(const oo::PList& value)
+{
+    return value.isNumber() ? static_cast<unsigned>(value.int64Value()) : 0;
+}
+
 @implementation Entity (ShaderBindings)
 
 // Clock time.
@@ -51,27 +57,27 @@ MA 02110-1301, USA.
 // System attributes.
 - (unsigned)systemGovernment
 {
-    return [[PLAYER systemGovernment_number] unsignedIntValue];
+    return UnsignedIntValueOf([PLAYER systemGovernment_number]);
 }
 
 - (unsigned)systemEconomy
 {
-    return [[PLAYER systemEconomy_number] unsignedIntValue];
+    return UnsignedIntValueOf([PLAYER systemEconomy_number]);
 }
 
 - (unsigned)systemTechLevel
 {
-    return [[PLAYER systemTechLevel_number] unsignedIntValue];
+    return UnsignedIntValueOf([PLAYER systemTechLevel_number]);
 }
 
 - (unsigned)systemPopulation
 {
-    return [[PLAYER systemPopulation_number] unsignedIntValue];
+    return UnsignedIntValueOf([PLAYER systemPopulation_number]);
 }
 
 - (unsigned)systemProductivity
 {
-    return [[PLAYER systemProductivity_number] unsignedIntValue];
+    return UnsignedIntValueOf([PLAYER systemProductivity_number]);
 }
 
 @end

@@ -32,11 +32,24 @@ MA 02110-1301, USA.
 #import "Universe.h"
 #endif
 
-#import "OOFoundationBridge.h"
+#include "oofnd/String.hpp"
+#include <cstring>
+
+/*
+        C++20 since bead oo-ppc, the Phase 3 scripting-bindings pattern (proposed ADR-0056 amendment
+        oo-ppc); the other OOJS* binding files follow it. A binding file has no class of its own: its
+        JS class (JSClassDef and JSCFunctionListEntry tables, hooks, natives) is already C++, so the
+        conversion is what is left of Objective-C. OOJS_NATIVE_ENTER/EXIT and
+        OOJS_PROFILE_ENTER/EXIT are C++ try/catch and scope guards (OOJavaScriptEngine.h);
+        BOOL/YES/NO are bool/true/false; the category on PlayerEntity became two free functions, and
+        its methods moved to OOJSVector+ObjCBridge.mm. Messages to classes that are still
+        Objective-C (Entity, Universe) stay as they are, which is why the file is still .mm until
+        Phase 4.
+*/
 
 static JSClassID sVectorClassID;
 
-static BOOL GetThisVector(JSContext* context, JSValueConst vectorObj, HPVector* outVector, const std::string& method) NONNULL_FUNC;
+static bool GetThisVector(JSContext* context, JSValueConst vectorObj, HPVector* outVector, const std::string& method) NONNULL_FUNC;
 
 static JSValue VectorGetProperty(JSContext* context, JSValueConst thisObj, int magic);
 static JSValue VectorSetProperty(JSContext* context, JSValueConst thisObj, JSValueConst value, int magic);
@@ -142,7 +155,7 @@ JSValue JSVectorWithVector(JSContext* context, Vector vector)
     return JSVectorWithHPVector(context, vectorToHPVector(vector));
 }
 
-BOOL VectorToJSValue(JSContext* context, Vector vector, JSValue* outValue)
+bool VectorToJSValue(JSContext* context, Vector vector, JSValue* outValue)
 {
     assert(outValue != NULL);
 
@@ -173,7 +186,7 @@ JSValue JSVectorWithHPVector(JSContext* context, HPVector vector)
     OOJS_PROFILE_EXIT
 }
 
-BOOL HPVectorToJSValue(JSContext* context, HPVector vector, JSValue* outValue)
+bool HPVectorToJSValue(JSContext* context, HPVector vector, JSValue* outValue)
 {
     OOJS_PROFILE_ENTER
 
@@ -182,40 +195,99 @@ BOOL HPVectorToJSValue(JSContext* context, HPVector vector, JSValue* outValue)
     JSValue object = JSVectorWithHPVector(context, vector);
     if (EXPECT_NOT(JS_IsException(object))) {
         *outValue = JS_UNDEFINED;
-        return NO;
+        return false;
     }
 
     *outValue = object;
-    return YES;
+    return true;
 
     OOJS_PROFILE_EXIT
 }
 
-BOOL NSPointToVectorJSValue(JSContext* context, NSPoint point, JSValue* outValue)
+bool NSPointToVectorJSValue(JSContext* context, NSPoint point, JSValue* outValue)
 {
     return VectorToJSValue(context, make_vector(point.x, point.y, 0), outValue);
 }
 
-BOOL JSValueToHPVector(JSContext* context, JSValueConst value, HPVector* outVector)
+bool JSValueToHPVector(JSContext* context, JSValueConst value, HPVector* outVector)
 {
     if (EXPECT_NOT(!JS_IsObject(value)))
-        return NO;
+        return false;
 
     return JSObjectGetVector(context, value, outVector);
 }
 
-BOOL JSValueToVector(JSContext* context, JSValueConst value, Vector* outVector)
+bool JSValueToVector(JSContext* context, JSValueConst value, Vector* outVector)
 {
     if (EXPECT_NOT(!JS_IsObject(value)))
-        return NO;
+        return false;
     HPVector tmp = kZeroHPVector;
-    BOOL result = JSObjectGetVector(context, value, &tmp);
+    bool result = JSObjectGetVector(context, value, &tmp);
     *outVector = HPVectorToVector(tmp);
     return result;
 }
 
+#if OO_DEBUG
+
+typedef struct
+{
+    NSUInteger vectorCount;
+    NSUInteger entityCount;
+    NSUInteger arrayCount;
+    NSUInteger protoCount;
+    NSUInteger nullCount;
+    NSUInteger failCount;
+} VectorStatistics;
+static VectorStatistics sVectorConversionStats;
+
+// The bodies of PlayerEntity (JSVectorStatistics), whose methods are in OOJSVector+ObjCBridge.mm
+// until PlayerEntity converts (proposed ADR-0056 amendment oo-ppc).
+oo::PList reportJSVectorStatistics(void)
+{
+    VectorStatistics* stats = &sVectorConversionStats;
+
+    NSUInteger sum = stats->vectorCount + stats->entityCount + stats->arrayCount + stats->protoCount;
+    double convFac = 100.0 / sum;
+    if (sum == 0)
+        convFac = 0;
+
+    return oo::PList(oo::str::format(
+        " vector-to-vector conversions: %zu (%g %%)\n"
+        " entity-to-vector conversions: %zu (%g %%)\n"
+        "  array-to-vector conversions: %zu (%g %%)\n"
+        "prototype-to-zero conversions: %zu (%g %%)\n"
+        "             null conversions: %zu (%g %%)\n"
+        "           failed conversions: %zu (%g %%)\n"
+        "                        total: %zu",
+        (size_t)stats->vectorCount, stats->vectorCount * convFac,
+        (size_t)stats->entityCount, stats->entityCount * convFac,
+        (size_t)stats->arrayCount, stats->arrayCount * convFac,
+        (size_t)stats->protoCount, stats->protoCount * convFac,
+        (size_t)stats->nullCount, stats->nullCount * convFac,
+        (size_t)stats->failCount, stats->failCount * convFac,
+        (size_t)sum));
+}
+
+void clearJSVectorStatistics(void)
+{
+    memset(&sVectorConversionStats, 0, sizeof sVectorConversionStats);
+}
+
+#define COUNT(FIELD)                    \
+    do {                                \
+        sVectorConversionStats.FIELD++; \
+    } while (0)
+
+#else
+
+#define COUNT(FIELD) \
+    do {             \
+    } while (0)
+
+#endif
+
 // Get array element as a number. Like JS_ValueToNumber(), non-numbers give NaN rather than failing.
-static BOOL GetArrayElementNumber(JSContext* context, JSValueConst array, uint32_t index, double* outNumber)
+static bool GetArrayElementNumber(JSContext* context, JSValueConst array, uint32_t index, double* outNumber)
 {
     JSValue element = JS_GetPropertyUint32(context, array, index);
     int status = JS_IsException(element) ? -1 : JS_ToFloat64(context, outNumber, element);
@@ -223,7 +295,7 @@ static BOOL GetArrayElementNumber(JSContext* context, JSValueConst array, uint32
     return status == 0;
 }
 
-BOOL JSObjectGetVector(JSContext* context, JSValueConst vectorObj, HPVector* outVector)
+bool JSObjectGetVector(JSContext* context, JSValueConst vectorObj, HPVector* outVector)
 {
     OOJS_PROFILE_ENTER
 
@@ -235,14 +307,16 @@ BOOL JSObjectGetVector(JSContext* context, JSValueConst vectorObj, HPVector* out
 
     // vectorObj can legitimately be null or a primitive.
     if (EXPECT_NOT(!JS_IsObject(vectorObj))) {
-        return NO;
+        COUNT(nullCount);
+        return false;
     }
 
     // If this is a (JS) Vector...
     priv = (HPVector*)JS_GetOpaque(vectorObj, sVectorClassID);
     if (EXPECT(priv != NULL)) {
+        COUNT(vectorCount);
         *outVector = *priv;
-        return YES;
+        return true;
     }
 
     // If it's an array...
@@ -251,8 +325,9 @@ BOOL JSObjectGetVector(JSContext* context, JSValueConst vectorObj, HPVector* out
         if (JS_GetLength(context, vectorObj, &arrayLength) == 0 && arrayLength == 3) {
             // ...use the three numbers as [x, y, z]
             if (GetArrayElementNumber(context, vectorObj, 0, &x) && GetArrayElementNumber(context, vectorObj, 1, &y) && GetArrayElementNumber(context, vectorObj, 2, &z)) {
+                COUNT(arrayCount);
                 *outVector = make_HPvector(x, y, z);
-                return YES;
+                return true;
             }
         }
     }
@@ -260,10 +335,11 @@ BOOL JSObjectGetVector(JSContext* context, JSValueConst vectorObj, HPVector* out
 #if !OOJS_POC_HARNESS
     // If it's an entity, use its position.
     if (OOJSIsMemberOfSubclass(context, vectorObj, JSEntityClassID())) {
+        COUNT(entityCount);
         JSClassID ignored;
         Entity* entity = [(id)JS_GetAnyOpaque(vectorObj, &ignored) weakRefUnderlyingObject];
         *outVector = [entity position];
-        return YES;
+        return true;
     }
 #endif
 
@@ -275,63 +351,65 @@ BOOL JSObjectGetVector(JSContext* context, JSValueConst vectorObj, HPVector* out
             Vector3Ds, but it's a rare case which should be kept off the fast path.
     */
     if (JS_GetClassID(vectorObj) == sVectorClassID) {
+        COUNT(protoCount);
         *outVector = kZeroHPVector;
-        return YES;
+        return true;
     }
 
-    return NO;
+    COUNT(failCount);
+    return false;
 
     OOJS_PROFILE_EXIT
 }
 
-static BOOL GetThisVector(JSContext* context, JSValueConst vectorObj, HPVector* outVector, const std::string& method)
+static bool GetThisVector(JSContext* context, JSValueConst vectorObj, HPVector* outVector, const std::string& method)
 {
     if (EXPECT(JSObjectGetVector(context, vectorObj, outVector)))
-        return YES;
+        return true;
 
     cxx_OOJSReportBadArguments(context, "Vector3D", method, 1, &vectorObj, "Invalid target object", "Vector3D");
-    return NO;
+    return false;
 }
 
-BOOL JSVectorSetVector(JSContext* context, JSValueConst vectorObj, Vector vector)
+bool JSVectorSetVector(JSContext* context, JSValueConst vectorObj, Vector vector)
 {
     return JSVectorSetHPVector(context, vectorObj, vectorToHPVector(vector));
 }
 
-BOOL JSVectorSetHPVector(JSContext* context, JSValueConst vectorObj, HPVector vector)
+bool JSVectorSetHPVector(JSContext* context, JSValueConst vectorObj, HPVector vector)
 {
     OOJS_PROFILE_ENTER
 
     HPVector* priv = NULL;
 
     if (EXPECT_NOT(!JS_IsObject(vectorObj)))
-        return NO;
+        return false;
 
     priv = (HPVector*)JS_GetOpaque(vectorObj, sVectorClassID);
     if (priv != NULL) // If this is a (JS) Vector...
     {
         *priv = vector;
-        return YES;
+        return true;
     }
 
     if (JS_GetClassID(vectorObj) == sVectorClassID) {
         // Silently fail for the prototype.
-        return YES;
+        return true;
     }
 
-    return NO;
+    return false;
 
     OOJS_PROFILE_EXIT
 }
 
-static BOOL VectorFromArgumentListNoErrorInternal(JSContext* context, int argc, JSValueConst* argv, HPVector* outVector, int* outConsumed, BOOL permitNumberList)
+static bool VectorFromArgumentListNoErrorInternal(JSContext* context, int argc, JSValueConst* argv, HPVector* outVector, int* outConsumed, bool permitNumberList)
 {
     OOJS_PROFILE_ENTER
 
     double x, y, z;
 
     if (EXPECT_NOT(argc == 0))
-        return NO;
+        return false;
     assert(argv != NULL && outVector != NULL);
 
     if (outConsumed != NULL)
@@ -342,51 +420,51 @@ static BOOL VectorFromArgumentListNoErrorInternal(JSContext* context, int argc, 
         if (JSObjectGetVector(context, argv[0], outVector)) {
             if (outConsumed != NULL)
                 *outConsumed = 1;
-            return YES;
+            return true;
         }
     }
 
     if (!permitNumberList)
-        return NO;
+        return false;
 
     // As a special case for VectorConstruct(), look for three numbers.
     if (argc < 3)
-        return NO;
+        return false;
 
     // Given a string, JS_ToFloat64() succeeds but provides a NaN number.
     if (EXPECT_NOT(JS_ToFloat64(context, &x, argv[0]) < 0 || isnan(x)))
-        return NO;
+        return false;
     if (EXPECT_NOT(JS_ToFloat64(context, &y, argv[1]) < 0 || isnan(y)))
-        return NO;
+        return false;
     if (EXPECT_NOT(JS_ToFloat64(context, &z, argv[2]) < 0 || isnan(z)))
-        return NO;
+        return false;
 
     // We got our three numbers.
     *outVector = make_HPvector(x, y, z);
     if (outConsumed != NULL)
         *outConsumed = 3;
 
-    return YES;
+    return true;
 
     OOJS_PROFILE_EXIT
 }
 
 // EMMSTRAN: remove outConsumed, since it can only be 1 except in failure (constructor is an exception, but it uses VectorFromArgumentListNoErrorInternal() directly).
-BOOL VectorFromArgumentList(JSContext* context, const std::string& scriptClass, const std::string& function, int argc, JSValueConst* argv, HPVector* outVector, int* outConsumed)
+bool VectorFromArgumentList(JSContext* context, const std::string& scriptClass, const std::string& function, int argc, JSValueConst* argv, HPVector* outVector, int* outConsumed)
 {
-    if (VectorFromArgumentListNoErrorInternal(context, argc, argv, outVector, outConsumed, NO))
-        return YES;
+    if (VectorFromArgumentListNoErrorInternal(context, argc, argv, outVector, outConsumed, false))
+        return true;
     else {
         cxx_OOJSReportBadArguments(context, scriptClass, function, argc, argv,
             "Could not construct vector from parameters",
             "Vector, Entity or array of three numbers");
-        return NO;
+        return false;
     }
 }
 
-BOOL VectorFromArgumentListNoError(JSContext* context, int argc, JSValueConst* argv, HPVector* outVector, int* outConsumed)
+bool VectorFromArgumentListNoError(JSContext* context, int argc, JSValueConst* argv, HPVector* outVector, int* outConsumed)
 {
-    return VectorFromArgumentListNoErrorInternal(context, argc, argv, outVector, outConsumed, NO);
+    return VectorFromArgumentListNoErrorInternal(context, argc, argv, outVector, outConsumed, false);
 }
 
 // *** Implementation stuff ***
@@ -479,7 +557,7 @@ static JSValue VectorConstruct(JSContext* context, JSValueConst newTarget, int a
     HPVector vector = kZeroHPVector;
 
     if (argc != 0) {
-        if (EXPECT_NOT(!VectorFromArgumentListNoErrorInternal(context, argc, argv, &vector, NULL, YES))) {
+        if (EXPECT_NOT(!VectorFromArgumentListNoErrorInternal(context, argc, argv, &vector, NULL, true))) {
             cxx_OOJSReportBadArguments(context, std::nullopt, std::nullopt, argc, argv,
                 "Could not construct vector from parameters",
                 "Vector, Entity or array of three numbers");
@@ -504,7 +582,7 @@ static JSValue VectorToString(OOJS_NATIVE_ARGS)
     if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, "toString")))
         return JS_EXCEPTION;
 
-    OOJS_RETURN_OBJECT(oo::NSStringFrom(cxx_HPVectorDescription(thisv)));
+    OOJS_RETURN_PLIST(oo::PList(cxx_HPVectorDescription(thisv)));
 
     OOJS_NATIVE_EXIT
 }
@@ -519,7 +597,7 @@ static JSValue VectorToSource(OOJS_NATIVE_ARGS)
     if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, "toSource")))
         return JS_EXCEPTION;
 
-    OOJS_RETURN_OBJECT(oo::NSStringFrom(oo::str::format("Vector3D(%g, %g, %g)", thisv.x, thisv.y, thisv.z)));
+    OOJS_RETURN_PLIST(oo::PList(oo::str::format("Vector3D(%g, %g, %g)", thisv.x, thisv.y, thisv.z)));
 
     OOJS_NATIVE_EXIT
 }
@@ -774,7 +852,7 @@ static JSValue VectorRotationTo(OOJS_NATIVE_ARGS)
 
     HPVector thisv, thatv;
     double limit;
-    BOOL gotLimit;
+    bool gotLimit;
     Quaternion result;
     int consumed;
     JSValueConst* argv = OOJS_ARGV;
@@ -790,9 +868,9 @@ static JSValue VectorRotationTo(OOJS_NATIVE_ARGS)
     {
         if (EXPECT_NOT(!cxx_OOJSArgumentListGetNumber(context, "Vector3D", "rotationTo", argc, argv, &limit, NULL)))
             return JS_EXCEPTION;
-        gotLimit = YES;
+        gotLimit = true;
     } else
-        gotLimit = NO;
+        gotLimit = false;
 
     if (gotLimit)
         result = quaternion_limited_rotation_between(HPVectorToVector(thisv), HPVectorToVector(thatv), limit);

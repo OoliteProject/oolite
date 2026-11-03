@@ -30,7 +30,6 @@ MA 02110-1301, USA.
 #import "OOLogOutputHandler.h"
 #import "OOOXZManager.h"
 #import "OOPListParsing.h"
-#import "OOPListView.h"
 #import "OOSound.h"
 #import "OOStringParsing.h"
 #import "OOSystemDescriptionManager.h"
@@ -40,9 +39,8 @@ MA 02110-1301, USA.
 #import "OOJSScript.h"
 #import "OOPListScript.h"
 
-#import "OOFoundationBridge.h"
 #import "OOManifestProperties.h"
-#import "OOStringBridge.h"
+#import "OOObjCPList.h"
 #include "oofnd/objc/OOException.h"
 
 #include "oofnd/Defaults.hpp"
@@ -180,17 +178,78 @@ bool IsWellFormedUTF8(const std::string& bytes)
     return oo::utf16ToUtf8(oo::utf8ToUtf16(bytes)) == bytes;
 }
 
-// -[a isEqual:b] for two property-list values; a missing one (nil) is never equal. Strings
-// compare directly; anything else goes through Foundation's -isEqual: (numbers compare by value,
-// which PList's type-strict == does not).
+// An array of strings, as the Objective-C array of them was.
+oo::PList StringArray(const std::vector<std::string>& strings)
+{
+    oo::PList::Array result;
+    result.reserve(strings.size());
+    for (const std::string& string : strings)
+        result.emplace_back(string);
+    return oo::PList(std::move(result));
+}
+
+// -stringByAbbreviatingWithTildeInPath of a search path: the home directory (NSHomeDirectory(),
+// ResourcePaths::homeDirectory()) at its start becomes "~". The search paths are already standard
+// ('/'-separated, absolute, no "." or ".." components: ResourcePaths and the OXP scan build them),
+// so -stringByStandardizingPath left them as they were and is not repeated (bead oo-qps.49).
+std::string AbbreviatedWithTilde(const std::string& path)
+{
+    const std::string home = oo::fs::utf8String(oo::ResourcePaths::current().homeDirectory());
+    if (home.empty() || path.compare(0, home.size(), home) != 0)
+        return path;
+    if (path.size() == home.size())
+        return "~";
+    if (path[home.size()] != '/')
+        return path;
+    return "~" + path.substr(home.size());
+}
+
+// -[a isEqual:b] of the Foundation objects two property-list values converted to (bead oo-qps.49
+// replaced the conversion); a missing or null one (nil) is never equal. Numbers (booleans among
+// them) compare by value as NSNumber -compare: did: integers as integers, anything with a real as
+// doubles (PList's type-strict == does not); a number never equals a string. Arrays compare
+// element by element and dictionaries entry by entry, as -isEqualToArray: / -isEqualToDictionary:
+// did; strings, data and dates by value; an Object node's object by -isEqual:.
 bool PListIsEqual(const oo::PList* a, const oo::PList* b)
 {
-    if (a == nullptr || b == nullptr)
+    if (a == nullptr || b == nullptr || a->isNull() || b->isNull())
         return false;
-    const std::string *aString = a->getIf<std::string>(), *bString = b->getIf<std::string>();
-    if (aString != nullptr && bString != nullptr)
-        return *aString == *bString;
-    return [oo::ObjectFromPList(*a) isEqual:oo::ObjectFromPList(*b)];
+    if (a->isNumber() && b->isNumber()) {
+        if (a->getIf<double>() != nullptr || b->getIf<double>() != nullptr)
+            return a->doubleValue() == b->doubleValue();
+        const oo::PList::Integer *aInteger = a->getIf<oo::PList::Integer>(), *bInteger = b->getIf<oo::PList::Integer>();
+        const oo::PList::Integer aValue = (aInteger != nullptr) ? *aInteger : oo::PList::Integer { *a->getIf<bool>() ? 1 : 0, false };
+        const oo::PList::Integer bValue = (bInteger != nullptr) ? *bInteger : oo::PList::Integer { *b->getIf<bool>() ? 1 : 0, false };
+        // The same bits are the same number unless one is an unsigned value past INT64_MAX and
+        // the other a negative signed one.
+        return aValue.value == bValue.value && (aValue.isUnsigned == bValue.isUnsigned || aValue.value >= 0);
+    }
+    if (a->type() != b->type())
+        return false;
+    if (const oo::PList::Array* aArray = a->getIf<oo::PList::Array>()) {
+        const oo::PList::Array& bArray = *b->getIf<oo::PList::Array>();
+        if (aArray->size() != bArray.size())
+            return false;
+        for (std::size_t i = 0; i != aArray->size(); ++i) {
+            if (!PListIsEqual(&(*aArray)[i], &bArray[i]))
+                return false;
+        }
+        return true;
+    }
+    if (const oo::PList::Dict* aDict = a->getIf<oo::PList::Dict>()) {
+        const oo::PList::Dict& bDict = *b->getIf<oo::PList::Dict>();
+        if (aDict->size() != bDict.size())
+            return false;
+        for (const auto& [key, value] : *aDict) {
+            const auto other = bDict.find(key);
+            if (other == bDict.end() || !PListIsEqual(&value, &other->second))
+                return false;
+        }
+        return true;
+    }
+    if (a->getIf<oo::PList::Object>() != nullptr)
+        return [oo::ObjectIn(*a) isEqual:oo::ObjectIn(*b)];
+    return *a == *b; // strings, data, dates
 }
 
 // The value if it is an array (the array extractor), else nullptr.
@@ -403,7 +462,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
             paths.push_back(oo::fs::utf8String(path));
         sUserRootPaths = std::move(paths);
     }
-    OO_LOG("searchPaths.debug", "{}", oo::DescriptionOf(oo::NSArrayFromStrings(*sUserRootPaths)));
+    OO_LOG("searchPaths.debug", "{}", oo::DescriptionOf(StringArray(*sUserRootPaths)));
     return *sUserRootPaths;
 }
 
@@ -600,9 +659,9 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     OOCacheManager* cache = [OOCacheManager sharedCache];
     const std::string cacheKey = subFolder + "/" + fileName;
     // if nil, not found in another OXP already
-    if ([cache cxx_objectForKey:cacheKey inCache:"resolved paths"] == nil) {
+    if ([cache cxx_pListForKey:cacheKey inCache:"resolved paths"].isNull()) {
         OO_LOG("resourceManager.foundFile.preLoad", "Found {}/{} at {}", subFolder, fileName, path);
-        [cache cxx_setObject:oo::NSStringFrom(path) forKey:cacheKey inCache:"resolved paths"]; // the cache holds Foundation objects (an unmigrated callee)
+        [cache cxx_setPList:oo::PList(path) forKey:cacheKey inCache:"resolved paths"];
     }
 }
 
@@ -860,8 +919,9 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
                 if (oo::str::compareVersions(*ooVersionComponents, oo::str::versionComponents(*requiredString)) < 0)
                     OK = NO;
             } else {
-                // %@ of [requirements class]: the class of the dictionary the old code was handed, which the bridge rebuilds
-                OO_LOG("requirements.wrongType", "Expected {} entry \"{}\" to be string, but got {} in OXP {}.", file, "version", oo::DescriptionOf([oo::ObjectFromPList(requirements) class]), (LastPathComponent(path)).value_or("(null)"));
+                // The requirements' property-list type, "dict" (was %@ of [requirements class], the class
+                // name of the Foundation dictionary it converted to: bead oo-qps.49)
+                OO_LOG("requirements.wrongType", "Expected {} entry \"{}\" to be string, but got {} in OXP {}.", file, "version", oo::typeName(requirements.type()), (LastPathComponent(path)).value_or("(null)"));
                 OK = NO;
             }
         }
@@ -877,7 +937,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
                 if (oo::str::compareVersions(*ooVersionComponents, oo::str::versionComponents(*maxString)) > 0)
                     OK = NO;
             } else {
-                OO_LOG("requirements.wrongType", "Expected {} entry \"{}\" to be string, but got {} in OXP {}.", file, "max_version", oo::DescriptionOf([oo::ObjectFromPList(requirements) class]), (LastPathComponent(path)).value_or("(null)"));
+                OO_LOG("requirements.wrongType", "Expected {} entry \"{}\" to be string, but got {} in OXP {}.", file, "max_version", oo::typeName(requirements.type()), (LastPathComponent(path)).value_or("(null)"));
                 OK = NO;
             }
         }
@@ -1177,7 +1237,6 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     */
     OOCacheManager* cacheMgr = [OOCacheManager sharedCache];
     BOOL upToDate = YES;
-    id oldPaths = nil;
 
     if (EXPECT_NOT(oo::Defaults::standard().boolForKey("always-flush-cache"))) {
         OO_LOG("dataCache.rebuild.explicitFlush", "{}", "Cache explicitly flushed with always-flush-cache preference. Rebuilding from scratch.");
@@ -1187,10 +1246,11 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
         upToDate = NO;
     }
 
-    oldPaths = [cacheMgr cxx_objectForKey:kOOCacheKeySearchPaths inCache:kOOCacheSearchPathModDates];
-    if (upToDate && ![oldPaths isEqual:oo::NSArrayFromStrings(searchPaths)]) {
+    const oo::PList oldPaths = [cacheMgr cxx_pListForKey:kOOCacheKeySearchPaths inCache:kOOCacheSearchPathModDates]; // null: none
+    const oo::PList searchPathList = StringArray(searchPaths);
+    if (upToDate && !PListIsEqual(&oldPaths, &searchPathList)) {
         // OXPs added/removed
-        if (oldPaths != nil)
+        if (!oldPaths.isNull())
             OO_LOG("dataCache.rebuild.pathsChanged", "{}", "Cache is stale (search paths have changed). Rebuilding from scratch.");
         upToDate = NO;
     }
@@ -1207,15 +1267,16 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     }
     const oo::PList modDateList(std::move(modDates));
 
-    if (upToDate && ![[cacheMgr cxx_objectForKey:kOOCacheKeyModificationDates inCache:kOOCacheSearchPathModDates] isEqual:oo::ObjectFromPList(modDateList)]) {
+    const oo::PList oldModDates = [cacheMgr cxx_pListForKey:kOOCacheKeyModificationDates inCache:kOOCacheSearchPathModDates];
+    if (upToDate && !PListIsEqual(&oldModDates, &modDateList)) {
         OO_LOG("dataCache.rebuild.datesChanged", "{}", "Cache is stale (modification dates have changed). Rebuilding from scratch.");
         upToDate = NO;
     }
 
     if (!upToDate) {
         [cacheMgr clearAllCaches];
-        [cacheMgr cxx_setObject:oo::NSArrayFromStrings(searchPaths) forKey:kOOCacheKeySearchPaths inCache:kOOCacheSearchPathModDates];
-        [cacheMgr cxx_setObject:oo::ObjectFromPList(modDateList) forKey:kOOCacheKeyModificationDates inCache:kOOCacheSearchPathModDates];
+        [cacheMgr cxx_setPList:searchPathList forKey:kOOCacheKeySearchPaths inCache:kOOCacheSearchPathModDates];
+        [cacheMgr cxx_setPList:modDateList forKey:kOOCacheKeyModificationDates inCache:kOOCacheSearchPathModDates];
     } else
         OO_LOG("dataCache.upToDate", "{}", "Data cache is up to date.");
 
@@ -1284,8 +1345,6 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
         return oo::PList();
     }
 
-    // OOCacheManager holds Foundation objects (an unmigrated callee): what it stores is
-    // oo::ObjectFromPList(result), and what it returns arrives through oo::PListFrom.
     if (cache) {
 
         if (folderName.has_value()) {
@@ -1293,9 +1352,9 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
         } else {
             cacheKey = oo::str::format("%s merge:%s", fileName.c_str(), mergeType);
         }
-        id cached = [cacheMgr cxx_objectForKey:cacheKey inCache:"dictionaries"];
-        if (cached != nil)
-            return oo::PListFrom(cached);
+        oo::PList cached = [cacheMgr cxx_pListForKey:cacheKey inCache:"dictionaries"];
+        if (!cached.isNull())
+            return cached;
     }
 
     // OODictionaryFromFile (OOPListParsing) is an unmigrated callee: its dictionaries arrive through oo::PListFrom.
@@ -1348,7 +1407,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     }
 
     if (cache && !result.isNull())
-        [cacheMgr cxx_setObject:oo::ObjectFromPList(result) forKey:cacheKey inCache:"dictionaries"];
+        [cacheMgr cxx_setPList:result forKey:cacheKey inCache:"dictionaries"];
 
     return result;
 }
@@ -1366,13 +1425,11 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     const std::string lowercaseName = oo::str::lowercase(fileName);
     const bool textureList = lowercaseName == "nebulatextures.plist" || lowercaseName == "startextures.plist";
 
-    // OOCacheManager holds Foundation objects (an unmigrated callee): what it stores is
-    // oo::ObjectFromPList(result), and what it returns arrives through oo::PListFrom.
     if (useCache) {
         cacheKey = oo::str::format("%s%s merge:%s", folderName.has_value() ? (*folderName + "/").c_str() : "", fileName.c_str(), mergeFiles ? "yes" : "no");
-        id cached = [cache cxx_objectForKey:cacheKey inCache:"arrays"];
-        if (cached != nil)
-            return oo::PListFrom(cached);
+        oo::PList cached = [cache cxx_pListForKey:cacheKey inCache:"arrays"];
+        if (!cached.isNull())
+            return cached;
     }
 
     // OOArrayFromFile (OOPListParsing) is an unmigrated callee: its arrays arrive through oo::PListFrom.
@@ -1443,7 +1500,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     }
 
     if (useCache && !result.isNull())
-        [cache cxx_setObject:oo::ObjectFromPList(result) forKey:cacheKey inCache:"arrays"];
+        [cache cxx_setPList:result forKey:cacheKey inCache:"arrays"];
 
     return result;
 }
@@ -1814,9 +1871,9 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
             cacheKey = *folderName + "/" + fileName;
         else
             cacheKey = fileName;
-        result = oo::OptionalString([cache cxx_objectForKey:cacheKey inCache:"resolved paths"]);
-        if (result.has_value())
-            return result;
+        const oo::PList cached = [cache cxx_pListForKey:cacheKey inCache:"resolved paths"]; // a string (null: none)
+        if (const std::string* cachedPath = cached.getIf<std::string>())
+            return *cachedPath;
     }
 
     // Search for file (OXZ-aware exists, same answers as -oo_oxzFileExistsAtPath:).
@@ -1841,7 +1898,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     if (result.has_value()) {
         OO_LOG("resourceManager.foundFile", "Found {}/{} at {}", folderName.value_or("(null)"), fileName, filePath);
         if (useCache) {
-            [cache cxx_setObject:oo::NSStringFrom(*result) forKey:cacheKey inCache:"resolved paths"];
+            [cache cxx_setPList:oo::PList(*result) forKey:cacheKey inCache:"resolved paths"];
         }
     }
     return result;
@@ -1869,7 +1926,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 
     const std::optional<std::string> path = [self cxx_pathForFileNamed:fileName inFolder:folderName cache:useCache];
     if (path.has_value())
-        result = [[[klass alloc] initWithContentsOfFile:oo::NSStringFrom(*path)] autorelease];
+        result = [[[klass alloc] cxx_initWithContentsOfFile:path] autorelease]; // klass: OOSound or OOMusic
 
     if (result != nil && ioCache != NULL) {
         (*ioCache)[*key] = oo::ObjCRef<id>(result);
@@ -1951,7 +2008,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
                         results = [OOScript cxx_worldScriptsAtPath:path];
                     if (results.has_value()) {
                         for (const oo::ObjCRef<OOScript*>& script : *results) {
-                            const std::optional<std::string> name = oo::OptionalString([script.get() name]);
+                            const std::optional<std::string> name = [script.get() cxx_name];
                             if (name.has_value()) {
                                 auto existing = std::find_if(loadedScripts.begin(), loadedScripts.end(), [&](const auto& entry) { return entry.first == *name; });
                                 if (existing != loadedScripts.end())
@@ -2029,11 +2086,11 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     return [self cxx_writeDiagnosticData:oo::Data::fromString(string) toFileNamed:name];
 }
 
-+ (BOOL)cxx_writeDiagnosticPList:(id)plist toFileNamed:(const std::string&)name
++ (BOOL)cxx_writeDiagnosticPList:(const oo::PList&)plist toFileNamed:(const std::string&)name
 {
     // The old-school writer (oo::writeOldStylePList, the port of the retired Objective-C old-school plist writer). Its
     // XML fallback's result was never used, so a plist it cannot write is not written.
-    const auto data = oo::writeOldStylePList(oo::PListFrom(plist));
+    const auto data = oo::writeOldStylePList(plist);
     if (!data.has_value())
         return NO;
 
@@ -2074,8 +2131,8 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 
 + (void)logPaths
 {
-    // Prettify paths for logging (-stringByStandardizingPath and -stringByAbbreviatingWithTildeInPath
-    // have no oo::str form yet: they run on the bridged string).
+    // Prettify paths for logging, as -stringByStandardizingPath and -stringByAbbreviatingWithTildeInPath
+    // did for these (AbbreviatedWithTilde).
     std::string displayPaths;
     if (sSearchPaths.has_value()) {
         bool first = true;
@@ -2083,7 +2140,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
             if (!first)
                 displayPaths += "\n    ";
             first = false;
-            displayPaths += oo::StdString([[oo::NSStringFrom(path) stringByStandardizingPath] stringByAbbreviatingWithTildeInPath]);
+            displayPaths += AbbreviatedWithTilde(path);
         }
     }
 

@@ -43,6 +43,6 @@ MA 02110-1301, USA.
 - (JSValue)callbackThis;
 - (void)setCallbackThis:(JSValueConst)callbackthis;
 
-- (void)runCallback:(HPVector)location;
+- (void)runPopulatorCallback:(HPVector)location;
 
 @end

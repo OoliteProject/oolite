@@ -25,7 +25,6 @@ MA 02110-1301, USA.
 #import "PlayerEntitySound.h"
 #import "GameController.h"
 #import "OOEquipmentType.h"
-#import "OOFoundationBridge.h"
 #import "OOMaths.h"
 #import "OOSound.h"
 #import "OOSoundSourcePool.h"
@@ -188,7 +187,7 @@ std::string WeaponSoundKey(const OOWeaponSoundMap& sounds, const std::string& we
         return;
     }
 #endif
-    [sInterfaceBeepSource playSound:[OOSound cxx_soundWithCustomSoundKey:beepKey]];
+    [sInterfaceBeepSource playOOSound:[OOSound cxx_soundWithCustomSoundKey:beepKey]];
 }
 
 - (BOOL)isBeeping

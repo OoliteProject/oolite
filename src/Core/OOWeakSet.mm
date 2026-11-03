@@ -9,8 +9,6 @@ This code is hereby placed in the public domain.
 
 #import "OOWeakSet.h"
 
-#import "OOFoundationBridge.h"
-
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"
 
@@ -22,7 +20,7 @@ std::vector<oo::ObjCRef<id>> LiveObjects(const std::vector<oo::ObjCRef<OOWeakRef
     std::vector<oo::ObjCRef<id>> result;
     result.reserve(references.size());
     for (const auto& weakRef : references) {
-        id object = [weakRef.get() weakRefUnderlyingObject];
+        id object = oo::ToCxx(weakRef.get())->weakRefUnderlyingObject();
         if (object != nil)
             result.emplace_back(object);
     }
@@ -31,53 +29,38 @@ std::vector<oo::ObjCRef<id>> LiveObjects(const std::vector<oo::ObjCRef<OOWeakRef
 
 } // namespace
 
-@interface OOWeakSet (OOPrivate)
+namespace cxx {
 
-- (void)compact; // Remove any zeroed entries.
-
-@end
-
-@implementation OOWeakSet
-
-- (id)init
+OOWeakSet::OOWeakSet(NSUInteger capacity)
 {
-    return [self initWithCapacity:0];
+    _objects.reserve(capacity);
 }
 
-- (id)initWithCapacity:(NSUInteger)capacity
+oo::Ref<OOWeakSet> OOWeakSet::set()
 {
-    if ((self = [super init])) {
-        _objects.reserve(capacity);
-    }
-    return self;
+    return oo::makeRef<OOWeakSet>();
 }
 
-+ (instancetype)set
+oo::Ref<OOWeakSet> OOWeakSet::setWithCapacity(NSUInteger capacity)
 {
-    return [[[self alloc] init] autorelease];
+    return oo::makeRef<OOWeakSet>(capacity);
 }
 
-+ (instancetype)setWithCapacity:(NSUInteger)capacity
-{
-    return [[[self alloc] initWithCapacity:capacity] autorelease];
-}
-
-- (void)dealloc
+OOWeakSet::~OOWeakSet()
 {
     _objects.clear();
-
-    [super dealloc];
 }
 
-- (std::optional<std::string>)cxx_description
+std::optional<std::string> OOWeakSet::description()
 {
-    std::string result = oo::str::format("<%s %s>{", oo::DescriptionOf([self class]).c_str(), oo::str::pointerDescription(self).c_str());
-    BOOL first = YES;
+    // DescriptionOf([self class]) and the facade's address (amendments oo-3lj8 item 4, oo-bhb9 item 6).
+    std::string result = oo::str::format("<%s %s>{", "OOWeakSet", oo::str::pointerDescription(oo::ToObjC(this)).c_str());
+    bool first = true;
     for (const oo::ObjCRef<id>& object : LiveObjects(_objects)) {
         if (!first)
             result += ", ";
         else
-            first = NO;
+            first = false;
 
         result += oo::ShortDescriptionOf(object.get()); // every object answered -shortDescription
     }
@@ -88,35 +71,28 @@ std::vector<oo::ObjCRef<id>> LiveObjects(const std::vector<oo::ObjCRef<OOWeakRef
 
 // MARK: Protocol conformance
 
-- (id)copyWithZone:(OOZone*)zone
+oo::Ref<OOWeakSet> OOWeakSet::copyWithZone(OOZone* /*zone*/)
 {
-    [self compact];
-    OOWeakSet* result = [[OOWeakSet allocWithZone:zone] init];
-    [result addObjectsByEnumerating:[self objectEnumerator]];
+    compact();
+    oo::Ref<OOWeakSet> result = oo::makeRef<OOWeakSet>();
+    for (const oo::ObjCRef<id>& object : objectEnumerator())
+        result->addObject(object.get()); // as -addObjectsByEnumerating: of the snapshot did
     return result;
 }
 
-- (id)mutableCopyWithZone:(OOZone*)zone
+bool OOWeakSet::isEqual(OOWeakSet* other)
 {
-    return [self copyWithZone:zone];
-}
+    // (-isEqual:'s -isKindOfClass: test is the facade's; null is "not a weak set".)
+    if (other == nullptr)
+        return false;
+    if (count() != other->count())
+        return false;
 
-- (BOOL)isEqual:(id)other
-{
-    if (![other isKindOfClass:[OOWeakSet class]])
-        return NO;
-    if ([self count] != [other count])
-        return NO;
-
-    BOOL result = YES;
-    @autoreleasepool {
-        id selfEnum = [self objectEnumerator];
-        id object = nil;
-        while ((object = [selfEnum nextObject])) {
-            if (![other containsObject:object]) {
-                result = NO;
-                break;
-            }
+    bool result = true;
+    for (const oo::ObjCRef<id>& object : objectEnumerator()) {
+        if (!other->containsObject(object.get())) {
+            result = false;
+            break;
         }
     }
 
@@ -125,96 +101,77 @@ std::vector<oo::ObjCRef<id>> LiveObjects(const std::vector<oo::ObjCRef<OOWeakRef
 
 // MARK: Meat and potatoes
 
-- (NSUInteger)count
+NSUInteger OOWeakSet::count()
 {
-    [self compact];
+    compact();
     return _objects.size();
 }
 
-- (BOOL)containsObject:(id<OOWeakReferenceSupport>)object
+bool OOWeakSet::containsObject(id object)
 {
-    [self compact];
+    compact();
     // (a live object has one weak reference, so membership is identity, as the set's was)
-    OOWeakReference* weakObj = [object weakRetain];
-    BOOL result = std::find_if(_objects.begin(), _objects.end(), [weakObj](const auto& ref) { return ref.get() == weakObj; }) != _objects.end();
+    ::OOWeakReference* weakObj = [object weakRetain];
+    bool result = std::find_if(_objects.begin(), _objects.end(), [weakObj](const auto& ref) { return ref.get() == weakObj; }) != _objects.end();
     [weakObj release];
     return result;
 }
 
-- (id)objectEnumerator
-{
-    return [oo::NSArrayFromObjects([self cxx_objectEnumerator]) objectEnumerator];
-}
-
-- (std::vector<oo::ObjCRef<id>>)cxx_objectEnumerator
+std::vector<oo::ObjCRef<id>> OOWeakSet::objectEnumerator()
 {
     return LiveObjects(_objects);
 }
 
-- (void)addObject:(id<OOWeakReferenceSupport>)object
+void OOWeakSet::addObject(id object)
 {
     if (object == nil)
         return;
-    OOAssert([object conformsToProtocol:@protocol(OOWeakReferenceSupport)], "Attempt to add object to OOWeakSet which does not conform to OOWeakReferenceSupport.");
 
-    OOWeakReference* weakObj = [object weakRetain];
+    OOCAssert([object conformsToProtocol:objc_getProtocol("OOWeakReferenceSupport")], "Attempt to add object to OOWeakSet which does not conform to OOWeakReferenceSupport.");
+    ::OOWeakReference* weakObj = [object weakRetain];
     if (std::find_if(_objects.begin(), _objects.end(), [weakObj](const auto& ref) { return ref.get() == weakObj; }) == _objects.end()) {
         _objects.emplace_back(weakObj); // (a set holds each once)
     }
     [weakObj release];
 }
 
-- (void)removeObject:(id<OOWeakReferenceSupport>)object
+void OOWeakSet::removeObject(id object)
 {
-    OOWeakReference* weakObj = [object weakRetain];
+    ::OOWeakReference* weakObj = [object weakRetain];
     std::erase_if(_objects, [weakObj](const auto& ref) { return ref.get() == weakObj; });
     [weakObj release];
 }
 
-- (void)addObjectsByEnumerating:(id)enumerator
-{
-    id object = nil;
-    [self compact];
-    while ((object = [enumerator nextObject])) {
-        [self addObject:object];
-    }
-}
-
-- (void)makeObjectsPerformSelector:(SEL)selector
+void OOWeakSet::makeObjectsPerformSelector(SEL selector)
 {
     // (over a copy of the references: a selector may change the set)
-    const std::vector<oo::ObjCRef<OOWeakReference*>> references = _objects;
+    const std::vector<oo::ObjCRef<::OOWeakReference*>> references = _objects;
     for (const auto& weakRef : references) {
-        [[weakRef.get() weakRefUnderlyingObject] performSelector:selector];
+        [oo::ToCxx(weakRef.get())->weakRefUnderlyingObject() performSelector:selector];
     }
 }
 
-- (void)makeObjectsPerformSelector:(SEL)selector withObject:(id)argument
+void OOWeakSet::makeObjectsPerformSelector(SEL selector, id argument)
 {
-    const std::vector<oo::ObjCRef<OOWeakReference*>> references = _objects;
+    const std::vector<oo::ObjCRef<::OOWeakReference*>> references = _objects;
     for (const auto& weakRef : references) {
-        [[weakRef.get() weakRefUnderlyingObject] performSelector:selector withObject:argument];
+        [oo::ToCxx(weakRef.get())->weakRefUnderlyingObject() performSelector:selector withObject:argument];
     }
 }
 
-- (id)allObjects
-{
-    return oo::NSArrayFromObjects([self cxx_allObjects]);
-}
-
-- (std::vector<oo::ObjCRef<id>>)cxx_allObjects
+std::vector<oo::ObjCRef<id>> OOWeakSet::allObjects()
 {
     return LiveObjects(_objects);
 }
 
-- (void)removeAllObjects
+void OOWeakSet::removeAllObjects()
 {
     _objects.clear();
 }
 
-- (void)compact
+void OOWeakSet::compact()
 {
-    std::erase_if(_objects, [](const auto& weakRef) { return [weakRef.get() weakRefUnderlyingObject] == nil; });
+    std::erase_if(_objects, [](const auto& weakRef) { return oo::ToCxx(weakRef.get())->weakRefUnderlyingObject() == nil; });
 }
 
-@end
+} // namespace cxx

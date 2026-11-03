@@ -31,7 +31,6 @@ MA 02110-1301, USA.
 #import "OOMaths.h"
 #import "OOOpenGL.h"
 #import "OOOpenGLExtensionManager.h"
-#import "OOStringBridge.h"
 #include "oofnd/Log.hpp"
 #include "oofnd/objc/OOAssert.h"
 

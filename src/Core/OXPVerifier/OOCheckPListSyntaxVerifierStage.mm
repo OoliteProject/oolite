@@ -24,12 +24,10 @@ MA 02110-1301, USA.
 */
 
 #import "OOCheckPListSyntaxVerifierStage.h"
-#import "OOPListView.h"
 
 #if OO_OXP_VERIFIER_ENABLED
 
 #import "OOFileScannerVerifierStage.h"
-#import "OOFoundationBridge.h"
 
 static const char* const kStageName = "Checking plist well-formedness";
 
@@ -55,25 +53,23 @@ bool Contains(const std::vector<std::string>& strings, const std::string& string
 
 } // namespace
 
-@implementation OOCheckPListSyntaxVerifierStage
-
-- (std::optional<std::string>)cxx_name
+std::optional<std::string> OOCheckPListSyntaxVerifierStage::name()
 {
     return kStageName;
 }
 
-- (BOOL)shouldRun
+bool OOCheckPListSyntaxVerifierStage::shouldRun()
 {
-    return YES;
+    return true;
 }
 
-- (void)run
+void OOCheckPListSyntaxVerifierStage::run()
 {
-    OOFileScannerVerifierStage* fileScanner = nil;
+    cxx::OOFileScannerVerifierStage* fileScanner = nullptr;
 
-    fileScanner = [[self verifier] fileScannerStage];
+    fileScanner = oo::ToCxx([verifier() fileScannerStage]);
 
-    const oo::PList knownFiles = [[self verifier] cxx_configurationDictionaryForKey:"knownFiles"];
+    const oo::PList knownFiles = [verifier() cxx_configurationDictionaryForKey:"knownFiles"];
     const std::vector<std::string> plists = StringsForKey(knownFiles, "Config");
     const std::vector<std::string> arrayPlists = StringsForKey(knownFiles, "ConfigArrays");
     const std::vector<std::string> dictionaryPlists = StringsForKey(knownFiles, "ConfigDictionaries");
@@ -83,9 +79,9 @@ bool Contains(const std::vector<std::string>& strings, const std::string& string
         if (plistName == "script.js")
             continue;
 
-        if ([fileScanner cxx_fileExists:plistName inFolder:"Config" referencedFrom:std::nullopt checkBuiltIn:NO]) {
+        if (fileScanner != nullptr && fileScanner->fileExists(plistName, "Config", std::nullopt, false)) {
             OO_LOG("verifyOXP.syntaxCheck", "Checking {}", plistName);
-            const oo::PList retrieve = [fileScanner cxx_plistNamed:plistName inFolder:"Config" referencedFrom:std::nullopt checkBuiltIn:NO];
+            const oo::PList retrieve = fileScanner->plistNamed(plistName, "Config", std::nullopt, false);
             if (!retrieve.isNull()) {
                 if (retrieve.isArray()) {
                     if (!Contains(arrayPlists, plistName)) {
@@ -102,7 +98,5 @@ bool Contains(const std::vector<std::string>& strings, const std::string& string
         }
     }
 }
-
-@end
 
 #endif

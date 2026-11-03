@@ -31,11 +31,11 @@ SOFTWARE.
 #import "OOTexture.h"
 #include "oofnd/objc/OORuntime.h"
 
-#import "OOFoundationBridge.h"
 #import "OOMaterialSpecifier.h"
 #import "ResourceManager.h"
 #include "oofnd/Log.hpp"
 #include "oofnd/StdLib.hpp"
+#include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"
 #include "oofnd/objc/OOException.h"
 
@@ -1212,7 +1212,7 @@ oo::PList AddingValue(oo::PList specifier, const char* key, oo::PList value)
 OOColor* ColorIn(const oo::PList& spec, const char* key)
 {
     const oo::PList* value = spec.find(key);
-    return [OOColor colorWithDescription:(value != nullptr) ? oo::ObjectFromPList(*value) : nil];
+    return [OOColor cxx_colorWithDescription:(value != nullptr) ? *value : oo::PList()];
 }
 
 // -[OOColor normalizedArray]: four +numberWithFloat: components.
@@ -1378,7 +1378,7 @@ oo::PList CanonicalizeMaterialSpecifier(const oo::PList& spec, const std::option
             auto modulateColor = lmDict.find(cxx_kOOTextureSpecifierModulateColorKey);
             if (modulateColor != lmDict.end() && !modulateColor->second.isArray()) {
                 // Don't convert arrays here, because we specifically don't want the behaviour of treating numbers greater than 1 as 0..255 components.
-                col = [OOColor colorWithDescription:oo::ObjectFromPList(modulateColor->second)];
+                col = [OOColor cxx_colorWithDescription:modulateColor->second];
                 // A description that is no colour leaves no colour (upstream set nil, which Foundation refuses).
                 if (col != nil)
                     modulateColor->second = NormalizedArray(col);

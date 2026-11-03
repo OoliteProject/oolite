@@ -23,9 +23,8 @@ oofnd_dep = declare_dependency(include_directories: oofnd_inc, dependencies: oof
 
 # The Foundation-free Objective-C floor (bead oo-3rb.1, proposed ADR-0029): the OOObject root
 # class and the OOConstantString class behind @"..." literals, on libobjc2 alone. Linked into the game
-# since oo-3rb.2 (src/meson.build) WITHOUT oofnd_objc_args: the game keeps gnustep-base's
-# NSConstantString until the flip (oo-3rb.4). Test consumers
-# (today only tests/unit/oofnd/test_objc_floor.mm) must compile with oofnd_objc_args.
+# since oo-3rb.2 (src/meson.build), which compiles with oofnd_objc_args since the constant-string
+# flip (oo-3rb.4). Test consumers (tests/unit/oofnd/test_objc_*.mm) compile with them too.
 oofnd_objc_args = ['-fno-constant-cfstrings', '-fconstant-string-class=OOConstantString']
 oofnd_objc_dep = declare_dependency(
     include_directories: oofnd_inc,

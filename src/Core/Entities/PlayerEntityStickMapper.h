@@ -61,7 +61,7 @@ MA 02110-1301, USA.
                            view:(MyOpenGLView*)gameView;
 // Callback method: called by name (-performSelector:withObject:) by OOJoystickManager with an
 // Objective-C dictionary, so its parameter stays an object (proposed ADR-0043).
-- (void)updateFunction:(id)hwDict;
+- (void)updateFunction:(const oo::PList&)hwDict;
 
 // Future: populate via plist
 - (oo::PList)makeStickGuiDictHeader:(const std::string&)header;

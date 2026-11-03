@@ -27,7 +27,14 @@
         SOFTWARE.
 */
 
+#ifdef __OBJC__
 #import "OOFoundation.h"
+#else
+/*	Plain C++ translation unit (OOIsNumberLiteral.cpp, ADR-0012): only BOOL is needed, and OOCocoa.h
+        imports Foundation, which does not compile outside Objective-C.
+*/
+#include <objc/runtime.h> // BOOL
+#endif
 
 #include "oofnd/StdLib.hpp"
 

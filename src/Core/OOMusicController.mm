@@ -24,7 +24,6 @@ MA 02110-1301, USA.
 */
 
 #import "OOMusicController.h"
-#import "OOFoundationBridge.h"
 #import "OOSound.h"
 #import "ResourceManager.h"
 #include "oofnd/Defaults.hpp"
@@ -133,9 +132,9 @@ enum {
     }
 }
 
-- (void)setMissionMusic:(id)missionMusicName
+- (void)cxx_setMissionMusic:(const std::optional<std::string>&)missionMusicName
 {
-    _missionMusic = oo::OptionalString(missionMusicName);
+    _missionMusic = missionMusicName;
 }
 
 - (void)playMissionMusic

@@ -26,7 +26,6 @@ SOFTWARE.
 */
 
 #import "OOProbabilisticTextureManager.h"
-#import "OOFoundationBridge.h"
 #import "OOTexture.h"
 #import "PlayerEntityScriptMethods.h"
 #import "ResourceManager.h"

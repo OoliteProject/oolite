@@ -42,9 +42,7 @@ MA 02110-1301, USA.
     std::optional<std::string> _category;
 }
 
-- (id)title; // shared selector (Foundation declares -title too): -cxx_title as an Objective-C string, or nil
 - (std::optional<std::string>)cxx_title; // nullopt: none (bead oo-3rb.290)
-- (void)setTitle:(id)title; // shared selector (Foundation declares -setTitle: too)
 - (void)cxx_setTitle:(const std::optional<std::string>&)title; // bead oo-3rb.290
 - (std::optional<std::string>)category;
 - (void)setCategory:(const std::string&)category;
@@ -56,7 +54,7 @@ MA 02110-1301, USA.
 - (JSValue)callbackThis;
 - (void)setCallbackThis:(JSValueConst)callbackthis;
 
-- (void)runCallback:(id)key; // shared selector (proposed ADR-0043): key is an Objective-C string
+- (void)runCallback:(const std::string&)key;
 
 - (OOComparisonResult)interfaceCompare:(OOJSInterfaceDefinition*)other;
 

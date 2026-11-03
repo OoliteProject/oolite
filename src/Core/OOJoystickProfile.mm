@@ -30,173 +30,145 @@ MA 02110-1301, USA.
 
 #define SPLINE_POINT_MIN_SPACING 0.02
 
-@interface OOJoystickSplineSegment : OOObject <OOCopying> {
-@private
-    double start;
-    double end;
-    double a[4];
+class OOJoystickSplineSegment : public oo::RefCounted {
+public:
+    OOJoystickSplineSegment(); // -init
+
+    // Linear spline from left point to right point.  Returns nil if right.x - left.x <= 0.0.
+    static oo::Ref<OOJoystickSplineSegment> segmentWithData(NSPoint left, NSPoint right);
+
+    // Quadratic spline from left point to right point, with gradient specified at left.  returns nil if right.x - left.x <= 0.0.
+    static oo::Ref<OOJoystickSplineSegment> segmentWithData(NSPoint left, NSPoint right, double gradientleft);
+
+    // Quadratic spline from left point to right point, with gradient specified at right.  returns nil if right.x - left.x <= 0.0.
+    // (+segmentWithData:right:gradientright: has the same argument types as the one above, so it keeps its last keyword.)
+    static oo::Ref<OOJoystickSplineSegment> segmentWithDataGradientRight(NSPoint left, NSPoint right, double gradientright);
+
+    // Cubic spline from left point to right point, with gradients specified at end points.  returns nil if right.x - left.x <= 0.0.
+    static oo::Ref<OOJoystickSplineSegment> segmentWithData(NSPoint left, NSPoint right, double gradientleft, double gradientright);
+
+    oo::Ref<OOJoystickSplineSegment> copy(); // -copyWithZone:
+    double start();
+    double end();
+    double value(double t);
+    double gradient(double t);
+
+private:
+    // The -initWithData:... initialisers, which could fail (amendment oo-bhb9 item 1).
+    bool initWithData(NSPoint left, NSPoint right);
+    bool initWithData(NSPoint left, NSPoint right, double gradientleft);
+    bool initWithDataGradientRight(NSPoint left, NSPoint right, double gradientright);
+    bool initWithData(NSPoint left, NSPoint right, double gradientleft, double gradientright);
+
+    double start_ = { }; // the ivars start and end (amendment oo-z1s4 item 1: they clash with start(), end())
+    double end_ = { };
+    double a[4] = { };
+};
+
+namespace cxx {
+
+OOJoystickAxisProfile::OOJoystickAxisProfile()
+{
+    deadzone_ = STICK_DEADZONE;
 }
 
-- (id)init;
-
-// Linear spline from left point to right point.  Returns nil if right.x - left.x <= 0.0.
-- (id)initWithData:(NSPoint)left right:(NSPoint)right;
-
-// Quadratic spline from left point to right point, with gradient specified at left.  returns nil if right.x - left.x <= 0.0.
-- (id)initWithData:(NSPoint)left right:(NSPoint)right gradientleft:(double)gradientleft;
-
-// Quadratic spline from left point to right point, with gradient specified at right.  returns nil if right.x - left.x <= 0.0.
-- (id)initWithData:(NSPoint)left right:(NSPoint)right gradientright:(double)gradientright;
-
-// Cubic spline from left point to right point, with gradients specified at end points.  returns nil if right.x - left.x <= 0.0.
-- (id)initWithData:(NSPoint)left right:(NSPoint)right gradientleft:(double)gradientleft gradientright:(double)gradientright;
-
-// Linear spline from left point to right point.  Returns nil if right.x - left.x <= 0.0.
-+ (id)segmentWithData:(NSPoint)left right:(NSPoint)right;
-
-// Quadratic spline from left point to right point, with gradient specified at left.  returns nil if right.x - left.x <= 0.0.
-+ (id)segmentWithData:(NSPoint)left right:(NSPoint)right gradientleft:(double)gradientleft;
-
-// Quadratic spline from left point to right point, with gradient specified at right.  returns nil if right.x - left.x <= 0.0.
-+ (id)segmentWithData:(NSPoint)left right:(NSPoint)right gradientright:(double)gradientright;
-
-// Cubic spline from left point to right point, with gradients specified at end points.  returns nil if right.x - left.x <= 0.0.
-+ (id)segmentWithData:(NSPoint)left right:(NSPoint)right gradientleft:(double)gradientleft gradientright:(double)gradientright;
-
-- (id)copyWithZone:(OOZone*)zone;
-- (double)start;
-- (double)end;
-- (double)value:(double)t;
-- (double)gradient:(double)t;
-
-@end
-
-@interface OOJoystickSplineAxisProfile (Private)
-
-// Create the segments from the control points.  If there's a problem, e.g. control points not in order or overlapping,
-// leave segments as they are and return NO.  Otherwise return YES.
-- (BOOL)makeSegments;
-
-@end
-
-@implementation OOJoystickAxisProfile
-
-- (id)init
+oo::Ref<OOJoystickAxisProfile> OOJoystickAxisProfile::copy()
 {
-    if ((self = [super init])) {
-        deadzone = STICK_DEADZONE;
-    }
-    return self;
-}
-
-- (id)copyWithZone:(OOZone*)zone
-{
-    OOJoystickAxisProfile* copy = [[[self class] alloc] init];
+    // [[[self class] alloc] init]: only an OOJoystickAxisProfile itself gets here; both subclasses override.
+    oo::Ref<OOJoystickAxisProfile> copy = oo::makeRef<OOJoystickAxisProfile>();
     return copy;
 }
 
-- (double)rawValue:(double)x
+double OOJoystickAxisProfile::rawValue(double x)
 {
     return x;
 }
 
-- (double)value:(double)x
+double OOJoystickAxisProfile::value(double x)
 {
-    if (fabs(x) < deadzone) {
+    if (fabs(x) < deadzone_) {
         return 0.0;
     }
-    return x < 0 ? -[self rawValue:(-x - deadzone) / (1.0 - deadzone)] : [self rawValue:(x - deadzone) / (1.0 - deadzone)];
+    return x < 0 ? -rawValue((-x - deadzone_) / (1.0 - deadzone_)) : rawValue((x - deadzone_) / (1.0 - deadzone_));
 }
 
-- (double)deadzone
+double OOJoystickAxisProfile::deadzone()
 {
-    return deadzone;
+    return deadzone_;
 }
 
-- (void)setDeadzone:(double)newValue
+void OOJoystickAxisProfile::setDeadzone(double newValue)
 {
-    deadzone = OOClamp_0_max_d(newValue, STICK_MAX_DEADZONE);
+    deadzone_ = OOClamp_0_max_d(newValue, STICK_MAX_DEADZONE);
 }
 
-@end
-
-@implementation OOJoystickStandardAxisProfile
-
-- (id)init
+OOJoystickStandardAxisProfile::OOJoystickStandardAxisProfile()
 {
-    if ((self = [super init])) {
-        power = 1.0;
-        parameter = 1.0;
-    }
-    return self;
+    power_ = 1.0;
+    parameter_ = 1.0;
 }
 
-- (id)copyWithZone:(OOZone*)zone
+oo::Ref<OOJoystickAxisProfile> OOJoystickStandardAxisProfile::copy()
 {
-    OOJoystickStandardAxisProfile* copy = [[[self class] alloc] init];
-    copy->power = power;
-    copy->parameter = parameter;
+    oo::Ref<OOJoystickStandardAxisProfile> copy = oo::makeRef<OOJoystickStandardAxisProfile>();
+    copy->power_ = power_;
+    copy->parameter_ = parameter_;
     return copy;
 }
 
-- (void)setPower:(double)newValue
+void OOJoystickStandardAxisProfile::setPower(double newValue)
 {
     if (newValue < 1.0) {
-        power = 1.0;
+        power_ = 1.0;
     } else if (newValue > STICKPROFILE_MAX_POWER) {
-        power = STICKPROFILE_MAX_POWER;
+        power_ = STICKPROFILE_MAX_POWER;
     } else {
-        power = newValue;
+        power_ = newValue;
     }
     return;
 }
 
-- (double)power
+double OOJoystickStandardAxisProfile::power()
 {
-    return power;
+    return power_;
 }
 
-- (void)setParameter:(double)newValue
+void OOJoystickStandardAxisProfile::setParameter(double newValue)
 {
-    parameter = OOClamp_0_1_d(newValue);
+    parameter_ = OOClamp_0_1_d(newValue);
     return;
 }
 
-- (double)parameter
+double OOJoystickStandardAxisProfile::parameter()
 {
-    return parameter;
+    return parameter_;
 }
 
-- (double)rawValue:(double)x
+double OOJoystickStandardAxisProfile::rawValue(double x)
 {
     if (x < 0) {
-        return -OOClamp_0_1_d(parameter * pow(-x, power) - (parameter - 1.0) * (-x));
+        return -OOClamp_0_1_d(parameter_ * pow(-x, power_) - (parameter_ - 1.0) * (-x));
     }
-    return OOClamp_0_1_d(parameter * pow(x, power) - (parameter - 1.0) * (x));
+    return OOClamp_0_1_d(parameter_ * pow(x, power_) - (parameter_ - 1.0) * (x));
 }
 
-@end
+} // namespace cxx
 
-@implementation OOJoystickSplineSegment
-
-- (id)init
+OOJoystickSplineSegment::OOJoystickSplineSegment()
 {
-    if ((self = [super init])) {
-        start = 0.0;
-        end = 1.0;
-        a[0] = 0.0;
-        a[1] = 1.0;
-        a[2] = 0.0;
-        a[3] = 0.0;
-    }
-    return self;
+    start_ = 0.0;
+    end_ = 1.0;
+    a[0] = 0.0;
+    a[1] = 1.0;
+    a[2] = 0.0;
+    a[3] = 0.0;
 }
 
-- (id)copyWithZone:(OOZone*)zone
+oo::Ref<OOJoystickSplineSegment> OOJoystickSplineSegment::copy()
 {
-    OOJoystickSplineSegment* copy = [[OOJoystickSplineSegment allocWithZone:zone] init];
-    copy->start = start;
-    copy->end = end;
+    oo::Ref<OOJoystickSplineSegment> copy = oo::makeRef<OOJoystickSplineSegment>();
+    copy->start_ = start_;
+    copy->end_ = end_;
     copy->a[0] = a[0];
     copy->a[1] = a[1];
     copy->a[2] = a[2];
@@ -204,145 +176,143 @@ MA 02110-1301, USA.
     return copy;
 }
 
-- (id)initWithData:(NSPoint)left right:(NSPoint)right
+/*	The -initWithData:... bodies ran on a zeroed object ([super init], not [self init]); here the
+        constructor above has run first. Every path that returns true sets start, end and a[0..2], and
+        the two that leave a[3] alone leave it 0 either way, so the segment is the same.
+*/
+bool OOJoystickSplineSegment::initWithData(NSPoint left, NSPoint right)
 {
     double dx = right.x - left.x;
     if (dx <= 0.0) {
-        return nil;
+        return false;
     }
-    if ((self = [super init])) {
-        start = left.x;
-        end = right.x;
-        a[1] = (right.y - left.y) / dx;
-        a[0] = left.y - a[1] * left.x;
-        a[2] = 0.0;
-        a[3] = 0.0;
-    }
-    return self;
+    start_ = left.x;
+    end_ = right.x;
+    a[1] = (right.y - left.y) / dx;
+    a[0] = left.y - a[1] * left.x;
+    a[2] = 0.0;
+    a[3] = 0.0;
+    return true;
 }
 
-- (id)initWithData:(NSPoint)left right:(NSPoint)right gradientleft:(double)gradientleft
+bool OOJoystickSplineSegment::initWithData(NSPoint left, NSPoint right, double gradientleft)
 {
     double dx = right.x - left.x;
     if (dx <= 0.0) {
-        return nil;
+        return false;
     }
-    if ((self = [super init])) {
-        start = left.x;
-        end = right.x;
-        a[0] = left.y * right.x * (right.x - 2 * left.x) / (dx * dx) + right.y * left.x * left.x / (dx * dx) - gradientleft * left.x * right.x / dx;
-        a[1] = 2 * left.x * (left.y - right.y) / (dx * dx) + gradientleft * (left.x + right.x) / dx;
-        a[2] = (right.y - left.y) / (dx * dx) - gradientleft / dx;
-    }
-    return self;
+    start_ = left.x;
+    end_ = right.x;
+    a[0] = left.y * right.x * (right.x - 2 * left.x) / (dx * dx) + right.y * left.x * left.x / (dx * dx) - gradientleft * left.x * right.x / dx;
+    a[1] = 2 * left.x * (left.y - right.y) / (dx * dx) + gradientleft * (left.x + right.x) / dx;
+    a[2] = (right.y - left.y) / (dx * dx) - gradientleft / dx;
+    return true;
 }
 
-- (id)initWithData:(NSPoint)left right:(NSPoint)right gradientright:(double)gradientright
+bool OOJoystickSplineSegment::initWithDataGradientRight(NSPoint left, NSPoint right, double gradientright)
 {
     double dx = right.x - left.x;
     if (dx <= 0.0) {
-        return nil;
+        return false;
     }
-    if ((self = [super init])) {
-        start = left.x;
-        end = right.x;
-        a[0] = (left.y * right.x * right.x + right.y * left.x * (left.x - 2 * right.x)) / (dx * dx) + gradientright * left.x * right.x / dx;
-        a[1] = 2 * right.x * (right.y - left.y) / (dx * dx) - gradientright * (left.x + right.x) / dx;
-        a[2] = (left.y - right.y) / (dx * dx) + gradientright / dx;
-    }
-    return self;
+    start_ = left.x;
+    end_ = right.x;
+    a[0] = (left.y * right.x * right.x + right.y * left.x * (left.x - 2 * right.x)) / (dx * dx) + gradientright * left.x * right.x / dx;
+    a[1] = 2 * right.x * (right.y - left.y) / (dx * dx) - gradientright * (left.x + right.x) / dx;
+    a[2] = (left.y - right.y) / (dx * dx) + gradientright / dx;
+    return true;
 }
 
-- (id)initWithData:(NSPoint)left right:(NSPoint)right gradientleft:(double)gradientleft gradientright:(double)gradientright
+bool OOJoystickSplineSegment::initWithData(NSPoint left, NSPoint right, double gradientleft, double gradientright)
 {
     double dx = right.x - left.x;
     if (dx <= 0.0) {
-        return nil;
+        return false;
     }
-    if ((self = [super init])) {
-        start = left.x;
-        end = right.x;
-        a[0] = (left.y * right.x * right.x * (right.x - 3 * left.x) - right.y * left.x * left.x * (left.x - 3 * right.x)) / (dx * dx * dx) - (gradientleft * right.x + gradientright * left.x) * left.x * right.x / (dx * dx);
-        a[1] = 6 * left.x * right.x * (left.y - right.y) / (dx * dx * dx) + (gradientleft * right.x * (right.x + 2 * left.x) + gradientright * left.x * (left.x + 2 * right.x)) / (dx * dx);
-        a[2] = 3 * (left.x + right.x) * (right.y - left.y) / (dx * dx * dx) - (gradientleft * (2 * right.x + left.x) + gradientright * (2 * left.x + right.x)) / (dx * dx);
-        a[3] = 2 * (left.y - right.y) / (dx * dx * dx) + (gradientleft + gradientright) / (dx * dx);
-    }
-    return self;
+    start_ = left.x;
+    end_ = right.x;
+    a[0] = (left.y * right.x * right.x * (right.x - 3 * left.x) - right.y * left.x * left.x * (left.x - 3 * right.x)) / (dx * dx * dx) - (gradientleft * right.x + gradientright * left.x) * left.x * right.x / (dx * dx);
+    a[1] = 6 * left.x * right.x * (left.y - right.y) / (dx * dx * dx) + (gradientleft * right.x * (right.x + 2 * left.x) + gradientright * left.x * (left.x + 2 * right.x)) / (dx * dx);
+    a[2] = 3 * (left.x + right.x) * (right.y - left.y) / (dx * dx * dx) - (gradientleft * (2 * right.x + left.x) + gradientright * (2 * left.x + right.x)) / (dx * dx);
+    a[3] = 2 * (left.y - right.y) / (dx * dx * dx) + (gradientleft + gradientright) / (dx * dx);
+    return true;
 }
 
-+ (id)segmentWithData:(NSPoint)left right:(NSPoint)right
+oo::Ref<OOJoystickSplineSegment> OOJoystickSplineSegment::segmentWithData(NSPoint left, NSPoint right)
 {
-    OOJoystickSplineSegment* segment = [[OOJoystickSplineSegment alloc] initWithData:left right:right];
-    return [segment autorelease];
+    oo::Ref<OOJoystickSplineSegment> segment = oo::makeRef<OOJoystickSplineSegment>();
+    if (!segment->initWithData(left, right))
+        return nullptr;
+    return segment;
 }
 
-+ (id)segmentWithData:(NSPoint)left right:(NSPoint)right gradientleft:(double)gradientleft
+oo::Ref<OOJoystickSplineSegment> OOJoystickSplineSegment::segmentWithData(NSPoint left, NSPoint right, double gradientleft)
 {
-    OOJoystickSplineSegment* segment = [[OOJoystickSplineSegment alloc] initWithData:left right:right gradientleft:gradientleft];
-    return [segment autorelease];
+    oo::Ref<OOJoystickSplineSegment> segment = oo::makeRef<OOJoystickSplineSegment>();
+    if (!segment->initWithData(left, right, gradientleft))
+        return nullptr;
+    return segment;
 }
 
-+ (id)segmentWithData:(NSPoint)left right:(NSPoint)right gradientright:(double)gradientright
+oo::Ref<OOJoystickSplineSegment> OOJoystickSplineSegment::segmentWithDataGradientRight(NSPoint left, NSPoint right, double gradientright)
 {
-    OOJoystickSplineSegment* segment = [[OOJoystickSplineSegment alloc] initWithData:left right:right gradientright:gradientright];
-    return [segment autorelease];
+    oo::Ref<OOJoystickSplineSegment> segment = oo::makeRef<OOJoystickSplineSegment>();
+    if (!segment->initWithDataGradientRight(left, right, gradientright))
+        return nullptr;
+    return segment;
 }
 
-+ (id)segmentWithData:(NSPoint)left right:(NSPoint)right gradientleft:(double)gradientleft gradientright:(double)gradientright
+oo::Ref<OOJoystickSplineSegment> OOJoystickSplineSegment::segmentWithData(NSPoint left, NSPoint right, double gradientleft, double gradientright)
 {
-    OOJoystickSplineSegment* segment = [[OOJoystickSplineSegment alloc] initWithData:left right:right gradientleft:gradientleft gradientright:gradientright];
-    return [segment autorelease];
+    oo::Ref<OOJoystickSplineSegment> segment = oo::makeRef<OOJoystickSplineSegment>();
+    if (!segment->initWithData(left, right, gradientleft, gradientright))
+        return nullptr;
+    return segment;
 }
 
-- (double)start
+double OOJoystickSplineSegment::start()
 {
-    return start;
+    return start_;
 }
 
-- (double)end
+double OOJoystickSplineSegment::end()
 {
-    return end;
+    return end_;
 }
 
-- (double)value:(double)x
+double OOJoystickSplineSegment::value(double x)
 {
     return a[0] + (a[1] + (a[2] + a[3] * x) * x) * x;
 }
 
-- (double)gradient:(double)x
+double OOJoystickSplineSegment::gradient(double x)
 {
     return a[1] + (2 * a[2] + 3 * a[3] * x) * x;
 }
 
-@end
+namespace cxx {
 
-@implementation OOJoystickSplineAxisProfile
-
-- (id)init
+OOJoystickSplineAxisProfile::OOJoystickSplineAxisProfile()
 {
-    if ((self = [super init])) {
-        controlPoints.reserve(2);
-        segments.clear();
-        [self makeSegments];
-    }
-    return self;
+    controlPoints_.reserve(2);
+    segments.clear();
+    makeSegments();
 }
 
-- (void)dealloc
+OOJoystickSplineAxisProfile::~OOJoystickSplineAxisProfile()
 {
-    [super dealloc];
     return;
 }
 
-- (id)copyWithZone:(OOZone*)zone
+oo::Ref<OOJoystickAxisProfile> OOJoystickSplineAxisProfile::copy()
 {
-    OOJoystickSplineAxisProfile* copy = [[[self class] alloc] init];
-    copy->controlPoints = controlPoints;
+    oo::Ref<OOJoystickSplineAxisProfile> copy = oo::makeRef<OOJoystickSplineAxisProfile>();
+    copy->controlPoints_ = controlPoints_;
     copy->segments = segments; // the same segment objects, as the array copy held
     return copy;
 }
 
-- (int)addControl:(NSPoint)point
+int OOJoystickSplineAxisProfile::addControl(NSPoint point)
 {
     NSPoint left, right;
     NSUInteger i;
@@ -353,9 +323,9 @@ MA 02110-1301, USA.
 
     left.x = 0.0;
     left.y = 0.0;
-    for (i = 0; i <= controlPoints.size(); i++) {
-        if (i < controlPoints.size()) {
-            right = controlPoints[i];
+    for (i = 0; i <= controlPoints_.size(); i++) {
+        if (i < controlPoints_.size()) {
+            right = controlPoints_[i];
         } else {
             right = NSMakePoint(1.0, 1.0);
         }
@@ -363,13 +333,13 @@ MA 02110-1301, USA.
             if (i == 0) {
                 return -1;
             }
-            controlPoints[i - 1] = point;
-            [self makeSegments];
+            controlPoints_[i - 1] = point;
+            makeSegments();
             return i - 1;
         }
         if ((right.x - point.x) >= SPLINE_POINT_MIN_SPACING) {
-            controlPoints.insert(controlPoints.begin() + i, point);
-            [self makeSegments];
+            controlPoints_.insert(controlPoints_.begin() + i, point);
+            makeSegments();
             return i;
         }
         left = right;
@@ -377,68 +347,68 @@ MA 02110-1301, USA.
     return -1;
 }
 
-- (NSPoint)pointAtIndex:(NSInteger)index
+NSPoint OOJoystickSplineAxisProfile::pointAtIndex(NSInteger index)
 {
     NSPoint point;
     if (index < 0) {
         point.x = 0.0;
         point.y = 0.0;
-    } else if (index >= (NSInteger)controlPoints.size()) {
+    } else if (index >= (NSInteger)controlPoints_.size()) {
         point.x = 1.0;
         point.y = 1.0;
     } else {
-        point = controlPoints[index];
+        point = controlPoints_[index];
     }
     return point;
 }
 
-- (int)countPoints
+int OOJoystickSplineAxisProfile::countPoints()
 {
-    return controlPoints.size();
+    return controlPoints_.size();
 }
 
-- (std::vector<NSPoint>)controlPoints
+std::vector<NSPoint> OOJoystickSplineAxisProfile::controlPoints()
 {
-    return controlPoints;
+    return controlPoints_;
 }
 
 // Calculate segments from control points
-- (BOOL)makeSegments
+bool OOJoystickSplineAxisProfile::makeSegments()
 {
     NSUInteger i;
     NSPoint left, right, next;
     double gradientleft, gradientright;
-    OOJoystickSplineSegment* segment;
-    BOOL first_segment = YES;
-    std::vector<oo::ObjCRef<OOJoystickSplineSegment*>> new_segments;
-    new_segments.reserve(controlPoints.size() + 1);
+    oo::Ref<OOJoystickSplineSegment> segment;
+    bool first_segment = true;
+    std::vector<oo::Ref<OOJoystickSplineSegment>> new_segments;
+    new_segments.reserve(controlPoints_.size() + 1);
 
     left.x = 0.0;
     left.y = 0.0;
-    if (controlPoints.size() == 0) {
+    if (controlPoints_.size() == 0) {
         right.x = 1.0;
         right.y = 1.0;
-        segment = [OOJoystickSplineSegment segmentWithData:left right:right];
+        segment = OOJoystickSplineSegment::segmentWithData(left, right);
         new_segments.emplace_back(segment);
     } else {
         gradientleft = 1.0;
-        right = controlPoints[0];
-        for (i = 0; i < controlPoints.size(); i++) {
-            next = [self pointAtIndex:i + 1];
+        right = controlPoints_[0];
+        for (i = 0; i < controlPoints_.size(); i++) {
+            next = pointAtIndex(i + 1);
             if (next.x - left.x > 0.0) {
                 // we make the gradient at right equal to the gradient of a straight line between the neighcouring points
                 gradientright = (next.y - left.y) / (next.x - left.x);
                 if (first_segment) {
-                    segment = [OOJoystickSplineSegment segmentWithData:left right:right gradientright:gradientright];
+                    segment = OOJoystickSplineSegment::segmentWithDataGradientRight(left, right, gradientright);
                 } else {
-                    segment = [OOJoystickSplineSegment segmentWithData:left right:right gradientleft:gradientleft gradientright:gradientright];
+                    segment = OOJoystickSplineSegment::segmentWithData(left, right, gradientleft, gradientright);
                 }
-                if (segment == nil) {
-                    return NO;
+                if (segment == nullptr) {
+                    return false;
                 } else {
                     new_segments.emplace_back(segment);
                     gradientleft = gradientright;
-                    first_segment = NO;
+                    first_segment = false;
                     left = right;
                 }
             }
@@ -446,51 +416,51 @@ MA 02110-1301, USA.
         }
         right.x = 1.0;
         right.y = 1.0;
-        segment = [OOJoystickSplineSegment segmentWithData:left right:right gradientleft:gradientleft];
-        if (segment == nil) {
-            return NO;
+        segment = OOJoystickSplineSegment::segmentWithData(left, right, gradientleft);
+        if (segment == nullptr) {
+            return false;
         }
         new_segments.emplace_back(segment);
     }
     segments = std::move(new_segments);
-    return YES;
+    return true;
 }
 
-- (void)removeControl:(NSInteger)index
+void OOJoystickSplineAxisProfile::removeControl(NSInteger index)
 {
-    if (index >= 0 && index < (NSInteger)controlPoints.size()) {
-        controlPoints.erase(controlPoints.begin() + index);
-        [self makeSegments];
+    if (index >= 0 && index < (NSInteger)controlPoints_.size()) {
+        controlPoints_.erase(controlPoints_.begin() + index);
+        makeSegments();
     }
     return;
 }
 
-- (void)clearControlPoints
+void OOJoystickSplineAxisProfile::clearControlPoints()
 {
-    controlPoints.clear();
-    [self makeSegments];
+    controlPoints_.clear();
+    makeSegments();
 }
 
-- (void)moveControl:(NSInteger)index point:(NSPoint)point
+void OOJoystickSplineAxisProfile::moveControl(NSInteger index, NSPoint point)
 {
     NSPoint left, right;
 
     point.x = OOClamp_0_1_d(point.x);
     point.y = OOClamp_0_1_d(point.y);
-    if (index < 0 || index >= (NSInteger)controlPoints.size()) {
+    if (index < 0 || index >= (NSInteger)controlPoints_.size()) {
         return;
     }
     if (index == 0) {
         left.x = 0.0;
         right.x = 0.0;
     } else {
-        left = controlPoints[index - 1];
+        left = controlPoints_[index - 1];
     }
-    if (index == (NSInteger)controlPoints.size() - 1) {
+    if (index == (NSInteger)controlPoints_.size() - 1) {
         right.x = 1.0;
         right.y = 1.0;
     } else {
-        right = controlPoints[index + 1];
+        right = controlPoints_[index + 1];
     }
     // preserve order of control points - if we attempt to move this control point beyond
     // either of its neighbours, move it back inside.  Also keep neighbours a distance of at least SPLINE_POINT_MIN_SPACING apart
@@ -505,12 +475,12 @@ MA 02110-1301, USA.
             point.x = (left.x + right.x) / 2;
         }
     }
-    controlPoints[index] = point;
-    [self makeSegments];
+    controlPoints_[index] = point;
+    makeSegments();
     return;
 }
 
-- (double)rawValue:(double)x
+double OOJoystickSplineAxisProfile::rawValue(double x)
 {
     NSUInteger i;
     OOJoystickSplineSegment* segment;
@@ -524,24 +494,24 @@ MA 02110-1301, USA.
     }
     for (i = 0; i < segments.size(); i++) {
         segment = segments[i].get();
-        if ([segment end] > x) {
-            return sign * OOClamp_0_1_d([segment value:x]);
+        if (segment->end() > x) {
+            return sign * OOClamp_0_1_d(segment->value(x));
         }
     }
     return 1.0;
 }
 
-- (double)gradient:(double)x
+double OOJoystickSplineAxisProfile::gradient(double x)
 {
     NSUInteger i;
     OOJoystickSplineSegment* segment;
     for (i = 0; i < segments.size(); i++) {
         segment = segments[i].get();
-        if ([segment end] > x) {
-            return [segment gradient:x];
+        if (segment->end() > x) {
+            return segment->gradient(x);
         }
     }
     return 1.0;
 }
 
-@end
+} // namespace cxx

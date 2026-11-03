@@ -1,6 +1,10 @@
 /*
 
-OOPriorityQueue.m
+OOPriorityQueue.mm
+
+C++20 since bead oo-3lj8 (proposed ADR-0056, the OOColor house style). Method bodies are the
+Objective-C ones with message sends to the queue turned into calls. Still Objective-C++ until
+Phase 4: the elements are Objective-C objects, retained, released and compared by messages.
 
 
 Copyright (C) 2007-2013 Jens Ayton
@@ -27,7 +31,6 @@ SOFTWARE.
 
 #include <assert.h>
 
-#import "OOFoundationBridge.h"
 #import "OOFunctionAttributes.h"
 #import "OOPriorityQueue.h"
 #include "oofnd/String.hpp"
@@ -102,127 +105,97 @@ OOINLINE OOComparisonResult PQCompare(id a, id b, SEL comparator)
 }
 } // namespace
 
-// Private priority queue methods.
-@interface OOPriorityQueue (Private)
-
-- (void)makeObjectsPerformSelector:(SEL)selector;
-
-- (void)bubbleUpFrom:(NSUInteger)i;
-- (void)bubbleDownFrom:(NSUInteger)i;
-
-- (void)growBuffer;
-- (void)shrinkBuffer;
-
-- (void)removeObjectAtIndex:(NSUInteger)i;
-
-#if OO_DEBUG
-- (void)appendDebugDataToString:(std::string&)string index:(NSUInteger)i depth:(NSUInteger)depth;
-#endif
-
-@end
-
-@implementation OOPriorityQueue
-
-+ (instancetype)queueWithComparator:(SEL)comparator
+oo::Ref<OOPriorityQueue> OOPriorityQueue::queueWithComparator(SEL comparator)
 {
-    return [[[self alloc] initWithComparator:comparator] autorelease];
+    oo::Ref<OOPriorityQueue> result = oo::makeRef<OOPriorityQueue>();
+    if (!result->initWithComparator(comparator))
+        return nullptr;
+    return result;
 }
 
-- (id)initWithComparator:(SEL)comparator
+bool OOPriorityQueue::initWithComparator(SEL comparator)
 {
     if (comparator == NULL) {
-        [self release];
-        return nil;
+        return false;
     }
 
-    self = [super init];
-    if (self != nil) {
-        _comparator = comparator;
-    }
+    _comparator = comparator;
 
-    return self;
+    return true;
 }
 
-- (id)init
+OOPriorityQueue::~OOPriorityQueue()
 {
-    return [self initWithComparator:@selector(compare:)];
-}
-
-- (void)dealloc
-{
-    [self makeObjectsPerformSelector:@selector(release)];
+    makeObjectsPerformSelector(OOSelectorFromName("release"));
     free(_heap);
-
-    [super dealloc];
 }
 
-- (std::optional<std::string>)cxx_description
+std::optional<std::string> OOPriorityQueue::description()
 {
-    return oo::str::format("<%s %s>{count=%zu, capacity=%zu}", oo::DescriptionOf([self class]).c_str(), oo::str::pointerDescription(self).c_str(), _count, _capacity);
+    // ("OOPriorityQueue" is what DescriptionOf([self class]) printed: the class has no subclass.)
+    return oo::str::format("<%s %s>{count=%zu, capacity=%zu}", "OOPriorityQueue", oo::str::pointerDescription(this).c_str(), _count, _capacity);
 }
 
 #if OO_DEBUG
-- (id)debugDescription
+std::string OOPriorityQueue::debugDescription() // (was -debugDescription, an Objective-C string)
 {
     std::string result;
 
-    result = oo::str::format("<%s %s> (count=%zu, capacity=%zu, comparator=%s)", oo::DescriptionOf([self class]).c_str(), oo::str::pointerDescription(self).c_str(), _count, _capacity, OOSelectorName(_comparator));
+    result = oo::str::format("<%s %s> (count=%zu, capacity=%zu, comparator=%s)", "OOPriorityQueue", oo::str::pointerDescription(this).c_str(), _count, _capacity, OOSelectorName(_comparator));
 
     if (_count != 0) {
         result += "\n{\n";
-        [self appendDebugDataToString:result index:0 depth:0];
+        appendDebugDataToString(result, 0, 0);
         result += "}";
     } else {
         result += " {}";
     }
-    return oo::NSStringFrom(result);
+    return result;
 }
 #endif
 
-- (BOOL)isEqual:(id)object
+bool OOPriorityQueue::isEqual(OOPriorityQueue* object)
 {
     NSUInteger i;
-    OOPriorityQueue *selfCopy = nil, *otherCopy = nil;
-    BOOL identical = YES;
+    oo::Ref<OOPriorityQueue> selfCopy, otherCopy;
+    bool identical = true;
 
-    if (object == self)
-        return YES;
-    if (![object isKindOfClass:[self class]])
-        return NO;
+    if (object == this)
+        return true;
+    if (object == nullptr)
+        return false; // (was ![object isKindOfClass:[self class]])
 
-    if (_count != [object count])
-        return NO;
+    if (_count != object->count())
+        return false;
     if (_count == 0)
-        return YES;
+        return true;
 
-    selfCopy = [self copy];
-    otherCopy = [object copy];
+    selfCopy = copy();
+    otherCopy = object->copy();
     i = _count;
     while (i--) {
-        if (![[selfCopy nextObject] isEqual:[otherCopy nextObject]]) {
-            identical = NO;
+        if (![selfCopy->nextObject() isEqual:otherCopy->nextObject()]) {
+            identical = false;
             break;
         }
     }
-    [selfCopy release];
-    [otherCopy release];
 
     return identical;
 }
 
-- (NSUInteger)hash
+NSUInteger OOPriorityQueue::hash()
 {
     if (_count == 0)
         return NSNotFound;
     return _count ^ [_heap[0] hash];
 }
 
-- (id)copyWithZone:(OOZone*)zone
+oo::Ref<OOPriorityQueue> OOPriorityQueue::copy()
 {
-    OOPriorityQueue* copy = nil;
+    oo::Ref<OOPriorityQueue> copy;
 
-    copy = [[self class] allocWithZone:zone];
-    if (copy != nil) {
+    copy = oo::makeRef<OOPriorityQueue>();
+    if (copy != nullptr) {
         copy->_comparator = _comparator;
         copy->_count = _count;
         copy->_capacity = _count;
@@ -230,17 +203,16 @@ OOINLINE OOComparisonResult PQCompare(id a, id b, SEL comparator)
         copy->_heap = (id*)malloc(_count * sizeof(id));
         if (copy->_heap != NULL) {
             memcpy(copy->_heap, _heap, _count * sizeof(id));
-            [copy makeObjectsPerformSelector:@selector(retain)];
+            copy->makeObjectsPerformSelector(OOSelectorFromName("retain"));
         } else if (_count != 0) {
-            [copy release];
-            copy = nil;
+            copy = nullptr;
         }
     }
 
     return copy;
 }
 
-- (void)addObject:(id)object
+void OOPriorityQueue::addObject(id object)
 {
     NSUInteger i;
 
@@ -258,17 +230,17 @@ OOINLINE OOComparisonResult PQCompare(id a, id b, SEL comparator)
 
     // Ensure there is sufficent space.
     if (_count == _capacity)
-        [self growBuffer];
+        growBuffer();
 
     // insert object at end of buffer.
     i = _count++;
     _heap[i] = object;
 
-    [self bubbleUpFrom:i];
+    bubbleUpFrom(i);
     [object retain];
 }
 
-- (void)removeObject:(id)object
+void OOPriorityQueue::removeObject(id object)
 {
     NSUInteger i;
 
@@ -282,12 +254,12 @@ OOINLINE OOComparisonResult PQCompare(id a, id b, SEL comparator)
 
     for (i = 0; i < _count; ++i) {
         if (PQCompare(object, _heap[i], _comparator) == 0) {
-            [self removeObjectAtIndex:i];
+            removeObjectAtIndex(i);
         }
     }
 }
 
-- (void)removeExactObject:(id)object
+void OOPriorityQueue::removeExactObject(id object)
 {
     NSUInteger i;
 
@@ -296,24 +268,24 @@ OOINLINE OOComparisonResult PQCompare(id a, id b, SEL comparator)
 
     for (i = 0; i < _count; ++i) {
         if (object == _heap[i]) {
-            [self removeObjectAtIndex:i];
+            removeObjectAtIndex(i);
         }
     }
 }
 
-- (NSUInteger)count
+NSUInteger OOPriorityQueue::count()
 {
     return _count;
 }
 
-- (id)nextObject
+id OOPriorityQueue::nextObject()
 {
-    id result = [self peekAtNextObject];
-    [self removeNextObject];
+    id result = peekAtNextObject();
+    removeNextObject();
     return result;
 }
 
-- (id)peekAtNextObject
+id OOPriorityQueue::peekAtNextObject()
 {
     if (_count == 0)
         return nil;
@@ -321,51 +293,30 @@ OOINLINE OOComparisonResult PQCompare(id a, id b, SEL comparator)
     return _heap[0];
 }
 
-- (void)removeNextObject
+void OOPriorityQueue::removeNextObject()
 {
-    [self removeObjectAtIndex:0];
+    removeObjectAtIndex(0);
 }
 
-- (void)addObjects:(id)collection
-{
-    id value = nil;
-
-    if ([collection respondsToSelector:@selector(objectEnumerator)])
-        collection = [collection objectEnumerator];
-    if (![collection respondsToSelector:@selector(nextObject)])
-        return;
-
-    while ((value = [collection nextObject]))
-        [self addObject:value];
-}
-
-- (std::vector<oo::ObjCRef<id>>)sortedObjects
+std::vector<oo::ObjCRef<id>> OOPriorityQueue::sortedObjects()
 {
     std::vector<oo::ObjCRef<id>> result;
     id value = nil;
 
     result.reserve(_count);
-    while ((value = [self nextObject]))
+    while ((value = nextObject()))
         result.emplace_back(value);
     return result;
 }
 
-- (id)objectEnumerator
+std::vector<oo::ObjCRef<id>> OOPriorityQueue::objectEnumerator()
 {
-    // The objects are pulled off the heap up front (the retired enumerator pulled them as it went).
-    return [oo::NSArrayFromObjects([self cxx_objectEnumerator]) objectEnumerator];
+    return sortedObjects();
 }
 
-- (std::vector<oo::ObjCRef<id>>)cxx_objectEnumerator
-{
-    return [self sortedObjects];
-}
+// Private
 
-@end
-
-@implementation OOPriorityQueue (Private)
-
-- (void)makeObjectsPerformSelector:(SEL)selector
+void OOPriorityQueue::makeObjectsPerformSelector(SEL selector)
 {
     NSUInteger i;
 
@@ -377,7 +328,7 @@ OOINLINE OOComparisonResult PQCompare(id a, id b, SEL comparator)
     }
 }
 
-- (void)bubbleUpFrom:(NSUInteger)i
+void OOPriorityQueue::bubbleUpFrom(NSUInteger i)
 {
     NSUInteger pi;
     id obj = nil, par = nil;
@@ -396,7 +347,7 @@ OOINLINE OOComparisonResult PQCompare(id a, id b, SEL comparator)
     }
 }
 
-- (void)bubbleDownFrom:(NSUInteger)i
+void OOPriorityQueue::bubbleDownFrom(NSUInteger i)
 {
     NSUInteger end = _count - 1;
     NSUInteger li, ri, next;
@@ -424,7 +375,7 @@ OOINLINE OOComparisonResult PQCompare(id a, id b, SEL comparator)
     }
 }
 
-- (void)growBuffer
+void OOPriorityQueue::growBuffer()
 {
     id* newBuffer = NULL;
     NSUInteger newCapacity;
@@ -453,7 +404,7 @@ OOINLINE OOComparisonResult PQCompare(id a, id b, SEL comparator)
     assert(_count < _capacity);
 }
 
-- (void)shrinkBuffer
+void OOPriorityQueue::shrinkBuffer()
 {
     NSUInteger amountToRemove;
     id* newBuffer = NULL;
@@ -473,7 +424,7 @@ OOINLINE OOComparisonResult PQCompare(id a, id b, SEL comparator)
     }
 }
 
-- (void)removeObjectAtIndex:(NSUInteger)i
+void OOPriorityQueue::removeObjectAtIndex(NSUInteger i)
 {
     id object = nil;
 
@@ -486,18 +437,18 @@ OOINLINE OOComparisonResult PQCompare(id a, id b, SEL comparator)
         _heap[i] = _heap[_count];
 
         // Push previously-last object down until tree is partially ordered.
-        [self bubbleDownFrom:i];
+        bubbleDownFrom(i);
     } else {
         // Special case: removing last (or only) object. No bubbling needed.
     }
 
     [object autorelease];
     if ((_count * 2) <= _capacity)
-        [self shrinkBuffer];
+        shrinkBuffer();
 }
 
 #if OO_DEBUG
-- (void)appendDebugDataToString:(std::string&)string index:(NSUInteger)i depth:(NSUInteger)depth
+void OOPriorityQueue::appendDebugDataToString(std::string& string, NSUInteger i, NSUInteger depth)
 {
     NSUInteger spaces;
 
@@ -510,12 +461,10 @@ OOINLINE OOComparisonResult PQCompare(id a, id b, SEL comparator)
     string += oo::DescriptionOf(_heap[i]);
     string += "\n";
 
-    [self appendDebugDataToString:string index:PQLeftChild(i) depth:depth + 1];
-    [self appendDebugDataToString:string index:PQRightChild(i) depth:depth + 1];
+    appendDebugDataToString(string, PQLeftChild(i), depth + 1);
+    appendDebugDataToString(string, PQRightChild(i), depth + 1);
 }
 #endif
-
-@end
 
 #if DEBUG_GRAPHVIZ
 namespace {
@@ -543,9 +492,7 @@ std::string EscapedString(const std::string& string)
 
 } // namespace
 
-@implementation OOPriorityQueue (DebugGraphViz)
-
-- (std::string)generateGraphViz
+std::string OOPriorityQueue::generateGraphViz()
 {
     std::string result;
     NSUInteger i;
@@ -584,11 +531,9 @@ std::string EscapedString(const std::string& string)
 }
 
 // (-writeGraphVizToURL: folded in: its only sender was this method; bead oo-3rb.264)
-- (void)writeGraphVizToPath:(const std::string&)path
+void OOPriorityQueue::writeGraphVizToPath(const std::string& path)
 {
-    const std::string graphViz = [self generateGraphViz];
+    const std::string graphViz = generateGraphViz();
     (void)oo::fs::writeFile(oo::fs::pathFromUTF8(path), oo::Data(graphViz.data(), graphViz.size()), oo::fs::WriteMode::atomic);
 }
-
-@end
 #endif

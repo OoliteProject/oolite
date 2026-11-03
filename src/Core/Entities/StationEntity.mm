@@ -24,7 +24,6 @@
 
 #import "StationEntity.h"
 #import "DockEntity.h"
-#import "OOPListView.h"
 #import "OOStringParsing.h"
 #import "ShipEntityAI.h"
 
@@ -45,11 +44,12 @@
 #import "OODebugFlags.h"
 #import "OODebugGLDrawing.h"
 #import "OODebugStandards.h"
-#import "OOFoundationBridge.h"
 #import "OOJSScript.h"
+#import "OOObjCPList.h"
 #import "OOPListGameTypes.h"
 #import "OOWeakSet.h"
 #include "oofnd/Log.hpp"
+#include "oofnd/String.hpp"
 
 // -oo_stringForKey:'s value without the Foundation type (proposed ADR-0043): a string as is, a
 // number's -stringValue, anything else (or nothing) nullopt, as it gave nil.
@@ -192,7 +192,7 @@ std::optional<std::string> OptionalStringValue(const oo::PList* value)
 
 - (oo::PList)cxx_localMarketForScripting
 {
-    return oo::PListFrom([[self localMarket] dictionaryForScripting]);
+    return [[self localMarket] dictionaryForScripting];
 }
 
 - (void)cxx_setPrice:(OOCreditsQuantity)price forCommodity:(const std::string&)commodity
@@ -331,7 +331,9 @@ std::optional<std::string> OptionalStringValue(const oo::PList* value)
         [sub abortAllDockings];
     }
 
-    [_shipsOnHold makeObjectsPerformSelector:@selector(sendAIMessage:) withObject:@"DOCKING_ABORTED"];
+    // -makeObjectsPerformSelector:withObject: of the live ships on hold, in order
+    for (const oo::ObjCRef<id>& holdRef : [_shipsOnHold cxx_objectEnumerator])
+        [static_cast<ShipEntity*>(holdRef.get()) sendAIMessage:"DOCKING_ABORTED"];
     for (const oo::ObjCRef<id>& holdRef : [_shipsOnHold cxx_objectEnumerator]) {
         ShipEntity* hold = static_cast<ShipEntity*>(holdRef.get());
         [hold doScriptEvent:OOJSID("stationWithdrewDockingClearance")];
@@ -526,7 +528,7 @@ oo::PList cxx_OOMakeDockingInstructions(StationEntity* station, HPVector coords,
 
 - (void)abortDockingForShip:(ShipEntity*)ship
 {
-    [ship sendAIMessage:@"DOCKING_ABORTED"];
+    [ship sendAIMessage:"DOCKING_ABORTED"];
     [ship doScriptEvent:OOJSID("stationWithdrewDockingClearance")];
 
     [_shipsOnHold removeObject:ship];
@@ -841,7 +843,7 @@ oo::PList cxx_OOMakeDockingInstructions(StationEntity* station, HPVector coords,
         if ((docked_traders > 0) && (!isRockHermit)) {
             if (unitime > last_trader_launch_time + trader_launch_interval) {
                 if ([self hasNPCTraffic]) {
-                    [self launchIndependentShip:@"trader"];
+                    [self launchIndependentShip:"trader"];
                     docked_traders--;
                 }
                 last_trader_launch_time = unitime;
@@ -1186,7 +1188,7 @@ oo::PList cxx_OOMakeDockingInstructions(StationEntity* station, HPVector coords,
         OOStationAlertLevel oldLevel = alertLevel;
         alertLevel = level;
         if (signallingScript) {
-            [self doScriptEvent:OOJSID("alertConditionChanged") withArgument:[NSNumber numberWithInt:level] andArgument:[NSNumber numberWithInt:oldLevel]];
+            [self cxx_doScriptEvent:OOJSID("alertConditionChanged") withPListArguments:{ oo::PList((int)level), oo::PList((int)oldLevel) }];
         }
         switch (level) {
         case STATION_ALERT_LEVEL_GREEN:
@@ -1205,15 +1207,15 @@ oo::PList cxx_OOMakeDockingInstructions(StationEntity* station, HPVector coords,
 }
 
 // Exposed to AI
-- (ShipEntity*)launchIndependentShip:(id)role // called by name (ADR-0043 item 21)
+- (oo::PList)launchIndependentShip:(const std::string&)role // called by name (ADR-0055 item 5): the ship launched, as an Object node (null: none)
 {
     if (![self hasLaunchDock]) {
         OO_LOG("station.launchShip.impossible", "Cancelled launch for a ship with role {}, as the {} has no launch docks.",
-            oo::DescriptionOf(role), [self displayName].value_or("(null)"));
-        return nil;
+            role, [self displayName].value_or("(null)"));
+        return oo::PList();
     }
 
-    std::string shipRole = oo::StdString(role);
+    std::string shipRole = role;
     BOOL trader = shipRole == "trader";
     BOOL sunskimmer = (shipRole == "sunskim-trader");
     ShipEntity* ship = nil;
@@ -1229,14 +1231,14 @@ oo::PList cxx_OOMakeDockingInstructions(StationEntity* station, HPVector coords,
 
     if (![self fitsInDock:ship]) {
         [ship release];
-        return nil;
+        return oo::PList();
     }
 
     if (ship) {
         if (![ship cxx_crew].has_value()) {
             [ship cxx_setSingleCrewWithRole:shipRole];
         }
-        [ship setPrimaryRole:oo::NSStringFrom(shipRole)];
+        [ship setPrimaryRole:shipRole];
 
         if (trader || ship->scanClass == CLASS_NOT_SET)
             [ship setScanClass:CLASS_NEUTRAL]; // keep defined scanclasses for non-traders.
@@ -1275,7 +1277,7 @@ oo::PList cxx_OOMakeDockingInstructions(StationEntity* station, HPVector coords,
         [ship setPendingEscortCount:0];
         [ship autorelease];
     }
-    return ship;
+    return oo::PListObject(ship);
 }
 
 //////////////////////////////////////////////// extra AI routines
@@ -1293,13 +1295,13 @@ oo::PList cxx_OOMakeDockingInstructions(StationEntity* station, HPVector coords,
 }
 
 // Exposed to AI
-- (id)launchPolice // called by name (ADR-0043 item 21)
+- (oo::PList)launchPolice // called by name (ADR-0055 item 5)
 {
     std::vector<oo::ObjCRef<ShipEntity*>> result;
     if (![self hasLaunchDock]) {
         OO_LOG("station.launchShip.impossible", "Cancelled launch for a police ship, as the {} has no launch docks.",
             [self displayName].value_or("(null)"));
-        return oo::NSArrayFromObjects(result);
+        return oo::PListFromObjects(result);
     }
 
     OOUniversalID police_target = [[self primaryTarget] universalID];
@@ -1314,7 +1316,7 @@ oo::PList cxx_OOMakeDockingInstructions(StationEntity* station, HPVector coords,
         ShipEntity* police_ship = nil;
         if (![UNIVERSE entityForUniversalID:police_target]) {
             [self noteLostTarget];
-            return oo::NSArrayFromObjects(std::vector<oo::ObjCRef<ShipEntity*>>());
+            return oo::PListFromObjects(std::vector<oo::ObjCRef<ShipEntity*>>());
         }
         /* this is more likely to give interceptors than the
          * equivalent populator function: save them for defense
@@ -1331,14 +1333,14 @@ oo::PList cxx_OOMakeDockingInstructions(StationEntity* station, HPVector coords,
             }
 
             [police_ship setGroup:[self stationGroup]]; // who's your Daddy
-            [police_ship setPrimaryRole:@"police"];
+            [police_ship setPrimaryRole:"police"];
             [police_ship addTarget:[UNIVERSE entityForUniversalID:police_target]];
             if ([police_ship scanClass] == CLASS_NOT_SET)
                 [police_ship setScanClass:CLASS_POLICE];
             [police_ship setBounty:0 withReason:kOOLegalStatusReasonSetup];
             if ([police_ship heatInsulation] < [self heatInsulation])
                 [police_ship setHeatInsulation:[self heatInsulation]];
-            [police_ship switchAITo:@"oolite-defenseShipAI.js"];
+            [police_ship switchAITo:"oolite-defenseShipAI.js"];
             [self addShipToLaunchQueue:police_ship withPriority:YES];
             defenders_launched++;
             result.push_back(oo::ObjCRef<ShipEntity*>(police_ship));
@@ -1346,7 +1348,7 @@ oo::PList cxx_OOMakeDockingInstructions(StationEntity* station, HPVector coords,
         [police_ship autorelease];
     }
     [self abortAllDockings];
-    return oo::NSArrayFromObjects(result);
+    return oo::PListFromObjects(result);
 }
 
 // Exposed to AI
@@ -1407,10 +1409,10 @@ oo::PList cxx_OOMakeDockingInstructions(StationEntity* station, HPVector coords,
     }
 
     if ([defense_ship isPolice] || [defense_ship cxx_hasPrimaryRole:"hermit-ship"]) {
-        [defense_ship switchAITo:oo::NSStringFrom(defense_ship_ai)];
+        [defense_ship switchAITo:defense_ship_ai];
     }
 
-    [defense_ship setPrimaryRole:@"defense_ship"];
+    [defense_ship setPrimaryRole:"defense_ship"];
 
     defenders_launched++;
 
@@ -1482,7 +1484,7 @@ oo::PList cxx_OOMakeDockingInstructions(StationEntity* station, HPVector coords,
         if ([scavenger_ship heatInsulation] < [self heatInsulation])
             [scavenger_ship setHeatInsulation:[self heatInsulation]];
         [scavenger_ship setGroup:[self stationGroup]]; // who's your Daddy -- FIXME: should we have a separate group for non-escort auxiliaires?
-        [scavenger_ship switchAITo:@"oolite-scavengerAI.js"];
+        [scavenger_ship switchAITo:"oolite-scavengerAI.js"];
         [self addShipToLaunchQueue:scavenger_ship withPriority:NO];
         [scavenger_ship autorelease];
     }
@@ -1526,7 +1528,7 @@ oo::PList cxx_OOMakeDockingInstructions(StationEntity* station, HPVector coords,
         if ([miner_ship heatInsulation] < [self heatInsulation])
             [miner_ship setHeatInsulation:[self heatInsulation]];
         [miner_ship setGroup:[self stationGroup]]; // who's your Daddy -- FIXME: should we have a separate group for non-escort auxiliaires?
-        [miner_ship switchAITo:@"oolite-scavengerAI.js"];
+        [miner_ship switchAITo:"oolite-scavengerAI.js"];
         [self addShipToLaunchQueue:miner_ship withPriority:NO];
         [miner_ship autorelease];
     }
@@ -1574,7 +1576,7 @@ oo::PList cxx_OOMakeDockingInstructions(StationEntity* station, HPVector coords,
         // set the owner of the ship to the station so that it can check back for docking later
         [pirate_ship setOwner:self];
         [pirate_ship setGroup:[self stationGroup]]; // who's your Daddy
-        [pirate_ship setPrimaryRole:@"defense_ship"];
+        [pirate_ship setPrimaryRole:"defense_ship"];
         [pirate_ship addTarget:[UNIVERSE entityForUniversalID:defense_target]];
         [pirate_ship setScanClass:CLASS_NEUTRAL];
         if ([pirate_ship heatInsulation] < [self heatInsulation])
@@ -1614,7 +1616,7 @@ oo::PList cxx_OOMakeDockingInstructions(StationEntity* station, HPVector coords,
         docked_shuttles--;
         [shuttle_ship setScanClass:CLASS_NEUTRAL];
         [shuttle_ship setCargoFlag:CARGO_FLAG_FULL_SCARCE];
-        [shuttle_ship switchAITo:@"oolite-shuttleAI.js"];
+        [shuttle_ship switchAITo:"oolite-shuttleAI.js"];
         [self addShipToLaunchQueue:shuttle_ship withPriority:NO];
 
         [shuttle_ship autorelease];
@@ -1641,7 +1643,7 @@ oo::PList cxx_OOMakeDockingInstructions(StationEntity* station, HPVector coords,
 
         [escort_ship setScanClass:CLASS_NEUTRAL];
         [escort_ship setCargoFlag:CARGO_FLAG_FULL_PLENTIFUL];
-        [escort_ship switchAITo:@"oolite-escortAI.js"];
+        [escort_ship switchAITo:"oolite-escortAI.js"];
         [self addShipToLaunchQueue:escort_ship withPriority:NO];
     }
     [escort_ship release];
@@ -1685,10 +1687,10 @@ oo::PList cxx_OOMakeDockingInstructions(StationEntity* station, HPVector coords,
                 [patrol_ship setScanClass:CLASS_POLICE];
             if ([patrol_ship heatInsulation] < [self heatInsulation])
                 [patrol_ship setHeatInsulation:[self heatInsulation]];
-            [patrol_ship setPrimaryRole:@"police-station-patrol"];
+            [patrol_ship setPrimaryRole:"police-station-patrol"];
             [patrol_ship setBounty:0 withReason:kOOLegalStatusReasonSetup];
             [patrol_ship setGroup:[self stationGroup]]; // who's your Daddy
-            [patrol_ship switchAITo:@"oolite-policeAI.js"];
+            [patrol_ship switchAITo:"oolite-policeAI.js"];
             [self addShipToLaunchQueue:patrol_ship withPriority:NO];
             [self acceptPatrolReportFrom:patrol_ship];
             [patrol_ship autorelease];
@@ -1699,14 +1701,14 @@ oo::PList cxx_OOMakeDockingInstructions(StationEntity* station, HPVector coords,
 }
 
 // Exposed to AI
-- (void)launchShipWithRole:(id)role // called by name (ADR-0043 item 21)
+- (void)launchShipWithRole:(const std::string&)role // called by name (ADR-0055 item 5)
 {
     if (![self hasLaunchDock]) {
         OO_LOG("station.launchShip.impossible", "Cancelled launch for a ship with role {}, as the {} has no launch docks.",
-            oo::DescriptionOf(role), [self displayName].value_or("(null)"));
+            role, [self displayName].value_or("(null)"));
         return;
     }
-    const std::string shipRole = oo::StdString(role);
+    const std::string& shipRole = role;
     ShipEntity* ship = [UNIVERSE cxx_newShipWithRole:shipRole]; // retain count = 1
     if (ship && [self fitsInDock:ship]) {
         if (![ship cxx_crew].has_value()) {
@@ -1714,7 +1716,7 @@ oo::PList cxx_OOMakeDockingInstructions(StationEntity* station, HPVector coords,
         }
         if (ship->scanClass == CLASS_NOT_SET)
             [ship setScanClass:CLASS_NEUTRAL];
-        [ship setPrimaryRole:oo::NSStringFrom(shipRole)];
+        [ship setPrimaryRole:shipRole];
         [ship setGroup:[self stationGroup]]; // who's your Daddy
         [self addShipToLaunchQueue:ship withPriority:NO];
     }
@@ -1740,7 +1742,7 @@ oo::PList cxx_OOMakeDockingInstructions(StationEntity* station, HPVector coords,
     if (scanClass == CLASS_ROCK) // ie we're a rock hermit or similar
     {
         // set the role so that we break up into rocks!
-        [self setPrimaryRole:@"asteroid"];
+        [self setPrimaryRole:"asteroid"];
         being_mined = YES;
     }
 
@@ -2021,9 +2023,12 @@ oo::PList cxx_OOMakeDockingInstructions(StationEntity* station, HPVector coords,
 {
     if (shipinfoDictionary.get<bool>("rotating", false))
         return YES;
-    // legacy. Sent to the roles object as before (nil when absent, whose zeroed range is not NSNotFound).
+    // legacy. -rangeOfString: of the roles string; absent, a message to nil gave a zeroed range, which is not NSNotFound.
     const oo::PList* roles = shipinfoDictionary.find("roles");
-    return [(roles != nullptr ? oo::ObjectFromPList(*roles) : nil) rangeOfString:@"rotating-station"].location != NSNotFound;
+    if (roles == nullptr)
+        return YES;
+    const std::string* rolesString = roles->getIf<std::string>();
+    return rolesString != nullptr && rolesString->find("rotating-station") != std::string::npos;
 }
 
 - (std::optional<std::string>)marketOverrideName
@@ -2044,12 +2049,11 @@ oo::PList cxx_OOMakeDockingInstructions(StationEntity* station, HPVector coords,
 
     if (determinantValue == nullptr)
         determinantValue = shipinfoDictionary.find("hasShipyard");
-    id determinant = determinantValue != nullptr ? oo::ObjectFromPList(*determinantValue) : nil;
 
     // NOTE: non-standard capitalization is documented and entrenched.
-    if (determinant) {
-        if (oo::IsNSArray(determinant)) {
-            return [PLAYER cxx_scriptTestConditions:OOSanitizeLegacyScriptConditions(oo::PListFrom(determinant), std::nullopt)];
+    if (determinantValue != nullptr && !determinantValue->isNull()) {
+        if (determinantValue->isArray()) {
+            return [PLAYER cxx_scriptTestConditions:OOSanitizeLegacyScriptConditions(*determinantValue, std::nullopt)];
         } else {
             return OOFuzzyBooleanFromPList(determinantValue, 0.0f);
         }

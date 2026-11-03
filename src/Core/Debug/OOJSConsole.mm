@@ -32,9 +32,10 @@ SOFTWARE.
 #import "OODebugMonitor.h"
 #include <stdint.h>
 
+#include <algorithm>
+
 #import "OOConstToString.h"
 #import "OODebugFlags.h"
-#import "OOFoundationBridge.h"
 #import "OOJSCall.h"
 #import "OOJSEngineTimeManagement.h"
 #import "OOJSEntity.h"
@@ -42,6 +43,7 @@ SOFTWARE.
 #import "OOJSVector.h"
 #import "OOLogHeader.h" // OOPlatformDescription()
 #import "OOLoggingExtended.h"
+#import "OOObjCPList.h"
 #import "OOOpenGLExtensionManager.h"
 #import "ResourceManager.h"
 
@@ -620,7 +622,7 @@ static JSValue ConsoleConsoleMessage(OOJS_NATIVE_ARGS)
     }
 
     if (message.has_value()) {
-        [monitor appendJSConsoleLine:oo::NSStringFrom(*message)
+        [monitor appendJSConsoleLine:*message
                             colorKey:colorKey
                        emphasisRange:emphasisRange];
     }
@@ -651,7 +653,7 @@ static JSValue ConsoleScriptStack(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    OOJS_RETURN_OBJECT(oo::NSArrayFromObjects([OOJSScript scriptStack]));
+    OOJS_RETURN_PLIST(oo::PListFromObjects([OOJSScript scriptStack]));
 
     OOJS_NATIVE_EXIT
 }
@@ -733,35 +735,38 @@ static JSValue ConsoleSetUpCallObjC(OOJS_NATIVE_ARGS)
         string, comment, regexp) or an unexpected empty token, at the end of
         the code.
 */
-static BOOL IsIncompleteSyntaxError(JSContext* context, JSValueConst exception, NSString* code)
+static BOOL IsIncompleteSyntaxError(JSContext* context, JSValueConst exception, const std::string& code)
 {
     if (!JS_IsError(exception))
         return NO;
 
     JSValue nameVal = JS_GetPropertyStr(context, exception, "name");
-    NSString* name = oo::NSStringOrNil(cxx_OOStringFromJSValue(context, nameVal));
+    const std::optional<std::string> name = cxx_OOStringFromJSValue(context, nameVal);
     JS_FreeValue(context, nameVal);
-    if (![name isEqualToString:@"SyntaxError"])
+    if (name != "SyntaxError")
         return NO;
 
     JSValue messageVal = JS_GetPropertyStr(context, exception, "message");
-    NSString* message = oo::NSStringOrNil(cxx_OOStringFromJSValue(context, messageVal));
+    const std::string message = cxx_OOStringFromJSValue(context, messageVal).value_or(std::string());
     JS_FreeValue(context, messageVal);
 
-    if ([message rangeOfString:@"end of " options:NSCaseInsensitiveSearch].location != NSNotFound)
+    if (oo::str::lowercase(message).find("end of ") != std::string::npos)
         return YES;
-    if ([message hasSuffix:@"''"])
+    if (oo::str::hasSuffix(message, "''"))
         return YES;
 
     // Otherwise, incomplete if the error is at the very end of the code.
     JSValue stackVal = JS_GetPropertyStr(context, exception, "stack");
-    NSString* stack = oo::NSStringOrNil(cxx_OOStringFromJSValue(context, stackVal));
+    const std::string stack = cxx_OOStringFromJSValue(context, stackVal).value_or(std::string());
     JS_FreeValue(context, stackVal);
 
-    NSArray* lines = [code componentsSeparatedByString:@"\n"];
-    NSString* endLocation = [NSString stringWithFormat:@"<console input>:%lu:%lu", (unsigned long)[lines count], (unsigned long)[[lines lastObject] length] + 1];
-    NSString* firstFrame = [[stack componentsSeparatedByString:@"\n"] firstObject];
-    return [firstFrame rangeOfString:endLocation].location != NSNotFound;
+    // Lines and columns as the NSString form counted them (lengths in UTF-16 units).
+    const size_t lastNewline = code.rfind('\n');
+    const size_t lineCount = static_cast<size_t>(std::count(code.begin(), code.end(), '\n')) + 1;
+    const std::string lastLine = (lastNewline == std::string::npos) ? code : code.substr(lastNewline + 1);
+    const std::string endLocation = oo::str::format("<console input>:%lu:%lu", (unsigned long)lineCount, (unsigned long)oo::utf8ToUtf16(lastLine).size() + 1);
+    const std::string firstFrame = stack.substr(0, stack.find('\n'));
+    return firstFrame.find(endLocation) != std::string::npos;
 }
 
 // function isExecutableJavaScript(this : Object, string : String) : Boolean
@@ -784,7 +789,7 @@ static JSValue ConsoleIsExecutableJavaScript(OOJS_NATIVE_ARGS)
     JSValue compiled = JS_Eval(context, string.c_str(), string.size(), "<console input>", JS_EVAL_TYPE_GLOBAL | JS_EVAL_FLAG_COMPILE_ONLY);
     if (JS_IsException(compiled)) {
         JSValue exception = JS_GetException(context);
-        result = !IsIncompleteSyntaxError(context, exception, oo::NSStringFrom(string));
+        result = !IsIncompleteSyntaxError(context, exception, string);
         JS_FreeValue(context, exception);
     } else {
         JS_FreeValue(context, compiled);
@@ -884,7 +889,7 @@ static JSValue ConsoleGarbageCollect(OOJS_NATIVE_ARGS)
     JS_RunGC(runtime);
     size_t bytesAfter = JSHeapSize(runtime);
 
-    OOJS_RETURN_OBJECT((oo::NSStringFrom(oo::str::format("Bytes before: %zu Bytes after: %zu", bytesBefore, bytesAfter))));
+    OOJS_RETURN_PLIST(oo::PList(oo::str::format("Bytes before: %zu Bytes after: %zu", bytesBefore, bytesAfter)));
 
     OOJS_NATIVE_EXIT
 }

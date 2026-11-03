@@ -28,7 +28,6 @@ MA );-);, USA.
 #import "PlayerEntity.h"
 #import "Universe.h"
 
-#import "OOFoundationBridge.h"
 #include "oofnd/String.hpp"
 
 #define CASE(foo) \

@@ -32,7 +32,6 @@ SOFTWARE.
 #include <stdlib.h>
 
 #import "OOConstToString.h"
-#import "OOFoundationBridge.h"
 #import "OORegExpMatcher.h"
 #import "ResourceManager.h"
 #include "oofnd/objc/OOException.h"
@@ -149,32 +148,14 @@ namespace {
 constexpr const char* kOOLogOpenGLShaderSupport = "rendering.opengl.shader.support";
 }
 
-static OOOpenGLExtensionManager* sSingleton = nil;
+namespace {
+
+cxx::OOOpenGLExtensionManager* sSingleton = nullptr; // +1, never released (the retained singleton)
+
+} // namespace
 
 // Read integer from string, advancing string to end of read data.
 static unsigned IntegerFromString(const GLubyte** ioString);
-
-@interface OOOpenGLExtensionManager (OOPrivate)
-
-#if OO_SHADERS
-- (void)checkShadersSupported;
-#endif
-
-#if OO_USE_VBO
-- (void)checkVBOSupported;
-#endif
-
-#if OO_USE_FBO
-- (void)checkFBOSupported;
-#endif
-
-#if GL_ARB_texture_env_combine
-- (void)checkTextureCombinersSupported;
-#endif
-
-- (oo::PList)lookUpPerGPUSettingsWithVersionString:(const std::optional<std::string>&)version extensionsString:(const std::optional<std::string>&)extensionsStr;
-
-@end
 
 namespace {
 
@@ -200,19 +181,9 @@ std::optional<std::string> OptionalGLString(const GLubyte* string)
 
 } // namespace
 
-@implementation OOOpenGLExtensionManager
+namespace cxx {
 
-- (id)init
-{
-    self = [super init];
-    if (self != nil) {
-        [self reset];
-    }
-
-    return self;
-}
-
-- (void)reset
+void OOOpenGLExtensionManager::reset()
 {
     const GLubyte *versionString = NULL, *curr = NULL;
 
@@ -239,7 +210,7 @@ std::optional<std::string> OptionalGLString(const GLubyte* string)
         }
         if (*curr == '.') {
             curr++;
-            release = IntegerFromString(&curr);
+            release_ = IntegerFromString(&curr);
         }
     }
 
@@ -249,7 +220,7 @@ std::optional<std::string> OptionalGLString(const GLubyte* string)
      */
     [ResourceManager cxx_paths];
 
-    OO_LOG("rendering.opengl.version", "OpenGL renderer version: {}.{}.{} (\"{}\"). Vendor: \"{}\". Renderer: \"{}\".", major, minor, release, versionString ? reinterpret_cast<const char*>(versionString) : "(null)", vendor.value_or("(null)"), renderer.value_or("(null)"));
+    OO_LOG("rendering.opengl.version", "OpenGL renderer version: {}.{}.{} (\"{}\"). Vendor: \"{}\". Renderer: \"{}\".", major, minor, release_, versionString ? reinterpret_cast<const char*>(versionString) : "(null)", vendor.value_or("(null)"), renderer.value_or("(null)"));
     {
         // Listed in byte order of the name (the set's hash order before; proposed ADR-0043).
         std::string extensionList;
@@ -269,17 +240,17 @@ std::optional<std::string> OptionalGLString(const GLubyte* string)
         // OK
     } else
 #endif
-    if (![self versionIsAtLeastMajor:kMinMajorVersion minor:kMinMinorVersion]) {
+    if (!versionIsAtLeastMajor(kMinMajorVersion, kMinMinorVersion)) {
         OO_LOG("rendering.opengl.version.insufficient", "***** Oolite requires OpenGL version {}.{} or later.", static_cast<unsigned>(kMinMajorVersion), static_cast<unsigned>(kMinMinorVersion));
         [OOException raise:"OoliteOpenGLTooOldException"
                     format:"Oolite requires at least OpenGL %u.%u. You have %u.%u (\"%s\").", kMinMajorVersion, kMinMinorVersion, major, minor, versionString];
     }
 
     const std::optional<std::string> versionStr = OptionalGLString(versionString);
-    const oo::PList gpuConfig = [self lookUpPerGPUSettingsWithVersionString:versionStr extensionsString:extensionsStr];
+    const oo::PList gpuConfig = lookUpPerGPUSettingsWithVersionString(versionStr, extensionsStr);
 
 #if OO_SHADERS
-    [self checkShadersSupported];
+    checkShadersSupported();
 
     if (shadersAvailable) {
         defaultShaderSetting = cxx_OOShaderSettingFromString(gpuConfig.get<std::string>("default_shader_level",
@@ -308,46 +279,48 @@ std::optional<std::string> OptionalGLString(const GLubyte* string)
         maximumShaderSetting = SHADERS_NOT_SUPPORTED;
     }
 
-    GLint texImageUnitOverride = gpuConfig.get<int>("texture_image_units", textureImageUnitCount);
-    if (texImageUnitOverride < textureImageUnitCount)
-        textureImageUnitCount = MAX(texImageUnitOverride, 0);
+    GLint texImageUnitOverride = gpuConfig.get<int>("texture_image_units", textureImageUnitCount_);
+    if (texImageUnitOverride < textureImageUnitCount_)
+        textureImageUnitCount_ = MAX(texImageUnitOverride, 0);
 #endif
 
 #if OO_USE_VBO
-    [self checkVBOSupported];
+    checkVBOSupported();
 #endif
 #if OO_USE_FBO
-    [self checkFBOSupported];
+    checkFBOSupported();
 #endif
 #if OO_MULTITEXTURE
-    [self checkTextureCombinersSupported];
-    GLint texUnitOverride = gpuConfig.get<int>("texture_units", textureUnitCount);
-    if (texUnitOverride < textureUnitCount)
-        textureUnitCount = MAX(texUnitOverride, 0);
+    checkTextureCombinersSupported();
+    GLint texUnitOverride = gpuConfig.get<int>("texture_units", textureUnitCount_);
+    if (texUnitOverride < textureUnitCount_)
+        textureUnitCount_ = MAX(texUnitOverride, 0);
 #endif
 
-    usePointSmoothing = gpuConfig.get<bool>("smooth_points", YES) ? YES : NO;
-    useLineSmoothing = gpuConfig.get<bool>("smooth_lines", YES) ? YES : NO;
-    useDustShader = gpuConfig.get<bool>("use_dust_shader", YES) ? YES : NO;
+    usePointSmoothing_ = gpuConfig.get<bool>("smooth_points", YES) ? YES : NO;
+    useLineSmoothing_ = gpuConfig.get<bool>("smooth_lines", YES) ? YES : NO;
+    useDustShader_ = gpuConfig.get<bool>("use_dust_shader", YES) ? YES : NO;
 }
 
-- (void)dealloc
+OOOpenGLExtensionManager::~OOOpenGLExtensionManager()
 {
-    if (sSingleton == self)
-        sSingleton = nil;
-
-    [super dealloc];
+    if (sSingleton == this)
+        sSingleton = nullptr;
 }
 
-+ (OOOpenGLExtensionManager*)sharedManager
+OOOpenGLExtensionManager* OOOpenGLExtensionManager::sharedManager()
 {
     // NOTE: assumes single-threaded first access. See header.
-    if (sSingleton == nil)
-        sSingleton = [[self alloc] init];
+    if (sSingleton == nullptr) {
+        // The singleton category's +allocWithZone: recorded the instance before -init ran
+        // -reset, so it is recorded here before reset() runs too.
+        sSingleton = oo::makeRef<OOOpenGLExtensionManager>().leakRef();
+        sSingleton->reset();
+    }
     return sSingleton;
 }
 
-- (BOOL)haveExtension:(const std::string&)extension
+bool OOOpenGLExtensionManager::haveExtension(const std::string& extension)
 {
 // The Foundation set was documented as thread-safe under OS X, but I'm not sure about GNUstep. -- Ahruman
 #if OOOPENGLEXTMGR_LOCK_SET_ACCESS
@@ -363,7 +336,7 @@ std::optional<std::string> OptionalGLString(const GLubyte* string)
     return result;
 }
 
-- (BOOL)shadersSupported
+bool OOOpenGLExtensionManager::shadersSupported()
 {
 #if OO_SHADERS
     return shadersAvailable;
@@ -372,16 +345,16 @@ std::optional<std::string> OptionalGLString(const GLubyte* string)
 #endif
 }
 
-- (BOOL)shadersForceDisabled
+bool OOOpenGLExtensionManager::shadersForceDisabled()
 {
 #if OO_SHADERS
-    return shadersForceDisabled;
+    return shadersForceDisabled_;
 #else
     return YES;
 #endif
 }
 
-- (OOGraphicsDetail)defaultDetailLevel
+OOGraphicsDetail OOOpenGLExtensionManager::defaultDetailLevel()
 {
 #if OO_SHADERS
     if (defaultShaderSetting < SHADERS_FULL) {
@@ -394,7 +367,7 @@ std::optional<std::string> OptionalGLString(const GLubyte* string)
 #endif
 }
 
-- (OOGraphicsDetail)maximumDetailLevel
+OOGraphicsDetail OOOpenGLExtensionManager::maximumDetailLevel()
 {
 #if OO_SHADERS
     if (maximumShaderSetting < SHADERS_FULL) {
@@ -407,107 +380,107 @@ std::optional<std::string> OptionalGLString(const GLubyte* string)
 #endif
 }
 
-- (GLint)textureImageUnitCount
+GLint OOOpenGLExtensionManager::textureImageUnitCount()
 {
 #if OO_SHADERS
-    return textureImageUnitCount;
+    return textureImageUnitCount_;
 #else
     return 0;
 #endif
 }
 
-- (BOOL)vboSupported
+bool OOOpenGLExtensionManager::vboSupported()
 {
 #if OO_USE_VBO
-    return vboSupported;
+    return vboSupported_;
 #else
     return NO;
 #endif
 }
 
-- (BOOL)fboSupported
+bool OOOpenGLExtensionManager::fboSupported()
 {
 #if OO_USE_FBO
-    return fboSupported;
+    return fboSupported_;
 #else
     return NO;
 #endif
 }
 
-- (BOOL)textureCombinersSupported
+bool OOOpenGLExtensionManager::textureCombinersSupported()
 {
 #if OO_MULTITEXTURE
-    return textureCombinersSupported;
+    return textureCombinersSupported_;
 #else
     return NO;
 #endif
 }
 
-- (GLint)textureUnitCount
+GLint OOOpenGLExtensionManager::textureUnitCount()
 {
 #if OO_MULTITEXTURE
-    return textureUnitCount;
+    return textureUnitCount_;
 #else
     return 0;
 #endif
 }
 
-- (NSUInteger)majorVersionNumber
+NSUInteger OOOpenGLExtensionManager::majorVersionNumber()
 {
     return major;
 }
 
-- (NSUInteger)minorVersionNumber
+NSUInteger OOOpenGLExtensionManager::minorVersionNumber()
 {
     return minor;
 }
 
-- (NSUInteger)releaseVersionNumber
+NSUInteger OOOpenGLExtensionManager::releaseVersionNumber()
 {
-    return release;
+    return release_;
 }
 
-- (void)getVersionMajor:(unsigned*)outMajor minor:(unsigned*)outMinor release:(unsigned*)outRelease
+void OOOpenGLExtensionManager::getVersionMajor(unsigned* outMajor, unsigned* outMinor, unsigned* outRelease)
 {
     if (outMajor != NULL)
         *outMajor = major;
     if (outMinor != NULL)
         *outMinor = minor;
     if (outRelease != NULL)
-        *outRelease = release;
+        *outRelease = release_;
 }
 
-- (BOOL)versionIsAtLeastMajor:(unsigned)maj minor:(unsigned)min
+bool OOOpenGLExtensionManager::versionIsAtLeastMajor(unsigned maj, unsigned min)
 {
     return major > maj || (major == maj && minor >= min);
 }
 
-- (std::optional<std::string>)vendorString
+std::optional<std::string> OOOpenGLExtensionManager::vendorString()
 {
     return vendor;
 }
 
-- (std::optional<std::string>)rendererString
+std::optional<std::string> OOOpenGLExtensionManager::rendererString()
 {
     return renderer;
 }
 
-- (BOOL)usePointSmoothing
+bool OOOpenGLExtensionManager::usePointSmoothing()
 {
-    return usePointSmoothing;
+    return usePointSmoothing_;
 }
 
-- (BOOL)useLineSmoothing
+bool OOOpenGLExtensionManager::useLineSmoothing()
 {
-    return useLineSmoothing;
+    return useLineSmoothing_;
 }
 
-- (BOOL)useDustShader
+bool OOOpenGLExtensionManager::useDustShader()
 {
-    return useDustShader;
+    return useDustShader_;
 }
 
-@end
+} // namespace cxx
 
 static unsigned IntegerFromString(const GLubyte** ioString)
 {
@@ -525,7 +498,7 @@ static unsigned IntegerFromString(const GLubyte** ioString)
     return result;
 }
 
-@implementation OOOpenGLExtensionManager (OOPrivate)
+namespace cxx {
 
 #if OO_SHADERS
 
@@ -533,10 +506,10 @@ static unsigned IntegerFromString(const GLubyte** ioString)
  * \ingroup cli
  * Scans the command line for -noshaders or --noshaders arguments.
  */
-- (void)checkShadersSupported
+void OOOpenGLExtensionManager::checkShadersSupported()
 {
     shadersAvailable = NO;
-    shadersForceDisabled = NO;
+    shadersForceDisabled_ = NO;
 
     /* Some cards claim to support shaders but do so extremely
      * badly. These are listed in gpu-settings.plist where we know
@@ -546,7 +519,7 @@ static unsigned IntegerFromString(const GLubyte** ioString)
     // scan for shader overrides: -noshaders || --noshaders
     for (const std::string& arg : oo::process::arguments()) {
         if (arg == "-noshaders" || arg == "--noshaders") {
-            shadersForceDisabled = YES;
+            shadersForceDisabled_ = YES;
             OO_LOG(kOOLogOpenGLShaderSupport, "{}", "Shaders will not be used (disabled on command line).");
             return;
         }
@@ -563,7 +536,7 @@ static unsigned IntegerFromString(const GLubyte** ioString)
     const char* const* required = NULL;
 
     for (required = requiredExtension; *required != NULL; ++required) {
-        if (![self haveExtension:*required]) {
+        if (!haveExtension(*required)) {
             OO_LOG(kOOLogOpenGLShaderSupport, "Shaders will not be used (OpenGL extension {} is not available).", *required);
             return;
         }
@@ -595,23 +568,23 @@ static unsigned IntegerFromString(const GLubyte** ioString)
     glValidateProgramARB = (PFNGLVALIDATEPROGRAMARBPROC)wglGetProcAddress("glValidateProgramARB");
 #endif
 
-    glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS_ARB, &textureImageUnitCount);
+    glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS_ARB, &textureImageUnitCount_);
 
     shadersAvailable = YES;
 }
 #endif
 
 #if OO_USE_VBO
-- (void)checkVBOSupported
+void OOOpenGLExtensionManager::checkVBOSupported()
 {
-    vboSupported = NO;
+    vboSupported_ = NO;
 
-    if ([self versionIsAtLeastMajor:1 minor:5] || [self haveExtension:"GL_ARB_vertex_buffer_object"]) {
-        vboSupported = YES;
+    if (versionIsAtLeastMajor(1, 5) || haveExtension("GL_ARB_vertex_buffer_object")) {
+        vboSupported_ = YES;
     }
 
 #if OOLITE_WINDOWS
-    if (vboSupported) {
+    if (vboSupported_) {
         glGenBuffersARB = (PFNGLGENBUFFERSARBPROC)wglGetProcAddress("glGenBuffersARB");
         glDeleteBuffersARB = (PFNGLDELETEBUFFERSARBPROC)wglGetProcAddress("glDeleteBuffersARB");
         glBindBufferARB = (PFNGLBINDBUFFERARBPROC)wglGetProcAddress("glBindBufferARB");
@@ -622,16 +595,16 @@ static unsigned IntegerFromString(const GLubyte** ioString)
 #endif
 
 #if OO_USE_FBO
-- (void)checkFBOSupported
+void OOOpenGLExtensionManager::checkFBOSupported()
 {
-    fboSupported = NO;
+    fboSupported_ = NO;
 
-    if ([self haveExtension:"GL_EXT_framebuffer_object"]) {
-        fboSupported = YES;
+    if (haveExtension("GL_EXT_framebuffer_object")) {
+        fboSupported_ = YES;
     }
 
 #if OOLITE_WINDOWS
-    if (fboSupported) {
+    if (fboSupported_) {
         glGenFramebuffersEXT = (PFNGLGENFRAMEBUFFERSEXTPROC)wglGetProcAddress("glGenFramebuffersEXT");
         glBindFramebufferEXT = (PFNGLBINDFRAMEBUFFEREXTPROC)wglGetProcAddress("glBindFramebufferEXT");
         glGenRenderbuffersEXT = (PFNGLGENRENDERBUFFERSEXTPROC)wglGetProcAddress("glGenRenderbuffersEXT");
@@ -679,12 +652,12 @@ static unsigned IntegerFromString(const GLubyte** ioString)
 #endif
 
 #if OO_MULTITEXTURE
-- (void)checkTextureCombinersSupported
+void OOOpenGLExtensionManager::checkTextureCombinersSupported()
 {
-    textureCombinersSupported = [self haveExtension:"GL_ARB_texture_env_combine"];
+    textureCombinersSupported_ = haveExtension("GL_ARB_texture_env_combine");
 
-    if (textureCombinersSupported) {
-        OOGL(glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, &textureUnitCount));
+    if (textureCombinersSupported_) {
+        OOGL(glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, &textureUnitCount_));
 
 #if OOLITE_WINDOWS
         // Duplicated in checkShadersSupported. but that's not really a problem.
@@ -693,59 +666,59 @@ static unsigned IntegerFromString(const GLubyte** ioString)
         glClientActiveTextureARB = (PFNGLCLIENTACTIVETEXTUREARBPROC)wglGetProcAddress("glClientActiveTextureARB");
 #endif
     } else {
-        textureUnitCount = 1;
+        textureUnitCount_ = 1;
     }
 }
 #endif
 
 namespace {
 
-// The regexp test sent to a string that may be nil (a nil string matched nothing).
-BOOL MatchesRegExp(const std::optional<std::string>& string, const std::string& regexp)
-{
-    if (!string.has_value())
-        return NO;
-    return [[OORegExpMatcher regExpMatcher] string:*string matchesExpression:regexp];
-}
-
-// regexps may be a single string or an array of strings (in which case results are ANDed).
-BOOL CheckRegExps(const std::optional<std::string>& string, const oo::PList& regexps)
-{
-    if (regexps.isNull())
-        return YES; // No restriction == match.
-    if (const std::string* regexp = regexps.getIf<std::string>()) {
-        return MatchesRegExp(string, *regexp);
+    // The regexp test sent to a string that may be nil (a nil string matched nothing).
+    BOOL MatchesRegExp(const std::optional<std::string>& string, const std::string& regexp)
+    {
+        if (!string.has_value())
+            return NO;
+        return [[::OORegExpMatcher regExpMatcher] string:*string matchesExpression:regexp];
     }
-    if (const oo::PList::Array* array = regexps.getIf<oo::PList::Array>()) {
-        for (const oo::PList& element : *array) {
-            const std::string* regexp = element.getIf<std::string>();
-            if (EXPECT_NOT(regexp == nullptr)) {
-                // Invalid type -- match fails.
-                return NO;
-            }
 
-            if (!MatchesRegExp(string, *regexp))
-                return NO;
+    // regexps may be a single string or an array of strings (in which case results are ANDed).
+    BOOL CheckRegExps(const std::optional<std::string>& string, const oo::PList& regexps)
+    {
+        if (regexps.isNull())
+            return YES; // No restriction == match.
+        if (const std::string* regexp = regexps.getIf<std::string>()) {
+            return MatchesRegExp(string, *regexp);
         }
-        return YES;
+        if (const oo::PList::Array* array = regexps.getIf<oo::PList::Array>()) {
+            for (const oo::PList& element : *array) {
+                const std::string* regexp = element.getIf<std::string>();
+                if (EXPECT_NOT(regexp == nullptr)) {
+                    // Invalid type -- match fails.
+                    return NO;
+                }
+
+                if (!MatchesRegExp(string, *regexp))
+                    return NO;
+            }
+            return YES;
+        }
+
+        // Invalid type -- match fails.
+        return NO;
     }
 
-    // Invalid type -- match fails.
-    return NO;
-}
-
-// oo_stringForKey: on a dictionary that may be nil: a string, a number's string value, or nil.
-oo::PList StringForKey(const oo::PList* dict, std::string_view key)
-{
-    const oo::PList* value = (dict != nullptr) ? dict->find(key) : nullptr;
-    if (value == nullptr || !(value->isString() || value->isNumber()))
-        return oo::PList();
-    return oo::PList(dict->get<std::string>(key));
-}
+    // oo_stringForKey: on a dictionary that may be nil: a string, a number's string value, or nil.
+    oo::PList StringForKey(const oo::PList* dict, std::string_view key)
+    {
+        const oo::PList* value = (dict != nullptr) ? dict->find(key) : nullptr;
+        if (value == nullptr || !(value->isString() || value->isNumber()))
+            return oo::PList();
+        return oo::PList(dict->get<std::string>(key));
+    }
 
 } // namespace
 
-- (oo::PList)lookUpPerGPUSettingsWithVersionString:(const std::optional<std::string>&)versionStr extensionsString:(const std::optional<std::string>&)extensionsStr
+oo::PList OOOpenGLExtensionManager::lookUpPerGPUSettingsWithVersionString(const std::optional<std::string>& versionStr, const std::optional<std::string>& extensionsStr)
 {
     const oo::PList configurations = [ResourceManager cxx_dictionaryFromFilesNamed:"gpu-settings.plist"
                                                                           inFolder:"Config"
@@ -796,51 +769,11 @@ oo::PList StringForKey(const oo::PList* dict, std::string_view key)
     return oo::PList(oo::PList::Dict { });
 }
 
-@end
+} // namespace cxx
 
-@implementation OOOpenGLExtensionManager (Singleton)
-
-/*	Canonical singleton boilerplate.
-        See Cocoa Fundamentals Guide: Creating a Singleton Instance.
-        See also +sharedManager above.
-
-        // NOTE: assumes single-threaded first access.
-*/
-
-+ (id)allocWithZone:(OOZone*)inZone
-{
-    if (sSingleton == nil) {
-        sSingleton = [super allocWithZone:inZone];
-        return sSingleton;
-    }
-    return nil;
-}
-
-- (id)copyWithZone:(OOZone*)inZone
-{
-    return self;
-}
-
-- (id)retain
-{
-    return self;
-}
-
-- (NSUInteger)retainCount
-{
-    return UINT_MAX;
-}
-
-- (void)release
-{
-}
-
-- (id)autorelease
-{
-    return self;
-}
-
-@end
+// The singleton category (+allocWithZone:, and -retain/-release/-autorelease doing nothing) is
+// not translated: the one instance is made only by sharedManager() and never released (proposed
+// ADR-0056 amendment oo-r7m0).
 
 #if OOLITE_WINDOWS
 

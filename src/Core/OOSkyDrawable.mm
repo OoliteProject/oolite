@@ -29,7 +29,6 @@ SOFTWARE.
 #import "GameController.h"
 #import "NSObjectOOExtensions.h"
 #import "OOColor.h"
-#import "OOFoundationBridge.h"
 #import "OOGraphicsResetManager.h"
 #import "OOMacroOpenGL.h"
 #import "OOProbabilisticTextureManager.h"

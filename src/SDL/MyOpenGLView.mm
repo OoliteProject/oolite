@@ -28,7 +28,6 @@ MA 02110-1301, USA.
 #import "GuiDisplayGen.h"
 #import "MyOpenGLView+Input.h"
 #import "OOConstToString.h"
-#import "OOFoundationBridge.h"
 #import "OOFullScreenController.h"
 #import "OOGraphicsResetManager.h"
 #import "OOSDLJoystickManager.h"

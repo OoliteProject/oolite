@@ -114,6 +114,8 @@ void OOLogWithFunctionFileAndLine(NSString *cls, const char *fn, const char *fil
 
 @implementation Universe
 - (NSDictionary *) descriptions { return oo::ObjectFromPList(sDescriptions); }
+// The C++ form the tools call since oo-3rb.310, over the same data (bead oo-3rb.335: stub-API tracking).
+- (const oo::PList *) cxx_descriptions { return &sDescriptions; }
 @end
 static Universe *sUniverse;
 Universe *OOGetUniverse(void) { return sUniverse; }

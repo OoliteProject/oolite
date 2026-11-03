@@ -72,7 +72,7 @@ typedef enum {
     oo::PList _managedList; // Array of the managed OXZs' manifests; null: to be rebuilt
     oo::PList _filteredList; // Array of the manifests on show
     std::string _currentFilter; // lowercase; "*" initially
-    NSString* _currentOXPURL;
+    std::optional<std::string> _currentOXPURL; // lowercase; the info page's URL, nullopt: none (was nil)
 
     OXZInterfaceState _interfaceState;
     BOOL _interfaceShowingOXZDetail;

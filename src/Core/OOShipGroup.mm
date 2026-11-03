@@ -34,7 +34,6 @@ MA 02110-1301, USA.
 */
 
 #import "OOShipGroup.h"
-#import "OOFoundationBridge.h"
 #import "OOMaths.h"
 #import "ShipEntity.h"
 #include "oofnd/String.hpp"
@@ -45,15 +44,6 @@ enum {
     kMinSize = 4,
     kMaxFreeSpace = 128
 };
-
-@interface OOShipGroup (Private)
-
-- (BOOL)resizeTo:(NSUInteger)newCapacity;
-- (void)cleanUp;
-
-- (NSUInteger)updateCount;
-
-@end
 
 /*	OOShipGroupMembers: range-for over a group's live members, in _members order, replacing the
         for-in fast-enumeration conformance (bead oo-3rb.20). It fetches batches of kBatchSize exactly
@@ -69,7 +59,7 @@ class OOShipGroupMembers {
 public:
     enum { kBatchSize = 16 };
 
-    explicit OOShipGroupMembers(OOShipGroup* group)
+    explicit OOShipGroupMembers(cxx::OOShipGroup* group)
         : _group(group)
     {
     }
@@ -78,9 +68,9 @@ public:
 
     class Iterator {
     public:
-        explicit Iterator(OOShipGroup* group)
+        explicit Iterator(cxx::OOShipGroup* group)
             : _group(group)
-            , _updateCount([group updateCount])
+            , _updateCount(group->updateCount())
         {
             Fill();
         }
@@ -88,7 +78,7 @@ public:
         id operator*() const { return _buffer[_position]; }
         Iterator& operator++()
         {
-            OOCAssert([_group updateCount] == _updateCount, "OOShipGroup was mutated while being enumerated.");
+            OOCAssert(_group->updateCount() == _updateCount, "OOShipGroup was mutated while being enumerated.");
             if (++_position == _batchCount)
                 Fill();
             return *this;
@@ -102,7 +92,7 @@ public:
             _position = 0;
         }
 
-        OOShipGroup* _group;
+        cxx::OOShipGroup* _group;
         NSUInteger _updateCount;
         NSUInteger _index = 0, _batchCount = 0, _position = 0;
         id _buffer[kBatchSize];
@@ -112,53 +102,44 @@ public:
     End end() const { return End(); }
 
 private:
-    // One batch of live members (defined in OOShipGroup's @implementation, for its ivars).
-    static NSUInteger FillBatch(OOShipGroup* group, NSUInteger* ioIndex, id* buffer, NSUInteger length);
+    // One batch of live members (a friend of cxx::OOShipGroup, for its ivars).
+    static NSUInteger FillBatch(cxx::OOShipGroup* group, NSUInteger* ioIndex, id* buffer, NSUInteger length);
 
-    OOShipGroup* _group;
+    cxx::OOShipGroup* _group;
 };
 
-@implementation OOShipGroup
+namespace cxx {
 
-- (id)init
+bool OOShipGroup::initWithName(const std::optional<std::string>& name)
 {
-    return [self cxx_initWithName:std::nullopt];
-}
-
-- (id)initWithName:(id)name // shared selector (Foundation declares it too; retires with oo-qps)
-{
-    return [self cxx_initWithName:oo::OptionalString(name)];
-}
-
-- (id)cxx_initWithName:(const std::optional<std::string>&)name
-{
-    if ((self = [super init])) {
-        _capacity = kMinSize;
-        _members = (OOWeakReference**)malloc(sizeof *_members * _capacity);
-        if (_members == NULL) {
-            [self release];
-            return nil;
-        }
-
-        [self cxx_setName:name];
+    _capacity = kMinSize;
+    _members = (OOWeakReference**)malloc(sizeof *_members * _capacity);
+    if (_members == NULL) {
+        return false;
     }
 
-    return self;
+    setName(name);
+
+    return true;
 }
 
-+ (instancetype)cxx_groupWithName:(const std::optional<std::string>&)name
+oo::Ref<OOShipGroup> OOShipGroup::groupWithName(const std::optional<std::string>& name)
 {
-    return [[[self alloc] cxx_initWithName:name] autorelease];
-}
-
-+ (instancetype)cxx_groupWithName:(const std::optional<std::string>&)name leader:(ShipEntity*)leader
-{
-    OOShipGroup* result = [self cxx_groupWithName:name];
-    [result setLeader:leader];
+    oo::Ref<OOShipGroup> result = oo::makeRef<OOShipGroup>();
+    if (!result->initWithName(name))
+        return nullptr;
     return result;
 }
 
-- (void)dealloc
+oo::Ref<OOShipGroup> OOShipGroup::groupWithName(const std::optional<std::string>& name, ShipEntity* leader)
+{
+    oo::Ref<OOShipGroup> result = groupWithName(name);
+    if (result != nullptr)
+        result->setLeader(leader);
+    return result;
+}
+
+OOShipGroup::~OOShipGroup()
 {
     NSUInteger i;
 
@@ -167,45 +148,35 @@ private:
     }
     free(_members);
     _name.reset();
-
-    [super dealloc];
 }
 
-- (std::optional<std::string>)cxx_descriptionComponents
+std::optional<std::string> OOShipGroup::descriptionComponents() const
 {
+    // leader() drops a stale weak reference, so it is not const (amendment oo-bhb9 item 5).
+    OOShipGroup* mutableThis = const_cast<OOShipGroup*>(this);
     std::string desc = oo::str::format("%zu ships", _count);
     if (_name.has_value()) {
         desc = oo::str::format("\"%s\", %s", _name->c_str(), desc.c_str());
     }
-    if ([self leader] != nil) {
-        desc = oo::str::format("%s, leader: %s", desc.c_str(), oo::ShortDescriptionOf([self leader]).c_str());
+    if (mutableThis->leader() != nil) {
+        desc = oo::str::format("%s, leader: %s", desc.c_str(), oo::ShortDescriptionOf(mutableThis->leader()).c_str());
     }
     return desc;
 }
 
-- (id)name // shared selector (Foundation declares -name too; retires with oo-qps)
-{
-    return oo::NSStringOrNil([self cxx_name]);
-}
-
-- (std::optional<std::string>)cxx_name
+std::optional<std::string> OOShipGroup::name()
 {
     return _name;
 }
 
-- (void)setName:(id)name // shared selector (Foundation declares -setName: too; retires with oo-qps)
-{
-    [self cxx_setName:oo::OptionalString(name)];
-}
-
-- (void)cxx_setName:(const std::optional<std::string>&)name
+void OOShipGroup::setName(const std::optional<std::string>& name)
 {
     _updateCount++;
 
     _name = name;
 }
 
-- (ShipEntity*)leader
+ShipEntity* OOShipGroup::leader()
 {
     ShipEntity* result = [_leader weakRefUnderlyingObject];
 
@@ -218,18 +189,18 @@ private:
     return result;
 }
 
-- (void)setLeader:(ShipEntity*)leader
+void OOShipGroup::setLeader(ShipEntity* leader)
 {
     _updateCount++;
 
-    if (leader != [self leader]) {
+    if (leader != this->leader()) {
         [_leader release];
-        [self addShip:leader];
+        addShip(leader);
         _leader = [leader weakRetain];
     }
 }
 
-- (std::vector<oo::ObjCRef<ShipEntity*>>)cxx_memberArray
+std::vector<oo::ObjCRef<ShipEntity*>> OOShipGroup::memberArray()
 {
     std::vector<oo::ObjCRef<ShipEntity*>> result;
 
@@ -237,24 +208,24 @@ private:
         return result;
 
     result.reserve(_count);
-    for (ShipEntity* ship : OOShipGroupMembers(self)) {
+    for (ShipEntity* ship : OOShipGroupMembers(this)) {
         result.emplace_back(ship);
     }
 
     return result;
 }
 
-- (std::vector<oo::ObjCRef<ShipEntity*>>)cxx_memberArrayExcludingLeader
+std::vector<oo::ObjCRef<ShipEntity*>> OOShipGroup::memberArrayExcludingLeader()
 {
     std::vector<oo::ObjCRef<ShipEntity*>> result;
     ShipEntity* leader = nil;
 
     if (_count == 0)
         return result;
-    leader = self.leader;
+    leader = this->leader();
 
     result.reserve(_count);
-    for (ShipEntity* ship : OOShipGroupMembers(self)) {
+    for (ShipEntity* ship : OOShipGroupMembers(this)) {
         if (ship != leader) {
             result.emplace_back(ship);
         }
@@ -263,61 +234,61 @@ private:
     return result;
 }
 
-- (BOOL)containsShip:(ShipEntity*)ship
+bool OOShipGroup::containsShip(ShipEntity* ship)
 {
-    for (ShipEntity* containedShip : OOShipGroupMembers(self)) {
+    for (ShipEntity* containedShip : OOShipGroupMembers(this)) {
         if ([ship isEqual:containedShip]) {
-            return YES;
+            return true;
         }
     }
 
-    return NO;
+    return false;
 }
 
-- (BOOL)addShip:(ShipEntity*)ship
+bool OOShipGroup::addShip(ShipEntity* ship)
 {
     _updateCount++;
 
-    if ([self containsShip:ship])
-        return YES; // it's in the group already, result!
+    if (containsShip(ship))
+        return true; // it's in the group already, result!
 
     // Ensure there's space.
     if (_count == _capacity) {
-        if (![self resizeTo:(_capacity > kMaxFreeSpace) ? (_capacity + kMaxFreeSpace) : (_capacity * 2)]) {
-            if (![self resizeTo:_capacity + 1]) {
+        if (!resizeTo((_capacity > kMaxFreeSpace) ? (_capacity + kMaxFreeSpace) : (_capacity * 2))) {
+            if (!resizeTo(_capacity + 1)) {
                 // Out of memory?
-                return NO;
+                return false;
             }
         }
     }
 
     _members[_count++] = [ship weakRetain];
-    return YES;
+    return true;
 }
 
-- (BOOL)removeShip:(ShipEntity*)ship
+bool OOShipGroup::removeShip(ShipEntity* ship)
 {
     ShipEntity* containedShip = nil;
     NSUInteger index;
-    BOOL foundIt = NO;
+    bool foundIt = false;
 
     _updateCount++;
 
-    if (ship == [self leader])
-        [self setLeader:nil];
+    if (ship == leader())
+        setLeader(nil);
 
-    OOShipGroupCursor shipEnum(self);
+    OOShipGroupCursor shipEnum(this);
     shipEnum.setPerformCleanup(NO);
     while ((containedShip = shipEnum.next())) {
         if ([ship isEqual:containedShip]) {
             index = shipEnum.index() - 1;
             _members[index] = _members[--_count];
-            foundIt = YES;
+            foundIt = true;
 
             // Clean up
             [ship setGroup:nil];
             [ship setOwner:ship];
-            [self cleanUp];
+            cleanUp();
             break;
         }
     }
@@ -330,12 +301,12 @@ private:
  * removal in ShipEntity::dealloc keeps the data consistent anyway -
  * CIM */
 
-- (NSUInteger)count
+NSUInteger OOShipGroup::count()
 {
     NSUInteger result = 0;
 
     if (_count != 0) {
-        OOShipGroupCursor memberEnum(self);
+        OOShipGroupCursor memberEnum(this);
         while (memberEnum.next() != nil)
             result++;
     }
@@ -345,31 +316,31 @@ private:
     return result;
 }
 
-- (BOOL)isEmpty
+bool OOShipGroup::isEmpty()
 {
     if (_count == 0)
-        return YES;
+        return true;
 
-    return OOShipGroupCursor(self).next() == nil;
+    return OOShipGroupCursor(this).next() == nil;
 }
 
-- (BOOL)resizeTo:(NSUInteger)newCapacity
+bool OOShipGroup::resizeTo(NSUInteger newCapacity)
 {
     OOWeakReference** temp = NULL;
 
     if (newCapacity < _count)
-        return NO;
+        return false;
 
     temp = (OOWeakReference**)realloc(_members, newCapacity * sizeof *_members);
     if (temp == NULL)
-        return NO;
+        return false;
 
     _members = temp;
     _capacity = newCapacity;
-    return YES;
+    return true;
 }
 
-- (void)cleanUp
+void OOShipGroup::cleanUp()
 {
     NSUInteger newCapacity = _capacity;
 
@@ -386,20 +357,22 @@ private:
     }
 
     if (newCapacity != _capacity)
-        [self resizeTo:newCapacity];
+        resizeTo(newCapacity);
 }
 
-- (NSUInteger)updateCount
+NSUInteger OOShipGroup::updateCount()
 {
     return _updateCount;
 }
 
+} // namespace cxx
+
 ShipEntity* OOShipGroupCursor::next()
 {
-    // The work is done here, in OOShipGroup's @implementation, so that we can have access to both OOShipGroup's and OOShipGroupCursor's ivars.
+    // The cursor is a friend of cxx::OOShipGroup, so that we can have access to both OOShipGroup's and OOShipGroupCursor's ivars.
 
     OOShipGroupCursor* enumerator = this;
-    OOShipGroup* group = enumerator->_group.get();
+    cxx::OOShipGroup* group = enumerator->_group.get();
     ShipEntity* result = nil;
     BOOL cleanupNeeded = NO;
 
@@ -423,7 +396,7 @@ ShipEntity* OOShipGroupCursor::next()
     if (enumerator->_considerCleanup) {
         enumerator->_cleanupNeeded = enumerator->_cleanupNeeded && cleanupNeeded;
         if (enumerator->_cleanupNeeded && result == nil) {
-            [group cleanUp];
+            group->cleanUp();
         }
     }
 
@@ -432,7 +405,7 @@ ShipEntity* OOShipGroupCursor::next()
 
 // One batch of live members for OOShipGroupMembers: the body of the former
 // -countByEnumeratingWithState:objects:count:, unchanged.
-NSUInteger OOShipGroupMembers::FillBatch(OOShipGroup* group, NSUInteger* ioIndex, id* buffer, NSUInteger length)
+NSUInteger OOShipGroupMembers::FillBatch(cxx::OOShipGroup* group, NSUInteger* ioIndex, id* buffer, NSUInteger length)
 {
     NSUInteger srcIndex, dstIndex = 0;
     ShipEntity* item = nil;
@@ -451,30 +424,18 @@ NSUInteger OOShipGroupMembers::FillBatch(OOShipGroup* group, NSUInteger* ioIndex
     }
 
     if (cleanupNeeded)
-        [group cleanUp];
+        group->cleanUp();
 
     *ioIndex = srcIndex;
 
     return dstIndex;
 }
 
-/*	This method exists purely to suppress Clang static analyzer warnings that
-        this ivar is unused (but may be used by categories, which they are).
-        FIXME: there must be a feature macro we can use to avoid actually building
-        this into the app, but I can't find it in docs.
-*/
-- (BOOL)suppressClangStuff
+OOShipGroupCursor::OOShipGroupCursor(cxx::OOShipGroup* group)
 {
-    return !JS_IsObject(_jsSelf);
-}
+    assert(group != nullptr);
 
-@end
-
-OOShipGroupCursor::OOShipGroupCursor(OOShipGroup* group)
-{
-    assert(group != nil);
-
-    _group = oo::ObjCRef<OOShipGroup*>(group);
+    _group = oo::Ref<cxx::OOShipGroup>(group);
     _considerCleanup = YES;
-    _updateCount = [group updateCount];
+    _updateCount = group->updateCount();
 }

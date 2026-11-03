@@ -27,10 +27,10 @@ MA 02110-1301, USA.
 
 #import "OOCommodities.h"
 #import "OOConstToString.h"
-#import "OOFoundationBridge.h"
 #import "OOStringParsing.h"
 #import "Universe.h"
 
+#include "oofnd/Defaults.hpp"
 #include "oofnd/PListGet.hpp"
 #include "oofnd/String.hpp"
 
@@ -52,15 +52,26 @@ oo::PList MarkerFor(OOSystemID system, const char* color, const char* shape)
     return oo::PList(std::move(marker));
 }
 
-// What -boolValue / -integerValue of the value an Objective-C dictionary held gave (NO / 0 for none).
+// What -boolValue / -integerValue of the value an Objective-C dictionary held gave (NO / 0 for none):
+// NSString's and NSNumber's own conversions, as NSUserDefaults -boolForKey: / -integerForKey: read them.
 BOOL BoolValueOf(const oo::PList* value)
 {
-    return value != nullptr ? [oo::ObjectFromPList(*value) boolValue] : NO;
+    if (value == nullptr)
+        return NO;
+    if (const std::string* string = value->getIf<std::string>())
+        return oo::defaults_detail::stringBoolValue(*string);
+    return value->isNumber() && value->boolValue();
 }
 
 NSInteger IntegerValueOf(const oo::PList* value)
 {
-    return value != nullptr ? [oo::ObjectFromPList(*value) integerValue] : 0;
+    if (value == nullptr)
+        return 0;
+    if (const std::string* string = value->getIf<std::string>())
+        return oo::defaults_detail::stringIntegerValue(*string);
+    if (const double* real = value->getIf<double>())
+        return oo::defaults_detail::realIntegerValue(*real);
+    return value->isNumber() ? value->int64Value() : 0;
 }
 
 } // namespace
@@ -215,7 +226,7 @@ NSInteger IntegerValueOf(const oo::PList* value)
         if (!newChoice.has_value()) {
             missionChoice.reset();
             if (withEvent)
-                [self doScriptEvent:OOJSID("missionChoiceWasReset") withArgument:oo::NSStringOrNil(oldChoice)];
+                [self cxx_doScriptEvent:OOJSID("missionChoiceWasReset") withPListArguments:{ oldChoice.has_value() ? oo::PList(*oldChoice) : oo::PList() }];
         } else {
             missionChoice = newChoice;
         }
@@ -339,24 +350,24 @@ NSInteger IntegerValueOf(const oo::PList* value)
     return oo::str::format("%i", [self score]);
 }
 
-- (id)commanderKillsAsString // called by name (ADR-0043 item 21)
+- (oo::PList)commanderKillsAsString // called by name (ADR-0043 item 21)
 {
-    return oo::NSStringOrNil([self cxx_commanderKillsAsString]);
+    return ([self cxx_commanderKillsAsString]).has_value() ? oo::PList(*[self cxx_commanderKillsAsString]) : oo::PList();
 }
 
-- (id)commanderBountyAsString // called by name (ADR-0043 item 21)
+- (oo::PList)commanderBountyAsString // called by name (ADR-0043 item 21)
 {
-    return oo::NSStringOrNil([self cxx_commanderBountyAsString]);
+    return ([self cxx_commanderBountyAsString]).has_value() ? oo::PList(*[self cxx_commanderBountyAsString]) : oo::PList();
 }
 
-- (id)creditsFormattedForSubstitution // called by name (ADR-0043 item 21)
+- (oo::PList)creditsFormattedForSubstitution // called by name (ADR-0043 item 21)
 {
-    return oo::NSStringOrNil([self cxx_creditsFormattedForSubstitution]);
+    return ([self cxx_creditsFormattedForSubstitution]).has_value() ? oo::PList(*[self cxx_creditsFormattedForSubstitution]) : oo::PList();
 }
 
-- (id)creditsFormattedForLegacySubstitution // called by name (ADR-0043 item 21)
+- (oo::PList)creditsFormattedForLegacySubstitution // called by name (ADR-0043 item 21)
 {
-    return oo::NSStringOrNil([self cxx_creditsFormattedForLegacySubstitution]);
+    return ([self cxx_creditsFormattedForLegacySubstitution]).has_value() ? oo::PList(*[self cxx_creditsFormattedForLegacySubstitution]) : oo::PList();
 }
 
 // utilising new keyconfig2.plist data

@@ -32,7 +32,6 @@ SOFTWARE.
 #import "OOOXPVerifier.h"
 #import "OOSound.h"
 #import "OOStellarBody.h"
-#import "OOStringBridge.h"
 #import "Universe.h"
 #include "oofnd/Date.hpp"
 #include "oofnd/Log.hpp"

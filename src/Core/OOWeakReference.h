@@ -2,89 +2,16 @@
 
 OOWeakReference.h
 
-Weak reference class for Cocoa/GNUstep/OpenStep. As it stands, this will not
-work as a weak reference in a garbage-collected environment.
+Weak reference class for Cocoa/GNUstep/OpenStep: the C++ side (proposed ADR-0056, bead
+oo-3kqi). cxx::OOWeakReference holds a weak reference's state, the object it refers to (not
+retained), and answers every message its Objective-C facade forwards. The facade,
+OOWeakReference in OOWeakReference+ObjCBridge.h, is the reference's identity: it makes and owns
+its C++ object, and callers compare, hash and hold the facade (ADR-0056 amendment oo-3kqi). That
+header also has the OOWeakReferenceSupport protocol, OOWeakRefObject and the usage notes.
 
-A weak reference allows code to maintain a reference to an object while
-allowing the object to reach a retain count of zero and deallocate itself.
-To function, the referenced object must implement the OOWeakReferenceSupport
-protocol.
-
-Client use is extremely simple: to get a weak reference to the object, call
--weakRetain and use the returned proxy instead of the actual object. When
-finished, release the proxy. Messages sent to the proxy will be forwarded as
-long as the underlying object exists; beyond that, they will act exactly like
-messages to nil. (IMPORTANT: this means messages returning floating-point or
-struct values have undefined return values, so use -weakRefUnderlyingObject in
-such cases.) Example:
-
-@interface ThingWatcher: OOObject
-{
-@private
-        Thing			*thing;
-}
-@end
-
-@implementation ThingWatcher
-- (void)setThing:(Thing *)aThing
-{
-        [thing release];
-        thing = [aThing weakRetain];
-}
-
-- (void)frobThing
-{
-        [thing frob];
-}
-
-- (void)dealloc
-{
-        [thing release];
-        [super dealloc];
-}
-@end
-
-
-Note that the only reference to OOWeakReference being involved is the call to
-weakRetain instead of retain. However, the following would not work:
-        thing = aThing;
-        [thing weakRetain];
-
-Additionally, it is not possible to access instance variables directly -- but
-then, that's a filthy habit.
-
-OOWeakReferenceSupport implementation is also simple:
-
-@interface Thing: OOObject <OOWeakReferenceSupport>
-{
-@private
-        OOWeakReference		*weakSelf;
-}
-@end
-
-@implementation Thing
-- (id)weakRetain
-{
-        if (weakSelf == nil)  weakSelf = [OOWeakReference weakRefWithObject:self];
-        return [weakSelf retain];
-}
-
-- (void)weakRefDied:(OOWeakReference *)weakRef
-{
-        if (weakRef == weakSelf)  weakSelf = nil;
-}
-
-- (void)dealloc
-{
-        [weakSelf weakRefDrop];	// Very important!
-        [super dealloc];
-}
-
-- (void)frob
-{
-        NSBeep();
-}
-@end
+A class converted to C++ does not use this: it derives from oo::RefCounted and is held weakly
+with oo::WeakRef (oofnd/Ref.hpp). Converted code that holds an Objective-C object weakly keeps the
+facade (oo::ObjCRef<OOWeakReference *>) and reaches the C++ object through oo::ToCxx.
 
 
 Copyright (C) 2007-2013 Jens Ayton
@@ -92,49 +19,62 @@ This code is hereby placed in the public domain.
 
 */
 
+#ifndef OOWEAKREFERENCE_H
+#define OOWEAKREFERENCE_H
+
 #import "OOFoundation.h"
 #import "OOFunctionAttributes.h"
-#import "oofnd/objc/OOObject.h"
+#include "oofnd/Ref.hpp"
+#include "oofnd/StdLib.hpp"
+#include <quickjs.h>
 
-@class OOWeakReference;
+namespace cxx {
 
-@protocol OOWeakReferenceSupport <OOObject>
+class OOWeakReference : public oo::RefCounted {
+public:
+    explicit OOWeakReference(id object); // object: conforms to OOWeakReferenceSupport; nil gives a dead reference
 
-- (id)weakRetain OO_RETURNS_RETAINED; // Returns a retained OOWeakReference, which should be released when finished with.
-- (void)weakRefDied:(OOWeakReference*)weakRef;
+    id weakRefUnderlyingObject();
 
-@end
+    id weakRetain() OO_RETURNS_RETAINED; // Returns the facade, retained: [self retain] for weakrefs.
 
-@interface OOWeakReference : OOObject // forwards with -forwardingTargetForSelector: (bead oo-3rb.54)
-{
-    id<OOWeakReferenceSupport> _object;
-}
+    // For referred object only:
+    void weakRefDrop();
 
-- (id)weakRefUnderlyingObject;
+    // What "%@" prints for the reference: the object's description, or <Dead ...> once it has gone.
+    std::optional<std::string> description();
 
-- (id)weakRetain OO_RETURNS_RETAINED; // Returns [self retain] for weakrefs.
+    // Forwarding: what the facade answers for the Objective-C runtime's questions.
+    Class class_(); // -class (a C++ keyword)
+    bool isProxy();
+    bool respondsToSelector(SEL selector);
+    id forwardingTargetForSelector(SEL selector);
+    uintptr_t hash();
 
-// For referred object only:
-+ (id)weakRefWithObject:(id<OOWeakReferenceSupport>)object;
-- (void)weakRefDrop;
+    // What the old proxy root forwarded and OOObject (or one of its categories) answers itself.
+    bool isKindOfClass(Class aClass);
+    bool isMemberOfClass(Class aClass);
+    bool conformsToProtocol(Protocol* protocol);
+    std::optional<std::string> descriptionComponents() const;
+    std::optional<std::string> shortDescription();
+    std::optional<std::string> shortDescriptionComponents();
+    id className();
+    size_t oo_objectSize();
+    JSValue oo_jsValueInContext(JSContext* context); // owned
+    std::optional<std::string> oo_jsDescription();
+    std::optional<std::string> oo_jsDescriptionWithClassName(const std::optional<std::string>& className);
+    std::optional<std::string> oo_jsClassName();
+    void oo_clearJSSelf(JSValueConst selfVal);
 
-@end
+private:
+    id _object = { }; // id<OOWeakReferenceSupport>
+};
 
-@interface OOObject (OOWeakReference)
+} // namespace cxx
 
-- (id)weakRefUnderlyingObject; // Always self for non-weakrefs (and of course nil for nil).
+// Transitional: the Objective-C OOWeakReference (the reference callers hold), the
+// OOWeakReferenceSupport protocol and OOWeakRefObject. Deleted, with namespace cxx above, by the
+// bridge's deletion bead.
+#import "OOWeakReference+ObjCBridge.h"
 
-@end
-
-/*	OOWeakRefObject
-        Simple object implementing OOWeakReferenceSupport, to subclass. This
-        provides a full implementation for simplicity, but keep in mind that the
-        protocol can be implemented by any class.
-*/
-@interface OOWeakRefObject : OOObject <OOWeakReferenceSupport> {
-    OOWeakReference* weakSelf;
-}
-
-- (id)weakSelf; // Equivalent to [[self weakRetain] autorelease]
-
-@end
+#endif // OOWEAKREFERENCE_H

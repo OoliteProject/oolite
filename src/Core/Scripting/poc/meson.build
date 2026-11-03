@@ -1,8 +1,8 @@
 # QuickJS-ng proof of concept (issue #580).
 #
-# Builds a standalone test harness, oojs-quickjs-poc, from the ported engine
-# core, Vector3D and Quaternion bindings and a minimal script loader. Linux
-# only for now; needs the same GNUstep install as the game. From the repository root:
+# Builds a standalone test harness, oojs-quickjs-poc, from the engine's
+# Vector3D and Quaternion bindings and class registry, and a minimal engine
+# core and script loader. From the repository root:
 #   meson setup build/quickjs-poc --native-file clang.ini -Dquickjs_poc=true -Ddebug=true -Doptimization=0
 #   meson compile -C build/quickjs-poc oojs-quickjs-poc
 #   meson test -C build/quickjs-poc quickjs-poc --print-errorlogs
@@ -29,6 +29,7 @@ poc_gnustep_dep = declare_dependency(
 
 poc_sources = files(
     '../OOJSClasses.mm',
+    '../OOJSEngineNativeWrappers.mm',
     '../OOJSQuaternion.mm',
     '../OOJSVector.mm',
     'OOJSScript.mm',
@@ -36,19 +37,27 @@ poc_sources = files(
     'OOLogStub.mm',
     'main.mm',
     '../../OOHPVector.mm',
-    '../../OOQuaternion.mm',
+    '../../OOQuaternion.cpp',
     '../../OOVector.mm',
     '../../legacy_random.c',
 )
+
+# The game's QuickJS-ng, as src/meson/meson.build declared it (the cached dependency).
+poc_quickjs_dep = dependency('quickjs-ng', version: '>=0.17.0')
+
+poc_args = ['-DOOJS_POC_HARNESS=1']
 
 # The harness's own OOJSScript.h must be found before the game's in
 # src/Core/Scripting.
 poc_bin = executable(
     'oojs-quickjs-poc',
     poc_sources,
-    include_directories: include_directories('.', '..', '../..', '../../Tables', '../../../SDL'),
-    objc_args: ['-DOOJS_POC_HARNESS=1'],
-    dependencies: [quickjs_dep, poc_gnustep_dep],
+    include_directories: [include_directories('.'), oolite_includes],
+    c_args: poc_args,
+    cpp_args: poc_args,
+    objc_args: poc_args + oofnd_objc_args,
+    objcpp_args: poc_args + oofnd_objc_args,
+    dependencies: [poc_quickjs_dep, oofnd_dep, oofnd_objc_dep],
     override_options: oolite_override_options,
     install: false,
 )

@@ -34,7 +34,8 @@ MA 02110-1301, USA.
 #include "oofnd/StdLib.hpp"
 
 /*	Foundation sweep (proposed ADR-0043, bead oo-hach): the sun's system dictionary is an oo::PList
-        and its name std::optional (nil stays nil); -name and -setName: are shared and keep id.
+        and its name std::optional (nil stays nil): -cxx_name / -cxx_setName: (the id -name / -setName:
+        retired with oo-qps.44).
 */
 
 #define SUN_CORONA_SAMPLES 729 // Samples at half-degree intervals, with a bit of overlap.

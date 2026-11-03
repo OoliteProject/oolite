@@ -244,7 +244,7 @@ BOOL OOJSValueToInt32(JSContext* context, JSValueConst value, int32_t* outValue)
         directive) must be added before wrapping: a with statement is a syntax
         error in strict code.
 */
-NSString* OOJSWrapScriptSource(NSString* source);
+std::string OOJSWrapScriptSource(const std::string& source);
 
 /*	The compatibility script's const rewriter (see RewriteLegacyConst() in
         OOJSScript.m), or JS_UNDEFINED if it failed to load. Kept here rather
@@ -321,9 +321,8 @@ OOINLINE JSValue OOJSValueFromBOOL(int b)
     return JS_NewBool(NULL, b != 0);
 }
 
-/*	The root-class JS glue for classes rooted on OOObject (ADR-0029). A Foundation object has
-        none: OOJSValueFromNativeObject() converts it through its property-list form (proposed
-        ADR-0051).
+/*	The root-class JS glue for classes rooted on OOObject (ADR-0029). An object on another root
+        has none: OOJSValueFromNativeObject() gives undefined for it (oo-qps.72).
 
         -oo_jsValueInContext:
 
@@ -353,10 +352,10 @@ OOINLINE JSValue OOJSValueFromBOOL(int b)
 
 /*	OOJSValueFromNativeObject()
         Return an owned JavaScript value for an object, or null if passed nil. An
-        object whose root class is not OOObject (a Foundation object) is converted
-        through oo::PListFrom() and OOJSValueFromPList(), which give what its
-        Foundation JS glue gave; one that is not property-list data gives
-        undefined, as the NSObject glue did (proposed ADR-0051).
+        object whose root class is not OOObject gives undefined, as the NSObject
+        glue did; oo-qps.72 deleted the Foundation branch that converted one
+        through its property-list form (proposed ADR-0051). Plist data is
+        OOJSValueFromPList()'s.
 */
 JSValue OOJSValueFromNativeObject(JSContext* context, id object);
 
@@ -434,7 +433,7 @@ std::optional<std::string> cxx_OOStringFromJSValueEvenIfNull(JSContext* context,
 std::string cxx_OOJSDescribeValue(JSContext* context, JSValueConst value, BOOL abbreviateObjects);
 
 // Name of the value's JS class, e.g. "Vector3D", for error messages.
-NSString* OOJSClassNameOfValue(JSContext* context, JSValueConst value);
+std::string OOJSClassNameOfValue(JSContext* context, JSValueConst value);
 
 // Convert a property ID to a UTF-8 string (nullopt if it has no string value).
 std::optional<std::string> cxx_OOStringFromJSID(JSAtom propID);
@@ -487,13 +486,15 @@ extern JSClassID gOOJSObjectClassID, gOOJSStringClassID, gOOJSArrayClassID, gOOJ
 /*	cxx_OOJSPListFromJSValue(context, value) / cxx_OOJSPListFromJSObject(context, object)
         The oo::PList form of the native-object family: exactly what oo::PListFrom()
         made of OOJSNativeObjectFromJSValue()'s result (proposed ADR-0051): null for
-        null, undefined or an unconvertible value; numbers, booleans and strings as
-        themselves; a JS Array -> array (a null or undefined element -> a
-        PList::Object holding [OONull null]); a plain Object -> dictionary (see
-        cxx_OOJSDictionaryFromJSObject()); an object of a class with a registered
-        converter -> oo::PListFrom() of what the converter returns (a private
-        object -> a PList::Object node holding it). The id functions below return
-        oo::ObjectFromPList() of these.
+        null, undefined or an unconvertible value; int32 -> signed integer, double
+        -> real, boolean -> bool, string -> string; a JS Array -> array (a null or
+        undefined element -> a PList::Object holding [OONull null]); a plain Object
+        -> dictionary (see cxx_OOJSDictionaryFromJSObject()); an object of a class
+        with a registered converter -> oo::PListFrom() of what the converter
+        returns (a private object -> a PList::Object node holding it). The id
+        functions below return the object of a PList::Object node of these (nil
+        for plist data): oo-qps.72 deleted their Foundation form (ADR-0055
+        Amendment 2); every caller asks for a native object.
 */
 oo::PList cxx_OOJSPListFromJSValue(JSContext* context, JSValueConst value);
 oo::PList cxx_OOJSPListFromJSObject(JSContext* context, JSValueConst object);
@@ -630,17 +631,18 @@ BOOL OOJSObjectGetterImplPRIVATE(JSContext* context, JSValueConst object, JSClas
 /*	Support for OOJSNativeObjectFromJSValue() family
 
         OOJSClassConverterCallback specifies the prototype for a callback function
-        which converts a JavaScript object to an Objective-C object.
+        which converts a JavaScript object to its property-list form: plist data,
+        or a PList::Object node holding a native object (proposed ADR-0055 item 4).
 
         OOJSBasicPrivateObjectConverter() is a OOJSClassConverterCallback which
-        returns the JS object's private storage value. It automatically unpacks
-        OOWeakReferences if relevant.
+        returns the JS object's private storage value as an Object node (a null
+        PList for nil). It automatically unpacks OOWeakReferences if relevant.
 
         OOJSRegisterObjectConverter() registers a callback for a specific JS class.
         It is not automatically propagated to subclasses.
 */
-typedef id (*OOJSClassConverterCallback)(JSContext* context, JSValueConst object);
-id OOJSBasicPrivateObjectConverter(JSContext* context, JSValueConst object);
+typedef oo::PList (*OOJSClassConverterCallback)(JSContext* context, JSValueConst object);
+oo::PList OOJSBasicPrivateObjectConverter(JSContext* context, JSValueConst object);
 
 void OOJSRegisterObjectConverter(JSClassID classID, OOJSClassConverterCallback converter);
 
@@ -795,38 +797,55 @@ struct OOJSProfileStackFrame {
 void OOJSProfileEnter(OOJSProfileStackFrame* frame, const char* function);
 void OOJSProfileExit(OOJSProfileStackFrame* frame);
 
-#define OOJS_PROFILE_ENTER_NAMED(NAME)                \
-    {                                                 \
-        OOJSProfileStackFrame oojsProfilerStackFrame; \
-        @try {                                        \
-            OOJSProfileEnter(&oojsProfilerStackFrame, NAME);
+/*
+        C++ since bead oo-ppc (the Phase 3 scripting-bindings pattern; proposed ADR-0056 amendment
+        oo-ppc). The pairs below were Objective-C try, catch (id) and finally blocks. They are now a
+        C++ try, a catch (...) and scope guards, so a binding file that uses them contains no
+        Objective-C exception syntax. What each one does is unchanged:
+          * OOJS_NATIVE_EXIT catches whatever the body throws and hands it to
+            OOJSReportCurrentException() (OOJSEngineNativeWrappers.mm), which reports an Objective-C
+            exception exactly as OOJSReportWrappedException() did. It also reports a C++ exception
+            ("Native exception: <what()>"), which the Objective-C catch (id) could not catch: that
+            path ended in std::terminate (ADR-0029 measurement 10). The native then returns
+            JS_EXCEPTION.
+          * The profiler frame is exited, and the time limiter is resumed, when the scope ends, by
+            return or by exception, as the finally blocks did.
+*/
 
-#define OOJS_PROFILE_EXIT                         \
-    }                                             \
-    @finally                                      \
-    {                                             \
-        OOJSProfileExit(&oojsProfilerStackFrame); \
-    }                                             \
+// The scope OOJS_PROFILE_ENTER opens: enters the frame, and exits it however the scope ends.
+class OOJSProfileScope {
+public:
+    explicit OOJSProfileScope(const char* function) { OOJSProfileEnter(&_frame, function); }
+    ~OOJSProfileScope() { OOJSProfileExit(&_frame); }
+    OOJSProfileScope(const OOJSProfileScope&) = delete;
+    OOJSProfileScope& operator=(const OOJSProfileScope&) = delete;
+
+private:
+    OOJSProfileStackFrame _frame = { };
+};
+
+#define OOJS_PROFILE_ENTER_NAMED(NAME)           \
+    {                                            \
+        OOJSProfileScope oojsProfileScope(NAME); \
+        {
+
+#define OOJS_PROFILE_EXIT \
+    }                     \
     }
 
-#define OOJS_NATIVE_ENTER(cx)                         \
-    {                                                 \
-        JSContext* oojsNativeContext = (cx);          \
-        OOJSProfileStackFrame oojsProfilerStackFrame; \
-        @try {                                        \
-            OOJSProfileEnter(&oojsProfilerStackFrame, __FUNCTION__);
+#define OOJS_NATIVE_ENTER(cx)                            \
+    {                                                    \
+        JSContext* oojsNativeContext = (cx);             \
+        OOJSProfileScope oojsProfileScope(__FUNCTION__); \
+        try {
 
-#define OOJS_NATIVE_EXIT                                          \
-    }                                                             \
-    @catch (id exception)                                         \
-    {                                                             \
-        OOJSReportWrappedException(oojsNativeContext, exception); \
-        return JS_EXCEPTION;                                      \
-    }                                                             \
-    @finally                                                      \
-    {                                                             \
-        OOJSProfileExit(&oojsProfilerStackFrame);                 \
-    }                                                             \
+#define OOJS_NATIVE_EXIT                               \
+    }                                                  \
+    catch (...)                                        \
+    {                                                  \
+        OOJSReportCurrentException(oojsNativeContext); \
+        return JS_EXCEPTION;                           \
+    }                                                  \
     }
 
 #else
@@ -837,35 +856,46 @@ void OOJSProfileExit(OOJSProfileStackFrame* frame);
 #define OOJS_NATIVE_ENTER(cx)                \
     {                                        \
         JSContext* oojsNativeContext = (cx); \
-        @try {
+        try {
 
-#define OOJS_NATIVE_EXIT                                          \
-    }                                                             \
-    @catch (id exception)                                         \
-    {                                                             \
-        OOJSReportWrappedException(oojsNativeContext, exception); \
-        return JS_EXCEPTION;                                      \
-    }                                                             \
+#define OOJS_NATIVE_EXIT                               \
+    }                                                  \
+    catch (...)                                        \
+    {                                                  \
+        OOJSReportCurrentException(oojsNativeContext); \
+        return JS_EXCEPTION;                           \
+    }                                                  \
     }
 
 #endif // OOJS_PROFILE
 
+/*	OOJSReportCurrentException()
+        Call only inside a catch handler. Reports the exception being handled as a JS error unless
+        one is already pending: an Objective-C exception as OOJSReportWrappedException() does, a C++
+        one as "Native exception: <what()>" (std::exception) or "Unidentified native exception".
+*/
+void OOJSReportCurrentException(JSContext* context);
+
 #define OOJS_PROFILE_ENTER OOJS_PROFILE_ENTER_NAMED(__FUNCTION__)
 #define OOJS_PROFILE_EXIT_VOID OOJS_PROFILE_EXIT
 
-#define OOJS_BEGIN_FULL_NATIVE(context) \
-    {                                   \
-        (void)(context);                \
-        OOJSPauseTimeLimiter();         \
-        @try {
+#define OOJS_BEGIN_FULL_NATIVE(context)                   \
+    {                                                     \
+        OOJSFullNativeScope oojsFullNativeScope(context); \
+        {
 
-#define OOJS_END_FULL_NATIVE     \
-    }                            \
-    @finally                     \
-    {                            \
-        OOJSResumeTimeLimiter(); \
-    }                            \
+#define OOJS_END_FULL_NATIVE \
+    }                        \
     }
+
+// The scope OOJS_BEGIN_FULL_NATIVE opens: what its Objective-C try and finally did, in the same order.
+class OOJSFullNativeScope {
+public:
+    explicit OOJSFullNativeScope(JSContext* /*context*/) { OOJSPauseTimeLimiter(); }
+    ~OOJSFullNativeScope() { OOJSResumeTimeLimiter(); }
+    OOJSFullNativeScope(const OOJSFullNativeScope&) = delete;
+    OOJSFullNativeScope& operator=(const OOJSFullNativeScope&) = delete;
+};
 
 /***** Property attributes, equivalent to the SpiderMonkey OOJS_PROP_* flags *****/
 

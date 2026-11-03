@@ -32,21 +32,31 @@ MA 02110-1301, USA.
 #include "oofnd/StdLib.hpp"
 
 /*	Foundation sweep (proposed ADR-0043, bead oo-bfgm): the whitelist and the used AI names are
-        sorted std::vectors of strings (sets). +nameForReverseDependencyForVerifier: is a shared
-        selector (the other stages declare it) and, flipped with the others, returns a std::string (bead oo-3rb.274.2).
+        sorted std::vectors of strings (sets). nameForReverseDependencyForVerifier() is a shared
+        name (the other stages declare it) and, flipped with the others, returns a std::string (bead oo-3rb.274.2).
+
+        C++20 since bead oo-94qk (proposed ADR-0056 Amendment 1, amendment oo-up4b item 6): a leaf of
+        cxx::OOFileHandlingVerifierStage. It is global and has no facade: its one caller,
+        OOCheckShipDataPListVerifierStage, calls these members, and the Objective-C verifier holds
+        it as an OOOXPVerifierStage (oo::ToObjC) and makes it from its name through a table.
 */
-@interface OOAIStateMachineVerifierStage : OOFileHandlingVerifierStage {
-@private
-    std::vector<std::string> _whitelist; // sorted, no duplicates
-    std::vector<std::string> _usedAIs; // sorted, no duplicates
-}
+class OOAIStateMachineVerifierStage : public cxx::OOFileHandlingVerifierStage {
+public:
+    // Returns name to be used in dependents() by other stages.
+    static std::string nameForReverseDependencyForVerifier(OOOXPVerifier* verifier); // flipped with its family (bead oo-3rb.274.2)
 
-// Returns name to be used in -dependents by other stages.
-+ (std::string)nameForReverseDependencyForVerifier:(OOOXPVerifier*)verifier; // flipped with its family (bead oo-3rb.274.2)
+    // The caller only reports an AI it has a name for (it tested the name against nil).
+    void stateMachineNamed(const std::string& name, const std::string& shipName);
 
-// The caller only reports an AI it has a name for (it tested the name against nil).
-- (void)stateMachineNamed:(const std::string&)name usedByShip:(const std::string&)shipName;
+    std::optional<std::string> name() override;
+    bool shouldRun() override;
+    void run() override;
 
-@end
+private:
+    void validateAI(const std::string& aiName);
+
+    std::vector<std::string> _whitelist = { }; // sorted, no duplicates
+    std::vector<std::string> _usedAIs = { }; // sorted, no duplicates
+};
 
 #endif

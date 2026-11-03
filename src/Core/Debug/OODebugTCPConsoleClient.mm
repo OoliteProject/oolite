@@ -30,6 +30,8 @@ SOFTWARE.
 #ifdef OO_DEBUG_MONITOR_ENABLED
 
 #import "OODebugTCPConsoleClient.h"
+// The protocol's names as UTF-8 literals (the header would make them Objective-C string objects).
+#define OOALSTR(x) "" x
 #import "OODebugMonitor.h"
 #import "OODebugTCPConsoleProtocol.h"
 #import "OOFunctionAttributes.h"
@@ -56,10 +58,9 @@ SOFTWARE.
 #include <math.h>
 #include <thread>
 
-#import "OOFoundationBridge.h"
-#import "OOPListView.h"
 #import "OOTCPStreamDecoder.h"
 #include "oofnd/PListWriting.hpp"
+#include "oofnd/String.hpp"
 
 #ifdef OO_LOG_DEBUG_PROTOCOL_PACKETS
 static void LogSendPacket(const oo::PList& packet);
@@ -174,18 +175,18 @@ std::vector<OODebugTCPConsoleClient*> sLiveClients;
 
 namespace {
 
-// One of OODebugTCPConsoleProtocol.h's name constants (Objective-C string literals) as UTF-8.
-std::string ProtocolName(id name)
+// One of OODebugTCPConsoleProtocol.h's name constants (UTF-8 literals here, see OOALSTR above).
+std::string ProtocolName(const char* name)
 {
-    return oo::StdString(name);
+    return std::string(name);
 }
 
 // PListView get<> of a string: the packet's value for <key> if it is a string, or a number's
 // -stringValue; nullopt (was nil) for anything else, a missing key or a packet that is no
 // dictionary. <key> is one of OODebugTCPConsoleProtocol.h's constants.
-std::optional<std::string> PacketString(const oo::PList& packet, id key)
+std::optional<std::string> PacketString(const oo::PList& packet, const char* key)
 {
-    const std::string name = oo::StdString(key);
+    const std::string name = ProtocolName(key);
     const oo::PList* value = packet.find(name);
     if (value == nullptr || !(value->isString() || value->isNumber()))
         return std::nullopt;
@@ -818,7 +819,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 
         OO_LOG("debugTCP.connected", "{}.", connectedMessage);
     } else {
-        OO_LOG("debugTCP.protocolError.outOfOrder", "Got {} packet from debug console in wrong context.", oo::DescriptionOf(kOOTCPPacket_ApproveConnection));
+        OO_LOG("debugTCP.protocolError.outOfOrder", "Got {} packet from debug console in wrong context.", kOOTCPPacket_ApproveConnection);
     }
 }
 
@@ -827,7 +828,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     if (_status == kOOTCPClientStartedConnectionStage2) {
         _status = kOOTCPClientConnectionRefused;
     } else {
-        OO_LOG("debugTCP.protocolError.outOfOrder", "Got {} packet from debug console in wrong context.", oo::DescriptionOf(kOOTCPPacket_RejectConnection));
+        OO_LOG("debugTCP.protocolError.outOfOrder", "Got {} packet from debug console in wrong context.", kOOTCPPacket_RejectConnection);
     }
 
     [self breakConnectionWithMessage:PacketString(packet, kOOTCPMessage).value_or("Console refused connection.")];
@@ -836,7 +837,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 - (void)handleCloseConnectionPacket:(const oo::PList&)packet
 {
     if (!StatusIsSendable(_status)) {
-        OO_LOG("debugTCP.protocolError.outOfOrder", "Got {} packet from debug console in wrong context.", oo::DescriptionOf(kOOTCPPacket_CloseConnection));
+        OO_LOG("debugTCP.protocolError.outOfOrder", "Got {} packet from debug console in wrong context.", kOOTCPPacket_CloseConnection);
     }
     [self breakConnectionWithMessage:PacketString(packet, kOOTCPMessage).value_or("Console closed connection.")];
 }

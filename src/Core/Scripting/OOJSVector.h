@@ -37,22 +37,22 @@ JSValue JSVectorWithVector(JSContext* context, Vector vector) NONNULL_FUNC;
 JSValue JSVectorWithHPVector(JSContext* context, HPVector vector) NONNULL_FUNC;
 
 // *outValue is owned by the caller on success.
-BOOL VectorToJSValue(JSContext* context, Vector vector, JSValue* outValue) NONNULL_FUNC;
-BOOL HPVectorToJSValue(JSContext* context, HPVector vector, JSValue* outValue) NONNULL_FUNC;
-BOOL NSPointToVectorJSValue(JSContext* context, NSPoint point, JSValue* outValue) NONNULL_FUNC;
-BOOL JSValueToVector(JSContext* context, JSValueConst value, Vector* outVector) NONNULL_FUNC;
-BOOL JSValueToHPVector(JSContext* context, JSValueConst value, HPVector* outVector) NONNULL_FUNC;
+bool VectorToJSValue(JSContext* context, Vector vector, JSValue* outValue) NONNULL_FUNC;
+bool HPVectorToJSValue(JSContext* context, HPVector vector, JSValue* outValue) NONNULL_FUNC;
+bool NSPointToVectorJSValue(JSContext* context, NSPoint point, JSValue* outValue) NONNULL_FUNC;
+bool JSValueToVector(JSContext* context, JSValueConst value, Vector* outVector) NONNULL_FUNC;
+bool JSValueToHPVector(JSContext* context, JSValueConst value, HPVector* outVector) NONNULL_FUNC;
 
 /*	Given a JS Vector object, get the corresponding Vector struct. Given a JS
         Entity, get its position. Given a JS Array with exactly three elements,
         all of them numbers, treat them as [x, y, z]  components. For anything
         else, return NO. (Other implicit conversions may be added in future.)
 */
-BOOL JSObjectGetVector(JSContext* context, JSValueConst vectorObj, HPVector* outVector) GCC_ATTR((nonnull(1, 3)));
+bool JSObjectGetVector(JSContext* context, JSValueConst vectorObj, HPVector* outVector) GCC_ATTR((nonnull(1, 3)));
 
 //	Set the value of a JS vector object.
-BOOL JSVectorSetVector(JSContext* context, JSValueConst vectorObj, Vector vector) GCC_ATTR((nonnull(1)));
-BOOL JSVectorSetHPVector(JSContext* context, JSValueConst vectorObj, HPVector vector) GCC_ATTR((nonnull(1)));
+bool JSVectorSetVector(JSContext* context, JSValueConst vectorObj, Vector vector) GCC_ATTR((nonnull(1)));
+bool JSVectorSetHPVector(JSContext* context, JSValueConst vectorObj, HPVector vector) GCC_ATTR((nonnull(1)));
 
 /*	VectorFromArgumentList()
 
@@ -67,10 +67,21 @@ BOOL JSVectorSetHPVector(JSContext* context, JSValueConst vectorObj, HPVector ve
         DEPRECATED in favour of JSObjectGetVector(), since the list-of-number form
         is no longer used.
 */
-BOOL VectorFromArgumentList(JSContext* context, const std::string& scriptClass, const std::string& function, int argc, JSValueConst* argv, HPVector* outVector, int* outConsumed) GCC_ATTR((nonnull(1, 6)));
+bool VectorFromArgumentList(JSContext* context, const std::string& scriptClass, const std::string& function, int argc, JSValueConst* argv, HPVector* outVector, int* outConsumed) GCC_ATTR((nonnull(1, 6)));
 
 /*	VectorFromArgumentListNoError()
 
         Like VectorFromArgumentList(), but does not report an error on failure.
 */
-BOOL VectorFromArgumentListNoError(JSContext* context, int argc, JSValueConst* argv, HPVector* outVector, int* outConsumed) GCC_ATTR((nonnull(1, 4)));
+bool VectorFromArgumentListNoError(JSContext* context, int argc, JSValueConst* argv, HPVector* outVector, int* outConsumed) GCC_ATTR((nonnull(1, 4)));
+
+#if OO_DEBUG
+#include "oofnd/PList.hpp"
+
+/*	The vector-conversion statistics the debug console reads with
+        PS.callObjC("reportJSVectorStatistics"). PlayerEntity (JSVectorStatistics), in
+        OOJSVector+ObjCBridge.mm, forwards its two methods here until PlayerEntity converts.
+*/
+oo::PList reportJSVectorStatistics(void);
+void clearJSVectorStatistics(void);
+#endif

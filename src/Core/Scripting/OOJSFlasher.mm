@@ -24,7 +24,6 @@ MA 02110-1301, USA.
 #import "OOJSFlasher.h"
 #import "EntityOOJavaScriptExtensions.h"
 #import "OOFlasherEntity.h"
-#import "OOFoundationBridge.h"
 #import "OOJSEntity.h"
 #import "OOJSVector.h"
 #import "OOJavaScriptEngine.h"
@@ -90,7 +89,7 @@ void InitOOJSFlasher(JSContext* context, JSValueConst global)
     OOJSRegisterClass(&sFlasherClassID, &sFlasherClass);
 
     JSValue parentPrototype = JS_GetClassProto(context, JSEntityClassID());
-    NSCAssert(JS_IsObject(parentPrototype), @"Entity must be initialized before Flasher.");
+    OOCAssert(JS_IsObject(parentPrototype), "Entity must be initialized before Flasher.");
     OOJSInitClass(context, global, sFlasherClassID, parentPrototype, OOJSUnconstructableConstruct, 0,
         sFlasherProperties, OOJS_COUNT(sFlasherProperties), sFlasherMethods, OOJS_COUNT(sFlasherMethods), NULL, 0);
     JS_FreeValue(context, parentPrototype);
@@ -152,7 +151,7 @@ static JSValue FlasherGetProperty(OOJS_GETTER_ARGS)
     OOJS_NATIVE_ENTER(context)
 
     OOFlasherEntity* entity = nil;
-    id result = nil;
+    oo::PList result; // null: nil
 
     if (!JSFlasherGetFlasherEntity(context, thisObj, &entity))
         return OOJSNativeFailure(context);
@@ -165,7 +164,7 @@ static JSValue FlasherGetProperty(OOJS_GETTER_ARGS)
         return OOJSValueFromBOOL([entity isActive]);
 
     case kFlasher_color:
-        result = oo::ObjectFromPList(NormalizedColorComponents([entity color]));
+        result = NormalizedColorComponents([entity color]);
         break;
 
     case kFlasher_frequency:
@@ -185,7 +184,7 @@ static JSValue FlasherGetProperty(OOJS_GETTER_ARGS)
         return OOJSNativeFailure(context);
     }
 
-    return OOJSValueFromNativeObject(context, result);
+    return OOJSValueFromPList(context, result);
 
     OOJS_NATIVE_EXIT
 }
@@ -213,7 +212,7 @@ static JSValue FlasherSetProperty(OOJS_SETTER_ARGS)
         break;
 
     case kFlasher_color:
-        colorForScript = [OOColor colorWithDescription:oo::ObjectFromPList(cxx_OOJSPListFromJSValue(context, value))];
+        colorForScript = [OOColor cxx_colorWithDescription:cxx_OOJSPListFromJSValue(context, value)];
         if (colorForScript != nil || JS_IsNull(value)) {
             [entity setColor:colorForScript];
             return JS_UNDEFINED;

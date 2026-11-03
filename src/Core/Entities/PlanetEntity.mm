@@ -23,6 +23,7 @@ MA 02110-1301, USA.
 */
 
 #import "PlanetEntity.h"
+#import "OOObjCPList.h"
 
 #if !NEW_PLANETS
 
@@ -33,7 +34,6 @@ MA 02110-1301, USA.
 #import "OOCharacter.h"
 #import "OOColor.h"
 #import "OODebugFlags.h"
-#import "OOFoundationBridge.h"
 #import "OOGraphicsResetManager.h"
 #import "OOPixMapTextureLoader.h"
 #import "OOStringParsing.h"
@@ -185,11 +185,11 @@ oo::PList DictionaryOrEmpty(const oo::PList& dictionary)
     return dictionary.isDict() ? dictionary : oo::PList(oo::PList::Dict { });
 }
 
-// -objectForKey: for a callee that still takes an Objective-C object (nil when absent).
-id ObjectForKey(const oo::PList& dict, std::string_view key)
+// -objectForKey: as plist data (a null PList when absent), for +cxx_colorWithDescription:.
+oo::PList ValueForKey(const oo::PList& dict, std::string_view key)
 {
     const oo::PList* value = dict.find(key);
-    return value != nullptr ? oo::ObjectFromPList(*value) : nil;
+    return value != nullptr ? *value : oo::PList();
 }
 
 // The string a string-typed reader got from -objectForKey:: the value if it is a string, else
@@ -273,10 +273,10 @@ oo::PList CloudAtmosphereDictionary(float cloudAlpha)
     OOColor* polarCloudColor = nil;
     float cloudAlpha;
 
-    clearSkyColor = [OOColor colorWithDescription:ObjectForKey(dict, "atmosphere_color")];
-    cloudColor = [OOColor colorWithDescription:ObjectForKey(dict, "cloud_color")];
-    polarClearSkyColor = [OOColor colorWithDescription:ObjectForKey(dict, "polar_atmosphere_color")];
-    polarCloudColor = [OOColor colorWithDescription:ObjectForKey(dict, "polar_cloud_color")];
+    clearSkyColor = [OOColor cxx_colorWithDescription:ValueForKey(dict, "atmosphere_color")];
+    cloudColor = [OOColor cxx_colorWithDescription:ValueForKey(dict, "cloud_color")];
+    polarClearSkyColor = [OOColor cxx_colorWithDescription:ValueForKey(dict, "polar_atmosphere_color")];
+    polarCloudColor = [OOColor cxx_colorWithDescription:ValueForKey(dict, "polar_cloud_color")];
     cloudAlpha = OOClamp_0_1_f(dict.get<float>("cloud_alpha", 1.0));
 
     if (clearSkyColor != nil) {
@@ -411,7 +411,8 @@ oo::PList CloudAtmosphereDictionary(float cloudAlpha)
     else
         planet_seed = p_seed.a * 7 + p_seed.c * 11 + p_seed.e * 13; // pseudo-random set-up for vertex colours
 
-    id textureObject = ObjectForKey(dict, "_oo_textureObject");
+    const oo::PList* textureValue = dict.find("_oo_textureObject"); // an Object node
+    id textureObject = textureValue != nullptr ? oo::ObjectIn(*textureValue) : nil;
     OOTexture* texture = [textureObject isKindOfClass:[OOTexture class]] ? (OOTexture*)textureObject : nil;
     if (texture != nil) {
         _texture = [texture retain];
@@ -1154,7 +1155,7 @@ oo::PList CloudAtmosphereDictionary(float cloudAlpha)
 
         [shuttle_ship setScanClass:CLASS_NEUTRAL];
         [shuttle_ship setCargoFlag:CARGO_FLAG_FULL_PLENTIFUL];
-        [shuttle_ship switchAITo:@"oolite-shuttleAI.js"];
+        [shuttle_ship switchAITo:"oolite-shuttleAI.js"];
         [UNIVERSE addEntity:shuttle_ship];
 
         [shuttle_ship release];
@@ -1483,7 +1484,7 @@ static unsigned baseVertexIndexForEdge(GLushort va, GLushort vb, BOOL textured)
     GLuint width, height;
 
     fillRanNoiseBuffer();
-    if (![TextureStore getPlanetTextureNameFor:oo::ObjectFromPList(info)
+    if (![TextureStore getPlanetTextureNameFor:info
                                       intoData:&data
                                          width:&width
                                         height:&height]) {

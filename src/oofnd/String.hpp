@@ -36,6 +36,7 @@
             [s lastPathComponent]                         oo::str::lastPathComponent(s)
             [s stringByDeletingLastPathComponent]         oo::str::deletingLastPathComponent(s)
             [s stringByAppendingPathComponent:c]          oo::str::appendingPathComponent(s, c)  (c: one component)
+            [s stringByAppendingPathExtension:e]          oo::str::appendingPathExtension(s, e)
             %p in a format string                         %s with oo::str::pointerDescription(p).c_str()
             ComponentsFromVersionString(s)                oo::str::versionComponents(s)
             CompareVersions(a, b)                         oo::str::compareVersions(a, b)  (<0, 0, >0)
@@ -1217,6 +1218,25 @@ inline std::string appendingPathComponent(std::string_view path, std::string_vie
     }
     result += '/';
     result += component;
+    return result;
+}
+
+// -stringByAppendingPathExtension: as GNUstep 1.31.1 answers it on Windows: trailing separators
+// ('/' and '\') are dropped, then "." and the extension are appended verbatim (an empty or
+// dotted extension included: "a" + "" is "a.", "a" + ".x" is "a..x"). A path that is empty or a
+// bare root ("/", "\", "//", "C:", "C:/", "~") once they are dropped comes back unchanged (GNUstep
+// also logged "cannot append extension"). Pinned by tests/unit/oofnd/test_string_path_extension.cpp.
+inline std::string appendingPathExtension(std::string_view path, std::string_view extension)
+{
+    std::string_view stem = path;
+    while (!stem.empty() && detail::isPathSep(stem.back()))
+        stem.remove_suffix(1);
+    const bool isDrive = stem.size() == 2 && stem[1] == ':' && detail::isAsciiLetter(stem[0]);
+    if (stem.empty() || stem == "~" || isDrive)
+        return std::string(path);
+    std::string result(stem);
+    result += '.';
+    result += extension;
     return result;
 }
 

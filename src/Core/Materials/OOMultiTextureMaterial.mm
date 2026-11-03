@@ -27,7 +27,6 @@ SOFTWARE.
 
 #import "OOMultiTextureMaterial.h"
 #import "OOCombinedEmissionMapGenerator.h"
-#import "OOFoundationBridge.h"
 #import "OOMacroOpenGL.h"
 #import "OOMaterialSpecifier.h"
 #import "OOOpenGLExtensionManager.h"
@@ -36,25 +35,32 @@ SOFTWARE.
 
 #if OO_MULTITEXTURE
 
-@implementation OOMultiTextureMaterial
+namespace cxx {
 
-- (id)initWithName:(id)name configuration:(id)configuration
+oo::Ref<OOMultiTextureMaterial> OOMultiTextureMaterial::materialWithName(const std::optional<std::string>& name, const oo::PList& configuration)
 {
-    if (![[OOOpenGLExtensionManager sharedManager] textureCombinersSupported]) {
-        [self release];
-        return nil;
+    oo::Ref<OOMultiTextureMaterial> result = oo::makeRef<OOMultiTextureMaterial>();
+    if (!result->initWithName(name, configuration))
+        return nullptr;
+    return result;
+}
+
+bool OOMultiTextureMaterial::initWithName(const std::optional<std::string>& name, const oo::PList& configuration)
+{
+    if (!OOOpenGLExtensionManager::sharedManager()->textureCombinersSupported()) {
+        return false; // [self release]; return nil: the factory drops the object
     }
 
     // The configuration mixes plist data with live objects (colours): an oo::PList carries both
     // exactly (proposed ADR-0043 Amendment 2).
-    const oo::PList config = oo::PListFrom(configuration);
-    const oo::PList diffuseSpec = cxx_OOMaterialDiffuseMapSpecifier(config, oo::OptionalString(name));
+    const oo::PList& config = configuration;
+    const oo::PList diffuseSpec = cxx_OOMaterialDiffuseMapSpecifier(config, name);
     const oo::PList emissionSpec = cxx_OOMaterialEmissionMapSpecifier(config);
     const oo::PList illuminationSpec = cxx_OOMaterialIlluminationMapSpecifier(config);
     const oo::PList emissionAndIlluminationSpec = cxx_OOMaterialEmissionAndIlluminationMapSpecifier(config);
-    OOColor* diffuseColor = cxx_OOMaterialDiffuseColor(config);
-    OOColor* emissionColor = nil;
-    OOColor* illuminationColor = cxx_OOMaterialIlluminationModulateColor(config);
+    ::OOColor* diffuseColor = cxx_OOMaterialDiffuseColor(config);
+    ::OOColor* emissionColor = nil;
+    ::OOColor* illuminationColor = cxx_OOMaterialIlluminationModulateColor(config);
 
     // A copy of the configuration (an empty one for nil, as +dictionaryWithDictionary: gave).
     oo::PList mutableConfiguration = config.isDict() ? config : oo::PList(oo::PList::Dict { });
@@ -69,25 +75,25 @@ SOFTWARE.
         mutableConfiguration.getIf<oo::PList::Dict>()->erase(cxx_kOOMaterialEmissionColorLegacyName);
     }
 
-    self = [super initWithName:name configuration:oo::ObjectFromPList(mutableConfiguration)];
-    if (self != nil) {
+    OOBasicMaterial::initWithName(name, mutableConfiguration);
+    { // was if (self != nil): the superclass's initialiser cannot fail
         if (!diffuseSpec.isNull()) {
-            _diffuseMap = [[OOTexture cxx_textureWithConfiguration:diffuseSpec] retain];
-            if (_diffuseMap != nil)
+            _diffuseMap = oo::ObjCRef<::OOTexture*>([::OOTexture cxx_textureWithConfiguration:diffuseSpec]);
+            if (_diffuseMap.get() != nil)
                 _unitsUsed++;
         }
 
         // Check for simplest cases, where we don't need to bake a derived emission map.
         if (!emissionSpec.isNull() && illuminationSpec.isNull() && emissionAndIlluminationSpec.isNull() && emissionColor == nil) {
-            _emissionMap = [[OOTexture cxx_textureWithConfiguration:emissionSpec extraOptions:kOOTextureExtraShrink] retain];
-            if (_emissionMap != nil)
+            _emissionMap = oo::ObjCRef<::OOTexture*>([::OOTexture cxx_textureWithConfiguration:emissionSpec extraOptions:kOOTextureExtraShrink]);
+            if (_emissionMap.get() != nil)
                 _unitsUsed++;
         } else {
             OOCombinedEmissionMapGenerator* generator = nil;
 
             if (!emissionAndIlluminationSpec.isNull()) {
                 generator = [[OOCombinedEmissionMapGenerator alloc] cxx_initWithEmissionAndIlluminationMapSpec:emissionAndIlluminationSpec
-                                                                                                    diffuseMap:_diffuseMap
+                                                                                                    diffuseMap:_diffuseMap.get()
                                                                                                   diffuseColor:diffuseColor
                                                                                                  emissionColor:emissionColor
                                                                                              illuminationColor:illuminationColor
@@ -96,41 +102,34 @@ SOFTWARE.
                 const oo::PList optionsSpec = !emissionSpec.isNull() ? emissionSpec : illuminationSpec;
                 generator = [[OOCombinedEmissionMapGenerator alloc] cxx_initWithEmissionMapSpec:emissionSpec
                                                                                   emissionColor:emissionColor
-                                                                                     diffuseMap:_diffuseMap
+                                                                                     diffuseMap:_diffuseMap.get()
                                                                                    diffuseColor:diffuseColor
                                                                             illuminationMapSpec:illuminationSpec
                                                                               illuminationColor:illuminationColor
                                                                                optionsSpecifier:optionsSpec];
             }
 
-            _emissionMap = [[OOTexture textureWithGenerator:[generator autorelease]] retain];
-            if (_emissionMap != nil)
+            _emissionMap = oo::ObjCRef<::OOTexture*>([::OOTexture textureWithGenerator:[generator autorelease]]);
+            if (_emissionMap.get() != nil)
                 _unitsUsed++;
         }
     }
 
-    return self;
+    return true;
 }
 
-- (void)dealloc
-{
-    [self willDealloc];
+// -dealloc's [self willDealloc] is the root facade's (proposed ADR-0056, amendment oo-smy item 3),
+// and the maps are released with their oo::ObjCRefs.
 
-    DESTROY(_diffuseMap);
-    DESTROY(_emissionMap);
-
-    [super dealloc];
-}
-
-- (std::optional<std::string>)cxx_descriptionComponents
+std::optional<std::string> OOMultiTextureMaterial::descriptionComponents() const
 {
     std::vector<std::string> bits;
-    if (_diffuseMap)
-        bits.push_back("diffuse map: " + oo::ShortDescriptionOf(_diffuseMap));
-    if (_emissionMap)
-        bits.push_back("emission map: " + oo::ShortDescriptionOf(_emissionMap));
+    if (_diffuseMap.get())
+        bits.push_back("diffuse map: " + oo::ShortDescriptionOf(_diffuseMap.get()));
+    if (_emissionMap.get())
+        bits.push_back("emission map: " + oo::ShortDescriptionOf(_emissionMap.get()));
 
-    std::optional<std::string> result = [super cxx_descriptionComponents];
+    std::optional<std::string> result = OOBasicMaterial::descriptionComponents();
     if (!bits.empty()) {
         std::string joined;
         for (const std::string& bit : bits)
@@ -140,81 +139,83 @@ SOFTWARE.
     return result;
 }
 
-- (NSUInteger)textureUnitCount
+NSUInteger OOMultiTextureMaterial::textureUnitCount()
 {
     return _unitsUsed;
 }
 
-- (NSUInteger)countOfTextureUnitsWithBaseCoordinates
+NSUInteger OOMultiTextureMaterial::countOfTextureUnitsWithBaseCoordinates()
 {
     return _unitsUsed;
 }
 
-- (void)ensureFinishedLoading
+void OOMultiTextureMaterial::ensureFinishedLoading()
 {
-    [_diffuseMap ensureFinishedLoading];
-    [_emissionMap ensureFinishedLoading];
+    [_diffuseMap.get() ensureFinishedLoading];
+    [_emissionMap.get() ensureFinishedLoading];
 }
 
-- (void)apply
+void OOMultiTextureMaterial::apply()
 {
     OO_ENTER_OPENGL();
 
-    [super apply];
+    OOBasicMaterial::apply();
 
     GLenum textureUnit = GL_TEXTURE0_ARB;
 
-    if (_diffuseMap != nil) {
+    if (_diffuseMap.get() != nil) {
         OOGL(glActiveTextureARB(textureUnit++));
         OOGL(glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB));
         OOGL(glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_MODULATE));
-        [_diffuseMap apply];
+        [_diffuseMap.get() apply];
     }
 
-    if (_emissionMap != nil) {
+    if (_emissionMap.get() != nil) {
         OOGL(glActiveTextureARB(textureUnit++));
         OOGL(glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB));
         OOGL(glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_ADD));
-        [_emissionMap apply];
+        [_emissionMap.get() apply];
     }
 
-    OOAssert(textureUnit - GL_TEXTURE0_ARB == _unitsUsed, "OOMultiTextureMaterial texture unit count invalid (expected %zu, actually using %u)", _unitsUsed, textureUnit - GL_TEXTURE0_ARB);
+    OOCAssert(textureUnit - GL_TEXTURE0_ARB == _unitsUsed, "OOMultiTextureMaterial texture unit count invalid (expected %zu, actually using %u)", _unitsUsed, textureUnit - GL_TEXTURE0_ARB);
 
     if (textureUnit > GL_TEXTURE1_ARB) {
         OOGL(glActiveTextureARB(GL_TEXTURE0_ARB));
     }
 }
 
-- (void)unapplyWithNext:(OOMaterial*)next
+void OOMultiTextureMaterial::unapplyWithNext(OOMaterial* next)
 {
     OO_ENTER_OPENGL();
 
-    [super unapplyWithNext:next];
+    OOBasicMaterial::unapplyWithNext(next);
 
+    // -isKindOfClass: (nil is not one)
     NSUInteger i;
-    i = [next isKindOfClass:[OOMultiTextureMaterial class]] ? [(OOMultiTextureMaterial*)next textureUnitCount] : 0;
+    OOMultiTextureMaterial* nextMulti = dynamic_cast<OOMultiTextureMaterial*>(next);
+    i = (nextMulti != nullptr) ? nextMulti->textureUnitCount() : 0;
     for (; i != _unitsUsed; ++i) {
         OOGL(glActiveTextureARB(GL_TEXTURE0_ARB + i));
-        [OOTexture applyNone];
+        [::OOTexture applyNone];
         OOGL(glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE));
     }
     OOGL(glActiveTextureARB(GL_TEXTURE0_ARB));
 }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-- (std::vector<oo::ObjCRef<OOTexture*>>)cxx_allTextures
+std::vector<oo::ObjCRef<OOTexture*>> OOMultiTextureMaterial::allTextures()
 {
     std::vector<oo::ObjCRef<OOTexture*>> result;
-    if (_diffuseMap == nil) {
-        result.emplace_back(_emissionMap);
+    if (_diffuseMap.get() == nil) {
+        result.emplace_back(_emissionMap.get());
         return result;
     }
-    result.emplace_back(_diffuseMap);
-    result.emplace_back(_emissionMap);
+    result.emplace_back(_diffuseMap.get());
+    result.emplace_back(_emissionMap.get());
     return result;
 }
 #endif
 
-@end
+} // namespace cxx
 
 #endif /* OO_MULTITEXTURE */

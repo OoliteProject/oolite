@@ -42,9 +42,8 @@ MA 02110-1301, USA.
 */
 
 #import "OOFoundation.h"
-#import "oofnd/objc/OOObject.h"
-
 #include "oofnd/PList.hpp"
+#include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
 
 enum {
@@ -53,38 +52,60 @@ enum {
     kOOCacheNoPrune = 0xFFFFFFFFU
 };
 
-@interface OOCache : OOObject {
-@private
-    struct OOCacheImpl* cache;
-    unsigned pruneThreshold;
-    BOOL autoPrune;
-    BOOL dirty;
-}
+/*	C++20 since bead oo-rdfh (proposed ADR-0056, the OOColor house style). Its two callers
+        (OOTexture, OOEncodingConverter) were adapted in the same bead, so there is no Objective-C
+        facade and the class is global.
+*/
+class OOCache : public oo::RefCounted {
+public:
+    // [[OOCache alloc] init] is cacheWithPList(oo::PList()), as -init was.
+    // An array of {key = string; value = plist;} entries, oldest first (a null PList: empty); null for
+    // anything else. pListRepresentation() is the same form, null for an empty cache.
+    static oo::Ref<OOCache> cacheWithPList(const oo::PList& pList);
+    oo::PList pListRepresentation();
 
-- (id)init;
-// An array of {key = string; value = plist;} entries, oldest first (a null PList: empty); nil for
-// anything else. -cxx_pListRepresentation is the same form, null for an empty cache.
-- (id)cxx_initWithPList:(const oo::PList&)pList;
-- (oo::PList)cxx_pListRepresentation;
+    ~OOCache() override;
 
-- (oo::PList)cxx_pListForKey:(const std::string&)key; // null PList: absent
-- (void)cxx_setPList:(const oo::PList&)value forKey:(const std::string&)key; // a null value is not stored
-- (void)cxx_removePListForKey:(const std::string&)key;
+    oo::PList pListForKey(const std::string& key); // null PList: absent
+    void setPList(const oo::PList& value, const std::string& key); // a null value is not stored
+    void removePListForKey(const std::string& key);
 
-- (void)setPruneThreshold:(unsigned)threshold;
-- (unsigned)pruneThreshold;
+    void setPruneThreshold(unsigned threshold);
+    unsigned pruneThreshold();
 
-- (void)setAutoPrune:(BOOL)flag;
-- (BOOL)autoPrune;
+    void setAutoPrune(bool flag);
+    bool autoPrune();
 
-- (void)prune;
+    void prune();
 
-- (BOOL)dirty;
-- (void)markClean;
+    bool dirty();
+    void markClean();
 
-- (std::optional<std::string>)cxx_name; // nullopt: unnamed (bead oo-3rb.289.9)
-- (void)cxx_setName:(const std::optional<std::string>&)name;
+    std::optional<std::string> name(); // nullopt: unnamed (bead oo-3rb.289.9)
+    void setName(const std::optional<std::string>& name);
 
-- (std::vector<oo::PList>)pListsByAge; // the values, youngest first; empty for an empty cache
+    std::vector<oo::PList> pListsByAge(); // the values, youngest first; empty for an empty cache
 
-@end
+    // What "%@" printed between the braces of <OOCache 0x...>{...} (OODescription.h).
+    std::optional<std::string> descriptionComponents() const;
+
+#if DEBUG_GRAPHVIZ
+    std::optional<std::string> generateGraphVizBodyWithRootNamed(const std::string& rootName);
+    std::string generateGraphViz();
+    void writeGraphVizToPath(const std::string& path);
+#endif
+
+private:
+    bool initWithPList(const oo::PList& pList); // false where -cxx_initWithPList: returned nil
+
+    void loadFromArray(const oo::PList& inArray);
+
+#if DEBUG_GRAPHVIZ
+    void appendNodesFromSubTree(struct OOCacheNode* subTree, std::string& ioString);
+#endif
+
+    struct OOCacheImpl* cache = { };
+    unsigned _pruneThreshold = { }; // (the ivar was pruneThreshold, now the getter's name)
+    bool _autoPrune = { }; // (autoPrune, likewise)
+    bool _dirty = { }; // (dirty, likewise)
+};

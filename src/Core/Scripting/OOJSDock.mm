@@ -24,7 +24,6 @@ MA 02110-1301, USA.
 #import "OOJSDock.h"
 #import "DockEntity.h"
 #import "EntityOOJavaScriptExtensions.h"
-#import "OOFoundationBridge.h"
 #import "OOJSEntity.h"
 #import "OOJSPlayer.h"
 #import "OOJSShip.h"
@@ -75,7 +74,7 @@ void InitOOJSDock(JSContext* context, JSValueConst global)
     OOJSRegisterClass(&sDockClassID, &sDockClass);
 
     JSValue parentPrototype = JS_GetClassProto(context, JSShipClassID());
-    NSCAssert(JS_IsObject(parentPrototype), @"Ship must be initialized before Dock.");
+    OOCAssert(JS_IsObject(parentPrototype), "Ship must be initialized before Dock.");
     OOJSInitClass(context, global, sDockClassID, parentPrototype, OOJSUnconstructableConstruct, 0,
         sDockProperties, OOJS_COUNT(sDockProperties), sDockMethods, OOJS_COUNT(sDockMethods), NULL, 0);
     JS_FreeValue(context, parentPrototype);

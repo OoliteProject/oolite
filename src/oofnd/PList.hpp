@@ -26,8 +26,8 @@
 
         The last two rows are the Foundation sweep's typed carrier for configuration dictionaries that mix
         property-list data with live objects (proposed ADR-0043 Amendment 2). No parser produces either;
-        the game side (src/Core/OOFoundationBridge.h) makes them from Foundation objects and back, so a
-        round trip returns the same objects and the same NSNumber types. An Object is an oo::Ref to a
+        the game side (src/Core/OOObjCPList.h) makes an Object from a live Objective-C object and reads
+        it back. An Object is an oo::Ref to a
         PListForeign, which oofnd never looks into: it compares by identity and describes itself.
 
         Representation choices (ADR-0013 decision 4 and proposed ADR-0027):

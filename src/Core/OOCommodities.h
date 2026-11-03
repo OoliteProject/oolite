@@ -4,6 +4,11 @@ OOCommodities.h
 
 Commodity price and quantity manager
 
+C++20 since bead oo-fqyw (Phase 3, proposed ADR-0056). The class is cxx::OOCommodities while
+OOCommodities+ObjCBridge.h, imported at the end of this header, keeps the Objective-C OOCommodities
+its unconverted callers message; the bridge's deletion bead moves it out of namespace cxx. The
+markets it makes are C++ (cxx::OOCommodityMarket); the facade hands them out as their facades.
+
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
 
@@ -24,8 +29,12 @@ MA 02110-1301, USA.
 
 */
 
+#ifndef OOCOMMODITIES_H
+#define OOCOMMODITIES_H
+
 #import "OOTypes.h"
 #include "oofnd/PList.hpp"
+#include "oofnd/Ref.hpp"
 
 #include <map>
 #include <optional>
@@ -40,27 +49,53 @@ static inline OOMassUnit OOMassUnitFromNumber(unsigned n)
     return (n <= UNITS_GRAMS) ? (OOMassUnit)n : UNITS_UNKNOWN;
 }
 
-@class OOCommodityMarket, StationEntity;
-
-@interface OOCommodities : OOObject {
-@private
-    std::map<std::string, oo::PList, std::less<>> _commodityLists; // trade-goods.plist: commodity key -> its info (a Dict)
+@class StationEntity, OOScript;
+namespace cxx {
+class OOCommodityMarket;
 }
 
-+ (std::optional<std::string>)cxx_legacyCommodityType:(NSUInteger)i; // always a key (the old method never returned nil)
+namespace cxx {
 
-- (OOCommodityMarket*)generateManifestForPlayer;
-- (OOCommodityMarket*)generateBlankMarket;
-- (OOCommodityMarket*)cxx_generateMarketForSystemWithEconomy:(OOEconomyID)economy andScript:(const std::optional<std::string>&)scriptName; // nullopt: no script (was nil)
-- (OOCommodityMarket*)generateMarketForStation:(StationEntity*)station;
+class OOCommodities : public oo::RefCounted {
+public:
+    OOCommodities(); // reads trade-goods.plist
 
-- (OOCreditsQuantity)cxx_samplePriceForCommodity:(const std::string&)commodity inEconomy:(OOEconomyID)economy withScript:(const std::optional<std::string>&)scriptName inSystem:(OOSystemID)system;
+    static std::optional<std::string> legacyCommodityType(NSUInteger i); // always a key (the old method never returned nil)
 
-- (NSUInteger)count;
-- (std::vector<std::string>)goods; // commodity keys, in key order
-- (BOOL)cxx_goodDefined:(const std::string&)key;
-- (std::optional<std::string>)cxx_goodNamed:(const std::string&)name; // nullopt: no good has that (expanded) name
-- (std::string)getRandomCommodity; // a commodity key
-- (OOMassUnit)massUnitForGood:(const std::string&)good;
+    oo::Ref<OOCommodityMarket> generateManifestForPlayer();
+    oo::Ref<OOCommodityMarket> generateBlankMarket();
+    oo::Ref<OOCommodityMarket> generateMarketForSystemWithEconomy(OOEconomyID economy, const std::optional<std::string>& scriptName); // nullopt: no script (was nil)
+    oo::Ref<OOCommodityMarket> generateMarketForStation(StationEntity* station);
 
-@end
+    OOCreditsQuantity samplePriceForCommodity(const std::string& commodity, OOEconomyID economy, const std::optional<std::string>& scriptName, OOSystemID system);
+
+    NSUInteger count();
+    std::vector<std::string> goods(); // commodity keys, in key order
+    bool goodDefined(const std::string& key);
+    std::optional<std::string> goodNamed(const std::string& name); // nullopt: no good has that (expanded) name
+    std::string getRandomCommodity(); // a commodity key
+    OOMassUnit massUnitForGood(const std::string& good);
+
+private:
+    oo::PList modifyGood(const oo::PList& good, OOScript* script, StationEntity* station, OOSystemID system, bool local);
+    oo::PList createDefinitionFrom(const oo::PList& good, OOCreditsQuantity p, OOCargoQuantity q, const std::string& key, StationEntity* station, OOSystemID system);
+
+    OOCargoQuantity generateQuantityForGood(const oo::PList& good, OOEconomyID economy);
+    OOCreditsQuantity generatePriceForGood(const oo::PList& good, OOEconomyID economy);
+
+    float economicBiasForGood(const oo::PList& good, OOEconomyID economy);
+    oo::PList firstModifierForGood(const std::string& good, const oo::PList& classes, const oo::PList& definitions);
+    OOCreditsQuantity adjustPrice(OOCreditsQuantity price, const oo::PList& rule);
+    OOCargoQuantity adjustQuantity(OOCargoQuantity quantity, const oo::PList& rule);
+    oo::PList updateInfoFor(const oo::PList& good, const oo::PList& rule, OOCargoQuantity maxCapacity);
+
+    std::map<std::string, oo::PList, std::less<>> _commodityLists; // trade-goods.plist: commodity key -> its info (a Dict)
+};
+
+} // namespace cxx
+
+// Transitional: the Objective-C OOCommodities, for callers not yet converted. Deleted, with
+// namespace cxx above, by the bridge's deletion bead.
+#import "OOCommodities+ObjCBridge.h"
+
+#endif // OOCOMMODITIES_H

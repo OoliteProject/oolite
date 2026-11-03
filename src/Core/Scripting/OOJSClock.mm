@@ -25,7 +25,6 @@ MA 02110-1301, USA.
 
 #import "OOJSClock.h"
 #import "OODebugStandards.h"
-#import "OOFoundationBridge.h"
 #import "OOJSPlayer.h"
 #import "OOJavaScriptEngine.h"
 #import "OOStringParsing.h"
@@ -33,6 +32,14 @@ MA 02110-1301, USA.
 #import "PlayerEntityScriptMethods.h"
 #import "Universe.h"
 
+/*
+        C++20 since bead oo-xy5r, converted the way bead oo-ppc converted OOJSVector.mm (proposed
+        ADR-0056 amendment oo-ppc). The JS class was already C++ on the QuickJS-ng binding;
+        OOJS_NATIVE_ENTER/EXIT are a C++ try/catch (OOJavaScriptEngine.h) and BOOL/YES/NO are
+        bool/true/false. The file has no category, so there is no bridge. Messages to classes that are
+        still Objective-C (PlayerEntity, Universe) stay as they are, which is why the file is still
+        .mm until Phase 4.
+*/
 static JSValue ClockGetProperty(OOJS_GETTER_ARGS);
 
 // Methods
@@ -133,7 +140,7 @@ static JSValue ClockGetProperty(OOJS_GETTER_ARGS)
         return JS_NewInt32(context, floor(clockTime / 86400.0));
 
     case kClock_clockString:
-        return OOJSValueFromNativeObject(context, oo::NSStringFrom([player cxx_dial_clock]));
+        return OOJSValueFromPList(context, oo::PList([player cxx_dial_clock]));
 
     case kClock_isAdjusting:
         return OOJSValueFromBOOL([player clockAdjusting]);
@@ -160,7 +167,7 @@ static JSValue JSClockToString(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    OOJS_RETURN_OBJECT(oo::NSStringFrom([OOPlayerForScripting() cxx_dial_clock]));
+    OOJS_RETURN_PLIST(oo::PList([OOPlayerForScripting() cxx_dial_clock]));
 
     OOJS_NATIVE_EXIT
 }
@@ -182,7 +189,7 @@ static JSValue ClockClockStringForTime(OOJS_NATIVE_ARGS)
         return JS_EXCEPTION;
     }
 
-    OOJS_RETURN(OOJSValueFromPList(context, oo::PList(cxx_ClockToString(time, NO))));
+    OOJS_RETURN(OOJSValueFromPList(context, oo::PList(cxx_ClockToString(time, false))));
 
     OOJS_NATIVE_EXIT
 }
@@ -206,12 +213,12 @@ static JSValue ClockAddSeconds(OOJS_NATIVE_ARGS)
     }
 
     if (time > kMaxTime || time < 1.0 || !isfinite(time)) {
-        OOJS_RETURN_BOOL(NO);
+        OOJS_RETURN_BOOL(false);
     }
 
     [OOPlayerForScripting() addToAdjustTime:time];
 
-    OOJS_RETURN_BOOL(YES);
+    OOJS_RETURN_BOOL(true);
 
     OOJS_NATIVE_EXIT
 }

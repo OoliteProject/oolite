@@ -24,29 +24,45 @@ MA 02110-1301, USA.
 */
 
 #import "OOScriptTimer.h"
-#import "OOFoundationBridge.h"
 #import "OOLogging.h"
 #import "OOPriorityQueue.h"
-#import "OOStringBridge.h"
 #import "Universe.h"
-#include "oofnd/objc/OOException.h"
+#include "oofnd/String.hpp"
+#include "oofnd/objc/OORuntime.h"
 
 static OOPriorityQueue* sTimers;
 
 // During an update, new timers must be deferred to avoid an infinite loop.
-static BOOL sUpdating;
+namespace {
+static bool sUpdating;
+} // namespace
 namespace {
 static std::vector<oo::ObjCRef<OOScriptTimer*>>* sDeferredTimers;
 } // namespace
 
-@implementation OOScriptTimer
+namespace cxx {
 
-- (id)initWithNextTime:(OOTimeAbsolute)nextTime
-              interval:(OOTimeDelta)interval
+oo::Ref<OOScriptTimer> OOScriptTimer::timerWithNextTime(OOTimeAbsolute nextTime, OOTimeDelta interval)
+{
+    oo::Ref<OOScriptTimer> timer = oo::adopt(new OOScriptTimer);
+    if (!timer->initWithNextTime(nextTime, interval))
+        return nullptr;
+    return timer;
+}
+
+oo::Ref<OOScriptTimer> OOScriptTimer::oneShotTimerWithDelay(OOTimeDelta delay)
+{
+    oo::Ref<OOScriptTimer> timer = oo::adopt(new OOScriptTimer);
+    if (!timer->initOneShotTimerWithDelay(delay))
+        return nullptr;
+    return timer;
+}
+
+bool OOScriptTimer::initWithNextTime(OOTimeAbsolute nextTime, OOTimeDelta interval)
 {
     OOTimeAbsolute now;
 
-    if ((self = [super init])) {
+    {
         if (interval <= 0.0)
             interval = -1.0;
 
@@ -55,33 +71,30 @@ static std::vector<oo::ObjCRef<OOScriptTimer*>>* sDeferredTimers;
             nextTime = now + interval;
         if (nextTime < now && interval < 0) {
             // Negative or old nextTime and negative interval = meaningless.
-            [self release];
-            self = nil;
+            return false;
         } else {
             _nextTime = nextTime;
             _interval = interval;
-            _hasBeenRun = NO;
+            _hasBeenRun = false;
         }
     }
 
-    return self;
+    return true;
 }
 
 // Sets nextTime to current time + delay.
-- (id)initOneShotTimerWithDelay:(OOTimeDelta)delay
+bool OOScriptTimer::initOneShotTimerWithDelay(OOTimeDelta delay)
 {
-    return [self initWithNextTime:[UNIVERSE getTime] + delay interval:-1.0];
+    return initWithNextTime([UNIVERSE getTime] + delay, -1.0);
 }
 
-- (void)dealloc
+OOScriptTimer::~OOScriptTimer()
 {
     if (_isScheduled)
-        [self unscheduleTimer];
-
-    [super dealloc];
+        unscheduleTimer();
 }
 
-- (std::optional<std::string>)cxx_descriptionComponents
+std::optional<std::string> OOScriptTimer::descriptionComponents() const
 {
     std::string intervalDesc;
 
@@ -93,116 +106,120 @@ static std::vector<oo::ObjCRef<OOScriptTimer*>>* sDeferredTimers;
     return oo::str::format("nextTime: %g, %s, %srunning", _nextTime, intervalDesc.c_str(), _isScheduled ? "" : "not ");
 }
 
-- (OOTimeAbsolute)nextTime
+OOTimeAbsolute OOScriptTimer::nextTime()
 {
     return _nextTime;
 }
 
-- (BOOL)setNextTime:(OOTimeAbsolute)nextTime
+bool OOScriptTimer::setNextTime(OOTimeAbsolute nextTime)
 {
     if (_isScheduled)
-        return NO;
+        return false;
 
     _nextTime = nextTime;
-    return YES;
+    return true;
 }
 
-- (OOTimeDelta)interval
+OOTimeDelta OOScriptTimer::interval()
 {
     return _interval;
 }
 
-- (void)setInterval:(OOTimeDelta)interval
+void OOScriptTimer::setInterval(OOTimeDelta interval)
 {
     if (interval <= 0.0)
         interval = -1.0;
     _interval = interval;
 }
 
-- (void)timerFired
+void OOScriptTimer::timerFired()
 {
     OOLogGenericSubclassResponsibility();
 }
 
-- (BOOL)scheduleTimer
+bool OOScriptTimer::scheduleTimer()
 {
     if (_isScheduled)
-        return YES;
-    if (![self isValidForScheduling])
-        return NO;
+        return true;
+    if (!isValidForScheduling())
+        return false;
 
     if (EXPECT(!sUpdating)) {
-        if (EXPECT_NOT(sTimers == nil))
-            sTimers = [[OOPriorityQueue alloc] initWithComparator:@selector(compareByNextFireTime:)];
-        [sTimers addObject:self];
+        if (EXPECT_NOT(sTimers == nullptr))
+            sTimers = OOPriorityQueue::queueWithComparator(OOSelectorFromName("compareByNextFireTime:")).leakRef();
+        sTimers->addObject(oo::ToObjC(this)); // the queue holds (and retains) the timer's facade
     } else {
         if (sDeferredTimers == NULL)
-            sDeferredTimers = new std::vector<oo::ObjCRef<OOScriptTimer*>>;
-        sDeferredTimers->emplace_back(self);
+            sDeferredTimers = new std::vector<oo::ObjCRef<::OOScriptTimer*>>;
+        sDeferredTimers->emplace_back(oo::ToObjC(this));
     }
 
-    _isScheduled = YES;
-    return YES;
+    _isScheduled = true;
+    return true;
 }
 
-- (void)unscheduleTimer
+void OOScriptTimer::unscheduleTimer()
 {
-    [sTimers removeExactObject:self];
-    _isScheduled = NO;
-    _hasBeenRun = NO;
+    // A queued timer's facade is alive (the queue retains it), so a timer with no live facade is not
+    // in the queue; this is also what makes the call safe from the destructors.
+    if (sTimers != nullptr)
+        sTimers->removeExactObject(oo::LiveObjC(this));
+    _isScheduled = false;
+    _hasBeenRun = false;
 }
 
-- (BOOL)isScheduled
+bool OOScriptTimer::isScheduled()
 {
     return _isScheduled;
 }
 
-+ (void)updateTimers
+void OOScriptTimer::updateTimers()
 {
-    OOScriptTimer* timer = nil;
+    OOScriptTimer* timer = nullptr;
     OOTimeAbsolute now;
 
-    sUpdating = YES;
+    sUpdating = true;
 
     now = [UNIVERSE getTime];
     for (;;) {
-        timer = [sTimers peekAtNextObject];
-        if (timer == nil || now < [timer nextTime])
+        timer = (sTimers != nullptr) ? oo::ToCxx(static_cast<::OOScriptTimer*>(sTimers->peekAtNextObject())) : nullptr;
+        if (timer == nullptr || now < timer->nextTime())
             break;
 
-        [sTimers removeNextObject];
+        sTimers->removeNextObject(); // autoreleases the facade, which keeps the timer alive
 
         // Must fire before rescheduling so that the timer callback can stop itself. -- Ahruman 2011-01-01
-        [timer timerFired];
+        timer->timerFired();
 
-        timer->_hasBeenRun = YES;
+        timer->_hasBeenRun = true;
 
         if (timer->_isScheduled) {
-            timer->_isScheduled = NO;
-            [timer scheduleTimer];
+            timer->_isScheduled = false;
+            timer->scheduleTimer();
         }
     }
 
     if (sDeferredTimers != NULL) {
         for (const auto& deferred : *sDeferredTimers)
-            [sTimers addObject:deferred.get()]; // as -addObjects: did, in order
+            if (sTimers != nullptr)
+                sTimers->addObject(deferred.get()); // as -addObjects: did, in order
         delete sDeferredTimers;
         sDeferredTimers = NULL;
     }
 
-    sUpdating = NO;
+    sUpdating = false;
 }
 
-+ (void)noteGameReset
+void OOScriptTimer::noteGameReset()
 {
     // Intermediate array is required so we don't get stuck in an endless loop over reinserted timers. Note that -sortedObjects also clears the queue!
-    const std::vector<oo::ObjCRef<id>> timers = (sTimers != nil) ? [sTimers sortedObjects] : std::vector<oo::ObjCRef<id>>(); // (no C++ value from a message to nil)
+    const std::vector<oo::ObjCRef<id>> timers = (sTimers != nullptr) ? sTimers->sortedObjects() : std::vector<oo::ObjCRef<id>>(); // (no C++ value from a message to nil)
     for (const auto& timer : timers) {
-        static_cast<OOScriptTimer*>(timer.get())->_isScheduled = NO;
+        oo::ToCxx(static_cast<::OOScriptTimer*>(timer.get()))->_isScheduled = false;
     }
 }
 
-- (BOOL)isValidForScheduling
+bool OOScriptTimer::isValidForScheduling()
 {
     OOTimeAbsolute now;
     double scaled;
@@ -210,7 +227,7 @@ static std::vector<oo::ObjCRef<OOScriptTimer*>>* sDeferredTimers;
     now = [UNIVERSE getTime];
     if (_nextTime <= now) {
         if (_interval <= 0.0 && _hasBeenRun)
-            return NO; // One-shot timer which has expired
+            return false; // One-shot timer which has expired
 
         // Move _nextTime to the closest future time that's a multiple of _interval
         scaled = (now - _nextTime) / _interval;
@@ -222,20 +239,17 @@ static std::vector<oo::ObjCRef<OOScriptTimer*>>* sDeferredTimers;
         }
     }
 
-    return YES;
+    return true;
 }
 
-- (OOComparisonResult)compareByNextFireTime:(OOScriptTimer*)other
+OOComparisonResult OOScriptTimer::compareByNextFireTime(OOScriptTimer* other)
 {
     OOTimeAbsolute otherTime = -INFINITY;
 
-    @try {
-        if (other != nil)
-            otherTime = [other nextTime];
-    }
-    @catch (OOException* exception) {
-        OO_LOG(cxx_kOOLogException, "\n\n***** Ignoring Timer Exception: {} : {} *****\n\n", [exception name], [exception reason]);
-    }
+    // The old body read [other nextTime] inside a try block, logging and ignoring an OOException. It is a
+    // plain C++ getter now, which cannot throw, so the handler is gone.
+    if (other != nullptr)
+        otherTime = other->nextTime();
 
     if (_nextTime < otherTime)
         return OOOrderedAscending;
@@ -245,4 +259,4 @@ static std::vector<oo::ObjCRef<OOScriptTimer*>>* sDeferredTimers;
         return OOOrderedSame;
 }
 
-@end
+} // namespace cxx

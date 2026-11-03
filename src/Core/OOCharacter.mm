@@ -24,14 +24,14 @@ MA 02110-1301, USA.
 
 #import "OOCharacter.h"
 
-#import "OOFoundationBridge.h"
 #import "OOJSScript.h"
-#import "OOPListView.h"
+#import "OOObjCPList.h"
 #import "OOStringExpander.h"
 #import "OOStringParsing.h"
 #import "Universe.h"
 #include "oofnd/Scanner.hpp"
 #include "oofnd/String.hpp"
+#include "oofnd/objc/OORuntime.h"
 
 namespace {
 
@@ -47,69 +47,59 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::stri
 
 } // namespace
 
-@interface OOCharacter (Private)
-
-- (id)initWithGenSeed:(Random_Seed)characterSeed andOriginalSystem:(OOSystemID)systemSeed;
-- (void)setCharacterFromDictionary:(const oo::PList&)dict;
-
-- (void)setOriginSystem:(OOSystemID)value;
-- (Random_Seed)genSeed;
-
+// -intValue as Foundation's number and string classes declared it (an Object node's object may answer
+// it; no Foundation header declares it since oo-qps.17).
+@protocol OOCharacterIntValue
+- (int)intValue;
 @end
 
-@implementation OOCharacter
+namespace cxx {
 
-- (std::optional<std::string>)cxx_descriptionComponents
+std::optional<std::string> OOCharacter::descriptionComponents() const
 {
-    // ("(null)" is what "%@" printed for a missing name or description)
-    return oo::str::format("%s, %s. bounty: %i insurance: %zu", _name.value_or("(null)").c_str(), _shortDescription.value_or("(null)").c_str(), [self legalStatus], [self insuranceCredits]);
+    // ("(null)" is what "%@" printed for a missing name or description; the two getters read
+    // _legalStatus and _insuranceCredits, which a const member reads directly)
+    return oo::str::format("%s, %s. bounty: %i insurance: %zu", _name.value_or("(null)").c_str(), _shortDescription.value_or("(null)").c_str(), _legalStatus, _insuranceCredits);
 }
 
-- (std::optional<std::string>)cxx_oo_jsClassName
+std::optional<std::string> OOCharacter::oo_jsClassName()
 {
     return std::string("Character");
 }
 
-- (void)dealloc
+OOCharacter::OOCharacter(Random_Seed characterSeed, OOSystemID system)
 {
-    _name.reset();
-    _shortDescription.reset();
-    _scriptActions = oo::PList();
-    DESTROY(_script);
+    // do character set-up
+    _genSeed = characterSeed;
+    _originSystem = system;
 
-    [super dealloc];
+    basicSetUp();
 }
 
-- (id)initWithGenSeed:(Random_Seed)characterSeed andOriginalSystem:(OOSystemID)system
-{
-    if ((self = [super init])) {
-        // do character set-up
-        _genSeed = characterSeed;
-        _originSystem = system;
+namespace {
 
-        [self basicSetUp];
-    }
-    return self;
-}
-
-- (id)initWithRole:(const std::string&)role andOriginalSystem:(OOSystemID)system
-{
-    Random_Seed seed;
-    make_pseudo_random_seed(&seed);
-
-    if ((self = [self initWithGenSeed:seed andOriginalSystem:system])) {
-        [self castInRole:role];
+    // -initWithRole:andOriginalSystem:'s seed, made before it called -initWithGenSeed:andOriginalSystem:.
+    Random_Seed PseudoRandomSeed()
+    {
+        Random_Seed seed;
+        make_pseudo_random_seed(&seed);
+        return seed;
     }
 
-    return self;
-}
+} // namespace
 
-+ (OOCharacter*)characterWithRole:(const std::string&)role andOriginalSystem:(OOSystemID)system
+OOCharacter::OOCharacter(const std::string& role, OOSystemID system)
+    : OOCharacter(PseudoRandomSeed(), system)
 {
-    return [[[self alloc] initWithRole:role andOriginalSystem:system] autorelease];
+    castInRole(role);
 }
 
-+ (OOCharacter*)randomCharacterWithRole:(const std::string&)role andOriginalSystem:(OOSystemID)system
+oo::Ref<OOCharacter> OOCharacter::characterWithRole(const std::string& role, OOSystemID system)
+{
+    return oo::makeRef<OOCharacter>(role, system);
+}
+
+oo::Ref<OOCharacter> OOCharacter::randomCharacterWithRole(const std::string& role, OOSystemID system)
 {
     Random_Seed seed;
 
@@ -120,46 +110,46 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::stri
     seed.e = (Ranrot() & 0xff);
     seed.f = (Ranrot() & 0xff);
 
-    OOCharacter* character = [[[OOCharacter alloc] initWithGenSeed:seed andOriginalSystem:system] autorelease];
-    [character castInRole:role];
+    oo::Ref<OOCharacter> character = oo::adopt(new OOCharacter(seed, system));
+    character->castInRole(role);
 
     return character;
 }
 
-+ (OOCharacter*)characterWithDictionary:(id)dict
+oo::Ref<OOCharacter> OOCharacter::characterWithDictionary(const oo::PList& dict)
 {
-    OOCharacter* character = [[[OOCharacter alloc] init] autorelease];
-    // (read as an oo::PList, which carries any non-plist values exactly: proposed ADR-0043 Amendment 2)
-    [character setCharacterFromDictionary:oo::PListFrom(dict)];
+    oo::Ref<OOCharacter> character = oo::makeRef<OOCharacter>();
+    // (an oo::PList, which carries any non-plist values exactly: proposed ADR-0043 Amendment 2)
+    character->setCharacterFromDictionary(dict);
 
     return character;
 }
 
-- (std::optional<std::string>)planetOfOrigin
+std::optional<std::string> OOCharacter::planetOfOrigin()
 {
     // determine the planet of origin
-    const oo::PList originInfo = [UNIVERSE cxx_generateSystemData:[self planetIDOfOrigin]];
+    const oo::PList originInfo = [UNIVERSE cxx_generateSystemData:planetIDOfOrigin()];
     const oo::PList* name = originInfo.find(std::string(KEY_NAME));
     if (name == nullptr || !name->isString())
         return std::nullopt; // (the value was returned as it stood; it is a string)
     return *name->getIf<std::string>();
 }
 
-- (OOSystemID)planetIDOfOrigin
+OOSystemID OOCharacter::planetIDOfOrigin()
 {
     // determine the planet of origin
     return _originSystem;
 }
 
-- (std::optional<std::string>)species
+std::optional<std::string> OOCharacter::species()
 {
     // determine the character's species
-    int species = [self genSeed].f & 0x03; // 0-1 native to home system, 2 human colonial, 3 other
+    int species = genSeed().f & 0x03; // 0-1 native to home system, 2 human colonial, 3 other
     std::optional<std::string> speciesString;
     if (species == 3)
-        speciesString = [UNIVERSE cxx_getSystemInhabitants:[self genSeed].e plural:NO];
+        speciesString = [UNIVERSE cxx_getSystemInhabitants:genSeed().e plural:NO];
     else
-        speciesString = [UNIVERSE cxx_getSystemInhabitants:[self planetIDOfOrigin] plural:NO];
+        speciesString = [UNIVERSE cxx_getSystemInhabitants:planetIDOfOrigin() plural:NO];
 
     if (!speciesString.has_value())
         return std::nullopt;
@@ -171,23 +161,23 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::stri
     return oo::str::trim(*speciesString, oo::str::CharacterSet::whitespace());
 }
 
-- (void)basicSetUp
+void OOCharacter::basicSetUp()
 {
     // save random seeds for restoration later
     RNG_Seed savedRNGSeed = currentRandomSeed();
     RANROTSeed savedRANROTSeed = RANROTGetFullSeed();
     // set RNG to character seed
-    Random_Seed genSeed = [self genSeed];
+    Random_Seed genSeed = this->genSeed();
     seed_for_planet_description(genSeed);
 
     // determine the planet of origin
-    const oo::PList originInfo = [UNIVERSE cxx_generateSystemData:[self planetIDOfOrigin]];
+    const oo::PList originInfo = [UNIVERSE cxx_generateSystemData:planetIDOfOrigin()];
     const std::optional<std::string> planet = OptionalStringForKey(originInfo, std::string(KEY_NAME));
     OOGovernmentID government = originInfo.get<int>(std::string(KEY_GOVERNMENT)); // 0 .. 7 (0 anarchic .. 7 most stable)
     int criminalTendency = government ^ 0x07;
 
     // determine the character's species
-    const std::optional<std::string> species = [self species];
+    const std::optional<std::string> species = this->species();
 
     // determine the character's name (each half expanded in turn, as the format's arguments were)
     seed_RNG_only_for_planet_description(genSeed);
@@ -211,32 +201,40 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::stri
     _shortDescription = cxx_OOExpandKeyWithSeed(genSeed, "character-generic-description", species, planet);
 
     // determine _legalStatus for a completely random character
-    [self setLegalStatus:0]; // clean
-    int legalIndex = gen_rnd_number() & gen_rnd_number() & 0x03;
+    setLegalStatus(0); // clean
+    // Two draws, named so the order is explicit (left operand first, as clang evaluated it).
+    const int legalDraw1 = gen_rnd_number();
+    const int legalDraw2 = gen_rnd_number();
+    int legalIndex = legalDraw1 & legalDraw2 & 0x03;
     while (((gen_rnd_number() & 0xf) < criminalTendency) && (legalIndex < 3)) {
         legalIndex++;
     }
     if (legalIndex == 3) {
         // criminal
-        [self setLegalStatus:criminalTendency + criminalTendency * (gen_rnd_number() & 0x03) + (gen_rnd_number() & gen_rnd_number() & 0x7f)];
+        const int bountyDraw1 = gen_rnd_number();
+        const int bountyDraw2 = gen_rnd_number();
+        const int bountyDraw3 = gen_rnd_number();
+        setLegalStatus(criminalTendency + criminalTendency * (bountyDraw1 & 0x03) + (bountyDraw2 & bountyDraw3 & 0x7f));
     }
     legalIndex = 0;
     if (_legalStatus > 0)
         legalIndex = (_legalStatus <= 50) ? 1 : 2;
 
     // if clean - determine insurance level (if any)
-    [self setInsuranceCredits:0];
+    setInsuranceCredits(0);
     if (legalIndex == 0) {
-        int insuranceIndex = gen_rnd_number() & gen_rnd_number() & 0x03;
+        const int insuranceDraw1 = gen_rnd_number();
+        const int insuranceDraw2 = gen_rnd_number();
+        int insuranceIndex = insuranceDraw1 & insuranceDraw2 & 0x03;
         switch (insuranceIndex) {
         case 1:
-            [self setInsuranceCredits:125];
+            setInsuranceCredits(125);
             break;
         case 2:
-            [self setInsuranceCredits:250];
+            setInsuranceCredits(250);
             break;
         case 3:
-            [self setInsuranceCredits:500];
+            setInsuranceCredits(500);
         }
     }
 
@@ -245,77 +243,77 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::stri
     RANROTSetFullSeed(savedRANROTSeed);
 }
 
-- (BOOL)castInRole:(const std::string&)roleName
+bool OOCharacter::castInRole(const std::string& roleName)
 {
-    BOOL specialSetUpDone = NO;
+    bool specialSetUpDone = false;
 
     const std::string role = oo::str::lowercase(roleName);
     if (oo::str::hasPrefix(role, "pirate")) {
         // determine _legalStatus for a completely random character
-        Random_Seed genSeed = [self genSeed];
+        Random_Seed genSeed = this->genSeed();
         int sins = 0x08 | (genSeed.a & genSeed.b);
-        [self setLegalStatus:sins & 0x7f];
+        setLegalStatus(sins & 0x7f);
 
-        specialSetUpDone = YES;
+        specialSetUpDone = true;
     } else if (oo::str::hasPrefix(role, "trader")) {
-        [self setLegalStatus:0]; // clean
+        setLegalStatus(0); // clean
 
         int insuranceIndex = gen_rnd_number() & 0x03;
         switch (insuranceIndex) {
         case 0:
-            [self setInsuranceCredits:0];
+            setInsuranceCredits(0);
             break;
         case 1:
-            [self setInsuranceCredits:125];
+            setInsuranceCredits(125);
             break;
         case 2:
-            [self setInsuranceCredits:250];
+            setInsuranceCredits(250);
             break;
         case 3:
-            [self setInsuranceCredits:500];
+            setInsuranceCredits(500);
         }
-        specialSetUpDone = YES;
+        specialSetUpDone = true;
     } else if (oo::str::hasPrefix(role, "hunter")) {
-        [self setLegalStatus:0]; // clean
+        setLegalStatus(0); // clean
         int insuranceIndex = gen_rnd_number() & 0x03;
         if (insuranceIndex == 3)
-            [self setInsuranceCredits:500];
-        specialSetUpDone = YES;
+            setInsuranceCredits(500);
+        specialSetUpDone = true;
     } else if (oo::str::hasPrefix(role, "police")) {
-        [self setLegalStatus:0]; // clean
-        [self setInsuranceCredits:125];
-        specialSetUpDone = YES;
+        setLegalStatus(0); // clean
+        setInsuranceCredits(125);
+        specialSetUpDone = true;
     } else if (role == "miner") {
-        [self setLegalStatus:0]; // clean
-        [self setInsuranceCredits:25];
-        specialSetUpDone = YES;
+        setLegalStatus(0); // clean
+        setInsuranceCredits(25);
+        specialSetUpDone = true;
     } else if (role == "passenger") {
-        [self setLegalStatus:0]; // clean
+        setLegalStatus(0); // clean
         int insuranceIndex = gen_rnd_number() & 0x03;
         switch (insuranceIndex) {
         case 0:
-            [self setInsuranceCredits:25];
+            setInsuranceCredits(25);
             break;
         case 1:
-            [self setInsuranceCredits:125];
+            setInsuranceCredits(125);
             break;
         case 2:
-            [self setInsuranceCredits:250];
+            setInsuranceCredits(250);
             break;
         case 3:
-            [self setInsuranceCredits:500];
+            setInsuranceCredits(500);
         }
-        specialSetUpDone = YES;
+        specialSetUpDone = true;
     } else if (role == "slave") {
-        [self setLegalStatus:0]; // clean
-        [self setInsuranceCredits:0];
-        specialSetUpDone = YES;
+        setLegalStatus(0); // clean
+        setInsuranceCredits(0);
+        specialSetUpDone = true;
     } else if (role == "thargoid") {
-        [self setLegalStatus:100];
-        [self setInsuranceCredits:0];
-        [self cxx_setName:OO_DESC("character-thargoid-name")];
-        [self setShortDescription:oo::NSStringFrom(OO_DESC("character-a-thargoid"))];
-        specialSetUpDone = YES;
+        setLegalStatus(100);
+        setInsuranceCredits(0);
+        setName(OO_DESC("character-thargoid-name"));
+        setShortDescription(OO_DESC("character-a-thargoid"));
+        specialSetUpDone = true;
     }
 
     // do long description here
@@ -323,46 +321,41 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::stri
     return specialSetUpDone;
 }
 
-- (id)name // shared selector (Foundation declares -name too; retires with oo-qps)
-{
-    return oo::NSStringOrNil([self cxx_name]);
-}
-
-- (std::optional<std::string>)cxx_name
+std::optional<std::string> OOCharacter::name()
 {
     return _name;
 }
 
-- (std::optional<std::string>)cxx_shortDescription
+std::optional<std::string> OOCharacter::shortDescription()
 {
     return _shortDescription;
 }
 
-- (Random_Seed)genSeed
+Random_Seed OOCharacter::genSeed()
 {
     return _genSeed;
 }
 
-- (int)legalStatus
+int OOCharacter::legalStatus()
 {
     return _legalStatus;
 }
 
-- (OOCreditsQuantity)insuranceCredits
+OOCreditsQuantity OOCharacter::insuranceCredits()
 {
     return _insuranceCredits;
 }
 
-- (oo::PList)legacyScript
+oo::PList OOCharacter::legacyScript()
 {
     return _scriptActions;
 }
 
-- (oo::PList)infoForScripting
+oo::PList OOCharacter::infoForScripting()
 {
     // Every value is worked out first, as the list's arguments were; the list ended at the first
     // nil (a missing name, description or species).
-    const std::optional<std::string> species = [self species];
+    const std::optional<std::string> species = this->species();
     oo::PList::Dict result;
     if (_name.has_value()) {
         result.emplace("name", oo::PList(*_name));
@@ -370,76 +363,70 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::stri
             result.emplace("description", oo::PList(*_shortDescription));
             if (species.has_value()) {
                 result.emplace("species", oo::PList(*species));
-                result.emplace("legalStatus", oo::PList::signedInteger([self legalStatus]));
-                result.emplace("insuranceCredits", oo::PList::unsignedInteger([self insuranceCredits]));
-                result.emplace("homeSystem", oo::PList::signedInteger([self planetIDOfOrigin]));
+                result.emplace("legalStatus", oo::PList::signedInteger(legalStatus()));
+                result.emplace("insuranceCredits", oo::PList::unsignedInteger(insuranceCredits()));
+                result.emplace("homeSystem", oo::PList::signedInteger(planetIDOfOrigin()));
             }
         }
     }
     return oo::PList(std::move(result));
 }
 
-- (void)setName:(id)value // shared selector (Foundation declares -setName: too; retires with oo-qps)
-{
-    [self cxx_setName:oo::OptionalString(value)];
-}
-
-- (void)cxx_setName:(const std::optional<std::string>&)value
+void OOCharacter::setName(const std::optional<std::string>& value)
 {
     _name = value;
 }
 
-- (void)setShortDescription:(id)value
+void OOCharacter::setShortDescription(const std::optional<std::string>& value)
 {
-    _shortDescription = oo::OptionalString(value);
+    _shortDescription = value;
 }
 
-- (void)setOriginSystem:(OOSystemID)value
+void OOCharacter::setOriginSystem(OOSystemID value)
 {
     _originSystem = value;
 }
 
-- (void)setGenSeed:(Random_Seed)value
+void OOCharacter::setGenSeed(Random_Seed value)
 {
     _genSeed = value;
 }
 
-- (void)setLegalStatus:(int)value
+void OOCharacter::setLegalStatus(int value)
 {
     _legalStatus = value;
 }
 
-- (void)setInsuranceCredits:(OOCreditsQuantity)value
+void OOCharacter::setInsuranceCredits(OOCreditsQuantity value)
 {
     _insuranceCredits = value;
 }
 
-- (void)setLegacyScript:(const oo::PList&)some_actions
+void OOCharacter::setLegacyScript(const oo::PList& some_actions)
 {
     _scriptActions = some_actions;
 }
 
-- (OOJSScript*)script
+OOJSScript* OOCharacter::script()
 {
-    return _script;
+    return _script.get();
 }
 
-- (void)setCharacterScript:(const std::string&)scriptName
+void OOCharacter::setCharacterScript(const std::string& scriptName)
 {
-    [_script autorelease];
-    _script = [OOScript cxx_jsScriptFromFileNamed:scriptName
-                                       properties:oo::PList(oo::PList::Dict { { "character", oo::PListObject(self) } })];
-    [_script retain];
+    // (the script's "character" is this character's Objective-C facade, as it was self)
+    _script = oo::ObjCRef<OOJSScript*>([OOScript cxx_jsScriptFromFileNamed:scriptName
+                                                                properties:oo::PList(oo::PList::Dict { { "character", oo::PListObject(oo::ToObjC(this)) } })]);
 }
 
-- (void)doScriptEvent:(OOJSPropID)message
+void OOCharacter::doScriptEvent(OOJSPropID message)
 {
     JSContext* context = OOJSAcquireContext();
-    [_script callMethod:message inContext:context withArguments:NULL count:0 result:NULL];
+    [_script.get() callMethod:message inContext:context withArguments:NULL count:0 result:NULL];
     OOJSRelinquishContext(context);
 }
 
-- (void)setCharacterFromDictionary:(const oo::PList&)dict
+void OOCharacter::setCharacterFromDictionary(const oo::PList& dict)
 {
     const oo::PList* origin = nullptr;
     Random_Seed seed;
@@ -448,21 +435,22 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::stri
     // (a string, a number, or another object that answers -intValue: an Object node)
     const std::string* originName = (origin != nullptr) ? origin->getIf<std::string>() : nullptr;
     id originObject = (origin != nullptr) ? oo::ObjectIn(*origin) : nil;
-    const int originValue = (originObject != nil) ? ([originObject respondsToSelector:@selector(intValue)] ? [originObject intValue] : 0) : dict.get<int>("origin");
-    if ((origin != nullptr && origin->isNumber()) || (((originName != nullptr) || [originObject respondsToSelector:@selector(intValue)]) && (originValue != 0 || (originName != nullptr && *originName == "0")))) {
+    const SEL intValue = OOSelectorFromName("intValue");
+    const int originValue = (originObject != nil) ? ([originObject respondsToSelector:intValue] ? [(id<OOCharacterIntValue>)originObject intValue] : 0) : dict.get<int>("origin");
+    if ((origin != nullptr && origin->isNumber()) || (((originName != nullptr) || [originObject respondsToSelector:intValue]) && (originValue != 0 || (originName != nullptr && *originName == "0")))) {
         // Number or numerical string
-        [self setOriginSystem:originValue];
+        setOriginSystem(originValue);
     } else if (originName != nullptr) {
         OOSystemID sys = [UNIVERSE cxx_findSystemFromName:*originName];
         if (sys < 0) {
             OO_LOG_ERR("character.load.unknownSystem", "could not find a system named '{}' in this galaxy.", *originName);
-            [self setOriginSystem:(ranrot_rand() & 0xff)];
+            setOriginSystem((ranrot_rand() & 0xff));
         } else {
-            [self setOriginSystem:sys];
+            setOriginSystem(sys);
         }
     } else {
         // no origin defined, select one at random.
-        [self setOriginSystem:(ranrot_rand() & 0xff)];
+        setOriginSystem((ranrot_rand() & 0xff));
     }
 
     if (dict.find("random_seed") != nullptr) {
@@ -475,25 +463,25 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::stri
         seed.e = (ranrot_rand() & 0xff);
         seed.f = (ranrot_rand() & 0xff);
     }
-    [self setGenSeed:seed];
-    [self basicSetUp];
+    setGenSeed(seed);
+    basicSetUp();
 
     if (const std::optional<std::string> role = OptionalStringForKey(dict, "role"))
-        [self castInRole:*role];
+        castInRole(*role);
     if (const std::optional<std::string> name = OptionalStringForKey(dict, "name"))
         _name = name;
     if (const std::optional<std::string> shortDescription = OptionalStringForKey(dict, "short_description"))
         _shortDescription = shortDescription;
     if (dict.find("legal_status") != nullptr)
-        [self setLegalStatus:dict.get<int>("legal_status")];
+        setLegalStatus(dict.get<int>("legal_status"));
     if (dict.find("bounty") != nullptr)
-        [self setLegalStatus:dict.get<int>("bounty")];
+        setLegalStatus(dict.get<int>("bounty"));
     if (dict.find("insurance") != nullptr)
-        [self setInsuranceCredits:dict.get<unsigned long long>("insurance")];
+        setInsuranceCredits(dict.get<unsigned long long>("insurance"));
     if (const std::optional<std::string> script = OptionalStringForKey(dict, "script"))
-        [self setCharacterScript:*script];
+        setCharacterScript(*script);
     if (const oo::PList* scriptActions = dict.get<oo::PList::Array>("script_actions"))
-        [self setLegacyScript:*scriptActions];
+        setLegacyScript(*scriptActions);
 }
 
-@end
+} // namespace cxx

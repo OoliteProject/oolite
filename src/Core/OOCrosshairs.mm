@@ -33,46 +33,19 @@ SOFTWARE.
 #import "Universe.h"
 #include "oofnd/PListGet.hpp"
 
-@interface OOCrosshairs (Private)
-
-- (void)setUpDataWithPoints:(const oo::PList&)points
-                      scale:(GLfloat)scale
-                      color:(OOColor*)color
-               overallAlpha:(GLfloat)alpha;
-
-// pointInfo: nullptr for an entry that is not an array (as nil was).
-- (void)setUpDataForOnePoint:(const oo::PList*)pointInfo
-                       scale:(GLfloat)scale
-                  colorComps:(float[4])colorComps
-                overallAlpha:(GLfloat)alpha
-                        data:(GLfloat*)ioBuffer;
-
-@end
-
-@implementation OOCrosshairs
-
-- (id)initWithPoints:(const oo::PList&)points
-               scale:(GLfloat)scale
-               color:(OOColor*)color
-        overallAlpha:(GLfloat)alpha
+OOCrosshairs::OOCrosshairs(const oo::PList& points, GLfloat scale, cxx::OOColor* color, GLfloat alpha)
 {
-    if ((self = [super init])) {
-        if (alpha > 0.0f && (color == nil || [color alphaComponent] != 0.0f)) {
-            [self setUpDataWithPoints:points scale:scale color:color overallAlpha:alpha];
-        }
+    if (alpha > 0.0f && (color == nullptr || color->alphaComponent() != 0.0f)) {
+        setUpDataWithPoints(points, scale, color, alpha);
     }
-
-    return self;
 }
 
-- (void)dealloc
+OOCrosshairs::~OOCrosshairs()
 {
     free(_data);
-
-    [super dealloc];
 }
 
-- (void)render
+void OOCrosshairs::render()
 {
     if (_data != NULL) {
         OO_ENTER_OPENGL();
@@ -103,10 +76,7 @@ SOFTWARE.
     }
 }
 
-- (void)setUpDataWithPoints:(const oo::PList&)points
-                      scale:(GLfloat)scale
-                      color:(OOColor*)color
-               overallAlpha:(GLfloat)alpha
+void OOCrosshairs::setUpDataWithPoints(const oo::PList& points, GLfloat scale, cxx::OOColor* color, GLfloat alpha)
 {
     NSUInteger i;
     float colorComps[4] = { 0.0f, 1.0f, 0.0f, 1.0f };
@@ -117,25 +87,18 @@ SOFTWARE.
         return;
 
     _data = (GLfloat*)malloc(sizeof(GLfloat) * 12 * _count); // 2 coordinates, 4 colour components for each endpoint of each line segment
-    [color getRed:&colorComps[0] green:&colorComps[1] blue:&colorComps[2] alpha:&colorComps[3]];
+    if (color != nullptr)
+        color->getRed(&colorComps[0], &colorComps[1], &colorComps[2], &colorComps[3]);
 
     // Turn the point array into GL-friendly element array
     data = _data;
     for (i = 0; i < _count; i++) {
-        [self setUpDataForOnePoint:points.at<oo::PList::Array>(i)
-                             scale:scale
-                        colorComps:colorComps
-                      overallAlpha:alpha
-                              data:data];
+        setUpDataForOnePoint(points.at<oo::PList::Array>(i), scale, colorComps, alpha, data);
         data += 12;
     }
 }
 
-- (void)setUpDataForOnePoint:(const oo::PList*)pointInfo
-                       scale:(GLfloat)scale
-                  colorComps:(float[4])colorComps
-                overallAlpha:(GLfloat)alpha
-                        data:(GLfloat*)ioBuffer
+void OOCrosshairs::setUpDataForOnePoint(const oo::PList* pointInfo, GLfloat scale, float colorComps[4], GLfloat alpha, GLfloat* ioBuffer)
 {
     GLfloat x1, y1, a1, x2, y2, a2;
     GLfloat r, g, b, a;
@@ -185,5 +148,3 @@ SOFTWARE.
 
     (void)ioBuffer;
 }
-
-@end

@@ -26,7 +26,6 @@ MA 02110-1301, USA.
 #import "OOLightParticleEntity.h"
 #import "MyOpenGLView.h"
 #import "OOColor.h"
-#import "OOFoundationBridge.h"
 #import "OOFunctionAttributes.h"
 #import "OOGraphicsResetManager.h"
 #import "OOMacroOpenGL.h"

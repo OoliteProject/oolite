@@ -41,7 +41,7 @@ MA 02110-1301, USA.
 #include "oofnd/objc/OOAssert.h"
 
 @class GuiDisplayGen, OOTrumble, MyOpenGLView, HeadUpDisplay, ShipEntity;
-@class OOSound, OOSoundSource, OOSoundReferencePoint;
+@class OOSound, OOSoundSource;
 @class OOJoystickManager, OOTexture, OOLaserShotEntity;
 @class StickProfileScreen, OOJSGuiScreenKeyDefinition, OOJSScript;
 
@@ -894,7 +894,7 @@ inline constexpr std::string_view MISSION_DEST_LEGACY = "__oolite_legacy_destina
 - (float)cxx_dialCustomFloat:(const std::string&)dialKey;
 - (std::string)cxx_dialCustomString:(const std::string&)dialKey;
 - (OOColor*)cxx_dialCustomColor:(const std::string&)dialKey;
-- (void)cxx_setDialCustom:(id)value forKey:(const std::string&)dialKey; // value: any script value, kept as given
+- (void)cxx_setDialCustom:(const oo::PList&)value forKey:(const std::string&)dialKey; // value: any script value, kept as given (live objects as Object nodes)
 
 - (std::vector<std::optional<std::string>>)cxx_multiFunctionDisplayList; // nullopt = inactive MFD
 - (std::optional<std::string>)cxx_multiFunctionText:(NSUInteger)index;
@@ -1124,7 +1124,7 @@ inline constexpr std::string_view MISSION_DEST_LEGACY = "__oolite_legacy_destina
 
 - (OOSpeechSettings)isSpeechOn;
 
-- (void)addEquipmentFromCollection:(id)equipment; // equipment may be an array, a set, a dictionary whose values are all YES, or a string.
+- (void)addEquipmentFromCollection:(const oo::PList&)equipment; // equipment may be an array, a dictionary whose values are all YES, or a string.
 
 - (void)getFined;
 - (void)adjustTradeInFactorBy:(int)value;
@@ -1142,8 +1142,8 @@ inline constexpr std::string_view MISSION_DEST_LEGACY = "__oolite_legacy_destina
 - (OOTrumble**)trumbleArray;
 - (NSUInteger)trumbleCount;
 // loading and saving trumbleCount
-- (id)trumbleValue;
-- (void)setTrumbleValueFrom:(id)trumbleValue;
+- (oo::PList)trumbleValue; // [count, hash, trumble records]
+- (void)setTrumbleValueFrom:(const oo::PList&)trumbleValue; // null: none saved
 
 - (float)trumbleAppetiteAccumulator;
 - (void)setTrumbleAppetiteAccumulator:(float)value;

@@ -22,6 +22,7 @@ oofnd_tests = [
     'test_string_compare',
     'test_localized_compare',
     'test_string_sweep',
+    'test_string_path_extension',
     'test_string_format_runtime',
     'test_encoding',
     'test_scanner',
@@ -98,6 +99,7 @@ oofnd_objc_tests = [
     'test_objc_call_by_name',
     'test_objc_description',
     'test_objc_plist',
+    'test_objc_peer',
 ]
 
 foreach t : oofnd_objc_tests

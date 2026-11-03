@@ -26,7 +26,6 @@
 #if NEW_PLANETS
 
 #import "MyOpenGLView.h"
-#import "OOFoundationBridge.h"
 #import "OOMacroOpenGL.h"
 #import "OOOpenGL.h"
 #import "OOPlanetData.h"
@@ -135,7 +134,7 @@
         // {diffuse_map={repeat_s=yes;cube_map=yes};}, as the old-style property list parsed.
         const oo::PList spec(oo::PList::Dict {
             { "diffuse_map", oo::PList(oo::PList::Dict { { "repeat_s", oo::PList("yes") }, { "cube_map", oo::PList("yes") } }) } });
-        _material = [[OOSingleTextureMaterial alloc] initWithName:oo::NSStringFrom(textureName) configuration:oo::ObjectFromPList(spec)];
+        _material = [[OOSingleTextureMaterial alloc] initWithName:textureName configuration:spec];
     }
 }
 

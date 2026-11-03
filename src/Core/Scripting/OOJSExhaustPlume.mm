@@ -24,7 +24,6 @@ MA 02110-1301, USA.
 #import "OOJSExhaustPlume.h"
 #import "EntityOOJavaScriptExtensions.h"
 #import "OOExhaustPlumeEntity.h"
-#import "OOFoundationBridge.h"
 #import "OOJSEntity.h"
 #import "OOJSVector.h"
 #import "OOJavaScriptEngine.h"
@@ -64,7 +63,7 @@ void InitOOJSExhaustPlume(JSContext* context, JSValueConst global)
     OOJSRegisterClass(&sExhaustPlumeClassID, &sExhaustPlumeClass);
 
     JSValue parentPrototype = JS_GetClassProto(context, JSEntityClassID());
-    NSCAssert(JS_IsObject(parentPrototype), @"Entity must be initialized before ExhaustPlume.");
+    OOCAssert(JS_IsObject(parentPrototype), "Entity must be initialized before ExhaustPlume.");
     OOJSInitClass(context, global, sExhaustPlumeClassID, parentPrototype, OOJSUnconstructableConstruct, 0,
         sExhaustPlumeProperties, OOJS_COUNT(sExhaustPlumeProperties), sExhaustPlumeMethods, OOJS_COUNT(sExhaustPlumeMethods), NULL, 0);
     JS_FreeValue(context, parentPrototype);

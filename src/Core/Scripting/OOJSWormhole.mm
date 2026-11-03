@@ -67,7 +67,7 @@ void InitOOJSWormhole(JSContext* context, JSValueConst global)
     OOJSRegisterClass(&sWormholeClassID, &sWormholeClass);
 
     JSValue parentPrototype = JS_GetClassProto(context, JSEntityClassID());
-    NSCAssert(JS_IsObject(parentPrototype), @"Entity must be initialized before Wormhole.");
+    OOCAssert(JS_IsObject(parentPrototype), "Entity must be initialized before Wormhole.");
     OOJSInitClass(context, global, sWormholeClassID, parentPrototype, OOJSUnconstructableConstruct, 0,
         sWormholeProperties, OOJS_COUNT(sWormholeProperties), NULL, 0, NULL, 0);
     JS_FreeValue(context, parentPrototype);

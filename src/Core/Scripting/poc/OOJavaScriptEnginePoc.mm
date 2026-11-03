@@ -1,6 +1,6 @@
 /*
 
-OOJavaScriptEngine.m (QuickJS-ng proof of concept)
+OOJavaScriptEnginePoc.mm (QuickJS-ng proof of concept)
 
 Copyright (C) 2007-2013 David Taylor and Jens Ayton.
 
@@ -23,16 +23,22 @@ MA 02110-1301, USA.
 
 #import "OOJavaScriptEngine.h"
 
-// This minimal engine implements only what the harness uses of the full engine header.
-#pragma clang diagnostic ignored "-Wincomplete-implementation"
 #import "OOJSQuaternion.h"
 #import "OOJSScript.h"
 #import "OOJSVector.h"
 
-#include <time.h>
-#if OOLITE_WINDOWS
-#include <windows.h>
-#endif
+#include "oofnd/Defaults.hpp"
+#include "oofnd/Encoding.hpp"
+#include "oofnd/Log.hpp"
+#include "oofnd/String.hpp"
+
+#include <algorithm>
+#include <chrono>
+#include <cmath>
+#include <cstdarg>
+#include <cstdlib>
+#include <string_view>
+#include <unordered_map>
 
 #define OOJS_RUNTIME_SIZE_MiB 256
 #define OOJS_TIME_LIMIT (1) // seconds
@@ -51,6 +57,11 @@ static const JSCFunctionListEntry sGlobalMethods[] = {
 // JavaScript engine initialisation and shutdown
 //===========================================================================
 
+/*	This minimal engine implements only what the harness uses of the full
+        engine header. The engine methods the harness has no use for (mission
+        callbacks, resets, garbage collection hints, the debug console's stack
+        dump switches) do nothing.
+*/
 @implementation OOJavaScriptEngine
 
 + (OOJavaScriptEngine*)sharedEngine
@@ -63,7 +74,7 @@ static const JSCFunctionListEntry sGlobalMethods[] = {
 
 - (id)init
 {
-    NSAssert(sSharedEngine == nil, @"Attempt to create multiple OOJavaScriptEngines.");
+    OOAssert(sSharedEngine == nil, "Attempt to create multiple OOJavaScriptEngines.");
 
     if (!(self = [super init]))
         return nil;
@@ -72,14 +83,14 @@ static const JSCFunctionListEntry sGlobalMethods[] = {
 
     _runtime = JS_NewRuntime();
     if (_runtime == NULL) {
-        OOLog(@"script.javaScript.init.error", @"%@", @"***** FATAL ERROR: failed to create JavaScript runtime.");
+        OO_LOG("script.javaScript.init.error", "{}", "***** FATAL ERROR: failed to create JavaScript runtime.");
         exit(1);
     }
 
-    NSInteger jsRuntimeInMiB = [[NSUserDefaults standardUserDefaults] integerForKey:@"jsruntime-size-mib"];
+    int64_t jsRuntimeInMiB = oo::Defaults::standard().integerForKey("jsruntime-size-mib");
     if (jsRuntimeInMiB <= 0)
         jsRuntimeInMiB = OOJS_RUNTIME_SIZE_MiB;
-    JS_SetMemoryLimit(_runtime, jsRuntimeInMiB * 1024L * 1024L);
+    JS_SetMemoryLimit(_runtime, static_cast<size_t>(jsRuntimeInMiB) * 1024 * 1024);
     JS_SetInterruptHandler(_runtime, InterruptHandler, NULL);
 #ifndef NDEBUG
     JS_SetDumpFlags(_runtime, JS_DUMP_LEAKS);
@@ -88,7 +99,7 @@ static const JSCFunctionListEntry sGlobalMethods[] = {
     _context = JS_NewContext(_runtime);
     gOOJSMainThreadContext = _context;
     if (_context == NULL) {
-        OOLog(@"script.javaScript.init.error", @"%@", @"***** FATAL ERROR: failed to create JavaScript context.");
+        OO_LOG("script.javaScript.init.error", "{}", "***** FATAL ERROR: failed to create JavaScript context.");
         exit(1);
     }
 
@@ -121,10 +132,10 @@ static const JSCFunctionListEntry sGlobalMethods[] = {
         /*	JS_FreeRuntime() would assert. Dump what is left and abandon the
                 runtime instead, so the leak can be reported.
         */
-        OOLog(@"script.javaScript.shutDown.leak", @"***** JavaScript runtime shut down with %lli objects still alive; something is holding a JSValue it does not own, or has not freed one it does.", (long long)usage.obj_count);
+        OO_LOG("script.javaScript.shutDown.leak", "***** JavaScript runtime shut down with {} objects still alive; something is holding a JSValue it does not own, or has not freed one it does.", static_cast<long long>(usage.obj_count));
         JS_DumpMemoryUsage(stdout, &usage, _runtime);
         _runtime = NULL;
-        return (NSUInteger)usage.obj_count;
+        return static_cast<NSUInteger>(usage.obj_count);
     }
 
     JS_FreeRuntime(_runtime);
@@ -150,13 +161,24 @@ static const JSCFunctionListEntry sGlobalMethods[] = {
     return _globalObject;
 }
 
+- (void)runMissionCallback
+{
+    // The harness has no mission screens.
+}
+
+- (BOOL)reset
+{
+    // The harness's context lives until -shutDown; it is never rebuilt.
+    return NO;
+}
+
 - (BOOL)callJSFunction:(JSValueConst)function
              forObject:(JSValueConst)jsThis
                   argc:(int)argc
                   argv:(JSValueConst*)argv
                 result:(JSValue*)outResult
 {
-    NSParameterAssert(JS_IsFunction(_context, function));
+    OOParameterAssert(JS_IsFunction(_context, function));
 
     OOJSStartTimeLimiter();
     JSValue result = JS_Call(_context, function, jsThis, argc, argv);
@@ -176,6 +198,12 @@ static const JSCFunctionListEntry sGlobalMethods[] = {
     return YES;
 }
 
+- (void)garbageCollectionOpportunity:(BOOL)force
+{
+    // The harness collects only in -shutDown.
+    (void)force;
+}
+
 - (BOOL)showErrorLocations
 {
     return _showErrorLocations;
@@ -186,12 +214,47 @@ static const JSCFunctionListEntry sGlobalMethods[] = {
     _showErrorLocations = !!value;
 }
 
+#ifdef OO_DEBUG_MONITOR_ENABLED
+// The harness dumps no stacks; the switches are only kept.
+- (BOOL)dumpStackForErrors
+{
+    return _dumpStackForErrors;
+}
+
+- (void)setDumpStackForErrors:(BOOL)value
+{
+    _dumpStackForErrors = !!value;
+}
+
+- (BOOL)dumpStackForWarnings
+{
+    return _dumpStackForWarnings;
+}
+
+- (void)setDumpStackForWarnings:(BOOL)value
+{
+    _dumpStackForWarnings = !!value;
+}
+
+- (void)enableDebuggerStatement
+{
+    // Not supported by QuickJS; does nothing, as in the full engine.
+}
+#endif
+
 @end
 
-JSAtom OOJSIDFromString(NSString* string)
+JSAtom cxx_OOJSIDFromString(const std::string& string)
 {
     // Interned for the life of the process, as in the full engine.
-    return JS_NewAtom(OOJSAcquireContext(), [string UTF8String]);
+    static std::unordered_map<std::string, JSAtom> sAtomCache;
+
+    auto cached = sAtomCache.find(string);
+    if (cached != sAtomCache.end())
+        return cached->second;
+    JSAtom atom = JS_NewAtom(OOJSAcquireContext(), string.c_str());
+    sAtomCache.emplace(string, atom);
+    return atom;
 }
 
 JSValue OOJSNativeFailure(JSContext* context)
@@ -204,11 +267,11 @@ JSValue OOJSNativeFailure(JSContext* context)
     return JS_Throw(context, error);
 }
 
-NSString* OOJSWrapScriptSource(NSString* source)
+std::string OOJSWrapScriptSource(const std::string& source)
 {
     // A newline before the closing part is needed if the last line is a // comment.
-    NSString* lineEnd = [source hasSuffix:@"\n"] ? @"" : @"\n";
-    return [NSString stringWithFormat:@"with(this){(function(){%@%@}).call(this)}", source, lineEnd];
+    const char* lineEnd = oo::str::hasSuffix(source, "\n") ? "" : "\n";
+    return "with(this){(function(){" + source + lineEnd + "}).call(this)}";
 }
 
 //===========================================================================
@@ -220,31 +283,31 @@ static JSValue GlobalLog(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    NSString* message = nil;
-    NSString* messageClass = nil;
+    std::string message;
+    std::string messageClass;
 
     if (EXPECT_NOT(argc < 1)) {
         OOJS_RETURN_VOID;
     }
     if (argc < 2) {
-        messageClass = @"script.debug.message";
-        message = OOStringFromJSValue(context, OOJS_ARGV[0]);
+        messageClass = "script.debug.message";
+        message = cxx_OOStringFromJSValue(context, OOJS_ARGV[0]).value_or("(null)");
     } else {
-        messageClass = OOStringFromJSValueEvenIfNull(context, OOJS_ARGV[0]);
-        if (!OOLogWillDisplayMessagesInClass(messageClass)) {
+        messageClass = cxx_OOStringFromJSValueEvenIfNull(context, OOJS_ARGV[0]).value_or("(null)");
+        if (!oo::log::willDisplay(messageClass)) {
             // Do nothing (and short-circuit) if message class is filtered out.
             OOJS_RETURN_VOID;
         }
 
-        NSMutableArray* parts = [NSMutableArray arrayWithCapacity:argc - 1];
         for (int i = 1; i < argc; i++) {
-            [parts addObject:OOStringFromJSValueEvenIfNull(context, OOJS_ARGV[i])];
+            if (i != 1)
+                message += ", ";
+            message += cxx_OOStringFromJSValueEvenIfNull(context, OOJS_ARGV[i]).value_or("(null)");
         }
-        message = [parts componentsJoinedByString:@", "];
     }
 
     OOJS_BEGIN_FULL_NATIVE(context)
-    OOLog(messageClass, @"%@", message);
+    OO_LOG(messageClass, "{}", message);
     OOJS_END_FULL_NATIVE
 
     OOJS_RETURN_VOID;
@@ -264,18 +327,7 @@ static double sLimiterTimeLimit;
 
 static double MonotonicTime(void)
 {
-#if OOLITE_WINDOWS
-    static LARGE_INTEGER frequency;
-    LARGE_INTEGER counter;
-    if (frequency.QuadPart == 0)
-        QueryPerformanceFrequency(&frequency);
-    QueryPerformanceCounter(&counter);
-    return (double)counter.QuadPart / (double)frequency.QuadPart;
-#else
-    struct timespec now;
-    clock_gettime(CLOCK_MONOTONIC, &now);
-    return now.tv_sec + now.tv_nsec * 1e-9;
-#endif
+    return std::chrono::duration<double>(std::chrono::steady_clock::now().time_since_epoch()).count();
 }
 
 void OOJSStartTimeLimiterWithTimeLimit(OOTimeDelta limit)
@@ -292,7 +344,7 @@ void OOJSStartTimeLimiterWithTimeLimit(OOTimeDelta limit)
 void OOJSStopTimeLimiter(void)
 {
     if (sLimiterStartDepth == 0) {
-        OOLog(@"bug.javaScript.limiterDepth", @"%@", @"Attempt to stop JavaScript time limiter while it is already fully stopped. This is an internal bug, please report it.");
+        OO_LOG("bug.javaScript.limiterDepth", "{}", "Attempt to stop JavaScript time limiter while it is already fully stopped. This is an internal bug, please report it.");
         return;
     }
 
@@ -316,7 +368,7 @@ void OOJSResumeTimeLimiter(void)
         SpiderMonkey operation callback no watchdog thread is needed. Returning
         non-zero throws an uncatchable error, which unwinds all JS frames.
 */
-static int InterruptHandler(JSRuntime* runtime, void* opaque)
+static int InterruptHandler(JSRuntime* /*runtime*/, void* /*opaque*/)
 {
     if (EXPECT(sLimiterStartDepth == 0 || sLimiterPauseDepth > 0))
         return 0;
@@ -325,7 +377,7 @@ static int InterruptHandler(JSRuntime* runtime, void* opaque)
     if (elapsed <= sLimiterTimeLimit)
         return 0;
 
-    OOLogERR(@"script.javaScript.timeLimit", @"Script \"%@\" ran for %g seconds and has been terminated.", [[OOJSScript currentlyRunningScript] name], elapsed);
+    OO_LOG_ERR("script.javaScript.timeLimit", "Script \"{}\" ran for {:g} seconds and has been terminated.", [[OOJSScript currentlyRunningScript] name].value_or("(null)"), elapsed);
     return 1;
 }
 
@@ -337,58 +389,72 @@ static int InterruptHandler(JSRuntime* runtime, void* opaque)
         "    at name (file:line:column)" or "    at file:line:column".
         Extract the file and line of the innermost frame.
 */
-static BOOL GetLocationFromStack(NSString* stack, NSString** outFile, unsigned* outLine)
+static BOOL GetLocationFromStack(const std::optional<std::string>& stack, std::string* outFile, unsigned* outLine)
 {
-    for (NSString* frame in [stack componentsSeparatedByString:@"\n"]) {
-        frame = [frame stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
-        if (![frame hasPrefix:@"at "])
-            continue;
-        frame = [frame substringFromIndex:3];
+    if (!stack.has_value())
+        return NO;
 
-        NSRange open = [frame rangeOfString:@"(" options:NSBackwardsSearch];
-        if (open.location != NSNotFound && [frame hasSuffix:@")"]) {
-            frame = [frame substringWithRange:NSMakeRange(open.location + 1, [frame length] - open.location - 2)];
+    std::string_view rest(*stack);
+    while (!rest.empty()) {
+        const std::size_t newline = rest.find('\n');
+        std::string_view frame = rest.substr(0, newline);
+        rest = (newline == std::string_view::npos) ? std::string_view() : rest.substr(newline + 1);
+
+        // -stringByTrimmingCharactersInSet: whitespace
+        const std::size_t first = frame.find_first_not_of(" \t");
+        if (first == std::string_view::npos)
+            continue;
+        frame = frame.substr(first, frame.find_last_not_of(" \t") - first + 1);
+        if (frame.substr(0, 3) != "at ")
+            continue;
+        frame.remove_prefix(3);
+
+        const std::size_t open = frame.rfind('(');
+        if (open != std::string_view::npos && !frame.empty() && frame.back() == ')') {
+            frame = frame.substr(open + 1, frame.size() - open - 2);
         }
 
-        NSArray* parts = [frame componentsSeparatedByString:@":"];
-        if ([parts count] < 3)
+        // file:line:column; the file may itself contain colons.
+        const std::size_t lastColon = frame.rfind(':');
+        if (lastColon == std::string_view::npos || lastColon == 0)
+            continue;
+        const std::size_t lineColon = frame.rfind(':', lastColon - 1);
+        if (lineColon == std::string_view::npos)
             continue; // Native frame, e.g. "at log (native)".
 
-        NSUInteger count = [parts count];
-        *outFile = [[parts subarrayWithRange:NSMakeRange(0, count - 2)] componentsJoinedByString:@":"];
-        *outLine = (unsigned)[[parts objectAtIndex:count - 2] intValue];
+        const std::string lineText(frame.substr(lineColon + 1, lastColon - lineColon - 1));
+        *outFile = std::string(frame.substr(0, lineColon));
+        *outLine = static_cast<unsigned>(atoi(lineText.c_str()));
         return YES;
     }
     return NO;
 }
 
-static NSString* StackOfValue(JSContext* context, JSValueConst value)
+static std::optional<std::string> StackOfValue(JSContext* context, JSValueConst value)
 {
     if (!JS_IsObject(value))
-        return nil;
+        return std::nullopt;
     JSValue stack = JS_GetPropertyStr(context, value, "stack");
-    NSString* result = OOStringFromJSValue(context, stack);
+    std::optional<std::string> result = cxx_OOStringFromJSValue(context, stack);
     JS_FreeValue(context, stack);
     return result;
 }
 
-static void LogProblem(NSString* severity, NSString* errorName, NSString* message, NSString* stack)
+static void LogProblem(const std::string& severity, const std::string& errorName, const std::string& message, const std::optional<std::string>& stack)
 {
-    NSString* messageClass = [NSString stringWithFormat:@"script.javaScript.%@.%@", severity, errorName];
-    NSString* highlight = [severity isEqualToString:@"warning"] ? @"-----" : @"*****";
+    const std::string messageClass = "script.javaScript." + severity + "." + errorName;
+    const char* highlight = (severity == "warning") ? "-----" : "*****";
 
-    if (!OOLogWillDisplayMessagesInClass(messageClass))
+    if (!oo::log::willDisplay(messageClass))
         return;
 
-    NSString* activeScript = [[OOJSScript currentlyRunningScript] displayName];
-    if (activeScript == nil)
-        activeScript = @"<unidentified script>";
-    OOLog(messageClass, @"%@ JavaScript %@ (%@): %@", highlight, severity, activeScript, message);
+    const std::string activeScript = [[OOJSScript currentlyRunningScript] displayName].value_or("<unidentified script>");
+    OO_LOG(messageClass, "{} JavaScript {} ({}): {}", highlight, severity, activeScript, message);
 
-    NSString* file = nil;
+    std::string file;
     unsigned line = 0;
     if ([[OOJavaScriptEngine sharedEngine] showErrorLocations] && GetLocationFromStack(stack, &file, &line)) {
-        OOLog(messageClass, @"      %@, line %u.", file, line);
+        OO_LOG(messageClass, "      {}, line {}.", file, line);
     }
 }
 
@@ -404,174 +470,146 @@ void OOJSReportPendingException(JSContext* context)
 
     OOJSPauseTimeLimiter();
 
-    NSString* errorName = @"exception";
+    std::string errorName = "exception";
     if (JS_IsError(exception)) {
         JSValue name = JS_GetPropertyStr(context, exception, "name");
-        errorName = OOStringFromJSValue(context, name) ?: errorName;
+        errorName = cxx_OOStringFromJSValue(context, name).value_or(errorName);
         JS_FreeValue(context, name);
     }
 
-    LogProblem(@"exception", errorName, OOStringFromJSValueEvenIfNull(context, exception), StackOfValue(context, exception));
+    LogProblem("exception", errorName, cxx_OOStringFromJSValueEvenIfNull(context, exception).value_or("(null)"), StackOfValue(context, exception));
 
     JS_FreeValue(context, exception);
     OOJSResumeTimeLimiter();
 }
 
-static NSString* CallerPrefix(NSString* scriptClass, NSString* function)
+static std::string CallerPrefix(const std::optional<std::string>& scriptClass, const std::optional<std::string>& function)
 {
-    if (function == nil)
-        return @"";
-    if (scriptClass == nil)
-        return [function stringByAppendingString:@": "];
-    return [NSString stringWithFormat:@"%@.%@: ", scriptClass, function];
+    if (!function.has_value())
+        return std::string();
+    if (!scriptClass.has_value())
+        return *function + ": ";
+    return *scriptClass + "." + *function + ": ";
 }
 
-void OOJSReportError(JSContext* context, NSString* format, ...)
+void cxx_OOJSReportError(JSContext* context, const char* format, ...)
 {
     va_list args;
 
     va_start(args, format);
-    OOJSReportErrorWithArguments(context, format, args);
+    cxx_OOJSReportErrorWithArguments(context, format, args);
     va_end(args);
 }
 
-void OOJSReportErrorForCaller(JSContext* context, NSString* scriptClass, NSString* function, NSString* format, ...)
+void cxx_OOJSReportErrorForCaller(JSContext* context, const std::optional<std::string>& scriptClass, const std::optional<std::string>& function, const char* format, ...)
 {
     va_list args;
-    NSString* msg = nil;
 
-    @try {
+    try {
         va_start(args, format);
-        msg = [[NSString alloc] initWithFormat:format arguments:args];
+        std::string msg = oo::str::vformat(format, args);
         va_end(args);
 
-        OOJSReportError(context, @"%@%@", CallerPrefix(scriptClass, function), msg);
-    }
-    @catch (id exception) {
+        cxx_OOJSReportError(context, "%s%s", CallerPrefix(scriptClass, function).c_str(), msg.c_str());
+    } catch (...) {
         // Squash any secondary errors during error handling.
     }
-    [msg release];
 }
 
-void OOJSReportErrorWithArguments(JSContext* context, NSString* format, va_list args)
+void cxx_OOJSReportErrorWithArguments(JSContext* context, const char* format, va_list args)
 {
-    NSString* msg = nil;
-
-    @try {
-        msg = [[NSString alloc] initWithFormat:format arguments:args];
-        JS_ThrowPlainError(context, "%s", [msg UTF8String]);
-    }
-    @catch (id exception) {
+    try {
+        std::string msg = oo::str::vformat(format, args);
+        JS_ThrowPlainError(context, "%s", msg.c_str());
+    } catch (...) {
         // Squash any secondary errors during error handling.
     }
-    [msg release];
 }
 
-void OOJSReportWrappedException(JSContext* context, id exception)
-{
-    if (!JS_HasException(context)) {
-        if ([exception isKindOfClass:[NSException class]])
-            OOJSReportError(context, @"Native exception: %@", [exception reason]);
-        else
-            OOJSReportError(context, @"Unidentified native exception");
-    }
-    // Else, let the pending exception propagate.
-}
-
-void OOJSReportWarning(JSContext* context, NSString* format, ...)
+void cxx_OOJSReportWarning(JSContext* context, const char* format, ...)
 {
     va_list args;
 
     va_start(args, format);
-    OOJSReportWarningWithArguments(context, format, args);
+    cxx_OOJSReportWarningWithArguments(context, format, args);
     va_end(args);
 }
 
-void OOJSReportWarningForCaller(JSContext* context, NSString* scriptClass, NSString* function, NSString* format, ...)
+void cxx_OOJSReportWarningForCaller(JSContext* context, const std::optional<std::string>& scriptClass, const std::optional<std::string>& function, const char* format, ...)
 {
     va_list args;
-    NSString* msg = nil;
 
-    @try {
+    try {
         va_start(args, format);
-        msg = [[NSString alloc] initWithFormat:format arguments:args];
+        std::string msg = oo::str::vformat(format, args);
         va_end(args);
 
-        OOJSReportWarning(context, @"%@%@", CallerPrefix(scriptClass, function), msg);
-    }
-    @catch (id exception) {
+        cxx_OOJSReportWarning(context, "%s%s", CallerPrefix(scriptClass, function).c_str(), msg.c_str());
+    } catch (...) {
         // Squash any secondary errors during error handling.
     }
-    [msg release];
 }
 
-void OOJSReportWarningWithArguments(JSContext* context, NSString* format, va_list args)
+void cxx_OOJSReportWarningWithArguments(JSContext* context, const char* format, va_list args)
 {
-    NSString* msg = nil;
-
-    @try {
-        msg = [[NSString alloc] initWithFormat:format arguments:args];
+    try {
+        std::string msg = oo::str::vformat(format, args);
 
         // A fresh Error object captures the current JS stack, giving the location.
         JSValue error = JS_NewError(context);
-        LogProblem(@"warning", @"warning", msg, StackOfValue(context, error));
+        LogProblem("warning", "warning", msg, StackOfValue(context, error));
         JS_FreeValue(context, error);
-    }
-    @catch (id exception) {
+    } catch (...) {
         // Squash any secondary errors during error handling.
     }
-    [msg release];
 }
 
-static NSString* PropertyNameForMagic(int magic, const JSCFunctionListEntry* list, size_t count)
+std::string cxx_OOStringFromJSPropertyMagic(int magic, const JSCFunctionListEntry* list, size_t count)
 {
     for (size_t i = 0; i < count; i++) {
         if (list[i].def_type == JS_DEF_CGETSET_MAGIC && list[i].magic == magic)
-            return [NSString stringWithUTF8String:list[i].name];
+            return std::string(list[i].name);
     }
-    return [NSString stringWithFormat:@"%i", magic];
+    return std::to_string(magic);
 }
 
 void OOJSReportBadPropertySelector(JSContext* context, JSValueConst thisObj, int magic, const JSCFunctionListEntry* list, size_t count)
 {
-    NSString* propName = PropertyNameForMagic(magic, list, count);
-    NSString* className = OOJSClassNameOfValue(context, thisObj);
+    const std::string propName = cxx_OOStringFromJSPropertyMagic(magic, list, count);
+    const std::string className = OOJSClassNameOfValue(context, thisObj);
 
-    OOJSReportError(context, @"Invalid property identifier %@ for instance of %@.", propName, className);
+    cxx_OOJSReportError(context, "Invalid property identifier %s for instance of %s.", propName.c_str(), className.c_str());
 }
 
 void OOJSReportBadPropertyValue(JSContext* context, JSValueConst thisObj, int magic, const JSCFunctionListEntry* list, size_t count, JSValueConst value)
 {
-    NSString* propName = PropertyNameForMagic(magic, list, count);
-    NSString* className = OOJSClassNameOfValue(context, thisObj);
-    NSString* valueDesc = OOJSDescribeValue(context, value, YES);
+    const std::string propName = cxx_OOStringFromJSPropertyMagic(magic, list, count);
+    const std::string className = OOJSClassNameOfValue(context, thisObj);
+    const std::string valueDesc = cxx_OOJSDescribeValue(context, value, YES);
 
-    OOJSReportError(context, @"Cannot set property %@ of instance of %@ to invalid value %@.", propName, className, valueDesc);
+    cxx_OOJSReportError(context, "Cannot set property %s of instance of %s to invalid value %s.", propName.c_str(), className.c_str(), valueDesc.c_str());
 }
 
-void OOJSReportBadArguments(JSContext* context, NSString* scriptClass, NSString* function, int argc, JSValueConst* argv, NSString* message, NSString* expectedArgsDescription)
+void cxx_OOJSReportBadArguments(JSContext* context, const std::optional<std::string>& scriptClass, const std::optional<std::string>& function, int argc, JSValueConst* argv, const std::optional<std::string>& message, const std::optional<std::string>& expectedArgsDescription)
 {
-    @try {
-        if (message == nil)
-            message = @"Invalid arguments";
-        message = [NSString stringWithFormat:@"%@ %@", message, [NSString stringWithJavaScriptParameters:argv count:argc inContext:context]];
-        if (expectedArgsDescription != nil)
-            message = [NSString stringWithFormat:@"%@ -- expected %@", message, expectedArgsDescription];
+    try {
+        std::string text = message.value_or("Invalid arguments");
+        text += " " + cxx_OOJSStringWithJavaScriptParameters(argv, argc, context).value_or("(null)");
+        if (expectedArgsDescription.has_value())
+            text += " -- expected " + *expectedArgsDescription;
 
-        OOJSReportErrorForCaller(context, scriptClass, function, @"%@.", message);
-    }
-    @catch (id exception) {
+        cxx_OOJSReportErrorForCaller(context, scriptClass, function, "%s.", text.c_str());
+    } catch (...) {
         // Squash any secondary errors during error handling.
     }
 }
 
-BOOL OOJSArgumentListGetNumber(JSContext* context, NSString* scriptClass, NSString* function, int argc, JSValueConst* argv, double* outNumber, int* outConsumed)
+BOOL cxx_OOJSArgumentListGetNumber(JSContext* context, const std::optional<std::string>& scriptClass, const std::optional<std::string>& function, int argc, JSValueConst* argv, double* outNumber, int* outConsumed)
 {
     if (OOJSArgumentListGetNumberNoError(context, argc, argv, outNumber, outConsumed)) {
         return YES;
     } else {
-        OOJSReportBadArguments(context, scriptClass, function, argc, argv,
-            @"Expected number, got", NULL);
+        cxx_OOJSReportBadArguments(context, scriptClass, function, argc, argv, std::string("Expected number, got"), std::nullopt);
         return NO;
     }
 }
@@ -580,10 +618,10 @@ BOOL OOJSArgumentListGetNumberNoError(JSContext* context, int argc, JSValueConst
 {
     double value;
 
-    NSCParameterAssert(context != NULL && (argv != NULL || argc == 0) && outNumber != NULL);
+    OOCParameterAssert(context != NULL && (argv != NULL || argc == 0) && outNumber != NULL);
 
     // Get value, if possible.
-    if (EXPECT_NOT(argc < 1 || JS_ToFloat64(context, &value, argv[0]) < 0 || isnan(value))) {
+    if (EXPECT_NOT(argc < 1 || JS_ToFloat64(context, &value, argv[0]) < 0 || std::isnan(value))) {
         // ToNumber can throw (e.g. for a Symbol); this variant must not leave an exception pending.
         if (JS_HasException(context))
             JS_FreeValue(context, JS_GetException(context));
@@ -603,227 +641,284 @@ BOOL OOJSArgumentListGetNumberNoError(JSContext* context, int argc, JSValueConst
 // Value conversion
 //===========================================================================
 
-NSString* OOStringFromJSValueEvenIfNull(JSContext* context, JSValueConst value)
+std::optional<std::string> cxx_OOStringFromJSValueEvenIfNull(JSContext* context, JSValueConst value)
 {
     size_t length;
     const char* chars = JS_ToCStringLen(context, &length, value); // Calls the value's toString method if needed.
     if (chars == NULL) {
         JS_FreeValue(context, JS_GetException(context));
-        return nil;
+        return std::nullopt;
     }
 
-    NSString* result = [[[NSString alloc] initWithBytes:chars length:length encoding:NSUTF8StringEncoding] autorelease];
+    std::string result(chars, length);
     JS_FreeCString(context, chars);
     return result;
 }
 
-NSString* OOStringFromJSValue(JSContext* context, JSValueConst value)
+std::optional<std::string> cxx_OOStringFromJSValue(JSContext* context, JSValueConst value)
 {
     if (EXPECT(!JS_IsNull(value) && !JS_IsUndefined(value))) {
-        return OOStringFromJSValueEvenIfNull(context, value);
+        return cxx_OOStringFromJSValueEvenIfNull(context, value);
     }
-    return nil;
+    return std::nullopt;
 }
 
-NSString* OOJSClassNameOfValue(JSContext* context, JSValueConst value)
+std::string OOJSClassNameOfValue(JSContext* context, JSValueConst value)
 {
     if (!JS_IsObject(value))
-        return @"primitive";
+        return "primitive";
 
     JSValue ctor = JS_GetPropertyStr(context, value, "constructor");
     JSValue name = JS_IsObject(ctor) ? JS_GetPropertyStr(context, ctor, "name") : JS_UNDEFINED;
-    NSString* result = OOStringFromJSValue(context, name);
+    std::optional<std::string> result = cxx_OOStringFromJSValue(context, name);
     JS_FreeValue(context, name);
     JS_FreeValue(context, ctor);
-    return result ?: @"Object";
+    return result.value_or("Object");
 }
 
-static NSString* DescribeValue(JSContext* context, JSValueConst value, BOOL abbreviateObjects, BOOL recursing)
+// Owned; undefined on failure. Null elements are dropped, as in the full engine.
+static JSValue JSArrayValueFromPList(JSContext* context, const oo::PList::Array& array)
+{
+    JSValue result = JS_NewArray(context);
+    if (JS_IsException(result)) {
+        JS_FreeValue(context, JS_GetException(context));
+        return JS_UNDEFINED;
+    }
+
+    uint32_t i = 0;
+    for (const oo::PList& element : array) {
+        if (element.isNull())
+            continue;
+        // JS_SetPropertyUint32() takes ownership of the value.
+        if (EXPECT_NOT(JS_SetPropertyUint32(context, result, i, OOJSValueFromPList(context, element)) < 0)) {
+            JS_FreeValue(context, JS_GetException(context));
+            JS_FreeValue(context, result);
+            return JS_UNDEFINED;
+        }
+        ++i;
+    }
+
+    return result;
+}
+
+// Owned; undefined on failure. Null and undefined values are dropped and empty keys skipped, as in the full engine.
+static JSValue JSObjectValueFromPList(JSContext* context, const oo::PList::Dict& dict)
+{
+    JSValue result = JS_NewObject(context);
+    if (JS_IsException(result)) {
+        JS_FreeValue(context, JS_GetException(context));
+        return JS_UNDEFINED;
+    }
+
+    for (const auto& [key, element] : dict) {
+        if (element.isNull() || key.empty())
+            continue;
+        JSValue elementValue = OOJSValueFromPList(context, element);
+        if (JS_IsUndefined(elementValue))
+            continue;
+        // JS_SetProperty() takes ownership of the value.
+        if (EXPECT_NOT(JS_SetProperty(context, result, cxx_OOJSIDFromString(key), elementValue) < 0)) {
+            JS_FreeValue(context, JS_GetException(context));
+            JS_FreeValue(context, result);
+            return JS_UNDEFINED;
+        }
+    }
+
+    return result;
+}
+
+JSValue OOJSValueFromPList(JSContext* context, const oo::PList& plist)
+{
+    switch (plist.type()) {
+    case oo::PList::Type::Null:
+        return JS_NULL;
+
+    case oo::PList::Type::Bool:
+        return JS_NewInt32(context, *plist.getIf<bool>() ? 1 : 0);
+
+    case oo::PList::Type::Integer: {
+        const oo::PList::Integer& integer = *plist.getIf<oo::PList::Integer>();
+        if (integer.isUnsigned) {
+            const unsigned long long u = integer.unsignedValue();
+            if (u <= static_cast<unsigned long long>(INT32_MAX))
+                return JS_NewInt32(context, static_cast<int32_t>(u));
+            return JS_NewNumber(context, static_cast<double>(u));
+        }
+        const long long v = integer.value;
+        if (static_cast<long long>(INT32_MIN) <= v && v <= static_cast<long long>(INT32_MAX))
+            return JS_NewInt32(context, static_cast<int32_t>(v));
+        return JS_NewNumber(context, static_cast<double>(v));
+    }
+
+    case oo::PList::Type::Real: {
+        double d = *plist.getIf<double>();
+        if (plist.isSinglePrecision())
+            d = static_cast<double>(static_cast<float>(d));
+        return JS_NewFloat64(context, d);
+    }
+
+    case oo::PList::Type::String: {
+        const std::string& string = *plist.getIf<std::string>();
+        return JS_NewStringLen(context, string.data(), string.size());
+    }
+
+    case oo::PList::Type::Data:
+    case oo::PList::Type::Date:
+        return JS_UNDEFINED;
+
+    case oo::PList::Type::Array:
+        return JSArrayValueFromPList(context, *plist.getIf<oo::PList::Array>());
+
+    case oo::PList::Type::Dict:
+        return JSObjectValueFromPList(context, *plist.getIf<oo::PList::Dict>());
+
+    case oo::PList::Type::Object:
+        // The harness has no native-object glue: an object is undefined, as its NSObject glue gave.
+        return JS_UNDEFINED;
+    }
+    return JS_UNDEFINED;
+}
+
+static std::string DescribeValue(JSContext* context, JSValueConst value, BOOL abbreviateObjects, BOOL recursing)
 {
     if (JS_IsFunction(context, value)) {
         JSValue nameVal = JS_GetPropertyStr(context, value, "name");
-        NSString* name = OOStringFromJSValue(context, nameVal);
+        std::optional<std::string> name = cxx_OOStringFromJSValue(context, nameVal);
         JS_FreeValue(context, nameVal);
-        if ([name length] != 0)
-            return [NSString stringWithFormat:@"function %@", name];
+        if (name.has_value() && !name->empty())
+            return "function " + *name;
         else
-            return @"function";
+            return "function";
     }
 
-    NSString* result = nil;
+    std::optional<std::string> result;
 
     if (JS_IsString(value)) {
-        enum { kMaxLength = 200 };
+        constexpr size_t kMaxLength = 200;
 
-        NSString* string = OOStringFromJSValueEvenIfNull(context, value);
-        NSUInteger length = [string length];
-        result = [string substringToIndex:MIN(length, (NSUInteger)kMaxLength)];
-        result = [NSString stringWithFormat:@"\"%@%@\"", [result escapedForJavaScriptLiteral], (length > kMaxLength) ? @"..." : @""];
+        // Truncated to kMaxLength UTF-16 units, as the NSString was cut.
+        const std::u16string units = oo::utf8ToUtf16(cxx_OOStringFromJSValueEvenIfNull(context, value).value_or(""));
+        const std::string truncated = oo::utf16ToUtf8(std::u16string_view(units.data(), std::min(units.size(), kMaxLength)));
+        result = "\"" + cxx_OOJSEscapedForJavaScriptLiteral(truncated) + ((units.size() > kMaxLength) ? "..." : "") + "\"";
     } else if (JS_IsArray(value)) {
         // Descibe up to four elements of an array.
         int64_t count;
         if (JS_GetLength(context, value, &count) == 0) {
             if (!recursing) {
-                NSMutableString* arrayDesc = [NSMutableString stringWithString:@"["];
-                int64_t i, effectiveCount = MIN(count, (int64_t)4);
+                std::string arrayDesc = "[";
+                int64_t i, effectiveCount = std::min(count, static_cast<int64_t>(4));
                 for (i = 0; i < effectiveCount; i++) {
-                    JSValue item = JS_GetPropertyUint32(context, value, (uint32_t)i);
-                    NSString* itemDesc = @"?";
+                    JSValue item = JS_GetPropertyUint32(context, value, static_cast<uint32_t>(i));
+                    std::string itemDesc = "?";
                     if (!JS_IsException(item)) {
                         itemDesc = DescribeValue(context, item, YES /* always abbreviate objects in arrays */, YES);
                     }
                     JS_FreeValue(context, item);
                     if (i != 0)
-                        [arrayDesc appendString:@", "];
-                    [arrayDesc appendString:itemDesc];
+                        arrayDesc += ", ";
+                    arrayDesc += itemDesc;
                 }
                 if (effectiveCount != count) {
-                    [arrayDesc appendFormat:@", ... <%lli items total>]", (long long)count];
+                    arrayDesc += oo::str::format(", ... <%lli items total>]", static_cast<long long>(count));
                 } else {
-                    [arrayDesc appendString:@"]"];
+                    arrayDesc += "]";
                 }
 
                 result = arrayDesc;
             } else {
-                result = [NSString stringWithFormat:@"[<%lli items>]", (long long)count];
+                result = oo::str::format("[<%lli items>]", static_cast<long long>(count));
             }
         } else {
-            result = @"[...]";
+            result = "[...]";
         }
     }
 
-    if (result == nil) {
-        result = OOStringFromJSValueEvenIfNull(context, value);
+    if (!result.has_value()) {
+        result = cxx_OOStringFromJSValueEvenIfNull(context, value);
 
-        if (abbreviateObjects && JS_IsObject(value) && [result isEqualToString:@"[object Object]"]) {
-            result = @"{...}";
+        if (abbreviateObjects && JS_IsObject(value) && result == "[object Object]") {
+            result = "{...}";
         }
 
-        if (result == nil)
-            result = @"?";
+        if (!result.has_value())
+            result = "?";
     }
 
-    return result;
+    return *result;
 }
 
-NSString* OOJSDescribeValue(JSContext* context, JSValueConst value, BOOL abbreviateObjects)
+std::string cxx_OOJSDescribeValue(JSContext* context, JSValueConst value, BOOL abbreviateObjects)
 {
     return DescribeValue(context, value, abbreviateObjects, NO);
 }
 
-@implementation NSObject (OOJavaScript)
-
-- (JSValue)oo_jsValueInContext:(JSContext*)context
-{
-    return JS_UNDEFINED;
-}
-
-@end
-
-@implementation NSString (OOJavaScriptConversion)
-
-- (JSValue)oo_jsValueInContext:(JSContext*)context
-{
-    NSData* utf8 = [self dataUsingEncoding:NSUTF8StringEncoding];
-    return JS_NewStringLen(context, [utf8 bytes], [utf8 length]);
-}
-
-@end
-
-@implementation NSNumber (OOJavaScriptConversion)
-
-- (JSValue)oo_jsValueInContext:(JSContext*)context
-{
-    // As with SpiderMonkey, all NSNumbers (including booleans) become JS numbers.
-    return JS_NewNumber(context, [self doubleValue]);
-}
-
-@end
-
-@implementation NSNull (OOJavaScriptConversion)
-
-- (JSValue)oo_jsValueInContext:(JSContext*)context
-{
-    return JS_NULL;
-}
-
-@end
-
-@implementation NSString (OOJavaScriptExtensions)
-
-+ (NSString*)stringWithJavaScriptParameters:(JSValueConst*)params count:(int)count inContext:(JSContext*)context
+std::optional<std::string> cxx_OOJSStringWithJavaScriptParameters(JSValueConst* params, int count, JSContext* context)
 {
     if (params == NULL && count != 0)
-        return nil;
+        return std::nullopt;
 
-    int i;
-    NSMutableString* result = [NSMutableString stringWithString:@"("];
+    std::string result = "(";
 
-    for (i = 0; i < count; ++i) {
+    for (int i = 0; i < count; ++i) {
         if (i != 0)
-            [result appendString:@", "];
-        [result appendString:OOJSDescribeValue(context, params[i], NO)];
+            result += ", ";
+        result += cxx_OOJSDescribeValue(context, params[i], NO);
     }
 
-    [result appendString:@")"];
+    result += ")";
     return result;
 }
 
-- (NSString*)escapedForJavaScriptLiteral
+std::string cxx_OOJSEscapedForJavaScriptLiteral(std::string_view string)
 {
-    NSMutableString* result = nil;
-    NSUInteger i, length;
-    unichar c;
+    /*	Byte-wise over UTF-8: every escaped character is ASCII, so multi-byte
+            sequences pass through unchanged, as the UTF-16 units they encode did.
+    */
+    std::string result;
+    result.reserve(string.size());
 
-    length = [self length];
-    result = [NSMutableString stringWithCapacity:length];
-
-    // Not hugely efficient.
-    for (i = 0; i != length; ++i) {
-        c = [self characterAtIndex:i];
+    for (char c : string) {
         switch (c) {
         case '\\':
-            [result appendString:@"\\\\"];
+            result += "\\\\";
             break;
 
         case '\b':
-            [result appendString:@"\\b"];
+            result += "\\b";
             break;
 
         case '\f':
-            [result appendString:@"\\f"];
+            result += "\\f";
             break;
 
         case '\n':
-            [result appendString:@"\\n"];
+            result += "\\n";
             break;
 
         case '\r':
-            [result appendString:@"\\r"];
+            result += "\\r";
             break;
 
         case '\t':
-            [result appendString:@"\\t"];
+            result += "\\t";
             break;
 
         case '\v':
-            [result appendString:@"\\v"];
+            result += "\\v";
             break;
 
         case '\'':
-            [result appendString:@"\\\'"];
+            result += "\\\'";
             break;
 
         case '\"':
-            [result appendString:@"\\\""];
+            result += "\\\"";
             break;
 
         default:
-            [result appendString:[NSString stringWithCharacters:&c length:1]];
+            result += c;
         }
     }
 
     return result;
 }
-
-@end

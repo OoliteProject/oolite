@@ -38,7 +38,6 @@ MA 02110-1301, USA.
 
 #import "EntityOOJavaScriptExtensions.h"
 #import "OOConstToJSString.h"
-#import "OOFoundationBridge.h"
 #import "OOObjCPList.h" // Object nodes (OOJSValueFromPList)
 #import "OOPlanetEntity.h"
 #import "OOVisualEffectEntity.h"
@@ -80,7 +79,6 @@ MA 02110-1301, USA.
 #import "OOJSWorldScripts.h"
 #import "OOJSWormhole.h"
 
-#import "OOStringBridge.h"
 #include "oofnd/objc/OOException.h"
 
 #include "oofnd/objc/OOAssert.h"
@@ -583,11 +581,11 @@ static void LoadCompatibilityScript(JSContext* context)
     }
 }
 
-NSString* OOJSWrapScriptSource(NSString* source)
+std::string OOJSWrapScriptSource(const std::string& source)
 {
     // A newline before the closing part is needed if the last line is a // comment.
-    const char* lineEnd = [source hasSuffix:@"\n"] ? "" : "\n";
-    return oo::NSStringFrom(oo::str::format("with(this){(function(){%s%s}).call(this)}", oo::DescriptionOf(source).c_str(), lineEnd));
+    const char* lineEnd = oo::str::hasSuffix(source, "\n") ? "" : "\n";
+    return "with(this){(function(){" + source + lineEnd + "}).call(this)}";
 }
 
 BOOL OOJSValueToBOOL(JSContext* context, JSValueConst value)
@@ -719,7 +717,7 @@ static int InterruptHandler(JSRuntime* runtime, void* opaque)
     if (elapsed <= sLimiterTimeLimit)
         return 0;
 
-    OO_LOG_ERR("script.javaScript.timeLimit", "Script \"{}\" ran for {} seconds and has been terminated.", oo::DescriptionOf([[OOJSScript currentlyRunningScript] name]), oo::str::format("%g", elapsed));
+    OO_LOG_ERR("script.javaScript.timeLimit", "Script \"{}\" ran for {} seconds and has been terminated.", [[OOJSScript currentlyRunningScript] cxx_name].value_or("(null)"), oo::str::format("%g", elapsed));
 #ifdef OO_DEBUG_MONITOR_ENABLED
     OOJSDumpStack(gOOJSMainThreadContext);
 #endif
@@ -915,16 +913,7 @@ void cxx_OOJSReportErrorWithArguments(JSContext* context, const char* format, va
     }
 }
 
-void OOJSReportWrappedException(JSContext* context, id exception)
-{
-    if (!JS_HasException(context)) {
-        if ([exception isKindOfClass:[OOException class]])
-            cxx_OOJSReportError(context, "Native exception: %s", [(OOException*)exception reason]);
-        else
-            cxx_OOJSReportError(context, "Unidentified native exception");
-    }
-    // Else, let the pending exception propagate.
-}
+// OOJSReportWrappedException() and OOJSReportCurrentException() are in OOJSEngineNativeWrappers.mm.
 
 JSValue OOJSNativeFailure(JSContext* context)
 {
@@ -988,18 +977,18 @@ std::string cxx_OOStringFromJSPropertyMagic(int magic, const JSCFunctionListEntr
 void OOJSReportBadPropertySelector(JSContext* context, JSValueConst thisObj, int magic, const JSCFunctionListEntry* list, size_t count)
 {
     std::string propName = cxx_OOStringFromJSPropertyMagic(magic, list, count);
-    NSString* className = OOJSClassNameOfValue(context, thisObj);
+    std::string className = OOJSClassNameOfValue(context, thisObj);
 
-    cxx_OOJSReportError(context, "Invalid property identifier %s for instance of %s.", propName.c_str(), oo::DescriptionOf(className).c_str());
+    cxx_OOJSReportError(context, "Invalid property identifier %s for instance of %s.", propName.c_str(), className.c_str());
 }
 
 void OOJSReportBadPropertyValue(JSContext* context, JSValueConst thisObj, int magic, const JSCFunctionListEntry* list, size_t count, JSValueConst value)
 {
     std::string propName = cxx_OOStringFromJSPropertyMagic(magic, list, count);
-    NSString* className = OOJSClassNameOfValue(context, thisObj);
+    std::string className = OOJSClassNameOfValue(context, thisObj);
     std::string valueDesc = cxx_OOJSDescribeValue(context, value, YES);
 
-    cxx_OOJSReportError(context, "Cannot set property %s of instance of %s to invalid value %s.", propName.c_str(), oo::DescriptionOf(className).c_str(), valueDesc.c_str());
+    cxx_OOJSReportError(context, "Cannot set property %s of instance of %s to invalid value %s.", propName.c_str(), className.c_str(), valueDesc.c_str());
 }
 
 void cxx_OOJSReportBadArguments(JSContext* context, const std::optional<std::string>& scriptClass, const std::optional<std::string>& function, int argc, JSValueConst* argv, const std::optional<std::string>& message, const std::optional<std::string>& expectedArgsDescription)
@@ -1224,11 +1213,10 @@ JSValue OOJSValueFromNativeObject(JSContext* context, id object)
     if (EXPECT(IsOOObjectRooted(object)))
         return [object oo_jsValueInContext:context];
 
-    // A Foundation object: its glue was the bridge's categories (proposed ADR-0051).
-    const oo::PList plist = oo::PListFrom(object);
-    if (plist.type() == oo::PList::Type::Object)
-        return JS_UNDEFINED; // NSObject's glue
-    return OOJSValueFromPList(context, plist);
+    // An object on another root has no JS glue: undefined, as NSObject's gave. oo-qps.72 deleted
+    // the Foundation branch (its property-list form, proposed ADR-0051): plist data is
+    // OOJSValueFromPList's.
+    return JS_UNDEFINED;
 }
 
 JSValue OOJSValueFromPList(JSContext* context, const oo::PList& plist)
@@ -1370,21 +1358,21 @@ std::optional<std::string> cxx_OOStringFromJSValue(JSContext* context, JSValueCo
     return std::nullopt;
 }
 
-NSString* OOJSClassNameOfValue(JSContext* context, JSValueConst value)
+std::string OOJSClassNameOfValue(JSContext* context, JSValueConst value)
 {
     if (!JS_IsObject(value))
-        return @"primitive";
+        return "primitive";
 
     const char* registered = OOJSClassName(JS_GetClassID(value));
     if (registered != NULL)
-        return [NSString stringWithUTF8String:registered];
+        return registered;
 
     JSValue ctor = JS_GetPropertyStr(context, value, "constructor");
     JSValue name = JS_IsObject(ctor) ? JS_GetPropertyStr(context, ctor, "name") : JS_UNDEFINED;
-    NSString* result = oo::NSStringOrNil(cxx_OOStringFromJSValue(context, name));
+    std::optional<std::string> result = cxx_OOStringFromJSValue(context, name);
     JS_FreeValue(context, name);
     JS_FreeValue(context, ctor);
-    return result ?: @"Object";
+    return result.value_or("Object");
 }
 
 static std::string DescribeValue(JSContext* context, JSValueConst value, BOOL abbreviateObjects, BOOL recursing)
@@ -1890,9 +1878,11 @@ oo::PList cxx_OOJSPListFromJSValue(JSContext* context, JSValueConst value)
     return oo::PList();
 }
 
+// The object of the value's PList::Object node (nil for plist data): oo-qps.72 deleted the
+// Foundation form of the rest (ADR-0055 Amendment 2).
 id OOJSNativeObjectFromJSValue(JSContext* context, JSValueConst value)
 {
-    return oo::ObjectFromPList(cxx_OOJSPListFromJSValue(context, value));
+    return oo::ObjectIn(cxx_OOJSPListFromJSValue(context, value));
 }
 
 static oo::PList PListFromJSArray(JSContext* context, JSValueConst array);
@@ -1900,11 +1890,11 @@ static oo::PList PListFromJSStringObject(JSContext* context, JSValueConst object
 static oo::PList PListFromJSNumberObject(JSContext* context, JSValueConst object);
 static oo::PList PListFromJSBooleanObject(JSContext* context, JSValueConst object);
 static oo::PList PListFromJSPlainObject(JSContext* context, JSValueConst object);
-static id JSArrayConverter(JSContext* context, JSValueConst array);
-static id JSStringConverter(JSContext* context, JSValueConst object);
-static id JSNumberConverter(JSContext* context, JSValueConst object);
-static id JSBooleanConverter(JSContext* context, JSValueConst object);
-static id JSObjectConverter(JSContext* context, JSValueConst object);
+static oo::PList JSArrayConverter(JSContext* context, JSValueConst array);
+static oo::PList JSStringConverter(JSContext* context, JSValueConst object);
+static oo::PList JSNumberConverter(JSContext* context, JSValueConst object);
+static oo::PList JSBooleanConverter(JSContext* context, JSValueConst object);
+static oo::PList JSObjectConverter(JSContext* context, JSValueConst object);
 
 oo::PList cxx_OOJSPListFromJSObject(JSContext* context, JSValueConst object)
 {
@@ -1916,25 +1906,13 @@ oo::PList cxx_OOJSPListFromJSObject(JSContext* context, JSValueConst object)
     if (converter == NULL)
         return oo::PList();
 
-    // The engine's own converters build the PList directly; the id converters are their ObjectFromPList.
-    if (converter == JSArrayConverter)
-        return PListFromJSArray(context, object);
-    if (converter == JSStringConverter)
-        return PListFromJSStringObject(context, object);
-    if (converter == JSNumberConverter)
-        return PListFromJSNumberObject(context, object);
-    if (converter == JSBooleanConverter)
-        return PListFromJSBooleanObject(context, object);
-    if (converter == JSObjectConverter)
-        return PListFromJSPlainObject(context, object);
-
-    // A registered private-object converter: a PList::Object node holding what it returns.
-    return oo::PListFrom(converter(context, object));
+    // The engine's own converters build the PList; a private-object converter gives an Object node.
+    return converter(context, object);
 }
 
 id OOJSNativeObjectFromJSObject(JSContext* context, JSValueConst object)
 {
-    return oo::ObjectFromPList(cxx_OOJSPListFromJSObject(context, object));
+    return oo::ObjectIn(cxx_OOJSPListFromJSObject(context, object));
 }
 
 id OOJSNativeObjectOfClassFromJSValue(JSContext* context, JSValueConst value, Class requiredClass)
@@ -1953,7 +1931,7 @@ id OOJSNativeObjectOfClassFromJSObject(JSContext* context, JSValueConst object, 
     return result;
 }
 
-id OOJSBasicPrivateObjectConverter(JSContext* context, JSValueConst object)
+oo::PList OOJSBasicPrivateObjectConverter(JSContext* context, JSValueConst object)
 {
     /*	This will do the right thing - for non-OOWeakReferences,
             weakRefUnderlyingObject returns the object itself. For nil, of course,
@@ -1961,7 +1939,7 @@ id OOJSBasicPrivateObjectConverter(JSContext* context, JSValueConst object)
     */
     JSClassID ignored;
     id result = (id)JS_GetAnyOpaque(object, &ignored);
-    return [result weakRefUnderlyingObject];
+    return oo::PListObject([result weakRefUnderlyingObject]); // nil: a null PList
 }
 
 void OOJSRegisterObjectConverter(JSClassID classID, OOJSClassConverterCallback converter)
@@ -2002,9 +1980,9 @@ static oo::PList PListFromJSArray(JSContext* context, JSValueConst array)
     return oo::PList(std::move(values));
 }
 
-static id JSArrayConverter(JSContext* context, JSValueConst array)
+static oo::PList JSArrayConverter(JSContext* context, JSValueConst array)
 {
-    return oo::ObjectFromPList(PListFromJSArray(context, array));
+    return PListFromJSArray(context, array);
 }
 
 static oo::PList PListFromJSStringObject(JSContext* context, JSValueConst object)
@@ -2013,9 +1991,9 @@ static oo::PList PListFromJSStringObject(JSContext* context, JSValueConst object
     return string.has_value() ? oo::PList(std::move(*string)) : oo::PList();
 }
 
-static id JSStringConverter(JSContext* context, JSValueConst object)
+static oo::PList JSStringConverter(JSContext* context, JSValueConst object)
 {
-    return oo::ObjectFromPList(PListFromJSStringObject(context, object));
+    return PListFromJSStringObject(context, object);
 }
 
 static oo::PList PListFromJSNumberObject(JSContext* context, JSValueConst object)
@@ -2028,9 +2006,9 @@ static oo::PList PListFromJSNumberObject(JSContext* context, JSValueConst object
     return oo::PList();
 }
 
-static id JSNumberConverter(JSContext* context, JSValueConst object)
+static oo::PList JSNumberConverter(JSContext* context, JSValueConst object)
 {
-    return oo::ObjectFromPList(PListFromJSNumberObject(context, object));
+    return PListFromJSNumberObject(context, object);
 }
 
 static oo::PList PListFromJSBooleanObject(JSContext* context, JSValueConst object)
@@ -2047,9 +2025,9 @@ static oo::PList PListFromJSBooleanObject(JSContext* context, JSValueConst objec
     return oo::PList();
 }
 
-static id JSBooleanConverter(JSContext* context, JSValueConst object)
+static oo::PList JSBooleanConverter(JSContext* context, JSValueConst object)
 {
-    return oo::ObjectFromPList(PListFromJSBooleanObject(context, object));
+    return PListFromJSBooleanObject(context, object);
 }
 
 // A plain JS Object: cxx_OOJSDictionaryFromJSObject() (proposed ADR-0051; was the bridge's
@@ -2070,9 +2048,9 @@ static oo::PList PListFromJSPlainObject(JSContext* context, JSValueConst object)
     return cxx_OOJSDictionaryFromJSObject(context, object);
 }
 
-static id JSObjectConverter(JSContext* context, JSValueConst object)
+static oo::PList JSObjectConverter(JSContext* context, JSValueConst object)
 {
-    return oo::ObjectFromPList(PListFromJSPlainObject(context, object));
+    return PListFromJSPlainObject(context, object);
 }
 
 static void RegisterStandardObjectConverters(JSContext* context)

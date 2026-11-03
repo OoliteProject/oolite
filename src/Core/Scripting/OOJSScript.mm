@@ -39,11 +39,9 @@ MA 02110-1301, USA.
 #import "OOConstToJSString.h"
 #import "OOConstToString.h"
 #import "OODebugStandards.h"
-#import "OOFoundationBridge.h"
 #import "OOLogging.h"
 #import "OOManifestProperties.h"
 #import "OOPListParsing.h"
-#import "OOPListView.h"
 #include "oofnd/Encoding.hpp"
 #include "oofnd/FileSystem.hpp"
 #include "oofnd/objc/OOAssert.h"
@@ -66,12 +64,12 @@ static void AddStackToArrayReversed(std::vector<oo::ObjCRef<OOJSScript*>>& array
 static BOOL RunScriptWithName(JSContext* context, const std::optional<std::string>& path, JSValueConst object, std::optional<std::string>* outErrorMessage);
 
 static std::optional<std::string> StrippedName(const std::optional<std::string>& string);
-static NSString* RewriteLegacyConst(JSContext* context, NSString* source);
-static BOOL HasModernScopeDirective(NSString* source);
+static std::string RewriteLegacyConst(JSContext* context, const std::string& source);
+static BOOL HasModernScopeDirective(std::string_view source);
 
 #if OO_CACHE_JS_SCRIPTS
-static JSValue CachedCompiledScript(JSContext* context, NSString* path, NSData* source);
-static void CacheCompiledScript(JSContext* context, NSString* path, NSData* source, JSValueConst compiled);
+static JSValue CachedCompiledScript(JSContext* context, const std::string& path, std::string_view source);
+static void CacheCompiledScript(JSContext* context, const std::string& path, std::string_view source, JSValueConst compiled);
 #endif
 
 // The value as text (its -description as an object; a string is itself): null stays nullopt.
@@ -79,7 +77,7 @@ static std::optional<std::string> DescriptionOrNil(const oo::PList& value);
 
 // -oo_stringForKey: with its nil; a string value for -setObject:forKey:, which raised on nil.
 static std::optional<std::string> StringForKey(const oo::PList& dictionary, const std::string& key);
-static std::string ValueForKey(const std::optional<std::string>& value, id key);
+static std::string ValueForKey(const std::optional<std::string>& value, std::string_view key);
 
 static JSClassDef sScriptClass = {
     .class_name = "Script",
@@ -151,10 +149,10 @@ static const JSCFunctionListEntry sScriptMethods[] = {
         for (const auto& [key, property] : defaultProperties) {
             if (key == kLocalManifestProperty) {
                 // this must not be editable
-                [self defineProperty:oo::ObjectFromPList(property) named:key];
+                [self defineProperty:property named:key];
             } else {
                 // can be overwritten by script itself
-                [self setProperty:oo::ObjectFromPList(property) named:key];
+                [self setProperty:property named:key];
             }
         }
 
@@ -163,7 +161,7 @@ static const JSCFunctionListEntry sScriptMethods[] = {
         if (!problem.has_value() && !properties.isNull()) {
             if (const oo::PList::Dict* propertyDict = properties.getIf<oo::PList::Dict>()) {
                 for (const auto& [key, property] : *propertyDict) {
-                    [self defineProperty:oo::ObjectFromPList(property) named:key];
+                    [self defineProperty:property named:key];
                 }
             }
         }
@@ -175,7 +173,7 @@ static const JSCFunctionListEntry sScriptMethods[] = {
                 probably also be achieved by fiddling with JS property attributes.
         */
         JSAtom nameID = OOJSID("name");
-        [self setProperty:oo::NSStringFrom([self scriptNameFromPath:path]) withID:nameID inContext:context];
+        [self setProperty:oo::PList([self scriptNameFromPath:path]) withID:nameID inContext:context];
 
         // Run the script (allowing it to set up the properties we need, as well as setting up those event handlers)
         if (!problem.has_value()) {
@@ -198,7 +196,7 @@ static const JSCFunctionListEntry sScriptMethods[] = {
             name = StrippedName(DescriptionOrNil([self cxx_propertyWithID:nameID inContext:context]));
             if (!name.has_value()) {
                 name = [self scriptNameFromPath:path];
-                [self setProperty:oo::NSStringFrom(*name) withID:nameID inContext:context];
+                [self setProperty:oo::PList(*name) withID:nameID inContext:context];
             }
 
             version = DescriptionOrNil([self cxx_propertyWithID:OOJSID("version") inContext:context]);
@@ -410,24 +408,24 @@ static const JSCFunctionListEntry sScriptMethods[] = {
     return result;
 }
 
-- (BOOL)setProperty:(id)value withID:(JSAtom)propID inContext:(JSContext*)context
+- (BOOL)setProperty:(const oo::PList&)value withID:(JSAtom)propID inContext:(JSContext*)context
 {
     OOParameterAssert(context != NULL);
     if (!JS_IsObject(_jsSelf))
         return NO;
 
     // JS_SetProperty() takes ownership of the value.
-    return JS_SetProperty(context, _jsSelf, propID, OOJSValueFromNativeObject(context, value)) >= 0;
+    return JS_SetProperty(context, _jsSelf, propID, OOJSValueFromPList(context, value)) >= 0;
 }
 
-- (BOOL)defineProperty:(id)value withID:(JSAtom)propID inContext:(JSContext*)context
+- (BOOL)defineProperty:(const oo::PList&)value withID:(JSAtom)propID inContext:(JSContext*)context
 {
     OOParameterAssert(context != NULL);
     if (!JS_IsObject(_jsSelf))
         return NO;
 
     // JS_DefinePropertyValue() takes ownership of the value.
-    return JS_DefinePropertyValue(context, _jsSelf, propID, OOJSValueFromNativeObject(context, value), OOJS_PROP_READONLY) >= 0;
+    return JS_DefinePropertyValue(context, _jsSelf, propID, OOJSValueFromPList(context, value), OOJS_PROP_READONLY) >= 0;
 }
 
 - (oo::PList)cxx_propertyNamed:(const std::string&)propName
@@ -442,9 +440,9 @@ static const JSCFunctionListEntry sScriptMethods[] = {
     return result;
 }
 
-- (BOOL)setProperty:(id)value named:(const std::string&)propName
+- (BOOL)setProperty:(const oo::PList&)value named:(const std::string&)propName
 {
-    if (value == nil)
+    if (value.isNull())
         return NO;
     if (!JS_IsObject(_jsSelf))
         return NO;
@@ -456,9 +454,9 @@ static const JSCFunctionListEntry sScriptMethods[] = {
     return result;
 }
 
-- (BOOL)defineProperty:(id)value named:(const std::string&)propName
+- (BOOL)defineProperty:(const oo::PList&)value named:(const std::string&)propName
 {
-    if (value == nil)
+    if (value.isNull())
         return NO;
     if (!JS_IsObject(_jsSelf))
         return NO;
@@ -566,17 +564,17 @@ static const JSCFunctionListEntry sScriptMethods[] = {
     const std::optional<std::string> identifier = StringForKey(manifest, std::string(kOOManifestIdentifier));
     if (manifest && !(identifier.has_value() && oo::str::hasPrefix(*identifier, "__oolite.tmp."))) {
         if (manifest.get<oo::PList>(std::string(kOOManifestVersion)) != nullptr) {
-            properties["version"] = ValueForKey(StringForKey(manifest, std::string(kOOManifestVersion)), @"version");
+            properties["version"] = ValueForKey(StringForKey(manifest, std::string(kOOManifestVersion)), "version");
         }
         if (manifest.get<oo::PList>(std::string(kOOManifestIdentifier)) != nullptr) {
             // used for system info
-            properties[kLocalManifestProperty] = ValueForKey(identifier, oo::NSStringFrom(kLocalManifestProperty));
+            properties[kLocalManifestProperty] = ValueForKey(identifier, kLocalManifestProperty);
         }
         if (manifest.get<oo::PList>(std::string(kOOManifestAuthor)) != nullptr) {
-            properties["author"] = ValueForKey(StringForKey(manifest, std::string(kOOManifestAuthor)), @"author");
+            properties["author"] = ValueForKey(StringForKey(manifest, std::string(kOOManifestAuthor)), "author");
         }
         if (manifest.get<oo::PList>(std::string(kOOManifestLicense)) != nullptr) {
-            properties["license"] = ValueForKey(StringForKey(manifest, std::string(kOOManifestLicense)), @"license");
+            properties["license"] = ValueForKey(StringForKey(manifest, std::string(kOOManifestLicense)), "license");
         }
     }
     return properties;
@@ -660,7 +658,7 @@ static BOOL RunScriptWithName(JSContext* context, const std::optional<std::strin
      * definition, but it seems unlikely anyone is actually doing
      * that here. */
     if (utf8Contents->find("\"use strict\";") == std::string::npos && utf8Contents->find("'use strict';") == std::string::npos) {
-        cxx_OOStandardsDeprecated("Script " + oo::DescriptionOf(oo::NSStringOrNil(path)) + " does not \"use strict\";");
+        cxx_OOStandardsDeprecated("Script " + path.value_or("(null)") + " does not \"use strict\";"); // "%@" of the path
         if (OOEnforceStandards()) {
             // prepend it anyway (before wrapping: see OOJSWrapScriptSource())
             // TODO: some time after 1.82, make this required
@@ -669,20 +667,18 @@ static BOOL RunScriptWithName(JSContext* context, const std::optional<std::strin
     }
 #endif
 
-    // The scoping and caching below still work on the Foundation string.
-    NSString* fileContents = oo::NSStringFrom(*utf8Contents);
-
     /*	Scripts marked with the "use oolite modern" directive (for example by
             tools/oxp-upgrade) don't rely on SpiderMonkey 1.8.5 scoping, so they
             run without its emulation: no with(this) and no const rewrite.
     */
-    BOOL modern = HasModernScopeDirective(fileContents);
+    std::string wrapped;
+    BOOL modern = HasModernScopeDirective(*utf8Contents);
     if (modern) {
-        OO_LOG("script.javaScript.load.modern", "Script {} uses modern scoping.", oo::DescriptionOf(oo::NSStringOrNil(path)));
-        NSString* lineEnd = [fileContents hasSuffix:@"\n"] ? @"" : @"\n";
-        fileContents = [NSString stringWithFormat:@"(function(){%@%@})", fileContents, lineEnd];
+        OO_LOG("script.javaScript.load.modern", "Script {} uses modern scoping.", path.value_or("(null)"));
+        const char* lineEnd = oo::str::hasSuffix(*utf8Contents, "\n") ? "" : "\n";
+        wrapped = "(function(){" + *utf8Contents + lineEnd + "})";
     } else {
-        fileContents = [NSString stringWithFormat:@"(function(){%@})", OOJSWrapScriptSource(RewriteLegacyConst(context, fileContents))];
+        wrapped = "(function(){" + OOJSWrapScriptSource(RewriteLegacyConst(context, *utf8Contents)) + "})";
     }
 
     /*	QuickJS runs compiled (and cached) code only with the global object as
@@ -691,26 +687,21 @@ static BOOL RunScriptWithName(JSContext* context, const std::optional<std::strin
             this. The extra prefix is on the first line, so line numbers are
             unchanged.
     */
-    NSString* wrapped = fileContents;
-    NSData* source = [wrapped dataUsingEncoding:NSUTF8StringEncoding];
-
     JSValue compiled = JS_UNDEFINED;
 #if OO_CACHE_JS_SCRIPTS
-    compiled = CachedCompiledScript(context, oo::NSStringOrNil(path), source);
+    compiled = CachedCompiledScript(context, path.value_or(""), wrapped); // (a nil path was the key "")
 #endif
 
     if (JS_IsUndefined(compiled)) {
-        NSMutableData* terminated = [NSMutableData dataWithData:source];
-        [terminated appendBytes:"" length:1]; // JS_Eval requires a terminating NUL.
-
-        compiled = JS_Eval(context, (const char*)[terminated bytes], [source length], path.has_value() ? path->c_str() : NULL, JS_EVAL_TYPE_GLOBAL | JS_EVAL_FLAG_COMPILE_ONLY);
+        // JS_Eval requires a terminating NUL, which std::string's c_str() has.
+        compiled = JS_Eval(context, wrapped.c_str(), wrapped.size(), path.has_value() ? path->c_str() : NULL, JS_EVAL_TYPE_GLOBAL | JS_EVAL_FLAG_COMPILE_ONLY);
         if (JS_IsException(compiled)) {
             OOJSReportPendingException(context);
             *outErrorMessage = "compilation failed";
             return NO;
         }
 #if OO_CACHE_JS_SCRIPTS
-        CacheCompiledScript(context, oo::NSStringOrNil(path), source, compiled);
+        CacheCompiledScript(context, path.value_or(""), wrapped, compiled);
 #endif
     }
 
@@ -743,57 +734,70 @@ static BOOL RunScriptWithName(JSContext* context, const std::optional<std::strin
         match. As before, the whole cache is cleared when the Oolite version or
         the search paths change (see OOCacheManager and ResourceManager).
 */
-static NSString* const kCompiledScriptCache = @"compiled QuickJS scripts";
-static NSString* const kCompiledScriptKeyHash = @"source hash";
-static NSString* const kCompiledScriptKeyEngine = @"engine";
-static NSString* const kCompiledScriptKeyFormat = @"format";
-static NSString* const kCompiledScriptKeyBytecode = @"bytecode";
+static constexpr char kCompiledScriptCache[] = "compiled QuickJS scripts";
+static constexpr char kCompiledScriptKeyHash[] = "source hash";
+static constexpr char kCompiledScriptKeyEngine[] = "engine";
+static constexpr char kCompiledScriptKeyFormat[] = "format";
+static constexpr char kCompiledScriptKeyBytecode[] = "bytecode";
 enum {
     kCompiledScriptFormat = 1 // Increment when the compiled text or the way it is run changes.
 };
 
 // 64-bit FNV-1a and length. Only needs to detect changed source, not resist tampering.
-static NSString* SourceHash(NSData* source)
+static std::string SourceHash(std::string_view source)
 {
-    const uint8_t* bytes = (const uint8_t*)[source bytes];
-    NSUInteger length = [source length];
     uint64_t hash = 0xcbf29ce484222325ULL;
-    for (NSUInteger i = 0; i < length; i++) {
-        hash ^= bytes[i];
+    for (char c : source) {
+        hash ^= static_cast<unsigned char>(c);
         hash *= 0x100000001b3ULL;
     }
-    return [NSString stringWithFormat:@"%016llx:%lu", (unsigned long long)hash, (unsigned long)length];
+    return oo::str::format("%016llx:%lu", (unsigned long long)hash, (unsigned long)source.size());
+}
+
+// The entry's member, or null.
+static const oo::PList* EntryMember(const oo::PList::Dict& entry, const char* key)
+{
+    auto found = entry.find(key);
+    return (found != entry.end()) ? &found->second : nullptr;
 }
 
 // Owned compiled script from the cache, or JS_UNDEFINED if there is no usable entry.
-static JSValue CachedCompiledScript(JSContext* context, NSString* path, NSData* source)
+static JSValue CachedCompiledScript(JSContext* context, const std::string& path, std::string_view source)
 {
-    NSDictionary* entry = [[OOCacheManager sharedCache] cxx_objectForKey:oo::StdString(path) inCache:oo::StdString(kCompiledScriptCache)];
-    if (![entry isKindOfClass:[NSDictionary class]])
+    const oo::PList cached = [[OOCacheManager sharedCache] cxx_pListForKey:path inCache:kCompiledScriptCache];
+    const oo::PList::Dict* entry = cached.getIf<oo::PList::Dict>();
+    if (entry == nullptr)
         return JS_UNDEFINED;
 
-    NSData* bytecode = [entry objectForKey:kCompiledScriptKeyBytecode];
-    if (![bytecode isKindOfClass:[NSData class]]
-        || oo::PListView(entry).get<unsigned int>(kCompiledScriptKeyFormat) != kCompiledScriptFormat
-        || ![oo::PListView(entry).get<NSString*>(kCompiledScriptKeyEngine) isEqualToString:[NSString stringWithUTF8String:JS_GetVersion()]]
-        || ![oo::PListView(entry).get<NSString*>(kCompiledScriptKeyHash) isEqualToString:SourceHash(source)]) {
-        OO_LOG("script.javaScript.cache.stale", "Compiled script cache entry for {} is out of date.", oo::DescriptionOf(path));
+    const oo::PList* bytecode = EntryMember(*entry, kCompiledScriptKeyBytecode);
+    const oo::PList* format = EntryMember(*entry, kCompiledScriptKeyFormat);
+    const oo::PList* engine = EntryMember(*entry, kCompiledScriptKeyEngine);
+    const oo::PList* hash = EntryMember(*entry, kCompiledScriptKeyHash);
+    const oo::Data* bytecodeData = (bytecode != nullptr) ? bytecode->getIf<oo::PList::Data>() : nullptr;
+    const oo::PList::Integer* formatNumber = (format != nullptr) ? format->getIf<oo::PList::Integer>() : nullptr;
+    const std::string* engineName = (engine != nullptr) ? engine->getIf<std::string>() : nullptr;
+    const std::string* hashText = (hash != nullptr) ? hash->getIf<std::string>() : nullptr;
+    if (bytecodeData == nullptr
+        || formatNumber == nullptr || formatNumber->value != kCompiledScriptFormat
+        || engineName == nullptr || *engineName != JS_GetVersion()
+        || hashText == nullptr || *hashText != SourceHash(source)) {
+        OO_LOG("script.javaScript.cache.stale", "Compiled script cache entry for {} is out of date.", path);
         return JS_UNDEFINED;
     }
 
     // Trusted input: the cache is written only by CacheCompiledScript().
-    JSValue compiled = JS_ReadObject(context, (const uint8_t*)[bytecode bytes], [bytecode length], JS_READ_OBJ_BYTECODE);
+    JSValue compiled = JS_ReadObject(context, bytecodeData->bytes(), bytecodeData->length(), JS_READ_OBJ_BYTECODE);
     if (JS_IsException(compiled)) {
         JS_FreeValue(context, JS_GetException(context));
-        OO_LOG("script.javaScript.cache.readFailed", "Could not read compiled script cache entry for {}; compiling instead.", oo::DescriptionOf(path));
+        OO_LOG("script.javaScript.cache.readFailed", "Could not read compiled script cache entry for {}; compiling instead.", path);
         return JS_UNDEFINED;
     }
 
-    OO_LOG("script.javaScript.cache.load", "Loaded compiled script {} from cache.", oo::DescriptionOf(path));
+    OO_LOG("script.javaScript.cache.load", "Loaded compiled script {} from cache.", path);
     return compiled;
 }
 
-static void CacheCompiledScript(JSContext* context, NSString* path, NSData* source, JSValueConst compiled)
+static void CacheCompiledScript(JSContext* context, const std::string& path, std::string_view source, JSValueConst compiled)
 {
     size_t length = 0;
     uint8_t* bytes = JS_WriteObject(context, &length, compiled, JS_WRITE_OBJ_BYTECODE);
@@ -803,49 +807,60 @@ static void CacheCompiledScript(JSContext* context, NSString* path, NSData* sour
         return;
     }
 
-    NSData* bytecode = [NSData dataWithBytes:bytes length:length];
+    oo::Data bytecode(bytes, length);
     js_free(context, bytes);
 
-    NSDictionary* entry = [NSDictionary dictionaryWithObjectsAndKeys:
-            bytecode, kCompiledScriptKeyBytecode,
-        SourceHash(source), kCompiledScriptKeyHash,
-        [NSString stringWithUTF8String:JS_GetVersion()], kCompiledScriptKeyEngine,
-        [NSNumber numberWithUnsignedInt:kCompiledScriptFormat], kCompiledScriptKeyFormat,
-        nil];
+    oo::PList::Dict entry;
+    entry.emplace(kCompiledScriptKeyBytecode, oo::PList(std::move(bytecode)));
+    entry.emplace(kCompiledScriptKeyHash, oo::PList(SourceHash(source)));
+    entry.emplace(kCompiledScriptKeyEngine, oo::PList(std::string(JS_GetVersion())));
+    entry.emplace(kCompiledScriptKeyFormat, oo::PList::unsignedInteger(kCompiledScriptFormat));
 
-    [[OOCacheManager sharedCache] cxx_setObject:entry forKey:oo::StdString(path) inCache:oo::StdString(kCompiledScriptCache)];
-    OO_LOG("script.javaScript.cache.store", "Cached compiled script {}.", oo::DescriptionOf(path));
+    [[OOCacheManager sharedCache] cxx_setPList:oo::PList(std::move(entry)) forKey:path inCache:kCompiledScriptCache];
+    OO_LOG("script.javaScript.cache.store", "Cached compiled script {}.", path);
 }
 #endif
 
 /*	Whether the script's directive prologue (the string literal statements
-        at its start, like "use strict") includes "use oolite modern".
+        at its start, like "use strict") includes "use oolite modern". The
+        source is UTF-8; the white space it skips includes U+00A0 and U+FEFF,
+        as the UTF-16 scan did.
 */
-static BOOL HasModernScopeDirective(NSString* source)
+static BOOL HasModernScopeDirective(std::string_view source)
 {
-    NSUInteger length = [source length];
-    NSUInteger i = 0;
-    if (length > 0 && [source characterAtIndex:0] == 0xFEFF)
-        i = 1;
+    const std::size_t length = source.size();
+    std::size_t i = 0;
+    auto byteAt = [&](std::size_t k) { return static_cast<unsigned char>(source[k]); };
+    auto isBOM = [&](std::size_t k) { return k + 2 < length && byteAt(k) == 0xEF && byteAt(k + 1) == 0xBB && byteAt(k + 2) == 0xBF; };
+    auto isNBSP = [&](std::size_t k) { return k + 1 < length && byteAt(k) == 0xC2 && byteAt(k + 1) == 0xA0; };
+
+    if (isBOM(0))
+        i = 3;
 
     for (;;) {
         // Skip white space and comments.
         BOOL skipped = YES;
         while (skipped && i < length) {
             skipped = NO;
-            unichar c = [source characterAtIndex:i];
-            if (c == ' ' || c == '\t' || c == '\r' || c == '\n' || c == 0xA0 || c == 0xFEFF) {
+            char c = source[i];
+            if (c == ' ' || c == '\t' || c == '\r' || c == '\n') {
                 i++;
                 skipped = YES;
-            } else if (c == '/' && i + 1 < length && [source characterAtIndex:i + 1] == '/') {
-                while (i < length && [source characterAtIndex:i] != '\n')
+            } else if (isNBSP(i)) {
+                i += 2;
+                skipped = YES;
+            } else if (isBOM(i)) {
+                i += 3;
+                skipped = YES;
+            } else if (c == '/' && i + 1 < length && source[i + 1] == '/') {
+                while (i < length && source[i] != '\n')
                     i++;
                 skipped = YES;
-            } else if (c == '/' && i + 1 < length && [source characterAtIndex:i + 1] == '*') {
-                NSRange end = [source rangeOfString:@"*/" options:0 range:NSMakeRange(i + 2, length - i - 2)];
-                if (end.location == NSNotFound)
+            } else if (c == '/' && i + 1 < length && source[i + 1] == '*') {
+                std::size_t end = source.find("*/", i + 2);
+                if (end == std::string_view::npos)
                     return NO;
-                i = end.location + 2;
+                i = end + 2;
                 skipped = YES;
             }
         }
@@ -853,13 +868,13 @@ static BOOL HasModernScopeDirective(NSString* source)
             return NO;
 
         // A directive: a string literal, followed by ; or a line break.
-        unichar quote = [source characterAtIndex:i];
+        char quote = source[i];
         if (quote != '"' && quote != '\'')
             return NO;
-        NSUInteger start = ++i;
+        std::size_t start = ++i;
         BOOL escaped = NO;
-        while (i < length && [source characterAtIndex:i] != quote) {
-            unichar c = [source characterAtIndex:i];
+        while (i < length && source[i] != quote) {
+            char c = source[i];
             if (c == '\\') {
                 escaped = YES;
                 i++;
@@ -870,16 +885,16 @@ static BOOL HasModernScopeDirective(NSString* source)
         }
         if (i >= length)
             return NO;
-        NSString* directive = [source substringWithRange:NSMakeRange(start, i - start)];
+        std::string_view directive = source.substr(start, i - start);
         i++;
 
         BOOL lineBreak = NO;
         while (i < length) {
-            unichar c = [source characterAtIndex:i];
+            char c = source[i];
             if (c == '\n') {
                 lineBreak = YES;
-            } else if (c == '/' && i + 1 < length && [source characterAtIndex:i + 1] == '/') {
-                while (i < length && [source characterAtIndex:i] != '\n')
+            } else if (c == '/' && i + 1 < length && source[i + 1] == '/') {
+                while (i < length && source[i] != '\n')
                     i++;
                 continue;
             } else if (c != ' ' && c != '\t' && c != '\r') {
@@ -887,12 +902,12 @@ static BOOL HasModernScopeDirective(NSString* source)
             }
             i++;
         }
-        if (i < length && [source characterAtIndex:i] == ';')
+        if (i < length && source[i] == ';')
             i++;
-        else if (!lineBreak && i < length && [source characterAtIndex:i] != '}')
+        else if (!lineBreak && i < length && source[i] != '}')
             return NO; // Part of a larger expression, so not a directive.
 
-        if (!escaped && [directive isEqualToString:@"use oolite modern"])
+        if (!escaped && directive == "use oolite modern")
             return YES;
     }
 }
@@ -907,7 +922,7 @@ static BOOL HasModernScopeDirective(NSString* source)
         for every ship that uses it, so results are kept for the rest of the
         session, keyed by the source text.
 */
-static NSString* RewriteLegacyConst(JSContext* context, NSString* source)
+static std::string RewriteLegacyConst(JSContext* context, const std::string& source)
 {
     static std::unordered_map<std::string, std::string> sRewritten;
 
@@ -970,9 +985,9 @@ static std::optional<std::string> StringForKey(const oo::PList& dictionary, cons
 }
 
 // A string value for -setObject:forKey:, which raised on nil (GNUstep 1.31.1's text).
-static std::string ValueForKey(const std::optional<std::string>& value, id key)
+static std::string ValueForKey(const std::optional<std::string>& value, std::string_view key)
 {
     if (!value.has_value())
-        [OOException raise:OOInvalidArgumentException format:"Tried to add nil value for key '%s' to dictionary", oo::DescriptionOf(key).c_str()];
+        [OOException raise:OOInvalidArgumentException format:"Tried to add nil value for key '%s' to dictionary", std::string(key).c_str()];
     return *value;
 }

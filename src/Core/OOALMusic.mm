@@ -47,7 +47,7 @@ static OOSoundSource* sMusicSource = nil;
     [super dealloc];
 }
 
-- (id)cxx_initWithContentsOfFile:(const std::optional<std::string>&)inPath // -initWithContentsOfFile: is OOSound's, which forwards here
+- (id)cxx_initWithContentsOfFile:(const std::optional<std::string>&)inPath // OOSound's designated initializer, overridden
 {
     self = [super init];
     if (nil != self) {

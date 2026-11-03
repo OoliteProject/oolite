@@ -34,12 +34,14 @@ MA 02110-1301, USA.
 #import "ShipEntity.h"
 
 #include "oofnd/PList.hpp"
+#include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
 #include "oofnd/objc/OOObjCRef.h"
 
 struct OOHUDWidget; // HeadUpDisplay.mm
 
-@class OOCrosshairs, OOColor;
+@class OOColor;
+class OOCrosshairs;
 
 @protocol OOHUDBeaconIcon;
 
@@ -272,7 +274,7 @@ enum {
     std::set<std::string> _hiddenSelectors;
 
     // Crosshairs
-    OOCrosshairs* _crosshairs;
+    oo::Ref<OOCrosshairs> _crosshairs;
     OOWeaponType _lastWeaponType;
     GLfloat _lastOverallAlpha;
     BOOL _lastWeaponsOnline;
@@ -293,7 +295,6 @@ enum {
     BOOL scanner_ultra_zoom;
 }
 
-- (id)initWithDictionary:(id)hudinfo; // shared selector (proposed ADR-0043)
 - (id)cxx_initWithDictionary:(const oo::PList&)hudinfo inFile:(const std::optional<std::string>&)hudFileName OO_RETURNS_RETAINED;
 
 - (void)cxx_resetGuis:(const oo::PList&)info;

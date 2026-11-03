@@ -59,10 +59,8 @@ MA 02110-1301, USA.
 //  As above, but load from the "AIs" directory
 + (id)cxx_jsAIScriptFromFileNamed:(const std::string&)fileName properties:(const oo::PList&)properties;
 
-- (id)name; // shared selector (Foundation declares -name too): -cxx_name as an Objective-C string, or nil
 - (std::optional<std::string>)cxx_name; // nullopt: none (bead oo-3rb.289.6)
 - (std::optional<std::string>)scriptDescription; // nullopt: none
-- (id)version; // shared selector (Foundation declares -version too): -cxx_version as an Objective-C string, or nil
 - (std::optional<std::string>)cxx_version; // nullopt: none (bead oo-3rb.291.1)
 - (std::optional<std::string>)displayName; // flipped with its family (bead oo-3rb.267): "name version" if version is defined, otherwise just "name".
 

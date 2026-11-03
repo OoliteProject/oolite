@@ -23,8 +23,6 @@ MA 02110-1301, USA.
 
 #import "OOJSWaypoint.h"
 #import "EntityOOJavaScriptExtensions.h"
-#import "OOFoundationBridge.h"
-#import "OOCollectionExtractors.h"
 #import "OOJSEntity.h"
 #import "OOJSQuaternion.h"
 #import "OOJSVector.h"
@@ -66,7 +64,7 @@ void InitOOJSWaypoint(JSContext* context, JSValueConst global)
     OOJSRegisterClass(&sWaypointClassID, &sWaypointClass);
 
     JSValue parentPrototype = JS_GetClassProto(context, JSEntityClassID());
-    NSCAssert(JS_IsObject(parentPrototype), @"Entity must be initialized before Waypoint.");
+    OOCAssert(JS_IsObject(parentPrototype), "Entity must be initialized before Waypoint.");
     OOJSInitClass(context, global, sWaypointClassID, parentPrototype, OOJSUnconstructableConstruct, 0,
         sWaypointProperties, OOJS_COUNT(sWaypointProperties), NULL, 0, NULL, 0);
     JS_FreeValue(context, parentPrototype);
@@ -128,7 +126,8 @@ static JSValue WaypointGetProperty(OOJS_GETTER_ARGS)
     OOJS_NATIVE_ENTER(context)
 
     OOWaypointEntity* entity = nil;
-    id result = nil;
+    oo::PList result; // null: nil
+    std::optional<std::string> text;
     Quaternion q = kIdentityQuaternion;
 
     if (!JSWaypointGetWaypointEntity(context, thisObj, &entity))
@@ -139,11 +138,15 @@ static JSValue WaypointGetProperty(OOJS_GETTER_ARGS)
 
     switch (magic) {
     case kWaypoint_beaconCode:
-        result = oo::NSStringOrNil([entity beaconCode]);
+        text = [entity beaconCode];
+        if (text.has_value())
+            result = oo::PList(*text);
         break;
 
     case kWaypoint_beaconLabel:
-        result = oo::NSStringOrNil([entity beaconLabel]);
+        text = [entity beaconLabel];
+        if (text.has_value())
+            result = oo::PList(*text);
         break;
 
     case kWaypoint_orientation:
@@ -161,7 +164,7 @@ static JSValue WaypointGetProperty(OOJS_GETTER_ARGS)
         return OOJSNativeFailure(context);
     }
 
-    return OOJSValueFromNativeObject(context, result);
+    return OOJSValueFromPList(context, result);
 
     OOJS_NATIVE_EXIT
 }

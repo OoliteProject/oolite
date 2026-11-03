@@ -26,12 +26,12 @@ SOFTWARE.
 */
 
 #import "OOShaderMaterial.h"
+#import "OOObjCPList.h"
 #include "oofnd/objc/OORuntime.h"
 
 #if OO_SHADERS
 
 #import "OODebugFlags.h"
-#import "OOFoundationBridge.h"
 #import "OOFunctionAttributes.h"
 #import "OOIsNumberLiteral.h"
 #import "OOLogging.h"
@@ -40,7 +40,6 @@ SOFTWARE.
 #import "OOPListGameTypes.h"
 #import "OOShaderProgram.h"
 #import "OOShaderUniform.h"
-#import "OOStringBridge.h"
 #import "OOStringParsing.h"
 #import "OOTexture.h"
 #import "ResourceManager.h"
@@ -128,8 +127,7 @@ std::optional<std::string> MacrosToString(const oo::PList& macros);
     if (configuration.isNull())
         OK = NO;
 
-    id configurationObject = oo::ObjectFromPList(configuration);
-    self = [super initWithName:oo::NSStringOrNil(name) configuration:configurationObject];
+    self = [super initWithName:name configuration:configuration];
     if (self == nil)
         OK = NO;
 
@@ -782,8 +780,7 @@ BOOL GetShaderSource(const std::optional<std::string>& fileName, const std::stri
         // Futureproofing -- in future, we may wish to support automatic selection between supported shader languages.
         if (!oo::str::pathHasExtensionIn(*fileName, extensions)) {
             for (const std::string& extension : extensions) {
-                // No oofnd form of -stringByAppendingPathExtension: yet: kept at the boundary.
-                const std::string nameWithExtension = oo::StdString([oo::NSStringFrom(*fileName) stringByAppendingPathExtension:oo::NSStringFrom(extension)]);
+                const std::string nameWithExtension = oo::str::appendingPathExtension(*fileName, extension);
                 result = [ResourceManager cxx_stringFromFilesNamed:nameWithExtension
                                                           inFolder:std::string("Shaders")];
                 if (result.has_value())

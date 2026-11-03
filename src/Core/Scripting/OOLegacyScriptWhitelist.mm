@@ -25,7 +25,6 @@ MA 02110-1301, USA.
 
 #import "OOLegacyScriptWhitelist.h"
 #import "OOFoundation.h"
-#import "OOFoundationBridge.h"
 #import "OOStringParsing.h"
 #import "PlayerEntityLegacyScriptEngine.h"
 #import "ResourceManager.h"
@@ -91,7 +90,7 @@ static oo::PList OOSanitizeLegacyScriptInternal(const oo::PList& script, SanStac
                 } else if (const std::string* string = statement.getIf<std::string>()) {
                     sanitized = SanitizeActionStatement(*string, &subStack, allowAIMethods);
                 } else {
-                    OO_LOG("script.syntax.statement.invalidType", "***** SCRIPT ERROR: in {}, statement is of invalid type - expected string or dictionary, got {}.", StringFromStack(stack), oo::DescriptionOf([oo::ObjectFromPList(statement) class]));
+                    OO_LOG("script.syntax.statement.invalidType", "***** SCRIPT ERROR: in {}, statement is of invalid type - expected string or dictionary, got {}.", StringFromStack(stack), oo::typeName(statement.type()));
                 }
 
                 if (!sanitized.isNull()) {
@@ -131,7 +130,7 @@ static oo::PList OOSanitizeLegacyScriptConditionsInternal(const oo::PList& condi
 
             const std::string* conditionString = condition.getIf<std::string>();
             if (conditionString == nullptr) {
-                OO_LOG("script.syntax.condition.notString", "***** SCRIPT ERROR: in {}, bad condition - expected string, got {}; ignoring.", StringFromStack(stack), oo::DescriptionOf([oo::ObjectFromPList(condition) class]));
+                OO_LOG("script.syntax.condition.notString", "***** SCRIPT ERROR: in {}, bad condition - expected string, got {}; ignoring.", StringFromStack(stack), oo::typeName(condition.type()));
                 OK = NO;
                 break;
             }

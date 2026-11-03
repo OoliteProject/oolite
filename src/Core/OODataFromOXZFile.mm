@@ -28,7 +28,6 @@ SOFTWARE.
 */
 
 #import "OOFoundation.h"
-#import "OOStringBridge.h"
 #import "unzip.h"
 
 #include "oofnd/FileSystem.hpp"

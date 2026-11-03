@@ -27,61 +27,67 @@ SOFTWARE.
 
 #import "OODrawable.h"
 #import "NSObjectOOExtensions.h"
-#import "OOFoundationBridge.h"
 
-@implementation OODrawable
+namespace cxx {
 
-- (void)renderOpaqueParts
+void OODrawable::renderOpaqueParts()
 {
 }
 
-- (void)renderTranslucentParts
+void OODrawable::renderTranslucentParts()
 {
 }
 
-- (BOOL)hasOpaqueParts
+bool OODrawable::hasOpaqueParts()
 {
-    return NO;
+    return false;
 }
 
-- (BOOL)hasTranslucentParts
+bool OODrawable::hasTranslucentParts()
 {
-    return NO;
+    return false;
 }
 
-- (GLfloat)collisionRadius
-{
-    return 0.0f;
-}
-
-- (GLfloat)maxDrawDistance
+GLfloat OODrawable::collisionRadius()
 {
     return 0.0f;
 }
 
-- (BoundingBox)boundingBox
+GLfloat OODrawable::maxDrawDistance()
+{
+    return 0.0f;
+}
+
+BoundingBox OODrawable::boundingBox()
 {
     return kZeroBoundingBox;
 }
 
-- (void)setBindingTarget:(id<OOWeakReferenceSupport>)target
+void OODrawable::setBindingTarget(id<OOWeakReferenceSupport> /*target*/)
 {
 }
 
-- (void)dumpSelfState
+void OODrawable::dumpSelfState()
 {
+}
+
+std::optional<std::string> OODrawable::descriptionComponents() const
+{
+    return std::nullopt;
 }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-- (std::vector<oo::ObjCRef<OOTexture*>>)cxx_allTextures
+std::vector<oo::ObjCRef<OOTexture*>> OODrawable::allTextures()
 {
     return { };
 }
 
-- (size_t)totalSize
+// The instance size of the Objective-C object: an Objective-C drawable's own class, as
+// [self oo_objectSize] was, or a C++ drawable's facade.
+size_t OODrawable::totalSize()
 {
-    return [self oo_objectSize];
+    return [oo::ToObjC(this) oo_objectSize];
 }
 #endif
 
-@end
+} // namespace cxx

@@ -28,7 +28,8 @@ MA 02110-1301, USA.
 #import "OOJSPlayer.h"
 #import "OOJavaScriptEngine.h"
 
-#import "OOFoundationBridge.h"
+#import "OOObjCPList.h"
+#include "oofnd/String.hpp"
 
 static JSClassID sEquipmentInfoClassID;
 
@@ -48,6 +49,21 @@ namespace {
         for (float component : [color cxx_normalizedArray])
             components.push_back(oo::PList::singleReal(component));
         return oo::PList(std::move(components));
+    }
+
+    // A string, or null for none (what an NSString or nil gave JavaScript).
+    oo::PList StringOrNull(const std::optional<std::string>& string)
+    {
+        return string.has_value() ? oo::PList(*string) : oo::PList();
+    }
+
+    // Equipment keys as an array of strings; null for none. They are sorted and unique already, so
+    // this is the set they were, in key order (-[NSSet allObjects] gave hash order).
+    oo::PList KeyArrayOrNull(const std::optional<std::vector<std::string>>& keys)
+    {
+        if (!keys.has_value())
+            return oo::PList();
+        return oo::PList(oo::PList::Array(keys->begin(), keys->end()));
     }
 
 } // namespace
@@ -232,7 +248,7 @@ static JSValue EquipmentInfoGetProperty(OOJS_GETTER_ARGS)
     OOJS_NATIVE_ENTER(context)
 
     OOEquipmentType* eqType = nil;
-    id result = nil;
+    oo::PList result; // null maps to null
     NSUInteger inst_time;
 
     if (EXPECT_NOT(!JSEquipmentInfoGetEquipmentType(context, thisObj, &eqType)))
@@ -240,11 +256,11 @@ static JSValue EquipmentInfoGetProperty(OOJS_GETTER_ARGS)
 
     switch (magic) {
     case kEquipmentInfo_equipmentKey:
-        result = oo::NSStringOrNil([eqType cxx_identifier]);
+        result = StringOrNull([eqType cxx_identifier]);
         break;
 
     case kEquipmentInfo_name:
-        result = oo::NSStringOrNil([eqType cxx_name]);
+        result = StringOrNull([eqType cxx_name]);
         break;
 
     case kEquipmentInfo_calculatedPrice:
@@ -262,14 +278,14 @@ static JSValue EquipmentInfoGetProperty(OOJS_GETTER_ARGS)
         return OOJSValueFromBOOL([eqType canBeDamaged]);
 
     case kEquipmentInfo_description:
-        result = oo::NSStringOrNil([eqType cxx_descriptiveText]);
+        result = StringOrNull([eqType cxx_descriptiveText]);
         break;
 
     case kEquipmentInfo_damageProbability:
         return JS_NewNumber(context, [eqType damageProbability]);
 
     case kEquipmentInfo_displayColor:
-        result = oo::ObjectFromPList(NormalizedColorComponents([eqType displayColor]));
+        result = NormalizedColorComponents([eqType displayColor]);
         break;
 
     case kEquipmentInfo_fastAffinityDefensive:
@@ -279,11 +295,11 @@ static JSValue EquipmentInfoGetProperty(OOJS_GETTER_ARGS)
         return OOJSValueFromBOOL([eqType fastAffinityOffensive]);
 
     case kEquipmentInfo_defaultActivateKey:
-        result = oo::ObjectFromPList([eqType cxx_defaultActivateKey]);
+        result = [eqType cxx_defaultActivateKey];
         break;
 
     case kEquipmentInfo_defaultModeKey:
-        result = oo::ObjectFromPList([eqType cxx_defaultModeKey]);
+        result = [eqType cxx_defaultModeKey];
         break;
 
     case kEquipmentInfo_techLevel:
@@ -295,9 +311,10 @@ static JSValue EquipmentInfoGetProperty(OOJS_GETTER_ARGS)
     case kEquipmentInfo_price:
         return JS_NewNumber(context, [eqType price]);
 
-    case kEquipmentInfo_provides:
-        result = oo::NSArrayFromStrings([eqType cxx_providesForScripting]);
-        break;
+    case kEquipmentInfo_provides: {
+        const std::vector<std::string> provides = [eqType cxx_providesForScripting];
+        result = oo::PList(oo::PList::Array(provides.begin(), provides.end()));
+    } break;
 
     case kEquipmentInfo_installationTime:
         inst_time = [eqType installTime];
@@ -352,32 +369,30 @@ static JSValue EquipmentInfoGetProperty(OOJS_GETTER_ARGS)
         return JS_NewInt32(context, (int32_t)[eqType requiredCargoSpace]);
 
     case kEquipmentInfo_requiresEquipment:
-        result = [eqType cxx_requiresEquipment].has_value() ? [oo::NSSetFromStrings(*[eqType cxx_requiresEquipment]) allObjects] : nil;
+        result = KeyArrayOrNull([eqType cxx_requiresEquipment]);
         break;
 
     case kEquipmentInfo_requiresAnyEquipment:
-        result = [eqType cxx_requiresAnyEquipment].has_value() ? [oo::NSSetFromStrings(*[eqType cxx_requiresAnyEquipment]) allObjects] : nil;
+        result = KeyArrayOrNull([eqType cxx_requiresAnyEquipment]);
         break;
 
     case kEquipmentInfo_incompatibleEquipment:
-        result = [eqType cxx_incompatibleEquipment].has_value() ? [oo::NSSetFromStrings(*[eqType cxx_incompatibleEquipment]) allObjects] : nil;
+        result = KeyArrayOrNull([eqType cxx_incompatibleEquipment]);
         break;
 
     case kEquipmentInfo_scriptInfo: {
         const oo::PList info = [eqType scriptInfo];
-        result = oo::ObjectFromPList(info.isNull() ? oo::PList(oo::PList::Dict { }) : info); // empty rather than null
+        result = info.isNull() ? oo::PList(oo::PList::Dict { }) : info; // empty rather than null
     } break;
 
     case kEquipmentInfo_scriptName:
-        result = oo::NSStringOrNil([eqType cxx_scriptName]);
-        if (result == nil)
-            result = @"";
+        result = oo::PList([eqType cxx_scriptName].value_or(std::string()));
         break;
 
     case kEquipmentInfo_weaponInfo:
-        result = oo::ObjectFromPList([eqType cxx_weaponInfo]);
-        if (result == nil)
-            result = oo::ObjectFromPList(oo::PList(oo::PList::Dict { })); // empty rather than null
+        result = [eqType cxx_weaponInfo];
+        if (result.isNull())
+            result = oo::PList(oo::PList::Dict { }); // empty rather than null
         break;
 
     default:
@@ -385,7 +400,7 @@ static JSValue EquipmentInfoGetProperty(OOJS_GETTER_ARGS)
         return OOJSNativeFailure(context);
     }
 
-    return OOJSValueFromNativeObject(context, result);
+    return OOJSValueFromPList(context, result);
 
     OOJS_NATIVE_EXIT
 }
@@ -404,7 +419,7 @@ static JSValue EquipmentInfoSetProperty(OOJS_SETTER_ARGS)
 
     switch (magic) {
     case kEquipmentInfo_displayColor:
-        colorForScript = [OOColor colorWithDescription:oo::ObjectFromPList(cxx_OOJSPListFromJSValue(context, value))];
+        colorForScript = [OOColor cxx_colorWithDescription:cxx_OOJSPListFromJSValue(context, value)];
         if (colorForScript != nil || JS_IsNull(value)) {
             [eqType setDisplayColor:colorForScript];
             return JS_UNDEFINED;
@@ -449,7 +464,7 @@ static JSValue EquipmentInfoGetAllEqipment(OOJS_GETTER_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    return OOJSValueFromNativeObject(context, oo::NSArrayFromObjects([OOEquipmentType cxx_allEquipmentTypes]));
+    return OOJSValueFromPList(context, oo::PListFromObjects([OOEquipmentType cxx_allEquipmentTypes]));
 
     OOJS_NATIVE_EXIT
 }

@@ -24,7 +24,6 @@ MA 02110-1301, USA.
 
 #import "OOCommodityMarket.h"
 #import "OOCommodities.h"
-#import "OOFoundationBridge.h"
 #import "OOStringExpander.h"
 
 namespace {
@@ -53,189 +52,172 @@ std::optional<std::string> SavedGoodKey(const oo::PList& entry)
 
 } // namespace
 
-@interface OOCommodityMarket (OOPrivate)
+namespace cxx {
 
-// nullptr: no such good (a nil definition).
-- (oo::PList*)definitionPointerForGood:(const std::string&)good;
-- (std::vector<std::string>)sortedGoodKeys;
-
-@end
-
-@implementation OOCommodityMarket
-
-- (id)init
-{
-    self = [super init];
-    if (self == nil)
-        return nil;
-
-    return self;
-}
-
-- (NSUInteger)count
+NSUInteger OOCommodityMarket::count()
 {
     return _commodityList.size();
 }
 
-- (void)cxx_setGood:(const std::string&)key withInfo:(const oo::PList&)info
+void OOCommodityMarket::setGood(const std::string& key, const oo::PList& info)
 {
     // A nil info made an empty definition, as +dictionaryWithDictionary:nil did.
     _commodityList[key] = info.isDict() ? info : oo::PList(oo::PList::Dict { });
     _sortedKeys.reset(); // reset
 }
 
-- (std::vector<std::string>)goods
+std::vector<std::string> OOCommodityMarket::goods()
 {
-    return [self sortedGoodKeys];
+    return sortedGoodKeys();
 }
 
-- (id)dictionaryForScripting
+oo::PList OOCommodityMarket::dictionaryForScripting()
 {
-    return oo::ObjectFromPList(oo::PList(oo::PList::Dict(_commodityList.begin(), _commodityList.end())));
+    return oo::PList(oo::PList::Dict(_commodityList.begin(), _commodityList.end()));
 }
 
-- (BOOL)cxx_setPrice:(OOCreditsQuantity)price forGood:(const std::string&)good
+bool OOCommodityMarket::setPrice(OOCreditsQuantity price, const std::string& good)
 {
-    oo::PList* definition = [self definitionPointerForGood:good];
+    oo::PList* definition = definitionPointerForGood(good);
     if (definition == nullptr) {
-        return NO;
+        return false;
     }
     (*definition->getIf<oo::PList::Dict>())[std::string(kPriceCurrent)] = oo::PList::unsignedInteger(price);
-    return YES;
+    return true;
 }
 
-- (BOOL)cxx_setQuantity:(OOCargoQuantity)quantity forGood:(const std::string&)good
+bool OOCommodityMarket::setQuantity(OOCargoQuantity quantity, const std::string& good)
 {
-    oo::PList* definition = [self definitionPointerForGood:good];
-    if (definition == nullptr || quantity > [self cxx_capacityForGood:good]) {
-        return NO;
+    oo::PList* definition = definitionPointerForGood(good);
+    if (definition == nullptr || quantity > capacityForGood(good)) {
+        return false;
     }
     (*definition->getIf<oo::PList::Dict>())[std::string(kQuantityCurrent)] = oo::PList::unsignedInteger(quantity);
-    return YES;
+    return true;
 }
 
-- (BOOL)cxx_addQuantity:(OOCargoQuantity)quantity forGood:(const std::string&)good
+bool OOCommodityMarket::addQuantity(OOCargoQuantity quantity, const std::string& good)
 {
-    OOCargoQuantity current = [self cxx_quantityForGood:good];
-    if (current + quantity > [self cxx_capacityForGood:good]) {
-        return NO;
+    OOCargoQuantity current = quantityForGood(good);
+    if (current + quantity > capacityForGood(good)) {
+        return false;
     }
-    [self cxx_setQuantity:(current + quantity) forGood:good];
-    return YES;
+    setQuantity((current + quantity), good);
+    return true;
 }
 
-- (BOOL)cxx_removeQuantity:(OOCargoQuantity)quantity forGood:(const std::string&)good
+bool OOCommodityMarket::removeQuantity(OOCargoQuantity quantity, const std::string& good)
 {
-    OOCargoQuantity current = [self cxx_quantityForGood:good];
+    OOCargoQuantity current = quantityForGood(good);
     if (current < quantity) {
-        return NO;
+        return false;
     }
-    [self cxx_setQuantity:(current - quantity) forGood:good];
-    return YES;
+    setQuantity((current - quantity), good);
+    return true;
 }
 
-- (void)removeAllGoods
+void OOCommodityMarket::removeAllGoods()
 {
     for (const auto& entry : _commodityList) {
-        [self cxx_setQuantity:0 forGood:entry.first];
+        setQuantity(0, entry.first);
     }
 }
 
-- (BOOL)cxx_setComment:(const std::string&)comment forGood:(const std::string&)good
+bool OOCommodityMarket::setComment(const std::string& comment, const std::string& good)
 {
-    oo::PList* definition = [self definitionPointerForGood:good];
+    oo::PList* definition = definitionPointerForGood(good);
     if (definition == nullptr) {
-        return NO;
+        return false;
     }
     (*definition->getIf<oo::PList::Dict>())[std::string(kComment)] = oo::PList(comment);
-    return YES;
+    return true;
 }
 
-- (BOOL)cxx_setShortComment:(const std::string&)comment forGood:(const std::string&)good
+bool OOCommodityMarket::setShortComment(const std::string& comment, const std::string& good)
 {
-    oo::PList* definition = [self definitionPointerForGood:good];
+    oo::PList* definition = definitionPointerForGood(good);
     if (definition == nullptr) {
-        return NO;
+        return false;
     }
     (*definition->getIf<oo::PList::Dict>())[std::string(kShortComment)] = oo::PList(comment);
-    return YES;
+    return true;
 }
 
-- (std::optional<std::string>)cxx_nameForGood:(const std::string&)good
+std::optional<std::string> OOCommodityMarket::nameForGood(const std::string& good)
 {
-    const oo::PList* definition = [self definitionPointerForGood:good];
+    const oo::PList* definition = definitionPointerForGood(good);
     if (definition == nullptr) {
         return cxx_OOExpand("[oolite-unknown-commodity-name]");
     }
     return cxx_OOExpand(definition->get<std::string>(kName, "[oolite-unknown-commodity-name]"));
 }
 
-- (std::optional<std::string>)cxx_commentForGood:(const std::string&)good
+std::optional<std::string> OOCommodityMarket::commentForGood(const std::string& good)
 {
-    const oo::PList* definition = [self definitionPointerForGood:good];
+    const oo::PList* definition = definitionPointerForGood(good);
     if (definition == nullptr) {
         return cxx_OOExpand("[oolite-unknown-commodity-name]");
     }
     return cxx_OOExpand(definition->get<std::string>(kComment, "[oolite-commodity-no-comment]"));
 }
 
-- (std::optional<std::string>)cxx_shortCommentForGood:(const std::string&)good
+std::optional<std::string> OOCommodityMarket::shortCommentForGood(const std::string& good)
 {
-    const oo::PList* definition = [self definitionPointerForGood:good];
+    const oo::PList* definition = definitionPointerForGood(good);
     if (definition == nullptr) {
         return cxx_OOExpand("[oolite-unknown-commodity-name]");
     }
     return cxx_OOExpand(definition->get<std::string>(kShortComment, "[oolite-commodity-no-short-comment]"));
 }
 
-- (OOCreditsQuantity)cxx_priceForGood:(const std::string&)good
+OOCreditsQuantity OOCommodityMarket::priceForGood(const std::string& good)
 {
-    const oo::PList* definition = [self definitionPointerForGood:good];
+    const oo::PList* definition = definitionPointerForGood(good);
     if (definition == nullptr) {
         return 0;
     }
     return definition->get<unsigned long long>(kPriceCurrent);
 }
 
-- (OOCargoQuantity)cxx_quantityForGood:(const std::string&)good
+OOCargoQuantity OOCommodityMarket::quantityForGood(const std::string& good)
 {
-    const oo::PList* definition = [self definitionPointerForGood:good];
+    const oo::PList* definition = definitionPointerForGood(good);
     if (definition == nullptr) {
         return 0;
     }
     return definition->get<unsigned int>(kQuantityCurrent);
 }
 
-- (OOMassUnit)massUnitForGood:(const std::string&)good
+OOMassUnit OOCommodityMarket::massUnitForGood(const std::string& good)
 {
-    const oo::PList* definition = [self definitionPointerForGood:good];
+    const oo::PList* definition = definitionPointerForGood(good);
     if (definition == nullptr) {
         return UNITS_TONS;
     }
     return OOMassUnitFromNumber(definition->get<unsigned int>(kContainer));
 }
 
-- (NSUInteger)cxx_exportLegalityForGood:(const std::string&)good
+NSUInteger OOCommodityMarket::exportLegalityForGood(const std::string& good)
 {
-    const oo::PList* definition = [self definitionPointerForGood:good];
+    const oo::PList* definition = definitionPointerForGood(good);
     if (definition == nullptr) {
         return 0;
     }
     return definition->get<unsigned long long>(kLegalityExport);
 }
 
-- (NSUInteger)cxx_importLegalityForGood:(const std::string&)good
+NSUInteger OOCommodityMarket::importLegalityForGood(const std::string& good)
 {
-    const oo::PList* definition = [self definitionPointerForGood:good];
+    const oo::PList* definition = definitionPointerForGood(good);
     if (definition == nullptr) {
         return 0;
     }
     return definition->get<unsigned long long>(kLegalityImport);
 }
 
-- (OOCargoQuantity)cxx_capacityForGood:(const std::string&)good
+OOCargoQuantity OOCommodityMarket::capacityForGood(const std::string& good)
 {
-    const oo::PList* definition = [self definitionPointerForGood:good];
+    const oo::PList* definition = definitionPointerForGood(good);
     if (definition == nullptr) {
         return 0;
     }
@@ -244,58 +226,58 @@ std::optional<std::string> SavedGoodKey(const oo::PList& entry)
     return definition->get<unsigned int>(kCapacity, MAIN_SYSTEM_MARKET_LIMIT);
 }
 
-- (float)cxx_trumbleOpinionForGood:(const std::string&)good
+float OOCommodityMarket::trumbleOpinionForGood(const std::string& good)
 {
-    const oo::PList* definition = [self definitionPointerForGood:good];
+    const oo::PList* definition = definitionPointerForGood(good);
     if (definition == nullptr) {
         return 0;
     }
     return definition->get<float>(kTrumbleOpinion);
 }
 
-- (oo::PList)cxx_definitionForGood:(const std::string&)good
+oo::PList OOCommodityMarket::definitionForGood(const std::string& good)
 {
-    const oo::PList* definition = [self definitionPointerForGood:good];
+    const oo::PList* definition = definitionPointerForGood(good);
     return definition != nullptr ? *definition : oo::PList();
 }
 
-- (oo::PList)cxx_savePlayerAmounts
+oo::PList OOCommodityMarket::savePlayerAmounts()
 {
     oo::PList::Array amounts;
-    for (const std::string& good : [self sortedGoodKeys]) {
-        amounts.push_back(oo::PList(oo::PList::Array { oo::PList(good), oo::PList::unsignedInteger([self cxx_quantityForGood:good]) }));
+    for (const std::string& good : sortedGoodKeys()) {
+        amounts.push_back(oo::PList(oo::PList::Array { oo::PList(good), oo::PList::unsignedInteger(quantityForGood(good)) }));
     }
     return oo::PList(std::move(amounts));
 }
 
-- (void)cxx_loadPlayerAmounts:(const oo::PList&)amounts
+void OOCommodityMarket::loadPlayerAmounts(const oo::PList& amounts)
 {
     OOCargoQuantity q;
-    BOOL loadedOK;
-    for (const std::string& good : [self sortedGoodKeys]) {
+    bool loadedOK;
+    for (const std::string& good : sortedGoodKeys()) {
         // make sure that any goods not defined in the save game are zeroed
-        [self cxx_setQuantity:0 forGood:good];
+        setQuantity(0, good);
     }
 
     const oo::PList::Array* loadedAmounts = amounts.getIf<oo::PList::Array>();
     for (const oo::PList& loaded : loadedAmounts != nullptr ? *loadedAmounts : oo::PList::Array()) {
-        loadedOK = NO;
+        loadedOK = false;
         const std::optional<std::string> good = SavedGoodKey(loaded);
         q = loaded.at<unsigned int>(1);
         // old save games might have more in the array, but we don't care
-        if (!good.has_value() || ![self cxx_setQuantity:q forGood:*good]) {
+        if (!good.has_value() || !setQuantity(q, *good)) {
             // then it's an array from a 1.80-or-earlier save game and
             // the good name is the description string (maybe a
             // translated one)
-            for (const std::string& key : [self sortedGoodKeys]) {
-                if (good.has_value() && good == [self cxx_nameForGood:key]) {
-                    [self cxx_setQuantity:q forGood:key];
-                    loadedOK = YES;
+            for (const std::string& key : sortedGoodKeys()) {
+                if (good.has_value() && good == nameForGood(key)) {
+                    setQuantity(q, key);
+                    loadedOK = true;
                     break;
                 }
             }
         } else {
-            loadedOK = YES;
+            loadedOK = true;
         }
         if (!loadedOK) {
             OO_LOG("setCommanderDataFromDictionary.warning.cargo", "Cargo {} ({} units) could not be loaded from the saved game, as it is no longer defined", good.value_or("(null)"), q);
@@ -303,43 +285,43 @@ std::optional<std::string> SavedGoodKey(const oo::PList& entry)
     }
 }
 
-- (oo::PList)cxx_saveStationAmounts
+oo::PList OOCommodityMarket::saveStationAmounts()
 {
     oo::PList::Array amounts;
-    for (const std::string& good : [self sortedGoodKeys]) {
-        amounts.push_back(oo::PList(oo::PList::Array { oo::PList(good), oo::PList::unsignedInteger([self cxx_quantityForGood:good]), oo::PList::unsignedInteger([self cxx_priceForGood:good]) }));
+    for (const std::string& good : sortedGoodKeys()) {
+        amounts.push_back(oo::PList(oo::PList::Array { oo::PList(good), oo::PList::unsignedInteger(quantityForGood(good)), oo::PList::unsignedInteger(priceForGood(good)) }));
     }
     return oo::PList(std::move(amounts));
 }
 
-- (void)cxx_loadStationAmounts:(const oo::PList&)amounts
+void OOCommodityMarket::loadStationAmounts(const oo::PList& amounts)
 {
     OOCargoQuantity q;
     OOCreditsQuantity p;
-    BOOL loadedOK;
+    bool loadedOK;
 
     const oo::PList::Array* loadedAmounts = amounts.getIf<oo::PList::Array>();
     for (const oo::PList& loaded : loadedAmounts != nullptr ? *loadedAmounts : oo::PList::Array()) {
-        loadedOK = NO;
+        loadedOK = false;
         const std::optional<std::string> good = SavedGoodKey(loaded);
         q = loaded.at<unsigned int>(1);
         p = loaded.at<unsigned long long>(2);
         // old save games might have more in the array, but we don't care
-        if (!good.has_value() || ![self cxx_setQuantity:q forGood:*good]) {
+        if (!good.has_value() || !setQuantity(q, *good)) {
             // then it's an array from a 1.80-or-earlier save game and
             // the good name is the description string (maybe a
             // translated one)
-            for (const std::string& key : [self sortedGoodKeys]) {
-                if (good.has_value() && good == [self cxx_nameForGood:key]) {
-                    [self cxx_setQuantity:q forGood:key];
-                    [self cxx_setPrice:p forGood:key];
-                    loadedOK = YES;
+            for (const std::string& key : sortedGoodKeys()) {
+                if (good.has_value() && good == nameForGood(key)) {
+                    setQuantity(q, key);
+                    setPrice(p, key);
+                    loadedOK = true;
                     break;
                 }
             }
         } else {
-            [self cxx_setPrice:p forGood:*good];
-            loadedOK = YES;
+            setPrice(p, *good);
+            loadedOK = true;
         }
         if (!loadedOK) {
             OO_LOG("load.warning.cargo", "Station market good {} ({} units) could not be loaded from the saved game, as it is no longer defined", good.value_or("(null)"), q);
@@ -347,11 +329,7 @@ std::optional<std::string> SavedGoodKey(const oo::PList& entry)
     }
 }
 
-@end
-
-@implementation OOCommodityMarket (OOPrivate)
-
-- (oo::PList*)definitionPointerForGood:(const std::string&)good
+oo::PList* OOCommodityMarket::definitionPointerForGood(const std::string& good)
 {
     const auto it = _commodityList.find(good);
     return it != _commodityList.end() ? &it->second : nullptr;
@@ -359,13 +337,13 @@ std::optional<std::string> SavedGoodKey(const oo::PList& entry)
 
 // The goods in sort_order; goods of equal sort_order in byte order of their key (the Foundation
 // version sorted -allKeys, in hash order).
-- (std::vector<std::string>)sortedGoodKeys
+std::vector<std::string> OOCommodityMarket::sortedGoodKeys()
 {
     if (!_sortedKeys.has_value()) {
         std::vector<std::string> keys;
         for (const auto& entry : _commodityList)
             keys.push_back(entry.first);
-        std::stable_sort(keys.begin(), keys.end(), [self](const std::string& a, const std::string& b) {
+        std::stable_sort(keys.begin(), keys.end(), [this](const std::string& a, const std::string& b) {
             return _commodityList.find(a)->second.get<int>(kSortOrder) < _commodityList.find(b)->second.get<int>(kSortOrder);
         });
         _sortedKeys = std::move(keys);
@@ -373,4 +351,4 @@ std::optional<std::string> SavedGoodKey(const oo::PList& entry)
     return *_sortedKeys;
 }
 
-@end
+} // namespace cxx

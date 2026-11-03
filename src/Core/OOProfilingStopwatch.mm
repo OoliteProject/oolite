@@ -30,48 +30,41 @@ SOFTWARE.
 
 #import "OOProfilingStopwatch.h"
 
-@implementation OOProfilingStopwatch
-
-- (id)init
+OOProfilingStopwatch::OOProfilingStopwatch()
 {
-    if ((self = [super init])) {
-        _start = OOGetHighResTime();
-        _end = OOCopyHighResTime(_start);
-        _running = YES;
-    }
-    return self;
+    _start = OOGetHighResTime();
+    _end = OOCopyHighResTime(_start);
+    _running = true;
 }
 
-+ (instancetype)stopwatch
+oo::Ref<OOProfilingStopwatch> OOProfilingStopwatch::stopwatch()
 {
-    return [[[self alloc] init] autorelease];
+    return oo::makeRef<OOProfilingStopwatch>();
 }
 
-- (void)dealloc
+OOProfilingStopwatch::~OOProfilingStopwatch()
 {
     OODisposeHighResTime(_start);
     OODisposeHighResTime(_end);
-
-    [super dealloc];
 }
 
-- (void)start
+void OOProfilingStopwatch::start()
 {
     OOHighResTimeValue temp = _start;
     _start = OOGetHighResTime();
     OODisposeHighResTime(temp);
-    _running = YES;
+    _running = true;
 }
 
-- (void)stop
+void OOProfilingStopwatch::stop()
 {
     OOHighResTimeValue temp = _start;
     _end = OOGetHighResTime();
     OODisposeHighResTime(temp);
-    _running = NO;
+    _running = false;
 }
 
-- (OOTimeDelta)currentTime
+OOTimeDelta OOProfilingStopwatch::currentTime()
 {
     if (_running) {
         OOHighResTimeValue temp = _end;
@@ -81,7 +74,7 @@ SOFTWARE.
     return OOHighResTimeDeltaInSeconds(_start, _end);
 }
 
-- (OOTimeDelta)reset
+OOTimeDelta OOProfilingStopwatch::reset()
 {
     OOTimeDelta result;
     if (_running) {
@@ -96,8 +89,6 @@ SOFTWARE.
     }
     return result;
 }
-
-@end
 
 OOTimeDelta OOHighResTimeDeltaInSeconds(OOHighResTimeValue startTime, OOHighResTimeValue endTime)
 {
@@ -116,7 +107,9 @@ OOTimeDelta OOHighResTimeDeltaInSeconds(OOHighResTimeValue startTime, OOHighResT
 
     return conversion * (double)diff;
 #elif OO_PROFILING_STOPWATCH_WINDOWS
-    return 1e-3 * (double)(endTime - startTime);
+    // Signed, so a reversed pair gives a negative delta (and a rollover between the two still
+    // gives the right answer); the unsigned DWORD difference wrapped to about 49.7 days.
+    return 1e-3 * (double)(int32_t)(endTime - startTime);
 #elif OO_PROFILING_STOPWATCH_GETTIMEOFDAY
     int32_t deltaS = (int32_t)endTime.tv_sec - (int32_t)startTime.tv_sec;
     int32_t deltaU = (int32_t)endTime.tv_usec - (int32_t)startTime.tv_usec;

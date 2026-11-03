@@ -24,8 +24,6 @@ MA 02110-1301, USA.
 */
 
 #import "ShipEntityScriptMethods.h"
-#import "OOFoundationBridge.h"
-#import "OOPListView.h"
 #import "Universe.h"
 #include "oofnd/Log.hpp"
 

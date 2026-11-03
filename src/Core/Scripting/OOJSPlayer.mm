@@ -35,10 +35,9 @@ MA 02110-1301, USA.
 
 #import "OOConstToString.h"
 #import "OOFunctionAttributes.h"
-#import "OOPListView.h"
 #import "OOStringParsing.h"
 
-#import "OOFoundationBridge.h"
+#import "OOObjCPList.h"
 
 
 static JSClassID sPlayerClassID;
@@ -183,12 +182,13 @@ static JSValue PlayerGetProperty(OOJS_GETTER_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    id result = nil;
+    oo::PList result; // null maps to null
     PlayerEntity* player = OOPlayerForScripting();
 
     switch (magic) {
     case kPlayer_name:
-        result = oo::NSStringOrNil([player cxx_commanderName]);
+        if (const std::optional<std::string> name = [player cxx_commanderName])
+            result = oo::PList(*name);
         break;
 
     case kPlayer_score:
@@ -197,11 +197,15 @@ static JSValue PlayerGetProperty(OOJS_GETTER_ARGS)
     case kPlayer_credits:
         return JS_NewNumber(context, [player creditBalance]);
 
-    case kPlayer_rank:
-        return OOJSValueFromNativeObject(context, oo::NSStringOrNil(cxx_OODisplayRatingStringFromKillCount([player score])));
+    case kPlayer_rank: {
+        const std::optional<std::string> text = cxx_OODisplayRatingStringFromKillCount([player score]);
+        return OOJSValueFromPList(context, text.has_value() ? oo::PList(*text) : oo::PList());
+    }
 
-    case kPlayer_legalStatus:
-        return OOJSValueFromNativeObject(context, oo::NSStringOrNil(cxx_OODisplayStringFromLegalStatus([player legalStatus])));
+    case kPlayer_legalStatus: {
+        const std::optional<std::string> text = cxx_OODisplayStringFromLegalStatus([player legalStatus]);
+        return OOJSValueFromPList(context, text.has_value() ? oo::PList(*text) : oo::PList());
+    }
 
     case kPlayer_alertCondition:
         return JS_NewInt32(context, [player alertCondition]);
@@ -250,21 +254,22 @@ static JSValue PlayerGetProperty(OOJS_GETTER_ARGS)
 
     case kPlayer_dockingClearanceStatus:
         // EMMSTRAN: OOConstToJSString-ify this.
-        return OOJSValueFromNativeObject(context, oo::NSStringFrom(cxx_DockingClearanceStatusToString([player getDockingClearanceStatus])));
+        return OOJSValueFromPList(context, oo::PList(cxx_DockingClearanceStatusToString([player getDockingClearanceStatus])));
 
     case kPlayer_bounty:
         return JS_NewInt32(context, [player legalStatus]);
 
-    case kPlayer_roleWeights:
-        result = oo::NSArrayFromStrings([player cxx_roleWeights]);
-        break;
+    case kPlayer_roleWeights: {
+        const std::vector<std::string> roleWeights = [player cxx_roleWeights];
+        result = oo::PList(oo::PList::Array(roleWeights.begin(), roleWeights.end()));
+    } break;
 
     default:
         OOJSReportBadPropertySelector(context, thisObj, magic, sPlayerProperties, OOJS_COUNT(sPlayerProperties));
         return OOJSNativeFailure(context);
     }
 
-    return OOJSValueFromNativeObject(context, result);
+    return OOJSValueFromPList(context, result);
 
     OOJS_NATIVE_EXIT
 }
@@ -350,7 +355,7 @@ static JSValue PlayerCommsMessage(OOJS_NATIVE_ARGS)
     }
 
     [UNIVERSE cxx_addCommsMessage:*message forCount:time];
-    [PLAYER doScriptEvent:OOJSID("commsMessageReceived") withArgument:oo::NSStringFrom(*message) andArgument:nil];
+    [PLAYER cxx_doScriptEvent:OOJSID("commsMessageReceived") withPListArguments: { oo::PList(*message), oo::PList() }];
     OOJS_RETURN_VOID;
 
     OOJS_NATIVE_EXIT
@@ -542,7 +547,7 @@ static JSValue PlayerReplaceShip(OOJS_NATIVE_ARGS)
     if (success) {
         [player doScriptEvent:OOJSID("playerReplacedShip") withArgument:player];
         // slightly misnamed world event now - to be deprecated
-        [player doScriptEvent:OOJSID("playerBoughtNewShip") withArgument:player andArgument:oo::ObjectFromPList(oo::PList::signedInteger(0))];
+        [player cxx_doScriptEvent:OOJSID("playerBoughtNewShip") withPListArguments: { oo::PListObject(player), oo::PList::signedInteger(0) }];
     }
 
     OOJS_RETURN_BOOL(success);

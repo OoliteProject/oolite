@@ -26,7 +26,8 @@ SOFTWARE.
 */
 
 #import "OOJSEngineTimeManagement.h"
-#import "OOFoundationBridge.h"
+#import "OOObjCPList.h"
+#include "oofnd/String.hpp"
 #include "oofnd/Log.hpp"
 #include "oofnd/StdLib.hpp"
 #include "oofnd/objc/OOAssert.h"
@@ -272,7 +273,7 @@ static void UpdateProfileForFrame(OOHighResTimeValue now, OOJSProfileStackFrame*
             double selfPc = [entry selfTimeSum] * 100.0 / totalTime;
 
             result += oo::str::format("\n%60s  %c%7lu %8.2f %8.2f   %5.1f   %5.1f %8.2f",
-                oo::DescriptionOf([entry function]).c_str(),
+                [entry cxx_function].value_or("(null)").c_str(),
                 [entry isJavaScriptFrame] ? 'J' : 'N',
                 (unsigned long)[entry hitCount], [entry totalTimeSum] * 1000.0, [entry selfTimeSum] * 1000.0, totalPc, selfPc, [entry selfTimeMax] * 1000.0);
         }
@@ -416,11 +417,6 @@ static void UpdateProfileForFrame(OOHighResTimeValue now, OOJSProfileStackFrame*
             return oo::str::format("%s: %lu times, total %g ms (self %g ms), avg %g ms (self %g ms), max %g ms, max self %g ms", function, _hitCount, totalTimeSum, selfTimeSum, totalTimeSum / _hitCount, selfTimeSum / _hitCount, totalTimeMax, selfTimeMax);
         }
     }
-}
-
-- (id)function // shared selector (Foundation declares -function too; retires with oo-qps)
-{
-    return oo::NSStringOrNil([self cxx_function]);
 }
 
 - (std::optional<std::string>)cxx_function

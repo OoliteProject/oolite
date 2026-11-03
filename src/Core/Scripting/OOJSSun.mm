@@ -25,7 +25,6 @@ MA 02110-1301, USA.
 
 #import "OOJSSun.h"
 #import "EntityOOJavaScriptExtensions.h"
-#import "OOFoundationBridge.h"
 #import "OOJSEntity.h"
 #import "OOJavaScriptEngine.h"
 #import "OOSunEntity.h"
@@ -70,7 +69,7 @@ void InitOOJSSun(JSContext* context, JSValueConst global)
     OOJSRegisterClass(&sSunClassID, &sSunClass);
 
     JSValue parentPrototype = JS_GetClassProto(context, JSEntityClassID());
-    NSCAssert(JS_IsObject(parentPrototype), @"Entity must be initialized before Sun.");
+    OOCAssert(JS_IsObject(parentPrototype), "Entity must be initialized before Sun.");
     OOJSInitClass(context, global, sSunClassID, parentPrototype, OOJSUnconstructableConstruct, 0,
         sSunProperties, OOJS_COUNT(sSunProperties), sSunMethods, OOJS_COUNT(sSunMethods), NULL, 0);
     JS_FreeValue(context, parentPrototype);
@@ -116,8 +115,10 @@ static JSValue SunGetProperty(OOJS_GETTER_ARGS)
     case kSun_radius:
         return JS_NewNumber(context, [sun radius]);
 
-    case kSun_name:
-        return OOJSValueFromNativeObject(context, oo::NSStringOrNil([sun cxx_name]));
+    case kSun_name: {
+        const std::optional<std::string> name = [sun cxx_name];
+        return OOJSValueFromPList(context, name.has_value() ? oo::PList(*name) : oo::PList());
+    }
 
     case kSun_hasGoneNova:
         return OOJSValueFromBOOL([sun goneNova]);

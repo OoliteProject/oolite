@@ -59,7 +59,6 @@ MA 02110-1301, USA.
 #import "OOOXZManager.h"
 #import "OOOpenGLExtensionManager.h"
 #import "OOPListParsing.h"
-#import "OOPListView.h"
 #import "OORoleSet.h"
 #import "OOShipRegistry.h"
 #import "OOSound.h"
@@ -82,10 +81,9 @@ MA 02110-1301, USA.
 #import "OOJSScript.h"
 #import "OOScriptTimer.h"
 
-#import "OOFoundationBridge.h"
 #import "OOJoystickManager.h"
+#import "OOObjCPList.h"
 #import "OOPListGameTypes.h"
-#import "OOStringBridge.h"
 #import "OOSystemDescriptionManager.h"
 #import "PlayerEntityKeyMapper.h"
 #import "PlayerEntityStickMapper.h"
@@ -96,6 +94,7 @@ MA 02110-1301, USA.
 #include "oofnd/PListGet.hpp"
 #include "oofnd/PListParsing.hpp"
 #include "oofnd/ResourcePaths.hpp"
+#include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"
 #include "oofnd/objc/OOException.h"
 #include <string_view>
@@ -360,6 +359,12 @@ static GLfloat sBaseMass = 0.0;
 @end
 
 namespace {
+
+// An equipment key as -hasEquipmentItem: takes it: a null PList for nullopt (was nil).
+oo::PList OptionalKeyPList(const std::optional<std::string>& key)
+{
+    return key.has_value() ? oo::PList(*key) : oo::PList();
+}
 
 // Info-gnustep.plist string (CFBundleVersion / CFBundleName as the Override category used to expose).
 std::optional<std::string> OoliteInfoString(std::string_view key)
@@ -1189,7 +1194,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     result["scripted_planetinfo_overrides"] = [[UNIVERSE systemManager] cxx_exportScriptedChanges];
 
     // trumble information (unmigrated: OOTrumble's records)
-    const oo::PList trumbles = oo::PListFrom([self trumbleValue]);
+    const oo::PList trumbles = [self trumbleValue];
     if (!trumbles.isNull())
         result["trumbles"] = trumbles;
 
@@ -1464,7 +1469,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     }
 
     eqScripts.clear();
-    [self addEquipmentFromCollection:oo::ObjectFromPList(oo::PList(equipment))];
+    [self addEquipmentFromCollection:oo::PList(equipment)];
     primedEquipment = [self cxx_eqScriptIndexForKey:StringForKey(dict, "primed_equipment").value_or("")]; // if key not found primedEquipment is set to primed-none
 
     [self cxx_setFastEquipmentA:StringForKey(dict, "primed_equipment_a").value_or("EQ_CLOAKING_DEVICE")];
@@ -1711,7 +1716,8 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     const oo::PList savedCommLog = ValueForKey(dict, "comm_log");
     const std::size_t commCount = savedCommLog.isArray() ? savedCommLog.count() : 0; // oo_arrayForKey:
     for (std::size_t i = 0; i < commCount; i++) {
-        [UNIVERSE cxx_addCommsMessage:oo::OptionalString(oo::ObjectFromPList(*savedCommLog.at(i))) forCount:0 andShowComms:NO logOnly:YES];
+        const std::string* savedMessage = savedCommLog.at(i)->getIf<std::string>(); // (a saved comm log holds strings)
+        [UNIVERSE cxx_addCommsMessage:(savedMessage != nullptr) ? std::optional<std::string>(*savedMessage) : std::nullopt forCount:0 andShowComms:NO logOnly:YES];
     }
 
     /*	entity_personality for scripts and shaders. If undefined, we fall back
@@ -1815,7 +1821,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     // trumble information
     [self setUpTrumbles];
     const oo::PList* trumbles = dict.find("trumbles");
-    [self setTrumbleValueFrom:(trumbles != nullptr) ? oo::ObjectFromPList(*trumbles) : nil]; // if it doesn't exist we'll check user-defaults
+    [self setTrumbleValueFrom:(trumbles != nullptr) ? *trumbles : oo::PList()]; // if it doesn't exist we'll check user-defaults
 
     return YES;
 }
@@ -2220,8 +2226,8 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 
     [self setUpWeaponSounds];
 
-    [self setGalacticHyperspaceBehaviourTo:oo::NSStringFrom(StringForKey([UNIVERSE cxx_globalSettings], "galactic_hyperspace_behaviour").value_or("BEHAVIOUR_STANDARD"))];
-    [self setGalacticHyperspaceFixedCoordsTo:oo::NSStringFrom(StringForKey([UNIVERSE cxx_globalSettings], "galactic_hyperspace_fixed_coords").value_or("96 96"))];
+    [self setGalacticHyperspaceBehaviourTo:StringForKey([UNIVERSE cxx_globalSettings], "galactic_hyperspace_behaviour").value_or("BEHAVIOUR_STANDARD")];
+    [self setGalacticHyperspaceFixedCoordsTo:StringForKey([UNIVERSE cxx_globalSettings], "galactic_hyperspace_fixed_coords").value_or("96 96")];
 
     cloaking_device_active = NO;
 
@@ -2287,11 +2293,11 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 
     [roleSet release];
     roleSet = nil;
-    [self setPrimaryRole:@"player"];
+    [self setPrimaryRole:"player"];
 
     [self removeAllEquipment];
     const oo::PList* extraEquipment = shipDict.find("extra_equipment");
-    [self addEquipmentFromCollection:(extraEquipment != nullptr) ? oo::ObjectFromPList(*extraEquipment) : nil];
+    [self addEquipmentFromCollection:(extraEquipment != nullptr) ? *extraEquipment : oo::PList()];
 
     [self resetHud];
     [hud setHidden:NO];
@@ -3234,7 +3240,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     OOAlertCondition cond = [self alertCondition];
     OOTimeAbsolute t = [UNIVERSE getTime];
     if (cond != lastScriptAlertCondition) {
-        [self doScriptEvent:OOJSID("alertConditionChanged") withArgument:[NSNumber numberWithInt:cond] andArgument:[NSNumber numberWithInt:lastScriptAlertCondition]];
+        [self cxx_doScriptEvent:OOJSID("alertConditionChanged") withPListArguments:{ oo::PList((int)cond), oo::PList((int)lastScriptAlertCondition) }];
         lastScriptAlertCondition = cond;
     }
     /* Update heuristic assessment of whether player is fleeing */
@@ -3295,7 +3301,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     unsigned now_day = floor(ship_clock / 86400.0);
     while (prev_day < now_day) {
         prev_day++;
-        [self doScriptEvent:OOJSID("dayChanged") withArgument:oo::ObjectFromPList(oo::PList::unsignedInteger(prev_day))];
+        [self cxx_doScriptEvent:OOJSID("dayChanged") withPListArguments:{ oo::PList::unsignedInteger(prev_day) }];
         // not impossible that at ultra-low frame rates two of these will
         // happen in a single update.
     }
@@ -3400,7 +3406,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     }
     const std::optional<std::string> stationDockingClearanceStatus = [stationForDocking cxx_acceptDockingClearanceRequestFrom:self];
     if (stationDockingClearanceStatus.has_value()) {
-        [self doScriptEvent:OOJSID("playerRequestedDockingClearance") withArgument:oo::NSStringFrom(*stationDockingClearanceStatus)];
+        [self cxx_doScriptEvent:OOJSID("playerRequestedDockingClearance") withPListArguments:{ oo::PList(*stationDockingClearanceStatus) }];
         if (*stationDockingClearanceStatus == "DOCKING_CLEARANCE_GRANTED") {
             [self doScriptEvent:OOJSID("playerDockingClearanceGranted")];
         }
@@ -3495,7 +3501,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     // JSAI: will need changing if oolite-dockingAI.js written
     if ([myAI cxx_name] != std::string(PLAYER_DOCKING_AI_NAME)) // (no AI never matched)
     {
-        [self setAITo:oo::NSStringFrom(PLAYER_DOCKING_AI_NAME)];
+        [self setAITo:std::string(PLAYER_DOCKING_AI_NAME)];
     }
     [myAI clearAllData];
     [myAI cxx_setState:"GLOBAL"];
@@ -3593,7 +3599,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     /* TODO: this check should possibly be hasEquipmentItemProviding:,
      * but if it was we'd need to know which item was actually doing
      * the providing so it could be removed. */
-    if (EXPECT_NOT(galactic_witchjump && ![self hasEquipmentItem:@"EQ_GAL_DRIVE"])) {
+    if (EXPECT_NOT(galactic_witchjump && ![self hasEquipmentItem:oo::PList("EQ_GAL_DRIVE")])) {
         galactic_witchjump = NO;
         [self setStatus:STATUS_IN_FLIGHT];
         [self playHyperspaceAborted];
@@ -3670,7 +3676,8 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
         // similarly reset the misjump range to the traditional 0.5
         [self setScriptedMisjumpRange:0.5];
 
-        [self doScriptEvent:OOJSID("shipExitedWitchspace") withArgument:oo::NSStringOrNil([self cxx_jumpCause])];
+        const std::optional<std::string> jumpCause = [self cxx_jumpCause];
+        [self cxx_doScriptEvent:OOJSID("shipExitedWitchspace") withPListArguments:{ jumpCause.has_value() ? oo::PList(*jumpCause) : oo::PList() }];
 
         [self doBookkeeping:delta_t]; // arrival frame updates
 
@@ -3837,7 +3844,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     [ship setDemoStartTime:[UNIVERSE getTime]];
     if ([ship pendingEscortCount] > 0)
         [ship setPendingEscortCount:0];
-    [ship setAITo:@"nullAI.plist"];
+    [ship setAITo:"nullAI.plist"];
     const oo::PList* subEntStatus = shipData.find("subentities_status");
     // show missing subentities if there's a subentities_status key
     if (subEntStatus != nullptr)
@@ -4282,12 +4289,12 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 - (OOColor*)cxx_dialCustomColor:(const std::string&)dialKey
 {
     const auto found = customDialSettings.find(dialKey);
-    return [OOColor colorWithDescription:(found != customDialSettings.end() ? oo::ObjectFromPList(found->second) : nil)];
+    return [OOColor cxx_colorWithDescription:(found != customDialSettings.end() ? found->second : oo::PList())];
 }
 
-- (void)cxx_setDialCustom:(id)value forKey:(const std::string&)dialKey
+- (void)cxx_setDialCustom:(const oo::PList&)value forKey:(const std::string&)dialKey
 {
-    customDialSettings[dialKey] = oo::PListFrom(value); // non-plist values (colours...) are kept as Object nodes; nil is a null entry (it raised before)
+    customDialSettings[dialKey] = value; // non-plist values (colours...) are Object nodes; null is a null entry (it raised before)
 }
 
 - (void)setShowDemoShips:(BOOL)value
@@ -4817,7 +4824,12 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 
         if (EXPECT_NOT(new_target != [self compassTarget])) {
             [self setCompassTarget:new_target];
-            [self cxx_doScriptEvent:OOJSID("compassTargetChanged") withArguments:oo::ObjCRefsFrom<id>(oo::ObjectFromPList(oo::PList(oo::PList::Array { oo::PListObject(new_target), oo::PList(cxx_OOStringFromCompassMode([self compassMode])) })))];
+            // a nil target was left out of the Objective-C argument array, as before
+            std::vector<oo::PList> compassArguments;
+            if (new_target != nil)
+                compassArguments.push_back(oo::PListObject(new_target));
+            compassArguments.emplace_back(cxx_OOStringFromCompassMode([self compassMode]));
+            [self cxx_doScriptEvent:OOJSID("compassTargetChanged") withPListArguments:compassArguments];
         }
     }
 }
@@ -5310,9 +5322,8 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 
 /////////////////////////////////////////////////////////////////////
 
-- (void)interpretAIMessage:(id)ms // shared selector (proposed ADR-0043): an Objective-C string
+- (void)interpretAIMessage:(const std::string&)message // shared selector (proposed ADR-0043), called by name (ADR-0055 item 5)
 {
-    const std::optional<std::string> message = oo::OptionalString(ms);
 
     if ((message == "HOLD_FULL")) {
         [self playHoldFull];
@@ -5566,22 +5577,22 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 
 - (OOEnergyUnitType)installedEnergyUnitType
 {
-    if ([self hasEquipmentItem:@"EQ_NAVAL_ENERGY_UNIT"])
+    if ([self hasEquipmentItem:oo::PList("EQ_NAVAL_ENERGY_UNIT")])
         return ENERGY_UNIT_NAVAL;
-    if ([self hasEquipmentItem:@"EQ_ENERGY_UNIT"])
+    if ([self hasEquipmentItem:oo::PList("EQ_ENERGY_UNIT")])
         return ENERGY_UNIT_NORMAL;
     return ENERGY_UNIT_NONE;
 }
 
 - (OOEnergyUnitType)energyUnitType
 {
-    if ([self hasEquipmentItem:@"EQ_NAVAL_ENERGY_UNIT"])
+    if ([self hasEquipmentItem:oo::PList("EQ_NAVAL_ENERGY_UNIT")])
         return ENERGY_UNIT_NAVAL;
-    if ([self hasEquipmentItem:@"EQ_ENERGY_UNIT"])
+    if ([self hasEquipmentItem:oo::PList("EQ_ENERGY_UNIT")])
         return ENERGY_UNIT_NORMAL;
-    if ([self hasEquipmentItem:@"EQ_NAVAL_ENERGY_UNIT_DAMAGED"])
+    if ([self hasEquipmentItem:oo::PList("EQ_NAVAL_ENERGY_UNIT_DAMAGED")])
         return ENERGY_UNIT_NAVAL_DAMAGED;
-    if ([self hasEquipmentItem:@"EQ_ENERGY_UNIT_DAMAGED"])
+    if ([self hasEquipmentItem:oo::PList("EQ_ENERGY_UNIT_DAMAGED")])
         return ENERGY_UNIT_NORMAL_DAMAGED;
     return ENERGY_UNIT_NONE;
 }
@@ -5958,7 +5969,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
         [result setDesiredSpeed:[self flightSpeed]];
         [result setRoll:flightRoll];
         [result setBehaviour:BEHAVIOUR_IDLE];
-        [result switchAITo:@"nullAI.plist"]; // fly straight on
+        [result switchAITo:"nullAI.plist"]; // fly straight on
         [result setTemperature:[self temperature]];
         [result copyValuesFromPlayer:self];
     }
@@ -6088,20 +6099,21 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     return doppelganger;
 }
 
-- (id)dumpCargo // shared selector (proposed ADR-0043), called by name: an Objective-C string (the commodity), or nil
+- (void)dumpCargo // shared selector (proposed ADR-0043), called by name (ADR-0055 item 5)
 {
     if (flightSpeed > 4.0 * maxFlightSpeed) {
         [UNIVERSE cxx_addMessage:cxx_OOExpandKey("hold-locked") forCount:3.0];
-        return nil;
+        return;
     }
 
-    id result = [super dumpCargo];
-    if (result != nil) {
-        const std::string commodity = [UNIVERSE cxx_displayNameForCommodity:oo::StdString(result)].value_or(std::string()); // (nil raised in the expansion)
+    // what -[ShipEntity dumpCargo] did, keeping the commodity it returned (nil for no pod or no type)
+    ShipEntity* jetto = [self cxx_dumpCargoItem:std::nullopt];
+    const std::optional<std::string> result = jetto != nil ? [jetto cxx_commodityType] : std::nullopt;
+    if (result.has_value()) {
+        const std::string commodity = [UNIVERSE cxx_displayNameForCommodity:*result].value_or(std::string());
         [UNIVERSE cxx_addMessage:ExpandKeyWithSeed(OOStringExpanderDefaultRandomSeed(), "commodity-ejected", { { "commodity", oo::PList(commodity) } }) forCount:3.0 forceDisplay:YES];
         [self playCargoJettisioned];
     }
-    return result;
 }
 
 - (void)rotateCargo
@@ -6163,7 +6175,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 
     legalStatus = (int)amount; // can't set the new bounty until the size of the change is known
 
-    OOJSVal reasonVal = OOJSValueFromNativeObject(context, oo::NSStringFrom(reason));
+    OOJSVal reasonVal = OOJSValueFromPList(context, oo::PList(reason));
 
     ShipScriptEvent(context, self, "shipBountyChanged", amountVal, reasonVal);
 
@@ -6318,9 +6330,9 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 
         const std::string damagedKey = oo::str::format("%s_DAMAGED", system_key->c_str());
         [self addEquipmentItem:damagedKey withValidation:NO inContext:"damage"]; // for possible future repair.
-        [self doScriptEvent:OOJSID("equipmentDamaged") withArgument:oo::NSStringFrom(*system_key)];
+        [self cxx_doScriptEvent:OOJSID("equipmentDamaged") withPListArguments:{ oo::PList(*system_key) }];
 
-        if (![self hasEquipmentItem:oo::NSStringFrom(*system_name)] && [self hasEquipmentItem:oo::NSStringFrom(damagedKey)]) {
+        if (![self hasEquipmentItem:oo::PList(*system_name)] && [self hasEquipmentItem:oo::PList(damagedKey)]) {
             /*
                     Display "foo damaged" message only if no script has
                     repaired or removed the equipment item. (If a script does
@@ -6824,7 +6836,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     JSContext* context = OOJSAcquireContext();
     [self cxx_setJumpCause:std::string("galactic jump")];
     [self setPreviousSystemID:[self currentSystemID]];
-    ShipScriptEvent(context, self, "shipWillEnterWitchspace", OOJSValueFromNativeObject(context, oo::NSStringOrNil([self cxx_jumpCause])), OOJSValueFromDouble(context, destGalaxy));
+    ShipScriptEvent(context, self, "shipWillEnterWitchspace", OOJSValueFromPList(context, [self cxx_jumpCause].has_value() ? oo::PList(*[self cxx_jumpCause]) : oo::PList()), OOJSValueFromDouble(context, destGalaxy));
     OOJSRelinquishContext(context);
 
     [self noteCompassLostTarget];
@@ -6912,7 +6924,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     JSContext* context = OOJSAcquireContext();
     [self cxx_setJumpCause:"wormhole"];
     [self setPreviousSystemID:[self currentSystemID]];
-    ShipScriptEvent(context, self, "shipWillEnterWitchspace", OOJSValueFromNativeObject(context, oo::NSStringOrNil([self cxx_jumpCause])), OOJSValueFromDouble(context, [w_hole destination]));
+    ShipScriptEvent(context, self, "shipWillEnterWitchspace", OOJSValueFromPList(context, [self cxx_jumpCause].has_value() ? oo::PList(*[self cxx_jumpCause]) : oo::PList()), OOJSValueFromDouble(context, [w_hole destination]));
     OOJSRelinquishContext(context);
     if ([self scriptedMisjump]) {
         misjump = YES; // a script could just have changed this to true;
@@ -6957,7 +6969,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
             [self doScriptEvent:OOJSID("playerJumpFailed") withArgument:@"malfunction"];
             return;
         } else {
-            [self setFuelLeak:oo::NSStringFrom(oo::str::format("%f", (randf() + randf()) * 5.0))];
+            [self setFuelLeak:oo::str::format("%f", (randf() + randf()) * 5.0)];
         }
     }
 #endif
@@ -6976,7 +6988,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     JSContext* context = OOJSAcquireContext();
     [self cxx_setJumpCause:std::string("standard jump")];
     [self setPreviousSystemID:[self currentSystemID]];
-    ShipScriptEvent(context, self, "shipWillEnterWitchspace", OOJSValueFromNativeObject(context, oo::NSStringOrNil([self cxx_jumpCause])), OOJSValueFromDouble(context, jumpTarget));
+    ShipScriptEvent(context, self, "shipWillEnterWitchspace", OOJSValueFromPList(context, [self cxx_jumpCause].has_value() ? oo::PList(*[self cxx_jumpCause]) : oo::PList()), OOJSValueFromDouble(context, jumpTarget));
     OOJSRelinquishContext(context);
 
     [self updateSystemMemory];
@@ -7149,10 +7161,11 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     }
 
     if (galactic_witchjump) {
-        [self doScriptEvent:OOJSID("playerEnteredNewGalaxy") withArgument:oo::ObjectFromPList(oo::PList::unsignedInteger(galaxy_number))];
+        [self cxx_doScriptEvent:OOJSID("playerEnteredNewGalaxy") withPListArguments:{ oo::PList::unsignedInteger(galaxy_number) }];
     }
 
-    [self doScriptEvent:OOJSID("shipWillExitWitchspace") withArgument:oo::NSStringOrNil([self cxx_jumpCause])];
+    const std::optional<std::string> jumpCause = [self cxx_jumpCause];
+    [self cxx_doScriptEvent:OOJSID("shipWillExitWitchspace") withPListArguments:{ jumpCause.has_value() ? oo::PList(*jumpCause) : oo::PList() }];
     [UNIVERSE setUpBreakPattern:[self breakPatternPosition] orientation:orientation forDocking:NO];
 }
 
@@ -7356,11 +7369,11 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
                         quip2.push_back(EquipmentRow(alldesc, false, [eqType displayColor]));
                     }
                 }
-            } else if ([self hasEquipmentItem:oo::NSStringOrNil([eqType cxx_identifier])]) {
+            } else if ([self hasEquipmentItem:OptionalKeyPList([eqType cxx_identifier])]) {
                 quip2.push_back(EquipmentRow([eqType cxx_name], true, [eqType displayColor]));
             } else {
                 // Check for damaged version
-                if ([self hasEquipmentItem:oo::NSStringFrom([eqType cxx_identifier].value_or("") + "_DAMAGED")]) {
+                if ([self hasEquipmentItem:oo::PList([eqType cxx_identifier].value_or("") + "_DAMAGED")]) {
                     desc = oo::str::formatRuntime(OO_DESC("equipment-@-not-available"), { [eqType cxx_name].value_or("(null)") });
 
                     if (prioritiseDamaged) {
@@ -8459,7 +8472,7 @@ std::optional<std::string> last_outfitting_key; // nullopt = none (was nil)
                 options.insert(eqKey);
 
             // if you have a damaged system you can get it repaired at a tech level one less than that required to buy it
-            if (minTechLevel != 0 && [self hasEquipmentItem:oo::NSStringOrNil([eqType cxx_damagedIdentifier])])
+            if (minTechLevel != 0 && [self hasEquipmentItem:OptionalKeyPList([eqType cxx_damagedIdentifier])])
                 minTechLevel--;
 
             // reduce the minimum techlevel occasionally as a bonus..
@@ -8591,7 +8604,7 @@ std::optional<std::string> last_outfitting_key; // nullopt = none (was nil)
                     installTime = 600 + price;
                 }
                 // is this item damaged?
-                if ([self hasEquipmentItem:oo::NSStringOrNil([eqInfo cxx_damagedIdentifier])]) {
+                if ([self hasEquipmentItem:OptionalKeyPList([eqInfo cxx_damagedIdentifier])]) {
                     desc = oo::str::formatRuntime(OO_DESC("equip-repair-@"), { desc });
                     price /= 2.0;
                     installTime = [eqInfo repairTime];
@@ -8758,10 +8771,10 @@ std::optional<std::string> last_outfitting_key; // nullopt = none (was nil)
             std::optional<std::string> desc = [[OOEquipmentType cxx_equipmentTypeWithIdentifier:*eqKey] cxx_descriptiveText];
             const std::string eq_key_damaged = *eqKey + "_DAMAGED";
             int weight = [[OOEquipmentType cxx_equipmentTypeWithIdentifier:*eqKey] requiredCargoSpace];
-            if ([self hasEquipmentItem:oo::NSStringFrom(eq_key_damaged)]) {
+            if ([self hasEquipmentItem:oo::PList(eq_key_damaged)]) {
                 desc = oo::str::formatRuntime(OO_DESC("upgradeinfo-@-price-is-for-repairing"), { TextArg(desc) });
             } else {
-                if (oo::str::hasSuffix(*eqKey, "ENERGY_UNIT") && ([self hasEquipmentItem:@"EQ_ENERGY_UNIT_DAMAGED"] || [self hasEquipmentItem:@"EQ_ENERGY_UNIT"] || [self hasEquipmentItem:@"EQ_NAVAL_ENERGY_UNIT_DAMAGED"]))
+                if (oo::str::hasSuffix(*eqKey, "ENERGY_UNIT") && ([self hasEquipmentItem:oo::PList("EQ_ENERGY_UNIT_DAMAGED")] || [self hasEquipmentItem:oo::PList("EQ_ENERGY_UNIT")] || [self hasEquipmentItem:oo::PList("EQ_NAVAL_ENERGY_UNIT_DAMAGED")]))
                     desc = oo::str::formatRuntime(OO_DESC("@-will-replace-other-energy"), { TextArg(desc) });
                 if (weight > 0)
                     desc = oo::str::formatRuntime(OO_DESC("upgradeinfo-@-weight-d-of-equipment"), { TextArg(desc), weight });
@@ -8941,7 +8954,7 @@ std::optional<std::string> last_outfitting_key; // nullopt = none (was nil)
     OOJSInterfaceDefinition* definition = InterfaceForKey([self dockedStation], key);
     if (definition) {
         [[UNIVERSE gameView] clearKeys];
-        [definition runCallback:oo::NSStringOrNil(key)];
+        [definition runCallback:*key]; // a definition was found, so key has a value
     } else {
         OO_LOG("interface.missingCallback", "Unable to find callback definition for key {}", key.value_or("(null)"));
     }
@@ -9176,10 +9189,10 @@ std::optional<std::string> last_outfitting_key; // nullopt = none (was nil)
 
         if (toScreen == GUI_SCREEN_SYSTEM_DATA) {
             // system data screen: ensure correct sun light color is used on miniature planet
-            [[UNIVERSE sun] setSunColor:[OOColor colorWithDescription:oo::ObjectFromPList([[UNIVERSE systemManager] cxx_getProperty:"sun_color" forSystem:info_system_id inGalaxy:[self galaxyNumber]])]];
+            [[UNIVERSE sun] setSunColor:[OOColor cxx_colorWithDescription:[[UNIVERSE systemManager] cxx_getProperty:"sun_color" forSystem:info_system_id inGalaxy:[self galaxyNumber]]]];
         } else {
             // any other screen: reset local sun light color
-            [[UNIVERSE sun] setSunColor:[OOColor colorWithDescription:oo::ObjectFromPList([[UNIVERSE systemManager] cxx_getProperty:"sun_color" forSystem:system_id inGalaxy:[self galaxyNumber]])]];
+            [[UNIVERSE sun] setSunColor:[OOColor cxx_colorWithDescription:[[UNIVERSE systemManager] cxx_getProperty:"sun_color" forSystem:system_id inGalaxy:[self galaxyNumber]]]];
         }
 
         if (![[UNIVERSE gameController] isGamePaused]) {
@@ -9234,7 +9247,7 @@ std::optional<std::string> last_outfitting_key; // nullopt = none (was nil)
 
     OOCreditsQuantity old_credits = credits;
     OOEquipmentType* eqInfo = (key.has_value() ? [OOEquipmentType cxx_equipmentTypeWithIdentifier:*key] : nil);
-    BOOL isRepair = [self hasEquipmentItem:oo::NSStringOrNil([eqInfo cxx_damagedIdentifier])];
+    BOOL isRepair = [self hasEquipmentItem:OptionalKeyPList([eqInfo cxx_damagedIdentifier])];
     if ([self tryBuyingItem:key.value_or(std::string())]) // (a nil key bought nothing, as "" does)
     {
         if (credits == old_credits) {
@@ -9265,7 +9278,7 @@ std::optional<std::string> last_outfitting_key; // nullopt = none (was nil)
             oo::PList::Array boughtArguments;
             if (key.has_value())
                 boughtArguments = { oo::PList(*key), oo::PList::signedInteger(static_cast<long long>(old_credits - credits)) };
-            [self cxx_doScriptEvent:OOJSID("playerBoughtEquipment") withArguments:oo::ObjCRefsFrom<id>(oo::ObjectFromPList(oo::PList(std::move(boughtArguments))))];
+            [self cxx_doScriptEvent:OOJSID("playerBoughtEquipment") withPListArguments:boughtArguments];
             if (gui_screen == GUI_SCREEN_EQUIP_SHIP) // if we haven't changed gui screen inside playerBoughtEquipment
             {
                 // show any change due to playerBoughtEquipment
@@ -9330,7 +9343,7 @@ std::optional<std::string> last_outfitting_key; // nullopt = none (was nil)
     BOOL isRepair = NO;
 
     // repairs cost 50%
-    if ([self hasEquipmentItem:oo::NSStringOrNil(eqKeyDamaged)]) {
+    if ([self hasEquipmentItem:OptionalKeyPList(eqKeyDamaged)]) {
         price /= 2.0;
         isRepair = YES;
     }
@@ -9552,7 +9565,7 @@ std::optional<std::string> last_outfitting_key; // nullopt = none (was nil)
         credits -= price;
         [self addEquipmentItem:eqKey withValidation:NO inContext:"purchase"]; // no need to validate twice.
         if (isRepair) {
-            [self doScriptEvent:OOJSID("equipmentRepaired") withArgument:oo::NSStringFrom(eqKey)];
+            [self cxx_doScriptEvent:OOJSID("equipmentRepaired") withPListArguments:{ oo::PList(eqKey) }];
         }
         return YES;
     }
@@ -10288,7 +10301,7 @@ std::optional<std::string> last_outfitting_key; // nullopt = none (was nil)
     if ([UNIVERSE autoSave])
         [UNIVERSE setAutoSaveNow:YES];
 
-    [self cxx_doScriptEvent:OOJSID("playerBoughtCargo") withArguments:oo::ObjCRefsFrom<id>(oo::ObjectFromPList(oo::PList(oo::PList::Array { oo::PList(index), oo::PList::signedInteger(purchase), oo::PList::unsignedInteger(pricePerUnit) })))]; // the same number kinds (signed, unsigned long long)
+    [self cxx_doScriptEvent:OOJSID("playerBoughtCargo") withPListArguments:{ oo::PList(index), oo::PList::signedInteger(purchase), oo::PList::unsignedInteger(pricePerUnit) }]; // the same number kinds (signed, unsigned long long)
     if ([localMarket cxx_exportLegalityForGood:index] > 0) {
         roleWeightFlags.insert_or_assign("bought-illegal", oo::PList::signedInteger(1)); // +numberWithInt:
     } else {
@@ -10345,7 +10358,7 @@ std::optional<std::string> last_outfitting_key; // nullopt = none (was nil)
     if ([UNIVERSE autoSave])
         [UNIVERSE setAutoSaveNow:YES];
 
-    [self cxx_doScriptEvent:OOJSID("playerSoldCargo") withArguments:oo::ObjCRefsFrom<id>(oo::ObjectFromPList(oo::PList(oo::PList::Array { oo::PList(index), oo::PList::signedInteger(sell), oo::PList::unsignedInteger(pricePerUnit) })))]; // the same number kinds (signed, unsigned long long)
+    [self cxx_doScriptEvent:OOJSID("playerSoldCargo") withPListArguments:{ oo::PList(index), oo::PList::signedInteger(sell), oo::PList::unsignedInteger(pricePerUnit) }]; // the same number kinds (signed, unsigned long long)
 
     return YES;
 }
@@ -10494,20 +10507,24 @@ std::optional<std::string> last_outfitting_key; // nullopt = none (was nil)
     }
 }
 
-- (void)addEquipmentFromCollection:(id)equipment
+- (void)addEquipmentFromCollection:(const oo::PList&)equipment
 {
     oo::PList dict; // null unless the collection is a dictionary
     std::vector<std::string> eqKeys; // the keys / elements in the collection's enumeration order
     NSUInteger i, count;
 
     // Pass 1: Load the entire collection.
-    if (oo::IsNSDictionary(equipment)) {
-        dict = oo::PListFrom(equipment);
-        eqKeys = oo::StringsFrom(equipment);
-    } else if (oo::IsNSArray(equipment) || oo::IsNSSet(equipment)) {
-        eqKeys = oo::StringsFrom(equipment);
-    } else if (oo::IsNSString(equipment)) {
-        eqKeys = { oo::StdString(equipment) };
+    if (const oo::PList::Dict* equipmentDict = equipment.getIf<oo::PList::Dict>()) {
+        dict = equipment;
+        for (const auto& [eqKey, value] : *equipmentDict)
+            eqKeys.push_back(eqKey); // key byte order (was NSDictionary order)
+    } else if (const oo::PList::Array* equipmentArray = equipment.getIf<oo::PList::Array>()) {
+        for (const oo::PList& element : *equipmentArray) {
+            if (const std::string* eqKey = element.getIf<std::string>())
+                eqKeys.push_back(*eqKey); // strings only, as before
+        }
+    } else if (const std::string* eqKey = equipment.getIf<std::string>()) {
+        eqKeys = { *eqKey };
     } else {
         return;
     }
@@ -10772,8 +10789,8 @@ std::optional<std::string> last_outfitting_key; // nullopt = none (was nil)
 - (void)setUpTrumbles
 {
     std::u16string trumbleDigrams; // UTF-16 units, as the old mutable string held them
-    unichar xchar = (unichar)0;
-    unichar digramchars[2];
+    uint16_t xchar = (uint16_t)0;
+    uint16_t digramchars[2];
 
     while (trumbleDigrams.size() < PLAYER_MAX_TRUMBLES + 2) {
         const std::optional<std::string> commanderName = [self cxx_commanderName];
@@ -10839,7 +10856,7 @@ std::optional<std::string> last_outfitting_key; // nullopt = none (was nil)
     return trumbleCount;
 }
 
-- (id)trumbleValue
+- (oo::PList)trumbleValue
 {
     const std::string namekey = oo::str::format("%s-humbletrash", [self cxx_commanderName].value_or("(null)").c_str());
     int trumbleHash;
@@ -10860,10 +10877,10 @@ std::optional<std::string> last_outfitting_key; // nullopt = none (was nil)
     }
 
     // [count (unsigned), hash (signed), trumbles]: the same number kinds as before
-    return oo::ObjectFromPList(oo::PList(oo::PList::Array { oo::PList::unsignedInteger(trumbleCount), oo::PList::signedInteger(trumbleHash), oo::PList(std::move(trumbleArray)) }));
+    return oo::PList(oo::PList::Array { oo::PList::unsignedInteger(trumbleCount), oo::PList::signedInteger(trumbleHash), oo::PList(std::move(trumbleArray)) });
 }
 
-- (void)setTrumbleValueFrom:(id)trumbleValue
+- (void)setTrumbleValueFrom:(const oo::PList&)trumbleValue
 {
     BOOL info_failed = NO;
     int trumbleHash;
@@ -10875,12 +10892,12 @@ std::optional<std::string> last_outfitting_key; // nullopt = none (was nil)
 
     [self setUpTrumbles];
 
-    if (trumbleValue) {
+    if (!trumbleValue.isNull()) {
         BOOL possible_cheat = NO;
-        if (!oo::IsNSArray(trumbleValue))
+        if (!trumbleValue.isArray())
             info_failed = YES;
         else {
-            const oo::PList values = oo::PListFrom(trumbleValue);
+            const oo::PList& values = trumbleValue;
             if (values.count() >= 1)
                 putativeNTrumbles = values.at<int>(0);
             if (values.count() >= 2)
@@ -11933,8 +11950,8 @@ std::optional<std::string> last_outfitting_key; // nullopt = none (was nil)
     while (i--) {
         OOJSGuiScreenKeyDefinition* def = keydefs[i].get();
         // the old code read "name" from the definition object with PListView, which only reads
-        // dictionaries, so this never matched; kept as it was (oo::PListFrom(def) is an Object node)
-        const oo::PList definitionValue = oo::PListFrom(def);
+        // dictionaries, so this never matched; kept as it was (the definition as an Object node)
+        const oo::PList definitionValue = oo::PListObject(def);
         const oo::PList* definitionName = definitionValue.find("name");
         if (def && definitionName != nullptr && definitionName->isString() && *definitionName->getIf<std::string>() == key) {
             keydefs.erase(keydefs.begin() + static_cast<std::ptrdiff_t>(i));

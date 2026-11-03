@@ -488,7 +488,7 @@ typedef enum {
 }
 
 // ship brains
-- (void)setStateMachine:(id)ai_desc; // shared selector (proposed ADR-0043), called by name (ADR-0043 item 21): an Objective-C string
+- (void)setStateMachine:(const std::string&)ai_desc; // shared selector (proposed ADR-0043), called by name (ADR-0055 item 5)
 - (void)setAI:(AI*)ai;
 - (AI*)getAI;
 - (BOOL)hasAutoAI;
@@ -502,7 +502,7 @@ typedef enum {
 - (double)frustration;
 - (void)setLaunchDelay:(double)delay;
 
-- (void)interpretAIMessage:(id)message; // shared selector (proposed ADR-0043), called by name (ADR-0043 item 21): an Objective-C string
+- (void)interpretAIMessage:(const std::string&)message; // shared selector (proposed ADR-0043), called by name (ADR-0055 item 5)
 
 - (GLfloat)accuracy;
 - (void)setAccuracy:(GLfloat)new_accuracy;
@@ -591,13 +591,13 @@ typedef enum {
 
 // Equipment
 - (OOWeaponFacingSet)weaponFacings;
-- (BOOL)hasEquipmentItem:(id)equipmentKeys includeWeapons:(BOOL)includeWeapons whileLoading:(BOOL)loading; // This can take a string or an set or array of strings. If a collection, returns YES if ship has _any_ of the specified equipment. If includeWeapons is NO, missiles and primary weapons are not checked.
-- (BOOL)hasEquipmentItem:(id)equipmentKeys; // Short for hasEquipmentItem:foo includeWeapons:NO whileLoading:NO
+- (BOOL)hasEquipmentItem:(const oo::PList&)equipmentKeys includeWeapons:(BOOL)includeWeapons whileLoading:(BOOL)loading; // This can take a string or an array of strings (a set's keys as an array). If a collection, returns YES if ship has _any_ of the specified equipment. If includeWeapons is NO, missiles and primary weapons are not checked.
+- (BOOL)hasEquipmentItem:(const oo::PList&)equipmentKeys; // Short for hasEquipmentItem:foo includeWeapons:NO whileLoading:NO
 - (NSUInteger)cxx_countEquipmentItem:(const std::string&)eqkey;
 - (std::optional<std::string>)cxx_equipmentItemProviding:(const std::string&)equipmentType;
 - (BOOL)cxx_hasEquipmentItemProviding:(const std::string&)equipmentType;
-- (BOOL)hasAllEquipment:(id)equipmentKeys includeWeapons:(BOOL)includeWeapons whileLoading:(BOOL)loading; // Like hasEquipmentItem:includeWeapons:, but requires _all_ elements in collection.
-- (BOOL)hasAllEquipment:(id)equipmentKeys; // Short for hasAllEquipment:foo includeWeapons:NO
+- (BOOL)hasAllEquipment:(const oo::PList&)equipmentKeys includeWeapons:(BOOL)includeWeapons whileLoading:(BOOL)loading; // Like hasEquipmentItem:includeWeapons:, but requires _all_ elements in collection.
+- (BOOL)hasAllEquipment:(const oo::PList&)equipmentKeys; // Short for hasAllEquipment:foo includeWeapons:NO
 - (BOOL)setWeaponMount:(OOWeaponFacing)facing toWeapon:(const std::string&)eqKey; // flipped with its family (bead oo-3rb.258)
 - (BOOL)canAddEquipment:(const std::string&)equipmentKey inContext:(const std::string&)context; // flipped with its family (bead oo-3rb.258). Test ability to add equipment, taking equipment-specific constriants into account.
 - (BOOL)cxx_equipmentValidToAdd:(const std::string&)equipmentKey inContext:(const std::string&)context; // Actual test if equipment satisfies validation criteria.
@@ -762,14 +762,12 @@ typedef enum {
 
 - (NSUInteger)turretCount;
 
-- (id)name; // shared selector (Foundation declares -name too): -cxx_name as an Objective-C string, or nil
 - (std::optional<std::string>)cxx_name; // nullopt: none (bead oo-3rb.289.13)
 - (std::optional<std::string>)cxx_shipUniqueName;
 - (std::optional<std::string>)cxx_shipClassName;
 - (std::optional<std::string>)displayName; // flipped with its family (bead oo-3rb.267)
 - (std::optional<std::string>)cxx_scanDescription;
 - (std::optional<std::string>)cxx_scanDescriptionForScripting;
-- (void)setName:(id)inName; // shared selector (Foundation declares -setName: too): -cxx_setName: with an Objective-C string, or nil
 - (void)cxx_setName:(const std::optional<std::string>&)inName; // PlayerEntity blocks it
 - (void)cxx_setShipUniqueName:(const std::optional<std::string>&)inName;
 - (void)cxx_setShipClassName:(const std::optional<std::string>&)inName;
@@ -785,7 +783,7 @@ typedef enum {
 - (void)cxx_removeRole:(const std::string&)role;
 
 - (std::optional<std::string>)cxx_primaryRole;
-- (void)setPrimaryRole:(id)role; // shared selector (proposed ADR-0043), called by name (ADR-0043 item 21): an Objective-C string
+- (void)setPrimaryRole:(const std::string&)role; // shared selector (proposed ADR-0043), called by name (ADR-0055 item 5)
 - (BOOL)cxx_hasPrimaryRole:(const std::string&)role;
 
 - (BOOL)isPolice; // Scan class is CLASS_POLICE
@@ -1122,7 +1120,7 @@ Vector cxx_positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaterni
 - (void)deactivateCloakingDevice;
 - (BOOL)launchCascadeMine;
 - (ShipEntity*)launchEscapeCapsule;
-- (id)dumpCargo; // shared selector (proposed ADR-0043), called by name: an Objective-C string (the commodity), or nil
+- (void)dumpCargo; // shared selector (proposed ADR-0043), called by name (ADR-0055 item 5)
 - (ShipEntity*)cxx_dumpCargoItem:(const std::optional<std::string>&)preferred; // nullopt: the first pod
 - (OOCargoType)dumpItem:(ShipEntity*)jetto;
 
@@ -1200,7 +1198,7 @@ Vector cxx_positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaterni
 
 - (BOOL)isMining;
 
-- (void)spawn:(id)roles_number; // shared selector (proposed ADR-0043), called by name (ADR-0043 item 21): an Objective-C string
+- (void)spawn:(const std::string&)roles_number; // shared selector (proposed ADR-0043), called by name (ADR-0055 item 5)
 
 - (int)checkShipsInVicinityForWitchJumpExit;
 
@@ -1247,8 +1245,6 @@ Vector cxx_positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaterni
         is passed as oo::PListObject(entity). The id forms above stay for OOObject arguments.
 */
 - (void)cxx_doScriptEvent:(OOJSPropID)message withPListArguments:(const std::vector<oo::PList>&)arguments;
-// TRANSITIONAL (oo-qps.72): Foundation-boxed arguments, each through its PList form.
-- (void)cxx_doScriptEvent:(OOJSPropID)message withArguments:(const std::vector<oo::ObjCRef<id>>&)arguments;
 // argv is borrowed: the caller remains responsible for freeing the values.
 - (void)doScriptEvent:(OOJSPropID)message withArguments:(JSValue*)argv count:(int)argc;
 - (void)doScriptEvent:(OOJSPropID)message inContext:(JSContext*)context withArguments:(JSValue*)argv count:(int)argc;
@@ -1277,7 +1273,7 @@ Vector cxx_positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaterni
     } while (0)
 
 - (void)cxx_reactToAIMessage:(const std::string&)message context:(const std::optional<std::string>&)debugContext; // Immediate message
-- (void)sendAIMessage:(id)message; // Queued message. Shared selector (proposed ADR-0043), called by name (ADR-0043 item 21): an Objective-C string
+- (void)sendAIMessage:(const std::string&)message; // Queued message.
 - (void)cxx_doScriptEvent:(OOJSPropID)scriptEvent andReactToAIMessage:(const std::string&)aiMessage;
 - (void)cxx_doScriptEvent:(OOJSPropID)scriptEvent withArgument:(id)argument andReactToAIMessage:(const std::string&)aiMessage;
 

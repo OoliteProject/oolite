@@ -168,6 +168,7 @@ inline constexpr std::string_view STICK_YAW_AXIS_PROFILE_SETTING = "YawAxisProfi
 #define ENUMKEY(x) oo::str::format("%d", x)
 
 #import "OOJoystickProfile.h"
+#include "oofnd/String.hpp"
 
 @interface OOJoystickManager : OOObject {
     // Axis/button mapping arrays

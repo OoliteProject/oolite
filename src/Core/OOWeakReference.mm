@@ -11,11 +11,16 @@ This code is hereby placed in the public domain.
 #import "NSObjectOOExtensions.h"
 #import "OOFoundation.h" // OOObject's -description components
 #import "OOJavaScriptEngine.h" // OOObject (OOJavaScript)
-#import "OOStringBridge.h"
 
 #include "oofnd/String.hpp"
+#include "oofnd/objc/OORuntime.h"
 
-/*	OOWeakReference was a gnustep-base proxy-root subclass that forwarded every message as an invocation
+/*	The members here are the bodies of OOWeakReference's methods; its facade
+        (OOWeakReference+ObjCBridge.mm) forwards each method to its member, and keeps what depends on
+        the facade being the reference: -dealloc's -weakRefDied: (sent with the facade as the
+        reference), +weakRefWithObject:'s nil check, and OOWeakReferenceNilTarget (bead oo-3kqi).
+
+        OOWeakReference was a gnustep-base proxy-root subclass that forwarded every message as an invocation
         (bead oo-3rb.54, ADR-0029 Decision 5). It is now an OOObject that forwards with
         -forwardingTargetForSelector:, which both libobjc2 hooks in use (gnustep-base's while it is
         linked, then the floor's OOObjCInstallFloor()) consult before any invocation machinery.
@@ -33,241 +38,155 @@ This code is hereby placed in the public domain.
         the proxy root's value (the address shifted right by 3, measured against gnustep-base 1.31.1), so
         a set of weak references (OOWeakSet) keeps its iteration order.
 */
-@interface OOWeakReferenceNilTarget : OOObject
 
-+ (id)sharedNilTarget;
-
+// -className as the GNUstep bridge declared it (the object may answer it; nothing declares it since
+// oo-3rb.4 deleted OOObjectGNUstepBridge). The Objective-C -className forwarded it unchanged.
+@protocol OOWeakReferenceClassName
+- (id)className;
 @end
 
-@implementation OOWeakReference
+namespace cxx {
 
 // *** Core functionality.
 
-+ (id)weakRefWithObject:(id<OOWeakReferenceSupport>)object
+// The old +weakRefWithObject:'s assignment (its nil check and allocation are the facade's).
+OOWeakReference::OOWeakReference(id object)
 {
-    if (object == nil)
-        return nil;
-
-    OOWeakReference* result = [[OOWeakReference alloc] init];
-    result->_object = object;
-    return [result autorelease];
+    _object = object;
 }
 
-- (void)dealloc
-{
-    [_object weakRefDied:self];
-
-    [super dealloc];
-}
-
-- (std::optional<std::string>)cxx_description
+std::optional<std::string> OOWeakReference::description()
 {
     if (_object != nil)
         return [(id)_object cxx_description]; // -description is not in the OOObject protocol (the Logging seam)
     else
-        return oo::str::format("<Dead %s %s>", oo::DescriptionOf([self class]).c_str(), oo::str::pointerDescription(self).c_str());
+        return oo::str::format("<Dead %s %s>", oo::DescriptionOf(class_()).c_str(), oo::str::pointerDescription(oo::ToObjC(this)).c_str());
 }
 
-- (id)weakRefUnderlyingObject
+id OOWeakReference::weakRefUnderlyingObject()
 {
     return _object;
 }
 
-- (id)weakRetain
+id OOWeakReference::weakRetain()
 {
-    return [self retain];
+    return [oo::ToObjC(this) retain];
 }
 
-- (void)weakRefDrop
+void OOWeakReference::weakRefDrop()
 {
     _object = nil;
 }
 
 // *** Forwarding.
 
-- (Class)class
+Class OOWeakReference::class_()
 {
     return [_object class];
 }
 
-- (BOOL)isProxy
+bool OOWeakReference::isProxy()
 {
-    return YES;
+    return true;
 }
 
-- (BOOL)respondsToSelector:(SEL)selector
+bool OOWeakReference::respondsToSelector(SEL selector)
 {
-    if (__builtin_expect(_object != nil && selector != @selector(weakRefDrop) && selector != @selector(weakRefUnderlyingObject), 1)) {
+    if (__builtin_expect(_object != nil && !OOSelectorsEqual(selector, OOSelectorFromName("weakRefDrop")) && !OOSelectorsEqual(selector, OOSelectorFromName("weakRefUnderlyingObject")), 1)) {
         // _object exists and it's not one of our methods, ask _object.
         return [_object respondsToSelector:selector];
     } else {
         // Selector we responds to, or _object is nil and therefore responds to everything.
-        return YES;
+        return true;
     }
 }
 
-- (id)forwardingTargetForSelector:(SEL)selector
+id OOWeakReference::forwardingTargetForSelector(SEL /*selector*/)
 {
     if (__builtin_expect(_object != nil, 1))
         return _object;
     return [OOWeakReferenceNilTarget sharedNilTarget];
 }
 
-- (uintptr_t)hash
+uintptr_t OOWeakReference::hash()
 {
-    // The old proxy root's -hash (measured): the address shifted right by 3.
-    return reinterpret_cast<uintptr_t>(self) >> 3;
+    // The old proxy root's -hash (measured): the address (of the facade, the reference) shifted right by 3.
+    return reinterpret_cast<uintptr_t>(oo::ToObjC(this)) >> 3;
 }
 
 // What the old proxy root forwarded and OOObject (or one of its categories) answers itself.
 
-- (BOOL)isKindOfClass:(Class)aClass
+bool OOWeakReference::isKindOfClass(Class aClass)
 {
     return [(id)_object isKindOfClass:aClass];
 }
 
-- (BOOL)isMemberOfClass:(Class)aClass
+bool OOWeakReference::isMemberOfClass(Class aClass)
 {
     return [(id)_object isMemberOfClass:aClass];
 }
 
-- (BOOL)conformsToProtocol:(Protocol*)protocol
+bool OOWeakReference::conformsToProtocol(Protocol* protocol)
 {
     return [(id)_object conformsToProtocol:protocol];
 }
 
-- (std::optional<std::string>)cxx_descriptionComponents
+std::optional<std::string> OOWeakReference::descriptionComponents() const
 {
     return [(id)_object cxx_descriptionComponents];
 }
 
-- (std::optional<std::string>)cxx_shortDescription
+std::optional<std::string> OOWeakReference::shortDescription()
 {
     return [(id)_object cxx_shortDescription];
 }
 
-- (std::optional<std::string>)cxx_shortDescriptionComponents
+std::optional<std::string> OOWeakReference::shortDescriptionComponents()
 {
     return [(id)_object cxx_shortDescriptionComponents];
 }
 
-- (id)className
+id OOWeakReference::className()
 {
-    return [(id)_object className];
+    return [(id<OOWeakReferenceClassName>)_object className];
 }
 
-- (size_t)oo_objectSize
+size_t OOWeakReference::oo_objectSize()
 {
     return [(id)_object oo_objectSize];
 }
 
-- (JSValue)oo_jsValueInContext:(JSContext*)context
+JSValue OOWeakReference::oo_jsValueInContext(JSContext* context)
 {
     if (_object == nil)
         return JS_UNDEFINED;
     return [(id)_object oo_jsValueInContext:context];
 }
 
-- (std::optional<std::string>)cxx_oo_jsDescription
+std::optional<std::string> OOWeakReference::oo_jsDescription()
 {
     if (_object == nil)
         return std::nullopt;
     return [(id)_object cxx_oo_jsDescription];
 }
 
-- (std::optional<std::string>)cxx_oo_jsDescriptionWithClassName:(const std::optional<std::string>&)className
+std::optional<std::string> OOWeakReference::oo_jsDescriptionWithClassName(const std::optional<std::string>& className)
 {
     if (_object == nil)
         return std::nullopt;
     return [(id)_object cxx_oo_jsDescriptionWithClassName:className];
 }
 
-- (std::optional<std::string>)cxx_oo_jsClassName
+std::optional<std::string> OOWeakReference::oo_jsClassName()
 {
     if (_object == nil)
         return std::nullopt;
     return [(id)_object cxx_oo_jsClassName];
 }
 
-- (void)oo_clearJSSelf:(JSValueConst)selfVal
+void OOWeakReference::oo_clearJSSelf(JSValueConst selfVal)
 {
     [(id)_object oo_clearJSSelf:selfVal];
 }
 
-@end
-
-@implementation OOObject (OOWeakReference)
-
-- (id)weakRefUnderlyingObject
-{
-    return self;
-}
-
-@end
-
-@implementation OOWeakRefObject
-
-- (id)weakRetain
-{
-    if (weakSelf == nil)
-        weakSelf = [OOWeakReference weakRefWithObject:self];
-    return [weakSelf retain]; // Each caller releases this, as -weakRetain must be balanced with -release.
-}
-
-- (void)weakRefDied:(OOWeakReference*)weakRef
-{
-    if (weakRef == weakSelf)
-        weakSelf = nil;
-}
-
-- (void)dealloc
-{
-    [weakSelf weakRefDrop]; // Very important!
-    [super dealloc];
-}
-
-- (id)weakSelf
-{
-    return [[self weakRetain] autorelease];
-}
-
-@end
-
-namespace {
-
-// Every selector sent to a dead weak reference: answers like a message to nil (an integer or
-// pointer 0; a floating-point or struct result is undefined, as it was).
-id OOWeakReferenceNilIMP(id, SEL)
-{
-    return nil;
-}
-
-} // namespace
-
-@implementation OOWeakReferenceNilTarget
-
-+ (id)sharedNilTarget
-{
-    static OOWeakReferenceNilTarget* sShared = nil;
-    if (sShared == nil)
-        sShared = [[OOWeakReferenceNilTarget alloc] init];
-    return sShared;
-}
-
-// gnustep-base's forwarding hook (while it is linked) asks the class to resolve the selector:
-// add the nil method for it.
-+ (BOOL)resolveInstanceMethod:(SEL)selector
-{
-    const char* types = sel_getType_np(selector);
-    class_addMethod(self, selector, reinterpret_cast<IMP>(OOWeakReferenceNilIMP), (types != NULL) ? types : "@@:");
-    return YES;
-}
-
-// The floor's hook (OOObjCInstallFloor()) does not resolve: its unrecognised-selector method sends
-// this and then returns nil, which is the answer wanted (tests/unit/oofnd/test_objc_floor.mm,
-// forwardingAndUnrecognizedSelectors, checks that path).
-- (void)doesNotRecognizeSelector:(SEL)selector
-{
-}
-
-@end
+} // namespace cxx

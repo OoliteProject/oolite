@@ -26,10 +26,10 @@ MA 02110-1301, USA.
 #import "OOJSShipGroup.h"
 #import "EntityOOJavaScriptExtensions.h"
 #import "OOJavaScriptEngine.h"
+#import "OOObjCPList.h"
 #import "OOShipGroup.h"
 #import "ShipEntity.h"
 
-#import "OOFoundationBridge.h"
 #include "oofnd/objc/OOAssert.h"
 
 static JSClassID sShipGroupClassID;
@@ -87,27 +87,25 @@ static JSValue ShipGroupGetProperty(OOJS_GETTER_ARGS)
     OOJS_NATIVE_ENTER(context)
 
     OOShipGroup* group = nil;
-    id result = nil;
+    oo::PList result; // null: nil
 
     if (EXPECT_NOT(!JSShipGroupGetShipGroup(context, thisObj, &group)))
         return OOJSNativeFailure(context);
 
     switch (magic) {
     case kShipGroup_ships:
-        result = oo::NSArrayFromObjects((group != nil) ? [group cxx_memberArray] : std::vector<oo::ObjCRef<ShipEntity*>>()); // (no C++ value from a message to nil)
-        if (result == nil)
-            result = oo::NSArrayFromObjects(std::vector<id>()); // an empty array
+        result = oo::PListFromObjects((group != nil) ? [group cxx_memberArray] : std::vector<oo::ObjCRef<ShipEntity*>>()); // (no C++ value from a message to nil; an empty array)
         break;
 
     case kShipGroup_leader:
-        result = [group leader];
+        result = oo::PListObject([group leader]);
         break;
 
-    case kShipGroup_name:
-        result = oo::NSStringOrNil([group cxx_name]);
-        if (result == nil)
-            result = [OONull null];
+    case kShipGroup_name: {
+        const std::optional<std::string> name = [group cxx_name];
+        result = name.has_value() ? oo::PList(*name) : oo::PListObject([OONull null]);
         break;
+    }
 
     case kShipGroup_count:
         return JS_NewNumber(context, [group count]);
@@ -117,7 +115,7 @@ static JSValue ShipGroupGetProperty(OOJS_GETTER_ARGS)
         return OOJSNativeFailure(context);
     }
 
-    return OOJSValueFromNativeObject(context, result);
+    return OOJSValueFromPList(context, result);
 
     OOJS_NATIVE_EXIT
 }

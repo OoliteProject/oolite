@@ -25,13 +25,12 @@ MA 02110-1301, USA.
 
 #import "OOSDLJoystickManager.h"
 #import "OOCallByName.h"
-#import "OOFoundationBridge.h"
 #include "oofnd/Log.hpp"
 #include "oofnd/String.hpp"
 
-@implementation OOSDLJoystickManager
+namespace cxx {
 
-- (id)init
+OOSDLJoystickManager::OOSDLJoystickManager()
 {
     int i;
 
@@ -62,15 +61,9 @@ MA 02110-1301, USA.
     }
     SDL_free(joystickIds);
     joystickIdMap = std::move(idMap);
-    return [super init];
 }
 
-- (void)dealloc
-{
-    [super dealloc];
-}
-
-- (NSInteger)getJoystickIndexFromId:(SDL_JoystickID)joystickId
+NSInteger OOSDLJoystickManager::getJoystickIndexFromId(SDL_JoystickID joystickId)
 {
     const auto index = joystickIdMap.find(oo::str::format("%d", joystickId));
     if (index != joystickIdMap.end()) {
@@ -79,12 +72,12 @@ MA 02110-1301, USA.
     return -1;
 }
 
-- (NSUInteger)joystickCount
+NSUInteger OOSDLJoystickManager::joystickCount()
 {
     return stickCount;
 }
 
-- (std::optional<std::string>)nameOfJoystick:(NSUInteger)stickNumber
+std::optional<std::string> OOSDLJoystickManager::nameOfJoystick(NSUInteger stickNumber)
 {
     if (stickNumber >= stickCount)
         return std::string("(unknown joystick)");
@@ -94,40 +87,87 @@ MA 02110-1301, USA.
     return std::string(name);
 }
 
-- (int16_t)getAxisWithStick:(NSUInteger)stickNum axis:(NSUInteger)axisNum
+int16_t OOSDLJoystickManager::getAxisWithStick(NSUInteger stickNum, NSUInteger axisNum)
 {
     return SDL_GetJoystickAxis(stick[stickNum], axisNum);
 }
 
-- (SDL_JoyAxisEvent)makeJoyAxisEvent:(SDL_JoyAxisEvent*)sdlevt
+SDL_JoyAxisEvent OOSDLJoystickManager::makeJoyAxisEvent(SDL_JoyAxisEvent* sdlevt)
 {
     SDL_JoyAxisEvent evt;
     evt.type = sdlevt->type;
-    evt.which = [self getJoystickIndexFromId:sdlevt->which];
+    evt.which = getJoystickIndexFromId(sdlevt->which);
     evt.axis = sdlevt->axis;
     evt.value = sdlevt->value;
     return evt;
 }
 
-- (SDL_JoyButtonEvent)makeJoyButtonEvent:(SDL_JoyButtonEvent*)sdlevt
+SDL_JoyButtonEvent OOSDLJoystickManager::makeJoyButtonEvent(SDL_JoyButtonEvent* sdlevt)
 {
     SDL_JoyButtonEvent evt;
     evt.type = sdlevt->type;
-    evt.which = [self getJoystickIndexFromId:sdlevt->which];
+    evt.which = getJoystickIndexFromId(sdlevt->which);
     evt.button = sdlevt->button;
     evt.down = sdlevt->down;
     return evt;
 }
 
-- (SDL_JoyHatEvent)makeJoyHatEvent:(SDL_JoyHatEvent*)sdlevt
+SDL_JoyHatEvent OOSDLJoystickManager::makeJoyHatEvent(SDL_JoyHatEvent* sdlevt)
 {
     SDL_JoyHatEvent evt;
     evt.type = sdlevt->type;
-    evt.which = [self getJoystickIndexFromId:sdlevt->which];
+    evt.which = getJoystickIndexFromId(sdlevt->which);
     evt.hat = sdlevt->hat;
     evt.value = sdlevt->value;
     return evt;
 }
+
+bool OOSDLJoystickManager::handleSDLEvent(SDL_Event* evt)
+{
+    bool rc = false;
+    switch (evt->type) {
+    case SDL_EVENT_GAMEPAD_AXIS_MOTION:
+    case SDL_EVENT_JOYSTICK_AXIS_MOTION: {
+        SDL_JoyAxisEvent joyEvt = makeJoyAxisEvent((SDL_JoyAxisEvent*)evt);
+        if (joyEvt.which >= 0) {
+            [oo::ToObjC(this) decodeAxisEvent:&joyEvt]; // the facade's: it decodes through OOJoystickManager's state
+            rc = true;
+        }
+        break;
+    }
+
+    case SDL_EVENT_GAMEPAD_BUTTON_DOWN:
+    case SDL_EVENT_GAMEPAD_BUTTON_UP:
+    case SDL_EVENT_JOYSTICK_BUTTON_DOWN:
+    case SDL_EVENT_JOYSTICK_BUTTON_UP: {
+        SDL_JoyButtonEvent joyEvt = makeJoyButtonEvent((SDL_JoyButtonEvent*)evt);
+        if (joyEvt.which >= 0) {
+            [oo::ToObjC(this) decodeButtonEvent:&joyEvt]; // the facade's: it decodes through OOJoystickManager's state
+            rc = true;
+        }
+        break;
+    }
+
+    case SDL_EVENT_JOYSTICK_HAT_MOTION: {
+        SDL_JoyHatEvent joyEvt = makeJoyHatEvent((SDL_JoyHatEvent*)evt);
+        if (joyEvt.which >= 0) {
+            [oo::ToObjC(this) decodeHatEvent:&joyEvt]; // the facade's: it decodes through OOJoystickManager's state
+            rc = true;
+        }
+        break;
+    }
+
+    default:
+        OO_LOG("handleSDLEvent.unknownEvent", "{}", "JoystickHandler was sent an event it doesn't know");
+    }
+    return rc;
+}
+
+} // namespace cxx
+
+// The decoders stay Objective-C, on the facade, until OOJoystickManager converts: they read and
+// write OOJoystickManager's (non-@private) state, which lives in the facade.
+@implementation OOSDLJoystickManager (SDLDecoding)
 
 - (void)decodeAxisEvent:(SDL_JoyAxisEvent*)evt
 {
@@ -250,47 +290,6 @@ MA 02110-1301, USA.
     }
 
     hatstate[evt->which][evt->hat] = evt->value;
-}
-
-- (BOOL)handleSDLEvent:(SDL_Event*)evt
-{
-    BOOL rc = NO;
-    switch (evt->type) {
-    case SDL_EVENT_GAMEPAD_AXIS_MOTION:
-    case SDL_EVENT_JOYSTICK_AXIS_MOTION: {
-        SDL_JoyAxisEvent joyEvt = [self makeJoyAxisEvent:(SDL_JoyAxisEvent*)evt];
-        if (joyEvt.which >= 0) {
-            [self decodeAxisEvent:&joyEvt];
-            rc = YES;
-        }
-        break;
-    }
-
-    case SDL_EVENT_GAMEPAD_BUTTON_DOWN:
-    case SDL_EVENT_GAMEPAD_BUTTON_UP:
-    case SDL_EVENT_JOYSTICK_BUTTON_DOWN:
-    case SDL_EVENT_JOYSTICK_BUTTON_UP: {
-        SDL_JoyButtonEvent joyEvt = [self makeJoyButtonEvent:(SDL_JoyButtonEvent*)evt];
-        if (joyEvt.which >= 0) {
-            [self decodeButtonEvent:&joyEvt];
-            rc = YES;
-        }
-        break;
-    }
-
-    case SDL_EVENT_JOYSTICK_HAT_MOTION: {
-        SDL_JoyHatEvent joyEvt = [self makeJoyHatEvent:(SDL_JoyHatEvent*)evt];
-        if (joyEvt.which >= 0) {
-            [self decodeHatEvent:&joyEvt];
-            rc = YES;
-        }
-        break;
-    }
-
-    default:
-        OO_LOG("handleSDLEvent.unknownEvent", "{}", "JoystickHandler was sent an event it doesn't know");
-    }
-    return rc;
 }
 
 @end

@@ -1,6 +1,10 @@
 /*
 
-OORoleSet.m
+OORoleSet.mm
+
+C++20 since bead oo-bhb9 (proposed ADR-0056, the OOColor house style). Method bodies are the
+Objective-C ones with message sends turned into calls. Still Objective-C++ until Phase 4: the
+log line describes the set through its Objective-C facade.
 
 
 Copyright (C) 2007-2013 Jens Ayton
@@ -27,80 +31,82 @@ SOFTWARE.
 
 #import "OORoleSet.h"
 
-#import "OOFoundationBridge.h"
 #import "OOLogging.h"
 #import "OOMaths.h" // randf()
 
 #include "oofnd/String.hpp"
 
-@interface OORoleSet (OOPrivate)
+namespace cxx {
 
-// nullptr is a nil dictionary: the initializer fails, as it did.
-- (id)initWithRolesAndProbabilities:(const std::map<std::string, float>*)dict;
-
-@end
-
-@implementation OORoleSet
-
-+ (instancetype)roleSetWithString:(const std::string&)roleString
+oo::Ref<OORoleSet> OORoleSet::roleSetWithString(const std::string& roleString)
 {
-    return [[[self alloc] initWithRoleString:roleString] autorelease];
+    oo::Ref<OORoleSet> result = oo::makeRef<OORoleSet>();
+    if (!result->initWithRoleString(roleString))
+        return nullptr;
+    return result;
 }
 
-+ (instancetype)roleSetWithRole:(const std::string&)role probability:(float)probability
+oo::Ref<OORoleSet> OORoleSet::roleSetWithRole(const std::string& role, float probability)
 {
-    return [[[self alloc] initWithRole:role probability:probability] autorelease];
+    oo::Ref<OORoleSet> result = oo::makeRef<OORoleSet>();
+    if (!result->initWithRole(role, probability))
+        return nullptr;
+    return result;
 }
 
-- (id)initWithRoleString:(const std::string&)roleString
+oo::Ref<OORoleSet> OORoleSet::roleSetWithRolesAndProbabilities(const std::map<std::string, float>* dict)
+{
+    oo::Ref<OORoleSet> result = oo::makeRef<OORoleSet>();
+    if (!result->initWithRolesAndProbabilities(dict))
+        return nullptr;
+    return result;
+}
+
+bool OORoleSet::initWithRoleString(const std::string& roleString)
 {
     const std::map<std::string, float> dict = OOParseRolesFromString(roleString);
-    return [self initWithRolesAndProbabilities:dict.empty() ? nullptr : &dict];
+    return initWithRolesAndProbabilities(dict.empty() ? nullptr : &dict);
 }
 
-- (id)initWithRole:(const std::string&)role probability:(float)probability
+bool OORoleSet::initWithRole(const std::string& role, float probability)
 {
     std::map<std::string, float> dict;
 
     if (!role.empty() && 0 <= probability) {
         dict.emplace(role, probability);
     }
-    return [self initWithRolesAndProbabilities:dict.empty() ? nullptr : &dict];
+    return initWithRolesAndProbabilities(dict.empty() ? nullptr : &dict);
 }
 
-// -cxx_description (OODescription.h) wraps this as "<OORoleSet 0x...>{roleString}", which is what this
-// class's own -description printed.
-- (std::optional<std::string>)cxx_descriptionComponents
+// oo::DescriptionOf (OODescription.h) wraps this as "<OORoleSet 0x...>{roleString}", which is what
+// this class's own -description printed.
+std::optional<std::string> OORoleSet::descriptionComponents() const
 {
-    return [self roleString];
+    // roleString() builds its cache on first use, which the const signature cannot (ADR-0055 item
+    // 1 fixes it); a set is immutable, so the cache is only ever filled with this same text.
+    return const_cast<OORoleSet*>(this)->roleString();
 }
 
-- (BOOL)isEqual:(id)other
+bool OORoleSet::isEqual(OORoleSet* other)
 {
-    if ([other isKindOfClass:[OORoleSet class]]) {
-        return _rolesAndProbabilities == ((OORoleSet*)other)->_rolesAndProbabilities;
+    if (other != nullptr) {
+        return _rolesAndProbabilities == other->_rolesAndProbabilities;
     } else
-        return NO;
+        return false;
 }
 
-- (NSUInteger)hash
+NSUInteger OORoleSet::hash()
 {
     return _rolesAndProbabilities.size(); // as before: a Foundation dictionary hashes to its count
 }
 
-- (id)copyWithZone:(OOZone*)zone
-{
-    // Note: since object is immutable, a copy is no different from the original.
-    return [self retain];
-}
-
-- (std::optional<std::string>)roleString
+std::optional<std::string> OORoleSet::roleString()
 {
     if (!_roleString.has_value()) {
         // Construct role string. We always do this so that it's in a normalized form.
         std::string result;
         bool first = true;
-        for (const std::string& role : [self sortedRoles]) {
+        for (const std::string& role : sortedRoles()) {
             if (!first)
                 result += " ";
             else
@@ -108,7 +114,7 @@ SOFTWARE.
 
             result += role;
 
-            const float probability = [self probabilityForRole:role];
+            const float probability = probabilityForRole(role);
             if (probability != 1.0f) {
                 result += oo::str::format("(%g)", probability);
             }
@@ -120,35 +126,18 @@ SOFTWARE.
     return _roleString;
 }
 
-- (BOOL)hasRole:(const std::string&)role
+bool OORoleSet::hasRole(const std::string& role)
 {
     return !role.empty() && _rolesAndProbabilities.contains(role);
 }
 
-- (float)probabilityForRole:(const std::string&)role
+float OORoleSet::probabilityForRole(const std::string& role)
 {
     const auto it = _rolesAndProbabilities.find(role);
     return it != _rolesAndProbabilities.end() ? it->second : 0.0f;
 }
 
-- (BOOL)intersectsSet:(id)set
-{
-    std::vector<std::string> other;
-    if ([set isKindOfClass:[OORoleSet class]])
-        other = [(OORoleSet*)set roles];
-    else if (oo::IsNSSet(set))
-        other = oo::StringsFrom(set);
-    else
-        return NO;
-
-    for (const std::string& role : other) {
-        if (_rolesAndProbabilities.contains(role))
-            return YES;
-    }
-    return NO;
-}
-
-- (std::vector<std::string>)roles
+std::vector<std::string> OORoleSet::roles()
 {
     std::vector<std::string> result;
     result.reserve(_rolesAndProbabilities.size());
@@ -157,21 +146,21 @@ SOFTWARE.
     return result;
 }
 
-- (std::vector<std::string>)sortedRoles
+std::vector<std::string> OORoleSet::sortedRoles()
 {
-    std::vector<std::string> result = [self roles];
+    std::vector<std::string> result = roles();
     std::stable_sort(result.begin(), result.end(), [](const std::string& a, const std::string& b) {
         return oo::str::caseInsensitiveCompare(a, b) < 0;
     });
     return result;
 }
 
-- (std::optional<std::map<std::string, float>>)rolesAndProbabilities
+std::optional<std::map<std::string, float>> OORoleSet::rolesAndProbabilities()
 {
     return _rolesAndProbabilities;
 }
 
-- (std::optional<std::string>)anyRole
+std::optional<std::string> OORoleSet::anyRole()
 {
     std::optional<std::string> role;
     float prob, selected;
@@ -191,57 +180,48 @@ SOFTWARE.
     }
     if (!role.has_value()) {
         role = _rolesAndProbabilities.begin()->first;
-        OO_LOG("roleSet.anyRole.failed", "Could not get a weighted-random role from role set {}, returning unweighted selection {}. TotalProb: {:g}, selected: {:g}, prob at end: {:f}", oo::DescriptionOf(self), role.value_or("(null)"), _totalProb, selected, prob);
+        OO_LOG("roleSet.anyRole.failed", "Could not get a weighted-random role from role set {}, returning unweighted selection {}. TotalProb: {:g}, selected: {:g}, prob at end: {:f}", oo::DescriptionOf(oo::ToObjC(this)), role.value_or("(null)"), _totalProb, selected, prob);
     }
     return role;
 }
 
-- (id)roleSetWithAddedRoleIfNotSet:(const std::string&)role probability:(float)probability
+oo::Ref<OORoleSet> OORoleSet::roleSetWithAddedRoleIfNotSet(const std::string& role, float probability)
 {
-    if (role.empty() || probability < 0 || (_rolesAndProbabilities.contains(role) && [self probabilityForRole:role] == probability)) {
-        return [[self copy] autorelease];
+    if (role.empty() || probability < 0 || (_rolesAndProbabilities.contains(role) && probabilityForRole(role) == probability)) {
+        return oo::Ref<OORoleSet>(this); // copy is retain: a role set is immutable
     }
 
     std::map<std::string, float> dict = _rolesAndProbabilities;
     dict[role] = probability;
-    return [[[[self class] alloc] initWithRolesAndProbabilities:&dict] autorelease];
+    return roleSetWithRolesAndProbabilities(&dict);
 }
 
-- (id)roleSetWithAddedRole:(const std::string&)role probability:(float)probability
+oo::Ref<OORoleSet> OORoleSet::roleSetWithAddedRole(const std::string& role, float probability)
 {
     if (role.empty() || probability < 0 || _rolesAndProbabilities.contains(role)) {
-        return [[self copy] autorelease];
+        return oo::Ref<OORoleSet>(this); // copy is retain: a role set is immutable
     }
 
     std::map<std::string, float> dict = _rolesAndProbabilities;
     dict[role] = probability;
-    return [[[[self class] alloc] initWithRolesAndProbabilities:&dict] autorelease];
+    return roleSetWithRolesAndProbabilities(&dict);
 }
 
-- (id)roleSetWithRemovedRole:(const std::string&)role
+oo::Ref<OORoleSet> OORoleSet::roleSetWithRemovedRole(const std::string& role)
 {
     if (!_rolesAndProbabilities.contains(role))
-        return [[self copy] autorelease];
+        return oo::Ref<OORoleSet>(this); // copy is retain
 
     std::map<std::string, float> dict = _rolesAndProbabilities;
     dict.erase(role);
-    return [[[[self class] alloc] initWithRolesAndProbabilities:&dict] autorelease];
+    return roleSetWithRolesAndProbabilities(&dict);
 }
 
-@end
-
-@implementation OORoleSet (OOPrivate)
-
-- (id)initWithRolesAndProbabilities:(const std::map<std::string, float>*)dict
+bool OORoleSet::initWithRolesAndProbabilities(const std::map<std::string, float>* dict)
 {
     if (dict == nullptr) {
-        [self release];
-        return nil;
+        return false;
     }
-
-    self = [super init];
-    if (self == nil)
-        return nil;
 
     // Note: _roleString is derived on the fly as needed.
     // MKW 20090815 - if we are re-initialising this OORoleSet object, we need
@@ -263,17 +243,16 @@ SOFTWARE.
     for (const auto& [role, prob] : *dict) {
         if (prob < 0) {
             OO_LOG("roleSet.badValue", "Attempt to create a role set with negative or non-numerical probability for role {}.", role);
-            [self release];
-            return nil;
+            return false;
         }
 
         _totalProb += prob;
     }
 
-    return self;
+    return true;
 }
 
-@end
+} // namespace cxx
 
 std::map<std::string, float> OOParseRolesFromString(std::string_view string)
 {

@@ -102,7 +102,7 @@ inline constexpr std::string_view CONTRACT_KEY_RISK = "risk";
 - (std::vector<std::string>)cxx_parcelList;
 - (std::vector<std::string>)cxx_contractList;
 - (void)setGuiToManifestScreen;
-- (void)setManifestScreenRow:(id)object inColor:(OOColor*)color forRow:(OOGUIRow)row ofRows:(OOGUIRow)max_rows andOffset:(OOGUIRow)offset inMultipage:(BOOL)multi;
+- (void)setManifestScreenRow:(const oo::PList&)object inColor:(OOColor*)color forRow:(OOGUIRow)row ofRows:(OOGUIRow)max_rows andOffset:(OOGUIRow)offset inMultipage:(BOOL)multi;
 
 - (void)setGuiToDockingReportScreen;
 

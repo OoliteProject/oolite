@@ -98,7 +98,7 @@ MA 02110-1301, USA.
     OOJSRelinquishContext(context);
 }
 
-- (void)runCallback:(HPVector)location
+- (void)runPopulatorCallback:(HPVector)location
 {
     OOJavaScriptEngine* engine = [OOJavaScriptEngine sharedEngine];
     JSContext* context = OOJSAcquireContext();

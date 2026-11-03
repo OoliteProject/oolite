@@ -38,9 +38,13 @@ SOFTWARE.
 
 */
 
+#ifndef OOPRIORITYQUEUE_H
+#define OOPRIORITYQUEUE_H
+
 #import "OOFoundation.h"
 #import "oofnd/objc/OOObject.h"
 
+#include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
 #include "oofnd/objc/OOObjCRef.h"
 
@@ -52,32 +56,70 @@ SOFTWARE.
 #endif
 #endif
 
-@interface OOPriorityQueue : OOObject <OOCopying> {
-@private
-    SEL _comparator;
-    OO_PQ_STRONG id* _heap;
-    NSUInteger _count,
-        _capacity;
-}
+/*	C++20 since bead oo-3lj8 (proposed ADR-0056, the OOColor house style). Its one caller,
+        OOScriptTimer, was adapted in the same bead, so there is no Objective-C facade and the class is
+        global. The elements are still Objective-C objects, ordered by a comparator selector that
+        each of them implements (OOScriptTimer's -compareByNextFireTime:).
+*/
+class OOPriorityQueue : public oo::RefCounted {
+public:
+    // The Objective-C initialiser's factory: null where -initWithComparator: returned nil (a NULL
+    // comparator). (-init, which gave the comparator compare:, had no sender.)
+    static oo::Ref<OOPriorityQueue> queueWithComparator(SEL comparator);
 
-// Note: -init is equivalent to -initWithComparator:@selector(compare:)
-+ (instancetype)queueWithComparator:(SEL)comparator;
-- (id)initWithComparator:(SEL)comparator;
+    ~OOPriorityQueue() override;
 
-- (void)addObject:(id)object; // May throw OOInvalidArgumentException or OOMallocException.
-- (void)removeObject:(id)object; // Uses comparator (looking for NSOrderedEqual) to find object. Note: relatively expensive.
-- (void)removeExactObject:(id)object; // Uses pointer comparison to find object. Note: still relatively expensive.
+    void addObject(id object); // May throw OOInvalidArgumentException or OOMallocException.
+    void removeObject(id object); // Uses comparator (looking for NSOrderedEqual) to find object. Note: relatively expensive.
+    void removeExactObject(id object); // Uses pointer comparison to find object. Note: still relatively expensive.
 
-- (NSUInteger)count;
+    NSUInteger count();
 
-- (id)nextObject;
-- (id)peekAtNextObject; // Returns next object without removing it.
-- (void)removeNextObject;
+    id nextObject();
+    id peekAtNextObject(); // Returns next object without removing it.
+    void removeNextObject();
 
-- (void)addObjects:(id)collection; // collection must respond to -nextObject, or implement -objectEnumerator to return something that implements -nextObject -- such as an Objective-C enumerator.
+    std::vector<oo::ObjCRef<id>> sortedObjects(); // Returns the objects in -nextObject order and empties the heap. To get the objects without emptying the heap, copy the priority queue first.
+    std::vector<oo::ObjCRef<id>> objectEnumerator(); // sortedObjects(): C++ iteration in nextObject() order (empties the heap)
 
-- (std::vector<oo::ObjCRef<id>>)sortedObjects; // Returns the objects in -nextObject order and empties the heap. To get the objects without emptying the heap, copy the priority queue first.
-- (std::vector<oo::ObjCRef<id>>)cxx_objectEnumerator; // -sortedObjects: C++ iteration in -nextObject order (empties the heap)
-- (id)objectEnumerator; // shared selector: an enumerator over the objects in -nextObject order. Like -sortedObjects it empties the heap, now all at once rather than as it is enumerated. Note howeverthat the queue itself behaves like an enumerator, as -nextObject has similar semantics (except that the enumerator's -nextObject can never start returning objects after it returns nil).
+    // -isEqual:, -hash and -copyWithZone: (a copy's capacity is its count).
+    bool isEqual(OOPriorityQueue* object);
+    NSUInteger hash();
+    oo::Ref<OOPriorityQueue> copy();
 
-@end
+    // The whole of what "%@" printed: <OOPriorityQueue 0x...>{count=n, capacity=n}.
+    std::optional<std::string> description();
+
+#if OO_DEBUG
+    std::string debugDescription(); // (was -debugDescription, an Objective-C string)
+#endif
+
+#if DEBUG_GRAPHVIZ
+    std::string generateGraphViz();
+    void writeGraphVizToPath(const std::string& path);
+#endif
+
+private:
+    bool initWithComparator(SEL comparator);
+
+    void makeObjectsPerformSelector(SEL selector);
+
+    void bubbleUpFrom(NSUInteger i);
+    void bubbleDownFrom(NSUInteger i);
+
+    void growBuffer();
+    void shrinkBuffer();
+
+    void removeObjectAtIndex(NSUInteger i);
+
+#if OO_DEBUG
+    void appendDebugDataToString(std::string& string, NSUInteger i, NSUInteger depth);
+#endif
+
+    SEL _comparator = { };
+    OO_PQ_STRONG id* _heap = { };
+    NSUInteger _count = { },
+               _capacity = { };
+};
+
+#endif // OOPRIORITYQUEUE_H

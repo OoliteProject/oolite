@@ -30,8 +30,7 @@ MA 02110-1301, USA.
 #import "OOJSVector.h"
 #import "OOJavaScriptEngine.h"
 #import "OOPlanetEntity.h"
-
-#import "OOFoundationBridge.h"
+#include "oofnd/objc/OOAssert.h"
 
 static JSClassID sPlanetClassID;
 
@@ -97,7 +96,7 @@ void InitOOJSPlanet(JSContext* context, JSValueConst global)
     OOJSRegisterClass(&sPlanetClassID, &sPlanetClass);
 
     JSValue parentPrototype = JS_GetClassProto(context, JSEntityClassID());
-    NSCAssert(JS_IsObject(parentPrototype), @"Entity must be initialized before Planet.");
+    OOCAssert(JS_IsObject(parentPrototype), "Entity must be initialized before Planet.");
     OOJSInitClass(context, global, sPlanetClassID, parentPrototype, OOJSUnconstructableConstruct, 0,
         sPlanetProperties, OOJS_COUNT(sPlanetProperties), NULL, 0, NULL, 0);
     JS_FreeValue(context, parentPrototype);
@@ -173,8 +172,10 @@ static JSValue PlanetGetProperty(OOJS_GETTER_ARGS)
         return OOJSValueFromPList(context, textureName.has_value() ? oo::PList(*textureName) : oo::PList());
     }
 
-    case kPlanet_name:
-        return OOJSValueFromNativeObject(context, oo::NSStringOrNil([planet cxx_name]));
+    case kPlanet_name: {
+        const std::optional<std::string> name = [planet cxx_name];
+        return OOJSValueFromPList(context, name.has_value() ? oo::PList(*name) : oo::PList());
+    }
 
     case kPlanet_orientation:
         OOJS_RETURN_QUATERNION([planet normalOrientation]);
@@ -209,7 +210,7 @@ static JSValue PlanetSetProperty(OOJS_SETTER_ARGS)
 
     switch (magic) {
     case kPlanet_airColor:
-        colorForScript = [OOColor colorWithDescription:oo::ObjectFromPList(cxx_OOJSPListFromJSValue(context, value))];
+        colorForScript = [OOColor cxx_colorWithDescription:cxx_OOJSPListFromJSValue(context, value)];
         if (colorForScript != nil || JS_IsNull(value)) {
             [planet setAirColor:colorForScript];
             return JS_UNDEFINED;
@@ -231,7 +232,7 @@ static JSValue PlanetSetProperty(OOJS_SETTER_ARGS)
         break;
 
     case kPlanet_illuminationColor:
-        colorForScript = [OOColor colorWithDescription:oo::ObjectFromPList(cxx_OOJSPListFromJSValue(context, value))];
+        colorForScript = [OOColor cxx_colorWithDescription:cxx_OOJSPListFromJSValue(context, value)];
         if (colorForScript != nil || JS_IsNull(value)) {
             [planet setIlluminationColor:colorForScript];
             return JS_UNDEFINED;

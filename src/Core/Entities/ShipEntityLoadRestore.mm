@@ -29,7 +29,6 @@ MA 02110-1301, USA.
 #import "AI.h"
 #import "OOConstToString.h"
 #import "OOEquipmentType.h"
-#import "OOFoundationBridge.h"
 #import "OOPListGameTypes.h"
 #import "OORoleSet.h"
 #import "OOShipGroup.h"
@@ -213,9 +212,13 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::stri
         ship = [[[shipClass alloc] cxx_initWithKey:shipKey definition:mergedPlist] autorelease];
 
         // FIXME: restore AI.
-        [ship setAITo:oo::NSStringFrom(dict.get<std::string>(KEY_AI, "nullAI.plist"))];
+        [ship setAITo:dict.get<std::string>(KEY_AI, "nullAI.plist")];
 
-        [ship setPrimaryRole:oo::NSStringOrNil(OptionalStringForKey(dict, KEY_PRIMARY_ROLE))];
+        const std::optional<std::string> primaryRole = OptionalStringForKey(dict, KEY_PRIMARY_ROLE);
+        if (primaryRole.has_value())
+            [ship setPrimaryRole:*primaryRole];
+        else
+            ship->primaryRole = std::nullopt; // as -setPrimaryRole: stored nil
 
     } else {
         // Unknown ship; fall back on role if desired and possible.
@@ -238,14 +241,16 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::stri
     [ship removeAllEquipment];
     if (const oo::PList* equipment = dict.get<oo::PList::Array>(KEY_EQUIPMENT)) {
         for (const oo::PList& eqKey : *equipment->getIf<oo::PList::Array>()) {
-            [ship addEquipmentItem:oo::StdString(oo::ObjectFromPList(eqKey)) withValidation:NO inContext:"loading"];
+            if (const std::string* key = eqKey.getIf<std::string>())
+                [ship addEquipmentItem:*key withValidation:NO inContext:"loading"]; // the saved keys are strings
         }
     }
 
     [ship removeMissiles];
     if (const oo::PList* missileList = dict.get<oo::PList::Array>(KEY_MISSILES)) {
         for (const oo::PList& eqKey : *missileList->getIf<oo::PList::Array>()) {
-            [ship addEquipmentItem:oo::StdString(oo::ObjectFromPList(eqKey)) withValidation:NO inContext:"loading"];
+            if (const std::string* key = eqKey.getIf<std::string>())
+                [ship addEquipmentItem:*key withValidation:NO inContext:"loading"]; // the saved keys are strings
         }
     }
 

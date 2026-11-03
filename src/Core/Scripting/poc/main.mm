@@ -1,6 +1,6 @@
 /*
 
-main.m
+main.mm
 
 Test driver for the QuickJS-ng proof of concept (issue #580). Loads scripts
 from the tests directory given on the command line, checks their behaviour
@@ -13,32 +13,37 @@ Usage: oojs-quickjs-poc <tests directory>
 
 #import "OOJSScript.h"
 #import "OOJavaScriptEngine.h"
+#import "OOLogStub.h"
 #import "legacy_random.h"
 
-#include <time.h>
+#include "oofnd/String.hpp"
+#include "oofnd/objc/OOObject.h"
 
-NSArray* OOPocRecordedLogMessages(void);
-void OOPocClearRecordedLogMessages(void);
+#include <chrono>
+#include <cstdio>
+#include <ctime>
+#include <optional>
+#include <string>
 
 static unsigned sFailures = 0;
 static unsigned sChecks = 0;
 
-static void Check(BOOL condition, NSString* description)
+static void Check(BOOL condition, const std::string& description)
 {
     sChecks++;
     if (!condition) {
         sFailures++;
-        fprintf(stdout, "FAIL: %s\n", [description UTF8String]);
+        fprintf(stdout, "FAIL: %s\n", description.c_str());
     } else {
-        fprintf(stdout, "ok:   %s\n", [description UTF8String]);
+        fprintf(stdout, "ok:   %s\n", description.c_str());
     }
     fflush(stdout);
 }
 
-static BOOL LogContains(NSString* text)
+static BOOL LogContains(const std::string& text)
 {
-    for (NSString* line in OOPocRecordedLogMessages()) {
-        if ([line rangeOfString:text].location != NSNotFound)
+    for (const std::string& line : OOPocRecordedLogMessages()) {
+        if (line.find(text) != std::string::npos)
             return YES;
     }
     return NO;
@@ -46,78 +51,85 @@ static BOOL LogContains(NSString* text)
 
 static double Now(void)
 {
-    struct timespec now;
-    clock_gettime(CLOCK_MONOTONIC, &now);
-    return now.tv_sec + now.tv_nsec * 1e-9;
+    return std::chrono::duration<double>(std::chrono::steady_clock::now().time_since_epoch()).count();
 }
 
-// Call a script method and convert its result to a string; nil if the call failed.
-static NSString* CallForString(OOJSScript* script, NSString* method)
+// %@ of a string that may be nil.
+static std::string Describe(const std::optional<std::string>& string)
 {
+    return string.value_or("(null)");
+}
+
+// Call a script method and convert its result to a string; nullopt if the call failed.
+static std::optional<std::string> CallForString(OOJSScript* script, const std::string& method)
+{
+    if (script == nil)
+        return std::nullopt;
+
     JSContext* context = OOJSAcquireContext();
     JSValue result;
-    NSString* string = nil;
+    std::optional<std::string> string;
 
     if ([script callMethodNamed:method withArguments:NULL count:0 result:&result]) {
-        string = OOStringFromJSValueEvenIfNull(context, result);
+        string = cxx_OOStringFromJSValueEvenIfNull(context, result);
         JS_FreeValue(context, result);
     }
     return string;
 }
 
-static void RunBehaviourTests(NSString* testDir, NSString* fileName)
+static void RunBehaviourTests(const std::string& testDir, const std::string& fileName)
 {
-    OOJSScript* script = [OOJSScript scriptWithPath:[testDir stringByAppendingPathComponent:fileName]];
-    Check(script != nil, [NSString stringWithFormat:@"%@ loads", fileName]);
+    OOJSScript* script = [OOJSScript scriptWithPath:oo::str::appendingPathComponent(testDir, fileName)];
+    Check(script != nil, fileName + " loads");
 
-    NSString* failures = CallForString(script, @"runTests");
-    Check([failures isEqualToString:@"0"], [NSString stringWithFormat:@"%@ behaviour tests pass (failures: %@)", fileName, failures]);
+    std::optional<std::string> failures = CallForString(script, "runTests");
+    Check(failures == "0", fileName + " behaviour tests pass (failures: " + Describe(failures) + ")");
 }
 
-static void RunScopeTests(NSString* testDir)
+static void RunScopeTests(const std::string& testDir)
 {
-    OOJSScript* scriptA = [OOJSScript scriptWithPath:[testDir stringByAppendingPathComponent:@"scope_a.js"]];
-    OOJSScript* scriptB = [OOJSScript scriptWithPath:[testDir stringByAppendingPathComponent:@"scope_b.js"]];
-    Check(scriptA != nil && scriptB != nil, @"scripts with the same top-level const and var names both load");
-    Check([[scriptA displayName] isEqualToString:@"poc_scope_a 1.2"], @"script name and version read after initial run");
+    OOJSScript* scriptA = [OOJSScript scriptWithPath:oo::str::appendingPathComponent(testDir, "scope_a.js")];
+    OOJSScript* scriptB = [OOJSScript scriptWithPath:oo::str::appendingPathComponent(testDir, "scope_b.js")];
+    Check(scriptA != nil && scriptB != nil, "scripts with the same top-level const and var names both load");
+    Check(scriptA != nil && [scriptA displayName] == "poc_scope_a 1.2", "script name and version read after initial run");
 
-    NSString* result = CallForString(scriptA, @"startUp");
-    NSString* expected = @"1|ab..|poc_scope_a|1.2|a|a|undefined|late|strict|poc_scope_a";
-    Check([result isEqualToString:expected], [NSString stringWithFormat:@"bare names resolve through the script object, strict mode kept (got %@)", result]);
+    std::optional<std::string> result = CallForString(scriptA, "startUp");
+    const std::string expected = "1|ab..|poc_scope_a|1.2|a|a|undefined|late|strict|poc_scope_a";
+    Check(result == expected, "bare names resolve through the script object, strict mode kept (got " + Describe(result) + ")");
 
-    result = CallForString(scriptB, @"check");
-    Check([result isEqualToString:@"bbpoc_scope_b"], [NSString stringWithFormat:@"second script sees its own top-level declarations (got %@)", result]);
+    result = CallForString(scriptB, "check");
+    Check(result == "bbpoc_scope_b", "second script sees its own top-level declarations (got " + Describe(result) + ")");
 }
 
-static void RunErrorTests(NSString* testDir)
+static void RunErrorTests(const std::string& testDir)
 {
     OOPocClearRecordedLogMessages();
-    OOJSScript* script = [OOJSScript scriptWithPath:[testDir stringByAppendingPathComponent:@"runtime_error.js"]];
-    Check(CallForString(script, @"startUp") == nil, @"handler that throws reports failure");
-    Check(LogContains(@"[script.javaScript.exception.ReferenceError]: ***** JavaScript exception (poc_runtime_error): ReferenceError: undefinedFunction is not defined"), @"runtime exception logged with class, script name and message");
-    Check(LogContains(@"runtime_error.js, line 9."), @"runtime exception logged with correct file and line");
+    OOJSScript* script = [OOJSScript scriptWithPath:oo::str::appendingPathComponent(testDir, "runtime_error.js")];
+    Check(CallForString(script, "startUp") == std::nullopt, "handler that throws reports failure");
+    Check(LogContains("[script.javaScript.exception.ReferenceError]: ***** JavaScript exception (poc_runtime_error): ReferenceError: undefinedFunction is not defined"), "runtime exception logged with class, script name and message");
+    Check(LogContains("runtime_error.js, line 9."), "runtime exception logged with correct file and line");
 
     OOPocClearRecordedLogMessages();
-    script = [OOJSScript scriptWithPath:[testDir stringByAppendingPathComponent:@"syntax_error.js"]];
-    Check(script == nil, @"script with syntax error fails to load");
-    Check(LogContains(@"[script.javaScript.exception.SyntaxError]"), @"syntax error logged");
-    Check(LogContains(@"syntax_error.js, line "), @"syntax error logged with file and line");
+    script = [OOJSScript scriptWithPath:oo::str::appendingPathComponent(testDir, "syntax_error.js")];
+    Check(script == nil, "script with syntax error fails to load");
+    Check(LogContains("[script.javaScript.exception.SyntaxError]"), "syntax error logged");
+    Check(LogContains("syntax_error.js, line "), "syntax error logged with file and line");
 }
 
-static void RunTimeLimiterTests(NSString* testDir)
+static void RunTimeLimiterTests(const std::string& testDir)
 {
     OOPocClearRecordedLogMessages();
-    OOJSScript* script = [OOJSScript scriptWithPath:[testDir stringByAppendingPathComponent:@"runaway.js"]];
+    OOJSScript* script = [OOJSScript scriptWithPath:oo::str::appendingPathComponent(testDir, "runaway.js")];
 
     double start = Now();
-    NSString* result = CallForString(script, @"startUp");
+    std::optional<std::string> result = CallForString(script, "startUp");
     double elapsed = Now() - start;
 
-    Check(result == nil, @"infinite loop is terminated");
-    Check(elapsed >= 1.0 && elapsed < 3.0, [NSString stringWithFormat:@"termination after the 1 second limit (took %.2f s)", elapsed]);
-    Check(LogContains(@"Script \"poc_runaway\" ran for"), @"termination logged");
-    Check(!LogContains(@"JavaScript exception"), @"termination not also reported as an exception");
-    Check([CallForString(script, @"ping") isEqualToString:@"pong"], @"engine still usable after termination");
+    Check(result == std::nullopt, "infinite loop is terminated");
+    Check(elapsed >= 1.0 && elapsed < 3.0, oo::str::format("termination after the 1 second limit (took %.2f s)", elapsed));
+    Check(LogContains("Script \"poc_runaway\" ran for"), "termination logged");
+    Check(!LogContains("JavaScript exception"), "termination not also reported as an exception");
+    Check(CallForString(script, "ping") == "pong", "engine still usable after termination");
 }
 
 int main(int argc, const char* argv[])
@@ -127,26 +139,32 @@ int main(int argc, const char* argv[])
         return 2;
     }
 
-    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-    NSString* testDir = [NSString stringWithUTF8String:argv[1]];
+    // The Objective-C floor, as the game's main() installs it, before the first message to a literal.
+    OOObjCInstallFloor();
+    OOPocInstallLogging();
 
-    // As the game does at startup; an unseeded RANROT returns 0 forever.
-    ranrot_srand((uint32_t)time(NULL));
-    OOJavaScriptEngine* engine = [OOJavaScriptEngine sharedEngine];
+    int status;
+    @autoreleasepool {
+        const std::string testDir = argv[1];
 
-    // Each group gets its own pool so all scripts are released before shutdown.
-    NSAutoreleasePool* testPool = [[NSAutoreleasePool alloc] init];
-    RunBehaviourTests(testDir, @"vector.js");
-    RunBehaviourTests(testDir, @"quaternion.js");
-    RunScopeTests(testDir);
-    RunErrorTests(testDir);
-    RunTimeLimiterTests(testDir);
-    [testPool release];
+        // As the game does at startup; an unseeded RANROT returns 0 forever.
+        ranrot_srand(static_cast<uint32_t>(time(NULL)));
+        OOJavaScriptEngine* engine = [OOJavaScriptEngine sharedEngine];
 
-    NSUInteger leaked = [engine shutDown];
-    Check(leaked == 0, [NSString stringWithFormat:@"runtime destroyed with no leaked objects (%lu alive)", (unsigned long)leaked]);
+        // Each group gets its own pool so all scripts are released before shutdown.
+        @autoreleasepool {
+            RunBehaviourTests(testDir, "vector.js");
+            RunBehaviourTests(testDir, "quaternion.js");
+            RunScopeTests(testDir);
+            RunErrorTests(testDir);
+            RunTimeLimiterTests(testDir);
+        }
 
-    fprintf(stdout, "\n%u checks, %u failures\n", sChecks, sFailures);
-    [pool release];
-    return sFailures == 0 ? 0 : 1;
+        NSUInteger leaked = [engine shutDown];
+        Check(leaked == 0, oo::str::format("runtime destroyed with no leaked objects (%lu alive)", static_cast<unsigned long>(leaked)));
+
+        fprintf(stdout, "\n%u checks, %u failures\n", sChecks, sFailures);
+        status = sFailures == 0 ? 0 : 1;
+    }
+    return status;
 }

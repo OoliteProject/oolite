@@ -43,14 +43,12 @@
 #import "OOConstToJSString.h"
 #import "OOConstToString.h"
 #import "OOEntityFilterPredicate.h"
-#import "OOPListView.h"
 #import "OOStringExpander.h"
 #import "OOStringParsing.h"
 #import "ResourceManager.h"
 
-#import "OOFoundationBridge.h"
+#import "OOObjCPList.h"
 #import "OOPListGameTypes.h"
-#import "OOStringBridge.h"
 #include "oofnd/Log.hpp"
 #include "oofnd/String.hpp"
 
@@ -108,29 +106,29 @@ int RandArgument(const std::string& token)
 
 // Methods used only by AI.
 
-- (void)setStateTo:(id)state; // called by name (ADR-0043 item 21)
+- (void)setStateTo:(const std::string&)state; // called by name (ADR-0055 item 5)
 
-- (void)pauseAI:(id)intervalString; // called by name (ADR-0043 item 21)
+- (void)pauseAI:(const std::string&)intervalString; // called by name (ADR-0055 item 5)
 
-- (void)randomPauseAI:(id)intervalString; // called by name (ADR-0043 item 21)
+- (void)randomPauseAI:(const std::string&)intervalString; // called by name (ADR-0055 item 5)
 
-- (void)dropMessages:(id)messageString; // called by name (ADR-0043 item 21)
+- (void)dropMessages:(const std::string&)messageString; // called by name (ADR-0055 item 5)
 
 - (void)debugDumpPendingMessages;
 
 - (void)setDestinationToCurrentLocation;
 
-- (void)setDesiredRangeTo:(id)rangeString; // called by name (ADR-0043 item 21)
+- (void)setDesiredRangeTo:(const std::string&)rangeString; // called by name (ADR-0055 item 5)
 
 - (void)setDesiredRangeForWaypoint;
 
-- (void)setSpeedTo:(id)speedString; // called by name (ADR-0043 item 21)
+- (void)setSpeedTo:(const std::string&)speedString; // called by name (ADR-0055 item 5)
 
-- (void)setSpeedFactorTo:(id)speedString; // called by name (ADR-0043 item 21)
+- (void)setSpeedFactorTo:(const std::string&)speedString; // called by name (ADR-0055 item 5)
 
 - (void)setSpeedToCruiseSpeed;
 
-- (void)setThrustFactorTo:(id)thrustFactorString; // called by name (ADR-0043 item 21)
+- (void)setThrustFactorTo:(const std::string&)thrustFactorString; // called by name (ADR-0055 item 5)
 
 - (void)setTargetToPrimaryAggressor;
 
@@ -159,7 +157,7 @@ int RandArgument(const std::string& token)
 - (void)checkTargetLegalStatus;
 - (void)checkOwnLegalStatus;
 
-- (void)exitAIWithMessage:(id)message; // called by name (ADR-0043 item 21)
+- (void)exitAIWithMessage:(const std::string&)message; // called by name (ADR-0055 item 5)
 
 - (void)setDestinationToTarget;
 - (void)setDestinationWithinTarget;
@@ -182,8 +180,8 @@ int RandArgument(const std::string& token)
 - (void)performHyperSpaceExitWithoutReplacing;
 - (void)wormholeGroup;
 
-- (void)commsMessage:(id)valueString; // called by name (ADR-0043 item 21)
-- (void)commsMessageByUnpiloted:(id)valueString; // called by name (ADR-0043 item 21)
+- (void)commsMessage:(const std::string&)valueString; // called by name (ADR-0055 item 5)
+- (void)commsMessageByUnpiloted:(const std::string&)valueString; // called by name (ADR-0055 item 5)
 
 - (void)ejectCargo;
 
@@ -204,7 +202,7 @@ int RandArgument(const std::string& token)
 
 - (void)scanForFormationLeader;
 
-- (void)messageMother:(id)msgString; // called by name (ADR-0043 item 21)
+- (void)messageMother:(const std::string&)msgString; // called by name (ADR-0055 item 5)
 
 - (void)setPlanetPatrolCoordinates;
 
@@ -218,11 +216,11 @@ int RandArgument(const std::string& token)
 
 - (void)checkForMotherStation;
 
-- (void)sendTargetCommsMessage:(id)message; // called by name (ADR-0043 item 21)
+- (void)sendTargetCommsMessage:(const std::string&)message; // called by name (ADR-0055 item 5)
 
 - (void)markTargetForFines;
 
-- (void)markTargetForOffence:(id)valueString; // called by name (ADR-0043 item 21)
+- (void)markTargetForOffence:(const std::string&)valueString; // called by name (ADR-0055 item 5)
 
 - (void)storeTarget;
 - (void)recallStoredTarget;
@@ -233,42 +231,42 @@ int RandArgument(const std::string& token)
 
 - (void)requestNewTarget;
 
-- (void)rollD:(id)die_number; // called by name (ADR-0043 item 21)
+- (void)rollD:(const std::string&)die_number; // called by name (ADR-0055 item 5)
 
-- (void)scanForNearestShipWithPrimaryRole:(id)scanRole; // called by name (ADR-0043 item 21)
-- (void)scanForNearestShipHavingRole:(id)scanRole; // called by name (ADR-0043 item 21)
-- (void)scanForNearestShipWithAnyPrimaryRole:(id)scanRoles; // called by name (ADR-0043 item 21)
-- (void)scanForNearestShipHavingAnyRole:(id)scanRoles; // called by name (ADR-0043 item 21)
-- (void)scanForNearestShipWithScanClass:(id)scanScanClass; // called by name (ADR-0043 item 21)
+- (void)scanForNearestShipWithPrimaryRole:(const std::string&)scanRole; // called by name (ADR-0055 item 5)
+- (void)scanForNearestShipHavingRole:(const std::string&)scanRole; // called by name (ADR-0055 item 5)
+- (void)scanForNearestShipWithAnyPrimaryRole:(const std::string&)scanRoles; // called by name (ADR-0055 item 5)
+- (void)scanForNearestShipHavingAnyRole:(const std::string&)scanRoles; // called by name (ADR-0055 item 5)
+- (void)scanForNearestShipWithScanClass:(const std::string&)scanScanClass; // called by name (ADR-0055 item 5)
 
-- (void)scanForNearestShipWithoutPrimaryRole:(id)scanRole; // called by name (ADR-0043 item 21)
-- (void)scanForNearestShipNotHavingRole:(id)scanRole; // called by name (ADR-0043 item 21)
-- (void)scanForNearestShipWithoutAnyPrimaryRole:(id)scanRoles; // called by name (ADR-0043 item 21)
-- (void)scanForNearestShipNotHavingAnyRole:(id)scanRoles; // called by name (ADR-0043 item 21)
-- (void)scanForNearestShipWithoutScanClass:(id)scanScanClass; // called by name (ADR-0043 item 21)
+- (void)scanForNearestShipWithoutPrimaryRole:(const std::string&)scanRole; // called by name (ADR-0055 item 5)
+- (void)scanForNearestShipNotHavingRole:(const std::string&)scanRole; // called by name (ADR-0055 item 5)
+- (void)scanForNearestShipWithoutAnyPrimaryRole:(const std::string&)scanRoles; // called by name (ADR-0055 item 5)
+- (void)scanForNearestShipNotHavingAnyRole:(const std::string&)scanRoles; // called by name (ADR-0055 item 5)
+- (void)scanForNearestShipWithoutScanClass:(const std::string&)scanScanClass; // called by name (ADR-0055 item 5)
 
-- (void)setCoordinates:(id)system_x_y_z; // called by name (ADR-0043 item 21)
+- (void)setCoordinates:(const std::string&)system_x_y_z; // called by name (ADR-0055 item 5)
 
 - (void)checkForNormalSpace;
 
 - (void)setTargetToRandomStation;
 - (void)setTargetToLastStation;
 
-- (void)addFuel:(id)fuel_number; // called by name (ADR-0043 item 21)
+- (void)addFuel:(const std::string&)fuel_number; // called by name (ADR-0055 item 5)
 
-- (void)scriptActionOnTarget:(id)action; // called by name (ADR-0043 item 21)
+- (void)scriptActionOnTarget:(const std::string&)action; // called by name (ADR-0055 item 5)
 
-- (void)sendScriptMessage:(id)message; // called by name (ADR-0043 item 21)
+- (void)sendScriptMessage:(const std::string&)message; // called by name (ADR-0055 item 5)
 
 - (void)ai_throwSparks;
 
 - (void)explodeSelf;
 
-- (void)ai_debugMessage:(id)message; // called by name (ADR-0043 item 21)
+- (void)ai_debugMessage:(const std::string&)message; // called by name (ADR-0055 item 5)
 
 // racing code.
-- (void)targetFirstBeaconWithCode:(id)code; // called by name (ADR-0043 item 21)
-- (void)targetNextBeaconWithCode:(id)code; // called by name (ADR-0043 item 21)
+- (void)targetFirstBeaconWithCode:(const std::string&)code; // called by name (ADR-0055 item 5)
+- (void)targetNextBeaconWithCode:(const std::string&)code; // called by name (ADR-0055 item 5)
 - (void)setRacepointsFromTarget;
 - (void)performFlyRacepoints;
 
@@ -281,9 +279,9 @@ int RandArgument(const std::string& token)
 
 @implementation ShipEntity (AI)
 
-- (void)setAITo:(id)aiString // called by name (ADR-0043 item 21)
+- (void)setAITo:(const std::string&)aiString // called by name (ADR-0055 item 5)
 {
-    std::string ai = oo::StdString(aiString);
+    std::string ai = aiString;
     // don't try to load real AIs if the game hasn't started yet
     if (![PLAYER scriptsLoaded]) {
         ai = "oolite-nullAI.js";
@@ -298,9 +296,9 @@ int RandArgument(const std::string& token)
         const std::optional<std::string> path = [ResourceManager cxx_pathForFileNamed:ai + ".js" inFolder:std::string("AIs")];
         if (!path) // no js, use plist
         {
-            [self setAITo:oo::NSStringFrom(ai + ".plist")];
+            [self setAITo:ai + ".plist"];
         } else {
-            [self setAITo:oo::NSStringFrom(ai + ".js")];
+            [self setAITo:ai + ".js"];
         }
     }
 }
@@ -321,7 +319,7 @@ int RandArgument(const std::string& token)
     [aiScript retain];
 }
 
-- (void)switchAITo:(id)aiString // called by name (ADR-0043 item 21)
+- (void)switchAITo:(const std::string&)aiString // called by name (ADR-0055 item 5)
 {
     [self setAITo:aiString];
     [[self getAI] clearStack];
@@ -552,13 +550,13 @@ int RandArgument(const std::string& token)
         if (!dockingInstructions.isNull()) {
             [self recallDockingInstructions];
 
-            // the objects the instructions hold, sent as before (absent: nothing)
+            // the strings the instructions hold (StationEntity -dockingInstructionsForShip:), sent as before (absent: nothing)
             const oo::PList* aiMessage = dockingInstructions.find("ai_message");
-            if (aiMessage != nullptr)
-                [shipAI message:oo::StdString(oo::ObjectFromPList(*aiMessage))];
+            if (aiMessage != nullptr && aiMessage->isString())
+                [shipAI message:*aiMessage->getIf<std::string>()];
             const oo::PList* commsMessage = dockingInstructions.find("comms_message");
-            if (commsMessage != nullptr)
-                [station cxx_sendExpandedMessage:oo::StdString(oo::ObjectFromPList(*commsMessage)) toShip:self];
+            if (commsMessage != nullptr && commsMessage->isString())
+                [station cxx_sendExpandedMessage:*commsMessage->getIf<std::string>() toShip:self];
         }
     } else {
         dockingInstructions = oo::PList();
@@ -591,8 +589,9 @@ int RandArgument(const std::string& token)
 
 - (void)scanForNearestIncomingMissile
 {
+    OOScanClass missileClass = CLASS_MISSILE;
     BinaryOperationPredicateParameter param = {
-        HasScanClassPredicate, oo::ObjectFromPList(oo::PList::signedInteger(CLASS_MISSILE)), // an Objective-C number; the predicate reads its -intValue
+        HasScanClassPredicate, &missileClass, // the predicate reads an OOScanClass
         IsHostileAgainstTargetPredicate, self
     };
     [self scanForNearestShipWithPredicate:ANDPredicate parameter:&param];
@@ -780,23 +779,23 @@ int RandArgument(const std::string& token)
 
 @implementation ShipEntity (PureAI)
 
-- (void)setStateTo:(id)state // called by name (ADR-0043 item 21)
+- (void)setStateTo:(const std::string&)state // called by name (ADR-0055 item 5)
 {
-    [[self getAI] cxx_setState:oo::StdString(state)];
+    [[self getAI] cxx_setState:state];
 }
 
-- (void)pauseAI:(id)intervalString // called by name (ADR-0043 item 21)
+- (void)pauseAI:(const std::string&)intervalString // called by name (ADR-0055 item 5)
 {
-    [shipAI setNextThinkTime:[UNIVERSE getTime] + [intervalString doubleValue]];
+    [shipAI setNextThinkTime:[UNIVERSE getTime] + oo::str::doubleValue(intervalString)];
 }
 
-- (void)randomPauseAI:(id)intervalString // called by name (ADR-0043 item 21)
+- (void)randomPauseAI:(const std::string&)intervalString // called by name (ADR-0055 item 5)
 {
-    const std::vector<std::string> tokens = oo::str::tokens(oo::StdString(intervalString));
+    const std::vector<std::string> tokens = oo::str::tokens(intervalString);
     double start, end;
 
     if (tokens.size() != 2) {
-        OO_LOG("ai.syntax.randomPauseAI", "***** ERROR: cannot read min and max value for randomPauseAI:, needs 2 values: '{}'.", oo::DescriptionOf(intervalString));
+        OO_LOG("ai.syntax.randomPauseAI", "***** ERROR: cannot read min and max value for randomPauseAI:, needs 2 values: '{}'.", intervalString);
         return;
     }
 
@@ -806,12 +805,9 @@ int RandArgument(const std::string& token)
     [shipAI setNextThinkTime:[UNIVERSE getTime] + (start + (end - start) * randf())];
 }
 
-- (void)dropMessages:(id)messageString // called by name (ADR-0043 item 21)
+- (void)dropMessages:(const std::string&)messageString // called by name (ADR-0055 item 5)
 {
-    if (messageString == nil)
-        return; // (a message to nil split into nothing)
-
-    for (const std::string& message : oo::str::split(oo::StdString(messageString), ",")) {
+    for (const std::string& message : oo::str::split(messageString, ",")) {
         [shipAI cxx_dropMessage:oo::str::trimTrailing(oo::str::trimLeading(message, IsWhitespace), IsWhitespace)];
     }
 }
@@ -834,9 +830,9 @@ int RandArgument(const std::string& token)
     pitching_over = YES; // don't complete roll first, but immediately start with pitching.
 }
 
-- (void)setDesiredRangeTo:(id)rangeString // called by name (ADR-0043 item 21)
+- (void)setDesiredRangeTo:(const std::string&)rangeString // called by name (ADR-0055 item 5)
 {
-    desired_range = [rangeString doubleValue];
+    desired_range = oo::str::doubleValue(rangeString);
 }
 
 - (void)setDesiredRangeForWaypoint
@@ -844,14 +840,14 @@ int RandArgument(const std::string& token)
     desired_range = fmax(maxFlightSpeed / max_flight_pitch / 6, 50.0); // some ships need a longer range to reach a waypoint.
 }
 
-- (void)setSpeedTo:(id)speedString // called by name (ADR-0043 item 21)
+- (void)setSpeedTo:(const std::string&)speedString // called by name (ADR-0055 item 5)
 {
-    desired_speed = [speedString doubleValue];
+    desired_speed = oo::str::doubleValue(speedString);
 }
 
-- (void)setSpeedFactorTo:(id)speedString // called by name (ADR-0043 item 21)
+- (void)setSpeedFactorTo:(const std::string&)speedString // called by name (ADR-0055 item 5)
 {
-    desired_speed = maxFlightSpeed * [speedString doubleValue];
+    desired_speed = maxFlightSpeed * oo::str::doubleValue(speedString);
 }
 
 - (void)setSpeedToCruiseSpeed
@@ -859,9 +855,9 @@ int RandArgument(const std::string& token)
     desired_speed = cruiseSpeed;
 }
 
-- (void)setThrustFactorTo:(id)thrustFactorString // called by name (ADR-0043 item 21)
+- (void)setThrustFactorTo:(const std::string&)thrustFactorString // called by name (ADR-0055 item 5)
 {
-    thrust = OOClamp_0_1_f([thrustFactorString doubleValue]) * max_thrust;
+    thrust = OOClamp_0_1_f(oo::str::doubleValue(thrustFactorString)) * max_thrust;
 }
 
 - (void)setTargetToPrimaryAggressor
@@ -1257,11 +1253,9 @@ int RandArgument(const std::string& token)
     [shipAI message:"SELF_CLEAN"];
 }
 
-- (void)exitAIWithMessage:(id)message // called by name (ADR-0043 item 21)
+- (void)exitAIWithMessage:(const std::string&)message // called by name (ADR-0055 item 5)
 {
-    if ([message length] == 0)
-        message = @"RESTARTED";
-    [shipAI cxx_exitStateMachineWithMessage:oo::OptionalString(message)];
+    [shipAI cxx_exitStateMachineWithMessage:message.empty() ? std::string("RESTARTED") : message];
 }
 
 - (void)setDestinationToTarget
@@ -1382,7 +1376,7 @@ int RandArgument(const std::string& token)
 - (void)scanForOffenders
 {
     /*-- Locates all the ships in range and compares their legal status or bounty against ranrot_rand() & 255 - chooses the worst offender --*/
-    float gov_factor = 0.4 * [[oo::ObjectFromPList([UNIVERSE cxx_currentSystemData]) objectForKey:oo::NSStringFrom(KEY_GOVERNMENT)] intValue]; // 0 .. 7 (0 anarchic .. 7 most stable) --> [0.0, 0.4, 0.8, 1.2, 1.6, 2.0, 2.4, 2.8]
+    float gov_factor = 0.4 * [UNIVERSE cxx_currentSystemData].get<int>(std::string(KEY_GOVERNMENT)); // 0 .. 7 (0 anarchic .. 7 most stable) --> [0.0, 0.4, 0.8, 1.2, 1.6, 2.0, 2.4, 2.8]
     //
     if ([UNIVERSE sun] == nil)
         gov_factor = 1.0;
@@ -1447,7 +1441,7 @@ int RandArgument(const std::string& token)
 
 - (void)disengageAutopilot
 {
-    OO_LOG_ERR("ai.invalid.notPlayer", "Error in {}:{}, AI method endAutoPilot is only applicable to the player.", [shipAI cxx_name].value_or("(null)"), oo::DescriptionOf([shipAI state]));
+    OO_LOG_ERR("ai.invalid.notPlayer", "Error in {}:{}, AI method endAutoPilot is only applicable to the player.", [shipAI cxx_name].value_or("(null)"), [shipAI cxx_state].value_or("(null)"));
 }
 
 - (void)wormholeGroup
@@ -1467,14 +1461,14 @@ int RandArgument(const std::string& token)
     }
 }
 
-- (void)commsMessage:(id)valueString // called by name (ADR-0043 item 21)
+- (void)commsMessage:(const std::string&)valueString // called by name (ADR-0055 item 5)
 {
-    [self cxx_commsMessage:oo::StdString(valueString) withUnpilotedOverride:NO];
+    [self cxx_commsMessage:valueString withUnpilotedOverride:NO];
 }
 
-- (void)commsMessageByUnpiloted:(id)valueString // called by name (ADR-0043 item 21)
+- (void)commsMessageByUnpiloted:(const std::string&)valueString // called by name (ADR-0055 item 5)
 {
-    [self cxx_commsMessage:oo::StdString(valueString) withUnpilotedOverride:YES];
+    [self cxx_commsMessage:valueString withUnpilotedOverride:YES];
 }
 
 - (void)ejectCargo
@@ -1491,7 +1485,7 @@ int RandArgument(const std::string& token)
 
 - (void)scanForThargoid
 {
-    return [self scanForNearestShipWithPrimaryRole:@"thargoid"];
+    return [self scanForNearestShipWithPrimaryRole:"thargoid"];
 }
 
 - (void)scanForNonThargoid
@@ -1528,7 +1522,7 @@ int RandArgument(const std::string& token)
         [shipAI message:"TARGET_FOUND"]; // no need for scanning, we still have our mother.
     } else {
         // we lost the old mother, search for a new one
-        [self scanForNearestShipHavingRole:@"thargoid-mothership"]; // the scan will send further AI messages.
+        [self scanForNearestShipHavingRole:"thargoid-mothership"]; // the scan will send further AI messages.
         if ([self foundTarget] != nil) {
             mother = (ShipEntity*)[self foundTarget];
             [self setOwner:mother];
@@ -1558,7 +1552,7 @@ int RandArgument(const std::string& token)
     // now we're just a bunch of alien artefacts!
     scanClass = CLASS_CARGO;
     reportAIMessages = NO;
-    [self setAITo:@"dumbAI.plist"];
+    [self setAITo:"dumbAI.plist"];
     DESTROY(_primaryTarget);
     [self setSpeed:0.0];
     [self setGroup:nil];
@@ -1674,21 +1668,21 @@ int RandArgument(const std::string& token)
         [shipAI message:"NOTHING_FOUND"];
         if ([self cxx_hasPrimaryRole:"wingman"]) {
             // become free-lance police :)
-            [self setAITo:@"route1patrolAI.plist"]; // use this to avoid referencing a released AI
-            [self setPrimaryRole:@"police"]; // other wingman can now select this ship as leader.
+            [self setAITo:"route1patrolAI.plist"]; // use this to avoid referencing a released AI
+            [self setPrimaryRole:"police"]; // other wingman can now select this ship as leader.
         }
     }
 }
 
-- (void)messageMother:(id)msgString // called by name (ADR-0043 item 21)
+- (void)messageMother:(const std::string&)msgString // called by name (ADR-0055 item 5)
 {
     ShipEntity* mother = [self owner];
     if (mother != nil && mother != self) {
-        [mother cxx_reactToAIMessage:oo::StdString(msgString) context:DebugContext(self, "messageMother")];
+        [mother cxx_reactToAIMessage:msgString context:DebugContext(self, "messageMother")];
     }
 }
 
-- (void)messageSelf:(id)msgString // called by name (ADR-0043 item 21)
+- (void)messageSelf:(const std::string&)msgString // called by name (ADR-0055 item 5)
 {
     [self sendAIMessage:msgString];
 }
@@ -1744,7 +1738,7 @@ int RandArgument(const std::string& token)
             if (randf() < .25) {
                 // consider docking
                 [self setTargetStation:the_station];
-                [self setAITo:@"dockingAI.plist"];
+                [self setAITo:"dockingAI.plist"];
                 return;
             } else {
                 // go around again
@@ -1827,16 +1821,14 @@ int RandArgument(const std::string& token)
     [shipAI message:"STATION_FOUND"];
 }
 
-- (void)sendTargetCommsMessage:(id)message // called by name (ADR-0043 item 21)
+- (void)sendTargetCommsMessage:(const std::string&)message // called by name (ADR-0055 item 5)
 {
     ShipEntity* ship = [self primaryTarget];
     if ((ship == nil) || ([ship status] == STATUS_DEAD) || ([ship status] == STATUS_DOCKED)) {
         [self noteLostTarget];
         return;
     }
-    if (message == nil)
-        return; // nothing to send, as -sendExpandedMessage:toShip: returned for nil
-    [self cxx_sendExpandedMessage:oo::StdString(message) toShip:[self primaryTarget]];
+    [self cxx_sendExpandedMessage:message toShip:[self primaryTarget]];
 }
 
 - (void)markTargetForFines
@@ -1850,7 +1842,7 @@ int RandArgument(const std::string& token)
         [shipAI message:"TARGET_MARKED"];
 }
 
-- (void)markTargetForOffence:(id)valueString // called by name (ADR-0043 item 21)
+- (void)markTargetForOffence:(const std::string&)valueString // called by name (ADR-0055 item 5)
 {
     if ((isStation) || (scanClass == CLASS_POLICE)) {
         ShipEntity* ship = [self primaryTarget];
@@ -1858,7 +1850,7 @@ int RandArgument(const std::string& token)
             [self noteLostTarget];
             return;
         }
-        const std::string finalValue = valueString != nil ? cxx_OOExpand(oo::StdString(valueString)).value_or(std::string()) : std::string(); // expand values
+        const std::string finalValue = cxx_OOExpand(valueString).value_or(std::string()); // expand values
         [ship markAsOffender:oo::str::intValue(finalValue) withReason:kOOLegalStatusReasonSeenByPolice];
     }
 }
@@ -1990,78 +1982,74 @@ int RandArgument(const std::string& token)
     [self checkFoundTarget];
 }
 
-- (void)rollD:(id)die_number // called by name (ADR-0043 item 21)
+- (void)rollD:(const std::string&)die_number // called by name (ADR-0055 item 5)
 {
-    int die_sides = [die_number intValue];
+    int die_sides = oo::str::intValue(die_number);
     if (die_sides > 0) {
         int die_roll = 1 + (ranrot_rand() % die_sides);
         [shipAI cxx_reactToMessage:oo::str::format("ROLL_%d", die_roll) context:"rollD:"];
     } else {
-        OO_LOG("ai.rollD.invalidValue", "***** ERROR: invalid value supplied to rollD: '{}'.", oo::DescriptionOf(die_number));
+        OO_LOG("ai.rollD.invalidValue", "***** ERROR: invalid value supplied to rollD: '{}'.", die_number);
     }
 }
 
-- (void)scanForNearestShipWithPrimaryRole:(id)scanRole // called by name (ADR-0043 item 21)
+- (void)scanForNearestShipWithPrimaryRole:(const std::string&)scanRole // called by name (ADR-0055 item 5)
 {
-    std::optional<std::string> role = oo::OptionalString(scanRole); // the predicate reads a std::string; nil: none
-    [self scanForNearestShipWithPredicate:HasPrimaryRolePredicate parameter:role.has_value() ? &*role : nullptr];
+    [self scanForNearestShipWithPredicate:HasPrimaryRolePredicate parameter:const_cast<std::string*>(&scanRole)]; // the predicate reads a std::string
 }
 
-- (void)scanForNearestShipHavingRole:(id)scanRole // called by name (ADR-0043 item 21)
+- (void)scanForNearestShipHavingRole:(const std::string&)scanRole // called by name (ADR-0055 item 5)
 {
-    std::optional<std::string> role = oo::OptionalString(scanRole); // the predicate reads a std::string; nil: none
-    [self scanForNearestShipWithPredicate:HasRolePredicate parameter:role.has_value() ? &*role : nullptr];
+    [self scanForNearestShipWithPredicate:HasRolePredicate parameter:const_cast<std::string*>(&scanRole)]; // the predicate reads a std::string
 }
 
-- (void)scanForNearestShipWithAnyPrimaryRole:(id)scanRoles // called by name (ADR-0043 item 21)
+- (void)scanForNearestShipWithAnyPrimaryRole:(const std::string&)scanRoles // called by name (ADR-0055 item 5)
 {
-    // an Objective-C set of the role strings, as the predicate reads it
-    [self scanForNearestShipWithPredicate:HasPrimaryRoleInSetPredicate parameter:oo::NSSetFromStrings(oo::str::tokens(oo::StdString(scanRoles)))];
+    std::vector<std::string> roles = oo::str::tokens(scanRoles); // the predicate reads the role strings
+    [self scanForNearestShipWithPredicate:HasPrimaryRoleInSetPredicate parameter:&roles];
 }
 
-- (void)scanForNearestShipHavingAnyRole:(id)scanRoles // called by name (ADR-0043 item 21)
+- (void)scanForNearestShipHavingAnyRole:(const std::string&)scanRoles // called by name (ADR-0055 item 5)
 {
-    // an Objective-C set of the role strings, as the predicate reads it
-    [self scanForNearestShipWithPredicate:HasRoleInSetPredicate parameter:oo::NSSetFromStrings(oo::str::tokens(oo::StdString(scanRoles)))];
+    std::vector<std::string> roles = oo::str::tokens(scanRoles); // the predicate reads the role strings
+    [self scanForNearestShipWithPredicate:HasRoleInSetPredicate parameter:&roles];
 }
 
-- (void)scanForNearestShipWithScanClass:(id)scanScanClass // called by name (ADR-0043 item 21)
+- (void)scanForNearestShipWithScanClass:(const std::string&)scanScanClass // called by name (ADR-0055 item 5)
 {
-    // an Objective-C number, as the predicate reads its -intValue
-    [self scanForNearestShipWithPredicate:HasScanClassPredicate parameter:oo::ObjectFromPList(oo::PList::signedInteger(cxx_OOScanClassFromString(oo::StdString(scanScanClass))))];
+    OOScanClass wantedClass = cxx_OOScanClassFromString(scanScanClass); // the predicate reads an OOScanClass
+    [self scanForNearestShipWithPredicate:HasScanClassPredicate parameter:&wantedClass];
 }
 
-- (void)scanForNearestShipWithoutPrimaryRole:(id)scanRole // called by name (ADR-0043 item 21)
+- (void)scanForNearestShipWithoutPrimaryRole:(const std::string&)scanRole // called by name (ADR-0055 item 5)
 {
-    std::optional<std::string> role = oo::OptionalString(scanRole); // the predicate reads a std::string; nil: none
-    [self scanForNearestShipWithNegatedPredicate:HasPrimaryRolePredicate parameter:role.has_value() ? &*role : nullptr];
+    [self scanForNearestShipWithNegatedPredicate:HasPrimaryRolePredicate parameter:const_cast<std::string*>(&scanRole)]; // the predicate reads a std::string
 }
 
-- (void)scanForNearestShipNotHavingRole:(id)scanRole // called by name (ADR-0043 item 21)
+- (void)scanForNearestShipNotHavingRole:(const std::string&)scanRole // called by name (ADR-0055 item 5)
 {
-    std::optional<std::string> role = oo::OptionalString(scanRole); // the predicate reads a std::string; nil: none
-    [self scanForNearestShipWithNegatedPredicate:HasRolePredicate parameter:role.has_value() ? &*role : nullptr];
+    [self scanForNearestShipWithNegatedPredicate:HasRolePredicate parameter:const_cast<std::string*>(&scanRole)]; // the predicate reads a std::string
 }
 
-- (void)scanForNearestShipWithoutAnyPrimaryRole:(id)scanRoles // called by name (ADR-0043 item 21)
+- (void)scanForNearestShipWithoutAnyPrimaryRole:(const std::string&)scanRoles // called by name (ADR-0055 item 5)
 {
-    // an Objective-C set of the role strings, as the predicate reads it
-    [self scanForNearestShipWithNegatedPredicate:HasPrimaryRoleInSetPredicate parameter:oo::NSSetFromStrings(oo::str::tokens(oo::StdString(scanRoles)))];
+    std::vector<std::string> roles = oo::str::tokens(scanRoles); // the predicate reads the role strings
+    [self scanForNearestShipWithNegatedPredicate:HasPrimaryRoleInSetPredicate parameter:&roles];
 }
 
-- (void)scanForNearestShipNotHavingAnyRole:(id)scanRoles // called by name (ADR-0043 item 21)
+- (void)scanForNearestShipNotHavingAnyRole:(const std::string&)scanRoles // called by name (ADR-0055 item 5)
 {
-    // an Objective-C set of the role strings, as the predicate reads it
-    [self scanForNearestShipWithNegatedPredicate:HasRoleInSetPredicate parameter:oo::NSSetFromStrings(oo::str::tokens(oo::StdString(scanRoles)))];
+    std::vector<std::string> roles = oo::str::tokens(scanRoles); // the predicate reads the role strings
+    [self scanForNearestShipWithNegatedPredicate:HasRoleInSetPredicate parameter:&roles];
 }
 
-- (void)scanForNearestShipWithoutScanClass:(id)scanScanClass // called by name (ADR-0043 item 21)
+- (void)scanForNearestShipWithoutScanClass:(const std::string&)scanScanClass // called by name (ADR-0055 item 5)
 {
-    // an Objective-C number, as the predicate reads its -intValue
-    [self scanForNearestShipWithNegatedPredicate:HasScanClassPredicate parameter:oo::ObjectFromPList(oo::PList::signedInteger(cxx_OOScanClassFromString(oo::StdString(scanScanClass))))];
+    OOScanClass wantedClass = cxx_OOScanClassFromString(scanScanClass); // the predicate reads an OOScanClass
+    [self scanForNearestShipWithNegatedPredicate:HasScanClassPredicate parameter:&wantedClass];
 }
 
-- (void)scanForNearestShipMatchingPredicate:(id)predicateExpression // called by name (ADR-0043 item 21)
+- (void)scanForNearestShipMatchingPredicate:(const std::string&)predicateExpression // called by name (ADR-0055 item 5)
 {
     /*	Takes a boolean-valued JS expression where "ship" is the ship being
      evaluated and "this" is our ship's ship script. the expression is
@@ -2086,7 +2074,7 @@ int RandArgument(const std::string& token)
 
     context = OOJSAcquireContext();
 
-    const std::string expression = predicateExpression != nil ? oo::DescriptionOf(predicateExpression) : std::string("false"); // %@ of it
+    const std::string& expression = predicateExpression;
 
     const std::optional<std::string> aiName = [[self getAI] cxx_name];
 #ifndef NDEBUG
@@ -2143,7 +2131,7 @@ int RandArgument(const std::string& token)
         static std::set<std::string> errorCache;
 
         if (!errorCache.contains(key)) {
-            OO_LOG("ai.scanForNearestShipMatchingPredicate.compile.failed", "Could not compile JavaScript predicate \"{}\" for AI {}.", oo::DescriptionOf(predicateExpression), [[self getAI] cxx_name].value_or("(null)"));
+            OO_LOG("ai.scanForNearestShipMatchingPredicate.compile.failed", "Could not compile JavaScript predicate \"{}\" for AI {}.", predicateExpression, [[self getAI] cxx_name].value_or("(null)"));
             errorCache.insert(key);
         }
 
@@ -2156,12 +2144,12 @@ int RandArgument(const std::string& token)
     OOJSRelinquishContext(context);
 }
 
-- (void)setCoordinates:(id)system_x_y_z // called by name (ADR-0043 item 21)
+- (void)setCoordinates:(const std::string&)system_x_y_z // called by name (ADR-0055 item 5)
 {
-    const std::vector<std::string> tokens = oo::str::tokens(oo::StdString(system_x_y_z));
+    const std::vector<std::string> tokens = oo::str::tokens(system_x_y_z);
 
     if (tokens.size() != 4) {
-        OO_LOG("ai.syntax.setCoordinates", "***** ERROR: cannot setCoordinates: '{}'.", oo::DescriptionOf(system_x_y_z));
+        OO_LOG("ai.syntax.setCoordinates", "***** ERROR: cannot setCoordinates: '{}'.", system_x_y_z);
         return;
     }
 
@@ -2249,12 +2237,12 @@ int RandArgument(const std::string& token)
     }
 }
 
-- (void)addFuel:(id)fuel_number // called by name (ADR-0043 item 21)
+- (void)addFuel:(const std::string&)fuel_number // called by name (ADR-0055 item 5)
 {
-    [self setFuel:[self fuel] + [fuel_number intValue] * 10];
+    [self setFuel:[self fuel] + oo::str::intValue(fuel_number) * 10];
 }
 
-- (void)scriptActionOnTarget:(id)action // called by name (ADR-0043 item 21)
+- (void)scriptActionOnTarget:(const std::string&)action // called by name (ADR-0055 item 5)
 {
     PlayerEntity* player = PLAYER;
     ShipEntity* targEnt = [self primaryTarget];
@@ -2274,7 +2262,7 @@ int RandArgument(const std::string& token)
     if ([targEnt isShip]) {
         oldTarget = [player scriptTarget];
         [player setScriptTarget:(ShipEntity*)targEnt];
-        [player cxx_runUnsanitizedScriptActions:oo::PListFrom(oo::NSArrayFromObjects(std::vector<id> { action }))
+        [player cxx_runUnsanitizedScriptActions:oo::PList(oo::PList::Array { oo::PList(action) })
                               allowingAIMethods:YES
                                 withContextName:oo::str::format("<AI \"%s\" state %s - scriptActionOnTarget:>", [[self getAI] cxx_name].value_or("(null)").c_str(), [[self getAI] cxx_state].value_or("(null)").c_str())
                                       forTarget:targEnt];
@@ -2283,7 +2271,7 @@ int RandArgument(const std::string& token)
     }
 }
 
-- (void)safeScriptActionOnTarget:(id)action // called by name (ADR-0043 item 21)
+- (void)safeScriptActionOnTarget:(const std::string&)action // called by name (ADR-0055 item 5)
 {
     PlayerEntity* player = PLAYER;
     ShipEntity* targEnt = [self primaryTarget];
@@ -2292,7 +2280,7 @@ int RandArgument(const std::string& token)
     if ([targEnt isShip]) {
         oldTarget = [player scriptTarget];
         [player setScriptTarget:(ShipEntity*)targEnt];
-        [player cxx_runUnsanitizedScriptActions:oo::PListFrom(oo::NSArrayFromObjects(std::vector<id> { action }))
+        [player cxx_runUnsanitizedScriptActions:oo::PList(oo::PList::Array { oo::PList(action) })
                               allowingAIMethods:YES
                                 withContextName:oo::str::format("<AI \"%s\" state %s - safeScriptActionOnTarget:>", [[self getAI] cxx_name].value_or("(null)").c_str(), [[self getAI] cxx_state].value_or("(null)").c_str())
                                       forTarget:targEnt];
@@ -2301,16 +2289,19 @@ int RandArgument(const std::string& token)
 }
 
 // Send own ship script a message.
-- (void)sendScriptMessage:(id)message // called by name (ADR-0043 item 21)
+- (void)sendScriptMessage:(const std::string&)message // called by name (ADR-0055 item 5)
 {
-    const std::vector<std::string> components = oo::str::tokens(oo::StdString(message));
+    const std::vector<std::string> components = oo::str::tokens(message);
 
     if (components.size() == 1) {
-        [self doScriptEvent:cxx_OOJSIDFromString(oo::StdString(message))]; // one component: message is not nil
+        [self doScriptEvent:cxx_OOJSIDFromString(message)];
     } else if (!components.empty()) // (an empty message raised at -objectAtIndex:0)
     {
         const std::string& function = components[0];
-        [self doScriptEvent:cxx_OOJSIDFromString(function) withArgument:oo::NSArrayFromStrings(std::vector<std::string>(components.begin() + 1, components.end()))];
+        oo::PList::Array arguments; // one argument: an array of the other components
+        for (auto component = components.begin() + 1; component != components.end(); ++component)
+            arguments.emplace_back(*component);
+        [self cxx_doScriptEvent:cxx_OOJSIDFromString(function) withPListArguments:{ oo::PList(std::move(arguments)) }];
     }
 }
 
@@ -2324,18 +2315,18 @@ int RandArgument(const std::string& token)
     [self getDestroyedBy:nil damageType:kOODamageTypeEnergy];
 }
 
-- (void)ai_debugMessage:(id)message // called by name (ADR-0043 item 21)
+- (void)ai_debugMessage:(const std::string&)message // called by name (ADR-0055 item 5)
 {
     std::string desc = oo::str::format("%s %d", [self cxx_name].value_or("(null)").c_str(), [self universalID]);
     if ([self isPlayer])
         desc = "player autopilot";
-    OO_LOG("ai.takeAction.debugMessage", "DEBUG: AI MESSAGE from {}: {}", desc, oo::DescriptionOf(message));
+    OO_LOG("ai.takeAction.debugMessage", "DEBUG: AI MESSAGE from {}: {}", desc, message);
 }
 
 // racing code TODO
-- (void)targetFirstBeaconWithCode:(id)code // called by name (ADR-0043 item 21)
+- (void)targetFirstBeaconWithCode:(const std::string&)code // called by name (ADR-0055 item 5)
 {
-    const std::vector<oo::ObjCRef<Entity<OOBeaconEntity>*>> all_beacons = [UNIVERSE cxx_listBeaconsWithCode:oo::StdString(code)];
+    const std::vector<oo::ObjCRef<Entity<OOBeaconEntity>*>> all_beacons = [UNIVERSE cxx_listBeaconsWithCode:code];
     if (!all_beacons.empty()) {
         [self addTarget:(ShipEntity*)all_beacons[0].get()];
         [shipAI message:"TARGET_FOUND"];
@@ -2343,9 +2334,9 @@ int RandArgument(const std::string& token)
         [shipAI message:"NOTHING_FOUND"];
 }
 
-- (void)targetNextBeaconWithCode:(id)code // called by name (ADR-0043 item 21)
+- (void)targetNextBeaconWithCode:(const std::string&)code // called by name (ADR-0055 item 5)
 {
-    const std::vector<oo::ObjCRef<Entity<OOBeaconEntity>*>> all_beacons = [UNIVERSE cxx_listBeaconsWithCode:oo::StdString(code)];
+    const std::vector<oo::ObjCRef<Entity<OOBeaconEntity>*>> all_beacons = [UNIVERSE cxx_listBeaconsWithCode:code];
     ShipEntity* current_beacon = [self primaryTarget];
 
     if ((!current_beacon) || (![current_beacon isBeacon])) {
@@ -2561,11 +2552,15 @@ int RandArgument(const std::string& token)
 #define STATION_STUB_BASE(PROTO, NAME) \
     PROTO { OO_LOG("ai.invalid.notAStation", "Attempt to use station AI method \"{}\" on non-station {}.", NAME, oo::DescriptionOf(self)); }
 #define STATION_STUB_NOARG(NAME) STATION_STUB_BASE(-(void)NAME, #NAME)
-#define STATION_STUB_ARG(NAME) STATION_STUB_BASE(-(void)NAME(id) param, #NAME) // called by name (ADR-0043 item 21)
+#define STATION_STUB_ARG(NAME) STATION_STUB_BASE(-(void)NAME(const std::string&) param, #NAME) // called by name (ADR-0055 item 5)
 
 STATION_STUB_NOARG(increaseAlertLevel)
 STATION_STUB_NOARG(decreaseAlertLevel)
-STATION_STUB_NOARG(launchPolice)
+- (oo::PList)launchPolice // called by name (ADR-0055 item 5): StationEntity's returns the ships launched
+{
+    OO_LOG("ai.invalid.notAStation", "Attempt to use station AI method \"{}\" on non-station {}.", "launchPolice", oo::DescriptionOf(self));
+    return oo::PList();
+}
 STATION_STUB_NOARG(launchDefenseShip)
 STATION_STUB_NOARG(launchScavenger)
 STATION_STUB_NOARG(launchMiner)

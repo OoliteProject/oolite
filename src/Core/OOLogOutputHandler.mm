@@ -26,11 +26,8 @@ SOFTWARE.
 
 */
 
-#define OOLOG_POISON_NSLOG 0
-
 #import "OOLogOutputHandler.h"
 #import "OOFoundation.h"
-#import "OOFoundationBridge.h"
 #import "OOLogging.h"
 #include "oofnd/Date.hpp"
 #include "oofnd/Defaults.hpp"

@@ -37,8 +37,8 @@ MA 02110-1301, USA.
 
 /*	Foundation sweep (proposed ADR-0043, bead oo-eofd): the planet configuration and material
         parameters are oo::PLists (mixed: colours are PList::Object nodes); texture and planet names are
-        std::optional (nullopt where they were nil). -name and -setName: are shared selectors and keep
-        id; -textureFileName and -setUpPlanetFromTexture: flipped with PlanetEntity (bead oo-3rb.269.1).
+        std::optional (nullopt where they were nil); the name is -cxx_name / -cxx_setName: (the id
+        -name / -setName: retired with oo-qps.44); -textureFileName and -setUpPlanetFromTexture: flipped with PlanetEntity (bead oo-3rb.269.1).
 */
 
 @class OOPlanetDrawable, ShipEntity, OOMaterial;

@@ -17,7 +17,9 @@ type encoding and calls it through an IMP of exactly that type:
                                                  - (oo::PList) sel:(const std::string &)s  what it returns
         OOCallByName(target, sel, plist)         - (void) sel:(const oo::PList &)p         null PList
 
-A scalar result (BOOL, float...) is ignored, as -performSelector: ignored it. A string argument
+A scalar result (BOOL, float...) or an object result (the ship a launch action returns) is
+ignored: no dispatcher reads one (ADR-0055 Amendment 2; OOJSCall calls an object-returning method
+itself). A method with an object (id) parameter is not called (see below). A string argument
 reaches a (const oo::PList &) parameter as a string PList; a PList argument reaches a
 (const std::string &) parameter only when it is a string.
 
@@ -29,11 +31,10 @@ reaches a (const oo::PList &) parameter as a string PList; a PList argument reac
         expander [selector] keys                                                    or a number)
         HUD dials (HeadUpDisplay.mm), joystick callbacks            PList           void
 
-TRANSITIONAL (until oo-qps.72): a method still typed id (a parameter or a result) is called with
-the argument as an Objective-C object (a string, or the PList's object graph) and its result read
-back as a PList. tools/check-selector-types.py --check accepts a called-by-name selector with one
-of the C++ signatures above or the id form; --strict-called-by-name (oo-qps.72, oo-qps.16) rejects
-the id form.
+oo-qps.72 deleted the transitional form that passed an id parameter the argument as an
+Objective-C object: such a method is logged (callByName.badSignature) and not called.
+tools/check-selector-types.py --check --strict-called-by-name rejects an object parameter, or an
+id result, on a selector a dispatcher calls by name.
 
 A nil target does nothing (as messaging nil). A target that does not answer <selector>, or whose
 method has no signature above, is logged (callByName.unknownSelector / callByName.badSignature)

@@ -4,6 +4,11 @@ OOColor.h
 
 An RGBA colour in device colour space.
 
+C++20 since bead oo-11m, the Phase 3 house-style exemplar (proposed ADR-0056;
+docs/phases/3-cpp-conversion.md, "Converting a class"). The class is cxx::OOColor while
+OOColor+ObjCBridge.h, imported at the end of this header, keeps the Objective-C OOColor its
+unconverted callers message; the bridge's deletion bead moves it out of namespace cxx.
+
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -25,11 +30,11 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOFoundation.h"
-#import "OOOpenGL.h"
-#import "oofnd/objc/OOObject.h"
+#ifndef OOCOLOR_H
+#define OOCOLOR_H
 
 #include "oofnd/PList.hpp"
+#include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
 
 typedef struct
@@ -42,107 +47,117 @@ typedef struct
     float h, s, b, a;
 } OOHSBAComponents;
 
-@interface OOColor : OOObject <OOCopying> {
-@private
-    float rgba[4];
-}
+namespace cxx {
 
-+ (OOColor*)colorWithHue:(float)hue saturation:(float)saturation brightness:(float)brightness alpha:(float)alpha; // Note: hue in 0..1
-+ (OOColor*)colorWithRed:(float)red green:(float)green blue:(float)blue alpha:(float)alpha;
-+ (OOColor*)colorWithWhite:(float)white alpha:(float)alpha;
-+ (OOColor*)colorWithRGBAComponents:(OORGBAComponents)components;
-+ (OOColor*)colorWithHSBAComponents:(OOHSBAComponents)components; // Note: hue in 0..360
+class OOColor : public oo::RefCounted {
+public:
+    static oo::Ref<OOColor> colorWithHue(float hue, float saturation, float brightness, float alpha); // Note: hue in 0..1
+    static oo::Ref<OOColor> colorWithRed(float red, float green, float blue, float alpha);
+    static oo::Ref<OOColor> colorWithWhite(float white, float alpha);
+    static oo::Ref<OOColor> colorWithRGBAComponents(OORGBAComponents components);
+    static oo::Ref<OOColor> colorWithHSBAComponents(OOHSBAComponents components); // Note: hue in 0..360
 
-/*	Flexible color creator (proposed ADR-0055 item 2): <description> is plist data, one of
-        - a string: a selector name ending in "Color" (+redColor & co.), or components
-          (+cxx_colorFromString:);
-        - an array of components (their descriptions, joined with spaces, as a string);
-        - a dictionary of hue/saturation/brightness (or value)/alpha (or opacity) keys, hue
-          in 0..360, or of red/green/blue/alpha (or opacity) keys;
-        - an Object node (OOObjCPList.h) holding an OOColor, which is returned as is.
-        Anything else, or a null PList, gives nil.
-*/
-+ (OOColor*)cxx_colorWithDescription:(const oo::PList&)description;
+    /*	Flexible color creator (proposed ADR-0055 item 2): <description> is plist data, one of
+            - a string: the name of one of the named colours below ("redColor" & co.), or components
+              (colorFromString());
+            - an array of components (their descriptions, joined with spaces, as a string);
+            - a dictionary of hue/saturation/brightness (or value)/alpha (or opacity) keys, hue
+              in 0..360, or of red/green/blue/alpha (or opacity) keys;
+            - an Object node (OOObjCPList.h) holding an OOColor, which is returned as is.
+            Anything else, or a null PList, gives null.
+    */
+    static oo::Ref<OOColor> colorWithDescription(const oo::PList& description);
 
-// Like +cxx_colorWithDescription:, but forces brightness of at least 0.5.
-+ (OOColor*)cxx_brightColorWithDescription:(const oo::PList&)description;
+    /*	Like colorWithDescription(), but multiplies saturation by provided factor.
+            If the colour is an HSV dictionary, it may specify a saturation greater
+            than 1.0 to override the scaling.
+    */
+    static oo::Ref<OOColor> colorWithDescription(const oo::PList& description, float factor);
 
-/*	Like +cxx_colorWithDescription:, but multiplies saturation by provided factor.
-        If the colour is an HSV dictionary, it may specify a saturation greater
-        than 1.0 to override the scaling.
-*/
-+ (OOColor*)cxx_colorWithDescription:(const oo::PList&)description saturationFactor:(float)factor;
+    // Like colorWithDescription(), but forces brightness of at least 0.5.
+    static oo::Ref<OOColor> brightColorWithDescription(const oo::PList& description);
 
-// The id forms of the three above: <description> through oo::PListFrom. Deleted by oo-qps.72
-// once their callers have moved to the PList forms.
-+ (OOColor*)colorWithDescription:(id)description;
-+ (OOColor*)brightColorWithDescription:(id)description;
-+ (OOColor*)colorWithDescription:(id)description saturationFactor:(float)factor;
+    // Creates a colour given a string with components.
+    static oo::Ref<OOColor> colorFromString(const std::string& colorFloatString);
 
-// Creates a colour given a string with components.
-+ (OOColor*)cxx_colorFromString:(const std::string&)colorFloatString;
+    static oo::Ref<OOColor> blackColor(); // 0.0 white
+    static oo::Ref<OOColor> darkGrayColor(); // 0.333 white
+    static oo::Ref<OOColor> lightGrayColor(); // 0.667 white
+    static oo::Ref<OOColor> whiteColor(); // 1.0 white
+    static oo::Ref<OOColor> grayColor(); // 0.5 white
+    static oo::Ref<OOColor> redColor(); // 1.0, 0.0, 0.0 RGB
+    static oo::Ref<OOColor> greenColor(); // 0.0, 1.0, 0.0 RGB
+    static oo::Ref<OOColor> blueColor(); // 0.0, 0.0, 1.0 RGB
+    static oo::Ref<OOColor> cyanColor(); // 0.0, 1.0, 1.0 RGB
+    static oo::Ref<OOColor> yellowColor(); // 1.0, 1.0, 0.0 RGB
+    static oo::Ref<OOColor> magentaColor(); // 1.0, 0.0, 1.0 RGB
+    static oo::Ref<OOColor> orangeColor(); // 1.0, 0.5, 0.0 RGB
+    static oo::Ref<OOColor> purpleColor(); // 0.5, 0.0, 0.5 RGB
+    static oo::Ref<OOColor> brownColor(); // 0.6, 0.4, 0.2 RGB
+    static oo::Ref<OOColor> clearColor(); // 0.0 white, 0.0 alpha
 
-+ (OOColor*)blackColor; // 0.0 white
-+ (OOColor*)darkGrayColor; // 0.333 white
-+ (OOColor*)lightGrayColor; // 0.667 white
-+ (OOColor*)whiteColor; // 1.0 white
-+ (OOColor*)grayColor; // 0.5 white
-+ (OOColor*)redColor; // 1.0, 0.0, 0.0 RGB
-+ (OOColor*)greenColor; // 0.0, 1.0, 0.0 RGB
-+ (OOColor*)blueColor; // 0.0, 0.0, 1.0 RGB
-+ (OOColor*)cyanColor; // 0.0, 1.0, 1.0 RGB
-+ (OOColor*)yellowColor; // 1.0, 1.0, 0.0 RGB
-+ (OOColor*)magentaColor; // 1.0, 0.0, 1.0 RGB
-+ (OOColor*)orangeColor; // 1.0, 0.5, 0.0 RGB
-+ (OOColor*)purpleColor; // 0.5, 0.0, 0.5 RGB
-+ (OOColor*)brownColor; // 0.6, 0.4, 0.2 RGB
-+ (OOColor*)clearColor; // 0.0 white, 0.0 alpha
+    //	Linear blend in working colour space (no attempt at gamma correction).
+    oo::Ref<OOColor> blendedColorWithFraction(float fraction, OOColor* color);
 
-//	Linear blend in working colour space (no attempt at gamma correction).
-- (OOColor*)blendedColorWithFraction:(float)fraction ofColor:(OOColor*)color;
+    //	Get the red, green, or blue components.
+    float redComponent();
+    float greenComponent();
+    float blueComponent();
+    void getRed(float* red, float* green, float* blue, float* alpha);
 
-//	Get the red, green, or blue components.
-- (float)redComponent;
-- (float)greenComponent;
-- (float)blueComponent;
-- (void)getRed:(float*)red green:(float*)green blue:(float*)blue alpha:(float*)alpha;
+    OORGBAComponents rgbaComponents();
 
-- (OORGBAComponents)rgbaComponents;
+    bool isBlack();
+    bool isWhite();
 
-- (BOOL)isBlack;
-- (BOOL)isWhite;
+    /*	Get the components as hue, saturation, or brightness.
 
-/*	Get the components as hue, saturation, or brightness.
+            IMPORTANT: for reasons of bugwards compatibility, these return hue values
+            in the range [0, 360], but colorWithHue() expects values in the
+            range [0, 1].
+    */
+    float hueComponent();
+    float saturationComponent();
+    float brightnessComponent();
+    void getHue(float* hue, float* saturation, float* brightness, float* alpha);
 
-        IMPORTANT: for reasons of bugwards compatibility, these return hue values
-        in the range [0, 360], but +colorWithedHue:... expects values in the
-        range [0, 1].
-*/
-- (float)hueComponent;
-- (float)saturationComponent;
-- (float)brightnessComponent;
-- (void)getHue:(float*)hue saturation:(float*)saturation brightness:(float*)brightness alpha:(float*)alpha;
+    OOHSBAComponents hsbaComponents();
 
-- (OOHSBAComponents)hsbaComponents;
+    // Get the alpha component.
+    float alphaComponent();
 
-// Get the alpha component.
-- (float)alphaComponent;
+    /*	Returns the colour, premultiplied by its alpha channel, and with an alpha
+            of 1.0. If the reciever's alpha is 1.0, it will return itself.
+    */
+    oo::Ref<OOColor> premultipliedColor();
 
-/*	Returns the colour, premultiplied by its alpha channel, and with an alpha
-        of 1.0. If the reciever's alpha is 1.0, it will return itself.
-*/
-- (OOColor*)premultipliedColor;
+    // Multiply r, g and b components of a colour by specified factor, clamped to [0..1].
+    oo::Ref<OOColor> colorWithBrightnessFactor(float factor);
 
-// Multiply r, g and b components of a colour by specified factor, clamped to [0..1].
-- (OOColor*)colorWithBrightnessFactor:(float)factor;
+    // r,g,b,a array in 0..1 range.
+    std::vector<float> normalizedArray();
 
-// r,g,b,a array in 0..1 range.
-- (std::vector<float>)cxx_normalizedArray;
+    std::optional<std::string> rgbaDescription();
+    std::optional<std::string> hsbaDescription();
 
-- (std::optional<std::string>)cxx_rgbaDescription;
-- (std::optional<std::string>)cxx_hsbaDescription;
+    // What "%@" prints between the braces of <OOColor 0x...>{...} (OODescription.h).
+    std::optional<std::string> descriptionComponents() const;
 
-@end
+private:
+    // Set methods are internal, because OOColor is immutable (as seen from outside).
+    void setRed(float r, float g, float b, float a);
+    void setHue(float h, float s, float b, float a);
 
-std::string cxx_OORGBAComponentsDescription(OORGBAComponents components);
-std::string cxx_OOHSBAComponentsDescription(OOHSBAComponents components);
+    float rgba[4] = { };
+};
+
+} // namespace cxx
+
+std::string OORGBAComponentsDescription(OORGBAComponents components);
+std::string OOHSBAComponentsDescription(OOHSBAComponents components);
+
+// Transitional: the Objective-C OOColor, for callers not yet converted. Deleted, with namespace
+// cxx above, by the bridge's deletion bead.
+#import "OOColor+ObjCBridge.h"
+
+#endif // OOCOLOR_H

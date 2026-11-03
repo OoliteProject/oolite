@@ -25,7 +25,6 @@ MA 02110-1301, USA.
 
 #import "OOFlasherEntity.h"
 #import "OOColor.h"
-#import "OOFoundationBridge.h"
 #import "PlayerEntity.h"
 #import "Universe.h"
 
@@ -43,11 +42,6 @@ MA 02110-1301, USA.
 + (instancetype)flasherWithDictionary:(const oo::PList&)dictionary
 {
     return [[[OOFlasherEntity alloc] cxx_initWithDictionary:dictionary] autorelease];
-}
-
-- (id)initWithDictionary:(id)dictionary // shared selector (Foundation declares it too)
-{
-    return [self cxx_initWithDictionary:oo::PListFrom(dictionary)];
 }
 
 - (id)cxx_initWithDictionary:(const oo::PList&)dictionary
@@ -72,7 +66,7 @@ MA 02110-1301, USA.
     std::vector<oo::ObjCRef<OOColor*>> colors;
     if (colorSpecifiers != nullptr) {
         for (const oo::PList& specifier : *colorSpecifiers->getIf<oo::PList::Array>()) {
-            colors.emplace_back([OOColor colorWithDescription:oo::ObjectFromPList(specifier) saturationFactor:0.75f]);
+            colors.emplace_back([OOColor cxx_colorWithDescription:specifier saturationFactor:0.75f]);
         }
     }
 

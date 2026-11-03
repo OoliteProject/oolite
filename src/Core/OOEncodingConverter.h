@@ -31,29 +31,41 @@ SOFTWARE.
 #ifndef OOENCODINGCONVERTER_EXCLUDE // For the convenience of fonttexgen
 
 #import "OOFoundation.h"
-#import "oofnd/objc/OOObject.h"
 
 #include "oofnd/Encoding.hpp"
 #include "oofnd/PList.hpp"
+#include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
 
-@class OOCache;
+class OOCache; // C++ since bead oo-rdfh
 
-@interface OOEncodingConverter : OOObject {
-@private
-    std::optional<oo::str::Encoding> _encoding; // nullopt: an unknown encoding name (was NSNotFound)
-    OOCache* _cache;
-    std::vector<std::pair<std::string, std::string>> _substitutions; // in the order they are applied
-}
+/*	C++20 since bead oo-demz (proposed ADR-0056, the OOColor house style). Its one caller
+        (HeadUpDisplay's text engine) was adapted in the same bead, so there is no Objective-C facade
+        and the class is global.
+*/
+class OOEncodingConverter : public oo::RefCounted {
+public:
+    // [[OOEncodingConverter alloc] initWithEncoding:substitutions:] and -initWithFontPList:.
+    OOEncodingConverter(std::optional<oo::str::Encoding> encoding, const oo::PList& substitutions); // a dictionary of strings
+    explicit OOEncodingConverter(const oo::PList& fontPList);
 
-- (id)initWithEncoding:(std::optional<oo::str::Encoding>)encoding substitutions:(const oo::PList&)substitutions; // a dictionary of strings
-- (id)initWithFontPList:(const oo::PList&)fontPList;
+    ~OOEncodingConverter() override;
 
-- (oo::Data)convertString:(const std::string&)string; // empty if the string cannot be converted
+    oo::Data convertString(const std::string& string); // empty if the string cannot be converted
 
-- (std::optional<oo::str::Encoding>)encoding;
+    std::optional<oo::str::Encoding> encoding();
 
-@end
+    // What "%@" printed between the braces of <OOEncodingConverter 0x...>{...} (OODescription.h).
+    std::optional<std::string> descriptionComponents() const;
+
+private:
+    std::optional<oo::Data> performConversionForString(const std::string& string);
+    void profileFire(void* junk); // defined only when the .mm's PROFILE_ENCODING_CONVERTER is on
+
+    std::optional<oo::str::Encoding> _encoding = { }; // nullopt: an unknown encoding name (was NSNotFound)
+    oo::Ref<OOCache> _cache = { };
+    std::vector<std::pair<std::string, std::string>> _substitutions = { }; // in the order they are applied
+};
 
 #endif // OOENCODINGCONVERTER_EXCLUDE
 
