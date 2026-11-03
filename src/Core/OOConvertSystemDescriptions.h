@@ -48,8 +48,10 @@ SOFTWARE.
 oo::PList OOConvertSystemDescriptionsToArrayFormat(const oo::PList& descriptionsInDictionaryFormat, const oo::PList& indicesToKeys); // an array
 oo::PList OOConvertSystemDescriptionsToDictionaryFormat(const oo::PList& descriptionsInArrayFormat, const oo::PList& indicesToKeys); // a dictionary
 
-std::string OOStringifySystemDescriptionLine(const std::string& line, const oo::PList& indicesToKeys, BOOL useFallback);
+std::string OOStringifySystemDescriptionLine(const std::string& line,
+    const oo::PList& indicesToKeys,
+    bool useFallback);
 
 //	Higher-level functions to drive the entire conversion.
-void CompileSystemDescriptions(BOOL asXML);
-void ExportSystemDescriptions(BOOL asXML);
+void CompileSystemDescriptions(bool asXML);
+void ExportSystemDescriptions(bool asXML);

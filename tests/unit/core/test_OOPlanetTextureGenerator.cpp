@@ -12,7 +12,7 @@
 	go through the helpers below:
 	the class is a global C++ class. The last test
 	pins the C++ API.
-	Run: bash tools/check-core-tests.sh test_OOPlanetTextureGenerator
+	Run: bash meson test -C build/meson_test test_OOPlanetTextureGenerator
 */
 
 #include <cstdlib>
@@ -98,7 +98,7 @@ OOTexture* PlanetTexture(const oo::PList& info, RANROTSeed seed) {
 // textures they wrote.
 struct Textures {
   bool ok = false;
-  OOTexture *texture = nil, *secondary = nil, *atmosphere = nil;
+  OOTexture *texture = nullptr, *secondary = nullptr, *atmosphere = nullptr;
 };
 
 Textures GenerateWithAtmosphere(const oo::PList& info, RANROTSeed seed) {
@@ -178,7 +178,7 @@ OO_TEST(settings) {
     oo::AutoreleaseScope pool;
     OOTextureGenerator* generator =
         NewGenerator(PlanetInfo(false), (RANROTSeed){12345, 67890});
-    OO_CHECK(generator != nil &&
+    OO_CHECK(generator != nullptr &&
              (dynamic_cast<OOTextureGenerator*>(generator) != nullptr));
     OO_CHECK(generator->textureOptions() ==
              (kOOTextureMinFilterLinear | kOOTextureMagFilterLinear |
@@ -235,7 +235,7 @@ OO_TEST(withSecondaryTexture) {
     // not wait for the surface's).
     Textures t =
         GenerateWithSecondary(PlanetInfo(false), (RANROTSeed){3, 3}, true);
-    OO_CHECK(t.ok && t.atmosphere == nil);
+    OO_CHECK(t.ok && t.atmosphere == nullptr);
     OO_CHECK(Loaded(t.texture, "OOPlanetTextureGenerator-diffuse-raw@2\n", 512,
                     512));
     OO_CHECK(
@@ -243,7 +243,7 @@ OO_TEST(withSecondaryTexture) {
 
     Textures alone =
         GenerateWithSecondary(PlanetInfo(false), (RANROTSeed){4, 4}, false);
-    OO_CHECK(alone.ok && alone.secondary == nil);
+    OO_CHECK(alone.ok && alone.secondary == nullptr);
     OO_CHECK(Loaded(alone.texture, "OOPlanetTextureGenerator-diffuse-baked@2\n",
                     512, 512));
   }
@@ -255,7 +255,7 @@ OO_TEST(withAtmosphere) {
   {
     oo::AutoreleaseScope pool;
     Textures t = GenerateWithAtmosphere(PlanetInfo(false), (RANROTSeed){5, 5});
-    OO_CHECK(t.ok && t.secondary == nil);
+    OO_CHECK(t.ok && t.secondary == nullptr);
     OO_CHECK(Loaded(t.texture,
                     "OOPlanetTextureGenerator-diffuse-baked-atmo@2\n", 512,
                     512));
@@ -273,7 +273,7 @@ OO_TEST(withAtmosphere) {
 
     Textures noSecondary =
         GenerateAll(PlanetInfo(false), (RANROTSeed){7, 7}, false);
-    OO_CHECK(noSecondary.ok && noSecondary.secondary == nil);
+    OO_CHECK(noSecondary.ok && noSecondary.secondary == nullptr);
     OO_CHECK(Loaded(noSecondary.atmosphere, "OOPlanetTextureGenerator-atmo@2\n",
                     512, 512));
     OO_CHECK(Loaded(noSecondary.texture,

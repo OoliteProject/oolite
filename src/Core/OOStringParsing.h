@@ -36,10 +36,10 @@ MA 02110-1301, USA.
 // Tokens of a string: oo::str::tokens (oofnd/String.hpp).
 
 // Note: these functions will leave their out values untouched if they fail (and return NO). They will not log an error if passed a null string (nullopt; but will return NO). This means they can be used to, say, read dictionary entries which might not exist. They also ignore any extra components in the string.
-BOOL cxx_ScanVectorFromString(const std::optional<std::string>& xyzString, Vector* outVector);
-BOOL cxx_ScanHPVectorFromString(const std::optional<std::string>& xyzString, HPVector* outVector);
-BOOL cxx_ScanQuaternionFromString(const std::optional<std::string>& wxyzString, Quaternion* outQuaternion);
-BOOL cxx_ScanVectorAndQuaternionFromString(const std::optional<std::string>& xyzwxyzString, Vector* outVector, Quaternion* outQuaternion);
+bool cxx_ScanVectorFromString(const std::optional<std::string>& xyzString, Vector* outVector);
+bool cxx_ScanHPVectorFromString(const std::optional<std::string>& xyzString, HPVector* outVector);
+bool cxx_ScanQuaternionFromString(const std::optional<std::string>& wxyzString, Quaternion* outQuaternion);
+bool cxx_ScanVectorAndQuaternionFromString(const std::optional<std::string>& xyzwxyzString, Vector* outVector, Quaternion* outQuaternion);
 
 Vector cxx_VectorFromString(const std::optional<std::string>& xyzString, Vector defaultValue);
 Quaternion cxx_QuaternionFromString(const std::optional<std::string>& wxyzString, Quaternion defaultValue);
@@ -51,20 +51,20 @@ NSPoint cxx_PointFromString(const std::string& xyString);
 Random_Seed cxx_RandomSeedFromString(const std::optional<std::string>& abcdefString);
 std::string cxx_StringFromRandomSeed(Random_Seed seed);
 
-std::string cxx_OOStringFromDeciCredits(OOCreditsQuantity tenthsOfCredits, BOOL includeDecimal, BOOL includeSymbol);
+std::string cxx_OOStringFromDeciCredits(OOCreditsQuantity tenthsOfCredits, bool includeDecimal, bool includeSymbol);
 
-OOINLINE std::string cxx_OOStringFromIntCredits(OOCreditsQuantity integerCredits, BOOL includeSymbol)
+OOINLINE std::string cxx_OOStringFromIntCredits(OOCreditsQuantity integerCredits, bool includeSymbol)
 {
-    return cxx_OOStringFromDeciCredits(integerCredits * 10, NO, includeSymbol);
+    return cxx_OOStringFromDeciCredits(integerCredits * 10, false, includeSymbol);
 }
 
 OOINLINE std::string cxx_OOCredits(OOCreditsQuantity tenthsOfCredits)
 {
-    return cxx_OOStringFromDeciCredits(tenthsOfCredits, YES, YES);
+    return cxx_OOStringFromDeciCredits(tenthsOfCredits, true, true);
 }
 OOINLINE std::string cxx_OOIntCredits(OOCreditsQuantity integerCredits)
 {
-    return cxx_OOStringFromIntCredits(integerCredits, YES);
+    return cxx_OOStringFromIntCredits(integerCredits, true);
 }
 
 std::string cxx_OOPadStringToEms(const std::string& string, float numEms);
@@ -80,7 +80,7 @@ std::vector<unsigned> cxx_ComponentsFromVersionString(const std::string& string)
 */
 OOComparisonResult cxx_CompareVersions(const std::vector<unsigned>& version1, const std::vector<unsigned>& version2);
 
-std::string cxx_ClockToString(double clock, BOOL adjusting);
+std::string cxx_ClockToString(double clock, bool adjusting);
 
 #if DEBUG_GRAPHVIZ
 

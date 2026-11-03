@@ -166,7 +166,7 @@ void controlsUnmatchedBrightnessRightGoesToFirstLeftWrapsToLast() {
 // Registered here rather than with OO_TEST: the macro's static registrars and
 // static functions are clang-tidy findings
 // (bugprone-throwing-static-initialization, misc-use-anonymous-namespace) in a
-// new file under tools/tier-a.sh. Same registry, same runner, same summary
+// new file. Same registry, same runner, same summary
 // line.
 int main() {
   ::oo_test::registry().push_back(

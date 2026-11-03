@@ -32,11 +32,13 @@ MA 02110-1301, USA.
 
 ::ShipEntity* ShipEntity::ejectShipOfType(const std::optional<std::string>& shipKey)
 {
-    ::ShipEntity* item = nil;
+    ::ShipEntity* item = nullptr;
 
     if (shipKey.has_value()) {
-        item = oo::ToShip(oo::AutoreleaseEntity((UNIVERSE != nullptr ? UNIVERSE->newShipWithName(*shipKey) : (::ShipEntity*)nil)));
-        if (item != nil)
+        item = oo::ToShip(oo::AutoreleaseEntity(
+            (UNIVERSE != nullptr ? UNIVERSE->newShipWithName(*shipKey)
+                                 : (::ShipEntity*)nullptr)));
+        if (item != nullptr)
             dumpItem(item);
     }
 
@@ -45,11 +47,13 @@ MA 02110-1301, USA.
 
 ::ShipEntity* ShipEntity::ejectShipOfRole(const std::optional<std::string>& role)
 {
-    ::ShipEntity* item = nil;
+    ::ShipEntity* item = nullptr;
 
     if (role.has_value()) {
-        item = oo::ToShip(oo::AutoreleaseEntity((UNIVERSE != nullptr ? UNIVERSE->newShipWithRole(*role) : (::ShipEntity*)nil)));
-        if (item != nil)
+        item = oo::ToShip(oo::AutoreleaseEntity(
+            (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole(*role)
+                                 : (::ShipEntity*)nullptr)));
+        if (item != nullptr)
             dumpItem(item);
     }
 
@@ -59,7 +63,7 @@ MA 02110-1301, USA.
 std::vector<oo::EntityHold> ShipEntity::spawnShipsWithRole(const std::string& role, NSUInteger count)
 {
     ::ShipEntity* ship = oo::ToShip(rootShipEntity()); // FIXME: (EMMSTRAN) implement an -absolutePosition method, use that in spawnShipWithRole:near:, and use self instead of root.
-    ::ShipEntity* spawned = nil;
+    ::ShipEntity* spawned = nullptr;
     std::vector<oo::EntityHold> result;
 
     if (count == 0)
@@ -70,8 +74,9 @@ std::vector<oo::EntityHold> ShipEntity::spawnShipsWithRole(const std::string& ro
     result.reserve(count);
 
     do {
-        spawned = (UNIVERSE != nullptr ? UNIVERSE->spawnShipWithRole(role, ship) : (::ShipEntity*)nil);
-        if (spawned != nil) {
+        spawned = (UNIVERSE != nullptr ? UNIVERSE->spawnShipWithRole(role, ship)
+                                       : (::ShipEntity*)nullptr);
+        if (spawned != nullptr) {
             if (spawned != nullptr)
                 spawned->setTemperature(randomEjectaTemperature());
             if (isMissileFlagSet() && (spawned != nullptr ? spawned->shipInfoDictionary() : oo::PList()).get<bool>("is_submunition")) {
@@ -80,7 +85,7 @@ std::vector<oo::EntityHold> ShipEntity::spawnShipsWithRole(const std::string& ro
                 if (spawned != nullptr)
                     spawned->addTarget(primaryTarget());
                 if (spawned != nullptr)
-                    spawned->setIsMissileFlag(YES);
+                    spawned->setIsMissileFlag(true);
             }
             if ((spawned != nullptr ? spawned->isMine() : false)) {
                 if (spawned != nullptr)

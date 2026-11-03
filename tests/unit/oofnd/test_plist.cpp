@@ -11,12 +11,6 @@
 #define true 1
 #define false 0
 #include "oofnd/PList.hpp"
-static_assert(std::is_same_v<decltype(true), int>,
-              "PList.hpp must restore OOCocoa.h's true macro");
-static_assert(std::is_same_v<decltype(false), int>,
-              "PList.hpp must restore OOCocoa.h's false macro");
-#undef true
-#undef false
 
 #include <cmath>
 #include <cstdint>

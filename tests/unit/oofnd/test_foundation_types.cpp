@@ -34,9 +34,6 @@ static_assert(std::is_same_v<CGFloat, double>);
 static_assert(CGFLOAT_IS_DOUBLE == 1);
 static_assert(std::is_same_v<NSTimeInterval, double>);
 
-// Recorded: BOOL is signed char (libobjc2's), 1 byte.
-static_assert(std::is_same_v<BOOL, signed char>);
-
 // Recorded: NSPoint/NSSize/NSRect are CGPoint/CGSize/CGRect.
 static_assert(std::is_same_v<NSPoint, CGPoint>);
 static_assert(std::is_same_v<NSSize, CGSize>);
@@ -84,19 +81,19 @@ OO_TEST(rangeFunctionsMatchGNUstep) {
   OO_CHECK_EQ(NSMaxRange(r), 7u);
   // Recorded: NSLocationInRange 2 -> 0, 3 -> 1, 6 -> 1, 7 -> 0; 0 in {0,0} ->
   // 0.
-  OO_CHECK_EQ(NSLocationInRange(2, r), NO);
-  OO_CHECK_EQ(NSLocationInRange(3, r), YES);
-  OO_CHECK_EQ(NSLocationInRange(6, r), YES);
-  OO_CHECK_EQ(NSLocationInRange(7, r), NO);
-  OO_CHECK_EQ(NSLocationInRange(0, NSMakeRange(0, 0)), NO);
+  OO_CHECK_EQ(NSLocationInRange(2, r), false);
+  OO_CHECK_EQ(NSLocationInRange(3, r), true);
+  OO_CHECK_EQ(NSLocationInRange(6, r), true);
+  OO_CHECK_EQ(NSLocationInRange(7, r), false);
+  OO_CHECK_EQ(NSLocationInRange(0, NSMakeRange(0, 0)), false);
   // Recorded: NSMakeRange(NSNotFound, 0) = {9223372036854775807, 0} (not an
   // overflow).
   const NSRange notFound = NSMakeRange(NSNotFound, 0);
   OO_CHECK_EQ(notFound.location, static_cast<NSUInteger>(NSNotFound));
   OO_CHECK_EQ(notFound.length, 0u);
   // Recorded: NSEqualRanges same -> 1, different length -> 0.
-  OO_CHECK_EQ(NSEqualRanges(r, NSMakeRange(3, 4)), YES);
-  OO_CHECK_EQ(NSEqualRanges(r, NSMakeRange(3, 5)), NO);
+  OO_CHECK_EQ(NSEqualRanges(r, NSMakeRange(3, 4)), true);
+  OO_CHECK_EQ(NSEqualRanges(r, NSMakeRange(3, 5)), false);
   // (Recorded: NSMakeRange(NSUIntegerMax, 2) raised NSRangeException; here it
   // aborts, by design.)
 }
@@ -117,25 +114,25 @@ OO_TEST(geometryEqualityMatchesGNUstep) {
   const NSSize s = NSMakeSize(3.0, 4.5);
   const NSRect rc = NSMakeRect(1, 2, 3, 4);
   // Recorded: NSEqualPoints same 1, diff 0, {0,-0} vs {-0,0} 1, NaN 0.
-  OO_CHECK_EQ(NSEqualPoints(p, NSMakePoint(1.5, -2.25)), YES);
-  OO_CHECK_EQ(NSEqualPoints(p, NSMakePoint(1.5, 2.25)), NO);
+  OO_CHECK_EQ(NSEqualPoints(p, NSMakePoint(1.5, -2.25)), true);
+  OO_CHECK_EQ(NSEqualPoints(p, NSMakePoint(1.5, 2.25)), false);
   OO_CHECK_EQ(NSEqualPoints(NSMakePoint(0.0, -0.0), NSMakePoint(-0.0, 0.0)),
-              YES);
-  OO_CHECK_EQ(NSEqualPoints(NSMakePoint(NAN, 0), NSMakePoint(NAN, 0)), NO);
+              true);
+  OO_CHECK_EQ(NSEqualPoints(NSMakePoint(NAN, 0), NSMakePoint(NAN, 0)), false);
   // Recorded: NSEqualSizes same 1, diff 0, -0 vs 0 1, NaN 0.
-  OO_CHECK_EQ(NSEqualSizes(s, NSMakeSize(3, 4.5)), YES);
-  OO_CHECK_EQ(NSEqualSizes(s, NSMakeSize(3, 4)), NO);
-  OO_CHECK_EQ(NSEqualSizes(NSMakeSize(-0.0, 0), NSMakeSize(0, 0)), YES);
-  OO_CHECK_EQ(NSEqualSizes(NSMakeSize(NAN, 0), NSMakeSize(NAN, 0)), NO);
+  OO_CHECK_EQ(NSEqualSizes(s, NSMakeSize(3, 4.5)), true);
+  OO_CHECK_EQ(NSEqualSizes(s, NSMakeSize(3, 4)), false);
+  OO_CHECK_EQ(NSEqualSizes(NSMakeSize(-0.0, 0), NSMakeSize(0, 0)), true);
+  OO_CHECK_EQ(NSEqualSizes(NSMakeSize(NAN, 0), NSMakeSize(NAN, 0)), false);
   // Recorded: NSEqualRects same 1, diff 0, -0 origin vs NSZeroRect 1, NaN 0,
   // and two empty rects at different origins 0 (equality is by all four fields,
   // not by emptiness).
-  OO_CHECK_EQ(NSEqualRects(rc, NSMakeRect(1, 2, 3, 4)), YES);
-  OO_CHECK_EQ(NSEqualRects(rc, NSMakeRect(1, 2, 3, 5)), NO);
-  OO_CHECK_EQ(NSEqualRects(NSMakeRect(-0.0, 0, 0, 0), NSZeroRect), YES);
+  OO_CHECK_EQ(NSEqualRects(rc, NSMakeRect(1, 2, 3, 4)), true);
+  OO_CHECK_EQ(NSEqualRects(rc, NSMakeRect(1, 2, 3, 5)), false);
+  OO_CHECK_EQ(NSEqualRects(NSMakeRect(-0.0, 0, 0, 0), NSZeroRect), true);
   OO_CHECK_EQ(NSEqualRects(NSMakeRect(NAN, 0, 0, 0), NSMakeRect(NAN, 0, 0, 0)),
-              NO);
-  OO_CHECK_EQ(NSEqualRects(NSMakeRect(5, 5, 0, 0), NSMakeRect(9, 9, 0, 0)), NO);
+              false);
+  OO_CHECK_EQ(NSEqualRects(NSMakeRect(5, 5, 0, 0), NSMakeRect(9, 9, 0, 0)), false);
 }
 
 OO_TEST_MAIN()

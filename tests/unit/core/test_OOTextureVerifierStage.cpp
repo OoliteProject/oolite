@@ -15,7 +15,7 @@
    The verifier registers and answers the C++ stage itself, so
    cxxTextureUserBehindTheFacade and textureStageFacade ask the stage (its
    description through description()). Run: bash
-   tools/check-core-tests.sh
+   tests/run.sh unit
 */
 
 #include <filesystem>
@@ -105,11 +105,11 @@ class StandInLoader final : public OOTextureLoader {
     (void)outHeight;
     unsigned width = 0, height = 0;
     if (std::sscanf(_contents.c_str(), "%ux%u", &width, &height) != 2)
-      return NO;
+      return false;
     *result = OOPixMap{};
     result->width = width;
     result->height = height;
-    return YES;
+    return true;
   }
 
  private:

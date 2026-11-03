@@ -15,7 +15,7 @@
    helper below. A particle is made in C++: the test
    subclass is a C++ subclass with the same answers, the class's own selectors
    are member calls and the root's are still sent to the object. Run: bash
-   tools/check-core-tests.sh
+   tests/run.sh unit
 */
 
 #include <cmath>
@@ -63,7 +63,7 @@ class TestUniverse : public Universe {
 class TestParticle : public OOLightParticleEntity {
  public:
   int _draws = 0;
-  OOTexture* _texture = nil;
+  OOTexture* _texture = nullptr;
 
   void drawImmediate(bool /*immediate*/, bool /*translucent*/) override {
     _draws++;
@@ -91,8 +91,8 @@ void SetCamZeroDistance(Entity* e, GLfloat value) {
 // --------------------------------------------------------------------------------------------------
 
 void SetUp() {
-  static Universe* universe = nil;
-  if (universe == nil) {
+  static Universe* universe = nullptr;
+  if (universe == nullptr) {
     universe = new TestUniverse();  // never released
   }
   gSharedUniverse = universe;
@@ -126,7 +126,7 @@ T* NewParticle(float diameter, Entity** outObject = nullptr) {
 OO_TEST(initWithDiameter) {
   {
     SetUp();
-    Entity* object = nil;
+    Entity* object = nullptr;
     OOLightParticleEntity* particle =
         NewParticle<OOLightParticleEntity>(8.0f, &object);
     OO_CHECK(particle != nullptr &&
@@ -146,7 +146,7 @@ OO_TEST(initWithDiameter) {
     OO_CHECK(NoDrawDistance(object) == expected);
 
     // A subclass initialises the same way.
-    Entity* subObject = nil;
+    Entity* subObject = nullptr;
     TestParticle* sub = NewParticle<TestParticle>(2.0f, &subObject);
     OO_CHECK(sub->diameter() == 2.0f && subObject->status() == STATUS_EFFECT &&
              subObject->isEffect());
@@ -178,7 +178,7 @@ OO_TEST(colorAndDiameter) {
 OO_TEST(drawSubEntity) {
   {
     SetUp();
-    Entity* object = nil;
+    Entity* object = nullptr;
     TestParticle* particle = NewParticle<TestParticle>(1.0f, &object);
     Entity* owner = oo::MadeEntity(oo::makeRef<Entity>());
     object->setOwner(owner);
@@ -203,7 +203,7 @@ OO_TEST(drawSubEntity) {
 
     // The base's own draw does nothing in the opaque pass, or beyond the draw
     // distance.
-    Entity* plain = nil;
+    Entity* plain = nullptr;
     (void)NewParticle<OOLightParticleEntity>(1.0f, &plain);
     plain->drawImmediate(false, false);
     SetCamZeroDistance(plain, NoDrawDistance(plain));
@@ -215,7 +215,7 @@ OO_TEST(drawSubEntity) {
 OO_TEST(texturesListTheSubclassTexture) {
   {
     SetUp();
-    Entity* object = nil;
+    Entity* object = nullptr;
     TestParticle* particle = NewParticle<TestParticle>(1.0f, &object);
     const oo::Ref<OOTexture> kept =
         oo::makeRef<OOTexture>();  // a C++ texture; only retained and compared
@@ -230,7 +230,7 @@ OO_TEST(texturesListTheSubclassTexture) {
 OO_TEST(description) {
   {
     SetUp();
-    Entity* object = nil;
+    Entity* object = nullptr;
     (void)NewParticle<TestParticle>(1.0f, &object);
     OO_CHECK(oo::EntityDescription(object).starts_with("<TestParticle 0x"));
     OO_CHECK(oo::EntityDescription(object).ends_with(
@@ -249,7 +249,7 @@ OO_TEST(cxxSubclassFacade) {
     const oo::Ref<TestCxxParticle> particle = oo::makeRef<TestCxxParticle>();
     particle->initWithDiameter(6.0f);
     Entity* facade = oo::MadeEntity(particle);
-    OO_CHECK(facade != nil);
+    OO_CHECK(facade != nullptr);
     OO_CHECK(particle->diameter() == 6.0f && facade->isEffect() &&
              !facade->canCollide() && facade->status() == STATUS_EFFECT);
     particle->setColor(OOColor::colorWithRed(0.5f, 0.25f, 0.0f, 1.0f).get(),

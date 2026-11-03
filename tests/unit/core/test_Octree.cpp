@@ -3,7 +3,7 @@
 
         The tests pin what the builder builds (and folds), the cache
    representation and its round trip, the volume, the random point, line hits
-   and octree-octree hits. Run: bash tools/check-core-tests.sh
+   and octree-octree hits. Run: tests/run.sh unit
 */
 
 #include <cmath>

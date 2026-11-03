@@ -72,8 +72,8 @@ namespace {
 
 void SetUp()
 {
-	static Universe *universe = nil;
-	if (universe == nil)
+	static Universe *universe = nullptr;
+	if (universe == nullptr)
 	{
 		universe = new TestUniverse();	// never released
 	}
@@ -132,7 +132,7 @@ OO_TEST(defaults)
 		oo::AutoreleaseScope scope;
 		SetUp();
 		Entity *wp = WaypointObject(Dict({ { "unused", oo::PList(1) } }));
-		OO_CHECK(wp != nil && Part(wp) != nullptr);
+		OO_CHECK(wp != nullptr && Part(wp) != nullptr);
 		OO_CHECK(HPvector_equal(wp->getPosition(), kZeroHPVector));
 		OO_CHECK(QuatIs(wp->getOrientation(), 1, 0, 0, 0) && Part(wp)->getOriented());
 		OO_CHECK(Part(wp)->size() == 1000.0);
@@ -265,8 +265,8 @@ OO_TEST(neighbours)
 		oo::AutoreleaseScope scope;
 		SetUp();
 		Entity *wp = Waypoint("W");
-		OO_CHECK(oo::PrevBeacon(wp) == nil && oo::NextBeacon(wp) == nil);
-		Entity *other = nil;
+		OO_CHECK(oo::PrevBeacon(wp) == nullptr && oo::NextBeacon(wp) == nullptr);
+		Entity *other = nullptr;
 		{
 			oo::AutoreleaseScope scope;
 			other = oo::RetainEntity(Waypoint("V"));
@@ -275,7 +275,7 @@ OO_TEST(neighbours)
 		oo::SetNextBeacon(wp, other);
 		OO_CHECK(oo::PrevBeacon(wp) == other && oo::NextBeacon(wp) == other);
 		oo::ReleaseEntity(other);		// weak: they read nil once it is gone
-		OO_CHECK(oo::PrevBeacon(wp) == nil && oo::NextBeacon(wp) == nil);
+		OO_CHECK(oo::PrevBeacon(wp) == nullptr && oo::NextBeacon(wp) == nullptr);
 	}
 }
 
@@ -318,7 +318,7 @@ OO_TEST(beaconSelectorsForAWaypointOnly)
 		SetUp();
 		Entity *plain = oo::MadeEntity(oo::makeRef<Entity>());
 		OO_CHECK(!oo::EntityIsBeacon(plain) && !oo::BeaconCode(plain).has_value());
-		OO_CHECK(oo::NextBeacon(plain) == nil);
+		OO_CHECK(oo::NextBeacon(plain) == nullptr);
 	}
 }
 
@@ -336,7 +336,7 @@ OO_TEST(jsExtensions)
 		const JSClassID expectedClass = JSWaypointClassID();
 		OO_CHECK(jsClass != 0 && jsClass == expectedClass);
 		OO_CHECK(OOJSEntityJSClassName(wp) == std::optional<std::string>("Waypoint"));
-		OO_CHECK(OOJSEntityIsVisibleToScripts(wp) == YES);
+		OO_CHECK(OOJSEntityIsVisibleToScripts(wp) == true);
 	}
 }
 

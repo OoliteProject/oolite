@@ -1,7 +1,7 @@
 """G9 - the post-exit hygiene every GUI test in this tier is held to.
 
-docs/phases/0-gui-tier.md G9. Written the way test_g1_exit_via_mouse.py is written: the ``game``
-fixture, no launcher of its own, the desktop lock inherited, and every guard that needs neither a
+G9. Written the way test_g1_exit_via_mouse.py is written: the ``game``
+fixture, no launcher of its own, and every guard that needs neither a
 desktop nor a build marked ``offline`` so it gates in a clean checkout.
 
     python3 -m pytest oolite-dev/tests/gui/test_g9_post_exit_hygiene.py -x -q
@@ -59,8 +59,9 @@ so a fresh plist in the SHARED build would satisfy it while G7's private pristin
 nothing). It is left exactly as it is; the meta-test below requires the shared baseline and does
 not forbid a test from asserting more.
 
-Needs the desktop for the launching test: a real window, unlocked and logged in. It
-takes tools/gui-lock for the duration via the ``game`` fixture and launches nothing of its own.
+Needs the desktop for the launching test: a real window, unlocked and logged in, left alone
+while it runs. The game is launched through the ``game`` fixture; this file launches nothing of
+its own.
 """
 
 import ast

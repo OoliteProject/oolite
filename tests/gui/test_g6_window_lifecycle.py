@@ -1,6 +1,6 @@
 """G6 - window lifecycle: resize, minimise/restore, fullscreen.
 
-docs/phases/0-gui-tier.md G6: "Resize, minimise/restore, fullscreen toggle. GL context survival."
+G6: "Resize, minimise/restore, fullscreen toggle. GL context survival."
 
 Written the way test_g3_exit_via_window_close.py is written: SHORT where it can be, and reusing
 conftest.py wholesale. The desktop lock, the readiness gate, DPI awareness, the pinned window,
@@ -89,8 +89,8 @@ PINNED_CLIENT_SIZE - before the game is asked to exit, so nothing this test move
 
     python3 -m pytest oolite-dev/tests/gui/test_g6_window_lifecycle.py -x -q
 
-Needs the desktop: a real window, unlocked and logged in. It takes tools/gui-lock for
-the duration, via the ``game`` fixture - this file launches nothing of its own.
+Needs the desktop: a real window, unlocked and logged in, left alone while it runs.
+The game is launched through the ``game`` fixture; this file launches nothing of its own.
 """
 
 import ast
@@ -608,7 +608,7 @@ def test_g6_window_lifecycle(window_witness, game):
         "back somewhere else the moment anything else restored it."
     )
 
-    # GL CONTEXT SURVIVAL, which is the reason G6 exists at all (docs/phases/0-gui-tier.md).
+    # GL CONTEXT SURVIVAL, which is the reason G6 exists at all.
     # Two separate claims: the game is still STEPPING FRAMES (UNIVERSE's clock only advances
     # inside the run loop, OOJSClock.m) and it still knows how big its drawable is. A game whose
     # context died on the minimise typically survives as a process, which is exactly why

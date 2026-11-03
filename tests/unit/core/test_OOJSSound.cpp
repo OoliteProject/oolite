@@ -90,7 +90,7 @@ public:
 struct MusicRecord
 {
 	std::optional<std::string> _playing;
-	BOOL _loop = NO;
+	bool _loop = false;
 	float _gain = 0.0f;
 	int _stops = 0;
 };
@@ -267,15 +267,15 @@ JSValue OOJSValueFromPList(JSContext *context, const oo::PList &plist)
 }
 
 
-BOOL cxx_OOJSArgumentListGetNumber(JSContext *context, const std::optional<std::string> &scriptClass, const std::optional<std::string> &function, int argc, JSValueConst *argv, double *outNumber, int *outConsumed)
+bool cxx_OOJSArgumentListGetNumber(JSContext *context, const std::optional<std::string> &scriptClass, const std::optional<std::string> &function, int argc, JSValueConst *argv, double *outNumber, int *outConsumed)
 {
 	if (argc > 0 && JS_ToFloat64(context, outNumber, argv[0]) == 0 && !std::isnan(*outNumber))
 	{
 		if (outConsumed != NULL)  *outConsumed = 1;
-		return YES;
+		return true;
 	}
 	cxx_OOJSReportBadArguments(context, scriptClass, function, argc, argv, "Expected number, got", std::nullopt);
-	return NO;
+	return false;
 }
 
 

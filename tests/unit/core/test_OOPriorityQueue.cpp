@@ -2,7 +2,7 @@
         Unit tests for OOPriorityQueueOf (src/Core/OOPriorityQueue.h), the
    binary heap over C++ elements that the timer queue (OOScriptTimer) holds. The
    expected orders are literals measured from a reference implementation. Run:
-   bash tools/check-core-tests.sh
+   tests/run.sh unit
 */
 
 #include <string>

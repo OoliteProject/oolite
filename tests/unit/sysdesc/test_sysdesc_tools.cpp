@@ -12,7 +12,7 @@
    behaviour so that a later change to it shows, and say nothing about what the
    hash-ordered original wrote.
 
-        Built and run by tools/check-sysdesc-tools.sh, which compiles the tree's
+        Built and run by a script that compiles the tree's
         OOConvertSystemDescriptions.mm against the stubs in this directory
    (ResourceManager: the sysdesc inputs and the diagnostic files it writes;
    Universe: the descriptions) and runs it over the shipped
@@ -97,7 +97,7 @@ bool ResourceManager::writeDiagnosticData(const oo::Data& data,
   sLines.push_back(
       oo::str::format("file %s %zu %016llx", name.c_str(), data.length(),
                       (unsigned long long)FNV1a(data.bytes(), data.length())));
-  return YES;
+  return true;
 }
 
 // The C++ universe's member.
@@ -141,7 +141,7 @@ uint64_t Digest(const std::vector<std::string>& lines) {
 
 int sFailures = 0;
 
-void CheckLine(const char* line, const oo::PList& keys, BOOL useFallback,
+void CheckLine(const char* line, const oo::PList& keys, bool useFallback,
                const char* expected, bool print) {
   const std::string result =
       OOStringifySystemDescriptionLine(line, keys, useFallback);
@@ -186,19 +186,19 @@ int main(int argc, const char* argv[]) {
     };
 
     sKeyTable = oo::PList();
-    run([] { ExportSystemDescriptions(NO); });
+    run([] { ExportSystemDescriptions(false); });
     const oo::Data exportedPlain = sWritten["sysdesc.plist"];
-    run([] { ExportSystemDescriptions(YES); });
+    run([] { ExportSystemDescriptions(true); });
     sKeyTable = KeyTable();
-    run([] { ExportSystemDescriptions(NO); });
+    run([] { ExportSystemDescriptions(false); });
     const oo::Data exportedKeyed = sWritten["sysdesc.plist"];
 
     sKeyTable = oo::PList();
     sSysdesc = Parse(exportedPlain);
-    run([] { CompileSystemDescriptions(NO); });
+    run([] { CompileSystemDescriptions(false); });
     sKeyTable = KeyTable();
     sSysdesc = Parse(exportedKeyed);
-    run([] { CompileSystemDescriptions(YES); });
+    run([] { CompileSystemDescriptions(true); });
 
     for (size_t i = 0; i < recorded.size(); i++) {
       const uint64_t digest = Digest(recorded[i]);
@@ -216,18 +216,18 @@ int main(int argc, const char* argv[]) {
     // fallback), other brackets as they stand, UTF-16 units kept, a "[" with no
     // "]" after it left alone.
     const oo::PList keys = KeyTable();
-    CheckLine("[0] and [3]", keys, NO, "[#planet_is] and [#is_famous]", print);
-    CheckLine("[0] and [7]", keys, NO, "[#planet_is] and [7]", print);
-    CheckLine("[0] and [7]", keys, YES, "[#planet_is] and [#block_7]", print);
-    CheckLine("[x0] [] [0x] [#3]", keys, YES, "[x0] [] [0x] [#3]", print);
-    CheckLine("\xC3\xA9[3]\xF0\x9F\x98\x80[14]", keys, NO,
+    CheckLine("[0] and [3]", keys, false, "[#planet_is] and [#is_famous]", print);
+    CheckLine("[0] and [7]", keys, false, "[#planet_is] and [7]", print);
+    CheckLine("[0] and [7]", keys, true, "[#planet_is] and [#block_7]", print);
+    CheckLine("[x0] [] [0x] [#3]", keys, true, "[x0] [] [0x] [#3]", print);
+    CheckLine("\xC3\xA9[3]\xF0\x9F\x98\x80[14]", keys, false,
               "\xC3\xA9[#is_famous]\xF0\x9F\x98\x80[#system_description_root]",
               print);
-    CheckLine("[3] then [0", keys, NO, "[#is_famous] then [0", print);
-    CheckLine("]x[3]", keys, NO, "]x[3]", print);
-    CheckLine("[007]", keys, NO, "[007]", print);
-    CheckLine("[007]", keys, YES, "[#block_7]", print);
-    CheckLine("", keys, YES, "", print);
+    CheckLine("[3] then [0", keys, false, "[#is_famous] then [0", print);
+    CheckLine("]x[3]", keys, false, "]x[3]", print);
+    CheckLine("[007]", keys, false, "[007]", print);
+    CheckLine("[007]", keys, true, "[#block_7]", print);
+    CheckLine("", keys, true, "", print);
 
     if (sFailures != 0) {
       printf("test_sysdesc_tools: %d failure(s)\n", sFailures);

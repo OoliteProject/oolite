@@ -172,7 +172,7 @@ static bool JSVisualEffectGetVisualEffectEntity(JSContext* context, JSValueConst
 
     if (outEntity == NULL)
         return false;
-    *outEntity = nil;
+    *outEntity = nullptr;
 
     result = OOJSEntityGetEntity(context, visualEffectObj, &entity);
     if (!result)
@@ -216,12 +216,12 @@ static JSValue VisualEffectGetProperty(OOJS_GETTER_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    OOVisualEffectEntity* entity = nil;
+    OOVisualEffectEntity* entity = nullptr;
     oo::PList result; // null maps to null
 
     if (!JSVisualEffectGetVisualEffectEntity(context, thisObj, &entity))
         return OOJSNativeFailure(context);
-    if (entity == nil) {
+    if (entity == nullptr) {
         return JS_UNDEFINED;
     }
 
@@ -320,7 +320,7 @@ static JSValue VisualEffectSetProperty(OOJS_SETTER_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    OOVisualEffectEntity* entity = nil;
+    OOVisualEffectEntity* entity = nullptr;
     int bValue;
     oo::Ref<OOColor> colorForScript;
     int32_t iValue;
@@ -330,7 +330,7 @@ static JSValue VisualEffectSetProperty(OOJS_SETTER_ARGS)
 
     if (!JSVisualEffectGetVisualEffectEntity(context, thisObj, &entity))
         return OOJSNativeFailure(context);
-    if (entity == nil)
+    if (entity == nullptr)
         return JS_UNDEFINED;
 
     switch (magic) {
@@ -523,7 +523,7 @@ static JSValue VisualEffectRemove(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    OOVisualEffectEntity* thisEnt = nil;
+    OOVisualEffectEntity* thisEnt = nullptr;
     GET_THIS_EFFECT(thisEnt);
 
     if ((thisEnt != nullptr ? thisEnt->getIsSubEntity() : false)) {
@@ -546,7 +546,7 @@ static JSValue VisualEffectGetMaterials(OOJS_NATIVE_ARGS)
     OOJS_PROFILE_ENTER
 
     oo::PList result;
-    OOVisualEffectEntity* thisEnt = nil;
+    OOVisualEffectEntity* thisEnt = nullptr;
 
     GET_THIS_EFFECT(thisEnt);
 
@@ -564,7 +564,7 @@ static JSValue VisualEffectGetShaders(OOJS_NATIVE_ARGS)
     OOJS_PROFILE_ENTER
 
     oo::PList result;
-    OOVisualEffectEntity* thisEnt = nil;
+    OOVisualEffectEntity* thisEnt = nullptr;
 
     GET_THIS_EFFECT(thisEnt);
 
@@ -581,7 +581,7 @@ static JSValue VisualEffectSetMaterials(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    OOVisualEffectEntity* thisEnt = nil;
+    OOVisualEffectEntity* thisEnt = nullptr;
 
     if (argc < 1) {
         cxx_OOJSReportBadArguments(context, "VisualEffect", "setMaterials", 0, OOJS_ARGV, std::nullopt, "parameter object");
@@ -600,7 +600,7 @@ static JSValue VisualEffectSetShaders(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    OOVisualEffectEntity* thisEnt = nil;
+    OOVisualEffectEntity* thisEnt = nullptr;
 
     GET_THIS_EFFECT(thisEnt);
 
@@ -705,7 +705,7 @@ static JSValue VisualEffectScale(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    OOVisualEffectEntity* thisEnt = nil;
+    OOVisualEffectEntity* thisEnt = nullptr;
     GET_THIS_EFFECT(thisEnt);
     double scale = 0.0;
     bool gotScale;
@@ -738,7 +738,7 @@ static JSValue VisualEffectRestoreSubEntities(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    OOVisualEffectEntity* thisEnt = nil;
+    OOVisualEffectEntity* thisEnt = nullptr;
     NSUInteger numSubEntitiesRestored = 0U;
 
     GET_THIS_EFFECT(thisEnt);

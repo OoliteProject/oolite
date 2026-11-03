@@ -10,7 +10,7 @@
 	the test defines those classes; the class's header names OOJSScript with @class for that. The tests pin the
 	initial state, the callback and its `this` (kept alive across a garbage collection), the run
 	(its `this`, its location, the owning script pushed and popped), an engine reset, and the weak
-	reference to a definition. Run: bash tools/check-core-tests.sh
+	reference to a definition. Run: tests/run.sh unit
 */
 
 #include "OOJSPopulatorDefinition.h"
@@ -82,11 +82,11 @@ bool OOJavaScriptEngine::callJSFunction(JSValueConst function, JSValueConst jsTh
 	{
 		JS_FreeValue(context, JS_GetException(context));
 		if (outResult != NULL)  *outResult = JS_UNDEFINED;
-		return NO;
+		return false;
 	}
 	if (outResult != NULL)  *outResult = result;
 	else  JS_FreeValue(context, result);
-	return YES;
+	return true;
 }
 
 

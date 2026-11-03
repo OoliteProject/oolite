@@ -2,8 +2,8 @@
 not fleet work - stop and report it.
 
 Every step drives the game through JS that already exists. Nothing here adds a native property:
-assertions are built from countShipsWithRole, system.allShips and the entity/ship properties listed
-in docs/phases/0-component-tier.md.
+assertions are built from countShipsWithRole, system.allShips and the entity/ship properties the
+scenarios in tests/component/features use.
 """
 
 import time

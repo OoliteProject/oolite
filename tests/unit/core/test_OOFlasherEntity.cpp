@@ -15,7 +15,7 @@
 	facade case pins the crossing (the object is OOLightParticleEntity's, whose C++ part is
 	the flasher), and jsExtensions pins that the engine's selectors reach the C++ class's overrides
 	through the root.
-	Run: bash tools/check-core-tests.sh
+	Run: tests/run.sh unit
 */
 
 #include "OOFlasherEntity.h"
@@ -72,8 +72,8 @@ namespace {
 
 void SetUp()
 {
-	static Universe *universe = nil;
-	if (universe == nil)
+	static Universe *universe = nullptr;
+	if (universe == nullptr)
 	{
 		universe = new TestUniverse();	// never released
 	}
@@ -195,9 +195,9 @@ OO_TEST(accessors)
 	{
 		SetUp();
 		OOFlasherEntity *flasher = Flasher(WhiteBlack(1, 0.5));
-		flasher->setActive(NO);
+		flasher->setActive(false);
 		OO_CHECK(!flasher->isActive());
-		flasher->setActive(YES);
+		flasher->setActive(true);
 		OO_CHECK(flasher->isActive());
 		flasher->setFrequency(7.0f);
 		OO_CHECK(flasher->frequency() == 7.0f);
@@ -268,11 +268,11 @@ OO_TEST(drawsOnlyWhileActive)
 		flasher->setOwner(owner);
 		SetCamZeroDistance(flasher, 5.0f);
 
-		flasher->setActive(NO);
+		flasher->setActive(false);
 		flasher->drawSubEntityImmediate(true, true);
 		OO_CHECK(CamZeroDistance(flasher) == 5.0f);	// not drawn
 
-		flasher->setActive(YES);
+		flasher->setActive(true);
 		flasher->drawSubEntityImmediate(true, true);
 		OO_CHECK(CamZeroDistance(flasher) == 1e30f);	// OOLightParticleEntity's draw read the owner's distance
 	}
@@ -348,7 +348,7 @@ OO_TEST(jsExtensions)
 		const JSClassID expectedClass = JSFlasherClassID();
 		OO_CHECK(jsClass != 0 && jsClass == expectedClass);
 		OO_CHECK(OOJSEntityJSClassName(flasher) == std::optional<std::string>("Flasher"));
-		OO_CHECK(OOJSEntityIsVisibleToScripts(flasher) == YES);
+		OO_CHECK(OOJSEntityIsVisibleToScripts(flasher) == true);
 	}
 }
 

@@ -99,16 +99,16 @@ void OOJSRegisterSubclass(JSClassID subclass, JSClassID superclass)
     sSuperclasses[subclass] = superclass;
 }
 
-BOOL OOJSIsSubclass(JSClassID putativeSubclass, JSClassID superclass)
+bool OOJSIsSubclass(JSClassID putativeSubclass, JSClassID superclass)
 {
     while (putativeSubclass != 0 && putativeSubclass < kOOJSMaxClassID) {
         if (putativeSubclass == superclass)
-            return YES;
+            return true;
 
         putativeSubclass = sSuperclasses[putativeSubclass];
     }
 
-    return NO;
+    return false;
 }
 
 static int CompareAtoms(const void* a, const void* b)
@@ -130,7 +130,7 @@ static void RecordSharedProperties(JSContext* context, JSClassID classID, const 
             JSAtom atom = cxx_OOJSIDFromString(properties[i].name);
 
             // Some tables define a property twice (e.g. Ship's homeSystem); like SpiderMonkey, keep the first.
-            BOOL duplicate = NO;
+            bool duplicate = false;
             for (uint32_t j = 0; j < table->count && !duplicate; j++)
                 duplicate = (table->atoms[j] == atom);
             if (!duplicate)
@@ -147,7 +147,7 @@ static void RecordSharedProperties(JSContext* context, JSClassID classID, const 
     }
 }
 
-static BOOL TableContainsAtom(const SharedPropertyTable* table, JSAtom atom)
+static bool TableContainsAtom(const SharedPropertyTable* table, JSAtom atom)
 {
     return table->count != 0 && bsearch(&atom, table->sortedAtoms, table->count, sizeof(JSAtom), CompareAtoms) != NULL;
 }

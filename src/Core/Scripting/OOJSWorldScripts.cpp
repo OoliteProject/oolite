@@ -103,11 +103,11 @@ static int WorldScriptsGetOwnProperty(JSContext* context, JSPropertyDescriptor* 
                     desc->getter = JS_UNDEFINED;
                     desc->setter = JS_UNDEFINED;
                 }
-                return YES;
+                return true;
             }
         }
 
-        return NO;
+        return false;
     } catch (...) {
         OOJSReportCurrentException(context);
         return -1;

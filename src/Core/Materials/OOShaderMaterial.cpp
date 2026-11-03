@@ -65,7 +65,10 @@ std::optional<std::string> StringForKey(const oo::PList& dictionary, std::string
 namespace {
 
 // nullopt fileName: no shader of this type (YES, *outResult untouched).
-BOOL GetShaderSource(const std::optional<std::string>& fileName, const std::string& shaderType, const std::optional<std::string>& prefix, std::optional<std::string>* outResult);
+bool GetShaderSource(const std::optional<std::string>& fileName,
+    const std::string& shaderType,
+    const std::optional<std::string>& prefix,
+    std::optional<std::string>* outResult);
 // A macro dictionary as #define lines; nullopt for none or an empty result.
 std::optional<std::string> MacrosToString(const oo::PList& macros);
 
@@ -198,12 +201,12 @@ bool OOShaderMaterial::initWithName(const std::optional<std::string>& name,
 
 // no reduced complexity mode now
 #if 0
-			if (shaderProgram == nil)
+			if (shaderProgram == nullptr)
 			{
 
-				BOOL canFallBack = !modifiedMacros.get<bool>("OO_REDUCED_COMPLEXITY");
+				bool canFallBack = !modifiedMacros.get<bool>("OO_REDUCED_COMPLEXITY");
 #ifdef OO_DEBUG_MONITOR_ENABLED
-				if (gDebugFlags & DEBUG_NO_SHADER_FALLBACK)  canFallBack = NO;
+				if (gDebugFlags & DEBUG_NO_SHADER_FALLBACK)  canFallBack = false;
 #endif
 				if (canFallBack)
 				{
@@ -217,7 +220,7 @@ bool OOShaderMaterial::initWithName(const std::optional<std::string>& name,
 					shaderProgram = OOShaderProgram::shaderProgramWithVertexShader(vertexShader, fragmentShader, vsName, fsName, macroString, attributeBindings, cacheKey);
 					OOLogOutdent();
 
-					if (shaderProgram != nil)
+					if (shaderProgram != nullptr)
 					{
 						OO_LOG("shader.load.fallbackSuccess", "{}", "Simple mode fallback successful.");
 					}
@@ -225,14 +228,14 @@ bool OOShaderMaterial::initWithName(const std::optional<std::string>& name,
 			}
 #endif
 
-            if (shaderProgram.get() == nil) {
+            if (shaderProgram.get() == nullptr) {
                 OO_LOG_ERR("shader.load.failed", "Could not build shader {}/{}.", vsName.value_or("(null)"), fsName.value_or("(null)"));
             }
         } else {
             OO_LOG("shader.load.noShader", "***** Error: no vertex or fragment shader specified in shader dictionary:\n{}", oo::DescriptionOf(configuration));
         }
 
-        OK = (shaderProgram.get() != nil);
+        OK = (shaderProgram.get() != nullptr);
     }
 
     if (OK) {
@@ -262,7 +265,9 @@ bool OOShaderMaterial::initWithName(const std::optional<std::string>& name,
         }
 
         if (uniforms.find("uGammaCorrect") == uniforms.end()) {
-            BOOL gammaCorrect = configuration.get<bool>("gamma_correct", !oo::Defaults::standard().boolForKey("no-gamma-correct"));
+            bool gammaCorrect = configuration.get<bool>(
+                "gamma_correct",
+                !oo::Defaults::standard().boolForKey("no-gamma-correct"));
             setUniform("uGammaCorrect", (float)gammaCorrect);
         }
     }
@@ -411,9 +416,9 @@ void OOShaderMaterial::addUniformsFromDictionary(const oo::PList& uniformDefs, E
     std::optional<std::string> binding;
     std::optional<std::string> type;
     GLfloat floatValue;
-    BOOL gotValue;
+    bool gotValue;
     OOUniformConvertOptions convertOptions;
-    BOOL quatAsMatrix = YES;
+    bool quatAsMatrix = true;
     GLfloat scale = 1.0;
     uint32_t randomSeed;
     RANROTSeed savedSeed;
@@ -432,7 +437,7 @@ void OOShaderMaterial::addUniformsFromDictionary(const oo::PList& uniformDefs, E
     // same as UTF-8 byte order).
     const oo::PList::Dict* definitions = uniformDefs.getIf<oo::PList::Dict>();
     for (const auto& [name, definition] : (definitions != nullptr) ? *definitions : oo::PList::Dict()) {
-        gotValue = NO;
+        gotValue = false;
 
         type.reset();
         value = oo::PList();
@@ -455,7 +460,7 @@ void OOShaderMaterial::addUniformsFromDictionary(const oo::PList& uniformDefs, E
             value = definition;
             type = "float";
         } else if (const std::string* string = definition.getIf<std::string>()) {
-            if (OOIsNumberLiteral(*string, NO)) {
+            if (OOIsNumberLiteral(*string, false)) {
                 value = definition;
                 type = "float";
             } else {
@@ -487,13 +492,13 @@ void OOShaderMaterial::addUniformsFromDictionary(const oo::PList& uniformDefs, E
 
         if (type == "float" || type == "real") {
             // -floatValue: only a number or a string answers it.
-            gotValue = YES;
+            gotValue = true;
             if (value.isNumber())
                 floatValue = oo::plist_get::numberFloatValue(value);
             else if (const std::string* string = value.getIf<std::string>())
                 floatValue = (float)oo::str::doubleValue(*string);
             else
-                gotValue = NO;
+                gotValue = false;
 
             if (gotValue) {
                 setUniform(name, floatValue);
@@ -509,14 +514,14 @@ void OOShaderMaterial::addUniformsFromDictionary(const oo::PList& uniformDefs, E
             // -intValue: only a number or a string answers it.
             if (value.isNumber()) {
                 setUniform(name, (int)value.int64Value());
-                gotValue = YES;
+                gotValue = true;
             } else if (const std::string* string = value.getIf<std::string>()) {
                 setUniform(name, (int)oo::str::intValue(*string));
-                gotValue = YES;
+                gotValue = true;
             }
         } else if (type == "vector") {
             setUniform(name, value);
-            gotValue = YES;
+            gotValue = true;
         } else if (type == "quaternion") {
             if (definition.isDict()) {
                 quatAsMatrix = definition.get<bool>("asMatrix", quatAsMatrix);
@@ -524,7 +529,7 @@ void OOShaderMaterial::addUniformsFromDictionary(const oo::PList& uniformDefs, E
             setUniform(name,
                 OOQuaternionFromPList(&value, kIdentityQuaternion),
                 quatAsMatrix);
-            gotValue = YES;
+            gotValue = true;
         } else if (target != nullptr && type == "binding") {
             if (definition.isDict()) {
                 convertOptions = 0;
@@ -542,7 +547,7 @@ void OOShaderMaterial::addUniformsFromDictionary(const oo::PList& uniformDefs, E
             }
 
             bindSafeUniform(name, target, binding, convertOptions);
-            gotValue = YES;
+            gotValue = true;
         }
 
         if (!gotValue) {
@@ -735,10 +740,13 @@ std::optional<std::string> MacrosToString(const oo::PList& macros)
 */
 namespace {
 
-BOOL GetShaderSource(const std::optional<std::string>& fileName, const std::string& shaderType, const std::optional<std::string>& /* prefix: unused, as before */, std::optional<std::string>* outResult)
+bool GetShaderSource(
+    const std::optional<std::string>& fileName, const std::string& shaderType,
+    const std::optional<std::string>& /* prefix: unused, as before */,
+    std::optional<std::string>* outResult)
 {
     if (!fileName.has_value())
-        return YES; // It's OK for one or the other of the shaders to be undefined.
+        return true; // It's OK for one or the other of the shaders to be undefined.
 
     std::optional<std::string> result = ResourceManager::stringFromFilesNamed(*fileName, std::string("Shaders"));
     if (!result.has_value()) {
@@ -755,13 +763,13 @@ BOOL GetShaderSource(const std::optional<std::string>& fileName, const std::stri
         }
         if (!result.has_value()) {
             OO_LOG(cxx_kOOLogFileNotFound, "GLSL ERROR: failed to find {} program {}.", shaderType, *fileName);
-            return NO;
+            return false;
         }
     }
 
     if (outResult != NULL)
         *outResult = result;
-    return YES;
+    return true;
 }
 
 } // namespace

@@ -8,15 +8,7 @@
    --suite oofnd-plist
 */
 
-// Included as game code will include it, after OOCocoa.h's true/false macros
-// (see test_plist.cpp).
-#define true 1
-#define false 0
 #include "oofnd/PListOldStyle.hpp"
-static_assert(std::is_same_v<decltype(false), int>,
-              "PListOldStyle.hpp must restore OOCocoa.h's false macro");
-#undef true
-#undef false
 
 #include <string>
 #include <string_view>

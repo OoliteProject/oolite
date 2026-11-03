@@ -919,6 +919,3 @@ private:
 };
 
 } // namespace oo::str
-
-#pragma pop_macro("false")
-#pragma pop_macro("true")

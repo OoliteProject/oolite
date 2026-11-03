@@ -52,7 +52,7 @@ MA 02110-1301, USA.
 #define SAVEDIR "oolite-saves"
 #define SNAPSHOTDIR "snapshots"
 
-extern "C" int SaveEXRSnapshot(const char* outfilename, int width, int height, const float* rgb);
+int SaveEXRSnapshot(const char* outfilename, int width, int height, const float* rgb);
 
 #include "oofnd/Date.hpp"
 #include <ctype.h>
@@ -140,13 +140,13 @@ void MyOpenGLView::createWindowWithSize(NSSize size)
     OO_LOG("display.initGL", "Trying {}-bpcc, 24-bit depth buffer", static_cast<int>(bitsPerColorComponent));
     if (bitsPerColorComponent > 8) {
         SDL_GL_SetAttribute(SDL_GL_FLOATBUFFERS, 1);
-        _hdrOutput = YES;
+        _hdrOutput = true;
     } else {
         SDL_GL_SetAttribute(SDL_GL_RED_SIZE, bitsPerColorComponent);
         SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, bitsPerColorComponent);
         SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, bitsPerColorComponent);
         SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, bitsPerColorComponent);
-        _hdrOutput = NO;
+        _hdrOutput = false;
     }
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
@@ -194,7 +194,7 @@ void MyOpenGLView::createWindowWithSize(NSSize size)
         SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
         SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
         window = SDL_CreateWindowWithProperties(props);
-        _hdrOutput = NO;
+        _hdrOutput = false;
     }
 
     if (!window) {
@@ -257,7 +257,7 @@ void MyOpenGLView::createWindowWithSize(NSSize size)
         exit(1);
     }
 
-    atDesktopResolution = YES;
+    atDesktopResolution = true;
 
 #endif // OOLITE_WINDOWS
 
@@ -271,7 +271,7 @@ void MyOpenGLView::createWindowWithSize(NSSize size)
         const SDL_PixelFormatDetails* pixelFormat = SDL_GetPixelFormatDetails(icon->format);
         const SDL_Palette* palette = SDL_GetSurfacePalette(icon);
         Uint32 colorkey = SDL_MapRGB(pixelFormat, palette, 128, 0, 128);
-        SDL_SetSurfaceColorKey(icon, YES, colorkey);
+        SDL_SetSurfaceColorKey(icon, true, colorkey);
         SDL_SetWindowIcon(window, icon);
     }
     SDL_DestroySurface(icon);
@@ -344,13 +344,13 @@ bool MyOpenGLView::init()
 
     oo::Defaults& prefs = oo::Defaults::standard();
     const oo::PList splashScreen = prefs.object("splash-screen");
-    showSplashScreen = oo::PListGet<bool>::from(splashScreen.isNull() ? nullptr : &splashScreen, true) ? YES : NO;
+    showSplashScreen = oo::PListGet<bool>::from(splashScreen.isNull() ? nullptr : &splashScreen, true) ? true : false;
     const oo::PList vSync = prefs.object("v-sync");
-    vSyncPreference = oo::PListGet<bool>::from(vSync.isNull() ? nullptr : &vSync, true) ? YES : NO;
+    vSyncPreference = oo::PListGet<bool>::from(vSync.isNull() ? nullptr : &vSync, true) ? true : false;
     const oo::PList hdr = prefs.object("hdr");
     bitsPerColorComponent = oo::PListGet<bool>::from(hdr.isNull() ? nullptr : &hdr, false) ? 16 : 8;
 
-    BOOL noSplashArgFound = NO;
+    bool noSplashArgFound = false;
 
     initKeyMappingData();
 
@@ -362,15 +362,15 @@ bool MyOpenGLView::init()
     for (const std::string& argument : oo::process::arguments()) {
         const std::string& arg = argument;
         if (arg == "-nosplash" || arg == "--nosplash") {
-            showSplashScreen = NO;
-            noSplashArgFound = YES; // -nosplash always trumps -splash
+            showSplashScreen = false;
+            noSplashArgFound = true; // -nosplash always trumps -splash
         } else if ((arg == "-splash" || arg == "--splash") && !noSplashArgFound) {
-            showSplashScreen = YES;
+            showSplashScreen = true;
         }
 
         // if V-sync is disabled at the command line, override the defaults file
         if (arg == "-novsync" || arg == "--novsync")
-            vSyncPreference = NO;
+            vSyncPreference = false;
 
         if (arg == "-hdr")
             bitsPerColorComponent = 16;
@@ -404,7 +404,7 @@ bool MyOpenGLView::init()
     populateFullScreenModelist();
 
     // Find what the full screen and windowed settings are.
-    fullScreen = NO;
+    fullScreen = false;
     currentSize = 0;
     loadWindowSize();
     loadFullscreenSettings();
@@ -420,7 +420,7 @@ bool MyOpenGLView::init()
     if (!OOSound::isSoundOK())
         OO_LOG("sound.init", "{}", "Sound system disabled.");
 
-    grabMouseStatus = NO;
+    grabMouseStatus = false;
 
     OO_LOG("display.mode.list", "{}", "CREATING MODE LIST");
 
@@ -432,7 +432,7 @@ bool MyOpenGLView::init()
     autoShowMouse();
 
     virtualJoystickPosition = NSMakePoint(0.0, 0.0);
-    mouseWarped = NO;
+    mouseWarped = false;
 
     const oo::PList mouseFlightSensitivity = prefs.object("mouse-flight-sensitivity");
     _mouseVirtualStickSensitivityFactor = OOClamp_0_1_f(oo::PListGet<float>::from(mouseFlightSensitivity.isNull() ? nullptr : &mouseFlightSensitivity, 0.95f));
@@ -441,7 +441,7 @@ bool MyOpenGLView::init()
         _mouseVirtualStickSensitivityFactor = 0.005f;
 
     allowingStringInput = gvStringInputNo;
-    isAlphabetKeyDown = NO;
+    isAlphabetKeyDown = false;
 
     timeIntervalAtLastClick = (NSTimeInterval)SDL_GetTicksNS() / 1e9; // the clock SDL stamps events on (MyOpenGLView+Input.mm)
     timeSinceLastMouseWheel = oo::date::monotonicSeconds(); // intervals only (MyOpenGLView+Input.mm)
@@ -598,7 +598,7 @@ void MyOpenGLView::initialiseGLWithSize(NSSize v_size)
 
     if (!fullScreen) {
         SDL_SetWindowSize(window, viewSize.width, viewSize.height);
-        SDL_SetWindowBordered(window, YES);
+        SDL_SetWindowBordered(window, true);
     }
 #if OOLITE_WINDOWS
     else // Hack for Windows SDL3 pause issue: https://github.com/libsdl-org/SDL/issues/12791
@@ -883,7 +883,7 @@ void MyOpenGLView::getDisplayDimensions(unsigned* width, unsigned* height)
 bool MyOpenGLView::isRunningOnPrimaryDisplayDevice()
 {
     if (!window) {
-        return NO;
+        return false;
     }
 
     SDL_DisplayID windowDisplayID = SDL_GetDisplayForWindow(window);
@@ -921,16 +921,16 @@ bool MyOpenGLView::hdrOutput()
 
 bool MyOpenGLView::isOutputDisplayHDREnabled()
 {
-    BOOL result = NO;
+    bool result = false;
     SDL_DisplayID displayID = SDL_GetPrimaryDisplay(); // Get the primary display ID
     if (displayID == 0) {
         OO_LOG("gameView.isOutputDisplayHDREnabled", "Error! Failed to retrieve primary display ID: {}", SDL_GetError());
-        return NO;
+        return false;
     }
     SDL_PropertiesID props = SDL_GetDisplayProperties(displayID); // Retrieve properties for the target display
     if (props == 0) {
         OO_LOG("gameView.isOutputDisplayHDREnabled", "Error! Failed to get display properties: {}", SDL_GetError());
-        return NO;
+        return false;
     }
     result = SDL_GetBooleanProperty(props, SDL_PROP_DISPLAY_HDR_ENABLED_BOOLEAN, false); // Query for HDR enabling
     OO_LOG("gameView.isOutputDisplayHDREnabled", "HDR display output requested - checking availability: {}", result ? "YES" : "NO");
@@ -987,12 +987,12 @@ void MyOpenGLView::setHDRToneMapper(OOHDRToneMapper newToneMapper)
 
 bool MyOpenGLView::hdrOutput()
 {
-    return NO;
+    return false;
 }
 
 bool MyOpenGLView::isOutputDisplayHDREnabled()
 {
-    return NO;
+    return false;
 }
 
 #endif // OOLITE_WINDOWS
@@ -1095,16 +1095,16 @@ int MyOpenGLView::loadFullscreenSettings()
     if (!userDefaults.object("display_refresh").isNull())
         refresh = (int)userDefaults.integerForKey("display_refresh");
     if (!userDefaults.object("fullscreen").isNull())
-        fullScreen = userDefaults.boolForKey("fullscreen") ? YES : NO;
+        fullScreen = userDefaults.boolForKey("fullscreen") ? true : false;
 
     // Check if -fullscreen or -windowed has been passed on the command line. If yes,
     // set it regardless of what is set by .GNUstepDefaults. If both are found in the
     // arguments list, the one that comes last wins.
     for (i = 0; i < cmdline_arguments.size(); i++) {
         if (cmdline_arguments[i] == "-fullscreen")
-            fullScreen = YES;
+            fullScreen = true;
         if (cmdline_arguments[i] == "-windowed")
-            fullScreen = NO;
+            fullScreen = false;
     }
 
     if (width && height) {
@@ -1194,7 +1194,7 @@ bool MyOpenGLView::pollShiftKey()
 
 bool MyOpenGLView::snapShot(const std::optional<std::string>& filename)
 {
-    BOOL snapShotOK = YES;
+    bool snapShotOK = true;
     SDL_Surface* tmpSurface;
 
 #if OOLITE_MACOS
@@ -1216,7 +1216,7 @@ bool MyOpenGLView::snapShot(const std::optional<std::string>& filename)
         }
     }
 
-    BOOL withFilename = filename.has_value();
+    bool withFilename = filename.has_value();
     static unsigned imageNo = 0;
     unsigned tmpImageNo = 0;
     std::optional<std::string> pathToPic;
@@ -1281,12 +1281,12 @@ bool MyOpenGLView::snapShot(const std::optional<std::string>& filename)
 #if SNAPSHOTS_PNG_FORMAT
     if (!SDL_SavePNG(tmpSurface, pathToPic->c_str())) {
         OO_LOG("screenshotPNG", "Failed to save {}", *pathToPic);
-        snapShotOK = NO;
+        snapShotOK = false;
     }
 #else
     if (!SDL_SaveBMP(tmpSurface, pathToPic->c_str())) {
         OO_LOG("screenshotBMP", "Failed to save {}", *pathToPic);
-        snapShotOK = NO;
+        snapShotOK = false;
     }
 #endif
     SDL_DestroySurface(tmpSurface);
@@ -1315,7 +1315,7 @@ bool MyOpenGLView::snapShot(const std::optional<std::string>& filename)
         if ((fileExtension == std::string(SNAPSHOTHDR_EXTENSION_EXR) && SaveEXRSnapshot(pathToPicHDR.c_str(), surface->w, surface->h, pixlsf) != 0) // TINYEXR_SUCCESS
             || (fileExtension == std::string(SNAPSHOTHDR_EXTENSION_HDR) && !stbi_write_hdr(pathToPicHDR.c_str(), surface->w, surface->h, 3, pixlsf))) {
             OO_LOG("screenshotHDR", "Failed to save {}", pathToPicHDR);
-            snapShotOK = NO;
+            snapShotOK = false;
         }
 
         free(pixlsf);
@@ -1417,7 +1417,7 @@ void MyOpenGLView::dumpRGBAToRGBFileNamed(const std::optional<std::string>& rgbN
 
     uint8_t *rgbBytes, *rgbPx, *grayBytes, *grayPx, *srcPx;
     NSUInteger x, y;
-    BOOL trivalAlpha = YES;
+    bool trivalAlpha = true;
 
     rgbPx = rgbBytes = (uint8_t*)malloc(width * height * 3);
     if (rgbBytes == NULL)

@@ -1,7 +1,7 @@
 # SMOKE TEST.
 #
 # This scenario does NOT prove "the FLEE branch, the most commonly broken AI transition"
-# (docs/phases/0-component-tier.md, S6) and does NOT prove that range increases while a
+# (story S6) and does NOT prove that range increases while a
 # damaged ship flees. The step library (oolite-dev/tests/component/steps/world_steps.py)
 # has no step that samples a numeric range/distance more than once for comparison and no step
 # that reads an AI behavioural-state transition, so neither half of the story's title can be

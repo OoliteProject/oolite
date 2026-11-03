@@ -1,31 +1,27 @@
 """Fixtures for the GUI tier: one real, on-screen game window driven by synthetic OS input.
 
-Specified in docs/phases/0-gui-tier.md; the seam and exemplar is docs/stories/G1-exit-via-mouse.md.
-Launch, environment and timeout handling follow tests/launch_snapshot.py and the component tier's
+The exemplar is test_g1_exit_via_mouse.py. Launch, environment and timeout handling follow tests/launch_snapshot.py and the component tier's
 conftest.py - with SDL_VIDEODRIVER *unset*, because the whole point of this tier is that a real
 window opens and real clicks reach it.
 
-Three things live here, and G2-G9 reuse all three:
+Two things live here, and G2-G9 reuse both:
 
 * ``row_to_point`` - the row -> screen point helper. Computed from the window rect and Oolite's
-  fixed virtual grid, never image-matched (docs/phases/0-gui-tier.md, "compute, don't image-match").
+  fixed virtual grid, never image-matched ("compute, don't image-match").
 * ``game`` - the launch/kill fixture: starts the game, waits until it is actually *servicing input*
   rather than merely running, and kills it unconditionally on teardown.
-* ``desktop_lock`` - the session-scoped desktop mutex, tools/gui-lock. This tier takes the
-  interactive desktop exclusively while it runs.
+
+This tier takes the interactive desktop while it runs and does not lock it: ``tests/run.sh gui``
+documents that the mouse must be left alone, and that only one GUI run happens at a time.
 """
 
 import atexit
 import ctypes
 import math
 import os
-import platform
-import random
-import shutil
 import subprocess
 import sys
 import time
-import warnings
 
 import pytest
 
@@ -507,7 +503,7 @@ CURSOR_SETTLE_SECONDS = float(os.environ.get("OO_GUI_CURSOR_SETTLE", "1.0"))
 MOUSE_MOVE_DURATION_SECONDS = float(os.environ.get("OO_GUI_MOUSE_MOVE", "0.2"))
 
 # Prefixes a failure caused by the DESKTOP being unusable for GUI tests rather than by the game
-# being broken. An operator (and tools/gui-tier.sh) must be able to tell the two apart at a
+# being broken. An operator (and tests/run.sh gui) must be able to tell the two apart at a
 # glance: "G1 is broken" and "something elevated is sitting on your foreground" call for
 # completely different responses, and reporting the second as the first is how a real regression
 # gets ignored. Deliberately NOT a skip - a silent pass is what this gate exists to prevent.
@@ -516,8 +512,7 @@ DESKTOP_UNUSABLE_MARKER = "GUI TIER PRECONDITION FAILED"
 # How every GUI-tier launch is spelled. MyOpenGLView.m:363 matches the splash flag by exact
 # ``isEqual:`` against -nosplash / --nosplash only, so any other spelling (a hyphen between "no"
 # and "splash", say) is silently ignored and the splash runs; -windowed is matched at :1358 and
-# is correct as written. tools/check-splash-off.py imports this list so the behavioural check can
-# never drift from what the tier actually runs.
+# is correct as written. keep this list in step with what the tier actually runs.
 LAUNCH_ARGS = ["-nosplash", "-windowed"]
 
 # The window message a title-bar X click ends up delivering (winuser.h). SDL's Win32 backend
@@ -851,14 +846,13 @@ class GameWindow:
         concurrent sibling's LEGITIMATE park creates - parking IS renaming the live name away, so
         a healthy sibling park leaves the parked twin present and the live name free. The
         condition is satisfied by the very race it claimed to exclude. Demonstrated across two
-        real OS processes: A parks, A's fixture restores, A releases the gui-lock, B acquires it
+        real OS processes: A parks, A's fixture restores, A's session ends, B starts
         and parks legitimately, A's interpreter exits and A's hook renames B's park back - after
         which B's own restore records both DLLs in ``_restore_failures``, B's
         ``assert_no_parked_runtime_files`` fails, and worst of all B's game is mid-flight on a
         build whose software GL it had deliberately parked, so B silently changes its own
-        rendering path DURING its run. The gui-lock does not serialise this: the lock is released
-        in the ``desktop_lock`` fixture's finally, while atexit fires later at interpreter
-        shutdown.
+        rendering path DURING its run. Nothing serialises this: A's session is over while atexit fires later,
+        at interpreter shutdown.
 
         So the condition is kept only as a cheap belt-and-braces check for the crash path (where
         it is genuinely about not clobbering something), and the REAL protection is that a run
@@ -1226,8 +1220,9 @@ class GameWindow:
                 "This is NOT a G1 failure and says nothing about the game: AttachThreadInput "
                 "cannot cross the UIPI boundary, so no retry can ever succeed while that window "
                 "is foreground. Close or minimise it (an elevated Task Manager is the usual "
-                "culprit) and re-run. tools/gui-tier.sh checks this precondition before it "
-                "starts, so the tier reports it up front rather than as a mystery click failure."
+                "culprit) and re-run. The gui_runtime fixture checks this precondition before "
+                "any game starts, so the tier reports it up front rather than as a mystery "
+                "click failure."
             )
         pytest.fail(
             f"could not give the Oolite window (hwnd {self.hwnd}) the foreground within "
@@ -1244,8 +1239,8 @@ class GameWindow:
         DoD command on an otherwise idle machine, 34 passed and one failed with "the Oolite
         window lost the foreground before a click". ANYTHING that transiently owns the
         foreground between start()'s settle and this assert - a notification, an installer, or
-        (caught red-handed on this machine) a sibling tool launching oolite.exe without taking
-        tools/gui-lock - hard-failed the whole run, even though the condition was gone a fraction
+        (caught red-handed on this machine) a sibling tool launching oolite.exe
+        - hard-failed the whole run, even though the condition was gone a fraction
         of a second later.
 
         focus() is the self-healing form select_row has always used, and it is not a softening:
@@ -1288,9 +1283,8 @@ class GameWindow:
         start() raises, the exception propagates through the ``yield window.start()`` expression
         inside the fixture generator and the ``finally:`` in the ``game`` fixture runs during the
         unwind, so the process was already being killed (instrumented on both trees; kill was
-        called, and the launched pid was dead at session end). One launcher that DOES bypass the
-        desktop lock has since been caught - tools/js_api_snapshot.py starts oolite.exe without
-        taking tools/gui-lock - but this assert does not depend on knowing the source. It is what
+        called, and the launched pid was dead at session end). One launcher that starts oolite.exe on the desktop
+        has since been caught, but this assert does not depend on knowing the source. It is what
         makes an occluded click point a named failure instead of a mystery miss, whatever put the
         window there.
         """
@@ -1314,8 +1308,8 @@ class GameWindow:
             "have been swallowed and the game would simply keep running.\n"
             + (
                 "That window is another Oolite instance (class SDL_app). Something else on this "
-                "machine is running the game concurrently - check for a launcher that does not "
-                "take tools/gui-lock. Kill any stray oolite.exe and re-run."
+                "machine is running the game concurrently - check for a stray launcher. "
+                "Kill any stray oolite.exe and re-run."
                 if same_binary
                 else "Move or close that window; this tier needs the game's rows unobscured."
             )
@@ -1491,306 +1485,6 @@ class GameWindow:
 # --- fixtures -----------------------------------------------------------------------------------
 
 
-def _lock_script():
-    """Absolute path to tools/gui-lock, or None if there is no checkout around us."""
-    repo = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
-    script = os.path.join(repo, "tools", "gui-lock")
-    return script if os.path.isfile(script) else None
-
-
-def _lock_path():
-    """The lock directory - the SAME string tools/gui-lock prints.
-
-    Sameness is not promised, it is delegated: we ask the script. Two halves each applying
-    "the same rules" is how this drifted before - the shell said ${TMPDIR:-/tmp}/... (an MSYS
-    path) while python said tempfile.gettempdir() (a native path), so a shell holder and a
-    pytest holder locked two different directories and the mutex silently stopped excluding.
-    The bash-less fallback below repeats the rules only because it must, and normalises to the
-    same native C:/... form the script emits via `cygpath -m`.
-    """
-    bash = shutil.which("bash")
-    script = _lock_script()
-    if bash and script:
-        out = subprocess.run(
-            [bash, script, "path"], capture_output=True, text=True
-        )
-        if out.returncode == 0 and out.stdout.strip():
-            return out.stdout.strip()
-    explicit = os.environ.get("OO_GUI_LOCK_DIR")
-    if explicit:
-        return _native(explicit)
-    local = os.environ.get("LOCALAPPDATA")
-    if local:
-        return _native(os.path.join(local, "Temp", "oolite-gui-desktop.lock"))
-    import tempfile
-
-    return _native(os.path.join(tempfile.gettempdir(), "oolite-gui-desktop.lock"))
-
-
-def _native(path):
-    """Forward-slash native form, matching `cygpath -m` output on this machine."""
-    return os.path.abspath(path).replace("\\", "/")
-
-
-def _lock_owner():
-    """This session's owner identity, passed explicitly to tools/gui-lock.
-
-    Not left to the script's default: the script's fallback identity is "<host>:<PPID>", and a
-    bash spawned by a *native* Windows python reports PPID=1, so every pytest session would
-    claim the identity "<host>:1" and could release another session's lock. We pass our own pid
-    in OO_GUI_LOCK_OWNER for both acquire and release, so the identity is ours and is stable
-    across the two invocations.
-    """
-    explicit = os.environ.get("OO_GUI_LOCK_OWNER")
-    if explicit:
-        return explicit
-    host = os.environ.get("HOSTNAME") or platform.node()
-    return f"{host}:py{os.getpid()}"
-
-
-def _lock_held_by(path):
-    """The owner recorded in the lock directory, or None."""
-    try:
-        with open(os.path.join(path, "owner"), "r", encoding="utf-8", errors="replace") as fh:
-            for line in fh:
-                if line.startswith("owner="):
-                    return line[len("owner=") :].strip()
-    except OSError:
-        return None
-    return None
-
-
-DEFAULT_LOCK_STALE = "600"
-"""Default OO_GUI_LOCK_STALE, kept in lockstep with tools/gui-lock's own default.
-
-MUST STAY BELOW THE DEFAULT ACQUIRE TIMEOUT (900s, OO_GUI_LOCK_TIMEOUT). It was
-1800s, twice that timeout, so a lock left by a dead process could never be reclaimed inside one
-acquire and every acquirer burned its full 900s before failing.
-"""
-
-
-def _lock_live_record(path):
-    """The ``livepid=`` record in the lock directory as ``(host, [pid, ...])``, or None.
-
-    See tools/gui-lock's liveness block. These are the LONG-LIVED owner process's
-    pids - not the short-lived shell that wrote the file - and there is more than one because
-    MSYS and native Windows count pids differently; the holder is alive if ANY of them is.
-    """
-    try:
-        with open(os.path.join(path, "owner"), "r", encoding="utf-8", errors="replace") as fh:
-            for line in fh:
-                if line.startswith("livepid="):
-                    parts = line[len("livepid=") :].strip().split()
-                    pids = [int(p) for p in parts[1:] if p.isdigit()]
-                    if len(parts) >= 2 and pids:
-                        return parts[0], pids
-                    return None
-    except OSError:
-        return None
-    return None
-
-
-def _pid_alive(pid):
-    """Is ``pid`` in this machine's process table? UNKNOWN COUNTS AS ALIVE.
-
-    Every failure mode - an unreadable table, an unexpected exception, a platform we have no
-    reader for - returns True, because "cannot prove dead" must never reclaim a live holder's
-    lock. A false alive costs one age-out; a false dead costs the mutex.
-    """
-    try:
-        rows = _process_table()
-    except Exception:
-        return True
-    if not rows:
-        return True
-    return any(row[0] == pid for row in rows)
-
-
-def _lock_owner_is_dead(path):
-    """True only if the lock's recorded owner is PROVABLY gone from THIS machine.
-
-    Host-scoped on purpose: the record carries a hostname, and a pid on another machine tells
-    us nothing at all about whether that holder is still driving its own desktop.
-    """
-    rec = _lock_live_record(path)
-    if not rec:
-        return False
-    host, pids = rec
-    me = os.environ.get("HOSTNAME") or platform.node()
-    if not host or host != me:
-        return False
-    # Alive if ANY recorded pid is alive: the record names one process in two pid namespaces.
-    return not any(_pid_alive(pid) for pid in pids)
-
-
-def _lock_reclaimable(path, stale):
-    """Is this lock reclaimable - aged out OR owned by a process that is provably gone?
-
-    The liveness half is what makes a crashed holder's lock reclaimable IMMEDIATELY: waiting out an age window does not make a dead owner any
-    more dead, it just burns the acquirer's whole timeout. The age half remains for holders this host cannot
-    judge (a foreign host, a record with no livepid=).
-
-    A FRESH LOCK IS NEVER CONDEMNED BY LIVENESS. Below OO_GUI_LOCK_LIVENESS_GRACE seconds of
-    age the answer is age-only, however dead the recorded pid looks - see rule 4 in
-    tools/gui-lock. Without it, a lock still inside its own acquire window (mkdir done,
-    livepid= not yet written) or one whose owning process exited right after acquire reads as
-    abandoned while it is legitimately held, and two runs land on the desktop at once.
-    """
-    try:
-        age = time.time() - os.path.getmtime(path)
-    except OSError:
-        return False
-    grace = float(os.environ.get("OO_GUI_LOCK_LIVENESS_GRACE", "15"))
-    if age >= grace and _lock_owner_is_dead(path):
-        return True
-    return age > stale
-
-
-def _lock_reclaim_stale(path, stale):
-    """Atomically reclaim a reclaimable lock directory, returning True only if WE now hold it.
-
-    This is the same protocol as tools/gui-lock's reclaim_stale(), down to the gate directory
-    name and the reclaimable() predicate, so the two halves interlock rather than each
-    reclaiming "their own way": a fallback session and a shell session racing the same lock
-    still produce exactly one winner.
-
-    The naive "if stale: rmtree; then mkdir" is a TOCTOU - two runs both judge the same
-    directory stale and the loser's rmtree deletes the winner's freshly created lock, so both
-    end up on the desktop. So we serialise reapers behind a short-lived ``<lock>.reap`` mkdir
-    gate, RE-CHECK reclaimability inside it, retire the directory with a single atomic rename,
-    and only drop the gate once the new lock exists. The liveness rule rides that same gate and
-    that same re-check: it changes WHICH locks are reclaimable, never HOW they are reclaimed.
-    """
-    reap = path + ".reap"
-    reap_stale = float(os.environ.get("OO_GUI_LOCK_REAP_STALE", "300"))
-    if not _lock_reclaimable(path, stale):
-        return False
-    try:
-        os.mkdir(reap)
-    except FileExistsError:
-        # A reaper died mid-reclaim? Retire the gate itself atomically; the rename has exactly
-        # one winner, and that winner does not assume it holds the gate - it just retries.
-        try:
-            if time.time() - os.path.getmtime(reap) > reap_stale:
-                dead = "%s.dead.%d.%d" % (reap, os.getpid(), random.randrange(1 << 30))
-                os.rename(reap, dead)
-                shutil.rmtree(dead, ignore_errors=True)
-        except OSError:
-            pass
-        return False
-    except OSError:
-        return False
-    try:
-        if os.path.isdir(path):
-            # RE-CHECK inside the gate, re-reading the owner record from disk: the holder we
-            # judged dead or aged-out a moment ago may since have been replaced by a live one.
-            if not _lock_reclaimable(path, stale):
-                return False
-            dead = "%s.stale.%d.%d" % (path, os.getpid(), random.randrange(1 << 30))
-            try:
-                os.rename(path, dead)
-            except OSError:
-                return False
-            shutil.rmtree(dead, ignore_errors=True)
-        try:
-            os.mkdir(path)
-        except OSError:
-            return False
-        return True
-    finally:
-        shutil.rmtree(reap, ignore_errors=True)
-
-
-
-@pytest.fixture(scope="session")
-def desktop_lock():
-    """Hold the GUI-tier desktop mutex for the whole session.
-
-    This tier drives the interactive desktop with synthetic input, so two runs at once steal
-    each other's focus and each other's clicks. tools/gui-lock is the mutex; it is a plain
-    mkdir lock so a shell step and a pytest run can share it.
-    """
-    script = _lock_script()
-    bash = shutil.which("bash")
-    me = _lock_owner()
-    if bash and script:
-        # OO_GUI_LOCK_OWNER is ours and is passed to BOTH calls, so release drops the lock this
-        # session took and the script refuses it if some other run holds it.
-        #
-        # OO_GUI_LOCK_OWNER_PID names THIS pytest process as the one whose life proves the hold
-        # is live. Without it the script would have to infer a pid, and the bash
-        # it would infer from is a child that exits the moment acquire returns - so the hold
-        # would read as dead to the next acquirer. This session is the long-lived process.
-        env = dict(
-            os.environ, OO_GUI_LOCK_OWNER=me, OO_GUI_LOCK_OWNER_PID=str(os.getpid())
-        )
-        held = subprocess.run(
-            [bash, script, "acquire", "--timeout", os.environ.get("OO_GUI_LOCK_TIMEOUT", "900")],
-            capture_output=True,
-            text=True,
-            env=env,
-        )
-        if held.returncode != 0:
-            pytest.fail(f"could not take the GUI desktop lock: {held.stderr.strip()}")
-        try:
-            yield _lock_path()
-        finally:
-            dropped = subprocess.run(
-                [bash, script, "release"], capture_output=True, text=True, env=env
-            )
-            if dropped.returncode != 0:
-                warnings.warn(
-                    f"gui-lock: release refused: {dropped.stderr.strip()}", stacklevel=1
-                )
-        return
-    # No bash (or no checkout around us): take the identical lock directly. Same protocol, same
-    # path, same ownership record, so it still excludes - and is still excluded by - a
-    # shell-side holder.
-    path = _lock_path()
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    deadline = time.time() + float(os.environ.get("OO_GUI_LOCK_TIMEOUT", "900"))
-    while True:
-        got = False
-        try:
-            os.mkdir(path)
-            got = True
-        except FileExistsError:
-            # Same stale rule as the script (OO_GUI_LOCK_STALE, age not liveness), so a
-            # crashed holder does not wedge the tier for ever here either - but the reclaim is
-            # ATOMIC (see _lock_reclaim_stale): an unconditional rmtree here would let two
-            # sessions both judge one lock stale and both take the desktop.
-            stale = float(os.environ.get("OO_GUI_LOCK_STALE", DEFAULT_LOCK_STALE))
-            got = _lock_reclaim_stale(path, stale)
-        if got:
-            with open(os.path.join(path, "owner"), "w", encoding="utf-8") as fh:
-                fh.write(f"owner={me}\ninfo=python pid={os.getpid()} {time.strftime('%FT%T%z')}\n")
-                # The liveness record: this session IS the long-lived holder, so
-                # its own pid is the one whose death makes this lock reclaimable at once.
-                host = os.environ.get("HOSTNAME") or platform.node()
-                fh.write(f"livepid={host} {os.getpid()}\n")
-            break
-        if time.time() >= deadline:
-            pytest.fail(
-                f"could not take the GUI desktop lock at {path}; "
-                f"held by {_lock_held_by(path) or 'unknown'}"
-            )
-        time.sleep(2)
-    try:
-        yield path
-    finally:
-        # Ownership-checked, never an unconditional rmtree: a teardown that ran after some
-        # other run had legitimately taken the lock would otherwise drop a live holder's lock
-        # and put two processes on the desktop at once.
-        holder = _lock_held_by(path)
-        if holder == me:
-            shutil.rmtree(path, ignore_errors=True)
-        else:
-            warnings.warn(
-                f"gui-lock: not releasing {path}: held by {holder or 'unknown'}, we are {me}",
-                stacklevel=1,
-            )
-
-
 @pytest.fixture(scope="session")
 def app_dir(pytestconfig):
     path = pytestconfig.getoption("--oolite-app") or _default_app_dir()
@@ -1828,7 +1522,7 @@ def require_gui_dependencies():
             "run, and a run that did not happen must not be reported as a pass. Install it:\n"
             f"    python3 -m pip install -r {GUI_REQUIREMENTS}\n"
             "or run the tier through its runner, which installs it for you:\n"
-            "    bash tools/gui-tier.sh"
+            "    tests/run.sh gui"
         )
     return pyautogui
 
@@ -1943,7 +1637,7 @@ def gui_runtime():
 
 
 @pytest.fixture
-def game(gui_runtime, app_dir, desktop_lock, tmp_path):
+def game(gui_runtime, app_dir, tmp_path):
     """One game process with a real window, killed unconditionally at the end.
 
     Teardown kills rather than asks: a test that has already failed is a test whose game is in
@@ -2011,7 +1705,7 @@ def defaults_write_mark(app_dir):
     ``app_dir`` is the PERSISTENT build tree (``_default_app_dir()`` ->
     ``oolite-dev/build/meson_test/oolite.app``), so a defaults file left behind by a run
     last month satisfies "exists and parses" forever, and this run could write nothing at all
-    without the check noticing. The story (docs/stories/G1-exit-via-mouse.md:52) asks for a
+    without the check noticing. The G1 exit test asks for a
     defaults file WRITTEN and re-parseable; without a launch-time mark the "written" half is
     unfalsifiable - which is precisely the tautology class this check exists to remove.
 
@@ -2373,7 +2067,7 @@ def assert_no_surviving_game_processes(root_pid, timeout=10.0):
 def assert_clean_exit(game_or_output_dir, app_dir=None, defaults_launch_mark=None):
     """No core dump, no ERROR in Latest.log, and a defaults file THIS RUN wrote and can reparse.
 
-    docs/phases/0-gui-tier.md G9. A shutdown that leaves any of these behind has not worked,
+    G9. A shutdown that leaves any of these behind has not worked,
     however zero its exit status.
 
     Call it with the fixture: ``assert_clean_exit(game)``. Everything it needs - the output
@@ -2682,7 +2376,7 @@ def assert_no_inherited_parked_runtime_files(app_dir, dlls, suffix):
     is clean cannot, even in principle, see an INHERITED dirty baseline.
 
     WHY A DIRECTORY SCAN IS SOUND HERE AND NOT AT TEARDOWN. This runs at SETUP, and the GUI tier
-    holds the desktop lock (tools/gui-lock) for the whole of a session. Only one GUI run parks
+    owns the desktop for the whole of a session (tests/run.sh gui). Only one GUI run parks
     these DLLs at a time, so a parked twin visible at setup - before this run has renamed
     anything - cannot belong to a live sibling. It belongs to a dead one.
 

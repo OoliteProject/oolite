@@ -16,8 +16,8 @@ The grid/DPI/foreground guards live with G1 (test_g1_exit_via_mouse.py) and are 
 
     python3 -m pytest oolite-dev/tests/gui/test_g3_exit_via_window_close.py -x -q
 
-Needs the desktop: a real window, unlocked and logged in. It takes tools/gui-lock for
-the duration, via the ``game`` fixture - this file launches nothing of its own.
+Needs the desktop: a real window, unlocked and logged in, left alone while it runs.
+The game is launched through the ``game`` fixture; this file launches nothing of its own.
 """
 
 import time

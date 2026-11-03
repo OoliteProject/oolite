@@ -38,7 +38,8 @@ MA 02110-1301, USA.
 #include "oofnd/Scanner.hpp"
 #include "oofnd/String.hpp"
 
-BOOL cxx_ScanVectorFromString(const std::optional<std::string>& xyzString, Vector* outVector)
+bool cxx_ScanVectorFromString(const std::optional<std::string>& xyzString,
+    Vector* outVector)
 {
     GLfloat xyz[] = { 0.0, 0.0, 0.0 };
     int i = 0;
@@ -46,7 +47,7 @@ BOOL cxx_ScanVectorFromString(const std::optional<std::string>& xyzString, Vecto
 
     assert(outVector != NULL);
     if (!xyzString.has_value())
-        return NO;
+        return false;
 
     oo::str::Scanner scanner(*xyzString);
     while (!scanner.isAtEnd() && i < 3 && !error) {
@@ -59,26 +60,28 @@ BOOL cxx_ScanVectorFromString(const std::optional<std::string>& xyzString, Vecto
 
     if (!error) {
         *outVector = make_vector(xyz[0], xyz[1], xyz[2]);
-        return YES;
+        return true;
     } else {
         OO_LOG_ERR("strings.conversion.vector", "cannot make vector from '{}': {}", *xyzString, error);
-        return NO;
+        return false;
     }
 }
 
-BOOL cxx_ScanHPVectorFromString(const std::optional<std::string>& xyzString, HPVector* outVector)
+bool cxx_ScanHPVectorFromString(const std::optional<std::string>& xyzString,
+    HPVector* outVector)
 {
     Vector scanVector;
     assert(outVector != NULL);
-    BOOL result = cxx_ScanVectorFromString(xyzString, &scanVector);
+    bool result = cxx_ScanVectorFromString(xyzString, &scanVector);
     if (!result) {
-        return NO;
+        return false;
     }
     *outVector = vectorToHPVector(scanVector);
-    return YES;
+    return true;
 }
 
-BOOL cxx_ScanQuaternionFromString(const std::optional<std::string>& wxyzString, Quaternion* outQuaternion)
+bool cxx_ScanQuaternionFromString(const std::optional<std::string>& wxyzString,
+    Quaternion* outQuaternion)
 {
     GLfloat wxyz[] = { 1.0, 0.0, 0.0, 0.0 };
     int i = 0;
@@ -86,7 +89,7 @@ BOOL cxx_ScanQuaternionFromString(const std::optional<std::string>& wxyzString, 
 
     assert(outQuaternion != NULL);
     if (!wxyzString.has_value())
-        return NO;
+        return false;
 
     oo::str::Scanner scanner(*wxyzString);
     while (!scanner.isAtEnd() && i < 4 && !error) {
@@ -103,14 +106,16 @@ BOOL cxx_ScanQuaternionFromString(const std::optional<std::string>& wxyzString, 
         outQuaternion->y = wxyz[2];
         outQuaternion->z = wxyz[3];
         quaternion_normalize(outQuaternion);
-        return YES;
+        return true;
     } else {
         OO_LOG_ERR("strings.conversion.quaternion", "cannot make quaternion from '{}': {}", *wxyzString, error);
-        return NO;
+        return false;
     }
 }
 
-BOOL cxx_ScanVectorAndQuaternionFromString(const std::optional<std::string>& xyzwxyzString, Vector* outVector, Quaternion* outQuaternion)
+bool cxx_ScanVectorAndQuaternionFromString(
+    const std::optional<std::string>& xyzwxyzString, Vector* outVector,
+    Quaternion* outQuaternion)
 {
     GLfloat xyzwxyz[] = { 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0 };
     int i = 0;
@@ -118,7 +123,7 @@ BOOL cxx_ScanVectorAndQuaternionFromString(const std::optional<std::string>& xyz
 
     assert(outVector != NULL && outQuaternion != NULL);
     if (!xyzwxyzString.has_value())
-        return NO;
+        return false;
 
     oo::str::Scanner scanner(*xyzwxyzString);
     while (!scanner.isAtEnd() && i < 7 && !error) {
@@ -131,7 +136,7 @@ BOOL cxx_ScanVectorAndQuaternionFromString(const std::optional<std::string>& xyz
 
     if (error) {
         OO_LOG_ERR("strings.conversion.quaternion", "cannot make vector and quaternion from '{}': {}", *xyzwxyzString, error);
-        return NO;
+        return false;
     }
 
     outVector->x = xyzwxyz[0];
@@ -142,7 +147,7 @@ BOOL cxx_ScanVectorAndQuaternionFromString(const std::optional<std::string>& xyz
     outQuaternion->y = xyzwxyz[5];
     outQuaternion->z = xyzwxyz[6];
 
-    return YES;
+    return true;
 }
 
 Vector cxx_VectorFromString(const std::optional<std::string>& xyzString, Vector defaultValue)
@@ -231,23 +236,25 @@ std::string cxx_OOPadStringToEms(const std::string& string, float padEms)
     return result;
 }
 
-std::string cxx_OOStringFromDeciCredits(OOCreditsQuantity tenthsOfCredits, BOOL includeDecimal, BOOL includeSymbol)
+std::string cxx_OOStringFromDeciCredits(OOCreditsQuantity tenthsOfCredits,
+    bool includeDecimal,
+    bool includeSymbol)
 {
     JSContext* context = OOJSAcquireContext();
     JSValueConst global = OOJavaScriptEngine::sharedEngine()->globalObject();
     JSValue exception = JS_UNDEFINED;
     std::optional<std::string> result;
-    BOOL hadException;
+    bool hadException;
 
     /*	Because the |cr etc. formatting operators call this, and the
             implementation may use string expansion, we need to ensure recursion
             can't happen.
     */
-    static BOOL reentrancyLock;
+    static bool reentrancyLock;
     if (reentrancyLock)
         return oo::str::format("%0.1f", tenthsOfCredits * 0.1);
 
-    reentrancyLock = YES;
+    reentrancyLock = true;
 
     hadException = JS_HasException(context);
     if (hadException)
@@ -280,7 +287,7 @@ std::string cxx_OOStringFromDeciCredits(OOCreditsQuantity tenthsOfCredits, BOOL 
     if (EXPECT_NOT(!result.has_value()))
         result = oo::str::format("%li", (long)(tenthsOfCredits) / 10);
 
-    reentrancyLock = NO;
+    reentrancyLock = false;
 
     return *result;
 }
@@ -300,7 +307,7 @@ OOComparisonResult cxx_CompareVersions(const std::vector<unsigned>& version1, co
     return OOOrderedSame;
 }
 
-std::string cxx_ClockToString(double clock, BOOL adjusting)
+std::string cxx_ClockToString(double clock, bool adjusting)
 {
     int days, hrs, mins, secs;
     std::string format;
@@ -351,17 +358,18 @@ namespace {
 // The GraphViz keywords, matched case-insensitively (-lowercaseString).
 constexpr std::string_view kGraphVizKeywords[] = { "node", "edge", "graph", "digraph", "subgraph", "strict" };
 
-BOOL NameIsTaken(const std::string& name, const std::set<std::string>* uniqueSet)
+bool NameIsTaken(const std::string& name,
+    const std::set<std::string>* uniqueSet)
 {
     if (uniqueSet != nullptr && uniqueSet->contains(name))
-        return YES;
+        return true;
 
     const std::string lowercaseName = oo::str::lowercase(name);
     for (std::string_view keyword : kGraphVizKeywords) {
         if (lowercaseName == keyword)
-            return YES;
+            return true;
     }
-    return NO;
+    return false;
 }
 
 } // namespace
@@ -369,7 +377,7 @@ BOOL NameIsTaken(const std::string& name, const std::set<std::string>* uniqueSet
 std::string cxx_GraphVizTokenString(const std::string& string, std::set<std::string>* uniqueSet)
 {
     std::string token;
-    BOOL lastWasUnderscore = NO;
+    bool lastWasUnderscore = false;
     // UTF-16 units, as -characterAtIndex: read them
     const std::u16string units = oo::utf8ToUtf16(string);
     std::size_t i, length = units.size();
@@ -381,7 +389,7 @@ std::string cxx_GraphVizTokenString(const std::string& string, std::set<std::str
         char16_t c = units[0];
         if (!isalpha(c)) {
             c = '_';
-            lastWasUnderscore = YES;
+            lastWasUnderscore = true;
         }
         result.push_back(c);
 
@@ -391,9 +399,9 @@ std::string cxx_GraphVizTokenString(const std::string& string, std::set<std::str
                 if (lastWasUnderscore)
                     continue;
                 c = '_';
-                lastWasUnderscore = YES;
+                lastWasUnderscore = true;
             } else {
-                lastWasUnderscore = NO;
+                lastWasUnderscore = false;
             }
 
             result.push_back(c);

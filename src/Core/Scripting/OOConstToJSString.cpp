@@ -60,8 +60,8 @@ typedef struct ConstTable {
 #define TABLE(entries) { sizeof entries / sizeof *entries, entries }
 
 // Unconditional, as upstream's: OOCAssert reads it in every flavour.
-static BOOL sInited = NO;
-static BOOL sAtomsInterned = NO;
+static bool sInited = false;
+static bool sAtomsInterned = false;
 
 /*
         The interned string "UNDEFINED", returned by OOJSValueFromConstantPRIVATE()
@@ -149,16 +149,16 @@ void OOConstToJSStringInit(JSContext* context)
         InitTable(context, &gOOLegalStatusReasonConstTable);
         InitTable(context, &gOOLongRangeChartModeConstTable);
 
-        sAtomsInterned = YES;
+        sAtomsInterned = true;
     }
 
-    sInited = YES;
+    sInited = true;
 }
 
 void OOConstToJSStringDestroy(void)
 {
     OOCAssert(sInited, "OOConstToJSStringDestroy() called while not inited.");
-    sInited = NO;
+    sInited = false;
     // The atoms remain valid; they belong to the runtime.
 }
 

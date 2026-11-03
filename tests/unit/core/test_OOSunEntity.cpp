@@ -86,13 +86,13 @@ public:
 
 namespace {
 
-TestUniverse *sUniverse = nil;
+TestUniverse *sUniverse = nullptr;
 TestPlayer *sPlayer = nullptr;
 
 
 void SetUp()
 {
-	if (sUniverse == nil)
+	if (sUniverse == nullptr)
 	{
 		sUniverse = new TestUniverse();	// never released
 		new (&sUniverse->_systemData) std::map<std::string, oo::PList>();
@@ -232,7 +232,7 @@ OO_TEST(goingNova)
 	{
 		SetUp();
 		OOSunEntity *sun = RedSun();
-		sun->setGoingNova(YES, 1.0);
+		sun->setGoingNova(true, 1.0);
 		OO_CHECK(sun->willGoNova() && !sun->goneNova());
 		sun->update(0.5);
 		OO_CHECK(!sun->goneNova() && sUniverse->_skySets == 0);
@@ -257,7 +257,7 @@ OO_TEST(goingNova)
 
 		sun->resetNova();
 		OO_CHECK(sun->willGoNova() && sun->goneNova());	// reset keeps the higher temperature
-		sun->setGoingNova(NO, 0);
+		sun->setGoingNova(false, 0);
 		OO_CHECK(!sun->willGoNova());
 	}
 }
@@ -268,7 +268,7 @@ OO_TEST(description)
 	{
 		SetUp();
 		OOSunEntity *sun = RedSun();
-		sun->setGoingNova(YES, 10.0);
+		sun->setGoingNova(true, 10.0);
 		const std::string description = oo::EntityDescription(sun);
 		OO_CHECK(description.find("radius: 1.000km") != std::string::npos);
 		OO_CHECK(description.find("(will go nova)") != std::string::npos);
@@ -335,7 +335,7 @@ OO_TEST(jsExtensions)
 		const JSClassID expectedClass = JSSunClassID();
 		OO_CHECK(jsClass != 0 && jsClass == expectedClass);
 		OO_CHECK(OOJSEntityJSClassName(object) == std::optional<std::string>("Sun"));
-		OO_CHECK(OOJSEntityIsVisibleToScripts(object) == YES);
+		OO_CHECK(OOJSEntityIsVisibleToScripts(object) == true);
 	}
 }
 

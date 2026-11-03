@@ -11,7 +11,7 @@
    (tests/unit/core/meson.build entry ['*']), on the hidden GL context of
    oo_gl_test_context.hpp (the loaders' one-time set-up reads the GL texture
    size limit). The loader is made by the factory. The last test pins the C++
-   API of the class (a global C++ class). Run: bash tools/check-core-tests.sh
+   API of the class (a global C++ class). Run: tests/run.sh unit
 */
 
 #include <png.h>
@@ -118,7 +118,7 @@ OO_TEST(theFactoryMakesOneForAPNG) {
     const std::string path = WritePNG("made.png", 8, 8, PNG_FORMAT_RGBA);
     OO_CHECK(!path.empty());
     OOTextureLoader* loader = Load(path);
-    OO_CHECK(loader != nil);
+    OO_CHECK(loader != nullptr);
     OO_CHECK(loader->description().starts_with("<OOPNGTextureLoader 0x"));
     OO_CHECK(loader->path() == std::optional<std::string>(path));
     OO_CHECK(loader->cacheKey() ==
@@ -212,7 +212,7 @@ OO_TEST(failures) {
     // No file.
     OOTextureLoader* missing =
         Load((ScratchDirectory() / "missing.png").generic_string());
-    OO_CHECK(missing != nil);
+    OO_CHECK(missing != nullptr);
     Result none = GetResult(missing);
     OO_CHECK(!none.ok && none.format == kOOPixMapInvalidFormat &&
              missing->isReady());

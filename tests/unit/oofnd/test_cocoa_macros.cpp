@@ -9,30 +9,12 @@
    their macro guard.
 */
 
-#define true 1
-#define false 0
-
-#include <type_traits>
 
 #include "oofnd/ResourcePaths.hpp"  // and so FileSystem.hpp, Data.hpp, Expected.hpp
 
-// The macros are back, as the game expects them after the include.
-static_assert(std::is_same_v<decltype(true), int>,
-              "oofnd must restore OOCocoa.h's true macro");
-static_assert(std::is_same_v<decltype(false), int>,
-              "oofnd must restore OOCocoa.h's false macro");
-static constexpr int kTrueAfter = true;
-static constexpr int kFalseAfter = false;
 
-#undef true
-#undef false
 
 #include "oo_test.hpp"
-
-OO_TEST(macrosAreRestoredWithTheirValues) {
-  OO_CHECK_EQ(kTrueAfter, 1);
-  OO_CHECK_EQ(kFalseAfter, 0);
-}
 
 OO_TEST(headersIncludedUnderTheMacrosWork) {
   const oo::Data d = oo::Data::fromString("ok");

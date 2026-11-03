@@ -55,7 +55,7 @@ OOJSSystem.m (QuickJS-ng)
 static JSClassID sSystemClassID;
 
 // Support functions for entity search methods.
-static BOOL GetRelativeToAndRange(JSContext* context, const std::string& methodName, int* ioArgc, JSValueConst** ioArgv, Entity** outRelativeTo, double* outRange);
+static bool GetRelativeToAndRange(JSContext* context, const std::string& methodName, int* ioArgc, JSValueConst** ioArgv, Entity** outRelativeTo, double* outRange);
 static std::vector<oo::EntityHold> FindJSVisibleEntities(EntityFilterPredicate predicate, void* parameter, Entity* relativeTo, double range);
 static std::vector<oo::EntityHold> FindShips(EntityFilterPredicate predicate, void* parameter, Entity* relativeTo, double range);
 static OOComparisonResult CompareEntitiesByDistance(Entity* a, Entity* b, Entity* relativeTo);
@@ -225,7 +225,7 @@ static JSValue SystemGetProperty(OOJS_GETTER_ARGS)
     OOJS_NATIVE_ENTER(context)
 
     oo::PList result; // null maps to null
-    PlayerEntity* player = nil;
+    PlayerEntity* player = nullptr;
     bool handled = false;
 
     player = OOPlayerForScripting();
@@ -432,7 +432,7 @@ static JSValue SystemSetProperty(OOJS_SETTER_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    PlayerEntity* player = nil;
+    PlayerEntity* player = nullptr;
     OOGalaxyID galaxy;
     OOSystemID system;
     std::optional<std::string> stringValue;
@@ -594,7 +594,7 @@ static JSValue SystemAddPlanet(OOJS_NATIVE_ARGS)
 
     PlayerEntity* player = OOPlayerForScripting();
     std::optional<std::string> key;
-    OOPlanetEntity* planet = nil;
+    OOPlanetEntity* planet = nullptr;
 
     if (argc > 0)
         key = cxx_OOStringFromJSValue(context, OOJS_ARGV[0]);
@@ -619,7 +619,7 @@ static JSValue SystemAddMoon(OOJS_NATIVE_ARGS)
 
     PlayerEntity* player = OOPlayerForScripting();
     std::optional<std::string> key;
-    OOPlanetEntity* planet = nil;
+    OOPlanetEntity* planet = nullptr;
 
     if (argc > 0)
         key = cxx_OOStringFromJSValue(context, OOJS_ARGV[0]);
@@ -887,7 +887,7 @@ static JSValue SystemFilteredEntities(OOJS_NATIVE_ARGS)
     }
 
     // Search for entities
-    JSFunctionPredicateParameter param = { context, predicate, jsThis, NO };
+    JSFunctionPredicateParameter param = { context, predicate, jsThis, false };
     OOJSPauseTimeLimiter();
     try {
         result = FindJSVisibleEntities(JSFunctionPredicate, &param, relativeTo, range);
@@ -924,7 +924,7 @@ static JSValue SystemLocationFromCode(OOJS_NATIVE_ARGS)
     OOSunEntity* sun = (UNIVERSE != nullptr ? UNIVERSE->sun() : nullptr);
     OOPlanetEntity* planet = (UNIVERSE != nullptr ? UNIVERSE->planet() : nullptr);
     HPVector position = kZeroHPVector;
-    if (sun == nil || planet == nil) {
+    if (sun == nullptr || planet == nullptr) {
         position = (UNIVERSE != nullptr ? UNIVERSE->locationByCode("WITCHPOINT", nullptr, nullptr) : HPVector { });
     } else {
         position = (UNIVERSE != nullptr ? UNIVERSE->locationByCode(*code, sun, planet) : HPVector { });
@@ -938,25 +938,25 @@ static JSValue SystemLocationFromCode(OOJS_NATIVE_ARGS)
 // addShips(role : String, count : Number [, position: Vector [, radius: Number]]) : Array of Ship
 static JSValue SystemAddShips(OOJS_NATIVE_ARGS)
 {
-    return SystemAddShipsOrGroup(context, argc, OOJS_ARGV, NO);
+    return SystemAddShipsOrGroup(context, argc, OOJS_ARGV, false);
 }
 
 // addGroup(role : String, count : Number [, position: Vector [, radius: Number]]) : ShipGroup
 static JSValue SystemAddGroup(OOJS_NATIVE_ARGS)
 {
-    return SystemAddShipsOrGroup(context, argc, OOJS_ARGV, YES);
+    return SystemAddShipsOrGroup(context, argc, OOJS_ARGV, true);
 }
 
 // addShipsToRoute(role : String, count : Number [, position: Number [, route: String]])
 static JSValue SystemAddShipsToRoute(OOJS_NATIVE_ARGS)
 {
-    return SystemAddShipsOrGroupToRoute(context, argc, OOJS_ARGV, NO);
+    return SystemAddShipsOrGroupToRoute(context, argc, OOJS_ARGV, false);
 }
 
 // addGroupToRoute(role : String, count : Number,  position: Number[, route: String])
 static JSValue SystemAddGroupToRoute(OOJS_NATIVE_ARGS)
 {
-    return SystemAddShipsOrGroupToRoute(context, argc, OOJS_ARGV, YES);
+    return SystemAddShipsOrGroupToRoute(context, argc, OOJS_ARGV, true);
 }
 
 /*	The legacy_* methods read argv entries beyond argc before checking argc, as
@@ -1530,7 +1530,7 @@ static JSValue SystemAddShipsOrGroupToRoute(JSContext* context, int argc, JSValu
     OOJS_NATIVE_EXIT
 }
 
-static BOOL GetRelativeToAndRange(JSContext* context, const std::string& methodName, int* ioArgc, JSValueConst** ioArgv, Entity** outRelativeTo, double* outRange)
+static bool GetRelativeToAndRange(JSContext* context, const std::string& methodName, int* ioArgc, JSValueConst** ioArgv, Entity** outRelativeTo, double* outRange)
 {
     OOJS_PROFILE_ENTER
 
@@ -1542,7 +1542,7 @@ static BOOL GetRelativeToAndRange(JSContext* context, const std::string& methodN
         Entity* relativeTo = nullptr; // the C++ entity
         if (EXPECT_NOT(JS_IsNull(**ioArgv) || !JSValueToEntity(context, **ioArgv, &relativeTo))) {
             cxx_OOJSReportBadArguments(context, "System", methodName, 1, *ioArgv, std::nullopt, "entity");
-            return NO;
+            return false;
         }
         *outRelativeTo = relativeTo;
         (*ioArgv)++;
@@ -1553,13 +1553,13 @@ static BOOL GetRelativeToAndRange(JSContext* context, const std::string& methodN
     if (*ioArgc != 0) {
         if (EXPECT_NOT(JS_ToFloat64(context, outRange, **ioArgv) != 0)) {
             cxx_OOJSReportBadArguments(context, "System", methodName, 1, *ioArgv, std::nullopt, "number");
-            return NO;
+            return false;
         }
         (*ioArgv)++;
         (*ioArgc)--;
     }
 
-    return YES;
+    return true;
 
     OOJS_PROFILE_EXIT
 }

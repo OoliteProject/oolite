@@ -13,7 +13,7 @@
    told (reference counted, so that it is still checked not retained). A
    delegate that answers nothing cannot be written in C++, so
    aDelegateThatHandlesNothing verifies with no delegate. The C++ API checks are
-   delegateIsHandedTheVerifier. Run: bash tools/check-core-tests.sh
+   delegateIsHandedTheVerifier. Run: tests/run.sh unit
    test_OOPListSchemaVerifier
 */
 
@@ -32,13 +32,13 @@
 // Link stubs: OOPListGameTypes.mm reaches OOStringParsing.mm's scanners for
 // vector and quaternion values, whose object links the game. No schema here
 // uses those types, so each stub aborts.
-BOOL cxx_ScanVectorFromString(const std::optional<std::string>&, Vector*) {
+bool cxx_ScanVectorFromString(const std::optional<std::string>&, Vector*) {
   std::abort();
 }
-BOOL cxx_ScanHPVectorFromString(const std::optional<std::string>&, HPVector*) {
+bool cxx_ScanHPVectorFromString(const std::optional<std::string>&, HPVector*) {
   std::abort();
 }
-BOOL cxx_ScanQuaternionFromString(const std::optional<std::string>&,
+bool cxx_ScanQuaternionFromString(const std::optional<std::string>&,
                                   Quaternion*) {
   std::abort();
 }

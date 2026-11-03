@@ -27,6 +27,8 @@ MA 02110-1301, USA.
 
 #pragma once
 
+#include <vector>
+
 #include "OOFoundation.h"
 #include "OOMaths.h"
 #include "Octree.h"
@@ -44,6 +46,7 @@ struct OOMeshToOctreeConverterInternalData {
     uint32_t capacity;
     uint32_t pendingCapacity;
     Triangle smallData[kOOMeshToOctreeConverterSmallDataCapacity];
+    std::vector<Triangle> heap; // the storage once smallData is outgrown
 };
 
 class OOMeshToOctreeConverter : public oo::RefCounted {

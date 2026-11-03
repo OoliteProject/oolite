@@ -40,8 +40,8 @@ MA 02110-1301, USA.
 static NSUInteger key_index;
 static long current_row;
 static long kbd_row = GUI_ROW_KC_FUNCSTART;
-static BOOL has_error = NO;
-static BOOL last_shift = NO;
+static bool has_error = false;
+static bool last_shift = false;
 
 namespace {
 
@@ -192,7 +192,9 @@ oo::PList KeyConfigEntry(const oo::PList::Dict& settings, const std::optional<st
 // sets up a copy of the raw keyconfig.plist file so we can run checks against it to tell if a key is set to default
 void PlayerEntity::initCheckingDictionary()
 {
-    const oo::PList kdicmaster = ResourceManager::dictionaryFromFilesNamed("keyconfig2.plist", std::optional<std::string>("Config"), MERGE_BASIC, NO);
+    const oo::PList kdicmaster = ResourceManager::dictionaryFromFilesNamed(
+        "keyconfig2.plist", std::optional<std::string>("Config"), MERGE_BASIC,
+        false);
     const std::string kbd = KeyboardCode();
     const oo::PList* kdicValue = kdicmaster.get<oo::PList::Dict>(kbd);
     oo::PList::Dict kdic = (kdicValue != nullptr) ? *kdicValue->getIf<oo::PList::Dict>() : oo::PList::Dict();
@@ -220,7 +222,7 @@ void PlayerEntity::resetKeyFunctions()
 
 void PlayerEntity::setGuiToKeyMapperScreen(unsigned skip)
 {
-    setGuiToKeyMapperScreen(skip, NO);
+    setGuiToKeyMapperScreen(skip, false);
 }
 
 void PlayerEntity::setGuiToKeyMapperScreen(unsigned skip, bool resetCurrentRow)
@@ -240,9 +242,10 @@ void PlayerEntity::setGuiToKeyMapperScreen(unsigned skip, bool resetCurrentRow)
         initCheckingDictionary();
 
     gui_screen = GUI_SCREEN_KEYBOARD;
-    BOOL guiChanged = (oldScreen != gui_screen);
+    bool guiChanged = (oldScreen != gui_screen);
     if (UNIVERSE != nullptr && UNIVERSE->gameController() != nullptr)
-        UNIVERSE->gameController()->setMouseInteractionModeForUIWithMouseInteraction(YES);
+        UNIVERSE->gameController()
+            ->setMouseInteractionModeForUIWithMouseInteraction(true);
 
     gui->clear();
     gui->setTitle(OO_DESC("oolite-keyconfig-header"));
@@ -254,9 +257,9 @@ void PlayerEntity::setGuiToKeyMapperScreen(unsigned skip, bool resetCurrentRow)
 
     displayKeyFunctionList(gui, skip);
 
-    has_error = NO;
+    has_error = false;
     if (!validateAllKeys().empty()) {
-        has_error = YES;
+        has_error = true;
         gui->setText(OO_DESC("oolite-keyconfig-validation-error"), GUI_ROW_KC_ERROR, GUI_ALIGN_CENTER);
         gui->setColor(OOColor::redColor().get(), GUI_ROW_KC_ERROR);
     }
@@ -285,7 +288,7 @@ void PlayerEntity::setGuiToKeyMapperScreen(unsigned skip, bool resetCurrentRow)
     if (gameView != nullptr)
         gameView->clearKeys();
     if (UNIVERSE != nullptr)
-        UNIVERSE->enterGUIViewModeWithMouseInteraction(YES);
+        UNIVERSE->enterGUIViewModeWithMouseInteraction(true);
 
     if (guiChanged)
         noteGUIDidChangeFrom(oldScreen, gui_screen);
@@ -342,7 +345,7 @@ void PlayerEntity::keyMapperInputHandler(::GuiDisplayGen* gui, ::MyOpenGLView* g
         key_list = definitions.isArray() ? definitions : oo::PList(oo::PList::Array()); // -initWithArray:nil was empty
         if (gameView != nullptr)
             gameView->clearKeys(); // try to stop key bounces
-        setGuiToKeyConfigScreen(YES);
+        setGuiToKeyConfigScreen(true);
     }
 
     if ((gameView != nullptr ? gameView->isDown('u') : false)) {
@@ -382,7 +385,9 @@ void PlayerEntity::keyMapperInputHandler(::GuiDisplayGen* gui, ::MyOpenGLView* g
                     lookupKey = std::string(CUSTOMEQUIP_KEYMODE);
                 }
 
-                ::OOEquipmentType* item = (eq.has_value() ? OOEquipmentType::equipmentTypeWithIdentifier(*eq).get() : nil);
+                ::OOEquipmentType* item = (eq.has_value()
+                        ? OOEquipmentType::equipmentTypeWithIdentifier(*eq).get()
+                        : nullptr);
 
                 // the customEquipActivation entry is edited in place, as before
                 oo::PList::Dict* fields = CustomEquipFields(customEquipActivation, idx);
@@ -422,9 +427,9 @@ bool PlayerEntity::entryIsDictCustomEquip(const oo::PList& dict)
 
 bool PlayerEntity::entryIsCustomEquip(const std::string& entry)
 {
-    BOOL result = NO;
+    bool result = false;
     if (oo::str::hasPrefix(entry, "activate_") || oo::str::hasPrefix(entry, "mode_"))
-        result = YES;
+        result = true;
     return result;
 }
 
@@ -484,10 +489,7 @@ std::optional<std::string> PlayerEntity::getCustomEquipKeyDefType(const std::str
     return std::string();
 }
 
-void PlayerEntity::setGuiToKeyConfigScreen()
-{
-    setGuiToKeyConfigScreen(NO);
-}
+void PlayerEntity::setGuiToKeyConfigScreen() { setGuiToKeyConfigScreen(false); }
 
 void PlayerEntity::setGuiToKeyConfigScreen(bool resetSelectedRow)
 {
@@ -500,7 +502,7 @@ void PlayerEntity::setGuiToKeyConfigScreen(bool resetSelectedRow)
     gui->setTabStops(tabStop);
 
     gui_screen = GUI_SCREEN_KEYBOARD_CONFIG;
-    BOOL guiChanged = (oldScreen != gui_screen);
+    bool guiChanged = (oldScreen != gui_screen);
     gui->clear();
     gui->setTitle(OO_DESC("oolite-keyconfig-update-title")); // @"%@"
 
@@ -526,11 +528,11 @@ void PlayerEntity::setGuiToKeyConfigScreen(bool resetSelectedRow)
             k_int = (OOKeyCode)def.get<long long>("key"); // -integerValue
             if (k_int > 0) {
                 keystring = keyCodeDescription(k_int);
-                if (def.get<bool>("shift") == YES)
+                if (def.get<bool>("shift") == true)
                     keyshift = OO_DESC("oolite-keyconfig-modkey-on");
-                if (def.get<bool>("mod1") == YES)
+                if (def.get<bool>("mod1") == true)
                     keymod1 = OO_DESC("oolite-keyconfig-modkey-on");
-                if (def.get<bool>("mod2") == YES)
+                if (def.get<bool>("mod2") == true)
                     keymod2 = OO_DESC("oolite-keyconfig-modkey-on");
             }
         }
@@ -658,7 +660,7 @@ void PlayerEntity::setGuiToKeyConfigEntryScreen()
     ::MyOpenGLView* gameView = (UNIVERSE != nullptr ? UNIVERSE->getGameView() : nullptr);
     OOGUIScreenID oldScreen = gui_screen;
     gui_screen = GUI_SCREEN_KEYBOARD_ENTRY;
-    BOOL guiChanged = (oldScreen != gui_screen);
+    bool guiChanged = (oldScreen != gui_screen);
 
     // make sure the index we're looking for exists
     oo::PList::Array* keys = key_list.getIf<oo::PList::Array>();
@@ -690,13 +692,13 @@ void PlayerEntity::setGuiToKeyConfigEntryScreen()
     gui->setColor(OOColor::cyanColor().get(), end_row);
     gui->setSelectableRange(NSMakeRange(0, 0));
 
-    gui->setShowTextCursor(YES);
+    gui->setShowTextCursor(true);
     gui->setCurrentRow(end_row);
 
     gui->setForegroundTextureKey(std::string(status() == STATUS_DOCKED ? "docked_overlay" : "paused_overlay"));
     gui->setBackgroundTextureKey(std::string("keyboardsettings"));
     if (UNIVERSE != nullptr)
-        UNIVERSE->enterGUIViewModeWithMouseInteraction(NO);
+        UNIVERSE->enterGUIViewModeWithMouseInteraction(false);
 
     if (gameView != nullptr)
         gameView->clearMouse();
@@ -715,7 +717,7 @@ void PlayerEntity::handleKeyConfigEntryKeys(::GuiDisplayGen* gui, ::MyOpenGLView
 
     handleGUIUpDownArrowKeys();
     if ((gameView != nullptr ? gameView->lastKeyWasShifted() : false))
-        last_shift = YES;
+        last_shift = true;
 
     gui->setText(oo::str::format("%s: %s", OO_DESC("oolite-keyconfig-update-key").c_str(), DescriptionOfString((gameView != nullptr ? gameView->getTypedString() : std::optional<std::string>())).c_str()), end_row);
     gui->setColor(OOColor::cyanColor().get(), end_row);
@@ -727,14 +729,14 @@ void PlayerEntity::handleKeyConfigEntryKeys(::GuiDisplayGen* gui, ::MyOpenGLView
         updateKeyDefinition((gameView != nullptr ? gameView->getTypedString() : std::optional<std::string>()).value_or(""), key_index);
         if (gameView != nullptr)
             gameView->clearKeys(); // try to stop key bounces
-        setGuiToKeyConfigScreen(YES);
+        setGuiToKeyConfigScreen(true);
     }
     if ((gameView != nullptr ? gameView->isDown(27) : false)) // escape
     {
         if (gameView != nullptr)
             gameView->suppressKeysUntilKeyUp();
         // don't update function key
-        setGuiToKeyConfigScreen(YES);
+        setGuiToKeyConfigScreen(true);
     }
 }
 
@@ -752,7 +754,7 @@ void PlayerEntity::updateKeyDefinition(const std::string& keystring, NSUInteger 
     if (!last_shift && oo::str::length(keystring) == 1) {
         key_def["shift"] = oo::PList(false);
     }
-    last_shift = NO;
+    last_shift = false;
     StoreKeyDefinition(index, oo::PList(std::move(key_def)));
     key_list = processKeyCode(key_list);
 }
@@ -763,8 +765,8 @@ void PlayerEntity::updateShiftKeyDefinition(const std::string& key, NSUInteger i
     const oo::PList* entry = key_list.at(index);
     oo::PList key_def = (entry != nullptr && entry->isDict()) ? *entry : oo::PList(oo::PList::Dict()); // a value copy
     oo::PList::Dict& key_fields = *key_def.getIf<oo::PList::Dict>();
-    BOOL current = key_def.get<bool>(key);
-    BOOL keycode_changed = NO;
+    bool current = key_def.get<bool>(key);
+    bool keycode_changed = false;
     current = !current;
     key_fields[key] = oo::PList(static_cast<bool>(current));
     if (key == "shift") {
@@ -782,7 +784,7 @@ void PlayerEntity::updateShiftKeyDefinition(const std::string& key, NSUInteger i
                 }
                 if (newstring != keystring) {
                     key_fields["key"] = oo::PList(*newstring);
-                    keycode_changed = YES;
+                    keycode_changed = true;
                 }
             }
         }
@@ -799,7 +801,7 @@ void PlayerEntity::setGuiToConfirmClearScreen()
     OOGUIScreenID oldScreen = gui_screen;
 
     gui_screen = GUI_SCREEN_KEYBOARD_CONFIRMCLEAR;
-    BOOL guiChanged = (oldScreen != gui_screen);
+    bool guiChanged = (oldScreen != gui_screen);
 
     gui->clear();
     gui->setTitle(OO_DESC("oolite-keyconfig-clear-overrides-title")); // @"%@"
@@ -852,14 +854,14 @@ void PlayerEntity::handleKeyMapperConfirmClearKeys(::GuiDisplayGen* gui, ::MyOpe
         deleteAllKeySettings();
         if (gameView != nullptr)
             gameView->suppressKeysUntilKeyUp();
-        setGuiToKeyMapperScreen(0, YES);
+        setGuiToKeyMapperScreen(0, true);
     }
 
     if ((selectKeyPress && (gui->getSelectedRow() == GUI_ROW_KC_CONFIRMCLEAR_NO)) || (gameView != nullptr ? gameView->isDown(27) : false) || (gameView != nullptr ? gameView->isDown(cNo) : false) || (gameView != nullptr ? gameView->isDown(cNo - 32) : false)) {
         // esc or NO was pressed - get out of here
         if (gameView != nullptr)
             gameView->suppressKeysUntilKeyUp();
-        setGuiToKeyMapperScreen(0, YES);
+        setGuiToKeyMapperScreen(0, true);
     }
 }
 
@@ -929,7 +931,9 @@ void PlayerEntity::displayKeyFunctionList(::GuiDisplayGen* gui, NSUInteger skip)
                     const oo::PList* keyArray = equip.get<oo::PList::Array>(custom_keytype.value_or("")); // -oo_arrayForKey:
                     assignment = (PLAYER != nullptr ? PLAYER->getKeyBindingDescription((keyArray != nullptr ? *keyArray : oo::PList())) : std::optional<std::string>());
                     const std::optional<std::string> itemKey = OptionalStringForKey(equip, std::string(CUSTOMEQUIP_EQUIPKEY));
-                    ::OOEquipmentType* item = itemKey.has_value() ? OOEquipmentType::equipmentTypeWithIdentifier(*itemKey).get() : nil;
+                    ::OOEquipmentType* item = itemKey.has_value()
+                        ? OOEquipmentType::equipmentTypeWithIdentifier(*itemKey).get()
+                        : nullptr;
                     bool result = true;
                     int j, k;
                     oo::PList defArray;
@@ -1169,7 +1173,7 @@ oo::PList PlayerEntity::makeKeyGuiDictHeader(const std::string& header)
 
 void PlayerEntity::setGuiToKeyboardLayoutScreen(unsigned skip)
 {
-    setGuiToKeyboardLayoutScreen(skip, NO);
+    setGuiToKeyboardLayoutScreen(skip, false);
 }
 
 void PlayerEntity::setGuiToKeyboardLayoutScreen(unsigned skip, bool /*resetCurrentRow*/)
@@ -1183,10 +1187,11 @@ void PlayerEntity::setGuiToKeyboardLayoutScreen(unsigned skip, bool /*resetCurre
     gui->setTabStops(tabStop);
 
     gui_screen = GUI_SCREEN_KEYBOARD_LAYOUT;
-    BOOL guiChanged = (oldScreen != gui_screen);
+    bool guiChanged = (oldScreen != gui_screen);
 
     if (UNIVERSE != nullptr && UNIVERSE->gameController() != nullptr)
-        UNIVERSE->gameController()->setMouseInteractionModeForUIWithMouseInteraction(YES);
+        UNIVERSE->gameController()
+            ->setMouseInteractionModeForUIWithMouseInteraction(true);
 
     gui->clear();
     gui->setTitle(OO_DESC("oolite-keyconfig-select-kbd"));
@@ -1205,7 +1210,7 @@ void PlayerEntity::setGuiToKeyboardLayoutScreen(unsigned skip, bool /*resetCurre
     if (gameView != nullptr)
         gameView->clearKeys();
     if (UNIVERSE != nullptr)
-        UNIVERSE->enterGUIViewModeWithMouseInteraction(YES);
+        UNIVERSE->enterGUIViewModeWithMouseInteraction(true);
 
     if (guiChanged)
         noteGUIDidChangeFrom(oldScreen, gui_screen);
@@ -1249,26 +1254,30 @@ void PlayerEntity::handleKeyboardLayoutEntryKeys(::GuiDisplayGen* gui, ::MyOpenG
 
         if (gameView != nullptr)
             gameView->clearKeys(); // try to stop key bounces
-        setGuiToKeyMapperScreen(0, YES);
+        setGuiToKeyMapperScreen(0, true);
     }
     if ((gameView != nullptr ? gameView->isDown(27) : false)) // escape - return without change
     {
         if (gameView != nullptr)
             gameView->clearKeys(); // try to stop key bounces
-        setGuiToKeyMapperScreen(0, YES);
+        setGuiToKeyMapperScreen(0, true);
     }
 }
 
 std::optional<std::string> PlayerEntity::keyboardDescription(const std::string& kbd)
 {
-    const oo::PList kmap = ResourceManager::dictionaryFromFilesNamed(KeyMappingsFileName(), std::optional<std::string>("Config"), MERGE_BASIC, NO);
+    const oo::PList kmap = ResourceManager::dictionaryFromFilesNamed(
+        KeyMappingsFileName(), std::optional<std::string>("Config"), MERGE_BASIC,
+        false);
     const oo::PList* sect = kmap.find(kbd);
     return sect != nullptr ? OptionalStringForKey(*sect, "description") : std::nullopt;
 }
 
 std::vector<oo::PList> PlayerEntity::keyboardLayoutList()
 {
-    const oo::PList kmap = ResourceManager::dictionaryFromFilesNamed(KeyMappingsFileName(), std::optional<std::string>("Config"), MERGE_BASIC, NO);
+    const oo::PList kmap = ResourceManager::dictionaryFromFilesNamed(
+        KeyMappingsFileName(), std::optional<std::string>("Config"), MERGE_BASIC,
+        false);
     std::vector<oo::PList> kbdList;
     oo::PList def;
 
@@ -1565,14 +1574,14 @@ bool PlayerEntity::entryIsEqualToDefault(const std::string& key)
     NSUInteger i;
 
     if (def.count() != keys.count())
-        return NO;
+        return false;
     for (i = 0; i < keys.count(); i++) {
         const oo::PList* orig = def.at(i);
         const oo::PList* entrd = keys.at(i);
         if (!compareKeyEntries(orig != nullptr ? *orig : oo::PList(), entrd != nullptr ? *entrd : oo::PList()))
-            return NO;
+            return false;
     }
-    return YES;
+    return true;
 }
 
 // compares two key dictionaries to see if they have the same settings
@@ -1581,9 +1590,9 @@ bool PlayerEntity::compareKeyEntries(const oo::PList& first, const oo::PList& se
     // "key" as -integerValue read it (a string or a number); the modifiers as -boolValue
     if (first.get<long long>("key") == second.get<long long>("key")) {
         if (first.get<bool>("shift") == second.get<bool>("shift") && first.get<bool>("mod1") == second.get<bool>("mod1") && first.get<bool>("mod2") == second.get<bool>("mod2"))
-            return YES;
+            return true;
     }
-    return NO;
+    return false;
 }
 
 // saves the currently store key_list to the defaults file and updates the global definition
@@ -1683,8 +1692,11 @@ void PlayerEntity::deleteAllKeySettings()
     if (customEquipActivation.size() > 0) {
         NSUInteger i;
         for (i = 0; i < customEquipActivation.size(); i++) {
-            const std::optional<std::string> eq = OptionalStringForKey(customEquipActivation[i], std::string(CUSTOMEQUIP_EQUIPKEY));
-            ::OOEquipmentType* item = (eq.has_value() ? OOEquipmentType::equipmentTypeWithIdentifier(*eq).get() : nil);
+            const std::optional<std::string> eq = OptionalStringForKey(
+                customEquipActivation[i], std::string(CUSTOMEQUIP_EQUIPKEY));
+            ::OOEquipmentType* item = (eq.has_value()
+                    ? OOEquipmentType::equipmentTypeWithIdentifier(*eq).get()
+                    : nullptr);
             oo::PList::Dict* fields = CustomEquipFields(customEquipActivation, i); // edited in place
             if (fields == nullptr)
                 continue;

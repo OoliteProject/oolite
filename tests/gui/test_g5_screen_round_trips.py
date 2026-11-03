@@ -1,6 +1,6 @@
 """G5 - screen round-trips: Ship Library, Game Options, Expansion Manager.
 
-docs/phases/0-gui-tier.md G5: "Enter and leave each of: Ship Library (row 24, exit with ``Space``),
+G5: "Enter and leave each of: Ship Library (row 24, exit with ``Space``),
 Game Options (row 25, exit via its ``Back`` row), Expansion Manager (row 26). Assert the start
 screen is reachable again each time." The bug class is a screen that crashes on entry, and the
 secondary claim is the per-screen back semantics, which are deliberately inconsistent and are
@@ -60,8 +60,8 @@ offline, and no network state can change its result.
 
     python3 -m pytest oolite-dev/tests/gui/test_g5_screen_round_trips.py -x -q
 
-Needs the desktop: a real window, unlocked and logged in. It takes tools/gui-lock for
-the duration, via the ``game`` fixture - this file launches nothing of its own.
+Needs the desktop: a real window, unlocked and logged in, left alone while it runs.
+The game is launched through the ``game`` fixture; this file launches nothing of its own.
 
 HELPERS LIVE HERE, NOT IN conftest.py, ON PURPOSE. G4 is being written concurrently against the
 same tier; a shared helper added to conftest.py by both tests is a guaranteed merge conflict, and

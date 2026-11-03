@@ -5,17 +5,9 @@
    round trips, NSDate -description's format, and the monotonic clock.
 */
 
-// Included under OOCocoa.h's true/false macros, as the game includes it (see
-// test_cocoa_macros.cpp).
-#define true 1
-#define false 0
 #include <type_traits>
 
 #include "oofnd/Date.hpp"
-static_assert(std::is_same_v<decltype(true), int>,
-              "Date.hpp must restore OOCocoa.h's true macro");
-#undef true
-#undef false
 
 #include <cmath>
 #include <string>

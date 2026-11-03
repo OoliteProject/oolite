@@ -53,8 +53,8 @@ MA 02110-1301, USA.
 #define kLaserFlareWidth (1.8f)
 #define kLaserHalfWidth (3.6f)
 
-static OOTexture* sShotTexture = nil;
-static OOTexture* sShotTexture2 = nil;
+static OOTexture* sShotTexture = nullptr;
+static OOTexture* sShotTexture2 = nullptr;
 
 namespace {
 
@@ -262,15 +262,9 @@ void OOLaserShotEntity::drawImmediate(bool /*immediate*/, bool translucent)
     cxx_OOCheckOpenGLErrors([&]() -> std::string { return "OOLaserShotEntity after drawing " + oo::EntityDescription(this); });
 }
 
-bool OOLaserShotEntity::isEffect()
-{
-    return YES;
-}
+bool OOLaserShotEntity::isEffect() { return true; }
 
-bool OOLaserShotEntity::canCollide()
-{
-    return NO;
-}
+bool OOLaserShotEntity::canCollide() { return false; }
 
 OOTexture* OOLaserShotEntity::texture1()
 {
@@ -284,7 +278,7 @@ OOTexture* OOLaserShotEntity::texture2()
 
 void OOLaserShotEntity::setUpTexture()
 {
-    if (sShotTexture == nil) {
+    if (sShotTexture == nullptr) {
         sShotTexture = OOTexture::textureWithName("oolite-laser-blur.png", "Textures", kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear | kOOTextureAlphaMask | kOOTextureRepeatT, kOOTextureDefaultAnisotropy / 2.0, 0.0).leakRef();
         OOGraphicsResetManager::sharedManager()->registerCxxClient(new ShotTextureResetClient);
 
@@ -294,14 +288,14 @@ void OOLaserShotEntity::setUpTexture()
 
 OOTexture* OOLaserShotEntity::innerTexture()
 {
-    if (sShotTexture2 == nil)
+    if (sShotTexture2 == nullptr)
         setUpTexture();
     return sShotTexture2;
 }
 
 OOTexture* OOLaserShotEntity::outerTexture()
 {
-    if (sShotTexture == nil)
+    if (sShotTexture == nullptr)
         setUpTexture();
     return sShotTexture;
 }

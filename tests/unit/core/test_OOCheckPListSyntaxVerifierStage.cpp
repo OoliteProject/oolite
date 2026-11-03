@@ -10,7 +10,7 @@
    "should be an array"), neither, and nothing for a missing, unparseable or
         script file. Then the stage is global: the verifier registers and
    answers the C++ stage itself, so the facade case asks the stage (its
-   description through description()). Run: bash tools/check-core-tests.sh
+   description through description()). Run: tests/run.sh unit
 */
 
 #include <filesystem>

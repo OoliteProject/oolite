@@ -653,9 +653,6 @@ inline std::u16string utf8ToUtf16(std::string_view s)
 
 } // namespace oo
 
-#pragma pop_macro("false")
-#pragma pop_macro("true")
-
 #endif // OOFND_PLIST_HPP
 
 // The definitions of get<T>/at<T>. Outside the include guard so that PListGet.hpp, which includes

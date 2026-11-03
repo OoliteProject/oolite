@@ -25,7 +25,7 @@ poc_sources = files(
     '../../OOHPVector.cpp',
     '../../OOQuaternion.cpp',
     '../../OOVector.cpp',
-    '../../legacy_random.c',
+    '../../legacy_random.cpp',
 )
 
 # The game's QuickJS-ng, as src/meson/meson.build declared it (the cached dependency).
@@ -39,7 +39,6 @@ poc_bin = executable(
     'oojs-quickjs-poc',
     poc_sources,
     include_directories: [include_directories('.'), oolite_includes],
-    c_args: poc_args,
     cpp_args: poc_args,
     dependencies: [poc_quickjs_dep, oofnd_dep, oofnd_objc_dep],
     override_options: oolite_override_options,

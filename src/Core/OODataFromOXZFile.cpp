@@ -169,13 +169,13 @@ bool OOOxzFileExistsAtPath(const std::string& path)
     if (uf == NULL) {
         return false;
     }
-    BOOL result = YES;
+    bool result = true;
     if (unzLocateFile(uf, containedFile.c_str(), 1) != UNZ_OK) {
-        result = NO;
+        result = false;
     } else {
         unz_file_info64 file_info = { };
         if (unzGetCurrentFileInfo64(uf, &file_info, NULL, 0, NULL, 0, NULL, 0) != UNZ_OK) {
-            result = NO;
+            result = false;
         }
     }
     unzClose(uf);

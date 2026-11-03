@@ -19,7 +19,7 @@
    expectations are written against the C++ calls. Only the description's
    "<OOProbabilisticTextureManager 0x...>" wrapper, which OOObject's
    -description added, went with that API: the components are checked as they
-   were. Run: bash tools/check-core-tests.sh
+   were. Run: tests/run.sh unit
 */
 
 #include <cstdio>
@@ -162,7 +162,7 @@ std::string Picks(const oo::Ref<OOProbabilisticTextureManager>& manager,
   std::string picks;
   for (int i = 0; i < count; i++) {
     TestTexture* texture = static_cast<TestTexture*>(manager->selectTexture());
-    picks += (texture != nil ? texture->_name.substr(0, 1) : std::string("-"));
+    picks += (texture != nullptr ? texture->_name.substr(0, 1) : std::string("-"));
   }
   return picks;
 }

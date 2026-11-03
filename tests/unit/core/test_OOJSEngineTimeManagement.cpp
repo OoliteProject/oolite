@@ -9,7 +9,7 @@
 	the time limiter the profiler reads, pauses and extends, and the property-list converter
 	(recording what it is given). The tests pin the profiler's entries (names, hit counts, the frame kind), the
 	profile's and entries' descriptions and property lists and the comparisons.
-	Run: bash tools/check-core-tests.sh
+	Run: tests/run.sh unit
 */
 
 #include "OOJSEngineTimeManagement.h"

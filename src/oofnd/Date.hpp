@@ -141,6 +141,3 @@ inline std::string description(Clock::time_point t = Clock::now())
 }
 
 } // namespace oo::date
-
-#pragma pop_macro("false")
-#pragma pop_macro("true")

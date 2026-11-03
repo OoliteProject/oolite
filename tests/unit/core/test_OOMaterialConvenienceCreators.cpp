@@ -12,7 +12,7 @@
    configuration itself as it is written to the cache, against the real material
    classes and GLSL programs compiled in a hidden GL context. The universe, the
    resource manager (shader files), the cache manager, the textures and the
-   emission-map generator are stand-ins. Run: bash tools/check-core-tests.sh
+   emission-map generator are stand-ins. Run: tests/run.sh unit
 */
 
 #include <cstdlib>
@@ -53,21 +53,21 @@ uint32_t gDebugFlags = 0;
 
 // Link stubs, never reached here: OOStringParsing.mm's parsers of a vector or
 // quaternion written as a string (OOPListGameTypes.mm links them).
-BOOL cxx_ScanVectorFromString(const std::optional<std::string>&, Vector*) {
+bool cxx_ScanVectorFromString(const std::optional<std::string>&, Vector*) {
   std::abort();
 }
-BOOL cxx_ScanHPVectorFromString(const std::optional<std::string>&, HPVector*) {
+bool cxx_ScanHPVectorFromString(const std::optional<std::string>&, HPVector*) {
   std::abort();
 }
-BOOL cxx_ScanQuaternionFromString(const std::optional<std::string>&,
+bool cxx_ScanQuaternionFromString(const std::optional<std::string>&,
                                   Quaternion*) {
   std::abort();
 }
 
 // The binding whitelist, which the game implements elsewhere: everything.
-BOOL OOUniformBindingPermitted(const std::string& /*propertyName*/,
+bool OOUniformBindingPermitted(const std::string& /*propertyName*/,
                                Entity* /*bindingTarget*/) {
-  return YES;
+  return true;
 }
 
 // The resource manager: the extension manager's two class methods, and shader
@@ -267,7 +267,7 @@ oo::PList cxx_OOTextureSpecFromObject(
 
 // The universe: the three settings the creators and the materials ask about.
 class Universe;
-Universe* gSharedUniverse = nil;
+Universe* gSharedUniverse = nullptr;
 
 // The game view is C++ (MyOpenGLView). There is none here: its manager
 // accessor, which the shader program's matrix uniforms would use, is never
@@ -285,8 +285,8 @@ class Universe : public oo::RefCounted {
  public:
   OO_UNIVERSE_STAND_IN_VIRTUAL_MEMBERS
 
-  BOOL _useShaders;
-  BOOL _reducedDetail;
+  bool _useShaders;
+  bool _reducedDetail;
   OOGraphicsDetail _detailLevel;
 
   bool useShaders();
@@ -303,20 +303,20 @@ OOGraphicsDetail Universe::getDetailLevel() { return _detailLevel; }
 
 namespace {
 
-TestUniverse* gUniverse = nil;
+TestUniverse* gUniverse = nullptr;
 
 const char* kVertex = "void main() { gl_Position = gl_Vertex; }\n";
 const char* kFragment =
     "uniform sampler2D uDiffuseMap;\nvoid main() { gl_FragColor = "
     "texture2D(uDiffuseMap, vec2(0.0)); }\n";
 
-bool SetUp(BOOL useShaders, OOGraphicsDetail detail = DETAIL_LEVEL_MINIMUM) {
+bool SetUp(bool useShaders, OOGraphicsDetail detail = DETAIL_LEVEL_MINIMUM) {
   if (!OOTestGLContext()) return false;
   OOOpenGLExtensionManager::sharedManager();
-  if (gUniverse == nil) gUniverse = new TestUniverse();
+  if (gUniverse == nullptr) gUniverse = new TestUniverse();
   gUniverse->_useShaders = useShaders;
   gUniverse->_detailLevel = detail;
-  gUniverse->_reducedDetail = NO;
+  gUniverse->_reducedDetail = false;
   gSharedUniverse = gUniverse;
   gShaderFiles = {
       {"oolite-tangent-space-vertex.vertex", kVertex},
@@ -334,7 +334,7 @@ oo::Ref<OOMaterial> Make(
     const std::optional<std::string>& cacheKey = std::nullopt) {
   return OOMaterial::materialWithName(
       name != nullptr ? std::optional<std::string>(name) : std::nullopt,
-      cacheKey, oo::PList(std::move(config)), oo::PList(), nil, smooth);
+      cacheKey, oo::PList(std::move(config)), oo::PList(), nullptr, smooth);
 }
 
 // The material's C++ class, exactly.
@@ -348,7 +348,7 @@ bool IsExactly(const oo::Ref<OOMaterial>& material) {
 }  // namespace
 
 OO_TEST(withoutShaders) {
-  if (!SetUp(NO)) {
+  if (!SetUp(false)) {
     OO_CHECK(false);
     return;
   }
@@ -380,7 +380,7 @@ OO_TEST(withoutShaders) {
 }
 
 OO_TEST(namedShaders) {
-  if (!SetUp(YES)) {
+  if (!SetUp(true)) {
     OO_CHECK(false);
     return;
   }
@@ -399,7 +399,7 @@ OO_TEST(namedShaders) {
 }
 
 OO_TEST(synthesizedShaders) {
-  if (!SetUp(YES, DETAIL_LEVEL_SHADERS)) {
+  if (!SetUp(true, DETAIL_LEVEL_SHADERS)) {
     OO_CHECK(false);
     return;
   }
@@ -462,7 +462,7 @@ OO_TEST(synthesizedShaders) {
 }
 
 OO_TEST(synthesisTriggersAndLoops) {
-  if (!SetUp(YES, DETAIL_LEVEL_MINIMUM)) {
+  if (!SetUp(true, DETAIL_LEVEL_MINIMUM)) {
     OO_CHECK(false);
     return;
   }
@@ -493,7 +493,7 @@ OO_TEST(synthesisTriggersAndLoops) {
 }
 
 OO_TEST(fromDictionaries) {
-  if (!SetUp(YES)) {
+  if (!SetUp(true)) {
     OO_CHECK(false);
     return;
   }
@@ -508,13 +508,13 @@ OO_TEST(fromDictionaries) {
 
     auto make = [&](const char* name, const oo::PList& m, const oo::PList& s) {
       return OOMaterial::materialWithName(std::string(name), std::nullopt, m, s,
-                                          oo::PList(), nil, false);
+                                          oo::PList(), nullptr, false);
     };
 
     // With shaders, the shaders dictionary's entry; without, the materials
     // dictionary's.
     OO_CHECK(IsExactly<OOShaderMaterial>(make("hull.png", materials, shaders)));
-    gUniverse->_useShaders = NO;
+    gUniverse->_useShaders = false;
     oo::Ref<OOMaterial> m = make("hull.png", materials, shaders);
     OO_CHECK(IsExactly<OOSingleTextureMaterial>(m));
     // Neither: an empty configuration if the texture of that name loads, else
@@ -530,7 +530,7 @@ OO_TEST(fromDictionaries) {
 // ------------------------------------------------------------------------
 
 OO_TEST(cxxStaticMembers) {
-  if (!SetUp(NO)) {
+  if (!SetUp(false)) {
     OO_CHECK(false);
     return;
   }
@@ -542,7 +542,7 @@ OO_TEST(cxxStaticMembers) {
     OO_CHECK(Make("Named", {})->name() == std::optional<std::string>("Named"));
   }
 
-  if (!SetUp(YES, DETAIL_LEVEL_SHADERS)) {
+  if (!SetUp(true, DETAIL_LEVEL_SHADERS)) {
     OO_CHECK(false);
     return;
   }
@@ -561,10 +561,10 @@ OO_TEST(cxxStaticMembers) {
                                    {"fragment_shader", oo::PList("named")}})}});
     OO_CHECK(IsExactly<OOShaderMaterial>(OOMaterial::materialWithName(
         std::string("hull.png"), std::nullopt, materials, shaders, oo::PList(),
-        nil, false)));
+        nullptr, false)));
     OO_CHECK(OOMaterial::materialWithName(std::string("missing"), std::nullopt,
                                           oo::PList(), oo::PList(), oo::PList(),
-                                          nil, false) == nullptr);
+                                          nullptr, false) == nullptr);
   }
 }
 

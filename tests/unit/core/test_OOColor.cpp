@@ -6,7 +6,7 @@
    (tests/unit/core/meson.build), so it tests exactly what the game runs. It
    pins what the class computes: component arithmetic, the four description
    forms, the text, and the selectors' answers asked of the C++ colour. Run:
-   bash tools/check-core-tests.sh
+   tests/run.sh unit
 */
 
 #include <cmath>

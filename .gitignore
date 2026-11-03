@@ -23,6 +23,7 @@ deps/libpng
 
 # Build products
 build/
+/compile_commands.json
 tools/icosmesh/obj
 doxygen/
 libobjc2/

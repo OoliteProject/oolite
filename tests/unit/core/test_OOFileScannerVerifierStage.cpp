@@ -10,7 +10,7 @@
    property lists. The verifier answers the C++ stage itself, so
    cxxFileStageBehindTheFacade asks the stage (its description through
    description(), as scannerFindsFiles does). Run: bash
-   tools/check-core-tests.sh
+   tests/run.sh unit
 */
 
 #include <filesystem>

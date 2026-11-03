@@ -5,8 +5,8 @@
    OOWeakReference semantics they replace.
 
         Every test object records its destruction in a log, so the tests assert
-   not just counts but WHEN and in WHAT ORDER objects die. tools/check-oofnd.sh
-   also runs this file under AddressSanitizer, which turns any over-release or
+   not just counts but WHEN and in WHAT ORDER objects die. Running
+   this file under AddressSanitizer also helps: it turns any over-release or
    use of a dead object into a failure.
 */
 

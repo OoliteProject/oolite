@@ -11,7 +11,7 @@
    glBlendFunc call. The GL context is a hidden window's
    (oo_gl_test_context.hpp); the extension manager, which loads the multitexture
    entry points, runs with its collaborators stubbed as in
-   test_OOOpenGLExtensionManager. Run: bash tools/check-core-tests.sh
+   test_OOOpenGLExtensionManager. Run: tests/run.sh unit
 */
 
 #include <cstdio>

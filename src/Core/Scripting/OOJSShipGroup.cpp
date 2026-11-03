@@ -146,7 +146,7 @@ static JSValue ShipGroupSetProperty(OOJS_SETTER_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    ShipEntity* shipValue = nil;
+    ShipEntity* shipValue = nullptr;
     OOShipGroup* cxxGroup = nullptr;
 
     if (EXPECT_NOT(!OOJSGetCxxPrivate(context, thisObj, sShipGroupClassID, &cxxGroup)))
@@ -156,7 +156,7 @@ static JSValue ShipGroupSetProperty(OOJS_SETTER_ARGS)
     switch (magic) {
     case kShipGroup_leader:
         shipValue = oo::ToShip(OOJSEntityFromJSValue(context, value));
-        if (shipValue != nil || JS_IsNull(value)) {
+        if (shipValue != nullptr || JS_IsNull(value)) {
             if (cxxGroup != nullptr)
                 cxxGroup->setLeader(shipValue);
             return JS_UNDEFINED;
@@ -197,7 +197,7 @@ static JSValue ShipGroupConstruct(OOJS_NATIVE_ARGS)
     }
 
     std::optional<std::string> name;
-    ShipEntity* leader = nil;
+    ShipEntity* leader = nullptr;
 
     if (argc >= 1) {
         if (!JS_IsString(OOJS_ARGV[0])) {
@@ -209,7 +209,7 @@ static JSValue ShipGroupConstruct(OOJS_NATIVE_ARGS)
 
     if (argc >= 2) {
         leader = oo::ToShip(OOJSEntityFromJSValue(context, OOJS_ARGV[1]));
-        if (leader == nil && !JS_IsNull(OOJS_ARGV[1])) {
+        if (leader == nullptr && !JS_IsNull(OOJS_ARGV[1])) {
             cxx_OOJSReportBadArguments(context, std::nullopt, "ShipGroup()", 1, OOJS_ARGV + 1, "Could not create ShipGroup", "ship");
             return OOJSNativeFailure(context);
         }
@@ -276,7 +276,7 @@ static JSValue ShipGroupAddShip(OOJS_NATIVE_ARGS)
     OOJS_NATIVE_ENTER(context)
 
     OOShipGroup* cxxGroup = nullptr;
-    ShipEntity* ship = nil;
+    ShipEntity* ship = nullptr;
     bool OK = true;
 
     if (EXPECT_NOT(!OOJSGetCxxPrivate(context, OOJS_THIS, sShipGroupClassID, &cxxGroup)))
@@ -284,7 +284,7 @@ static JSValue ShipGroupAddShip(OOJS_NATIVE_ARGS)
 
     if (argc > 0)
         ship = oo::ToShip(OOJSEntityFromJSValue(context, OOJS_ARGV[0]));
-    if (ship == nil) {
+    if (ship == nullptr) {
         if (argc > 0 && JS_IsNull(OOJS_ARGV[0]))
             OOJS_RETURN_VOID; // OK, do nothing for null ship.
 
@@ -300,7 +300,7 @@ static JSValue ShipGroupAddShip(OOJS_NATIVE_ARGS)
         // nothing to do...
         OOJS_RETURN_VOID;
     } else {
-        ShipEntity* thisGroupLeader = (cxxGroup != nullptr) ? cxxGroup->leader() : nil;
+        ShipEntity* thisGroupLeader = (cxxGroup != nullptr) ? cxxGroup->leader() : nullptr;
 
         if ((thisGroupLeader != nullptr ? thisGroupLeader->escortGroup() : (OOShipGroup*)nullptr) == thisGroup) // escort group!
         {
@@ -308,7 +308,7 @@ static JSValue ShipGroupAddShip(OOJS_NATIVE_ARGS)
             {
                 OOShipGroup* thatGroup = (ship != nullptr ? ship->group() : (OOShipGroup*)nullptr);
                 OOShipGroup* cxxThatGroup = thatGroup;
-                if (((cxxThatGroup != nullptr) ? cxxThatGroup->count() : 0) > 1 && (((cxxThatGroup != nullptr) ? cxxThatGroup->leader() : nil) != nullptr ? ((cxxThatGroup != nullptr) ? cxxThatGroup->leader() : nil)->escortGroup() : (OOShipGroup*)nullptr) == thatGroup) // new escort already escorting!
+                if (((cxxThatGroup != nullptr) ? cxxThatGroup->count() : 0) > 1 && (((cxxThatGroup != nullptr) ? cxxThatGroup->leader() : nullptr) != nullptr ? ((cxxThatGroup != nullptr) ? cxxThatGroup->leader() : nullptr)->escortGroup() : (OOShipGroup*)nullptr) == thatGroup) // new escort already escorting!
                 {
                     cxx_OOJSReportWarningForCaller(context, "ShipGroup", "addShip", "Ship %s cannot be assigned to two escort groups, ignoring.", oo::EntityDescription(ship).c_str());
                     OK = false;
@@ -344,14 +344,14 @@ static JSValue ShipGroupRemoveShip(OOJS_NATIVE_ARGS)
     OOJS_NATIVE_ENTER(context)
 
     OOShipGroup* cxxGroup = nullptr;
-    ShipEntity* ship = nil;
+    ShipEntity* ship = nullptr;
 
     if (EXPECT_NOT(!OOJSGetCxxPrivate(context, OOJS_THIS, sShipGroupClassID, &cxxGroup)))
         return OOJSNativeFailure(context);
 
     if (argc > 0)
         ship = oo::ToShip(OOJSEntityFromJSValue(context, OOJS_ARGV[0]));
-    if (ship == nil) {
+    if (ship == nullptr) {
         if (argc > 0 && JS_IsNull(OOJS_ARGV[0]))
             OOJS_RETURN_VOID; // OK, do nothing for null ship.
 
@@ -371,14 +371,14 @@ static JSValue ShipGroupContainsShip(OOJS_NATIVE_ARGS)
     OOJS_NATIVE_ENTER(context)
 
     OOShipGroup* cxxGroup = nullptr;
-    ShipEntity* ship = nil;
+    ShipEntity* ship = nullptr;
 
     if (EXPECT_NOT(!OOJSGetCxxPrivate(context, OOJS_THIS, sShipGroupClassID, &cxxGroup)))
         return OOJSNativeFailure(context);
 
     if (argc > 0)
         ship = oo::ToShip(OOJSEntityFromJSValue(context, OOJS_ARGV[0]));
-    if (ship == nil) {
+    if (ship == nullptr) {
         if (argc > 0 && JS_IsNull(OOJS_ARGV[0]))
             OOJS_RETURN_BOOL(false); // OK, return false for null ship.
 

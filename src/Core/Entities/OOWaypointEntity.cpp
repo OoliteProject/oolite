@@ -55,7 +55,7 @@ void OOWaypointEntity::initWithDictionary(const oo::PList& info)
     // self = [super init]: the constructor ran Entity's -init body.
 
     // A nil dictionary read zero-filled values and nil strings (messaging nil), not the defaults.
-    oriented = YES;
+    oriented = true;
     position = info ? OOHPVectorFromPList(info.find(OOWAYPOINT_KEY_POSITION), kZeroHPVector) : kZeroHPVector;
     Quaternion q = info ? OOQuaternionFromPList(info.find(OOWAYPOINT_KEY_ORIENTATION), kIdentityQuaternion) : (Quaternion) { 0, 0, 0, 0 };
     setOrientation(q);
@@ -72,9 +72,9 @@ void OOWaypointEntity::setOrientation(Quaternion q)
 {
     if (quaternion_equal(q, kZeroQuaternion)) {
         q = kIdentityQuaternion;
-        oriented = NO;
+        oriented = false;
     } else {
-        oriented = YES;
+        oriented = true;
     }
     Entity::setOrientation(q);
 }
@@ -99,12 +99,12 @@ void OOWaypointEntity::setSize(OOScalar newSize)
 
 bool OOWaypointEntity::isEffect()
 {
-    return YES;
+    return true;
 }
 
 bool OOWaypointEntity::isWaypoint()
 {
-    return YES;
+    return true;
 }
 
 void OOWaypointEntity::drawImmediate(bool /*immediate*/, bool translucent)
@@ -275,7 +275,7 @@ void OOWaypointEntity::setNextBeacon(Entity* beaconShip)
 
 bool OOWaypointEntity::isJammingScanning()
 {
-    return NO;
+    return false;
 }
 
 // The binding's bodies.

@@ -1,6 +1,6 @@
-// Captured from GNUstep base 1.31.1 by tools/captures/plist-description/capture.sh:
-// the root class's -description of each case in tools/captures/plist-description/cases.txt, TZ=UTC.
-// Test data: do not edit; rerun the script. Rows: { kind, name, input text, captured description }.
+// Captured from GNUstep base 1.31.1 by a probe linked against gnustep-base:
+// the root class's -description of each case below, TZ=UTC.
+// Test data: do not edit; recapture it. Rows: { kind, name, input text, captured description }.
 	{ "nil", "nil", "-", "(null)" },
 	{ "plist", "string", "\"hello\"", "hello" },
 	{ "plist", "string-empty", "\"\"", "" },

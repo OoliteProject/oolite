@@ -117,14 +117,33 @@ public:
             "view_description" ) is transfomed to
             "adder-player.custom_views[0].view_description".
     */
-    static std::optional<std::string> descriptionForKeyPath(const oo::PList& keyPath); // a null or empty path is "root"; nullopt for a component that is neither string nor number
+    static std::optional<std::string> descriptionForKeyPath(
+        const oo::PList&
+            keyPath); // a null or empty path is "root"; nullopt for a component
+                      // that is neither string nor number
 
-    // Internal (the OOPrivate category): the verification core and the delegate calls, which the
-    // type verifiers in OOPListSchemaVerifier.mm (file-static functions) call directly.
-    bool delegateVerifierWithPropertyList(const oo::PList& rootPList, const std::string& name, const oo::PList& subPList, BackLinkChain keyPath, const oo::PList& typeKey, std::optional<OOPListSchemaVerifierError>* outError);
-    bool delegateVerifierWithPropertyList(const oo::PList& rootPList, const std::string& name, const oo::PList& subPList, const OOPListSchemaVerifierError& error, const oo::PList& localSchema);
-    bool verifyPList(const oo::PList& rootPList, const std::string& name, const oo::PList& subProperty, const oo::PList& subSchema, BackLinkChain keyPath, bool tentative, std::optional<OOPListSchemaVerifierError>* outError, BOOL* outStop);
-    oo::PList resolveSchemaType(const oo::PList& specifier, BackLinkChain keyPath, std::optional<OOPListSchemaVerifierError>* outError); // null: not resolved (*outError says why)
+    // Internal (the OOPrivate category): the verification core and the delegate
+    // calls, which the type verifiers in OOPListSchemaVerifier.mm (file-static
+    // functions) call directly.
+    bool delegateVerifierWithPropertyList(
+        const oo::PList& rootPList, const std::string& name,
+        const oo::PList& subPList, BackLinkChain keyPath,
+        const oo::PList& typeKey,
+        std::optional<OOPListSchemaVerifierError>* outError);
+    bool delegateVerifierWithPropertyList(const oo::PList& rootPList,
+        const std::string& name,
+        const oo::PList& subPList,
+        const OOPListSchemaVerifierError& error,
+        const oo::PList& localSchema);
+    bool verifyPList(const oo::PList& rootPList, const std::string& name,
+        const oo::PList& subProperty, const oo::PList& subSchema,
+        BackLinkChain keyPath, bool tentative,
+        std::optional<OOPListSchemaVerifierError>* outError,
+        bool* outStop);
+    oo::PList resolveSchemaType(
+        const oo::PList& specifier, BackLinkChain keyPath,
+        std::optional<OOPListSchemaVerifierError>*
+            outError); // null: not resolved (*outError says why)
 
 private:
     explicit OOPListSchemaVerifier(const oo::PList& schema); // -initWithSchema:, less its failure
@@ -195,7 +214,7 @@ typedef enum {
     kPListErrorLastErrorCode
 } OOPListSchemaVerifierErrorCode;
 
-OOINLINE BOOL OOPlistErrorIsSchemaError(OOPListSchemaVerifierErrorCode error)
+OOINLINE bool OOPlistErrorIsSchemaError(OOPListSchemaVerifierErrorCode error)
 {
     return kPListErrorStartOfSchemaErrors < error && error < kPListErrorLastErrorCode;
 }

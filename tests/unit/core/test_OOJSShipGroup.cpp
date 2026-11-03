@@ -15,7 +15,7 @@
 	four properties both ways,
 	addShip() with its escort rules, removeShip(), containsShip(), a non-group, a native's
 	exception) and what the category answers the engine (one JS object per group until the engine
-	clears it). Run: bash tools/check-core-tests.sh
+	clears it). Run: tests/run.sh unit
 */
 
 #include "OOShipGroup.h"
@@ -60,7 +60,7 @@ public:
 	std::string _name;
 	oo::Ref<OOShipGroup> _group;
 	oo::Ref<OOShipGroup> _escortGroup;
-	BOOL _acceptsEscorts = NO;
+	bool _acceptsEscorts = false;
 	int _accepted = 0;
 };
 
@@ -118,9 +118,9 @@ OOShipGroup *ShipEntity::escortGroup()  { return _escortGroup.get(); }
 bool ShipEntity::acceptAsEscort(::ShipEntity *other_ship)
 {
 	if (other_ship->_name == "boom")  OORaiseException(OOInvalidArgumentException, "escort %s", "boom");
-	if (!_acceptsEscorts)  return NO;
+	if (!_acceptsEscorts)  return false;
 	_accepted++;
-	return YES;
+	return true;
 }
 
 ::TestEntityObject *TestObjectOf(Entity *entity)  { return entity != nullptr ? entity->_object : nullptr; }
@@ -550,9 +550,9 @@ OO_TEST(escorts)
 	leader->_escortGroup = escorts;
 	leader->_group = escorts;
 	Define("escorts", escorts->jsValueInContext(sContext));
-	leader->_acceptsEscorts = NO;
+	leader->_acceptsEscorts = false;
 	OO_CHECK_EVAL("[escorts.addShip(escort), escorts.containsShip(escort)].join()", "false,false");
-	leader->_acceptsEscorts = YES;
+	leader->_acceptsEscorts = true;
 	OO_CHECK_EVAL("[escorts.addShip(escort), escorts.containsShip(escort)].join()", "true,true");
 	OO_CHECK_EQ(leader->_accepted, 1);
 	// A ship that already escorts someone else is refused, with a warning.
@@ -579,9 +579,9 @@ OO_TEST(escorts)
 	custom->_escortGroup = customGroup;
 	custom->_group = OOShipGroup::groupWithName(std::string("elsewhere"));
 	Define("customGroup", customGroup->jsValueInContext(sContext));
-	custom->_acceptsEscorts = NO;
+	custom->_acceptsEscorts = false;
 	OO_CHECK_EVAL("customGroup.addShip(escort)", "false");
-	custom->_acceptsEscorts = YES;
+	custom->_acceptsEscorts = true;
 	OO_CHECK_EVAL("customGroup.addShip(escort)", "true");
 	OO_CHECK_EQ(custom->_accepted, 1);
 }

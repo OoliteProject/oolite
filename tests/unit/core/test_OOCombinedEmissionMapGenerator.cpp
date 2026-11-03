@@ -13,7 +13,7 @@
 	read. It links the whole game but main (tests/unit/core/meson.build entry ['*']), on the
 	hidden GL context of oo_gl_test_context.hpp. The generators are made by the C++ factories
 	and asked directly. The last test pins the C++ API.
-	Run: bash tools/check-core-tests.sh test_OOCombinedEmissionMapGenerator
+	Run: bash meson test -C build/meson_test test_OOCombinedEmissionMapGenerator
 */
 
 #include <png.h>
@@ -177,10 +177,10 @@ OO_TEST(nothingToBake) {
   SetUp();
   {
     oo::AutoreleaseScope pool;
-    OO_CHECK(NewGenerator(oo::PList(), nil, nil, nil, oo::PList(),
+    OO_CHECK(NewGenerator(oo::PList(), nullptr, nullptr, nullptr, oo::PList(),
                           OOColor::redColor().get(),
-                          oo::PList("e.png")) == nil);
-    OO_CHECK(NewCombinedGenerator(oo::PList(), nil, nil, nil, nil) == nil);
+                          oo::PList("e.png")) == nullptr);
+    OO_CHECK(NewCombinedGenerator(oo::PList(), nullptr, nullptr, nullptr, nullptr) == nullptr);
   }
 }
 
@@ -196,10 +196,10 @@ OO_TEST(settingsFromTheOptionsSpecifier) {
     uint32_t expected = 0;
     float anisotropy = 0, lodBias = 0;
     OO_CHECK(cxx_OOInterpretTextureSpecifier(options, NULL, &expected,
-                                             &anisotropy, &lodBias, YES));
+                                             &anisotropy, &lodBias, true));
     OOTextureGenerator* generator = NewGenerator(
-        oo::PList("e.png"), nil, nil, nil, oo::PList(), nil, options);
-    OO_CHECK(generator != nil &&
+        oo::PList("e.png"), nullptr, nullptr, nullptr, oo::PList(), nullptr, options);
+    OO_CHECK(generator != nullptr &&
              (dynamic_cast<OOTextureGenerator*>(generator) != nullptr));
     OO_CHECK(generator->textureOptions() ==
              OOApplyTextureOptionDefaults(expected));
@@ -217,8 +217,8 @@ OO_TEST(cacheKeys) {
     oo::Ref<OOColor> red = OOColor::redColor();
     const std::string redRGBA = red->rgbaDescription().value_or("");
 
-    OO_CHECK(NewGenerator(oo::PList("e.png"), red.get(), nil, nil, oo::PList(),
-                          nil, oo::PList("e.png"))
+    OO_CHECK(NewGenerator(oo::PList("e.png"), red.get(), nullptr, nullptr, oo::PList(),
+                          nullptr, oo::PList("e.png"))
                  ->cacheKey() ==
              std::optional<std::string>("emission map;emission:{" +
                                         KeyOf("e.png") + "}*" + redRGBA + ";"));
@@ -227,7 +227,7 @@ OO_TEST(cacheKeys) {
     // evaluates the two sides of ==.
     const std::optional<std::string> whiteKey =
         NewGenerator(oo::PList("e.png"), OOColor::whiteColor().get(),
-                     DiffuseMap(), nil, oo::PList(), nil, oo::PList("e.png"))
+                     DiffuseMap(), nullptr, oo::PList(), nullptr, oo::PList("e.png"))
             ->cacheKey();
     OO_CHECK(whiteKey == std::optional<std::string>("emission map;emission:{" +
                                                     KeyOf("e.png") + "};"));
@@ -237,21 +237,21 @@ OO_TEST(cacheKeys) {
     OO_CHECK(!diffuseKey.empty());
     // The illumination colour is the diffuse colour times the illumination
     // colour.
-    OO_CHECK(NewGenerator(oo::PList(), nil, diffuse, red.get(),
+    OO_CHECK(NewGenerator(oo::PList(), nullptr, diffuse, red.get(),
                           oo::PList("i.png"), OOColor::yellowColor().get(),
                           oo::PList("i.png"))
                  ->cacheKey() ==
              std::optional<std::string>("illumination map;illumination:{" +
                                         KeyOf("i.png") + "}*{" + diffuseKey +
                                         "}*" + redRGBA + ";"));
-    OO_CHECK(NewGenerator(oo::PList("e.png"), nil, nil, nil, oo::PList("i.png"),
-                          nil, oo::PList("e.png"))
+    OO_CHECK(NewGenerator(oo::PList("e.png"), nullptr, nullptr, nullptr, oo::PList("i.png"),
+                          nullptr, oo::PList("e.png"))
                  ->cacheKey() ==
              std::optional<std::string>(
                  "merged emission and illumination map;emission:{" +
                  KeyOf("e.png") + "};illumination:{" + KeyOf("i.png") +
                  "}*{};"));
-    OO_CHECK(NewCombinedGenerator(oo::PList("c.png"), diffuse, nil, nil, nil)
+    OO_CHECK(NewCombinedGenerator(oo::PList("c.png"), diffuse, nullptr, nullptr, nullptr)
                  ->cacheKey() ==
              std::optional<std::string>(
                  "combined emission and illumination map;emission:{" +
@@ -268,8 +268,8 @@ OO_TEST(bakesTheEmissionMap) {
     // Emission alone, tinted (0.5, 1, 0.25).
     Baked baked;
     Bake(NewGenerator(oo::PList("e.png"),
-                      OOColor::colorWithRed(0.5f, 1.0f, 0.25f, 1.0f).get(), nil,
-                      nil, oo::PList(), nil, oo::PList("e.png")),
+                      OOColor::colorWithRed(0.5f, 1.0f, 0.25f, 1.0f).get(), nullptr,
+                      nullptr, oo::PList(), nullptr, oo::PList("e.png")),
          baked);
     OO_CHECK(baked.ok && baked.format == kOOPixMapRGBA &&
              baked.pixMap.width > 0 &&
@@ -287,8 +287,8 @@ OO_TEST(bakesTheIlluminationMap) {
     // Illumination alone: grey 100 x the diffuse map's 128 (x a white colour,
     // which is none).
     Baked illumination;
-    Bake(NewGenerator(oo::PList(), nil, DiffuseMap(), nil, oo::PList("i.png"),
-                      nil, oo::PList("i.png")),
+    Bake(NewGenerator(oo::PList(), nullptr, DiffuseMap(), nullptr, oo::PList("i.png"),
+                      nullptr, oo::PList("i.png")),
          illumination);
     OO_CHECK(illumination.ok && illumination.pixMap.width > 0);
     const uint8_t lit = illumination.pixel()[0];
@@ -296,8 +296,8 @@ OO_TEST(bakesTheIlluminationMap) {
 
     // Emission plus illumination: added.
     Baked merged;
-    Bake(NewGenerator(oo::PList("e.png"), nil, DiffuseMap(), nil,
-                      oo::PList("i.png"), nil, oo::PList("e.png")),
+    Bake(NewGenerator(oo::PList("e.png"), nullptr, DiffuseMap(), nullptr,
+                      oo::PList("i.png"), nullptr, oo::PList("e.png")),
          merged);
     OO_CHECK(merged.ok && merged.format == kOOPixMapRGBA);
     OO_CHECK(merged.pixel()[0] == 200 + lit);
@@ -305,7 +305,7 @@ OO_TEST(bakesTheIlluminationMap) {
     // One map: its alpha (200) is the illumination, x the diffuse map; its
     // colour the emission.
     Baked combined;
-    Bake(NewCombinedGenerator(oo::PList("c.png"), DiffuseMap(), nil, nil, nil),
+    Bake(NewCombinedGenerator(oo::PList("c.png"), DiffuseMap(), nullptr, nullptr, nullptr),
          combined);
     OO_CHECK(combined.ok && combined.format == kOOPixMapRGBA);
     OO_CHECK(combined.pixel()[0] == 255);  // 200 + ~100, saturated
@@ -319,9 +319,9 @@ OO_TEST(aMissingMap) {
     oo::AutoreleaseScope pool;
     // Made (the spec names a map), but there is nothing to bake.
     OOTextureGenerator* generator =
-        NewGenerator(oo::PList("missing.png"), nil, nil, nil, oo::PList(), nil,
+        NewGenerator(oo::PList("missing.png"), nullptr, nullptr, nullptr, oo::PList(), nullptr,
                      oo::PList("missing.png"));
-    OO_CHECK(generator != nil);
+    OO_CHECK(generator != nullptr);
     Baked baked;
     Bake(generator, baked);
     OO_CHECK(!baked.ok && baked.pixMap.pixels == NULL);
@@ -333,21 +333,21 @@ OO_TEST(aTextureOfTheGenerator) {
   {
     oo::AutoreleaseScope pool;
     OOTexture* texture = Autoreleased(OOTexture::textureWithGenerator(
-        NewGenerator(oo::PList("e.png"), OOColor::redColor().get(), nil, nil,
-                     oo::PList(), nil, oo::PList("e.png"))));
+        NewGenerator(oo::PList("e.png"), OOColor::redColor().get(), nullptr, nullptr,
+                     oo::PList(), nullptr, oo::PList("e.png"))));
     OO_CHECK((dynamic_cast<OOConcreteTexture*>(texture) != nullptr));
     texture->ensureFinishedLoading();
     OO_CHECK(texture->isFinishedLoading() && texture->dimensions().width > 0);
     OO_CHECK(texture->cacheKey() ==
-             NewGenerator(oo::PList("e.png"), OOColor::redColor().get(), nil,
-                          nil, oo::PList(), nil, oo::PList("e.png"))
+             NewGenerator(oo::PList("e.png"), OOColor::redColor().get(), nullptr,
+                          nullptr, oo::PList(), nullptr, oo::PList("e.png"))
                  ->cacheKey());
 
     // While that texture is cached, a generator of its key reads no map, so it
     // bakes nothing.
     Baked baked;
-    Bake(NewGenerator(oo::PList("e.png"), OOColor::redColor().get(), nil, nil,
-                      oo::PList(), nil, oo::PList("e.png")),
+    Bake(NewGenerator(oo::PList("e.png"), OOColor::redColor().get(), nullptr, nullptr,
+                      oo::PList(), nullptr, oo::PList("e.png")),
          baked);
     OO_CHECK(!baked.ok);
   }
@@ -360,8 +360,8 @@ OO_TEST(description) {
   {
     oo::AutoreleaseScope pool;
     const std::string description =
-        NewGenerator(oo::PList("e.png"), OOColor::redColor().get(), nil, nil,
-                     oo::PList(), nil, oo::PList("e.png"))
+        NewGenerator(oo::PList("e.png"), OOColor::redColor().get(), nullptr, nullptr,
+                     oo::PList(), nullptr, oo::PList("e.png"))
             ->description();
     OO_CHECK(description.starts_with("<OOCombinedEmissionMapGenerator 0x"));
     OO_CHECK(description.find("{emission map: ") != std::string::npos);
@@ -380,16 +380,16 @@ OO_TEST(cxxApi) {
   {
     oo::AutoreleaseScope pool;
     OO_CHECK(!OOCombinedEmissionMapGenerator::generatorWithEmissionMapSpec(
-        oo::PList(), nullptr, nil, nullptr, oo::PList(), nullptr, oo::PList()));
+        oo::PList(), nullptr, nullptr, nullptr, oo::PList(), nullptr, oo::PList()));
     OO_CHECK(!OOCombinedEmissionMapGenerator::
                  generatorWithEmissionAndIlluminationMapSpec(
-                     oo::PList(), nil, nullptr, nullptr, nullptr, oo::PList()));
+                     oo::PList(), nullptr, nullptr, nullptr, nullptr, oo::PList()));
 
     const oo::Ref<OOColor> red = OOColor::colorWithRGBAComponents(
         (OORGBAComponents){1.0f, 0.0f, 0.0f, 1.0f});
     const oo::Ref<OOCombinedEmissionMapGenerator> generator =
         OOCombinedEmissionMapGenerator::generatorWithEmissionMapSpec(
-            oo::PList("e.png"), red.get(), nil, nullptr, oo::PList(), nullptr,
+            oo::PList("e.png"), red.get(), nullptr, nullptr, oo::PList(), nullptr,
             oo::PList("e.png"));
     OO_CHECK(generator &&
              generator->cacheKey() ==
@@ -399,7 +399,7 @@ OO_TEST(cxxApi) {
 
     // A generator the factory made is one.
     OOTextureGenerator* made =
-        NewGenerator(oo::PList("e.png"), nil, nil, nil, oo::PList(), nil,
+        NewGenerator(oo::PList("e.png"), nullptr, nullptr, nullptr, oo::PList(), nullptr,
                      oo::PList("e.png"));
     OO_CHECK(dynamic_cast<OOCombinedEmissionMapGenerator*>(made) != nullptr);
 

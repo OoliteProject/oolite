@@ -290,18 +290,18 @@ oo::PList cxx_OOTextureSpecFromObject(
 
 uint8_t OOTextureComponentsForFormat(OOTextureDataFormat format);
 
-BOOL OOCubeMapsAvailable(void);
+bool OOCubeMapsAvailable(void);
 
 /*	cxx_OOInterpretTextureSpecifier()
 
         Interpret a texture specifier (string or dictionary). All out parameters
         may be NULL.
 */
-BOOL cxx_OOInterpretTextureSpecifier(const oo::PList& specifier,
+bool cxx_OOInterpretTextureSpecifier(const oo::PList& specifier,
     std::string* outName,
     OOTextureFlags* outOptions,
     float* outAnisotropy, float* outLODBias,
-    BOOL ignoreExtract);
+    bool ignoreExtract);
 
 /*	cxx_OOMakeTextureSpecifier()
 
@@ -312,7 +312,7 @@ BOOL cxx_OOInterpretTextureSpecifier(const oo::PList& specifier,
 */
 oo::PList cxx_OOMakeTextureSpecifier(const std::string& name,
     OOTextureFlags options, float anisotropy,
-    float lodBias, BOOL internal);
+    float lodBias, bool internal);
 
 /*	OOApplyTextureOptionDefaults()
 

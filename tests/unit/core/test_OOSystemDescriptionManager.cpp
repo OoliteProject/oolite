@@ -15,7 +15,7 @@
    are fakes that answer the one
    question each is asked, and the two string parsers it calls are given here.
    The tests ask the C++ class (held as oo::Ref). The C++ API and the
-   entry on its own follow. Run: bash tools/check-core-tests.sh
+   entry on its own follow. Run: tests/run.sh unit
 */
 
 #include <cstdio>
@@ -40,7 +40,7 @@ class Universe {
 
 OOSystemID Universe::currentSystemID() { return gCurrentSystem; }
 
-Universe* gSharedUniverse = nil;
+Universe* gSharedUniverse = nullptr;
 
 // PLAYER: the members the code under test calls, declared as PlayerEntity.h
 // declares them (the test imports no game header that defines the class), with
@@ -86,7 +86,7 @@ Random_Seed cxx_RandomSeedFromString(
 namespace {
 
 void Fake() {
-  if (gSharedUniverse == nil) gSharedUniverse = new Universe();
+  if (gSharedUniverse == nullptr) gSharedUniverse = new Universe();
   if (gOOPlayer == nullptr) gOOPlayer = new PlayerEntity;  // never deleted
   gCurrentSystem = 7;
   gGalaxy = 0;
@@ -124,7 +124,7 @@ OO_TEST(emptyManager) {
   Fake();
   {
     oo::Ref<OOSystemDescriptionManager> manager = NewManager();
-    OO_CHECK(manager != nil);
+    OO_CHECK(manager != nullptr);
     OO_CHECK(manager->getPropertiesForSystem(7, 0) ==
              oo::PList(oo::PList::Dict()));
     OO_CHECK(manager->getPropertiesForSystem(255, 7) ==

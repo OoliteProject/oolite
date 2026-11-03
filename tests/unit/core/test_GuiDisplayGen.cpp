@@ -28,7 +28,7 @@
    they are. The settings -init reads (gui-settings.plist, through the real
    ResourceManager) depend on where the test runs, so the tests that need them
    check that they are a dictionary first and pin nothing of their content. Run:
-   bash tools/check-core-tests.sh
+   tests/run.sh unit
 */
 
 #include "GuiDisplayGen.h"
@@ -132,7 +132,7 @@ namespace {
 
 bool SameComponents(OOColor *a, OOColor *b)
 {
-	if (a == nil || b == nil)  return a == b;
+	if (a == nullptr || b == nullptr)  return a == b;
 	OORGBAComponents ca = a->rgbaComponents(), cb = b->rgbaComponents();
 	return ca.r == cb.r && ca.g == cb.g && ca.b == cb.b && ca.a == cb.a;
 }
@@ -190,7 +190,7 @@ OO_TEST(initDefaults)
 		Vector position = gui->getDrawPosition();
 		OO_CHECK(position.x == 0.0f && position.y == 0.0f && position.z == 640.0f);
 		OO_CHECK(SameComponents(gui->getTextColor(), OOColor::yellowColor().get()));
-		OO_CHECK(gui->getTextCommsColor() == nil);
+		OO_CHECK(gui->getTextCommsColor() == nullptr);
 		OO_CHECK(RowString(gui.get(), 0) == std::optional<std::string>("."));
 		OO_CHECK(RowString(gui.get(), 29) == std::optional<std::string>("."));
 		OO_CHECK(gui->objectForRow(30).isNull());
@@ -355,14 +355,14 @@ OO_TEST(currentRowIsWhereALineIsPrinted)
 	{
 		oo::Ref<GuiDisplayGen> gui = SmallGUI("T");
 		gui->setCurrentRow(3);
-		gui->printLineNoScroll("printed", GUI_ALIGN_LEFT, nil, 0.0f, "pk", nullptr);
+		gui->printLineNoScroll("printed", GUI_ALIGN_LEFT, nullptr, 0.0f, "pk", nullptr);
 		OO_CHECK(RowString(gui.get(), 3) == std::optional<std::string>("printed"));
 		OO_CHECK(gui->keyForRow(3) == std::optional<std::string>("pk"));
 		gui->setCurrentRow(5);	// out of range: no current row (and no text cursor)
 		gui->setCurrentRow(1);
-		gui->printLineNoScroll("again", GUI_ALIGN_LEFT, nil, 0.0f, std::nullopt, nullptr);
+		gui->printLineNoScroll("again", GUI_ALIGN_LEFT, nullptr, 0.0f, std::nullopt, nullptr);
 		OO_CHECK(RowString(gui.get(), 1) == std::optional<std::string>("again"));
-		gui->setShowTextCursor(YES);
+		gui->setShowTextCursor(true);
 	}
 }
 
@@ -394,19 +394,19 @@ OO_TEST(coloursAndColourSettings)
 		oo::Ref<OOColor>	red = OOColor::redColor();
 		gui->setTextColor(red.get());
 		OO_CHECK(gui->getTextColor() == red);
-		gui->setTextColor(nil);
+		gui->setTextColor(nullptr);
 		OO_CHECK(SameComponents(gui->getTextColor(), OOColor::yellowColor().get()));
 		gui->setTextCommsColor(red.get());
 		OO_CHECK(gui->getTextCommsColor() == red);
-		gui->setTextCommsColor(nil);
+		gui->setTextCommsColor(nullptr);
 		OO_CHECK(SameComponents(gui->getTextCommsColor(), OOColor::yellowColor().get()));
 		gui->setBackgroundColor(red.get());
-		gui->setBackgroundColor(nil);
+		gui->setBackgroundColor(nullptr);
 
 		// No settings: the default, else the text colour, as a copy.
 		gui->setTextColor(OOColor::blueColor().get());
-		OO_CHECK(SameComponents(gui->colorFromSetting("anything", nil).get(), OOColor::blueColor().get()));
-		OO_CHECK(SameComponents(gui->colorFromSetting(std::nullopt, nil).get(), OOColor::blueColor().get()));
+		OO_CHECK(SameComponents(gui->colorFromSetting("anything", nullptr).get(), OOColor::blueColor().get()));
+		OO_CHECK(SameComponents(gui->colorFromSetting(std::nullopt, nullptr).get(), OOColor::blueColor().get()));
 		OO_CHECK(SameComponents(gui->colorFromSetting("anything", OOColor::greenColor().get()).get(), OOColor::greenColor().get()));
 		gui->setGuiColorSettingFromKey("k", red.get());	// no settings: nothing to change
 		OO_CHECK(gui->userSettings().isNull());
@@ -418,7 +418,7 @@ OO_TEST(coloursAndColourSettings)
 			main->setGuiColorSettingFromKey("oo_test_colour", red.get());
 			OO_CHECK(main->userSettings().find("oo_test_colour") != nullptr);
 			OO_CHECK(SameComponents(main->colorFromSetting("oo_test_colour", OOColor::greenColor().get()).get(), red.get()));
-			main->setGuiColorSettingFromKey("oo_test_colour", nil);
+			main->setGuiColorSettingFromKey("oo_test_colour", nullptr);
 			OO_CHECK(main->userSettings().find("oo_test_colour") == nullptr);
 			OO_CHECK(SameComponents(main->colorFromSetting("oo_test_colour", OOColor::greenColor().get()).get(), OOColor::greenColor().get()));
 		}
@@ -438,7 +438,7 @@ OO_TEST(tabStops)
 		OO_CHECK(stops[0] == 0 && stops[1] == 10 && stops[2] == 20);
 		gui->overrideTabs(NULL, "equipment_tabs", 3);
 		gui->setCharacterSize(NSMakeSize(8, 8));
-		gui->setShowAdvancedNavArray(YES);
+		gui->setShowAdvancedNavArray(true);
 	}
 }
 
@@ -450,7 +450,7 @@ OO_TEST(clearAndResize)
 		gui->setText("x", 2);
 		gui->setKey("k", 2);
 		gui->setSelectableRange(NSMakeRange(0, 3));
-		gui->clearAndKeepBackground(YES);
+		gui->clearAndKeepBackground(true);
 		OO_CHECK(gui->getTitle() == std::nullopt);
 		OO_CHECK(RowString(gui.get(), 2) == std::optional<std::string>(""));
 		OO_CHECK(gui->keyForRow(2) == std::optional<std::string>(GUI_KEY_SKIP));
@@ -563,12 +563,12 @@ OO_TEST(printingScrollsAndKeepsTheLines)
 		OO_CHECK(RowString(gui.get(), 4) == std::optional<std::string>("second"));
 		OO_CHECK(gui->keyForRow(4) == std::optional<std::string>("pk"));
 		// The current row is still the last: the next line scrolls everything up by one again.
-		gui->printLongText("third", GUI_ALIGN_LEFT, nil, 0.0f, std::nullopt, nullptr);
+		gui->printLongText("third", GUI_ALIGN_LEFT, nullptr, 0.0f, std::nullopt, nullptr);
 		OO_CHECK(RowString(gui.get(), 1) == std::optional<std::string>("first"));
 		OO_CHECK(RowString(gui.get(), 2) == std::optional<std::string>(""));
 		OO_CHECK(RowString(gui.get(), 3) == std::optional<std::string>("second"));
 		OO_CHECK(RowString(gui.get(), 4) == std::optional<std::string>("third"));
-		gui->printLongText(std::nullopt, GUI_ALIGN_LEFT, nil, 0.0f, std::nullopt, &printed);
+		gui->printLongText(std::nullopt, GUI_ALIGN_LEFT, nullptr, 0.0f, std::nullopt, &printed);
 		OO_CHECK_EQ(printed.size(), 2u);
 
 		const oo::PList lines = gui->getLastLines();
@@ -609,7 +609,7 @@ OO_TEST(arraysAndInsertedItems)
 		}
 		const oo::PList items(oo::PList::Array{ oo::PList("new1"), oo::PList(oo::PList::Array{ oo::PList("c1"), oo::PList("c2") }) });
 		const oo::PList keys(oo::PList::Array{ oo::PList("n1"), oo::PList("n2") });
-		gui->insertItemsFromArray(items, keys, 1, nil);
+		gui->insertItemsFromArray(items, keys, 1, nullptr);
 		OO_CHECK(RowString(gui.get(), 0) == std::optional<std::string>("r0"));
 		OO_CHECK(RowString(gui.get(), 1) == std::optional<std::string>("new1"));
 		OO_CHECK(gui->objectForRow(2).isArray());
@@ -622,15 +622,15 @@ OO_TEST(arraysAndInsertedItems)
 		gui->insertItemsFromArray(oo::PList(oo::PList::Array{ oo::PList("only") }), oo::PList(), 0, OOColor::redColor().get());
 		OO_CHECK(RowString(gui.get(), 0) == std::optional<std::string>("only"));
 		OO_CHECK(gui->keyForRow(0) == std::optional<std::string>(""));
-		gui->insertItemsFromArray(oo::PList(), oo::PList(), 0, nil);
-		gui->insertItemsFromArray(oo::PList(oo::PList::Array{}), oo::PList(), 0, nil);
+		gui->insertItemsFromArray(oo::PList(), oo::PList(), 0, nullptr);
+		gui->insertItemsFromArray(oo::PList(oo::PList::Array{}), oo::PList(), 0, nullptr);
 		OO_CHECK(RowString(gui.get(), 0) == std::optional<std::string>("only"));
 
 		// Keys of another length raise.
 		bool raised = false;
 		try
 		{
-			gui->insertItemsFromArray(items, oo::PList(oo::PList::Array{ oo::PList("one") }), 0, nil);
+			gui->insertItemsFromArray(items, oo::PList(oo::PList::Array{ oo::PList("one") }), 0, nullptr);
 		}
 		catch (const oo::Exception &)
 		{
@@ -671,8 +671,8 @@ OO_TEST(noTexturesWithoutAUniverse)
 		OO_CHECK(!gui->setForegroundTextureKey("anything"));
 		OO_CHECK(!gui->preloadGUITexture(oo::PList()));
 		gui->clearBackground();
-		gui->setBackgroundTextureSpecial(GUI_BACKGROUND_SPECIAL_LONG, YES);
-		gui->setBackgroundTextureSpecial(GUI_BACKGROUND_SPECIAL_NONE, NO);
+		gui->setBackgroundTextureSpecial(GUI_BACKGROUND_SPECIAL_LONG, true);
+		gui->setBackgroundTextureSpecial(GUI_BACKGROUND_SPECIAL_NONE, false);
 
 		// A JS null is "no texture" (an empty descriptor), and an empty string the same.
 		JSContext *context = OOJSAcquireContext();
@@ -693,7 +693,7 @@ OO_TEST(cxxSlice2API)
 		OO_CHECK(gui->reflowTextForMFD("x y") == std::optional<std::string>("x y\n"));
 		gui->setCurrentRow(2);
 		std::vector<std::string> printed;
-		gui->printLineNoScroll("p", GUI_ALIGN_LEFT, nil, 0.0f, std::optional<std::string>("pk"), &printed);
+		gui->printLineNoScroll("p", GUI_ALIGN_LEFT, nullptr, 0.0f, std::optional<std::string>("pk"), &printed);
 		OO_CHECK(gui->keyForRow(2) == std::optional<std::string>("pk") && printed.size() == 1);
 		gui->setArray({ "c1", "c2" }, 3);
 		OO_CHECK(gui->objectForRow(3).isArray());
@@ -720,10 +720,10 @@ OO_TEST(drawingWithoutAUniverse)
 	{
 		StartJavaScript();
 		oo::Ref<GuiDisplayGen> gui = SmallGUI("T");
-		OO_CHECK_EQ(gui->drawGUI(0.0f, NO), 0);	// too faint to draw: nothing, row 0
+		OO_CHECK_EQ(gui->drawGUI(0.0f, false), 0);	// too faint to draw: nothing, row 0
 		gui->setAlpha(0.5f);
 		gui->fadeOutFromTime(0.0, 1.0);
-		OO_CHECK_EQ(gui->drawGUI(0.0f, NO), 0);
+		OO_CHECK_EQ(gui->drawGUI(0.0f, false), 0);
 		OO_CHECK_EQ(gui->alpha(), 0.5f);	// the fade moves only as the GUI is drawn visibly
 		gui->drawGUIBackground();	// no background sprite
 		gui->refreshStarChart();

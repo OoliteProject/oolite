@@ -14,7 +14,7 @@
    oo::makeRef, "%@" as descriptionComponents(), an autorelease pool as an
    oo::AutoreleaseScope); after them comes the C++ API. The mixer and the
    channel are C++ stand-ins, and the source is its channel's C++ delegate
-   (OOSoundChannelDelegate). Run: bash tools/check-core-tests.sh
+   (OOSoundChannelDelegate). Run: tests/run.sh unit
    test_OOSoundSource
 */
 
@@ -197,7 +197,7 @@ OO_TEST(attributes) {
     OO_CHECK(source->sound() == sound);
     OO_CHECK(dynamic_cast<OOSoundSource*>(source.get()) != nullptr);
 
-    source->setLoop(YES);
+    source->setLoop(true);
     OO_CHECK(source->loop());
     source->setRepeatCount(3);
     OO_CHECK(source->repeatCount() == 3);
@@ -207,10 +207,10 @@ OO_TEST(attributes) {
     source->setPosition(make_vector(1, 2, 3));
     OO_CHECK(source->positional() &&
              vector_equal(source->position(), make_vector(1, 2, 3)));
-    source->setPositional(NO);
+    source->setPositional(false);
     OO_CHECK(!source->positional() &&
              vector_equal(source->position(), kZeroVector));
-    source->setPositional(YES);
+    source->setPositional(true);
     OO_CHECK(source->positional());
     source->setPosition(kZeroVector);
     OO_CHECK(source->positional());  // a zero position does not clear it
@@ -246,7 +246,7 @@ OO_TEST(playsThroughAChannel) {
         oo::makeRef<OOSoundSource>(MakeSound("beep"));
     source->setPosition(make_vector(4, 5, 6));
     source->setGain(0.25f);
-    source->setLoop(YES);
+    source->setLoop(true);
     source->play();
     OO_CHECK(source->isPlaying() && gChannelsOut == 1);
     OO_CHECK((TakeLog() == std::vector<std::string>{"play beep looped"}));

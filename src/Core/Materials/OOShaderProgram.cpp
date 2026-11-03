@@ -54,7 +54,9 @@ std::string StringOrNull(const std::optional<std::string>& string)
     return string.value_or("(null)");
 }
 
-BOOL GetShaderSource(const std::optional<std::string>& fileName, const std::string& shaderType, std::optional<std::string>* outResult);
+bool GetShaderSource(const std::optional<std::string>& fileName,
+    const std::string& shaderType,
+    std::optional<std::string>* outResult);
 std::string GetGLSLInfoLog(GLhandleARB shaderObject);
 
 // The game view's matrix manager, taken from the C++ view. Null when there is no universe or view.
@@ -250,7 +252,8 @@ GLhandleARB OOShaderProgram::program()
 
 namespace {
 
-BOOL ValidateShaderObject(GLhandleARB object, const std::optional<std::string>& name)
+bool ValidateShaderObject(GLhandleARB object,
+    const std::optional<std::string>& name)
 {
     GLint type, subtype = 0, status;
     GLenum statusType;
@@ -260,7 +263,7 @@ BOOL ValidateShaderObject(GLhandleARB object, const std::optional<std::string>& 
     OO_ENTER_OPENGL();
 
     OOGL(glGetObjectParameterivARB(object, GL_OBJECT_TYPE_ARB, &type));
-    BOOL linking = type == GL_PROGRAM_OBJECT_ARB;
+    bool linking = type == GL_PROGRAM_OBJECT_ARB;
 
     if (linking) {
         subtypeString = "shader program";
@@ -295,7 +298,7 @@ BOOL ValidateShaderObject(GLhandleARB object, const std::optional<std::string>& 
     if (status == GL_FALSE) {
         const std::string msgClass = oo::str::format("shader.%s.failure", linking ? "link" : "compile");
         OO_LOG_ERR(msgClass, "GLSL {} {} failed for {}:\n>>>>> GLSL log:\n{}\n", subtypeString, actionString, name.value_or("(null)"), GetGLSLInfoLog(object));
-        return NO;
+        return false;
     }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
@@ -305,12 +308,12 @@ BOOL ValidateShaderObject(GLhandleARB object, const std::optional<std::string>& 
         if (status == GL_FALSE) {
             const std::string msgClass = oo::str::format("shader.%s.validationFailure", linking ? "link" : "compile");
             OO_LOG_WARN(msgClass, "GLSL {} {} failed for {}:\n>>>>> GLSL log:\n{}\n", subtypeString, "validation", name.value_or("(null)"), GetGLSLInfoLog(object));
-            return NO;
+            return false;
         }
     }
 #endif
 
-    return YES;
+    return true;
 }
 
 } // namespace
@@ -323,7 +326,7 @@ bool OOShaderProgram::initWithVertexShaderSource(const std::optional<std::string
     const oo::PList& attributeBindings,
     const std::optional<std::string>& inKey)
 {
-    BOOL OK = YES;
+    bool OK = true;
     const GLcharARB* sourceStrings[3] = { "", "#line 0\n", NULL };
     GLhandleARB vertexShader = NULL_SHADER;
     GLhandleARB fragmentShader = NULL_SHADER;
@@ -333,7 +336,7 @@ bool OOShaderProgram::initWithVertexShaderSource(const std::optional<std::string
     // ([super init] could not fail: the object is already constructed.)
 
     if (OK && !vertexSource.has_value() && !fragmentSource.has_value())
-        OK = NO; // Must have at least one shader!
+        OK = false; // Must have at least one shader!
 
     if (OK && prefixString.has_value()) {
         sourceStrings[0] = prefixString->c_str();
@@ -349,7 +352,7 @@ bool OOShaderProgram::initWithVertexShaderSource(const std::optional<std::string
 
             OK = ValidateShaderObject(vertexShader, vertexName);
         } else
-            OK = NO;
+            OK = false;
     }
 
     if (OK && fragmentSource.has_value()) {
@@ -362,7 +365,7 @@ bool OOShaderProgram::initWithVertexShaderSource(const std::optional<std::string
 
             OK = ValidateShaderObject(fragmentShader, fragmentName);
         } else
-            OK = NO;
+            OK = false;
     }
 
     if (OK) {
@@ -378,7 +381,7 @@ bool OOShaderProgram::initWithVertexShaderSource(const std::optional<std::string
 
             OK = ValidateShaderObject(_program, StringOrNull(vertexName) + "/" + StringOrNull(fragmentName));
         } else
-            OK = NO;
+            OK = false;
     }
 
     if (OK) {
@@ -450,12 +453,14 @@ namespace {
         Returns YES if source was loaded or no shader was specified, and NO if an
         external shader was specified but could not be found. (The prefix it took went unused.)
 */
-BOOL GetShaderSource(const std::optional<std::string>& fileName, const std::string& shaderType, std::optional<std::string>* outResult)
+bool GetShaderSource(const std::optional<std::string>& fileName,
+    const std::string& shaderType,
+    std::optional<std::string>* outResult)
 {
     std::optional<std::string> result;
 
     if (!fileName.has_value())
-        return YES; // It's OK for one or the other of the shaders to be undefined.
+        return true; // It's OK for one or the other of the shaders to be undefined.
 
     result = ResourceManager::stringFromFilesNamed(*fileName, "Shaders");
     if (!result.has_value()) {
@@ -471,7 +476,7 @@ BOOL GetShaderSource(const std::optional<std::string>& fileName, const std::stri
         }
         if (!result.has_value()) {
             OO_LOG(cxx_kOOLogFileNotFound, "GLSL ERROR: failed to find fragment program {}.", *fileName);
-            return NO;
+            return false;
         }
     }
     /*
@@ -482,7 +487,7 @@ BOOL GetShaderSource(const std::optional<std::string>& fileName, const std::stri
     */
     if (outResult != NULL)
         *outResult = result;
-    return YES;
+    return true;
 }
 
 // Whether <bytes> is well-formed UTF-8 (shortest forms, no surrogates, at most U+10FFFF).

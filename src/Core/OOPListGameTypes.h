@@ -44,15 +44,24 @@ MA 02110-1301, USA.
 
 #include "oofnd/PListGet.hpp"
 
-Vector OOVectorFromPList(const oo::PList* value, Vector defaultValue); // OOVectorFromObject
-HPVector OOHPVectorFromPList(const oo::PList* value, HPVector defaultValue); // OOHPVectorFromObject
-Quaternion OOQuaternionFromPList(const oo::PList* value, Quaternion defaultValue); // OOQuaternionFromObject
+Vector OOVectorFromPList(const oo::PList* value,
+    Vector defaultValue); // OOVectorFromObject
+HPVector OOHPVectorFromPList(const oo::PList* value,
+    HPVector defaultValue); // OOHPVectorFromObject
+Quaternion OOQuaternionFromPList(
+    const oo::PList* value, Quaternion defaultValue); // OOQuaternionFromObject
 
-oo::PList OOPListFromVector(Vector value); // OOPropertyListFromVector: {x y z} single-precision reals
-oo::PList OOPListFromHPVector(HPVector value); // OOPropertyListFromHPVector: {x y z} doubles
-oo::PList OOPListFromQuaternion(Quaternion value); // OOPropertyListFromQuaternion: {w x y z} single-precision reals
+oo::PList OOPListFromVector(
+    Vector value); // OOPropertyListFromVector: {x y z} single-precision reals
+oo::PList OOPListFromHPVector(
+    HPVector value); // OOPropertyListFromHPVector: {x y z} doubles
+oo::PList OOPListFromQuaternion(
+    Quaternion value); // OOPropertyListFromQuaternion: {w x y z}
+                       // single-precision reals
 
-BOOL OOFuzzyBooleanFromPList(const oo::PList* value, float defaultValue); // OOFuzzyBooleanFromObject (draws randf())
+bool OOFuzzyBooleanFromPList(
+    const oo::PList* value,
+    float defaultValue); // OOFuzzyBooleanFromObject (draws randf())
 
 namespace oo {
 

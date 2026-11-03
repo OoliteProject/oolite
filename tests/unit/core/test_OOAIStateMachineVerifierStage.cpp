@@ -11,7 +11,7 @@
    global: the verifier registers and answers the C++ stage itself (the ship
    data stage finds it by name), and the stage reaches the scanner through the
    stage lookup by the scanner's name. The facade case asks the stage (its
-   description through description()). Run: bash tools/check-core-tests.sh
+   description through description()). Run: tests/run.sh unit
 */
 
 #include <filesystem>

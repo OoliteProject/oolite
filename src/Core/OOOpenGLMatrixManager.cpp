@@ -70,28 +70,28 @@ NSUInteger OOOpenGLMatrixStack::stackCount()
 
 void OOOpenGLMatrixManager::updateModelView()
 {
-    valid[OOLITE_GL_MATRIX_MODELVIEW_PROJECTION] = NO;
-    valid[OOLITE_GL_MATRIX_NORMAL] = NO;
-    valid[OOLITE_GL_MATRIX_MODELVIEW_INVERSE] = NO;
-    valid[OOLITE_GL_MATRIX_PROJECTION_INVERSE] = NO;
-    valid[OOLITE_GL_MATRIX_MODELVIEW_PROJECTION_INVERSE] = NO;
-    valid[OOLITE_GL_MATRIX_MODELVIEW_TRANSPOSE] = NO;
-    valid[OOLITE_GL_MATRIX_PROJECTION_TRANSPOSE] = NO;
-    valid[OOLITE_GL_MATRIX_MODELVIEW_PROJECTION_TRANSPOSE] = NO;
-    valid[OOLITE_GL_MATRIX_MODELVIEW_INVERSE_TRANSPOSE] = NO;
-    valid[OOLITE_GL_MATRIX_PROJECTION_INVERSE_TRANSPOSE] = NO;
-    valid[OOLITE_GL_MATRIX_MODELVIEW_PROJECTION_INVERSE_TRANSPOSE] = NO;
+    valid[OOLITE_GL_MATRIX_MODELVIEW_PROJECTION] = false;
+    valid[OOLITE_GL_MATRIX_NORMAL] = false;
+    valid[OOLITE_GL_MATRIX_MODELVIEW_INVERSE] = false;
+    valid[OOLITE_GL_MATRIX_PROJECTION_INVERSE] = false;
+    valid[OOLITE_GL_MATRIX_MODELVIEW_PROJECTION_INVERSE] = false;
+    valid[OOLITE_GL_MATRIX_MODELVIEW_TRANSPOSE] = false;
+    valid[OOLITE_GL_MATRIX_PROJECTION_TRANSPOSE] = false;
+    valid[OOLITE_GL_MATRIX_MODELVIEW_PROJECTION_TRANSPOSE] = false;
+    valid[OOLITE_GL_MATRIX_MODELVIEW_INVERSE_TRANSPOSE] = false;
+    valid[OOLITE_GL_MATRIX_PROJECTION_INVERSE_TRANSPOSE] = false;
+    valid[OOLITE_GL_MATRIX_MODELVIEW_PROJECTION_INVERSE_TRANSPOSE] = false;
 }
 
 void OOOpenGLMatrixManager::updateProjection()
 {
-    valid[OOLITE_GL_MATRIX_MODELVIEW_PROJECTION] = NO;
-    valid[OOLITE_GL_MATRIX_PROJECTION_INVERSE] = NO;
-    valid[OOLITE_GL_MATRIX_MODELVIEW_PROJECTION_INVERSE] = NO;
-    valid[OOLITE_GL_MATRIX_PROJECTION_TRANSPOSE] = NO;
-    valid[OOLITE_GL_MATRIX_MODELVIEW_PROJECTION_TRANSPOSE] = NO;
-    valid[OOLITE_GL_MATRIX_PROJECTION_INVERSE_TRANSPOSE] = NO;
-    valid[OOLITE_GL_MATRIX_MODELVIEW_PROJECTION_INVERSE_TRANSPOSE] = NO;
+    valid[OOLITE_GL_MATRIX_MODELVIEW_PROJECTION] = false;
+    valid[OOLITE_GL_MATRIX_PROJECTION_INVERSE] = false;
+    valid[OOLITE_GL_MATRIX_MODELVIEW_PROJECTION_INVERSE] = false;
+    valid[OOLITE_GL_MATRIX_PROJECTION_TRANSPOSE] = false;
+    valid[OOLITE_GL_MATRIX_MODELVIEW_PROJECTION_TRANSPOSE] = false;
+    valid[OOLITE_GL_MATRIX_PROJECTION_INVERSE_TRANSPOSE] = false;
+    valid[OOLITE_GL_MATRIX_MODELVIEW_PROJECTION_INVERSE_TRANSPOSE] = false;
 }
 
 OOOpenGLMatrixManager::OOOpenGLMatrixManager()
@@ -102,11 +102,11 @@ OOOpenGLMatrixManager::OOOpenGLMatrixManager()
         case OOLITE_GL_MATRIX_MODELVIEW:
         case OOLITE_GL_MATRIX_PROJECTION:
             matrices[i] = kIdentityMatrix;
-            valid[i] = YES;
+            valid[i] = true;
             break;
 
         default:
-            valid[i] = NO;
+            valid[i] = false;
             break;
         }
     }
@@ -353,7 +353,7 @@ OOMatrix OOOpenGLMatrixManager::getMatrix(int which)
         matrices[which] = OOMatrixTranspose(getMatrix(OOLITE_GL_MATRIX_MODELVIEW_PROJECTION_INVERSE));
         break;
     }
-    valid[which] = YES;
+    valid[which] = true;
     return matrices[which];
 }
 

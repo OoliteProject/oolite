@@ -21,12 +21,6 @@
 #define true 1
 #define false 0
 #include "oofnd/PListGet.hpp"
-static_assert(std::is_same_v<decltype(true), int>,
-              "PListGet.hpp must restore OOCocoa.h's true macro");
-static_assert(std::is_same_v<decltype(false), int>,
-              "PListGet.hpp must restore OOCocoa.h's false macro");
-#undef true
-#undef false
 
 #include <cmath>
 #include <cstdio>
@@ -1013,14 +1007,14 @@ OO_TEST(atMatchesGNUstepCapturedTable) {
 // [nil oo_floatForKey:k defaultValue:1] is 0: messaging nil returns zero, not
 // the fallback.
 OO_TEST(nullReceiverIsNilNotFallback) {
-  const PList nil;
-  OO_CHECK_EQ(nil.get<float>("k", 1.0f), 0.0f);
-  OO_CHECK_EQ(nil.get<int>("k", 5), 0);
-  OO_CHECK_EQ(nil.get<bool>("k", true), false);
-  OO_CHECK_EQ(nil.get<std::string>("k", "D"), std::string());
-  OO_CHECK_EQ(nil.get<oo::NonNegative<double>>("k", 2.0), 0.0);
-  OO_CHECK(nil.get<PList::Dict>("k", &nil) == nullptr);
-  OO_CHECK_EQ(nil.at<int>(0, 5), 0);
+  const PList nullReceiver;
+  OO_CHECK_EQ(nullReceiver.get<float>("k", 1.0f), 0.0f);
+  OO_CHECK_EQ(nullReceiver.get<int>("k", 5), 0);
+  OO_CHECK_EQ(nullReceiver.get<bool>("k", true), false);
+  OO_CHECK_EQ(nullReceiver.get<std::string>("k", "D"), std::string());
+  OO_CHECK_EQ(nullReceiver.get<oo::NonNegative<double>>("k", 2.0), 0.0);
+  OO_CHECK(nullReceiver.get<PList::Dict>("k", &nullReceiver) == nullptr);
+  OO_CHECK_EQ(nullReceiver.at<int>(0, 5), 0);
 }
 
 // The no-fallback forms (-oo_floatForKey: etc.) fall back to zero / NO / nil.

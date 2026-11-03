@@ -17,7 +17,7 @@
    its matrix calls are aborting link stubs. The
    RNG is the game's own (legacy_random.c). The tests run through the C++ API
    and read the private state through the class's test friend. Run: bash
-   tools/check-core-tests.sh
+   tests/run.sh unit
 */
 
 #include <cmath>
@@ -118,7 +118,7 @@ class TestSound final : public OOSound {
 
 // The one sound source the trumbles make: the members they call (and the ones
 // its vtable names).
-static BOOL gSoundSourcePlaying = NO;
+static bool gSoundSourcePlaying = false;
 static OOSound* gSourceSound = nullptr;
 
 OOSoundSource::OOSoundSource() {}
@@ -234,7 +234,7 @@ std::optional<std::string> Universe::displayNameForCommodity(
   return "Display " + co_type;
 }
 
-Universe* gSharedUniverse = nil;
+Universe* gSharedUniverse = nullptr;
 
 // The savegame's point strings, as OOStringParsing.mm writes and reads them.
 std::string cxx_StringFromPoint(NSPoint point) {
@@ -320,7 +320,7 @@ PlayerEntity* Player() {
 }
 
 void Reset() {
-  if (gSharedUniverse == nil) {
+  if (gSharedUniverse == nullptr) {
     gSharedUniverse = new StandInUniverse();
     gSharedUniverse->market = oo::makeRef<OOCommodityMarket>();
   }
@@ -332,7 +332,7 @@ void Reset() {
   p->added.clear();
   p->removed.clear();
   gLog.clear();
-  gSoundSourcePlaying = NO;
+  gSoundSourcePlaying = false;
   ranrot_srand(20260930);
 }
 

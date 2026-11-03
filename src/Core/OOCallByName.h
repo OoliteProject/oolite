@@ -18,7 +18,7 @@ type:
                                                  - (oo::PList) sel:(const std::string &)s  what it returns
         OOCallByName(target, sel, plist)         - (void) sel:(const oo::PList &)p         null PList
 
-A scalar result (BOOL, float...) or an object result (the ship a launch action
+A scalar result (bool, float...) or an object result (the ship a launch action
 returns) is ignored: no dispatcher reads one (OOJSCall calls an
 object-returning method itself). A method with an object (id) parameter is not
 called (see below). A string argument reaches a (const oo::PList &) parameter
@@ -69,9 +69,6 @@ MA 02110-1301, USA.
 
 #include "oofnd/objc/OOObject.h"
 
-// extern "C++": reachable from inside an extern "C" block, as OOLogging.h is.
-extern "C++" {
-
 #include "oofnd/PList.hpp"
 #include "oofnd/StdLib.hpp"
 
@@ -90,12 +87,12 @@ class Entity;
 
 namespace oo {
 
-    bool EntityRespondsToName(Entity* entity, const std::string& name);
-    PList CallEntityByName(Entity* entity, const std::string& name);
-    PList CallEntityByName(Entity* entity, const std::string& name,
-        const std::string& argument);
-    PList CallEntityByName(Entity* entity, const std::string& name,
-        const PList& argument);
+bool EntityRespondsToName(Entity* entity, const std::string& name);
+PList CallEntityByName(Entity* entity, const std::string& name);
+PList CallEntityByName(Entity* entity, const std::string& name,
+    const std::string& argument);
+PList CallEntityByName(Entity* entity, const std::string& name,
+    const PList& argument);
 
     /*	An entity's method called after <delay> seconds, as
        OOScheduleDeferredCall() does (the afterburner sound's update, a ship's
@@ -106,5 +103,3 @@ namespace oo {
     void ScheduleEntityCall(Entity* entity, void (*call)(Entity* entity), double delay);
 
 } // namespace oo
-
-} // extern "C++"

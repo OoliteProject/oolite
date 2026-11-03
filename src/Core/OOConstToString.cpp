@@ -238,7 +238,7 @@ std::optional<std::string> cxx_OODisplayStringFromEconomyID(OOEconomyID economy)
 
 std::optional<std::string> cxx_OOStringFromWeaponType(OOWeaponType weapon)
 {
-    if (weapon == nil) {
+    if (weapon == nullptr) {
         return "EQ_WEAPON_NONE";
     } else {
         return weapon->identifier();

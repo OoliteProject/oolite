@@ -121,11 +121,11 @@ public:
     Vector port_dimensions = { };
     double port_corridor = { }; // corridor length inside station.
 
-    BOOL no_docking_while_launching = { };
-    BOOL allow_launching = { };
-    BOOL allow_docking = { };
-    BOOL disallowed_docking_collides = { };
-    BOOL virtual_dock = { };
+    bool no_docking_while_launching = { };
+    bool allow_launching = { };
+    bool allow_docking = { };
+    bool disallowed_docking_collides = { };
+    bool virtual_dock = { };
 };
 
 namespace oo {

@@ -11,7 +11,7 @@
    and outer colours, the status, scan class and break-pattern flags, and
    removal once its lifetime has run out at the ring speed. Its vertex arrays
    are private; the test reads them through the access struct below. Run: bash
-   tools/check-core-tests.sh
+   tests/run.sh unit
 */
 
 #include <cmath>
@@ -48,14 +48,14 @@ T* NewTestPlayer() {
   return player.get();
 }
 
-static Entity* sRemoved = nil;
+static Entity* sRemoved = nullptr;
 
 // UNIVERSE: never initialised; records what is removed.
 class TestUniverse : public Universe {
  public:
   bool removeEntity(Entity* entity) override {
     sRemoved = entity;
-    return YES;
+    return true;
   }
 };
 
@@ -86,15 +86,15 @@ namespace {
 using Access = OOBreakPatternEntityTestAccess;
 
 void SetUp() {
-  static Universe* universe = nil;
-  if (universe == nil) {
+  static Universe* universe = nullptr;
+  if (universe == nullptr) {
     universe = new TestUniverse();  // never released
   }
   gSharedUniverse = universe;
   static TestPlayer* player = nullptr;
   if (player == nullptr) player = NewTestPlayer<TestPlayer>();
   gOOPlayer = player;
-  sRemoved = nil;
+  sRemoved = nullptr;
 }
 
 bool Near(float a, float b) { return fabs(a - b) < 1e-4; }
@@ -162,7 +162,7 @@ OO_TEST(flagsAndColors) {
              ColorIs(ring, 7, 1.0f, 1.0f, 1.0f, 0.5f));
 
     // Hidden (no longer immune): nothing is drawn.
-    ring->isImmuneToBreakPatternHide = NO;
+    ring->isImmuneToBreakPatternHide = false;
     ring->drawImmediate(false, true);
   }
 }
@@ -180,10 +180,10 @@ OO_TEST(lifetime) {
     // The lifetime runs down at the ring speed (200 a second); the ring moves
     // meanwhile.
     ring->update(0.25);
-    OO_CHECK(sRemoved == nil &&
+    OO_CHECK(sRemoved == nullptr &&
              HPvector_equal(ring->getPosition(), make_HPvector(0, 0, 2.5)));
     ring->update(0.25);
-    OO_CHECK(sRemoved == nil);
+    OO_CHECK(sRemoved == nullptr);
     ring->update(0.01);
     OO_CHECK(sRemoved == facade);
   }

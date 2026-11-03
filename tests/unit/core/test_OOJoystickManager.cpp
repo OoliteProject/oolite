@@ -12,7 +12,7 @@
 	and hats; reassigning and unsetting functions; the callback for both kinds of hardware; saving
 	and reloading the tables and both kinds of profile; a subclass's overrides reached by the base
 	(also from -init) and [super ...]; the shared handler of a registered factory. Run: bash
-	tools/check-core-tests.sh
+	tests/run.sh unit
 */
 
 #include "OOJoystickManager.h"

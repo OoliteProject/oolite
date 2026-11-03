@@ -92,20 +92,42 @@ private:
     bool sanitizeConditions(oo::PList& ioData);
 
     bool canonicalizeAndTagSubentities(oo::PList& ioData);
-    bool preloadShipMeshes(oo::PList& ioData); // defined only when OOShipRegistry.mm's PRELOAD is set (it is 0)
+    bool preloadShipMeshes(
+        oo::PList& ioData); // defined only when OOShipRegistry.mm's PRELOAD is
+                            // set (it is 0)
 
-    oo::PList mergeShip(const oo::PList& child, const oo::PList& parent); // a null PList where the parent was nil
-    void mergeShipRoles(const std::string& roles, const std::string& shipKey, std::map<std::string, oo::Ref<OOMutableProbabilitySet>, std::less<>>& probabilitySets);
+    oo::PList mergeShip(
+        const oo::PList& child,
+        const oo::PList& parent); // a null PList where the parent was nil
+    void mergeShipRoles(const std::string& roles, const std::string& shipKey,
+        std::map<std::string, oo::Ref<OOMutableProbabilitySet>,
+            std::less<>>& probabilitySets);
 
-    // Declarations and ship data are property lists; a result is a declaration dictionary, or a
-    // null PList where it was nil.
-    oo::PList canonicalizeSubentityDeclaration(const oo::PList& declaration, const std::string& shipKey, const oo::PList& shipData, BOOL* outFatalError);
-    oo::PList translateOldStyleSubentityDeclaration(const std::string& declaration, const std::string& shipKey, const oo::PList& shipData, BOOL* outFatalError);
-    oo::PList translateOldStyleFlasherDeclaration(const oo::PList& tokens, const std::string& shipKey, BOOL* outFatalError);
-    oo::PList translateOldStandardBasicSubentityDeclaration(const oo::PList& tokens, const std::string& shipKey, const oo::PList& shipData, BOOL* outFatalError);
-    oo::PList validateNewStyleSubentityDeclaration(const oo::PList& declaration, const std::string& shipKey, BOOL* outFatalError);
-    oo::PList validateNewStyleFlasherDeclaration(const oo::PList& declaration, const std::string& shipKey, BOOL* outFatalError);
-    oo::PList validateNewStyleStandardSubentityDeclaration(const oo::PList& declaration, const std::string& shipKey, BOOL* outFatalError);
+    // Declarations and ship data are property lists; a result is a declaration
+    // dictionary, or a null PList where it was nil.
+    oo::PList canonicalizeSubentityDeclaration(const oo::PList& declaration,
+        const std::string& shipKey,
+        const oo::PList& shipData,
+        bool* outFatalError);
+    oo::PList translateOldStyleSubentityDeclaration(
+        const std::string& declaration, const std::string& shipKey,
+        const oo::PList& shipData, bool* outFatalError);
+    oo::PList translateOldStyleFlasherDeclaration(const oo::PList& tokens,
+        const std::string& shipKey,
+        bool* outFatalError);
+    oo::PList translateOldStandardBasicSubentityDeclaration(
+        const oo::PList& tokens, const std::string& shipKey,
+        const oo::PList& shipData, bool* outFatalError);
+    oo::PList validateNewStyleSubentityDeclaration(const oo::PList& declaration,
+        const std::string& shipKey,
+        bool* outFatalError);
+    oo::PList validateNewStyleFlasherDeclaration(const oo::PList& declaration,
+        const std::string& shipKey,
+        bool* outFatalError);
+    oo::PList validateNewStyleStandardSubentityDeclaration(
+        const oo::PList& declaration, const std::string& shipKey,
+        bool* outFatalError);
 
-    bool shipIsBallTurretForKey(const std::string& shipKey, const oo::PList& shipData);
+    bool shipIsBallTurretForKey(const std::string& shipKey,
+        const oo::PList& shipData);
 };

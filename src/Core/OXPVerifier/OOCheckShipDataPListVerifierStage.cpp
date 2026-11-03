@@ -127,7 +127,8 @@ void OOCheckShipDataPListVerifierStage::run()
         OOAIStateMachineVerifierStage::nameForReverseDependencyForVerifier(
             verifier())));
 
-    const oo::PList ooliteShipDataPList = ResourceManager::dictionaryFromFilesNamed("shipdata.plist", "Config", YES);
+    const oo::PList ooliteShipDataPList = ResourceManager::dictionaryFromFilesNamed("shipdata.plist", "Config",
+        true);
     if (const oo::PList::Dict* shipDataDict = ooliteShipDataPList.getIf<oo::PList::Dict>()) {
         for (const auto& [shipKey, shipEntry] : *shipDataDict)
             ooliteShipData.push_back(shipKey); // byte order of the key (hash order before; only used as a set)
@@ -160,7 +161,9 @@ void OOCheckShipDataPListVerifierStage::run()
     for (const std::string& key : _stationKeys)
         AddString(_allKeys, key);
 
-    _schemaVerifier = OOPListSchemaVerifier::verifierWithSchema(ResourceManager::dictionaryFromFilesNamed("shipdataEntrySchema.plist", "Schemata", NO));
+    _schemaVerifier = OOPListSchemaVerifier::verifierWithSchema(
+        ResourceManager::dictionaryFromFilesNamed("shipdataEntrySchema.plist",
+            "Schemata", false));
     if (_schemaVerifier != nullptr)
         _schemaVerifier->setDelegate(this); // the stage itself
 

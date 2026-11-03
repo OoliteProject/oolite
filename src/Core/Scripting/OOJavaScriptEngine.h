@@ -182,20 +182,20 @@ typedef struct
     JSContext* context;
     JSValueConst function; // Caller is responsible for ensuring this is a function object (using OOJSValueIsFunction()).
     JSValueConst jsThis;
-    BOOL errorFlag; // Set if a JS exception occurs. The
+    bool errorFlag; // Set if a JS exception occurs. The
                     // exception will have been reported.
                     // This also supresses further filtering.
 } JSFunctionPredicateParameter;
-BOOL JSFunctionPredicate(Entity* entity, void* parameter);
+bool JSFunctionPredicate(Entity* entity, void* parameter);
 
 // YES for ships and (normal) planets. Parameter: ignored.
-BOOL JSEntityIsJavaScriptVisiblePredicate(Entity* entity, void* parameter);
+bool JSEntityIsJavaScriptVisiblePredicate(Entity* entity, void* parameter);
 
 // YES for ships other than sub-entities and menu-display ships, and planets other than atmospheres and menu miniatures. Parameter: ignored.
-BOOL JSEntityIsJavaScriptSearchablePredicate(Entity* entity, void* parameter);
+bool JSEntityIsJavaScriptSearchablePredicate(Entity* entity, void* parameter);
 
 // YES for menu-display ships. Parameter: ignored
-BOOL JSEntityIsDemoShipPredicate(Entity* entity, void* parameter);
+bool JSEntityIsDemoShipPredicate(Entity* entity, void* parameter);
 
 #endif
 

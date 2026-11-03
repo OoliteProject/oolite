@@ -98,7 +98,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 
 void OOCacheManager::init()
 {
-    _permitWrites = YES;
+    _permitWrites = true;
     loadCache();
 }
 
@@ -162,7 +162,7 @@ void OOCacheManager::setPList(const oo::PList& inValue, const std::string& inKey
 
     // A missing cache is created, empty, as before.
     (*_caches)[inCacheKey][inKey] = inValue;
-    _dirty = YES;
+    _dirty = true;
 #if OO_DEBUG
     OO_LOG("dataCache.set.success", "Updated entry {} in cache \"{}\".", inKey, inCacheKey);
 #endif
@@ -173,7 +173,7 @@ void OOCacheManager::removeObjectForKey(const std::string& inKey, const std::str
     CacheEntries* cache = FindCache(_caches, inCacheKey);
     if (cache != nullptr) {
         if (cache->erase(inKey) != 0) {
-            _dirty = YES;
+            _dirty = true;
 #if OO_DEBUG
             OO_LOG("dataCache.remove.success", "Removed entry keyed {} from cache \"{}\".", inKey, inCacheKey);
 #endif
@@ -193,7 +193,7 @@ void OOCacheManager::clearCache(const std::string& inCacheKey)
 {
     if (FindCache(_caches, inCacheKey) != nullptr) {
         _caches->erase(inCacheKey);
-        _dirty = YES;
+        _dirty = true;
 #if OO_DEBUG
         OO_LOG("dataCache.clear.success", "Cleared cache \"{}\".", inCacheKey);
 #endif
@@ -208,7 +208,7 @@ void OOCacheManager::clearAllCaches()
 {
     clear();
     _caches.emplace();
-    _dirty = YES;
+    _dirty = true;
 }
 
 void OOCacheManager::reloadAllCaches()
@@ -234,7 +234,7 @@ void OOCacheManager::finishOngoingFlush()
 
 void OOCacheManager::setAllowCacheWrites(bool flag)
 {
-    _permitWrites = (flag != NO);
+    _permitWrites = (flag != false);
 }
 
 std::optional<std::string> OOCacheManager::cacheDirectoryPathCreatingIfNecessary(bool create)
@@ -264,7 +264,7 @@ std::optional<std::string> OOCacheManager::cacheDirectoryPathCreatingIfNecessary
 
 void OOCacheManager::loadCache()
 {
-    BOOL accept = YES;
+    bool accept = true;
     uint64_t endianTagValue = 0;
 
     const std::optional<std::string> ooliteVersion = OoliteInfoString("CFBundleVersion");
@@ -282,13 +282,13 @@ void OOCacheManager::loadCache()
         // -isEqual: between the two; a missing version on either side never matched.
         if (cacheVersionString == nullptr || !ooliteVersion.has_value() || *cacheVersionString != *ooliteVersion) {
             OO_LOG("dataCache.rebuild", "Data cache version ({}) does not match Oolite version ({}), rebuilding cache.", oo::DescriptionOf(cacheVersion != nullptr ? *cacheVersion : oo::PList()), ooliteVersion.value_or("(null)"));
-            accept = NO;
+            accept = false;
         }
 
         const oo::PList* formatVersion = cache.find(kCacheKeyFormatVersion);
         if (accept && (formatVersion != nullptr ? static_cast<unsigned>(formatVersion->uint64Value()) : 0U) != kFormatVersionValue) {
             OO_LOG("dataCache.rebuild", "Data cache format ({}) is not supported format ({}), rebuilding cache.", oo::DescriptionOf(formatVersion != nullptr ? *formatVersion : oo::PList()), static_cast<std::size_t>(kFormatVersionValue));
-            accept = NO;
+            accept = false;
         }
 
         if (accept) {
@@ -296,12 +296,12 @@ void OOCacheManager::loadCache()
             const oo::Data* endianTag = endianTagObject != nullptr ? endianTagObject->getIf<oo::Data>() : nullptr;
             if (endianTag == nullptr || endianTag->length() != sizeof endianTagValue) {
                 OO_LOG("dataCache.rebuild", "{}", "Data cache endian tag is invalid, rebuilding cache.");
-                accept = NO;
+                accept = false;
             } else {
                 memcpy(&endianTagValue, endianTag->bytes(), sizeof endianTagValue);
                 if (endianTagValue != kEndianTagValue) {
                     OO_LOG("dataCache.rebuild", "{}", "Data cache endianness is inappropriate for this system, rebuilding cache.");
-                    accept = NO;
+                    accept = false;
                 }
             }
         }
@@ -393,14 +393,11 @@ bool OOCacheManager::dirty()
     return _dirty;
 }
 
-void OOCacheManager::markClean()
-{
-    _dirty = NO;
-}
+void OOCacheManager::markClean() { _dirty = false; }
 
 oo::PList OOCacheManager::loadDict()
 {
-    const std::optional<std::string> path = cachePathCreatingIfNecessary(NO);
+    const std::optional<std::string> path = cachePathCreatingIfNecessary(false);
     if (!path.has_value())
         return oo::PList();
 
@@ -421,9 +418,9 @@ oo::PList OOCacheManager::loadDict()
 
 bool OOCacheManager::writeDict(const oo::PList& inDict)
 {
-    const std::optional<std::string> path = cachePathCreatingIfNecessary(YES);
+    const std::optional<std::string> path = cachePathCreatingIfNecessary(true);
     if (!path.has_value())
-        return NO;
+        return false;
 
 #if PROFILE_WRITES
     oo::Ref<OOProfilingStopwatch> stopwatch = OOProfilingStopwatch::stopwatch();
@@ -432,14 +429,16 @@ bool OOCacheManager::writeDict(const oo::PList& inDict)
     const auto plist = oo::writeXMLPList(inDict);
     if (!plist.has_value()) {
         OO_LOG("dataCache.write.serialize.failed", "Could not convert data cache to property list data: {}", plist.error().message);
-        return NO;
+        return false;
     }
 
 #if PROFILE_WRITES
     OOTimeDelta serializeT = stopwatch->reset();
 #endif
 
-    BOOL result = oo::fs::writeFile(oo::fs::pathFromUTF8(*path), *plist, oo::fs::WriteMode::direct).has_value();
+    bool result = oo::fs::writeFile(oo::fs::pathFromUTF8(*path), *plist,
+        oo::fs::WriteMode::direct)
+                      .has_value();
 
 #if PROFILE_WRITES
     OOTimeDelta writeT = stopwatch->reset();
@@ -494,18 +493,18 @@ bool OOCacheManager::directoryExists(const std::string& inPath, bool inCreate)
 
     if (exists && type != oo::fs::FileType::directory) {
         OO_LOG("dataCache.write.buildPath.failed", "Expected {} to be a folder, but it is a file.", inPath);
-        return NO;
+        return false;
     }
     if (!exists) {
         if (!inCreate)
-            return NO;
+            return false;
         if (!oo::fs::createDirectories(path).has_value()) {
             OO_LOG("dataCache.write.buildPath.failed", "Could not create folder {}.", inPath);
-            return NO;
+            return false;
         }
     }
 
-    return YES;
+    return true;
 }
 
 #if OOLITE_MAC_OS_X

@@ -14,7 +14,7 @@
    matrix managers), which a unit test does not have; the test never calls it.
    The functions it references are defined below as link stubs that abort if
    called, so OOCrosshairs links with OOColor alone. Run:
-   bash tools/check-core-tests.sh
+   tests/run.sh unit
 */
 
 #include <cmath>
@@ -32,7 +32,7 @@
 // test bug. -------
 
 class Universe;
-Universe* gSharedUniverse = nil;
+Universe* gSharedUniverse = nullptr;
 GLfloat MyOpenGLView::getDisplay_z() { std::abort(); }
 
 void OOSetOpenGLState_(OOOpenGLStateID, const char*, unsigned) { std::abort(); }

@@ -1,7 +1,7 @@
 # oofnd unit tests: meson test -C build/meson_<type> --suite oofnd
 #
 # One executable per test_*.cpp, plain C++20 on the in-tree oo_test.hpp harness. Add a new test
-# file's name here as well: tools/check-oofnd.sh fails when a test_*.cpp is missing from this list.
+# file's name here as well: a test_*.cpp missing from this list is not built.
 
 oofnd_tests = [
     'test_expected',
@@ -45,8 +45,7 @@ foreach t : oofnd_tests
 endforeach
 
 # oofnd/Http.hpp links WinHTTP on Windows, and its test runs a loopback server on winsock
-# tools/check-oofnd.sh reads the same libraries from the
-# test's "// oofnd-link-windows:" line.
+# The same libraries are named in the test's "// oofnd-link-windows:" line.
 oofnd_http_link_args = host_machine.system() == 'windows' ? ['-lwinhttp', '-lws2_32'] : []
 test('test_http',
     executable(
@@ -88,7 +87,7 @@ foreach t : oofnd_plist_tests
 endforeach
 
 # Tests of what is left of the Foundation-free floor (oofnd/objc), linking neither libobjc2 nor
-# gnustep-base, which tools/check-oofnd-objc.sh proves on the import table.
+# gnustep-base, which the executables' import tables show.
 oofnd_objc_tests = [
     'test_objc_assert',
     'test_objc_assert_ndebug', # OOAssert.h under the deployment flavour's NDEBUG

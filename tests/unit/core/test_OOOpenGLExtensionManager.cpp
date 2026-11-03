@@ -10,7 +10,7 @@
    the matching is pinned exactly: precedence order, a regexp array ANDed, the
    first match wins, and what a match overrides. OORegExpMatcher and
    cxx_OOShaderSettingFromString are stubs as well (the real ones reach the
-   script engine and the Universe). Run: bash tools/check-core-tests.sh
+   script engine and the Universe). Run: tests/run.sh unit
 */
 
 #include <cstdio>
@@ -170,16 +170,16 @@ OO_TEST(readsTheDriver) {
     OO_CHECK(!manager->haveExtension(""));
 
     // The empty GPU settings leave every default in place.
-    OO_CHECK(manager->shadersForceDisabled() == NO);
+    OO_CHECK(manager->shadersForceDisabled() == false);
     OO_CHECK(manager->shadersSupported() ==
-             (GLHasShaderExtensions() ? YES : NO));
+             (GLHasShaderExtensions() ? true : false));
     OO_CHECK(manager->usePointSmoothing() && manager->useLineSmoothing() &&
              manager->useDustShader());
-    OO_CHECK(manager->vboSupported() == NO);  // OO_USE_VBO is 0
+    OO_CHECK(manager->vboSupported() == false);  // OO_USE_VBO is 0
     OO_CHECK(manager->fboSupported() ==
-             (GLHasExtension("GL_EXT_framebuffer_object") ? YES : NO));
+             (GLHasExtension("GL_EXT_framebuffer_object") ? true : false));
     OO_CHECK(manager->textureCombinersSupported() ==
-             (GLHasExtension("GL_ARB_texture_env_combine") ? YES : NO));
+             (GLHasExtension("GL_ARB_texture_env_combine") ? true : false));
 
     GLint units = 1;
     if (manager->textureCombinersSupported())
@@ -201,7 +201,7 @@ OO_TEST(gpuSettingsMatchInPrecedenceOrder) {
   {
     OOOpenGLExtensionManager* manager =
         OOOpenGLExtensionManager::sharedManager();
-    const BOOL shaders = GLHasShaderExtensions() ? YES : NO;
+    const bool shaders = GLHasShaderExtensions() ? true : false;
 
     sGPUSettings = Dict({
         // Highest precedence, but its regexp array needs both to match: it does
@@ -232,9 +232,9 @@ OO_TEST(gpuSettingsMatchInPrecedenceOrder) {
     manager->reset();
     OO_CHECK(sPathsCalls == 2);
 
-    OO_CHECK(manager->usePointSmoothing() == NO);
-    OO_CHECK(manager->useLineSmoothing() == YES);
-    OO_CHECK(manager->useDustShader() == NO);
+    OO_CHECK(manager->usePointSmoothing() == false);
+    OO_CHECK(manager->useLineSmoothing() == true);
+    OO_CHECK(manager->useDustShader() == false);
     if (manager->textureCombinersSupported())
       OO_CHECK(manager->textureUnitCount() == 1);
     if (shaders) {
@@ -254,7 +254,7 @@ OO_TEST(gpuSettingsMatchInPrecedenceOrder) {
                         {"texture_image_units", oo::PList(-4)}})},
     });
     manager->reset();
-    OO_CHECK(manager->shadersSupported() == NO);
+    OO_CHECK(manager->shadersSupported() == false);
     OO_CHECK(manager->usePointSmoothing() && manager->useLineSmoothing() &&
              manager->useDustShader());
     if (shaders) {
@@ -314,17 +314,17 @@ OO_TEST(noShadersArgument) {
         OOOpenGLExtensionManager::sharedManager();
     SetArguments({"test_OOOpenGLExtensionManager", "--noshaders"});
     manager->reset();
-    OO_CHECK(manager->shadersForceDisabled() == YES);
-    OO_CHECK(manager->shadersSupported() == NO);
-    OO_CHECK(OOShadersSupported() == NO);
+    OO_CHECK(manager->shadersForceDisabled() == true);
+    OO_CHECK(manager->shadersSupported() == false);
+    OO_CHECK(OOShadersSupported() == false);
     OO_CHECK(manager->defaultDetailLevel() == DETAIL_LEVEL_MINIMUM);
     OO_CHECK(manager->maximumDetailLevel() == DETAIL_LEVEL_MINIMUM);
 
     SetArguments({"test_OOOpenGLExtensionManager"});
     manager->reset();
-    OO_CHECK(manager->shadersForceDisabled() == NO);
+    OO_CHECK(manager->shadersForceDisabled() == false);
     OO_CHECK(manager->shadersSupported() ==
-             (GLHasShaderExtensions() ? YES : NO));
+             (GLHasShaderExtensions() ? true : false));
   }
 }
 

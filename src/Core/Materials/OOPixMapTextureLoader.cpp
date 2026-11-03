@@ -66,7 +66,7 @@ void OOPixMapTextureLoader::loadTexture()
     // Generate mip maps if needed.
     if ((_texOptions & kOOTextureMinFilterMask) == kOOTextureMinFilterMipMap) {
         size_t size = OOMinimumPixMapBufferSize(_pixMap) * 4 / 3;
-        BOOL generateMipMaps = OOExpandPixMap(&_pixMap, size);
+        bool generateMipMaps = OOExpandPixMap(&_pixMap, size);
         if (generateMipMaps) {
             OOGenerateMipMaps(_pixMap.pixels, _pixMap.width, _pixMap.height, _pixMap.format);
         } else {

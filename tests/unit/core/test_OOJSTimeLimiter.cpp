@@ -10,7 +10,7 @@
 	nesting, an extra stop, pause and resume; and the
 	engine stopping an endless script, logging the running script's name, after which scripts run
 	again.
-	Run: bash tools/check-core-tests.sh test_OOJSTimeLimiter
+	Run: tests/run.sh unit
 */
 
 #include "OOJSScript.h"

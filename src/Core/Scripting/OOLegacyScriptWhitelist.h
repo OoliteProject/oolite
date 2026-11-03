@@ -129,7 +129,7 @@ MA 02110-1301, USA.
 // A null oo::PList stands for nil, in and out.
 oo::PList OOSanitizeLegacyScript(const oo::PList& script,
     const std::optional<std::string>& context,
-    BOOL allowAIMethods);
+    bool allowAIMethods);
 oo::PList OOSanitizeLegacyScriptConditions(
     const oo::PList& conditions, const std::optional<std::string>& context);
 
@@ -141,4 +141,4 @@ oo::PList OOSanitizeLegacyScriptConditions(
         OOSanitizeLegacyScript(), so that it is not possible to sneak an
         unwhitelisted "pre-compiled" condition past it.
 */
-BOOL OOLegacyConditionsAreSanitized(const oo::PList& conditions);
+bool OOLegacyConditionsAreSanitized(const oo::PList& conditions);

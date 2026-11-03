@@ -31,10 +31,5 @@ MA 02110-1301, USA.
 
 #include "OODescription.h"
 
-// extern "C++" as OODescription.h is: a header may be reached from inside an extern "C" block.
-extern "C++" {
-
 #include "oofnd/PList.hpp"
 #include "oofnd/StdLib.hpp"
-
-} // extern "C++"

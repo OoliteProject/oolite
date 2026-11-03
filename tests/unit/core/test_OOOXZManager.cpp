@@ -689,7 +689,7 @@ public:
 	std::optional<std::string> descriptionForKey(const std::string &key) override	{ (void)key; return std::nullopt; }
 	const oo::PList *descriptions() override	{ return &testDescriptions; }
 	::OOSystemDescriptionManager *getSystemManager() override	{ return nullptr; }
-	bool reinitAndShowDemo(bool showDemo) override	{ (void)showDemo; return YES; }
+	bool reinitAndShowDemo(bool showDemo) override	{ (void)showDemo; return true; }
 };
 
 

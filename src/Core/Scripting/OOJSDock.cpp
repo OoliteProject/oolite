@@ -101,7 +101,7 @@ static bool JSDockGetDockEntity(JSContext* context, JSValueConst dockObj, DockEn
 
     if (outEntity == NULL)
         return false;
-    *outEntity = nil;
+    *outEntity = nullptr;
 
     result = OOJSEntityGetEntity(context, dockObj, &entity);
     if (!result)
@@ -127,7 +127,7 @@ static bool JSDockGetShipEntity(JSContext* context, JSValueConst shipObj, ShipEn
 
     if (outEntity == NULL)
         return false;
-    *outEntity = nil;
+    *outEntity = nullptr;
 
     result = OOJSEntityGetEntity(context, shipObj, &entity);
     if (!result)
@@ -153,11 +153,11 @@ static JSValue DockGetProperty(OOJS_GETTER_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    DockEntity* entity = nil;
+    DockEntity* entity = nullptr;
 
     if (!JSDockGetDockEntity(context, thisObj, &entity))
         return OOJSNativeFailure(context);
-    if (entity == nil) {
+    if (entity == nullptr) {
         return JS_UNDEFINED;
     }
 
@@ -189,13 +189,13 @@ static JSValue DockSetProperty(OOJS_SETTER_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    DockEntity* entity = nil;
+    DockEntity* entity = nullptr;
     int bValue;
     //	int32_t						iValue;
 
     if (!JSDockGetDockEntity(context, thisObj, &entity))
         return OOJSNativeFailure(context);
-    if (entity == nil)
+    if (entity == nullptr)
         return JS_UNDEFINED;
 
     switch (magic) {
@@ -241,7 +241,7 @@ static JSValue DockIsQueued(OOJS_NATIVE_ARGS)
     OOJS_NATIVE_ENTER(context)
 
     bool result = false;
-    DockEntity* dock = nil;
+    DockEntity* dock = nullptr;
 
     JSDockGetDockEntity(context, OOJS_THIS, &dock);
     // SpiderMonkey tolerated returning normally with an error pending; QuickJS does not.
@@ -251,14 +251,14 @@ static JSValue DockIsQueued(OOJS_NATIVE_ARGS)
         cxx_OOJSReportBadArguments(context, "Dock", "isQueued", MIN(argc, 1), OOJS_ARGV, std::nullopt, "ship");
         return OOJSNativeFailure(context);
     }
-    ShipEntity* ship = nil;
+    ShipEntity* ship = nullptr;
     // The SpiderMonkey version did not check that argv[0] is an object; a non-object is treated as no ship.
     if (JS_IsObject(OOJS_ARGV[0])) {
         JSDockGetShipEntity(context, OOJS_ARGV[0], &ship);
         if (JS_HasException(context))
             return JS_EXCEPTION;
     }
-    if (ship != nil) {
+    if (ship != nullptr) {
         result = (dock != nullptr ? dock->shipIsInDockingQueue(ship) : false);
     }
 

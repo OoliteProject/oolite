@@ -11,7 +11,7 @@
    quaternion to matrix), the methods it refuses (arguments, unsupported types,
    not implemented), and a target that has gone; and the description. The
    cases use the C++ factories (null where an initialiser fails). Run: bash
-   tools/check-core-tests.sh
+   tests/run.sh unit
 */
 
 #include <cmath>
@@ -175,7 +175,7 @@ OO_TEST(initialisersThatFail) {
     return;
   }
   {
-    OO_CHECK(OOShaderUniform::initWithName("uFloat", nil, GLfloat(1)) ==
+    OO_CHECK(OOShaderUniform::initWithName("uFloat", nullptr, GLfloat(1)) ==
              nullptr);
     OO_CHECK(OOShaderUniform::initWithName("uMissing", gShaderProgram,
                                            GLfloat(1)) == nullptr);
@@ -293,7 +293,7 @@ OO_TEST(cxxTargetBindings) {
     return;
   }
   {
-    OO_CHECK(OOShaderUniform::initWithName("uVector", nil, nullptr, "vector",
+    OO_CHECK(OOShaderUniform::initWithName("uVector", nullptr, nullptr, "vector",
                                            kOOShaderUniformTypeVector,
                                            CxxTargetVector, 0) == nullptr);
     OO_CHECK(OOShaderUniform::initWithName("uMissing", gShaderProgram, nullptr,
@@ -489,7 +489,7 @@ OO_TEST(cxxAPI) {
     return;
   }
   {
-    OO_CHECK(OOShaderUniform::initWithName("uFloat", nil, 1.0f) == nullptr);
+    OO_CHECK(OOShaderUniform::initWithName("uFloat", nullptr, 1.0f) == nullptr);
     OO_CHECK(OOShaderUniform::initWithName("uMissing", gShaderProgram, 1.0f) ==
              nullptr);
     OO_CHECK(OOShaderUniform::initWithName("uVector", gShaderProgram,

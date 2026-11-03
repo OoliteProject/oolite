@@ -14,7 +14,7 @@
 	The owner stand-in is an object holding the ship, since the AI holds the ship's C++ part weakly
 	(oo::WeakRef): its actions, once found and called by selector, are a table of its members by
 	the same names.
-	Run: bash tools/check-core-tests.sh
+	Run: bash tests/run.sh unit
 */
 
 #include <cmath>
@@ -186,7 +186,7 @@ class TestShip final : public TestEntityObject {
   void sendLoop() { _ai->reactToMessage("LOOP", "loop"); }
 
   OOUniversalID _id = {};
-  BOOL _isPlayer = NO;
+  bool _isPlayer = false;
   AI* _ai = nullptr;                // not retained
   std::vector<std::string> _calls;  // "selector argument", in order
   std::vector<std::string>
@@ -377,7 +377,7 @@ AI* Autoreleased(oo::Ref<AI> ai) {
 
 AI* NewAI(TestShip* ship) {
   AI* ai = Autoreleased(oo::makeRef<AI>());
-  if (ship != nil) {
+  if (ship != nullptr) {
     ship->_ai = ai;
     ai->setOwner(Part(ship));
   }
@@ -390,11 +390,11 @@ OO_TEST(initialState) {
   SetUp();
   {
     oo::AutoreleaseScope pool;
-    AI* ai = NewAI(nil);
+    AI* ai = NewAI(nullptr);
     OO_CHECK(ai->name() == std::optional<std::string>("<no AI>"));
     OO_CHECK(!ai->state().has_value());
     OO_CHECK(!ai->associatedJS().has_value());
-    OO_CHECK(ai->owner() == nil);
+    OO_CHECK(ai->owner() == nullptr);
     OO_CHECK(ai->stackDepth() == 0 && !ai->hasSuspendedStateMachines());
     OO_CHECK(ai->getPendingMessages().empty());
     OO_CHECK(ai->getThinkTimeInterval() == AI_THINK_INTERVAL);
@@ -408,7 +408,7 @@ OO_TEST(initialState) {
                  "\"<no AI>\" in state: \"(null)\" for (null)"));
     OO_CHECK(ai->shortDescriptionComponents() ==
              std::optional<std::string>("<no AI>:(null) / (null)"));
-    OO_CHECK(AI::currentlyRunningAI() == nil);
+    OO_CHECK(AI::currentlyRunningAI() == nullptr);
     OO_CHECK(AI::currentlyRunningAIDescription() ==
              std::optional<std::string>("<no AI running>"));
   }
@@ -428,15 +428,15 @@ OO_TEST(ownerIsWeak) {
       OO_CHECK(ai->descriptionComponents() ==
                std::optional<std::string>(
                    "\"<no AI>\" in state: \"(null)\" for Test ship 7"));
-      ship->_isPlayer = YES;
+      ship->_isPlayer = true;
       ai->setOwner(Part(ship));
       OO_CHECK(ai->descriptionComponents() ==
                std::optional<std::string>(
                    "\"<no AI>\" in state: \"(null)\" for player autopilot"));
       ship->release();
     }
-    OO_CHECK(ai->owner() == nil);
-    ai->setOwner(nil);
+    OO_CHECK(ai->owner() == nullptr);
+    ai->setOwner(nullptr);
     OO_CHECK(ai->descriptionComponents() ==
              std::optional<std::string>(
                  "\"<no AI>\" in state: \"(null)\" for no owner"));
@@ -465,7 +465,7 @@ OO_TEST(loadsAndRunsAStateMachine) {
         ship->_runningAIs ==
         std::vector<std::string>({"test.plist in state ATTACK (this AI)",
                                   "test.plist in state ATTACK (this AI)"}));
-    OO_CHECK(AI::currentlyRunningAI() == nil);
+    OO_CHECK(AI::currentlyRunningAI() == nullptr);
     OO_CHECK(ai->getNextThinkTime() == 0.0);
     OO_CHECK(ai->descriptionComponents() ==
              std::optional<std::string>(
@@ -675,7 +675,7 @@ OO_TEST(actionsAndRecursion) {
     OO_CHECK(ship->_calls.size() > 32);
 
     // An orphaned AI logs instead of acting.
-    AI* orphan = NewAI(nil);
+    AI* orphan = NewAI(nullptr);
     gLog.clear();
     orphan->takeAction("doNothing");
     OO_CHECK(LogLinesContaining("AI <no AI>, trying to perform doNothing, is "
@@ -730,7 +730,7 @@ OO_TEST(initialiserWithStateMachine) {
         AI::newWithStateMachine(std::string("other.plist"), "FROZEN"));
     OO_CHECK(ai->name() == std::optional<std::string>("other.plist"));
     OO_CHECK(ai->state() == std::optional<std::string>("FROZEN"));
-    OO_CHECK(ai->owner() == nil);
+    OO_CHECK(ai->owner() == nullptr);
 
     AI* plain =
         Autoreleased(AI::newWithStateMachine(std::nullopt, std::nullopt));

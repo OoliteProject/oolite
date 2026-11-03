@@ -76,7 +76,11 @@ std::vector<std::string> StringsFromArray(const oo::PList& array)
     return result;
 }
 
-BOOL CheckNameConflict(const std::string& lcName, const std::map<std::string, std::string, std::less<>>& directoryCases, const std::map<std::string, std::string, std::less<>>& rootFiles, std::string* outExisting, std::string* outExistingType);
+bool CheckNameConflict(
+    const std::string& lcName,
+    const std::map<std::string, std::string, std::less<>>& directoryCases,
+    const std::map<std::string, std::string, std::less<>>& rootFiles,
+    std::string* outExisting, std::string* outExistingType);
 
 } // namespace
 
@@ -389,7 +393,7 @@ void OOFileScannerVerifierStage::checkConfigFiles()
 {
     std::string lcName;
     std::optional<std::string> realFileName;
-    BOOL inConfigDir;
+    bool inConfigDir;
 
     for (const std::string& name : StringsFromArray(verifier()->configurationArrayForKey("knownConfigFiles"))) {
         /*	In theory, we could use -fileExists:inFolder:referencedFrom:checkBuiltIn:
@@ -417,7 +421,7 @@ void OOFileScannerVerifierStage::checkKnownFiles()
     std::string lcDirectory,
         lcName;
     std::optional<std::string> realFileName;
-    BOOL inDirectory;
+    bool inDirectory;
 
     // Folders in byte order of their names (they were in dictionary order).
     const oo::PList directories = verifier()->configurationDictionaryForKey("knownFiles");
@@ -537,7 +541,6 @@ void OOFileScannerVerifierStage::checkPListFormat(oo::PListFormat format, const 
                 formatDesc = "Apple binary format";
                 break;
 
-#if OOLITE_GNUSTEP
             case oo::PListFormat::GNUstep:
                 formatDesc = "GNUstep text format";
                 break;
@@ -545,7 +548,6 @@ void OOFileScannerVerifierStage::checkPListFormat(oo::PListFormat format, const 
             case oo::PListFormat::GNUstepBinary:
                 formatDesc = "GNUstep binary format";
                 break;
-#endif
 
             default:
                 formatDesc = oo::str::format("unknown format (%i)", (int)format);
@@ -634,7 +636,11 @@ std::optional<std::vector<std::string>> OOFileHandlingVerifierStage::dependents(
 
 namespace {
 
-BOOL CheckNameConflict(const std::string& lcName, const std::map<std::string, std::string, std::less<>>& directoryCases, const std::map<std::string, std::string, std::less<>>& rootFiles, std::string* outExisting, std::string* outExistingType)
+bool CheckNameConflict(
+    const std::string& lcName,
+    const std::map<std::string, std::string, std::less<>>& directoryCases,
+    const std::map<std::string, std::string, std::less<>>& rootFiles,
+    std::string* outExisting, std::string* outExistingType)
 {
     const auto directory = directoryCases.find(lcName);
     if (directory != directoryCases.end()) {
@@ -642,7 +648,7 @@ BOOL CheckNameConflict(const std::string& lcName, const std::map<std::string, st
             *outExisting = directory->second;
         if (outExistingType != NULL)
             *outExistingType = "directory";
-        return YES;
+        return true;
     }
 
     const auto file = rootFiles.find(lcName);
@@ -651,10 +657,10 @@ BOOL CheckNameConflict(const std::string& lcName, const std::map<std::string, st
             *outExisting = file->second;
         if (outExistingType != NULL)
             *outExistingType = "file";
-        return YES;
+        return true;
     }
 
-    return NO;
+    return false;
 }
 
 } // namespace

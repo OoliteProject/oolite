@@ -71,7 +71,7 @@ typedef struct OOPlanetTextureGeneratorInfo {
 
     unsigned planetAspectRatio;
     unsigned planetScaleOffset;
-    BOOL perlin3d;
+    bool perlin3d;
 } OOPlanetTextureGeneratorInfo;
 
 /*	A leaf of the texture generators, over

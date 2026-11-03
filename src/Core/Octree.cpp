@@ -57,14 +57,14 @@ static const int change_oct[] = {
     0, 1, 2, 4, 3, 5, 6, 7
 }; // used to move from nearest to furthest octant
 
-static BOOL isHitByLine(const int* octbuffer, unsigned char* collbuffer,
+static bool isHitByLine(const int* octbuffer, unsigned char* collbuffer,
     int level, GLfloat rad, Vector v0, Vector v1,
     Vector off, int face_hit);
 static GLfloat volumeOfOctree(Octree_details octree_details,
     unsigned depthLimit);
 static Vector randomFullNodeFrom(Octree_details details, Vector offset);
 
-static BOOL isHitByOctree(Octree_details axialDetails,
+static bool isHitByOctree(Octree_details axialDetails,
     Octree_details otherDetails, Vector delta,
     Triangle other_ijk);
 
@@ -146,7 +146,7 @@ static Vector offsetForOctant(int oct, GLfloat r)
 
 void Octree::drawOctree()
 {
-    OODebugWFState state = OODebugBeginWireframe(NO);
+    OODebugWFState state = OODebugBeginWireframe(false);
 
     OO_ENTER_OPENGL();
     OOGL(glEnable(GL_BLEND));
@@ -250,14 +250,14 @@ void Octree::drawOctreeFromLocation(uint32_t loc, GLfloat scale,
     }
 }
 
-static BOOL drawTestForCollisions;
+static bool drawTestForCollisions;
 
 void Octree::drawOctreeCollisions()
 {
-    OODebugWFState state = OODebugBeginWireframe(NO);
+    OODebugWFState state = OODebugBeginWireframe(false);
 
     // it's a series of cubes
-    drawTestForCollisions = NO;
+    drawTestForCollisions = false;
     if (_hasCollision) {
         drawOctreeCollisionFromLocation(0, _radius, kZeroVector);
     }
@@ -283,7 +283,7 @@ void Octree::drawOctreeCollisionFromLocation(uint32_t loc, GLfloat scale,
         GLfloat red = (GLfloat)(_collisionOctree[loc]) / 255.0;
         glColor4f(1.0, 0.0, 0.0, red); // 50% translucent
 
-        drawTestForCollisions = YES;
+        drawTestForCollisions = true;
         _collisionOctree[loc]--;
 
         // draw a cube
@@ -353,7 +353,7 @@ void Octree::drawOctreeCollisionFromLocation(uint32_t loc, GLfloat scale,
 }
 #endif // OODEBUGLDRAWING_DISABLE
 
-static BOOL isHitByLineSub(const int* octbuffer, unsigned char* collbuffer,
+static bool isHitByLineSub(const int* octbuffer, unsigned char* collbuffer,
     int nextLevel, GLfloat rad, GLfloat rd2, Vector v0,
     Vector v1, int octantMask)
 {
@@ -362,12 +362,12 @@ static BOOL isHitByLineSub(const int* octbuffer, unsigned char* collbuffer,
         return isHitByLine(octbuffer, collbuffer, nextLevel + octantMask, rd2, v0,
             v1, moveLine, 0);
     } else
-        return NO;
+        return false;
 }
 
-static BOOL hasCollided = NO;
+static bool hasCollided = false;
 static GLfloat hit_dist = 0.0;
-static BOOL isHitByLine(const int* octbuffer, unsigned char* collbuffer,
+static bool isHitByLine(const int* octbuffer, unsigned char* collbuffer,
     int level, GLfloat rad, Vector v0, Vector v1,
     Vector off, int face_hit)
 {
@@ -382,14 +382,14 @@ static BOOL isHitByLine(const int* octbuffer, unsigned char* collbuffer,
 
     if (octbuffer[level] == 0) {
         OctreeDebugLog("DEBUG Hit an empty octant: [{}]", static_cast<int>(level));
-        return NO;
+        return false;
     }
 
     if (octbuffer[level] == -1) {
         OctreeDebugLog("DEBUG Hit a solid octant: [{}]", static_cast<int>(level));
         collbuffer[level] = 2; // green
         hit_dist = sqrt(u0.x * u0.x + u0.y * u0.y + u0.z * u0.z);
-        return YES;
+        return true;
     }
 
     int faces = face_hit;
@@ -398,7 +398,7 @@ static BOOL isHitByLine(const int* octbuffer, unsigned char* collbuffer,
 
     if (faces == 0) {
         OctreeDebugLog("----> Line misses octant: [{}].", static_cast<int>(level));
-        return NO;
+        return false;
     }
 
     int octantIntersected = 0;
@@ -431,7 +431,7 @@ static BOOL isHitByLine(const int* octbuffer, unsigned char* collbuffer,
             static_cast<int>(octantIntersected));
     }
 
-    hasCollided = YES;
+    hasCollided = true;
 
     collbuffer[level] = 1; // red
 
@@ -453,7 +453,7 @@ static BOOL isHitByLine(const int* octbuffer, unsigned char* collbuffer,
     OctreeDebugLog("----> testing first octant hit [+{}]",
         static_cast<int>(oct0));
     if (isHitByLineSub(octbuffer, collbuffer, nextLevel, rad, rd2, u0, u1, oct0))
-        return YES; // first octant
+        return true; // first octant
 
     // test the three adjacent octants
 
@@ -461,11 +461,11 @@ static BOOL isHitByLine(const int* octbuffer, unsigned char* collbuffer,
         static_cast<int>(oct1), static_cast<int>(oct2),
         static_cast<int>(oct3));
     if (isHitByLineSub(octbuffer, collbuffer, nextLevel, rad, rd2, u0, u1, oct1))
-        return YES; // second octant
+        return true; // second octant
     if (isHitByLineSub(octbuffer, collbuffer, nextLevel, rad, rd2, u0, u1, oct2))
-        return YES; // third octant
+        return true; // third octant
     if (isHitByLineSub(octbuffer, collbuffer, nextLevel, rad, rd2, u0, u1, oct3))
-        return YES; // fourth octant
+        return true; // fourth octant
 
     // go to the next four octants
 
@@ -478,24 +478,24 @@ static BOOL isHitByLine(const int* octbuffer, unsigned char* collbuffer,
         static_cast<int>(oct1), static_cast<int>(oct2),
         static_cast<int>(oct3));
     if (isHitByLineSub(octbuffer, collbuffer, nextLevel, rad, rd2, u0, u1, oct1))
-        return YES; // fifth octant
+        return true; // fifth octant
     if (isHitByLineSub(octbuffer, collbuffer, nextLevel, rad, rd2, u0, u1, oct2))
-        return YES; // sixth octant
+        return true; // sixth octant
     if (isHitByLineSub(octbuffer, collbuffer, nextLevel, rad, rd2, u0, u1, oct3))
-        return YES; // seventh octant
+        return true; // seventh octant
 
     // and check the last octant
     OctreeDebugLog("----> testing final octant [+{}]", static_cast<int>(oct0));
     if (isHitByLineSub(octbuffer, collbuffer, nextLevel, rad, rd2, u0, u1, oct0))
-        return YES; // last octant
+        return true; // last octant
 
-    return NO;
+    return false;
 }
 
 GLfloat Octree::isHitByLine(Vector v0, Vector v1)
 {
     memset(_collisionOctree, 0, _nodeCount * sizeof *_collisionOctree);
-    hasCollided = NO;
+    hasCollided = false;
 
     if (::isHitByLine(_octree, _collisionOctree, 0, _radius, v0, v1, kZeroVector,
             0)) {
@@ -509,7 +509,7 @@ GLfloat Octree::isHitByLine(Vector v0, Vector v1)
     }
 }
 
-static BOOL isHitByOctree(Octree_details axialDetails,
+static bool isHitByOctree(Octree_details axialDetails,
     Octree_details otherDetails, Vector otherPosition,
     Triangle other_ijk)
 {
@@ -518,17 +518,17 @@ static BOOL isHitByOctree(Octree_details axialDetails,
 
     if (axialBuffer[0] == 0) {
         OctreeDebugLog("{}", "DEBUG Axial octree is empty.");
-        return NO;
+        return false;
     }
 
     if (!otherBuffer) {
         OctreeDebugLog("{}", "DEBUG Other octree is undefined.");
-        return NO;
+        return false;
     }
 
     if (otherBuffer[0] == 0) {
         OctreeDebugLog("{}", "DEBUG Other octree is empty.");
-        return NO;
+        return false;
     }
 
     GLfloat axialRadius = axialDetails.radius;
@@ -539,7 +539,7 @@ static BOOL isHitByOctree(Octree_details axialDetails,
         // 'crude and simple' - test sphere against cube...
         if ((otherPosition.x + otherRadius < -axialRadius) || (otherPosition.x - otherRadius > axialRadius) || (otherPosition.y + otherRadius < -axialRadius) || (otherPosition.y - otherRadius > axialRadius) || (otherPosition.z + otherRadius < -axialRadius) || (otherPosition.z - otherRadius > axialRadius)) {
             OctreeDebugLog("{}", "----> Other sphere does not intersect axial cube");
-            return NO;
+            return false;
         }
     } else // test axial sphere against other cube
     {
@@ -547,7 +547,7 @@ static BOOL isHitByOctree(Octree_details axialDetails,
         Vector axialPosition = resolveVectorInIJK(d2, other_ijk);
         if ((axialPosition.x + axialRadius < -otherRadius) || (axialPosition.x - axialRadius > otherRadius) || (axialPosition.y + axialRadius < -otherRadius) || (axialPosition.y - axialRadius > otherRadius) || (axialPosition.z + axialRadius < -otherRadius) || (axialPosition.z - axialRadius > otherRadius)) {
             OctreeDebugLog("{}", "----> Axial sphere does not intersect other cube");
-            return NO;
+            return false;
         }
     }
 
@@ -563,7 +563,7 @@ static BOOL isHitByOctree(Octree_details axialDetails,
             otherCollisionBuffer[0] = (unsigned char)255; // mark
 
             OctreeDebugLog("{}", "DEBUG Octrees collide!");
-            return YES;
+            return true;
         }
         // the other octree must be decomposed
         // and each of its octants tested against the axial octree
@@ -594,12 +594,12 @@ static BOOL isHitByOctree(Octree_details axialDetails,
                 nextPosition = vector_subtract(otherPosition, voff);
                 if (isHitByOctree(axialDetails, nextDetails, nextPosition,
                         other_ijk)) // test octant
-                    return YES;
+                    return true;
             }
         }
 
         // otherwise
-        return NO;
+        return false;
     }
     // we are not solid
     // we must test each of our octants against
@@ -628,20 +628,20 @@ static BOOL isHitByOctree(Octree_details axialDetails,
 
             nextPosition = vector_add(otherPosition, offsetForOctant(oct, axialRadius));
             if (isHitByOctree(nextDetails, otherDetails, nextPosition, other_ijk)) {
-                return YES; // test octant
+                return true; // test octant
             }
         }
     }
     // otherwise we're done!
-    return NO;
+    return false;
 }
 
 bool Octree::isHitByOctree(Octree* other, Vector v0, Triangle ijk)
 {
     if (other == nullptr)
-        return NO;
+        return false;
 
-    BOOL hit = ::isHitByOctree(octreeDetails(), other->octreeDetails(), v0, ijk);
+    bool hit = ::isHitByOctree(octreeDetails(), other->octreeDetails(), v0, ijk);
 
     _hasCollision = _hasCollision || hit;
     other->setHasCollision(other->hasCollision() || hit);
@@ -660,7 +660,7 @@ bool Octree::isHitByOctree(Octree* other, Vector v0, Triangle ijk, GLfloat s1,
     details1.radius *= s1;
     details2.radius *= s2;
 
-    BOOL hit = ::isHitByOctree(details1, details2, v0, ijk);
+    bool hit = ::isHitByOctree(details1, details2, v0, ijk);
 
     _hasCollision = _hasCollision || hit;
     if (other != nullptr)

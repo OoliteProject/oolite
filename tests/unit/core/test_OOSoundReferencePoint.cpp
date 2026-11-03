@@ -5,8 +5,8 @@
         The class is the no-op reference point of the OpenAL sound code
    (OOSound.h: positional sound is not implemented). A point can be made, takes
    a position, a velocity and an orientation without effect, and is freed by
-   its last release. Run: bash tools/check-core-tests.sh
-   bash tools/check-core-tests.sh
+   its last release. Run: tests/run.sh unit
+   tests/run.sh unit
 */
 
 #include "OOBasicSoundReferencePoint.h"

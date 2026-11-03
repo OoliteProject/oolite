@@ -9,8 +9,7 @@
 #                                override_options: oofnd_override_options)
 #     oofnd_dep = declare_dependency(include_directories: oofnd_inc, link_with: oofnd_lib)
 #
-# The unit tests are tests/unit/oofnd (meson test --suite oofnd); tools/check-oofnd.sh is the
-# build-dir-free acceptance that compiles the same files directly.
+# The unit tests are tests/unit/oofnd (meson test --suite oofnd).
 
 oofnd_inc = include_directories('..')
 # werror under Clang only: GCC's flow-sensitive diagnostics

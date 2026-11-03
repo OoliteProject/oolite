@@ -5,7 +5,7 @@
    return type by its encoding (OOShaderUniformTypeFromEncoding(), which
    compares it with a table of known ones). This pins the type each encoding is
    given (the ones the table has, and those it has not): typesFromEncodings,
-   encodingsTheTableHasNot. Run: bash tools/check-core-tests.sh
+   encodingsTheTableHasNot. Run: tests/run.sh unit
 */
 
 #include <string>
@@ -88,8 +88,8 @@ OO_TEST(typesFromEncodings) {
 /*	The types the table has no row for, through the encoding.
  */
 OO_TEST(encodingsTheTableHasNot) {
-  // BOOL is encoded as a signed char here.
-  OO_CHECK(TypeOf<BOOL>() == kOOShaderUniformTypeChar);
+  // bool is encoded as a signed char here.
+  OO_CHECK(TypeOf<bool>() == kOOShaderUniformTypeChar);
   // The table has no long long entries: on this platform (LLP64) a long is 32
   // bits, so a long long matches nothing.
   OO_CHECK(TypeOf<long long>() == kOOShaderUniformTypeInvalid);

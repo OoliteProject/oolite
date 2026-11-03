@@ -771,9 +771,9 @@ const MonitorMethod kMonitorMethods[] = {
 #if OOLITE_SDL
     { "applicationWillTerminate", MonitorMethodForm::VoidVoid, [](OODebugMonitor* m) { m->applicationWillTerminate(); }, nullptr, nullptr, nullptr, nullptr },
 #endif
-    { "debuggerConnected", MonitorMethodForm::Scalar, nullptr, nullptr, nullptr, [](OODebugMonitor* m) -> long long { return m->debuggerConnected(); }, kOOTypeEncoding<BOOL> },
-    { "TCPIgnoresDroppedPackets", MonitorMethodForm::Scalar, nullptr, nullptr, nullptr, [](OODebugMonitor* m) -> long long { return m->TCPIgnoresDroppedPackets(); }, kOOTypeEncoding<BOOL> },
-    { "usingPlugInController", MonitorMethodForm::Scalar, nullptr, nullptr, nullptr, [](OODebugMonitor* m) -> long long { return m->usingPlugInController(); }, kOOTypeEncoding<BOOL> },
+    { "debuggerConnected", MonitorMethodForm::Scalar, nullptr, nullptr, nullptr, [](OODebugMonitor* m) -> long long { return m->debuggerConnected(); }, kOOTypeEncoding<bool> },
+    { "TCPIgnoresDroppedPackets", MonitorMethodForm::Scalar, nullptr, nullptr, nullptr, [](OODebugMonitor* m) -> long long { return m->TCPIgnoresDroppedPackets(); }, kOOTypeEncoding<bool> },
+    { "usingPlugInController", MonitorMethodForm::Scalar, nullptr, nullptr, nullptr, [](OODebugMonitor* m) -> long long { return m->usingPlugInController(); }, kOOTypeEncoding<bool> },
     { "configurationKeys", MonitorMethodForm::NotCallable, nullptr, nullptr, nullptr, nullptr, nullptr }, // a std::vector result
     { "dumpJSMemoryStatistics", MonitorMethodForm::Scalar, nullptr, nullptr, nullptr, [](OODebugMonitor* m) -> long long { return static_cast<long long>(m->dumpJSMemoryStatistics()); }, kOOTypeEncoding<size_t> },
 };

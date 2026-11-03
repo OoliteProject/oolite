@@ -176,13 +176,13 @@ oo::Ref<OOShaderUniform> OOShaderUniform::initWithName(
     }
 
     result->name = uniformName;
-    result->isBinding = YES;
+    result->isBinding = true;
     result->convertClamp = (options & kOOUniformConvertClamp) != 0;
     result->convertNormalize = (options & kOOUniformConvertNormalize) != 0;
     result->convertToMatrix = (options & kOOUniformConvertToMatrix) != 0;
     result->type = boundType;
     result->value.binding.cxxGet = get;
-    result->cxxTargetOnly = YES;
+    result->cxxTargetOnly = true;
     result->cxxProperty = property;
     result->cxxTarget = target;
     result->isActiveBinding = target != nullptr;
@@ -215,7 +215,7 @@ oo::Ref<OOShaderUniform> OOShaderUniform::initWithEntityTarget(
     }
 
     result->name = uniformName;
-    result->isBinding = YES;
+    result->isBinding = true;
     result->cxxProperty = property;
     result->convertClamp = (options & kOOUniformConvertClamp) != 0;
     result->convertNormalize = (options & kOOUniformConvertNormalize) != 0;
@@ -355,7 +355,7 @@ void OOShaderUniform::setEntityBindingTarget(Entity* target)
        up the entities (superTarget hook), then the member table's row
        for the name, read from the entity.
     */
-    entityMember = NO;
+    entityMember = false;
     if (target != nullptr && hooks != nullptr && bindToSuper) {
         for (;;) {
             Entity* superCandidate = hooks->superTarget(target);
@@ -370,8 +370,8 @@ void OOShaderUniform::setEntityBindingTarget(Entity* target)
         value.binding.cxxGet = memberBinding.get;
         cxxTarget = memberBinding.target;
         type = memberBinding.type;
-        entityMember = YES;
-        isActiveBinding = YES;
+        entityMember = true;
+        isActiveBinding = true;
         return;
     }
 
@@ -382,7 +382,7 @@ void OOShaderUniform::setEntityBindingTarget(Entity* target)
     */
     value.binding.cxxGet = NULL;
     cxxTarget = nullptr;
-    isActiveBinding = NO;
+    isActiveBinding = false;
     if (target != nullptr && hooks != nullptr && hooks->className(target) != "(null)") {
         OO_LOG("shader.uniform.bind.failed",
             "Shader could not bind uniform \"{}\" to -[{} {}] ({}).", name,
@@ -395,17 +395,17 @@ void OOShaderUniform::setEntityBindingTarget(Entity* target)
 bool OOShaderUniform::initWithName(const std::string& uniformName,
     OOShaderProgram* shaderProgram)
 {
-    BOOL OK = YES;
+    bool OK = true;
 
     if (EXPECT_NOT(shaderProgram == NULL))
-        OK = NO;
+        OK = false;
 
     // ([super init] could not fail: the object is already constructed.)
 
     if (OK) {
         location = glGetUniformLocationARB(shaderProgram->program(), uniformName.c_str());
         if (location == -1)
-            OK = NO;
+            OK = false;
     }
 
     if (OK) {
@@ -446,7 +446,8 @@ void OOShaderUniform::applyBinding()
     OOMatrix mVal;
     Quaternion qVal;
     NSPoint pVal = { };
-    BOOL isInt = NO, isFloat = NO, isVector = NO, isMatrix = NO, isPoint = NO;
+    bool isInt = false, isFloat = false, isVector = false, isMatrix = false,
+         isPoint = false;
 
     /*	Design note: if the object has been dealloced, or an exception occurs,
             do nothing. Shaders can specify a default value for uniforms, which
@@ -482,13 +483,13 @@ void OOShaderUniform::applyBinding()
     case kOOShaderUniformTypeLong:
     case kOOShaderUniformTypeUnsignedLong:
         iVal = (GLint)member.i;
-        isInt = YES;
+        isInt = true;
         break;
 
     case kOOShaderUniformTypeFloat:
     case kOOShaderUniformTypeDouble:
         fVal = member.f;
-        isFloat = YES;
+        isFloat = true;
         break;
 
     case kOOShaderUniformTypeVector:
@@ -499,7 +500,7 @@ void OOShaderUniform::applyBinding()
         expVVal[1] = vVal.y;
         expVVal[2] = vVal.z;
         expVVal[3] = 1.0f;
-        isVector = YES;
+        isVector = true;
         break;
 
     case kOOShaderUniformTypeHPVector:
@@ -510,31 +511,31 @@ void OOShaderUniform::applyBinding()
         expVVal[1] = (GLfloat)hpvVal.y;
         expVVal[2] = (GLfloat)hpvVal.z;
         expVVal[3] = 1.0f;
-        isVector = YES;
+        isVector = true;
         break;
 
     case kOOShaderUniformTypeQuaternion:
         qVal = member.q;
         if (convertToMatrix) {
             mVal = OOMatrixForQuaternionRotation(qVal);
-            isMatrix = YES;
+            isMatrix = true;
         } else {
             expVVal[0] = qVal.x;
             expVVal[1] = qVal.y;
             expVVal[2] = qVal.z;
             expVVal[3] = qVal.w;
-            isVector = YES;
+            isVector = true;
         }
         break;
 
     case kOOShaderUniformTypeMatrix:
         mVal = member.m;
-        isMatrix = YES;
+        isMatrix = true;
         break;
 
     case kOOShaderUniformTypePoint:
         pVal = member.p;
-        isPoint = YES;
+        isPoint = true;
         break;
 
     case kOOShaderUniformTypeObject:
@@ -550,7 +551,7 @@ void OOShaderUniform::applyBinding()
             expVVal[1] = color->greenComponent();
             expVVal[2] = color->blueComponent();
             expVVal[3] = color->alphaComponent();
-            isVector = YES;
+            isVector = true;
         }
         break;
     }

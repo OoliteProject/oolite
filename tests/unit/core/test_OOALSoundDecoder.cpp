@@ -9,7 +9,7 @@
    decoded here is the game's own Resources/Sounds/boop.ogg, found from this
    file's path, so the answers are the file's: Vorbis decodes the same samples
    on every machine. The tests ask the C++ class. After them comes the C++
-   API's own case. Run: bash tools/check-core-tests.sh test_OOALSoundDecoder
+   API's own case. Run: meson test -C build/meson_test test_OOALSoundDecoder
 */
 
 #include <cstdlib>

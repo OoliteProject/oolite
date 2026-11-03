@@ -16,7 +16,7 @@
    JS-visible behaviour: the Manifest class and its two objects, the list, a
    commodity's quantity both ways (clamped at zero, refused for tonnage with
    special cargo, delete), the four comment methods and their errors, and a
-   native's exception. Run: bash tools/check-core-tests.sh
+   native's exception. Run: tests/run.sh unit
 */
 
 #include "OOCommodities.h"
@@ -54,7 +54,7 @@ public:
 	std::optional<std::string> _specialCargo;
 	oo::Ref<OOCommodityMarket> _shipCommodityData;
 	int _sets = {};
-	BOOL _throwCxx = {};
+	bool _throwCxx = {};
 };
 
 // The universe as the code under test sees it: a stand-in for the C++ class
@@ -150,7 +150,7 @@ OOCargoQuantity PlayerEntity::setCargoQuantityForType(const std::string &type, O
 }
 std::optional<std::string> PlayerEntity::getSpecialCargo()  { return _specialCargo; }
 ::OOCommodityMarket * PlayerEntity::getShipCommodityData()  { return _shipCommodityData.get(); }
-::OOScript * PlayerEntity::commodityScriptNamed(const std::optional<std::string> &script)  { (void)script; return nil; }
+::OOScript * PlayerEntity::commodityScriptNamed(const std::optional<std::string> &script)  { (void)script; return nullptr; }
 
 
 
@@ -253,18 +253,18 @@ std::optional<std::string> cxx_OOStringFromJSValue(JSContext *context, JSValueCo
 
 
 // As the engine's: to a number, rounded to nearest; NaN or out of range is an error.
-BOOL OOJSValueToInt32(JSContext *context, JSValueConst value, int32_t *outValue)
+bool OOJSValueToInt32(JSContext *context, JSValueConst value, int32_t *outValue)
 {
 	double number;
-	if (JS_ToFloat64(context, &number, value) < 0)  return NO;
+	if (JS_ToFloat64(context, &number, value) < 0)  return false;
 	number = std::floor(number + 0.5);
 	if (std::isnan(number) || number < INT32_MIN || number > INT32_MAX)
 	{
 		cxx_OOJSReportError(context, "can't convert to an integer");
-		return NO;
+		return false;
 	}
 	*outValue = static_cast<int32_t>(number);
-	return YES;
+	return true;
 }
 
 
@@ -276,7 +276,7 @@ std::string OOJSClassNameOfValue(JSContext *, JSValueConst value)
 }
 
 
-std::string cxx_OOJSDescribeValue(JSContext *context, JSValueConst value, BOOL)
+std::string cxx_OOJSDescribeValue(JSContext *context, JSValueConst value, bool)
 {
 	return cxx_OOStringFromJSValue(context, value).value_or("undefined");
 }
@@ -318,7 +318,7 @@ std::map<JSClassID, int> sConverters;
 }  // namespace
 
 PlayerEntity *gOOPlayer = nullptr;
-Universe *gSharedUniverse = nil;
+Universe *gSharedUniverse = nullptr;
 
 
 PlayerEntity *OOPlayerForScripting(void)
@@ -404,7 +404,7 @@ namespace {
 JSRuntime *sRuntime;
 JSContext *sContext;
 JSValue sGlobal = JS_UNDEFINED;	// owned for the life of the test
-Universe *sUniverse = nil;
+Universe *sUniverse = nullptr;
 
 
 void SetUpContext()
@@ -545,9 +545,9 @@ OO_TEST(nativeExceptions)
 {
 	SetUpContext();
 	OO_CHECK_EVAL("manifest.furs", "threw: Native exception: cargo boom");
-	sPlayer->_throwCxx = YES;
+	sPlayer->_throwCxx = true;
 	OO_CHECK_EVAL("manifest.gems", "threw: Native exception: cxx boom");
-	sPlayer->_throwCxx = NO;
+	sPlayer->_throwCxx = false;
 	OO_CHECK_EVAL("manifest.gems", "12");
 	OO_CHECK_EQ(sLimiterPauses, 0);
 	OO_CHECK_EQ(sProfileDepth, 0);

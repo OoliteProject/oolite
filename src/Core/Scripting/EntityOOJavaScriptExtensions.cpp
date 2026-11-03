@@ -186,12 +186,12 @@ void ShipEntityJSSetTargetForScript(ShipEntity* ship, ShipEntity* target)
 
     // Ensure coherence by not fiddling with subentities.
     while ((me != nullptr ? me->getIsSubEntity() : false)) {
-        if (me == oo::ToShip((me != nullptr ? me->owner() : nullptr)) || (me != nullptr ? me->owner() : nullptr) == nil)
+        if (me == oo::ToShip((me != nullptr ? me->owner() : nullptr)) || (me != nullptr ? me->owner() : nullptr) == nullptr)
             break; // its own object: the ship, not its object
         me = oo::ToShip((me != nullptr ? me->owner() : nullptr));
     }
     while ((target != nullptr ? target->getIsSubEntity() : false)) {
-        if (target == oo::ToShip((target != nullptr ? target->owner() : nullptr)) || (target != nullptr ? target->owner() : nullptr) == nil)
+        if (target == oo::ToShip((target != nullptr ? target->owner() : nullptr)) || (target != nullptr ? target->owner() : nullptr) == nullptr)
             break; // its own object: the ship, not its object
         target = oo::ToShip((target != nullptr ? target->owner() : nullptr));
     }

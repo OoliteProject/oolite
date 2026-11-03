@@ -1,14 +1,12 @@
 """G1 - exit the game via mouse on the start screen.
 
-The calibration exemplar for the GUI tier (docs/stories/G1-exit-via-mouse.md,
-docs/phases/0-gui-tier.md). It is the baseline smoke test: the window opens, synthetic mouse
+The calibration exemplar for the GUI tier. It is the baseline smoke test: the window opens, synthetic mouse
 input reaches the game, and the menu shutdown path works. Everything else in this tier
 (G2-G9) reuses conftest.py's ``game`` fixture and ``row_to_point`` and cites this file.
 
     python3 -m pytest oolite-dev/tests/gui/test_g1_exit_via_mouse.py -x -q
 
-Needs the desktop: a real window, unlocked and logged in. It takes tools/gui-lock
-for the duration.
+Needs the desktop: a real window, unlocked and logged in, left alone while it runs.
 """
 
 import time
@@ -378,7 +376,7 @@ def test_assert_focused_retakes_the_foreground_rather_than_only_sampling_it():
     foreground before a click". ``select_row`` has always been self-healing because it calls
     ``focus()`` first; the bare ``assert_focused()`` calls did not, so anything that owned the
     foreground for an instant - a notification, an installer, or a sibling tool launching the
-    game without taking tools/gui-lock - hard-failed the run.
+    game - hard-failed the run.
 
     It is not a softening: when the foreground genuinely cannot be taken, focus() still spends
     its whole FOCUS_TIMEOUT_SECONDS budget and then hard-fails, which is asserted below too.
@@ -461,18 +459,48 @@ def test_an_unusable_desktop_is_reported_distinguishably_from_a_broken_g1():
 
 
 @pytest.mark.offline
-def test_the_runner_checks_the_desktop_precondition_up_front():
-    """tools/gui-tier.sh must refuse an unusable desktop before it launches a game."""
+def test_the_tier_checks_the_desktop_precondition_up_front():
+    """The tier must refuse an unusable desktop before it launches a game.
+
+    ``tests/run.sh gui`` just runs pytest, so the check lives in the session-scoped
+    ``gui_runtime`` fixture, which ``game`` names first and so is resolved before the build is
+    looked up or any window is launched. AST, so a comment cannot satisfy it.
+    """
+    import ast
     import os
 
     here = os.path.dirname(os.path.abspath(__file__))
-    runner = os.path.join(here, "..", "..", "..", "tools", "gui-tier.sh")
-    with open(runner, "r", encoding="utf-8") as handle:
-        script = handle.read()
-    assert "describe_untakeable_foreground" in script, (
-        "the runner must check for an un-takeable foreground before starting the tier"
+    with open(os.path.join(here, "conftest.py"), "r", encoding="utf-8") as handle:
+        tree = ast.parse(handle.read())
+    functions = {
+        node.name: node for node in ast.walk(tree) if isinstance(node, ast.FunctionDef)
+    }
+
+    def calls(func):
+        return {
+            node.func.id
+            for node in ast.walk(func)
+            if isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
+        }
+
+    assert "assert_desktop_can_run_gui_tests" in calls(functions["gui_runtime"]), (
+        "the session-scoped gui_runtime fixture must check the desktop before any game starts"
     )
-    assert "DESKTOP_UNUSABLE_MARKER" in script
+    assert "describe_untakeable_foreground" in calls(
+        functions["assert_desktop_can_run_gui_tests"]
+    ), "the precondition must look for an un-takeable foreground"
+    names = {
+        node.id
+        for node in ast.walk(functions["assert_desktop_can_run_gui_tests"])
+        if isinstance(node, ast.Name)
+    }
+    assert "DESKTOP_UNUSABLE_MARKER" in names, (
+        "the precondition failure must carry the marker that tells it from a G1 failure"
+    )
+    game_arguments = [argument.arg for argument in functions["game"].args.args]
+    assert game_arguments[0] == "gui_runtime", (
+        "game must name gui_runtime first so the precondition runs before the build and the launch"
+    )
 
 
 @pytest.mark.offline

@@ -16,7 +16,7 @@
 	through the one helper below. The plumes are made as the ship makes them (exhaustForShip()). The cases ask the C++ class; the facade case pins the crossing (the
 	object is the root's, whose C++ part is the plume), and jsExtensions pins that the
 	engine's selectors reach the C++ class's overrides through the root.
-	Run: bash tools/check-core-tests.sh
+	Run: tests/run.sh unit
 */
 
 #include "OOExhaustPlumeEntity.h"
@@ -95,7 +95,7 @@ extern JSContext *gOOJSMainThreadContext;	// the engine's (OOJavaScriptEngine.mm
 
 namespace {
 
-TestUniverse *sUniverse = nil;
+TestUniverse *sUniverse = nullptr;
 
 // The texture loader's stand-in.
 std::optional<std::string> sTextureName;
@@ -111,7 +111,7 @@ oo::Ref<OOTexture> LoadTexture(const std::optional<std::string> &name, const std
 
 void SetUp(OOTimeAbsolute time)
 {
-	if (sUniverse == nil)
+	if (sUniverse == nullptr)
 	{
 		sUniverse = new TestUniverse();	// never released
 		sTexture = oo::makeRef<OOTexture>().leakRef();	// never released
@@ -153,7 +153,7 @@ Entity *Ship()
 {
 	oo::Ref<TestShip> ship = oo::makeRef<TestShip>();
 	Entity *object = oo::MadeEntity(ship);
-	ship->isShip = YES;	// a ship (its subentity plume asks it, as a set-up ship answers)
+	ship->isShip = true;	// a ship (its subentity plume asks it, as a set-up ship answers)
 	ship->_visible = true;
 	ship->setSpeedFactor(1.0f);
 	ship->suppressAegisMessages = false;
@@ -328,7 +328,7 @@ OO_TEST(jsExtensions)
 		const JSClassID expectedClass = JSExhaustPlumeClassID();
 		OO_CHECK(jsClass != 0 && jsClass == expectedClass);
 		OO_CHECK(OOJSEntityJSClassName(plume) == std::optional<std::string>("ExhaustPlume"));
-		OO_CHECK(OOJSEntityIsVisibleToScripts(plume) == YES);
+		OO_CHECK(OOJSEntityIsVisibleToScripts(plume) == true);
 	}
 }
 

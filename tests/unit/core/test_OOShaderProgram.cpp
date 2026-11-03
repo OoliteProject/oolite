@@ -75,7 +75,7 @@ OOShaderSetting cxx_OOShaderSettingFromString(const std::string &string)
 // manager. The view is C++ (MyOpenGLView), and its manager accessor is never
 // reached.
 class Universe;
-Universe *gSharedUniverse = nil;
+Universe *gSharedUniverse = nullptr;
 
 OOOpenGLMatrixManager *MyOpenGLView::getOpenGLMatrixManager()  { return matrixManager.get(); }
 

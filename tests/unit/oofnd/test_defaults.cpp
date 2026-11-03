@@ -4,25 +4,14 @@
    NSUserDefaults+Override and NSBundle+Override). Every expected value and byte
    string below was captured from a probe program linked against that
    gnustep-base on this toolchain.
-
-        OOCocoa.h's true/false macros are defined first, exactly as the game has
-   them, so this file also proves Defaults.hpp (and all it includes) survives
-   them and hands them back.
 */
 
-#define true 1
-#define false 0
 
 #include <type_traits>
 
 #include "oofnd/Defaults.hpp"
 
-static_assert(std::is_same_v<decltype(true), int>,
-              "Defaults.hpp must restore OOCocoa.h's true macro");
-static constexpr int kTrueAfter = true;
 
-#undef true
-#undef false
 
 #include <cmath>
 #include <filesystem>
@@ -73,8 +62,6 @@ const char* const kProbeInput =
     " t14 = \"00001\"; t15 = \"Tq\"; t16 = \"0 0 9\"; }";
 
 }  // namespace
-
-OO_TEST(cocoaMacrosAreRestored) { OO_CHECK_EQ(kTrueAfter, 1); }
 
 // --- NSString coercions (NSUserDefaults -boolForKey: / -integerForKey: /
 // -doubleForKey:) ------

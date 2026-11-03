@@ -11,7 +11,7 @@
    name), and what the class answers to (the graphics reset client's
    -resetGraphicsState, and the HUD's beacon icon category; the C++ interfaces
    OOGraphicsResetClient and OOHUDBeaconIcon). Run: bash
-   tools/check-core-tests.sh
+   tests/run.sh unit
 */
 
 #include <cmath>

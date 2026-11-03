@@ -11,7 +11,7 @@
    so are the decoder and the two concrete sounds that OOALSound.mm names (C++
    stand-ins): "missing.ogg" has no decoder. The expectations run through the
    C++ API (OOMusic, a subclass of OOSound) and ask the C++ source. Run: bash
-   tools/check-core-tests.sh test_OOMusic
+   meson test -C build/meson_test test_OOMusic
 */
 
 #include <process.h>
@@ -194,8 +194,8 @@ OO_TEST(noSourceBeforeTheFirstPlay) {
   {
     oo::Ref<OOMusic> music =
         OOMusic::initWithContentsOfFile(std::string("theme.ogg"));
-    OO_CHECK(music != nil);
-    OO_CHECK(music->musicSoundSource() == nil);
+    OO_CHECK(music != nullptr);
+    OO_CHECK(music->musicSoundSource() == nullptr);
     OO_CHECK(music->musicGain() == 0.0f);
     music->setMusicGain(0.5f);
     OO_CHECK(!music->isPlaying());
@@ -302,7 +302,7 @@ OO_TEST(cxxApi) {
     OO_CHECK(!music->isPlaying() &&
              music->soundBuffer() == 0);  // the root's default
     music->playLooped(false);
-    OO_CHECK(music->isPlaying() && music->musicSoundSource() != nil);
+    OO_CHECK(music->isPlaying() && music->musicSoundSource() != nullptr);
     music->setMusicGain(0.5f);
     OO_CHECK(music->musicGain() == 0.5f);
     music->stop();

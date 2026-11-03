@@ -14,16 +14,8 @@
         meson test --suite oofnd-plist
 */
 
-// Included as game code will include it, after OOCocoa.h's true/false macros
-// (see test_plist.cpp).
-#define true 1
-#define false 0
 #include "oofnd/PListParsing.hpp"
 #include "oofnd/PListWriting.hpp"
-static_assert(std::is_same_v<decltype(true), int>,
-              "the PList headers must restore OOCocoa.h's true macro");
-#undef true
-#undef false
 
 #include <string>
 #include <string_view>

@@ -110,7 +110,7 @@ static JSValue SunGetProperty(OOJS_GETTER_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    OOSunEntity* sun = nil;
+    OOSunEntity* sun = nullptr;
 
     if (EXPECT_NOT(!JSSunGetSunEntity(context, thisObj, &sun)))
         return OOJSNativeFailure(context);
@@ -147,7 +147,7 @@ static JSValue SunGoNova(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    OOSunEntity* sun = nil;
+    OOSunEntity* sun = nullptr;
     double delay = 0;
 
     if (EXPECT_NOT(!JSSunGetSunEntity(context, OOJS_THIS, &sun)))
@@ -169,7 +169,7 @@ static JSValue SunCancelNova(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    OOSunEntity* sun = nil;
+    OOSunEntity* sun = nullptr;
 
     if (EXPECT_NOT(!JSSunGetSunEntity(context, OOJS_THIS, &sun)))
         return OOJSNativeFailure(context);

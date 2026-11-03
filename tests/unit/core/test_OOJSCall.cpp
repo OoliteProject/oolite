@@ -13,7 +13,7 @@
 	The console's callObjC() is given only entities and monitors. The test's entity objects are
 	C++: its by-name stand-ins answer the names the entity's object answers from a table of the
 	test's own.
-	Run: bash tools/check-core-tests.sh
+	Run: tests/run.sh unit
 */
 
 #include "OOJSCall.h"
@@ -118,7 +118,7 @@ JSValue JSQuaternionWithQuaternion(JSContext *context, Quaternion quaternion)
 // Link stub: OOShaderUniformMethodType.mm's matrix
 // reader answers it for a nil object; the test calls no matrix method, and
 // OOMatrix.mm would bring OpenGL.
-extern "C" const OOMatrix kZeroMatrix = {};
+const OOMatrix kZeroMatrix = {};
 
 
 #if OOJS_PROFILE

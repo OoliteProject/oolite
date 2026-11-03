@@ -7,7 +7,7 @@
    cover: what octree a set of triangles gives (nodes, radius and volume) at
    several depths, that degenerate triangles are dropped, the description, and
    that the triangle store grows past its sixteen inline slots. Run: bash
-   tools/check-core-tests.sh
+   tests/run.sh unit
 */
 
 #include <cmath>

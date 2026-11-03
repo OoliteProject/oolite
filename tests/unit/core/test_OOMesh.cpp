@@ -23,7 +23,7 @@
    pointer and the factory. geometryMembers checks the geometry members,
    renderingMembers the rendering members, and loadingMembers the loading and
    copying members and the mesh as its own graphics reset client. Run: bash
-   tools/check-core-tests.sh
+   tests/run.sh unit
 */
 
 #include <process.h>
@@ -129,11 +129,11 @@ void SetUp() {
 }
 
 oo::Ref<OOMesh> Mesh(const std::string& name, float scale = 1.0f,
-                     BOOL cacheWriteable = YES, BOOL smooth = NO,
+                     bool cacheWriteable = true, bool smooth = false,
                      const oo::PList& materials = oo::PList(),
                      const oo::PList& shaders = oo::PList()) {
   return OOMesh::meshWithName(name, std::nullopt, materials, shaders, smooth,
-                              oo::PList(), nil, scale, cacheWriteable);
+                              oo::PList(), nullptr, scale, cacheWriteable);
 }
 
 oo::PList CachedPList(const std::string& key, const std::string& cache) {
@@ -192,7 +192,7 @@ OO_TEST(loadsModel) {
                               "m normals: per-face}") != std::string::npos);
 
     // Binding targets go to the materials; dumping the state only logs.
-    mesh->setBindingTarget(nil);
+    mesh->setBindingTarget(nullptr);
     mesh->dumpSelfState();
 
 #ifndef NDEBUG
@@ -211,7 +211,7 @@ OO_TEST(dictionariesAndSmoothing) {
     materials["other.png"] = oo::PList(oo::PList::Dict{});
     oo::PList::Dict shaders;
     shaders["other.png"] = oo::PList(oo::PList::Dict{});
-    const oo::Ref<OOMesh> mesh = Mesh("tetra2.dat", 1.0f, YES, YES,
+    const oo::Ref<OOMesh> mesh = Mesh("tetra2.dat", 1.0f, true, true,
                                       oo::PList(materials), oo::PList(shaders));
     OO_CHECK(mesh != nullptr);
     if (mesh == nullptr) return;
@@ -224,7 +224,7 @@ OO_TEST(dictionariesAndSmoothing) {
 OO_TEST(scaleAndMissingModel) {
   SetUp();
   {
-    const oo::Ref<OOMesh> mesh = Mesh("tetra3.dat", 2.0f, NO);
+    const oo::Ref<OOMesh> mesh = Mesh("tetra3.dat", 2.0f, false);
     OO_CHECK(mesh != nullptr);
     if (mesh == nullptr) return;
     OO_CHECK(Near(mesh->collisionRadius(), 20.0));
@@ -360,7 +360,7 @@ OO_TEST(laterSlices) {
   {
     // Loading: a smooth mesh caches its normals and tangents with
     // normal mode 1.
-    const oo::Ref<OOMesh> smooth = Mesh("tetra2.dat", 1.0f, YES, YES);
+    const oo::Ref<OOMesh> smooth = Mesh("tetra2.dat", 1.0f, true, true);
     OO_CHECK(smooth != nullptr);
     const oo::PList smoothData = CachedPList("tetra2.dat:1:1.000", "OOMesh");
     OO_CHECK(smoothData.isDict());
@@ -436,14 +436,14 @@ OO_TEST(facadeContract) {
     // The C++ factory: a mesh; null for a missing model.
     const oo::Ref<OOMesh> made =
         OOMesh::meshWithName("tetra.dat", std::nullopt, oo::PList(),
-                             oo::PList(), false, oo::PList(), nil, 2.0f, false);
+                             oo::PList(), false, oo::PList(), nullptr, 2.0f, false);
     OO_CHECK(made.get() != nullptr);
     if (made.get() == nullptr) return;
     OO_CHECK(Near(made->collisionRadius(), 20.0));
     OO_CHECK(made->description().starts_with("<OOMesh "));
     OO_CHECK(OOMesh::meshWithName("no such model.dat", std::nullopt,
                                   oo::PList(), oo::PList(), false, oo::PList(),
-                                  nil)
+                                  nullptr)
                  .get() == nullptr);
 
     // A C++ mesh made bare is the old -init's: no model yet.
@@ -493,7 +493,7 @@ OO_TEST(rendering) {
   SetUp();
   {
     const oo::Ref<OOMesh> mesh = Mesh("tetra.dat");
-    const oo::Ref<OOMesh> smooth = Mesh("tetra2.dat", 1.0f, YES, YES);
+    const oo::Ref<OOMesh> smooth = Mesh("tetra2.dat", 1.0f, true, true);
     OO_CHECK(mesh != nullptr && smooth != nullptr);
     if (mesh == nullptr || smooth == nullptr) return;
     while (glGetError() != GL_NO_ERROR) {
@@ -564,7 +564,7 @@ OO_TEST(loadingMembers) {
   {
     const oo::Ref<OOMesh> mesh =
         OOMesh::meshWithName("tetra.dat", std::nullopt, oo::PList(),
-                             oo::PList(), false, oo::PList(), nil);
+                             oo::PList(), false, oo::PList(), nullptr);
     OO_CHECK(mesh.get() != nullptr);
     if (mesh.get() == nullptr) return;
     OO_CHECK_EQ(mesh->getVertexCount(), 4u);

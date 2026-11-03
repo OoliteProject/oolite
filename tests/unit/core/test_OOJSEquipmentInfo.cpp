@@ -14,7 +14,7 @@
 	(every property, the display colour and effective tech level both ways, the prototype,
 	infoForKey(), allEquipment, a native's exception), the C functions other bindings call
 	(JSValueToEquipmentType(), JSValueToEquipmentKey(), JSValueToEquipmentKeyRelaxed()) and what
-	the category answers the engine. Run: bash tools/check-core-tests.sh
+	the category answers the engine. Run: tests/run.sh unit
 */
 
 #include "OOEquipmentType.h"
@@ -47,7 +47,7 @@
 namespace {
 
 std::vector<std::string> gLog;
-BOOL gEnforceStandards = NO;
+bool gEnforceStandards = false;
 int gDeprecations = 0;
 
 oo::PList Dict(std::initializer_list<std::pair<const char *, oo::PList>> entries)
@@ -114,7 +114,7 @@ oo::PList Universe::getEquipmentData()	{ return EquipmentData(); }
 oo::PList Universe::getEquipmentDataOutfitting()	{ return EquipmentData(); }
 
 
-Universe *gSharedUniverse = nil;
+Universe *gSharedUniverse = nullptr;
 
 
 #include "OOCacheManager.h"
@@ -190,7 +190,7 @@ public:
 	float _fuelChargeRate = {};
 	double _renovationCosts = {};
 	oo::PList::Dict _missionVariables;
-	BOOL _throwCxx = {};
+	bool _throwCxx = {};
 };
 
 void PlayerEntity::setScriptTarget(::ShipEntity *target)  { (void)target; }
@@ -225,7 +225,7 @@ void cxx_OOStandardsDeprecated(const std::string &message)
 	gDeprecations++;
 }
 
-extern "C" BOOL OOEnforceStandards(void)
+bool OOEnforceStandards(void)
 {
 	return gEnforceStandards;
 }
@@ -289,18 +289,18 @@ JSAtom cxx_OOJSIDFromString(const std::string &string)
 std::optional<std::string> cxx_OOStringFromJSValue(JSContext *context, JSValueConst value);
 
 // The engine's: rounded to nearest; NaN or out of range is an error.
-BOOL OOJSValueToInt32(JSContext *context, JSValueConst value, int32_t *outValue)
+bool OOJSValueToInt32(JSContext *context, JSValueConst value, int32_t *outValue)
 {
 	double number;
-	if (JS_ToFloat64(context, &number, value) < 0)  return NO;
+	if (JS_ToFloat64(context, &number, value) < 0)  return false;
 	number = std::floor(number + 0.5);
 	if (std::isnan(number) || number < INT32_MIN || number > INT32_MAX)
 	{
 		cxx_OOJSReportError(context, "can't convert %s to an integer", cxx_OOStringFromJSValue(context, value).value_or("(null)").c_str());
-		return NO;
+		return false;
 	}
 	*outValue = static_cast<int32_t>(number);
-	return YES;
+	return true;
 }
 
 
@@ -664,10 +664,10 @@ OO_TEST(writableProperties)
 	sLastWarning.clear();
 	OO_CHECK_EVAL("(function () { var e = EquipmentInfo.infoForKey('EQ_FUEL'); e.effectiveTechLevel = 3; return e.effectiveTechLevel; })()", "1");
 	OO_CHECK_EQ(sLastWarning, std::string("Cannot modify effective tech level for EQ_FUEL, because its base tech level is not 99."));
-	gEnforceStandards = YES;
+	gEnforceStandards = true;
 	OO_CHECK_EVAL("(function () { var e = EquipmentInfo.infoForKey('EQ_SHIELD_BOOSTER'); e.effectiveTechLevel = 5; return e.effectiveTechLevel; })()", "99");
 	OO_CHECK_EQ(sLastWarning, std::string("Cannot modify effective tech level for EQ_SHIELD_BOOSTER, because its base tech level is not 99."));
-	gEnforceStandards = NO;
+	gEnforceStandards = false;
 }
 
 
@@ -704,17 +704,17 @@ OO_TEST(cFunctions)
 
 	OO_CHECK(JSValueToEquipmentType(sContext, missileValue) == missile);
 	OO_CHECK(JSValueToEquipmentType(sContext, key) == missile);
-	OO_CHECK(JSValueToEquipmentType(sContext, unknownKey) == nil);
-	OO_CHECK(JSValueToEquipmentType(sContext, JS_NULL) == nil);
+	OO_CHECK(JSValueToEquipmentType(sContext, unknownKey) == nullptr);
+	OO_CHECK(JSValueToEquipmentType(sContext, JS_NULL) == nullptr);
 	OO_CHECK(JSValueToEquipmentKey(sContext, missileValue) == std::optional<std::string>("EQ_MISSILE"));
 	OO_CHECK(JSValueToEquipmentKey(sContext, unknownKey) == std::nullopt);
 
-	BOOL exists = NO;
-	OO_CHECK(JSValueToEquipmentKeyRelaxed(sContext, missileValue, &exists) == std::optional<std::string>("EQ_MISSILE") && exists == YES);
-	OO_CHECK(JSValueToEquipmentKeyRelaxed(sContext, key, &exists) == std::optional<std::string>("EQ_MISSILE") && exists == YES);
-	OO_CHECK(JSValueToEquipmentKeyRelaxed(sContext, unknownKey, &exists) == std::optional<std::string>("EQ_SOMETHING") && exists == NO);
-	OO_CHECK(JSValueToEquipmentKeyRelaxed(sContext, damagedKey, &exists) == std::nullopt && exists == NO);	// _DAMAGED is refused
-	OO_CHECK(JSValueToEquipmentKeyRelaxed(sContext, JS_NewInt32(sContext, 3), &exists) == std::nullopt && exists == NO);
+	bool exists = false;
+	OO_CHECK(JSValueToEquipmentKeyRelaxed(sContext, missileValue, &exists) == std::optional<std::string>("EQ_MISSILE") && exists == true);
+	OO_CHECK(JSValueToEquipmentKeyRelaxed(sContext, key, &exists) == std::optional<std::string>("EQ_MISSILE") && exists == true);
+	OO_CHECK(JSValueToEquipmentKeyRelaxed(sContext, unknownKey, &exists) == std::optional<std::string>("EQ_SOMETHING") && exists == false);
+	OO_CHECK(JSValueToEquipmentKeyRelaxed(sContext, damagedKey, &exists) == std::nullopt && exists == false);	// _DAMAGED is refused
+	OO_CHECK(JSValueToEquipmentKeyRelaxed(sContext, JS_NewInt32(sContext, 3), &exists) == std::nullopt && exists == false);
 	OO_CHECK(JSValueToEquipmentKeyRelaxed(sContext, key, nullptr) == std::optional<std::string>("EQ_MISSILE"));
 	OO_CHECK_EQ(sProfileDepth, 0);
 	JS_FreeValue(sContext, unknownKey);
@@ -728,9 +728,9 @@ OO_TEST(nativeExceptions)
 {
 	SetUpContext();
 	OO_CHECK_EVAL("EquipmentInfo.infoForKey('EQ_SCOOPER').calculatedPrice", "threw: Native exception: price boom");
-	sPlayer->_throwCxx = YES;
+	sPlayer->_throwCxx = true;
 	OO_CHECK_EVAL("EquipmentInfo.infoForKey('EQ_MISSILE').calculatedPrice", "threw: Native exception: cxx boom");
-	sPlayer->_throwCxx = NO;
+	sPlayer->_throwCxx = false;
 	OO_CHECK_EVAL("EquipmentInfo.infoForKey('EQ_MISSILE').calculatedPrice", "500");
 	OO_CHECK_EQ(sLimiterPauses, 0);
 	OO_CHECK_EQ(sProfileDepth, 0);

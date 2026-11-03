@@ -22,7 +22,6 @@ MA 02110-1301, USA.
 
 */
 
-#if defined(GNUSTEP_BASE_LIBRARY) || defined(OOLITE_SDL_MAC)
 #include "GameController.h"
 #include "OOLoggingExtended.h"
 #include "oofnd/Process.hpp"
@@ -40,9 +39,11 @@ MA 02110-1301, USA.
 #if OOLITE_WINDOWS
 #include <SDL3/SDL_main.h>
 #include <SDL3/SDL_stdinc.h>
-#include <cstring>
 #include <locale.h>
+
+#include <cstring>
 #include <optional>
+#include <string>
 // Make sure that a high performance GPU is
 // selected, if more than one are available
 __declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
@@ -60,8 +61,7 @@ namespace {
 // a namespace-scope oo::Ref would tear the universe down during static destruction, after
 // function-local statics such as oo::log's logger have died.
 GameController* controller = nullptr;
-}
-#endif
+} // namespace
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
 uint32_t gDebugFlags = 0;
@@ -93,27 +93,32 @@ int main(int argc, char* argv[])
     // built it (UTF-8 on Windows).
     oo::process::setArguments(argc, argv);
 
-#if defined(GNUSTEP_BASE_LIBRARY) || defined(OOLITE_SDL_MAC)
     int i;
 
 #if OOLITE_WINDOWS
 
-#define OO_SHOW_MSG(ooMsg, ooMsgTitle, ooMsgFlags) MessageBox(NULL, ooMsg, ooMsgTitle, ooMsgFlags)
+#define OO_SHOW_MSG(ooMsg, ooMsgTitle, ooMsgFlags) \
+    MessageBox(NULL, ooMsg, ooMsgTitle, ooMsgFlags)
 #define TABS1 "\t"
 #define TABS2 "\t\t"
 #define TABS3 "\t\t\t"
 #define TABS4 ""
 
-// Detect current working directory and set up GNUstep environment variables
-#define MAX_PATH_LEN 256
-    char currentWorkingDir[MAX_PATH_LEN];
-    DWORD bufferSize = MAX_PATH_LEN;
+    // Detect current working directory and set up GNUstep environment variables
+    // (32767 characters is the longest path Windows allows).
+    std::string currentWorkingDir(32768, '\0');
+    DWORD bufferSize = static_cast<DWORD>(currentWorkingDir.size());
 
-    QueryFullProcessImageName(GetCurrentProcess(), 0, currentWorkingDir, &bufferSize);
-    // Strip the exe filenameb (from last backslash onwards), leave just the path
-    char* probeString = strrchr(currentWorkingDir, '\\');
-    if (probeString)
-        *probeString = '\0'; // currentWorkingDir now contains the path we need
+    if (QueryFullProcessImageName(GetCurrentProcess(), 0,
+            currentWorkingDir.data(), &bufferSize)) {
+        currentWorkingDir.resize(bufferSize);
+    } else {
+        currentWorkingDir.clear();
+    }
+    // Strip the exe filename (from last backslash onwards), leave just the path
+    const size_t probe = currentWorkingDir.rfind('\\');
+    if (probe != std::string::npos)
+        currentWorkingDir.resize(probe); // now the path we need
 
     // Prepend system PATH env variable with our own executable's path
     const char* pathEnvVar = "Path";
@@ -122,30 +127,30 @@ int main(int argc, char* argv[])
         pathEnvVar = "PATH";
         systemPath = SDL_getenv(pathEnvVar);
     }
-    size_t currentWorkingDirLen = strlen(currentWorkingDir);
-    size_t systemPathLen = strlen(systemPath);
-    // the max possible length of the string below is systemPath plus the path
-    // we have determined for us, plus one char for the ";" and one char for the null terminator
-    char* finalPath = (char*)malloc(systemPathLen + currentWorkingDirLen + 2 * sizeof(char));
-    strcpy(finalPath, currentWorkingDir);
-    strcat(finalPath, ";");
-    strcat(finalPath, systemPath);
+    std::string finalPath = currentWorkingDir;
+    if (systemPath) {
+        finalPath += ';';
+        finalPath += systemPath;
+    }
 
-    SDL_setenv_unsafe("GNUSTEP_PATH_HANDLING", "windows", YES);
-    SDL_setenv_unsafe(pathEnvVar, finalPath, YES);
-    SDL_setenv_unsafe("GNUSTEP_SYSTEM_ROOT", currentWorkingDir, YES);
-    SDL_setenv_unsafe("GNUSTEP_LOCAL_ROOT", currentWorkingDir, YES);
-    SDL_setenv_unsafe("GNUSTEP_NETWORK_ROOT", currentWorkingDir, YES);
-    SDL_setenv_unsafe("GNUSTEP_USERS_ROOT", currentWorkingDir, YES);
+    SDL_setenv_unsafe("GNUSTEP_PATH_HANDLING", "windows", true);
+    SDL_setenv_unsafe(pathEnvVar, finalPath.c_str(), true);
+    SDL_setenv_unsafe("GNUSTEP_SYSTEM_ROOT", currentWorkingDir.c_str(), true);
+    SDL_setenv_unsafe("GNUSTEP_LOCAL_ROOT", currentWorkingDir.c_str(), true);
+    SDL_setenv_unsafe("GNUSTEP_NETWORK_ROOT", currentWorkingDir.c_str(), true);
+    SDL_setenv_unsafe("GNUSTEP_USERS_ROOT", currentWorkingDir.c_str(), true);
 #if OO_GAME_DATA_TO_USER_FOLDER
-    SDL_setenv_unsafe("HOMEPATH", strcat(SDL_getenv("LOCALAPPDATA"), "\\Oolite\\oolite.app"), YES);
+    // The path is built in a string of its own; LOCALAPPDATA is the
+    // environment's buffer and must not be appended to.
+    const char* localAppData = SDL_getenv("LOCALAPPDATA");
+    const std::string userHome = localAppData ? std::string(localAppData) + "\\Oolite\\oolite.app"
+                                              : currentWorkingDir;
+    SDL_setenv_unsafe("HOMEPATH", userHome.c_str(), true);
 #else
-    SDL_setenv_unsafe("HOMEPATH", currentWorkingDir, YES);
+    SDL_setenv_unsafe("HOMEPATH", currentWorkingDir.c_str(), true);
 #endif
 
-    SetCurrentDirectory(currentWorkingDir);
-
-    free(finalPath);
+    SetCurrentDirectory(currentWorkingDir.c_str());
 
     /*	Windows ambitiously starts apps with the C library locale set to the
             system locale rather than the "C" locale as per spec. Fixing here so
@@ -163,11 +168,13 @@ int main(int argc, char* argv[])
         *last_slash = '\0'; // Chop off the executable name, leaving just the directory
     }
     if (chdir(result) != 0) {
-        // As before: if the executable's directory cannot be entered, the game starts where it is.
+        // As before: if the executable's directory cannot be entered, the game
+        // starts where it is.
     }
 #elif OOLITE_MACOS
     // Run from the folder holding Resources and AddOns: Contents in an app bundle
-    // (executable in Contents/MacOS), otherwise the folder holding the executable.
+    // (executable in Contents/MacOS), otherwise the folder holding the
+    // executable.
     char result[PATH_MAX];
     uint32_t resultSize = sizeof(result);
     char resolved[PATH_MAX];
@@ -210,54 +217,82 @@ int main(int argc, char* argv[])
             if (strcmp("-load", argv[i]) == 0) {
                 i++;
             }
-            // argv is UTF-8 (SDL_main); an argument past the end reads as nothing, as nil did.
+            // argv is UTF-8 (SDL_main); an argument past the end reads as nothing, as
+            // nil did.
             const std::string argument = (i < argc) ? argv[i] : "";
             if (i < argc && oo::str::hasSuffix(oo::str::lowercase(argument), ".oolite-save")) {
                 controller->setPlayerFileToLoad(argument);
             }
 
-            if (!strcmp("-help", argv[i]) || !strcmp("--help", argv[i])) {
+            if (argument == "-help" || argument == "--help") {
                 std::string processNameString = oo::process::processName();
                 char const* processName = processNameString.c_str();
                 char s[2048];
-                snprintf(s, sizeof(s), "Usage: %s [options]\n\n"
-                                       "Options can be any of the following: \n\n"
-                                       "--compile-sysdesc" TABS2 "Compile system descriptions *\n"
-                                       "--export-sysdesc" TABS2 "Export system descriptions *\n"
+                snprintf(s, sizeof(s),
+                    "Usage: %s [options]\n\n"
+                    "Options can be any of the following: \n\n"
+                    "--compile-sysdesc" TABS2
+                    "Compile system descriptions *\n"
+                    "--export-sysdesc" TABS2
+                    "Export system descriptions *\n"
 #if OOLITE_WINDOWS
-                                       "-hdr" TABS3 "Start up in HDR mode\n"
+                    "-hdr" TABS3
+                    "Start up in HDR mode\n"
 #endif
-                                       "-load [filepath]" TABS2 "Load commander from [filepath]\n" TABS3 TABS4 "(\"-load\" is optional)\n"
-                                       "-message [messageString]" TABS1 "Display [messageString] at startup\n"
-                                       "-nodust    " TABS2 TABS4 "Do not draw space dust\n"
-                                       "-noshaders" TABS2 TABS4 "Start up with shaders disabled\n"
-                                       "-nosplash    " TABS2 TABS4 "Force disable splash screen on startup\n"
-                                       "-nosound    " TABS2 TABS4 "Start up with sound disabled\n"
-                                       "-novsync" TABS3 "Force disable V-Sync\n"
-                                       "--openstep" TABS2 TABS4 "When compiling or exporting\n" TABS3 TABS4 "system descriptions, use openstep\n" TABS3 TABS4 "format *\n"
-                                       "-showversion" TABS2 TABS4 "Display version at startup screen\n"
-                                       "-splash" TABS3 TABS4 "Force splash screen on startup\n"
-                                       "-verify-oxp [filepath]    " TABS1 "Verify OXP at [filepath] *\n"
-                                       "--xml" TABS3 TABS4 "When compiling or exporting\n" TABS3 TABS4 "system descriptions, use xml\n" TABS3 TABS4 "format *\n"
-                                       "\n"
-                                       "Options marked with \"*\" are available only in Test Release configuration.\n"
-                                       "Version " OO_VERSION_FULL "\n"
-                                       "Debug functionality enabled (Test Release): "
+                    "-load [filepath]" TABS2
+                    "Load commander from [filepath]\n" TABS3 TABS4
+                    "(\"-load\" is optional)\n"
+                    "-message [messageString]" TABS1
+                    "Display [messageString] at startup\n"
+                    "-nodust    " TABS2 TABS4
+                    "Do not draw space dust\n"
+                    "-noshaders" TABS2 TABS4
+                    "Start up with shaders disabled\n"
+                    "-nosplash    " TABS2 TABS4
+                    "Force disable splash screen on startup\n"
+                    "-nosound    " TABS2 TABS4
+                    "Start up with sound disabled\n"
+                    "-novsync" TABS3
+                    "Force disable V-Sync\n"
+                    "--openstep" TABS2 TABS4
+                    "When compiling or exporting\n" TABS3 TABS4
+                    "system descriptions, use openstep\n" TABS3 TABS4
+                    "format *\n"
+                    "-showversion" TABS2 TABS4
+                    "Display version at startup screen\n"
+                    "-splash" TABS3 TABS4
+                    "Force splash screen on startup\n"
+                    "-verify-oxp [filepath]    " TABS1
+                    "Verify OXP at [filepath] *\n"
+                    "--xml" TABS3 TABS4 "When compiling or exporting\n" TABS3 TABS4
+                    "system descriptions, use xml\n" TABS3 TABS4
+                    "format *\n"
+                    "\n"
+                    "Options marked with \"*\" are available only in Test Release "
+                    "configuration.\n"
+                    "Version " OO_VERSION_FULL
+                    "\n"
+                    "Debug functionality enabled (Test Release): "
 #ifdef OO_DEBUG_MONITOR_ENABLED
-                                       "yes\n"
+                    "yes\n"
 #else
-                                       "no\n"
+                    "no\n"
 #endif
-                                       "Built with "
+                    "Built with "
 #if OOLITE_HAVE_CLANG
-                                       "Clang version " STRINGIFY(__clang_major__) "." STRINGIFY(__clang_minor__) "." STRINGIFY(__clang_patchlevel__)
+                    "Clang version " STRINGIFY(__clang_major__) "." STRINGIFY(
+                        __clang_minor__) "." STRINGIFY(__clang_patchlevel__)
 #else
-                                       "GCC version " STRINGIFY(__GNUC__) "." STRINGIFY(__GNUC_MINOR__) "." STRINGIFY(__GNUC_PATCHLEVEL__)
+                    "GCC version " STRINGIFY(__GNUC__) "." STRINGIFY(
+                        __GNUC_MINOR__) "." STRINGIFY(__GNUC_PATCHLEVEL__)
 #endif
-                                           "\n\n",
+                        "\n\n",
                     processName);
                 OO_SHOW_MSG(s, processName, MB_OK);
-                OO_LOG("process.args", "{} option detected, exiting after help page has been displayed.", argv[i]);
+                OO_LOG(
+                    "process.args",
+                    "{} option detected, exiting after help page has been displayed.",
+                    argument);
                 return 0;
             }
         }
@@ -273,10 +308,12 @@ int main(int argc, char* argv[])
         const auto exception = oo::CurrentOOException();
         if (!exception)
             throw; // not an OOException: it goes on up, as before
-        OO_LOG_ERR(cxx_kOOLogException, "Root exception handler hit - terminating. This is an internal error, please report it. Exception name: {}, reason: {}", exception->name(), exception->reason());
+        OO_LOG_ERR(cxx_kOOLogException,
+            "Root exception handler hit - terminating. This is an internal "
+            "error, please report it. Exception name: {}, reason: {}",
+            exception->name(), exception->reason());
         return EXIT_FAILURE;
     }
-#endif
 
     // never reached
     return 0;

@@ -31,62 +31,56 @@ MA 02110-1301, USA.
 #include "OORoleSet.h"
 #include "ShipEntity.h"
 
-BOOL YESPredicate(Entity* /*entity*/, void* /*parameter*/)
-{
-    return YES;
-}
+bool YESPredicate(Entity* /*entity*/, void* /*parameter*/) { return true; }
 
-BOOL NOPredicate(Entity* /*entity*/, void* /*parameter*/)
-{
-    return NO;
-}
+bool NOPredicate(Entity* /*entity*/, void* /*parameter*/) { return false; }
 
-BOOL NOTPredicate(Entity* entity, void* parameter)
+bool NOTPredicate(Entity* entity, void* parameter)
 {
     ChainedEntityPredicateParameter* param = (ChainedEntityPredicateParameter*)parameter;
     if (param == NULL || param->predicate == NULL)
-        return NO;
+        return false;
 
     return !param->predicate(entity, param->parameter);
 }
 
-BOOL ANDPredicate(Entity* entity, void* parameter)
+bool ANDPredicate(Entity* entity, void* parameter)
 {
     BinaryOperationPredicateParameter* param = (BinaryOperationPredicateParameter*)parameter;
 
     if (!param->predicate1(entity, param->parameter1))
-        return NO;
+        return false;
     if (!param->predicate2(entity, param->parameter2))
-        return NO;
-    return YES;
+        return false;
+    return true;
 }
 
-BOOL ORPredicate(Entity* entity, void* parameter)
+bool ORPredicate(Entity* entity, void* parameter)
 {
     BinaryOperationPredicateParameter* param = (BinaryOperationPredicateParameter*)parameter;
 
     if (param->predicate1(entity, param->parameter1))
-        return YES;
+        return true;
     if (param->predicate2(entity, param->parameter2))
-        return YES;
-    return NO;
+        return true;
+    return false;
 }
 
-BOOL NORPredicate(Entity* entity, void* parameter)
+bool NORPredicate(Entity* entity, void* parameter)
 {
     BinaryOperationPredicateParameter* param = (BinaryOperationPredicateParameter*)parameter;
 
     if (param->predicate1(entity, param->parameter1))
-        return NO;
+        return false;
     if (param->predicate2(entity, param->parameter2))
-        return NO;
-    return YES;
+        return false;
+    return true;
 }
 
-BOOL XORPredicate(Entity* entity, void* parameter)
+bool XORPredicate(Entity* entity, void* parameter)
 {
     BinaryOperationPredicateParameter* param = (BinaryOperationPredicateParameter*)parameter;
-    BOOL A, B;
+    bool A, B;
 
     A = param->predicate1(entity, param->parameter1);
     B = param->predicate2(entity, param->parameter2);
@@ -94,10 +88,10 @@ BOOL XORPredicate(Entity* entity, void* parameter)
     return (A || B) && !(A && B);
 }
 
-BOOL NANDPredicate(Entity* entity, void* parameter)
+bool NANDPredicate(Entity* entity, void* parameter)
 {
     BinaryOperationPredicateParameter* param = (BinaryOperationPredicateParameter*)parameter;
-    BOOL A, B;
+    bool A, B;
 
     A = param->predicate1(entity, param->parameter1);
     B = param->predicate2(entity, param->parameter2);
@@ -107,78 +101,78 @@ BOOL NANDPredicate(Entity* entity, void* parameter)
 
 /*	The predicates ask the C++ entity directly.
  */
-BOOL HasScanClassPredicate(Entity* entity, void* parameter)
+bool HasScanClassPredicate(Entity* entity, void* parameter)
 {
     return *static_cast<const OOScanClass*>(parameter) == (entity != nullptr ? entity->getScanClass() : OOScanClass { }); // an OOScanClass, as the callers pass it
 }
 
-BOOL IsShipPredicate(Entity* entity, void* /*parameter*/)
+bool IsShipPredicate(Entity* entity, void* /*parameter*/)
 {
     return entity != nullptr && entity->getIsShip() && !entity->getIsSubEntity();
 }
 
-BOOL IsStationPredicate(Entity* entity, void* /*parameter*/)
+bool IsStationPredicate(Entity* entity, void* /*parameter*/)
 {
     return entity != nullptr && entity->getIsStation();
 }
 
-BOOL IsPlanetPredicate(Entity* entity, void* /*parameter*/)
+bool IsPlanetPredicate(Entity* entity, void* /*parameter*/)
 {
     if (!(entity != nullptr && entity->isPlanet()))
-        return NO;
+        return false;
     OOStellarBodyType type = OOStellarBodyPlanetType(entity);
     return (type == STELLAR_TYPE_NORMAL_PLANET || type == STELLAR_TYPE_MOON);
 }
 
-BOOL IsSunPredicate(Entity* entity, void* /*parameter*/)
+bool IsSunPredicate(Entity* entity, void* /*parameter*/)
 {
     return entity != nullptr && entity->isSun();
 }
 
-BOOL IsVisualEffectPredicate(Entity* entity, void* /*parameter*/)
+bool IsVisualEffectPredicate(Entity* entity, void* /*parameter*/)
 {
     return entity != nullptr && entity->getIsVisualEffect() && !entity->getIsSubEntity();
 }
 
-BOOL HasRolePredicate(Entity* ship, void* parameter)
+bool HasRolePredicate(Entity* ship, void* parameter)
 {
     const std::string* role = static_cast<const std::string*>(parameter); // a role, as the callers pass it; null for none
     return role != nullptr && (oo::ToShip(ship) != nullptr ? oo::ToShip(ship)->hasRole(*role) : false);
 }
 
-BOOL HasPrimaryRolePredicate(Entity* ship, void* parameter)
+bool HasPrimaryRolePredicate(Entity* ship, void* parameter)
 {
     const std::string* role = static_cast<const std::string*>(parameter); // a role, as the callers pass it; null for none
     if (role == nullptr) {
         if (ShipEntity* s = oo::ToShip(ship))
             (void)s->getPrimaryRole(); // still chooses a primary role if there is none, as before
-        return NO; // -isEqual: nil was NO
+        return false; // -isEqual: nil was NO
     }
     return (oo::ToShip(ship) != nullptr ? oo::ToShip(ship)->hasPrimaryRole(*role) : false);
 }
 
-BOOL HasRoleInSetPredicate(Entity* ship, void* parameter)
+bool HasRoleInSetPredicate(Entity* ship, void* parameter)
 {
     // parameter: the role strings, as the callers pass them (none empty); -intersectsSet: of them
     const std::vector<std::string>& roles = *static_cast<const std::vector<std::string>*>(parameter);
     const oo::Ref<OORoleSet> roleSet = oo::ToShip(ship)->getRoleSet();
     if (roleSet == nullptr)
-        return NO;
+        return false;
     return std::any_of(roles.begin(), roles.end(), [&roleSet](const std::string& role) { return roleSet->hasRole(role); });
 }
 
-BOOL HasPrimaryRoleInSetPredicate(Entity* ship, void* parameter)
+bool HasPrimaryRoleInSetPredicate(Entity* ship, void* parameter)
 {
     // parameter: the role strings, as the callers pass them; membership by string value, as
     // -containsObject: tested it. A nil primary role is in no set.
     const std::optional<std::string> primaryRole = (oo::ToShip(ship) != nullptr ? oo::ToShip(ship)->getPrimaryRole() : std::optional<std::string>());
     if (!primaryRole.has_value())
-        return NO;
+        return false;
     const std::vector<std::string>& roles = *static_cast<const std::vector<std::string>*>(parameter);
     return std::find(roles.begin(), roles.end(), *primaryRole) != roles.end();
 }
 
-BOOL IsHostileAgainstTargetPredicate(Entity* ship, void* parameter)
+bool IsHostileAgainstTargetPredicate(Entity* ship, void* parameter)
 {
     return (oo::ToShip(ship) != nullptr ? oo::ToShip(ship)->hasHostileTarget()
                                         : false)

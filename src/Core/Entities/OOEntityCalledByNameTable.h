@@ -20,24 +20,24 @@ namespace {
 
 // The category methods, as functions of the C++ entity.
 
-BOOL ByName_0(Entity *entity, const oo::PList &inShipDict)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->setUpFromDictionary(inShipDict) : NO; }
-BOOL ByName_1(Entity *entity, const oo::PList &shipDict)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->setUpShipFromDictionary(shipDict) : NO; }
+bool ByName_0(Entity *entity, const oo::PList &inShipDict)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->setUpFromDictionary(inShipDict) : false; }
+bool ByName_1(Entity *entity, const oo::PList &shipDict)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->setUpShipFromDictionary(shipDict) : false; }
 NSUInteger ByName_2(Entity *entity)
 { ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->subIdx() : NSUInteger{}; }
 NSUInteger ByName_3(Entity *entity)
 { ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->maxShipSubEntities() : NSUInteger{}; }
 void ByName_4(Entity *entity, const std::string &string)
 { if (ShipEntity *ship = ShipPart(entity))  ship->deserializeShipSubEntitiesFrom(string); }
-BOOL ByName_5(Entity *entity)
-{ if (OOVisualEffectEntity *effect = EffectPart(entity))  return effect->setUpSubEntities(); ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->setUpSubEntities() : NO; }
-BOOL ByName_6(Entity *entity, const oo::PList &subentDict)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->setUpOneSubentity(subentDict) : NO; }
-BOOL ByName_7(Entity *entity, const oo::PList &subentDict)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->setUpOneFlasher(subentDict) : NO; }
-BOOL ByName_8(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->isTemplateCargoPod() : NO; }
+bool ByName_5(Entity *entity)
+{ if (OOVisualEffectEntity *effect = EffectPart(entity))  return effect->setUpSubEntities(); ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->setUpSubEntities() : false; }
+bool ByName_6(Entity *entity, const oo::PList &subentDict)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->setUpOneSubentity(subentDict) : false; }
+bool ByName_7(Entity *entity, const oo::PList &subentDict)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->setUpOneFlasher(subentDict) : false; }
+bool ByName_8(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->isTemplateCargoPod() : false; }
 void ByName_9(Entity *entity, const std::string &cargoString)
 { if (ShipEntity *ship = ShipPart(entity))  ship->setUpCargoType(cargoString); }
 void ByName_10(Entity *entity)
@@ -56,8 +56,8 @@ Vector ByName_16(Entity *entity)
 { if (OOVisualEffectEntity *effect = EffectPart(entity))  return effect->upVector(); ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->upVector() : kZeroVector; }
 Vector ByName_17(Entity *entity)
 { if (OOVisualEffectEntity *effect = EffectPart(entity))  return effect->rightVector(); ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->rightVector() : kZeroVector; }
-BOOL ByName_18(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->scriptedMisjump() : NO; }
+bool ByName_18(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->scriptedMisjump() : false; }
 GLfloat ByName_19(Entity *entity)
 { ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->scriptedMisjumpRange() : GLfloat{}; }
 NSUInteger ByName_20(Entity *entity)
@@ -70,34 +70,34 @@ float ByName_23(Entity *entity)
 { ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->volume() : float{}; }
 HPVector ByName_24(Entity *entity)
 { ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->absoluteTractorPosition() : kZeroHPVector; }
-BOOL ByName_25(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->isBoulder() : NO; }
-BOOL ByName_26(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->isMinable() : NO; }
-BOOL ByName_27(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->countsAsKill() : NO; }
+bool ByName_25(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->isBoulder() : false; }
+bool ByName_26(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->isMinable() : false; }
+bool ByName_27(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->countsAsKill() : false; }
 void ByName_28(Entity *entity)
 { if (ShipEntity *ship = ShipPart(entity))  ship->setUpEscorts(); }
 void ByName_29(Entity *entity)
 { if (ShipEntity *ship = ShipPart(entity))  ship->setUpMixedEscorts(); }
 oo::PList ByName_30(Entity *entity)
 { ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->shipInfoDictionary() : oo::PList(); }
-BOOL ByName_31(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->getIsFrangible() : NO; }
-BOOL ByName_32(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->suppressFlightNotifications() : NO; }
+bool ByName_31(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->getIsFrangible() : false; }
+bool ByName_32(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->suppressFlightNotifications() : false; }
 void ByName_33(Entity *entity, const std::string &context)
 { if (ShipEntity *ship = ShipPart(entity))  ship->noteFrustration(context); }
 NSUInteger ByName_34(Entity *entity, const std::string &eqkey)
 { ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->countEquipmentItem(eqkey) : NSUInteger{}; }
-BOOL ByName_35(Entity *entity, const oo::PList &equipmentKeys)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->hasEquipmentItem(equipmentKeys) : NO; }
-BOOL ByName_36(Entity *entity, const std::string &equipmentType)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->hasEquipmentItemProviding(equipmentType) : NO; }
-BOOL ByName_37(Entity *entity, const oo::PList &equipmentKeys)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->hasAllEquipment(equipmentKeys) : NO; }
-BOOL ByName_38(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->hasHyperspaceMotor() : NO; }
+bool ByName_35(Entity *entity, const oo::PList &equipmentKeys)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->hasEquipmentItem(equipmentKeys) : false; }
+bool ByName_36(Entity *entity, const std::string &equipmentType)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->hasEquipmentItemProviding(equipmentType) : false; }
+bool ByName_37(Entity *entity, const oo::PList &equipmentKeys)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->hasAllEquipment(equipmentKeys) : false; }
+bool ByName_38(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->hasHyperspaceMotor() : false; }
 float ByName_39(Entity *entity)
 { ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->hyperspaceSpinTime() : float{}; }
 oo::PList ByName_40(Entity *entity)
@@ -126,38 +126,38 @@ NSUInteger ByName_51(Entity *entity)
 { ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->missileCapacity() : NSUInteger{}; }
 NSUInteger ByName_52(Entity *entity)
 { ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->extraCargo() : NSUInteger{}; }
-BOOL ByName_53(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->hasScoop() : NO; }
-BOOL ByName_54(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->hasFuelScoop() : NO; }
-BOOL ByName_55(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->hasCargoScoop() : NO; }
-BOOL ByName_56(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->hasECM() : NO; }
-BOOL ByName_57(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->hasCloakingDevice() : NO; }
-BOOL ByName_58(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->hasMilitaryScannerFilter() : NO; }
-BOOL ByName_59(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->hasMilitaryJammer() : NO; }
-BOOL ByName_60(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->hasExpandedCargoBay() : NO; }
-BOOL ByName_61(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->hasShieldBooster() : NO; }
-BOOL ByName_62(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->hasMilitaryShieldEnhancer() : NO; }
-BOOL ByName_63(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->hasHeatShield() : NO; }
-BOOL ByName_64(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->hasFuelInjection() : NO; }
-BOOL ByName_65(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->hasCascadeMine() : NO; }
-BOOL ByName_66(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->hasEscapePod() : NO; }
-BOOL ByName_67(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->hasDockingComputer() : NO; }
-BOOL ByName_68(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->hasGalacticHyperdrive() : NO; }
+bool ByName_53(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->hasScoop() : false; }
+bool ByName_54(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->hasFuelScoop() : false; }
+bool ByName_55(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->hasCargoScoop() : false; }
+bool ByName_56(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->hasECM() : false; }
+bool ByName_57(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->hasCloakingDevice() : false; }
+bool ByName_58(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->hasMilitaryScannerFilter() : false; }
+bool ByName_59(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->hasMilitaryJammer() : false; }
+bool ByName_60(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->hasExpandedCargoBay() : false; }
+bool ByName_61(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->hasShieldBooster() : false; }
+bool ByName_62(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->hasMilitaryShieldEnhancer() : false; }
+bool ByName_63(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->hasHeatShield() : false; }
+bool ByName_64(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->hasFuelInjection() : false; }
+bool ByName_65(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->hasCascadeMine() : false; }
+bool ByName_66(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->hasEscapePod() : false; }
+bool ByName_67(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->hasDockingComputer() : false; }
+bool ByName_68(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->hasGalacticHyperdrive() : false; }
 float ByName_69(Entity *entity)
 { ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->shieldBoostFactor() : float{}; }
 float ByName_70(Entity *entity)
@@ -190,20 +190,20 @@ void ByName_82(Entity *entity)
 void ByName_83(Entity *entity)
 { if (ShipEntity *ship = ShipPart(entity))  ship->drawDebugStuff(); }
 #endif
-BOOL ByName_84(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->isCloaked() : NO; }
-BOOL ByName_85(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->getCloakPassive() : NO; }
-BOOL ByName_86(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->hasAutoCloak() : NO; }
+bool ByName_84(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->isCloaked() : false; }
+bool ByName_85(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->getCloakPassive() : false; }
+bool ByName_86(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->hasAutoCloak() : false; }
 void ByName_87(Entity *entity)
 { if (ShipEntity *ship = ShipPart(entity))  ship->avoidCollision(); }
 void ByName_88(Entity *entity)
 { if (ShipEntity *ship = ShipPart(entity))  ship->resumePostProximityAlert(); }
 double ByName_89(Entity *entity)
 { ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->getMessageTime() : double{}; }
-BOOL ByName_90(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->hasEscorts() : NO; }
+bool ByName_90(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->hasEscorts() : false; }
 uint8_t ByName_91(Entity *entity)
 { ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->escortCount() : uint8_t{}; }
 uint8_t ByName_92(Entity *entity)
@@ -214,44 +214,44 @@ NSUInteger ByName_94(Entity *entity)
 { ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->turretCount() : NSUInteger{}; }
 Entity * ByName_95(Entity *entity)
 { ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->proximityAlert() : nullptr; }
-BOOL ByName_96(Entity *entity, const std::string &role)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->hasRole(role) : NO; }
+bool ByName_96(Entity *entity, const std::string &role)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->hasRole(role) : false; }
 void ByName_97(Entity *entity, const std::string &role)
 { if (ShipEntity *ship = ShipPart(entity))  ship->addRole(role); }
 void ByName_98(Entity *entity, const std::string &role)
 { if (ShipEntity *ship = ShipPart(entity))  ship->removeRole(role); }
 void ByName_99(Entity *entity, const std::string &role)
 { if (ShipEntity *ship = ShipPart(entity))  ship->setPrimaryRole(role); }
-BOOL ByName_100(Entity *entity, const std::string &role)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->hasPrimaryRole(role) : NO; }
-BOOL ByName_101(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->isPolice() : NO; }
-BOOL ByName_102(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->isThargoid() : NO; }
-BOOL ByName_103(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->isTrader() : NO; }
-BOOL ByName_104(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->isPirate() : NO; }
-BOOL ByName_105(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->getIsMissile() : NO; }
-BOOL ByName_106(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->isMine() : NO; }
-BOOL ByName_107(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->isWeapon() : NO; }
-BOOL ByName_108(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->isEscort() : NO; }
-BOOL ByName_109(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->isShuttle() : NO; }
-BOOL ByName_110(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->isTurret() : NO; }
-BOOL ByName_111(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->isPirateVictim() : NO; }
-BOOL ByName_112(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->isExplicitlyUnpiloted() : NO; }
-BOOL ByName_113(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->isUnpiloted() : NO; }
-BOOL ByName_114(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->hasHostileTarget() : NO; }
+bool ByName_100(Entity *entity, const std::string &role)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->hasPrimaryRole(role) : false; }
+bool ByName_101(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->isPolice() : false; }
+bool ByName_102(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->isThargoid() : false; }
+bool ByName_103(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->isTrader() : false; }
+bool ByName_104(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->isPirate() : false; }
+bool ByName_105(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->getIsMissile() : false; }
+bool ByName_106(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->isMine() : false; }
+bool ByName_107(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->isWeapon() : false; }
+bool ByName_108(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->isEscort() : false; }
+bool ByName_109(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->isShuttle() : false; }
+bool ByName_110(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->isTurret() : false; }
+bool ByName_111(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->isPirateVictim() : false; }
+bool ByName_112(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->isExplicitlyUnpiloted() : false; }
+bool ByName_113(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->isUnpiloted() : false; }
+bool ByName_114(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->hasHostileTarget() : false; }
 GLfloat ByName_115(Entity *entity)
 { ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->getWeaponRange() : GLfloat{}; }
 float ByName_116(Entity *entity)
@@ -264,8 +264,8 @@ GLfloat ByName_119(Entity *entity)
 { ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->getScannerRange() : GLfloat{}; }
 Vector ByName_120(Entity *entity)
 { ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->getReference() : kZeroVector; }
-BOOL ByName_121(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->getReportAIMessages() : NO; }
+bool ByName_121(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->getReportAIMessages() : false; }
 void ByName_122(Entity *entity)
 { if (ShipEntity *ship = ShipPart(entity))  ship->transitionToAegisNone(); }
 Entity * ByName_123(Entity *entity)
@@ -274,8 +274,8 @@ OOAegisStatus ByName_124(Entity *entity)
 { ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->checkForAegis() : OOAegisStatus{}; }
 void ByName_125(Entity *entity)
 { if (ShipEntity *ship = ShipPart(entity))  ship->forceAegisCheck(); }
-BOOL ByName_126(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->withinStationAegis() : NO; }
+bool ByName_126(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->withinStationAegis() : false; }
 Entity * ByName_127(Entity *entity)
 { ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->lastAegisLock() : nullptr; }
 OOSystemID ByName_128(Entity *entity)
@@ -286,12 +286,12 @@ void ByName_130(Entity *entity, const std::string &crewRole)
 { if (ShipEntity *ship = ShipPart(entity))  ship->setSingleCrewWithRole(crewRole); }
 void ByName_131(Entity *entity, const std::string &smName)
 { if (ShipEntity *ship = ShipPart(entity))  ship->setStateMachine(smName); }
-BOOL ByName_132(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->hasAutoAI() : NO; }
-BOOL ByName_133(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->hasNewAI() : NO; }
-BOOL ByName_134(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->hasAutoWeapons() : NO; }
+bool ByName_132(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->hasAutoAI() : false; }
+bool ByName_133(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->hasNewAI() : false; }
+bool ByName_134(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->hasAutoWeapons() : false; }
 double ByName_135(Entity *entity)
 { ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->getFrustration() : double{}; }
 OOFuelQuantity ByName_136(Entity *entity)
@@ -318,8 +318,8 @@ NSUInteger ByName_146(Entity *entity)
 { ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->cargoCount() : NSUInteger{}; }
 oo::PList ByName_147(Entity *entity)
 { ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->cargoListForScripting() : oo::PList(); }
-BOOL ByName_148(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->showScoopMessage() : NO; }
+bool ByName_148(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->showScoopMessage() : false; }
 double ByName_149(Entity *entity)
 { ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->desiredSpeed() : double{}; }
 double ByName_150(Entity *entity)
@@ -354,12 +354,12 @@ int ByName_164(Entity *entity)
 { ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->damage() : int{}; }
 void ByName_165(Entity *entity)
 { if (ShipEntity *ship = ShipPart(entity))  ship->dealEnergyDamageWithinDesiredRange(); }
-BOOL ByName_166(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->getIsHulk() : NO; }
+bool ByName_166(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->getIsHulk() : false; }
 void ByName_167(Entity *entity)
 { if (ShipEntity *ship = ShipPart(entity))  ship->releaseCargoPodsDebris(); }
-BOOL ByName_168(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->showDamage() : NO; }
+bool ByName_168(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->showDamage() : false; }
 void ByName_169(Entity *entity)
 { if (ShipEntity *ship = ShipPart(entity))  ship->becomeExplosion(); }
 void ByName_170(Entity *entity)
@@ -406,8 +406,8 @@ Entity * ByName_190(Entity *entity)
 { ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->rememberedShip() : nullptr; }
 Entity * ByName_191(Entity *entity)
 { ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->targetStation() : nullptr; }
-BOOL ByName_192(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->canStillTrackPrimaryTarget() : NO; }
+bool ByName_192(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->canStillTrackPrimaryTarget() : false; }
 Entity * ByName_193(Entity *entity)
 { ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->shipHitByLaser() : nullptr; }
 void ByName_194(Entity *entity)
@@ -438,28 +438,28 @@ OOTimeDelta ByName_206(Entity *entity)
 { ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->shotTime() : OOTimeDelta{}; }
 void ByName_207(Entity *entity)
 { if (ShipEntity *ship = ShipPart(entity))  ship->resetShotTime(); }
-BOOL ByName_208(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->fireDirectLaserDefensiveShot() : NO; }
+bool ByName_208(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->fireDirectLaserDefensiveShot() : false; }
 int ByName_209(Entity *entity)
 { ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->missedShots() : int{}; }
 Vector ByName_210(Entity *entity)
 { ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->missileLaunchPosition() : kZeroVector; }
 Entity * ByName_211(Entity *entity)
 { ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->fireMissile() : nullptr; }
-BOOL ByName_212(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->isMissileFlagSet() : NO; }
+bool ByName_212(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->isMissileFlagSet() : false; }
 OOTimeDelta ByName_213(Entity *entity)
 { ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->missileLoadTime() : OOTimeDelta{}; }
 void ByName_214(Entity *entity)
 { if (ShipEntity *ship = ShipPart(entity))  ship->noticeECM(); }
-BOOL ByName_215(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->fireECM() : NO; }
-BOOL ByName_216(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->activateCloakingDevice() : NO; }
+bool ByName_215(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->fireECM() : false; }
+bool ByName_216(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->activateCloakingDevice() : false; }
 void ByName_217(Entity *entity)
 { if (ShipEntity *ship = ShipPart(entity))  ship->deactivateCloakingDevice(); }
-BOOL ByName_218(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->launchCascadeMine() : NO; }
+bool ByName_218(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->launchCascadeMine() : false; }
 Entity * ByName_219(Entity *entity)
 { ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->launchEscapeCapsule() : nullptr; }
 void ByName_220(Entity *entity)
@@ -470,20 +470,20 @@ Vector ByName_222(Entity *entity)
 { ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->thrustVector() : kZeroVector; }
 void ByName_223(Entity *entity)
 { if (ShipEntity *ship = ShipPart(entity))  ship->suppressTargetLost(); }
-BOOL ByName_224(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->abandonShip() : NO; }
+bool ByName_224(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->abandonShip() : false; }
 void ByName_225(Entity *entity)
 { if (ShipEntity *ship = ShipPart(entity))  ship->enterWitchspace(); }
 void ByName_226(Entity *entity)
 { if (ShipEntity *ship = ShipPart(entity))  ship->leaveWitchspace(); }
-BOOL ByName_227(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->witchspaceLeavingEffects() : NO; }
+bool ByName_227(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->witchspaceLeavingEffects() : false; }
 void ByName_228(Entity *entity)
 { if (ShipEntity *ship = ShipPart(entity))  ship->switchLightsOn(); }
 void ByName_229(Entity *entity)
 { if (ShipEntity *ship = ShipPart(entity))  ship->switchLightsOff(); }
-BOOL ByName_230(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->lightsActive() : NO; }
+bool ByName_230(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->lightsActive() : false; }
 void ByName_231(Entity *entity)
 { if (ShipEntity *ship = ShipPart(entity))  ship->updateEscortFormation(); }
 void ByName_232(Entity *entity)
@@ -508,20 +508,20 @@ void ByName_241(Entity *entity, const std::string &ai_message)
 { if (ShipEntity *ship = ShipPart(entity))  ship->broadcastAIMessage(ai_message); }
 void ByName_242(Entity *entity)
 { if (ShipEntity *ship = ShipPart(entity))  ship->setCommsMessageColor(); }
-BOOL ByName_243(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->markedForFines() : NO; }
-BOOL ByName_244(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->markForFines() : NO; }
-BOOL ByName_245(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->isMining() : NO; }
+bool ByName_243(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->markedForFines() : false; }
+bool ByName_244(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->markForFines() : false; }
+bool ByName_245(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->isMining() : false; }
 void ByName_246(Entity *entity, const std::string &ms)
 { if (ShipEntity *ship = ShipPart(entity))  ship->interpretAIMessage(ms); }
 void ByName_247(Entity *entity, const std::string &roles_number)
 { if (ShipEntity *ship = ShipPart(entity))  ship->spawn(roles_number); }
 int ByName_248(Entity *entity)
 { ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->checkShipsInVicinityForWitchJumpExit() : int{}; }
-BOOL ByName_249(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->getTrackCloseContacts() : NO; }
+bool ByName_249(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->getTrackCloseContacts() : false; }
 #if OO_SALVAGE_SUPPORT
 void ByName_250(Entity *entity)
 { if (ShipEntity *ship = ShipPart(entity))  ship->claimAsSalvage(); }
@@ -536,8 +536,8 @@ void ByName_254(Entity *entity, const oo::PList &override)
 { if (ShipEntity *ship = ShipPart(entity))  ship->overrideScriptInfo(override); }
 Entity * ByName_255(Entity *entity)
 { ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->entityForShaderProperties() : nullptr; }
-BOOL ByName_256(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->getIsDemoShip() : NO; }
+bool ByName_256(Entity *entity)
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->getIsDemoShip() : false; }
 OOTimeAbsolute ByName_257(Entity *entity)
 { ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->getDemoStartTime() : OOTimeAbsolute{}; }
 void ByName_258(Entity *entity, const std::string &message)
@@ -942,12 +942,12 @@ void ByName_429(Entity *entity)
 { if (PlayerEntity *player = PlayerEntityPart(entity))  player->homeInfoSystem(); }
 void ByName_430(Entity *entity)
 { if (PlayerEntity *player = PlayerEntityPart(entity))  player->targetInfoSystem(); }
-BOOL ByName_431(Entity *entity)
-{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->infoSystemOnRoute() : NO; }
+bool ByName_431(Entity *entity)
+{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->infoSystemOnRoute() : false; }
 oo::PList ByName_432(Entity *entity)
 { PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->commanderDataDictionary() : oo::PList(); }
-BOOL ByName_433(Entity *entity, const oo::PList &dict)
-{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->setCommanderDataFromDictionary(dict) : NO; }
+bool ByName_433(Entity *entity, const oo::PList &dict)
+{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->setCommanderDataFromDictionary(dict) : false; }
 void ByName_434(Entity *entity)
 { if (PlayerEntity *player = PlayerEntityPart(entity))  player->completeSetUp(); }
 void ByName_435(Entity *entity)
@@ -968,10 +968,10 @@ void ByName_441(Entity *entity)
 GLfloat ByName_442(Entity *entity)
 { PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->getHyperspeedFactor() : GLfloat{}; }
 #endif
-BOOL ByName_443(Entity *entity)
-{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->injectorsEngaged() : NO; }
-BOOL ByName_444(Entity *entity)
-{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->hyperspeedEngaged() : NO; }
+bool ByName_443(Entity *entity)
+{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->injectorsEngaged() : false; }
+bool ByName_444(Entity *entity)
+{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->hyperspeedEngaged() : false; }
 void ByName_445(Entity *entity)
 { if (PlayerEntity *player = PlayerEntityPart(entity))  player->gameOverFadeToBW(); }
 void ByName_446(Entity *entity)
@@ -992,12 +992,12 @@ Vector ByName_453(Entity *entity)
 { PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->viewpointOffsetStarboard() : kZeroVector; }
 HPVector ByName_454(Entity *entity)
 { PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->viewpointPosition() : kZeroHPVector; }
-BOOL ByName_455(Entity *entity)
-{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->getMassLockable() : NO; }
-BOOL ByName_456(Entity *entity)
-{ if (ProxyPlayerEntity *proxy = ProxyPart(entity))  return proxy->massLocked(); PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->massLocked() : NO; }
-BOOL ByName_457(Entity *entity)
-{ if (ProxyPlayerEntity *proxy = ProxyPart(entity))  return proxy->atHyperspeed(); PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->atHyperspeed() : NO; }
+bool ByName_455(Entity *entity)
+{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->getMassLockable() : false; }
+bool ByName_456(Entity *entity)
+{ if (ProxyPlayerEntity *proxy = ProxyPart(entity))  return proxy->massLocked(); PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->massLocked() : false; }
+bool ByName_457(Entity *entity)
+{ if (ProxyPlayerEntity *proxy = ProxyPart(entity))  return proxy->atHyperspeed(); PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->atHyperspeed() : false; }
 float ByName_458(Entity *entity)
 { PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->occlusionLevel() : float{}; }
 void ByName_459(Entity *entity)
@@ -1008,12 +1008,12 @@ Entity * ByName_461(Entity *entity)
 { PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->getTargetDockStation() : nullptr; }
 void ByName_462(Entity *entity)
 { if (PlayerEntity *player = PlayerEntityPart(entity))  player->resetHud(); }
-BOOL ByName_463(Entity *entity, const std::string &hudFileName)
-{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->switchHudTo(hudFileName) : NO; }
+bool ByName_463(Entity *entity, const std::string &hudFileName)
+{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->switchHudTo(hudFileName) : false; }
 float ByName_464(Entity *entity, const std::string &dialKey)
 { PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->dialCustomFloat(dialKey) : float{}; }
-BOOL ByName_465(Entity *entity)
-{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->getShowDemoShips() : NO; }
+bool ByName_465(Entity *entity)
+{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->getShowDemoShips() : false; }
 float ByName_466(Entity *entity)
 { PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->forwardShieldRechargeRate() : float{}; }
 float ByName_467(Entity *entity)
@@ -1024,8 +1024,8 @@ GLfloat ByName_469(Entity *entity)
 { PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->aftShieldLevel() : GLfloat{}; }
 oo::PList ByName_470(Entity *entity)
 { PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->keyConfig() : oo::PList(); }
-BOOL ByName_471(Entity *entity)
-{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->isMouseControlOn() : NO; }
+bool ByName_471(Entity *entity)
+{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->isMouseControlOn() : false; }
 GLfloat ByName_472(Entity *entity)
 { PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->dialRoll() : GLfloat{}; }
 GLfloat ByName_473(Entity *entity)
@@ -1054,8 +1054,8 @@ double ByName_484(Entity *entity)
 { PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->clockTime() : double{}; }
 double ByName_485(Entity *entity)
 { PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->clockTimeAdjusted() : double{}; }
-BOOL ByName_486(Entity *entity)
-{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->clockAdjusting() : NO; }
+bool ByName_486(Entity *entity)
+{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->clockAdjusting() : false; }
 double ByName_487(Entity *entity)
 { PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->escapePodRescueTime() : double{}; }
 unsigned ByName_488(Entity *entity)
@@ -1088,8 +1088,8 @@ NSUInteger ByName_501(Entity *entity)
 { PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->getActiveMissile() : NSUInteger{}; }
 NSUInteger ByName_502(Entity *entity)
 { PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->dialMaxMissiles() : NSUInteger{}; }
-BOOL ByName_503(Entity *entity)
-{ if (ProxyPlayerEntity *proxy = ProxyPart(entity))  return proxy->dialIdentEngaged(); PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->dialIdentEngaged() : NO; }
+bool ByName_503(Entity *entity)
+{ if (ProxyPlayerEntity *proxy = ProxyPart(entity))  return proxy->dialIdentEngaged(); PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->dialIdentEngaged() : false; }
 void ByName_504(Entity *entity)
 { if (PlayerEntity *player = PlayerEntityPart(entity))  player->selectNextMultiFunctionDisplay(); }
 void ByName_505(Entity *entity)
@@ -1108,10 +1108,10 @@ int ByName_511(Entity *entity)
 { PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->getAlertFlags() : int{}; }
 OOPlayerFleeingStatus ByName_512(Entity *entity)
 { PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->fleeingStatus() : OOPlayerFleeingStatus{}; }
-BOOL ByName_513(Entity *entity, const std::string &role)
-{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->mountMissileWithRole(role) : NO; }
-BOOL ByName_514(Entity *entity, const std::string &equipmentKey)
-{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->assignToActivePylon(equipmentKey) : NO; }
+bool ByName_513(Entity *entity, const std::string &role)
+{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->mountMissileWithRole(role) : false; }
+bool ByName_514(Entity *entity, const std::string &equipmentKey)
+{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->assignToActivePylon(equipmentKey) : false; }
 double ByName_515(Entity *entity)
 { PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->scannerFuzziness() : double{}; }
 OOEnergyUnitType ByName_516(Entity *entity)
@@ -1120,20 +1120,20 @@ OOEnergyUnitType ByName_517(Entity *entity)
 { PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->energyUnitType() : OOEnergyUnitType{}; }
 void ByName_518(Entity *entity)
 { if (PlayerEntity *player = PlayerEntityPart(entity))  player->currentWeaponStats(); }
-BOOL ByName_519(Entity *entity)
-{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->weaponsOnline() : NO; }
-BOOL ByName_520(Entity *entity)
-{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->fireMainWeapon() : NO; }
+bool ByName_519(Entity *entity)
+{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->weaponsOnline() : false; }
+bool ByName_520(Entity *entity)
+{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->fireMainWeapon() : false; }
 Entity * ByName_521(Entity *entity)
 { PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->createDoppelganger() : nullptr; }
 void ByName_522(Entity *entity)
 { if (PlayerEntity *player = PlayerEntityPart(entity))  player->rotateCargo(); }
-BOOL ByName_523(Entity *entity)
-{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->takeInternalDamage() : NO; }
+bool ByName_523(Entity *entity)
+{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->takeInternalDamage() : false; }
 void ByName_524(Entity *entity)
 { if (PlayerEntity *player = PlayerEntityPart(entity))  player->loseTargetStatus(); }
-BOOL ByName_525(Entity *entity, const std::string &key)
-{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->endScenario(key) : NO; }
+bool ByName_525(Entity *entity, const std::string &key)
+{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->endScenario(key) : false; }
 void ByName_526(Entity *entity)
 { if (PlayerEntity *player = PlayerEntityPart(entity))  player->docked(); }
 void ByName_527(Entity *entity)
@@ -1144,8 +1144,8 @@ double ByName_529(Entity *entity)
 { PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->hyperspaceJumpDistance() : double{}; }
 OOFuelQuantity ByName_530(Entity *entity)
 { PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->fuelRequiredForJump() : OOFuelQuantity{}; }
-BOOL ByName_531(Entity *entity)
-{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->hasSufficientFuelForJump() : NO; }
+bool ByName_531(Entity *entity)
+{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->hasSufficientFuelForJump() : false; }
 void ByName_532(Entity *entity)
 { if (PlayerEntity *player = PlayerEntityPart(entity))  player->noteCompassLostTarget(); }
 void ByName_533(Entity *entity)
@@ -1182,8 +1182,8 @@ void ByName_548(Entity *entity)
 { if (PlayerEntity *player = PlayerEntityPart(entity))  player->setGuiToOXZManager(); }
 void ByName_549(Entity *entity)
 { if (PlayerEntity *player = PlayerEntityPart(entity))  player->buySelectedItem(); }
-BOOL ByName_550(Entity *entity, const std::string &eqKey)
-{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->tryBuyingItem(eqKey) : NO; }
+bool ByName_550(Entity *entity, const std::string &eqKey)
+{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->tryBuyingItem(eqKey) : false; }
 OOCargoQuantity ByName_551(Entity *entity, const std::string &type)
 { PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->cargoQuantityForType(type) : OOCargoQuantity{}; }
 void ByName_552(Entity *entity)
@@ -1252,8 +1252,8 @@ void ByName_583(Entity *entity)
 { if (PlayerEntity *player = PlayerEntityPart(entity))  player->resetCustomView(); }
 void ByName_584(Entity *entity)
 { if (PlayerEntity *player = PlayerEntityPart(entity))  player->setCustomViewData(); }
-BOOL ByName_585(Entity *entity)
-{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->showInfoFlag() : NO; }
+bool ByName_585(Entity *entity)
+{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->showInfoFlag() : false; }
 oo::PList ByName_586(Entity *entity)
 { PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->missionOverlayDescriptor() : oo::PList(); }
 oo::PList ByName_587(Entity *entity)
@@ -1276,20 +1276,20 @@ oo::PList ByName_595(Entity *entity)
 { PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->equipScreenBackgroundDescriptor() : oo::PList(); }
 void ByName_596(Entity *entity, const oo::PList &descriptor)
 { if (PlayerEntity *player = PlayerEntityPart(entity))  player->setEquipScreenBackgroundDescriptor(descriptor); }
-BOOL ByName_597(Entity *entity)
-{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->scriptsLoaded() : NO; }
+bool ByName_597(Entity *entity)
+{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->scriptsLoaded() : false; }
 OOGalacticHyperspaceBehaviour ByName_598(Entity *entity)
 { PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->getGalacticHyperspaceBehaviour() : OOGalacticHyperspaceBehaviour{}; }
 NSPoint ByName_599(Entity *entity)
 { PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->getGalacticHyperspaceFixedCoords() : NSMakePoint(0, 0); }
 OOLongRangeChartMode ByName_600(Entity *entity)
 { PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->getLongRangeChartMode() : OOLongRangeChartMode{}; }
-BOOL ByName_601(Entity *entity)
-{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->getScoopOverride() : NO; }
-BOOL ByName_602(Entity *entity)
-{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->isDocked() : NO; }
-BOOL ByName_603(Entity *entity)
-{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->clearedToDock() : NO; }
+bool ByName_601(Entity *entity)
+{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->getScoopOverride() : false; }
+bool ByName_602(Entity *entity)
+{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->isDocked() : false; }
+bool ByName_603(Entity *entity)
+{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->clearedToDock() : false; }
 OODockingClearanceStatus ByName_604(Entity *entity)
 { PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->getDockingClearanceStatus() : OODockingClearanceStatus{}; }
 void ByName_605(Entity *entity)
@@ -1298,8 +1298,8 @@ void ByName_606(Entity *entity)
 { if (PlayerEntity *player = PlayerEntityPart(entity))  player->updateWormholes(); }
 void ByName_607(Entity *entity, const oo::PList &marker)
 { if (PlayerEntity *player = PlayerEntityPart(entity))  player->addMissionDestinationMarker(marker); }
-BOOL ByName_608(Entity *entity, const oo::PList &marker)
-{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->removeMissionDestinationMarker(marker) : NO; }
+bool ByName_608(Entity *entity, const oo::PList &marker)
+{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->removeMissionDestinationMarker(marker) : false; }
 oo::PList ByName_609(Entity *entity)
 { PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->getMissionDestinations() : oo::PList(); }
 void ByName_610(Entity *entity)
@@ -1310,8 +1310,8 @@ unsigned ByName_612(Entity *entity)
 { PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->score() : unsigned{}; }
 double ByName_613(Entity *entity)
 { PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->creditBalance() : double{}; }
-BOOL ByName_614(Entity *entity)
-{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->dockedAtMainStation() : NO; }
+bool ByName_614(Entity *entity)
+{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->dockedAtMainStation() : false; }
 void ByName_615(Entity *entity)
 { if (PlayerEntity *player = PlayerEntityPart(entity))  player->resetScannerZoom(); }
 OOGalaxyID ByName_616(Entity *entity)
@@ -1360,8 +1360,8 @@ void ByName_629(Entity *entity)
 { if (PlayerEntity *player = PlayerEntityPart(entity))  player->setUpWeaponSounds(); }
 void ByName_630(Entity *entity)
 { if (PlayerEntity *player = PlayerEntityPart(entity))  player->destroySound(); }
-BOOL ByName_631(Entity *entity)
-{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->isBeeping() : NO; }
+bool ByName_631(Entity *entity)
+{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->isBeeping() : false; }
 void ByName_632(Entity *entity)
 { if (PlayerEntity *player = PlayerEntityPart(entity))  player->boop(); }
 void ByName_633(Entity *entity)
@@ -1518,14 +1518,14 @@ void ByName_708(Entity *entity)
 { if (PlayerEntity *player = PlayerEntityPart(entity))  player->initKeyConfigSettings(); }
 oo::PList ByName_709(Entity *entity, const oo::PList &key_def)
 { PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->processKeyCode(key_def) : oo::PList(); }
-BOOL ByName_710(Entity *entity, const oo::PList &key_def)
-{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->checkNavKeyPress(key_def) : NO; }
-BOOL ByName_711(Entity *entity, const oo::PList &key_def)
-{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->checkKeyPress(key_def) : NO; }
+bool ByName_710(Entity *entity, const oo::PList &key_def)
+{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->checkNavKeyPress(key_def) : false; }
+bool ByName_711(Entity *entity, const oo::PList &key_def)
+{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->checkKeyPress(key_def) : false; }
 int ByName_712(Entity *entity, const oo::PList &key_def)
 { PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->getFirstKeyCode(key_def) : int{}; }
-BOOL ByName_713(Entity *entity)
-{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->handleGUIUpDownArrowKeys() : NO; }
+bool ByName_713(Entity *entity)
+{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->handleGUIUpDownArrowKeys() : false; }
 void ByName_714(Entity *entity)
 { if (PlayerEntity *player = PlayerEntityPart(entity))  player->clearPlanetSearchString(); }
 void ByName_715(Entity *entity)
@@ -1568,10 +1568,10 @@ void ByName_733(Entity *entity)
 { if (PlayerEntity *player = PlayerEntityPart(entity))  player->initCheckingDictionary(); }
 void ByName_734(Entity *entity)
 { if (PlayerEntity *player = PlayerEntityPart(entity))  player->resetKeyFunctions(); }
-BOOL ByName_735(Entity *entity, const oo::PList &dict)
-{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->entryIsDictCustomEquip(dict) : NO; }
-BOOL ByName_736(Entity *entity, const std::string &entry)
-{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->entryIsCustomEquip(entry) : NO; }
+bool ByName_735(Entity *entity, const oo::PList &dict)
+{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->entryIsDictCustomEquip(dict) : false; }
+bool ByName_736(Entity *entity, const std::string &entry)
+{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->entryIsCustomEquip(entry) : false; }
 oo::PList ByName_737(Entity *entity, const std::string &key_def)
 { PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->getCustomEquipArray(key_def) : oo::PList(); }
 NSUInteger ByName_738(Entity *entity, const std::string &key_def)
@@ -1584,8 +1584,8 @@ void ByName_741(Entity *entity)
 { if (PlayerEntity *player = PlayerEntityPart(entity))  player->setGuiToConfirmClearScreen(); }
 oo::PList ByName_742(Entity *entity, const std::string &header)
 { PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->makeKeyGuiDictHeader(header) : oo::PList(); }
-BOOL ByName_743(Entity *entity, const std::string &key)
-{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->entryIsEqualToDefault(key) : NO; }
+bool ByName_743(Entity *entity, const std::string &key)
+{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->entryIsEqualToDefault(key) : false; }
 void ByName_744(Entity *entity, const std::string &key)
 { if (PlayerEntity *player = PlayerEntityPart(entity))  player->saveKeySetting(key); }
 void ByName_745(Entity *entity, const std::string &key)
@@ -1599,13 +1599,13 @@ oo::PList ByName_748(Entity *entity)
 void ByName_749(Entity *entity)
 { if (PlayerEntity *player = PlayerEntityPart(entity))  player->reloadPage(); }
 ShipEntity * ByName_750(Entity *entity)
-{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->scriptTarget() : nil; }
+{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->scriptTarget() : nullptr; }
 void ByName_751(Entity *entity)
 { if (PlayerEntity *player = PlayerEntityPart(entity))  player->checkScript(); }
-BOOL ByName_752(Entity *entity, const oo::PList &array)
-{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->scriptTestConditions(array) : NO; }
-BOOL ByName_753(Entity *entity, const oo::PList &scriptCondition)
-{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->scriptTestCondition(scriptCondition) : NO; }
+bool ByName_752(Entity *entity, const oo::PList &array)
+{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->scriptTestConditions(array) : false; }
+bool ByName_753(Entity *entity, const oo::PList &scriptCondition)
+{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->scriptTestCondition(scriptCondition) : false; }
 oo::PList ByName_754(Entity *entity)
 { PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->missionVariables() : oo::PList(); }
 oo::PList ByName_755(Entity *entity, const std::string &key)
@@ -1818,8 +1818,8 @@ void ByName_858(Entity *entity)
 { if (PlayerEntity *player = PlayerEntityPart(entity))  player->refreshMissionScreenTextEntry(); }
 void ByName_859(Entity *entity, const std::string &d_key)
 { if (PlayerEntity *player = PlayerEntityPart(entity))  player->setBackgroundFromDescriptionsKey(d_key); }
-BOOL ByName_860(Entity *entity, const std::string &eq_key)
-{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->addEqScriptForKey(eq_key) : NO; }
+bool ByName_860(Entity *entity, const std::string &eq_key)
+{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->addEqScriptForKey(eq_key) : false; }
 void ByName_861(Entity *entity, const std::string &eq_key)
 { if (PlayerEntity *player = PlayerEntityPart(entity))  player->removeEqScriptForKey(eq_key); }
 NSUInteger ByName_862(Entity *entity, const std::string &eq_key)
@@ -1848,10 +1848,10 @@ void ByName_873(Entity *entity)
 { if (PlayerEntity *player = PlayerEntityPart(entity))  player->erodeReputation(); }
 void ByName_874(Entity *entity)
 { if (PlayerEntity *player = PlayerEntityPart(entity))  player->normaliseReputation(); }
-BOOL ByName_875(Entity *entity, const std::string &Name)
-{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->removePassenger(Name) : NO; }
-BOOL ByName_876(Entity *entity, const std::string &Name)
-{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->removeParcel(Name) : NO; }
+bool ByName_875(Entity *entity, const std::string &Name)
+{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->removePassenger(Name) : false; }
+bool ByName_876(Entity *entity, const std::string &Name)
+{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->removeParcel(Name) : false; }
 void ByName_877(Entity *entity)
 { if (PlayerEntity *player = PlayerEntityPart(entity))  player->setGuiToManifestScreen(); }
 void ByName_878(Entity *entity)
@@ -1866,12 +1866,12 @@ NSInteger ByName_882(Entity *entity)
 { PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->missingSubEntitiesAdjustment() : NSInteger{}; }
 OOCreditsQuantity ByName_883(Entity *entity)
 { PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->tradeInValue() : OOCreditsQuantity{}; }
-BOOL ByName_884(Entity *entity)
-{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->buySelectedShip() : NO; }
-BOOL ByName_885(Entity *entity, const std::string &shipKey)
-{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->replaceShipWithNamedShip(shipKey) : NO; }
-BOOL ByName_886(Entity *entity)
-{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->loadPlayer() : NO; }
+bool ByName_884(Entity *entity)
+{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->buySelectedShip() : false; }
+bool ByName_885(Entity *entity, const std::string &shipKey)
+{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->replaceShipWithNamedShip(shipKey) : false; }
+bool ByName_886(Entity *entity)
+{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->loadPlayer() : false; }
 void ByName_887(Entity *entity)
 { if (PlayerEntity *player = PlayerEntityPart(entity))  player->savePlayer(); }
 void ByName_888(Entity *entity)
@@ -1882,8 +1882,8 @@ void ByName_890(Entity *entity, const std::string &shipKey)
 { if (PlayerEntity *player = PlayerEntityPart(entity))  player->addScenarioModel(shipKey); }
 void ByName_891(Entity *entity)
 { if (PlayerEntity *player = PlayerEntityPart(entity))  player->showScenarioDetails(); }
-BOOL ByName_892(Entity *entity)
-{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->startScenario() : NO; }
+bool ByName_892(Entity *entity)
+{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->startScenario() : false; }
 void ByName_893(Entity *entity)
 { if (PlayerEntity *player = PlayerEntityPart(entity))  player->saveCommanderInputHandler(); }
 void ByName_894(Entity *entity)
@@ -1898,8 +1898,8 @@ void ByName_898(Entity *entity, const std::string &cdrName)
 { if (PlayerEntity *player = PlayerEntityPart(entity))  player->setGuiToSaveCommanderScreen(cdrName); }
 void ByName_899(Entity *entity, const std::string &cdrName)
 { if (PlayerEntity *player = PlayerEntityPart(entity))  player->setGuiToOverwriteScreen(cdrName); }
-BOOL ByName_900(Entity *entity, const std::string &cdrName)
-{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->existingNativeSave(cdrName) : NO; }
+bool ByName_900(Entity *entity, const std::string &cdrName)
+{ PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->existingNativeSave(cdrName) : false; }
 int ByName_901(Entity *entity, const std::string &cdrName)
 { PlayerEntity *player = PlayerEntityPart(entity); return player != nullptr ? player->findIndexOfCommander(cdrName) : int{}; }
 OOTechLevelID ByName_902(Entity *entity)
@@ -1916,10 +1916,10 @@ OOCargoQuantity ByName_907(Entity *entity)
 { StationEntity *station = StationPart(entity); return station != nullptr ? station->getMarketCapacity() : OOCargoQuantity{}; }
 oo::PList ByName_908(Entity *entity)
 { StationEntity *station = StationPart(entity); return station != nullptr ? station->getMarketDefinition() : oo::PList(); }
-BOOL ByName_909(Entity *entity)
-{ StationEntity *station = StationPart(entity); return station != nullptr ? station->getMarketMonitored() : NO; }
-BOOL ByName_910(Entity *entity)
-{ StationEntity *station = StationPart(entity); return station != nullptr ? station->getMarketBroadcast() : NO; }
+bool ByName_909(Entity *entity)
+{ StationEntity *station = StationPart(entity); return station != nullptr ? station->getMarketMonitored() : false; }
+bool ByName_910(Entity *entity)
+{ StationEntity *station = StationPart(entity); return station != nullptr ? station->getMarketBroadcast() : false; }
 void ByName_911(Entity *entity, const oo::PList &market)
 { if (StationEntity *station = StationPart(entity))  station->setLocalMarket(market); }
 oo::PList ByName_912(Entity *entity)
@@ -1930,48 +1930,48 @@ unsigned ByName_914(Entity *entity)
 { StationEntity *station = StationPart(entity); return station != nullptr ? station->countOfDockedPolice() : unsigned{}; }
 unsigned ByName_915(Entity *entity)
 { StationEntity *station = StationPart(entity); return station != nullptr ? station->countOfDockedDefenders() : unsigned{}; }
-BOOL ByName_916(Entity *entity)
-{ StationEntity *station = StationPart(entity); return station != nullptr ? station->getInterstellarUndockingAllowed() : NO; }
-BOOL ByName_917(Entity *entity)
-{ StationEntity *station = StationPart(entity); return station != nullptr ? station->getHasNPCTraffic() : NO; }
-BOOL ByName_918(Entity *entity)
-{ StationEntity *station = StationPart(entity); return station != nullptr ? station->getRequiresDockingClearance() : NO; }
-BOOL ByName_919(Entity *entity)
-{ StationEntity *station = StationPart(entity); return station != nullptr ? station->getAllowsFastDocking() : NO; }
-BOOL ByName_920(Entity *entity)
-{ StationEntity *station = StationPart(entity); return station != nullptr ? station->getAllowsAutoDocking() : NO; }
-BOOL ByName_921(Entity *entity)
-{ StationEntity *station = StationPart(entity); return station != nullptr ? station->getAllowsSaving() : NO; }
-BOOL ByName_922(Entity *entity)
-{ StationEntity *station = StationPart(entity); return station != nullptr ? station->isRotatingStation() : NO; }
-BOOL ByName_923(Entity *entity)
-{ StationEntity *station = StationPart(entity); return station != nullptr ? station->hasShipyard() : NO; }
+bool ByName_916(Entity *entity)
+{ StationEntity *station = StationPart(entity); return station != nullptr ? station->getInterstellarUndockingAllowed() : false; }
+bool ByName_917(Entity *entity)
+{ StationEntity *station = StationPart(entity); return station != nullptr ? station->getHasNPCTraffic() : false; }
+bool ByName_918(Entity *entity)
+{ StationEntity *station = StationPart(entity); return station != nullptr ? station->getRequiresDockingClearance() : false; }
+bool ByName_919(Entity *entity)
+{ StationEntity *station = StationPart(entity); return station != nullptr ? station->getAllowsFastDocking() : false; }
+bool ByName_920(Entity *entity)
+{ StationEntity *station = StationPart(entity); return station != nullptr ? station->getAllowsAutoDocking() : false; }
+bool ByName_921(Entity *entity)
+{ StationEntity *station = StationPart(entity); return station != nullptr ? station->getAllowsSaving() : false; }
+bool ByName_922(Entity *entity)
+{ StationEntity *station = StationPart(entity); return station != nullptr ? station->isRotatingStation() : false; }
+bool ByName_923(Entity *entity)
+{ StationEntity *station = StationPart(entity); return station != nullptr ? station->hasShipyard() : false; }
 void ByName_924(Entity *entity)
 { if (StationEntity *station = StationPart(entity))  station->generateShipyard(); }
-BOOL ByName_925(Entity *entity)
-{ StationEntity *station = StationPart(entity); return station != nullptr ? station->suppressArrivalReports() : NO; }
-BOOL ByName_926(Entity *entity)
-{ StationEntity *station = StationPart(entity); return station != nullptr ? station->getHasBreakPattern() : NO; }
+bool ByName_925(Entity *entity)
+{ StationEntity *station = StationPart(entity); return station != nullptr ? station->suppressArrivalReports() : false; }
+bool ByName_926(Entity *entity)
+{ StationEntity *station = StationPart(entity); return station != nullptr ? station->getHasBreakPattern() : false; }
 void ByName_927(Entity *entity)
 { if (StationEntity *station = StationPart(entity))  station->sanityCheckShipsOnApproach(); }
 void ByName_928(Entity *entity)
 { if (StationEntity *station = StationPart(entity))  station->autoDockShipsOnHold(); }
 void ByName_929(Entity *entity)
 { if (StationEntity *station = StationPart(entity))  station->autoDockShipsOnApproach(); else if (DockEntity *dock = DockPart(entity))  dock->autoDockShipsOnApproach(); }
-BOOL ByName_930(Entity *entity)
-{ if (DockEntity *dock = DockPart(entity))  return dock->dockingCorridorIsEmpty(); StationEntity *station = StationPart(entity); return station != nullptr ? station->dockingCorridorIsEmpty() : NO; }
+bool ByName_930(Entity *entity)
+{ if (DockEntity *dock = DockPart(entity))  return dock->dockingCorridorIsEmpty(); StationEntity *station = StationPart(entity); return station != nullptr ? station->dockingCorridorIsEmpty() : false; }
 void ByName_931(Entity *entity)
 { if (StationEntity *station = StationPart(entity))  station->clearDockingCorridor(); else if (DockEntity *dock = DockPart(entity))  dock->clearDockingCorridor(); }
 void ByName_932(Entity *entity)
 { if (StationEntity *station = StationPart(entity))  station->clear(); else if (DockEntity *dock = DockPart(entity))  dock->clear(); }
-BOOL ByName_933(Entity *entity)
-{ StationEntity *station = StationPart(entity); return station != nullptr ? station->hasMultipleDocks() : NO; }
-BOOL ByName_934(Entity *entity)
-{ StationEntity *station = StationPart(entity); return station != nullptr ? station->hasClearDock() : NO; }
-BOOL ByName_935(Entity *entity)
-{ StationEntity *station = StationPart(entity); return station != nullptr ? station->hasEligibleDock() : NO; }
-BOOL ByName_936(Entity *entity)
-{ StationEntity *station = StationPart(entity); return station != nullptr ? station->hasLaunchDock() : NO; }
+bool ByName_933(Entity *entity)
+{ StationEntity *station = StationPart(entity); return station != nullptr ? station->hasMultipleDocks() : false; }
+bool ByName_934(Entity *entity)
+{ StationEntity *station = StationPart(entity); return station != nullptr ? station->hasClearDock() : false; }
+bool ByName_935(Entity *entity)
+{ StationEntity *station = StationPart(entity); return station != nullptr ? station->hasEligibleDock() : false; }
+bool ByName_936(Entity *entity)
+{ StationEntity *station = StationPart(entity); return station != nullptr ? station->hasLaunchDock() : false; }
 Entity * ByName_937(Entity *entity)
 { StationEntity *station = StationPart(entity); return station != nullptr ? station->selectDockForDocking() : nullptr; }
 unsigned ByName_938(Entity *entity, const std::string &role)
@@ -1984,18 +1984,18 @@ unsigned ByName_941(Entity *entity)
 { StationEntity *station = StationPart(entity); return station != nullptr ? station->currentlyInLaunchingQueues() : unsigned{}; }
 oo::PList ByName_942(Entity *entity, const std::string &role)
 { StationEntity *station = StationPart(entity); return station != nullptr ? station->launchIndependentShip(role) : oo::PList(); }
-BOOL ByName_943(Entity *entity)
-{ DockEntity *dock = DockPart(entity); return dock != nullptr ? dock->allowsDocking() : NO; }
-BOOL ByName_944(Entity *entity)
-{ DockEntity *dock = DockPart(entity); return dock != nullptr ? dock->disallowedDockingCollides() : NO; }
+bool ByName_943(Entity *entity)
+{ DockEntity *dock = DockPart(entity); return dock != nullptr ? dock->allowsDocking() : false; }
+bool ByName_944(Entity *entity)
+{ DockEntity *dock = DockPart(entity); return dock != nullptr ? dock->disallowedDockingCollides() : false; }
 NSUInteger ByName_945(Entity *entity)
 { DockEntity *dock = DockPart(entity); return dock != nullptr ? dock->countOfShipsInDockingQueue() : NSUInteger{}; }
-BOOL ByName_946(Entity *entity)
-{ DockEntity *dock = DockPart(entity); return dock != nullptr ? dock->allowsLaunching() : NO; }
+bool ByName_946(Entity *entity)
+{ DockEntity *dock = DockPart(entity); return dock != nullptr ? dock->allowsLaunching() : false; }
 NSUInteger ByName_947(Entity *entity)
 { DockEntity *dock = DockPart(entity); return dock != nullptr ? dock->countOfShipsInLaunchQueue() : NSUInteger{}; }
-BOOL ByName_948(Entity *entity)
-{ DockEntity *dock = DockPart(entity); return dock != nullptr ? dock->isOffCentre() : NO; }
+bool ByName_948(Entity *entity)
+{ DockEntity *dock = DockPart(entity); return dock != nullptr ? dock->isOffCentre() : false; }
 void ByName_949(Entity *entity)
 { if (DockEntity *dock = DockPart(entity))  dock->setVirtual(); }
 void ByName_950(Entity *entity)
@@ -2004,8 +2004,8 @@ NSUInteger ByName_951(Entity *entity)
 { DockEntity *dock = DockPart(entity); return dock != nullptr ? dock->pruneAndCountShipsOnApproach() : NSUInteger{}; }
 void ByName_952(Entity *entity)
 { if (DockEntity *dock = DockPart(entity))  dock->abortAllLaunches(); }
-BOOL ByName_953(Entity *entity, const oo::PList &effectDict)
-{ OOVisualEffectEntity *effect = EffectPart(entity); return effect != nullptr ? effect->setUpVisualEffectFromDictionary(effectDict) : NO; }
+bool ByName_953(Entity *entity, const oo::PList &effectDict)
+{ OOVisualEffectEntity *effect = EffectPart(entity); return effect != nullptr ? effect->setUpVisualEffectFromDictionary(effectDict) : false; }
 void ByName_954(Entity *entity)
 { if (OOVisualEffectEntity *effect = EffectPart(entity))  effect->setNoDrawDistance(); }
 GLfloat ByName_955(Entity *entity)
@@ -2016,8 +2016,8 @@ GLfloat ByName_957(Entity *entity)
 { OOVisualEffectEntity *effect = EffectPart(entity); return effect != nullptr ? effect->scaleY() : GLfloat{}; }
 GLfloat ByName_958(Entity *entity)
 { OOVisualEffectEntity *effect = EffectPart(entity); return effect != nullptr ? effect->scaleZ() : GLfloat{}; }
-BOOL ByName_959(Entity *entity)
-{ OOVisualEffectEntity *effect = EffectPart(entity); return effect != nullptr ? effect->isBreakPattern() : NO; }
+bool ByName_959(Entity *entity)
+{ OOVisualEffectEntity *effect = EffectPart(entity); return effect != nullptr ? effect->isBreakPattern() : false; }
 oo::PList ByName_960(Entity *entity)
 { OOVisualEffectEntity *effect = EffectPart(entity); return effect != nullptr ? effect->effectInfoDictionary() : oo::PList(); }
 void ByName_961(Entity *entity)
@@ -2041,15 +2041,15 @@ Vector ByName_967(Entity *entity)
 // name, applies-to flags, the encoding of the result, argument kind, adaptor, typed adaptor (no argument)
 inline const OOEntityByNameRow kOOEntityByNameRows[] =
 {
-	{ "cxx_setUpFromDictionary:",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::PList,	&OOEntityByNameAdaptPList<&ByName_0>,	nullptr },
-	{ "setUpShipFromDictionary:",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::PList,	&OOEntityByNameAdaptPList<&ByName_1>,	nullptr },
+	{ "cxx_setUpFromDictionary:",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::PList,	&OOEntityByNameAdaptPList<&ByName_0>,	nullptr },
+	{ "setUpShipFromDictionary:",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::PList,	&OOEntityByNameAdaptPList<&ByName_1>,	nullptr },
 	{ "subIdx",	kOOByNameShip,	kOOTypeEncoding<NSUInteger>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_2>,	&OOEntityByNameTyped<&ByName_2> },
 	{ "maxShipSubEntities",	kOOByNameShip,	kOOTypeEncoding<NSUInteger>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_3>,	&OOEntityByNameTyped<&ByName_3> },
 	{ "cxx_deserializeShipSubEntitiesFrom:",	kOOByNameShip,	kOOTypeEncoding<void>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_4>,	nullptr },
-	{ "setUpSubEntities",	kOOByNameShip | kOOByNameEffect,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_5>,	&OOEntityByNameTyped<&ByName_5> },
-	{ "setUpOneSubentity:",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::PList,	&OOEntityByNameAdaptPList<&ByName_6>,	nullptr },
-	{ "setUpOneFlasher:",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::PList,	&OOEntityByNameAdaptPList<&ByName_7>,	nullptr },
-	{ "isTemplateCargoPod",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_8>,	&OOEntityByNameTyped<&ByName_8> },
+	{ "setUpSubEntities",	kOOByNameShip | kOOByNameEffect,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_5>,	&OOEntityByNameTyped<&ByName_5> },
+	{ "setUpOneSubentity:",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::PList,	&OOEntityByNameAdaptPList<&ByName_6>,	nullptr },
+	{ "setUpOneFlasher:",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::PList,	&OOEntityByNameAdaptPList<&ByName_7>,	nullptr },
+	{ "isTemplateCargoPod",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_8>,	&OOEntityByNameTyped<&ByName_8> },
 	{ "setUpCargoType:",	kOOByNameShip,	kOOTypeEncoding<void>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_9>,	nullptr },
 	{ "removeScript",	kOOByNameShip,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_10>,	&OOEntityByNameTyped<&ByName_10> },
 	{ "clearSubEntities",	kOOByNameShip | kOOByNameEffect,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_11>,	&OOEntityByNameTyped<&ByName_11> },
@@ -2059,27 +2059,27 @@ inline const OOEntityByNameRow kOOEntityByNameRows[] =
 	{ "forwardVector",	kOOByNameShip | kOOByNameEffect,	kOOTypeEncoding<Vector>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_15>,	&OOEntityByNameTyped<&ByName_15> },
 	{ "upVector",	kOOByNameShip | kOOByNameEffect,	kOOTypeEncoding<Vector>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_16>,	&OOEntityByNameTyped<&ByName_16> },
 	{ "rightVector",	kOOByNameShip | kOOByNameEffect,	kOOTypeEncoding<Vector>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_17>,	&OOEntityByNameTyped<&ByName_17> },
-	{ "scriptedMisjump",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_18>,	&OOEntityByNameTyped<&ByName_18> },
+	{ "scriptedMisjump",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_18>,	&OOEntityByNameTyped<&ByName_18> },
 	{ "scriptedMisjumpRange",	kOOByNameShip,	kOOTypeEncoding<GLfloat>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_19>,	&OOEntityByNameTyped<&ByName_19> },
 	{ "subEntityCount",	kOOByNameShip | kOOByNameEffect,	kOOTypeEncoding<NSUInteger>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_20>,	&OOEntityByNameTyped<&ByName_20> },
 	{ "subEntityTakingDamage",	kOOByNameShip,	kOOTypeEncoding<OOObjCId>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_21>,	&OOEntityByNameTyped<&ByName_21> },
 	{ "shipAIScriptWakeTime",	kOOByNameShip,	kOOTypeEncoding<OOTimeAbsolute>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_22>,	&OOEntityByNameTyped<&ByName_22> },
 	{ "volume",	kOOByNameShip,	kOOTypeEncoding<float>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_23>,	&OOEntityByNameTyped<&ByName_23> },
 	{ "absoluteTractorPosition",	kOOByNameShip,	kOOTypeEncoding<HPVector>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_24>,	&OOEntityByNameTyped<&ByName_24> },
-	{ "isBoulder",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_25>,	&OOEntityByNameTyped<&ByName_25> },
-	{ "isMinable",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_26>,	&OOEntityByNameTyped<&ByName_26> },
-	{ "countsAsKill",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_27>,	&OOEntityByNameTyped<&ByName_27> },
+	{ "isBoulder",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_25>,	&OOEntityByNameTyped<&ByName_25> },
+	{ "isMinable",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_26>,	&OOEntityByNameTyped<&ByName_26> },
+	{ "countsAsKill",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_27>,	&OOEntityByNameTyped<&ByName_27> },
 	{ "setUpEscorts",	kOOByNameShip,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_28>,	&OOEntityByNameTyped<&ByName_28> },
 	{ "setUpMixedEscorts",	kOOByNameShip,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_29>,	&OOEntityByNameTyped<&ByName_29> },
 	{ "cxx_shipInfoDictionary",	kOOByNameShip,	kOOTypeEncoding<oo::PList>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_30>,	&OOEntityByNameTyped<&ByName_30> },
-	{ "isFrangible",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_31>,	&OOEntityByNameTyped<&ByName_31> },
-	{ "suppressFlightNotifications",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_32>,	&OOEntityByNameTyped<&ByName_32> },
+	{ "isFrangible",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_31>,	&OOEntityByNameTyped<&ByName_31> },
+	{ "suppressFlightNotifications",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_32>,	&OOEntityByNameTyped<&ByName_32> },
 	{ "noteFrustration:",	kOOByNameShip,	kOOTypeEncoding<void>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_33>,	nullptr },
 	{ "cxx_countEquipmentItem:",	kOOByNameShip,	kOOTypeEncoding<NSUInteger>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_34>,	nullptr },
-	{ "hasEquipmentItem:",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::PList,	&OOEntityByNameAdaptPList<&ByName_35>,	nullptr },
-	{ "cxx_hasEquipmentItemProviding:",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_36>,	nullptr },
-	{ "hasAllEquipment:",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::PList,	&OOEntityByNameAdaptPList<&ByName_37>,	nullptr },
-	{ "hasHyperspaceMotor",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_38>,	&OOEntityByNameTyped<&ByName_38> },
+	{ "hasEquipmentItem:",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::PList,	&OOEntityByNameAdaptPList<&ByName_35>,	nullptr },
+	{ "cxx_hasEquipmentItemProviding:",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_36>,	nullptr },
+	{ "hasAllEquipment:",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::PList,	&OOEntityByNameAdaptPList<&ByName_37>,	nullptr },
+	{ "hasHyperspaceMotor",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_38>,	&OOEntityByNameTyped<&ByName_38> },
 	{ "hyperspaceSpinTime",	kOOByNameShip,	kOOTypeEncoding<float>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_39>,	&OOEntityByNameTyped<&ByName_39> },
 	{ "passengerListForScripting",	kOOByNameShip,	kOOTypeEncoding<oo::PList>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_40>,	&OOEntityByNameTyped<&ByName_40> },
 	{ "parcelListForScripting",	kOOByNameShip,	kOOTypeEncoding<oo::PList>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_41>,	&OOEntityByNameTyped<&ByName_41> },
@@ -2094,22 +2094,22 @@ inline const OOEntityByNameRow kOOEntityByNameRows[] =
 	{ "missileCount",	kOOByNameShip,	kOOTypeEncoding<NSUInteger>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_50>,	&OOEntityByNameTyped<&ByName_50> },
 	{ "missileCapacity",	kOOByNameShip,	kOOTypeEncoding<NSUInteger>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_51>,	&OOEntityByNameTyped<&ByName_51> },
 	{ "extraCargo",	kOOByNameShip,	kOOTypeEncoding<NSUInteger>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_52>,	&OOEntityByNameTyped<&ByName_52> },
-	{ "hasScoop",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_53>,	&OOEntityByNameTyped<&ByName_53> },
-	{ "hasFuelScoop",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_54>,	&OOEntityByNameTyped<&ByName_54> },
-	{ "hasCargoScoop",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_55>,	&OOEntityByNameTyped<&ByName_55> },
-	{ "hasECM",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_56>,	&OOEntityByNameTyped<&ByName_56> },
-	{ "hasCloakingDevice",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_57>,	&OOEntityByNameTyped<&ByName_57> },
-	{ "hasMilitaryScannerFilter",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_58>,	&OOEntityByNameTyped<&ByName_58> },
-	{ "hasMilitaryJammer",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_59>,	&OOEntityByNameTyped<&ByName_59> },
-	{ "hasExpandedCargoBay",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_60>,	&OOEntityByNameTyped<&ByName_60> },
-	{ "hasShieldBooster",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_61>,	&OOEntityByNameTyped<&ByName_61> },
-	{ "hasMilitaryShieldEnhancer",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_62>,	&OOEntityByNameTyped<&ByName_62> },
-	{ "hasHeatShield",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_63>,	&OOEntityByNameTyped<&ByName_63> },
-	{ "hasFuelInjection",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_64>,	&OOEntityByNameTyped<&ByName_64> },
-	{ "hasCascadeMine",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_65>,	&OOEntityByNameTyped<&ByName_65> },
-	{ "hasEscapePod",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_66>,	&OOEntityByNameTyped<&ByName_66> },
-	{ "hasDockingComputer",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_67>,	&OOEntityByNameTyped<&ByName_67> },
-	{ "hasGalacticHyperdrive",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_68>,	&OOEntityByNameTyped<&ByName_68> },
+	{ "hasScoop",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_53>,	&OOEntityByNameTyped<&ByName_53> },
+	{ "hasFuelScoop",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_54>,	&OOEntityByNameTyped<&ByName_54> },
+	{ "hasCargoScoop",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_55>,	&OOEntityByNameTyped<&ByName_55> },
+	{ "hasECM",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_56>,	&OOEntityByNameTyped<&ByName_56> },
+	{ "hasCloakingDevice",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_57>,	&OOEntityByNameTyped<&ByName_57> },
+	{ "hasMilitaryScannerFilter",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_58>,	&OOEntityByNameTyped<&ByName_58> },
+	{ "hasMilitaryJammer",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_59>,	&OOEntityByNameTyped<&ByName_59> },
+	{ "hasExpandedCargoBay",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_60>,	&OOEntityByNameTyped<&ByName_60> },
+	{ "hasShieldBooster",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_61>,	&OOEntityByNameTyped<&ByName_61> },
+	{ "hasMilitaryShieldEnhancer",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_62>,	&OOEntityByNameTyped<&ByName_62> },
+	{ "hasHeatShield",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_63>,	&OOEntityByNameTyped<&ByName_63> },
+	{ "hasFuelInjection",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_64>,	&OOEntityByNameTyped<&ByName_64> },
+	{ "hasCascadeMine",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_65>,	&OOEntityByNameTyped<&ByName_65> },
+	{ "hasEscapePod",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_66>,	&OOEntityByNameTyped<&ByName_66> },
+	{ "hasDockingComputer",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_67>,	&OOEntityByNameTyped<&ByName_67> },
+	{ "hasGalacticHyperdrive",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_68>,	&OOEntityByNameTyped<&ByName_68> },
 	{ "shieldBoostFactor",	kOOByNameShip,	kOOTypeEncoding<float>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_69>,	&OOEntityByNameTyped<&ByName_69> },
 	{ "maxForwardShieldLevel",	kOOByNameShip,	kOOTypeEncoding<float>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_70>,	&OOEntityByNameTyped<&ByName_70> },
 	{ "maxAftShieldLevel",	kOOByNameShip,	kOOTypeEncoding<float>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_71>,	&OOEntityByNameTyped<&ByName_71> },
@@ -2127,57 +2127,57 @@ inline const OOEntityByNameRow kOOEntityByNameRows[] =
 #ifdef OO_DEBUG_MONITOR_ENABLED
 	{ "drawDebugStuff",	kOOByNameShip,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_83>,	&OOEntityByNameTyped<&ByName_83> },
 #endif
-	{ "isCloaked",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_84>,	&OOEntityByNameTyped<&ByName_84> },
-	{ "cloakPassive",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_85>,	&OOEntityByNameTyped<&ByName_85> },
-	{ "hasAutoCloak",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_86>,	&OOEntityByNameTyped<&ByName_86> },
+	{ "isCloaked",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_84>,	&OOEntityByNameTyped<&ByName_84> },
+	{ "cloakPassive",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_85>,	&OOEntityByNameTyped<&ByName_85> },
+	{ "hasAutoCloak",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_86>,	&OOEntityByNameTyped<&ByName_86> },
 	{ "avoidCollision",	kOOByNameShip,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_87>,	&OOEntityByNameTyped<&ByName_87> },
 	{ "resumePostProximityAlert",	kOOByNameShip,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_88>,	&OOEntityByNameTyped<&ByName_88> },
 	{ "messageTime",	kOOByNameShip,	kOOTypeEncoding<double>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_89>,	&OOEntityByNameTyped<&ByName_89> },
-	{ "hasEscorts",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_90>,	&OOEntityByNameTyped<&ByName_90> },
+	{ "hasEscorts",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_90>,	&OOEntityByNameTyped<&ByName_90> },
 	{ "escortCount",	kOOByNameShip,	kOOTypeEncoding<uint8_t>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_91>,	&OOEntityByNameTyped<&ByName_91> },
 	{ "pendingEscortCount",	kOOByNameShip,	kOOTypeEncoding<uint8_t>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_92>,	&OOEntityByNameTyped<&ByName_92> },
 	{ "maxEscortCount",	kOOByNameShip,	kOOTypeEncoding<uint8_t>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_93>,	&OOEntityByNameTyped<&ByName_93> },
 	{ "turretCount",	kOOByNameShip,	kOOTypeEncoding<NSUInteger>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_94>,	&OOEntityByNameTyped<&ByName_94> },
 	{ "proximityAlert",	kOOByNameShip,	kOOTypeEncoding<OOObjCId>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_95>,	&OOEntityByNameTyped<&ByName_95> },
-	{ "hasRole:",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_96>,	nullptr },
+	{ "hasRole:",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_96>,	nullptr },
 	{ "addRole:",	kOOByNameShip,	kOOTypeEncoding<void>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_97>,	nullptr },
 	{ "cxx_removeRole:",	kOOByNameShip,	kOOTypeEncoding<void>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_98>,	nullptr },
 	{ "setPrimaryRole:",	kOOByNameShip,	kOOTypeEncoding<void>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_99>,	nullptr },
-	{ "cxx_hasPrimaryRole:",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_100>,	nullptr },
-	{ "isPolice",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_101>,	&OOEntityByNameTyped<&ByName_101> },
-	{ "isThargoid",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_102>,	&OOEntityByNameTyped<&ByName_102> },
-	{ "isTrader",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_103>,	&OOEntityByNameTyped<&ByName_103> },
-	{ "isPirate",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_104>,	&OOEntityByNameTyped<&ByName_104> },
-	{ "isMissile",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_105>,	&OOEntityByNameTyped<&ByName_105> },
-	{ "isMine",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_106>,	&OOEntityByNameTyped<&ByName_106> },
-	{ "isWeapon",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_107>,	&OOEntityByNameTyped<&ByName_107> },
-	{ "isEscort",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_108>,	&OOEntityByNameTyped<&ByName_108> },
-	{ "isShuttle",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_109>,	&OOEntityByNameTyped<&ByName_109> },
-	{ "isTurret",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_110>,	&OOEntityByNameTyped<&ByName_110> },
-	{ "isPirateVictim",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_111>,	&OOEntityByNameTyped<&ByName_111> },
-	{ "isExplicitlyUnpiloted",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_112>,	&OOEntityByNameTyped<&ByName_112> },
-	{ "isUnpiloted",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_113>,	&OOEntityByNameTyped<&ByName_113> },
-	{ "hasHostileTarget",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_114>,	&OOEntityByNameTyped<&ByName_114> },
+	{ "cxx_hasPrimaryRole:",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_100>,	nullptr },
+	{ "isPolice",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_101>,	&OOEntityByNameTyped<&ByName_101> },
+	{ "isThargoid",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_102>,	&OOEntityByNameTyped<&ByName_102> },
+	{ "isTrader",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_103>,	&OOEntityByNameTyped<&ByName_103> },
+	{ "isPirate",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_104>,	&OOEntityByNameTyped<&ByName_104> },
+	{ "isMissile",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_105>,	&OOEntityByNameTyped<&ByName_105> },
+	{ "isMine",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_106>,	&OOEntityByNameTyped<&ByName_106> },
+	{ "isWeapon",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_107>,	&OOEntityByNameTyped<&ByName_107> },
+	{ "isEscort",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_108>,	&OOEntityByNameTyped<&ByName_108> },
+	{ "isShuttle",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_109>,	&OOEntityByNameTyped<&ByName_109> },
+	{ "isTurret",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_110>,	&OOEntityByNameTyped<&ByName_110> },
+	{ "isPirateVictim",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_111>,	&OOEntityByNameTyped<&ByName_111> },
+	{ "isExplicitlyUnpiloted",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_112>,	&OOEntityByNameTyped<&ByName_112> },
+	{ "isUnpiloted",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_113>,	&OOEntityByNameTyped<&ByName_113> },
+	{ "hasHostileTarget",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_114>,	&OOEntityByNameTyped<&ByName_114> },
 	{ "weaponRange",	kOOByNameShip,	kOOTypeEncoding<GLfloat>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_115>,	&OOEntityByNameTyped<&ByName_115> },
 	{ "energyRechargeRate",	kOOByNameShip,	kOOTypeEncoding<float>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_116>,	&OOEntityByNameTyped<&ByName_116> },
 	{ "weaponRechargeRate",	kOOByNameShip,	kOOTypeEncoding<float>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_117>,	&OOEntityByNameTyped<&ByName_117> },
 	{ "currentWeaponFacing",	kOOByNameShip,	kOOTypeEncoding<OOWeaponFacing>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_118>,	&OOEntityByNameTyped<&ByName_118> },
 	{ "scannerRange",	kOOByNameShip,	kOOTypeEncoding<GLfloat>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_119>,	&OOEntityByNameTyped<&ByName_119> },
 	{ "reference",	kOOByNameShip,	kOOTypeEncoding<Vector>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_120>,	&OOEntityByNameTyped<&ByName_120> },
-	{ "reportAIMessages",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_121>,	&OOEntityByNameTyped<&ByName_121> },
+	{ "reportAIMessages",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_121>,	&OOEntityByNameTyped<&ByName_121> },
 	{ "transitionToAegisNone",	kOOByNameShip,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_122>,	&OOEntityByNameTyped<&ByName_122> },
 	{ "findNearestStellarBody",	kOOByNameShip,	kOOTypeEncoding<OOObjCId>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_123>,	&OOEntityByNameTyped<&ByName_123> },
 	{ "checkForAegis",	kOOByNameShip,	kOOTypeEncoding<OOAegisStatus>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_124>,	&OOEntityByNameTyped<&ByName_124> },
 	{ "forceAegisCheck",	kOOByNameShip,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_125>,	&OOEntityByNameTyped<&ByName_125> },
-	{ "withinStationAegis",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_126>,	&OOEntityByNameTyped<&ByName_126> },
+	{ "withinStationAegis",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_126>,	&OOEntityByNameTyped<&ByName_126> },
 	{ "lastAegisLock",	kOOByNameShip,	kOOTypeEncoding<OOObjCId>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_127>,	&OOEntityByNameTyped<&ByName_127> },
 	{ "homeSystem",	kOOByNameShip,	kOOTypeEncoding<OOSystemID>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_128>,	&OOEntityByNameTyped<&ByName_128> },
 	{ "destinationSystem",	kOOByNameShip,	kOOTypeEncoding<OOSystemID>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_129>,	&OOEntityByNameTyped<&ByName_129> },
 	{ "cxx_setSingleCrewWithRole:",	kOOByNameShip,	kOOTypeEncoding<void>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_130>,	nullptr },
 	{ "setStateMachine:",	kOOByNameShip,	kOOTypeEncoding<void>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_131>,	nullptr },
-	{ "hasAutoAI",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_132>,	&OOEntityByNameTyped<&ByName_132> },
-	{ "hasNewAI",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_133>,	&OOEntityByNameTyped<&ByName_133> },
-	{ "hasAutoWeapons",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_134>,	&OOEntityByNameTyped<&ByName_134> },
+	{ "hasAutoAI",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_132>,	&OOEntityByNameTyped<&ByName_132> },
+	{ "hasNewAI",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_133>,	&OOEntityByNameTyped<&ByName_133> },
+	{ "hasAutoWeapons",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_134>,	&OOEntityByNameTyped<&ByName_134> },
 	{ "frustration",	kOOByNameShip,	kOOTypeEncoding<double>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_135>,	&OOEntityByNameTyped<&ByName_135> },
 	{ "fuel",	kOOByNameShip,	kOOTypeEncoding<OOFuelQuantity>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_136>,	&OOEntityByNameTyped<&ByName_136> },
 	{ "fuelCapacity",	kOOByNameShip,	kOOTypeEncoding<OOFuelQuantity>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_137>,	&OOEntityByNameTyped<&ByName_137> },
@@ -2191,7 +2191,7 @@ inline const OOEntityByNameRow kOOEntityByNameRows[] =
 	{ "cargoType",	kOOByNameShip,	kOOTypeEncoding<OOCargoType>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_145>,	&OOEntityByNameTyped<&ByName_145> },
 	{ "cxx_cargoCount",	kOOByNameShip,	kOOTypeEncoding<NSUInteger>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_146>,	&OOEntityByNameTyped<&ByName_146> },
 	{ "cargoListForScripting",	kOOByNameShip,	kOOTypeEncoding<oo::PList>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_147>,	&OOEntityByNameTyped<&ByName_147> },
-	{ "showScoopMessage",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_148>,	&OOEntityByNameTyped<&ByName_148> },
+	{ "showScoopMessage",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_148>,	&OOEntityByNameTyped<&ByName_148> },
 	{ "desiredSpeed",	kOOByNameShip,	kOOTypeEncoding<double>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_149>,	&OOEntityByNameTyped<&ByName_149> },
 	{ "desiredRange",	kOOByNameShip,	kOOTypeEncoding<double>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_150>,	&OOEntityByNameTyped<&ByName_150> },
 	{ "cruiseSpeed",	kOOByNameShip,	kOOTypeEncoding<double>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_151>,	&OOEntityByNameTyped<&ByName_151> },
@@ -2209,9 +2209,9 @@ inline const OOEntityByNameRow kOOEntityByNameRows[] =
 	{ "heatInsulation",	kOOByNameShip,	kOOTypeEncoding<GLfloat>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_163>,	&OOEntityByNameTyped<&ByName_163> },
 	{ "damage",	kOOByNameShip,	kOOTypeEncoding<int>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_164>,	&OOEntityByNameTyped<&ByName_164> },
 	{ "dealEnergyDamageWithinDesiredRange",	kOOByNameShip,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_165>,	&OOEntityByNameTyped<&ByName_165> },
-	{ "isHulk",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_166>,	&OOEntityByNameTyped<&ByName_166> },
+	{ "isHulk",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_166>,	&OOEntityByNameTyped<&ByName_166> },
 	{ "releaseCargoPodsDebris",	kOOByNameShip,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_167>,	&OOEntityByNameTyped<&ByName_167> },
-	{ "showDamage",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_168>,	&OOEntityByNameTyped<&ByName_168> },
+	{ "showDamage",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_168>,	&OOEntityByNameTyped<&ByName_168> },
 	{ "becomeExplosion",	kOOByNameShip,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_169>,	&OOEntityByNameTyped<&ByName_169> },
 	{ "becomeEnergyBlast",	kOOByNameShip,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_170>,	&OOEntityByNameTyped<&ByName_170> },
 	{ "broadcastEnergyBlastImminent",	kOOByNameShip,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_171>,	&OOEntityByNameTyped<&ByName_171> },
@@ -2235,7 +2235,7 @@ inline const OOEntityByNameRow kOOEntityByNameRows[] =
 	{ "thankedShip",	kOOByNameShip,	kOOTypeEncoding<OOObjCId>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_189>,	&OOEntityByNameTyped<&ByName_189> },
 	{ "rememberedShip",	kOOByNameShip,	kOOTypeEncoding<OOObjCId>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_190>,	&OOEntityByNameTyped<&ByName_190> },
 	{ "targetStation",	kOOByNameShip,	kOOTypeEncoding<OOObjCId>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_191>,	&OOEntityByNameTyped<&ByName_191> },
-	{ "canStillTrackPrimaryTarget",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_192>,	&OOEntityByNameTyped<&ByName_192> },
+	{ "canStillTrackPrimaryTarget",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_192>,	&OOEntityByNameTyped<&ByName_192> },
 	{ "shipHitByLaser",	kOOByNameShip,	kOOTypeEncoding<OOObjCId>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_193>,	&OOEntityByNameTyped<&ByName_193> },
 	{ "noteLostTarget",	kOOByNameShip,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_194>,	&OOEntityByNameTyped<&ByName_194> },
 	{ "noteLostTargetAndGoIdle",	kOOByNameShip,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_195>,	&OOEntityByNameTyped<&ByName_195> },
@@ -2251,29 +2251,29 @@ inline const OOEntityByNameRow kOOEntityByNameRows[] =
 	{ "currentAimTolerance",	kOOByNameShip,	kOOTypeEncoding<GLfloat>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_205>,	&OOEntityByNameTyped<&ByName_205> },
 	{ "shotTime",	kOOByNameShip,	kOOTypeEncoding<OOTimeDelta>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_206>,	&OOEntityByNameTyped<&ByName_206> },
 	{ "resetShotTime",	kOOByNameShip,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_207>,	&OOEntityByNameTyped<&ByName_207> },
-	{ "fireDirectLaserDefensiveShot",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_208>,	&OOEntityByNameTyped<&ByName_208> },
+	{ "fireDirectLaserDefensiveShot",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_208>,	&OOEntityByNameTyped<&ByName_208> },
 	{ "missedShots",	kOOByNameShip,	kOOTypeEncoding<int>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_209>,	&OOEntityByNameTyped<&ByName_209> },
 	{ "missileLaunchPosition",	kOOByNameShip,	kOOTypeEncoding<Vector>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_210>,	&OOEntityByNameTyped<&ByName_210> },
 	{ "fireMissile",	kOOByNameShip,	kOOTypeEncoding<OOObjCId>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_211>,	&OOEntityByNameTyped<&ByName_211> },
-	{ "isMissileFlagSet",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_212>,	&OOEntityByNameTyped<&ByName_212> },
+	{ "isMissileFlagSet",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_212>,	&OOEntityByNameTyped<&ByName_212> },
 	{ "missileLoadTime",	kOOByNameShip,	kOOTypeEncoding<OOTimeDelta>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_213>,	&OOEntityByNameTyped<&ByName_213> },
 	{ "noticeECM",	kOOByNameShip,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_214>,	&OOEntityByNameTyped<&ByName_214> },
-	{ "fireECM",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_215>,	&OOEntityByNameTyped<&ByName_215> },
-	{ "activateCloakingDevice",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_216>,	&OOEntityByNameTyped<&ByName_216> },
+	{ "fireECM",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_215>,	&OOEntityByNameTyped<&ByName_215> },
+	{ "activateCloakingDevice",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_216>,	&OOEntityByNameTyped<&ByName_216> },
 	{ "deactivateCloakingDevice",	kOOByNameShip,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_217>,	&OOEntityByNameTyped<&ByName_217> },
-	{ "launchCascadeMine",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_218>,	&OOEntityByNameTyped<&ByName_218> },
+	{ "launchCascadeMine",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_218>,	&OOEntityByNameTyped<&ByName_218> },
 	{ "launchEscapeCapsule",	kOOByNameShip,	kOOTypeEncoding<OOObjCId>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_219>,	&OOEntityByNameTyped<&ByName_219> },
 	{ "dumpCargo",	kOOByNameShip,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_220>,	&OOEntityByNameTyped<&ByName_220> },
 	{ "manageCollisions",	kOOByNameShip,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_221>,	&OOEntityByNameTyped<&ByName_221> },
 	{ "thrustVector",	kOOByNameShip,	kOOTypeEncoding<Vector>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_222>,	&OOEntityByNameTyped<&ByName_222> },
 	{ "suppressTargetLost",	kOOByNameShip,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_223>,	&OOEntityByNameTyped<&ByName_223> },
-	{ "abandonShip",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_224>,	&OOEntityByNameTyped<&ByName_224> },
+	{ "abandonShip",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_224>,	&OOEntityByNameTyped<&ByName_224> },
 	{ "enterWitchspace",	kOOByNameShip,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_225>,	&OOEntityByNameTyped<&ByName_225> },
 	{ "leaveWitchspace",	kOOByNameShip,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_226>,	&OOEntityByNameTyped<&ByName_226> },
-	{ "witchspaceLeavingEffects",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_227>,	&OOEntityByNameTyped<&ByName_227> },
+	{ "witchspaceLeavingEffects",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_227>,	&OOEntityByNameTyped<&ByName_227> },
 	{ "switchLightsOn",	kOOByNameShip,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_228>,	&OOEntityByNameTyped<&ByName_228> },
 	{ "switchLightsOff",	kOOByNameShip,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_229>,	&OOEntityByNameTyped<&ByName_229> },
-	{ "lightsActive",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_230>,	&OOEntityByNameTyped<&ByName_230> },
+	{ "lightsActive",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_230>,	&OOEntityByNameTyped<&ByName_230> },
 	{ "updateEscortFormation",	kOOByNameShip,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_231>,	&OOEntityByNameTyped<&ByName_231> },
 	{ "refreshEscortPositions",	kOOByNameShip,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_232>,	&OOEntityByNameTyped<&ByName_232> },
 	{ "deployEscorts",	kOOByNameShip,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_233>,	&OOEntityByNameTyped<&ByName_233> },
@@ -2286,13 +2286,13 @@ inline const OOEntityByNameRow kOOEntityByNameRows[] =
 	{ "broadcastThargoidDestroyed",	kOOByNameShip,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_240>,	&OOEntityByNameTyped<&ByName_240> },
 	{ "broadcastAIMessage:",	kOOByNameShip,	kOOTypeEncoding<void>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_241>,	nullptr },
 	{ "setCommsMessageColor",	kOOByNameShip,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_242>,	&OOEntityByNameTyped<&ByName_242> },
-	{ "markedForFines",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_243>,	&OOEntityByNameTyped<&ByName_243> },
-	{ "markForFines",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_244>,	&OOEntityByNameTyped<&ByName_244> },
-	{ "isMining",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_245>,	&OOEntityByNameTyped<&ByName_245> },
+	{ "markedForFines",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_243>,	&OOEntityByNameTyped<&ByName_243> },
+	{ "markForFines",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_244>,	&OOEntityByNameTyped<&ByName_244> },
+	{ "isMining",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_245>,	&OOEntityByNameTyped<&ByName_245> },
 	{ "interpretAIMessage:",	kOOByNameShip,	kOOTypeEncoding<void>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_246>,	nullptr },
 	{ "spawn:",	kOOByNameShip,	kOOTypeEncoding<void>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_247>,	nullptr },
 	{ "checkShipsInVicinityForWitchJumpExit",	kOOByNameShip,	kOOTypeEncoding<int>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_248>,	&OOEntityByNameTyped<&ByName_248> },
-	{ "trackCloseContacts",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_249>,	&OOEntityByNameTyped<&ByName_249> },
+	{ "trackCloseContacts",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_249>,	&OOEntityByNameTyped<&ByName_249> },
 #if OO_SALVAGE_SUPPORT
 	{ "claimAsSalvage",	kOOByNameShip,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_250>,	&OOEntityByNameTyped<&ByName_250> },
 	{ "sendCoordinatesToPilot",	kOOByNameShip,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_251>,	&OOEntityByNameTyped<&ByName_251> },
@@ -2301,7 +2301,7 @@ inline const OOEntityByNameRow kOOEntityByNameRows[] =
 	{ "scriptInfo",	kOOByNameShip | kOOByNameEffect,	kOOTypeEncoding<oo::PList>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_253>,	&OOEntityByNameTyped<&ByName_253> },
 	{ "overrideScriptInfo:",	kOOByNameShip,	kOOTypeEncoding<void>,	OOEntityByNameArgument::PList,	&OOEntityByNameAdaptPList<&ByName_254>,	nullptr },
 	{ "entityForShaderProperties",	kOOByNameShip,	kOOTypeEncoding<OOObjCId>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_255>,	&OOEntityByNameTyped<&ByName_255> },
-	{ "isDemoShip",	kOOByNameShip,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_256>,	&OOEntityByNameTyped<&ByName_256> },
+	{ "isDemoShip",	kOOByNameShip,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_256>,	&OOEntityByNameTyped<&ByName_256> },
 	{ "getDemoStartTime",	kOOByNameShip,	kOOTypeEncoding<OOTimeAbsolute>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_257>,	&OOEntityByNameTyped<&ByName_257> },
 	{ "sendAIMessage:",	kOOByNameShip,	kOOTypeEncoding<void>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_258>,	nullptr },
 	{ "alertCondition",	kOOByNameShip,	kOOTypeEncoding<OOAlertCondition>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_259>,	&OOEntityByNameTyped<&ByName_259> },
@@ -2476,9 +2476,9 @@ inline const OOEntityByNameRow kOOEntityByNameRows[] =
 	{ "previousInfoSystem",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_428>,	&OOEntityByNameTyped<&ByName_428> },
 	{ "homeInfoSystem",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_429>,	&OOEntityByNameTyped<&ByName_429> },
 	{ "targetInfoSystem",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_430>,	&OOEntityByNameTyped<&ByName_430> },
-	{ "infoSystemOnRoute",	kOOByNamePlayer,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_431>,	&OOEntityByNameTyped<&ByName_431> },
+	{ "infoSystemOnRoute",	kOOByNamePlayer,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_431>,	&OOEntityByNameTyped<&ByName_431> },
 	{ "cxx_commanderDataDictionary",	kOOByNamePlayer,	kOOTypeEncoding<oo::PList>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_432>,	&OOEntityByNameTyped<&ByName_432> },
-	{ "cxx_setCommanderDataFromDictionary:",	kOOByNamePlayer,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::PList,	&OOEntityByNameAdaptPList<&ByName_433>,	nullptr },
+	{ "cxx_setCommanderDataFromDictionary:",	kOOByNamePlayer,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::PList,	&OOEntityByNameAdaptPList<&ByName_433>,	nullptr },
 	{ "completeSetUp",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_434>,	&OOEntityByNameTyped<&ByName_434> },
 	{ "startUpComplete",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_435>,	&OOEntityByNameTyped<&ByName_435> },
 	{ "insideAtmosphereFraction",	kOOByNamePlayer,	kOOTypeEncoding<GLfloat>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_436>,	&OOEntityByNameTyped<&ByName_436> },
@@ -2490,8 +2490,8 @@ inline const OOEntityByNameRow kOOEntityByNameRows[] =
 #if OO_VARIABLE_TORUS_SPEED
 	{ "hyperspeedFactor",	kOOByNamePlayer,	kOOTypeEncoding<GLfloat>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_442>,	&OOEntityByNameTyped<&ByName_442> },
 #endif
-	{ "injectorsEngaged",	kOOByNamePlayer,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_443>,	&OOEntityByNameTyped<&ByName_443> },
-	{ "hyperspeedEngaged",	kOOByNamePlayer,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_444>,	&OOEntityByNameTyped<&ByName_444> },
+	{ "injectorsEngaged",	kOOByNamePlayer,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_443>,	&OOEntityByNameTyped<&ByName_443> },
+	{ "hyperspeedEngaged",	kOOByNamePlayer,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_444>,	&OOEntityByNameTyped<&ByName_444> },
 	{ "gameOverFadeToBW",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_445>,	&OOEntityByNameTyped<&ByName_445> },
 	{ "showGameOver",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_446>,	&OOEntityByNameTyped<&ByName_446> },
 	{ "updateTargeting",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_447>,	&OOEntityByNameTyped<&ByName_447> },
@@ -2502,23 +2502,23 @@ inline const OOEntityByNameRow kOOEntityByNameRows[] =
 	{ "viewpointOffsetPort",	kOOByNamePlayer,	kOOTypeEncoding<Vector>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_452>,	&OOEntityByNameTyped<&ByName_452> },
 	{ "viewpointOffsetStarboard",	kOOByNamePlayer,	kOOTypeEncoding<Vector>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_453>,	&OOEntityByNameTyped<&ByName_453> },
 	{ "viewpointPosition",	kOOByNamePlayer,	kOOTypeEncoding<HPVector>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_454>,	&OOEntityByNameTyped<&ByName_454> },
-	{ "massLockable",	kOOByNamePlayer,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_455>,	&OOEntityByNameTyped<&ByName_455> },
-	{ "massLocked",	kOOByNamePlayer | kOOByNameProxy,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_456>,	&OOEntityByNameTyped<&ByName_456> },
-	{ "atHyperspeed",	kOOByNamePlayer | kOOByNameProxy,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_457>,	&OOEntityByNameTyped<&ByName_457> },
+	{ "massLockable",	kOOByNamePlayer,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_455>,	&OOEntityByNameTyped<&ByName_455> },
+	{ "massLocked",	kOOByNamePlayer | kOOByNameProxy,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_456>,	&OOEntityByNameTyped<&ByName_456> },
+	{ "atHyperspeed",	kOOByNamePlayer | kOOByNameProxy,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_457>,	&OOEntityByNameTyped<&ByName_457> },
 	{ "occlusionLevel",	kOOByNamePlayer,	kOOTypeEncoding<float>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_458>,	&OOEntityByNameTyped<&ByName_458> },
 	{ "setDockedAtMainStation",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_459>,	&OOEntityByNameTyped<&ByName_459> },
 	{ "dockedStation",	kOOByNamePlayer,	kOOTypeEncoding<OOObjCId>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_460>,	&OOEntityByNameTyped<&ByName_460> },
 	{ "getTargetDockStation",	kOOByNamePlayer,	kOOTypeEncoding<OOObjCId>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_461>,	&OOEntityByNameTyped<&ByName_461> },
 	{ "resetHud",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_462>,	&OOEntityByNameTyped<&ByName_462> },
-	{ "cxx_switchHudTo:",	kOOByNamePlayer,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_463>,	nullptr },
+	{ "cxx_switchHudTo:",	kOOByNamePlayer,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_463>,	nullptr },
 	{ "cxx_dialCustomFloat:",	kOOByNamePlayer,	kOOTypeEncoding<float>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_464>,	nullptr },
-	{ "showDemoShips",	kOOByNamePlayer,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_465>,	&OOEntityByNameTyped<&ByName_465> },
+	{ "showDemoShips",	kOOByNamePlayer,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_465>,	&OOEntityByNameTyped<&ByName_465> },
 	{ "forwardShieldRechargeRate",	kOOByNamePlayer,	kOOTypeEncoding<float>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_466>,	&OOEntityByNameTyped<&ByName_466> },
 	{ "aftShieldRechargeRate",	kOOByNamePlayer,	kOOTypeEncoding<float>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_467>,	&OOEntityByNameTyped<&ByName_467> },
 	{ "forwardShieldLevel",	kOOByNamePlayer,	kOOTypeEncoding<GLfloat>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_468>,	&OOEntityByNameTyped<&ByName_468> },
 	{ "aftShieldLevel",	kOOByNamePlayer,	kOOTypeEncoding<GLfloat>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_469>,	&OOEntityByNameTyped<&ByName_469> },
 	{ "cxx_keyConfig",	kOOByNamePlayer,	kOOTypeEncoding<oo::PList>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_470>,	&OOEntityByNameTyped<&ByName_470> },
-	{ "isMouseControlOn",	kOOByNamePlayer,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_471>,	&OOEntityByNameTyped<&ByName_471> },
+	{ "isMouseControlOn",	kOOByNamePlayer,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_471>,	&OOEntityByNameTyped<&ByName_471> },
 	{ "dialRoll",	kOOByNamePlayer,	kOOTypeEncoding<GLfloat>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_472>,	&OOEntityByNameTyped<&ByName_472> },
 	{ "dialPitch",	kOOByNamePlayer,	kOOTypeEncoding<GLfloat>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_473>,	&OOEntityByNameTyped<&ByName_473> },
 	{ "dialYaw",	kOOByNamePlayer,	kOOTypeEncoding<GLfloat>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_474>,	&OOEntityByNameTyped<&ByName_474> },
@@ -2533,7 +2533,7 @@ inline const OOEntityByNameRow kOOEntityByNameRows[] =
 	{ "dialAltitude",	kOOByNamePlayer,	kOOTypeEncoding<GLfloat>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_483>,	&OOEntityByNameTyped<&ByName_483> },
 	{ "clockTime",	kOOByNamePlayer,	kOOTypeEncoding<double>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_484>,	&OOEntityByNameTyped<&ByName_484> },
 	{ "clockTimeAdjusted",	kOOByNamePlayer,	kOOTypeEncoding<double>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_485>,	&OOEntityByNameTyped<&ByName_485> },
-	{ "clockAdjusting",	kOOByNamePlayer,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_486>,	&OOEntityByNameTyped<&ByName_486> },
+	{ "clockAdjusting",	kOOByNamePlayer,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_486>,	&OOEntityByNameTyped<&ByName_486> },
 	{ "escapePodRescueTime",	kOOByNamePlayer,	kOOTypeEncoding<double>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_487>,	&OOEntityByNameTyped<&ByName_487> },
 	{ "countMissiles",	kOOByNamePlayer,	kOOTypeEncoding<unsigned>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_488>,	&OOEntityByNameTyped<&ByName_488> },
 	{ "dialMissileStatus",	kOOByNamePlayer | kOOByNameProxy,	kOOTypeEncoding<OOMissileStatus>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_489>,	&OOEntityByNameTyped<&ByName_489> },
@@ -2550,7 +2550,7 @@ inline const OOEntityByNameRow kOOEntityByNameRows[] =
 	{ "setNextCompassMode",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_500>,	&OOEntityByNameTyped<&ByName_500> },
 	{ "activeMissile",	kOOByNamePlayer,	kOOTypeEncoding<NSUInteger>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_501>,	&OOEntityByNameTyped<&ByName_501> },
 	{ "dialMaxMissiles",	kOOByNamePlayer,	kOOTypeEncoding<NSUInteger>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_502>,	&OOEntityByNameTyped<&ByName_502> },
-	{ "dialIdentEngaged",	kOOByNamePlayer | kOOByNameProxy,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_503>,	&OOEntityByNameTyped<&ByName_503> },
+	{ "dialIdentEngaged",	kOOByNamePlayer | kOOByNameProxy,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_503>,	&OOEntityByNameTyped<&ByName_503> },
 	{ "selectNextMultiFunctionDisplay",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_504>,	&OOEntityByNameTyped<&ByName_504> },
 	{ "selectPreviousMultiFunctionDisplay",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_505>,	&OOEntityByNameTyped<&ByName_505> },
 	{ "activeMFD",	kOOByNamePlayer,	kOOTypeEncoding<NSUInteger>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_506>,	&OOEntityByNameTyped<&ByName_506> },
@@ -2560,25 +2560,25 @@ inline const OOEntityByNameRow kOOEntityByNameRows[] =
 	{ "clearAlertFlags",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_510>,	&OOEntityByNameTyped<&ByName_510> },
 	{ "alertFlags",	kOOByNamePlayer,	kOOTypeEncoding<int>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_511>,	&OOEntityByNameTyped<&ByName_511> },
 	{ "fleeingStatus",	kOOByNamePlayer,	kOOTypeEncoding<OOPlayerFleeingStatus>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_512>,	&OOEntityByNameTyped<&ByName_512> },
-	{ "cxx_mountMissileWithRole:",	kOOByNamePlayer,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_513>,	nullptr },
-	{ "cxx_assignToActivePylon:",	kOOByNamePlayer,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_514>,	nullptr },
+	{ "cxx_mountMissileWithRole:",	kOOByNamePlayer,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_513>,	nullptr },
+	{ "cxx_assignToActivePylon:",	kOOByNamePlayer,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_514>,	nullptr },
 	{ "scannerFuzziness",	kOOByNamePlayer,	kOOTypeEncoding<double>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_515>,	&OOEntityByNameTyped<&ByName_515> },
 	{ "installedEnergyUnitType",	kOOByNamePlayer,	kOOTypeEncoding<OOEnergyUnitType>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_516>,	&OOEntityByNameTyped<&ByName_516> },
 	{ "energyUnitType",	kOOByNamePlayer,	kOOTypeEncoding<OOEnergyUnitType>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_517>,	&OOEntityByNameTyped<&ByName_517> },
 	{ "currentWeaponStats",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_518>,	&OOEntityByNameTyped<&ByName_518> },
-	{ "weaponsOnline",	kOOByNamePlayer,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_519>,	&OOEntityByNameTyped<&ByName_519> },
-	{ "fireMainWeapon",	kOOByNamePlayer,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_520>,	&OOEntityByNameTyped<&ByName_520> },
+	{ "weaponsOnline",	kOOByNamePlayer,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_519>,	&OOEntityByNameTyped<&ByName_519> },
+	{ "fireMainWeapon",	kOOByNamePlayer,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_520>,	&OOEntityByNameTyped<&ByName_520> },
 	{ "createDoppelganger",	kOOByNamePlayer,	kOOTypeEncoding<OOObjCId>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_521>,	&OOEntityByNameTyped<&ByName_521> },
 	{ "rotateCargo",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_522>,	&OOEntityByNameTyped<&ByName_522> },
-	{ "takeInternalDamage",	kOOByNamePlayer,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_523>,	&OOEntityByNameTyped<&ByName_523> },
+	{ "takeInternalDamage",	kOOByNamePlayer,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_523>,	&OOEntityByNameTyped<&ByName_523> },
 	{ "loseTargetStatus",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_524>,	&OOEntityByNameTyped<&ByName_524> },
-	{ "cxx_endScenario:",	kOOByNamePlayer,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_525>,	nullptr },
+	{ "cxx_endScenario:",	kOOByNamePlayer,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_525>,	nullptr },
 	{ "docked",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_526>,	&OOEntityByNameTyped<&ByName_526> },
 	{ "witchStart",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_527>,	&OOEntityByNameTyped<&ByName_527> },
 	{ "witchEnd",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_528>,	&OOEntityByNameTyped<&ByName_528> },
 	{ "hyperspaceJumpDistance",	kOOByNamePlayer,	kOOTypeEncoding<double>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_529>,	&OOEntityByNameTyped<&ByName_529> },
 	{ "fuelRequiredForJump",	kOOByNamePlayer,	kOOTypeEncoding<OOFuelQuantity>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_530>,	&OOEntityByNameTyped<&ByName_530> },
-	{ "hasSufficientFuelForJump",	kOOByNamePlayer,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_531>,	&OOEntityByNameTyped<&ByName_531> },
+	{ "hasSufficientFuelForJump",	kOOByNamePlayer,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_531>,	&OOEntityByNameTyped<&ByName_531> },
 	{ "noteCompassLostTarget",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_532>,	&OOEntityByNameTyped<&ByName_532> },
 	{ "enterGalacticWitchspace",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_533>,	&OOEntityByNameTyped<&ByName_533> },
 	{ "setGuiToStatusScreen",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_534>,	&OOEntityByNameTyped<&ByName_534> },
@@ -2597,7 +2597,7 @@ inline const OOEntityByNameRow kOOEntityByNameRows[] =
 	{ "setupStartScreenGui",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_547>,	&OOEntityByNameTyped<&ByName_547> },
 	{ "setGuiToOXZManager",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_548>,	&OOEntityByNameTyped<&ByName_548> },
 	{ "buySelectedItem",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_549>,	&OOEntityByNameTyped<&ByName_549> },
-	{ "tryBuyingItem:",	kOOByNamePlayer,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_550>,	nullptr },
+	{ "tryBuyingItem:",	kOOByNamePlayer,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_550>,	nullptr },
 	{ "cxx_cargoQuantityForType:",	kOOByNamePlayer,	kOOTypeEncoding<OOCargoQuantity>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_551>,	nullptr },
 	{ "calculateCurrentCargo",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_552>,	&OOEntityByNameTyped<&ByName_552> },
 	{ "showMarketScreenHeaders",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_553>,	&OOEntityByNameTyped<&ByName_553> },
@@ -2632,7 +2632,7 @@ inline const OOEntityByNameRow kOOEntityByNameRows[] =
 	{ "customViewRightVector",	kOOByNamePlayer,	kOOTypeEncoding<Vector>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_582>,	&OOEntityByNameTyped<&ByName_582> },
 	{ "resetCustomView",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_583>,	&OOEntityByNameTyped<&ByName_583> },
 	{ "setCustomViewData",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_584>,	&OOEntityByNameTyped<&ByName_584> },
-	{ "showInfoFlag",	kOOByNamePlayer,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_585>,	&OOEntityByNameTyped<&ByName_585> },
+	{ "showInfoFlag",	kOOByNamePlayer,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_585>,	&OOEntityByNameTyped<&ByName_585> },
 	{ "cxx_missionOverlayDescriptor",	kOOByNamePlayer,	kOOTypeEncoding<oo::PList>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_586>,	&OOEntityByNameTyped<&ByName_586> },
 	{ "cxx_missionOverlayDescriptorOrDefault",	kOOByNamePlayer,	kOOTypeEncoding<oo::PList>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_587>,	&OOEntityByNameTyped<&ByName_587> },
 	{ "cxx_setMissionOverlayDescriptor:",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::PList,	&OOEntityByNameAdaptPList<&ByName_588>,	nullptr },
@@ -2644,24 +2644,24 @@ inline const OOEntityByNameRow kOOEntityByNameRows[] =
 	{ "missionExitScreen",	kOOByNamePlayer,	kOOTypeEncoding<OOGUIScreenID>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_594>,	&OOEntityByNameTyped<&ByName_594> },
 	{ "cxx_equipScreenBackgroundDescriptor",	kOOByNamePlayer,	kOOTypeEncoding<oo::PList>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_595>,	&OOEntityByNameTyped<&ByName_595> },
 	{ "cxx_setEquipScreenBackgroundDescriptor:",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::PList,	&OOEntityByNameAdaptPList<&ByName_596>,	nullptr },
-	{ "scriptsLoaded",	kOOByNamePlayer,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_597>,	&OOEntityByNameTyped<&ByName_597> },
+	{ "scriptsLoaded",	kOOByNamePlayer,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_597>,	&OOEntityByNameTyped<&ByName_597> },
 	{ "galacticHyperspaceBehaviour",	kOOByNamePlayer,	kOOTypeEncoding<OOGalacticHyperspaceBehaviour>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_598>,	&OOEntityByNameTyped<&ByName_598> },
 	{ "galacticHyperspaceFixedCoords",	kOOByNamePlayer,	kOOTypeEncoding<NSPoint>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_599>,	&OOEntityByNameTyped<&ByName_599> },
 	{ "longRangeChartMode",	kOOByNamePlayer,	kOOTypeEncoding<OOLongRangeChartMode>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_600>,	&OOEntityByNameTyped<&ByName_600> },
-	{ "scoopOverride",	kOOByNamePlayer,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_601>,	&OOEntityByNameTyped<&ByName_601> },
-	{ "isDocked",	kOOByNamePlayer,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_602>,	&OOEntityByNameTyped<&ByName_602> },
-	{ "clearedToDock",	kOOByNamePlayer,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_603>,	&OOEntityByNameTyped<&ByName_603> },
+	{ "scoopOverride",	kOOByNamePlayer,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_601>,	&OOEntityByNameTyped<&ByName_601> },
+	{ "isDocked",	kOOByNamePlayer,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_602>,	&OOEntityByNameTyped<&ByName_602> },
+	{ "clearedToDock",	kOOByNamePlayer,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_603>,	&OOEntityByNameTyped<&ByName_603> },
 	{ "getDockingClearanceStatus",	kOOByNamePlayer,	kOOTypeEncoding<OODockingClearanceStatus>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_604>,	&OOEntityByNameTyped<&ByName_604> },
 	{ "penaltyForUnauthorizedDocking",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_605>,	&OOEntityByNameTyped<&ByName_605> },
 	{ "updateWormholes",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_606>,	&OOEntityByNameTyped<&ByName_606> },
 	{ "cxx_addMissionDestinationMarker:",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::PList,	&OOEntityByNameAdaptPList<&ByName_607>,	nullptr },
-	{ "cxx_removeMissionDestinationMarker:",	kOOByNamePlayer,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::PList,	&OOEntityByNameAdaptPList<&ByName_608>,	nullptr },
+	{ "cxx_removeMissionDestinationMarker:",	kOOByNamePlayer,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::PList,	&OOEntityByNameAdaptPList<&ByName_608>,	nullptr },
 	{ "cxx_getMissionDestinations",	kOOByNamePlayer,	kOOTypeEncoding<oo::PList>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_609>,	&OOEntityByNameTyped<&ByName_609> },
 	{ "clearExtraMissionKeys",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_610>,	&OOEntityByNameTyped<&ByName_610> },
 	{ "cxx_setExtraMissionKeys:",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::PList,	&OOEntityByNameAdaptPList<&ByName_611>,	nullptr },
 	{ "score",	kOOByNamePlayer,	kOOTypeEncoding<unsigned>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_612>,	&OOEntityByNameTyped<&ByName_612> },
 	{ "creditBalance",	kOOByNamePlayer,	kOOTypeEncoding<double>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_613>,	&OOEntityByNameTyped<&ByName_613> },
-	{ "dockedAtMainStation",	kOOByNamePlayer,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_614>,	&OOEntityByNameTyped<&ByName_614> },
+	{ "dockedAtMainStation",	kOOByNamePlayer,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_614>,	&OOEntityByNameTyped<&ByName_614> },
 	{ "resetScannerZoom",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_615>,	&OOEntityByNameTyped<&ByName_615> },
 	{ "currentGalaxyID",	kOOByNamePlayer,	kOOTypeEncoding<OOGalaxyID>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_616>,	&OOEntityByNameTyped<&ByName_616> },
 	{ "currentSystemID",	kOOByNamePlayer,	kOOTypeEncoding<OOSystemID>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_617>,	&OOEntityByNameTyped<&ByName_617> },
@@ -2678,7 +2678,7 @@ inline const OOEntityByNameRow kOOEntityByNameRows[] =
 	{ "setUpSound",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_628>,	&OOEntityByNameTyped<&ByName_628> },
 	{ "setUpWeaponSounds",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_629>,	&OOEntityByNameTyped<&ByName_629> },
 	{ "destroySound",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_630>,	&OOEntityByNameTyped<&ByName_630> },
-	{ "isBeeping",	kOOByNamePlayer,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_631>,	&OOEntityByNameTyped<&ByName_631> },
+	{ "isBeeping",	kOOByNamePlayer,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_631>,	&OOEntityByNameTyped<&ByName_631> },
 	{ "boop",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_632>,	&OOEntityByNameTyped<&ByName_632> },
 	{ "playIdentOn",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_633>,	&OOEntityByNameTyped<&ByName_633> },
 	{ "playIdentOff",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_634>,	&OOEntityByNameTyped<&ByName_634> },
@@ -2757,10 +2757,10 @@ inline const OOEntityByNameRow kOOEntityByNameRows[] =
 	{ "initControls",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_707>,	&OOEntityByNameTyped<&ByName_707> },
 	{ "initKeyConfigSettings",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_708>,	&OOEntityByNameTyped<&ByName_708> },
 	{ "cxx_processKeyCode:",	kOOByNamePlayer,	kOOTypeEncoding<oo::PList>,	OOEntityByNameArgument::PList,	&OOEntityByNameAdaptPList<&ByName_709>,	nullptr },
-	{ "checkNavKeyPress:",	kOOByNamePlayer,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::PList,	&OOEntityByNameAdaptPList<&ByName_710>,	nullptr },
-	{ "checkKeyPress:",	kOOByNamePlayer,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::PList,	&OOEntityByNameAdaptPList<&ByName_711>,	nullptr },
+	{ "checkNavKeyPress:",	kOOByNamePlayer,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::PList,	&OOEntityByNameAdaptPList<&ByName_710>,	nullptr },
+	{ "checkKeyPress:",	kOOByNamePlayer,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::PList,	&OOEntityByNameAdaptPList<&ByName_711>,	nullptr },
 	{ "getFirstKeyCode:",	kOOByNamePlayer,	kOOTypeEncoding<int>,	OOEntityByNameArgument::PList,	&OOEntityByNameAdaptPList<&ByName_712>,	nullptr },
-	{ "handleGUIUpDownArrowKeys",	kOOByNamePlayer,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_713>,	&OOEntityByNameTyped<&ByName_713> },
+	{ "handleGUIUpDownArrowKeys",	kOOByNamePlayer,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_713>,	&OOEntityByNameTyped<&ByName_713> },
 	{ "clearPlanetSearchString",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_714>,	&OOEntityByNameTyped<&ByName_714> },
 	{ "switchToMainView",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_715>,	&OOEntityByNameTyped<&ByName_715> },
 	{ "beginWitchspaceCountdown",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_716>,	&OOEntityByNameTyped<&ByName_716> },
@@ -2782,15 +2782,15 @@ inline const OOEntityByNameRow kOOEntityByNameRows[] =
 	{ "handleButtonTargetMissile",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_732>,	&OOEntityByNameTyped<&ByName_732> },
 	{ "initCheckingDictionary",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_733>,	&OOEntityByNameTyped<&ByName_733> },
 	{ "resetKeyFunctions",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_734>,	&OOEntityByNameTyped<&ByName_734> },
-	{ "entryIsDictCustomEquip:",	kOOByNamePlayer,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::PList,	&OOEntityByNameAdaptPList<&ByName_735>,	nullptr },
-	{ "entryIsCustomEquip:",	kOOByNamePlayer,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_736>,	nullptr },
+	{ "entryIsDictCustomEquip:",	kOOByNamePlayer,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::PList,	&OOEntityByNameAdaptPList<&ByName_735>,	nullptr },
+	{ "entryIsCustomEquip:",	kOOByNamePlayer,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_736>,	nullptr },
 	{ "getCustomEquipArray:",	kOOByNamePlayer,	kOOTypeEncoding<oo::PList>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_737>,	nullptr },
 	{ "getCustomEquipIndex:",	kOOByNamePlayer,	kOOTypeEncoding<NSUInteger>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_738>,	nullptr },
 	{ "setGuiToKeyConfigScreen",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_739>,	&OOEntityByNameTyped<&ByName_739> },
 	{ "setGuiToKeyConfigEntryScreen",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_740>,	&OOEntityByNameTyped<&ByName_740> },
 	{ "setGuiToConfirmClearScreen",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_741>,	&OOEntityByNameTyped<&ByName_741> },
 	{ "makeKeyGuiDictHeader:",	kOOByNamePlayer,	kOOTypeEncoding<oo::PList>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_742>,	nullptr },
-	{ "entryIsEqualToDefault:",	kOOByNamePlayer,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_743>,	nullptr },
+	{ "entryIsEqualToDefault:",	kOOByNamePlayer,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_743>,	nullptr },
 	{ "saveKeySetting:",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_744>,	nullptr },
 	{ "unsetKeySetting:",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_745>,	nullptr },
 	{ "deleteKeySetting:",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_746>,	nullptr },
@@ -2799,8 +2799,8 @@ inline const OOEntityByNameRow kOOEntityByNameRows[] =
 	{ "reloadPage",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_749>,	&OOEntityByNameTyped<&ByName_749> },
 	{ "scriptTarget",	kOOByNamePlayer,	kOOTypeEncoding<ShipEntity *>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_750>,	&OOEntityByNameTyped<&ByName_750> },
 	{ "checkScript",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_751>,	&OOEntityByNameTyped<&ByName_751> },
-	{ "cxx_scriptTestConditions:",	kOOByNamePlayer,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::PList,	&OOEntityByNameAdaptPList<&ByName_752>,	nullptr },
-	{ "scriptTestCondition:",	kOOByNamePlayer,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::PList,	&OOEntityByNameAdaptPList<&ByName_753>,	nullptr },
+	{ "cxx_scriptTestConditions:",	kOOByNamePlayer,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::PList,	&OOEntityByNameAdaptPList<&ByName_752>,	nullptr },
+	{ "scriptTestCondition:",	kOOByNamePlayer,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::PList,	&OOEntityByNameAdaptPList<&ByName_753>,	nullptr },
 	{ "cxx_missionVariables",	kOOByNamePlayer,	kOOTypeEncoding<oo::PList>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_754>,	&OOEntityByNameTyped<&ByName_754> },
 	{ "cxx_missionVariableForKey:",	kOOByNamePlayer,	kOOTypeEncoding<oo::PList>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_755>,	nullptr },
 	{ "cxx_missionsList",	kOOByNamePlayer,	kOOTypeEncoding<oo::PList>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_756>,	&OOEntityByNameTyped<&ByName_756> },
@@ -2907,7 +2907,7 @@ inline const OOEntityByNameRow kOOEntityByNameRows[] =
 	{ "setGuiToMissionScreen",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_857>,	&OOEntityByNameTyped<&ByName_857> },
 	{ "refreshMissionScreenTextEntry",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_858>,	&OOEntityByNameTyped<&ByName_858> },
 	{ "cxx_setBackgroundFromDescriptionsKey:",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_859>,	nullptr },
-	{ "cxx_addEqScriptForKey:",	kOOByNamePlayer,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_860>,	nullptr },
+	{ "cxx_addEqScriptForKey:",	kOOByNamePlayer,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_860>,	nullptr },
 	{ "cxx_removeEqScriptForKey:",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_861>,	nullptr },
 	{ "cxx_eqScriptIndexForKey:",	kOOByNamePlayer,	kOOTypeEncoding<NSUInteger>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_862>,	nullptr },
 	{ "targetNearestHostile",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_863>,	&OOEntityByNameTyped<&ByName_863> },
@@ -2922,8 +2922,8 @@ inline const OOEntityByNameRow kOOEntityByNameRows[] =
 	{ "contractReputation",	kOOByNamePlayer,	kOOTypeEncoding<int>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_872>,	&OOEntityByNameTyped<&ByName_872> },
 	{ "erodeReputation",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_873>,	&OOEntityByNameTyped<&ByName_873> },
 	{ "normaliseReputation",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_874>,	&OOEntityByNameTyped<&ByName_874> },
-	{ "cxx_removePassenger:",	kOOByNamePlayer,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_875>,	nullptr },
-	{ "cxx_removeParcel:",	kOOByNamePlayer,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_876>,	nullptr },
+	{ "cxx_removePassenger:",	kOOByNamePlayer,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_875>,	nullptr },
+	{ "cxx_removeParcel:",	kOOByNamePlayer,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_876>,	nullptr },
 	{ "setGuiToManifestScreen",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_877>,	&OOEntityByNameTyped<&ByName_877> },
 	{ "setGuiToDockingReportScreen",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_878>,	&OOEntityByNameTyped<&ByName_878> },
 	{ "cxx_priceForShipKey:",	kOOByNamePlayer,	kOOTypeEncoding<OOCreditsQuantity>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_879>,	nullptr },
@@ -2931,15 +2931,15 @@ inline const OOEntityByNameRow kOOEntityByNameRows[] =
 	{ "showTradeInInformationFooter",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_881>,	&OOEntityByNameTyped<&ByName_881> },
 	{ "missingSubEntitiesAdjustment",	kOOByNamePlayer,	kOOTypeEncoding<NSInteger>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_882>,	&OOEntityByNameTyped<&ByName_882> },
 	{ "tradeInValue",	kOOByNamePlayer,	kOOTypeEncoding<OOCreditsQuantity>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_883>,	&OOEntityByNameTyped<&ByName_883> },
-	{ "buySelectedShip",	kOOByNamePlayer,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_884>,	&OOEntityByNameTyped<&ByName_884> },
-	{ "cxx_replaceShipWithNamedShip:",	kOOByNamePlayer,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_885>,	nullptr },
-	{ "loadPlayer",	kOOByNamePlayer,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_886>,	&OOEntityByNameTyped<&ByName_886> },
+	{ "buySelectedShip",	kOOByNamePlayer,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_884>,	&OOEntityByNameTyped<&ByName_884> },
+	{ "cxx_replaceShipWithNamedShip:",	kOOByNamePlayer,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_885>,	nullptr },
+	{ "loadPlayer",	kOOByNamePlayer,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_886>,	&OOEntityByNameTyped<&ByName_886> },
 	{ "savePlayer",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_887>,	&OOEntityByNameTyped<&ByName_887> },
 	{ "autosavePlayer",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_888>,	&OOEntityByNameTyped<&ByName_888> },
 	{ "quicksavePlayer",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_889>,	&OOEntityByNameTyped<&ByName_889> },
 	{ "addScenarioModel:",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_890>,	nullptr },
 	{ "showScenarioDetails",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_891>,	&OOEntityByNameTyped<&ByName_891> },
-	{ "startScenario",	kOOByNamePlayer,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_892>,	&OOEntityByNameTyped<&ByName_892> },
+	{ "startScenario",	kOOByNamePlayer,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_892>,	&OOEntityByNameTyped<&ByName_892> },
 	{ "saveCommanderInputHandler",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_893>,	&OOEntityByNameTyped<&ByName_893> },
 	{ "overwriteCommanderInputHandler",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_894>,	&OOEntityByNameTyped<&ByName_894> },
 	{ "writePlayerToPath:",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_895>,	nullptr },
@@ -2947,7 +2947,7 @@ inline const OOEntityByNameRow kOOEntityByNameRows[] =
 	{ "setGuiToLoadCommanderScreen",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_897>,	&OOEntityByNameTyped<&ByName_897> },
 	{ "setGuiToSaveCommanderScreen:",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_898>,	nullptr },
 	{ "setGuiToOverwriteScreen:",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_899>,	nullptr },
-	{ "existingNativeSave:",	kOOByNamePlayer,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_900>,	nullptr },
+	{ "existingNativeSave:",	kOOByNamePlayer,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_900>,	nullptr },
 	{ "findIndexOfCommander:",	kOOByNamePlayer,	kOOTypeEncoding<int>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_901>,	nullptr },
 	{ "equivalentTechLevel",	kOOByNameStation,	kOOTypeEncoding<OOTechLevelID>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_902>,	&OOEntityByNameTyped<&ByName_902> },
 	{ "virtualPortDimensions",	kOOByNameStation,	kOOTypeEncoding<Vector>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_903>,	&OOEntityByNameTyped<&ByName_903> },
@@ -2956,57 +2956,57 @@ inline const OOEntityByNameRow kOOEntityByNameRows[] =
 	{ "equipmentPriceFactor",	kOOByNameStation,	kOOTypeEncoding<float>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_906>,	&OOEntityByNameTyped<&ByName_906> },
 	{ "marketCapacity",	kOOByNameStation,	kOOTypeEncoding<OOCargoQuantity>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_907>,	&OOEntityByNameTyped<&ByName_907> },
 	{ "cxx_marketDefinition",	kOOByNameStation,	kOOTypeEncoding<oo::PList>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_908>,	&OOEntityByNameTyped<&ByName_908> },
-	{ "marketMonitored",	kOOByNameStation,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_909>,	&OOEntityByNameTyped<&ByName_909> },
-	{ "marketBroadcast",	kOOByNameStation,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_910>,	&OOEntityByNameTyped<&ByName_910> },
+	{ "marketMonitored",	kOOByNameStation,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_909>,	&OOEntityByNameTyped<&ByName_909> },
+	{ "marketBroadcast",	kOOByNameStation,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_910>,	&OOEntityByNameTyped<&ByName_910> },
 	{ "cxx_setLocalMarket:",	kOOByNameStation,	kOOTypeEncoding<void>,	OOEntityByNameArgument::PList,	&OOEntityByNameAdaptPList<&ByName_911>,	nullptr },
 	{ "cxx_localMarketForScripting",	kOOByNameStation,	kOOTypeEncoding<oo::PList>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_912>,	&OOEntityByNameTyped<&ByName_912> },
 	{ "countOfDockedContractors",	kOOByNameStation,	kOOTypeEncoding<unsigned>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_913>,	&OOEntityByNameTyped<&ByName_913> },
 	{ "countOfDockedPolice",	kOOByNameStation,	kOOTypeEncoding<unsigned>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_914>,	&OOEntityByNameTyped<&ByName_914> },
 	{ "countOfDockedDefenders",	kOOByNameStation,	kOOTypeEncoding<unsigned>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_915>,	&OOEntityByNameTyped<&ByName_915> },
-	{ "interstellarUndockingAllowed",	kOOByNameStation,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_916>,	&OOEntityByNameTyped<&ByName_916> },
-	{ "hasNPCTraffic",	kOOByNameStation,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_917>,	&OOEntityByNameTyped<&ByName_917> },
-	{ "requiresDockingClearance",	kOOByNameStation,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_918>,	&OOEntityByNameTyped<&ByName_918> },
-	{ "allowsFastDocking",	kOOByNameStation,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_919>,	&OOEntityByNameTyped<&ByName_919> },
-	{ "allowsAutoDocking",	kOOByNameStation,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_920>,	&OOEntityByNameTyped<&ByName_920> },
-	{ "allowsSaving",	kOOByNameStation,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_921>,	&OOEntityByNameTyped<&ByName_921> },
-	{ "isRotatingStation",	kOOByNameStation,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_922>,	&OOEntityByNameTyped<&ByName_922> },
-	{ "hasShipyard",	kOOByNameStation,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_923>,	&OOEntityByNameTyped<&ByName_923> },
+	{ "interstellarUndockingAllowed",	kOOByNameStation,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_916>,	&OOEntityByNameTyped<&ByName_916> },
+	{ "hasNPCTraffic",	kOOByNameStation,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_917>,	&OOEntityByNameTyped<&ByName_917> },
+	{ "requiresDockingClearance",	kOOByNameStation,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_918>,	&OOEntityByNameTyped<&ByName_918> },
+	{ "allowsFastDocking",	kOOByNameStation,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_919>,	&OOEntityByNameTyped<&ByName_919> },
+	{ "allowsAutoDocking",	kOOByNameStation,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_920>,	&OOEntityByNameTyped<&ByName_920> },
+	{ "allowsSaving",	kOOByNameStation,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_921>,	&OOEntityByNameTyped<&ByName_921> },
+	{ "isRotatingStation",	kOOByNameStation,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_922>,	&OOEntityByNameTyped<&ByName_922> },
+	{ "hasShipyard",	kOOByNameStation,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_923>,	&OOEntityByNameTyped<&ByName_923> },
 	{ "generateShipyard",	kOOByNameStation,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_924>,	&OOEntityByNameTyped<&ByName_924> },
-	{ "suppressArrivalReports",	kOOByNameStation,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_925>,	&OOEntityByNameTyped<&ByName_925> },
-	{ "hasBreakPattern",	kOOByNameStation,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_926>,	&OOEntityByNameTyped<&ByName_926> },
+	{ "suppressArrivalReports",	kOOByNameStation,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_925>,	&OOEntityByNameTyped<&ByName_925> },
+	{ "hasBreakPattern",	kOOByNameStation,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_926>,	&OOEntityByNameTyped<&ByName_926> },
 	{ "sanityCheckShipsOnApproach",	kOOByNameStation,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_927>,	&OOEntityByNameTyped<&ByName_927> },
 	{ "autoDockShipsOnHold",	kOOByNameStation,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_928>,	&OOEntityByNameTyped<&ByName_928> },
 	{ "autoDockShipsOnApproach",	kOOByNameStation | kOOByNameDock,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_929>,	&OOEntityByNameTyped<&ByName_929> },
-	{ "dockingCorridorIsEmpty",	kOOByNameStation | kOOByNameDock,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_930>,	&OOEntityByNameTyped<&ByName_930> },
+	{ "dockingCorridorIsEmpty",	kOOByNameStation | kOOByNameDock,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_930>,	&OOEntityByNameTyped<&ByName_930> },
 	{ "clearDockingCorridor",	kOOByNameStation | kOOByNameDock,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_931>,	&OOEntityByNameTyped<&ByName_931> },
 	{ "clear",	kOOByNameStation | kOOByNameDock,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_932>,	&OOEntityByNameTyped<&ByName_932> },
-	{ "hasMultipleDocks",	kOOByNameStation,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_933>,	&OOEntityByNameTyped<&ByName_933> },
-	{ "hasClearDock",	kOOByNameStation,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_934>,	&OOEntityByNameTyped<&ByName_934> },
-	{ "hasEligibleDock",	kOOByNameStation,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_935>,	&OOEntityByNameTyped<&ByName_935> },
-	{ "hasLaunchDock",	kOOByNameStation,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_936>,	&OOEntityByNameTyped<&ByName_936> },
+	{ "hasMultipleDocks",	kOOByNameStation,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_933>,	&OOEntityByNameTyped<&ByName_933> },
+	{ "hasClearDock",	kOOByNameStation,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_934>,	&OOEntityByNameTyped<&ByName_934> },
+	{ "hasEligibleDock",	kOOByNameStation,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_935>,	&OOEntityByNameTyped<&ByName_935> },
+	{ "hasLaunchDock",	kOOByNameStation,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_936>,	&OOEntityByNameTyped<&ByName_936> },
 	{ "selectDockForDocking",	kOOByNameStation,	kOOTypeEncoding<OOObjCId>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_937>,	&OOEntityByNameTyped<&ByName_937> },
 	{ "countOfShipsInLaunchQueueWithPrimaryRole:",	kOOByNameStation | kOOByNameDock,	kOOTypeEncoding<unsigned>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_938>,	nullptr },
 	{ "alertLevel",	kOOByNameStation,	kOOTypeEncoding<OOStationAlertLevel>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_939>,	&OOEntityByNameTyped<&ByName_939> },
 	{ "currentlyInDockingQueues",	kOOByNameStation,	kOOTypeEncoding<unsigned>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_940>,	&OOEntityByNameTyped<&ByName_940> },
 	{ "currentlyInLaunchingQueues",	kOOByNameStation,	kOOTypeEncoding<unsigned>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_941>,	&OOEntityByNameTyped<&ByName_941> },
 	{ "launchIndependentShip:",	kOOByNameStation,	kOOTypeEncoding<oo::PList>,	OOEntityByNameArgument::String,	&OOEntityByNameAdaptString<&ByName_942>,	nullptr },
-	{ "allowsDocking",	kOOByNameDock,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_943>,	&OOEntityByNameTyped<&ByName_943> },
-	{ "disallowedDockingCollides",	kOOByNameDock,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_944>,	&OOEntityByNameTyped<&ByName_944> },
+	{ "allowsDocking",	kOOByNameDock,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_943>,	&OOEntityByNameTyped<&ByName_943> },
+	{ "disallowedDockingCollides",	kOOByNameDock,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_944>,	&OOEntityByNameTyped<&ByName_944> },
 	{ "countOfShipsInDockingQueue",	kOOByNameDock,	kOOTypeEncoding<NSUInteger>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_945>,	&OOEntityByNameTyped<&ByName_945> },
-	{ "allowsLaunching",	kOOByNameDock,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_946>,	&OOEntityByNameTyped<&ByName_946> },
+	{ "allowsLaunching",	kOOByNameDock,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_946>,	&OOEntityByNameTyped<&ByName_946> },
 	{ "countOfShipsInLaunchQueue",	kOOByNameDock,	kOOTypeEncoding<NSUInteger>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_947>,	&OOEntityByNameTyped<&ByName_947> },
-	{ "isOffCentre",	kOOByNameDock,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_948>,	&OOEntityByNameTyped<&ByName_948> },
+	{ "isOffCentre",	kOOByNameDock,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_948>,	&OOEntityByNameTyped<&ByName_948> },
 	{ "setVirtual",	kOOByNameDock,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_949>,	&OOEntityByNameTyped<&ByName_949> },
 	{ "clearAllIdLocks",	kOOByNameDock,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_950>,	&OOEntityByNameTyped<&ByName_950> },
 	{ "pruneAndCountShipsOnApproach",	kOOByNameDock,	kOOTypeEncoding<NSUInteger>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_951>,	&OOEntityByNameTyped<&ByName_951> },
 	{ "abortAllLaunches",	kOOByNameDock,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_952>,	&OOEntityByNameTyped<&ByName_952> },
-	{ "setUpVisualEffectFromDictionary:",	kOOByNameEffect,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::PList,	&OOEntityByNameAdaptPList<&ByName_953>,	nullptr },
+	{ "setUpVisualEffectFromDictionary:",	kOOByNameEffect,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::PList,	&OOEntityByNameAdaptPList<&ByName_953>,	nullptr },
 	{ "setNoDrawDistance",	kOOByNameEffect,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_954>,	&OOEntityByNameTyped<&ByName_954> },
 	{ "scaleMax",	kOOByNameEffect,	kOOTypeEncoding<GLfloat>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_955>,	&OOEntityByNameTyped<&ByName_955> },
 	{ "scaleX",	kOOByNameEffect,	kOOTypeEncoding<GLfloat>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_956>,	&OOEntityByNameTyped<&ByName_956> },
 	{ "scaleY",	kOOByNameEffect,	kOOTypeEncoding<GLfloat>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_957>,	&OOEntityByNameTyped<&ByName_957> },
 	{ "scaleZ",	kOOByNameEffect,	kOOTypeEncoding<GLfloat>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_958>,	&OOEntityByNameTyped<&ByName_958> },
-	{ "isBreakPattern",	kOOByNameEffect,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_959>,	&OOEntityByNameTyped<&ByName_959> },
+	{ "isBreakPattern",	kOOByNameEffect,	kOOTypeEncoding<bool>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_959>,	&OOEntityByNameTyped<&ByName_959> },
 	{ "effectInfoDictionary",	kOOByNameEffect,	kOOTypeEncoding<oo::PList>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_960>,	&OOEntityByNameTyped<&ByName_960> },
 	{ "remove",	kOOByNameEffect,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_961>,	&OOEntityByNameTyped<&ByName_961> },
 	{ "shaderFloat1",	kOOByNameEffect,	kOOTypeEncoding<GLfloat>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_962>,	&OOEntityByNameTyped<&ByName_962> },

@@ -10,7 +10,7 @@
    control-point editing rules, and what a copy keeps (a copy does NOT keep the
    dead zone; the spline copy keeps the points). The cases use the C++ API
    (makeRef, copy(), dynamic_cast/typeid for class checks). Run: bash
-   tools/check-core-tests.sh
+   tests/run.sh unit
 */
 
 #include <cmath>

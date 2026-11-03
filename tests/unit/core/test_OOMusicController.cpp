@@ -11,7 +11,7 @@
    file's stubs, which record what they are asked (the real ones would bring the
    sound system into the link): "missing.ogg" has no music. The expectations ask
    the C++ class. After them comes the C++ API case. Run: bash
-   tools/check-core-tests.sh test_OOMusicController
+   meson test -C build/meson_test test_OOMusicController
 */
 
 #include <process.h>
@@ -38,7 +38,7 @@ static int gLiveMusics = 0;
 // itself).
 struct MusicState {
   std::string _name;
-  BOOL _playing = NO;
+  bool _playing = false;
   float _gain = 0.0f;
 };
 static std::map<const OOMusic*, MusicState> gMusics;
@@ -78,13 +78,13 @@ float OOMusic::musicGain() { return gMusics[this]._gain; }
 void OOMusic::playLooped(bool loop) {
   MusicState& state = gMusics[this];
   gLog.push_back("play " + state._name + (loop ? " looped" : ""));
-  state._playing = YES;
+  state._playing = true;
 }
 
 void OOMusic::stop() {
   MusicState& state = gMusics[this];
   gLog.push_back("stop " + state._name);
-  state._playing = NO;
+  state._playing = false;
 }
 
 bool OOMusic::isPlaying() { return gMusics[this]._playing; }
@@ -149,11 +149,11 @@ OO_TEST(theSharedControllerReadsItsMode) {
   OO_CHECK(controller->mode() == kOOMusicOff);
   OO_CHECK(!controller->isPlaying() &&
            !controller->playingMusic().has_value() &&
-           controller->soundSource() == nil);
+           controller->soundSource() == nullptr);
 
   // Off: nothing plays.
   controller->playThemeMusic();
-  controller->playMusicNamed("x.ogg", NO);
+  controller->playMusicNamed("x.ogg", false);
   OO_CHECK(TakeLog().empty() && !controller->isPlaying());
 }
 
@@ -185,21 +185,21 @@ OO_TEST(playsMusicByName) {
   SetUp();
   OOMusicController* controller = OOMusicController::sharedController();
   {
-    controller->playMusicNamed("a.ogg", YES, 2.0f);
+    controller->playMusicNamed("a.ogg", true, 2.0f);
     OO_CHECK((TakeLog() == std::vector<std::string>{"play a.ogg looped"}));
     OO_CHECK(controller->isPlaying() &&
              controller->playingMusic() == std::optional<std::string>("a.ogg"));
     OO_CHECK(Current(controller)->_gain == 1.0f);  // clamped
 
-    controller->playMusicNamed("a.ogg", NO);  // already playing it: nothing
+    controller->playMusicNamed("a.ogg", false);  // already playing it: nothing
     OO_CHECK(TakeLog().empty());
 
     controller->playMusicNamed("missing.ogg",
-                               NO);  // none: the current one goes on
+                               false);  // none: the current one goes on
     OO_CHECK(TakeLog().empty() &&
              controller->playingMusic() == std::optional<std::string>("a.ogg"));
 
-    controller->playMusicNamed("b.ogg", NO);
+    controller->playMusicNamed("b.ogg", false);
     OO_CHECK(
         (TakeLog() == std::vector<std::string>{"stop a.ogg", "play b.ogg"}));
     OO_CHECK(Current(controller)->_gain == OO_DEFAULT_SOUNDSOURCE_GAIN);
@@ -208,7 +208,7 @@ OO_TEST(playsMusicByName) {
     OO_CHECK(TakeLog().empty());
     controller->stopMusicNamed("b.ogg");
     OO_CHECK((TakeLog() == std::vector<std::string>{"stop b.ogg"}));
-    OO_CHECK(!controller->isPlaying() && controller->soundSource() == nil);
+    OO_CHECK(!controller->isPlaying() && controller->soundSource() == nullptr);
   }
   OO_CHECK(gLiveMusics == 0);
 }

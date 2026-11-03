@@ -673,7 +673,7 @@ static JSValue GlobalGetGuiColorSettingForKey(OOJS_NATIVE_ARGS)
     }
 
     GuiDisplayGen* gui = (UNIVERSE != nullptr ? UNIVERSE->getGui() : nullptr);
-    oo::Ref<OOColor> col = gui->colorFromSetting(key, nil);
+    oo::Ref<OOColor> col = gui->colorFromSetting(key, nullptr);
 
     // The components as the colour's -normalizedArray gave them: floats, nil for no colour.
     oo::PList::Array components;

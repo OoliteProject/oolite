@@ -13,7 +13,7 @@
 	It imports neither OOJavaScriptEngine.h nor Universe.h, which would bring in the game classes.
 	The tests pin the JS-visible behaviour of
 	every property and method that compiles in the test flavour.
-	Run: bash tools/check-core-tests.sh test_OOJSConsole
+	Run: tests/run.sh unit
 */
 
 #include "OOFoundation.h"
@@ -221,31 +221,31 @@ JSValue OOJSValueFromPList(JSContext *context, const oo::PList &plist)
 
 
 // As the engine's: JavaScript truthiness, NO if the conversion throws.
-BOOL OOJSValueToBOOL(JSContext *context, JSValueConst value)
+bool OOJSValueToBOOL(JSContext *context, JSValueConst value)
 {
 	int result = JS_ToBool(context, value);
 	if (result < 0)
 	{
 		JS_FreeValue(context, JS_GetException(context));
-		return NO;
+		return false;
 	}
 	return result != 0;
 }
 
 
 // As the engine's: a number rounded to the nearest integer; NaN or out of range is an error.
-BOOL OOJSValueToInt32(JSContext *context, JSValueConst value, int32_t *outValue)
+bool OOJSValueToInt32(JSContext *context, JSValueConst value, int32_t *outValue)
 {
 	double number;
-	if (JS_ToFloat64(context, &number, value) < 0)  return NO;
+	if (JS_ToFloat64(context, &number, value) < 0)  return false;
 	number = std::floor(number + 0.5);
 	if (std::isnan(number) || number < INT32_MIN || number > INT32_MAX)
 	{
 		cxx_OOJSReportError(context, "can't convert to an integer");
-		return NO;
+		return false;
 	}
 	*outValue = static_cast<int32_t>(number);
-	return YES;
+	return true;
 }
 
 
@@ -431,7 +431,7 @@ class Universe
 {
 public:
 	OOGraphicsDetail _detailLevel;
-	BOOL _displayFPS;
+	bool _displayFPS;
 
 	OOGraphicsDetail getDetailLevel();
 	void setDetailLevel(OOGraphicsDetail);
@@ -446,7 +446,7 @@ bool Universe::getDisplayFPS()	{ return _displayFPS; }
 void Universe::setDisplayFPS(bool value)	{ _displayFPS = value; }
 
 class Universe;
-Universe *gSharedUniverse = nil;
+Universe *gSharedUniverse = nullptr;
 
 
 // An entity, as the console's inspectEntity() sees it: one answers -inspect

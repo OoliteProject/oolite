@@ -1,8 +1,8 @@
 # Component test tier
 
 Gherkin scenarios driven over the debug-console TCP channel, asserting named, tolerant invariants
-about simulated gameplay. Specified in [`docs/phases/0-component-tier.md`](../../../docs/phases/0-component-tier.md).
-The seam and exemplar is [S1](../../../docs/stories/S1-police-kills-pirate.md).
+about simulated gameplay. The seam and exemplar is
+[S1](features/s1_police_kills_pirate.feature).
 
 ```bash
 python3 -m pytest oolite-dev/tests/component/ -x -q
@@ -93,7 +93,7 @@ Why the presses are what they are:
 
 - **`SendInput` by scancode, into the foreground window**, the GUI tier's recipe restated in
   `keyboard.py`: the SDL3 build dispatches by scancode, and synthetic input goes to whichever
-  window is focused. The tier already holds `tools/gui-lock`, which is what lets it take the
+  window is focused. The tier runs alone on the desktop, which is what lets it take the
   foreground. **Windows only**, like `test_paused_console_priority.py`.
 - **Longer than the GUI tier's 0.15 s.** This tier renders on llvmpipe, which draws 6-9 frames a
   second in the tutorial's flight scenes; the game samples keys once per frame, so a 0.15 s tap

@@ -243,7 +243,7 @@ std::optional<std::string> AI::shortDescriptionComponents() const
 {
     // Only a ship is ever the owner (setOwner()).
     ::ShipEntity* owner = static_cast<::ShipEntity*>(_owner.get());
-    if (owner == nil) {
+    if (owner == nullptr) {
         _owner = nullptr;
     }
 
@@ -259,7 +259,7 @@ void AI::setOwner(::ShipEntity* ship)
 void AI::reportStackOverflow()
 {
     if (oo::log::willDisplay("ai.error.stackOverflow")) {
-        BOOL stackDump = oo::log::willDisplay("ai.error.stackOverflow.dump");
+        bool stackDump = oo::log::willDisplay("ai.error.stackOverflow.dump");
 
         const char* trailer = stackDump ? " -- stack:" : ".";
         OO_LOG_ERR("ai.error.stackOverflow",
@@ -445,7 +445,7 @@ void AI::reactToMessage(
        reference.
              -- Ahruman, 20070706
     */
-    if (owner == nil || (owner != nullptr ? owner->getUniversalID() : OOUniversalID { }) == NO_TARGET)
+    if (owner == nullptr || (owner != nullptr ? owner->getUniversalID() : OOUniversalID { }) == NO_TARGET)
         return;
 
 #ifndef NDEBUG
@@ -578,7 +578,7 @@ void AI::takeAction(const std::string& action)
     if (tokenCount != 0) {
         const std::string& selectorStr = tokens[0];
 
-        if (owner != nil) {
+        if (owner != nullptr) {
             std::optional<std::string> dataString;
 
             if (tokenCount == 2) {
@@ -749,7 +749,7 @@ void AI::refreshOwnerDesc()
     ::ShipEntity* owner = this->owner();
     if ((owner != nullptr ? owner->getIsPlayer() : false)) {
         ownerDesc = "player autopilot";
-    } else if (owner != nil) {
+    } else if (owner != nullptr) {
         ownerDesc = oo::str::format(
             "%s %d",
             (owner != nullptr ? owner->getName() : std::optional<std::string>())

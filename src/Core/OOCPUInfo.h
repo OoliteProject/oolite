@@ -57,9 +57,11 @@ OOMemoryStatus OOSystemMemoryStatus(void);
 #endif
 
 #if OOLITE_WINDOWS
-typedef BOOL(WINAPI* IW64PFP)(HANDLE,
-    BOOL*); // for checking for 64/32 bit system
-BOOL is64BitSystem(void);
+#include <windows.h>
+
+// IsWow64Process, to check for a 64/32 bit system: windows.h's BOOL is an int
+typedef BOOL(WINAPI* IW64PFP)(HANDLE, BOOL*);
+bool is64BitSystem(void);
 std::string operatingSystemFullVersion(void); // UTF-8
 #endif
 

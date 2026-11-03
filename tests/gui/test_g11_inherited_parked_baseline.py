@@ -229,8 +229,8 @@ def test_atexit_restore_is_idempotent_after_a_normal_restore(tmp_path):
     A REAL park is a RENAME, so the sibling's real end state is: parked twin PRESENT, live
     name FREE. That is byte-for-byte the state the old condition treated as "safe to rename
     back", which is why the condition could never exclude this race: it is satisfied BY the
-    race. Reproduced cross-process by the reviewer - A parks, A restores, A releases the
-    gui-lock, B acquires it and legitimately parks, A's interpreter exits and A's hook renames
+    race. Reproduced cross-process by the reviewer - A parks, A restores, A's session ends,
+    B starts and legitimately parks, A's interpreter exits and A's hook renames
     B's park back - after which B's own restore records both DLLs as failures and B's game is
     mid-flight on a build whose software GL it had deliberately parked.
     """

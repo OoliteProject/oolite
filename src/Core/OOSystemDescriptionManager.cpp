@@ -344,7 +344,7 @@ oo::PList OOSystemDescriptionManager::getPropertiesForSystem(OOSystemID s, OOGal
 
 oo::PList OOSystemDescriptionManager::getProperty(const std::string& property, const std::string& key)
 {
-    return getProperty(property, key, YES);
+    return getProperty(property, key, true);
 }
 
 oo::PList OOSystemDescriptionManager::getProperty(const std::string& property, OOSystemID s, OOGalaxyID g)
@@ -453,7 +453,7 @@ void OOSystemDescriptionManager::setProperties(const oo::PList& properties, OOSy
 oo::PList OOSystemDescriptionManager::calculatePropertiesForSystemKey(const std::string& key)
 {
     oo::PList::Dict dict;
-    BOOL interstellar = oo::str::hasPrefix(key, "interstellar:");
+    bool interstellar = oo::str::hasPrefix(key, "interstellar:");
     for (const std::string& property : propertiesInUse) {
         // don't use universal properties on interstellar specific regions
         oo::PList val = getProperty(property, key, !interstellar);
@@ -463,7 +463,7 @@ oo::PList OOSystemDescriptionManager::calculatePropertiesForSystemKey(const std:
         } else if (interstellar) {
             // interstellar is always overridden by specific regions
             // universal properties for interstellar get picked up here
-            val = getProperty(property, "interstellar", YES);
+            val = getProperty(property, "interstellar", true);
             if (!val.isNull()) {
                 dict[property] = std::move(val);
             }

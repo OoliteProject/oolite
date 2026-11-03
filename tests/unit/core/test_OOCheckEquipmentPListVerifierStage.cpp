@@ -10,7 +10,7 @@
    a dictionary, each entry named by its number and key. Then the stage is
    global: the verifier registers and answers the C++ stage itself, so the
    facade case asks the stage (its description through description()).
-   Run: bash tools/check-core-tests.sh
+   Run: tests/run.sh unit
 */
 
 #include <filesystem>

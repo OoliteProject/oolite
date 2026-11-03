@@ -64,10 +64,10 @@ public:
 struct SourceRecord
 {
 	oo::Ref<OOSound> _sound;
-	BOOL _loop = NO;
+	bool _loop = false;
 	uint8_t _repeatCount = 0;
-	BOOL _playing = NO;
-	BOOL _positional = NO;
+	bool _playing = false;
+	bool _positional = false;
 	Vector _position = {};
 	float _gain = 0.0f;
 	int _plays = 0;
@@ -91,9 +91,9 @@ void OOSoundSource::setLoop(bool inLoop)  { sRecords[this]._loop = inLoop; }
 uint8_t OOSoundSource::repeatCount()  { return sRecords[this]._repeatCount; }
 void OOSoundSource::setRepeatCount(uint8_t inCount)  { sRecords[this]._repeatCount = inCount; }
 bool OOSoundSource::isPlaying()  { return sRecords[this]._playing; }
-void OOSoundSource::play()  { sRecords[this]._plays++; sRecords[this]._playing = YES; }
-void OOSoundSource::playOrRepeat()  { sRecords[this]._playOrRepeats++; sRecords[this]._playing = YES; }
-void OOSoundSource::stop()  { sRecords[this]._stops++; sRecords[this]._playing = NO; }
+void OOSoundSource::play()  { sRecords[this]._plays++; sRecords[this]._playing = true; }
+void OOSoundSource::playOrRepeat()  { sRecords[this]._playOrRepeats++; sRecords[this]._playing = true; }
+void OOSoundSource::stop()  { sRecords[this]._stops++; sRecords[this]._playing = false; }
 void OOSoundSource::setPositional(bool inPositional)  { sRecords[this]._positional = inPositional; }
 bool OOSoundSource::positional()  { return sRecords[this]._positional; }
 void OOSoundSource::setPosition(Vector inPosition)  { sRecords[this]._position = inPosition; }
@@ -179,18 +179,18 @@ std::optional<std::string> cxx_OOStringFromJSValue(JSContext *context, JSValueCo
 
 
 // As the engine's: a number rounded to the nearest integer; NaN or out of range is an error.
-BOOL OOJSValueToInt32(JSContext *context, JSValueConst value, int32_t *outValue)
+bool OOJSValueToInt32(JSContext *context, JSValueConst value, int32_t *outValue)
 {
 	double number;
-	if (JS_ToFloat64(context, &number, value) < 0)  return NO;
+	if (JS_ToFloat64(context, &number, value) < 0)  return false;
 	number = std::floor(number + 0.5);
 	if (std::isnan(number) || number < INT32_MIN || number > INT32_MAX)
 	{
 		cxx_OOJSReportError(context, "can't convert to an integer");
-		return NO;
+		return false;
 	}
 	*outValue = static_cast<int32_t>(number);
-	return YES;
+	return true;
 }
 
 

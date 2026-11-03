@@ -13,7 +13,7 @@
    entity's C++ part (the binding's target, which the helpers below pass), and
         everyPermittedNameBindsAsBySelector pins that every name
    whitelist.plist permits binds through a row, with the type the selector path
-   read. Run: bash tools/check-core-tests.sh
+   read. Run: tests/run.sh unit
 */
 
 #include <cmath>

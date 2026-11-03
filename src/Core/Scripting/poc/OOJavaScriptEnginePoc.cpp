@@ -381,10 +381,10 @@ static int InterruptHandler(JSRuntime* /*runtime*/, void* /*opaque*/)
         "    at name (file:line:column)" or "    at file:line:column".
         Extract the file and line of the innermost frame.
 */
-static BOOL GetLocationFromStack(const std::optional<std::string>& stack, std::string* outFile, unsigned* outLine)
+static bool GetLocationFromStack(const std::optional<std::string>& stack, std::string* outFile, unsigned* outLine)
 {
     if (!stack.has_value())
-        return NO;
+        return false;
 
     std::string_view rest(*stack);
     while (!rest.empty()) {
@@ -417,9 +417,9 @@ static BOOL GetLocationFromStack(const std::optional<std::string>& stack, std::s
         const std::string lineText(frame.substr(lineColon + 1, lastColon - lineColon - 1));
         *outFile = std::string(frame.substr(0, lineColon));
         *outLine = static_cast<unsigned>(atoi(lineText.c_str()));
-        return YES;
+        return true;
     }
-    return NO;
+    return false;
 }
 
 static std::optional<std::string> StackOfValue(JSContext* context, JSValueConst value)
@@ -578,7 +578,7 @@ void OOJSReportBadPropertyValue(JSContext* context, JSValueConst thisObj, int ma
 {
     const std::string propName = cxx_OOStringFromJSPropertyMagic(magic, list, count);
     const std::string className = OOJSClassNameOfValue(context, thisObj);
-    const std::string valueDesc = cxx_OOJSDescribeValue(context, value, YES);
+    const std::string valueDesc = cxx_OOJSDescribeValue(context, value, true);
 
     cxx_OOJSReportError(context, "Cannot set property %s of instance of %s to invalid value %s.", propName.c_str(), className.c_str(), valueDesc.c_str());
 }
@@ -597,17 +597,17 @@ void cxx_OOJSReportBadArguments(JSContext* context, const std::optional<std::str
     }
 }
 
-BOOL cxx_OOJSArgumentListGetNumber(JSContext* context, const std::optional<std::string>& scriptClass, const std::optional<std::string>& function, int argc, JSValueConst* argv, double* outNumber, int* outConsumed)
+bool cxx_OOJSArgumentListGetNumber(JSContext* context, const std::optional<std::string>& scriptClass, const std::optional<std::string>& function, int argc, JSValueConst* argv, double* outNumber, int* outConsumed)
 {
     if (OOJSArgumentListGetNumberNoError(context, argc, argv, outNumber, outConsumed)) {
-        return YES;
+        return true;
     } else {
         cxx_OOJSReportBadArguments(context, scriptClass, function, argc, argv, std::string("Expected number, got"), std::nullopt);
-        return NO;
+        return false;
     }
 }
 
-BOOL OOJSArgumentListGetNumberNoError(JSContext* context, int argc, JSValueConst* argv, double* outNumber, int* outConsumed)
+bool OOJSArgumentListGetNumberNoError(JSContext* context, int argc, JSValueConst* argv, double* outNumber, int* outConsumed)
 {
     double value;
 
@@ -620,14 +620,14 @@ BOOL OOJSArgumentListGetNumberNoError(JSContext* context, int argc, JSValueConst
             JS_FreeValue(context, JS_GetException(context));
         if (outConsumed != NULL)
             *outConsumed = 0;
-        return NO;
+        return false;
     }
 
     // Success.
     *outNumber = value;
     if (outConsumed != NULL)
         *outConsumed = 1;
-    return YES;
+    return true;
 }
 
 //===========================================================================
@@ -772,7 +772,7 @@ JSValue OOJSValueFromPList(JSContext* context, const oo::PList& plist)
     return JS_UNDEFINED;
 }
 
-static std::string DescribeValue(JSContext* context, JSValueConst value, BOOL abbreviateObjects, BOOL recursing)
+static std::string DescribeValue(JSContext* context, JSValueConst value, bool abbreviateObjects, bool recursing)
 {
     if (JS_IsFunction(context, value)) {
         JSValue nameVal = JS_GetPropertyStr(context, value, "name");
@@ -804,7 +804,7 @@ static std::string DescribeValue(JSContext* context, JSValueConst value, BOOL ab
                     JSValue item = JS_GetPropertyUint32(context, value, static_cast<uint32_t>(i));
                     std::string itemDesc = "?";
                     if (!JS_IsException(item)) {
-                        itemDesc = DescribeValue(context, item, YES /* always abbreviate objects in arrays */, YES);
+                        itemDesc = DescribeValue(context, item, true /* always abbreviate objects in arrays */, true);
                     }
                     JS_FreeValue(context, item);
                     if (i != 0)
@@ -840,9 +840,9 @@ static std::string DescribeValue(JSContext* context, JSValueConst value, BOOL ab
     return *result;
 }
 
-std::string cxx_OOJSDescribeValue(JSContext* context, JSValueConst value, BOOL abbreviateObjects)
+std::string cxx_OOJSDescribeValue(JSContext* context, JSValueConst value, bool abbreviateObjects)
 {
-    return DescribeValue(context, value, abbreviateObjects, NO);
+    return DescribeValue(context, value, abbreviateObjects, false);
 }
 
 std::optional<std::string> cxx_OOJSStringWithJavaScriptParameters(JSValueConst* params, int count, JSContext* context)
@@ -855,7 +855,7 @@ std::optional<std::string> cxx_OOJSStringWithJavaScriptParameters(JSValueConst* 
     for (int i = 0; i < count; ++i) {
         if (i != 0)
             result += ", ";
-        result += cxx_OOJSDescribeValue(context, params[i], NO);
+        result += cxx_OOJSDescribeValue(context, params[i], false);
     }
 
     result += ")";

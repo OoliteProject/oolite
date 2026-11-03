@@ -144,7 +144,7 @@ static JSValue PlanetGetProperty(OOJS_GETTER_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    OOPlanetEntity* planet = nil;
+    OOPlanetEntity* planet = nullptr;
     if (!JSPlanetGetPlanetEntity(context, thisObj, &planet))
         return OOJSNativeFailure(context);
 
@@ -204,7 +204,7 @@ static JSValue PlanetSetProperty(OOJS_SETTER_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    OOPlanetEntity* planet = nil;
+    OOPlanetEntity* planet = nullptr;
     std::optional<std::string> sValue;
     Quaternion qValue;
     Vector vValue;

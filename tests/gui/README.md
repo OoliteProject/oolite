@@ -1,17 +1,15 @@
 # GUI test tier
 
 PyAutoGUI smoke tests that drive the game through **real OS-level mouse and keyboard input
-against a real window**. Specified in
-[`docs/phases/0-gui-tier.md`](../../../docs/phases/0-gui-tier.md); the seam and exemplar is
-[G1](../../../docs/stories/G1-exit-via-mouse.md).
+against a real window**. The exemplar is [`test_g1_exit_via_mouse.py`](test_g1_exit_via_mouse.py).
 
 ```bash
-tools/gui-tier.sh oolite-dev/tests/gui/test_g1_exit_via_mouse.py
+tests/run.sh gui
 ```
 
-Run it through `tools/gui-tier.sh`, not bare `pytest`. The runner installs
-[`requirements.txt`](requirements.txt) — nothing else in the repository does, so without it the
-missing-`pyautogui` case is the *expected* case — and exports `OO_GUI_REQUIRE=1`.
+Run it through `tests/run.sh gui`, not bare `pytest`. The runner installs
+[`requirements.txt`](requirements.txt) - without it the missing-`pyautogui` case is the *expected*
+case - and exports `OO_GUI_REQUIRE=1`.
 
 **A skip is a silent pass.** On Windows, a missing `pyautogui` is a hard `pytest.fail` naming the
 install command, never an `importorskip`. The one legitimate skip is a non-Windows host, where
@@ -20,9 +18,10 @@ so a run that was *supposed* to exercise G1 cannot come back green from the wron
 `tools/setup-windows.sh` installs `pyautogui` too, for a machine set up once up front.
 
 It needs a **real desktop**: logged in, unlocked, and not doing anything else, because the tier
-takes the desktop exclusively while it runs.
-That exclusion is `tools/gui-lock`, taken by the session-scoped `desktop_lock` fixture. It runs
-in the full gate and nightly, **never per change**. An RDP disconnect takes the desktop with it.
+takes the desktop while it runs. **Leave the mouse and keyboard alone, and run one GUI run at a
+time**: nothing locks the desktop, and a second window (another GUI run, or a game launched by
+hand) steals the foreground mid-click. It runs in the full gate and nightly, **never per change**.
+An RDP disconnect takes the desktop with it.
 
 ### The lock is not this tier's private business
 
@@ -69,10 +68,6 @@ with `--oolite-app <path>` or `OO_APP_DIR`.
 |---|---:|---|
 | `OO_GUI_READY_TIMEOUT` | `180` | How long to wait for `startup.complete` in the game's log. |
 | `OO_GUI_SETTLE` | `5` | Seconds for the start screen to draw once the game reports ready. |
-| `OO_GUI_LOCK_DIR` | `%LOCALAPPDATA%\Temp\oolite-gui-desktop.lock` | Where the desktop mutex lives. Must match `tools/gui-lock`. |
-| `OO_GUI_LOCK_TIMEOUT` | `900` | How long to queue for the desktop. |
-| `OO_GUI_LOCK_STALE` | `600` | Age at which a lock is assumed abandoned and reclaimed. Must stay **below** `OO_GUI_LOCK_TIMEOUT`. A provably-dead owner is reclaimed with no age at all. |
-| `OO_GUI_LOCK_OWNER_PID` | the calling process | The long-lived pid whose life proves the hold is live. |
 | `OO_APP_DIR` | the test build | Which `oolite.app` to drive. |
 
 ## What conftest.py gives G2-G9
@@ -82,7 +77,6 @@ with `--oolite-app <path>` or `OO_APP_DIR`.
 | `row_to_point(row, client_rect)` | function | Row -> absolute screen point, computed from the window rect and the fixed virtual grid. Raises `ValueError` for a row the cursor clamp cannot reach, rather than silently returning a point that selects its neighbour. |
 | `point_to_row(x, y, client_rect)` | function | The inverse, walking the same chain the game does. Lets the maths be tested with no game running. |
 | `game` | fixture | One process with a real, pinned window, ready and focused; killed unconditionally on teardown. `game.select_row`, `game.confirm_row`, `game.client_rect`. |
-| `desktop_lock` | fixture | Session-scoped, takes `tools/gui-lock`. |
 | `assert_clean_exit(game)` | function | G9 hygiene, all checks unconditional: no crash dump, no `ERROR` in `Latest.log` (an *absent* log is a failure, not a skip), and a GNUstep defaults file that **this run wrote** and that still parses. Takes the `game` fixture, which carries the launch-time defaults mark; the explicit `assert_clean_exit(output_dir, app_dir, defaults_launch_mark)` form is for tests that synthesise directories. Returns `(path, contents)` of the defaults file. |
 | `defaults_write_mark(app_dir)` | function | The mtimes of every candidate defaults path, recorded by `GameWindow.start()` **before** launch. Without it "the defaults file exists and parses" is true forever — `app_dir` is the persistent build tree — and the check cannot fail. |
 | `assert_no_surviving_game_processes(root_pid)` | function | No `oolite.exe` in the launched process tree is still alive. Scoped to that tree, so a concurrent sibling run is not mistaken for a leak. |
@@ -118,5 +112,4 @@ a reviewer falsified the first fix for this bug by backdating the file 30 days a
 check pass with the run having written nothing. `GameWindow.start()` therefore records
 `defaults_write_mark(app_dir)` **before** `Popen`, and the post-exit check demands a file
 strictly newer than that mark (or absent at launch and present afterwards). That is the half of
-`docs/stories/G1-exit-via-mouse.md:52`'s "defaults file **written** and re-parseable" that a
-timestamp-free check cannot express.
+G1's "defaults file **written** and re-parseable" that a timestamp-free check cannot express.

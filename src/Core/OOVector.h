@@ -143,7 +143,6 @@ public:
 private:
     Vector v = { };
 };
-}
 
 #endif
 

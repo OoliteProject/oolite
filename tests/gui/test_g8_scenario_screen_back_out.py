@@ -1,6 +1,6 @@
 """G8 - the scenario screen, entered from start-screen row 22 and left again by its row 1.
 
-docs/phases/0-gui-tier.md G8: "Launch -> confirm row 22 -> confirm row 1 (``Return to Menu``) ->
+G8: "Launch -> confirm row 22 -> confirm row 1 (``Return to Menu``) ->
 verify start screen -> exit". The bug class is a GUI state machine that goes one way: a screen you
 can enter and cannot leave is a wedged game, and it is exactly what a rewrite of the screen
 dispatchers breaks without breaking anything that compiles.
@@ -95,8 +95,8 @@ start screen's ` Exit Game ` row.
 
     python3 -m pytest oolite-dev/tests/gui/test_g8_scenario_screen_back_out.py -x -q
 
-Needs the desktop: a real window, unlocked and logged in. It takes tools/gui-lock for
-the duration, via the ``game`` fixture - this file launches nothing of its own.
+Needs the desktop: a real window, unlocked and logged in, left alone while it runs.
+The game is launched through the ``game`` fixture; this file launches nothing of its own.
 """
 
 import ast

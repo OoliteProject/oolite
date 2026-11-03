@@ -94,7 +94,7 @@ bool OOJoystickManager::getButtonState(int function)
     return butstate[function];
 }
 
-const BOOL* OOJoystickManager::getAllButtonStates()
+const bool* OOJoystickManager::getAllButtonStates()
 {
     return butstate;
 }

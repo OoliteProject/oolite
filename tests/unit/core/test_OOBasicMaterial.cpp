@@ -9,7 +9,7 @@
    sets (read back from a real context), unapplyWithNext() falling back to the
    default material, and the description; and a C++ subclass overriding
    permitSpecular() and calling the base class. Last, how Objective-C sees one
-   (as an OOMaterial). Run: bash tools/check-core-tests.sh
+   (as an OOMaterial). Run: tests/run.sh unit
 */
 
 #include <cmath>
@@ -64,7 +64,7 @@ PFNGLCLIENTACTIVETEXTUREARBPROC glClientActiveTextureARB = nullptr;
    both.
 */
 class Universe;
-Universe* gSharedUniverse = nil;
+Universe* gSharedUniverse = nullptr;
 
 #include "UniverseStandIn.h"
 
@@ -74,7 +74,7 @@ class Universe : public oo::RefCounted {
  public:
   OO_UNIVERSE_STAND_IN_VIRTUAL_MEMBERS
 
-  BOOL _reducedDetail;
+  bool _reducedDetail;
 
   bool useShaders();
 };
@@ -84,7 +84,7 @@ class TestUniverse : public Universe {
   bool reducedDetail() override { return _reducedDetail; }
 };
 
-bool Universe::useShaders() { return NO; }
+bool Universe::useShaders() { return false; }
 
 // A C++ subclass, as OOSingleTextureMaterial is: it denies specular, and asks
 // the base class.
@@ -246,15 +246,15 @@ OO_TEST(permitSpecular) {
 
     // Reduced detail denies specular: the exponent and colour are not applied.
     TestUniverse* universe = new TestUniverse();
-    universe->_reducedDetail = YES;
+    universe->_reducedDetail = true;
     gSharedUniverse = universe;
     const oo::Ref<OOBasicMaterial> m =
         OOBasicMaterial::materialWithName(std::string("Reduced"), config);
     OO_CHECK(!m->permitSpecular());
     OO_CHECK(m->shininess() == 0 && Same(Specular(m.get()).v, {0, 0, 0, 1}));
-    universe->_reducedDetail = NO;
+    universe->_reducedDetail = false;
     OO_CHECK(m->permitSpecular());
-    gSharedUniverse = nil;
+    gSharedUniverse = nullptr;
 
     // A subclass's override is asked while the superclass initialises.
     const oo::Ref<TestSubMaterial> sub = NamedSub(std::string("Sub"), config);

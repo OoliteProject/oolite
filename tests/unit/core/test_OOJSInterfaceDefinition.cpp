@@ -11,7 +11,7 @@
 	the class's header names OOScript with @class for that. The tests pin the initial state and the text properties,
 	the callback and its `this` (kept alive across a garbage collection), the run, the sort order
 	(interfaceCompare(), with its null cases) and an engine reset.
-	Run: bash tools/check-core-tests.sh
+	Run: tests/run.sh unit
 */
 
 #include "OOJSInterfaceDefinition.h"
@@ -79,11 +79,11 @@ bool OOJavaScriptEngine::callJSFunction(JSValueConst function, JSValueConst jsTh
 	{
 		JS_FreeValue(context, JS_GetException(context));
 		if (outResult != NULL)  *outResult = JS_UNDEFINED;
-		return NO;
+		return false;
 	}
 	if (outResult != NULL)  *outResult = result;
 	else  JS_FreeValue(context, result);
-	return YES;
+	return true;
 }
 
 

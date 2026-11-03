@@ -9,7 +9,7 @@
    exception from -run caught, the description, and the super call from a
    subclass. The test stages are C++ subclasses (the super call a qualified base
    call), and the description is description(). Run: bash
-   tools/check-core-tests.sh
+   tests/run.sh unit
 */
 
 #include "OODescription.h"

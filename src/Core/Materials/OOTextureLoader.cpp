@@ -67,9 +67,9 @@ enum {
 
 static unsigned sGLMaxSize;
 static uint32_t sUserMaxSize;
-static BOOL sReducedDetail;
-static BOOL sHaveNPOTTextures = NO; // TODO: support "true" non-power-of-two textures.
-static BOOL sHaveSetUp = NO;
+static bool sReducedDetail;
+static bool sHaveNPOTTextures = false; // TODO: support "true" non-power-of-two textures.
+static bool sHaveSetUp = false;
 
 oo::Ref<OOTextureLoader> OOTextureLoader::loaderWithPath(
     const std::optional<std::string>& inPath, uint32_t options)
@@ -120,7 +120,7 @@ oo::Ref<OOTextureLoader> OOTextureLoader::loaderWithTextureSpecifier(
     uint32_t options = 0;
 
     if (!cxx_OOInterpretTextureSpecifier(specifier, &name, &options, NULL, NULL,
-            NO))
+            false))
         return nullptr;
     options |= extraOptions;
     path = ResourceManager::pathForFileNamed(name, folder);
@@ -169,7 +169,7 @@ bool OOTextureLoader::initWithPath(const std::optional<std::string>& inPath,
 #endif
 
     if (options & kOOTextureExtractChannelMask) {
-        _extractChannel = YES;
+        _extractChannel = true;
         switch (options & kOOTextureExtractChannelMask) {
         case kOOTextureExtractChannelR:
             _extractChannelIndex = 0;
@@ -193,7 +193,7 @@ bool OOTextureLoader::initWithPath(const std::optional<std::string>& inPath,
                 "Unknown texture extract channel mask (0x{:04X}). This is an "
                 "internal error, please report it.",
                 static_cast<unsigned>(options & kOOTextureExtractChannelMask));
-            _extractChannel = NO;
+            _extractChannel = false;
         }
     }
 
@@ -280,14 +280,14 @@ bool OOTextureLoader::getResult(OOPixMap* result,
 {
     OOCParameterAssert(result != NULL && outFormat != NULL);
 
-    BOOL OK = YES;
+    bool OK = true;
 
     if (!_ready) {
         // The work manager knows the task as the C++ loader.
         OOAsyncWorkManager::sharedAsyncWorkManager()->waitForTaskToComplete(this);
     }
     if (_data == NULL)
-        OK = NO;
+        OK = false;
 
     if (OK) {
         *result = OOMakePixMap(
@@ -340,7 +340,7 @@ void OOTextureLoader::setUp()
     sUserMaxSize = OORoundUpToPowerOf2_32(sUserMaxSize);
     sUserMaxSize = MAX(sUserMaxSize, 64U);
 
-    sHaveSetUp = YES;
+    sHaveSetUp = true;
 }
 
 /*** Methods performed on the loader thread. ***/
@@ -394,7 +394,7 @@ void OOTextureLoader::generateMipMapsForCubeMap()
 
     void* newData = malloc(newSize);
     if (EXPECT_NOT(newData == NULL)) {
-        _generateMipMaps = NO;
+        _generateMipMaps = false;
         _options = (_options & ~kOOTextureMinFilterMask) | kOOTextureMinFilterLinear;
         return;
     }
@@ -415,7 +415,7 @@ void OOTextureLoader::generateMipMapsForCubeMap()
 void OOTextureLoader::applySettings()
 {
     OOPixMapDimension desiredWidth, desiredHeight;
-    BOOL rescale;
+    bool rescale;
     size_t newSize;
     uint8_t components;
     OOPixMap pixMap;
@@ -434,7 +434,7 @@ void OOTextureLoader::applySettings()
         _rowBytes, 0);
 
     if (_extractChannel) {
-        if (OOExtractPixMapChannel(&pixMap, _extractChannelIndex, NO)) {
+        if (OOExtractPixMapChannel(&pixMap, _extractChannelIndex, false)) {
             _format = (OOTextureDataFormat)kOOTextureDataGrayscale;
             components = 1;
         } else {
@@ -456,7 +456,7 @@ void OOTextureLoader::applySettings()
         OOPixMap converted = OOConvertCubeMapToLatLong(pixMap, desiredHeight, _generateMipMaps);
         OOFreePixMap(&pixMap);
         pixMap = converted;
-        _isCubeMap = NO;
+        _isCubeMap = false;
 
 #if DUMP_CONVERTED_CUBE_MAPS
         // -stringByDeletingPathExtension of the last path component (probed): cut
@@ -473,10 +473,10 @@ void OOTextureLoader::applySettings()
     // Rescale if needed.
     rescale = (_width != desiredWidth || _height != desiredHeight);
     if (rescale) {
-        BOOL leaveSpaceForMipMaps = _generateMipMaps;
+        bool leaveSpaceForMipMaps = _generateMipMaps;
 #if OO_TEXTURE_CUBE_MAP
         if (_isCubeMap)
-            leaveSpaceForMipMaps = NO;
+            leaveSpaceForMipMaps = false;
 #endif
 
         OO_LOG("texture.load.rescale",
@@ -537,7 +537,7 @@ void OOTextureLoader::getDesiredWidth(OOPixMapDimension* outDesiredWidth,
         // Cube maps are six times as high as they are wide, and we need to preserve
         // that.
         if (_allowCubeMap && _height == _width * 6) {
-            _isCubeMap = YES;
+            _isCubeMap = true;
 
             desiredWidth = OORoundUpToPowerOf2_PixMap((2 * _width) / 3);
             desiredWidth = MIN(desiredWidth, sGLMaxSize / 8);
@@ -585,4 +585,4 @@ void OOTextureLoader::getDesiredWidth(OOPixMapDimension* outDesiredWidth,
         *outDesiredHeight = desiredHeight;
 }
 
-void OOTextureLoader::completeAsyncTask() { _ready = YES; }
+void OOTextureLoader::completeAsyncTask() { _ready = true; }

@@ -113,23 +113,23 @@ std::optional<std::string> cxx_OOStringFromJSValue(JSContext *context, JSValueCo
 }
 
 
-BOOL OOJSArgumentListGetNumberNoError(JSContext *context, int argc, JSValueConst *argv, double *outNumber, int *outConsumed)
+bool OOJSArgumentListGetNumberNoError(JSContext *context, int argc, JSValueConst *argv, double *outNumber, int *outConsumed)
 {
 	if (argc == 0 || JS_ToFloat64(context, outNumber, argv[0]) < 0 || std::isnan(*outNumber))
 	{
 		if (JS_HasException(context))  JS_FreeValue(context, JS_GetException(context));
-		return NO;
+		return false;
 	}
 	if (outConsumed != NULL)  *outConsumed = 1;
-	return YES;
+	return true;
 }
 
 
-BOOL cxx_OOJSArgumentListGetNumber(JSContext *context, const std::optional<std::string> &scriptClass, const std::optional<std::string> &function, int argc, JSValueConst *argv, double *outNumber, int *outConsumed)
+bool cxx_OOJSArgumentListGetNumber(JSContext *context, const std::optional<std::string> &scriptClass, const std::optional<std::string> &function, int argc, JSValueConst *argv, double *outNumber, int *outConsumed)
 {
-	if (OOJSArgumentListGetNumberNoError(context, argc, argv, outNumber, outConsumed))  return YES;
+	if (OOJSArgumentListGetNumberNoError(context, argc, argv, outNumber, outConsumed))  return true;
 	cxx_OOJSReportBadArguments(context, scriptClass, function, argc, argv, "Expected number, got", std::nullopt);
-	return NO;
+	return false;
 }
 
 
@@ -241,7 +241,7 @@ HPVector Universe::coordinatesFromCoordinateSystemString(const std::string &text
 
 alignas(Universe) unsigned char sUniverseStorage[sizeof(Universe)];
 
-Universe *gSharedUniverse = nil;
+Universe *gSharedUniverse = nullptr;
 
 
 // MARK: The context -------------------------------------------------------------------------------

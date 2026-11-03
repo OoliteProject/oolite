@@ -43,28 +43,9 @@
     "oofnd/objc/OOFoundationTypes.h replaces Foundation's C types and cannot be used together with Foundation"
 #endif
 
-/*	The Objective-C boolean and null names, as libobjc2's <objc/runtime.h>
-   gave them to the game's Objective-C++ (built with STRICT_APPLE_COMPATIBILITY:
-   BOOL is signed char, YES and NO are BOOL, nil and Nil are nullptr), kept for
-   the game's C and C++ since libobjc2 went.
-*/
-typedef signed char BOOL;
-#define YES ((BOOL)1)
-#define NO ((BOOL)0)
-#ifdef __cplusplus
-#define nil nullptr
-#define Nil nullptr
-#else
-#define nil ((void*)0)
-#define Nil ((void*)0)
-#endif
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 typedef intptr_t NSInteger;
 typedef uintptr_t NSUInteger;
@@ -122,7 +103,7 @@ static inline NSUInteger NSMaxRange(NSRange range)
     return range.location + range.length;
 }
 
-static inline BOOL NSLocationInRange(NSUInteger location, NSRange range)
+static inline bool NSLocationInRange(NSUInteger location, NSRange range)
 {
     return (location >= range.location) && (location < NSMaxRange(range));
 }
@@ -143,7 +124,7 @@ static inline NSRange NSMakeRange(NSUInteger location, NSUInteger length)
     return range;
 }
 
-static inline BOOL NSEqualRanges(NSRange range1, NSRange range2)
+static inline bool NSEqualRanges(NSRange range1, NSRange range2)
 {
     return ((range1.location == range2.location) && (range1.length == range2.length));
 }
@@ -176,24 +157,20 @@ static inline NSRect NSMakeRect(CGFloat x, CGFloat y, CGFloat w, CGFloat h)
 
 // GNUstep exports these from NSGeometry.m; the bodies are its (plain ==, so
 // -0.0 equals 0.0 and NaN equals nothing, as recorded by the unit test).
-static inline BOOL NSEqualPoints(NSPoint aPoint, NSPoint bPoint)
+static inline bool NSEqualPoints(NSPoint aPoint, NSPoint bPoint)
 {
-    return ((aPoint.x == bPoint.x) && (aPoint.y == bPoint.y)) ? YES : NO;
+    return ((aPoint.x == bPoint.x) && (aPoint.y == bPoint.y)) ? true : false;
 }
 
-static inline BOOL NSEqualSizes(NSSize aSize, NSSize bSize)
+static inline bool NSEqualSizes(NSSize aSize, NSSize bSize)
 {
-    return ((aSize.width == bSize.width) && (aSize.height == bSize.height)) ? YES
-                                                                            : NO;
+    return ((aSize.width == bSize.width) && (aSize.height == bSize.height)) ? true
+                                                                            : false;
 }
 
-static inline BOOL NSEqualRects(NSRect aRect, NSRect bRect)
+static inline bool NSEqualRects(NSRect aRect, NSRect bRect)
 {
     return (NSEqualPoints(aRect.origin, bRect.origin) && NSEqualSizes(aRect.size, bRect.size))
-        ? YES
-        : NO;
+        ? true
+        : false;
 }
-
-#ifdef __cplusplus
-}
-#endif

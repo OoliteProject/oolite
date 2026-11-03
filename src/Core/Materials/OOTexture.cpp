@@ -95,7 +95,7 @@ OOCache* sRecentTextures;
 
 } // namespace
 
-static BOOL sCheckedExtensions;
+static bool sCheckedExtensions;
 OOTextureInfo gOOTextureInfo;
 
 // Nothing reads a trace context, so the markers are no-ops in every build.
@@ -123,7 +123,7 @@ oo::Ref<OOTexture> OOTexture::loadTextureWithName(
     std::string key;
     oo::Ref<OOTexture> result;
     std::optional<std::string> path;
-    BOOL noFNF;
+    bool noFNF;
 
     if (EXPECT_NOT(!name.has_value()))
         return nullptr;
@@ -190,7 +190,7 @@ oo::Ref<OOTexture> OOTexture::textureWithConfiguration(
     GLfloat lodBias = 0.0f;
 
     if (!cxx_OOInterpretTextureSpecifier(configuration, &name, &options,
-            &anisotropy, &lodBias, NO))
+            &anisotropy, &lodBias, false))
         return nullptr;
 
     return loadTextureWithName(name, "Textures", options | extraOptions,
@@ -530,11 +530,11 @@ void OOTexture::checkExtensions()
 {
     OO_ENTER_OPENGL();
 
-    sCheckedExtensions = YES;
+    sCheckedExtensions = true;
 
     OOOpenGLExtensionManager* extMgr = OOOpenGLExtensionManager::sharedManager();
-    BOOL ver120 = extMgr->versionIsAtLeastMajor(1, 2);
-    BOOL ver130 = extMgr->versionIsAtLeastMajor(1, 3);
+    bool ver120 = extMgr->versionIsAtLeastMajor(1, 2);
+    bool ver130 = extMgr->versionIsAtLeastMajor(1, 3);
 
 #if GL_EXT_texture_filter_anisotropic
     gOOTextureInfo.anisotropyAvailable = extMgr->haveExtension("GL_EXT_texture_filter_anisotropic") ? 1 : 0;
@@ -563,7 +563,7 @@ void OOTexture::checkExtensions()
         if (oo::PListGet<bool>::from(lodBias.isNull() ? nullptr : &lodBias, true)) {
             gOOTextureInfo.textureLODBiasAvailable = extMgr->haveExtension("GL_EXT_texture_lod_bias") ? 1 : 0;
         } else {
-            gOOTextureInfo.textureLODBiasAvailable = NO;
+            gOOTextureInfo.textureLODBiasAvailable = false;
         }
     }
 #endif
@@ -576,7 +576,7 @@ void OOTexture::checkExtensions()
     if (!oo::Defaults::standard().boolForKey("disable-cube-maps")) {
         gOOTextureInfo.cubeMapAvailable = ver130 || extMgr->haveExtension("GL_ARB_texture_cube_map");
     } else {
-        gOOTextureInfo.cubeMapAvailable = NO;
+        gOOTextureInfo.cubeMapAvailable = false;
     }
 
 #endif
@@ -631,13 +631,13 @@ uint8_t OOTextureComponentsForFormat(OOTextureDataFormat format)
     return 0;
 }
 
-BOOL OOCubeMapsAvailable(void) { return gOOTextureInfo.cubeMapAvailable; }
+bool OOCubeMapsAvailable(void) { return gOOTextureInfo.cubeMapAvailable; }
 
-BOOL cxx_OOInterpretTextureSpecifier(const oo::PList& specifier,
+bool cxx_OOInterpretTextureSpecifier(const oo::PList& specifier,
     std::string* outName,
     OOTextureFlags* outOptions,
     float* outAnisotropy, float* outLODBias,
-    BOOL ignoreExtract)
+    bool ignoreExtract)
 {
     std::string name;
     OOTextureFlags options = kOOTextureDefaultOptions;
@@ -655,7 +655,7 @@ BOOL cxx_OOInterpretTextureSpecifier(const oo::PList& specifier,
                 "texture.load.noName",
                 "Invalid texture configuration dictionary (must specify name):\n{}",
                 oo::DescriptionOf(specifier));
-            return NO;
+            return false;
         }
         name = specifier.get<std::string>(cxx_kOOTextureSpecifierNameKey);
 
@@ -725,11 +725,11 @@ BOOL cxx_OOInterpretTextureSpecifier(const oo::PList& specifier,
                 (specifier.type() == oo::PList::Type::Object)
                     ? std::string("(null)")
                     : std::string(oo::typeName(specifier.type())));
-        return NO;
+        return false;
     }
 
     if (name.empty())
-        return NO;
+        return false;
 
     if (outName != NULL)
         *outName = name;
@@ -740,12 +740,12 @@ BOOL cxx_OOInterpretTextureSpecifier(const oo::PList& specifier,
     if (outLODBias != NULL)
         *outLODBias = lodBias;
 
-    return YES;
+    return true;
 }
 
 oo::PList cxx_OOMakeTextureSpecifier(const std::string& name,
     OOTextureFlags options, float anisotropy,
-    float lodBias, BOOL internal)
+    float lodBias, bool internal)
 {
     oo::PList::Dict result;
 
@@ -902,7 +902,7 @@ std::string cxx_OOTextureCacheKeyForSpecifier(const oo::PList& specifier)
     float lodBias = 0.0f;
 
     cxx_OOInterpretTextureSpecifier(specifier, &name, &options, &anisotropy,
-        &lodBias, NO);
+        &lodBias, false);
     return OOGenerateTextureCacheKey("Textures", name, options, anisotropy,
         lodBias);
 }

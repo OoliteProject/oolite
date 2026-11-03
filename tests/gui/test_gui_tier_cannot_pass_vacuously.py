@@ -20,8 +20,7 @@ import pytest
 import conftest
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-REPO_ROOT = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
-RUNNER = os.path.join(REPO_ROOT, "tools", "gui-tier.sh")
+RUNNER = os.path.join(HERE, "..", "run.sh")
 
 
 @pytest.mark.offline
@@ -82,7 +81,7 @@ def test_a_runner_installs_the_requirements():
     Vendoring the dependency, or documenting the install in prose nobody executes, both leave
     the missing-pyautogui case as the expected case.
     """
-    assert os.path.isfile(RUNNER), "tools/gui-tier.sh is the tier's runner and must exist"
+    assert os.path.isfile(RUNNER), "tests/run.sh is the tier's runner and must exist"
     with open(RUNNER, "r", encoding="utf-8") as handle:
         script = handle.read()
     assert "requirements.txt" in script
@@ -135,7 +134,7 @@ def test_oo_gui_require_is_honoured_by_the_fixture_source():
 # --- the three post-exit hygiene checks must be able to FAIL ----------------------
 #
 # assert_clean_exit promised "no core dump, no ERROR in Latest.log, and a defaults file that still
-# parses", and the story (docs/stories/G1-exit-via-mouse.md:13,46) additionally requires "no
+# parses", and the G1 story additionally requires "no
 # orphaned process". Three of those were missing or true by construction:
 #
 #   * the defaults re-parse was never implemented at all;
@@ -476,7 +475,7 @@ def test_a_stale_defaults_file_fails_even_though_it_parses(tmp_path):
     Reproduces the reviewer's falsification of attempt 1 verbatim: write a healthy plist, back
     its mtime up 30 days, then run the post-exit check. Attempt 1 returned successfully with
     the run having written nothing; anything but an AssertionError here means the "written"
-    half of docs/stories/G1-exit-via-mouse.md:52 has gone unfalsifiable again.
+    half of the G1 story's defaults check has gone unfalsifiable again.
     """
     out = _healthy_output_dir(tmp_path)
     app = _healthy_app_dir(tmp_path)

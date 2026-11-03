@@ -1,6 +1,6 @@
 """G7 - first run: no prefs directory exists, and the game creates its defaults.
 
-docs/phases/0-gui-tier.md G7: "Delete the config/prefs directory -> launch -> verify defaults are
+G7: "Delete the config/prefs directory -> launch -> verify defaults are
 created -> exit cleanly". The bug class is "it works because I already have a config file", which
 is exactly the bug a brand-new platform hits first.
 
@@ -43,8 +43,8 @@ witness this check has, and it is the whole of G7's claim.
 
     python3 -m pytest oolite-dev/tests/gui/test_g7_first_run_creates_defaults.py -x -q
 
-Needs the desktop: a real window, unlocked and logged in. It takes tools/gui-lock for
-the duration, via the ``game`` fixture - this file launches nothing of its own.
+Needs the desktop: a real window, unlocked and logged in, left alone while it runs.
+The game is launched through the ``game`` fixture; this file launches nothing of its own.
 """
 
 import ast

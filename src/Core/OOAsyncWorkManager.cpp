@@ -33,18 +33,12 @@ SOFTWARE.
 
 // OOFoundation.h defines true/false as macros; the standard headers want the
 // keywords (oofnd/Data.hpp).
-#pragma push_macro("true")
-#pragma push_macro("false")
-#undef true
-#undef false
 #include <algorithm>
 #include <condition_variable>
 #include <deque>
 #include <mutex>
 #include <string>
 #include <vector>
-#pragma pop_macro("false")
-#pragma pop_macro("true")
 
 #define USE_PTHREAD_ONCE (!OOLITE_WINDOWS)
 

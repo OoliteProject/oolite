@@ -42,13 +42,6 @@ typedef enum OOEntityStatus {
 
 #ifndef OO_SCANCLASS_TYPE
 #define OO_SCANCLASS_TYPE
-#ifndef __cplusplus
-/* ISO C++ forbids a forward reference to an unscoped enum with no fixed
-   underlying type. The full definition is three lines below in this same file,
-   so C++ translation units never need the forward tag at all.
- */
-typedef enum OOScanClass OOScanClass;
-#endif
 #endif
 
 enum OOScanClass {

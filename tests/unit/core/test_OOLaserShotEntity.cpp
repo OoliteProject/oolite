@@ -12,7 +12,7 @@
 	velocity, owner, range and status; its colour (default red, a set colour brightened, the alpha
 	constant); the lifetime in its description; following the player's ship; removal when its
 	lifetime has run out. The colour is private; the test reads it through the access struct below.
-	Run: bash tools/check-core-tests.sh
+	Run: tests/run.sh unit
 */
 
 #include "OOLaserShotEntity.h"
@@ -55,14 +55,14 @@ T *NewTestPlayer()
 }
 
 
-static Entity *sRemoved = nil;
+static Entity *sRemoved = nullptr;
 
 
 // UNIVERSE: never initialised; records what is removed.
 class TestUniverse : public Universe
 {
 public:
-	bool removeEntity(Entity *entity) override	{ sRemoved = entity; return YES; }	// the C++ entity; the record is its object
+	bool removeEntity(Entity *entity) override	{ sRemoved = entity; return true; }	// the C++ entity; the record is its object
 };
 
 
@@ -85,8 +85,8 @@ namespace {
 
 void SetUp()
 {
-	static Universe *universe = nil;
-	if (universe == nil)
+	static Universe *universe = nullptr;
+	if (universe == nullptr)
 	{
 		universe = new TestUniverse();	// never released
 	}
@@ -98,7 +98,7 @@ void SetUp()
   // on the main thread's context, so there is one, with nothing in it (the ship
   // stand-in is C++, as test_StationEntity's ships are).
 	if (gOOJSMainThreadContext == nullptr)  gOOJSMainThreadContext = JS_NewContext(JS_NewRuntime());
-	sRemoved = nil;
+	sRemoved = nullptr;
 }
 
 
@@ -111,7 +111,7 @@ Entity *MakeShip()
 {
 	oo::Ref<::ShipEntity> part = oo::makeRef<::ShipEntity>();
 	Entity *ship = oo::MadeEntity(part);
-	part->isShip = YES;
+	part->isShip = true;
 	part->flightSpeed = 50.0f;
 	part->weaponRange = 1000.0f;
 	ship->setPosition(make_HPvector(100, 0, 0));
@@ -200,19 +200,19 @@ OO_TEST(update)
 		// An NPC's shot moves by its velocity.
 		shot->update(0.05);
 		OO_CHECK(HPvector_equal(shot->getPosition(), make_HPvector(100, 0, 12.5)));
-		OO_CHECK(sRemoved == nil);
+		OO_CHECK(sRemoved == nullptr);
 		shot->update(0.05);
 		OO_CHECK(sRemoved == shot.get());
 
 		// The player's shot is put back where its ship's laser is.
-		sRemoved = nil;
-		ship->isPlayer = YES;
+		sRemoved = nullptr;
+		ship->isPlayer = true;
 		oo::Ref<OOLaserShotEntity> playerShot = Shot(ship, WEAPON_FACING_FORWARD, make_vector(0, 0, 10));
 		ship->setPosition(make_HPvector(200, 0, 0));
 		playerShot->update(0.05);
 		OO_CHECK(HPvector_equal(playerShot->getPosition(), make_HPvector(200, 0, 10)));
 		OO_CHECK(quaternion_equal(playerShot->getOrientation(), kIdentityQuaternion));
-		OO_CHECK(sRemoved == nil);
+		OO_CHECK(sRemoved == nullptr);
 	}
 }
 

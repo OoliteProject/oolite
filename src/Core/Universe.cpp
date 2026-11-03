@@ -143,14 +143,14 @@ const GLuint framebufferQuadIndices[] = {
     1, 2, 3 // second triangle
 };
 
-Universe* gSharedUniverse = nil;
+Universe* gSharedUniverse = nullptr;
 
 extern Entity* gOOJSPlayerIfStale;
 Entity* gOOJSPlayerIfStale = nullptr; // the player's C++ entity
 
-static BOOL MaintainLinkedLists(Universe* uni);
+static bool MaintainLinkedLists(Universe* uni);
 namespace {
-OOINLINE BOOL EntityInRange(HPVector p1, Entity* e2, float range);
+OOINLINE bool EntityInRange(HPVector p1, Entity* e2, float range);
 } // namespace
 
 /* TODO: route calculation is really slow - find a way to safely enable this */
@@ -285,7 +285,7 @@ Universe* Universe::newUniverse(::MyOpenGLView* inGameView)
 */
 void Universe::initWithGameView(::MyOpenGLView* inGameView)
 {
-    _doingStartUp = YES;
+    _doingStartUp = true;
 
     OOInitReallyRandom(oo::date::timeIntervalSinceReferenceDate() * 1e9);
 
@@ -331,18 +331,18 @@ void Universe::initWithGameView(::MyOpenGLView* inGameView)
 
     autoSave = prefs.boolForKey("autosave");
     wireframeGraphics = prefs.boolForKey("wireframe-graphics");
-    doProcedurallyTexturedPlanets = prefs.object("procedurally-textured-planets").isNull() ? YES : prefs.boolForKey("procedurally-textured-planets");
+    doProcedurallyTexturedPlanets = prefs.object("procedurally-textured-planets").isNull() ? true : prefs.boolForKey("procedurally-textured-planets");
     if (inGameView != nullptr)
         inGameView->setMsaa(prefs.boolForKey("anti-aliasing"));
     OO_LOG("MSAA.setup", "Multisample anti-aliasing {}requested.", (inGameView != nullptr ? inGameView->msaa() : false) ? "" : "not ");
     if (inGameView != nullptr)
-        inGameView->setFov(OOClamp_0_max_f(prefs.object("fov-value").isNull() ? 57.2f : prefs.floatForKey("fov-value"), MAX_FOV_DEG), NO);
-    if ((inGameView != nullptr ? inGameView->fov(NO) : 0.0f) < MIN_FOV_DEG) {
+        inGameView->setFov(OOClamp_0_max_f(prefs.object("fov-value").isNull() ? 57.2f : prefs.floatForKey("fov-value"), MAX_FOV_DEG), false);
+    if ((inGameView != nullptr ? inGameView->fov(false) : 0.0f) < MIN_FOV_DEG) {
         if (inGameView != nullptr)
-            inGameView->setFov(MIN_FOV_DEG, NO);
+            inGameView->setFov(MIN_FOV_DEG, false);
     }
 
-    setECMVisualFXEnabled(prefs.object("ecm-visual-fx").isNull() ? YES : prefs.boolForKey("ecm-visual-fx"));
+    setECMVisualFXEnabled(prefs.object("ecm-visual-fx").isNull() ? true : prefs.boolForKey("ecm-visual-fx"));
 
     // Set up speech synthesizer.
 #if OOLITE_SPEECH_SYNTH
@@ -387,7 +387,7 @@ void Universe::initWithGameView(::MyOpenGLView* inGameView)
     gui = oo::makeRef<GuiDisplayGen>();
     comm_log_gui = oo::makeRef<GuiDisplayGen>();
 
-    missiontext = ResourceManager::dictionaryFromFilesNamed("missiontext.plist", std::string("Config"), YES);
+    missiontext = ResourceManager::dictionaryFromFilesNamed("missiontext.plist", std::string("Config"), true);
 
     waypoints.clear();
 
@@ -410,7 +410,7 @@ void Universe::initWithGameView(::MyOpenGLView* inGameView)
     if (player != nullptr)
         player->setStatus(STATUS_START_GAME);
     if (player != nullptr)
-        player->setShowDemoShips(YES);
+        player->setShowDemoShips(true);
 
     setUpInitialUniverse();
 
@@ -440,7 +440,7 @@ void Universe::initWithGameView(::MyOpenGLView* inGameView)
 
     if (player != nullptr)
         player->startUpComplete();
-    _doingStartUp = NO;
+    _doingStartUp = false;
 }
 
 /*	-dealloc's body, run by the destructor: what the universe still
@@ -449,7 +449,7 @@ void Universe::initWithGameView(::MyOpenGLView* inGameView)
 */
 void Universe::dealloc()
 {
-    gSharedUniverse = nil;
+    gSharedUniverse = nullptr;
 
     currentMessage.reset();
 
@@ -507,8 +507,8 @@ void Universe::dealloc()
 static int JSResetFlags = 0;
 
 // track the position and status of the lights
-static BOOL object_light_on = NO;
-static BOOL demo_light_on = NO;
+static bool object_light_on = false;
+static bool demo_light_on = false;
 static GLfloat sun_off[4] = { 0.0, 0.0, 0.0, 1.0 };
 static GLfloat demo_light_position[4] = { DEMO_LIGHT_POSITION, 1.0 };
 
@@ -586,12 +586,12 @@ std::vector<std::string> FieldsUpToNil(std::initializer_list<std::optional<std::
     return result;
 }
 
-BOOL IsCandidateMainStationPredicate(Entity* entity, void* /*parameter*/)
+bool IsCandidateMainStationPredicate(Entity* entity, void* /*parameter*/)
 {
     return entity->getIsStation() && !entity->isExplicitlyNotMainStation; // [entity isStation]
 }
 
-BOOL IsFriendlyStationPredicate(Entity* entity, void* parameter)
+bool IsFriendlyStationPredicate(Entity* entity, void* parameter)
 {
     return entity->getIsStation() && !oo::ToShip(entity)->isHostileTo(static_cast<Entity*>(parameter)); // the C++ entity //
                                                                                                         // [entity isStation], -isHostileTo:
@@ -619,17 +619,17 @@ static const OOMatrix starboard_matrix = { { { 0.0f, 0.0f, 1.0f, 0.0f },
     { -1.0f, 0.0f, 0.0f, 0.0f },
     { 0.0f, 0.0f, 0.0f, 1.0f } } };
 
-static BOOL MaintainLinkedLists(Universe* uni)
+static bool MaintainLinkedLists(Universe* uni)
 {
     OOCParameterAssert(uni != NULL);
-    BOOL result = YES;
+    bool result = true;
 
     // DEBUG check for loops and short lists
     if (uni->n_entities > 0) {
         int n;
         Entity *checkEnt, *last; // C++ parts
 
-        last = nil;
+        last = nullptr;
 
         n = uni->n_entities;
         checkEnt = uni->x_list_start;
@@ -641,7 +641,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 #ifndef NDEBUG
             OO_LOG(kOOLogEntityVerificationError, "Broken x_next {} list ({}) ***", oo::EntityDescription(uni->x_list_start), n);
 #endif
-            result = NO;
+            result = false;
         }
 
         n = uni->n_entities;
@@ -657,7 +657,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
                 OO_LOG(kOOLogEntityVerificationRebuild, "{}", "REBUILDING x_previous list from x_next list");
 #endif
                 checkEnt = uni->x_list_start;
-                checkEnt->x_previous = nil;
+                checkEnt->x_previous = nullptr;
                 while (checkEnt->x_next) {
                     last = checkEnt;
                     checkEnt = checkEnt->x_next;
@@ -676,7 +676,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 #ifndef NDEBUG
             OO_LOG(kOOLogEntityVerificationError, "Broken *** broken y_next {} list ({}) ***", oo::EntityDescription(uni->y_list_start), n);
 #endif
-            result = NO;
+            result = false;
         }
 
         n = uni->n_entities;
@@ -692,7 +692,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
                 OO_LOG(kOOLogEntityVerificationRebuild, "{}", "REBUILDING y_previous list from y_next list");
 #endif
                 checkEnt = uni->y_list_start;
-                checkEnt->y_previous = nil;
+                checkEnt->y_previous = nullptr;
                 while (checkEnt->y_next) {
                     last = checkEnt;
                     checkEnt = checkEnt->y_next;
@@ -711,7 +711,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 #ifndef NDEBUG
             OO_LOG(kOOLogEntityVerificationError, "Broken z_next {} list ({}) ***", oo::EntityDescription(uni->z_list_start), n);
 #endif
-            result = NO;
+            result = false;
         }
 
         n = uni->n_entities;
@@ -727,8 +727,8 @@ static BOOL MaintainLinkedLists(Universe* uni)
                 OO_LOG(kOOLogEntityVerificationRebuild, "{}", "REBUILDING z_previous list from z_next list");
 #endif
                 checkEnt = uni->z_list_start;
-                OOCAssert(checkEnt != nil, "Expected z-list to be non-empty."); // Previously an implicit assumption. -- Ahruman 2011-01-25
-                checkEnt->z_previous = nil;
+                OOCAssert(checkEnt != nullptr, "Expected z-list to be non-empty."); // Previously an implicit assumption. -- Ahruman 2011-01-25
+                checkEnt->z_previous = nullptr;
                 while (checkEnt->z_next) {
                     last = checkEnt;
                     checkEnt = checkEnt->z_next;
@@ -743,19 +743,19 @@ static BOOL MaintainLinkedLists(Universe* uni)
         OO_LOG(kOOLogEntityVerificationRebuild, "{}", "Rebuilding all linked lists from scratch");
 #endif
         const std::vector<oo::EntityHold> allEntities = uni->entities; // a snapshot, as the enumeration was
-        uni->x_list_start = nil;
-        uni->y_list_start = nil;
-        uni->z_list_start = nil;
+        uni->x_list_start = nullptr;
+        uni->y_list_start = nullptr;
+        uni->z_list_start = nullptr;
 
         Entity* ent = nullptr;
         for (const oo::EntityHold& entry : allEntities) {
             ent = entry.get();
-            ent->x_next = nil;
-            ent->x_previous = nil;
-            ent->y_next = nil;
-            ent->y_previous = nil;
-            ent->z_next = nil;
-            ent->z_previous = nil;
+            ent->x_next = nullptr;
+            ent->x_previous = nullptr;
+            ent->y_next = nullptr;
+            ent->y_previous = nullptr;
+            ent->z_next = nullptr;
+            ent->z_previous = nullptr;
             ent->addToLinkedLists(); // [ent addToLinkedLists]
         }
     }
@@ -764,10 +764,10 @@ static BOOL MaintainLinkedLists(Universe* uni)
 }
 
 namespace {
-OOINLINE BOOL EntityInRange(HPVector p1, Entity* e2, float range)
+OOINLINE bool EntityInRange(HPVector p1, Entity* e2, float range)
 {
     if (range < 0)
-        return YES;
+        return true;
     float cr = range + e2->collision_radius;
     return HPdistance2(e2->position, p1) < cr * cr;
 }
@@ -927,10 +927,10 @@ bool populatorPrioritySort(const oo::PList& one, const oo::PList& two)
         OOFuzzyBooleanFromObject (not migrated yet) of the value as the object it was (nil when absent),
         which draws the same random number it drew before.
 */
-BOOL FuzzyBooleanIn(const oo::PList& dict, std::string_view key, float fallback)
+bool FuzzyBooleanIn(const oo::PList& dict, std::string_view key, float fallback)
 {
     if (dict.isNull())
-        return NO;
+        return false;
     const oo::PList* value = dict.find(key);
     return OOFuzzyBooleanFromPList(value, fallback);
 }
@@ -1083,7 +1083,7 @@ std::string StringifiedLabel(const std::optional<std::string>& line, const oo::P
 {
     if (!line.has_value())
         return "(null)";
-    return cxx_EscapedGraphVizString(OOStringifySystemDescriptionLine(*line, keyMap, NO));
+    return cxx_EscapedGraphVizString(OOStringifySystemDescriptionLine(*line, keyMap, false));
 }
 
 } // namespace
@@ -1119,7 +1119,7 @@ std::vector<std::string> CachedConditionScripts(const std::string& key)
 {
     const std::optional<std::string> fileName = OOUniverseSoundNameForCustomSoundKey(key);
     if (!fileName.has_value())
-        return nil;
+        return nullptr;
     return ResourceManager::ooSoundNamed(*fileName, std::string("Sounds"));
 }
 
@@ -1174,7 +1174,7 @@ std::string cxx_OOLookUpPluralDescriptionPRIV(const std::string& key, NSInteger 
         const char* cond = condition->c_str();
 
         long int input = count;
-        BOOL flag = NO; // we XOR test results with this
+        bool flag = false; // we XOR test results with this
 
         while (isspace(*cond))
             ++cond;
@@ -1242,28 +1242,28 @@ void Universe::pauseGame()
     // deal with the machine going to sleep, or player pressing 'p'.
     ::PlayerEntity* player = PLAYER;
 
-    setPauseMessageVisible(NO);
+    setPauseMessageVisible(false);
     const std::optional<std::string> pauseKey = (PLAYER != nullptr ? PLAYER->keyBindingDescription2("key_pausebutton") : std::optional<std::string>());
 
     if ((player != nullptr ? player->status() : OOEntityStatus { }) == STATUS_DOCKED) {
         if (gui != nullptr && gui->setForegroundTextureKey("paused_docked_overlay")) // a nil GUI answered NO
         {
-            gui->drawGUI(1.0, NO);
+            gui->drawGUI(1.0, false);
         } else {
-            setPauseMessageVisible(YES);
+            setPauseMessageVisible(true);
             addMessage(ExpandKeyWith("game-paused-docked", "pauseKey", pauseKey.has_value() ? oo::PList(*pauseKey) : oo::PList()), 1.0);
         }
     } else {
         if ((player != nullptr ? player->guiScreen() : OOGUIScreenID { }) != GUI_SCREEN_MAIN && gui != nullptr && gui->setForegroundTextureKey("paused_overlay")) {
-            gui->drawGUI(1.0, NO);
+            gui->drawGUI(1.0, false);
         } else {
-            setPauseMessageVisible(YES);
+            setPauseMessageVisible(true);
             addMessage(ExpandKeyWith("game-paused", "pauseKey", pauseKey.has_value() ? oo::PList(*pauseKey) : oo::PList()), 1.0);
         }
     }
 
     if (gameController() != nullptr)
-        gameController()->setGamePaused(YES);
+        gameController()->setGamePaused(true);
 }
 
 void Universe::quitGame()
@@ -1341,7 +1341,7 @@ void Universe::carryPlayerOn(::StationEntity* /*carrier */, ::WormholeEntity* wo
             0.0f,
             0.0f);
 
-    setWitchspaceBreakPattern(YES);
+    setWitchspaceBreakPattern(true);
     if (player != nullptr)
         player->doScriptEvent(OOJSID("shipWillExitWitchspace"), { StringOrNull((player != nullptr ? player->jumpCause() : std::optional<std::string>())) });
     if (player != nullptr)
@@ -1359,8 +1359,8 @@ void Universe::setUpUniverseFromStation()
         ::StationEntity* dockedStation = (player != nullptr ? player->dockedStation() : (::StationEntity*)nullptr);
         NSPoint coords = (player != nullptr ? player->getGalaxy_coordinates() : NSPoint { });
         // check the nearest system
-        OOSystemID sys = findSystemNumberAtCoords(coords, (player != nullptr ? player->galaxyNumber() : OOGalaxyID { }), YES);
-        BOOL interstel = (dockedStation != nullptr ? dockedStation->getInterstellarUndockingAllowed() : false); // && (s_seed.d != coords.x || s_seed.b != coords.y); - Nikos 20110623: Do we really need the commented out check?
+        OOSystemID sys = findSystemNumberAtCoords(coords, (player != nullptr ? player->galaxyNumber() : OOGalaxyID { }), true);
+        bool interstel = (dockedStation != nullptr ? dockedStation->getInterstellarUndockingAllowed() : false); // && (s_seed.d != coords.x || s_seed.b != coords.y); - Nikos 20110623: Do we really need the commented out check?
         if (player != nullptr)
             player->setPreviousSystemID((player != nullptr ? player->currentSystemID() : 0));
 
@@ -1383,7 +1383,7 @@ void Universe::setUpUniverseFromStation()
                 }
             }
         } else {
-            if (dockedStation == nil)
+            if (dockedStation == nullptr)
                 removeAllEntitiesExceptPlayer(); // get rid of witchspace sky etc. if still extant
         }
 
@@ -1409,7 +1409,7 @@ void Universe::setUpUniverseFromStation()
                     if (dockedStation != nullptr)
                         dockedStation->setPosition(pos);
                 }
-                setWitchspaceBreakPattern(YES);
+                setWitchspaceBreakPattern(true);
                 if (player != nullptr)
                     player->setJumpCause("carried");
                 if (player != nullptr)
@@ -1422,7 +1422,7 @@ void Universe::setUpUniverseFromStation()
 
     if (!autoSaveNow)
         setViewDirection(VIEW_FORWARD);
-    displayGUI = NO;
+    displayGUI = false;
 
     // reset atmospherics in case we ejected while we were in the atmophere
     if (UNIVERSE != nullptr)
@@ -1470,7 +1470,7 @@ void Universe::setUpUniverseFromWitchspace()
     if (commLog != nullptr)
         commLog->insert(commLog->end(), printedLines.begin(), printedLines.end());
 
-    displayGUI = NO;
+    displayGUI = false;
 }
 
 void Universe::setUpUniverseFromMisjump()
@@ -1505,7 +1505,7 @@ void Universe::setUpUniverseFromMisjump()
 
     setViewDirection(VIEW_FORWARD);
 
-    displayGUI = NO;
+    displayGUI = false;
 }
 
 void Universe::setUpWitchspace()
@@ -1574,7 +1574,7 @@ void Universe::setUpWitchspaceBetweenSystem(OOSystemID s1, OOSystemID s2)
         cxx_OOStandardsDeprecated(oo::str::format("The script_actions system info key is deprecated for %s.", override_key.c_str()));
         if (!OOEnforceStandards()) {
             if (player != nullptr)
-                player->runUnsanitizedScriptActions(*script_actions, NO, "<witchspace script_actions>", nullptr);
+                player->runUnsanitizedScriptActions(*script_actions, false, "<witchspace script_actions>", nullptr);
         }
     }
 
@@ -1599,7 +1599,7 @@ void Universe::setUpWitchspaceBetweenSystem(OOSystemID s1, OOSystemID s2)
         // A new planet, +1.
         oo::Ref<::OOPlanetEntity> planetRef = oo::makeRef<::OOPlanetEntity>();
         oo::RetainEntity(oo::MadeEntity(planetRef));
-        planetRef->initFromDictionary(planetDict, planetDict.get<bool>("has_atmosphere", YES), systemSeed, systemID);
+        planetRef->initFromDictionary(planetDict, planetDict.get<bool>("has_atmosphere", true), systemSeed, systemID);
         a_planet = planetRef.get();
     }
 
@@ -1653,13 +1653,13 @@ void Universe::setUpSpace()
     std::optional<std::string> stationDesc, defaultStationDesc; // the default is never set: nullopt, as nil
     oo::Ref<OOColor> bgcolor;
     oo::Ref<OOColor> pale_bgcolor;
-    BOOL sunGoneNova;
+    bool sunGoneNova;
 
     Random_Seed systemSeed = (systemManager != nullptr ? systemManager->getRandomSeedForCurrentSystem() : Random_Seed());
 
     ::GameController::sharedController()->logProgress(OO_DESC("populating-space"));
 
-    sunGoneNova = systeminfo.get<bool>("sun_gone_nova", NO);
+    sunGoneNova = systeminfo.get<bool>("sun_gone_nova", false);
 
     OO_DEBUG_PUSH_PROGRESS("setUpSpace - clearSubRegions, sky, dust");
     if (universeRegion != nullptr)
@@ -1856,7 +1856,7 @@ void Universe::setUpSpace()
         if (a_sun != nullptr)
             a_sun->setRadius(sun_radius, 0.3);
         if (a_sun != nullptr)
-            a_sun->setThrowSparks(YES);
+            a_sun->setThrowSparks(true);
         if (a_sun != nullptr)
             a_sun->setVelocity(kZeroVector);
     }
@@ -1882,7 +1882,7 @@ void Universe::setUpSpace()
 #endif
 
     // a missing role (the unset default) gives no ship, as a nil role did
-    stationObject = stationDesc.has_value() ? newShipWithRole(*stationDesc) : nil; // retain count = 1
+    stationObject = stationDesc.has_value() ? newShipWithRole(*stationDesc) : nullptr; // retain count = 1
 
     /*	Sanity check: ensure that only stations are generated here. This is an
             attempt to fix exceptions of the form:
@@ -1895,7 +1895,7 @@ void Universe::setUpSpace()
             -- Ahruman 20080303
     */
     if (!(stationObject != nullptr ? stationObject->getIsStation() : false) || !(stationObject != nullptr ? stationObject->validForAddToUniverse() : false)) {
-        if (stationObject == nil) {
+        if (stationObject == nullptr) {
             // Should have had a more specific error already, just specify context
             OO_LOG("universe.setup.badStation", "Failed to set up a ship for role \"{}\" as system station, trying again with \"{}\".", stationDesc.value_or("(null)"), defaultStationDesc.value_or("(null)"));
         } else {
@@ -1904,10 +1904,10 @@ void Universe::setUpSpace()
         if (stationObject != nullptr)
             oo::ReleaseEntity(stationObject);
         stationDesc = defaultStationDesc;
-        stationObject = stationDesc.has_value() ? newShipWithRole(*stationDesc) : nil; // retain count = 1
+        stationObject = stationDesc.has_value() ? newShipWithRole(*stationDesc) : nullptr; // retain count = 1
 
         if (!(stationObject != nullptr ? stationObject->getIsStation() : false) || !(stationObject != nullptr ? stationObject->validForAddToUniverse() : false)) {
-            if (stationObject == nil) {
+            if (stationObject == nullptr) {
                 OO_LOG("universe.setup.badStation", "On retry, failed to set up a ship for role \"{}\" as system station. Trying to fall back to built-in Coriolis station.", stationDesc.value_or("(null)"));
             } else {
                 OO_LOG("universe.setup.badStation", "***** ERROR: On retry, rolled non-station ship of type \"{}\" for role \"{}\". Non-station ships should not have this role! Trying to fall back to built-in Coriolis station.", (stationObject != nullptr ? stationObject->getName() : std::optional<std::string>()).value_or("(null)"), stationDesc.value_or("(null)"));
@@ -1925,7 +1925,7 @@ void Universe::setUpSpace()
     }
     a_station = oo::ToStation(stationObject);
 
-    if (a_station != nil) {
+    if (a_station != nullptr) {
         if (a_station != nullptr)
             a_station->setOrientation(quaternion_rotation_between(vf, make_vector(0.0, 0.0, 1.0)));
         if (a_station != nullptr)
@@ -1966,7 +1966,7 @@ void Universe::populateNormalSpace()
 {
     const oo::PList systeminfo = (systemManager != nullptr ? systemManager->getPropertiesForCurrentSystem() : oo::PList());
 
-    BOOL sunGoneNova = systeminfo.get<bool>("sun_gone_nova");
+    bool sunGoneNova = systeminfo.get<bool>("sun_gone_nova");
     // check for nova
     if (sunGoneNova) {
         OO_DEBUG_PUSH_PROGRESS("setUpSpace - post-nova");
@@ -1984,9 +1984,9 @@ void Universe::populateNormalSpace()
         }
 
         removeEntity(cachedPlanet); // and Poof! it's gone
-        cachedPlanet = nil;
+        cachedPlanet = nullptr;
         removeEntity(cachedStation); // also remove main station
-        cachedStation = nil;
+        cachedStation = nullptr;
     }
 
     OO_DEBUG_PUSH_PROGRESS("setUpSpace - populate from hyperpoint");
@@ -2013,7 +2013,7 @@ void Universe::populateNormalSpace()
         if (!OOEnforceStandards()) {
             OO_DEBUG_PUSH_PROGRESS("setUpSpace - legacy script_actions");
             if (PLAYER != nullptr)
-                PLAYER->runUnsanitizedScriptActions(*script_actions, NO, "<system script_actions>", nullptr);
+                PLAYER->runUnsanitizedScriptActions(*script_actions, false, "<system script_actions>", nullptr);
             OO_DEBUG_POP_PROGRESS();
         }
     }
@@ -2066,10 +2066,10 @@ void Universe::populateSystemFromDictionariesWithSun(::OOSunEntity* sun, ::OOPla
     std::string locationCode;
     OOJSPopulatorDefinition* pdef = nullptr;
     for (const oo::PList& populator : sortedBlocks) {
-        deterministic_population = populator.get<bool>("deterministic", NO);
-        if (EXPECT_NOT(sun == nil || planet == nil)) {
+        deterministic_population = populator.get<bool>("deterministic", false);
+        if (EXPECT_NOT(sun == nullptr || planet == nullptr)) {
             // needs to be a non-nova system, and not interstellar space
-            deterministic_population = NO;
+            deterministic_population = false;
         }
 
         locationSeed = populator.get<unsigned int>("locationSeed", 0);
@@ -2093,9 +2093,9 @@ void Universe::populateSystemFromDictionariesWithSun(::OOSunEntity* sun, ::OOPla
                 } else {
                     // not fixed coordinates and not seeded RNG; can't
                     // be deterministic
-                    deterministic_population = NO;
+                    deterministic_population = false;
                 }
-                if (sun == nil || planet == nil) {
+                if (sun == nullptr || planet == nullptr) {
                     // all interstellar space and nova locations equal to WITCHPOINT
                     location = locationByCode("WITCHPOINT", nullptr, nullptr);
                 } else {
@@ -2113,7 +2113,7 @@ void Universe::populateSystemFromDictionariesWithSun(::OOSunEntity* sun, ::OOPla
         }
     }
     // nothing is deterministic once the populator is done
-    deterministic_population = NO;
+    deterministic_population = false;
 }
 
 // Locations by code, lighting, adding ships by role, coordinate systems.
@@ -2135,7 +2135,7 @@ void Universe::populateSystemFromDictionariesWithSun(::OOSunEntity* sun, ::OOPla
 HPVector Universe::locationByCode(const std::string& code, ::OOSunEntity* sun, ::OOPlanetEntity* planet)
 {
     HPVector result = kZeroHPVector;
-    if (code == "WITCHPOINT" || sun == nil || planet == nil || (sun != nullptr ? sun->goneNova() : false)) {
+    if (code == "WITCHPOINT" || sun == nullptr || planet == nullptr || (sun != nullptr ? sun->goneNova() : false)) {
         result = OOHPVectorRandomSpatial(SCANNER_MAX_RANGE);
     }
     // past this point, can assume non-nil sun, planet
@@ -2217,7 +2217,7 @@ HPVector Universe::locationByCode(const std::string& code, ::OOSunEntity* sun, :
 
 void Universe::setAmbientLightLevel(float newValue)
 {
-    OOCAssert(UNIVERSE != nil, "Attempt to set ambient light level with a non yet existent universe.");
+    OOCAssert(UNIVERSE != nullptr, "Attempt to set ambient light level with a non yet existent universe.");
 
     ambientLightLevel = OOClamp_0_max_f(newValue, 10.0f);
     return;
@@ -2254,7 +2254,7 @@ void Universe::setLighting()
 
     // The sky is C++: found by its C++ part.
     for (i = n_entities - 1; i > 0; i--)
-        if (sortedEntities[i] != nil)
+        if (sortedEntities[i] != nullptr)
             if (::SkyEntity* sky = dynamic_cast<::SkyEntity*>(sortedEntities[i]))
                 the_sky = sky;
 
@@ -2362,7 +2362,7 @@ void Universe::setMainLightPosition(Vector sunPos)
             oo::ReleaseEntity(ship);
         return ship;
     }
-    return nil;
+    return nullptr;
 }
 
 void Universe::addShipWithRole(const std::string& desc, double route_fraction)
@@ -2421,7 +2421,7 @@ HPVector Universe::coordinatesForPosition(HPVector pos, const std::string& syste
         return kZeroHPVector;
     ::OOPlanetEntity* the_planet = planet();
     ::OOSunEntity* the_sun = sun();
-    if (the_planet == nil || the_sun == nil || l_sys == "abs") {
+    if (the_planet == nullptr || the_sun == nullptr || l_sys == "abs") {
         if (my_scalar)
             *my_scalar = 1.0;
         return pos;
@@ -2537,7 +2537,7 @@ HPVector Universe::legacyPositionFrom(HPVector pos, const std::string& system)
         return kZeroHPVector;
     ::OOPlanetEntity* the_planet = planet();
     ::OOSunEntity* the_sun = sun();
-    if (the_planet == nil || the_sun == nil || l_sys == "abs") {
+    if (the_planet == nullptr || the_sun == nullptr || l_sys == "abs") {
         return pos;
     }
     HPVector w_pos = getWitchspaceExitPosition(); // don't reset PRNG
@@ -2662,7 +2662,7 @@ bool Universe::addShipWithRole(const std::string& desc, HPVector pos, const std:
     if (rfactor < 1000)
         rfactor = 1000;
 
-    return (addShipWithRole(desc, launchPos, rfactor) != nil);
+    return (addShipWithRole(desc, launchPos, rfactor) != nullptr);
 }
 
 bool Universe::addShipsAtPosition(int howMany, const std::string& desc, HPVector pos, const std::string& system)
@@ -2679,14 +2679,14 @@ bool Universe::addShipsAtPosition(int howMany, const std::string& desc, HPVector
     GLfloat walk_factor = 2.0;
     while (i < howMany) {
         ::ShipEntity* ship = addShipWithRole(desc, launchPos, 0.0);
-        if (ship == nil)
-            return NO;
+        if (ship == nullptr)
+            return false;
         OOScanClass scanClass = (ship != nullptr ? ship->getScanClass() : OOScanClass { });
         if (ship != nullptr)
             ship->setScanClass(CLASS_NO_DRAW); // avoid lollipop flash
 
         GLfloat safe_distance2 = ship->collision_radius * ship->collision_radius * SAFE_ADDITION_FACTOR2;
-        BOOL safe;
+        bool safe;
         int limit_count = 8;
 
         v_from_center = kZeroHPVector;
@@ -2703,7 +2703,7 @@ bool Universe::addShipsAtPosition(int howMany, const std::string& desc, HPVector
                 launchPos.z + distance_from_center * v_from_center.z);
 
             // check this position against previous ship positions in this shell
-            safe = YES;
+            safe = true;
             int j = i - 1;
             while (safe && (j >= current_shell)) {
                 safe = (safe && (HPdistance2(ship_pos, ship_positions[j]) > safe_distance2));
@@ -2740,7 +2740,7 @@ bool Universe::addShipsAtPosition(int howMany, const std::string& desc, HPVector
             distance_from_center += sqrt(safe_distance2); // fill the next shell
         }
     }
-    return YES;
+    return true;
 }
 
 bool Universe::addShipsNearPosition(int howMany, const std::string& desc, HPVector pos, const std::string& system)
@@ -2778,7 +2778,7 @@ bool Universe::addShipsNearPosition(int howMany, const std::string& desc, HPVect
 bool Universe::addShips(int howMany, const std::string& desc, BoundingBox bbox)
 {
     if (howMany < 1)
-        return YES;
+        return true;
     if (howMany > 1) {
         // divide the number of ships in two
         int h0 = howMany / 2;
@@ -2814,7 +2814,7 @@ bool Universe::addShips(int howMany, const std::string& desc, BoundingBox bbox)
     pos.y += 0.5 * (randf() + randf()) * (bbox.max.y - bbox.min.y);
     pos.z += 0.5 * (randf() + randf()) * (bbox.max.z - bbox.min.z);
 
-    return (addShipWithRole(desc, pos, 0.0) != nil);
+    return (addShipWithRole(desc, pos, 0.0) != nullptr);
 }
 
 bool Universe::spawnShip(const std::string& shipdesc)
@@ -2828,12 +2828,12 @@ bool Universe::spawnShip(const std::string& shipdesc)
 
     shipdict = OOShipRegistry::sharedRegistry()->shipInfoForKey(shipdesc);
     if (shipdict.isNull())
-        return NO;
+        return false;
 
     ship = newShipWithName(shipdesc); // retain count is 1
 
-    if (ship == nil)
-        return NO;
+    if (ship == nullptr)
+        return false;
 
     // set any spawning characteristics
     const oo::PList* spawnEntry = shipdict.get<oo::PList::Dict>("spawn");
@@ -2844,7 +2844,7 @@ bool Universe::spawnShip(const std::string& shipdesc)
     // position
     positionString = OptionalStringIn(spawndict, "position");
     if (positionString.has_value()) {
-        if (oo::str::hasPrefix(*positionString, "abs ") && (planet() != nil || sun() != nil)) {
+        if (oo::str::hasPrefix(*positionString, "abs ") && (planet() != nullptr || sun() != nullptr)) {
             OO_LOG_WARN("script.deprecated", "setting {} for {} '{}' in 'abs' inside .plists can cause compatibility issues across Oolite versions. Use coordinates relative to main system objects instead.", "position", "entity", shipdesc);
         }
 
@@ -2860,7 +2860,7 @@ bool Universe::spawnShip(const std::string& shipdesc)
     // facing_position
     positionString = OptionalStringIn(spawndict, "facing_position");
     if (positionString.has_value()) {
-        if (oo::str::hasPrefix(*positionString, "abs ") && (planet() != nil || sun() != nil)) {
+        if (oo::str::hasPrefix(*positionString, "abs ") && (planet() != nullptr || sun() != nullptr)) {
             OO_LOG_WARN("script.deprecated", "setting {} for {} '{}' in 'abs' inside .plists can cause compatibility issues across Oolite versions. Use coordinates relative to main system objects instead.", "facing_position", "entity", shipdesc);
         }
 
@@ -2888,13 +2888,13 @@ bool Universe::spawnShip(const std::string& shipdesc)
     if (ship != nullptr)
         oo::ReleaseEntity(ship);
 
-    return YES;
+    return true;
 }
 
 void Universe::witchspaceShipWithPrimaryRole(const std::string& role)
 {
     // adds a ship exiting witchspace (corollary of when ships leave the system)
-    ::ShipEntity* ship = nil;
+    ::ShipEntity* ship = nullptr;
     oo::PList systeminfo;
     OOGovernmentID government;
 
@@ -2919,7 +2919,7 @@ void Universe::witchspaceShipWithPrimaryRole(const std::string& role)
             {
                 if (ship != nullptr)
                     ship->setCargoFlag(CARGO_FLAG_FULL_PLENTIFUL);
-                makeSunSkimmer(ship, YES);
+                makeSunSkimmer(ship, true);
             } else {
                 if (ship != nullptr)
                     ship->switchAITo("oolite-traderAI.js");
@@ -2953,9 +2953,9 @@ void Universe::witchspaceShipWithPrimaryRole(const std::string& role)
 ::ShipEntity* Universe::spawnShipWithRole(const std::string& desc, Entity* entity)
 {
     if (entity == nullptr)
-        return nil;
+        return nullptr;
 
-    ::ShipEntity* ship = nil;
+    ::ShipEntity* ship = nullptr;
     HPVector spawn_pos;
     Quaternion spawn_q;
     GLfloat offset = (randf() + randf()) * entity->collision_radius;
@@ -2977,7 +2977,7 @@ Entity* Universe::addVisualEffectAt(HPVector pos, const std::string& key)
     // minimise the time between creating ship & assigning position.
 
     Entity* vis = newVisualEffectWithName(key); // is retained (the effect's object)
-    BOOL success = NO;
+    bool success = false;
     if (vis != nullptr) {
         vis->setPosition(pos);
         vis->setOrientation(OORandomQuaternion());
@@ -3017,9 +3017,9 @@ Entity* Universe::addVisualEffectAt(HPVector pos, const std::string& key)
     }
 
     ::ShipEntity* ship = newShipWithRole(role); // is retained
-    BOOL success = NO;
+    bool success = false;
 
-    if (ship != nil) {
+    if (ship != nullptr) {
         if (ship != nullptr)
             ship->setPosition(pos);
         if ((ship != nullptr ? ship->hasRole("cargopod") : false))
@@ -3039,7 +3039,7 @@ Entity* Universe::addVisualEffectAt(HPVector pos, const std::string& key)
         if (ship != nullptr)
             ship->setOrientation(OORandomQuaternion());
 
-        BOOL trader = role == "trader";
+        bool trader = role == "trader";
         if (trader) {
             // half of traders created anywhere will now have cargo.
             if (randf() > 0.5f) {
@@ -3070,7 +3070,7 @@ Entity* Universe::addVisualEffectAt(HPVector pos, const std::string& key)
                 if ((ship != nullptr ? ship->hasRole("sunskim-trader") : false) && randf() < 0.25) {
                     if (ship != nullptr)
                         ship->setCargoFlag(CARGO_FLAG_FULL_PLENTIFUL);
-                    makeSunSkimmer(ship, YES);
+                    makeSunSkimmer(ship, true);
                 } else {
                     if (ship != nullptr)
                         ship->switchAITo("oolite-traderAI.js");
@@ -3089,7 +3089,7 @@ Entity* Universe::addVisualEffectAt(HPVector pos, const std::string& key)
         if (ship != nullptr)
             oo::ReleaseEntity(ship);
     }
-    return success ? ship : (::ShipEntity*)nil;
+    return success ? ship : (::ShipEntity*)nullptr;
 
     OOJS_PROFILE_EXIT
 }
@@ -3109,7 +3109,7 @@ std::vector<oo::EntityHold> Universe::addShipsAt(HPVector pos, const std::string
 
     while (count--) {
         ship = addShipAt(pos, role, radius);
-        if (ship != nil) {
+        if (ship != nullptr) {
             // TODO: avoid collisions!!!
             if (isGroup) {
                 if (ship != nullptr)
@@ -3128,7 +3128,7 @@ std::vector<oo::EntityHold> Universe::addShipsToRoute(const std::string& route, 
 {
     std::vector<oo::EntityHold> ships;
     ships.reserve(count);
-    ::ShipEntity* ship = nil;
+    ::ShipEntity* ship = nullptr;
     Entity* entity = nullptr; // the planet or the sun
     HPVector pos = kZeroHPVector, direction = kZeroHPVector, point0 = kZeroHPVector, point1 = kZeroHPVector;
     double radius = 0;
@@ -3141,26 +3141,26 @@ std::vector<oo::EntityHold> Universe::addShipsToRoute(const std::string& route, 
     if (route == "wp" || route == "pw") {
         point0 = getWitchspaceExitPosition();
         entity = planet();
-        if (entity == nil)
+        if (entity == nullptr)
             return { };
         point1 = entity->getPosition();
         radius = OOStellarBodyRadius(entity);
     } else if (route == "ws" || route == "sw") {
         point0 = getWitchspaceExitPosition();
         entity = sun();
-        if (entity == nil)
+        if (entity == nullptr)
             return { };
         point1 = entity->getPosition();
         radius = OOStellarBodyRadius(entity);
     } else if (route == "sp" || route == "ps") {
         entity = sun();
-        if (entity == nil)
+        if (entity == nullptr)
             return { };
         point0 = entity->getPosition();
         double radius0 = OOStellarBodyRadius(entity);
 
         entity = planet();
-        if (entity == nil)
+        if (entity == nullptr)
             return { };
         point1 = entity->getPosition();
         radius = OOStellarBodyRadius(entity);
@@ -3170,7 +3170,7 @@ std::vector<oo::EntityHold> Universe::addShipsToRoute(const std::string& route, 
         point0 = HPvector_subtract(point0, HPvector_multiply_scalar(direction, radius0 + SCANNER_MAX_RANGE * 1.1f));
     } else if (route == "st") {
         point0 = getWitchspaceExitPosition();
-        if (station() == nil)
+        if (station() == nullptr)
             return { };
         point1 = (station() != nullptr ? station()->getPosition() : HPVector { });
         radius = (station() != nullptr ? station()->collisionRadius() : 0.0f);
@@ -3183,11 +3183,11 @@ std::vector<oo::EntityHold> Universe::addShipsToRoute(const std::string& route, 
 
     pos = fractionalPositionFrom(point0, point1, routeFraction);
     if (isGroup) {
-        return addShipsAt(pos, role, count, (SCANNER_MAX_RANGE / 10.0f), YES);
+        return addShipsAt(pos, role, count, (SCANNER_MAX_RANGE / 10.0f), true);
     } else {
         while (count--) {
             ship = addShipAt(pos, role, 0); // no radius because pos is already randomised with SCANNER_MAX_RANGE.
-            if (ship != nil)
+            if (ship != nullptr)
                 ships.push_back(oo::EntityHold(ship));
             if (count > 0)
                 pos = fractionalPositionFrom(point0, point1, routeFraction);
@@ -3206,13 +3206,13 @@ bool Universe::role(const std::string& role, const std::string& category)
 {
     const oo::PList* categoryInfo = roleCategories.get<oo::PList::Array>(category); // the category's roles, each once
     if (categoryInfo == nullptr) {
-        return NO;
+        return false;
     }
     for (const oo::PList& member : *categoryInfo->getIf<oo::PList::Array>()) {
         if (const std::string* memberRole = member.getIf<std::string>(); memberRole != nullptr && *memberRole == role)
-            return YES;
+            return true;
     }
-    return NO;
+    return false;
 }
 
 // used to avoid having lost escorts when player advances clock while docked
@@ -3276,7 +3276,7 @@ void Universe::setUpBreakPattern(HPVector pos, Quaternion q, bool forDocking)
     colorDesc = PListForKeyIn(globalSettings, "hyperspace_tunnel_color_1"); // +cxx_colorWithDescription: takes any description
     if (!colorDesc.isNull()) {
         color = OOColor::colorWithDescription(colorDesc);
-        if (color != nil)
+        if (color != nullptr)
             col1 = color;
         else
             OO_LOG_WARN("hyperspaceTunnel.fromDict", "could not interpret \"{}\" as a colour.", oo::DescriptionOf(colorDesc));
@@ -3285,7 +3285,7 @@ void Universe::setUpBreakPattern(HPVector pos, Quaternion q, bool forDocking)
     colorDesc = PListForKeyIn(globalSettings, "hyperspace_tunnel_color_2");
     if (!colorDesc.isNull()) {
         color = OOColor::colorWithDescription(colorDesc);
-        if (color != nil)
+        if (color != nullptr)
             col2 = color;
         else
             OO_LOG_WARN("hyperspaceTunnel.fromDict", "could not interpret \"{}\" as a colour.", oo::DescriptionOf(colorDesc));
@@ -3317,9 +3317,9 @@ void Universe::setUpBreakPattern(HPVector pos, Quaternion q, bool forDocking)
         // FIXME: better would be to have break pattern timing not depend on
         // these ring objects existing in the first place. - CIM
         if (forDocking && !((PLAYER != nullptr ? PLAYER->dockedStation() : (::StationEntity*)nullptr) != nullptr ? (PLAYER != nullptr ? PLAYER->dockedStation() : (::StationEntity*)nullptr)->getHasBreakPattern() : false)) {
-            ring->isImmuneToBreakPatternHide = NO;
+            ring->isImmuneToBreakPatternHide = false;
         } else if (!forDocking && !witchspaceBreakPattern()) {
-            ring->isImmuneToBreakPatternHide = NO;
+            ring->isImmuneToBreakPatternHide = false;
         }
         addEntity(oo::MadeEntity(ring));
         breakPatternCounter++;
@@ -3344,7 +3344,7 @@ bool Universe::dockingClearanceProtocolActive()
 void Universe::setDockingClearanceProtocolActive(bool newValue)
 {
     ::OOShipRegistry* registry = OOShipRegistry::sharedRegistry();
-    ::StationEntity* station = nil;
+    ::StationEntity* station = nullptr;
 
     /* CIM: picking a random ship type which can take the same primary
      * role as the station to determine whether it has no set docking
@@ -3370,7 +3370,7 @@ void Universe::handleGameOver()
         if (gameController() != nullptr)
             gameController()->loadPlayerIfRequired();
     } else {
-        setUseAddOns(std::string(SCENARIO_OXP_DEFINITION_ALL), NO, YES); // calls reinitAndShowDemo
+        setUseAddOns(std::string(SCENARIO_OXP_DEFINITION_ALL), false, true); // calls reinitAndShowDemo
     }
 }
 
@@ -3379,7 +3379,7 @@ void Universe::handleGameOver()
 void Universe::setupIntroFirstGo(bool justCobra)
 {
     ::PlayerEntity* player = PLAYER;
-    ::ShipEntity* ship = nil;
+    ::ShipEntity* ship = nullptr;
     Quaternion q2 = { 0.0f, 0.0f, 1.0f, 0.0f }; // w,x,y,z
 
     // in status demo draw ships and display text
@@ -3393,12 +3393,12 @@ void Universe::setupIntroFirstGo(bool justCobra)
             player->setStatus(STATUS_START_GAME);
     }
     if (player != nullptr)
-        player->setShowDemoShips(YES);
-    displayGUI = YES;
+        player->setShowDemoShips(true);
+    displayGUI = true;
 
     if (justCobra) {
         /*- cobra - intro1 -*/
-        ship = newShipWithName(std::string(PLAYER_SHIP_DESC), YES);
+        ship = newShipWithName(std::string(PLAYER_SHIP_DESC), true);
     } else {
         /*- demo ships - intro2 -*/
 
@@ -3426,7 +3426,7 @@ void Universe::setupIntroFirstGo(bool justCobra)
         }
 
         if (!demo_ship)
-            ship = newShipWithName(OptionalStringIn(DemoShipEntry(demo_ships, demo_ship_index, demo_ship_subindex), kOODemoShipKey).value_or(std::string()), NO);
+            ship = newShipWithName(OptionalStringIn(DemoShipEntry(demo_ships, demo_ship_index, demo_ship_subindex), kOODemoShipKey).value_or(std::string()), false);
         // stop consistency problems on the ship library screen
         if (ship != nullptr)
             ship->removeEquipmentItem("EQ_SHIELD_BOOSTER");
@@ -3474,7 +3474,7 @@ void Universe::setupIntroFirstGo(bool justCobra)
         setLibraryTextForDemoShip();
     }
 
-    enterGUIViewModeWithMouseInteraction(NO);
+    enterGUIViewModeWithMouseInteraction(false);
     if (!justCobra) {
         demo_stage = DEMO_SHOW_THING;
         demo_stage_time = universal_time + 300.0;
@@ -3721,7 +3721,7 @@ void Universe::selectIntro2Next()
 
 ::StationEntity* Universe::station()
 {
-    if (cachedSun != nil && cachedStation == nil) {
+    if (cachedSun != nullptr && cachedStation == nullptr) {
         cachedStation = oo::ToStation(findOneEntityMatchingPredicate(IsCandidateMainStationPredicate, nullptr));
     }
     return cachedStation;
@@ -3730,13 +3730,13 @@ void Universe::selectIntro2Next()
 ::StationEntity* Universe::stationWithRole(const std::string& role, HPVector position)
 {
     if (role.empty()) {
-        return nil;
+        return nullptr;
     }
 
     float range = 1000000; // allow a little variation in position
 
     const std::vector<oo::EntityHold> stations = this->stations();
-    ::StationEntity* station = nil;
+    ::StationEntity* station = nullptr;
     for (const oo::EntityHold& entry : stations) {
         station = oo::ToStation(entry.get());
         if (HPdistance2(position, (station != nullptr ? station->getPosition() : HPVector { })) < range) {
@@ -3745,7 +3745,7 @@ void Universe::selectIntro2Next()
             }
         }
     }
-    return nil;
+    return nullptr;
 }
 
 ::StationEntity* Universe::stationFriendlyTo(::ShipEntity* ship)
@@ -3757,7 +3757,7 @@ void Universe::selectIntro2Next()
 
 ::OOPlanetEntity* Universe::planet()
 {
-    if (cachedPlanet == nil && allPlanets.size() > 0) {
+    if (cachedPlanet == nullptr && allPlanets.size() > 0) {
         cachedPlanet = static_cast<::OOPlanetEntity*>(allPlanets[0].get()); // the list holds only planets
     }
     return cachedPlanet;
@@ -3765,7 +3765,7 @@ void Universe::selectIntro2Next()
 
 ::OOSunEntity* Universe::sun()
 {
-    if (cachedSun == nil) {
+    if (cachedSun == nullptr) {
         cachedSun = static_cast<OOSunEntity*>(findOneEntityMatchingPredicate(IsSunPredicate, nullptr)); // -isSun
     }
     return cachedSun;
@@ -3805,9 +3805,9 @@ void Universe::unMagicMainStation()
         return;
 
     ::StationEntity* theStation = station();
-    if (theStation != nil)
-        theStation->isExplicitlyNotMainStation = YES;
-    cachedStation = nil;
+    if (theStation != nullptr)
+        theStation->isExplicitlyNotMainStation = true;
+    cachedStation = nullptr;
 }
 
 // The beacon list holds the C++ entities: the links are still each beacon's
@@ -3899,13 +3899,13 @@ std::map<std::string, oo::EntityHold, std::less<>> Universe::currentWaypoints()
 void Universe::defineWaypoint(const oo::PList& definition, const std::string& key)
 {
     Entity* waypoint = nullptr; // the C++ waypoint
-    BOOL preserveCompass = NO;
+    bool preserveCompass = false;
     const auto existing = waypoints.find(key);
     if (existing != waypoints.end())
         waypoint = existing->second.get();
     if (waypoint != nullptr) {
         if ((PLAYER != nullptr ? PLAYER->getCompassTargetEntity() : nullptr) == waypoint) {
-            preserveCompass = YES;
+            preserveCompass = true;
         }
         removeEntity(waypoint);
         waypoints.erase(key);
@@ -3960,11 +3960,11 @@ bool Universe::canInstantiateShip(const std::string& shipKey)
     condition_script = OptionalStringIn(shipInfo, "condition_script");
     if (condition_script.has_value()) {
         ::OOScript* condScript = getConditionScript(*condition_script);
-        if (condScript != nil) // should always be non-nil, but just in case
+        if (condScript != nullptr) // should always be non-nil, but just in case
         {
             JSContext* context = OOJSAcquireContext();
-            BOOL OK;
-            BOOL allow_instantiation = NO;
+            bool OK;
+            bool allow_instantiation = false;
             OOJSVal result = OOJSUndefinedValue();
             OOJSVal args[] = { OOJSValueFromPList(context, oo::PList(shipKey)) };
 
@@ -3981,14 +3981,14 @@ bool Universe::canInstantiateShip(const std::string& shipKey)
                 /* if the script exists, the function exists, the function
                  * returns a bool, and that bool is false, block
                  * instantiation. Otherwise allow it as default */
-                return NO;
+                return false;
             }
         }
     }
 
     conditions = shipInfo.get<oo::PList::Array>("conditions");
     if (conditions == nullptr)
-        return YES;
+        return true;
 
     // Check conditions
     return (PLAYER != nullptr ? PLAYER->scriptTestConditions(*conditions) : false);
@@ -4054,7 +4054,7 @@ std::optional<std::string> Universe::randomShipKeyForRoleRespectingConditions(co
 {
     OOJS_PROFILE_ENTER
 
-    ::ShipEntity* ship = nil;
+    ::ShipEntity* ship = nullptr;
     std::optional<std::string> shipKey;
     oo::PList shipInfo;
     std::optional<std::string> autoAI;
@@ -4062,12 +4062,12 @@ std::optional<std::string> Universe::randomShipKeyForRoleRespectingConditions(co
     shipKey = randomShipKeyForRoleRespectingConditions(role);
     if (shipKey.has_value()) {
         ship = newShipWithName(*shipKey);
-        if (ship != nil) {
+        if (ship != nullptr) {
             if (ship != nullptr)
                 ship->setPrimaryRole(role);
 
             shipInfo = OOShipRegistry::sharedRegistry()->shipInfoForKey(*shipKey);
-            if (FuzzyBooleanIn(shipInfo, "auto_ai", YES)) {
+            if (FuzzyBooleanIn(shipInfo, "auto_ai", true)) {
                 // Set AI based on role
                 autoAI = defaultAIForRole(role);
                 if (autoAI.has_value()) {
@@ -4116,7 +4116,7 @@ Entity* Universe::newVisualEffectWithName(const std::string& effectKey)
 
     effectDict = OOShipRegistry::sharedRegistry()->effectInfoForKey(effectKey);
     if (effectDict.isNull())
-        return nil;
+        return nullptr;
 
     try {
         effect = oo::NewVisualEffect(effectKey, effectDict);
@@ -4137,12 +4137,12 @@ Entity* Universe::newVisualEffectWithName(const std::string& effectKey)
 
 ::ShipEntity* Universe::newSubentityWithName(const std::string& shipKey, float scale)
 {
-    return newShipWithName(shipKey, NO, YES, scale);
+    return newShipWithName(shipKey, false, true, scale);
 }
 
 ::ShipEntity* Universe::newShipWithName(const std::string& shipKey, bool usePlayerProxy)
 {
-    return newShipWithName(shipKey, usePlayerProxy, NO);
+    return newShipWithName(shipKey, usePlayerProxy, false);
 }
 
 ::ShipEntity* Universe::newShipWithName(const std::string& shipKey, bool usePlayerProxy, bool isSubentity)
@@ -4155,18 +4155,18 @@ Entity* Universe::newVisualEffectWithName(const std::string& effectKey)
     OOJS_PROFILE_ENTER
 
     oo::PList shipDict;
-    ::ShipEntity* ship = nil;
+    ::ShipEntity* ship = nullptr;
 
     shipDict = OOShipRegistry::sharedRegistry()->shipInfoForKey(shipKey);
     if (shipDict.isNull())
-        return nil;
+        return nullptr;
 
-    volatile BOOL makeStation = NO;
-    volatile BOOL makeProxy = NO;
+    volatile bool makeStation = false;
+    volatile bool makeProxy = false;
     if (!isSubentity) {
         makeStation = isStationShipDictionary(shipDict);
         if (usePlayerProxy && !makeStation) {
-            makeProxy = YES;
+            makeProxy = true;
         }
     }
 
@@ -4209,11 +4209,11 @@ Entity* Universe::newVisualEffectWithName(const std::string& effectKey)
     OOJS_PROFILE_ENTER
 
     oo::PList shipDict;
-    ::ShipEntity* dock = nil; // its object
+    ::ShipEntity* dock = nullptr; // its object
 
     shipDict = OOShipRegistry::sharedRegistry()->shipInfoForKey(shipDataKey);
     if (shipDict.isNull())
-        return nil;
+        return nullptr;
 
     try {
         if (scale != 1.0f) {
@@ -4245,7 +4245,7 @@ Entity* Universe::newVisualEffectWithName(const std::string& effectKey)
 
 ::ShipEntity* Universe::newShipWithName(const std::string& shipKey)
 {
-    return newShipWithName(shipKey, NO);
+    return newShipWithName(shipKey, false);
 }
 
 bool Universe::isStationShipDictionary(const oo::PList& dict)
@@ -4253,9 +4253,9 @@ bool Universe::isStationShipDictionary(const oo::PList& dict)
     OOJS_PROFILE_ENTER
 
     if (dict.isNull())
-        return NO;
+        return false;
 
-    BOOL isStation = NO;
+    bool isStation = false;
     std::optional<std::string> shipRoles = OptionalStringIn(dict, "roles");
 
     if (shipRoles.has_value()) {
@@ -4310,7 +4310,7 @@ OOCreditsQuantity Universe::getEquipmentPriceForKey(const std::string& eq_key)
 ::ShipEntity* Universe::reifyCargoPod(::ShipEntity* cargoObj)
 {
     if ((cargoObj != nullptr ? cargoObj->isTemplateCargoPod() : false)) {
-        return (UNIVERSE != nullptr ? UNIVERSE->cargoPodFromTemplate(cargoObj) : (::ShipEntity*)nil);
+        return (UNIVERSE != nullptr ? UNIVERSE->cargoPodFromTemplate(cargoObj) : (::ShipEntity*)nullptr);
     } else {
         return cargoObj;
     }
@@ -4318,22 +4318,22 @@ OOCreditsQuantity Universe::getEquipmentPriceForKey(const std::string& eq_key)
 
 ::ShipEntity* Universe::cargoPodFromTemplate(::ShipEntity* cargoObj)
 {
-    ::ShipEntity* container = nil;
+    ::ShipEntity* container = nullptr;
     // this is a template container, so we need to make a real one
     const std::optional<std::string> co_type = (cargoObj != nullptr ? cargoObj->commodityType() : std::optional<std::string>());
     OOCargoQuantity co_amount = co_type.has_value() ? (UNIVERSE != nullptr ? UNIVERSE->getRandomAmountOfCommodity(*co_type) : 0) : 0;
     if (randf() < 0.5) // stops OXP monopolising pods for commodities
     {
-        container = co_type.has_value() ? (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole(*co_type) : (::ShipEntity*)nil) : nil; // newShipWithRole returns retained object
+        container = co_type.has_value() ? (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole(*co_type) : (::ShipEntity*)nullptr) : nullptr; // newShipWithRole returns retained object
     }
-    if (container == nil) {
-        container = (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole("cargopod") : (::ShipEntity*)nil);
+    if (container == nullptr) {
+        container = (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole("cargopod") : (::ShipEntity*)nullptr);
     }
     if (co_type.has_value()) {
         if (container != nullptr)
             container->setCommodity(*co_type, co_amount);
     } // nil: no change, as before
-    return (container != nullptr ? oo::ToShip(oo::AutoreleaseEntity(container)) : (::ShipEntity*)nil);
+    return (container != nullptr ? oo::ToShip(oo::AutoreleaseEntity(container)) : (::ShipEntity*)nullptr);
 }
 
 std::vector<oo::EntityHold> Universe::getContainersOfGoods(OOCargoQuantity how_many, bool scarce, bool legal)
@@ -4386,14 +4386,14 @@ std::vector<oo::EntityHold> Universe::getContainersOfGoods(OOCargoQuantity how_m
         }
 
         const std::optional<std::string> goodsKey = (co_type < goodsKeys.size()) ? std::optional<std::string>(goodsKeys[co_type]) : std::nullopt;
-        ::ShipEntity* container = nil;
+        ::ShipEntity* container = nullptr;
         if (goodsKey.has_value()) {
             const auto pod = cargoPods.find(*goodsKey);
             if (pod != cargoPods.end())
                 container = oo::ToShip(pod->second.get());
         }
 
-        if (container != nil) {
+        if (container != nullptr) {
             accumulator.push_back(oo::EntityHold(container));
         } else {
             OO_LOG("universe.createContainer.failed", "***** ERROR: failed to find a container to fill with {} ({}).", goodsKey.value_or("(null)"), static_cast<size_t>(co_type));
@@ -4410,7 +4410,7 @@ std::vector<oo::EntityHold> Universe::getContainersOfCommodity(const std::string
         return accumulator; // empty array
     }
 
-    ::ShipEntity* container = nil;
+    ::ShipEntity* container = nullptr;
     const auto pod = cargoPods.find(commodity_name);
     if (pod != cargoPods.end())
         container = oo::ToShip(pod->second.get());
@@ -4428,7 +4428,7 @@ std::vector<oo::EntityHold> Universe::getContainersOfCommodity(const std::string
 
 void Universe::fillCargopodWithRandomCargo(::ShipEntity* cargopod)
 {
-    if (cargopod == nil || !(cargopod != nullptr ? cargopod->hasRole("cargopod") : false) || (cargopod != nullptr && cargopod->cargoType() == CARGO_SCRIPTED_ITEM))
+    if (cargopod == nullptr || !(cargopod != nullptr ? cargopod->hasRole("cargopod") : false) || (cargopod != nullptr && cargopod->cargoType() == CARGO_SCRIPTED_ITEM))
         return;
 
     if (!(cargopod != nullptr ? cargopod->commodityType() : std::optional<std::string>()).has_value() || !(cargopod != nullptr ? cargopod->commodityAmount() : 0)) {
@@ -4550,7 +4550,8 @@ oo::PList Universe::gameSettings()
     result["wireframeGraphics"] = oo::PList(static_cast<bool>(wireframeGraphics));
     result["procedurallyTexturedPlanets"] = oo::PList(static_cast<bool>(doProcedurallyTexturedPlanets));
 
-    result["fovValue"] = oo::PList::singleReal((gameView != nullptr ? gameView->fov(NO) : 0.0f));
+    result["fovValue"] = oo::PList::singleReal(
+        (gameView != nullptr ? gameView->fov(false) : 0.0f));
 
 #if OOLITE_WINDOWS
     if ((gameView != nullptr ? gameView->hdrOutput() : false)) {
@@ -4649,7 +4650,7 @@ void Universe::getActiveViewMatrix(OOMatrix* outMatrix, Vector* outForward, Vect
 {
     assert(outMatrix != NULL && outForward != NULL && outUp != NULL);
 
-    ::PlayerEntity* player = nil;
+    ::PlayerEntity* player = nullptr;
 
     switch (viewDirection) {
     case VIEW_AFT:
@@ -4799,10 +4800,10 @@ bool Universe::viewFrustumIntersectsSphereAt(Vector position, GLfloat radius)
     int p;
     for (p = 0; p < 6; p++) {
         if (frustum[p][0] * position.x + frustum[p][1] * position.y + frustum[p][2] * position.z + frustum[p][3] <= -radius) {
-            return NO;
+            return false;
         }
     }
-    return YES;
+    return true;
 }
 
 // drawUniverse, framebuffer preparation, frame counters, the view matrix.
@@ -4810,7 +4811,7 @@ bool Universe::viewFrustumIntersectsSphereAt(Vector position, GLfloat radius)
 void Universe::drawUniverse()
 {
     int currentPostFX = this->currentPostFX();
-    BOOL hudSeparateRenderPass = useShaders() && (currentPostFX == OO_POSTFX_NONE || ((currentPostFX == OO_POSTFX_CLOAK || currentPostFX == OO_POSTFX_CRTBADSIGNAL) && colorblindMode() == OO_POSTFX_NONE));
+    bool hudSeparateRenderPass = useShaders() && (currentPostFX == OO_POSTFX_NONE || ((currentPostFX == OO_POSTFX_CLOAK || currentPostFX == OO_POSTFX_CRTBADSIGNAL) && colorblindMode() == OO_POSTFX_NONE));
     NSSize viewSize = (gameView != nullptr ? gameView->backingViewSize() : NSSize { });
     OO_LOG("universe.profile.draw", "{}", "Begin draw");
 
@@ -4827,7 +4828,7 @@ void Universe::drawUniverse()
             }
         }
         try {
-            no_update = YES; // block other attempts to draw
+            no_update = true; // block other attempts to draw
 
             int i, v_status, vdist;
             Vector view_dir, view_up;
@@ -4837,7 +4838,7 @@ void Universe::drawUniverse()
             int draw_count = 0;
             ::PlayerEntity* player = PLAYER;
             Entity* drawthing = nullptr;
-            BOOL demoShipMode = (player != nullptr ? player->getShowDemoShips() : false);
+            bool demoShipMode = (player != nullptr ? player->getShowDemoShips() : false);
 
             float aspect = viewSize.height / viewSize.width;
 
@@ -4885,7 +4886,7 @@ void Universe::drawUniverse()
                     gui->drawGUIBackground();
             }
 
-            BOOL fogging, bpHide = breakPatternHide();
+            bool fogging, bpHide = breakPatternHide();
 
             drawCounter++;
             float breakPlane = INTERMEDIATE_CLEAR_DEPTH;
@@ -4899,12 +4900,12 @@ void Universe::drawUniverse()
             }
 
             // We need to bring forward the near plane of the frustum on the long distance pass by this factor to avoid clipping objects at the corner of the window
-            float distanceFactor = sqrt(1 + ((gameView != nullptr ? gameView->fov(YES) : 0.0f) * (gameView != nullptr ? gameView->fov(YES) : 0.0f) * (1.0 + 1.0 / (aspect * aspect))));
+            float distanceFactor = sqrt(1 + ((gameView != nullptr ? gameView->fov(true) : 0.0f) * (gameView != nullptr ? gameView->fov(true) : 0.0f) * (1.0 + 1.0 / (aspect * aspect))));
 
             for (vdist = 0; vdist <= 1; vdist++) {
                 float nearPlane = vdist ? 1.0 : INTERMEDIATE_CLEAR_DEPTH;
                 float farPlane = vdist ? breakPlane : MAX_CLEAR_DEPTH;
-                float ratio = (displayGUI ? 0.5 : (gameView != nullptr ? gameView->fov(YES) : 0.0f)) * nearPlane / distanceFactor; // 0.5 is field of view ratio for GUIs
+                float ratio = (displayGUI ? 0.5 : (gameView != nullptr ? gameView->fov(true) : 0.0f)) * nearPlane / distanceFactor; // 0.5 is field of view ratio for GUIs
 
                 OOGLResetProjection();
                 if ((displayGUI && 4 * aspect >= 3) || (!displayGUI && 4 * aspect <= 3)) {
@@ -4986,7 +4987,7 @@ void Universe::drawUniverse()
 
                     int furthest = draw_count - 1;
                     int nearest = 0;
-                    BOOL inAtmosphere = airResistanceFactor > 0.01;
+                    bool inAtmosphere = airResistanceFactor > 0.01;
                     GLfloat fogFactor = 0.5 / airResistanceFactor;
                     double fog_scale, half_scale;
                     GLfloat flat_ambdiff[4] = { 1.0, 1.0, 1.0, 1.0 }; // for alpha
@@ -5212,7 +5213,7 @@ void Universe::drawUniverse()
 
             OOGL(glFlush()); // don't wait around for drawing to complete
 
-            no_update = NO; // allow other attempts to draw
+            no_update = false; // allow other attempts to draw
 
             // frame complete, when it is time to update the fps_counter, updateClocks:delta_t
             // in PlayerEntity.m will take care of resetting the processed frames number to 0.
@@ -5223,7 +5224,7 @@ void Universe::drawUniverse()
             const auto exception = oo::CurrentOOException();
             if (!exception)
                 throw; // not an OOException: it goes on up, as before
-            no_update = NO; // make sure we don't get stuck in all subsequent frames.
+            no_update = false; // make sure we don't get stuck in all subsequent frames.
 
             if (strncmp(exception->name(), "Oolite", 6) == 0) {
                 handleOoliteException(exception->object());
@@ -5290,17 +5291,17 @@ void Universe::drawMessage()
     float overallAlpha = (hud != nullptr) ? hud->getOverallAlpha() : 0.0f; // a nil HUD answered 0
     if (displayGUI) {
         if ((gameController() != nullptr ? gameController()->mouseInteractionMode() : OOMouseInteractionMode { }) == MOUSE_MODE_UI_SCREEN_WITH_INTERACTION) {
-            cursor_row = (gui != nullptr) ? gui->drawGUI(1.0, YES) : 0; // a nil GUI answered 0
+            cursor_row = (gui != nullptr) ? gui->drawGUI(1.0, true) : 0; // a nil GUI answered 0
         } else {
             if (gui != nullptr)
-                gui->drawGUI(1.0, NO);
+                gui->drawGUI(1.0, false);
         }
     }
 
     if (message_gui != nullptr)
-        message_gui->drawGUI(message_gui->alpha() * overallAlpha, NO);
+        message_gui->drawGUI(message_gui->alpha() * overallAlpha, false);
     if (comm_log_gui != nullptr)
-        comm_log_gui->drawGUI(comm_log_gui->alpha() * overallAlpha, NO);
+        comm_log_gui->drawGUI(comm_log_gui->alpha() * overallAlpha, false);
 
     OOVerifyOpenGLState();
 }
@@ -5323,20 +5324,20 @@ Entity* Universe::entityForUniversalID(OOUniversalID u_id)
 
     if (MAX_ENTITY_UID < u_id) {
         OO_LOG("universe.badUID", "Attempt to retrieve entity for out-of-range UID {}. (This is an internal programming error, please report it.)", static_cast<unsigned>(u_id));
-        return nil;
+        return nullptr;
     }
 
     if ((u_id == NO_TARGET) || (!entity_for_uid[u_id]))
-        return nil;
+        return nullptr;
 
     Entity* ent = entity_for_uid[u_id];
     if (ent->isEffect()) // effects SHOULD NOT HAVE U_IDs!
     {
-        return nil;
+        return nullptr;
     }
 
     if (oo::EntityStatus(ent) == STATUS_DEAD || oo::EntityStatus(ent) == STATUS_DOCKED) {
-        return nil;
+        return nullptr;
     }
 
     return ent;
@@ -5345,14 +5346,14 @@ Entity* Universe::entityForUniversalID(OOUniversalID u_id)
 bool Universe::addEntity(Entity* entity)
 {
     if (entity) {
-        ::ShipEntity* se = nil;
+        ::ShipEntity* se = nullptr;
 
         if (!entity->validForAddToUniverse())
-            return NO;
+            return false;
 
         // don't add things twice!
         if (std::find(entities.begin(), entities.end(), entity) != entities.end())
-            return YES;
+            return true;
 
         if (n_entities >= UNIVERSE_MAX_ENTITIES - 1) {
             // throw an exception here...
@@ -5361,12 +5362,12 @@ bool Universe::addEntity(Entity* entity)
             if (oo::log::willDisplay("universe.maxEntitiesDump"))
                 debugDumpEntities();
 #endif
-            return NO;
+            return false;
         }
 
         if (!entity->isEffect()) {
             unsigned limiter = UNIVERSE_MAX_ENTITIES;
-            while (entity_for_uid[next_universal_id] != nil) // skip allocated numbers
+            while (entity_for_uid[next_universal_id] != nullptr) // skip allocated numbers
             {
                 next_universal_id++; // increment keeps idkeys unique
                 if (next_universal_id >= MAX_ENTITY_UID) {
@@ -5375,7 +5376,7 @@ bool Universe::addEntity(Entity* entity)
                 if (limiter-- == 0) {
                     // Every slot has been tried! This should not happen due to previous test, but there was a problem here in 1.70.
                     OO_LOG("universe.addEntity.failed", "***** Universe cannot addEntity:{} -- Could not find free slot for entity.", oo::EntityDescription(entity));
-                    return NO;
+                    return false;
                 }
             }
             entity->setUniversalID(next_universal_id);
@@ -5408,7 +5409,7 @@ bool Universe::addEntity(Entity* entity)
                     if (oo::ToStation(se) != nullptr)
                         oo::ToStation(se)->setPlanet(planet());
                     if ((se != nullptr ? se->getMaxFlightSpeed() : 0.0f) > 0)
-                        se->isExplicitlyNotMainStation = YES; // we never want carriers to become main stations.
+                        se->isExplicitlyNotMainStation = true; // we never want carriers to become main stations.
                 }
                 // stations used to have STATUS_ACTIVE, they're all STATUS_IN_FLIGHT now.
                 if ((se != nullptr ? se->status() : OOEntityStatus { }) != STATUS_COCKPIT_DISPLAY) {
@@ -5427,7 +5428,7 @@ bool Universe::addEntity(Entity* entity)
         }
 
         // lighting considerations
-        entity->isSunlit = YES;
+        entity->isSunlit = true;
         entity->shadingEntityID = NO_TARGET;
 
         // add it to the universe
@@ -5458,7 +5459,7 @@ bool Universe::addEntity(Entity* entity)
         entity->addToLinkedLists(); // position and universe have been set - so we can do this
         if (entity->canCollide()) // filter only collidables disappearing
         {
-            doLinkedListMaintenanceThisUpdate = YES;
+            doLinkedListMaintenanceThisUpdate = true;
         }
 
         if (entity->getIsWormhole()) {
@@ -5475,14 +5476,14 @@ bool Universe::addEntity(Entity* entity)
             }
         }
 
-        return YES;
+        return true;
     }
-    return NO;
+    return false;
 }
 
 bool Universe::removeEntity(Entity* entity)
 {
-    if (entity != nil && !oo::EntityIsPlayer(entity)) {
+    if (entity != nullptr && !oo::EntityIsPlayer(entity)) {
         /*	Ensure entity won't actually be dealloced until the end of this
                 update (or the next update if none is in progress), because
                 there may be things pointing to it but not retaining it.
@@ -5497,7 +5498,7 @@ bool Universe::removeEntity(Entity* entity)
         }
         return doRemoveEntity(entity);
     }
-    return NO;
+    return false;
 }
 
 void Universe::ensureEntityReallyRemoved(Entity* entity)
@@ -5511,8 +5512,8 @@ void Universe::ensureEntityReallyRemoved(Entity* entity)
 
 void Universe::removeAllEntitiesExceptPlayer()
 {
-    BOOL updating = no_update;
-    no_update = YES; // no drawing while we do this!
+    bool updating = no_update;
+    no_update = true; // no drawing while we do this!
 
 #ifndef NDEBUG
     Entity* p0 = entities[0].get();
@@ -5543,9 +5544,9 @@ void Universe::removeAllEntitiesExceptPlayer()
     // maintain sorted list
     n_entities = 1;
 
-    cachedSun = nil;
-    cachedPlanet = nil;
-    cachedStation = nil;
+    cachedSun = nullptr;
+    cachedPlanet = nullptr;
+    cachedStation = nullptr;
     closeSystems.reset();
 
     resetBeacons();
@@ -5567,20 +5568,20 @@ void Universe::removeDemoShips()
             }
         }
     }
-    demo_ship = nil;
+    demo_ship = nullptr;
 }
 
 // Making demo ships, safe vectors, hazards on route, wreckage, laser hits.
 
 ::ShipEntity* Universe::makeDemoShipWithRole(const std::string& role, bool spinning)
 {
-    if ((PLAYER != nullptr ? PLAYER->dockedStation() : (::StationEntity*)nullptr) == nil)
-        return nil;
+    if ((PLAYER != nullptr ? PLAYER->dockedStation() : (::StationEntity*)nullptr) == nullptr)
+        return nullptr;
 
     removeDemoShips(); // get rid of any pre-existing models on display
 
     if (PLAYER != nullptr)
-        PLAYER->setShowDemoShips(YES);
+        PLAYER->setShowDemoShips(true);
     Quaternion q2 = { (GLfloat)M_SQRT1_2, (GLfloat)M_SQRT1_2, (GLfloat)0.0, (GLfloat)0.0 };
 
     ::ShipEntity* ship = newShipWithRole(role); // retain count = 1
@@ -5617,13 +5618,13 @@ void Universe::removeDemoShips()
             ship->removeEquipmentItem("EQ_SHIELD_ENHANCER");
     }
 
-    return (ship != nullptr ? oo::ToShip(oo::AutoreleaseEntity(ship)) : (::ShipEntity*)nil);
+    return (ship != nullptr ? oo::ToShip(oo::AutoreleaseEntity(ship)) : (::ShipEntity*)nullptr);
 }
 
 bool Universe::isVectorClearFromEntity(Entity* e1, double dist, HPVector p2)
 {
     if (!e1)
-        return NO;
+        return false;
 
     HPVector f1;
     HPVector p1 = e1->position;
@@ -5635,7 +5636,7 @@ bool Universe::isVectorClearFromEntity(Entity* e1, double dist, HPVector p2)
     double nearest = sqrt(v1.x * v1.x + v1.y * v1.y + v1.z * v1.z) - dist; // length of vector
 
     if (nearest < 0.0)
-        return YES; // within range already!
+        return true; // within range already!
 
     int i;
     int ent_count = n_entities;
@@ -5674,14 +5675,14 @@ bool Universe::isVectorClearFromEntity(Entity* e1, double dist, HPVector p2)
                 if (dist2 < cr * cr) {
                     for (i = 0; i < ent_count; i++)
                         oo::ReleaseEntity(my_entities[i]); //	released
-                    return NO;
+                    return false;
                 }
             }
         }
     }
     for (i = 0; i < ent_count; i++)
         oo::ReleaseEntity(my_entities[i]); //	released
-    return YES;
+    return true;
 }
 
 // The C++ entity, and its hazard's: the list is still walked on the entities'
@@ -5689,7 +5690,7 @@ bool Universe::isVectorClearFromEntity(Entity* e1, double dist, HPVector p2)
 Entity* Universe::hazardOnRouteFromEntity(Entity* e1, double dist, HPVector p2)
 {
     if (!e1)
-        return nil;
+        return nullptr;
 
     HPVector f1;
     HPVector p1 = e1->position;
@@ -5701,7 +5702,7 @@ Entity* Universe::hazardOnRouteFromEntity(Entity* e1, double dist, HPVector p2)
     double nearest = HPmagnitude(v1) - dist; // length of vector
 
     if (nearest < 0.0)
-        return nil; // within range already!
+        return nullptr; // within range already!
 
     Entity* result = nullptr;
     int i;
@@ -5869,14 +5870,14 @@ HPVector Universe::getSafeVectorFromEntity(Entity* e1, double dist, HPVector p2)
 
 ::ShipEntity* Universe::addWreckageFrom(::ShipEntity* ship, const std::string& wreckRole, HPVector rpos, GLfloat scale, GLfloat lifetime)
 {
-    ::ShipEntity* wreck = (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole(wreckRole) : (::ShipEntity*)nil); // retain count = 1
+    ::ShipEntity* wreck = (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole(wreckRole) : (::ShipEntity*)nullptr); // retain count = 1
     Quaternion q;
     if (wreck) {
         GLfloat expected_mass = 0.1f * (ship != nullptr ? ship->getMass() : 0.0f) * (0.75 + 0.5 * randf());
         GLfloat wreck_mass = (wreck != nullptr ? wreck->getMass() : 0.0f);
         GLfloat scale_factor = powf(expected_mass / wreck_mass, 0.33333333f) * scale; // cube root of volume ratio
         if (wreck != nullptr)
-            wreck->rescaleBy(scale_factor, NO);
+            wreck->rescaleBy(scale_factor, false);
 
         if (wreck != nullptr)
             wreck->setPosition(rpos);
@@ -5896,7 +5897,7 @@ HPVector Universe::getSafeVectorFromEntity(Entity* e1, double dist, HPVector p2)
             wreck->setEnergy(lifetime);
 
         if (wreck != nullptr)
-            wreck->setIsWreckage(YES);
+            wreck->setIsWreckage(true);
 
         if (UNIVERSE != nullptr)
             UNIVERSE->addEntity(wreck); // STATUS_IN_FLIGHT, AI state GLOBAL
@@ -5934,11 +5935,11 @@ void Universe::addLaserHitEffectsAt(HPVector pos, ::ShipEntity* target, float da
 
 ::ShipEntity* Universe::firstShipHitByLaserFromShip(::ShipEntity* srcEntity, OOWeaponFacing direction, Vector offset, GLfloat* range_ptr)
 {
-    if (srcEntity == nil)
-        return nil;
+    if (srcEntity == nullptr)
+        return nullptr;
 
-    ::ShipEntity* hit_entity = nil;
-    ::ShipEntity* hit_subentity = nil;
+    ::ShipEntity* hit_entity = nullptr;
+    ::ShipEntity* hit_subentity = nullptr;
     HPVector p0 = (srcEntity != nullptr ? srcEntity->getPosition() : HPVector { });
     Quaternion q1 = (srcEntity != nullptr ? srcEntity->normalOrientation() : Quaternion { });
     ::ShipEntity* parent = oo::ToShip((srcEntity != nullptr ? srcEntity->parentEntity() : (Entity*)nullptr));
@@ -5962,7 +5963,7 @@ void Universe::addLaserHitEffectsAt(HPVector pos, ::ShipEntity* target, float da
     for (i = 0; i < ent_count; i++) {
         Entity* ent = sortedEntities[i];
         if (ent != srcEntity && ent != parent && oo::EntityIsShip(ent) && ent->canCollide()) {
-            my_entities[ship_count++] = (oo::ToShip(ent) != nullptr ? oo::ToShip(oo::RetainEntity(oo::ToShip(ent))) : (::ShipEntity*)nil);
+            my_entities[ship_count++] = (oo::ToShip(ent) != nullptr ? oo::ToShip(oo::RetainEntity(oo::ToShip(ent))) : (::ShipEntity*)nullptr);
         }
     }
 
@@ -6004,7 +6005,7 @@ void Universe::addLaserHitEffectsAt(HPVector pos, ::ShipEntity* target, float da
             v_off.x < cr && v_off.x > -cr && v_off.y < cr && v_off.y > -cr && // AND not off to one side or another
             v_off.x * v_off.x + v_off.y * v_off.y < cr * cr) // AND not off to both sides
         {
-            ::ShipEntity* entHit = nil;
+            ::ShipEntity* entHit = nullptr;
             GLfloat hit = (oo::ToShip(e2) != nullptr ? oo::ToShip(e2)->doesHitLine(p0, p1, &entHit) : 0.0f); // octree detection
 
             if (hit > 0.0 && hit < nearest) {
@@ -6155,7 +6156,7 @@ Entity* Universe::firstEntityTargetedByPlayerPrecisely()
 
 std::vector<oo::EntityHold> Universe::entitiesWithinRange(double range, Entity* entity)
 {
-    if (entity == nil)
+    if (entity == nullptr)
         return { };
 
     return findShipsMatchingPredicate(YESPredicate, NULL, range, entity);
@@ -6200,7 +6201,7 @@ unsigned Universe::countEntitiesMatchingPredicate(EntityFilterPredicate predicat
     if (predicate == NULL)
         predicate = YESPredicate;
 
-    if (e1 != nil)
+    if (e1 != nullptr)
         p1 = e1->position;
     else
         p1 = kZeroHPVector;
@@ -6295,7 +6296,7 @@ Entity* Universe::findOneEntityMatchingPredicate(EntityFilterPredicate predicate
 
     OOJSResumeTimeLimiter();
 
-    return nil;
+    return nullptr;
 }
 
 std::vector<oo::EntityHold> Universe::findShipsMatchingPredicate(EntityFilterPredicate predicate, void* parameter, double range, Entity* entity)
@@ -6411,7 +6412,7 @@ std::string Universe::collisionDescription()
 
 void Universe::dumpCollisions()
 {
-    dumpCollisionInfo = YES;
+    dumpCollisionInfo = true;
 }
 
 OOViewID Universe::getViewDirection()
@@ -6425,7 +6426,7 @@ OOViewID Universe::getViewDirection()
 void Universe::setViewDirection(OOViewID vd)
 {
     std::optional<std::string> ms;
-    BOOL guiSelected = NO;
+    bool guiSelected = false;
 
     if ((viewDirection == vd) && (vd != VIEW_CUSTOM) && (!displayGUI))
         return;
@@ -6452,30 +6453,30 @@ void Universe::setViewDirection(OOViewID vd)
         break;
 
     case VIEW_GUI_DISPLAY:
-        setDisplayText(YES);
+        setDisplayText(true);
         setMainLightPosition((Vector) { DEMO_LIGHT_POSITION });
-        guiSelected = YES;
+        guiSelected = true;
         break;
 
     default:
-        guiSelected = YES;
+        guiSelected = true;
         break;
     }
 
     if (guiSelected) {
         if (gameController() != nullptr)
-            gameController()->setMouseInteractionModeForUIWithMouseInteraction(NO);
+            gameController()->setMouseInteractionModeForUIWithMouseInteraction(false);
     } else {
-        displayGUI = NO; // switch off any text displays
+        displayGUI = false; // switch off any text displays
         if (gameController() != nullptr)
             gameController()->setMouseInteractionModeForFlight();
     }
 
     if (viewDirection != vd || viewDirection == VIEW_CUSTOM) {
 #if (ALLOW_CUSTOM_VIEWS_WHILE_PAUSED)
-        BOOL gamePaused = (gameController() != nullptr ? gameController()->isGamePaused() : false);
+        bool gamePaused = (gameController() != nullptr ? gameController()->isGamePaused() : false);
 #else
-        BOOL gamePaused = NO;
+        bool gamePaused = false;
 #endif
         // view notifications for when the player switches to/from gui!
         // if (EXPECT(viewDirection == VIEW_GUI_DISPLAY || vd == VIEW_GUI_DISPLAY )) [PLAYER noteViewDidChangeFrom:viewDirection toView:vd];
@@ -6614,7 +6615,7 @@ void Universe::displayMessage(const std::optional<std::string>& text, OOTimeDelt
     if (!SameMessage(currentMessage, text) || universal_time >= messageRepeatTime) {
         currentMessage = text;
         messageRepeatTime = universal_time + 6.0;
-        showGUIMessage(text, YES, (message_gui != nullptr ? message_gui->getTextColor() : nullptr), count);
+        showGUIMessage(text, true, (message_gui != nullptr ? message_gui->getTextColor() : nullptr), count);
     }
 }
 
@@ -6623,7 +6624,7 @@ void Universe::displayCountdownMessage(const std::optional<std::string>& text, O
     if (!SameMessage(currentMessage, text) && universal_time >= countdown_messageRepeatTime) {
         currentMessage = text;
         countdown_messageRepeatTime = universal_time + count;
-        showGUIMessage(text, NO, (message_gui != nullptr ? message_gui->getTextColor() : nullptr), count);
+        showGUIMessage(text, false, (message_gui != nullptr ? message_gui->getTextColor() : nullptr), count);
     }
 }
 
@@ -6654,7 +6655,7 @@ void Universe::addDelayedMessage(const oo::PList& message)
 
 void Universe::addMessage(const std::optional<std::string>& text, OOTimeDelta count)
 {
-    addMessage(text, count, NO);
+    addMessage(text, count, false);
 }
 
 void Universe::speakWithSubstitutions(const std::optional<std::string>& text)
@@ -6713,7 +6714,7 @@ void Universe::addMessage(const std::optional<std::string>& text, OOTimeDelta co
             speakWithSubstitutions(text);
         }
 
-        showGUIMessage(text, YES, (message_gui != nullptr ? message_gui->getTextColor() : nullptr), count);
+        showGUIMessage(text, true, (message_gui != nullptr ? message_gui->getTextColor() : nullptr), count);
 
         if (PLAYER != nullptr)
             PLAYER->doScriptEvent(OOJSID("consoleMessageReceived"), { StringOrNull(text) });
@@ -6725,7 +6726,7 @@ void Universe::addMessage(const std::optional<std::string>& text, OOTimeDelta co
 
 void Universe::addCommsMessage(const std::optional<std::string>& text, OOTimeDelta count)
 {
-    addCommsMessage(text, count, _autoCommLog, NO);
+    addCommsMessage(text, count, _autoCommLog, false);
 }
 
 void Universe::addCommsMessage(const std::optional<std::string>& text, OOTimeDelta count, bool showComms, bool logOnly)
@@ -6745,7 +6746,7 @@ void Universe::addCommsMessage(const std::optional<std::string>& text, OOTimeDel
                 speakWithSubstitutions(oo::str::formatRuntime(format, { expandedMessage.has_value() ? oo::str::FormatArg(*expandedMessage) : oo::str::FormatArg::null() }));
             }
 
-            showGUIMessage(expandedMessage, YES, (message_gui != nullptr ? message_gui->getTextCommsColor() : nullptr), count);
+            showGUIMessage(expandedMessage, true, (message_gui != nullptr ? message_gui->getTextCommsColor() : nullptr), count);
 
             currentMessage = expandedMessage;
             messageRepeatTime = universal_time + 6.0;
@@ -6754,7 +6755,7 @@ void Universe::addCommsMessage(const std::optional<std::string>& text, OOTimeDel
         // the printed lines go to the player's comm log
         std::vector<std::string> printedLines;
         if (comm_log_gui != nullptr)
-            comm_log_gui->printLongText(expandedMessage, GUI_ALIGN_LEFT, nil, 0.0, std::nullopt, &printedLines);
+            comm_log_gui->printLongText(expandedMessage, GUI_ALIGN_LEFT, nullptr, 0.0, std::nullopt, &printedLines);
         std::vector<std::string>* commLog = (player != nullptr ? player->getCommLog() : (std::vector<std::string>*)nullptr);
         if (commLog != nullptr)
             commLog->insert(commLog->end(), printedLines.begin(), printedLines.end());
@@ -6863,12 +6864,12 @@ void Universe::update(OOTimeDelta inDeltaT)
                         case DEMO_FLY_OUT:
                             // change the demo_ship here
                             removeEntity(demo_ship);
-                            demo_ship = nil;
+                            demo_ship = nullptr;
 
                             demo_ship_subindex = (demo_ship_subindex + 1) % DemoClassCount(demo_ships, demo_ship_index);
-                            demo_ship = newShipWithName(OptionalStringIn(demoShipData(), kOODemoShipKey).value_or(std::string()), NO); // a missing key asked for "", as nil did
+                            demo_ship = newShipWithName(OptionalStringIn(demoShipData(), kOODemoShipKey).value_or(std::string()), false); // a missing key asked for "", as nil did
 
-                            if (demo_ship != nil) {
+                            if (demo_ship != nullptr) {
                                 if (demo_ship != nullptr)
                                     demo_ship->removeEquipmentItem("EQ_SHIELD_BOOSTER");
                                 if (demo_ship != nullptr)
@@ -6908,7 +6909,7 @@ void Universe::update(OOTimeDelta inDeltaT)
                                     demo_start_time = universal_time;
                                     demo_stage_time = demo_start_time + DEMO2_FLY_IN_STAGE_TIME;
                                 } else {
-                                    demo_ship = nil;
+                                    demo_ship = nullptr;
                                 }
                             }
                             break;
@@ -7007,7 +7008,7 @@ void Universe::update(OOTimeDelta inDeltaT)
 
             if (doLinkedListMaintenanceThisUpdate) {
                 MaintainLinkedLists(this);
-                doLinkedListMaintenanceThisUpdate = NO;
+                doLinkedListMaintenanceThisUpdate = false;
             }
         } catch (...) {
             const auto exception = oo::CurrentOOException();
@@ -7042,7 +7043,7 @@ void Universe::update(OOTimeDelta inDeltaT)
          */
         update_stage = "JS Garbage Collection";
         OO_LOG("universe.profile.update", "{}", const_cast<const char*>(update_stage));
-        OOJavaScriptEngine::sharedEngine()->garbageCollectionOpportunity(NO);
+        OOJavaScriptEngine::sharedEngine()->garbageCollectionOpportunity(false);
 
     } else {
         // always perform player's dead updates: allows deferred JS resets.
@@ -7114,7 +7115,7 @@ void Universe::filterSortedLists()
     e0 = z_list_start;
     while (e0) {
         e0->collisionTestFilter = e0->canCollide() ? 0 : 3;
-        e0->collision_chain = nil;
+        e0->collision_chain = nullptr;
         e0 = e0->z_next;
     }
     // done.
@@ -7457,7 +7458,7 @@ void Universe::filterSortedLists()
                         next_start = next->position.z - 2.0f * next->collision_radius;
                 }
                 // now either (next == nil) or (next_start >= finish)-which would imply a gap!
-                e0->collision_chain = nil; // end the collision chain
+                e0->collision_chain = nullptr; // end the collision chain
             } else {
                 // e0 is a singleton
                 e0->collisionTestFilter = 1;
@@ -7485,14 +7486,14 @@ void Universe::filterSortedLists()
                     // e0 probably already in collision chain at this point, but if it
                     // isn't we have to insert it
                     if (prev->collision_chain != e0) {
-                        if (prev->collision_chain == nil) {
+                        if (prev->collision_chain == nullptr) {
                             // easy, just add it onto the start of the chain
                             prev->collision_chain = e0;
                         } else {
                             /* not nil and not e0 shouldn't be possible, I think.
                              * if it is, that implies that e0->collision_chain is nil, though
                              * so: */
-                            if (e0->collision_chain == nil) {
+                            if (e0->collision_chain == nullptr) {
                                 e0->collision_chain = prev->collision_chain;
                                 prev->collision_chain = e0;
                             } else {
@@ -7533,7 +7534,7 @@ void Universe::filterSortedLists()
 
 void Universe::setGalaxyTo(OOGalaxyID g)
 {
-    setGalaxyTo(g, NO);
+    setGalaxyTo(g, false);
 }
 
 // Galaxy and system changes, descriptions, scenarios, characters, mission text,
@@ -7623,7 +7624,7 @@ void Universe::verifyDescriptions()
 
 void Universe::loadDescriptions()
 {
-    _descriptions = ResourceManager::dictionaryFromFilesNamed("descriptions.plist", std::string("Config"), YES);
+    _descriptions = ResourceManager::dictionaryFromFilesNamed("descriptions.plist", std::string("Config"), true);
     _descriptionsGeneration = ++sDescriptionsGeneration;
     verifyDescriptions();
 }
@@ -7641,7 +7642,7 @@ oo::PList Universe::scenarios()
 
 void Universe::loadScenarios()
 {
-    _scenarios = ResourceManager::arrayFromFilesNamed("scenarios.plist", std::string("Config"), YES);
+    _scenarios = ResourceManager::arrayFromFilesNamed("scenarios.plist", std::string("Config"), true);
 }
 
 oo::PList Universe::getCharacters()
@@ -7689,7 +7690,7 @@ std::optional<std::string> Universe::keyForInterstellarOverridesForSystems(OOSys
 
 oo::PList Universe::generateSystemData(OOSystemID s)
 {
-    return generateSystemData(s, YES);
+    return generateSystemData(s, true);
 }
 
 // cache isn't handled this way any more
@@ -7741,7 +7742,7 @@ oo::PList Universe::currentSystemData()
 
 bool Universe::inInterstellarSpace()
 {
-    return sun() == nil;
+    return sun() == nullptr;
 }
 
 // layer 2
@@ -7760,8 +7761,8 @@ void Universe::setSystemDataForGalaxy(OOGalaxyID gnum, OOSystemID pnum, const st
         return;
     }
 
-    BOOL sameGalaxy = (gnum == (PLAYER != nullptr ? PLAYER->currentGalaxyID() : OOGalaxyID { }));
-    BOOL sameSystem = (sameGalaxy && pnum == currentSystemID());
+    bool sameGalaxy = (gnum == (PLAYER != nullptr ? PLAYER->currentGalaxyID() : OOGalaxyID { }));
+    bool sameSystem = (sameGalaxy && pnum == currentSystemID());
 
     // trying to set  unsettable properties?
     if (key == std::string(KEY_RADIUS) && sameGalaxy && sameSystem) // buggy if we allow this key to be set while in the system
@@ -7830,7 +7831,7 @@ void Universe::setSystemDataForGalaxy(OOGalaxyID gnum, OOSystemID pnum, const st
 
             // The sky is C++: found by its C++ part.
             for (i = n_entities - 1; i > 0; i--)
-                if (sortedEntities[i] != nil)
+                if (sortedEntities[i] != nullptr)
                     if (::SkyEntity* sky = dynamic_cast<::SkyEntity*>(sortedEntities[i]))
                         the_sky = sky;
 
@@ -7839,7 +7840,7 @@ void Universe::setSystemDataForGalaxy(OOGalaxyID gnum, OOSystemID pnum, const st
 
                 if (key == "sun_color") {
                     ::OOColor* color = the_sky->getSkyColor();
-                    if (the_sun != nil) {
+                    if (the_sun != nullptr) {
                         if (the_sun != nullptr)
                             the_sun->setSunColor(color);
                         if (the_sun != nullptr)
@@ -7853,7 +7854,7 @@ void Universe::setSystemDataForGalaxy(OOGalaxyID gnum, OOSystemID pnum, const st
                                 dust->setDustColor((color != nullptr) ? color->blendedColorWithFraction(0.5, OOColor::whiteColor().get()).get() : nullptr);
                 }
             }
-        } else if (the_sun != nil && (oo::str::hasPrefix(key, "sun_") || oo::str::hasPrefix(key, "corona_"))) {
+        } else if (the_sun != nullptr && (oo::str::hasPrefix(key, "sun_") || oo::str::hasPrefix(key, "corona_"))) {
             if (the_sun != nullptr)
                 the_sun->changeSunProperty(key, sysInfo);
         } else if (key == "texture") {
@@ -7875,14 +7876,14 @@ void Universe::setSystemDataForGalaxy(OOGalaxyID gnum, OOSystemID pnum, const st
         }
     }
 
-    sysdataLocked = YES;
+    sysdataLocked = true;
     // the same arguments (a nil value ends the list, as it did)
     std::vector<oo::PList> arguments { oo::PList::signedInteger(gnum), oo::PList::signedInteger(pnum), oo::PList(key) };
     if (!object.isNull())
         arguments.push_back(object);
     if (PLAYER != nullptr)
         PLAYER->doScriptEvent(OOJSID("systemInformationChanged"), arguments);
-    sysdataLocked = NO;
+    sysdataLocked = false;
 }
 
 oo::PList Universe::generateSystemDataForGalaxy(OOGalaxyID gnum, OOSystemID pnum)
@@ -7927,7 +7928,7 @@ OOGovernmentID Universe::getSystemGovernment(OOSystemID sys)
 
 std::optional<std::string> Universe::getSystemInhabitants(OOSystemID sys)
 {
-    return getSystemInhabitants(sys, YES);
+    return getSystemInhabitants(sys, true);
 }
 
 std::optional<std::string> Universe::getSystemInhabitants(OOSystemID sys, bool plural)
@@ -7965,7 +7966,7 @@ OOSystemID Universe::findSystemFromName(const std::string& sysName)
 OOSystemID Universe::findSystemAtCoords(NSPoint coords, OOGalaxyID g)
 {
     OO_LOG("deprecated.function", "{}", "findSystemAtCoords");
-    return findSystemNumberAtCoords(coords, g, YES);
+    return findSystemNumberAtCoords(coords, g, true);
 }
 
 /*	A node of -cxx_routeFromSystem:toSystem:optimizedBy:'s search: the
@@ -8046,10 +8047,10 @@ OOSystemID Universe::findNeighbouringSystemToCoords(NSPoint coords, OOGalaxyID g
     double min_dist = 10000.0;
 
     // make list of connected systems
-    BOOL connected[256];
+    bool connected[256];
     for (i = 0; i < 256; i++)
-        connected[i] = NO;
-    connected[0] = YES; // system zero is always connected (true for galaxies 0..7)
+        connected[i] = false;
+    connected[0] = true; // system zero is always connected (true for galaxies 0..7)
     for (n = 0; n < 3; n++) // repeat three times for surety
     {
         for (i = 0; i < 256; i++) // flood fill out from system zero
@@ -8088,10 +8089,10 @@ OOSystemID Universe::findConnectedSystemAtCoords(NSPoint coords, OOGalaxyID g)
     double min_dist = 10000.0;
 
     // make list of connected systems
-    BOOL connected[256];
+    bool connected[256];
     for (i = 0; i < 256; i++)
-        connected[i] = NO;
-    connected[0] = YES; // system zero is always connected (true for galaxies 0..7)
+        connected[i] = false;
+    connected[0] = true; // system zero is always connected (true for galaxies 0..7)
     for (n = 0; n < 3; n++) // repeat three times for surety
     {
         for (i = 0; i < 256; i++) // flood fill out from system zero
@@ -8169,7 +8170,7 @@ OOSystemID Universe::findSystemNumberAtCoords(NSPoint coords, OOGalaxyID g, bool
 
 NSPoint Universe::findSystemCoordinatesWithPrefix(const std::string& p_fix)
 {
-    return findSystemCoordinatesWithPrefix(p_fix, NO);
+    return findSystemCoordinatesWithPrefix(p_fix, false);
 }
 
 NSPoint Universe::findSystemCoordinatesWithPrefix(const std::string& p_fix, bool exactMatch)
@@ -8179,7 +8180,7 @@ NSPoint Universe::findSystemCoordinatesWithPrefix(const std::string& p_fix, bool
     int i;
     int result = -1;
     for (i = 0; i < 256; i++) {
-        system_found[i] = NO;
+        system_found[i] = false;
         if (!system_names[i].has_value())
             continue; // a missing name matched nothing
         system_name = oo::str::lowercase(*system_names[i]);
@@ -8192,7 +8193,7 @@ NSPoint Universe::findSystemCoordinatesWithPrefix(const std::string& p_fix, bool
                 continue;
             }
 
-            system_found[i] = YES;
+            system_found[i] = true;
             if (result < 0) {
                 system_coords = (systemManager != nullptr ? systemManager->getCoordinatesForSystem(i, galaxyID) : NSMakePoint(0, 0));
                 result = i;
@@ -8202,9 +8203,9 @@ NSPoint Universe::findSystemCoordinatesWithPrefix(const std::string& p_fix, bool
     return system_coords;
 }
 
-BOOL* Universe::systemsFound()
+bool* Universe::systemsFound()
 {
-    return (BOOL*)system_found;
+    return (bool*)system_found;
 }
 
 std::optional<std::string> Universe::systemNameIndex(OOSystemID index)
@@ -8246,17 +8247,17 @@ oo::PList Universe::routeFromSystem(OOSystemID start, OOSystemID goal, OORouteTy
         return oo::PList();
 
     std::vector<OOSystemID> neighbours[256];
-    BOOL concealed[256];
+    bool concealed[256];
     for (i = 0; i < 256; i++) {
         const oo::PList systemInfo = (systemManager != nullptr ? systemManager->getPropertiesForSystem(i, galaxyID) : oo::PList());
         NSInteger concealment = systemInfo.get<int>("concealment", OO_SYSTEMCONCEALMENT_NONE);
         if (concealment >= OO_SYSTEMCONCEALMENT_NOTHING) {
             // system is not known
             neighbours[i].clear();
-            concealed[i] = YES;
+            concealed[i] = true;
         } else {
             neighbours[i] = neighboursToSystem(i);
-            concealed[i] = NO;
+            concealed[i] = false;
         }
     }
 
@@ -8389,7 +8390,7 @@ void Universe::preloadPlanetTexturesForSystem(OOSystemID /*s*/)
 		::OOPlanetEntity *planet = [[::OOPlanetEntity alloc] initAsMainPlanetForSystem:s];
 		::OOMaterial *surface = [planet material];
 		// can be nil if texture mis-defined
-		if (surface != nil)
+		if (surface != nullptr)
 		{
 			// if it's already loaded, no need to continue
 			if (![surface isFinishedLoading])
@@ -8399,7 +8400,7 @@ void Universe::preloadPlanetTexturesForSystem(OOSystemID /*s*/)
 				// In some instances (retextured planets atm), the main planet might not have an atmosphere defined.
 				// Trying to add nil to _preloadingPlanetMaterials will prematurely terminate the calling function.(!) --Kaks 20100107
 				::OOMaterial *atmo = [planet atmosphereMaterial];
-				if (atmo != nil)  _preloadingPlanetMaterials.push_back(oo::Ref<::OOMaterial>(atmo));
+				if (atmo != nullptr)  _preloadingPlanetMaterials.push_back(oo::Ref<::OOMaterial>(atmo));
 			}
 		}
 		
@@ -8558,7 +8559,7 @@ oo::PList Universe::getStationMarkets()
 {
     oo::PList::Array markets;
 
-    ::OOCommodityMarket* stationMarket = nil;
+    ::OOCommodityMarket* stationMarket = nullptr;
 
     for (const oo::EntityHold& entry : stations()) // a snapshot
     {
@@ -8566,7 +8567,7 @@ oo::PList Universe::getStationMarkets()
         // must be deterministic and secondary
         if ((station != nullptr ? station->getAllowsSaving() : false) && station != (UNIVERSE != nullptr ? UNIVERSE->station() : nullptr)) {
             stationMarket = (station != nullptr ? station->getLocalMarket() : (OOCommodityMarket*)nullptr);
-            if (stationMarket != nil) {
+            if (stationMarket != nullptr) {
                 const HPVector position = (station != nullptr ? station->getPosition() : HPVector { });
                 markets.push_back(oo::PList(oo::PList::Dict {
                     { "market", stationMarket->saveStationAmounts() },
@@ -8618,11 +8619,11 @@ oo::PList Universe::shipsForSaleForSystem(OOSystemID s, OOTechLevelID specialTL,
             std::optional<std::string> condition_script = OptionalStringIn(dict, "condition_script");
             if (condition_script.has_value()) {
                 ::OOScript* condScript = getConditionScript(*condition_script);
-                if (condScript != nil) // should always be non-nil, but just in case
+                if (condScript != nullptr) // should always be non-nil, but just in case
                 {
                     JSContext* context = OOJSAcquireContext();
-                    BOOL OK;
-                    BOOL allow_purchase = NO;
+                    bool OK;
+                    bool allow_purchase = false;
                     OOJSVal result = OOJSUndefinedValue();
                     OOJSVal args[] = { OOJSValueFromPList(context, oo::PList(key)) };
 
@@ -8708,8 +8709,8 @@ oo::PList Universe::shipsForSaleForSystem(OOSystemID s, OOTechLevelID specialTL,
                 SetInDict(shipDict, std::string(KEY_EQUIPMENT_AFT_WEAPON), *aftWeaponString);
 
             int passengerBerthCount = 0;
-            BOOL customised = NO;
-            BOOL weaponCustomized = NO;
+            bool customised = false;
+            bool weaponCustomized = false;
 
             std::optional<std::string> fwdWeaponDesc;
 
@@ -8722,9 +8723,9 @@ oo::PList Universe::shipsForSaleForSystem(OOSystemID s, OOTechLevelID specialTL,
                 chance *= chance; // decrease the chance of a further customisation (unless it is 1, which might be a bug)
                 int optionIndex = Ranrot() % options.size();
                 const std::optional<std::string> equipmentKey = options[optionIndex];
-                ::OOEquipmentType* item = equipmentKey.has_value() ? OOEquipmentType::equipmentTypeWithIdentifier(*equipmentKey).get() : nil;
+                ::OOEquipmentType* item = equipmentKey.has_value() ? OOEquipmentType::equipmentTypeWithIdentifier(*equipmentKey).get() : nullptr;
 
-                if (item != nil) {
+                if (item != nullptr) {
                     OOTechLevelID eqTechLevel = (item != nullptr ? item->techLevel() : 0);
                     OOCreditsQuantity eqPrice = (item != nullptr ? item->price() : 0) / 10; // all amounts are x/10 due to being represented in tenths of credits.
                     std::optional<std::string> eqShortDesc = (item != nullptr ? item->name() : std::optional<std::string>());
@@ -8742,13 +8743,13 @@ oo::PList Universe::shipsForSaleForSystem(OOSystemID s, OOTechLevelID specialTL,
                     }
 
                     if ((item != nullptr ? item->incompatibleEquipment() : std::optional<std::vector<std::string>>()).has_value()) {
-                        BOOL incompatible = NO;
+                        bool incompatible = false;
                         const std::vector<std::string> incompatibleKeys = *(item != nullptr ? item->incompatibleEquipment() : std::optional<std::vector<std::string>>());
 
                         for (const std::string& key : incompatibleKeys) {
                             if (ContainsKey(extras, key)) {
                                 RemoveOption(options, equipmentKey);
-                                incompatible = YES;
+                                incompatible = true;
                                 break;
                             }
                         }
@@ -8765,11 +8766,11 @@ oo::PList Universe::shipsForSaleForSystem(OOSystemID s, OOTechLevelID specialTL,
                     std::optional<std::string> condition_script = (item != nullptr ? item->conditionScript() : std::optional<std::string>());
                     if (condition_script.has_value()) {
                         ::OOScript* condScript = getConditionScript(*condition_script);
-                        if (condScript != nil) // should always be non-nil, but just in case
+                        if (condScript != nullptr) // should always be non-nil, but just in case
                         {
                             JSContext* JScontext = OOJSAcquireContext();
-                            BOOL OK;
-                            BOOL allow_addition = NO;
+                            bool OK;
+                            bool allow_addition = false;
                             OOJSVal result = OOJSUndefinedValue();
                             OOJSVal args[] = { OOJSValueFromPList(JScontext, oo::PList(*equipmentKey)), OOJSValueFromCxxObject(JScontext, testship), OOJSValueFromPList(JScontext, oo::PList("newShip")) };
 
@@ -8794,11 +8795,11 @@ oo::PList Universe::shipsForSaleForSystem(OOSystemID s, OOTechLevelID specialTL,
                     }
 
                     if ((item != nullptr ? item->requiresEquipment() : std::optional<std::vector<std::string>>()).has_value()) {
-                        BOOL missing = NO;
+                        bool missing = false;
 
                         for (const std::string& key : (item != nullptr ? item->requiresEquipment() : std::optional<std::vector<std::string>>()).value_or(std::vector<std::string>())) {
                             if (!ContainsKey(extras, key)) {
-                                missing = YES;
+                                missing = true;
                             }
                         }
                         if (missing)
@@ -8806,11 +8807,11 @@ oo::PList Universe::shipsForSaleForSystem(OOSystemID s, OOTechLevelID specialTL,
                     }
 
                     if ((item != nullptr ? item->requiresAnyEquipment() : std::optional<std::vector<std::string>>()).has_value()) {
-                        BOOL missing = YES;
+                        bool missing = true;
 
                         for (const std::string& key : (item != nullptr ? item->requiresAnyEquipment() : std::optional<std::vector<std::string>>()).value_or(std::vector<std::string>())) {
                             if (ContainsKey(extras, key)) {
-                                missing = NO;
+                                missing = false;
                             }
                         }
                         if (missing)
@@ -8836,7 +8837,7 @@ oo::PList Universe::shipsForSaleForSystem(OOSystemID s, OOTechLevelID specialTL,
                             fwdWeaponString = equipmentKey;
                             fwdWeapon = new_weapon;
                             SetInDict(shipDict, std::string(KEY_EQUIPMENT_FORWARD_WEAPON), *fwdWeaponString);
-                            weaponCustomized = YES;
+                            weaponCustomized = true;
                             fwdWeaponDesc = eqShortDesc;
                         } else {
                             // if less good than current forward, try fitting is to rear
@@ -8858,7 +8859,7 @@ oo::PList Universe::shipsForSaleForSystem(OOSystemID s, OOTechLevelID specialTL,
                                 price += eqPrice;
                                 extras.push_back(oo::PList(*equipmentKey));
                                 passengerBerthCount++;
-                                customised = YES;
+                                customised = true;
                             } else {
                                 // remove the option if there's no space left
                                 RemoveOption(options, equipmentKey);
@@ -8870,7 +8871,7 @@ oo::PList Universe::shipsForSaleForSystem(OOSystemID s, OOTechLevelID specialTL,
                                 shortShipDescription += ExpandKeyWith(shortExtrasKey, "item", eqShortDesc ? oo::PList(*eqShortDesc) : oo::PList());
                                 shortExtrasKey = "shipyard-additional-extra";
                             }
-                            customised = YES;
+                            customised = true;
                             RemoveOption(options, equipmentKey); // dont add twice
                         }
                     }
@@ -8881,7 +8882,7 @@ oo::PList Universe::shipsForSaleForSystem(OOSystemID s, OOTechLevelID specialTL,
             if (testship != nullptr)
                 oo::ReleaseEntity(testship);
             // i18n: Some languages require that no conversion to lower case string takes place.
-            BOOL lowercaseIgnore = descriptions()->get<bool>("lowercase_ignore");
+            bool lowercaseIgnore = descriptions()->get<bool>("lowercase_ignore");
 
             if (passengerBerthCount) {
                 std::string npb = (passengerBerthCount > 1) ? oo::str::format("%d ", passengerBerthCount) : std::string();
@@ -8982,7 +8983,7 @@ OOCreditsQuantity Universe::tradeInValueForCommanderDictionary(const oo::PList& 
     auto weaponTypeForKey = [&dict](const char* key) -> OOWeaponType // nil for a missing key
     {
         const std::optional<std::string> identifier = OptionalStringIn(dict, key);
-        return identifier.has_value() ? OOEquipmentType::equipmentTypeWithIdentifier(*identifier).get() : nil;
+        return identifier.has_value() ? OOEquipmentType::equipmentTypeWithIdentifier(*identifier).get() : nullptr;
     };
     OOWeaponType ship_fwd_weapon = weaponTypeForKey("forward_weapon");
     OOWeaponType ship_aft_weapon = weaponTypeForKey("aft_weapon");
@@ -9087,7 +9088,7 @@ OOCreditsQuantity Universe::tradeInValueForCommanderDictionary(const oo::PList& 
     }
 
     // remove portable equipment from the totals
-    ::OOEquipmentType* item = nil;
+    ::OOEquipmentType* item = nullptr;
 
     for (i = (NSInteger)ship_extra_equipment.size() - 1; i >= 0; i--) {
         item = OOEquipmentType::equipmentTypeWithIdentifier(ship_extra_equipment[i]).get();
@@ -9127,7 +9128,7 @@ std::optional<std::string> Universe::brochureDescriptionWithDictionary(const oo:
     if (max_cargo) {
         OOCargoQuantity extra_cargo = dict.get<unsigned int>("extra_cargo", 15);
         desc += oo::str::format(" Cargo capacity %dt", max_cargo);
-        BOOL canExpand = (allOptions.find("EQ_CARGO_BAY") != std::string::npos);
+        bool canExpand = (allOptions.find("EQ_CARGO_BAY") != std::string::npos);
         if (canExpand)
             desc += oo::str::format(" (expandable to %dt at most starports)", max_cargo + extra_cargo);
         desc += ".";
@@ -9522,7 +9523,7 @@ void Universe::handleOoliteException(const oo::Exception* exception)
             std::string exception_msg = oo::str::format("Exception : %s : %s Please take a screenshot and/or press esc or Q to quit.", caught.name(), caught.reason());
             addMessage(exception_msg, 30.0);
             if (gameController() != nullptr)
-                gameController()->setGamePaused(YES);
+                gameController()->setGamePaused(true);
         } else {
             OO_LOG(cxx_kOOLogException, "***** Handling Non-fatal : {} : {} *****", caught.name(), caught.reason());
         }
@@ -9635,7 +9636,7 @@ void Universe::stopSpeaking() { }
 
 bool Universe::isSpeaking()
 {
-    return NO;
+    return false;
 }
 #endif
 
@@ -9745,7 +9746,7 @@ void Universe::setUpSettings()
     countdown_messageRepeatTime = 0.0;
 
 #if OOLITE_SPEECH_SYNTH
-    speechArray = ResourceManager::arrayFromFilesNamed("speech_pronunciation_guide.plist", std::string("Config"), YES);
+    speechArray = ResourceManager::arrayFromFilesNamed("speech_pronunciation_guide.plist", std::string("Config"), true);
 #endif
 
     replacedCommodities = std::move(commodities); // [commodities autorelease]
@@ -9753,24 +9754,24 @@ void Universe::setUpSettings()
 
     loadDescriptions();
 
-    characters = ResourceManager::dictionaryFromFilesNamed("characters.plist", std::string("Config"), YES);
+    characters = ResourceManager::dictionaryFromFilesNamed("characters.plist", std::string("Config"), true);
 
-    customSounds = ResourceManager::dictionaryFromFilesNamed("customsounds.plist", std::string("Config"), YES);
+    customSounds = ResourceManager::dictionaryFromFilesNamed("customsounds.plist", std::string("Config"), true);
 
-    globalSettings = ResourceManager::dictionaryFromFilesNamed("global-settings.plist", std::string("Config"), MERGE_SMART, YES);
+    globalSettings = ResourceManager::dictionaryFromFilesNamed("global-settings.plist", std::string("Config"), MERGE_SMART, true);
 
     replacedSystemManager = std::move(systemManager); // [systemManager autorelease]
     systemManager = ResourceManager::systemDescriptionManager();
 
-    screenBackgrounds = ResourceManager::dictionaryFromFilesNamed("screenbackgrounds.plist", std::string("Config"), YES);
+    screenBackgrounds = ResourceManager::dictionaryFromFilesNamed("screenbackgrounds.plist", std::string("Config"), true);
 
     // role-categories.plist and pirate-victim-roles.plist
     roleCategories = ResourceManager::roleCategoriesDictionary();
 
-    autoAIMap = ResourceManager::dictionaryFromFilesNamed("autoAImap.plist", std::string("Config"), YES);
+    autoAIMap = ResourceManager::dictionaryFromFilesNamed("autoAImap.plist", std::string("Config"), true);
 
     // ORDER-SENSITIVE: std::stable_sort, so entries that compare equal keep their file order.
-    const oo::PList equipmentTemp = ResourceManager::arrayFromFilesNamed("equipment.plist", std::string("Config"), YES);
+    const oo::PList equipmentTemp = ResourceManager::arrayFromFilesNamed("equipment.plist", std::string("Config"), true);
     oo::PList::Array sortedEquipment;
     if (const oo::PList::Array* items = equipmentTemp.getIf<oo::PList::Array>())
         sortedEquipment = *items;
@@ -9782,7 +9783,7 @@ void Universe::setUpSettings()
 
     OOEquipmentType::loadEquipment();
 
-    explosionSettings = ResourceManager::dictionaryFromFilesNamed("explosions.plist", std::string("Config"), YES);
+    explosionSettings = ResourceManager::dictionaryFromFilesNamed("explosions.plist", std::string("Config"), true);
 }
 
 void Universe::setUpCargoPods()
@@ -9794,7 +9795,7 @@ void Universe::setUpCargoPods()
             container->setScanClass(CLASS_CARGO);
         if (container != nullptr)
             container->setCommodity(type, 1);
-        if (container != nil) {
+        if (container != nullptr) {
             tmp[type] = oo::EntityHold(container);
             oo::ReleaseEntity(container);
         } // the +1 handed to the list; a nil container was an exception before
@@ -9829,9 +9830,9 @@ void Universe::verifyEntitySessionIDs()
 // FIXME: needs less redundancy?
 bool Universe::reinitAndShowDemo(bool showDemo)
 {
-    no_update = YES;
+    no_update = true;
     ::PlayerEntity* player = PLAYER;
-    assert(player != nil);
+    assert(player != nullptr);
 
     if (JSResetFlags != 0) // JS reset failed, remember previous settings
     {
@@ -9854,16 +9855,16 @@ bool Universe::reinitAndShowDemo(bool showDemo)
     //       reinitialize itself - mwerle 20081107.
     OOShipRegistry::reload();
     if (gameController() != nullptr)
-        gameController()->setGamePaused(NO);
+        gameController()->setGamePaused(false);
     if (gameController() != nullptr)
-        gameController()->setMouseInteractionModeForUIWithMouseInteraction(NO);
+        gameController()->setMouseInteractionModeForUIWithMouseInteraction(false);
     if (PLAYER != nullptr)
         PLAYER->setSpeed(0.0);
 
     loadDescriptions();
     loadScenarios();
 
-    missiontext = ResourceManager::dictionaryFromFilesNamed("missiontext.plist", std::string("Config"), YES);
+    missiontext = ResourceManager::dictionaryFromFilesNamed("missiontext.plist", std::string("Config"), true);
 
     if (showDemo) {
         demo_ships = OOShipRegistry::sharedRegistry()->demoShipKeys();
@@ -9873,9 +9874,9 @@ bool Universe::reinitAndShowDemo(bool showDemo)
 
     breakPatternCounter = 0;
 
-    cachedSun = nil;
-    cachedPlanet = nil;
-    cachedStation = nil;
+    cachedSun = nullptr;
+    cachedPlanet = nullptr;
+    cachedStation = nullptr;
 
     setUpSettings();
 
@@ -9884,21 +9885,21 @@ bool Universe::reinitAndShowDemo(bool showDemo)
     // set up cargopod templates
     setUpCargoPods();
 
-    if (!(player != nullptr ? player->setUpAndConfirmOK(YES) : false)) {
+    if (!(player != nullptr ? player->setUpAndConfirmOK(true) : false)) {
         // reinitAndShowDemo rescheduled inside setUpAndConfirmOK...
-        return NO; // Abort!
+        return false; // Abort!
     }
 
     // we can forget the previous settings now.
     JSResetFlags = 0;
 
     addEntity(player);
-    demo_ship = nil;
+    demo_ship = nullptr;
     if (gameController() != nullptr)
         gameController()->setPlayerFileToLoad(""); // reset Quicksave
 
     setUpInitialUniverse();
-    autoSaveNow = NO; // don't autosave immediately after restarting a game
+    autoSaveNow = false; // don't autosave immediately after restarting a game
 
     if (station() != nullptr)
         station()->initialiseLocalMarket();
@@ -9919,7 +9920,7 @@ bool Universe::reinitAndShowDemo(bool showDemo)
         player->completeSetUp();
     if (showDemo) {
         if (player != nullptr)
-            player->setGuiToIntroFirstGo(YES);
+            player->setGuiToIntroFirstGo(true);
     } else {
         // no need to do these if showing the demo as the only way out
         // now is to load a game
@@ -9938,8 +9939,8 @@ bool Universe::reinitAndShowDemo(bool showDemo)
 
     verifyEntitySessionIDs();
 
-    no_update = NO;
-    return YES;
+    no_update = false;
+    return true;
 }
 
 void Universe::setUpInitialUniverse()
@@ -9955,7 +9956,8 @@ void Universe::setUpInitialUniverse()
     OO_DEBUG_POP_PROGRESS();
 
     OO_DEBUG_PUSH_PROGRESS("Galaxy reset");
-    setGalaxyTo((player != nullptr ? player->galaxyNumber() : OOGalaxyID { }), YES);
+    setGalaxyTo((player != nullptr ? player->galaxyNumber() : OOGalaxyID { }),
+        true);
     systemID = (player != nullptr ? player->systemID() : 0);
     OO_DEBUG_POP_PROGRESS();
 
@@ -9969,9 +9971,9 @@ void Universe::setUpInitialUniverse()
     // Player init above finishes initialising all standard player ship properties. Now that the base mass is set, we can run setUpSpace!
     setUpSpace();
 
-    setDockingClearanceProtocolActive(currentSystemData().get<bool>("stations_require_docking_clearance", YES));
+    setDockingClearanceProtocolActive(currentSystemData().get<bool>("stations_require_docking_clearance", true));
 
-    enterGUIViewModeWithMouseInteraction(NO);
+    enterGUIViewModeWithMouseInteraction(false);
     if (player != nullptr)
         player->setPosition((station() != nullptr ? station()->getPosition() : HPVector { }));
     if (player != nullptr)
@@ -10011,7 +10013,7 @@ bool Universe::doRemoveEntity(Entity* entity)
     // remove reference to entity in linked lists
     if (entity->canCollide()) // filter only collidables disappearing
     {
-        doLinkedListMaintenanceThisUpdate = YES;
+        doLinkedListMaintenanceThisUpdate = true;
     }
 
     entity->removeFromLinkedLists();
@@ -10019,7 +10021,7 @@ bool Universe::doRemoveEntity(Entity* entity)
     // moved forward ^^
     // remove from the reference dictionary
     int old_id = entity->getUniversalID();
-    entity_for_uid[old_id] = nil;
+    entity_for_uid[old_id] = nullptr;
     entity->setUniversalID(NO_TARGET);
     entity->wasRemovedFromUniverse();
 
@@ -10068,7 +10070,7 @@ bool Universe::doRemoveEntity(Entity* entity)
                 OO_LOG(cxx_kOOLogInconsistentState, "DEBUG: Universe removeEntity: REMOVED {} EXTRA COPIES OF {} FROM THE ZERO_DISTANCE SORTED LIST", n - 1, oo::EntityDescription(entity));
             while (n--) {
                 n_entities--;
-                sortedEntities[n_entities] = nil;
+                sortedEntities[n_entities] = nullptr;
             }
         }
         entity->zero_index = -1; // it's GONE!
@@ -10099,10 +10101,10 @@ bool Universe::doRemoveEntity(Entity* entity)
         }
 
         std::erase(entities, entity);
-        return YES;
+        return true;
     }
 
-    return NO;
+    return false;
 }
 
 // ORDER-SENSITIVE (decision D): the keys in byte order (was the dictionary's hash order).
@@ -10183,7 +10185,7 @@ void Universe::dumpSystemDescriptionGraphViz()
     std::string label;
     oo::PList keyMap;
 
-    keyMap = ResourceManager::dictionaryFromFilesNamed("sysdesc_key_table.plist", std::string("Config"), NO);
+    keyMap = ResourceManager::dictionaryFromFilesNamed("sysdesc_key_table.plist", std::string("Config"), false);
 
     graphViz = "// System description grammar:\n\n"
                "digraph system_descriptions\n"
@@ -10315,17 +10317,17 @@ void Universe::runLocalizationTools()
 {
     // Handle command line options to transform system_description array for easier localization
 
-    BOOL compileSysDesc = NO, exportSysDesc = NO, xml = NO;
+    bool compileSysDesc = false, exportSysDesc = false, xml = false;
 
     for (const std::string& arg : oo::process::arguments()) {
         if (arg == "--compile-sysdesc")
-            compileSysDesc = YES;
+            compileSysDesc = true;
         else if (arg == "--export-sysdesc")
-            exportSysDesc = YES;
+            exportSysDesc = true;
         else if (arg == "--xml")
-            xml = YES;
+            xml = true;
         else if (arg == "--openstep")
-            xml = NO;
+            xml = false;
     }
 
     if (compileSysDesc)
@@ -10735,7 +10737,7 @@ void Universe::drawTargetTextureIntoDefaultFramebuffer()
 
     OOGL(glBindFramebuffer(GL_FRAMEBUFFER, defaultDrawFBO));
 
-    BOOL horizontal = YES, firstIteration = YES;
+    bool horizontal = true, firstIteration = true;
     unsigned int amount = bloom() ? 10 : 0; // if not blooming, why bother with the heavy calculations?
     OOGL(glUseProgram(blur));
     for (unsigned int i = 0; i < amount; i++) {
@@ -10749,7 +10751,7 @@ void Universe::drawTargetTextureIntoDefaultFramebuffer()
         OOGL(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0));
         OOGL(glBindVertexArray(0));
         horizontal = !horizontal;
-        firstIteration = NO;
+        firstIteration = false;
     }
     OOGL(glBindFramebuffer(GL_FRAMEBUFFER, defaultDrawFBO));
 
@@ -10820,13 +10822,13 @@ std::optional<std::string> Universe::getUseAddOns()
 
 bool Universe::setUseAddOns(const std::string& newUse, bool saveGame)
 {
-    return setUseAddOns(newUse, saveGame, NO);
+    return setUseAddOns(newUse, saveGame, false);
 }
 
 bool Universe::setUseAddOns(const std::string& newUse, bool saveGame, bool force)
 {
     if (!force && newUse == useAddOns) {
-        return YES;
+        return true;
     }
     useAddOns = newUse;
 

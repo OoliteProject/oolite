@@ -28,10 +28,8 @@ class Universe {
   OOHarnessSystemManager* getSystemManager();
 };
 #ifdef __cplusplus
-extern "C" {
 #endif
 Universe* OOGetUniverse(void);
 #ifdef __cplusplus
-}
 #endif
 #define UNIVERSE OOGetUniverse()

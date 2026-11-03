@@ -50,7 +50,7 @@ SOFTWARE.
 namespace {
 
 float sMinTexCoord = 0.0f, sMaxTexCoord = 1.0f;
-BOOL sInited = NO;
+bool sInited = false;
 
 } // namespace
 
@@ -112,7 +112,8 @@ namespace {
 OOProbabilisticTextureManager* sStarTextures;
 OOProbabilisticTextureManager* sNebulaTextures;
 
-oo::Ref<OOColor> SaturatedColorInRange(OOColor* color1, OOColor* color2, BOOL hueFix);
+oo::Ref<OOColor> SaturatedColorInRange(OOColor* color1, OOColor* color2,
+    bool hueFix);
 
 } // namespace
 
@@ -130,7 +131,7 @@ OOSkyDrawable::OOSkyDrawable(OOColor* color1,
     float nebulaScale)
 {
     if (!sInited) {
-        sInited = YES;
+        sInited = true;
         if (oo::Defaults::standard().boolForKey("sky-render-inset-coords")) {
             sMinTexCoord += 1.0f / 128.0f;
             sMaxTexCoord -= 1.0f / 128.0f;
@@ -213,10 +214,7 @@ void OOSkyDrawable::renderOpaqueParts()
     cxx_OOCheckOpenGLErrors("OOSkyDrawable after rendering");
 }
 
-bool OOSkyDrawable::hasOpaqueParts()
-{
-    return YES;
-}
+bool OOSkyDrawable::hasOpaqueParts() { return true; }
 
 GLfloat OOSkyDrawable::maxDrawDistance()
 {
@@ -295,7 +293,9 @@ void OOSkyDrawable::setUpStars(OOColor* color1, OOColor* color2)
         const float fraction = randf();
         currQuad->color = (color1 != nullptr) ? color1->blendedColorWithFraction(fraction, color2) : nullptr;
 #endif
-        currQuad->texture = (sStarTextures != nullptr) ? sStarTextures->selectTexture() : nil; // Not retained, since sStarTextures is never released.
+        currQuad->texture = (sStarTextures != nullptr)
+            ? sStarTextures->selectTexture()
+            : nullptr; // Not retained, since sStarTextures is never released.
 
         // Select scale; calculate centre position and offset to first corner.
         size = (1 + (ranrot_rand() % 6)) * SKY_ELEMENT_SCALE_FACTOR;
@@ -361,7 +361,9 @@ void OOSkyDrawable::setUpNebulae(OOColor* color1,
 #else
             currQuad->color = (color != nullptr) ? color->colorWithBrightnessFactor(nebulaAlpha * (0.5f + (float)r1 / 32.0f)) : nullptr;
 #endif
-            currQuad->texture = (sNebulaTextures != nullptr) ? sNebulaTextures->selectTexture() : nil; // Not retained, since sStarTextures is never released.
+            currQuad->texture = (sNebulaTextures != nullptr)
+                ? sNebulaTextures->selectTexture()
+                : nullptr; // Not retained, since sStarTextures is never released.
 
             middle = vector_multiply_scalar(vk, BILLBOARD_DEPTH);
             offset = vector_multiply_scalar(vector_add(vi, vj), 0.5f * size);
@@ -466,7 +468,7 @@ void OOSkyDrawable::resetGraphicsState()
 void OOSkyQuadSet::addQuads(OOSkyQuadDesc* quads, unsigned count, std::vector<oo::Ref<OOSkyQuadSet>>& ioArray)
 {
     std::vector<oo::Ref<OOTexture>> seenTextures; // by identity (textures do not override -isEqual:)
-    OOTexture* texture = nil;
+    OOTexture* texture = nullptr;
     oo::Ref<OOSkyQuadSet> quadSet;
     unsigned i;
 
@@ -489,7 +491,7 @@ void OOSkyQuadSet::addQuads(OOSkyQuadDesc* quads, unsigned count, std::vector<oo
 
 oo::Ref<OOSkyQuadSet> OOSkyQuadSet::initWithQuadsWithTexture(OOTexture* texture, OOSkyQuadDesc* array, unsigned totalCount)
 {
-    BOOL OK = YES;
+    bool OK = true;
     unsigned i, j, vertexCount;
     GLfloat* pos;
     GLfloat* tc;
@@ -517,7 +519,7 @@ oo::Ref<OOSkyQuadSet> OOSkyQuadSet::initWithQuadsWithTexture(OOTexture* texture,
                 ++self->_count;
         }
         if (self->_count == 0)
-            OK = NO;
+            OK = false;
     }
 
     if (OK) {
@@ -532,7 +534,7 @@ oo::Ref<OOSkyQuadSet> OOSkyQuadSet::initWithQuadsWithTexture(OOTexture* texture,
         self->_colors = (GLfloat*)malloc(colSize);
 
         if (self->_positions == NULL || self->_texCoords == NULL || self->_colors == NULL)
-            OK = NO;
+            OK = false;
 
         pos = self->_positions;
         tc = self->_texCoords;
@@ -649,7 +651,8 @@ OOTexture* OOSkyQuadSet::texture()
 
 namespace {
 
-oo::Ref<OOColor> SaturatedColorInRange(OOColor* color1, OOColor* color2, BOOL hueFix)
+oo::Ref<OOColor> SaturatedColorInRange(OOColor* color1, OOColor* color2,
+    bool hueFix)
 {
     oo::Ref<OOColor> color;
     float hue = 0, saturation = 0, brightness = 0, alpha = 0; // left 0 by a nil colour

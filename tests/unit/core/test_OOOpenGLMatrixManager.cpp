@@ -11,7 +11,7 @@
    and view stubs). The GL context is a hidden window's
    (oo_gl_test_context.hpp); the extension manager, which loads the shader entry
    points, runs with its collaborators stubbed as in
-   test_OOOpenGLExtensionManager. Run: bash tools/check-core-tests.sh
+   test_OOOpenGLExtensionManager. Run: tests/run.sh unit
 */
 
 #include <cmath>
@@ -63,7 +63,7 @@ OOShaderSetting cxx_OOShaderSettingFromString(const std::string& string) {
 // whose manager the OOGL* functions use. The C++ view's members they reach are
 // stubbed here, and its virtual members (never called).
 class Universe;
-Universe* gSharedUniverse = nil;
+Universe* gSharedUniverse = nullptr;
 
 namespace {
 
@@ -485,7 +485,7 @@ OO_TEST(openGLFunctionsUseTheGameViewsManager) {
 
     // No universe: nothing is changed, and the getters answer a zero matrix, as
     // nil did.
-    gSharedUniverse = nil;
+    gSharedUniverse = nullptr;
     OOGLLoadModelView(kIdentityMatrix);
     OOGLPushModelView();
     OO_CHECK(Same(m->getModelView(), kSample));

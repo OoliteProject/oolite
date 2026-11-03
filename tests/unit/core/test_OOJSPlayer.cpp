@@ -12,7 +12,7 @@
 	are atoms). The tests pin the JS-visible behaviour: the Player class and the player object, every property both ways,
 	each method with its arguments and errors (messages, reputations, the arrival report, speech,
 	replaceShip(), setEscapePodDestination() in each of its forms, setPlayerRole()), the events the
-	player is sent, and a native's exception. Run: bash tools/check-core-tests.sh
+	player is sent, and a native's exception. Run: bash tests/run.sh unit
 */
 
 #include "OOFoundation.h"
@@ -70,7 +70,7 @@ public:
 	OOEntityStatus status();
 
 	oo::Ref<Entity> _cxxEntity;
-	BOOL _isStation = NO;
+	bool _isStation = false;
 	OOEntityStatus _status = {};
 };
 
@@ -156,14 +156,14 @@ public:
 	uint16_t _personality = {};
 	OOEntityStatus _status = {};
 	::ShipEntity *_dockTarget = {};
-	BOOL _dockTargetSet = {};
+	bool _dockTargetSet = {};
 	double _adjustTime = {};
 	OOSystemID _targetSystem = {};
 	std::string _lastRole;
 	NSUInteger _lastRoleSlot = {};
 	int _scriptTargetSets = {};
-	BOOL _raise = {};
-	BOOL _throwCxx = {};
+	bool _raise = {};
+	bool _throwCxx = {};
 };
 
 
@@ -181,9 +181,9 @@ public:
 	std::vector<std::string> _console;
 	std::vector<double> _counts;
 	std::vector<std::string> _spoken;
-	BOOL _speaking;
+	bool _speaking;
 	int _stops;
-	BOOL _interstellar;
+	bool _interstellar;
 	double _range;
 	oo::PList _destinations;
 
@@ -343,7 +343,7 @@ bool PlayerEntity::replaceShipWithNamedShip(const std::string &shipName)
 	return shipName != "no-such-ship";
 }
 void ShipEntity::setEntityPersonalityInt(uint16_t value)  { static_cast<PlayerEntity *>(this)->_personality = value; }
-void PlayerEntity::setDockTarget(::ShipEntity *entity)  { _dockTarget = entity; _dockTargetSet = YES; }
+void PlayerEntity::setDockTarget(::ShipEntity *entity)  { _dockTarget = entity; _dockTargetSet = true; }
 void PlayerEntity::addToAdjustTime(double seconds)  { _adjustTime += seconds; }
 void PlayerEntity::setTargetSystemID(OOSystemID sid)  { _targetSystem = sid; }
 void PlayerEntity::addRoleToPlayer(const std::string &role)  { _lastRole = role; _lastRoleSlot = 999; }
@@ -353,7 +353,7 @@ void PlayerEntity::addRoleToPlayer(const std::string &role, NSUInteger slot)  { 
 void Universe::addCommsMessage(const std::optional<std::string> &text, OOTimeDelta count)	{ _comms.push_back(text.value_or("(nil)")); _counts.push_back(count); }
 void Universe::startSpeakingString(const std::string &text)	{ _spoken.push_back(text); }
 bool Universe::isSpeaking()	{ return _speaking; }
-void Universe::stopSpeaking()	{ _stops++; _speaking = NO; }
+void Universe::stopSpeaking()	{ _stops++; _speaking = false; }
 oo::PList Universe::nearbyDestinationsWithinRange(double range)	{ _range = range; return _destinations; }
 
 
@@ -419,18 +419,18 @@ std::optional<std::string> cxx_OOStringFromJSValue(JSContext *context, JSValueCo
 
 
 // As the engine's: a number rounded to the nearest integer; NaN or out of range is an error.
-BOOL OOJSValueToInt32(JSContext *context, JSValueConst value, int32_t *outValue)
+bool OOJSValueToInt32(JSContext *context, JSValueConst value, int32_t *outValue)
 {
 	double number;
-	if (JS_ToFloat64(context, &number, value) < 0)  return NO;
+	if (JS_ToFloat64(context, &number, value) < 0)  return false;
 	number = std::floor(number + 0.5);
 	if (std::isnan(number) || number < INT32_MIN || number > INT32_MAX)
 	{
 		cxx_OOJSReportError(context, "can't convert to an integer");
-		return NO;
+		return false;
 	}
 	*outValue = static_cast<int32_t>(number);
-	return YES;
+	return true;
 }
 
 
@@ -485,7 +485,7 @@ std::map<JSClassID, int> sConverters;
 }
 
 PlayerEntity *gOOPlayer = nullptr;
-Universe *gSharedUniverse = nil;
+Universe *gSharedUniverse = nullptr;
 Entity *gOOJSPlayerIfStale = nullptr;	// the player's C++ entity
 
 
@@ -579,7 +579,7 @@ JSRuntime *sRuntime;
 JSContext *sContext;
 JSValue sGlobal = JS_UNDEFINED;	// held for the life of the test
 PlayerEntity *sPlayer = nullptr;
-Universe *sUniverse = nil;
+Universe *sUniverse = nullptr;
 ::TestEntityObject *sStation = nullptr;	// a station's object and a ship's that is not one
 ::TestEntityObject *sNonStation = nullptr;
 ShipEntity *sStationShip = nullptr;
@@ -627,7 +627,7 @@ void SetUpContext()
 	sStation = oo::makeRef<TestEntityObject>().leakRef();
 	sStation->_cxxEntity = oo::makeRef<ShipEntity>();
 	sStationShip = static_cast<ShipEntity *>(sStation->_cxxEntity.get());
-	sStation->_isStation = YES;
+	sStation->_isStation = true;
 	sNonStation = oo::makeRef<TestEntityObject>().leakRef();
 	sNonStation->_cxxEntity = oo::makeRef<ShipEntity>();
 
@@ -800,7 +800,7 @@ OO_TEST(messages)
 	OO_CHECK_EVAL("player.audioMessage()", "threw: bad arguments: Player.audioMessage(0) - / audiomessage (string)");
 	OO_CHECK_EVAL("player.stopAudioMessage()", "undefined");
 	OO_CHECK_EQ(sUniverse->_stops, 0);
-	sUniverse->_speaking = YES;
+	sUniverse->_speaking = true;
 	OO_CHECK_EVAL("player.stopAudioMessage()", "undefined");
 	OO_CHECK_EQ(sUniverse->_stops, 1);
 }
@@ -864,14 +864,14 @@ OO_TEST(escapePodDestination)
 	OO_CHECK_EVAL("player.setEscapePodDestination(null)", "threw: Player.setEscapePodDestination() only works while the escape pod is in flight.");
 	gOOJSPlayerIfStale = sPlayer;	// the player's C++ entity (the stand-in object has no part)
 
-	sPlayer->_dockTargetSet = NO;
+	sPlayer->_dockTargetSet = false;
 	OO_CHECK_EVAL("(player.setEscapePodDestination(station), 'called')", "called");
 	OO_CHECK(sPlayer->_dockTargetSet && sPlayer->_dockTarget == sStationShip);
 	OO_CHECK_EVAL("(player.setEscapePodDestination(null), 'called')", "called");
-	OO_CHECK(sPlayer->_dockTarget == nil);
+	OO_CHECK(sPlayer->_dockTarget == nullptr);
 	sPlayer->_dockTarget = sStationShip;
 	OO_CHECK_EVAL("(player.setEscapePodDestination(false), 'called')", "called");
-	OO_CHECK(sPlayer->_dockTarget == nil);
+	OO_CHECK(sPlayer->_dockTarget == nullptr);
 
 	OO_CHECK_EVAL("player.setEscapePodDestination(freighter)", "threw: bad arguments: Player.setEscapePodDestination(1) - / a valid station, null, or 'NEARBY_SYSTEM'");
 	OO_CHECK_EVAL("player.setEscapePodDestination(true)", "threw: bad arguments: Player.setEscapePodDestination(1) - / a valid station, null, or 'NEARBY_SYSTEM'");
@@ -884,12 +884,12 @@ OO_TEST(escapePodDestination)
 	sPlayer->_adjustTime = 0;
 	sUniverse->_destinations = oo::PList(oo::PList::Array{});
 	OO_CHECK_EVAL("(player.setEscapePodDestination('NEARBY_SYSTEM'), 'called')", "called");
-	OO_CHECK(sPlayer->_dockTarget == nil && sPlayer->_adjustTime == 0 && sPlayer->_targetSystem == -1);
+	OO_CHECK(sPlayer->_dockTarget == nullptr && sPlayer->_adjustTime == 0 && sPlayer->_targetSystem == -1);
 	OO_CHECK(sUniverse->_range == 7.0);
-	sUniverse->_interstellar = YES;
+	sUniverse->_interstellar = true;
 	OO_CHECK_EVAL("(player.setEscapePodDestination('NEARBY_SYSTEM'), 'called')", "called");
 	OO_CHECK(sUniverse->_range == 3.5);
-	sUniverse->_interstellar = NO;
+	sUniverse->_interstellar = false;
 	// Systems going nova are skipped (but not the first one, which the loop never looks at); with
 	// one left, it is chosen without a random draw. The target is its index in the list that is left.
 	sUniverse->_destinations = oo::PList(oo::PList::Array{
@@ -909,12 +909,12 @@ OO_TEST(escapePodDestination)
 OO_TEST(nativeExceptions)
 {
 	SetUpContext();
-	sPlayer->_raise = YES;
+	sPlayer->_raise = true;
 	OO_CHECK_EVAL("player.score", "threw: Native exception: score boom");
-	sPlayer->_raise = NO;
-	sPlayer->_throwCxx = YES;
+	sPlayer->_raise = false;
+	sPlayer->_throwCxx = true;
 	OO_CHECK_EVAL("player.rank", "threw: Native exception: cxx boom");
-	sPlayer->_throwCxx = NO;
+	sPlayer->_throwCxx = false;
 	OO_CHECK_EVAL("player.score", "5");
 	OO_CHECK_EQ(sLimiterPauses, 0);
 	OO_CHECK_EQ(sProfileDepth, 0);

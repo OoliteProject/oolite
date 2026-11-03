@@ -89,7 +89,7 @@ bool OOProbabilisticTextureManager::initWithPListName(const std::string& plistNa
     const oo::PList* object = nullptr;
 
     if (OK) {
-        config = ResourceManager::arrayFromFilesNamed(plistName, "Config", YES);
+        config = ResourceManager::arrayFromFilesNamed(plistName, "Config", true);
         if (!config)
             OK = false;
     }

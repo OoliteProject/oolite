@@ -105,8 +105,8 @@ unsigned RanrotWithSeed(RANROTSeed* ioSeed)
 RANROTSeed MakeRanrotSeed(uint32_t seed)
 {
     RANROTSeed result = {
-        .low = seed,
-        .high = ~seed
+        .high = ~seed,
+        .low = seed
     };
 
     // Mix it up a bit.

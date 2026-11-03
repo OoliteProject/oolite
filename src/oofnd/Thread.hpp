@@ -147,6 +147,3 @@ inline bool setCurrentPriority(double p)
 }
 
 } // namespace oo::thread
-
-#pragma pop_macro("false")
-#pragma pop_macro("true")

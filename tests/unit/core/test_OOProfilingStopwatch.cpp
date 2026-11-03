@@ -6,7 +6,7 @@
    restarts from zero (drift-free while running); start() restarts a stopped
    watch; and OOHighResTimeDeltaInSeconds() converts this build's microsecond
    readings. Timings sleep and compare against generous bounds, so a loaded
-   machine cannot fail them. Run: bash tools/check-core-tests.sh
+   machine cannot fail them. Run: tests/run.sh unit
 */
 
 #include <chrono>

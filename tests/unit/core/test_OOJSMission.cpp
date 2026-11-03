@@ -13,7 +13,7 @@
 	properties, markSystem()/unmarkSystem() with numbers and markers, addMessageText(),
 	setInstructions()/setInstructionsKey() in each form, runScreen() (its settings, its errors, and
 	the callback MissionRunCallback() makes, including an exception in it, which is logged and
-	ignored), runShipLibrary(), and a native's exception. Run: bash tools/check-core-tests.sh
+	ignored), runShipLibrary(), and a native's exception. Run: bash tests/run.sh unit
 */
 
 #include "OOFoundation.h"
@@ -118,9 +118,9 @@ public:
 	OOGUIScreenID _exitScreen = {};
 	oo::PList _choice;
 	oo::PList _keyPress;
-	BOOL _removeFails = {};
-	BOOL _raise = {};
-	BOOL _throwCxx = {};
+	bool _removeFails = {};
+	bool _raise = {};
+	bool _throwCxx = {};
 };
 
 
@@ -169,7 +169,7 @@ public:
 	bool callJSFunction(JSValueConst function, JSValueConst jsThis, int argc, JSValueConst *argv, JSValue *outResult);
 
 	int _calls = 0;
-	BOOL _raise = NO;
+	bool _raise = false;
 };
 
 
@@ -423,7 +423,7 @@ void Universe::removeDemoShips()	{ _calls.push_back("removeDemoShips"); }
 ::ShipEntity *Universe::makeDemoShipWithRole(const std::string &role, bool spinning)
 {
 	_calls.push_back("demoShip('" + role + "', " + (spinning ? "YES)" : "NO)"));
-	return role == "none" ? nil : _demoShip;
+	return role == "none" ? nullptr : _demoShip;
 }
 
 
@@ -478,11 +478,11 @@ bool OOJavaScriptEngine::callJSFunction(JSValueConst function, JSValueConst jsTh
 	{
 		JS_FreeValue(sContext, JS_GetException(sContext));	// the engine reports and clears it
 		if (outResult != nullptr)  *outResult = JS_UNDEFINED;
-		return NO;
+		return false;
 	}
 	if (outResult != nullptr)  *outResult = result;
 	else  JS_FreeValue(sContext, result);
-	return YES;
+	return true;
 }
 
 
@@ -534,7 +534,7 @@ void cxx_OOStandardsDeprecated(const std::string &message)
 	sDeprecations++;
 }
 
-extern "C" bool OOEnforceStandards(void)
+bool OOEnforceStandards(void)
 {
 	return sEnforceStandards;
 }
@@ -681,9 +681,9 @@ JSValue OOJSValueFromPList(JSContext *context, const oo::PList &plist)
 
 
 // The internal chart coordinates of a galactic position: (x * 4, y * 2) here.
-extern "C" NSPoint OOInternalCoordinatesFromGalactic(Vector galacticCoordinates)
-{
-	return NSMakePoint(galacticCoordinates.x * 4, galacticCoordinates.y * 2);
+NSPoint OOInternalCoordinatesFromGalactic(
+    Vector galacticCoordinates) {
+  return NSMakePoint(galacticCoordinates.x * 4, galacticCoordinates.y * 2);
 }
 
 
@@ -692,7 +692,7 @@ JSValue sScriptObject = JS_UNDEFINED;	// held for the life of the test
 }
 
 PlayerEntity *gOOPlayer = nullptr;
-Universe *gSharedUniverse = nil;
+Universe *gSharedUniverse = nullptr;
 JSContext *gOOJSMainThreadContext = nullptr;
 // The engine's reset notification, which the binding observes (never posted).
 extern const char * const kOOJavaScriptEngineWillResetNotificationName;
@@ -714,18 +714,18 @@ JSAtom cxx_OOJSIDFromString(const std::string &string)
 
 
 // The engine's: rounded to nearest; NaN or out of range is an error.
-BOOL OOJSValueToInt32(JSContext *context, JSValueConst value, int32_t *outValue)
+bool OOJSValueToInt32(JSContext *context, JSValueConst value, int32_t *outValue)
 {
 	double number;
-	if (JS_ToFloat64(context, &number, value) < 0)  return NO;
+	if (JS_ToFloat64(context, &number, value) < 0)  return false;
 	number = std::floor(number + 0.5);
 	if (std::isnan(number) || number < INT32_MIN || number > INT32_MAX)
 	{
 		cxx_OOJSReportError(context, "can't convert %s to an integer", cxx_OOStringFromJSValueEvenIfNull(context, value).value_or("(null)").c_str());
-		return NO;
+		return false;
 	}
 	*outValue = static_cast<int32_t>(number);
-	return YES;
+	return true;
 }
 
 
@@ -809,7 +809,7 @@ namespace {
 JSRuntime *sRuntime;
 JSValue sGlobal = JS_UNDEFINED;	// held for the life of the test
 PlayerEntity *sPlayer = nullptr;
-Universe *sUniverse = nil;
+Universe *sUniverse = nullptr;
 
 
 void SetUpContext()
@@ -933,10 +933,10 @@ OO_TEST(markSystems)
 
 	OO_CHECK_EVAL("mission.unmarkSystem(7, {system: 12})", "true");
 	OO_CHECK_CALLS(sPlayer->_calls, "removeMarker({name:'default',system:7}); removeMarker({system:12})");
-	sPlayer->_removeFails = YES;
+	sPlayer->_removeFails = true;
 	OO_CHECK_EVAL("mission.unmarkSystem({system: 4})", "false");
 	OO_CHECK_EVAL("mission.unmarkSystem({name: 'no system'})", "true");	// not tried
-	sPlayer->_removeFails = NO;
+	sPlayer->_removeFails = false;
 	OO_CHECK_EVAL("mission.unmarkSystem(true, 'x')", "threw: bad arguments: Mission.unmarkSystem(1) - / numbers or objects");
 	sPlayer->_calls.clear();
 	sPlayer->_destinations.clear();
@@ -1057,11 +1057,11 @@ OO_TEST(runScreenOtherSettings)
 	// The callback with a this of its own; an exception in it is logged and ignored.
 	OO_CHECK_EVAL("mission.runScreen({}, function () { this.called = true; }, theScript)", "true");
 	sPlayer->_calls.clear();
-	sEngine->_raise = YES;
+	sEngine->_raise = true;
 	sLog.clear();
 	sScriptStack.clear();
 	MissionRunCallback();
-	sEngine->_raise = NO;
+	sEngine->_raise = false;
 	OO_CHECK_EQ(sLog.size(), static_cast<std::size_t>(1));
 	OO_CHECK(!sLog.empty() && sLog[0].find("Ignoring exception") != std::string::npos && sLog[0].find("callback boom") != std::string::npos);
 	OO_CHECK(sScriptStack == (std::vector<std::string>{ "+oolite-test-mission", "-oolite-test-mission" }));
@@ -1102,12 +1102,12 @@ OO_TEST(runShipLibrary)
 OO_TEST(nativeExceptions)
 {
 	SetUpContext();
-	sPlayer->_raise = YES;
+	sPlayer->_raise = true;
 	OO_CHECK_EVAL("mission.screenID", "threw: Native exception: screen boom");
-	sPlayer->_raise = NO;
-	sPlayer->_throwCxx = YES;
+	sPlayer->_raise = false;
+	sPlayer->_throwCxx = true;
 	OO_CHECK_EVAL("mission.screenID", "threw: Native exception: cxx boom");
-	sPlayer->_throwCxx = NO;
+	sPlayer->_throwCxx = false;
 	OO_CHECK_EVAL("mission.screenID", "null");
 	OO_CHECK_EQ(sLimiterPauses, 0);
 	OO_CHECK_EQ(sProfileDepth, 0);

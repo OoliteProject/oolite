@@ -82,37 +82,37 @@ class OOCrosshairs;
 #define SPEED_BAR_CENTRE_Y -145
 #define SPEED_BAR_WIDTH 80
 #define SPEED_BAR_HEIGHT 8
-#define SPEED_BAR_DRAW_SURROUND YES
+#define SPEED_BAR_DRAW_SURROUND true
 
 #define ROLL_BAR_CENTRE_X 200
 #define ROLL_BAR_CENTRE_Y -160
 #define ROLL_BAR_WIDTH 80
 #define ROLL_BAR_HEIGHT 8
-#define ROLL_BAR_DRAW_SURROUND YES
+#define ROLL_BAR_DRAW_SURROUND true
 
 #define PITCH_BAR_CENTRE_X 200
 #define PITCH_BAR_CENTRE_Y -170
 #define PITCH_BAR_WIDTH 80
 #define PITCH_BAR_HEIGHT 8
-#define PITCH_BAR_DRAW_SURROUND YES
+#define PITCH_BAR_DRAW_SURROUND true
 
 #define ENERGY_GAUGE_CENTRE_X 200
 #define ENERGY_GAUGE_CENTRE_Y -205
 #define ENERGY_GAUGE_WIDTH 80
 #define ENERGY_GAUGE_HEIGHT 48
-#define ENERGY_GAUGE_DRAW_SURROUND YES
+#define ENERGY_GAUGE_DRAW_SURROUND true
 
 #define FORWARD_SHIELD_BAR_CENTRE_X -200
 #define FORWARD_SHIELD_BAR_CENTRE_Y -146
 #define FORWARD_SHIELD_BAR_WIDTH 80
 #define FORWARD_SHIELD_BAR_HEIGHT 8
-#define FORWARD_SHIELD_BAR_DRAW_SURROUND YES
+#define FORWARD_SHIELD_BAR_DRAW_SURROUND true
 
 #define AFT_SHIELD_BAR_CENTRE_X -200
 #define AFT_SHIELD_BAR_CENTRE_Y -162
 #define AFT_SHIELD_BAR_WIDTH 80
 #define AFT_SHIELD_BAR_HEIGHT 8
-#define AFT_SHIELD_BAR_DRAW_SURROUND YES
+#define AFT_SHIELD_BAR_DRAW_SURROUND true
 
 #define FUEL_BAR_CENTRE_X -200
 #define FUEL_BAR_CENTRE_Y -179
@@ -491,7 +491,7 @@ void OOPolygonSpriteDrawHUDBeaconIcon(OOPolygonSprite* sprite, NSPoint where,
 void cxx_OODrawString(const std::string& text, GLfloat x, GLfloat y, GLfloat z,
     NSSize siz);
 void cxx_OODrawStringAligned(const std::string& text, GLfloat x, GLfloat y,
-    GLfloat z, NSSize siz, BOOL rightAlign);
+    GLfloat z, NSSize siz, bool rightAlign);
 
 /* cxx_OODrawString(Aligned) handles all the string drawing, but because
  * it does texture application and GL_QUADS beginning once per string
@@ -512,7 +512,7 @@ void cxx_OODrawStringAligned(const std::string& text, GLfloat x, GLfloat y,
  */
 void OOStartDrawingStrings(void);
 void cxx_OODrawStringQuadsAligned(const std::string& text, GLfloat x, GLfloat y,
-    GLfloat z, NSSize siz, BOOL rightAlign);
+    GLfloat z, NSSize siz, bool rightAlign);
 void OOStopDrawingStrings(void);
 
 void cxx_OODrawHilightedString(const std::string& text, GLfloat x, GLfloat y,
@@ -560,10 +560,10 @@ Quaternion HeadUpDisplayEntityOrientation(Entity* entity);
 std::optional<std::string> HeadUpDisplayShipScanDescription(ShipEntity* ship);
 bool HeadUpDisplayShipIsCloaked(ShipEntity* ship);
 bool HeadUpDisplayShipIsHostileToPlayer(ShipEntity* ship);
-GLfloat* HeadUpDisplayShipScannerDisplayColor(ShipEntity* ship, BOOL isHostile,
-    BOOL flash);
+GLfloat* HeadUpDisplayShipScannerDisplayColor(ShipEntity* ship, bool isHostile,
+    bool flash);
 GLfloat* HeadUpDisplayVisualEffectScannerDisplayColor(OOVisualEffectEntity* vis,
-    BOOL flash);
+    bool flash);
 WORMHOLE_SCANINFO HeadUpDisplayWormholeScanInfo(WormholeEntity* wormhole);
 double HeadUpDisplayWormholeEstimatedArrivalTime(WormholeEntity* wormhole);
 double HeadUpDisplayWormholeExpiryTime(WormholeEntity* wormhole);

@@ -10,7 +10,7 @@
 	the two member arrays, the cursor (and its mutation check), and the description text. A dying
 	group lets go of its weak reference to its leader as it does of its members'. The cases ask the
 	C++ group, holding the factory's oo::Ref, and objectNode pins how a group travels in plist data.
-	Run: bash tools/check-core-tests.sh
+	Run: bash tests/run.sh unit
 */
 
 #include "OOShipGroup.h"
@@ -123,8 +123,8 @@ OO_TEST(namesAndEmptyGroups)
 	{
 		oo::AutoreleaseScope pool;
 		oo::Ref<OOShipGroup> unnamed = OOShipGroup::groupWithName(std::nullopt);	// -init
-		OO_CHECK(unnamed != nil && !unnamed->name().has_value());
-		OO_CHECK(unnamed->count() == 0 && unnamed->isEmpty() && unnamed->leader() == nil);
+		OO_CHECK(unnamed != nullptr && !unnamed->name().has_value());
+		OO_CHECK(unnamed->count() == 0 && unnamed->isEmpty() && unnamed->leader() == nullptr);
 		OO_CHECK(unnamed->memberArray().empty() && unnamed->memberArrayExcludingLeader().empty());
 
 		oo::Ref<OOShipGroup> named = OOShipGroup::groupWithName(std::string("escort group"));
@@ -174,7 +174,7 @@ OO_TEST(leader)
 		group->setLeader(wingman);
 		OO_CHECK(group->leader() == wingman && group->count() == 2);
 		group->setLeader(nullptr);
-		OO_CHECK(group->leader() == nil && group->count() == 2);	// still members
+		OO_CHECK(group->leader() == nullptr && group->count() == 2);	// still members
 	}
 }
 
@@ -190,11 +190,11 @@ OO_TEST(removing)
 
 		OO_CHECK(group->removeShip(b));
 		OO_CHECK(!group->containsShip(b) && group->count() == 2);
-		OO_CHECK(b->setGroupCalls == 1 && b->lastGroup == nil && b->lastOwner == b);	// told to leave
+		OO_CHECK(b->setGroupCalls == 1 && b->lastGroup == nullptr && b->lastOwner == b);	// told to leave
 		OO_CHECK(!group->removeShip(b));	// not a member
 
 		OO_CHECK(group->removeShip(a));	// the leader: no longer leads
-		OO_CHECK(group->leader() == nil && group->count() == 1 && group->containsShip(c));
+		OO_CHECK(group->leader() == nullptr && group->count() == 1 && group->containsShip(c));
 	}
 }
 
@@ -216,7 +216,7 @@ OO_TEST(deadShipsLeave)
 
 		doomedObject->release();
 		doomedLeaderObject->release();
-		OO_CHECK(group->leader() == nil);
+		OO_CHECK(group->leader() == nullptr);
 		OO_CHECK(group->count() == 1 && !group->isEmpty());
 		OO_CHECK(HasMembers(group->memberArray(), { survivor }));
 	}

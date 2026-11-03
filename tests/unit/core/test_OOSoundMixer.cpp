@@ -12,7 +12,7 @@
    game's, so it reaches this mixer. The tests ask the C++ mixer and the C++
    root, and the decoder is a C++ stand-in. Before the shutdown, which is last,
    comes the C++ API. Run: bash
-   tools/check-core-tests.sh test_OOSoundMixer
+   meson test -C build/meson_test test_OOSoundMixer
 */
 
 #include <process.h>

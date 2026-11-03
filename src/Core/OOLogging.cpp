@@ -48,7 +48,7 @@ SOFTWARE.
    finished lines to OOLogOutputHandler.
 */
 
-static BOOL sInited = NO;
+static bool sInited = false;
 
 namespace {
 
@@ -116,12 +116,12 @@ void OOLogGenericSubclassResponsibilityForFunction(const char* inFunction)
     OO_LOG(cxx_kOOLogSubclassResponsibility, "***** {} is a subclass responsibility. (This is an internal programming error, please report it.)", inFunction != NULL ? inFunction : "(null)");
 }
 
-BOOL OOLogShowFunction(void)
+bool OOLogShowFunction(void)
 {
     return oo::log::logger().options().showFunction;
 }
 
-void OOLogSetShowFunction(BOOL flag)
+void OOLogSetShowFunction(bool flag)
 {
     flag = !!flag; // YES or NO, not 42.
 
@@ -133,12 +133,12 @@ void OOLogSetShowFunction(BOOL flag)
     }
 }
 
-BOOL OOLogShowFileAndLine(void)
+bool OOLogShowFileAndLine(void)
 {
     return oo::log::logger().options().showFileAndLine;
 }
 
-void OOLogSetShowFileAndLine(BOOL flag)
+void OOLogSetShowFileAndLine(bool flag)
 {
     flag = !!flag; // YES or NO, not 42.
 
@@ -150,12 +150,9 @@ void OOLogSetShowFileAndLine(BOOL flag)
     }
 }
 
-BOOL OOLogShowTime(void)
-{
-    return oo::log::logger().options().showTime;
-}
+bool OOLogShowTime(void) { return oo::log::logger().options().showTime; }
 
-void OOLogSetShowTime(BOOL flag)
+void OOLogSetShowTime(bool flag)
 {
     flag = !!flag; // YES or NO, not 42.
 
@@ -167,12 +164,12 @@ void OOLogSetShowTime(BOOL flag)
     }
 }
 
-BOOL OOLogShowMessageClass(void)
+bool OOLogShowMessageClass(void)
 {
     return oo::log::logger().options().showClass;
 }
 
-void OOLogSetShowMessageClass(BOOL flag)
+void OOLogSetShowMessageClass(bool flag)
 {
     flag = !!flag; // YES or NO, not 42.
 
@@ -184,7 +181,7 @@ void OOLogSetShowMessageClass(BOOL flag)
     }
 }
 
-void OOLogSetShowMessageClassTemporary(BOOL flag)
+void OOLogSetShowMessageClassTemporary(bool flag)
 {
     oo::log::logger().setShowClassTemporarily(flag);
 }
@@ -195,7 +192,7 @@ void OOLoggingInit(void)
         return;
 
     {
-        sInited = YES; // Must be before OOLogOutputHandlerInit().
+        sInited = true; // Must be before OOLogOutputHandlerInit().
         oo::log::logger().setSink(LogSink);
         oo::log::logger().setInitialized(true);
         OOLogOutputHandlerInit();
@@ -262,10 +259,18 @@ static void LoadExplicitSettings(void)
     // Load display settings.
     oo::Defaults& prefs = oo::Defaults::standard();
     oo::log::Options options;
-    options.showFunction = prefs.object("logging-show-function").isNull() ? NO : prefs.boolForKey("logging-show-function");
-    options.showFileAndLine = prefs.object("logging-show-file-and-line").isNull() ? NO : prefs.boolForKey("logging-show-file-and-line");
-    options.showTime = prefs.object("logging-show-time").isNull() ? YES : prefs.boolForKey("logging-show-time");
-    options.showClass = prefs.object("logging-show-class").isNull() ? YES : prefs.boolForKey("logging-show-class");
+    options.showFunction = prefs.object("logging-show-function").isNull()
+        ? false
+        : prefs.boolForKey("logging-show-function");
+    options.showFileAndLine = prefs.object("logging-show-file-and-line").isNull()
+        ? false
+        : prefs.boolForKey("logging-show-file-and-line");
+    options.showTime = prefs.object("logging-show-time").isNull()
+        ? true
+        : prefs.boolForKey("logging-show-time");
+    options.showClass = prefs.object("logging-show-class").isNull()
+        ? true
+        : prefs.boolForKey("logging-show-class");
     oo::log::logger().setOptions(options);
 
     /*

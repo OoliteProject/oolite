@@ -27,6 +27,7 @@ SOFTWARE.
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
 
+#define OO_PLAIN_CPP_UNIT \n 1 // a plain C++ unit: the protocol header spells OOALSTR as a handle
 #include "OOTCPStreamDecoder.h"
 #include "OODebugTCPConsoleProtocol.h"
 #include <stdarg.h>
@@ -64,7 +65,7 @@ OOTCPStreamDecoderRef OOTCPStreamDecoderCreate(OOTCPStreamDecoderPacketCallback 
     if (packetCB == NULL)
         return NULL;
 
-    decoder = malloc(sizeof *decoder);
+    decoder = static_cast<OOTCPStreamDecoderRef>(malloc(sizeof *decoder));
     if (decoder == NULL)
         return NULL;
 
@@ -114,7 +115,7 @@ void OOTCPStreamDecoderReceiveBytes(OOTCPStreamDecoderRef decoder, const void* i
     if (decoder == NULL)
         return;
 
-    bytes = inBytes;
+    bytes = static_cast<const unsigned char*>(inBytes);
     remaining = length;
 
     if (bytes == NULL && remaining != 0) {

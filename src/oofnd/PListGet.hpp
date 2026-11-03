@@ -12,7 +12,7 @@
    (fallback 0) [a oo_intAtIndex:3 defaultValue:-1] a.at<int>(3, -1) char short
    int long long long, unsigned ...           the same C++ type (clamped exactly
    as the OO<Type>FromObject functions clamp) NSInteger / NSUInteger long long /
-   unsigned long long (Windows) oo_boolForKey (BOOL) get<bool>
+   unsigned long long (Windows) oo_boolForKey (bool) get<bool>
             oo_nonNegativeFloatForKey / ...DoubleForKey
    get<oo::NonNegative<float>> / <double> oo_stringForKey (NSString *)
    get<std::string>   (fallback "", not nil) oo_objectForKey (id) get<oo::PList>
@@ -69,13 +69,6 @@
 */
 
 #pragma once
-
-// OOFoundation.h's `#define true 1` / `#define false 0` are suspended for this
-// header.
-#pragma push_macro("true")
-#pragma push_macro("false")
-#undef true
-#undef false
 
 #include "oofnd/PList.hpp"
 
@@ -684,6 +677,3 @@ typename PListGet<T>::Result PList::at(std::size_t index) const
 }
 
 } // namespace oo
-
-#pragma pop_macro("false")
-#pragma pop_macro("true")

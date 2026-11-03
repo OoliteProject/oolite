@@ -10,7 +10,7 @@
 	the Info-gnustep.plist in the built-in resources directory, so the test makes one in a directory
 	of its own and runs there. The tests pin the JS-visible behaviour: the oolite object and its class, every property
 	both ways, compareVersion() with each kind of argument, the errors, and a native's exception.
-	Run: bash tools/check-core-tests.sh
+	Run: tests/run.sh unit
 */
 
 #include "oofnd/objc/OOObject.h"
@@ -52,7 +52,7 @@ class MyOpenGLView : public oo::RefCounted
 {
 public:
 	float _colorSaturation = {};
-	BOOL _hdrOutput = {};
+	bool _hdrOutput = {};
 	OOHDRToneMapper _hdrToneMapper = {};
 	OOSDRToneMapper _sdrToneMapper = {};
 	int _hdrSets = {};
@@ -85,8 +85,8 @@ public:
 	MyOpenGLView *_gameView;
 	int _currentPostFX;
 	double _timeAccelerationFactor;
-	BOOL _raise;
-	BOOL _throwCxx;
+	bool _raise;
+	bool _throwCxx;
 
 	oo::PList gameSettings();
 	int currentPostFX();
@@ -258,18 +258,18 @@ void OOJSReportPendingException(JSContext *context)
 // As the engine's: the pending exception, else an uncatchable error that stops the script.
 // The engine's OOJSValueToInt32 (OOJavaScriptEngine.mm, not linked here), as the end target's test has it:
 // round to nearest, failing on NaN or out of range.
-BOOL OOJSValueToInt32(JSContext *context, JSValueConst value, int32_t *outValue)
+bool OOJSValueToInt32(JSContext *context, JSValueConst value, int32_t *outValue)
 {
 	double number;
-	if (JS_ToFloat64(context, &number, value) < 0)  return NO;
+	if (JS_ToFloat64(context, &number, value) < 0)  return false;
 	number = std::floor(number + 0.5);
 	if (std::isnan(number) || number < INT32_MIN || number > INT32_MAX)
 	{
 		cxx_OOJSReportError(context, "can't convert to an integer");
-		return NO;
+		return false;
 	}
 	*outValue = static_cast<int32_t>(number);
-	return YES;
+	return true;
 }
 
 
@@ -357,7 +357,7 @@ JSValue OOJSValueFromPList(JSContext *context, const oo::PList &plist)
 }
 
 
-Universe *gSharedUniverse = nil;
+Universe *gSharedUniverse = nullptr;
 
 
 void OOJSReportBadPropertySelector(JSContext *context, JSValueConst, int, const JSCFunctionListEntry *, size_t)
@@ -405,8 +405,8 @@ namespace {
 JSRuntime *sRuntime;
 JSContext *sContext;
 JSValue sGlobal = JS_UNDEFINED;	// owned for the life of the test
-Universe *sUniverse = nil;
-MyOpenGLView *sView = nil;
+Universe *sUniverse = nullptr;
+MyOpenGLView *sView = nullptr;
 std::filesystem::path sResources;
 
 
@@ -571,7 +571,7 @@ OO_TEST(toneMappers)
 {
 	SetUpContext();
 	// SDR output: the SDR mapper is read and set, the HDR one is undefined and refused with a warning.
-	sView->_hdrOutput = NO;
+	sView->_hdrOutput = false;
 	OO_CHECK_EVAL("oolite.sdrToneMapper", "OOSDR_TONEMAPPER_AGX");
 	OO_CHECK_EVAL("oolite.hdrToneMapper", "OOHDR_TONEMAPPER_UNDEFINED");
 	OO_CHECK_EVAL("(function () { oolite.sdrToneMapper = 'OOSDR_TONEMAPPER_REINHARD'; return oolite.sdrToneMapper; })()", "OOSDR_TONEMAPPER_REINHARD");
@@ -584,7 +584,7 @@ OO_TEST(toneMappers)
 	OO_CHECK_EQ(sView->_sdrSets, 1);
 
 	// HDR output: the other way round.
-	sView->_hdrOutput = YES;
+	sView->_hdrOutput = true;
 	OO_CHECK_EVAL("oolite.hdrToneMapper", "OOHDR_TONEMAPPER_DICE");
 	OO_CHECK_EVAL("oolite.sdrToneMapper", "OOSDR_TONEMAPPER_UNDEFINED");
 	OO_CHECK_EVAL("(function () { oolite.hdrToneMapper = 'OOHDR_TONEMAPPER_REINHARD'; return oolite.hdrToneMapper; })()", "OOHDR_TONEMAPPER_REINHARD");
@@ -594,19 +594,19 @@ OO_TEST(toneMappers)
 	OO_CHECK_EQ(sLastWarning, std::string("sdrToneMapper cannot be set if not running in SDR mode"));
 	OO_CHECK_EQ(sView->_sdrSets, 1);
 	OO_CHECK_EVAL("(function () { oolite.hdrToneMapper = null; return 'set'; })()", "threw: bad property value");
-	sView->_hdrOutput = NO;
+	sView->_hdrOutput = false;
 }
 
 
 OO_TEST(nativeExceptions)
 {
 	SetUpContext();
-	sUniverse->_raise = YES;
+	sUniverse->_raise = true;
 	OO_CHECK_EVAL("oolite.gameSettings", "threw: Native exception: settings boom");
-	sUniverse->_raise = NO;
-	sUniverse->_throwCxx = YES;
+	sUniverse->_raise = false;
+	sUniverse->_throwCxx = true;
 	OO_CHECK_EVAL("oolite.gameSettings", "threw: Native exception: cxx boom");
-	sUniverse->_throwCxx = NO;
+	sUniverse->_throwCxx = false;
 	OO_CHECK_EVAL("typeof oolite.gameSettings", "object");
 	OO_CHECK_EQ(sLimiterPauses, 0);
 	OO_CHECK_EQ(sProfileDepth, 0);

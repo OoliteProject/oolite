@@ -187,7 +187,7 @@ void OOTrumble::setupForPlayer(::PlayerEntity* p1, const std::string& digramStri
 
     InitTrumbleSounds();
 
-    readyToSpawn = NO;
+    readyToSpawn = false;
 }
 
 void OOTrumble::spawnFrom(OOTrumble* parentTrumble)
@@ -551,7 +551,7 @@ void OOTrumble::updateTrumble(double delta_t)
     // am I really hungry?
     if (hunger > 0.50) {
         // consult menu...
-        ::ShipEntity* selectedCargopod = nil;
+        ::ShipEntity* selectedCargopod = nullptr;
         float mostYummy = 0.0;
         std::vector<oo::EntityHold>* cargopods = (player != nullptr ? player->getCargo() : (std::vector<oo::EntityHold>*)nullptr); // the cargo pods (live: eaten ones are removed)
         NSUInteger i, n_pods = cargopods != nullptr ? cargopods->size() : 0;
@@ -596,7 +596,7 @@ void OOTrumble::updateTrumble(double delta_t)
 
                 // consider breeding - must be full grown and happy
                 if ((size > 0.95) && (discomfort < 0.25)) {
-                    readyToSpawn = YES;
+                    readyToSpawn = true;
                 }
 
                 if (player != nullptr)
@@ -660,7 +660,7 @@ void OOTrumble::updateIdle(double delta_t)
         //
         if (readyToSpawn) {
             actionSpawn();
-            readyToSpawn = NO;
+            readyToSpawn = false;
         }
         //
         if (discomfort > 0.5 + randf()) {

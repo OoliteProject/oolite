@@ -50,14 +50,10 @@ MA 02110-1301, USA.
         (C++ linkage: this header is sometimes reached from inside an extern "C"
         block, OOMaths.h.)
 */
-#ifdef __cplusplus
-extern "C++" {
 #include "oofnd/PrintfFormat.h"
 #include "oofnd/StdLib.hpp"
 bool cxx_OOCheckOpenGLErrors(const char* format, ...) OO_PRINTF_FORMAT(1, 2);
 bool cxx_OOCheckOpenGLErrors(const std::function<std::string()>& context);
-}
-#endif
 
 /*	OO_CHECK_GL_HEAVY and error-checking stuff
 
@@ -82,24 +78,14 @@ bool cxx_OOCheckOpenGLErrors(const std::function<std::string()>& context);
 #if OO_CHECK_GL_HEAVY
 
 #if OO_GL_STATE_VERIFICATION
-#ifdef __cplusplus
-extern "C" {
-#endif
 void OOGLNoteCurrentFunction(const char* func, unsigned line);
-#ifdef __cplusplus
-}
-#endif
 #else
 #define OOGLNoteCurrentFunction(FUNC, line) \
     do {                                    \
     } while (0)
 #endif
 
-#ifdef __cplusplus
-extern "C++" {
 #include "oofnd/Log.hpp" // oo::log::abbreviatedFileName()
-}
-#endif
 #define OOGL_PERFORM_CHECK(label, code) cxx_OOCheckOpenGLErrors("%s %s:%u (%s)%s", label, oo::log::abbreviatedFileName(__FILE__).c_str(), __LINE__, __PRETTY_FUNCTION__, code)
 #define OOGL(statement)                                  \
     do {                                                 \

@@ -234,7 +234,7 @@ std::optional<std::string> JSValueToEquipmentKey(JSContext* context, JSValueCons
     return Ask(JSValueToEquipmentType(context, value), &OOEquipmentType::identifier);
 }
 
-std::optional<std::string> JSValueToEquipmentKeyRelaxed(JSContext* context, JSValueConst value, BOOL* outExists)
+std::optional<std::string> JSValueToEquipmentKeyRelaxed(JSContext* context, JSValueConst value, bool* outExists)
 {
     OOJS_PROFILE_ENTER
 

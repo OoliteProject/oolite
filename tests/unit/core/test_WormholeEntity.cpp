@@ -94,7 +94,7 @@ public:
 	bool removeEntity(Entity *entity) override
 	{
 		_removed = entity;
-		return YES;
+		return true;
 	}
 };
 
@@ -111,13 +111,13 @@ OOSystemDescriptionManager *sManager = nullptr;
 
 namespace {
 
-TestUniverse *sUniverse = nil;
+TestUniverse *sUniverse = nullptr;
 TestPlayer *sPlayer = nullptr;
 
 
 void SetUp()
 {
-	if (sUniverse == nil)
+	if (sUniverse == nullptr)
 	{
 		sUniverse = new TestUniverse();	// never released
 		sPlayer = NewTestPlayer<TestPlayer>();
@@ -133,7 +133,7 @@ void SetUp()
 		sUniverse->_descriptions = oo::PList(oo::PList::Dict{ { "clock-format", oo::PList("%07d:%02d:%02d:%02d") } });
 	}
 	sUniverse->_system = 7;
-	sUniverse->_removed = nil;
+	sUniverse->_removed = nullptr;
 	sPlayer->_clock = 1000.0;
 	sPlayer->_coordinates = NSMakePoint(10, 20);
 	gSharedUniverse = sUniverse;
@@ -206,7 +206,7 @@ OO_TEST(madeByShip)
 	{
 		SetUp();
 		WormholeEntity *wh = ToNine(Ship(1000.0f));
-		OO_CHECK(wh != nil && dynamic_cast<WormholeEntity *>(static_cast<Entity *>(wh)) != nullptr && wh->getIsWormhole());
+		OO_CHECK(wh != nullptr && dynamic_cast<WormholeEntity *>(static_cast<Entity *>(wh)) != nullptr && wh->getIsWormhole());
 		OO_CHECK(wh->status() == STATUS_EFFECT && wh->getScanClass() == CLASS_WORMHOLE);
 		OO_CHECK(wh->getOrigin() == 7 && wh->getDestination() == 9);
 		NSPoint o = wh->originCoordinates(), d = wh->destinationCoordinates();
@@ -324,7 +324,7 @@ OO_TEST(update)
 		WormholeEntity *saved = FromDict(Saved());
 		saved->update(0.1);
 		OO_CHECK(saved->getScanClass() == CLASS_NO_DRAW);	// no mass
-		OO_CHECK(sUniverse->_removed == nil);
+		OO_CHECK(sUniverse->_removed == nullptr);
 		sPlayer->_clock = 1600.0;						// past its expiry
 		saved->update(0.1);
 		OO_CHECK(sUniverse->_removed == saved);
@@ -365,7 +365,7 @@ OO_TEST(disgorgeWithPlayer)
 		sPlayer->setPosition(make_HPvector(100, 0, 0));
 		wh->disgorgeShips();		// no ships, no player: it stays
 		OO_CHECK(HPvector_equal(wh->getPosition(), make_HPvector(1, 2, 3)));
-		wh->setContainsPlayer(YES);
+		wh->setContainsPlayer(true);
 		wh->disgorgeShips();
 		OO_CHECK(HPvector_equal(wh->getPosition(), make_HPvector(100, 0, -500)));
 		wh->setExitPosition(make_HPvector(7, 7, 7));
@@ -428,7 +428,7 @@ OO_TEST(jsExtensions)
 		const JSClassID expectedClass = JSWormholeClassID();
 		OO_CHECK(jsClass != 0 && jsClass == expectedClass);
 		OO_CHECK(OOJSEntityJSClassName(object) == std::optional<std::string>("Wormhole"));
-		OO_CHECK(OOJSEntityIsVisibleToScripts(object) == YES);
+		OO_CHECK(OOJSEntityIsVisibleToScripts(object) == true);
 	}
 }
 

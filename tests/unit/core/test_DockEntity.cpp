@@ -8,7 +8,7 @@
 	PLAYER (answering the one player query a dock makes when it aborts its dockings). A dock's
 	station is a StationEntity whose virtual dock only records its definition, with the dock added
 	as its subentity.
-	Run: bash tools/check-core-tests.sh test_DockEntity
+	Run: bash meson test -C build/meson_test test_DockEntity
 */
 
 #include "DockEntity.h"
@@ -38,7 +38,7 @@ class TestDockPlayer : public PlayerEntity
 {
 public:
 	HPVector viewpointPosition() override			{ return kZeroHPVector; }
-	::StationEntity *getTargetDockStation() override	{ return nil; }
+	::StationEntity *getTargetDockStation() override	{ return nullptr; }
 };
 
 // [[TestPlayer alloc] init]: a C++ player under the ship's facade, as
@@ -59,7 +59,7 @@ T *NewTestPlayer()
 class TestDockStation : public StationEntity
 {
 public:
-	bool setUpOneStandardSubentity(const oo::PList &/*subentDict*/, bool /*asTurret*/) override	{ return YES; }
+	bool setUpOneStandardSubentity(const oo::PList &/*subentDict*/, bool /*asTurret*/) override	{ return true; }
 };
 
 
@@ -67,8 +67,8 @@ namespace {
 
 void SetUp()
 {
-	static Universe *universe = nil;
-	if (universe == nil)
+	static Universe *universe = nullptr;
+	if (universe == nullptr)
 	{
 		universe = new Universe();	// never released
 	}
@@ -139,7 +139,7 @@ OO_TEST(initAndSetUp)
 	{
 		SetUp();
 		DockEntity *dock = MakeDock("dock");
-		OO_CHECK(dock != nil);
+		OO_CHECK(dock != nullptr);
 		OO_CHECK((dock != nullptr ? dock->isDock() : false) && (dock != nullptr ? dock->getIsShip() : false) && !(dock != nullptr ? dock->getIsStation() : false) && !(dock != nullptr ? dock->getIsPlayer() : false));
 		OO_CHECK((dock != nullptr ? dock->shipDataKey() : std::optional<std::string>()) == std::optional<std::string>("dock"));
 		OO_CHECK((dock != nullptr ? dock->allowsDocking() : false) && (dock != nullptr ? dock->allowsLaunching() : false) && !(dock != nullptr ? dock->disallowedDockingCollides() : false));
@@ -155,15 +155,15 @@ OO_TEST(flags)
 	{
 		SetUp();
 		DockEntity *dock = MakeDock("flags");
-		if (dock != nullptr)  dock->setAllowsDocking(NO);
+		if (dock != nullptr)  dock->setAllowsDocking(false);
 		OO_CHECK(!(dock != nullptr ? dock->allowsDocking() : false));
-		if (dock != nullptr)  dock->setAllowsDocking(YES);
+		if (dock != nullptr)  dock->setAllowsDocking(true);
 		OO_CHECK((dock != nullptr ? dock->allowsDocking() : false));
-		if (dock != nullptr)  dock->setAllowsLaunching(NO);
+		if (dock != nullptr)  dock->setAllowsLaunching(false);
 		OO_CHECK(!(dock != nullptr ? dock->allowsLaunching() : false));
-		if (dock != nullptr)  dock->setAllowsLaunching(YES);
+		if (dock != nullptr)  dock->setAllowsLaunching(true);
 		OO_CHECK((dock != nullptr ? dock->allowsLaunching() : false));
-		if (dock != nullptr)  dock->setDisallowedDockingCollides(YES);
+		if (dock != nullptr)  dock->setDisallowedDockingCollides(true);
 		OO_CHECK((dock != nullptr ? dock->disallowedDockingCollides() : false));
 		if (dock != nullptr)  dock->clear();
 		OO_CHECK((dock != nullptr ? dock->countOfShipsInDockingQueue() : 0) == 0 && (dock != nullptr ? dock->countOfShipsInLaunchQueue() : 0) == 0);
@@ -202,14 +202,14 @@ OO_TEST(dimensionsAndPortUpVector)
 		OO_CHECK((dock != nullptr ? dock->parentEntity() : (Entity *)nullptr) == station);
 
 		if (dock != nullptr)  dock->setVirtual();
-		if (dock != nullptr)  dock->setDimensionsAndCorridor(NO, YES, NO);
+		if (dock != nullptr)  dock->setDimensionsAndCorridor(false, true, false);
 		OO_CHECK(!(dock != nullptr ? dock->allowsDocking() : false) && (dock != nullptr ? dock->disallowedDockingCollides() : false) && !(dock != nullptr ? dock->allowsLaunching() : false));
 
 		// The virtual port is 69 x 69: square, so only the ship's box decides.
 		OO_CHECK(Near((dock != nullptr ? dock->portUpVectorForShipsBoundingBox(Box(20, 10)) : Vector{}), make_vector(0, 1, 0)));
 		OO_CHECK(Near((dock != nullptr ? dock->portUpVectorForShipsBoundingBox(Box(10, 20)) : Vector{}), make_vector(1, 0, 0)));
 
-		if (dock != nullptr)  dock->setDimensionsAndCorridor(YES, NO, YES);
+		if (dock != nullptr)  dock->setDimensionsAndCorridor(true, false, true);
 		OO_CHECK((dock != nullptr ? dock->allowsDocking() : false) && !(dock != nullptr ? dock->disallowedDockingCollides() : false) && (dock != nullptr ? dock->allowsLaunching() : false));
 	}
 }
@@ -258,7 +258,7 @@ OO_TEST(canAcceptShipForDocking)
 		SetUp();
 		DockEntity *dock = MakeDock("accept");
 		ShipEntity *ship = MakeQueuedShip(11);
-		if (dock != nullptr)  dock->setAllowsDocking(NO);
+		if (dock != nullptr)  dock->setAllowsDocking(false);
 		OO_CHECK((dock != nullptr ? dock->canAcceptShipForDocking(ship) : std::optional<std::string>()) == std::optional<std::string>("DOCK_CLOSED"));
 		OO_CHECK(dock->canAcceptShipForDocking(ship) == std::optional<std::string>("DOCK_CLOSED"));
 	}
@@ -323,8 +323,8 @@ OO_TEST(corridorAndLaunchRefuseNoShip)
 		DockEntity *dock = MakeDock("refuse");
 		OO_CHECK(!(dock != nullptr ? dock->shipIsInDockingCorridor(nullptr) : false));
 		OO_CHECK(!(dock != nullptr ? dock->allowsLaunchingOf(nullptr) : false));
-		OO_CHECK(!dock->shipIsInDockingCorridor(nil));
-		OO_CHECK(!dock->allowsLaunchingOf(nil));
+		OO_CHECK(!dock->shipIsInDockingCorridor(nullptr));
+		OO_CHECK(!dock->allowsLaunchingOf(nullptr));
 	}
 }
 
@@ -338,16 +338,16 @@ OO_TEST(launchQueue)
 		DockEntity *dock = MakeDock("launchqueue");
 		ShipEntity *first = MakeQueuedShip(21);
 		ShipEntity *second = MakeQueuedShip(22);
-		if (dock != nullptr)  dock->addShipToLaunchQueue(nullptr, NO);
+		if (dock != nullptr)  dock->addShipToLaunchQueue(nullptr, false);
 		OO_CHECK((dock != nullptr ? dock->countOfShipsInLaunchQueue() : 0) == 0);
-		if (dock != nullptr)  dock->addShipToLaunchQueue(first, NO);
+		if (dock != nullptr)  dock->addShipToLaunchQueue(first, false);
 		dock->addShipToLaunchQueue(second, true);
 		OO_CHECK((dock != nullptr ? dock->countOfShipsInLaunchQueue() : 0) == 2);
 		DockEntity *part = dock;
 		OO_CHECK(part->launchQueue[0].get() == second && part->launchQueue[1].get() == first);	// the queue holds the C++ ships
 		OO_CHECK((first != nullptr ? first->status() : OOEntityStatus{}) == STATUS_DOCKED && (second != nullptr ? second->status() : OOEntityStatus{}) == STATUS_DOCKED);
 		OO_CHECK((dock != nullptr ? dock->countOfShipsInLaunchQueueWithPrimaryRole("no-such-role") : 0) == 0);
-		part->no_docking_while_launching = YES;
+		part->no_docking_while_launching = true;
 		if (dock != nullptr)  dock->abortAllLaunches();
 		OO_CHECK((dock != nullptr ? dock->countOfShipsInLaunchQueue() : 0) == 0 && !part->no_docking_while_launching);
 	}

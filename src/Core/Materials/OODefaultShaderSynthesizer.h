@@ -50,7 +50,7 @@ class OOMesh;
    specifications (a PList dictionary). On failure the strings are empty and the
    two PLists null, where all four used to be nil.
 */
-BOOL OOSynthesizeMaterialShader(const oo::PList& materialConfiguration,
+bool OOSynthesizeMaterialShader(const oo::PList& materialConfiguration,
     const std::optional<std::string>& materialKey,
     const std::optional<std::string>& entityName,
     std::string* outVertexShader,

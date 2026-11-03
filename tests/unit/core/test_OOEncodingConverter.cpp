@@ -7,7 +7,7 @@
    a substitutions entry that is not a dictionary is ignored), conversion with
    and without an encoding, a repeated conversion (the cache), the description
    and StringFromEncoding(). The calls here are the C++ class's. Run:
-   bash tools/check-core-tests.sh
+   tests/run.sh unit
 */
 
 #include "OOEncodingConverter.h"

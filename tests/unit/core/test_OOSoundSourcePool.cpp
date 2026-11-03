@@ -12,7 +12,7 @@
    record what the pool asks of them (C++ stand-ins, and an autorelease pool is
    an oo::AutoreleaseScope). The tests ask the C++ pool. After
    them comes the C++ API (OOSoundSourcePool, whose selectors are overloads).
-        Run: bash tools/check-core-tests.sh test_OOSoundSourcePool
+        Run: meson test -C build/meson_test test_OOSoundSourcePool
 */
 
 #include <algorithm>
@@ -36,7 +36,7 @@ class Universe {
 
 OOTimeAbsolute Universe::getTime() { return _time; }
 
-Universe* gSharedUniverse = nil;
+Universe* gSharedUniverse = nullptr;
 
 /*	A sound is its key; "[missing]" has none. A C++ stand-in: the
    custom-sound look-up the pool calls (Universe.h; its sound lives until the
@@ -72,7 +72,7 @@ class TestSound final : public OOSound {
 struct SourceRecord {
   std::string _key;
   Vector _position = {};
-  BOOL _playing = NO;
+  bool _playing = false;
   int _stops = 0;
 };
 
@@ -90,7 +90,7 @@ OOSoundSource::~OOSoundSource() {
 
 void OOSoundSource::stop() {
   gRecords[this]._stops++;
-  gRecords[this]._playing = NO;
+  gRecords[this]._playing = false;
 }
 
 void OOSoundSource::setPosition(Vector position) {
@@ -99,7 +99,7 @@ void OOSoundSource::setPosition(Vector position) {
 
 void OOSoundSource::playOOSound(OOSound* sound) {
   gRecords[this]._key = static_cast<TestSound*>(sound)->_key;
-  gRecords[this]._playing = YES;
+  gRecords[this]._playing = true;
 }
 
 bool OOSoundSource::isPlaying() { return gRecords[this]._playing; }
@@ -129,12 +129,12 @@ long PlayingCount(const char* key) {
 }
 
 void StopAll() {
-  for (SourceRecord* source : gSources) source->_playing = NO;
+  for (SourceRecord* source : gSources) source->_playing = false;
 }
 
 void Reset(OOTimeAbsolute time) {
   gSources.clear();  // the pools of earlier tests keep their own
-  if (gSharedUniverse == nil) gSharedUniverse = new Universe();
+  if (gSharedUniverse == nullptr) gSharedUniverse = new Universe();
   gSharedUniverse->_time = time;
 }
 
@@ -203,7 +203,7 @@ OO_TEST(slotsByPriorityAndExpiry) {
 
     // An idle source is preferred to anything.
     StopAll();
-    Source(0)->_playing = YES;
+    Source(0)->_playing = true;
     pool->playSoundWithKey("[idle]", 0.5f, 1.0);
     OO_CHECK((Playing() == std::vector<std::string>{"[new]", "[idle]"}));
   }
@@ -230,7 +230,7 @@ OO_TEST(positionsAndDefaults) {
     pool->playSoundWithKey("[t]");
     OO_CHECK(PlayingCount("[t]") == 0);
     gSharedUniverse->_time += 0.2;
-    pool->playSoundWithKey("[t]", static_cast<bool>(YES), make_vector(7, 8, 9));
+    pool->playSoundWithKey("[t]", static_cast<bool>(true), make_vector(7, 8, 9));
     OO_CHECK(PlayingCount("[t]") == 1);
   }
 }
@@ -261,15 +261,15 @@ OO_TEST(noOverlap) {
     oo::AutoreleaseScope scope;  // was @autoreleasepool
     Reset(100.0);
     oo::Ref<OOSoundSourcePool> pool = OOSoundSourcePool::poolWithCount(3, 0.0);
-    pool->playSoundWithKey("[overheat]", static_cast<bool>(NO));
-    pool->playSoundWithKey("[overheat]", static_cast<bool>(NO));
-    pool->playSoundWithKey("[other]", static_cast<bool>(NO), kZeroVector);
+    pool->playSoundWithKey("[overheat]", static_cast<bool>(false));
+    pool->playSoundWithKey("[overheat]", static_cast<bool>(false));
+    pool->playSoundWithKey("[other]", static_cast<bool>(false), kZeroVector);
     OO_CHECK((Playing() == std::vector<std::string>{"[overheat]"}));
     pool->playSoundWithKey("[shot]");  // overlapping sounds still play
     OO_CHECK((Playing() == std::vector<std::string>{"[overheat]", "[shot]"}));
 
-    Source(0)->_playing = NO;
-    pool->playSoundWithKey("[overheat]", static_cast<bool>(NO));
+    Source(0)->_playing = false;
+    pool->playSoundWithKey("[overheat]", static_cast<bool>(false));
     OO_CHECK(Playing().size() == 3 && Playing()[2] == "[overheat]");
   }
 }

@@ -10,7 +10,7 @@
    a bare one that answers the class's defaults, and one that overrides
    them. It links the whole game but main (tests/unit/core/meson.build entry
    ['*']), on the hidden GL context of oo_gl_test_context.hpp. The last test
-   pins the C++ API (OOTextureGenerator). Run: bash tools/check-core-tests.sh
+   pins the C++ API (OOTextureGenerator). Run: tests/run.sh unit
 */
 
 #include <cstdlib>

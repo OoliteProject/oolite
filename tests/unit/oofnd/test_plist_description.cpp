@@ -3,9 +3,8 @@
    gnustep-base's -description gave for the Foundation form of a PList.
 
         Every expectation is GNUstep base 1.31.1's own output on this toolchain,
-   captured by tools/captures/plist-description/capture.sh (a probe linked
-   against gnustep-base, run over tools/captures/plist-description/cases.txt
-   with TZ=UTC) into plist_description_captured.inc, unedited. Each row's input
+   captured by a probe linked against gnustep-base, run over the cases
+   with TZ=UTC into plist_description_captured.inc, unedited. Each row's input
    is rebuilt here as the PList oo::PListFrom made of the same Foundation value:
    a GNUstep-format plist text through oo::parsePropertyList, a single-precision
         number as PList::singleReal, a non-plist object as a PList::Object node.

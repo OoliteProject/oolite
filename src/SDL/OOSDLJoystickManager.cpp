@@ -29,8 +29,6 @@ MA 02110-1301, USA.
 
 OOSDLJoystickManager::OOSDLJoystickManager()
 {
-    int i;
-
     std::map<std::string, int, std::less<>> idMap;
 
     // Find and open the sticks. Make sure that we don't fail if more joysticks than MAX_STICKS are detected.
@@ -41,7 +39,7 @@ OOSDLJoystickManager::OOSDLJoystickManager()
         OO_LOG("joystick.init", "Number of joysticks detected exceeds maximum number of joysticks allowed. Setting number of active joysticks to {}.", MAX_STICKS);
     }
     if (stickCount) {
-        for (i = 0; i < stickCount; i++) {
+        for (int i = 0; i < stickCount; i++) {
             // it's doubtful MAX_STICKS will ever get exceeded, but
             // we need to be defensive.
             if (i > MAX_STICKS)

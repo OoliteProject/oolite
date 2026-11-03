@@ -592,14 +592,14 @@ namespace {
    The slot holds the C++ entity (OOJSEntityGetEntityOfClass, with the JS class
    check).
 */
-BOOL JSShipGetShipEntity(JSContext* context, JSValueConst inObject, ShipEntity** outShip)
+bool JSShipGetShipEntity(JSContext* context, JSValueConst inObject, ShipEntity** outShip)
 {
     OOCParameterAssert(outShip != NULL);
     Entity* entity = nullptr;
     if (EXPECT_NOT(!OOJSEntityGetEntityOfClass(context, inObject, sShipClassID, &entity)))
-        return NO;
+        return false;
     *outShip = oo::ToShip(entity);
-    return YES;
+    return true;
 }
 } // namespace
 
@@ -1267,7 +1267,7 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS)
     HPVector hpvValue;
     OOShipGroup* group = nullptr;
     oo::Ref<OOColor> colorForScript;
-    BOOL exists; // JSValueToEquipmentKeyRelaxed()'s out parameter
+    bool exists; // JSValueToEquipmentKeyRelaxed()'s out parameter
 
     if (EXPECT_NOT(!JSShipGetShipEntity(context, thisObj, &entity)))
         return OOJSNativeFailure(context);
@@ -2409,7 +2409,7 @@ static JSValue ShipExplode(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    return RemoveOrExplodeShip(context, OOJS_THIS, argc, OOJS_ARGV, YES);
+    return RemoveOrExplodeShip(context, OOJS_THIS, argc, OOJS_ARGV, true);
 
     OOJS_NATIVE_EXIT
 }
@@ -2555,7 +2555,7 @@ static JSValue ShipCanAwardEquipment(OOJS_NATIVE_ARGS)
     std::optional<std::string> key;
     std::string ctx = "scripted"; // a nil context fails the check below, as "" does
     bool result;
-    BOOL exists;
+    bool exists;
 
     GET_THIS_SHIP(thisEnt);
     ShipEntity* ship = thisEnt; // not null: thisEnt is not
@@ -3087,7 +3087,7 @@ static JSValue ShipSetMaterials(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    ShipEntity* thisEnt = nil;
+    ShipEntity* thisEnt = nullptr;
 
     if (argc < 1) {
         cxx_OOJSReportBadArguments(context, "Ship", "setMaterials", 0, OOJS_ARGV, std::nullopt, "parameter object");
@@ -3096,7 +3096,7 @@ static JSValue ShipSetMaterials(OOJS_NATIVE_ARGS)
 
     GET_THIS_SHIP(thisEnt);
 
-    return ShipSetMaterialsInternal(context, OOJS_THIS, argc, OOJS_ARGV, thisEnt, NO);
+    return ShipSetMaterialsInternal(context, OOJS_THIS, argc, OOJS_ARGV, thisEnt, false);
 
     OOJS_NATIVE_EXIT
 }
@@ -3106,7 +3106,7 @@ static JSValue ShipSetShaders(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    ShipEntity* thisEnt = nil;
+    ShipEntity* thisEnt = nullptr;
 
     GET_THIS_SHIP(thisEnt);
 
@@ -3118,12 +3118,12 @@ static JSValue ShipSetShaders(OOJS_NATIVE_ARGS)
     if (JS_IsNull(OOJS_ARGV[0]) || (!JS_IsNull(OOJS_ARGV[0]) && !JS_IsObject(OOJS_ARGV[0]))) {
         // EMMSTRAN: JS_ValueToObject() and normal error handling here.
         cxx_OOJSReportWarning(context, "Ship.%s: expected %s instead of '%s'.", "setShaders", "object", cxx_OOStringFromJSValueEvenIfNull(context, OOJS_ARGV[0]).value_or("(null)").c_str());
-        OOJS_RETURN_BOOL(NO);
+        OOJS_RETURN_BOOL(false);
     }
 
     // SpiderMonkey version: OOJS_ARGV[1] = OOJS_ARGV[0]. QuickJS's argv may be the caller's own stack slots, so copy.
     JSValueConst shaderArgv[2] = { OOJS_ARGV[0], OOJS_ARGV[0] };
-    return ShipSetMaterialsInternal(context, OOJS_THIS, argc, shaderArgv, thisEnt, YES);
+    return ShipSetMaterialsInternal(context, OOJS_THIS, argc, shaderArgv, thisEnt, true);
 
     OOJS_NATIVE_EXIT
 }

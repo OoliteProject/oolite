@@ -8,7 +8,7 @@
    station's amounts saved and loaded, including 1.80-era saves that name goods
    by their display name. The string expander is replaced: it returns its input
    in angle brackets. The tests ask the C++ class (held as oo::Ref); the last
-   tests pin the C++ API. Run: bash tools/check-core-tests.sh
+   tests pin the C++ API. Run: tests/run.sh unit
 */
 
 #include <string>

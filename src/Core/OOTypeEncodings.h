@@ -47,8 +47,10 @@ template <class T> inline constexpr const char *kOOTypeEncoding = OOTypeEncoding
 
 // void
 template <> struct OOTypeEncoding<void> { static constexpr char value[] = "v"; };
-// BOOL, signed char
+// signed char
 template <> struct OOTypeEncoding<signed char> { static constexpr char value[] = "c"; };
+// bool: the encoding BOOL (signed char) had
+template <> struct OOTypeEncoding<bool> { static constexpr char value[] = "c"; };
 // unsigned char, uint8_t, OOGalaxyID, OOWeaponFacingSet
 template <> struct OOTypeEncoding<unsigned char> { static constexpr char value[] = "C"; };
 // signed short, OOSystemID
