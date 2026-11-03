@@ -41,7 +41,7 @@ pristine root every candidate path is absent at launch, so the mark is ``None`` 
 file and its later EXISTENCE - not a timestamp - is the proof of a write. That is the strongest
 witness this check has, and it is the whole of G7's claim.
 
-    python3 -m pytest upstream/oolite/tests/gui/test_g7_first_run_creates_defaults.py -x -q
+    python3 -m pytest oolite-dev/tests/gui/test_g7_first_run_creates_defaults.py -x -q
 
 Needs the desktop: a real window, unlocked and logged in (ADR-0017). It takes tools/gui-lock for
 the duration, via the ``game`` fixture - this file launches nothing of its own.

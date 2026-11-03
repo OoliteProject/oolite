@@ -4,7 +4,7 @@ docs/phases/0-gui-tier.md G9. Written the way test_g1_exit_via_mouse.py is writt
 fixture, no launcher of its own, the desktop lock inherited, and every guard that needs neither a
 desktop nor a build marked ``offline`` so it gates in a clean checkout.
 
-    python3 -m pytest upstream/oolite/tests/gui/test_g9_post_exit_hygiene.py -x -q
+    python3 -m pytest oolite-dev/tests/gui/test_g9_post_exit_hygiene.py -x -q
 
 WHY THIS FILE IS BOTH A LAUNCHING TEST AND A META-TEST
 ------------------------------------------------------

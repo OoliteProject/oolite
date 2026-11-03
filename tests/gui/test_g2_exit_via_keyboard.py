@@ -85,7 +85,7 @@ The start screen's rows are written down at the top of the file (``FIRST_SELECTA
 changed during the migration. The number of Down presses is the difference between the first
 selectable row and the target row.
 
-    python3 -m pytest upstream/oolite/tests/gui/test_g2_exit_via_keyboard.py -x -q
+    python3 -m pytest oolite-dev/tests/gui/test_g2_exit_via_keyboard.py -x -q
 
 Needs the desktop: a real window, unlocked and logged in (ADR-0017). It takes tools/gui-lock for
 the duration, via the ``game`` fixture.

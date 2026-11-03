@@ -58,7 +58,7 @@ selects it - it confirms row 27, ``_EXIT`` (OOOXZManager.m:114, :1407), which ca
 ``cancelUpdate`` and returns to the start screen. So G5 is hermetic: it passes with the machine
 offline, and no network state can change its result.
 
-    python3 -m pytest upstream/oolite/tests/gui/test_g5_screen_round_trips.py -x -q
+    python3 -m pytest oolite-dev/tests/gui/test_g5_screen_round_trips.py -x -q
 
 Needs the desktop: a real window, unlocked and logged in (ADR-0017). It takes tools/gui-lock for
 the duration, via the ``game`` fixture - this file launches nothing of its own.

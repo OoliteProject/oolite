@@ -655,7 +655,7 @@ def _native_path(path):
 def _default_app_dir():
     """Where oolite.app is, for a checkout that may not be the one holding the build.
 
-    ``build/`` is gitignored (upstream/oolite/.gitignore:25), so a fresh worktree - the
+    ``build/`` is gitignored (oolite-dev/.gitignore:25), so a fresh worktree - the
     orchestrator's per-bead worktrees, and the detached checkout accept.sh merges into - contains
     the tests but no binary. Falling back to the main checkout's build makes the real G1 test
     runnable from those worktrees instead of being deselected, which is the failure that put this
@@ -681,7 +681,7 @@ def _default_app_dir():
     if common.returncode == 0 and common.stdout.strip():
         main_checkout = os.path.dirname(_native_path(common.stdout.strip()))
         shared = os.path.join(
-            main_checkout, "upstream", "oolite", "build", "meson_test", "oolite.app"
+            main_checkout, "oolite-dev", "build", "meson_test", "oolite.app"
         )
         if os.path.isdir(shared):
             return shared
@@ -1493,7 +1493,7 @@ class GameWindow:
 
 def _lock_script():
     """Absolute path to tools/gui-lock, or None if there is no checkout around us."""
-    repo = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
+    repo = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
     script = os.path.join(repo, "tools", "gui-lock")
     return script if os.path.isfile(script) else None
 
@@ -2010,7 +2010,7 @@ def defaults_write_mark(app_dir):
 
     This is the half of the G9 defaults check that makes it falsifiable at all.
     ``app_dir`` is the PERSISTENT build tree (``_default_app_dir()`` ->
-    ``upstream/oolite/build/meson_test/oolite.app``), so a defaults file left behind by a run
+    ``oolite-dev/build/meson_test/oolite.app``), so a defaults file left behind by a run
     last month satisfies "exists and parses" forever, and this run could write nothing at all
     without the check noticing. The story (docs/stories/G1-exit-via-mouse.md:52) asks for a
     defaults file WRITTEN and re-parseable; without a launch-time mark the "written" half is

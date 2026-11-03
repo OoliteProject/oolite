@@ -193,6 +193,9 @@ void OOJSReportCurrentException(JSContext* context);
     }
 
 // The scope OOJS_BEGIN_FULL_NATIVE opens: what its Objective-C try and finally did, in the same order.
+void OOJSPauseTimeLimiter(void);
+void OOJSResumeTimeLimiter(void);
+
 class OOJSFullNativeScope {
 public:
     explicit OOJSFullNativeScope(JSContext* /*context*/) { OOJSPauseTimeLimiter(); }

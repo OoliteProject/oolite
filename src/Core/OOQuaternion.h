@@ -24,6 +24,15 @@ MA 02110-1301, USA.
 
 */
 
+#pragma once
+
+#include "OOMathsBase.h"
+
+// Each maths header includes what it uses, so OOMaths.h may list them in any
+// order.
+#include "OOHPVector.h"
+#include "OOVector.h"
+
 typedef struct Quaternion {
     OOScalar w;
     OOScalar x;

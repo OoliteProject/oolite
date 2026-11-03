@@ -1,15 +1,15 @@
 # Component test tier
 
 Gherkin scenarios driven over the debug-console TCP channel, asserting named, tolerant invariants
-about simulated gameplay. Specified in [`docs/phases/0-component-tier.md`](../../../../docs/phases/0-component-tier.md),
-decided in [ADR-0018](../../../../docs/decisions/0018-component-test-tier.md). The seam and
-exemplar is [S1](../../../../docs/stories/S1-police-kills-pirate.md).
+about simulated gameplay. Specified in [`docs/phases/0-component-tier.md`](../../../docs/phases/0-component-tier.md),
+decided in [ADR-0018](../../../docs/decisions/0018-component-test-tier.md). The seam and
+exemplar is [S1](../../../docs/stories/S1-police-kills-pirate.md).
 
 ```bash
-python3 -m pytest upstream/oolite/tests/component/ -x -q
+python3 -m pytest oolite-dev/tests/component/ -x -q
 ```
 
-It needs a built game. By default it uses `upstream/oolite/build/meson_test/oolite.app`; override
+It needs a built game. By default it uses `oolite-dev/build/meson_test/oolite.app`; override
 with `--oolite-app <path>` or `OO_APP_DIR`. Each scenario launches its own game process on its own
 free port, so scenarios do not collide and the suite can run per bead.
 
@@ -23,7 +23,7 @@ free port, so scenarios do not collide and the suite can run per bead.
 **This table is the interface.** A new `.feature` file that uses only these steps is fleet work and
 scores 7/7 against S1. Needing a step that is not here is a *new interface*: sizing check 5 fails,
 so stop and file a bead rather than adding one inside a conversion story
-([ADR-0018](../../../../docs/decisions/0018-component-test-tier.md) §5).
+([ADR-0018](../../../docs/decisions/0018-component-test-tier.md) §5).
 
 | Step | Kind | Notes |
 |---|---|---|

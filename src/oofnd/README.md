@@ -1,13 +1,13 @@
 # oofnd — the Foundation replacement
 
 `oofnd` is the C++20 library that replaces GNUstep Foundation (`libgnustep-base`) during the
-migration (Phase 2, [architecture §3.4](../../../../docs/architecture.md)). It is built bottom-up,
+migration (Phase 2, [architecture §3.4](../../../docs/architecture.md)). It is built bottom-up,
 one component per seam, each with its own unit tests, and adopted by Objective-C++ call sites
 while the classes are still Objective-C. Namespace `oo`.
 
 Rules that hold for every component:
 
-- **C++20 only** until Phase 6 ([ADR-0011](../../../../docs/decisions/0011-cpp20-then-cpp23.md)).
+- **C++20 only** until Phase 6 ([ADR-0011](../../../docs/decisions/0011-cpp20-then-cpp23.md)).
   Where C++23 has the thing (`std::expected`), oofnd provides a same-API polyfill so the
   Phase 6 upgrade is a rename.
 - **No exceptions across oofnd APIs.** Fallible operations return `oo::Expected<T, E>`.
@@ -21,17 +21,17 @@ Rules that hold for every component:
 | Path | What |
 |---|---|
 | `src/oofnd/Expected.hpp` | `oo::Expected<T, E>`, `oo::Unexpected<E>`, `oo::unexpect`, `oo::BadExpectedAccess<E>`: `std::expected`'s C++23 API |
-| `src/oofnd/Ref.hpp` | `oo::RefCounted`, `oo::Ref<T>`, `oo::WeakRef<T>`, `oo::AutoreleaseScope`: ObjC retain/release/autorelease and `OOWeakReference` 1:1 ([ADR-0003](../../../../docs/decisions/0003-intrusive-refcount.md), [ADR-0026](../../../../docs/decisions/0026-oofnd-ref-semantics.md), drain order [ADR-0045](../../../../docs/decisions/0045-autorelease-scope-drains-lifo.md)); the banner maps each ObjC idiom |
+| `src/oofnd/Ref.hpp` | `oo::RefCounted`, `oo::Ref<T>`, `oo::WeakRef<T>`, `oo::AutoreleaseScope`: ObjC retain/release/autorelease and `OOWeakReference` 1:1 ([ADR-0003](../../../docs/decisions/0003-intrusive-refcount.md), [ADR-0026](../../../docs/decisions/0026-oofnd-ref-semantics.md), drain order [ADR-0045](../../../docs/decisions/0045-autorelease-scope-drains-lifo.md)); the banner maps each ObjC idiom |
 | `src/oofnd/WeakSet.hpp` | `oo::WeakSet<T>`: `OOWeakSet` |
-| `src/oofnd/PList.hpp` | `oo::PList`: the property-list value (null/bool/integer/real/string/data/date/array/dict) replacing the Foundation plist object graph; UTF-16 <-> UTF-8 helpers ([ADR-0027](../../../../docs/decisions/0027-oofnd-plist-fidelity.md)) |
+| `src/oofnd/PList.hpp` | `oo::PList`: the property-list value (null/bool/integer/real/string/data/date/array/dict) replacing the Foundation plist object graph; UTF-16 <-> UTF-8 helpers ([ADR-0027](../../../docs/decisions/0027-oofnd-plist-fidelity.md)) |
 | `src/oofnd/PListOldStyle.hpp` | `oo::parseOldStylePList`: GNUstep's old-style (OpenStep) scanner, `parsePlItem`, ported quirk-for-quirk |
 | `src/oofnd/PListXML.hpp` | `oo::parseXMLPList` (GNUstep's GSXMLPListParser over GSSloppyXMLParser) and `oo::changeDTDIfApplicable` (OOPListParsing.m), ported quirk-for-quirk |
 | `src/oofnd/PListWriting.hpp` | `oo::writeOldStylePList` (OldSchoolPropertyListWriting.m) and `oo::writeXMLPList` (GNUstep's XML writer), byte-identical output |
 | `src/oofnd/PListParsing.hpp` | `oo::parsePropertyList`: OOPropertyListFromData's DTD change + format detection + dispatch to the two readers |
 | `src/oofnd/PListDescription.hpp` | `oo::describe(plist)`: gnustep-base's `-description` of the Foundation form of a `PList` (what `%@` printed for `ObjectFromPList(plist)`), byte for byte; pinned by rows captured with `tools/captures/plist-description/capture.sh` (ADR-0055 item 1). Game code calls `oo::DescriptionOf(plist)` |
-| `src/oofnd/PListGet.hpp` | `oo::PList::get<T>(key, fallback)` / `at<T>(index, fallback)`: OOCollectionExtractors' `oo_*ForKey:` / `oo_*AtIndex:` with GNUstep's exact conversions ([ADR-0031](../../../../docs/decisions/0031-plist-get-and-the-foundation-bridge.md)); included by `PList.hpp` |
+| `src/oofnd/PListGet.hpp` | `oo::PList::get<T>(key, fallback)` / `at<T>(index, fallback)`: OOCollectionExtractors' `oo_*ForKey:` / `oo_*AtIndex:` with GNUstep's exact conversions ([ADR-0031](../../../docs/decisions/0031-plist-get-and-the-foundation-bridge.md)); included by `PList.hpp` |
 | `src/Core/OOPListView.h` (game side) | deleted by oo-snzn with `OOCollectionExtractors` (ADR-0055): it was `oo::PListView`, the same `get<T>`/`at<T>` over a Foundation collection; the recipe below is history |
-| `src/oofnd/Data.hpp` | `oo::Data`: `NSData` / `NSMutableData` as a value type ([ADR-0028](../../../../docs/decisions/0028-oofnd-filesystem-paths-data.md)) |
+| `src/oofnd/Data.hpp` | `oo::Data`: `NSData` / `NSMutableData` as a value type ([ADR-0028](../../../docs/decisions/0028-oofnd-filesystem-paths-data.md)) |
 | `src/oofnd/FileSystem.hpp` | `oo::fs`: `NSFileManager` + its OOExtensions category + NSData file I/O, on `std::filesystem` with GNUstep semantics |
 | `src/oofnd/ResourcePaths.hpp` | `oo::ResourcePaths`: the game's Resources/AddOns/saves/logs/caches locations, exactly as computed today on Windows and Linux |
 | `src/oofnd/Notification.hpp` | `oo::NotificationCenter`, `oo::Notification`: `NSNotificationCenter` / `NSNotification` (named, synchronous, registration order; bead oo-3rb.9, ADR-0029 Decision 5) |
@@ -39,19 +39,19 @@ Rules that hold for every component:
 | `src/oofnd/StdLib.hpp` | the standard containers and clocks game code uses instead of Foundation collections, `NSValue` boxes and `NSDate`, included under the OOFoundation.h `true`/`false` guard (bead oo-3rb.10); game code includes it rather than `<vector>` etc. |
 | `src/oofnd/Process.hpp` | `oo::process` + `oo::env`: `NSProcessInfo` (arguments captured in `main`, `hasArgument`, `processName`, `processorCount`, `operatingSystemVersionString`) with GNUstep's measured semantics |
 | `src/oofnd/Thread.hpp` | `oo::thread`: `NSThread` on `std::thread`: `detach`, `isMainThread` (id captured at static init), `setCurrentName`, `setCurrentPriority` (GNUstep's measured Windows mapping) |
-| `src/oofnd/String.hpp` | `oo::str`: the `NSString` methods and Oolite `NSString` categories the game uses (`NSStringOOExtensions`, `OOStringParsing`'s `NSString (OOUtilities)`, `ScanTokensFromString`, the version helpers) over UTF-8 `std::string`, GNUstep 1.31.1's answers exactly: case tables, whitespace set, composed-sequence rules, `-pathExtension`, `-replaceOccurrencesOfString:`, `-hasPrefix:`, `-stringWithFormat:` without `%@` ([ADR-0034](../../../../docs/decisions/0034-oofnd-strings.md)) |
-| `src/oofnd/Scanner.hpp` | `oo::str::CharacterSet` / `oo::str::Scanner` and `trim` / `findFirstOf` / `findLastOf` / `splitByCharacters`: `NSCharacterSet` (the named sets as GNUstep 1.31.1 tables, custom, inverted), `NSScanner` (skipping, case-insensitive matching, failure locations, `scanInt`/`scanDouble`) and `NSScannerOOExtensions`, exactly (bead oo-3rb.12, [ADR-0039](../../../../docs/decisions/0039-oofnd-scanner.md)) |
+| `src/oofnd/String.hpp` | `oo::str`: the `NSString` methods and Oolite `NSString` categories the game uses (`NSStringOOExtensions`, `OOStringParsing`'s `NSString (OOUtilities)`, `ScanTokensFromString`, the version helpers) over UTF-8 `std::string`, GNUstep 1.31.1's answers exactly: case tables, whitespace set, composed-sequence rules, `-pathExtension`, `-replaceOccurrencesOfString:`, `-hasPrefix:`, `-stringWithFormat:` without `%@` ([ADR-0034](../../../docs/decisions/0034-oofnd-strings.md)) |
+| `src/oofnd/Scanner.hpp` | `oo::str::CharacterSet` / `oo::str::Scanner` and `trim` / `findFirstOf` / `findLastOf` / `splitByCharacters`: `NSCharacterSet` (the named sets as GNUstep 1.31.1 tables, custom, inverted), `NSScanner` (skipping, case-insensitive matching, failure locations, `scanInt`/`scanDouble`) and `NSScannerOOExtensions`, exactly (bead oo-3rb.12, [ADR-0039](../../../docs/decisions/0039-oofnd-scanner.md)) |
 | `src/oofnd/Encoding.hpp` | `oo::str::Encoding` / `encodeLossy` / `convertForFont`: `OOEncodingConverter`'s conversion to the five Windows code pages, including libiconv's transliterations as GNUstep runs them; `stringWithContentsOfUnicodeFile` / `decodeUnicodeText`: `+[NSString stringWithContentsOfUnicodeFile:]` (UTF-16 by BOM, else UTF-8, else Latin-1; plain files, captured, oo-3rb.123) |
-| `src/oofnd/Log.hpp` | `oo::log`: OOLogging without Foundation: message-class switches (inheritance, `$metaclasses`, `_default`/`_override`), per-thread indentation, the exact Latest.log line layout, OOLogging's own diagnostics, and the `OO_LOG("cls", "{}", ...)` std::format front end. `src/Core/OOLogging.mm` is its Objective-C shell ([ADR-0035](../../../../docs/decisions/0035-oofnd-logging.md)) |
-| `src/oofnd/LogFile.hpp` | `oo::log::FileWriter`, `logFileBytes`, `consoleBytes`, `rotateToPrevious`: the Latest.log writer (OOLogOutputHandler's OOAsyncLogger) without Foundation, byte for byte: CRLF, lone-surrogate lines dropped, 1 GiB saturation, Previous.log rotation ([ADR-0042](../../../../docs/decisions/0042-oofnd-log-file-writer.md)) |
-| `src/oofnd/Http.hpp` | `oo::http::Download`, `parseUrl`: the OXZ manager's `NSURLConnection` without Foundation: one GET on its own thread (WinHTTP on Windows), its response/data/finish/failure callbacks taken in order on the main thread; every status delivers its body, Content-Length or -1, no cookies, redirects followed, file: URLs read from disk ([ADR-0044](../../../../docs/decisions/0044-oofnd-http-client.md)) |
+| `src/oofnd/Log.hpp` | `oo::log`: OOLogging without Foundation: message-class switches (inheritance, `$metaclasses`, `_default`/`_override`), per-thread indentation, the exact Latest.log line layout, OOLogging's own diagnostics, and the `OO_LOG("cls", "{}", ...)` std::format front end. `src/Core/OOLogging.mm` is its Objective-C shell ([ADR-0035](../../../docs/decisions/0035-oofnd-logging.md)) |
+| `src/oofnd/LogFile.hpp` | `oo::log::FileWriter`, `logFileBytes`, `consoleBytes`, `rotateToPrevious`: the Latest.log writer (OOLogOutputHandler's OOAsyncLogger) without Foundation, byte for byte: CRLF, lone-surrogate lines dropped, 1 GiB saturation, Previous.log rotation ([ADR-0042](../../../docs/decisions/0042-oofnd-log-file-writer.md)) |
+| `src/oofnd/Http.hpp` | `oo::http::Download`, `parseUrl`: the OXZ manager's `NSURLConnection` without Foundation: one GET on its own thread (WinHTTP on Windows), its response/data/finish/failure callbacks taken in order on the main thread; every status delivers its body, Content-Length or -1, no cookies, redirects followed, file: URLs read from disk ([ADR-0044](../../../docs/decisions/0044-oofnd-http-client.md)) |
 | `src/Core/OOStringBridge.h` (game side) | deleted by oo-qps.16 (ADR-0055): it was `oo::StdString` / `oo::NSStringFrom` / `oo::StringMap`, the `NSString` <-> `std::string` bridge; the Phase 5 Mac port restores what it needs from `git show <oo-qps.16>^` (ADR-0055 item 7) |
 | ~~`src/oofnd/objc/OOObjCRef.h`~~ | deleted with libobjc2 (bead oo-dbz.2): `oo::ObjCRef<T *>`, a retaining reference to an Objective-C object, had no user left; its test `test_objc_ref.mm` retired with it |
 | `src/Core/OOFoundationBridge.h` (game side) | deleted by oo-qps.16 (ADR-0055): it held the Foundation sweep's boundary helpers; Object nodes moved to `src/Core/OOObjCPList.h`, `%@` text to `src/Core/OODescription.h` |
 | ~~`tools/check-selector-types.py`~~ | retired by bead oo-ebds4 (ADR-0043 Amendment 4): it found which of a header's Objective-C selectors were shared (keep `id`) and guarded selector families against disagreeing C++ types; with libobjc2 gone (oo-dbz.5) no selector is declared or sent, so it checked nothing. `git show oo-ebds4^:tools/check-selector-types.py` restores it |
-| `src/oofnd/Defaults.hpp` | `oo::Defaults`: preferences store matching former `NSUserDefaults`+Override/`NSBundle+Override` behaviour: same `GNUstep/Defaults/oolite.plist`, same search list and coercions, `oo::writeOpenStepPList` (GNUstep's OpenStep writer, byte-identical) ([ADR-0032](../../../../docs/decisions/0032-oofnd-defaults.md)); shim deleted by oo-iobt |
-| `src/oofnd/objc/OOObject.h`, `.mm` | `OOObject`: the Foundation-free Objective-C root class on libobjc2's own refcount and pool; `OOObjCInstallFloor()` ([ADR-0029](../../../../docs/decisions/0029-objc-floor-without-foundation.md)). Objective-C++, not linked into the game until the reroot bead. Deleted by bead oo-4aq6a.8 (OOObject.h stays as a forwarding header) |
-| `src/oofnd/objc/OOObject.h`, `.mm` | `OOObject`: the Foundation-free Objective-C root class on libobjc2's own refcount and pool; `OOObjCInstallFloor()` ([ADR-0029](../../../../docs/decisions/0029-objc-floor-without-foundation.md)). Objective-C++; linked into the game by bead oo-3rb.2 (exemplar reroot: `Core/OORoleSet`), but `OOObjCInstallFloor()` is not called until the constant-string flip. Deleted by bead oo-4aq6a.8 (OOObject.h stays as a forwarding header) |
+| `src/oofnd/Defaults.hpp` | `oo::Defaults`: preferences store matching former `NSUserDefaults`+Override/`NSBundle+Override` behaviour: same `GNUstep/Defaults/oolite.plist`, same search list and coercions, `oo::writeOpenStepPList` (GNUstep's OpenStep writer, byte-identical) ([ADR-0032](../../../docs/decisions/0032-oofnd-defaults.md)); shim deleted by oo-iobt |
+| `src/oofnd/objc/OOObject.h`, `.mm` | `OOObject`: the Foundation-free Objective-C root class on libobjc2's own refcount and pool; `OOObjCInstallFloor()` ([ADR-0029](../../../docs/decisions/0029-objc-floor-without-foundation.md)). Objective-C++, not linked into the game until the reroot bead. Deleted by bead oo-4aq6a.8 (OOObject.h stays as a forwarding header) |
+| `src/oofnd/objc/OOObject.h`, `.mm` | `OOObject`: the Foundation-free Objective-C root class on libobjc2's own refcount and pool; `OOObjCInstallFloor()` ([ADR-0029](../../../docs/decisions/0029-objc-floor-without-foundation.md)). Objective-C++; linked into the game by bead oo-3rb.2 (exemplar reroot: `Core/OORoleSet`), but `OOObjCInstallFloor()` is not called until the constant-string flip. Deleted by bead oo-4aq6a.8 (OOObject.h stays as a forwarding header) |
 | `src/oofnd/objc/OOConstantString.h`, `.mm` | `OOConstantString`/`OOTinyString`: the classes behind `@"..."` under `-fconstant-string-class=OOConstantString` (ADR-0029). Deleted by bead oo-4aq6a.8 (OOObject.h stays as a forwarding header) |
 | ~~`src/oofnd/objc/OORuntime.h`~~ | deleted with libobjc2 (bead oo-dbz.2): `OOClassFromName` & co., libobjc2's class and selector lookups, had no user left; its test `test_objc_runtime.mm` retired with it |
 | `src/oofnd/objc/OOException.h`, `.mm` | `OOException`: `NSException` without Foundation; `@try`/`@catch` stay Objective-C (ADR-0029 Decision 4). `+raise:format:` is printf-style; `OOInvalidArgumentException` & co. are `const char *` with Foundation's text |
@@ -71,7 +71,7 @@ Rules that hold for every component:
 > property list goes through `Core/OOObjCPList.h`.
 
 The recipe for every `sweep:extractors` bead ("Retire oo_*ForKey in <file>"). Proposed
-[ADR-0031](../../../../docs/decisions/0031-plist-get-and-the-foundation-bridge.md); exemplar
+[ADR-0031](../../../docs/decisions/0031-plist-get-and-the-foundation-bridge.md); exemplar
 `src/Core/Entities/OOWaypointEntity.mm` (bead oo-u77) - open it and do what it does.
 
 The file keeps its Foundation collections. Each call goes through `oo::PListView`
@@ -142,7 +142,7 @@ becomes `x.` and the Objective-C types map to `std::string`, `PList::Array`, `PL
 > with no `oo::StdString` / `oo::StringMap` / `oo::NSStringFrom` around it.
 
 The recipe for a file's `NSStringOOExtensions` / `NSString (OOUtilities)` calls (seam 2.5b, bead
-oo-dps; proposed [ADR-0034](../../../../docs/decisions/0034-oofnd-strings.md)); exemplar
+oo-dps; proposed [ADR-0034](../../../docs/decisions/0034-oofnd-strings.md)); exemplar
 `src/Core/OOOXZManager.mm`. The file keeps its `NSString`s; each call goes through the bridge in
 `src/Core/OOStringBridge.h`.
 
@@ -169,7 +169,7 @@ oo-dps; proposed [ADR-0034](../../../../docs/decisions/0034-oofnd-strings.md)); 
 
 When the Foundation sweep turns the file's strings into `std::string`, `oo::StringMap(s, f)`
 becomes `f(s)` and the bridge header goes. Performance rule from the decision-4 benchmark
-([2-string-benchmark.md](../../../../docs/phases/2-string-benchmark.md)): where Objective-C
+([2-string-benchmark.md](../../../docs/phases/2-string-benchmark.md)): where Objective-C
 retained a string, take `std::string_view` / `const std::string&` or move; copy only where it copied.
 
 ## Migrating NSScanner / NSCharacterSet calls (oo::str::Scanner)
@@ -180,7 +180,7 @@ retained a string, take `std::string_view` / `const std::string&` or move; copy 
 > `std::string` itself.
 
 The recipe for the `NSScanner` / `NSCharacterSet` chunk beads (bead oo-3rb.12; proposed
-[ADR-0039](../../../../docs/decisions/0039-oofnd-scanner.md)); exemplars `src/Core/OOColor.mm`,
+[ADR-0039](../../../docs/decisions/0039-oofnd-scanner.md)); exemplars `src/Core/OOColor.mm`,
 `src/Core/OORoleSet.mm`, `src/Core/OOStringParsing.mm`. The file keeps its `NSString`s and bridges
 per call (`OOStringBridge.h`).
 
@@ -213,7 +213,7 @@ per call (`OOStringBridge.h`).
 ## Migrating OOLog calls (oo::log)
 
 The recipe for converting a file's `OOLog` family to the std::format front end (seam 2.8, bead
-oo-qpb; proposed [ADR-0035](../../../../docs/decisions/0035-oofnd-logging.md)); exemplar
+oo-qpb; proposed [ADR-0035](../../../docs/decisions/0035-oofnd-logging.md)); exemplar
 `src/SDL/OOSDLJoystickManager.mm`. Settings, indentation and line layout are shared with the
 remaining `OOLog` calls, so a converted line reads exactly as it did.
 
@@ -235,7 +235,7 @@ remaining `OOLog` calls, so a converted line reads exactly as it did.
 ## Migrating Foundation usage (sweep:foundation)
 
 The recipe for every `sweep:foundation` bead ("Migrate Foundation usage to oofnd: <file>"). Proposed
-[ADR-0043](../../../../docs/decisions/0043-foundation-sweep-recipe.md). Exemplars, one per early
+[ADR-0043](../../../docs/decisions/0043-foundation-sweep-recipe.md). Exemplars, one per early
 module; open the one nearest your file and do what it does:
 
 | Exemplar | Bead | Shows |
@@ -255,7 +255,7 @@ acceptance grep matches (comments included), the whole tree builds, and the game
    (declared by another class or protocol, in the tree or in Foundation). Only `unique` selectors
    and C functions change their types; `shared` ones keep an Objective-C object type (step 3).
 2. For each `unique` selector and C function whose declaration names an NS type, find its direct
-   callers: `grep -rn 'firstPartOfSelector:' upstream/oolite/src` (or the function name).
+   callers: `grep -rn 'firstPartOfSelector:' oolite-dev/src` (or the function name).
 3. If your file, your header and those callers exceed 8 files: use a **transitional bridge**
    (step 6) instead of adapting the callers. If the file's own migration exceeds ~400 written
    lines even with a bridge, stop and report (the orchestrator splits it by selector group).
@@ -532,7 +532,7 @@ nullopt means no components (`<ClassName 0xnnnnnnnn>`). A subclass extends its s
 literal). `oo::DescriptionOf([x shortDescription])` is `oo::ShortDescriptionOf(x)`.
 
 Transitional, until oo-qps.43 flips the legacy family tree-wide in one codemod commit
-(`python3 tools/codemods/description-family.py --fix upstream/oolite/src`, then `--check` for the
+(`python3 tools/codemods/description-family.py --fix oolite-dev/src`, then `--check` for the
 hand residue) and deletes the legacy root in `OOFoundation.h/.mm`: the root's `cxx_` defaults forward to a
 legacy `- (id) descriptionComponents` (& co.) override while a class has one, and `oo::DescriptionOf`
 of an object not rooted on `OOObject` asks its `-description` (oo-qps.72 deletes both). Do not flip
@@ -591,7 +591,7 @@ again under AddressSanitizer. It fails on zero tests and on a test file missing 
 Inside a game build directory the same tests run through meson:
 
 ```bash
-cd upstream/oolite && ./mk.sh build test
+cd oolite-dev && ./mk.sh build test
 meson test -C build/meson_test --suite oofnd
 ```
 

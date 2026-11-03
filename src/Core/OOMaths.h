@@ -37,80 +37,9 @@ MA 02110-1301, USA.
 extern "C" {
 #endif
 
-#if defined(__cplusplus) && !defined(OO_PLAIN_CPP_UNIT) // was __OBJC__: a game unit (an Objective-C++ unit until bead oo-dbz), not a plain C++ one
-#include "OOFoundation.h"
-#endif
-
-#include "OOFunctionAttributes.h"
-#if defined(__cplusplus) && !defined(OO_PLAIN_CPP_UNIT) // was __OBJC__: a game unit, not a plain C++ one
-#include "OOOpenGL.h"
-#else
-/*	A plain C or C++ translation unit (OOVoxel.c, for one) needs only the GL types. OOOpenGL.h
-        imports OOFoundation.h, i.e. Foundation, which does not compile outside Objective-C.
-*/
-#include "OOOpenGLOnly.h"
-#endif
-#include <assert.h>
-#include <limits.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <tgmath.h>
-
-typedef GLfloat OOScalar;
-
-typedef double OOHPScalar;
-
-#ifndef M_PI
-#define M_PI 3.14159265358979323846 /* pi */
-#endif
-#ifndef M_PI_2
-#define M_PI_2 1.57079632679489661923 /* pi/2 */
-#endif
-#ifndef M_PI_4
-#define M_PI_4 0.78539816339744830962 /* pi/4 */
-#endif
-#ifndef M_1_PI
-#define M_1_PI 0.31830988618379067154 /* 1/pi */
-#endif
-#ifndef M_2_PI
-#define M_2_PI 0.63661977236758134308 /* 2/pi */
-#endif
-#ifndef M_2_SQRTPI
-#define M_2_SQRTPI 1.12837916709551257390 /* 2/sqrt(pi) */
-#endif
-#ifndef M_SQRT2
-#define M_SQRT2 1.41421356237309504880 /* sqrt(2) */
-#endif
-#ifndef M_SQRT1_2
-#define M_SQRT1_2 0.70710678118654752440 /* 1/sqrt(2) */
-#endif
-
-#if defined(__GNUC__) && !defined(__STRICT_ANSI__)
-#ifndef MIN
-#define MIN(A, B) ({ __typeof__(A) __a = (A); __typeof__(B) __b = (B); __a < __b ? __a : __b; })
-#endif
-#if !defined(MAX)
-#define MAX(A, B) ({ __typeof__(A) __a = (A); __typeof__(B) __b = (B); __a < __b ? __b : __a; })
-#endif
-#if !defined(ABS)
-#define ABS(A) ({ __typeof__(A) __a = (A); __a < 0 ? -__a : __a; })
-#endif
-#else
-/* These definitions are unsafe in that the "winning" expression is evaluated twice. */
-#if !defined(MIN)
-#define MIN(A, B) ((A) < (B) ? (A) : (B))
-#endif
-#if !defined(MAX)
-#define MAX(A, B) ((A) > (B) ? (A) : (B))
-#endif
-#if !defined(ABS)
-#define ABS(A) ((A) < 0 ? (-(A)) : (A))
-#endif
-#endif
-
 #include "OOBoundingBox.h"
 #include "OOHPVector.h"
+#include "OOMathsBase.h"
 #include "OOMatrix.h"
 #include "OOTriangle.h"
 #include "OOVoxel.h"

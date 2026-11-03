@@ -7,7 +7,7 @@ goes - every ``.m`` became ``.mm`` in one step (bead oo-x7o) and Phase 3 renames
 tree walk that silently found nothing. This module is the one place that knows which suffixes an
 implementation file may carry, so the next rename is a change here and not in every test.
 
-Stdlib only; imported by the GUI tier (upstream/oolite/tests/gui) and the golden tier
+Stdlib only; imported by the GUI tier (oolite-dev/tests/gui) and the golden tier
 (tests/golden), both of which put this directory on ``pythonpath`` in their pytest.ini.
 
 It never guesses. ``resolve_source`` returns the ONE existing file with that stem; none, or more

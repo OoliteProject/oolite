@@ -14,7 +14,7 @@ the process-table survivor check, the G9 hygiene assert - is in conftest.py and 
 verbatim; this file adds the one thing that is different, which is how the exit is asked for.
 The grid/DPI/foreground guards live with G1 (test_g1_exit_via_mouse.py) and are not repeated.
 
-    python3 -m pytest upstream/oolite/tests/gui/test_g3_exit_via_window_close.py -x -q
+    python3 -m pytest oolite-dev/tests/gui/test_g3_exit_via_window_close.py -x -q
 
 Needs the desktop: a real window, unlocked and logged in (ADR-0017). It takes tools/gui-lock for
 the duration, via the ``game`` fixture - this file launches nothing of its own.

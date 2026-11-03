@@ -26,6 +26,8 @@ MA 02110-1301, USA.
 
 #pragma once
 
+#include "OOMathsBase.h"
+
 /* Clamp to range. */
 OOINLINE float OOClamp_0_1_f(float value) INLINE_CONST_FUNC;
 OOINLINE float OOClamp_n1_1_f(float value) INLINE_CONST_FUNC;

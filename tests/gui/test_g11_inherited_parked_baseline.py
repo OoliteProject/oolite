@@ -1,6 +1,6 @@
 """G11 - the INHERITED dirty baseline: a parked software-GL DLL this run did not park.
 
-    python3 -m pytest upstream/oolite/tests/gui/test_g11_inherited_parked_baseline.py -x -q
+    python3 -m pytest oolite-dev/tests/gui/test_g11_inherited_parked_baseline.py -x -q
 
 THE INCIDENT THIS FILE REPRODUCES (oo-992b)
 -------------------------------------------

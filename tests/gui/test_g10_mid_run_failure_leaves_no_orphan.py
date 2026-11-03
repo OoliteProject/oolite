@@ -37,7 +37,7 @@ The child file is named ``_njnw_child_*.py`` rather than ``test_*.py`` so that a
 never collects it, the tier-wide AST meta-guard in test_g9_post_exit_hygiene.py (which walks
 ``os.listdir`` for ``test_*.py``) never sees it, and it is removed in a ``finally`` either way.
 
-    python3 -m pytest upstream/oolite/tests/gui/test_g10_mid_run_failure_leaves_no_orphan.py -q
+    python3 -m pytest oolite-dev/tests/gui/test_g10_mid_run_failure_leaves_no_orphan.py -q
 
 FALSIFIABILITY, measured rather than asserted - see the bead's evidence. With
 ``GameWindow.kill``'s ``self.proc.kill()`` neutered in a scratch copy of the tier, this test goes

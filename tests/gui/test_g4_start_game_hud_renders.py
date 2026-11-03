@@ -59,7 +59,7 @@ measurement is taken on the start screen and on the scenario screen first, where
 so a stray red thing on the desktop, a leftover file, or a broken measurement fails the test rather
 than passing it.
 
-    python3 -m pytest upstream/oolite/tests/gui/test_g4_start_game_hud_renders.py -x -q
+    python3 -m pytest oolite-dev/tests/gui/test_g4_start_game_hud_renders.py -x -q
 
 Needs the desktop: a real window, unlocked and logged in (ADR-0017). It takes tools/gui-lock for
 the duration, via the ``game`` fixture - this file launches nothing of its own.

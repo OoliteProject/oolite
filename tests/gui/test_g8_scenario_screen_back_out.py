@@ -93,7 +93,7 @@ This file reads no expansion content: nothing here opens an .oxp or .oxz, and th
 ever confirms are the start screen's scenario row, the scenario screen's ``exit`` row and the
 start screen's ` Exit Game ` row.
 
-    python3 -m pytest upstream/oolite/tests/gui/test_g8_scenario_screen_back_out.py -x -q
+    python3 -m pytest oolite-dev/tests/gui/test_g8_scenario_screen_back_out.py -x -q
 
 Needs the desktop: a real window, unlocked and logged in (ADR-0017). It takes tools/gui-lock for
 the duration, via the ``game`` fixture - this file launches nothing of its own.
