@@ -28,10 +28,12 @@ MA 02110-1301, USA.
 
 */
 
-#import "MyOpenGLView.h"
-#import "OOFoundation.h"
-#import "OOFunctionAttributes.h"
-#import "OOTypes.h"
+#pragma once
+
+#include "MyOpenGLView.h"
+#include "OOFoundation.h"
+#include "OOFunctionAttributes.h"
+#include "OOTypes.h"
 
 enum {
     // Values used for unknown strings.

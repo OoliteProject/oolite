@@ -27,6 +27,6 @@ MA 02110-1301, USA.
 
 #include <quickjs.h>
 
-#import "OOFoundation.h"
+#include "OOFoundation.h"
 
 void InitOOJSShipGroup(JSContext* context, JSValueConst global);

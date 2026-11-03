@@ -39,10 +39,10 @@ SOFTWARE.
 #ifndef OOOPENGLEXTENSIONMANAGER_H
 #define OOOPENGLEXTENSIONMANAGER_H
 
-#import "OOFoundation.h"
-#import "OOFunctionAttributes.h"
-#import "OOOpenGL.h"
-#import "OOTypes.h"
+#include "OOFoundation.h"
+#include "OOFunctionAttributes.h"
+#include "OOOpenGL.h"
+#include "OOTypes.h"
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"

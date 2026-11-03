@@ -30,7 +30,7 @@ MA 02110-1301, USA.
 #ifndef OOOPENALCONTROLLER_H
 #define OOOPENALCONTROLLER_H
 
-#import "OOOpenAL.h"
+#include "OOOpenAL.h"
 
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"

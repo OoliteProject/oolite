@@ -29,10 +29,12 @@ MA 02110-1301, USA.
 
 */
 
-#import "Entity.h"
+#pragma once
 
-#import "OOMaths.h"
-#import "OOTypes.h"
+#include "Entity.h"
+
+#include "OOMaths.h"
+#include "OOTypes.h"
 
 class OOTexture;
 class OOColor;

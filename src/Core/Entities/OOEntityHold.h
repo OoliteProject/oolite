@@ -115,8 +115,8 @@ private:
 
 /*	The universe's +1 creators and the references the universe and the entities keep by hand
         (EntityHelpers.mm): what -retain, -release and -autorelease of the entity's object did, on the
-        entity's own count (-autorelease hands the reference to the current Objective-C autorelease pool,
-        oo::AutoreleaseInObjCPool(), so it is released at the same drain, in the same order); nothing for
+        entity's own count (-autorelease hands the reference to the innermost oo::AutoreleaseScope,
+        oo::autorelease(), so it is released at the same drain, in the same order); nothing for
         null or an entity without its object. RetainEntity() and AutoreleaseEntity() answer their argument.
 */
 Entity* RetainEntity(Entity* entity);

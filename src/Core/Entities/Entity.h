@@ -32,16 +32,15 @@ MA 02110-1301, USA.
 
 #pragma once
 
-#import "CollisionRegion.h"
-#import "EntityVirtualMembers.h" // the virtual members
-#import "OOCacheManager.h"
-#import "OOColor.h"
+#include "CollisionRegion.h"
+#include "EntityVirtualMembers.h" // the virtual members
+#include "OOCacheManager.h"
+#include "OOColor.h"
 #include "OOEntityHold.h" // the owning entity lists
-#import "OOFoundation.h"
+#include "OOFoundation.h"
 #include "OOJSPrivateObject.h"
-#import "OOMaths.h"
-#import "OOTypes.h"
-#import "OOWeakReference.h"
+#include "OOMaths.h"
+#include "OOTypes.h"
 
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
@@ -431,7 +430,7 @@ bool EntityShaderMemberBindingFor(Entity* entity, const char* property, OOShader
 namespace oo {
 
 /*	An entity carried WEAKLY through plist data: what oo::PListObject() of the
-        entity's object's -weakRetain made (the docking instructions' station, the collision-avoidance
+        entity's object's weak reference made (the docking instructions' station, the collision-avoidance
         condition's primary target). The payload holds a weak reference to the C++ entity, which reads
         null exactly when the object's weak reference did (the facade's -dealloc drops both at one
         point), so the node keeps nothing alive, as before. Its JS value is the entity's, undefined

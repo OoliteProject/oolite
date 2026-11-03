@@ -24,20 +24,21 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOFoundation.h"
-#import "OOOpenGL.h"
-#import "oofnd/objc/OOObject.h"
+#pragma once
 
-#import "MyOpenGLView.h"
-#import "OOMaths.h"
-#import "OOPolygonSprite.h" // OOHUDBeaconIcon
-#import "OOTypes.h"
-#import "ShipEntity.h"
+#include "OOFoundation.h"
+#include "OOOpenGL.h"
+#include "oofnd/objc/OOObject.h"
+
+#include "MyOpenGLView.h"
+#include "OOMaths.h"
+#include "OOPolygonSprite.h" // OOHUDBeaconIcon
+#include "OOTypes.h"
+#include "ShipEntity.h"
 
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
-#include "oofnd/objc/OOObjCRef.h"
 
 #include <optional>
 #include <set>
@@ -61,19 +62,19 @@ class OOCrosshairs;
 #define ZOOM_INDICATOR_CENTRE_Y -216
 #define ZOOM_INDICATOR_WIDTH 11.0f
 #define ZOOM_INDICATOR_HEIGHT 14.0f
-#define ZOOM_LEVELS_IMAGE @"zoom.png"
+#define ZOOM_LEVELS_IMAGE "zoom.png"
 
-#define COMPASS_IMAGE @"compass.png"
+#define COMPASS_IMAGE "compass.png"
 #define COMPASS_CENTRE_X 132
 #define COMPASS_CENTRE_Y -216
 #define COMPASS_SIZE 56
 #define COMPASS_HALF_SIZE 28
-#define COMPASS_REDDOT_IMAGE @"reddot.png"
-#define COMPASS_GREENDOT_IMAGE @"greendot.png"
+#define COMPASS_REDDOT_IMAGE "reddot.png"
+#define COMPASS_GREENDOT_IMAGE "greendot.png"
 #define COMPASS_DOT_SIZE 16
 #define COMPASS_HALF_DOT_SIZE 8
 
-#define AEGIS_IMAGE @"aegis.png"
+#define AEGIS_IMAGE "aegis.png"
 #define AEGIS_CENTRE_X -132
 #define AEGIS_CENTRE_Y -216
 #define AEGIS_WIDTH 24
@@ -225,7 +226,7 @@ class OOCrosshairs;
 #define TITLE_KEY "title"
 #define BACKGROUND_RGBA_KEY "background_rgba"
 #define OVERALL_ALPHA_KEY "overall_alpha"
-#define NONLINEAR_SCANNER @"nonlinear_scanner"
+#define NONLINEAR_SCANNER "nonlinear_scanner"
 
 #define Z1 (UNIVERSE != nullptr && UNIVERSE->getGameView() != nullptr ? UNIVERSE->getGameView()->getDisplay_z() : 0.0f)
 
@@ -496,7 +497,7 @@ NSRect cxx_OORectFromString(const std::string& text, GLfloat x, GLfloat y, NSSiz
 
 void OOHUDResetTextEngine(void);
 
-#import "WormholeEntity.h" // WORMHOLE_SCANINFO (a send below)
+#include "WormholeEntity.h" // WORMHOLE_SCANINFO (a send below)
 class OOVisualEffectEntity; // C++
 
 /*	Sends of converted free functions to classes that are still Objective-C, one function per

@@ -26,17 +26,15 @@
 
 #pragma once
 
-#import "HeadUpDisplay.h"
-#import "OOColor.h"
-#import "OOEntityWithDrawable.h"
-#import "OOJSPropID.h"
-#import "OOPlanetEntity.h"
-#import "OOPolygonSprite.h" // OOHUDBeaconIcon: the beacon drawable is oo::Ref
-#import "OOWeakReference.h"
+#include "HeadUpDisplay.h"
+#include "OOColor.h"
+#include "OOEntityWithDrawable.h"
+#include "OOJSPropID.h"
+#include "OOPlanetEntity.h"
+#include "OOPolygonSprite.h" // OOHUDBeaconIcon: the beacon drawable is oo::Ref
 
 #include "oofnd/PList.hpp"
 #include "oofnd/StdLib.hpp"
-#include "oofnd/objc/OOObjCRef.h"
 
 class OOMesh;
 #include "OOScript.h" // oo::Ref<OOScript> members and results

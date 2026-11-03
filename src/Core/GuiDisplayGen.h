@@ -25,17 +25,18 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOFoundation.h"
-#import "OOFunctionAttributes.h"
-#import "OOMaths.h"
-#import "OOTypes.h"
-#import "oofnd/objc/OOObject.h"
+#pragma once
+
+#include "OOFoundation.h"
+#include "OOFunctionAttributes.h"
+#include "OOMaths.h"
+#include "OOTypes.h"
+#include "oofnd/objc/OOObject.h"
 #include <quickjs.h>
 
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
-#include "oofnd/objc/OOObjCRef.h"
 #include <string_view>
 
 #define GUI_DEFAULT_COLUMNS 6

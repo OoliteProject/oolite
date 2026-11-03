@@ -31,7 +31,7 @@ MA 02110-1301, USA.
 #ifndef OOOPENGLMATRIXMANAGER_H
 #define OOOPENGLMATRIXMANAGER_H
 
-#import "OOMaths.h"
+#include "OOMaths.h"
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"

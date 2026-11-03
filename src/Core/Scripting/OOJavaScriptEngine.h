@@ -35,12 +35,11 @@ MA 02110-1301, USA.
 
 #include "oofnd/Ref.hpp"
 #include "oofnd/objc/OOAssert.h"
-#include "oofnd/objc/OOObjCRef.h"
 
 #if !OOJS_POC_HARNESS
-#import "PlayerEntity.h"
-#import "PlayerEntityLegacyScriptEngine.h"
-#import "Universe.h"
+#include "PlayerEntity.h"
+#include "PlayerEntityLegacyScriptEngine.h"
+#include "Universe.h"
 #endif
 
 /*	The plain C++ part of the engine API (bead oo-9ht.72): reporters, converters, argument and
@@ -134,15 +133,9 @@ private:
 #endif
 };
 
-/*	The root-class JS glue for classes rooted on OOObject: the category OOObject (OOJavaScript)
-        (OOObject+OOJavaScript.h) and the bodies of its default methods, which the category
-        forwards to (amendment oo-ppc item 3). OOObjectJSValueInContext() returns an owned value.
+/*	(The root-class JS glue for classes rooted on OOObject, the defaults OOObject+OOJavaScript.h's
+        bridges called, went with those bridges: no game object is an Objective-C object.)
 */
-JSValue OOObjectJSValueInContext(JSContext* context);
-std::optional<std::string> OOObjectJSClassName();
-std::optional<std::string> OOObjectJSDescription(id object);
-std::optional<std::string> OOObjectJSDescriptionWithClassName(id object, const std::optional<std::string>& className);
-void OOObjectClearJSSelf(JSValueConst selfVal);
 
 // A vector box's JS value (OOJSValueFromPList, for an Object node that holds one), owned by the
 // caller.
@@ -213,35 +206,11 @@ BOOL JSEntityIsDemoShipPredicate(Entity* entity, void* parameter);
 
 #endif
 
-/*
-        DEFINE_JS_OBJECT_GETTER()
-        Defines a helper to extract Objective-C objects from the private field of
-        JS objects, with runtime type checking. Weakrefs are automatically
-        unpacked.
-
-        Types which extend other types, such as entity subtypes, must register
-        their relationships with OOJSRegisterSubclass().
-
-        The signature of the generated function is:
-        BOOL <name>(JSContext *context, JSValueConst inObject, <class>** outObject)
-        If it returns NO, inObject is of the wrong class and an error has been
-        raised. Otherwise, outObject is either a native object of the specified
-        class (or a subclass) or nil (for prototypes and stale references).
+/*	DEFINE_JS_OBJECT_GETTER() and OOJSObjectGetterImplPRIVATE(), which read an Objective-C object
+        from a JS object's private slot with an Objective-C class check, are deleted: every slot holds
+        a C++ object, read by OOJSGetCxxPrivate() (OOJSPrivateObject.h).
 */
-#define DEFINE_JS_OBJECT_GETTER(NAME, JSCLASSID, OBJCCLASSNAME)                                                \
-    static BOOL NAME(JSContext* context, JSValueConst inObject, OBJCCLASSNAME** outObject) GCC_ATTR((unused)); \
-    static BOOL NAME(JSContext* context, JSValueConst inObject, OBJCCLASSNAME** outObject)                     \
-    {                                                                                                          \
-        OOCParameterAssert(outObject != NULL);                                                                 \
-        static Class cls = Nil;                                                                                \
-        if (EXPECT_NOT(cls == Nil))                                                                            \
-            cls = [OBJCCLASSNAME class];                                                                       \
-        return OOJSObjectGetterImplPRIVATE(context, inObject, (JSCLASSID), cls, #NAME, (id*)outObject);        \
-    }
 
-// For DEFINE_JS_OBJECT_GETTER()'s use.
-BOOL OOJSObjectGetterImplPRIVATE(JSContext* context, JSValueConst object, JSClassID requiredClassID, Class requiredObjCClass, const char* name, id* outObject);
-
-// The root class's JS glue and the engine's one-line sends to Objective-C objects (they were in
-// the engine's facade file; they go with the root class, Phase 4).
-#import "OOObject+OOJavaScript.h"
+// (The root class's JS glue and the engine's one-line sends to Objective-C objects,
+// OOObject+OOJavaScript.h, went with the Objective-C runtime.)
+#include "OOFoundation.h"

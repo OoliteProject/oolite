@@ -31,8 +31,8 @@ SOFTWARE.
 #ifndef OOALSTREAMEDSOUND_H
 #define OOALSTREAMEDSOUND_H
 
-#import "OOALSound.h"
-#import "OOALSoundDecoder.h"
+#include "OOALSound.h"
+#include "OOALSoundDecoder.h"
 
 #include "oofnd/StdLib.hpp"
 

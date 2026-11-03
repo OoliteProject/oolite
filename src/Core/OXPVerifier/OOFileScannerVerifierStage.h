@@ -29,7 +29,9 @@ SOFTWARE.
 
 */
 
-#import "OOOXPVerifierStage.h"
+#pragma once
+
+#include "OOOXPVerifierStage.h"
 
 #if OO_OXP_VERIFIER_ENABLED
 

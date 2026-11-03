@@ -39,8 +39,8 @@ MA 02110-1301, USA.
 #ifndef OOSCRIPTTIMER_H
 #define OOSCRIPTTIMER_H
 
-#import "OOFoundation.h"
-#import "OOTypes.h"
+#include "OOFoundation.h"
+#include "OOTypes.h"
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"

@@ -29,7 +29,9 @@ MA 02110-1301, USA.
 
 */
 
-#import "PlayerEntity.h"
+#pragma once
+
+#include "PlayerEntity.h"
 
 /*	The proxy's state and methods. Its ship part is ShipEntity's. C++ only since its Objective-C
         facade was deleted: newProxyObject() makes it and its object, which answers the proxy's dials to the shaders by name.

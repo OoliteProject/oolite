@@ -34,8 +34,8 @@ MA 02110-1301, USA.
 
 #pragma once
 
-#import "Entity.h"
-#import "OOJavaScriptEngine.h"
+#include "Entity.h"
+#include "OOJavaScriptEngine.h"
 
 class ShipEntity; // C++
 

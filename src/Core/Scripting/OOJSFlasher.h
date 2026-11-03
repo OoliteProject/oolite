@@ -26,7 +26,7 @@ MA 02110-1301, USA.
 
 #pragma once
 
-#import "OOFoundation.h"
+#include "OOFoundation.h"
 #include <quickjs.h>
 
 void InitOOJSFlasher(JSContext* context, JSValueConst global);

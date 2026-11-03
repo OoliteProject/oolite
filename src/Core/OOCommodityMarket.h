@@ -31,8 +31,8 @@ MA 02110-1301, USA.
 #ifndef OOCOMMODITYMARKET_H
 #define OOCOMMODITYMARKET_H
 
-#import "OOCommodities.h"
-#import "OOTypes.h"
+#include "OOCommodities.h"
+#include "OOTypes.h"
 
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"

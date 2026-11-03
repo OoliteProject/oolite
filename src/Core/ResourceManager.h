@@ -24,15 +24,16 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOFoundation.h"
-#import "OOOpenGL.h"
-#import "oofnd/objc/OOObject.h"
+#pragma once
+
+#include "OOFoundation.h"
+#include "OOOpenGL.h"
+#include "oofnd/objc/OOObject.h"
 
 #include "oofnd/Data.hpp"
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
-#include "oofnd/objc/OOObjCRef.h"
 #include <string_view>
 
 #include "OOScript.h" // oo::Ref<OOScript> members and results (bead oo-9ht.133)

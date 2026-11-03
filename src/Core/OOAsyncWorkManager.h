@@ -30,7 +30,7 @@ SOFTWARE.
 #ifndef OOASYNCWORKMANAGER_H
 #define OOASYNCWORKMANAGER_H
 
-#import "OOFoundation.h"
+#include "OOFoundation.h"
 #include "oofnd/Ref.hpp"
 
 typedef enum {

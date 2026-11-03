@@ -39,7 +39,9 @@ SOFTWARE.
 
 */
 
-#import "OOFoundation.h"
+#pragma once
+
+#include "OOFoundation.h"
 
 #include "oofnd/PList.hpp"
 

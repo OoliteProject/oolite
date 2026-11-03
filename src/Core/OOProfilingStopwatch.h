@@ -32,8 +32,8 @@ SOFTWARE.
 #define INCLUDED_OOPROFILINGSTOPWATCH_h
 
 #ifndef OOSTOPWATCH_STANDALONE
-#ifdef __OBJC__
-#import "OOFoundation.h"
+#if defined(__cplusplus) && !defined(OO_PLAIN_CPP_UNIT) // was __OBJC__: a game unit (an Objective-C++ unit until bead oo-dbz), not a plain C++ one
+#include "OOFoundation.h"
 #else
 /*	A plain C++ translation unit (bead oo-9ht.72: the JS bindings, through
         OOJSEngineNativeWrappers.h) cannot parse OOFoundation.h's Objective-C class declarations. The one platform switch
@@ -46,9 +46,12 @@ SOFTWARE.
 #endif
 #if OOLITE_WINDOWS
 // DWORD and timeGetTime(), below, as OOFoundation.h's <windows.h> gives them (with the Windows
-// BOOL renamed, as there, so Objective-C's stays BOOL).
+// BOOL renamed, as there, so the floor's BOOL stays BOOL; with no Objective-C compiler, __OBJC_BOOL
+// keeps <minwindef.h> from declaring its own, as OOFoundation.h does).
 #define BOOL WinBOOL
+#define __OBJC_BOOL 1
 #include <windows.h>
+#undef __OBJC_BOOL
 #undef BOOL
 #endif
 #endif

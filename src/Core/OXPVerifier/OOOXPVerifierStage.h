@@ -33,7 +33,9 @@ SOFTWARE.
 
 */
 
-#import "OOOXPVerifier.h"
+#pragma once
+
+#include "OOOXPVerifier.h"
 
 #if OO_OXP_VERIFIER_ENABLED
 

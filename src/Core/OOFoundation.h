@@ -87,7 +87,7 @@ MA 02110-1301, USA.
 #undef __OBJC_BOOL
 #undef BOOL
 #endif
-#import "oofnd/objc/OOFoundationTypes.h"
+#include "oofnd/objc/OOFoundationTypes.h"
 #include <assert.h>
 // Foundation.h also brought in <string.h> (memcpy, strcmp, ...); without it only <windows.h>
 // does, so Linux and macOS need it here.
@@ -95,27 +95,11 @@ MA 02110-1301, USA.
 #define OOLITE_GNUSTEP 1
 
 // gnustep-base's macro; the Mac OS X path below defines the same one.
-#ifndef DESTROY
-#define DESTROY(x)    \
-    do {              \
-        id x_ = x;    \
-        x = nil;      \
-        [x_ release]; \
-    } while (0)
-#endif
 #else
 #define OOLITE_MAC_OS_X 1
 
 /*	Useful macro copied from GNUstep.
  */
-#ifndef DESTROY
-#define DESTROY(x)    \
-    do {              \
-        id x_ = x;    \
-        x = nil;      \
-        [x_ release]; \
-    } while (0)
-#endif
 #endif
 
 #ifdef __clang__
@@ -242,14 +226,14 @@ extern "C++" {
 
 #define OOLITE_PROPERTY_SYNTAX (OOLITE_MAC_OS_X || OOLITE_HAVE_CLANG)
 
-#import "OOLogging.h"
+#include "OOLogging.h"
 
-#import "oofnd/objc/OOObject.h"
+#include "oofnd/objc/OOObject.h"
 
 /*	The description family (-cxx_descriptionComponents & co., oo::DescriptionOf), Foundation-free
         (proposed ADR-0055 item 1).
 */
-#import "OODescription.h"
+#include "OODescription.h"
 
 #if OOLITE_MAC_OS_X
 #define OOLITE_RELEASE_PLIST_ERROR_STRINGS 1
@@ -311,9 +295,6 @@ enum OOComparisonResult : NSInteger {
         (Such factory methods should be implemented in terms of [[self alloc]
         init...].)
 */
-#if __OBJC__ && !__has_feature(objc_instancetype)
-typedef id instancetype;
-#endif
 
 // OO_DEBUG is defined at the top of this file, where the enumeration macros can test it.
 

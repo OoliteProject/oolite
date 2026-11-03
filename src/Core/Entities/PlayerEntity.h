@@ -34,15 +34,15 @@ MA 02110-1301, USA.
 
 #pragma once
 
-#import "GuiDisplayGen.h"
-#import "OOCommodityMarket.h"
-#import "OOFoundation.h"
-#import "OOJSPropID.h"
-#import "OOLaserShotEntity.h"
-#import "OOTrumble.h"
-#import "OOTypes.h"
-#import "ShipEntity.h"
-#import "WormholeEntity.h"
+#include "GuiDisplayGen.h"
+#include "OOCommodityMarket.h"
+#include "OOFoundation.h"
+#include "OOJSPropID.h"
+#include "OOLaserShotEntity.h"
+#include "OOTrumble.h"
+#include "OOTypes.h"
+#include "ShipEntity.h"
+#include "WormholeEntity.h"
 
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"
@@ -52,11 +52,11 @@ MA 02110-1301, USA.
 class MyOpenGLView;
 class ShipEntity; // C++
 class GuiDisplayGen;
-#import "HeadUpDisplay.h" // C++: the player keeps its HUD (oo::Ref)
+#include "HeadUpDisplay.h" // C++: the player keeps its HUD (oo::Ref)
 class OOSound; // C++
 class OOSoundSource; // C++
 class OOTexture;
-#import "OOJSGuiScreenKeyDefinition.h" // C++: extraGuiScreenKeys keeps it (oo::Ref)
+#include "OOJSGuiScreenKeyDefinition.h" // C++: extraGuiScreenKeys keeps it (oo::Ref)
 #include "OOScript.h" // oo::Ref<OOScript> members and results
 class StickProfileScreen; // C++ (PlayerEntityStickProfile.h, bead oo-movn)
 

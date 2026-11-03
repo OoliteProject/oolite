@@ -11,21 +11,20 @@
 #
 # The harness has its own minimal engine core and script loader (in this
 # directory), since the full ones depend on the rest of the game. It uses the
-# game's QuickJS-ng (src/meson/meson.build), oofnd and the Objective-C floor
-# (libobjc2, no Foundation library), compiled as the game is.
+# game's QuickJS-ng (src/meson/meson.build) and oofnd, compiled as the game is.
 
 poc_sources = files(
-    '../OOJSClasses.mm',
-    '../OOJSEngineNativeWrappers.mm',
-    '../OOJSQuaternion.mm',
-    '../OOJSVector.mm',
-    'OOJSScript.mm',
-    'OOJavaScriptEnginePoc.mm',
-    'OOLogStub.mm',
-    'main.mm',
-    '../../OOHPVector.mm',
+    '../OOJSClasses.cpp',
+    '../OOJSEngineNativeWrappers.cpp',
+    '../OOJSQuaternion.cpp',
+    '../OOJSVector.cpp',
+    'OOJSScript.cpp',
+    'OOJavaScriptEnginePoc.cpp',
+    'OOLogStub.cpp',
+    'main.cpp',
+    '../../OOHPVector.cpp',
     '../../OOQuaternion.cpp',
-    '../../OOVector.mm',
+    '../../OOVector.cpp',
     '../../legacy_random.c',
 )
 
@@ -42,8 +41,6 @@ poc_bin = executable(
     include_directories: [include_directories('.'), oolite_includes],
     c_args: poc_args,
     cpp_args: poc_args,
-    objc_args: poc_args + oofnd_objc_args,
-    objcpp_args: poc_args + oofnd_objc_args,
     dependencies: [poc_quickjs_dep, oofnd_dep, oofnd_objc_dep],
     override_options: oolite_override_options,
     install: false,

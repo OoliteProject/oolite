@@ -30,7 +30,9 @@ SOFTWARE.
 
 */
 
-#import "OOMaterial.h"
+#pragma once
+
+#include "OOMaterial.h"
 
 #include "oofnd/PList.hpp"
 

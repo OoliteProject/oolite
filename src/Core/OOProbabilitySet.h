@@ -38,7 +38,7 @@ SOFTWARE.
 #ifndef OOPROBABILITYSET_H
 #define OOPROBABILITYSET_H
 
-#import "OOFoundation.h"
+#include "OOFoundation.h"
 
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"

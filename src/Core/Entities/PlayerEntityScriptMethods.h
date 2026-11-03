@@ -25,7 +25,9 @@ MA 02110-1301, USA.
 
 */
 
-#import "PlayerEntity.h"
+#pragma once
+
+#include "PlayerEntity.h"
 
 /*	The category PlayerEntity
         (ScriptMethods) is members of PlayerEntity, declared in PlayerEntity.h and defined in

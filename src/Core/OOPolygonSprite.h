@@ -36,11 +36,11 @@ SOFTWARE.
 #ifndef OOPOLYGONSPRITE_H
 #define OOPOLYGONSPRITE_H
 
-#import "OOFoundation.h"
-#import "OOGraphicsResetManager.h"
-#import "OOOpenGL.h"
-#import "OOOpenGLExtensionManager.h"
-#import "oofnd/objc/OOObject.h"
+#include "OOFoundation.h"
+#include "OOGraphicsResetManager.h"
+#include "OOOpenGL.h"
+#include "OOOpenGLExtensionManager.h"
+#include "oofnd/objc/OOObject.h"
 
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"

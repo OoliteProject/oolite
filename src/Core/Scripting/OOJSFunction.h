@@ -32,10 +32,9 @@ MA 02110-1301, USA.
 #ifndef OOJSFUNCTION_H
 #define OOJSFUNCTION_H
 
-#import "OOFoundation.h"
+#include "OOFoundation.h"
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
-#include "oofnd/objc/OOObjCRef.h"
 #include <quickjs.h>
 
 #include <optional>
@@ -75,10 +74,9 @@ public:
         JSValueConst* argv,
         JSValue* result);
 
-    // Object-wrapper evaluation, converting the result to a boolean.
-    bool evaluatePredicateWithContext(JSContext* context,
-        id jsThis,
-        const std::vector<oo::ObjCRef<id>>& arguments);
+    // (The object-wrapper evaluations, which converted Objective-C arguments and scope -
+    // evaluatePredicateWithContext() and its evaluateWithContext() - had no game caller and went
+    // with OOJSValueFromNativeObject().)
 
 private:
     // The part of -initWithFunction:context: that cannot fail.
@@ -86,12 +84,6 @@ private:
 
     bool isValid() const;
     void deleteJSValue();
-
-    // Semi-raw evaluation shared by convenience methods below. *result is owned on success; exceptions are reported.
-    bool evaluateWithContext(JSContext* context,
-        id jsThis,
-        const std::vector<oo::ObjCRef<id>>& arguments,
-        JSValue* result);
 
     JSValue _function = JS_NULL; // Owned; JS_NULL when invalid.
     std::optional<std::string> _name; // nullopt for an anonymous function (was nil)

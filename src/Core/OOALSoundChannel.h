@@ -39,14 +39,14 @@ SOFTWARE.
 #ifndef OOALSOUNDCHANNEL_H
 #define OOALSOUNDCHANNEL_H
 
-#import "OOFoundation.h"
-#import "OOMaths.h"
-#import "OOOpenALController.h"
-#import "oofnd/objc/OOObject.h"
+#include "OOFoundation.h"
+#include "OOMaths.h"
+#include "OOOpenALController.h"
+#include "oofnd/objc/OOObject.h"
 
 #include "oofnd/Ref.hpp"
 
-#import "OOALSound.h"
+#include "OOALSound.h"
 struct OOSoundChannelTestAccess;
 class OOSoundChannel;
 

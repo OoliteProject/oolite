@@ -22,6 +22,7 @@ MA 02110-1301, USA.
 
 */
 
+#define OO_PLAIN_CPP_UNIT 1 // a plain C++ unit: the shared headers' game-unit parts stay out of it (bead oo-dbz)
 #include "OOMaths.h"
 #include "OOOpenGLCheck.h" // OOGL() (bead oo-9ht.163)
 #include "OOOpenGLExtensionPointers.h" // glUniformMatrix3fvARB, Windows' extension pointer (bead oo-9ht.120)

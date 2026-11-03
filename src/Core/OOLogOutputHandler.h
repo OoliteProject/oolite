@@ -37,7 +37,9 @@ SOFTWARE.
 
 */
 
-#import "OOFoundation.h"
+#pragma once
+
+#include "OOFoundation.h"
 #include <optional>
 #include <string>
 #include <string_view>

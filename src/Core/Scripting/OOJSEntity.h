@@ -23,12 +23,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 MA 02110-1301, USA.
 */
 
-#import "Entity.h"
 #import "EntityOOJavaScriptExtensions.h"
-#import "OOFoundation.h"
+#pragma once
+
+#include "Entity.h"
+#include "OOFoundation.h"
 #include "OOJSEntityHolder.h"
-#import "OOJavaScriptEngine.h"
-#import "Universe.h"
+#include "OOJavaScriptEngine.h"
+#include "Universe.h"
 #include "oofnd/StdLib.hpp"
 
 class Entity;

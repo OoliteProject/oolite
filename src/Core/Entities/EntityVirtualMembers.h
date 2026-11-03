@@ -40,11 +40,11 @@ MA 02110-1301, USA.
 #include <string>
 #include <vector>
 
-#import "OOEntityEnums.h" // OOEntityStatus, OOScanClass
-#import "OOFoundation.h"
-#import "OOMaths.h"
+#include "OOEntityEnums.h" // OOEntityStatus, OOScanClass
+#include "OOFoundation.h"
+#include "OOMaths.h"
 #include "OOTexture.h" // allTextures() answers oo::Ref<OOTexture>
-#import "OOTypes.h"
+#include "OOTypes.h"
 #include "oofnd/Ref.hpp"
 
 class ShipEntity; // C++

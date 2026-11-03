@@ -28,7 +28,7 @@ MA 02110-1301, USA.
 #ifndef OOJSINTERFACEDEFINITION_H
 #define OOJSINTERFACEDEFINITION_H
 
-#import "OOFoundation.h"
+#include "OOFoundation.h"
 #include <quickjs.h>
 
 #include "oofnd/PList.hpp"

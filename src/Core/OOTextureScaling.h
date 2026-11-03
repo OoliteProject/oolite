@@ -29,7 +29,9 @@ SOFTWARE.
 
 */
 
-#import "OOPixMap.h"
+#pragma once
+
+#include "OOPixMap.h"
 
 /*	Assumes 8 bits per sample, interleaved.
         dstPixels must have space for dstWidth * dstHeight pixels (no row padding

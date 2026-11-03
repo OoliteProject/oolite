@@ -3,7 +3,7 @@
 // one static the expander's bridge calls, over the same stub data.
 #ifndef OO_EXPANDER_STUB_RESOURCEMANAGER_H
 #define OO_EXPANDER_STUB_RESOURCEMANAGER_H
-#import "OOFoundation.h"
+#include "OOFoundation.h"
 #include "oofnd/PList.hpp"
 class ResourceManager
 {

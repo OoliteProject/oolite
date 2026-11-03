@@ -73,6 +73,7 @@ oofnd_plist_tests = [
     'test_plist_carrier',
     'test_plist_game_tuples',
     'test_plist_description',
+    'test_plist_hdr_brightness_index',
 ]
 
 foreach t : oofnd_plist_tests
@@ -86,20 +87,20 @@ foreach t : oofnd_plist_tests
     test(t, exe, suite: ['oofnd', 'oofnd-plist'], timeout: 60)
 endforeach
 
-# Objective-C++ tests of the Foundation-free floor (oofnd/objc, proposed ADR-0029). They link
-# libobjc2 and nothing from gnustep-base; tools/check-oofnd-objc.sh proves that on the import
-# table. -fuse-ld=lld comes from the native file (clang.ini): GNU ld cannot link the gnustep-2 ABI.
+# Tests of what is left of the Foundation-free floor (oofnd/objc, proposed ADR-0029). Objective-C++
+# on libobjc2 until bead oo-dbz.5; C++ since, linking neither libobjc2 nor gnustep-base, which
+# tools/check-oofnd-objc.sh proves on the import table.
+# test_objc_exception retired with the Objective-C OOException class (bead oo-4aq6a.1, Jon approved 2026-10-19).
 oofnd_objc_tests = [
-    'test_objc_floor',
-    'test_objc_runtime',
-    'test_objc_exception',
+    # test_objc_floor retired with its only subject, the OOObject root class, OOConstantString and OOObjCInstallFloor() (bead oo-4aq6a.8, std-2026-10-19)
+    # test_objc_runtime retired with its only subject, oofnd/objc/OORuntime.h's libobjc2 class and selector lookups (bead oo-dbz.4, std-2026-10-19)
     'test_objc_assert',
     'test_objc_assert_ndebug', # OOAssert.h under the deployment flavour's NDEBUG
-    'test_objc_ref',
-    'test_objc_call_by_name',
-    'test_objc_description',
-    'test_objc_plist',
-    'test_objc_peer',
+    # test_objc_ref retired with its only subject, oofnd/objc/OOObjCRef.h's reference to an Objective-C object
+    # test_objc_call_by_name retired with its only subject, src/Core/OOCallByName.mm's call on an Objective-C object
+    # test_objc_description retired with OODescription.mm's OOObject (OODescription) (Jon approved 2026-10-19)
+    # test_objc_plist retired with its only subject, src/Core/OOObjCPList.h's Objective-C object node
+    # test_objc_peer retired with its only subject, oofnd/objc/OOObjCPeer.h
 ]
 
 foreach t : oofnd_objc_tests
@@ -110,10 +111,10 @@ foreach t : oofnd_objc_tests
     endif
     exe = executable(
         'oofnd_' + t,
-        t + '.mm',
+        t + '.cpp',
         dependencies: oofnd_objc_dep,
-        objcpp_args: oofnd_objc_args,
-        override_options: oofnd_override_options + ['objcpp_std=c++20'],
+        # (objcpp_args, the floor's -fno-constant-cfstrings, and objcpp_std=c++20 went with libobjc2, bead oo-dbz.5)
+        override_options: oofnd_override_options,
         install: false,
     )
     test(t, exe, suite: 'oofnd', timeout: 60)

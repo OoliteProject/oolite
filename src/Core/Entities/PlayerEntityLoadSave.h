@@ -28,16 +28,18 @@ MA 02110-1301, USA.
 
 */
 
-#import "PlayerEntity.h"
+#pragma once
+
+#include "PlayerEntity.h"
 
 /*	The category PlayerEntity (LoadSave) is members of PlayerEntity, declared in PlayerEntity.h and
         defined in PlayerEntityLoadSave.mm. Its Objective-C interface, for the callers that remained,
         was the category of the same name in PlayerEntity+ObjCBridge.h (deleted), which PlayerEntity.h
         imported. This header stays for the files that import it.
 */
-#import "GuiDisplayGen.h"
-#import "MyOpenGLView.h"
-#import "Universe.h"
+#include "GuiDisplayGen.h"
+#include "MyOpenGLView.h"
+#include "Universe.h"
 
 #define EXITROW 1
 #define LABELROW 2

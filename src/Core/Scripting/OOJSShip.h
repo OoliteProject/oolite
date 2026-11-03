@@ -25,8 +25,7 @@ MA 02110-1301, USA.
 
 #pragma once
 
-#import "OOFoundation.h"
-#import "ShipEntity.h"
+#include "OOFoundation.h"
 #include <quickjs.h>
 
 class ShipEntity; // C++

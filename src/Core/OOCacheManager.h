@@ -29,13 +29,15 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOFoundation.h"
+#pragma once
+
+#include "OOFoundation.h"
 
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
 
-#import "OOAsyncWorkManager.h"
+#include "OOAsyncWorkManager.h"
 
 /*	Foundation sweep (proposed ADR-0043, bead oo-19g0): cache names and keys are UTF-8
         std::strings. The cache directory is std::nullopt where it was nil. Every cached value is

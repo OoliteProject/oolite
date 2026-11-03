@@ -40,10 +40,10 @@ SOFTWARE.
 #ifndef OOTEXTURE_H
 #define OOTEXTURE_H
 
-#import "OOFoundation.h"
+#include "OOFoundation.h"
 
-#import "OOOpenGL.h"
-#import "OOPixMap.h"
+#include "OOOpenGL.h"
+#include "OOPixMap.h"
 
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"

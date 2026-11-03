@@ -36,11 +36,10 @@ SOFTWARE.
 #ifndef OOSHADERMATERIAL_H
 #define OOSHADERMATERIAL_H
 
-#import "OOBasicMaterial.h"
-#import "OOMaths.h"
-#import "OOShaderProgram.h"
+#include "OOBasicMaterial.h"
+#include "OOMaths.h"
+#include "OOShaderProgram.h"
 #include "oofnd/PList.hpp"
-#include "oofnd/objc/OOObjCRef.h"
 
 #include <map>
 #include <optional>
@@ -110,9 +109,11 @@ public:
 
     /*	Bind a uniform to a property of an object.
 
-            SelectorName should specify a method of source which returns the desired
+            property should name a method of source which returns the desired
             value; it will be called every time -apply is, assuming uniformName is
             used in the shader. (If not, OOShaderMaterial will not track the binding.)
+            NULL names none, which binds nothing; it was the method's selector until
+            bead oo-xu228.3.2.
 
             A bound method must not take any parameters, and must return one of the
             following types:
@@ -133,7 +134,7 @@ public:
     */
     bool bindUniform(const std::string& uniformName,
         Entity* target,
-        SEL selector,
+        const char* property,
         OOUniformConvertOptions options);
 
     /*	Bind a uniform to a property of an object.

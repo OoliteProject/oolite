@@ -27,8 +27,7 @@ MA 02110-1301, USA.
 
 #pragma once
 
-#import "OOEquipmentType.h"
-#import "OOFoundation.h"
+#include "OOFoundation.h"
 #include <quickjs.h>
 
 #include "oofnd/StdLib.hpp"

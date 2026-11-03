@@ -29,8 +29,8 @@ SOFTWARE.
 
 #pragma once
 
-#import "OOOpenGLExtensionManager.h"
-#import "OOTexture.h"
+#include "OOOpenGLExtensionManager.h"
+#include "OOTexture.h"
 
 // The subclass interface (the categories SubclassInterface, SubclassResponsibilities and
 // SubclassOptional) is OOTexture's own members since bead oo-9ht.99 deleted the facade.

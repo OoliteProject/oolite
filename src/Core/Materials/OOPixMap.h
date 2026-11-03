@@ -27,7 +27,9 @@ SOFTWARE.
 
 */
 
-#import "OOMaths.h"
+#pragma once
+
+#include "OOMaths.h"
 
 #include "oofnd/StdLib.hpp"
 

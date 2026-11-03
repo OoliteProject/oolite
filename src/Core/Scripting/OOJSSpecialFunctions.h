@@ -30,6 +30,8 @@ MA 02110-1301, USA.
 
 */
 
+#pragma once
+
 #include "OOJSEngineCore.h"
 
 void InitOOJSSpecialFunctions(JSContext* context, JSValueConst global);

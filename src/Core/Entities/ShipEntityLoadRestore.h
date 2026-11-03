@@ -25,11 +25,12 @@ MA 02110-1301, USA.
 
 */
 
-#import "ShipEntity.h"
+#pragma once
+
+#include "ShipEntity.h"
 
 #include "oofnd/PList.hpp"
 #include "oofnd/StdLib.hpp"
-#include "oofnd/objc/OOObjCRef.h"
 
 /*	Foundation sweep (proposed ADR-0043, bead oo-0s1h): a saved ship is an oo::PList (a Dict; null
         for no ship, as nil was), and the save/restore context, which was a mutable dictionary keyed by

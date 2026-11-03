@@ -28,9 +28,9 @@ MA 02110-1301, USA.
 #ifndef COLLISIONREGION_H
 #define COLLISIONREGION_H
 
-#import "OOFoundation.h"
-#import "OOMaths.h"
-#import "oofnd/objc/OOObject.h"
+#include "OOFoundation.h"
+#include "OOMaths.h"
+#include "oofnd/objc/OOObject.h"
 
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"

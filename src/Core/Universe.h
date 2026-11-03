@@ -24,27 +24,28 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOCharacter.h" // C++ since bead oo-9ht.10: the character pool is oo::Ref
-#import "OOColor.h"
-#import "OOCommodities.h"
-#import "OOCommodityMarket.h" // C++ since bead oo-9ht.21: the universe keeps its market (oo::Ref)
-#import "OOEntityWithDrawable.h"
-#import "OOFoundation.h"
-#import "OOJSPropID.h"
-#import "OOMaths.h"
-#import "OOOpenGL.h"
-#import "OOShaderProgram.h"
-#import "OOSound.h"
-#import "OOStellarBody.h"
-#import "OOSystemDescriptionManager.h"
-#import "OOTypes.h"
-#import "UniverseVirtualMembers.h" // the test seams (bead oo-ql9rn)
-#import "legacy_random.h"
+#pragma once
+
+#include "OOCharacter.h" // C++ since bead oo-9ht.10: the character pool is oo::Ref
+#include "OOColor.h"
+#include "OOCommodities.h"
+#include "OOCommodityMarket.h" // C++ since bead oo-9ht.21: the universe keeps its market (oo::Ref)
+#include "OOEntityWithDrawable.h"
+#include "OOFoundation.h"
+#include "OOJSPropID.h"
+#include "OOMaths.h"
+#include "OOOpenGL.h"
+#include "OOShaderProgram.h"
+#include "OOSound.h"
+#include "OOStellarBody.h"
+#include "OOSystemDescriptionManager.h"
+#include "OOTypes.h"
+#include "UniverseVirtualMembers.h" // the test seams (bead oo-ql9rn)
+#include "legacy_random.h"
 
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
-#include "oofnd/objc/OOObjCRef.h"
 
 class OOMaterial;
 
@@ -54,7 +55,9 @@ class OOMaterial;
 #endif
 
 class Entity;
-@class OOException;
+namespace oo {
+class Exception;
+} // handleOoliteException (was @class OOException, bead oo-rskgl.1)
 class GameController;
 class MyOpenGLView;
 class OOVisualEffectEntity; // C++ since bead oo-9ht.165
@@ -67,7 +70,7 @@ class PlayerEntity;
 class WormholeEntity; // C++ since bead oo-9ht.112
 class OOSunEntity; // C++ since bead oo-9ht.111
 class OOPlanetEntity; // C++ since bead oo-9ht.129
-#import "GuiDisplayGen.h" // C++ since bead oo-9ht.143: the universe keeps its GUIs (oo::Ref)
+#include "GuiDisplayGen.h" // C++ since bead oo-9ht.143: the universe keeps its GUIs (oo::Ref)
 class CollisionRegion;
 
 typedef BOOL (*EntityFilterPredicate)(Entity* entity, void* parameter); // the C++ entity since bead oo-9ht.39.23
@@ -152,8 +155,8 @@ inline constexpr std::string_view KEY_STANDARD_EQUIPMENT = "standard_equipment";
 inline constexpr std::string_view KEY_EQUIPMENT_MISSILES = "missiles";
 inline constexpr std::string_view KEY_EQUIPMENT_FORWARD_WEAPON = "forward_weapon_type";
 inline constexpr std::string_view KEY_EQUIPMENT_AFT_WEAPON = "aft_weapon_type";
-#define KEY_EQUIPMENT_PORT_WEAPON @"port_weapon_type"
-#define KEY_EQUIPMENT_STARBOARD_WEAPON @"starboard_weapon_type"
+#define KEY_EQUIPMENT_PORT_WEAPON "port_weapon_type"
+#define KEY_EQUIPMENT_STARBOARD_WEAPON "starboard_weapon_type"
 inline constexpr std::string_view KEY_EQUIPMENT_EXTRAS = "extras";
 inline constexpr std::string_view KEY_WEAPON_FACINGS = "weapon_facings";
 inline constexpr std::string_view KEY_RENOVATION_MULTIPLIER = "renovation_multiplier";
@@ -768,7 +771,7 @@ public:
     void setDetailLevel(OOGraphicsDetail value);
     OOGraphicsDetail getDetailLevel();
     bool useShaders();
-    void handleOoliteException(::OOException* exception);
+    void handleOoliteException(const oo::Exception* exception); // was ::OOException * (bead oo-rskgl.1)
     GLfloat getAirResistanceFactor();
     void setAirResistanceFactor(GLfloat newFactor);
     bool pauseMessageVisible();

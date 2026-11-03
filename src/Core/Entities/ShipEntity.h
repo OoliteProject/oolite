@@ -33,28 +33,27 @@
 
 #pragma once
 
-#import "OOEntityWithDrawable.h"
-#import "OOJSPropID.h"
-#import "OOPlanetEntity.h"
+#include "OOEntityWithDrawable.h"
+#include "OOJSPropID.h"
+#include "OOPlanetEntity.h"
 
-#import "OORoleSet.h"
+#include "OORoleSet.h"
 #include "Octree.h"
 #include "oofnd/PList.hpp"
 #include "oofnd/StdLib.hpp"
 #include "oofnd/WeakSet.hpp"
-#include "oofnd/objc/OOObjCRef.h"
 #include <string_view>
 
 class StationEntity;
 class OOMesh; // C++ since bead oo-9ht.132
 #include "OOScript.h" // oo::Ref<OOScript> members and results
 class WormholeEntity; // C++ since bead oo-9ht.112
-#import "AI.h" // C++: shipAI is oo::Ref
-#import "OOCharacter.h" // C++ since bead oo-9ht.10: the crew is oo::Ref
-#import "OOColor.h" // the colours are oo::Ref members
-#import "OOEquipmentType.h" // C++ since bead oo-9ht.28: OOWeaponType is a C++ pointer
-#import "OOPolygonSprite.h" // OOHUDBeaconIcon: the beacon drawable is oo::Ref
-#import "OOShipGroup.h" // C++ since bead oo-9ht.19: the groups are oo::Ref
+#include "AI.h" // C++: shipAI is oo::Ref
+#include "OOCharacter.h" // C++ since bead oo-9ht.10: the crew is oo::Ref
+#include "OOColor.h" // the colours are oo::Ref members
+#include "OOEquipmentType.h" // C++ since bead oo-9ht.28: OOWeaponType is a C++ pointer
+#include "OOPolygonSprite.h" // OOHUDBeaconIcon: the beacon drawable is oo::Ref
+#include "OOShipGroup.h" // C++ since bead oo-9ht.19: the groups are oo::Ref
 class OOFlasherEntity; // C++ only since bead oo-9ht.107
 class OOExhaustPlumeEntity; // C++ only since bead oo-9ht.110
 
@@ -202,6 +201,7 @@ typedef enum {
 #include "OOEntityEnums.h"
 
 struct OOShipSaveContext; // ShipEntityLoadRestore.h
+struct ShipEntityTestAccess; // the unit tests' reader of the private members (bead oo-9ht.184.1)
 
 /*	The ship's state and members (docs/phases/3-slices/ShipEntity.md).
 
@@ -927,8 +927,6 @@ public:
     void setDemoStartTime(OOTimeAbsolute time);
     OOTimeAbsolute getDemoStartTime();
     virtual void doScriptEvent(OOJSPropID message);
-    void doScriptEvent(OOJSPropID message, id argument);
-    void doScriptEvent(OOJSPropID message, id argument1, id argument2);
     void doScriptEvent(OOJSPropID message, Entity* argument); // the entity's JS value, as its object's
     void doScriptEvent(OOJSPropID message, Entity* argument1, Entity* argument2);
     virtual void doScriptEvent(OOJSPropID message, const std::vector<oo::PList>& arguments);
@@ -938,7 +936,6 @@ public:
     void reactToAIMessage(const std::string& message, const std::optional<std::string>& debugContext);
     void sendAIMessage(const std::string& message);
     void doScriptEvent(OOJSPropID scriptEvent, const std::string& aiMessage);
-    void doScriptEvent(OOJSPropID scriptEvent, id argument, const std::string& aiMessage);
     void doScriptEvent(OOJSPropID scriptEvent, Entity* argument, const std::string& aiMessage);
     virtual OOAlertCondition alertCondition();
     virtual OOAlertCondition realAlertCondition();
@@ -1380,8 +1377,12 @@ public:
     OOTimeAbsolute trackingCurveTimes[4] = { };
     HPVector trackingCurveCoeffs[3] = { };
 
-    // @private in Objective-C: private once ShipEntity is converted (oo-k8a); public while the
-    // facade's unconverted methods read them, since an Objective-C class cannot be a C++ friend
+    // @private in Objective-C, private again in C++ (bead oo-9ht.184, ADR-0056 amendment
+    // oo-9ht.184) in declaration order, so construction and destruction order are unchanged. The
+    // unit tests read the ones they need through ShipEntityTestAccess (bead oo-9ht.184.1).
+    friend struct ::ShipEntityTestAccess;
+
+private:
     oo::WeakRef<Entity> _subEntityTakingDamage; //	frangible => subEntities can be damaged individually
 
     std::optional<std::string> _shipKey; // nullopt: nil
@@ -1389,16 +1390,21 @@ public:
     std::vector<std::string> _equipment; // equipment keys, in order added; empty == none (was nil)
     float _heatInsulation = { };
 
+private:
     oo::WeakRef<Entity> _lastAegisLock; // remember last aegis planet/sun
 
     oo::Ref<::OOShipGroup> _group; // C++ since bead oo-9ht.19
+private:
     oo::Ref<::OOShipGroup> _escortGroup;
     uint8_t _maxEscortCount = { };
     uint8_t _pendingEscortCount = { };
+
+private:
     // Cache of ship-relative positions, managed by -coordinatesForEscortPosition:.
     Vector _escortPositions[MAX_ESCORTS] = { };
     BOOL _escortPositionsValid = { };
 
+private:
     // The ships' C++ parts, held weakly (OOWeakSets of their objects until the root facade went)
     oo::WeakSet<Entity> _defenseTargets = { }; // defense targets
 
@@ -1407,6 +1413,7 @@ public:
 
     GLfloat _profileRadius = { };
 
+private:
     oo::WeakRef<Entity> _shipHitByLaser; // entity hit by the last laser shot
 
     // beacons
@@ -1421,6 +1428,8 @@ public:
     // Demo ship state
     BOOL isDemoShip = { };
     OOScalar demoRate = { };
+
+private:
     OOTimeAbsolute demoStartTime = { };
     Quaternion demoStartOrientation = { };
 };

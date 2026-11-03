@@ -22,7 +22,9 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOFunctionAttributes.h"
+#pragma once
+
+#include "OOFunctionAttributes.h"
 #include <quickjs.h>
 
 /*	Engine-neutral names for a property ID and a value (jsid and jsval with

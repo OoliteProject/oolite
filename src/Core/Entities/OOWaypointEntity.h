@@ -27,12 +27,11 @@ MA 02110-1301, USA.
 
 #pragma once
 
-#import "Entity.h"
-#import "OOPolygonSprite.h" // OOHUDBeaconIcon: the beacon drawable is oo::Ref
+#include "Entity.h"
+#include "OOPolygonSprite.h" // OOHUDBeaconIcon: the beacon drawable is oo::Ref
 
 #include "oofnd/PList.hpp"
 #include "oofnd/StdLib.hpp"
-#include "oofnd/objc/OOObjCRef.h"
 
 /*	Foundation sweep (proposed ADR-0043, bead oo-tmna): +waypointWithDictionary: takes an oo::PList;
         the beacon accessors are shared and keep id; the beacon strings are std::optional (nil stays

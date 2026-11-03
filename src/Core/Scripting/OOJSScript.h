@@ -31,8 +31,8 @@ MA 02110-1301, USA.
 #ifndef OOJSSCRIPT_H
 #define OOJSSCRIPT_H
 
-#import "OOJavaScriptEngine.h"
-#import "OOScript.h"
+#include "OOJavaScriptEngine.h"
+#include "OOScript.h"
 #include "oofnd/Notification.hpp"
 
 // The script property that holds the identifier of the manifest the script was loaded under.

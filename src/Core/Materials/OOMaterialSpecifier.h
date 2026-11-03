@@ -27,11 +27,13 @@ SOFTWARE.
 
 */
 
-#import "OOFoundation.h"
+#pragma once
+
+#include "OOFoundation.h"
 
 #include "oofnd/PList.hpp"
 
-#import "OOColor.h" // the colour readers answer oo::Ref<OOColor>
+#include "OOColor.h" // the colour readers answer oo::Ref<OOColor>
 
 /*	Material configuration properties (Foundation sweep, proposed ADR-0043 Amendment 2, bead
         oo-hiis). A material configuration is an oo::PList dictionary: property-list data plus

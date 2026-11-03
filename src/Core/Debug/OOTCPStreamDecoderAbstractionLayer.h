@@ -83,7 +83,7 @@ OOALStringRef OOALGetConstantString(const char* string); // Should only be used 
 /*	In Objective-C the protocol constants (OODebugTCPConsoleProtocol.h) stay Objective-C string
         literals for OODebugTCPConsoleClient; only the C decoder spells its strings as handles.
 */
-#if !__OBJC__
+#if !(defined(__cplusplus) && !defined(OO_PLAIN_CPP_UNIT)) // was !__OBJC__ (bead oo-dbz)
 #define OOALSTR(string) OOALGetConstantString("" string "")
 #endif
 

@@ -38,9 +38,9 @@ SOFTWARE.
 #ifndef OOREGEXPMATCHER_H
 #define OOREGEXPMATCHER_H
 
-#import "OOFoundation.h"
+#include "OOFoundation.h"
 #include "OOJSEngineCore.h" // OOJSValue, which the matcher holds
-#import "OOJSFunction.h"
+#include "OOJSFunction.h"
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
 

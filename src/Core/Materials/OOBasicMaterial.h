@@ -36,8 +36,8 @@ SOFTWARE.
 #ifndef OOBASICMATERIAL_H
 #define OOBASICMATERIAL_H
 
-#import "OOColor.h"
-#import "OOMaterial.h"
+#include "OOColor.h"
+#include "OOMaterial.h"
 
 #include "oofnd/StdLib.hpp"
 

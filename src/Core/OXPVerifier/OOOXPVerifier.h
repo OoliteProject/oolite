@@ -34,6 +34,8 @@ SOFTWARE.
 
 */
 
+#pragma once
+
 #ifndef OO_OXP_VERIFIER_ENABLED
 #ifdef NDEBUG
 #define OO_OXP_VERIFIER_ENABLED 0
@@ -44,13 +46,12 @@ SOFTWARE.
 
 #if OO_OXP_VERIFIER_ENABLED
 
-#import "OOFoundation.h"
-#import "oofnd/objc/OOObject.h"
+#include "OOFoundation.h"
+#include "oofnd/objc/OOObject.h"
 
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
-#include "oofnd/objc/OOObjCRef.h"
 
 class OOOXPVerifierStage; // OOOXPVerifierStage.h, which imports this header
 

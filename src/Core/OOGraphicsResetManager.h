@@ -39,7 +39,7 @@ SOFTWARE.
 #ifndef OOGRAPHICSRESETMANAGER_H
 #define OOGRAPHICSRESETMANAGER_H
 
-#import "OOFoundation.h"
+#include "OOFoundation.h"
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
 

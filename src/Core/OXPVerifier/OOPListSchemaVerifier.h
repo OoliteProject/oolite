@@ -33,13 +33,15 @@ SOFTWARE.
 
 */
 
-#import "OOOXPVerifier.h"
+#pragma once
+
+#include "OOOXPVerifier.h"
 
 #if OO_OXP_VERIFIER_ENABLED
 
-#import "OOFoundation.h"
-#import "OOFunctionAttributes.h"
-#import "oofnd/objc/OOObject.h"
+#include "OOFoundation.h"
+#include "OOFunctionAttributes.h"
+#include "oofnd/objc/OOObject.h"
 
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"

@@ -27,7 +27,9 @@ SOFTWARE.
 
 */
 
-#import "OOPixMap.h"
+#pragma once
+
+#include "OOPixMap.h"
 
 /*	OOConvertCubeMapToLatLong
 

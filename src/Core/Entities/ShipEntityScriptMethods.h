@@ -25,7 +25,9 @@ MA 02110-1301, USA.
 
 */
 
-#import "ShipEntity.h"
+#pragma once
+
+#include "ShipEntity.h"
 
 /*	Bead oo-42dr (ADR-0056 amendments oo-o89 item 4 and oo-9fwb): the category ShipEntity
         (ScriptMethods) is members of ShipEntity, declared in ShipEntity.h and defined in

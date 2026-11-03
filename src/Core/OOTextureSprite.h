@@ -28,12 +28,11 @@ MA 02110-1301, USA.
 #ifndef OOTEXTURESPRITE_H
 #define OOTEXTURESPRITE_H
 
-#import "OOFoundation.h"
-#import "OOOpenGL.h"
-#import "oofnd/objc/OOObject.h"
+#include "OOFoundation.h"
+#include "OOOpenGL.h"
+#include "oofnd/objc/OOObject.h"
 
 #include "oofnd/Ref.hpp"
-#include "oofnd/objc/OOObjCRef.h"
 
 class OOTexture;
 

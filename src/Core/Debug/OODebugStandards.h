@@ -26,7 +26,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 */
-#import "OOFoundation.h"
+#pragma once
+
+#include "OOFoundation.h"
 
 #ifdef __cplusplus
 #include "oofnd/StdLib.hpp"

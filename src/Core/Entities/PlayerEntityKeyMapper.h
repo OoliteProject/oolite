@@ -24,16 +24,18 @@ MA 02110-1301, USA.
 
 */
 
-#import "PlayerEntity.h"
+#pragma once
+
+#include "PlayerEntity.h"
 
 /*	The category PlayerEntity (KeyMapper) is members of
         PlayerEntity, declared in PlayerEntity.h and defined in PlayerEntityKeyMapper.mm. Its Objective-C interface,
         for the callers that remained, was the category of the same name in PlayerEntity+ObjCBridge.h (deleted),
         which PlayerEntity.h imports. This header stays for the files that import it.
 */
-#import "GuiDisplayGen.h"
-#import "MyOpenGLView.h"
-#import "Universe.h"
+#include "GuiDisplayGen.h"
+#include "MyOpenGLView.h"
+#include "Universe.h"
 
 #include "oofnd/PList.hpp"
 #include "oofnd/StdLib.hpp"

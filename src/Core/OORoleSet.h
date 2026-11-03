@@ -35,7 +35,7 @@ SOFTWARE.
 #ifndef OOROLESET_H
 #define OOROLESET_H
 
-#import "OOFoundation.h"
+#include "OOFoundation.h"
 
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"

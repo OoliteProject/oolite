@@ -31,7 +31,7 @@ SOFTWARE.
 #ifndef OOALBUFFEREDSOUND_H
 #define OOALBUFFEREDSOUND_H
 
-#import "OOALSound.h"
+#include "OOALSound.h"
 
 class OOALSoundDecoder; // only named here (OOALSoundDecoder.h)
 

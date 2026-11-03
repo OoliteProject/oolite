@@ -58,45 +58,10 @@ if get_option('b_lto')
     endif
 endif
 
-if host_os != 'darwin'
-    add_project_arguments(
-        '-DGNUSTEP_BASE_LIBRARY=1',
-        language: c_family,
-    )
-endif
 add_project_arguments(
-    '-fexceptions',
-    '-fobjc-exceptions',
-    language: 'objc',
+    '-DGNUSTEP_BASE_LIBRARY=1',
+    language: c_family,
 )
-add_project_arguments(
-    '-fexceptions',
-    '-fobjc-exceptions',
-    language: 'objcpp',
-)
-
-if host_os == 'darwin'
-    # Apple Foundation and the Apple Objective-C runtime (manual retain/release).
-    add_project_arguments('-fblocks', language: 'objc')
-elif ccid == 'clang'
-    add_project_arguments(
-        '-DGNUSTEP_RUNTIME=1',
-        '-D_NONFRAGILE_ABI=1',
-        '-fobjc-runtime=gnustep-2.2',
-        '-fblocks',
-        language: 'objc',
-    )
-    add_project_arguments(
-        '-DGNUSTEP_RUNTIME=1',
-        '-D_NONFRAGILE_ABI=1',
-        '-fobjc-runtime=gnustep-2.2',
-        '-fblocks',
-        language: 'objcpp',
-    )
-else
-    add_project_arguments(
-        '-DGNU_RUNTIME=1',
-        '-fconstant-string-class=NSConstantString',
-        language: 'objc',
-    )
-endif
+# The Objective-C and Objective-C++ arguments (the libobjc2 runtime ABI, Objective-C exceptions,
+# blocks) went with the languages, bead oo-dbz.5: every game unit is C++, which has exceptions by
+# default.

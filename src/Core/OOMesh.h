@@ -34,10 +34,12 @@ MA 02110-1301, USA.
 
 */
 
-#import "OODrawable.h"
-#import "OOGraphicsResetManager.h"
-#import "OOOpenGL.h"
-#import "OOOpenGLExtensionManager.h"
+#pragma once
+
+#include "OODrawable.h"
+#include "OOGraphicsResetManager.h"
+#include "OOOpenGL.h"
+#include "OOOpenGLExtensionManager.h"
 class Entity; // Entity.h: the shader binding target (bead oo-9ht.39.6)
 
 #include "oofnd/PList.hpp"
@@ -50,7 +52,7 @@ class OOMeshBuffer; // OOMesh.mm: one refcounted buffer (an oo::Data), shared by
 
 #define OOMESH_PROFILE 0
 #if OOMESH_PROFILE
-#import "OOProfilingStopwatch.h"
+#include "OOProfilingStopwatch.h"
 #endif
 
 enum {

@@ -119,7 +119,6 @@ const OOEntityObjectName kOOEntityObjectNames[] = {
     { "normalOrientation", nullptr, kOOEntityObjectSignature, "{Quaternion=ffff}16@0:8" },
     { "oo_clearJSSelf:", nullptr, kOOEntityObjectSignature, "v24@0:8^{ObjectRep=}16" },
     { "oo_jsValueInContext:", nullptr, kOOEntityObjectSignature, "{Value=Q}24@0:8^{ContextRep=}16" },
-    { "oo_objectSize", nullptr, kOOEntityObjectLifetime, "Q16@0:8" },
     { "orientation", nullptr, kOOEntityObjectSignature, "{Quaternion=ffff}16@0:8" },
     { "orientationChanged", nullptr, kOOEntityObjectCalled, "v16@0:8" },
     { "owner", nullptr, kOOEntityObjectCalled, "@16@0:8" },

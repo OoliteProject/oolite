@@ -21,11 +21,10 @@ oofnd_override_options = ['cpp_std=c++20', 'warning_level=2', 'werror=true']
 oofnd_icu_dep = [dependency('icu-uc', required: true), dependency('icu-i18n', required: true)]
 oofnd_dep = declare_dependency(include_directories: oofnd_inc, dependencies: oofnd_icu_dep)
 
-# The Foundation-free Objective-C floor (bead oo-3rb.1, proposed ADR-0029): the OOObject root
-# class and the OOConstantString class behind @"..." literals, on libobjc2 alone. Linked into the game
-# since oo-3rb.2 (src/meson.build), which compiles with oofnd_objc_args since the constant-string
-# flip (oo-3rb.4). Test consumers (tests/unit/oofnd/test_objc_*.mm) compile with them too.
-oofnd_objc_args = ['-fno-constant-cfstrings', '-fconstant-string-class=OOConstantString']
+# What is left of the Objective-C floor (bead oo-3rb.1, proposed ADR-0029): oofnd/objc's C++ support,
+# OORaiseException (Exception.cpp) and OOCAssert's failure path. Its OOObject root class and
+# OOConstantString went with bead oo-4aq6a.8; libobjc2 itself and -fno-constant-cfstrings with bead
+# oo-dbz.5 (no unit is Objective-C). Test consumers: tests/unit/oofnd/test_objc_assert.cpp.
 oofnd_objc_dep = declare_dependency(
     include_directories: oofnd_inc,
     sources: files('objc/OOObject.mm', 'objc/OOConstantString.mm', 'objc/OOException.mm', 'objc/OOAssert.mm'),

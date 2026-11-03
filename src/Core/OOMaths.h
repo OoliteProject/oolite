@@ -37,12 +37,12 @@ MA 02110-1301, USA.
 extern "C" {
 #endif
 
-#ifdef __OBJC__
-#import "OOFoundation.h"
+#if defined(__cplusplus) && !defined(OO_PLAIN_CPP_UNIT) // was __OBJC__: a game unit (an Objective-C++ unit until bead oo-dbz), not a plain C++ one
+#include "OOFoundation.h"
 #endif
 
 #include "OOFunctionAttributes.h"
-#ifdef __OBJC__
+#if defined(__cplusplus) && !defined(OO_PLAIN_CPP_UNIT) // was __OBJC__: a game unit, not a plain C++ one
 #include "OOOpenGL.h"
 #else
 /*	A plain C or C++ translation unit (OOVoxel.c, for one) needs only the GL types. OOOpenGL.h
