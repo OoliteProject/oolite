@@ -87,7 +87,7 @@ jobs:
           fetch-depth: 0
       - name: Install packages
         run: |
-          ShellScripts/Linux/install_packages_root.sh --core+appimage
+          ShellScripts/Linux/install_packages_root.sh --core
           ShellScripts/Linux/install_weasyprint.sh
       - name: Build GNUstep
         run: |
@@ -104,9 +104,6 @@ jobs:
         if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
         run: |
           ./mk.sh test deployment
-      - name: Build AppImage
-        run: |
-          ./mk.sh pkg-appimage deployment
 
   arch:
     runs-on: ubuntu-latest
