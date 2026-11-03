@@ -22,12 +22,6 @@ run_script() {
     cd ../..
     source Documentation/build_documentation_fn.sh
 
-    if ! build_documentation "YES" "NO"; then
-        popd
-        return 1
-    fi
-    cp build/documentation/docs/assets/pdfs/* "$progdir"
-
     if [[ "$host_os" == "darwin" ]]; then
         cp() { gcp "$@"; }  # GNU cp from Homebrew coreutils; BSD cp has no -u
     fi
@@ -102,6 +96,12 @@ run_script() {
     rm -f "$resourcesdir/espeak-ng-data/voices/default"
     cp -rfu Resources/. "$resourcesdir"
     rm -f "$resourcesdir/AIReference.html" "$resourcesdir/*.icns"
+
+    if ! build_documentation "YES" "NO"; then
+        popd
+        return 1
+    fi
+    cp build/documentation/docs/assets/pdfs/* "$progdir"
 
     # Strip binary if requested
     if [[ "$strip_bin" == "yes" ]]; then
