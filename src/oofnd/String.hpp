@@ -17,6 +17,7 @@
                 whitespaceAndNewlineCharacterSet]
             [s oo_hash]                                   oo::str::ooHash(s)
             [s utf16DataWithBOM:b]                        oo::str::utf16Data(s, b)   (an oo::Data)
+            +stringWithContentsOfUnicodeFile: (bytes)     oo::str::decodeUnicodeFile(data)
             +stringWithUTF16String:                       oo::utf16ToUtf8(u16string_view(chars))  (PList.hpp)
             OOTabString(n)                                oo::str::tabString(n)
             [m appendLine:l]                              oo::str::appendLine(m, l)
@@ -31,9 +32,16 @@
             [s intValue] / longLongValue / doubleValue    oo::str::intValue(s) / longLongValue / doubleValue
             [s hasPrefix:p] / hasSuffix:                  oo::str::hasPrefix(s, p) / hasSuffix(s, p)
             [s compare:t] / [s caseInsensitiveCompare:t]  oo::str::compare(s, t) / caseInsensitiveCompare(s, t)  (<0, 0, >0)
+            [s pathComponents] / +pathWithComponents:    oo::str::pathComponents(s) / pathWithComponents(v)
+            [s lastPathComponent]                         oo::str::lastPathComponent(s)
+            [s stringByDeletingLastPathComponent]         oo::str::deletingLastPathComponent(s)
+            [s stringByAppendingPathComponent:c]          oo::str::appendingPathComponent(s, c)  (c: one component)
+            %p in a format string                         %s with oo::str::pointerDescription(p).c_str()
             ComponentsFromVersionString(s)                oo::str::versionComponents(s)
             CompareVersions(a, b)                         oo::str::compareVersions(a, b)  (<0, 0, >0)
             [NSString stringWithFormat:f, ...] (no %@)    oo::str::format(f, ...)
+            [NSString stringWithFormat:f, ...], f read    oo::str::formatRuntime(f, {args...})  (%@, %p,
+                at run time (DESC, a plist template)      positional; FormatArg per argument)
 
         Strings are UTF-8 (WTF-8 for a lone surrogate, as oo::PList holds them). Where GNUstep's
         answer depends on UTF-16 (case tables, character sets, lengths and indices), the function
@@ -56,10 +64,14 @@
 #include "oofnd/PList.hpp" // utf8ToUtf16 / utf16ToUtf8, and PListGet.hpp's GNUstep number readers
 
 #include <algorithm>
+#include <charconv>
+#include <cmath>
 #include <cstdarg>
 #include <cstdint>
 #include <cstdio>
+#include <initializer_list>
 #include <iterator>
+#include <span>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -429,6 +441,99 @@ inline Data utf16Data(std::string_view s, bool includeByteOrderMark)
         u.insert(u.begin(), char16_t(0xFEFF));
     return Data(u.data(), u.size() * sizeof(char16_t));
 }
+
+// --- decoding a text file -------------------------------------------------------------------
+
+namespace detail {
+
+    // One -stringWithCharacters: pass over native-endian units: a leading U+FEFF is dropped, a
+    // leading U+FFFE is dropped and every unit after it byte-swapped.
+    inline void dropUtf16ByteOrderMark(std::u16string& u)
+    {
+        if (u.empty())
+            return;
+        if (u[0] == 0xFEFF) {
+            u.erase(0, 1);
+        } else if (u[0] == 0xFFFE) {
+            u.erase(0, 1);
+            for (char16_t& c : u)
+                c = static_cast<char16_t>((c << 8) | (c >> 8));
+        }
+    }
+
+    // -initWithBytes:length:encoding:NSUTF8StringEncoding: strict UTF-8 (no overlong forms, no
+    // encoded surrogates, nothing above U+10FFFF, no truncated sequence), else nothing.
+    inline bool decodeStrictUtf8(const std::uint8_t* p, std::size_t n, std::u16string& out)
+    {
+        out.clear();
+        out.reserve(n);
+        std::size_t i = 0;
+        const auto cont = [&](std::size_t k) { return i + k < n && (p[i + k] & 0xC0) == 0x80; };
+        while (i < n) {
+            const std::uint8_t b = p[i];
+            if (b < 0x80) {
+                out += static_cast<char16_t>(b);
+                i += 1;
+            } else if (b >= 0xC2 && b <= 0xDF && cont(1)) {
+                out += static_cast<char16_t>(((b & 0x1F) << 6) | (p[i + 1] & 0x3F));
+                i += 2;
+            } else if (b >= 0xE0 && b <= 0xEF && cont(1) && cont(2) && !(b == 0xE0 && p[i + 1] < 0xA0)
+                && !(b == 0xED && p[i + 1] >= 0xA0)) {
+                out += static_cast<char16_t>(((b & 0x0F) << 12) | ((p[i + 1] & 0x3F) << 6) | (p[i + 2] & 0x3F));
+                i += 3;
+            } else if (b >= 0xF0 && b <= 0xF4 && cont(1) && cont(2) && cont(3) && !(b == 0xF0 && p[i + 1] < 0x90)
+                && !(b == 0xF4 && p[i + 1] > 0x8F)) {
+                const std::uint32_t c = ((b & 0x07u) << 18) | ((p[i + 1] & 0x3Fu) << 12) | ((p[i + 2] & 0x3Fu) << 6)
+                    | (p[i + 3] & 0x3Fu);
+                out += static_cast<char16_t>(0xD800 + ((c - 0x10000) >> 10));
+                out += static_cast<char16_t>(0xDC00 + ((c - 0x10000) & 0x3FF));
+                i += 4;
+            } else {
+                return false;
+            }
+        }
+        return true;
+    }
+
+} // namespace detail
+
+// +[NSString stringWithContentsOfUnicodeFile:] (NSStringOOExtensions) once the file's bytes are
+// read: UTF-16 if the length is even and the first two bytes are either byte-order mark (the
+// units after it are read little-endian whichever mark it was, as the category did), else UTF-8
+// after an optional UTF-8 BOM, else ISO Latin-1 of the bytes after that BOM. GNUstep's own
+// decoding is reproduced (probed on gnustep-base 1.31.1, tests/unit/oofnd/test_unicode_file.cpp):
+// the UTF-16 path applies -stringWithCharacters:'s mark handling twice, the UTF-8 path drops up
+// to two more leading U+FEFF. The category passed length + 3 instead of length - 3 after a UTF-8
+// BOM, reading past the buffer (bead oo-3rb.62, proposed ADR-0038); this is the corrected length.
+inline std::string decodeUnicodeFile(const std::uint8_t* bytes, std::size_t length)
+{
+    if (length >= 2 && length % 2 == 0) {
+        const unsigned first = (unsigned(bytes[0]) << 8) | bytes[1];
+        if (first == 0xFFFE || first == 0xFEFF) {
+            std::u16string u(length / 2 - 1, u'\0');
+            for (std::size_t k = 0; k < u.size(); ++k) {
+                u[k] = static_cast<char16_t>(bytes[2 + 2 * k] | (bytes[3 + 2 * k] << 8));
+            }
+            detail::dropUtf16ByteOrderMark(u);
+            detail::dropUtf16ByteOrderMark(u);
+            return utf16ToUtf8(u);
+        }
+    }
+
+    const std::size_t skip = (length >= 3 && bytes[0] == 0xEF && bytes[1] == 0xBB && bytes[2] == 0xBF) ? 3 : 0;
+    std::u16string u;
+    if (detail::decodeStrictUtf8(bytes + skip, length - skip, u)) {
+        for (int pass = 0; pass < 2 && !u.empty() && u[0] == 0xFEFF; ++pass)
+            u.erase(0, 1);
+        return utf16ToUtf8(u);
+    }
+    u.clear();
+    for (std::size_t k = skip; k < length; ++k)
+        u += static_cast<char16_t>(bytes[k]);
+    return utf16ToUtf8(u);
+}
+
+inline std::string decodeUnicodeFile(const Data& data) { return decodeUnicodeFile(data.bytes(), data.length()); }
 
 // --- building -------------------------------------------------------------------------------
 
@@ -897,6 +1002,230 @@ inline std::vector<std::string> tokens(std::string_view s)
     return result;
 }
 
+// --- path components and pointers (the Foundation sweep, proposed ADR-0043) ------------------
+
+// -pathComponents, +pathWithComponents:, -lastPathComponent, -stringByDeletingLastPathComponent
+// and -stringByAppendingPathComponent: as GNUstep 1.31.1 answers them on Windows, where '/' and
+// '\' both separate. A path may start with a ROOT, kept verbatim as its first component:
+//   "\\host\share\" or "//host/share/" (UNC; the share must be followed by a separator),
+//   a drive "X:" (ASCII letter) and at most one separator after it ("C:", "C:/", "C:\"),
+//   "~user/" / "~/" (a tilde word WITH its separator; "~user" alone is an ordinary component),
+//   or else one leading separator ("/", "\"; further leading separators are skipped).
+// After the root, runs of separators split components; a path that ends in a separator after
+// its root gets a final "/" component. Pinned by tests/unit/oofnd/test_string_sweep.cpp, whose
+// rows are GNUstep's own answers for 71 paths and 33 component lists (captured on this
+// toolchain). appendingPathComponent takes ONE component (no separators in it).
+namespace detail {
+
+    enum class PathRoot { none,
+        separator,
+        drive,
+        driveSeparator,
+        tilde,
+        unc };
+
+    struct PathParts {
+        PathRoot rootKind = PathRoot::none;
+        std::size_t rootLength = 0;
+        std::vector<std::pair<std::size_t, std::size_t>> spans; // [begin, end) of each non-root component
+        bool trailingSeparator = false; // after the root, the path ends in one
+    };
+
+    constexpr bool isPathSep(char c) noexcept { return c == '/' || c == '\\'; }
+    constexpr bool isAsciiLetter(char c) noexcept { return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'); }
+
+    inline PathParts splitPath(std::string_view p)
+    {
+        PathParts parts;
+        const std::size_t n = p.size();
+        std::size_t i = 0;
+        if (n >= 2 && isPathSep(p[0]) && isPathSep(p[1])) {
+            // UNC: two separators, host, separator, share, separator.
+            std::size_t h = 2;
+            while (h < n && !isPathSep(p[h]))
+                ++h;
+            if (h > 2 && h < n) {
+                std::size_t s = h + 1;
+                while (s < n && !isPathSep(p[s]))
+                    ++s;
+                if (s > h + 1 && s < n) {
+                    parts.rootKind = PathRoot::unc;
+                    parts.rootLength = s + 1;
+                }
+            }
+        }
+        if (parts.rootKind == PathRoot::none) {
+            if (n >= 1 && isPathSep(p[0])) {
+                parts.rootKind = PathRoot::separator;
+                parts.rootLength = 1;
+            } else if (n >= 2 && p[1] == ':' && isAsciiLetter(p[0])) {
+                const bool sep = n >= 3 && isPathSep(p[2]);
+                parts.rootKind = sep ? PathRoot::driveSeparator : PathRoot::drive;
+                parts.rootLength = sep ? 3 : 2;
+            } else if (n >= 1 && p[0] == '~') {
+                std::size_t t = 1;
+                while (t < n && !isPathSep(p[t]))
+                    ++t;
+                if (t < n) {
+                    parts.rootKind = PathRoot::tilde;
+                    parts.rootLength = t + 1;
+                }
+            }
+        }
+        i = parts.rootLength;
+        const std::size_t restBegin = i;
+        while (i < n) {
+            while (i < n && isPathSep(p[i]))
+                ++i;
+            const std::size_t begin = i;
+            while (i < n && !isPathSep(p[i]))
+                ++i;
+            if (i > begin)
+                parts.spans.emplace_back(begin, i);
+        }
+        parts.trailingSeparator = n > restBegin && isPathSep(p[n - 1]);
+        return parts;
+    }
+
+    // Roots that survive -stringByDeletingLastPathComponent on their own.
+    constexpr bool rootStandsAlone(PathRoot k) noexcept
+    {
+        return k == PathRoot::separator || k == PathRoot::driveSeparator || k == PathRoot::unc;
+    }
+
+} // namespace detail
+
+inline std::vector<std::string> pathComponents(std::string_view path)
+{
+    const detail::PathParts parts = detail::splitPath(path);
+    std::vector<std::string> result;
+    if (parts.rootLength > 0)
+        result.emplace_back(path.substr(0, parts.rootLength));
+    for (const auto& [begin, end] : parts.spans)
+        result.emplace_back(path.substr(begin, end - begin));
+    if (parts.trailingSeparator)
+        result.emplace_back("/");
+    return result;
+}
+
+inline std::string pathWithComponents(const std::vector<std::string>& components)
+{
+    if (components.empty())
+        return std::string();
+    if (components.size() == 1)
+        return components[0].empty() ? std::string("/") : components[0];
+    std::string result;
+    bool separatorNext = false; // whether the next component needs a "/" before it
+    for (std::size_t c = 0; c < components.size(); ++c) {
+        std::string_view s = components[c];
+        if (c == 0) {
+            const detail::PathParts parts = detail::splitPath(s);
+            if (s.find_first_not_of("/\\") == std::string_view::npos) {
+                result = "/"; // "", "/", "\\": the root
+                continue;
+            }
+            if (parts.rootKind == detail::PathRoot::drive || parts.rootKind == detail::PathRoot::driveSeparator) {
+                result = std::string(s.substr(0, 2));
+                if (parts.rootKind == detail::PathRoot::driveSeparator)
+                    result += '/';
+                s = s.substr(parts.rootLength);
+            }
+            while (!s.empty() && detail::isPathSep(s.back()))
+                s.remove_suffix(1);
+            if (!s.empty()) {
+                result += s;
+                separatorNext = true;
+            }
+            continue;
+        }
+        while (!s.empty() && detail::isPathSep(s.front()))
+            s.remove_prefix(1);
+        while (!s.empty() && detail::isPathSep(s.back()))
+            s.remove_suffix(1);
+        if (s.empty())
+            continue;
+        if (separatorNext)
+            result += '/';
+        result += s;
+        separatorNext = true;
+    }
+    return result;
+}
+
+inline std::string lastPathComponent(std::string_view path)
+{
+    const detail::PathParts parts = detail::splitPath(path);
+    if (!parts.spans.empty()) {
+        const auto [begin, end] = parts.spans.back();
+        return std::string(path.substr(begin, end - begin));
+    }
+    if (parts.rootLength > 0) {
+        std::string_view root = path.substr(0, parts.rootLength);
+        if (parts.rootKind == detail::PathRoot::tilde)
+            root.remove_suffix(1); // "~/" -> "~"
+        return std::string(root);
+    }
+    return std::string();
+}
+
+inline std::string deletingLastPathComponent(std::string_view path)
+{
+    const detail::PathParts parts = detail::splitPath(path);
+    const std::string_view root = path.substr(0, parts.rootLength);
+    if (parts.spans.empty()) {
+        return detail::rootStandsAlone(parts.rootKind) ? std::string(root) : std::string();
+    }
+    if (parts.spans.size() == 1)
+        return std::string(root);
+    const std::size_t from = parts.spans.front().first, to = parts.spans[parts.spans.size() - 2].second;
+    return std::string(root) + std::string(path.substr(from, to - from));
+}
+
+inline std::string appendingPathComponent(std::string_view path, std::string_view component)
+{
+    const detail::PathParts parts = detail::splitPath(path);
+    if (path.empty())
+        return std::string(component);
+    if (parts.spans.empty()) {
+        switch (parts.rootKind) {
+        case detail::PathRoot::separator:
+            return "/" + std::string(component);
+        case detail::PathRoot::drive:
+            return std::string(path.substr(0, 2)) + std::string(component);
+        case detail::PathRoot::driveSeparator:
+            return std::string(path.substr(0, 2)) + "/" + std::string(component);
+        case detail::PathRoot::tilde:
+            return std::string(path.substr(0, parts.rootLength - 1)) + "/" + std::string(component);
+        case detail::PathRoot::unc:
+            return std::string(path.substr(0, parts.rootLength)) + std::string(component);
+        case detail::PathRoot::none:
+            break;
+        }
+        return std::string(component);
+    }
+    // The path up to the end of its first component verbatim; later components joined by "/".
+    std::string result(path.substr(0, parts.spans.front().second));
+    for (std::size_t c = 1; c < parts.spans.size(); ++c) {
+        const auto [begin, end] = parts.spans[c];
+        result += '/';
+        result += path.substr(begin, end - begin);
+    }
+    result += '/';
+    result += component;
+    return result;
+}
+
+// "%p" as -[NSString stringWithFormat:] prints it (GNUstep 1.31.1, 64-bit Windows): "(null)" for
+// NULL, otherwise the LOW 32 BITS as %#x ("0x1234"; "0" when they are all zero). Use it as a %s
+// argument where a formatted string had %p: oo::str::format("%s", oo::str::pointerDescription(p).c_str()).
+inline std::string pointerDescription(const void* pointer)
+{
+    if (pointer == nullptr)
+        return "(null)";
+    const auto low = static_cast<unsigned>(reinterpret_cast<std::uintptr_t>(pointer) & 0xFFFFFFFFu);
+    return format("%#x", low);
+}
+
 // --- ordering -------------------------------------------------------------------------------
 
 // -compare: and -caseInsensitiveCompare: as orderings: < 0, 0, > 0 for NSOrderedAscending, Same,
@@ -958,6 +1287,435 @@ inline int compareVersions(const std::vector<unsigned>& a, const std::vector<uns
             return 1;
     }
     return 0;
+}
+
+// --- runtime format strings ------------------------------------------------------------------
+
+// One argument of formatRuntime(). A format string read at run time (a DESC(...) entry, a
+// verifyOXP.plist template) cannot be checked against its arguments at compile time, so each
+// argument carries its kind and every conversion reads it as -stringWithFormat: would have read
+// the Objective-C value the old code passed:
+//   text     an object for %@ (pass its -description: oo::DescriptionOf(obj) in game code) or a
+//            C string for %s;
+//   null     nil for %@ / NULL for %s and %p: "(null)";
+//   signed / unsigned integers, reals (single() for a +numberWithFloat: value, whose %@ text is
+//            %0.7g; a double prints %0.16g), pointer() for %p.
+// A %@ given a number prints the NSNumber's description ("42", "0.1"), so an NSNumber argument
+// may be passed as the number itself.
+class FormatArg {
+public:
+    enum class Kind { Null,
+        Text,
+        Signed,
+        Unsigned,
+        Real,
+        Pointer };
+
+    FormatArg() noexcept = default;
+    FormatArg(std::string_view text)
+        : kind_(Kind::Text)
+        , text_(text)
+    {
+    }
+    FormatArg(const std::string& text)
+        : kind_(Kind::Text)
+        , text_(text)
+    {
+    }
+    FormatArg(const char* text)
+        : kind_(text != nullptr ? Kind::Text : Kind::Null)
+        , text_(text != nullptr ? text : "")
+    {
+    }
+    FormatArg(int v) noexcept
+        : kind_(Kind::Signed)
+        , signed_(v)
+    {
+    }
+    FormatArg(long v) noexcept
+        : kind_(Kind::Signed)
+        , signed_(v)
+    {
+    }
+    FormatArg(long long v) noexcept
+        : kind_(Kind::Signed)
+        , signed_(v)
+    {
+    }
+    FormatArg(unsigned v) noexcept
+        : kind_(Kind::Unsigned)
+        , unsigned_(v)
+    {
+    }
+    FormatArg(unsigned long v) noexcept
+        : kind_(Kind::Unsigned)
+        , unsigned_(v)
+    {
+    }
+    FormatArg(unsigned long long v) noexcept
+        : kind_(Kind::Unsigned)
+        , unsigned_(v)
+    {
+    }
+    FormatArg(double v) noexcept
+        : kind_(Kind::Real)
+        , real_(v)
+    {
+    }
+
+    static FormatArg null() noexcept { return FormatArg(); }
+    static FormatArg single(float v) noexcept
+    {
+        FormatArg a(static_cast<double>(v));
+        a.single_ = true;
+        return a;
+    }
+    static FormatArg pointer(const void* p) noexcept
+    {
+        FormatArg a;
+        if (p != nullptr) {
+            a.kind_ = Kind::Pointer;
+            a.unsigned_ = reinterpret_cast<std::uintptr_t>(p);
+        }
+        return a;
+    }
+
+    Kind kind() const noexcept { return kind_; }
+    const std::string& text() const noexcept { return text_; }
+    bool isSingle() const noexcept { return single_; }
+
+    long long asSigned() const noexcept
+    {
+        switch (kind_) {
+        case Kind::Signed:
+            return signed_;
+        case Kind::Unsigned:
+        case Kind::Pointer:
+            return static_cast<long long>(unsigned_);
+        case Kind::Real:
+            return static_cast<long long>(real_);
+        default:
+            return 0;
+        }
+    }
+    unsigned long long asUnsigned() const noexcept
+    {
+        return kind_ == Kind::Unsigned || kind_ == Kind::Pointer ? unsigned_ : static_cast<unsigned long long>(asSigned());
+    }
+    double asReal() const noexcept
+    {
+        switch (kind_) {
+        case Kind::Real:
+            return real_;
+        case Kind::Signed:
+            return static_cast<double>(signed_);
+        case Kind::Unsigned:
+            return static_cast<double>(unsigned_);
+        default:
+            return 0.0;
+        }
+    }
+
+private:
+    Kind kind_ = Kind::Null;
+    bool single_ = false;
+    std::string text_;
+    long long signed_ = 0;
+    unsigned long long unsigned_ = 0;
+    double real_ = 0.0;
+};
+
+namespace detail {
+
+    // Pads or truncates `text` to a width / precision counted in UTF-16 units, as GNUstep does for %@.
+    inline std::string padUnits(const std::string& text, int width, int precision, bool left, bool countUnits)
+    {
+        std::string body = text;
+        std::size_t length = countUnits ? utf8ToUtf16(body).size() : body.size();
+        if (precision >= 0 && length > static_cast<std::size_t>(precision)) {
+            if (countUnits) {
+                std::u16string units = utf8ToUtf16(body);
+                units.resize(static_cast<std::size_t>(precision));
+                body = utf16ToUtf8(units);
+            } else
+                body.resize(static_cast<std::size_t>(precision));
+            length = static_cast<std::size_t>(precision);
+        }
+        if (width > 0 && length < static_cast<std::size_t>(width)) {
+            const std::string pad(static_cast<std::size_t>(width) - length, ' ');
+            body = left ? body + pad : pad + body;
+        }
+        return body;
+    }
+
+    // The text %@ prints for an argument: an object's description, or an NSNumber's.
+    inline std::string objectText(const FormatArg& a)
+    {
+        switch (a.kind()) {
+        case FormatArg::Kind::Text:
+            return a.text();
+        case FormatArg::Kind::Signed:
+            return format("%lld", a.asSigned());
+        case FormatArg::Kind::Unsigned:
+            return format("%llu", a.asUnsigned());
+        case FormatArg::Kind::Real:
+            return a.isSingle() ? format("%0.7g", a.asReal()) : format("%0.16g", a.asReal());
+        case FormatArg::Kind::Pointer:
+            return pointerDescription(reinterpret_cast<const void*>(static_cast<std::uintptr_t>(a.asUnsigned())));
+        default:
+            return "(null)";
+        }
+    }
+
+    // The printf flags and field of one conversion, applied without a runtime printf format string.
+    struct FormatSpec {
+        bool left = false, plus = false, space = false, alternate = false, zero = false;
+        int width = -1, precision = -1;
+    };
+
+    inline std::string padNumber(std::string_view sign, std::string_view prefix, std::string digits, const FormatSpec& f, bool zeroPadAllowed)
+    {
+        const std::size_t length = sign.size() + prefix.size() + digits.size();
+        const std::size_t width = f.width > 0 ? static_cast<std::size_t>(f.width) : 0;
+        if (length >= width)
+            return std::string(sign) + std::string(prefix) + digits;
+        const std::string pad(width - length, f.zero && zeroPadAllowed && !f.left ? '0' : ' ');
+        if (f.left)
+            return std::string(sign) + std::string(prefix) + digits + pad;
+        if (pad[0] == '0')
+            return std::string(sign) + std::string(prefix) + pad + digits;
+        return pad + std::string(sign) + std::string(prefix) + digits;
+    }
+
+    inline std::string formatInteger(unsigned long long magnitude, bool negative, bool isSigned, char conversion, const FormatSpec& f)
+    {
+        const int base = conversion == 'o' ? 8 : ((conversion == 'x' || conversion == 'X') ? 16 : 10);
+        char buffer[32];
+        const auto result = std::to_chars(buffer, buffer + sizeof buffer, magnitude, base);
+        std::string digits(buffer, result.ptr);
+        if (conversion == 'X')
+            std::transform(digits.begin(), digits.end(), digits.begin(), [](char c) { return c >= 'a' && c <= 'f' ? static_cast<char>(c - 'a' + 'A') : c; });
+        if (f.precision == 0 && magnitude == 0)
+            digits.clear();
+        if (f.precision > 0 && digits.size() < static_cast<std::size_t>(f.precision))
+            digits.insert(0, static_cast<std::size_t>(f.precision) - digits.size(), '0');
+        std::string_view prefix;
+        if (f.alternate && magnitude != 0 && conversion == 'x')
+            prefix = "0x";
+        if (f.alternate && magnitude != 0 && conversion == 'X')
+            prefix = "0X";
+        if (f.alternate && conversion == 'o' && (digits.empty() || digits[0] != '0'))
+            digits.insert(0, 1, '0');
+        std::string_view sign;
+        if (isSigned)
+            sign = negative ? "-" : (f.plus ? "+" : (f.space ? " " : ""));
+        return padNumber(sign, prefix, digits, f, f.precision < 0);
+    }
+
+    inline std::string formatReal(double value, char conversion, const FormatSpec& f)
+    {
+        const bool negative = std::signbit(value);
+        const double magnitude = std::fabs(value);
+        const bool upper = conversion == 'F' || conversion == 'E' || conversion == 'G';
+        std::string digits;
+        if (std::isnan(value))
+            digits = "nan";
+        else if (std::isinf(value))
+            digits = "inf";
+        else {
+            const int precision = f.precision < 0 ? 6 : f.precision;
+            const char lower = static_cast<char>(upper ? conversion - 'A' + 'a' : conversion);
+            const std::chars_format format = lower == 'f' ? std::chars_format::fixed : (lower == 'e' ? std::chars_format::scientific : std::chars_format::general);
+            char buffer[400];
+            const auto result = std::to_chars(buffer, buffer + sizeof buffer, magnitude, format, lower == 'g' && precision == 0 ? 1 : precision);
+            digits.assign(buffer, result.ptr);
+            if (f.alternate && lower != 'g' && digits.find('.') == std::string::npos) {
+                const std::size_t e = digits.find('e');
+                digits.insert(e == std::string::npos ? digits.size() : e, 1, '.');
+            }
+        }
+        if (upper)
+            std::transform(digits.begin(), digits.end(), digits.begin(), [](char c) { return c >= 'a' && c <= 'z' ? static_cast<char>(c - 'a' + 'A') : c; });
+        const std::string_view sign = negative ? "-" : (f.plus ? "+" : (f.space ? " " : ""));
+        return padNumber(sign, "", digits, f, std::isfinite(value));
+    }
+
+} // namespace detail
+
+// [NSString stringWithFormat:fmt, args...] for a format string known only at run time (GNUstep
+// 1.31.1's GSFormat, captured: tests/unit/oofnd/test_string_format_runtime.cpp). Conversions:
+// %@ (width and precision in UTF-16 units), %s, %p (pointerDescription, with width), %d %i %u %x
+// %X %o %c with the length modifiers hh h l ll q z j t (h and hh truncate as C does), %f %F %e %E
+// %g %G (no %a: no runtime string uses it; it is copied like an unknown conversion), %%, flags "-+ #0", widths and precisions including '*', and positional arguments
+// ("%2$@", "%1$5d"). A conversion GNUstep does not know ("%k") and a lone '%' at the end are
+// copied as they are, as GNUstep copies them; %n writes nothing. Where GNUstep reads memory that
+// is not there (too few arguments, a string for %d), oofnd prints what a nil / zero argument
+// prints ("(null)", "0") instead (ADR-0043 Amendment 3).
+inline std::string formatRuntime(std::string_view fmt, std::span<const FormatArg> args)
+{
+    std::string out;
+    std::size_t next = 0; // the next sequential argument
+    const FormatArg missing;
+    auto argAt = [&](std::size_t index) -> const FormatArg& { return index < args.size() ? args[index] : missing; };
+
+    std::size_t i = 0;
+    while (i < fmt.size()) {
+        const char ch = fmt[i];
+        if (ch != '%') {
+            out += ch;
+            ++i;
+            continue;
+        }
+        const std::size_t start = i++;
+        if (i >= fmt.size()) {
+            out += '%';
+            break;
+        }
+        if (fmt[i] == '%') {
+            out += '%';
+            ++i;
+            continue;
+        }
+
+        // %[n$][flags][width][.precision][length]conversion
+        auto readNumber = [&](std::size_t& p) -> int {
+            int n = 0;
+            while (p < fmt.size() && fmt[p] >= '0' && fmt[p] <= '9')
+                n = n * 10 + (fmt[p++] - '0');
+            return n;
+        };
+        std::size_t p = i;
+        std::size_t position = 0; // 1-based, 0 = sequential
+        {
+            std::size_t q = p;
+            const int n = readNumber(q);
+            if (q > p && q < fmt.size() && fmt[q] == '$' && n > 0) {
+                position = static_cast<std::size_t>(n);
+                p = q + 1;
+            }
+        }
+        std::string flags;
+        while (p < fmt.size() && std::string_view("-+ #0").find(fmt[p]) != std::string_view::npos)
+            flags += fmt[p++];
+        int width = -1, precision = -1;
+        bool left = flags.find('-') != std::string::npos;
+        if (p < fmt.size() && fmt[p] == '*') {
+            ++p;
+            std::size_t q = p;
+            const int n = readNumber(q);
+            const std::size_t index = (q > p && q < fmt.size() && fmt[q] == '$') ? (p = q + 1, static_cast<std::size_t>(n - 1)) : next++;
+            width = static_cast<int>(argAt(index).asSigned());
+            if (width < 0) {
+                left = true;
+                width = -width;
+            }
+        } else if (p < fmt.size() && fmt[p] >= '0' && fmt[p] <= '9')
+            width = readNumber(p);
+        if (p < fmt.size() && fmt[p] == '.') {
+            ++p;
+            if (p < fmt.size() && fmt[p] == '*') {
+                ++p;
+                std::size_t q = p;
+                const int n = readNumber(q);
+                const std::size_t index = (q > p && q < fmt.size() && fmt[q] == '$') ? (p = q + 1, static_cast<std::size_t>(n - 1)) : next++;
+                precision = static_cast<int>(argAt(index).asSigned());
+                if (precision < 0)
+                    precision = -1;
+            } else
+                precision = readNumber(p);
+        }
+        std::string length;
+        while (p < fmt.size() && std::string_view("hlqLzjt").find(fmt[p]) != std::string_view::npos)
+            length += fmt[p++];
+        if (p >= fmt.size()) {
+            out.append(fmt.substr(start));
+            break;
+        }
+        const char conversion = fmt[p++];
+        i = p;
+
+        auto take = [&]() -> const FormatArg& { return position != 0 ? argAt(position - 1) : argAt(next++); };
+        detail::FormatSpec spec;
+        spec.left = left;
+        spec.plus = flags.find('+') != std::string::npos;
+        spec.space = flags.find(' ') != std::string::npos;
+        spec.alternate = flags.find('#') != std::string::npos;
+        spec.zero = flags.find('0') != std::string::npos;
+        spec.width = width;
+        spec.precision = precision;
+
+        switch (conversion) {
+        case '@':
+            out += detail::padUnits(detail::objectText(take()), width, precision, left, true);
+            break;
+        case 's': {
+            const FormatArg& a = take();
+            out += detail::padUnits(a.kind() == FormatArg::Kind::Text ? a.text() : std::string("(null)"), width, precision, left, false);
+            break;
+        }
+        case 'p': {
+            const FormatArg& a = take();
+            const void* ptr = reinterpret_cast<const void*>(static_cast<std::uintptr_t>(a.kind() == FormatArg::Kind::Null ? 0u : a.asUnsigned()));
+            out += detail::padUnits(pointerDescription(ptr), width, -1, left, false);
+            break;
+        }
+        case 'd':
+        case 'i': {
+            long long v = take().asSigned();
+            if (length == "hh")
+                v = static_cast<signed char>(v);
+            else if (length == "h")
+                v = static_cast<short>(v);
+            else if (length.empty())
+                v = static_cast<int>(v);
+            const unsigned long long magnitude = v < 0 ? 0ull - static_cast<unsigned long long>(v) : static_cast<unsigned long long>(v);
+            out += detail::formatInteger(magnitude, v < 0, true, 'd', spec);
+            break;
+        }
+        case 'u':
+        case 'x':
+        case 'X':
+        case 'o': {
+            unsigned long long v = take().asUnsigned();
+            if (length == "hh")
+                v = static_cast<unsigned char>(v);
+            else if (length == "h")
+                v = static_cast<unsigned short>(v);
+            else if (length.empty())
+                v = static_cast<unsigned>(v);
+            out += detail::formatInteger(v, false, false, conversion, spec);
+            break;
+        }
+        case 'c':
+            out += detail::padUnits(std::string(1, static_cast<char>(take().asSigned())), width, -1, left, false);
+            break;
+        case 'f':
+        case 'F':
+        case 'e':
+        case 'E':
+        case 'g':
+        case 'G':
+            out += detail::formatReal(take().asReal(), conversion, spec);
+            break;
+        case 'n':
+            (void)take();
+            break;
+        default:
+            out.append(fmt.substr(start, i - start)); // unknown: copied, as GNUstep does
+            break;
+        }
+    }
+    return out;
+}
+
+inline std::string formatRuntime(std::string_view fmt, std::initializer_list<FormatArg> args)
+{
+    return formatRuntime(fmt, std::span<const FormatArg>(args.begin(), args.size()));
+}
+
+inline std::string formatRuntime(std::string_view fmt)
+{
+    return formatRuntime(fmt, std::span<const FormatArg>());
 }
 
 } // namespace oo::str

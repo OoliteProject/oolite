@@ -25,20 +25,22 @@ MA 02110-1301, USA.
 
 #import "OOMouseInteractionMode.h"
 
-NSString* OOStringFromMouseInteractionMode(OOMouseInteractionMode mode)
+#include "oofnd/String.hpp"
+
+std::string OOStringFromMouseInteractionMode(OOMouseInteractionMode mode)
 {
     switch (mode) {
     case MOUSE_MODE_UI_SCREEN_NO_INTERACTION:
-        return @"UI_SCREEN_NO_INTERACTION";
+        return "UI_SCREEN_NO_INTERACTION";
     case MOUSE_MODE_UI_SCREEN_WITH_INTERACTION:
-        return @"UI_SCREEN_WITH_INTERACTION";
+        return "UI_SCREEN_WITH_INTERACTION";
     case MOUSE_MODE_FLIGHT_NO_MOUSE_CONTROL:
-        return @"FLIGHT_NO_MOUSE_CONTROL";
+        return "FLIGHT_NO_MOUSE_CONTROL";
     case MOUSE_MODE_FLIGHT_WITH_MOUSE_CONTROL:
-        return @"FLIGHT_WITH_MOUSE_CONTROL";
+        return "FLIGHT_WITH_MOUSE_CONTROL";
     }
 
-    return [NSString stringWithFormat:@"<unknown mode %u>", mode];
+    return oo::str::format("<unknown mode %u>", mode);
 }
 
 BOOL OOMouseInteractionModeIsUIScreen(OOMouseInteractionMode mode)

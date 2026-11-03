@@ -25,6 +25,7 @@ MA 02110-1301, USA.
 
 #import "OOECMBlastEntity.h"
 #import "OOEntityFilterPredicate.h"
+#import "OOFoundationBridge.h"
 #import "OOJavaScriptEngine.h"
 #import "ShipEntity.h"
 #import "Universe.h"
@@ -72,16 +73,16 @@ MA 02110-1301, USA.
         radius *= SCANNER_MAX_RANGE;
         _blastsRemaining--;
 
-        NSArray* targets = [UNIVERSE findEntitiesMatchingPredicate:IsShipPredicate
-                                                         parameter:NULL
-                                                           inRange:radius
-                                                          ofEntity:self];
-        NSUInteger i, count = [targets count];
+        const std::vector<oo::ObjCRef<ShipEntity*>> targets = oo::ObjCRefsFrom<ShipEntity*>([UNIVERSE findEntitiesMatchingPredicate:IsShipPredicate
+                                                                                                                          parameter:NULL
+                                                                                                                            inRange:radius
+                                                                                                                           ofEntity:self]);
+        NSUInteger i, count = targets.size();
         if (count > 0) {
             JSContext* context = OOJSAcquireContext();
 
             for (i = 0; i < count; i++) {
-                ShipEntity* target = [targets objectAtIndex:i];
+                ShipEntity* target = targets[i].get();
                 // ShipScriptEvent() frees its arguments, so they are created for each target.
                 OOJSVal ecmPulsesRemaining = OOJSValueFromDouble(context, _blastsRemaining);
                 OOJSVal whomVal = OOJSValueFromNativeObject(context, ship);

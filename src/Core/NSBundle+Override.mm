@@ -7,9 +7,11 @@
  */
 
 #import "NSBundle+Override.h"
-#import <Foundation/NSDictionary.h>
-#import <Foundation/NSFileManager.h>
-#import <Foundation/NSPathUtilities.h>
+#import "OOFoundationBridge.h"
+
+#include "oofnd/FileSystem.hpp"
+#include "oofnd/PListParsing.hpp"
+#include "oofnd/ResourcePaths.hpp"
 
 #ifdef __clang__
 #pragma clang diagnostic push
@@ -17,40 +19,30 @@
 #endif
 @implementation NSBundle (Override)
 
-- (NSDictionary*)infoDictionary
-{
-    NSFileManager* fileManager = [NSFileManager defaultManager];
-    NSString* startingDir = [fileManager currentDirectoryPath]; // Start from cwd
+- (id)infoDictionary
+{ // shared selector (proposed ADR-0043)
+    // <cwd>/Resources, else <cwd>/../share/oolite/Resources (Standard Linux system layout): the
+    // same resolution oo::ResourcePaths makes for the built-in resources (and oo::Defaults for
+    // this very file).
+    const oo::fs::Path plistPath = oo::ResourcePaths::current().builtInResourcesDirectory() / "Info-gnustep.plist";
 
-    NSString* primaryResourcesPath = [startingDir stringByAppendingPathComponent:@"Resources"];
-    BOOL isDir = NO;
-
-    NSString* resourcesFolder = nil;
-    if ([fileManager fileExistsAtPath:primaryResourcesPath isDirectory:&isDir] && isDir) {
-        resourcesFolder = primaryResourcesPath;
-    } else {
-        // Fallback: Look in startingDir / ../share/oolite/Resources (Standard Linux system layout)
-        NSString* fallbackPath = [[startingDir stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"share/oolite/Resources"];
-        resourcesFolder = [fallbackPath stringByStandardizingPath];
+    // Load the target configuration file: any plist format; missing, unreadable or not a
+    // dictionary is no dictionary, as -dictionaryWithContentsOfFile: returned nil for them.
+    oo::PList gnustepPlist;
+    if (const oo::fs::Result<oo::Data> bytes = oo::fs::readFile(plistPath); bytes && !bytes->empty()) {
+        oo::Expected<oo::PList, oo::PListError> parsed = oo::parsePropertyList(bytes->stringView());
+        if (parsed && parsed->isDict())
+            gnustepPlist = std::move(*parsed);
     }
 
-    // Append the target file name to the resolved path root
-    NSString* plistPath = [resourcesFolder stringByAppendingPathComponent:@"Info-gnustep.plist"];
-
-    // Load the target configuration file
-    NSDictionary* gnustepPlist = [NSDictionary dictionaryWithContentsOfFile:plistPath];
-    NSMutableDictionary* workingDict = nil;
-
-    if (gnustepPlist) {
-        workingDict = [gnustepPlist mutableCopy];
-    } else {
+    if (gnustepPlist.isNull()) {
         // Fallback block prevents runtime crashes if files are missing during dev/build refactors
-        workingDict = [[NSMutableDictionary alloc] init];
-        NSLog(@"[Oolite-Core] Warning: Failed to find info-gnustep.plist at calculated path: %@", plistPath);
+        gnustepPlist = oo::PList(oo::PList::Dict { });
+        NSLog(@"[Oolite-Core] Warning: Failed to find info-gnustep.plist at calculated path: %@", oo::NSStringFrom(oo::fs::utf8String(plistPath)));
     }
 
-    // Return the dictionary cleanly managed for memory
-    return [workingDict autorelease];
+    // A mutable copy, as before, returned autoreleased.
+    return [[oo::ObjectFromPList(gnustepPlist) mutableCopy] autorelease];
 }
 
 @end

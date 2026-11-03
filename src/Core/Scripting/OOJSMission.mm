@@ -37,6 +37,9 @@ MA 02110-1301, USA.
 #import "OOStringExpander.h"
 #import "PlayerEntityScriptMethods.h"
 
+#import "OOFoundationBridge.h"
+
+
 static JSValue MissionGetProperty(OOJS_GETTER_ARGS);
 static JSValue MissionSetProperty(OOJS_SETTER_ARGS);
 
@@ -229,7 +232,7 @@ static JSValue MissionGetProperty(OOJS_GETTER_ARGS)
     case kMission_markedSystems:
         result = [player getMissionDestinations];
         if (result == nil)
-            result = [NSDictionary dictionary];
+            result = oo::ObjectFromPList(oo::PList(oo::PList::Dict { })); // an empty dictionary
         result = [result allValues];
         break;
 
@@ -314,10 +317,10 @@ static JSValue MissionMarkSystem(OOJS_NATIVE_ARGS)
             }
         } else // must be object, from above
         {
-            NSDictionary* marker = OOJSNativeObjectFromJSObject(context, OOJS_ARGV[i]);
-            OOSystemID system = oo::PListView(marker).get<int>(@"system", -1);
+            oo::PList marker = oo::PListFrom(OOJSNativeObjectFromJSObject(context, OOJS_ARGV[i]));
+            OOSystemID system = marker.get<int>("system", -1);
             if (system >= 0) {
-                [player addMissionDestinationMarker:marker];
+                [player addMissionDestinationMarker:oo::ObjectFromPList(marker)];
             }
         }
     }
@@ -356,10 +359,10 @@ static JSValue MissionUnmarkSystem(OOJS_NATIVE_ARGS)
             }
         } else // must be object, from above
         {
-            NSDictionary* marker = OOJSNativeObjectFromJSObject(context, OOJS_ARGV[i]);
-            OOSystemID system = oo::PListView(marker).get<int>(@"system", -1);
+            oo::PList marker = oo::PListFrom(OOJSNativeObjectFromJSObject(context, OOJS_ARGV[i]));
+            OOSystemID system = marker.get<int>("system", -1);
             if (system >= 0) {
-                if (![player removeMissionDestinationMarker:marker]) {
+                if (![player removeMissionDestinationMarker:oo::ObjectFromPList(marker)]) {
                     result = NO;
                 }
             }
@@ -377,7 +380,7 @@ static JSValue MissionAddMessageText(OOJS_NATIVE_ARGS)
     OOJS_NATIVE_ENTER(context)
 
     PlayerEntity* player = OOPlayerForScripting();
-    NSString* text = nil;
+    std::optional<std::string> text;
 
     if (EXPECT_NOT(argc == 0)) {
         OOJS_RETURN_VOID;
@@ -385,8 +388,8 @@ static JSValue MissionAddMessageText(OOJS_NATIVE_ARGS)
 
     // Found "FIXME: warning if no mission screen running.",,,
     // However: used routinely by the Constrictor mission in F7, without mission screens.
-    text = OOStringFromJSValue(context, OOJS_ARGV[0]);
-    [player addLiteralMissionText:text];
+    text = oo::OptionalString(OOStringFromJSValue(context, OOJS_ARGV[0]));
+    [player addLiteralMissionText:oo::NSStringOrNil(text)];
 
     OOJS_RETURN_VOID;
 
@@ -410,9 +413,9 @@ static JSValue MissionSetInstructionsInternal(JSContext* context, int argc, JSVa
     OOJS_NATIVE_ENTER(context)
 
     PlayerEntity* player = OOPlayerForScripting();
-    NSString* text = nil;
-    NSArray* texts = nil;
-    NSString* missionKey = nil;
+    std::optional<std::string> text;
+    oo::PList texts;
+    std::optional<std::string> missionKey;
 
     if (EXPECT_NOT(argc == 0)) {
         OOJSReportWarning(context, @"Usage error: mission.%@() called with no arguments. Treating as Mission.%@(null). This call may fail in a future version of Oolite.", isKey ? @"setInstructionsKey" : @"setInstructions", isKey ? @"setInstructionsKey" : @"setInstructions");
@@ -420,27 +423,27 @@ static JSValue MissionSetInstructionsInternal(JSContext* context, int argc, JSVa
         OOJSReportBadArguments(context, @"Mission", isKey ? @"setInstructionsKey" : @"setInstructions", 1, argv, NULL, @"string or null");
         return JS_EXCEPTION;
     } else if (!JS_IsNull(argv[0]) && JS_IsObject(argv[0])) {
-        texts = OOJSNativeObjectFromJSValue(context, argv[0]);
+        texts = oo::PListFrom(OOJSNativeObjectFromJSValue(context, argv[0]));
     } else {
-        text = OOStringFromJSValue(context, argv[0]);
+        text = oo::OptionalString(OOStringFromJSValue(context, argv[0]));
     }
 
     if (argc > 1) {
-        missionKey = OOStringFromJSValueEvenIfNull(context, argv[1]);
+        missionKey = oo::OptionalString(OOStringFromJSValueEvenIfNull(context, argv[1]));
     } else {
-        missionKey = [[OOJSScript currentlyRunningScript] name];
+        missionKey = oo::OptionalString([[OOJSScript currentlyRunningScript] name]);
     }
 
-    if (text != nil) {
+    if (text.has_value()) {
         if (isKey) {
-            [player setMissionDescription:text forMission:missionKey];
+            [player setMissionDescription:oo::NSStringFrom(*text) forMission:oo::NSStringOrNil(missionKey)];
         } else {
-            [player setMissionInstructions:text forMission:missionKey];
+            [player setMissionInstructions:oo::NSStringFrom(*text) forMission:oo::NSStringOrNil(missionKey)];
         }
-    } else if (texts != nil && !isKey) {
-        [player setMissionInstructionsList:texts forMission:missionKey];
+    } else if (!texts.isNull() && !isKey) {
+        [player setMissionInstructionsList:oo::ObjectFromPList(texts) forMission:oo::NSStringOrNil(missionKey)];
     } else {
-        [player clearMissionDescriptionForMission:missionKey];
+        [player clearMissionDescriptionForMission:oo::NSStringOrNil(missionKey)];
     }
 
     OOJS_RETURN_VOID;
@@ -464,33 +467,43 @@ static JSValue GetParameter(JSContext* context, JSValueConst object, const char*
     return value;
 }
 
-static NSDictionary* GetParameterDictionary(JSContext* context, JSValueConst object, const char* key)
+static oo::PList GetParameterDictionary(JSContext* context, JSValueConst object, const char* key)
 {
-    NSDictionary* result = nil;
+    oo::PList result; // was nil
     JSValue value = GetParameter(context, object, key);
     if (JS_IsObject(value)) {
-        result = OOJSNativeObjectFromJSObject(context, value);
+        result = oo::PListFrom(OOJSNativeObjectFromJSObject(context, value));
     }
     JS_FreeValue(context, value);
     return result;
 }
 
-static NSString* GetParameterString(JSContext* context, JSValueConst object, const char* key)
+static std::optional<std::string> GetParameterString(JSContext* context, JSValueConst object, const char* key)
 {
     JSValue value = GetParameter(context, object, key);
-    NSString* result = OOStringFromJSValue(context, value);
+    std::optional<std::string> result = oo::OptionalString(OOStringFromJSValue(context, value));
     JS_FreeValue(context, value);
     return result;
 }
 
-static NSDictionary* GetParameterImageDescriptor(JSContext* context, JSValueConst object, const char* key)
+// What -oo_stringForKey: made of the value it found: a string, or a number's text; nullopt (was
+// nil) for no value or any other kind of value.
+static std::optional<std::string> StringFromObject(id object)
+{
+    const oo::PList value = oo::PListFrom(object);
+    if (!(value.isString() || value.isNumber()))
+        return std::nullopt;
+    return oo::PListGet<std::string>::from(&value, std::string());
+}
+
+static oo::PList GetParameterImageDescriptor(JSContext* context, JSValueConst object, const char* key)
 {
     JSValue value = JS_GetPropertyStr(context, object, key);
     if (JS_IsException(value)) {
         OOJSReportPendingException(context);
-        return nil;
+        return oo::PList(); // was nil
     }
-    NSDictionary* result = [[UNIVERSE gui] textureDescriptorFromJSValue:value inContext:context callerDescription:@"mission.runScreen()"];
+    oo::PList result = [[UNIVERSE gui] cxx_textureDescriptorFromJSValue:value inContext:context callerDescription:std::string("mission.runScreen()")];
     JS_FreeValue(context, value);
     return result;
 }
@@ -576,22 +589,22 @@ static JSValue MissionRunScreen(OOJS_NATIVE_ARGS)
     if (!JS_IsUndefined(value)) {
         [player setMissionTitle:OOStringFromJSValue(context, value)];
     } else {
-        NSString* titleKey = GetParameterString(context, params, "titleKey");
-        if (titleKey != nil) {
-            NSString* message = oo::PListView([UNIVERSE missiontext]).get<NSString*>(titleKey);
-            if (message != nil) {
-                [player setMissionTitle:OOExpand(message)];
+        std::optional<std::string> titleKey = GetParameterString(context, params, "titleKey");
+        if (titleKey.has_value()) {
+            std::optional<std::string> message = StringFromObject([[UNIVERSE missiontext] objectForKey:oo::NSStringFrom(*titleKey)]);
+            if (message.has_value()) {
+                [player setMissionTitle:OOExpand(oo::NSStringFrom(*message))];
             } else {
-                OOJSReportWarning(context, @"Mission.runScreen: titleKey '%@' has no entry in missiontext.plist.", titleKey);
+                OOJSReportWarning(context, @"Mission.runScreen: titleKey '%@' has no entry in missiontext.plist.", oo::NSStringFrom(*titleKey));
             }
         }
     }
     JS_FreeValue(context, value);
 
-    [[OOMusicController sharedController] setMissionMusic:GetParameterString(context, params, "music")];
-    [player setMissionOverlayDescriptor:GetParameterImageDescriptor(context, params, "overlay")];
-    [player setMissionBackgroundDescriptor:GetParameterImageDescriptor(context, params, "background")];
-    [player setMissionBackgroundSpecial:GetParameterString(context, params, "backgroundSpecial")];
+    [[OOMusicController sharedController] setMissionMusic:oo::NSStringOrNil(GetParameterString(context, params, "music"))];
+    [player setMissionOverlayDescriptor:oo::ObjectFromPList(GetParameterImageDescriptor(context, params, "overlay"))];
+    [player setMissionBackgroundDescriptor:oo::ObjectFromPList(GetParameterImageDescriptor(context, params, "background"))];
+    [player setMissionBackgroundSpecial:oo::NSStringOrNil(GetParameterString(context, params, "backgroundSpecial"))];
 
     value = GetParameter(context, params, "customChartZoom");
     if (!JS_IsUndefined(value)) {
@@ -643,13 +656,13 @@ static JSValue MissionRunScreen(OOJS_NATIVE_ARGS)
         if ([player status] == STATUS_IN_FLIGHT && JS_IsString(value)) {
             OOJSReportWarning(context, @"Mission.runScreen: model cannot be displayed while in flight.");
         } else {
-            NSString* role = OOStringFromJSValue(context, value);
+            std::optional<std::string> role = oo::OptionalString(OOStringFromJSValue(context, value));
 
             BOOL spinning = YES;
             GetParameterBool(context, params, "spinModel", &spinning);
 
             //	[player showShipModel:OOStringFromJSValue(context, value)];
-            demoShip = [UNIVERSE makeDemoShipWithRole:role spinning:spinning];
+            demoShip = [UNIVERSE makeDemoShipWithRole:oo::NSStringOrNil(role) spinning:spinning];
         }
     }
     JS_FreeValue(context, value);
@@ -702,7 +715,7 @@ static JSValue MissionRunScreen(OOJS_NATIVE_ARGS)
     [player clearExtraMissionKeys];
     value = GetParameter(context, params, "registerKeys");
     if (!JS_IsUndefined(value)) {
-        [player setExtraMissionKeys:GetParameterDictionary(context, params, "registerKeys")];
+        [player setExtraMissionKeys:oo::ObjectFromPList(GetParameterDictionary(context, params, "registerKeys"))];
     }
     JS_FreeValue(context, value);
 
@@ -722,27 +735,27 @@ static JSValue MissionRunScreen(OOJS_NATIVE_ARGS)
     if (allowInterrupt) {
         [player allowMissionInterrupt];
     }
-    NSString* message = GetParameterString(context, params, "message");
-    if (message != nil) {
-        [player addLiteralMissionText:message];
+    std::optional<std::string> message = GetParameterString(context, params, "message");
+    if (message.has_value()) {
+        [player addLiteralMissionText:oo::NSStringFrom(*message)];
     } else {
-        NSString* messageKey = GetParameterString(context, params, "messageKey");
-        if (messageKey != nil)
-            [player addMissionText:messageKey];
+        std::optional<std::string> messageKey = GetParameterString(context, params, "messageKey");
+        if (messageKey.has_value())
+            [player addMissionText:oo::NSStringFrom(*messageKey)];
     }
 
     if (!textEntry) {
-        NSDictionary* choices = GetParameterDictionary(context, params, "choices");
-        if (choices == nil) {
-            [player setMissionChoices:GetParameterString(context, params, "choicesKey")];
+        oo::PList choices = GetParameterDictionary(context, params, "choices");
+        if (choices.isNull()) {
+            [player setMissionChoices:oo::NSStringOrNil(GetParameterString(context, params, "choicesKey"))];
         } else {
-            [player setMissionChoicesDictionary:choices];
+            [player setMissionChoicesDictionary:oo::ObjectFromPList(choices)];
         }
     }
 
-    NSString* firstKey = GetParameterString(context, params, "initialChoicesKey");
-    if (firstKey != nil) {
-        OOGUIRow row = [[UNIVERSE gui] rowForKey:firstKey];
+    std::optional<std::string> firstKey = GetParameterString(context, params, "initialChoicesKey");
+    if (firstKey.has_value()) {
+        OOGUIRow row = [[UNIVERSE gui] cxx_rowForKey:firstKey];
         if (row != -1) {
             [[UNIVERSE gui] setSelectedRow:row];
         }

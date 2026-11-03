@@ -29,16 +29,23 @@ MA 02110-1301, USA.
 
 #if OO_OXP_VERIFIER_ENABLED
 
+#include "oofnd/StdLib.hpp"
+
+/*	Foundation sweep (proposed ADR-0043, bead oo-bfgm): the whitelist and the used AI names are
+        sorted std::vectors of strings (sets). +nameForReverseDependencyForVerifier: is a shared
+        selector (the other stages declare it) and keeps an Objective-C string result.
+*/
 @interface OOAIStateMachineVerifierStage : OOFileHandlingVerifierStage {
 @private
-    NSSet* _whitelist;
-    NSMutableSet* _usedAIs;
+    std::vector<std::string> _whitelist; // sorted, no duplicates
+    std::vector<std::string> _usedAIs; // sorted, no duplicates
 }
 
 // Returns name to be used in -dependents by other stages.
-+ (NSString*)nameForReverseDependencyForVerifier:(OOOXPVerifier*)verifier;
++ (id)nameForReverseDependencyForVerifier:(OOOXPVerifier*)verifier; // shared selector (proposed ADR-0043)
 
-- (void)stateMachineNamed:(NSString*)name usedByShip:(NSString*)shipName;
+// The caller only reports an AI it has a name for (it tested the name against nil).
+- (void)stateMachineNamed:(const std::string&)name usedByShip:(const std::string&)shipName;
 
 @end
 

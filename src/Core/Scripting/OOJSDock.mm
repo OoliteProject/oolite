@@ -147,7 +147,7 @@ static BOOL JSDockGetShipEntity(JSContext* context, JSValueConst shipObj, ShipEn
     return sDockClassID;
 }
 
-- (NSString*)oo_jsClassName
+- (id)oo_jsClassName // shared selector (proposed ADR-0043)
 {
     return @"Dock";
 }

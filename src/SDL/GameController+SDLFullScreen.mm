@@ -30,6 +30,7 @@ MA 02110-1301, USA.
 #if OOLITE_SDL
 
 #import "MyOpenGLView.h"
+#import "OOFoundationBridge.h"
 #import "OOFullScreenController.h"
 #import "Universe.h"
 
@@ -37,28 +38,26 @@ MA 02110-1301, USA.
 
 - (void)setUpDisplayModes
 {
-    NSArray* modes = [gameView getScreenSizeArray];
-    NSDictionary* mode = nil;
-    unsigned int modeIndex, modeCount;
+    // The screen's mode dictionaries, in its order (Foundation sweep, proposed ADR-0043).
+    const std::vector<oo::ObjCRef<id>> modes = oo::ObjCRefsFrom<id>(oo::ObjectFromPList(oo::PList(oo::PList::Array([gameView getScreenSizeArray]))));
+    std::vector<oo::ObjCRef<id>> usableModes;
     unsigned int modeWidth, modeHeight;
 
-    displayModes = [[NSMutableArray alloc] init];
-    modeCount = [modes count];
-    for (modeIndex = 0; modeIndex < modeCount; modeIndex++) {
-        mode = [modes objectAtIndex:modeIndex];
-        modeWidth = [[mode objectForKey:kOODisplayWidth] intValue];
-        modeHeight = [[mode objectForKey:kOODisplayHeight] intValue];
+    for (const oo::ObjCRef<id>& mode : modes) {
+        modeWidth = [[mode.get() objectForKey:kOODisplayWidth] intValue];
+        modeHeight = [[mode.get() objectForKey:kOODisplayHeight] intValue];
 
         if (modeWidth < DISPLAY_MIN_WIDTH || modeWidth > DISPLAY_MAX_WIDTH || modeHeight < DISPLAY_MIN_HEIGHT || modeHeight > DISPLAY_MAX_HEIGHT)
             continue;
-        [displayModes addObject:mode];
+        usableModes.push_back(mode);
     }
+    displayModes = [oo::NSArrayFromObjects(usableModes) mutableCopy]; // owned (+1), as the ivar was
 
-    NSDictionary* currentMode = [gameView currentScreenMode];
+    const oo::PList currentMode = [gameView currentScreenMode];
     if (currentMode) {
-        width = [[currentMode objectForKey:kOODisplayWidth] intValue];
-        height = [[currentMode objectForKey:kOODisplayHeight] intValue];
-        refresh = [[currentMode objectForKey:kOODisplayRefreshRate] intValue];
+        width = currentMode.get<int>(oo::StdString(kOODisplayWidth));
+        height = currentMode.get<int>(oo::StdString(kOODisplayHeight));
+        refresh = currentMode.get<int>(oo::StdString(kOODisplayRefreshRate));
     } else {
         NSSize fsmSize = [gameView currentScreenSize];
         width = fsmSize.width;
@@ -84,7 +83,7 @@ MA 02110-1301, USA.
 
 - (BOOL)setDisplayWidth:(unsigned int)d_width Height:(unsigned int)d_height Refresh:(unsigned int)d_refresh
 {
-    NSDictionary* d_mode = [self findDisplayModeForWidth:d_width Height:d_height Refresh:d_refresh];
+    id d_mode = [self findDisplayModeForWidth:d_width Height:d_height Refresh:d_refresh]; // shared selector's result
     if (d_mode) {
         width = d_width;
         height = d_height;
@@ -105,34 +104,29 @@ MA 02110-1301, USA.
     return NO;
 }
 
-- (NSDictionary*)findDisplayModeForWidth:(unsigned int)d_width Height:(unsigned int)d_height Refresh:(unsigned int)d_refresh
+- (id)findDisplayModeForWidth:(unsigned int)d_width Height:(unsigned int)d_height Refresh:(unsigned int)d_refresh // shared selector (proposed ADR-0043)
 {
-    int i, modeCount;
-    NSDictionary* mode;
     unsigned int modeWidth, modeHeight, modeRefresh;
 
-    modeCount = [displayModes count];
-
-    for (i = 0; i < modeCount; i++) {
-        mode = [displayModes objectAtIndex:i];
-        modeWidth = [[mode objectForKey:kOODisplayWidth] intValue];
-        modeHeight = [[mode objectForKey:kOODisplayHeight] intValue];
-        modeRefresh = [[mode objectForKey:kOODisplayRefreshRate] intValue];
+    for (const oo::ObjCRef<id>& mode : oo::ObjCRefsFrom<id>(displayModes)) {
+        modeWidth = [[mode.get() objectForKey:kOODisplayWidth] intValue];
+        modeHeight = [[mode.get() objectForKey:kOODisplayHeight] intValue];
+        modeRefresh = [[mode.get() objectForKey:kOODisplayRefreshRate] intValue];
         if ((modeWidth == d_width) && (modeHeight == d_height) && (modeRefresh == d_refresh)) {
-            return mode;
+            return mode.get();
         }
     }
     return nil;
 }
 
-- (NSArray*)displayModes
+- (id)displayModes // shared selector (proposed ADR-0043)
 {
-    return [NSArray arrayWithArray:displayModes];
+    return [[displayModes copy] autorelease]; // an immutable copy, as +arrayWithArray: gave
 }
 
 - (NSUInteger)indexOfCurrentDisplayMode
 {
-    NSDictionary* mode;
+    id mode; // the shared selector's result
 
     mode = [self findDisplayModeForWidth:width Height:height Refresh:refresh];
     if (mode == nil)

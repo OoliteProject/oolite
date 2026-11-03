@@ -24,6 +24,7 @@ MA 02110-1301, USA.
 
 #import "OOCPUInfo.h"
 #include "oofnd/Process.hpp"
+#include "oofnd/String.hpp"
 #include <stdlib.h>
 
 #if OOLITE_MAC_OS_X
@@ -130,7 +131,7 @@ inline OO_GNU_INLINE void OOCPUID(int CPUInfo[4], int InfoType)
         : "a"(InfoType));
 }
 
-NSString* OOCPUDescription(void)
+std::string OOCPUDescription(void)
 {
     // This code taken from https://stackoverflow.com/questions/850774
     int CPUInfo[4] = { -1 };
@@ -149,7 +150,7 @@ NSString* OOCPUDescription(void)
         else if (i == 0x80000004)
             memcpy(CPUBrandString + 32, CPUInfo, sizeof(CPUInfo));
     }
-    return [NSString stringWithCString:CPUBrandString];
+    return std::string(CPUBrandString);
 }
 
 OOMemoryStatus OOSystemMemoryStatus(void)
@@ -179,7 +180,7 @@ OOMemoryStatus OOSystemMemoryStatus(void)
 #endif //(OOLITE_WINDOWS || OOLITE_LINUX)
 
 #if OOLITE_WINDOWS
-NSString* operatingSystemFullVersion(void)
+std::string operatingSystemFullVersion(void)
 {
     OSVERSIONINFOW osver;
     char outUBRString[65] = "";
@@ -200,8 +201,11 @@ NSString* operatingSystemFullVersion(void)
         }
     }
 
-    return [NSString stringWithFormat:@"%lu.%lu.%lu%s %S",
-        osver.dwMajorVersion, osver.dwMinorVersion, osver.dwBuildNumber, outUBRString, (const unichar*)osver.szCSDVersion];
+    // %S of the UTF-16 service-pack string, as -stringWithFormat: read it: converted to UTF-8 and
+    // written with %s (vsnprintf's %S would convert through the C locale instead).
+    const std::string csdVersion = oo::utf16ToUtf8(std::u16string_view(reinterpret_cast<const char16_t*>(osver.szCSDVersion)));
+    return oo::str::format("%lu.%lu.%lu%s %s",
+        osver.dwMajorVersion, osver.dwMinorVersion, osver.dwBuildNumber, outUBRString, csdVersion.c_str());
 }
 
 /*

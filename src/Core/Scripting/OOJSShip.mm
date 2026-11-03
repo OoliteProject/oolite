@@ -26,7 +26,7 @@ MA 02110-1301, USA.
 #import "AI.h"
 #import "EntityOOJavaScriptExtensions.h"
 #import "OOCharacter.h"
-#import "OOCollectionExtractors.h"
+
 #import "OOConstToString.h"
 #import "OOEntityFilterPredicate.h"
 #import "OOEquipmentType.h"
@@ -39,6 +39,7 @@ MA 02110-1301, USA.
 #import "OOJSWormhole.h"
 #import "OOJavaScriptEngine.h"
 #import "OOMesh.h"
+#import "OOPListView.h"
 #import "OORoleSet.h"
 #import "OOShipGroup.h"
 #import "OOShipRegistry.h"
@@ -1733,7 +1734,7 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS)
     case kShip_aftWeapon:
     case kShip_forwardWeapon:
     case kShip_currentWeapon: {
-        sValue = JSValueToEquipmentKeyRelaxed(context, value, &exists);
+        sValue = oo::NSStringOrNil(JSValueToEquipmentKeyRelaxed(context, value, &exists));
         if (sValue == nil) {
             sValue = @"EQ_WEAPON_NONE";
         }
@@ -2067,7 +2068,7 @@ static JSValue ShipEjectItem(OOJS_NATIVE_ARGS)
         return OOJSNativeFailure(context);
     }
 
-    OOJS_RETURN_OBJECT([thisEnt ejectShipOfRole:role]);
+    OOJS_RETURN_OBJECT([thisEnt ejectShipOfRole:oo::OptionalString(role)]);
 
     OOJS_NATIVE_EXIT
 }
@@ -2135,7 +2136,7 @@ static JSValue ShipEjectSpecificItem(OOJS_NATIVE_ARGS)
         return OOJSNativeFailure(context);
     }
 
-    OOJS_RETURN_OBJECT([thisEnt ejectShipOfType:itemKey]);
+    OOJS_RETURN_OBJECT([thisEnt ejectShipOfType:oo::OptionalString(itemKey)]);
 
     OOJS_NATIVE_EXIT
 }
@@ -2203,7 +2204,7 @@ static JSValue ShipSpawn(OOJS_NATIVE_ARGS)
     }
 
     OOJS_BEGIN_FULL_NATIVE(context)
-    result = [thisEnt spawnShipsWithRole:role count:count];
+    result = oo::NSArrayFromObjects([thisEnt spawnShipsWithRole:oo::StdString(role) count:count]);
     OOJS_END_FULL_NATIVE
 
     OOJS_RETURN_OBJECT(result);
@@ -2405,7 +2406,7 @@ static JSValue ShipCanAwardEquipment(OOJS_NATIVE_ARGS)
     GET_THIS_SHIP(thisEnt);
 
     if (argc > 0)
-        key = JSValueToEquipmentKeyRelaxed(context, OOJS_ARGV[0], &exists);
+        key = oo::NSStringOrNil(JSValueToEquipmentKeyRelaxed(context, OOJS_ARGV[0], &exists));
     if (EXPECT_NOT(key == nil)) {
         OOJSReportBadArguments(context, @"Ship", @"canAwardEquipment", MIN(argc, 1), OOJS_ARGV, nil, @"equipment type");
         return OOJSNativeFailure(context);
@@ -2518,7 +2519,7 @@ static JSValue ShipRemoveEquipment(OOJS_NATIVE_ARGS)
     GET_THIS_SHIP(thisEnt);
 
     if (argc > 0)
-        key = JSValueToEquipmentKey(context, OOJS_ARGV[0]);
+        key = oo::NSStringOrNil(JSValueToEquipmentKey(context, OOJS_ARGV[0]));
     if (EXPECT_NOT(key == nil)) {
         OOJSReportBadArguments(context, @"Ship", @"removeEquipment", MIN(argc, 1), OOJS_ARGV, nil, @"equipment type");
         return OOJSNativeFailure(context);
@@ -2679,7 +2680,7 @@ static JSValue ShipEquipmentStatus(OOJS_NATIVE_ARGS)
     GET_THIS_SHIP(thisEnt);
 
     if (argc > 0)
-        key = JSValueToEquipmentKey(context, OOJS_ARGV[0]);
+        key = oo::NSStringOrNil(JSValueToEquipmentKey(context, OOJS_ARGV[0]));
     if (argc > 1)
         asDict = OOJSValueToBOOL(context, OOJS_ARGV[1]);
     if (EXPECT_NOT(key == nil)) {
@@ -2981,7 +2982,7 @@ static JSValue ShipSetMaterialsInternal(OOJS_NATIVE_ARGS, ShipEntity* thisEnt, B
     }
 
     if (fromShaders) {
-        materials = [[thisEnt mesh] materials];
+        materials = oo::ObjectFromPList([[thisEnt mesh] materials]);
         params = OOJS_ARGV[0];
         shaders = OOJSNativeObjectFromJSObject(context, params);
     } else {
@@ -2991,7 +2992,7 @@ static JSValue ShipSetMaterialsInternal(OOJS_NATIVE_ARGS, ShipEntity* thisEnt, B
             params = OOJS_ARGV[1];
             shaders = OOJSNativeObjectFromJSObject(context, params);
         } else {
-            shaders = [[thisEnt mesh] shaders];
+            shaders = oo::ObjectFromPList([[thisEnt mesh] shaders]);
         }
     }
 
@@ -2999,12 +3000,12 @@ static JSValue ShipSetMaterialsInternal(OOJS_NATIVE_ARGS, ShipEntity* thisEnt, B
     NSDictionary* shipDict = [thisEnt shipInfoDictionary];
 
     // First we test to see if we can create the mesh.
-    OOMesh* mesh = [OOMesh meshWithName:[shipDict oo_stringForKey:@"model"]
-                               cacheKey:nil
-                     materialDictionary:materials
-                      shadersDictionary:shaders
-                                 smooth:[shipDict oo_boolForKey:@"smooth" defaultValue:NO]
-                           shaderMacros:[[ResourceManager materialDefaults] oo_dictionaryForKey:@"ship-prefix-macros"]
+    OOMesh* mesh = [OOMesh meshWithName:oo::StdString(oo::PListView(shipDict).get<NSString*>(@"model"))
+                               cacheKey:std::nullopt
+                     materialDictionary:oo::PListFrom(materials)
+                      shadersDictionary:oo::PListFrom(shaders)
+                                 smooth:oo::PListView(shipDict).get<BOOL>(@"smooth", NO)
+                           shaderMacros:oo::PListFrom(oo::PListView([ResourceManager materialDefaults]).get<NSDictionary*>(@"ship-prefix-macros"))
                     shaderBindingTarget:thisEnt];
 
     if (mesh != nil) {
@@ -3212,7 +3213,7 @@ static JSValue ShipGetMaterials(OOJS_NATIVE_ARGS)
 
     GET_THIS_SHIP(thisEnt);
 
-    result = [[thisEnt mesh] materials];
+    result = oo::ObjectFromPList([[thisEnt mesh] materials]);
     if (result == nil)
         result = [NSDictionary dictionary];
     OOJS_RETURN_OBJECT(result);
@@ -3230,7 +3231,7 @@ static JSValue ShipGetShaders(OOJS_NATIVE_ARGS)
 
     GET_THIS_SHIP(thisEnt);
 
-    result = [[thisEnt mesh] shaders];
+    result = oo::ObjectFromPList([[thisEnt mesh] shaders]);
     if (result == nil)
         result = [NSDictionary dictionary];
     OOJS_RETURN_OBJECT(result);

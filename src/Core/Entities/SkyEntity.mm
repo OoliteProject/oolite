@@ -28,11 +28,13 @@ MA 02110-1301, USA.
 
 #import "MyOpenGLView.h"
 #import "OOColor.h"
+#import "OOFoundationBridge.h"
 #import "OOMaterial.h"
 #import "OOMaths.h"
-#import "OOPListView.h"
-#import "OOStringParsing.h"
 #import "Universe.h"
+
+#include "oofnd/PListGet.hpp"
+#include "oofnd/String.hpp"
 
 #define SKY_BASIS_STARS 4800
 #define SKY_BASIS_BLOBS 1280
@@ -42,13 +44,34 @@ MA 02110-1301, USA.
 
 @interface SkyEntity (OOPrivate)
 
-- (BOOL)readColor1:(OOColor**)ioColor1 andColor2:(OOColor**)ioColor2 andColor3:(OOColor**)ioColor3 andColor4:(OOColor**)ioColor4 fromDictionary:(NSDictionary*)dictionary;
+- (BOOL)readColor1:(OOColor**)ioColor1 andColor2:(OOColor**)ioColor2 andColor3:(OOColor**)ioColor3 andColor4:(OOColor**)ioColor4 fromDictionary:(const oo::PList&)dictionary;
 
 @end
 
+namespace {
+
+// -objectForKey: for a callee that still takes an Objective-C object (nil when absent).
+id ObjectForKey(const oo::PList& dict, std::string_view key)
+{
+    const oo::PList* value = dict.find(key);
+    return value != nullptr ? oo::ObjectFromPList(*value) : nil;
+}
+
+// get<std::string> where the Foundation code read nil: std::nullopt when the key is absent or its
+// value is neither a string nor a number.
+std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::string_view key)
+{
+    const oo::PList* value = dict.find(key);
+    if (value == nullptr || !(value->isString() || value->isNumber()))
+        return std::nullopt;
+    return dict.get<std::string>(key);
+}
+
+} // namespace
+
 @implementation SkyEntity
 
-- (id)initWithColors:(OOColor*)col1 col2:(OOColor*)col2 andSystemInfo:(NSDictionary*)systemInfo
+- (id)initWithColors:(OOColor*)col1 col2:(OOColor*)col2 andSystemInfo:(const oo::PList&)systemInfo
 {
     OOSkyDrawable* skyDrawable;
     float clusterChance,
@@ -69,19 +92,19 @@ MA 02110-1301, USA.
     // Load colours
     BOOL nebulaColorSet = [self readColor1:&col1 andColor2:&col2 andColor3:&col3 andColor4:&col4 fromDictionary:systemInfo];
 
-    skyColor = [[OOColor colorWithDescription:[systemInfo objectForKey:@"sun_color"]] retain];
+    skyColor = [[OOColor colorWithDescription:ObjectForKey(systemInfo, "sun_color")] retain];
     if (skyColor == nil) {
         skyColor = [[col2 blendedColorWithFraction:0.5 ofColor:col1] retain];
     }
 
     // Load distribution values
-    clusterChance = oo::PListView(systemInfo).get<float>(@"sky_blur_cluster_chance", SKY_clusterChance);
-    alpha = oo::PListView(systemInfo).get<float>(@"sky_blur_alpha", SKY_alpha);
-    scale = oo::PListView(systemInfo).get<float>(@"sky_blur_scale", SKY_scale);
+    clusterChance = systemInfo.get<float>("sky_blur_cluster_chance", SKY_clusterChance);
+    alpha = systemInfo.get<float>("sky_blur_alpha", SKY_alpha);
+    scale = systemInfo.get<float>("sky_blur_scale", SKY_scale);
 
     // Load star count
-    starCount = oo::PListView(systemInfo).get<float>(@"sky_n_stars", -1);
-    starCountMultiplier = oo::PListView(systemInfo).get<float>(@"star_count_multiplier", 1.0f);
+    starCount = systemInfo.get<float>("sky_n_stars", -1);
+    starCountMultiplier = systemInfo.get<float>("star_count_multiplier", 1.0f);
     if (starCountMultiplier < 0.0f)
         starCountMultiplier *= -1.0f;
     if (0 <= starCount) {
@@ -93,8 +116,8 @@ MA 02110-1301, USA.
     }
 
     // ...and nebula count. (Note: simplifying this would change the appearance of stars/blobs.)
-    nebulaCount = oo::PListView(systemInfo).get<float>(@"sky_n_blurs", -1);
-    nebulaCountMultiplier = oo::PListView(systemInfo).get<float>(@"nebula_count_multiplier", 1.0f);
+    nebulaCount = systemInfo.get<float>("sky_n_blurs", -1);
+    nebulaCountMultiplier = systemInfo.get<float>("nebula_count_multiplier", 1.0f);
     if (nebulaCountMultiplier < 0.0f)
         nebulaCountMultiplier *= -1.0f;
     if (0 <= nebulaCount) {
@@ -147,12 +170,12 @@ MA 02110-1301, USA.
     return skyColor;
 }
 
-- (BOOL)changeProperty:(NSString*)key withDictionary:(NSDictionary*)dict
+- (BOOL)changeProperty:(const std::string&)key withDictionary:(const oo::PList&)dict
 {
-    id object = [dict objectForKey:key];
+    id object = ObjectForKey(dict, key);
 
     // TODO: properties requiring reInit?
-    if ([key isEqualToString:@"sun_color"]) {
+    if (key == "sun_color") {
         OOColor* col = [[OOColor colorWithDescription:object] retain];
         if (col != nil) {
             [skyColor release];
@@ -161,7 +184,7 @@ MA 02110-1301, USA.
             [UNIVERSE setLighting];
         }
     } else {
-        OOLogWARN(@"script.warning", @"Change to property '%@' not applied, will apply only on leaving and re-entering this system.", key);
+        OOLogWARN(@"script.warning", @"Change to property '%@' not applied, will apply only on leaving and re-entering this system.", oo::NSStringFrom(key));
         return NO;
     }
     return YES;
@@ -215,7 +238,7 @@ MA 02110-1301, USA.
 }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-- (NSString*)descriptionForObjDump
+- (id)descriptionForObjDump // shared selector (proposed ADR-0043)
 {
     // Don't include range and visibility flag as they're irrelevant.
     return [self descriptionForObjDumpBasic];
@@ -226,34 +249,35 @@ MA 02110-1301, USA.
 
 @implementation SkyEntity (OOPrivate)
 
-- (BOOL)readColor1:(OOColor**)ioColor1 andColor2:(OOColor**)ioColor2 andColor3:(OOColor**)ioColor3 andColor4:(OOColor**)ioColor4 fromDictionary:(NSDictionary*)dictionary
+- (BOOL)readColor1:(OOColor**)ioColor1 andColor2:(OOColor**)ioColor2 andColor3:(OOColor**)ioColor3 andColor4:(OOColor**)ioColor4 fromDictionary:(const oo::PList&)dictionary
 {
-    NSString* string = nil;
-    NSArray* tokens = nil;
     id colorDesc = nil;
     OOColor* color = nil;
     BOOL nebulaSet = NO;
 
     assert(ioColor1 != NULL && ioColor2 != NULL);
 
-    string = oo::PListView(dictionary).get<NSString*>(@"sky_rgb_colors");
-    if (string != nil) {
-        tokens = ScanTokensFromString(string);
+    const std::optional<std::string> string = OptionalStringForKey(dictionary, "sky_rgb_colors");
+    if (string.has_value()) {
+        oo::PList::Array tokenList;
+        for (std::string& token : oo::str::tokens(*string))
+            tokenList.emplace_back(std::move(token));
+        const oo::PList tokens(std::move(tokenList));
 
-        if ([tokens count] == 6) {
-            float r1 = OOClamp_0_1_f(oo::PListView(tokens).at<float>(0));
-            float g1 = OOClamp_0_1_f(oo::PListView(tokens).at<float>(1));
-            float b1 = OOClamp_0_1_f(oo::PListView(tokens).at<float>(2));
-            float r2 = OOClamp_0_1_f(oo::PListView(tokens).at<float>(3));
-            float g2 = OOClamp_0_1_f(oo::PListView(tokens).at<float>(4));
-            float b2 = OOClamp_0_1_f(oo::PListView(tokens).at<float>(5));
+        if (tokens.count() == 6) {
+            float r1 = OOClamp_0_1_f(tokens.at<float>(0));
+            float g1 = OOClamp_0_1_f(tokens.at<float>(1));
+            float b1 = OOClamp_0_1_f(tokens.at<float>(2));
+            float r2 = OOClamp_0_1_f(tokens.at<float>(3));
+            float g2 = OOClamp_0_1_f(tokens.at<float>(4));
+            float b2 = OOClamp_0_1_f(tokens.at<float>(5));
             *ioColor1 = [OOColor colorWithRed:r1 green:g1 blue:b1 alpha:1.0];
             *ioColor2 = [OOColor colorWithRed:r2 green:g2 blue:b2 alpha:1.0];
         } else {
-            OOLogWARN(@"sky.fromDict", @"could not interpret \"%@\" as two RGB colours (must be six numbers).", string);
+            OOLogWARN(@"sky.fromDict", @"could not interpret \"%@\" as two RGB colours (must be six numbers).", oo::NSStringFrom(*string));
         }
     }
-    colorDesc = [dictionary objectForKey:@"sky_color_1"];
+    colorDesc = ObjectForKey(dictionary, "sky_color_1");
     if (colorDesc != nil) {
         color = [[OOColor colorWithDescription:colorDesc] premultipliedColor];
         if (color != nil)
@@ -261,7 +285,7 @@ MA 02110-1301, USA.
         else
             OOLogWARN(@"sky.fromDict", @"could not interpret \"%@\" as a colour.", colorDesc);
     }
-    colorDesc = [dictionary objectForKey:@"sky_color_2"];
+    colorDesc = ObjectForKey(dictionary, "sky_color_2");
     if (colorDesc != nil) {
         color = [[OOColor colorWithDescription:colorDesc] premultipliedColor];
         if (color != nil)
@@ -270,7 +294,7 @@ MA 02110-1301, USA.
             OOLogWARN(@"sky.fromDict", @"could not interpret \"%@\" as a colour.", colorDesc);
     }
 
-    colorDesc = [dictionary objectForKey:@"nebula_color_1"];
+    colorDesc = ObjectForKey(dictionary, "nebula_color_1");
     if (colorDesc != nil) {
         color = [[OOColor colorWithDescription:colorDesc] premultipliedColor];
         if (color != nil) {
@@ -279,7 +303,7 @@ MA 02110-1301, USA.
         } else
             OOLogWARN(@"sky.fromDict", @"could not interpret \"%@\" as a colour.", colorDesc);
     } else {
-        colorDesc = [dictionary objectForKey:@"sky_color_1"];
+        colorDesc = ObjectForKey(dictionary, "sky_color_1");
         if (colorDesc != nil) {
             color = [[OOColor colorWithDescription:colorDesc] premultipliedColor];
             if (color != nil)
@@ -289,7 +313,7 @@ MA 02110-1301, USA.
         }
     }
 
-    colorDesc = [dictionary objectForKey:@"nebula_color_2"];
+    colorDesc = ObjectForKey(dictionary, "nebula_color_2");
     if (colorDesc != nil) {
         color = [[OOColor colorWithDescription:colorDesc] premultipliedColor];
         if (color != nil) {
@@ -298,7 +322,7 @@ MA 02110-1301, USA.
         } else
             OOLogWARN(@"sky.fromDict", @"could not interpret \"%@\" as a colour.", colorDesc);
     } else {
-        colorDesc = [dictionary objectForKey:@"sky_color_2"];
+        colorDesc = ObjectForKey(dictionary, "sky_color_2");
         if (colorDesc != nil) {
             color = [[OOColor colorWithDescription:colorDesc] premultipliedColor];
             if (color != nil)

@@ -297,7 +297,7 @@ static JSValue SoundSourcePlayOrRepeat(OOJS_NATIVE_ARGS)
     return result;
 }
 
-- (NSString*)oo_jsClassName
+- (id)oo_jsClassName // shared selector (proposed ADR-0043)
 {
     return @"SoundSource";
 }

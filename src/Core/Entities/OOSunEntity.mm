@@ -31,12 +31,16 @@ MA 02110-1301, USA.
 #import "OOCharacter.h"
 #import "OOColor.h"
 #import "OODebugFlags.h"
+#import "OOFoundationBridge.h"
 #import "OOPListView.h"
 #import "OOStringExpander.h"
 #import "OOStringParsing.h"
 #import "PlayerEntity.h"
 #import "ShipEntityAI.h"
 #import "Universe.h"
+
+#include "oofnd/PListGet.hpp"
+#include "oofnd/String.hpp"
 
 @interface OOSunEntity (Private)
 
@@ -120,7 +124,7 @@ MA 02110-1301, USA.
     return YES;
 }
 
-- (id)initSunWithColor:(OOColor*)sun_color andDictionary:(NSDictionary*)dict
+- (id)initSunWithColor:(OOColor*)sun_color andDictionary:(const oo::PList&)dict
 {
     int i;
 
@@ -135,10 +139,11 @@ MA 02110-1301, USA.
 
     [self setSunColor:sun_color];
 
-    [self setName:OOExpand(oo::PListView(dict).get<NSString*>(KEY_SUNNAME, @"[oolite-default-star-name]"))];
+    // A nil dictionary read nil for the name (messaging nil), not the default.
+    [self setName:OOExpand(dict ? oo::NSStringFrom(dict.get<std::string>(oo::StdString(KEY_SUNNAME), "[oolite-default-star-name]")) : nil)];
 
-    corona_blending = OOClamp_0_1_f(oo::PListView(dict).get<float>(@"corona_hues", 1.0f));
-    corona_speed_factor = oo::PListView(dict).get<float>(@"corona_shimmer", -1.0);
+    corona_blending = OOClamp_0_1_f(dict.get<float>("corona_hues", 1.0f));
+    corona_speed_factor = dict.get<float>("corona_shimmer", -1.0);
     if (corona_speed_factor < 0) {
         // from .22222 to 2
         corona_speed_factor = 1.0 / (0.5 + 2.0 * (randf() + randf()));
@@ -155,7 +160,7 @@ MA 02110-1301, USA.
         rvalue[i] = randf();
 
     // set up the radius properties
-    [self changeSunProperty:@"sun_radius" withDictionary:dict];
+    [self changeSunProperty:"sun_radius" withDictionary:dict];
 
     unsigned k = 0;
     for (unsigned i = 0; i < 360; i++) {
@@ -202,20 +207,20 @@ MA 02110-1301, USA.
 
 - (void)dealloc
 {
-    DESTROY(_name);
+    _name.reset();
     [super dealloc];
 }
 
-- (NSString*)descriptionComponents
+- (id)descriptionComponents // shared selector (proposed ADR-0043)
 {
-    NSString* result = [NSString stringWithFormat:@"ID: %u position: %@ radius: %.3fkm", [self universalID], HPVectorDescription([self position]), 0.001 * [self radius]];
+    std::string result = oo::str::format("ID: %u position: %s radius: %.3fkm", [self universalID], cxx_HPVectorDescription([self position]).c_str(), 0.001 * [self radius]);
     if ([self goneNova]) {
-        result = [result stringByAppendingString:@" (gone nova)"];
+        result += " (gone nova)";
     } else if ([self willGoNova]) {
-        result = [result stringByAppendingString:@" (will go nova)"];
+        result += " (will go nova)";
     }
 
-    return result;
+    return oo::NSStringFrom(result);
 }
 
 - (BOOL)canCollide
@@ -267,9 +272,9 @@ MA 02110-1301, USA.
                 }
                 if (sky_bri == 1.0) {
                     // This sun has now gone nova!
-                    [UNIVERSE setSystemDataKey:@"sun_gone_nova" value:[NSNumber numberWithBool:YES] fromManifest:@"org.oolite.oolite"];
-                    [UNIVERSE setSystemDataKey:@"corona_flare" value:[NSNumber numberWithFloat:0.3] fromManifest:@"org.oolite.oolite"];
-                    [UNIVERSE setSystemDataKey:@"corona_hues" value:[NSNumber numberWithFloat:0.05] fromManifest:@"org.oolite.oolite"];
+                    [UNIVERSE setSystemDataKey:@"sun_gone_nova" value:oo::ObjectFromPList(oo::PList(static_cast<bool>(YES))) fromManifest:@"org.oolite.oolite"]; // +numberWithBool:
+                    [UNIVERSE setSystemDataKey:@"corona_flare" value:oo::ObjectFromPList(oo::PList::singleReal(0.3)) fromManifest:@"org.oolite.oolite"]; // +numberWithFloat:
+                    [UNIVERSE setSystemDataKey:@"corona_hues" value:oo::ObjectFromPList(oo::PList::singleReal(0.05)) fromManifest:@"org.oolite.oolite"];
                     // Novas are stored under the core manifest if the
                     // player was there at the time. Default layer 2
                     // is fine.
@@ -279,7 +284,7 @@ MA 02110-1301, USA.
                 discColor[1] = 1.0 * _sunBrightnessFactor;
                 discColor[2] = 1.0 * _sunBrightnessFactor;
                 _novaExpansionTimer += delta_t;
-                [UNIVERSE setSystemDataKey:@"sun_radius" value:[NSNumber numberWithFloat:collision_radius + delta_t * _novaExpansionRate] fromManifest:@"org.oolite.oolite"];
+                [UNIVERSE setSystemDataKey:@"sun_radius" value:oo::ObjectFromPList(oo::PList::singleReal(collision_radius + delta_t * _novaExpansionRate)) fromManifest:@"org.oolite.oolite"]; // +numberWithFloat:
             } else {
                 OOLog(@"sun.nova.end", @"DEBUG: NOVA final radius %.1f", collision_radius);
 
@@ -613,32 +618,35 @@ MA 02110-1301, USA.
     }
 }
 
-- (BOOL)changeSunProperty:(NSString*)key withDictionary:(NSDictionary*)dict
+- (BOOL)changeSunProperty:(const std::string&)key withDictionary:(const oo::PList&)dict
 {
-    id object = [dict objectForKey:key];
+    const oo::PList* value = dict.find(key);
+    id object = value != nullptr ? oo::ObjectFromPList(*value) : nil; // -doubleValue / -floatValue as before
     static GLfloat oldRadius = 0.0;
-    if ([key isEqualToString:@"sun_radius"]) {
+    if (key == "sun_radius") {
         oldRadius = [object doubleValue]; // clamp corona_flare in case planetinfo.plist / savegame contains the wrong value
-        [self setRadius:oldRadius andCorona:oo::PListView(dict).get<float>(@"corona_flare", 0.0f)];
-    } else if ([key isEqualToString:KEY_SUNNAME]) {
-        [self setName:oo::PListView(dict).get<NSString*>(KEY_SUNNAME)];
-    } else if ([key isEqualToString:@"corona_flare"]) {
+        [self setRadius:oldRadius andCorona:dict.get<float>("corona_flare", 0.0f)];
+    } else if (key == oo::StdString(KEY_SUNNAME)) {
+        // the Foundation get<> read nil unless a string or a number's text
+        const oo::PList* name = dict.find(key);
+        [self setName:(name != nullptr && (name->isString() || name->isNumber())) ? oo::NSStringFrom(dict.get<std::string>(key)) : nil];
+    } else if (key == "corona_flare") {
         [self setRadius:collision_radius andCorona:[object floatValue]];
-    } else if ([key isEqualToString:@"corona_shimmer"]) {
+    } else if (key == "corona_shimmer") {
         corona_speed_factor = OOClamp_0_1_f([object floatValue]) * 2.0 + randf() * randf();
-    } else if ([key isEqualToString:@"corona_hues"]) {
+    } else if (key == "corona_hues") {
         corona_blending = OOClamp_0_1_f([object floatValue]);
-    } else if ([key isEqualToString:@"sun_gone_nova"]) {
+    } else if (key == "sun_gone_nova") {
 
         if (oo::PListView(dict).get<bool>(key)) {
             [self setGoingNova:YES inTime:0];
         } else {
             [self setGoingNova:NO inTime:0];
             // oldRadius is always the radius we had before going nova...
-            [self setRadius:oldRadius andCorona:oo::PListView(dict).get<float>(@"corona_flare", 0.0f)];
+            [self setRadius:oldRadius andCorona:dict.get<float>("corona_flare", 0.0f)];
         }
     } else {
-        OOLogWARN(@"script.warning", @"Change to property '%@' not applied, will apply only after leaving this system.", key);
+        OOLogWARN(@"script.warning", @"Change to property '%@' not applied, will apply only after leaving this system.", oo::NSStringFrom(key));
         return NO;
     }
     return YES;
@@ -724,15 +732,14 @@ MA 02110-1301, USA.
     return YES;
 }
 
-- (NSString*)name
+- (id)name // shared selector (proposed ADR-0043)
 {
-    return _name;
+    return oo::NSStringOrNil(_name);
 }
 
-- (void)setName:(NSString*)name
+- (void)setName:(id)name // shared selector (proposed ADR-0043): an Objective-C string or nil
 {
-    [_name release];
-    _name = [name retain];
+    _name = oo::OptionalString(name);
 }
 
 @end

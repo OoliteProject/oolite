@@ -29,18 +29,40 @@ MA 02110-1301, USA.
 #import "OOMaths.h"
 #import "OOOpenGLExtensionManager.h"
 
+#include "oofnd/Log.hpp"
+#include "oofnd/String.hpp"
+
 #ifndef NDEBUG
 static NSString* const kOOLogOpenGLStateDump = @"rendering.opengl.stateDump";
 #endif
 
 static GLfloat sDisplayScaleFactor = 1.0f;
 
-BOOL OOCheckOpenGLErrors(NSString* format, ...)
+BOOL cxx_OOCheckOpenGLErrors(const char* format, ...)
+{
+    va_list args;
+
+    va_start(args, format);
+    // formatted only when an error is found (a copy of the arguments each time it is)
+    BOOL errorOccurred = cxx_OOCheckOpenGLErrors([format, &args]() -> std::string {
+        if (format == nullptr)
+            return "<unknown>";
+        va_list copy;
+        va_copy(copy, args);
+        std::string context = oo::str::vformat(format, copy);
+        va_end(copy);
+        return context;
+    });
+    va_end(args);
+
+    return errorOccurred;
+}
+
+BOOL cxx_OOCheckOpenGLErrors(const std::function<std::string()>& context)
 {
     GLenum errCode;
     const GLubyte* errString = NULL;
     BOOL errorOccurred = NO;
-    va_list args;
     static BOOL noReenter;
 
     if (noReenter)
@@ -50,7 +72,8 @@ BOOL OOCheckOpenGLErrors(NSString* format, ...)
     OO_ENTER_OPENGL();
 
     // Short-circut here, because glGetError() is quite expensive.
-    if (OOLogWillDisplayMessagesInClass(kOOLogOpenGLError)) {
+    if (oo::log::willDisplay("rendering.opengl.error")) {
+        std::optional<std::string> contextText; // built once, at the first error
         for (;;) {
             errCode = glGetError();
 
@@ -59,13 +82,11 @@ BOOL OOCheckOpenGLErrors(NSString* format, ...)
 
             errorOccurred = YES;
             errString = gluErrorString(errCode);
-            if (format == nil)
-                format = @"<unknown>";
+            if (!contextText.has_value())
+                contextText = context();
 
-            va_start(args, format);
-            format = [[[NSString alloc] initWithFormat:format arguments:args] autorelease];
-            va_end(args);
-            OOLog(kOOLogOpenGLError, @"OpenGL error: \"%s\" (%#x), context: %@", errString, errCode, format);
+            // gluErrorString can answer NULL, which %s printed as (null).
+            OO_LOG("rendering.opengl.error", "OpenGL error: \"{}\" ({:#x}), context: {}", errString != NULL ? reinterpret_cast<const char*>(errString) : "(null)", errCode, *contextText);
         }
     }
 
@@ -262,7 +283,7 @@ void LogOpenGLState(void)
     GLDumpFogState();
     GLDumpStateFlags();
 
-    OOCheckOpenGLErrors(@"After state dump");
+    cxx_OOCheckOpenGLErrors("After state dump");
 
     OOLogOutdent();
 }

@@ -72,7 +72,7 @@ SOFTWARE.
 }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-- (NSSet*)allTextures
+- (id)allTextures // shared selector (proposed ADR-0043)
 {
     return nil;
 }

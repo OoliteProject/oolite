@@ -25,62 +25,19 @@ MA 02110-1301, USA.
 #import "NSStringOOExtensions.h"
 #import "NSDataOOExtensions.h"
 #import "OOFoundation.h"
+#import "OOStringBridge.h"
 
 @implementation NSString (OOExtensions)
 
 + (instancetype)stringWithContentsOfUnicodeFile:(NSString*)path
 {
-    id result = nil;
-    BOOL OK = YES;
-    NSData* data = nil;
-    const uint8_t* bytes = NULL;
-    size_t length = 0;
-    const uint8_t* effectiveBytes = NULL;
-    size_t effectiveLength = 0;
-
-    data = [[NSData oo_dataWithOXZFile:path] retain];
+    // The UTF-16 / UTF-8 / Latin-1 decision and GNUstep's decoding are oo::str's (bead
+    // oo-3rb.62), including the corrected length after a UTF-8 BOM: this read six bytes past
+    // the buffer (length + 3).
+    NSData* data = [NSData oo_dataWithOXZFile:path];
     if (data == nil)
-        OK = NO;
-
-    if (OK) {
-        length = [data length];
-        bytes = (const uint8_t*)[data bytes];
-    }
-
-    if (OK && 2 <= length && (length % sizeof(unichar)) == 0) {
-        // Could be UTF-16
-        unichar firstChar = bytes[0];
-        firstChar = (firstChar << 8) | bytes[1]; // Endianism doesn't matter, because we test both orders of BOM.
-        if (firstChar == 0xFFFE || firstChar == 0xFEFF) {
-            // Consider it to be UTF-16.
-            result = [NSString stringWithCharacters:(unichar*)(bytes + sizeof(unichar)) length:(length / sizeof(unichar)) - 1];
-            if (result == nil)
-                OK = NO;
-        }
-    }
-
-    if (OK && result == nil) {
-        // Not UTF-16. Try UTF-8.
-        if (3 <= length && bytes[0] == 0xEF && bytes[1] == 0xBB && bytes[2] == 0xBF) {
-            // File starts with UTF-8 BOM; skip it.
-            effectiveBytes = bytes + 3;
-            effectiveLength = length + 3;
-        } else {
-            effectiveBytes = bytes;
-            effectiveLength = length;
-        }
-
-        // Attempt to interpret as UTF-8
-        result = [[[NSString alloc] initWithBytes:effectiveBytes length:effectiveLength encoding:NSUTF8StringEncoding] autorelease];
-    }
-
-    if (OK && result == nil) {
-        // Not UTF-16 or UTF-8. Use ISO-Latin-1 (which should work for any byte sequence).
-        result = [[[NSString alloc] initWithBytes:effectiveBytes length:effectiveLength encoding:NSISOLatin1StringEncoding] autorelease];
-    }
-
-    [data release];
-    return result;
+        return nil;
+    return oo::NSStringFrom(oo::str::decodeUnicodeFile((const uint8_t*)[data bytes], [data length]));
 }
 
 + (instancetype)stringWithUTF16String:(const unichar*)chars

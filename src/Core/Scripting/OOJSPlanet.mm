@@ -31,6 +31,8 @@ MA 02110-1301, USA.
 #import "OOJavaScriptEngine.h"
 #import "OOPlanetEntity.h"
 
+#import "OOFoundationBridge.h"
+
 static JSClassID sPlanetClassID;
 
 static JSValue PlanetGetProperty(OOJS_GETTER_ARGS);
@@ -107,7 +109,7 @@ JSClassID JSPlanetClassID(void)
     return sPlanetClassID;
 }
 
-- (NSString*)oo_jsClassName
+- (id)oo_jsClassName // shared selector (proposed ADR-0043)
 {
     switch ([self planetType]) {
     case STELLAR_TYPE_NORMAL_PLANET:
@@ -179,7 +181,7 @@ static JSValue PlanetSetProperty(OOJS_SETTER_ARGS)
     OOJS_NATIVE_ENTER(context)
 
     OOPlanetEntity* planet = nil;
-    NSString* sValue = nil;
+    std::optional<std::string> sValue;
     Quaternion qValue;
     Vector vValue;
     double dValue;
@@ -220,18 +222,19 @@ static JSValue PlanetSetProperty(OOJS_SETTER_ARGS)
         break;
 
     case kPlanet_name:
-        sValue = OOStringFromJSValue(context, value);
-        [planet setName:sValue];
+        sValue = oo::OptionalString(OOStringFromJSValue(context, value));
+        [planet setName:oo::NSStringOrNil(sValue)];
         return JS_UNDEFINED;
 
     case kPlanet_texture: {
         BOOL OK = NO;
-        sValue = OOStringFromJSValue(context, value);
+        sValue = oo::OptionalString(OOStringFromJSValue(context, value));
+
 
         OOJSPauseTimeLimiter();
 
         if ([planet isKindOfClass:[OOPlanetEntity class]]) {
-            if (sValue == nil) {
+            if (!sValue.has_value()) {
                 OOJSReportWarning(context, @"Expected texture string. Value not set.");
             } else {
                 OK = YES;
@@ -239,9 +242,9 @@ static JSValue PlanetSetProperty(OOJS_SETTER_ARGS)
         }
 
         if (OK) {
-            OK = [planet setUpPlanetFromTexture:sValue];
+            OK = [planet setUpPlanetFromTexture:oo::NSStringFrom(*sValue)];
             if (!OK)
-                OOJSReportWarning(context, @"Cannot find texture \"%@\". Value not set.", sValue);
+                OOJSReportWarning(context, @"Cannot find texture \"%@\". Value not set.", oo::NSStringFrom(*sValue));
         }
 
         OOJSResumeTimeLimiter();

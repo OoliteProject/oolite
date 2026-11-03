@@ -507,11 +507,11 @@ OO_TEST(autoreleaseScopesNest)
 			OO_CHECK_EQ(outer.pendingCount(), 1u);     // the innermost scope receives them
 		}
 		OO_CHECK(oo::AutoreleaseScope::current() == &outer);
-		OO_CHECK(gDeathLog == (std::vector<std::string>{"inner-1", "inner-2"}));
+		OO_CHECK(gDeathLog == (std::vector<std::string>{"inner-2", "inner-1"}));   // LIFO (ADR-0045)
 		OO_CHECK_EQ(gLive, 1);
 		oo::autorelease(new Thing("outer-2"));
 	}
-	OO_CHECK(gDeathLog == (std::vector<std::string>{"inner-1", "inner-2", "outer-1", "outer-2"}));
+	OO_CHECK(gDeathLog == (std::vector<std::string>{"inner-2", "inner-1", "outer-2", "outer-1"}));
 	OO_CHECK_EQ(gLive, 0);
 }
 
@@ -521,7 +521,7 @@ OO_TEST(drainReleasesInOrderAndKeepsTheScopeOpen)
 	oo::AutoreleaseScope scope;
 	for (int i = 0; i < 3; ++i)  oo::autorelease(new Thing("t" + std::to_string(i)));
 	scope.drain();                                     // [pool release]; pool = [[... alloc] init]
-	OO_CHECK(gDeathLog == (std::vector<std::string>{"t0", "t1", "t2"}));   // GNUstep order: as added
+	OO_CHECK(gDeathLog == (std::vector<std::string>{"t2", "t1", "t0"}));   // the game's order: LIFO (ADR-0045)
 	OO_CHECK_EQ(scope.pendingCount(), 0u);
 	OO_CHECK(oo::AutoreleaseScope::current() == &scope);
 	oo::autorelease(new Thing("after-drain"));
@@ -533,14 +533,15 @@ OO_TEST(drainReleasesInOrderAndKeepsTheScopeOpen)
 OO_TEST(drainingCascades)
 {
 	// Releasing a pooled object whose destructor autoreleases more objects drains those too, in
-	// the same drain, as GNUstep's -emptyPool loops until the pool is empty.
+	// the same drain, as libobjc2's emptyPool loops until the pool is empty. LIFO (ADR-0045): the
+	// newest (sibling) goes first, and born-in-dealloc lands on top, so it goes right after.
 	reset();
 	{
 		oo::AutoreleaseScope scope;
 		oo::autorelease(new Dealloc(nullptr, nullptr));   // no watcher: it would die before the drain
 		oo::autorelease(new Thing("sibling"));
 	}
-	OO_CHECK(gDeathLog == (std::vector<std::string>{"dealloc", "sibling", "born-in-dealloc"}));
+	OO_CHECK(gDeathLog == (std::vector<std::string>{"sibling", "dealloc", "born-in-dealloc"}));
 	OO_CHECK_EQ(gLive, 0);
 }
 

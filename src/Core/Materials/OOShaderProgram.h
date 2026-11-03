@@ -36,26 +36,34 @@ SOFTWARE.
 
 #if OO_SHADERS
 
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
+
+/*	Foundation sweep (proposed ADR-0043, bead oo-vqvw): shader sources, names, prefix and cache key
+        are nil-able strings (std::optional: a missing source means no shader of that kind, an empty
+        prefix counts as none). Attribute bindings are a property-list dictionary of attribute name ->
+        location (oo::PList, null for none).
+*/
 @interface OOShaderProgram : OOObject {
 @private
     GLhandleARB program;
-    NSString* key;
-    NSArray* standardMatrixUniformLocations;
+    std::optional<std::string> key;
+    oo::PList standardMatrixUniformLocations;
 }
 
-+ (id)shaderProgramWithVertexShader:(NSString*)vertexShaderSource
-                     fragmentShader:(NSString*)fragmentShaderSource
-                   vertexShaderName:(NSString*)vertexShaderName
-                 fragmentShaderName:(NSString*)fragmentShaderName
-                             prefix:(NSString*)prefixString // String prepended to program source (both vs and fs)
-                  attributeBindings:(NSDictionary*)attributeBindings // Maps vertex attribute names to "locations".
-                           cacheKey:(NSString*)cacheKey;
++ (id)shaderProgramWithVertexShader:(const std::optional<std::string>&)vertexShaderSource
+                     fragmentShader:(const std::optional<std::string>&)fragmentShaderSource
+                   vertexShaderName:(const std::optional<std::string>&)vertexShaderName
+                 fragmentShaderName:(const std::optional<std::string>&)fragmentShaderName
+                             prefix:(const std::optional<std::string>&)prefixString // String prepended to program source (both vs and fs)
+                  attributeBindings:(const oo::PList&)attributeBindings // Maps vertex attribute names to "locations".
+                           cacheKey:(const std::optional<std::string>&)cacheKey;
 
 // Loads a shader from a file, caching and sharing shader program instances.
-+ (id)shaderProgramWithVertexShaderName:(NSString*)vertexShaderName
-                     fragmentShaderName:(NSString*)fragmentShaderName
-                                 prefix:(NSString*)prefixString // String prepended to program source (both vs and fs)
-                      attributeBindings:(NSDictionary*)attributeBindings; // Maps vertex attribute names to "locations".
++ (id)shaderProgramWithVertexShaderName:(const std::string&)vertexShaderName
+                     fragmentShaderName:(const std::string&)fragmentShaderName
+                                 prefix:(const std::optional<std::string>&)prefixString // String prepended to program source (both vs and fs)
+                      attributeBindings:(const oo::PList&)attributeBindings; // Maps vertex attribute names to "locations".
 
 - (void)apply;
 + (void)applyNone;

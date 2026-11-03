@@ -118,6 +118,9 @@ TESTS_DIR = os.path.abspath(os.path.join(HERE, ".."))
 if TESTS_DIR not in sys.path:
     sys.path.insert(0, TESTS_DIR)
 
+# Sources are named by STEM: the migration renames .m -> .mm -> .cpp (source_paths.py, oo-7j3t).
+from source_paths import iter_source_files, resolve_source, source_stem  # noqa: E402
+
 # The staging helpers, imported rather than re-written - the same ones G7 uses. unstage_app in
 # particular removes junctions AS LINKS, so a teardown cannot recurse into the real build.
 from launch_snapshot import stage_app, unstage_app  # noqa: E402

@@ -113,7 +113,7 @@ MA 02110-1301, USA.
 }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-- (NSSet*)allTextures
+- (id)allTextures // shared selector (proposed ADR-0043)
 {
     return [[self drawable] allTextures];
 }

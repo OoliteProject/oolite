@@ -28,6 +28,7 @@ SOFTWARE.
 
 #import "OOALStreamedSound.h"
 #import "OOALSoundDecoder.h"
+#import "OOFoundationBridge.h"
 
 @implementation OOALStreamedSound
 
@@ -40,9 +41,9 @@ SOFTWARE.
     [super dealloc];
 }
 
-- (NSString*)name
+- (id)name // shared selector (proposed ADR-0043)
 {
-    return _name;
+    return oo::NSStringOrNil(_name);
 }
 
 - (id)initWithDecoder:(OOALSoundDecoder*)inDecoder
@@ -60,7 +61,7 @@ SOFTWARE.
     }
 
     if (OK) {
-        _name = [[inDecoder name] copy];
+        _name = oo::OptionalString([inDecoder name]);
         _sampleRate = [inDecoder sampleRate];
         _stereo = [inDecoder isStereo];
         _reachedEnd = NO;
@@ -99,7 +100,7 @@ SOFTWARE.
     ALint error;
     OOAL(alGenBuffers(1, &buffer));
     if ((error = alGetError()) != AL_NO_ERROR) {
-        OOLog(kOOLogSoundLoadingError, @"%@", @"Could not create OpenAL buffer");
+        OOLog(oo::NSStringFrom(kOOLogSoundLoadingError), @"%@", @"Could not create OpenAL buffer");
         return 0;
     } else {
         if (!_stereo) {

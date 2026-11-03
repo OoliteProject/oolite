@@ -29,7 +29,9 @@ MA 02110-1301, USA.
 #import "OOIsNumberLiteral.h"
 #import "OOJavaScriptEngine.h"
 
+#import "OOFoundationBridge.h"
 #import "OOJSPlayer.h"
+#import "OOStringBridge.h"
 
 /*	SpiderMonkey called the MissionVariables class's get, set and delete hooks
         for every property access, and its enumerate hook for for-in. QuickJS
@@ -43,24 +45,24 @@ MA 02110-1301, USA.
         variable of the same name exists.
 */
 
-// Property name for a string property ID, or nil for other IDs (symbols).
-static NSString* NameForPropertyID(JSContext* context, JSAtom propID)
+// Property name for a string property ID, or nullopt for other IDs (symbols).
+static std::optional<std::string> NameForPropertyID(JSContext* context, JSAtom propID)
 {
-    NSString* result = nil;
+    std::optional<std::string> result;
     JSValue idValue = JS_AtomToValue(context, propID);
     // SpiderMonkey's hooks ignored integer IDs; QuickJS uses integer atoms for names like "0".
     if (JS_IsString(idValue)) {
-        result = OOStringFromJSValue(context, idValue);
+        result = oo::OptionalString(OOStringFromJSValue(context, idValue));
     }
     JS_FreeValue(context, idValue);
     return result;
 }
 
-static NSString* KeyForPropertyName(NSString* name)
+static std::optional<std::string> KeyForPropertyName(const std::optional<std::string>& name)
 {
-    if (name == nil || [name hasPrefix:@"_"])
-        return nil;
-    return [@"mission_" stringByAppendingString:name];
+    if (!name.has_value() || oo::str::hasPrefix(*name, "_"))
+        return std::nullopt;
+    return "mission_" + *name;
 }
 
 static int MissionVariablesGetOwnProperty(JSContext* context, JSPropertyDescriptor* desc, JSValueConst object, JSAtom propID);
@@ -113,17 +115,17 @@ static id MissionVariablesConverter(JSContext* context, JSValueConst object)
 #endif
 
 // Owned value of a mission variable, or JS_UNDEFINED if it doesn't exist.
-static JSValue ValueForMissionVariable(JSContext* context, NSString* key)
+static JSValue ValueForMissionVariable(JSContext* context, const std::string& key)
 {
     PlayerEntity* player = OOPlayerForScripting();
-    id mvar = [player missionVariableForKey:key];
+    id mvar = [player missionVariableForKey:oo::NSStringFrom(key)];
 
     if (mvar == nil)
         return JS_UNDEFINED;
 
-    if ([mvar isKindOfClass:[NSString class]]) // Currently there should only be strings, but we may want to change this.
+    if (oo::IsNSString(mvar)) // Currently there should only be strings, but we may want to change this.
     {
-        if (OOIsNumberLiteral(mvar, YES)) {
+        if (OOIsNumberLiteral(oo::StdString(mvar), YES)) {
             return JS_NewNumber(context, [mvar doubleValue]);
         }
     }
@@ -134,11 +136,11 @@ static JSValue ValueForMissionVariable(JSContext* context, NSString* key)
 static int MissionVariablesGetOwnProperty(JSContext* context, JSPropertyDescriptor* desc, JSValueConst object, JSAtom propID)
 {
     @try {
-        NSString* key = KeyForPropertyName(NameForPropertyID(context, propID));
-        if (key == nil)
+        std::optional<std::string> key = KeyForPropertyName(NameForPropertyID(context, propID));
+        if (!key.has_value())
             return NO;
 
-        JSValue value = ValueForMissionVariable(context, key);
+        JSValue value = ValueForMissionVariable(context, *key);
         if (JS_IsUndefined(value))
             return NO;
 
@@ -162,8 +164,8 @@ static int MissionVariablesGetOwnPropertyNames(JSContext* context, JSPropertyEnu
 {
     @try {
         // -allKeys implicitly makes a copy, which is good since the enumerating code might mutate.
-        NSArray* mvars = [[PLAYER missionVariables] allKeys];
-        NSUInteger count = [mvars count];
+        const std::vector<std::string> mvars = oo::StringsFrom([[PLAYER missionVariables] allKeys]);
+        NSUInteger count = mvars.size();
         assert(count <= INT32_MAX);
 
         JSPropertyEnum* table = (JSPropertyEnum*)js_malloc(context, sizeof *table * MAX(count, (NSUInteger)1));
@@ -171,14 +173,13 @@ static int MissionVariablesGetOwnPropertyNames(JSContext* context, JSPropertyEnu
             return -1;
 
         uint32_t used = 0;
-        NSString* next = nil;
-        foreach (next, mvars) {
-            if (![next hasPrefix:@"mission_"])
+        for (std::string next : mvars) {
+            if (!oo::str::hasPrefix(next, "mission_"))
                 continue; // Skip mission instructions, which aren't visible through missionVariables.
 
-            next = [next substringFromIndex:8]; // Cut off "mission_".
+            next = next.substr(8); // Cut off "mission_".
 
-            JSAtom atom = JS_NewAtom(context, [next UTF8String]);
+            JSAtom atom = JS_NewAtom(context, next.c_str());
             if (atom == JS_ATOM_NULL) {
                 JS_FreePropertyEnum(context, table, used);
                 return -1;
@@ -204,10 +205,10 @@ static int MissionVariablesDeleteProperty(JSContext* context, JSValueConst objec
     @try {
         PlayerEntity* player = OOPlayerForScripting();
 
-        NSString* name = NameForPropertyID(context, propID);
-        if (name != nil) {
-            NSString* key = KeyForPropertyName(name);
-            [player setMissionVariable:nil forKey:key];
+        std::optional<std::string> name = NameForPropertyID(context, propID);
+        if (name.has_value()) {
+            std::optional<std::string> key = KeyForPropertyName(name);
+            [player setMissionVariable:nil forKey:oo::NSStringOrNil(key)];
         }
         return YES;
     }
@@ -221,9 +222,9 @@ static JSValue MissionVariablesGetProperty(JSContext* context, JSValueConst obje
 {
     OOJS_NATIVE_ENTER(context)
 
-    NSString* key = KeyForPropertyName(NameForPropertyID(context, propID));
-    if (key != nil) {
-        JSValue value = ValueForMissionVariable(context, key);
+    std::optional<std::string> key = KeyForPropertyName(NameForPropertyID(context, propID));
+    if (key.has_value()) {
+        JSValue value = ValueForMissionVariable(context, *key);
         if (!JS_IsUndefined(value))
             return value;
     }
@@ -235,7 +236,7 @@ static JSValue MissionVariablesGetProperty(JSContext* context, JSValueConst obje
 
     JSValue result = JS_UNDEFINED;
     if (JS_IsObject(prototype)) {
-        int found = (key != nil) ? JS_HasProperty(context, prototype, propID) : YES;
+        int found = key.has_value() ? JS_HasProperty(context, prototype, propID) : YES;
         if (found < 0) {
             result = JS_EXCEPTION;
         } else if (found) {
@@ -244,7 +245,7 @@ static JSValue MissionVariablesGetProperty(JSContext* context, JSValueConst obje
             // Missing mission variables read as null (OOJSValueFromNativeObject(nil)).
             result = JS_NULL;
         }
-    } else if (key != nil) {
+    } else if (key.has_value()) {
         result = JS_NULL;
     }
     JS_FreeValue(context, prototype);
@@ -257,19 +258,19 @@ static BOOL SetMissionVariable(JSContext* context, JSAtom propID, JSValueConst v
 {
     PlayerEntity* player = OOPlayerForScripting();
 
-    NSString* name = NameForPropertyID(context, propID);
-    if (name != nil) {
-        NSString* key = KeyForPropertyName(name);
-        if (key == nil) {
-            OOJSReportError(context, @"Invalid mission variable name \"%@\".", [name escapedForJavaScriptLiteral]);
+    std::optional<std::string> name = NameForPropertyID(context, propID);
+    if (name.has_value()) {
+        std::optional<std::string> key = KeyForPropertyName(name);
+        if (!key.has_value()) {
+            OOJSReportError(context, @"Invalid mission variable name \"%@\".", [oo::NSStringFrom(*name) escapedForJavaScriptLiteral]);
             return NO;
         }
 
-        NSString* objValue = OOStringFromJSValue(context, value);
+        // nil (a value with no string form) clears the variable. (The old OONull test could not match
+        // a string and is gone.)
+        std::optional<std::string> objValue = oo::OptionalString(OOStringFromJSValue(context, value));
 
-        if ([objValue isKindOfClass:[OONull class]])
-            objValue = nil;
-        [player setMissionVariable:objValue forKey:key];
+        [player setMissionVariable:oo::NSStringOrNil(objValue) forKey:oo::NSStringFrom(*key)];
     }
     return YES;
 }

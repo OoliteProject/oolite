@@ -127,8 +127,12 @@ OOINLINE OOHPScalar HPtriple_product(HPVector first, HPVector second, HPVector t
 OOINLINE HPVector HPnormal_to_surface(HPVector v1, HPVector v2, HPVector v3) CONST_FUNC;
 
 #if __OBJC__
-NSString* HPVectorDescription(HPVector vector); // @"(x, y, z)"
-NSArray* ArrayFromHPVector(HPVector vector);
+/*	Objective-C++ only: OOMaths.h is included inside extern "C" (proposed ADR-0043, bead oo-dlox). */
+extern "C++" {
+#include "oofnd/StdLib.hpp"
+std::string cxx_HPVectorDescription(HPVector vector); // "(x, y, z)"
+std::vector<double> cxx_ArrayFromHPVector(HPVector vector); // { x, y, z }
+}
 
 #endif
 
@@ -331,3 +335,12 @@ OOINLINE HPVector HPnormal_to_surface(HPVector v1, HPVector v2, HPVector v3)
     d1 = HPvector_subtract(v3, v2);
     return HPcross_product(d0, d1);
 }
+
+#if __OBJC__
+/*	TRANSITIONAL (proposed ADR-0043, "Transitional bridges"): the Foundation-typed functions this header
+        declared before bead oo-dlox, forwarding to the cxx_ functions above, so unmigrated callers compile
+        unchanged (with their old C linkage). Callers move to the cxx_ API in their own sweep beads; the
+        bridge goes in its own bead.
+*/
+#import "OOHPVector+FoundationBridge.h"
+#endif

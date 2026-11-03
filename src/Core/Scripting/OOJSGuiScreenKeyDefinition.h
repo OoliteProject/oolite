@@ -26,6 +26,9 @@ MA 02110-1301, USA.
 #import "OOJSScript.h"
 #include <quickjs.h>
 
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
+
 /*	The definition owns references to its callback and callbackThis, which are
         released on dealloc and when the JavaScript engine is reset.
 */
@@ -35,21 +38,21 @@ MA 02110-1301, USA.
     JSValue _callbackThis; // Owned.
     OOJSScript* _owningScript;
 
-    NSString* _name;
-    NSDictionary* _registerKeys;
+    std::optional<std::string> _name; // nullopt until set (was nil)
+    oo::PList _registerKeys; // key name -> key definitions; null until set (was nil)
 }
 
-- (NSString*)name;
-- (void)setName:(NSString*)name;
-- (NSDictionary*)registerKeys;
-- (void)setRegisterKeys:(NSDictionary*)registerKeys;
+- (id)name; // shared selector (proposed ADR-0043): an Objective-C string, or nil
+- (void)setName:(id)name; // shared selector (proposed ADR-0043): an Objective-C string, or nil
+- (oo::PList)registerKeys;
+- (void)setRegisterKeys:(const oo::PList&)registerKeys;
 // Returned values are owned by the caller.
 - (JSValue)callback;
 - (void)setCallback:(JSValueConst)callback;
 - (JSValue)callbackThis;
 - (void)setCallbackThis:(JSValueConst)callbackthis;
 
-- (void)runCallback:(NSString*)key;
+- (void)runCallback:(id)key; // shared selector (proposed ADR-0043): key is an Objective-C string
 
 - (NSComparisonResult)interfaceCompare:(OOJSGuiScreenKeyDefinition*)other;
 

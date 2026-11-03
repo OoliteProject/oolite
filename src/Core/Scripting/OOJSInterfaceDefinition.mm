@@ -24,7 +24,20 @@ MA 02110-1301, USA.
 */
 
 #import "OOJSInterfaceDefinition.h"
+#import "OOFoundationBridge.h"
 #import "OOJavaScriptEngine.h"
+
+namespace {
+// -caseInsensitiveCompare: as the definitions used it: a nil receiver answers
+// NSOrderedSame (a message to nil); a nil argument compares as the empty string.
+static NSComparisonResult CaseInsensitiveCompare(const std::optional<std::string>& a, const std::optional<std::string>& b)
+{
+    if (!a.has_value())
+        return NSOrderedSame;
+    int order = oo::str::caseInsensitiveCompare(*a, b.value_or(std::string()));
+    return (order < 0) ? NSOrderedAscending : ((order > 0) ? NSOrderedDescending : NSOrderedSame);
+}
+} // namespace
 
 @implementation OOJSInterfaceDefinition
 
@@ -62,46 +75,40 @@ MA 02110-1301, USA.
                                                   object:[OOJavaScriptEngine sharedEngine]];
 
     [_owningScript release];
-    [_title release];
-    [_summary release];
-    [_category release];
 
     [self deleteJSPointers];
 
     [super dealloc];
 }
 
-- (NSString*)title
+- (id)title // shared selector (proposed ADR-0043)
 {
-    return _title;
+    return oo::NSStringOrNil(_title);
 }
 
-- (void)setTitle:(NSString*)title
+- (void)setTitle:(id)title // shared selector (proposed ADR-0043)
 {
-    [_title autorelease];
-    _title = [title retain];
+    _title = oo::OptionalString(title);
 }
 
-- (NSString*)category
+- (std::optional<std::string>)category
 {
     return _category;
 }
 
-- (void)setCategory:(NSString*)category
+- (void)setCategory:(const std::string&)category
 {
-    [_category autorelease];
-    _category = [category retain];
+    _category = category;
 }
 
-- (NSString*)summary
+- (std::optional<std::string>)summary
 {
     return _summary;
 }
 
-- (void)setSummary:(NSString*)summary
+- (void)setSummary:(const std::string&)summary
 {
-    [_summary autorelease];
-    _summary = [summary retain];
+    _summary = summary;
 }
 
 - (JSValue)callback
@@ -132,7 +139,7 @@ MA 02110-1301, USA.
     OOJSRelinquishContext(context);
 }
 
-- (void)runCallback:(NSString*)key
+- (void)runCallback:(id)key // shared selector (proposed ADR-0043)
 {
     OOJavaScriptEngine* engine = [OOJavaScriptEngine sharedEngine];
     JSContext* context = OOJSAcquireContext();
@@ -170,9 +177,9 @@ MA 02110-1301, USA.
 
 - (NSComparisonResult)interfaceCompare:(OOJSInterfaceDefinition*)other
 {
-    NSComparisonResult byCategory = [_category caseInsensitiveCompare:[other category]];
+    NSComparisonResult byCategory = CaseInsensitiveCompare(_category, [other category]);
     if (byCategory == NSOrderedSame) {
-        return [_title caseInsensitiveCompare:[other title]];
+        return CaseInsensitiveCompare(_title, oo::OptionalString([other title]));
     } else {
         return byCategory;
     }

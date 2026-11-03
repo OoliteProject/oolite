@@ -43,7 +43,7 @@
 #if defined(GNUSTEP_BASE_LIBRARY)
 
 #include "Comparison.h"
-#include <Foundation/NSString.h>
+#import "OOFoundation.h" // Foundation through the project header (the -compare: declarations); was the Foundation string header
 
 @implementation NSObject (OLComparison)
 

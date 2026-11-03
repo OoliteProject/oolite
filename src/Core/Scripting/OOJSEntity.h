@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 #import "EntityOOJavaScriptExtensions.h"
 #import "OOJavaScriptEngine.h"
 #import "Universe.h"
+#include "oofnd/StdLib.hpp"
 #import <Foundation/Foundation.h>
 
 @class Entity;
@@ -47,7 +48,8 @@ DEFINE_JS_OBJECT_GETTER(OOJSEntityGetEntity, JSEntityClassID(), Entity)
         scriptClass and function are non-nil, a warning will be reported to the
         log.
 */
-BOOL EntityFromArgumentList(JSContext* context, NSString* scriptClass, NSString* function, int argc, JSValueConst* argv, Entity** outEntity, int* outConsumed);
+// C++ parameters (proposed ADR-0043); nullopt class or function: no warning (was nil).
+BOOL EntityFromArgumentList(JSContext* context, const std::optional<std::string>& scriptClass, const std::optional<std::string>& function, int argc, JSValueConst* argv, Entity** outEntity, int* outConsumed);
 
 /*
         For scripting purposes, a JS entity object is a stale reference if its

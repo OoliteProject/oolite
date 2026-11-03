@@ -27,21 +27,38 @@ MA 02110-1301, USA.
 
 #import "ShipEntity.h"
 
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
+#include "oofnd/objc/OOObjCRef.h"
+
+@class OOShipGroup;
+
+/*	Foundation sweep (proposed ADR-0043, bead oo-0s1h): a saved ship is an oo::PList (a Dict; null
+        for no ship, as nil was), and the save/restore context, which was a mutable dictionary keyed by
+        group pointers, is this struct. Both selectors are unique.
+*/
+struct OOShipSaveContext {
+    std::map<OOShipGroup*, unsigned> groupIDs; // not retained, as the NSValue keys were not
+    unsigned nextGroupID = 0;
+    std::vector<oo::ObjCRef<OOShipGroup*>> groups; // keeps the groups alive while they have IDs
+    std::map<NSUInteger, oo::ObjCRef<OOShipGroup*>> groupsByID;
+};
+
 @interface ShipEntity (LoadRestore)
 
 /*	Produces a property list representation of a specific ship. Intended for
         use with wormholes, but should probably generalize quite well.
 
-        The optional "context" is a mutable dictionary used to synchronise certain
+        The optional "context" (nullptr for none) is used to synchronise certain
         state when saving multiple ships - currently, groups. It is not a property
         list and does not need to be saved alongside the ships.
 */
-- (NSDictionary*)savedShipDictionaryWithContext:(NSMutableDictionary*)context;
+- (oo::PList)savedShipDictionaryWithContext:(OOShipSaveContext*)context;
 
 /*	Restore a ship from a property list representation generated with
         -savedShipDictionary. If the ship can't be restored and fallback is YES,
         an attempt will be made to generate a new ship with the same primary role.
 */
-+ (id)shipRestoredFromDictionary:(NSDictionary*)dictionary useFallback:(BOOL)fallback context:(NSMutableDictionary*)context;
++ (id)shipRestoredFromDictionary:(const oo::PList&)dictionary useFallback:(BOOL)fallback context:(OOShipSaveContext*)context;
 
 @end

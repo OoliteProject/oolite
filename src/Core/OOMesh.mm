@@ -4,13 +4,12 @@ OOMesh.m
 
 A note on memory management:
 The dynamically-sized buffers used by OOMesh (_vertex etc) are the byte arrays
-of NSDatas, which are tracked using the _retainedObjects dictionary. This
-simplifies the implementation of -dealloc, but more importantly, it means
-bytes are refcounted. This means bytes read from the cache don't need to be
-copied, we just need to retain the relevant NSData object (by sticking it in
-_retainedObjects).
+of refcounted OOMeshBuffers (one oo::Data each), which are tracked using the
+_retainedObjects map. This simplifies the implementation of -dealloc, but more
+importantly, it means bytes are refcounted and shared by a mesh and its mutable
+copies. (Bytes read from the cache are copied into a buffer of their own.)
 
-Since _retainedObjects is a dictionary its members can be replaced,
+Since _retainedObjects is a map its members can be replaced,
 potentially allowing mutable meshes, although we have no use for this at
 present.
 
@@ -58,7 +57,11 @@ MA 02110-1301, USA.
 #import <objc/runtime.h>
 
 #import "OODebugStandards.h"
+#import "OOFoundationBridge.h"
+#import "OOFoundationException.h"
 #import "OOJavaScriptEngine.h"
+#import "OOStringBridge.h"
+#include "oofnd/String.hpp"
 
 // If set, collision octree depth varies depending on the size of the mesh.
 #define ADAPTIVE_OCTREE_DEPTH 1
@@ -104,8 +107,8 @@ static OOTimeDelta Profile(NSString* tag, OOProfilingStopwatch* stopwatch, OOTim
         List of indices of faces used by a given vertex.
         Always access using the provided functions.
 
-        NOTE: VFRAddFace may use autoreleased memory. All accesses to a given VFR
-        must be inside the same autorelease pool.
+        The overflow list is a std::vector owned by the VertexFaceRef, which lives in
+        a std::vector for the duration of -loadData:scaleFactor:.
 */
 enum {
 #if OOLITE_64_BIT
@@ -118,7 +121,7 @@ enum {
 typedef struct VertexFaceRef {
     uint16_t internCount;
     uint16_t internFaces[kVertexFaceDefInternalCount];
-    NSMutableArray* extra;
+    std::vector<NSUInteger> extra;
 } VertexFaceRef;
 
 static void VFRAddFace(VertexFaceRef* vfr, NSUInteger index);
@@ -127,12 +130,12 @@ static NSUInteger VFRGetFaceAtIndex(VertexFaceRef* vfr, NSUInteger index);
 
 @interface OOMesh (Private) <OOMutableCopying, OOGraphicsResetClient>
 
-- (id)initWithName:(NSString*)name
-               cacheKey:(NSString*)cacheKey
-     materialDictionary:(NSDictionary*)materialDict
-      shadersDictionary:(NSDictionary*)shadersDict
+- (id)initWithName:(const std::string&)name
+               cacheKey:(const std::optional<std::string>&)cacheKey
+     materialDictionary:(const oo::PList&)materialDict
+      shadersDictionary:(const oo::PList&)shadersDict
                  smooth:(BOOL)smooth
-           shaderMacros:(NSDictionary*)macros
+           shaderMacros:(const oo::PList&)macros
     shaderBindingTarget:(id<OOWeakReferenceSupport>)object
             scaleFactor:(float)scale
          cacheWriteable:(BOOL)cacheWriteable;
@@ -145,8 +148,8 @@ static NSUInteger VFRGetFaceAtIndex(VertexFaceRef* vfr, NSUInteger index);
 
 - (void)deleteDisplayLists;
 
-- (NSDictionary*)modelData;
-- (BOOL)setModelFromModelData:(NSDictionary*)dict name:(NSString*)fileName;
+- (oo::PList)modelData; // null: incomplete
+- (BOOL)setModelFromModelData:(const oo::PList&)dict name:(const std::string&)fileName;
 
 - (void)getNormal:(Vector*)outNormal andTangent:(Vector*)outTangent forVertex:(OOMeshVertexCount)v_index inSmoothGroup:(OOMeshSmoothGroup)smoothGroup;
 
@@ -160,9 +163,9 @@ static NSUInteger VFRGetFaceAtIndex(VertexFaceRef* vfr, NSUInteger index);
 - (void)debugDrawNormals;
 #endif
 
-// Manage set of objects we need to hang on to, particularly NSDatas owning buffers.
-- (void)setRetainedObject:(id)object forKey:(NSString*)key;
-- (void*)allocateBytesWithSize:(size_t)size count:(NSUInteger)count key:(NSString*)key;
+// Manage the set of refcounted buffers we need to hang on to.
+- (void)setRetainedObject:(oo::Data)object forKey:(const std::string&)key;
+- (void*)allocateBytesWithSize:(size_t)size count:(NSUInteger)count key:(const std::string&)key;
 
 // Allocate all per-vertex/per-face buffers.
 - (BOOL)allocateVertexBuffersWithCount:(NSUInteger)count;
@@ -170,16 +173,30 @@ static NSUInteger VFRGetFaceAtIndex(VertexFaceRef* vfr, NSUInteger index);
 - (BOOL)allocateFaceBuffersWithCount:(NSUInteger)count;
 - (BOOL)allocateVertexArrayBuffersWithCount:(NSUInteger)count;
 
-- (void)renameTexturesFrom:(NSString*)from to:(NSString*)to;
+- (void)renameTexturesFrom:(const std::string&)from to:(const std::string&)to;
 
 @end
 
 @interface OOCacheManager (OOMesh)
 
-+ (NSDictionary*)meshDataForName:(NSString*)inShipName;
-+ (void)setMeshData:(NSDictionary*)inData forName:(NSString*)inShipName;
++ (oo::PList)meshDataForName:(const std::string&)inShipName;
++ (void)setMeshData:(const oo::PList&)inData forName:(const std::string&)inShipName;
 
 @end
+
+// One mesh buffer: the bytes _vertices & co. point into, shared (refcounted) by a mesh and its
+// mutable copies as the retained data object was.
+class OOMeshBuffer : public oo::RefCounted {
+public:
+    explicit OOMeshBuffer(oo::Data bytes)
+        : data_(std::move(bytes))
+    {
+    }
+    oo::Data& data() noexcept { return data_; }
+
+private:
+    oo::Data data_;
+};
 
 static BOOL IsLegacyNormalMode(OOMeshNormalMode mode)
 {
@@ -224,12 +241,12 @@ static BOOL IsPerVertexNormalMode(OOMeshNormalMode mode)
 
 @implementation OOMesh
 
-+ (instancetype)meshWithName:(NSString*)name
-                    cacheKey:(NSString*)cacheKey
-          materialDictionary:(NSDictionary*)materialDict
-           shadersDictionary:(NSDictionary*)shadersDict
++ (instancetype)meshWithName:(const std::string&)name
+                    cacheKey:(const std::optional<std::string>&)cacheKey
+          materialDictionary:(const oo::PList&)materialDict
+           shadersDictionary:(const oo::PList&)shadersDict
                       smooth:(BOOL)smooth
-                shaderMacros:(NSDictionary*)macros
+                shaderMacros:(const oo::PList&)macros
          shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 {
     return [[[self alloc] initWithName:name
@@ -243,12 +260,12 @@ static BOOL IsPerVertexNormalMode(OOMeshNormalMode mode)
                         cacheWriteable:YES] autorelease];
 }
 
-+ (instancetype)meshWithName:(NSString*)name
-                    cacheKey:(NSString*)cacheKey
-          materialDictionary:(NSDictionary*)materialDict
-           shadersDictionary:(NSDictionary*)shadersDict
++ (instancetype)meshWithName:(const std::string&)name
+                    cacheKey:(const std::optional<std::string>&)cacheKey
+          materialDictionary:(const oo::PList&)materialDict
+           shadersDictionary:(const oo::PList&)shadersDict
                       smooth:(BOOL)smooth
-                shaderMacros:(NSDictionary*)macros
+                shaderMacros:(const oo::PList&)macros
          shaderBindingTarget:(id<OOWeakReferenceSupport>)object
                  scaleFactor:(float)scale
               cacheWriteable:(BOOL)cacheWriteable
@@ -281,8 +298,8 @@ static BOOL IsPerVertexNormalMode(OOMeshNormalMode mode)
     if (self == nil)
         return nil;
 
-    baseFile = @"No Model";
-    baseFileOctreeCacheRef = @"No Model-0.000";
+    baseFile = "No Model";
+    baseFileOctreeCacheRef = "No Model-0.000";
     _cacheWriteable = YES;
 #if OO_MULTITEXTURE
     _textureUnitCount = NSNotFound;
@@ -299,25 +316,16 @@ static BOOL IsPerVertexNormalMode(OOMeshNormalMode mode)
 {
     unsigned i;
 
-    DESTROY(baseFileOctreeCacheRef);
-    DESTROY(baseFile);
     DESTROY(octree);
 
     [self deleteDisplayLists];
 
     for (i = 0; i != kOOMeshMaxMaterials; ++i) {
         DESTROY(materials[i]);
-        DESTROY(materialKeys[i]);
     }
 
     [[OOGraphicsResetManager sharedManager] unregisterClient:self];
 
-    DESTROY(_retainedObjects);
-
-    DESTROY(_materialDict);
-    DESTROY(_shadersDict);
-    DESTROY(_cacheKey);
-    DESTROY(_shaderMacros);
     DESTROY(_shaderBindingTarget);
 
 #if OOMESH_PROFILE
@@ -327,23 +335,28 @@ static BOOL IsPerVertexNormalMode(OOMeshNormalMode mode)
     [super dealloc];
 }
 
-static NSString* NormalModeDescription(OOMeshNormalMode mode)
+namespace {
+
+const char* NormalModeDescription(OOMeshNormalMode mode)
 {
     switch (mode) {
     case kNormalModePerFace:
-        return @"per-face";
+        return "per-face";
     case kNormalModeSmooth:
-        return @"smooth";
+        return "smooth";
     case kNormalModeExplicit:
-        return @"explicit";
+        return "explicit";
     }
 
-    return @"unknown";
+    return "unknown";
 }
 
-- (NSString*)descriptionComponents
+} // namespace
+
+- (id)descriptionComponents // shared selector (proposed ADR-0043)
 {
-    return [NSString stringWithFormat:@"\"%@\", %zu vertices, %zu faces, radius: %g m normals: %@", [self modelName], [self vertexCount], [self faceCount], [self collisionRadius], NormalModeDescription((OOMeshNormalMode)_normalMode)];
+    const std::optional<std::string> modelName = [self modelName];
+    return oo::NSStringFrom(oo::str::format("\"%s\", %zu vertices, %zu faces, radius: %g m normals: %s", modelName ? modelName->c_str() : "(null)", [self vertexCount], [self faceCount], [self collisionRadius], NormalModeDescription((OOMeshNormalMode)_normalMode)));
 }
 
 - (id)copyWithZone:(OOZone*)zone
@@ -354,7 +367,7 @@ static NSString* NormalModeDescription(OOMeshNormalMode mode)
         return [self mutableCopyWithZone:zone];
 }
 
-- (NSString*)modelName
+- (std::optional<std::string>)modelName
 {
     return baseFile;
 }
@@ -481,13 +494,23 @@ static NSString* NormalModeDescription(OOMeshNormalMode mode)
         listsReady = YES;
         brokenInRender = NO;
     }
-    @catch (NSException* exception) {
+    @catch (OOException* exception) {
+        if (!brokenInRender) {
+            OOLog(kOOLogException, @"***** %s for %@ encountered exception: %@ : %@ *****", __PRETTY_FUNCTION__, self, oo::NSStringFrom([exception name]), oo::NSStringFrom([exception reason]));
+            brokenInRender = YES;
+        }
+        if (strncmp([exception name], "Oolite", 6) == 0)
+            [UNIVERSE handleOoliteException:exception]; // handle these ourself
+        else
+            @throw exception; // pass these on
+    }
+    @catch (OOFoundationException* exception) {
         if (!brokenInRender) {
             OOLog(kOOLogException, @"***** %s for %@ encountered exception: %@ : %@ *****", __PRETTY_FUNCTION__, self, [exception name], [exception reason]);
             brokenInRender = YES;
         }
         if ([[exception name] hasPrefix:@"Oolite"])
-            [UNIVERSE handleOoliteException:exception]; // handle these ourself
+            [UNIVERSE handleOoliteException:[OOException exceptionWithName:[[exception name] UTF8String] reason:[[exception reason] UTF8String]]]; // handle these ourself
         else
             @throw exception; // pass these on
     }
@@ -537,15 +560,20 @@ static NSString* NormalModeDescription(OOMeshNormalMode mode)
     OOMaterial* material = nil;
 
     if (materialCount != 0) {
+        // OOMaterialConvenienceCreators is not migrated: hand it the same objects, converted once.
+        id materialDict = oo::ObjectFromPList(_materialDict);
+        id shadersDict = oo::ObjectFromPList(_shadersDict);
+        id shaderMacros = oo::ObjectFromPList(_shaderMacros);
+
         for (i = 0; i != materialCount; ++i) {
             OOMaterial* oldMaterial = materials[i];
 
-            if (![materialKeys[i] isEqualToString:@"_oo_placeholder_material"]) {
-                material = [OOMaterial materialWithName:materialKeys[i]
-                                               cacheKey:_cacheKey
-                                     materialDictionary:_materialDict
-                                      shadersDictionary:_shadersDict
-                                                 macros:_shaderMacros
+            if (materialKeys[i] != "_oo_placeholder_material") {
+                material = [OOMaterial materialWithName:oo::NSStringFrom(materialKeys[i])
+                                               cacheKey:oo::NSStringOrNil(_cacheKey)
+                                     materialDictionary:materialDict
+                                      shadersDictionary:shadersDict
+                                                 macros:shaderMacros
                                           bindingTarget:[_shaderBindingTarget weakRefUnderlyingObject] // Windows DEP fix.
                                         forSmoothedMesh:IsPerVertexNormalMode((OOMeshNormalMode)_normalMode)];
             } else {
@@ -566,12 +594,12 @@ static NSString* NormalModeDescription(OOMeshNormalMode mode)
     }
 }
 
-- (NSDictionary*)materials
+- (oo::PList)materials
 {
     return _materialDict;
 }
 
-- (NSDictionary*)shaders
+- (oo::PList)shaders
 {
     return _shadersDict;
 }
@@ -622,7 +650,7 @@ static NSString* NormalModeDescription(OOMeshNormalMode mode)
             result++;
         }
 
-    OOLog(@"mesh.load.octree.size", @"Selected octree depth %u for size %g for %@", result, size, baseFile);
+    OOLog(@"mesh.load.octree.size", @"Selected octree depth %u for size %g for %@", result, size, oo::NSStringOrNil(baseFile));
     return result;
 }
 #else
@@ -635,7 +663,7 @@ static NSString* NormalModeDescription(OOMeshNormalMode mode)
 - (Octree*)octree
 {
     if (octree == nil) {
-        octree = [[OOCacheManager octreeForModel:baseFileOctreeCacheRef] retain];
+        octree = baseFileOctreeCacheRef ? [[OOCacheManager octreeForModel:*baseFileOctreeCacheRef] retain] : nil;
         if (octree == nil) {
             @autoreleasepool {
                 OOMeshToOctreeConverter* converter = [OOMeshToOctreeConverter converterWithCapacity:faceCount];
@@ -651,12 +679,12 @@ static NSString* NormalModeDescription(OOMeshNormalMode mode)
 
                 octree = [converter findOctreeToDepth:[self octreeDepth]];
                 [octree retain];
-                if (EXPECT(_cacheWriteable)) {
-                    [OOCacheManager setOctree:octree forModel:baseFileOctreeCacheRef];
+                if (EXPECT(_cacheWriteable) && baseFileOctreeCacheRef) {
+                    [OOCacheManager setOctree:octree forModel:*baseFileOctreeCacheRef];
                 }
             }
         } else {
-            OOLog(@"mesh.load.octreeCached", @"Retrieved octree \"%@\" from cache.", baseFileOctreeCacheRef);
+            OOLog(@"mesh.load.octreeCached", @"Retrieved octree \"%@\" from cache.", oo::NSStringOrNil(baseFileOctreeCacheRef));
         }
     }
 
@@ -759,23 +787,25 @@ static NSString* NormalModeDescription(OOMeshNormalMode mode)
 {
     [super dumpSelfState];
 
-    if (baseFile != nil)
-        OOLog(@"dumpState.mesh", @"Model file: %@", baseFile);
+    if (baseFile)
+        OOLog(@"dumpState.mesh", @"Model file: %@", oo::NSStringFrom(*baseFile));
     OOLog(@"dumpState.mesh", @"Vertex count: %u, face count: %u", vertexCount, faceCount);
-    OOLog(@"dumpState.mesh", @"Normals: %@", NormalModeDescription((OOMeshNormalMode)_normalMode));
+    OOLog(@"dumpState.mesh", @"Normals: %@", oo::NSStringFrom(NormalModeDescription((OOMeshNormalMode)_normalMode)));
 }
 #endif
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-- (NSSet*)allTextures
+- (id)allTextures // shared selector (proposed ADR-0043)
 {
-    NSMutableSet* result = [NSMutableSet set];
+    // Every material's textures; NSSetFromObjects drops duplicates as -unionSet: did.
+    std::vector<oo::ObjCRef<id>> result;
     OOMeshMaterialCount i;
     for (i = 0; i != materialCount; i++) {
-        [result unionSet:[materials[i] allTextures]];
+        for (const oo::ObjCRef<id>& texture : oo::ObjCRefsFrom<id>([materials[i] allTextures]))
+            result.push_back(texture);
     }
 
-    return result;
+    return oo::NSSetFromObjects(result);
 }
 
 - (size_t)totalSize
@@ -816,12 +846,12 @@ static NSString* NormalModeDescription(OOMeshNormalMode mode)
 
 @implementation OOMesh (Private)
 
-- (id)initWithName:(NSString*)name
-               cacheKey:(NSString*)cacheKey
-     materialDictionary:(NSDictionary*)materialDict
-      shadersDictionary:(NSDictionary*)shadersDict
+- (id)initWithName:(const std::string&)name
+               cacheKey:(const std::optional<std::string>&)cacheKey
+     materialDictionary:(const oo::PList&)materialDict
+      shadersDictionary:(const oo::PList&)shadersDict
                  smooth:(BOOL)smooth
-           shaderMacros:(NSDictionary*)macros
+           shaderMacros:(const oo::PList&)macros
     shaderBindingTarget:(id<OOWeakReferenceSupport>)target
             scaleFactor:(float)scale
          cacheWriteable:(BOOL)cacheWriteable
@@ -840,21 +870,21 @@ static NSString* NormalModeDescription(OOMeshNormalMode mode)
         _stopwatch = [[OOProfilingStopwatch alloc] init];
 #endif
 
-        if ([self loadData:name scaleFactor:scale]) {
+        if ([self loadData:oo::NSStringFrom(name) scaleFactor:scale]) {
             [self calculateBoundingVolumes];
             PROFILE(@"finished calculateBoundingVolumes (again\?\?)");
 
-            baseFile = [name copy];
-            baseFileOctreeCacheRef = [[NSString stringWithFormat:@"%@-%.3f", baseFile, scale] copy];
+            baseFile = name;
+            baseFileOctreeCacheRef = oo::str::format("%s-%.3f", name.c_str(), scale);
 
             /*	New in r3033: save the material-defining parameters here so we
                     can rebind the materials at any time.
                     -- Ahruman 2010-02-17
             */
-            _materialDict = [materialDict copy];
-            _shadersDict = [shadersDict copy];
-            _cacheKey = [cacheKey copy];
-            _shaderMacros = [macros copy];
+            _materialDict = materialDict;
+            _shadersDict = shadersDict;
+            _cacheKey = cacheKey;
+            _shaderMacros = macros;
             _shaderBindingTarget = [target weakRetain];
 
             [self rebindMaterials];
@@ -892,18 +922,22 @@ static NSString* NormalModeDescription(OOMeshNormalMode mode)
         memcpy((void*)result, (const void*)self, class_getInstanceSize(cls));
 
     if (result != nil) {
-        [result->baseFile retain];
-        [result->baseFileOctreeCacheRef retain];
+        /*	The C++ ivars were copied bitwise too, so the copy's aliases self's storage: construct
+                each afresh over the copy (never assign, which would free self's buffers), where the
+                Objective-C ivars get their -retain.
+        */
+        new (&result->baseFile) std::optional<std::string>(baseFile);
+        new (&result->baseFileOctreeCacheRef) std::optional<std::string>(baseFileOctreeCacheRef);
         [result->octree retain];
-        [result->_retainedObjects retain];
-        [result->_materialDict retain];
-        [result->_shadersDict retain];
-        [result->_cacheKey retain];
-        [result->_shaderMacros retain];
+        new (&result->_retainedObjects) std::map<std::string, oo::Ref<OOMeshBuffer>, std::less<>>(_retainedObjects);
+        new (&result->_materialDict) oo::PList(_materialDict);
+        new (&result->_shadersDict) oo::PList(_shadersDict);
+        new (&result->_cacheKey) std::optional<std::string>(_cacheKey);
+        new (&result->_shaderMacros) oo::PList(_shaderMacros);
         [result->_shaderBindingTarget retain];
 
         for (i = 0; i != kOOMeshMaxMaterials; ++i) {
-            [result->materialKeys[i] retain];
+            new (&result->materialKeys[i]) std::string(materialKeys[i]);
             [result->materials[i] retain];
         }
 
@@ -933,147 +967,126 @@ static NSString* NormalModeDescription(OOMeshNormalMode mode)
     _textureUnitCount = NSNotFound;
 }
 
-- (NSDictionary*)modelData
+- (oo::PList)modelData
 {
     OOJS_PROFILE_ENTER
-
-    NSNumber *vertCnt = nil,
-             *faceCnt = nil;
-    NSData *vertData = nil,
-           *normData = nil,
-           *tanData = nil,
-           *faceData = nil;
-    NSArray* mtlKeys = nil;
-    NSNumber* normMode = nil;
 
     BOOL includeNormals = IsPerVertexNormalMode((OOMeshNormalMode)_normalMode);
 
     // Prepare cache data elements.
-    vertCnt = [NSNumber numberWithUnsignedInt:vertexCount];
-    faceCnt = [NSNumber numberWithUnsignedInt:faceCount];
-
-    vertData = [_retainedObjects objectForKey:@"vertices"];
-    faceData = [_retainedObjects objectForKey:@"faces"];
-    if (includeNormals) {
-        normData = [_retainedObjects objectForKey:@"normals"];
-        tanData = [_retainedObjects objectForKey:@"tangents"];
-    }
-
-    if (materialCount != 0) {
-        mtlKeys = [NSArray arrayWithObjects:materialKeys count:materialCount];
-    } else {
-        mtlKeys = [NSArray array];
-    }
-    normMode = [NSNumber numberWithUnsignedChar:_normalMode];
+    const auto vertData = _retainedObjects.find("vertices");
+    const auto faceData = _retainedObjects.find("faces");
+    const auto normData = _retainedObjects.find("normals");
+    const auto tanData = _retainedObjects.find("tangents");
 
     // Ensure we have all the required data elements.
-    if (vertCnt == nil || faceCnt == nil || vertData == nil || faceData == nil || mtlKeys == nil || normMode == nil) {
-        return nil;
+    if (vertData == _retainedObjects.end() || faceData == _retainedObjects.end()) {
+        return oo::PList();
     }
 
     if (includeNormals) {
-        if (normData == nil || tanData == nil)
-            return nil;
+        if (normData == _retainedObjects.end() || tanData == _retainedObjects.end())
+            return oo::PList();
     }
 
-    // All OK; stick 'em in a dictionary.
-    return [NSDictionary dictionaryWithObjectsAndKeys:
-            vertCnt, @"vertex count",
-        vertData, @"vertex data",
-        faceCnt, @"face count",
-        faceData, @"face data",
-        mtlKeys, @"material keys",
-        normMode, @"normal mode",
-        /*	NOTE: order matters. Since normData and tanData
-                are last, if they're nil the dictionary will be
-                built without them, which is desired behaviour.
-        */
-        normData, @"normal data",
-        tanData, @"tangent data",
-        nil];
+    // All OK; stick 'em in a dictionary. The counts are unsigned (+numberWithUnsignedInt:, and
+    // +numberWithUnsignedChar: for the normal mode); the normals are only included when used.
+    oo::PList::Array mtlKeys;
+    for (OOMeshMaterialCount i = 0; i != materialCount; ++i)
+        mtlKeys.emplace_back(materialKeys[i]);
+
+    oo::PList::Dict result;
+    result["vertex count"] = oo::PList(vertexCount);
+    result["vertex data"] = oo::PList(vertData->second->data());
+    result["face count"] = oo::PList(faceCount);
+    result["face data"] = oo::PList(faceData->second->data());
+    result["material keys"] = oo::PList(std::move(mtlKeys));
+    result["normal mode"] = oo::PList::unsignedInteger(_normalMode);
+    if (includeNormals) {
+        result["normal data"] = oo::PList(normData->second->data());
+        result["tangent data"] = oo::PList(tanData->second->data());
+    }
+    return oo::PList(std::move(result));
 
     OOJS_PROFILE_EXIT
 }
 
-- (BOOL)setModelFromModelData:(NSDictionary*)dict name:(NSString*)fileName
+- (BOOL)setModelFromModelData:(const oo::PList&)dict name:(const std::string&)fileName
 {
     OOJS_PROFILE_ENTER
 
-    NSData *vertData = nil,
-           *normData = nil,
-           *tanData = nil,
-           *faceData = nil;
-    NSArray* mtlKeys = nil;
-    NSString* key = nil;
     unsigned i;
 
-    if (dict == nil || ![dict isKindOfClass:[NSDictionary class]])
+    if (!dict.isDict())
         return NO;
 
-    vertexCount = oo::PListView(dict).get<unsigned int>(@"vertex count");
-    faceCount = oo::PListView(dict).get<unsigned int>(@"face count");
+    vertexCount = dict.get<unsigned int>("vertex count");
+    faceCount = dict.get<unsigned int>("face count");
 
     if (vertexCount == 0 || faceCount == 0)
         return NO;
 
     // Read data elements from dictionary.
-    vertData = oo::PListView(dict).get<NSData*>(@"vertex data");
-    faceData = oo::PListView(dict).get<NSData*>(@"face data");
+    const oo::PList* vertData = dict.get<oo::PList::Data>("vertex data");
+    const oo::PList* faceData = dict.get<oo::PList::Data>("face data");
+    const oo::PList* normData = nullptr;
+    const oo::PList* tanData = nullptr;
 
-    mtlKeys = oo::PListView(dict).get<NSArray*>(@"material keys");
-    _normalMode = oo::PListView(dict).get<unsigned char>(@"normal mode");
+    const oo::PList* mtlKeys = dict.get<oo::PList::Array>("material keys");
+    _normalMode = dict.get<unsigned char>("normal mode");
     BOOL includeNormals = IsPerVertexNormalMode((OOMeshNormalMode)_normalMode);
 
     // Ensure we have all the required data elements.
-    if (vertData == nil || faceData == nil || mtlKeys == nil) {
-        OOLog(@"mesh.load.error.badCacheData", @"Ignoring bad cache data for mesh \"%@\".", fileName);
+    if (vertData == nullptr || faceData == nullptr || mtlKeys == nullptr) {
+        OOLog(@"mesh.load.error.badCacheData", @"Ignoring bad cache data for mesh \"%@\".", oo::NSStringFrom(fileName));
         return NO;
     }
 
     if (includeNormals) {
-        normData = oo::PListView(dict).get<NSData*>(@"normal data");
-        tanData = oo::PListView(dict).get<NSData*>(@"tangent data");
-        if (normData == nil || tanData == nil) {
-            OOLog(@"mesh.load.error.badCacheData", @"Ignoring bad normal/tangent cache data for mesh \"%@\".", fileName);
+        normData = dict.get<oo::PList::Data>("normal data");
+        tanData = dict.get<oo::PList::Data>("tangent data");
+        if (normData == nullptr || tanData == nullptr) {
+            OOLog(@"mesh.load.error.badCacheData", @"Ignoring bad normal/tangent cache data for mesh \"%@\".", oo::NSStringFrom(fileName));
             return NO;
         }
     }
 
     // Ensure data objects are of correct size.
-    if ([vertData length] != sizeof *_vertices * vertexCount)
+    if (vertData->getIf<oo::PList::Data>()->length() != sizeof *_vertices * vertexCount)
         return NO;
-    if ([faceData length] != sizeof *_faces * faceCount)
+    if (faceData->getIf<oo::PList::Data>()->length() != sizeof *_faces * faceCount)
         return NO;
     if (includeNormals) {
-        if ([normData length] != sizeof *_normals * vertexCount)
+        if (normData->getIf<oo::PList::Data>()->length() != sizeof *_normals * vertexCount)
             return NO;
-        if ([tanData length] != sizeof *_tangents * vertexCount)
+        if (tanData->getIf<oo::PList::Data>()->length() != sizeof *_tangents * vertexCount)
             return NO;
     }
 
-    // Retain data.
-    _vertices = (Vector*)[vertData bytes];
-    [self setRetainedObject:vertData forKey:@"vertices"];
-    _faces = (OOMeshFace*)[faceData bytes];
-    [self setRetainedObject:faceData forKey:@"faces"];
+    // Retain data: each is copied into a buffer of this mesh's, and the pointers taken from it.
+    [self setRetainedObject:*vertData->getIf<oo::PList::Data>() forKey:"vertices"];
+    _vertices = (Vector*)_retainedObjects.find("vertices")->second->data().mutableBytes();
+    [self setRetainedObject:*faceData->getIf<oo::PList::Data>() forKey:"faces"];
+    _faces = (OOMeshFace*)_retainedObjects.find("faces")->second->data().mutableBytes();
     if (includeNormals) {
-        _normals = (Vector*)[normData bytes];
-        [self setRetainedObject:normData forKey:@"normals"];
-        _tangents = (Vector*)[tanData bytes];
-        [self setRetainedObject:tanData forKey:@"tangents"];
+        [self setRetainedObject:*normData->getIf<oo::PList::Data>() forKey:"normals"];
+        _normals = (Vector*)_retainedObjects.find("normals")->second->data().mutableBytes();
+        [self setRetainedObject:*tanData->getIf<oo::PList::Data>() forKey:"tangents"];
+        _tangents = (Vector*)_retainedObjects.find("tangents")->second->data().mutableBytes();
     } else {
         _normals = NULL;
         _tangents = NULL;
     }
 
-    // Copy material keys.
-    materialCount = [mtlKeys count];
+    // Copy material keys (oo_stringAtIndex: a string, or a number's -stringValue).
+    const oo::PList::Array& keys = *mtlKeys->getIf<oo::PList::Array>();
+    materialCount = keys.size();
     for (i = 0; i != materialCount; ++i) {
-        key = oo::PListView(mtlKeys).at<NSString*>(i);
-        if (key != nil)
-            materialKeys[i] = [key copy];
+        const oo::PList& key = keys[i];
+        if (key.isString() || key.isNumber())
+            materialKeys[i] = oo::PListGet<std::string>::from(&key, std::string());
         else {
-            OOLog(@"mesh.load.error.badCacheData", @"Ignoring bad cache data for mesh \"%@\".", fileName);
+            OOLog(@"mesh.load.error.badCacheData", @"Ignoring bad cache data for mesh \"%@\".", oo::NSStringFrom(fileName));
             return NO;
         }
     }
@@ -1088,7 +1101,6 @@ static NSString* NormalModeDescription(OOMeshNormalMode mode)
     OOJS_PROFILE_ENTER
 
     NSScanner* scanner;
-    NSDictionary* cacheData = nil;
     BOOL failFlag = NO;
     NSString* failString = @"***** ";
     unsigned i, j;
@@ -1097,9 +1109,9 @@ static NSString* NormalModeDescription(OOMeshNormalMode mode)
     BOOL using_preloaded = NO;
 
     cacheKey = [NSString stringWithFormat:@"%@:%u:%.3f", filename, _normalMode, scale];
-    cacheData = [OOCacheManager meshDataForName:cacheKey];
-    if (cacheData != nil) {
-        if ([self setModelFromModelData:cacheData name:filename]) {
+    const oo::PList cacheData = [OOCacheManager meshDataForName:oo::StdString(cacheKey)];
+    if (cacheData) {
+        if ([self setModelFromModelData:cacheData name:oo::StdString(filename)]) {
             using_preloaded = YES;
             PROFILE(@"loaded from cache");
             OOLog(@"mesh.load.cached", @"Retrieved mesh \"%@\" from cache.", filename);
@@ -1200,18 +1212,10 @@ static NSString* NormalModeDescription(OOMeshNormalMode mode)
         }
 
         // Allocate face->vertex table.
-        size_t faceRefSize = sizeof(VertexFaceRef) * vertexCount;
-        VertexFaceRef* faceRefs = (VertexFaceRef*)calloc(1, faceRefSize);
-        if (faceRefs != NULL) {
-            // use an NSData to effectively autorelease it.
-            NSData* faceRefHolder = [NSData dataWithBytesNoCopy:faceRefs length:faceRefSize freeWhenDone:YES];
-            if (faceRefHolder == nil) {
-                free(faceRefs);
-                faceRefs = NULL;
-            }
-        }
+        std::vector<VertexFaceRef> faceRefTable(vertexCount); // zeroed, freed when loading ends
+        VertexFaceRef* faceRefs = faceRefTable.data();
 
-        if (faceRefs == NULL || ![self allocateFaceBuffersWithCount:faceCount]) {
+        if (![self allocateFaceBuffersWithCount:faceCount]) {
             OOLog(kOOLogAllocationFailure, @"***** ERROR: failed to allocate memory for model %@ (%u vertices, %u faces).", filename, vertexCount, faceCount);
             return NO;
         }
@@ -1278,7 +1282,7 @@ static NSString* NormalModeDescription(OOMeshNormalMode mode)
                             failFlag = YES;
                             failString = [NSString stringWithFormat:@"%@Face[%u] has fewer than three vertices.\n", failString, j];
                         } else if (n_v > 3) {
-                            OOLogWARN(@"mesh.load.warning.nonTriangular", @"Face[%u] of %@ has %u vertices specified. Only the first three will be used.", j, baseFile, n_v);
+                            OOLogWARN(@"mesh.load.warning.nonTriangular", @"Face[%u] of %@ has %u vertices specified. Only the first three will be used.", j, oo::NSStringOrNil(baseFile), n_v);
                             n_v = 3;
                         }
                     } else {
@@ -1329,7 +1333,7 @@ static NSString* NormalModeDescription(OOMeshNormalMode mode)
                                 return NO;
                             }
                             _faces[j].materialIndex = materialCount;
-                            materialKeys[materialCount] = [materialKey retain];
+                            materialKeys[materialCount] = oo::StdString(materialKey);
                             index = [NSNumber numberWithUnsignedInt:materialCount];
                             [texFileName2Idx setObject:index forKey:materialKey];
                             ++materialCount;
@@ -1367,7 +1371,7 @@ static NSString* NormalModeDescription(OOMeshNormalMode mode)
         } else {
             failFlag = YES;
             failString = [failString stringByAppendingString:@"Failed to find TEXTURES data (will use placeholder material)\n"];
-            materialKeys[0] = @"_oo_placeholder_material";
+            materialKeys[0] = "_oo_placeholder_material";
             materialCount = 1;
 
             for (j = 0; j < faceCount; j++) {
@@ -1388,7 +1392,7 @@ static NSString* NormalModeDescription(OOMeshNormalMode mode)
                         failFlag = YES;
                         failString = [failString stringByAppendingString:@"Expected file name\n"];
                     } else {
-                        [self renameTexturesFrom:[NSString stringWithFormat:@"%u", j] to:name];
+                        [self renameTexturesFrom:oo::str::format("%u", j) to:oo::StdString(name)];
                     }
                 }
             }
@@ -1469,7 +1473,7 @@ static NSString* NormalModeDescription(OOMeshNormalMode mode)
 
         // save the resulting data for possible reuse
         if (EXPECT(_cacheWriteable)) {
-            [OOCacheManager setMeshData:[self modelData] forName:cacheKey];
+            [OOCacheManager setMeshData:[self modelData] forName:oo::StdString(cacheKey)];
             PROFILE(@"saved to cache");
         }
 
@@ -1849,8 +1853,8 @@ static float FaceAreaCorrect(GLuint* vertIndices, Vector* vertices)
 
     [self calculateBoundingVolumes];
     DESTROY(octree);
-    DESTROY(baseFile); // Avoid octree cache.
-    DESTROY(baseFileOctreeCacheRef);
+    baseFile.reset(); // Avoid octree cache.
+    baseFileOctreeCacheRef.reset();
 }
 
 - (BoundingBox)boundingBox
@@ -1910,15 +1914,9 @@ static float FaceAreaCorrect(GLuint* vertIndices, Vector* vertices)
 }
 #endif
 
-- (void)setRetainedObject:(id)object forKey:(NSString*)key
+- (void)setRetainedObject:(oo::Data)object forKey:(const std::string&)key
 {
-    assert(key != nil);
-
-    if (object != nil) {
-        if (_retainedObjects == nil)
-            _retainedObjects = [[NSMutableDictionary alloc] init];
-        [_retainedObjects setObject:object forKey:key];
-    }
+    _retainedObjects.insert_or_assign(key, oo::adopt(new OOMeshBuffer(std::move(object))));
 }
 
 #if SCRIBBLE
@@ -1944,110 +1942,107 @@ static void Scribble(void* bytes, size_t size)
 /* valgrind complains that the memory allocated here isn't initialised
          at the time OOCacheManager::writeDict is pushing it to the
          cache. Not sure if that's a problem or not. - CIM */
-- (void*)allocateBytesWithSize:(size_t)size count:(NSUInteger)count key:(NSString*)key
+- (void*)allocateBytesWithSize:(size_t)size count:(NSUInteger)count key:(const std::string&)key
 {
     if (count == 0) {
         count = 1;
     }
     size *= count;
-    void* bytes = malloc(size);
+    oo::Data holder;
+    holder.setLength(size); // zero-filled (malloc left it uninitialised)
+    [self setRetainedObject:std::move(holder) forKey:key];
+    void* bytes = _retainedObjects.find(key)->second->data().mutableBytes();
     if (bytes != NULL) {
         Scribble(bytes, size);
-        NSData* holder = [NSData dataWithBytesNoCopy:bytes length:size freeWhenDone:YES];
-        [self setRetainedObject:holder forKey:key];
     }
     return bytes;
 }
 
 - (BOOL)allocateVertexBuffersWithCount:(NSUInteger)count
 {
-    _vertices = (Vector*)[self allocateBytesWithSize:sizeof *_vertices count:vertexCount key:@"vertices"];
+    _vertices = (Vector*)[self allocateBytesWithSize:sizeof *_vertices count:vertexCount key:"vertices"];
     return _vertices != NULL;
 }
 
 - (BOOL)allocateNormalBuffersWithCount:(NSUInteger)count
 {
-    _normals = (Vector*)[self allocateBytesWithSize:sizeof *_normals count:vertexCount key:@"normals"];
-    _tangents = (Vector*)[self allocateBytesWithSize:sizeof *_tangents count:vertexCount key:@"tangents"];
+    _normals = (Vector*)[self allocateBytesWithSize:sizeof *_normals count:vertexCount key:"normals"];
+    _tangents = (Vector*)[self allocateBytesWithSize:sizeof *_tangents count:vertexCount key:"tangents"];
     return _normals != NULL && _tangents != NULL;
 }
 
 - (BOOL)allocateFaceBuffersWithCount:(NSUInteger)count
 {
-    _faces = (OOMeshFace*)[self allocateBytesWithSize:sizeof *_faces count:faceCount key:@"faces"];
+    _faces = (OOMeshFace*)[self allocateBytesWithSize:sizeof *_faces count:faceCount key:"faces"];
     return _faces != NULL;
 }
 
 - (BOOL)allocateVertexArrayBuffersWithCount:(NSUInteger)count
 {
-    _displayLists.indexArray = (GLint*)[self allocateBytesWithSize:sizeof *_displayLists.indexArray count:count * 3 key:@"indexArray"];
-    _displayLists.textureUVArray = (GLfloat*)[self allocateBytesWithSize:sizeof *_displayLists.textureUVArray count:count * 6 key:@"textureUVArray"];
-    _displayLists.vertexArray = (Vector*)[self allocateBytesWithSize:sizeof *_displayLists.vertexArray count:count * 3 key:@"vertexArray"];
-    _displayLists.normalArray = (Vector*)[self allocateBytesWithSize:sizeof *_displayLists.normalArray count:count * 3 key:@"normalArray"];
-    _displayLists.tangentArray = (Vector*)[self allocateBytesWithSize:sizeof *_displayLists.tangentArray count:count * 3 key:@"tangentArray"];
+    _displayLists.indexArray = (GLint*)[self allocateBytesWithSize:sizeof *_displayLists.indexArray count:count * 3 key:"indexArray"];
+    _displayLists.textureUVArray = (GLfloat*)[self allocateBytesWithSize:sizeof *_displayLists.textureUVArray count:count * 6 key:"textureUVArray"];
+    _displayLists.vertexArray = (Vector*)[self allocateBytesWithSize:sizeof *_displayLists.vertexArray count:count * 3 key:"vertexArray"];
+    _displayLists.normalArray = (Vector*)[self allocateBytesWithSize:sizeof *_displayLists.normalArray count:count * 3 key:"normalArray"];
+    _displayLists.tangentArray = (Vector*)[self allocateBytesWithSize:sizeof *_displayLists.tangentArray count:count * 3 key:"tangentArray"];
 
     return _faces != NULL && _displayLists.indexArray != NULL && _displayLists.textureUVArray != NULL && _displayLists.vertexArray != NULL && _displayLists.normalArray != NULL && _displayLists.tangentArray != NULL;
 }
 
-- (void)renameTexturesFrom:(NSString*)from to:(NSString*)to
+- (void)renameTexturesFrom:(const std::string&)from to:(const std::string&)to
 {
     /*	IMPORTANT: this has to be called before setUpMaterials..., so it can
             only be used during loading.
     */
     OOMeshMaterialCount i;
     for (i = 0; i != materialCount; i++) {
-        if ([materialKeys[i] isEqualToString:from]) {
-            [materialKeys[i] release];
-            materialKeys[i] = [to copy];
+        if (materialKeys[i] == from) {
+            materialKeys[i] = to;
         }
     }
 }
 
 @end
 
-static NSString* const kOOCacheMeshes = @"OOMesh";
+static const char* const kOOCacheMeshes = "OOMesh";
 
 @implementation OOCacheManager (OOMesh)
 
-+ (NSDictionary*)meshDataForName:(NSString*)inShipName
++ (oo::PList)meshDataForName:(const std::string&)inShipName
 {
-    return [[self sharedCache] objectForKey:inShipName inCache:kOOCacheMeshes];
+    return oo::PListFrom([[self sharedCache] cxx_objectForKey:inShipName inCache:kOOCacheMeshes]);
 }
 
-+ (void)setMeshData:(NSDictionary*)inData forName:(NSString*)inShipName
++ (void)setMeshData:(const oo::PList&)inData forName:(const std::string&)inShipName
 {
-    if (inData != nil && inShipName != nil) {
-        [[self sharedCache] setObject:inData forKey:inShipName inCache:kOOCacheMeshes];
+    if (inData) {
+        [[self sharedCache] cxx_setObject:oo::ObjectFromPList(inData) forKey:inShipName inCache:kOOCacheMeshes];
     }
 }
 
 @end
 
-static NSString* const kOOCacheOctrees = @"octrees";
+static const char* const kOOCacheOctrees = "octrees";
 
 @implementation OOCacheManager (Octree)
 
-+ (Octree*)octreeForModel:(NSString*)inKey
++ (Octree*)octreeForModel:(const std::string&)inKey
 {
-    NSDictionary* dict = nil;
     Octree* result = nil;
+    OOCacheManager* cache = [self sharedCache];
 
-    if (inKey == nil)
-        return nil;
-
-    dict = [[self sharedCache] objectForKey:inKey inCache:kOOCacheOctrees];
-    if (dict != nil) {
-        result = [[Octree alloc] initWithDictionary:dict];
+    // Octree is not migrated: its cached dictionary goes straight from the cache to it.
+    if ([cache cxx_objectForKey:inKey inCache:kOOCacheOctrees] != nil) {
+        result = [[Octree alloc] initWithDictionary:[cache cxx_objectForKey:inKey inCache:kOOCacheOctrees]];
         [result autorelease];
     }
 
     return result;
 }
 
-+ (void)setOctree:(Octree*)inOctree forModel:(NSString*)inKey
++ (void)setOctree:(Octree*)inOctree forModel:(const std::string&)inKey
 {
-    if (inOctree != nil && inKey != nil) {
-        [[self sharedCache] setObject:[inOctree dictionaryRepresentation] forKey:inKey inCache:kOOCacheOctrees];
+    if (inOctree != nil) {
+        [[self sharedCache] cxx_setObject:[inOctree dictionaryRepresentation] forKey:inKey inCache:kOOCacheOctrees];
     }
 }
 
@@ -2058,9 +2053,7 @@ static void VFRAddFace(VertexFaceRef* vfr, NSUInteger index)
     if (index < UINT16_MAX && vfr->internCount < kVertexFaceDefInternalCount) {
         vfr->internFaces[vfr->internCount++] = index;
     } else {
-        if (vfr->extra == nil)
-            vfr->extra = [NSMutableArray array];
-        [vfr->extra addObject:[NSNumber numberWithInteger:index]];
+        vfr->extra.push_back(index);
     }
 }
 
@@ -2068,7 +2061,7 @@ static NSUInteger VFRGetCount(VertexFaceRef* vfr)
 {
     NSCParameterAssert(vfr != NULL);
 
-    return vfr->internCount + [vfr->extra count];
+    return vfr->internCount + vfr->extra.size();
 }
 
 static NSUInteger VFRGetFaceAtIndex(VertexFaceRef* vfr, NSUInteger index)
@@ -2078,7 +2071,7 @@ static NSUInteger VFRGetFaceAtIndex(VertexFaceRef* vfr, NSUInteger index)
     if (index < vfr->internCount)
         return vfr->internFaces[index];
     else
-        return oo::PListView(vfr->extra).at<NSUInteger>(index - vfr->internCount);
+        return vfr->extra[index - vfr->internCount];
 }
 
 @end

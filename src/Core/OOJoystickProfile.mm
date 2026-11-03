@@ -322,7 +322,7 @@ MA 02110-1301, USA.
 {
     if ((self = [super init])) {
         controlPoints.reserve(2);
-        segments = nil;
+        segments.clear();
         [self makeSegments];
     }
     return self;
@@ -330,7 +330,6 @@ MA 02110-1301, USA.
 
 - (void)dealloc
 {
-    [segments release];
     [super dealloc];
     return;
 }
@@ -339,7 +338,7 @@ MA 02110-1301, USA.
 {
     OOJoystickSplineAxisProfile* copy = [[[self class] alloc] init];
     copy->controlPoints = controlPoints;
-    copy->segments = [segments copy]; // Foundation arrays: -copy is -copyWithZone: with the default zone (zones unused)
+    copy->segments = segments; // the same segment objects, as the array copy held
     return copy;
 }
 
@@ -411,7 +410,8 @@ MA 02110-1301, USA.
     double gradientleft, gradientright;
     OOJoystickSplineSegment* segment;
     BOOL first_segment = YES;
-    NSMutableArray* new_segments = [NSMutableArray arrayWithCapacity:(controlPoints.size() + 1)];
+    std::vector<oo::ObjCRef<OOJoystickSplineSegment*>> new_segments;
+    new_segments.reserve(controlPoints.size() + 1);
 
     left.x = 0.0;
     left.y = 0.0;
@@ -419,7 +419,7 @@ MA 02110-1301, USA.
         right.x = 1.0;
         right.y = 1.0;
         segment = [OOJoystickSplineSegment segmentWithData:left right:right];
-        [new_segments addObject:segment];
+        new_segments.emplace_back(segment);
     } else {
         gradientleft = 1.0;
         right = controlPoints[0];
@@ -436,7 +436,7 @@ MA 02110-1301, USA.
                 if (segment == nil) {
                     return NO;
                 } else {
-                    [new_segments addObject:segment];
+                    new_segments.emplace_back(segment);
                     gradientleft = gradientright;
                     first_segment = NO;
                     left = right;
@@ -450,10 +450,9 @@ MA 02110-1301, USA.
         if (segment == nil) {
             return NO;
         }
-        [new_segments addObject:segment];
+        new_segments.emplace_back(segment);
     }
-    [segments release];
-    segments = [[NSArray arrayWithArray:new_segments] retain];
+    segments = std::move(new_segments);
     return YES;
 }
 
@@ -523,8 +522,8 @@ MA 02110-1301, USA.
     } else {
         sign = 1.0;
     }
-    for (i = 0; i < [segments count]; i++) {
-        segment = [segments objectAtIndex:i];
+    for (i = 0; i < segments.size(); i++) {
+        segment = segments[i].get();
         if ([segment end] > x) {
             return sign * OOClamp_0_1_d([segment value:x]);
         }
@@ -536,8 +535,8 @@ MA 02110-1301, USA.
 {
     NSUInteger i;
     OOJoystickSplineSegment* segment;
-    for (i = 0; i < [segments count]; i++) {
-        segment = [segments objectAtIndex:i];
+    for (i = 0; i < segments.size(); i++) {
+        segment = segments[i].get();
         if ([segment end] > x) {
             return [segment gradient:x];
         }

@@ -71,7 +71,7 @@ static OOGraphicsResetManager* sSingleton = nil;
     [OOTexture rebindAllTextures];
 
     // A copy, so a client may register or unregister during the reset (one unregistered by an
-    // earlier client is skipped). Unordered, as the NSSet was: its order was pointer-hash order,
+    // earlier client is skipped). Unordered, as the Foundation set was: its order was pointer-hash order,
     // so it already varied from run to run.
     const std::vector<id> snapshot(clients.begin(), clients.end());
     for (id client : snapshot) {

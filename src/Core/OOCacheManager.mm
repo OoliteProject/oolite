@@ -23,21 +23,22 @@ MA 02110-1301, USA.
 */
 
 #import "OOCacheManager.h"
-#import "NSFileManagerOOExtensions.h"
-#import "OODeepCopy.h"
+#import "OOFoundationBridge.h"
 #import "OOJavaScriptEngine.h"
-#import "OOPListParsing.h"
-#import "OOPListView.h"
+
+#include "oofnd/FileSystem.hpp"
+#include "oofnd/PListParsing.hpp"
+#include "oofnd/PListWriting.hpp"
+#include "oofnd/String.hpp"
+
+/*
+        Foundation sweep (proposed ADR-0043, bead oo-19g0): the caches are std::maps of retained
+        objects; the cache file is read and written as an oo::PList, in XML (proposed ADR-0027 item 3:
+        oofnd does not parse GNUstep's binary format, and an unreadable cache is rebuilt).
+*/
 
 #define WRITE_ASYNC 1
 #define PROFILE_WRITES 0
-
-// Use the (presumed) most efficient plist format for each platform.
-#if OOLITE_MAC_OS_X
-#define CACHE_PLIST_FORMAT NSPropertyListBinaryFormat_v1_0
-#else
-#define CACHE_PLIST_FORMAT NSPropertyListGNUstepBinaryFormat
-#endif
 
 #if WRITE_ASYNC
 #import "OOAsyncWorkManager.h"
@@ -46,24 +47,12 @@ MA 02110-1301, USA.
 #import "OOProfilingStopwatch.h"
 #endif
 
-static NSString* const kOOLogDataCacheFound = @"dataCache.found";
-static NSString* const kOOLogDataCacheNotFound = @"dataCache.notFound";
-static NSString* const kOOLogDataCacheRebuild = @"dataCache.rebuild";
-static NSString* const kOOLogDataCacheWriteSuccess = @"dataCache.write.success";
-static NSString* const kOOLogDataCacheWriteFailed = @"dataCache.write.failed";
-static NSString* const kOOLogDataCacheRetrieveSuccess = @"dataCache.retrieve.success";
-static NSString* const kOOLogDataCacheRetrieveFailed = @"dataCache.retrieve.failed";
-static NSString* const kOOLogDataCacheSetSuccess = @"dataCache.set.success";
-static NSString* const kOOLogDataCacheSetFailed = @"dataCache.set.failed";
-static NSString* const kOOLogDataCacheRemoveSuccess = @"dataCache.remove.success";
-static NSString* const kOOLogDataCacheClearSuccess = @"dataCache.clear.success";
-static NSString* const kOOLogDataCacheBuildPathError = @"dataCache.write.buildPath.failed";
-static NSString* const kOOLogDataCacheSerializationError = @"dataCache.write.serialize.failed";
-
-static NSString* const kCacheKeyVersion = @"version";
-static NSString* const kCacheKeyEndianTag = @"endian tag";
-static NSString* const kCacheKeyFormatVersion = @"format version";
-static NSString* const kCacheKeyCaches = @"caches";
+namespace {
+constexpr const char* kCacheKeyVersion = "version";
+constexpr const char* kCacheKeyEndianTag = "endian tag";
+constexpr const char* kCacheKeyFormatVersion = "format version";
+constexpr const char* kCacheKeyCaches = "caches";
+} // namespace
 
 enum {
     kEndianTagValue = 0x0123456789ABCDEFULL,
@@ -71,6 +60,20 @@ enum {
 };
 
 static OOCacheManager* sSingleton = nil;
+
+namespace {
+using CacheEntries = std::map<std::string, oo::ObjCRef<id>, std::less<>>;
+
+// The cache named <name>, or nullptr (no such cache, or no caches at all), as -objectForKey: on
+// the dictionary of caches (or on nil) answered.
+CacheEntries* FindCache(std::optional<std::map<std::string, CacheEntries, std::less<>>>& caches, const std::string& name)
+{
+    if (!caches.has_value())
+        return nullptr;
+    const auto it = caches->find(name);
+    return it != caches->end() ? &it->second : nullptr;
+}
+} // namespace
 
 @interface OOCacheManager (Private)
 
@@ -80,29 +83,29 @@ static OOCacheManager* sSingleton = nil;
 - (BOOL)dirty;
 - (void)markClean;
 
-- (NSDictionary*)loadDict;
-- (BOOL)writeDict:(NSDictionary*)inDict;
+- (oo::PList)loadDict; // null: no cache
+- (BOOL)writeDict:(const oo::PList&)inDict;
 
-- (void)buildCachesFromDictionary:(NSDictionary*)inDict;
-- (NSDictionary*)dictionaryOfCaches;
+- (void)buildCachesFromDictionary:(const oo::PList*)inDict; // nullptr: none
+- (oo::PList)dictionaryOfCaches;
 
-- (BOOL)directoryExists:(NSString*)inPath create:(BOOL)inCreate;
+- (BOOL)directoryExists:(const std::string&)inPath create:(BOOL)inCreate;
 
 @end
 
 @interface OOCacheManager (PlatformSpecific)
 
-- (NSString*)cachePathCreatingIfNecessary:(BOOL)inCreate;
+- (std::optional<std::string>)cachePathCreatingIfNecessary:(BOOL)inCreate;
 
 @end
 
 #if WRITE_ASYNC
 @interface OOAsyncCacheWriter : OOObject <OOAsyncWorkTask> {
 @private
-    NSDictionary* _cacheContents;
+    oo::PList _cacheContents;
 }
 
-- (id)initWithCacheContents:(NSDictionary*)cacheContents;
+- (id)initWithCacheContents:(const oo::PList&)cacheContents;
 
 @end
 #endif
@@ -126,9 +129,11 @@ static OOCacheManager* sSingleton = nil;
     [super dealloc];
 }
 
-- (NSString*)description
+// OOObject's -description wraps this as "<OOCacheManager 0x...>{dirty=...}", which is what this
+// class's own -description printed.
+- (id)descriptionComponents
 {
-    return [NSString stringWithFormat:@"<%@ %p>{dirty=%s}", [self class], self, [self dirty] ? "yes" : "no"];
+    return oo::NSStringFrom(oo::str::format("dirty=%s", [self dirty] ? "yes" : "no"));
 }
 
 + (OOCacheManager*)sharedCache
@@ -141,89 +146,70 @@ static OOCacheManager* sSingleton = nil;
     return sSingleton;
 }
 
-- (id)objectForKey:(NSString*)inKey inCache:(NSString*)inCacheKey
+- (id)cxx_objectForKey:(const std::string&)inKey inCache:(const std::string&)inCacheKey
 {
-    NSMutableDictionary* cache = nil;
     id result = nil;
 
-    NSParameterAssert(inKey != nil && inCacheKey != nil);
-
-    cache = [_caches objectForKey:inCacheKey];
-    if (cache != nil) {
-        result = [cache objectForKey:inKey];
+    CacheEntries* cache = FindCache(_caches, inCacheKey);
+    if (cache != nullptr) {
+        const auto entry = cache->find(inKey);
+        if (entry != cache->end())
+            result = entry->second.get();
         if (result != nil) {
-            OODebugLog(kOOLogDataCacheRetrieveSuccess, @"Retrieved \"%@\" cache object %@.", inCacheKey, inKey);
+            OODebugLog(@"dataCache.retrieve.success", @"Retrieved \"%@\" cache object %@.", oo::NSStringFrom(inCacheKey), oo::NSStringFrom(inKey));
         } else {
-            OODebugLog(kOOLogDataCacheRetrieveFailed, @"Failed to retrieve \"%@\" cache object %@ -- no such entry.", inCacheKey, inKey);
+            OODebugLog(@"dataCache.retrieve.failed", @"Failed to retrieve \"%@\" cache object %@ -- no such entry.", oo::NSStringFrom(inCacheKey), oo::NSStringFrom(inKey));
         }
     } else {
-        OODebugLog(kOOLogDataCacheRetrieveFailed, @"Failed to retrieve \"%@\" cache object %@ -- no such cache.", inCacheKey, inKey);
+        OODebugLog(@"dataCache.retrieve.failed", @"Failed to retrieve \"%@\" cache object %@ -- no such cache.", oo::NSStringFrom(inCacheKey), oo::NSStringFrom(inKey));
     }
 
     return result;
 }
 
-- (void)setObject:(id)inObject forKey:(NSString*)inKey inCache:(NSString*)inCacheKey
+- (void)cxx_setObject:(id)inObject forKey:(const std::string&)inKey inCache:(const std::string&)inCacheKey
 {
-    NSMutableDictionary* cache = nil;
+    NSParameterAssert(inObject != nil);
 
-    NSParameterAssert(inObject != nil && inKey != nil && inCacheKey != nil);
-
-    if (EXPECT_NOT(_caches == nil))
+    if (EXPECT_NOT(!_caches.has_value()))
         return;
 
-    cache = [_caches objectForKey:inCacheKey];
-    if (cache == nil) {
-        cache = [NSMutableDictionary dictionary];
-        if (cache == nil) {
-            OODebugLog(kOOLogDataCacheSetFailed, @"Failed to create cache for key \"%@\".", inCacheKey);
-            return;
-        }
-        [_caches setObject:cache forKey:inCacheKey];
-    }
-
-    [cache setObject:inObject forKey:inKey];
+    // A missing cache is created, empty, as before.
+    (*_caches)[inCacheKey][inKey] = oo::ObjCRef<id>(inObject);
     _dirty = YES;
-    OODebugLog(kOOLogDataCacheSetSuccess, @"Updated entry %@ in cache \"%@\".", inKey, inCacheKey);
+    OODebugLog(@"dataCache.set.success", @"Updated entry %@ in cache \"%@\".", oo::NSStringFrom(inKey), oo::NSStringFrom(inCacheKey));
 }
 
-- (void)removeObjectForKey:(NSString*)inKey inCache:(NSString*)inCacheKey
+- (void)cxx_removeObjectForKey:(const std::string&)inKey inCache:(const std::string&)inCacheKey
 {
-    NSMutableDictionary* cache = nil;
-
-    NSParameterAssert(inKey != nil && inCacheKey != nil);
-
-    cache = [_caches objectForKey:inCacheKey];
-    if (cache != nil) {
-        if (nil != [cache objectForKey:inKey]) {
-            [cache removeObjectForKey:inKey];
+    CacheEntries* cache = FindCache(_caches, inCacheKey);
+    if (cache != nullptr) {
+        if (cache->erase(inKey) != 0) {
             _dirty = YES;
-            OODebugLog(kOOLogDataCacheRemoveSuccess, @"Removed entry keyed %@ from cache \"%@\".", inKey, inCacheKey);
+            OODebugLog(@"dataCache.remove.success", @"Removed entry keyed %@ from cache \"%@\".", oo::NSStringFrom(inKey), oo::NSStringFrom(inCacheKey));
         } else {
-            OODebugLog(kOOLogDataCacheRemoveSuccess, @"No need to remove non-existent entry keyed %@ from cache \"%@\".", inKey, inCacheKey);
+            OODebugLog(@"dataCache.remove.success", @"No need to remove non-existent entry keyed %@ from cache \"%@\".", oo::NSStringFrom(inKey), oo::NSStringFrom(inCacheKey));
         }
     } else {
-        OODebugLog(kOOLogDataCacheRemoveSuccess, @"No need to remove entry keyed %@ from non-existent cache \"%@\".", inKey, inCacheKey);
+        OODebugLog(@"dataCache.remove.success", @"No need to remove entry keyed %@ from non-existent cache \"%@\".", oo::NSStringFrom(inKey), oo::NSStringFrom(inCacheKey));
     }
 }
 
-- (void)clearCache:(NSString*)inCacheKey
+- (void)cxx_clearCache:(const std::string&)inCacheKey
 {
-    NSParameterAssert(inCacheKey != nil);
-
-    if (nil != [_caches objectForKey:inCacheKey]) {
-        [_caches removeObjectForKey:inCacheKey];
+    if (FindCache(_caches, inCacheKey) != nullptr) {
+        _caches->erase(inCacheKey);
         _dirty = YES;
-        OODebugLog(kOOLogDataCacheClearSuccess, @"Cleared cache \"%@\".", inCacheKey);
+        OODebugLog(@"dataCache.clear.success", @"Cleared cache \"%@\".", oo::NSStringFrom(inCacheKey));
     } else {
-        OODebugLog(kOOLogDataCacheClearSuccess, @"No need to clear non-existent cache \"%@\".", inCacheKey);
+        OODebugLog(@"dataCache.clear.success", @"No need to clear non-existent cache \"%@\".", oo::NSStringFrom(inCacheKey));
     }
 }
 
 - (void)clearAllCaches
 {
     [self clear];
-    _caches = [[NSMutableDictionary alloc] init];
+    _caches.emplace();
     _dirty = YES;
 }
 
@@ -253,7 +239,7 @@ static OOCacheManager* sSingleton = nil;
     _permitWrites = (flag != NO);
 }
 
-- (NSString*)cacheDirectoryPathCreatingIfNecessary:(BOOL)create
+- (std::optional<std::string>)cxx_cacheDirectoryPathCreatingIfNecessary:(BOOL)create
 {
     /*	Construct the path to the directory for cache files, which is:
                     ~/Library/Caches/org.aegidian.oolite/
@@ -263,18 +249,18 @@ static OOCacheManager* sSingleton = nil;
             ~/Library/Caches has the particular advantage of not being indexed by
             Spotlight or backed up by Time Machine.
     */
-    NSString* cachePath = [NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) objectAtIndex:0];
+    std::string cachePath = oo::StdString([NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) objectAtIndex:0]);
     if (![self directoryExists:cachePath create:create])
-        return nil;
+        return std::nullopt;
 
 #if !OOLITE_MAC_OS_X
     // the old cache file on GNUstep was one level up, so remove it if it exists
-    [[NSFileManager defaultManager] removeFileAtPath:[cachePath stringByAppendingPathComponent:@"Oolite-cache.plist"] handler:nil];
+    (void)oo::fs::removeItem(oo::fs::pathFromUTF8(oo::str::appendingPathComponent(cachePath, "Oolite-cache.plist")));
 #endif
 
-    cachePath = [cachePath stringByAppendingPathComponent:@"org.aegidian.oolite"];
+    cachePath = oo::str::appendingPathComponent(cachePath, "org.aegidian.oolite");
     if (![self directoryExists:cachePath create:create])
-        return nil;
+        return std::nullopt;
     return cachePath;
 }
 
@@ -284,45 +270,43 @@ static OOCacheManager* sSingleton = nil;
 
 - (void)loadCache
 {
-    NSDictionary* cache = nil;
-    NSString* cacheVersion = nil;
-    NSString* ooliteVersion = nil;
-    NSData* endianTag = nil;
-    NSNumber* formatVersion = nil;
     BOOL accept = YES;
     uint64_t endianTagValue = 0;
 
-    ooliteVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"];
+    const std::optional<std::string> ooliteVersion = oo::OptionalString([[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"]);
 
     [self clear];
 
-    cache = [self loadDict];
-    if (cache != nil) {
+    const oo::PList cache = [self loadDict];
+    if (!cache.isNull()) {
         // We have a cache
-        OOLog(kOOLogDataCacheFound, @"%@", @"Found data cache.");
-        OOLogIndentIf(kOOLogDataCacheFound);
+        OOLog(@"dataCache.found", @"%@", @"Found data cache.");
+        OOLogIndentIf(@"dataCache.found");
 
-        cacheVersion = [cache objectForKey:kCacheKeyVersion];
-        if (![cacheVersion isEqual:ooliteVersion]) {
-            OOLog(kOOLogDataCacheRebuild, @"Data cache version (%@) does not match Oolite version (%@), rebuilding cache.", cacheVersion, ooliteVersion);
+        const oo::PList* cacheVersion = cache.find(kCacheKeyVersion);
+        const std::string* cacheVersionString = cacheVersion != nullptr ? cacheVersion->getIf<std::string>() : nullptr;
+        // -isEqual: between the two; a missing version on either side never matched.
+        if (cacheVersionString == nullptr || !ooliteVersion.has_value() || *cacheVersionString != *ooliteVersion) {
+            OOLog(@"dataCache.rebuild", @"Data cache version (%@) does not match Oolite version (%@), rebuilding cache.", oo::ObjectFromPList(cacheVersion != nullptr ? *cacheVersion : oo::PList()), oo::NSStringOrNil(ooliteVersion));
             accept = NO;
         }
 
-        formatVersion = [cache objectForKey:kCacheKeyFormatVersion];
-        if (accept && [formatVersion unsignedIntValue] != kFormatVersionValue) {
-            OOLog(kOOLogDataCacheRebuild, @"Data cache format (%@) is not supported format (%zu), rebuilding cache.", formatVersion, kFormatVersionValue);
+        const oo::PList* formatVersion = cache.find(kCacheKeyFormatVersion);
+        if (accept && (formatVersion != nullptr ? static_cast<unsigned>(formatVersion->uint64Value()) : 0U) != kFormatVersionValue) {
+            OOLog(@"dataCache.rebuild", @"Data cache format (%@) is not supported format (%zu), rebuilding cache.", oo::ObjectFromPList(formatVersion != nullptr ? *formatVersion : oo::PList()), kFormatVersionValue);
             accept = NO;
         }
 
         if (accept) {
-            endianTag = [cache objectForKey:kCacheKeyEndianTag];
-            if (![endianTag isKindOfClass:[NSData class]] || [endianTag length] != sizeof endianTagValue) {
-                OOLog(kOOLogDataCacheRebuild, @"%@", @"Data cache endian tag is invalid, rebuilding cache.");
+            const oo::PList* endianTagObject = cache.find(kCacheKeyEndianTag);
+            const oo::Data* endianTag = endianTagObject != nullptr ? endianTagObject->getIf<oo::Data>() : nullptr;
+            if (endianTag == nullptr || endianTag->length() != sizeof endianTagValue) {
+                OOLog(@"dataCache.rebuild", @"%@", @"Data cache endian tag is invalid, rebuilding cache.");
                 accept = NO;
             } else {
-                endianTagValue = *(const uint64_t*)[endianTag bytes];
+                memcpy(&endianTagValue, endianTag->bytes(), sizeof endianTagValue);
                 if (endianTagValue != kEndianTagValue) {
-                    OOLog(kOOLogDataCacheRebuild, @"%@", @"Data cache endianness is inappropriate for this system, rebuilding cache.");
+                    OOLog(@"dataCache.rebuild", @"%@", @"Data cache endianness is inappropriate for this system, rebuilding cache.");
                     accept = NO;
                 }
             }
@@ -330,31 +314,26 @@ static OOCacheManager* sSingleton = nil;
 
         if (accept) {
             // We have a cache, and it's the right format.
-            [self buildCachesFromDictionary:[cache objectForKey:kCacheKeyCaches]];
+            [self buildCachesFromDictionary:cache.find(kCacheKeyCaches)];
         }
 
-        OOLogOutdentIf(kOOLogDataCacheFound);
+        OOLogOutdentIf(@"dataCache.found");
     } else {
         // No cache
-        OOLog(kOOLogDataCacheNotFound, @"%@", @"No data cache found, starting from scratch.");
+        OOLog(@"dataCache.notFound", @"%@", @"No data cache found, starting from scratch.");
     }
 
     // If loading failed, or there was a version or endianness conflict
-    if (_caches == nil)
-        _caches = [[NSMutableDictionary alloc] init];
+    if (!_caches.has_value())
+        _caches.emplace();
     [self markClean];
 }
 
 - (void)write
 {
-    NSMutableDictionary* newCache = nil;
-    NSString* ooliteVersion = nil;
-    NSData* endianTag = nil;
-    NSNumber* formatVersion = nil;
-    NSDictionary* pListRep = nil;
     uint64_t endianTagValue = kEndianTagValue;
 
-    if (_caches == nil)
+    if (!_caches.has_value())
         return;
     if (_scheduledWrite != nil)
         return;
@@ -369,29 +348,26 @@ static OOCacheManager* sSingleton = nil;
     OOLog(@"dataCache.willWrite", @"%@", @"About to write cache.");
 #endif
 
-    ooliteVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"];
-    endianTag = [NSData dataWithBytes:&endianTagValue length:sizeof endianTagValue];
-    formatVersion = [NSNumber numberWithUnsignedInt:kFormatVersionValue];
+    const std::optional<std::string> ooliteVersion = oo::OptionalString([[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"]);
 
-    pListRep = [self dictionaryOfCaches];
-    if (ooliteVersion == nil || endianTag == nil || formatVersion == nil || pListRep == nil) {
+    oo::PList pListRep = [self dictionaryOfCaches];
+    if (!ooliteVersion.has_value() || pListRep.isNull()) {
         OOLog(@"dataCache.cantWrite", @"%@", @"Failed to write data cache -- prerequisites not fulfilled. This is an internal error, please report it.");
         return;
     }
 
-    newCache = [NSMutableDictionary dictionaryWithCapacity:4];
-    [newCache setObject:ooliteVersion forKey:kCacheKeyVersion];
-    [newCache setObject:formatVersion forKey:kCacheKeyFormatVersion];
-    [newCache setObject:endianTag forKey:kCacheKeyEndianTag];
-    [newCache setObject:pListRep forKey:kCacheKeyCaches];
+    oo::PList::Dict newCache;
+    newCache.emplace(kCacheKeyVersion, oo::PList(*ooliteVersion));
+    newCache.emplace(kCacheKeyFormatVersion, oo::PList::unsignedInteger(kFormatVersionValue)); // was +numberWithUnsignedInt:
+    newCache.emplace(kCacheKeyEndianTag, oo::PList(oo::Data(&endianTagValue, sizeof endianTagValue)));
+    newCache.emplace(kCacheKeyCaches, std::move(pListRep));
 
 #if PROFILE_WRITES && !WRITE_ASYNC
     OOTimeDelta prepareT = [stopwatch reset];
 #endif
 
 #if WRITE_ASYNC
-    NSDictionary* cacheData = newCache;
-    _scheduledWrite = [[OOAsyncCacheWriter alloc] initWithCacheContents:cacheData];
+    _scheduledWrite = [[OOAsyncCacheWriter alloc] initWithCacheContents:oo::PList(std::move(newCache))];
 
 #if PROFILE_WRITES
     OOTimeDelta endT = [stopwatch reset];
@@ -405,19 +381,18 @@ static OOCacheManager* sSingleton = nil;
     OOLog(@"dataCache.profile", @"Time to prepare cache data: %g seconds.", prepareT);
 #endif
 
-    if ([self writeDict:newCache]) {
+    if ([self writeDict:oo::PList(std::move(newCache))]) {
         [self markClean];
-        OOLog(kOOLogDataCacheWriteSuccess, @"%@", @"Wrote data cache.");
+        OOLog(@"dataCache.write.success", @"%@", @"Wrote data cache.");
     } else {
-        OOLog(kOOLogDataCacheWriteFailed, @"%@", @"Failed to write data cache.");
+        OOLog(@"dataCache.write.failed", @"%@", @"Failed to write data cache.");
     }
 #endif
 }
 
 - (void)clear
 {
-    [_caches release];
-    _caches = nil;
+    _caches.reset();
 }
 
 - (BOOL)dirty
@@ -430,65 +405,40 @@ static OOCacheManager* sSingleton = nil;
     _dirty = NO;
 }
 
-- (NSDictionary*)loadDict
+- (oo::PList)loadDict
 {
-    NSString* path = nil;
-    NSData* data = nil;
-    NSString* errorString = nil;
-    id contents = nil;
+    const std::optional<std::string> path = [self cachePathCreatingIfNecessary:NO];
+    if (!path.has_value())
+        return oo::PList();
 
-    path = [self cachePathCreatingIfNecessary:NO];
-    if (path == nil)
-        return nil;
+    const auto data = oo::fs::readFile(oo::fs::pathFromUTF8(*path));
+    if (!data.has_value())
+        return oo::PList();
 
-    @try {
-        data = [NSData dataWithContentsOfFile:path];
-        if (data == nil)
-            return nil;
-
-        contents = [NSPropertyListSerialization propertyListFromData:data
-                                                    mutabilityOption:NSPropertyListImmutable
-                                                              format:NULL
-                                                    errorDescription:&errorString];
+    auto contents = oo::parsePropertyListData(std::string_view(reinterpret_cast<const char*>(data->bytes()), data->length()));
+    if (!contents.has_value()) {
+        OOLog(@"dataCache.badData", @"Could not read data cache: %@", oo::NSStringFrom(contents.error().message));
+        return oo::PList();
     }
-    @catch (NSException* exception) {
-        errorString = [exception reason];
-        contents = nil;
-    }
+    if (!contents->isDict())
+        return oo::PList();
 
-    if (errorString != nil) {
-        OOLog(@"dataCache.badData", @"Could not read data cache: %@", errorString);
-#if OOLITE_RELEASE_PLIST_ERROR_STRINGS
-        [errorString release];
-#endif
-        return nil;
-    }
-    if (![contents isKindOfClass:[NSDictionary class]])
-        return nil;
-
-    return contents;
+    return std::move(*contents);
 }
 
-- (BOOL)writeDict:(NSDictionary*)inDict
+- (BOOL)writeDict:(const oo::PList&)inDict
 {
-    NSString* path = nil;
-    NSData* plist = nil;
-    NSString* errorDesc = nil;
-
-    path = [self cachePathCreatingIfNecessary:YES];
-    if (path == nil)
+    const std::optional<std::string> path = [self cachePathCreatingIfNecessary:YES];
+    if (!path.has_value())
         return NO;
 
 #if PROFILE_WRITES
     OOProfilingStopwatch* stopwatch = [OOProfilingStopwatch stopwatch];
 #endif
 
-    plist = [NSPropertyListSerialization dataFromPropertyList:inDict format:CACHE_PLIST_FORMAT errorDescription:&errorDesc];
-    if (plist == nil) {
-#if OOLITE_RELEASE_PLIST_ERROR_STRINGS
-        [errorDesc autorelease];
-#endif
-        OOLog(kOOLogDataCacheSerializationError, @"Could not convert data cache to property list data: %@", errorDesc);
+    const auto plist = oo::writeXMLPList(inDict);
+    if (!plist.has_value()) {
+        OOLog(@"dataCache.write.serialize.failed", @"Could not convert data cache to property list data: %@", oo::NSStringFrom(plist.error().message));
         return NO;
     }
 
@@ -496,7 +446,7 @@ static OOCacheManager* sSingleton = nil;
     OOTimeDelta serializeT = [stopwatch reset];
 #endif
 
-    BOOL result = [plist writeToFile:path atomically:NO];
+    BOOL result = oo::fs::writeFile(oo::fs::pathFromUTF8(*path), *plist, oo::fs::WriteMode::direct).has_value();
 
 #if PROFILE_WRITES
     OOTimeDelta writeT = [stopwatch reset];
@@ -510,51 +460,55 @@ static OOCacheManager* sSingleton = nil;
     return result;
 }
 
-- (void)buildCachesFromDictionary:(NSDictionary*)inDict
+- (void)buildCachesFromDictionary:(const oo::PList*)inDict
 {
-    id key = nil;
-    id value = nil;
-    NSMutableDictionary* cache = nil;
-
-    if (inDict == nil)
+    const oo::PList::Dict* caches = inDict != nullptr ? inDict->getIf<oo::PList::Dict>() : nullptr;
+    if (caches == nullptr)
         return;
 
-    [_caches release];
-    _caches = [[NSMutableDictionary alloc] initWithCapacity:[inDict count]];
+    _caches.emplace();
 
-    foreachkey(key, inDict)
-    {
-        value = oo::PListView(inDict).get<NSDictionary*>(key);
-        if (value != nil) {
-            cache = [NSMutableDictionary dictionaryWithDictionary:value];
-            if (cache != nil) {
-                [_caches setObject:cache forKey:key];
+    for (const auto& [key, value] : *caches) {
+        const oo::PList::Dict* cache = value.getIf<oo::PList::Dict>();
+        if (cache != nullptr) {
+            CacheEntries& entries = (*_caches)[key];
+            for (const auto& [entryKey, entryValue] : *cache) {
+                id object = oo::ObjectFromPList(entryValue);
+                if (object != nil)
+                    entries.emplace(entryKey, oo::ObjCRef<id>(object));
             }
         }
     }
 }
 
-- (NSDictionary*)dictionaryOfCaches
+// A deep copy of the caches as property-list data (was OODeepCopy of the dictionary of caches).
+- (oo::PList)dictionaryOfCaches
 {
-    return [OODeepCopy(_caches) autorelease];
+    oo::PList::Dict result;
+    for (const auto& [cacheKey, cache] : *_caches) {
+        oo::PList::Dict entries;
+        for (const auto& [key, object] : cache)
+            entries.emplace(key, oo::PListFrom(object.get()));
+        result.emplace(cacheKey, oo::PList(std::move(entries)));
+    }
+    return oo::PList(std::move(result));
 }
 
-- (BOOL)directoryExists:(NSString*)inPath create:(BOOL)inCreate
+- (BOOL)directoryExists:(const std::string&)inPath create:(BOOL)inCreate
 {
-    BOOL exists, directory;
-    NSFileManager* fmgr = [NSFileManager defaultManager];
+    const oo::fs::Path path = oo::fs::pathFromUTF8(inPath);
+    const oo::fs::FileType type = oo::fs::fileType(path);
+    const bool exists = type != oo::fs::FileType::none;
 
-    exists = [fmgr fileExistsAtPath:inPath isDirectory:&directory];
-
-    if (exists && !directory) {
-        OOLog(kOOLogDataCacheBuildPathError, @"Expected %@ to be a folder, but it is a file.", inPath);
+    if (exists && type != oo::fs::FileType::directory) {
+        OOLog(@"dataCache.write.buildPath.failed", @"Expected %@ to be a folder, but it is a file.", oo::NSStringFrom(inPath));
         return NO;
     }
     if (!exists) {
         if (!inCreate)
             return NO;
-        if (![fmgr oo_createDirectoryAtPath:inPath attributes:nil]) {
-            OOLog(kOOLogDataCacheBuildPathError, @"Could not create folder %@.", inPath);
+        if (!oo::fs::createDirectories(path).has_value()) {
+            OOLog(@"dataCache.write.buildPath.failed", @"Could not create folder %@.", oo::NSStringFrom(inPath));
             return NO;
         }
     }
@@ -564,18 +518,22 @@ static OOCacheManager* sSingleton = nil;
 
 #if OOLITE_MAC_OS_X
 
-- (NSString*)cachePathCreatingIfNecessary:(BOOL)create
+- (std::optional<std::string>)cachePathCreatingIfNecessary:(BOOL)create
 {
-    NSString* cachePath = [self cacheDirectoryPathCreatingIfNecessary:create];
-    return [cachePath stringByAppendingPathComponent:@"Data Cache.plist"];
+    const std::optional<std::string> cachePath = [self cxx_cacheDirectoryPathCreatingIfNecessary:create];
+    if (!cachePath.has_value())
+        return std::nullopt;
+    return oo::str::appendingPathComponent(*cachePath, "Data Cache.plist");
 }
 
 #else
 
-- (NSString*)cachePathCreatingIfNecessary:(BOOL)create
+- (std::optional<std::string>)cachePathCreatingIfNecessary:(BOOL)create
 {
-    NSString* cachePath = [self cacheDirectoryPathCreatingIfNecessary:create];
-    return [cachePath stringByAppendingPathComponent:@"Oolite-cache.plist"];
+    const std::optional<std::string> cachePath = [self cxx_cacheDirectoryPathCreatingIfNecessary:create];
+    if (!cachePath.has_value())
+        return std::nullopt;
+    return oo::str::appendingPathComponent(*cachePath, "Oolite-cache.plist");
 }
 
 #endif
@@ -629,11 +587,11 @@ static OOCacheManager* sSingleton = nil;
 #if WRITE_ASYNC
 @implementation OOAsyncCacheWriter
 
-- (id)initWithCacheContents:(NSDictionary*)cacheContents
+- (id)initWithCacheContents:(const oo::PList&)cacheContents
 {
     if ((self = [super init])) {
-        _cacheContents = [cacheContents copy];
-        if (_cacheContents == nil) {
+        _cacheContents = cacheContents;
+        if (_cacheContents.isNull()) {
             [self release];
             self = nil;
         }
@@ -642,21 +600,14 @@ static OOCacheManager* sSingleton = nil;
     return self;
 }
 
-- (void)dealloc
-{
-    DESTROY(_cacheContents);
-
-    [super dealloc];
-}
-
 - (void)performAsyncTask
 {
     if ([[OOCacheManager sharedCache] writeDict:_cacheContents]) {
-        OOLog(kOOLogDataCacheWriteSuccess, @"%@", @"Wrote data cache.");
+        OOLog(@"dataCache.write.success", @"%@", @"Wrote data cache.");
     } else {
-        OOLog(kOOLogDataCacheWriteFailed, @"%@", @"Failed to write data cache.");
+        OOLog(@"dataCache.write.failed", @"%@", @"Failed to write data cache.");
     }
-    DESTROY(_cacheContents);
+    _cacheContents = oo::PList();
 }
 
 - (void)completeAsyncTask

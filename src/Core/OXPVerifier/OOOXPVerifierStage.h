@@ -31,12 +31,20 @@ SOFTWARE.
 
 #if OO_OXP_VERIFIER_ENABLED
 
+#include "oofnd/StdLib.hpp"
+#include "oofnd/objc/OOObjCRef.h"
+
+/*	Foundation sweep (proposed ADR-0043, bead oo-84h8): the resolved stage sets are vectors of
+        retained stages (identity, no duplicates), in registration order. -name, -dependencies and
+        -dependents are shared selectors (every stage overrides them) and keep Objective-C object
+        results: a string and sets of stage names.
+*/
 @interface OOOXPVerifierStage : OOObject {
 @private
     OOOXPVerifier* _verifier;
-    NSMutableSet* _dependencies;
-    NSMutableSet* _incompleteDependencies;
-    NSMutableSet* _dependents;
+    std::vector<oo::ObjCRef<OOOXPVerifierStage*>> _dependencies;
+    std::vector<oo::ObjCRef<OOOXPVerifierStage*>> _incompleteDependencies;
+    std::vector<oo::ObjCRef<OOOXPVerifierStage*>> _dependents;
     BOOL _canRun, _hasRun;
 }
 
@@ -49,7 +57,7 @@ SOFTWARE.
         unique. The name should be a phrase describing what will be done, like
         "Scanning files" or "Verifying plist scripts".
 */
-- (NSString*)name;
+- (id)name; // an Objective-C string. Shared selector (proposed ADR-0043).
 
 /*	Dependencies and dependents:
         -dependencies returns a set of names of stages that must be run before this
@@ -58,8 +66,8 @@ SOFTWARE.
         -dependents returns a set of names of stages that should not be run before
         this one. Unlike -dependencies, these are considered non-critical.
 */
-- (NSSet*)dependencies;
-- (NSSet*)dependents;
+- (id)dependencies; // an Objective-C set of strings. Shared selector (proposed ADR-0043).
+- (id)dependents; // an Objective-C set of strings. Shared selector (proposed ADR-0043).
 
 /*	This is called once by the verifier.
         When it is called, all the verifier stages listed in -requiredStages will

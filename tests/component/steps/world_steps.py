@@ -36,6 +36,47 @@ ROLE_AI = {
     "shuttle": "oolite-shuttleAI.js",
 }
 
+# oo-sjvz DETERMINISM FIX (S1/S5/S6 flakiness, docs/fleet/LEARNINGS.md oo-qwk5/oo-rkm):
+# system.addShips(role, ...) draws the ship TYPE at random (Universe.mm:4002 -newShipWithRole: ->
+# :3951 -randomShipKeyForRoleRespectingConditions: -> OOShipRegistry.mm:304
+# [[self probabilitySetForRole:role] randomObject]), so spawning "police" or "pirate" by role
+# hands a component scenario a different ship class - with a different max_energy, weapon
+# loadout and starting bounty - on every run, even at a pinned seed. Measured by oo-qwk5: ~24% of
+# role-spawned pirates were not even legally attackable by police, because their random starting
+# bounty fell below policeAI's fineThreshold() gate (oolite-priorityai.js:845,
+# `50 - government*6`). That is what made S1/S5/S6 a coin flip unrelated to the code under test.
+# Pinning fixes the draw, not combat: S6 asserts the police ship survives up to 900 ticks of a
+# real-time 1-v-1 dogfight, which it sometimes loses whatever the hulls (oo-9aq4).
+#
+# The fix pins the SHIP KEY that addShips is actually asked for, using the literal "[shipKey]"
+# form that OOShipRegistry.mm:1253 registers at probability 1.0 for every ship (no draw),
+# entirely INSIDE the existing spawn steps' implementation - no .feature file changes and no new
+# step text, since a step's WORDING is what every scenario's vocabulary and guardrails' test-unit
+# classifier key off. Choosing which key backs a role is a fact about this test harness, not a
+# new observation surface (ADR-0018 section 4/5): no new native property, no new step.
+# Every key is core game data (Resources/Config/shipdata.plist) and carries the role it backs,
+# so a pinned ship is one the role draw could itself have produced.
+ROLE_SHIP_KEY = {
+    "police": "[viper]",              # oolite_template_viper: roles = "police",
+                                       # scan_class = CLASS_POLICE (the only "police" hull).
+    "pirate": "[sidewinder]",         # oolite_template_sidewinder: roles include "pirate(0.75)".
+                                       # Combat AI comes from ROLE_AI, so the hull is the only
+                                       # thing pinned here.
+    "trader": "[boa]",                # oolite_template_boa: roles = "trader"; S5's mother ship.
+    "escort": "[sidewinder-escort]",  # roles = "escort escort-medium(0.5)"; S5's escorts.
+}
+
+# A ship spawned with role "pirate" needs a bounty precondition to be a legal police target:
+# policeAI's fugitive/offender conditions require s.bounty > 50 and s.bounty > fineThreshold()
+# (oolite-priorityai.js:2192-2219, 841-847). addShips("pirate") drew that bounty at random
+# (Universe.mm:4029, `20 + randf() * 50`, i.e. 20-70, straddling the threshold); a literal
+# "[shipKey]" spawn never reaches that line at all, because it compares the SELECTOR against
+# "pirate", not the role assigned afterwards. Writing ship.bounty explicitly - already
+# OOJS_PROP_READWRITE_CB, OOJSShip.mm:353, setter case :1392 - turns the engagement precondition
+# into a fact of the scenario, comfortably above the worst-case threshold (government 0:
+# fineThreshold() == 50).
+PIRATE_BOUNTY = 100
+
 # Where an unpositioned spawn goes. Left to itself addShips scatters ships anywhere in the system
 # - measured 415 km apart - so nothing ever meets anything. Scenarios spawn around one locus.
 SPAWN_RADIUS_M = 5000
@@ -128,14 +169,26 @@ def spawn_ships_near(world, count, role, km):
 def _spawn(world, count, role, at_js, radius_m):
     """Spawn ships around a locus and give them the AI their role would normally fly with.
 
-    addShips(role, count [, position, radius]) returns the Array of ships it added
-    (OOJSSystem.m:943), so its length is the honest answer to "did I get what I asked for".
+    addShips(role_or_key, count [, position, radius]) returns the Array of ships it added
+    (OOJSSystem.mm, SystemAddShips), so its length is the honest answer to "did I get what I asked for".
+
+    ROLE_SHIP_KEY pins the SELECTOR passed to addShips to a literal "[shipKey]" for every role
+    this step library knows about, removing OOShipRegistry's random draw between ship types (see
+    the oo-sjvz determinism-fix comment above ROLE_SHIP_KEY). addShips still assigns the KEY
+    itself as primaryRole (Universe.mm:4017 `[ship setPrimaryRole:role]`, called with the literal
+    selector), so every spawned ship's primaryRole is forced back to the scenario's ROLE
+    afterwards - otherwise every existing Then step and AI precondition that compares
+    primaryRole against the scenario's role name (e.g. "police", "pirate") would silently stop
+    matching. A role this library has no pinned key for (there are none among S1-S8 today) falls
+    back to the plain role string, i.e. the original random-draw behaviour, so this cannot make
+    an as-yet-unpinned scenario worse.
 
     The first spawn of a scenario also fixes __ooLocus, the point later "within N km" spawns
     measure from. debugConsole is a writable JS global (OODebugMonitor.m:761), which is the
     documented place to keep scratch state between commands.
     """
     ai = ROLE_AI.get(role)
+    selector = ROLE_SHIP_KEY.get(role, role)
     js = (
         "(function(){"
         " var at = %s;"
@@ -144,15 +197,18 @@ def _spawn(world, count, role, at_js, radius_m):
         " if (typeof debugConsole.__ooLocus === 'undefined' && added.length > 0)"
         "   debugConsole.__ooLocus = added[0].position;"
         " for (var i = 0; i < added.length; i++) {"
+        "   added[i].primaryRole = %s;"
         "   %s"
         " }"
         " return added.length; })()"
         % (
             "debugConsole.__ooLocus" if at_js == "__ooLocus" else at_js,
-            _js_string(role),
+            _js_string(selector),
             count,
             radius_m,
-            ("added[i].setAI(%s);" % _js_string(ai)) if ai else "",
+            _js_string(role),
+            (("added[i].bounty = %d;" % PIRATE_BOUNTY) if role == "pirate" else "")
+            + ((" added[i].setAI(%s);" % _js_string(ai)) if ai else ""),
         )
     )
     added = world.console.evaluate_int(js)

@@ -98,6 +98,7 @@ import re
 import select
 import socket
 import struct
+import sys
 import tempfile
 import time
 

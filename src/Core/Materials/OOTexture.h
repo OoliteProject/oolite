@@ -39,6 +39,10 @@ SOFTWARE.
 #import "OOPixMap.h"
 #import "OOWeakReference.h"
 
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
+#include "oofnd/objc/OOObjCRef.h"
+
 @class OOTextureLoader, OOTextureGenerator;
 
 enum {
@@ -106,6 +110,12 @@ enum {
 };
 typedef OOPixMapFormat OOTextureDataFormat;
 
+/*	Foundation sweep (proposed ADR-0043 Amendments 1-2, bead oo-japz): names and folders are UTF-8
+        std::strings (std::optional where the old code accepted nil); texture specifiers and
+        configurations are oo::PList (a string or a dictionary; null = nil). The Foundation-typed API
+        this header declared moved to OOTexture+FoundationBridge.h (transitional), forwarding to the
+        cxx_ API below.
+*/
 @interface OOTexture : OOWeakRefObject {
 #ifdef OO_DEBUG_MONITOR_ENABLED
 @protected
@@ -121,24 +131,24 @@ typedef OOPixMapFormat OOTextureDataFormat;
         This method may change; +textureWithConfiguration is generally more
         appropriate.
 */
-+ (id)textureWithName:(NSString*)name
-             inFolder:(NSString*)directory
-              options:(OOTextureFlags)options
-           anisotropy:(GLfloat)anisotropy
-              lodBias:(GLfloat)lodBias;
++ (id)cxx_textureWithName:(const std::optional<std::string>&)name
+                 inFolder:(const std::optional<std::string>&)directory
+                  options:(OOTextureFlags)options
+               anisotropy:(GLfloat)anisotropy
+                  lodBias:(GLfloat)lodBias;
 
-/*	Equivalent to textureWithName:name
-                                                 inFolder:directory
-                                                  options:kOOTextureDefaultOptions
-                                           anisotropy:kOOTextureDefaultAnisotropy
-                                                  lodBias:kOOTextureDefaultLODBias
+/*	Equivalent to cxx_textureWithName:name
+                                                         inFolder:directory
+                                                          options:kOOTextureDefaultOptions
+                                                   anisotropy:kOOTextureDefaultAnisotropy
+                                                          lodBias:kOOTextureDefaultLODBias
 */
-+ (id)textureWithName:(NSString*)name
-             inFolder:(NSString*)directory;
++ (id)cxx_textureWithName:(const std::optional<std::string>&)name
+                 inFolder:(const std::optional<std::string>&)directory;
 
 /*	Load a texure, looking in Textures directories, using configuration
-        dictionary or name. (That is, configuration may be either an NSDictionary
-        or an NSString.)
+        dictionary or name. (That is, configuration may be either a dictionary
+        or a string.)
 
         Supported keys:
                 name				(string, required)
@@ -152,8 +162,8 @@ typedef OOPixMapFormat OOTextureDataFormat;
                 texture_LOD_bias	(real)
                 extract_channel		(string, one of "r", "g", "b", "a")
  */
-+ (id)textureWithConfiguration:(id)configuration;
-+ (id)textureWithConfiguration:(id)configuration extraOptions:(OOTextureFlags)extraOptions;
++ (id)cxx_textureWithConfiguration:(const oo::PList&)configuration;
++ (id)cxx_textureWithConfiguration:(const oo::PList&)configuration extraOptions:(OOTextureFlags)extraOptions;
 
 /*	Return the "null texture", a texture object representing an empty texture.
         Applying the null texture is equivalent to calling [OOTexture applyNone].
@@ -185,7 +195,7 @@ typedef OOPixMapFormat OOTextureDataFormat;
 */
 - (BOOL)isFinishedLoading;
 
-- (NSString*)cacheKey;
+- (id)cacheKey; // an Objective-C string, or nil. Shared selector (proposed ADR-0043).
 
 /*	Dimensions in pixels.
         This will block until loading is completed.
@@ -252,45 +262,40 @@ typedef OOPixMapFormat OOTextureDataFormat;
 #ifdef OO_DEBUG_MONITOR_ENABLED
 - (void)setTrace:(BOOL)trace;
 
-+ (NSArray*)cachedTexturesByAge;
-+ (NSSet*)allTextures;
++ (std::vector<oo::ObjCRef<OOTexture*>>)cxx_cachedTexturesByAge; // youngest first
++ (std::vector<oo::ObjCRef<OOTexture*>>)cxx_allTextures; // in no particular order
 
 - (size_t)dataSize;
 
-- (NSString*)name;
+- (id)name; // an Objective-C string. Shared selector (proposed ADR-0043).
 #endif
 
 @end
 
-@interface NSDictionary (OOTextureConveniences)
-- (NSDictionary*)oo_textureSpecifierForKey:(id)key defaultName:(NSString*)name;
-@end
-
-@interface NSArray (OOTextureConveniences)
-- (NSDictionary*)oo_textureSpecifierAtIndex:(unsigned)index defaultName:(NSString*)name;
-@end
-
-NSDictionary* OOTextureSpecFromObject(id object, NSString* defaultName);
+/*	The specifier for object (a string, a dictionary, or null for the default name), or null.
+        A dictionary without a string "name" gets defaultName, if given.
+*/
+oo::PList cxx_OOTextureSpecFromObject(const oo::PList& object, const std::optional<std::string>& defaultName);
 
 uint8_t OOTextureComponentsForFormat(OOTextureDataFormat format);
 
 BOOL OOCubeMapsAvailable(void);
 
-/*	OOInterpretTextureSpecifier()
+/*	cxx_OOInterpretTextureSpecifier()
 
         Interpret a texture specifier (string or dictionary). All out parameters
         may be NULL.
 */
-BOOL OOInterpretTextureSpecifier(id specifier, NSString** outName, OOTextureFlags* outOptions, float* outAnisotropy, float* outLODBias, BOOL ignoreExtract);
+BOOL cxx_OOInterpretTextureSpecifier(const oo::PList& specifier, std::string* outName, OOTextureFlags* outOptions, float* outAnisotropy, float* outLODBias, BOOL ignoreExtract);
 
-/*	OOMakeTextureSpecifier()
+/*	cxx_OOMakeTextureSpecifier()
 
-        Create a texture specifier.
+        Create a texture specifier (a dictionary).
 
         If internal is used, an optimized form unsuitable for serialization may be
         used.
 */
-NSDictionary* OOMakeTextureSpecifier(NSString* name, OOTextureFlags options, float anisotropy, float lodBias, BOOL internal);
+oo::PList cxx_OOMakeTextureSpecifier(const std::string& name, OOTextureFlags options, float anisotropy, float lodBias, BOOL internal);
 
 /*	OOApplyTextureOptionDefaults()
 
@@ -299,21 +304,27 @@ NSDictionary* OOMakeTextureSpecifier(NSString* name, OOTextureFlags options, flo
 OOTextureFlags OOApplyTextureOptionDefaults(OOTextureFlags options);
 
 // Texture specifier keys.
-extern NSString* const kOOTextureSpecifierNameKey;
-extern NSString* const kOOTextureSpecifierSwizzleKey;
-extern NSString* const kOOTextureSpecifierMinFilterKey;
-extern NSString* const kOOTextureSpecifierMagFilterKey;
-extern NSString* const kOOTextureSpecifierNoShrinkKey;
-extern NSString* const kOOTextureSpecifierExtraShrinkKey;
-extern NSString* const kOOTextureSpecifierRepeatSKey;
-extern NSString* const kOOTextureSpecifierRepeatTKey;
-extern NSString* const kOOTextureSpecifierCubeMapKey;
-extern NSString* const kOOTextureSpecifierAnisotropyKey;
-extern NSString* const kOOTextureSpecifierLODBiasKey;
+inline constexpr const char* cxx_kOOTextureSpecifierNameKey = "name";
+inline constexpr const char* cxx_kOOTextureSpecifierSwizzleKey = "extract_channel";
+inline constexpr const char* cxx_kOOTextureSpecifierMinFilterKey = "min_filter";
+inline constexpr const char* cxx_kOOTextureSpecifierMagFilterKey = "mag_filter";
+inline constexpr const char* cxx_kOOTextureSpecifierNoShrinkKey = "no_shrink";
+inline constexpr const char* cxx_kOOTextureSpecifierExtraShrinkKey = "extra_shrink";
+inline constexpr const char* cxx_kOOTextureSpecifierRepeatSKey = "repeat_s";
+inline constexpr const char* cxx_kOOTextureSpecifierRepeatTKey = "repeat_t";
+inline constexpr const char* cxx_kOOTextureSpecifierCubeMapKey = "cube_map";
+inline constexpr const char* cxx_kOOTextureSpecifierAnisotropyKey = "anisotropy";
+inline constexpr const char* cxx_kOOTextureSpecifierLODBiasKey = "texture_LOD_bias";
 
 // Keys not used in texture setup, but put in specific texture specifiers to simplify plists.
-extern NSString* const kOOTextureSpecifierModulateColorKey;
-extern NSString* const kOOTextureSpecifierIlluminationModeKey;
-extern NSString* const kOOTextureSpecifierSelfColorKey;
-extern NSString* const kOOTextureSpecifierScaleFactorKey;
-extern NSString* const kOOTextureSpecifierBindingKey;
+inline constexpr const char* cxx_kOOTextureSpecifierModulateColorKey = "color";
+inline constexpr const char* cxx_kOOTextureSpecifierIlluminationModeKey = "illumination_mode";
+inline constexpr const char* cxx_kOOTextureSpecifierSelfColorKey = "self_color";
+inline constexpr const char* cxx_kOOTextureSpecifierScaleFactorKey = "scale_factor";
+inline constexpr const char* cxx_kOOTextureSpecifierBindingKey = "binding";
+
+/*	TRANSITIONAL (proposed ADR-0043, "Transitional bridges"): the Foundation-typed API this header
+        declared before bead oo-japz, forwarding to the cxx_ API above, so unmigrated callers compile
+        unchanged. Callers move to the cxx_ API in their own sweep beads; the bridge goes in its own bead.
+*/
+#import "OOTexture+FoundationBridge.h"

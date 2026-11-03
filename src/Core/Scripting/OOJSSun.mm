@@ -95,7 +95,7 @@ JSClassID JSSunClassID(void)
     return sSunClassID;
 }
 
-- (NSString*)oo_jsClassName
+- (id)oo_jsClassName // shared selector (proposed ADR-0043)
 {
     return @"Sun";
 }

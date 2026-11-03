@@ -29,6 +29,9 @@ MA 02110-1301, USA.
 #import "PlayerEntity.h"
 #import "Universe.h"
 
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
+
 #define MAX_ROWS_FUNCTIONS 12
 
 #define GUI_ROW_STICKNAME 1
@@ -42,12 +45,12 @@ MA 02110-1301, USA.
 #define GUI_ROW_FUNCEND (GUI_ROW_FUNCSTART + MAX_ROWS_FUNCTIONS - 1)
 #define GUI_ROW_INSTRUCT 18
 
-// Dictionary keys
-#define KEY_HEADER @"header"
-#define KEY_GUIDESC @"guiDesc"
-#define KEY_ALLOWABLE @"allowable"
-#define KEY_AXISFN @"axisfunc"
-#define KEY_BUTTONFN @"buttonfunc"
+// Dictionary keys (of the oo::PList function entries, proposed ADR-0043 bead oo-u76k)
+#define KEY_HEADER "header"
+#define KEY_GUIDESC "guiDesc"
+#define KEY_ALLOWABLE "allowable"
+#define KEY_AXISFN "axisfunc"
+#define KEY_BUTTONFN "buttonfunc"
 
 @interface PlayerEntity (StickMapper)
 
@@ -56,14 +59,15 @@ MA 02110-1301, USA.
 - (void)setGuiToStickMapperScreen:(unsigned)skip;
 - (void)stickMapperInputHandler:(GuiDisplayGen*)gui
                            view:(MyOpenGLView*)gameView;
-// Callback method
-- (void)updateFunction:(NSDictionary*)hwDict;
+// Callback method: called by name (-performSelector:withObject:) by OOJoystickManager with an
+// Objective-C dictionary, so its parameter stays an object (proposed ADR-0043).
+- (void)updateFunction:(id)hwDict;
 
 // Future: populate via plist
-- (NSDictionary*)makeStickGuiDictHeader:(NSString*)header;
-- (NSDictionary*)makeStickGuiDict:(NSString*)what
-                        allowable:(int)allowable
-                           axisfn:(int)axisfn
-                            butfn:(int)butfn;
+- (oo::PList)makeStickGuiDictHeader:(const std::string&)header;
+- (oo::PList)makeStickGuiDict:(const std::string&)what
+                    allowable:(int)allowable
+                       axisfn:(int)axisfn
+                        butfn:(int)butfn;
 
 @end

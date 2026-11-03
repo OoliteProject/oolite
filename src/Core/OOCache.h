@@ -19,8 +19,8 @@ values, OOCaches used directly may have any keys allowable for a mutable
 dictionary (that is, keys should be copyable, as dictionary keys, and values may be
 arbitrary objects) -- an 'unmanaged' cache is essentially a mutable dictionary
 with a prune limit. (Project: with the addition of a -keyEnumerator method and
-sutiable NSEnumerator subclass, and a -count method, it could be turned into a
-subclass of NSMutableDictionary.)
+sutiable Foundation enumerator subclass, and a -count method, it could be turned
+into a subclass of the Foundation mutable dictionary.)
 
 
 Oolite
@@ -45,6 +45,9 @@ MA 02110-1301, USA.
 
 #import "oofnd/objc/OOObject.h"
 #import <Foundation/Foundation.h>
+
+#include "oofnd/StdLib.hpp"
+#include "oofnd/objc/OOObjCRef.h"
 
 enum {
     kOOCacheMinimumPruneThreshold = 25U,
@@ -79,9 +82,9 @@ enum {
 - (BOOL)dirty;
 - (void)markClean;
 
-- (NSString*)name;
-- (void)setName:(NSString*)name;
+- (id)name; // shared selector (proposed ADR-0043): an Objective-C string, nil if unnamed
+- (void)setName:(id)name; // shared selector (proposed ADR-0043)
 
-- (NSArray*)objectsByAge;
+- (std::vector<oo::ObjCRef<id>>)objectsByAge; // youngest first; empty for an empty cache
 
 @end

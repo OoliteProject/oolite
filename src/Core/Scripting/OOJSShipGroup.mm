@@ -29,6 +29,8 @@ MA 02110-1301, USA.
 #import "OOShipGroup.h"
 #import "ShipEntity.h"
 
+#import "OOFoundationBridge.h"
+
 static JSClassID sShipGroupClassID;
 
 static JSValue ShipGroupGetProperty(OOJS_GETTER_ARGS);
@@ -93,7 +95,7 @@ static JSValue ShipGroupGetProperty(OOJS_GETTER_ARGS)
     case kShipGroup_ships:
         result = [group memberArray];
         if (result == nil)
-            result = [NSArray array];
+            result = oo::NSArrayFromObjects(std::vector<id>()); // an empty array
         break;
 
     case kShipGroup_leader:
@@ -168,7 +170,7 @@ static JSValue ShipGroupConstruct(OOJS_NATIVE_ARGS)
         return JS_EXCEPTION;
     }
 
-    NSString* name = nil;
+    std::optional<std::string> name;
     ShipEntity* leader = nil;
 
     if (argc >= 1) {
@@ -176,7 +178,7 @@ static JSValue ShipGroupConstruct(OOJS_NATIVE_ARGS)
             OOJSReportBadArguments(context, nil, @"ShipGroup()", 1, OOJS_ARGV, @"Could not create ShipGroup", @"group name");
             return OOJSNativeFailure(context);
         }
-        name = OOStringFromJSValue(context, OOJS_ARGV[0]);
+        name = oo::OptionalString(OOStringFromJSValue(context, OOJS_ARGV[0]));
     }
 
     if (argc >= 2) {
@@ -187,7 +189,7 @@ static JSValue ShipGroupConstruct(OOJS_NATIVE_ARGS)
         }
     }
 
-    OOJS_RETURN_OBJECT([OOShipGroup groupWithName:name leader:leader]);
+    OOJS_RETURN_OBJECT([OOShipGroup groupWithName:oo::NSStringOrNil(name) leader:leader]);
 
     OOJS_NATIVE_EXIT
 }

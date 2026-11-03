@@ -37,13 +37,13 @@ MA 02110-1301, USA.
 #import "GameController.h"
 #import "HeadUpDisplay.h"
 #import "MyOpenGLView.h"
-#import "OOCollectionExtractors.h"
 #import "OOConstToJSString.h"
 #import "OOConstToString.h"
 #import "OODebugFlags.h"
 #import "OOLoggingExtended.h"
 #import "OOMusicController.h"
 #import "OOOXZManager.h"
+#import "OOPListView.h"
 #import "OOPlanetEntity.h"
 #import "OOSound.h"
 #import "OOStringExpander.h"
@@ -64,6 +64,10 @@ MA 02110-1301, USA.
 
 #import "OODebugMonitor.h"
 #import "OODebugSupport.h"
+#import "OOFoundationBridge.h"
+#import "OOFoundationException.h"
+#import "OOStringBridge.h"
+#include "oofnd/Date.hpp"
 
 #define CUSTOM_VIEW_ROTATE_SPEED 1.0
 #define CUSTOM_VIEW_ZOOM_SPEED 5.0
@@ -294,7 +298,7 @@ static NSTimeInterval time_last_frame;
 {
     NSMutableDictionary* kdicmaster = [NSMutableDictionary dictionaryWithDictionary:[ResourceManager dictionaryFromFilesNamed:@"keyconfig2.plist" inFolder:@"Config" mergeMode:MERGE_BASIC cache:NO]];
     NSUserDefaults* defaults = [NSUserDefaults standardUserDefaults];
-    NSString* kbd = [defaults oo_stringForKey:@"keyboard-code" defaultValue:@"default"];
+    NSString* kbd = oo::PListView(defaults).get<NSString*>(@"keyboard-code", @"default");
     NSMutableDictionary* kdic2 = [NSMutableDictionary dictionaryWithDictionary:[kdicmaster objectForKey:kbd]];
 
     unsigned i;
@@ -688,7 +692,10 @@ static NSTimeInterval time_last_frame;
             }
         }
     }
-    @catch (NSException* exception) {
+    @catch (OOException* exception) {
+        OOLog(kOOLogException, @"***** Exception checking controls [%@]: %@ : %@", exceptionContext, oo::NSStringFrom([exception name]), oo::NSStringFrom([exception reason]));
+    }
+    @catch (OOFoundationException* exception) {
         OOLog(kOOLogException, @"***** Exception checking controls [%@]: %@ : %@", exceptionContext, [exception name], [exception reason]);
     }
 }
@@ -1037,7 +1044,10 @@ static NSTimeInterval time_last_frame;
             hide_hud_pressed = NO;
         }
     }
-    @catch (NSException* exception) {
+    @catch (OOException* exception) {
+        OOLog(kOOLogException, @"***** Exception in pollApplicationControls [%@]: %@ : %@", exceptionContext, oo::NSStringFrom([exception name]), oo::NSStringFrom([exception reason]));
+    }
+    @catch (OOFoundationException* exception) {
         OOLog(kOOLogException, @"***** Exception in pollApplicationControls [%@]: %@ : %@", exceptionContext, [exception name], [exception reason]);
     }
 }
@@ -1147,7 +1157,7 @@ static NSTimeInterval time_last_frame;
                     hyperspeed_engaged = NO;
                 }
 
-                NSDictionary* functionForThrustAxis = [[stickHandler axisFunctions] oo_dictionaryForKey:[[NSNumber numberWithInt:AXIS_THRUST] stringValue]];
+                NSDictionary* functionForThrustAxis = oo::PListView(oo::ObjectFromPList([stickHandler axisFunctions])).get<NSDictionary*>([[NSNumber numberWithInt:AXIS_THRUST] stringValue]);
                 if ([stickHandler joystickCount] != 0 && functionForThrustAxis != nil) {
                     if (flightSpeed < maxFlightSpeed * reqSpeed) {
                         flightSpeed += speed_delta * delta_t;
@@ -1186,7 +1196,7 @@ static NSTimeInterval time_last_frame;
                 //  shoot 'a'
                 if ((([self checkNavKeyPress:n_key_fire_lasers]) || ((mouse_control_on) && ([gameView isDown:gvMouseLeftButton]) && ([UNIVERSE viewDirection] <= VIEW_STARBOARD || ![gameView isCapsLockOn])) || joyButtonState[BUTTON_FIRE]) && (shot_time > weapon_recharge_rate)) {
                     if ([self fireMainWeapon]) {
-                        [self playLaserHit:([self shipHitByLaser] != nil) offset:[[self currentLaserOffset] oo_vectorAtIndex:0] weaponIdentifier:[[self currentWeapon] identifier]];
+                        [self playLaserHit:([self shipHitByLaser] != nil) offset:oo::PListView([self currentLaserOffset]).at<Vector>(0) weaponIdentifier:[[self currentWeapon] identifier]];
                     }
                 }
 
@@ -1296,8 +1306,8 @@ static NSTimeInterval time_last_frame;
                                 [UNIVERSE addMessage:DESC(@"equipment-primed-none-available") forCount:2.0];
                         } else {
                             [self playNextEquipmentSelected];
-                            NSString* equipmentName = [[OOEquipmentType equipmentTypeWithIdentifier:[[eqScripts oo_arrayAtIndex:primedEquipment] oo_stringAtIndex:0]] name];
-                            eqKey = [[eqScripts oo_arrayAtIndex:primedEquipment] oo_stringAtIndex:0];
+                            NSString* equipmentName = [[OOEquipmentType equipmentTypeWithIdentifier:oo::PListView(oo::PListView(eqScripts).at<NSArray*>(primedEquipment)).at<NSString*>(0)] name];
+                            eqKey = oo::PListView(oo::PListView(eqScripts).at<NSArray*>(primedEquipment)).at<NSString*>(0);
                             [UNIVERSE addMessage:OOExpandKey(@"equipment-primed", equipmentName) forCount:2.0];
                         }
                         [self doScriptEvent:OOJSID("playerChangedPrimedEquipment") withArgument:eqKey];
@@ -1352,27 +1362,27 @@ static NSTimeInterval time_last_frame;
                 for (i = 0; i < [customEquipActivation count]; i++) {
                     item = [customEquipActivation objectAtIndex:i];
                     // check if the player has the equip item installed
-                    if ([self hasOneEquipmentItem:[item oo_stringForKey:CUSTOMEQUIP_EQUIPKEY] includeWeapons:NO whileLoading:NO]) {
-                        NSArray* key_act = [item oo_arrayForKey:CUSTOMEQUIP_KEYACTIVATE];
-                        NSArray* key_mod = [item oo_arrayForKey:CUSTOMEQUIP_KEYMODE];
-                        NSDictionary* but_act = [item oo_dictionaryForKey:CUSTOMEQUIP_BUTTONACTIVATE];
-                        NSDictionary* but_mod = [item oo_dictionaryForKey:CUSTOMEQUIP_BUTTONMODE];
+                    if ([self hasOneEquipmentItem:oo::PListView(item).get<NSString*>(CUSTOMEQUIP_EQUIPKEY) includeWeapons:NO whileLoading:NO]) {
+                        NSArray* key_act = oo::PListView(item).get<NSArray*>(CUSTOMEQUIP_KEYACTIVATE);
+                        NSArray* key_mod = oo::PListView(item).get<NSArray*>(CUSTOMEQUIP_KEYMODE);
+                        NSDictionary* but_act = oo::PListView(item).get<NSDictionary*>(CUSTOMEQUIP_BUTTONACTIVATE);
+                        NSDictionary* but_mod = oo::PListView(item).get<NSDictionary*>(CUSTOMEQUIP_BUTTONMODE);
                         // if so,
                         // check to see if the key or button was pressed for activate
-                        if ((key_act && [self checkKeyPress:key_act]) || (but_act && [[OOJoystickManager sharedStickHandler] isButtonDown:[but_act oo_intForKey:STICK_AXBUT] stick:[but_act oo_intForKey:STICK_NUMBER]])) {
+                        if ((key_act && [self checkKeyPress:key_act]) || (but_act && [[OOJoystickManager sharedStickHandler] isButtonDown:oo::PListView(but_act).get<int>(STICK_AXBUT) stick:oo::PListView(but_act).get<int>(STICK_NUMBER)])) {
                             if (![[customActivatePressed objectAtIndex:i] boolValue]) {
                                 // initate the activate JS code
-                                [self activatePrimableEquipment:[self eqScriptIndexForKey:[item oo_stringForKey:CUSTOMEQUIP_EQUIPKEY]] withMode:OOPRIMEDEQUIP_ACTIVATED];
+                                [self activatePrimableEquipment:[self eqScriptIndexForKey:oo::PListView(item).get<NSString*>(CUSTOMEQUIP_EQUIPKEY)] withMode:OOPRIMEDEQUIP_ACTIVATED];
                             }
                             [customActivatePressed replaceObjectAtIndex:i withObject:[NSNumber numberWithBool:YES]];
                         } else
                             [customActivatePressed replaceObjectAtIndex:i withObject:[NSNumber numberWithBool:NO]];
 
                         // check to see if the key or button was pressed for mode
-                        if ((key_mod && [self checkKeyPress:key_mod]) || (but_mod && [[OOJoystickManager sharedStickHandler] isButtonDown:[but_mod oo_intForKey:STICK_AXBUT] stick:[but_mod oo_intForKey:STICK_NUMBER]])) {
+                        if ((key_mod && [self checkKeyPress:key_mod]) || (but_mod && [[OOJoystickManager sharedStickHandler] isButtonDown:oo::PListView(but_mod).get<int>(STICK_AXBUT) stick:oo::PListView(but_mod).get<int>(STICK_NUMBER)])) {
                             if (![[customModePressed objectAtIndex:i] boolValue]) {
                                 // initiate the activate JS code
-                                [self activatePrimableEquipment:[self eqScriptIndexForKey:[item oo_stringForKey:CUSTOMEQUIP_EQUIPKEY]] withMode:OOPRIMEDEQUIP_MODE];
+                                [self activatePrimableEquipment:[self eqScriptIndexForKey:oo::PListView(item).get<NSString*>(CUSTOMEQUIP_EQUIPKEY)] withMode:OOPRIMEDEQUIP_MODE];
                             }
                             [customModePressed replaceObjectAtIndex:i withObject:[NSNumber numberWithBool:YES]];
                         } else
@@ -1446,14 +1456,14 @@ static NSTimeInterval time_last_frame;
                         if (!escapePodKey_pressed) {
                             escapePodKey_pressed = YES;
                             // first keypress will unregister in KEY_REPEAT_INTERVAL seconds
-                            escapePodKeyResetTime = [NSDate timeIntervalSinceReferenceDate] + KEY_REPEAT_INTERVAL;
+                            escapePodKeyResetTime = oo::date::monotonicSeconds() + KEY_REPEAT_INTERVAL;
                             //[gameView clearKey:key_launch_escapepod];
                             [gameView clearKey:[self getFirstKeyCode:n_key_launch_escapepod]];
                             if ([stickHandler joystickCount]) {
                                 [stickHandler clearStickButtonState:BUTTON_ESCAPE];
                             }
                         } else {
-                            OOTimeDelta timeNow = [NSDate timeIntervalSinceReferenceDate];
+                            OOTimeDelta timeNow = oo::date::monotonicSeconds(); // same clock as escapePodKeyResetTime
                             escapePodKey_pressed = NO;
                             if (timeNow < escapePodKeyResetTime)
                                 goodToLaunch = YES;
@@ -1588,7 +1598,7 @@ static NSTimeInterval time_last_frame;
                         fieldOfView = MIN_FOV;
                 }
 
-                NSDictionary* functionForFovAxis = [[stickHandler axisFunctions] oo_dictionaryForKey:[[NSNumber numberWithInt:AXIS_FIELD_OF_VIEW] stringValue]];
+                NSDictionary* functionForFovAxis = oo::PListView(oo::ObjectFromPList([stickHandler axisFunctions])).get<NSDictionary*>([[NSNumber numberWithInt:AXIS_FIELD_OF_VIEW] stringValue]);
                 if ([stickHandler joystickCount] != 0 && functionForFovAxis != nil) {
                     // TODO think reqFov through
                     double reqFov = [stickHandler getAxisState:AXIS_FIELD_OF_VIEW];
@@ -1641,7 +1651,7 @@ static NSTimeInterval time_last_frame;
                     [[UNIVERSE messageGUI] leaveLastLine];
                 else
                     [[UNIVERSE messageGUI] clear];
-                NSTimeInterval time_this_frame = [NSDate timeIntervalSinceReferenceDate];
+                NSTimeInterval time_this_frame = oo::date::monotonicSeconds(); // intervals only (time_last_frame)
                 OOTimeDelta time_delta;
                 if (![[GameController sharedController] isGamePaused]) {
                     time_delta = time_this_frame - time_last_frame;
@@ -1789,7 +1799,10 @@ static NSTimeInterval time_last_frame;
             pause_pressed = NO;
         }
     }
-    @catch (NSException* exception) {
+    @catch (OOException* exception) {
+        OOLog(kOOLogException, @"***** Exception in pollFlightControls [%@]: %@ : %@", exceptionContext, oo::NSStringFrom([exception name]), oo::NSStringFrom([exception reason]));
+    }
+    @catch (OOFoundationException* exception) {
         OOLog(kOOLogException, @"***** Exception in pollFlightControls [%@]: %@ : %@", exceptionContext, [exception name], [exception reason]);
     }
 }
@@ -2265,7 +2278,20 @@ static NSTimeInterval time_last_frame;
                     disc_operation_in_progress = YES;
                     [self quicksavePlayer];
                 }
-                @catch (NSException* exception) {
+                @catch (OOException* exception) {
+                    OOLog(kOOLogException, @"\n\n***** Handling exception: %@ : %@ *****\n\n", oo::NSStringFrom([exception name]), oo::NSStringFrom([exception reason]));
+                    if (strcmp([exception name], "GameNotSavedException") == 0) // try saving game instead
+                    {
+                        OOLog(kOOLogException, @"%@", @"\n\n***** Trying a normal save instead *****\n\n");
+                        if ([controller inFullScreenMode])
+                            [controller pauseFullScreenModeToPerform:@selector(savePlayer) onTarget:self];
+                        else
+                            [self savePlayer];
+                    } else {
+                        @throw exception;
+                    }
+                }
+                @catch (OOFoundationException* exception) {
                     OOLog(kOOLogException, @"\n\n***** Handling exception: %@ : %@ *****\n\n", [exception name], [exception reason]);
                     if ([[exception name] isEqual:@"GameNotSavedException"]) // try saving game instead
                     {
@@ -2650,7 +2676,7 @@ static NSTimeInterval time_last_frame;
         NSString* key = nil;
         while (kc--) {
             definition = [keys objectAtIndex:kc];
-            keydefs = [definition registerKeys];
+            keydefs = oo::ObjectFromPList([definition registerKeys]);
             foreach (key, [keydefs allKeys]) {
                 if ([self checkKeyPress:[keydefs objectForKey:key]]) {
                     if (!extra_gui_key_pressed) {
@@ -2760,7 +2786,7 @@ static NSTimeInterval time_last_frame;
                             goodsIndex = (NSInteger)[goods count] - 1;
                     }
                     DESTROY(marketSelectedCommodity);
-                    marketSelectedCommodity = [[goods oo_stringAtIndex:goodsIndex] retain];
+                    marketSelectedCommodity = [oo::PListView(goods).at<NSString*>(goodsIndex) retain];
                     [self setGuiToMarketScreen];
                 }
             }
@@ -2790,7 +2816,7 @@ static NSTimeInterval time_last_frame;
                         goodsIndex = 0;
                     }
                     DESTROY(marketSelectedCommodity);
-                    marketSelectedCommodity = [[goods oo_stringAtIndex:goodsIndex] retain];
+                    marketSelectedCommodity = [oo::PListView(goods).at<NSString*>(goodsIndex) retain];
                     [self setGuiToMarketInfoScreen];
                 }
             }
@@ -2948,7 +2974,7 @@ static NSTimeInterval time_last_frame;
                 if (brightnessIdx >= count)
                     brightnessIdx = 0;
 
-                int brightnessValue = [brightnesses oo_intAtIndex:brightnessIdx];
+                int brightnessValue = oo::PListView(brightnesses).at<int>(brightnessIdx);
 
                 // warp if the value we got is out of expected limits; can be the case if user has
                 // manually modified the hdr_maxBrightness_array in descriptions.plist
@@ -2989,9 +3015,9 @@ static NSTimeInterval time_last_frame;
             displayModeIndex = 0;
 
         NSDictionary* mode = [modes objectAtIndex:displayModeIndex];
-        int modeWidth = [mode oo_intForKey:kOODisplayWidth];
-        int modeHeight = [mode oo_intForKey:kOODisplayHeight];
-        int modeRefresh = [mode oo_intForKey:kOODisplayRefreshRate];
+        int modeWidth = oo::PListView(mode).get<int>(kOODisplayWidth);
+        int modeHeight = oo::PListView(mode).get<int>(kOODisplayHeight);
+        int modeRefresh = oo::PListView(mode).get<int>(kOODisplayRefreshRate);
         [controller setDisplayWidth:modeWidth Height:modeHeight Refresh:modeRefresh];
 
         NSString* displayModeString = [self screenModeStringForWidth:modeWidth height:modeHeight refreshRate:modeRefresh];
@@ -3207,7 +3233,7 @@ static NSTimeInterval time_last_frame;
                 [UNIVERSE setCurrentPostFX:[UNIVERSE prevColorblindMode:colorblindMode]];
             }
             colorblindMode = [UNIVERSE colorblindMode]; // get the updated value
-            NSString* colorblindModeDesc = [[[UNIVERSE descriptions] oo_arrayForKey:@"colorblind_mode"] oo_stringAtIndex:[UNIVERSE useShaders] ? colorblindMode : 0];
+            NSString* colorblindModeDesc = oo::PListView(oo::PListView([UNIVERSE descriptions]).get<NSArray*>(@"colorblind_mode")).at<NSString*>([UNIVERSE useShaders] ? colorblindMode : 0);
             NSString* colorblindModeMsg = OOExpandKey(@"gameoptions-colorblind-mode", colorblindModeDesc);
             [gui setText:colorblindModeMsg forRow:GUI_ROW(GAME, COLORBLINDMODE) align:GUI_ALIGN_CENTER];
         }
@@ -3358,7 +3384,7 @@ static NSTimeInterval time_last_frame;
         int from_function = 0;
         NSArray* keyComponents = [key componentsSeparatedByString:@":"];
         if ([keyComponents count] > 1) {
-            from_function = [keyComponents oo_intAtIndex:1];
+            from_function = oo::PListView(keyComponents).at<int>(1);
             if (from_function < 0)
                 from_function = 0;
 
@@ -3394,7 +3420,7 @@ static NSTimeInterval time_last_frame;
         int from_function = 0;
         NSArray* keyComponents = [key componentsSeparatedByString:@":"];
         if ([keyComponents count] > 1) {
-            from_function = [keyComponents oo_intAtIndex:1];
+            from_function = oo::PListView(keyComponents).at<int>(1);
             if (from_function < 0)
                 from_function = 0;
 
@@ -3430,7 +3456,7 @@ static NSTimeInterval time_last_frame;
         int from_function = 0;
         NSArray* keyComponents = [key componentsSeparatedByString:@":"];
         if ([keyComponents count] > 1) {
-            from_function = [keyComponents oo_intAtIndex:1];
+            from_function = oo::PListView(keyComponents).at<int>(1);
             if (from_function < 0)
                 from_function = 0;
 
@@ -3471,14 +3497,14 @@ static NSTimeInterval time_last_frame;
                 _customViewIndex = (_customViewIndex + 1) % [_customViews count];
             }
 
-            [self setCustomViewDataFromDictionary:[_customViews oo_dictionaryAtIndex:_customViewIndex] withScaling:YES];
+            [self setCustomViewDataFromDictionary:oo::PListView(_customViews).at<NSDictionary*>(_customViewIndex) withScaling:YES];
 
             [self switchToThisView:VIEW_CUSTOM andProcessWeaponFacing:NO]; // weapon facing must not change, we just want an external view
         }
         customView_pressed = YES;
     } else
         customView_pressed = NO;
-    NSTimeInterval this_time = [NSDate timeIntervalSinceReferenceDate];
+    NSTimeInterval this_time = oo::date::monotonicSeconds(); // intervals only (last_time)
     if ([UNIVERSE viewDirection] > VIEW_STARBOARD && [gameView isCapsLockOn]) {
         BOOL ctrl_down = [gameView isCtrlDown];
         float customViewZoomSpeed = ctrl_down ? CUSTOM_VIEW_ZOOM_SPEED * CUSTOM_VIEW_SPEED_REDUCTION_FACTOR : CUSTOM_VIEW_ZOOM_SPEED;
@@ -3748,7 +3774,7 @@ static NSTimeInterval time_last_frame;
 
     BOOL isCtrlDown = [gameView isCtrlDown];
 
-    double flightArrowKeyPrecisionFactor = [[NSUserDefaults standardUserDefaults] oo_doubleForKey:@"flight-arrow-key-precision-factor" defaultValue:0.5];
+    double flightArrowKeyPrecisionFactor = oo::PListView([NSUserDefaults standardUserDefaults]).get<double>(@"flight-arrow-key-precision-factor", 0.5);
     if (flightArrowKeyPrecisionFactor < 0.05)
         flightArrowKeyPrecisionFactor = 0.05;
     if (flightArrowKeyPrecisionFactor > 1.0)
@@ -4184,7 +4210,10 @@ static BOOL autopilot_pause;
 
         [self pollGuiArrowKeyControls:delta_t];
     }
-    @catch (NSException* exception) {
+    @catch (OOException* exception) {
+        OOLog(kOOLogException, @"***** Exception in pollDockedControls [%@]: %@ : %@", exceptionContext, oo::NSStringFrom([exception name]), oo::NSStringFrom([exception reason]));
+    }
+    @catch (OOFoundationException* exception) {
         OOLog(kOOLogException, @"***** Exception in pollDockedControls [%@]: %@ : %@", exceptionContext, [exception name], [exception reason]);
     }
 }
@@ -4462,7 +4491,7 @@ static BOOL autopilot_pause;
             if (extraMissionKeys) {
                 NSString* key = nil;
                 foreach (key, [extraMissionKeys allKeys]) {
-                    if ([self checkKeyPress:[extraMissionKeys oo_arrayForKey:key]]) {
+                    if ([self checkKeyPress:oo::PListView(extraMissionKeys).get<NSArray*>(key)]) {
                         if (!extra_key_pressed) {
                             extraKey = [key copy];
                         }
@@ -4749,7 +4778,7 @@ static BOOL autopilot_pause;
         if (legalStatus > 0) {
             // there's a slight chance you'll be fined for your past offences when autodocking
             int fine_chance = ranrot_rand() & 0x03ff; //	0..1023
-            int government = 1 + [[UNIVERSE currentSystemData] oo_intForKey:KEY_GOVERNMENT]; // 1..8
+            int government = 1 + oo::PListView([UNIVERSE currentSystemData]).get<int>(KEY_GOVERNMENT); // 1..8
             if ([UNIVERSE inInterstellarSpace])
                 government = 2; // equivalent to Feudal. I'm assuming any station in interstellar space is military. -- Ahruman 2008-05-29
             fine_chance /= government;

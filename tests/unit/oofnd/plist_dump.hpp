@@ -61,6 +61,9 @@ inline void dump(const oo::PList& p, std::string& out)
 		case oo::PList::Type::Null:
 			out += "nil";
 			break;
+		case oo::PList::Type::Object:   // no parser produces one (ADR-0043 Amendment 2)
+			out += "object";
+			break;
 		case oo::PList::Type::Bool:
 			out += *p.getIf<bool>() ? "B1" : "B0";
 			break;

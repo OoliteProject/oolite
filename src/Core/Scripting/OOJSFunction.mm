@@ -24,6 +24,7 @@ MA 02110-1301, USA.
 */
 
 #import "OOJSFunction.h"
+#import "OOFoundationBridge.h"
 #import "OOJSEngineTimeManagement.h"
 #import "OOJSScript.h"
 
@@ -48,9 +49,9 @@ MA 02110-1301, USA.
         if (JS_IsException(nameValue)) {
             JS_FreeValue(context, JS_GetException(context));
         } else {
-            NSString* name = OOStringFromJSValue(context, nameValue);
-            if ([name length] != 0)
-                _name = [name retain];
+            std::optional<std::string> name = oo::OptionalString(OOStringFromJSValue(context, nameValue));
+            if (name.has_value() && !name->empty())
+                _name = name;
         }
         JS_FreeValue(context, nameValue);
 
@@ -63,12 +64,12 @@ MA 02110-1301, USA.
     return self;
 }
 
-- (id)initWithName:(NSString*)name
+- (id)initWithName:(const std::optional<std::string>&)name
              scope:(JSValueConst)scope
-              code:(NSString*)code
+              code:(const std::optional<std::string>&)code
      argumentCount:(NSUInteger)argCount
      argumentNames:(const char**)argNames
-          fileName:(NSString*)fileName
+          fileName:(const std::optional<std::string>&)fileName
         lineNumber:(NSUInteger)lineNumber
            context:(JSContext*)context
 {
@@ -88,7 +89,7 @@ MA 02110-1301, USA.
     */
     (void)scope;
 
-    if (code == nil || (argCount > 0 && argNames == NULL))
+    if (!code.has_value() || (argCount > 0 && argNames == NULL))
         OK = NO;
 
     if (OK) {
@@ -98,26 +99,23 @@ MA 02110-1301, USA.
                 names, so evaluate a function expression. The wrapper is kept on
                 the first line so that line numbers in the body are unchanged.
         */
-        NSMutableString* source = [NSMutableString stringWithString:@"(function("];
+        std::string source = "(function(";
         NSUInteger i;
         for (i = 0; i < argCount; i++) {
             if (i != 0)
-                [source appendString:@","];
-            [source appendString:[NSString stringWithUTF8String:argNames[i]]];
+                source += ",";
+            source += argNames[i];
         }
-        [source appendFormat:@"){%@\n})", code];
-
-        NSData* utf8 = [source dataUsingEncoding:NSUTF8StringEncoding];
-        NSMutableData* buffer = [NSMutableData dataWithData:utf8];
-        [buffer appendBytes:"" length:1]; // JS_Eval2() requires a NUL-terminated buffer.
+        source += "){" + *code + "\n})";
 
         JSEvalOptions options = {
             .version = JS_EVAL_OPTIONS_VERSION,
             .eval_flags = JS_EVAL_TYPE_GLOBAL,
-            .filename = [fileName UTF8String] ?: "<anonymous>",
+            .filename = fileName.has_value() ? fileName->c_str() : "<anonymous>",
             .line_num = (int)lineNumber
         };
-        function = JS_Eval2(context, (const char*)[buffer bytes], [utf8 length], &options);
+        // JS_Eval2() requires a NUL-terminated buffer, which c_str() is.
+        function = JS_Eval2(context, source.c_str(), source.size(), &options);
         if (JS_IsException(function)) {
             OOJSReportPendingException(context);
             function = JS_UNDEFINED;
@@ -127,9 +125,9 @@ MA 02110-1301, USA.
         }
     }
 
-    if (OK && name != nil) {
+    if (OK && name.has_value()) {
         // Function expression names are read-only but configurable; redefine it.
-        JS_DefinePropertyValueStr(context, function, "name", [name oo_jsValueInContext:context], JS_PROP_CONFIGURABLE);
+        JS_DefinePropertyValueStr(context, function, "name", JS_NewStringLen(context, name->data(), name->size()), JS_PROP_CONFIGURABLE);
     }
 
     if (OK) {
@@ -163,22 +161,18 @@ MA 02110-1301, USA.
 - (void)dealloc
 {
     [self deleteJSValue];
-    DESTROY(_name);
 
     [super dealloc];
 }
 
-- (NSString*)descriptionComponents
+- (id)descriptionComponents // shared selector (proposed ADR-0043)
 {
-    NSString* name = [self name];
-    if (name == nil)
-        name = @"<anonymous>";
-    return [NSString stringWithFormat:@"%@()", name];
+    return oo::NSStringFrom(oo::str::format("%s()", _name.value_or("<anonymous>").c_str()));
 }
 
-- (NSString*)name
+- (id)name // shared selector (proposed ADR-0043)
 {
-    return _name;
+    return oo::NSStringOrNil(_name);
 }
 
 - (BOOL)isValid
@@ -240,15 +234,15 @@ MA 02110-1301, USA.
 // Semi-raw evaluation shared by convenience methods below. *result is owned on success; exceptions are reported.
 - (BOOL)evaluateWithContext:(JSContext*)context
                       scope:(id)jsThis
-                  arguments:(NSArray*)arguments
+                  arguments:(const std::vector<oo::ObjCRef<id>>&)arguments
                      result:(JSValue*)result
 {
-    NSUInteger i, argc = [arguments count];
+    NSUInteger i, argc = arguments.size();
     assert(argc < INT_MAX);
     std::vector<JSValue> argv(argc);
 
     for (i = 0; i < argc; i++) {
-        argv[i] = [[arguments objectAtIndex:i] oo_jsValueInContext:context];
+        argv[i] = [arguments[i].get() oo_jsValueInContext:context];
     }
 
     JSValue scopeObj = JS_UNDEFINED;
@@ -290,7 +284,7 @@ MA 02110-1301, USA.
 
 - (id)evaluateWithContext:(JSContext*)context
                     scope:(id)jsThis
-                arguments:(NSArray*)arguments
+                arguments:(const std::vector<oo::ObjCRef<id>>&)arguments
 {
     JSValue result;
     BOOL OK = [self evaluateWithContext:context
@@ -307,7 +301,7 @@ MA 02110-1301, USA.
 
 - (BOOL)evaluatePredicateWithContext:(JSContext*)context
                                scope:(id)jsThis
-                           arguments:(NSArray*)arguments
+                           arguments:(const std::vector<oo::ObjCRef<id>>&)arguments
 {
     JSValue result;
     BOOL OK = [self evaluateWithContext:context

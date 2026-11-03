@@ -25,11 +25,14 @@ MA 02110-1301, USA.
 #import "OOParticleSystem.h"
 
 #import "MyOpenGLView.h"
+#import "OOFoundationBridge.h"
 #import "OOLightParticleEntity.h"
 #import "OOMacroOpenGL.h"
 #import "OOTexture.h"
 #import "PlayerEntity.h"
 #import "Universe.h"
+
+#include "oofnd/String.hpp"
 
 //	Testing toy: cause particle systems to stop after half a second.
 #define FREEZE_PARTICLES 0
@@ -84,9 +87,9 @@ MA 02110-1301, USA.
     return self;
 }
 
-- (NSString*)descriptionComponents
+- (id)descriptionComponents // shared selector (proposed ADR-0043)
 {
-    return [NSString stringWithFormat:@"ttl: %.3fs", _duration - _timePassed];
+    return oo::NSStringFrom(oo::str::format("ttl: %.3fs", _duration - _timePassed));
 }
 
 - (BOOL)canCollide
@@ -233,9 +236,9 @@ MA 02110-1301, USA.
 }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-- (NSSet*)allTextures
+- (id)allTextures // shared selector (proposed ADR-0043)
 {
-    return [NSSet setWithObject:[OOLightParticleEntity defaultParticleTexture]];
+    return oo::NSSetFromObjects(std::vector<id> { [OOLightParticleEntity defaultParticleTexture] });
 }
 #endif
 

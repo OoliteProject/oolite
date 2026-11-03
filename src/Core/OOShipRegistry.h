@@ -30,37 +30,49 @@ SOFTWARE.
 #import "OOFoundation.h"
 #import "oofnd/objc/OOObject.h"
 
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
+#include "oofnd/objc/OOObjCRef.h"
+
 @class OOProbabilitySet;
 
 @interface OOShipRegistry : OOObject {
 @private
-    NSDictionary* _shipData;
-    NSDictionary* _effectData;
-    NSArray* _demoShips;
-    NSArray* _playerShips;
-    NSDictionary* _probabilitySets;
+    oo::PList _shipData; // ship key -> ship dictionary (null until loaded)
+    oo::PList _effectData; // effect key -> effect dictionary (null until loaded)
+    oo::PList _demoShips; // demo ship entries (dictionaries) grouped in arrays by class
+    std::vector<std::string> _playerShips; // shipyard keys, in shipyard.plist key order
+    std::optional<std::map<std::string, oo::ObjCRef<OOProbabilitySet*>, std::less<>>> _probabilitySets; // role -> ship keys; nullopt: none cached yet
 }
 
 + (OOShipRegistry*)sharedRegistry;
 
 + (void)reload;
 
-- (NSDictionary*)shipInfoForKey:(NSString*)key;
-- (void)setShipInfoForKey:(NSString*)key with:(NSDictionary*)newShipData;
-- (NSDictionary*)effectInfoForKey:(NSString*)key;
-- (NSDictionary*)shipyardInfoForKey:(NSString*)key;
-- (OOProbabilitySet*)probabilitySetForRole:(NSString*)role;
+// A null PList where there is no such entry (was nil).
+- (oo::PList)cxx_shipInfoForKey:(const std::string&)key;
+- (void)cxx_setShipInfoForKey:(const std::string&)key with:(const oo::PList&)newShipData;
+- (oo::PList)cxx_effectInfoForKey:(const std::string&)key;
+- (oo::PList)cxx_shipyardInfoForKey:(const std::string&)key;
+- (OOProbabilitySet*)cxx_probabilitySetForRole:(const std::string&)role;
 
-- (NSArray*)demoShipKeys;
-- (NSArray*)playerShipKeys;
+- (oo::PList)cxx_demoShipKeys; // arrays (one per class) of demo ship dictionaries
+- (std::vector<std::string>)cxx_playerShipKeys;
 
 @end
 
 @interface OOShipRegistry (OOConveniences)
 
-- (NSArray*)shipKeys;
-- (NSArray*)shipRoles;
-- (NSArray*)shipKeysWithRole:(NSString*)role;
-- (NSString*)randomShipKeyForRole:(NSString*)role;
+- (std::vector<std::string>)cxx_shipKeys; // in key order
+- (std::vector<std::string>)cxx_shipRoles; // in role order
+- (std::vector<std::string>)cxx_shipKeysWithRole:(const std::string&)role;
+- (std::optional<std::string>)cxx_randomShipKeyForRole:(const std::string&)role; // nullopt: no ship has the role
 
 @end
+
+/*	TRANSITIONAL (proposed ADR-0043, "Transitional bridges"): the Foundation-typed API this header
+        declared before its sweep (bead oo-92mj, chunks oo-3rb.114 ff.), forwarding to the cxx_ methods
+        above, so unmigrated callers compile unchanged. Callers move to the cxx_ API in their own sweep
+        beads; the bridge goes in its own bead.
+*/
+#import "OOShipRegistry+FoundationBridge.h"

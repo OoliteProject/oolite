@@ -24,210 +24,51 @@ MA 02110-1301, USA.
 
 #import "OOPListParsing.h"
 #import "NSDataOOExtensions.h"
+#import "OOFoundationBridge.h"
 #import "OOLogging.h"
 #import "OOStringParsing.h"
 #import "Universe.h"
-#include <ctype.h>
-#include <string.h>
 
-#if !OOLITE_GNUSTEP
-#define NO_DYNAMIC_PLIST_DTD_CHANGE
-#endif
+#include "oofnd/PListParsing.hpp"
 
-static NSString* const kOOLogPListFoundationParseError = @"plist.parse.failed";
-static NSString* const kOOLogPListWrongType = @"plist.wrongType";
-static NSString* const kOOLogPListInformation = @"plist.information";
-
-#ifndef NO_DYNAMIC_PLIST_DTD_CHANGE
-static NSData* ChangeDTDIfApplicable(NSData* data);
-#endif
-
-static NSData* CopyDataFromFile(NSString* path);
-static id ValueIfClass(id value, Class klass);
-
-id OOPropertyListFromData(NSData* data, NSString* whereFrom)
+oo::PList cxx_OOPropertyListFromData(const std::optional<oo::Data>& data, const std::optional<std::string>& whereFrom)
 {
-    id result = nil;
-    NSString* error = nil;
+    oo::PList result;
 
-    if (whereFrom == nil)
-        whereFrom = @"<data in memory>";
+    const std::string source = whereFrom.value_or("<data in memory>");
     if (UNIVERSE != nil) {
-        OOLog(kOOLogPListInformation, @"Parsing %@ as a property list.", whereFrom);
+        OOLog(@"plist.information", @"Parsing %@ as a property list.", oo::NSStringFrom(source));
     }
 
-    if (data != nil) {
-#ifndef NO_DYNAMIC_PLIST_DTD_CHANGE
-        data = ChangeDTDIfApplicable(data);
-#endif
-
-        result = [NSPropertyListSerialization propertyListFromData:data mutabilityOption:NSPropertyListImmutable format:NULL errorDescription:&error];
-        if (result == nil) // Foundation parser failed
+    if (data.has_value()) {
+        // oo::parsePropertyList changes an Apple DTD line first, as ChangeDTDIfApplicable did.
+        const std::string_view bytes(reinterpret_cast<const char*>(data->bytes()), data->length());
+        const oo::Expected<oo::PList, oo::PListError> parsed = oo::parsePropertyList(bytes);
+        if (parsed)
+            result = *parsed;
+        if (result.isNull()) // parser failed
         {
-#if OOLITE_RELEASE_PLIST_ERROR_STRINGS
-            [error autorelease];
-#endif
             // Ensure we can say something sensible...
-            if (error == nil)
-                error = @"<no error message>";
-            if (whereFrom == nil)
-                whereFrom = @"<data in memory>";
+            const std::string error = parsed ? std::string("<no error message>") : parsed.error().description();
 
-            OOLog(kOOLogPListFoundationParseError, @"Failed to parse %@ as a property list.\n%@", whereFrom, error);
+            OOLog(@"plist.parse.failed", @"Failed to parse %@ as a property list.\n%@", oo::NSStringFrom(source), oo::NSStringFrom(error));
         }
     }
 
     return result;
 }
 
-id OOPropertyListFromFile(NSString* path)
+oo::PList cxx_OOPropertyListFromFile(const std::string& path)
 {
-    id result = nil;
-    NSData* data = nil;
+    oo::PList result;
 
-    if (path != nil) {
-        // Load file, if it exists...
-        data = CopyDataFromFile(path);
-        if (data != nil) {
-            // ...and parse it
-            result = OOPropertyListFromData(data, path);
-            [data release];
-        }
-        // Non-existent file is not an error.
+    // Load file, if it exists...
+    const std::optional<oo::Data> data = OODataFromOXZFile(path);
+    if (data.has_value()) {
+        // ...and parse it
+        result = cxx_OOPropertyListFromData(data, path);
     }
+    // Non-existent file is not an error.
 
     return result;
-}
-
-#ifndef NO_DYNAMIC_PLIST_DTD_CHANGE
-static NSData* ChangeDTDIfApplicable(NSData* data)
-{
-    const uint8_t* bytes = NULL;
-    uint8_t* newBytes = NULL;
-    size_t length,
-        newLength,
-        offset = 0,
-        newOffset = 0;
-    const char xmlDeclLine[] = "<\?xml version=\"1.0\" encoding=\"UTF-8\"\?>";
-    const char* appleDTDLines[] = {
-        "<!DOCTYPE plist PUBLIC \"-//Apple Computer//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">",
-        "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">",
-        NULL
-    };
-    const char gstepDTDLine[] = "<!DOCTYPE plist PUBLIC \"-//GNUstep//DTD plist 0.9//EN\" \"http://www.gnustep.org/plist-0_9.xml\">";
-    const char* srcDTDLine = NULL;
-    size_t srcDTDLineSize = 0;
-    unsigned i;
-
-    length = [data length];
-    if (length < sizeof xmlDeclLine)
-        return data;
-
-    bytes = (const uint8_t*)[data bytes];
-
-    // Check if it starts with an XML declaration. Bogus: there are valid XML declarations which don't match xmlDeclLine.
-    if (memcmp(bytes, xmlDeclLine, sizeof xmlDeclLine - 1) != 0)
-        return data;
-
-    offset += sizeof xmlDeclLine - 1;
-    while (offset < length && isspace(bytes[offset]))
-        ++offset;
-
-    // Check if first non-blank stuff after XML declaration is any known Apple plist DTD. Also somewhat bogus.
-    for (i = 0;; i++) {
-        srcDTDLine = appleDTDLines[i];
-        if (srcDTDLine == NULL)
-            return data; // No matches
-
-        srcDTDLineSize = strlen(appleDTDLines[i]);
-
-        if (srcDTDLineSize <= length - offset && memcmp(bytes + offset, srcDTDLine, srcDTDLineSize) == 0) {
-            // Match
-            break;
-        }
-    }
-
-    offset += srcDTDLineSize;
-
-    newLength = length - offset + sizeof xmlDeclLine + sizeof gstepDTDLine - 1;
-    newBytes = (uint8_t*)malloc(newLength);
-    if (newBytes == NULL)
-        return data;
-
-    // Construct modified version with altered DTD line
-    memcpy(newBytes, xmlDeclLine, sizeof xmlDeclLine - 1);
-    newOffset = sizeof xmlDeclLine - 1;
-    newBytes[newOffset++] = '\n';
-    memcpy(newBytes + newOffset, gstepDTDLine, sizeof gstepDTDLine - 1);
-    newOffset += sizeof gstepDTDLine - 1;
-    memcpy(newBytes + newOffset, bytes + offset, length - offset);
-
-    return [NSData dataWithBytes:newBytes length:newLength];
-}
-#endif
-
-/*	Load data from file. Returns a retained pointer.
-        -initWithContentsOfMappedFile fails quietly under OS X if there's no file,
-        but GNUstep complains.
-*/
-static NSData* CopyDataFromFile(NSString* path)
-{
-    return [[NSData oo_dataWithOXZFile:path] retain];
-#if 0
-// without OXZ extension. Code to be deleted once everything is working
-#if OOLITE_MAC_OS_X
-	return [[NSData alloc] initWithContentsOfMappedFile:path];
-#else
-	NSFileManager	*fmgr = [NSFileManager defaultManager];
-	BOOL			dir;
-	
-	if ([fmgr fileExistsAtPath:path isDirectory:&dir])
-	{
-		if (!dir)
-		{
-			return [[NSData alloc] initWithContentsOfMappedFile:path];
-		}
-		else
-		{
-			OOLog(kOOLogFileNotFound, @"Expected property list but found directory at %@", path);
-		}
-	}
-	
-	return nil;
-#endif
-#endif
-}
-// Wrappers which ensure that the plist contains the right type of object.
-NSDictionary* OODictionaryFromData(NSData* data, NSString* whereFrom)
-{
-    id result = OOPropertyListFromData(data, whereFrom);
-    return ValueIfClass(result, [NSDictionary class]);
-}
-
-NSDictionary* OODictionaryFromFile(NSString* path)
-{
-    id result = OOPropertyListFromFile(path);
-    return ValueIfClass(result, [NSDictionary class]);
-}
-
-NSArray* OOArrayFromData(NSData* data, NSString* whereFrom)
-{
-    id result = OOPropertyListFromData(data, whereFrom);
-    return ValueIfClass(result, [NSArray class]);
-}
-
-NSArray* OOArrayFromFile(NSString* path)
-{
-    id result = OOPropertyListFromFile(path);
-    return ValueIfClass(result, [NSArray class]);
-}
-
-// Ensure that object is of desired class.
-static id ValueIfClass(id value, Class klass)
-{
-    if (value != nil && ![value isKindOfClass:klass]) {
-        OOLog(kOOLogPListWrongType, @"Property list is wrong type - expected %@, got %@.", klass, [value class]);
-        value = nil;
-    }
-    return value;
 }
