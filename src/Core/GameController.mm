@@ -43,6 +43,7 @@ MA 02110-1301, USA.
 #import "ResourceManager.h"
 #import "Universe.h"
 #import "legacy_random.h"
+#import <objc/objc-arc.h>
 #include <stdlib.h>
 #ifndef NDEBUG
 #import "OOJavaScriptEngine.h"
@@ -230,10 +231,10 @@ static GameController* sSharedController = nil;
 
 - (void)applicationDidFinishLaunching:(NSNotification*)notification
 {
-    NSAutoreleasePool* pool = nil;
+    void* pool = NULL;
     unsigned i;
 
-    pool = [[NSAutoreleasePool alloc] init];
+    pool = objc_autoreleasePoolPush();
 
     @try {
         // if not verifying oxps, ensure that gameView is drawn to using beginSplashScreen
@@ -295,7 +296,7 @@ static GameController* sSharedController = nil;
     _finishedLaunching = YES;
 
     // Release anything allocated above that is not required.
-    [pool release];
+    objc_autoreleasePoolPop(pool);
 
 #if !OOLITE_MAC_COCOA_UI
     [[NSRunLoop currentRunLoop] run];
@@ -345,12 +346,12 @@ static GameController* sSharedController = nil;
 
 - (void)performGameTick:(id)sender
 {
-    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    void* pool = objc_autoreleasePoolPush();
 
     [gameView pollControls];
     [self doPerformGameTick];
 
-    [pool release];
+    objc_autoreleasePoolPop(pool);
 }
 
 #endif

@@ -55,37 +55,35 @@ void GenerateGraphVizForAIStateMachine(NSDictionary* stateMachine, NSString* smN
 
     foreachkey(stateKey, stateMachine)
     {
-        NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+        @autoreleasepool {
+            [graphViz appendFormat:@"\t\n\tsubgraph cluster_%@\n\t{\n\t\tlabel=\"%@\"\n", stateKey, EscapedGraphVizString(stateKey)];
 
-        [graphViz appendFormat:@"\t\n\tsubgraph cluster_%@\n\t{\n\t\tlabel=\"%@\"\n", stateKey, EscapedGraphVizString(stateKey)];
+            NSDictionary* state = [stateMachine oo_dictionaryForKey:stateKey];
+            NSString* handlerKey = nil;
+            foreachkey(handlerKey, state)
+            {
+                [graphViz appendFormat:@"\t\t%@ [label=\"%@\"]\n", HandlerToken(stateKey, handlerKey, handlerKeys, uniqueSet), EscapedGraphVizString(handlerKey)];
+            }
 
-        NSDictionary* state = [stateMachine oo_dictionaryForKey:stateKey];
-        NSString* handlerKey = nil;
-        foreachkey(handlerKey, state)
-        {
-            [graphViz appendFormat:@"\t\t%@ [label=\"%@\"]\n", HandlerToken(stateKey, handlerKey, handlerKeys, uniqueSet), EscapedGraphVizString(handlerKey)];
-        }
+            // Ensure there is an ENTER handler for arrows to point at.
+            if ([state objectForKey:@"ENTER"] == nil) {
+                [graphViz appendFormat:@"\t\t%@ [label=\"ENTER (implicit)\"] // No ENTER handler in file, but it's still the target of any incoming transitions.\n", HandlerToken(stateKey, @"ENTER", handlerKeys, uniqueSet)];
+            }
 
-        // Ensure there is an ENTER handler for arrows to point at.
-        if ([state objectForKey:@"ENTER"] == nil) {
-            [graphViz appendFormat:@"\t\t%@ [label=\"ENTER (implicit)\"] // No ENTER handler in file, but it's still the target of any incoming transitions.\n", HandlerToken(stateKey, @"ENTER", handlerKeys, uniqueSet)];
-        }
+            [graphViz appendString:@"\t}\n"];
 
-        [graphViz appendString:@"\t}\n"];
+            // Go through each handler looking for interesting methods.
+            foreachkey(handlerKey, state)
+            {
+                NSArray* handlerCommands = [state oo_arrayForKey:handlerKey];
+                NSUInteger commandIter, commandCount = [handlerCommands count];
+                BOOL haveSetOrSwichAI = NO;
 
-        // Go through each handler looking for interesting methods.
-        foreachkey(handlerKey, state)
-        {
-            NSArray* handlerCommands = [state oo_arrayForKey:handlerKey];
-            NSUInteger commandIter, commandCount = [handlerCommands count];
-            BOOL haveSetOrSwichAI = NO;
-
-            for (commandIter = 0; commandIter < commandCount; commandIter++) {
-                HandleOneCommand(graphViz, stateKey, handlerKey, handlerKeys, handlerCommands, commandIter, commandCount, specialNodes, uniqueSet, &haveSetOrSwichAI);
+                for (commandIter = 0; commandIter < commandCount; commandIter++) {
+                    HandleOneCommand(graphViz, stateKey, handlerKey, handlerKeys, handlerCommands, commandIter, commandCount, specialNodes, uniqueSet, &haveSetOrSwichAI);
+                }
             }
         }
-
-        [pool release];
     }
 
     if ([specialNodes count] != 0) {

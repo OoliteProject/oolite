@@ -177,20 +177,19 @@ void OOJSProfileExit(OOJSProfileStackFrame* frame)
         return;
 
     OOHighResTimeValue now = OOGetHighResTime();
-    NSAutoreleasePool* pool = [NSAutoreleasePool new];
-    BOOL done = NO;
+    @autoreleasepool {
+        BOOL done = NO;
 
-    // Pop any frames above this one, as for a native that threw.
-    for (;;) {
-        assert(sProfileStack != NULL);
+        // Pop any frames above this one, as for a native that threw.
+        for (;;) {
+            assert(sProfileStack != NULL);
 
-        done = (sProfileStack == frame);
-        UpdateProfileForFrame(now, sProfileStack);
-        if (EXPECT(done))
-            break;
+            done = (sProfileStack == frame);
+            UpdateProfileForFrame(now, sProfileStack);
+            if (EXPECT(done))
+                break;
+        }
     }
-
-    [pool release];
 
     OODisposeHighResTime(frame->startTime);
 

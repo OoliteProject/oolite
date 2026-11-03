@@ -94,7 +94,7 @@ SOFTWARE.
     return [_rolesAndProbabilities hash];
 }
 
-- (id)copyWithZone:(NSZone*)zone
+- (id)copyWithZone:(OOZone*)zone
 {
     // Note: since object is immutable, a copy is no different from the original.
     return [self retain];

@@ -110,16 +110,16 @@ This code is hereby placed in the public domain.
         return NO;
 
     BOOL result = YES;
-    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-    NSEnumerator* selfEnum = [self objectEnumerator];
-    id object = nil;
-    while ((object = [selfEnum nextObject])) {
-        if (![other containsObject:object]) {
-            result = NO;
-            break;
+    @autoreleasepool {
+        NSEnumerator* selfEnum = [self objectEnumerator];
+        id object = nil;
+        while ((object = [selfEnum nextObject])) {
+            if (![other containsObject:object]) {
+                result = NO;
+                break;
+            }
         }
     }
-    DESTROY(pool);
 
     return result;
 }

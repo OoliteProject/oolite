@@ -32,6 +32,7 @@ MA 02110-1301, USA.
 #import "PlayerEntityLegacyScriptEngine.h"
 #import "PlayerEntityScriptMethods.h"
 #import "PlayerEntitySound.h"
+#include "oofnd/Process.hpp"
 
 #import "OOLaserShotEntity.h"
 #import "OOMesh.h"
@@ -8868,18 +8869,18 @@ static NSString* last_outfitting_key = nil;
         }
 
         // check for messages from the command line
-        NSArray* arguments = [[NSProcessInfo processInfo] arguments];
+        const std::vector<std::string>& arguments = oo::process::arguments();
         unsigned i;
-        for (i = 0; i < [arguments count]; i++) {
-            if (([[arguments objectAtIndex:i] isEqual:@"-message"]) && (i < [arguments count] - 1)) {
+        for (i = 0; i < arguments.size(); i++) {
+            if ((arguments[i] == "-message") && (i < arguments.size() - 1)) {
                 OOGUIRow ms_start = msgLine;
-                NSString* message = [arguments oo_stringAtIndex:i + 1];
+                NSString* message = [NSString stringWithUTF8String:arguments[i + 1].c_str()];
                 OOGUIRow i = msgLine = [gui addLongText:message startingAtRow:ms_start align:GUI_ALIGN_CENTER];
                 for (i--; i >= ms_start; i--) {
                     [gui setColor:[OOColor magentaColor] forRow:i];
                 }
             }
-            if ([[arguments objectAtIndex:i] isEqual:@"-showversion"]) {
+            if (arguments[i] == "-showversion") {
                 OOGUIRow ms_start = msgLine;
                 NSString* version = @"Version " @OO_VERSION_FULL;
                 OOGUIRow i = msgLine = [gui addLongText:version startingAtRow:ms_start align:GUI_ALIGN_CENTER];

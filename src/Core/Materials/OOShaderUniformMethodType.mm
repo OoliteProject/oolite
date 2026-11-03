@@ -27,21 +27,14 @@ SOFTWARE.
 
 /*
         For shader uniform binding to work, it is necessary to be able to tell the
-        return type of a method. This is done by comparing the methodReturnType of
-        a method's NSMethodSignature to those of methods in a template class, one
-        method for each supported return type.
+        return type of a method. This is done by comparing the runtime's return
+        type encoding of the method (method_copyReturnType()) to those of methods
+        in a template class, one method for each supported return type.
 
-        Under OS X, the methodReturnType for a type foo is simply @encode(foo),
-        but under the GNU runtime, it is the @encode() string for the entire
-        method signature. In general, this is platform-defined. In order to
-        maintain an implementation-agnostic approach, we get the signature from a
-        known method of each time at runtime.
-
-        NOTE: the GNU runtime's approach means that the methodReturnType differs
-        between different method signatures with the same return type. For
-        instance, a method -(id)foo:(int) will have a different methodReturnType
-        than a method -(id)foo. As far as I can see this is a bug, but Oolite only
-        supports binding to methods with no parameters, so this is not a problem.
+        The encoding is platform-defined, so to stay implementation-agnostic the
+        template encodings are read from known methods at runtime, through the same
+        call. (Bead oo-3rb.15: this used the method signature object's return type,
+        which on this runtime is the same return-type encoding.)
 */
 
 #import "OOShaderUniformMethodType.h"
@@ -56,24 +49,30 @@ static const char* sTemplates[kOOShaderUniformTypeCount];
 static void InitTemplates(void);
 static const char* CopyTemplateForSelector(SEL selector);
 
-OOShaderUniformType OOShaderUniformTypeFromMethodSignature(NSMethodSignature* signature)
+OOShaderUniformType OOShaderUniformTypeFromMethod(Method method)
 {
     unsigned i;
-    const char* typeCode = NULL;
+    char* typeCode = NULL;
+    OOShaderUniformType result = kOOShaderUniformTypeInvalid;
 
     if (EXPECT_NOT(sInited == NO))
         InitTemplates();
 
-    typeCode = [signature methodReturnType];
+    if (EXPECT_NOT(method == NULL))
+        return kOOShaderUniformTypeInvalid;
+    typeCode = method_copyReturnType(method);
     if (EXPECT_NOT(typeCode == NULL))
         return kOOShaderUniformTypeInvalid;
 
     for (i = kOOShaderUniformTypeInvalid + 1; i != kOOShaderUniformTypeCount; ++i) {
-        if (sTemplates[i] != NULL && strcmp(sTemplates[i], typeCode) == 0)
-            return (OOShaderUniformType)i;
+        if (sTemplates[i] != NULL && strcmp(sTemplates[i], typeCode) == 0) {
+            result = (OOShaderUniformType)i;
+            break;
+        }
     }
 
-    return kOOShaderUniformTypeInvalid;
+    free(typeCode);
+    return result;
 }
 
 @interface OOShaderUniformTypeMethodSignatureTemplateClass : NSObject
@@ -126,16 +125,10 @@ static void InitTemplates(void)
 
 static const char* CopyTemplateForSelector(SEL selector)
 {
-    NSMethodSignature* signature = nil;
-    const char* typeCode = NULL;
+    Method method = class_getInstanceMethod([OOShaderUniformTypeMethodSignatureTemplateClass class], selector);
 
-    signature = [OOShaderUniformTypeMethodSignatureTemplateClass instanceMethodSignatureForSelector:selector];
-    typeCode = [signature methodReturnType];
-
-    /*	typeCode is *probably* a constant, but this isn't formally guaranteed
-            as far as I'm aware, so we make a copy of it.
-    */
-    return typeCode ? strdup(typeCode) : NULL;
+    // method_copyReturnType() returns a malloc()ed copy, kept for the life of the process.
+    return (method != NULL) ? method_copyReturnType(method) : NULL;
 }
 
 @implementation OOShaderUniformTypeMethodSignatureTemplateClass : NSObject

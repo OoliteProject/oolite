@@ -23,6 +23,7 @@ MA 02110-1301, USA.
 */
 
 #import "OOCPUInfo.h"
+#include "oofnd/Process.hpp"
 #include <stdlib.h>
 
 #if OOLITE_MAC_OS_X
@@ -81,7 +82,7 @@ void OOCPUInfoInit(void)
 
     // Count processors
 #if OOLITE_MAC_OS_X
-    sNumberOfCPUs = [[NSProcessInfo processInfo] processorCount];
+    sNumberOfCPUs = oo::process::processorCount();
 #elif OOLITE_WINDOWS
     SYSTEM_INFO sysInfo;
 

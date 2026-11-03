@@ -37,8 +37,8 @@ MA 02110-1301, USA.
         a string ending with a : followed by arbitrary arguments which will be
         concatenated as a string. (This behaviour reflects Oolite's traditional
         scripting system and the expectations of its script methods. It also has
-        the advantage that it can be done with GNUstep's buggy implementation of
-        NSMethodSignature.)
+        the advantage that it needs only the runtime's method type encodings, not
+        a general method-signature parser.)
 
         If the method returns an object, *outResult will be set to that object's
         -oo_jsValueInContext: (owned by the caller). Otherwise, it will be left

@@ -37,6 +37,8 @@ SOFTWARE.
 #import "ResourceManager.h"
 #import "Universe.h"
 
+#include "oofnd/Defaults.hpp"
+
 #define SKY_ELEMENT_SCALE_FACTOR (BILLBOARD_DEPTH / 500.0f)
 #define NEBULA_SHUFFLE_FACTOR 0.005f
 #define DEBUG_COLORS 0 // If set, rgb = xyz (offset to range from 0.1 to 1.0).
@@ -128,11 +130,9 @@ static OOColor* SaturatedColorInRange(OOColor* color1, OOColor* color2, BOOL hue
                alpha:(float)nebulaAlpha
                scale:(float)nebulaScale
 {
-    NSAutoreleasePool* pool = nil;
-
     if (!sInited) {
         sInited = YES;
-        if ([[NSUserDefaults standardUserDefaults] boolForKey:@"sky-render-inset-coords"]) {
+        if (oo::Defaults::standard().boolForKey("sky-render-inset-coords")) {
             sMinTexCoord += 1.0f / 128.0f;
             sMaxTexCoord -= 1.0f / 128.0f;
         }
@@ -145,18 +145,18 @@ static OOColor* SaturatedColorInRange(OOColor* color1, OOColor* color2, BOOL hue
     _starCount = starCount;
     _nebulaCount = nebulaCount;
 
-    pool = [[NSAutoreleasePool alloc] init];
-    [self setUpStarsWithColor1:color1 color2:color2];
+    @autoreleasepool {
+        [self setUpStarsWithColor1:color1 color2:color2];
 
-    if (![UNIVERSE reducedDetail]) {
-        [self setUpNebulaeWithColor1:color3
-                              color2:color4
-                       clusterFactor:nebulaClusterFactor
-                        nebulaHueFix:nebulaHueFix
-                               alpha:nebulaAlpha
-                               scale:nebulaScale];
+        if (![UNIVERSE reducedDetail]) {
+            [self setUpNebulaeWithColor1:color3
+                                  color2:color4
+                           clusterFactor:nebulaClusterFactor
+                            nebulaHueFix:nebulaHueFix
+                                   alpha:nebulaAlpha
+                                   scale:nebulaScale];
+        }
     }
-    [pool release];
 
     [[OOGraphicsResetManager sharedManager] registerClient:self];
 
@@ -507,7 +507,8 @@ static OOColor* DebugColor(Vector orientation)
     GLfloat r, g, b, x;
     size_t posSize, tcSize, colSize;
     unsigned count = 0;
-    int skyColorCorrection = [[NSUserDefaults standardUserDefaults] oo_integerForKey:@"sky-color-correction" defaultValue:0];
+    // -integerForKey: gives 0 wherever oo_integerForKey:defaultValue:0 fell back to the default.
+    int skyColorCorrection = (int)oo::Defaults::standard().integerForKey("sky-color-correction");
 
 // Hejl / Burgess-Dawson filmic tone mapping
 // this algorithm has gamma correction already embedded

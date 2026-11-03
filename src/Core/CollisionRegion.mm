@@ -34,6 +34,7 @@ MA 02110-1301, USA.
 #import "ShipEntity.h"
 #import "StationEntity.h"
 #import "Universe.h"
+#include "oofnd/objc/OOException.h"
 
 static BOOL positionIsWithinRegion(HPVector position, CollisionRegion* region);
 static BOOL sphereIsWithinRegion(HPVector position, GLfloat rad, CollisionRegion* region);
@@ -193,7 +194,7 @@ static BOOL positionIsWithinBorders(HPVector position, CollisionRegion* region)
         max_entities = 1 + max_entities * 2;
         Entity** new_store = (Entity**)realloc(entity_array, max_entities * sizeof(Entity*));
         if (new_store == NULL) {
-            [NSException raise:NSMallocException format:@"Not enough memory to grow collision region member list."];
+            [OOException raise:OOMallocException format:"Not enough memory to grow collision region member list."];
         }
 
         entity_array = new_store;

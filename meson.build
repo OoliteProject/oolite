@@ -106,3 +106,6 @@ subdir('src')
 if get_option('quickjs_poc')
     subdir('src/Core/Scripting/poc')
 endif
+
+# Unit tests that need no game build (meson test --suite oofnd).
+subdir('tests/unit/oofnd')

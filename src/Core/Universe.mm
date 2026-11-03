@@ -47,6 +47,7 @@ MA 02110-1301, USA.
 #import "OOStringParsing.h"
 #import "OOTexture.h"
 #import "ResourceManager.h"
+#include "oofnd/Process.hpp"
 
 #import "CollisionRegion.h"
 #import "OODebugSupport.h"
@@ -9859,20 +9860,16 @@ static void PreloadOneSound(NSString* soundName)
 {
     // Handle command line options to transform system_description array for easier localization
 
-    NSArray* arguments = nil;
-    NSString* arg = nil;
     BOOL compileSysDesc = NO, exportSysDesc = NO, xml = NO;
 
-    arguments = [[NSProcessInfo processInfo] arguments];
-
-    foreach (arg, arguments) {
-        if ([arg isEqual:@"--compile-sysdesc"])
+    for (const std::string& arg : oo::process::arguments()) {
+        if (arg == "--compile-sysdesc")
             compileSysDesc = YES;
-        else if ([arg isEqual:@"--export-sysdesc"])
+        else if (arg == "--export-sysdesc")
             exportSysDesc = YES;
-        else if ([arg isEqual:@"--xml"])
+        else if (arg == "--xml")
             xml = YES;
-        else if ([arg isEqual:@"--openstep"])
+        else if (arg == "--openstep")
             xml = NO;
     }
 

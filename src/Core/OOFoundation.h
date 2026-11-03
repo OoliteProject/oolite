@@ -127,6 +127,20 @@ MA 02110-1301, USA.
 #define OOLITE_LINUX 1
 #endif
 
+#if defined(__cplusplus)
+/*	Objective-C++ is built as C++20 (ADR-0011; proposed ADR-0028). The true/false macros below
+        stay exactly as they were (game code keeps its int-typed true/false), but a C++20 standard
+        header parsed after them breaks: <optional> has `bool(__x) <=> false`, i.e. bool <=> int.
+        So those headers are parsed here first, with the real keywords; their include guards make
+        every later #include of them a no-op. extern "C++" because OOCocoa.h is sometimes reached
+        from inside an extern "C" block (OOMaths.h).
+*/
+extern "C++" {
+#include <compare>
+#include <optional>
+}
+#endif
+
 #if OOLITE_GNUSTEP
 #define true 1
 #define false 0

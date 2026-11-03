@@ -748,12 +748,10 @@ static OOOXZManager* sSingleton = nil;
      * ...if the item in _dependencyStack is not findable (e.g. wrong
      * ...version) then stop here.
      */
-    NSArray*
-        requires
-    = [downloadedManifest oo_arrayForKey:kOOManifestRequiresOXPs defaultValue:nil];
-    if (requires == nil) {
+    NSArray* requiredOXPs = [downloadedManifest oo_arrayForKey:kOOManifestRequiresOXPs defaultValue:nil];
+    if (requiredOXPs == nil) {
         // just in case the requirements are only specified in the online copy
-        requires = [expectedManifest oo_arrayForKey:kOOManifestRequiresOXPs defaultValue:nil];
+        requiredOXPs = [expectedManifest oo_arrayForKey:kOOManifestRequiresOXPs defaultValue:nil];
     }
     NSDictionary* requirement = nil;
     NSMutableString* progress = [NSMutableString stringWithCapacity:2048];
@@ -765,7 +763,7 @@ static OOOXZManager* sSingleton = nil;
         foreach (requirement, tempStack) {
             OOLog(kOOOXZDebugLog, @"Dependency stack: checking %@", [requirement oo_stringForKey:kOOManifestRelationIdentifier]);
             if (![ResourceManager manifest:downloadedManifest HasUnmetDependency:requirement logErrors:NO]
-                && requires != nil && [requires containsObject:requirement]) {
+                && requiredOXPs != nil && [requiredOXPs containsObject:requirement]) {
                 // it was unmet, but now it's met
                 [progress appendFormat:DESC(@"oolite-oxzmanager-progress-now-has-@"), [requirement oo_stringForKey:kOOManifestRelationDescription defaultValue:[requirement oo_stringForKey:kOOManifestRelationIdentifier]]];
                 [_dependencyStack removeObject:requirement];
@@ -776,8 +774,8 @@ static OOOXZManager* sSingleton = nil;
             }
         }
     }
-    if (requires != nil) {
-        foreach (requirement, requires) {
+    if (requiredOXPs != nil) {
+        foreach (requirement, requiredOXPs) {
             if ([ResourceManager manifest:downloadedManifest HasUnmetDependency:requirement logErrors:NO]) {
                 OOLog(kOOOXZDebugLog, @"Dependency stack: adding %@", [requirement oo_stringForKey:kOOManifestRelationIdentifier]);
                 [_dependencyStack addObject:requirement];

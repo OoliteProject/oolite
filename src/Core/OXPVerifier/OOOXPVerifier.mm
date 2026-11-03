@@ -57,6 +57,8 @@ SOFTWARE.
 #import "OOLoggingExtended.h"
 #import "OOOXPVerifierStageInternal.h"
 #import "ResourceManager.h"
+#include "oofnd/FileSystem.hpp"
+#include "oofnd/Process.hpp"
 
 static void SwitchLogFile(NSString* name);
 static void NoteVerificationStage(NSString* displayName, NSString* stage);
@@ -94,9 +96,6 @@ static void OpenLogFile(NSString* name);
  */
 + (BOOL)runVerificationIfRequested
 {
-    NSArray* arguments = nil;
-    NSEnumerator* argEnum = nil;
-    NSString* arg = nil;
     NSString* foundPath = nil;
     BOOL exists, isDirectory;
     OOOXPVerifier* verifier = nil;
@@ -104,14 +103,16 @@ static void OpenLogFile(NSString* name);
 
     pool = [[NSAutoreleasePool alloc] init];
 
-    arguments = [[NSProcessInfo processInfo] arguments];
+    const std::vector<std::string>& arguments = oo::process::arguments();
 
     // Scan for -verify-oxp or --verify-oxp followed by relative path
-    for (argEnum = [arguments objectEnumerator]; (arg = [argEnum nextObject]);) {
-        if ([arg isEqual:@"-verify-oxp"] || [arg isEqual:@"--verify-oxp"]) {
-            foundPath = [argEnum nextObject];
+    for (size_t argIndex = 0; argIndex < arguments.size(); argIndex++) {
+        const std::string& arg = arguments[argIndex];
+        if (arg == "-verify-oxp" || arg == "--verify-oxp") {
+            if (argIndex + 1 < arguments.size())
+                foundPath = [NSString stringWithUTF8String:arguments[argIndex + 1].c_str()];
             if (foundPath == nil) {
-                OOLog(@"verifyOXP.noPath", @"***** ERROR: %@ passed without path argument; nothing to verify.", arg);
+                OOLog(@"verifyOXP.noPath", @"***** ERROR: %s passed without path argument; nothing to verify.", arg.c_str());
                 [pool release];
                 return YES;
             }
@@ -126,7 +127,9 @@ static void OpenLogFile(NSString* name);
     }
 
     // We got a path; does it point to a directory?
-    exists = [[NSFileManager defaultManager] fileExistsAtPath:foundPath isDirectory:&isDirectory];
+    oo::fs::FileType foundType = oo::fs::fileType(oo::fs::pathFromUTF8([foundPath UTF8String]));
+    exists = (foundType != oo::fs::FileType::none);
+    isDirectory = (foundType == oo::fs::FileType::directory);
     if (!exists) {
         OOLog(@"verifyOXP.badPath", @"***** ERROR: no OXP exists at path \"%@\"; nothing to verify.", foundPath);
     } else if (!isDirectory) {
@@ -253,7 +256,7 @@ static void OpenLogFile(NSString* name);
     _verifierPList = [[NSDictionary dictionaryWithContentsOfFile:verifierPListPath] retain];
 
     _basePath = [path copy];
-    _displayName = [[NSFileManager defaultManager] displayNameAtPath:_basePath];
+    _displayName = [_basePath lastPathComponent]; // what GNUstep's -displayNameAtPath: returns
     if (_displayName == nil)
         _displayName = [_basePath lastPathComponent];
     [_displayName retain];

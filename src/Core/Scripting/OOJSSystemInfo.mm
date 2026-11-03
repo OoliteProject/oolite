@@ -911,51 +911,50 @@ static JSValue SystemInfoStaticFilteredSystems(OOJS_NATIVE_ARGS)
     JSValueConst jsThis = OOJS_ARGV[0];
     JSValueConst predicate = OOJS_ARGV[1];
 
-    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-    NSMutableArray* result = [NSMutableArray arrayWithCapacity:256];
     JSValue rval = JS_UNDEFINED;
+    @autoreleasepool {
+        NSMutableArray* result = [NSMutableArray arrayWithCapacity:256];
 
-    // Not OOJS_BEGIN_FULL_NATIVE() - we use JSAPI while paused.
-    OOJSPauseTimeLimiter();
-
-    // Iterate over systems.
-    BOOL OK = result != nil;
-    OOGalaxyID galaxy = [PLAYER currentGalaxyID];
-    OOSystemID system;
-    for (system = 0; system <= kOOMaximumSystemID; system++) {
-        // NOTE: this deliberately bypasses the cache, since iteration is inherently unfriendly to a single-item cache.
-        OOSystemInfo* info = [[[OOSystemInfo alloc] initWithGalaxy:galaxy system:system] autorelease];
-        JSValue args[1] = { OOJSValueFromNativeObject(context, info) };
-
-        OOJSResumeTimeLimiter();
-        JSValue callResult = JS_Call(context, predicate, jsThis, 1, (JSValueConst*)args);
+        // Not OOJS_BEGIN_FULL_NATIVE() - we use JSAPI while paused.
         OOJSPauseTimeLimiter();
-        JS_FreeValue(context, args[0]);
 
-        // On exception, it is left pending and propagated to our caller, as before.
-        OK = !JS_IsException(callResult);
+        // Iterate over systems.
+        BOOL OK = result != nil;
+        OOGalaxyID galaxy = [PLAYER currentGalaxyID];
+        OOSystemID system;
+        for (system = 0; system <= kOOMaximumSystemID; system++) {
+            // NOTE: this deliberately bypasses the cache, since iteration is inherently unfriendly to a single-item cache.
+            OOSystemInfo* info = [[[OOSystemInfo alloc] initWithGalaxy:galaxy system:system] autorelease];
+            JSValue args[1] = { OOJSValueFromNativeObject(context, info) };
+
+            OOJSResumeTimeLimiter();
+            JSValue callResult = JS_Call(context, predicate, jsThis, 1, (JSValueConst*)args);
+            OOJSPauseTimeLimiter();
+            JS_FreeValue(context, args[0]);
+
+            // On exception, it is left pending and propagated to our caller, as before.
+            OK = !JS_IsException(callResult);
+
+            if (OK) {
+                int boolVal = JS_ToBool(context, callResult);
+                if (boolVal > 0) {
+                    [result addObject:info];
+                } else if (boolVal < 0) {
+                    JS_FreeValue(context, JS_GetException(context));
+                }
+            }
+            JS_FreeValue(context, callResult);
+
+            if (!OK)
+                break;
+        }
 
         if (OK) {
-            int boolVal = JS_ToBool(context, callResult);
-            if (boolVal > 0) {
-                [result addObject:info];
-            } else if (boolVal < 0) {
-                JS_FreeValue(context, JS_GetException(context));
-            }
+            rval = [result oo_jsValueInContext:context];
+        } else {
+            rval = OOJSNativeFailure(context);
         }
-        JS_FreeValue(context, callResult);
-
-        if (!OK)
-            break;
     }
-
-    if (OK) {
-        rval = [result oo_jsValueInContext:context];
-    } else {
-        rval = OOJSNativeFailure(context);
-    }
-
-    [pool release];
 
     OOJSResumeTimeLimiter();
     return rval;

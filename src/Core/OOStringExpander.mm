@@ -34,6 +34,7 @@ MA 02110-1301, USA.
 #import "PlayerEntityScriptMethods.h"
 #import "ResourceManager.h"
 #import "Universe.h"
+#include "oofnd/objc/OORuntime.h"
 
 // Syntax warnings are for OXP developers, so include them wherever the debug console is.
 #if OOLITE_DEBUG || defined(OO_DEBUG_MONITOR_ENABLED)
@@ -643,7 +644,7 @@ static NSString* ExpandStringKeySpecial(OOStringExpansionContext* context, NSStr
     NSMapTable* specials = SpecialSubstitutionSelectors();
     SEL selector = (SEL)NSMapGet(specials, key);
     if (selector != NULL) {
-        NSCAssert2([PLAYER respondsToSelector:selector], @"Special string expansion selector %@ for [%@] is not implemented.", NSStringFromSelector(selector), key);
+        NSCAssert2([PLAYER respondsToSelector:selector], @"Special string expansion selector %s for [%@] is not implemented.", OOSelectorName(selector), key);
 
         NSString* result = [PLAYER performSelector:selector];
         if (result != nil) {
@@ -806,7 +807,7 @@ static SEL LookUpLegacySelector(NSString* key)
             selectorName = key;
 
         if ([whitelist containsObject:selectorName]) {
-            selector = NSSelectorFromString(selectorName);
+            selector = OOSelectorFromName([selectorName UTF8String]);
 
             /*	This is an assertion, not a warning, because whitelist.plist is
                     part of the game and cannot be overriden by OXPs. If there is an

@@ -322,30 +322,28 @@ static BOOL sRunningScript = NO;
 
 - (void)runScriptActions:(NSArray*)actions withContextName:(NSString*)contextName forTarget:(ShipEntity*)target
 {
-    NSAutoreleasePool* pool = nil;
     NSString* oldMissionKey = nil;
     NSString* volatile theMissionKey = contextName; // Work-around for silly exception macros
 
-    pool = [[NSAutoreleasePool alloc] init];
+    @autoreleasepool {
+        // FIXME: does this actually make sense in the context of non-missions?
+        oldMissionKey = sCurrentMissionKey;
+        sCurrentMissionKey = theMissionKey;
 
-    // FIXME: does this actually make sense in the context of non-missions?
-    oldMissionKey = sCurrentMissionKey;
-    sCurrentMissionKey = theMissionKey;
+        @try {
+            PerformScriptActions(actions, target);
+        }
+        @catch (NSException* exception) {
+            OOLog(@"script.error.exception",
+                @"***** EXCEPTION %@: %@ while handling legacy script actions for %@",
+                [exception name],
+                [exception reason],
+                [theMissionKey hasPrefix:kActionTempPrefix] ? [target shortDescription] : theMissionKey);
+            // Suppress exception
+        }
 
-    @try {
-        PerformScriptActions(actions, target);
+        sCurrentMissionKey = oldMissionKey;
     }
-    @catch (NSException* exception) {
-        OOLog(@"script.error.exception",
-            @"***** EXCEPTION %@: %@ while handling legacy script actions for %@",
-            [exception name],
-            [exception reason],
-            [theMissionKey hasPrefix:kActionTempPrefix] ? [target shortDescription] : theMissionKey);
-        // Suppress exception
-    }
-
-    sCurrentMissionKey = oldMissionKey;
-    [pool release];
 }
 
 - (void)runUnsanitizedScriptActions:(NSArray*)actions allowingAIMethods:(BOOL)allowAIMethods withContextName:(NSString*)contextName forTarget:(ShipEntity*)target

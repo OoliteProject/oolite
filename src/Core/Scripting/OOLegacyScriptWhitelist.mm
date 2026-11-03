@@ -64,36 +64,34 @@ NSArray* OOSanitizeLegacyScript(NSArray* script, NSString* context, BOOL allowAI
 
 static NSArray* OOSanitizeLegacyScriptInternal(NSArray* script, SanStackElement* stack, BOOL allowAIMethods)
 {
-    NSAutoreleasePool* pool = nil;
     NSMutableArray* result = nil;
     id statement = nil;
     NSUInteger index = 0;
 
-    pool = [[NSAutoreleasePool alloc] init];
+    @autoreleasepool {
+        result = [NSMutableArray arrayWithCapacity:[script count]];
 
-    result = [NSMutableArray arrayWithCapacity:[script count]];
+        foreach (statement, script) {
+            SanStackElement subStack = {
+                stack, nil, index++
+            };
 
-    foreach (statement, script) {
-        SanStackElement subStack = {
-            stack, nil, index++
-        };
+            if ([statement isKindOfClass:[NSDictionary class]]) {
+                statement = SanitizeConditionalStatement(statement, &subStack, allowAIMethods);
+            } else if ([statement isKindOfClass:[NSString class]]) {
+                statement = SanitizeActionStatement(statement, &subStack, allowAIMethods);
+            } else {
+                OOLog(@"script.syntax.statement.invalidType", @"***** SCRIPT ERROR: in %@, statement is of invalid type - expected string or dictionary, got %@.", StringFromStack(stack), [statement class]);
+                statement = nil;
+            }
 
-        if ([statement isKindOfClass:[NSDictionary class]]) {
-            statement = SanitizeConditionalStatement(statement, &subStack, allowAIMethods);
-        } else if ([statement isKindOfClass:[NSString class]]) {
-            statement = SanitizeActionStatement(statement, &subStack, allowAIMethods);
-        } else {
-            OOLog(@"script.syntax.statement.invalidType", @"***** SCRIPT ERROR: in %@, statement is of invalid type - expected string or dictionary, got %@.", StringFromStack(stack), [statement class]);
-            statement = nil;
+            if (statement != nil) {
+                [result addObject:statement];
+            }
         }
 
-        if (statement != nil) {
-            [result addObject:statement];
-        }
+        [result retain];
     }
-
-    [result retain];
-    [pool release];
 
     return [result autorelease];
 }
