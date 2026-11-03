@@ -28,6 +28,7 @@ doxygen/
 libobjc2/
 libs-base/
 tools-make/
+tests/__pycache__
 
 # Debug output
 /core

@@ -348,6 +348,23 @@ OO_TEST(deleting)
 }
 
 
+// A variable the script never touched (loaded from a saved game, or set by a legacy script) has no
+// property on the object, only the player's value: delete still clears it, because SpiderMonkey ran
+// the class's delProperty hook whether or not the object had an own property of that name.
+OO_TEST(deletingAVariableTheScriptNeverSet)
+{
+	SetUpContext();
+	ResetVariables();
+	sPlayer->_sets = 0;
+	sPlayer->_missionVariables["mission_fromSave"] = oo::PList("loaded");
+	OO_CHECK_EVAL("missionVariables.fromSave", "loaded");
+	OO_CHECK_EVAL("delete missionVariables.fromSave", "true");
+	OO_CHECK(sPlayer->_missionVariables.count("mission_fromSave") == 0);
+	OO_CHECK_EVAL("missionVariables.fromSave", "null");
+	OO_CHECK_EQ(sPlayer->_sets, 1);
+}
+
+
 // A variable the object already reports (here, after an enumeration listed it)
 // is still written through the class's setter, as SpiderMonkey's assignment
 // did, and is not shadowed by a read-only property; delete on it then clears
