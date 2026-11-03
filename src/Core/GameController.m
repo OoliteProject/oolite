@@ -28,6 +28,7 @@ MA 02110-1301, USA.
 #import "OOCollectionExtractors.h"
 #import "OODebugFlags.h"
 #import "OODebugSupport.h"
+#import "OOEnumerationShuffle.h"
 #import "OOJSFrameCallbacks.h"
 #import "OOLogOutputHandler.h"
 #import "OOLoggingExtended.h"
@@ -103,6 +104,15 @@ static GameController* sSharedController = nil;
         } else {
             ranrot_srand((uint32_t)[[NSDate date] timeIntervalSince1970]); // reset randomiser with current time
         }
+
+#if OO_DEBUG
+        /*	Force the enumeration shuffle to read its environment here rather than at the
+                first foreach(), so its seed is in the log above every line it could have
+                affected. Returns immediately and logs nothing when OO_SHUFFLE_ENUMERATION is
+                unset, which is the normal case. Debug builds only; see OOEnumerationShuffle.h.
+        */
+        (void)OOEnumerationShuffleEnabled();
+#endif
 
         _splashStart = [[NSDate alloc] init];
     }

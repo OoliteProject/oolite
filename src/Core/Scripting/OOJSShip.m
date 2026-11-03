@@ -287,7 +287,7 @@ enum {
     kShip_scriptInfo, // arbitrary data for scripts, dictionary, read-only
     kShip_shipClassName, // ship type name, string, read/write
     kShip_shipUniqueName, // uniqish name, string, read/write
-    kShip_speed, // current flight speed, double, read-only
+    kShip_speed, // current flight speed, double, read/write
     kShip_starboardWeapon, // the ship's starboard weapon, equipmentType, read/write
     kShip_subEntities, // subentities, array of Ship, read-only
     kShip_subEntityCapacity, // max subentities for this ship, int, read-only
@@ -437,7 +437,7 @@ static const JSCFunctionListEntry sShipProperties[] = {
     OOJS_PROPERTY_RO("scriptInfo", ShipGetProperty, kShip_scriptInfo),
     OOJS_PROPERTY_RW("shipClassName", ShipGetProperty, ShipSetProperty, kShip_shipClassName),
     OOJS_PROPERTY_RW("shipUniqueName", ShipGetProperty, ShipSetProperty, kShip_shipUniqueName),
-    OOJS_PROPERTY_RO("speed", ShipGetProperty, kShip_speed),
+    OOJS_PROPERTY_RW("speed", ShipGetProperty, ShipSetProperty, kShip_speed),
     OOJS_PROPERTY_RW("starboardWeapon", ShipGetProperty, ShipSetProperty, kShip_starboardWeapon),
     OOJS_PROPERTY_RO("subEntities", ShipGetProperty, kShip_subEntities),
     OOJS_PROPERTY_RO("subEntityCapacity", ShipGetProperty, kShip_subEntityCapacity),
@@ -1463,6 +1463,49 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS)
 
         if ((JS_ToFloat64(context, &fValue, value) == 0)) {
             [entity setDesiredSpeed:fmax(fValue, 0.0)];
+            return JS_UNDEFINED;
+        }
+        break;
+
+    case kShip_speed:
+        // Writable so a script can put a ship at a KNOWN flight speed, and in particular can
+        // hold it at rest. Writing ship.velocity is not enough on its own: that calls
+        // -setTotalVelocity:, documented at ShipEntity.h:944 as setting velocity to
+        // `vel - thrustVector`, i.e. the INSTANTANEOUS velocity. The engine is untouched, so
+        // -applyThrust: (ShipEntity.m:6734) rebuilds thrustVector from flightSpeed on the very
+        // next frame and the ship carries on. performStop() already zeroes desired_speed and
+        // selects BEHAVIOUR_STOP_STILL, but flightSpeed still DECAYS to zero over several
+        // frames at the ship's thrust rate rather than arriving there; this is the direct
+        // write, the JS counterpart of -setSpeed: (ShipEntity.m:8575), which the engine itself
+        // uses for exactly this purpose (DockEntity.m:919 launch speed, WormholeEntity.m:448
+        // exit speed, ShipEntityAI.m:1765 when a ship becomes wreckage).
+        //
+        // PLAYER: read-only, as for desiredSpeed just above. The player's flightSpeed is
+        // driven by the throttle every frame through PlayerEntity's control path, so a write
+        // here would be silently reverted - a setter that does not stick is worse than none.
+        if (EXPECT_NOT([entity isPlayer]))
+            goto playerReadOnly;
+
+        if ((JS_ToFloat64(context, &fValue, value) == 0)) {
+            // NEGATIVE IS REFUSED, NOT CLAMPED, matching maxSpeed/maxPitch/maxRoll below.
+            // flightSpeed is a magnitude - thrustVector is v_forward scaled by it - so a
+            // negative value means the caller wanted to reverse and got a ship flying
+            // backwards along its own nose instead. Silently clamping that to 0 would hide
+            // the mistake; refusing names it. NaN is refused for the same reason and by the
+            // same idiom as OOJSPlayerShip.m:811 ("guard against undefined"): NaN propagates
+            // into position on the next frame and poisons the entity beyond recovery.
+            if (isnan(fValue) || fValue < 0) {
+                OOJSReportError(context, @"ship.speed must be a number >= 0.");
+                return OOJSNativeFailure(context);
+            }
+            // NOT clamped to maxSpeed at the top end, deliberately. The engine itself puts
+            // flightSpeed above maxFlightSpeed on purpose - missiles (ShipEntity.m:12381,
+            // `maxFlightSpeed + 300`) and fuel injectors both do - so an upper clamp here
+            // would make the scripted seam weaker than the engine's own and would silently
+            // rewrite a legal value. -applyThrust: already pulls flightSpeed back towards
+            // desired_speed, which IS clamped to max_available_speed (ShipEntity.m:6756-6757),
+            // so an over-speed write decays on its own rather than sticking.
+            [entity setSpeed:fValue];
             return JS_UNDEFINED;
         }
         break;

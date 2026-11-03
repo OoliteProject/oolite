@@ -9,6 +9,12 @@ project(
         check: true,
     ).stdout().strip(),
     default_options: [
+        # PINNED -O FOR GOLDEN BUILDS (decision 11, see tests/golden/GOLDEN_STORAGE.md).
+        # A golden blessed at one optimisation level is not comparable to a run at another:
+        # -O changes vectorisation width, reassociation opportunities and inlining, all of
+        # which move the low-order bits of float results. This is the level the stored
+        # goldens under goldens/<platform>/ were produced at, and
+        # tests/golden/check_build_flags.py asserts the configured build really uses it.
         'optimization=2',
         # Always use the bundled, patched QuickJS-ng (see subprojects/quickjs-ng.wrap):
         # an unpatched system build breaks OXPs that rely on SpiderMonkey behaviour.
@@ -49,6 +55,27 @@ if is_debug
         language: c_family,
     )
 endif
+
+# FLOATING-POINT CONTRACTION IS OFF FOR EVERY BUILD (decision 11).
+#
+# clang's default is -ffp-contract=on, which lets it fuse `a*b + c` into a single FMA
+# instruction. FMA rounds ONCE instead of twice, so the fused and unfused forms give
+# genuinely different doubles - measured on this toolchain (clang 22.1.8, ucrt64) with
+# a=0.1, b=0.3, c=-0.03 read from argv so nothing is constant-folded:
+#   -ffp-contract=off   0 vfmadd in the asm, result 0
+#   -ffp-contract=fast  2 vfmadd in the asm, result 1.665334536937734749e-18
+# Whether the fusion happens is a function of the target's instruction set and of what the
+# optimiser felt like doing, i.e. of the machine and the compiler version - exactly the
+# variation a cross-platform golden must not inherit.
+#
+# This pin is the FIRST line of defence; float quantisation in the dump (dump_state.js
+# QUANT_DECIMALS) is the second. They are coupled on purpose: the pin removes the large,
+# structural discrepancies that no sane quantisation could absorb, so the quantisation only
+# has to absorb ordinary last-bit noise. See tests/golden/GOLDEN_STORAGE.md.
+#
+# It is applied UNCONDITIONALLY, not only for golden builds: a flag that is only on in one
+# configuration is a flag whose absence nobody notices.
+add_project_arguments('-ffp-contract=off', language: c_family)
 
 if get_option('no_shaders')
     add_project_arguments('-DNO_SHADERS=1', language: c_family)
