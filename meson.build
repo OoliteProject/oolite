@@ -131,3 +131,12 @@ if not get_option('deployment_release') and host_machine.system() == 'windows'
     # Unit tests of converted game classes, linked from the game's own objects (meson test --suite core).
     subdir('tests/unit/core')
 endif
+
+# Every game and test header compiles on its own, so include order never matters and clang-format
+# may sort includes freely (meson test --suite headers). Windows-only like the unit tests above,
+# whose headers it also checks; it needs the finished build's dependency log, which meson test has.
+if not get_option('deployment_release') and host_machine.system() == 'windows'
+    test('headers_standalone', find_program('python3'),
+        args: [files('tests/check_headers_standalone.py'), meson.project_build_root()],
+        suite: 'headers', timeout: 900, is_parallel: false)
+endif

@@ -5,7 +5,7 @@ docs/phases/0-gui-tier.md). It is the baseline smoke test: the window opens, syn
 input reaches the game, and the menu shutdown path works. Everything else in this tier
 (G2-G9) reuses conftest.py's ``game`` fixture and ``row_to_point`` and cites this file.
 
-    python3 -m pytest upstream/oolite/tests/gui/test_g1_exit_via_mouse.py -x -q
+    python3 -m pytest oolite-dev/tests/gui/test_g1_exit_via_mouse.py -x -q
 
 Needs the desktop: a real window, unlocked and logged in (ADR-0017). It takes tools/gui-lock
 for the duration.
@@ -466,7 +466,7 @@ def test_the_runner_checks_the_desktop_precondition_up_front():
     import os
 
     here = os.path.dirname(os.path.abspath(__file__))
-    runner = os.path.join(here, "..", "..", "..", "..", "tools", "gui-tier.sh")
+    runner = os.path.join(here, "..", "..", "..", "tools", "gui-tier.sh")
     with open(runner, "r", encoding="utf-8") as handle:
         script = handle.read()
     assert "describe_untakeable_foreground" in script, (

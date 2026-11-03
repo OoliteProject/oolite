@@ -20,7 +20,7 @@ import pytest
 import conftest
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-REPO_ROOT = os.path.abspath(os.path.join(HERE, "..", "..", "..", ".."))
+REPO_ROOT = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
 RUNNER = os.path.join(REPO_ROOT, "tools", "gui-tier.sh")
 
 
@@ -166,7 +166,7 @@ def _healthy_output_dir(tmp_path):
 def _healthy_app_dir(tmp_path, plist_text=None):
     """An app dir holding a defaults file in the dialect gnustep-base really writes.
 
-    The shape of upstream/oolite/build/meson_test/oolite.app/GNUstep/Defaults/oolite.plist as
+    The shape of oolite-dev/build/meson_test/oolite.app/GNUstep/Defaults/oolite.plist as
     written by a real run on this machine: OpenStep ("old-style"), not XML.
     """
     app = tmp_path / "oolite.app"
@@ -462,7 +462,7 @@ def test_g1_asserts_on_the_process_table_not_on_returncode():
 # --- oo-5rsa attempt 2: "exists and parses" is not "was written by THIS run" ------------------
 #
 # The first fix asserted only that a defaults file EXISTS and PARSES. app_dir is the PERSISTENT
-# build tree (upstream/oolite/build/meson_test/oolite.app), so a plist left behind by any earlier
+# build tree (oolite-dev/build/meson_test/oolite.app), so a plist left behind by any earlier
 # run satisfied that forever: the game could write nothing at all - or not start - and the check
 # still passed. That is the same "cannot fail" defect class this bead exists to remove, so the
 # check now compares against a mark taken at LAUNCH, and the tests below construct exactly the

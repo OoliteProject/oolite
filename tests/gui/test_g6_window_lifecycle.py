@@ -87,7 +87,7 @@ Five agents share this machine. Two consequences, both handled rather than hoped
 Finally, the window is put back the way the tier hands it over - pinned at (0,0) at
 PINNED_CLIENT_SIZE - before the game is asked to exit, so nothing this test moved outlives it.
 
-    python3 -m pytest upstream/oolite/tests/gui/test_g6_window_lifecycle.py -x -q
+    python3 -m pytest oolite-dev/tests/gui/test_g6_window_lifecycle.py -x -q
 
 Needs the desktop: a real window, unlocked and logged in (ADR-0017). It takes tools/gui-lock for
 the duration, via the ``game`` fixture - this file launches nothing of its own.

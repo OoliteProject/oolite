@@ -26,6 +26,9 @@ MA 02110-1301, USA.
 
 #pragma once
 
+#include "OOFastArithmetic.h"
+#include "OOMathsBase.h"
+
 #ifndef OOMATHS_EXTERNAL_VECTOR_TYPES
 
 typedef struct Vector {

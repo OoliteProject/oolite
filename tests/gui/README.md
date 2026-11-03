@@ -2,11 +2,11 @@
 
 PyAutoGUI smoke tests that drive the game through **real OS-level mouse and keyboard input
 against a real window**. Specified in
-[`docs/phases/0-gui-tier.md`](../../../../docs/phases/0-gui-tier.md); the seam and exemplar is
-[G1](../../../../docs/stories/G1-exit-via-mouse.md).
+[`docs/phases/0-gui-tier.md`](../../../docs/phases/0-gui-tier.md); the seam and exemplar is
+[G1](../../../docs/stories/G1-exit-via-mouse.md).
 
 ```bash
-tools/gui-tier.sh upstream/oolite/tests/gui/test_g1_exit_via_mouse.py
+tools/gui-tier.sh oolite-dev/tests/gui/test_g1_exit_via_mouse.py
 ```
 
 Run it through `tools/gui-tier.sh`, not bare `pytest`. The runner installs
@@ -20,7 +20,7 @@ so a run that was *supposed* to exercise G1 cannot come back green from the wron
 `tools/setup-windows.sh` installs `pyautogui` too, for a machine set up once up front.
 
 It needs a **real desktop**: logged in, unlocked, and not doing anything else, because the tier
-takes the desktop exclusively while it runs ([ADR-0017](../../../../docs/decisions/0017-native-windows-subtree.md)).
+takes the desktop exclusively while it runs ([ADR-0017](../../../docs/decisions/0017-native-windows-subtree.md)).
 That exclusion is `tools/gui-lock`, taken by the session-scoped `desktop_lock` fixture. It runs
 in Tier C and nightly, **never per bead**. An RDP disconnect takes the desktop with it.
 
@@ -63,7 +63,7 @@ the stale window, so `tools/desktop_lock.py` runs a daemon thread calling `tools
 liveness, so its lock is reclaimable at once — both directions are proved by
 `tools/desktop-lock-selftest` checks 5 and 6 and by `tools/gui-lock-liveness-selftest`.
 
-It also needs a built game: by default `upstream/oolite/build/meson_test/oolite.app`, overridden
+It also needs a built game: by default `oolite-dev/build/meson_test/oolite.app`, overridden
 with `--oolite-app <path>` or `OO_APP_DIR`.
 
 | Variable | Default | What it does |
