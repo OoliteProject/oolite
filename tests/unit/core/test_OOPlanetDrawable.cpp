@@ -43,7 +43,7 @@ class TestView : public MyOpenGLView {
 // UNIVERSE: never initialised; answers the detail setting and the game view.
 class TestUniverse : public Universe {
  public:
-  BOOL _reduced = {};
+  bool _reduced = {};
   TestView* _view = {};
 
   bool reducedDetail() override { return _reduced; }
@@ -51,15 +51,15 @@ class TestUniverse : public Universe {
 
 namespace {
 
-TestUniverse* sUniverse = nil;
+TestUniverse* sUniverse = nullptr;
 
 void SetUp() {
-  if (sUniverse == nil) {
+  if (sUniverse == nullptr) {
     sUniverse = new TestUniverse();          // never released
     sUniverse->_view = new TestView();       // never released
     sUniverse->gameView = sUniverse->_view;  // what -gameView answers
   }
-  sUniverse->_reduced = NO;
+  sUniverse->_reduced = false;
   sUniverse->_view->_size = NSMakeSize(800, 600);
   gSharedUniverse = sUniverse;
 }
@@ -126,7 +126,7 @@ OO_TEST(planetDefaults) {
     OO_CHECK(Near(LevelOfDetail(planet), Level(0.5f)));
     OO_CHECK(HasOpaqueParts(planet) && !HasTranslucentParts(planet));
     OO_CHECK(std::isinf(MaxDrawDistance(planet)));
-    OO_CHECK(Material(planet) == nil);
+    OO_CHECK(Material(planet) == nullptr);
     OO_CHECK(!TextureName(planet).has_value());
   }
 }
@@ -198,7 +198,7 @@ OO_TEST(levelOfDetailForViewDistance) {
 
     // Reduced detail: a narrower budget, earlier transitions, and never the
     // highest level.
-    sUniverse->_reduced = YES;
+    sUniverse->_reduced = true;
     CalculateLevelOfDetail(planet, 1.0f);
     OO_CHECK(Near(LevelOfDetail(planet), (kGranularity - 1.0f) / kGranularity));
     expected = sqrtf((800.0f / 100.0f) * 100.0f / sqrtf(distance) * 0.25f) -
@@ -209,7 +209,7 @@ OO_TEST(levelOfDetailForViewDistance) {
                               (kGranularity - 1.0f) / kGranularity))));
 
     // A wider screen: more detail at the same distance.
-    sUniverse->_reduced = NO;
+    sUniverse->_reduced = false;
     sUniverse->_view->_size = NSMakeSize(1600, 1200);
     expected = sqrtf((1600.0f / 40.0f) * 100.0f / sqrtf(distance) * 0.25f);
     CalculateLevelOfDetail(planet, distance);
@@ -230,8 +230,8 @@ OO_TEST(material) {
     SetTextureName(planet, "rock");
     OO_CHECK(Material(planet) == material);
 
-    SetMaterial(planet, nil);
-    OO_CHECK(Material(planet) == nil);
+    SetMaterial(planet, nullptr);
+    OO_CHECK(Material(planet) == nullptr);
     OO_CHECK(!TextureName(planet).has_value());
   }
 }

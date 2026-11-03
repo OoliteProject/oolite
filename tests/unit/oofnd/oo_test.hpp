@@ -12,7 +12,7 @@
 
             oo_test: <file>: <tests> tests, <checks> checks, <failures> failures
 
-        which tools/check-oofnd.sh parses to total the test counts. The exit
+        which a script can parse to total the test counts. The exit
    status is nonzero if any check failed OR if the file registered no tests at
    all, so an empty or mis-registered suite fails loudly instead of passing
    vacuously.

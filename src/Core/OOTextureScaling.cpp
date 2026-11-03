@@ -282,7 +282,7 @@ OOPixMap OOScalePixMap(OOPixMap srcPx, OOPixMapDimension dstWidth,
     OOPixMapDimension dstHeight, bool leaveSpaceForMipMaps)
 {
     OOPixMap dstPx = { }, sparePx = { };
-    bool OK = YES;
+    bool OK = true;
 
     //	Sanity check.
     if (EXPECT_NOT(!OOIsValidPixMap(srcPx))) {
@@ -302,7 +302,7 @@ OOPixMap OOScalePixMap(OOPixMap srcPx, OOPixMapDimension dstWidth,
 
         dstPx = OOAllocatePixMap(srcPx.width, dstHeight, srcPx.format, 0, dstSize);
         if (EXPECT_NOT(!OOIsValidPixMap(dstPx))) {
-            OK = NO;
+            OK = false;
             goto FAIL;
         }
 
@@ -332,7 +332,7 @@ OOPixMap OOScalePixMap(OOPixMap srcPx, OOPixMapDimension dstWidth,
             dstPx = OOAllocatePixMap(dstWidth, srcPx.height, srcPx.format, 0, dstSize);
         }
         if (EXPECT_NOT(!OOIsValidPixMap(dstPx))) {
-            OK = NO;
+            OK = false;
             goto FAIL;
         }
 
@@ -382,12 +382,12 @@ bool OOGenerateMipMaps(void* textureBytes, OOPixMapDimension width,
             "data will be junk.",
             static_cast<unsigned>(width), static_cast<unsigned>(height),
             __PRETTY_FUNCTION__);
-        return NO;
+        return false;
     }
     if (EXPECT_NOT(textureBytes == NULL)) {
         OO_LOG(cxx_kOOLogParameterError, "{}",
             "NULL texture pointer passed to GenerateMipMaps().");
-        return NO;
+        return false;
     }
 
     switch (format) {
@@ -407,7 +407,7 @@ bool OOGenerateMipMaps(void* textureBytes, OOPixMapDimension width,
     OO_LOG(cxx_kOOLogParameterError,
         "{}(): bad pixmap format ({}) - ignoring, data will be junk.",
         __PRETTY_FUNCTION__, OOPixMapFormatName(format));
-    return NO;
+    return false;
 }
 
 static bool GenerateMipMaps1(void* textureBytes, OOPixMapDimension width,
@@ -458,7 +458,7 @@ static bool GenerateMipMaps1(void* textureBytes, OOPixMapDimension width,
 
     // TODO: handle residual 1xN/Nx1 mips. For now, we just limit maximum mip
     // level for non-square textures.
-    return YES;
+    return true;
 }
 
 static void ScaleToHalf_1_x1(void* srcBytes, void* dstBytes,
@@ -657,7 +657,7 @@ static bool GenerateMipMaps2(void* textureBytes, OOPixMapDimension width,
 
     // TODO: handle residual 1xN/Nx1 mips. For now, we just limit maximum mip
     // level for non-square textures.
-    return YES;
+    return true;
 }
 
 static void ScaleToHalf_2_x1(void* srcBytes, void* dstBytes,
@@ -746,7 +746,7 @@ static bool GenerateMipMaps4(void* textureBytes, OOPixMapDimension width,
 
     // TODO: handle residual 1xN/Nx1 mips. For now, we just limit maximum mip
     // level for non-square textures.
-    return YES;
+    return true;
 }
 
 static void ScaleToHalf_4_x1(void* srcBytes, void* dstBytes,
@@ -1672,7 +1672,7 @@ static bool EnsureCorrectDataSize(OOPixMap* pixMap, bool leaveSpaceForMipMaps)
     */
     if (EXPECT_NOT(pixMap->bufferSize < correctSize)) {
         OOLogGenericParameterError();
-        return NO;
+        return false;
     }
 
     if (leaveSpaceForMipMaps)
@@ -1685,5 +1685,5 @@ static bool EnsureCorrectDataSize(OOPixMap* pixMap, bool leaveSpaceForMipMaps)
         pixMap->bufferSize = correctSize;
     }
 
-    return YES;
+    return true;
 }

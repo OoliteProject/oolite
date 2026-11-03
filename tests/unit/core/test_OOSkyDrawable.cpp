@@ -14,7 +14,7 @@
    display list (the GL context is a hidden window's, oo_gl_test_context.hpp).
    The drawable's private state is read through the one block of helpers below.
    The test holds the C++ drawable and calls its members. Run: bash
-   tools/check-core-tests.sh
+   tests/run.sh unit
 */
 
 #include <cmath>
@@ -92,14 +92,14 @@ GLint& DisplayListName(OODrawable* sky) {
 // ------------------------------------------------------------------------------------------------------
 
 void SetUp() {
-  if (gSharedUniverse == nil) {
+  if (gSharedUniverse == nullptr) {
     gSharedUniverse = new Universe();  // never released
     InstallStandIn();
   }
 }
 
 bool ColorIs(OOColor* color, float r, float g, float b, float a) {
-  if (color == nil) return false;
+  if (color == nullptr) return false;
   float cr = -1, cg = -1, cb = -1, ca = -1;
   color->getRed(&cr, &cg, &cb, &ca);
   auto within = [](float x, float y) { return std::fabs(x - y) < 1e-4f; };

@@ -60,8 +60,8 @@ class TestTexture final : public OOTexture {
   oo::PList _configuration;
   int _applies = 0;
   int _ensures = 0;
-  BOOL _finished = NO;
-  BOOL _cubeMap = NO;
+  bool _finished = false;
+  bool _cubeMap = false;
 };
 
 void OOTexture::applyNone() { gTextureApplyNones++; }
@@ -140,7 +140,7 @@ class Universe {
 };
 bool Universe::useShaders() { return false; }
 
-Universe* gSharedUniverse = nil;
+Universe* gSharedUniverse = nullptr;
 
 namespace {
 
@@ -193,7 +193,7 @@ OO_TEST(initWithTexture) {
 
     // No name, or no texture: no material.
     OO_CHECK(Make(std::nullopt, texture) == nullptr);
-    OO_CHECK(Make(std::string("Bare"), nil) == nullptr);
+    OO_CHECK(Make(std::string("Bare"), nullptr) == nullptr);
   }
 }
 
@@ -265,15 +265,15 @@ OO_TEST(texturesQuestions) {
     const oo::Ref<OOSingleTextureMaterial> m =
         Make(std::string("Asks"), texture);
     OO_CHECK(!m->isFinishedLoading() && !m->wantsNormalsAsTextureCoordinates());
-    texture->_finished = YES;
-    texture->_cubeMap = YES;
+    texture->_finished = true;
+    texture->_cubeMap = true;
     OO_CHECK(m->isFinishedLoading() && m->wantsNormalsAsTextureCoordinates());
     m->ensureFinishedLoading();
     OO_CHECK(texture->_ensures == 1);
 #if OO_MULTITEXTURE
     OO_CHECK(m->countOfTextureUnitsWithBaseCoordinates() == 1);
 #endif
-    m->setBindingTarget(nil);
+    m->setBindingTarget(nullptr);
     OO_CHECK(m->permitSpecular());
   }
 }
@@ -366,7 +366,7 @@ OO_TEST(cxxAPI) {
     OO_CHECK(m->descriptionComponents() ==
              std::optional<std::string>("<TestTexture>"));
     OO_CHECK(!m->isFinishedLoading() && !m->wantsNormalsAsTextureCoordinates());
-    texture->_cubeMap = YES;
+    texture->_cubeMap = true;
     OO_CHECK(m->wantsNormalsAsTextureCoordinates());
 #ifndef NDEBUG
     OO_CHECK(m->allTextures().size() == 1 &&
@@ -375,7 +375,7 @@ OO_TEST(cxxAPI) {
 
     OO_CHECK(OOSingleTextureMaterial::materialWithName(std::nullopt, texture,
                                                        oo::PList()) == nullptr);
-    OO_CHECK(OOSingleTextureMaterial::materialWithName(std::string("Bare"), nil,
+    OO_CHECK(OOSingleTextureMaterial::materialWithName(std::string("Bare"), nullptr,
                                                        oo::PList()) == nullptr);
     OO_CHECK(OOSingleTextureMaterial::materialWithName(std::string("named.png"),
                                                        oo::PList()) != nullptr);

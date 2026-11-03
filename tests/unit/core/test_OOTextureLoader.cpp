@@ -13,7 +13,7 @@
    hidden GL context of oo_gl_test_context.hpp (the loaders' one-time set-up
         reads the GL texture size limit). The test's loader is a C++ subclass,
    and the cases call its members. The last test pins
-   the C++ API (OOTextureLoader). Run: bash tools/check-core-tests.sh
+   the C++ API (OOTextureLoader). Run: tests/run.sh unit
 */
 
 #include <cstdlib>
@@ -57,17 +57,17 @@ class TestLoader : public OOTextureLoader {
   uint32_t testOptions() { return _options; }
   uint32_t testMaxSize() { return _maxSize; }
   uint32_t testShrinkThreshold() { return _shrinkThreshold; }
-  BOOL testGenerateMipMaps() { return _generateMipMaps; }
-  BOOL testAvoidShrinking() { return _avoidShrinking; }
-  BOOL testNoScaling() { return _noScalingWhatsoever; }
-  BOOL testExtractChannel() { return _extractChannel; }
+  bool testGenerateMipMaps() { return _generateMipMaps; }
+  bool testAvoidShrinking() { return _avoidShrinking; }
+  bool testNoScaling() { return _noScalingWhatsoever; }
+  bool testExtractChannel() { return _extractChannel; }
   uint8_t testExtractChannelIndex() { return _extractChannelIndex; }
-  BOOL testAllowCubeMap() { return _allowCubeMap; }
+  bool testAllowCubeMap() { return _allowCubeMap; }
   std::string testPath() { return _path; }
 
   uint32_t _testWidth = 0, _testHeight = 0;
   OOTextureDataFormat _testFormat = {};
-  BOOL _testEmpty = NO, _testRaise = NO;
+  bool _testEmpty = false, _testRaise = false;
 };
 
 namespace {
@@ -279,7 +279,7 @@ OO_TEST(failures) {
   {
     TestLoader* empty =
         Loader("empty.png", kOOTextureMinFilterLinear, 4, 4, kOOPixMapRGBA);
-    empty->_testEmpty = YES;
+    empty->_testEmpty = true;
     OO_CHECK(Queue(empty));
     Result none = GetResult(empty);
     OO_CHECK(!none.ok && none.format == kOOPixMapInvalidFormat &&
@@ -288,7 +288,7 @@ OO_TEST(failures) {
 
     TestLoader* raising =
         Loader("raise.png", kOOTextureMinFilterLinear, 4, 4, kOOPixMapRGBA);
-    raising->_testRaise = YES;
+    raising->_testRaise = true;
     OO_CHECK(Queue(raising));
     Result raised =
         GetResult(raising);  // the exception is caught on the work thread

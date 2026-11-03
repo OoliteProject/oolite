@@ -288,6 +288,3 @@ private:
 };
 
 } // namespace oo::log
-
-#pragma pop_macro("false")
-#pragma pop_macro("true")

@@ -48,7 +48,7 @@ T* NewTestPlayer() {
   return player.get();
 }
 
-static Entity* sRemoved = nil;
+static Entity* sRemoved = nullptr;
 
 // UNIVERSE: never initialised; answers the time the test sets and records what
 // is removed.
@@ -56,7 +56,7 @@ class TestUniverse : public Universe {
  public:
   bool removeEntity(Entity* entity) override {
     sRemoved = entity;
-    return YES;
+    return true;
   }  // the C++ entity; the record is its object
 };
 
@@ -87,15 +87,15 @@ const GLfloat* ColorComponents(Entity* e) {
 // --------------------------------------------------------------------------------------------------
 
 void SetUp() {
-  static Universe* universe = nil;
-  if (universe == nil) {
+  static Universe* universe = nullptr;
+  if (universe == nullptr) {
     universe = SharedTestUniverse();
   }
   gSharedUniverse = universe;
   static TestPlayer* player = nullptr;
   if (player == nullptr) player = NewTestPlayer<TestPlayer>();
   gOOPlayer = player;
-  sRemoved = nil;
+  sRemoved = nullptr;
   sTime = 0;
 }
 
@@ -110,7 +110,7 @@ OO_TEST(initWithPosition) {
   {
     SetUp();
     Entity* burst = MakeBurst(make_HPvector(4, 5, 6));
-    OO_CHECK(burst != nil);
+    OO_CHECK(burst != nullptr);
     OO_CHECK(HPvector_equal(burst->getPosition(), make_HPvector(4, 5, 6)));
     OO_CHECK(Particle(burst)->diameter() == 64.0f &&
              burst->collisionRadius() == 2.0f);
@@ -131,7 +131,7 @@ OO_TEST(growsFadesAndIsRemoved) {
     burst->update(0.1);
     OO_CHECK(Particle(burst)->diameter() == 128.0f);
     OO_CHECK(ComponentsAre(burst, 1.0f, 0.0f, 0.0f, 0.5f));
-    OO_CHECK(sRemoved == nil);
+    OO_CHECK(sRemoved == nullptr);
 
     sTime = 2.5;
     burst->update(0.1);

@@ -44,34 +44,34 @@ std::string OOStringFromMouseInteractionMode(OOMouseInteractionMode mode)
     return oo::str::format("<unknown mode %u>", mode);
 }
 
-BOOL OOMouseInteractionModeIsUIScreen(OOMouseInteractionMode mode)
+bool OOMouseInteractionModeIsUIScreen(OOMouseInteractionMode mode)
 {
     switch (mode) {
     case MOUSE_MODE_UI_SCREEN_NO_INTERACTION:
-        return YES;
+        return true;
     case MOUSE_MODE_UI_SCREEN_WITH_INTERACTION:
-        return YES;
+        return true;
     case MOUSE_MODE_FLIGHT_NO_MOUSE_CONTROL:
-        return NO;
+        return false;
     case MOUSE_MODE_FLIGHT_WITH_MOUSE_CONTROL:
-        return NO;
+        return false;
     }
 
-    return NO;
+    return false;
 }
 
-BOOL OOMouseInteractionModeIsFlightMode(OOMouseInteractionMode mode)
+bool OOMouseInteractionModeIsFlightMode(OOMouseInteractionMode mode)
 {
     switch (mode) {
     case MOUSE_MODE_UI_SCREEN_NO_INTERACTION:
-        return NO;
+        return false;
     case MOUSE_MODE_UI_SCREEN_WITH_INTERACTION:
-        return NO;
+        return false;
     case MOUSE_MODE_FLIGHT_NO_MOUSE_CONTROL:
-        return YES;
+        return true;
     case MOUSE_MODE_FLIGHT_WITH_MOUSE_CONTROL:
-        return YES;
+        return true;
     }
 
-    return NO;
+    return false;
 }

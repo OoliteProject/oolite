@@ -168,28 +168,28 @@ public:
 	::ShipEntity *launched(const char *what);
 
 	std::string _name;
-	BOOL _npcTraffic = NO;
-	BOOL _hasShipyard = NO;
+	bool _npcTraffic = false;
+	bool _hasShipyard = false;
 	OOStationAlertLevel _alertLevel = {};
 	std::optional<std::string> _allegiance;
-	BOOL _requiresClearance = NO;
+	bool _requiresClearance = false;
 	float _roll = 0;
-	BOOL _fastDocking = NO;
-	BOOL _autoDocking = NO;
+	bool _fastDocking = false;
+	bool _autoDocking = false;
 	unsigned _contractors = 0, _police = 0, _defenders = 0;
 	OOTechLevelID _techLevel = 0;
 	float _priceFactor = 0;
-	BOOL _suppressReports = NO;
-	BOOL _breakPattern = NO;
+	bool _suppressReports = false;
+	bool _breakPattern = false;
 	std::vector<oo::PList> *_shipyard = nullptr;
 	int _shipyardsMade = 0;
 	oo::Ref<OOCommodityMarket> _market;
 	int _abortAll = 0;
 	::ShipEntity *_abortedShip = nullptr;
-	BOOL _fits = NO;
+	bool _fits = false;
 	std::map<std::string, oo::Ref<OOJSInterfaceDefinition>> _interfaces;
 	std::string _lastLaunch;
-	::ShipEntity *_launched = nil;
+	::ShipEntity *_launched = nullptr;
 };
 
 // PLAYER: the members the code under test calls, declared as the game headers
@@ -214,7 +214,7 @@ public:
 
 	StationEntity *_dockedStation = {};
 	OOGUIScreenID _screen = {};
-	BOOL _docked = {};
+	bool _docked = {};
 	int _marketRefreshes = {};
 	int _shipyardRefreshes = {};
 	std::string _dockLog;
@@ -226,7 +226,7 @@ public:
 class GameController : public oo::RefCounted
 {
 public:
-	BOOL _paused = NO;
+	bool _paused = false;
 
 	bool isGamePaused();
 	void setGamePaused(bool value);
@@ -485,12 +485,12 @@ void PlayerEntity::setDockingClearanceStatus(OODockingClearanceStatus newValue)
 void PlayerEntity::safeAllMissiles()  { _dockLog += "safe; "; }
 void PlayerEntity::enterDock(::StationEntity *station)
 {
-	_dockLog += "dock " + (station != nil ? station->_name : std::string("nil")); _docked = YES;
+	_dockLog += "dock " + (station != nullptr ? station->_name : std::string("nil")); _docked = true;
 }
 oo::PList PlayerEntity::processKeyCode(const oo::PList &/*key_def*/)  { std::abort(); }
 std::optional<std::string> PlayerEntity::validateKey(const std::string &/*key*/, const oo::PList &/*check_keys*/)  { std::abort(); }
 oo::PList PlayerEntity::missionVariableForKey(const std::string &/*key*/)  { std::abort(); }
-::OOScript * PlayerEntity::commodityScriptNamed(const std::optional<std::string> &script)  { (void)script; return nil; }
+::OOScript * PlayerEntity::commodityScriptNamed(const std::optional<std::string> &script)  { (void)script; return nullptr; }
 
 
 bool GameController::isGamePaused()  { return _paused; }
@@ -583,11 +583,16 @@ void OOCacheManager::setPList(const oo::PList &, const std::string &, const std:
 oo::Ref<OOScript> OOScript::jsScriptFromFileNamed(const std::string &, const oo::PList &)  { std::abort(); }
 void OOScriptAutorelease(oo::Ref<OOScript>)  { std::abort(); }
 
-void cxx_OOStandardsDeprecated(const std::string &)  { std::abort(); }
-extern "C" BOOL OOEnforceStandards(void)  { std::abort(); }
-oo::PList OOSanitizeLegacyScriptConditions(const oo::PList &, const std::optional<std::string> &)  { std::abort(); }
-OOWeaponType cxx_OOWeaponTypeFromEquipmentIdentifierSloppy(const std::string &)  { std::abort(); }
-extern "C" BOOL isWeaponNone(OOWeaponType)  { std::abort(); }
+void cxx_OOStandardsDeprecated(const std::string&) { std::abort(); }
+bool OOEnforceStandards(void) { std::abort(); }
+oo::PList OOSanitizeLegacyScriptConditions(const oo::PList&,
+                                           const std::optional<std::string>&) {
+  std::abort();
+}
+OOWeaponType cxx_OOWeaponTypeFromEquipmentIdentifierSloppy(const std::string&) {
+  std::abort();
+}
+bool isWeaponNone(OOWeaponType) { std::abort(); }
 
 extern const char * const kOOJavaScriptEngineWillResetNotificationName;
 const char * const kOOJavaScriptEngineWillResetNotificationName = "org.aegidian.oolite OOJavaScriptEngine will reset";
@@ -664,18 +669,18 @@ std::optional<std::string> cxx_OOStringFromJSValue(JSContext *context, JSValueCo
 
 
 // The engine's: rounded to nearest; NaN or out of range is an error.
-BOOL OOJSValueToInt32(JSContext *context, JSValueConst value, int32_t *outValue)
+bool OOJSValueToInt32(JSContext *context, JSValueConst value, int32_t *outValue)
 {
 	double number;
-	if (JS_ToFloat64(context, &number, value) < 0)  return NO;
+	if (JS_ToFloat64(context, &number, value) < 0)  return false;
 	number = std::floor(number + 0.5);
 	if (std::isnan(number) || number < INT32_MIN || number > INT32_MAX)
 	{
 		cxx_OOJSReportError(context, "can't convert %s to an integer", cxx_OOStringFromJSValue(context, value).value_or("(null)").c_str());
-		return NO;
+		return false;
 	}
 	*outValue = static_cast<int32_t>(number);
-	return YES;
+	return true;
 }
 
 
@@ -727,7 +732,7 @@ PlayerEntity *sPlayer = nullptr;
 JSContext *gOOJSMainThreadContext = nullptr;
 Entity *gOOJSPlayerIfStale = nullptr;	// the player's C++ entity
 PlayerEntity *gOOPlayer = nullptr;
-Universe *gSharedUniverse = nil;
+Universe *gSharedUniverse = nullptr;
 
 
 PlayerEntity *OOPlayerForScripting(void)
@@ -843,7 +848,7 @@ StationEntity *sOther = nullptr;
 ::TestEntityObject *sOtherObject = nullptr;
 ::TestEntityObject *sShip = nullptr;	// a ship's object and its C++ part
 ::ShipEntity *sShipPart = nullptr;
-Universe *sUniverse = nil;
+Universe *sUniverse = nullptr;
 
 
 // Defines a global; takes value's reference.
@@ -879,11 +884,11 @@ void SetUpContext()
                                                     // test; a station's object
 	sStation = static_cast<StationEntity *>(sStationObject->_cxxEntity.get());
 	sStation->_name = "Coriolis";
-	sStation->_npcTraffic = YES;
+	sStation->_npcTraffic = true;
 	sStation->_alertLevel = STATION_ALERT_LEVEL_GREEN;
 	sStation->_allegiance = "galcop";
 	sStation->_roll = 0.25f;
-	sStation->_autoDocking = YES;
+	sStation->_autoDocking = true;
 	sStation->_contractors = 2;
 	sStation->_police = 3;
 	sStation->_defenders = 4;
@@ -998,14 +1003,14 @@ OO_TEST(setters)
 	OO_CHECK_EVAL("(function () { station.roll = -10; return station.roll.toFixed(4); })()", "-3.1416");
 	OO_CHECK_EVAL("(function () { station.allowsFastDocking = true; station.allowsAutoDocking = false; return station.allowsFastDocking + ' ' + station.allowsAutoDocking; })()", "true false");
 	OO_CHECK_EVAL("(function () { station.suppressArrivalReports = true; station.breakPattern = true; return station.suppressArrivalReports + ' ' + station.breakPattern; })()", "true true");
-	sStation->_npcTraffic = YES;
+	sStation->_npcTraffic = true;
 	sStation->_allegiance = "galcop";
-	sStation->_requiresClearance = NO;
+	sStation->_requiresClearance = false;
 	sStation->_roll = 0.25f;
-	sStation->_fastDocking = NO;
-	sStation->_autoDocking = YES;
-	sStation->_suppressReports = NO;
-	sStation->_breakPattern = NO;
+	sStation->_fastDocking = false;
+	sStation->_autoDocking = true;
+	sStation->_suppressReports = false;
+	sStation->_breakPattern = false;
 }
 
 
@@ -1018,13 +1023,13 @@ OO_TEST(docking)
 	OO_CHECK_EVAL("station.abortDockingForShip(ship)", "undefined");
 	OO_CHECK(sStation->_abortedShip == sShipPart);
 	OO_CHECK_EVAL("station.abortDockingForShip()", "threw: bad arguments: Station.abortDockingForShip(0) - / ship in docking queue");
-	sStation->_fits = YES;
+	sStation->_fits = true;
 	OO_CHECK_EVAL("station.canDockShip(ship)", "true");
-	sStation->_fits = NO;
+	sStation->_fits = false;
 	OO_CHECK_EVAL("station.canDockShip(ship)", "false");
 	OO_CHECK_EVAL("station.canDockShip()", "threw: bad arguments: Station.canDockShip(0) - / shipEntity");
 	// dockPlayer(): unpauses the game, then docks the player unless it is docked.
-	sUniverse->_controller->_paused = YES;
+	sUniverse->_controller->_paused = true;
 	OO_CHECK_EVAL("station.dockPlayer()", "undefined");
 	OO_CHECK(!sUniverse->_controller->_paused);
 	OO_CHECK_EQ(sPlayer->_dockLog, "clearance " + std::to_string(static_cast<int>(DOCKING_CLEARANCE_STATUS_GRANTED)) + "; safe; dock Coriolis");
@@ -1032,7 +1037,7 @@ OO_TEST(docking)
 	sPlayer->_dockLog.clear();
 	OO_CHECK_EVAL("other.dockPlayer()", "undefined");
 	OO_CHECK_EQ(sPlayer->_dockLog, std::string());
-	sPlayer->_docked = NO;
+	sPlayer->_docked = false;
 }
 
 
@@ -1131,7 +1136,7 @@ OO_TEST(market)
 	sPlayer->_marketRefreshes = 0;
 	OO_CHECK_EVAL("station.setMarketPrice('food', 100) && station.setMarketQuantity('food', 0)", "true");
 	OO_CHECK_EQ(sPlayer->_marketRefreshes, 2);
-	sPlayer->_dockedStation = nil;
+	sPlayer->_dockedStation = nullptr;
 	sPlayer->_screen = GUI_SCREEN_STATUS;
 }
 
@@ -1143,7 +1148,7 @@ OO_TEST(shipyard)
 	OO_CHECK_EVAL("station.addShipToShipyard({short_description: 'x'})", "<evaluation failed>");
 	OO_CHECK_EQ(sLastWarning, std::string("Station.removeShipFromShipyard: Station does not have shipyard."));
 	OO_CHECK_EVAL("station.removeShipFromShipyard(0)", "<evaluation failed>");
-	sStation->_hasShipyard = YES;
+	sStation->_hasShipyard = true;
 	sStation->_shipyardsMade = 0;
 	OO_CHECK_EVAL("station.shipyard.length + ' ' + station.shipyard[0].short_description", "1 Cobra");
 	OO_CHECK_EQ(sStation->_shipyardsMade, 1);
@@ -1157,9 +1162,9 @@ OO_TEST(shipyard)
 	sPlayer->_screen = GUI_SCREEN_SHIPYARD;
 	OO_CHECK_EVAL("station.removeShipFromShipyard(0) + ' ' + station.shipyard.length", "true 0");
 	OO_CHECK_EQ(sPlayer->_shipyardRefreshes, 1);
-	sPlayer->_dockedStation = nil;
+	sPlayer->_dockedStation = nullptr;
 	sPlayer->_screen = GUI_SCREEN_STATUS;
-	sStation->_hasShipyard = NO;
+	sStation->_hasShipyard = false;
 }
 
 

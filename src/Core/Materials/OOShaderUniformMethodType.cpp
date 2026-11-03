@@ -48,7 +48,7 @@ SOFTWARE.
 #include "oofnd/String.hpp"
 #include <cstring>
 
-static BOOL sInited = NO;
+static bool sInited = false;
 static const char* sTemplates[kOOShaderUniformTypeCount];
 
 static void InitTemplates(void);
@@ -57,7 +57,7 @@ OOShaderUniformType OOShaderUniformTypeFromEncoding(const char* typeCode)
 {
     unsigned i;
 
-    if (EXPECT_NOT(sInited == NO))
+    if (EXPECT_NOT(sInited == false))
         InitTemplates();
     if (EXPECT_NOT(typeCode == NULL))
         return kOOShaderUniformTypeInvalid;
@@ -114,7 +114,7 @@ static void InitTemplates(void)
     GET_TEMPLATE(kOOShaderUniformTypeColor, OOColor*);
     GET_TEMPLATE(kOOShaderUniformTypeObject, OOObjCId); // id's
 
-    sInited = YES;
+    sInited = true;
 }
 
 #endif // OO_SHADERS

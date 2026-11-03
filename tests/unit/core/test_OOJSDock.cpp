@@ -73,9 +73,9 @@ public:
 	NSUInteger countOfShipsInLaunchQueue();
 	bool shipIsInDockingQueue(::ShipEntity *ship);
 
-	BOOL _allowsDocking = NO;
-	BOOL _disallowedDockingCollides = NO;
-	BOOL _allowsLaunching = NO;
+	bool _allowsDocking = false;
+	bool _disallowedDockingCollides = false;
+	bool _allowsLaunching = false;
 	NSUInteger _dockingQueue = 0;
 	NSUInteger _launchQueue = 0;
 	::ShipEntity *_queued = nullptr;
@@ -361,9 +361,9 @@ void SetUpContext()
 
 	sDockObject = NewShipObject(oo::makeRef<DockEntity>());	// a dock's object is a ship's
 	sDock = static_cast<DockEntity *>(sDockObject->_cxxEntity.get());
-	sDock->_allowsDocking = YES;
-	sDock->_disallowedDockingCollides = NO;
-	sDock->_allowsLaunching = YES;
+	sDock->_allowsDocking = true;
+	sDock->_disallowedDockingCollides = false;
+	sDock->_allowsLaunching = true;
 	sDock->_dockingQueue = 3;
 	sDock->_launchQueue = 2;
 	sShip = NewShipObject(oo::makeRef<ShipEntity>());
@@ -435,7 +435,7 @@ OO_TEST(properties)
 	OO_CHECK_EVAL("Object.keys(Dock.prototype).join()", "allowsDocking,disallowedDockingCollides,allowsLaunching,dockingQueueLength,launchingQueueLength");
 	// The three flags are writable, and a value converts to a boolean.
 	OO_CHECK_EVAL("(function () { dock.allowsDocking = false; return dock.allowsDocking; })()", "false");
-	OO_CHECK(sDock->_allowsDocking == NO);
+	OO_CHECK(sDock->_allowsDocking == false);
 	OO_CHECK_EVAL("(function () { dock.allowsLaunching = 0; return dock.allowsLaunching; })()", "false");
 	OO_CHECK_EVAL("(function () { dock.disallowedDockingCollides = 'yes'; return dock.disallowedDockingCollides; })()", "true");
 	OO_CHECK_EVAL("(function () { dock.allowsDocking = true; dock.allowsLaunching = 1; return dock.allowsDocking && dock.allowsLaunching; })()", "true");

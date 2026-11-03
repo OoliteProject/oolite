@@ -12,7 +12,7 @@
    work manager and a reload reading it back; writes refused while disallowed; a
    cache from another game version, or one that does not parse, discarded;
         clearing everything. The tests ask the C++ class. Run: bash
-   tools/check-core-tests.sh
+   tests/run.sh unit
 */
 
 #include <process.h>

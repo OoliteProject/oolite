@@ -139,7 +139,7 @@ void cxx_OOStandardsDeprecated(const std::string &)
 
 
 // The formatter, as far as the clock sees it: what it was asked for.
-std::string cxx_ClockToString(double clock, BOOL adjusting)
+std::string cxx_ClockToString(double clock, bool adjusting)
 {
 	return oo::str::format("clock(%g, %d)", clock, adjusting ? 1 : 0);
 }
@@ -159,7 +159,7 @@ struct FakePlayer
 	double _clockTime = 0;
 	double _adjusted = 0;
 	double _added = 0;
-	BOOL _adjusting = NO;
+	bool _adjusting = false;
 };
 
 namespace {
@@ -190,7 +190,7 @@ OOTimeAbsolute Universe::getTime()  { return 1234.5; }
 
 alignas(Universe) unsigned char sUniverseStorage[sizeof(Universe)];
 
-Universe *gSharedUniverse = nil;
+Universe *gSharedUniverse = nullptr;
 
 PlayerEntity *OOPlayerForScripting(void)
 {
@@ -261,7 +261,7 @@ OO_TEST(properties)
 	// 3 days, 4 hours, 5 minutes, 6.5 seconds.
 	SetClock(((3 * 24 + 4) * 60 + 5) * 60 + 6.5);
 	sPlayer->_adjusted = 99.25;
-	sPlayer->_adjusting = NO;
+	sPlayer->_adjusting = false;
 	OO_CHECK_EVAL("clock.absoluteSeconds", "1234.5");
 	OO_CHECK_EVAL("clock.seconds", "273906.5");
 	OO_CHECK_EVAL("clock.minutes", "4565");
@@ -273,7 +273,7 @@ OO_TEST(properties)
 	OO_CHECK_EVAL("clock.daysComponent", "3");
 	OO_CHECK_EVAL("clock.clockString", "dial 273906.5");
 	OO_CHECK_EVAL("clock.isAdjusting", "false");
-	sPlayer->_adjusting = YES;
+	sPlayer->_adjusting = true;
 	OO_CHECK_EVAL("clock.isAdjusting", "true");
 	OO_CHECK_EVAL("typeof clock.isAdjusting", "boolean");
 	OO_CHECK_EVAL("clock.adjustedSeconds", "99.25");

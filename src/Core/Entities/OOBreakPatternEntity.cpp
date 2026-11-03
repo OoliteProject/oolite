@@ -63,7 +63,7 @@ void OOBreakPatternEntity::initWithPolygonSides(NSUInteger sides, float startAng
         setStatus(STATUS_EFFECT);
         setScanClass(CLASS_NO_DRAW);
 
-        isImmuneToBreakPatternHide = YES;
+        isImmuneToBreakPatternHide = true;
     }
 }
 
@@ -145,7 +145,4 @@ void OOBreakPatternEntity::drawImmediate(bool immediate, bool translucent)
     }
 }
 
-bool OOBreakPatternEntity::canCollide()
-{
-    return NO;
-}
+bool OOBreakPatternEntity::canCollide() { return false; }

@@ -167,6 +167,3 @@ inline std::optional<std::string> env(const char* name)
 }
 
 } // namespace oo
-
-#pragma pop_macro("false")
-#pragma pop_macro("true")

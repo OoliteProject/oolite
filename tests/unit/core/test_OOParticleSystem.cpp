@@ -69,7 +69,7 @@ class TestUniverse : public Universe {
       Entity* entity) override  // the C++ entity; the record is its object
   {
     _removed = entity;
-    return YES;
+    return true;
   }
 };
 
@@ -82,7 +82,7 @@ class TestEffect : public Entity {
 
 namespace {
 
-TestUniverse* sUniverse = nil;
+TestUniverse* sUniverse = nullptr;
 
 // The texture loader's stand-in.
 std::optional<std::string> sTextureName;
@@ -98,12 +98,12 @@ oo::Ref<OOTexture> LoadTexture(const std::optional<std::string>& name,
 }
 
 void SetUp() {
-  if (sUniverse == nil) {
+  if (sUniverse == nullptr) {
     sUniverse = new TestUniverse();                 // never released
     sTexture = oo::makeRef<OOTexture>().leakRef();  // never released
     OOTexture::nameFactory = &LoadTexture;
   }
-  sUniverse->_removed = nil;
+  sUniverse->_removed = nullptr;
   gSharedUniverse = sUniverse;
   static TestPlayer* player = nullptr;
   if (player == nullptr) player = NewTestPlayer<TestPlayer>();
@@ -152,21 +152,21 @@ bool VectorNear(Vector a, Vector b) {
 
 // What every particle cloud is.
 bool IsParticleEffect(Entity* cloud) {
-  return cloud != nil &&
+  return cloud != nullptr &&
          HPvector_equal(cloud->getPosition(), make_HPvector(1, 2, 3)) &&
          cloud->status() == STATUS_EFFECT &&
          cloud->getScanClass() == CLASS_NO_DRAW && cloud->isEffect() &&
          !cloud->canCollide() && cloud->collisionRadius() == 0 &&
-         cloud->owner() == nil;
+         cloud->owner() == nullptr;
 }
 
 // Grows at the given speed, lives the given time, then removes itself.
 bool GrowsAndExpires(Entity* cloud, double speed, double duration) {
   cloud->update(0.5);
   bool ok =
-      Near(cloud->collisionRadius(), 0.5 * speed) && sUniverse->_removed == nil;
+      Near(cloud->collisionRadius(), 0.5 * speed) && sUniverse->_removed == nullptr;
   cloud->update(duration - 0.5);
-  ok = ok && sUniverse->_removed == nil;
+  ok = ok && sUniverse->_removed == nullptr;
   cloud->update(0.01);
   return ok && sUniverse->_removed == cloud;
 }
@@ -208,7 +208,7 @@ OO_TEST(collisions) {
     Entity* effect = oo::MadeEntity(oo::makeRef<TestEffect>());
     OO_CHECK(burst->checkCloseCollisionWith(other));
     OO_CHECK(!burst->checkCloseCollisionWith(effect));
-    OO_CHECK(!burst->checkCloseCollisionWith(nil));  // nil is its (nil) owner
+    OO_CHECK(!burst->checkCloseCollisionWith(nullptr));  // nil is its (nil) owner
     OO_CHECK(!burst->checkCloseCollisionWith(BigBurst(other)));
   }
 }
@@ -260,8 +260,8 @@ OO_TEST(explosionCloudNeedsItsTexture) {
   {
     SetUp();
     sTextureFound = false;
-    OO_CHECK(Cloud(Source(kZeroVector), oo::PList()) == nil);
-    OO_CHECK(SizedCloud(Source(kZeroVector), 5.0f, oo::PList()) == nil);
+    OO_CHECK(Cloud(Source(kZeroVector), oo::PList()) == nullptr);
+    OO_CHECK(SizedCloud(Source(kZeroVector), 5.0f, oo::PList()) == nullptr);
   }
 }
 

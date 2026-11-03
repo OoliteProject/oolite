@@ -172,9 +172,9 @@ bool SkyEntity::changeProperty(const std::string& key, const oo::PList& dict)
         }
     } else {
         OO_LOG_WARN("script.warning", "Change to property '{}' not applied, will apply only on leaving and re-entering this system.", key);
-        return NO;
+        return false;
     }
-    return YES;
+    return true;
 }
 
 void SkyEntity::update(OOTimeDelta /*delta_t*/)
@@ -182,27 +182,18 @@ void SkyEntity::update(OOTimeDelta /*delta_t*/)
     ::PlayerEntity* player = PLAYER;
     zero_distance = MAX_CLEAR_DEPTH * MAX_CLEAR_DEPTH;
     cam_zero_distance = zero_distance;
-    if (player != nil) {
+    if (player != nullptr) {
         position = (player != nullptr ? player->viewpointPosition() : HPVector { });
     } else {
         OO_LOG("sky.warning", "{}", "PLAYER is nil");
     }
 }
 
-bool SkyEntity::isSky()
-{
-    return YES;
-}
+bool SkyEntity::isSky() { return true; }
 
-bool SkyEntity::isVisible()
-{
-    return YES;
-}
+bool SkyEntity::isVisible() { return true; }
 
-bool SkyEntity::canCollide()
-{
-    return NO;
-}
+bool SkyEntity::canCollide() { return false; }
 
 GLfloat SkyEntity::cameraRangeFront()
 {
@@ -236,7 +227,7 @@ bool SkyEntity::readColor1(oo::Ref<OOColor>* ioColor1, oo::Ref<OOColor>* ioColor
 {
     oo::PList colorDesc;
     oo::Ref<OOColor> color;
-    bool nebulaSet = NO;
+    bool nebulaSet = false;
 
     assert(ioColor1 != NULL && ioColor2 != NULL);
 
@@ -282,7 +273,7 @@ bool SkyEntity::readColor1(oo::Ref<OOColor>* ioColor1, oo::Ref<OOColor>* ioColor
         color = PremultipliedColorWithDescription(colorDesc);
         if (color != nullptr) {
             *ioColor3 = color;
-            nebulaSet = YES;
+            nebulaSet = true;
         } else
             OO_LOG_WARN("sky.fromDict", "could not interpret \"{}\" as a colour.", oo::DescriptionOf(colorDesc));
     } else {
@@ -301,7 +292,7 @@ bool SkyEntity::readColor1(oo::Ref<OOColor>* ioColor1, oo::Ref<OOColor>* ioColor
         color = PremultipliedColorWithDescription(colorDesc);
         if (color != nullptr) {
             *ioColor4 = color;
-            nebulaSet = YES;
+            nebulaSet = true;
         } else
             OO_LOG_WARN("sky.fromDict", "could not interpret \"{}\" as a colour.", oo::DescriptionOf(colorDesc));
     } else {

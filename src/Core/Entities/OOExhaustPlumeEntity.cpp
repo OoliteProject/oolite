@@ -45,7 +45,7 @@ MA 02110-1301, USA.
 #define kScaleLevel2 0.8f
 #define kScaleLevel3 0.6f
 
-static OOTexture* sPlumeTexture = nil;
+static OOTexture* sPlumeTexture = nullptr;
 
 namespace {
 
@@ -100,10 +100,7 @@ void OOExhaustPlumeEntity::setScale(Vector scale)
     }
 }
 
-bool OOExhaustPlumeEntity::isExhaust()
-{
-    return YES;
-}
+bool OOExhaustPlumeEntity::isExhaust() { return true; }
 
 double OOExhaustPlumeEntity::findCollisionRadius()
 {
@@ -117,7 +114,8 @@ void OOExhaustPlumeEntity::update(OOTimeDelta /*delta_t*/)
     // don't draw if there's no ship, or if we're just jumping out of witchspace/docked at a station!
     ::ShipEntity* ship = oo::ToShip(owner());
     // also don't draw if the ship isn't visible
-    if (EXPECT_NOT(ship == nil || !(ship != nullptr ? ship->isVisible() : false) || ((ship != nullptr ? ship->getIsPlayer() : false) && (ship != nullptr ? ship->suppressFlightNotifications() : false))))
+    if (EXPECT_NOT(
+            ship == nullptr || !(ship != nullptr ? ship->isVisible() : false) || ((ship != nullptr ? ship->getIsPlayer() : false) && (ship != nullptr ? ship->suppressFlightNotifications() : false))))
         return;
 
     OOTimeAbsolute now = (UNIVERSE != nullptr ? UNIVERSE->getTime() : 0.0);
@@ -658,7 +656,7 @@ OOTexture* OOExhaustPlumeEntity::texture()
 
 void OOExhaustPlumeEntity::setUpTexture()
 {
-    if (sPlumeTexture == nil) {
+    if (sPlumeTexture == nullptr) {
         sPlumeTexture = OOTexture::textureWithName("oolite-exhaust-blur.png", "Textures", kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear | kOOTextureAlphaMask | kOOTextureRepeatT | kOOTextureRepeatS, kOOTextureDefaultAnisotropy / 2.0, 0.0).leakRef();
         OOGraphicsResetManager::sharedManager()->registerCxxClient(new PlumeTextureResetClient);
     }
@@ -666,7 +664,7 @@ void OOExhaustPlumeEntity::setUpTexture()
 
 OOTexture* OOExhaustPlumeEntity::plumeTexture()
 {
-    if (sPlumeTexture == nil)
+    if (sPlumeTexture == nullptr)
         setUpTexture();
     return sPlumeTexture;
 }

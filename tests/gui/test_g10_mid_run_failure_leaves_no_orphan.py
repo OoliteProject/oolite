@@ -43,9 +43,8 @@ FALSIFIABILITY, measured rather than asserted. With
 ``GameWindow.kill``'s ``self.proc.kill()`` neutered in a scratch copy of the tier, this test goes
 RED and names the surviving pid. The committed conftest.py is untouched.
 
-Needs the desktop: a real window, unlocked and logged in. The child run takes
-tools/gui-lock through the shared fixture, so this test releases the lock before spawning it (it
-holds none of its own) and launches nothing directly.
+Needs the desktop: a real window, unlocked and logged in. The child run launches the game
+through the shared fixture; this test launches nothing directly.
 """
 
 import os
@@ -103,47 +102,12 @@ def test_orphan_child_fails_while_the_game_is_up(game):
 '''
 
 
-def _run_child(pidfile, child_lock_dir):
-    """Run the child test in its own pytest process. Returns ``(returncode, output, seconds)``.
-
-    THE LOCK, which is the subtle part and was a real self-deadlock in review. This tier's
-    ``game`` fixture depends on the session-scoped ``desktop_lock``, so the child would try to
-    acquire tools/gui-lock - the exclusive desktop mutex THIS TEST'S OWN SESSION already holds.
-    Parent and child would then wait on each other until the child's timeout: measured, the pin
-    passed alone in ~10s and hung for the full 300s budget when run with the rest of the
-    launching tier. A longer timeout would not have fixed it, only hidden a deadlock behind a
-    slower wait.
-
-    So the child is given a PRIVATE lock directory in ``OO_GUI_LOCK_DIR``, which both
-    tools/gui-lock (``lock_dir()``) and conftest's bash-less fallback (``_lock_path()``) honour.
-    That is sound rather than a loophole: desktop exclusivity for this test is supplied by the
-    PARENT, which takes the real ``desktop_lock`` fixture and holds it across the child's whole
-    run, so at no point is an unlocked game on the desktop. The child's private mutex only stops
-    it from queueing behind its own parent. It is a fresh empty directory per run, so the child
-    never contends with anything and never reclaims anyone's lock.
-
-    THIS IS NOT COMPENSATING FOR THE STALE LOCK, and that was measured rather than assumed. A
-    separate defect - a lock orphaned by a dead session, reclaimed under the script's own
-    age-based protocol - produced failures that LOOKED like this deadlock,
-    so the two had to be told apart deliberately. Removing only the ``OO_GUI_LOCK_DIR`` line
-    below, from a CLEAN and verified-free lock, still fails: the child never writes its pidfile
-    and dies with "1 error in 29.89s", the parent failing at the pidfile assertion after 39s.
-    That is the child hitting its 30s acquisition budget on the mutex its own parent is holding,
-    with no stale lock anywhere in the picture. The private directory is therefore load-bearing
-    on its own merits and is kept.
-    """
+def _run_child(pidfile):
+    """Run the child test in its own pytest process. Returns ``(returncode, output, seconds)``."""
     child = os.path.join(HERE, "_orphan_child_%d.py" % os.getpid())
     with open(child, "w", encoding="utf-8") as handle:
         handle.write(CHILD_SOURCE.format(message=INJECTED_MESSAGE))
     env = dict(os.environ, OO_ORPHAN_PIDFILE=pidfile)
-    env["OO_GUI_LOCK_DIR"] = child_lock_dir
-    # Its own owner identity too, so nothing it does can be mistaken for this process's, and a
-    # release it makes can only ever apply to its own private directory.
-    env["OO_GUI_LOCK_OWNER"] = "orphan-child:py%d" % os.getpid()
-    # A short acquisition budget: the child's lock is private and uncontended, so if it ever
-    # blocks here something is wrong with the arrangement above and it must say so quickly
-    # rather than burning the whole timeout.
-    env["OO_GUI_LOCK_TIMEOUT"] = "30"
     try:
         started = time.time()
         finished = subprocess.run(
@@ -179,17 +143,15 @@ def _app_dir_argument():
     return conftest._default_app_dir()
 
 
-def test_a_mid_run_failure_leaves_no_orphaned_game(desktop_lock, tmp_path):
+def test_a_mid_run_failure_leaves_no_orphaned_game(tmp_path):
     """A GUI test that dies with the game up must leave the pid it launched dead.
 
     Every check is scoped to the pid the child run launched. A bare "is any oolite.exe running?"
     would be a false positive against a concurrent sibling GUI run on this shared desktop - and
     that false positive is exactly what prompted this test, so it is not allowed to repeat it.
 
-    Takes ``desktop_lock`` directly, and NOT ``game``: this test launches nothing itself, but the
-    child it spawns puts a real window on the desktop, so the desktop must be held for the
-    duration. Holding it here - in the session that also runs G1, G3, G9 and the rest - is what
-    lets this pin coexist with its own tier instead of queueing behind it (see _run_child).
+    Takes ``tmp_path`` and NOT ``game``: this test launches nothing itself; the child it spawns
+    puts a real window on the desktop.
     """
     conftest.require_gui_platform()
     conftest.require_gui_dependencies()
@@ -201,10 +163,7 @@ def test_a_mid_run_failure_leaves_no_orphaned_game(desktop_lock, tmp_path):
         )
 
     pidfile = str(tmp_path / "child-pid.txt")
-    # The child's own private, uncontended mutex. Fresh per run and inside this test's tmp_path,
-    # so it can never collide with the real desktop lock this test is holding on its behalf.
-    child_lock = str(tmp_path / "child-gui-lock")
-    returncode, output, seconds = _run_child(pidfile, child_lock)
+    returncode, output, seconds = _run_child(pidfile)
 
     # The child must have failed for OUR reason, not fallen over in its own preamble. Without
     # this, a child that never launched anything would make the orphan assertion below vacuous -
@@ -346,98 +305,6 @@ def test_the_generated_child_fails_mid_run_rather_than_after_the_game_exits():
     assert "OO_ORPHAN_PIDFILE" in unparsed and "game.proc.pid" in unparsed, (
         "the child must record the pid it launched, or the parent has nothing pid-scoped to "
         "assert on and would fall back to the image-name query that misattributed an earlier run"
-    )
-
-
-@pytest.mark.offline
-def test_the_child_cannot_deadlock_on_the_lock_its_parent_holds():
-    """The child must get a PRIVATE desktop lock, and the parent must hold the real one.
-
-    The self-deadlock this guards was real and measured: with the child acquiring tools/gui-lock
-    normally, the pin passed alone in ~10s and then hung for its whole 300s budget when run in
-    one pytest invocation with the rest of the launching tier, because the parent's session
-    already held the exclusive mutex the child was waiting for. A test that only passes when
-    nothing else runs is the flaky-gate class, and accept.sh runs acceptance
-    while siblings are live - so the SHAPE is pinned here rather than left to whoever next edits
-    the spawn.
-
-    Both halves matter and both are asserted:
-
-    * the child is handed ``OO_GUI_LOCK_DIR`` (honoured by tools/gui-lock's ``lock_dir()`` and by
-      conftest's bash-less ``_lock_path()`` fallback alike), so it never queues behind its parent.
-      Asserted from the AST with _run_child's docstring stripped, never as a substring: that
-      docstring names OO_GUI_LOCK_DIR four times and used to hold this guard green with the real
-      assignment deleted;
-    * the parent takes the REAL ``desktop_lock`` fixture, so the desktop is genuinely held while
-      the child's window is up. Without that second half the first would be a loophole rather
-      than a fix - an unlocked game on a desktop five agents share.
-    """
-    import ast
-    import inspect
-
-    # From the AST, with _run_child's OWN DOCSTRING STRIPPED FIRST. A substring check over the
-    # source cannot do this job: that docstring names OO_GUI_LOCK_DIR four times, so deleting the
-    # real assignment left this guard GREEN ("1 passed in 0.02s"). Prose must not be
-    # able to hold this green, the same standard the teardown guard above states for kill().
-    spawn = ast.parse(inspect.getsource(_run_child))
-    func = next(
-        node
-        for node in ast.walk(spawn)
-        if isinstance(node, ast.FunctionDef) and node.name == "_run_child"
-    )
-    body = list(func.body)
-    if (
-        body
-        and isinstance(body[0], ast.Expr)
-        and isinstance(body[0].value, ast.Constant)
-        and isinstance(body[0].value.value, str)
-    ):
-        del body[0]
-
-    def _assigns_env_key(key):
-        """True iff executable code assigns to ``env[key]`` - not merely names it."""
-        for statement in body:
-            for node in ast.walk(statement):
-                if not isinstance(node, ast.Assign):
-                    continue
-                for target in node.targets:
-                    if not isinstance(target, ast.Subscript):
-                        continue
-                    if not (
-                        isinstance(target.value, ast.Name) and target.value.id == "env"
-                    ):
-                        continue
-                    index = target.slice
-                    if isinstance(index, ast.Index):  # pragma: no cover - Python < 3.9
-                        index = index.value
-                    if isinstance(index, ast.Constant) and index.value == key:
-                        return True
-        return False
-
-    assert _assigns_env_key("OO_GUI_LOCK_DIR"), (
-        "_run_child does not ASSIGN env['OO_GUI_LOCK_DIR'] (checked as an ast.Assign to an "
-        "ast.Subscript on `env`, with the docstring stripped, so a mention in prose cannot "
-        "satisfy it). Without the real assignment the child is not given a private lock "
-        "directory, so it will block acquiring the exclusive desktop mutex its own parent's "
-        "session already holds - a self-deadlock that makes this pin pass alone and hang inside "
-        "its own tier"
-    )
-
-    signature = inspect.signature(test_a_mid_run_failure_leaves_no_orphaned_game)
-    assert "desktop_lock" in signature.parameters, (
-        "the pin does not take the desktop_lock fixture, so the child's real window would be on "
-        "the desktop with nothing holding the tier's mutex"
-    )
-    assert "game" not in signature.parameters, (
-        "the pin must not take the game fixture: it would launch a second game it never uses, "
-        "and it is the CHILD's game whose teardown is under test"
-    )
-
-    # And the private directory really is per-run, not a fixed path two concurrent runs share.
-    body = ast.unparse(ast.parse(inspect.getsource(test_a_mid_run_failure_leaves_no_orphaned_game)))
-    assert "tmp_path" in body and "child-gui-lock" in body, (
-        "the child's lock directory must live under this test's own tmp_path, or two concurrent "
-        "runs of the pin would share one private mutex and reintroduce the contention"
     )
 
 

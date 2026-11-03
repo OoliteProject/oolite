@@ -11,7 +11,7 @@
 	defines OOJSValue. The tests pin the three functions and their errors, the delta each callback receives, adds
 	and removes made while the callbacks run (deferred to the end of the frame), a throwing
 	callback, growth past the first 16 slots, and removing all.
-	Run: bash tools/check-core-tests.sh
+	Run: tests/run.sh unit
 */
 
 #include "oofnd/objc/OOObject.h"
@@ -154,7 +154,7 @@ typedef Universe FakeUniverse;
 double Universe::getTimeAccelerationFactor()	{ return 2.0; }
 
 class Universe;
-Universe *gSharedUniverse = nil;
+Universe *gSharedUniverse = nullptr;
 
 
 // MARK: The context -------------------------------------------------------------------------------

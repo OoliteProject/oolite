@@ -9,7 +9,7 @@
    method's log call and default answer, and -currentDisplayMode, the one method
         with a body, which picks the current index out of the subclass's mode
    list (null for no list, an index past the end, or NSNotFound). The test
-   subclass is a C++ one. Run: bash tools/check-core-tests.sh
+   subclass is a C++ one. Run: tests/run.sh unit
 */
 
 #include <cstdlib>
@@ -123,16 +123,16 @@ OO_TEST(baseDefaults) {
 OO_TEST(nilGameView) {
   {
     oo::Ref<OOFullScreenController> controller =
-        oo::makeRef<OOFullScreenController>(nil);
+        oo::makeRef<OOFullScreenController>(nullptr);
     OO_CHECK(controller != nullptr);
-    OO_CHECK(controller->gameView() == nil);
+    OO_CHECK(controller->gameView() == nullptr);
   }
 }
 
 OO_TEST(currentDisplayMode) {
   {
     oo::Ref<TestFullScreenController> controller =
-        oo::makeRef<TestFullScreenController>(nil);
+        oo::makeRef<TestFullScreenController>(nullptr);
     gSubclassResponsibilities = 0;
 
     controller->modes = Modes();

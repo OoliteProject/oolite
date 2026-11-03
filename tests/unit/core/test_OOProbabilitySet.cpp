@@ -9,7 +9,7 @@
    object), the mutable set (including its weight lookup, which subtracts the
    previous entry's weight), copies both ways, the description, and the
    exception for a non-zero count with no arrays. The calls here are the C++
-   classes'. Run: bash tools/check-core-tests.sh
+   classes'. Run: tests/run.sh unit
 */
 
 #include <cmath>

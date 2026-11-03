@@ -110,7 +110,6 @@ typedef NSUInteger OOExpandOptions;
    are converted to line breaks. This is used for expanding missiontext.plist
         entries, which may have literal \n especially in XML format.
 */
-#ifdef __cplusplus
 #include "oofnd/PList.hpp"
 #include "oofnd/StdLib.hpp"
 
@@ -122,7 +121,6 @@ std::optional<std::string> cxx_OOExpandDescriptionString(
     Random_Seed seed, const std::string& string, const oo::PList& overrides,
     const oo::PList& legacyLocals, const std::optional<std::string>& systemName,
     OOExpandOptions options);
-#endif
 
 /*
         OOGenerateSystemDescription(seed, name)
@@ -134,20 +132,12 @@ std::optional<std::string> cxx_OOExpandDescriptionString(
         NOTE: this does not apply planetinfo overrides. To get the actual system
         description, use [UNIVERSE generateSystemData:].
 */
-#ifdef __cplusplus
 std::optional<std::string> cxx_OOGenerateSystemDescription(
     Random_Seed seed, const std::optional<std::string>& name);
-#endif
 
 // Equivalent to [[UNIVERSE systemManager] getRandomSeedForCurrentSystem],
 // without pulling in Universe.h.
-#ifdef __cplusplus
-extern "C" {
-#endif
 Random_Seed OOStringExpanderDefaultRandomSeed(void);
-#ifdef __cplusplus
-}
-#endif
 
 /*
         Evil macro magic.
@@ -316,7 +306,6 @@ Random_Seed OOStringExpanderDefaultRandomSeed(void);
 #define OOEXPAND_MAP_IMPL_62(F, HEAD, ...) \
     F(HEAD), OOEXPAND_MAP_IMPL_61(F, __VA_ARGS__)
 
-#ifdef __cplusplus
 /*
         C++ forms of the OOExpand* macros. They take the string
         or key as a std::string and return cxx_OOExpandDescriptionString's
@@ -411,4 +400,3 @@ inline oo::PList cxx_OOExpandArgumentDictionary(
     }
     return oo::PList(std::move(dictionary));
 }
-#endif

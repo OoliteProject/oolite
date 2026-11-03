@@ -47,7 +47,7 @@ typedef struct {
 } OODebugWFState;
 
 OODebugWFState OODebugBeginWireframe(
-    bool ignoreZ); // bool, not BOOL: the .cpp's BOOL is windows.h's int
+    bool ignoreZ); // bool, not bool: the .cpp's bool is windows.h's int
 void OODebugEndWireframe(OODebugWFState state);
 
 OOINLINE void OODebugDrawBoundingBox(BoundingBox box);

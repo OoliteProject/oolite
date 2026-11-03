@@ -124,11 +124,11 @@ static JSValue WormholeGetProperty(OOJS_GETTER_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    WormholeEntity* entity = nil;
+    WormholeEntity* entity = nullptr;
 
     if (!JSWormholeGetWormholeEntity(context, thisObj, &entity))
         return OOJSNativeFailure(context);
-    if (entity == nil) {
+    if (entity == nullptr) {
         return JS_UNDEFINED;
     }
 

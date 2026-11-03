@@ -10,7 +10,7 @@
    size, not mip-mapped, the root's defaults), that applying it binds no
    texture, that a graphics reset leaves it alone, and its debug name. The cases
    call the C++ texture OOTexture::nullTexture() answers; a class check is a
-   dynamic_cast of the C++ texture. Run: bash tools/check-core-tests.sh
+   dynamic_cast of the C++ texture. Run: tests/run.sh unit
 */
 
 #include "OODescription.h"

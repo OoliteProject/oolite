@@ -10,7 +10,7 @@
    client during the reset is skipped, and a client that raises is logged and
    does not stop the rest. Clients are not retained. The GL context is a hidden
    window's (oo_gl_test_context.hpp). The test's client is a C++ client. Run:
-   bash tools/check-core-tests.sh
+   tests/run.sh unit
 */
 
 #include <string>

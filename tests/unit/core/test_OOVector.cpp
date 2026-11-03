@@ -7,7 +7,7 @@
 
         The tests pin that the box hands back the vector it was made with, is
    an OONativeVector, and survives an Object node (as OOJSShip.mm and
-   OOPListGameTypes.mm use it). Run: bash tools/check-core-tests.sh
+   OOPListGameTypes.mm use it). Run: tests/run.sh unit
 */
 
 #include "OOMaths.h"

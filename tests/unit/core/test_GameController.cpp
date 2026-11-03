@@ -20,7 +20,7 @@
    and the process priority class EcoQoS sets on Windows); and the full-screen
    members and the player-file paths. The cases call the C++ class, the view a
    C++ subclass of the game's. Run:
-   bash tools/check-core-tests.sh test_GameController
+   meson test -C build/meson_test test_GameController
 */
 
 #include "GameController.h"
@@ -61,7 +61,7 @@ class TestPlayer : public PlayerEntity
 {
 public:
 	std::vector<OOJSPropID>				_events;
-	BOOL								_mouseControlOn = NO;
+	bool								_mouseControlOn = false;
 
 	using PlayerEntity::doScriptEvent;
 	void doScriptEvent(OOJSPropID message) override				{ _events.push_back(message); }
@@ -92,7 +92,7 @@ public:
 	std::vector<std::pair<int, int>>	_modeNotes;
 	std::vector<oo::PList>				_screenModes;
 	oo::PList							_currentMode;
-	BOOL								_inFullScreen = NO;
+	bool								_inFullScreen = false;
 	int									_splashEnds = 0;
 	int									_screenUpdates = 0;
 
@@ -200,12 +200,12 @@ OO_TEST(sharedControllerIsOneObject)
 	SetUp();
 	{
 		GameController *controller = ::GameController::sharedController();
-		OO_CHECK(controller != nil);
+		OO_CHECK(controller != nullptr);
 		OO_CHECK(::GameController::sharedController() == controller);
 		OO_CHECK(!controller->finishedLaunching());
 		OO_CHECK(!controller->isGamePaused());
 		OO_CHECK(controller->mouseInteractionMode() == MOUSE_MODE_UI_SCREEN_NO_INTERACTION);
-		OO_CHECK(controller->gameView() == nil);
+		OO_CHECK(controller->gameView() == nullptr);
 		OO_CHECK(!controller->playerFileToLoad().has_value());
 	}
 }
@@ -265,7 +265,7 @@ OO_TEST(mouseInteractionModes)
 	{
 		GameController *controller = ::GameController::sharedController();
 		TestView *view = static_cast<TestView *>(controller->gameView());
-		OO_CHECK(view != nil);
+		OO_CHECK(view != nullptr);
 		view->_modeNotes.clear();
 
 		controller->setMouseInteractionMode(MOUSE_MODE_FLIGHT_NO_MOUSE_CONTROL);
@@ -277,16 +277,16 @@ OO_TEST(mouseInteractionModes)
 		controller->setMouseInteractionMode(MOUSE_MODE_FLIGHT_NO_MOUSE_CONTROL);
 		OO_CHECK_EQ(view->_modeNotes.size(), 1u);
 
-		controller->setMouseInteractionModeForUIWithMouseInteraction(YES);
+		controller->setMouseInteractionModeForUIWithMouseInteraction(true);
 		OO_CHECK(controller->mouseInteractionMode() == MOUSE_MODE_UI_SCREEN_WITH_INTERACTION);
-		controller->setMouseInteractionModeForUIWithMouseInteraction(NO);
+		controller->setMouseInteractionModeForUIWithMouseInteraction(false);
 		OO_CHECK(controller->mouseInteractionMode() == MOUSE_MODE_UI_SCREEN_NO_INTERACTION);
 
 		// Flight: the player's mouse control chooses the mode.
-		sPlayer->_mouseControlOn = YES;
+		sPlayer->_mouseControlOn = true;
 		controller->setMouseInteractionModeForFlight();
 		OO_CHECK(controller->mouseInteractionMode() == MOUSE_MODE_FLIGHT_WITH_MOUSE_CONTROL);
-		sPlayer->_mouseControlOn = NO;
+		sPlayer->_mouseControlOn = false;
 		controller->setMouseInteractionModeForFlight();
 		OO_CHECK(controller->mouseInteractionMode() == MOUSE_MODE_FLIGHT_NO_MOUSE_CONTROL);
 
@@ -304,7 +304,7 @@ OO_TEST(pauseAndResume)
 		controller->setMouseInteractionMode(MOUSE_MODE_FLIGHT_WITH_MOUSE_CONTROL);
 		sPlayer->_events.clear();
 
-		controller->setGamePaused(YES);
+		controller->setGamePaused(true);
 		OO_CHECK(controller->isGamePaused());
 		OO_CHECK(controller->mouseInteractionMode() == MOUSE_MODE_UI_SCREEN_NO_INTERACTION);
 		OO_CHECK_EQ(sPlayer->_events.size(), 1u);
@@ -315,10 +315,10 @@ OO_TEST(pauseAndResume)
 #endif
 
 		// Pausing a paused game does nothing.
-		controller->setGamePaused(YES);
+		controller->setGamePaused(true);
 		OO_CHECK_EQ(sPlayer->_events.size(), 1u);
 
-		controller->setGamePaused(NO);
+		controller->setGamePaused(false);
 		OO_CHECK(!controller->isGamePaused());
 		OO_CHECK(controller->mouseInteractionMode() == MOUSE_MODE_FLIGHT_WITH_MOUSE_CONTROL);	// the mode it paused in
 		OO_CHECK_EQ(sPlayer->_events.size(), 2u);
@@ -328,13 +328,13 @@ OO_TEST(pauseAndResume)
 #endif
 
 		// Resuming a running game does nothing.
-		controller->setGamePaused(NO);
+		controller->setGamePaused(false);
 		OO_CHECK_EQ(sPlayer->_events.size(), 2u);
 
 #if OOLITE_WINDOWS
 		// "ecoqos" off: EcoQoS leaves the priority alone.
 		oo::Defaults::standard().setBool("ecoqos", false);
-		controller->setEcoQoS(YES);
+		controller->setEcoQoS(true);
 		OO_CHECK(GetPriorityClass(GetCurrentProcess()) == NORMAL_PRIORITY_CLASS);
 		oo::Defaults::standard().removeObject("ecoqos");
 #endif
@@ -368,9 +368,9 @@ OO_TEST(fullScreenDisplayModes)
 		OO_CHECK(!controller->setDisplayWidth(800, 600, 60));
 		OO_CHECK(controller->indexOfCurrentDisplayMode() == 0u);
 
-		view->_inFullScreen = YES;
+		view->_inFullScreen = true;
 		OO_CHECK(controller->inFullScreenMode());
-		view->_inFullScreen = NO;
+		view->_inFullScreen = false;
 		OO_CHECK(!controller->inFullScreenMode());
 
 		oo::Defaults::standard().setBool("fullscreen", true);
@@ -415,9 +415,9 @@ OO_TEST(fullScreenMembers)
 		OO_CHECK_EQ(GameControllerTestAccess::width(controller), 0u);
 		OO_CHECK(controller->indexOfCurrentDisplayMode() == NSNotFound);
 
-		view->_inFullScreen = YES;
+		view->_inFullScreen = true;
 		OO_CHECK(controller->inFullScreenMode());
-		view->_inFullScreen = NO;
+		view->_inFullScreen = false;
 		OO_CHECK(!controller->inFullScreenMode());
 
 		controller->setFullScreenMode(true);
@@ -437,9 +437,9 @@ OO_TEST(fullScreenMembers)
 		OO_CHECK(GameControllerTestAccess::pauseSelector(controller) == "record:");
 		OO_CHECK(GameControllerTestAccess::pauseTarget(controller) == target);
 		OO_CHECK(!GameControllerTestAccess::stayInFullScreenMode(controller));
-		controller->pauseFullScreenModeToPerform("raise:", nil);
+		controller->pauseFullScreenModeToPerform("raise:", nullptr);
 		OO_CHECK(GameControllerTestAccess::pauseSelector(controller) == "raise:");
-		OO_CHECK(GameControllerTestAccess::pauseTarget(controller) == nil);
+		OO_CHECK(GameControllerTestAccess::pauseTarget(controller) == nullptr);
 		target->release();
 	}
 }
@@ -556,7 +556,7 @@ OO_TEST(splashAndWindow)
 	{
 		GameController *controller = ::GameController::sharedController();
 		TestView *view = static_cast<TestView *>(controller->gameView());
-		OO_CHECK(view != nil);
+		OO_CHECK(view != nullptr);
 		const int ends = view->_splashEnds, updates = view->_screenUpdates;
 
 		controller->beginSplashScreen();	// a view exists: none is made

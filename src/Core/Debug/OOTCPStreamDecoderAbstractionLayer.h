@@ -72,23 +72,13 @@ typedef struct OOALObject* OOALMutableDataRef;
 typedef const struct OOALObject* OOALDictionaryRef;
 typedef struct OOALAutoreleasePool* OOALAutoreleasePoolRef;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 OOALStringRef OOALGetConstantString(const char* string); // Should only be used with string literals!
-#ifdef __cplusplus
-}
-#endif
 
 /*	Only the C decoder spells its protocol constants (OODebugTCPConsoleProtocol.h) as handles;
         OODebugTCPConsoleClient uses plain literals.
 */
 #if !(defined(__cplusplus) && !defined(OO_PLAIN_CPP_UNIT))
 #define OOALSTR(string) OOALGetConstantString("" string "")
-#endif
-
-#ifdef __cplusplus
-extern "C" {
 #endif
 
 void OOALRelease(OOALObjectRef object);
@@ -110,16 +100,9 @@ OOALAutoreleasePoolRef OOALCreateAutoreleasePool(void);
 void OOALDestroyAutoreleasePool(OOALAutoreleasePoolRef pool);
 
 OOALObjectRef OOALPropertyListFromData(OOALMutableDataRef data, OOALStringRef* errStr);
-#ifdef __cplusplus
-}
-#endif
 
-#ifdef __cplusplus
-extern "C++" {
 #include "oofnd/PList.hpp"
 // The value a handle holds, as a property list (a string or data handle as a string or data node).
 const oo::PList& OOALObjectPList(OOALObjectRef object);
-}
-#endif
 
 #endif /* OOTCPSTREAM_USE_COREFOUNDATION */

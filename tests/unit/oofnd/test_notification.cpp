@@ -7,17 +7,9 @@
    and addition during a post, nested posts, and posting from another thread.
 */
 
-// Included under OOCocoa.h's true/false macros, as the game includes it (see
-// test_cocoa_macros.cpp).
-#define true 1
-#define false 0
 #include <type_traits>
 
 #include "oofnd/Notification.hpp"
-static_assert(std::is_same_v<decltype(true), int>,
-              "Notification.hpp must restore OOCocoa.h's true macro");
-#undef true
-#undef false
 
 #include <string>
 #include <thread>

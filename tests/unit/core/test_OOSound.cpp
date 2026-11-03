@@ -16,7 +16,7 @@
    scratch folder's (HOMEPATH), so the machine's own volume cannot either. The
    decoder, the two concrete sounds and the mixer are this file's stubs: the
    real ones would bring Vorbis and the whole mixer into the link. All are C++
-   stand-ins. Run: bash tools/check-core-tests.sh
+   stand-ins. Run: tests/run.sh unit
 */
 
 #include <process.h>

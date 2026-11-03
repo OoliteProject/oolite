@@ -82,7 +82,7 @@ public:
 	oo::Ref<OOColor> _illuminationColor;
 	float _airColorMixRatio = 0;
 	float _airDensity = 0;
-	BOOL _hasAtmosphere = NO;
+	bool _hasAtmosphere = false;
 	std::optional<std::string> _texture;
 	double _rotationalVelocity = 0;
 	Vector _terminatorThresholdVector = {};
@@ -189,9 +189,9 @@ void OOPlanetEntity::setTerminatorThresholdVector(Vector v)  { _terminatorThresh
 bool OOPlanetEntity::setUpPlanetFromTexture(const std::optional<std::string> &fileName)
 {
 	_textureLoads++;
-	if (!fileName.has_value() || *fileName == "missing.png")  return NO;
+	if (!fileName.has_value() || *fileName == "missing.png")  return false;
 	_texture = fileName;
-	return YES;
+	return true;
 }
 
 double OOPlanetEntity::radius()
@@ -374,7 +374,7 @@ bool JSValueToNumbers(JSContext *context, JSValueConst value, double *numbers, u
 
 } // namespace
 
-Universe *gSharedUniverse = nil;
+Universe *gSharedUniverse = nullptr;
 
 
 // A vector is the array [x, y, z] here, a quaternion [w, x, y, z].
@@ -482,9 +482,9 @@ namespace {
 JSRuntime *sRuntime;
 JSContext *sContext;
 JSValue sGlobal = JS_UNDEFINED;	// owned for the life of the test
-OOPlanetEntity *sPlanet = nil;
-OOPlanetEntity *sMoon = nil;
-FakeUniverse *sUniverse = nil;
+OOPlanetEntity *sPlanet = nullptr;
+OOPlanetEntity *sMoon = nullptr;
+FakeUniverse *sUniverse = nullptr;
 
 
 // An owned JS object of the class (its prototype the class's), a holder of the entity's C++ part in
@@ -537,7 +537,7 @@ void SetUpContext()
 	sPlanet->_airColor = OOColor::colorWithRed(0.5f, 0.25f, 1, 1);
 	sPlanet->_airColorMixRatio = 0.5f;
 	sPlanet->_airDensity = 0.75f;
-	sPlanet->_hasAtmosphere = YES;
+	sPlanet->_hasAtmosphere = true;
 	sPlanet->_texture = "lave.png";
 	sPlanet->_rotationalVelocity = 0.125;
 	sPlanet->_terminatorThresholdVector = make_vector(0.25, 1, 2);

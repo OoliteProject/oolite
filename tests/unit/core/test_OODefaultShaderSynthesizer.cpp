@@ -18,7 +18,7 @@
    each shader text, the description of the texture list and of the uniforms,
    and the warnings and errors logged. Light-map bindings are not covered: they
    read the binding types from the game's resources (ResourceManager). The last
-   test pins the C++ API. Run: bash tools/check-core-tests.sh
+   test pins the C++ API. Run: tests/run.sh unit
 */
 
 #include <cstdio>
@@ -90,7 +90,7 @@ bool Pin(const char* what, const std::string& actual, const char* expected) {
 }
 
 struct Synthesized {
-  BOOL ok = NO;
+  bool ok = false;
   std::string vertex;
   std::string fragment;
   oo::PList textures;

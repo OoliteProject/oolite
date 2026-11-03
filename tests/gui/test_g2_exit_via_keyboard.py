@@ -1,6 +1,6 @@
 """G2 - exit the game from the start screen with the KEYBOARD: ``Down`` x5, then ``Enter``.
 
-docs/phases/0-gui-tier.md G2: "Launch -> ``Down``x5 -> ``Enter``", covering "the keyboard path
+G2: "Launch -> ``Down``x5 -> ``Enter``", covering "the keyboard path
 independently of mouse - a separate SDL3 code path from G1".
 
 Written the way test_g1_exit_via_mouse.py is written and kept SHORT the way
@@ -87,8 +87,8 @@ selectable row and the target row.
 
     python3 -m pytest oolite-dev/tests/gui/test_g2_exit_via_keyboard.py -x -q
 
-Needs the desktop: a real window, unlocked and logged in. It takes tools/gui-lock for
-the duration, via the ``game`` fixture.
+Needs the desktop: a real window, unlocked and logged in, left alone while it runs.
+The game is launched through the ``game`` fixture; this file launches nothing of its own.
 """
 
 import ast

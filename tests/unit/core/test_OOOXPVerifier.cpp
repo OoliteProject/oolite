@@ -25,7 +25,7 @@
    -cxx_stageWithName:. The test runs the verification through the static
    OOOXPVerifier::runVerificationIfRequested(), as GameController does, and the
    stages call the C++ verifier they keep (verifier()). Run: bash
-   tools/check-core-tests.sh test_OOOXPVerifier
+   meson test -C build/meson_test test_OOOXPVerifier
 */
 
 #include <process.h>
@@ -223,7 +223,7 @@ TEST_STAGE(OOTestStageA, "A")
 void run() override {
   OOTestStage::run();
   OOOXPVerifier* verifier = this->verifier();
-  gView.seen = (verifier != nil);
+  gView.seen = (verifier != nullptr);
   gView.path = verifier->oxpPath();
   gView.displayName = verifier->oxpDisplayName();
   gView.value = verifier->configurationValueForKey("aNumber");

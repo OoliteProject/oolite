@@ -60,8 +60,8 @@ namespace {
 
 TestPlayer* SetUp() {
   OO_CHECK(OOTestGLContext());
-  static Universe* universe = nil;
-  if (universe == nil) {
+  static Universe* universe = nullptr;
+  if (universe == nullptr) {
     universe = new Universe();  // never released
   }
   gSharedUniverse = universe;
@@ -94,7 +94,7 @@ OO_TEST(init) {
     SetUp();
     DustEntity* dust = nullptr;
     Entity* object = MakeDust(&dust);
-    OO_CHECK(object != nil && dust != nullptr &&
+    OO_CHECK(object != nullptr && dust != nullptr &&
              dynamic_cast<DustEntity*>(object) == dust);
     OO_CHECK(dust->status() == STATUS_ACTIVE);
     OO_CHECK(dust->collisionRadius() == DUST_SCALE && !dust->canCollide());

@@ -25,8 +25,8 @@
 	with the same inputs, reads the plists with oofnd's parser (the game's), and builds every
 	recorded line from the same UTF-16 units, so the recorded digests are unchanged.
 
-	Built and run by tools/check-string-expander.sh (it copies OOStringExpander.mm next to these
-	stubs so that its quote-includes find them). Run with --print to see the lines.
+	Built and run by a script that copies OOStringExpander.mm next to these
+	stubs so that its quote-includes find them. Run with --print to see the lines.
 */
 
 #include "Universe.h"

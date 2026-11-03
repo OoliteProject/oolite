@@ -122,12 +122,12 @@ public:
 
     ::ShipEntity* next(); // nil at the end
     NSUInteger index() const { return _index; }
-    void setPerformCleanup(BOOL flag) { _considerCleanup = flag; }
+    void setPerformCleanup(bool flag) { _considerCleanup = flag; }
 
     // Public so ShipGroupIterate() can peek at both these and OOShipGroup's ivars. Naughty!
     oo::Ref<OOShipGroup> _group;
     NSUInteger _index = 0, _updateCount = 0;
-    BOOL _considerCleanup = YES, _cleanupNeeded = NO;
+    bool _considerCleanup = true, _cleanupNeeded = false;
 };
 
 /*	A group carried through plist data as a PList::Object node: the group is

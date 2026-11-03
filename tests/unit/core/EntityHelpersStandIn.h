@@ -94,7 +94,7 @@ std::string oo::EntityShortDescription(Entity* entity) {
 #else
 
 bool oo::detail::EntityHasObject(const Entity* entity) noexcept {
-  return entity != nullptr && oo::ToObjC(const_cast<Entity*>(entity)) != nil;
+  return entity != nullptr && oo::ToObjC(const_cast<Entity*>(entity)) != nullptr;
 }
 void oo::detail::EntityRetain(Entity* entity) noexcept {
   if (entity != nullptr) [oo::ToObjC(entity) retain];
@@ -103,7 +103,7 @@ void oo::detail::EntityRelease(Entity* entity) noexcept {
   if (entity != nullptr) [oo::ToObjC(entity) release];
 }
 Entity* oo::WithObject(Entity* entity) {
-  return (entity != nullptr && oo::ToObjC(entity) != nil) ? entity : nullptr;
+  return (entity != nullptr && oo::ToObjC(entity) != nullptr) ? entity : nullptr;
 }
 #ifndef OO_ENTITY_HELPERS_STAND_IN_NO_DESCRIPTIONS
 std::string oo::EntityDescription(Entity* entity) {

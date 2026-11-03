@@ -136,7 +136,6 @@ extern "C++" {
 #include "oofnd/StdLib.hpp"
 std::string cxx_HPVectorDescription(HPVector vector); // "(x, y, z)"
 std::vector<double> cxx_ArrayFromHPVector(HPVector vector); // { x, y, z }
-}
 
 #endif
 

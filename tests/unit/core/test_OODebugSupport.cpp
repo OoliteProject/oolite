@@ -14,7 +14,7 @@
 	resource manager (the configuration and the beacon's path), the debug monitor, the TCP console
 	client (which records where it was asked to connect, and can be made to fail) and the
 	JavaScript engine.
-	Run: bash tools/check-core-tests.sh test_OODebugSupport
+	Run: tests/run.sh unit
 */
 
 #include "OODebugSupport.h"
@@ -190,7 +190,7 @@ OO_TEST(alwaysLoadWithoutTheDebugOXP)
 		Reset({ { "always-load-debug-console", oo::PList(kTrue) } }, false);
 		OOInitDebugSupport();
 		OO_CHECK(sRecord.clientsMade.empty());
-		OO_CHECK(sRecord.debuggersSet.size() == 1 && sRecord.debuggersSet[0] == nil);
+		OO_CHECK(sRecord.debuggersSet.size() == 1 && sRecord.debuggersSet[0] == nullptr);
 		OO_CHECK(sRecord.debuggerStatementsEnabled == 1);
 	}
 }
@@ -209,7 +209,7 @@ OO_TEST(theTCPConsoleClient)
 			OO_CHECK(sRecord.clientsMade[0].second == 8564);
 		}
 		OO_CHECK(sRecord.usingPlugInController == std::vector<bool>{ false });
-		OO_CHECK(sRecord.lastClient != nil);
+		OO_CHECK(sRecord.lastClient != nullptr);
 		OO_CHECK(sRecord.debuggersSet.size() == 1 && sRecord.debuggersSet[0] == sRecord.lastClient);
 		OO_CHECK(sRecord.debuggerStatementsEnabled == 1);
 	}
@@ -251,7 +251,7 @@ OO_TEST(theClientFails)
 		Reset({ { "always-load-debug-console", oo::PList(kTrue) } }, true);
 		sRecord.clientFails = true;
 		OOInitDebugSupport();
-		OO_CHECK(sRecord.debuggersSet.size() == 1 && sRecord.debuggersSet[0] == nil);
+		OO_CHECK(sRecord.debuggersSet.size() == 1 && sRecord.debuggersSet[0] == nullptr);
 		OO_CHECK(sRecord.debuggerStatementsEnabled == 1);
 	}
 }

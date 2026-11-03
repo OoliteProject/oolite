@@ -16,7 +16,7 @@
 	configuration values from a table. The stand-in is the C++ monitor's members that the client
 	calls. The tests drive the C++ client through the debugger interface, and
 	cxxClientAndItsFacade checks the C++ API.
-	Run: bash tools/check-core-tests.sh test_OODebugTCPConsoleClient
+	Run: bash meson test -C build/meson_test test_OODebugTCPConsoleClient
 */
 
 #include "OODebugTCPConsoleClient.h"

@@ -12,7 +12,7 @@
 	#768's QuickJS-ng API). The tests pin the JS-visible behaviour (every property both ways, the owner, a stale
 	entity and the escape-pod player, the prototype, dumpState(), a native's exception) and the C
 	functions other bindings call (JSValueToEntity(), EntityFromArgumentList()).
-	Run: bash tools/check-core-tests.sh
+	Run: tests/run.sh unit
 
 	An entity's JS object holds its C++ part (an OOJSEntityHolder) and the getters answer it. The
 	property blocks call the C++ entity's members, the root facade's selectors' bodies: the
@@ -172,7 +172,7 @@ public:
 
 
 // The binding's C API (OOJSEntity.h, which imports the engine and universe headers, so the test
-// names what it calls itself). They returned BOOL, which is returned as bool is.
+// names what it calls itself). They returned bool, which is returned as bool is.
 void InitOOJSEntity(JSContext *context, JSValueConst global);
 bool JSValueToEntity(JSContext *context, JSValueConst value, Entity **outEntity);
 JSClassID JSEntityClassID(void);
@@ -297,7 +297,7 @@ std::optional<std::string> cxx_OOStringFromJSValue(JSContext *context, JSValueCo
 }
 
 
-std::string cxx_OOJSDescribeValue(JSContext *context, JSValueConst value, BOOL abbreviateObjects)
+std::string cxx_OOJSDescribeValue(JSContext *context, JSValueConst value, bool abbreviateObjects)
 {
 	return std::string(abbreviateObjects ? "abbr:" : "full:") + cxx_OOStringFromJSValue(context, value).value_or("null");
 }
@@ -602,8 +602,8 @@ void SetUpContext()
 	// Kept for the life of the test.
 	sMother = oo::makeRef<TestEntityObject>().leakRef();
 	sMother->_cxxEntity = oo::makeRef<ShipEntity>();
-	sMother->_isShip = YES;
-	sMother->_isStation = YES;
+	sMother->_isShip = true;
+	sMother->_isStation = true;
 	sMother->_status = STATUS_ACTIVE;
 	sMother->_scanClass = CLASS_STATION;
 
@@ -621,10 +621,10 @@ void SetUpContext()
 	sShip->_maxEnergy = 256;
 	sShip->_distanceTravelled = 12.5f;
 	sShip->_spawnTime = 3.25f;
-	sShip->_isShip = YES;
-	sShip->_isSunlit = YES;
-	sShip->_isVisible = YES;
-	sShip->_isInSpace = YES;
+	sShip->_isShip = true;
+	sShip->_isSunlit = true;
+	sShip->_isVisible = true;
+	sShip->_isInSpace = true;
 
 	sRock = oo::makeRef<TestEntityObject>().leakRef();
 	sRock->_status = STATUS_ACTIVE;
@@ -741,9 +741,9 @@ OO_TEST(writeProperties)
 	OO_CHECK_EVAL("(function () { ship.scanClass = 'CLASS_PLAYER'; return 'set'; })()", "threw: entity.scanClass cannot be set to that value.");
 	OO_CHECK_EVAL("(function () { ship.scanClass = 'nonsense'; return 'set'; })()", "threw: entity.scanClass cannot be set to that value.");
 	OO_CHECK_EVAL("(function () { rock.scanClass = 'CLASS_CARGO'; return 'set'; })()", "threw: entity.scanClass is read-only except on NPC ships.");
-	sShip->_isPlayer = YES;
+	sShip->_isPlayer = true;
 	OO_CHECK_EVAL("(function () { ship.scanClass = 'CLASS_CARGO'; return 'set'; })()", "threw: entity.scanClass is read-only except on NPC ships.");
-	sShip->_isPlayer = NO;
+	sShip->_isPlayer = false;
 	OO_CHECK_EVAL("ship.scanClass", "CLASS_POLICE");
 	sShip->_scanClass = CLASS_NEUTRAL;
 

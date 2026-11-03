@@ -80,10 +80,10 @@ void ScaleToMatch(OOPixMap* pmA, OOPixMap* pmB)
     OOPixMapDimension minHeight = MIN(pmA->height, pmB->height);
 
     if (pmA->width != minWidth || pmA->height != minHeight) {
-        *pmA = OOScalePixMap(*pmA, minWidth, minHeight, NO);
+        *pmA = OOScalePixMap(*pmA, minWidth, minHeight, false);
     }
     if (pmB->width != minWidth || pmB->height != minHeight) {
-        *pmB = OOScalePixMap(*pmB, minWidth, minHeight, NO);
+        *pmB = OOScalePixMap(*pmB, minWidth, minHeight, false);
     }
 }
 
@@ -149,7 +149,8 @@ bool OOCombinedEmissionMapGenerator::initWithEmissionMapSpec(const oo::PList& em
     uint32_t options;
     GLfloat anisotropy;
     GLfloat lodBias;
-    cxx_OOInterpretTextureSpecifier(spec, NULL, &options, &anisotropy, &lodBias, YES);
+    cxx_OOInterpretTextureSpecifier(spec, NULL, &options, &anisotropy, &lodBias,
+        true);
     options = OOApplyTextureOptionDefaults(options);
 
     if (initWithPath(std::string("<generated emission map>"), options)) {
@@ -166,7 +167,7 @@ bool OOCombinedEmissionMapGenerator::initWithEmissionMapSpec(const oo::PList& em
         if (illuminationColor != nullptr && illuminationColor->isWhite())
             illuminationColor = nullptr;
         if (!isCombinedMap && illuminationMapSpec.isNull())
-            diffuseMap = nil; // Diffuse map is only used with illumination
+            diffuseMap = nullptr; // Diffuse map is only used with illumination
 
         // Insert extraShrink flag here instead of using extraOptions later because we need it in cache key too.
         _emissionSpec = SpecWithExtraShrink(emissionMapSpec);
@@ -189,7 +190,7 @@ bool OOCombinedEmissionMapGenerator::initWithEmissionMapSpec(const oo::PList& em
                     thread even if scheduling is fixed, because it might involve
                     reading back pixels from OpenGL.
             */
-            if (diffuseMap != nil) {
+            if (diffuseMap != nullptr) {
                 _diffusePx = diffuseMap->copyPixMapRepresentation();
 #ifndef NDEBUG
                 _diffuseDesc = diffuseMap->shortDescription();
@@ -283,7 +284,7 @@ OOCombinedEmissionMapGenerator::~OOCombinedEmissionMapGenerator()
 std::optional<std::string> OOCombinedEmissionMapGenerator::descriptionComponents() const
 {
     std::string result;
-    BOOL haveIllumination = NO;
+    bool haveIllumination = false;
 
     if (!_emissionDesc.empty()) {
         result += oo::str::format("emission map: %s", _emissionDesc.c_str());
@@ -297,7 +298,7 @@ std::optional<std::string> OOCombinedEmissionMapGenerator::descriptionComponents
 
         if (_isCombinedMap) {
             result += oo::str::format(", illumination map: %s.a", _emissionDesc.c_str());
-            haveIllumination = YES;
+            haveIllumination = true;
         }
     }
 
@@ -305,7 +306,7 @@ std::optional<std::string> OOCombinedEmissionMapGenerator::descriptionComponents
         if (!_emissionDesc.empty())
             result += ", ";
         result += oo::str::format("illumination map: %s", _illuminationDesc.c_str());
-        haveIllumination = YES;
+        haveIllumination = true;
     }
 
     if (haveIllumination) {
@@ -345,7 +346,7 @@ std::optional<std::string> OOCombinedEmissionMapGenerator::cacheKey()
 void OOCombinedEmissionMapGenerator::loadTexture()
 {
     OOPixMap illuminationPx = kOONullPixMap;
-    BOOL haveEmission = NO, haveIllumination = NO, haveDiffuse = NO;
+    bool haveEmission = false, haveIllumination = false, haveDiffuse = false;
 
 #if DUMP_COMBINER
     static unsigned sTexID = 0;
@@ -366,8 +367,8 @@ void OOCombinedEmissionMapGenerator::loadTexture()
     if (haveEmission && _isCombinedMap && OOPixMapFormatHasAlpha(_emissionPx.format)) {
         OOPixMapToRGBA(&_emissionPx);
         illuminationPx = OODuplicatePixMap(_emissionPx, 0);
-        OOExtractPixMapChannel(&illuminationPx, 3, YES);
-        haveIllumination = YES;
+        OOExtractPixMapChannel(&illuminationPx, 3, true);
+        haveIllumination = true;
         DUMP(illuminationPx, "extracted illumination map");
     }
 
@@ -382,7 +383,7 @@ void OOCombinedEmissionMapGenerator::loadTexture()
 
         illuminationPx = _illuminationPx;
         _illuminationPx.pixels = NULL;
-        haveIllumination = YES;
+        haveIllumination = true;
         DUMP(illuminationPx, "source illumination map");
     }
 
@@ -415,10 +416,10 @@ void OOCombinedEmissionMapGenerator::loadTexture()
         } else if (haveIllumination) {
             // No explicit emission map -> modulated illumination map is our only emission map.
             _emissionPx = illuminationPx;
-            haveEmission = YES;
+            haveEmission = true;
             illuminationPx.pixels = NULL;
         }
-        haveIllumination = NO; // Either way, illumination is now baked into emission.
+        haveIllumination = false; // Either way, illumination is now baked into emission.
     }
 
     (void)haveEmission;

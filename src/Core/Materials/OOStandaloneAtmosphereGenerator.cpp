@@ -72,7 +72,7 @@ FloatRGB FloatRGBFromDictColor(const oo::PList& dictionary, const std::string& k
 
 } // namespace
 
-static BOOL FillFBMBuffer(OOStandaloneAtmosphereGeneratorInfo* info);
+static bool FillFBMBuffer(OOStandaloneAtmosphereGeneratorInfo* info);
 static float QFactor(float* accbuffer, int x, int y, unsigned width, float polar_y_value, float bias, float polar_y);
 static float BlendAlpha(float fraction, float a, float b);
 static FloatRGBA CloudMix(OOStandaloneAtmosphereGeneratorInfo* info, float q, float nearPole);
@@ -155,7 +155,7 @@ bool OOStandaloneAtmosphereGenerator::generateAtmosphereTexture(oo::Ref<OOTextur
 
     *texture = OOTexture::textureWithGenerator(atmoGen.get());
 
-    return texture->get() != nil;
+    return texture->get() != nullptr;
 }
 
 std::optional<std::string> OOStandaloneAtmosphereGenerator::descriptionComponents() const
@@ -181,13 +181,13 @@ std::optional<std::string> OOStandaloneAtmosphereGenerator::cacheKey()
 
 bool OOStandaloneAtmosphereGenerator::getResultFormatWidthHeight(OOPixMap* outData, OOTextureDataFormat* outFormat, uint32_t* outWidth, uint32_t* outHeight)
 {
-    BOOL waiting = NO;
+    bool waiting = false;
     if (!isReady()) {
         waiting = true;
         OO_LOG("texture.planet.generate.wait", "{} generator {}", "Waiting for", description());
     }
 
-    BOOL result = OOTextureGenerator::getResult(outData, outFormat, outWidth, outHeight);
+    bool result = OOTextureGenerator::getResult(outData, outFormat, outWidth, outHeight);
 
     if (waiting) {
         OO_LOG("texture.planet.generate.dequeue", "{} generator {}", result ? "Dequeued" : "Failed to dequeue", description());
@@ -204,7 +204,7 @@ void OOStandaloneAtmosphereGenerator::loadTexture()
 {
     OO_LOG("texture.planet.generate.begin", "Started generator {}", description());
 
-    BOOL success = NO;
+    bool success = false;
 
     uint8_t *aBuffer = NULL, *apx = NULL;
     float* randomBuffer = NULL;
@@ -253,7 +253,7 @@ void OOStandaloneAtmosphereGenerator::loadTexture()
             }
         }
 
-        success = YES;
+        success = true;
         _format = (OOTextureDataFormat)kOOTextureDataRGBA;
     }
 
@@ -412,10 +412,10 @@ OOINLINE int32_t fast_floor(double val)
     return (words[iman_] >> 16);
 }
 
-static BOOL GenerateFBMNoise(OOStandaloneAtmosphereGeneratorInfo* info);
-static BOOL GenerateFBMNoise3D(OOStandaloneAtmosphereGeneratorInfo* info);
+static bool GenerateFBMNoise(OOStandaloneAtmosphereGeneratorInfo* info);
+static bool GenerateFBMNoise3D(OOStandaloneAtmosphereGeneratorInfo* info);
 
-static BOOL FillFBMBuffer(OOStandaloneAtmosphereGeneratorInfo* info)
+static bool FillFBMBuffer(OOStandaloneAtmosphereGeneratorInfo* info)
 {
     OOCParameterAssert(info != NULL);
 
@@ -428,9 +428,9 @@ static BOOL FillFBMBuffer(OOStandaloneAtmosphereGeneratorInfo* info)
             GenerateFBMNoise3D(info);
         }
 
-        return YES;
+        return true;
     }
-    return NO;
+    return false;
 }
 
 enum {
@@ -577,11 +577,11 @@ static float SampleNoise3D(OOStandaloneAtmosphereGeneratorInfo* info, Vector p)
         kPermutationCount = 1024 this allows for 4e2567 different noise maps,
         which is a lot more than RanRot will actually give us.
 */
-static BOOL MakePermutationTable(OOStandaloneAtmosphereGeneratorInfo* info)
+static bool MakePermutationTable(OOStandaloneAtmosphereGeneratorInfo* info)
 {
     uint16_t* perms = (uint16_t*)malloc(sizeof *info->permutations * kPermutationCount);
     if (EXPECT_NOT(perms == NULL))
-        return NO;
+        return false;
 
     /*	Fisher-Yates/Durstenfeld/Knuth shuffle, "inside-out" variant.
             Based on pseudocode from http://en.wikipedia.org/wiki/Fisher-Yates_shuffle
@@ -599,12 +599,12 @@ static BOOL MakePermutationTable(OOStandaloneAtmosphereGeneratorInfo* info)
     }
 
     info->permutations = perms;
-    return YES;
+    return true;
 }
 
-static BOOL GenerateFBMNoise3D(OOStandaloneAtmosphereGeneratorInfo* info)
+static bool GenerateFBMNoise3D(OOStandaloneAtmosphereGeneratorInfo* info)
 {
-    BOOL OK = NO;
+    bool OK = false;
 
     FAIL_IF(!MakePermutationTable(info));
 
@@ -717,7 +717,7 @@ static void AddNoise(OOStandaloneAtmosphereGeneratorInfo* info, float* randomBuf
     }
 }
 
-static BOOL GenerateFBMNoise(OOStandaloneAtmosphereGeneratorInfo* info)
+static bool GenerateFBMNoise(OOStandaloneAtmosphereGeneratorInfo* info)
 {
     // Allocate the temporary buffers we need in one fell swoop, to avoid administrative overhead.
     size_t randomBufferSize = kRandomBufferSize * kRandomBufferSize * sizeof(float);
@@ -725,7 +725,7 @@ static BOOL GenerateFBMNoise(OOStandaloneAtmosphereGeneratorInfo* info)
     size_t ixBufferSize = info->width * sizeof(int);
     char* sharedBuffer = (char*)malloc(randomBufferSize + qxBufferSize + ixBufferSize);
     if (sharedBuffer == NULL)
-        return NO;
+        return false;
 
     float* randomBuffer = (float*)sharedBuffer;
     float* qxBuffer = (float*)(sharedBuffer + randomBufferSize);
@@ -749,7 +749,7 @@ static BOOL GenerateFBMNoise(OOStandaloneAtmosphereGeneratorInfo* info)
     }
 
     FREE(sharedBuffer);
-    return YES;
+    return true;
 }
 
 static float QFactor(float* accbuffer, int x, int y, unsigned width, float polar_y_value, float bias, float polar_y)

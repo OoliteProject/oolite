@@ -35,7 +35,7 @@ MA 02110-1301, USA.
 
 bool OOQuiriumCascadeEntity::initQuiriumCascadeFromShip(::ShipEntity* ship)
 {
-    if (ship == nil) {
+    if (ship == nullptr) {
         return false; // [self release]; return nil
     }
 
@@ -140,15 +140,9 @@ void OOQuiriumCascadeEntity::drawImmediate(bool /*immediate*/, bool translucent)
     cxx_OOCheckOpenGLErrors([&]() -> std::string { return "OOQuiriumCascadeEntity after drawing " + oo::EntityDescription(this); });
 }
 
-bool OOQuiriumCascadeEntity::isEffect()
-{
-    return YES;
-}
+bool OOQuiriumCascadeEntity::isEffect() { return true; }
 
-bool OOQuiriumCascadeEntity::isCascadeWeapon()
-{
-    return YES;
-}
+bool OOQuiriumCascadeEntity::isCascadeWeapon() { return true; }
 
 bool OOQuiriumCascadeEntity::canCollide()
 {
@@ -157,5 +151,5 @@ bool OOQuiriumCascadeEntity::canCollide()
 
 bool OOQuiriumCascadeEntity::checkCloseCollisionWith(Entity* /*other*/)
 {
-    return YES;
+    return true;
 }

@@ -61,7 +61,7 @@ public:
 	void setBeaconLabel(const std::optional<std::string> &blabel);
 	bool isBeacon();
 
-	BOOL _oriented = NO;
+	bool _oriented = false;
 	OOScalar _size = 0;
 };
 
@@ -130,7 +130,7 @@ class PlayerEntity : public ShipEntity
 public:
 	void setCompassMode(OOCompassMode value);
 
-	FakeGame *_game = nil;
+	FakeGame *_game = nullptr;
 };
 
 #include "OOJSWaypoint.h"
@@ -268,7 +268,7 @@ JSClassDef sFakeEntityClass = { .class_name = "Entity" };
 std::map<JSClassID, int> sConverters;
 } // namespace
 
-Universe *gSharedUniverse = nil;
+Universe *gSharedUniverse = nullptr;
 PlayerEntity *gOOPlayer = nullptr;
 
 
@@ -409,7 +409,7 @@ JSContext *sContext = nullptr;
 JSValue sGlobal = JS_UNDEFINED;	// held for the life of the test
 TestEntityObject *sWaypoint = nullptr;			// the waypoint's object
 OOWaypointEntity *sWaypointPart = nullptr;	// its C++ part
-FakeGame *sGame = nil;
+FakeGame *sGame = nullptr;
 
 
 // A JS object of the class, with the class's prototype and a holder of the entity's C++ part in
@@ -463,7 +463,7 @@ void SetUpContext()
 	sWaypointPart = static_cast<OOWaypointEntity *>(sWaypoint->_cxxEntity.get());
 	sWaypoint->_beaconLabel = "Label";
 	sWaypoint->_orientation = make_quaternion(0, 1, 0, 0);
-	sWaypointPart->_oriented = YES;
+	sWaypointPart->_oriented = true;
 	sWaypointPart->_size = 20;
 	Define("waypoint", JSValueForEntity(sWaypoint));
 	Define("plainEntity", JSValueForObject(sFakeEntityClassID, oo::makeRef<TestEntityObject>().leakRef()));
@@ -527,9 +527,9 @@ OO_TEST(properties)
 	OO_CHECK_EVAL("waypoint.orientation", "0,1,0,0");
 	OO_CHECK_EVAL("waypoint.size", "20");
 	OO_CHECK_EVAL("Object.keys(Waypoint.prototype).join()", "beaconCode,beaconLabel,orientation,size");
-	sWaypointPart->_oriented = NO;
+	sWaypointPart->_oriented = false;
 	OO_CHECK_EVAL("waypoint.orientation", "0,0,0,0");	// unoriented: the zero quaternion
-	sWaypointPart->_oriented = YES;
+	sWaypointPart->_oriented = true;
 }
 
 

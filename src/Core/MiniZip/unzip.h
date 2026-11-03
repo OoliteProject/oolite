@@ -44,10 +44,6 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #ifndef _ZLIB_H
 #include "zlib.h"
 #endif
@@ -391,7 +387,3 @@ extern uLong ZEXPORT unzGetOffset(unzFile file);
 /* Set the current file offset */
 extern int ZEXPORT unzSetOffset64(unzFile file, ZPOS64_T pos);
 extern int ZEXPORT unzSetOffset(unzFile file, uLong pos);
-
-#ifdef __cplusplus
-}
-#endif

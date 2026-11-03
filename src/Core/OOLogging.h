@@ -34,14 +34,8 @@ SOFTWARE.
 #include "OOFunctionAttributes.h"
 #include <stdarg.h>
 
-// OO_LOG / oo::log: the Foundation-free logging API. extern "C++"
-// because this header is sometimes reached from inside an extern "C" block
-// (OOMaths.h), as OOFoundation.h notes.
-#ifdef __cplusplus
-extern "C++" {
+// OO_LOG / oo::log: the Foundation-free logging API.
 #include "oofnd/Log.hpp"
-}
-#endif
 
 #ifndef OOLOG_FUNCTION_NAME
 #if defined(__GNUC__) && __GNUC__ >= 2
@@ -70,21 +64,10 @@ extern "C++" {
 #define OOLOG_SHORT_CIRCUIT 1
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 void OOLogIndent(void);
 void OOLogOutdent(void);
 
-#ifdef __cplusplus
-}
-#endif
-
 // Remember/restore indent levels, for cases where an exception may occur while indented.
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 void OOLogPushIndent(void);
 void OOLogPopIndent(void);
@@ -97,17 +80,12 @@ void OOLogGenericParameterErrorForFunction(const char* inFunction);
 #define OOLogGenericSubclassResponsibility() OOLogGenericSubclassResponsibilityForFunction(OOLOG_FUNCTION_NAME)
 void OOLogGenericSubclassResponsibilityForFunction(const char* inFunction);
 
-#ifdef __cplusplus
-}
-#endif
-
 // *** Predefined message classes.
 /*	These are general coding error types. Generally a subclass should be used
         for each instance -- for instance, Entity::warnAboutHostiles() uses
         @"general.error.subclassResponsibility.Entity-warnAboutHostiles".
 */
 
-#ifdef __cplusplus
 extern const char* const cxx_kOOLogSubclassResponsibility; // "general.error.subclassResponsibility"
 extern const char* const cxx_kOOLogParameterError; // "general.error.parameterError"
 extern const char* const cxx_kOOLogDeprecatedMethod; // "general.error.deprecatedMethod"
@@ -122,4 +100,3 @@ extern const char* const cxx_kOOLogOpenGLError; // "rendering.opengl.error"
 
 // Don't use.
 extern const char* const cxx_kOOLogUnconvertedNSLog; // "unclassified"
-#endif

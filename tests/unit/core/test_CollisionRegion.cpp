@@ -10,7 +10,7 @@
    an entity is filed in (the first subregion within whose borders it lies, else
    the universe), the counts in -debugOut, the description text, the collision
    counters and the shadow geometry of shadowAtPointOcclusionToValue(). Run:
-   bash tools/check-core-tests.sh
+   tests/run.sh unit
 */
 
 #include "CollisionRegion.h"

@@ -52,7 +52,7 @@ typedef struct OOStandaloneAtmosphereGeneratorInfo {
 
     unsigned planetAspectRatio;
     unsigned planetScaleOffset;
-    BOOL perlin3d;
+    bool perlin3d;
 } OOStandaloneAtmosphereGeneratorInfo;
 
 /*	A leaf of the texture generators, over OOTextureGenerator. Its one

@@ -9,15 +9,9 @@
    test recomputes the same FNV-1a digest from oo::str::encodeLossy.
 */
 
-#define true 1
-#define false 0
 #include <type_traits>
 
 #include "oofnd/Encoding.hpp"
-static_assert(std::is_same_v<decltype(true), int>,
-              "Encoding.hpp must restore OOCocoa.h's true macro");
-#undef true
-#undef false
 
 #include <cstdint>
 #include <initializer_list>

@@ -180,7 +180,7 @@ static bool JSStationGetStationEntity(JSContext* context, JSValueConst stationOb
 
     if (outEntity == NULL)
         return false;
-    *outEntity = nil;
+    *outEntity = nullptr;
 
     result = OOJSEntityGetEntity(context, stationObj, &entity);
     if (!result)
@@ -206,7 +206,7 @@ static bool JSStationGetShipEntity(JSContext* context, JSValueConst shipObj, Shi
 
     if (outEntity == NULL)
         return false;
-    *outEntity = nil;
+    *outEntity = nullptr;
 
     result = OOJSEntityGetEntity(context, shipObj, &entity);
     if (!result)
@@ -245,11 +245,11 @@ static JSValue StationGetProperty(OOJS_GETTER_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    StationEntity* entity = nil;
+    StationEntity* entity = nullptr;
 
     if (!JSStationGetStationEntity(context, thisObj, &entity))
         return OOJSNativeFailure(context);
-    if (entity == nil) {
+    if (entity == nullptr) {
         return JS_UNDEFINED;
     }
 
@@ -335,7 +335,7 @@ static JSValue StationSetProperty(OOJS_SETTER_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    StationEntity* entity = nil;
+    StationEntity* entity = nullptr;
     int bValue;
     int32_t iValue;
     double fValue;
@@ -343,7 +343,7 @@ static JSValue StationSetProperty(OOJS_SETTER_ARGS)
 
     if (!JSStationGetStationEntity(context, thisObj, &entity))
         return OOJSNativeFailure(context);
-    if (entity == nil)
+    if (entity == nullptr)
         return JS_UNDEFINED;
 
     switch (magic) {
@@ -445,7 +445,7 @@ static JSValue StationAbortAllDockings(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    StationEntity* station = nil;
+    StationEntity* station = nullptr;
     JSStationGetStationEntity(context, OOJS_THIS, &station);
     // SpiderMonkey tolerated returning normally with an error pending; QuickJS does not.
     if (JS_HasException(context))
@@ -462,7 +462,7 @@ static JSValue StationAbortDockingForShip(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    StationEntity* station = nil;
+    StationEntity* station = nullptr;
     JSStationGetStationEntity(context, OOJS_THIS, &station);
     if (JS_HasException(context))
         return JS_EXCEPTION;
@@ -473,11 +473,11 @@ static JSValue StationAbortDockingForShip(OOJS_NATIVE_ARGS)
     // (null was an object to SpiderMonkey, but passing it was not meaningful; it now fails like other non-objects.)
     if (JS_IsNull(OOJS_ARGV[0]) || !JS_IsObject(OOJS_ARGV[0]))
         return OOJSNativeFailure(context);
-    ShipEntity* ship = nil;
+    ShipEntity* ship = nullptr;
     JSStationGetShipEntity(context, OOJS_ARGV[0], &ship);
     if (JS_HasException(context))
         return JS_EXCEPTION;
-    if (ship != nil) {
+    if (ship != nullptr) {
         if (station != nullptr)
             station->abortDockingForShip(ship);
     }
@@ -494,19 +494,19 @@ static JSValue StationCanDockShip(OOJS_NATIVE_ARGS)
     OOJS_NATIVE_ENTER(context)
 
     bool result = true;
-    ShipEntity* shipToCheck = nil;
+    ShipEntity* shipToCheck = nullptr;
 
     if (argc > 0) {
         if (JS_IsNull(OOJS_ARGV[0]) || !JS_IsObject(OOJS_ARGV[0]) || !JSStationGetShipEntity(context, OOJS_ARGV[0], &shipToCheck)) {
             return OOJSNativeFailure(context);
         }
     }
-    if (EXPECT_NOT(shipToCheck == nil)) {
+    if (EXPECT_NOT(shipToCheck == nullptr)) {
         cxx_OOJSReportBadArguments(context, "Station", "canDockShip", MIN(argc, 1), OOJS_ARGV, std::nullopt, "shipEntity");
         return OOJSNativeFailure(context);
     }
 
-    StationEntity* station = nil;
+    StationEntity* station = nullptr;
     GET_THIS_STATION(station);
 
     OOJS_BEGIN_FULL_NATIVE(context)
@@ -537,7 +537,7 @@ static JSValue StationDockPlayer(OOJS_NATIVE_ARGS)
 
     if (EXPECT(!(player != nullptr ? player->PlayerEntity::isDocked() : false))) // qualified: the final overrider, so the binding test stands in for it
     {
-        StationEntity* stationForDockingPlayer = nil;
+        StationEntity* stationForDockingPlayer = nullptr;
         JSStationGetStationEntity(context, OOJS_THIS, &stationForDockingPlayer);
         // SpiderMonkey tolerated returning normally with an error pending; QuickJS does not.
         if (JS_HasException(context))
@@ -559,7 +559,7 @@ static JSValue StationDockPlayer(OOJS_NATIVE_ARGS)
 static JSValue StationIncreaseAlertLevel(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
-    StationEntity* station = nil;
+    StationEntity* station = nullptr;
 
     GET_THIS_STATION(station);
 
@@ -577,7 +577,7 @@ static JSValue StationIncreaseAlertLevel(OOJS_NATIVE_ARGS)
 static JSValue StationDecreaseAlertLevel(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
-    StationEntity* station = nil;
+    StationEntity* station = nullptr;
 
     GET_THIS_STATION(station);
 
@@ -598,8 +598,8 @@ static JSValue StationLaunchShipWithRole(OOJS_NATIVE_ARGS)
     OOJS_NATIVE_ENTER(context)
 
     std::optional<std::string> shipRole;
-    StationEntity* station = nil;
-    ShipEntity* result = nil;
+    StationEntity* station = nullptr;
+    ShipEntity* result = nullptr;
     bool abortAllDockings = false;
 
     GET_THIS_STATION(station);
@@ -630,12 +630,13 @@ static JSValue StationLaunchDefenseShip(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    StationEntity* station = nil;
+    StationEntity* station = nullptr;
     GET_THIS_STATION(station);
 
-    ShipEntity* launched = nil;
+    ShipEntity* launched = nullptr;
     OOJS_BEGIN_FULL_NATIVE(context)
-    launched = (station != nullptr ? station->launchDefenseShip() : (::ShipEntity*)nil);
+    launched = (station != nullptr ? station->launchDefenseShip()
+                                   : (::ShipEntity*)nullptr);
     OOJS_END_FULL_NATIVE
     OOJS_RETURN(OOJSValueFromCxxObject(context, launched)); // the C++ ship's JS value
 
@@ -646,12 +647,12 @@ static JSValue StationLaunchEscort(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    StationEntity* station = nil;
+    StationEntity* station = nullptr;
     GET_THIS_STATION(station);
 
-    ShipEntity* launched = nil;
+    ShipEntity* launched = nullptr;
     OOJS_BEGIN_FULL_NATIVE(context)
-    launched = (station != nullptr ? station->launchEscort() : (::ShipEntity*)nil);
+    launched = (station != nullptr ? station->launchEscort() : (::ShipEntity*)nullptr);
     OOJS_END_FULL_NATIVE
     OOJS_RETURN(OOJSValueFromCxxObject(context, launched)); // the C++ ship's JS value
 
@@ -662,12 +663,13 @@ static JSValue StationLaunchScavenger(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    StationEntity* station = nil;
+    StationEntity* station = nullptr;
     GET_THIS_STATION(station);
 
-    ShipEntity* launched = nil;
+    ShipEntity* launched = nullptr;
     OOJS_BEGIN_FULL_NATIVE(context)
-    launched = (station != nullptr ? station->launchScavenger() : (::ShipEntity*)nil);
+    launched = (station != nullptr ? station->launchScavenger()
+                                   : (::ShipEntity*)nullptr);
     OOJS_END_FULL_NATIVE
     OOJS_RETURN(OOJSValueFromCxxObject(context, launched)); // the C++ ship's JS value
 
@@ -678,12 +680,12 @@ static JSValue StationLaunchMiner(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    StationEntity* station = nil;
+    StationEntity* station = nullptr;
     GET_THIS_STATION(station);
 
-    ShipEntity* launched = nil;
+    ShipEntity* launched = nullptr;
     OOJS_BEGIN_FULL_NATIVE(context)
-    launched = (station != nullptr ? station->launchMiner() : (::ShipEntity*)nil);
+    launched = (station != nullptr ? station->launchMiner() : (::ShipEntity*)nullptr);
     OOJS_END_FULL_NATIVE
     OOJS_RETURN(OOJSValueFromCxxObject(context, launched)); // the C++ ship's JS value
     OOJS_NATIVE_EXIT
@@ -693,12 +695,13 @@ static JSValue StationLaunchPirateShip(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    StationEntity* station = nil;
+    StationEntity* station = nullptr;
     GET_THIS_STATION(station);
 
-    ShipEntity* launched = nil;
+    ShipEntity* launched = nullptr;
     OOJS_BEGIN_FULL_NATIVE(context)
-    launched = (station != nullptr ? station->launchPirateShip() : (::ShipEntity*)nil);
+    launched = (station != nullptr ? station->launchPirateShip()
+                                   : (::ShipEntity*)nullptr);
     OOJS_END_FULL_NATIVE
     OOJS_RETURN(OOJSValueFromCxxObject(context, launched)); // the C++ ship's JS value
 
@@ -709,12 +712,12 @@ static JSValue StationLaunchShuttle(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    StationEntity* station = nil;
+    StationEntity* station = nullptr;
     GET_THIS_STATION(station);
 
-    ShipEntity* launched = nil;
+    ShipEntity* launched = nullptr;
     OOJS_BEGIN_FULL_NATIVE(context)
-    launched = (station != nullptr ? station->launchShuttle() : (::ShipEntity*)nil);
+    launched = (station != nullptr ? station->launchShuttle() : (::ShipEntity*)nullptr);
     OOJS_END_FULL_NATIVE
     OOJS_RETURN(OOJSValueFromCxxObject(context, launched)); // the C++ ship's JS value
     OOJS_NATIVE_EXIT
@@ -724,12 +727,12 @@ static JSValue StationLaunchPatrol(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    StationEntity* station = nil;
+    StationEntity* station = nullptr;
     GET_THIS_STATION(station);
 
-    ShipEntity* launched = nil;
+    ShipEntity* launched = nullptr;
     OOJS_BEGIN_FULL_NATIVE(context)
-    launched = (station != nullptr ? station->launchPatrol() : (::ShipEntity*)nil);
+    launched = (station != nullptr ? station->launchPatrol() : (::ShipEntity*)nullptr);
     OOJS_END_FULL_NATIVE
     OOJS_RETURN(OOJSValueFromCxxObject(context, launched)); // the C++ ship's JS value
     OOJS_NATIVE_EXIT
@@ -739,7 +742,7 @@ static JSValue StationLaunchPolice(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    StationEntity* station = nil;
+    StationEntity* station = nullptr;
     GET_THIS_STATION(station);
 
     oo::PList::Array launched; // the launched ships' entity nodes, in order
@@ -767,7 +770,7 @@ static JSValue StationSetInterface(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    StationEntity* station = nil;
+    StationEntity* station = nullptr;
     GET_THIS_STATION(station);
 
     if (argc < 1) {
@@ -904,7 +907,7 @@ static JSValue StationSetMarketPrice(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    StationEntity* station = nil;
+    StationEntity* station = nullptr;
     GET_THIS_STATION(station);
 
     if (argc < 2) {
@@ -944,7 +947,7 @@ static JSValue StationSetMarketQuantity(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    StationEntity* station = nil;
+    StationEntity* station = nullptr;
     GET_THIS_STATION(station);
 
     if (argc < 2) {
@@ -1026,7 +1029,7 @@ static JSValue StationAddShipToShipyard(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    StationEntity* station = nil;
+    StationEntity* station = nullptr;
     GET_THIS_STATION(station);
 
     /*	SpiderMonkey's JS_ValueToObject() accepted primitives (boxing them) and
@@ -1193,7 +1196,7 @@ static JSValue StationRemoveShipFromShipyard(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    StationEntity* station = nil;
+    StationEntity* station = nullptr;
     GET_THIS_STATION(station);
 
     // make sure the station has a shipyard

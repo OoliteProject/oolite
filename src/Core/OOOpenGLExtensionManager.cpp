@@ -255,7 +255,7 @@ void OOOpenGLExtensionManager::reset()
         maximumShaderSetting = cxx_OOShaderSettingFromString(gpuConfig.get<std::string>("maximum_shader_level",
             "SHADERS_FULL"));
         if (maximumShaderSetting <= SHADERS_OFF) {
-            shadersAvailable = NO;
+            shadersAvailable = false;
             maximumShaderSetting = SHADERS_NOT_SUPPORTED;
             {
                 // A name that is not a string fell back to the renderer, which may itself be nil.
@@ -294,9 +294,9 @@ void OOOpenGLExtensionManager::reset()
         textureUnitCount_ = MAX(texUnitOverride, 0);
 #endif
 
-    usePointSmoothing_ = gpuConfig.get<bool>("smooth_points", YES) ? YES : NO;
-    useLineSmoothing_ = gpuConfig.get<bool>("smooth_lines", YES) ? YES : NO;
-    useDustShader_ = gpuConfig.get<bool>("use_dust_shader", YES) ? YES : NO;
+    usePointSmoothing_ = gpuConfig.get<bool>("smooth_points", true) ? true : false;
+    useLineSmoothing_ = gpuConfig.get<bool>("smooth_lines", true) ? true : false;
+    useDustShader_ = gpuConfig.get<bool>("use_dust_shader", true) ? true : false;
 }
 
 OOOpenGLExtensionManager::~OOOpenGLExtensionManager()
@@ -324,7 +324,7 @@ bool OOOpenGLExtensionManager::haveExtension(const std::string& extension)
     lock.lock();
 #endif
 
-    BOOL result = extensions.contains(extension) ? YES : NO;
+    bool result = extensions.contains(extension) ? true : false;
 
 #if OOOPENGLEXTMGR_LOCK_SET_ACCESS
     lock.unlock();
@@ -338,7 +338,7 @@ bool OOOpenGLExtensionManager::shadersSupported()
 #if OO_SHADERS
     return shadersAvailable;
 #else
-    return NO;
+    return false;
 #endif
 }
 
@@ -347,7 +347,7 @@ bool OOOpenGLExtensionManager::shadersForceDisabled()
 #if OO_SHADERS
     return shadersForceDisabled_;
 #else
-    return YES;
+    return true;
 #endif
 }
 
@@ -391,7 +391,7 @@ bool OOOpenGLExtensionManager::vboSupported()
 #if OO_USE_VBO
     return vboSupported_;
 #else
-    return NO;
+    return false;
 #endif
 }
 
@@ -400,7 +400,7 @@ bool OOOpenGLExtensionManager::fboSupported()
 #if OO_USE_FBO
     return fboSupported_;
 #else
-    return NO;
+    return false;
 #endif
 }
 
@@ -409,7 +409,7 @@ bool OOOpenGLExtensionManager::textureCombinersSupported()
 #if OO_MULTITEXTURE
     return textureCombinersSupported_;
 #else
-    return NO;
+    return false;
 #endif
 }
 
@@ -501,8 +501,8 @@ static unsigned IntegerFromString(const GLubyte** ioString)
  */
 void OOOpenGLExtensionManager::checkShadersSupported()
 {
-    shadersAvailable = NO;
-    shadersForceDisabled_ = NO;
+    shadersAvailable = false;
+    shadersForceDisabled_ = false;
 
     /* Some cards claim to support shaders but do so extremely
      * badly. These are listed in gpu-settings.plist where we know
@@ -512,7 +512,7 @@ void OOOpenGLExtensionManager::checkShadersSupported()
     // scan for shader overrides: -noshaders || --noshaders
     for (const std::string& arg : oo::process::arguments()) {
         if (arg == "-noshaders" || arg == "--noshaders") {
-            shadersForceDisabled_ = YES;
+            shadersForceDisabled_ = true;
             OO_LOG(kOOLogOpenGLShaderSupport, "{}", "Shaders will not be used (disabled on command line).");
             return;
         }
@@ -563,17 +563,17 @@ void OOOpenGLExtensionManager::checkShadersSupported()
 
     glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS_ARB, &textureImageUnitCount_);
 
-    shadersAvailable = YES;
+    shadersAvailable = true;
 }
 #endif
 
 #if OO_USE_VBO
 void OOOpenGLExtensionManager::checkVBOSupported()
 {
-    vboSupported_ = NO;
+    vboSupported_ = false;
 
     if (versionIsAtLeastMajor(1, 5) || haveExtension("GL_ARB_vertex_buffer_object")) {
-        vboSupported_ = YES;
+        vboSupported_ = true;
     }
 
 #if OOLITE_WINDOWS
@@ -590,10 +590,10 @@ void OOOpenGLExtensionManager::checkVBOSupported()
 #if OO_USE_FBO
 void OOOpenGLExtensionManager::checkFBOSupported()
 {
-    fboSupported_ = NO;
+    fboSupported_ = false;
 
     if (haveExtension("GL_EXT_framebuffer_object")) {
-        fboSupported_ = YES;
+        fboSupported_ = true;
     }
 
 #if OOLITE_WINDOWS
@@ -670,22 +670,22 @@ namespace {
 // nothing). matcher is the one pass's matcher, taken on first use and held by
 // the caller, so one pass compiles one tester.
 // A null matcher (the tester did not compile) answers NO and is asked again.
-BOOL MatchesRegExp(oo::Ref<::OORegExpMatcher>& matcher, const std::optional<std::string>& string, const std::string& regexp)
+bool MatchesRegExp(oo::Ref<::OORegExpMatcher>& matcher, const std::optional<std::string>& string, const std::string& regexp)
 {
     if (!string.has_value())
-        return NO;
+        return false;
     if (matcher == nullptr)
         matcher = ::OORegExpMatcher::regExpMatcher();
     if (matcher == nullptr)
-        return NO;
+        return false;
     return matcher->string(*string, regexp);
 }
 
 // regexps may be a single string or an array of strings (in which case results are ANDed).
-BOOL CheckRegExps(oo::Ref<::OORegExpMatcher>& matcher, const std::optional<std::string>& string, const oo::PList& regexps)
+bool CheckRegExps(oo::Ref<::OORegExpMatcher>& matcher, const std::optional<std::string>& string, const oo::PList& regexps)
 {
     if (regexps.isNull())
-        return YES; // No restriction == match.
+        return true; // No restriction == match.
     if (const std::string* regexp = regexps.getIf<std::string>()) {
         return MatchesRegExp(matcher, string, *regexp);
     }
@@ -694,17 +694,17 @@ BOOL CheckRegExps(oo::Ref<::OORegExpMatcher>& matcher, const std::optional<std::
             const std::string* regexp = element.getIf<std::string>();
             if (EXPECT_NOT(regexp == nullptr)) {
                 // Invalid type -- match fails.
-                return NO;
+                return false;
             }
 
             if (!MatchesRegExp(matcher, string, *regexp))
-                return NO;
+                return false;
         }
-        return YES;
+        return true;
     }
 
     // Invalid type -- match fails.
-    return NO;
+    return false;
 }
 
 // oo_stringForKey: on a dictionary that may be nil: a string, a number's string value, or nil.
@@ -720,7 +720,7 @@ oo::PList StringForKey(const oo::PList* dict, std::string_view key)
 
 oo::PList OOOpenGLExtensionManager::lookUpPerGPUSettingsWithVersionString(const std::optional<std::string>& versionStr, const std::optional<std::string>& extensionsStr)
 {
-    const oo::PList configurations = ResourceManager::dictionaryFromFilesNamed("gpu-settings.plist", "Config", YES);
+    const oo::PList configurations = ResourceManager::dictionaryFromFilesNamed("gpu-settings.plist", "Config", true);
 
     // Highest precedence first, then case-insensitive name order (keys were taken in hash order
     // before sorting; ties between names equal but for case now keep byte order).

@@ -78,7 +78,7 @@ void OOCheckJSSyntaxVerifierStage::run()
     if (scriptsFolder == false && configScript == false)
         return;
 
-    OOJavaScriptEngine::sharedEngine()->setShowErrorLocations(YES);
+    OOJavaScriptEngine::sharedEngine()->setShowErrorLocations(true);
 
     for (const std::string& scriptFile : scriptFiles) {
         const std::string fileExt = oo::str::lowercase(oo::str::pathExtension(scriptFile));

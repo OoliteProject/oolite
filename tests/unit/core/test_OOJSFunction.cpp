@@ -12,7 +12,7 @@
 	evaluation (the script stack and the time limiter balanced around each call, the arguments
 	converted), the predicate's truthiness, and what an engine reset does (commit 34d0592d1). They
 	ask the C++ class.
-	Run: bash tools/check-core-tests.sh
+	Run: bash tests/run.sh unit
 */
 
 #include "OOJSFunction.h"

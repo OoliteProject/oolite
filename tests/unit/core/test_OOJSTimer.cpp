@@ -17,7 +17,7 @@
 	is null, and what an engine reset does. A timer that is garbage-collected while running
 	(unrootedRunningTimerGC) must not call back into the engine from its finalizer: describing it
 	for the warning did, and on QuickJS that corrupted the heap (the test crashed at exit about one
-	run in six with a single collection). Run: bash tools/check-core-tests.sh
+	run in six with a single collection). Run: bash tests/run.sh unit
 */
 
 #include "OOScriptTimer.h"
@@ -68,7 +68,7 @@ const char * const kOOJavaScriptEngineWillResetNotificationName = "org.aegidian.
 
 // The class registry's (OOJSClasses.mm, linked).
 const char *OOJSClassName(JSClassID classID);
-BOOL OOJSIsSubclass(JSClassID putativeSubclass, JSClassID superclass);
+bool OOJSIsSubclass(JSClassID putativeSubclass, JSClassID superclass);
 
 
 void cxx_OOJSReportErrorWithArguments(JSContext *context, const char *format, va_list args)
@@ -237,10 +237,10 @@ bool OOJavaScriptEngine::callJSFunction(JSValueConst function, JSValueConst jsTh
 	if (JS_IsException(result))
 	{
 		JS_FreeValue(context, JS_GetException(context));
-		return NO;
+		return false;
 	}
 	*outResult = result;
-	return YES;
+	return true;
 }
 
 
@@ -280,7 +280,7 @@ typedef Universe FakeUniverse;
 OOTimeAbsolute Universe::getTime()	{ return sNow; }
 
 class Universe;
-Universe *gSharedUniverse = nil;
+Universe *gSharedUniverse = nullptr;
 
 
 extern const char *const cxx_kOOLogException;

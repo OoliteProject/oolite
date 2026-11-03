@@ -13,7 +13,7 @@
 	not run, are aborting link stubs. The RNG is the game's own (legacy_random.c), reseeded by each
 	test. The tests ask the C++ class, whose markets are oo::Ref<OOCommodityMarket>; the last tests
 	pin the C++ API.
-	Run: bash tools/check-core-tests.sh
+	Run: tests/run.sh unit
 */
 
 #include "OOCommodities.h"
@@ -123,7 +123,7 @@ OOSystemID Universe::currentSystemID()	{ return 7; }
 ::OOCommodityMarket *Universe::getCommodityMarket()	{ return mainMarket.get(); }
 
 
-Universe *gSharedUniverse = nil;
+Universe *gSharedUniverse = nullptr;
 
 
 // A station: the members OOCommodities.mm calls, declared as StationEntity.h
@@ -140,7 +140,7 @@ public:
 	oo::PList definition;
 	std::optional<std::string> scriptName;
 	OOCargoQuantity capacity = 0;
-	BOOL monitored = NO;
+	bool monitored = false;
 };
 
 oo::PList StationEntity::getMarketDefinition()					{ return definition; }
@@ -173,7 +173,7 @@ namespace {
 
 void Reset()
 {
-	if (gSharedUniverse == nil)  gSharedUniverse = new Universe();
+	if (gSharedUniverse == nullptr)  gSharedUniverse = new Universe();
 	if (gOOPlayer == nullptr)  gOOPlayer = new PlayerEntity;	// never deleted
 	gLog.clear();
 	ranrot_srand(20260930);
@@ -237,7 +237,7 @@ std::string Log()
 }
 
 
-StationEntity *Station(oo::PList definition, OOCargoQuantity capacity, BOOL monitored)
+StationEntity *Station(oo::PList definition, OOCargoQuantity capacity, bool monitored)
 {
 	static std::deque<StationEntity> stations;	// each lives for the test run, as an autoreleased one outlived its case
 	StationEntity *station = &stations.emplace_back();
@@ -343,11 +343,11 @@ OO_TEST(stationMarkets)
 
 		// No definition and no script: a blank market.
 		Reset();
-		OO_CHECK(expect(Describe(c->generateMarketForStation(Station(oo::PList(), 100, YES)))));
+		OO_CHECK(expect(Describe(c->generateMarketForStation(Station(oo::PList(), 100, true)))));
 
 		// A default rule; then rules for a good and a class, first match wins; unmonitored.
 		Reset();
-		OO_CHECK(expect(Describe(c->generateMarketForStation(Station(oo::PList(oo::PList::Array{ Dict({ { "type", oo::PList("default") } }) }), 60, YES)))));
+		OO_CHECK(expect(Describe(c->generateMarketForStation(Station(oo::PList(oo::PList::Array{ Dict({ { "type", oo::PList("default") } }) }), 60, true)))));
 		Reset();
 		oo::PList rules(oo::PList::Array{
 			Dict({ { "type", oo::PList("good") }, { "name", oo::PList("gems") }, { "price_multiplier", oo::PList(2.0) }, { "quantity_adder", oo::PList(5) }, { "capacity", oo::PList(8) } }),
@@ -355,9 +355,9 @@ OO_TEST(stationMarkets)
 				{ "quantity_multiplier", oo::PList(0.5) }, { "quantity_randomiser", oo::PList(0.2) }, { "legality_import", oo::PList(3) }, { "legality_export", oo::PList(0) } }),
 			Dict({ { "type", oo::PList("default") }, { "price_multiplier", oo::PList(0) }, { "quantity_multiplier", oo::PList(0) } }),
 			oo::PList("not a rule") });
-		OO_CHECK(expect(Describe(c->generateMarketForStation(Station(rules, 50, NO)))));
+		OO_CHECK(expect(Describe(c->generateMarketForStation(Station(rules, 50, false)))));
 		Reset();
-		OO_CHECK(expect(Describe(c->generateMarketForStation(Station(rules, 500, YES)))));
+		OO_CHECK(expect(Describe(c->generateMarketForStation(Station(rules, 500, true)))));
 		OO_CHECK(expect(Log()));
 		gSharedUniverse->mainMarket = nullptr;
 	}
@@ -388,7 +388,7 @@ OO_TEST(cxxClass)
 		Reset();
 		gSharedUniverse->mainMarket = c->generateMarketForSystemWithEconomy(2, std::nullopt);
 		Reset();
-		OO_CHECK(Describe(c->generateMarketForStation(Station(oo::PList(oo::PList::Array{ Dict({ { "type", oo::PList("default") } }) }), 60, YES)))
+		OO_CHECK(Describe(c->generateMarketForStation(Station(oo::PList(oo::PList::Array{ Dict({ { "type", oo::PList("default") } }) }), 60, true)))
 			== "food q16 p62 c60 l0/0 u0; furs q60 p400 c60 l1/2 u1; gems q60 p132 c60 l0/0 u2; junk q0 p0 c127 l0/0 u0; ");
 		gSharedUniverse->mainMarket = nullptr;
 	}

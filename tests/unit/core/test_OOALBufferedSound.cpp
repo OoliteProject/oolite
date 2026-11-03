@@ -12,7 +12,7 @@
    checks as dynamic_cast); the description is the root's description() and the
    decoder and the cluster are C++. After them comes the C++ API
    (OOALBufferedSound, a subclass of OOSound). Run: bash
-   tools/check-core-tests.sh test_OOALBufferedSound
+   meson test -C build/meson_test test_OOALBufferedSound
 */
 
 #include <process.h>

@@ -1,12 +1,11 @@
 """Fixtures for the component tier: one native game process per scenario, on its own port.
 
 Every scenario gets a hard timeout with a forced kill, so a hung game fails the run instead of
-wedging it (docs/phases/0-component-tier.md).
+wedging it.
 """
 
 import os
 import shutil
-import sys
 import threading
 
 import pytest
@@ -159,11 +158,14 @@ class World:
 
 
 @pytest.fixture
-def world(app_dir, console_port, desktop_lock, tmp_path, request):
+def world(app_dir, console_port, tmp_path, request):
     """One game per scenario, killed unconditionally at the end.
 
-    ``desktop_lock`` is named here rather than used: depending on it is what makes every scenario
-    in this tier run under the interactive-desktop mutex.
+    On Windows ``SDL_VIDEODRIVER=offscreen`` is deliberately left unset (console.py::_env - MSYS2's
+    Mesa ships no EGL and the offscreen driver cannot make a context), so every scenario opens a
+    REAL window on the real desktop, which can take the foreground away from a running GUI test.
+    Scenarios run sequentially on ONE console port (``console_port``), and nothing locks the
+    desktop: do not run this tier alongside the GUI tier.
 
     The timeout is enforced by a watchdog thread rather than a signal: SIGALRM does not exist on
     Windows, and this tier runs natively on Windows.

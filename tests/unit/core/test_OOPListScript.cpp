@@ -19,7 +19,7 @@
 
         OOPListScript is a C++ subclass of OOScript. The scripts are held as
    oo::Ref<OOScript>, the cases ask the C++ class, and plistScriptIsItsOwnObject
-   checks that a script is its own object. Run: bash tools/check-core-tests.sh
+   checks that a script is its own object. Run: tests/run.sh unit
 */
 
 #include <process.h>

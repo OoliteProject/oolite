@@ -18,8 +18,8 @@ over, and why:
   you meant. SetForegroundWindow alone is refused from a background process, so the input queues
   are attached for the call, as G1 does.
 
-Windows only. The component tier already holds tools/gui-lock for its whole session
-(conftest.py ``desktop_lock``), which is what entitles this to take the foreground. Like console.py
+Windows only. This takes the foreground, so the component tier runs alone on the desktop, one
+scenario at a time (see the ``world`` fixture in conftest.py). Like console.py
 it knows nothing of Gherkin; the vocabulary lives in steps/tutorial_steps.py.
 """
 

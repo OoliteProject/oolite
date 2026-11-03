@@ -47,8 +47,8 @@ OOEquipmentType* JSValueToEquipmentType(JSContext* context, JSValueConst value);
 // C++ results; nullopt where there is none
 std::optional<std::string> JSValueToEquipmentKey(JSContext* context, JSValueConst value);
 
-// outExists is BOOL *: its callers pass the address of a BOOL of their own.
-std::optional<std::string> JSValueToEquipmentKeyRelaxed(JSContext* context, JSValueConst value, BOOL* outExists);
+// outExists is bool *: its callers pass the address of a bool of their own.
+std::optional<std::string> JSValueToEquipmentKeyRelaxed(JSContext* context, JSValueConst value, bool* outExists);
 
 /*	The JS class name of OOEquipmentType's OOJSPrivateObject members, defined in
         OOJSEquipmentInfo.mm.

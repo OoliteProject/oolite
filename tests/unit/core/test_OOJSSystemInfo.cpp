@@ -17,7 +17,7 @@
 	JS-visible behaviour (the cached object, the four properties and their errors, system data both
 	ways, enumeration, the four methods and the two static ones, interstellar space, a native's
 	exception) and what the wrapped object answers the engine (its class name, description and
-	equality). Run: bash tools/check-core-tests.sh
+	equality). Run: tests/run.sh unit
 */
 
 #include "OOFoundation.h"
@@ -54,7 +54,7 @@ class Universe : public oo::RefCounted
 public:
 	OO_UNIVERSE_STAND_IN_VIRTUAL_MEMBERS
 
-	BOOL _interstellar;
+	bool _interstellar;
 	std::map<std::string, oo::PList> _data;
 	oo::PList _currentSystemData;
 	oo::Ref<OOSystemDescriptionManager> _systemManager;
@@ -304,9 +304,9 @@ OORouteType cxx_StringToRouteType(const std::string &string)
 
 
 // Galactic coordinates: x / 4, y / 2 here, so system s is at (s, s).
-extern "C" Vector OOGalacticCoordinatesFromInternal(NSPoint internalCoordinates)
-{
-	return make_vector(internalCoordinates.x / 4, internalCoordinates.y / 2, 0);
+Vector OOGalacticCoordinatesFromInternal(
+    NSPoint internalCoordinates) {
+  return make_vector(internalCoordinates.x / 4, internalCoordinates.y / 2, 0);
 }
 
 
@@ -401,18 +401,18 @@ std::optional<std::string> cxx_OOStringFromJSValue(JSContext *context, JSValueCo
 
 
 // As the engine's: rounded to nearest, an error for NaN or out of range.
-BOOL OOJSValueToInt32(JSContext *context, JSValueConst value, int32_t *outValue)
+bool OOJSValueToInt32(JSContext *context, JSValueConst value, int32_t *outValue)
 {
 	double number;
-	if (JS_ToFloat64(context, &number, value) < 0)  return NO;
+	if (JS_ToFloat64(context, &number, value) < 0)  return false;
 	number = std::floor(number + 0.5);
 	if (std::isnan(number) || number < INT32_MIN || number > INT32_MAX)
 	{
 		cxx_OOJSReportError(context, "can't convert %s to an integer", cxx_OOStringFromJSValue(context, value).value_or("(null)").c_str());
-		return NO;
+		return false;
 	}
 	*outValue = static_cast<int32_t>(number);
-	return YES;
+	return true;
 }
 
 
@@ -469,7 +469,7 @@ std::map<JSClassID, int> sConverters;
 }
 
 PlayerEntity *gOOPlayer = nullptr;
-Universe *gSharedUniverse = nil;
+Universe *gSharedUniverse = nullptr;
 
 
 void OOJSReportBadPropertySelector(JSContext *context, JSValueConst, int, const JSCFunctionListEntry *, size_t)
@@ -556,7 +556,7 @@ namespace {
 JSRuntime *sRuntime = nullptr;
 JSContext *sContext = nullptr;
 JSValue sGlobal = JS_UNDEFINED;	// held for the life of the test
-Universe *sUniverse = nil;
+Universe *sUniverse = nullptr;
 PlayerEntity *sPlayer = nullptr;
 
 
@@ -750,13 +750,13 @@ OO_TEST(systemData)
 OO_TEST(interstellar)
 {
 	SetUpContext();
-	sUniverse->_interstellar = YES;
+	sUniverse->_interstellar = true;
 	sUniverse->_currentSystemData = Dict({ { "name", oo::PList("Interstellar space") }, { "economy", oo::PList(3.0) } });
 	sPlayer->_coordinates = NSMakePoint(40, 20);
 	OO_CHECK_EVAL("info(0, -1).coordinates", "10,10,0");
 	OO_CHECK_EVAL("info(0, -1).name", "Interstellar space");
 	OO_CHECK_EVAL("Object.keys(info(0, -1)).join()", "economy,name");
-	sUniverse->_interstellar = NO;
+	sUniverse->_interstellar = false;
 	sUniverse->_currentSystemData = oo::PList();
 }
 
@@ -778,11 +778,11 @@ OO_TEST(interstellar_keys_of_a_fresh_snapshot)
 		if (i != 0)  expected += ",";
 		expected += key;
 	}	// the system data keys only (#768 hides the fixed properties)
-	sUniverse->_interstellar = YES;
+	sUniverse->_interstellar = true;
 	sUniverse->_currentSystemData = oo::PList(std::move(data));
 	OO_CHECK_EVAL("Object.keys(info(0, -1)).join()", expected.c_str());
 	OO_CHECK_EVAL("Object.keys(info(0, -1)).length", "40");
-	sUniverse->_interstellar = NO;
+	sUniverse->_interstellar = false;
 	sUniverse->_currentSystemData = oo::PList();
 }
 

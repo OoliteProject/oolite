@@ -12,7 +12,7 @@
    test makes one there, and none). Then the stage is global: the verifier
    registers and answers the C++ stage itself, so the facade case asks the
    stage (its description through description()). Run: bash
-   tools/check-core-tests.sh
+   tests/run.sh unit
 */
 
 #include <filesystem>

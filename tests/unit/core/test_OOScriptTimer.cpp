@@ -9,7 +9,7 @@
    scheduled, the description, the firing order, one-shot and repeating timers,
    a timer scheduled while the timers are updating (deferred to the end of the
    update), a timer that stops itself when it fires, +noteGameReset, and the
-   ordering selector the queue calls. Run: bash tools/check-core-tests.sh
+   ordering selector the queue calls. Run: tests/run.sh unit
 */
 
 #include <string>
@@ -49,7 +49,7 @@ typedef Universe FakeUniverse;
 OOTimeAbsolute Universe::getTime() { return gNow; }
 
 class Universe;
-Universe* gSharedUniverse = nil;
+Universe* gSharedUniverse = nullptr;
 
 // A timer that records its firings in a shared log, and can be told to stop
 // itself or to start another timer when it fires.
@@ -78,7 +78,7 @@ class TestTimer final : public OOScriptTimer {
 namespace {
 
 void SetUp(double now) {
-  if (gSharedUniverse == nil) gSharedUniverse = new FakeUniverse();
+  if (gSharedUniverse == nullptr) gSharedUniverse = new FakeUniverse();
   gNow = now;
   gFired.clear();
 }

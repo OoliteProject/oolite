@@ -50,13 +50,6 @@
 
 #pragma once
 
-// Suspend OOFoundation.h's `#define true 1` / `#define false 0` for this header
-// (see oofnd/Data.hpp); restored at the end.
-#pragma push_macro("true")
-#pragma push_macro("false")
-#undef true
-#undef false
-
 #include "oofnd/Expected.hpp"
 #include "oofnd/PList.hpp"
 
@@ -941,6 +934,3 @@ inline Expected<PList, PListError> parseXMLPList(std::string_view bytes)
 }
 
 } // namespace oo
-
-#pragma pop_macro("false")
-#pragma pop_macro("true")

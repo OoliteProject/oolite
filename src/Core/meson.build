@@ -56,7 +56,7 @@ oolite_sources += files(
     'OOOpenGLStateManager.cpp',
     'OOPListParsing.cpp',
     'OOPListGameTypes.cpp',
-    'OOPlanetData.c',
+    'OOPlanetData.cpp',
     'OOPlanetDrawable.cpp',
     'OOPolygonSprite.cpp',
     'OOProbabilisticTextureManager.cpp',
@@ -78,12 +78,12 @@ oolite_sources += files(
     'OOTextureSprite.cpp',
     'OOTrumble.cpp',
     'OOVector.cpp',
-    'OOVoxel.c',
+    'OOVoxel.cpp',
     'OOXMLExtensions.cpp',
     'Octree.cpp',
     'ResourceManager.cpp',
     'Universe.cpp',
-    'legacy_random.c',
+    'legacy_random.cpp',
 )
 
 oolite_includes += include_directories('.')

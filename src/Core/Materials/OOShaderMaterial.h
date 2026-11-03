@@ -198,7 +198,7 @@ enum {
         Predicate determining whether a given property may be used as a binding.
         Client code is responsible for implementing this.
 */
-BOOL OOUniformBindingPermitted(const std::string& propertyName,
+bool OOUniformBindingPermitted(const std::string& propertyName,
     Entity* bindingTarget); // the entity
 
 // Material specifier dictionary keys.

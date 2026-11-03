@@ -19,7 +19,7 @@
         point at it), holding its own whitelist and one crosshair file, so no
    game resource and no add-on is read; the font is missing, so the text engine
    has no texture. The last test pins the C++ API. Run:
-   bash tools/check-core-tests.sh test_HeadUpDisplay
+   meson test -C build/meson_test test_HeadUpDisplay
 */
 
 #include <process.h>
@@ -89,7 +89,7 @@ oo::PList Dial(const char* selector) {
 }
 
 bool SameRGBA(OOColor* color, float r, float g, float b, float a) {
-  if (color == nil) return false;
+  if (color == nullptr) return false;
   float cr = 0, cg = 0, cb = 0, ca = 0;
   color->getRed(&cr, &cg, &cb, &ca);
   return cr == r && cg == g && cb == b && ca == a;
@@ -101,7 +101,7 @@ OO_TEST(madeFromAnEmptyDictionary) {
   SetUp();
   {
     oo::Ref<HeadUpDisplay> hud = NewHUD(oo::PList(oo::PList::Dict{}));
-    OO_CHECK(hud != nil);
+    OO_CHECK(hud != nullptr);
     OO_CHECK(hud->getHudName() == std::optional<std::string>("test-hud.plist"));
     OO_CHECK(!hud->getDeferredHudName().has_value());
     OO_CHECK_EQ(hud->mfdCount(), 0u);
@@ -135,7 +135,7 @@ OO_TEST(madeFromAnEmptyDictionary) {
     OO_CHECK(
         SameRGBA(hud->reticleColorForIndex(OO_RETICLE_COLOR_WORMHOLE).get(), 0,
                  1, 1, 1));
-    OO_CHECK(hud->reticleColorForIndex(3) == nil);
+    OO_CHECK(hud->reticleColorForIndex(3) == nullptr);
 
     // A nil name is kept as nil.
     OO_CHECK(!NewHUD(oo::PList(oo::PList::Dict{}), std::nullopt)
@@ -203,8 +203,8 @@ OO_TEST(reticleColoursFromTheTargetReticleDial) {
         SameRGBA(shortHUD->reticleColorForIndex(OO_RETICLE_COLOR_TARGET).get(),
                  0, 1, 0, 1));
     OO_CHECK(shortHUD->reticleColorForIndex(
-                 OO_RETICLE_COLOR_TARGET_SENSITIVE) == nil);
-    OO_CHECK(shortHUD->reticleColorForIndex(OO_RETICLE_COLOR_WORMHOLE) == nil);
+                 OO_RETICLE_COLOR_TARGET_SENSITIVE) == nullptr);
+    OO_CHECK(shortHUD->reticleColorForIndex(OO_RETICLE_COLOR_WORMHOLE) == nullptr);
     OO_CHECK(!shortHUD->setReticleColorForIndex(OO_RETICLE_COLOR_WORMHOLE,
                                                 OOColor::whiteColor().get()));
   }
@@ -219,7 +219,7 @@ OO_TEST(setReticleColour) {
         hud->setReticleColorForIndex(OO_RETICLE_COLOR_WORMHOLE, magenta.get()));
     OO_CHECK(hud->reticleColorForIndex(OO_RETICLE_COLOR_WORMHOLE) ==
              magenta);  // the same object
-    OO_CHECK(!hud->setReticleColorForIndex(OO_RETICLE_COLOR_TARGET, nil));
+    OO_CHECK(!hud->setReticleColorForIndex(OO_RETICLE_COLOR_TARGET, nullptr));
     OO_CHECK(SameRGBA(hud->reticleColorForIndex(OO_RETICLE_COLOR_TARGET).get(),
                       0, 1, 0, 1));
     OO_CHECK(!hud->setReticleColorForIndex(3, magenta.get()));
@@ -268,26 +268,26 @@ OO_TEST(accessorsAndSetters) {
     hud->setOverallAlpha(0.25f);
     OO_CHECK(hud->getOverallAlpha() == 0.25f);
 
-    hud->setReticleTargetSensitive(YES);
+    hud->setReticleTargetSensitive(true);
     OO_CHECK(hud->getReticleTargetSensitive());
 
     // Hidden: big GUIs are allowed while the HUD is hidden.
-    hud->setHidden(YES);
+    hud->setHidden(true);
     OO_CHECK(hud->isHidden());
     OO_CHECK(hud->getAllowBigGui());
-    hud->setHidden(NO);
+    hud->setHidden(false);
     OO_CHECK(!hud->getAllowBigGui());
 
-    hud->setCompassActive(YES);
+    hud->setCompassActive(true);
     OO_CHECK(hud->isCompassActive());
-    hud->setCompassActive(NO);
+    hud->setCompassActive(false);
     OO_CHECK(!hud->isCompassActive());
 
-    hud->setMinimalisticScanner(YES);
+    hud->setMinimalisticScanner(true);
     OO_CHECK(hud->minimalisticScanner());
-    hud->setNonlinearScanner(YES);
+    hud->setNonlinearScanner(true);
     OO_CHECK(hud->nonlinearScanner());
-    hud->setScannerUltraZoom(YES);
+    hud->setScannerUltraZoom(true);
     OO_CHECK(hud->scannerUltraZoom());
 
     hud->setLineWidth(3.0f);
@@ -307,11 +307,11 @@ OO_TEST(hiddenSelectors) {
     oo::Ref<HeadUpDisplay> hud = NewHUD(oo::PList(oo::PList::Dict{}));
     OO_CHECK(!hud->hasHidden(std::string("drawCompass:")));
     OO_CHECK(!hud->hasHidden(std::nullopt));
-    hud->setHiddenSelector("drawCompass:", YES);
-    hud->setHiddenSelector("drawScanner:", YES);
+    hud->setHiddenSelector("drawCompass:", true);
+    hud->setHiddenSelector("drawScanner:", true);
     OO_CHECK(hud->hasHidden(std::string("drawCompass:")));
     OO_CHECK(hud->hasHidden(std::string("drawScanner:")));
-    hud->setHiddenSelector("drawCompass:", NO);
+    hud->setHiddenSelector("drawCompass:", false);
     OO_CHECK(!hud->hasHidden(std::string("drawCompass:")));
     OO_CHECK(hud->hasHidden(std::string("drawScanner:")));
     hud->clearHiddenSelectors();

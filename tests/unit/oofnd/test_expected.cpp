@@ -6,7 +6,7 @@
 
         A Tracked value type counts its live instances, so every construction
    path, assignment transition (value <-> error) and swap case is also checked
-   for leaks and double destruction; tools/check-oofnd.sh runs this file under
+   for leaks and double destruction; it is worth running this file under
    AddressSanitizer as well.
 */
 

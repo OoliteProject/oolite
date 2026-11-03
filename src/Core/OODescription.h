@@ -64,23 +64,17 @@ MA 02110-1301, USA.
 
 #include "oofnd/objc/OOObject.h"
 
-// extern "C++" because this header is reached from inside an extern "C" block (OOMaths.h ->
-// OOFoundation.h), as OOLogging.h is.
-extern "C++" {
-
 #include "oofnd/PListDescription.hpp"
 #include "oofnd/StdLib.hpp"
 
 namespace oo {
 
-    // The text "%@" printed for the property list's object graph
-    // (oo::ObjectFromPList of it): oo::describe (oofnd/PListDescription.hpp),
-    // GNUstep's -description byte for byte.
-    inline std::string DescriptionOf(const oo::PList& plist)
-    {
-        return describe(plist);
-    }
+// The text "%@" printed for the property list's object graph
+// (oo::ObjectFromPList of it): oo::describe (oofnd/PListDescription.hpp),
+// GNUstep's -description byte for byte.
+inline std::string DescriptionOf(const oo::PList& plist)
+{
+    return describe(plist);
+}
 
 } // namespace oo
-
-} // extern "C++"

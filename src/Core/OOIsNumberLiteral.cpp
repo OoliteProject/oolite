@@ -28,28 +28,23 @@
 
 #if 0
 #include "oofnd/Log.hpp"
-#define FAIL(s)                                                                        \
-    do {                                                                               \
-        OO_LOG("unclassified", "OOIsNumberLiteral failed for \"{}\": {}.", string, s); \
-        return NO;                                                                     \
+#define FAIL(s)                                                                    \
+    do {                                                                           \
+        OO_LOG("unclassified", "OOIsNumberLiteral failed for \"{}\": {}.", string, \
+            s);                                                                    \
+        return false;                                                              \
     } while (0)
 #else
-#define FAIL(s)    \
-    do {           \
-        return NO; \
+#define FAIL(s)       \
+    do {              \
+        return false; \
     } while (0)
 #endif
 
-BOOL OOIsNumberLiteral(const std::string& string, BOOL allowSpaces)
+bool OOIsNumberLiteral(const std::string& string, bool allowSpaces)
 {
-    BOOL leadingSpace = allowSpaces,
-         trailingSpace = NO,
-         allowSign = YES,
-         allowE = NO,
-         hadE = NO,
-         hadExp = NO,
-         allowDec = YES,
-         hadNumber = NO;
+    bool leadingSpace = allowSpaces, trailingSpace = false, allowSign = true,
+         allowE = false, hadE = false, hadExp = false, allowDec = true, hadNumber = false;
     std::size_t i, count;
 
     count = string.size();
@@ -66,15 +61,15 @@ BOOL OOIsNumberLiteral(const std::string& string, BOOL allowSpaces)
         case '7':
         case '8':
         case '9':
-            leadingSpace = NO;
+            leadingSpace = false;
             if (trailingSpace)
                 FAIL("Digit after trailing whitespace");
             if (!hadE)
-                allowE = YES;
+                allowE = true;
             else
-                hadExp = YES;
-            allowSign = NO;
-            hadNumber = YES;
+                hadExp = true;
+            allowSign = false;
+            hadNumber = true;
             break;
 
         // <whitespaceChar>
@@ -83,8 +78,8 @@ BOOL OOIsNumberLiteral(const std::string& string, BOOL allowSpaces)
             if (leadingSpace || trailingSpace)
                 break;
             if (hadNumber && allowSpaces) {
-                trailingSpace = YES;
-                allowSign = allowE = allowDec = NO;
+                trailingSpace = true;
+                allowSign = allowE = allowDec = false;
                 break;
             }
             FAIL("Space in unpermitted position");
@@ -92,18 +87,18 @@ BOOL OOIsNumberLiteral(const std::string& string, BOOL allowSpaces)
         // <sign>
         case '-':
         case '+':
-            leadingSpace = NO;
+            leadingSpace = false;
             if (allowSign) {
-                allowSign = NO;
+                allowSign = false;
                 break;
             }
             FAIL("Sign (+ or -) in unpermitted position");
 
         // <decimalPoint>
         case '.':
-            leadingSpace = NO;
+            leadingSpace = false;
             if (allowDec) {
-                allowDec = NO;
+                allowDec = false;
                 continue;
             }
             FAIL("Sign (+ or -) in unpermitted position");
@@ -111,12 +106,12 @@ BOOL OOIsNumberLiteral(const std::string& string, BOOL allowSpaces)
         // <e>
         case 'e':
         case 'E':
-            leadingSpace = NO;
+            leadingSpace = false;
             if (allowE) {
-                allowE = NO;
-                allowSign = YES;
-                allowDec = NO;
-                hadE = YES;
+                allowE = false;
+                allowSign = true;
+                allowDec = false;
+                hadE = true;
                 continue;
             }
             FAIL("E in unpermitted position");
@@ -131,5 +126,5 @@ BOOL OOIsNumberLiteral(const std::string& string, BOOL allowSpaces)
     if (!hadNumber)
         FAIL("No digits in string");
 
-    return YES;
+    return true;
 }

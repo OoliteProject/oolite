@@ -53,14 +53,14 @@ T *NewTestPlayer()
 }
 
 
-static Entity *sRemoved = nil;
+static Entity *sRemoved = nullptr;
 
 
 // UNIVERSE: never initialised; records what is removed.
 class TestUniverse : public Universe
 {
 public:
-	bool removeEntity(Entity *entity) override	{ sRemoved = entity; return YES; }	// the C++ entity; the record is its object
+	bool removeEntity(Entity *entity) override	{ sRemoved = entity; return true; }	// the C++ entity; the record is its object
 };
 
 
@@ -98,8 +98,8 @@ Entity *MakeCascade(ShipEntity *ship)	{ return oo::MadeEntity(OOQuiriumCascadeEn
 
 void SetUp()
 {
-	static Universe *universe = nil;
-	if (universe == nil)
+	static Universe *universe = nullptr;
+	if (universe == nullptr)
 	{
 		universe = new TestUniverse();	// never released
 	}
@@ -111,7 +111,7 @@ void SetUp()
   // on the main thread's context, so there is one, with nothing in it (the ship
   // stand-in is C++, as test_StationEntity's ships are).
 	if (gOOJSMainThreadContext == nullptr)  gOOJSMainThreadContext = JS_NewContext(JS_NewRuntime());
-	sRemoved = nil;
+	sRemoved = nullptr;
 }
 
 }	// namespace
@@ -121,7 +121,7 @@ OO_TEST(fromShip)
 {
 	{
 		SetUp();
-		OO_CHECK(MakeCascade(nil) == nil);
+		OO_CHECK(MakeCascade(nullptr) == nullptr);
 
 		Entity *ship = oo::MadeEntity(oo::makeRef<::ShipEntity>());	// a C++ ship under its object, never set up
 		Entity *shipOwner = oo::MadeEntity(oo::makeRef<Entity>());
@@ -129,13 +129,13 @@ OO_TEST(fromShip)
 		ship->setOwner(shipOwner);
 
 		Entity *cascade = MakeCascade(oo::ToShip(ship));
-		OO_CHECK(cascade != nil);
+		OO_CHECK(cascade != nullptr);
 		OO_CHECK(HPvector_equal(cascade->getPosition(), make_HPvector(5, 6, 7)));
 		OO_CHECK(cascade->status() == STATUS_EFFECT && cascade->getScanClass() == CLASS_MINE);
 		OO_CHECK(cascade->owner() == shipOwner);
 		OO_CHECK(cascade->isEffect() && OOEntityIsCascadeWeapon(cascade));	// -isCascadeWeapon
 		OO_CHECK(!OOEntityIsCascadeWeapon(ship));
-		OO_CHECK(!cascade->canCollide() && cascade->checkCloseCollisionWith(nil) && cascade->checkCloseCollisionWith(ship));
+		OO_CHECK(!cascade->canCollide() && cascade->checkCloseCollisionWith(nullptr) && cascade->checkCloseCollisionWith(ship));
 		OO_CHECK(oo::EntityDescription(cascade).starts_with("<OOQuiriumCascadeEntity 0x"));
 		OO_CHECK(oo::EntityDescription(cascade).ends_with("{0.000000 seconds passed of 20.000000}"));
 
@@ -165,7 +165,7 @@ OO_TEST(update)
 		OO_CHECK(fabs(victim->_damage - energy) < 1e-2);
 		OO_CHECK(victim->_from == cascade && victim->_becauseOf == shipOwner && victim->_weapon == "EQ_QC_MINE");
 		OO_CHECK(oo::EntityDescription(cascade).ends_with("{0.100000 seconds passed of 20.000000}"));
-		OO_CHECK(sRemoved == nil);
+		OO_CHECK(sRemoved == nullptr);
 
 		// Twenty seconds: removed.
 		cascade->update(20.0);

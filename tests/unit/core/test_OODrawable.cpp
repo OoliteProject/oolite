@@ -6,7 +6,7 @@
    debug size (totalSize() is the object's own size, which a subclass extends
    through the root's totalSize()), and a subclass's overrides and description.
    The test subclass is a C++ one, its instance size the object's. Run:
-   bash tools/check-core-tests.sh
+   tests/run.sh unit
 */
 
 #include <cstring>
@@ -60,7 +60,7 @@ OO_TEST(rootDefaults) {
     OO_CHECK(drawable->collisionRadius() == 0.0f &&
              drawable->maxDrawDistance() == 0.0f);
     OO_CHECK(IsZero(drawable->boundingBox()));
-    drawable->setBindingTarget(nil);
+    drawable->setBindingTarget(nullptr);
     drawable->dumpSelfState();
 #ifndef NDEBUG
     OO_CHECK(drawable->allTextures().empty());

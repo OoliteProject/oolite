@@ -9,7 +9,7 @@
 	stand-in that does the same thing. The expectations pin the JS-visible behaviour: construction,
 	w/x/y/z, every method and
 	static method, the errors, Quaternion.prototype reading as zero, an entity read as its
-	orientation, and how an exception under a native reaches JS. Run: bash tools/check-core-tests.sh
+	orientation, and how an exception under a native reaches JS. Run: tests/run.sh unit
 */
 
 #include "OOJSQuaternion.h"
@@ -85,25 +85,25 @@ std::optional<std::string> cxx_OOStringFromJSValue(JSContext *context, JSValueCo
 }
 
 
-BOOL OOJSArgumentListGetNumberNoError(JSContext *context, int argc, JSValueConst *argv, double *outNumber, int *outConsumed)
+bool OOJSArgumentListGetNumberNoError(JSContext *context, int argc, JSValueConst *argv, double *outNumber, int *outConsumed)
 {
-	if (argc < 1)  return NO;
+	if (argc < 1)  return false;
 	if (JS_ToFloat64(context, outNumber, argv[0]) < 0)
 	{
 		JS_FreeValue(context, JS_GetException(context));
-		return NO;
+		return false;
 	}
-	if (std::isnan(*outNumber))  return NO;
+	if (std::isnan(*outNumber))  return false;
 	if (outConsumed != NULL)  *outConsumed = 1;
-	return YES;
+	return true;
 }
 
 
-BOOL cxx_OOJSArgumentListGetNumber(JSContext *context, const std::optional<std::string> &scriptClass, const std::optional<std::string> &function, int argc, JSValueConst *argv, double *outNumber, int *outConsumed)
+bool cxx_OOJSArgumentListGetNumber(JSContext *context, const std::optional<std::string> &scriptClass, const std::optional<std::string> &function, int argc, JSValueConst *argv, double *outNumber, int *outConsumed)
 {
-	if (OOJSArgumentListGetNumberNoError(context, argc, argv, outNumber, outConsumed))  return YES;
+	if (OOJSArgumentListGetNumberNoError(context, argc, argv, outNumber, outConsumed))  return true;
 	cxx_OOJSReportBadArguments(context, scriptClass, function, argc, argv, "Expected number, got", std::nullopt);
-	return NO;
+	return false;
 }
 
 
@@ -214,7 +214,7 @@ Quaternion OOJSEntityOrientationOfJSObject(JSContext *, JSValueConst object)
 	return entity != nullptr ? entity->orientation() : Quaternion{};	// (a message to nil gave zero)
 }
 
-Universe *gSharedUniverse = nil;	// OOJSVector.mm's coordinate-system methods read it; not called here
+Universe *gSharedUniverse = nullptr;	// OOJSVector.mm's coordinate-system methods read it; not called here
 
 // Link stubs, never reached: OOJSVector.mm's coordinate-system methods call
 // them on the universe, which stays nil here (they were messages to nil).

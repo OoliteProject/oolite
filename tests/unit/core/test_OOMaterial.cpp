@@ -140,7 +140,7 @@ OO_TEST(rootDefaults) {
     material->ensureFinishedLoading();
     OO_CHECK(material->isFinishedLoading());
     OO_CHECK(!material->wantsNormalsAsTextureCoordinates());
-    material->setBindingTarget(nil);
+    material->setBindingTarget(nullptr);
     material->unapplyWithNext(nullptr);
 #if OO_MULTITEXTURE
     OO_CHECK(material->countOfTextureUnitsWithBaseCoordinates() == 1);

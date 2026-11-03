@@ -52,8 +52,8 @@ namespace {
 
 // What the stand-ins were told, in order.
 std::vector<std::string> sLog;
-Entity *sNextBeacon = nil;
-BOOL sPlayerDocked = NO;	// what the engine's player answers -isDocked
+Entity *sNextBeacon = nullptr;
+bool sPlayerDocked = false;	// what the engine's player answers -isDocked
 
 }	// namespace
 
@@ -128,7 +128,7 @@ public:
 	bool setWeaponMount(OOWeaponFacing facing, const std::string & eqKey, const std::optional<std::string> & context) override
 	{
 		sLog.push_back(oo::str::format("player setWeaponMount %d %s %s", static_cast<int>(facing), eqKey.c_str(), context.value_or("(nil)").c_str()));
-		return YES;
+		return true;
 	}
 };
 
@@ -153,8 +153,8 @@ namespace stdfs = std::filesystem;
 
 stdfs::path sRoot;
 PlayerEntity *sRealPlayer = nullptr;
-PlainShip *sShip = nil;
-PlainShip *sOther = nil;	// a second ship, for the setters that take one
+PlainShip *sShip = nullptr;
+PlainShip *sOther = nullptr;	// a second ship, for the setters that take one
 
 // The definition the test's ship is set up from.
 oo::PList ShipDefinition()
@@ -226,7 +226,7 @@ void SetUp()
 	gOOPlayer = NewTestPlayer<TestPlayer>();
 
 	sShip = static_cast<PlainShip *>(oo::ToShip(oo::NewShipObject(oo::makeRef<PlainShip>(), "jsship", ShipDefinition())));
-	OO_CHECK(sShip != nil);
+	OO_CHECK(sShip != nullptr);
 	if (sShip != nullptr)  sShip->setTemperature(64.0f);
 	if (sShip != nullptr)  sShip->setDestination(make_HPvector(1, 2, 3));
 	if (sShip != nullptr)  sShip->setDesiredSpeed(100);
@@ -234,15 +234,15 @@ void SetUp()
 	if (sShip != nullptr)  sShip->setVelocity(make_vector(4, 5, 6));
 	if (sShip != nullptr)  sShip->setHomeSystem(7);
 	if (sShip != nullptr)  sShip->setDestinationSystem(9);
-	if (sShip != nullptr)  sShip->setScriptedMisjump(YES);
+	if (sShip != nullptr)  sShip->setScriptedMisjump(true);
 	if (sShip != nullptr)  sShip->setScriptedMisjumpRange(0.75f);
 	if (sShip != nullptr)  sShip->setSpeed(50);
-	if (sShip != nullptr)  sShip->setReportAIMessages(YES);
-	if (sShip != nullptr)  sShip->setTrackCloseContacts(YES);
+	if (sShip != nullptr)  sShip->setReportAIMessages(true);
+	if (sShip != nullptr)  sShip->setTrackCloseContacts(true);
 	if (sShip != nullptr)  sShip->setAIScriptWakeTime(12.5);
 	if (sShip != nullptr)  sShip->setBounty(25, kOOLegalStatusReasonSetup);
 	sOther = static_cast<PlainShip *>(oo::ToShip(oo::NewShipObject(oo::makeRef<PlainShip>(), "other", oo::PList(oo::PList::Dict{ { "name", oo::PList(std::string("Other")) } }))));
-	OO_CHECK(sOther != nil);
+	OO_CHECK(sOther != nullptr);
 }
 
 
@@ -570,7 +570,7 @@ OO_TEST(setterBeaconCode)
 	sNextBeacon = sShip;	// the compass is on this beacon
 	OO_CHECK_EVAL(SET("beaconCode", "''"), "C");	// cleared from the universe's list, code kept
 	OO_CHECK_LOG("clearBeacon; setCompassMode " + std::to_string(static_cast<int>(COMPASS_MODE_PLANET)));
-	sNextBeacon = nil;
+	sNextBeacon = nullptr;
 	OO_CHECK_EVAL(SET("beaconCode", "null"), "C");
 	OO_CHECK_LOG("clearBeacon");
 	OO_CHECK_EVAL("(other.beaconCode = 'D', other.beaconCode)", "D");	// not a beacon yet: the universe lists it
@@ -778,9 +778,9 @@ OO_TEST(methodsCargoAndSpawnArguments)
 	OO_CHECK(Threw("ship.spawn('trader', 65)"));
 	OO_CHECK(Threw("ship.dumpCargo(0)"));
 	OO_CHECK(Threw("ship.dumpCargo(65)"));
-	sPlayerDocked = YES;
+	sPlayerDocked = true;
 	OO_CHECK_EVAL("player.ship.dumpCargo()", "null");	// docked: a warning
-	sPlayerDocked = NO;
+	sPlayerDocked = false;
 	OO_CHECK(Threw("ship.addCargoEntity()"));
 	OO_CHECK(Threw("ship.addCargoEntity(7)"));
 	OO_CHECK_EVAL("(function () { try { return ship.addCargoEntity(other); } catch (e) { return 'refused'; } })()", "<evaluation failed>");
@@ -809,9 +809,9 @@ OO_TEST(methodsRemoveAndExplode)
 {
 	SetUp();
 	OO_CHECK(ThrewWith("player.ship.remove()", "Cannot remove() player's ship."));
-	sPlayerDocked = YES;
+	sPlayerDocked = true;
 	OO_CHECK(ThrewWith("player.ship.explode()", "Cannot explode() player's ship while docked."));
-	sPlayerDocked = NO;
+	sPlayerDocked = false;
 
 	// A ship still in a launch queue (docked) is only marked dead.
 	PlainShip *queued = static_cast<PlainShip *>(oo::ToShip(oo::NewShipObject(oo::makeRef<PlainShip>(), "queued", oo::PList(oo::PList::Dict{ { "name", oo::PList(std::string("Queued")) } }))));
@@ -822,7 +822,7 @@ OO_TEST(methodsRemoveAndExplode)
 	Log();
 	OO_CHECK_EVAL("queued.remove(true)", "undefined");
 	OO_CHECK((queued != nullptr ? queued->status() : OOEntityStatus{}) == STATUS_DEAD);
-	OO_CHECK((queued != nullptr ? queued->shipScript() : (OOScript *)nullptr) == nil);	// suppressing the death event drops the script
+	OO_CHECK((queued != nullptr ? queued->shipScript() : (OOScript *)nullptr) == nullptr);	// suppressing the death event drops the script
 	OO_CHECK_LOG("");
 	if (queued != nullptr)  oo::ReleaseEntity(queued);
 }

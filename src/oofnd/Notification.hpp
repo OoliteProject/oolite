@@ -192,6 +192,3 @@ private:
 };
 
 } // namespace oo
-
-#pragma pop_macro("false")
-#pragma pop_macro("true")

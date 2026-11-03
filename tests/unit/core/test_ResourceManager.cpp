@@ -12,8 +12,7 @@
 	ResourceManager.mm reaches the universe, the HUD, the OXZ manager and the scripts, so the test
 	links every game object but main's (tests/unit/core/meson.build entry ['*']) and defines
 	gDebugFlags. UNIVERSE is nil. The tests run in a scratch game folder (see ScratchGameFolder) and
-	add a scan of fixture add-ons whose manifests the scan accepts or rejects. Run: bash
-	tools/check-core-tests.sh test_ResourceManager
+	add a scan of fixture add-ons whose manifests the scan accepts or rejects. Run: tests/run.sh unit
 */
 
 #include <process.h>
@@ -315,21 +314,21 @@ OO_TEST(scanKeepsTheAddOnsWhoseManifestsAllowThem) {
     const oo::PList c = Manifest(
         "{ identifier = \"org.test.c\"; title = C; conflict_oxps = ( { "
         "identifier = \"org.test.a\"; } ); }");
-    OO_CHECK(ResourceManager::manifestHasConflicts(c, NO));
+    OO_CHECK(ResourceManager::manifestHasConflicts(c, false));
     OO_CHECK(!ResourceManager::manifestHasConflicts(
         Manifest("{ conflict_oxps = ( { identifier = \"org.test.zz\"; } ); }"),
-        NO));
+        false));
     const oo::PList b = Manifest(
         "{ identifier = \"org.test.b\"; title = B; requires_oxps = ( { "
         "identifier = \"org.test.a\"; version = \"2.0\"; } ); }");
-    OO_CHECK(ResourceManager::manifestHasMissingDependencies(b, NO));
+    OO_CHECK(ResourceManager::manifestHasMissingDependencies(b, false));
     OO_CHECK(ResourceManager::manifest(
         b, Manifest("{ identifier = \"org.test.a\"; version = \"2.0\"; }"),
-        NO));
+        false));
     OO_CHECK(!ResourceManager::manifest(
-        b, Manifest("{ identifier = \"org.test.a\"; }"), NO));
+        b, Manifest("{ identifier = \"org.test.a\"; }"), false));
     OO_CHECK(
-        !ResourceManager::manifestHasMissingDependencies(Manifest("{}"), NO));
+        !ResourceManager::manifestHasMissingDependencies(Manifest("{}"), false));
 
     // The rejections were recorded; with no universe their texts are empty, and
     // reading them clears them.
@@ -401,13 +400,13 @@ OO_TEST(mergedPlistsFromTheSearchPaths) {
     // MERGE_NONE: the last file in search order; MERGE_BASIC: top-level keys;
     // MERGE_SMART: second level.
     const oo::PList last = ResourceManager::dictionaryFromFilesNamed(
-        "oo-test-dict.plist", std::string("Config"), MERGE_NONE, NO);
+        "oo-test-dict.plist", std::string("Config"), MERGE_NONE, false);
     std::printf("  MERGE_NONE: %s\n", oo::DescriptionOf(last).c_str());
     const oo::PList basic = ResourceManager::dictionaryFromFilesNamed(
-        "oo-test-dict.plist", std::string("Config"), MERGE_BASIC, NO);
+        "oo-test-dict.plist", std::string("Config"), MERGE_BASIC, false);
     std::printf("  MERGE_BASIC: %s\n", oo::DescriptionOf(basic).c_str());
     const oo::PList smart = ResourceManager::dictionaryFromFilesNamed(
-        "oo-test-dict.plist", std::string("Config"), MERGE_SMART, NO);
+        "oo-test-dict.plist", std::string("Config"), MERGE_SMART, false);
     std::printf("  MERGE_SMART: %s\n", oo::DescriptionOf(smart).c_str());
     OO_CHECK(basic.find("base") != nullptr && basic.find("fromA") != nullptr &&
              basic.find("fromH") != nullptr);
@@ -415,18 +414,18 @@ OO_TEST(mergedPlistsFromTheSearchPaths) {
              smart.find("shared")->find("x") != nullptr &&
              smart.find("shared")->find("z") != nullptr);
     OO_CHECK(ResourceManager::dictionaryFromFilesNamed(
-                 "oo-test-none.plist", std::string("Config"), YES)
+                 "oo-test-none.plist", std::string("Config"), true)
                  .isNull());
 
     const oo::PList array = ResourceManager::arrayFromFilesNamed(
-        "oo-test-array.plist", std::string("Config"), YES, NO);
+        "oo-test-array.plist", std::string("Config"), true, false);
     std::printf("  array merged: %s\n", oo::DescriptionOf(array).c_str());
     OO_CHECK(array.isArray());
     const oo::PList arrayLast = ResourceManager::arrayFromFilesNamed(
-        "oo-test-array.plist", std::string("Config"), NO, NO);
+        "oo-test-array.plist", std::string("Config"), false, false);
     std::printf("  array last: %s\n", oo::DescriptionOf(arrayLast).c_str());
     OO_CHECK(ResourceManager::arrayFromFilesNamed("oo-test-none.plist",
-                                                  std::string("Config"), YES)
+                                                  std::string("Config"), true)
                  .isNull());
 
     // The built-in path is not excluded for a core plist; an add-on is, unless
@@ -540,28 +539,28 @@ OO_TEST(singleFileLookups) {
     // The last search path that has the file (an add-on overrides the built-in
     // data), with the folder, else without it; nullopt when no path has it.
     const std::optional<std::string> path = ResourceManager::pathForFileNamed(
-        "oo-test-text.txt", std::string("Config"), NO);
+        "oo-test-text.txt", std::string("Config"), false);
     OO_CHECK(path.has_value() &&
              EndsWith(*path, "a.oxp/Config/oo-test-text.txt"));
     const std::optional<std::string> loose = ResourceManager::pathForFileNamed(
-        "oo-test-loose.txt", std::string("Config"), NO);
+        "oo-test-loose.txt", std::string("Config"), false);
     OO_CHECK(loose.has_value() &&
              EndsWith(*loose, "Resources/oo-test-loose.txt"));
     OO_CHECK(ResourceManager::pathForFileNamed(
                  "oo-test-missing.txt", std::string("Config")) == std::nullopt);
     OO_CHECK(ResourceManager::pathForFileNamed("oo-test-text.txt", std::nullopt,
-                                               NO) == std::nullopt);
+                                               false) == std::nullopt);
 
     OO_CHECK(ResourceManager::stringFromFilesNamed("oo-test-text.txt",
                                                    std::string("Config")) ==
              std::optional<std::string>("hello, a.oxp"));
     OO_CHECK(ResourceManager::stringFromFilesNamed("oo-test-missing.txt",
                                                    std::string("Config"),
-                                                   NO) == std::nullopt);
+                                                   false) == std::nullopt);
 
     // No such sound or music file: nil.
     OO_CHECK(ResourceManager::ooSoundNamed("oo-test-missing.ogg",
-                                           std::string("Sounds")) == nil);
+                                           std::string("Sounds")) == nullptr);
     OO_CHECK(!ResourceManager::ooMusicNamed("oo-test-missing.ogg",
                                             std::string("Music")));
 
@@ -610,7 +609,7 @@ OO_TEST(cxxSlice4API) {
                                                std::string("Config"),
                                                false) == std::nullopt);
     OO_CHECK(ResourceManager::ooSoundNamed("oo-test-missing.ogg",
-                                           std::string("Sounds")) == nil);
+                                           std::string("Sounds")) == nullptr);
     OO_CHECK(ResourceManager::shaderBindingTypesDictionary().isNull());
     OO_CHECK(ResourceManager::loadScripts().empty());
     OO_CHECK(ResourceManager::systemDescriptionManager().get() != nullptr);
@@ -634,12 +633,12 @@ OO_TEST(soundLookupHandsNothingToTheScope) {
   {
     oo::AutoreleaseScope scope;
     OO_CHECK(ResourceManager::ooSoundNamed("oo-test-missing.ogg",
-                                           std::string("Sounds")) == nil);
+                                           std::string("Sounds")) == nullptr);
     OO_CHECK(scope.pendingCount() == 0);
   }
   OO_CHECK(oo::AutoreleaseScope::current() == nullptr);
   OO_CHECK(ResourceManager::ooSoundNamed("oo-test-missing.ogg",
-                                         std::string("Sounds")) == nil);
+                                         std::string("Sounds")) == nullptr);
   OO_CHECK(oo::AutoreleaseScope::leakedWithoutScope() == leaked);
 }
 

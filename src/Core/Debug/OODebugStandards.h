@@ -30,7 +30,6 @@ SOFTWARE.
 
 #include "OOFoundation.h"
 
-#ifdef __cplusplus
 #include "oofnd/StdLib.hpp"
 
 // Warn/exit if deprecated functionality used
@@ -38,11 +37,6 @@ void cxx_OOStandardsDeprecated(const std::string& message);
 
 // Warn/exit if an OXP error is detected
 void cxx_OOStandardsError(const std::string& message);
-#endif
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 // Return true if in standard enforcing mode
 // Always false in release builds
@@ -50,10 +44,6 @@ extern "C" {
 bool OOEnforceStandards(void);
 
 void OOSetStandardsForOXPVerifierMode(void);
-
-#ifdef __cplusplus
-}
-#endif
 
 /*	TRANSITIONAL: the Foundation-typed API forwarding to the cxx_ functions
    above, so unmigrated callers compile unchanged. Callers move to the cxx_

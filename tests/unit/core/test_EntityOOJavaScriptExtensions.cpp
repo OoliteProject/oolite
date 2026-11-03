@@ -14,7 +14,7 @@
 	registered by their Init functions; the test owns that object and frees it. On QuickJS-ng
 	(upstream #768's binding) a JS class is its JSClassID, so the class checks compare IDs and the
 	prototype checks are gone (the prototype is per context, JS_GetClassProto).
-	Run: bash tools/check-core-tests.sh
+	Run: tests/run.sh unit
 */
 
 #include "EntityOOJavaScriptExtensions.h"
@@ -113,7 +113,7 @@ TestShip *Ship(const char *name)
 	{
 		oo::RetainEntity(oo::MadeEntity(ship));
 	}
-	ship->isShip = YES;
+	ship->isShip = true;
 	ship->_name = name;
 	return ship.get();
 }
@@ -122,7 +122,7 @@ TestShip *Ship(const char *name)
 // A subentity's owner, and that it is one (the Objective-C ship answered -owner and -isSubEntity).
 void SetSubEntityOf(TestShip *ship, Entity *owner)
 {
-	ship->isSubEntity = YES;
+	ship->isSubEntity = true;
 	ship->Entity::setOwner(owner);
 }
 
@@ -287,7 +287,7 @@ OO_TEST(setTargetStopsAtSelfOwnedOrOwnerless)
 		TestShip *loop = Ship("loop");
 		SetSubEntityOf(loop, loop);
 		TestShip *orphan = Ship("orphan");
-		orphan->isSubEntity = YES;
+		orphan->isSubEntity = true;
 		ShipEntityJSSetTargetForScript(loop, orphan);
 		OO_CHECK(Told(loop) == "add orphan");
 	}
@@ -334,13 +334,13 @@ OO_TEST(cxxEntityAnswersThroughItsJSMembers)
 		OOJSRegisterClass(&sTestScriptedClassID, &sTestScriptedClass);
 
 		Entity *plain = oo::MadeEntity(oo::makeRef<Entity>());
-		OO_CHECK(plain != nil);
+		OO_CHECK(plain != nullptr);
 		OO_CHECK(!OOJSEntityIsVisibleToScripts(plain) && !plain->isVisibleToScripts());
 		OO_CHECK(OOJSEntityJSClassName(plain) == std::optional<std::string>("Entity"));
 		OO_CHECK(OOJSEntityJSClassID(plain) == JSEntityClassID());
 
 		Entity *scripted = oo::MadeEntity(oo::makeRef<TestScriptedEntity>());
-		OO_CHECK(scripted != nil);
+		OO_CHECK(scripted != nullptr);
 		OO_CHECK(OOJSEntityIsVisibleToScripts(scripted));
 		OO_CHECK(OOJSEntityJSClassName(scripted) == std::optional<std::string>("TestScripted"));
 		OO_CHECK(OOJSEntityJSClassID(scripted) == sTestScriptedClassID && sTestScriptedClassID != 0);

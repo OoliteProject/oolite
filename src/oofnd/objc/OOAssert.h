@@ -37,22 +37,14 @@
    C or C++ translation unit (OO_PLAIN_CPP_UNIT, e.g. OOConstToJSString) does
    not.
 */
-#if defined(__cplusplus) && !defined(OO_PLAIN_CPP_UNIT)
+#ifndef OO_PLAIN_CPP_UNIT
 #include "oofnd/objc/OOException.h"
 #endif
 #include "oofnd/PrintfFormat.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 // Log and raise; never return. Called by the macros below, not directly.
 void OOAssertFailedInFunction(const char* function, const char* file, long line, const char* format, ...)
     OO_PRINTF_FORMAT(4, 5) __attribute__((noreturn));
-
-#ifdef __cplusplus
-}
-#endif
 
 // Not conditional on NDEBUG: see the head of this file.
 #define OOCAssert(condition, ...)                                                           \

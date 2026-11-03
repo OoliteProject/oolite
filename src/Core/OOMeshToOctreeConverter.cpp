@@ -31,9 +31,9 @@ MA 02110-1301, USA.
         DESIGN NOTES
 
         OOMeshToOctreeConverter is responsible for analyzing a set of triangles
-        from an OOMesh and turning them into an Octree using OOOctreeBuilder. This
-        is a relatively heavyweight operation which is run on the main thread when
-        loading a ship that isn't cached. Since ship set-up affects startup time
+        from an OOMesh and turning them into an Octree using OOOctreeBuilder.
+   This is a relatively heavyweight operation which is run on the main thread
+   when loading a ship that isn't cached. Since ship set-up affects startup time
         and in-game stutter, this is performance-critical.
 
         The octree generation algorithm works as follows:
@@ -50,12 +50,12 @@ MA 02110-1301, USA.
         is effective recursively and very cheap. As such, there is no need for
         OOMeshToOctreeConverter to try to detect this situation.
 
-        On a typical cold startup with no OXPs loaded, well over two million octree
-        nodes are processed by OOMeshToOctreeConverter. The highest number of nodes
-        in existence at once is 53. Our main performance concerns are to minimize
-        the amount of memory managment per node and to avoid dynamic dispatch in
-        critical areas, while minimizing the number of allocations per node is not
-        very important.
+        On a typical cold startup with no OXPs loaded, well over two million
+   octree nodes are processed by OOMeshToOctreeConverter. The highest number of
+   nodes in existence at once is 53. Our main performance concerns are to
+   minimize the amount of memory managment per node and to avoid dynamic
+   dispatch in critical areas, while minimizing the number of allocations per
+   node is not very important.
 
         The current implementation uses a struct (defined in the header as
         OOMeshToOctreeConverterInternalData, and locally known as GeometryData)
@@ -63,21 +63,24 @@ MA 02110-1301, USA.
         of OOMeshToOctreeConverter, and children are created on the stack while
         iterating.
 
-        Up to sixteen triangles can be stored directly in the GeometryData. If more
-        than sixteen are needed, a heap-allocated array is used instead. At one
-        point, I attempted to be cleverer about the storage using unions and implied
-        capacity, but this was significantly slower with only small amounts of stack
-        space saved.
+        Up to sixteen triangles can be stored directly in the GeometryData. If
+   more than sixteen are needed, a std::vector (heap) is used instead. At one
+        point, I attempted to be cleverer about the storage using unions and
+   implied capacity, but this was significantly slower with only small amounts
+   of stack space saved.
 
-        Profiling shows that over 93 % of nodes use sixteen or fewer triangles in
-        vanilla Oolite. The proportion is lower when using OXPs with more complex
+        Profiling shows that over 93 % of nodes use sixteen or fewer triangles
+   in vanilla Oolite. The proportion is lower when using OXPs with more complex
         models.
 */
+
+#include <cstring>
+#include <new>
+#include <vector>
 
 #include "OOMaths.h"
 #include "Octree.h"
 #include "oofnd/Log.hpp"
-#include <cstring>
 
 // MARK: GeometryData operations.
 
@@ -88,13 +91,14 @@ MA 02110-1301, USA.
         InitGeometryData() before other operations.
 
         capacity is an estimate of the required size. If the number of triangles
-        added exceeds kOOMeshToOctreeConverterSmallDataCapacity, the capacity will
-        be used as the initial heap-allocated size, unless it's smaller than a
+        added exceeds kOOMeshToOctreeConverterSmallDataCapacity, the capacity
+   will be used as the initial heap-allocated size, unless it's smaller than a
         minimum threshold.
 
 
         Triangle *triangles
-                Pointer to the triangle array. Initially points at smallData.
+                Pointer to the triangle array. Initially points at smallData;
+                once that is outgrown, at heap's elements.
 
         uint32_t count
                 The number of triangles currently in the GeometryData.
@@ -107,8 +111,11 @@ MA 02110-1301, USA.
                 AddTriangle_slow().
 
         Triangle smallData[]
-                Initial triangle storage. Should not be accessed directly; if it's
-                relevant, triangles points to it.
+                Initial triangle storage. Should not be accessed directly; if
+   it's relevant, triangles points to it.
+
+        std::vector<Triangle> heap
+                Storage after smallData is outgrown; its size is capacity.
 */
 typedef struct OOMeshToOctreeConverterInternalData GeometryData;
 
@@ -133,15 +140,16 @@ OOINLINE void DestroyGeometryData(GeometryData* data);
         AddTriangle(data, tri)
 
         Add a triangle to a GeometryData. Will either succeed or abort.
-        AddTriangle() is designed so that its fast case will be inlined (at least,
-        if assertions are disabled as in Deployment builds) and its slow case will
-        not.
+        AddTriangle() is designed so that its fast case will be inlined (at
+   least, if assertions are disabled as in Deployment builds) and its slow case
+   will not.
 
 
         AddTriangle_slow(data, tri)
 
         Slow path for AddTriangle(), used when more space is needed. Should not
-        be called directly. Invariant: may only be called when count == capacity.
+        be called directly. Invariant: may only be called when count ==
+   capacity.
 */
 OOINLINE void AddTriangle(GeometryData* data, Triangle tri);
 static NO_INLINE_FUNC void AddTriangle_slow(GeometryData* data, Triangle tri);
@@ -159,26 +167,30 @@ static OOScalar MaxDimensionFromOrigin(GeometryData* data);
 
         Recursively apply the octree generation algorithm.
                 data: input geometry data.
-                builder: OOOctreeBuilder where results are accumulated. Each call will
-                          write one complete subtree, which may be a single leaf node.
+                builder: OOOctreeBuilder where results are accumulated. Each
+   call will write one complete subtree, which may be a single leaf node.
                 halfWidth: the half-width of the bounding cube of data.
                 depth: recursion limit.
 */
-void BuildSubOctree(GeometryData* data, OOOctreeBuilder* builder, OOScalar halfWidth, NSUInteger depth);
+void BuildSubOctree(GeometryData* data, OOOctreeBuilder* builder,
+    OOScalar halfWidth, NSUInteger depth);
 
 /*
         SplitGeometry{X|Y|Z}(data, dPlus, dMinus, offset)
 
-        Divide data across its local zero plane perpendicular to the specified axis,
-        putting triangles with coordinates >= 0 in dPlus and triangles with
-        coordinates <= 0 in dMinus. Triangles will be split if necessary. Generated
-        triangles will be offset by the specified amount (half of data's half-width)
-        so that the split planes of dPlus and dMinus will be in the middle of their
-        data sets.
+        Divide data across its local zero plane perpendicular to the specified
+   axis, putting triangles with coordinates >= 0 in dPlus and triangles with
+        coordinates <= 0 in dMinus. Triangles will be split if necessary.
+   Generated triangles will be offset by the specified amount (half of data's
+   half-width) so that the split planes of dPlus and dMinus will be in the
+   middle of their data sets.
 */
-static void SplitGeometryX(GeometryData* data, GeometryData* dPlus, GeometryData* dMinus, OOScalar x);
-static void SplitGeometryY(GeometryData* data, GeometryData* dPlus, GeometryData* dMinus, OOScalar y);
-static void SplitGeometryZ(GeometryData* data, GeometryData* dPlus, GeometryData* dMinus, OOScalar z);
+static void SplitGeometryX(GeometryData* data, GeometryData* dPlus,
+    GeometryData* dMinus, OOScalar x);
+static void SplitGeometryY(GeometryData* data, GeometryData* dPlus,
+    GeometryData* dMinus, OOScalar y);
+static void SplitGeometryZ(GeometryData* data, GeometryData* dPlus,
+    GeometryData* dMinus, OOScalar z);
 
 // MARK: Inline function bodies.
 
@@ -194,17 +206,18 @@ void InitGeometryData(GeometryData* data, uint32_t capacity)
 
 OOINLINE void DestroyGeometryData(GeometryData* data)
 {
-    OOCParameterAssert(data != 0 && data->capacity >= kOOMeshToOctreeConverterSmallDataCapacity);
+    OOCParameterAssert(
+        data != 0 && data->capacity >= kOOMeshToOctreeConverterSmallDataCapacity);
 
 #if OO_DEBUG
     Triangle* const kScribbleValue = (Triangle*)-1L;
-    OOCAssert(data->triangles != kScribbleValue, "Attempt to destroy a GeometryData twice.");
+    OOCAssert(data->triangles != kScribbleValue,
+        "Attempt to destroy a GeometryData twice.");
 #endif
 
-    if (data->capacity != kOOMeshToOctreeConverterSmallDataCapacity) {
-        // If capacity is kOOMeshToOctreeConverterSmallDataCapacity, triangles points to smallData.
-        free(data->triangles);
-    }
+    // If capacity is kOOMeshToOctreeConverterSmallDataCapacity, triangles points
+    // to smallData and heap is empty.
+    std::vector<Triangle>().swap(data->heap);
 
 #if OO_DEBUG
     data->triangles = kScribbleValue;
@@ -238,12 +251,14 @@ OOMeshToOctreeConverter::~OOMeshToOctreeConverter()
     DestroyGeometryData(&_data);
 }
 
-oo::Ref<OOMeshToOctreeConverter> OOMeshToOctreeConverter::converterWithCapacity(NSUInteger capacity)
+oo::Ref<OOMeshToOctreeConverter> OOMeshToOctreeConverter::converterWithCapacity(
+    NSUInteger capacity)
 {
     return oo::makeRef<OOMeshToOctreeConverter>(capacity);
 }
 
-std::optional<std::string> OOMeshToOctreeConverter::descriptionComponents() const
+std::optional<std::string> OOMeshToOctreeConverter::descriptionComponents()
+    const
 {
     return oo::str::format("%u triangles", _data.count);
 }
@@ -282,7 +297,8 @@ static OOScalar MaxDimensionFromOrigin(GeometryData* data)
     return result;
 }
 
-void BuildSubOctree(GeometryData* data, OOOctreeBuilder* builder, OOScalar halfWidth, NSUInteger depth)
+void BuildSubOctree(GeometryData* data, OOOctreeBuilder* builder,
+    OOScalar halfWidth, NSUInteger depth)
 {
     OOCParameterAssert(data != NULL);
 
@@ -325,16 +341,14 @@ void BuildSubOctree(GeometryData* data, OOOctreeBuilder* builder, OOScalar halfW
             MAX(n_triangles * 3, 16)    12000       165744
             MAX(n_triangles * 3, 21)    20000       165744
 
-            The value 21 was chosen for reasons which, on reflection, were entirely
-            wrong. Performance profiling shows no discernible difference between
-            2,16 and 3,21.
+            The value 21 was chosen for reasons which, on reflection, were
+       entirely wrong. Performance profiling shows no discernible difference
+       between 2,16 and 3,21.
 
             As of r5374, up to 16 entries are stored on the stack and there is no
             benefit to specifying a minimum here any longer.
     */
-    enum {
-        kFactor = 2
-    };
+    enum { kFactor = 2 };
     uint32_t subCapacity = data->count * kFactor;
 
 #define DECL_GEOMETRY(NAME, CAP) \
@@ -449,7 +463,8 @@ static void TranslateGeometryZ(GeometryData* data, OOScalar offset)
     }
 }
 
-static void SplitGeometryX(GeometryData* data, GeometryData* dPlus, GeometryData* dMinus, OOScalar x)
+static void SplitGeometryX(GeometryData* data, GeometryData* dPlus,
+    GeometryData* dMinus, OOScalar x)
 {
     OOCParameterAssert(data != NULL && dPlus != NULL && dMinus != NULL);
 
@@ -484,9 +499,12 @@ static void SplitGeometryX(GeometryData* data, GeometryData* dPlus, GeometryData
             else
                 i20 = v2.x / (v2.x - v0.x);
 
-            Vector v01 = make_vector(0.0f, i01 * (v1.y - v0.y) + v0.y, i01 * (v1.z - v0.z) + v0.z);
-            Vector v12 = make_vector(0.0f, i12 * (v2.y - v1.y) + v1.y, i12 * (v2.z - v1.z) + v1.z);
-            Vector v20 = make_vector(0.0f, i20 * (v0.y - v2.y) + v2.y, i20 * (v0.z - v2.z) + v2.z);
+            Vector v01 = make_vector(0.0f, i01 * (v1.y - v0.y) + v0.y,
+                i01 * (v1.z - v0.z) + v0.z);
+            Vector v12 = make_vector(0.0f, i12 * (v2.y - v1.y) + v1.y,
+                i12 * (v2.z - v1.z) + v1.z);
+            Vector v20 = make_vector(0.0f, i20 * (v0.y - v2.y) + v2.y,
+                i20 * (v0.z - v2.z) + v2.z);
 
             // cases where a vertex is on the split.
             if (v0.x == 0.0f) {
@@ -558,7 +576,8 @@ static void SplitGeometryX(GeometryData* data, GeometryData* dPlus, GeometryData
     TranslateGeometryX(dMinus, x);
 }
 
-static void SplitGeometryY(GeometryData* data, GeometryData* dPlus, GeometryData* dMinus, OOScalar y)
+static void SplitGeometryY(GeometryData* data, GeometryData* dPlus,
+    GeometryData* dMinus, OOScalar y)
 {
     OOCParameterAssert(data != NULL && dPlus != NULL && dMinus != NULL);
 
@@ -595,9 +614,12 @@ static void SplitGeometryY(GeometryData* data, GeometryData* dPlus, GeometryData
             else
                 i20 = v2.y / (v2.y - v0.y);
 
-            Vector v01 = make_vector(i01 * (v1.x - v0.x) + v0.x, 0.0f, i01 * (v1.z - v0.z) + v0.z);
-            Vector v12 = make_vector(i12 * (v2.x - v1.x) + v1.x, 0.0f, i12 * (v2.z - v1.z) + v1.z);
-            Vector v20 = make_vector(i20 * (v0.x - v2.x) + v2.x, 0.0f, i20 * (v0.z - v2.z) + v2.z);
+            Vector v01 = make_vector(i01 * (v1.x - v0.x) + v0.x, 0.0f,
+                i01 * (v1.z - v0.z) + v0.z);
+            Vector v12 = make_vector(i12 * (v2.x - v1.x) + v1.x, 0.0f,
+                i12 * (v2.z - v1.z) + v1.z);
+            Vector v20 = make_vector(i20 * (v0.x - v2.x) + v2.x, 0.0f,
+                i20 * (v0.z - v2.z) + v2.z);
 
             // cases where a vertex is on the split.
             if (v0.y == 0.0f) {
@@ -669,7 +691,8 @@ static void SplitGeometryY(GeometryData* data, GeometryData* dPlus, GeometryData
     TranslateGeometryY(dMinus, y);
 }
 
-static void SplitGeometryZ(GeometryData* data, GeometryData* dPlus, GeometryData* dMinus, OOScalar z)
+static void SplitGeometryZ(GeometryData* data, GeometryData* dPlus,
+    GeometryData* dMinus, OOScalar z)
 {
     OOCParameterAssert(data != NULL && dPlus != NULL && dMinus != NULL);
 
@@ -705,9 +728,12 @@ static void SplitGeometryZ(GeometryData* data, GeometryData* dPlus, GeometryData
             else
                 i20 = v2.z / (v2.z - v0.z);
 
-            Vector v01 = make_vector(i01 * (v1.x - v0.x) + v0.x, i01 * (v1.y - v0.y) + v0.y, 0.0f);
-            Vector v12 = make_vector(i12 * (v2.x - v1.x) + v1.x, i12 * (v2.y - v1.y) + v1.y, 0.0f);
-            Vector v20 = make_vector(i20 * (v0.x - v2.x) + v2.x, i20 * (v0.y - v2.y) + v2.y, 0.0f);
+            Vector v01 = make_vector(i01 * (v1.x - v0.x) + v0.x,
+                i01 * (v1.y - v0.y) + v0.y, 0.0f);
+            Vector v12 = make_vector(i12 * (v2.x - v1.x) + v1.x,
+                i12 * (v2.y - v1.y) + v1.y, 0.0f);
+            Vector v20 = make_vector(i20 * (v0.x - v2.x) + v2.x,
+                i20 * (v0.y - v2.y) + v2.y, 0.0f);
 
             // cases where a vertex is on the split.
             if (v0.z == 0.0f) {
@@ -779,6 +805,13 @@ static void SplitGeometryZ(GeometryData* data, GeometryData* dPlus, GeometryData
     TranslateGeometryZ(dMinus, z);
 }
 
+[[noreturn]] static void OutOfGeometryMemory()
+{
+    OO_LOG("general.error.allocationFailure", "{}",
+        "!!!!! Ran out of memory to allocate more geometry!");
+    exit(EXIT_FAILURE);
+}
+
 /*
         void AddTriangle_slow(GeometryData *data, Triangle tri)
 
@@ -787,13 +820,13 @@ static void SplitGeometryZ(GeometryData* data, GeometryData* dPlus, GeometryData
 
         If no memory has been allocated yet, capacity is
         kOOMeshToOctreeConverterSmallDataCapacity, triangles points at smallData
-        and pendingCapacity is the capacity passed to InitGeometryData(). Otherwise,
-        triangles is a malloced pointer.
+        and pendingCapacity is the capacity passed to InitGeometryData().
+   Otherwise, triangles points at the elements of heap.
 
         This is marked noinline so that the fast path in AddTriangle() can be
         inlined. Without the attribute, clang (and probably gcc too) will inline
-        AddTriangles_slow() into AddTriangle() (because it only has one call site),
-        making AddTriangle() too heavy to inline.
+        AddTriangles_slow() into AddTriangle() (because it only has one call
+   site), making AddTriangle() too heavy to inline.
 */
 static NO_INLINE_FUNC void AddTriangle_slow(GeometryData* data, Triangle tri)
 {
@@ -801,21 +834,25 @@ static NO_INLINE_FUNC void AddTriangle_slow(GeometryData* data, Triangle tri)
     OOCParameterAssert(data->count == data->capacity);
 
     if (data->capacity == kOOMeshToOctreeConverterSmallDataCapacity) {
-        data->capacity = MAX(data->pendingCapacity, static_cast<uint32_t>(kOOMeshToOctreeConverterSmallDataCapacity * 2));
-        data->triangles = (Triangle*)malloc(data->capacity * sizeof(Triangle));
-        memcpy(data->triangles, data->smallData, sizeof data->smallData);
+        data->capacity = MAX(
+            data->pendingCapacity,
+            static_cast<uint32_t>(kOOMeshToOctreeConverterSmallDataCapacity * 2));
+        try {
+            data->heap.resize(data->capacity);
+        } catch (const std::bad_alloc&) {
+            OutOfGeometryMemory();
+        }
+        memcpy(data->heap.data(), data->smallData, sizeof data->smallData);
     } else {
         // create more space by doubling the capacity of this geometry.
         data->capacity = 1 + data->capacity * 2;
-        data->triangles = (Triangle*)realloc(data->triangles, data->capacity * sizeof(Triangle));
-
-        // N.b.: we leak here if realloc() failed, but we're about to abort anyway.
+        try {
+            data->heap.resize(data->capacity);
+        } catch (const std::bad_alloc&) {
+            OutOfGeometryMemory();
+        }
     }
-
-    if (EXPECT_NOT(data->triangles == NULL)) {
-        OO_LOG("general.error.allocationFailure", "{}", "!!!!! Ran out of memory to allocate more geometry!");
-        exit(EXIT_FAILURE);
-    }
+    data->triangles = data->heap.data();
 
     data->triangles[data->count++] = tri;
 }

@@ -1,13 +1,14 @@
 /*	test_OOAsyncWorkManager.mm
-	Unit tests for OOAsyncWorkManager (src/Core/OOAsyncWorkManager.h).
+        Unit tests for OOAsyncWorkManager (src/Core/OOAsyncWorkManager.h).
 
-	Pins what the manager does: one shared manager; nil is refused; a task is performed on a work
-	thread and then completed on the thread that waits for it or collects pending tasks; a task
-	without -completeAsyncTask is performed and never collected; waiting for a task that was never
-	added returns at once; an exception thrown by -performAsyncTask is swallowed and the task still
-	completes; every priority is accepted and performed. The tasks are C++ tasks implementing
-	OOAsyncWorkTask.
-	Run: bash tools/check-core-tests.sh
+        Pins what the manager does: one shared manager; nil
+   is refused; a task is performed on a work thread and then completed on the
+   thread that waits for it or collects pending tasks; a task without
+        -completeAsyncTask is performed and never collected; waiting for a task
+   that was never added returns at once; an exception thrown by
+   -performAsyncTask is swallowed and the task still completes; every priority
+   is accepted and performed. The tasks are C++ tasks implementing
+   OOAsyncWorkTask. Run: tests/run.sh unit
 */
 
 #include <atomic>

@@ -63,12 +63,12 @@ bool cxx_OOCheckOpenGLErrors(const std::function<std::string()>& context)
 {
     GLenum errCode;
     const GLubyte* errString = NULL;
-    BOOL errorOccurred = NO;
-    static BOOL noReenter;
+    bool errorOccurred = false;
+    static bool noReenter;
 
     if (noReenter)
-        return NO;
-    noReenter = YES;
+        return false;
+    noReenter = true;
 
     OO_ENTER_OPENGL();
 
@@ -81,7 +81,7 @@ bool cxx_OOCheckOpenGLErrors(const std::function<std::string()>& context)
             if (errCode == GL_NO_ERROR)
                 break;
 
-            errorOccurred = YES;
+            errorOccurred = true;
             errString = gluErrorString(errCode);
             if (!contextText.has_value())
                 contextText = context();
@@ -100,7 +100,7 @@ bool cxx_OOCheckOpenGLErrors(const std::function<std::string()>& context)
     }
 #endif
 
-    noReenter = NO;
+    noReenter = false;
     return errorOccurred;
 }
 
@@ -313,7 +313,7 @@ std::string OOGLColorToString(GLfloat color[4])
 
 static void GLDumpLightState(unsigned lightIdx)
 {
-    BOOL enabled;
+    bool enabled;
     GLenum lightID = GL_LIGHT0 + lightIdx;
     GLfloat color[4];
 
@@ -344,7 +344,7 @@ static void GLDumpMaterialState(void)
         blendSrc,
         blendDst,
         texMode;
-    BOOL blending;
+    bool blending;
 
     OO_ENTER_OPENGL();
 
@@ -423,7 +423,7 @@ static void GLDumpCullingState(void)
 
 static void GLDumpFogState(void)
 {
-    BOOL enabled;
+    bool enabled;
     GLint value;
     GLfloat start,
         end,

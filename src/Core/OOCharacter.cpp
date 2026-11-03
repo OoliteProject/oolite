@@ -153,9 +153,12 @@ std::optional<std::string> OOCharacter::species()
     int species = genSeed().f & 0x03; // 0-1 native to home system, 2 human colonial, 3 other
     std::optional<std::string> speciesString;
     if (species == 3)
-        speciesString = (UNIVERSE != nullptr ? UNIVERSE->getSystemInhabitants(genSeed().e, NO) : std::optional<std::string>());
+        speciesString = (UNIVERSE != nullptr ? UNIVERSE->getSystemInhabitants(genSeed().e, false)
+                                             : std::optional<std::string>());
     else
-        speciesString = (UNIVERSE != nullptr ? UNIVERSE->getSystemInhabitants(planetIDOfOrigin(), NO) : std::optional<std::string>());
+        speciesString = (UNIVERSE != nullptr ? UNIVERSE->getSystemInhabitants(
+                                                   planetIDOfOrigin(), false)
+                                             : std::optional<std::string>());
 
     if (!speciesString.has_value())
         return std::nullopt;

@@ -1,12 +1,9 @@
 # clangd (code completion, go-to-definition, diagnostics) for VS Code, Zed, CLion and others.
 #
-# clangd needs the compile database meson writes when a build directory is configured. On Windows
-# create it from the MSYS2 UCRT64 shell (not Git Bash, whose bash breaks get_version.sh):
-#
-#     meson setup build/meson_debug -Ddebug=true -Dstrip_bin=false --native-file clang.ini
-#
-# or just ./mk.sh build debug. To follow another flavour, point the line below at its build
-# directory (build/meson_test, build/meson_deployment, ...). Use MSYS2's own clangd
-# (ucrt64/bin/clangd.exe) so it finds the same headers the build does.
+# clangd needs a compile database. ./mk.sh writes compile_commands.json at this directory's root
+# each time it configures a build (the last flavour configured wins), and clangd reads it from
+# there. On Windows run it from the MSYS2 UCRT64 shell (not Git Bash, whose bash breaks
+# get_version.sh): ./mk.sh build debug. Use MSYS2's own clangd (ucrt64/bin/clangd.exe) so it
+# finds the same headers the build does.
 CompileFlags:
-  CompilationDatabase: build/meson_debug
+  CompilationDatabase: .

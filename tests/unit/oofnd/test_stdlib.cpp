@@ -6,8 +6,6 @@
    test_cocoa_macros.cpp).
 */
 
-#define true 1
-#define false 0
 
 #include "oofnd/StdLib.hpp"
 
@@ -17,15 +15,7 @@
 #include <unordered_map>
 #include <vector>
 
-static_assert(std::is_same_v<decltype(true), int>,
-              "StdLib.hpp must restore OOCocoa.h's true macro");
-static_assert(std::is_same_v<decltype(false), int>,
-              "StdLib.hpp must restore OOCocoa.h's false macro");
-static constexpr int kTrueAfter = true;
-static constexpr int kFalseAfter = false;
 
-#undef true
-#undef false
 
 #include "oo_test.hpp"
 
@@ -34,11 +24,6 @@ namespace {
 struct Matrix {
   float m[4][4];
 };
-
-OO_TEST(macrosAreRestoredWithTheirValues) {
-  OO_CHECK_EQ(kTrueAfter, 1);
-  OO_CHECK_EQ(kFalseAfter, 0);
-}
 
 OO_TEST(containersWork) {
   // The shapes the NSValue exemplars use: a value stack, a pointer set, a

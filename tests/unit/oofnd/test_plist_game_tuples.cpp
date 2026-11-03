@@ -22,8 +22,6 @@
 #define true 1
 #define false 0
 #include "oofnd/PListGet.hpp"
-#undef true
-#undef false
 
 #include <array>
 #include <cmath>

@@ -69,36 +69,8 @@ MA 02110-1301, USA.
 #define OO_DEBUG 0
 #endif
 
-#ifdef GNUSTEP_BASE_LIBRARY
-/*	No Foundation: the C types it gave (NSInteger, NSRange, NSPoint...)
-        come from the floor's header, which #errors beside any Foundation
-   header, so nothing on this path can reach one. GNUSTEP_BASE_LIBRARY is the
-   build's own define (src/meson).
-*/
-#if defined(_WIN32)
-/*	What gnustep-base's GSConfig.h gave every file through Foundation: the Windows API
-        and Winsock, with the Windows BOOL renamed so Objective-C's stays BOOL.
-*/
-#define BOOL WinBOOL
-#define __OBJC_BOOL 1
-#include <winsock2.h>
-// <winsock2.h> first: <windows.h> before it would bring in the old <winsock.h> (kept apart so
-// clang-format's include sorting cannot swap them; upstream #748 did the same for its headers).
-#include <windows.h>
-#undef __OBJC_BOOL
-#undef BOOL
-#endif
 #include "oofnd/objc/OOFoundationTypes.h"
 #include <assert.h>
-#define OOLITE_GNUSTEP 1
-
-// gnustep-base's macro; the Mac OS X path below defines the same one.
-#else
-#define OOLITE_MAC_OS_X 1
-
-/*	Useful macro copied from GNUstep.
- */
-#endif
 
 #ifdef __clang__
 #define OOLITE_HAVE_CLANG 1
@@ -111,15 +83,6 @@ MA 02110-1301, USA.
 #define OOLITE_GCC_VERSION (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
 #endif
 
-#if OOLITE_MAC_OS_X && defined(OOLITE_SDL_MAC)
-/*	macOS build using Apple Foundation with the SDL front end (the Cocoa
-        front end no longer exists). OOLITE_MAC_OS_X selects Apple Foundation and
-        OS-level behaviour; UI-level code takes the OOLITE_SDL path.
- */
-#define OOLITE_SDL 1
-#endif
-
-#if OOLITE_GNUSTEP || OOLITE_SDL
 #include <limits.h> // to get UINT_MAX
 #include <stdint.h>
 
@@ -175,12 +138,6 @@ extern "C++" {
 #endif
 #ifndef IBAction
 #define IBAction void
-#endif
-
-#endif
-
-#ifndef OOLITE_GNUSTEP
-#define OOLITE_GNUSTEP 0
 #endif
 
 #ifndef OOLITE_MAC_OS_X
@@ -247,12 +204,10 @@ extern "C++" {
 */
 #if OOLITE_MAC_OS_X
 typedef NSInteger OOComparisonResult;
-#ifdef __cplusplus
 inline constexpr OOComparisonResult OOOrderedAscending = NSOrderedAscending;
 inline constexpr OOComparisonResult OOOrderedSame = NSOrderedSame;
 inline constexpr OOComparisonResult OOOrderedDescending = NSOrderedDescending;
-#endif
-#elif defined(__cplusplus)
+#else
 enum OOComparisonResult : NSInteger {
     OOOrderedAscending = -1,
     OOOrderedSame = 0,

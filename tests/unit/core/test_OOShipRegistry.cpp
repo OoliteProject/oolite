@@ -9,7 +9,7 @@
 	and +reload, which makes a new registry from the cache the first one filled. The data pipeline
 	itself (OODataLoader) runs as it is; this test only fixes its input. The expectations were
 	written against the unconverted class and run on it first. The cases ask the C++ class. Run:
-	bash tools/check-core-tests.sh test_OOShipRegistry
+	bash meson test -C build/meson_test test_OOShipRegistry test_OOShipRegistry
 */
 
 #include "OOShipRegistry.h"
@@ -42,7 +42,7 @@ PlayerEntity *gOOPlayer = nullptr;
 #include "OOEntityEnums.h"
 class Entity { public: OOEntityStatus status(); };
 OOEntityStatus Entity::status()  { std::abort(); }
-Universe *gSharedUniverse = nil;
+Universe *gSharedUniverse = nullptr;
 
 // UNIVERSE stays nil here, so the registry's guarded call never reaches it; the stand-in only links
 // it (it was a message to nil).
@@ -56,11 +56,11 @@ public:
 JSContext *gOOJSMainThreadContext = nullptr;
 JSAtom OOJSInternAtomPRIVATE(const char *)  { std::abort(); }
 JSValue OOJSValueFromPList(JSContext *, const oo::PList &)  { std::abort(); }
-BOOL OOJSValueToBOOL(JSContext *, JSValueConst)  { std::abort(); }
+bool OOJSValueToBOOL(JSContext *, JSValueConst)  { std::abort(); }
 oo::PList OOSanitizeLegacyScriptConditions(const oo::PList &, const std::optional<std::string> &)  { std::abort(); }
-BOOL cxx_ScanVectorFromString(const std::optional<std::string> &, Vector *)  { std::abort(); }
-BOOL cxx_ScanHPVectorFromString(const std::optional<std::string> &, HPVector *)  { std::abort(); }
-BOOL cxx_ScanQuaternionFromString(const std::optional<std::string> &, Quaternion *)  { std::abort(); }
+bool cxx_ScanVectorFromString(const std::optional<std::string> &, Vector *)  { std::abort(); }
+bool cxx_ScanHPVectorFromString(const std::optional<std::string> &, HPVector *)  { std::abort(); }
+bool cxx_ScanQuaternionFromString(const std::optional<std::string> &, Quaternion *)  { std::abort(); }
 void cxx_OOStandardsDeprecated(const std::string &)  { std::abort(); }
 void cxx_OOStandardsError(const std::string &)  { std::abort(); }
 

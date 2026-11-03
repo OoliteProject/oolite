@@ -10,7 +10,7 @@
    and shutdown tells the sound mixer and releases the context. OOSoundMixer is
    this file's stub, which counts the shutdown it is sent (the real mixer would
    drag the whole sound system into the link). Run: bash
-   tools/check-core-tests.sh
+   tests/run.sh unit
 */
 
 #include <cmath>

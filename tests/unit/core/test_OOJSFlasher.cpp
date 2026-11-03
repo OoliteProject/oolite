@@ -99,7 +99,7 @@ public:
 	oo::Ref<Entity> _cxxEntity;	// the flasher's C++ part (oo::ToCxx reads it)
 	::TestEntityObject *_owner = nullptr;
 	::TestEntityObject *_removed = nullptr;
-	BOOL _isShip = NO;
+	bool _isShip = false;
 };
 
 // A ship: the C++ part of its object, with the one member the binding calls
@@ -460,7 +460,7 @@ void SetUpContext()
 	sShip = oo::makeRef<TestEntityObject>().leakRef();	// kept for the life of the test
 	sShip->_cxxEntity = oo::makeRef<ShipEntity>();
 	sShipPart = static_cast<ShipEntity *>(sShip->_cxxEntity.get());
-	sShip->_isShip = YES;
+	sShip->_isShip = true;
 	sEffect = oo::makeRef<TestEntityObject>().leakRef();
 	sEffect->_cxxEntity = oo::makeRef<OOVisualEffectEntity>();
 	sEffectPart = static_cast<OOVisualEffectEntity *>(sEffect->_cxxEntity.get());
@@ -468,7 +468,7 @@ void SetUpContext()
 	const oo::Ref<OOFlasherEntity> part = oo::makeRef<OOFlasherEntity>();
 	sFlasher->_cxxEntity = part;
 	sFlasherPart = part.get();
-	sFlasherPart->_active = YES;
+	sFlasherPart->_active = true;
 	sFlasherPart->_color = OOColor::colorWithRed(1, 0.5f, 0.25f, 1);
 	sFlasherPart->_frequency = 2;
 	sFlasherPart->_fraction = 0.5f;

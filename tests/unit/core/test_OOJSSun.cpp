@@ -52,8 +52,8 @@ public:
 
 	double _radius = 0;
 	std::optional<std::string> _name;
-	BOOL _willGoNova = NO;
-	BOOL _goneNova = NO;
+	bool _willGoNova = false;
+	bool _goneNova = false;
 	double _novaTime = 0;
 	int _novaCalls = 0;
 };
@@ -444,14 +444,14 @@ OO_TEST(nova)
 	OO_CHECK_EVAL("sun.cancelNova()", "undefined");	// not going nova: nothing to cancel
 	OO_CHECK_EQ(sSun->_novaCalls, 3);
 	// Gone nova: isGoingNova is false, and cancelNova() does nothing.
-	sSun->_willGoNova = YES;
-	sSun->_goneNova = YES;
+	sSun->_willGoNova = true;
+	sSun->_goneNova = true;
 	OO_CHECK_EVAL("sun.hasGoneNova", "true");
 	OO_CHECK_EVAL("sun.isGoingNova", "false");
 	OO_CHECK_EVAL("sun.cancelNova()", "undefined");
 	OO_CHECK_EQ(sSun->_novaCalls, 3);
-	sSun->_willGoNova = NO;
-	sSun->_goneNova = NO;
+	sSun->_willGoNova = false;
+	sSun->_goneNova = false;
 }
 
 

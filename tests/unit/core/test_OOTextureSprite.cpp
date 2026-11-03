@@ -13,7 +13,7 @@
    which answers its original dimensions and counts -apply; the extension
    manager runs with its collaborators stubbed as in test_OOOpenGLStateManager.
    The tests call the C++ class.
-   Run: bash tools/check-core-tests.sh
+   Run: tests/run.sh unit
 */
 
 #include <cmath>
@@ -241,8 +241,8 @@ bool GLReady() {
 OO_TEST(noTextureNoSprite) {
   {
     oo::AutoreleaseScope pool;
-    OO_CHECK(OOTextureSprite::initWithTexture(nil).get() == nullptr);
-    OO_CHECK(OOTextureSprite::initWithTexture(nil, NSMakeSize(4, 4)).get() ==
+    OO_CHECK(OOTextureSprite::initWithTexture(nullptr).get() == nullptr);
+    OO_CHECK(OOTextureSprite::initWithTexture(nullptr, NSMakeSize(4, 4)).get() ==
              nullptr);
   }
 }
@@ -332,8 +332,8 @@ OO_TEST(cxxSprite) {
   OO_CHECK(GLReady());
   {
     oo::AutoreleaseScope pool;
-    OO_CHECK(OOTextureSprite::initWithTexture(nil).get() == nullptr);
-    OO_CHECK(OOTextureSprite::initWithTexture(nil, NSMakeSize(4, 4)).get() ==
+    OO_CHECK(OOTextureSprite::initWithTexture(nullptr).get() == nullptr);
+    OO_CHECK(OOTextureSprite::initWithTexture(nullptr, NSMakeSize(4, 4)).get() ==
              nullptr);
 
     TestTexture* texture = Texture(64, 32);

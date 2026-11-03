@@ -16,16 +16,9 @@
    diff.
 */
 
-// The header must survive OOCocoa.h's true/false macros and hand them back.
-#define true 1
-#define false 0
 #include <type_traits>
 
 #include "oofnd/Scanner.hpp"
-static_assert(std::is_same_v<decltype(true), int>,
-              "Scanner.hpp must restore OOCocoa.h's true macro");
-#undef true
-#undef false
 
 #include <cstdint>
 #include <cstdio>

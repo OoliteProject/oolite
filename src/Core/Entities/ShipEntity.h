@@ -53,13 +53,13 @@ class WormholeEntity;
 #include "OOShipGroup.h" // the groups are oo::Ref
 class OOFlasherEntity;
 class OOExhaustPlumeEntity; // Universe.h's, for the members of ShipEntityAI.mm's scans.
-typedef BOOL (*EntityFilterPredicate)(Entity* entity, void* parameter);
+typedef bool (*EntityFilterPredicate)(Entity* entity, void* parameter);
 
 #define MAX_TARGETS 24
 #define RAIDER_MAX_CARGO 5
 #define MERCHANTMAN_MAX_CARGO 125
 
-#define PIRATES_PREFER_PLAYER YES
+#define PIRATES_PREFER_PLAYER true
 
 #define TURRET_MINIMUM_COS 0.20f
 
@@ -1332,7 +1332,7 @@ public:
 
     GLfloat _scaleFactor = { }; // scale factor for size variation
 
-    BOOL _multiplyWeapons = { }; // multiply instead of splitting weapons
+    bool _multiplyWeapons = { }; // multiply instead of splitting weapons
     // position of gun ports
     std::vector<Vector> forwardWeaponOffset,
         aftWeaponOffset,
@@ -1421,7 +1421,7 @@ private:
 private:
     // Cache of ship-relative positions, managed by -coordinatesForEscortPosition:.
     Vector _escortPositions[MAX_ESCORTS] = { };
-    BOOL _escortPositionsValid = { };
+    bool _escortPositionsValid = { };
 
 private:
     // The ships' C++ parts, held weakly
@@ -1445,7 +1445,7 @@ private:
     double _nextAegisCheck = { };
 
     // Demo ship state
-    BOOL isDemoShip = { };
+    bool isDemoShip = { };
     OOScalar demoRate = { };
 
 private:
@@ -1504,13 +1504,7 @@ oo::PList OODefaultShipShaderMacros(void);
 
 GLfloat getWeaponRangeFromType(OOWeaponType weapon_type);
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-BOOL isWeaponNone(OOWeaponType weapon);
-#ifdef __cplusplus
-}
-#endif
+bool isWeaponNone(OOWeaponType weapon);
 
 // C++ forms, defined in OOConstToString.mm.
 std::string cxx_OOStringFromBehaviour(OOBehaviour behaviour);

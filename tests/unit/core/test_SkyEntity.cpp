@@ -20,7 +20,7 @@
    in C++: the class's own
    selectors are member calls, the root's are still sent to the object, and the
    last test pins that the object is a C++ entity's. Run: bash
-   tools/check-core-tests.sh
+   tests/run.sh unit
 */
 
 #include <cmath>
@@ -59,7 +59,7 @@ class TestUniverse : public Universe {
 
 namespace {
 
-TestUniverse* sUniverse = nil;
+TestUniverse* sUniverse = nullptr;
 TestPlayer* sPlayer = nullptr;
 
 // The drawable's star set-up's stand-in: the colours the sky passed.
@@ -95,7 +95,7 @@ T* NewTestPlayer() {
 namespace {
 
 void SetUp() {
-  if (sUniverse == nil) {
+  if (sUniverse == nullptr) {
     sUniverse = new TestUniverse();  // never released
     sPlayer = NewTestPlayer<TestPlayer>();
     OOSkyDrawableTestAccess::SetStarSetUpStandIn(SetUpStars);
@@ -120,7 +120,7 @@ oo::PList Dict(oo::PList::Dict entries) {
 bool Near(double a, double b) { return std::fabs(a - b) < 1e-4; }
 
 bool ColorIs(OOColor* color, float r, float g, float b, float a) {
-  if (color == nil) return false;
+  if (color == nullptr) return false;
   float cr = -1, cg = -1, cb = -1, ca = -1;
   color->getRed(&cr, &cg, &cb, &ca);
   return Near(cr, r) && Near(cg, g) && Near(cb, b) && Near(ca, a);
@@ -143,7 +143,7 @@ OO_TEST(made) {
   {
     SetUp();
     Entity* sky = Sky(Dict({{"sky_n_stars", oo::PList(7)}}));
-    OO_CHECK(sky != nil && SkyPart(sky) != nullptr &&
+    OO_CHECK(sky != nullptr && SkyPart(sky) != nullptr &&
              dynamic_cast<OOEntityWithDrawable*>(sky) != nullptr);
     OO_CHECK(dynamic_cast<OOSkyDrawable*>(SkyPart(sky)->getDrawable()) !=
              nullptr);

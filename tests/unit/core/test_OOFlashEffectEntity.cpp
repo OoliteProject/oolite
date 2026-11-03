@@ -64,13 +64,13 @@ class TestUniverse : public Universe {
 
   bool removeEntity(Entity* entity) override {
     _removed = entity;
-    return YES;
+    return true;
   }
 };
 
 namespace {
 
-TestUniverse* sUniverse = nil;
+TestUniverse* sUniverse = nullptr;
 
 // The texture loader's stand-in (as in test_OOParticleSystem).
 std::optional<std::string> sTextureName;
@@ -85,13 +85,13 @@ oo::Ref<OOTexture> LoadTexture(const std::optional<std::string>& name,
 }
 
 void SetUp(OOTimeAbsolute time) {
-  if (sUniverse == nil) {
+  if (sUniverse == nullptr) {
     sUniverse = new TestUniverse();                 // never released
     sTexture = oo::makeRef<OOTexture>().leakRef();  // never released
     OOTexture::nameFactory = &LoadTexture;
   }
   sUniverse->_time = time;
-  sUniverse->_removed = nil;
+  sUniverse->_removed = nullptr;
   gSharedUniverse = sUniverse;
   static TestPlayer* player = nullptr;
   if (player == nullptr) player = NewTestPlayer<TestPlayer>();
@@ -135,7 +135,7 @@ OO_TEST(explosionFlash) {
     SetUp(5.0);
     Entity* flash =
         FlashObject(OOFlashEffectEntity::explosionFlashFromEntity(Exploding()));
-    OO_CHECK(flash != nil && Part(flash) != nullptr);
+    OO_CHECK(flash != nullptr && Part(flash) != nullptr);
     OO_CHECK(HPvector_equal(flash->getPosition(), make_HPvector(10, 20, 30)));
     Vector v = flash->getVelocity();
     OO_CHECK(v.x == 1 && v.y == 2 && v.z == 3);
@@ -153,13 +153,13 @@ OO_TEST(explosionFlash) {
     flash->update(0.1);
     OO_CHECK(Near(Diameter(flash), 62.0));
     OO_CHECK(Near(c[3], 0.5 * 0.1 / (0.4 * 0.667)));
-    OO_CHECK(sUniverse->_removed == nil);
+    OO_CHECK(sUniverse->_removed == nullptr);
 
     sUniverse->_time = 5.35;
     flash->update(0.25);
     OO_CHECK(Near(Diameter(flash), 212.0));
     OO_CHECK(Near(c[3], 0.5 * (0.4 - 0.35) / (0.4 - 0.4 * 0.667)));
-    OO_CHECK(sUniverse->_removed == nil);
+    OO_CHECK(sUniverse->_removed == nullptr);
 
     sUniverse->_time = 5.41;
     flash->update(0.06);
@@ -187,7 +187,7 @@ OO_TEST(laserFlash) {
     Entity* flash = FlashObject(OOFlashEffectEntity::laserFlashWithPosition(
         make_HPvector(-1, -2, -3), make_vector(4, 5, 6),
         OOColor::colorWithRed(1.0f, 0.5f, 0.25f, 0.125f).get()));
-    OO_CHECK(flash != nil && Part(flash) != nullptr);
+    OO_CHECK(flash != nullptr && Part(flash) != nullptr);
     OO_CHECK(HPvector_equal(flash->getPosition(), make_HPvector(-1, -2, -3)));
     Vector v = flash->getVelocity();
     OO_CHECK(v.x == 4 && v.y == 5 && v.z == 6);
@@ -205,7 +205,7 @@ OO_TEST(laserFlash) {
     sUniverse->_time = 1.25;
     flash->update(0.15);
     OO_CHECK(Near(c[3], (0.3 - 0.25) / (0.3 - 0.3 * 0.667)));
-    OO_CHECK(sUniverse->_removed == nil);
+    OO_CHECK(sUniverse->_removed == nullptr);
 
     sUniverse->_time = 1.31;
     flash->update(0.06);
@@ -217,7 +217,7 @@ OO_TEST(nilColourKeepsWhite) {
   {
     SetUp(0.0);
     Entity* flash = FlashObject(OOFlashEffectEntity::laserFlashWithPosition(
-        kZeroHPVector, kZeroVector, nil));
+        kZeroHPVector, kZeroVector, nullptr));
     const GLfloat* c = ColorComponents(flash);
     OO_CHECK(c[0] == 1.0f && c[1] == 1.0f && c[2] == 1.0f && c[3] == 1.0f);
   }

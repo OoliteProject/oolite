@@ -49,7 +49,7 @@ MA 02110-1301, USA.
 bool OOSunEntity::setSunColor(OOColor* sun_colorIn)
 {
     if (sun_colorIn == nullptr)
-        return NO;
+        return false;
 
     OO_ENTER_OPENGL();
 
@@ -107,7 +107,7 @@ bool OOSunEntity::setSunColor(OOColor* sun_colorIn)
     color = OOColor::colorWithRed(color->redComponent() * _sunBrightnessFactor, color->greenComponent() * _sunBrightnessFactor, color->blueComponent() * _sunBrightnessFactor, color->alphaComponent());
     color->getRed(&outerCoronaColor[0], &outerCoronaColor[1], &outerCoronaColor[2], &outerCoronaColor[3]);
 
-    return YES;
+    return true;
 }
 
 void OOSunEntity::initSunWithColor(OOColor* sun_color, const oo::PList& dict)
@@ -210,7 +210,7 @@ std::optional<std::string> OOSunEntity::descriptionComponents() const
 
 bool OOSunEntity::canCollide()
 {
-    return YES;
+    return true;
 }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
@@ -229,7 +229,7 @@ void OOSunEntity::update(OOTimeDelta delta_t)
     Entity::update(delta_t);
 
     ::PlayerEntity* player = PLAYER;
-    assert(player != nil);
+    assert(player != nullptr);
     rotMatrix = OOMatrixForBillboard(position, (player != nullptr ? player->viewpointPosition() : HPVector { }));
 
     if (throw_sparks && _novaExpansionRate > 0.0f) // going NOVA!
@@ -260,7 +260,7 @@ void OOSunEntity::update(OOTimeDelta delta_t)
                 if (sky_bri == 1.0) {
                     // This sun has now gone nova!
                     if (UNIVERSE != nullptr)
-                        UNIVERSE->setSystemDataKey("sun_gone_nova", oo::PList(static_cast<bool>(YES)), "org.oolite.oolite"); // +numberWithBool:
+                        UNIVERSE->setSystemDataKey("sun_gone_nova", oo::PList(static_cast<bool>(true)), "org.oolite.oolite"); // +numberWithBool:
                     if (UNIVERSE != nullptr)
                         UNIVERSE->setSystemDataKey("corona_flare", oo::PList::singleReal(0.3), "org.oolite.oolite"); // +numberWithFloat:
                     if (UNIVERSE != nullptr)
@@ -281,7 +281,8 @@ void OOSunEntity::update(OOTimeDelta delta_t)
 
                 // reset at the new size
                 resetNova();
-                throw_sparks = YES; // keep throw_sparks at YES to indicate the higher temperature
+                throw_sparks = true; // keep throw_sparks at YES to indicate the higher
+                                     // temperature
             }
         }
     }
@@ -373,7 +374,7 @@ void OOSunEntity::drawOpaqueParts()
         distances.
 
         */
-        BOOL ignoreDepthBuffer = cam_zero_distance > effective_radius * effective_radius * 25;
+        bool ignoreDepthBuffer = cam_zero_distance > effective_radius * effective_radius * 25;
 
         int steps = 2 * (MAX_SUBDIVIDE - subdivideLevel);
 
@@ -630,17 +631,17 @@ bool OOSunEntity::changeSunProperty(const std::string& key, const oo::PList& dic
     } else if (key == "sun_gone_nova") {
 
         if (dict.get<bool>(key)) {
-            setGoingNova(YES, 0);
+            setGoingNova(true, 0);
         } else {
-            setGoingNova(NO, 0);
+            setGoingNova(false, 0);
             // oldRadius is always the radius we had before going nova...
             setRadius(oldRadius, dict.get<float>("corona_flare", 0.0f));
         }
     } else {
         OO_LOG_WARN("script.warning", "Change to property '{}' not applied, will apply only after leaving this system.", key);
-        return NO;
+        return false;
     }
-    return YES;
+    return true;
 }
 
 OOStellarBodyType OOSunEntity::planetType()
@@ -716,12 +717,12 @@ void OOSunEntity::resetNova()
 
 bool OOSunEntity::isSun()
 {
-    return YES;
+    return true;
 }
 
 bool OOSunEntity::isVisible()
 {
-    return YES;
+    return true;
 }
 
 std::optional<std::string> OOSunEntity::name()

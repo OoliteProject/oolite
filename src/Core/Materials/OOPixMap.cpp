@@ -109,28 +109,28 @@ OOPixMap OODuplicatePixMap(OOPixMap srcPixMap, size_t desiredSize)
 bool OOResizePixMap(OOPixMap* ioPixMap, size_t desiredSize)
 {
     if (EXPECT_NOT(ioPixMap == NULL || !OOIsValidPixMap(*ioPixMap)))
-        return NO;
+        return false;
     if (desiredSize == ioPixMap->bufferSize)
-        return YES;
+        return true;
     if (desiredSize < OOMinimumPixMapBufferSize(*ioPixMap))
-        return NO;
+        return false;
 
     void* newPixels = realloc(ioPixMap->pixels, desiredSize);
     if (newPixels != NULL) {
         ioPixMap->pixels = newPixels;
         ioPixMap->bufferSize = desiredSize;
-        return YES;
+        return true;
     } else {
-        return NO;
+        return false;
     }
 }
 
 bool OOExpandPixMap(OOPixMap* ioPixMap, size_t desiredSize)
 {
     if (EXPECT_NOT(ioPixMap == NULL || !OOIsValidPixMap(*ioPixMap)))
-        return NO;
+        return false;
     if (desiredSize <= ioPixMap->bufferSize)
-        return YES;
+        return true;
 
     return OOResizePixMap(ioPixMap, desiredSize);
 }
@@ -174,14 +174,14 @@ bool OOIsValidPixMapFormat(OOPixMapFormat format)
 {
     switch (format) {
     case kOOPixMapInvalidFormat:
-        return NO;
+        return false;
     case kOOPixMapGrayscale:
     case kOOPixMapGrayscaleAlpha:
     case kOOPixMapRGBA:
-        return YES;
+        return true;
     }
 
-    return NO;
+    return false;
 }
 
 #ifndef NDEBUG
@@ -222,14 +222,14 @@ bool OOPixMapFormatHasAlpha(OOPixMapFormat format)
 {
     switch (format) {
     case kOOPixMapInvalidFormat:
-        return NO;
+        return false;
     case kOOPixMapGrayscale:
-        return NO;
+        return false;
     case kOOPixMapGrayscaleAlpha:
-        return YES;
+        return true;
     case kOOPixMapRGBA:
-        return YES;
+        return true;
     }
 
-    return NO;
+    return false;
 }

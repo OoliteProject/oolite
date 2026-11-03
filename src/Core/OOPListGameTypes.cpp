@@ -132,7 +132,7 @@ oo::PList OOPListFromQuaternion(Quaternion value)
     return oo::plist_get::tuplePList<float, 4>(kWXYZ, { value.w, value.x, value.y, value.z });
 }
 
-BOOL OOFuzzyBooleanFromPList(const oo::PList* value, float defaultValue)
+bool OOFuzzyBooleanFromPList(const oo::PList* value, float defaultValue)
 {
     /*	This will always be NO for negative values and YES for values
             greater than 1, as expected. randf() is always less than 1, so

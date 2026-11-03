@@ -13,7 +13,7 @@
 	three properties and most methods (log and the monitor, the expanders, the screen backgrounds
 	and overlay, the GUI colours, the extra GUI screen keys, autoAIForRole, pauseGame, quitGame)
 	and a native's exception. takeSnapShot(), which reads the disk, is not run.
-	Run: bash tools/check-core-tests.sh
+	Run: bash tests/run.sh unit
 */
 
 #include "OOFoundation.h"
@@ -80,8 +80,8 @@ public:
 	std::map<std::string, oo::PList> _screenTextures;
 	int _paused;
 	int _quit;
-	BOOL _raise;
-	BOOL _throwCxx;
+	bool _raise;
+	bool _throwCxx;
 
 	double getTimeAccelerationFactor();
 	void setTimeAccelerationFactor(double);
@@ -98,7 +98,7 @@ class StandInUniverse : public Universe
 public:
 	OOViewID getViewDirection() override	{ return _view; }
 	::GuiDisplayGen *getGui() override	{ return _gui; }
-	::MyOpenGLView *getGameView() override	{ return nil; }
+	::MyOpenGLView *getGameView() override	{ return nullptr; }
 };
 
 // The GUI: the members OOJSGlobal.mm calls are defined below (a C++ stand-in
@@ -134,7 +134,7 @@ public:
 
 namespace {
 PlayerEntity *sPlayer = nullptr;
-Universe *sUniverse = nil;
+Universe *sUniverse = nullptr;
 oo::Ref<GuiDisplayGen> sGui;
 // The GUI stand-in's state: a texture descriptor from JS is {name: <string>}; the backgrounds and
 // colours it holds (the facade stand-in's ivars).
@@ -487,7 +487,7 @@ JSContext *gOOJSMainThreadContext = nullptr;
 extern const char * const kOOJavaScriptEngineWillResetNotificationName;
 const char * const kOOJavaScriptEngineWillResetNotificationName = "org.aegidian.oolite OOJavaScriptEngine will reset";
 PlayerEntity *gOOPlayer = nullptr;
-Universe *gSharedUniverse = nil;
+Universe *gSharedUniverse = nullptr;
 
 
 PlayerEntity *OOPlayerForScripting(void)
@@ -807,12 +807,12 @@ OO_TEST(pauseAndQuit)
 OO_TEST(nativeExceptions)
 {
 	SetUpContext();
-	sUniverse->_raise = YES;
+	sUniverse->_raise = true;
 	OO_CHECK_EVAL("expandMissionText('greeting')", "threw: Native exception: missiontext boom");
-	sUniverse->_raise = NO;
-	sUniverse->_throwCxx = YES;
+	sUniverse->_raise = false;
+	sUniverse->_throwCxx = true;
 	OO_CHECK_EVAL("expandMissionText('greeting')", "threw: Native exception: cxx boom");
-	sUniverse->_throwCxx = NO;
+	sUniverse->_throwCxx = false;
 	OO_CHECK_EVAL("expandMissionText('greeting')", "<Hello [name]>\\n");
 	OO_CHECK_EQ(sLimiterPauses, 0);
 	OO_CHECK_EQ(sProfileDepth, 0);

@@ -19,7 +19,7 @@
 
         The binding target is a stand-in C++ entity (the test links no entity),
    its seed answered by the entities' hook, and the uniform stand-in records
-   the entity binding. Run: bash tools/check-core-tests.sh
+   the entity binding. Run: tests/run.sh unit
 */
 
 #include <cstdlib>
@@ -113,13 +113,13 @@ oo::PList cxx_OOTextureSpecFromObject(const oo::PList&,
                                       const std::optional<std::string>&) {
   std::abort();
 }
-BOOL cxx_ScanVectorFromString(const std::optional<std::string>&, Vector*) {
+bool cxx_ScanVectorFromString(const std::optional<std::string>&, Vector*) {
   std::abort();
 }
-BOOL cxx_ScanHPVectorFromString(const std::optional<std::string>&, HPVector*) {
+bool cxx_ScanHPVectorFromString(const std::optional<std::string>&, HPVector*) {
   std::abort();
 }
-BOOL cxx_ScanQuaternionFromString(const std::optional<std::string>&,
+bool cxx_ScanQuaternionFromString(const std::optional<std::string>&,
                                   Quaternion*) {
   std::abort();
 }
@@ -177,7 +177,7 @@ oo::Ref<OOShaderUniform> OOShaderUniform::initWithName(
     GLint constValue) {
   OO_TEST_MADE_UNIFORM(uniformName,
                        "int " + std::to_string(constValue) +
-                           (shaderProgram != nil ? "" : " (no program)"));
+                           (shaderProgram != nullptr ? "" : " (no program)"));
 }
 
 oo::Ref<OOShaderUniform> OOShaderUniform::initWithName(
@@ -235,7 +235,7 @@ class TestTexture final : public OOTexture {
   std::string _name;
   int _applies = 0;
   int _ensures = 0;
-  BOOL _finished = NO;
+  bool _finished = false;
 };
 
 static TestTexture* AsTest(const oo::Ref<OOTexture>& texture) {
@@ -249,7 +249,7 @@ oo::Ref<OOTexture> OOTexture::textureWithConfiguration(
   if (configuration == oo::PList("missing")) return nullptr;
   oo::Ref<TestTexture> texture = oo::makeRef<TestTexture>();
   texture->_name = Text(configuration);
-  texture->_finished = YES;
+  texture->_finished = true;
   return texture;
 }
 
@@ -258,7 +258,7 @@ oo::Ref<OOTexture> OOTexture::nullTexture() {
   if (null == nullptr) {
     null = oo::makeRef<TestTexture>().leakRef();
     null->_name = "null";
-    null->_finished = YES;
+    null->_finished = true;
   }
   return oo::Ref<OOTexture>(null);
 }
@@ -296,7 +296,7 @@ void OOTexture::forceRebind() {}
 
 // The binding whitelist, which the game implements elsewhere: everything but
 // "forbidden".
-BOOL OOUniformBindingPermitted(const std::string& propertyName,
+bool OOUniformBindingPermitted(const std::string& propertyName,
                                Entity* /*bindingTarget*/) {
   return propertyName != "forbidden";
 }
@@ -334,7 +334,7 @@ class Universe {
 };
 bool Universe::useShaders() { return false; }
 
-Universe* gSharedUniverse = nil;
+Universe* gSharedUniverse = nullptr;
 
 namespace {
 
@@ -482,10 +482,10 @@ OO_TEST(failures) {
              nullptr);  // no program
     OO_CHECK(gProgramRequests.size() == 1 && gUniforms.empty());
     OO_CHECK(OOShaderMaterial::shaderMaterialWithName(
-                 std::string("S"), oo::PList(), oo::PList(), nil) == nullptr);
+                 std::string("S"), oo::PList(), oo::PList(), nullptr) == nullptr);
     const oo::Ref<OOShaderMaterial> made =
         OOShaderMaterial::shaderMaterialWithName(std::string("S"), kSources,
-                                                 oo::PList(), nil);
+                                                 oo::PList(), nullptr);
     OO_CHECK(made != nullptr &&
              made->name() == std::optional<std::string>("S"));
   }
@@ -629,7 +629,7 @@ OO_TEST(settingUniforms) {
              gUniformTargets.back() == "v target");
     m->setUniform("bad", 1);
     gUniformTargets.clear();
-    m->setBindingTarget(nil);
+    m->setBindingTarget(nullptr);
     OO_CHECK(gUniformTargets.size() == 10 &&
              gUniformTargets.front() == "b nil");
   }
@@ -652,7 +652,7 @@ OO_TEST(texturesApplyAndUnapply) {
              textures[1].get() == OOTexture::nullTexture().get() &&
              AsTest(textures[2])->_name == "c.png");
     OO_CHECK(m->isFinishedLoading());
-    AsTest(textures[2])->_finished = NO;
+    AsTest(textures[2])->_finished = false;
     OO_CHECK(!m->isFinishedLoading());
     m->ensureFinishedLoading();
     OO_CHECK(AsTest(textures[0])->_ensures == 1 &&
@@ -761,12 +761,12 @@ OO_TEST(cxxAPI) {
     OO_CHECK(!OOShaderMaterial::configurationDictionarySpecifiesShaderMaterial(
         oo::PList()));
     OO_CHECK(OOShaderMaterial::shaderMaterialWithName(
-                 std::string("S"), oo::PList(), oo::PList(), nil) == nullptr);
+                 std::string("S"), oo::PList(), oo::PList(), nullptr) == nullptr);
 
     gUniforms.clear();
     const oo::Ref<OOShaderMaterial> m =
         OOShaderMaterial::shaderMaterialWithName(std::string("Cxx"), kSources,
-                                                 oo::PList(), nil);
+                                                 oo::PList(), nullptr);
     OO_CHECK(m != nullptr && m->name() == std::optional<std::string>("Cxx") &&
              m->permitSpecular());
     OO_CHECK(gUniforms == (std::vector<std::string>{"uGloss float 0.5",
@@ -807,7 +807,7 @@ OO_TEST(descriptionNamesTheClass) {
   {
     const oo::Ref<OOShaderMaterial> m =
         OOShaderMaterial::shaderMaterialWithName(std::string("Cxx"), kSources,
-                                                 oo::PList(), nil);
+                                                 oo::PList(), nullptr);
     OO_CHECK(m->description().starts_with("<OOShaderMaterial 0x"));
   }
 }

@@ -9,7 +9,7 @@
    model, in the order named). The verifier finds it again by its name. The
    stage is global. The verifier registers and answers the C++ stage itself, so
    nameRegistersTheStage and the facade case ask the stage (its description
-   through description()). Run: bash tools/check-core-tests.sh
+   through description()). Run: tests/run.sh unit
 */
 
 #include <filesystem>

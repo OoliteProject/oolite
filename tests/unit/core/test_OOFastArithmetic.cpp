@@ -14,7 +14,7 @@
         -O2: the optimiser folded the comparisons of an undefined result to
    false. The inputs pass through volatiles so the compiler evaluates the
    functions at run time, as the game does, and not by constant folding. Run:
-   bash tools/check-core-tests.sh test_OOFastArithmetic (both flavours: test and
+   meson test -C build/meson_test test_OOFastArithmetic (both flavours: test and
    debug)
 */
 

@@ -66,11 +66,11 @@ static RunningStack* sRunningStack = NULL;
 
 static void AddStackToArrayReversed(std::vector<oo::Ref<OOJSScript>>& array, RunningStack* stack);
 
-static BOOL RunScriptWithName(JSContext* context, const std::optional<std::string>& path, JSValueConst object, std::optional<std::string>* outErrorMessage);
+static bool RunScriptWithName(JSContext* context, const std::optional<std::string>& path, JSValueConst object, std::optional<std::string>* outErrorMessage);
 
 static std::optional<std::string> StrippedName(const std::optional<std::string>& string);
 static std::string RewriteLegacyConst(JSContext* context, const std::string& source);
-static BOOL HasModernScopeDirective(std::string_view source);
+static bool HasModernScopeDirective(std::string_view source);
 
 #if OO_CACHE_JS_SCRIPTS
 static JSValue CachedCompiledScript(JSContext* context, const std::string& path, std::string_view source);
@@ -354,7 +354,7 @@ bool OOJSScript::callMethod(JSAtom methodID,
     JSValue method = JS_GetProperty(context, _jsSelf, methodID);
     if (EXPECT_NOT(JS_IsException(method))) {
         OOJSReportPendingException(context);
-        return NO;
+        return false;
     }
 
     if (EXPECT(!JS_IsUndefined(method))) {
@@ -678,7 +678,7 @@ static void AddStackToArrayReversed(std::vector<oo::Ref<OOJSScript>>& array, Run
         script opts out with the "use oolite modern" directive, at the head of
         its scope chain.
 */
-static BOOL RunScriptWithName(JSContext* context, const std::optional<std::string>& path, JSValueConst object, std::optional<std::string>* outErrorMessage)
+static bool RunScriptWithName(JSContext* context, const std::optional<std::string>& path, JSValueConst object, std::optional<std::string>* outErrorMessage)
 {
     std::optional<std::string> utf8Contents;
 
@@ -692,7 +692,7 @@ static BOOL RunScriptWithName(JSContext* context, const std::optional<std::strin
     }
     if (!utf8Contents.has_value()) {
         *outErrorMessage = "could not load file";
-        return NO;
+        return false;
     }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
@@ -715,7 +715,7 @@ static BOOL RunScriptWithName(JSContext* context, const std::optional<std::strin
             run without its emulation: no with(this) and no const rewrite.
     */
     std::string wrapped;
-    BOOL modern = HasModernScopeDirective(*utf8Contents);
+    bool modern = HasModernScopeDirective(*utf8Contents);
     if (modern) {
         OO_LOG("script.javaScript.load.modern", "Script {} uses modern scoping.", path.value_or("(null)"));
         const char* lineEnd = oo::str::hasSuffix(*utf8Contents, "\n") ? "" : "\n";
@@ -741,7 +741,7 @@ static BOOL RunScriptWithName(JSContext* context, const std::optional<std::strin
         if (JS_IsException(compiled)) {
             OOJSReportPendingException(context);
             *outErrorMessage = "compilation failed";
-            return NO;
+            return false;
         }
 #if OO_CACHE_JS_SCRIPTS
         CacheCompiledScript(context, path.value_or(""), wrapped, compiled);
@@ -762,11 +762,11 @@ static BOOL RunScriptWithName(JSContext* context, const std::optional<std::strin
     if (JS_IsException(result)) {
         OOJSReportPendingException(context);
         *outErrorMessage = "could not run script";
-        return NO;
+        return false;
     }
 
     JS_FreeValue(context, result);
-    return YES;
+    return true;
 }
 
 #if OO_CACHE_JS_SCRIPTS
@@ -869,7 +869,7 @@ static void CacheCompiledScript(JSContext* context, const std::string& path, std
         source is UTF-8; the white space it skips includes U+00A0 and U+FEFF,
         as the UTF-16 scan did.
 */
-static BOOL HasModernScopeDirective(std::string_view source)
+static bool HasModernScopeDirective(std::string_view source)
 {
     const std::size_t length = source.size();
     std::size_t i = 0;
@@ -882,60 +882,60 @@ static BOOL HasModernScopeDirective(std::string_view source)
 
     for (;;) {
         // Skip white space and comments.
-        BOOL skipped = YES;
+        bool skipped = true;
         while (skipped && i < length) {
-            skipped = NO;
+            skipped = false;
             char c = source[i];
             if (c == ' ' || c == '\t' || c == '\r' || c == '\n') {
                 i++;
-                skipped = YES;
+                skipped = true;
             } else if (isNBSP(i)) {
                 i += 2;
-                skipped = YES;
+                skipped = true;
             } else if (isBOM(i)) {
                 i += 3;
-                skipped = YES;
+                skipped = true;
             } else if (c == '/' && i + 1 < length && source[i + 1] == '/') {
                 while (i < length && source[i] != '\n')
                     i++;
-                skipped = YES;
+                skipped = true;
             } else if (c == '/' && i + 1 < length && source[i + 1] == '*') {
                 std::size_t end = source.find("*/", i + 2);
                 if (end == std::string_view::npos)
-                    return NO;
+                    return false;
                 i = end + 2;
-                skipped = YES;
+                skipped = true;
             }
         }
         if (i >= length)
-            return NO;
+            return false;
 
         // A directive: a string literal, followed by ; or a line break.
         char quote = source[i];
         if (quote != '"' && quote != '\'')
-            return NO;
+            return false;
         std::size_t start = ++i;
-        BOOL escaped = NO;
+        bool escaped = false;
         while (i < length && source[i] != quote) {
             char c = source[i];
             if (c == '\\') {
-                escaped = YES;
+                escaped = true;
                 i++;
             }
             if (c == '\n')
-                return NO;
+                return false;
             i++;
         }
         if (i >= length)
-            return NO;
+            return false;
         std::string_view directive = source.substr(start, i - start);
         i++;
 
-        BOOL lineBreak = NO;
+        bool lineBreak = false;
         while (i < length) {
             char c = source[i];
             if (c == '\n') {
-                lineBreak = YES;
+                lineBreak = true;
             } else if (c == '/' && i + 1 < length && source[i + 1] == '/') {
                 while (i < length && source[i] != '\n')
                     i++;
@@ -948,10 +948,10 @@ static BOOL HasModernScopeDirective(std::string_view source)
         if (i < length && source[i] == ';')
             i++;
         else if (!lineBreak && i < length && source[i] != '}')
-            return NO; // Part of a larger expression, so not a directive.
+            return false; // Part of a larger expression, so not a directive.
 
         if (!escaped && directive == "use oolite modern")
-            return YES;
+            return true;
     }
 }
 

@@ -124,7 +124,13 @@ void AddChangeAINode(std::string& graphViz, const std::string& handlerToken, con
     }
 }
 
-void HandleOneCommand(std::string& graphViz, const std::string& stateKey, const std::string& handlerKey, HandlerKeys& handlerKeys, const oo::PList* handlerCommands, std::size_t commandIter, std::size_t commandCount, std::set<std::string>& specialNodes, std::set<std::string>& uniqueSet, BOOL* haveSetOrSwichAI)
+void HandleOneCommand(std::string& graphViz, const std::string& stateKey,
+    const std::string& handlerKey, HandlerKeys& handlerKeys,
+    const oo::PList* handlerCommands, std::size_t commandIter,
+    std::size_t commandCount,
+    std::set<std::string>& specialNodes,
+    std::set<std::string>& uniqueSet,
+    bool* haveSetOrSwichAI)
 {
     const std::optional<std::string> command = CommandAt(handlerCommands, commandIter);
     if (EXPECT_NOT(!command.has_value()))
@@ -141,9 +147,9 @@ void HandleOneCommand(std::string& graphViz, const std::string& stateKey, const 
         if (components.size() > 1) {
             const std::string& targetState = components[1];
             std::string targetLabel = HandlerToken(targetState, "ENTER", handlerKeys, uniqueSet);
-            BOOL constraint = YES;
+            bool constraint = true;
             if (targetState == stateKey || targetState == "GLOBAL")
-                constraint = NO;
+                constraint = false;
 
             graphViz += oo::str::format("\t%s -> %s [lhead=cluster_%s%s]\n", handlerToken.c_str(), targetLabel.c_str(), targetState.c_str(), constraint ? "" : " constraint=false");
         } else {
@@ -168,7 +174,7 @@ void HandleOneCommand(std::string& graphViz, const std::string& stateKey, const 
         const std::optional<std::string> message = (components.size() > 1) ? std::optional<std::string>(components[1]) : std::nullopt;
         AddExitAINode(graphViz, handlerToken, message, specialNodes);
     } else if (method == "setAITo:" || method == "switchAITo:") {
-        *haveSetOrSwichAI = YES;
+        *haveSetOrSwichAI = true;
         AddChangeAINode(graphViz, handlerToken, method, components, handlerCommands, commandIter, commandCount, specialNodes);
     }
 }
@@ -216,7 +222,7 @@ void GenerateGraphVizForAIStateMachine(const oo::PList& stateMachine, const std:
                     for (const auto& [handlerKey, handlerValue] : *state) {
                         const oo::PList* handlerCommands = handlerValue.isArray() ? &handlerValue : nullptr;
                         std::size_t commandIter, commandCount = (handlerCommands != nullptr) ? handlerCommands->count() : 0;
-                        BOOL haveSetOrSwichAI = NO;
+                        bool haveSetOrSwichAI = false;
 
                         for (commandIter = 0; commandIter < commandCount; commandIter++) {
                             HandleOneCommand(graphViz, stateKey, handlerKey, handlerKeys, handlerCommands, commandIter, commandCount, specialNodes, uniqueSet, &haveSetOrSwichAI);

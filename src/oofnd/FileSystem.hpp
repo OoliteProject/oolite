@@ -465,6 +465,3 @@ std::optional<oo::Data> OODataFromOXZFile(const std::string& path);
    (OODataFromOXZFile.mm).
 */
 bool OOOxzFileExistsAtPath(const std::string& path);
-
-#pragma pop_macro("false")
-#pragma pop_macro("true")

@@ -14,7 +14,7 @@
    (every property), the passenger, parcel and contract methods with their
    argument checks (ValidateContracts()), and the PlayerEntity category the
    engine sends (the class name, and the JS object the player keeps until the
-   engine resets). Run: bash tools/check-core-tests.sh test_OOJSPlayerShip
+   engine resets). Run: meson test -C build/meson_test test_OOJSPlayerShip
 */
 
 #include "OOJavaScriptEngine.h"
@@ -110,18 +110,18 @@ class FakePlayer : public PlayerEntity
 public:
 	oo::Ref<HeadUpDisplay> _hud;
 	Entity *_dockedStation = {}, *_compassTarget = {};
-	BOOL _docked = {};
+	bool _docked = {};
 	std::optional<std::string> _specialCargo, _fastA, _fastB;
 	std::string _primed;
 	std::vector<std::optional<std::string>> _mfds;
 	NSUInteger _passengers = {}, _capacity = {}, _parcels = {};
 	double _clockTime = {};
-	BOOL _contractsAccept = {};
+	bool _contractsAccept = {};
 	std::vector<std::string> _log;
 	Entity *_other = {};
 	std::vector<Entity *> _compassCycle;
 	std::set<std::string> _equipment;
-	BOOL _hyperspaceMotor = {};
+	bool _hyperspaceMotor = {};
 
 	void setScriptTarget(::ShipEntity * /*ship*/) override	{  }
 	NSUInteger getActiveMissile() override	{ return 2; }
@@ -145,7 +145,7 @@ public:
 	float forwardShieldRechargeRate() override	{ return 1.5f; }
 	float aftShieldRechargeRate() override	{ return 2.5f; }
 	std::vector<std::optional<std::string>> multiFunctionDisplayList() override	{ return _mfds; }
-	bool dialIdentEngaged() override	{ return YES; }
+	bool dialIdentEngaged() override	{ return true; }
 	OOLongRangeChartMode getLongRangeChartMode() override	{ return OOLRC_MODE_ECONOMY; }
 	NSPoint getGalaxy_coordinates() override	{ return NSMakePoint(20, 40); }
 	NSPoint getCursor_coordinates() override	{ return NSMakePoint(30, 60); }
@@ -154,19 +154,19 @@ public:
 	OOSystemID infoSystemID() override	{ return 9; }
 	OOSystemID previousSystemID() override	{ return 6; }
 	OORouteType ANAMode() override	{ return OPTIMIZED_BY_TIME; }
-	bool getScoopOverride() override	{ return YES; }
-	bool injectorsEngaged() override	{ return NO; }
-	bool getMassLockable() override	{ return YES; }
-	bool hyperspeedEngaged() override	{ return NO; }
+	bool getScoopOverride() override	{ return true; }
+	bool injectorsEngaged() override	{ return false; }
+	bool getMassLockable() override	{ return true; }
+	bool hyperspeedEngaged() override	{ return false; }
 	Entity * getCompassTargetEntity() override	{ return _compassTarget; }
 	OOCompassMode getCompassMode() override	{ return COMPASS_MODE_PLANET; }
-	bool weaponsOnline() override	{ return YES; }
+	bool weaponsOnline() override	{ return true; }
 	Vector viewpointOffsetAft() override	{ return make_vector(0, 0, -1); }
 	Vector viewpointOffsetForward() override	{ return make_vector(0, 0, 1); }
 	Vector viewpointOffsetPort() override	{ return make_vector(-1, 0, 0); }
 	Vector viewpointOffsetStarboard() override	{ return make_vector(1, 0, 0); }
 	OOWeaponFacing getCurrentWeaponFacing() override	{ return WEAPON_FACING_FORWARD; }
-	::OOEquipmentType * weaponTypeForFacing(OOWeaponFacing facing, bool strict) override	{ _log.push_back(oo::str::format("weaponTypeForFacing %d %d", static_cast<int>(facing), strict ? 1 : 0)); return nil; }
+	::OOEquipmentType * weaponTypeForFacing(OOWeaponFacing facing, bool strict) override	{ _log.push_back(oo::str::format("weaponTypeForFacing %d %d", static_cast<int>(facing), strict ? 1 : 0)); return nullptr; }
 	oo::PList commanderDataDictionary() override	{ return oo::PList(std::string("commander")); }
 	int tradeInFactor() override	{ return 95; }
 	double renovationCosts() override	{ return 1500; }
@@ -222,14 +222,14 @@ public:
 	bool switchHudTo(const std::string & hudFileName) override
 	{
 		_log.push_back("switchHudTo " + hudFileName);
-		return YES;
+		return true;
 	}
 	void resetHud() override	{ _log.push_back("resetHud"); }
 	void adjustTradeInFactorBy(int value) override	{ _log.push_back(oo::str::format("adjustTradeInFactorBy %d", value)); }
 	bool setWeaponMount(OOWeaponFacing facing, const std::string & eqKey, const std::optional<std::string> & context) override
 	{
 		_log.push_back(oo::str::format("setWeaponMount %d %s %s", static_cast<int>(facing), eqKey.c_str(), context.value_or("(nil)").c_str()));
-		return YES;
+		return true;
 	}
 	void setStatus(OOEntityStatus stat) override	{ _log.push_back(oo::str::format("setStatus %d", static_cast<int>(stat))); Entity::setStatus(stat); }	// the root's status, which status() answers
 	void setTargetSystemID(OOSystemID sid) override	{ _log.push_back(oo::str::format("setTargetSystemID %d", sid)); }
@@ -237,18 +237,18 @@ public:
 	void launchFromStation() override	{ _log.push_back("launchFromStation"); }
 	void removeAllCargo() override	{ _log.push_back("removeAllCargo"); }
 	void useSpecialCargo(const std::string & descriptionString) override	{ _log.push_back("useSpecialCargo " + descriptionString); }
-	bool engageAutopilotToStation(::StationEntity * /*stationForDocking*/) override	{ _log.push_back("engageAutopilotToStation"); return YES; }
+	bool engageAutopilotToStation(::StationEntity * /*stationForDocking*/) override	{ _log.push_back("engageAutopilotToStation"); return true; }
 	void disengageAutopilot() override	{ _log.push_back("disengageAutopilot"); }
 	void requestDockingClearance(::StationEntity * /*stationForDocking*/) override	{ _log.push_back("requestDockingClearance"); }
 	void cancelDockingRequest(::StationEntity * /*stationForDocking*/) override	{ _log.push_back("cancelDockingRequest"); }
-	bool assignToActivePylon(const std::string & identifierKey) override	{ _log.push_back("assignToActivePylon " + identifierKey); return YES; }
+	bool assignToActivePylon(const std::string & identifierKey) override	{ _log.push_back("assignToActivePylon " + identifierKey); return true; }
 	void setCustomViewDataFromDictionary(const oo::PList & viewDict, bool withScaling) override	{ _log.push_back(oo::str::format("setCustomViewData %s %d", oo::DescriptionOf(viewDict).c_str(), withScaling ? 1 : 0)); }
 	void noteSwitchToView(OOViewID toView, OOViewID fromView) override	{ _log.push_back(oo::str::format("noteSwitchToView %d %d", static_cast<int>(toView), static_cast<int>(fromView))); }
 	void resetCustomView() override	{ _log.push_back("resetCustomView"); }
 	void resetScannerZoom() override	{ _log.push_back("resetScannerZoom"); }
-	bool takeInternalDamage() override	{ _log.push_back("takeInternalDamage"); return YES; }
+	bool takeInternalDamage() override	{ _log.push_back("takeInternalDamage"); return true; }
 	bool hasHyperspaceMotor() override	{ return _hyperspaceMotor; }
-	bool witchJumpChecklist(bool isGalacticJump) override	{ _log.push_back(oo::str::format("witchJumpChecklist %d", isGalacticJump ? 1 : 0)); return YES; }
+	bool witchJumpChecklist(bool isGalacticJump) override	{ _log.push_back(oo::str::format("witchJumpChecklist %d", isGalacticJump ? 1 : 0)); return true; }
 	void beginWitchspaceCountdown(int spin_time) override	{ _log.push_back(oo::str::format("beginWitchspaceCountdown %d", spin_time)); }
 	void cancelWitchspaceCountdown() override	{ _log.push_back("cancelWitchspaceCountdown"); }
 	void setJumpType(bool isGalacticJump) override	{ _log.push_back(oo::str::format("setJumpType %d", isGalacticJump ? 1 : 0)); }
@@ -313,7 +313,7 @@ namespace {
 namespace stdfs = std::filesystem;
 
 stdfs::path sRoot;
-FakeUniverse *sUniverse = nil;
+FakeUniverse *sUniverse = nullptr;
 FakePlayer *sPlayer = nullptr;
 PlayerEntity *sRealPlayer = nullptr;
 
@@ -351,14 +351,14 @@ void SetUp()
 		sPlayer->_other = oo::RetainEntity(oo::MadeEntity(oo::makeRef<TestEntity>()));
 	}
 	sPlayer->_dockedStation->setPosition(make_HPvector(5, 0, 0));
-	sPlayer->_docked = YES;
+	sPlayer->_docked = true;
 	sPlayer->_specialCargo = "Ten tonnes of rare orchids";
 	sPlayer->_fastA = "EQ_CLOAKING_DEVICE";
 	sPlayer->_primed = "EQ_ECM";
 	sPlayer->_mfds = { std::string("mfd-a"), std::nullopt, std::string("mfd-c") };
 	sPlayer->_capacity = 2;
 	sPlayer->_clockTime = 1000;
-	sPlayer->_contractsAccept = YES;
+	sPlayer->_contractsAccept = true;
 	sPlayer->Entity::setStatus(STATUS_DOCKED);
 	gOOPlayer = sPlayer;
 }
@@ -571,10 +571,10 @@ OO_TEST(contracts)
 	OO_CHECK_EVAL("player.ship.awardContract(5, 'food', 1, 2, 4000, 100)", "true");
 	OO_CHECK_EVAL("player.ship.awardContract(5, 'food', 1, 2, 4000, 100, 30)", "true");
 	OO_CHECK_LOG(sPlayer->_log, "awardContract 5 food 1 2 4000 100 0; awardContract 5 food 1 2 4000 100 30");
-	sPlayer->_contractsAccept = NO;
+	sPlayer->_contractsAccept = false;
 	OO_CHECK_EVAL("player.ship.awardContract(5, 'food', 1, 2, 4000, 100)", "false");
 	OO_CHECK_EVAL("player.ship.removeContract('food', 2)", "false");
-	sPlayer->_contractsAccept = YES;
+	sPlayer->_contractsAccept = true;
 	OO_CHECK_EVAL("player.ship.removeContract('food', 2)", "true");
 	OO_CHECK_LOG(sPlayer->_log, "awardContract 5 food 1 2 4000 100 0; removeContract food 2; removeContract food 2");
 
@@ -641,7 +641,7 @@ OO_TEST(setterChartAndCompass)
 	OO_CHECK_EVAL("(function () { player.ship.compassTarget = player.ship.dockedStation; return player.ship.compassTarget === player.ship.dockedStation; })()", "true");
 	OO_CHECK_LOG(sPlayer->_log, "setNextCompassMode; validateCompassTarget; setNextCompassMode; validateCompassTarget");
 	OO_CHECK(Eval("(function () { player.ship.compassTarget = null; })()").rfind("threw: ", 0) == 0);
-	sPlayer->_compassTarget = nil;
+	sPlayer->_compassTarget = nullptr;
 	sPlayer->_equipment.clear();
 }
 
@@ -666,7 +666,7 @@ OO_TEST(setterHUD)
 
 	// The message GUI's colours.
 	OO_CHECK_EVAL("(function () { player.ship.messageGuiTextColor = 'blueColor'; player.ship.messageGuiTextCommsColor = null; return player.ship.messageGuiTextColor; })()", "0,0,1,1");
-	OO_CHECK(sUniverse->_gui->_textCommsColor == nil);
+	OO_CHECK(sUniverse->_gui->_textCommsColor == nullptr);
 	OO_CHECK_EVAL("(function () { player.ship.messageGuiTextColor = 'notAColor'; })()", "threw: Cannot set property messageGuiTextColor of instance of PlayerShip to invalid value \"notAColor\".");
 
 	// No HUD: nothing to set.
@@ -705,9 +705,9 @@ OO_TEST(slice2Methods)
 	OO_CHECK_EVAL("player.ship.removeAllCargo()", "undefined");
 	OO_CHECK_EVAL("player.ship.useSpecialCargo('Rocks')", "undefined");
 	OO_CHECK_LOG(sPlayer->_log, "launchFromStation; disengageAutopilot; removeAllCargo; useSpecialCargo Rocks");
-	sPlayer->_docked = NO;
+	sPlayer->_docked = false;
 	OO_CHECK_EVAL("player.ship.removeAllCargo()", "threw: PlayerShip.removeAllCargo only works when docked.");
-	sPlayer->_docked = YES;
+	sPlayer->_docked = true;
 	OO_CHECK(Eval("player.ship.useSpecialCargo()").rfind("threw: ", 0) == 0);
 	OO_CHECK(Eval("player.ship.engageAutopilotToStation(player.ship.dockedStation)").rfind("threw: ", 0) == 0);	// not a station
 	OO_CHECK(Eval("player.ship.requestDockingClearance()").rfind("threw: ", 0) == 0);
@@ -751,10 +751,10 @@ OO_TEST(hyperspaceCountdowns)
 {
 	SetUp();
 	Log(sPlayer->_log);
-	sPlayer->_hyperspaceMotor = NO;
+	sPlayer->_hyperspaceMotor = false;
 	OO_CHECK_EVAL("player.ship.beginHyperspaceCountdown()", "false");
 	OO_CHECK_EVAL("player.ship.cancelHyperspaceCountdown()", "false");
-	sPlayer->_hyperspaceMotor = YES;
+	sPlayer->_hyperspaceMotor = true;
 	sPlayer->Entity::setStatus(STATUS_IN_FLIGHT);
 	OO_CHECK_EVAL("player.ship.beginHyperspaceCountdown(10)", "true");
 	OO_CHECK_EVAL("player.ship.beginHyperspaceCountdown()", "true");

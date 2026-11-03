@@ -18,7 +18,7 @@
    what OOConcreteTexture does and caches itself under a key, BareTexture
    overrides nothing, so it answers the root's defaults. An autoreleased texture
    is kept until its scope drains (oo::autorelease). After them comes the C++
-   API. Run: bash tools/check-core-tests.sh
+   API. Run: tests/run.sh unit
 */
 
 #include <algorithm>
@@ -95,7 +95,7 @@ class TestGenerator : public OOTextureGenerator {
   }
 
   std::optional<std::string> _key;
-  BOOL _accept = NO;
+  bool _accept = false;
   int _enqueues = 0;
 };
 
@@ -110,7 +110,7 @@ TestTexture* MakeTexture(const std::optional<std::string>& key) {
 std::vector<oo::Ref<TestGenerator>> gKeptGenerators;
 
 TestGenerator* MakeGenerator(const std::optional<std::string>& key,
-                             BOOL accept) {
+                             bool accept) {
   const oo::Ref<TestGenerator> made = oo::makeRef<TestGenerator>();
   if (!made->initWithPath(std::string("test generator"), 0)) return nullptr;
   gKeptGenerators.push_back(made);
@@ -191,16 +191,16 @@ OO_TEST(subclassOverrides) {
 OO_TEST(cachesKeepAndForget) {
   ClearCache();
   const int deallocs = gTestDeallocs;
-  TestTexture* texture = nil;
-  OOTexture* bare = nil;
+  TestTexture* texture = nullptr;
+  OOTexture* bare = nullptr;
   {
     oo::AutoreleaseScope pool;
     texture = MakeTexture(std::string("test:cache"));
     bare = oo::makeRef<BareTexture>().leakRef();
     OO_CHECK(OOTexture::existingTextureForKey(std::string("test:cache")) ==
              texture);
-    OO_CHECK(OOTexture::existingTextureForKey(std::nullopt) == nil);
-    OO_CHECK(OOTexture::existingTextureForKey(std::string("test:none")) == nil);
+    OO_CHECK(OOTexture::existingTextureForKey(std::nullopt) == nullptr);
+    OO_CHECK(OOTexture::existingTextureForKey(std::string("test:none")) == nullptr);
   }
 
   // The recent textures keep it alive; the live textures find it.
@@ -223,7 +223,7 @@ OO_TEST(cachesKeepAndForget) {
     oo::AutoreleaseScope scope;
     OOTexture::clearCache();
     OO_CHECK(OOTexture::existingTextureForKey(std::string("test:cache")) ==
-             nil);
+             nullptr);
   }
   OO_CHECK(gTestDeallocs == deallocs + 1);
 #ifndef NDEBUG
@@ -259,7 +259,7 @@ OO_TEST(rebindAllTextures) {
 #endif
   }
   OO_CHECK(gTestDeallocs == deallocs + 2);
-  OO_CHECK(OOTexture::existingTextureForKey(std::string("test:rebind")) == nil);
+  OO_CHECK(OOTexture::existingTextureForKey(std::string("test:rebind")) == nullptr);
 }
 
 OO_TEST(namedTextureFromTheCache) {
@@ -267,7 +267,7 @@ OO_TEST(namedTextureFromTheCache) {
   {
     oo::AutoreleaseScope pool;
     OO_CHECK(OOTexture::textureWithName(std::nullopt, std::string("Textures"))
-                 .get() == nil);
+                 .get() == nullptr);
 
     // Linear filtering: no anisotropy and no LOD bias in the key, whatever the
     // extensions.
@@ -292,9 +292,9 @@ OO_TEST(namedTextureFromTheCache) {
 
     // A specifier that names no texture.
     OO_CHECK(OOTexture::textureWithConfiguration(oo::PList(
-                 oo::PList::Dict{{"min_filter", oo::PList("linear")}})) == nil);
-    OO_CHECK(OOTexture::textureWithConfiguration(oo::PList(3.0)).get() == nil);
-    OO_CHECK(OOTexture::textureWithConfiguration(oo::PList()).get() == nil);
+                 oo::PList::Dict{{"min_filter", oo::PList("linear")}})) == nullptr);
+    OO_CHECK(OOTexture::textureWithConfiguration(oo::PList(3.0)).get() == nullptr);
+    OO_CHECK(OOTexture::textureWithConfiguration(oo::PList()).get() == nullptr);
     ClearCache();
   }
 }
@@ -303,12 +303,12 @@ OO_TEST(texturesFromGenerators) {
   {
     oo::AutoreleaseScope pool;
     ClearCache();
-    OO_CHECK(OOTexture::textureWithGenerator(nil).get() == nil);
-    TestGenerator* refusing = MakeGenerator(std::string("test:refused"), NO);
-    OO_CHECK(OOTexture::textureWithGenerator(refusing).get() == nil &&
+    OO_CHECK(OOTexture::textureWithGenerator(nullptr).get() == nullptr);
+    TestGenerator* refusing = MakeGenerator(std::string("test:refused"), false);
+    OO_CHECK(OOTexture::textureWithGenerator(refusing).get() == nullptr &&
              refusing->_enqueues == 1);
 
-    TestGenerator* generator = MakeGenerator(std::string("test:gen"), YES);
+    TestGenerator* generator = MakeGenerator(std::string("test:gen"), true);
     OOTexture* first = Autoreleased(OOTexture::textureWithGenerator(generator));
     OO_CHECK((dynamic_cast<OOConcreteTexture*>(first) != nullptr) &&
              generator->_enqueues == 1);
@@ -321,23 +321,23 @@ OO_TEST(texturesFromGenerators) {
     OO_CHECK(OOTexture::textureWithGenerator(generator).get() == first &&
              generator->_enqueues == 1);
     OOTexture* second =
-        Autoreleased(OOTexture::textureWithGenerator(generator, YES));
-    OO_CHECK(second != nil && second != first && generator->_enqueues == 2);
+        Autoreleased(OOTexture::textureWithGenerator(generator, true));
+    OO_CHECK(second != nullptr && second != first && generator->_enqueues == 2);
     OO_CHECK(OOTexture::existingTextureForKey(std::string("test:gen")) ==
              second);
 
     // No key: never cached.
-    TestGenerator* uncached = MakeGenerator(std::nullopt, YES);
+    TestGenerator* uncached = MakeGenerator(std::nullopt, true);
     OOTexture* a = Autoreleased(OOTexture::textureWithGenerator(uncached));
     OOTexture* b = Autoreleased(OOTexture::textureWithGenerator(uncached));
-    OO_CHECK(a != nil && b != nil && a != b && uncached->_enqueues == 2);
+    OO_CHECK(a != nullptr && b != nullptr && a != b && uncached->_enqueues == 2);
   }
 
   /*	The first texture's -dealloc (when the recent textures replaced it and
      the pool drained) uncached its key from the live textures, although the
      second texture had it by then.
   */
-  OO_CHECK(OOTexture::existingTextureForKey(std::string("test:gen")) == nil);
+  OO_CHECK(OOTexture::existingTextureForKey(std::string("test:gen")) == nullptr);
   ClearCache();
 }
 
@@ -420,7 +420,7 @@ OO_TEST(cxxApi) {
     const oo::Ref<OOTexture> none = OOTexture::nullTexture();
     OO_CHECK(dynamic_cast<OONullTexture*>(none.get()) != nullptr &&
              none.get() == OOTexture::nullTexture());
-    TestGenerator* generator = MakeGenerator(std::string("test:cxxgen"), YES);
+    TestGenerator* generator = MakeGenerator(std::string("test:cxxgen"), true);
     const oo::Ref<OOTexture> generated =
         OOTexture::textureWithGenerator(generator);
     OO_CHECK((dynamic_cast<OOConcreteTexture*>(generated.get()) != nullptr));
@@ -489,7 +489,7 @@ OO_TEST(cxxTextureBehindTheFacade) {
   }
   ClearCache();
   OO_CHECK(OOTexture::existingTextureForKey(std::string("test:cxx")) ==
-           nil);  // destroyed: uncached
+           nullptr);  // destroyed: uncached
   OO_CHECK(gTestDeallocs == deallocs);
 }
 
@@ -521,7 +521,7 @@ OO_TEST(clearCacheReleasesAtTheNearestScopesDrain) {
       OO_CHECK(outer.pendingCount() == outerPending);
       OO_CHECK(gTestDeallocs == deallocs);  // no earlier than the drain
       OO_CHECK(OOTexture::existingTextureForKey(std::string("test:drain")) ==
-               nil);  // forgotten at once
+               nullptr);  // forgotten at once
 
       // With no recent textures left, a second clear hands nothing over.
       OOTexture::clearCache();

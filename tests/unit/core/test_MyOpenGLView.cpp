@@ -24,7 +24,7 @@
         MyOpenGLView.mm reaches the game controller, the universe and the
    player, so the test links every game object but main's
    (tests/unit/core/meson.build entry ['*']) and
-   defines gDebugFlags. Run: bash tools/check-core-tests.sh test_MyOpenGLView
+   defines gDebugFlags. Run: meson test -C build/meson_test test_MyOpenGLView
 */
 
 #include <process.h>
@@ -51,12 +51,12 @@ uint32_t gDebugFlags = 0;
 
 namespace {
 
-MyOpenGLView* sView = nil;
+MyOpenGLView* sView = nullptr;
 
 // A scratch home (no user defaults) and the null OpenAL backend, then the view,
 // made once.
 MyOpenGLView* View() {
-  if (sView != nil) return sView;
+  if (sView != nullptr) return sView;
   namespace stdfs = std::filesystem;
   OO_CHECK(::_putenv_s("ALSOFT_DRIVERS", "null") == 0);
   const stdfs::path root =
@@ -83,9 +83,9 @@ bool Near(double a, double b) { return std::fabs(a - b) < 1e-3; }
 OO_TEST(initWithoutAWindow) {
   {
     MyOpenGLView* view = View();
-    OO_CHECK(view != nil);
-    if (view == nil) return;
-    OO_CHECK(view->getGameController() == nil);
+    OO_CHECK(view != nullptr);
+    if (view == nullptr) return;
+    OO_CHECK(view->getGameController() == nullptr);
     OO_CHECK(!view->inFullScreenMode());
     // No defaults: the window size the game starts windowed at.
     OO_CHECK(view->getViewSize().width == WINDOW_SIZE_DEFAULT_WIDTH &&
@@ -188,19 +188,19 @@ OO_TEST(slice2AccessorsAndViewSettings) {
     view->setGameController(controller);
     OO_CHECK(view->getGameController() == controller);
     view->setGameController(nullptr);
-    OO_CHECK(view->getGameController() == nil);
+    OO_CHECK(view->getGameController() == nullptr);
 
     // FOV: stored as tan(half the angle); in degrees or as that fraction.
-    view->setFov(60.0f, NO);
-    OO_CHECK(Near(view->fov(YES), std::tan(30.0 * M_PI / 180.0)));
-    OO_CHECK(Near(view->fov(NO), 60.0));
-    view->setFov(0.5f, YES);
-    OO_CHECK(Near(view->fov(YES), 0.5));
-    OO_CHECK(Near(view->fov(NO), 2.0 * std::atan(0.5) * 180.0 / M_PI));
+    view->setFov(60.0f, false);
+    OO_CHECK(Near(view->fov(true), std::tan(30.0 * M_PI / 180.0)));
+    OO_CHECK(Near(view->fov(false), 60.0));
+    view->setFov(0.5f, true);
+    OO_CHECK(Near(view->fov(true), 0.5));
+    OO_CHECK(Near(view->fov(false), 2.0 * std::atan(0.5) * 180.0 / M_PI));
 
-    view->setMsaa(YES);
+    view->setMsaa(true);
     OO_CHECK(view->msaa());
-    view->setMsaa(NO);
+    view->setMsaa(false);
     OO_CHECK(!view->msaa());
 
     // SDR tone mapper: clamped to the enum's range.
@@ -223,7 +223,7 @@ OO_TEST(slice2AccessorsAndViewSettings) {
 
     OO_CHECK(!view->hdrOutput());
     (void)view->isOutputDisplayHDREnabled();  // the display's; not pinned
-    view->grabMouseInsideGameWindow(NO);
+    view->grabMouseInsideGameWindow(false);
 
     // +pollShiftKey reads the keyboard: nobody holds shift during a test run.
     OO_CHECK(!::MyOpenGLView::pollShiftKey());
@@ -302,7 +302,7 @@ OO_TEST(slice2DisplayModesAndSavedSettings) {
     OO_CHECK(view->currentScreenMode() == lastMode);
     OO_CHECK(view->currentScreenSize().width ==
              lastMode.get<int>(std::string(kOODisplayWidth)));
-    view->setDisplayMode(0, NO);
+    view->setDisplayMode(0, false);
     OO_CHECK(!view->inFullScreenMode());
     OO_CHECK(view->currentScreenMode() == modes[0]);
     OO_CHECK(view->currentScreenSize().width == nativeWidth &&
@@ -310,7 +310,7 @@ OO_TEST(slice2DisplayModesAndSavedSettings) {
 
     // Full-screen mode is saved to the defaults; switching it on without a
     // window is not tried.
-    view->setFullScreenMode(NO);
+    view->setFullScreenMode(false);
     OO_CHECK(!view->inFullScreenMode());
     OO_CHECK(oo::Defaults::standard().object("fullscreen").isBool() &&
              !oo::Defaults::standard().boolForKey("fullscreen"));
@@ -463,7 +463,7 @@ OO_TEST(cxxSlice2API) {
              cxxView->getY_offset() == view->getY_offset());
     OO_CHECK(cxxView->getGameController() == view->getGameController());
     cxxView->setFov(45.0f, false);
-    OO_CHECK(Near(view->fov(NO), 45.0) && cxxView->fov(true) == view->fov(YES));
+    OO_CHECK(Near(view->fov(false), 45.0) && cxxView->fov(true) == view->fov(true));
     cxxView->setMsaa(true);
     OO_CHECK(view->msaa() && cxxView->msaa());
     cxxView->setMsaa(false);
@@ -516,7 +516,7 @@ OO_TEST(zzDeallocReleasesTheView) {
   {
     MyOpenGLView* view = View();
     if (view != nullptr) view->release();
-    sView = nil;
+    sView = nullptr;
   }
 }
 

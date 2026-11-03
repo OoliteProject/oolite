@@ -16,7 +16,7 @@
    lists, the motion flags) are read through the small block of helpers below,
    the one place that knows where they live. The tests after the first ones
    pin the crossing, as test_OODrawable.mm does: a C++ entity and the
-   dump-state lines. Run: bash tools/check-core-tests.sh
+   dump-state lines. Run: tests/run.sh unit
 */
 
 #include <cstdio>
@@ -95,7 +95,7 @@ class TestObjCEntity : public Entity {
   int _draws = 0;
   GLfloat _frustumRadius = 0;
   NSUInteger _session = 0;
-  BOOL _visible = NO;
+  bool _visible = false;
 };
 
 // A converted entity: a C++ subclass. Global, as a game class is, so that its
@@ -133,7 +133,7 @@ Vector CameraRelativePosition(Entity* e) { return e->cameraRelativePosition; }
 
 // --------------------------------------------------------------------------------------------------
 
-Universe* sUniverse = nil;
+Universe* sUniverse = nullptr;
 
 // What the entity logs: every class displayed, every line kept.
 std::vector<std::string> sLog;
@@ -176,7 +176,7 @@ T& UniverseIvar(const char* name) {
 // A Universe that was never initialised: the runtime zeroed it (session 0, time
 // 0, no entities).
 void SetUpUniverse() {
-  if (sUniverse == nil) {
+  if (sUniverse == nullptr) {
     sUniverse = new Universe();  // never released
   }
   gSharedUniverse = sUniverse;
@@ -184,7 +184,7 @@ void SetUpUniverse() {
   UniverseIvar<OOTimeAbsolute>("universal_time") = 0;
   sUniverse->n_entities = 0;
   sUniverse->x_list_start = sUniverse->y_list_start = sUniverse->z_list_start =
-      nil;
+      nullptr;
 }
 
 TestPlayer* SetUpPlayer(HPVector position, HPVector viewpoint) {
@@ -249,8 +249,8 @@ OO_TEST(defaults) {
     OO_CHECK(entity->collisionRadius() == 0 && entity->frustumRadius() == 0);
     OO_CHECK(entity->getUniversalID() == NO_TARGET &&
              entity->getLastDrawCounter() == 0);
-    OO_CHECK(entity->owner() == nil && entity->parentEntity() == nil &&
-             entity->rootShipEntity() == nil);
+    OO_CHECK(entity->owner() == nullptr && entity->parentEntity() == nullptr &&
+             entity->rootShipEntity() == nullptr);
     OO_CHECK(entity->getCollisionRegion() == nullptr);
     OO_CHECK(entity->getCollidingEntities() != nullptr &&
              entity->getCollidingEntities()->empty());
@@ -259,7 +259,7 @@ OO_TEST(defaults) {
     OO_CHECK(NoDrawDistance(entity) == 100000.0f);
 
     OOColor* fog = entity->fogUniform().get();
-    OO_CHECK(fog != nil);
+    OO_CHECK(fog != nullptr);
     OO_CHECK(fog->redComponent() == 0 && fog->greenComponent() == 0 &&
              fog->blueComponent() == 0 && fog->alphaComponent() == 0);
 
@@ -313,7 +313,7 @@ OO_TEST(accessors) {
     OO_CHECK(entity->getUniversalID() == 42);
     entity->setUniversalID(
         NO_TARGET);  // so that -dealloc does not ask the universe to remove it
-    entity->setThrowSparks(YES);
+    entity->setThrowSparks(true);
     OO_CHECK(entity->throwingSparks());
     entity->throwSparks();
     entity->setLastDrawCounter(17);
@@ -326,9 +326,9 @@ OO_TEST(accessors) {
     OO_CHECK(entity->zeroDistance() == 14.0 && other->zeroDistance() == 12.0);
     OO_CHECK(entity->compareZeroDistance(other) == OOOrderedAscending);
     OO_CHECK(other->compareZeroDistance(entity) == OOOrderedDescending);
-    OO_CHECK(entity->compareZeroDistance(nil) == OOOrderedDescending);
+    OO_CHECK(entity->compareZeroDistance(nullptr) == OOOrderedDescending);
 
-    OO_CHECK(!entity->checkCloseCollisionWith(nil) &&
+    OO_CHECK(!entity->checkCloseCollisionWith(nullptr) &&
              entity->checkCloseCollisionWith(other));
     entity->takeEnergyDamage(10, other, other, "EQ_WEAPON_TEST");
     OO_CHECK(entity->getEnergy() == 40);  // the root takes no damage
@@ -453,17 +453,17 @@ OO_TEST(ownersAndParents) {
       entity->setOwner(owner);
       OO_CHECK(entity->owner() == owner);
       // Not a ship with this as a subentity: no parent, and not a ship itself.
-      OO_CHECK(entity->parentEntity() == nil &&
-               entity->rootShipEntity() == nil);
-      OO_CHECK(entity->superShaderBindingTarget() == nil);
+      OO_CHECK(entity->parentEntity() == nullptr &&
+               entity->rootShipEntity() == nullptr);
+      OO_CHECK(entity->superShaderBindingTarget() == nullptr);
       oo::ReleaseEntity(owner);
     }
-    OO_CHECK(entity->owner() == nil);  // held weakly
+    OO_CHECK(entity->owner() == nullptr);  // held weakly
 
     entity->setOwner(entity);
     OO_CHECK(entity->owner() == entity);
-    entity->setOwner(nil);
-    OO_CHECK(entity->owner() == nil);
+    entity->setOwner(nullptr);
+    OO_CHECK(entity->owner() == nullptr);
     CaptureLog();
     entity->dumpState();
     OO_CHECK(Logged("State for <Entity 0x") && Logged("Universal ID: 0") &&
@@ -495,19 +495,19 @@ OO_TEST(linkedLists) {
     Entity* c = MakeEntity(make_HPvector(30, 20, 10), 1.0f);
 
     a->updateLinkedLists();  // not in the lists: nothing happens
-    OO_CHECK(XNext(a) == nil && sUniverse->x_list_start == nil);
+    OO_CHECK(XNext(a) == nullptr && sUniverse->x_list_start == nullptr);
 
     a->addToLinkedLists();
     b->addToLinkedLists();
     c->addToLinkedLists();
     sUniverse->n_entities = 3;
     OO_CHECK(sUniverse->x_list_start == a && XNext(a) == b && XNext(b) == c &&
-             XNext(c) == nil);
-    OO_CHECK(XPrevious(a) == nil && XPrevious(b) == a && XPrevious(c) == b);
+             XNext(c) == nullptr);
+    OO_CHECK(XPrevious(a) == nullptr && XPrevious(b) == a && XPrevious(c) == b);
     OO_CHECK(sUniverse->y_list_start == b && YNext(b) == c && YNext(c) == a &&
-             YNext(a) == nil);
+             YNext(a) == nullptr);
     OO_CHECK(sUniverse->z_list_start == c && ZNext(c) == a && ZNext(a) == b &&
-             ZNext(b) == nil);
+             ZNext(b) == nullptr);
 
     // Moving b to the far end of x re-sorts it, and the lists still check.
 #ifndef NDEBUG
@@ -517,7 +517,7 @@ OO_TEST(linkedLists) {
     b->setPosition(make_HPvector(40, 10, 30));
     b->updateLinkedLists();
     OO_CHECK(sUniverse->x_list_start == a && XNext(a) == c && XNext(c) == b &&
-             XNext(b) == nil);
+             XNext(b) == nullptr);
     OO_CHECK(XPrevious(b) == c && XPrevious(c) == a);
     OO_CHECK(sUniverse->y_list_start == b && YNext(b) == c);
 
@@ -526,7 +526,7 @@ OO_TEST(linkedLists) {
     OO_CHECK(sUniverse->x_list_start == a && XNext(a) == b &&
              XPrevious(b) == a);
     OO_CHECK(sUniverse->z_list_start == a && ZNext(a) == b);
-    OO_CHECK(XNext(c) == nil && XPrevious(c) == nil);
+    OO_CHECK(XNext(c) == nullptr && XPrevious(c) == nullptr);
     c->removeFromLinkedLists();  // removed already: nothing happens
 #ifndef NDEBUG
     OO_CHECK(Logged("DEBUG removing entity <Entity 0x") &&
@@ -540,7 +540,7 @@ OO_TEST(linkedLists) {
     a->setPosition(make_HPvector(50, 30, 20));
     a->updateLinkedLists();
     OO_CHECK(sUniverse->x_list_start == a && XNext(b) == a &&
-             XPrevious(a) == b && XPrevious(b) == nil);
+             XPrevious(a) == b && XPrevious(b) == nullptr);
 
     a->removeFromLinkedLists();
     b->removeFromLinkedLists();
@@ -570,8 +570,8 @@ OO_TEST(sessionAndShaderBindings) {
         OOColor::colorWithRed(0.25f, 0.5f, 0.75f, 1.0f).get());
     OO_CHECK(entity->fogUniform().get()->greenComponent() == 0.5f &&
              entity->fogUniform().get()->alphaComponent() == 1.0f);
-    entity->setAtmosphereFogging(nil);
-    OO_CHECK(entity->fogUniform().get() == nil);
+    entity->setAtmosphereFogging(nullptr);
+    OO_CHECK(entity->fogUniform().get() == nullptr);
 
 #ifndef NDEBUG
     OO_CHECK(entity->allTextures().empty());
@@ -624,7 +624,7 @@ OO_TEST(objCSubclassOverrides) {
     entity->drawImmediate(false, false);
     OO_CHECK(entity->_draws == 1);
 #ifndef NDEBUG
-    entity->_visible = NO;
+    entity->_visible = false;
     OO_CHECK(
         entity->descriptionForObjDump()->ends_with("range: 10 (visible: no)"));
     OO_CHECK(entity->descriptionForObjDumpBasic()->starts_with(
@@ -647,7 +647,7 @@ OO_TEST(rootDefaultsForSubclassResponsibilities) {
     OO_CHECK(sLog.size() == 2);
     entity->warnAboutHostiles();
     OO_CHECK(Logged("***** Entity does nothing in warnAboutHostiles"));
-    entity->subEntityReallyDied(nil);
+    entity->subEntityReallyDied(nullptr);
     OO_CHECK(Logged("called for non-ship entity"));
   }
 }
@@ -661,7 +661,7 @@ OO_TEST(liveEntityCount) {
 
     const uint32_t count = gLiveEntityCount;
     const size_t memory = gTotalEntityMemory;
-    Entity* entity = nil;
+    Entity* entity = nullptr;
     {
       oo::AutoreleaseScope scope;
       entity = oo::RetainEntity(oo::MadeEntity(
@@ -768,7 +768,7 @@ OO_TEST(dumpStateOwnerLines) {
     sLog.clear();
     entity->dumpState();
     OO_CHECK(Logged("Owner: self") && Logged("Flags: isSunlit"));
-    entity->setOwner(nil);
+    entity->setOwner(nullptr);
   }
 }
 

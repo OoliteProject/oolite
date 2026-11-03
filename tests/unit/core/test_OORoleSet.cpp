@@ -5,7 +5,7 @@
    thargon rewrite), the normalised role string, lookups, the two role orders,
    the weighted pick, the modified copies (and which of them return the receiver
    itself), equality, and the description. The checks ask the C++ class. Run:
-   bash tools/check-core-tests.sh
+   tests/run.sh unit
 */
 
 #include "OODescription.h"

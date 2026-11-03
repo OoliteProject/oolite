@@ -1806,6 +1806,3 @@ inline std::string formatRuntime(std::string_view fmt)
 }
 
 } // namespace oo::str
-
-#pragma pop_macro("false")
-#pragma pop_macro("true")

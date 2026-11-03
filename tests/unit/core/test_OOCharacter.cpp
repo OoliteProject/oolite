@@ -11,7 +11,7 @@
 	that abort. The RNG is the game's own (legacy_random.c), reseeded by each test.
 	The tests ask the C++ class (its factories' oo::Ref held), with the C++ class's own cases at
 	the end.
-	Run: bash tools/check-core-tests.sh
+	Run: tests/run.sh unit
 */
 
 #include "OOCharacter.h"
@@ -67,7 +67,7 @@ std::optional<std::string> Universe::getSystemInhabitants(OOSystemID sys, bool /
 	return (sys % 2 == 0) ? " Human Colonials " : "Furry Felines";
 }
 
-Universe *gSharedUniverse = nil;
+Universe *gSharedUniverse = nullptr;
 
 
 // The expander: "%R" gives R1, R2, ... in call order; a key gives <key>, with the species and planet
@@ -123,7 +123,7 @@ void Reseed()
 
 void Fake()
 {
-	if (gSharedUniverse == nil)  gSharedUniverse = new StandInUniverse();
+	if (gSharedUniverse == nullptr)  gSharedUniverse = new StandInUniverse();
 	Reseed();
 }
 
@@ -208,17 +208,17 @@ OO_TEST(generatedCharacters)
 
 OO_TEST(roles)
 {
-	struct { const char *role; BOOL cast; const char *rest; } const cases[] =
+	struct { const char *role; bool cast; const char *rest; } const cases[] =
 	{
-		{ "Pirate captain", YES, "|8|250|4|human colonials" },	// a prefix, any case
-		{ "trader", YES, "|0|250|4|human colonials" },
-		{ "hunter", YES, "|0|250|4|human colonials" },
-		{ "police", YES, "|0|125|4|human colonials" },
-		{ "miner", YES, "|0|25|4|human colonials" },
-		{ "passenger", YES, "|0|250|4|human colonials" },
-		{ "slave", YES, "|0|0|4|human colonials" },
-		{ "miner-x", NO, "|0|250|4|human colonials" },			// miner is exact
-		{ "nobody", NO, "|0|250|4|human colonials" },
+		{ "Pirate captain", true, "|8|250|4|human colonials" },	// a prefix, any case
+		{ "trader", true, "|0|250|4|human colonials" },
+		{ "hunter", true, "|0|250|4|human colonials" },
+		{ "police", true, "|0|125|4|human colonials" },
+		{ "miner", true, "|0|25|4|human colonials" },
+		{ "passenger", true, "|0|250|4|human colonials" },
+		{ "slave", true, "|0|0|4|human colonials" },
+		{ "miner-x", false, "|0|250|4|human colonials" },			// miner is exact
+		{ "nobody", false, "|0|250|4|human colonials" },
 	};
 	{
 		for (const auto &c : cases)
@@ -270,7 +270,7 @@ OO_TEST(dictionaries)
 			{ "script_actions", oo::PList(oo::PList::Array{ oo::PList("doSomething") }) } });
 		OO_CHECK(Same(Describe(c), "Jameson|a commander|20|300|4|human colonials"));
 		OO_CHECK(c->legacyScript() == oo::PList(oo::PList::Array{ oo::PList("doSomething") }));
-		OO_CHECK(c->script() == nil);
+		OO_CHECK(c->script() == nullptr);
 		OO_CHECK(c->descriptionComponents() == std::optional<std::string>("Jameson, a commander. bounty: 20 insurance: 300"));
 		OO_CHECK(c->oo_jsClassName() == std::optional<std::string>("Character"));
 	}
@@ -335,7 +335,7 @@ OO_TEST(cxxClass)
 	OO_CHECK(Same(Describe(c.get()), kHuman4 + "|0|125|4|human colonials"));
 	OO_CHECK(c->descriptionComponents() == std::optional<std::string>("R1 <nom>, <character-generic-description species=human colonials planet=System 4>. bounty: 0 insurance: 125"));
 	OO_CHECK(c->oo_jsClassName() == std::optional<std::string>("Character"));
-	OO_CHECK(c->script() == nil);
+	OO_CHECK(c->script() == nullptr);
 	OO_CHECK(c->infoForScripting().count() == 6);
 
 	// [[OOCharacter alloc] init]: every field zero.

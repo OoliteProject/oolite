@@ -195,7 +195,7 @@ void OOMusicController::toggleDockingMusic()
 
 ::OOSoundSource* OOMusicController::soundSource()
 {
-    return _current ? _current->musicSoundSource() : nil;
+    return _current ? _current->musicSoundSource() : nullptr;
 }
 
 std::optional<std::string> OOMusicController::playingMusic()
@@ -282,7 +282,7 @@ void OOMusicController::playiTunesPlaylist(const char* playlistNameUTF8)
             playlistName];
 
     NSAppleScript* ootunesScript = [[[NSAppleScript alloc] initWithSource:ootunesScriptString] autorelease];
-    NSDictionary* errDict = nil;
+    NSDictionary* errDict = nullptr;
 
     [ootunesScript executeAndReturnError:&errDict];
     if (errDict)
@@ -293,7 +293,7 @@ void OOMusicController::pauseiTunes()
 {
     NSString* ootunesScriptString = [NSString stringWithFormat:@"try\nignoring application responses\ntell application \"iTunes\" to pause\nend ignoring\nend try"];
     NSAppleScript* ootunesScript = [[NSAppleScript alloc] initWithSource:ootunesScriptString];
-    NSDictionary* errDict = nil;
+    NSDictionary* errDict = nullptr;
     [ootunesScript executeAndReturnError:&errDict];
     if (errDict)
         OO_LOG("sound.music.iTunesIntegration.failed", "ootunes returned :{}", oo::DescriptionOf(errDict));

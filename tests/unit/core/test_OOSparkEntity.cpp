@@ -46,14 +46,14 @@ T* NewTestPlayer() {
   return player.get();
 }
 
-static Entity* sRemoved = nil;
+static Entity* sRemoved = nullptr;
 
 // UNIVERSE: never initialised; records what is removed.
 class TestUniverse : public Universe {
  public:
   bool removeEntity(Entity* entity) override {
     sRemoved = entity;
-    return YES;
+    return true;
   }
 };
 
@@ -79,15 +79,15 @@ const GLfloat* ColorComponents(Entity* e) {
 // --------------------------------------------------------------------------------------------------
 
 void SetUp() {
-  static Universe* universe = nil;
-  if (universe == nil) {
+  static Universe* universe = nullptr;
+  if (universe == nullptr) {
     universe = new TestUniverse();  // never released
   }
   gSharedUniverse = universe;
   static TestPlayer* player = nullptr;
   if (player == nullptr) player = NewTestPlayer<TestPlayer>();
   gOOPlayer = player;
-  sRemoved = nil;
+  sRemoved = nullptr;
 }
 
 bool Near(GLfloat a, GLfloat b) { return fabs(a - b) < 1e-5; }
@@ -105,7 +105,7 @@ OO_TEST(initWithPosition) {
     oo::Ref<OOColor> color = OOColor::colorWithRed(0.2f, 0.4f, 0.6f, 0.8f);
     Entity* spark = MakeSpark(make_HPvector(1, 2, 3), make_vector(10, 0, 0),
                               2.0, 4.0f, color.get());
-    OO_CHECK(spark != nil);
+    OO_CHECK(spark != nullptr);
     OO_CHECK(HPvector_equal(spark->getPosition(), make_HPvector(1, 2, 3)));
     OO_CHECK(vector_equal(spark->getVelocity(), make_vector(10, 0, 0)));
     OO_CHECK(spark->collisionRadius() == 2.0f &&
@@ -129,7 +129,7 @@ OO_TEST(fadesTowardsRedAndIsRemoved) {
     spark->update(1.0);
     OO_CHECK(ComponentsAre(spark, 0.6f, 0.2f, 0.3f, 0.4f));
     OO_CHECK(HPvector_equal(spark->getPosition(), make_HPvector(11, 2, 3)));
-    OO_CHECK(sRemoved == nil);
+    OO_CHECK(sRemoved == nullptr);
 
     // Gone: red, transparent, and removed from the universe.
     spark->update(1.5);

@@ -42,7 +42,7 @@ MA 02110-1301, USA.
 #define GUI_ROW_STICKPROFILE_POWER 4
 #define GUI_ROW_STICKPROFILE_PARAM 5
 
-static BOOL stickProfileArrow_pressed;
+static bool stickProfileArrow_pressed;
 
 namespace {
 
@@ -95,7 +95,7 @@ void PlayerEntity::stickProfileInputHandler(::GuiDisplayGen* gui, ::MyOpenGLView
     if (checkKeyPress(n_key_gui_select) && gui->getSelectedRow() == GUI_ROW_STICKPROFILE_BACK) {
         if (stickProfileScreen != nullptr)
             stickProfileScreen->saveSettings();
-        setGuiToStickMapperScreen(0, YES);
+        setGuiToStickMapperScreen(0, true);
     }
     switch (gui->getSelectedRow()) {
     case GUI_ROW_STICKPROFILE_AXIS:
@@ -103,16 +103,16 @@ void PlayerEntity::stickProfileInputHandler(::GuiDisplayGen* gui, ::MyOpenGLView
             if (!stickProfileArrow_pressed && !checkKeyPress(n_key_gui_arrow_right)) {
                 if (stickProfileScreen != nullptr)
                     stickProfileScreen->previousAxis();
-                stickProfileArrow_pressed = YES;
+                stickProfileArrow_pressed = true;
             }
         } else if (checkKeyPress(n_key_gui_arrow_right)) {
             if (!stickProfileArrow_pressed && !checkKeyPress(n_key_gui_arrow_left)) {
                 if (stickProfileScreen != nullptr)
                     stickProfileScreen->nextAxis();
-                stickProfileArrow_pressed = YES;
+                stickProfileArrow_pressed = true;
             }
         } else {
-            stickProfileArrow_pressed = NO;
+            stickProfileArrow_pressed = false;
         }
         break;
 
@@ -121,16 +121,16 @@ void PlayerEntity::stickProfileInputHandler(::GuiDisplayGen* gui, ::MyOpenGLView
             if (!stickProfileArrow_pressed && !checkKeyPress(n_key_gui_arrow_right)) {
                 if (stickProfileScreen != nullptr)
                     stickProfileScreen->decreaseDeadzone();
-                stickProfileArrow_pressed = YES;
+                stickProfileArrow_pressed = true;
             }
         } else if (checkKeyPress(n_key_gui_arrow_right)) {
             if (!stickProfileArrow_pressed && !checkKeyPress(n_key_gui_arrow_left)) {
                 if (stickProfileScreen != nullptr)
                     stickProfileScreen->increaseDeadzone();
-                stickProfileArrow_pressed = YES;
+                stickProfileArrow_pressed = true;
             }
         } else {
-            stickProfileArrow_pressed = NO;
+            stickProfileArrow_pressed = false;
         }
         break;
 
@@ -139,16 +139,16 @@ void PlayerEntity::stickProfileInputHandler(::GuiDisplayGen* gui, ::MyOpenGLView
             if (!stickProfileArrow_pressed && !checkKeyPress(n_key_gui_arrow_right)) {
                 if (stickProfileScreen != nullptr)
                     stickProfileScreen->previousProfileType();
-                stickProfileArrow_pressed = YES;
+                stickProfileArrow_pressed = true;
             }
         } else if (checkKeyPress(n_key_gui_arrow_right)) {
             if (!stickProfileArrow_pressed && !checkKeyPress(n_key_gui_arrow_left)) {
                 if (stickProfileScreen != nullptr)
                     stickProfileScreen->nextProfileType();
-                stickProfileArrow_pressed = YES;
+                stickProfileArrow_pressed = true;
             }
         } else {
-            stickProfileArrow_pressed = NO;
+            stickProfileArrow_pressed = false;
         }
         break;
     }
@@ -159,32 +159,32 @@ void PlayerEntity::stickProfileInputHandler(::GuiDisplayGen* gui, ::MyOpenGLView
                 if (!stickProfileArrow_pressed && !checkKeyPress(n_key_gui_arrow_right)) {
                     if (stickProfileScreen != nullptr)
                         stickProfileScreen->DecreasePower();
-                    stickProfileArrow_pressed = YES;
+                    stickProfileArrow_pressed = true;
                 }
             } else if (checkKeyPress(n_key_gui_arrow_right)) {
                 if (!stickProfileArrow_pressed && !checkKeyPress(n_key_gui_arrow_left)) {
                     if (stickProfileScreen != nullptr)
                         stickProfileScreen->IncreasePower();
-                    stickProfileArrow_pressed = YES;
+                    stickProfileArrow_pressed = true;
                 }
             } else {
-                stickProfileArrow_pressed = NO;
+                stickProfileArrow_pressed = false;
             }
         } else if (gui->getSelectedRow() == GUI_ROW_STICKPROFILE_PARAM) {
             if (checkKeyPress(n_key_gui_arrow_left)) {
                 if (!stickProfileArrow_pressed && !checkKeyPress(n_key_gui_arrow_right)) {
                     if (stickProfileScreen != nullptr)
                         stickProfileScreen->DecreaseParam();
-                    stickProfileArrow_pressed = YES;
+                    stickProfileArrow_pressed = true;
                 }
             } else if (checkKeyPress(n_key_gui_arrow_right)) {
                 if (!stickProfileArrow_pressed && !checkKeyPress(n_key_gui_arrow_left)) {
                     if (stickProfileScreen != nullptr)
                         stickProfileScreen->IncreaseParam();
-                    stickProfileArrow_pressed = YES;
+                    stickProfileArrow_pressed = true;
                 }
             } else {
-                stickProfileArrow_pressed = NO;
+                stickProfileArrow_pressed = false;
             }
         }
     }
@@ -463,8 +463,11 @@ void StickProfileScreen::graphProfile(GLfloat alpha, Vector at, NSSize size)
         }
     }
     OOGL(glColor4f(0.9, 0.9, 0.0, alpha));
-    cxx_OODrawStringAligned(OO_DESC("oolite-stickprofile-movement"), at.x + size.width - 5, at.y, at.z, NSMakeSize(8, 10), YES);
-    cxx_OODrawString(OO_DESC("oolite-stickprofile-response"), at.x, at.y + size.height - 10, at.z, NSMakeSize(8, 10));
+    cxx_OODrawStringAligned(OO_DESC("oolite-stickprofile-movement"),
+        at.x + size.width - 5, at.y, at.z, NSMakeSize(8, 10),
+        true);
+    cxx_OODrawString(OO_DESC("oolite-stickprofile-response"), at.x,
+        at.y + size.height - 10, at.z, NSMakeSize(8, 10));
     return;
 }
 

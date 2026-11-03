@@ -10,7 +10,7 @@
 	as a number, any other string as itself, a missing one as null, a name with a leading underscore
 	as nothing), writing one (as its string, null clearing it, a bad name an error), delete,
 	enumeration (only mission_ keys, in key order), and a native's exception. Run: bash
-	tools/check-core-tests.sh
+	tests/run.sh unit
 */
 
 #include "oofnd/objc/OOObject.h"
@@ -167,7 +167,7 @@ PlayerEntity *gOOPlayer = nullptr;
 
 PlayerEntity *OOPlayerForScripting(void)
 {
-	sPlayer->setScriptTarget(nil);	// in the game the player's Objective-C object; the stand-in only counts
+	sPlayer->setScriptTarget(nullptr);	// in the game the player's Objective-C object; the stand-in only counts
 	return sPlayer;
 }
 

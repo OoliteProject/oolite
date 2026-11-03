@@ -74,7 +74,7 @@ int RawSpecularExponentValue(const oo::PList& configuration)
 oo::Ref<OOColor> cxx_OOMaterialDiffuseColor(const oo::PList& configuration)
 {
     oo::Ref<OOColor> result = ColorFor(configuration, cxx_kOOMaterialDiffuseColorName);
-    if (result == nil)
+    if (result == nullptr)
         result = ColorFor(configuration, cxx_kOOMaterialDiffuseColorLegacyName);
 
     if (result != nullptr && result->isWhite())
@@ -85,7 +85,7 @@ oo::Ref<OOColor> cxx_OOMaterialDiffuseColor(const oo::PList& configuration)
 oo::Ref<OOColor> cxx_OOMaterialAmbientColor(const oo::PList& configuration)
 {
     oo::Ref<OOColor> result = ColorFor(configuration, cxx_kOOMaterialAmbientColorName);
-    if (result == nil)
+    if (result == nullptr)
         result = ColorFor(configuration, cxx_kOOMaterialAmbientColorLegacyName);
     return result;
 }
@@ -93,9 +93,9 @@ oo::Ref<OOColor> cxx_OOMaterialAmbientColor(const oo::PList& configuration)
 oo::Ref<OOColor> cxx_OOMaterialSpecularColor(const oo::PList& configuration)
 {
     oo::Ref<OOColor> result = ColorFor(configuration, cxx_kOOMaterialSpecularColorName);
-    if (result == nil)
+    if (result == nullptr)
         result = ColorFor(configuration, cxx_kOOMaterialSpecularColorLegacyName);
-    if (result == nil) {
+    if (result == nullptr) {
         result = OOColor::colorWithWhite(0.2f, 1.0f);
     }
     return result;
@@ -104,7 +104,7 @@ oo::Ref<OOColor> cxx_OOMaterialSpecularColor(const oo::PList& configuration)
 oo::Ref<OOColor> cxx_OOMaterialSpecularModulateColor(const oo::PList& configuration)
 {
     oo::Ref<OOColor> result = ColorFor(configuration, cxx_kOOMaterialSpecularModulateColorName);
-    if (result == nil)
+    if (result == nullptr)
         result = OOColor::whiteColor();
 
     return result;
@@ -113,7 +113,7 @@ oo::Ref<OOColor> cxx_OOMaterialSpecularModulateColor(const oo::PList& configurat
 oo::Ref<OOColor> cxx_OOMaterialEmissionColor(const oo::PList& configuration)
 {
     oo::Ref<OOColor> result = ColorFor(configuration, cxx_kOOMaterialEmissionColorName);
-    if (result == nil)
+    if (result == nullptr)
         result = ColorFor(configuration, cxx_kOOMaterialEmissionColorLegacyName);
 
     if (result != nullptr && result->isBlack())

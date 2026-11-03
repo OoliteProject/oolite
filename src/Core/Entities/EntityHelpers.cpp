@@ -170,7 +170,7 @@ bool oo::EntityIsShipWithSubEntityShip(Entity* entity, Entity* other)
     if (ShipEntity* ship = ShipPart(entity))
         return ship->isShipWithSubEntityShip(other);
     OOVisualEffectEntity* effect = EffectPart(entity);
-    return effect != nullptr ? effect->isShipWithSubEntityShip(other) : NO;
+    return effect != nullptr ? effect->isShipWithSubEntityShip(other) : false;
 }
 
 bool oo::EntityIsBeacon(Entity* entity)
@@ -180,7 +180,7 @@ bool oo::EntityIsBeacon(Entity* entity)
     if (OOVisualEffectEntity* effect = EffectPart(entity))
         return effect->isBeacon();
     OOWaypointEntity* waypoint = WaypointPart(entity);
-    return waypoint != nullptr ? waypoint->isBeacon() : NO;
+    return waypoint != nullptr ? waypoint->isBeacon() : false;
 }
 
 /*	The beacon category (Entity (OOWaypointBeacon)) answered these for the ship's, the visual
@@ -281,7 +281,7 @@ bool oo::BeaconIsJammingScanning(Entity* beacon)
         return effect->isJammingScanning();
     if (OOWaypointEntity* waypoint = WaypointPart(beacon))
         return waypoint->isJammingScanning();
-    return NO;
+    return false;
 }
 
 OOHUDBeaconIcon* oo::BeaconDrawable(Entity* beacon)

@@ -15,7 +15,7 @@
 	overriding the members; the test
 	reads and sets the members directly. The case after those pins the crossing: the player's object
 	is a ship whose C++ part is the player, and it answers the player's selectors called by name.
-	Run: bash tools/check-core-tests.sh test_PlayerEntity
+	Run: bash meson test -C build/meson_test test_PlayerEntity
 */
 
 #include "PlayerEntity.h"
@@ -150,7 +150,7 @@ namespace {
 int sShipSetUps = 0;
 oo::PList sShipSetUpDict;
 int sPlayerSetUps = 0;
-BOOL sPlayerSetUpStopOnError = YES;
+bool sPlayerSetUpStopOnError = true;
 int sInitControls = 0;
 
 }	// namespace
@@ -166,7 +166,7 @@ public:
 	{
 		sShipSetUps++;
 		sShipSetUpDict = dict;
-		return YES;
+		return true;
 	}
 
 
@@ -174,7 +174,7 @@ public:
 	{
 		sPlayerSetUps++;
 		sPlayerSetUpStopOnError = stopOnError;
-		return YES;
+		return true;
 	}
 
 
@@ -189,7 +189,7 @@ public:
 class TestMissile : public ShipEntity
 {
 public:
-	bool setUpShipFromDictionary(const oo::PList &dict) override	{ (void)dict; return YES; }
+	bool setUpShipFromDictionary(const oo::PList &dict) override	{ (void)dict; return true; }
 };
 
 
@@ -197,8 +197,8 @@ namespace {
 
 void SetUp()
 {
-	static Universe *universe = nil;
-	if (universe == nil)
+	static Universe *universe = nullptr;
+	if (universe == nullptr)
 	{
 		universe = new Universe();	// never released
 	}
@@ -210,7 +210,7 @@ void SetUp()
 	sShipSetUps = 0;
 	sShipSetUpDict = oo::PList();
 	sPlayerSetUps = 0;
-	sPlayerSetUpStopOnError = YES;
+	sPlayerSetUpStopOnError = true;
 	sInitControls = 0;
 }
 
@@ -314,8 +314,8 @@ OO_TEST(deferredInit)
 		OO_CHECK(player->getCompassMode() == COMPASS_MODE_BASIC);
 		OO_CHECK(!PlayerEntityTestAccess::scoopsActive(player) && PlayerEntityTestAccess::target_memory_index(player) == 0);
 		OO_CHECK(!PlayerEntityTestAccess::save_path(player).has_value());
-		for (int i = 0; i < PLAYER_MAX_MISSILES; i++)  OO_CHECK(PlayerEntityTestAccess::missile_entity(player)[i] == nil);
-		OO_CHECK(sPlayerSetUps == 1 && sPlayerSetUpStopOnError == NO);
+		for (int i = 0; i < PLAYER_MAX_MISSILES; i++)  OO_CHECK(PlayerEntityTestAccess::missile_entity(player)[i] == nullptr);
+		OO_CHECK(sPlayerSetUps == 1 && sPlayerSetUpStopOnError == false);
 		OO_CHECK(sInitControls == 1);
 
 		gOOPlayer = nullptr;
@@ -333,7 +333,7 @@ OO_TEST(deallocReleasesWhatThePlayerHeld)
 {
 	// The missile's object (+1, as +alloc/-init's was); nothing autoreleases it
   // again.
-	Entity *missile = nil;
+	Entity *missile = nullptr;
 	{
 		oo::AutoreleaseScope scope;
 		SetUp();
@@ -366,7 +366,7 @@ OO_TEST(playerObjectIsAShipWhosePartIsThePlayer)
 		OO_CHECK(!oo::EntityRespondsToName(player, "noSuchPlayerSelector"));
 
 		::ShipEntity *ship = static_cast<TestMissile *>(oo::ToShip(oo::NewShipObject(oo::makeRef<TestMissile>(), "missile", oo::PList())));
-		OO_CHECK(ship != nil && !oo::EntityRespondsToName(ship, "commanderName_string"));
+		OO_CHECK(ship != nullptr && !oo::EntityRespondsToName(ship, "commanderName_string"));
 		oo::ReleaseEntity(ship);
 		Release(player);
 	}
@@ -381,9 +381,9 @@ OO_TEST(membersStartZeroed)
 		SetUp();
 		TestPlayer *player = NewTestPlayer<TestPlayer>();
 		PlayerEntity *part = player;
-		OO_CHECK(PlayerEntityTestAccess::hud(part) == nil && PlayerEntityTestAccess::compassTarget(part).get() == nullptr && PlayerEntityTestAccess::wormhole(part) == nil);
-		OO_CHECK(PlayerEntityTestAccess::system_id(part) == 0 && PlayerEntityTestAccess::ship_clock(part) == 0 && PlayerEntityTestAccess::scoopsActive(part) == NO);
-		for (int i = 0; i < PLAYER_MAX_MISSILES; i++)  OO_CHECK(PlayerEntityTestAccess::missile_entity(part)[i] == nil);
+		OO_CHECK(PlayerEntityTestAccess::hud(part) == nullptr && PlayerEntityTestAccess::compassTarget(part).get() == nullptr && PlayerEntityTestAccess::wormhole(part) == nullptr);
+		OO_CHECK(PlayerEntityTestAccess::system_id(part) == 0 && PlayerEntityTestAccess::ship_clock(part) == 0 && PlayerEntityTestAccess::scoopsActive(part) == false);
+		for (int i = 0; i < PLAYER_MAX_MISSILES; i++)  OO_CHECK(PlayerEntityTestAccess::missile_entity(part)[i] == nullptr);
 		OO_CHECK(!PlayerEntityTestAccess::save_path(part).has_value() && PlayerEntityTestAccess::worldScripts(part).empty());
 		Release(player);
 	}
@@ -435,7 +435,7 @@ OO_TEST(slice2Accessors)
 		SetUp();
 		TestPlayer *player = MakePlayer();
 		PlayerEntity *part = player;
-		OO_CHECK(player->getShipCommodityData() == nil);
+		OO_CHECK(player->getShipCommodityData() == nullptr);
 		PlayerEntityTestAccess::credits(part) = 1234;
 		OO_CHECK(player->deciCredits() == 1234);
 		player->setRandom_factor(77);
@@ -525,7 +525,7 @@ OO_TEST(slice3TargetAndInfoSystems)
 		OO_CHECK(player->targetSystemID() == 9);
 		OO_CHECK(player->nextHopTargetSystemID() == 9);
 		OO_CHECK(player->infoSystemID() == 11);
-		player->setInfoSystemID(11, YES);	// the same system: nothing changes
+		player->setInfoSystemID(11, true);	// the same system: nothing changes
 		OO_CHECK(player->infoSystemID() == 11);
 	}
 }
@@ -680,8 +680,8 @@ OO_TEST(slice9HyperspeedFlags)
 		TestPlayer *player = MakePlayer();
 		PlayerEntity *part = player;
 		OO_CHECK(!player->injectorsEngaged() && !player->hyperspeedEngaged());
-		PlayerEntityTestAccess::afterburner_engaged(part) = YES;
-		PlayerEntityTestAccess::hyperspeed_engaged(part) = YES;
+		PlayerEntityTestAccess::afterburner_engaged(part) = true;
+		PlayerEntityTestAccess::hyperspeed_engaged(part) = true;
 		OO_CHECK(player->injectorsEngaged() && player->hyperspeedEngaged());
 #if OO_VARIABLE_TORUS_SPEED
 		PlayerEntityTestAccess::hyperspeedFactor(part) = 4.5f;
@@ -711,9 +711,9 @@ OO_TEST(slice10OrientationFlagsAndShields)
 		OO_CHECK(player->getOrientation().w == -q.w);
 		player->setOcclusionLevel(0.75f);
 		OO_CHECK(player->occlusionLevel() == 0.75f);
-		player->setShowDemoShips(YES);
+		player->setShowDemoShips(true);
 		OO_CHECK(player->getShowDemoShips());
-		PlayerEntityTestAccess::travelling_at_hyperspeed(part) = YES;
+		PlayerEntityTestAccess::travelling_at_hyperspeed(part) = true;
 		OO_CHECK(player->atHyperspeed());
 		PlayerEntityTestAccess::alertFlags(part) = ALERT_FLAG_MASS_LOCK;
 		OO_CHECK(player->massLocked());
@@ -786,7 +786,7 @@ OO_TEST(slice11ClockFuelLeakAndRoles)
 // The missile count counts the occupied pylons up to the ship's maximum.
 OO_TEST(slice11CountMissiles)
 {
-	TestMissile *missile = nil;
+	TestMissile *missile = nullptr;
 	{
 		oo::AutoreleaseScope scope;
 		SetUp();
@@ -817,13 +817,13 @@ OO_TEST(slice12CompassIdentAndAlertFlags)
 		TestPlayer *player = MakePlayer();
 		player->setCompassMode(COMPASS_MODE_TARGET);
 		OO_CHECK(player->getCompassMode() == COMPASS_MODE_TARGET);
-		player->setDialIdentEngaged((BOOL)3);
+		player->setDialIdentEngaged((bool)3);
 		OO_CHECK(player->dialIdentEngaged());
 		player->max_missiles = 5;
 		OO_CHECK(player->dialMaxMissiles() == 5);
-		player->setAlertFlag(ALERT_FLAG_MASS_LOCK, YES);
+		player->setAlertFlag(ALERT_FLAG_MASS_LOCK, true);
 		OO_CHECK((player->getAlertFlags() & ALERT_FLAG_MASS_LOCK) != 0);
-		player->setAlertFlag(ALERT_FLAG_MASS_LOCK, NO);
+		player->setAlertFlag(ALERT_FLAG_MASS_LOCK, false);
 		OO_CHECK((player->getAlertFlags() & ALERT_FLAG_MASS_LOCK) == 0);
 		PlayerEntityTestAccess::alertFlags(player) = 0x7;
 		player->clearAlertFlags();
@@ -846,9 +846,9 @@ OO_TEST(slice13FleeingAndWeaponsOnline)
 		PlayerEntity *part = player;
 		PlayerEntityTestAccess::fleeing_status(part) = PLAYER_FLEEING_CARGO;
 		OO_CHECK(player->fleeingStatus() == PLAYER_FLEEING_CARGO);
-		player->setWeaponsOnline(YES);
+		player->setWeaponsOnline(true);
 		OO_CHECK(player->weaponsOnline());
-		player->setWeaponsOnline(NO);
+		player->setWeaponsOnline(false);
 		OO_CHECK(!player->weaponsOnline());
 	}
 }
@@ -937,7 +937,7 @@ public:
 	bool setWeaponMount(OOWeaponFacing facing, const std::string &eqKey, const std::optional<std::string> &context) override
 	{
 		sSent.count++; sSent.number = (int)facing; sSent.text = eqKey; sSent.optionalText = context;
-		return YES;
+		return true;
 	}
 
 
@@ -950,7 +950,7 @@ public:
 	bool addEquipmentItem(const std::string &equipmentKey, bool validateAddition, const std::string &context) override
 	{
 		sSent.count++; sSent.text = equipmentKey + "/" + context; sSent.flag = validateAddition;
-		return YES;
+		return true;
 	}
 
 
@@ -1034,9 +1034,9 @@ OO_TEST(slice16JumpTypeAndFuel)
 		oo::AutoreleaseScope scope;
 		SetUp();
 		RecordingPlayer *player = MakeRecordingPlayer();
-		player->setJumpType(YES);
+		player->setJumpType(true);
 		OO_CHECK(PlayerEntityTestAccess::galactic_witchjump(player));
-		player->setJumpType(NO);
+		player->setJumpType(false);
 		OO_CHECK(!PlayerEntityTestAccess::galactic_witchjump(player));
 		player->fuel = 70;
 		sSent.number = 50;
@@ -1192,9 +1192,9 @@ OO_TEST(slice24FlagsAndAddEquipment)
 		PlayerEntity *part = player;
 		PlayerEntityTestAccess::gui_screen(part) = GUI_SCREEN_MARKET;
 		OO_CHECK(player->guiScreen() == GUI_SCREEN_MARKET);
-		PlayerEntityTestAccess::using_mining_laser(part) = YES;
+		PlayerEntityTestAccess::using_mining_laser(part) = true;
 		OO_CHECK(player->isMining());
-		PlayerEntityTestAccess::using_mining_laser(part) = NO;
+		PlayerEntityTestAccess::using_mining_laser(part) = false;
 		OO_CHECK(!player->isMining());
 		PlayerEntityTestAccess::isSpeechOn(part) = OOSPEECHSETTINGS_ALL;
 		OO_CHECK(player->getIsSpeechOn() == OOSPEECHSETTINGS_ALL);
@@ -1300,7 +1300,7 @@ OO_TEST(slice27CustomViewHyperspaceAndNames)
 		OO_CHECK(Near(player->getGalacticHyperspaceFixedCoords(), NSMakePoint(255, 12)));
 		player->setMissionExitScreen(GUI_SCREEN_STATUS);
 		OO_CHECK(player->missionExitScreen() == GUI_SCREEN_STATUS);
-		player->setScoopOverride(YES);
+		player->setScoopOverride(true);
 		OO_CHECK(player->getScoopOverride() && sSent.count == 1);
 		player->setCommanderName(std::string("Jameson"));
 		player->setLastsaveName(std::string("save1"));
@@ -1350,7 +1350,7 @@ OO_TEST(slice28ClearanceMarkerKeyAndExtraKeys)
 // files, which the integration tests cover. ------------------------
 
 namespace {
-Entity *sCategoryTarget = nil;	// what a CategoryPlayer answers as its primary target (not retained)
+Entity *sCategoryTarget = nullptr;	// what a CategoryPlayer answers as its primary target (not retained)
 }
 
 
@@ -1490,7 +1490,7 @@ OO_TEST(controlsSlice7IdentButton)
 		sSent = Sent();
 		player->handleButtonIdent();
 		OO_CHECK(sSent.count == 4 && !sSent.flag);
-		sCategoryTarget = nil;
+		sCategoryTarget = nullptr;
 	}
 }
 

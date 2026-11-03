@@ -171,7 +171,7 @@ OOCommodities::OOCommodities()
     // ResourceManager's dictionary API is not migrated: the merged table arrives through oo::PListFrom.
     // TODO: validation of inputs; convert 't', 'kg', 'g' in quantity_unit to 0, 1, 2 (for now it
     // needs them entering as the ints).
-    const oo::PList rawCommodityLists = ResourceManager::dictionaryFromFilesNamed("trade-goods.plist", "Config", MERGE_SMART, YES);
+    const oo::PList rawCommodityLists = ResourceManager::dictionaryFromFilesNamed("trade-goods.plist", "Config", MERGE_SMART, true);
     if (const oo::PList::Dict* entries = rawCommodityLists.getIf<oo::PList::Dict>())
         _commodityLists = *entries;
 }
@@ -217,12 +217,12 @@ oo::PList OOCommodities::createDefinitionFrom(const oo::PList& good, OOCreditsQu
     oo::PList definition = good;
     SetUnsigned(definition, kOOCommodityPriceCurrent, p);
     SetUnsigned(definition, kOOCommodityQuantityCurrent, q);
-    if (station == nil && definition.find(kOOCommodityCapacity) == nullptr) {
+    if (station == nullptr && definition.find(kOOCommodityCapacity) == nullptr) {
         SetSigned(definition, kOOCommodityCapacity, MAIN_SYSTEM_MARKET_LIMIT);
     }
 
     Set(definition, kOOCommodityKey, oo::PList(key));
-    if (station != nil && !(station != nullptr ? station->getMarketMonitored() : false)) {
+    if (station != nullptr && !(station != nullptr ? station->getMarketMonitored() : false)) {
         // clear legal status indicators if the market is not monitored
         SetUnsigned(definition, kOOCommodityLegalityExport, 0);
         SetUnsigned(definition, kOOCommodityLegalityImport, 0);
@@ -233,7 +233,7 @@ oo::PList OOCommodities::createDefinitionFrom(const oo::PList& good, OOCreditsQu
         return definition;
     }
     ::OOScript* goodScript = (PLAYER != nullptr ? PLAYER->commodityScriptNamed(goodScriptName) : (OOScript*)nullptr); // (has a value: checked above)
-    if (goodScript == nil) {
+    if (goodScript == nullptr) {
         return definition;
     }
     return modifyGood(definition, goodScript, station, system, false);
@@ -251,7 +251,7 @@ oo::PList OOCommodities::modifyGood(const oo::PList& good, ::OOScript* script, :
         station != nullptr ? station->jsValueInContext(context) : JS_NULL, // the C++ station's JS value, which OOJSValueFromNativeObject() of its object reached
         OOJSValueFromDouble(context, system)
     };
-    BOOL OK = YES;
+    bool OK = true;
     const char* errorType = nullptr;
 
     if (localMode) {
@@ -308,7 +308,7 @@ oo::Ref<OOCommodityMarket> OOCommodities::generateMarketForSystemWithEconomy(OOE
         OOCreditsQuantity p = generatePriceForGood(good, economy);
         good = createDefinitionFrom(good, p, q, commodity, nullptr, (UNIVERSE != nullptr ? UNIVERSE->currentSystemID() : 0));
 
-        if (script != nil) {
+        if (script != nullptr) {
             good = modifyGood(good, script, nullptr, (UNIVERSE != nullptr ? UNIVERSE->currentSystemID() : 0), true);
         }
         market->setGood(commodity, good);
@@ -320,7 +320,7 @@ oo::Ref<OOCommodityMarket> OOCommodities::generateMarketForStation(::StationEnti
 {
     const oo::PList marketDefinition = (station != nullptr ? station->getMarketDefinition() : oo::PList());
     ::OOScript* marketScript = (PLAYER != nullptr ? PLAYER->commodityScriptNamed((station != nullptr ? station->getMarketScriptName() : std::optional<std::string>())) : (OOScript*)nullptr);
-    if (!marketDefinition && marketScript == nil) {
+    if (!marketDefinition && marketScript == nullptr) {
         oo::Ref<OOCommodityMarket> market = generateBlankMarket();
         return market;
     }
@@ -341,7 +341,7 @@ oo::Ref<OOCommodityMarket> OOCommodities::generateMarketForStation(::StationEnti
         OOCargoQuantity q = (mainMarket != nullptr) ? mainMarket->quantityForGood(commodity) : 0;
         OOCreditsQuantity p = (mainMarket != nullptr) ? mainMarket->priceForGood(commodity) : 0;
 
-        if (marketScript == nil) {
+        if (marketScript == nullptr) {
             const oo::PList* classes = good.get<oo::PList::Array>(kOOCommodityClasses);
             const oo::PList modifier = firstModifierForGood(commodity, (classes != nullptr) ? *classes : oo::PList(), marketDefinition);
             good = updateInfoFor(good, modifier, capacity);
@@ -363,7 +363,7 @@ oo::Ref<OOCommodityMarket> OOCommodities::generateMarketForStation(::StationEnti
         }
 
         good = createDefinitionFrom(good, p, q, commodity, station, (UNIVERSE != nullptr ? UNIVERSE->currentSystemID() : 0));
-        if (marketScript != nil) {
+        if (marketScript != nullptr) {
             good = modifyGood(good, marketScript, station, (UNIVERSE != nullptr ? UNIVERSE->currentSystemID() : 0), true);
         }
 
@@ -471,7 +471,7 @@ OOCreditsQuantity OOCommodities::samplePriceForCommodity(const std::string& comm
     good = createDefinitionFrom(good, p, 0, commodity, nullptr, system);
     if (scriptName.has_value()) {
         ::OOScript* script = (PLAYER != nullptr ? PLAYER->commodityScriptNamed(scriptName) : (OOScript*)nullptr); // (has a value: checked above)
-        if (script != nil) {
+        if (script != nullptr) {
             good = modifyGood(good, script, nullptr, system, true);
         }
     }

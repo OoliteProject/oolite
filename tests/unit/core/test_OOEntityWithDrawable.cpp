@@ -16,7 +16,7 @@
    the intermediate class's crossing: a C++ subclass's object holds it. The
    entities are C++ under the root's object: the class's
    own selectors (-drawable, -setDrawable:) are member calls and the root's are
-   still sent to the object. Run: bash tools/check-core-tests.sh
+   still sent to the object. Run: tests/run.sh unit
 */
 
 #include <cstring>
@@ -99,8 +99,8 @@ T* NewWithDrawable(Entity** outObject) {
 // --------------------------------------------------------------------------------------------------
 
 void SetUp() {
-  static Universe* universe = nil;
-  if (universe == nil) {
+  static Universe* universe = nullptr;
+  if (universe == nullptr) {
     universe = new Universe();  // never released
   }
   gSharedUniverse = universe;
@@ -114,7 +114,7 @@ void SetUp() {
 OO_TEST(setDrawable) {
   {
     SetUp();
-    Entity* entity = nil;
+    Entity* entity = nullptr;
     OOEntityWithDrawable* part = NewWithDrawable(&entity);
     OO_CHECK(part->getDrawable() == nullptr);
     OO_CHECK(entity->findCollisionRadius() == 0);
@@ -148,7 +148,7 @@ OO_TEST(setDrawable) {
 OO_TEST(drawImmediate) {
   {
     SetUp();
-    Entity* entity = nil;
+    Entity* entity = nullptr;
     TestCxxEntityWithDrawable* part =
         NewWithDrawable<TestCxxEntityWithDrawable>(
             &entity);  // a subclass, as a ship is
@@ -187,7 +187,7 @@ OO_TEST(drawImmediate) {
 OO_TEST(description) {
   {
     SetUp();
-    Entity* entity = nil;
+    Entity* entity = nullptr;
     (void)NewWithDrawable(&entity);
     OO_CHECK(
         oo::EntityDescription(entity).starts_with("<OOEntityWithDrawable 0x"));
@@ -206,7 +206,7 @@ OO_TEST(cxxSubclassFacade) {
     const oo::Ref<TestCxxEntityWithDrawable> entity =
         oo::makeRef<TestCxxEntityWithDrawable>();
     Entity* facade = oo::MadeEntity(entity);
-    OO_CHECK(facade != nil);
+    OO_CHECK(facade != nullptr);
     OO_CHECK(facade == entity.get() && entity.get() == facade);
 
     const oo::Ref<TestDrawable> drawable = oo::makeRef<TestDrawable>();

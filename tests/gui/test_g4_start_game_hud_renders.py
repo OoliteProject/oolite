@@ -1,6 +1,6 @@
 """G4 - start a game: confirm ` Start New Commander `, then ` Normal Start `, and the HUD renders.
 
-docs/phases/0-gui-tier.md G4: "Launch -> confirm row 22 -> land on scenario screen -> confirm row 3
+G4: "Launch -> confirm row 22 -> land on scenario screen -> confirm row 3
 (`Normal Start`) -> wait for the cockpit -> assert the HUD renders -> exit". The end-to-end smoke
 test: it is the only one in this tier that leaves the start screen at all, so it is the only one
 that can catch "the menu works but the game never starts".
@@ -52,7 +52,7 @@ and ``Universe.m:5225-5232`` skips ``renderHUD`` outright for ``STATUS_START_GAM
 status the game sits in for the whole of the menu flow. So red pixels on that ellipse cannot be
 produced by a game that never left the menu.
 
-The ellipse's position is COMPUTED, not image-matched (docs/phases/0-gui-tier.md, "compute, don't
+The ellipse's position is COMPUTED, not image-matched ("compute, don't
 image-match"): hud.plist's ``x=0, y=68, y_origin=-1, width=288`` through the projection in
 ``MyOpenGLView.m:519-527``. And it is asserted DIFFERENTIALLY inside the one run - the identical
 measurement is taken on the start screen and on the scenario screen first, where it must be empty -
@@ -61,8 +61,8 @@ than passing it.
 
     python3 -m pytest oolite-dev/tests/gui/test_g4_start_game_hud_renders.py -x -q
 
-Needs the desktop: a real window, unlocked and logged in. It takes tools/gui-lock for
-the duration, via the ``game`` fixture - this file launches nothing of its own.
+Needs the desktop: a real window, unlocked and logged in, left alone while it runs.
+The game is launched through the ``game`` fixture; this file launches nothing of its own.
 """
 
 import ast

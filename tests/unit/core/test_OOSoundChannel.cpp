@@ -15,7 +15,7 @@
    releasedWhilePlayingTellsTheDelegate. The delegate is a C++
    OOSoundChannelDelegate, and the sounds are made with oo::makeRef and
    released by their oo::Ref.
-   Run: bash tools/check-core-tests.sh test_OOSoundChannel
+   Run: meson test -C build/meson_test test_OOSoundChannel
 */
 
 #include <process.h>

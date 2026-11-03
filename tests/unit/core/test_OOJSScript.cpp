@@ -14,7 +14,7 @@
    oo::Ref<OOJSScript>, every case asks the C++ class, and the crossing case
    pins the script's identity (the running stack holds the C++ script, the
    Script object's private slot refers to it weakly). Run: bash
-   tools/check-core-tests.sh test_OOJSScript
+   meson test -C build/meson_test test_OOJSScript
 */
 
 #include "OOJSScript.h"
@@ -113,7 +113,7 @@ OO_TEST(load)
 		OO_CHECK_EQ(script->scriptDescription().value_or("<none>"), "A test");
 		OO_CHECK_EQ(script->displayName().value_or("<none>"), "test-script 1.0");
 		OO_CHECK(!script->requiresTickle());
-		script->runWithTarget(nil);	// does nothing
+		script->runWithTarget(nullptr);	// does nothing
 		OO_CHECK(script->description().find("\"test-script\" version 1.0") != std::string::npos);
 		OO_CHECK_EQ(Text(JS(script)->propertyNamed("name")), "  test-script_ ");	// the property keeps what the script set
 		OO_CHECK(!OOJSScript::currentlyRunningScript());

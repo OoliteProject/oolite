@@ -19,15 +19,9 @@
    truncated, as GNUstep's %F).
 */
 
-#define true 1
-#define false 0
 #include <type_traits>
 
 #include "oofnd/Log.hpp"
-static_assert(std::is_same_v<decltype(true), int>,
-              "Log.hpp must restore OOCocoa.h's true macro");
-#undef true
-#undef false
 
 #include <chrono>
 #include <cstdio>

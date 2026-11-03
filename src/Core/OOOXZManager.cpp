@@ -956,7 +956,7 @@ bool OOOXZManager::processDownloadedOXZ()
                     break;
                 }
             }
-            if (!ResourceManager::manifest(downloadedManifest, requirement, NO) && !requiredOXPs.empty() && inRequired) {
+            if (!ResourceManager::manifest(downloadedManifest, requirement, false) && !requiredOXPs.empty() && inRequired) {
                 progress += DescFormat(
                     OO_DESC("oolite-oxzmanager-progress-now-has-@"),
                     { Arg(ManifestStringOr(
@@ -974,7 +974,7 @@ bool OOOXZManager::processDownloadedOXZ()
     }
     if (!requiredOXPs.empty()) {
         for (const oo::PList& requirement : requiredOXPs) {
-            if (ResourceManager::manifest(downloadedManifest, requirement, NO)) {
+            if (ResourceManager::manifest(downloadedManifest, requirement, false)) {
                 OO_LOG("oxz.manager.debug", "Dependency stack: adding {}",
                     ManifestString(requirement,
                         std::string(kOOManifestRelationIdentifier))
@@ -1164,7 +1164,7 @@ OXZInstallableState OOOXZManager::installableState(const oo::PList& manifest)
         }
     }
     /* Check for dependencies being met */
-    if (ResourceManager::manifestHasConflicts(manifest, NO)) {
+    if (ResourceManager::manifestHasConflicts(manifest, false)) {
         return OXZ_INSTALLABLE_CONFLICTS;
     }
     if (installed) {
@@ -1186,7 +1186,7 @@ OXZInstallableState OOOXZManager::installableState(const oo::PList& manifest)
         }
         return OXZ_INSTALLABLE_UPDATE;
     }
-    if (ResourceManager::manifestHasMissingDependencies(manifest, NO)) {
+    if (ResourceManager::manifestHasMissingDependencies(manifest, false)) {
         return OXZ_INSTALLABLE_DEPENDENCIES;
     }
     return OXZ_INSTALLABLE_OKAY;
@@ -1246,7 +1246,7 @@ bool OOOXZManager::isRestarting()
         // Rebuilds OXP search
         ResourceManager::reset();
         if (UNIVERSE != nullptr)
-            UNIVERSE->reinitAndShowDemo(YES);
+            UNIVERSE->reinitAndShowDemo(true);
         _changesMade = false;
         _interfaceState = OXZ_STATE_MAIN;
         _downloadStatus = OXZ_DOWNLOAD_NONE; // clear error state
@@ -1359,7 +1359,7 @@ void OOOXZManager::gui()
 #endif
 
     if (gui != nullptr) {
-        gui->clearAndKeepBackground(YES);
+        gui->clearAndKeepBackground(true);
         gui->setTitle(OO_DESC("oolite-oxzmanager-title"));
     }
 
@@ -1673,7 +1673,7 @@ void OOOXZManager::processSelection()
             _interfaceState = OXZ_STATE_RESTARTING;
         } else {
             if (PLAYER != nullptr)
-                PLAYER->setGuiToIntroFirstGo(YES);
+                PLAYER->setGuiToIntroFirstGo(true);
             if (_oxzList) {
                 _interfaceState = OXZ_STATE_MAIN;
             } else {
@@ -1826,7 +1826,7 @@ void OOOXZManager::processShowInfoKey()
             _interfaceShowingOXZDetail = true;
 
             if (gui != nullptr) {
-                gui->clearAndKeepBackground(YES);
+                gui->clearAndKeepBackground(true);
                 gui->setTitle(OO_DESC("oolite-oxzmanager-title-infopage"));
             }
 

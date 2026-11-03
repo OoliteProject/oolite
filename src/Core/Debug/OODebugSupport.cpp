@@ -47,7 +47,8 @@ void OOInitDebugSupport(void)
     bool activateDebugConsole = false;
 
     // Load debug settings.
-    debugSettings = ResourceManager::dictionaryFromFilesNamed("debugConfig.plist", "Config", MERGE_BASIC, NO);
+    debugSettings = ResourceManager::dictionaryFromFilesNamed(
+        "debugConfig.plist", "Config", MERGE_BASIC, false);
 
     // Check that the debug OXP is installed. If not, we don't enable debug support.
     debugOXPPath = ResourceManager::pathForFileNamed("DebugOXPLocatorBeacon.magic", "nil");

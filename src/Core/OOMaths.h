@@ -44,7 +44,3 @@ extern "C" {
 #include "OOTriangle.h"
 #include "OOVoxel.h"
 #include "legacy_random.h"
-
-#ifdef __cplusplus
-}
-#endif

@@ -15,7 +15,7 @@
    extension, a legacy script from the cache, names not found, a world-scripts
    list, a folder with no scripts). The cases ask the C++ class (the test
    subclass is a C++ one, its super call the root's member). Run: bash
-   tools/check-core-tests.sh test_OOScript
+   meson test -C build/meson_test test_OOScript
 */
 
 #include <process.h>
@@ -137,7 +137,7 @@ OO_TEST(abstractRoot) {
     OO_CHECK(!root->version().has_value());
     OO_CHECK(!root->displayName().has_value());
     OO_CHECK(!root->requiresTickle());
-    root->runWithTarget(nil);
+    root->runWithTarget(nullptr);
     OO_CHECK(root->description().find("\"(null)\" version (null)") !=
              std::string::npos);
   }

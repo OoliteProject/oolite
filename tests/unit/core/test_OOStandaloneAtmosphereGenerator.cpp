@@ -88,7 +88,7 @@ OOTexture* GenerateAtmosphere(const oo::PList& info, RANROTSeed seed) {
   return OOStandaloneAtmosphereGenerator::generateAtmosphereTexture(&texture,
                                                                     info, seed)
              ? Autoreleased(texture)
-             : nil;
+             : nullptr;
 }
 
 // Was +planetTextureWithInfo:seed: (autoreleased).
@@ -131,7 +131,7 @@ OO_TEST(settings) {
     oo::AutoreleaseScope pool;
     OOTextureGenerator* generator =
         NewGenerator(PlanetInfo(0.75f, false), kSeed);
-    OO_CHECK(generator != nil &&
+    OO_CHECK(generator != nullptr &&
              (dynamic_cast<OOTextureGenerator*>(generator) != nullptr));
     OO_CHECK(generator->textureOptions() ==
              (kOOTextureMinFilterLinear | kOOTextureMagFilterLinear |

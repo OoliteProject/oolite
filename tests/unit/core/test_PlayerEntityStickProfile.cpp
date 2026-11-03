@@ -15,7 +15,7 @@
 	-status and takes the GUI's row-changed script event; the GUI names that event by its JS id, so
 	the test makes the engine's main-thread JS context. The defaults' home (HOMEPATH) is a scratch
 	folder, set before they are first read, as in test_OOJoystickManager. The tests call the C++
-	members. Run: bash tools/check-core-tests.sh test_PlayerEntityStickProfile
+	members. Run: tests/run.sh unit
 */
 
 #include "PlayerEntityStickProfile.h"

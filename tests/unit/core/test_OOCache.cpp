@@ -7,7 +7,7 @@
    (the threshold's floor, auto-pruning to 80%, manual pruning to the threshold,
    no pruning while loading), the property-list round trip, a live object held
         in an Object node, the name and the description. The calls here are the
-   C++ class's. Run: bash tools/check-core-tests.sh
+   C++ class's. Run: tests/run.sh unit
 */
 
 #include "OOCache.h"

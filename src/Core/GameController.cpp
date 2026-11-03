@@ -26,7 +26,7 @@ MA 02110-1301, USA.
 #include "MyOpenGLView.h"
 #include "OODebugFlags.h"
 #include "OODebugSupport.h"
-#include "OOFoundation.h" // OOLITE_GNUSTEP
+#include "OOFoundation.h"
 #include "OOJSFrameCallbacks.h"
 #include "OOLogOutputHandler.h"
 #include "OOLoggingExtended.h"
@@ -418,7 +418,7 @@ void GameController::doPerformGameTick()
             UNIVERSE->update(delta_t);
         if (EXPECT_NOT((PLAYER != nullptr ? PLAYER->status() : OOEntityStatus { }) == STATUS_RESTART_GAME)) {
             if (UNIVERSE != nullptr)
-                UNIVERSE->reinitAndShowDemo(YES);
+                UNIVERSE->reinitAndShowDemo(true);
         }
         ::OOSound::update();
         if (!gameIsPaused) {
@@ -629,15 +629,15 @@ void GameController::loadPlayerIfRequired()
         // fix problem with non-shader lighting when starting skips
         // the splash screen
         if (UNIVERSE != nullptr)
-            UNIVERSE->useGUILightSource(YES);
+            UNIVERSE->useGUILightSource(true);
         if (UNIVERSE != nullptr)
-            UNIVERSE->useGUILightSource(NO);
+            UNIVERSE->useGUILightSource(false);
         // A copy: loading resets the add-ons, whose demo screen resets
         // _playerFileToLoad, and a reference into it would dangle while the load
         // still reads it (an ASan heap-use-after-free).
         const std::string fileToLoad = *_playerFileToLoad;
         if (PLAYER != nullptr)
-            PLAYER->loadPlayerFromFile(fileToLoad, NO);
+            PLAYER->loadPlayerFromFile(fileToLoad, false);
     }
 }
 
@@ -738,10 +738,10 @@ void GameController::endSplashScreen()
 
 #if OOLITE_MAC_COCOA_UI
     // These views will be released when we replace the content view.
-    splashProgressTextField = nil;
-    splashView = nil;
+    splashProgressTextField = nullptr;
+    splashView = nullptr;
 
-    [gameWindow setAcceptsMouseMovedEvents:YES];
+    [gameWindow setAcceptsMouseMovedEvents:true];
     [gameWindow setContentView:_gameView];
     [gameWindow makeFirstResponder:_gameView];
 #elif OOLITE_SDL
@@ -920,25 +920,25 @@ static void RemovePreference(const std::string& key)
 #define kSnapshotsDirRefKey "snapshots-directory-reference"
 #define kSnapshotsDirNameKey "snapshots-directory-name"
 
-- (NSURL*)snapshotsURLCreatingIfNeeded:(BOOL)create
+- (NSURL*)snapshotsURLCreatingIfNeeded:(bool)create
 {
-    BOOL stale = NO;
+    bool stale = false;
     // A JAPersistentFileReference dictionary (not migrated): passed between its functions as is.
     id snapshotDirDict = GetPreference(kSnapshotsDirRefKey);
-    NSURL* url = nil;
+    NSURL* url = nullptr;
     const std::string name = OO_DESC("snapshots-directory-name-mac");
 
     if (!oo::IsNSDictionary(snapshotDirDict))
-        snapshotDirDict = nil;
-    if (snapshotDirDict != nil) {
+        snapshotDirDict = nullptr;
+    if (snapshotDirDict != nullptr) {
         url = JAURLFromPersistentFileReference(snapshotDirDict, kJAPersistentFileReferenceWithoutUI | kJAPersistentFileReferenceWithoutMounting, &stale);
-        if (url != nil) {
+        if (url != nullptr) {
             const std::string existingName = oo::str::lastPathComponent(oo::StdString([url path]));
             if (oo::str::caseInsensitiveCompare(existingName, name) != 0) {
                 // Check name from previous access, because we might have changed localizations.
                 id originalOldName = GetPreference(kSnapshotsDirNameKey);
                 if (!oo::IsNSString(originalOldName) || oo::str::caseInsensitiveCompare(existingName, oo::StdString(originalOldName)) != 0) {
-                    url = nil;
+                    url = nullptr;
                 }
             }
 
@@ -949,20 +949,20 @@ static void RemovePreference(const std::string& key)
             OSStatus err = DetermineIfPathIsEnclosedByFolder(kOnAppropriateDisk, kTrashFolderType, utfPath, false, &inTrash);
             // if so, create a new directory.
             if (err == noErr && inTrash == true)
-                url = nil;
+                url = nullptr;
         }
     }
 
-    if (url == nil) {
+    if (url == nullptr) {
         std::optional<std::string> path;
-        const std::vector<std::string> searchPaths = oo::StringsFrom(NSSearchPathForDirectoriesInDomains(NSDesktopDirectory, NSUserDomainMask, YES));
+        const std::vector<std::string> searchPaths = oo::StringsFrom(NSSearchPathForDirectoriesInDomains(NSDesktopDirectory, NSUserDomainMask, true));
         if (!searchPaths.empty()) {
             path = oo::str::appendingPathComponent(searchPaths[0], name);
         }
         url = [NSURL fileURLWithPath:oo::NSStringOrNil(path)];
 
-        if (url != nil) {
-            stale = YES;
+        if (url != nullptr) {
+            stale = true;
             if (create) {
                 if (!oo::fs::fileExists(oo::fs::pathFromUTF8(*path))) {
                     (void)oo::fs::createDirectories(oo::fs::pathFromUTF8(*path));
@@ -973,7 +973,7 @@ static void RemovePreference(const std::string& key)
 
     if (stale) {
         snapshotDirDict = JAPersistentFileReferenceFromURL(url);
-        if (snapshotDirDict != nil) {
+        if (snapshotDirDict != nullptr) {
             SetPreference(kSnapshotsDirRefKey, snapshotDirDict);
             SetPreference(kSnapshotsDirNameKey, [[url path] lastPathComponent]);
         } else {
@@ -986,7 +986,7 @@ static void RemovePreference(const std::string& key)
 
 - (IBAction)showSnapshotsAction:sender
 {
-    [[NSWorkspace sharedWorkspace] openURL:[self snapshotsURLCreatingIfNeeded:YES]];
+    [[NSWorkspace sharedWorkspace] openURL:[self snapshotsURLCreatingIfNeeded:true]];
 }
 
 - (IBAction)showAddOnsAction:sender
@@ -1014,15 +1014,15 @@ static void RemovePreference(const std::string& key)
     [self cxx_openPath:paths.front()];
 }
 
-- (BOOL)cxx_isDirectoryAtPath:(const std::string&)path
+- (bool)cxx_isDirectoryAtPath:(const std::string&)path
 {
     return oo::fs::isDirectory(oo::fs::pathFromUTF8(path));
 }
 
-- (BOOL)cxx_addOnsExistAtPath:(const std::string&)path
+- (bool)cxx_addOnsExistAtPath:(const std::string&)path
 {
     if (![self cxx_isDirectoryAtPath:path])
-        return NO;
+        return false;
 
     NSWorkspace* workspace = NSWorkspace.sharedWorkspace;
     // Recursive walk in OS enumeration order (first match wins; not sorted), as the Foundation
@@ -1033,10 +1033,10 @@ static void RemovePreference(const std::string& key)
         const std::string fullPath = oo::fs::utf8String(it->path());
         const std::optional<std::string> type = oo::OptionalString([workspace typeOfFile:oo::NSStringFrom(fullPath) error:NULL]);
         if ([workspace type:oo::NSStringOrNil(type) conformsToType:@"org.aegidian.oolite.expansion"])
-            return YES;
+            return true;
     }
 
-    return NO;
+    return false;
 }
 
 - (void)cxx_openPath:(const std::string&)path
@@ -1044,7 +1044,7 @@ static void RemovePreference(const std::string& key)
     [NSWorkspace.sharedWorkspace openURL:[NSURL fileURLWithPath:oo::NSStringFrom(path)]];
 }
 
-- (BOOL)validateMenuItem:(NSMenuItem*)menuItem
+- (bool)validateMenuItem:(NSMenuItem*)menuItem
 {
     SEL action = menuItem.action;
 
@@ -1052,7 +1052,7 @@ static void RemovePreference(const std::string& key)
         // the first path is always Resources
         const std::optional<std::string> base = cxx_OOLogHandlerGetLogBasePath();
         if (!base.has_value())
-            return NO;
+            return false;
         return oo::fs::fileExists(oo::fs::pathFromUTF8(oo::str::appendingPathComponent(*base, "Previous.log")));
     }
 
@@ -1062,9 +1062,9 @@ static void RemovePreference(const std::string& key)
     }
 
     if (action == @selector(showSnapshotsAction:)) {
-        const oo::fs::FileType type = oo::fs::fileType(oo::fs::pathFromUTF8(oo::StdString([self snapshotsURLCreatingIfNeeded:NO].path)));
+        const oo::fs::FileType type = oo::fs::fileType(oo::fs::pathFromUTF8(oo::StdString([self snapshotsURLCreatingIfNeeded:false].path)));
         if (type == oo::fs::FileType::none)
-            return NO;
+            return false;
         return type == oo::fs::FileType::directory;
     }
 
@@ -1078,7 +1078,7 @@ static void RemovePreference(const std::string& key)
     }
 
     // default
-    return YES;
+    return true;
 }
 
 - (NSMenu*)applicationDockMenu:(NSApplication*)sender
@@ -1087,9 +1087,9 @@ static void RemovePreference(const std::string& key)
 }
 
 #if OO_DEBUG
-- (BOOL)debugMessageTrackingIsOn
+- (bool)debugMessageTrackingIsOn
 {
-    return splashProgressTextField != nil;
+    return splashProgressTextField != nullptr;
 }
 
 - (std::string)cxx_debugMessageCurrentString
@@ -1113,7 +1113,7 @@ static void RemovePreference(const std::string& key)
 }
 
 // delegate methods
-- (BOOL)application:(NSApplication*)theApplication openFile:(id)filename // NSApplicationDelegate's selector, shared
+- (bool)application:(NSApplication*)theApplication openFile:(id)filename // NSApplicationDelegate's selector, shared
                                                                          // with AppKit: an Objective-C string
 {
     const std::string path = oo::StdString(filename);
@@ -1121,20 +1121,20 @@ static void RemovePreference(const std::string& key)
     if (extension == "oolite-save") {
         [self cxx_setPlayerFileToLoad:path];
         [self cxx_setPlayerFileDirectory:oo::OptionalString(filename)];
-        return YES;
+        return true;
     }
     if (extension == "oxp") {
         if (oo::fs::isDirectory(oo::fs::pathFromUTF8(path))) {
             expansionPathsToInclude.push_back(path);
-            return YES;
+            return true;
         }
     }
-    return NO;
+    return false;
 }
 
 - (void)cxx_exitAppWithContext:(const std::string&)context
 {
-    [gameView.window orderOut:nil];
+    [gameView.window orderOut:nullptr];
     [(OoliteApp*)NSApp setExitContext:oo::NSStringFrom(context)];
     [NSApp terminate:self];
 }
@@ -1164,7 +1164,7 @@ static void SetUpSparkle(void)
 #define DEFAULT_TEST_RELEASE 1
 #endif
 
-    BOOL useTestReleases = oo::Defaults::standard().object("use-test-release-updates").isNull()
+    bool useTestReleases = oo::Defaults::standard().object("use-test-release-updates").isNull()
         ? DEFAULT_TEST_RELEASE
         : oo::Defaults::standard().boolForKey("use-test-release-updates");
 

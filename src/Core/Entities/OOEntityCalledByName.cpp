@@ -136,7 +136,7 @@ void OOEntityByNameTyped(Entity* entity, OOEntityByNameValue& value)
     else if constexpr (std::is_same_v<Result, oo::PList>)
         value.plist = Function(entity);
     else if constexpr (std::is_integral_v<Result> && std::is_signed_v<Result> && sizeof(Result) == 1) {
-        // a signed char (BOOL): its value, sign kept, as OOCallIntegerMethod()
+        // a signed char (bool): its value, sign kept, as OOCallIntegerMethod()
         // converted it
         const long long bits = static_cast<unsigned char>(Function(entity));
         value.integer = (bits > 127) ? bits - 256 : bits;
@@ -245,7 +245,7 @@ Vector Facade_cameraRelativePosition(Entity* entity)
         return { };
     return entity->getCameraRelativePosition();
 }
-BOOL Facade_canCollide(Entity* entity)
+bool Facade_canCollide(Entity* entity)
 {
     if (entity == nullptr)
         return { };
@@ -312,7 +312,7 @@ Vector Facade_illuminationColorAsVector(Entity* entity)
     OOPlanetEntity* planet = dynamic_cast<OOPlanetEntity*>(entity);
     return planet != nullptr ? planet->illuminationColorAsVector() : kZeroVector;
 }
-BOOL Facade_isBeacon(Entity* entity)
+bool Facade_isBeacon(Entity* entity)
 {
     if (entity == nullptr)
         return { };
@@ -321,40 +321,40 @@ BOOL Facade_isBeacon(Entity* entity)
     if (OOVisualEffectEntity* effect = EffectPart(entity))
         return effect->isBeacon();
     OOWaypointEntity* waypoint = dynamic_cast<OOWaypointEntity*>(entity);
-    return waypoint != nullptr ? waypoint->isBeacon() : NO;
+    return waypoint != nullptr ? waypoint->isBeacon() : false;
 }
-BOOL Facade_isCascadeWeapon(Entity* entity)
+bool Facade_isCascadeWeapon(Entity* entity)
 {
     if (entity == nullptr)
         return { };
     OOQuiriumCascadeEntity* cascade = dynamic_cast<OOQuiriumCascadeEntity*>(entity);
-    return cascade != nullptr ? cascade->isCascadeWeapon() : NO;
+    return cascade != nullptr ? cascade->isCascadeWeapon() : false;
 }
-BOOL Facade_isDock(Entity* entity)
+bool Facade_isDock(Entity* entity)
 {
     if (entity == nullptr)
         return { };
     return entity->isDock();
 }
-BOOL Facade_isEffect(Entity* entity)
+bool Facade_isEffect(Entity* entity)
 {
     if (entity == nullptr)
         return { };
     return entity->isEffect();
 }
-BOOL Facade_isImmuneToBreakPatternHide(Entity* entity)
+bool Facade_isImmuneToBreakPatternHide(Entity* entity)
 {
     if (entity == nullptr)
         return { };
     return entity->getIsImmuneToBreakPatternHide();
 }
-BOOL Facade_isInSpace(Entity* entity)
+bool Facade_isInSpace(Entity* entity)
 {
     if (entity == nullptr)
         return { };
     return entity->isInSpace();
 }
-BOOL Facade_isJammingScanning(Entity* entity)
+bool Facade_isJammingScanning(Entity* entity)
 {
     if (entity == nullptr)
         return { };
@@ -363,87 +363,87 @@ BOOL Facade_isJammingScanning(Entity* entity)
     if (OOVisualEffectEntity* effect = EffectPart(entity))
         return effect->isJammingScanning();
     OOWaypointEntity* waypoint = dynamic_cast<OOWaypointEntity*>(entity);
-    return waypoint != nullptr ? waypoint->isJammingScanning() : NO;
+    return waypoint != nullptr ? waypoint->isJammingScanning() : false;
 }
-BOOL Facade_isPlanet(Entity* entity)
+bool Facade_isPlanet(Entity* entity)
 {
     if (entity == nullptr)
         return { };
     return entity->isPlanet();
 }
-BOOL Facade_isPlayer(Entity* entity)
+bool Facade_isPlayer(Entity* entity)
 {
     if (entity == nullptr)
         return { };
     return entity->getIsPlayer();
 }
-BOOL Facade_isShip(Entity* entity)
+bool Facade_isShip(Entity* entity)
 {
     if (entity == nullptr)
         return { };
     return entity->getIsShip();
 }
-BOOL Facade_isSky(Entity* entity)
+bool Facade_isSky(Entity* entity)
 {
     if (entity == nullptr)
         return { };
     return entity->isSky();
 }
-BOOL Facade_isStation(Entity* entity)
+bool Facade_isStation(Entity* entity)
 {
     if (entity == nullptr)
         return { };
     return entity->getIsStation();
 }
-BOOL Facade_isStellarObject(Entity* entity)
+bool Facade_isStellarObject(Entity* entity)
 {
     if (entity == nullptr)
         return { };
     return entity->isStellarObject();
 }
-BOOL Facade_isSubEntity(Entity* entity)
+bool Facade_isSubEntity(Entity* entity)
 {
     if (entity == nullptr)
         return { };
     return entity->getIsSubEntity();
 }
-BOOL Facade_isSun(Entity* entity)
+bool Facade_isSun(Entity* entity)
 {
     if (entity == nullptr)
         return { };
     return entity->isSun();
 }
-BOOL Facade_isSunlit(Entity* entity)
+bool Facade_isSunlit(Entity* entity)
 {
     if (entity == nullptr)
         return { };
     return entity->getIsSunlit();
 }
-BOOL Facade_isVisible(Entity* entity)
+bool Facade_isVisible(Entity* entity)
 {
     if (entity == nullptr)
         return { };
     return entity->isVisible();
 }
-BOOL Facade_isVisibleToScripts(Entity* entity)
+bool Facade_isVisibleToScripts(Entity* entity)
 {
     if (entity == nullptr)
         return { };
     return entity->isVisibleToScripts();
 }
-BOOL Facade_isVisualEffect(Entity* entity)
+bool Facade_isVisualEffect(Entity* entity)
 {
     if (entity == nullptr)
         return { };
     return entity->getIsVisualEffect();
 }
-BOOL Facade_isWaypoint(Entity* entity)
+bool Facade_isWaypoint(Entity* entity)
 {
     if (entity == nullptr)
         return { };
     return entity->isWaypoint();
 }
-BOOL Facade_isWormhole(Entity* entity)
+bool Facade_isWormhole(Entity* entity)
 {
     if (entity == nullptr)
         return { };
@@ -587,7 +587,7 @@ void Facade_throwSparks(Entity* entity)
         return;
     entity->throwSparks();
 }
-BOOL Facade_throwingSparks(Entity* entity)
+bool Facade_throwingSparks(Entity* entity)
 {
     if (entity == nullptr)
         return { };
@@ -623,7 +623,7 @@ void Facade_updateLinkedLists(Entity* entity)
         return;
     entity->updateLinkedLists();
 }
-BOOL Facade_validForAddToUniverse(Entity* entity)
+bool Facade_validForAddToUniverse(Entity* entity)
 {
     if (entity == nullptr)
         return { };
