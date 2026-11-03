@@ -549,22 +549,15 @@ OO_TEST(sharedHandlerOfTheRegisteredClass)
 
 // Upstream #783's GUI table: the functions BUTTON_GUILEFT .. BUTTON_GUISELECT
 // live in a second button table of their own, saved under GuiJoystickButs, so
-// one button can drive both a flight function and a GUI function. These pin
-// upstream's behaviour as ported, including what follows from the table
-// starting all zero (clearMappings resets the flight tables, not this one),
-// and 0 being BUTTON_INCTHRUST.
+// one button can drive both a flight function and a GUI function.
+// clearMappings resets this table with the others (upstream #783 does not, so
+// there an unassigned button held 0, BUTTON_INCTHRUST).
 
 namespace {
 
 void ClearGuiStickDefaults() {
   ClearStickDefaults();
   Defaults().removeObject(GUI_BUTTON_SETTINGS);
-}
-
-// Every unassigned (stick, button) of the GUI table holds 0; the dictionary
-// keeps the last one the loops write, the last stick's last button.
-std::pair<int, oo::PList> UnsetGuiEntries() {
-  return {0, StickFn(false, MAX_STICKS - 1, MAX_BUTTONS - 1)};
 }
 
 }  // namespace
@@ -576,7 +569,7 @@ OO_TEST(guiFunctionsHaveATableOfTheirOwn) {
     const oo::PList defaultButtons =
         Functions({{BUTTON_FIRE, StickFn(false, 0, 0)},
                    {BUTTON_LAUNCHMISSILE, StickFn(false, 0, 1)}});
-    OO_CHECK(manager->guiButtonFunctions() == Functions({UnsetGuiEntries()}));
+    OO_CHECK(manager->guiButtonFunctions() == oo::PList(oo::PList::Dict()));
 
     // A GUI function goes to the GUI table, an ordinary one to the button
     // table; the edges of the GUI range included.
@@ -584,8 +577,7 @@ OO_TEST(guiFunctionsHaveATableOfTheirOwn) {
     manager->setFunction(BUTTON_GUILEFT, StickFn(false, 2, 5));
     manager->setFunction(BUTTON_TOGGLEHUD, StickFn(false, 2, 6));
     OO_CHECK(manager->guiButtonFunctions() ==
-             Functions({UnsetGuiEntries(),
-                        {BUTTON_GUISELECT, StickFn(false, 1, 4)},
+             Functions({{BUTTON_GUISELECT, StickFn(false, 1, 4)},
                         {BUTTON_GUILEFT, StickFn(false, 2, 5)}}));
     OO_CHECK(manager->buttonFunctions() ==
              Functions({{BUTTON_FIRE, StickFn(false, 0, 0)},
@@ -603,8 +595,7 @@ OO_TEST(guiFunctionsHaveATableOfTheirOwn) {
     // Moving a GUI function frees its old button.
     manager->setFunction(BUTTON_GUISELECT, StickFn(false, 3, 7));
     OO_CHECK(manager->guiButtonFunctions() ==
-             Functions({UnsetGuiEntries(),
-                        {BUTTON_GUISELECT, StickFn(false, 3, 7)},
+             Functions({{BUTTON_GUISELECT, StickFn(false, 3, 7)},
                         {BUTTON_GUILEFT, StickFn(false, 2, 5)},
                         {BUTTON_GUIPAGEDOWN, StickFn(false, 0, 0)}}));
 
@@ -616,16 +607,13 @@ OO_TEST(guiFunctionsHaveATableOfTheirOwn) {
     manager->unsetGuiButtonFunction(BUTTON_GUILEFT);
     manager->unsetGuiButtonFunction(BUTTON_GUIPAGEDOWN);
     OO_CHECK(manager->guiButtonFunctions() ==
-             Functions({UnsetGuiEntries(),
-                        {BUTTON_GUISELECT, StickFn(false, 3, 7)}}));
+             Functions({{BUTTON_GUISELECT, StickFn(false, 3, 7)}}));
     OO_CHECK(manager->buttonFunctions() == defaultButtons);
 
-    // clearMappings leaves the GUI table alone.
+    // clearMappings clears the GUI table too.
     manager->clearMappings();
     OO_CHECK(manager->buttonFunctions() == oo::PList(oo::PList::Dict()));
-    OO_CHECK(manager->guiButtonFunctions() ==
-             Functions({UnsetGuiEntries(),
-                        {BUTTON_GUISELECT, StickFn(false, 3, 7)}}));
+    OO_CHECK(manager->guiButtonFunctions() == oo::PList(oo::PList::Dict()));
   }
 }
 
@@ -655,19 +643,15 @@ OO_TEST(decodesGuiButtons) {
     OO_CHECK(!manager->getButtonState(BUTTON_FIRE));
     OO_CHECK(!manager->getButtonState(BUTTON_GUISELECT));
 
-    // A button with no GUI function holds 0 in the GUI table, so it drives
-    // BUTTON_INCTHRUST (upstream's behaviour: the table is never reset).
-    OO_CHECK(!manager->getButtonState(BUTTON_INCTHRUST));
+    // A button with no GUI function sets no other state (upstream #783's
+    // never-reset table made it drive BUTTON_INCTHRUST).
     evt = Button(2, 9, true);
-    manager->decodeButtonEvent(&evt);
-    OO_CHECK(manager->getButtonState(BUTTON_INCTHRUST));
-    evt = Button(2, 9, false);
     manager->decodeButtonEvent(&evt);
     OO_CHECK(!manager->getButtonState(BUTTON_INCTHRUST));
     evt = Button(0, 1, true);  // the missile button
     manager->decodeButtonEvent(&evt);
     OO_CHECK(manager->getButtonState(BUTTON_LAUNCHMISSILE));
-    OO_CHECK(manager->getButtonState(BUTTON_INCTHRUST));
+    OO_CHECK(!manager->getButtonState(BUTTON_INCTHRUST));
     evt = Button(0, 1, false);
     manager->decodeButtonEvent(&evt);
     OO_CHECK(!manager->getButtonState(BUTTON_INCTHRUST));
@@ -702,8 +686,7 @@ OO_TEST(savesAndLoadsGuiButtons) {
     manager->saveStickSettings();
 
     const oo::PList savedGui =
-        Functions({UnsetGuiEntries(),
-                   {BUTTON_GUISELECT, StickFn(false, 1, 4)},
+        Functions({{BUTTON_GUISELECT, StickFn(false, 1, 4)},
                    {BUTTON_GUIPAGEUP, StickFn(false, 0, 7)}});
     OO_CHECK(defaults.object(GUI_BUTTON_SETTINGS) == savedGui);
     OO_CHECK(defaults.object(BUTTON_SETTINGS) ==
@@ -711,17 +694,14 @@ OO_TEST(savesAndLoadsGuiButtons) {
                         {BUTTON_LAUNCHMISSILE, StickFn(false, 0, 1)},
                         {BUTTON_ECM, StickFn(false, 2, 11)}}));
 
-    // A new manager reads the GUI table back. The saved "0" entry is not a
-    // GUI function, so loading it assigns BUTTON_INCTHRUST to the last
-    // stick's last button in the flight table (upstream's behaviour).
+    // A new manager reads the GUI table back and leaves the flight table as
+    // saved.
     oo::Ref<DecodingStickManager> loaded = NewDecodingManager();
     OO_CHECK(loaded->guiButtonFunctions() == savedGui);
     OO_CHECK(loaded->buttonFunctions() ==
              Functions({{BUTTON_FIRE, StickFn(false, 0, 0)},
                         {BUTTON_LAUNCHMISSILE, StickFn(false, 0, 1)},
-                        {BUTTON_ECM, StickFn(false, 2, 11)},
-                        {BUTTON_INCTHRUST,
-                         StickFn(false, MAX_STICKS - 1, MAX_BUTTONS - 1)}}));
+                        {BUTTON_ECM, StickFn(false, 2, 11)}}));
     SDL_JoyButtonEvent evt = Button(1, 4, true);
     loaded->decodeButtonEvent(&evt);
     OO_CHECK(loaded->getButtonState(BUTTON_GUISELECT));
@@ -732,9 +712,7 @@ OO_TEST(savesAndLoadsGuiButtons) {
     OO_CHECK(guiOnly->guiButtonFunctions() == savedGui);
     OO_CHECK(guiOnly->buttonFunctions() ==
              Functions({{BUTTON_FIRE, StickFn(false, 0, 0)},
-                        {BUTTON_LAUNCHMISSILE, StickFn(false, 0, 1)},
-                        {BUTTON_INCTHRUST,
-                         StickFn(false, MAX_STICKS - 1, MAX_BUTTONS - 1)}}));
+                        {BUTTON_LAUNCHMISSILE, StickFn(false, 0, 1)}}));
   }
   ClearGuiStickDefaults();
 }
