@@ -15,9 +15,11 @@
 	and otherwise measures the plume (the value the Objective-C class computed is pinned);
 	-rescaleBy: scales it and -rescaleBy:writeToCache: does nothing; and its texture is loaded
 	once, by name (the loader replaced as in test_OOParticleSystem). The collision radius is set
-	through the one helper below. The plumes are made by the class method the ship sends, which the
-	conversion kept on the facade: the last test pins that their object is a C++ entity whose
-	Objective-C object is the OOExhaustPlumeEntity facade.
+	through the one helper below. The plumes are made as the ship makes them (exhaustForShip(), then
+	oo::NewEntityFacade). The Objective-C facade is deleted: the cases ask the C++ class what they
+	asked the facade, with every expectation kept, except the facade's own class check; the facade
+	case pins the crossing instead (the object is the root's facade, whose C++ part is the plume),
+	and jsExtensions pins that the engine's selectors reach the C++ class's overrides through the root.
 	Run: bash tools/check-core-tests.sh
 */
 
@@ -134,7 +136,7 @@ void SetUp(OOTimeAbsolute time)
 
 // --- Ivars the test sets, and nothing else ---------------------------------------------------------
 
-void SetCollisionRadius(Entity *e, GLfloat value)	{ e->_cxxEntity->collision_radius = value; }
+void SetCollisionRadius(cxx::Entity *e, GLfloat value)	{ e->collision_radius = value; }
 
 // --------------------------------------------------------------------------------------------------
 
@@ -160,9 +162,11 @@ TestShip *Ship()
 }
 
 
+// A plume, made as the ship makes one: its Objective-C object is autoreleased in the test's pool and
+// holds it; null for no tokens.
 OOExhaustPlumeEntity *Plume(Entity *ship, std::vector<std::string> tokens, float scale)
 {
-	return [OOExhaustPlumeEntity exhaustForShip:(ShipEntity *)ship withDefinition:tokens andScale:scale];
+	return static_cast<OOExhaustPlumeEntity *>(oo::ToCxx(oo::NewEntityFacade(OOExhaustPlumeEntity::exhaustForShip((ShipEntity *)ship, tokens, scale))));
 }
 
 }	// namespace
@@ -175,14 +179,15 @@ OO_TEST(made)
 		SetUp(0.0);
 		Entity *ship = Ship();
 		OOExhaustPlumeEntity *plume = Plume(ship, { "1", "2", "3", "4", "5", "1.5" }, 2.0f);
-		OO_CHECK(plume != nil && [plume isKindOfClass:[OOExhaustPlumeEntity class]]);
-		OO_CHECK([plume owner] == ship);
-		OO_CHECK(HPvector_equal([plume position], make_HPvector(2, 4, 6)));
-		OO_CHECK(VectorIs([plume scale], 8, 10, 1.5f));	// z is not scaled
-		OO_CHECK([plume isExhaust] && ![ship isExhaust]);
-		OO_CHECK([plume findCollisionRadius] == 0.0);
+		OO_CHECK(plume != nullptr);
+		OO_CHECK(plume->owner() == ship);
+		OO_CHECK(HPvector_equal(plume->getPosition(), make_HPvector(2, 4, 6)));
+		OO_CHECK(VectorIs(plume->scale(), 8, 10, 1.5f));	// z is not scaled
+		// The category -isExhaust went with the facade: callers ask the C++ part.
+		OO_CHECK(plume->isExhaust() && dynamic_cast<OOExhaustPlumeEntity *>(oo::ToCxx(ship)) == nullptr);
+		OO_CHECK(plume->findCollisionRadius() == 0.0);
 
-		OO_CHECK(Plume(ship, {}, 1.0f) == nil);
+		OO_CHECK(Plume(ship, {}, 1.0f) == nullptr);
 	}
 }
 
@@ -193,14 +198,14 @@ OO_TEST(scaleZ)
 	{
 		SetUp(0.0);
 		Entity *ship = Ship();
-		OO_CHECK(VectorIs([Plume(ship, { "0", "0", "0", "1", "1", "0.4" }, 1.0f) scale], 1, 1, 1));
-		OO_CHECK(VectorIs([Plume(ship, { "0", "0", "0", "1", "1", "2.5" }, 1.0f) scale], 1, 1, 1));
+		OO_CHECK(VectorIs(Plume(ship, { "0", "0", "0", "1", "1", "0.4" }, 1.0f)->scale(), 1, 1, 1));
+		OO_CHECK(VectorIs(Plume(ship, { "0", "0", "0", "1", "1", "2.5" }, 1.0f)->scale(), 1, 1, 1));
 		OOExhaustPlumeEntity *plume = Plume(ship, { "0", "0", "0", "1", "1", "2" }, 1.0f);
-		OO_CHECK(VectorIs([plume scale], 1, 1, 2));
-		[plume setScale:make_vector(3, 4, 0.5f)];
-		OO_CHECK(VectorIs([plume scale], 3, 4, 0.5f));
-		[plume setScale:make_vector(3, 4, 0.0f)];
-		OO_CHECK(VectorIs([plume scale], 3, 4, 1));
+		OO_CHECK(VectorIs(plume->scale(), 1, 1, 2));
+		plume->setScale(make_vector(3, 4, 0.5f));
+		OO_CHECK(VectorIs(plume->scale(), 3, 4, 0.5f));
+		plume->setScale(make_vector(3, 4, 0.0f));
+		OO_CHECK(VectorIs(plume->scale(), 3, 4, 1));
 	}
 }
 
@@ -211,10 +216,10 @@ OO_TEST(rescale)
 	{
 		SetUp(0.0);
 		OOExhaustPlumeEntity *plume = Plume(Ship(), { "0", "0", "0", "1", "2", "1.5" }, 1.0f);
-		[plume rescaleBy:2.0f];
-		OO_CHECK(VectorIs([plume scale], 2, 4, 3));		// z too: no clamp here
-		[plume rescaleBy:5.0f writeToCache:YES];
-		OO_CHECK(VectorIs([plume scale], 2, 4, 3));
+		plume->rescaleBy(2.0f);
+		OO_CHECK(VectorIs(plume->scale(), 2, 4, 3));		// z too: no clamp here
+		plume->rescaleBy(5.0f, true);
+		OO_CHECK(VectorIs(plume->scale(), 2, 4, 3));
 	}
 }
 
@@ -228,12 +233,12 @@ OO_TEST(updateWithoutVisibleShip)
 		OOExhaustPlumeEntity *plume = Plume(ship, { "0", "0", "-10", "2", "2", "1" }, 1.0f);
 		SetCollisionRadius(plume, 42.0f);
 		ship->_visible = NO;
-		[plume update:0.1];
-		OO_CHECK([plume findCollisionRadius] == 42.0);
+		plume->update(0.1);
+		OO_CHECK(plume->findCollisionRadius() == 42.0);
 
-		[plume setOwner:nil];
-		[plume update:0.1];
-		OO_CHECK([plume findCollisionRadius] == 42.0);
+		plume->setOwner(nullptr);
+		plume->update(0.1);
+		OO_CHECK(plume->findCollisionRadius() == 42.0);
 	}
 }
 
@@ -247,8 +252,8 @@ OO_TEST(updateBelowMinimalSpeed)
 		OOExhaustPlumeEntity *plume = Plume(ship, { "0", "0", "-10", "2", "2", "1" }, 1.0f);
 		SetCollisionRadius(plume, 42.0f);
 		ship->_speedFactor = 0.0005f;
-		[plume update:0.1];
-		OO_CHECK([plume findCollisionRadius] == 0.0);
+		plume->update(0.1);
+		OO_CHECK(plume->findCollisionRadius() == 0.0);
 	}
 }
 
@@ -260,10 +265,10 @@ OO_TEST(updateMeasures)
 		SetUp(1.0);
 		TestShip *ship = Ship();
 		OOExhaustPlumeEntity *plume = Plume(ship, { "0", "0", "-10", "2", "2", "1" }, 1.0f);
-		[plume resetPlume];
-		[plume update:0.1];
+		plume->resetPlume();
+		plume->update(0.1);
 		// What the Objective-C class measured, with this seed.
-		OO_CHECK(Near([plume findCollisionRadius], 14.464036));
+		OO_CHECK(Near(plume->findCollisionRadius(), 14.464036));
 	}
 }
 
@@ -275,10 +280,10 @@ OO_TEST(texture)
 		SetUp(0.0);
 		OOExhaustPlumeEntity *plume = Plume(Ship(), { "0", "0", "0", "1", "1", "1" }, 1.0f);
 		sTextureName.reset();
-		OO_CHECK([plume texture] == sTexture);
+		OO_CHECK(plume->texture() == sTexture);
 		OO_CHECK(sTextureName == std::optional<std::string>("oolite-exhaust-blur.png"));
 		sTextureName.reset();
-		OO_CHECK([plume texture] == sTexture && [OOExhaustPlumeEntity plumeTexture] == sTexture);
+		OO_CHECK(plume->texture() == sTexture && OOExhaustPlumeEntity::plumeTexture() == sTexture);
 		OO_CHECK(!sTextureName.has_value());	// loaded once
 	}
 }
@@ -289,12 +294,13 @@ OO_TEST(facade)
 	@autoreleasepool
 	{
 		SetUp(0.0);
-		OOExhaustPlumeEntity *plume = Plume(Ship(), { "0", "0", "0", "1", "1", "1" }, 1.0f);
-		OO_CHECK([plume class] == [OOExhaustPlumeEntity class]);
-		// A C++ entity (amendment oo-0mxi), not an Objective-C entity's adapter.
-		OO_CHECK(dynamic_cast<cxx::OOExhaustPlumeEntity *>(oo::ToCxx(plume)) != nullptr);
-		OO_CHECK(oo::AsObjCEntity(oo::ToCxx(plume)) == nullptr);
-		OO_CHECK(oo::ToObjC(oo::ToCxx(plume)) == plume);
+		// The object is the root's facade, the nearest left, whose C++ part is the plume: a C++
+		// entity (amendment oo-0mxi), not an Objective-C entity's adapter.
+		Entity *object = oo::NewEntityFacade(OOExhaustPlumeEntity::exhaustForShip((ShipEntity *)Ship(), { "0", "0", "0", "1", "1", "1" }, 1.0f));
+		OO_CHECK([object class] == [Entity class]);
+		OO_CHECK(dynamic_cast<OOExhaustPlumeEntity *>(oo::ToCxx(object)) != nullptr);
+		OO_CHECK(oo::AsObjCEntity(oo::ToCxx(object)) == nullptr);
+		OO_CHECK(oo::ToObjC(oo::ToCxx(object)) == object);
 	}
 }
 
@@ -313,14 +319,15 @@ static void RegisterJSClasses(void (*initClass)(JSContext *, JSValueConst))
 }
 
 
-// The binding's category, which the facade carries since bead oo-9ht.48: what the engine asks a
-// OOExhaustPlumeEntity for by selector is what OOJSExhaustPlume.mm answers.
+// The binding's category, which the facade carried from bead oo-9ht.48 and the C++ class's overrides
+// of the root's JS members carry since the facade's deletion: what the engine asks a plume's object
+// for by selector is what OOJSExhaustPlume.mm answers.
 OO_TEST(jsExtensions)
 {
 	@autoreleasepool
 	{
 		SetUp(0.0);
-		OOExhaustPlumeEntity *plume = Plume(Ship(), { "0", "0", "0", "1", "1", "1" }, 1.0f);
+		Entity *plume = oo::ToObjC(Plume(Ship(), { "0", "0", "0", "1", "1", "1" }, 1.0f));
 		RegisterJSClasses(InitOOJSExhaustPlume);
 		const JSClassID jsClass = [plume oo_jsClassID];
 		const JSClassID expectedClass = JSExhaustPlumeClassID();

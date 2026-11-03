@@ -1,17 +1,22 @@
 /*	test_OOJSFlasher.mm
 	Unit tests for the Flasher JS binding (src/Core/Scripting/OOJSFlasher.h/.mm) and its
-	OOFlasherEntity category (whose forwarders are on the OOFlasherEntity facade since bead
-	oo-9ht.49; this test's stand-in OOFlasherEntity forwards the same way): bead oo-ub2g, converted
-	the way bead oo-ppc converted OOJSVector (proposed ADR-0056 amendments oo-ppc and oo-ykoy).
+	OOFlasherEntity category (whose forwarders were on the OOFlasherEntity facade from bead
+	oo-9ht.49, and are the C++ class's overrides of the root's JS members since that facade's
+	deletion): bead oo-ub2g, converted the way bead oo-ppc converted OOJSVector
+	(proposed ADR-0056 amendments oo-ppc and oo-ykoy).
 
 	As test_OOJSWormhole.mm does (amendment oo-ykoy, item 4), it runs the JS class in a real
 	QuickJS-ng context, links the game's own objects for the binding, the engine's
 	class registration (OOJSClasses.mm), the engine's exception translator
 	(OOJSEngineNativeWrappers.mm) and OOColor (a converted class, reached through its façade), and
-	stands in for the entity classes (Entity, ShipEntity, OOVisualEffectEntity and OOFlasherEntity
-	answer only the selectors the binding sends) and for the engine functions the binding links
-	against, with the engine headers' linkage. The binding header is not imported, because until
-	this bead it imported OOFlasherEntity.h; InitOOJSFlasher is declared here. The expectations
+	stands in for the entity classes (Entity, ShipEntity and OOVisualEffectEntity answer only the
+	selectors the binding sends) and for the engine functions the binding links against, with the
+	engine headers' linkage. The flasher is the C++ OOFlasherEntity, which the binding finds
+	through its object's C++ part: the stand-in is that C++ class, declared with the game header's
+	names and signatures but not its class (OOFlasherEntity.h pulls in the game's classes), as
+	test_OOJSGlobal.mm stands in for the engine, under a stand-in C++ root whose JS members the
+	stand-in root category asks, as the game's does. The binding header is not imported, because
+	until this bead it imported OOFlasherEntity.h; InitOOJSFlasher is declared here. The expectations
 	were written against the Objective-C file and run on it first; they pin the JS-visible
 	behaviour (the six properties and their ranges, the colour both ways, remove() from a ship and
 	from a visual effect, a stale flasher, a native's exception) and what the category answers the
@@ -30,13 +35,66 @@
 
 // MARK: The entity classes, as far as the binding sees them ---------------------------------------
 
-@class OOFlasherEntity;
+namespace cxx {
+
+// The C++ root, as far as the binding and the root's JS category reach it.
+class Entity : public oo::RefCounted
+{
+public:
+	virtual ~Entity();
+	virtual JSClassID jsClassID();
+	virtual std::optional<std::string> jsClassName();
+	virtual bool isVisibleToScripts();
+};
+
+class OOLightParticleEntity : public Entity
+{
+public:
+	float diameter();
+	void setDiameter(float diameter);
+	void setColor(OOColor *color);
+
+	float _diameter = 0;
+	oo::Ref<OOColor> _color;
+};
+
+}	// namespace cxx
+
+
+/*	A flasher whose frequency is 99 raises from frequency(), one whose frequency is 98 throws a C++
+	exception, so the test sees what an exception under a native becomes.
+*/
+class OOFlasherEntity : public cxx::OOLightParticleEntity
+{
+public:
+	bool isActive();
+	void setActive(bool active);
+	oo::Ref<cxx::OOColor> color();
+	float frequency();
+	void setFrequency(float frequency);
+	float phase();
+	void setPhase(float phase);
+	float fraction();
+	void setFraction(float fraction);
+
+	JSClassID jsClassID() override;
+	std::optional<std::string> jsClassName() override;
+	bool isVisibleToScripts() override;
+
+	bool _active = false;
+	float _frequency = 0;
+	float _fraction = 0;
+	float _phase = 0;
+};
+
 
 @interface Entity: OOObject
 {
 @public
+	oo::Ref<cxx::Entity> _cxxEntity;	// the flasher's C++ part (oo::ToCxx reads it)
 	id _owner;
 	id _removed;
+	OOFlasherEntity *_removedFlasher;
 }
 - (id) weakRefUnderlyingObject;
 - (id) owner;
@@ -51,33 +109,6 @@
 - (void) removeSubEntity:(Entity *)sub;
 @end
 
-/*	A flasher whose frequency is 99 raises from -frequency, one whose frequency is 98 throws a C++
-	exception, so the test sees what an exception under a native becomes.
-*/
-@interface OOFlasherEntity: Entity
-{
-@public
-	BOOL _active;
-	OOColor *_color;
-	float _frequency;
-	float _fraction;
-	float _phase;
-	float _diameter;
-}
-- (BOOL) isActive;
-- (void) setActive:(BOOL)active;
-- (OOColor *) color;
-- (void) setColor:(OOColor *)color;
-- (float) frequency;
-- (void) setFrequency:(float)frequency;
-- (float) fraction;
-- (void) setFraction:(float)fraction;
-- (float) phase;
-- (void) setPhase:(float)phase;
-- (float) diameter;
-- (void) setDiameter:(float)diameter;
-@end
-
 @interface Entity (OOJavaScriptExtensions)
 - (JSClassID) oo_jsClassID;
 - (std::optional<std::string>) cxx_oo_jsClassName;
@@ -85,7 +116,7 @@
 @end
 
 void InitOOJSFlasher(JSContext* context, JSValueConst global);
-// The category's bodies, which the stand-in forwards to as the facade does (declared in OOJSFlasher.h).
+// The category's bodies, which the stand-in's overrides call as the C++ class's do (declared in OOJSFlasher.h).
 JSClassID JSFlasherClassID(void);
 std::optional<std::string> OOJSFlasherJSClassName(void);
 bool OOJSFlasherIsVisibleToScripts(void);
@@ -115,7 +146,7 @@ bool OOJSFlasherIsVisibleToScripts(void);
 @implementation ShipEntity
 
 - (BOOL) isShip  { return YES; }
-- (void) removeFlasher:(OOFlasherEntity *)flasher  { _removed = flasher; }
+- (void) removeFlasher:(OOFlasherEntity *)flasher  { _removedFlasher = flasher; }
 
 @end
 
@@ -127,21 +158,36 @@ bool OOJSFlasherIsVisibleToScripts(void);
 @end
 
 
-@implementation OOFlasherEntity
+// The root's JS category, as the game's asks the C++ part (EntityOOJavaScriptExtensions+ObjCBridge.mm):
+// the engine sends these selectors to the wrapped object.
+@implementation Entity (OOJavaScriptExtensions)
 
-- (BOOL) isActive  { return _active; }
-- (void) setActive:(BOOL)active  { _active = active; }
-- (OOColor *) color  { return _color; }
-- (void) setColor:(OOColor *)color  { [_color release]; _color = [color retain]; }
-- (void) setFrequency:(float)frequency  { _frequency = frequency; }
-- (float) fraction  { return _fraction; }
-- (void) setFraction:(float)fraction  { _fraction = fraction; }
-- (float) phase  { return _phase; }
-- (void) setPhase:(float)phase  { _phase = phase; }
-- (float) diameter  { return _diameter; }
-- (void) setDiameter:(float)diameter  { _diameter = diameter; }
+- (JSClassID) oo_jsClassID  { return _cxxEntity->jsClassID(); }
+- (std::optional<std::string>) cxx_oo_jsClassName  { return _cxxEntity->jsClassName(); }
+- (BOOL) isVisibleToScripts  { return _cxxEntity->isVisibleToScripts(); }
 
-- (float) frequency
+@end
+
+
+cxx::Entity::~Entity()  {}
+JSClassID cxx::Entity::jsClassID()  { return 0; }
+std::optional<std::string> cxx::Entity::jsClassName()  { return std::string("Entity"); }
+bool cxx::Entity::isVisibleToScripts()  { return false; }
+
+float cxx::OOLightParticleEntity::diameter()  { return _diameter; }
+void cxx::OOLightParticleEntity::setDiameter(float diameter)  { _diameter = diameter; }
+void cxx::OOLightParticleEntity::setColor(OOColor *color)  { _color = oo::Ref<OOColor>(color); }
+
+bool OOFlasherEntity::isActive()  { return _active; }
+void OOFlasherEntity::setActive(bool active)  { _active = active; }
+oo::Ref<cxx::OOColor> OOFlasherEntity::color()  { return _color; }
+void OOFlasherEntity::setFrequency(float frequency)  { _frequency = frequency; }
+float OOFlasherEntity::fraction()  { return _fraction; }
+void OOFlasherEntity::setFraction(float fraction)  { _fraction = fraction; }
+float OOFlasherEntity::phase()  { return _phase; }
+void OOFlasherEntity::setPhase(float phase)  { _phase = phase; }
+
+float OOFlasherEntity::frequency()
 {
 	if (_frequency == 99)  [OOException raise:OOInvalidArgumentException format:"frequency %s", "boom"];
 	if (_frequency == 98)  throw std::runtime_error("cxx boom");
@@ -149,13 +195,10 @@ bool OOJSFlasherIsVisibleToScripts(void);
 }
 
 
-// The binding's category, as the OOFlasherEntity facade forwards it (OOFlasherEntity+ObjCBridge.mm,
-// bead oo-9ht.49): the engine sends these selectors to the wrapped object.
-- (JSClassID) oo_jsClassID  { return ::JSFlasherClassID(); }
-- (std::optional<std::string>) cxx_oo_jsClassName  { return ::OOJSFlasherJSClassName(); }
-- (BOOL) isVisibleToScripts  { return ::OOJSFlasherIsVisibleToScripts(); }
-
-@end
+// The binding's category, as the C++ class's overrides answer it.
+JSClassID OOFlasherEntity::jsClassID()  { return ::JSFlasherClassID(); }
+std::optional<std::string> OOFlasherEntity::jsClassName()  { return ::OOJSFlasherJSClassName(); }
+bool OOFlasherEntity::isVisibleToScripts()  { return ::OOJSFlasherIsVisibleToScripts(); }
 
 
 // MARK: What the rest of the engine provides ------------------------------------------------------
@@ -364,7 +407,8 @@ namespace {
 JSRuntime *sRuntime = nullptr;
 JSContext *sContext = nullptr;
 JSValue sGlobal = JS_UNDEFINED;	// held for the life of the test
-OOFlasherEntity *sFlasher = nil;
+Entity *sFlasher = nil;					// the flasher's object
+OOFlasherEntity *sFlasherPart = nullptr;	// its C++ part
 ShipEntity *sShip = nil;
 OOVisualEffectEntity *sEffect = nil;
 
@@ -411,13 +455,16 @@ void SetUpContext()
 
 	sShip = [[ShipEntity alloc] init];	// kept for the life of the test
 	sEffect = [[OOVisualEffectEntity alloc] init];
-	sFlasher = [[OOFlasherEntity alloc] init];
-	sFlasher->_active = YES;
-	sFlasher->_color = [[OOColor colorWithRed:1 green:0.5f blue:0.25f alpha:1] retain];
-	sFlasher->_frequency = 2;
-	sFlasher->_fraction = 0.5f;
-	sFlasher->_phase = 0.25f;
-	sFlasher->_diameter = 10;
+	sFlasher = [[Entity alloc] init];
+	const oo::Ref<OOFlasherEntity> part = oo::makeRef<OOFlasherEntity>();
+	sFlasher->_cxxEntity = part;
+	sFlasherPart = part.get();
+	sFlasherPart->_active = YES;
+	sFlasherPart->_color = cxx::OOColor::colorWithRed(1, 0.5f, 0.25f, 1);
+	sFlasherPart->_frequency = 2;
+	sFlasherPart->_fraction = 0.5f;
+	sFlasherPart->_phase = 0.25f;
+	sFlasherPart->_diameter = 10;
 	sFlasher->_owner = sShip;
 	Define("flasher", JSValueForEntity(sFlasher));
 	Define("ship", JSValueForObject(sFakeEntityClassID, sShip));
@@ -500,7 +547,7 @@ OO_TEST(setters)
 	OO_CHECK_EVAL("(function () { flasher.size = 4; return flasher.size; })()", "4");
 	OO_CHECK_EVAL("(function () { flasher.size = 0; return flasher.size; })()", "threw: bad property value");
 	OO_CHECK_EVAL("(function () { flasher.size = 'abc'; return flasher.size; })()", "threw: bad property value");
-	OO_CHECK(sFlasher->_frequency == 0 && sFlasher->_fraction == 1 && sFlasher->_phase == -0.75f && sFlasher->_diameter == 4);
+	OO_CHECK(sFlasherPart->_frequency == 0 && sFlasherPart->_fraction == 1 && sFlasherPart->_phase == -0.75f && sFlasherPart->_diameter == 4);
 }
 
 
@@ -509,29 +556,29 @@ OO_TEST(color)
 	OO_CHECK_EVAL("(function () { flasher.color = [0, 1, 0]; return flasher.color; })()", "0,1,0,1");
 	OO_CHECK_EVAL("(function () { flasher.color = 'redColor'; return flasher.color; })()", "1,0,0,1");
 	OO_CHECK_EVAL("(function () { flasher.color = null; return flasher.color; })()", "null");
-	OO_CHECK(sFlasher->_color == nil);
+	OO_CHECK(sFlasherPart->_color == nullptr);
 	OO_CHECK_EVAL("(function () { flasher.color = 'not a colour'; return flasher.color; })()", "threw: bad property value");
 	OO_CHECK_EVAL("(function () { flasher.color = [0.25, 0.5, 0.75, 0.5]; return flasher.color; })()", "0.25,0.5,0.75,0.5");
-	OO_CHECK(sFlasher->_color != nil && [sFlasher->_color alphaComponent] == 0.5f);
+	OO_CHECK(sFlasherPart->_color != nullptr && sFlasherPart->_color->alphaComponent() == 0.5f);
 }
 
 
 OO_TEST(remove)
 {
 	SetUpContext();
-	sShip->_removed = nil;
+	sShip->_removedFlasher = nullptr;
 	sFlasher->_owner = sShip;
 	OO_CHECK_EVAL("flasher.remove()", "undefined");
-	OO_CHECK(sShip->_removed == sFlasher);
+	OO_CHECK(sShip->_removedFlasher == sFlasherPart);
 	sFlasher->_owner = sEffect;
 	OO_CHECK_EVAL("flasher.remove()", "undefined");
 	OO_CHECK(sEffect->_removed == sFlasher);
 	sFlasher->_owner = sShip;
 	// The prototype has no entity: the binding's getter fails without reporting an error, which
 	// ends the script uncatchably, and nothing is removed.
-	sShip->_removed = nil;
+	sShip->_removedFlasher = nullptr;
 	OO_CHECK_EVAL("Flasher.prototype.remove()", "<evaluation failed>");
-	OO_CHECK(sShip->_removed == nil);
+	OO_CHECK(sShip->_removedFlasher == nullptr);
 }
 
 
@@ -552,11 +599,11 @@ OO_TEST(nativeExceptions)
 	SetUpContext();
 	// The property getter is a native (OOJS_NATIVE_ENTER): a raise from the entity is a JS error,
 	// and so is a C++ exception.
-	sFlasher->_frequency = 99;
+	sFlasherPart->_frequency = 99;
 	OO_CHECK_EVAL("flasher.frequency", "threw: Native exception: frequency boom");
-	sFlasher->_frequency = 98;
+	sFlasherPart->_frequency = 98;
 	OO_CHECK_EVAL("flasher.frequency", "threw: Native exception: cxx boom");
-	sFlasher->_frequency = 2;
+	sFlasherPart->_frequency = 2;
 	OO_CHECK_EVAL("flasher.frequency", "2");
 	OO_CHECK_EQ(sLimiterPauses, 0);
 	OO_CHECK_EQ(sProfileDepth, 0);

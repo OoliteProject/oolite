@@ -39,9 +39,10 @@ MA 02110-1301, USA.
         ADR-0056 amendment oo-ppc). The JS class was already C++ on QuickJS-ng;
         OOJS_NATIVE_ENTER/EXIT and OOJS_PROFILE_ENTER/EXIT are C++ try/catch and scope guards
         (OOJSEngineNativeWrappers.h); BOOL/YES/NO are bool/true/false. The category on
-        OOVisualEffectEntity became free functions, and its methods and interface moved to
-        OOJSVisualEffect+ObjCBridge.mm (amendment oo-ykoy); restoreSubEntities() calls the function that
-        holds -subEntitiesForScript's body. OOColor, which is C++ since bead oo-11m, is reached as
+        OOVisualEffectEntity became free functions, and its methods and interface moved to a bridge
+        file of the binding (amendment oo-ykoy), then onto the OOVisualEffectEntity facade in
+        OOVisualEffectEntity+ObjCBridge.mm; restoreSubEntities() calls the function that holds
+        -subEntitiesForScript's body. OOColor, which is C++ since bead oo-11m, is reached as
         cxx::OOColor through oo::ToCxx/oo::ToObjC (amendment oo-ppc, item 4). Messages to classes that
         are still Objective-C (OOVisualEffectEntity, OOMesh, ResourceManager, Universe, PlayerEntity)
         stay as they are, which is why the file is still .mm until Phase 4.
@@ -190,9 +191,9 @@ static bool JSVisualEffectGetVisualEffectEntity(JSContext* context, JSValueConst
     OOJS_PROFILE_EXIT
 }
 
-// The bodies of OOVisualEffectEntity (OOJavaScriptExtensions), whose methods are in
-// OOJSVisualEffect+ObjCBridge.mm until OOVisualEffectEntity converts (proposed ADR-0056 amendments
-// oo-ppc and oo-ykoy).
+// The bodies of OOVisualEffectEntity (OOJavaScriptExtensions), whose methods are on the
+// OOVisualEffectEntity facade, in OOVisualEffectEntity+ObjCBridge.mm, until that facade goes
+// (proposed ADR-0056 amendments oo-ppc and oo-ykoy).
 std::optional<std::string> OOJSVisualEffectJSClassName(void)
 {
     return std::string("VisualEffect");
@@ -705,8 +706,8 @@ static JSValue VisualEffectRestoreSubEntities(OOJS_NATIVE_ARGS)
 
     GET_THIS_EFFECT(thisEnt);
 
-    // -subEntitiesForScript, called as the function that holds its body: the category that declares
-    // it is in OOJSVisualEffect+ObjCBridge.mm now (amendment oo-ykoy item 2).
+    // -subEntitiesForScript, called as the function that holds its body (amendment oo-ykoy item 2;
+    // the method is on the OOVisualEffectEntity facade now).
     NSUInteger subCount = OOJSVisualEffectSubEntitiesForScript(thisEnt).size();
 
     [thisEnt clearSubEntities];

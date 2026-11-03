@@ -27,8 +27,6 @@ MA 02110-1301, USA.
 #import "OOMaths.h"
 #import "OOTexture.h"
 
-namespace cxx {
-
 oo::Ref<OOTextureSprite> OOTextureSprite::initWithTexture(::OOTexture* inTexture)
 {
     return initWithTexture(inTexture, [inTexture originalDimensions]);
@@ -105,5 +103,3 @@ void OOTextureSprite::blitBackgroundCentredToX(float x, float y, float z, float 
     size.width /= distance;
     size.height /= distance;
 }
-
-} // namespace cxx

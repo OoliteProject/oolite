@@ -373,6 +373,27 @@ OO_TEST(slice3DebugImageDumps)
 		[view cxx_dumpRGBAToRGBFileNamed:std::nullopt andGrayFileNamed:std::nullopt bytes:translucent.data() width:3 height:2 rowBytes:16];
 	}
 }
+
+// Bead oo-5thb0: a gray+alpha dump reads the caller's bytes (2 a pixel, tightly packed rows) and
+// writes neither them nor past their end.
+OO_TEST(dumpGrayAlphaLeavesTheCallersBytes)
+{
+	@autoreleasepool
+	{
+		namespace stdfs = std::filesystem;
+		MyOpenGLView *view = View();
+		stdfs::create_directories(stdfs::current_path() / "oolite-saves" / "snapshots");
+
+		const NSUInteger width = 3, height = 2, rowBytes = 2 * width;
+		std::vector<uint8_t> buffer(rowBytes * height + 64, 0xA5);	// the image, then a guard
+		for (size_t i = 0; i < rowBytes * height; i++)  buffer[i] = static_cast<uint8_t>(i * 17 + 3);
+		const std::vector<uint8_t> before = buffer;
+		[view cxx_dumpGrayAlphaToFileNamed:"oo-test-grayalpha-tight" bytes:buffer.data() width:width height:height rowBytes:rowBytes];
+		OO_CHECK(stdfs::exists(DumpPath("oo-test-grayalpha-tight")));
+		OO_CHECK(buffer == before);
+	}
+}
+
 #endif
 
 

@@ -39,10 +39,11 @@ SOFTWARE.
 #define OOREGEXPMATCHER_H
 
 #import "OOFoundation.h"
+#import "OOJSFunction.h"
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
 
-@class OOJSFunction, OOJSValue;
+@class OOJSValue;
 
 // Same values as SpiderMonkey's JSREG_FOLD and JSREG_MULTILINE.
 enum {
@@ -71,7 +72,7 @@ private:
     // calls it right after making the object, and drops the object when it returns false.
     bool init();
 
-    ::OOJSFunction* _tester = { }; // the facade (ADR-0056 amendment oo-rmd7 item 3)
+    oo::Ref<OOJSFunction> _tester = { };
     std::optional<std::string> _cachedRegExpString = { }; // UTF-8; nullopt: nothing cached (proposed ADR-0043)
     ::OOJSValue* _cachedRegExpObject = { };
     NSUInteger _cachedFlags = { };

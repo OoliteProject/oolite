@@ -165,6 +165,37 @@ MA 02110-1301, USA.
                           rowBytes:(NSUInteger)rowBytes;
 #endif
 
+// Input (bead oo-0806): forwarders for the members other classes send. The rest are cxx::MyOpenGLView's only.
+- (void)setStringInput:(enum StringInput)value;
+- (void)allowStringInput:(BOOL)value;
+- (enum StringInput)allowingStringInput;
+- (std::optional<std::string>)cxx_typedString;
+- (void)resetTypedString;
+- (void)cxx_setTypedString:(const std::string&)value;
+- (void)noteMouseInteractionModeChangedFrom:(OOMouseInteractionMode)oldMode to:(OOMouseInteractionMode)newMode;
+- (void)pollControls;
+- (void)setVirtualJoystick:(double)vmx vmy:(double)vmy;
+- (NSPoint)virtualJoystickPosition;
+- (void)clearKeys;
+- (void)clearMouse;
+- (void)clearKey:(int)theKey;
+- (void)resetMouse;
+- (BOOL)isAlphabetKeyDown;
+- (void)suppressKeysUntilKeyUp; // DJS
+- (BOOL)isDown:(int)key;
+- (BOOL)isOptDown; // opt == alt key
+- (BOOL)isCtrlDown;
+- (BOOL)isShiftDown;
+- (BOOL)isCapsLockOn;
+- (BOOL)lastKeyWasShifted;
+- (int)mouseWheelState;
+- (float)mouseWheelDelta;
+- (void)setMouseWheelDelta:(float)newWheelDelta;
+// Command-key combinations need special handling. SDL stubs for these mac functions.
+- (BOOL)isCommandQDown;
+- (BOOL)isCommandFDown;
+- (void)clearCommandF;
+
 @end
 
 namespace oo {

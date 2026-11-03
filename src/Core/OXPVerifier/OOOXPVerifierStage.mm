@@ -5,8 +5,8 @@ OOOXPVerifierStage.mm
 C++20 since bead oo-cwz, the Phase 3 class-hierarchy exemplar (proposed ADR-0056, Amendment 1).
 Method bodies are the Objective-C ones with message sends turned into calls (ADR-0012); the
 subclass responsibilities are virtual. Global since bead oo-9ht.4 deleted its facade. Still
-Objective-C++ until Phase 4: the verifier and the exceptions a stage raises are Objective-C
-objects.
+Objective-C++ until Phase 4: the exceptions a stage raises are Objective-C objects (the
+verifier it keeps is the C++ one since bead oo-qg71f).
 
 
 Copyright (C) 2007-2013 Jens Ayton
@@ -83,9 +83,11 @@ std::string OOOXPVerifierStage::className() const
     return result;
 }
 
-::OOOXPVerifier* OOOXPVerifierStage::verifier()
+// The C++ verifier, borrowed (bead oo-qg71f; it was the Objective-C verifier, retained and
+// autoreleased): the verifier keeps its stages and outlives them while they run.
+cxx::OOOXPVerifier* OOOXPVerifierStage::verifier()
 {
-    return [[_verifier retain] autorelease];
+    return _verifier;
 }
 
 bool OOOXPVerifierStage::completed()
@@ -121,7 +123,7 @@ void OOOXPVerifierStage::run()
 
 // Internal (was the OOInternal category).
 
-void OOOXPVerifierStage::setVerifier(::OOOXPVerifier* verifier)
+void OOOXPVerifierStage::setVerifier(cxx::OOOXPVerifier* verifier)
 {
     _verifier = verifier; // Not retained.
 }

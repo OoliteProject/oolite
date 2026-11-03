@@ -59,7 +59,7 @@ MA 02110-1301, USA.
 
 - (std::vector<oo::ObjCRef<Entity*>>)subEntityEnumerator; // snapshot, same as -subEntities
 - (std::vector<oo::ObjCRef<OOVisualEffectEntity*>>)effectSubEntityEnumerator;
-- (std::vector<oo::ObjCRef<OOFlasherEntity*>>)flasherEnumerator; // flasher subentities, a snapshot
+- (std::vector<oo::ObjCRef<Entity*>>)flasherEnumerator; // flasher subentities, a snapshot (the C++ OOFlasherEntity's objects)
 
 - (void)orientationChanged;
 - (Vector)forwardVector;

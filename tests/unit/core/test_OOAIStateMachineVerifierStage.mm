@@ -121,9 +121,9 @@ std::string MakeOXP()
 }
 
 
-OOOXPVerifier *MakeVerifier(const std::string &path)
+cxx::OOOXPVerifier *MakeVerifier(const std::string &path)
 {
-	return [[[OOOXPVerifier alloc] initWithPath:path configuration:kConfiguration] autorelease];
+	return OOOXPVerifierTestAccess::Make(path, kConfiguration);
 }
 
 
@@ -157,10 +157,10 @@ int LogLinesContaining(std::string_view text)
 
 
 // The scanner, registered with the verifier and run over its OXP, as the verifier runs it first.
-void RunScanner(OOOXPVerifier *verifier)
+void RunScanner(cxx::OOOXPVerifier *verifier)
 {
 	OOFileScannerVerifierStage::nameForDependencyForVerifier(verifier);
-	[verifier cxx_stageWithName:OOFileScannerVerifierStage::kName]->run();	// was -fileScannerStage (bead oo-9ht.7); the C++ stage since oo-9ht.4
+	verifier->stageWithName(OOFileScannerVerifierStage::kName)->run();	// was -fileScannerStage (bead oo-9ht.7); the C++ stage since oo-9ht.4
 }
 
 const std::vector<std::string> kScannerName = { "Scanning files" };
@@ -173,7 +173,7 @@ OO_TEST(nameAndNeighbours)
 {
 	@autoreleasepool
 	{
-		OOOXPVerifier *verifier = MakeVerifier("");
+		cxx::OOOXPVerifier *verifier = MakeVerifier("");
 		OO_CHECK(OOAIStateMachineVerifierStage::nameForReverseDependencyForVerifier(verifier) == "Validating AIs");
 
 		const oo::Ref<OOAIStateMachineVerifierStage> stage = oo::makeRef<OOAIStateMachineVerifierStage>();
@@ -191,7 +191,7 @@ OO_TEST(shipsNameAIs)
 	@autoreleasepool
 	{
 		const std::string base = MakeOXP();
-		OOOXPVerifier *verifier = MakeVerifier(base);
+		cxx::OOOXPVerifier *verifier = MakeVerifier(base);
 		RunScanner(verifier);
 		const oo::Ref<OOAIStateMachineVerifierStage> stage = oo::makeRef<OOAIStateMachineVerifierStage>();
 		stage->setVerifier(verifier);
@@ -221,7 +221,7 @@ OO_TEST(runChecksEachAIAgainstTheWhitelist)
 	@autoreleasepool
 	{
 		const std::string base = MakeOXP();
-		OOOXPVerifier *verifier = MakeVerifier(base);
+		cxx::OOOXPVerifier *verifier = MakeVerifier(base);
 		RunScanner(verifier);
 		const oo::Ref<OOAIStateMachineVerifierStage> stage = oo::makeRef<OOAIStateMachineVerifierStage>();
 		stage->setVerifier(verifier);
@@ -284,14 +284,14 @@ OO_TEST(facade)
 	@autoreleasepool
 	{
 		const std::string base = MakeOXP();
-		OOOXPVerifier *verifier = MakeVerifier(base);
+		cxx::OOOXPVerifier *verifier = MakeVerifier(base);
 		RunScanner(verifier);
 		const oo::Ref<OOAIStateMachineVerifierStage> stage = oo::makeRef<OOAIStateMachineVerifierStage>();
 
 		// Registered as the verifier registers it, found again by name, as the ship data stage finds it.
-		[verifier registerStage:stage.get()];
-		OO_CHECK([verifier cxx_stageWithName:"Validating AIs"] == stage.get());
-		OO_CHECK(static_cast<OOAIStateMachineVerifierStage *>([verifier cxx_stageWithName:"Validating AIs"]) == stage.get());
+		verifier->registerStage(stage.get());
+		OO_CHECK(verifier->stageWithName("Validating AIs") == stage.get());
+		OO_CHECK(static_cast<OOAIStateMachineVerifierStage *>(verifier->stageWithName("Validating AIs")) == stage.get());
 
 		// The stage answers as its facade did.
 		OO_CHECK(stage->name() == std::optional<std::string>("Validating AIs"));

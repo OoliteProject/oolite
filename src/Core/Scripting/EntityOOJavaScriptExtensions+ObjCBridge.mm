@@ -33,13 +33,15 @@ MA 02110-1301, USA.
 
 @implementation Entity (OOJavaScriptExtensions)
 
+// The class questions go to the C++ part, whose defaults are these bodies and which a C++ subclass
+// without a facade of its own overrides.
 - (BOOL)isVisibleToScripts
 {
-    return EntityJSIsVisibleToScripts();
+    return _cxxEntity->isVisibleToScripts();
 }
 - (std::optional<std::string>)cxx_oo_jsClassName
 {
-    return EntityJSClassName();
+    return _cxxEntity->jsClassName();
 }
 - (JSValue)oo_jsValueInContext:(JSContext*)context
 {
@@ -48,7 +50,7 @@ MA 02110-1301, USA.
 
 - (JSClassID)oo_jsClassID
 {
-    return EntityJSClassID();
+    return _cxxEntity->jsClassID();
 }
 
 - (void)deleteJSSelf

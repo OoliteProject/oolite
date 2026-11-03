@@ -30,6 +30,7 @@ SOFTWARE.
 #ifndef OOPNGTEXTURELOADER_H
 #define OOPNGTEXTURELOADER_H
 
+#import "OOTexture.h"
 #import "OOTextureLoader.h"
 #import "png.h"
 

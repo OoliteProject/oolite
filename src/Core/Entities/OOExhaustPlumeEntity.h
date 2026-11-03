@@ -40,13 +40,16 @@ enum {
     kExhaustFrameCount = 16
 };
 
-namespace cxx {
-
-class OOExhaustPlumeEntity : public Entity {
+/*	C++ only since its Objective-C facade was deleted: the ships make it with exhaustForShip() and
+        hand it to Objective-C with oo::NewEntityFacade, which wraps it in the root's facade. The
+        engine's JS questions reach it through the root's virtual members, an owner's OOSubEntity
+        messages through cxx::OOSubEntityInterface, and the graphics reset manager through a C++
+        client in OOExhaustPlumeEntity.mm.
+*/
+class OOExhaustPlumeEntity : public cxx::Entity, public cxx::OOSubEntityInterface {
 public:
     // definition: the exhaust's tokens (x y z scale_x scale_y scale_z), read as -oo_floatAtIndex: read them.
-    // +exhaustForShip:withDefinition:andScale:: a new plume, initialised; null for no tokens. The
-    // facade's class method hands it to Objective-C (oo::NewEntityFacade).
+    // A new plume, initialised; null for no tokens. oo::NewEntityFacade hands it to Objective-C.
     static oo::Ref<OOExhaustPlumeEntity> exhaustForShip(::ShipEntity* ship, const std::vector<std::string>& definition, float scale);
     // -initForShip:withDefinition:andScale:'s body, run once right after construction (amendment
     // oo-vl43 item 2): false where the initialiser answered nil.
@@ -61,16 +64,21 @@ public:
 
     static void setUpTexture();
     static ::OOTexture* plumeTexture();
-    // The graphics reset client is the facade class, which forwards here.
+    // What the graphics reset client (OOExhaustPlumeEntity.mm) runs.
     static void resetGraphicsState();
 
-    // OOSubEntity, answered by the facade.
-    void rescaleBy(GLfloat factor);
-    void rescaleBy(GLfloat factor, bool writeToCache);
-    void drawSubEntityImmediate(bool immediate, bool translucent);
+    // OOSubEntity.
+    void rescaleBy(GLfloat factor) override;
+    void rescaleBy(GLfloat factor, bool writeToCache) override;
+    void drawSubEntityImmediate(bool immediate, bool translucent) override;
 
-    // Entity (OOExhaustPlume), which the facade's category answers from here.
+    // Entity (OOExhaustPlume)'s answer; callers ask dynamic_cast<OOExhaustPlumeEntity *>.
     bool isExhaust();
+
+    // Entity (OOJavaScriptExtensions): the binding's bodies (OOJSExhaustPlume.h).
+    JSClassID jsClassID() override;
+    std::optional<std::string> jsClassName() override;
+    bool isVisibleToScripts() override;
 
     double findCollisionRadius() override;
     void update(OOTimeDelta delta_t) override;
@@ -87,9 +95,3 @@ private:
     OOTimeAbsolute _trackTime = { };
     uint8_t _nextFrame = { };
 };
-
-} // namespace cxx
-
-// Transitional: the Objective-C OOExhaustPlumeEntity, for the ships, which make it and message it,
-// and the scripting binding. Deleted, with namespace cxx above, by the bridge's deletion bead.
-#import "OOExhaustPlumeEntity+ObjCBridge.h"

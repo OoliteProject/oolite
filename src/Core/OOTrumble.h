@@ -80,10 +80,10 @@ namespace cxx {
 class OOTrumble : public oo::RefCounted {
 public:
     OOTrumble(); // -init
-    explicit OOTrumble(PlayerEntity* p1);
-    OOTrumble(PlayerEntity* p1, const std::string& digramString);
+    explicit OOTrumble(::PlayerEntity* p1);
+    OOTrumble(::PlayerEntity* p1, const std::string& digramString);
 
-    void setupForPlayer(PlayerEntity* p1, const std::string& digramString);
+    void setupForPlayer(::PlayerEntity* p1, const std::string& digramString);
 
     void spawnFrom(OOTrumble* parentTrumble);
 
@@ -132,7 +132,7 @@ public:
 private:
     friend struct ::OOTrumbleTestAccess; // the test reads the private state
 
-    PlayerEntity* player = { }; // owning entity (not retained)
+    ::PlayerEntity* player = { }; // owning entity (not retained)
     //
     uint16_t digram[2] = { }; // seed for pseudo-randomly setting up Trumble (pair of characters)
     //

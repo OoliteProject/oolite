@@ -107,10 +107,10 @@ void WriteFile(const std::filesystem::path &path, const char *contents)
 
 
 // The scanner, registered with the verifier and run over its OXP, as the verifier runs it first.
-void RunScanner(OOOXPVerifier *verifier)
+void RunScanner(cxx::OOOXPVerifier *verifier)
 {
 	OOFileScannerVerifierStage::nameForDependencyForVerifier(verifier);
-	[verifier cxx_stageWithName:OOFileScannerVerifierStage::kName]->run();	// was -fileScannerStage (bead oo-9ht.7); the C++ stage since oo-9ht.4
+	verifier->stageWithName(OOFileScannerVerifierStage::kName)->run();	// was -fileScannerStage (bead oo-9ht.7); the C++ stage since oo-9ht.4
 }
 
 
@@ -121,12 +121,12 @@ const std::filesystem::path kBase = std::filesystem::current_path() / "test_OOCh
 
 
 // An OXP with the given Config files (name, contents), and its verifier with the scanner run over it.
-OOOXPVerifier *MakeVerifier(std::initializer_list<std::pair<const char *, const char *>> files)
+cxx::OOOXPVerifier *MakeVerifier(std::initializer_list<std::pair<const char *, const char *>> files)
 {
 	std::filesystem::remove_all(kBase);
 	std::filesystem::create_directories(kBase);
 	for (const auto &[name, contents] : files)  WriteFile(kBase / "Config" / name, contents);
-	OOOXPVerifier *verifier = [[[OOOXPVerifier alloc] initWithPath:kBase.generic_string() configuration:kConfiguration] autorelease];
+	cxx::OOOXPVerifier *verifier = OOOXPVerifierTestAccess::Make(kBase.generic_string(), kConfiguration);
 	RunScanner(verifier);
 	StartLog();
 	return verifier;
@@ -205,12 +205,12 @@ OO_TEST(facade)
 {
 	@autoreleasepool
 	{
-		OOOXPVerifier *verifier = MakeVerifier({});
+		cxx::OOOXPVerifier *verifier = MakeVerifier({});
 		const oo::Ref<OOCheckDemoShipsPListVerifierStage> stage = oo::makeRef<OOCheckDemoShipsPListVerifierStage>();
 		OO_CHECK(stage->description().starts_with("<OOCheckDemoShipsPListVerifierStage 0x"));
 
-		[verifier registerStage:stage.get()];
-		OO_CHECK([verifier cxx_stageWithName:"Checking demoships.plist"] == stage.get());
+		verifier->registerStage(stage.get());
+		OO_CHECK(verifier->stageWithName("Checking demoships.plist") == stage.get());
 		OO_CHECK(stage->name() == std::optional<std::string>("Checking demoships.plist"));
 		OO_CHECK(stage->dependencies() == kScannerName);
 		OO_CHECK(stage->dependents() == kUnusedName);

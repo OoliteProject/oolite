@@ -43,6 +43,17 @@ void OOLogGenericSubclassResponsibilityForFunction(const char *inFunction)
 }
 
 
+/*	A verifier for verifierIsNotRetained: the stage keeps the C++ verifier since bead oo-qg71f (it
+	kept the Objective-C one, which the test stood in for with a plain object). Its constructor is
+	private; the class names this struct its friend for tests. Nothing the verifier defines out of
+	line is called, so OOOXPVerifier.mm is not linked.
+*/
+struct OOOXPVerifierTestAccess
+{
+	static oo::Ref<cxx::OOOXPVerifier> Make()	{ return oo::adopt(new cxx::OOOXPVerifier()); }
+};
+
+
 /*	A stage that overrides the subclass responsibilities. It was an Objective-C subclass of the
 	facade (an unconverted stage) until bead oo-9ht.4; it keeps its name, so its description is the
 	one the test pinned.
@@ -139,7 +150,7 @@ OO_TEST(baseDefaults)
 		OO_CHECK(stage->shouldRun());
 		OO_CHECK(!stage->completed());
 		OO_CHECK(!stage->canRun());
-		OO_CHECK(stage->verifier() == nil);
+		OO_CHECK(stage->verifier() == nullptr);
 		OO_CHECK(stage->resolvedDependencies().empty() && stage->resolvedDependents().empty());
 		stage->dependencyRegistrationComplete();
 		OO_CHECK(stage->canRun());	// nothing to wait for
@@ -151,18 +162,17 @@ OO_TEST(verifierIsNotRetained)
 {
 	@autoreleasepool
 	{
-		OOObject *object = [[OOObject alloc] init];
-		OOOXPVerifier *verifier = (OOOXPVerifier *)object;
+		const oo::Ref<cxx::OOOXPVerifier> object = OOOXPVerifierTestAccess::Make();
+		cxx::OOOXPVerifier *verifier = object.get();
 		const oo::Ref<TestObjCStage> stage = MakeStage("Stage");
-		const unsigned before = [object retainCount];
+		const unsigned before = object->retainCount();
 		stage->setVerifier(verifier);
-		OO_CHECK([object retainCount] == before);
+		OO_CHECK(object->retainCount() == before);
 		@autoreleasepool
 		{
 			OO_CHECK(stage->verifier() == verifier);
 		}
-		OO_CHECK([object retainCount] == before);
-		[object release];
+		OO_CHECK(object->retainCount() == before);
 	}
 }
 

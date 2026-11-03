@@ -1,19 +1,24 @@
 /*	test_OOJSExhaustPlume.mm
 	Unit tests for the ExhaustPlume JS binding (src/Core/Scripting/OOJSExhaustPlume.h/.mm) and its
-	OOExhaustPlumeEntity category (whose forwarders are on the OOExhaustPlumeEntity facade since
-	bead oo-9ht.48; this test's stand-in OOExhaustPlumeEntity forwards the same way): bead oo-utlm,
+	OOExhaustPlumeEntity category (whose forwarders were on the OOExhaustPlumeEntity facade from
+	bead oo-9ht.48, and are the C++ class's overrides of the root's JS members since that facade's
+	deletion): bead oo-utlm,
 	converted the way bead oo-ppc converted OOJSVector (proposed ADR-0056 amendments oo-ppc and
 	oo-ykoy).
 
 	As test_OOJSWormhole.mm does (amendment oo-ykoy, item 4), it runs the JS class in a real
-	QuickJS-ng context, links the game's own objects for the binding, the engine's
-	class registration (OOJSClasses.mm) and the engine's exception translator
-	(OOJSEngineNativeWrappers.mm), and stands in for the entity classes (Entity, ShipEntity,
-	OOExhaustPlumeEntity answer only the selectors the binding sends), for the Vector3D conversions
-	(a vector is the array [x, y, z] here) and for the engine functions the binding links against,
-	with the engine headers' linkage. The binding header is not imported, because until this bead
-	it imported OOExhaustPlumeEntity.h; InitOOJSExhaustPlume is declared here. The expectations
-	were written against the Objective-C file and run on it first; they pin the JS-visible
+	QuickJS-ng context, links the game's own objects for the binding, the engine's class
+	registration (OOJSClasses.mm) and the engine's exception translator
+	(OOJSEngineNativeWrappers.mm), and stands in for the entity classes (Entity and ShipEntity
+	answer only the selectors the binding sends), for the Vector3D conversions (a vector is the
+	array [x, y, z] here) and for the engine functions the binding links against, with the engine
+	headers' linkage. The plume is the C++ OOExhaustPlumeEntity, which the binding finds through
+	its object's C++ part: the stand-in is that C++ class, declared with the game header's names
+	and signatures but not its class (OOExhaustPlumeEntity.h pulls in the game's classes), as
+	test_OOJSGlobal.mm stands in for the engine, under a stand-in C++ root whose JS members the
+	stand-in root category asks, as the game's does. The binding header is not imported, because
+	until this bead it imported OOExhaustPlumeEntity.h; InitOOJSExhaustPlume is declared here. The
+	expectations were written against the Objective-C file and run on it first; they pin the JS-visible
 	behaviour (size, remove(), a stale plume, a non-plume, a native's exception) and what the
 	category answers the engine. Run: tests/run.sh unit
 */
@@ -30,11 +35,42 @@
 
 // MARK: The entity classes, as far as the binding sees them ---------------------------------------
 
-@class OOExhaustPlumeEntity;
+namespace cxx {
+
+// The C++ root, as far as the binding and the root's JS category reach it.
+class Entity : public oo::RefCounted
+{
+public:
+	virtual ~Entity();
+	virtual JSClassID jsClassID();
+	virtual std::optional<std::string> jsClassName();
+	virtual bool isVisibleToScripts();
+};
+
+}	// namespace cxx
+
+
+/*	A plume whose scale has x = -1 raises from scale(), one with x = -2 throws a C++ exception, so the
+	test sees what an exception under a native becomes.
+*/
+class OOExhaustPlumeEntity : public cxx::Entity
+{
+public:
+	Vector scale();
+	void setScale(Vector scale);
+
+	JSClassID jsClassID() override;
+	std::optional<std::string> jsClassName() override;
+	bool isVisibleToScripts() override;
+
+	Vector _scale = {};
+};
+
 
 @interface Entity: OOObject
 {
 @public
+	oo::Ref<cxx::Entity> _cxxEntity;	// the plume's C++ part (oo::ToCxx reads it)
 	id _owner;
 }
 - (id) weakRefUnderlyingObject;
@@ -49,18 +85,6 @@
 - (void) removeExhaust:(OOExhaustPlumeEntity *)exhaust;
 @end
 
-/*	A plume whose scale has x = -1 raises from -scale, one with x = -2 throws a C++ exception, so the
-	test sees what an exception under a native becomes.
-*/
-@interface OOExhaustPlumeEntity: Entity
-{
-@public
-	Vector _scale;
-}
-- (Vector) scale;
-- (void) setScale:(Vector)scale;
-@end
-
 @interface Entity (OOJavaScriptExtensions)
 - (JSClassID) oo_jsClassID;
 - (std::optional<std::string>) cxx_oo_jsClassName;
@@ -69,7 +93,7 @@
 
 
 void InitOOJSExhaustPlume(JSContext* context, JSValueConst global);
-// The category's bodies, which the stand-in forwards to as the facade does (declared in OOJSExhaustPlume.h).
+// The category's bodies, which the stand-in's overrides call as the C++ class's do (declared in OOJSExhaustPlume.h).
 JSClassID JSExhaustPlumeClassID(void);
 std::optional<std::string> OOJSExhaustPlumeJSClassName(void);
 bool OOJSExhaustPlumeIsVisibleToScripts(void);
@@ -99,26 +123,36 @@ bool OOJSExhaustPlumeIsVisibleToScripts(void);
 @end
 
 
-@implementation OOExhaustPlumeEntity
+// The root's JS category, as the game's asks the C++ part (EntityOOJavaScriptExtensions+ObjCBridge.mm):
+// the engine sends these selectors to the wrapped object.
+@implementation Entity (OOJavaScriptExtensions)
 
-- (Vector) scale
+- (JSClassID) oo_jsClassID  { return _cxxEntity->jsClassID(); }
+- (std::optional<std::string>) cxx_oo_jsClassName  { return _cxxEntity->jsClassName(); }
+- (BOOL) isVisibleToScripts  { return _cxxEntity->isVisibleToScripts(); }
+
+@end
+
+
+cxx::Entity::~Entity()  {}
+JSClassID cxx::Entity::jsClassID()  { return 0; }
+std::optional<std::string> cxx::Entity::jsClassName()  { return std::string("Entity"); }
+bool cxx::Entity::isVisibleToScripts()  { return false; }
+
+Vector OOExhaustPlumeEntity::scale()
 {
 	if (_scale.x == -1)  [OOException raise:OOInvalidArgumentException format:"scale %s", "boom"];
 	if (_scale.x == -2)  throw std::runtime_error("cxx boom");
 	return _scale;
 }
 
-- (void) setScale:(Vector)scale  { _scale = scale; }
+void OOExhaustPlumeEntity::setScale(Vector scale)  { _scale = scale; }
 
 
-// The binding's category, as the OOExhaustPlumeEntity facade forwards it
-// (OOExhaustPlumeEntity+ObjCBridge.mm, bead oo-9ht.48): the engine sends these selectors to the
-// wrapped object.
-- (JSClassID) oo_jsClassID  { return ::JSExhaustPlumeClassID(); }
-- (std::optional<std::string>) cxx_oo_jsClassName  { return ::OOJSExhaustPlumeJSClassName(); }
-- (BOOL) isVisibleToScripts  { return ::OOJSExhaustPlumeIsVisibleToScripts(); }
-
-@end
+// The binding's category, as the C++ class's overrides answer it.
+JSClassID OOExhaustPlumeEntity::jsClassID()  { return ::JSExhaustPlumeClassID(); }
+std::optional<std::string> OOExhaustPlumeEntity::jsClassName()  { return ::OOJSExhaustPlumeJSClassName(); }
+bool OOExhaustPlumeEntity::isVisibleToScripts()  { return ::OOJSExhaustPlumeIsVisibleToScripts(); }
 
 
 // MARK: What the rest of the engine provides ------------------------------------------------------
@@ -316,7 +350,8 @@ namespace {
 JSRuntime *sRuntime = nullptr;
 JSContext *sContext = nullptr;
 JSValue sGlobal = JS_UNDEFINED;	// held for the life of the test
-OOExhaustPlumeEntity *sPlume = nil;
+Entity *sPlume = nil;						// the plume's object
+OOExhaustPlumeEntity *sPlumePart = nullptr;	// its C++ part
 ShipEntity *sShip = nil;
 
 
@@ -361,8 +396,11 @@ void SetUpContext()
 	InitOOJSExhaustPlume(sContext, sGlobal);
 
 	sShip = [[ShipEntity alloc] init];	// kept for the life of the test
-	sPlume = [[OOExhaustPlumeEntity alloc] init];
-	sPlume->_scale = make_vector(1, 2, 3.5);
+	sPlume = [[Entity alloc] init];
+	const oo::Ref<OOExhaustPlumeEntity> part = oo::makeRef<OOExhaustPlumeEntity>();
+	sPlume->_cxxEntity = part;
+	sPlumePart = part.get();
+	sPlumePart->_scale = make_vector(1, 2, 3.5);
 	sPlume->_owner = sShip;
 	Define("plume", JSValueForEntity(sPlume));
 	Define("ship", JSValueForObject(sFakeEntityClassID, sShip));
@@ -424,7 +462,7 @@ OO_TEST(properties)
 	OO_CHECK_EVAL("plume.size", "1,2,3.5");
 	OO_CHECK_EVAL("Object.keys(ExhaustPlume.prototype).join()", "size");
 	OO_CHECK_EVAL("(function () { plume.size = [4, 5, 6]; return plume.size; })()", "4,5,6");
-	OO_CHECK(sPlume->_scale.x == 4 && sPlume->_scale.y == 5 && sPlume->_scale.z == 6);
+	OO_CHECK(sPlumePart->_scale.x == 4 && sPlumePart->_scale.y == 5 && sPlumePart->_scale.z == 6);
 	OO_CHECK_EVAL("(function () { plume.size = 'big'; return plume.size; })()", "threw: bad property value");
 	OO_CHECK_EVAL("plume.size", "4,5,6");
 }
@@ -433,14 +471,14 @@ OO_TEST(properties)
 OO_TEST(remove)
 {
 	SetUpContext();
-	sShip->_removed = nil;
+	sShip->_removed = nullptr;
 	OO_CHECK_EVAL("plume.remove()", "undefined");
-	OO_CHECK(sShip->_removed == sPlume);
+	OO_CHECK(sShip->_removed == sPlumePart);
 	// The prototype has no entity: the binding's getter fails without reporting an error, which
 	// ends the script uncatchably, and nothing is removed.
-	sShip->_removed = nil;
+	sShip->_removed = nullptr;
 	OO_CHECK_EVAL("ExhaustPlume.prototype.remove()", "<evaluation failed>");
-	OO_CHECK(sShip->_removed == nil);
+	OO_CHECK(sShip->_removed == nullptr);
 }
 
 
@@ -462,11 +500,11 @@ OO_TEST(nativeExceptions)
 	SetUpContext();
 	// The property getter is a native (OOJS_NATIVE_ENTER): a raise from the entity is a JS error,
 	// and so is a C++ exception.
-	sPlume->_scale = make_vector(-1, 0, 0);
+	sPlumePart->_scale = make_vector(-1, 0, 0);
 	OO_CHECK_EVAL("plume.size", "threw: Native exception: scale boom");
-	sPlume->_scale = make_vector(-2, 0, 0);
+	sPlumePart->_scale = make_vector(-2, 0, 0);
 	OO_CHECK_EVAL("plume.size", "threw: Native exception: cxx boom");
-	sPlume->_scale = make_vector(1, 1, 1);
+	sPlumePart->_scale = make_vector(1, 1, 1);
 	OO_CHECK_EVAL("plume.size", "1,1,1");
 	OO_CHECK_EQ(sLimiterPauses, 0);
 	OO_CHECK_EQ(sProfileDepth, 0);

@@ -44,8 +44,9 @@
 #include <string_view>
 
 @class OOColor, StationEntity, WormholeEntity, AI, Octree, OOMesh, OOScript, OOCharacter,
-    OOJSScript, OORoleSet, OOShipGroup, OOEquipmentType, OOWeakSet,
-    OOExhaustPlumeEntity, OOFlasherEntity;
+    OOJSScript, OORoleSet, OOShipGroup, OOEquipmentType, OOWeakSet;
+class OOFlasherEntity; // C++ only since bead oo-9ht.107
+class OOExhaustPlumeEntity; // C++ only since bead oo-9ht.110
 
 // Universe.h's, for the members of ShipEntityAI.mm's scans (ADR-0056 amendment oo-42dr item 3).
 typedef BOOL (*EntityFilterPredicate)(Entity* entity, void* parameter);
@@ -259,8 +260,8 @@ public:
     bool hasSubEntity(::Entity* sub);
     std::vector<oo::ObjCRef<::Entity*>> subEntityEnumerator();
     std::vector<oo::ObjCRef<::ShipEntity*>> shipSubEntities();
-    std::vector<oo::ObjCRef<::OOFlasherEntity*>> flasherEnumerator();
-    std::vector<oo::ObjCRef<::OOExhaustPlumeEntity*>> exhausts();
+    std::vector<oo::ObjCRef<::Entity*>> flasherEnumerator(); // the flashers' objects (the nearest façade left)
+    std::vector<oo::ObjCRef<::Entity*>> exhausts(); // the plumes' objects (the root façade)
     ::ShipEntity* subEntityTakingDamage();
     void setSubEntityTakingDamage(::ShipEntity* sub);
     ::OOScript* shipScript();
@@ -674,10 +675,10 @@ public:
     virtual void becomeExplosion();
     virtual void becomeEnergyBlast();
     void broadcastEnergyBlastImminent();
-    void removeExhaust(::OOExhaustPlumeEntity* exhaust);
+    void removeExhaust(OOExhaustPlumeEntity* exhaust);
 
     // Slice 23: subentity death, alignment offsets, large explosion, laser heat, personality, scanner, remembered ships.
-    void removeFlasher(::OOFlasherEntity* flasher);
+    void removeFlasher(OOFlasherEntity* flasher);
     void subEntityDied(::ShipEntity* sub);
     void subEntityReallyDied(::ShipEntity* sub) override;
     Vector positionOffsetForAlignment(const std::string& align);

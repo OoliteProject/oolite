@@ -36,9 +36,7 @@ MA 02110-1301, USA.
 #import "OOBreakPatternEntity.h"
 #import "OODescription.h"
 #import "OOEntityWithDrawable.h"
-#import "OOExhaustPlumeEntity.h"
 #import "OOFlashEffectEntity.h"
-#import "OOFlasherEntity.h"
 #import "OOLaserShotEntity.h"
 #import "OOLightParticleEntity.h"
 #import "OOPlanetEntity.h"
@@ -100,14 +98,10 @@ oo::ObjCPeers& Peers()
         facadeClass = [::WormholeEntity class];
     if (dynamic_cast<cxx::OOSunEntity*>(entity.get()) != nullptr)
         facadeClass = [::OOSunEntity class];
-    if (dynamic_cast<cxx::OOExhaustPlumeEntity*>(entity.get()) != nullptr)
-        facadeClass = [::OOExhaustPlumeEntity class];
     if (dynamic_cast<cxx::SkyEntity*>(entity.get()) != nullptr)
         facadeClass = [::SkyEntity class];
     if (dynamic_cast<cxx::OOWaypointEntity*>(entity.get()) != nullptr)
         facadeClass = [::OOWaypointEntity class];
-    if (dynamic_cast<cxx::OOFlasherEntity*>(entity.get()) != nullptr)
-        facadeClass = [::OOFlasherEntity class];
     if (dynamic_cast<cxx::OOFlashEffectEntity*>(entity.get()) != nullptr)
         facadeClass = [::OOFlashEffectEntity class];
     if (dynamic_cast<cxx::OOPlanetEntity*>(entity.get()) != nullptr)

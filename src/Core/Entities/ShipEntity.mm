@@ -367,8 +367,6 @@ void ShipEntity::initWithKey(const std::string& key)
 
 } // namespace cxx
 
-@implementation ShipEntity
-
 static constexpr std::string_view kBoulderRole = "boulder";
 
 static GLfloat cargo_color[4] = { 0.9, 0.9, 0.9, 1.0 }; // gray
@@ -527,8 +525,6 @@ static BOOL AuthorityPredicate(Entity* entity, void* parameter)
     // Reject others
     return NO;
 }
-
-@end
 
 namespace cxx {
 
@@ -1136,7 +1132,8 @@ bool ShipEntity::setUpSubEntities()
     for (i = 0; plumes != nullptr && i < plumes->count(); i++) {
         // at<std::string>: a string, or a number's text, else "" (no tokens), as the string reader gave.
         const std::vector<std::string> definition = oo::str::tokens(plumes->at<std::string>(i));
-        ::OOExhaustPlumeEntity* exhaust = [::OOExhaustPlumeEntity exhaustForShip:self withDefinition:definition andScale:_scaleFactor];
+        // C++ since bead oo-9ht.110: the plume's object is the root façade; nil for no tokens.
+        ::Entity<OOSubEntity>* exhaust = (::Entity<OOSubEntity>*)oo::NewEntityFacade(OOExhaustPlumeEntity::exhaustForShip(self, definition, _scaleFactor));
         [self addSubEntity:exhaust];
     }
 
@@ -1161,7 +1158,7 @@ GLfloat ShipEntity::frustumRadius()
     ::ShipEntity* self = oo::ToObjC(this);
     OOScalar exhaust_length = 0;
     for (const auto& exhaust : [self cxx_exhausts]) {
-        ::OOExhaustPlumeEntity* exEnt = exhaust.get();
+        ::Entity* exEnt = exhaust.get();
         if ([exEnt findCollisionRadius] > exhaust_length) {
             exhaust_length = [exEnt findCollisionRadius];
         }
@@ -1187,10 +1184,12 @@ bool ShipEntity::setUpOneSubentity(const oo::PList& subentDict)
 bool ShipEntity::setUpOneFlasher(const oo::PList& subentDict)
 {
     ::ShipEntity* self = oo::ToObjC(this);
-    ::OOFlasherEntity* flasher = [::OOFlasherEntity flasherWithDictionary:subentDict];
-    [flasher setPosition:HPvector_multiply_scalar(HPVectorForKey(subentDict, "position"), _scaleFactor)];
-    [flasher rescaleBy:_scaleFactor];
-    [self addSubEntity:flasher];
+    // C++ since bead oo-9ht.107: the flasher's object is the nearest façade left.
+    const oo::Ref<OOFlasherEntity> flasher = OOFlasherEntity::flasherWithDictionary(subentDict);
+    ::Entity<OOSubEntity>* flasherObject = (::Entity<OOSubEntity>*)oo::NewEntityFacade(flasher);
+    [flasherObject setPosition:HPvector_multiply_scalar(HPVectorForKey(subentDict, "position"), _scaleFactor)];
+    flasher->rescaleBy(_scaleFactor);
+    [self addSubEntity:flasherObject];
     return YES;
 }
 
@@ -1485,22 +1484,22 @@ std::vector<oo::ObjCRef<::ShipEntity*>> ShipEntity::shipSubEntities()
     return result;
 }
 
-std::vector<oo::ObjCRef<::OOFlasherEntity*>> ShipEntity::flasherEnumerator()
+std::vector<oo::ObjCRef<::Entity*>> ShipEntity::flasherEnumerator()
 {
-    std::vector<oo::ObjCRef<::OOFlasherEntity*>> flashers;
+    std::vector<oo::ObjCRef<::Entity*>> flashers;
     for (const auto& sub : subEntities) {
-        if ([sub.get() isFlasher])
-            flashers.emplace_back((::OOFlasherEntity*)sub.get());
+        if (dynamic_cast<OOFlasherEntity*>(oo::ToCxx(sub.get())) != nullptr)
+            flashers.emplace_back(sub.get());
     }
     return flashers;
 }
 
-std::vector<oo::ObjCRef<::OOExhaustPlumeEntity*>> ShipEntity::exhausts()
+std::vector<oo::ObjCRef<::Entity*>> ShipEntity::exhausts()
 {
-    std::vector<oo::ObjCRef<::OOExhaustPlumeEntity*>> result;
+    std::vector<oo::ObjCRef<::Entity*>> result;
     for (const auto& sub : subEntities) {
-        if ([sub.get() isExhaust])
-            result.emplace_back((::OOExhaustPlumeEntity*)sub.get());
+        if (dynamic_cast<OOExhaustPlumeEntity*>(oo::ToCxx(sub.get())) != nullptr)
+            result.emplace_back(sub.get());
     }
     return result;
 }
@@ -3726,7 +3725,7 @@ void ShipEntity::removeEquipmentItem(const std::string& equipmentKey)
 
         // if all docking computers are damaged while active
         if ([self isPlayer] && [self status] == STATUS_AUTOPILOT_ENGAGED && ![self hasDockingComputer]) {
-            [(PlayerEntity*)self disengageAutopilot];
+            [(::PlayerEntity*)self disengageAutopilot];
         }
 
         if (_equipment.empty())
@@ -4198,7 +4197,7 @@ void ShipEntity::behaviour_tractored(double delta_t)
         if ([self status] == STATUS_BEING_SCOOPED) {
             BOOL lost_contact = (distance > hauler->_cxxEntity->collision_radius + collision_radius + 250.0f); // 250m range for tractor beam
             if ([hauler isPlayer]) {
-                switch ([(PlayerEntity*)hauler dialFuelScoopStatus]) {
+                switch ([(::PlayerEntity*)hauler dialFuelScoopStatus]) {
                 case SCOOP_STATUS_NOT_INSTALLED:
                 case SCOOP_STATUS_FULL_HOLD:
                     lost_contact = YES; // don't draw
@@ -4221,7 +4220,7 @@ void ShipEntity::behaviour_tractored(double delta_t)
                 [shipAI cxx_exitStateMachineWithMessage:std::nullopt]; // exit nullAI.plist
                 return;
             } else if ([hauler isPlayer]) {
-                [(PlayerEntity*)hauler setScoopsActive];
+                [(::PlayerEntity*)hauler setScoopsActive];
             }
         }
     }
@@ -6047,7 +6046,10 @@ void ShipEntity::drawImmediate(bool immediate, bool translucent)
             for (const auto& sub : subs) {
                 ::Entity<OOSubEntity>* subEntity = (::Entity<OOSubEntity>*)sub.get();
                 OOCAssert([subEntity owner] == self, "Subentity ownership broke - %s should be owned by %s but is owned by %s.", oo::DescriptionOf(subEntity).c_str(), oo::DescriptionOf(self).c_str(), oo::DescriptionOf([subEntity owner]).c_str());
-                [subEntity drawSubEntityImmediate:immediate translucent:translucent];
+                if (OOSubEntityInterface* cxxSub = dynamic_cast<OOSubEntityInterface*>(oo::ToCxx((::Entity*)subEntity)))
+                    cxxSub->drawSubEntityImmediate(immediate, translucent);
+                else
+                    [subEntity drawSubEntityImmediate:immediate translucent:translucent];
             }
         }
     }
@@ -8422,7 +8424,10 @@ void ShipEntity::rescaleBy(GLfloat factor, bool writeToCache)
     for (const auto& sub : subs) {
         ::Entity<OOSubEntity>* se = (::Entity<OOSubEntity>*)sub.get();
         [se setPosition:HPvector_multiply_scalar([se position], factor)];
-        [se rescaleBy:factor writeToCache:writeToCache];
+        if (OOSubEntityInterface* cxxSub = dynamic_cast<OOSubEntityInterface*>(oo::ToCxx((::Entity*)se)))
+            cxxSub->rescaleBy(factor, writeToCache);
+        else
+            [se rescaleBy:factor writeToCache:writeToCache];
     }
 
     // rescale mass
@@ -8791,10 +8796,11 @@ void ShipEntity::broadcastEnergyBlastImminent()
     }
 }
 
-void ShipEntity::removeExhaust(::OOExhaustPlumeEntity* exhaust)
+void ShipEntity::removeExhaust(OOExhaustPlumeEntity* exhaust)
 {
-    std::erase(subEntities, (::Entity*)exhaust);
-    [exhaust setOwner:nil];
+    ::Entity* exhaustObject = oo::ToObjC(exhaust);
+    std::erase(subEntities, exhaustObject);
+    [exhaustObject setOwner:nil];
 }
 
 } // namespace cxx
@@ -8805,10 +8811,11 @@ void ShipEntity::removeExhaust(::OOExhaustPlumeEntity* exhaust)
 // override still runs (ADR-0056 amendment oo-mvzmb).
 namespace cxx {
 
-void ShipEntity::removeFlasher(::OOFlasherEntity* flasher)
+void ShipEntity::removeFlasher(OOFlasherEntity* flasher)
 {
-    std::erase(subEntities, (::Entity*)flasher);
-    [flasher setOwner:nil];
+    ::Entity* flasherObject = oo::ToObjC(flasher);
+    std::erase(subEntities, flasherObject);
+    [flasherObject setOwner:nil];
 }
 
 void ShipEntity::subEntityDied(::ShipEntity* sub)
@@ -9029,7 +9036,8 @@ void ShipEntity::resetExhaustPlumes()
 {
     ::ShipEntity* self = oo::ToObjC(this);
     for (const auto& exEnt : [self cxx_exhausts]) {
-        [exEnt.get() resetPlume];
+        if (OOExhaustPlumeEntity* exhaust = dynamic_cast<OOExhaustPlumeEntity*>(oo::ToCxx(exEnt.get())))
+            exhaust->resetPlume();
     }
 }
 
@@ -12611,8 +12619,8 @@ void ShipEntity::switchLightsOn()
 
     const std::vector<oo::ObjCRef<::Entity*>> subs = subEntities;
     for (const auto& se : subs) {
-        if ([se.get() isFlasher])
-            [(::OOFlasherEntity*)se.get() setActive:YES];
+        if (OOFlasherEntity* flasher = dynamic_cast<OOFlasherEntity*>(oo::ToCxx(se.get())))
+            flasher->setActive(YES);
     }
     for (const auto& sub : [self cxx_shipSubEntities]) {
         [sub.get() switchLightsOn];
@@ -12627,8 +12635,8 @@ void ShipEntity::switchLightsOff()
 
     const std::vector<oo::ObjCRef<::Entity*>> subs = subEntities;
     for (const auto& se : subs) {
-        if ([se.get() isFlasher])
-            [(::OOFlasherEntity*)se.get() setActive:NO];
+        if (OOFlasherEntity* flasher = dynamic_cast<OOFlasherEntity*>(oo::ToCxx(se.get())))
+            flasher->setActive(NO);
     }
     for (const auto& sub : [self cxx_shipSubEntities]) {
         [sub.get() switchLightsOff];

@@ -3,14 +3,13 @@
 OOJSTimer+ObjCBridge.h
 
 TRANSITIONAL (proposed ADR-0056, bead oo-kdyh): the Objective-C OOJSTimer, the facade of a
-cxx::OOJSTimer (OOJSTimer.h). Nothing outside OOJSTimer.mm names the class, but a Timer's JS
-private slot holds this facade retained (amendment oo-ppc item 5), the engine sends it the JS glue
-selectors (-oo_jsValueInContext:, -cxx_oo_jsClassName), and the timer queue holds it. It is a
+cxx::OOJSTimer (OOJSTimer.h). Nothing outside OOJSTimer.mm names the class; a Timer's JS private
+slot holds the C++ timer (OOJSPrivateObject.h), but Objective-C code may still send this facade the
+JS glue selectors (-oo_jsValueInContext:, -cxx_oo_jsClassName), and the timer queue holds it. It is a
 subclass of the OOScriptTimer facade with no ivars, which forwards through oo::ToCxx(self)
 (amendment oo-up4b item 3); oo::ToObjC of a cxx::OOJSTimer picks it by name. Imported as the
 last line of OOJSTimer.h; do not import it directly. Deleted by its deletion bead once the
-engine's object wrappers hold C++ objects (amendment oo-ppc item 5) and the timer queue holds C++
-timers.
+timer queue holds C++ timers.
 
 
 Oolite

@@ -13,9 +13,12 @@
 	keeps it opaque at frequency 0; it draws only while active; it is a flasher (and an entity is
 	not); its collision radius is half its diameter; -rescaleBy: scales the diameter and
 	-rescaleBy:writeToCache: does nothing. The colour components, an ivar of OOLightParticleEntity,
-	are read and set through the one block of helpers below. The flashers are made by the class
-	method the callers send, which the conversion kept on the facade: the last test pins that their
-	object is a C++ entity whose Objective-C object is the OOFlasherEntity facade.
+	are read and set through the one block of helpers below. The flashers are made as the callers
+	make them (flasherWithDictionary(), then oo::NewEntityFacade). The Objective-C facade is
+	deleted: the cases ask the C++ class what they asked the facade, with every expectation kept,
+	except the facade's own class check; the facade case pins the crossing instead (the object is
+	OOLightParticleEntity's facade, whose C++ part is the flasher), and jsExtensions pins that the
+	engine's selectors reach the C++ class's overrides through the root.
 	Run: bash tools/check-core-tests.sh
 */
 
@@ -83,11 +86,19 @@ void SetUp()
 
 // --- Ivars the test reads and sets, and nothing else -----------------------------------------------
 
-const GLfloat *ColorComponents(Entity *e)			{ return oo::ToCxx((OOLightParticleEntity *)e)->_colorComponents; }
-GLfloat CamZeroDistance(Entity *e)					{ return e->_cxxEntity->cam_zero_distance; }
-void SetCamZeroDistance(Entity *e, GLfloat value)	{ e->_cxxEntity->cam_zero_distance = value; }
+const GLfloat *ColorComponents(OOFlasherEntity *e)			{ return e->_colorComponents; }
+GLfloat CamZeroDistance(cxx::Entity *e)					{ return e->cam_zero_distance; }
+void SetCamZeroDistance(cxx::Entity *e, GLfloat value)	{ e->cam_zero_distance = value; }
 
 // --------------------------------------------------------------------------------------------------
+
+
+// A flasher, made as the ships and the visual effects make one: its Objective-C object is
+// autoreleased in the test's pool and holds it.
+OOFlasherEntity *Flasher(const oo::PList &dictionary)
+{
+	return static_cast<OOFlasherEntity *>(oo::ToCxx(oo::NewEntityFacade(OOFlasherEntity::flasherWithDictionary(dictionary))));
+}
 
 
 bool Near(double a, double b)
@@ -96,7 +107,7 @@ bool Near(double a, double b)
 }
 
 
-bool RGBIs(Entity *e, GLfloat r, GLfloat g, GLfloat b)
+bool RGBIs(OOFlasherEntity *e, GLfloat r, GLfloat g, GLfloat b)
 {
 	const GLfloat *c = ColorComponents(e);
 	return Near(c[0], r) && Near(c[1], g) && Near(c[2], b);
@@ -127,17 +138,17 @@ OO_TEST(defaults)
 	@autoreleasepool
 	{
 		SetUp();
-		OOFlasherEntity *flasher = [OOFlasherEntity flasherWithDictionary:Dict({})];
-		OO_CHECK(flasher != nil && [flasher isKindOfClass:[OOFlasherEntity class]]);
-		OO_CHECK([flasher isKindOfClass:[OOLightParticleEntity class]]);
-		OO_CHECK([flasher diameter] == 1.0f);
-		OO_CHECK([flasher frequency] == 2.0f && [flasher phase] == 0.0f && [flasher fraction] == 0.5f);
-		OO_CHECK([flasher isActive]);
-		OO_CHECK([flasher status] == STATUS_EFFECT && [flasher scanClass] == CLASS_NO_DRAW);
+		OOFlasherEntity *flasher = Flasher(Dict({}));
+		OO_CHECK(flasher != nullptr);
+		OO_CHECK([oo::ToObjC(flasher) isKindOfClass:[OOLightParticleEntity class]]);
+		OO_CHECK(flasher->diameter() == 1.0f);
+		OO_CHECK(flasher->frequency() == 2.0f && flasher->phase() == 0.0f && flasher->fraction() == 0.5f);
+		OO_CHECK(flasher->isActive());
+		OO_CHECK(flasher->status() == STATUS_EFFECT && flasher->getScanClass() == CLASS_NO_DRAW);
 		// No colours: the current colour is nil, which left the components white.
 		OO_CHECK(RGBIs(flasher, 1, 1, 1) && ColorComponents(flasher)[3] == 1.0f);
-		OO_CHECK([flasher isFlasher]);
-		OO_CHECK([flasher findCollisionRadius] == 0.5);
+		OO_CHECK(flasher->isFlasher());
+		OO_CHECK(flasher->findCollisionRadius() == 0.5);
 	}
 }
 
@@ -147,22 +158,22 @@ OO_TEST(dictionary)
 	@autoreleasepool
 	{
 		SetUp();
-		OOFlasherEntity *flasher = [OOFlasherEntity flasherWithDictionary:Dict({
+		OOFlasherEntity *flasher = Flasher(Dict({
 			{ "size", oo::PList(6.0) },
 			{ "frequency", oo::PList(1.5) },
 			{ "phase", oo::PList(0.25) },
 			{ "bright_fraction", oo::PList(0.75) },
 			{ "initially_on", oo::PList(false) },
 			{ "colors", oo::PList(oo::PList::Array{ oo::PList(std::string("blackColor")), oo::PList(std::string("whiteColor")) }) },
-		})];
-		OO_CHECK([flasher diameter] == 6.0f && [flasher findCollisionRadius] == 3.0);
-		OO_CHECK([flasher frequency] == 3.0f && [flasher phase] == 0.25f && [flasher fraction] == 0.75f);
-		OO_CHECK(![flasher isActive]);
+		}));
+		OO_CHECK(flasher->diameter() == 6.0f && flasher->findCollisionRadius() == 3.0);
+		OO_CHECK(flasher->frequency() == 3.0f && flasher->phase() == 0.25f && flasher->fraction() == 0.75f);
+		OO_CHECK(!flasher->isActive());
 		OO_CHECK(RGBIs(flasher, 0, 0, 0) && ColorComponents(flasher)[3] == 1.0f);	// the first colour
 
-		OOColor *color = [flasher color];
+		oo::Ref<cxx::OOColor> color = flasher->color();
 		float r = -1, g = -1, b = -1, a = -1;
-		[color getRed:&r green:&g blue:&b alpha:&a];
+		color->getRed(&r, &g, &b, &a);
 		OO_CHECK(r == 0 && g == 0 && b == 0 && a == 1);
 	}
 }
@@ -173,9 +184,9 @@ OO_TEST(saturationFactor)
 	@autoreleasepool
 	{
 		SetUp();
-		OOFlasherEntity *flasher = [OOFlasherEntity flasherWithDictionary:Dict({
+		OOFlasherEntity *flasher = Flasher(Dict({
 			{ "colors", oo::PList(oo::PList::Array{ oo::PList(std::string("redColor")) }) },
-		})];
+		}));
 		// Red at three quarters of its saturation.
 		OO_CHECK(RGBIs(flasher, 1.0f, 0.25f, 0.25f));
 	}
@@ -187,20 +198,20 @@ OO_TEST(accessors)
 	@autoreleasepool
 	{
 		SetUp();
-		OOFlasherEntity *flasher = [OOFlasherEntity flasherWithDictionary:WhiteBlack(1, 0.5)];
-		[flasher setActive:NO];
-		OO_CHECK(![flasher isActive]);
-		[flasher setActive:YES];
-		OO_CHECK([flasher isActive]);
-		[flasher setFrequency:7.0f];
-		OO_CHECK([flasher frequency] == 7.0f);
-		[flasher setPhase:0.5f];
-		OO_CHECK([flasher phase] == 0.5f);
-		[flasher setFraction:0.125f];
-		OO_CHECK([flasher fraction] == 0.125f);
-		[flasher setColor:[OOColor colorWithRed:0.5f green:0.25f blue:0.125f alpha:0.75f] alpha:0.375f];
+		OOFlasherEntity *flasher = Flasher(WhiteBlack(1, 0.5));
+		flasher->setActive(NO);
+		OO_CHECK(!flasher->isActive());
+		flasher->setActive(YES);
+		OO_CHECK(flasher->isActive());
+		flasher->setFrequency(7.0f);
+		OO_CHECK(flasher->frequency() == 7.0f);
+		flasher->setPhase(0.5f);
+		OO_CHECK(flasher->phase() == 0.5f);
+		flasher->setFraction(0.125f);
+		OO_CHECK(flasher->fraction() == 0.125f);
+		flasher->setColor(cxx::OOColor::colorWithRed(0.5f, 0.25f, 0.125f, 0.75f).get(), 0.375f);
 		float r = -1, g = -1, b = -1, a = -1;
-		[[flasher color] getRed:&r green:&g blue:&b alpha:&a];
+		flasher->color()->getRed(&r, &g, &b, &a);
 		OO_CHECK(r == 0.5f && g == 0.25f && b == 0.125f && a == 0.375f);
 	}
 }
@@ -212,28 +223,28 @@ OO_TEST(updateCyclesColours)
 	{
 		SetUp();
 		// frequency 1 (stored 2): wave = sin(2 pi t), fraction 0.5: threshold cos(pi / 2) = 0.
-		OOFlasherEntity *flasher = [OOFlasherEntity flasherWithDictionary:WhiteBlack(1, 0.5)];
+		OOFlasherEntity *flasher = Flasher(WhiteBlack(1, 0.5));
 		OO_CHECK(RGBIs(flasher, 1, 1, 1));
 
-		[flasher update:0.125];		// t 0.125: wave sin(pi/4), rising half: brightness above the fraction
+		flasher->update(0.125);		// t 0.125: wave sin(pi/4), rising half: brightness above the fraction
 		double wave = std::sin(M_PI / 4);
 		OO_CHECK(RGBIs(flasher, 1, 1, 1));
 		OO_CHECK(Near(ColorComponents(flasher)[3], 0.5 + (0.5 / 1.0) * wave));
 
-		[flasher update:0.5];		// t 0.625: wave -sin(pi/4), falling: no switch (wave < _wave)
+		flasher->update(0.5);		// t 0.625: wave -sin(pi/4), falling: no switch (wave < _wave)
 		OO_CHECK(RGBIs(flasher, 1, 1, 1));
 		OO_CHECK(Near(ColorComponents(flasher)[3], 0.5 + (0.5 / 1.0) * -wave));
 
-		[flasher update:0.3125];	// t 0.9375: wave still negative and rising: the next colour
+		flasher->update(0.3125);	// t 0.9375: wave still negative and rising: the next colour
 		OO_CHECK(RGBIs(flasher, 0, 0, 0));
 
-		[flasher update:0.03125];	// t 0.96875: just switched, no second switch
+		flasher->update(0.03125);	// t 0.96875: just switched, no second switch
 		OO_CHECK(RGBIs(flasher, 0, 0, 0));
 
-		[flasher update:0.0625];	// t 1.03125: positive again, the switch resets
-		[flasher update:0.59375];	// t 1.625: negative but falling: no switch
+		flasher->update(0.0625);	// t 1.03125: positive again, the switch resets
+		flasher->update(0.59375);	// t 1.625: negative but falling: no switch
 		OO_CHECK(RGBIs(flasher, 0, 0, 0));
-		[flasher update:0.3125];	// t 1.9375: rising below zero: back to the first colour
+		flasher->update(0.3125);	// t 1.9375: rising below zero: back to the first colour
 		OO_CHECK(RGBIs(flasher, 1, 1, 1));
 	}
 }
@@ -244,9 +255,9 @@ OO_TEST(frequencyZeroIsOpaque)
 	@autoreleasepool
 	{
 		SetUp();
-		OOFlasherEntity *flasher = [OOFlasherEntity flasherWithDictionary:WhiteBlack(0, 0.5)];
-		[flasher setColor:[OOColor whiteColor] alpha:0.25f];
-		[flasher update:0.3];
+		OOFlasherEntity *flasher = Flasher(WhiteBlack(0, 0.5));
+		flasher->setColor(cxx::OOColor::whiteColor().get(), 0.25f);
+		flasher->update(0.3);
 		OO_CHECK(ColorComponents(flasher)[3] == 1.0f);
 		OO_CHECK(RGBIs(flasher, 1, 1, 1));
 	}
@@ -259,17 +270,17 @@ OO_TEST(drawsOnlyWhileActive)
 	{
 		SetUp();
 		Entity *owner = [[[Entity alloc] init] autorelease];
-		SetCamZeroDistance(owner, 1e30f);		// beyond any draw distance: the draw stops at the cut-off
-		OOFlasherEntity *flasher = [OOFlasherEntity flasherWithDictionary:WhiteBlack(1, 0.5)];
-		[flasher setOwner:owner];
+		SetCamZeroDistance(oo::ToCxx(owner), 1e30f);		// beyond any draw distance: the draw stops at the cut-off
+		OOFlasherEntity *flasher = Flasher(WhiteBlack(1, 0.5));
+		flasher->setOwner(oo::ToCxx(owner));
 		SetCamZeroDistance(flasher, 5.0f);
 
-		[flasher setActive:NO];
-		[flasher drawSubEntityImmediate:true translucent:true];
+		flasher->setActive(NO);
+		flasher->drawSubEntityImmediate(true, true);
 		OO_CHECK(CamZeroDistance(flasher) == 5.0f);	// not drawn
 
-		[flasher setActive:YES];
-		[flasher drawSubEntityImmediate:true translucent:true];
+		flasher->setActive(YES);
+		flasher->drawSubEntityImmediate(true, true);
 		OO_CHECK(CamZeroDistance(flasher) == 1e30f);	// OOLightParticleEntity's draw read the owner's distance
 	}
 }
@@ -280,11 +291,11 @@ OO_TEST(rescale)
 	@autoreleasepool
 	{
 		SetUp();
-		OOFlasherEntity *flasher = [OOFlasherEntity flasherWithDictionary:WhiteBlack(1, 0.5)];
-		[flasher rescaleBy:2.5f];
-		OO_CHECK([flasher diameter] == 10.0f);
-		[flasher rescaleBy:3.0f writeToCache:YES];
-		OO_CHECK([flasher diameter] == 10.0f);
+		OOFlasherEntity *flasher = Flasher(WhiteBlack(1, 0.5));
+		flasher->rescaleBy(2.5f);
+		OO_CHECK(flasher->diameter() == 10.0f);
+		flasher->rescaleBy(3.0f, true);
+		OO_CHECK(flasher->diameter() == 10.0f);
 	}
 }
 
@@ -294,11 +305,13 @@ OO_TEST(isFlasher)
 	@autoreleasepool
 	{
 		SetUp();
+		// The category -isFlasher went with the facade: callers ask the C++ part.
 		Entity *plain = [[[Entity alloc] init] autorelease];
-		OO_CHECK(![plain isFlasher]);
+		OO_CHECK(dynamic_cast<OOFlasherEntity *>(oo::ToCxx(plain)) == nullptr);
 		OOLightParticleEntity *particle = [[[OOLightParticleEntity alloc] initWithDiameter:1.0f] autorelease];
-		OO_CHECK(![particle isFlasher]);
-		OO_CHECK([[OOFlasherEntity flasherWithDictionary:Dict({})] isFlasher]);
+		OO_CHECK(dynamic_cast<OOFlasherEntity *>(oo::ToCxx(particle)) == nullptr);
+		OOFlasherEntity *flasher = Flasher(Dict({}));
+		OO_CHECK(flasher->isFlasher() && dynamic_cast<OOFlasherEntity *>(oo::ToCxx(oo::ToObjC(flasher))) == flasher);
 	}
 }
 
@@ -308,12 +321,13 @@ OO_TEST(facade)
 	@autoreleasepool
 	{
 		SetUp();
-		OOFlasherEntity *flasher = [OOFlasherEntity flasherWithDictionary:WhiteBlack(1, 0.5)];
-		OO_CHECK([flasher class] == [OOFlasherEntity class]);
-		// A C++ entity (amendment oo-0mxi), not an Objective-C entity's adapter.
-		OO_CHECK(dynamic_cast<cxx::OOFlasherEntity *>(oo::ToCxx(flasher)) != nullptr);
-		OO_CHECK(oo::AsObjCEntity(oo::ToCxx(flasher)) == nullptr);
-		OO_CHECK(oo::ToObjC(oo::ToCxx(flasher)) == flasher);
+		// The object is the nearest facade left, whose C++ part is the
+		// flasher: a C++ entity (amendment oo-0mxi), not an Objective-C entity's adapter.
+		Entity *object = oo::NewEntityFacade(OOFlasherEntity::flasherWithDictionary(WhiteBlack(1, 0.5)));
+		OO_CHECK([object class] == [OOLightParticleEntity class]);
+		OO_CHECK(dynamic_cast<OOFlasherEntity *>(oo::ToCxx(object)) != nullptr);
+		OO_CHECK(oo::AsObjCEntity(oo::ToCxx(object)) == nullptr);
+		OO_CHECK(oo::ToObjC(oo::ToCxx(object)) == object);
 	}
 }
 
@@ -332,14 +346,15 @@ static void RegisterJSClasses(void (*initClass)(JSContext *, JSValueConst))
 }
 
 
-// The binding's category, which the facade carries since bead oo-9ht.49: what the engine asks a
-// OOFlasherEntity for by selector is what OOJSFlasher.mm answers.
+// The binding's category, which the facade carried from bead oo-9ht.49 and the C++ class's overrides
+// of the root's JS members carry since the facade's deletion: what the engine asks a flasher's
+// object for by selector is what OOJSFlasher.mm answers.
 OO_TEST(jsExtensions)
 {
 	@autoreleasepool
 	{
 		SetUp();
-		OOFlasherEntity *flasher = [OOFlasherEntity flasherWithDictionary:WhiteBlack(1, 0.5)];
+		Entity *flasher = oo::ToObjC(Flasher(WhiteBlack(1, 0.5)));
 		RegisterJSClasses(InitOOJSFlasher);
 		const JSClassID jsClass = [flasher oo_jsClassID];
 		const JSClassID expectedClass = JSFlasherClassID();

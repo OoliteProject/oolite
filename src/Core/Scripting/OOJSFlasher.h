@@ -28,17 +28,14 @@ MA 02110-1301, USA.
 
 #import "OOFoundation.h"
 #include <quickjs.h>
-@class OOFlasherEntity;
 
 void InitOOJSFlasher(JSContext* context, JSValueConst global);
 
 JSClassID JSFlasherClassID(void);
 
-/*	The bodies of OOFlasherEntity (OOJavaScriptExtensions), which the engine reaches by selector.
-        Its methods are one-line forwarders to these on the OOFlasherEntity facade, in
-        OOFlasherEntity+ObjCBridge.mm (bead oo-9ht.49), until that facade goes (oo-9ht.107; proposed
-        ADR-0056 amendments oo-ppc, oo-ykoy and oo-6ia4). Its -oo_jsClassID answers
-        JSFlasherClassID().
+/*	The bodies of OOFlasherEntity (OOJavaScriptExtensions), which the engine reaches by selector
+        through the root's JS members: the C++ OOFlasherEntity's overrides call these (proposed
+        ADR-0056 amendments oo-ppc, oo-ykoy and oo-6ia4). Its jsClassID() answers JSFlasherClassID().
 */
 std::optional<std::string> OOJSFlasherJSClassName(void);
 bool OOJSFlasherIsVisibleToScripts(void);

@@ -27,6 +27,7 @@ SOFTWARE.
 
 #import "OOTextureGenerator.h"
 #import "OOAsyncWorkManager.h"
+#import "OOTexture.h"
 
 namespace cxx {
 

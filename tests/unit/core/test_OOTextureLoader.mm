@@ -18,6 +18,7 @@
 	Run: bash tools/check-core-tests.sh
 */
 
+#import "OOTexture.h"
 #import "OOTextureLoader.h"
 #import "OOAsyncWorkManager.h"
 #import "OODescription.h"

@@ -45,7 +45,7 @@ SOFTWARE.
 */
 class OOOXPVerifierStage : public oo::RefCounted {
 public:
-    ::OOOXPVerifier* verifier();
+    cxx::OOOXPVerifier* verifier();
     bool completed();
 
     // Subclass responsibilities:
@@ -95,7 +95,7 @@ public:
             OOInternal category, OOOXPVerifierStageInternal.h, deleted with the facade by bead
             oo-9ht.4). Nothing else calls these.
     */
-    void setVerifier(::OOOXPVerifier* verifier);
+    void setVerifier(cxx::OOOXPVerifier* verifier);
     bool isDependentOf(OOOXPVerifierStage* stage);
     void registerDependency(OOOXPVerifierStage* dependency);
     void dependencyRegistrationComplete();
@@ -114,7 +114,7 @@ private:
     void dependencyCompleted(OOOXPVerifierStage* dependency);
     void notifyDependents();
 
-    ::OOOXPVerifier* _verifier = { }; // Not retained.
+    cxx::OOOXPVerifier* _verifier = { }; // Not retained.
     std::vector<oo::Ref<OOOXPVerifierStage>> _dependencies = { };
     std::vector<oo::Ref<OOOXPVerifierStage>> _incompleteDependencies = { };
     std::vector<oo::Ref<OOOXPVerifierStage>> _dependents = { };

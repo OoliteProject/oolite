@@ -3,11 +3,11 @@
 ShipEntity+ObjCBridge.mm
 
 TRANSITIONAL (proposed ADR-0056, amendments oo-bj8 and oo-60fwo): the Objective-C ShipEntity
-facade (see ShipEntity+ObjCBridge.h). Its initialisers and -dealloc are here, in a category while
-the class's @implementation is still ShipEntity.mm, because they need the Objective-C object as
-self (amendment oo-bj8 items 6 and 7), and so are the two SubEntityRelationship categories (item
-12); the other methods are still in ShipEntity.mm until their slices move them. Deleted with
-ShipEntity+ObjCBridge.h.
+facade (see ShipEntity+ObjCBridge.h). The class's primary @implementation is here, empty: every
+method has moved into cxx::ShipEntity (slices 1-34, umbrella bead oo-k8a) and the facade's methods
+are its categories below. Its initialisers and -dealloc are a category because they need the
+Objective-C object as self (amendment oo-bj8 items 6 and 7), and so are the two
+SubEntityRelationship categories (item 12). Deleted with ShipEntity+ObjCBridge.h.
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -47,6 +47,9 @@ MA 02110-1301, USA.
 #include "oofnd/objc/OOAssert.h"
 
 #include <cmath>
+
+@implementation ShipEntity
+@end
 
 @implementation ShipEntity (OOObjCBridge)
 
@@ -364,11 +367,11 @@ GLfloat ShipEntityPlayerBaseMass(void) { return [PLAYER baseMass]; }
 {
     return _cxxShip->shipSubEntities();
 }
-- (std::vector<oo::ObjCRef<OOFlasherEntity*>>)flasherEnumerator
+- (std::vector<oo::ObjCRef<Entity*>>)flasherEnumerator
 {
     return _cxxShip->flasherEnumerator();
 }
-- (std::vector<oo::ObjCRef<OOExhaustPlumeEntity*>>)cxx_exhausts
+- (std::vector<oo::ObjCRef<Entity*>>)cxx_exhausts
 {
     return _cxxShip->exhausts();
 }

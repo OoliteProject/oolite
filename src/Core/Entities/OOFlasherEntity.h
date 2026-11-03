@@ -35,14 +35,16 @@ MA 02110-1301, USA.
 /*	Foundation sweep (proposed ADR-0043, bead oo-5lu6): +flasherWithDictionary: is unique and takes
         the subentity configuration as an oo::PList, as does the initializer -cxx_initWithDictionary:
         (bead oo-3rb.292.1; its id twin retired with oo-qps.44).
+
+        C++ only since its Objective-C facade was deleted: the ships and the visual effects make it
+        with flasherWithDictionary() and hand it to Objective-C with oo::NewEntityFacade, which wraps it
+        in the nearest facade left (OOLightParticleEntity's). The engine's JS questions reach it through
+        the root's virtual members, and an owner's -rescaleBy: through cxx::OOSubEntityInterface.
 */
 
-namespace cxx {
-
-class OOFlasherEntity : public OOLightParticleEntity {
+class OOFlasherEntity : public cxx::OOLightParticleEntity, public cxx::OOSubEntityInterface {
 public:
-    // +flasherWithDictionary:: a new flasher, initialised. The facade's class method hands it to
-    // Objective-C (oo::NewEntityFacade).
+    // A new flasher, initialised; oo::NewEntityFacade hands it to Objective-C.
     static oo::Ref<OOFlasherEntity> flasherWithDictionary(const oo::PList& dictionary);
 
     // -cxx_initWithDictionary:'s body, run once right after construction (amendment oo-vl43 item 2).
@@ -51,7 +53,7 @@ public:
     bool isActive();
     void setActive(bool active);
 
-    oo::Ref<OOColor> color();
+    oo::Ref<cxx::OOColor> color();
     // setColor is defined by superclass
 
     float frequency();
@@ -63,12 +65,17 @@ public:
     float fraction();
     void setFraction(float fraction);
 
-    // OOSubEntity, answered by the facade.
-    void rescaleBy(GLfloat factor);
-    void rescaleBy(GLfloat factor, bool writeToCache);
+    // OOSubEntity.
+    void rescaleBy(GLfloat factor) override;
+    void rescaleBy(GLfloat factor, bool writeToCache) override;
 
-    // Entity (OOFlasherEntityExtensions), which the facade's category answers from here.
+    // Entity (OOFlasherEntityExtensions)'s answer; callers ask dynamic_cast<OOFlasherEntity *>.
     bool isFlasher();
+
+    // Entity (OOJavaScriptExtensions): the binding's bodies (OOJSFlasher.h).
+    JSClassID jsClassID() override;
+    std::optional<std::string> jsClassName() override;
+    bool isVisibleToScripts() override;
 
     void update(OOTimeDelta delta_t) override;
     void drawImmediate(bool immediate, bool translucent) override;
@@ -78,13 +85,13 @@ public:
 private:
     void setUpColors(const oo::PList* colorSpecifiers); // an array node, or nullptr
     void getCurrentColorComponents();
-    OOColor* flasherColorAtIndex(NSUInteger index);
+    cxx::OOColor* flasherColorAtIndex(NSUInteger index);
 
     float _frequency = { };
     float _phase = { };
     float _wave = { };
     float _brightfraction = { };
-    std::vector<oo::Ref<OOColor>> _colors;
+    std::vector<oo::Ref<cxx::OOColor>> _colors;
     NSUInteger _activeColor = { };
 
     OOTimeDelta _time = { };
@@ -92,10 +99,3 @@ private:
     bool _active = { };
     bool _justSwitched = { };
 };
-
-} // namespace cxx
-
-// Transitional: the Objective-C OOFlasherEntity, for the ships, the visual effects and the
-// scripting binding, which make it and message it. Deleted, with namespace cxx above, by the
-// bridge's deletion bead.
-#import "OOFlasherEntity+ObjCBridge.h"

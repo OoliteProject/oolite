@@ -35,14 +35,22 @@ SOFTWARE.
 #define OOTEXTURELOADER_H
 
 #import "OOAsyncWorkManager.h"
-#import "OOTexture.h"
+#import "OOOpenGL.h"
+#import "OOPixMap.h"
 
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
 #include "oofnd/objc/OOObjCRef.h"
 
-@class OOTextureLoader;
+@class OOTexture, OOTextureLoader;
+
+/*	As OOTexture.h declares them. The loaders do not import OOTexture.h, so a test that stands in
+        for the Objective-C OOTexture can still see a C++ generator (bead oo-9ht.135); a file that
+        uses the textures imports OOTexture.h itself.
+*/
+typedef uint32_t OOTextureFlags;
+typedef OOPixMapFormat OOTextureDataFormat;
 
 /*	Foundation sweep (proposed ADR-0043 Amendments 1-2, bead oo-wzti): the path is a UTF-8
         std::string (never empty once initialised: a nil path failed -init); paths passed in are

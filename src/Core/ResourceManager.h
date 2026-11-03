@@ -30,11 +30,15 @@ MA 02110-1301, USA.
 
 #include "oofnd/Data.hpp"
 #include "oofnd/PList.hpp"
+#include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
 #include "oofnd/objc/OOObjCRef.h"
 #include <string_view>
 
-@class OOSound, OOMusic, OOSystemDescriptionManager, OOScript;
+@class OOSound, OOSystemDescriptionManager, OOScript;
+namespace cxx {
+class OOMusic;
+}
 
 typedef enum {
     MERGE_NONE, // Just use the last file in search order.
@@ -96,7 +100,7 @@ public:
     // nullopt when not found (was nil); folderName nullopt where nil was passed.
     static std::optional<std::string> pathForFileNamed(const std::string& fileName, const std::optional<std::string>& folderName);
     static std::optional<std::string> pathForFileNamed(const std::string& fileName, const std::optional<std::string>& folderName, bool useCache);
-    static ::OOMusic* ooMusicNamed(const std::string& fileName, const std::optional<std::string>& folderName); // autoreleased
+    static oo::Ref<OOMusic> ooMusicNamed(const std::string& fileName, const std::optional<std::string>& folderName); // a new music each call (not cached); null when none
     static ::OOSound* ooSoundNamed(const std::string& fileName, const std::optional<std::string>& folderName); // autoreleased
     // nullopt when no file was found (was nil); folderName nullopt where nil was passed.
     static std::optional<std::string> stringFromFilesNamed(const std::string& fileName, const std::optional<std::string>& folderName);
@@ -146,7 +150,7 @@ private:
     static void preloadFileListFromOXZ(const std::string& path, const std::vector<std::string>& folders);
     static void preloadFileListFromFolder(const std::string& path, const std::vector<std::string>& folders);
     static void preloadFilePathFor(const std::string& fileName, const std::string& subFolder, const std::string& path);
-    static id retrieveFileNamed(const std::string& fileName, const std::optional<std::string>& folderName, std::map<std::string, oo::ObjCRef<id>, std::less<>>* ioCache, std::optional<std::string> key, Class klass, bool useCache); // klass: the facade class OOSound or OOMusic; autoreleased
+    static id retrieveFileNamed(const std::string& fileName, const std::optional<std::string>& folderName, std::map<std::string, oo::ObjCRef<id>, std::less<>>* ioCache, std::optional<std::string> key, Class klass, bool useCache); // klass: the facade class OOSound; autoreleased
     static bool directoryExists(const std::string& inPath, bool inCreate);
     static bool checkCacheUpToDateForPaths(const std::vector<std::string>& searchPaths);
     static void mergeRoleCategories(const oo::PList& catData, oo::PList& categories);

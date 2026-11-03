@@ -5,11 +5,11 @@ OOJSTimer.h
 JavaScript timer class.
 
 C++20 since bead oo-kdyh (proposed ADR-0056; amendment oo-ppc for the binding), converted with
-its superclass OOScriptTimer. cxx::OOJSTimer has no caller outside OOJSTimer.mm, but the engine
-messages the object in a Timer's private slot by selector (-oo_jsValueInContext:,
--cxx_oo_jsClassName) and the timer queue holds it, so it keeps an Objective-C facade,
-OOJSTimer+ObjCBridge.h, imported at the end of this header: the facade of the root's peer table,
-of this class, with no ivars (ADR-0056 amendment oo-up4b item 3).
+its superclass OOScriptTimer. cxx::OOJSTimer has no caller outside OOJSTimer.mm, and a Timer's
+private slot holds it (OOJSPrivateObject.h), but Objective-C code still sends its facade the JS
+glue selectors (-oo_jsValueInContext:, -cxx_oo_jsClassName) and the timer queue holds the facade,
+so it keeps an Objective-C facade, OOJSTimer+ObjCBridge.h, imported at the end of this header:
+the facade of the root's peer table, of this class, with no ivars (ADR-0056 amendment oo-up4b item 3).
 
 
 Oolite
@@ -35,6 +35,7 @@ MA 02110-1301, USA.
 #ifndef OOJSTIMER_H
 #define OOJSTIMER_H
 
+#include "OOJSPrivateObject.h"
 #import "OOScriptTimer.h"
 #include "oofnd/objc/OOObjCRef.h"
 #include <quickjs.h>
@@ -43,7 +44,8 @@ MA 02110-1301, USA.
 
 namespace cxx {
 
-class OOJSTimer : public OOScriptTimer {
+// A Timer JS object's private slot holds the timer.
+class OOJSTimer : public OOScriptTimer, public ::OOJSPrivateObject {
 public:
     // [[OOJSTimer alloc] initWithDelay:interval:context:function:this:], for the Timer
     // constructor: null where the initialiser answered nil. function and jsThis are borrowed (the
@@ -57,11 +59,12 @@ public:
 
     void timerFired() override;
 
-    // The Timer object, owned by the caller; JS null once it has been finalized.
-    JSValue oo_jsValueInContext(JSContext* context);
-
-    // For the Timer finalizer: forgets the JS Timer object.
-    void clearJSSelf();
+    // The JS glue (OOJSPrivateObject): the Timer object, made by the initialiser (owned by the
+    // caller; JS null once it has been finalized); forgetting it when it is finalized, with a
+    // warning if the timer still runs; "[Timer <components>]".
+    JSValue jsValueInContext(JSContext* context) override;
+    void clearJSSelf(JSValueConst selfVal) override;
+    std::optional<std::string> jsDescription() override;
 
     // A one-shot timer whose callback is running: it is dropped once the callback returns.
     bool willNotFireAgain();

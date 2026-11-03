@@ -19,6 +19,8 @@
 */
 
 #import "Universe.h"
+#import "PlayerEntity.h"
+#include "oofnd/objc/OOException.h"	// slice 24: -handleOoliteException:
 
 #include "oo_test.hpp"
 
@@ -253,6 +255,1170 @@ OO_TEST(facadeAndPart)
 		OO_CHECK(oo::ToCxx(unused) == nullptr);
 		[unused release];
 		OO_CHECK(gSharedUniverse == u);
+	}
+}
+
+
+// Slice 14 (bead oo-7jhs5): demo ships, safe vectors, hazards on route, laser hits. Written against
+// the Objective-C API and run on the unconverted class first. The entities sit in the universe's
+// sorted list by hand (no -addEntity:, which needs the whole game).
+
+// PLAYER: a stand-in (OOGetPlayer() asserts there is a player, and an entity's position is kept
+// relative to the player's viewpoint, as test_Entity's TestPlayer). It answers the player
+// messages the tests reach as an absent player's nil did.
+@interface UniverseTestPlayer: Entity
+@end
+
+@implementation UniverseTestPlayer
+- (HPVector) viewpointPosition	{ return kZeroHPVector; }
+- (id) dockedStation			{ return nil; }
+@end
+
+
+@class PlayerEntity;
+extern PlayerEntity *gOOPlayer;
+
+namespace {
+
+void SetUpTestPlayer()
+{
+	static Entity *player = nil;
+	if (player == nil)  player = [[UniverseTestPlayer alloc] init];	// never released, as the player is not
+	gOOPlayer = (PlayerEntity *)player;
+}
+
+
+void SetSortedEntities(Universe *u, std::initializer_list<Entity *> list)
+{
+	unsigned n = 0;
+	for (Entity *e : list)  u->_cxxUniverse->sortedEntities[n++] = e;
+	u->_cxxUniverse->sortedEntities[n] = nil;
+	u->_cxxUniverse->n_entities = n;
+}
+
+
+Entity *MakeEntity(HPVector position, GLfloat radius)
+{
+	SetUpTestPlayer();
+	Entity *entity = [[[Entity alloc] init] autorelease];
+	[entity setPosition:position];
+	[entity setCollisionRadius:radius];
+	return entity;
+}
+
+}	// namespace
+
+
+@interface Slice14GhostEntity: Entity	// an entity nothing collides with
+@end
+
+@implementation Slice14GhostEntity
+- (BOOL) canCollide	{ return NO; }
+@end
+
+
+OO_TEST(slice14NoEntity)
+{
+	@autoreleasepool
+	{
+		Universe *u = NewUniverse();
+		HPVector p2 = make_HPvector(0, 0, 1000);
+
+		OO_CHECK(![u isVectorClearFromEntity:nil toDistance:0 fromPoint:p2]);
+		OO_CHECK([u hazardOnRouteFromEntity:nil toDistance:0 fromPoint:p2] == nil);
+		OO_CHECK(HPvector_equal([u getSafeVectorFromEntity:nil toDistance:0 fromPoint:p2], kZeroHPVector));
+		OO_CHECK([u firstShipHitByLaserFromShip:nil inDirection:WEAPON_FACING_FORWARD offset:kZeroVector gettingRangeFound:NULL] == nil);
+		// The demo ship needs a docked player; with none there is no ship.
+		SetUpTestPlayer();
+		OO_CHECK([u cxx_makeDemoShipWithRole:"oolite-test" spinning:YES] == nil);
+	}
+}
+
+
+OO_TEST(slice14ClearRoute)
+{
+	@autoreleasepool
+	{
+		Universe *u = NewUniverse();
+		Entity *e1 = MakeEntity(make_HPvector(0, 0, 0), 10);
+		HPVector p2 = make_HPvector(0, 0, 1000);
+
+		// Nothing else in the universe: clear, no hazard, the destination is safe as it is.
+		SetSortedEntities(u, { e1 });
+		OO_CHECK([u isVectorClearFromEntity:e1 toDistance:0 fromPoint:p2]);
+		OO_CHECK([u hazardOnRouteFromEntity:e1 toDistance:0 fromPoint:p2] == nil);
+		OO_CHECK(HPvector_equal([u getSafeVectorFromEntity:e1 toDistance:0 fromPoint:p2], p2));
+
+		// An entity off the route, behind the start, or beyond the destination is no hazard.
+		Entity *aside = MakeEntity(make_HPvector(500, 0, 500), 50);
+		Entity *behind = MakeEntity(make_HPvector(0, 0, -300), 50);
+		Entity *beyond = MakeEntity(make_HPvector(0, 0, 1500), 50);
+		SetSortedEntities(u, { e1, aside, behind, beyond });
+		OO_CHECK([u isVectorClearFromEntity:e1 toDistance:0 fromPoint:p2]);
+		OO_CHECK([u hazardOnRouteFromEntity:e1 toDistance:0 fromPoint:p2] == nil);
+		OO_CHECK(HPvector_equal([u getSafeVectorFromEntity:e1 toDistance:0 fromPoint:p2], p2));
+
+		// An entity nothing collides with is no hazard either.
+		Entity *ghost = [[[Slice14GhostEntity alloc] init] autorelease];
+		[ghost setPosition:make_HPvector(0, 0, 500)];
+		[ghost setCollisionRadius:50];
+		SetSortedEntities(u, { e1, ghost });
+		OO_CHECK([u isVectorClearFromEntity:e1 toDistance:0 fromPoint:p2]);
+		OO_CHECK([u hazardOnRouteFromEntity:e1 toDistance:0 fromPoint:p2] == nil);
+		u->_cxxUniverse->n_entities = 0;
+	}
+}
+
+
+OO_TEST(slice14Hazard)
+{
+	@autoreleasepool
+	{
+		Universe *u = NewUniverse();
+		Entity *e1 = MakeEntity(make_HPvector(0, 0, 0), 10);
+		Entity *rock = MakeEntity(make_HPvector(20, 0, 500), 50);
+		HPVector p2 = make_HPvector(0, 0, 1000);
+		SetSortedEntities(u, { e1, rock });
+
+		OO_CHECK(![u isVectorClearFromEntity:e1 toDistance:0 fromPoint:p2]);
+		OO_CHECK([u hazardOnRouteFromEntity:e1 toDistance:0 fromPoint:p2] == rock);
+
+		// The safe vector steers short of the rock and away from the side it is on.
+		HPVector safe = [u getSafeVectorFromEntity:e1 toDistance:0 fromPoint:p2];
+		OO_CHECK(!HPvector_equal(safe, p2));
+		OO_CHECK(safe.z < 500 && safe.x < 20);
+
+		// Within range of the destination already: clear, whatever is in the way.
+		OO_CHECK([u isVectorClearFromEntity:e1 toDistance:2000 fromPoint:p2]);
+		OO_CHECK([u hazardOnRouteFromEntity:e1 toDistance:2000 fromPoint:p2] == nil);
+
+		// Stopping short of the rock: the route is clear.
+		OO_CHECK([u isVectorClearFromEntity:e1 toDistance:600 fromPoint:p2]);
+		OO_CHECK([u hazardOnRouteFromEntity:e1 toDistance:600 fromPoint:p2] == nil);
+		u->_cxxUniverse->n_entities = 0;
+	}
+}
+
+
+// Slice 15 (bead oo-dg9d1): counting and finding entities by predicate, time, collisions, the view
+// direction. Written against the Objective-C API and run on the unconverted class first; the
+// entities sit in the sorted list by hand, as slice 14's.
+@interface Slice15ShipLike: Entity	// counts as a ship for the ship predicates
+@end
+
+@implementation Slice15ShipLike
+- (BOOL) isShip	{ return YES; }
+@end
+
+
+namespace {
+
+Entity *MakeShipLike(HPVector position, GLfloat radius)
+{
+	Entity *entity = [[[Slice15ShipLike alloc] init] autorelease];
+	[entity setPosition:position];
+	[entity setCollisionRadius:radius];
+	return entity;
+}
+
+
+BOOL IsFarPredicate(Entity *entity, void *parameter)	// x beyond *(double *)parameter
+{
+	return [entity position].x > *(double *)parameter;
+}
+
+}	// namespace
+
+
+OO_TEST(slice15CountAndFind)
+{
+	@autoreleasepool
+	{
+		Universe *u = NewUniverse();
+		Entity *a = MakeEntity(make_HPvector(0, 0, 0), 10);
+		Entity *b = MakeEntity(make_HPvector(100, 0, 0), 10);
+		Entity *c = MakeShipLike(make_HPvector(1000, 0, 0), 10);
+		SetSortedEntities(u, { a, b, c });
+
+		// No predicate is every entity; no entity counts from the origin; the reference itself never counts.
+		OO_CHECK([u countEntitiesMatchingPredicate:NULL parameter:NULL inRange:-1 ofEntity:nil] == 3);
+		OO_CHECK([u countEntitiesMatchingPredicate:NULL parameter:NULL inRange:-1 ofEntity:a] == 2);
+		// The range reaches the other entity's surface: b's is 90 away from a, c's 990.
+		OO_CHECK([u countEntitiesMatchingPredicate:NULL parameter:NULL inRange:95 ofEntity:a] == 1);
+		OO_CHECK([u countEntitiesMatchingPredicate:NULL parameter:NULL inRange:85 ofEntity:a] == 0);
+		double limit = 50;
+		OO_CHECK([u countEntitiesMatchingPredicate:IsFarPredicate parameter:&limit inRange:-1 ofEntity:nil] == 2);
+
+		// Ships: only c.
+		OO_CHECK([u countShipsMatchingPredicate:NULL parameter:NULL inRange:-1 ofEntity:a] == 1);
+		OO_CHECK([u countShipsMatchingPredicate:IsFarPredicate parameter:&limit inRange:-1 ofEntity:nil] == 1);
+		OO_CHECK([u countShipsMatchingPredicate:NULL parameter:NULL inRange:500 ofEntity:a] == 0);
+
+		std::vector<oo::ObjCRef<Entity *>> found = [u cxx_findEntitiesMatchingPredicate:NULL parameter:NULL inRange:-1 ofEntity:a];
+		OO_CHECK(found.size() == 2 && found[0].get() == b && found[1].get() == c);	// in the sorted list's order
+		found = [u cxx_findEntitiesMatchingPredicate:IsFarPredicate parameter:&limit inRange:95 ofEntity:a];
+		OO_CHECK(found.size() == 1 && found[0].get() == b);
+		found = [u cxx_findShipsMatchingPredicate:NULL parameter:NULL inRange:-1 ofEntity:nil];
+		OO_CHECK(found.size() == 1 && found[0].get() == c);
+		OO_CHECK([u cxx_findVisualEffectsMatchingPredicate:NULL parameter:NULL inRange:-1 ofEntity:nil].empty());
+
+		// Within range of an entity: the ships only; none for no entity.
+		OO_CHECK([u cxx_entitiesWithinRange:2000 ofEntity:a].size() == 1);
+		OO_CHECK([u cxx_entitiesWithinRange:500 ofEntity:a].empty());
+		OO_CHECK([u cxx_entitiesWithinRange:2000 ofEntity:nil].empty());
+
+		// The scan class.
+		[c setScanClass:CLASS_ROCK];
+		OO_CHECK([u countShipsWithScanClass:CLASS_ROCK inRange:-1 ofEntity:nil] == 1);
+		OO_CHECK([u countShipsWithScanClass:CLASS_NEUTRAL inRange:-1 ofEntity:nil] == 0);
+
+		u->_cxxUniverse->n_entities = 0;
+	}
+}
+
+
+OO_TEST(slice15FindOneAndNearest)
+{
+	@autoreleasepool
+	{
+		Universe *u = NewUniverse();
+		Entity *a = MakeEntity(make_HPvector(0, 0, 0), 10);
+		Entity *b = MakeEntity(make_HPvector(300, 0, 0), 10);
+		Entity *c = MakeShipLike(make_HPvector(200, 0, 0), 10);
+		Entity *d = MakeShipLike(make_HPvector(-500, 0, 0), 10);
+		SetSortedEntities(u, { a, b, c, d });
+		double limit = 250;
+
+		OO_CHECK([u findOneEntityMatchingPredicate:NULL parameter:NULL] == a);
+		OO_CHECK([u findOneEntityMatchingPredicate:IsFarPredicate parameter:&limit] == b);
+		limit = 5000;
+		OO_CHECK([u findOneEntityMatchingPredicate:IsFarPredicate parameter:&limit] == nil);
+
+		OO_CHECK([u nearestEntityMatchingPredicate:NULL parameter:NULL relativeToEntity:a] == c);
+		OO_CHECK([u nearestEntityMatchingPredicate:NULL parameter:NULL relativeToEntity:nil] == a);
+		limit = 250;
+		OO_CHECK([u nearestEntityMatchingPredicate:IsFarPredicate parameter:&limit relativeToEntity:a] == b);
+		OO_CHECK([u nearestShipMatchingPredicate:NULL parameter:NULL relativeToEntity:b] == c);
+		OO_CHECK([u nearestShipMatchingPredicate:IsFarPredicate parameter:&limit relativeToEntity:a] == nil);
+		limit = -1000;
+		OO_CHECK([u nearestShipMatchingPredicate:IsFarPredicate parameter:&limit relativeToEntity:c] == d);
+
+		u->_cxxUniverse->n_entities = 0;
+	}
+}
+
+
+OO_TEST(slice15TimeAndCollisions)
+{
+	@autoreleasepool
+	{
+		Universe *u = NewUniverse();
+		u->_cxxUniverse->universal_time = 12.5;
+		u->_cxxUniverse->time_delta = 0.25;
+		OO_CHECK([u getTime] == 12.5 && [u getTimeDelta] == 0.25);
+
+		// No collision region yet: the description is a dash.
+		OO_CHECK([u collisionDescription] == "-");
+		[u dumpCollisions];
+		OO_CHECK(u->_cxxUniverse->dumpCollisionInfo);
+
+		u->_cxxUniverse->viewDirection = VIEW_AFT;
+		OO_CHECK([u viewDirection] == VIEW_AFT);
+	}
+}
+
+
+// Slice 16 (bead oo-focfo): the view direction, custom sounds, screen
+// backgrounds, messages. Written against the Objective-C API and run on the unconverted class
+// first. A headless universe has no GUIs and no player (the messages that reach the player's
+// script events are left to the goldens), so the messages are seen in the members that remember
+// them (the current message and its repeat times).
+namespace {
+
+std::optional<std::string> CurrentMessage(Universe *u)	{ return u->_cxxUniverse->currentMessage; }
+OOTimeAbsolute MessageRepeatTime(Universe *u)			{ return u->_cxxUniverse->messageRepeatTime; }
+OOTimeAbsolute CountdownRepeatTime(Universe *u)		{ return u->_cxxUniverse->countdown_messageRepeatTime; }
+
+}	// namespace
+
+
+OO_TEST(slice16Messages)
+{
+	@autoreleasepool
+	{
+		Universe *u = NewUniverse();
+		u->_cxxUniverse->universal_time = 10.0;
+
+		[u cxx_displayMessage:std::string("a") forCount:3];
+		OO_CHECK(CurrentMessage(u) == "a" && MessageRepeatTime(u) == 16.0);
+		u->_cxxUniverse->universal_time = 12.0;
+		[u cxx_displayMessage:std::string("a") forCount:3];	// the same message, too soon: nothing
+		OO_CHECK(MessageRepeatTime(u) == 16.0);
+		[u cxx_displayMessage:std::string("b") forCount:3];
+		OO_CHECK(CurrentMessage(u) == "b" && MessageRepeatTime(u) == 18.0);
+		u->_cxxUniverse->universal_time = 20.0;
+		[u cxx_displayMessage:std::string("b") forCount:3];	// the same, once the repeat time has passed
+		OO_CHECK(CurrentMessage(u) == "b" && MessageRepeatTime(u) == 26.0);
+
+		// A countdown message waits for its own repeat time, whatever the message.
+		[u cxx_displayCountdownMessage:std::string("c") forCount:5];
+		OO_CHECK(CurrentMessage(u) == "c" && CountdownRepeatTime(u) == 25.0);
+		[u cxx_displayCountdownMessage:std::string("d") forCount:5];
+		OO_CHECK(CurrentMessage(u) == "c" && CountdownRepeatTime(u) == 25.0);
+		[u cxx_displayCountdownMessage:std::string("c") forCount:5];	// the same message: nothing
+		OO_CHECK(CountdownRepeatTime(u) == 25.0);
+
+		[u clearPreviousMessage];
+		OO_CHECK(!CurrentMessage(u).has_value());
+	}
+}
+
+
+OO_TEST(slice16ViewDirection)
+{
+	@autoreleasepool
+	{
+		Universe *u = NewUniverse();
+
+		// The view it already has, with no GUI shown: nothing changes and nothing is said. (A
+		// change speaks through the player's script events, which need the whole game.)
+		u->_cxxUniverse->viewDirection = VIEW_AFT;
+		[u setViewDirection:VIEW_AFT];
+		OO_CHECK([u viewDirection] == VIEW_AFT && !CurrentMessage(u).has_value() && ![u displayGUI]);
+	}
+}
+
+
+OO_TEST(slice16SoundsAndBackgrounds)
+{
+	@autoreleasepool
+	{
+		Universe *u = NewUniverse();
+		u->_cxxUniverse->customSounds = oo::PList(oo::PList::Dict{
+			{ "[slice16-boom]", oo::PList("boom.ogg") },
+			{ "[slice16-alias]", oo::PList("[slice16-boom]") },
+			{ "[slice16-loop1]", oo::PList("[slice16-loop2]") },
+			{ "[slice16-loop2]", oo::PList("[slice16-loop1]") },
+		});
+
+		OO_CHECK([u soundNameForCustomSoundKey:"[slice16-boom]"] == "boom.ogg");
+		OO_CHECK([u soundNameForCustomSoundKey:"[slice16-alias]"] == "boom.ogg");
+		OO_CHECK(![u soundNameForCustomSoundKey:"[slice16-missing]"].has_value());
+		OO_CHECK(![u soundNameForCustomSoundKey:"[slice16-loop1]"].has_value());	// recursion: no sound
+
+		// Backgrounds: none loaded, setting changes nothing; loaded, set and remove by key.
+		[u cxx_setScreenTextureDescriptorForKey:"slice16" descriptor:oo::PList("x.png")];
+		OO_CHECK(u->_cxxUniverse->screenBackgrounds.isNull());
+		u->_cxxUniverse->screenBackgrounds = oo::PList(oo::PList::Dict{});
+		[u cxx_setScreenTextureDescriptorForKey:"slice16" descriptor:oo::PList("x.png")];
+		const oo::PList *set = u->_cxxUniverse->screenBackgrounds.find("slice16");
+		OO_CHECK(set != nullptr && set->isString());
+		[u cxx_setScreenTextureDescriptorForKey:"slice16" descriptor:oo::PList()];
+		OO_CHECK(u->_cxxUniverse->screenBackgrounds.find("slice16") == nullptr);
+		// With no GUI to preload it, no descriptor is answered.
+		[u cxx_setScreenTextureDescriptorForKey:"slice16" descriptor:oo::PList("x.png")];
+		OO_CHECK([u cxx_screenTextureDescriptorForKey:"slice16"].isNull());
+	}
+}
+
+
+// Slice 17 (bead oo-gr7a2): update:, time acceleration, ECM visual effects. Written against the
+// Objective-C API and run on the unconverted class first. A full update needs the whole game (the
+// player, the JavaScript engine); a universe whose updates are off only lets go of the dead.
+OO_TEST(slice17UpdateOff)
+{
+	@autoreleasepool
+	{
+		Universe *u = NewUniverse();
+		SetUpTestPlayer();	// a player that is not dead: no dead player's update
+		u->_cxxUniverse->no_update = YES;
+		u->_cxxUniverse->universal_time = 5.0;
+		u->_cxxUniverse->time_delta = 0.5;
+		Entity *dead = [[Entity alloc] init];
+		u->_cxxUniverse->entitiesDeadThisUpdate.emplace_back(dead);
+		[dead release];
+
+		@autoreleasepool
+		{
+			[u update:1.0];
+			OO_CHECK([u getTime] == 5.0 && [u getTimeDelta] == 0.5);	// no time passes
+			OO_CHECK(u->_cxxUniverse->entitiesDeadThisUpdate.empty());
+			OO_CHECK([dead retainCount] == 1);	// alive until the pool drains
+		}
+	}
+}
+
+
+OO_TEST(slice17Settings)
+{
+	@autoreleasepool
+	{
+		Universe *u = NewUniverse();
+
+		[u setECMVisualFXEnabled:YES];
+		OO_CHECK([u ECMVisualFXEnabled] && u->_cxxUniverse->ECMVisualFXEnabled);
+		[u setECMVisualFXEnabled:NO];
+		OO_CHECK(![u ECMVisualFXEnabled]);
+
+		[u setTimeAccelerationFactor:4.0];
+#ifndef NDEBUG
+		OO_CHECK([u timeAccelerationFactor] == 4.0);
+		[u setTimeAccelerationFactor:100.0];
+		OO_CHECK([u timeAccelerationFactor] == TIME_ACCELERATION_FACTOR_DEFAULT);
+#else
+		OO_CHECK([u timeAccelerationFactor] == 1.0);
+#endif
+	}
+}
+
+
+// Slice 18 (bead oo-tail0): filterSortedLists, which marks the entities that cannot meet another
+// on the z axis and chains the rest for the collision test. Written against the Objective-C API
+// and run on the unconverted class first. The x, y and z lists are linked by hand in one order.
+namespace {
+
+void LinkLists(Universe *u, std::initializer_list<Entity *> list)
+{
+	Entity *previous = nil;
+	for (Entity *e : list)
+	{
+		cxx::Entity *part = e->_cxxEntity.get();
+		part->x_previous = part->y_previous = part->z_previous = previous;
+		part->x_next = part->y_next = part->z_next = nil;
+		if (previous != nil)  previous->_cxxEntity->x_next = previous->_cxxEntity->y_next = previous->_cxxEntity->z_next = e;
+		previous = e;
+	}
+	Entity *first = list.size() > 0 ? *list.begin() : nil;
+	u->_cxxUniverse->x_list_start = u->_cxxUniverse->y_list_start = u->_cxxUniverse->z_list_start = first;
+}
+
+}	// namespace
+
+
+OO_TEST(slice18FilterSortedLists)
+{
+	@autoreleasepool
+	{
+		Universe *u = NewUniverse();
+		Entity *a = MakeEntity(make_HPvector(0, 0, 0), 10);
+		Entity *ghost = [[[Slice14GhostEntity alloc] init] autorelease];
+		[ghost setPosition:make_HPvector(0, 0, 5)];
+		[ghost setCollisionRadius:10];
+		Entity *b = MakeEntity(make_HPvector(0, 0, 15), 10);
+		Entity *c = MakeEntity(make_HPvector(0, 0, 1000), 10);
+		a->_cxxEntity->collision_chain = c;	// stale chains are cleared
+		c->_cxxEntity->collision_chain = a;
+		LinkLists(u, { a, ghost, b, c });
+
+		[u filterSortedLists];
+
+		// a and b overlap on z: chained, past the entity that cannot collide; c is alone.
+		OO_CHECK(a->_cxxEntity->collision_chain == b);
+		OO_CHECK(b->_cxxEntity->collision_chain == nil);
+		OO_CHECK(c->_cxxEntity->collision_chain == nil && ghost->_cxxEntity->collision_chain == nil);
+		OO_CHECK(a->_cxxEntity->collisionTestFilter == 0 && b->_cxxEntity->collisionTestFilter == 0);
+		OO_CHECK(c->_cxxEntity->collisionTestFilter == 1);
+		OO_CHECK(ghost->_cxxEntity->collisionTestFilter == 3);
+
+		LinkLists(u, {});
+		[u filterSortedLists];	// no entities: nothing to do
+		OO_CHECK(u->_cxxUniverse->z_list_start == nil);
+	}
+}
+
+
+// Slice 19 (bead oo-z3u03): galaxy and system changes, descriptions, scenarios, characters, mission
+// text, system data and names, finding systems. Written against the Objective-C API and run on the
+// unconverted class first. A headless universe has no system manager, so the state these answer
+// is set in the members by hand.
+OO_TEST(slice19Descriptions)
+{
+	@autoreleasepool
+	{
+		Universe *u = NewUniverse();
+		u->_cxxUniverse->_descriptions = oo::PList(oo::PList::Dict{
+			{ "slice19-text", oo::PList("Hello") },
+			{ "slice19-array", oo::PList(oo::PList::Array{ oo::PList("zero"), oo::PList("one") }) },
+			{ "slice19-flag", oo::PList(true) },
+		});
+		u->_cxxUniverse->_descriptionsGeneration = 7;
+
+		const oo::PList *descriptions = [u cxx_descriptions];
+		OO_CHECK(descriptions == &u->_cxxUniverse->_descriptions);
+		OO_CHECK([u cxx_descriptionsGeneration] == 7);
+		OO_CHECK([u cxx_descriptionForKey:"slice19-text"] == "Hello");
+		OO_CHECK(![u cxx_descriptionForKey:"slice19-missing"].has_value());
+		OO_CHECK([u cxx_descriptionForArrayKey:"slice19-array" index:1] == "one");
+		OO_CHECK(![u cxx_descriptionForArrayKey:"slice19-array" index:2].has_value());
+		OO_CHECK(![u cxx_descriptionForArrayKey:"slice19-text" index:0].has_value());
+		OO_CHECK([u descriptionBooleanForKey:"slice19-flag"]);
+		OO_CHECK(![u descriptionBooleanForKey:"slice19-missing"]);
+		OO_CHECK(cxx_OOLookUpDescriptionPRIV("slice19-text") == "Hello");
+	}
+}
+
+
+OO_TEST(slice19DataAndNames)
+{
+	@autoreleasepool
+	{
+		Universe *u = NewUniverse();
+		u->_cxxUniverse->explosionSettings = oo::PList(oo::PList::Dict{ { "slice19-boom", oo::PList(oo::PList::Dict{ { "size", oo::PList(2.0) } }) } });
+		u->_cxxUniverse->_scenarios = oo::PList(oo::PList::Array{ oo::PList("s") });
+		u->_cxxUniverse->characters = oo::PList(oo::PList::Dict{ { "c", oo::PList("x") } });
+		u->_cxxUniverse->missiontext = oo::PList(oo::PList::Dict{ { "m", oo::PList("y") } });
+		u->_cxxUniverse->systemID = 42;
+
+		OO_CHECK([u cxx_explosionSetting:"slice19-boom"].get<double>("size") == 2.0);
+		OO_CHECK([u cxx_explosionSetting:"slice19-missing"].isNull());
+		OO_CHECK([u cxx_scenarios].count() == 1);
+		OO_CHECK([u cxx_characters].get<std::string>("c") == "x");
+		OO_CHECK([u cxx_missiontext].get<std::string>("m") == "y");
+		OO_CHECK([u currentSystemID] == 42);
+		OO_CHECK([u systemManager] == nil);
+
+		OO_CHECK([u cxx_keyForPlanetOverridesForSystem:7 inGalaxy:2] == "2 7");
+		OO_CHECK([u keyForInterstellarOverridesForSystems:3 s2:4 inGalaxy:2] == "interstellar: 2 3 4");
+
+		// Names are found whatever their case; a missing name matches nothing.
+		u->_cxxUniverse->system_names[5] = std::string("Lave");
+		u->_cxxUniverse->system_names[9] = std::string("Diso");
+		OO_CHECK([u cxx_findSystemFromName:"lave"] == 5);
+		OO_CHECK([u cxx_findSystemFromName:"DISO"] == 9);
+		OO_CHECK([u cxx_findSystemFromName:"Zaonce"] == -1);
+
+		// No sun in the universe: interstellar space.
+		OO_CHECK([u inInterstellarSpace]);
+	}
+}
+
+
+// Slice 20 (bead oo-lftoq): neighbouring systems, system-name look-up, routes, planet textures,
+// global and equipment data, the commodity market, time descriptions. Written against the
+// Objective-C API and run on the unconverted class first; with no system manager, what needs the
+// galaxy's data is left to the goldens.
+OO_TEST(slice20NamesAndRoutes)
+{
+	@autoreleasepool
+	{
+		Universe *u = NewUniverse();
+		u->_cxxUniverse->system_names[5] = std::string("Lave");
+		OO_CHECK([u cxx_systemNameIndex:5] == "Lave");
+		OO_CHECK([u cxx_systemNameIndex:256 + 5] == "Lave");	// the index wraps at 256
+		OO_CHECK(![u cxx_systemNameIndex:6].has_value());
+		OO_CHECK([u systemsFound] == (BOOL *)u->_cxxUniverse->system_found);
+
+		// No route from or to interstellar space, or outside the galaxy.
+		OO_CHECK([u cxx_routeFromSystem:-1 toSystem:7 optimizedBy:OPTIMIZED_BY_JUMPS].isNull());
+		OO_CHECK([u cxx_routeFromSystem:7 toSystem:-1 optimizedBy:OPTIMIZED_BY_TIME].isNull());
+		OO_CHECK([u cxx_routeFromSystem:300 toSystem:7 optimizedBy:OPTIMIZED_BY_JUMPS].isNull());
+
+		// The current system's neighbours, once cached, are the cache.
+		u->_cxxUniverse->systemID = 3;
+		u->_cxxUniverse->closeSystems = std::vector<OOSystemID>{ 1, 2 };
+		OO_CHECK([u neighboursToSystem:3] == (std::vector<OOSystemID>{ 1, 2 }));
+
+		[u preloadPlanetTexturesForSystem:3];	// disabled: does nothing
+	}
+}
+
+
+OO_TEST(slice20DataAndTime)
+{
+	@autoreleasepool
+	{
+		Universe *u = NewUniverse();
+		u->_cxxUniverse->globalSettings = oo::PList(oo::PList::Dict{ { "g", oo::PList("1") } });
+		u->_cxxUniverse->equipmentData = oo::PList(oo::PList::Array{ oo::PList("e") });
+		u->_cxxUniverse->equipmentDataOutfitting = oo::PList(oo::PList::Array{ oo::PList("o"), oo::PList("p") });
+		OO_CHECK([u cxx_globalSettings].get<std::string>("g") == "1");
+		OO_CHECK([u cxx_equipmentData].count() == 1);
+		OO_CHECK([u cxx_equipmentDataOutfitting].count() == 2);
+		OO_CHECK([u commodityMarket] == nil);
+
+		OO_CHECK([u timeDescription:90061] == "1 day 1 hour 1 minute 1 second");
+		OO_CHECK([u timeDescription:2 * 86400 + 7200 + 120 + 2.5] == "2 days 2 hours 2 minutes 2 seconds");
+		OO_CHECK([u timeDescription:3600] == "60 minutes");	// not more than an hour
+		OO_CHECK([u timeDescription:0] == "");
+	}
+}
+
+
+// Slice 21 (bead oo-enek8): short time descriptions, sun skimmers, station markets. Written against
+// the Objective-C API and run on the unconverted class first; the words come from descriptions set
+// in the member by hand (no plural rules: "%0" is the singular, "%1" the plural).
+OO_TEST(slice21ShortTimeAndMarkets)
+{
+	@autoreleasepool
+	{
+		Universe *u = NewUniverse();
+		oo::PList::Dict words{ { "contracts-no-time", oo::PList("no time") } };
+		for (const char *unit : { "day", "hour", "minute", "second" })
+		{
+			words[std::string("contracts-") + unit + "-word%0"] = oo::PList(std::string(unit));
+			words[std::string("contracts-") + unit + "-word%1"] = oo::PList(std::string(unit) + "s");
+		}
+		u->_cxxUniverse->_descriptions = oo::PList(std::move(words));
+
+		OO_CHECK([u cxx_shortTimeDescription:0] == "no time");
+		OO_CHECK([u cxx_shortTimeDescription:-5] == "no time");
+		OO_CHECK([u cxx_shortTimeDescription:90061] == "1 day 1 hour");	// two parts at most
+		OO_CHECK([u cxx_shortTimeDescription:2 * 3600 + 5] == "2 hours 5 seconds");
+		OO_CHECK([u cxx_shortTimeDescription:125] == "2 minutes 5 seconds");
+		OO_CHECK([u cxx_shortTimeDescription:1] == "1 second");
+
+		// No stations: no markets to save, and none to load into.
+		const oo::PList saved = [u cxx_getStationMarkets];
+		OO_CHECK(saved.isArray() && saved.count() == 0);
+		[u cxx_loadStationMarkets:oo::PList()];
+		[u cxx_loadStationMarkets:oo::PList(oo::PList::Array{ oo::PList(oo::PList::Dict{}) })];
+	}
+}
+
+
+// Slice 23 (bead oo-ni1hw): witchspace exit and sun-skim positions, beacons by code, script events
+// to all ships, the GUIs and display flags. Written against the Objective-C API and run on the
+// unconverted class first; trade-in values and brochures need the ship registry (the goldens).
+OO_TEST(slice23PositionsAndLists)
+{
+	@autoreleasepool
+	{
+		Universe *u = NewUniverse();
+
+		OO_CHECK(HPvector_equal([u getWitchspaceExitPosition], kZeroHPVector));
+		Quaternion q = [u getWitchspaceExitRotation];	// close to the identity, normalised
+		OO_CHECK(fabs(q.w * q.w + q.x * q.x + q.y * q.y + q.z * q.z - 1.0) < 1e-5);
+		OO_CHECK(q.w > 0.9f);
+
+		// No ship, or no sun: the origin.
+		OO_CHECK(HPvector_equal([u getSunSkimStartPositionForShip:nil], kZeroHPVector));
+		OO_CHECK(HPvector_equal([u getSunSkimEndPositionForShip:nil], kZeroHPVector));
+
+		// No beacons.
+		OO_CHECK([u cxx_listBeaconsWithCode:"A"].empty());
+	}
+}
+
+
+OO_TEST(slice23GUIsAndFlags)
+{
+	@autoreleasepool
+	{
+		Universe *u = NewUniverse();
+		OO_CHECK([u gui] == nil && [u commLogGUI] == nil && [u messageGUI] == nil);
+
+		[u setDisplayText:YES];
+		OO_CHECK([u displayGUI] == YES && u->_cxxUniverse->displayGUI == YES);
+		[u setDisplayText:NO];
+		OO_CHECK(![u displayGUI]);
+		[u setDisplayFPS:YES];
+		OO_CHECK([u displayFPS]);
+		[u setDisplayFPS:NO];
+		OO_CHECK(![u displayFPS]);
+		[u setAutoSaveNow:YES];
+		OO_CHECK(u->_cxxUniverse->autoSaveNow == YES);
+		u->_cxxUniverse->autoSave = YES;
+		OO_CHECK([u autoSave]);
+	}
+}
+
+
+// Slice 24 (bead oo-jxitg): autosave, wireframe and detail levels, shaders, exceptions, speech
+// (eSpeak and none), message logs, settings, session IDs. Written against the Objective-C API and
+// run on the unconverted class first. The setters that write the user's preferences
+// (-setWireframeGraphics:, -setDetailLevel:) and the set-up that loads the game's files are left to
+// the goldens; their state is set in the members by hand.
+OO_TEST(slice24DetailAndLogs)
+{
+	@autoreleasepool
+	{
+		Universe *u = NewUniverse();
+
+		u->_cxxUniverse->detailLevel = DETAIL_LEVEL_SHADERS;
+		OO_CHECK([u detailLevel] == DETAIL_LEVEL_SHADERS && [u useShaders] && ![u reducedDetail]);
+		u->_cxxUniverse->detailLevel = DETAIL_LEVEL_MINIMUM;
+		OO_CHECK([u reducedDetail] && ![u useShaders]);
+		u->_cxxUniverse->wireframeGraphics = YES;
+		OO_CHECK([u wireframeGraphics]);
+
+		[u setAutoSaveNow:YES];
+		OO_CHECK([u autoSaveNow]);
+		[u setAutoSaveNow:NO];
+		OO_CHECK(![u autoSaveNow]);
+
+		[u setPauseMessageVisible:YES];
+		OO_CHECK([u pauseMessageVisible]);
+		[u setPauseMessageVisible:NO];
+		OO_CHECK(![u pauseMessageVisible]);
+		[u setAutoCommLog:YES];
+		OO_CHECK(u->_cxxUniverse->_autoCommLog);
+		[u setPermanentCommLog:NO];
+		[u setPermanentMessageLog:NO];
+		[u setAutoMessageLogBg:NO];
+		OO_CHECK(![u permanentCommLog] && ![u permanentMessageLog] && ![u autoMessageLogBg]);
+
+		// Blocking remembers the player as stale.
+		SetUpTestPlayer();
+		[u setBlockJSPlayerShipProps:YES];
+		OO_CHECK([u blockJSPlayerShipProps]);
+		[u setBlockJSPlayerShipProps:NO];
+		OO_CHECK(![u blockJSPlayerShipProps]);
+
+		// A non-fatal exception is only logged; nil is ignored.
+		[u handleOoliteException:[OOException exceptionWithName:"OoliteSlice24Exception" reason:"test"]];
+		[u handleOoliteException:nil];
+	}
+}
+
+
+#if OOLITE_ESPEAK
+OO_TEST(slice24Voices)
+{
+	@autoreleasepool
+	{
+		Universe *u = NewUniverse();
+		espeak_VOICE v0 = {}, v1 = {}, v2 = {};
+		v0.name = "zero";
+		v1.name = "one";
+		v2.name = "two";
+		const espeak_VOICE *voices[] = { &v0, &v1, &v2, NULL };
+		u->_cxxUniverse->espeak_voices = voices;
+		u->_cxxUniverse->espeak_voice_count = 3;
+
+		OO_CHECK([u nextVoice:0] == 1 && [u nextVoice:2] == 0);
+		OO_CHECK([u prevVoice:1] == 0 && [u prevVoice:0] == 2);
+		OO_CHECK([u cxx_voiceName:1] == "one" && [u cxx_voiceName:3] == "-");
+		OO_CHECK([u cxx_voiceNumber:"two"] == 2 && [u cxx_voiceNumber:"nine"] == UINT_MAX);
+
+		u->_cxxUniverse->espeak_voices = nullptr;
+		u->_cxxUniverse->espeak_voice_count = 0;
+	}
+}
+#endif
+
+
+// Slice 25 (bead oo-wmc72): reinitialising and the demo, the initial universe, random positions,
+// removing entities, preloading sounds, wormhole population, graph dumps. Written against the
+// Objective-C API and run on the unconverted class first; the selectors only the private category
+// declared are declared here, as test_Entity's (TestPrivate). Reinitialising and the initial
+// universe need the whole game (the goldens).
+@interface Universe (Slice25TestPrivate)
+- (BOOL) doRemoveEntity:(Entity *)entity;
+- (float) randomDistanceWithinScanner;
+- (Vector) randomPlaceWithinScannerFrom:(Vector)pos alongRoute:(Vector)route withOffset:(double)offset;
+- (HPVector) fractionalPositionFrom:(HPVector)point0 to:(HPVector)point1 withFraction:(double)routeFraction;
+- (void) populateSpaceFromActiveWormholes;
+- (std::optional<std::string>) chooseStringForKey:(const std::string &)key inDictionary:(const oo::PList &)dictionary;
+@end
+
+
+OO_TEST(slice25RandomPositions)
+{
+	@autoreleasepool
+	{
+		Universe *u = NewUniverse();
+		const double half = SCANNER_MAX_RANGE / 2;
+		for (int i = 0; i < 20; i++)
+		{
+			float d = [u randomDistanceWithinScanner];
+			OO_CHECK(d >= -half && d < half);
+
+			Vector v = [u randomPlaceWithinScannerFrom:make_vector(10, 20, 30) alongRoute:make_vector(1, 0, 0) withOffset:100];
+			OO_CHECK(v.x >= 110 - half && v.x < 110 + half && v.y >= 20 - half && v.y < 20 + half && v.z >= 30 - half && v.z < 30 + half);
+
+			HPVector h = [u fractionalPositionFrom:make_HPvector(0, 0, 0) to:make_HPvector(1000, 0, 0) withFraction:0.5];
+			OO_CHECK(h.x >= 500 - SCANNER_MAX_RANGE && h.x <= 500 + SCANNER_MAX_RANGE && fabs(h.y) <= SCANNER_MAX_RANGE && fabs(h.z) <= SCANNER_MAX_RANGE);
+		}
+	}
+}
+
+
+OO_TEST(slice25ChooseStringAndWormholes)
+{
+	@autoreleasepool
+	{
+		Universe *u = NewUniverse();
+		const oo::PList dict(oo::PList::Dict{
+			{ "one", oo::PList("only") },
+			{ "some", oo::PList(oo::PList::Array{ oo::PList("a"), oo::PList("b") }) },
+			{ "none", oo::PList(oo::PList::Array{}) },
+			{ "number", oo::PList(3.0) },
+		});
+		OO_CHECK([u chooseStringForKey:"one" inDictionary:dict] == "only");
+		std::optional<std::string> some = [u chooseStringForKey:"some" inDictionary:dict];
+		OO_CHECK(some == "a" || some == "b");
+		OO_CHECK(![u chooseStringForKey:"none" inDictionary:dict].has_value());
+		OO_CHECK(![u chooseStringForKey:"number" inDictionary:dict].has_value());
+		OO_CHECK(![u chooseStringForKey:"missing" inDictionary:dict].has_value());
+
+		[u populateSpaceFromActiveWormholes];	// none: nothing to do
+		OO_CHECK(u->_cxxUniverse->activeWormholes.empty());
+	}
+}
+
+
+OO_TEST(slice25DoRemoveEntity)
+{
+	@autoreleasepool
+	{
+		Universe *u = NewUniverse();
+		Entity *a = MakeEntity(make_HPvector(0, 0, 0), 1);
+		Entity *b = MakeEntity(make_HPvector(5, 0, 0), 1);
+		SetSortedEntities(u, { a, b });
+		a->_cxxEntity->zero_index = 0;
+		b->_cxxEntity->zero_index = 1;
+		u->_cxxUniverse->entities.emplace_back(a);
+		u->_cxxUniverse->entities.emplace_back(b);
+
+		OO_CHECK([u doRemoveEntity:a]);
+		OO_CHECK(u->_cxxUniverse->n_entities == 1 && SortedEntity(u, 0) == b && SortedEntity(u, 1) == nil);
+		OO_CHECK(b->_cxxEntity->zero_index == 0 && a->_cxxEntity->zero_index == -1);
+		OO_CHECK(u->_cxxUniverse->entities.size() == 1 && u->_cxxUniverse->entities[0].get() == b);
+		OO_CHECK(![u doRemoveEntity:a]);	// gone already: not in the definitive list
+
+		u->_cxxUniverse->n_entities = 0;
+		u->_cxxUniverse->entities.clear();
+	}
+}
+
+
+// Slice 26 (bead oo-32kcu): graph-viz references, localisation tools, planet-material pruning,
+// condition scripts, the custom-sound categories of OOSound and OOSoundSource, description look-ups.
+// Written against the Objective-C API and run on the unconverted class first. Loading a condition
+// script or a sound file needs the JavaScript engine and the game's files (the goldens): here only
+// what is missing.
+@interface Universe (Slice26TestPrivate)
+#if OO_LOCALIZATION_TOOLS
+- (void) addNumericRefsInString:(const std::string &)string toGraphViz:(std::string &)graphViz fromNode:(const std::string &)fromNode nodeCount:(NSUInteger)nodeCount;
+- (void) runLocalizationTools;
+#endif
+- (void) prunePreloadingPlanetMaterials;
+@end
+
+
+OO_TEST(slice26GraphVizAndTools)
+{
+	@autoreleasepool
+	{
+		Universe *u = NewUniverse();
+#if OO_LOCALIZATION_TOOLS
+		std::string graphViz = "start\n";
+		[u addNumericRefsInString:"a [3] b %H" toGraphViz:graphViz fromNode:"from" nodeCount:10];
+		OO_CHECK(graphViz == "start\n"
+				 "\tfrom -> n3_0 [color=\"0.300000,0.75,0.8\" lhead=cluster_3]\n"
+				 "\tfrom -> percent_H [color=\"0,0,0.45\"]\n");
+		graphViz.clear();
+		[u addNumericRefsInString:"%I %R %J %G" toGraphViz:graphViz fromNode:"x" nodeCount:4];
+		OO_CHECK(graphViz == "\tx -> percent_I [color=\"0,0,0.25\"]\n"
+				 "\tx -> percent_RN [color=\"0,0,0.65\"]\n"
+				 "\tx -> percent_J [color=\"0,0,0.75\"]\n"
+				 "\tx -> percent_G [color=\"0,0,0.85\"]\n");
+		graphViz.clear();
+		[u addNumericRefsInString:"no refs [unclosed" toGraphViz:graphViz fromNode:"x" nodeCount:4];
+		OO_CHECK(graphViz.empty());
+
+		[u runLocalizationTools];	// no --compile-sysdesc / --export-sysdesc: nothing
+#endif
+
+		[u prunePreloadingPlanetMaterials];	// none preloading
+		OO_CHECK(u->_cxxUniverse->_preloadingPlanetMaterials.empty());
+	}
+}
+
+
+OO_TEST(slice26ConditionScriptsAndSounds)
+{
+	@autoreleasepool
+	{
+		Universe *u = NewUniverse();
+		[u addConditionScripts:std::vector<std::string>()];
+		OO_CHECK(u->_cxxUniverse->conditionScripts.empty());
+		OO_CHECK([u cxx_getConditionScript:"slice26-missing.js"] == nil);
+
+		// A key with no custom sound makes no sound and no source.
+		u->_cxxUniverse->customSounds = oo::PList(oo::PList::Dict{});
+		OO_CHECK([OOSound cxx_soundWithCustomSoundKey:"[slice26-missing]"] == nil);
+		OO_CHECK([OOSoundSource sourceWithCustomSoundKey:"[slice26-missing]"] == nil);
+		OO_CHECK([[OOSoundSource alloc] initWithCustomSoundKey:"[slice26-missing]"] == nil);
+	}
+}
+
+
+OO_TEST(slice26PluralDescriptions)
+{
+	@autoreleasepool
+	{
+		Universe *u = NewUniverse();
+		u->_cxxUniverse->_descriptions = oo::PList(oo::PList::Dict{
+			{ "plural-rules", oo::PList(oo::PList::Array{ oo::PList("=1") }) },
+			{ "slice26-apple%0", oo::PList("apple") },
+			{ "slice26-apple%1", oo::PList("apples") },
+			{ "slice26-word", oo::PList("word") },
+		});
+		OO_CHECK(cxx_OOLookUpPluralDescriptionPRIV("slice26-apple", 1) == "apple");
+		OO_CHECK(cxx_OOLookUpPluralDescriptionPRIV("slice26-apple", 3) == "apples");
+		OO_CHECK(cxx_OOLookUpPluralDescriptionPRIV("slice26-apple", 0) == "apples");
+		OO_CHECK(cxx_OOLookUpDescriptionPRIV("slice26-word") == "word");
+		OO_CHECK(cxx_OOLookUpDescriptionPRIV("slice26-none") == "slice26-none");	// the key itself
+	}
+}
+
+
+// Slices 2-13 of docs/phases/3-slices/Universe.md (beads oo-27jxj ... oo-0uz9w): the units a
+// universe that was never initialised can answer, written against the Objective-C API and run on
+// the unconverted class first. Slice 3 (pausing, quitting and the set-up from a station or
+// witchspace) needs the player, the GUI and the game controller, and is pinned by the goldens.
+
+OO_TEST(slice2StartUpFlagsAddOnsAndEntityList)
+{
+	@autoreleasepool
+	{
+		Universe *u = NewUniverse();
+		cxx::Universe *part = oo::ToCxx(u);
+
+		part->_doingStartUp = YES;
+		part->_sessionID = 7;
+		OO_CHECK([u doingStartUp] && [u sessionID] == 7);
+
+		// The add-ons in use: a universe never initialised has the empty string, not none.
+		std::optional<std::string> addOns = [u cxx_useAddOns];
+		OO_CHECK(addOns.has_value() && addOns->empty());
+		part->useAddOns = "strict";
+		OO_CHECK([u cxx_useAddOns] == std::optional<std::string>("strict"));
+		// The same add-ons without forcing: nothing to reinitialise, YES.
+		OO_CHECK([u cxx_setUseAddOns:"strict" fromSaveGame:YES]);
+		OO_CHECK([u cxx_setUseAddOns:"strict" fromSaveGame:NO forceReinit:NO]);
+		OO_CHECK(part->useAddOns == "strict");
+
+		OO_CHECK([u entityCount] == 0 && [u cxx_entityList].empty());
+
+		// The colour-blind modes step through the four in both directions, and wrap.
+		int mode = OO_POSTFX_NONE;
+		for (int i = 0; i < 4; i++)  mode = [u nextColorblindMode:mode];
+		OO_CHECK(mode == OO_POSTFX_NONE);
+		for (int i = 0; i < 4; i++)  mode = [u prevColorblindMode:mode];
+		OO_CHECK(mode == OO_POSTFX_NONE);
+		OO_CHECK([u nextColorblindMode:OO_POSTFX_COLORBLINDNESS_PROTAN] == OO_POSTFX_COLORBLINDNESS_DEUTER);
+
+		// Bloom is the flag at the extras detail level only.
+		[u setBloom:YES];
+		OO_CHECK(part->_bloom == YES && ![u bloom]);
+	}
+}
+
+
+OO_TEST(slice4PopulatorSettings)
+{
+	@autoreleasepool
+	{
+		Universe *u = NewUniverse();
+		cxx::Universe *part = oo::ToCxx(u);
+
+		OO_CHECK([u cxx_getPopulatorSettings].isNull());	// none until cleared or set
+		OO_CHECK(![u deterministicPopulation]);
+		part->deterministic_population = YES;
+		OO_CHECK([u deterministicPopulation]);
+
+		[u cxx_setPopulatorSetting:"pirates" to:oo::PList(std::string("some"))];
+		oo::PList settings = [u cxx_getPopulatorSettings];
+		OO_CHECK(settings.isDict() && settings.getIf<oo::PList::Dict>()->size() == 1);
+		OO_CHECK(settings.find("pirates") != nullptr && settings.get<std::string>("pirates") == "some");
+
+		// A null setting removes the key.
+		[u cxx_setPopulatorSetting:"traders" to:oo::PList(std::string("more"))];
+		[u cxx_setPopulatorSetting:"pirates" to:oo::PList()];
+		settings = [u cxx_getPopulatorSettings];
+		OO_CHECK(settings.getIf<oo::PList::Dict>()->size() == 1 && settings.find("pirates") == nullptr && settings.find("traders") != nullptr);
+
+		[u clearSystemPopulator];
+		settings = [u cxx_getPopulatorSettings];
+		OO_CHECK(settings.isDict() && settings.getIf<oo::PList::Dict>()->empty());
+	}
+}
+
+
+OO_TEST(slice5MainLightPosition)
+{
+	@autoreleasepool
+	{
+		Universe *u = NewUniverse();
+		cxx::Universe *part = oo::ToCxx(u);
+
+		[u setMainLightPosition:make_vector(1.0f, -2.0f, 3.5f)];
+		OO_CHECK(part->main_light_position[0] == 1.0f && part->main_light_position[1] == -2.0f);
+		OO_CHECK(part->main_light_position[2] == 3.5f && part->main_light_position[3] == 1.0f);
+
+		[u setAmbientLightLevel:4.0f];
+		OO_CHECK([u ambientLightLevel] == 4.0f && part->ambientLightLevel == 4.0f);
+	}
+}
+
+
+OO_TEST(slice6CoordinateSystemStrings)
+{
+	@autoreleasepool
+	{
+		Universe *u = NewUniverse();
+
+		// Anything but four tokens is the origin, not an error.
+		HPVector v = [u cxx_coordinatesFromCoordinateSystemString:"wpu 1 2"];
+		OO_CHECK(v.x == 0.0 && v.y == 0.0 && v.z == 0.0);
+		v = [u cxx_coordinatesFromCoordinateSystemString:""];
+		OO_CHECK(v.x == 0.0 && v.y == 0.0 && v.z == 0.0);
+		v = [u cxx_coordinatesFromCoordinateSystemString:"wpu 1 2 3 4"];
+		OO_CHECK(v.x == 0.0 && v.y == 0.0 && v.z == 0.0);
+	}
+}
+
+
+OO_TEST(slice7RoleCategoriesAndFlags)
+{
+	@autoreleasepool
+	{
+		Universe *u = NewUniverse();
+		cxx::Universe *part = oo::ToCxx(u);
+
+		OO_CHECK(![u cxx_roleIsPirateVictim:"trader"]);	// no categories loaded
+		part->roleCategories = oo::PList(oo::PList::Dict{
+			{"oolite-pirate-victim", oo::PList(oo::PList::Array{oo::PList(std::string("trader")), oo::PList(std::string("courier"))})},
+			{"oolite-hunters", oo::PList(oo::PList::Array{oo::PList(std::string("hunter"))})},
+		});
+		OO_CHECK([u cxx_roleIsPirateVictim:"trader"] && [u cxx_roleIsPirateVictim:"courier"]);
+		OO_CHECK(![u cxx_roleIsPirateVictim:"hunter"] && ![u cxx_roleIsPirateVictim:""]);
+		OO_CHECK([u cxx_role:"hunter" isInCategory:"oolite-hunters"]);
+		OO_CHECK(![u cxx_role:"hunter" isInCategory:"oolite-nothing"]);
+
+		// No witchpoint buoy among no entities: the minimum.
+		OO_CHECK([u safeWitchspaceExitDistance] == MIN_DISTANCE_TO_BUOY);
+
+		part->_dockingClearanceProtocolActive = YES;
+		OO_CHECK([u dockingClearanceProtocolActive]);
+		[u setWitchspaceBreakPattern:NO];
+		OO_CHECK(![u witchspaceBreakPattern]);
+	}
+}
+
+
+OO_TEST(slice8StationsAndPlanets)
+{
+	@autoreleasepool
+	{
+		Universe *u = NewUniverse();
+
+		// No sun: no main station is looked for; no planets, no stations.
+		OO_CHECK([u station] == nil && [u planet] == nil);
+		OO_CHECK([u cxx_planets].empty() && [u cxx_stations].empty());
+		OO_CHECK([u cxx_stationWithRole:"" andPosition:make_HPvector(0, 0, 0)] == nil);
+		OO_CHECK([u cxx_stationWithRole:"coriolis" andPosition:make_HPvector(0, 0, 0)] == nil);
+	}
+}
+
+
+OO_TEST(slice9BeaconsWaypointsBreakPatternAndAIs)
+{
+	@autoreleasepool
+	{
+		Universe *u = NewUniverse();
+		cxx::Universe *part = oo::ToCxx(u);
+
+		OO_CHECK([u firstBeacon] == nil && [u lastBeacon] == nil);
+		[u resetBeacons];
+		OO_CHECK([u firstBeacon] == nil && [u lastBeacon] == nil);
+		OO_CHECK([u cxx_wormholes].empty() && [u cxx_currentWaypoints].empty());
+
+		part->breakPatternCounter = 3;
+		OO_CHECK(![u breakPatternOver]);
+		PlayerEntity *standIn = gOOPlayer;
+		gOOPlayer = nil;	// no player: an earlier case leaves its stand-in (slice 14's SetUpTestPlayer())
+		OO_CHECK([u breakPatternHide]);	// no player
+		gOOPlayer = standIn;
+		part->breakPatternCounter = 0;
+		OO_CHECK([u breakPatternOver]);
+
+		OO_CHECK(![u defaultAIForRole:"pirate"].has_value());
+		part->autoAIMap = oo::PList(oo::PList::Dict{{"pirate", oo::PList(std::string("pirateAI.plist"))}});
+		OO_CHECK([u defaultAIForRole:"pirate"] == std::optional<std::string>("pirateAI.plist"));
+		OO_CHECK(![u defaultAIForRole:"trader"].has_value());
+
+		[u setSkyColorRed:0.5f green:0.25f blue:0.125f alpha:0.75f];
+		OO_CHECK(part->skyClearColor[0] == 0.5f && part->skyClearColor[3] == 0.75f && [u airResistanceFactor] == 0.75f);
+	}
+}
+
+
+OO_TEST(slice10GameViewAndCommodities)
+{
+	@autoreleasepool
+	{
+		Universe *u = NewUniverse();
+
+		OO_CHECK([u gameView] == nil && [u gameController] == nil);
+		[u setGameView:nil];
+		OO_CHECK([u gameView] == nil);
+		OO_CHECK([u commodities] == nil);
+	}
+}
+
+
+OO_TEST(slice11ViewFrustum)
+{
+	@autoreleasepool
+	{
+		Universe *u = NewUniverse();
+		cxx::Universe *part = oo::ToCxx(u);
+
+		// A zeroed frustum: every plane's distance is 0, which a sphere of radius r > 0 is not behind.
+		OO_CHECK([u viewFrustumIntersectsSphereAt:make_vector(1.0f, 2.0f, 3.0f) withRadius:1.0f]);
+		OO_CHECK(![u viewFrustumIntersectsSphereAt:make_vector(1.0f, 2.0f, 3.0f) withRadius:0.0f]);
+
+		// One plane, x >= 0 (the others pass everything): a sphere is outside only when wholly behind it.
+		for (int p = 0; p < 6; p++)
+		{
+			part->frustum[p][0] = part->frustum[p][1] = part->frustum[p][2] = 0.0f;
+			part->frustum[p][3] = 1000.0f;
+		}
+		part->frustum[2][0] = 1.0f;
+		part->frustum[2][3] = 0.0f;
+		OO_CHECK([u viewFrustumIntersectsSphereAt:make_vector(5.0f, 0.0f, 0.0f) withRadius:1.0f]);
+		OO_CHECK([u viewFrustumIntersectsSphereAt:make_vector(-0.5f, 0.0f, 0.0f) withRadius:1.0f]);
+		OO_CHECK(![u viewFrustumIntersectsSphereAt:make_vector(-5.0f, 0.0f, 0.0f) withRadius:1.0f]);
+	}
+}
+
+
+OO_TEST(slice12FrameCounterAndViewMatrix)
+{
+	@autoreleasepool
+	{
+		Universe *u = NewUniverse();
+		cxx::Universe *part = oo::ToCxx(u);
+
+		part->framesDoneThisUpdate = 4;
+		OO_CHECK([u framesDoneThisUpdate] == 4);
+		[u resetFramesDoneThisUpdate];
+		OO_CHECK([u framesDoneThisUpdate] == 0 && part->framesDoneThisUpdate == 0);
+
+		part->viewMatrix = kIdentityMatrix;
+		OO_CHECK(OOMatrixEqual([u viewMatrix], kIdentityMatrix));
+	}
+}
+
+
+OO_TEST(slice13EntityLookUp)
+{
+	@autoreleasepool
+	{
+		Universe *u = NewUniverse();
+
+		// No target, an empty slot and out of range are nil; 100 is the player's.
+		OO_CHECK([u entityForUniversalID:NO_TARGET] == nil);
+		OO_CHECK([u entityForUniversalID:MIN_ENTITY_UID + 1] == nil);
+		OO_CHECK([u entityForUniversalID:MAX_ENTITY_UID + 1] == nil);
+		OO_CHECK([u entityForUniversalID:100] == PLAYER);
+
+		// No demo ships among no entities: the demo ship is cleared.
+		[u removeDemoShips];
+		OO_CHECK(oo::ToCxx(u)->demo_ship == nil && [u entityCount] == 0);
 	}
 }
 

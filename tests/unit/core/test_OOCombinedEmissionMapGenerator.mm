@@ -13,9 +13,10 @@
 	manager in strict mode (the built-in Resources alone), so no game resource and no add-on is
 	read. It links the whole game but main (tests/unit/core/meson.build entry ['*']), on the
 	hidden GL context of oo_gl_test_context.hpp. The expectations were written against the
-	Objective-C API and run on the unconverted class first (commit 49fa6013a); that API is now the
-	facade of cxx::OOCombinedEmissionMapGenerator (its caller's test stubs the class by name), so
-	they run through it unchanged. The last test pins the C++ API and the crossing.
+	Objective-C API and run on the unconverted class first (commit 49fa6013a), then through the
+	facade of the C++ class. Bead oo-9ht.135 deleted that facade: the generators are made by the
+	C++ factories and asked through their Objective-C object, OOTextureGenerator's facade, with
+	the same expectations. The last test pins the C++ API and the crossing.
 	Run: bash tools/check-core-tests.sh test_OOCombinedEmissionMapGenerator
 */
 
@@ -96,30 +97,31 @@ void SetUp()
 }
 
 
-// [[OOCombinedEmissionMapGenerator alloc] cxx_initWithEmissionMapSpec:...], autoreleased.
-OOCombinedEmissionMapGenerator *NewGenerator(const oo::PList &emission, OOColor *emissionColor, OOTexture *diffuseMap, OOColor *diffuseColor,
-											 const oo::PList &illumination, OOColor *illuminationColor, const oo::PList &options)
+// OOCombinedEmissionMapGenerator::generatorWithEmissionMapSpec(), as its Objective-C object
+// (autoreleased; nil for null), as the facade initialiser cxx_initWithEmissionMapSpec:... answered it.
+OOTextureGenerator *NewGenerator(const oo::PList &emission, OOColor *emissionColor, OOTexture *diffuseMap, OOColor *diffuseColor,
+								 const oo::PList &illumination, OOColor *illuminationColor, const oo::PList &options)
 {
-	return [[[OOCombinedEmissionMapGenerator alloc] cxx_initWithEmissionMapSpec:emission
-																   emissionColor:emissionColor
-																	  diffuseMap:diffuseMap
-																	diffuseColor:diffuseColor
-															 illuminationMapSpec:illumination
-															   illuminationColor:illuminationColor
-																optionsSpecifier:options] autorelease];
+	return oo::ToObjC(OOCombinedEmissionMapGenerator::generatorWithEmissionMapSpec(emission,
+																				   oo::ToCxx(emissionColor),
+																				   diffuseMap,
+																				   oo::ToCxx(diffuseColor),
+																				   illumination,
+																				   oo::ToCxx(illuminationColor),
+																				   options).get());
 }
 
 
-// [[OOCombinedEmissionMapGenerator alloc] cxx_initWithEmissionAndIlluminationMapSpec:...], autoreleased.
-OOCombinedEmissionMapGenerator *NewCombinedGenerator(const oo::PList &map, OOTexture *diffuseMap, OOColor *diffuseColor,
-													 OOColor *emissionColor, OOColor *illuminationColor)
+// OOCombinedEmissionMapGenerator::generatorWithEmissionAndIlluminationMapSpec(), likewise.
+OOTextureGenerator *NewCombinedGenerator(const oo::PList &map, OOTexture *diffuseMap, OOColor *diffuseColor,
+										 OOColor *emissionColor, OOColor *illuminationColor)
 {
-	return [[[OOCombinedEmissionMapGenerator alloc] cxx_initWithEmissionAndIlluminationMapSpec:map
-																					diffuseMap:diffuseMap
-																				  diffuseColor:diffuseColor
-																				 emissionColor:emissionColor
-																			 illuminationColor:illuminationColor
-																			  optionsSpecifier:map] autorelease];
+	return oo::ToObjC(OOCombinedEmissionMapGenerator::generatorWithEmissionAndIlluminationMapSpec(map,
+																								   diffuseMap,
+																								   oo::ToCxx(diffuseColor),
+																								   oo::ToCxx(emissionColor),
+																								   oo::ToCxx(illuminationColor),
+																								   map).get());
 }
 
 
@@ -142,7 +144,7 @@ struct Baked
 };
 
 
-void Bake(OOCombinedEmissionMapGenerator *generator, Baked &baked)
+void Bake(OOTextureGenerator *generator, Baked &baked)
 {
 	OO_CHECK([generator enqueue]);
 	baked.ok = [generator getResult:&baked.pixMap format:&baked.format originalWidth:NULL originalHeight:NULL];
@@ -191,7 +193,7 @@ OO_TEST(settingsFromTheOptionsSpecifier)
 		uint32_t expected = 0;
 		float anisotropy = 0, lodBias = 0;
 		OO_CHECK(cxx_OOInterpretTextureSpecifier(options, NULL, &expected, &anisotropy, &lodBias, YES));
-		OOCombinedEmissionMapGenerator *generator = NewGenerator(oo::PList("e.png"), nil, nil, nil, oo::PList(), nil, options);
+		OOTextureGenerator *generator = NewGenerator(oo::PList("e.png"), nil, nil, nil, oo::PList(), nil, options);
 		OO_CHECK(generator != nil && [generator isKindOfClass:[OOTextureGenerator class]]);
 		OO_CHECK([generator textureOptions] == OOApplyTextureOptionDefaults(expected));
 		OO_CHECK([generator anisotropy] == anisotropy && [generator lodBias] == lodBias);
@@ -278,7 +280,7 @@ OO_TEST(aMissingMap)
 	@autoreleasepool
 	{
 		// Made (the spec names a map), but there is nothing to bake.
-		OOCombinedEmissionMapGenerator *generator = NewGenerator(oo::PList("missing.png"), nil, nil, nil, oo::PList(), nil, oo::PList("missing.png"));
+		OOTextureGenerator *generator = NewGenerator(oo::PList("missing.png"), nil, nil, nil, oo::PList(), nil, oo::PList("missing.png"));
 		OO_CHECK(generator != nil);
 		Baked baked;
 		Bake(generator, baked);
@@ -329,22 +331,22 @@ OO_TEST(cxxApi)
 	SetUp();
 	@autoreleasepool
 	{
-		OO_CHECK(!cxx::OOCombinedEmissionMapGenerator::generatorWithEmissionMapSpec(oo::PList(), nullptr, nil, nullptr, oo::PList(), nullptr, oo::PList()));
-		OO_CHECK(!cxx::OOCombinedEmissionMapGenerator::generatorWithEmissionAndIlluminationMapSpec(oo::PList(), nil, nullptr, nullptr, nullptr, oo::PList()));
+		OO_CHECK(!OOCombinedEmissionMapGenerator::generatorWithEmissionMapSpec(oo::PList(), nullptr, nil, nullptr, oo::PList(), nullptr, oo::PList()));
+		OO_CHECK(!OOCombinedEmissionMapGenerator::generatorWithEmissionAndIlluminationMapSpec(oo::PList(), nil, nullptr, nullptr, nullptr, oo::PList()));
 
 		const oo::Ref<cxx::OOColor> red = cxx::OOColor::colorWithRGBAComponents((OORGBAComponents){ 1.0f, 0.0f, 0.0f, 1.0f });
-		const oo::Ref<cxx::OOCombinedEmissionMapGenerator> generator = cxx::OOCombinedEmissionMapGenerator::generatorWithEmissionMapSpec(oo::PList("e.png"), red.get(), nil, nullptr, oo::PList(), nullptr, oo::PList("e.png"));
+		const oo::Ref<OOCombinedEmissionMapGenerator> generator = OOCombinedEmissionMapGenerator::generatorWithEmissionMapSpec(oo::PList("e.png"), red.get(), nil, nullptr, oo::PList(), nullptr, oo::PList("e.png"));
 		OO_CHECK(generator && generator->cacheKey() == std::optional<std::string>("emission map;emission:{" + KeyOf("e.png") + "}*" + red->rgbaDescription().value_or("") + ";"));
 
-		// Its facade is an OOCombinedEmissionMapGenerator, the same one each time, and back.
-		OOCombinedEmissionMapGenerator *facade = oo::ToObjC(generator.get());
-		OO_CHECK([facade class] == [OOCombinedEmissionMapGenerator class] && [facade isKindOfClass:[OOTextureGenerator class]]);
+		// Its Objective-C object is an OOTextureGenerator (the nearest facade), the same one each time, and back.
+		OOTextureGenerator *facade = oo::ToObjC(generator.get());
+		OO_CHECK([facade isKindOfClass:[OOTextureGenerator class]]);
 		OO_CHECK(oo::ToCxx(facade) == generator.get() && oo::ToObjC(generator.get()) == facade);
 		OO_CHECK([facade cxx_cacheKey] == generator->cacheKey() && [facade textureOptions] == generator->textureOptions());
 
-		// The facade's initialiser answers a C++ generator's facade.
-		OOCombinedEmissionMapGenerator *made = NewGenerator(oo::PList("e.png"), nil, nil, nil, oo::PList(), nil, oo::PList("e.png"));
-		OO_CHECK([made class] == [OOCombinedEmissionMapGenerator class] && dynamic_cast<cxx::OOCombinedEmissionMapGenerator *>(oo::ToCxx(made)) != nullptr);
+		// A generator the factory made crosses back to it.
+		OOTextureGenerator *made = NewGenerator(oo::PList("e.png"), nil, nil, nil, oo::PList(), nil, oo::PList("e.png"));
+		OO_CHECK(dynamic_cast<OOCombinedEmissionMapGenerator *>(oo::ToCxx(made)) != nullptr);
 
 		// Baking through the C++ object.
 		generator->loadTexture();

@@ -27,7 +27,6 @@ MA 02110-1301, USA.
 #include <SDL3/SDL_timer.h>
 #import "GameController.h"
 #import "GuiDisplayGen.h"
-#import "MyOpenGLView+Input.h"
 #import "OOConstToString.h"
 #import "OOFullScreenController.h"
 #import "OOGraphicsResetManager.h"
@@ -353,7 +352,7 @@ bool cxx::MyOpenGLView::init()
 
     BOOL noSplashArgFound = NO;
 
-    [oo::ToObjC(this) initKeyMappingData];
+    initKeyMappingData();
 
     // preload the printscreen key into our translation array because SDLK_PRINTSCREEN isn't available
     scancode2Unicode[55] = gvPrintScreenKey;
@@ -430,7 +429,7 @@ bool cxx::MyOpenGLView::init()
         initialiseGLWithSize(firstScreen);
     }
 
-    [oo::ToObjC(this) autoShowMouse];
+    autoShowMouse();
 
     virtualJoystickPosition = NSMakePoint(0.0, 0.0);
     mouseWarped = NO;
@@ -517,7 +516,7 @@ void cxx::MyOpenGLView::endSplashScreen()
 
     initialiseGLWithSize(firstScreen);
     updateScreen();
-    [oo::ToObjC(this) autoShowMouse];
+    autoShowMouse();
 }
 
 void cxx::MyOpenGLView::updateGLSize(NSSize size)
@@ -614,7 +613,7 @@ void cxx::MyOpenGLView::initialiseGLWithSize(NSSize v_size)
 
     OO_LOG("display.initGL", "Created a new surface of {} x {}, {}.", static_cast<int>((int)viewSize.width), static_cast<int>((int)viewSize.height), std::string((fullScreen ? "fullscreen" : "windowed")));
 
-    [oo::ToObjC(this) autoShowMouse];
+    autoShowMouse();
 
     setUpBasicOpenGLStateWithSize();
 
@@ -1392,7 +1391,7 @@ void cxx::MyOpenGLView::dumpGrayAlphaToFileNamed(const std::string& name, uint8_
     std::string dumpFile = oo::str::appendingPathComponent(oo::str::appendingPathComponent(oo::fs::utf8String(oo::ResourcePaths::current().homeDirectory()), SAVEDIR), SNAPSHOTDIR);
     dumpFile = oo::str::appendingPathComponent(dumpFile, name + ".png");
 
-    SDL_Surface* tmpSurface = SDL_CreateSurfaceFrom(width, height, SDL_PIXELFORMAT_RGBA32, bytes, rowBytes);
+    SDL_Surface* tmpSurface = SDL_CreateSurface(width, height, SDL_PIXELFORMAT_RGBA32); // its own pixels, as -dumpGray: never the caller's 2-byte-a-pixel buffer (bead oo-5thb0)
     for (int y = 0; y < height; y++) {
         uint8_t* srcRow = bytes + rowBytes * y;
         uint8_t* dstRow = (uint8_t*)tmpSurface->pixels + y * tmpSurface->pitch;

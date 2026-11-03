@@ -15,12 +15,14 @@
 */
 
 #import "OOMusicController.h"
+#import "ResourceManager.h"
 
 #include "oofnd/Defaults.hpp"
 #include "oo_test.hpp"
 
 #include <cstdlib>
 #include <filesystem>
+#include <map>
 #include <process.h>
 #include <string>
 #include <vector>
@@ -32,89 +34,97 @@ namespace stdfs = std::filesystem;
 static std::vector<std::string> gLog;
 static int gLiveMusics = 0;
 
-@interface OOMusic: OOObject
+// What each live music was asked, keyed by the music (the controller hands its sound source on
+// unopened, and the stand-in's sound source is the music itself).
+struct MusicState
 {
-@public
 	std::string		_name;
-	BOOL			_playing;
-	float			_gain;
-}
-@end
+	BOOL			_playing = NO;
+	float			_gain = 0.0f;
+};
+static std::map<const cxx::OOMusic *, MusicState> gMusics;
 
 
-@implementation OOMusic
+// The sound root, which the music derives from: a stand-in, as OOALSound.mm would bring the sound
+// system into the link (bead oo-ra76k).
+cxx::OOSound::OOSound() = default;
+std::optional<std::string> cxx::OOSound::name()  { return std::nullopt; }
+ALuint cxx::OOSound::soundBuffer()  { return 0; }
+bool cxx::OOSound::soundIncomplete()  { return false; }
+void cxx::OOSound::rewind() {}
+std::optional<std::string> cxx::OOSound::descriptionComponents() const  { return std::nullopt; }
 
-- (id) init
+
+// The music: this file's C++ stand-in for cxx::OOMusic (OOALMusic.mm is not linked; bead oo-ra76k),
+// answering what the Objective-C stand-in answered.
+oo::Ref<cxx::OOMusic> cxx::OOMusic::initWithContentsOfFile(const std::optional<std::string> &inPath)
 {
-	self = [super init];
-	if (self != nil)  gLiveMusics++;
+	oo::Ref<OOMusic> self = oo::adopt(new OOMusic);
+	gLiveMusics++;
+	gMusics[self.get()]._name = inPath.value_or(std::string());
 	return self;
 }
 
 
-- (void) dealloc
+cxx::OOMusic::~OOMusic()
 {
+	gMusics.erase(this);
 	gLiveMusics--;
-	[super dealloc];
 }
 
 
-- (std::optional<std::string>) cxx_name
+std::optional<std::string> cxx::OOMusic::name()
 {
-	return _name;
+	return gMusics[this]._name;
 }
 
 
-- (void) setMusicGain:(float)gain
+void cxx::OOMusic::setMusicGain(float gain)
 {
-	_gain = gain;
+	gMusics[this]._gain = gain;
 }
 
 
-- (void) playLooped:(BOOL)loop
+float cxx::OOMusic::musicGain()
 {
-	gLog.push_back("play " + _name + (loop ? " looped" : ""));
-	_playing = YES;
+	return gMusics[this]._gain;
 }
 
 
-- (void) stop
+void cxx::OOMusic::playLooped(bool loop)
 {
-	gLog.push_back("stop " + _name);
-	_playing = NO;
+	MusicState &state = gMusics[this];
+	gLog.push_back("play " + state._name + (loop ? " looped" : ""));
+	state._playing = YES;
 }
 
 
-- (BOOL) isPlaying
+void cxx::OOMusic::stop()
 {
-	return _playing;
+	MusicState &state = gMusics[this];
+	gLog.push_back("stop " + state._name);
+	state._playing = NO;
 }
 
 
-- (OOSoundSource *) musicSoundSource
+bool cxx::OOMusic::isPlaying()
 {
-	return reinterpret_cast<OOSoundSource *>(self);	// an object the controller hands on unopened
+	return gMusics[this]._playing;
 }
 
-@end
+
+::OOSoundSource *cxx::OOMusic::musicSoundSource()
+{
+	return reinterpret_cast<::OOSoundSource *>(this);	// an object the controller hands on unopened
+}
 
 
 // The resource manager: each name is a new music (as a cache miss is), from the "Music" folder.
-@interface ResourceManager: OOObject
-@end
-
-
-@implementation ResourceManager
-
-+ (OOMusic *) cxx_ooMusicNamed:(const std::string &)fileName inFolder:(const std::optional<std::string> &)folderName
+oo::Ref<cxx::OOMusic> cxx::ResourceManager::ooMusicNamed(const std::string &fileName, const std::optional<std::string> &folderName)
 {
-	if (fileName == "missing.ogg" || folderName != std::optional<std::string>("Music"))  return nil;
-	OOMusic *music = [[[OOMusic alloc] init] autorelease];
-	music->_name = fileName;
-	return music;
+	if (fileName == "missing.ogg" || folderName != std::optional<std::string>("Music"))  return nullptr;
+	return cxx::OOMusic::initWithContentsOfFile(fileName);	// the stand-in names the music by its path
 }
-
-@end
 
 
 namespace {
@@ -147,9 +157,9 @@ std::optional<std::string> ModeDefault()
 }
 
 
-OOMusic *Current(OOMusicController *controller)
+MusicState *Current(OOMusicController *controller)
 {
-	return reinterpret_cast<OOMusic *>([controller soundSource]);
+	return &gMusics.at(reinterpret_cast<const cxx::OOMusic *>([controller soundSource]));
 }
 
 }	// namespace

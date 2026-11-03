@@ -159,11 +159,9 @@ inline constexpr const char* cxx_kGuiDockingReportColor = "docking_report_color"
 inline constexpr const char* cxx_kGuiDockingSummaryColor = "docking_summary_color";
 inline constexpr const char* cxx_kGuiDockingContinueColor = "docking_continue_color";
 
-@class OOSound, OOColor, OOTexture, OOTextureSprite, HeadUpDisplay;
+@class OOSound, OOColor, OOTexture, HeadUpDisplay;
 
-namespace cxx {
-class OOTextureSprite;
-} // C++ since bead oo-9ht (OOTextureSprite.h)
+class OOTextureSprite; // C++ (OOTextureSprite.h)
 
 typedef NSInteger OOGUIRow; // -1 for none
 typedef NSInteger OOGUITabStop; // negative value = right align text
@@ -360,8 +358,8 @@ private:
     oo::ObjCRef<::OOColor*> textColor;
     oo::ObjCRef<::OOColor*> textCommsColor;
 
-    oo::Ref<cxx::OOTextureSprite> backgroundSprite;
-    oo::Ref<cxx::OOTextureSprite> foregroundSprite;
+    oo::Ref<OOTextureSprite> backgroundSprite;
+    oo::Ref<OOTextureSprite> foregroundSprite;
     OOGUIBackgroundSpecial backgroundSpecial = { };
 
     std::optional<std::string> title; // none: no title bar

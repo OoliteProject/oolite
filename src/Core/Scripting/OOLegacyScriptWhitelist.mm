@@ -466,7 +466,7 @@ std::optional<std::string> AliasFor(const oo::PList& aliases, const std::string&
 namespace {
 static std::optional<std::string> SanitizeQueryMethod(const std::string& selectorString)
 {
-    static const oo::PList whitelistDictionary = [ResourceManager cxx_whitelistDictionary];
+    static const oo::PList whitelistDictionary = cxx::ResourceManager::whitelistDictionary();
     static const std::set<std::string> whitelist = WhitelistSet(whitelistDictionary, "query_methods");
     static const oo::PList aliases = WhitelistDictionary(whitelistDictionary, "query_method_aliases");
 
@@ -485,7 +485,7 @@ static std::optional<std::string> SanitizeQueryMethod(const std::string& selecto
 namespace {
 static std::optional<std::string> SanitizeActionMethod(const std::string& selectorString, BOOL allowAIMethods)
 {
-    static const oo::PList whitelistDictionary = [ResourceManager cxx_whitelistDictionary];
+    static const oo::PList whitelistDictionary = cxx::ResourceManager::whitelistDictionary();
     static std::set<std::string> whitelist;
     static std::set<std::string> whitelistWithAI;
     static oo::PList aliases;

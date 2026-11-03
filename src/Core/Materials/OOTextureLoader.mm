@@ -33,6 +33,7 @@ SOFTWARE.
 #import "OOOpenGLExtensionManager.h"
 #import "OOPNGTextureLoader.h"
 #import "OOPixMapChannelOperations.h"
+#import "OOTexture.h"
 #import "OOTextureScaling.h"
 #import "ResourceManager.h"
 #import "Universe.h"

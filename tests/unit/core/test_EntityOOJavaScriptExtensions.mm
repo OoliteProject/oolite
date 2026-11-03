@@ -322,4 +322,49 @@ OO_TEST(setTargetOnANonShipRootDoesNothing)
 }
 
 
+// The root category asks the entity's C++ part, so a C++ entity with no facade of its own answers
+// the engine through its overrides, the defaults are the category's bodies, and an Objective-C
+// class's own selectors still answer first.
+namespace {
+
+JSClassDef sTestScriptedClass = { .class_name = "TestScripted" };
+JSClassID sTestScriptedClassID = 0;
+
+class TestScriptedEntity : public cxx::Entity
+{
+public:
+	JSClassID jsClassID() override  { return sTestScriptedClassID; }
+	std::optional<std::string> jsClassName() override  { return std::string("TestScripted"); }
+	bool isVisibleToScripts() override  { return true; }
+};
+
+}	// namespace
+
+
+OO_TEST(cxxEntityAnswersThroughItsJSMembers)
+{
+	@autoreleasepool
+	{
+		SetUpContext();
+		OOJSRegisterClass(&sTestScriptedClassID, &sTestScriptedClass);
+
+		Entity *plain = oo::NewEntityFacade(oo::makeRef<cxx::Entity>());
+		OO_CHECK(plain != nil && [plain class] == [Entity class]);
+		OO_CHECK(![plain isVisibleToScripts] && !oo::ToCxx(plain)->isVisibleToScripts());
+		OO_CHECK([plain cxx_oo_jsClassName] == std::optional<std::string>("Entity"));
+		OO_CHECK([plain oo_jsClassID] == JSEntityClassID());
+
+		Entity *scripted = oo::NewEntityFacade(oo::makeRef<TestScriptedEntity>());
+		OO_CHECK(scripted != nil && [scripted class] == [Entity class]);
+		OO_CHECK([scripted isVisibleToScripts]);
+		OO_CHECK([scripted cxx_oo_jsClassName] == std::optional<std::string>("TestScripted"));
+		OO_CHECK([scripted oo_jsClassID] == sTestScriptedClassID && sTestScriptedClassID != 0);
+
+		// An Objective-C override answers first; the C++ part keeps the default.
+		TestVisibleEntity *visible = [[[TestVisibleEntity alloc] init] autorelease];
+		OO_CHECK([visible isVisibleToScripts] && !oo::ToCxx(visible)->isVisibleToScripts());
+	}
+}
+
+
 OO_TEST_MAIN()

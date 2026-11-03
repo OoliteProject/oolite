@@ -14,9 +14,10 @@
 	Objective-C class and run on it first; they pin: both initialisers (and when they answer nil),
 	the name and the description, the function value, raw and object-wrapper evaluation (the
 	script stack and the time limiter balanced around each call, the arguments converted), the
-	predicate's truthiness, and what an engine reset does (commit 34d0592d1). They now run through
-	the facade, which is its forwarding test; the C++ API and the facade's contract (identity, nil)
-	are checked after them.
+	predicate's truthiness, and what an engine reset does (commit 34d0592d1). They ran through the
+	Objective-C facade until it was deleted; they now ask the C++ class with the same
+	expectations. The facade's own contract (its description, identity and nil crossings) went
+	with it.
 	Run: bash tools/check-core-tests.sh
 */
 
@@ -179,16 +180,16 @@ TestNumber *Number(double value)
 }
 
 
-OOJSFunction *Compile(const char *name, const char *code, std::vector<const char *> args)
+oo::Ref<OOJSFunction> Compile(const char *name, const char *code, std::vector<const char *> args)
 {
-	return [[[OOJSFunction alloc] initWithName:(name != nullptr ? std::optional<std::string>(name) : std::nullopt)
-										 scope:JS_UNDEFINED
-										  code:(code != nullptr ? std::optional<std::string>(code) : std::nullopt)
-								 argumentCount:args.size()
-								 argumentNames:(args.empty() ? NULL : args.data())
-									  fileName:std::string("test.js")
-									lineNumber:1
-									   context:Context()] autorelease];
+	return OOJSFunction::initWithName((name != nullptr ? std::optional<std::string>(name) : std::nullopt),
+									  JS_UNDEFINED,
+									  (code != nullptr ? std::optional<std::string>(code) : std::nullopt),
+									  args.size(),
+									  (args.empty() ? NULL : args.data()),
+									  std::string("test.js"),
+									  1,
+									  Context());
 }
 
 }	// namespace
@@ -200,26 +201,25 @@ OO_TEST(initWithFunction)
 {
 	@autoreleasepool
 	{
-		OO_CHECK([[OOJSFunction alloc] initWithFunction:JS_NULL context:Context()] == nil);
+		OO_CHECK(OOJSFunction::initWithFunction(JS_NULL, Context()) == nullptr);
 
 		JSValue f = Evaluate("(function double(x) { return 2 * x; })");
-		OOJSFunction *function = [[[OOJSFunction alloc] initWithFunction:f context:Context()] autorelease];
-		OO_CHECK(function != nil);
-		OO_CHECK(SameObject([function function], f));
-		OO_CHECK_EQ([function cxx_name].value_or("<none>"), "double");
-		OO_CHECK_EQ([function cxx_descriptionComponents].value_or("<none>"), "double()");
-		OO_CHECK(oo::DescriptionOf(function).find("OOJSFunction") != std::string::npos);
-		JSValue functionValue = [function functionValue];
+		oo::Ref<OOJSFunction> function = OOJSFunction::initWithFunction(f, Context());
+		OO_CHECK(function != nullptr);
+		OO_CHECK(SameObject(function->function(), f));
+		OO_CHECK_EQ(function->name().value_or("<none>"), "double");
+		OO_CHECK_EQ(function->descriptionComponents().value_or("<none>"), "double()");
+		JSValue functionValue = function->functionValue();
 		OO_CHECK(JS_IsObject(functionValue));
 		OO_CHECK(SameObject(functionValue, f));
 		JS_FreeValue(Context(), functionValue);
 		JS_FreeValue(Context(), f);
 
 		JSValue anonymousFunction = Evaluate("(function () { return 1; })");
-		OOJSFunction *anonymous = [[[OOJSFunction alloc] initWithFunction:anonymousFunction context:Context()] autorelease];
+		oo::Ref<OOJSFunction> anonymous = OOJSFunction::initWithFunction(anonymousFunction, Context());
 		JS_FreeValue(Context(), anonymousFunction);
-		OO_CHECK(![anonymous cxx_name].has_value());
-		OO_CHECK_EQ([anonymous cxx_descriptionComponents].value_or("<none>"), "<anonymous>()");
+		OO_CHECK(!anonymous->name().has_value());
+		OO_CHECK_EQ(anonymous->descriptionComponents().value_or("<none>"), "<anonymous>()");
 	}
 }
 
@@ -228,29 +228,29 @@ OO_TEST(initWithName)
 {
 	@autoreleasepool
 	{
-		OOJSFunction *function = Compile("add", "return a + b;", { "a", "b" });
-		OO_CHECK(function != nil);
-		OO_CHECK_EQ([function cxx_name].value_or("<none>"), "add");
+		oo::Ref<OOJSFunction> function = Compile("add", "return a + b;", { "a", "b" });
+		OO_CHECK(function != nullptr);
+		OO_CHECK_EQ(function->name().value_or("<none>"), "add");
 		JSValueConst argv[2] = { JS_NewInt32(Context(), 2), JS_NewInt32(Context(), 3) };
 		JSValue result = JS_UNDEFINED;
-		OO_CHECK([function evaluateWithContext:Context() scope:JS_UNDEFINED argc:2 argv:argv result:&result]);
+		OO_CHECK(function->evaluateWithContext(Context(), JS_UNDEFINED, 2, argv, &result));
 		OO_CHECK_EQ(String(result), "5");
 
 		// No code, argument names missing, or a syntax error: nil.
-		OO_CHECK(Compile("none", nullptr, {}) == nil);
-		OO_CHECK([[OOJSFunction alloc] initWithName:std::string("x") scope:JS_UNDEFINED code:std::string("return 1;") argumentCount:1 argumentNames:NULL fileName:std::nullopt lineNumber:0 context:Context()] == nil);
-		OO_CHECK(Compile("bad", "return (;", {}) == nil);
+		OO_CHECK(Compile("none", nullptr, {}) == nullptr);
+		OO_CHECK(OOJSFunction::initWithName(std::string("x"), JS_UNDEFINED, std::string("return 1;"), 1, NULL, std::nullopt, 0, Context()) == nullptr);
+		OO_CHECK(Compile("bad", "return (;", {}) == nullptr);
 		JS_FreeValue(Context(), JS_GetException(Context()));
 
 		// A NULL context: the main thread's is acquired and released.
-		OOJSFunction *withoutContext = [[[OOJSFunction alloc] initWithName:std::string("seven") scope:JS_UNDEFINED code:std::string("return 7;") argumentCount:0 argumentNames:NULL fileName:std::nullopt lineNumber:0 context:NULL] autorelease];
-		OO_CHECK(withoutContext != nil);
-		OO_CHECK([withoutContext evaluateWithContext:Context() scope:JS_UNDEFINED argc:0 argv:NULL result:&result]);
+		oo::Ref<OOJSFunction> withoutContext = OOJSFunction::initWithName(std::string("seven"), JS_UNDEFINED, std::string("return 7;"), 0, NULL, std::nullopt, 0, NULL);
+		OO_CHECK(withoutContext != nullptr);
+		OO_CHECK(withoutContext->evaluateWithContext(Context(), JS_UNDEFINED, 0, NULL, &result));
 		OO_CHECK_EQ(String(result), "7");
 
 		// An empty body answers undefined.
-		OOJSFunction *empty = Compile("empty", "", {});
-		OO_CHECK([empty evaluateWithContext:Context() scope:JS_UNDEFINED argc:0 argv:NULL result:&result]);
+		oo::Ref<OOJSFunction> empty = Compile("empty", "", {});
+		OO_CHECK(empty->evaluateWithContext(Context(), JS_UNDEFINED, 0, NULL, &result));
 		OO_CHECK_EQ(String(result), "undefined");
 	}
 }
@@ -260,16 +260,16 @@ OO_TEST(evaluation)
 {
 	@autoreleasepool
 	{
-		OOJSFunction *function = Compile("thisName", "return this.name + ':' + arguments.length;", {});
+		oo::Ref<OOJSFunction> function = Compile("thisName", "return this.name + ':' + arguments.length;", {});
 		JS_FreeValue(Context(), Evaluate("globalThis.named = { name: 'n' }; globalThis.name = 'global';"));
 		JSValue result = JS_UNDEFINED;
 		sScriptPushes = 0;
 		sLimiterStarts = 0;
 		JSValue named = Evaluate("named");
-		OO_CHECK([function evaluateWithContext:Context() scope:named argc:0 argv:NULL result:&result]);
+		OO_CHECK(function->evaluateWithContext(Context(), named, 0, NULL, &result));
 		JS_FreeValue(Context(), named);
 		OO_CHECK_EQ(String(result), "n:0");
-		OO_CHECK([function evaluateWithContext:Context() scope:JS_UNDEFINED argc:0 argv:NULL result:&result]);
+		OO_CHECK(function->evaluateWithContext(Context(), JS_UNDEFINED, 0, NULL, &result));
 		OO_CHECK_EQ(String(result), "global:0");	// no this: the global object (the function is not strict)
 		OO_CHECK_EQ(sScriptPushes, 2);
 		OO_CHECK_EQ(sLimiterStarts, 2);
@@ -277,8 +277,8 @@ OO_TEST(evaluation)
 		OO_CHECK_EQ(sLimiterDepth, 0);
 
 		// A throwing function answers NO, with the stack and the limiter balanced.
-		OOJSFunction *thrower = Compile("thrower", "throw new Error('boom');", {});
-		OO_CHECK(![thrower evaluateWithContext:Context() scope:JS_UNDEFINED argc:0 argv:NULL result:&result]);
+		oo::Ref<OOJSFunction> thrower = Compile("thrower", "throw new Error('boom');", {});
+		OO_CHECK(!thrower->evaluateWithContext(Context(), JS_UNDEFINED, 0, NULL, &result));
 		JS_FreeValue(Context(), JS_GetException(Context()));
 		OO_CHECK_EQ(sScriptDepth, 0);
 		OO_CHECK_EQ(sLimiterDepth, 0);
@@ -290,27 +290,27 @@ OO_TEST(predicate)
 {
 	@autoreleasepool
 	{
-		OOJSFunction *greater = Compile("greater", "return a > b;", { "a", "b" });
+		oo::Ref<OOJSFunction> greater = Compile("greater", "return a > b;", { "a", "b" });
 		const std::vector<oo::ObjCRef<id>> threeTwo = { oo::ObjCRef<id>(Number(3)), oo::ObjCRef<id>(Number(2)) };
 		const std::vector<oo::ObjCRef<id>> twoThree = { oo::ObjCRef<id>(Number(2)), oo::ObjCRef<id>(Number(3)) };
-		OO_CHECK([greater evaluatePredicateWithContext:Context() scope:nil arguments:threeTwo]);
-		OO_CHECK(![greater evaluatePredicateWithContext:Context() scope:nil arguments:twoThree]);
+		OO_CHECK(greater->evaluatePredicateWithContext(Context(), nil, threeTwo));
+		OO_CHECK(!greater->evaluatePredicateWithContext(Context(), nil, twoThree));
 
 		// The scope object is converted too: a number is boxed.
-		OOJSFunction *usesThis = Compile("usesThis", "return this.valueOf() === 4 && arguments.length === 0;", {});
-		OO_CHECK([usesThis evaluatePredicateWithContext:Context() scope:Number(4) arguments:{}]);
-		OO_CHECK(![usesThis evaluatePredicateWithContext:Context() scope:Number(5) arguments:{}]);
+		oo::Ref<OOJSFunction> usesThis = Compile("usesThis", "return this.valueOf() === 4 && arguments.length === 0;", {});
+		OO_CHECK(usesThis->evaluatePredicateWithContext(Context(), Number(4), {}));
+		OO_CHECK(!usesThis->evaluatePredicateWithContext(Context(), Number(5), {}));
 
 		// A nil argument is the zero value (a message to nil); truthiness is JS's.
-		OOJSFunction *first = Compile("first", "return a;", { "a" });
+		oo::Ref<OOJSFunction> first = Compile("first", "return a;", { "a" });
 		const std::vector<oo::ObjCRef<id>> nilArgument = { oo::ObjCRef<id>() };
-		OO_CHECK(![first evaluatePredicateWithContext:Context() scope:nil arguments:nilArgument]);
-		OO_CHECK([first evaluatePredicateWithContext:Context() scope:nil arguments:{ oo::ObjCRef<id>(Number(0.5)) }]);
-		OO_CHECK(![first evaluatePredicateWithContext:Context() scope:nil arguments:{ oo::ObjCRef<id>(Number(0)) }]);
+		OO_CHECK(!first->evaluatePredicateWithContext(Context(), nil, nilArgument));
+		OO_CHECK(first->evaluatePredicateWithContext(Context(), nil, { oo::ObjCRef<id>(Number(0.5)) }));
+		OO_CHECK(!first->evaluatePredicateWithContext(Context(), nil, { oo::ObjCRef<id>(Number(0)) }));
 
 		// A throwing predicate is false.
-		OOJSFunction *thrower = Compile("thrower", "throw 1;", {});
-		OO_CHECK(![thrower evaluatePredicateWithContext:Context() scope:nil arguments:{}]);
+		oo::Ref<OOJSFunction> thrower = Compile("thrower", "throw 1;", {});
+		OO_CHECK(!thrower->evaluatePredicateWithContext(Context(), nil, {}));
 		JS_FreeValue(Context(), JS_GetException(Context()));
 		OO_CHECK_EQ(sScriptDepth, 0);
 		OO_CHECK_EQ(sLimiterDepth, 0);
@@ -322,12 +322,12 @@ OO_TEST(engineReset)
 {
 	@autoreleasepool
 	{
-		OOJSFunction *function = Compile("resettable", "return 1;", {});
-		OO_CHECK(!JS_IsNull([function function]));
+		oo::Ref<OOJSFunction> function = Compile("resettable", "return 1;", {});
+		OO_CHECK(!JS_IsNull(function->function()));
 		oo::NotificationCenter::defaultCenter().post(kOOJavaScriptEngineWillResetNotificationName, [OOJavaScriptEngine sharedEngine]);
-		OO_CHECK(JS_IsNull([function function]));
-		OO_CHECK(JS_IsNull([function functionValue]));
-		OO_CHECK_EQ([function cxx_name].value_or("<none>"), "resettable");	// the name stays
+		OO_CHECK(JS_IsNull(function->function()));
+		OO_CHECK(JS_IsNull(function->functionValue()));
+		OO_CHECK_EQ(function->name().value_or("<none>"), "resettable");	// the name stays
 	}
 }
 
@@ -336,10 +336,10 @@ OO_TEST(cxxAndFacade)
 {
 	@autoreleasepool
 	{
-		oo::Ref<cxx::OOJSFunction> function = cxx::OOJSFunction::initWithName(std::string("triple"), JS_UNDEFINED, std::string("return 3 * x;"), 1, (const char *[]){ "x" }, std::nullopt, 0, Context());
+		oo::Ref<OOJSFunction> function = OOJSFunction::initWithName(std::string("triple"), JS_UNDEFINED, std::string("return 3 * x;"), 1, (const char *[]){ "x" }, std::nullopt, 0, Context());
 		OO_CHECK(function != nullptr);
-		OO_CHECK(cxx::OOJSFunction::initWithFunction(JS_NULL, Context()) == nullptr);
-		OO_CHECK(cxx::OOJSFunction::initWithName(std::string("bad"), JS_UNDEFINED, std::string("return (;"), 0, NULL, std::nullopt, 0, Context()) == nullptr);
+		OO_CHECK(OOJSFunction::initWithFunction(JS_NULL, Context()) == nullptr);
+		OO_CHECK(OOJSFunction::initWithName(std::string("bad"), JS_UNDEFINED, std::string("return (;"), 0, NULL, std::nullopt, 0, Context()) == nullptr);
 		JS_FreeValue(Context(), JS_GetException(Context()));
 		JSValueConst argv[1] = { JS_NewInt32(Context(), 4) };
 		JSValue result = JS_UNDEFINED;
@@ -347,18 +347,7 @@ OO_TEST(cxxAndFacade)
 		OO_CHECK_EQ(String(result), "12");
 		OO_CHECK(function->evaluatePredicateWithContext(Context(), nil, { oo::ObjCRef<id>(Number(1)) }));
 		OO_CHECK_EQ(function->descriptionComponents().value_or("<none>"), "triple()");
-
-		// One facade per C++ object while it lives, and back; nil stays nil.
-		OOJSFunction *facade = oo::ToObjC(function.get());
-		OO_CHECK(facade != nil && facade == oo::ToObjC(function.get()));
-		OO_CHECK(oo::ToCxx(facade) == function.get());
-		OO_CHECK_EQ([facade cxx_name].value_or("<none>"), "triple");
-		OO_CHECK(oo::ToObjC(static_cast<cxx::OOJSFunction *>(nullptr)) == nil);
-		OO_CHECK(oo::ToCxx(static_cast<OOJSFunction *>(nil)) == nullptr);
-
-		// A facade made by alloc/init is its object's facade.
-		OOJSFunction *made = Compile("made", "return 1;", {});
-		OO_CHECK(oo::ToObjC(oo::ToCxx(made)) == made);
+		OO_CHECK_EQ(function->name().value_or("<none>"), "triple");	// was asked of its facade
 	}
 }
 

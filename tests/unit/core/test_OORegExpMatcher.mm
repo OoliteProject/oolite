@@ -8,7 +8,7 @@
 	Objective-C glue the matcher uses but whose files reach the whole game (the engine singleton,
 	OOJSFunction, OOJSValue, the two value converters and the exception reporter;
 	OOJavaScriptEngine.mm links everything)
-	is replaced by the minimal definitions below, which count what the matcher asks of them
+	is replaced by the minimal definitions below (OOJSFunction's C++ members), which count what the matcher asks of them
 	(ADR-0056 amendment 1 item 8, amendment oo-z1s4 item 4). The expectations were written against the Objective-C API and
 	run on the unconverted class first: what matches, the flags, the empty pattern, the cache
 	(one compiled RegExp per pattern and flags), and the pseudo-singleton (one matcher per
@@ -20,6 +20,7 @@
 */
 
 #import "OORegExpMatcher.h"
+#import "OOJSFunction.h"
 #import "oofnd/objc/OOObject.h"
 
 #include "oo_test.hpp"
@@ -68,33 +69,16 @@ bool sFailCompile = false;		// make the next OOJSFunction init fail, as a compil
 @end
 
 
-// OOJSFunction (src/Core/Scripting/OOJSFunction+ObjCBridge.h): the messages the matcher sends,
-// with the facade's selectors and types. The function is compiled as a function expression in
-// the global scope, as OOJSFunction.mm does.
-@interface OOJSFunction: OOObject
-{
-@private
-	JSValue _function;	// owned
-}
-- (id) initWithName:(const std::optional<std::string> &)name scope:(JSValueConst)scope code:(const std::optional<std::string> &)code argumentCount:(NSUInteger)argCount argumentNames:(const char **)argNames fileName:(const std::optional<std::string> &)fileName lineNumber:(NSUInteger)lineNumber context:(JSContext *)context;
-- (BOOL) evaluateWithContext:(JSContext *)context scope:(JSValueConst)jsThis argc:(int)argc argv:(JSValueConst *)argv result:(JSValue *)result;
-@end
-
-@implementation OOJSFunction
-
-- (id) initWithName:(const std::optional<std::string> &)name scope:(JSValueConst)scope code:(const std::optional<std::string> &)code argumentCount:(NSUInteger)argCount argumentNames:(const char **)argNames fileName:(const std::optional<std::string> &)fileName lineNumber:(NSUInteger)lineNumber context:(JSContext *)context
+// OOJSFunction (src/Core/Scripting/OOJSFunction.h): the members the matcher calls, defined here in
+// place of OOJSFunction.mm. Until the class's Objective-C facade was deleted this was an
+// Objective-C stub of the same name; the C++ stand-in does and counts the same. The function is
+// compiled as a function expression in the global scope, as OOJSFunction.mm does.
+oo::Ref<OOJSFunction> OOJSFunction::initWithName(const std::optional<std::string> &name, JSValueConst scope, const std::optional<std::string> &code, NSUInteger argCount, const char **argNames, const std::optional<std::string> &fileName, NSUInteger lineNumber, JSContext *context)
 {
 	(void)scope;
 	(void)lineNumber;
-	self = [super init];
-	if (self == nil)  return nil;
-	_function = JS_UNDEFINED;
 	sFunctionsMade++;
-	if (sFailCompile)
-	{
-		[self release];
-		return nil;
-	}
+	if (sFailCompile)  return nullptr;
 	std::string source = "(function " + name.value_or(std::string()) + "(";
 	for (NSUInteger i = 0; i < argCount; i++)  source += std::string(i != 0 ? "," : "") + argNames[i];
 	source += ") {\n" + code.value_or(std::string()) + "\n})";
@@ -102,22 +86,27 @@ bool sFailCompile = false;		// make the next OOJSFunction init fail, as a compil
 	if (JS_IsException(function))
 	{
 		JS_FreeValue(context, JS_GetException(context));
-		[self release];
-		return nil;
+		return nullptr;
 	}
-	_function = function;
-	return self;
+	oo::Ref<OOJSFunction> result = oo::adopt(new OOJSFunction(function, context));
+	JS_FreeValue(context, function);
+	return result;
 }
 
 
-- (void) dealloc
+OOJSFunction::OOJSFunction(JSValueConst function, JSContext *context)
+{
+	_function = JS_DupValue(context, function);	// its own reference
+}
+
+
+OOJSFunction::~OOJSFunction()
 {
 	JS_FreeValue(gOOJSMainThreadContext, _function);
-	[super dealloc];
 }
 
 
-- (BOOL) evaluateWithContext:(JSContext *)context scope:(JSValueConst)jsThis argc:(int)argc argv:(JSValueConst *)argv result:(JSValue *)result
+bool OOJSFunction::evaluateWithContext(JSContext *context, JSValueConst jsThis, int argc, JSValueConst *argv, JSValue *result)
 {
 	sEvaluations++;
 	JSValue rval = JS_Call(context, _function, JS_IsObject(jsThis) ? jsThis : sGlobal, argc, argv);
@@ -129,8 +118,6 @@ bool sFailCompile = false;		// make the next OOJSFunction init fail, as a compil
 	*result = rval;
 	return YES;
 }
-
-@end
 
 
 @interface OOJSValue: OOObject

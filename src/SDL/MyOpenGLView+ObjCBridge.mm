@@ -3,8 +3,8 @@
 MyOpenGLView+ObjCBridge.mm
 
 TRANSITIONAL (proposed ADR-0056, bead oo-6rb6): the Objective-C MyOpenGLView facade. Every method of
-slice 1 forwards to cxx::MyOpenGLView in one line; the categories of slices 2-3 and of the input
-handling are in MyOpenGLView.mm and MyOpenGLView+Input.mm. See MyOpenGLView+ObjCBridge.h.
+every other method forwards likewise, the input ones (bead oo-0806) last; the members are in
+MyOpenGLView.mm and MyOpenGLView+Input.mm. See MyOpenGLView+ObjCBridge.h.
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -422,5 +422,147 @@ cxx::MyOpenGLView* oo::ToCxx(MyOpenGLView* view)
     _cxxView->dumpRGBAToRGBFileNamed(rgbName, grayName, bytes, width, height, rowBytes);
 }
 #endif
+
+// Input (bead oo-0806)
+
+- (void)setStringInput:(enum StringInput)value
+{
+    _cxxView->setStringInput(value);
+}
+
+- (void)allowStringInput:(BOOL)value
+{
+    _cxxView->allowStringInput(value);
+}
+
+- (enum StringInput)allowingStringInput
+{
+    return _cxxView->getAllowingStringInput();
+}
+
+- (std::optional<std::string>)cxx_typedString
+{
+    return _cxxView->getTypedString();
+}
+
+- (void)resetTypedString
+{
+    _cxxView->resetTypedString();
+}
+
+- (void)cxx_setTypedString:(const std::string&)value
+{
+    _cxxView->setTypedString(value);
+}
+
+- (void)noteMouseInteractionModeChangedFrom:(OOMouseInteractionMode)oldMode to:(OOMouseInteractionMode)newMode
+{
+    _cxxView->noteMouseInteractionModeChangedFrom(oldMode, newMode);
+}
+
+- (void)pollControls
+{
+    _cxxView->pollControls();
+}
+
+- (void)setVirtualJoystick:(double)vmx vmy:(double)vmy
+{
+    _cxxView->setVirtualJoystick(vmx, vmy);
+}
+
+- (NSPoint)virtualJoystickPosition
+{
+    return _cxxView->getVirtualJoystickPosition();
+}
+
+- (void)clearKeys
+{
+    _cxxView->clearKeys();
+}
+
+- (void)clearMouse
+{
+    _cxxView->clearMouse();
+}
+
+- (void)clearKey:(int)theKey
+{
+    _cxxView->clearKey(theKey);
+}
+
+- (void)resetMouse
+{
+    _cxxView->resetMouse();
+}
+
+- (BOOL)isAlphabetKeyDown
+{
+    return _cxxView->getIsAlphabetKeyDown();
+}
+
+- (void)suppressKeysUntilKeyUp
+{
+    _cxxView->suppressKeysUntilKeyUp();
+}
+
+- (BOOL)isDown:(int)key
+{
+    return _cxxView->isDown(key);
+}
+
+- (BOOL)isOptDown
+{
+    return _cxxView->isOptDown();
+}
+
+- (BOOL)isCtrlDown
+{
+    return _cxxView->isCtrlDown();
+}
+
+- (BOOL)isShiftDown
+{
+    return _cxxView->isShiftDown();
+}
+
+- (BOOL)isCapsLockOn
+{
+    return _cxxView->isCapsLockOn();
+}
+
+- (BOOL)lastKeyWasShifted
+{
+    return _cxxView->lastKeyWasShifted();
+}
+
+- (int)mouseWheelState
+{
+    return _cxxView->mouseWheelState();
+}
+
+- (float)mouseWheelDelta
+{
+    return _cxxView->mouseWheelDelta();
+}
+
+- (void)setMouseWheelDelta:(float)newWheelDelta
+{
+    _cxxView->setMouseWheelDelta(newWheelDelta);
+}
+
+- (BOOL)isCommandQDown
+{
+    return _cxxView->isCommandQDown();
+}
+
+- (BOOL)isCommandFDown
+{
+    return _cxxView->isCommandFDown();
+}
+
+- (void)clearCommandF
+{
+    _cxxView->clearCommandF();
+}
 
 @end
