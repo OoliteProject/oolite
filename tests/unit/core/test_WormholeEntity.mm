@@ -135,6 +135,7 @@ void SetUp()
 	if (sUniverse == nil)
 	{
 		sUniverse = (TestUniverse *)class_createInstance([TestUniverse class], 0);	// never released
+		sUniverse->_cxxUniverse = oo::makeRef<cxx::Universe>(sUniverse);	// what -initWithGameView: makes first (ADR-0056 amendment oo-riqmz)
 		sPlayer = [[TestPlayer alloc] init];
 		// Systems 7 at (10, 20) and 9 at (13, 24) of galaxy 0: 5 light-year units apart, 2.0 LY.
 		oo::Ref<cxx::OOSystemDescriptionManager> manager = oo::makeRef<cxx::OOSystemDescriptionManager>();

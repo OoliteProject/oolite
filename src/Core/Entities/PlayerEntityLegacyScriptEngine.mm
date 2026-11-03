@@ -2043,8 +2043,8 @@ static int shipsFound;
 {
     if (!UNIVERSE)
         return;
-    int ent_count = UNIVERSE->n_entities;
-    Entity** uni_entities = UNIVERSE->sortedEntities; // grab the public sorted list
+    int ent_count = UNIVERSE->_cxxUniverse->n_entities;
+    Entity** uni_entities = UNIVERSE->_cxxUniverse->sortedEntities; // grab the public sorted list
     std::vector<Entity*> my_entities(ent_count);
     int i;
     for (i = 0; i < ent_count; i++)

@@ -214,7 +214,7 @@ oo::Ref<OOCommodityMarket> OOCommodities::generateBlankMarket()
     return market;
 }
 
-oo::PList OOCommodities::createDefinitionFrom(const oo::PList& good, OOCreditsQuantity p, OOCargoQuantity q, const std::string& key, StationEntity* station, OOSystemID system)
+oo::PList OOCommodities::createDefinitionFrom(const oo::PList& good, OOCreditsQuantity p, OOCargoQuantity q, const std::string& key, ::StationEntity* station, OOSystemID system)
 {
     oo::PList definition = good;
     SetUnsigned(definition, kOOCommodityPriceCurrent, p);
@@ -241,7 +241,7 @@ oo::PList OOCommodities::createDefinitionFrom(const oo::PList& good, OOCreditsQu
     return modifyGood(definition, goodScript, station, system, false);
 }
 
-oo::PList OOCommodities::modifyGood(const oo::PList& good, ::OOScript* script, StationEntity* station, OOSystemID system, bool localMode)
+oo::PList OOCommodities::modifyGood(const oo::PList& good, ::OOScript* script, ::StationEntity* station, OOSystemID system, bool localMode)
 {
     JSContext* context = OOJSAcquireContext();
     OOJSVal rval = OOJSUndefinedValue();
@@ -325,7 +325,7 @@ oo::Ref<OOCommodityMarket> OOCommodities::generateMarketForSystemWithEconomy(OOE
     return market;
 }
 
-oo::Ref<OOCommodityMarket> OOCommodities::generateMarketForStation(StationEntity* station)
+oo::Ref<OOCommodityMarket> OOCommodities::generateMarketForStation(::StationEntity* station)
 {
     const oo::PList marketDefinition = [station cxx_marketDefinition];
     ::OOScript* marketScript = [PLAYER cxx_commodityScriptNamed:[station cxx_marketScriptName]];

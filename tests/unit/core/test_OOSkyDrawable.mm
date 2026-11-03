@@ -93,6 +93,7 @@ void SetUp()
 	if (gSharedUniverse == nil)
 	{
 		gSharedUniverse = (Universe *)class_createInstance([Universe class], 0);	// never released
+		gSharedUniverse->_cxxUniverse = oo::makeRef<cxx::Universe>(gSharedUniverse);	// what -initWithGameView: makes first (ADR-0056 amendment oo-riqmz)
 		InstallStandIn();
 	}
 }

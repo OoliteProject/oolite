@@ -363,7 +363,10 @@ void SetUp()
 	stdfs::current_path(sRoot);
 	const std::string info = "{ CFBundleVersion = \"9.9.9-test\"; }";
 	OO_CHECK(oo::fs::writeFile(sRoot / "Resources" / "Info-gnustep.plist", oo::Data(info.data(), info.size()), oo::fs::WriteMode::direct).has_value());
-	(void)[OOJavaScriptEngine sharedEngine];
+	@autoreleasepool	// the engine autoreleases facades as it starts (as Eval(), bead oo-9ht.172)
+	{
+		(void)[OOJavaScriptEngine sharedEngine];
+	}
 
 	sUniverse = [[FakeUniverse alloc] init];
 	gSharedUniverse = (Universe *)sUniverse;
@@ -419,24 +422,33 @@ void SetUp()
 
 // Evaluates src in the engine's context and gives its result as a string ("undefined", "null",
 // ...), or "threw: <message>".
+// In its own autorelease pool, as the game's frame is (bead oo-9ht.172): an object the engine or
+// the binding autoreleases is freed here, while the engine is alive. With no pool it went to the
+// main thread's implicit pool, which libobjc drains at thread detach, after the C++ static
+// destructors: an OOJSValue freed there (the special-functions facade the engine makes as it
+// starts, in SetUp()) looked its context up in the scripting layer's state after it was destroyed
+// (heap-use-after-free; the test crashed at exit about 1 run in 6).
 std::string Eval(const std::string &src)
 {
 	SetUp();
-	JSContext *context = OOJSAcquireContext();
-	std::string wrapped = "(function () { try { return String(" + src + "); } catch (e) { return 'threw: ' + (e && e.message !== undefined ? e.message : e); } })()";
-	JSValue result = JS_Eval(context, wrapped.c_str(), wrapped.size(), "test.js", JS_EVAL_TYPE_GLOBAL);
 	std::string text;
-	if (JS_IsException(result))
+	@autoreleasepool
 	{
-		JS_FreeValue(context, JS_GetException(context));
-		text = "<evaluation failed>";
+		JSContext *context = OOJSAcquireContext();
+		std::string wrapped = "(function () { try { return String(" + src + "); } catch (e) { return 'threw: ' + (e && e.message !== undefined ? e.message : e); } })()";
+		JSValue result = JS_Eval(context, wrapped.c_str(), wrapped.size(), "test.js", JS_EVAL_TYPE_GLOBAL);
+		if (JS_IsException(result))
+		{
+			JS_FreeValue(context, JS_GetException(context));
+			text = "<evaluation failed>";
+		}
+		else
+		{
+			text = cxx_OOStringFromJSValue(context, result).value_or("<not a string>");
+		}
+		JS_FreeValue(context, result);
+		OOJSRelinquishContext(context);
 	}
-	else
-	{
-		text = cxx_OOStringFromJSValue(context, result).value_or("<not a string>");
-	}
-	JS_FreeValue(context, result);
-	OOJSRelinquishContext(context);
 	return text;
 }
 
@@ -751,11 +763,14 @@ OO_TEST(populators)
 	OO_CHECK(definition != nil && [definition isKindOfClass:[OOJSPopulatorDefinition class]]);
 	if (definition != nil)
 	{
-		JSContext *context = OOJSAcquireContext();
-		JSValue callback = [(OOJSPopulatorDefinition *)definition callback];	// owned
-		OO_CHECK(OOJSValueIsFunction(context, callback));
-		JS_FreeValue(context, callback);
-		OOJSRelinquishContext(context);
+		@autoreleasepool	// as Eval() (bead oo-9ht.172)
+		{
+			JSContext *context = OOJSAcquireContext();
+			JSValue callback = [(OOJSPopulatorDefinition *)definition callback];	// owned
+			OO_CHECK(OOJSValueIsFunction(context, callback));
+			JS_FreeValue(context, callback);
+			OOJSRelinquishContext(context);
+		}
 	}
 
 	// No coordinates: none set.

@@ -72,7 +72,11 @@ TestUniverse *sUniverse = nil;
 
 void SetUp()
 {
-	if (sUniverse == nil)  sUniverse = (TestUniverse *)class_createInstance([TestUniverse class], 0);	// never released
+	if (sUniverse == nil)
+	{
+		sUniverse = (TestUniverse *)class_createInstance([TestUniverse class], 0);	// never released
+		sUniverse->_cxxUniverse = oo::makeRef<cxx::Universe>(sUniverse);	// what -initWithGameView: makes first (ADR-0056 amendment oo-riqmz)
+	}
 	sUniverse->_removed = nil;
 	gSharedUniverse = sUniverse;
 	static TestPlayer *player = nil;

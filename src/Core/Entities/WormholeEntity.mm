@@ -306,10 +306,10 @@ bool WormholeEntity::suckInShip(::ShipEntity* ship)
     [[ship getAI] clearStack]; // get rid of any preserved states
 
     if ([ship isStation]) {
-        if ([PLAYER dockedStation] == (StationEntity*)ship) {
+        if ([PLAYER dockedStation] == (::StationEntity*)ship) {
             // the carrier has jumped while the player is docked
             [ship retain];
-            [UNIVERSE carryPlayerOn:(StationEntity*)ship inWormhole:oo::ToObjC(this)];
+            [UNIVERSE carryPlayerOn:(::StationEntity*)ship inWormhole:oo::ToObjC(this)];
             [ship release];
         }
     }

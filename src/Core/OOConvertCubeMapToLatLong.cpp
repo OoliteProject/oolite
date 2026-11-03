@@ -27,10 +27,8 @@ SOFTWARE.
 
 */
 
-#import "OOConvertCubeMapToLatLong.h"
-
-#include <vector>
-#import "OOTextureScaling.h"
+#include "OOConvertCubeMapToLatLong.h"
+#include "OOTextureScaling.h"
 #include "oofnd/objc/OOAssert.h"
 
 #define kPiF (3.14159265358979323846264338327950288f)

@@ -56,8 +56,8 @@ oo::ObjCPeers& Peers()
 
 #if OOJSENGINE_MONITOR_SUPPORT
 
-// The engine's internal monitor send of OOJSGlobalSendMonitorLogMessage() in OOJSGlobal+ObjCBridge.mm
-// (amendment oo-6ia4 item 6), which declares the category itself.
+// The Objective-C face of the engine's monitor send (amendment oo-6ia4 item 6); log() in OOJSGlobal.mm
+// calls the C++ member directly (bead oo-9ht.98).
 @interface OOJavaScriptEngine (OOMonitorSupportInternal)
 
 // nullopt is meaningful to the monitor (Log() with a null message; no class for Log()).

@@ -2442,8 +2442,8 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     // check if camera position is shadowed
     OOViewID vdir = [UNIVERSE viewDirection];
     unsigned i;
-    unsigned ent_count = UNIVERSE->n_entities;
-    Entity** uni_entities = UNIVERSE->sortedEntities; // grab the public sorted list
+    unsigned ent_count = UNIVERSE->_cxxUniverse->n_entities;
+    Entity** uni_entities = UNIVERSE->_cxxUniverse->sortedEntities; // grab the public sorted list
     for (i = 0; i < ent_count; i++) {
         if (uni_entities[i]->_cxxEntity->isSunlit) {
             if ([uni_entities[i] isPlanet] || ([uni_entities[i] isShip] && [uni_entities[i] isVisible])) {
@@ -3062,8 +3062,8 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
         return;
     }
 
-    int i, ent_count = UNIVERSE->n_entities;
-    Entity** uni_entities = UNIVERSE->sortedEntities; // grab the public sorted list
+    int i, ent_count = UNIVERSE->_cxxUniverse->n_entities;
+    Entity** uni_entities = UNIVERSE->_cxxUniverse->sortedEntities; // grab the public sorted list
     std::vector<Entity*> my_entities(ent_count);
     Entity* scannedEntity = nil;
     for (i = 0; i < ent_count; i++) {
@@ -6396,8 +6396,8 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 {
     if (!UNIVERSE)
         return;
-    int ent_count = UNIVERSE->n_entities;
-    Entity** uni_entities = UNIVERSE->sortedEntities; // grab the public sorted list
+    int ent_count = UNIVERSE->_cxxUniverse->n_entities;
+    Entity** uni_entities = UNIVERSE->_cxxUniverse->sortedEntities; // grab the public sorted list
     std::vector<Entity*> my_entities(ent_count);
     int i;
     for (i = 0; i < ent_count; i++)

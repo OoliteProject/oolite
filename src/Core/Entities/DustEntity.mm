@@ -288,7 +288,7 @@ void DustEntity::drawImmediate(bool /*immediate*/, bool translucent)
         if (player->_cxxEntity->isSunlit)
             color = color_fv;
         else
-            color = UNIVERSE->stars_ambient;
+            color = UNIVERSE->_cxxUniverse->stars_ambient;
         OOGL(glColor4f(color[0], color[1], color[2], dustIntensity));
 
 #if OO_SHADERS

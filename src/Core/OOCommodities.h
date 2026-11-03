@@ -65,7 +65,7 @@ public:
     oo::Ref<OOCommodityMarket> generateManifestForPlayer();
     oo::Ref<OOCommodityMarket> generateBlankMarket();
     oo::Ref<OOCommodityMarket> generateMarketForSystemWithEconomy(OOEconomyID economy, const std::optional<std::string>& scriptName); // nullopt: no script (was nil)
-    oo::Ref<OOCommodityMarket> generateMarketForStation(StationEntity* station);
+    oo::Ref<OOCommodityMarket> generateMarketForStation(::StationEntity* station);
 
     OOCreditsQuantity samplePriceForCommodity(const std::string& commodity, OOEconomyID economy, const std::optional<std::string>& scriptName, OOSystemID system);
 
@@ -77,8 +77,8 @@ public:
     OOMassUnit massUnitForGood(const std::string& good);
 
 private:
-    oo::PList modifyGood(const oo::PList& good, ::OOScript* script, StationEntity* station, OOSystemID system, bool local);
-    oo::PList createDefinitionFrom(const oo::PList& good, OOCreditsQuantity p, OOCargoQuantity q, const std::string& key, StationEntity* station, OOSystemID system);
+    oo::PList modifyGood(const oo::PList& good, ::OOScript* script, ::StationEntity* station, OOSystemID system, bool local);
+    oo::PList createDefinitionFrom(const oo::PList& good, OOCreditsQuantity p, OOCargoQuantity q, const std::string& key, ::StationEntity* station, OOSystemID system);
 
     OOCargoQuantity generateQuantityForGood(const oo::PList& good, OOEconomyID economy);
     OOCreditsQuantity generatePriceForGood(const oo::PList& good, OOEconomyID economy);

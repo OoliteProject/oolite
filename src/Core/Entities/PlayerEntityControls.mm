@@ -688,7 +688,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
     if ([[UNIVERSE gameController] mouseInteractionMode] == MOUSE_MODE_UI_SCREEN_WITH_INTERACTION && gui != nil) {
         return [gui rowAtVirtualJoystickPosition:[[UNIVERSE gameView] virtualJoystickPosition]];
     }
-    return UNIVERSE->cursor_row;
+    return UNIVERSE->_cxxUniverse->cursor_row;
 }
 
 // DJS + aegidian: Moved from the big switch/case block in pollGuiArrowKeyControls
@@ -4687,11 +4687,11 @@ static BOOL autopilot_pause;
     // If target isn't dockable, check for nearby stations
     if (![target isStation]) {
         Universe* uni = UNIVERSE;
-        Entity** entities = uni->sortedEntities; // grab the public sorted list
+        Entity** entities = uni->_cxxUniverse->sortedEntities; // grab the public sorted list
         int nStations = 0;
         unsigned i;
 
-        for (i = 0; i < uni->n_entities && nStations < 2; i++) {
+        for (i = 0; i < uni->_cxxUniverse->n_entities && nStations < 2; i++) {
             if (entities[i]->_cxxEntity->isStation && [entities[i] isKindOfClass:[StationEntity class]] && entities[i]->_cxxEntity->zero_distance <= SCANNER_MAX_RANGE2) {
                 nStations++;
                 target = entities[i];

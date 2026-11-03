@@ -69,7 +69,11 @@ TestPlayer *SetUp()
 {
 	OO_CHECK(OOTestGLContext());
 	static Universe *universe = nil;
-	if (universe == nil)  universe = (Universe *)class_createInstance([Universe class], 0);	// never released
+	if (universe == nil)
+	{
+		universe = (Universe *)class_createInstance([Universe class], 0);	// never released
+		universe->_cxxUniverse = oo::makeRef<cxx::Universe>(universe);	// what -initWithGameView: makes first (ADR-0056 amendment oo-riqmz)
+	}
 	gSharedUniverse = universe;
 	static TestPlayer *player = nil;
 	if (player == nil)  player = [[TestPlayer alloc] init];
