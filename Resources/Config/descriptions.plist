@@ -1809,7 +1809,14 @@
 	"stickmapper-compass-mode-next"	= "Next compass target";
 	"stickmapper-compass-mode-prev"	= "Previous compass target";
 	"stickmapper-docking-clearance" = "Request docking clearance";
-	
+	"stickmapper-gui-left"			= "GUI Left";
+	"stickmapper-gui-right"			= "GUI Right";
+	"stickmapper-gui-up"			= "GUI Up";
+	"stickmapper-gui-down"			= "GUI Down";
+	"stickmapper-gui-page-up"		= "GUI Page Up";
+	"stickmapper-gui-page-down"		= "GUI Page Down";
+	"stickmapper-gui-select"		= "GUI Select";
+
 	"stickmapper-header-propulsion"	= "Propulsion";
 	"stickmapper-header-navigation"	= "Navigation";
 	"stickmapper-header-offensive"	= "Offensive";
@@ -1817,6 +1824,7 @@
 	"stickmapper-header-special-equip"	= "Special equipment";
 	"stickmapper-header-misc"		= "Miscellaneous";
 	"stickmapper-header-oxp-equip"	=	"OXP equipment activation";
+	"stickmapper-header-gui" 		= "GUI controls";
 
 	"oolite-stickprofile-title"			= "Joystick Profile";
 	"oolite-stickprofile-back"			= "Back";

@@ -698,9 +698,11 @@ static NSTimeInterval time_last_frame;
 {
     MyOpenGLView* gameView = [UNIVERSE gameView];
     GuiDisplayGen* gui = [UNIVERSE gui];
+    const BOOL* joyButtonState = [[OOJoystickManager sharedStickHandler] getAllButtonStates];
+
     BOOL result = NO;
-    BOOL arrow_up = [self checkKeyPress:n_key_gui_arrow_up];
-    BOOL arrow_down = [self checkKeyPress:n_key_gui_arrow_down];
+    BOOL arrow_up = [self checkKeyPress:n_key_gui_arrow_up] || joyButtonState[BUTTON_GUIUP];
+    BOOL arrow_down = [self checkKeyPress:n_key_gui_arrow_down] || joyButtonState[BUTTON_GUIDOWN];
     BOOL mouse_click = [gameView isDown:gvMouseLeftButton];
     BOOL mouse_dbl_click = [gameView isDown:gvMouseDoubleClick];
 
@@ -1795,6 +1797,7 @@ static NSTimeInterval time_last_frame;
 - (void)pollGuiArrowKeyControls:(double)delta_t
 {
     MyOpenGLView* gameView = [UNIVERSE gameView];
+    const BOOL* joyButtonState = [[OOJoystickManager sharedStickHandler] getAllButtonStates];
     BOOL moving = NO;
     BOOL dragging = NO;
     double cursor_speed = ([gameView isCtrlDown] ? 20.0 : 10.0) * chart_zoom;
@@ -2223,35 +2226,35 @@ static NSTimeInterval time_last_frame;
             // viewed in game, return to interfaces as that's where it's accessed from
             [self setGuiToInterfacesScreen:0];
         }
-        if ([self checkKeyPress:n_key_gui_arrow_up]) //  '<--'
+        if ([self checkKeyPress:n_key_gui_arrow_up] || joyButtonState[BUTTON_GUIUP]) //  '<--'
         {
             if (!upDownKeyPressed)
                 [UNIVERSE selectIntro2Previous];
         }
-        if ([self checkKeyPress:n_key_gui_arrow_down]) //  '-->'
+        if ([self checkKeyPress:n_key_gui_arrow_down] || joyButtonState[BUTTON_GUIDOWN]) //  '-->'
         {
             if (!upDownKeyPressed)
                 [UNIVERSE selectIntro2Next];
         }
-        upDownKeyPressed = (([self checkKeyPress:n_key_gui_arrow_up]) || ([self checkKeyPress:n_key_gui_arrow_down]));
+        upDownKeyPressed = (([self checkKeyPress:n_key_gui_arrow_up] || joyButtonState[BUTTON_GUIUP]) || ([self checkKeyPress:n_key_gui_arrow_down] || joyButtonState[BUTTON_GUIDOWN]));
 
-        if ([self checkKeyPress:n_key_gui_arrow_left]) //  '<--'
+        if ([self checkKeyPress:n_key_gui_arrow_left] || joyButtonState[BUTTON_GUILEFT]) //  '<--'
         {
             if (!leftRightKeyPressed)
                 [UNIVERSE selectIntro2PreviousCategory];
         }
-        if ([self checkKeyPress:n_key_gui_arrow_right]) //  '-->'
+        if ([self checkKeyPress:n_key_gui_arrow_right] || joyButtonState[BUTTON_GUIRIGHT]) //  '-->'
         {
             if (!leftRightKeyPressed)
                 [UNIVERSE selectIntro2NextCategory];
         }
-        leftRightKeyPressed = (([self checkKeyPress:n_key_gui_arrow_left]) || ([self checkKeyPress:n_key_gui_arrow_right]));
+        leftRightKeyPressed = (([self checkKeyPress:n_key_gui_arrow_left] || joyButtonState[BUTTON_GUILEFT]) || ([self checkKeyPress:n_key_gui_arrow_right] || joyButtonState[BUTTON_GUIRIGHT]));
 
         break;
     case GUI_SCREEN_OPTIONS:
         [self handleGUIUpDownArrowKeys];
         OOGUIRow guiSelectedRow = [gui selectedRow];
-        BOOL selectKeyPress = ([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick]);
+        BOOL selectKeyPress = ([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick] || joyButtonState[BUTTON_GUISELECT]);
 
         if (selectKeyPress) // 'enter'
         {
@@ -2345,7 +2348,7 @@ static NSTimeInterval time_last_frame;
                 [self showInformationForSelectedUpgrade];
         }
 
-        if ([self checkKeyPress:n_key_gui_arrow_left] || [self checkKeyPress:n_key_gui_page_up]) {
+        if ([self checkKeyPress:n_key_gui_arrow_left] || [self checkKeyPress:n_key_gui_page_up] || joyButtonState[BUTTON_GUILEFT] || joyButtonState[BUTTON_GUIPAGEUP]) {
             if ((!leftRightKeyPressed) || (script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL)) {
                 if ([[gui keyForRow:GUI_ROW_EQUIPMENT_START] hasPrefix:@"More:"]) {
                     [self playMenuPagePrevious];
@@ -2355,7 +2358,7 @@ static NSTimeInterval time_last_frame;
                 timeLastKeyPress = script_time;
             }
         }
-        if ([self checkKeyPress:n_key_gui_arrow_right] || [self checkKeyPress:n_key_gui_page_down]) {
+        if ([self checkKeyPress:n_key_gui_arrow_right] || [self checkKeyPress:n_key_gui_page_down] || joyButtonState[BUTTON_GUIRIGHT] || joyButtonState[BUTTON_GUIPAGEDOWN]) {
             if ((!leftRightKeyPressed) || (script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL)) {
                 if ([[gui keyForRow:GUI_ROW_EQUIPMENT_START + GUI_MAX_ROWS_EQUIPMENT - 1] hasPrefix:@"More:"]) {
                     [self playMenuPageNext];
@@ -2365,9 +2368,9 @@ static NSTimeInterval time_last_frame;
                 timeLastKeyPress = script_time;
             }
         }
-        leftRightKeyPressed = [self checkKeyPress:n_key_gui_arrow_right] | [self checkKeyPress:n_key_gui_arrow_left] | [self checkKeyPress:n_key_gui_page_down] | [self checkKeyPress:n_key_gui_page_up];
+        leftRightKeyPressed = [self checkKeyPress:n_key_gui_arrow_right] | [self checkKeyPress:n_key_gui_arrow_left] | [self checkKeyPress:n_key_gui_page_down] | [self checkKeyPress:n_key_gui_page_up] | joyButtonState[BUTTON_GUILEFT] | joyButtonState[BUTTON_GUIRIGHT] | joyButtonState[BUTTON_GUIPAGEUP] | joyButtonState[BUTTON_GUIPAGEDOWN];
 
-        if ([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick]) {
+        if ([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick] || joyButtonState[BUTTON_GUISELECT]) {
             if ([gameView isDown:gvMouseDoubleClick]) {
                 selectPressed = NO;
                 [gameView clearMouse];
@@ -2385,7 +2388,7 @@ static NSTimeInterval time_last_frame;
         if ([self handleGUIUpDownArrowKeys]) {
             [self showInformationForSelectedInterface];
         }
-        if ([self checkKeyPress:n_key_gui_arrow_left] || [self checkKeyPress:n_key_gui_page_up]) {
+        if ([self checkKeyPress:n_key_gui_arrow_left] || [self checkKeyPress:n_key_gui_page_up] || joyButtonState[BUTTON_GUILEFT] || joyButtonState[BUTTON_GUIPAGEUP]) {
             if ((!leftRightKeyPressed) || (script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL)) {
                 if ([[gui keyForRow:GUI_ROW_INTERFACES_START] hasPrefix:@"More:"]) {
                     [self playMenuPagePrevious];
@@ -2395,7 +2398,7 @@ static NSTimeInterval time_last_frame;
                 timeLastKeyPress = script_time;
             }
         }
-        if ([self checkKeyPress:n_key_gui_arrow_right] || [self checkKeyPress:n_key_gui_page_down]) {
+        if ([self checkKeyPress:n_key_gui_arrow_right] || [self checkKeyPress:n_key_gui_page_down] || joyButtonState[BUTTON_GUIRIGHT] || joyButtonState[BUTTON_GUIPAGEDOWN]) {
             if ((!leftRightKeyPressed) || (script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL)) {
                 if ([[gui keyForRow:GUI_ROW_INTERFACES_START + GUI_MAX_ROWS_INTERFACES - 1] hasPrefix:@"More:"]) {
                     [self playMenuPageNext];
@@ -2405,8 +2408,8 @@ static NSTimeInterval time_last_frame;
                 timeLastKeyPress = script_time;
             }
         }
-        leftRightKeyPressed = [self checkKeyPress:n_key_gui_arrow_right] | [self checkKeyPress:n_key_gui_arrow_left] | [self checkKeyPress:n_key_gui_page_down] | [self checkKeyPress:n_key_gui_page_up];
-        if ([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick]) // 'enter'
+        leftRightKeyPressed = [self checkKeyPress:n_key_gui_arrow_right] | [self checkKeyPress:n_key_gui_arrow_left] | [self checkKeyPress:n_key_gui_page_down] | [self checkKeyPress:n_key_gui_page_up] | joyButtonState[BUTTON_GUILEFT] | joyButtonState[BUTTON_GUIRIGHT] | joyButtonState[BUTTON_GUIPAGEUP] | joyButtonState[BUTTON_GUIPAGEDOWN];
+        if ([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick] || joyButtonState[BUTTON_GUISELECT]) // 'enter'
         {
             if ([gameView isDown:gvMouseDoubleClick]) {
                 selectPressed = NO;
@@ -2473,7 +2476,7 @@ static NSTimeInterval time_last_frame;
         break;
     case GUI_SCREEN_STATUS:
         [self handleGUIUpDownArrowKeys];
-        if ([self checkKeyPress:n_key_gui_arrow_left] || [self checkKeyPress:n_key_gui_page_up]) {
+        if ([self checkKeyPress:n_key_gui_arrow_left] || [self checkKeyPress:n_key_gui_page_up] || joyButtonState[BUTTON_GUILEFT] || joyButtonState[BUTTON_GUIPAGEUP]) {
 
             if ((!leftRightKeyPressed) || (script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL)) {
                 if ([[gui keyForRow:STATUS_EQUIPMENT_FIRST_ROW] isEqual:GUI_KEY_OK]) {
@@ -2485,7 +2488,7 @@ static NSTimeInterval time_last_frame;
                 timeLastKeyPress = script_time;
             }
         }
-        if ([self checkKeyPress:n_key_gui_arrow_right] || [self checkKeyPress:n_key_gui_page_down]) {
+        if ([self checkKeyPress:n_key_gui_arrow_right] || [self checkKeyPress:n_key_gui_page_down] || joyButtonState[BUTTON_GUIRIGHT] || joyButtonState[BUTTON_GUIPAGEDOWN]) {
 
             if ((!leftRightKeyPressed) || (script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL)) {
                 NSUInteger maxRows = [[self hud] allowBigGui] ? STATUS_EQUIPMENT_MAX_ROWS + STATUS_EQUIPMENT_BIGGUI_EXTRA_ROWS : STATUS_EQUIPMENT_MAX_ROWS;
@@ -2498,9 +2501,9 @@ static NSTimeInterval time_last_frame;
                 timeLastKeyPress = script_time;
             }
         }
-        leftRightKeyPressed = [self checkKeyPress:n_key_gui_arrow_right] | [self checkKeyPress:n_key_gui_arrow_left] | [self checkKeyPress:n_key_gui_page_down] | [self checkKeyPress:n_key_gui_page_up];
+        leftRightKeyPressed = [self checkKeyPress:n_key_gui_arrow_right] | [self checkKeyPress:n_key_gui_arrow_left] | [self checkKeyPress:n_key_gui_page_down] | [self checkKeyPress:n_key_gui_page_up] | joyButtonState[BUTTON_GUILEFT] | joyButtonState[BUTTON_GUIRIGHT] | joyButtonState[BUTTON_GUIPAGEUP] | joyButtonState[BUTTON_GUIPAGEDOWN];
 
-        if ([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick]) {
+        if ([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick] || joyButtonState[BUTTON_GUISELECT]) {
             if ([gameView isDown:gvMouseDoubleClick]) {
                 selectPressed = NO;
                 [gameView clearMouse];
@@ -2518,7 +2521,7 @@ static NSTimeInterval time_last_frame;
         break;
     case GUI_SCREEN_MANIFEST:
         [self handleGUIUpDownArrowKeys];
-        if ([self checkKeyPress:n_key_gui_arrow_left] || [self checkKeyPress:n_key_gui_page_up]) {
+        if ([self checkKeyPress:n_key_gui_arrow_left] || [self checkKeyPress:n_key_gui_page_up] || joyButtonState[BUTTON_GUILEFT] || joyButtonState[BUTTON_GUIPAGEUP]) {
 
             if ((!leftRightKeyPressed) || (script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL)) {
                 if ([[gui keyForRow:MANIFEST_SCREEN_ROW_BACK] isEqual:GUI_KEY_OK]) {
@@ -2530,7 +2533,7 @@ static NSTimeInterval time_last_frame;
                 timeLastKeyPress = script_time;
             }
         }
-        if ([self checkKeyPress:n_key_gui_arrow_right] || [self checkKeyPress:n_key_gui_page_down]) {
+        if ([self checkKeyPress:n_key_gui_arrow_right] || [self checkKeyPress:n_key_gui_page_down] || joyButtonState[BUTTON_GUIRIGHT] || joyButtonState[BUTTON_GUIPAGEDOWN]) {
             OOGUIRow nextRow = MANIFEST_SCREEN_ROW_NEXT;
             if ([[self hud] isHidden] || [[self hud] allowBigGui]) {
                 nextRow += 7;
@@ -2545,9 +2548,9 @@ static NSTimeInterval time_last_frame;
                 timeLastKeyPress = script_time;
             }
         }
-        leftRightKeyPressed = [self checkKeyPress:n_key_gui_arrow_right] | [self checkKeyPress:n_key_gui_arrow_left] | [self checkKeyPress:n_key_gui_page_down] | [self checkKeyPress:n_key_gui_page_up];
+        leftRightKeyPressed = [self checkKeyPress:n_key_gui_arrow_right] | [self checkKeyPress:n_key_gui_arrow_left] | [self checkKeyPress:n_key_gui_page_down] | [self checkKeyPress:n_key_gui_page_up] | joyButtonState[BUTTON_GUILEFT] | joyButtonState[BUTTON_GUIRIGHT] | joyButtonState[BUTTON_GUIPAGEUP] | joyButtonState[BUTTON_GUIPAGEDOWN];
 
-        if ([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick]) {
+        if ([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick] || joyButtonState[BUTTON_GUISELECT]) {
             if ([gameView isDown:gvMouseDoubleClick]) {
                 selectPressed = NO;
                 [gameView clearMouse];
@@ -2569,7 +2572,7 @@ static NSTimeInterval time_last_frame;
             [self showShipyardInfoForSelection];
         }
 
-        if ([self checkKeyPress:n_key_gui_arrow_left] || [self checkKeyPress:n_key_gui_page_up]) {
+        if ([self checkKeyPress:n_key_gui_arrow_left] || [self checkKeyPress:n_key_gui_page_up] || joyButtonState[BUTTON_GUILEFT] || joyButtonState[BUTTON_GUIPAGEUP]) {
             if ((!leftRightKeyPressed) || (script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL)) {
                 if ([[gui keyForRow:GUI_ROW_SHIPYARD_START] hasPrefix:@"More:"]) {
                     [self playMenuPagePrevious];
@@ -2579,7 +2582,7 @@ static NSTimeInterval time_last_frame;
                 timeLastKeyPress = script_time;
             }
         }
-        if ([self checkKeyPress:n_key_gui_arrow_right] || [self checkKeyPress:n_key_gui_page_down]) {
+        if ([self checkKeyPress:n_key_gui_arrow_right] || [self checkKeyPress:n_key_gui_page_down] || joyButtonState[BUTTON_GUIRIGHT] || joyButtonState[BUTTON_GUIPAGEDOWN]) {
             if ((!leftRightKeyPressed) || (script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL)) {
                 if ([[gui keyForRow:GUI_ROW_SHIPYARD_START + MAX_ROWS_SHIPS_FOR_SALE - 1] hasPrefix:@"More:"]) {
                     [self playMenuPageNext];
@@ -2589,9 +2592,9 @@ static NSTimeInterval time_last_frame;
                 timeLastKeyPress = script_time;
             }
         }
-        leftRightKeyPressed = [self checkKeyPress:n_key_gui_arrow_right] | [self checkKeyPress:n_key_gui_arrow_left] | [self checkKeyPress:n_key_gui_page_down] | [self checkKeyPress:n_key_gui_page_up];
+        leftRightKeyPressed = [self checkKeyPress:n_key_gui_arrow_right] | [self checkKeyPress:n_key_gui_arrow_left] | [self checkKeyPress:n_key_gui_page_down] | [self checkKeyPress:n_key_gui_page_up] | joyButtonState[BUTTON_GUILEFT] | joyButtonState[BUTTON_GUIRIGHT] | joyButtonState[BUTTON_GUIPAGEUP] | joyButtonState[BUTTON_GUIPAGEDOWN];
 
-        if ([self checkKeyPress:n_key_gui_select]) // 'enter' NOT double-click
+        if ([self checkKeyPress:n_key_gui_select] || joyButtonState[BUTTON_GUISELECT]) // 'enter' NOT double-click
         {
             if (!selectPressed) {
                 // try to buy the ship!
@@ -2707,14 +2710,15 @@ static NSTimeInterval time_last_frame;
 {
     MyOpenGLView* gameView = [UNIVERSE gameView];
     GuiDisplayGen* gui = [UNIVERSE gui];
+    const BOOL* joyButtonState = [[OOJoystickManager sharedStickHandler] getAllButtonStates];
 
     if (gui_screen == GUI_SCREEN_MARKET) {
         [self handleGUIUpDownArrowKeys];
         DESTROY(marketSelectedCommodity);
         marketSelectedCommodity = [[gui selectedRowKey] retain];
 
-        BOOL page_up = [self checkKeyPress:n_key_gui_page_up];
-        BOOL page_down = [self checkKeyPress:n_key_gui_page_down];
+        BOOL page_up = [self checkKeyPress:n_key_gui_page_up] || joyButtonState[BUTTON_GUIPAGEUP];
+        BOOL page_down = [self checkKeyPress:n_key_gui_page_down] || joyButtonState[BUTTON_GUIPAGEDOWN];
         if (page_up || page_down) {
             if ((!pageUpDownKeyPressed) || (script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL)) {
                 OOCommodityMarket* localMarket = [self localMarket];
@@ -2765,8 +2769,8 @@ static NSTimeInterval time_last_frame;
         }
     } else {
         // handle up and down slightly differently
-        BOOL arrow_up = [self checkKeyPress:n_key_gui_arrow_up];
-        BOOL arrow_down = [self checkKeyPress:n_key_gui_arrow_down];
+        BOOL arrow_up = [self checkKeyPress:n_key_gui_arrow_up] || joyButtonState[BUTTON_GUIUP];
+        BOOL arrow_down = [self checkKeyPress:n_key_gui_arrow_down] || joyButtonState[BUTTON_GUIDOWN];
         if (arrow_up || arrow_down) {
             if ((!upDownKeyPressed) || (script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL)) {
                 OOCommodityMarket* localMarket = [self localMarket];
@@ -2797,8 +2801,8 @@ static NSTimeInterval time_last_frame;
 
     BOOL isdocked = [self isDocked];
 
-    if (([self checkNavKeyPress:n_key_gui_arrow_right]) || ([self checkNavKeyPress:n_key_gui_arrow_left]) || ([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick])) {
-        if ([self checkNavKeyPress:n_key_gui_arrow_right]) // -->
+    if (([self checkNavKeyPress:n_key_gui_arrow_right] || joyButtonState[BUTTON_GUIRIGHT]) || ([self checkNavKeyPress:n_key_gui_arrow_left] || joyButtonState[BUTTON_GUILEFT]) || ([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick] || joyButtonState[BUTTON_GUISELECT])) {
+        if ([self checkNavKeyPress:n_key_gui_arrow_right] || joyButtonState[BUTTON_GUIRIGHT]) // -->
         {
             if (!wait_for_key_up) {
                 if (isdocked && [self tryBuyingCommodity:marketSelectedCommodity all:[gameView isShiftDown]]) {
@@ -2822,7 +2826,7 @@ static NSTimeInterval time_last_frame;
                 wait_for_key_up = YES;
             }
         }
-        if ([self checkNavKeyPress:n_key_gui_arrow_left]) // <--
+        if ([self checkNavKeyPress:n_key_gui_arrow_left] || joyButtonState[BUTTON_GUILEFT]) // <--
         {
             if (!wait_for_key_up) {
                 if (isdocked && [self trySellingCommodity:marketSelectedCommodity all:[gameView isShiftDown]]) {
@@ -2846,7 +2850,7 @@ static NSTimeInterval time_last_frame;
                 wait_for_key_up = YES;
             }
         }
-        if ((gui_screen == GUI_SCREEN_MARKET && [gameView isDown:gvMouseDoubleClick]) || [self checkKeyPress:n_key_gui_select]) // 'enter'
+        if ((gui_screen == GUI_SCREEN_MARKET && [gameView isDown:gvMouseDoubleClick]) || ([self checkKeyPress:n_key_gui_select] || joyButtonState[BUTTON_GUISELECT])) // 'enter'
         {
             if ([gameView isDown:gvMouseDoubleClick]) {
                 wait_for_key_up = NO;
@@ -2901,29 +2905,32 @@ static NSTimeInterval time_last_frame;
     MyOpenGLView* gameView = [UNIVERSE gameView];
     GuiDisplayGen* gui = [UNIVERSE gui];
     GUI_ROW_INIT(gui);
+    const BOOL* joyButtonState = [[OOJoystickManager sharedStickHandler] getAllButtonStates];
 
     [self handleGUIUpDownArrowKeys];
     OOGUIRow guiSelectedRow = [gui selectedRow];
-    BOOL selectKeyPress = ([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick]);
+    BOOL selectKeyPress = ([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick] || joyButtonState[BUTTON_GUISELECT]);
     if ([gameView isDown:gvMouseDoubleClick])
         [gameView clearMouse];
 
     if ((guiSelectedRow == GUI_ROW(GAME, STICKMAPPER)) && selectKeyPress) {
         selFunctionIdx = 0;
         [self resetStickFunctions]; // reset the list of stick functions, so changes in oxp equipment are reflected
+        [[OOJoystickManager sharedStickHandler] clearStickStates];
         [self setGuiToStickMapperScreen:0 resetCurrentRow:YES];
     }
     if ((guiSelectedRow == GUI_ROW(GAME, KEYMAPPER)) && selectKeyPress) {
         selFunctionIdx = 0;
         [self resetKeyFunctions]; // reset the list of key functions, so changes in oxp equipment are reflected
+        [[OOJoystickManager sharedStickHandler] clearStickStates];
         [self setGuiToKeyMapperScreen:0 resetCurrentRow:YES];
     }
 
 #if OOLITE_WINDOWS
     if ([gameView hdrOutput]) {
-        if ((guiSelectedRow == GUI_ROW(GAME, HDRMAXBRIGHTNESS)) && (([self checkKeyPress:n_key_gui_arrow_right]) || ([self checkKeyPress:n_key_gui_arrow_left]))) {
+        if ((guiSelectedRow == GUI_ROW(GAME, HDRMAXBRIGHTNESS)) && (([self checkKeyPress:n_key_gui_arrow_right] || joyButtonState[BUTTON_GUIRIGHT]) || ([self checkKeyPress:n_key_gui_arrow_left] || joyButtonState[BUTTON_GUILEFT]))) {
             if (!hdrMaxBrightnessControlPressed) {
-                int direction = ([self checkKeyPress:n_key_gui_arrow_right]) ? 1 : -1;
+                int direction = ([self checkKeyPress:n_key_gui_arrow_right] || joyButtonState[BUTTON_GUIRIGHT]) ? 1 : -1;
                 NSArray* brightnesses = [[UNIVERSE descriptions] oo_arrayForKey:@"hdr_maxBrightness_array"];
                 int brightnessIdx = [brightnesses indexOfObject:[NSString stringWithFormat:@"%d", (int)[gameView hdrMaxBrightness]]];
 
@@ -2961,9 +2968,9 @@ static NSTimeInterval time_last_frame;
 #endif
 
 #if OO_RESOLUTION_OPTION
-    if (!switching_resolution && guiSelectedRow == GUI_ROW(GAME, DISPLAY) && ([self checkKeyPress:n_key_gui_arrow_right] || [self checkKeyPress:n_key_gui_arrow_left])) {
+    if (!switching_resolution && guiSelectedRow == GUI_ROW(GAME, DISPLAY) && ([self checkKeyPress:n_key_gui_arrow_right] || [self checkKeyPress:n_key_gui_arrow_left] || joyButtonState[BUTTON_GUIRIGHT] || joyButtonState[BUTTON_GUILEFT])) {
         GameController* controller = [UNIVERSE gameController];
-        int direction = ([self checkKeyPress:n_key_gui_arrow_right]) ? 1 : -1;
+        int direction = ([self checkKeyPress:n_key_gui_arrow_right] || joyButtonState[BUTTON_GUIRIGHT]) ? 1 : -1;
         NSInteger displayModeIndex = [controller indexOfCurrentDisplayMode];
         NSArray* modes = [controller displayModes];
 
@@ -2998,20 +3005,20 @@ static NSTimeInterval time_last_frame;
         [gameView setScreenSize:displayModeIndex]; // changes fullscreen mode immediately
 #endif
     }
-    if (switching_resolution && ![self checkKeyPress:n_key_gui_arrow_right] && ![self checkKeyPress:n_key_gui_arrow_left] && !selectKeyPress) {
+    if (switching_resolution && ![self checkKeyPress:n_key_gui_arrow_right] && ![self checkKeyPress:n_key_gui_arrow_left] && !selectKeyPress && !joyButtonState[BUTTON_GUIRIGHT] && !joyButtonState[BUTTON_GUILEFT]) {
         switching_resolution = NO;
     }
 #endif // OO_RESOLUTION_OPTION
 
 #if OOLITE_SPEECH_SYNTH
 
-    if ((guiSelectedRow == GUI_ROW(GAME, SPEECH)) && (([self checkKeyPress:n_key_gui_arrow_right]) || ([self checkKeyPress:n_key_gui_arrow_left]))) {
+    if ((guiSelectedRow == GUI_ROW(GAME, SPEECH)) && (([self checkKeyPress:n_key_gui_arrow_right] || joyButtonState[BUTTON_GUIRIGHT]) || ([self checkKeyPress:n_key_gui_arrow_left] || joyButtonState[BUTTON_GUILEFT]))) {
         if (!speech_settings_pressed) {
-            if ([self checkKeyPress:n_key_gui_arrow_right] && isSpeechOn < OOSPEECHSETTINGS_ALL) {
+            if (([self checkKeyPress:n_key_gui_arrow_right] || joyButtonState[BUTTON_GUIRIGHT]) && isSpeechOn < OOSPEECHSETTINGS_ALL) {
                 ++isSpeechOn;
                 [self playChangedOption];
                 speech_settings_pressed = YES;
-            } else if ([self checkKeyPress:n_key_gui_arrow_left] && isSpeechOn > OOSPEECHSETTINGS_OFF) {
+            } else if (([self checkKeyPress:n_key_gui_arrow_left] || joyButtonState[BUTTON_GUILEFT]) && isSpeechOn > OOSPEECHSETTINGS_OFF) {
                 speech_settings_pressed = YES;
                 --isSpeechOn;
                 [self playChangedOption];
@@ -3042,10 +3049,10 @@ static NSTimeInterval time_last_frame;
     }
 #if OOLITE_ESPEAK
     if (guiSelectedRow == GUI_ROW(GAME, SPEECH_LANGUAGE)) {
-        if ([self checkKeyPress:n_key_gui_arrow_right] || [self checkKeyPress:n_key_gui_arrow_left]) {
+        if ([self checkKeyPress:n_key_gui_arrow_right] || [self checkKeyPress:n_key_gui_arrow_left] || joyButtonState[BUTTON_GUIRIGHT] || joyButtonState[BUTTON_GUILEFT]) {
             if (!speechVoiceSelectKeyPressed || script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL) {
                 [self playChangedOption];
-                if ([self checkKeyPress:n_key_gui_arrow_right])
+                if ([self checkKeyPress:n_key_gui_arrow_right] || joyButtonState[BUTTON_GUIRIGHT])
                     voice_no = [UNIVERSE nextVoice:voice_no];
                 else
                     voice_no = [UNIVERSE prevVoice:voice_no];
@@ -3065,10 +3072,10 @@ static NSTimeInterval time_last_frame;
     }
 
     if (guiSelectedRow == GUI_ROW(GAME, SPEECH_GENDER)) {
-        if ([self checkKeyPress:n_key_gui_arrow_right] || [self checkKeyPress:n_key_gui_arrow_left]) {
+        if ([self checkKeyPress:n_key_gui_arrow_right] || [self checkKeyPress:n_key_gui_arrow_left] || joyButtonState[BUTTON_GUIRIGHT] || joyButtonState[BUTTON_GUILEFT]) {
             if (!speechGenderSelectKeyPressed) {
                 [self playChangedOption];
-                BOOL m = [self checkKeyPress:n_key_gui_arrow_right];
+                BOOL m = [self checkKeyPress:n_key_gui_arrow_right] || joyButtonState[BUTTON_GUIRIGHT];
                 if (m != voice_gender_m) {
                     voice_gender_m = m;
                     [UNIVERSE setVoice:voice_no withGenderM:voice_gender_m];
@@ -3087,15 +3094,15 @@ static NSTimeInterval time_last_frame;
 #endif
 #endif
 
-    if ((guiSelectedRow == GUI_ROW(GAME, MUSIC)) && (([self checkKeyPress:n_key_gui_arrow_right]) || ([self checkKeyPress:n_key_gui_arrow_left]))) {
+    if ((guiSelectedRow == GUI_ROW(GAME, MUSIC)) && (([self checkKeyPress:n_key_gui_arrow_right] || joyButtonState[BUTTON_GUIRIGHT]) || ([self checkKeyPress:n_key_gui_arrow_left] || joyButtonState[BUTTON_GUILEFT]))) {
         if (!musicModeKeyPressed) {
             OOMusicController* musicController = [OOMusicController sharedController];
             int initialMode = [musicController mode];
             int mode = initialMode;
 
-            if ([self checkKeyPress:n_key_gui_arrow_right])
+            if ([self checkKeyPress:n_key_gui_arrow_right] || joyButtonState[BUTTON_GUIRIGHT])
                 mode++;
-            if ([self checkKeyPress:n_key_gui_arrow_left])
+            if ([self checkKeyPress:n_key_gui_arrow_left] || joyButtonState[BUTTON_GUILEFT])
                 mode--;
 
             [musicController setMode:MAX(mode, 0)];
@@ -3111,10 +3118,10 @@ static NSTimeInterval time_last_frame;
     } else
         musicModeKeyPressed = NO;
 
-    if ((guiSelectedRow == GUI_ROW(GAME, AUTOSAVE)) && (([self checkKeyPress:n_key_gui_arrow_right]) || ([self checkKeyPress:n_key_gui_arrow_left]))) {
-        if ([self checkKeyPress:n_key_gui_arrow_right] != [UNIVERSE autoSave])
+    if ((guiSelectedRow == GUI_ROW(GAME, AUTOSAVE)) && (([self checkKeyPress:n_key_gui_arrow_right] || joyButtonState[BUTTON_GUIRIGHT]) || ([self checkKeyPress:n_key_gui_arrow_left] || joyButtonState[BUTTON_GUILEFT]))) {
+        if (([self checkKeyPress:n_key_gui_arrow_right] || joyButtonState[BUTTON_GUIRIGHT]) != [UNIVERSE autoSave])
             [self playChangedOption];
-        [UNIVERSE setAutoSave:[self checkKeyPress:n_key_gui_arrow_right]];
+        [UNIVERSE setAutoSave:([self checkKeyPress:n_key_gui_arrow_right] || joyButtonState[BUTTON_GUIRIGHT])];
         if ([UNIVERSE autoSave]) {
             // if just enabled, we want to autosave immediately
             [UNIVERSE setAutoSaveNow:YES];
@@ -3126,11 +3133,11 @@ static NSTimeInterval time_last_frame;
     }
 
     if ((guiSelectedRow == GUI_ROW(GAME, VOLUME))
-        && (([self checkKeyPress:n_key_gui_arrow_right]) || ([self checkKeyPress:n_key_gui_arrow_left]))
+        && (([self checkKeyPress:n_key_gui_arrow_right] || joyButtonState[BUTTON_GUIRIGHT]) || ([self checkKeyPress:n_key_gui_arrow_left] || joyButtonState[BUTTON_GUILEFT]))
         && [OOSound respondsToSelector:@selector(masterVolume)]) {
         if ((!volumeControlPressed) || (script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL)) {
-            BOOL rightKeyDown = [self checkKeyPress:n_key_gui_arrow_right];
-            BOOL leftKeyDown = [self checkKeyPress:n_key_gui_arrow_left];
+            BOOL rightKeyDown = ([self checkKeyPress:n_key_gui_arrow_right] || joyButtonState[BUTTON_GUIRIGHT]);
+            BOOL leftKeyDown = ([self checkKeyPress:n_key_gui_arrow_left] || joyButtonState[BUTTON_GUILEFT]);
             double volume = 100.0 * [OOSound masterVolume];
             int vol = (volume / 5.0 + 0.5);
             if (rightKeyDown)
@@ -3161,10 +3168,10 @@ static NSTimeInterval time_last_frame;
         volumeControlPressed = NO;
 
     if ((guiSelectedRow == GUI_ROW(GAME, FOV))
-        && (([self checkKeyPress:n_key_gui_arrow_right]) || ([self checkKeyPress:n_key_gui_arrow_left]))) {
+        && (([self checkKeyPress:n_key_gui_arrow_right] || joyButtonState[BUTTON_GUIRIGHT]) || ([self checkKeyPress:n_key_gui_arrow_left] || joyButtonState[BUTTON_GUILEFT]))) {
         if (!fovControlPressed || (script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL)) {
-            BOOL rightKeyDown = [self checkKeyPress:n_key_gui_arrow_right];
-            BOOL leftKeyDown = [self checkKeyPress:n_key_gui_arrow_left];
+            BOOL rightKeyDown = ([self checkKeyPress:n_key_gui_arrow_right] || joyButtonState[BUTTON_GUIRIGHT]);
+            BOOL leftKeyDown = ([self checkKeyPress:n_key_gui_arrow_left] || joyButtonState[BUTTON_GUILEFT]);
             float fov = [gameView fov:NO];
             float fovStep = (MAX_FOV_DEG - MIN_FOV_DEG) / 20.0f;
             fov += (((rightKeyDown && (fov < MAX_FOV_DEG)) ? fovStep : 0.0f) - ((leftKeyDown && (fov > MIN_FOV_DEG)) ? fovStep : 0.0f));
@@ -3189,10 +3196,10 @@ static NSTimeInterval time_last_frame;
         fovControlPressed = NO;
 
     // color blind mode
-    if ((guiSelectedRow == GUI_ROW(GAME, COLORBLINDMODE)) && (([self checkKeyPress:n_key_gui_arrow_right]) || ([self checkKeyPress:n_key_gui_arrow_left]))) {
+    if ((guiSelectedRow == GUI_ROW(GAME, COLORBLINDMODE)) && (([self checkKeyPress:n_key_gui_arrow_right] || joyButtonState[BUTTON_GUIRIGHT]) || ([self checkKeyPress:n_key_gui_arrow_left] || joyButtonState[BUTTON_GUILEFT]))) {
         if (!colorblindModeControlPressed) {
             int colorblindMode = [UNIVERSE colorblindMode];
-            if ([self checkKeyPress:n_key_gui_arrow_right]) {
+            if ([self checkKeyPress:n_key_gui_arrow_right] || joyButtonState[BUTTON_GUIRIGHT]) {
                 [UNIVERSE setCurrentPostFX:[UNIVERSE nextColorblindMode:colorblindMode]];
             } else {
                 [UNIVERSE setCurrentPostFX:[UNIVERSE prevColorblindMode:colorblindMode]];
@@ -3207,10 +3214,10 @@ static NSTimeInterval time_last_frame;
         colorblindModeControlPressed = NO;
 
     if (![gameView hdrOutput]) {
-        if ((guiSelectedRow == GUI_ROW(GAME, WIREFRAMEGRAPHICS)) && (([self checkKeyPress:n_key_gui_arrow_right]) || ([self checkKeyPress:n_key_gui_arrow_left]))) {
-            if ([self checkKeyPress:n_key_gui_arrow_right] != [UNIVERSE wireframeGraphics])
+        if ((guiSelectedRow == GUI_ROW(GAME, WIREFRAMEGRAPHICS)) && (([self checkKeyPress:n_key_gui_arrow_right] || joyButtonState[BUTTON_GUIRIGHT]) || ([self checkKeyPress:n_key_gui_arrow_left] || joyButtonState[BUTTON_GUILEFT]))) {
+            if (([self checkKeyPress:n_key_gui_arrow_right] || joyButtonState[BUTTON_GUIRIGHT]) != [UNIVERSE wireframeGraphics])
                 [self playChangedOption];
-            [UNIVERSE setWireframeGraphics:[self checkKeyPress:n_key_gui_arrow_right]];
+            [UNIVERSE setWireframeGraphics:([self checkKeyPress:n_key_gui_arrow_right] || joyButtonState[BUTTON_GUIRIGHT])];
             if ([UNIVERSE wireframeGraphics])
                 [gui setText:DESC(@"gameoptions-wireframe-graphics-yes") forRow:GUI_ROW(GAME, WIREFRAMEGRAPHICS) align:GUI_ALIGN_CENTER];
             else
@@ -3220,10 +3227,10 @@ static NSTimeInterval time_last_frame;
 #if OOLITE_WINDOWS
     else {
         if ((guiSelectedRow == GUI_ROW(GAME, HDRPAPERWHITE))
-            && (([self checkKeyPress:n_key_gui_arrow_right]) || ([self checkKeyPress:n_key_gui_arrow_left]))) {
+            && (([self checkKeyPress:n_key_gui_arrow_right] || joyButtonState[BUTTON_GUIRIGHT]) || ([self checkKeyPress:n_key_gui_arrow_left] || joyButtonState[BUTTON_GUILEFT]))) {
             if (!hdrPaperWhiteControlPressed) {
-                BOOL rightKeyDown = [self checkKeyPress:n_key_gui_arrow_right];
-                BOOL leftKeyDown = [self checkKeyPress:n_key_gui_arrow_left];
+                BOOL rightKeyDown = [self checkKeyPress:n_key_gui_arrow_right] || joyButtonState[BUTTON_GUIRIGHT];
+                BOOL leftKeyDown = [self checkKeyPress:n_key_gui_arrow_left] || joyButtonState[BUTTON_GUILEFT];
                 float paperWhite = [gameView hdrPaperWhiteBrightness];
                 paperWhite += (((rightKeyDown && (paperWhite < MAX_HDR_PAPERWHITE)) ? 10.0f : 0.0f) - ((leftKeyDown && (paperWhite > MIN_HDR_PAPERWHITE)) ? 10.0f : 0.0f));
                 if (paperWhite > MAX_HDR_PAPERWHITE)
@@ -3246,9 +3253,9 @@ static NSTimeInterval time_last_frame;
 #endif
 
 #if !NEW_PLANETS
-    if ((guiSelectedRow == GUI_ROW(GAME, PROCEDURALLYTEXTUREDPLANETS)) && (([self checkKeyPress:n_key_gui_arrow_right]) || ([self checkKeyPress:n_key_gui_arrow_left]))) {
-        if ([self checkKeyPress:n_key_gui_arrow_right] != [UNIVERSE doProcedurallyTexturedPlanets]) {
-            [UNIVERSE setDoProcedurallyTexturedPlanets:[self checkKeyPress:n_key_gui_arrow_right]];
+    if ((guiSelectedRow == GUI_ROW(GAME, PROCEDURALLYTEXTUREDPLANETS)) && (([self checkKeyPress:n_key_gui_arrow_right] || joyButtonState[BUTTON_GUIRIGHT]) || ([self checkKeyPress:n_key_gui_arrow_left] || joyButtonState[BUTTON_GUILEFT]))) {
+        if (([self checkKeyPress:n_key_gui_arrow_right] || joyButtonState[BUTTON_GUIRIGHT]) != [UNIVERSE doProcedurallyTexturedPlanets]) {
+            [UNIVERSE setDoProcedurallyTexturedPlanets:([self checkKeyPress:n_key_gui_arrow_right] || joyButtonState[BUTTON_GUIRIGHT])];
             [self playChangedOption];
             if ([UNIVERSE planet]) {
                 [UNIVERSE setUpPlanet];
@@ -3261,9 +3268,9 @@ static NSTimeInterval time_last_frame;
     }
 #endif
 
-    if (guiSelectedRow == GUI_ROW(GAME, SHADEREFFECTS) && ([self checkKeyPress:n_key_gui_arrow_right] || [self checkKeyPress:n_key_gui_arrow_left])) {
+    if (guiSelectedRow == GUI_ROW(GAME, SHADEREFFECTS) && ([self checkKeyPress:n_key_gui_arrow_right] || [self checkKeyPress:n_key_gui_arrow_left] || joyButtonState[BUTTON_GUIRIGHT] || joyButtonState[BUTTON_GUILEFT])) {
         if (!shaderSelectKeyPressed || (script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL)) {
-            int direction = ([self checkKeyPress:n_key_gui_arrow_right]) ? 1 : -1;
+            int direction = ([self checkKeyPress:n_key_gui_arrow_right] || joyButtonState[BUTTON_GUIRIGHT]) ? 1 : -1;
 
             /* (Getafix - 2015/05/07)
             Fix bug coincidentally resulting in Graphics Detail value cycling
@@ -3313,10 +3320,10 @@ static NSTimeInterval time_last_frame;
     }
 #endif
 
-    if ((guiSelectedRow == GUI_ROW(GAME, DOCKINGCLEARANCE)) && (([self checkKeyPress:n_key_gui_arrow_right]) || ([self checkKeyPress:n_key_gui_arrow_left]))) {
-        if ([self checkKeyPress:n_key_gui_arrow_right] != [UNIVERSE dockingClearanceProtocolActive])
+    if ((guiSelectedRow == GUI_ROW(GAME, DOCKINGCLEARANCE)) && (([self checkKeyPress:n_key_gui_arrow_right] || joyButtonState[BUTTON_GUIRIGHT]) || ([self checkKeyPress:n_key_gui_arrow_left] || joyButtonState[BUTTON_GUILEFT]))) {
+        if (([self checkKeyPress:n_key_gui_arrow_right] || joyButtonState[BUTTON_GUIRIGHT]) != [UNIVERSE dockingClearanceProtocolActive])
             [self playChangedOption];
-        [UNIVERSE setDockingClearanceProtocolActive:[self checkKeyPress:n_key_gui_arrow_right]];
+        [UNIVERSE setDockingClearanceProtocolActive:([self checkKeyPress:n_key_gui_arrow_right] || joyButtonState[BUTTON_GUIRIGHT])];
         if ([UNIVERSE dockingClearanceProtocolActive])
             [gui setText:DESC(@"gameoptions-docking-clearance-yes") forRow:GUI_ROW(GAME, DOCKINGCLEARANCE) align:GUI_ALIGN_CENTER];
         else
@@ -3333,15 +3340,17 @@ static NSTimeInterval time_last_frame;
 {
     MyOpenGLView* gameView = [UNIVERSE gameView];
     GuiDisplayGen* gui = [UNIVERSE gui];
+    const BOOL* joyButtonState = [[OOJoystickManager sharedStickHandler] getAllButtonStates];
 
     [self keyMapperInputHandler:gui view:gameView];
-    leftRightKeyPressed = [self checkKeyPress:n_key_gui_arrow_right] || [self checkKeyPress:n_key_gui_arrow_left] || [self checkKeyPress:n_key_gui_page_up] || [self checkKeyPress:n_key_gui_page_down];
+    leftRightKeyPressed = [self checkKeyPress:n_key_gui_arrow_right] || [self checkKeyPress:n_key_gui_arrow_left] || [self checkKeyPress:n_key_gui_page_up] || [self checkKeyPress:n_key_gui_page_down] ||
+        joyButtonState[BUTTON_GUIRIGHT] || joyButtonState[BUTTON_GUILEFT] || joyButtonState[BUTTON_GUIPAGEUP] || joyButtonState[BUTTON_GUIPAGEDOWN];
     if (leftRightKeyPressed) {
         NSString* key = [gui keyForRow:[gui selectedRow]];
-        if ([self checkKeyPress:n_key_gui_arrow_right] || [self checkKeyPress:n_key_gui_page_down]) {
+        if ([self checkKeyPress:n_key_gui_arrow_right] || [self checkKeyPress:n_key_gui_page_down] || joyButtonState[BUTTON_GUIRIGHT] || joyButtonState[BUTTON_GUIPAGEDOWN]) {
             key = [gui keyForRow:GUI_ROW_KC_FUNCEND];
         }
-        if ([self checkKeyPress:n_key_gui_arrow_left] || [self checkKeyPress:n_key_gui_page_up]) {
+        if ([self checkKeyPress:n_key_gui_arrow_left] || [self checkKeyPress:n_key_gui_page_up] || joyButtonState[BUTTON_GUILEFT] || joyButtonState[BUTTON_GUIPAGEUP]) {
             key = [gui keyForRow:GUI_ROW_KC_FUNCSTART];
         }
         int from_function = 0;
@@ -3360,15 +3369,18 @@ static NSTimeInterval time_last_frame;
             }
         }
     }
+    [[OOJoystickManager sharedStickHandler] clearStickStates];
 }
 
 - (void)handleKeyboardLayoutKeys
 {
     MyOpenGLView* gameView = [UNIVERSE gameView];
     GuiDisplayGen* gui = [UNIVERSE gui];
+    const BOOL* joyButtonState = [[OOJoystickManager sharedStickHandler] getAllButtonStates];
 
     [self handleKeyboardLayoutEntryKeys:gui view:gameView];
-    leftRightKeyPressed = [self checkKeyPress:n_key_gui_arrow_right] || [self checkKeyPress:n_key_gui_arrow_left] || [self checkKeyPress:n_key_gui_page_up] || [self checkKeyPress:n_key_gui_page_down];
+    leftRightKeyPressed = [self checkKeyPress:n_key_gui_arrow_right] || [self checkKeyPress:n_key_gui_arrow_left] || [self checkKeyPress:n_key_gui_page_up] || [self checkKeyPress:n_key_gui_page_down] 
+        || joyButtonState[BUTTON_GUILEFT] || joyButtonState[BUTTON_GUIRIGHT] || joyButtonState[BUTTON_GUIPAGEUP] || joyButtonState[BUTTON_GUIPAGEDOWN];
     if (leftRightKeyPressed) {
         NSString* key = [gui keyForRow:[gui selectedRow]];
         if ([self checkKeyPress:n_key_gui_arrow_right] || [self checkKeyPress:n_key_gui_page_down]) {
@@ -3393,21 +3405,24 @@ static NSTimeInterval time_last_frame;
             }
         }
     }
+    [[OOJoystickManager sharedStickHandler] clearStickStates];
 }
 
 - (void)handleStickMapperScreenKeys
 {
     MyOpenGLView* gameView = [UNIVERSE gameView];
     GuiDisplayGen* gui = [UNIVERSE gui];
+    const BOOL* joyButtonState = [[OOJoystickManager sharedStickHandler] getAllButtonStates];
 
     [self stickMapperInputHandler:gui view:gameView];
-    leftRightKeyPressed = [self checkKeyPress:n_key_gui_arrow_right] || [self checkKeyPress:n_key_gui_arrow_left] || [self checkKeyPress:n_key_gui_page_up] || [self checkKeyPress:n_key_gui_page_down];
+    leftRightKeyPressed = [self checkKeyPress:n_key_gui_arrow_right] || [self checkKeyPress:n_key_gui_arrow_left] || [self checkKeyPress:n_key_gui_page_up] || [self checkKeyPress:n_key_gui_page_down] ||
+        joyButtonState[BUTTON_GUIRIGHT] || joyButtonState[BUTTON_GUILEFT] || joyButtonState[BUTTON_GUIPAGEUP] || joyButtonState[BUTTON_GUIPAGEDOWN];
     if (leftRightKeyPressed) {
         NSString* key = [gui keyForRow:[gui selectedRow]];
-        if ([self checkKeyPress:n_key_gui_arrow_right] || [self checkKeyPress:n_key_gui_page_down]) {
+        if ([self checkKeyPress:n_key_gui_arrow_right] || [self checkKeyPress:n_key_gui_page_down] || joyButtonState[BUTTON_GUIRIGHT] || joyButtonState[BUTTON_GUIPAGEDOWN]) {
             key = [gui keyForRow:GUI_ROW_FUNCEND];
         }
-        if ([self checkKeyPress:n_key_gui_arrow_left] || [self checkKeyPress:n_key_gui_page_up]) {
+        if ([self checkKeyPress:n_key_gui_arrow_left] || [self checkKeyPress:n_key_gui_page_up] || joyButtonState[BUTTON_GUILEFT] || joyButtonState[BUTTON_GUIPAGEUP]) {
             key = [gui keyForRow:GUI_ROW_FUNCSTART];
         }
         int from_function = 0;
@@ -3426,6 +3441,7 @@ static NSTimeInterval time_last_frame;
             }
         }
     }
+    [[OOJoystickManager sharedStickHandler] clearStickStates];
     if ([gameView isDown:' '])
         [self setGuiToGameOptionsScreen];
 }
@@ -4191,6 +4207,7 @@ static BOOL autopilot_pause;
     GuiDisplayGen* gui = [UNIVERSE gui];
     NSUInteger end_row = 21;
     OOOXZManager* oxzmanager = [OOOXZManager sharedManager];
+    const BOOL* joyButtonState = [[OOJoystickManager sharedStickHandler] getAllButtonStates];
 
     switch (gui_screen) {
     case GUI_SCREEN_INTRO1:
@@ -4199,7 +4216,7 @@ static BOOL autopilot_pause;
         int row_zero = 21;
         if (!selectPressed) {
             if (!disc_operation_in_progress) {
-                if (([gameView isDown:gvMouseDoubleClick] || [self checkKeyPress:n_key_gui_select]) && [gui selectedRow] == 2 + row_zero) {
+                if (([gameView isDown:gvMouseDoubleClick] || [self checkKeyPress:n_key_gui_select] || joyButtonState[BUTTON_GUISELECT]) && [gui selectedRow] == 2 + row_zero) {
                     disc_operation_in_progress = YES;
                     [UNIVERSE removeDemoShips];
                     [gui clearBackground];
@@ -4209,16 +4226,16 @@ static BOOL autopilot_pause;
                     break;
                 }
             }
-            if (([gameView isDown:gvMouseDoubleClick] || [self checkKeyPress:n_key_gui_select]) && [gui selectedRow] == 1 + row_zero) {
+            if (([gameView isDown:gvMouseDoubleClick] || [self checkKeyPress:n_key_gui_select] || joyButtonState[BUTTON_GUISELECT]) && [gui selectedRow] == 1 + row_zero) {
                 missionTextRow = 0;
                 [self setGuiToScenarioScreen:0];
-            } else if (([gameView isDown:gvMouseDoubleClick] || [self checkKeyPress:n_key_gui_select]) && [gui selectedRow] == 3 + row_zero) {
+            } else if (([gameView isDown:gvMouseDoubleClick] || [self checkKeyPress:n_key_gui_select] || joyButtonState[BUTTON_GUISELECT]) && [gui selectedRow] == 3 + row_zero) {
                 [self setGuiToIntroFirstGo:NO];
-            } else if (([gameView isDown:gvMouseDoubleClick] || [self checkKeyPress:n_key_gui_select]) && [gui selectedRow] == 4 + row_zero) {
+            } else if (([gameView isDown:gvMouseDoubleClick] || [self checkKeyPress:n_key_gui_select] || joyButtonState[BUTTON_GUISELECT]) && [gui selectedRow] == 4 + row_zero) {
                 [self setGuiToGameOptionsScreen];
-            } else if (([gameView isDown:gvMouseDoubleClick] || [self checkKeyPress:n_key_gui_select]) && [gui selectedRow] == 5 + row_zero) {
+            } else if (([gameView isDown:gvMouseDoubleClick] || [self checkKeyPress:n_key_gui_select] || joyButtonState[BUTTON_GUISELECT]) && [gui selectedRow] == 5 + row_zero) {
                 [self setGuiToOXZManager];
-            } else if (([gameView isDown:gvMouseDoubleClick] || [self checkKeyPress:n_key_gui_select]) && [gui selectedRow] == 6 + row_zero) {
+            } else if (([gameView isDown:gvMouseDoubleClick] || [self checkKeyPress:n_key_gui_select] || joyButtonState[BUTTON_GUISELECT]) && [gui selectedRow] == 6 + row_zero) {
                 [[UNIVERSE gameController] exitAppWithContext:@"Exit Game selected on start screen"];
             } else {
                 disc_operation_in_progress = NO;
@@ -4228,6 +4245,7 @@ static BOOL autopilot_pause;
         if ([gameView isDown:gvMouseDoubleClick]) {
             [gameView clearMouse];
         }
+        [[OOJoystickManager sharedStickHandler] clearStickStates];
         break;
 
     case GUI_SCREEN_GAMEOPTIONS:
@@ -4272,29 +4290,29 @@ static BOOL autopilot_pause;
             // viewed from start screen, return to it
             [self setGuiToIntroFirstGo:YES];
         }
-        if ([self checkKeyPress:n_key_gui_arrow_up]) //  '<--'
+        if ([self checkKeyPress:n_key_gui_arrow_up] || joyButtonState[BUTTON_GUIUP]) //  '<--'
         {
             if (!upDownKeyPressed)
                 [UNIVERSE selectIntro2Previous];
         }
-        if ([self checkKeyPress:n_key_gui_arrow_down]) //  '-->'
+        if ([self checkKeyPress:n_key_gui_arrow_down] || joyButtonState[BUTTON_GUIDOWN]) //  '-->'
         {
             if (!upDownKeyPressed)
                 [UNIVERSE selectIntro2Next];
         }
-        upDownKeyPressed = (([self checkKeyPress:n_key_gui_arrow_up]) || ([self checkKeyPress:n_key_gui_arrow_down]));
+        upDownKeyPressed = (([self checkKeyPress:n_key_gui_arrow_up] || joyButtonState[BUTTON_GUIUP]) || ([self checkKeyPress:n_key_gui_arrow_down] || joyButtonState[BUTTON_GUIDOWN]));
 
-        if ([self checkKeyPress:n_key_gui_arrow_left]) //  '<--'
+        if ([self checkKeyPress:n_key_gui_arrow_left] || joyButtonState[BUTTON_GUILEFT]) //  '<--'
         {
             if (!leftRightKeyPressed)
                 [UNIVERSE selectIntro2PreviousCategory];
         }
-        if ([self checkKeyPress:n_key_gui_arrow_right]) //  '-->'
+        if ([self checkKeyPress:n_key_gui_arrow_right] || joyButtonState[BUTTON_GUIRIGHT]) //  '-->'
         {
             if (!leftRightKeyPressed)
                 [UNIVERSE selectIntro2NextCategory];
         }
-        leftRightKeyPressed = (([self checkKeyPress:n_key_gui_arrow_left]) || ([self checkKeyPress:n_key_gui_arrow_right]));
+        leftRightKeyPressed = (([self checkKeyPress:n_key_gui_arrow_left] || joyButtonState[BUTTON_GUILEFT]) || ([self checkKeyPress:n_key_gui_arrow_right] || joyButtonState[BUTTON_GUIRIGHT]));
 
         break;
 
@@ -4304,7 +4322,7 @@ static BOOL autopilot_pause;
         }
 
         if (!pageUpDownKeyPressed) {
-            if ([self checkKeyPress:n_key_gui_page_up]) {
+            if ([self checkKeyPress:n_key_gui_page_up] || joyButtonState[BUTTON_GUIPAGEUP]) {
                 //  find the Back <<< line, select it and press it
                 if ([[gui keyForRow:GUI_ROW_SCENARIOS_START - 1] hasPrefix:@"__page"]) {
                     if ([gui setSelectedRow:GUI_ROW_SCENARIOS_START - 1]) {
@@ -4312,7 +4330,7 @@ static BOOL autopilot_pause;
                     }
                 }
 
-            } else if ([self checkKeyPress:n_key_gui_page_down]) {
+            } else if ([self checkKeyPress:n_key_gui_page_down] || joyButtonState[BUTTON_GUIPAGEDOWN]) {
                 // find the Next >>> line, select it and press it
                 if ([[gui keyForRow:GUI_ROW_SCENARIOS_START + GUI_MAX_ROWS_SCENARIOS] hasPrefix:@"__page"]) {
                     if ([gui setSelectedRow:GUI_ROW_SCENARIOS_START + GUI_MAX_ROWS_SCENARIOS]) {
@@ -4321,10 +4339,10 @@ static BOOL autopilot_pause;
                 }
             }
         }
-        pageUpDownKeyPressed = [self checkKeyPress:n_key_gui_page_down] | [self checkKeyPress:n_key_gui_page_up];
+        pageUpDownKeyPressed = [self checkKeyPress:n_key_gui_page_down] | [self checkKeyPress:n_key_gui_page_up] | joyButtonState[BUTTON_GUIPAGEUP] | joyButtonState[BUTTON_GUIPAGEDOWN];
 
         if (!selectPressed) {
-            if ([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick]) // enter
+            if ([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick] || joyButtonState[BUTTON_GUISELECT]) // enter
             {
                 if (![self startScenario]) {
                     [UNIVERSE removeDemoShips];
@@ -4332,7 +4350,7 @@ static BOOL autopilot_pause;
                 }
             }
         }
-        selectPressed = [self checkKeyPress:n_key_gui_select];
+        selectPressed = [self checkKeyPress:n_key_gui_select] || joyButtonState[BUTTON_GUISELECT];
         if ([gameView isDown:gvMouseDoubleClick] || [gameView isDown:gvMouseLeftButton]) {
             [gameView clearMouse];
         }
@@ -4353,19 +4371,19 @@ static BOOL autopilot_pause;
                     // only has an effect on install/remove selection screens
                     [oxzmanager showOptionsUpdate];
                 }
-                if ([self checkKeyPress:n_key_gui_arrow_left] || [self checkKeyPress:n_key_gui_page_up]) {
+                if ([self checkKeyPress:n_key_gui_arrow_left] || [self checkKeyPress:n_key_gui_page_up] || joyButtonState[BUTTON_GUILEFT] || joyButtonState[BUTTON_GUIPAGEUP]) {
                     if ((!leftRightKeyPressed)) {
                         [oxzmanager processOptionsPrev];
                     }
-                } else if ([self checkKeyPress:n_key_gui_arrow_right] || [self checkKeyPress:n_key_gui_page_down]) {
+                } else if ([self checkKeyPress:n_key_gui_arrow_right] || [self checkKeyPress:n_key_gui_page_down] || joyButtonState[BUTTON_GUIRIGHT] || joyButtonState[BUTTON_GUIPAGEDOWN]) {
                     if ((!leftRightKeyPressed)) {
                         [oxzmanager processOptionsNext];
                     }
                 }
-                leftRightKeyPressed = [self checkKeyPress:n_key_gui_arrow_right] | [self checkKeyPress:n_key_gui_arrow_left] | [self checkKeyPress:n_key_gui_page_down] | [self checkKeyPress:n_key_gui_page_up];
+                leftRightKeyPressed = [self checkKeyPress:n_key_gui_arrow_right] | [self checkKeyPress:n_key_gui_arrow_left] | [self checkKeyPress:n_key_gui_page_down] | [self checkKeyPress:n_key_gui_page_up] | joyButtonState[BUTTON_GUIRIGHT] | joyButtonState[BUTTON_GUILEFT] | joyButtonState[BUTTON_GUIPAGEUP] | joyButtonState[BUTTON_GUIPAGEDOWN];
 
                 if (!selectPressed) {
-                    if ([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick]) // enter
+                    if ([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick] || joyButtonState[BUTTON_GUISELECT]) // enter
                     {
                         if ([oxzmanager isAcceptingTextInput]) {
                             [oxzmanager processTextInput:[gameView typedString]];
@@ -4374,7 +4392,7 @@ static BOOL autopilot_pause;
                         }
                     }
                 }
-                selectPressed = [self checkKeyPress:n_key_gui_select];
+                selectPressed = [self checkKeyPress:n_key_gui_select] || joyButtonState[BUTTON_GUISELECT];
                 if ([gameView isDown:gvMouseDoubleClick] || [gameView isDown:gvMouseLeftButton]) {
                     [gameView clearMouse];
                 }
@@ -4407,7 +4425,7 @@ static BOOL autopilot_pause;
         }
         if (_missionTextEntry) {
             [self refreshMissionScreenTextEntry];
-            if ([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick]) //  '<enter/return>' or double click
+            if ([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick] || joyButtonState[BUTTON_GUISELECT]) //  '<enter/return>' or double click
             {
                 [self setMissionChoice:[gameView typedString] keyPress:@"enter"];
                 [[OOMusicController sharedController] stopMissionMusic];
@@ -4450,7 +4468,7 @@ static BOOL autopilot_pause;
                         extra_key_pressed = NO;
                 }
             }
-            if ([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick] || [extraKey length] > 0) //  '<enter/return>' or double click
+            if ([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick] || joyButtonState[BUTTON_GUISELECT] || [extraKey length] > 0) //  '<enter/return>' or double click
             {
                 if ([gameView isDown:gvMouseDoubleClick]) {
                     selectPressed = NO;

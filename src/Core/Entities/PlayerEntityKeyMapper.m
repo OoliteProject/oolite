@@ -27,6 +27,7 @@ MA 02110-1301, USA.
 #import "HeadUpDisplay.h"
 #import "OOCollectionExtractors.h"
 #import "OOEquipmentType.h"
+#import "OOJoystickManager.h"
 #import "OOTexture.h"
 #import "PlayerEntityControls.h"
 #import "PlayerEntityScriptMethods.h"
@@ -187,8 +188,9 @@ static NSArray* camera_keys = nil;
 
 - (void)keyMapperInputHandler:(GuiDisplayGen*)gui view:(MyOpenGLView*)gameView
 {
+    const BOOL* joyButtonState = [[OOJoystickManager sharedStickHandler] getAllButtonStates];
     [self handleGUIUpDownArrowKeys];
-    BOOL selectKeyPress = ([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick]);
+    BOOL selectKeyPress = ([self checkKeyPress:n_key_gui_select] || joyButtonState[BUTTON_GUISELECT] || [gameView isDown:gvMouseDoubleClick]);
     if ([gameView isDown:gvMouseDoubleClick])
         [gameView clearMouse];
 
@@ -511,8 +513,9 @@ static NSArray* camera_keys = nil;
 
 - (void)handleKeyConfigKeys:(GuiDisplayGen*)gui view:(MyOpenGLView*)gameView
 {
+    const BOOL* joyButtonState = [[OOJoystickManager sharedStickHandler] getAllButtonStates];
     [self handleGUIUpDownArrowKeys];
-    BOOL selectKeyPress = ([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick]);
+    BOOL selectKeyPress = ([self checkKeyPress:n_key_gui_select] || joyButtonState[BUTTON_GUISELECT] || [gameView isDown:gvMouseDoubleClick]);
     if ([gameView isDown:gvMouseDoubleClick])
         [gameView clearMouse];
 
@@ -730,9 +733,10 @@ static NSArray* camera_keys = nil;
 
 - (void)handleKeyMapperConfirmClearKeys:(GuiDisplayGen*)gui view:(MyOpenGLView*)gameView
 {
+    const BOOL* joyButtonState = [[OOJoystickManager sharedStickHandler] getAllButtonStates];
     [self handleGUIUpDownArrowKeys];
 
-    BOOL selectKeyPress = ([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick]);
+    BOOL selectKeyPress = ([self checkKeyPress:n_key_gui_select] || joyButtonState[BUTTON_GUISELECT] || [gameView isDown:gvMouseDoubleClick]);
     if ([gameView isDown:gvMouseDoubleClick])
         [gameView clearMouse];
 
@@ -1100,8 +1104,9 @@ static NSArray* camera_keys = nil;
 
 - (void)handleKeyboardLayoutEntryKeys:(GuiDisplayGen*)gui view:(MyOpenGLView*)gameView
 {
+    const BOOL* joyButtonState = [[OOJoystickManager sharedStickHandler] getAllButtonStates];
     [self handleGUIUpDownArrowKeys];
-    BOOL selectKeyPress = ([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick]);
+    BOOL selectKeyPress = ([self checkKeyPress:n_key_gui_select] || joyButtonState[BUTTON_GUISELECT] || [gameView isDown:gvMouseDoubleClick]);
     if ([gameView isDown:gvMouseDoubleClick])
         [gameView clearMouse];
 
