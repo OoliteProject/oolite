@@ -93,7 +93,16 @@ static GameController* sSharedController = nil;
 
         // rather than seeding this with the date repeatedly, seed it
         // once here at startup
-        ranrot_srand((uint32_t)[[NSDate date] timeIntervalSince1970]); // reset randomiser with current time
+        // OO_RANDOM_SEED pins the seed so a run can be reproduced. Nothing downstream of
+        // RANROT is repeatable without it, which both the goldens (0.4) and the component
+        // tier (0.13b) depend on. Unset - the normal case - keeps wall-clock seeding.
+        const char* seedEnv = getenv("OO_RANDOM_SEED");
+        if (seedEnv != NULL && *seedEnv != '\0') {
+            ranrot_srand((uint32_t)strtoul(seedEnv, NULL, 10));
+            OOLog(@"rand.seed", @"RANROT seeded from OO_RANDOM_SEED=%s", seedEnv);
+        } else {
+            ranrot_srand((uint32_t)[[NSDate date] timeIntervalSince1970]); // reset randomiser with current time
+        }
 
         _splashStart = [[NSDate alloc] init];
     }
