@@ -87,8 +87,6 @@ std::optional<std::string> StringForKey(const oo::PList& dict, const char* key)
 
 }
 
-namespace cxx {
-
 OOSystemDescriptionManager::OOSystemDescriptionManager()
 {
     universalProperties = oo::PList(oo::PList::Dict());
@@ -299,7 +297,7 @@ oo::PList OOSystemDescriptionManager::getPropertiesForCurrentSystem()
 {
     OOSystemID s = [UNIVERSE currentSystemID];
     if (s >= 0) {
-        NSUInteger index = ([PLAYER galaxyNumber] * OO_SYSTEMS_PER_GALAXY) + s;
+        NSUInteger index = ((PLAYER != nullptr ? PLAYER->PlayerEntity::galaxyNumber() : OOGalaxyID { }) * OO_SYSTEMS_PER_GALAXY) + s; // qualified: the final overrider (bead oo-9ht.177), so the binding test stands in for it
         if (index >= OO_SYSTEM_CACHE_LENGTH) {
             OO_LOG("system.description.error", "'{}' is an invalid system index for the current system. This is an internal error. Please report it.", static_cast<size_t>(index));
             return oo::PList(oo::PList::Dict());
@@ -524,7 +522,7 @@ Random_Seed OOSystemDescriptionManager::getRandomSeedForCurrentSystem()
         return kNilRandomSeed;
     } else {
         OOSystemID s = [UNIVERSE currentSystemID];
-        NSUInteger index = ([PLAYER galaxyNumber] * OO_SYSTEMS_PER_GALAXY) + s;
+        NSUInteger index = ((PLAYER != nullptr ? PLAYER->PlayerEntity::galaxyNumber() : OOGalaxyID { }) * OO_SYSTEMS_PER_GALAXY) + s; // qualified: the final overrider (bead oo-9ht.177), so the binding test stands in for it
         if (index >= OO_SYSTEM_CACHE_LENGTH) {
             OO_LOG("system.description.error", "'{}' is an invalid system index for the current system. This is an internal error. Please report it.", static_cast<size_t>(index));
             return kNilRandomSeed;
@@ -547,8 +545,6 @@ Random_Seed OOSystemDescriptionManager::getRandomSeedForSystem(OOSystemID s, OOG
     }
     return cxx_RandomSeedFromString(StringForKey(propertyCache[index], "random_seed"));
 }
-
-} // namespace cxx
 
 OOSystemDescriptionEntry::OOSystemDescriptionEntry()
 {

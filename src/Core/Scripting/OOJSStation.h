@@ -32,15 +32,14 @@ MA 02110-1301, USA.
 #include <optional>
 #include <string>
 
-@class StationEntity;
+class StationEntity;
 
 void InitOOJSStation(JSContext* context, JSValueConst global);
 
 JSClassID JSStationClassID(void);
 
 /*	The bodies of StationEntity (OOJavaScriptExtensions), which the engine reaches by selector.
-        Its methods are one-line forwarders to these in OOJSStation+ObjCBridge.mm until
-        StationEntity converts (proposed ADR-0056 amendments oo-ppc and oo-ykoy). (-oo_jsClassID
-        answers JSStationClassID().)
+        StationEntity::jsClassName calls these. Its JS class is JSStationClassID()
+        (StationEntity::jsClassID()).
 */
 std::optional<std::string> OOJSStationJSClassName(void);

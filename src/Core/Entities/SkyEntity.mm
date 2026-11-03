@@ -63,15 +63,13 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::stri
 }
 
 // [[OOColor cxx_colorWithDescription:description] premultipliedColor]: null where the colour was nil.
-oo::Ref<cxx::OOColor> PremultipliedColorWithDescription(const oo::PList& description)
+oo::Ref<OOColor> PremultipliedColorWithDescription(const oo::PList& description)
 {
-    const oo::Ref<cxx::OOColor> color = cxx::OOColor::colorWithDescription(description);
+    const oo::Ref<OOColor> color = OOColor::colorWithDescription(description);
     return color != nullptr ? color->premultipliedColor() : nullptr;
 }
 
 } // namespace
-
-namespace cxx {
 
 void SkyEntity::initWithColors(OOColor* col1In, OOColor* col2In, const oo::PList& systemInfo)
 {
@@ -88,8 +86,8 @@ void SkyEntity::initWithColors(OOColor* col1In, OOColor* col2In, const oo::PList
 
     // The colours the body replaces are owned here (they were autoreleased).
     oo::Ref<OOColor> col1(col1In), col2(col2In);
-    oo::Ref<OOColor> col3 = OOColor::colorWithDescription(oo::PListObject(oo::ToObjC(col1))); // a copy, as the id form made of a colour
-    oo::Ref<OOColor> col4 = OOColor::colorWithDescription(oo::PListObject(oo::ToObjC(col2)));
+    oo::Ref<OOColor> col3 = OOColor::colorWithDescription(OOColorObjectNode(col1.get())); // a copy, as the id form made of a colour
+    oo::Ref<OOColor> col4 = OOColor::colorWithDescription(OOColorObjectNode(col2.get()));
 
     // Load colours
     bool nebulaColorSet = readColor1(&col1, &col2, &col3, &col4, systemInfo);
@@ -152,7 +150,7 @@ void SkyEntity::initWithColors(OOColor* col1In, OOColor* col2In, const oo::PList
         clusterChance,
         alpha,
         scale);
-    setDrawable(oo::ToObjC(skyDrawable.get())); // the root facade (no OOSkyDrawable facade; bead oo-4jjl)
+    setDrawable(skyDrawable.get());
 
     setStatus(STATUS_EFFECT);
 }
@@ -185,7 +183,7 @@ void SkyEntity::update(OOTimeDelta /*delta_t*/)
     zero_distance = MAX_CLEAR_DEPTH * MAX_CLEAR_DEPTH;
     cam_zero_distance = zero_distance;
     if (player != nil) {
-        position = [player viewpointPosition];
+        position = (player != nullptr ? player->viewpointPosition() : HPVector { });
     } else {
         OO_LOG("sky.warning", "{}", "PLAYER is nil");
     }
@@ -318,5 +316,3 @@ bool SkyEntity::readColor1(oo::Ref<OOColor>* ioColor1, oo::Ref<OOColor>* ioColor
     }
     return nebulaSet;
 }
-
-} // namespace cxx

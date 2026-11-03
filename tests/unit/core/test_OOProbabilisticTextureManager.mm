@@ -80,15 +80,18 @@ static std::vector<std::string> gLog;
 
 static OOGalaxyID gGalaxy = 0;
 
-@interface PlayerEntity: OOObject
-- (OOGalaxyID) currentGalaxyID;
-@end
+// PLAYER: C++ since bead oo-9ht.177 deleted the Objective-C player this stood in for; the members
+// the code under test calls, declared as PlayerEntity.h declares them (the test imports no game
+// header that defines the class), with the same answers.
+class PlayerEntity
+{
+public:
+	OOGalaxyID currentGalaxyID();
+};
 
-@implementation PlayerEntity
-- (OOGalaxyID) currentGalaxyID  { return gGalaxy; }
-@end
+OOGalaxyID PlayerEntity::currentGalaxyID()  { return gGalaxy; }
 
-PlayerEntity *gOOPlayer = nil;
+PlayerEntity *gOOPlayer = nullptr;
 
 
 // --- Helpers ------------------------------------------------------------------------------------
@@ -121,7 +124,7 @@ oo::PList Config()
 
 void Reset(const oo::PList &config)
 {
-	if (gOOPlayer == nil)  gOOPlayer = [[PlayerEntity alloc] init];
+	if (gOOPlayer == nullptr)  gOOPlayer = new PlayerEntity;	// never deleted
 	gConfig = config;
 	gLog.clear();
 	gGalaxy = 0;

@@ -32,14 +32,13 @@ MA 02110-1301, USA.
 #include <optional>
 #include <string>
 
-@class DockEntity;
+class DockEntity;
 
 void InitOOJSDock(JSContext* context, JSValueConst global);
 
 JSClassID JSDockClassID(void);
 
-/*	The bodies of DockEntity (OOJavaScriptExtensions), which the engine reaches by selector. Its
-        methods are one-line forwarders to these in OOJSDock+ObjCBridge.mm until DockEntity converts
-        (proposed ADR-0056 amendments oo-ppc and oo-ykoy). (-oo_jsClassID answers JSDockClassID().)
+/*	The bodies of Entity (OOJavaScriptExtensions)'s class questions for a dock, which the C++
+        DockEntity's overrides call. Its JS class is JSDockClassID() (DockEntity::jsClassID()).
 */
 std::optional<std::string> OOJSDockJSClassName(void);

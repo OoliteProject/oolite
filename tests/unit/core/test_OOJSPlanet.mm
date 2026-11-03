@@ -1,8 +1,10 @@
 /*	test_OOJSPlanet.mm
 	Unit tests for the Planet JS binding (src/Core/Scripting/OOJSPlanet.h/.mm) and its
-	OOPlanetEntity category (whose forwarders are on the OOPlanetEntity facade since bead oo-9ht.92;
-	this test's stand-in OOPlanetEntity forwards the same way): bead oo-7ixd, converted the way bead
-	oo-ppc converted OOJSVector (proposed ADR-0056 amendments oo-ppc and oo-ykoy).
+	OOPlanetEntity category (whose forwarders were on the OOPlanetEntity facade from bead oo-9ht.92
+	until bead oo-9ht.129 deleted it: the C++ class's overrides answer the engine now, through the
+	root's JS category, and this test's stand-ins are C++ the same way, amendment oo-9ht.107 item 6):
+	bead oo-7ixd, converted the way bead oo-ppc converted OOJSVector (proposed ADR-0056 amendments
+	oo-ppc and oo-ykoy).
 
 	As test_OOJSWormhole.mm does (amendment oo-ykoy, item 4), it runs the JS class in a real
 	QuickJS-ng context, links the game's own objects for the binding, the engine's
@@ -31,10 +33,77 @@
 // MARK: The classes, as far as the binding sees them ----------------------------------------------
 
 @class Universe;
+@class Entity;
 
+namespace cxx {
+
+// The C++ root, as far as the binding and the root's JS category reach it. _object stands in for the
+// game's peer table (oo::ToObjC, below).
+class Entity : public oo::RefCounted
+{
+public:
+	virtual ~Entity();
+	virtual JSClassID jsClassID();
+	virtual std::optional<std::string> jsClassName();
+	virtual bool isVisibleToScripts();
+
+	::Entity *_object = nil;
+};
+
+}	// namespace cxx
+
+
+/*	A planet whose radius is 99 raises from radius(), one whose radius is 98 throws a C++ exception,
+	so the test sees what an exception under a native becomes.
+*/
+class OOPlanetEntity : public cxx::Entity
+{
+public:
+	OOStellarBodyType planetType();
+	double radius();
+	std::optional<std::string> name();
+	void setName(const std::optional<std::string> &name);
+	OOColor *airColor();
+	void setAirColor(OOColor *newColor);
+	OOColor *illuminationColor();
+	void setIlluminationColor(OOColor *newColor);
+	float airColorMixRatio();
+	void setAirColorMixRatio(float newRatio);
+	float airDensity();
+	void setAirDensity(float newDensity);
+	bool hasAtmosphere();
+	std::optional<std::string> textureFileName();
+	bool setUpPlanetFromTexture(const std::optional<std::string> &fileName);
+	double rotationalVelocity();
+	void setRotationalVelocity(double v);
+	Vector terminatorThresholdVector();
+	void setTerminatorThresholdVector(Vector newTerminatorThresholdVector);
+
+	JSClassID jsClassID() override;
+	std::optional<std::string> jsClassName() override;
+	bool isVisibleToScripts() override;
+
+	OOStellarBodyType _type = (OOStellarBodyType)0;
+	double _radius = 0;
+	std::optional<std::string> _name;
+	oo::Ref<OOColor> _airColor;
+	oo::Ref<OOColor> _illuminationColor;
+	float _airColorMixRatio = 0;
+	float _airDensity = 0;
+	BOOL _hasAtmosphere = NO;
+	std::optional<std::string> _texture;
+	double _rotationalVelocity = 0;
+	Vector _terminatorThresholdVector = {};
+	int _textureLoads = 0;
+};
+
+
+// The root's facade: the planet's object (the C++ part first, where oo::ToCxx reads it); its
+// orientation is the root's selectors', which the binding sends.
 @interface Entity: OOObject
 {
 @public
+	oo::Ref<cxx::Entity> _cxxEntity;	// the planet's C++ part (oo::ToCxx reads it)
 	Quaternion _orientation;
 }
 - (id) weakRefUnderlyingObject;
@@ -42,53 +111,14 @@
 - (void) setOrientation:(Quaternion)quat;
 @end
 
-/*	A planet whose radius is 99 raises from -radius, one whose radius is 98 throws a C++ exception,
-	so the test sees what an exception under a native becomes.
-*/
-@interface OOPlanetEntity: Entity
-{
-@public
-	OOStellarBodyType _type;
-	double _radius;
-	std::optional<std::string> _name;
-	OOColor *_airColor;
-	OOColor *_illuminationColor;
-	float _airColorMixRatio;
-	float _airDensity;
-	BOOL _hasAtmosphere;
-	std::optional<std::string> _texture;
-	double _rotationalVelocity;
-	Vector _terminatorThresholdVector;
-	int _textureLoads;
-}
-- (OOStellarBodyType) planetType;
-- (double) radius;
-- (std::optional<std::string>) cxx_name;
-- (void) cxx_setName:(const std::optional<std::string> &)name;
-- (OOColor *) airColor;
-- (void) setAirColor:(OOColor *)newColor;
-- (OOColor *) illuminationColor;
-- (void) setIlluminationColor:(OOColor *)newColor;
-- (float) airColorMixRatio;
-- (void) setAirColorMixRatio:(float)newRatio;
-- (float) airDensity;
-- (void) setAirDensity:(float)newDensity;
-- (BOOL) hasAtmosphere;
-- (std::optional<std::string>) textureFileName;
-- (BOOL) setUpPlanetFromTexture:(const std::optional<std::string> &)fileName;
-- (double) rotationalVelocity;
-- (void) setRotationalVelocity:(double)v;
-- (Vector) terminatorThresholdVector;
-- (void) setTerminatorThresholdVector:(Vector)newTerminatorThresholdVector;
-@end
-
-// The universe, as far as the binding asks it anything: its main planet.
+// The universe, as far as the binding asks it anything: its main planet (the C++ planet since bead
+// oo-9ht.129).
 @interface FakeUniverse: OOObject
 {
 @public
-	id _planet;
+	OOPlanetEntity *_planet;
 }
-- (id) planet;
+- (OOPlanetEntity *) planet;
 @end
 
 @interface Entity (OOJavaScriptExtensions)
@@ -120,27 +150,46 @@
 @end
 
 
-@implementation OOPlanetEntity
+// The root's JS category, as the game's asks the C++ part (EntityOOJavaScriptExtensions+ObjCBridge.mm,
+// bead oo-9ht.107): the engine sends these selectors to the wrapped object.
+@implementation Entity (OOJavaScriptExtensions)
+- (JSClassID) oo_jsClassID  { return _cxxEntity->jsClassID(); }
+- (std::optional<std::string>) cxx_oo_jsClassName  { return _cxxEntity->jsClassName(); }
+- (BOOL) isVisibleToScripts  { return _cxxEntity->isVisibleToScripts(); }
+@end
 
-- (OOStellarBodyType) planetType  { return _type; }
-- (std::optional<std::string>) cxx_name  { return _name; }
-- (void) cxx_setName:(const std::optional<std::string> &)name  { _name = name; }
-- (OOColor *) airColor  { return _airColor; }
-- (void) setAirColor:(OOColor *)newColor  { [_airColor release]; _airColor = [newColor retain]; }
-- (OOColor *) illuminationColor  { return _illuminationColor; }
-- (void) setIlluminationColor:(OOColor *)newColor  { [_illuminationColor release]; _illuminationColor = [newColor retain]; }
-- (float) airColorMixRatio  { return _airColorMixRatio; }
-- (void) setAirColorMixRatio:(float)newRatio  { _airColorMixRatio = newRatio; }
-- (float) airDensity  { return _airDensity; }
-- (void) setAirDensity:(float)newDensity  { _airDensity = newDensity; }
-- (BOOL) hasAtmosphere  { return _hasAtmosphere; }
-- (std::optional<std::string>) textureFileName  { return _texture; }
-- (double) rotationalVelocity  { return _rotationalVelocity; }
-- (void) setRotationalVelocity:(double)v  { _rotationalVelocity = v; }
-- (Vector) terminatorThresholdVector  { return _terminatorThresholdVector; }
-- (void) setTerminatorThresholdVector:(Vector)v  { _terminatorThresholdVector = v; }
 
-- (BOOL) setUpPlanetFromTexture:(const std::optional<std::string> &)fileName
+// oo::ToObjC (Entity+ObjCBridge.mm): the object of a C++ entity, nil for null.
+namespace oo {
+::Entity *ToObjC(cxx::Entity *entity)  { return entity != nullptr ? entity->_object : nil; }
+}
+
+
+cxx::Entity::~Entity()  {}
+JSClassID cxx::Entity::jsClassID()  { return 0; }
+std::optional<std::string> cxx::Entity::jsClassName()  { return std::string("Entity"); }
+bool cxx::Entity::isVisibleToScripts()  { return false; }
+
+
+OOStellarBodyType OOPlanetEntity::planetType()  { return _type; }
+std::optional<std::string> OOPlanetEntity::name()  { return _name; }
+void OOPlanetEntity::setName(const std::optional<std::string> &name)  { _name = name; }
+OOColor *OOPlanetEntity::airColor()  { return _airColor.get(); }
+void OOPlanetEntity::setAirColor(OOColor *newColor)  { _airColor = oo::Ref<OOColor>(newColor); }
+OOColor *OOPlanetEntity::illuminationColor()  { return _illuminationColor.get(); }
+void OOPlanetEntity::setIlluminationColor(OOColor *newColor)  { _illuminationColor = oo::Ref<OOColor>(newColor); }
+float OOPlanetEntity::airColorMixRatio()  { return _airColorMixRatio; }
+void OOPlanetEntity::setAirColorMixRatio(float newRatio)  { _airColorMixRatio = newRatio; }
+float OOPlanetEntity::airDensity()  { return _airDensity; }
+void OOPlanetEntity::setAirDensity(float newDensity)  { _airDensity = newDensity; }
+bool OOPlanetEntity::hasAtmosphere()  { return _hasAtmosphere; }
+std::optional<std::string> OOPlanetEntity::textureFileName()  { return _texture; }
+double OOPlanetEntity::rotationalVelocity()  { return _rotationalVelocity; }
+void OOPlanetEntity::setRotationalVelocity(double v)  { _rotationalVelocity = v; }
+Vector OOPlanetEntity::terminatorThresholdVector()  { return _terminatorThresholdVector; }
+void OOPlanetEntity::setTerminatorThresholdVector(Vector v)  { _terminatorThresholdVector = v; }
+
+bool OOPlanetEntity::setUpPlanetFromTexture(const std::optional<std::string> &fileName)
 {
 	_textureLoads++;
 	if (!fileName.has_value() || *fileName == "missing.png")  return NO;
@@ -148,7 +197,7 @@
 	return YES;
 }
 
-- (double) radius
+double OOPlanetEntity::radius()
 {
 	if (_radius == 99)  [OOException raise:OOInvalidArgumentException format:"radius %s", "boom"];
 	if (_radius == 98)  throw std::runtime_error("cxx boom");
@@ -156,18 +205,27 @@
 }
 
 
-// The binding's category, as the OOPlanetEntity facade forwards it (OOPlanetEntity+ObjCBridge.mm,
-// bead oo-9ht.92): the engine sends these selectors to the wrapped object.
-- (JSClassID) oo_jsClassID  { return ::JSPlanetClassID(); }
-- (std::optional<std::string>) cxx_oo_jsClassName  { return ::OOJSPlanetJSClassName(self); }
-- (BOOL) isVisibleToScripts  { return ::OOJSPlanetIsVisibleToScripts(self); }
+// The binding's category, as the C++ class's overrides answer it (bead oo-9ht.129; the
+// OOPlanetEntity facade forwarded it from bead oo-9ht.92).
+JSClassID OOPlanetEntity::jsClassID()  { return ::JSPlanetClassID(); }
+std::optional<std::string> OOPlanetEntity::jsClassName()  { return ::OOJSPlanetJSClassName(this); }
+bool OOPlanetEntity::isVisibleToScripts()  { return ::OOJSPlanetIsVisibleToScripts(this); }
 
-@end
+
+// A new C++ planet and its object (what oo::NewEntityFacade makes in the game); the object owns it.
+OOPlanetEntity *NewPlanet()
+{
+	oo::Ref<OOPlanetEntity> planet = oo::makeRef<OOPlanetEntity>();
+	Entity *object = [[Entity alloc] init];
+	object->_cxxEntity = planet;
+	planet->_object = object;
+	return planet.get();
+}
 
 
 @implementation FakeUniverse
 
-- (id) planet  { return _planet; }
+- (OOPlanetEntity *) planet  { return _planet; }
 
 @end
 
@@ -490,26 +548,26 @@ void SetUpContext()
 	OOJSInitClass(sContext, sGlobal, sFakeEntityClassID, JS_UNDEFINED, OOJSUnconstructableConstruct, 0, nullptr, 0, nullptr, 0, nullptr, 0);
 	InitOOJSPlanet(sContext, sGlobal);
 
-	sPlanet = [[OOPlanetEntity alloc] init];	// kept for the life of the test
+	sPlanet = NewPlanet();	// its object is kept for the life of the test
 	sPlanet->_type = STELLAR_TYPE_NORMAL_PLANET;
 	sPlanet->_radius = 5000;
 	sPlanet->_name = "Lave";
-	sPlanet->_airColor = [[OOColor colorWithRed:0.5f green:0.25f blue:1 alpha:1] retain];
+	sPlanet->_airColor = OOColor::colorWithRed(0.5f, 0.25f, 1, 1);
 	sPlanet->_airColorMixRatio = 0.5f;
 	sPlanet->_airDensity = 0.75f;
 	sPlanet->_hasAtmosphere = YES;
 	sPlanet->_texture = "lave.png";
 	sPlanet->_rotationalVelocity = 0.125;
 	sPlanet->_terminatorThresholdVector = make_vector(0.25, 1, 2);
-	sPlanet->_orientation = make_quaternion(1, 0, 0, 0);
-	sMoon = [[OOPlanetEntity alloc] init];
+	oo::ToObjC(sPlanet)->_orientation = make_quaternion(1, 0, 0, 0);
+	sMoon = NewPlanet();
 	sMoon->_type = STELLAR_TYPE_MOON;
 	sMoon->_radius = 1000;
 	sUniverse = [[FakeUniverse alloc] init];
 	sUniverse->_planet = sPlanet;
 	gSharedUniverse = (Universe *)sUniverse;
-	Define("planet", JSValueForEntity(sPlanet));
-	Define("moon", JSValueForEntity(sMoon));
+	Define("planet", JSValueForEntity(oo::ToObjC(sPlanet)));
+	Define("moon", JSValueForEntity(oo::ToObjC(sMoon)));
 	Define("plainEntity", JSValueForObject(sFakeEntityClassID, [[Entity alloc] init]));
 }
 
@@ -548,7 +606,7 @@ std::string EvalShown(const char *src, const char *expected)
 OO_TEST(registration)
 {
 	SetUpContext();
-	const JSClassID planetClass = [sPlanet oo_jsClassID];
+	const JSClassID planetClass = [oo::ToObjC(sPlanet) oo_jsClassID];
 	OO_CHECK(planetClass != 0 && OOJSClassName(planetClass) != nullptr && std::strcmp(OOJSClassName(planetClass), "Planet") == 0);
 	JSValue prototype = JS_GetClassProto(sContext, planetClass);
 	OO_CHECK(JS_IsObject(prototype));
@@ -566,16 +624,17 @@ OO_TEST(category)
 {
 	SetUpContext();
 	// A planet or a moon is visible to scripts and says which it is; any other stellar body is not.
-	OO_CHECK([sPlanet cxx_oo_jsClassName] == std::optional<std::string>("Planet"));
-	OO_CHECK([sPlanet isVisibleToScripts]);
-	OO_CHECK([sMoon cxx_oo_jsClassName] == std::optional<std::string>("Moon"));
-	OO_CHECK([sMoon isVisibleToScripts]);
-	OOPlanetEntity *mini = [[[OOPlanetEntity alloc] init] autorelease];
+	OO_CHECK([oo::ToObjC(sPlanet) cxx_oo_jsClassName] == std::optional<std::string>("Planet"));
+	OO_CHECK([oo::ToObjC(sPlanet) isVisibleToScripts]);
+	OO_CHECK([oo::ToObjC(sMoon) cxx_oo_jsClassName] == std::optional<std::string>("Moon"));
+	OO_CHECK([oo::ToObjC(sMoon) isVisibleToScripts]);
+	OOPlanetEntity *mini = NewPlanet();
+	[oo::ToObjC(mini) autorelease];
 	mini->_type = STELLAR_TYPE_MINIATURE;
-	OO_CHECK([mini cxx_oo_jsClassName] == std::optional<std::string>("Unknown"));
-	OO_CHECK(![mini isVisibleToScripts]);
+	OO_CHECK([oo::ToObjC(mini) cxx_oo_jsClassName] == std::optional<std::string>("Unknown"));
+	OO_CHECK(![oo::ToObjC(mini) isVisibleToScripts]);
 	mini->_type = STELLAR_TYPE_SUN;
-	OO_CHECK(![mini isVisibleToScripts]);
+	OO_CHECK(![oo::ToObjC(mini) isVisibleToScripts]);
 }
 
 

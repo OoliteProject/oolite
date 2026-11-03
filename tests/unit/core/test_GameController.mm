@@ -24,6 +24,7 @@
 */
 
 #import "GameController.h"
+#import "PlayerEntity.h"	// PLAYER is C++ (bead oo-9ht.177)
 #import "OOJavaScriptEngine.h"
 #import "OOJSPropID.h"
 #import "OOFullScreenController.h"
@@ -47,26 +48,35 @@
 uint32_t gDebugFlags = 0;
 #endif
 
-@class PlayerEntity;
+class PlayerEntity;
 extern PlayerEntity *gOOPlayer;
 
 
-// PLAYER: records the script events it is sent and answers whether mouse control is on.
-@interface TestPlayer: OOObject
+// PLAYER: records the script events it is sent and answers whether mouse control is on (C++ since
+// bead oo-9ht.177 deleted the Objective-C player).
+class TestPlayer : public PlayerEntity
 {
-@public
+public:
 	std::vector<OOJSPropID>				_events;
-	BOOL								_mouseControlOn;
+	BOOL								_mouseControlOn = NO;
+
+	using PlayerEntity::doScriptEvent;
+	void doScriptEvent(OOJSPropID message) override				{ _events.push_back(message); }
+	bool isMouseControlOn() override							{ return _mouseControlOn; }
+};
+
+// [[TestPlayer alloc] init] (bead oo-9ht.177): a C++ player under the ship's facade, as
+// PlayerEntity::sharedPlayer() makes the game's, retained (+1) as +alloc's object was.
+template <class T>
+T *NewTestPlayer()
+{
+	oo::Ref<T> player = oo::makeRef<T>();
+	@autoreleasepool
+	{
+		[oo::NewEntityFacade(player) retain];
+	}
+	return player.get();
 }
-@end
-
-
-@implementation TestPlayer
-
-- (void) doScriptEvent:(OOJSPropID)message				{ _events.push_back(message); }
-- (BOOL) isMouseControlOn								{ return _mouseControlOn; }
-
-@end
 
 
 // The game view: records the controller it is given and the mode changes it is told of, and
@@ -126,7 +136,7 @@ namespace {
 namespace stdfs = std::filesystem;
 
 stdfs::path sRoot;
-TestPlayer *sPlayer = nil;
+TestPlayer *sPlayer = nullptr;
 
 
 // The scratch home and game folder, the engine and the stand-in player, made once, before the
@@ -142,8 +152,8 @@ void SetUp()
 	stdfs::create_directories(sRoot / "Resources");
 	OO_CHECK(oo::fs::writeFile(sRoot / "Resources" / "Info-gnustep.plist", oo::Data("{ CFBundleVersion = \"9.9.9-test\"; }", 35), oo::fs::WriteMode::direct).has_value());
 	(void)[OOJavaScriptEngine sharedEngine];
-	sPlayer = [[TestPlayer alloc] init];	// never released
-	gOOPlayer = (PlayerEntity *)sPlayer;
+	sPlayer = NewTestPlayer<TestPlayer>();	// never released
+	gOOPlayer = sPlayer;
 }
 
 
@@ -352,6 +362,73 @@ OO_TEST(fullScreenDisplayModes)
 		oo::Defaults::standard().setBool("fullscreen", true);
 		[controller exitFullScreenMode];
 		OO_CHECK(!oo::Defaults::standard().boolForKey("fullscreen"));
+	}
+}
+
+
+// The full-screen members (bead oo-qinv): the C++ calls give what the façade's selectors give, on
+// the same state, and pausing full-screen mode records the call to make and leaves full screen.
+OO_TEST(fullScreenMembers)
+{
+	SetUp();
+	@autoreleasepool
+	{
+		GameController *facade = [GameController sharedController];
+		cxx::GameController *controller = cxx::GameController::sharedController();
+		TestView *view = (TestView *)controller->gameView();
+		view->_screenModes = { Mode(640, 480, 60), Mode(1280, 720, 60), Mode(1280, 720, 75), Mode(9000, 9000, 60) };
+		view->_currentMode = Mode(1280, 720, 75);
+		controller->setUpDisplayModes();
+
+		OO_CHECK_EQ(controller->getDisplayModes().count(), 3u);
+		OO_CHECK([facade displayModes] == controller->getDisplayModes());
+		OO_CHECK_EQ(controller->width, 1280u);
+		OO_CHECK_EQ(controller->height, 720u);
+		OO_CHECK_EQ(controller->refresh, 75u);
+		OO_CHECK(controller->indexOfCurrentDisplayMode() == 2u);
+		OO_CHECK([facade indexOfCurrentDisplayMode] == 2u);
+		OO_CHECK(controller->findDisplayModeForWidth(640, 480, 60) == Mode(640, 480, 60));
+		OO_CHECK(controller->findDisplayModeForWidth(9000, 9000, 60).isNull());
+
+		OO_CHECK(controller->setDisplayWidth(640, 480, 60));
+		OO_CHECK(controller->indexOfCurrentDisplayMode() == 0u);
+		OO_CHECK(controller->fullscreenDisplayMode == Mode(640, 480, 60));
+		OO_CHECK_EQ(oo::Defaults::standard().integerForKey("display_refresh"), 60);
+		OO_CHECK(!controller->setDisplayWidth(1280, 720, 30));
+		OO_CHECK_EQ(controller->width, 640u);
+
+		// No current mode: the screen's size, refresh unchanged; no match is NSNotFound.
+		view->_currentMode = oo::PList();
+		controller->setUpDisplayModes();
+		OO_CHECK_EQ(controller->width, 0u);
+		OO_CHECK(controller->indexOfCurrentDisplayMode() == NSNotFound);
+
+		view->_inFullScreen = YES;
+		OO_CHECK(controller->inFullScreenMode());
+		view->_inFullScreen = NO;
+		OO_CHECK(!controller->inFullScreenMode());
+
+		controller->setFullScreenMode(true);
+		OO_CHECK(controller->fullscreen);
+		controller->setFullScreenMode(false);
+		OO_CHECK(!controller->fullscreen);
+
+		controller->stayInFullScreenMode = true;
+		oo::Defaults::standard().setBool("fullscreen", true);
+		controller->exitFullScreenMode();
+		OO_CHECK(!controller->stayInFullScreenMode);
+		OO_CHECK(!oo::Defaults::standard().boolForKey("fullscreen"));
+
+		TestTarget *target = [[TestTarget alloc] init];
+		controller->stayInFullScreenMode = true;
+		[facade pauseFullScreenModeToPerform:@selector(record:) onTarget:target];
+		OO_CHECK(controller->pauseSelector == @selector(record:));
+		OO_CHECK(controller->pauseTarget == target);
+		OO_CHECK(!controller->stayInFullScreenMode);
+		controller->pauseFullScreenModeToPerform(@selector(raise:), nil);
+		OO_CHECK(controller->pauseSelector == @selector(raise:));
+		OO_CHECK(controller->pauseTarget == nil);
+		[target release];
 	}
 }
 

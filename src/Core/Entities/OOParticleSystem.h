@@ -34,7 +34,8 @@ MA 02110-1301, USA.
 #import "OOMaths.h"
 #import "OOTypes.h"
 
-@class OOTexture, OOColor;
+@class OOTexture;
+class OOColor;
 
 enum {
     kFragmentBurstMaxParticles = 64,

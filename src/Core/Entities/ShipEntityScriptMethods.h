@@ -28,8 +28,8 @@ MA 02110-1301, USA.
 #import "ShipEntity.h"
 
 /*	Bead oo-42dr (ADR-0056 amendments oo-o89 item 4 and oo-9fwb): the category ShipEntity
-        (ScriptMethods) is members of cxx::ShipEntity, declared in ShipEntity.h and defined in
-        ShipEntityScriptMethods.mm. Its Objective-C interface, for the callers that remain, is the
-        category of the same name in ShipEntity+ObjCBridge.h, which ShipEntity.h imports. This header
-        stays for the files that import it.
+        (ScriptMethods) is members of ShipEntity, declared in ShipEntity.h and defined in
+        ShipEntityScriptMethods.mm. Its Objective-C interface was the category of the same name in
+        ShipEntity+ObjCBridge.h until bead oo-9ht.144 deleted the facade. This header stays for the
+        files that import it.
 */

@@ -32,16 +32,17 @@ MA 02110-1301, USA.
 #include <quickjs.h>
 #include <vector>
 
-@class Entity, OOVisualEffectEntity;
+@class Entity;
+class OOVisualEffectEntity;
 
 void InitOOJSVisualEffect(JSContext* context, JSValueConst global);
 
 JSClassID JSVisualEffectClassID(void);
 
 /*	The bodies of OOVisualEffectEntity (OOJavaScriptExtensions), which the engine reaches by
-        selector. Its methods are one-line forwarders to these on the OOVisualEffectEntity facade, in
-        OOVisualEffectEntity+ObjCBridge.mm, until that facade goes (proposed ADR-0056 amendments
-        oo-ppc and oo-ykoy). Its -oo_jsClassID answers JSVisualEffectClassID().
+        selector: the effect's facade forwarded to these until it was deleted; the C++ effect's
+        jsClassID()/jsClassName()/isVisibleToScripts() overrides call them now. Its JS class is
+        JSVisualEffectClassID().
 */
 std::optional<std::string> OOJSVisualEffectJSClassName(void);
 bool OOJSVisualEffectIsVisibleToScripts(void);

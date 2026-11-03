@@ -1,8 +1,10 @@
 /*	test_OOJSWormhole.mm
 	Unit tests for the Wormhole JS binding (src/Core/Scripting/OOJSWormhole.h/.mm) and its
-	WormholeEntity category (whose forwarders are on the WormholeEntity facade since bead oo-9ht.43;
-	this test's stand-in WormholeEntity forwards the same way): bead oo-ykoy, converted the way bead
-	oo-ppc converted OOJSVector (proposed ADR-0056 amendments oo-ppc and oo-ykoy).
+	WormholeEntity category (whose forwarders were on the WormholeEntity facade from bead oo-9ht.43
+	until bead oo-9ht.112 deleted it: the C++ class's overrides answer the engine now, through the
+	root's JS category, and this test's stand-ins are C++ the same way, amendment oo-9ht.107 item
+	6): bead oo-ykoy, converted the way bead oo-ppc converted OOJSVector (proposed ADR-0056
+	amendments oo-ppc and oo-ykoy).
 
 	It runs the JS class in a real QuickJS-ng context and links the game's own objects for the
 	binding, the engine's class registry (OOJSClasses.mm) and its exception translator
@@ -31,25 +33,49 @@
 
 // MARK: The entity classes, as far as the binding sees them ---------------------------------------
 
-/*	A wormhole whose arrival time is -1 raises from -arrivalTime, one whose arrival time is -2
+namespace cxx {
+
+// The C++ root, as far as the binding and the root's JS category reach it.
+class Entity : public oo::RefCounted
+{
+public:
+	virtual ~Entity();
+	virtual JSClassID jsClassID();
+	virtual std::optional<std::string> jsClassName();
+	virtual bool isVisibleToScripts();
+};
+
+}	// namespace cxx
+
+
+/*	A wormhole whose arrival time is -1 raises from arrivalTime(), one whose arrival time is -2
 	throws a C++ exception, so the test sees what an exception under a native becomes.
 */
-@interface Entity: OOObject
-- (id) weakRefUnderlyingObject;
-@end
+class WormholeEntity : public cxx::Entity
+{
+public:
+	double arrivalTime();
+	double expiryTime();
+	OOSystemID getOrigin();
+	OOSystemID getDestination();
 
-@interface WormholeEntity: Entity
+	JSClassID jsClassID() override;
+	std::optional<std::string> jsClassName() override;
+	bool isVisibleToScripts() override;
+
+	double _arrivalTime = 0;
+	double _expiryTime = 0;
+	OOSystemID _origin = 0;
+	OOSystemID _destination = 0;
+};
+
+
+@interface Entity: OOObject
 {
 @public
-	double _arrivalTime;
-	double _expiryTime;
-	OOSystemID _origin;
-	OOSystemID _destination;
+	oo::Ref<cxx::Entity> _cxxEntity;	// the wormhole's C++ part (oo::ToCxx reads it)
 }
-- (double) arrivalTime;
-- (double) expiryTime;
-- (OOSystemID) origin;
-- (OOSystemID) destination;
+- (id) weakRefUnderlyingObject;
 @end
 
 @interface Entity (OOJavaScriptExtensions)
@@ -81,27 +107,38 @@
 @end
 
 
-@implementation WormholeEntity
+// The root's JS category, as the game's asks the C++ part (EntityOOJavaScriptExtensions+ObjCBridge.mm,
+// bead oo-9ht.107): the engine sends these selectors to the wrapped object.
+@implementation Entity (OOJavaScriptExtensions)
+- (JSClassID) oo_jsClassID  { return _cxxEntity->jsClassID(); }
+- (std::optional<std::string>) cxx_oo_jsClassName  { return _cxxEntity->jsClassName(); }
+- (BOOL) isVisibleToScripts  { return _cxxEntity->isVisibleToScripts(); }
+@end
 
-- (double) arrivalTime
+
+cxx::Entity::~Entity()  {}
+JSClassID cxx::Entity::jsClassID()  { return 0; }
+std::optional<std::string> cxx::Entity::jsClassName()  { return std::string("Entity"); }
+bool cxx::Entity::isVisibleToScripts()  { return false; }
+
+
+double WormholeEntity::arrivalTime()
 {
 	if (_arrivalTime == -1)  [OOException raise:OOInvalidArgumentException format:"arrival %s", "boom"];
 	if (_arrivalTime == -2)  throw std::runtime_error("cxx boom");
 	return _arrivalTime;
 }
 
-- (double) expiryTime  { return _expiryTime; }
-- (OOSystemID) origin  { return _origin; }
-- (OOSystemID) destination  { return _destination; }
+double WormholeEntity::expiryTime()  { return _expiryTime; }
+OOSystemID WormholeEntity::getOrigin()  { return _origin; }
+OOSystemID WormholeEntity::getDestination()  { return _destination; }
 
 
-// The binding's category, as the WormholeEntity facade forwards it (WormholeEntity+ObjCBridge.mm,
-// bead oo-9ht.43): the engine sends these selectors to the wrapped object.
-- (JSClassID) oo_jsClassID  { return ::JSWormholeClassID(); }
-- (std::optional<std::string>) cxx_oo_jsClassName  { return ::OOJSWormholeJSClassName(); }
-- (BOOL) isVisibleToScripts  { return ::OOJSWormholeIsVisibleToScripts(); }
-
-@end
+// The binding's category, as the C++ class's overrides answer it (bead oo-9ht.112; the
+// WormholeEntity facade forwarded it from bead oo-9ht.43).
+JSClassID WormholeEntity::jsClassID()  { return ::JSWormholeClassID(); }
+std::optional<std::string> WormholeEntity::jsClassName()  { return ::OOJSWormholeJSClassName(); }
+bool WormholeEntity::isVisibleToScripts()  { return ::OOJSWormholeIsVisibleToScripts(); }
 
 
 // MARK: What the rest of the engine provides ------------------------------------------------------
@@ -263,7 +300,8 @@ namespace {
 JSRuntime *sRuntime;
 JSContext *sContext;
 JSValue sGlobal;
-WormholeEntity *sWormhole = nil;
+Entity *sWormhole = nil;				// the wormhole's Objective-C object, which the JS object holds
+WormholeEntity *sWormholePart = nullptr;	// its C++ part
 
 
 // A JS object for an entity, as -[Entity oo_jsValueInContext:] makes it: the class the entity's
@@ -292,11 +330,13 @@ void SetUpContext()
 	OOJSInitClass(sContext, sGlobal, sFakeEntityClassID, JS_UNDEFINED, OOJSUnconstructableConstruct, 0, nullptr, 0, nullptr, 0, nullptr, 0);
 	InitOOJSWormhole(sContext, sGlobal);
 
-	sWormhole = [[WormholeEntity alloc] init];	// kept for the life of the test
-	sWormhole->_arrivalTime = 1000.5;
-	sWormhole->_expiryTime = 900.25;
-	sWormhole->_origin = 7;
-	sWormhole->_destination = 129;
+	sWormhole = [[Entity alloc] init];	// kept for the life of the test
+	sWormhole->_cxxEntity = oo::makeRef<WormholeEntity>();
+	sWormholePart = static_cast<WormholeEntity *>(sWormhole->_cxxEntity.get());
+	sWormholePart->_arrivalTime = 1000.5;
+	sWormholePart->_expiryTime = 900.25;
+	sWormholePart->_origin = 7;
+	sWormholePart->_destination = 129;
 	JS_SetPropertyStr(sContext, sGlobal, "wormhole", JSValueForEntity([sWormhole oo_jsClassID], sWormhole));
 	JS_SetPropertyStr(sContext, sGlobal, "plainEntity", JSValueForEntity(sFakeEntityClassID, [[Entity alloc] init]));	// kept for the life of the test
 }
@@ -384,11 +424,11 @@ OO_TEST(nativeExceptions)
 	SetUpContext();
 	// The property getter is a native (OOJS_NATIVE_ENTER): a raise from the entity is a JS error,
 	// and so is a C++ exception.
-	sWormhole->_arrivalTime = -1;
+	sWormholePart->_arrivalTime = -1;
 	OO_CHECK_EVAL("wormhole.arrivalTime", "threw: Native exception: arrival boom");
-	sWormhole->_arrivalTime = -2;
+	sWormholePart->_arrivalTime = -2;
 	OO_CHECK_EVAL("wormhole.arrivalTime", "threw: Native exception: cxx boom");
-	sWormhole->_arrivalTime = 1000.5;
+	sWormholePart->_arrivalTime = 1000.5;
 	OO_CHECK_EVAL("wormhole.arrivalTime", "1000.5");
 	OO_CHECK_EQ(sLimiterPauses, 0);
 	OO_CHECK_EQ(sProfileDepth, 0);

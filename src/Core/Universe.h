@@ -24,8 +24,10 @@ MA 02110-1301, USA.
 
 */
 
+#import "OOCharacter.h" // C++ since bead oo-9ht.10: the character pool is oo::Ref
 #import "OOColor.h"
 #import "OOCommodities.h"
+#import "OOCommodityMarket.h" // C++ since bead oo-9ht.21: the universe keeps its market (oo::Ref)
 #import "OOEntityWithDrawable.h"
 #import "OOFoundation.h"
 #import "OOJSPropID.h"
@@ -51,11 +53,19 @@ MA 02110-1301, USA.
 #include <string_view>
 #endif
 
-@class GameController, CollisionRegion, MyOpenGLView, GuiDisplayGen,
-    Entity, ShipEntity, StationEntity, OOPlanetEntity, OOSunEntity,
-    OOVisualEffectEntity, PlayerEntity, OORoleSet, WormholeEntity,
-    DockEntity, OOJSScript, OOWaypointEntity, OOSystemDescriptionManager,
-    OOException, OOCharacter;
+@class GameController, MyOpenGLView, Entity, OOException;
+class OOVisualEffectEntity; // C++ since bead oo-9ht.165
+class ShipEntity; // C++ since bead oo-9ht.144
+class DockEntity;
+class StationEntity;
+class OOWaypointEntity;
+class PlayerEntity;
+#include "OOScript.h" // oo::Ref<OOScript> members and results (bead oo-9ht.133)
+class WormholeEntity; // C++ since bead oo-9ht.112
+class OOSunEntity; // C++ since bead oo-9ht.111
+class OOPlanetEntity; // C++ since bead oo-9ht.129
+#import "GuiDisplayGen.h" // C++ since bead oo-9ht.143: the universe keeps its GUIs (oo::Ref)
+class CollisionRegion;
 
 typedef BOOL (*EntityFilterPredicate)(Entity* entity, void* parameter);
 
@@ -281,7 +291,7 @@ public:
 
     ::OOWeakReference *_firstBeacon = nil,
                       *_lastBeacon = nil;
-    std::map<std::string, oo::ObjCRef<::OOWaypointEntity*>, std::less<>> waypoints; // by key
+    std::map<std::string, oo::ObjCRef<::Entity*>, std::less<>> waypoints; // by key: the waypoints' objects (the root's facade since bead oo-9ht.108)
 
     GLfloat skyClearColor[4] = { };
 
@@ -289,9 +299,18 @@ public:
     OOTimeAbsolute messageRepeatTime = 0;
     OOTimeAbsolute countdown_messageRepeatTime = 0; // Getafix(4/Aug/2010) - Quickfix countdown messages colliding with weapon overheat messages.
                                                     //                       For proper handling of message dispatching, code refactoring is needed.
-    ::GuiDisplayGen* gui = nil;
-    ::GuiDisplayGen* message_gui = nil;
-    ::GuiDisplayGen* comm_log_gui = nil;
+    oo::Ref<GuiDisplayGen> gui;
+    oo::Ref<GuiDisplayGen> message_gui;
+    oo::Ref<GuiDisplayGen> comm_log_gui;
+    // The GUIs setUpSettings() replaced, kept until it replaces them again: they were autoreleased,
+    // and a caller may still be using one in the pass that reinitialised the universe (bead oo-9ht.143).
+    std::vector<oo::Ref<GuiDisplayGen>> replacedGuis;
+    // The commodities, the system manager and the character pool setUpSettings() and
+    // setUpInitialUniverse() replaced, kept until they replace them again: they were autoreleased
+    // (beads oo-9ht.25, oo-9ht.32 and oo-9ht.10 deleted their facades).
+    oo::Ref<OOCommodities> replacedCommodities;
+    oo::Ref<OOSystemDescriptionManager> replacedSystemManager;
+    std::vector<oo::Ref<OOCharacter>> replacedCharacterPool;
 
     BOOL displayGUI = NO;
     BOOL wasDisplayGUI = NO;
@@ -321,8 +340,8 @@ public:
 
     BOOL dumpCollisionInfo = NO;
 
-    ::OOCommodities* commodities = nil;
-    ::OOCommodityMarket* commodityMarket = nil;
+    oo::Ref<OOCommodities> commodities;
+    oo::Ref<OOCommodityMarket> commodityMarket;
 
     oo::PList _descriptions; // holds descriptive text for lots of stuff, loaded at initialisation (a dict; null until loaded)
     unsigned _descriptionsGeneration = 0; // changes whenever _descriptions is assigned (the bridged -descriptions caches per generation)
@@ -330,7 +349,7 @@ public:
     oo::PList characters; // holds descriptons of characters
     oo::PList _scenarios; // game start scenarios (an array)
     oo::PList globalSettings; // miscellaneous global game settings
-    ::OOSystemDescriptionManager* systemManager = nil; // planetinfo data manager
+    oo::Ref<OOSystemDescriptionManager> systemManager; // planetinfo data manager
     oo::PList missiontext; // holds descriptive text for missions, loaded at initialisation
     oo::PList equipmentData; // holds data on available equipment, loaded at initialisation (an array)
     oo::PList equipmentDataOutfitting;
@@ -340,7 +359,7 @@ public:
     oo::PList screenBackgrounds; // holds filenames for various screens backgrounds, loaded at initialisation
     oo::PList explosionSettings; // explosion settings from explosions.plist
 
-    std::map<std::string, oo::ObjCRef<::ShipEntity*>, std::less<>> cargoPods; // template cargo pods, by commodity key
+    std::map<std::string, oo::ObjCRef<::Entity*>, std::less<>> cargoPods; // template cargo pods, by commodity key
 
     OOGalaxyID galaxyID = 0;
     OOSystemID systemID = 0;
@@ -356,8 +375,8 @@ public:
     ::StationEntity* cachedStation = nil;
     ::OOPlanetEntity* cachedPlanet = nil;
     ::OOSunEntity* cachedSun = nil;
-    std::vector<oo::ObjCRef<::OOPlanetEntity*>> allPlanets;
-    std::vector<oo::ObjCRef<::StationEntity*>> allStations; // each once, in the order added
+    std::vector<oo::ObjCRef<::Entity*>> allPlanets; // the planets' Objective-C objects (C++ since bead oo-9ht.129)
+    std::vector<oo::ObjCRef<::Entity*>> allStations; // the stations' objects (the ship's facade since bead oo-9ht.175), each once, in the order added
 
     float ambientLightLevel = 0;
 
@@ -378,11 +397,11 @@ public:
 
     BOOL ECMVisualFXEnabled = NO;
 
-    std::vector<oo::ObjCRef<::WormholeEntity*>> activeWormholes;
+    std::vector<oo::ObjCRef<::Entity*>> activeWormholes;
 
-    std::vector<oo::ObjCRef<::OOCharacter*>> characterPool;
+    std::vector<oo::Ref<OOCharacter>> characterPool;
 
-    ::CollisionRegion* universeRegion = nil;
+    oo::Ref<::CollisionRegion> universeRegion;
 
     // check and maintain linked lists occasionally
     BOOL doLinkedListMaintenanceThisUpdate = NO;
@@ -406,7 +425,7 @@ public:
 
     GLfloat frustum[6][4] = { };
 
-    std::map<std::string, oo::ObjCRef<::OOJSScript*>, std::less<>> conditionScripts;
+    std::map<std::string, oo::Ref<OOScript>, std::less<>> conditionScripts;
 
     BOOL _pauseMessage = NO;
     BOOL _autoCommLog = NO;
@@ -426,9 +445,9 @@ public:
     GLuint targetDepthBufferID = 0;
     GLuint targetFramebufferID = 0;
     GLuint passthroughFramebufferID = 0;
-    ::OOShaderProgram* textureProgram = nil;
-    ::OOShaderProgram* blurProgram = nil;
-    ::OOShaderProgram* finalProgram = nil;
+    oo::Ref<OOShaderProgram> textureProgram = { };
+    oo::Ref<OOShaderProgram> blurProgram = { };
+    oo::Ref<OOShaderProgram> finalProgram = { };
     GLuint quadTextureVBO = 0, quadTextureVAO = 0, quadTextureEBO = 0;
     GLint defaultDrawFBO = 0;
     GLuint pingpongFBO[2] = { };
@@ -480,12 +499,12 @@ public:
     bool spawnShip(const std::string& shipdesc);
     void witchspaceShipWithPrimaryRole(const std::string& role);
     ::ShipEntity* spawnShipWithRole(const std::string& desc, ::Entity* entity);
-    ::OOVisualEffectEntity* addVisualEffectAt(HPVector pos, const std::string& key);
+    ::Entity* addVisualEffectAt(HPVector pos, const std::string& key); // the effect's object (bead oo-9ht.165)
 
     // Slice 7: adding ships within a radius and on routes, role categories, witchspace entries and effects, break patterns, the docking clearance protocol, game over.
     ::ShipEntity* addShipAt(HPVector pos, const std::string& role, GLfloat radius);
-    std::vector<oo::ObjCRef<::ShipEntity*>> addShipsAt(HPVector pos, const std::string& role, unsigned count, GLfloat radius, bool isGroup);
-    std::vector<oo::ObjCRef<::ShipEntity*>> addShipsToRoute(const std::string& route, const std::string& role, unsigned count, double routeFraction, bool isGroup);
+    std::vector<oo::ObjCRef<::Entity*>> addShipsAt(HPVector pos, const std::string& role, unsigned count, GLfloat radius, bool isGroup);
+    std::vector<oo::ObjCRef<::Entity*>> addShipsToRoute(const std::string& route, const std::string& role, unsigned count, double routeFraction, bool isGroup);
     bool roleIsPirateVictim(const std::string& role);
     bool role(const std::string& role, const std::string& category);
     void forceWitchspaceEntries();
@@ -511,11 +530,11 @@ public:
     ::StationEntity* stationFriendlyTo(::ShipEntity* ship);
     ::OOPlanetEntity* planet();
     ::OOSunEntity* sun();
-    std::vector<oo::ObjCRef<::OOPlanetEntity*>> planets();
-    std::vector<oo::ObjCRef<::StationEntity*>> stations();
+    std::vector<oo::ObjCRef<::Entity*>> planets(); // the planets' Objective-C objects
+    std::vector<oo::ObjCRef<::Entity*>> stations();
 
     // Slice 9: wormholes, the main station, beacons, waypoints, sky colour, the break pattern, making ships by role and name, default AIs, cargo capacity.
-    std::vector<oo::ObjCRef<::WormholeEntity*>> wormholes();
+    std::vector<oo::ObjCRef<::Entity*>> wormholes();
     void unMagicMainStation();
     void resetBeacons();
     OOBeaconEntityObject* firstBeacon();
@@ -524,7 +543,7 @@ public:
     void setLastBeacon(OOBeaconEntityObject* beacon);
     void setNextBeacon(OOBeaconEntityObject* beaconShip);
     void clearBeacon(OOBeaconEntityObject* beaconShip);
-    std::map<std::string, oo::ObjCRef<::OOWaypointEntity*>, std::less<>> currentWaypoints();
+    std::map<std::string, oo::ObjCRef<::Entity*>, std::less<>> currentWaypoints();
     void defineWaypoint(const oo::PList& definition, const std::string& key);
     GLfloat* getSkyClearColor();
     void setSkyColorRed(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha);
@@ -533,14 +552,14 @@ public:
     bool canInstantiateShip(const std::string& shipKey);
     std::optional<std::string> randomShipKeyForRoleRespectingConditions(const std::string& role);
     ::ShipEntity* newShipWithRole(const std::string& role);
-    ::OOVisualEffectEntity* newVisualEffectWithName(const std::string& effectKey);
+    ::Entity* newVisualEffectWithName(const std::string& effectKey); // the effect's object, +1 (bead oo-9ht.165)
     ::ShipEntity* newSubentityWithName(const std::string& shipKey, float scale);
     ::ShipEntity* newShipWithName(const std::string& shipKey, bool usePlayerProxy);
     ::ShipEntity* newShipWithName(const std::string& shipKey, bool usePlayerProxy, bool isSubentity);
-    ::ShipEntity* newShipWithName(const std::string& shipKey, bool usePlayerProxy, bool isSubentity, float scale);
-    ::DockEntity* newDockWithName(const std::string& shipDataKey, float scale);
+    ::ShipEntity* newShipWithName(const std::string& shipKey, bool usePlayerProxy, bool isSubentity, float scale); // its object +1 (a C++ ship since bead oo-9ht.144), as -newShipWithName:... was (the proxy is made in C++ since bead oo-9ht.183)
+    ::ShipEntity* newDockWithName(const std::string& shipDataKey, float scale); // the dock, its object +1 (a C++ ship since bead oo-9ht.144)
     ::ShipEntity* newShipWithName(const std::string& shipKey);
-    Class shipClassForShipDictionary(const oo::PList& dict);
+    bool isStationShipDictionary(const oo::PList& dict); // -shipClassForShipDictionary: picked StationEntity until bead oo-9ht.175
     std::optional<std::string> defaultAIForRole(const std::string& role);
     OOCargoQuantity maxCargoForShip(const std::string& desc);
 
@@ -549,8 +568,8 @@ public:
     ::OOCommodities* getCommodities();
     ::ShipEntity* reifyCargoPod(::ShipEntity* cargoObj);
     ::ShipEntity* cargoPodFromTemplate(::ShipEntity* cargoObj);
-    std::vector<oo::ObjCRef<::ShipEntity*>> getContainersOfGoods(OOCargoQuantity how_many, bool scarce, bool legal);
-    std::vector<oo::ObjCRef<::ShipEntity*>> getContainersOfCommodity(const std::string& commodity_name, OOCargoQuantity how_much);
+    std::vector<oo::ObjCRef<::Entity*>> getContainersOfGoods(OOCargoQuantity how_many, bool scarce, bool legal);
+    std::vector<oo::ObjCRef<::Entity*>> getContainersOfCommodity(const std::string& commodity_name, OOCargoQuantity how_much);
     void fillCargopodWithRandomCargo(::ShipEntity* cargopod);
     std::string getRandomCommodity();
     OOCargoQuantity getRandomAmountOfCommodity(const std::string& co_type);
@@ -801,7 +820,7 @@ public:
     void prunePreloadingPlanetMaterials();
     void loadConditionScripts();
     void addConditionScripts(const std::vector<std::string>& scripts);
-    ::OOJSScript* getConditionScript(const std::string& scriptname);
+    ::OOScript* getConditionScript(const std::string& scriptname);
 };
 
 } // namespace cxx
@@ -829,25 +848,13 @@ OOINLINE Universe* OOGetUniverse(void)
 std::string cxx_OOLookUpDescriptionPRIV(const std::string& key);
 std::string cxx_OOLookUpPluralDescriptionPRIV(const std::string& key, NSInteger count);
 
-// The bodies of the two categories below (slice 26), which forward to them.
+/*	The bodies of the custom-sound categories of OOSound and OOSoundSource (slice 26), which went
+        with the two facades (beads oo-9ht.68 and oo-9ht.88): the sound for a customsounds.plist key
+        (borrowed: the resource manager's cache keeps it; null for none), and playing it on a source
+        (nothing for a null source, as a message to nil did).
+*/
 ::OOSound* OOSoundWithCustomSoundKey(const std::string& key);
 void OOSoundSourcePlayCustomSoundWithKey(::OOSoundSource* source, const std::string& key);
-
-@interface OOSound (OOCustomSounds)
-
-+ (id)cxx_soundWithCustomSoundKey:(const std::string&)key;
-- (id)initWithCustomSoundKey:(const std::string&)key;
-
-@end
-
-@interface OOSoundSource (OOCustomSounds)
-
-+ (id)sourceWithCustomSoundKey:(const std::string&)key;
-- (id)initWithCustomSoundKey:(const std::string&)key;
-
-- (void)cxx_playCustomSoundWithKey:(const std::string&)key;
-
-@end
 
 #ifdef __cplusplus
 #include "oofnd/StdLib.hpp"

@@ -34,24 +34,22 @@ SOFTWARE.
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
 
-namespace cxx {
 class OOColor;
-}
 class OOSkyQuadSet;
 struct OOSkyQuadDesc;
 
 /*	Phase 3 (bead oo-4jjl, proposed ADR-0056 amendments oo-smy, oo-zffj, oo-mw4u and oo-4jjl): a
-        drawable with no facade. Its one caller, SkyEntity, makes it with oo::makeRef and hands the
-        entity the root facade (oo::ToObjC). It is a graphics reset client through the C++ client
+        drawable with no facade. Its one caller, SkyEntity, makes it with oo::makeRef and hands it to
+        the entity. It is a graphics reset client through the C++ client
         interface (amendment oo-jpd8 item 3), which this bead added.
 */
-class OOSkyDrawable : public cxx::OODrawable, public cxx::OOGraphicsResetClient {
+class OOSkyDrawable : public OODrawable, public OOGraphicsResetClient {
 public:
     // -initWithColor1:Color2:Color3:Color4:starCount:nebulaCount:nebulaHueFix:clusterFactor:alpha:scale:
-    OOSkyDrawable(cxx::OOColor* color1,
-        cxx::OOColor* color2,
-        cxx::OOColor* color3,
-        cxx::OOColor* color4,
+    OOSkyDrawable(OOColor* color1,
+        OOColor* color2,
+        OOColor* color3,
+        OOColor* color4,
         unsigned starCount,
         unsigned nebulaCount,
         bool nebulaHueFix,
@@ -66,6 +64,7 @@ public:
 #ifdef OO_DEBUG_MONITOR_ENABLED
     std::vector<oo::ObjCRef<::OOTexture*>> allTextures() override;
     size_t totalSize() override;
+    size_t objectSize() const override { return sizeof *this; }
 #endif
 
     // OOGraphicsResetClient
@@ -74,9 +73,9 @@ public:
 private:
     friend struct OOSkyDrawableTestAccess;
 
-    void setUpStars(cxx::OOColor* color1, cxx::OOColor* color2);
-    void setUpNebulae(cxx::OOColor* color1,
-        cxx::OOColor* color2,
+    void setUpStars(OOColor* color1, OOColor* color2);
+    void setUpNebulae(OOColor* color1,
+        OOColor* color2,
         float nebulaClusterFactor,
         bool nebulaHueFix,
         float nebulaAlpha,
@@ -91,7 +90,7 @@ private:
 
     // The unit test's stand-in for setUpStars(), which needs the game's star textures (decision
     // oo-jsx0h); null in the game.
-    static void (*sSetUpStarsStandIn)(OOSkyDrawable* sky, cxx::OOColor* color1, cxx::OOColor* color2);
+    static void (*sSetUpStarsStandIn)(OOSkyDrawable* sky, OOColor* color1, OOColor* color2);
 
     unsigned _starCount = { };
     unsigned _nebulaCount = { };

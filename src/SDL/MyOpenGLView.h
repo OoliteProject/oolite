@@ -241,7 +241,7 @@ public:
     void setMsaa(bool newMsaa);
     bool msaa();
     static bool pollShiftKey();
-    cxx::OOOpenGLMatrixManager* getOpenGLMatrixManager(); // borrowed
+    OOOpenGLMatrixManager* getOpenGLMatrixManager(); // borrowed
 
     // Slice 3 (bead oo-299r): snapshots and debug image dumps.
     bool snapShot(const std::optional<std::string>& filename); // nullopt: auto-numbered "oolite-NNN"
@@ -367,7 +367,7 @@ public:
 
     NSSize firstScreen = { };
 
-    oo::Ref<cxx::OOOpenGLMatrixManager> matrixManager; // C++ since bead oo-vt0o
+    oo::Ref<OOOpenGLMatrixManager> matrixManager; // C++ since bead oo-vt0o
 
     // Mouse mode indicator (for mouse movement model)
     bool mouseInDeltaMode = { };

@@ -53,7 +53,9 @@ __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
 #include <unistd.h>
 #endif
 
-GameController* controller;
+namespace {
+oo::Ref<cxx::GameController> controller;
+}
 #endif
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
@@ -192,7 +194,10 @@ int main(int argc, char* argv[])
     @try {
         // dajt: allocate and set the NSApplication delegate manually because not
         // using NIB to do this
-        controller = [[GameController alloc] init];
+        controller = oo::makeRef<cxx::GameController>();
+        // The game view keeps the controller's facade unretained; it lives as long as the process,
+        // as the Objective-C controller main held did.
+        [oo::ToObjC(controller.get()) retain];
 
         for (i = 1; i < argc; i++) {
             if (strcmp("-load", argv[i]) == 0) {
@@ -201,7 +206,7 @@ int main(int argc, char* argv[])
             // argv is UTF-8 (SDL_main); an argument past the end reads as nothing, as nil did.
             const std::string argument = (i < argc) ? argv[i] : "";
             if (i < argc && oo::str::hasSuffix(oo::str::lowercase(argument), ".oolite-save")) {
-                [controller cxx_setPlayerFileToLoad:argument];
+                controller->setPlayerFileToLoad(argument);
             }
 
             if (!strcmp("-help", argv[i]) || !strcmp("--help", argv[i])) {
@@ -256,7 +261,7 @@ int main(int argc, char* argv[])
 
         // Call applicationDidFinishLaunching because NSApp is not running in
         // GNUstep port.
-        [controller applicationDidFinishLaunching];
+        controller->applicationDidFinishLaunching();
     }
     @catch (OOException* exception) {
         OO_LOG_ERR(cxx_kOOLogException, "Root exception handler hit - terminating. This is an internal error, please report it. Exception name: {}, reason: {}", [exception name], [exception reason]);

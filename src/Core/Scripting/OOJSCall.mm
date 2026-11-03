@@ -28,6 +28,7 @@ MA 02110-1301, USA.
 
 #import "OOJSCall.h"
 #import "OOCallByName.h"
+#import "OOColor.h" // a colour result (kMethodTypeColorVoid)
 #import "OOJavaScriptEngine.h"
 #import "OOObjCPList.h"
 #include "oofnd/objc/OORuntime.h"
@@ -36,6 +37,7 @@ MA 02110-1301, USA.
 #import "OOJSQuaternion.h"
 #import "OOJSVector.h"
 #import "OOShaderUniformMethodType.h"
+#import "PlayerEntity.h" // the script target (a C++ member)
 #import "ShipEntity.h"
 #include "oofnd/PListGet.hpp"
 #include "oofnd/String.hpp"
@@ -57,6 +59,7 @@ typedef enum {
     kMethodTypeQuaternionVoid = kOOShaderUniformTypeQuaternion,
     kMethodTypeMatrixVoid = kOOShaderUniformTypeMatrix,
     kMethodTypePointVoid = kOOShaderUniformTypePoint,
+    kMethodTypeColorVoid = kOOShaderUniformTypeColor, // a colour (OOColor *)
 
     kMethodTypeObjectVoid = kOOShaderUniformTypeObject,
     kMethodTypeObjectObject,
@@ -88,8 +91,9 @@ bool OOJSCallObjCObjectMethod(JSContext* context, id object, const std::string& 
         return false;
     }
 
-    if ([object isKindOfClass:[ShipEntity class]]) {
-        [PLAYER setScriptTarget:object];
+    if ((oo::ToShip(object) != nullptr)) {
+        if (PLAYER != nullptr)
+            PLAYER->PlayerEntity::setScriptTarget(oo::ToShip(object)); // qualified: the final overrider, so the binding test stands in for it
     }
 
     selectorString = cxx_OOStringFromJSValue(context, argv[0]);
@@ -123,6 +127,13 @@ bool OOJSCallObjCObjectMethod(JSContext* context, id object, const std::string& 
             case kMethodTypeObjectObject:
                 // Called by name with the joined string (ADR-0055 item 5); a void method gives null.
                 result = OOCallByName(object, selector, *paramString);
+                break;
+
+            case kMethodTypeColorVoid:
+                // A colour result is its PList::Object node, as the colour's facade's was.
+                result = OOColorObjectNode(((ColorReturnMsgSend)method)(object, selector));
+                if (selectorString.has_value() && oo::str::hasSuffix(*selectorString, "_bool"))
+                    result = oo::PList(false); // a colour answered neither -boolValue nor -intValue
                 break;
 
             case kMethodTypeObjectVoid:

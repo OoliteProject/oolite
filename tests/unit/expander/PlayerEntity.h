@@ -31,4 +31,21 @@ PlayerEntity *OOGetPlayer(void);
 #ifdef __cplusplus
 }
 #endif
-#define PLAYER OOGetPlayer()
+// Since the player's facade was deleted, the game's PLAYER is the C++ player: the expander calls its members and
+// crosses to its Objective-C object (which answers the by-name selectors) with oo::ToObjC. The
+// harness's player stays the Objective-C stub above; this C++ view of it forwards to it.
+struct OOHarnessPlayer
+{
+	OOSystemID systemID()  { return [OOGetPlayer() systemID]; }
+	std::optional<std::string> keyBindingDescription2(const std::string &binding)  { return [OOGetPlayer() cxx_keyBindingDescription2:binding]; }
+	oo::PList missionVariableForKey(const std::string &key)  { return [OOGetPlayer() cxx_missionVariableForKey:key]; }
+};
+namespace oo {
+inline id ToObjC(OOHarnessPlayer *player)  { return player != nullptr ? OOGetPlayer() : nil; }
+}
+inline OOHarnessPlayer *OOHarnessGetPlayer()
+{
+	static OOHarnessPlayer player;
+	return OOGetPlayer() != nil ? &player : nullptr;
+}
+#define PLAYER OOHarnessGetPlayer()

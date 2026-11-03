@@ -28,6 +28,7 @@ MA 02110-1301, USA.
 
 #import "Entity.h"
 #import "OOColor.h"
+#import "OOGraphicsResetManager.h"
 
 #include "legacy_random.h"
 #include "oofnd/PList.hpp"
@@ -40,16 +41,22 @@ MA 02110-1301, USA.
         -name / -setName: retired with oo-qps.44); -textureFileName and -setUpPlanetFromTexture: flipped with PlanetEntity (bead oo-3rb.269.1).
 */
 
-@class ShipEntity, OOMaterial, OOTexture;
+@class OOMaterial, OOTexture;
+class ShipEntity; // C++
 class OOPlanetDrawable; // C++ since bead oo-mw4u (no facade: this class is its one caller)
 
-namespace cxx {
-
-class OOPlanetEntity : public Entity {
+/*	C++ only (its Objective-C facade is deleted): the universe and the legacy scripts make it with
+        oo::makeRef<OOPlanetEntity>(), hand it to Objective-C with oo::NewEntityFacade (its object is the
+        root Entity's facade) and hold it as the C++ class. Its OOStellarBody answers are members
+        (OOStellarBodyRadius() asks them for an Objective-C object), and the root's facade answers the
+        shader binding selectors for a planet only (Entity (OOPlanetShaderBindings), Entity+ObjCBridge.mm).
+*/
+class OOPlanetEntity : public cxx::Entity, public ::OOGraphicsResetClient {
 public:
-    /*	The initialisers' bodies after [self init] (the constructor ran Entity's). The facade runs
-            them once it holds this object (amendment oo-0mxi item 2), because the universe and the
-            legacy scripts allocate planets.
+    ~OOPlanetEntity() override; // unregisters the graphics reset client
+
+    /*	The initialisers' bodies after [self init] (the constructor ran Entity's), run on a new planet
+            once its object is made (the facade ran them before).
     */
     void initAsMainPlanetForSystem(OOSystemID s);
     void initFromDictionary(const oo::PList& dict, bool atmosphere, Random_Seed seed, OOSystemID systemID);
@@ -92,14 +99,15 @@ public:
     void setTerminatorThresholdVector(Vector newTerminatorThresholdVector);
     Vector terminatorThresholdVector(); // visible to shader bindings
 
-    // OOStellarBody (answered by the facade).
+    // OOStellarBody (which the facade answered).
     double radius();
     OOStellarBodyType planetType();
     std::optional<std::string> name();
     void setName(const std::optional<std::string>& name);
 
-    // OOGraphicsResetClient: the facade is the client and forwards.
-    void resetGraphicsState();
+    // OOGraphicsResetClient: the planet registers itself once set up (its facade was the client
+    // before).
+    void resetGraphicsState() override;
 
     std::optional<std::string> descriptionComponents() const override;
     void setOrientation(Quaternion quat) override;
@@ -108,6 +116,11 @@ public:
     bool checkCloseCollisionWith(Entity* other) override;
     bool isPlanet() override;
     bool isVisible() override;
+
+    // The binding's bodies (OOJSPlanet.mm), which the facade forwarded to.
+    JSClassID jsClassID() override;
+    std::optional<std::string> jsClassName() override;
+    bool isVisibleToScripts() override;
 
 private:
     bool initAsMiniatureVersionOfPlanet(OOPlanetEntity* planet);
@@ -151,10 +164,3 @@ private:
     // under "noise_map_seed" in planetInfo / _materialParameters (bead oo-3rb.48).
     RANROTSeed _noiseMapSeed = { };
 };
-
-} // namespace cxx
-
-// Transitional: the Objective-C OOPlanetEntity, for the universe and the legacy scripts, which make
-// planets, and the many callers that message them. Deleted, with namespace cxx above, by the
-// bridge's deletion bead.
-#import "OOPlanetEntity+ObjCBridge.h"

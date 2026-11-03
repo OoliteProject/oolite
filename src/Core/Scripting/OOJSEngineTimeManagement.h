@@ -5,10 +5,8 @@ OOJSEngineTimeManagement.h
 Functionality related to time limiting and profiling of JavaScript code.
 
 C++20 since bead oo-cn4o (proposed ADR-0056; amendment oo-ppc for the scripting files): the
-profile classes are cxx::OOTimeProfile and cxx::OOTimeProfileEntry, and
-OOJSEngineTimeManagement+ObjCBridge.h, imported at the end of this header, keeps their
-Objective-C facades, which the debug console holds and the engine converts to JavaScript
-(-oo_jsValueInContext:).
+profile classes are OOTimeProfile and OOTimeProfileEntry (no Objective-C facades: the debug console
+holds them and the engine converts them to JavaScript with oo_jsValueInContext()).
 
 
 Copyright (C) 2010-2013 Jens Ayton
@@ -97,15 +95,14 @@ SOFTWARE.
         are profiled are found in OOJavaScriptEngine.h.
 */
 
-@class OOTimeProfile, OOTimeProfileEntry;
+class OOTimeProfile;
+
+oo::Ref<OOTimeProfile> OOJSEndProfiling(void);
 
 void OOJSBeginProfiling(bool trace);
-OOTimeProfile* OOJSEndProfiling(void); // autoreleased: the facade of the profile
 bool OOJSIsProfiling(void);
 
 void OOJSExcludeTimeFromLimiter(OOTimeDelta time);
-
-namespace cxx {
 
 class OOTimeProfileEntry;
 
@@ -180,8 +177,6 @@ private:
     double _selfTimeMax = { };
 };
 
-} // namespace cxx
-
 #endif
 
 @class OOJavaScriptEngine;
@@ -191,7 +186,3 @@ private:
         does nothing; it is kept for source compatibility.
 */
 void OOJSTimeManagementInit(OOJavaScriptEngine* engine, JSRuntime* runtime);
-
-// Transitional: the Objective-C OOTimeProfile and OOTimeProfileEntry, for callers not yet converted.
-// Deleted, with namespace cxx above, by the bridge's deletion bead.
-#import "OOJSEngineTimeManagement+ObjCBridge.h"

@@ -67,19 +67,19 @@ OOShaderSetting cxx_OOShaderSettingFromString(const std::string &string)
 }
 
 
-// The shader program (OOShaderProgram.mm reaches the resource manager): the one message the
-// uniform sends, -program, answering the program the test linked.
-@interface OOShaderProgram: OOObject
-{
-@public
-	GLhandleARB	_program;
-}
-- (GLhandleARB) program;
-@end
+// The shader program (OOShaderProgram.mm reaches the resource manager): the one member the
+// uniform calls, program(), answering the program the test linked. OOShaderProgram is C++ since
+// its facade was deleted (bead oo-9ht.58): the stand-in is definitions of the members it uses.
+static GLhandleARB gStandInProgram = 0;
 
-@implementation OOShaderProgram
-- (GLhandleARB) program	{ return _program; }
-@end
+OOShaderProgram::~OOShaderProgram()  {}
+GLhandleARB OOShaderProgram::program()  { return _program; }
+oo::Ref<OOShaderProgram> OOShaderProgram::shaderProgramWithVertexShaderName(const std::string &, const std::string &, const std::optional<std::string> &, const oo::PList &)
+{
+	oo::Ref<OOShaderProgram> made = oo::adopt(new OOShaderProgram());
+	made->_program = gStandInProgram;
+	return made;
+}
 
 
 // A binding target: one property per supported return type, and some that are not.
@@ -103,7 +103,7 @@ OOShaderSetting cxx_OOShaderSettingFromString(const std::string &string)
 - (Quaternion) quaternionValue			{ Quaternion q = { 0.5f, 0.5f, 0.5f, 0.5f }; return q; }
 - (OOMatrix) matrixValue				{ return OOMatrixForScale(2, 3, 4); }
 - (NSPoint) pointValue					{ return NSMakePoint(1.5, -2.5); }
-- (id) colorValue						{ return [OOColor colorWithRed:0.25f green:0.5f blue:0.75f alpha:1.0f]; }
+- (OOColor *) colorValue				{ static oo::Ref<OOColor> color = OOColor::colorWithRed(0.25f, 0.5f, 0.75f, 1.0f); return color.get(); }	// a colour binding answers the C++ colour (bead oo-9ht.1)
 - (id) notAColor						{ return self; }
 - (float) withArgument:(int)argument	{ return (float)argument; }
 - (void) nothing						{}
@@ -127,7 +127,8 @@ typedef void (APIENTRY *GetUniformiv)(GLhandleARB, GLint, GLint *);
 GLhandleARB gProgram = 0;
 GetUniformfv gGetUniformfv = nullptr;
 GetUniformiv gGetUniformiv = nullptr;
-OOShaderProgram *gShaderProgram = nil;
+OOShaderProgram *gShaderProgram = nullptr;
+oo::Ref<OOShaderProgram> gShaderProgramHeld;
 
 
 // A program with one uniform of each kind, each used so that the linker keeps it.
@@ -162,8 +163,9 @@ bool SetUpProgram()
 	glLinkProgramARB(gProgram);
 	glUseProgramObjectARB(gProgram);
 
-	gShaderProgram = [[OOShaderProgram alloc] init];
-	gShaderProgram->_program = gProgram;
+	gStandInProgram = gProgram;
+	gShaderProgramHeld = OOShaderProgram::shaderProgramWithVertexShaderName("", "", std::nullopt, oo::PList());
+	gShaderProgram = gShaderProgramHeld.get();
 	return glGetUniformLocationARB(gProgram, "uFloat") != -1;
 }
 
@@ -231,7 +233,7 @@ OO_TEST(initialisersThatFail)
 	{
 		OO_CHECK(OOShaderUniform::initWithName("uFloat", nil, GLfloat(1)) == nullptr);
 		OO_CHECK(OOShaderUniform::initWithName("uMissing", gShaderProgram, GLfloat(1)) == nullptr);
-		OO_CHECK(OOShaderUniform::initWithName("uVector", gShaderProgram, static_cast<cxx::OOColor *>(nullptr)) == nullptr);
+		OO_CHECK(OOShaderUniform::initWithName("uVector", gShaderProgram, static_cast<OOColor *>(nullptr)) == nullptr);
 		TestTarget *target = [[[TestTarget alloc] init] autorelease];
 		OO_CHECK(OOShaderUniform::initWithName("uFloat", gShaderProgram, target, NULL, 0) == nullptr);
 		OO_CHECK(OOShaderUniform::initWithName("uFloat", nil, target, OOSelectorFromName("floatValue"), 0) == nullptr);
@@ -253,7 +255,7 @@ OO_TEST(constants)
 		GLfloat v[4] = { 1, 2, 3, 4 };
 		OOShaderUniform::initWithName("uVector", gShaderProgram, v)->apply();
 		OO_CHECK(Near(Floats("uVector", 4), { 1, 2, 3, 4 }));
-		OOShaderUniform::initWithName("uVector", gShaderProgram, cxx::OOColor::colorWithRed(0.1f, 0.2f, 0.3f, 0.4f).get())->apply();
+		OOShaderUniform::initWithName("uVector", gShaderProgram, OOColor::colorWithRed(0.1f, 0.2f, 0.3f, 0.4f).get())->apply();
 		OO_CHECK(Near(Floats("uVector", 4), { 0.1f, 0.2f, 0.3f, 0.4f }));
 
 		// A quaternion as a vector is x, y, z, w; as a matrix it is its rotation.
@@ -439,13 +441,13 @@ OO_TEST(cxxAPI)
 	{
 		OO_CHECK(OOShaderUniform::initWithName("uFloat", nil, 1.0f) == nullptr);
 		OO_CHECK(OOShaderUniform::initWithName("uMissing", gShaderProgram, 1.0f) == nullptr);
-		OO_CHECK(OOShaderUniform::initWithName("uVector", gShaderProgram, static_cast<cxx::OOColor *>(nullptr)) == nullptr);
+		OO_CHECK(OOShaderUniform::initWithName("uVector", gShaderProgram, static_cast<OOColor *>(nullptr)) == nullptr);
 
 		Reset();
 		OOShaderUniform::initWithName("uInt", gShaderProgram, GLint(4))->apply();
 		OOShaderUniform::initWithName("uFloat", gShaderProgram, 0.5f)->apply();
 		OO_CHECK(Int("uInt") == 4 && Near(Floats("uFloat", 1), { 0.5f }));
-		OOShaderUniform::initWithName("uVector", gShaderProgram, cxx::OOColor::colorWithRed(0.1f, 0.2f, 0.3f, 0.4f).get())->apply();
+		OOShaderUniform::initWithName("uVector", gShaderProgram, OOColor::colorWithRed(0.1f, 0.2f, 0.3f, 0.4f).get())->apply();
 		OO_CHECK(Near(Floats("uVector", 4), { 0.1f, 0.2f, 0.3f, 0.4f }));
 		const Quaternion q = { 0.5f, 0.5f, 0.5f, 0.5f };
 		OOShaderUniform::initWithName("uVector", gShaderProgram, q, false)->apply();

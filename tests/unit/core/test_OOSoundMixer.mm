@@ -11,13 +11,15 @@
 	root's +update is the game's, so it reaches this mixer. These expectations were written
 	against the Objective-C API and ran on the unconverted class first; they ran through the facade until bead oo-9ht.87 deleted
 	it, and now ask the C++ mixer with the same expectations (the facade's own contract was retired
-	with it: ADR-0049, standing approval oo-9n5p9). Before the shutdown, which is last, comes the
-	C++ API. Run: bash tools/check-core-tests.sh test_OOSoundMixer
+	with it: ADR-0049, standing approval oo-9n5p9); since bead oo-9ht.68 deleted the root's facade
+	they ask the C++ root, and the decoder is a C++ stand-in since bead oo-9ht.82. Before the
+	shutdown, which is last, comes the C++ API. Run: bash tools/check-core-tests.sh test_OOSoundMixer
 */
 
 #import "OOALSoundMixer.h"
 #import "OOALSoundChannel.h"
 #import "OOALSound.h"
+#import "OOALSoundDecoder.h"
 #import "OOALBufferedSound.h"
 #import "OOALStreamedSound.h"
 
@@ -39,23 +41,20 @@ void OOLogGenericSubclassResponsibilityForFunction(const char *inFunction)
 }
 
 
-@interface OOALSoundDecoder: OOObject
-@end
-
-@implementation OOALSoundDecoder
-- (id)cxx_initWithPath:(const std::optional<std::string> &)inPath	{ (void)inPath; [self release]; return nil; }
-@end
+// The decoder the root's cluster asks for: none, for every path (a C++ stand-in since bead
+// oo-9ht.82 deleted the Objective-C facade this file stubbed).
+oo::Ref<OOALSoundDecoder> OOALSoundDecoder::initWithPath(const std::optional<std::string> &inPath)	{ (void)inPath; return nullptr; }
 
 // The buffered sound the root's cluster names: a C++ stand-in since bead oo-9ht.83 deleted the
 // Objective-C facade this file stubbed. The decoder above refuses every path, so none is made.
-oo::Ref<OOALBufferedSound> OOALBufferedSound::initWithDecoder(::OOALSoundDecoder *inDecoder)	{ (void)inDecoder; return nullptr; }
+oo::Ref<OOALBufferedSound> OOALBufferedSound::initWithDecoder(OOALSoundDecoder *inDecoder)	{ (void)inDecoder; return nullptr; }
 OOALBufferedSound::~OOALBufferedSound()  {}
 std::optional<std::string> OOALBufferedSound::name()  { return _name; }
 ALuint OOALBufferedSound::soundBuffer()  { return 0; }
 
 // The streamed sound the root's cluster names: a C++ stand-in since bead oo-9ht.84 deleted the
 // Objective-C facade this file stubbed. None is made here.
-oo::Ref<OOALStreamedSound> OOALStreamedSound::initWithDecoder(::OOALSoundDecoder *inDecoder)	{ (void)inDecoder; return nullptr; }
+oo::Ref<OOALStreamedSound> OOALStreamedSound::initWithDecoder(OOALSoundDecoder *inDecoder)	{ (void)inDecoder; return nullptr; }
 OOALStreamedSound::~OOALStreamedSound()  {}
 std::optional<std::string> OOALStreamedSound::name()  { return _name; }
 void OOALStreamedSound::rewind()  {}
@@ -128,10 +127,10 @@ void SetUp()
 OO_TEST(theSharedMixerMakesItsChannels)
 {
 	SetUp();
-	OO_CHECK(![OOSound isSoundOK]);
+	OO_CHECK(!OOSound::isSoundOK());
 	OOSoundMixer *mixer = OOSoundMixer::sharedMixer();
 	OO_CHECK(mixer != nullptr);
-	OO_CHECK([OOSound isSoundOK]);
+	OO_CHECK(OOSound::isSoundOK());
 	OO_CHECK(gLiveChannels == kMixerGeneralChannels);
 	OO_CHECK(OOSoundMixer::sharedMixer() == mixer);
 	OO_CHECK(gLiveChannels == kMixerGeneralChannels);
@@ -179,7 +178,7 @@ OO_TEST(updateUpdatesEveryChannel)
 	const int before = gChannelUpdates;
 	mixer->update();
 	OO_CHECK(gChannelUpdates == before + kMixerGeneralChannels);
-	[OOSound update];
+	OOSound::update();
 	OO_CHECK(gChannelUpdates == before + 2 * kMixerGeneralChannels);
 
 	OOSoundChannel *channel = mixer->popChannel();

@@ -23,6 +23,7 @@
 */
 
 #import "PlayerEntityStickProfile.h"
+#import "PlayerEntity.h"	// PLAYER is C++ (bead oo-9ht.177)
 #import "OOJoystickManager.h"
 #import "GuiDisplayGen.h"
 
@@ -48,26 +49,29 @@ extern PlayerEntity *gOOPlayer;	// PlayerEntity.mm's, what PLAYER answers
 extern JSContext *gOOJSMainThreadContext;	// the engine's; OOJSID needs it
 
 
-// PLAYER: the screen asks it for its status; the GUI sends it a script event when a row is selected.
-@interface StickProfileTestPlayer: OOObject
-- (OOEntityStatus) status;
-- (void) cxx_doScriptEvent:(OOJSPropID)message withPListArguments:(const std::vector<oo::PList> &)arguments;
-@end
-
-
-@implementation StickProfileTestPlayer
-
-- (OOEntityStatus) status
+// PLAYER: the screen asks it for its status (docked: the root's member, which is not virtual, so the
+// player is made docked); the GUI sends it a script event when a row is selected.
+class StickProfileTestPlayer : public PlayerEntity	// C++ since bead oo-9ht.177 deleted the Objective-C player
 {
-	return STATUS_DOCKED;
+public:
+	using PlayerEntity::doScriptEvent;
+	void doScriptEvent(OOJSPropID message, const std::vector<oo::PList> & arguments) override	{  }
+};
+
+// [[TestPlayer alloc] init] (bead oo-9ht.177): a C++ player under the ship's facade, as
+// PlayerEntity::sharedPlayer() makes the game's, retained (+1) as +alloc's object was.
+template <class T>
+T *NewTestPlayer()
+{
+	oo::Ref<T> player = oo::makeRef<T>();
+	@autoreleasepool
+	{
+		[oo::NewEntityFacade(player) retain];
+	}
+	return player.get();
 }
 
 
-- (void) cxx_doScriptEvent:(OOJSPropID)message withPListArguments:(const std::vector<oo::PList> &)arguments
-{
-}
-
-@end
 
 
 namespace {
@@ -87,7 +91,8 @@ void SetUp()
 	OO_CHECK(::_putenv_s("HOMEPATH", sRoot.string().c_str()) == 0);
 	(void)oo::Defaults::standard();
 
-	gOOPlayer = (PlayerEntity *)[[StickProfileTestPlayer alloc] init];
+	gOOPlayer = NewTestPlayer<StickProfileTestPlayer>();
+	gOOPlayer->cxx::Entity::setStatus(STATUS_DOCKED);	// the root's: what the Objective-C stand-in's -status answered
 	gOOJSMainThreadContext = JS_NewContext(JS_NewRuntime());
 }
 
@@ -131,7 +136,7 @@ bool Near(double a, double b)
 // A screen started on a new GUI, as -setGuiToStickProfileScreen: starts it.
 struct Started
 {
-	GuiDisplayGen		*gui;
+	oo::Ref<GuiDisplayGen>	gui;
 	oo::Ref<StickProfileScreen>	screen;
 };
 
@@ -141,9 +146,9 @@ Started Start()
 	SetUp();
 	ResetProfiles();
 	Started started;
-	started.gui = [[[GuiDisplayGen alloc] init] autorelease];
+	started.gui = oo::makeRef<GuiDisplayGen>();
 	started.screen = oo::makeRef<StickProfileScreen>();
-	started.screen->startGui(started.gui);
+	started.screen->startGui(started.gui.get());
 	return started;
 }
 
@@ -155,22 +160,22 @@ OO_TEST(startShowsTheRollAxisStandardProfile)
 	@autoreleasepool
 	{
 		Started s = Start();
-		GuiDisplayGen *gui = s.gui;
+		oo::Ref<GuiDisplayGen>	gui = s.gui;
 
-		OO_CHECK([gui cxx_title] == std::optional<std::string>("oolite-stickprofile-title"));
-		OO_CHECK_EQ([gui selectedRow], 1);
-		OO_CHECK([gui selectableRange].location == 1 && [gui selectableRange].length == 20);
+		OO_CHECK(gui->getTitle() == std::optional<std::string>("oolite-stickprofile-title"));
+		OO_CHECK_EQ(gui->getSelectedRow(), 1);
+		OO_CHECK(gui->getSelectableRange().location == 1 && gui->getSelectableRange().length == 20);
 
-		OO_CHECK([gui objectForRow:1] == Row({ "oolite-stickprofile-axis", "stickmapper-roll" }));
+		OO_CHECK(gui->objectForRow(1) == Row({ "oolite-stickprofile-axis", "stickmapper-roll" }));
 		// A new standard profile: dead zone STICK_DEADZONE (half the maximum), power 1, parameter 1.
-		OO_CHECK([gui objectForRow:2] == Row({ "oolite-stickprofile-deadzone", Bars(10) + " (" + oo::str::format("%0.4f", STICK_DEADZONE) + ")" }));
-		OO_CHECK([gui objectForRow:3] == Row({ "oolite-stickprofile-profile-type", "oolite-stickprofile-type-standard" }));
-		OO_CHECK([gui objectForRow:4] == Row({ "oolite-stickprofile-range", Bars(2) + " (1.0) " }));
-		OO_CHECK([gui objectForRow:5] == Row({ "oolite-stickprofile-sensitivity", Bars(20) + " (1.00) " }));
-		OO_CHECK([gui objectForRow:20] == oo::PList(std::string("gui-back")));
+		OO_CHECK(gui->objectForRow(2) == Row({ "oolite-stickprofile-deadzone", Bars(10) + " (" + oo::str::format("%0.4f", STICK_DEADZONE) + ")" }));
+		OO_CHECK(gui->objectForRow(3) == Row({ "oolite-stickprofile-profile-type", "oolite-stickprofile-type-standard" }));
+		OO_CHECK(gui->objectForRow(4) == Row({ "oolite-stickprofile-range", Bars(2) + " (1.0) " }));
+		OO_CHECK(gui->objectForRow(5) == Row({ "oolite-stickprofile-sensitivity", Bars(20) + " (1.00) " }));
+		OO_CHECK(gui->objectForRow(20) == oo::PList(std::string("gui-back")));
 		for (int row : { 1, 2, 3, 4, 5, 20 })
 		{
-			OO_CHECK([gui cxx_keyForRow:row] == std::optional<std::string>(std::string(GUI_KEY_OK)));
+			OO_CHECK(gui->keyForRow(row) == std::optional<std::string>(std::string(GUI_KEY_OK)));
 		}
 	}
 }
@@ -183,19 +188,19 @@ OO_TEST(theAxisStepsBetweenRollPitchAndYaw)
 		Started s = Start();
 
 		s.screen->previousAxis();	// roll is the first
-		OO_CHECK([s.gui objectForRow:1] == Row({ "oolite-stickprofile-axis", "stickmapper-roll" }));
+		OO_CHECK(s.gui->objectForRow(1) == Row({ "oolite-stickprofile-axis", "stickmapper-roll" }));
 		s.screen->nextAxis();
-		OO_CHECK([s.gui objectForRow:1] == Row({ "oolite-stickprofile-axis", "stickmapper-pitch" }));
+		OO_CHECK(s.gui->objectForRow(1) == Row({ "oolite-stickprofile-axis", "stickmapper-pitch" }));
 		s.screen->nextAxis();
-		OO_CHECK([s.gui objectForRow:1] == Row({ "oolite-stickprofile-axis", "stickmapper-yaw" }));
+		OO_CHECK(s.gui->objectForRow(1) == Row({ "oolite-stickprofile-axis", "stickmapper-yaw" }));
 		s.screen->nextAxis();	// yaw is the last
-		OO_CHECK([s.gui objectForRow:1] == Row({ "oolite-stickprofile-axis", "stickmapper-yaw" }));
+		OO_CHECK(s.gui->objectForRow(1) == Row({ "oolite-stickprofile-axis", "stickmapper-yaw" }));
 		s.screen->previousAxis();
-		OO_CHECK([s.gui objectForRow:1] == Row({ "oolite-stickprofile-axis", "stickmapper-pitch" }));
+		OO_CHECK(s.gui->objectForRow(1) == Row({ "oolite-stickprofile-axis", "stickmapper-pitch" }));
 
 		// Starting again goes back to roll.
-		s.screen->startGui(s.gui);
-		OO_CHECK([s.gui objectForRow:1] == Row({ "oolite-stickprofile-axis", "stickmapper-roll" }));
+		s.screen->startGui(s.gui.get());
+		OO_CHECK(s.gui->objectForRow(1) == Row({ "oolite-stickprofile-axis", "stickmapper-roll" }));
 	}
 }
 
@@ -211,7 +216,7 @@ OO_TEST(theDeadZoneStepsByATwentiethOfItsMaximumOnTheCurrentAxis)
 		s.screen->increaseDeadzone();
 		OO_CHECK(Near(roll->deadzone(), STICK_DEADZONE + STICK_MAX_DEADZONE / 20));
 		OO_CHECK(Near(pitch->deadzone(), STICK_DEADZONE));
-		OO_CHECK([s.gui objectForRow:2] == Row({ "oolite-stickprofile-deadzone", Bars(11) + " (" + oo::str::format("%0.4f", roll->deadzone()) + ")" }));
+		OO_CHECK(s.gui->objectForRow(2) == Row({ "oolite-stickprofile-deadzone", Bars(11) + " (" + oo::str::format("%0.4f", roll->deadzone()) + ")" }));
 
 		s.screen->nextAxis();
 		s.screen->decreaseDeadzone();
@@ -222,7 +227,7 @@ OO_TEST(theDeadZoneStepsByATwentiethOfItsMaximumOnTheCurrentAxis)
 		// The profile clamps it at zero.
 		for (int i = 0; i < 20; i++)  s.screen->decreaseDeadzone();
 		OO_CHECK(pitch->deadzone() == 0.0);
-		OO_CHECK([s.gui objectForRow:2] == Row({ "oolite-stickprofile-deadzone", Bars(0) + " (0.0000)" }));
+		OO_CHECK(s.gui->objectForRow(2) == Row({ "oolite-stickprofile-deadzone", Bars(0) + " (0.0000)" }));
 	}
 }
 
@@ -237,7 +242,7 @@ OO_TEST(powerAndParameterStepTheStandardProfile)
 		s.screen->IncreasePower();
 		s.screen->IncreasePower();
 		OO_CHECK(Near(roll->power(), 1.0 + 2 * STICKPROFILE_MAX_POWER / 20));
-		OO_CHECK([s.gui objectForRow:4] == Row({ "oolite-stickprofile-range", Bars(4) + " (2.0) " }));
+		OO_CHECK(s.gui->objectForRow(4) == Row({ "oolite-stickprofile-range", Bars(4) + " (2.0) " }));
 		s.screen->DecreasePower();
 		OO_CHECK(Near(roll->power(), 1.0 + STICKPROFILE_MAX_POWER / 20));
 
@@ -245,7 +250,7 @@ OO_TEST(powerAndParameterStepTheStandardProfile)
 		s.screen->DecreaseParam();
 		OO_CHECK(Near(roll->parameter(), 0.9));
 		// The bar count is 20 x the parameter truncated, as the screen computes it (17 for 1 - 0.05 - 0.05).
-		OO_CHECK([s.gui objectForRow:5] == Row({ "oolite-stickprofile-sensitivity", Bars(static_cast<int>(20 * roll->parameter())) + " (0.90) " }));
+		OO_CHECK(s.gui->objectForRow(5) == Row({ "oolite-stickprofile-sensitivity", Bars(static_cast<int>(20 * roll->parameter())) + " (0.90) " }));
 		s.screen->IncreaseParam();
 		OO_CHECK(Near(roll->parameter(), 0.95));
 	}
@@ -270,11 +275,11 @@ OO_TEST(theProfileTypeSwitchesAndKeepsTheOtherForTheSwitchBack)
 		OO_CHECK(dynamic_cast<OOJoystickSplineAxisProfile *>(spline.get()) != nullptr);
 		OO_CHECK(s.screen->currentProfileIsSpline());
 		OO_CHECK(Near(spline->deadzone(), deadzone));	// the dead zone carries over
-		OO_CHECK([s.gui objectForRow:3] == Row({ "oolite-stickprofile-profile-type", "oolite-stickprofile-type-spline" }));
-		OO_CHECK([s.gui objectForRow:4] == oo::PList(std::string()));
-		OO_CHECK([s.gui cxx_keyForRow:4] == std::optional<std::string>(std::string(GUI_KEY_SKIP)));
-		OO_CHECK([s.gui objectForRow:5] == oo::PList(std::string("oolite-stickprofile-spline-instructions")));
-		OO_CHECK([s.gui cxx_keyForRow:5] == std::optional<std::string>(std::string(GUI_KEY_SKIP)));
+		OO_CHECK(s.gui->objectForRow(3) == Row({ "oolite-stickprofile-profile-type", "oolite-stickprofile-type-spline" }));
+		OO_CHECK(s.gui->objectForRow(4) == oo::PList(std::string()));
+		OO_CHECK(s.gui->keyForRow(4) == std::optional<std::string>(std::string(GUI_KEY_SKIP)));
+		OO_CHECK(s.gui->objectForRow(5) == oo::PList(std::string("oolite-stickprofile-spline-instructions")));
+		OO_CHECK(s.gui->keyForRow(5) == std::optional<std::string>(std::string(GUI_KEY_SKIP)));
 
 		// Power and parameter do nothing to a spline.
 		s.screen->IncreasePower();
@@ -293,7 +298,7 @@ OO_TEST(theProfileTypeSwitchesAndKeepsTheOtherForTheSwitchBack)
 		OO_CHECK([Handler() getProfileForAxis:AXIS_ROLL] == spline);
 
 		// Starting again forgets the kept profiles: the next switch makes a new one.
-		s.screen->startGui(s.gui);
+		s.screen->startGui(s.gui.get());
 		s.screen->previousProfileType();
 		OO_CHECK([Handler() getProfileForAxis:AXIS_ROLL] != standard);
 		OO_CHECK(dynamic_cast<OOJoystickStandardAxisProfile *>([Handler() getProfileForAxis:AXIS_ROLL]) != nullptr);

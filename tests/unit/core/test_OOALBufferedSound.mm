@@ -10,17 +10,17 @@
 	oo-z1s4 item 4). These expectations were written against the Objective-C API and ran on the
 	unconverted class first; they ran through the facade, which was its forwarding test, until bead
 	oo-9ht.83 deleted the facade: they now ask the C++ class (alloc/init as initWithDecoder(), the
-	class checks as dynamic_cast, the description through the root's facade) with every expectation
-	kept (standing approval oo-9n5p9). After them come the C++ API (OOALBufferedSound, a subclass of
-	cxx::OOSound) and the crossing that replaced the facade's contract: a buffered sound's facade
-	is the root's. Run: bash tools/check-core-tests.sh test_OOALBufferedSound
+	class checks as dynamic_cast) with every expectation kept (standing approval oo-9n5p9); since
+	beads oo-9ht.68 and oo-9ht.82 deleted the root's and the decoder's facades the description is
+	the root's description() and the decoder and the cluster are C++. After them comes the C++ API
+	(OOALBufferedSound, a subclass of OOSound).
+	Run: bash tools/check-core-tests.sh test_OOALBufferedSound
 */
 
 #import "OOALBufferedSound.h"
 #import "OOALStreamedSound.h"
 #import "OOALSoundDecoder.h"
 #import "OOALSoundMixer.h"
-#import "OODescription.h"
 
 #include "oo_test.hpp"
 
@@ -50,7 +50,7 @@ void OOSoundMixer::shutdown()  {}
 
 // OOALSound.mm makes a streamed sound for more than 1 MB of decoded data; never here. A C++
 // stand-in since bead oo-9ht.84 deleted the Objective-C facade this file stubbed.
-oo::Ref<OOALStreamedSound> OOALStreamedSound::initWithDecoder(::OOALSoundDecoder *inDecoder)	{ (void)inDecoder; return nullptr; }
+oo::Ref<OOALStreamedSound> OOALStreamedSound::initWithDecoder(OOALSoundDecoder *inDecoder)	{ (void)inDecoder; return nullptr; }
 OOALStreamedSound::~OOALStreamedSound()  {}
 std::optional<std::string> OOALStreamedSound::name()  { return _name; }
 void OOALStreamedSound::rewind()  {}
@@ -81,7 +81,7 @@ void SetUp()
 	stdfs::create_directories(sRoot);
 	OO_CHECK(::_putenv_s("HOMEPATH", sRoot.string().c_str()) == 0);
 	stdfs::current_path(sRoot);
-	OO_CHECK([OOSound setUp]);
+	OO_CHECK(OOSound::setUp());
 }
 
 
@@ -103,21 +103,18 @@ constexpr ALint kBoopBytes = 7682;
 OO_TEST(madeFromADecoder)
 {
 	SetUp();
-	@autoreleasepool
-	{
-		OOALSoundDecoder *decoder = [OOALSoundDecoder codecWithPath:BoopPath()];
-		OO_CHECK(decoder != nil);
-		const oo::Ref<OOALBufferedSound> sound = OOALBufferedSound::initWithDecoder(decoder);
-		OO_CHECK(sound != nullptr);
-		OO_CHECK(dynamic_cast<OOALBufferedSound *>(sound.get()) != nullptr && dynamic_cast<cxx::OOSound *>(sound.get()) != nullptr);
-		OO_CHECK(sound->name() == std::optional<std::string>("boop.ogg"));
-		OO_CHECK(!sound->soundIncomplete());
-		sound->rewind();
-		OO_CHECK(!sound->soundIncomplete());
-		OO_CHECK(oo::DescriptionOf(oo::ToObjC(sound.get())).starts_with("<OOALBufferedSound 0x"));
+	const oo::Ref<OOALSoundDecoder> decoder = OOALSoundDecoder::codecWithPath(BoopPath());
+	OO_CHECK(decoder != nullptr);
+	const oo::Ref<OOALBufferedSound> sound = OOALBufferedSound::initWithDecoder(decoder.get());
+	OO_CHECK(sound != nullptr);
+	OO_CHECK(dynamic_cast<OOALBufferedSound *>(sound.get()) != nullptr && dynamic_cast<OOSound *>(sound.get()) != nullptr);
+	OO_CHECK(sound->name() == std::optional<std::string>("boop.ogg"));
+	OO_CHECK(!sound->soundIncomplete());
+	sound->rewind();
+	OO_CHECK(!sound->soundIncomplete());
+	OO_CHECK(sound->description().starts_with("<OOALBufferedSound 0x"));
 
-		OO_CHECK(!OOALBufferedSound::initWithDecoder(nil));
-	}
+	OO_CHECK(!OOALBufferedSound::initWithDecoder(nullptr));
 }
 
 
@@ -125,9 +122,8 @@ OO_TEST(madeFromADecoder)
 OO_TEST(eachBufferHoldsTheWholeSound)
 {
 	SetUp();
-	@autoreleasepool
 	{
-		const oo::Ref<OOALBufferedSound> sound = OOALBufferedSound::initWithDecoder([OOALSoundDecoder codecWithPath:BoopPath()]);
+		const oo::Ref<OOALBufferedSound> sound = OOALBufferedSound::initWithDecoder(OOALSoundDecoder::codecWithPath(BoopPath()).get());
 		const ALuint first = sound->soundBuffer();
 		OO_CHECK(first != 0 && alIsBuffer(first));
 		OO_CHECK(BufferInt(first, AL_SIZE) == kBoopBytes);
@@ -148,12 +144,11 @@ OO_TEST(eachBufferHoldsTheWholeSound)
 OO_TEST(theClusterAnswersOne)
 {
 	SetUp();
-	@autoreleasepool
 	{
-		OOSound *sound = [[[OOSound alloc] cxx_initWithContentsOfFile:BoopPath()] autorelease];
-		OO_CHECK(dynamic_cast<OOALBufferedSound *>(oo::ToCxx(sound)) != nullptr);
-		OO_CHECK([sound cxx_name] == std::optional<std::string>("boop.ogg"));
-		const ALuint buffer = [sound soundBuffer];
+		const oo::Ref<OOSound> sound = OOSound::initWithContentsOfFile(BoopPath());
+		OO_CHECK(dynamic_cast<OOALBufferedSound *>(sound.get()) != nullptr);
+		OO_CHECK(sound->name() == std::optional<std::string>("boop.ogg"));
+		const ALuint buffer = sound->soundBuffer();
 		OO_CHECK(BufferInt(buffer, AL_SIZE) == kBoopBytes);
 		alDeleteBuffers(1, &buffer);
 	}
@@ -164,41 +159,15 @@ OO_TEST(theClusterAnswersOne)
 OO_TEST(cxxApi)
 {
 	SetUp();
-	@autoreleasepool
 	{
-		OO_CHECK(!OOALBufferedSound::initWithDecoder(nil));
-		const oo::Ref<OOALBufferedSound> sound = OOALBufferedSound::initWithDecoder([OOALSoundDecoder codecWithPath:BoopPath()]);
+		OO_CHECK(!OOALBufferedSound::initWithDecoder(nullptr));
+		const oo::Ref<OOALBufferedSound> sound = OOALBufferedSound::initWithDecoder(OOALSoundDecoder::codecWithPath(BoopPath()).get());
 		OO_CHECK(sound && sound->name() == std::optional<std::string>("boop.ogg"));
 		OO_CHECK(!sound->soundIncomplete());
 		ALuint buffer = sound->soundBuffer();
 		OO_CHECK(BufferInt(buffer, AL_SIZE) == kBoopBytes && BufferInt(buffer, AL_FREQUENCY) == kBoopRate);
 		alDeleteBuffers(1, &buffer);
 	}
-}
-
-
-// The crossing (bead oo-9ht.83 deleted the facade): a buffered sound's facade is the root's, an
-// OOSound, one per sound, and the cluster's answer is the C++ sound's peer.
-OO_TEST(bufferedSoundCrossesAsTheRootFacade)
-{
-	SetUp();
-	@autoreleasepool
-	{
-		const oo::Ref<OOALBufferedSound> sound = OOALBufferedSound::initWithDecoder([OOALSoundDecoder codecWithPath:BoopPath()]);
-		OOSound *facade = oo::ToObjC(sound.get());
-		OO_CHECK([facade isMemberOfClass:[OOSound class]]);
-		OO_CHECK(facade == oo::ToObjC(sound.get()));
-		OO_CHECK(oo::ToCxx(facade) == sound.get());
-		OO_CHECK([facade cxx_name] == std::optional<std::string>("boop.ogg"));
-		OO_CHECK(oo::DescriptionOf(facade).starts_with("<OOALBufferedSound 0x"));
-
-		OOSound *made = [[[OOSound alloc] cxx_initWithContentsOfFile:BoopPath()] autorelease];
-		OO_CHECK([made isMemberOfClass:[OOSound class]]);
-		cxx::OOSound *part = oo::ToCxx(made);
-		OO_CHECK(dynamic_cast<OOALBufferedSound *>(part) != nullptr);
-		OO_CHECK(oo::ToObjC(part) == made);
-	}
-	OO_CHECK(oo::ToObjC(static_cast<OOALBufferedSound *>(nullptr)) == nil);
 }
 
 

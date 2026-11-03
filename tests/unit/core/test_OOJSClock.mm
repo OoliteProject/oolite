@@ -151,32 +151,35 @@ std::string cxx_ClockToString(double clock, BOOL adjusting)
 	-clockTime raise, -2 makes it throw a C++ exception, so the test sees what an exception under a
 	native becomes.
 */
-@interface FakePlayer: OOObject
+/*	PLAYER: C++ (the Objective-C player this stood in for is deleted). The binding
+	calls the members below (PlayerEntity.h, which the engine's header imports, declares them),
+	which answer from the FakePlayer's values; the binding never reads the player's own state, so
+	PLAYER is a FakePlayer's address.
+*/
+struct FakePlayer
 {
-@public
-	double _clockTime;
-	double _adjusted;
-	double _added;
-	BOOL _adjusting;
-}
-@end
+	double _clockTime = 0;
+	double _adjusted = 0;
+	double _added = 0;
+	BOOL _adjusting = NO;
+};
 
-@implementation FakePlayer
+namespace {
+FakePlayer *sPlayer = nullptr;
+} // namespace
 
-- (double) clockTime
+double PlayerEntity::clockTime()
 {
-	if (_clockTime == -1)  [OOException raise:OOInvalidArgumentException format:"clock %s", "boom"];
-	if (_clockTime == -2)  throw std::runtime_error("cxx boom");
-	return _clockTime;
+	if (sPlayer->_clockTime == -1)  [OOException raise:OOInvalidArgumentException format:"clock %s", "boom"];
+	if (sPlayer->_clockTime == -2)  throw std::runtime_error("cxx boom");
+	return sPlayer->_clockTime;
 }
 
-- (double) clockTimeAdjusted  { return _adjusted; }
-- (BOOL) clockAdjusting  { return _adjusting; }
-- (double) scriptTimer  { return 42.5; }
-- (std::string) cxx_dial_clock  { return oo::str::format("dial %.1f", _clockTime); }
-- (void) addToAdjustTime:(double)seconds  { _added += seconds; }
-
-@end
+double PlayerEntity::clockTimeAdjusted()  { return sPlayer->_adjusted; }
+bool PlayerEntity::clockAdjusting()  { return sPlayer->_adjusting; }
+OOTimeDelta PlayerEntity::scriptTimer()  { return 42.5; }
+std::string PlayerEntity::dial_clock()  { return oo::str::format("dial %.1f", sPlayer->_clockTime); }
+void PlayerEntity::addToAdjustTime(double seconds)  { sPlayer->_added += seconds; }
 
 
 @interface FakeUniverse: OOObject
@@ -190,13 +193,9 @@ std::string cxx_ClockToString(double clock, BOOL adjusting)
 
 Universe *gSharedUniverse = nil;
 
-namespace {
-FakePlayer *sPlayer = nil;
-} // namespace
-
 PlayerEntity *OOPlayerForScripting(void)
 {
-	return (PlayerEntity *)sPlayer;
+	return reinterpret_cast<PlayerEntity *>(sPlayer);	// never dereferenced: the members above answer
 }
 
 
@@ -215,7 +214,7 @@ void SetUpContext()
 	JSValue global = JS_GetGlobalObject(sContext);
 	InitOOJSClock(sContext, global);
 	JS_FreeValue(sContext, global);
-	sPlayer = [[FakePlayer alloc] init];
+	sPlayer = new FakePlayer;	// never deleted
 	gSharedUniverse = (Universe *)[[FakeUniverse alloc] init];
 }
 

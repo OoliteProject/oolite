@@ -130,7 +130,7 @@ void WriteFile(const std::filesystem::path &path, const char *contents)
 
 
 // The scanner, registered with the verifier and run over its OXP, as the verifier runs it first.
-void RunScanner(cxx::OOOXPVerifier *verifier)
+void RunScanner(OOOXPVerifier *verifier)
 {
 	OOFileScannerVerifierStage::nameForDependencyForVerifier(verifier);
 	verifier->stageWithName(OOFileScannerVerifierStage::kName)->run();	// was -fileScannerStage (bead oo-9ht.7); the C++ stage since oo-9ht.4
@@ -144,12 +144,12 @@ const std::filesystem::path kBase = std::filesystem::current_path() / "test_OOMo
 
 
 // An OXP with the given files (path, contents), and its verifier with the scanner run over it.
-cxx::OOOXPVerifier *MakeVerifier(std::initializer_list<std::pair<const char *, const char *>> files)
+OOOXPVerifier *MakeVerifier(std::initializer_list<std::pair<const char *, const char *>> files)
 {
 	std::filesystem::remove_all(kBase);
 	std::filesystem::create_directories(kBase);
 	for (const auto &[name, contents] : files)  WriteFile(kBase / name, contents);
-	cxx::OOOXPVerifier *verifier = OOOXPVerifierTestAccess::Make(kBase.generic_string(), kConfiguration);
+	OOOXPVerifier *verifier = OOOXPVerifierTestAccess::Make(kBase.generic_string(), kConfiguration);
 	RunScanner(verifier);
 	StartLog();
 	return verifier;
@@ -162,7 +162,7 @@ OO_TEST(nameRegistersTheStage)
 {
 	@autoreleasepool
 	{
-		cxx::OOOXPVerifier *verifier = MakeVerifier({});
+		OOOXPVerifier *verifier = MakeVerifier({});
 		OO_CHECK(verifier->stageWithName("Testing models") == nullptr);
 		OO_CHECK(verifier->stageWithName(OOModelVerifierStage::kName) == nullptr);
 		OO_CHECK(OOModelVerifierStage::nameForReverseDependencyForVerifier(verifier) == "Testing models");
@@ -184,7 +184,7 @@ OO_TEST(stagesNameModels)
 {
 	@autoreleasepool
 	{
-		cxx::OOOXPVerifier *verifier = MakeVerifier({ { "Models/ship.dat", "model" } });
+		OOOXPVerifier *verifier = MakeVerifier({ { "Models/ship.dat", "model" } });
 		const oo::Ref<OOModelVerifierStage> stage = oo::makeRef<OOModelVerifierStage>();
 		stage->setVerifier(verifier);
 		const oo::PList materials = *oo::parsePropertyListData("{ a = b; }");
@@ -228,7 +228,7 @@ OO_TEST(facade)
 {
 	@autoreleasepool
 	{
-		cxx::OOOXPVerifier *verifier = MakeVerifier({ { "Models/ship.dat", "model" } });
+		OOOXPVerifier *verifier = MakeVerifier({ { "Models/ship.dat", "model" } });
 		OOModelVerifierStage::nameForReverseDependencyForVerifier(verifier);
 		OOModelVerifierStage *stage = static_cast<OOModelVerifierStage *>(verifier->stageWithName(OOModelVerifierStage::kName));
 		OO_CHECK(stage != nullptr);

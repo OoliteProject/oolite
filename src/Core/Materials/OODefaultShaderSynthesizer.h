@@ -41,7 +41,7 @@ SOFTWARE.
 #include <utility>
 #include <vector>
 
-@class OOMesh;
+class OOMesh; // C++ since bead oo-9ht.132
 
 /*	Foundation sweep (bead oo-3rb.150): the material configuration is an oo::PList dictionary, the
         material key and entity name are nil-able strings, and the outputs are the two shader sources, the

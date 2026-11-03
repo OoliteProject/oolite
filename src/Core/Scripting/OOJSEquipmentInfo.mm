@@ -38,7 +38,7 @@ MA 02110-1301, USA.
         (OOJSEngineNativeWrappers.h); BOOL/YES/NO are bool/true/false. OOEquipmentType
         (OOJavaScriptExtensions), the category on the converted class's façade that owns its _jsSelf
         ivar, became three free functions that take the façade's ivar by reference, and its methods
-        moved to OOJSEquipmentInfo+ObjCBridge.mm (amendment oo-6ia4 item 3). OOEquipmentType and
+        moved to the façade (OOEquipmentType+ObjCBridge.mm; amendment oo-6ia4 item 3). OOEquipmentType and
         OOColor, which are C++ since beads oo-fg7i and oo-11m, are reached as cxx:: classes through
         oo::ToCxx/oo::ToObjC (amendment oo-ppc, item 4); the property hooks cross once, and Ask()
         answers what a message to nil answered for the prototype, which has no type.
@@ -58,7 +58,7 @@ static JSValue EquipmentInfoGetAllEqipment(OOJS_GETTER_ARGS);
 namespace {
 
     // A colour's components as its -normalizedArray gave them to JavaScript: floats, null for no colour.
-    oo::PList NormalizedColorComponents(cxx::OOColor* color)
+    oo::PList NormalizedColorComponents(OOColor* color)
     {
         if (color == nullptr)
             return oo::PList();
@@ -71,7 +71,7 @@ namespace {
     // What the type answers, or what a message to nil answered (0, false, nullopt, null, an empty
     // list) when there is no type: the prototype's case (amendment oo-6ia4 item 2).
     template <typename Result>
-    Result Ask(cxx::OOEquipmentType* type, Result (cxx::OOEquipmentType::*member)())
+    Result Ask(OOEquipmentType* type, Result (OOEquipmentType::*member)())
     {
         return type != nullptr ? (type->*member)() : Result { };
     }
@@ -95,10 +95,11 @@ namespace {
 
 // Methods
 static JSValue EquipmentInfoStaticInfoForKey(OOJS_NATIVE_ARGS);
+static JSValue EquipmentInfoToString(OOJS_NATIVE_ARGS);
 
 static JSClassDef sEquipmentInfoClass = {
     .class_name = "EquipmentInfo",
-    .finalizer = OOJSObjectWrapperFinalize,
+    .finalizer = OOJSCxxObjectWrapperFinalize,
 };
 
 enum {
@@ -187,7 +188,7 @@ static const JSCFunctionListEntry sEquipmentInfoProperties[] = {
 
 static const JSCFunctionListEntry sEquipmentInfoMethods[] = {
     // JS name, min args, function
-    JS_CFUNC_DEF("toString", 0, OOJSObjectWrapperToString),
+    JS_CFUNC_DEF("toString", 0, EquipmentInfoToString),
 };
 
 static const JSCFunctionListEntry sEquipmentInfoStaticMethods[] = {
@@ -197,7 +198,21 @@ static const JSCFunctionListEntry sEquipmentInfoStaticMethods[] = {
     JS_CFUNC_DEF("infoForKey", 0, EquipmentInfoStaticInfoForKey),
 };
 
-DEFINE_JS_OBJECT_GETTER(JSEquipmentInfoGetEquipmentType, sEquipmentInfoClassID, OOEquipmentType)
+namespace {
+// DEFINE_JS_OBJECT_GETTER for the C++ type the slot holds (null for the prototype).
+bool JSEquipmentInfoGetEquipmentType(JSContext* context, JSValueConst inObject, OOEquipmentType** outObject)
+{
+    return OOJSGetCxxPrivate(context, inObject, sEquipmentInfoClassID, outObject);
+}
+
+// OOJSBasicPrivateObjectConverter for the C++ type the slot holds: the type itself as an Object
+// node (it was its facade), for the callers of cxx_OOJSPListFromJSValue (null for the prototype).
+oo::PList EquipmentInfoConverter(JSContext* /*context*/, JSValueConst object)
+{
+    OOEquipmentType* type = static_cast<OOEquipmentType*>(static_cast<oo::RefCounted*>(JS_GetOpaque(object, sEquipmentInfoClassID)));
+    return OOEquipmentTypeObjectNode(type);
+}
+} // namespace
 
 // *** Public ***
 
@@ -208,7 +223,7 @@ void InitOOJSEquipmentInfo(JSContext* context, JSValueConst global)
         sEquipmentInfoProperties, OOJS_COUNT(sEquipmentInfoProperties), sEquipmentInfoMethods, OOJS_COUNT(sEquipmentInfoMethods),
         sEquipmentInfoStaticMethods, OOJS_COUNT(sEquipmentInfoStaticMethods));
 
-    OOJSRegisterObjectConverter(sEquipmentInfoClassID, OOJSBasicPrivateObjectConverter);
+    OOJSRegisterObjectConverter(sEquipmentInfoClassID, EquipmentInfoConverter);
 }
 
 OOEquipmentType* JSValueToEquipmentType(JSContext* context, JSValueConst value)
@@ -217,21 +232,21 @@ OOEquipmentType* JSValueToEquipmentType(JSContext* context, JSValueConst value)
 
     if (JS_IsObject(value)) {
         if (JS_GetClassID(value) == sEquipmentInfoClassID) {
-            return (OOEquipmentType*)JS_GetOpaque(value, sEquipmentInfoClassID);
+            return static_cast<OOEquipmentType*>(static_cast<oo::RefCounted*>(JS_GetOpaque(value, sEquipmentInfoClassID))); // borrowed: the slot holds it
         }
     }
 
     std::optional<std::string> string = cxx_OOStringFromJSValue(context, value);
     if (string.has_value())
-        return oo::ToObjC(cxx::OOEquipmentType::equipmentTypeWithIdentifier(*string));
-    return nil;
+        return OOEquipmentType::equipmentTypeWithIdentifier(*string).get(); // borrowed: the registry holds it
+    return nullptr;
 
     OOJS_PROFILE_EXIT
 }
 
 std::optional<std::string> JSValueToEquipmentKey(JSContext* context, JSValueConst value)
 {
-    return Ask(oo::ToCxx(JSValueToEquipmentType(context, value)), &cxx::OOEquipmentType::identifier);
+    return Ask(JSValueToEquipmentType(context, value), &OOEquipmentType::identifier);
 }
 
 std::optional<std::string> JSValueToEquipmentKeyRelaxed(JSContext* context, JSValueConst value, BOOL* outExists)
@@ -241,17 +256,16 @@ std::optional<std::string> JSValueToEquipmentKeyRelaxed(JSContext* context, JSVa
     std::optional<std::string> result;
     bool exists = false;
     const oo::PList plistValue = cxx_OOJSPListFromJSValue(context, value);
-    id objValue = oo::ObjectIn(plistValue);
 
-    if ([objValue isKindOfClass:[OOEquipmentType class]]) {
-        result = oo::ToCxx(static_cast<OOEquipmentType*>(objValue))->identifier();
+    if (OOEquipmentType* typeValue = OOEquipmentTypeInObjectNode(plistValue)) {
+        result = typeValue->identifier();
         exists = true;
     } else if (const std::string* stringValue = plistValue.getIf<std::string>()) {
         /*	To enforce deliberate backwards incompatibility, reject strings
                 ending with _DAMAGED unless someone actually named an equip that
                 way.
          */
-        exists = cxx::OOEquipmentType::equipmentTypeWithIdentifier(*stringValue) != nullptr;
+        exists = OOEquipmentType::equipmentTypeWithIdentifier(*stringValue) != nullptr;
         std::string string = *stringValue;
         if (exists || !oo::str::hasSuffix(string, "_DAMAGED")) {
             result = string;
@@ -272,151 +286,153 @@ static JSValue EquipmentInfoGetProperty(OOJS_GETTER_ARGS)
 
     OOJS_NATIVE_ENTER(context)
 
-    OOEquipmentType* eqType = nil;
     oo::PList result; // null maps to null
     NSUInteger inst_time;
 
-    if (EXPECT_NOT(!JSEquipmentInfoGetEquipmentType(context, thisObj, &eqType)))
+    OOEquipmentType* type = nullptr; // null for the prototype: see Ask()
+    if (EXPECT_NOT(!JSEquipmentInfoGetEquipmentType(context, thisObj, &type)))
         return OOJSNativeFailure(context);
-    cxx::OOEquipmentType* type = oo::ToCxx(eqType); // null for the prototype: see Ask()
 
     switch (magic) {
     case kEquipmentInfo_equipmentKey:
-        result = StringOrNull(Ask(type, &cxx::OOEquipmentType::identifier));
+        result = StringOrNull(Ask(type, &OOEquipmentType::identifier));
         break;
 
     case kEquipmentInfo_name:
-        result = StringOrNull(Ask(type, &cxx::OOEquipmentType::name));
+        result = StringOrNull(Ask(type, &OOEquipmentType::name));
         break;
 
     case kEquipmentInfo_calculatedPrice:
-        if (Ask(type, &cxx::OOEquipmentType::identifier) == "EQ_FUEL") {
-            return JS_NewNumber(context, (PLAYER_MAX_FUEL - [OOPlayerForScripting() fuel]) * Ask(type, &cxx::OOEquipmentType::price) * [OOPlayerForScripting() fuelChargeRate]);
-        } else if (Ask(type, &cxx::OOEquipmentType::identifier) == "EQ_RENOVATION") {
-            return JS_NewNumber(context, [OOPlayerForScripting() renovationCosts]);
+        if (Ask(type, &OOEquipmentType::identifier) == "EQ_FUEL") {
+            PlayerEntity* player = OOPlayerForScripting(); // fuelChargeRate qualified: the final overrider, so the binding test stands in for it
+            return JS_NewNumber(context, (PLAYER_MAX_FUEL - (player != nullptr ? player->getFuel() : 0)) * Ask(type, &OOEquipmentType::price) * (player != nullptr ? player->PlayerEntity::fuelChargeRate() : 0.0f));
+        } else if (Ask(type, &OOEquipmentType::identifier) == "EQ_RENOVATION") {
+            PlayerEntity* player = OOPlayerForScripting();
+            return JS_NewNumber(context, (player != nullptr ? player->PlayerEntity::renovationCosts() : 0)); // qualified: the final overrider, so the binding test stands in for it
         } else {
-            return JS_NewNumber(context, (Ask(type, &cxx::OOEquipmentType::identifier).has_value() ? [OOPlayerForScripting() cxx_adjustPriceByScriptForEqKey:*Ask(type, &cxx::OOEquipmentType::identifier) withCurrent:Ask(type, &cxx::OOEquipmentType::price)] : Ask(type, &cxx::OOEquipmentType::price)));
+            PlayerEntity* player = OOPlayerForScripting();
+            return JS_NewNumber(context, (Ask(type, &OOEquipmentType::identifier).has_value() ? (player != nullptr ? player->adjustPriceByScriptForEqKey(*Ask(type, &OOEquipmentType::identifier), Ask(type, &OOEquipmentType::price)) : 0) : Ask(type, &OOEquipmentType::price)));
         }
     case kEquipmentInfo_canCarryMultiple:
-        return OOJSValueFromBOOL(Ask(type, &cxx::OOEquipmentType::canCarryMultiple));
+        return OOJSValueFromBOOL(Ask(type, &OOEquipmentType::canCarryMultiple));
 
     case kEquipmentInfo_canBeDamaged:
-        return OOJSValueFromBOOL(Ask(type, &cxx::OOEquipmentType::canBeDamaged));
+        return OOJSValueFromBOOL(Ask(type, &OOEquipmentType::canBeDamaged));
 
     case kEquipmentInfo_description:
-        result = StringOrNull(Ask(type, &cxx::OOEquipmentType::descriptiveText));
+        result = StringOrNull(Ask(type, &OOEquipmentType::descriptiveText));
         break;
 
     case kEquipmentInfo_damageProbability:
-        return JS_NewNumber(context, Ask(type, &cxx::OOEquipmentType::damageProbability));
+        return JS_NewNumber(context, Ask(type, &OOEquipmentType::damageProbability));
 
     case kEquipmentInfo_displayColor:
-        result = NormalizedColorComponents(Ask(type, &cxx::OOEquipmentType::displayColor).get());
+        result = NormalizedColorComponents(Ask(type, &OOEquipmentType::displayColor).get());
         break;
 
     case kEquipmentInfo_fastAffinityDefensive:
-        return OOJSValueFromBOOL(Ask(type, &cxx::OOEquipmentType::fastAffinityDefensive));
+        return OOJSValueFromBOOL(Ask(type, &OOEquipmentType::fastAffinityDefensive));
 
     case kEquipmentInfo_fastAffinityOffensive:
-        return OOJSValueFromBOOL(Ask(type, &cxx::OOEquipmentType::fastAffinityOffensive));
+        return OOJSValueFromBOOL(Ask(type, &OOEquipmentType::fastAffinityOffensive));
 
     case kEquipmentInfo_defaultActivateKey:
-        result = Ask(type, &cxx::OOEquipmentType::defaultActivateKey);
+        result = Ask(type, &OOEquipmentType::defaultActivateKey);
         break;
 
     case kEquipmentInfo_defaultModeKey:
-        result = Ask(type, &cxx::OOEquipmentType::defaultModeKey);
+        result = Ask(type, &OOEquipmentType::defaultModeKey);
         break;
 
     case kEquipmentInfo_techLevel:
-        return JS_NewInt32(context, (int32_t)Ask(type, &cxx::OOEquipmentType::techLevel));
+        return JS_NewInt32(context, (int32_t)Ask(type, &OOEquipmentType::techLevel));
 
     case kEquipmentInfo_effectiveTechLevel:
-        return JS_NewInt32(context, (int32_t)Ask(type, &cxx::OOEquipmentType::effectiveTechLevel));
+        return JS_NewInt32(context, (int32_t)Ask(type, &OOEquipmentType::effectiveTechLevel));
 
     case kEquipmentInfo_price:
-        return JS_NewNumber(context, Ask(type, &cxx::OOEquipmentType::price));
+        return JS_NewNumber(context, Ask(type, &OOEquipmentType::price));
 
     case kEquipmentInfo_provides: {
-        const std::vector<std::string> provides = Ask(type, &cxx::OOEquipmentType::providesForScripting);
+        const std::vector<std::string> provides = Ask(type, &OOEquipmentType::providesForScripting);
         result = oo::PList(oo::PList::Array(provides.begin(), provides.end()));
     } break;
 
     case kEquipmentInfo_installationTime:
-        inst_time = Ask(type, &cxx::OOEquipmentType::installTime);
+        inst_time = Ask(type, &OOEquipmentType::installTime);
         if (inst_time == 0) {
-            inst_time = Ask(type, &cxx::OOEquipmentType::price) + 600;
+            inst_time = Ask(type, &OOEquipmentType::price) + 600;
         }
         return JS_NewInt32(context, (int32_t)inst_time);
 
     case kEquipmentInfo_isAvailableToAll:
-        return OOJSValueFromBOOL(Ask(type, &cxx::OOEquipmentType::isAvailableToAll));
+        return OOJSValueFromBOOL(Ask(type, &OOEquipmentType::isAvailableToAll));
 
     case kEquipmentInfo_isAvailableToNPCs:
-        return OOJSValueFromBOOL(Ask(type, &cxx::OOEquipmentType::isAvailableToNPCs));
+        return OOJSValueFromBOOL(Ask(type, &OOEquipmentType::isAvailableToNPCs));
 
     case kEquipmentInfo_isAvailableToPlayer:
-        return OOJSValueFromBOOL(Ask(type, &cxx::OOEquipmentType::isAvailableToPlayer));
+        return OOJSValueFromBOOL(Ask(type, &OOEquipmentType::isAvailableToPlayer));
 
     case kEquipmentInfo_repairTime:
-        return JS_NewInt32(context, (int32_t)Ask(type, &cxx::OOEquipmentType::repairTime));
+        return JS_NewInt32(context, (int32_t)Ask(type, &OOEquipmentType::repairTime));
 
     case kEquipmentInfo_requiresEmptyPylon:
-        return OOJSValueFromBOOL(Ask(type, &cxx::OOEquipmentType::requiresEmptyPylon));
+        return OOJSValueFromBOOL(Ask(type, &OOEquipmentType::requiresEmptyPylon));
 
     case kEquipmentInfo_requiresMountedPylon:
-        return OOJSValueFromBOOL(Ask(type, &cxx::OOEquipmentType::requiresMountedPylon));
+        return OOJSValueFromBOOL(Ask(type, &OOEquipmentType::requiresMountedPylon));
 
     case kEquipmentInfo_requiresCleanLegalRecord:
-        return OOJSValueFromBOOL(Ask(type, &cxx::OOEquipmentType::requiresCleanLegalRecord));
+        return OOJSValueFromBOOL(Ask(type, &OOEquipmentType::requiresCleanLegalRecord));
 
     case kEquipmentInfo_requiresNonCleanLegalRecord:
-        return OOJSValueFromBOOL(Ask(type, &cxx::OOEquipmentType::requiresNonCleanLegalRecord));
+        return OOJSValueFromBOOL(Ask(type, &OOEquipmentType::requiresNonCleanLegalRecord));
 
     case kEquipmentInfo_requiresFreePassengerBerth:
-        return OOJSValueFromBOOL(Ask(type, &cxx::OOEquipmentType::requiresFreePassengerBerth));
+        return OOJSValueFromBOOL(Ask(type, &OOEquipmentType::requiresFreePassengerBerth));
 
     case kEquipmentInfo_requiresFullFuel:
-        return OOJSValueFromBOOL(Ask(type, &cxx::OOEquipmentType::requiresFullFuel));
+        return OOJSValueFromBOOL(Ask(type, &OOEquipmentType::requiresFullFuel));
 
     case kEquipmentInfo_requiresNonFullFuel:
-        return OOJSValueFromBOOL(Ask(type, &cxx::OOEquipmentType::requiresNonFullFuel));
+        return OOJSValueFromBOOL(Ask(type, &OOEquipmentType::requiresNonFullFuel));
 
     case kEquipmentInfo_isExternalStore:
-        return OOJSValueFromBOOL(Ask(type, &cxx::OOEquipmentType::isMissileOrMine));
+        return OOJSValueFromBOOL(Ask(type, &OOEquipmentType::isMissileOrMine));
 
     case kEquipmentInfo_isPortableBetweenShips:
-        return OOJSValueFromBOOL(Ask(type, &cxx::OOEquipmentType::isPortableBetweenShips));
+        return OOJSValueFromBOOL(Ask(type, &OOEquipmentType::isPortableBetweenShips));
 
     case kEquipmentInfo_isVisible:
-        return OOJSValueFromBOOL(Ask(type, &cxx::OOEquipmentType::isVisible));
+        return OOJSValueFromBOOL(Ask(type, &OOEquipmentType::isVisible));
 
     case kEquipmentInfo_requiredCargoSpace:
-        return JS_NewInt32(context, (int32_t)Ask(type, &cxx::OOEquipmentType::requiredCargoSpace));
+        return JS_NewInt32(context, (int32_t)Ask(type, &OOEquipmentType::requiredCargoSpace));
 
     case kEquipmentInfo_requiresEquipment:
-        result = KeyArrayOrNull(Ask(type, &cxx::OOEquipmentType::requiresEquipment));
+        result = KeyArrayOrNull(Ask(type, &OOEquipmentType::requiresEquipment));
         break;
 
     case kEquipmentInfo_requiresAnyEquipment:
-        result = KeyArrayOrNull(Ask(type, &cxx::OOEquipmentType::requiresAnyEquipment));
+        result = KeyArrayOrNull(Ask(type, &OOEquipmentType::requiresAnyEquipment));
         break;
 
     case kEquipmentInfo_incompatibleEquipment:
-        result = KeyArrayOrNull(Ask(type, &cxx::OOEquipmentType::incompatibleEquipment));
+        result = KeyArrayOrNull(Ask(type, &OOEquipmentType::incompatibleEquipment));
         break;
 
     case kEquipmentInfo_scriptInfo: {
-        const oo::PList info = Ask(type, &cxx::OOEquipmentType::scriptInfo);
+        const oo::PList info = Ask(type, &OOEquipmentType::scriptInfo);
         result = info.isNull() ? oo::PList(oo::PList::Dict { }) : info; // empty rather than null
     } break;
 
     case kEquipmentInfo_scriptName:
-        result = oo::PList(Ask(type, &cxx::OOEquipmentType::scriptName).value_or(std::string()));
+        result = oo::PList(Ask(type, &OOEquipmentType::scriptName).value_or(std::string()));
         break;
 
     case kEquipmentInfo_weaponInfo:
-        result = Ask(type, &cxx::OOEquipmentType::weaponInfo);
+        result = Ask(type, &OOEquipmentType::weaponInfo);
         if (result.isNull())
             result = oo::PList(oo::PList::Dict { }); // empty rather than null
         break;
@@ -436,17 +452,16 @@ static JSValue EquipmentInfoSetProperty(OOJS_SETTER_ARGS)
 
     OOJS_NATIVE_ENTER(context)
 
-    OOEquipmentType* eqType = nil;
     int32_t iValue;
-    oo::Ref<cxx::OOColor> colorForScript;
+    oo::Ref<OOColor> colorForScript;
 
-    if (EXPECT_NOT(!JSEquipmentInfoGetEquipmentType(context, thisObj, &eqType)))
+    OOEquipmentType* type = nullptr; // null for the prototype: see Ask()
+    if (EXPECT_NOT(!JSEquipmentInfoGetEquipmentType(context, thisObj, &type)))
         return OOJSNativeFailure(context);
-    cxx::OOEquipmentType* type = oo::ToCxx(eqType); // null for the prototype: see Ask()
 
     switch (magic) {
     case kEquipmentInfo_displayColor:
-        colorForScript = cxx::OOColor::colorWithDescription(cxx_OOJSPListFromJSValue(context, value));
+        colorForScript = OOColor::colorWithDescription(cxx_OOJSPListFromJSValue(context, value));
         if (colorForScript != nullptr || JS_IsNull(value)) {
             if (type != nullptr)
                 type->setDisplayColor(colorForScript.get()); // (a message to nil did nothing)
@@ -454,12 +469,12 @@ static JSValue EquipmentInfoSetProperty(OOJS_SETTER_ARGS)
         }
         break;
     case kEquipmentInfo_effectiveTechLevel:
-        cxx_OOStandardsDeprecated(oo::str::format("TL99 for variable tech level is deprecated for %s", Ask(type, &cxx::OOEquipmentType::identifier).value_or("(null)").c_str()));
-        if (!OOEnforceStandards() && Ask(type, &cxx::OOEquipmentType::techLevel) == kOOVariableTechLevel) {
+        cxx_OOStandardsDeprecated(oo::str::format("TL99 for variable tech level is deprecated for %s", Ask(type, &OOEquipmentType::identifier).value_or("(null)").c_str()));
+        if (!OOEnforceStandards() && Ask(type, &OOEquipmentType::techLevel) == kOOVariableTechLevel) {
             if (JS_IsNull(value)) {
                 // reset mission variable
-                [OOPlayerForScripting() cxx_setMissionVariable:oo::PList()
-                                                        forKey:"mission_TL_FOR_" + Ask(type, &cxx::OOEquipmentType::identifier).value_or("")];
+                if (PlayerEntity* player = OOPlayerForScripting())
+                    player->setMissionVariable(oo::PList(), "mission_TL_FOR_" + Ask(type, &OOEquipmentType::identifier).value_or(""));
                 return JS_UNDEFINED;
             }
             if (OOJSValueToInt32(context, value, &iValue)) {
@@ -467,12 +482,12 @@ static JSValue EquipmentInfoSetProperty(OOJS_SETTER_ARGS)
                     iValue = 0;
                 if (15 < iValue && iValue != kOOVariableTechLevel)
                     iValue = 15;
-                [OOPlayerForScripting() cxx_setMissionVariable:oo::PList(oo::str::format("%u", iValue))
-                                                        forKey:"mission_TL_FOR_" + Ask(type, &cxx::OOEquipmentType::identifier).value_or("")];
+                if (PlayerEntity* player = OOPlayerForScripting())
+                    player->setMissionVariable(oo::PList(oo::str::format("%u", iValue)), "mission_TL_FOR_" + Ask(type, &OOEquipmentType::identifier).value_or(""));
                 return JS_UNDEFINED;
             }
         } else {
-            cxx_OOJSReportWarning(context, "Cannot modify effective tech level for %s, because its base tech level is not 99.", Ask(type, &cxx::OOEquipmentType::identifier).value_or("(null)").c_str());
+            cxx_OOJSReportWarning(context, "Cannot modify effective tech level for %s, because its base tech level is not 99.", Ask(type, &OOEquipmentType::identifier).value_or("(null)").c_str());
             return JS_UNDEFINED;
         }
         break;
@@ -492,49 +507,59 @@ static JSValue EquipmentInfoGetAllEqipment(OOJS_GETTER_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    std::vector<oo::ObjCRef<OOEquipmentType*>> facades; // what +cxx_allEquipmentTypes answered
-    for (const oo::Ref<cxx::OOEquipmentType>& equipmentType : cxx::OOEquipmentType::allEquipmentTypes())
-        facades.emplace_back(oo::ToObjC(equipmentType));
-    return OOJSValueFromPList(context, oo::PListFromObjects(facades));
+    return OOJSValueFromPList(context, OOEquipmentTypeObjectNodes(OOEquipmentType::allEquipmentTypes()));
 
     OOJS_NATIVE_EXIT
 }
 
-// The bodies of OOEquipmentType (OOJavaScriptExtensions), which the engine reaches by selector:
-// its methods forward to these from OOJSEquipmentInfo+ObjCBridge.mm, passing the façade's _jsSelf
-// ivar (amendment oo-6ia4 item 3).
+// The JS glue of OOEquipmentType (OOJSPrivateObject), which the engine reaches through the slot's
+// C++ object or an Object node that holds the type.
 
 /*	As with SpiderMonkey, the JS object retains the equipment type, and
         _jsSelf is a weak (uncounted) reference to the JS object, cleared by
-        -oo_clearJSSelf: when the JS object is finalized.
+        clearJSSelf() when the JS object is finalized.
 */
-JSValue OOJSEquipmentInfoJSValueInContext(OOEquipmentType* equipmentType, JSValue& jsSelf, JSContext* context)
+JSValue OOEquipmentType::jsValueInContext(JSContext* context)
 {
-    if (!JS_IsObject(jsSelf)) {
+    if (!JS_IsObject(_jsSelf)) {
         JSValue newSelf = JS_NewObjectClass(context, (int)sEquipmentInfoClassID);
         if (JS_IsException(newSelf)) {
             JS_FreeValue(context, JS_GetException(context));
             return JS_NULL;
         }
-        JS_SetOpaque(newSelf, [equipmentType retain]);
+        if (!OOJSSetCxxPrivate(newSelf, this)) {
+            JS_FreeValue(context, newSelf);
+            return JS_NULL;
+        }
 
         // Weak: the caller gets the only reference.
-        jsSelf = newSelf;
+        _jsSelf = newSelf;
         return newSelf;
     }
 
-    return JS_DupValue(context, jsSelf);
+    return JS_DupValue(context, _jsSelf);
+}
+
+void OOEquipmentType::clearJSSelf(JSValueConst selfVal)
+{
+    if (JS_IsObject(_jsSelf) && JS_VALUE_GET_PTR(_jsSelf) == JS_VALUE_GET_PTR(selfVal))
+        _jsSelf = JS_UNDEFINED;
+}
+
+// What the facade's -cxx_oo_jsDescription answered (OOObject (OOJavaScriptConversion)): the JS
+// class name and the components.
+std::optional<std::string> OOEquipmentType::jsDescription()
+{
+    const std::optional<std::string> components = descriptionComponents();
+    const std::string name = OOJSEquipmentInfoJSClassName().value_or("EquipmentInfo");
+    if (components.has_value())
+        return oo::str::format("[%s %s]", name.c_str(), components->c_str());
+    return oo::str::format("[object %s]", name.c_str());
 }
 
 std::optional<std::string> OOJSEquipmentInfoJSClassName(void)
 {
     return std::string("EquipmentInfo");
-}
-
-void OOJSEquipmentInfoClearJSSelf(JSValue& jsSelf, JSValueConst selfVal)
-{
-    if (JS_IsObject(jsSelf) && JS_VALUE_GET_PTR(jsSelf) == JS_VALUE_GET_PTR(selfVal))
-        jsSelf = JS_UNDEFINED;
 }
 
 // *** Static methods ***
@@ -553,7 +578,13 @@ static JSValue EquipmentInfoStaticInfoForKey(OOJS_NATIVE_ARGS)
         return OOJSNativeFailure(context);
     }
 
-    OOJS_RETURN_OBJECT(oo::ToObjC(cxx::OOEquipmentType::equipmentTypeWithIdentifier(*key)));
+    OOJS_RETURN(OOJSValueFromCxxObject(context, OOEquipmentType::equipmentTypeWithIdentifier(*key).get()));
 
     OOJS_NATIVE_EXIT
+}
+
+// toString(): the C++ type's jsDescription().
+static JSValue EquipmentInfoToString(OOJS_NATIVE_ARGS)
+{
+    return OOJSCxxObjectWrapperToString(context, OOJS_THIS, sEquipmentInfoClassID);
 }

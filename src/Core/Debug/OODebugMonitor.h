@@ -59,7 +59,9 @@ SOFTWARE.
 #include <string>
 #include <vector>
 
-@class OOJSScript, OOColor, OOJavaScriptEngine;
+@class OOJavaScriptEngine;
+#import "OOColor.h" // the colour maps hold oo::Ref<OOColor>
+#include "OOScript.h" // the console script, oo::Ref<OOScript>
 
 namespace cxx {
 
@@ -162,14 +164,14 @@ private:
     oo::ObjCRef<id<OODebuggerInterface>> _debugger;
 
     // JavaScript console support.
-    oo::ObjCRef<::OOJSScript*> _script;
+    oo::Ref<OOScript> _script; // the console script (an OOJSScript)
     JSValue _jsSelf = JS_UNDEFINED; // Owned; released when the JS engine resets.
 
     oo::PList _configFromOXPs; // Settings from debugConfig.plist (a Dict, never null after init())
     oo::PList _configOverrides; // Settings from preferences, modifiable through JS (a Dict; values may be Object nodes).
 
     // Caches
-    std::map<std::string, oo::ObjCRef<OOColor*>, std::less<>> _fgColors,
+    std::map<std::string, oo::Ref<OOColor>, std::less<>> _fgColors,
         _bgColors;
     std::map<std::string, std::vector<std::string>, std::less<>> _sourceFiles; // lines of each source file shown so far
     // TCP options

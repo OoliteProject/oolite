@@ -135,26 +135,61 @@ void OOJSProfileExit(OOJSProfileStackFrame *)  {}
 
 
 // The ship and player classes, as far as the call sees them: a ship becomes the player's script
-// target.
-@interface ShipEntity: OOObject
-@end
+// target. The ship is C++ (the Objective-C ship is deleted): a ship's object is the
+// root's, which holds the C++ part (oo::ToCxx reads it); declared as Entity.h and ShipEntity.h
+// declare them (the test imports neither).
+namespace cxx {
+class Entity : public oo::RefCounted
+{
+public:
+	virtual ~Entity();
+};
+}	// namespace cxx
 
-@implementation ShipEntity
-@end
-
-@interface PlayerEntity: ShipEntity
+@interface Entity: OOObject
 {
 @public
-	id scriptTarget;
+	oo::Ref<cxx::Entity> _cxxEntity;
 }
-- (void) setScriptTarget:(id)target;
 @end
 
-@implementation PlayerEntity
-- (void) setScriptTarget:(id)target  { scriptTarget = target; }
+@implementation Entity
 @end
 
-PlayerEntity *gOOPlayer = nil;
+class ShipEntity : public cxx::Entity
+{
+};
+
+cxx::Entity::~Entity() = default;
+
+// The player is C++ (its Objective-C class is deleted): the C++ player as far as
+// the call sees it (declared as PlayerEntity.h declares it; the test imports no game header that
+// defines the class) and its Objective-C object, a ship (the ship's facade in the game), which
+// oo::ToObjC answers.
+@interface TestPlayerObject: Entity
+@end
+
+@implementation TestPlayerObject
+@end
+
+class PlayerEntity : public ShipEntity
+{
+public:
+	void setScriptTarget(::ShipEntity *target);
+
+	::ShipEntity *scriptTarget = nullptr;
+};
+
+void PlayerEntity::setScriptTarget(::ShipEntity *target)  { scriptTarget = target; }
+
+PlayerEntity *gOOPlayer = nullptr;
+TestPlayerObject *sPlayerObject = nil;	// the player's Objective-C object
+
+@class Entity;
+namespace cxx { class Entity; }
+namespace oo {
+::Entity *ToObjC(cxx::Entity *entity)  { return entity != nullptr ? (::Entity *)sPlayerObject : nil; }	// only the player crosses
+}
 
 
 // MARK: The object called -------------------------------------------------------------------------
@@ -218,11 +253,17 @@ PlayerEntity *gOOPlayer = nil;
 @end
 
 
-@interface TestShip: ShipEntity
+@interface TestShip: Entity
 - (int) answer;
 @end
 
 @implementation TestShip
+// Every test ship has its C++ part (the ship).
+- (id) init
+{
+	if ((self = [super init]))  _cxxEntity = oo::makeRef<ShipEntity>();
+	return self;
+}
 - (int) answer  { return 1; }
 @end
 
@@ -238,7 +279,10 @@ JSContext *Context()
 		JSRuntime *runtime = JS_NewRuntime();
 		JS_SetMemoryLimit(runtime, 8u * 1024u * 1024u);
 		sContext = JS_NewContext(runtime);
-		gOOPlayer = [[PlayerEntity alloc] init];
+		oo::Ref<PlayerEntity> player = oo::makeRef<PlayerEntity>();
+		gOOPlayer = player.get();	// never deleted: its object holds it
+		sPlayerObject = [[TestPlayerObject alloc] init];
+		sPlayerObject->_cxxEntity = player;
 	}
 	return sContext;
 }
@@ -354,14 +398,15 @@ OO_TEST(shipBecomesScriptTarget)
 	{
 		Context();
 		TestShip *ship = [[[TestShip alloc] init] autorelease];
-		gOOPlayer->scriptTarget = nil;
+		gOOPlayer->scriptTarget = nullptr;
 		OO_CHECK_EQ(Call(ship, "answer"), "1");
-		OO_CHECK(gOOPlayer->scriptTarget == ship);
+		OO_CHECK(gOOPlayer->scriptTarget == ship->_cxxEntity.get());
 		TestTarget *target = [[[TestTarget alloc] init] autorelease];
 		OO_CHECK_EQ(Call(target, "answer"), "42");
-		OO_CHECK(gOOPlayer->scriptTarget == ship);	// not a ship: unchanged
+		OO_CHECK(gOOPlayer->scriptTarget == ship->_cxxEntity.get());	// not a ship: unchanged
 	}
 }
+
 
 #else
 

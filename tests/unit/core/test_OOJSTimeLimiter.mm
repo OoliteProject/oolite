@@ -147,9 +147,9 @@ OO_TEST(watchdog)
 	{
 		const stdfs::path scriptPath = sRoot / "running" / "running.js";
 		WriteText(scriptPath, "this.name = \"test script\";\n");
-		OOJSScript *script = [OOJSScript scriptWithPath:scriptPath.generic_string() properties:oo::PList()];
-		OO_CHECK(script != nil);
-		[OOJSScript pushScript:script];	// the script named in the log line
+		const oo::Ref<OOJSScript> script = OOJSScript::scriptWithPath(scriptPath.generic_string(), oo::PList());
+		OO_CHECK(script != nullptr);
+		OOJSScript::pushScript(script.get());	// the script named in the log line
 
 		oo::log::logger().setSink([](std::string_view line) { sLogLines.emplace_back(line); });
 		oo::log::logger().setInitialized(true);
@@ -162,7 +162,7 @@ OO_TEST(watchdog)
 		StopLimiter();
 		OOJSResetTimeLimiter();
 		oo::log::logger().setSink(nullptr);
-		[OOJSScript popScript:script];
+		OOJSScript::popScript(script.get());
 
 		OO_CHECK(!completed);
 		OO_CHECK(seconds < 10.0);

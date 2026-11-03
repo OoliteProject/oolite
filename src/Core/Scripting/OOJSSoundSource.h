@@ -30,15 +30,39 @@ MA 02110-1301, USA.
 #include <optional>
 #include <string>
 
-@class OOSoundSource;
+#include "OOJSPrivateObject.h"
+#include "oofnd/Ref.hpp"
+
+class OOSoundSource; // C++: it has no Objective-C facade
 
 void InitOOJSSoundSource(JSContext* context, JSValueConst global);
 
-/*	The bodies of OOSoundSource (OOJavaScriptExtentions), which the engine reaches by selector.
-        Its methods are one-line forwarders to these in OOJSSoundSource+ObjCBridge.mm until
-        OOSoundSource converts (proposed ADR-0056 amendments oo-ppc and oo-ykoy).
-        OOJSSoundSourceJSValueInContext returns a new SoundSource object owned by the caller (JS
-        null for none).
+/*	The bodies of OOSoundSource (OOJavaScriptExtentions), which the engine reached by selector
+        while the source had an Objective-C facade: a new SoundSource object for the source (owned
+        by the caller; JS null for none) and the JS class name. The binding and the Sound binding
+        call them.
 */
 JSValue OOJSSoundSourceJSValueInContext(OOSoundSource* source, JSContext* context);
 std::optional<std::string> OOJSSoundSourceJSClassName(void);
+
+/*	What a SoundSource object's private slot holds (it held the source's facade, retained).
+        -oo_jsValueInContext: made a new SoundSource object each time, so each object has its own
+        holder, which retains the source; the slot retains the holder (OOJSSetCxxPrivate) and the
+        finalizer releases it (OOJSCxxObjectWrapperFinalize). Its toString() is what the facade's
+        -cxx_oo_jsDescription answered (OOObject (OOJavaScriptConversion)): the JS class name and
+        the source's components. Defined in OOJSSoundSource.mm; only the binding makes one.
+*/
+class OOJSSoundSourceHolder final : public oo::RefCounted, public OOJSPrivateObject {
+public:
+    explicit OOJSSoundSourceHolder(OOSoundSource* inSource);
+    ~OOJSSoundSourceHolder() override;
+
+    OOSoundSource* source() const;
+
+    JSValue jsValueInContext(JSContext* context) override; // owned
+    void clearJSSelf(JSValueConst selfVal) override;
+    std::optional<std::string> jsDescription() override;
+
+private:
+    oo::Ref<OOSoundSource> _source;
+};

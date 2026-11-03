@@ -24,6 +24,7 @@ MA 02110-1301, USA.
 */
 
 #import "ShipEntityLoadRestore.h"
+#import "StationEntity.h"
 #import "Universe.h"
 
 #import "AI.h"
@@ -73,17 +74,16 @@ oo::PList ArrayFromStrings(const std::vector<std::string>& strings);
 std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::string_view key);
 } // namespace
 
-/*	The category ShipEntity (LoadRestore), bead oo-kw44: members of cxx::ShipEntity (ADR-0056
+/*	The category ShipEntity (LoadRestore), bead oo-kw44: members of ShipEntity (ADR-0056
         amendments oo-o89 item 4 and oo-42dr), forwarded by the category of the same name in
-        ShipEntity+ObjCBridge.mm; +shipRestoredFromDictionary:useFallback:context: is a static member,
-        and the private category LoadRestoreInternal's -simplifyShipdata:andGetDeletes: a member with
-        no forwarder (only the members call it). Sends to self stay sends to the facade.
+        ShipEntity+ObjCBridge.mm until bead oo-9ht.144 deleted the facade and its sends became member
+        calls; +shipRestoredFromDictionary:useFallback:context: is a static member, and the private
+        category LoadRestoreInternal's -simplifyShipdata:andGetDeletes: a member with no forwarder (only
+        the members call it).
 */
-namespace cxx {
 
 oo::PList ShipEntity::savedShipDictionaryWithContext(OOShipSaveContext* context)
 {
-    ::ShipEntity* self = oo::ToObjC(this);
     oo::PList::Dict result;
     OOShipSaveContext localContext;
     if (context == nullptr)
@@ -94,7 +94,8 @@ oo::PList ShipEntity::savedShipDictionaryWithContext(OOShipSaveContext* context)
     oo::PList::Dict updatedShipInfo = DictFrom(shipinfoDictionary);
 
     // A role set without a role string (nil before, which -setObject:forKey: refused) adds no key.
-    if (const std::optional<std::string> roleString = [[self roleSet] roleString])
+    const oo::Ref<OORoleSet> roles = getRoleSet();
+    if (const std::optional<std::string> roleString = (roles != nullptr) ? roles->roleString() : std::nullopt)
         updatedShipInfo[KEY_ROLES] = *roleString;
     updatedShipInfo[KEY_FUEL] = oo::PList::unsignedInteger(fuel);
     updatedShipInfo[KEY_BOUNTY] = oo::PList::unsignedInteger(bounty);
@@ -109,21 +110,21 @@ oo::PList ShipEntity::savedShipDictionaryWithContext(OOShipSaveContext* context)
     if (!deletes.empty())
         result[KEY_SHIPDATA_DELETES] = ArrayFromStrings(deletes);
 
-    if (!HPvector_equal([self position], kZeroHPVector)) {
-        result[KEY_POSITION] = OOPListFromHPVector([self position]);
+    if (!HPvector_equal(getPosition(), kZeroHPVector)) {
+        result[KEY_POSITION] = OOPListFromHPVector(getPosition());
     }
-    if (!quaternion_equal([self normalOrientation], kIdentityQuaternion)) {
-        result[KEY_ORIENTATION] = OOPListFromQuaternion([self normalOrientation]);
+    if (!quaternion_equal(normalOrientation(), kIdentityQuaternion)) {
+        result[KEY_ORIENTATION] = OOPListFromQuaternion(normalOrientation());
     }
 
     // -oo_setFloat:forKey: stored a double.
     if (energy != maxEnergy)
         result[KEY_ENERGY_LEVEL] = oo::PList(static_cast<double>(energy / maxEnergy));
 
-    result[KEY_PRIMARY_ROLE] = [self cxx_primaryRole].value_or("");
+    result[KEY_PRIMARY_ROLE] = getPrimaryRole().value_or("");
 
     // Add equipment.
-    const std::vector<std::string> equipment = [self cxx_equipmentKeys];
+    const std::vector<std::string> equipment = equipmentKeys();
     if (equipment.size() != 0)
         result[KEY_EQUIPMENT] = ArrayFromStrings(equipment);
 
@@ -132,7 +133,7 @@ oo::PList ShipEntity::savedShipDictionaryWithContext(OOShipSaveContext* context)
         std::vector<std::string> missileArray;
         unsigned i;
         for (i = 0; i < missiles; i++) {
-            const std::optional<std::string> missileType = [missile_list[i] cxx_identifier];
+            const std::optional<std::string> missileType = (missile_list[i] != nullptr ? missile_list[i]->identifier() : std::optional<std::string>());
             if (missileType.has_value())
                 missileArray.push_back(*missileType);
         }
@@ -141,35 +142,35 @@ oo::PList ShipEntity::savedShipDictionaryWithContext(OOShipSaveContext* context)
 
     // Add groups.
     if (_group != nil) {
-        result[KEY_GROUP_ID] = oo::PList::unsignedInteger(GroupIDForGroup(_group, *context));
-        if ([_group leader] == self)
+        result[KEY_GROUP_ID] = oo::PList::unsignedInteger(GroupIDForGroup(_group.get(), *context));
+        if ((_group != nullptr ? _group->leader() : (::ShipEntity*)nil) == this)
             result[KEY_IS_GROUP_LEADER] = oo::PList(static_cast<bool>(YES));
-        const std::optional<std::string> groupName = [_group cxx_name];
+        const std::optional<std::string> groupName = (_group != nullptr ? _group->name() : std::optional<std::string>());
         if (groupName.has_value()) {
             result[KEY_GROUP_NAME] = *groupName;
         }
     }
     if (_escortGroup != nil) {
-        result[KEY_ESCORT_GROUP_ID] = oo::PList::unsignedInteger(GroupIDForGroup(_escortGroup, *context));
+        result[KEY_ESCORT_GROUP_ID] = oo::PList::unsignedInteger(GroupIDForGroup(_escortGroup.get(), *context));
     }
     /*	Eric:
             The escortGroup property is removed from the lead ship, on entering witchspace.
             But it is needed in the save file to correctly restore an escorted group.
     */
-    else if (_group != nil && [_group leader] == self) {
-        result[KEY_ESCORT_GROUP_ID] = oo::PList::unsignedInteger(GroupIDForGroup(_group, *context));
+    else if (_group != nil && (_group != nullptr ? _group->leader() : (::ShipEntity*)nil) == this) {
+        result[KEY_ESCORT_GROUP_ID] = oo::PList::unsignedInteger(GroupIDForGroup(_group.get(), *context));
     }
 
     // FIXME: AI.
     // Eric: I think storing the AI name should be enough. On entering a wormhole, the stack is cleared so there are no preserved AI states.
     // Also the AI restarts itself with the GLOBAL state, so no need to store any old state.
-    if ([[self getAI] cxx_name].value_or(std::string()) == "nullAI.plist") {
+    if ([getAI() cxx_name].value_or(std::string()) == "nullAI.plist") {
         // might be a JS version (with none, no key: -setObject:forKey: refused nil)
-        if (const std::optional<std::string> js = [[self getAI] cxx_associatedJS])
+        if (const std::optional<std::string> js = [getAI() cxx_associatedJS])
             result[KEY_AI] = *js;
         // if there isn't, loading nullAI.js will load nullAI.plist anyway
     } else {
-        result[KEY_AI] = [[self getAI] cxx_name].value_or(std::string());
+        result[KEY_AI] = [getAI() cxx_name].value_or(std::string());
     }
 
     return oo::PList(std::move(result));
@@ -206,17 +207,22 @@ oo::PList ShipEntity::savedShipDictionaryWithContext(OOShipSaveContext* context)
         mergedData["escorts"] = oo::PList::unsignedInteger(0);
 
         const oo::PList mergedPlist(std::move(mergedData));
-        Class shipClass = [UNIVERSE cxx_shipClassForShipDictionary:mergedPlist];
-        ship = [[[shipClass alloc] cxx_initWithKey:shipKey definition:mergedPlist] autorelease];
+        // A station is made in C++ since bead oo-9ht.175 (the universe picked its class).
+        if ([UNIVERSE cxx_isStationShipDictionary:mergedPlist])
+            ship = oo::ToShip([oo::ToObjC(StationEntity::newStationObject(shipKey, mergedPlist)) autorelease]);
+        else
+            ship = oo::ToShip([oo::NewShipObject(oo::makeRef<::ShipEntity>(), shipKey, mergedPlist) autorelease]);
 
         // FIXME: restore AI.
-        [ship setAITo:dict.get<std::string>(KEY_AI, "nullAI.plist")];
+        if (ship != nullptr)
+            ship->setAITo(dict.get<std::string>(KEY_AI, "nullAI.plist"));
 
         const std::optional<std::string> primaryRole = OptionalStringForKey(dict, KEY_PRIMARY_ROLE);
-        if (primaryRole.has_value())
-            [ship setPrimaryRole:*primaryRole];
-        else
-            ship->_cxxShip->primaryRole = std::nullopt; // as -setPrimaryRole: stored nil
+        if (primaryRole.has_value()) {
+            if (ship != nullptr)
+                ship->setPrimaryRole(*primaryRole);
+        } else
+            ship->primaryRole = std::nullopt; // as -setPrimaryRole: stored nil
 
     } else {
         // Unknown ship; fall back on role if desired and possible.
@@ -224,31 +230,40 @@ oo::PList ShipEntity::savedShipDictionaryWithContext(OOShipSaveContext* context)
         if (!fallback || !shipPrimaryRole.has_value())
             return nil;
 
-        ship = [[UNIVERSE cxx_newShipWithRole:*shipPrimaryRole] autorelease];
+        ship = oo::ToShip([oo::ToObjC([UNIVERSE cxx_newShipWithRole:*shipPrimaryRole]) autorelease]);
         if (ship == nil)
             return nil;
     }
 
     // The following stuff is deliberately set up the same way even if using role fallback.
-    [ship setPosition:OOHPVectorFromPList(dict.find(KEY_POSITION), kZeroHPVector)];
-    [ship setNormalOrientation:OOQuaternionFromPList(dict.find(KEY_ORIENTATION), kIdentityQuaternion)];
+    if (ship != nullptr)
+        ship->setPosition(OOHPVectorFromPList(dict.find(KEY_POSITION), kZeroHPVector));
+    if (ship != nullptr)
+        ship->setNormalOrientation(OOQuaternionFromPList(dict.find(KEY_ORIENTATION), kIdentityQuaternion));
 
     float energyLevel = dict.get<float>(KEY_ENERGY_LEVEL, 1.0f);
-    [ship setEnergy:energyLevel * [ship maxEnergy]];
+    if (ship != nullptr)
+        ship->setEnergy(energyLevel * (ship != nullptr ? ship->getMaxEnergy() : 0.0f));
 
-    [ship removeAllEquipment];
+    if (ship != nullptr)
+        ship->removeAllEquipment();
     if (const oo::PList* equipment = dict.get<oo::PList::Array>(KEY_EQUIPMENT)) {
         for (const oo::PList& eqKey : *equipment->getIf<oo::PList::Array>()) {
-            if (const std::string* key = eqKey.getIf<std::string>())
-                [ship addEquipmentItem:*key withValidation:NO inContext:"loading"]; // the saved keys are strings
+            if (const std::string* key = eqKey.getIf<std::string>()) {
+                if (ship != nullptr)
+                    ship->addEquipmentItem(*key, NO, "loading");
+            } // the saved keys are strings
         }
     }
 
-    [ship removeMissiles];
+    if (ship != nullptr)
+        ship->removeMissiles();
     if (const oo::PList* missileList = dict.get<oo::PList::Array>(KEY_MISSILES)) {
         for (const oo::PList& eqKey : *missileList->getIf<oo::PList::Array>()) {
-            if (const std::string* key = eqKey.getIf<std::string>())
-                [ship addEquipmentItem:*key withValidation:NO inContext:"loading"]; // the saved keys are strings
+            if (const std::string* key = eqKey.getIf<std::string>()) {
+                if (ship != nullptr)
+                    ship->addEquipmentItem(*key, NO, "loading");
+            } // the saved keys are strings
         }
     }
 
@@ -256,23 +271,32 @@ oo::PList ShipEntity::savedShipDictionaryWithContext(OOShipSaveContext* context)
     NSUInteger groupID = dict.get<NSInteger>(KEY_GROUP_ID, NSNotFound);
     if (groupID != NSNotFound) {
         ::OOShipGroup* group = GroupForGroupID(groupID, *context);
-        [ship setGroup:group]; // Handles adding to group
-        if (dict.get<bool>(KEY_IS_GROUP_LEADER))
-            [group setLeader:ship];
+        if (ship != nullptr)
+            ship->setGroup(group); // Handles adding to group
+        if (dict.get<bool>(KEY_IS_GROUP_LEADER)) {
+            if (group != nullptr)
+                group->setLeader(ship);
+        }
         const std::optional<std::string> groupName = OptionalStringForKey(dict, KEY_GROUP_NAME);
-        if (groupName.has_value())
-            [group cxx_setName:groupName];
-        if ([ship cxx_hasPrimaryRole:"escort"] && ship != [group leader]) {
-            [ship setOwner:[group leader]];
+        if (groupName.has_value()) {
+            if (group != nullptr)
+                group->setName(groupName);
+        }
+        if ((ship != nullptr ? ship->hasPrimaryRole("escort") : false) && ship != (group != nullptr ? group->leader() : (::ShipEntity*)nil)) {
+            if (ship != nullptr)
+                ship->setOwner((group != nullptr ? group->leader() : (::ShipEntity*)nil));
         }
     }
 
     groupID = dict.get<NSInteger>(KEY_ESCORT_GROUP_ID, NSNotFound);
     if (groupID != NSNotFound) {
         ::OOShipGroup* group = GroupForGroupID(groupID, *context);
-        [group setLeader:ship];
-        [group cxx_setName:std::string("escort group")];
-        [ship setEscortGroup:group];
+        if (group != nullptr)
+            group->setLeader(ship);
+        if (group != nullptr)
+            group->setName(std::string("escort group"));
+        if (ship != nullptr)
+            ship->setEscortGroup(group);
     }
 
     return ship;
@@ -280,12 +304,11 @@ oo::PList ShipEntity::savedShipDictionaryWithContext(OOShipSaveContext* context)
 
 void ShipEntity::simplifyShipdata(oo::PList::Dict& data, std::vector<std::string>* deletes)
 {
-    ::ShipEntity* self = oo::ToObjC(this);
     OOCParameterAssert(deletes != NULL);
     deletes->clear();
 
     // Get original ship data.
-    oo::PList::Dict referenceData = DictFrom([[::OOShipRegistry sharedRegistry] cxx_shipInfoForKey:[self cxx_shipDataKey].value_or(std::string())]);
+    oo::PList::Dict referenceData = DictFrom([[::OOShipRegistry sharedRegistry] cxx_shipInfoForKey:shipDataKey().value_or(std::string())]);
 
     // Discard stuff that we handle separately.
     StripIgnoredKeys(referenceData);
@@ -312,8 +335,6 @@ void ShipEntity::simplifyShipdata(oo::PList::Dict& data, std::vector<std::string
             }
     */
 }
-
-} // namespace cxx
 
 namespace {
 
@@ -353,9 +374,9 @@ NSUInteger GroupIDForGroup(OOShipGroup* group, OOShipSaveContext& context)
 
 OOShipGroup* GroupForGroupID(NSUInteger groupID, OOShipSaveContext& context)
 {
-    oo::ObjCRef<OOShipGroup*>& group = context.groupsByID[groupID];
-    if (group.get() == nil) {
-        group = oo::adoptObjC([[OOShipGroup alloc] init]);
+    oo::Ref<OOShipGroup>& group = context.groupsByID[groupID];
+    if (group == nullptr) {
+        group = OOShipGroup::groupWithName(std::nullopt); // -init
     }
 
     return group.get();

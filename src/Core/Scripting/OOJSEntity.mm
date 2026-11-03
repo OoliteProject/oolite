@@ -303,8 +303,10 @@ static JSValue EntitySetProperty(OOJS_SETTER_ARGS)
         if (JSValueToHPVector(context, value, &hpvValue)) {
             [entity setPosition:hpvValue];
             if ([entity isShip]) {
-                [(ShipEntity*)entity resetExhaustPlumes];
-                [(ShipEntity*)entity forceAegisCheck];
+                if (oo::ToShip(entity) != nullptr)
+                    oo::ToShip(entity)->resetExhaustPlumes();
+                if (oo::ToShip(entity) != nullptr)
+                    oo::ToShip(entity)->forceAegisCheck();
             }
             return JS_UNDEFINED;
         }

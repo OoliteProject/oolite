@@ -24,6 +24,7 @@
 #import "OODescription.h"
 #import "OODebugFlags.h"
 #import "Universe.h"
+#import "PlayerEntity.h"	// PLAYER is C++ (bead oo-9ht.177)
 
 #include "oofnd/Log.hpp"
 #include "oo_test.hpp"
@@ -40,25 +41,33 @@
 uint32_t gDebugFlags = 0;
 #endif
 
-@class PlayerEntity;
+class PlayerEntity;
 extern PlayerEntity *gOOPlayer;
 extern Universe *gSharedUniverse;
 
 
-// PLAYER: an entity whose viewpoint is set by the test (PlayerEntity's is its position plus an offset).
-@interface TestPlayer: Entity
+// PLAYER: a player whose viewpoint is set by the test (PlayerEntity's is its position plus an offset;
+// C++ since bead oo-9ht.177 deleted the Objective-C player).
+class TestPlayer : public PlayerEntity
 {
-@public
-	HPVector	_viewpoint;
+public:
+	HPVector	_viewpoint = kZeroHPVector;
+
+	HPVector viewpointPosition() override	{ return _viewpoint; }
+};
+
+// [[TestPlayer alloc] init] (bead oo-9ht.177): a C++ player under the ship's facade, as
+// PlayerEntity::sharedPlayer() makes the game's, retained (+1) as +alloc's object was.
+template <class T>
+T *NewTestPlayer()
+{
+	oo::Ref<T> player = oo::makeRef<T>();
+	@autoreleasepool
+	{
+		[oo::NewEntityFacade(player) retain];
+	}
+	return player.get();
 }
-@end
-
-
-@implementation TestPlayer
-
-- (HPVector) viewpointPosition	{ return _viewpoint; }
-
-@end
 
 
 // An unconverted entity: an Objective-C subclass, as ShipEntity is. Each override counts, so the
@@ -110,7 +119,7 @@ public:
 @interface Entity (TestPrivate)
 - (Vector) relativePosition;
 - (id) superShaderBindingTarget;
-- (void) subEntityReallyDied:(ShipEntity *)sub;
+- (void) subEntityReallyDied:(ShipEntity *)sub;	// the C++ ship since bead oo-9ht.144
 @end
 
 
@@ -193,11 +202,11 @@ void SetUpUniverse()
 
 TestPlayer *SetUpPlayer(HPVector position, HPVector viewpoint)
 {
-	static TestPlayer *player = nil;
-	if (player == nil)  player = [[TestPlayer alloc] init];	// never released, as the player is not
-	[player setPosition:position];
+	static TestPlayer *player = nullptr;
+	if (player == nullptr)  player = NewTestPlayer<TestPlayer>();	// never released, as the player is not
+	player->setPosition(position);
 	player->_viewpoint = viewpoint;
-	gOOPlayer = (PlayerEntity *)player;
+	gOOPlayer = player;
 	return player;
 }
 
@@ -256,14 +265,14 @@ OO_TEST(defaults)
 		OO_CHECK([entity collisionRadius] == 0 && [entity frustumRadius] == 0);
 		OO_CHECK([entity universalID] == NO_TARGET && [entity lastDrawCounter] == 0);
 		OO_CHECK([entity owner] == nil && [entity parentEntity] == nil && [entity rootShipEntity] == nil);
-		OO_CHECK([entity collisionRegion] == nil);
+		OO_CHECK(oo::ToCxx(entity)->getCollisionRegion() == nullptr);
 		OO_CHECK([entity cxx_collidingEntities] != nullptr && [entity cxx_collidingEntities]->empty());
 		OO_CHECK([entity canCollide] && [entity isVisible] && ![entity throwingSparks]);
 		OO_CHECK(NoDrawDistance(entity) == 100000.0f);
 
 		OOColor *fog = [entity fogUniform];
 		OO_CHECK(fog != nil);
-		OO_CHECK([fog redComponent] == 0 && [fog greenComponent] == 0 && [fog blueComponent] == 0 && [fog alphaComponent] == 0);
+		OO_CHECK(fog->redComponent() == 0 && fog->greenComponent() == 0 && fog->blueComponent() == 0 && fog->alphaComponent() == 0);
 
 		// The components %@ prints.
 		OO_CHECK(oo::DescriptionOf(entity).ends_with("{position: (0, 0, 0) scanClass: CLASS_NOT_SET status: STATUS_COCKPIT_DISPLAY}"));
@@ -458,7 +467,7 @@ OO_TEST(ownersAndParents)
 		// swallowed, ending the dump.
 
 		SetIsShip(entity, true);
-		OO_CHECK([entity isShip] && [entity rootShipEntity] == (ShipEntity *)entity);
+		OO_CHECK([entity isShip] && [entity rootShipEntity] == entity);
 		SetIsShip(entity, false);
 	}
 }
@@ -542,8 +551,8 @@ OO_TEST(sessionAndShaderBindings)
 		OO_CHECK([entity timeElapsedSinceSpawn] == 4.5f);
 		OO_CHECK(VectorEqual([entity relativePosition], make_vector(0, -1, 3)));
 
-		[entity setAtmosphereFogging:[OOColor colorWithRed:0.25f green:0.5f blue:0.75f alpha:1.0f]];
-		OO_CHECK([[entity fogUniform] greenComponent] == 0.5f && [[entity fogUniform] alphaComponent] == 1.0f);
+		[entity setAtmosphereFogging:OOColor::colorWithRed(0.25f, 0.5f, 0.75f, 1.0f).get()];
+		OO_CHECK([entity fogUniform]->greenComponent() == 0.5f && [entity fogUniform]->alphaComponent() == 1.0f);
 		[entity setAtmosphereFogging:nil];
 		OO_CHECK([entity fogUniform] == nil);
 

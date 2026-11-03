@@ -533,7 +533,7 @@ id Entity::owner()
     return ownerRef != nil ? oo::ToCxx(ownerRef)->weakRefUnderlyingObject() : nil;
 }
 
-::ShipEntity* Entity::parentEntity()
+::Entity* Entity::parentEntity()
 {
     id owner = this->owner();
     if ([owner isShipWithSubEntityShip:oo::ToObjC(this)])
@@ -546,13 +546,13 @@ id<OOWeakReferenceSupport> Entity::superShaderBindingTarget()
     return parentEntity();
 }
 
-::ShipEntity* Entity::rootShipEntity()
+::Entity* Entity::rootShipEntity()
 {
-    ::ShipEntity* parent = parentEntity();
+    ::Entity* parent = parentEntity();
     if (parent != nil)
         return oo::ToCxx(parent)->rootShipEntity();
     if (getIsShip())
-        return (::ShipEntity*)oo::ToObjC(this);
+        return oo::ToObjC(this);
     return nil;
 }
 
@@ -580,7 +580,7 @@ GLfloat Entity::cameraRangeBack()
 // so needs to remain at OpenGL precision levels
 Vector Entity::relativePosition()
 {
-    return HPVectorToVector(HPvector_subtract(getPosition(), [PLAYER position]));
+    return HPVectorToVector(HPvector_subtract(getPosition(), (PLAYER != nullptr ? PLAYER->getPosition() : HPVector { })));
 }
 
 Vector Entity::vectorTo(Entity* entity)
@@ -605,7 +605,7 @@ void Entity::setPositionX(OOHPScalar x, OOHPScalar y, OOHPScalar z)
 
 void Entity::updateCameraRelativePosition()
 {
-    cameraRelativePosition = HPVectorToVector(HPvector_subtract(absolutePositionForSubentity(), [PLAYER viewpointPosition]));
+    cameraRelativePosition = HPVectorToVector(HPvector_subtract(absolutePositionForSubentity(), (PLAYER != nullptr ? PLAYER->viewpointPosition() : HPVector { })));
 }
 
 HPVector Entity::absolutePositionForSubentity()
@@ -841,8 +841,8 @@ void Entity::update(OOTimeDelta delta_t)
             cam_zero_distance = ownerEntity != nullptr ? ownerEntity->camZeroDistance() : 0;
             updateCameraRelativePosition();
         } else {
-            zero_distance = HPdistance2(oo::ToCxx(PLAYER)->position, position);
-            cam_zero_distance = HPdistance2([PLAYER viewpointPosition], position);
+            zero_distance = HPdistance2(PLAYER->position, position);
+            cam_zero_distance = HPdistance2((PLAYER != nullptr ? PLAYER->viewpointPosition() : HPVector { }), position);
             updateCameraRelativePosition();
         }
     } else {
@@ -1006,7 +1006,7 @@ std::optional<std::string> Entity::descriptionForObjDump()
     if (!result)
         return std::nullopt; // -stringByAppendingFormat: sent to nil
 
-    return *result + oo::str::format(" range: %g (visible: %s)", HPdistance(getPosition(), [PLAYER position]), isVisible() ? "yes" : "no");
+    return *result + oo::str::format(" range: %g (visible: %s)", HPdistance(getPosition(), (PLAYER != nullptr ? PLAYER->getPosition() : HPVector { })), isVisible() ? "yes" : "no");
 }
 
 std::vector<oo::ObjCRef<::OOTexture*>> Entity::allTextures()

@@ -31,19 +31,17 @@ MA 02110-1301, USA.
 
 #include "oofnd/Notification.hpp"
 
-/*	C++20 since bead oo-1h0h (proposed ADR-0056 amendment oo-o89): cxx::OOJSPopulatorDefinition.
+/*	C++20 since bead oo-1h0h (proposed ADR-0056 amendment oo-o89): OOJSPopulatorDefinition.
         -init after [super init] is the constructor, -dealloc the destructor; the engine, the script
         stack and the owning script's weak reference are Objective-C and are messaged as before.
 */
-
-namespace cxx {
 
 OOJSPopulatorDefinition::OOJSPopulatorDefinition()
 {
     _callback = JS_UNDEFINED;
     _callbackThis = JS_UNDEFINED;
 
-    _owningScript = oo::adoptObjC(static_cast<::OOJSScript*>([[::OOJSScript currentlyRunningScript] weakRetain]));
+    _owningScript = OOJSScript::currentlyRunningScript();
 
     // Stays registered until destruction, so values set after a reset are also released on the next one.
     oo::NotificationCenter::defaultCenter().addObserver(this, kOOJavaScriptEngineWillResetNotificationName,
@@ -114,8 +112,8 @@ void OOJSPopulatorDefinition::runPopulatorCallback(HPVector location)
     JSValue loc = JS_UNDEFINED;
     VectorToJSValue(context, HPVectorToVector(location), &loc);
 
-    const oo::ObjCRef<::OOJSScript*> owner = _owningScript; // local copy needed
-    [::OOJSScript pushScript:owner.get()];
+    const oo::WeakRef<OOJSScript> owner = _owningScript; // local copy needed
+    OOJSScript::pushScript(owner);
 
     // Hold our own references in case the callback replaces them.
     JSValue callback = JS_DupValue(context, _callback);
@@ -128,11 +126,41 @@ void OOJSPopulatorDefinition::runPopulatorCallback(HPVector location)
     JS_FreeValue(context, callback);
     JS_FreeValue(context, callbackThis);
 
-    [::OOJSScript popScript:owner.get()];
+    OOJSScript::popScript(owner.get());
 
     JS_FreeValue(context, rval);
     JS_FreeValue(context, loc);
     OOJSRelinquishContext(context);
 }
 
-} // namespace cxx
+namespace {
+class PopulatorDefinitionForeign final : public oo::PListForeign {
+public:
+    explicit PopulatorDefinitionForeign(oo::Ref<OOJSPopulatorDefinition> definition)
+        : definition_(std::move(definition))
+    {
+    }
+    OOJSPopulatorDefinition* definition() const noexcept { return definition_.get(); }
+    std::string className() const override { return "OOJSPopulatorDefinition"; }
+    std::string description() const override { return "<OOJSPopulatorDefinition>"; }
+
+private:
+    oo::Ref<OOJSPopulatorDefinition> definition_;
+};
+} // namespace
+
+oo::PList OOJSPopulatorDefinitionToPList(oo::Ref<OOJSPopulatorDefinition> definition)
+{
+    if (!definition)
+        return oo::PList();
+    return oo::PList(oo::PList::Object(oo::makeRef<PopulatorDefinitionForeign>(std::move(definition))));
+}
+
+OOJSPopulatorDefinition* OOJSPopulatorDefinitionIn(const oo::PList& plist)
+{
+    if (const oo::PList::Object* node = plist.getIf<oo::PList::Object>()) {
+        if (const auto* foreign = dynamic_cast<const PopulatorDefinitionForeign*>(node->get()))
+            return foreign->definition();
+    }
+    return nullptr;
+}

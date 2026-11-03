@@ -31,7 +31,7 @@ SOFTWARE.
 
 #include "oofnd/PList.hpp"
 
-@class OOColor;
+#import "OOColor.h" // the colour readers answer oo::Ref<OOColor>
 
 /*	Material configuration properties (Foundation sweep, proposed ADR-0043 Amendment 2, bead
         oo-hiis). A material configuration is an oo::PList dictionary: property-list data plus
@@ -40,13 +40,13 @@ SOFTWARE.
         oo::PList dictionaries (null = nil). The Foundation dictionary category these replace, and the
         Foundation-string key constants, live on in a transitional bridge (now removed) until their callers move.
 */
-OOColor* cxx_OOMaterialDiffuseColor(const oo::PList& configuration);
-OOColor* cxx_OOMaterialAmbientColor(const oo::PList& configuration);
-OOColor* cxx_OOMaterialSpecularColor(const oo::PList& configuration);
-OOColor* cxx_OOMaterialSpecularModulateColor(const oo::PList& configuration);
-OOColor* cxx_OOMaterialEmissionColor(const oo::PList& configuration);
-OOColor* cxx_OOMaterialEmissionModulateColor(const oo::PList& configuration);
-OOColor* cxx_OOMaterialIlluminationModulateColor(const oo::PList& configuration);
+oo::Ref<OOColor> cxx_OOMaterialDiffuseColor(const oo::PList& configuration);
+oo::Ref<OOColor> cxx_OOMaterialAmbientColor(const oo::PList& configuration);
+oo::Ref<OOColor> cxx_OOMaterialSpecularColor(const oo::PList& configuration);
+oo::Ref<OOColor> cxx_OOMaterialSpecularModulateColor(const oo::PList& configuration);
+oo::Ref<OOColor> cxx_OOMaterialEmissionColor(const oo::PList& configuration);
+oo::Ref<OOColor> cxx_OOMaterialEmissionModulateColor(const oo::PList& configuration);
+oo::Ref<OOColor> cxx_OOMaterialIlluminationModulateColor(const oo::PList& configuration);
 
 oo::PList cxx_OOMaterialDiffuseMapSpecifier(const oo::PList& configuration, const std::optional<std::string>& defaultName);
 oo::PList cxx_OOMaterialCombinedSpecularMapSpecifier(const oo::PList& configuration);

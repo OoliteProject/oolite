@@ -9,10 +9,9 @@ display lists relying on old texture names. All objects which have display
 lists must therefore register with the OOGraphicsResetManager on init, and
 unregister on dealloc.
 
-C++20 since bead oo-jpd8 (proposed ADR-0056). The class is cxx::OOGraphicsResetManager while
-OOGraphicsResetManager+ObjCBridge.h, imported at the end of this header, keeps the Objective-C
-OOGraphicsResetManager its unconverted callers message, and the OOGraphicsResetClient protocol its
-clients adopt; the bridge's deletion bead moves the class out of namespace cxx.
+C++20 since bead oo-jpd8 (proposed ADR-0056). Its Objective-C facade and the OOGraphicsResetClient
+protocol were deleted by bead oo-9ht.23 (ADR-0056 amendment "deleting a facade"): the class is
+global, and every client is a C++ OOGraphicsResetClient.
 
 
 Copyright (C) 2007-2013 Jens Ayton and contributors
@@ -44,9 +43,7 @@ SOFTWARE.
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
 
-namespace cxx {
-
-// A converted client (amendment oo-jpd8 item 3, added by bead oo-4jjl for OOSkyDrawable): the
+// A client (amendment oo-jpd8 item 3, added by bead oo-4jjl for OOSkyDrawable): the deleted
 // protocol OOGraphicsResetClient's method as a pure virtual. It registers with registerCxxClient().
 class OOGraphicsResetClient {
 public:
@@ -54,8 +51,6 @@ public:
     virtual void resetGraphicsState() = 0;
 };
 
-// A client is an Objective-C object adopting OOGraphicsResetClient (OOGraphicsResetManager+ObjCBridge.h),
-// which is sent -resetGraphicsState.
 class OOGraphicsResetManager : public oo::RefCounted {
 public:
     // The shared manager, made on first use; borrowed, never released (proposed ADR-0056
@@ -64,11 +59,8 @@ public:
 
     ~OOGraphicsResetManager();
 
-    // Clients are not retained.
-    void registerClient(id client);
-    void unregisterClient(id client);
-
-    // The same for a C++ client (not retained either; null is never registered).
+    // Clients are not retained; null is never registered (bead oo-9ht.23 deleted the overloads
+    // that took an Objective-C client).
     void registerCxxClient(OOGraphicsResetClient* client);
     void unregisterCxxClient(OOGraphicsResetClient* client);
 
@@ -76,14 +68,7 @@ public:
     void resetGraphicsState();
 
 private:
-    std::unordered_set<id> clients = { }; // not retained; was a Foundation mutable set of boxed values (bead oo-3rb.10)
     std::unordered_set<OOGraphicsResetClient*> cxxClients = { }; // not retained
 };
-
-} // namespace cxx
-
-// Transitional: the Objective-C OOGraphicsResetManager and the OOGraphicsResetClient protocol, for
-// code not yet converted. Deleted, with namespace cxx above, by the bridge's deletion bead.
-#import "OOGraphicsResetManager+ObjCBridge.h"
 
 #endif // OOGRAPHICSRESETMANAGER_H

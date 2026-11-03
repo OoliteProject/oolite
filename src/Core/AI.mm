@@ -168,7 +168,7 @@ std::optional<std::string> AI::shortDescriptionComponents() const
 
 ::ShipEntity* AI::owner()
 {
-    ::ShipEntity* owner = [_owner.get() weakRefUnderlyingObject];
+    ::ShipEntity* owner = oo::ToShip([_owner.get() weakRefUnderlyingObject]);
     if (owner == nil) {
         _owner = nullptr;
     }
@@ -178,7 +178,7 @@ std::optional<std::string> AI::shortDescriptionComponents() const
 
 void AI::setOwner(::ShipEntity* ship)
 {
-    _owner = oo::adoptObjC([ship weakRetain]);
+    _owner = oo::adoptObjC((ship != nullptr ? [oo::ToObjC(ship) weakRetain] : id { }));
     refreshOwnerDesc();
 }
 
@@ -225,7 +225,7 @@ void AI::preserveCurrentStateMachine()
         (script != nullptr && script->isString()) ? std::optional<std::string>(*script->getIf<std::string>()) : std::nullopt);
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-    if ([owner() reportAIMessages])
+    if ((owner() != nullptr ? owner()->getReportAIMessages() : false))
         OO_LOG("ai.stack.push", "Pushing state machine for {}", oo::DescriptionOf(oo::ToObjC(this)));
 #endif
 
@@ -240,7 +240,7 @@ void AI::restorePreviousStateMachine()
     const oo::Ref<OOPreservedAIStateMachine> preservedMachine = aiStack.back();
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-    if ([owner() reportAIMessages])
+    if ((owner() != nullptr ? owner()->getReportAIMessages() : false))
         OO_LOG("ai.stack.pop", "Popping previous state machine for {}", oo::DescriptionOf(oo::ToObjC(this)));
 #endif
 
@@ -250,7 +250,8 @@ void AI::restorePreviousStateMachine()
     directSetState(preservedMachine->state());
 
     // restore JS script
-    [owner() setAIScript:preservedMachine->jsScript().value_or("")];
+    if (owner() != nullptr)
+        owner()->setAIScript(preservedMachine->jsScript().value_or(""));
 
     pendingMessages = preservedMachine->pendingMessages();
 
@@ -370,7 +371,7 @@ void AI::reactToMessage(const std::string& message, const std::optional<std::str
             Fix: make owner an OOWeakReference.
              -- Ahruman, 20070706
     */
-    if (owner == nil || [owner universalID] == NO_TARGET)
+    if (owner == nil || (owner != nullptr ? owner->getUniversalID() : OOUniversalID { }) == NO_TARGET)
         return;
 
 #ifndef NDEBUG
@@ -403,7 +404,7 @@ void AI::reactToMessage(const std::string& message, const std::optional<std::str
         AIStackElement* stack = sStack;
         unsigned depth = 0;
         while (stack != NULL) {
-            OO_LOG("ai.error.recursion.stackTrace", "{}  {} - {}:{}.{} ({})", depth++, oo::ShortDescriptionOf(stack->owner), stack->aiName, stack->state.value_or("(null)"), *stack->message, *stack->context);
+            OO_LOG("ai.error.recursion.stackTrace", "{}  {} - {}:{}.{} ({})", depth++, oo::ShortDescriptionOf(oo::ToObjC(stack->owner)), stack->aiName, stack->state.value_or("(null)"), *stack->message, *stack->context);
             stack = stack->back;
         }
 
@@ -426,7 +427,7 @@ void AI::reactToMessage(const std::string& message, const std::optional<std::str
     }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-    if (currentState.has_value() && message != "UPDATE" && [owner reportAIMessages]) {
+    if (currentState.has_value() && message != "UPDATE" && (owner != nullptr ? owner->getReportAIMessages() : false)) {
         OO_LOG("ai.message.receive", "AI {} for {} in state '{}' receives message '{}'. Context: {}, stack depth: {}", stateMachineName, ownerDesc.value_or("(null)"), currentState.value_or("(null)"), message, debugContext.value_or("(null)"), static_cast<unsigned>(recursionLimiter));
     }
 #endif
@@ -450,8 +451,8 @@ void AI::reactToMessage(const std::string& message, const std::optional<std::str
         --recursionLimiter;
     } else {
         if (currentState.has_value()) {
-            if ([owner respondsToSelector:OOSelectorFromName("interpretAIMessage:")]) {
-                OOCallByName(owner, OOSelectorFromName("interpretAIMessage:"), message);
+            if ((owner != nullptr ? [oo::ToObjC(owner) respondsToSelector:OOSelectorFromName("interpretAIMessage:")] : false)) {
+                OOCallByName(oo::ToObjC(owner), OOSelectorFromName("interpretAIMessage:"), message);
             }
         }
     }
@@ -469,7 +470,7 @@ void AI::takeAction(const std::string& action)
     ::ShipEntity* owner = this->owner();
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-    bool report = [owner reportAIMessages];
+    bool report = (owner != nullptr ? owner->getReportAIMessages() : false);
     if (report) {
         OO_LOG("ai.takeAction", "{} to take action {}", ownerDesc.value_or("(null)"), action);
         OOLogIndent();
@@ -498,11 +499,11 @@ void AI::takeAction(const std::string& action)
             }
 
             SEL selector = OOSelectorFromName(selectorStr);
-            if ([owner respondsToSelector:selector]) {
+            if ((owner != nullptr ? [oo::ToObjC(owner) respondsToSelector:selector] : false)) {
                 if (dataString.has_value())
-                    OOCallByName(owner, selector, *dataString);
+                    OOCallByName(oo::ToObjC(owner), selector, *dataString);
                 else
-                    OOCallByName(owner, selector);
+                    OOCallByName(oo::ToObjC(owner), selector);
             } else {
                 OO_LOG_ERR("ai.takeAction.badSelector", "in AI {} in state {}: {} does not respond to {}", stateMachineName, currentState.value_or("(null)"), ownerDesc.value_or("(null)"), selectorStr);
             }
@@ -525,7 +526,7 @@ void AI::takeAction(const std::string& action)
 
 void AI::think()
 {
-    if ([owner() universalID] == NO_TARGET || stateMachine.isNull())
+    if ((owner() != nullptr ? owner()->getUniversalID() : OOUniversalID { }) == NO_TARGET || stateMachine.isNull())
         return; // don't think until launched
 
     reactToMessage("UPDATE", "periodic update");
@@ -541,7 +542,7 @@ void AI::think()
 
 void AI::message(const std::string& ms)
 {
-    if ([owner() universalID] == NO_TARGET)
+    if ((owner() != nullptr ? owner()->getUniversalID() : OOUniversalID { }) == NO_TARGET)
         return; // don't think until launched
 
     if (EXPECT_NOT(pendingMessages.size() > 32)) {
@@ -663,10 +664,10 @@ void AI::deferredSetState(const std::string& stateName)
 void AI::refreshOwnerDesc()
 {
     ::ShipEntity* owner = this->owner();
-    if ([owner isPlayer]) {
+    if ((owner != nullptr ? owner->getIsPlayer() : false)) {
         ownerDesc = "player autopilot";
     } else if (owner != nil) {
-        ownerDesc = oo::str::format("%s %d", [owner cxx_name].value_or("(null)").c_str(), [owner universalID]);
+        ownerDesc = oo::str::format("%s %d", (owner != nullptr ? owner->getName() : std::optional<std::string>()).value_or("(null)").c_str(), (owner != nullptr ? owner->getUniversalID() : OOUniversalID { }));
     } else {
         ownerDesc = "no owner";
     }
@@ -716,7 +717,7 @@ oo::PList AI::loadStateMachine(const std::string& smName, const std::string& scr
                 if (state.has_value()) {
                     fromString = oo::str::format(" from %s:%s", name().value_or("(null)").c_str(), state->c_str());
                 }
-                OO_LOG("ai.load.failed.unknownAI", "Can't switch AI for {}{} to \"{}\" - could not load file.", oo::ShortDescriptionOf(owner()), fromString, smName);
+                OO_LOG("ai.load.failed.unknownAI", "Can't switch AI for {}{} to \"{}\" - could not load file.", oo::ShortDescriptionOf(oo::ToObjC(owner())), fromString, smName);
                 return oo::PList();
             }
 

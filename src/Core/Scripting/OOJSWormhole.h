@@ -32,7 +32,7 @@ MA 02110-1301, USA.
 #include <optional>
 #include <string>
 
-@class WormholeEntity;
+class WormholeEntity;
 
 void InitOOJSWormhole(JSContext* context, JSValueConst global);
 

@@ -44,8 +44,6 @@ MA 02110-1301, USA.
 class OOOctreeBuilder;
 struct Octree_details;
 
-namespace cxx {
-
 class Octree : public oo::RefCounted {
 public:
     /*
@@ -107,8 +105,6 @@ private:
     oo::Data _data;
 };
 
-} // namespace cxx
-
 enum {
     kMaxOctreeDepth = 7 // 128x128x128
 };
@@ -125,7 +121,7 @@ public:
             radius, and clear the builder. If NDEBUG is undefined, throws an exception
             if the structure of the octree is invalid.
     */
-    oo::Ref<cxx::Octree> buildOctreeWithRadius(GLfloat radius);
+    oo::Ref<Octree> buildOctreeWithRadius(GLfloat radius);
 
     /*
             Append nodes to the octree.
@@ -165,9 +161,5 @@ private:
     OOOctreeBuildState _stateStack[kMaxOctreeDepth + 1] = { };
     uint8_t _level = { };
 };
-
-// Transitional: the Objective-C Octree, for callers not yet converted. Deleted, with namespace cxx
-// above, by the bridge's deletion bead.
-#import "Octree+ObjCBridge.h"
 
 #endif // OCTREE_H

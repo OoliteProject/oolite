@@ -33,11 +33,9 @@ SOFTWARE.
 
 namespace {
 
-cxx::OOGraphicsResetManager* sSingleton = nullptr; // +1, never released (the retained singleton)
+OOGraphicsResetManager* sSingleton = nullptr; // +1, never released (the retained singleton)
 
 } // namespace
-
-namespace cxx {
 
 OOGraphicsResetManager::~OOGraphicsResetManager()
 {
@@ -50,18 +48,6 @@ OOGraphicsResetManager* OOGraphicsResetManager::sharedManager()
     if (sSingleton == nullptr)
         sSingleton = oo::makeRef<OOGraphicsResetManager>().leakRef();
     return sSingleton;
-}
-
-void OOGraphicsResetManager::registerClient(id client)
-{
-    if (client != nil) {
-        clients.insert(client);
-    }
-}
-
-void OOGraphicsResetManager::unregisterClient(id client)
-{
-    clients.erase(client);
 }
 
 void OOGraphicsResetManager::registerCxxClient(OOGraphicsResetClient* client)
@@ -83,25 +69,13 @@ void OOGraphicsResetManager::resetGraphicsState()
     OO_LOG("rendering.reset.start", "{}", "Resetting graphics state.");
     oo::log::indentIf("rendering.reset.start");
 
-    OOOpenGLExtensionManager::sharedManager()->reset();
+    cxx::OOOpenGLExtensionManager::sharedManager()->reset();
     [::OOTexture rebindAllTextures];
 
     // A copy, so a client may register or unregister during the reset (one unregistered by an
     // earlier client is skipped). Unordered, as the Foundation set was: its order was pointer-hash order,
-    // so it already varied from run to run.
-    const std::vector<id> snapshot(clients.begin(), clients.end());
-    for (id client : snapshot) {
-        if (clients.find(client) == clients.end())
-            continue;
-        @try {
-            [client resetGraphicsState];
-        }
-        @catch (OOException* exception) {
-            OO_LOG(cxx_kOOLogException, "***** EXCEPTION -- {} : {} -- ignored during graphics reset.", [exception name], [exception reason]);
-        }
-    }
-
-    // Then the C++ clients, the same way (bead oo-4jjl).
+    // so it already varied from run to run. (The Objective-C clients, told first, went with the
+    // protocol: bead oo-9ht.23.)
     const std::vector<OOGraphicsResetClient*> cxxSnapshot(cxxClients.begin(), cxxClients.end());
     for (OOGraphicsResetClient* client : cxxSnapshot) {
         if (cxxClients.find(client) == cxxClients.end())
@@ -117,8 +91,6 @@ void OOGraphicsResetManager::resetGraphicsState()
     oo::log::outdentIf("rendering.reset.start");
     OO_LOG("rendering.reset.end", "{}", "End of graphics state reset.");
 }
-
-} // namespace cxx
 
 // The singleton category (+allocWithZone:, and -retain/-release/-autorelease doing nothing) is
 // not translated: the one instance is made only by sharedManager() and never released (proposed

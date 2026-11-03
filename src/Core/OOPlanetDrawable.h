@@ -5,7 +5,7 @@ OOPlanetDrawable.h
 Draw a ball, such as might be used to represent a planet.
 
 C++20 since bead oo-mw4u (proposed ADR-0056, amendments oo-smy and oo-zffj): a global class
-derived from the converted drawable root cxx::OODrawable, with no Objective-C facade, because its
+derived from the converted drawable root OODrawable, with no Objective-C facade, because its
 one caller, OOPlanetEntity, was adapted in the same bead. It keeps its material as the
 Objective-C object, as the ivar did (amendment oo-smy item 4), and calls it through oo::ToCxx.
 
@@ -38,7 +38,7 @@ MA 02110-1301, USA.
 
 @class OOMaterial;
 
-class OOPlanetDrawable : public cxx::OODrawable {
+class OOPlanetDrawable : public OODrawable {
 public:
     static oo::Ref<OOPlanetDrawable> planetWithTextureName(const std::string& textureName, float radius);
     static oo::Ref<OOPlanetDrawable> atmosphereWithRadius(float radius);
@@ -76,6 +76,9 @@ public:
     void renderTranslucentParts() override;
     bool hasOpaqueParts() override;
     bool hasTranslucentParts() override;
+#ifdef OO_DEBUG_MONITOR_ENABLED
+    size_t objectSize() const override { return sizeof *this; }
+#endif
     GLfloat collisionRadius() override;
     GLfloat maxDrawDistance() override;
     BoundingBox boundingBox() override;

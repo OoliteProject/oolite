@@ -11,7 +11,8 @@
 	files and the whitelist), the cache manager (a map), the property-list reader, the deferred-call
 	scheduler (which keeps the calls until the test fires them) and the log indentation functions
 	(which do what OOLogging.mm's do). The owner is an OOWeakRefObject of the test's own answering
-	the ship's selectors that AI sends, and recording the actions it is sent. The log is captured.
+	the ship's selectors that AI sends, and recording the actions it is sent; since bead oo-9ht.144
+	it is the object of a C++ ship stand-in, which answers what AI asks the ship. The log is captured.
 
 	The expectations were written against the Objective-C API and run on the unconverted class
 	first; they now run through the facade, which is its forwarding test (amendment oo-8kx7 item
@@ -159,7 +160,46 @@ void OOLogOutdent(void)		{ oo::log::outdent(); }
 
 // --- The owner -------------------------------------------------------------------------------
 
-@interface TestShip: OOWeakRefObject
+/*	The ship is C++ since bead oo-9ht.144 deleted the Objective-C ship: AI asks the C++ ship its
+	universal ID, whether it is the player, its name and whether it reports AI messages, and sets its
+	AI script, and sends its actions to the ship's object by name, as before. The object is the
+	root's (which holds the C++ part, oo::ToCxx reads it, and which oo::ToObjC answers for it); the
+	classes are declared as Entity.h and ShipEntity.h declare them (the test imports neither), and
+	the part answers from its object's fields, as the object's selectors did.
+*/
+@class Entity;
+
+namespace cxx {
+class Entity : public oo::RefCounted
+{
+public:
+	virtual ~Entity();
+	OOUniversalID getUniversalID();
+	bool getIsPlayer();
+
+	::Entity *_object = nil;	// not retained
+};
+}	// namespace cxx
+
+class ShipEntity : public cxx::Entity
+{
+public:
+	bool getReportAIMessages();
+	std::optional<std::string> getName();
+	void setAIScript(const std::string &aiString);
+};
+
+@interface Entity: OOWeakRefObject
+{
+@public
+	oo::Ref<cxx::Entity> _cxxEntity;
+}
+@end
+
+@implementation Entity
+@end
+
+@interface TestShip: Entity
 {
 @public
 	OOUniversalID				_id;
@@ -169,11 +209,6 @@ void OOLogOutdent(void)		{ oo::log::outdent(); }
 	std::vector<std::string>	_runningAIs;	// +cxx_currentlyRunningAIDescription during each action
 	std::optional<std::string>	_script;
 }
-- (OOUniversalID) universalID;
-- (BOOL) isPlayer;
-- (BOOL) reportAIMessages;
-- (std::optional<std::string>) cxx_name;
-- (void) setAIScript:(const std::string &)aiString;
 - (void) interpretAIMessage:(const std::string &)message;
 - (void) doThing:(const std::string &)argument;
 - (void) doNothing;
@@ -184,11 +219,16 @@ void OOLogOutdent(void)		{ oo::log::outdent(); }
 
 @implementation TestShip
 
-- (OOUniversalID) universalID						{ return _id; }
-- (BOOL) isPlayer									{ return _isPlayer; }
-- (BOOL) reportAIMessages							{ return NO; }
-- (std::optional<std::string>) cxx_name				{ return std::string("Test ship"); }
-- (void) setAIScript:(const std::string &)aiString	{ _script = aiString; }
+// Every test ship has its C++ part (the ship).
+- (id) init
+{
+	if ((self = [super init]))
+	{
+		_cxxEntity = oo::makeRef<ShipEntity>();
+		_cxxEntity->_object = self;
+	}
+	return self;
+}
 
 
 - (void) interpretAIMessage:(const std::string &)message
@@ -224,6 +264,25 @@ void OOLogOutdent(void)		{ oo::log::outdent(); }
 }
 
 @end
+
+
+cxx::Entity::~Entity() = default;
+OOUniversalID cxx::Entity::getUniversalID()					{ return static_cast<TestShip *>(_object)->_id; }
+bool cxx::Entity::getIsPlayer()								{ return static_cast<TestShip *>(_object)->_isPlayer; }
+bool ShipEntity::getReportAIMessages()						{ return false; }
+std::optional<std::string> ShipEntity::getName()			{ return std::string("Test ship"); }
+void ShipEntity::setAIScript(const std::string &aiString)	{ static_cast<TestShip *>(_object)->_script = aiString; }
+
+namespace oo { ::Entity *ToObjC(cxx::Entity *entity); }	// Entity+ObjCBridge.mm's, which the test does not link
+::Entity *oo::ToObjC(cxx::Entity *entity)  { return entity != nullptr ? entity->_object : nil; }
+
+
+namespace {
+
+// The test ship's C++ part, which AI is given as its owner.
+ShipEntity *Part(TestShip *ship)  { return ship != nil ? static_cast<ShipEntity *>(ship->_cxxEntity.get()) : nullptr; }
+
+}	// namespace
 
 
 namespace {
@@ -308,7 +367,7 @@ AI *NewAI(TestShip *ship)
 	if (ship != nil)
 	{
 		ship->_ai = ai;
-		[ai setOwner:(ShipEntity *)ship];
+		[ai setOwner:Part(ship)];
 	}
 	return ai;
 }
@@ -352,11 +411,11 @@ OO_TEST(ownerIsWeak)
 		{
 			TestShip *ship = [[TestShip alloc] init];
 			ship->_id = 7;
-			[ai setOwner:(ShipEntity *)ship];
-			OO_CHECK([ai owner] == (ShipEntity *)ship);
+			[ai setOwner:Part(ship)];
+			OO_CHECK([ai owner] == Part(ship));
 			OO_CHECK([ai cxx_descriptionComponents] == std::optional<std::string>("\"<no AI>\" in state: \"(null)\" for Test ship 7"));
 			ship->_isPlayer = YES;
-			[ai setOwner:(ShipEntity *)ship];
+			[ai setOwner:Part(ship)];
 			OO_CHECK([ai cxx_descriptionComponents] == std::optional<std::string>("\"<no AI>\" in state: \"(null)\" for player autopilot"));
 			[ship release];
 		}
@@ -652,12 +711,12 @@ OO_TEST(facadeContract)
 		TestShip *ship = NewShip(10);
 		AI *ai = [[AI alloc] init];
 		ship->_ai = ai;
-		[ai setOwner:(ShipEntity *)ship];
+		[ai setOwner:Part(ship)];
 		cxx::AI *cxxAI = oo::ToCxx(ai);
 		OO_CHECK(cxxAI != nullptr);
 		OO_CHECK(oo::ToObjC(cxxAI) == ai);
 		OO_CHECK(oo::ToObjC(cxxAI) == oo::ToObjC(cxxAI));
-		OO_CHECK(cxxAI->owner() == (ShipEntity *)ship);
+		OO_CHECK(cxxAI->owner() == Part(ship));
 
 		// The C++ calls run the machine the facade reports; the actions see the facade running.
 		cxxAI->setStateMachine("test.plist", "test.js");

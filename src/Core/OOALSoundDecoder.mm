@@ -47,10 +47,10 @@ namespace {
 
 // The class cluster's one concrete decoder, private to this file (proposed ADR-0056, amendment
 // oo-x2wy item 3).
-class OOALSoundVorbisCodec final : public cxx::OOALSoundDecoder {
+class OOALSoundVorbisCodec final : public OOALSoundDecoder {
 public:
     // Was [[OOALSoundVorbisCodec alloc] cxx_initWithPath:]: null where it answered nil.
-    static oo::Ref<cxx::OOALSoundDecoder> createWithPath(const std::optional<std::string>& path);
+    static oo::Ref<OOALSoundDecoder> createWithPath(const std::optional<std::string>& path);
 
     ~OOALSoundVorbisCodec() override;
 
@@ -79,8 +79,6 @@ private:
 };
 
 } // namespace
-
-namespace cxx {
 
 oo::Ref<OOALSoundDecoder> OOALSoundDecoder::initWithPath(const std::optional<std::string>& inPath)
 {
@@ -146,9 +144,7 @@ std::optional<std::string> OOALSoundDecoder::descriptionComponents() const
     return std::nullopt;
 }
 
-} // namespace cxx
-
-oo::Ref<cxx::OOALSoundDecoder> OOALSoundVorbisCodec::createWithPath(const std::optional<std::string>& path)
+oo::Ref<OOALSoundDecoder> OOALSoundVorbisCodec::createWithPath(const std::optional<std::string>& path)
 {
     oo::Ref<OOALSoundVorbisCodec> codec = oo::adopt(new OOALSoundVorbisCodec);
     if (!codec->initWithPath(path))

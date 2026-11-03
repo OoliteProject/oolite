@@ -24,9 +24,15 @@ MA 02110-1301, USA.
 
 */
 
+#import "PlayerEntity.h"
+
+/*	The category PlayerEntity (KeyMapper) is members of
+        PlayerEntity, declared in PlayerEntity.h and defined in PlayerEntityKeyMapper.mm. Its Objective-C interface,
+        for the callers that remained, was the category of the same name in PlayerEntity+ObjCBridge.h (deleted),
+        which PlayerEntity.h imports. This header stays for the files that import it.
+*/
 #import "GuiDisplayGen.h"
 #import "MyOpenGLView.h"
-#import "PlayerEntity.h"
 #import "Universe.h"
 
 #include "oofnd/PList.hpp"
@@ -65,33 +71,3 @@ inline constexpr std::string_view KEY_KC_HEADER = "header";
 
 // Dictionary keys - used in the defaults file
 inline constexpr std::string_view KEYCONFIG_OVERRIDES = "KeyConfigOverrides"; // preferences key (oo::Defaults)
-
-@interface PlayerEntity (KeyMapper)
-- (void)resetKeyFunctions;
-- (void)initCheckingDictionary;
-
-- (void)setGuiToKeyMapperScreen:(unsigned)skip resetCurrentRow:(BOOL)resetCurrentRow;
-- (void)setGuiToKeyMapperScreen:(unsigned)skip;
-- (void)keyMapperInputHandler:(GuiDisplayGen*)gui view:(MyOpenGLView*)gameView;
-
-- (void)setGuiToKeyConfigScreen;
-- (void)setGuiToKeyConfigScreen:(BOOL)resetSelectedRow;
-- (void)handleKeyConfigKeys:(GuiDisplayGen*)gui view:(MyOpenGLView*)gameView;
-- (void)outputKeyDefinition:(const std::string&)key shift:(const std::string&)shift mod1:(const std::string&)mod1 mod2:(const std::string&)mod2 skiprows:(NSUInteger)skiprows;
-
-- (void)setGuiToKeyConfigEntryScreen;
-- (void)handleKeyConfigEntryKeys:(GuiDisplayGen*)gui view:(MyOpenGLView*)gameView;
-
-- (void)setGuiToConfirmClearScreen;
-- (void)handleKeyMapperConfirmClearKeys:(GuiDisplayGen*)gui view:(MyOpenGLView*)gameView;
-
-- (void)setGuiToKeyboardLayoutScreen:(unsigned)skip;
-- (void)setGuiToKeyboardLayoutScreen:(unsigned)skip resetCurrentRow:(BOOL)resetCurrentRow;
-- (void)handleKeyboardLayoutEntryKeys:(GuiDisplayGen*)gui view:(MyOpenGLView*)gameView;
-
-- (std::optional<std::string>)validateKey:(const std::string&)key checkKeys:(const oo::PList&)check_keys; // the conflicting function; nullopt: none
-
-- (oo::PList)makeKeyGuiDict:(const std::string&)what keyDef:(const std::string&)keyDef; // a keyFunctions entry
-- (oo::PList)makeKeyGuiDictHeader:(const std::string&)header;
-
-@end

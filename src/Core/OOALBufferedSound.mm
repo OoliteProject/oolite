@@ -43,16 +43,16 @@ std::optional<std::string> OOALBufferedSound::name()
 }
 
 /*	The body of -initWithDecoder:, with self as the new sound; its [self release]; self = nil; is
-        the null it answers (the object is freed as the release freed it). The decoder is still the
-        Objective-C one, which the root's class cluster makes.
+        the null it answers (the object is freed as the release freed it). The decoder is the C++ one
+        since bead oo-9ht.82.
 */
-oo::Ref<OOALBufferedSound> OOALBufferedSound::initWithDecoder(::OOALSoundDecoder* inDecoder)
+oo::Ref<OOALBufferedSound> OOALBufferedSound::initWithDecoder(OOALSoundDecoder* inDecoder)
 {
     bool OK = true;
     oo::Ref<OOALBufferedSound> self;
 
     setUp();
-    if (!isSoundOK() || nil == inDecoder)
+    if (!isSoundOK() || nullptr == inDecoder)
         OK = false;
 
     if (OK) {
@@ -60,10 +60,10 @@ oo::Ref<OOALBufferedSound> OOALBufferedSound::initWithDecoder(::OOALSoundDecoder
     }
 
     if (OK) {
-        self->_name = [inDecoder cxx_name];
-        self->_sampleRate = [inDecoder sampleRate];
-        OK = [inDecoder readCreatingBuffer:&self->_buffer withFrameCount:&self->_size];
-        self->_stereo = [inDecoder isStereo];
+        self->_name = inDecoder->name();
+        self->_sampleRate = inDecoder->sampleRate();
+        OK = inDecoder->readCreatingBuffer(&self->_buffer, &self->_size);
+        self->_stereo = inDecoder->isStereo();
     }
 
     if (!OK) {

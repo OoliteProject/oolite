@@ -161,11 +161,11 @@ std::optional<std::string> cxx::OOTextureGenerator::cacheKey()  { return std::nu
 bool cxx::OOTextureGenerator::enqueue()  { return false; }
 
 oo::Ref<OOCombinedEmissionMapGenerator> OOCombinedEmissionMapGenerator::generatorWithEmissionMapSpec(const oo::PList &emissionMapSpec,
-																									cxx::OOColor *emissionColor,
+																									OOColor *emissionColor,
 																									OOTexture *diffuseMap,
-																									cxx::OOColor *diffuseColor,
+																									OOColor *diffuseColor,
 																									const oo::PList &illuminationMapSpec,
-																									cxx::OOColor *illuminationColor,
+																									OOColor *illuminationColor,
 																									const oo::PList &spec)
 {
 	gGenerators.push_back("emission:" + Str(emissionMapSpec)
@@ -181,9 +181,9 @@ oo::Ref<OOCombinedEmissionMapGenerator> OOCombinedEmissionMapGenerator::generato
 
 oo::Ref<OOCombinedEmissionMapGenerator> OOCombinedEmissionMapGenerator::generatorWithEmissionAndIlluminationMapSpec(const oo::PList &emissionAndIlluminationMapSpec,
 																												  OOTexture *diffuseMap,
-																												  cxx::OOColor *,
-																												  cxx::OOColor *,
-																												  cxx::OOColor *,
+																												  OOColor *,
+																												  OOColor *,
+																												  OOColor *,
 																												  const oo::PList &spec)
 {
 	gGenerators.push_back("emissionAndIllumination:" + Str(emissionAndIlluminationMapSpec)

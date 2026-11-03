@@ -131,8 +131,6 @@ MA 02110-1301, USA.
 // Check current state of shift key rather than relying on last event.
 + (BOOL)pollShiftKey;
 
-- (OOOpenGLMatrixManager*)getOpenGLMatrixManager;
-
 - (BOOL)cxx_snapShot:(const std::optional<std::string>&)filename; // nullopt: auto-numbered "oolite-NNN"
 #ifndef NDEBUG
 // General image-dumping method.

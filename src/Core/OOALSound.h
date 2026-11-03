@@ -5,10 +5,9 @@ OOALSound.h
 OOALSound - OpenAL sound implementation for Oolite.
 
 C++20 since bead oo-2en, the Audio module's pattern seam (proposed ADR-0056, amendment oo-2en).
-The class is cxx::OOSound while OOALSound+ObjCBridge.h, imported at the end of this header, keeps
-the Objective-C OOSound that its callers message and its unconverted subclasses
-(OOALBufferedSound, OOALStreamedSound, OOMusic) derive from; the bridge's deletion bead moves it
-out of namespace cxx.
+Bead oo-9ht.68 deleted its Objective-C facade and moved it to the global namespace: the sound
+sources, the channels, the resource manager, the player and the JS Sound class hold and call the
+C++ sound (oo::Ref).
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -39,11 +38,6 @@ SOFTWARE.
 
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
-#include "oofnd/objc/OOObjCRef.h"
-
-@class OOSound;
-
-namespace cxx {
 
 class OOSound : public oo::RefCounted {
 public:
@@ -57,13 +51,10 @@ public:
 
     /*	Was -cxx_initWithContentsOfFile:, a class cluster's initialiser: it answered, in place of
             the receiver, an OOALBufferedSound for up to 1 MB of decoded data, else an
-            OOALStreamedSound. The result is the Objective-C object (the sound's root facade, an
-            OOSound, since beads oo-9ht.83 and oo-9ht.84), retained (proposed
-            ADR-0056, amendment oo-smy item 4: an Objective-C sound's C++ part does not retain it).
-            Null where it answered nil: sound not OK, no decoder for the path, or the concrete sound
-            refused.
+            OOALStreamedSound (amendment oo-2en item 2). Null where it answered nil: sound not OK, no
+            decoder for the path, or the concrete sound refused.
     */
-    static oo::ObjCRef<::OOSound*> initWithContentsOfFile(const std::optional<std::string>& path); // nullopt: null (bead oo-3rb.292.2)
+    static oo::Ref<OOSound> initWithContentsOfFile(const std::optional<std::string>& path); // nullopt: null (bead oo-3rb.292.2)
 
     virtual std::optional<std::string> name(); // nullopt: none (bead oo-3rb.289.3)
 
@@ -76,12 +67,10 @@ public:
     // What "%@" prints between the braces of <Class 0x...>{...} (OODescription.h). None here, as
     // OOObject answered.
     virtual std::optional<std::string> descriptionComponents() const;
+
+    // What "%@" printed for the sound: <ClassName 0x...>{components}, the C++ class's name, as its
+    // facade printed it until bead oo-9ht.68.
+    std::string description() const;
 };
-
-} // namespace cxx
-
-// Transitional: the Objective-C OOSound, for callers and subclasses not yet converted.
-// Deleted, with namespace cxx above, by the bridge's deletion bead.
-#import "OOALSound+ObjCBridge.h"
 
 #endif // OOALSOUND_H

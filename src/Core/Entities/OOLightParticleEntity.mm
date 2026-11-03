@@ -38,7 +38,17 @@ MA 02110-1301, USA.
 
 static OOTexture* sBlobTexture = nil;
 
-namespace cxx {
+namespace {
+
+// The texture's graphics reset client, which the facade class was until bead oo-9ht.23 (ADR-0056
+// amendment oo-jpd8 item 3, as OOLaserShotEntity's): registered once, with the texture, and never
+// destroyed.
+class BlobTextureResetClient : public OOGraphicsResetClient {
+public:
+    void resetGraphicsState() override { OOLightParticleEntity::resetGraphicsState(); }
+};
+
+} // namespace
 
 void OOLightParticleEntity::initWithDiameter(float diameter)
 {
@@ -115,7 +125,7 @@ void OOLightParticleEntity::drawSubEntityImmediate(bool immediate, bool transluc
     /* Flashers are drawn using the absolute view matrix */
     OOGLLoadModelView([UNIVERSE viewMatrix]);
     /* ...modified by the aggregate translation calculated above */
-    OOGLTranslateModelView(HPVectorToVector(HPvector_subtract(abspos, [PLAYER viewpointPosition]))); // move to camera-relative position
+    OOGLTranslateModelView(HPVectorToVector(HPvector_subtract(abspos, (PLAYER != nullptr ? PLAYER->viewpointPosition() : HPVector { })))); // move to camera-relative position
     drawImmediate(immediate, translucent);
 
     OOGLLoadModelView(temp_matrix);
@@ -160,7 +170,7 @@ void OOLightParticleEntity::drawImmediate(bool /*immediate*/, bool translucent)
 
     OOViewID viewDir = [UNIVERSE viewDirection];
     if (viewDir != VIEW_GUI_DISPLAY)
-        OOGLMultModelView([PLAYER drawRotationMatrix]);
+        OOGLMultModelView((PLAYER != nullptr ? PLAYER->drawRotationMatrix() : OOMatrix { }));
     [texture() apply];
 
     /*	NOTE: nominal diameter is actual radius, because of the black border
@@ -231,15 +241,15 @@ void OOLightParticleEntity::drawImmediate(bool /*immediate*/, bool translucent)
 
     case VIEW_CUSTOM: {
         ::PlayerEntity* player = PLAYER;
-        Vector vi = [player customViewRightVector];
+        Vector vi = (player != nullptr ? player->getCustomViewRightVector() : Vector { });
         vi.x *= _diameter;
         vi.y *= _diameter;
         vi.z *= _diameter;
-        Vector vj = [player customViewUpVector];
+        Vector vj = (player != nullptr ? player->getCustomViewUpVector() : Vector { });
         vj.x *= _diameter;
         vj.y *= _diameter;
         vj.z *= _diameter;
-        Vector vk = [player customViewForwardVector];
+        Vector vk = (player != nullptr ? player->getCustomViewForwardVector() : Vector { });
         vk.x *= viewOffset;
         vk.y *= viewOffset;
         vk.z *= viewOffset;
@@ -288,7 +298,7 @@ void OOLightParticleEntity::setUpTexture()
                                                  options:kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear | kOOTextureAlphaMask
                                               anisotropy:kOOTextureDefaultAnisotropy / 2.0
                                                  lodBias:0.0] retain];
-        OOGraphicsResetManager::sharedManager()->registerClient([::OOLightParticleEntity class]); // the facade class answers +resetGraphicsState
+        OOGraphicsResetManager::sharedManager()->registerCxxClient(new BlobTextureResetClient);
     }
 }
 
@@ -323,5 +333,3 @@ std::vector<oo::ObjCRef<::OOTexture*>> OOLightParticleEntity::allTextures()
     return result;
 }
 #endif
-
-} // namespace cxx

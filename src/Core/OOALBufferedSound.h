@@ -5,8 +5,8 @@ OOALBufferedSound.h
 OOALBufferedSound - OpenAL sound implementation for Oolite.
 
 C++20 since bead oo-2wpb (proposed ADR-0056, the Audio module: amendment oo-2en): a subclass of
-cxx::OOSound. Bead oo-9ht.83 deleted its Objective-C facade and moved it to the global namespace;
-the root's class cluster makes it, and it crosses to Objective-C as the root's facade, an OOSound.
+OOSound. Bead oo-9ht.83 deleted its Objective-C facade and moved it to the global namespace; the root's
+class cluster makes it from the C++ decoder (bead oo-9ht.82).
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -33,16 +33,16 @@ SOFTWARE.
 
 #import "OOALSound.h"
 
-@class OOALSoundDecoder; // only named here; the tests that stub the decoder declare their own
+class OOALSoundDecoder; // only named here (OOALSoundDecoder.h)
 
 #include "oofnd/StdLib.hpp"
 
-class OOALBufferedSound : public cxx::OOSound {
+class OOALBufferedSound : public OOSound {
 public:
     /*	Was -initWithDecoder:, which decoded the whole sound: null where it answered nil (sound not
             OK, no decoder, or the decoder could not read the sound).
     */
-    static oo::Ref<OOALBufferedSound> initWithDecoder(::OOALSoundDecoder* inDecoder);
+    static oo::Ref<OOALBufferedSound> initWithDecoder(OOALSoundDecoder* inDecoder);
 
     ~OOALBufferedSound() override;
 

@@ -44,7 +44,9 @@ SOFTWARE.
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
 
-@class OOShaderProgram, OOWeakReference;
+@class OOWeakReference;
+
+struct OOShaderBindingValue; // OOShaderUniformMethodType.h (bead oo-9ht.158)
 
 class OOShaderUniform : public oo::RefCounted {
 public:
@@ -54,12 +56,12 @@ public:
             oo-novu): null where the initialiser answered nil (no program, no uniform of that name in
             it, a nil colour, no selector).
     */
-    static oo::Ref<OOShaderUniform> initWithName(const std::string& uniformName, ::OOShaderProgram* shaderProgram, GLint constValue); // intValue:
-    static oo::Ref<OOShaderUniform> initWithName(const std::string& uniformName, ::OOShaderProgram* shaderProgram, GLfloat constValue); // floatValue:
-    static oo::Ref<OOShaderUniform> initWithName(const std::string& uniformName, ::OOShaderProgram* shaderProgram, GLfloat constValue[4]); // vectorValue:
-    static oo::Ref<OOShaderUniform> initWithName(const std::string& uniformName, ::OOShaderProgram* shaderProgram, cxx::OOColor* constValue); // colorValue: Converted to vector
-    static oo::Ref<OOShaderUniform> initWithName(const std::string& uniformName, ::OOShaderProgram* shaderProgram, Quaternion constValue, bool asMatrix); // quaternionValue:asMatrix: Converted to vector (in xyzw order, not wxyz!) or rotation matrix.
-    static oo::Ref<OOShaderUniform> initWithName(const std::string& uniformName, ::OOShaderProgram* shaderProgram, OOMatrix constValue); // matrixValue:
+    static oo::Ref<OOShaderUniform> initWithName(const std::string& uniformName, OOShaderProgram* shaderProgram, GLint constValue); // intValue:
+    static oo::Ref<OOShaderUniform> initWithName(const std::string& uniformName, OOShaderProgram* shaderProgram, GLfloat constValue); // floatValue:
+    static oo::Ref<OOShaderUniform> initWithName(const std::string& uniformName, OOShaderProgram* shaderProgram, GLfloat constValue[4]); // vectorValue:
+    static oo::Ref<OOShaderUniform> initWithName(const std::string& uniformName, OOShaderProgram* shaderProgram, OOColor* constValue); // colorValue: Converted to vector
+    static oo::Ref<OOShaderUniform> initWithName(const std::string& uniformName, OOShaderProgram* shaderProgram, Quaternion constValue, bool asMatrix); // quaternionValue:asMatrix: Converted to vector (in xyzw order, not wxyz!) or rotation matrix.
+    static oo::Ref<OOShaderUniform> initWithName(const std::string& uniformName, OOShaderProgram* shaderProgram, OOMatrix constValue); // matrixValue:
 
     /*	"Convert" has different meanings for different types.
             For float and int types, it clamps to the range [0, 1].
@@ -67,7 +69,7 @@ public:
             For quaternions, it converts to rotation matrix (instead of vec4).
     */
     static oo::Ref<OOShaderUniform> initWithName(const std::string& uniformName,
-        ::OOShaderProgram* shaderProgram,
+        OOShaderProgram* shaderProgram,
         id<OOWeakReferenceSupport> target, // boundToObject:
         SEL selector, // property:
         OOUniformConvertOptions options); // convertOptions:
@@ -83,7 +85,7 @@ private:
     OOShaderUniform() = default;
 
     // Designated initializer (was private too).
-    bool initWithName(const std::string& uniformName, ::OOShaderProgram* shaderProgram);
+    bool initWithName(const std::string& uniformName, OOShaderProgram* shaderProgram);
 
     void applySimple();
     void applyBinding();
@@ -108,6 +110,9 @@ private:
             ::OOWeakReference* object;
             SEL selector;
             IMP method;
+            // A member of the target found in its class's member table (bead oo-9ht.158), or
+            // NULL where the binding calls method (the selector path).
+            void (*memberGet)(id object, struct OOShaderBindingValue& outValue);
         } binding;
     } value = { };
 };

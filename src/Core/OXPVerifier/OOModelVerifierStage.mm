@@ -36,7 +36,7 @@ static const char* const kStageName = "Testing models";
 
 const char* const OOModelVerifierStage::kName = kStageName;
 
-std::string OOModelVerifierStage::nameForReverseDependencyForVerifier(cxx::OOOXPVerifier* verifier)
+std::string OOModelVerifierStage::nameForReverseDependencyForVerifier(OOOXPVerifier* verifier)
 {
     OOOXPVerifierStage* stage = verifier->stageWithName(kStageName);
     if (stage == nullptr) {

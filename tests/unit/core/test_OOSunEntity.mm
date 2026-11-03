@@ -13,13 +13,16 @@
 	name, the corona, and going nova or not, and refuses anything else; a new position moves the
 	main light; going nova counts down, then whitens the sky and records the nova and the growing
 	radius in the system data; and the camera-relative position is pulled in to 1e9 for a far sun.
-	The camera-relative position is read through the one helper below. The universe makes the sun
-	with alloc/initSunWithColor:andDictionary:, which the conversion kept on the facade: the last
-	test pins that its object is a C++ entity whose Objective-C object is the OOSunEntity facade.
+	The camera-relative position is read through the one helper below. The universe made the sun
+	with alloc/initSunWithColor:andDictionary:, which the conversion kept on the facade; bead
+	oo-9ht.111 deleted the facade (standing approval oo-9n5p9): the cases make the C++ sun and its
+	Objective-C object (oo::NewEntityFacade) and ask the C++ class, and the facade case pins the new
+	crossing: its object is the root Entity's.
 	Run: bash tools/check-core-tests.sh
 */
 
 #import "OOSunEntity.h"
+#import "PlayerEntity.h"	// PLAYER is C++ (bead oo-9ht.177)
 #import "EntityOOJavaScriptExtensions.h"
 #import "OOJSEntity.h"
 #import "OOJSSun.h"
@@ -40,24 +43,33 @@
 uint32_t gDebugFlags = 0;
 #endif
 
-@class PlayerEntity;
+class PlayerEntity;
 extern PlayerEntity *gOOPlayer;
 extern Universe *gSharedUniverse;
 
 
-@interface TestPlayer: Entity
+class TestPlayer : public PlayerEntity	// C++ since bead oo-9ht.177 deleted the Objective-C player
 {
-@public
-	HPVector	_viewpoint;
+public:
+	HPVector	_viewpoint = {};
+
+	HPVector viewpointPosition() override	{ return _viewpoint; }
+};
+
+// [[TestPlayer alloc] init] (bead oo-9ht.177): a C++ player under the ship's facade, as
+// PlayerEntity::sharedPlayer() makes the game's, retained (+1) as +alloc's object was.
+template <class T>
+T *NewTestPlayer()
+{
+	oo::Ref<T> player = oo::makeRef<T>();
+	@autoreleasepool
+	{
+		[oo::NewEntityFacade(player) retain];
+	}
+	return player.get();
 }
-@end
 
 
-@implementation TestPlayer
-
-- (HPVector) viewpointPosition	{ return _viewpoint; }
-
-@end
 
 
 // UNIVERSE: never initialised; records what the sun sets.
@@ -97,7 +109,7 @@ extern Universe *gSharedUniverse;
 namespace {
 
 TestUniverse *sUniverse = nil;
-TestPlayer *sPlayer = nil;
+TestPlayer *sPlayer = nullptr;
 
 
 void SetUp()
@@ -107,20 +119,20 @@ void SetUp()
 		sUniverse = (TestUniverse *)class_createInstance([TestUniverse class], 0);	// never released
 		sUniverse->_cxxUniverse = oo::makeRef<cxx::Universe>(sUniverse);	// what -initWithGameView: makes first (ADR-0056 amendment oo-riqmz)
 		new (&sUniverse->_systemData) std::map<std::string, oo::PList>();
-		sPlayer = [[TestPlayer alloc] init];
+		sPlayer = NewTestPlayer<TestPlayer>();
 	}
 	sUniverse->_skySets = 0;
 	sUniverse->_systemData.clear();
 	sUniverse->_mainLight = kZeroVector;
 	gSharedUniverse = sUniverse;
-	gOOPlayer = (PlayerEntity *)sPlayer;
+	gOOPlayer = sPlayer;
 	sPlayer->_viewpoint = kZeroHPVector;
 }
 
 
 // --- Ivars the test reads, and nothing else ---------------------------------------------------------
 
-Vector CameraRelativePosition(Entity *e)	{ return e->_cxxEntity->cameraRelativePosition; }
+Vector CameraRelativePosition(cxx::Entity *e)	{ return e->cameraRelativePosition; }	// the C++ sun since bead oo-9ht.111
 
 // --------------------------------------------------------------------------------------------------
 
@@ -137,20 +149,25 @@ bool Near(double a, double b)
 }
 
 
+// alloc/initSunWithColor:andDictionary:/autorelease: a new C++ sun, owned by its autoreleased
+// Objective-C object.
 OOSunEntity *Sun(OOColor *color, double radius)
 {
-	return [[[OOSunEntity alloc] initSunWithColor:color andDictionary:Dict({
+	oo::Ref<OOSunEntity> sun = oo::makeRef<OOSunEntity>();
+	(void)oo::NewEntityFacade(sun);
+	sun->initSunWithColor(color, Dict({
 		{ "sun_name", oo::PList("Sol") },
 		{ "sun_radius", oo::PList(radius) },
 		{ "corona_flare", oo::PList(0.5) },
 		{ "corona_shimmer", oo::PList(0.5) },
-	})] autorelease];
+	}));
+	return sun.get();
 }
 
 
 OOSunEntity *RedSun()
 {
-	return Sun([OOColor colorWithRed:1.0f green:0.0f blue:0.0f alpha:1.0f], 1000.0);
+	return Sun(OOColor::colorWithRed(1.0f, 0.0f, 0.0f, 1.0f).get(), 1000.0);
 }
 
 }	// namespace
@@ -162,13 +179,13 @@ OO_TEST(made)
 	{
 		SetUp();
 		OOSunEntity *sun = RedSun();
-		OO_CHECK(sun != nil && [sun isKindOfClass:[OOSunEntity class]]);
-		OO_CHECK([sun radius] == 1000.0 && [sun collisionRadius] == 1000.0f);
-		OO_CHECK([sun cxx_name] == std::optional<std::string>("Sol"));
-		OO_CHECK([sun planetType] == STELLAR_TYPE_SUN);
-		OO_CHECK([sun scanClass] == CLASS_NO_DRAW);
-		OO_CHECK([sun isSun] && [sun isVisible] && [sun canCollide]);
-		OO_CHECK(![sun willGoNova] && ![sun goneNova]);
+		OO_CHECK(sun != nullptr && dynamic_cast<OOSunEntity *>(static_cast<cxx::Entity *>(sun)) != nullptr);
+		OO_CHECK(sun->radius() == 1000.0 && sun->collisionRadius() == 1000.0f);
+		OO_CHECK(sun->name() == std::optional<std::string>("Sol"));
+		OO_CHECK(sun->planetType() == STELLAR_TYPE_SUN);
+		OO_CHECK(sun->getScanClass() == CLASS_NO_DRAW);
+		OO_CHECK(sun->isSun() && sun->isVisible() && sun->canCollide());
+		OO_CHECK(!sun->willGoNova() && !sun->goneNova());
 	}
 }
 
@@ -182,16 +199,16 @@ OO_TEST(lightColours)
 		// Red blended 30% with white: (1, 0.3, 0.3).
 		GLfloat diffuse[4] = { -1, -1, -1, -1 };
 		GLfloat specular[4] = { -1, -1, -1, -1 };
-		[sun getDiffuseComponents:diffuse];
-		[sun getSpecularComponents:specular];
+		sun->getDiffuseComponents(diffuse);
+		sun->getSpecularComponents(specular);
 		OO_CHECK(Near(specular[0], 1.0) && Near(specular[1], 0.3) && Near(specular[2], 0.3) && specular[3] == 1.0f);
 		OO_CHECK(Near(diffuse[0], 1.0) && Near(diffuse[1], 0.65) && Near(diffuse[2], 0.65) && diffuse[3] == 1.0f);
 
-		OO_CHECK([sun setSunColor:[OOColor blueColor]]);
-		[sun getSpecularComponents:specular];
+		OO_CHECK(sun->setSunColor(OOColor::blueColor().get()));
+		sun->getSpecularComponents(specular);
 		OO_CHECK(Near(specular[0], 0.3) && Near(specular[1], 0.3) && Near(specular[2], 1.0));
-		OO_CHECK(![sun setSunColor:nil]);
-		[sun getSpecularComponents:specular];
+		OO_CHECK(!sun->setSunColor(nullptr));
+		sun->getSpecularComponents(specular);
 		OO_CHECK(Near(specular[2], 1.0));
 	}
 }
@@ -203,24 +220,24 @@ OO_TEST(changeSunProperty)
 	{
 		SetUp();
 		OOSunEntity *sun = RedSun();
-		OO_CHECK([sun changeSunProperty:"sun_radius" withDictionary:Dict({ { "sun_radius", oo::PList(2500.0) } })]);
-		OO_CHECK([sun radius] == 2500.0);
-		OO_CHECK([sun changeSunProperty:"sun_name" withDictionary:Dict({ { "sun_name", oo::PList("Alpha") } })]);
-		OO_CHECK([sun cxx_name] == std::optional<std::string>("Alpha"));
-		OO_CHECK([sun changeSunProperty:"sun_name" withDictionary:Dict({})]);
-		OO_CHECK(![sun cxx_name].has_value());
-		OO_CHECK([sun changeSunProperty:"corona_flare" withDictionary:Dict({ { "corona_flare", oo::PList(0.25) } })]);
-		OO_CHECK([sun radius] == 2500.0);
-		OO_CHECK([sun changeSunProperty:"corona_shimmer" withDictionary:Dict({ { "corona_shimmer", oo::PList(0.5) } })]);
-		OO_CHECK([sun changeSunProperty:"corona_hues" withDictionary:Dict({ { "corona_hues", oo::PList(0.5) } })]);
+		OO_CHECK(sun->changeSunProperty("sun_radius", Dict({ { "sun_radius", oo::PList(2500.0) } })));
+		OO_CHECK(sun->radius() == 2500.0);
+		OO_CHECK(sun->changeSunProperty("sun_name", Dict({ { "sun_name", oo::PList("Alpha") } })));
+		OO_CHECK(sun->name() == std::optional<std::string>("Alpha"));
+		OO_CHECK(sun->changeSunProperty("sun_name", Dict({})));
+		OO_CHECK(!sun->name().has_value());
+		OO_CHECK(sun->changeSunProperty("corona_flare", Dict({ { "corona_flare", oo::PList(0.25) } })));
+		OO_CHECK(sun->radius() == 2500.0);
+		OO_CHECK(sun->changeSunProperty("corona_shimmer", Dict({ { "corona_shimmer", oo::PList(0.5) } })));
+		OO_CHECK(sun->changeSunProperty("corona_hues", Dict({ { "corona_hues", oo::PList(0.5) } })));
 
-		OO_CHECK([sun changeSunProperty:"sun_gone_nova" withDictionary:Dict({ { "sun_gone_nova", oo::PList(true) } })]);
-		OO_CHECK([sun willGoNova] && [sun goneNova]);
-		OO_CHECK([sun changeSunProperty:"sun_gone_nova" withDictionary:Dict({ { "sun_gone_nova", oo::PList(false) }, { "corona_flare", oo::PList(0.1) } })]);
-		OO_CHECK(![sun willGoNova] && ![sun goneNova]);
-		OO_CHECK([sun radius] == 2500.0);	// the radius it had before going nova
+		OO_CHECK(sun->changeSunProperty("sun_gone_nova", Dict({ { "sun_gone_nova", oo::PList(true) } })));
+		OO_CHECK(sun->willGoNova() && sun->goneNova());
+		OO_CHECK(sun->changeSunProperty("sun_gone_nova", Dict({ { "sun_gone_nova", oo::PList(false) }, { "corona_flare", oo::PList(0.1) } })));
+		OO_CHECK(!sun->willGoNova() && !sun->goneNova());
+		OO_CHECK(sun->radius() == 2500.0);	// the radius it had before going nova
 
-		OO_CHECK(![sun changeSunProperty:"sun_color" withDictionary:Dict({ { "sun_color", oo::PList("redColor") } })]);
+		OO_CHECK(!sun->changeSunProperty("sun_color", Dict({ { "sun_color", oo::PList("redColor") } })));
 	}
 }
 
@@ -231,10 +248,10 @@ OO_TEST(radiusAndPosition)
 	{
 		SetUp();
 		OOSunEntity *sun = RedSun();
-		[sun setRadius:300.0f andCorona:0.0f];
-		OO_CHECK([sun radius] == 300.0);
-		[sun setPosition:make_HPvector(10, 20, 30)];
-		OO_CHECK(HPvector_equal([sun position], make_HPvector(10, 20, 30)));
+		sun->setRadius(300.0f, 0.0f);
+		OO_CHECK(sun->radius() == 300.0);
+		sun->setPosition(make_HPvector(10, 20, 30));
+		OO_CHECK(HPvector_equal(sun->getPosition(), make_HPvector(10, 20, 30)));
 		OO_CHECK(sUniverse->_mainLight.x == 10 && sUniverse->_mainLight.y == 20 && sUniverse->_mainLight.z == 30);
 	}
 }
@@ -246,15 +263,15 @@ OO_TEST(goingNova)
 	{
 		SetUp();
 		OOSunEntity *sun = RedSun();
-		[sun setGoingNova:YES inTime:1.0];
-		OO_CHECK([sun willGoNova] && ![sun goneNova]);
-		[sun update:0.5];
-		OO_CHECK(![sun goneNova] && sUniverse->_skySets == 0);
-		[sun update:0.625];
-		OO_CHECK([sun goneNova] && sUniverse->_skySets == 0);
+		sun->setGoingNova(YES, 1.0);
+		OO_CHECK(sun->willGoNova() && !sun->goneNova());
+		sun->update(0.5);
+		OO_CHECK(!sun->goneNova() && sUniverse->_skySets == 0);
+		sun->update(0.625);
+		OO_CHECK(sun->goneNova() && sUniverse->_skySets == 0);
 
 		// The expansion: the sky goes white and the nova is recorded.
-		[sun update:0.125];
+		sun->update(0.125);
 		OO_CHECK(sUniverse->_skySets == 1 && sUniverse->_sky[0] == 1.0f && sUniverse->_sky[3] == 1.0f);
 		OO_CHECK(sUniverse->_systemData["sun_gone_nova"] == oo::PList(static_cast<bool>(true)));	// a boolean (OOCocoa.h defines true as 1)
 		OO_CHECK(sUniverse->_systemData.count("corona_flare") == 1 && sUniverse->_systemData.count("corona_hues") == 1);
@@ -262,17 +279,17 @@ OO_TEST(goingNova)
 
 		// Later in the minute: the sky fades, nothing more recorded but the radius.
 		sUniverse->_systemData.clear();
-		[sun update:1.0];
+		sun->update(1.0);
 		OO_CHECK(sUniverse->_skySets == 2 && sUniverse->_sky[0] == 0.8125f && sUniverse->_sky[3] == 1.0f);
 		OO_CHECK(sUniverse->_systemData.count("sun_gone_nova") == 0 && sUniverse->_systemData.count("sun_radius") == 1);
 		// Then it goes black.
-		[sun update:0.125];
+		sun->update(0.125);
 		OO_CHECK(sUniverse->_skySets == 3 && sUniverse->_sky[0] == 0.0f && sUniverse->_sky[3] == 0.0f);
 
-		[sun resetNova];
-		OO_CHECK([sun willGoNova] && [sun goneNova]);	// reset keeps the higher temperature
-		[sun setGoingNova:NO inTime:0];
-		OO_CHECK(![sun willGoNova]);
+		sun->resetNova();
+		OO_CHECK(sun->willGoNova() && sun->goneNova());	// reset keeps the higher temperature
+		sun->setGoingNova(NO, 0);
+		OO_CHECK(!sun->willGoNova());
 	}
 }
 
@@ -283,8 +300,8 @@ OO_TEST(description)
 	{
 		SetUp();
 		OOSunEntity *sun = RedSun();
-		[sun setGoingNova:YES inTime:10.0];
-		const std::string description = oo::DescriptionOf(sun);
+		sun->setGoingNova(YES, 10.0);
+		const std::string description = oo::DescriptionOf(oo::ToObjC(sun));
 		OO_CHECK(description.find("radius: 1.000km") != std::string::npos);
 		OO_CHECK(description.find("(will go nova)") != std::string::npos);
 	}
@@ -297,15 +314,15 @@ OO_TEST(cameraRelativePosition)
 	{
 		SetUp();
 		OOSunEntity *sun = RedSun();
-		[sun setPosition:make_HPvector(100, 0, 0)];
+		sun->setPosition(make_HPvector(100, 0, 0));
 		sPlayer->_viewpoint = make_HPvector(40, 0, 0);
-		[sun updateCameraRelativePosition];
+		sun->updateCameraRelativePosition();
 		Vector v = CameraRelativePosition(sun);
 		OO_CHECK(v.x == 60.0f && v.y == 0.0f && v.z == 0.0f);
 
-		[sun setPosition:make_HPvector(4e9, 0, 3e9)];
+		sun->setPosition(make_HPvector(4e9, 0, 3e9));
 		sPlayer->_viewpoint = kZeroHPVector;
-		[sun updateCameraRelativePosition];
+		sun->updateCameraRelativePosition();
 		v = CameraRelativePosition(sun);
 		OO_CHECK(Near(v.x / 1e9, 0.8) && Near(v.z / 1e9, 0.6));
 	}
@@ -318,11 +335,12 @@ OO_TEST(facade)
 	{
 		SetUp();
 		OOSunEntity *sun = RedSun();
-		OO_CHECK([sun class] == [OOSunEntity class]);
+		// Its Objective-C object is the root's facade since bead oo-9ht.111 (amendment oo-9ht.107).
+		::Entity *object = oo::ToObjC(sun);
+		OO_CHECK(object != nil && [object class] == [Entity class]);
 		// A C++ entity (amendment oo-0mxi), not an Objective-C entity's adapter.
-		OO_CHECK(dynamic_cast<cxx::OOSunEntity *>(oo::ToCxx(sun)) != nullptr);
-		OO_CHECK(oo::AsObjCEntity(oo::ToCxx(sun)) == nullptr);
-		OO_CHECK(oo::ToObjC(oo::ToCxx(sun)) == sun);
+		OO_CHECK(dynamic_cast<OOSunEntity *>(oo::ToCxx(object)) == sun);
+		OO_CHECK(oo::AsObjCEntity(sun) == nullptr);
 	}
 }
 
@@ -350,11 +368,12 @@ OO_TEST(jsExtensions)
 		SetUp();
 		OOSunEntity *sun = RedSun();
 		RegisterJSClasses(InitOOJSSun);
-		const JSClassID jsClass = [sun oo_jsClassID];
+		::Entity *object = oo::ToObjC(sun);	// what the engine asks (the root's facade)
+		const JSClassID jsClass = [object oo_jsClassID];
 		const JSClassID expectedClass = JSSunClassID();
 		OO_CHECK(jsClass != 0 && jsClass == expectedClass);
-		OO_CHECK([sun cxx_oo_jsClassName] == std::optional<std::string>("Sun"));
-		OO_CHECK([sun isVisibleToScripts] == YES);
+		OO_CHECK([object cxx_oo_jsClassName] == std::optional<std::string>("Sun"));
+		OO_CHECK([object isVisibleToScripts] == YES);
 	}
 }
 

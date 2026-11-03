@@ -268,12 +268,14 @@ void GameController::setGamePaused(bool value)
         setMouseInteractionModeForUIWithMouseInteraction(false);
         setEcoQoS(true);
         gameIsPaused = true;
-        [PLAYER doScriptEvent:OOJSID("gamePaused")];
+        if (PLAYER != nullptr)
+            PLAYER->doScriptEvent(OOJSID("gamePaused"));
     } else if (!value && gameIsPaused) {
         setMouseInteractionMode(_resumeMode);
         setEcoQoS(false);
         gameIsPaused = false;
-        [PLAYER doScriptEvent:OOJSID("gameResumed")];
+        if (PLAYER != nullptr)
+            PLAYER->doScriptEvent(OOJSID("gameResumed"));
     }
 }
 
@@ -336,7 +338,7 @@ void GameController::setMouseInteractionMode(OOMouseInteractionMode mode)
 
 void GameController::setMouseInteractionModeForFlight()
 {
-    setMouseInteractionMode([PLAYER isMouseControlOn] ? MOUSE_MODE_FLIGHT_WITH_MOUSE_CONTROL : MOUSE_MODE_FLIGHT_NO_MOUSE_CONTROL);
+    setMouseInteractionMode((PLAYER != nullptr ? PLAYER->isMouseControlOn() : false) ? MOUSE_MODE_FLIGHT_WITH_MOUSE_CONTROL : MOUSE_MODE_FLIGHT_NO_MOUSE_CONTROL);
 }
 
 void GameController::setMouseInteractionModeForUIWithMouseInteraction(bool interaction)
@@ -399,10 +401,10 @@ void GameController::doPerformGameTick()
         }
 
         [UNIVERSE update:delta_t];
-        if (EXPECT_NOT([PLAYER status] == STATUS_RESTART_GAME)) {
+        if (EXPECT_NOT((PLAYER != nullptr ? PLAYER->status() : OOEntityStatus { }) == STATUS_RESTART_GAME)) {
             [UNIVERSE reinitAndShowDemo:YES];
         }
-        [::OOSound update];
+        ::OOSound::update();
         if (!gameIsPaused) {
             OOJSFrameCallbacksInvoke(delta_t);
         }
@@ -490,7 +492,7 @@ void GameController::runFrameLoop()
                 haveWake = true;
             }
             // The OXZ download's callbacks, which the run loop delivered (proposed ADR-0044).
-            cxx::OOOXZManager::sharedManager()->processDownloadEvents();
+            OOOXZManager::sharedManager()->processDownloadEvents();
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
             if (OODebugTCPConsoleIsWaitingForInput()) {
@@ -562,7 +564,11 @@ void GameController::applicationDidFinishLaunching()
         SetUpSparkle();
 #endif
 
+#if OOLITE_SDL
+        setUpDisplayModes();
+#else
         [oo::ToObjC(this) setUpDisplayModes];
+#endif
 
         // moved to before the Universe is created
         for (const std::string& expansionPath : expansionPathsToInclude) {
@@ -570,7 +576,7 @@ void GameController::applicationDidFinishLaunching()
         }
 
         // initialise OXZ manager
-        cxx::OOOXZManager::sharedManager();
+        OOOXZManager::sharedManager();
 
         // moved here to try to avoid initialising this before having an Open GL context
         // logProgress(OO_DESC("Initialising universe")); // DESC expansions only possible after Universe init
@@ -614,7 +620,8 @@ void GameController::loadPlayerIfRequired()
         // the splash screen
         [UNIVERSE useGUILightSource:YES];
         [UNIVERSE useGUILightSource:NO];
-        [PLAYER loadPlayerFromFile:*_playerFileToLoad asNew:NO];
+        if (PLAYER != nullptr)
+            PLAYER->loadPlayerFromFile(*_playerFileToLoad, NO);
     }
 }
 

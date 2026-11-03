@@ -6,7 +6,8 @@
 	The entity reads Universe and PLAYER, so the test links the whole game but main (['*']) and
 	uses a Universe that was never initialised, subclassed to answer the time the test sets and to
 	record -addEntity: and -removeEntity:, and a plain entity as PLAYER. The ship that fired is a
-	plain entity marked as a ship (so it is its own root ship entity), and the entity hit is an
+	plain entity marked as a ship (so it is its own root ship entity; a C++ ship under its object,
+	never set up, since bead oo-9ht.144), and the entity hit is an
 	entity subclass that records the damage. The expectations were written against the Objective-C
 	API and run on the unconverted class first: a shot is a no-draw effect of diameter 12 and
 	collision radius 2 with the given position, velocity, energy and colour (always opaque); it
@@ -20,6 +21,7 @@
 */
 
 #import "OOPlasmaShotEntity.h"
+#import "PlayerEntity.h"	// PLAYER is C++
 #import "OOPlasmaBurstEntity.h"
 #import "OOColor.h"
 #import "Universe.h"
@@ -35,20 +37,29 @@
 uint32_t gDebugFlags = 0;
 #endif
 
-@class PlayerEntity;
+class PlayerEntity;
 extern PlayerEntity *gOOPlayer;
 extern Universe *gSharedUniverse;
 
 
-@interface TestPlayer: Entity
-@end
+class TestPlayer : public PlayerEntity	// C++ since bead oo-9ht.177 deleted the Objective-C player
+{
+public:
+	HPVector viewpointPosition() override	{ return kZeroHPVector; }
+};
 
-
-@implementation TestPlayer
-
-- (HPVector) viewpointPosition	{ return kZeroHPVector; }
-
-@end
+// NewTestPlayer<TestPlayer>(): a C++ player under the ship's facade, as
+// PlayerEntity::sharedPlayer() makes the game's, retained (+1) as +alloc's object was.
+template <class T>
+T *NewTestPlayer()
+{
+	oo::Ref<T> player = oo::makeRef<T>();
+	@autoreleasepool
+	{
+		[oo::NewEntityFacade(player) retain];
+	}
+	return player.get();
+}
 
 
 // UNIVERSE: never initialised; answers the test's time and records what is added and removed.
@@ -123,6 +134,9 @@ extern Universe *gSharedUniverse;
 @end
 
 
+extern JSContext *gOOJSMainThreadContext;	// the engine's (OOJavaScriptEngine.mm)
+
+
 namespace {
 
 TestUniverse *sUniverse = nil;
@@ -140,9 +154,13 @@ void SetUp(OOTimeAbsolute time)
 	[sUniverse->_added release];
 	sUniverse->_added = nil;
 	gSharedUniverse = sUniverse;
-	static TestPlayer *player = nil;
-	if (player == nil)  player = [[TestPlayer alloc] init];
-	gOOPlayer = (PlayerEntity *)player;
+	static TestPlayer *player = nullptr;
+	if (player == nullptr)  player = NewTestPlayer<TestPlayer>();
+	gOOPlayer = player;
+	// The ship's -dealloc sends its (absent) scripts entityDestroyed in a request on the main
+	// thread's context, so there is one, with nothing in it (the ship stand-in is C++ since bead
+	// oo-9ht.144, as test_StationEntity's ships are).
+	if (gOOJSMainThreadContext == nullptr)  gOOJSMainThreadContext = JS_NewContext(JS_NewRuntime());
 }
 
 
@@ -150,10 +168,11 @@ void SetUp(OOTimeAbsolute time)
 
 Entity *Shot(HPVector position, Vector velocity, float energy, OOTimeDelta duration, OOColor *color)
 {
-	return oo::NewEntityFacade(OOPlasmaShotEntity::shotWithPosition(position, velocity, energy, duration, oo::ToCxx(color)));
+	return oo::NewEntityFacade(OOPlasmaShotEntity::shotWithPosition(position, velocity, energy, duration, color));
 }
 
-const GLfloat *ColorComponents(Entity *shot)	{ return oo::ToCxx((OOLightParticleEntity *)shot)->_colorComponents; }
+OOLightParticleEntity *Particle(Entity *shot)	{ return static_cast<OOLightParticleEntity *>(oo::ToCxx(shot)); }	// the root's facade since bead oo-9ht.76
+const GLfloat *ColorComponents(Entity *shot)	{ return Particle(shot)->_colorComponents; }
 void SetColliding(Entity *shot, Entity *other)	{ shot->_cxxEntity->collidingEntities.emplace_back(other); }
 void SetIsShip(Entity *e)						{ e->_cxxEntity->isShip = true; }
 
@@ -162,13 +181,15 @@ void SetIsShip(Entity *e)						{ e->_cxxEntity->isShip = true; }
 
 Entity *RedShot()
 {
-	return Shot(make_HPvector(1, 2, 3), make_vector(4, 5, 6), 7.0f, 2.0, [OOColor colorWithRed:1.0f green:0.0f blue:0.0f alpha:0.5f]);
+	return Shot(make_HPvector(1, 2, 3), make_vector(4, 5, 6), 7.0f, 2.0, OOColor::colorWithRed(1.0f, 0.0f, 0.0f, 0.5f).get());
 }
 
 
+// A ship: C++ since bead oo-9ht.144 (its root ship entity is the C++ ship), under its object
+// (oo::NewEntityFacade, autoreleased as the plain entity was), never set up, marked as a ship.
 Entity *Ship()
 {
-	Entity *ship = [[[Entity alloc] init] autorelease];
+	Entity *ship = oo::NewEntityFacade(oo::makeRef<::ShipEntity>());
 	SetIsShip(ship);
 	return ship;
 }
@@ -182,12 +203,12 @@ OO_TEST(shotIsMade)
 	{
 		SetUp(10.0);
 		Entity *shot = RedShot();
-		OO_CHECK(shot != nil && [shot isKindOfClass:[OOLightParticleEntity class]]);
+		OO_CHECK(shot != nil && dynamic_cast<OOLightParticleEntity *>(oo::ToCxx(shot)) != nullptr);
 		OO_CHECK(HPvector_equal([shot position], make_HPvector(1, 2, 3)));
 		Vector v = [shot velocity];
 		OO_CHECK(v.x == 4 && v.y == 5 && v.z == 6);
 		OO_CHECK([shot energy] == 7.0f && [shot collisionRadius] == 2.0f);
-		OO_CHECK([(OOLightParticleEntity *)shot diameter] == 12.0f);
+		OO_CHECK(Particle(shot)->diameter() == 12.0f);
 		OO_CHECK([shot status] == STATUS_EFFECT && [shot scanClass] == CLASS_NO_DRAW && [shot isEffect]);
 		OO_CHECK([shot spawnTime] == 10.0f);
 		const GLfloat *c = ColorComponents(shot);

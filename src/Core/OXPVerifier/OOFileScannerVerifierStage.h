@@ -54,7 +54,7 @@ public:
     static const char* const kName;
 
     // Returns name to be used in dependencies() by other stages; also registers stage.
-    static std::optional<std::string> nameForDependencyForVerifier(cxx::OOOXPVerifier* verifier);
+    static std::optional<std::string> nameForDependencyForVerifier(OOOXPVerifier* verifier);
 
     std::optional<std::string> name() override;
     void run() override;
@@ -143,7 +143,7 @@ private:
 class OOListUnusedFilesStage : public OOOXPVerifierStage {
 public:
     // Returns name to be used in dependents() by other stages; also registers stage.
-    static std::string nameForReverseDependencyForVerifier(cxx::OOOXPVerifier* verifier); // flipped with its family (bead oo-3rb.274.2)
+    static std::string nameForReverseDependencyForVerifier(OOOXPVerifier* verifier); // flipped with its family (bead oo-3rb.274.2)
 
     std::optional<std::string> name() override;
     std::optional<std::vector<std::string>> dependencies() override;

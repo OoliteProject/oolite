@@ -7,15 +7,19 @@
 	stops it deletes the buffers, drops the sound and tells its delegate. The free list of the
 	mixer is kept through -next/-setNext:. OpenAL runs on OpenAL Soft's null backend
 	(ALSOFT_DRIVERS=null), which plays in real time, so the tests wait for a short sound to end.
-	The sounds are this file's Objective-C subclasses of the root OOSound, which make real OpenAL
-	buffers of silence; the decoder, the two concrete sounds and the mixer that OOALSound.mm names
-	are stubs (amendment oo-z1s4 item 4). The channel's source is private, so the test reads it as
+	The sounds are this file's C++ subclasses of the root OOSound (Objective-C subclasses of its
+	facade until bead oo-9ht.68 deleted it), which make real OpenAL buffers of silence; the
+	decoder, the two concrete sounds and the mixer that OOALSound.mm names are stubs (amendment
+	oo-z1s4 item 4). The channel's source is private, so the test reads it as
 	a friend (amendment oo-zffj item 3; through the runtime before the conversion). These
 	expectations were written against the Objective-C API and ran on the unconverted class first;
 	they ran through the facade until bead oo-9ht.86 deleted it, and now ask the C++ channel with
 	the same expectations (the facade's own contract was retired with it: ADR-0049, standing
 	approval oo-9n5p9; what its -dealloc told the delegate is the destructor's now, pinned by
-	releasedWhilePlayingTellsTheDelegate). The delegate is a C++ OOSoundChannelDelegate.
+	releasedWhilePlayingTellsTheDelegate). The delegate is a C++ OOSoundChannelDelegate. Since
+	bead oo-9ht.68 the sounds are made with oo::makeRef and released by their oo::Ref, where they
+	were alloc/init'd and released or autoreleased, with every expectation kept (standing approval
+	oo-9n5p9).
 	Run: bash tools/check-core-tests.sh test_OOSoundChannel
 */
 
@@ -24,6 +28,7 @@
 #import "OOALBufferedSound.h"
 #import "OOALStreamedSound.h"
 #import "OOALSoundMixer.h"
+#import "OOALSoundDecoder.h"
 
 #include "oo_test.hpp"
 
@@ -50,23 +55,20 @@ OOSoundMixer *OOSoundMixer::sharedMixer()  { return nullptr; }
 void OOSoundMixer::update()  {}
 void OOSoundMixer::shutdown()  {}
 
-@interface OOALSoundDecoder: OOObject
-@end
-
-@implementation OOALSoundDecoder
-- (id)cxx_initWithPath:(const std::optional<std::string> &)inPath	{ (void)inPath; [self release]; return nil; }
-@end
+// The decoder the root's cluster asks for: none, for every path (a C++ stand-in since bead
+// oo-9ht.82 deleted the Objective-C facade this file stubbed).
+oo::Ref<OOALSoundDecoder> OOALSoundDecoder::initWithPath(const std::optional<std::string> &inPath)	{ (void)inPath; return nullptr; }
 
 // The buffered sound the root's cluster names: a C++ stand-in since bead oo-9ht.83 deleted the
 // Objective-C facade this file stubbed. The decoder above refuses every path, so none is made.
-oo::Ref<OOALBufferedSound> OOALBufferedSound::initWithDecoder(::OOALSoundDecoder *inDecoder)	{ (void)inDecoder; return nullptr; }
+oo::Ref<OOALBufferedSound> OOALBufferedSound::initWithDecoder(OOALSoundDecoder *inDecoder)	{ (void)inDecoder; return nullptr; }
 OOALBufferedSound::~OOALBufferedSound()  {}
 std::optional<std::string> OOALBufferedSound::name()  { return _name; }
 ALuint OOALBufferedSound::soundBuffer()  { return 0; }
 
 // The streamed sound the root's cluster names: a C++ stand-in since bead oo-9ht.84 deleted the
 // Objective-C facade this file stubbed. None is made here.
-oo::Ref<OOALStreamedSound> OOALStreamedSound::initWithDecoder(::OOALSoundDecoder *inDecoder)	{ (void)inDecoder; return nullptr; }
+oo::Ref<OOALStreamedSound> OOALStreamedSound::initWithDecoder(OOALSoundDecoder *inDecoder)	{ (void)inDecoder; return nullptr; }
 OOALStreamedSound::~OOALStreamedSound()  {}
 std::optional<std::string> OOALStreamedSound::name()  { return _name; }
 void OOALStreamedSound::rewind()  {}
@@ -79,69 +81,44 @@ ALuint OOALStreamedSound::soundBuffer()  { return 0; }
 */
 static int gLiveSounds = 0;
 
-@interface TestSound: OOSound
+// A C++ subclass of the root since bead oo-9ht.68 deleted the facade it subclassed.
+class TestSound final : public OOSound
 {
-@public
-	int			_chunks;
-	int			_made;
-	int			_frames;
-	int			_rewinds;
-}
-@end
+public:
+	TestSound()  { gLiveSounds++; }
+	~TestSound() override  { gLiveSounds--; }
 
-
-@implementation TestSound
-
-- (id) init
-{
-	self = [super init];
-	if (self != nil)
+	std::optional<std::string> name() override
 	{
-		_chunks = 1;
-		_frames = 64;
-		gLiveSounds++;
+		return std::string("test");
 	}
-	return self;
-}
 
+	ALuint soundBuffer() override
+	{
+		std::vector<short> silence(static_cast<size_t>(_frames), 0);
+		ALuint buffer = 0;
+		alGenBuffers(1, &buffer);
+		alBufferData(buffer, AL_FORMAT_MONO16, silence.data(), static_cast<ALsizei>(silence.size() * sizeof(short)), 22050);
+		_made++;
+		return buffer;
+	}
 
-- (void) dealloc
-{
-	gLiveSounds--;
-	[super dealloc];
-}
+	bool soundIncomplete() override
+	{
+		return _made < _chunks;
+	}
 
+	void rewind() override
+	{
+		_rewinds++;
+		_made = 0;
+	}
 
-- (std::optional<std::string>)cxx_name
-{
-	return std::string("test");
-}
-
-
-- (ALuint) soundBuffer
-{
-	std::vector<short> silence(static_cast<size_t>(_frames), 0);
-	ALuint buffer = 0;
-	alGenBuffers(1, &buffer);
-	alBufferData(buffer, AL_FORMAT_MONO16, silence.data(), static_cast<ALsizei>(silence.size() * sizeof(short)), 22050);
-	_made++;
-	return buffer;
-}
-
-
-- (BOOL) soundIncomplete
-{
-	return _made < _chunks;
-}
-
-
-- (void) rewind
-{
-	_rewinds++;
-	_made = 0;
-}
-
-@end
+	int			_chunks = 1;
+	int			_made = 0;
+	int			_frames = 64;
+	int			_rewinds = 0;
+};
 
 
 // The delegate: records each sound it is told has finished, and on which channel. (An Objective-C
@@ -155,7 +132,7 @@ public:
 		_finished.push_back(inSound);
 	}
 
-	std::vector<id>		_finished;
+	std::vector<OOSound *>	_finished;	// compared by identity only
 	OOSoundChannel		*_lastChannel = nullptr;
 };
 
@@ -174,7 +151,7 @@ void SetUp()
 	stdfs::create_directories(sRoot);
 	OO_CHECK(::_putenv_s("HOMEPATH", sRoot.string().c_str()) == 0);
 	stdfs::current_path(sRoot);
-	OO_CHECK([OOSound setUp]);
+	OO_CHECK(OOSound::setUp());
 }
 
 
@@ -216,12 +193,12 @@ ALint SourceInt(ALuint source, ALenum what)
 // Updates the channel until its sound is gone (at most two seconds).
 bool UpdateUntilFinished(OOSoundChannel *channel)
 {
-	for (int i = 0; i < 400 && channel->sound() != nil; i++)
+	for (int i = 0; i < 400 && channel->sound() != nullptr; i++)
 	{
 		channel->update();
 		std::this_thread::sleep_for(std::chrono::milliseconds(5));
 	}
-	return channel->sound() == nil;
+	return channel->sound() == nullptr;
 }
 
 }	// namespace
@@ -237,10 +214,10 @@ OO_TEST(aNewChannelHasARelativeSource)
 		const ALuint source = SourceOf(channel.get());
 		OO_CHECK(source != 0 && alIsSource(source));
 		OO_CHECK(SourceInt(source, AL_SOURCE_RELATIVE) == AL_TRUE);
-		OO_CHECK(channel->sound() == nil && channel->next() == nullptr);
+		OO_CHECK(channel->sound() == nullptr && channel->next() == nullptr);
 		channel->update();	// nothing playing: nothing
 		channel->stop();
-		OO_CHECK(channel->sound() == nil);
+		OO_CHECK(channel->sound() == nullptr);
 	}
 }
 
@@ -282,15 +259,16 @@ OO_TEST(playsASoundToTheEnd)
 		const oo::Ref<OOSoundChannel> channel = NewChannel();
 		channel->setDelegate(&delegate);
 
-		OO_CHECK(!channel->playSound(nil, false));
+		OO_CHECK(!channel->playSound(nullptr, false));
 
-		TestSound *sound = [[TestSound alloc] init];
+		oo::Ref<TestSound> made = oo::makeRef<TestSound>();
+		TestSound *sound = made.get();
 		OO_CHECK(channel->playSound(sound, false));
 		OO_CHECK(sound->_rewinds == 1 && sound->_made == 1);
 		OO_CHECK(channel->sound() == sound);
 		const ALuint source = SourceOf(channel.get());
 		OO_CHECK(SourceInt(source, AL_BUFFERS_QUEUED) == 1);
-		[sound release];
+		made = nullptr;	// [sound release]
 		OO_CHECK(gLiveSounds == 1);	// the channel keeps it
 
 		OO_CHECK(UpdateUntilFinished(channel.get()));
@@ -312,18 +290,18 @@ OO_TEST(stopAndReplace)
 		const oo::Ref<OOSoundChannel> channel = NewChannel();
 		channel->setDelegate(&delegate);
 
-		TestSound *first = [[[TestSound alloc] init] autorelease];
+		const oo::Ref<TestSound> first = oo::makeRef<TestSound>();
 		first->_frames = 22050;	// a second: still playing when stopped
-		TestSound *second = [[[TestSound alloc] init] autorelease];
+		const oo::Ref<TestSound> second = oo::makeRef<TestSound>();
 		second->_frames = 22050;
-		OO_CHECK(channel->playSound(first, false));
-		OO_CHECK(channel->playSound(second, false));
-		OO_CHECK(delegate._finished.size() == 1 && delegate._finished[0] == first);
-		OO_CHECK(channel->sound() == second);
+		OO_CHECK(channel->playSound(first.get(), false));
+		OO_CHECK(channel->playSound(second.get(), false));
+		OO_CHECK(delegate._finished.size() == 1 && delegate._finished[0] == first.get());
+		OO_CHECK(channel->sound() == second.get());
 
 		channel->stop();
-		OO_CHECK(delegate._finished.size() == 2 && delegate._finished[1] == second);
-		OO_CHECK(channel->sound() == nil);
+		OO_CHECK(delegate._finished.size() == 2 && delegate._finished[1] == second.get());
+		OO_CHECK(channel->sound() == nullptr);
 		OO_CHECK(SourceInt(SourceOf(channel.get()), AL_SOURCE_STATE) == AL_STOPPED);
 		OO_CHECK(SourceInt(SourceOf(channel.get()), AL_BUFFERS_QUEUED) == 0);
 		channel->setDelegate(nullptr);
@@ -342,10 +320,10 @@ OO_TEST(streamsAnIncompleteSound)
 		const oo::Ref<OOSoundChannel> channel = NewChannel();
 		channel->setDelegate(&delegate);
 
-		TestSound *sound = [[[TestSound alloc] init] autorelease];
+		const oo::Ref<TestSound> sound = oo::makeRef<TestSound>();
 		sound->_chunks = 4;
 		sound->_frames = 2205;	// a tenth of a second each
-		OO_CHECK(channel->playSound(sound, false));
+		OO_CHECK(channel->playSound(sound.get(), false));
 		OO_CHECK(UpdateUntilFinished(channel.get()));
 		OO_CHECK(sound->_made == 4);
 		OO_CHECK(delegate._finished.size() == 1);
@@ -361,18 +339,18 @@ OO_TEST(loopsASound)
 	@autoreleasepool
 	{
 		const oo::Ref<OOSoundChannel> channel = NewChannel();
-		TestSound *sound = [[[TestSound alloc] init] autorelease];
+		const oo::Ref<TestSound> sound = oo::makeRef<TestSound>();
 		sound->_frames = 2205;
-		OO_CHECK(channel->playSound(sound, true));
+		OO_CHECK(channel->playSound(sound.get(), true));
 		for (int i = 0; i < 400 && sound->_rewinds < 3; i++)
 		{
 			channel->update();
 			std::this_thread::sleep_for(std::chrono::milliseconds(5));
 		}
 		OO_CHECK(sound->_rewinds >= 3);
-		OO_CHECK(channel->sound() == sound);
+		OO_CHECK(channel->sound() == sound.get());
 		channel->stop();
-		OO_CHECK(channel->sound() == nil);
+		OO_CHECK(channel->sound() == nullptr);
 	}
 }
 
@@ -395,12 +373,12 @@ OO_TEST(cxxApi)
 		OO_CHECK(channel->next() == other.get() && other->next() == nullptr);
 
 		channel->setDelegate(&delegate);
-		OO_CHECK(!channel->playSound(nil, false));
-		TestSound *sound = [[[TestSound alloc] init] autorelease];
+		OO_CHECK(!channel->playSound(nullptr, false));
+		const oo::Ref<TestSound> sound = oo::makeRef<TestSound>();
 		sound->_frames = 22050;
-		OO_CHECK(channel->playSound(sound, false) && channel->sound() == sound);
+		OO_CHECK(channel->playSound(sound.get(), false) && channel->sound() == sound.get());
 		channel->stop();
-		OO_CHECK(channel->sound() == nil);
+		OO_CHECK(channel->sound() == nullptr);
 		// The delegate is told of the channel.
 		OO_CHECK(delegate._finished.size() == 1 && delegate._lastChannel == channel.get());
 		channel->setDelegate(nullptr);
@@ -415,11 +393,12 @@ OO_TEST(releasedWhilePlayingTellsTheDelegate)
 	SetUp();
 	TestDelegate delegate;
 	OOSoundChannel *released = nullptr;
-	TestSound *sound = nil;
+	TestSound *sound = nullptr;
 	@autoreleasepool
 	{
+		const oo::Ref<TestSound> made = oo::makeRef<TestSound>();	// was autoreleased in this pool
 		oo::Ref<OOSoundChannel> channel = NewChannel();
-		sound = [[[TestSound alloc] init] autorelease];
+		sound = made.get();
 		sound->_frames = 22050;
 		channel->setDelegate(&delegate);
 		OO_CHECK(channel->playSound(sound, false));

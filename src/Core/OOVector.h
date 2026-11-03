@@ -120,23 +120,26 @@ OOINLINE Vector normal_to_surface(Vector v1, Vector v2, Vector v3) CONST_FUNC;
 #if __OBJC__
 /*	Objective-C++ only: OOMaths.h is included inside extern "C" (proposed ADR-0043, bead oo-g7k5). */
 extern "C++" {
-#include "oofnd/Ref.hpp"
+#include "oofnd/PList.hpp"
 #include "oofnd/StdLib.hpp"
 std::string VectorDescription(Vector vector); // "(x, y, z)"
 
-namespace cxx {
+/*	For storing vectors in property lists: a PList::Object node holds the box (OOJSShip.mm makes
+        them, OOPListGameTypes.mm and the JavaScript engine read them). Its Objective-C facade was
+        deleted by bead oo-9ht.5; the box is the node's foreign object itself.
+*/
+class OONativeVector : public oo::PListForeign {
+public:
+    explicit OONativeVector(Vector vect);
+    Vector getVector();
 
-    /* For storing vectors in Objective-C collections */
-    class OONativeVector : public oo::RefCounted {
-    public:
-        explicit OONativeVector(Vector vect);
-        Vector getVector();
+    // oo::PListForeign: what the facade answered (its class, and "%@" as <OONativeVector 0x...>).
+    std::string className() const override;
+    std::string description() const override;
 
-    private:
-        Vector v = { };
-    };
-
-} // namespace cxx
+private:
+    Vector v = { };
+};
 }
 
 #endif
@@ -322,11 +325,3 @@ OOINLINE Vector normal_to_surface(Vector v1, Vector v2, Vector v3)
     d1 = vector_subtract(v3, v2);
     return cross_product(d0, d1);
 }
-
-#if __OBJC__
-// Transitional: the Objective-C OONativeVector, for callers not yet converted. Deleted, with
-// namespace cxx above, by the bridge's deletion bead.
-extern "C++" {
-#import "OOVector+ObjCBridge.h"
-}
-#endif

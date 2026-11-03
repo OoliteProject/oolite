@@ -59,9 +59,9 @@ namespace cxx {
 /*	The application controller (bead oo-zkpmt, slice 1 of docs/phases/3-slices/GameController.md):
         the class shell, its state and accessors; the frame loop and deferred calls (slice 2, bead
         oo-hn0fw); start-up, splash and progress messages, exit and the player file (slice 3, bead
-        oo-5ah4k). The FullScreen category (SDL/GameController+SDLFullScreen.mm, bead oo-qinv) is still
-        Objective-C on the façade (GameController+ObjCBridge.h) and reads and writes the state below
-        through the façade's _cxxController.
+        oo-5ah4k); the SDL full-screen members (SDL/GameController+SDLFullScreen.mm, bead oo-qinv), the
+        former FullScreen category. The Mac FullScreen category (Core/GameController+FullScreen.mm) is
+        not compiled and stays an Objective-C category of the façade (GameController+ObjCBridge.h).
 */
 class GameController : public oo::RefCounted {
 public:
@@ -144,8 +144,22 @@ public:
 
     void windowDidResize();
 
-    // Internal: the state, which slices 2 and 3 and the FullScreen category (still Objective-C on
-    // the façade) read and write through _cxxController; it becomes private as they convert.
+#if OOLITE_SDL
+    // Full screen (SDL/GameController+SDLFullScreen.mm): the former FullScreen category.
+    // -displayModes is getDisplayModes(), as the state has a displayModes.
+    void setUpDisplayModes(); // internal use only
+    void setFullScreenMode(bool fsm);
+    void exitFullScreenMode(); // FIXME: should be setFullScreenMode(false)
+    bool inFullScreenMode();
+    bool setDisplayWidth(unsigned int d_width, unsigned int d_height, unsigned int d_refresh);
+    oo::PList findDisplayModeForWidth(unsigned int d_width, unsigned int d_height, unsigned int d_refresh); // a mode dictionary; null: none
+    oo::PList getDisplayModes(); // an array of mode dictionaries
+    NSUInteger indexOfCurrentDisplayMode();
+    void pauseFullScreenModeToPerform(SEL selector, id target);
+#endif
+
+    // Internal: the state, read and written by the members above (and by the fenced Mac
+    // FullScreen category of the façade through _cxxController).
 #if OOLITE_MAC_COCOA_UI
     NSTextField* splashProgressTextField = { };
     NSView* splashView = { };

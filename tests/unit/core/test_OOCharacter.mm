@@ -1,5 +1,5 @@
 /*	test_OOCharacter.mm
-	Unit tests for cxx::OOCharacter (src/Core/OOCharacter.h) and its Objective-C facade: bead oo-8kx7 (Phase 3, proposed ADR-0056).
+	Unit tests for OOCharacter (src/Core/OOCharacter.h): bead oo-8kx7 (Phase 3, proposed ADR-0056).
 
 	A character is generated from a seed and a home system: its name and description come from the
 	string expander, its species from the home (or another) system's inhabitants, its legal status
@@ -9,9 +9,9 @@
 	fake Universe below that answers from a table, the string expander and the description lookup
 	return text that records what they were asked, and the JavaScript entry points are link stubs
 	that abort. The RNG is the game's own (legacy_random.c), reseeded by each test.
-	The expectations were written against the Objective-C class and run on it first; that API is
-	now the facade (OOCharacter+ObjCBridge.h), so those tests still run through it, and the last
-	three pin the C++ class and the facade's contract (nil stays nil, one facade per character).
+	The expectations were written against the Objective-C class and run on it first; bead oo-9ht.10
+	deleted that facade, and the same expectations now ask the C++ class (its factories' oo::Ref
+	held where the autoreleased facade was), with the C++ class's own cases at the end.
 	Run: bash tools/check-core-tests.sh
 */
 
@@ -100,10 +100,10 @@ Random_Seed cxx_RandomSeedFromString(const std::optional<std::string> &abcdefStr
 // Link stubs: character scripts. The test never runs one; a call is a test bug.
 JSContext *gOOJSMainThreadContext = nullptr;
 
-@interface OOScript: OOObject
-@end
-@implementation OOScript
-@end
+#import "OOScript.h"
+
+// OOScript's loader (an Objective-C OOScript stand-in until bead oo-9ht.133 deleted the facade).
+oo::Ref<OOScript> OOScript::jsScriptFromFileNamed(const std::string &, const oo::PList &)	{ std::abort(); }
 
 
 // The JavaScript class name, declared by OOJavaScriptEngine.h (which the test does not include).
@@ -141,13 +141,19 @@ void Fake()
 
 std::string Describe(OOCharacter *c)
 {
-	return [c cxx_name].value_or("-") + "|" + [c cxx_shortDescription].value_or("-") + "|" + std::to_string([c legalStatus]) + "|" + std::to_string([c insuranceCredits]) + "|" + std::to_string([c planetIDOfOrigin]) + "|" + [c species].value_or("-");
+	return c->name().value_or("-") + "|" + c->shortDescription().value_or("-") + "|" + std::to_string(c->legalStatus()) + "|" + std::to_string(c->insuranceCredits()) + "|" + std::to_string(c->planetIDOfOrigin()) + "|" + c->species().value_or("-");
 }
 
 
-OOCharacter *FromDictionary(oo::PList::Dict dict)
+std::string Describe(const oo::Ref<OOCharacter> &c)
 {
-	return [OOCharacter characterWithDictionary:oo::PList(std::move(dict))];
+	return Describe(c.get());
+}
+
+
+oo::Ref<OOCharacter> FromDictionary(oo::PList::Dict dict)
+{
+	return OOCharacter::characterWithDictionary(oo::PList(std::move(dict)));
 }
 
 
@@ -175,23 +181,23 @@ OO_TEST(generatedCharacters)
 	{
 		// Human: "%R" and "nom"; a legal status and insurance from the planet-description RNG.
 		Fake();
-		OO_CHECK(Same(Describe([OOCharacter randomCharacterWithRole:"nobody in particular" andOriginalSystem:4]), kHuman4 + "|0|125|4|human colonials"));
+		OO_CHECK(Same(Describe(OOCharacter::randomCharacterWithRole("nobody in particular", 4)), kHuman4 + "|0|125|4|human colonials"));
 		Fake();
-		OOCharacter *pirate = [OOCharacter characterWithRole:"pirate" andOriginalSystem:3];
+		oo::Ref<OOCharacter> pirate = OOCharacter::characterWithRole("pirate", 3);
 		OO_CHECK(Same(Describe(pirate), "R1 <nom>|<character-generic-description species=human colonials planet=System 3>|8|500|3|human colonials"));
-		OO_CHECK([pirate planetOfOrigin] == std::optional<std::string>("System 3"));
+		OO_CHECK(pirate->planetOfOrigin() == std::optional<std::string>("System 3"));
 
 		// Not human: "%R" twice.
 		Fake();
-		OO_CHECK(Same(Describe([OOCharacter randomCharacterWithRole:"trader" andOriginalSystem:5]), kFeline + "5>|0|250|5|furry felines"));
+		OO_CHECK(Same(Describe(OOCharacter::randomCharacterWithRole("trader", 5)), kFeline + "5>|0|250|5|furry felines"));
 
 		// No species (the description is expanded without one), and no planet name.
 		Fake();
-		OO_CHECK(Same(Describe([OOCharacter randomCharacterWithRole:"" andOriginalSystem:9]), "R1 R2|<character-generic-description planet=System 9>|32|0|9|-"));
+		OO_CHECK(Same(Describe(OOCharacter::randomCharacterWithRole("", 9)), "R1 R2|<character-generic-description planet=System 9>|32|0|9|-"));
 		Fake();
-		OOCharacter *nowhere = [OOCharacter randomCharacterWithRole:"" andOriginalSystem:200];
+		oo::Ref<OOCharacter> nowhere = OOCharacter::randomCharacterWithRole("", 200);
 		OO_CHECK(Same(Describe(nowhere), "R1 <nom>|<character-generic-description species=human colonials>|36|0|200|human colonials"));
-		OO_CHECK(![nowhere planetOfOrigin].has_value());
+		OO_CHECK(!nowhere->planetOfOrigin().has_value());
 
 		// One RNG run: each character draws the next seed.
 		Fake();
@@ -206,7 +212,7 @@ OO_TEST(generatedCharacters)
 		};
 		for (int i = 0; i < 6; i++)
 		{
-			OO_CHECK(Same(Describe([OOCharacter randomCharacterWithRole:"" andOriginalSystem:i]), expected[i]));
+			OO_CHECK(Same(Describe(OOCharacter::randomCharacterWithRole("", i)), expected[i]));
 		}
 	}
 }
@@ -231,15 +237,15 @@ OO_TEST(roles)
 		for (const auto &c : cases)
 		{
 			Fake();
-			OOCharacter *character = FromDictionary({ { "origin", oo::PList(4) }, { "random_seed", kSeed } });
+			oo::Ref<OOCharacter> character = FromDictionary({ { "origin", oo::PList(4) }, { "random_seed", kSeed } });
 			OO_CHECK(Same(Describe(character), kHuman4 + "|0|250|4|human colonials"));
-			OO_CHECK([character castInRole:c.role] == c.cast);
+			OO_CHECK(character->castInRole(c.role) == c.cast);
 			OO_CHECK(Same(Describe(character), kHuman4 + c.rest));
 		}
 
 		Fake();
-		OOCharacter *thargoid = FromDictionary({ { "origin", oo::PList(4) }, { "random_seed", kSeed } });
-		OO_CHECK([thargoid castInRole:"thargoid"]);
+		oo::Ref<OOCharacter> thargoid = FromDictionary({ { "origin", oo::PList(4) }, { "random_seed", kSeed } });
+		OO_CHECK(thargoid->castInRole("thargoid"));
 		OO_CHECK(Same(Describe(thargoid), "desc:character-thargoid-name|desc:character-a-thargoid|100|0|4|human colonials"));
 	}
 }
@@ -278,15 +284,15 @@ OO_TEST(dictionaries)
 
 		// Everything else overrides the generated character; bounty wins over legal_status.
 		Fake();
-		OOCharacter *c = FromDictionary({ { "origin", oo::PList(4) }, { "random_seed", kSeed }, { "role", oo::PList("police") },
+		oo::Ref<OOCharacter> c = FromDictionary({ { "origin", oo::PList(4) }, { "random_seed", kSeed }, { "role", oo::PList("police") },
 			{ "name", oo::PList("Jameson") }, { "short_description", oo::PList("a commander") }, { "legal_status", oo::PList(10) },
 			{ "bounty", oo::PList(20) }, { "insurance", oo::PList(300) },
 			{ "script_actions", oo::PList(oo::PList::Array{ oo::PList("doSomething") }) } });
 		OO_CHECK(Same(Describe(c), "Jameson|a commander|20|300|4|human colonials"));
-		OO_CHECK([c legacyScript] == oo::PList(oo::PList::Array{ oo::PList("doSomething") }));
-		OO_CHECK([c script] == nil);
-		OO_CHECK([c cxx_descriptionComponents] == std::optional<std::string>("Jameson, a commander. bounty: 20 insurance: 300"));
-		OO_CHECK([c cxx_oo_jsClassName] == std::optional<std::string>("Character"));
+		OO_CHECK(c->legacyScript() == oo::PList(oo::PList::Array{ oo::PList("doSomething") }));
+		OO_CHECK(c->script() == nil);
+		OO_CHECK(c->descriptionComponents() == std::optional<std::string>("Jameson, a commander. bounty: 20 insurance: 300"));
+		OO_CHECK(c->oo_jsClassName() == std::optional<std::string>("Character"));
 	}
 }
 
@@ -296,8 +302,8 @@ OO_TEST(scriptingInfoAndSetters)
 	@autoreleasepool
 	{
 		Fake();
-		OOCharacter *c = FromDictionary({ { "origin", oo::PList(4) }, { "random_seed", kSeed } });
-		OO_CHECK([c infoForScripting] == oo::PList(oo::PList::Dict{
+		oo::Ref<OOCharacter> c = FromDictionary({ { "origin", oo::PList(4) }, { "random_seed", kSeed } });
+		OO_CHECK(c->infoForScripting() == oo::PList(oo::PList::Dict{
 			{ "name", oo::PList("R1 <nom>") },
 			{ "description", oo::PList("<character-generic-description species=human colonials planet=System 4>") },
 			{ "species", oo::PList("human colonials") },
@@ -305,55 +311,45 @@ OO_TEST(scriptingInfoAndSetters)
 			{ "insuranceCredits", oo::PList::unsignedInteger(250) },
 			{ "homeSystem", oo::PList::signedInteger(4) } }));
 
-		[c cxx_setName:"Bob"];
-		[c setShortDescription:"a nobody"];
-		[c cxx_setLegalStatus:-5];
-		[c setInsuranceCredits:7];
-		[c setLegacyScript:oo::PList(oo::PList::Array{})];
+		c->setName("Bob");
+		c->setShortDescription("a nobody");
+		c->setLegalStatus(-5);
+		c->setInsuranceCredits(7);
+		c->setLegacyScript(oo::PList(oo::PList::Array{}));
 		OO_CHECK(Same(Describe(c), "Bob|a nobody|-5|7|4|human colonials"));
-		OO_CHECK([c legacyScript] == oo::PList(oo::PList::Array{}));
+		OO_CHECK(c->legacyScript() == oo::PList(oo::PList::Array{}));
 
 		// The list ended at the first missing value: no species, no description, no name.
 		Fake();
-		OOCharacter *alien = [OOCharacter randomCharacterWithRole:"" andOriginalSystem:9];
-		OO_CHECK([alien infoForScripting] == oo::PList(oo::PList::Dict{
+		oo::Ref<OOCharacter> alien = OOCharacter::randomCharacterWithRole("", 9);
+		OO_CHECK(alien->infoForScripting() == oo::PList(oo::PList::Dict{
 			{ "name", oo::PList("R1 R2") },
 			{ "description", oo::PList("<character-generic-description planet=System 9>") } }));
-		[alien setShortDescription:std::nullopt];
-		OO_CHECK([alien infoForScripting] == oo::PList(oo::PList::Dict{ { "name", oo::PList("R1 R2") } }));
-		[alien cxx_setName:std::nullopt];
-		OO_CHECK([alien infoForScripting] == oo::PList(oo::PList::Dict{}));
-		OO_CHECK([alien cxx_descriptionComponents] == std::optional<std::string>("(null), (null). bounty: 32 insurance: 0"));
+		alien->setShortDescription(std::nullopt);
+		OO_CHECK(alien->infoForScripting() == oo::PList(oo::PList::Dict{ { "name", oo::PList("R1 R2") } }));
+		alien->setName(std::nullopt);
+		OO_CHECK(alien->infoForScripting() == oo::PList(oo::PList::Dict{}));
+		OO_CHECK(alien->descriptionComponents() == std::optional<std::string>("(null), (null). bounty: 32 insurance: 0"));
 	}
 }
 
 
-// --- The C++ class, and the facade's contract --------------------------------------------------
-
-namespace {
-
-std::string Describe(cxx::OOCharacter *c)
-{
-	return c->name().value_or("-") + "|" + c->shortDescription().value_or("-") + "|" + std::to_string(c->legalStatus()) + "|" + std::to_string(c->insuranceCredits()) + "|" + std::to_string(c->planetIDOfOrigin()) + "|" + c->species().value_or("-");
-}
-
-}	// namespace
-
+// --- The C++ class, and what the facade's contract kept --------------------------------------------------
 
 OO_TEST(cxxClass)
 {
 	// The same answers as the Objective-C API above.
 	Fake();
-	OO_CHECK(Same(Describe(cxx::OOCharacter::randomCharacterWithRole("nobody in particular", 4).get()), kHuman4 + "|0|125|4|human colonials"));
+	OO_CHECK(Same(Describe(OOCharacter::randomCharacterWithRole("nobody in particular", 4).get()), kHuman4 + "|0|125|4|human colonials"));
 	Fake();
-	oo::Ref<cxx::OOCharacter> pirate = cxx::OOCharacter::characterWithRole("pirate", 3);
+	oo::Ref<OOCharacter> pirate = OOCharacter::characterWithRole("pirate", 3);
 	OO_CHECK(Same(Describe(pirate.get()), "R1 <nom>|<character-generic-description species=human colonials planet=System 3>|8|500|3|human colonials"));
 	OO_CHECK(pirate->planetOfOrigin() == std::optional<std::string>("System 3"));
 	Fake();
-	OO_CHECK(Same(Describe(oo::makeRef<cxx::OOCharacter>("pirate", 3).get()), "R1 <nom>|<character-generic-description species=human colonials planet=System 3>|8|500|3|human colonials"));
+	OO_CHECK(Same(Describe(oo::makeRef<OOCharacter>("pirate", 3).get()), "R1 <nom>|<character-generic-description species=human colonials planet=System 3>|8|500|3|human colonials"));
 
 	Fake();
-	oo::Ref<cxx::OOCharacter> c = cxx::OOCharacter::characterWithDictionary(oo::PList(oo::PList::Dict{ { "origin", oo::PList(4) }, { "random_seed", kSeed } }));
+	oo::Ref<OOCharacter> c = OOCharacter::characterWithDictionary(oo::PList(oo::PList::Dict{ { "origin", oo::PList(4) }, { "random_seed", kSeed } }));
 	OO_CHECK(Same(Describe(c.get()), kHuman4 + "|0|250|4|human colonials"));
 	OO_CHECK(c->castInRole("police"));
 	OO_CHECK(!c->castInRole("nobody"));
@@ -364,54 +360,30 @@ OO_TEST(cxxClass)
 	OO_CHECK(c->infoForScripting().count() == 6);
 
 	// [[OOCharacter alloc] init]: every field zero.
-	oo::Ref<cxx::OOCharacter> blank = oo::makeRef<cxx::OOCharacter>();
+	oo::Ref<OOCharacter> blank = oo::makeRef<OOCharacter>();
 	OO_CHECK(!blank->name().has_value() && !blank->shortDescription().has_value());
 	OO_CHECK(blank->legalStatus() == 0 && blank->insuranceCredits() == 0 && blank->planetIDOfOrigin() == 0);
 	OO_CHECK(blank->legacyScript().isNull());
 }
 
 
-OO_TEST(facadeNilStaysNil)
-{
-	OOCharacter *none = nil;
-	OO_CHECK(oo::ToCxx(none) == nullptr);
-	OO_CHECK(oo::ToObjC(static_cast<cxx::OOCharacter *>(nullptr)) == nil);
-	OO_CHECK([none legalStatus] == 0);
-	OO_CHECK(![none cxx_name].has_value());
-	OO_CHECK([none script] == nil);
-}
-
-
 OO_TEST(facadeIdentity)
 {
-	@autoreleasepool
-	{
-		Fake();
-		OOCharacter *pilot = FromDictionary({ { "origin", oo::PList(4) }, { "random_seed", kSeed } });
-		OO_CHECK(oo::ToObjC(oo::ToCxx(pilot)) == pilot);
+	Fake();
+	oo::Ref<OOCharacter> pilot = FromDictionary({ { "origin", oo::PList(4) }, { "random_seed", kSeed } });
 
-		// A crew list (oo::ObjCRef) keeps finding the same object.
-		std::vector<oo::ObjCRef<OOCharacter *>> crew{ oo::ObjCRef<OOCharacter *>(pilot) };
-		OO_CHECK(crew[0] == oo::ToObjC(oo::ToCxx(pilot)));
+	// A crew list (oo::Ref) keeps finding the same object.
+	std::vector<oo::Ref<OOCharacter>> crew{ pilot };
+	OO_CHECK(crew[0] == pilot);
 
-		// A C++ character crosses to one facade, and back to itself.
-		oo::Ref<cxx::OOCharacter> cxxCharacter = cxx::OOCharacter::randomCharacterWithRole("", 4);
-		OOCharacter *facade = oo::ToObjC(cxxCharacter);
-		OO_CHECK(facade != nil && facade == oo::ToObjC(cxxCharacter.get()));
-		OO_CHECK(oo::ToCxx(facade) == cxxCharacter.get());
-		OO_CHECK([facade legalStatus] == cxxCharacter->legalStatus());
+	// Objects made as +alloc and an initialiser made them.
+	oo::Ref<OOCharacter> blank = oo::makeRef<OOCharacter>();
+	OO_CHECK(!blank->name().has_value() && blank->legalStatus() == 0 && blank->planetIDOfOrigin() == 0);
+	Fake();
+	oo::Ref<OOCharacter> trader = oo::makeRef<OOCharacter>("pirate", 3);
+	OO_CHECK(Same(Describe(trader), "R1 <nom>|<character-generic-description species=human colonials planet=System 3>|8|500|3|human colonials"));
 
-		// Objects made by +alloc and an initialiser are their C++ object's facade too.
-		OOCharacter *blank = [[[OOCharacter alloc] init] autorelease];
-		OO_CHECK(oo::ToObjC(oo::ToCxx(blank)) == blank);
-		OO_CHECK(![blank cxx_name].has_value() && [blank legalStatus] == 0 && [blank planetIDOfOrigin] == 0);
-		Fake();
-		OOCharacter *trader = [[[OOCharacter alloc] initWithRole:"pirate" andOriginalSystem:3] autorelease];
-		OO_CHECK(oo::ToObjC(oo::ToCxx(trader)) == trader);
-		OO_CHECK(Same(Describe(trader), "R1 <nom>|<character-generic-description species=human colonials planet=System 3>|8|500|3|human colonials"));
-
-		OO_CHECK([OOCharacter characterWithRole:"" andOriginalSystem:1] != [OOCharacter characterWithRole:"" andOriginalSystem:1]);	// distinct objects, as before
-	}
+	OO_CHECK(OOCharacter::characterWithRole("", 1) != OOCharacter::characterWithRole("", 1));	// distinct objects, as before
 }
 
 

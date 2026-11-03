@@ -10,12 +10,11 @@
 	one-shot and repeating timers, a timer scheduled while the timers are updating (deferred to the
 	end of the update), a timer that stops itself when it fires, +noteGameReset, and the ordering
 	selector the queue calls. The expectations were written against the Objective-C API, with an
-	Objective-C subclass, and run on the unconverted class first (commit 709ecf5c8). The class
-	keeps a facade, so the checks that use the base class alone still run through it (its
-	forwarding test); the subclass is ported to a C++ one, because no Objective-C subclass of the
-	facade can override the C++ virtual timerFired() (no adapter: ADR-0056 amendment 1 is not
-	needed once OOJSTimer, the only subclass, is C++), and the checks that use it call the C++
-	class. The facade's contract (identity, nil, the facade class) is checked last.
+	Objective-C subclass, and run on the unconverted class first (commit 709ecf5c8). The subclass
+	was ported to a C++ one by the conversion; bead oo-9ht.35 deleted the facade, so the checks
+	that used the base class through it call the C++ class with every expected value kept (nil is
+	null), and the facade's own case (identity, nil, the facade class) is retired under the
+	standing approval oo-9n5p9.
 	Run: bash tools/check-core-tests.sh
 */
 
@@ -64,7 +63,7 @@ Universe *gSharedUniverse = nil;
 // another timer when it fires.
 static std::vector<std::string> gFired;
 
-class TestTimer final : public cxx::OOScriptTimer
+class TestTimer final : public OOScriptTimer
 {
 public:
 	static oo::Ref<TestTimer> timerWithNextTime(OOTimeAbsolute nextTime, OOTimeDelta interval)
@@ -83,7 +82,7 @@ public:
 
 	std::string					name;
 	bool						stopWhenFired = false;
-	cxx::OOScriptTimer			*startWhenFired = nullptr;
+	OOScriptTimer				*startWhenFired = nullptr;
 };
 
 
@@ -120,28 +119,28 @@ OO_TEST(initialisers)
 	@autoreleasepool
 	{
 		SetUp(100.0);
-		OOScriptTimer *timer = [[[OOScriptTimer alloc] initWithNextTime:110.0 interval:5.0] autorelease];
-		OO_CHECK(timer != nil);
-		OO_CHECK_EQ([timer nextTime], 110.0);
-		OO_CHECK_EQ([timer interval], 5.0);
-		OO_CHECK(![timer isScheduled]);
+		oo::Ref<OOScriptTimer> timer = OOScriptTimer::timerWithNextTime(110.0, 5.0);
+		OO_CHECK(timer != nullptr);
+		OO_CHECK_EQ(timer->nextTime(), 110.0);
+		OO_CHECK_EQ(timer->interval(), 5.0);
+		OO_CHECK(!timer->isScheduled());
 
 		// A negative next time is "now + interval"; a non-positive interval is -1 (one-shot).
-		timer = [[[OOScriptTimer alloc] initWithNextTime:-1.0 interval:5.0] autorelease];
-		OO_CHECK_EQ([timer nextTime], 105.0);
-		timer = [[[OOScriptTimer alloc] initWithNextTime:120.0 interval:0.0] autorelease];
-		OO_CHECK_EQ([timer interval], -1.0);
-		OO_CHECK_EQ([timer nextTime], 120.0);
+		timer = OOScriptTimer::timerWithNextTime(-1.0, 5.0);
+		OO_CHECK_EQ(timer->nextTime(), 105.0);
+		timer = OOScriptTimer::timerWithNextTime(120.0, 0.0);
+		OO_CHECK_EQ(timer->interval(), -1.0);
+		OO_CHECK_EQ(timer->nextTime(), 120.0);
 
 		// A past (or negative) next time with no interval is meaningless: nil.
-		OO_CHECK([[OOScriptTimer alloc] initWithNextTime:90.0 interval:-1.0] == nil);
-		OO_CHECK([[OOScriptTimer alloc] initWithNextTime:-1.0 interval:0.0] == nil);
-		OO_CHECK([[[OOScriptTimer alloc] initWithNextTime:100.0 interval:-1.0] autorelease] != nil);
+		OO_CHECK(OOScriptTimer::timerWithNextTime(90.0, -1.0) == nullptr);
+		OO_CHECK(OOScriptTimer::timerWithNextTime(-1.0, 0.0) == nullptr);
+		OO_CHECK(OOScriptTimer::timerWithNextTime(100.0, -1.0) != nullptr);
 
 		// A one-shot timer fires after the delay.
-		timer = [[[OOScriptTimer alloc] initOneShotTimerWithDelay:2.5] autorelease];
-		OO_CHECK_EQ([timer nextTime], 102.5);
-		OO_CHECK_EQ([timer interval], -1.0);
+		timer = OOScriptTimer::oneShotTimerWithDelay(2.5);
+		OO_CHECK_EQ(timer->nextTime(), 102.5);
+		OO_CHECK_EQ(timer->interval(), -1.0);
 	}
 }
 
@@ -151,23 +150,23 @@ OO_TEST(accessors)
 	@autoreleasepool
 	{
 		SetUp(100.0);
-		OOScriptTimer *timer = [[[OOScriptTimer alloc] initWithNextTime:110.0 interval:5.0] autorelease];
-		[timer setInterval:-3.0];
-		OO_CHECK_EQ([timer interval], -1.0);
-		[timer setInterval:7.0];
-		OO_CHECK_EQ([timer interval], 7.0);
-		OO_CHECK([timer setNextTime:130.0]);
-		OO_CHECK_EQ([timer nextTime], 130.0);
+		oo::Ref<OOScriptTimer> timer = OOScriptTimer::timerWithNextTime(110.0, 5.0);
+		timer->setInterval(-3.0);
+		OO_CHECK_EQ(timer->interval(), -1.0);
+		timer->setInterval(7.0);
+		OO_CHECK_EQ(timer->interval(), 7.0);
+		OO_CHECK(timer->setNextTime(130.0));
+		OO_CHECK_EQ(timer->nextTime(), 130.0);
 
 		// While scheduled the next time cannot change.
-		OO_CHECK([timer scheduleTimer]);
-		OO_CHECK([timer isScheduled]);
-		OO_CHECK([timer scheduleTimer]);	// already scheduled: YES, no second entry
-		OO_CHECK(![timer setNextTime:140.0]);
-		OO_CHECK_EQ([timer nextTime], 130.0);
-		[timer unscheduleTimer];
-		OO_CHECK(![timer isScheduled]);
-		OO_CHECK([timer setNextTime:140.0]);
+		OO_CHECK(timer->scheduleTimer());
+		OO_CHECK(timer->isScheduled());
+		OO_CHECK(timer->scheduleTimer());	// already scheduled: YES, no second entry
+		OO_CHECK(!timer->setNextTime(140.0));
+		OO_CHECK_EQ(timer->nextTime(), 130.0);
+		timer->unscheduleTimer();
+		OO_CHECK(!timer->isScheduled());
+		OO_CHECK(timer->setNextTime(140.0));
 	}
 }
 
@@ -177,14 +176,14 @@ OO_TEST(description)
 	@autoreleasepool
 	{
 		SetUp(100.0);
-		OOScriptTimer *timer = [[[OOScriptTimer alloc] initWithNextTime:110.0 interval:5.0] autorelease];
-		OO_CHECK_EQ([timer cxx_descriptionComponents].value_or("<none>"), "nextTime: 110, interval: 5, not running");
-		[timer scheduleTimer];
-		OO_CHECK_EQ([timer cxx_descriptionComponents].value_or("<none>"), "nextTime: 110, interval: 5, running");
-		[timer unscheduleTimer];
-		timer = [[[OOScriptTimer alloc] initOneShotTimerWithDelay:1.5] autorelease];
-		OO_CHECK_EQ([timer cxx_descriptionComponents].value_or("<none>"), "nextTime: 101.5, one-shot, not running");
-		OO_CHECK(oo::DescriptionOf(timer).find("OOScriptTimer") != std::string::npos);
+		oo::Ref<OOScriptTimer> timer = OOScriptTimer::timerWithNextTime(110.0, 5.0);
+		OO_CHECK_EQ(timer->descriptionComponents().value_or("<none>"), "nextTime: 110, interval: 5, not running");
+		timer->scheduleTimer();
+		OO_CHECK_EQ(timer->descriptionComponents().value_or("<none>"), "nextTime: 110, interval: 5, running");
+		timer->unscheduleTimer();
+		timer = OOScriptTimer::oneShotTimerWithDelay(1.5);
+		OO_CHECK_EQ(timer->descriptionComponents().value_or("<none>"), "nextTime: 101.5, one-shot, not running");
+		OO_CHECK(timer->description().find("OOScriptTimer") != std::string::npos);
 	}
 }
 
@@ -194,12 +193,12 @@ OO_TEST(ordering)
 	@autoreleasepool
 	{
 		SetUp(100.0);
-		OOScriptTimer *early = [[[OOScriptTimer alloc] initWithNextTime:110.0 interval:5.0] autorelease];
-		OOScriptTimer *late = [[[OOScriptTimer alloc] initWithNextTime:120.0 interval:5.0] autorelease];
-		OO_CHECK_EQ([early compareByNextFireTime:late], OOOrderedAscending);
-		OO_CHECK_EQ([late compareByNextFireTime:early], OOOrderedDescending);
-		OO_CHECK_EQ([early compareByNextFireTime:early], OOOrderedSame);
-		OO_CHECK_EQ([early compareByNextFireTime:nil], OOOrderedDescending);	// nil is -INFINITY
+		oo::Ref<OOScriptTimer> early = OOScriptTimer::timerWithNextTime(110.0, 5.0);
+		oo::Ref<OOScriptTimer> late = OOScriptTimer::timerWithNextTime(120.0, 5.0);
+		OO_CHECK_EQ(early->compareByNextFireTime(late.get()), OOOrderedAscending);
+		OO_CHECK_EQ(late->compareByNextFireTime(early.get()), OOOrderedDescending);
+		OO_CHECK_EQ(early->compareByNextFireTime(early.get()), OOOrderedSame);
+		OO_CHECK_EQ(early->compareByNextFireTime(nullptr), OOOrderedDescending);	// nil is -INFINITY
 	}
 }
 
@@ -214,18 +213,18 @@ OO_TEST(firing)
 		oo::Ref<TestTimer> r = MakeTimer("r", 105.0, 10.0);
 		OO_CHECK(b->scheduleTimer() && a->scheduleTimer() && r->scheduleTimer());
 
-		cxx::OOScriptTimer::updateTimers();
+		OOScriptTimer::updateTimers();
 		OO_CHECK_EQ(Fired(), "");
 
 		gNow = 112.0;
-		cxx::OOScriptTimer::updateTimers();
+		OOScriptTimer::updateTimers();
 		OO_CHECK_EQ(Fired(), "r,a");
 		OO_CHECK(!a->isScheduled());	// one-shot: done
 		OO_CHECK(r->isScheduled());	// repeating: rescheduled at the next multiple of its interval
 		OO_CHECK_EQ(r->nextTime(), 115.0);
 
 		gNow = 130.0;
-		cxx::OOScriptTimer::updateTimers();
+		OOScriptTimer::updateTimers();
 		OO_CHECK_EQ(Fired(), "r,a,r,b");
 		OO_CHECK_EQ(r->nextTime(), 135.0);
 		OO_CHECK(!b->isScheduled());
@@ -236,7 +235,7 @@ OO_TEST(firing)
 
 		r->unscheduleTimer();
 		gNow = 200.0;
-		cxx::OOScriptTimer::updateTimers();
+		OOScriptTimer::updateTimers();
 		OO_CHECK_EQ(Fired(), "r,a,r,b");
 	}
 }
@@ -272,13 +271,13 @@ OO_TEST(stopsItselfAndDefers)
 		OO_CHECK(stopper->scheduleTimer() && starter->scheduleTimer());
 
 		gNow = 103.0;
-		cxx::OOScriptTimer::updateTimers();
+		OOScriptTimer::updateTimers();
 		// "later" was due, but it was scheduled during the update, so it waits for the next one.
 		OO_CHECK_EQ(Fired(), "stopper,starter");
 		OO_CHECK(!stopper->isScheduled());
 		OO_CHECK(later->isScheduled());
 
-		cxx::OOScriptTimer::updateTimers();
+		OOScriptTimer::updateTimers();
 		OO_CHECK_EQ(Fired(), "stopper,starter,later");
 		OO_CHECK(!later->isScheduled());
 	}
@@ -293,14 +292,14 @@ OO_TEST(gameReset)
 		oo::Ref<TestTimer> a = MakeTimer("a", 110.0, 5.0);
 		oo::Ref<TestTimer> b = MakeTimer("b", 120.0, -1.0);
 		OO_CHECK(a->scheduleTimer() && b->scheduleTimer());
-		cxx::OOScriptTimer::noteGameReset();
+		OOScriptTimer::noteGameReset();
 		OO_CHECK(!a->isScheduled());
 		OO_CHECK(!b->isScheduled());
 		gNow = 200.0;
-		cxx::OOScriptTimer::updateTimers();
+		OOScriptTimer::updateTimers();
 		OO_CHECK_EQ(Fired(), "");	// the queue was emptied
 		OO_CHECK(a->scheduleTimer());	// and they can be scheduled again
-		cxx::OOScriptTimer::updateTimers();
+		OOScriptTimer::updateTimers();
 		OO_CHECK_EQ(Fired(), "a");
 		a->unscheduleTimer();
 	}
@@ -312,13 +311,13 @@ OO_TEST(baseTimerFired)
 	@autoreleasepool
 	{
 		SetUp(100.0);
-		OOScriptTimer *timer = [[[OOScriptTimer alloc] initWithNextTime:101.0 interval:-1.0] autorelease];
-		OO_CHECK([timer scheduleTimer]);
+		oo::Ref<OOScriptTimer> timer = OOScriptTimer::timerWithNextTime(101.0, -1.0);
+		OO_CHECK(timer->scheduleTimer());
 		gSubclassResponsibilities = 0;
 		gNow = 102.0;
-		[OOScriptTimer updateTimers];
+		OOScriptTimer::updateTimers();
 		OO_CHECK_EQ(gSubclassResponsibilities, 1);
-		OO_CHECK(![timer isScheduled]);
+		OO_CHECK(!timer->isScheduled());
 	}
 }
 
@@ -334,45 +333,9 @@ OO_TEST(scheduledTimerIsKept)
 	gNow = 102.0;
 	@autoreleasepool
 	{
-		cxx::OOScriptTimer::updateTimers();
+		OOScriptTimer::updateTimers();
 	}
 	OO_CHECK_EQ(Fired(), "kept");
-}
-
-
-OO_TEST(facade)
-{
-	@autoreleasepool
-	{
-		SetUp(100.0);
-		// A C++ timer crosses as one facade while it lives, of the root class (TestTimer has no
-		// Objective-C class of its name), and back.
-		oo::Ref<TestTimer> timer = MakeTimer("f", 110.0, 5.0);
-		OOScriptTimer *facade = oo::ToObjC(timer.get());
-		OO_CHECK(facade != nil);
-		OO_CHECK(facade == oo::ToObjC(timer.get()));
-		OO_CHECK([facade class] == [OOScriptTimer class]);
-		OO_CHECK(oo::ToCxx(facade) == timer.get());
-		OO_CHECK(oo::LiveObjC(timer.get()) == facade);
-		OO_CHECK_EQ([facade nextTime], 110.0);
-		OO_CHECK(oo::ToObjC(static_cast<cxx::OOScriptTimer *>(nullptr)) == nil);
-		OO_CHECK(oo::ToCxx(static_cast<OOScriptTimer *>(nil)) == nullptr);
-
-		// A facade's initialiser makes the C++ timer and is its facade; nil stays nil.
-		OOScriptTimer *made = [[[OOScriptTimer alloc] initWithNextTime:120.0 interval:-1.0] autorelease];
-		OO_CHECK(oo::ToObjC(oo::ToCxx(made)) == made);
-
-		// The facade's -timerFired reaches the C++ override.
-		gFired.clear();
-		[facade timerFired];
-		OO_CHECK_EQ(Fired(), "f");
-	}
-	@autoreleasepool
-	{
-		// No live facade: LiveObjC never makes one.
-		oo::Ref<TestTimer> timer = MakeTimer("g", 110.0, 5.0);
-		OO_CHECK(oo::LiveObjC(timer.get()) == nil);
-	}
 }
 
 

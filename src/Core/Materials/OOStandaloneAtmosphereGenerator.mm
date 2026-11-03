@@ -374,10 +374,12 @@ namespace {
 FloatRGB FloatRGBFromDictColor(const oo::PList& dictionary, const std::string& key)
 {
     const oo::PList* value = dictionary.find(key);
-    OOColor* color = (value != nullptr) ? oo::ObjectIn(*value) : nil; // an Object node (Amendment 2)
-    OOCAssert([color isKindOfClass:[OOColor class]], "Expected OOColor, got %s", oo::DescriptionOf([color class]).c_str());
+    OOColor* color = (value != nullptr) ? OOColorInObjectNode(*value) : nullptr; // an Object node (Amendment 2)
+    OOCAssert(color != nullptr, "Expected OOColor, got %s", (value != nullptr) ? oo::DescriptionOf(*value).c_str() : "(null)");
 
-    return (FloatRGB) { [color redComponent] * ALBEDO_FACTOR, [color greenComponent] * ALBEDO_FACTOR, [color blueComponent] * ALBEDO_FACTOR };
+    if (color == nullptr)
+        return (FloatRGB) { 0.0f, 0.0f, 0.0f }; // a nil colour answered zeros (release builds)
+    return (FloatRGB) { color->redComponent() * ALBEDO_FACTOR, color->greenComponent() * ALBEDO_FACTOR, color->blueComponent() * ALBEDO_FACTOR };
 }
 
 } // namespace

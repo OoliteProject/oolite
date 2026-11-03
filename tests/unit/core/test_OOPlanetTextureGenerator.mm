@@ -57,14 +57,14 @@ oo::PList PlanetInfo(bool perlin3d)
 	return oo::PList(oo::PList::Dict{
 		{ "land_fraction", oo::PList(0.25) },
 		{ "polar_fraction", oo::PList(0.05) },
-		{ "land_color", oo::PListObject([OOColor colorWithRed:0.25f green:0.5f blue:0.125f alpha:1.0f]) },
-		{ "sea_color", oo::PListObject([OOColor blueColor]) },
-		{ "polar_land_color", oo::PListObject([OOColor whiteColor]) },
-		{ "polar_sea_color", oo::PListObject([OOColor cyanColor]) },
+		{ "land_color", OOColorObjectNode(OOColor::colorWithRed(0.25f, 0.5f, 0.125f, 1.0f).get()) },
+		{ "sea_color", OOColorObjectNode(OOColor::blueColor().get()) },
+		{ "polar_land_color", OOColorObjectNode(OOColor::whiteColor().get()) },
+		{ "polar_sea_color", OOColorObjectNode(OOColor::cyanColor().get()) },
 		{ "cloud_alpha", oo::PList(1.0) },
 		{ "cloud_fraction", oo::PList(0.5) },
-		{ "cloud_color", oo::PListObject([OOColor whiteColor]) },
-		{ "polar_cloud_color", oo::PListObject([OOColor lightGrayColor]) },
+		{ "cloud_color", OOColorObjectNode(OOColor::whiteColor().get()) },
+		{ "polar_cloud_color", OOColorObjectNode(OOColor::lightGrayColor().get()) },
 		{ "perlin_3d", oo::PList(perlin3d) },
 	});
 }

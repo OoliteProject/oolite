@@ -183,7 +183,8 @@ JSValue JSPlayerObject(void)
 PlayerEntity* OOPlayerForScripting(void)
 {
     PlayerEntity* player = PLAYER;
-    [player setScriptTarget:player];
+    if (player != nullptr)
+        player->setScriptTargetToSelf();
 
     return player;
 }
@@ -197,80 +198,80 @@ static JSValue PlayerGetProperty(OOJS_GETTER_ARGS)
 
     switch (magic) {
     case kPlayer_name:
-        if (const std::optional<std::string> name = [player cxx_commanderName])
+        if (const std::optional<std::string> name = (player != nullptr ? player->commanderName() : std::optional<std::string>()))
             result = oo::PList(*name);
         break;
 
     case kPlayer_score:
-        return JS_NewInt32(context, [player score]);
+        return JS_NewInt32(context, (player != nullptr ? player->PlayerEntity::score() : unsigned {})); // qualified: the final overrider, so the binding test stands in for it
 
     case kPlayer_credits:
-        return JS_NewNumber(context, [player creditBalance]);
+        return JS_NewNumber(context, (player != nullptr ? player->creditBalance() : 0.0));
 
     case kPlayer_rank: {
-        const std::optional<std::string> text = cxx_OODisplayRatingStringFromKillCount([player score]);
+        const std::optional<std::string> text = cxx_OODisplayRatingStringFromKillCount((player != nullptr ? player->PlayerEntity::score() : unsigned {})); // qualified: the final overrider, so the binding test stands in for it
         return OOJSValueFromPList(context, text.has_value() ? oo::PList(*text) : oo::PList());
     }
 
     case kPlayer_legalStatus: {
-        const std::optional<std::string> text = cxx_OODisplayStringFromLegalStatus([player legalStatus]);
+        const std::optional<std::string> text = cxx_OODisplayStringFromLegalStatus((player != nullptr ? player->getLegalStatus() : int {}));
         return OOJSValueFromPList(context, text.has_value() ? oo::PList(*text) : oo::PList());
     }
 
     case kPlayer_alertCondition:
-        return JS_NewInt32(context, [player alertCondition]);
+        return JS_NewInt32(context, (player != nullptr ? player->PlayerEntity::getAlertCondition() : OOAlertCondition {})); // qualified: the final overrider, so the binding test stands in for it
 
     case kPlayer_alertTemperature:
-        return OOJSValueFromBOOL([player alertFlags] & ALERT_FLAG_TEMP);
+        return OOJSValueFromBOOL((player != nullptr ? player->getAlertFlags() : int {}) & ALERT_FLAG_TEMP);
 
     case kPlayer_alertMassLocked:
-        return OOJSValueFromBOOL([player alertFlags] & ALERT_FLAG_MASS_LOCK);
+        return OOJSValueFromBOOL((player != nullptr ? player->getAlertFlags() : int {}) & ALERT_FLAG_MASS_LOCK);
 
     case kPlayer_alertAltitude:
-        return OOJSValueFromBOOL([player alertFlags] & ALERT_FLAG_ALT);
+        return OOJSValueFromBOOL((player != nullptr ? player->getAlertFlags() : int {}) & ALERT_FLAG_ALT);
 
     case kPlayer_alertEnergy:
-        return OOJSValueFromBOOL([player alertFlags] & ALERT_FLAG_ENERGY);
+        return OOJSValueFromBOOL((player != nullptr ? player->getAlertFlags() : int {}) & ALERT_FLAG_ENERGY);
 
     case kPlayer_alertHostiles:
-        return OOJSValueFromBOOL([player alertFlags] & ALERT_FLAG_HOSTILES);
+        return OOJSValueFromBOOL((player != nullptr ? player->getAlertFlags() : int {}) & ALERT_FLAG_HOSTILES);
 
     case kPlayer_escapePodRescueTime:
-        return JS_NewNumber(context, [player escapePodRescueTime]);
+        return JS_NewNumber(context, (player != nullptr ? player->escapePodRescueTime() : 0.0));
 
     case kPlayer_trumbleCount:
-        return JS_NewNumber(context, [player trumbleCount]);
+        return JS_NewNumber(context, (player != nullptr ? player->PlayerEntity::getTrumbleCount() : 0)); // qualified: the final overrider, so the binding test stands in for it
 
         /* For compatibility with previous versions, these are still on
          * a -7 to +7 scale */
     case kPlayer_contractReputation:
-        return JS_NewNumber(context, (int)(((float)[player contractReputation]) / 10.0));
+        return JS_NewNumber(context, (int)(((float)(player != nullptr ? player->contractReputation() : int {})) / 10.0));
 
     case kPlayer_passengerReputation:
-        return JS_NewNumber(context, (int)(((float)[player passengerReputation]) / 10.0));
+        return JS_NewNumber(context, (int)(((float)(player != nullptr ? player->passengerReputation() : int {})) / 10.0));
 
     case kPlayer_parcelReputation:
-        return JS_NewNumber(context, (int)(((float)[player parcelReputation]) / 10.0));
+        return JS_NewNumber(context, (int)(((float)(player != nullptr ? player->parcelReputation() : int {})) / 10.0));
 
         /* Full-precision reputations */
     case kPlayer_contractReputationPrecise:
-        return JS_NewNumber(context, ((float)[player contractReputation]) / 10.0);
+        return JS_NewNumber(context, ((float)(player != nullptr ? player->contractReputation() : int {})) / 10.0);
 
     case kPlayer_passengerReputationPrecise:
-        return JS_NewNumber(context, ((float)[player passengerReputation]) / 10.0);
+        return JS_NewNumber(context, ((float)(player != nullptr ? player->passengerReputation() : int {})) / 10.0);
 
     case kPlayer_parcelReputationPrecise:
-        return JS_NewNumber(context, ((float)[player parcelReputation]) / 10.0);
+        return JS_NewNumber(context, ((float)(player != nullptr ? player->parcelReputation() : int {})) / 10.0);
 
     case kPlayer_dockingClearanceStatus:
         // EMMSTRAN: OOConstToJSString-ify this.
-        return OOJSValueFromPList(context, oo::PList(cxx_DockingClearanceStatusToString([player getDockingClearanceStatus])));
+        return OOJSValueFromPList(context, oo::PList(cxx_DockingClearanceStatusToString((player != nullptr ? player->getDockingClearanceStatus() : OODockingClearanceStatus {}))));
 
     case kPlayer_bounty:
-        return JS_NewInt32(context, [player legalStatus]);
+        return JS_NewInt32(context, (player != nullptr ? player->getLegalStatus() : int {}));
 
     case kPlayer_roleWeights: {
-        const std::vector<std::string> roleWeights = [player cxx_roleWeights];
+        const std::vector<std::string> roleWeights = (player != nullptr ? player->getRoleWeights() : std::vector<std::string>());
         result = oo::PList(oo::PList::Array(roleWeights.begin(), roleWeights.end()));
     } break;
 
@@ -297,7 +298,8 @@ static JSValue PlayerSetProperty(OOJS_SETTER_ARGS)
     case kPlayer_name:
         sValue = cxx_OOStringFromJSValue(context, value);
         if (sValue.has_value()) {
-            [player cxx_setCommanderName:*sValue];
+            if (player != nullptr)
+                player->setCommanderName(sValue);
             return JS_UNDEFINED;
         }
         break;
@@ -305,14 +307,16 @@ static JSValue PlayerSetProperty(OOJS_SETTER_ARGS)
     case kPlayer_score:
         if (OOJSValueToInt32(context, value, &iValue)) {
             iValue = MAX(iValue, 0);
-            [player setScore:iValue];
+            if (player != nullptr)
+                player->setScore(iValue);
             return JS_UNDEFINED;
         }
         break;
 
     case kPlayer_credits:
         if (JS_ToFloat64(context, &fValue, value) == 0) {
-            [player setCreditBalance:fValue];
+            if (player != nullptr)
+                player->setCreditBalance(fValue);
             return JS_UNDEFINED;
         }
         break;
@@ -321,14 +325,16 @@ static JSValue PlayerSetProperty(OOJS_SETTER_ARGS)
         if (OOJSValueToInt32(context, value, &iValue)) {
             if (iValue < 0)
                 iValue = 0;
-            [player setBounty:iValue withReason:kOOLegalStatusReasonByScript];
+            if (player != nullptr)
+                player->PlayerEntity::setBounty(iValue, kOOLegalStatusReasonByScript); // qualified: the final overrider, so the binding test stands in for it
             return JS_UNDEFINED;
         }
         break;
 
     case kPlayer_escapePodRescueTime:
         if (JS_ToFloat64(context, &fValue, value) == 0) {
-            [player setEscapePodRescueTime:fValue];
+            if (player != nullptr)
+                player->setEscapePodRescueTime(fValue);
             return JS_UNDEFINED;
         }
         break;
@@ -365,7 +371,8 @@ static JSValue PlayerCommsMessage(OOJS_NATIVE_ARGS)
     }
 
     [UNIVERSE cxx_addCommsMessage:*message forCount:time];
-    [PLAYER cxx_doScriptEvent:OOJSID("commsMessageReceived") withPListArguments: { oo::PList(*message), oo::PList() }];
+    if (PLAYER != nullptr)
+        PLAYER->ShipEntity::doScriptEvent(OOJSID("commsMessageReceived"), { oo::PList(*message), oo::PList() }); // qualified: the final overrider, so the binding test stands in for it
     OOJS_RETURN_VOID;
 
     OOJS_NATIVE_EXIT
@@ -409,7 +416,7 @@ static JSValue PlayerEndScenario(OOJS_NATIVE_ARGS)
         return OOJSNativeFailure(context);
     }
 
-    OOJS_RETURN_BOOL([PLAYER cxx_endScenario:*scenario]);
+    OOJS_RETURN_BOOL((PLAYER != nullptr ? PLAYER->endScenario(*scenario) : false));
 
     OOJS_NATIVE_EXIT
 }
@@ -419,7 +426,8 @@ static JSValue PlayerIncreaseContractReputation(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    [OOPlayerForScripting() increaseContractReputation:1];
+    if (PlayerEntity* player = OOPlayerForScripting())
+        player->increaseContractReputation(1);
     OOJS_RETURN_VOID;
 
     OOJS_NATIVE_EXIT
@@ -430,7 +438,8 @@ static JSValue PlayerDecreaseContractReputation(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    [OOPlayerForScripting() decreaseContractReputation:1];
+    if (PlayerEntity* player = OOPlayerForScripting())
+        player->decreaseContractReputation(1);
     OOJS_RETURN_VOID;
 
     OOJS_NATIVE_EXIT
@@ -441,7 +450,8 @@ static JSValue PlayerIncreaseParcelReputation(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    [OOPlayerForScripting() increaseParcelReputation:1];
+    if (PlayerEntity* player = OOPlayerForScripting())
+        player->increaseParcelReputation(1);
     OOJS_RETURN_VOID;
 
     OOJS_NATIVE_EXIT
@@ -452,7 +462,8 @@ static JSValue PlayerDecreaseParcelReputation(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    [OOPlayerForScripting() decreaseParcelReputation:1];
+    if (PlayerEntity* player = OOPlayerForScripting())
+        player->decreaseParcelReputation(1);
     OOJS_RETURN_VOID;
 
     OOJS_NATIVE_EXIT
@@ -463,7 +474,8 @@ static JSValue PlayerIncreasePassengerReputation(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    [OOPlayerForScripting() increasePassengerReputation:1];
+    if (PlayerEntity* player = OOPlayerForScripting())
+        player->increasePassengerReputation(1);
     OOJS_RETURN_VOID;
 
     OOJS_NATIVE_EXIT
@@ -474,7 +486,8 @@ static JSValue PlayerDecreasePassengerReputation(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    [OOPlayerForScripting() decreasePassengerReputation:1];
+    if (PlayerEntity* player = OOPlayerForScripting())
+        player->decreasePassengerReputation(1);
     OOJS_RETURN_VOID;
 
     OOJS_NATIVE_EXIT
@@ -495,7 +508,8 @@ static JSValue PlayerAddMessageToArrivalReport(OOJS_NATIVE_ARGS)
         return OOJSNativeFailure(context);
     }
 
-    [player cxx_addMessageToReport:*report];
+    if (player != nullptr)
+        player->addMessageToReport(*report);
     OOJS_RETURN_VOID;
 
     OOJS_NATIVE_EXIT
@@ -515,7 +529,7 @@ static JSValue PlayerAudioMessage(OOJS_NATIVE_ARGS)
         return OOJSNativeFailure(context);
     }
 
-    if ([player isSpeechOn] >= OOSPEECHSETTINGS_COMMS)
+    if ((player != nullptr ? player->getIsSpeechOn() : OOSpeechSettings { }) >= OOSPEECHSETTINGS_COMMS)
         [UNIVERSE cxx_startSpeakingString:*audioMessage];
     OOJS_RETURN_VOID;
 
@@ -539,25 +553,28 @@ static JSValue PlayerReplaceShip(OOJS_NATIVE_ARGS)
         return OOJSNativeFailure(context);
     }
 
-    if (EXPECT_NOT(!([player status] == STATUS_DOCKED))) {
+    if (EXPECT_NOT(!((player != nullptr ? player->status() : OOEntityStatus { }) == STATUS_DOCKED))) {
         cxx_OOJSReportError(context, "Player.replaceShip() only works while the player is docked.");
         return OOJSNativeFailure(context);
     }
 
-    success = [player cxx_replaceShipWithNamedShip:*shipKey];
+    success = (player != nullptr ? player->replaceShipWithNamedShip(*shipKey) : false);
     if (argc > 1) {
         // As before, an invalid personality is ignored (personality stays 0); don't leave the conversion error pending.
         if (!OOJSValueToInt32(context, OOJS_ARGV[1], &personality))
             JS_FreeValue(context, JS_GetException(context));
         if (personality >= 0 && (uint16_t)personality < ENTITY_PERSONALITY_MAX) {
-            [player setEntityPersonalityInt:(uint16_t)personality];
+            if (player != nullptr)
+                player->setEntityPersonalityInt((uint16_t)personality);
         }
     }
 
     if (success) {
-        [player doScriptEvent:OOJSID("playerReplacedShip") withArgument:player];
+        if (player != nullptr)
+            player->doScriptEvent(OOJSID("playerReplacedShip"), oo::ToObjC(player));
         // slightly misnamed world event now - to be deprecated
-        [player cxx_doScriptEvent:OOJSID("playerBoughtNewShip") withPListArguments: { oo::PListObject(player), oo::PList::signedInteger(0) }];
+        if (player != nullptr)
+            player->ShipEntity::doScriptEvent(OOJSID("playerBoughtNewShip"), { oo::PListObject(oo::ToObjC(player)), oo::PList::signedInteger(0) }); // qualified: the final overrider, so the binding test stands in for it
     }
 
     OOJS_RETURN_BOOL(success);
@@ -584,15 +601,18 @@ static JSValue PlayerSetEscapePodDestination(OOJS_NATIVE_ARGS)
         id destObject = oo::ObjectIn(destValue);
 
         if (destValue.isNull()) {
-            [player setDockTarget:NULL];
+            if (player != nullptr)
+                player->setDockTarget(NULL);
             OK = true;
-        } else if ([destObject isKindOfClass:[ShipEntity class]] && [destObject isStation]) {
-            [player setDockTarget:destObject];
+        } else if ((oo::ToShip(destObject) != nullptr) && [destObject isStation]) {
+            if (player != nullptr)
+                player->setDockTarget(oo::ToShip(destObject));
             OK = true;
         } else if (const std::string* destString = destValue.getIf<std::string>()) {
             if (*destString == "NEARBY_SYSTEM") {
                 // find the nearest system with a main station, or die in the attempt!
-                [player setDockTarget:NULL];
+                if (player != nullptr)
+                    player->setDockTarget(NULL);
 
                 double rescueRange = MAX_JUMP_RANGE; // reach at least 1 other system!
                 if ([UNIVERSE inInterstellarSpace]) {
@@ -622,17 +642,20 @@ static JSValue PlayerSetEscapePodDestination(OOJS_NATIVE_ARGS)
 
                     // add more time until rescue, with overheads for entering witchspace in case of overlapping systems.
                     double dist = dest.get<double>("distance");
-                    [player addToAdjustTime:(.2 + dist * dist) * 3600.0 + 5400.0 * (ranrot_rand() & 127)];
+                    if (player != nullptr)
+                        player->addToAdjustTime((.2 + dist * dist) * 3600.0 + 5400.0 * (ranrot_rand() & 127));
 
                     // at the end of the docking sequence we'll check if the target system is the same as the system we're in...
-                    [player setTargetSystemID:i];
+                    if (player != nullptr)
+                        player->PlayerEntity::setTargetSystemID(i); // qualified: the final overrider, so the binding test stands in for it
                 }
                 OK = true;
             }
         } else {
             int bValue = JS_ToBool(context, OOJS_ARGV[0]);
             if (bValue == 0) {
-                [player setDockTarget:NULL];
+                if (player != nullptr)
+                    player->setDockTarget(NULL);
                 OK = true;
             }
         }
@@ -665,13 +688,15 @@ static JSValue PlayerSetPlayerRole(OOJS_NATIVE_ARGS)
 
     if (argc > 1) {
         if (JS_ToUint32(context, &index, OOJS_ARGV[1]) == 0) {
-            [player cxx_addRoleToPlayer:*role inSlot:index];
+            if (player != nullptr)
+                player->PlayerEntity::addRoleToPlayer(*role, index); // qualified: the final overrider, so the binding test stands in for it
             OOJS_RETURN_VOID;
         }
         // As before, fall back to the default slot if the index can't be converted.
         JS_FreeValue(context, JS_GetException(context));
     }
-    [player cxx_addRoleToPlayer:*role];
+    if (player != nullptr)
+        player->PlayerEntity::addRoleToPlayer(*role); // qualified: the final overrider, so the binding test stands in for it
     OOJS_RETURN_VOID;
 
     OOJS_NATIVE_EXIT

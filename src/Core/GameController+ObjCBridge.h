@@ -7,8 +7,10 @@ C++ cxx::GameController (GameController.h), for the code that is not converted y
 (34 files message it by selector), the units of slices 2 and 3 of GameController.mm
 (docs/phases/3-slices/GameController.md: the frame loop and deferred calls; start-up, splash and
 progress messages, exit and the player file), and the FullScreen category
-(SDL/GameController+SDLFullScreen.mm, bead oo-qinv; Core/GameController+FullScreen.mm, Mac-only),
-which stay Objective-C methods of this façade until their own beads. Its interface is the one
+(SDL/GameController+SDLFullScreen.mm, bead oo-qinv; Core/GameController+FullScreen.mm, Mac-only).
+The SDL FullScreen methods are cxx::GameController members since bead oo-qinv, and the category's
+selectors forward to them (GameController+ObjCBridge.mm); the Mac category file is not compiled
+and stays an Objective-C category of this façade (Phase 5). Its interface is the one
 GameController.h declared before the conversion, copied exactly (same selectors, same types): the
 slice 1 selectors, declared by the OOObjCBridge category below, forward to their C++ members in one
 line each (GameController+ObjCBridge.mm); the rest stay in the class's @interface, which

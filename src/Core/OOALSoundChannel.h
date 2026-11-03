@@ -45,9 +45,8 @@ SOFTWARE.
 #import "oofnd/objc/OOObject.h"
 
 #include "oofnd/Ref.hpp"
-#include "oofnd/objc/OOObjCRef.h"
 
-@class OOSound;
+#import "OOALSound.h"
 struct OOSoundChannelTestAccess;
 class OOSoundChannel;
 
@@ -57,7 +56,7 @@ class OOSoundChannel;
 */
 class OOSoundChannelDelegate {
 public:
-    virtual void channel(OOSoundChannel* channel, ::OOSound* sound) = 0;
+    virtual void channel(OOSoundChannel* channel, OOSound* sound) = 0;
 
 protected:
     ~OOSoundChannelDelegate() = default;
@@ -84,22 +83,22 @@ public:
     // set sound position relative to listener
     void setPosition(Vector vector);
     void setGain(float gain);
-    bool playSound(::OOSound* sound, bool loop);
+    bool playSound(OOSound* sound, bool loop);
     void stop();
 
-    ::OOSound* sound();
+    OOSound* sound();
 
 private:
     // Was the private -hasStopped, which told the delegate that self had finished; -dealloc sent it
     // too, so the destructor does.
     void hasStopped();
 
-    bool enqueueBuffer(::OOSound* sound);
+    bool enqueueBuffer(OOSound* sound);
     void getNextSoundBuffer();
 
     OOSoundChannel* _next = { };
     OOSoundChannelDelegate* _delegate = { };
-    oo::ObjCRef<::OOSound*> _sound; // the Objective-C sound, retained as before (amendment oo-smy item 4)
+    oo::Ref<OOSound> _sound; // retained, as the Objective-C sound was
     ALuint _buffer = { };
     ALuint _lastBuffer = { };
     bool _bigSound = { };

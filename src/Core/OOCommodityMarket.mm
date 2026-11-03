@@ -52,8 +52,6 @@ std::optional<std::string> SavedGoodKey(const oo::PList& entry)
 
 } // namespace
 
-namespace cxx {
-
 NSUInteger OOCommodityMarket::count()
 {
     return _commodityList.size();
@@ -350,5 +348,3 @@ std::vector<std::string> OOCommodityMarket::sortedGoodKeys()
     }
     return *_sortedKeys;
 }
-
-} // namespace cxx

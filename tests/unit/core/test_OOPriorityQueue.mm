@@ -8,7 +8,10 @@
 	exceptions addObject() raises. The elements are Objective-C objects compared by a selector, as
 	OOScriptTimer's are. The expectations were written against the Objective-C API and run on the
 	unconverted class first (commit 5ce883621); the queue's one caller was adapted in the bead, so
-	there is no facade and the calls here are the C++ class's. Run: bash tools/check-core-tests.sh
+	there is no facade and the calls here are the C++ class's. Bead oo-9ht.35 added
+	OOPriorityQueueOf, the same heap over C++ elements for the timer queue; the cases at the end
+	check that it gives the elements in OOPriorityQueue's order, equal keys included, holds them
+	and removes by identity. Run: bash tools/check-core-tests.sh
 */
 
 #import "OOPriorityQueue.h"
@@ -18,6 +21,8 @@
 #include "oo_test.hpp"
 
 #include <cstring>
+#include <string>
+#include <vector>
 
 
 // An element: an integer key, ordered by -compare: and by -compareDescending:.
@@ -243,6 +248,157 @@ OO_TEST(addObjectRaises)
 		OO_CHECK(reason != nullptr && std::string(reason).ends_with(") which does not support comparator compare: into OOPriorityQueue."));
 		OO_CHECK(queue->count() == 0);
 	}
+}
+
+
+// MARK: OOPriorityQueueOf (bead oo-9ht.35) ------------------------------------------------------
+
+namespace {
+
+// A C++ element: a key it is ordered by, and a tag that tells equal keys apart.
+class CxxItem : public oo::RefCounted
+{
+public:
+	CxxItem(int inKey, int inTag) : key(inKey), tag(inTag)  {}
+	~CxxItem() override  { sLive--; }
+
+	static oo::Ref<CxxItem> make(int key, int tag)  { sLive++; return oo::adopt(new CxxItem(key, tag)); }
+
+	int				key;
+	int				tag;
+	static int		sLive;
+};
+
+int CxxItem::sLive = 0;
+
+
+OOComparisonResult CompareCxx(CxxItem *a, CxxItem *b)
+{
+	if (a->key < b->key)  return OOOrderedAscending;
+	if (a->key > b->key)  return OOOrderedDescending;
+	return OOOrderedSame;
+}
+
+
+}	// namespace
+
+
+// The same keys and tags as Objective-C elements, for the order OOPriorityQueue gives.
+@interface TaggedItem: TestItem
+{
+@public
+	int			_tag;
+}
+@end
+
+@implementation TaggedItem
+@end
+
+
+namespace {
+
+std::string Tags(const std::vector<oo::Ref<CxxItem>> &items)
+{
+	std::string result;
+	for (const auto &item : items)  result += std::to_string(item->key) + "." + std::to_string(item->tag) + " ";
+	return result;
+}
+
+
+std::string Tags(const std::vector<oo::ObjCRef<id>> &objects)
+{
+	std::string result;
+	for (const auto &object : objects)  result += std::to_string(((TaggedItem *)object.get())->_key) + "." + std::to_string(((TaggedItem *)object.get())->_tag) + " ";
+	return result;
+}
+
+}	// namespace
+
+
+OO_TEST(cxxQueueGivesTheSameOrder)
+{
+	@autoreleasepool
+	{
+		OOPriorityQueueOf<CxxItem> cxxQueue(CompareCxx);
+		oo::Ref<OOPriorityQueue> objcQueue = OOPriorityQueue::queueWithComparator(@selector(compare:));
+		OO_CHECK(cxxQueue.count() == 0 && cxxQueue.peekAtNextObject() == nullptr);
+		OO_CHECK(cxxQueue.removeNextObject() == nullptr);
+
+		// Many equal keys, so the order among them is the heap's own.
+		const int keys[] = { 5, 3, 3, 1, 5, 3, 1, 5, 3, 1, 0, 3, 5, 1, 3, 0, 5, 3, 1, 5 };
+		int tag = 0;
+		for (int key : keys)
+		{
+			cxxQueue.addObject(CxxItem::make(key, tag).get());
+			TaggedItem *item = [[[TaggedItem alloc] init] autorelease];
+			item->_key = key;
+			item->_tag = tag;
+			objcQueue->addObject(item);
+			tag++;
+		}
+		OO_CHECK(cxxQueue.count() == 20);
+		OO_CHECK(cxxQueue.peekAtNextObject() != nullptr && cxxQueue.peekAtNextObject()->key == 0);
+
+		// Take a few, put one back, then empty both.
+		std::vector<oo::Ref<CxxItem>> cxxFirst;
+		std::vector<oo::ObjCRef<id>> objcFirst;
+		for (int i = 0; i < 4; i++)
+		{
+			cxxFirst.push_back(cxxQueue.removeNextObject());
+			objcFirst.emplace_back(objcQueue->nextObject());
+		}
+		OO_CHECK_EQ(Tags(cxxFirst), Tags(objcFirst));
+		cxxQueue.addObject(cxxFirst[1].get());
+		objcQueue->addObject(objcFirst[1].get());
+		OO_CHECK_EQ(Tags(cxxQueue.sortedObjects()), Tags(objcQueue->sortedObjects()));
+		OO_CHECK(cxxQueue.count() == 0);
+	}
+}
+
+
+OO_TEST(cxxQueueHoldsAndRemovesByIdentity)
+{
+	CxxItem::sLive = 0;
+	@autoreleasepool
+	{
+		OOPriorityQueueOf<CxxItem> queue(CompareCxx);
+		oo::Ref<OOPriorityQueue> objcQueue = OOPriorityQueue::queueWithComparator(@selector(compare:));
+		oo::Ref<CxxItem> three = CxxItem::make(3, 0);
+		TaggedItem *objcThree = [[[TaggedItem alloc] init] autorelease];
+		objcThree->_key = 3;
+		queue.addObject(three.get());
+		queue.addObject(three.get());
+		queue.addObject(CxxItem::make(3, 1).get());	// held by the queue alone
+		queue.addObject(CxxItem::make(1, 2).get());
+		queue.addObject(nullptr);	// ignored
+		const int otherKeys[] = { 3, 1 };
+		objcQueue->addObject(objcThree);
+		objcQueue->addObject(objcThree);
+		for (int key : otherKeys)
+		{
+			TaggedItem *item = [[[TaggedItem alloc] init] autorelease];
+			item->_key = key;
+			objcQueue->addObject(item);
+		}
+		OO_CHECK(queue.count() == 4);
+		OO_CHECK_EQ(CxxItem::sLive, 3);
+
+		// The search goes on past a match, so the element moved into the removed one's place is
+		// not looked at again: the same as OOPriorityQueue, whatever that leaves.
+		queue.removeExactObject(three.get());
+		objcQueue->removeExactObject(objcThree);
+		OO_CHECK(queue.count() < 4);
+		OO_CHECK(queue.count() == objcQueue->count());
+		queue.removeExactObject(nullptr);
+		OO_CHECK(queue.count() == objcQueue->count());
+		{
+			oo::Ref<CxxItem> next = queue.removeNextObject();	// the caller now holds it
+			OO_CHECK(next != nullptr && next->key == 1);
+			OO_CHECK_EQ(CxxItem::sLive, 3);
+		}
+		OO_CHECK_EQ(CxxItem::sLive, 2);
+	}
+	OO_CHECK_EQ(CxxItem::sLive, 0);	// the queue releases what it holds
 }
 
 

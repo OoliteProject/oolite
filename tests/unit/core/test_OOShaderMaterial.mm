@@ -123,41 +123,27 @@ static int gProgramApplies = 0;
 static int gProgramApplyNones = 0;
 static int gProgramsDeallocated = 0;
 
-@interface OOShaderProgram: OOObject
-+ (id) shaderProgramWithVertexShader:(const std::optional<std::string> &)vertexShaderSource
-					  fragmentShader:(const std::optional<std::string> &)fragmentShaderSource
-					vertexShaderName:(const std::optional<std::string> &)vertexShaderName
-				  fragmentShaderName:(const std::optional<std::string> &)fragmentShaderName
-							  prefix:(const std::optional<std::string> &)prefixString
-				   attributeBindings:(const oo::PList &)attributeBindings
-							cacheKey:(const std::optional<std::string> &)cacheKey;
-- (void) apply;
-+ (void) applyNone;
-@end
+// OOShaderProgram is C++ since its facade was deleted (bead oo-9ht.58): the same stand-in, as
+// definitions of the members the material calls.
+OOShaderProgram::~OOShaderProgram()	{ gProgramsDeallocated++; }
+void OOShaderProgram::apply()		{ gProgramApplies++; }
+void OOShaderProgram::applyNone()	{ gProgramApplyNones++; }
 
-@implementation OOShaderProgram
-
-+ (id) shaderProgramWithVertexShader:(const std::optional<std::string> &)vertexShaderSource
-					  fragmentShader:(const std::optional<std::string> &)fragmentShaderSource
-					vertexShaderName:(const std::optional<std::string> &)vertexShaderName
-				  fragmentShaderName:(const std::optional<std::string> &)fragmentShaderName
-							  prefix:(const std::optional<std::string> &)prefixString
-				   attributeBindings:(const oo::PList &)attributeBindings
-							cacheKey:(const std::optional<std::string> &)cacheKey
+oo::Ref<OOShaderProgram> OOShaderProgram::shaderProgramWithVertexShader(const std::optional<std::string> &vertexShaderSource,
+																		const std::optional<std::string> &fragmentShaderSource,
+																		const std::optional<std::string> &vertexShaderName,
+																		const std::optional<std::string> &fragmentShaderName,
+																		const std::optional<std::string> &prefixString,
+																		const oo::PList &attributeBindings,
+																		const std::optional<std::string> &cacheKey)
 {
 	gProgramRequests.push_back("vs=" + Text(vertexShaderSource) + " fs=" + Text(fragmentShaderSource)
 							   + " vsName=" + Text(vertexShaderName) + " fsName=" + Text(fragmentShaderName)
 							   + " prefix=" + Text(prefixString) + " bindings=" + oo::DescriptionOf(attributeBindings)
 							   + " key=" + Text(cacheKey));
-	if (vertexShaderSource == std::optional<std::string>("fail"))  return nil;
-	return [[[self alloc] init] autorelease];
+	if (vertexShaderSource == std::optional<std::string>("fail"))  return nullptr;
+	return oo::adopt(new OOShaderProgram());
 }
-
-- (void) dealloc	{ gProgramsDeallocated++; [super dealloc]; }
-- (void) apply		{ gProgramApplies++; }
-+ (void) applyNone	{ gProgramApplyNones++; }
-
-@end
 
 
 // The uniforms: each initialiser recorded as "name kind value"; the name "bad" fails.
@@ -177,27 +163,27 @@ static std::vector<std::string> gUniformTargets;
 		return made;	\
 	} while (0)
 
-oo::Ref<OOShaderUniform> OOShaderUniform::initWithName(const std::string &uniformName, ::OOShaderProgram *shaderProgram, GLint constValue)
+oo::Ref<OOShaderUniform> OOShaderUniform::initWithName(const std::string &uniformName, OOShaderProgram *shaderProgram, GLint constValue)
 {
 	OO_TEST_MADE_UNIFORM(uniformName, "int " + std::to_string(constValue) + (shaderProgram != nil ? "" : " (no program)"));
 }
 
-oo::Ref<OOShaderUniform> OOShaderUniform::initWithName(const std::string &uniformName, ::OOShaderProgram *, GLfloat constValue)
+oo::Ref<OOShaderUniform> OOShaderUniform::initWithName(const std::string &uniformName, OOShaderProgram *, GLfloat constValue)
 {
 	OO_TEST_MADE_UNIFORM(uniformName, oo::str::format("float %g", constValue));
 }
 
-oo::Ref<OOShaderUniform> OOShaderUniform::initWithName(const std::string &uniformName, ::OOShaderProgram *, GLfloat constValue[4])
+oo::Ref<OOShaderUniform> OOShaderUniform::initWithName(const std::string &uniformName, OOShaderProgram *, GLfloat constValue[4])
 {
 	OO_TEST_MADE_UNIFORM(uniformName, oo::str::format("vector %g %g %g %g", constValue[0], constValue[1], constValue[2], constValue[3]));
 }
 
-oo::Ref<OOShaderUniform> OOShaderUniform::initWithName(const std::string &uniformName, ::OOShaderProgram *, Quaternion constValue, bool asMatrix)
+oo::Ref<OOShaderUniform> OOShaderUniform::initWithName(const std::string &uniformName, OOShaderProgram *, Quaternion constValue, bool asMatrix)
 {
 	OO_TEST_MADE_UNIFORM(uniformName, oo::str::format("quaternion %g %g %g %g %s", constValue.w, constValue.x, constValue.y, constValue.z, asMatrix ? "matrix" : "vector"));
 }
 
-oo::Ref<OOShaderUniform> OOShaderUniform::initWithName(const std::string &uniformName, ::OOShaderProgram *, id<OOWeakReferenceSupport>, SEL selector, OOUniformConvertOptions options)
+oo::Ref<OOShaderUniform> OOShaderUniform::initWithName(const std::string &uniformName, OOShaderProgram *, id<OOWeakReferenceSupport>, SEL selector, OOUniformConvertOptions options)
 {
 	OO_TEST_MADE_UNIFORM(uniformName, oo::str::format("binding %s options %u", sel_getName(selector), (unsigned)options));
 }

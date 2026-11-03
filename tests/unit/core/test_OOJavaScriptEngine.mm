@@ -667,8 +667,8 @@ OO_TEST(nativeObjectValues)
 		OO_CHECK_EQ([[[[OOObject alloc] init] autorelease] cxx_oo_jsDescription].value_or("<none>"), "[object OOObject]");
 
 		// A native vector is a Vector3D.
-		OONativeVector *vector = [[[OONativeVector alloc] initWithVector:make_vector(1.0f, 2.0f, 3.0f)] autorelease];
-		Owned vectorValue(OOJSValueFromNativeObject(context, vector));
+		oo::Ref<OONativeVector> vector = oo::makeRef<OONativeVector>(make_vector(1.0f, 2.0f, 3.0f));
+		Owned vectorValue(OOJSValueFromPList(context, oo::PList(oo::PList::Object(vector))));
 		OO_CHECK(JS_IsObject(vectorValue));
 		const char *className = OOJSClassName(JS_GetClassID(vectorValue));
 		OO_CHECK(className != nullptr && std::strcmp(className, "Vector3D") == 0);

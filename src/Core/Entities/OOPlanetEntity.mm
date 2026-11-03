@@ -20,13 +20,14 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 MA 02110-1301, USA.
 
-C++20 since bead oo-mp0d (proposed ADR-0056, amendments oo-bj8 item 12, oo-0mxi and oo-ubjo): the
-class is cxx::OOPlanetEntity, a leaf of cxx::Entity; OOPlanetEntity+ObjCBridge.h/.mm keep the
-Objective-C OOPlanetEntity for the code that makes and messages planets.
+C++20 since bead oo-mp0d (proposed ADR-0056, amendments oo-bj8 item 12, oo-0mxi and oo-ubjo), a
+leaf of cxx::Entity. Its Objective-C facade is deleted: the class is global and its object is the
+root's facade.
 
 */
 
 #import "OOPlanetEntity.h"
+#import "OOJSPlanet.h"
 #import "OOObjCPList.h"
 
 #define NEW_ATMOSPHERE 1
@@ -75,10 +76,12 @@ void SetInfo(oo::PList& info, const std::string& key, oo::PList value)
 
 // The live object an Object node for <key> holds (nil when absent, or for any other value, which
 // the callers never store there: the colours this class puts in the planet info).
-id ObjectForKey(const oo::PList& dict, std::string_view key)
+// The colour an Object node of the planet info holds (the colour is the node's foreign object); null
+// for none.
+OOColor* ColorForKey(const oo::PList& dict, std::string_view key)
 {
     const oo::PList* value = dict.find(key);
-    return value != nullptr ? oo::ObjectIn(*value) : nil;
+    return value != nullptr ? OOColorInObjectNode(*value) : nullptr;
 }
 
 // -objectForKey: as plist data (a null PList when absent), for OOColor::colorWithDescription().
@@ -156,18 +159,16 @@ oo::PList MaterialConfigWithTextures(const oo::PList& configuration, std::initia
 
 } // namespace
 
-namespace cxx {
-
 // this is exclusively called to initialise the main planet.
 void OOPlanetEntity::initAsMainPlanetForSystem(OOSystemID s)
 {
     oo::PList planetInfo = [UNIVERSE cxx_generateSystemData:s];
 
     SetInfo(planetInfo, "mainForLocalSystem", oo::PList(static_cast<bool>(YES)));
-    if (s != [PLAYER systemID]) {
+    if (s != (PLAYER != nullptr ? PLAYER->systemID() : 0)) {
         SetInfo(planetInfo, "isMiniature", oo::PList(static_cast<bool>(YES)));
     }
-    initFromDictionary(planetInfo, planetInfo.get<bool>("has_atmosphere", YES), [[UNIVERSE systemManager] getRandomSeedForSystem:s inGalaxy:[PLAYER galaxyNumber]], s);
+    initFromDictionary(planetInfo, planetInfo.get<bool>("has_atmosphere", YES), ([UNIVERSE systemManager] != nullptr ? [UNIVERSE systemManager]->getRandomSeedForSystem(s, (PLAYER != nullptr ? PLAYER->galaxyNumber() : OOGalaxyID { })) : Random_Seed()), s);
 }
 
 static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH; // atmosphere effect starts at 10x the height of the clouds
@@ -237,7 +238,7 @@ void OOPlanetEntity::initFromDictionary(const oo::PList& dictionary, bool atmosp
     _airColorMixRatio = 0.5f;
     _airDensity = 0.75f;
 
-    _illuminationColor = oo::Ref<OOColor>(oo::ToCxx((::OOColor*)ObjectForKey(planetInfo, "illumination_color")));
+    _illuminationColor = oo::Ref<OOColor>(ColorForKey(planetInfo, "illumination_color"));
 
 #if NEW_ATMOSPHERE
     if (atmosphere) {
@@ -254,7 +255,7 @@ void OOPlanetEntity::initFromDictionary(const oo::PList& dictionary, bool atmosp
         SetInfo(planetInfo, "cloud_fraction", oo::PList::singleReal(0.01 * percent_land));
         setUpAtmosphereParametersWithSourceInfo(dict, planetInfo);
         // planetInfo now contains a valid air_color
-        _airColor = oo::Ref<OOColor>(oo::ToCxx((::OOColor*)ObjectForKey(planetInfo, "air_color")));
+        _airColor = oo::Ref<OOColor>(ColorForKey(planetInfo, "air_color"));
         _airColorMixRatio = planetInfo.get<float>("air_color_mix_ratio");
 
         _airDensity = OOClamp_0_1_f(planetInfo.get<float>("air_density"));
@@ -304,12 +305,12 @@ void OOPlanetEntity::initFromDictionary(const oo::PList& dictionary, bool atmosp
     RANROTSetFullSeed(savedRanrotSeed);
 
     // rotate planet based on current time, needs to be done here - backported from PlanetEntity.
-    int deltaT = floor(fmod([PLAYER clockTimeAdjusted], 86400));
+    int deltaT = floor(fmod((PLAYER != nullptr ? PLAYER->clockTimeAdjusted() : 0.0), 86400));
     quaternion_rotate_about_axis(&orientation, _rotationAxis, _rotationalVelocity * deltaT);
     quaternion_rotate_about_axis(&_atmosphereOrientation, kBasisYVector, _atmosphereRotationalVelocity * deltaT);
 
 #ifdef OO_DUMP_PLANETINFO
-#define CPROP(PROP) OO_LOG("planetinfo.record", #PROP " = {};", [(::OOColor*)ObjectForKey(planetInfo, #PROP) cxx_descriptionComponents].value_or("(null)"));
+#define CPROP(PROP) OO_LOG("planetinfo.record", #PROP " = {};", (ColorForKey(planetInfo, #PROP) != nullptr ? ColorForKey(planetInfo, #PROP)->descriptionComponents() : std::nullopt).value_or("(null)"));
 #define FPROP(PROP) OO_LOG("planetinfo.record", #PROP " = {:f};", planetInfo.get<float>(#PROP));
     CPROP(air_color);
     CPROP(illumination_color);
@@ -328,7 +329,7 @@ void OOPlanetEntity::initFromDictionary(const oo::PList& dictionary, bool atmosp
 
     setStatus(STATUS_ACTIVE);
 
-    OOGraphicsResetManager::sharedManager()->registerClient(oo::ToObjC(this)); // the facade answers -resetGraphicsState
+    OOGraphicsResetManager::sharedManager()->registerCxxClient(this);
 }
 
 static Vector RandomHSBColor(void)
@@ -351,17 +352,17 @@ static Vector LighterHSBColor(Vector c)
 
 namespace {
 
-    Vector HSBColorWithColor(OOColor* color)
-    {
-        OOHSBAComponents c = color->hsbaComponents(); // never nil here
-        return (Vector) { c.h / 360, c.s, c.b };
-    }
+Vector HSBColorWithColor(OOColor* color)
+{
+    OOHSBAComponents c = color->hsbaComponents(); // never nil here
+    return (Vector) { c.h / 360, c.s, c.b };
+}
 
-    // The planet info's colours are Object nodes of the Objective-C colour.
-    ::OOColor* ColorWithHSBColor(Vector c)
-    {
-        return oo::ToObjC(OOColor::colorWithHue(c.x, c.y, c.z, 1.0).get());
-    }
+// The planet info's colours are Object nodes of the colour.
+oo::PList ColorWithHSBColor(Vector c)
+{
+    return OOColorObjectNode(OOColor::colorWithHue(c.x, c.y, c.z, 1.0).get());
+}
 
 } // namespace
 
@@ -457,11 +458,11 @@ void OOPlanetEntity::setUpColorParametersWithSourceInfo(const oo::PList& sourceI
             seaPolarHSB = LighterHSBColor(seaHSB);
         }
 
-        SetInfo(targetInfo, "land_color", oo::PListObject(ColorWithHSBColor(landHSB)));
-        SetInfo(targetInfo, "sea_color", oo::PListObject(ColorWithHSBColor(seaHSB)));
-        SetInfo(targetInfo, "polar_land_color", oo::PListObject(ColorWithHSBColor(landPolarHSB)));
-        SetInfo(targetInfo, "polar_sea_color", oo::PListObject(ColorWithHSBColor(seaPolarHSB)));
-        SetInfo(targetInfo, "illumination_color", oo::PListObject(ColorWithHSBColor(illumHSB)));
+        SetInfo(targetInfo, "land_color", ColorWithHSBColor(landHSB));
+        SetInfo(targetInfo, "sea_color", ColorWithHSBColor(seaHSB));
+        SetInfo(targetInfo, "polar_land_color", ColorWithHSBColor(landPolarHSB));
+        SetInfo(targetInfo, "polar_sea_color", ColorWithHSBColor(seaPolarHSB));
+        SetInfo(targetInfo, "illumination_color", ColorWithHSBColor(illumHSB));
     } else {
         landHSB = RandomHSBColor(); // NB: randomcolor is called twice to make the cloud colour similar to the old one.
 
@@ -489,9 +490,9 @@ void OOPlanetEntity::setUpColorParametersWithSourceInfo(const oo::PList& sourceI
         if (color != nullptr)
             landPolarHSB = HSBColorWithColor(color.get());
 
-        SetInfo(targetInfo, "air_color", oo::PListObject(ColorWithHSBColor(seaHSB)));
-        SetInfo(targetInfo, "cloud_color", oo::PListObject(ColorWithHSBColor(landHSB)));
-        SetInfo(targetInfo, "polar_cloud_color", oo::PListObject(ColorWithHSBColor(landPolarHSB)));
+        SetInfo(targetInfo, "air_color", ColorWithHSBColor(seaHSB));
+        SetInfo(targetInfo, "cloud_color", ColorWithHSBColor(landHSB));
+        SetInfo(targetInfo, "polar_cloud_color", ColorWithHSBColor(landPolarHSB));
         SetInfo(targetInfo, "air_color_mix_ratio", oo::PList::singleReal(sourceInfo.get<float>("air_color_mix_ratio")));
     }
     terminatorThreshold = VectorForKey(sourceInfo, "terminator_threshold_vector", OO_TERMINATOR_THRESHOLD_VECTOR_DEFAULT);
@@ -548,7 +549,11 @@ bool OOPlanetEntity::initAsMiniatureVersionOfPlanet(OOPlanetEntity* planet)
     return true;
 }
 
-// -dealloc: the members release themselves; the facade unregisters the graphics reset client.
+// -dealloc: the members release themselves.
+OOPlanetEntity::~OOPlanetEntity()
+{
+    OOGraphicsResetManager::sharedManager()->unregisterCxxClient(this);
+}
 
 // -position and -radius read these members.
 std::optional<std::string> OOPlanetEntity::descriptionComponents() const
@@ -613,7 +618,7 @@ void OOPlanetEntity::update(OOTimeDelta delta_t)
 
                 // occlusion rate: .9 is 18 degrees after the terminus, where twilight ends.
                 // 1 is the terminus, 1.033 is 6 degrees before the terminus, where the sky begins to redden
-                double rate = ([PLAYER occlusionLevel] - 0.97) / 0.06; // from 0.97 to 1.03
+                double rate = ((PLAYER != nullptr ? PLAYER->occlusionLevel() : 0.0f) - 0.97) / 0.06; // from 0.97 to 1.03
 
                 if (EXPECT(rate <= 1.0 && rate > 0.0)) {
                     mixColor = mixColor->blendedColorWithFraction(rate, _airColor.get());
@@ -631,7 +636,7 @@ void OOPlanetEntity::update(OOTimeDelta delta_t)
                     }
                     */
                 } else {
-                    if (PLAYER->_cxxEntity->isSunlit && _airColor != nullptr)
+                    if (PLAYER->isSunlit && _airColor != nullptr)
                         mixColor = _airColor;
                 }
                 [UNIVERSE setSkyColorRed:mixColor->redComponent() * aleph2
@@ -665,7 +670,7 @@ void OOPlanetEntity::update(OOTimeDelta delta_t)
                 if (_cloudsShaderDrawable)
                     _cloudsShaderDrawable->setRadius(collision_radius);
             }
-            if ([PLAYER findNearestPlanet] == oo::ToObjC(this)) // ensure no problems in case of more than one planets
+            if ((PLAYER != nullptr ? PLAYER->findNearestPlanet() : (OOPlanetEntity*)nullptr) == this) // ensure no problems in case of more than one planets
             {
                 [UNIVERSE setAirResistanceFactor:0.0f]; // out of atmosphere - no air friction
             }
@@ -688,7 +693,7 @@ void OOPlanetEntity::update(OOTimeDelta delta_t)
 
 bool OOPlanetEntity::isFinishedLoading()
 {
-    OOMaterial* material = oo::ToCxx(this->material());
+    cxx::OOMaterial* material = oo::ToCxx(this->material());
     if (material != nullptr && !material->isFinishedLoading())
         return false;
     material = oo::ToCxx(atmosphereMaterial());
@@ -788,8 +793,8 @@ bool OOPlanetEntity::checkCloseCollisionWith(Entity* other)
     if (!other)
         return NO;
     if (other->isShip) {
-        ::ShipEntity* ship = (::ShipEntity*)oo::ToObjC(other);
-        if ([ship behaviour] == BEHAVIOUR_LAND_ON_PLANET) {
+        ::ShipEntity* ship = oo::ToShip(oo::ToObjC(other));
+        if ((ship != nullptr ? ship->getBehaviour() : OOBehaviour { }) == BEHAVIOUR_LAND_ON_PLANET) {
             return NO;
         }
     }
@@ -801,11 +806,11 @@ bool OOPlanetEntity::planetHasStation()
 {
     // find the nearest station...
     ::ShipEntity* station = nil;
-    station = [UNIVERSE nearestShipMatchingPredicate:IsStationPredicate
-                                           parameter:nil
-                                    relativeToEntity:oo::ToObjC(this)];
+    station = oo::ToShip([UNIVERSE nearestShipMatchingPredicate:IsStationPredicate
+                                                      parameter:nil
+                                               relativeToEntity:oo::ToObjC(this)]);
 
-    if (station && HPdistance([station position], position) < 4 * collision_radius) // there is a station in range.
+    if (station && HPdistance((station != nullptr ? station->getPosition() : HPVector { }), position) < 4 * collision_radius) // there is a station in range.
     {
         return YES;
     }
@@ -817,11 +822,11 @@ void OOPlanetEntity::launchShuttle()
     if (_shuttlesOnGround == 0) {
         return;
     }
-    if ([PLAYER status] == STATUS_START_GAME) {
+    if ((PLAYER != nullptr ? PLAYER->status() : OOEntityStatus { }) == STATUS_START_GAME) {
         // don't launch if game not started
         return;
     }
-    if (oo::ToObjC(this) != [UNIVERSE planet] && !planetHasStation()) {
+    if (this != [UNIVERSE planet] && !planetHasStation()) {
         // don't launch shuttles when no station is nearby.
         _shuttlesOnGround = 0;
         return;
@@ -834,21 +839,28 @@ void OOPlanetEntity::launchShuttle()
 
     ::ShipEntity* shuttle_ship = [UNIVERSE cxx_newShipWithRole:"shuttle"]; // retain count = 1
     if (shuttle_ship) {
-        if ([shuttle_ship cxx_crew].value_or(std::vector<oo::ObjCRef<::OOCharacter*>>()).empty()) {
-            [shuttle_ship cxx_setSingleCrewWithRole:"trader"];
+        if ((shuttle_ship != nullptr ? shuttle_ship->getCrew() : std::optional<std::vector<oo::Ref<OOCharacter>>>()).value_or(std::vector<oo::Ref<OOCharacter>>()).empty()) {
+            if (shuttle_ship != nullptr)
+                shuttle_ship->setSingleCrewWithRole("trader");
         }
 
-        [shuttle_ship setPosition:launch_pos];
-        [shuttle_ship setOrientation:q1];
+        if (shuttle_ship != nullptr)
+            shuttle_ship->setPosition(launch_pos);
+        if (shuttle_ship != nullptr)
+            shuttle_ship->setOrientation(q1);
 
-        [shuttle_ship setScanClass:CLASS_NEUTRAL];
-        [shuttle_ship setCargoFlag:CARGO_FLAG_FULL_PLENTIFUL];
-        [shuttle_ship switchAITo:"oolite-shuttleAI.js"];
-        [UNIVERSE addEntity:shuttle_ship]; // STATUS_IN_FLIGHT, AI state GLOBAL
+        if (shuttle_ship != nullptr)
+            shuttle_ship->setScanClass(CLASS_NEUTRAL);
+        if (shuttle_ship != nullptr)
+            shuttle_ship->setCargoFlag(CARGO_FLAG_FULL_PLENTIFUL);
+        if (shuttle_ship != nullptr)
+            shuttle_ship->switchAITo("oolite-shuttleAI.js");
+        [UNIVERSE addEntity:oo::ToObjC(shuttle_ship)]; // STATUS_IN_FLIGHT, AI state GLOBAL
         _shuttlesOnGround--;
         _lastLaunchTime = [UNIVERSE getTime];
 
-        [shuttle_ship release];
+        if (shuttle_ship != nullptr)
+            [oo::ToObjC(shuttle_ship) release];
     }
 }
 
@@ -1085,7 +1097,7 @@ void OOPlanetEntity::setTextureFileName(const std::optional<std::string>& textur
         // [dynamicMaterial release]: the reference's.
     }
 
-    oo::Ref<OOMaterial> material;
+    oo::Ref<cxx::OOMaterial> material;
 
 #if OO_SHADERS
     if (shadersOn) {
@@ -1136,4 +1148,18 @@ void OOPlanetEntity::setName(const std::optional<std::string>& name)
     _name = name;
 }
 
-} // namespace cxx
+// The binding's bodies (OOJSPlanet.mm), which the facade forwarded to.
+JSClassID OOPlanetEntity::jsClassID()
+{
+    return ::JSPlanetClassID();
+}
+
+std::optional<std::string> OOPlanetEntity::jsClassName()
+{
+    return ::OOJSPlanetJSClassName(this);
+}
+
+bool OOPlanetEntity::isVisibleToScripts()
+{
+    return ::OOJSPlanetIsVisibleToScripts(this);
+}

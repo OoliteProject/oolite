@@ -27,21 +27,20 @@ MA 02110-1301, USA.
 #import "Universe.h"
 #include "oofnd/Log.hpp"
 
-/*	The category ShipEntity (ScriptMethods), bead oo-42dr: members of cxx::ShipEntity (ADR-0056
+/*	The category ShipEntity (ScriptMethods), bead oo-42dr: members of ShipEntity (ADR-0056
         amendments oo-o89 item 4 and oo-9fwb), forwarded by the category of the same name in
-        ShipEntity+ObjCBridge.mm. Sends to self stay sends to the facade (amendment oo-mvzmb item 4).
+        ShipEntity+ObjCBridge.mm until bead oo-9ht.144 deleted the facade and its sends became member
+        calls.
 */
-namespace cxx {
 
 ::ShipEntity* ShipEntity::ejectShipOfType(const std::optional<std::string>& shipKey)
 {
-    ::ShipEntity* self = oo::ToObjC(this);
     ::ShipEntity* item = nil;
 
     if (shipKey.has_value()) {
-        item = [[UNIVERSE cxx_newShipWithName:*shipKey] autorelease];
+        item = oo::ToShip([oo::ToObjC([UNIVERSE cxx_newShipWithName:*shipKey]) autorelease]);
         if (item != nil)
-            [self dumpItem:item];
+            dumpItem(item);
     }
 
     return item;
@@ -49,49 +48,50 @@ namespace cxx {
 
 ::ShipEntity* ShipEntity::ejectShipOfRole(const std::optional<std::string>& role)
 {
-    ::ShipEntity* self = oo::ToObjC(this);
     ::ShipEntity* item = nil;
 
     if (role.has_value()) {
-        item = [[UNIVERSE cxx_newShipWithRole:*role] autorelease];
+        item = oo::ToShip([oo::ToObjC([UNIVERSE cxx_newShipWithRole:*role]) autorelease]);
         if (item != nil)
-            [self dumpItem:item];
+            dumpItem(item);
     }
 
     return item;
 }
 
-std::vector<oo::ObjCRef<::ShipEntity*>> ShipEntity::spawnShipsWithRole(const std::string& role, NSUInteger count)
+std::vector<oo::ObjCRef<::Entity*>> ShipEntity::spawnShipsWithRole(const std::string& role, NSUInteger count)
 {
-    ::ShipEntity* self = oo::ToObjC(this);
-    ::ShipEntity* ship = [self rootShipEntity]; // FIXME: (EMMSTRAN) implement an -absolutePosition method, use that in spawnShipWithRole:near:, and use self instead of root.
+    ::ShipEntity* ship = oo::ToShip(rootShipEntity()); // FIXME: (EMMSTRAN) implement an -absolutePosition method, use that in spawnShipWithRole:near:, and use self instead of root.
     ::ShipEntity* spawned = nil;
-    std::vector<oo::ObjCRef<::ShipEntity*>> result;
+    std::vector<oo::ObjCRef<::Entity*>> result;
 
     if (count == 0)
         return result;
 
-    OO_LOG("script.debug.note.addShips", "Spawning {} x '{}' near {} {}", count, role, oo::ShortDescriptionOf(self), [self universalID]);
+    OO_LOG("script.debug.note.addShips", "Spawning {} x '{}' near {} {}", count, role, oo::ShortDescriptionOf(oo::ToObjC(this)), getUniversalID());
 
     result.reserve(count);
 
     do {
-        spawned = [UNIVERSE cxx_spawnShipWithRole:role near:ship];
+        spawned = [UNIVERSE cxx_spawnShipWithRole:role near:oo::ToObjC(ship)];
         if (spawned != nil) {
-            [spawned setTemperature:[self randomEjectaTemperature]];
-            if ([self isMissileFlagSet] && [spawned cxx_shipInfoDictionary].get<bool>("is_submunition")) {
-                [spawned setOwner:[self owner]];
-                [spawned addTarget:[self primaryTarget]];
-                [spawned setIsMissileFlag:YES];
+            if (spawned != nullptr)
+                spawned->setTemperature(randomEjectaTemperature());
+            if (isMissileFlagSet() && (spawned != nullptr ? spawned->shipInfoDictionary() : oo::PList()).get<bool>("is_submunition")) {
+                if (spawned != nullptr)
+                    spawned->setOwner(oo::ToCxx((::Entity*)owner()));
+                if (spawned != nullptr)
+                    spawned->addTarget(primaryTarget());
+                if (spawned != nullptr)
+                    spawned->setIsMissileFlag(YES);
             }
-            if ([spawned isMine]) {
-                [spawned setOwner:self];
+            if ((spawned != nullptr ? spawned->isMine() : false)) {
+                if (spawned != nullptr)
+                    spawned->setOwner(this);
             }
-            result.emplace_back(spawned);
+            result.emplace_back(oo::ToObjC(spawned));
         }
     } while (--count);
 
     return result;
 }
-
-} // namespace cxx

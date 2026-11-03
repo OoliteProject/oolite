@@ -42,19 +42,17 @@ static OOComparisonResult CaseInsensitiveCompare(const std::optional<std::string
 }
 } // namespace
 
-/*	C++20 since bead oo-8fpc (proposed ADR-0056 amendment oo-o89): cxx::OOJSInterfaceDefinition. -init after
+/*	C++20 since bead oo-8fpc (proposed ADR-0056 amendment oo-o89): OOJSInterfaceDefinition. -init after
         [super init] is the constructor, -dealloc the destructor; the engine, the script stack and the
         owning script's weak reference are Objective-C and are messaged as before.
 */
-
-namespace cxx {
 
 OOJSInterfaceDefinition::OOJSInterfaceDefinition()
 {
     _callback = JS_UNDEFINED;
     _callbackThis = JS_UNDEFINED;
 
-    _owningScript = oo::adoptObjC(static_cast<::OOJSScript*>([[::OOJSScript currentlyRunningScript] weakRetain]));
+    _owningScript = OOJSScript::currentlyRunningScript();
 
     // Stays registered until destruction, so values set after a reset are also released on the next one.
     oo::NotificationCenter::defaultCenter().addObserver(this, kOOJavaScriptEngineWillResetNotificationName,
@@ -154,8 +152,8 @@ void OOJSInterfaceDefinition::runCallback(const std::string& key)
 
     JSValue cKey = OOJSValueFromPList(context, oo::PList(key));
 
-    const oo::ObjCRef<::OOJSScript*> owner = _owningScript; // local copy needed
-    [::OOJSScript pushScript:owner.get()];
+    const oo::WeakRef<OOJSScript> owner = _owningScript; // local copy needed
+    OOJSScript::pushScript(owner);
 
     // Hold our own references in case the callback replaces them.
     JSValue callback = JS_DupValue(context, _callback);
@@ -168,7 +166,7 @@ void OOJSInterfaceDefinition::runCallback(const std::string& key)
     JS_FreeValue(context, callback);
     JS_FreeValue(context, callbackThis);
 
-    [::OOJSScript popScript:owner.get()];
+    OOJSScript::popScript(owner.get());
 
     JS_FreeValue(context, rval);
     JS_FreeValue(context, cKey);
@@ -184,5 +182,3 @@ OOComparisonResult OOJSInterfaceDefinition::interfaceCompare(OOJSInterfaceDefini
         return byCategory;
     }
 }
-
-} // namespace cxx

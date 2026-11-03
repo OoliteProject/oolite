@@ -6,10 +6,8 @@ Encapsulates a vertex + fragment shader combo. In general, this should only be
 used though OOShaderMaterial. The point of this separation is that more than
 one OOShaderMaterial can use the same OOShaderProgram.
 
-C++20 since bead oo-f9zg (proposed ADR-0056). The class is cxx::OOShaderProgram while
-OOShaderProgram+ObjCBridge.h, imported at the end of this header, keeps the Objective-C
-OOShaderProgram that its callers make and message; the bridge's deletion bead moves it out of
-namespace cxx.
+C++20 since bead oo-f9zg (proposed ADR-0056); its Objective-C facade was deleted, so callers
+hold an oo::Ref<OOShaderProgram> for as long as they want the cached program.
 
 Copyright (C) 2007-2013 Jens Ayton
 
@@ -52,8 +50,6 @@ SOFTWARE.
         prefix counts as none). Attribute bindings are a property-list dictionary of attribute name ->
         location (oo::PList, null for none).
 */
-namespace cxx {
-
 class OOShaderProgram : public oo::RefCounted {
 public:
     ~OOShaderProgram() override;
@@ -98,8 +94,6 @@ private:
     oo::PList standardMatrixUniformLocations = { };
 };
 
-} // namespace cxx
-
 /*	Translate the subset of GLSL 3.30 used by Oolite's post-processing shaders
         to GLSL 1.20 (plus GL_EXT_gpu_shader4). Only top-level declarations are
         rewritten, so in/out parameter qualifiers inside functions are untouched.
@@ -111,10 +105,6 @@ private:
 std::optional<std::string> OOTranslateGLSL330To120(
     const std::optional<std::string>& source, bool isVertexShader,
     oo::PList::Dict& attributeBindings);
-
-// Transitional: the Objective-C OOShaderProgram, for callers not yet converted. Deleted, with
-// namespace cxx above, by the bridge's deletion bead.
-#import "OOShaderProgram+ObjCBridge.h"
 
 #endif // OO_SHADERS
 

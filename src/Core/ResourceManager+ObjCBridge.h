@@ -108,19 +108,18 @@ MA 02110-1301, USA.
 + (oo::PList)cxx_logControlDictionary;
 + (oo::PList)cxx_roleCategoriesDictionary; // category -> array of its roles, each once (a set), in first-seen order
 
-+ (OOSystemDescriptionManager*)systemDescriptionManager;
++ (oo::Ref<OOSystemDescriptionManager>)systemDescriptionManager; // a new manager (C++ since bead oo-9ht.32 deleted its facade)
 // These are deliberately not merged like normal plists for security reasons.
 + (oo::PList)cxx_shaderBindingTypesDictionary;
 // nullopt when not found (was nil); folderName nullopt where nil was passed.
 + (std::optional<std::string>)cxx_pathForFileNamed:(const std::string&)fileName inFolder:(const std::optional<std::string>&)folderName;
 + (std::optional<std::string>)cxx_pathForFileNamed:(const std::string&)fileName inFolder:(const std::optional<std::string>&)folderName cache:(BOOL)useCache;
-+ (id)cxx_ooMusicNamed:(const std::string&)fileName inFolder:(const std::optional<std::string>&)folderName;
-+ (OOSound*)cxx_ooSoundNamed:(const std::string&)fileName inFolder:(const std::optional<std::string>&)folderName;
++ (OOSound*)cxx_ooSoundNamed:(const std::string&)fileName inFolder:(const std::optional<std::string>&)folderName; // the C++ sound since bead oo-9ht.68
 // nullopt when no file was found (was nil); folderName nullopt where nil was passed.
 + (std::optional<std::string>)cxx_stringFromFilesNamed:(const std::string&)fileName inFolder:(const std::optional<std::string>&)folderName;
 + (std::optional<std::string>)cxx_stringFromFilesNamed:(const std::string&)fileName inFolder:(const std::optional<std::string>&)folderName cache:(BOOL)useCache;
 // World scripts by name, in the order each name was first loaded.
-+ (std::vector<std::pair<std::string, oo::ObjCRef<OOScript*>>>)cxx_loadScripts;
++ (std::vector<std::pair<std::string, oo::Ref<OOScript>>>)cxx_loadScripts;
 /*	+cxx_writeDiagnosticData:toFileNamed:
         +cxx_writeDiagnosticString:toFileNamed:
         +cxx_writeDiagnosticPList:toFileNamed:

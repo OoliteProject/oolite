@@ -1,8 +1,10 @@
 /*	test_OOJSSun.mm
 	Unit tests for the Sun JS binding (src/Core/Scripting/OOJSSun.h/.mm) and its OOSunEntity
-	category (whose forwarders are on the OOSunEntity facade since bead oo-9ht.51; this test's
-	stand-in OOSunEntity forwards the same way): bead oo-hgfh, converted the way bead oo-ppc
-	converted OOJSVector (proposed ADR-0056 amendments oo-ppc and oo-ykoy).
+	category (whose forwarders were on the OOSunEntity facade from bead oo-9ht.51 until bead
+	oo-9ht.111 deleted it: the C++ class's overrides answer the engine now, through the root's JS
+	category, and this test's stand-ins are C++ the same way, amendment oo-9ht.107 item 6): bead
+	oo-hgfh, converted the way bead oo-ppc converted OOJSVector (proposed ADR-0056 amendments oo-ppc
+	and oo-ykoy).
 
 	As test_OOJSWormhole.mm does (amendment oo-ykoy, item 4), it runs the JS class in a real
 	QuickJS-ng context, links the game's own objects for the binding, the engine's class
@@ -26,28 +28,52 @@
 
 // MARK: The entity classes, as far as the binding sees them ---------------------------------------
 
-@interface Entity: OOObject
-- (id) weakRefUnderlyingObject;
-@end
+namespace cxx {
 
-/*	A sun whose radius is 99 raises from -radius, one whose radius is 98 throws a C++ exception, so
+// The C++ root, as far as the binding and the root's JS category reach it.
+class Entity : public oo::RefCounted
+{
+public:
+	virtual ~Entity();
+	virtual JSClassID jsClassID();
+	virtual std::optional<std::string> jsClassName();
+	virtual bool isVisibleToScripts();
+};
+
+}	// namespace cxx
+
+
+/*	A sun whose radius is 99 raises from radius(), one whose radius is 98 throws a C++ exception, so
 	the test sees what an exception under a native becomes.
 */
-@interface OOSunEntity: Entity
+class OOSunEntity : public cxx::Entity
+{
+public:
+	double radius();
+	std::optional<std::string> name();
+	bool willGoNova();
+	bool goneNova();
+	void setGoingNova(bool yesno, double interval);
+
+	JSClassID jsClassID() override;
+	std::optional<std::string> jsClassName() override;
+	bool isVisibleToScripts() override;
+
+	double _radius = 0;
+	std::optional<std::string> _name;
+	BOOL _willGoNova = NO;
+	BOOL _goneNova = NO;
+	double _novaTime = 0;
+	int _novaCalls = 0;
+};
+
+
+@interface Entity: OOObject
 {
 @public
-	double _radius;
-	std::optional<std::string> _name;
-	BOOL _willGoNova;
-	BOOL _goneNova;
-	double _novaTime;
-	int _novaCalls;
+	oo::Ref<cxx::Entity> _cxxEntity;	// the sun's C++ part (oo::ToCxx reads it)
 }
-- (double) radius;
-- (std::optional<std::string>) cxx_name;
-- (BOOL) willGoNova;
-- (BOOL) goneNova;
-- (void) setGoingNova:(BOOL)yesno inTime:(double)interval;
+- (id) weakRefUnderlyingObject;
 @end
 
 @interface Entity (OOJavaScriptExtensions)
@@ -77,20 +103,33 @@
 @end
 
 
-@implementation OOSunEntity
+// The root's JS category, as the game's asks the C++ part (EntityOOJavaScriptExtensions+ObjCBridge.mm,
+// bead oo-9ht.107): the engine sends these selectors to the wrapped object.
+@implementation Entity (OOJavaScriptExtensions)
+- (JSClassID) oo_jsClassID  { return _cxxEntity->jsClassID(); }
+- (std::optional<std::string>) cxx_oo_jsClassName  { return _cxxEntity->jsClassName(); }
+- (BOOL) isVisibleToScripts  { return _cxxEntity->isVisibleToScripts(); }
+@end
 
-- (std::optional<std::string>) cxx_name  { return _name; }
-- (BOOL) willGoNova  { return _willGoNova; }
-- (BOOL) goneNova  { return _goneNova; }
 
-- (double) radius
+cxx::Entity::~Entity()  {}
+JSClassID cxx::Entity::jsClassID()  { return 0; }
+std::optional<std::string> cxx::Entity::jsClassName()  { return std::string("Entity"); }
+bool cxx::Entity::isVisibleToScripts()  { return false; }
+
+
+std::optional<std::string> OOSunEntity::name()  { return _name; }
+bool OOSunEntity::willGoNova()  { return _willGoNova; }
+bool OOSunEntity::goneNova()  { return _goneNova; }
+
+double OOSunEntity::radius()
 {
 	if (_radius == 99)  [OOException raise:OOInvalidArgumentException format:"radius %s", "boom"];
 	if (_radius == 98)  throw std::runtime_error("cxx boom");
 	return _radius;
 }
 
-- (void) setGoingNova:(BOOL)yesno inTime:(double)interval
+void OOSunEntity::setGoingNova(bool yesno, double interval)
 {
 	_willGoNova = yesno;
 	_novaTime = interval;
@@ -98,13 +137,11 @@
 }
 
 
-// The binding's category, as the OOSunEntity facade forwards it (OOSunEntity+ObjCBridge.mm, bead
-// oo-9ht.51): the engine sends these selectors to the wrapped object.
-- (JSClassID) oo_jsClassID  { return ::JSSunClassID(); }
-- (std::optional<std::string>) cxx_oo_jsClassName  { return ::OOJSSunJSClassName(); }
-- (BOOL) isVisibleToScripts  { return ::OOJSSunIsVisibleToScripts(); }
-
-@end
+// The binding's category, as the C++ class's overrides answer it (bead oo-9ht.111; the OOSunEntity
+// facade forwarded it from bead oo-9ht.51).
+JSClassID OOSunEntity::jsClassID()  { return ::JSSunClassID(); }
+std::optional<std::string> OOSunEntity::jsClassName()  { return ::OOJSSunJSClassName(); }
+bool OOSunEntity::isVisibleToScripts()  { return ::OOJSSunIsVisibleToScripts(); }
 
 
 // MARK: What the rest of the engine provides ------------------------------------------------------
@@ -305,7 +342,8 @@ namespace {
 JSRuntime *sRuntime;
 JSContext *sContext;
 JSValue sGlobal;
-OOSunEntity *sSun = nil;
+Entity *sSunObject = nil;	// the sun's Objective-C object, which the JS object holds
+OOSunEntity *sSun = nullptr;	// its C++ part
 
 
 // A JS object of the class (its prototype is the class's), with the entity in the private slot;
@@ -348,10 +386,12 @@ void SetUpContext()
 	OOJSInitClass(sContext, sGlobal, sFakeEntityClassID, JS_UNDEFINED, OOJSUnconstructableConstruct, 0, nullptr, 0, sFakeEntityMethods, OOJS_COUNT(sFakeEntityMethods), nullptr, 0);
 	InitOOJSSun(sContext, sGlobal);
 
-	sSun = [[OOSunEntity alloc] init];	// kept for the life of the test
+	sSunObject = [[Entity alloc] init];	// kept for the life of the test
+	sSunObject->_cxxEntity = oo::makeRef<OOSunEntity>();
+	sSun = static_cast<OOSunEntity *>(sSunObject->_cxxEntity.get());
 	sSun->_radius = 250000.5;
 	sSun->_name = "Lave";
-	Define("sun", JSValueForEntity(sSun));
+	Define("sun", JSValueForEntity(sSunObject));
 	Define("plainEntity", JSValueForObject(sFakeEntityClassID, [[Entity alloc] init]));	// kept for the life of the test
 }
 
@@ -390,15 +430,15 @@ std::string EvalShown(const char *src, const char *expected)
 OO_TEST(registration)
 {
 	SetUpContext();
-	const JSClassID sunClass = [sSun oo_jsClassID];
+	const JSClassID sunClass = [sSunObject oo_jsClassID];
 	OO_CHECK(sunClass != 0 && OOJSClassName(sunClass) != nullptr && std::strcmp(OOJSClassName(sunClass), "Sun") == 0);
 	JSValue prototype = JS_GetClassProto(sContext, sunClass);
 	OO_CHECK(JS_IsObject(prototype));
 	JS_FreeValue(sContext, prototype);
 	OO_CHECK(OOJSIsSubclass(sunClass, sFakeEntityClassID));
 	OO_CHECK_EQ(sConverters[sunClass], 1);
-	OO_CHECK([sSun cxx_oo_jsClassName] == std::optional<std::string>("Sun"));
-	OO_CHECK([sSun isVisibleToScripts]);
+	OO_CHECK([sSunObject cxx_oo_jsClassName] == std::optional<std::string>("Sun"));
+	OO_CHECK([sSunObject isVisibleToScripts]);
 	OO_CHECK_EVAL("typeof Sun", "function");
 	OO_CHECK_EVAL("new Sun()", "threw: unconstructable");
 	OO_CHECK_EVAL("Object.getPrototypeOf(Sun.prototype) === Entity.prototype", "true");

@@ -103,11 +103,11 @@ OOTextureGenerator *NewGenerator(const oo::PList &emission, OOColor *emissionCol
 								 const oo::PList &illumination, OOColor *illuminationColor, const oo::PList &options)
 {
 	return oo::ToObjC(OOCombinedEmissionMapGenerator::generatorWithEmissionMapSpec(emission,
-																				   oo::ToCxx(emissionColor),
+																				   emissionColor,
 																				   diffuseMap,
-																				   oo::ToCxx(diffuseColor),
+																				   diffuseColor,
 																				   illumination,
-																				   oo::ToCxx(illuminationColor),
+																				   illuminationColor,
 																				   options).get());
 }
 
@@ -118,9 +118,9 @@ OOTextureGenerator *NewCombinedGenerator(const oo::PList &map, OOTexture *diffus
 {
 	return oo::ToObjC(OOCombinedEmissionMapGenerator::generatorWithEmissionAndIlluminationMapSpec(map,
 																								   diffuseMap,
-																								   oo::ToCxx(diffuseColor),
-																								   oo::ToCxx(emissionColor),
-																								   oo::ToCxx(illuminationColor),
+																								   diffuseColor,
+																								   emissionColor,
+																								   illuminationColor,
 																								   map).get());
 }
 
@@ -177,7 +177,7 @@ OO_TEST(nothingToBake)
 	SetUp();
 	@autoreleasepool
 	{
-		OO_CHECK(NewGenerator(oo::PList(), nil, nil, nil, oo::PList(), [OOColor redColor], oo::PList("e.png")) == nil);
+		OO_CHECK(NewGenerator(oo::PList(), nil, nil, nil, oo::PList(), OOColor::redColor().get(), oo::PList("e.png")) == nil);
 		OO_CHECK(NewCombinedGenerator(oo::PList(), nil, nil, nil, nil) == nil);
 	}
 }
@@ -207,20 +207,20 @@ OO_TEST(cacheKeys)
 	SetUp();
 	@autoreleasepool
 	{
-		OOColor *red = [OOColor redColor];
-		const std::string redRGBA = [red cxx_rgbaDescription].value_or("");
+		oo::Ref<OOColor>	red = OOColor::redColor();
+		const std::string redRGBA = red->rgbaDescription().value_or("");
 
-		OO_CHECK([NewGenerator(oo::PList("e.png"), red, nil, nil, oo::PList(), nil, oo::PList("e.png")) cxx_cacheKey]
+		OO_CHECK([NewGenerator(oo::PList("e.png"), red.get(), nil, nil, oo::PList(), nil, oo::PList("e.png")) cxx_cacheKey]
 				 == std::optional<std::string>("emission map;emission:{" + KeyOf("e.png") + "}*" + redRGBA + ";"));
 		// A white colour is no colour; the diffuse map is only used with illumination.
-		OO_CHECK([NewGenerator(oo::PList("e.png"), [OOColor whiteColor], DiffuseMap(), nil, oo::PList(), nil, oo::PList("e.png")) cxx_cacheKey]
+		OO_CHECK([NewGenerator(oo::PList("e.png"), OOColor::whiteColor().get(), DiffuseMap(), nil, oo::PList(), nil, oo::PList("e.png")) cxx_cacheKey]
 				 == std::optional<std::string>("emission map;emission:{" + KeyOf("e.png") + "};"));
 
 		OOTexture *diffuse = DiffuseMap();
 		const std::string diffuseKey = [diffuse cxx_cacheKey].value_or("");
 		OO_CHECK(!diffuseKey.empty());
 		// The illumination colour is the diffuse colour times the illumination colour.
-		OO_CHECK([NewGenerator(oo::PList(), nil, diffuse, red, oo::PList("i.png"), [OOColor yellowColor], oo::PList("i.png")) cxx_cacheKey]
+		OO_CHECK([NewGenerator(oo::PList(), nil, diffuse, red.get(), oo::PList("i.png"), OOColor::yellowColor().get(), oo::PList("i.png")) cxx_cacheKey]
 				 == std::optional<std::string>("illumination map;illumination:{" + KeyOf("i.png") + "}*{" + diffuseKey + "}*" + redRGBA + ";"));
 		OO_CHECK([NewGenerator(oo::PList("e.png"), nil, nil, nil, oo::PList("i.png"), nil, oo::PList("e.png")) cxx_cacheKey]
 				 == std::optional<std::string>("merged emission and illumination map;emission:{" + KeyOf("e.png") + "};illumination:{" + KeyOf("i.png") + "}*{};"));
@@ -238,7 +238,7 @@ OO_TEST(bakesTheEmissionMap)
 	{
 		// Emission alone, tinted (0.5, 1, 0.25).
 		Baked baked;
-		Bake(NewGenerator(oo::PList("e.png"), [OOColor colorWithRed:0.5f green:1.0f blue:0.25f alpha:1.0f], nil, nil, oo::PList(), nil, oo::PList("e.png")), baked);
+		Bake(NewGenerator(oo::PList("e.png"), OOColor::colorWithRed(0.5f, 1.0f, 0.25f, 1.0f).get(), nil, nil, oo::PList(), nil, oo::PList("e.png")), baked);
 		OO_CHECK(baked.ok && baked.format == kOOPixMapRGBA && baked.pixMap.width > 0 && baked.pixMap.width == baked.pixMap.height);
 		OO_CHECK(baked.pixel()[0] == 100 && baked.pixel()[1] == 200 && baked.pixel()[2] == 50);
 	}
@@ -294,15 +294,15 @@ OO_TEST(aTextureOfTheGenerator)
 	SetUp();
 	@autoreleasepool
 	{
-		OOTexture *texture = [OOTexture textureWithGenerator:NewGenerator(oo::PList("e.png"), [OOColor redColor], nil, nil, oo::PList(), nil, oo::PList("e.png"))];
+		OOTexture *texture = [OOTexture textureWithGenerator:NewGenerator(oo::PList("e.png"), OOColor::redColor().get(), nil, nil, oo::PList(), nil, oo::PList("e.png"))];
 		OO_CHECK((dynamic_cast<OOConcreteTexture *>(oo::ToCxx(texture)) != nullptr));
 		[texture ensureFinishedLoading];
 		OO_CHECK([texture isFinishedLoading] && [texture dimensions].width > 0);
-		OO_CHECK([texture cxx_cacheKey] == [NewGenerator(oo::PList("e.png"), [OOColor redColor], nil, nil, oo::PList(), nil, oo::PList("e.png")) cxx_cacheKey]);
+		OO_CHECK([texture cxx_cacheKey] == [NewGenerator(oo::PList("e.png"), OOColor::redColor().get(), nil, nil, oo::PList(), nil, oo::PList("e.png")) cxx_cacheKey]);
 
 		// While that texture is cached, a generator of its key reads no map, so it bakes nothing.
 		Baked baked;
-		Bake(NewGenerator(oo::PList("e.png"), [OOColor redColor], nil, nil, oo::PList(), nil, oo::PList("e.png")), baked);
+		Bake(NewGenerator(oo::PList("e.png"), OOColor::redColor().get(), nil, nil, oo::PList(), nil, oo::PList("e.png")), baked);
 		OO_CHECK(!baked.ok);
 	}
 	ClearCache();
@@ -315,10 +315,10 @@ OO_TEST(description)
 	SetUp();
 	@autoreleasepool
 	{
-		const std::string description = oo::DescriptionOf(NewGenerator(oo::PList("e.png"), [OOColor redColor], nil, nil, oo::PList(), nil, oo::PList("e.png")));
+		const std::string description = oo::DescriptionOf(NewGenerator(oo::PList("e.png"), OOColor::redColor().get(), nil, nil, oo::PList(), nil, oo::PList("e.png")));
 		OO_CHECK(description.starts_with("<OOCombinedEmissionMapGenerator 0x"));
 		OO_CHECK(description.find("{emission map: ") != std::string::npos);
-		OO_CHECK(description.find(" * " + [[OOColor redColor] cxx_rgbaDescription].value_or("") + "}") != std::string::npos);
+		OO_CHECK(description.find(" * " + OOColor::redColor()->rgbaDescription().value_or("") + "}") != std::string::npos);
 	}
 }
 #endif
@@ -334,7 +334,7 @@ OO_TEST(cxxApi)
 		OO_CHECK(!OOCombinedEmissionMapGenerator::generatorWithEmissionMapSpec(oo::PList(), nullptr, nil, nullptr, oo::PList(), nullptr, oo::PList()));
 		OO_CHECK(!OOCombinedEmissionMapGenerator::generatorWithEmissionAndIlluminationMapSpec(oo::PList(), nil, nullptr, nullptr, nullptr, oo::PList()));
 
-		const oo::Ref<cxx::OOColor> red = cxx::OOColor::colorWithRGBAComponents((OORGBAComponents){ 1.0f, 0.0f, 0.0f, 1.0f });
+		const oo::Ref<OOColor> red = OOColor::colorWithRGBAComponents((OORGBAComponents){ 1.0f, 0.0f, 0.0f, 1.0f });
 		const oo::Ref<OOCombinedEmissionMapGenerator> generator = OOCombinedEmissionMapGenerator::generatorWithEmissionMapSpec(oo::PList("e.png"), red.get(), nil, nullptr, oo::PList(), nullptr, oo::PList("e.png"));
 		OO_CHECK(generator && generator->cacheKey() == std::optional<std::string>("emission map;emission:{" + KeyOf("e.png") + "}*" + red->rgbaDescription().value_or("") + ";"));
 

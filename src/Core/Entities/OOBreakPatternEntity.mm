@@ -30,8 +30,6 @@ MA 02110-1301, USA.
 #import "OOMacroOpenGL.h"
 #import "Universe.h"
 
-namespace cxx {
-
 void OOBreakPatternEntity::initWithPolygonSides(NSUInteger sides, float startAngleDegrees, float aspectRatio)
 {
     sides = MIN(MAX((NSUInteger)3, sides), (NSUInteger)kOOBreakPatternMaxSides);
@@ -149,10 +147,3 @@ bool OOBreakPatternEntity::canCollide()
 {
     return NO;
 }
-
-bool OOBreakPatternEntity::isBreakPattern()
-{
-    return YES;
-}
-
-} // namespace cxx

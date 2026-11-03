@@ -6,12 +6,10 @@ Oolite expansion pack verification manager.
 
 NOTE: the overall design is discussed in OXP verifier design.txt.
 
-C++20 since bead oo-tsa4 (proposed ADR-0056 and its OXPVerifier amendments): the class is
-cxx::OOOXPVerifier. Since bead oo-qg71f the stages keep and call it, and GameController calls its
-static runVerificationIfRequested(); OOOXPVerifier+ObjCBridge.h, imported at the end of this header,
-keeps the Objective-C OOOXPVerifier facade until its deletion bead (oo-9ht.130), which moves the
-class out of namespace cxx. The stages are C++ (OOOXPVerifierStage, global since bead oo-9ht.4
-deleted its facade), kept and driven as they are.
+C++20 since bead oo-tsa4 (proposed ADR-0056 and its OXPVerifier amendments). The stages keep and
+call it, and GameController calls its static runVerificationIfRequested() (bead oo-qg71f); global
+since bead oo-9ht.130 deleted its transitional Objective-C facade. The stages are C++
+(OOOXPVerifierStage, global since bead oo-9ht.4 deleted its facade), kept and driven as they are.
 
 
 Copyright (C) 2007-2013 Jens Ayton and contributors
@@ -57,8 +55,6 @@ SOFTWARE.
 class OOOXPVerifierStage; // OOOXPVerifierStage.h, which imports this header
 
 struct OOOXPVerifierTestAccess; // tests only (amendment oo-862e item 2)
-
-namespace cxx {
 
 /*	Foundation sweep (proposed ADR-0043, bead oo-hkvv): verifyOXP.plist is an oo::PList, paths
         and names are UTF-8 std::strings, stages are retained through oo::Ref. The stages waiting
@@ -134,11 +130,5 @@ private:
 
     bool _openForRegistration = { };
 };
-
-} // namespace cxx
-
-// Transitional: the Objective-C OOOXPVerifier, which nothing in the game messages since bead
-// oo-qg71f. Deleted, with namespace cxx above, by the bridge's deletion bead.
-#import "OOOXPVerifier+ObjCBridge.h"
 
 #endif

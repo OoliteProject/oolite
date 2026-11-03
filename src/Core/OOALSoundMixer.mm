@@ -63,7 +63,7 @@ bool OOSoundMixer::init()
     uint32_t idx = 0, count = kMixerGeneralChannels;
     oo::Ref<OOSoundChannel> channel;
 
-    if (!cxx::OOSound::setUp())
+    if (!OOSound::setUp())
         OK = false;
 
     if (OK) {

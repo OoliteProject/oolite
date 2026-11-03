@@ -4,7 +4,8 @@ GameController+ObjCBridge.mm
 
 TRANSITIONAL (proposed ADR-0056, bead oo-zkpmt): the Objective-C GameController façade's own
 methods: the crossings, the singleton façade and one-line forwarders to cxx::GameController for
-slice 1's selectors. See GameController+ObjCBridge.h.
+the selectors of every slice and of the SDL FullScreen category (bead oo-qinv). See
+GameController+ObjCBridge.h.
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -241,6 +242,51 @@ cxx::GameController* oo::ToCxx(GameController* controller)
 }
 
 @end
+
+#if OOLITE_SDL
+// The FullScreen category's selectors (bead oo-qinv), forwarded to the members in
+// SDL/GameController+SDLFullScreen.mm. The Mac category is Core/GameController+FullScreen.mm.
+@implementation GameController (FullScreen)
+
+- (void)setUpDisplayModes
+{
+    _cxxController->setUpDisplayModes();
+}
+- (void)setFullScreenMode:(BOOL)fsm
+{
+    _cxxController->setFullScreenMode(fsm);
+}
+- (void)exitFullScreenMode
+{
+    _cxxController->exitFullScreenMode();
+}
+- (BOOL)inFullScreenMode
+{
+    return _cxxController->inFullScreenMode();
+}
+- (BOOL)setDisplayWidth:(unsigned int)d_width Height:(unsigned int)d_height Refresh:(unsigned int)d_refresh
+{
+    return _cxxController->setDisplayWidth(d_width, d_height, d_refresh);
+}
+- (oo::PList)findDisplayModeForWidth:(unsigned int)d_width Height:(unsigned int)d_height Refresh:(unsigned int)d_refresh
+{
+    return _cxxController->findDisplayModeForWidth(d_width, d_height, d_refresh);
+}
+- (oo::PList)displayModes
+{
+    return _cxxController->getDisplayModes();
+}
+- (NSUInteger)indexOfCurrentDisplayMode
+{
+    return _cxxController->indexOfCurrentDisplayMode();
+}
+- (void)pauseFullScreenModeToPerform:(SEL)selector onTarget:(id)target
+{
+    _cxxController->pauseFullScreenModeToPerform(selector, target);
+}
+
+@end
+#endif
 
 bool GameControllerPerformSelectorWithObject(id target, SEL selector, id argument, const char** outName, const char** outReason)
 {

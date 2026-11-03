@@ -119,7 +119,7 @@ void InitOOJSMissionVariables(JSContext* context, JSValueConst global)
 #ifdef OO_DEBUG_MONITOR_ENABLED
 static oo::PList MissionVariablesConverter(JSContext* /*context*/, JSValueConst /*object*/)
 {
-    return [PLAYER cxx_missionVariables];
+    return (PLAYER != nullptr ? PLAYER->missionVariables() : oo::PList());
 }
 #endif
 
@@ -127,7 +127,7 @@ static oo::PList MissionVariablesConverter(JSContext* /*context*/, JSValueConst 
 static JSValue ValueForMissionVariable(JSContext* context, const std::string& key)
 {
     PlayerEntity* player = OOPlayerForScripting();
-    const oo::PList mvar = [player cxx_missionVariableForKey:key];
+    const oo::PList mvar = (player != nullptr ? player->missionVariableForKey(key) : oo::PList());
 
     if (mvar.isNull())
         return JS_UNDEFINED;
@@ -174,7 +174,7 @@ static int MissionVariablesGetOwnPropertyNames(JSContext* context, JSPropertyEnu
         // A copy of the keys, which is good since the enumerating code might mutate. In key order
         // (-allKeys gave them in hash order).
         std::vector<std::string> mvars;
-        const oo::PList missionVariables = [PLAYER cxx_missionVariables];
+        const oo::PList missionVariables = (PLAYER != nullptr ? PLAYER->missionVariables() : oo::PList());
         if (const oo::PList::Dict* dict = missionVariables.getIf<oo::PList::Dict>()) {
             for (const auto& entry : *dict)
                 mvars.push_back(entry.first);
@@ -221,8 +221,10 @@ static int MissionVariablesDeleteProperty(JSContext* context, JSValueConst objec
         std::optional<std::string> name = NameForPropertyID(context, propID);
         if (name.has_value()) {
             std::optional<std::string> key = KeyForPropertyName(name);
-            if (key.has_value())
-                [player cxx_setMissionVariable:oo::PList() forKey:*key];
+            if (key.has_value()) {
+                if (player != nullptr)
+                    player->setMissionVariable(oo::PList(), *key);
+            }
         }
         return true;
     } catch (...) {
@@ -283,7 +285,8 @@ static bool SetMissionVariable(JSContext* context, JSAtom propID, JSValueConst v
         // a string and is gone.)
         std::optional<std::string> objValue = cxx_OOStringFromJSValue(context, value);
 
-        [player cxx_setMissionVariable:objValue.has_value() ? oo::PList(*objValue) : oo::PList() forKey:*key];
+        if (player != nullptr)
+            player->setMissionVariable(objValue.has_value() ? oo::PList(*objValue) : oo::PList(), *key);
     }
     return true;
 }

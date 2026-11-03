@@ -1,19 +1,22 @@
 /*	test_OOJSSystemInfo.mm
 	Unit tests for the SystemInfo JS binding (src/Core/Scripting/OOJSSystemInfo.h/.mm) and the
-	object it wraps, OOSystemInfo (cxx::OOSystemInfo and its façade, OOJSSystemInfo+ObjCBridge.h/.mm,
-	after the conversion): bead oo-6ia4, converted the way bead oo-ppc converted OOJSVector (proposed
+	object it wraps, OOSystemInfo (its Objective-C facade deleted), after the conversion):
+	bead oo-6ia4, converted the way bead oo-ppc converted OOJSVector (proposed
 	ADR-0056 amendment oo-ppc).
 
 	As the binding tests of amendment oo-ppc item 6 do, it runs the JS class in a real QuickJS-ng
 	context, and links the game's own objects for the binding, the class registration
 	(OOJSClasses.mm), the engine's exception translator (OOJSEngineNativeWrappers.mm) and the
 	converted classes the binding asks (OOSystemDescriptionManager, OOCommodities and
-	OOCommodityMarket, reached through their façades, linked as their own tests link them). It
+	OOCommodityMarket, C++ with their facades deleted, held as oo::Ref, linked as their own tests
+	link them). It
 	stands in for the universe (its system data, coordinates and routes), the player (its galaxy
 	and position), the running script (its manifest), the resource manager and string expander the
 	converted classes call, and the engine functions the binding links against, with the engine
 	headers' linkage. The engine's native-object conversion asks the object for its JS value, as
-	the engine does, so a SystemInfo's JS object is the one the class makes. The expectations were
+	the engine does, so a SystemInfo's JS object is the one the class makes. The SystemInfo's slot
+	holds the C++ system info, so it also links the engine's C++ private-slot glue
+	(OOJSPrivateObject.cpp: the getter, finalizer and toString()). The expectations were
 	written against the Objective-C file and run on it first; they pin the JS-visible behaviour
 	(the cached object, the four properties and their errors, system data both ways, enumeration,
 	the four methods and the two static ones, interstellar space, a native's exception) and what
@@ -40,7 +43,7 @@
 
 // MARK: The classes, as far as the binding and the converted classes see them --------------------
 
-@class StationEntity;
+class StationEntity;
 
 /*	The universe: system data by "galaxy system" and key, the current system's data in interstellar
 	space, a system's coordinates (system 99's raise from -coordinatesForSystem:, system 98's throw
@@ -52,8 +55,8 @@
 	BOOL _interstellar;
 	std::map<std::string, oo::PList> _data;
 	oo::PList _currentSystemData;
-	OOSystemDescriptionManager *_systemManager;
-	OOCommodities *_commodities;
+	oo::Ref<OOSystemDescriptionManager> _systemManager;
+	oo::Ref<OOCommodities> _commodities;
 	std::string _lastSet;
 	OOSystemID _routeFrom, _routeTo;
 	OORouteType _routeType;
@@ -70,31 +73,37 @@
 - (OOSystemID) currentSystemID;
 @end
 
-@interface PlayerEntity: OOObject
+// PLAYER: C++, its Objective-C object this stood in for deleted: the members the code under test
+// calls, declared as the game headers declare them (the test imports none that defines the
+// classes), with the stand-in's answers.
+class PlayerEntity
 {
-@public
-	OOGalaxyID _galaxy;
-	NSPoint _coordinates;
-}
-- (OOGalaxyID) currentGalaxyID;
-- (OOGalaxyID) galaxyNumber;
-- (NSPoint) galaxy_coordinates;
-- (id) cxx_commodityScriptNamed:(const std::optional<std::string> &)script;
-@end
+public:
+	OOGalaxyID currentGalaxyID();
+	OOGalaxyID galaxyNumber();
+	NSPoint getGalaxy_coordinates();
+	::OOScript * commodityScriptNamed(const std::optional<std::string> &scriptName);
 
-// The running script: its manifest identifier.
-@interface OOJSScript: OOObject
-+ (OOJSScript *) currentlyRunningScript;
-- (oo::PList) cxx_propertyNamed:(const std::string &)name;
-@end
+	OOGalaxyID _galaxy = {};
+	NSPoint _coordinates = {};
+};
 
 @interface ResourceManager: OOObject
 + (oo::PList) cxx_dictionaryFromFilesNamed:(const std::string &)fileName inFolder:(const std::optional<std::string> &)folderName mergeMode:(int)mergeMode cache:(BOOL)useCache;
 + (oo::PList) cxx_manifestForIdentifier:(const std::string &)identifier;
 @end
 
-@interface StationEntity: OOObject
-@end
+// A station: C++, its Objective-C object this stood in for deleted; the members the commodities
+// call, declared as StationEntity.h declares them (the test imports no game header that defines
+// the class). No case makes a station: link stubs.
+class StationEntity
+{
+public:
+	oo::PList getMarketDefinition();
+	std::optional<std::string> getMarketScriptName();
+	OOCargoQuantity getMarketCapacity();
+	bool getMarketMonitored();
+};
 
 @interface OOObject (OOJSTestGlue)
 - (JSValue) oo_jsValueInContext:(JSContext *)context;
@@ -139,8 +148,8 @@ std::string Key(OOGalaxyID g, OOSystemID s, const std::string &key)
 
 - (BOOL) inInterstellarSpace  { return _interstellar; }
 - (oo::PList) cxx_currentSystemData  { return _currentSystemData; }
-- (OOSystemDescriptionManager *) systemManager  { return _systemManager; }
-- (OOCommodities *) commodities  { return _commodities; }
+- (OOSystemDescriptionManager *) systemManager  { return _systemManager.get(); }
+- (OOCommodities *) commodities  { return _commodities.get(); }
 - (OOSystemID) currentSystemID  { return 7; }
 
 - (oo::PList) cxx_systemDataForGalaxy:(OOGalaxyID)gnum planet:(OOSystemID)pnum key:(const std::string &)key
@@ -155,7 +164,7 @@ std::string Key(OOGalaxyID g, OOSystemID s, const std::string &key)
 	if (value.isNull())  _data.erase(Key(gnum, pnum, key));
 	else  _data[Key(gnum, pnum, key)] = value;
 	// The binding reads system data back from the system manager, where the game's universe stores it.
-	[_systemManager cxx_setProperty:key forSystemKey:oo::str::format("%u %i", gnum, pnum) andLayer:layer toValue:value fromManifest:manifest];
+	_systemManager->setProperty(key, oo::str::format("%u %i", gnum, pnum), layer, value, manifest);
 }
 
 - (std::vector<std::string>) cxx_systemDataKeysForGalaxy:(OOGalaxyID)gnum planet:(OOSystemID)pnum
@@ -188,31 +197,53 @@ std::string Key(OOGalaxyID g, OOSystemID s, const std::string &key)
 @end
 
 
-@implementation PlayerEntity
+OOGalaxyID PlayerEntity::currentGalaxyID()  { return _galaxy; }
+OOGalaxyID PlayerEntity::galaxyNumber()  { return _galaxy; }
+NSPoint PlayerEntity::getGalaxy_coordinates()  { return _coordinates; }
+::OOScript * PlayerEntity::commodityScriptNamed(const std::optional<std::string> &script)  { (void)script; return nullptr; }
 
-- (OOGalaxyID) currentGalaxyID  { return _galaxy; }
-- (OOGalaxyID) galaxyNumber  { return _galaxy; }
-- (NSPoint) galaxy_coordinates  { return _coordinates; }
-- (id) cxx_commodityScriptNamed:(const std::optional<std::string> &)script  { (void)script; return nil; }
 
-@end
-
+class OOJSScript;
 
 namespace {
-OOJSScript *sScript = nil;
+OOJSScript *sScript = nullptr;	// the running script
 oo::PList sScriptManifest;
 }
 
-@implementation OOJSScript
 
-+ (OOJSScript *) currentlyRunningScript  { return sScript; }
+#import "OOScript.h"
 
-- (oo::PList) cxx_propertyNamed:(const std::string &)name
+
+// OOJSScript (OOJSScript.h), which the code under test calls. The OOScript root's facade is gone
+// and a script is the C++ object, so the stand-in is a C++ subclass of OOScript declaring the
+// members that code calls: the running script, and its manifest property.
+class OOJSScript : public OOScript
+{
+public:
+	static OOJSScript *currentlyRunningScript();
+	oo::PList propertyNamed(const std::string &name);
+};
+
+// OOScript's virtual members (OOScript.mm reaches the whole game), for the test's scripts' vtable.
+std::optional<std::string> OOScript::descriptionComponents()	{ return std::nullopt; }
+std::optional<std::string> OOScript::name()					{ return std::nullopt; }
+std::optional<std::string> OOScript::scriptDescription()		{ return std::nullopt; }
+std::optional<std::string> OOScript::version()				{ return std::nullopt; }
+bool OOScript::requiresTickle()								{ return false; }
+void OOScript::runWithTarget(::Entity *)						{}
+bool OOScript::callMethod(JSAtom, JSContext *, JSValueConst *, int, JSValue *)	{ return false; }
+std::string OOScript::className() const						{ return "OOScript"; }
+std::string OOScript::description() const						{ return "<OOScript>"; }
+JSValue OOScript::jsValueInContext(JSContext *)				{ return JS_UNDEFINED; }
+void OOScript::clearJSSelf(JSValueConst)						{}
+
+OOJSScript *OOJSScript::currentlyRunningScript()  { return sScript; }
+
+// The running script's manifest identifier.
+oo::PList OOJSScript::propertyNamed(const std::string &name)
 {
 	return name == "oolite_manifest_identifier" ? sScriptManifest : oo::PList();
 }
-
-@end
 
 
 @implementation ResourceManager
@@ -234,8 +265,16 @@ oo::PList sScriptManifest;
 @end
 
 
-@implementation StationEntity
-@end
+oo::PList StationEntity::getMarketDefinition()					{ std::abort(); }
+std::optional<std::string> StationEntity::getMarketScriptName()	{ std::abort(); }
+OOCargoQuantity StationEntity::getMarketCapacity()				{ std::abort(); }
+bool StationEntity::getMarketMonitored()						{ std::abort(); }
+
+// Link stub: a station's Objective-C object, which only a commodity script for a station is given.
+@class Entity;
+namespace cxx { class Entity; }
+namespace oo { ::Entity *ToObjC(cxx::Entity *entity); }
+::Entity *oo::ToObjC(cxx::Entity *)	{ std::abort(); }
 
 
 // The expander: "<string>".
@@ -405,6 +444,10 @@ JSValue OOJSValueFromPList(JSContext *context, const oo::PList &plist)
 {
 	if (const std::string *str = plist.getIf<std::string>())  return JS_NewStringLen(context, str->data(), str->size());
 	if (plist.isNumber())  return JS_NewNumber(context, plist.doubleValue());
+	if (const oo::PList::Object *node = plist.getIf<oo::PList::Object>())
+	{
+		if (OOJSPrivateObject *glue = dynamic_cast<OOJSPrivateObject *>(node->get()))  return OOJSValueFromCxxObject(context, glue);
+	}
 	if (id object = oo::ObjectIn(plist))  return OOJSValueFromNativeObject(context, object);
 	if (const oo::PList::Array *array = plist.getIf<oo::PList::Array>())
 	{
@@ -442,7 +485,7 @@ namespace {
 std::map<JSClassID, int> sConverters;
 }
 
-PlayerEntity *gOOPlayer = nil;
+PlayerEntity *gOOPlayer = nullptr;
 Universe *gSharedUniverse = nil;
 
 
@@ -568,7 +611,7 @@ JSRuntime *sRuntime = nullptr;
 JSContext *sContext = nullptr;
 JSValue sGlobal = JS_UNDEFINED;	// held for the life of the test
 Universe *sUniverse = nil;
-PlayerEntity *sPlayer = nil;
+PlayerEntity *sPlayer = nullptr;
 
 
 // Defines a global; takes value's reference.
@@ -600,20 +643,20 @@ void SetUpContext()
 
 	sUniverse = [[Universe alloc] init];	// kept for the life of the test
 	gSharedUniverse = sUniverse;
-	sPlayer = [[PlayerEntity alloc] init];
+	sPlayer = new PlayerEntity;
 	gOOPlayer = sPlayer;
-	sUniverse->_systemManager = [[OOSystemDescriptionManager alloc] init];
-	sUniverse->_commodities = [[OOCommodities alloc] init];
+	sUniverse->_systemManager = oo::makeRef<OOSystemDescriptionManager>();
+	sUniverse->_commodities = oo::makeRef<OOCommodities>();
 	sUniverse->_data[Key(0, 7, "economy")] = oo::PList(2.0);
 	sUniverse->_data[Key(0, 7, "government")] = oo::PList(std::string("4"));
 	sUniverse->_data[Key(0, 7, "name")] = oo::PList(std::string("Lave"));
 	// The system manager holds the same data (the binding reads values there).
-	[sUniverse->_systemManager cxx_setProperty:"economy" forSystemKey:"0 7" andLayer:OO_LAYER_CORE toValue:oo::PList(2.0) fromManifest:std::nullopt];
-	[sUniverse->_systemManager cxx_setProperty:"government" forSystemKey:"0 7" andLayer:OO_LAYER_CORE toValue:oo::PList(std::string("4")) fromManifest:std::nullopt];
-	[sUniverse->_systemManager cxx_setProperty:"name" forSystemKey:"0 7" andLayer:OO_LAYER_CORE toValue:oo::PList(std::string("Lave")) fromManifest:std::nullopt];
-	[sUniverse->_systemManager cxx_setProperty:"population" forSystemKey:"0 7" andLayer:OO_LAYER_CORE toValue:oo::PList(std::string("2.5")) fromManifest:std::nullopt];
-	[sUniverse->_systemManager cxx_setProperty:"techlevel" forSystemKey:"0 7" andLayer:OO_LAYER_CORE toValue:oo::PList(8.0) fromManifest:std::nullopt];
-	sScript = [[OOJSScript alloc] init];
+	sUniverse->_systemManager->setProperty("economy", "0 7", OO_LAYER_CORE, oo::PList(2.0), std::nullopt);
+	sUniverse->_systemManager->setProperty("government", "0 7", OO_LAYER_CORE, oo::PList(std::string("4")), std::nullopt);
+	sUniverse->_systemManager->setProperty("name", "0 7", OO_LAYER_CORE, oo::PList(std::string("Lave")), std::nullopt);
+	sUniverse->_systemManager->setProperty("population", "0 7", OO_LAYER_CORE, oo::PList(std::string("2.5")), std::nullopt);
+	sUniverse->_systemManager->setProperty("techlevel", "0 7", OO_LAYER_CORE, oo::PList(8.0), std::nullopt);
+	sScript = oo::makeRef<OOJSScript>().leakRef();
 	sScriptManifest = oo::PList(std::string("org.test.script"));
 	Define("lave", GetJSSystemInfoForSystem(sContext, 0, 7));
 }
@@ -682,22 +725,24 @@ OO_TEST(wrappedObject)
 	SetUpContext();
 	JSValue a = GetJSSystemInfoForSystem(sContext, 0, 7);
 	JSValue b = GetJSSystemInfoForSystem(sContext, 3, 7);
-	JSClassID ignored;
-	id infoA = (id)JS_GetAnyOpaque(a, &ignored);
-	id infoB = (id)JS_GetAnyOpaque(b, &ignored);
+	// The slot holds the C++ system info.
+	auto slot = [](JSValueConst v) { JSClassID ignored; return static_cast<OOSystemInfo *>(static_cast<oo::RefCounted *>(JS_GetAnyOpaque(v, &ignored))); };
+	OOSystemInfo *cxxA = slot(a);
+	OOSystemInfo *cxxB = slot(b);
 	JSValue c = GetJSSystemInfoForSystem(sContext, 0, 7);
-	id infoC = (id)JS_GetAnyOpaque(c, &ignored);
-	OO_CHECK(infoA != nil && infoB != nil && infoC != nil && infoA != infoC);
-	OO_CHECK([infoA cxx_oo_jsClassName] == std::optional<std::string>("SystemInfo"));
-	OO_CHECK([infoA isEqual:infoC]);
-	OO_CHECK(![infoA isEqual:infoB]);
-	OO_CHECK(![infoA isEqual:sUniverse]);
-	OO_CHECK_EQ([infoA hash], [infoC hash]);
-	OO_CHECK_EQ([infoB hash], static_cast<NSUInteger>((3u << 16) | 7u));
-	OO_CHECK(oo::DescriptionOf(infoA).find(">{galaxy 0, system 7}") != std::string::npos);
-	OO_CHECK_EVAL("String(lave).replace(/0x[0-9a-f]+/, 'ADDR')", "[<OOSystemInfo ADDR>{galaxy 0, system 7}]");
+	OOSystemInfo *cxxC = slot(c);
+	OO_CHECK(cxxA != nullptr && cxxB != nullptr && cxxC != nullptr && cxxA != cxxC);
+	OO_CHECK(cxxA->oo_jsClassName() == std::optional<std::string>("SystemInfo"));
+	OO_CHECK(cxxA->isEqual(cxxC));
+	OO_CHECK(!cxxA->isEqual(cxxB));
+	OO_CHECK(!cxxA->isEqual(nullptr));
+	OO_CHECK_EQ(cxxA->hash(), cxxC->hash());
+	OO_CHECK_EQ(cxxB->hash(), static_cast<NSUInteger>((3u << 16) | 7u));
+	OO_CHECK(cxxA->description().find(">{galaxy 0, system 7}") != std::string::npos);
+	// toString() is the engine's OOJSCxxObjectWrapperToString: the system info's jsDescription().
+	OO_CHECK_EVAL("String(lave)", "[SystemInfo galaxy 0, system 7]");
 	// Its JS value is a new object each time.
-	JSValue another = [infoA oo_jsValueInContext:sContext];
+	JSValue another = cxxA->jsValueInContext(sContext);
 	OO_CHECK(JS_VALUE_GET_PTR(another) != JS_VALUE_GET_PTR(a));
 	JS_FreeValue(sContext, another);
 	JS_FreeValue(sContext, c);
@@ -837,9 +882,9 @@ OO_TEST(staticMethods)
 	OO_CHECK_EQ(sLimiterPauses, 0);
 	// setInterstellarProperty(galaxy, from, to, layer, key, value [, manifest]): in the system manager.
 	OO_CHECK_EVAL("SystemInfo.setInterstellarProperty(0, 7, 10, 2, 'danger', 'high')", "undefined");
-	OO_CHECK([sUniverse->_systemManager cxx_getProperty:"danger" forSystemKey:"interstellar: 0 7 10"] == oo::PList(std::string("high")));
+	OO_CHECK(sUniverse->_systemManager->getProperty("danger", "interstellar: 0 7 10") == oo::PList(std::string("high")));
 	OO_CHECK_EVAL("SystemInfo.setInterstellarProperty(0, 7, 10, 2, 'danger', null)", "undefined");
-	OO_CHECK([sUniverse->_systemManager cxx_getProperty:"danger" forSystemKey:"interstellar: 0 7 10"].isNull());
+	OO_CHECK(sUniverse->_systemManager->getProperty("danger", "interstellar: 0 7 10").isNull());
 	OO_CHECK_EVAL("SystemInfo.setInterstellarProperty(8, 7, 10, 2, 'danger', 'x')", "threw: bad arguments: SystemInfo.setInterstellarProperty(3) - / galaxy out of range");
 	OO_CHECK_EVAL("SystemInfo.setInterstellarProperty(0, 256, 10, 2, 'danger', 'x')", "threw: bad arguments: SystemInfo.setInterstellarProperty(3) - / fromsystem out of range");
 	OO_CHECK_EVAL("SystemInfo.setInterstellarProperty(0, 7, -1, 2, 'danger', 'x')", "threw: bad arguments: SystemInfo.setInterstellarProperty(3) - / tosystem out of range");

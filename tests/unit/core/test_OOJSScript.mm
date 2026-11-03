@@ -13,7 +13,13 @@
 	user's directories at a scratch folder (amendment oo-rmd7 item 4). The scripts are written to
 	that folder. The expectations were written against the Objective-C API and run on the
 	unconverted class first; the crossing test (facade identity, the C++ members, the running stack
-	from both sides, the weak reference) came with the conversion, oo-u61e.4.
+	from both sides, the weak reference) came with the conversion, oo-u61e.4, and changed when the
+	facade was deleted: the script's object was the OOScript root's facade, made by
+	OOJSScript::scriptWithPath(), and the property members were asked of the C++ script. Then the
+	root's facade was deleted: the script is held as oo::Ref<OOJSScript>, every case asks the C++
+	class what it asked through the selectors, with every expectation kept, and the crossing case
+	pins the new identity (the running stack holds the C++ script, the Script object's private slot
+	refers to it weakly).
 	Run: bash tools/check-core-tests.sh test_OOJSScript
 */
 
@@ -75,6 +81,14 @@ std::string Script(const std::string &relativePath, const std::string &source)
 }
 
 
+// The script (its facades, which answered -cxx_propertyNamed: and the property setters, are
+// deleted).
+OOJSScript *JS(const oo::Ref<OOJSScript> &script)
+{
+	return script.get();
+}
+
+
 std::string Text(const oo::PList &value)
 {
 	if (const std::string *string = value.getIf<std::string>())  return *string;
@@ -98,24 +112,24 @@ OO_TEST(load)
 	SetUp();
 	@autoreleasepool
 	{
-		OOJSScript *script = [OOJSScript scriptWithPath:Script("named/named.js", kNamedScript) properties:oo::PList()];
-		OO_CHECK(script != nil);
-		if (script == nil)  return;
-		OO_CHECK([script isKindOfClass:[OOScript class]]);
-		OO_CHECK_EQ([script cxx_name].value_or("<none>"), "test-script");	// spaces and underscores stripped
-		OO_CHECK_EQ([script cxx_version].value_or("<none>"), "1.0");
-		OO_CHECK_EQ([script scriptDescription].value_or("<none>"), "A test");
-		OO_CHECK_EQ([script displayName].value_or("<none>"), "test-script 1.0");
-		OO_CHECK(![script requiresTickle]);
-		[script runWithTarget:nil];	// does nothing
-		OO_CHECK(oo::DescriptionOf(script).find("\"test-script\" version 1.0") != std::string::npos);
-		OO_CHECK_EQ(Text([script cxx_propertyNamed:"name"]), "  test-script_ ");	// the property keeps what the script set
-		OO_CHECK(![OOJSScript currentlyRunningScript]);
-		OO_CHECK([OOJSScript scriptStack].empty());
+		const oo::Ref<OOJSScript> script = OOJSScript::scriptWithPath(Script("named/named.js", kNamedScript), oo::PList());
+		OO_CHECK(script != nullptr);
+		if (script == nullptr)  return;
+		OO_CHECK(dynamic_cast<OOScript *>(script.get()) != nullptr);
+		OO_CHECK_EQ(script->name().value_or("<none>"), "test-script");	// spaces and underscores stripped
+		OO_CHECK_EQ(script->version().value_or("<none>"), "1.0");
+		OO_CHECK_EQ(script->scriptDescription().value_or("<none>"), "A test");
+		OO_CHECK_EQ(script->displayName().value_or("<none>"), "test-script 1.0");
+		OO_CHECK(!script->requiresTickle());
+		script->runWithTarget(nil);	// does nothing
+		OO_CHECK(script->description().find("\"test-script\" version 1.0") != std::string::npos);
+		OO_CHECK_EQ(Text(JS(script)->propertyNamed("name")), "  test-script_ ");	// the property keeps what the script set
+		OO_CHECK(!OOJSScript::currentlyRunningScript());
+		OO_CHECK(OOJSScript::scriptStack().empty());
 
 		// No file: nil. (A file that does not compile is not loaded here: its error report goes
 		// through the game's JS error reporter, which needs the running game.)
-		OO_CHECK([OOJSScript scriptWithPath:(sRoot / "missing.js").generic_string() properties:oo::PList()] == nil);
+		OO_CHECK(OOJSScript::scriptWithPath((sRoot / "missing.js").generic_string(), oo::PList()) == nullptr);
 	}
 }
 
@@ -126,17 +140,17 @@ OO_TEST(defaultNames)
 	@autoreleasepool
 	{
 		// A script that names itself nothing is named after its file, or its OXP for script.js.
-		OOJSScript *byFile = [OOJSScript scriptWithPath:Script("loose/unnamed.js", "\"use strict\";\n") properties:oo::PList()];
-		OO_CHECK_EQ([byFile cxx_name].value_or("<none>"), "unnamed.js.anon-script");
-		OO_CHECK(![byFile cxx_version].has_value());
-		OO_CHECK_EQ([byFile displayName].value_or("<none>"), "unnamed.js.anon-script");
-		OO_CHECK_EQ(Text([byFile cxx_propertyNamed:"name"]), "unnamed.js.anon-script");
+		const oo::Ref<OOJSScript> byFile = OOJSScript::scriptWithPath(Script("loose/unnamed.js", "\"use strict\";\n"), oo::PList());
+		OO_CHECK_EQ(byFile->name().value_or("<none>"), "unnamed.js.anon-script");
+		OO_CHECK(!byFile->version().has_value());
+		OO_CHECK_EQ(byFile->displayName().value_or("<none>"), "unnamed.js.anon-script");
+		OO_CHECK_EQ(Text(JS(byFile)->propertyNamed("name")), "unnamed.js.anon-script");
 
-		OOJSScript *byOXP = [OOJSScript scriptWithPath:Script("Foo.oxp/Config/script.js", "\"use strict\";\n") properties:oo::PList()];
-		OO_CHECK_EQ([byOXP cxx_name].value_or("<none>"), "Foo.anon-script");
+		const oo::Ref<OOJSScript> byOXP = OOJSScript::scriptWithPath(Script("Foo.oxp/Config/script.js", "\"use strict\";\n"), oo::PList());
+		OO_CHECK_EQ(byOXP->name().value_or("<none>"), "Foo.anon-script");
 
-		OOJSScript *byFolder = [OOJSScript scriptWithPath:Script("Bar/Scripts/script.js", "\"use strict\";\n") properties:oo::PList()];
-		OO_CHECK_EQ([byFolder cxx_name].value_or("<none>"), "Scripts.anon-script");
+		const oo::Ref<OOJSScript> byFolder = OOJSScript::scriptWithPath(Script("Bar/Scripts/script.js", "\"use strict\";\n"), oo::PList());
+		OO_CHECK_EQ(byFolder->name().value_or("<none>"), "Scripts.anon-script");
 	}
 }
 
@@ -150,30 +164,30 @@ OO_TEST(manifestAndProperties)
 				  "{ identifier = \"org.test.baz\"; version = \"2.5\"; author = \"Tester\"; license = \"CC0\"; }");
 		oo::PList::Dict given;
 		given["mission"] = oo::PList(std::string("given"));
-		OOJSScript *script = [OOJSScript scriptWithPath:Script("Baz.oxp/Config/script.js", "\"use strict\";\nthis.name = \"baz\";\n")
-											 properties:oo::PList(std::move(given))];
-		OO_CHECK(script != nil);
-		if (script == nil)  return;
-		OO_CHECK_EQ([script cxx_version].value_or("<none>"), "2.5");	// from the manifest
-		OO_CHECK_EQ(Text([script cxx_propertyNamed:"author"]), "Tester");
-		OO_CHECK_EQ(Text([script cxx_propertyNamed:"license"]), "CC0");
-		OO_CHECK_EQ(Text([script cxx_propertyNamed:kLocalManifestProperty]), "org.test.baz");
-		OO_CHECK_EQ(Text([script cxx_propertyNamed:"mission"]), "given");
+		const oo::Ref<OOJSScript> script = OOJSScript::scriptWithPath(Script("Baz.oxp/Config/script.js", "\"use strict\";\nthis.name = \"baz\";\n")
+											, oo::PList(std::move(given)));
+		OO_CHECK(script != nullptr);
+		if (script == nullptr)  return;
+		OO_CHECK_EQ(script->version().value_or("<none>"), "2.5");	// from the manifest
+		OO_CHECK_EQ(Text(JS(script)->propertyNamed("author")), "Tester");
+		OO_CHECK_EQ(Text(JS(script)->propertyNamed("license")), "CC0");
+		OO_CHECK_EQ(Text(JS(script)->propertyNamed(kLocalManifestProperty)), "org.test.baz");
+		OO_CHECK_EQ(Text(JS(script)->propertyNamed("mission")), "given");
 
 		// Set and define from outside; nothing to set is refused.
-		OO_CHECK([script setProperty:oo::PList(3) named:"three"]);
-		OO_CHECK_EQ(Text([script cxx_propertyNamed:"three"]), "3");
-		OO_CHECK([script defineProperty:oo::PList(std::string("fixed")) named:"constant"]);
-		OO_CHECK_EQ(Text([script cxx_propertyNamed:"constant"]), "fixed");
-		OO_CHECK(![script setProperty:oo::PList() named:"nothing"]);
-		OO_CHECK(![script defineProperty:oo::PList() named:"nothing"]);
-		OO_CHECK([script cxx_propertyNamed:"neverSet"].isNull());
+		OO_CHECK(JS(script)->setProperty(oo::PList(3), "three"));
+		OO_CHECK_EQ(Text(JS(script)->propertyNamed("three")), "3");
+		OO_CHECK(JS(script)->defineProperty(oo::PList(std::string("fixed")), "constant"));
+		OO_CHECK_EQ(Text(JS(script)->propertyNamed("constant")), "fixed");
+		OO_CHECK(!JS(script)->setProperty(oo::PList(), "nothing"));
+		OO_CHECK(!JS(script)->defineProperty(oo::PList(), "nothing"));
+		OO_CHECK(JS(script)->propertyNamed("neverSet").isNull());
 
 		// A temporary manifest identifier sets nothing.
 		WriteText(sRoot / "Tmp.oxp" / "manifest.plist", "{ identifier = \"__oolite.tmp.1\"; version = \"9\"; }");
-		OOJSScript *temporary = [OOJSScript scriptWithPath:Script("Tmp.oxp/Config/script.js", "\"use strict\";\nthis.name = \"tmp\";\n") properties:oo::PList()];
-		OO_CHECK(![temporary cxx_version].has_value());
-		OO_CHECK([temporary cxx_propertyNamed:kLocalManifestProperty].isNull());
+		const oo::Ref<OOJSScript> temporary = OOJSScript::scriptWithPath(Script("Tmp.oxp/Config/script.js", "\"use strict\";\nthis.name = \"tmp\";\n"), oo::PList());
+		OO_CHECK(!temporary->version().has_value());
+		OO_CHECK(JS(temporary)->propertyNamed(kLocalManifestProperty).isNull());
 	}
 }
 
@@ -183,31 +197,31 @@ OO_TEST(callMethod)
 	SetUp();
 	@autoreleasepool
 	{
-		OOJSScript *script = [OOJSScript scriptWithPath:Script("call/call.js", kNamedScript) properties:oo::PList()];
-		OO_CHECK(script != nil);
-		if (script == nil)  return;
+		const oo::Ref<OOJSScript> script = OOJSScript::scriptWithPath(Script("call/call.js", kNamedScript), oo::PList());
+		OO_CHECK(script != nullptr);
+		if (script == nullptr)  return;
 
 		JSContext *context = OOJSAcquireContext();
 		JSValue argv[1] = { JS_NewInt32(context, 5) };
 		JSValue result = JS_UNDEFINED;
-		OO_CHECK([script callMethod:OOJSID("bump") inContext:context withArguments:argv count:1 result:&result]);
+		OO_CHECK(script->callMethod(OOJSID("bump"), context, argv, 1, &result));
 		double number = 0;
 		OO_CHECK(JS_ToFloat64(context, &number, result) == 0 && number == 5);
 		JS_FreeValue(context, result);
-		OO_CHECK([script callMethod:OOJSID("bump") inContext:context withArguments:argv count:1 result:NULL]);
-		OO_CHECK_EQ(Text([script cxx_propertyWithID:OOJSID("counter") inContext:context]), "10");
-		OO_CHECK(![script callMethod:OOJSID("noSuchMethod") inContext:context withArguments:NULL count:0 result:NULL]);
-		JSValue self = [script oo_jsValueInContext:context];
+		OO_CHECK(script->callMethod(OOJSID("bump"), context, argv, 1, NULL));
+		OO_CHECK_EQ(Text(JS(script)->propertyWithID(OOJSID("counter"), context)), "10");
+		OO_CHECK(!script->callMethod(OOJSID("noSuchMethod"), context, NULL, 0, NULL));
+		JSValue self = script->jsValueInContext(context);
 		OO_CHECK(!JS_IsUndefined(self));
 		JS_FreeValue(context, self);
 
 		// A script that is not JavaScript answers NO (OOScript (JavaScriptEvents)).
-		OOScript *plain = [[[OOScript alloc] init] autorelease];
-		OO_CHECK(![plain callMethod:OOJSID("bump") inContext:context withArguments:argv count:1 result:NULL]);
+		const oo::Ref<OOScript> plain = oo::makeRef<OOScript>();
+		OO_CHECK(!plain->callMethod(OOJSID("bump"), context, argv, 1, NULL));
 		OOJSRelinquishContext(context);
 
 		// After the call the stack of running scripts is empty again.
-		OO_CHECK([OOJSScript currentlyRunningScript] == nil);
+		OO_CHECK(OOJSScript::currentlyRunningScript() == nullptr);
 	}
 }
 
@@ -217,63 +231,87 @@ OO_TEST(runningStack)
 	SetUp();
 	@autoreleasepool
 	{
-		OOJSScript *first = [OOJSScript scriptWithPath:Script("stack/first.js", "\"use strict\";\nthis.name = \"first\";\n") properties:oo::PList()];
-		OOJSScript *second = [OOJSScript scriptWithPath:Script("stack/second.js", "\"use strict\";\nthis.name = \"second\";\n") properties:oo::PList()];
-		OO_CHECK(first != nil && second != nil);
+		const oo::Ref<OOJSScript> first = OOJSScript::scriptWithPath(Script("stack/first.js", "\"use strict\";\nthis.name = \"first\";\n"), oo::PList());
+		const oo::Ref<OOJSScript> second = OOJSScript::scriptWithPath(Script("stack/second.js", "\"use strict\";\nthis.name = \"second\";\n"), oo::PList());
+		OO_CHECK(first != nullptr && second != nullptr);
 
-		[OOJSScript pushScript:first];
-		OO_CHECK([OOJSScript currentlyRunningScript] == first);
-		[OOJSScript pushScript:second];
-		OO_CHECK([OOJSScript currentlyRunningScript] == second);
-		const std::vector<oo::ObjCRef<OOJSScript *>> stack = [OOJSScript scriptStack];
-		OO_CHECK(stack.size() == 2 && stack[0].get() == first && stack[1].get() == second);	// outermost first
-		[OOJSScript popScript:second];
-		OO_CHECK([OOJSScript currentlyRunningScript] == first);
-		[OOJSScript popScript:first];
-		OO_CHECK([OOJSScript currentlyRunningScript] == nil);
-		OO_CHECK([OOJSScript scriptStack].empty());
+		OOJSScript::pushScript(first.get());
+		OO_CHECK(OOJSScript::currentlyRunningScript() == first.get());
+		OOJSScript::pushScript(second.get());
+		OO_CHECK(OOJSScript::currentlyRunningScript() == second.get());
+		const std::vector<oo::Ref<OOJSScript>> stack = OOJSScript::scriptStack();
+		OO_CHECK(stack.size() == 2 && stack[0].get() == first.get() && stack[1].get() == second.get());	// outermost first
+		OOJSScript::popScript(second.get());
+		OO_CHECK(OOJSScript::currentlyRunningScript() == first.get());
+		OOJSScript::popScript(first.get());
+		OO_CHECK(OOJSScript::currentlyRunningScript() == nullptr);
+		OO_CHECK(OOJSScript::scriptStack().empty());
 
 		// A script-less push is allowed; the stack cannot be listed while it is on it.
-		[OOJSScript pushScript:nil];
-		OO_CHECK([OOJSScript currentlyRunningScript] == nil);
-		[OOJSScript popScript:nil];
+		OOJSScript::pushScript(nullptr);
+		OO_CHECK(OOJSScript::currentlyRunningScript() == nullptr);
+		OOJSScript::popScript(nullptr);
 	}
 }
 
 
-// The crossing, after the conversion (bead oo-u61e.4): the facade is the script's identity.
+// The crossing, after the facades' deletion (the conversion was oo-u61e.4): the script's identity
+// is the C++ object. The running stack holds it, weakly, and the Script object's private slot
+// refers to it weakly, as it held the facade's weak reference.
 OO_TEST(crossing)
 {
 	SetUp();
 	@autoreleasepool
 	{
-		OOJSScript *script = [OOJSScript scriptWithPath:Script("crossing/crossing.js", kNamedScript) properties:oo::PList()];
-		OO_CHECK(script != nil);
-		if (script == nil)  return;
-		cxx::OOJSScript *cxxScript = oo::ToCxx(script);
-		OO_CHECK(cxxScript != nullptr);
-		OO_CHECK(oo::ToObjC(cxxScript) == script);
-		OO_CHECK(oo::ToCxx(static_cast<OOScript *>(script)) == cxxScript);	// through the root's facade too
-		OO_CHECK(oo::ToObjC(static_cast<cxx::OOScript *>(cxxScript)) == script);
-		OO_CHECK(oo::ToCxx(static_cast<OOJSScript *>(nil)) == nullptr);
+		oo::Ref<OOJSScript> script = OOJSScript::scriptWithPath(Script("crossing/crossing.js", kNamedScript), oo::PList());
+		OO_CHECK(script != nullptr);
+		if (script == nullptr)  return;
 
-		// The C++ members answer as the facade does, and the root's members reach the overrides.
-		OO_CHECK_EQ(cxxScript->name().value_or("<none>"), "test-script");
-		OO_CHECK_EQ(cxxScript->displayName().value_or("<none>"), "test-script 1.0");
-		OO_CHECK_EQ(Text(cxxScript->propertyNamed("counter")), "0");
-		OO_CHECK(cxxScript->setProperty(oo::PList(7), "counter"));
-		OO_CHECK_EQ(Text([script cxx_propertyNamed:"counter"]), "7");
+		// The C++ members answer, and the root's members reach the overrides.
+		OOScript *root = script.get();
+		OO_CHECK_EQ(script->name().value_or("<none>"), "test-script");
+		OO_CHECK_EQ(root->name().value_or("<none>"), "test-script");
+		OO_CHECK_EQ(root->displayName().value_or("<none>"), "test-script 1.0");
+		OO_CHECK_EQ(Text(script->propertyNamed("counter")), "0");
+		OO_CHECK(script->setProperty(oo::PList(7), "counter"));
+		OO_CHECK_EQ(Text(script->propertyNamed("counter")), "7");
 
-		// The running stack holds facades, from either side.
-		cxx::OOJSScript::pushScript(script);
-		OO_CHECK([OOJSScript currentlyRunningScript] == script);
-		OO_CHECK(cxx::OOJSScript::currentlyRunningScript() == script);
-		[OOJSScript popScript:script];
-		OO_CHECK(cxx::OOJSScript::scriptStack().empty());
+		// The running stack holds the script.
+		OOJSScript::pushScript(script.get());
+		OO_CHECK(OOJSScript::currentlyRunningScript() == script.get());
+		OOJSScript::popScript(script.get());
+		OO_CHECK(OOJSScript::scriptStack().empty());
 
-		// A weak reference is to the facade.
-		OOWeakReference *weak = [[script weakRetain] autorelease];
-		OO_CHECK([weak weakRefUnderlyingObject] == script);
+		// A weak push answers the script while it lives (a timer's or definition's).
+		const oo::WeakRef<OOJSScript> weak = script.get();
+		OOJSScript::pushScript(weak);
+		OO_CHECK(OOJSScript::currentlyRunningScript() == script.get());
+		OOJSScript::popScript(weak.get());
+
+		// The Script object converts back to the script (a plist Object node), and its JS glue
+		// answers; any other script answers undefined.
+		JSContext *context = OOJSAcquireContext();
+		JSValue value = script->jsValueInContext(context);	// owned: kept alive
+		OO_CHECK(!JS_IsUndefined(value));
+		OO_CHECK(OOScriptInObjectNode(cxx_OOJSPListFromJSValue(context, value)) == script.get());
+		OO_CHECK(script->jsClassName() == std::optional<std::string>("Script"));
+		OO_CHECK(script->jsDescription() == std::optional<std::string>("[Script \"test-script\" version 1.0]"));
+		const oo::Ref<OOScript> plain = oo::makeRef<OOScript>();
+		JSValue plainValue = plain->jsValueInContext(context);
+		OO_CHECK(JS_IsUndefined(plainValue));
+		JS_FreeValue(context, plainValue);
+
+		// The slot does not keep the script: once it goes, the object converts to nothing, and a
+		// weak push answers no script.
+		script = nullptr;
+		OO_CHECK(weak.get() == nullptr);
+		OO_CHECK(cxx_OOJSPListFromJSValue(context, value).isNull());
+		OOJSScript::pushScript(weak);
+		OO_CHECK(OOJSScript::currentlyRunningScript() == nullptr);
+		OO_CHECK(OOJSScript::scriptStack().size() == 1 && OOJSScript::scriptStack()[0] == nullptr);
+		OOJSScript::popScript(nullptr);
+		JS_FreeValue(context, value);
+		OOJSRelinquishContext(context);
 	}
 }
 
@@ -283,22 +321,22 @@ OO_TEST(engineReset)
 	SetUp();
 	@autoreleasepool
 	{
-		OOJSScript *script = [OOJSScript scriptWithPath:Script("reset/reset.js", kNamedScript) properties:oo::PList()];
-		OO_CHECK(script != nil);
-		if (script == nil)  return;
+		const oo::Ref<OOJSScript> script = OOJSScript::scriptWithPath(Script("reset/reset.js", kNamedScript), oo::PList());
+		OO_CHECK(script != nullptr);
+		if (script == nullptr)  return;
 		oo::NotificationCenter::defaultCenter().post(kOOJavaScriptEngineWillResetNotificationName, [OOJavaScriptEngine sharedEngine]);
 
 		// Invalid from now on: no properties, no calls, and so described.
-		OO_CHECK(oo::DescriptionOf(script).find("invalid script") != std::string::npos);
-		OO_CHECK([script cxx_propertyNamed:"counter"].isNull());
-		OO_CHECK(![script setProperty:oo::PList(1) named:"counter"]);
+		OO_CHECK(script->description().find("invalid script") != std::string::npos);
+		OO_CHECK(JS(script)->propertyNamed("counter").isNull());
+		OO_CHECK(!JS(script)->setProperty(oo::PList(1), "counter"));
 		JSContext *context = OOJSAcquireContext();
-		OO_CHECK(![script callMethod:OOJSID("bump") inContext:context withArguments:NULL count:0 result:NULL]);
-		JSValue self = [script oo_jsValueInContext:context];
+		OO_CHECK(!script->callMethod(OOJSID("bump"), context, NULL, 0, NULL));
+		JSValue self = script->jsValueInContext(context);
 		OO_CHECK(JS_IsUndefined(self));
 		JS_FreeValue(context, self);
 		OOJSRelinquishContext(context);
-		OO_CHECK_EQ([script cxx_name].value_or("<none>"), "test-script");	// the name was kept
+		OO_CHECK_EQ(script->name().value_or("<none>"), "test-script");	// the name was kept
 	}
 }
 
@@ -311,15 +349,15 @@ OO_TEST(broken)
 	SetUp();
 	@autoreleasepool
 	{
-		OO_CHECK([OOJSScript scriptWithPath:Script("broken/broken.js", "\"use strict\";\nthis.name = ;\n") properties:oo::PList()] == nil);
-		OO_CHECK([OOJSScript currentlyRunningScript] == nil);
-		OO_CHECK([OOJSScript scriptStack].empty());
+		OO_CHECK(OOJSScript::scriptWithPath(Script("broken/broken.js", "\"use strict\";\nthis.name = ;\n"), oo::PList()) == nullptr);
+		OO_CHECK(OOJSScript::currentlyRunningScript() == nullptr);
+		OO_CHECK(OOJSScript::scriptStack().empty());
 	}
 	@autoreleasepool
 	{
-		OOJSScript *after = [OOJSScript scriptWithPath:Script("broken/after.js", kNamedScript) properties:oo::PList()];
-		OO_CHECK(after != nil);
-		OO_CHECK_EQ([after cxx_name].value_or("<none>"), "test-script");
+		const oo::Ref<OOJSScript> after = OOJSScript::scriptWithPath(Script("broken/after.js", kNamedScript), oo::PList());
+		OO_CHECK(after != nullptr);
+		OO_CHECK_EQ(after->name().value_or("<none>"), "test-script");
 	}
 }
 

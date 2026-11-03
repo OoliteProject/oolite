@@ -5,8 +5,9 @@
 	As the binding tests of amendment oo-ppc item 6 do, it runs the JS class in a real QuickJS-ng
 	context, and links the game's own objects for the binding, the class registration
 	(OOJSClasses.mm), the engine's exception translator (OOJSEngineNativeWrappers.mm) and the
-	commodity classes it asks (OOCommodities and OOCommodityMarket, converted classes reached
-	through their façades, as test_OOCommodities.mm links them, reading the trade goods below). It
+	commodity classes it asks (OOCommodities and OOCommodityMarket, C++ since beads oo-9ht.25 and
+	oo-9ht.21 deleted their façades, as test_OOCommodities.mm links them, reading the trade goods
+	below; the stand-ins hold them as oo::Ref). It
 	stands in for the player (its cargo and its manifest market), the universe (its commodities and
 	its market), the resource manager and string expander the commodity classes call, the player
 	ship's JS object, and the engine functions the binding links against, with the engine headers'
@@ -28,34 +29,37 @@
 
 // MARK: The classes, as far as the binding and the commodities see them ---------------------------
 
-@class StationEntity;
+class StationEntity;
 
 /*	The player: its cargo by good, its special cargo, its list for scripts and its manifest market.
 	Asking for the quantity of "furs" raises, and of "gems" while _throwCxx is set throws a C++
 	exception, so the test sees what an exception under a native becomes.
 */
-@interface PlayerEntity: OOObject
+// PLAYER: C++ since bead oo-9ht.177 deleted the Objective-C player this stood in for: the members
+// the code under test calls, declared as the game headers declare them (the test imports none
+// that defines the classes), with the stand-in's answers.
+class PlayerEntity
 {
-@public
+public:
+	oo::PList cargoListForScripting();
+	OOCargoQuantity cargoQuantityForType(const std::string &type);
+	OOCargoQuantity setCargoQuantityForType(const std::string &type, OOCargoQuantity amount);
+	std::optional<std::string> getSpecialCargo();
+	::OOCommodityMarket * getShipCommodityData();
+	::OOScript * commodityScriptNamed(const std::optional<std::string> &scriptName);
+
 	std::map<std::string, OOCargoQuantity> _cargo;
 	std::optional<std::string> _specialCargo;
-	OOCommodityMarket *_shipCommodityData;
-	int _sets;
-	BOOL _throwCxx;
-}
-- (oo::PList) cargoListForScripting;
-- (OOCargoQuantity) cxx_cargoQuantityForType:(const std::string &)type;
-- (OOCargoQuantity) cxx_setCargoQuantityForType:(const std::string &)type amount:(OOCargoQuantity)amount;
-- (std::optional<std::string>) cxx_specialCargo;
-- (OOCommodityMarket *) shipCommodityData;
-- (id) cxx_commodityScriptNamed:(const std::optional<std::string> &)script;
-@end
+	oo::Ref<OOCommodityMarket> _shipCommodityData;
+	int _sets = {};
+	BOOL _throwCxx = {};
+};
 
 @interface Universe: OOObject
 {
 @public
-	OOCommodities *_commodities;
-	OOCommodityMarket *_market;
+	oo::Ref<OOCommodities> _commodities;
+	oo::Ref<OOCommodityMarket> _market;
 }
 - (OOCommodities *) commodities;
 - (OOCommodityMarket *) commodityMarket;
@@ -66,8 +70,17 @@
 + (oo::PList) cxx_dictionaryFromFilesNamed:(const std::string &)fileName inFolder:(const std::optional<std::string> &)folderName mergeMode:(int)mergeMode cache:(BOOL)useCache;
 @end
 
-@interface StationEntity: OOObject
-@end
+// A station: C++ since bead oo-9ht.175 deleted the Objective-C station this stood in for; the
+// members the commodities call, declared as StationEntity.h declares them (the test imports no
+// game header that defines the class). No case makes a station: link stubs.
+class StationEntity
+{
+public:
+	oo::PList getMarketDefinition();
+	std::optional<std::string> getMarketScriptName();
+	OOCargoQuantity getMarketCapacity();
+	bool getMarketMonitored();
+};
 
 
 #import "OOJSManifest.h"
@@ -108,9 +121,7 @@ oo::PList TradeGoods()
 }	// namespace
 
 
-@implementation PlayerEntity
-
-- (oo::PList) cargoListForScripting
+oo::PList PlayerEntity::cargoListForScripting()
 {
 	oo::PList::Array list;
 	for (const auto &[good, quantity] : _cargo)
@@ -119,32 +130,27 @@ oo::PList TradeGoods()
 	}
 	return oo::PList(std::move(list));
 }
-
-- (OOCargoQuantity) cxx_cargoQuantityForType:(const std::string &)type
+OOCargoQuantity PlayerEntity::cargoQuantityForType(const std::string &type)
 {
 	if (type == "furs")  [OOException raise:OOInvalidArgumentException format:"cargo %s", "boom"];
 	if (type == "gems" && _throwCxx)  throw std::runtime_error("cxx boom");
 	return _cargo[type];
 }
-
-- (OOCargoQuantity) cxx_setCargoQuantityForType:(const std::string &)type amount:(OOCargoQuantity)amount
+OOCargoQuantity PlayerEntity::setCargoQuantityForType(const std::string &type, OOCargoQuantity amount)
 {
 	_sets++;
 	_cargo[type] = amount;
 	return amount;
 }
-
-- (std::optional<std::string>) cxx_specialCargo  { return _specialCargo; }
-- (OOCommodityMarket *) shipCommodityData  { return _shipCommodityData; }
-- (id) cxx_commodityScriptNamed:(const std::optional<std::string> &)script  { (void)script; return nil; }
-
-@end
+std::optional<std::string> PlayerEntity::getSpecialCargo()  { return _specialCargo; }
+::OOCommodityMarket * PlayerEntity::getShipCommodityData()  { return _shipCommodityData.get(); }
+::OOScript * PlayerEntity::commodityScriptNamed(const std::optional<std::string> &script)  { (void)script; return nil; }
 
 
 @implementation Universe
 
-- (OOCommodities *) commodities  { return _commodities; }
-- (OOCommodityMarket *) commodityMarket  { return _market; }
+- (OOCommodities *) commodities  { return _commodities.get(); }
+- (OOCommodityMarket *) commodityMarket  { return _market.get(); }
 - (OOSystemID) currentSystemID  { return 7; }
 
 @end
@@ -161,8 +167,16 @@ oo::PList TradeGoods()
 @end
 
 
-@implementation StationEntity
-@end
+oo::PList StationEntity::getMarketDefinition()					{ std::abort(); }
+std::optional<std::string> StationEntity::getMarketScriptName()	{ std::abort(); }
+OOCargoQuantity StationEntity::getMarketCapacity()				{ std::abort(); }
+bool StationEntity::getMarketMonitored()						{ std::abort(); }
+
+// Link stub: a station's Objective-C object, which only a commodity script for a station is given.
+@class Entity;
+namespace cxx { class Entity; }
+namespace oo { ::Entity *ToObjC(cxx::Entity *entity); }
+::Entity *oo::ToObjC(cxx::Entity *)	{ std::abort(); }
 
 
 // The expander: "<string>".
@@ -305,12 +319,12 @@ JSContext *gOOJSMainThreadContext = nullptr;
 
 
 namespace {
-PlayerEntity *sPlayer = nil;
+PlayerEntity *sPlayer = nullptr;
 JSValue sPlayerShip = JS_UNDEFINED;	// owned for the life of the test
 std::map<JSClassID, int> sConverters;
 }
 
-PlayerEntity *gOOPlayer = nil;
+PlayerEntity *gOOPlayer = nullptr;
 Universe *gSharedUniverse = nil;
 
 
@@ -415,11 +429,11 @@ void SetUpContext()
 
 	sUniverse = [[Universe alloc] init];	// kept for the life of the test
 	gSharedUniverse = sUniverse;
-	sPlayer = [[PlayerEntity alloc] init];
+	sPlayer = new PlayerEntity;
 	gOOPlayer = sPlayer;
-	sUniverse->_commodities = [[OOCommodities alloc] init];
-	sUniverse->_market = [[sUniverse->_commodities generateBlankMarket] retain];
-	sPlayer->_shipCommodityData = [[sUniverse->_commodities generateManifestForPlayer] retain];
+	sUniverse->_commodities = oo::makeRef<OOCommodities>();
+	sUniverse->_market = sUniverse->_commodities->generateBlankMarket();
+	sPlayer->_shipCommodityData = sUniverse->_commodities->generateManifestForPlayer();
 	sPlayer->_cargo["food"] = 3;
 	sPlayer->_cargo["gems"] = 12;
 
@@ -530,7 +544,7 @@ OO_TEST(comments)
 	OO_CHECK_EVAL("manifest.shortComment('food')", "<[oolite-commodity-no-short-comment]>");
 	OO_CHECK_EVAL("manifest.setComment('unobtainium', 'x')", "false");
 	OO_CHECK_EVAL("manifest.comment('unobtainium')", "<[oolite-unknown-commodity-name]>");
-	OO_CHECK([sPlayer->_shipCommodityData cxx_commentForGood:"food"] == std::optional<std::string>("<Edible>"));
+	OO_CHECK(sPlayer->_shipCommodityData->commentForGood("food") == std::optional<std::string>("<Edible>"));
 	OO_CHECK_EVAL("manifest.comment()", "threw: bad arguments: Manifest.comment(0) - / good");
 	OO_CHECK_EVAL("manifest.shortComment(null)", "threw: bad arguments: Manifest.shortComment(1) - / good");
 	OO_CHECK_EVAL("manifest.setComment('food')", "threw: bad arguments: Manifest.setComment(1) - / good and information text");

@@ -7,7 +7,8 @@
 	(OOJSClasses.mm), its exception translator (OOJSEngineNativeWrappers.mm), the constant strings
 	(OOConstToJSString.cpp) and the maths it calls, and stands in for the entity classes
 	(Entity and ShipEntity answer only the selectors the binding sends; the binding messages the
-	Objective-C Entity, the façade every entity still is), for the vector and quaternion conversions
+	Objective-C Entity, the façade every entity still is, and calls a ship's C++ part, C++ since
+	bead oo-9ht.144), for the vector and quaternion conversions
 	(a vector is the array [x, y, z] here, a quaternion [w, x, y, z]) and for the engine functions
 	the binding links against, with the engine headers' signatures (OOJSEngineCore.h, upstream
 	#768's QuickJS-ng API). The expectations were written
@@ -26,6 +27,7 @@
 #include <quickjs.h>
 #include "oofnd/objc/OOException.h"
 #include "oofnd/PList.hpp"
+#include "oofnd/Ref.hpp"
 #include "oofnd/String.hpp"
 #import "OOConstToJSString.h"
 
@@ -36,9 +38,18 @@
 	One whose mass is 99 raises from -mass, one whose mass is 98 throws a C++ exception, so the test
 	sees what an exception under a native becomes.
 */
+namespace cxx {
+class Entity : public oo::RefCounted	// the C++ root, as far as a ship's part needs it
+{
+public:
+	virtual ~Entity();
+};
+}	// namespace cxx
+
 @interface Entity: OOObject
 {
 @public
+	oo::Ref<cxx::Entity> _cxxEntity;	// the C++ part (oo::ToCxx reads it): a ship's
 	float _collisionRadius;
 	HPVector _position;
 	Quaternion _orientation;
@@ -87,15 +98,18 @@
 - (void) dumpState;
 @end
 
-@interface ShipEntity: Entity
+// A ship: C++ since bead oo-9ht.144 deleted the Objective-C ship this stood in for, the C++ part of
+// an entity's object, declared as ShipEntity.h declares it (the test imports no game header that
+// defines the class), with the stand-in's answers.
+class ShipEntity : public cxx::Entity
 {
-@public
-	int _plumeResets;
-	int _aegisChecks;
-}
-- (void) resetExhaustPlumes;
-- (void) forceAegisCheck;
-@end
+public:
+	void resetExhaustPlumes();
+	void forceAegisCheck();
+
+	int _plumeResets = 0;
+	int _aegisChecks = 0;
+};
 
 
 #include "OOJSEngineCore.h"
@@ -160,12 +174,9 @@ bool EntityFromArgumentList(JSContext *context, const std::optional<std::string>
 @end
 
 
-@implementation ShipEntity
-
-- (void) resetExhaustPlumes  { _plumeResets++; }
-- (void) forceAegisCheck  { _aegisChecks++; }
-
-@end
+cxx::Entity::~Entity() = default;
+void ShipEntity::resetExhaustPlumes()  { _plumeResets++; }
+void ShipEntity::forceAegisCheck()  { _aegisChecks++; }
 
 
 // MARK: What the rest of the engine provides ------------------------------------------------------
@@ -445,9 +456,10 @@ namespace {
 
 JSRuntime *sRuntime = nullptr;
 JSValue sGlobal = JS_UNDEFINED;	// held for the life of the test
-ShipEntity *sShip = nil;
+Entity *sShip = nil;	// a ship's object and its C++ part (the Objective-C ship until bead oo-9ht.144)
+ShipEntity *sShipPart = nullptr;
 Entity *sRock = nil;
-ShipEntity *sMother = nil;
+Entity *sMother = nil;
 
 
 // Defines a global; takes value's reference.
@@ -469,13 +481,16 @@ void SetUpContext()
 	InitOOJSEntity(sContext, sGlobal);
 
 	// Kept for the life of the test.
-	sMother = [[ShipEntity alloc] init];
+	sMother = [[Entity alloc] init];
+	sMother->_cxxEntity = oo::makeRef<ShipEntity>();
 	sMother->_isShip = YES;
 	sMother->_isStation = YES;
 	sMother->_status = STATUS_ACTIVE;
 	sMother->_scanClass = CLASS_STATION;
 
-	sShip = [[ShipEntity alloc] init];
+	sShip = [[Entity alloc] init];
+	sShip->_cxxEntity = oo::makeRef<ShipEntity>();
+	sShipPart = static_cast<ShipEntity *>(sShip->_cxxEntity.get());
 	sShip->_collisionRadius = 40.5f;
 	sShip->_position = make_HPvector(1000, -2000, 3000.5);
 	sShip->_orientation = kIdentityQuaternion;
@@ -581,8 +596,8 @@ OO_TEST(writeProperties)
 {
 	SetUpContext();
 	OO_CHECK_EVAL("(function () { ship.position = [1, 2, 3]; return JSON.stringify(ship.position); })()", "[1,2,3]");
-	OO_CHECK_EQ(sShip->_plumeResets, 1);	// a ship's plumes and aegis follow it
-	OO_CHECK_EQ(sShip->_aegisChecks, 1);
+	OO_CHECK_EQ(sShipPart->_plumeResets, 1);	// a ship's plumes and aegis follow it
+	OO_CHECK_EQ(sShipPart->_aegisChecks, 1);
 	OO_CHECK_EVAL("(function () { rock.position = [4, 5, 6]; return JSON.stringify(rock.position); })()", "[4,5,6]");
 	OO_CHECK_EQ(sRock->_positionSets, 1);
 	OO_CHECK_EVAL("(function () { ship.position = 'here'; return 'set'; })()", "threw: bad property value");

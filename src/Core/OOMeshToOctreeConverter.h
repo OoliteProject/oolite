@@ -36,7 +36,7 @@ MA 02110-1301, USA.
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
 
-@class ShipEntity;
+class ShipEntity; // C++ since bead oo-9ht.144
 
 enum {
     kOOMeshToOctreeConverterSmallDataCapacity = 16
@@ -59,7 +59,7 @@ public:
 
     void addTriangle(Triangle tri);
 
-    oo::Ref<cxx::Octree> findOctreeToDepth(NSUInteger depth);
+    oo::Ref<Octree> findOctreeToDepth(NSUInteger depth);
 
     // What "%@" prints between the braces of <OOMeshToOctreeConverter 0x...>{...} (OODescription.h).
     std::optional<std::string> descriptionComponents() const;

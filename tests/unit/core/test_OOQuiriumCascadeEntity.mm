@@ -6,7 +6,7 @@
 	Its object needs the game graph, so the test links the whole game but main (['*']) and uses a
 	Universe that was never initialised, of a test subclass that records what is removed, and a plain
 	entity as PLAYER. The ship it is made from is a plain entity too: the class asks it only for its
-	position and owner. The expectations were written against the Objective-C API and run on the
+	position and owner (a C++ ship under its object, never set up, since bead oo-9ht.144). The expectations were written against the Objective-C API and run on the
 	unconverted class first: nil from a nil ship; what it takes from the ship; that it is the
 	cascade weapon (and other entities are not); the collision delay, the expansion, the energy it
 	deals to what it collides with, and its removal after twenty seconds; its description. Making
@@ -16,6 +16,7 @@
 */
 
 #import "OOQuiriumCascadeEntity.h"
+#import "PlayerEntity.h"	// PLAYER is C++
 #import "OODescription.h"
 #import "Universe.h"
 
@@ -30,20 +31,29 @@
 uint32_t gDebugFlags = 0;
 #endif
 
-@class PlayerEntity;
+class PlayerEntity;
 extern PlayerEntity *gOOPlayer;
 extern Universe *gSharedUniverse;
 
 
-@interface TestPlayer: Entity
-@end
+class TestPlayer : public PlayerEntity	// C++ since bead oo-9ht.177 deleted the Objective-C player
+{
+public:
+	HPVector viewpointPosition() override	{ return kZeroHPVector; }
+};
 
-
-@implementation TestPlayer
-
-- (HPVector) viewpointPosition	{ return kZeroHPVector; }
-
-@end
+// NewTestPlayer<TestPlayer>(): a C++ player under the ship's facade, as
+// PlayerEntity::sharedPlayer() makes the game's, retained (+1) as +alloc's object was.
+template <class T>
+T *NewTestPlayer()
+{
+	oo::Ref<T> player = oo::makeRef<T>();
+	@autoreleasepool
+	{
+		[oo::NewEntityFacade(player) retain];
+	}
+	return player.get();
+}
 
 
 static Entity *sRemoved = nil;
@@ -87,6 +97,9 @@ static Entity *sRemoved = nil;
 @end
 
 
+extern JSContext *gOOJSMainThreadContext;	// the engine's (OOJavaScriptEngine.mm)
+
+
 namespace {
 
 // --- How a cascade is made, and nothing else --------------------------------------------------------
@@ -105,9 +118,13 @@ void SetUp()
 		universe->_cxxUniverse = oo::makeRef<cxx::Universe>(universe);	// what -initWithGameView: makes first (ADR-0056 amendment oo-riqmz)
 	}
 	gSharedUniverse = universe;
-	static TestPlayer *player = nil;
-	if (player == nil)  player = [[TestPlayer alloc] init];
-	gOOPlayer = (PlayerEntity *)player;
+	static TestPlayer *player = nullptr;
+	if (player == nullptr)  player = NewTestPlayer<TestPlayer>();
+	gOOPlayer = player;
+	// The ship's -dealloc sends its (absent) scripts entityDestroyed in a request on the main
+	// thread's context, so there is one, with nothing in it (the ship stand-in is C++ since bead
+	// oo-9ht.144, as test_StationEntity's ships are).
+	if (gOOJSMainThreadContext == nullptr)  gOOJSMainThreadContext = JS_NewContext(JS_NewRuntime());
 	sRemoved = nil;
 }
 
@@ -121,12 +138,12 @@ OO_TEST(fromShip)
 		SetUp();
 		OO_CHECK(MakeCascade(nil) == nil);
 
-		Entity *ship = [[[Entity alloc] init] autorelease];
+		Entity *ship = oo::NewEntityFacade(oo::makeRef<::ShipEntity>());	// a C++ ship under its object, never set up
 		Entity *shipOwner = [[[Entity alloc] init] autorelease];
 		[ship setPosition:make_HPvector(5, 6, 7)];
 		[ship setOwner:shipOwner];
 
-		Entity *cascade = MakeCascade((ShipEntity *)ship);
+		Entity *cascade = MakeCascade(oo::ToShip(ship));
 		OO_CHECK(cascade != nil);
 		OO_CHECK(HPvector_equal([cascade position], make_HPvector(5, 6, 7)));
 		OO_CHECK([cascade status] == STATUS_EFFECT && [cascade scanClass] == CLASS_MINE);
@@ -148,10 +165,10 @@ OO_TEST(update)
 	@autoreleasepool
 	{
 		SetUp();
-		Entity *ship = [[[Entity alloc] init] autorelease];
+		Entity *ship = oo::NewEntityFacade(oo::makeRef<::ShipEntity>());	// a C++ ship under its object, never set up
 		Entity *shipOwner = [[[Entity alloc] init] autorelease];
 		[ship setOwner:shipOwner];
-		Entity *cascade = MakeCascade((ShipEntity *)ship);
+		Entity *cascade = MakeCascade(oo::ToShip(ship));
 		TestVictim *victim = [[[TestVictim alloc] init] autorelease];
 		[cascade cxx_collidingEntities]->emplace_back(victim);
 

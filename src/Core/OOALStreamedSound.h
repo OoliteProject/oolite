@@ -5,8 +5,8 @@ OOALStreamedSound.h
 OOALStreamedSound - OpenAL sound implementation for Oolite.
 
 C++20 since bead oo-03g7 (proposed ADR-0056, the Audio module: amendment oo-2en): a subclass of
-cxx::OOSound. Bead oo-9ht.84 deleted its Objective-C facade and moved it to the global namespace;
-the root's class cluster makes it, and it crosses to Objective-C as the root's facade, an OOSound.
+OOSound. Bead oo-9ht.84 deleted its Objective-C facade and moved it to the global namespace; the root's
+class cluster makes it from the C++ decoder (bead oo-9ht.82).
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -32,17 +32,16 @@ SOFTWARE.
 #define OOALSTREAMEDSOUND_H
 
 #import "OOALSound.h"
-@class OOALSoundDecoder; // only named here; the tests that stub the decoder declare their own
+#import "OOALSoundDecoder.h"
 
 #include "oofnd/StdLib.hpp"
-#include "oofnd/objc/OOObjCRef.h"
 
-class OOALStreamedSound : public cxx::OOSound {
+class OOALStreamedSound : public OOSound {
 public:
     /*	Was -initWithDecoder:, which kept the decoder to stream from: null where it answered nil
             (sound not OK, or no decoder).
     */
-    static oo::Ref<OOALStreamedSound> initWithDecoder(::OOALSoundDecoder* inDecoder);
+    static oo::Ref<OOALStreamedSound> initWithDecoder(OOALSoundDecoder* inDecoder);
 
     ~OOALStreamedSound() override;
 
@@ -61,7 +60,7 @@ private:
     double _sampleRate = { };
     std::optional<std::string> _name; // nil-able, as the name was (proposed ADR-0043)
     bool _stereo = { };
-    oo::ObjCRef<::OOALSoundDecoder*> decoder; // the Objective-C decoder, retained as before
+    oo::Ref<OOALSoundDecoder> decoder; // retained, as the Objective-C decoder was
     bool _reachedEnd = { };
 };
 

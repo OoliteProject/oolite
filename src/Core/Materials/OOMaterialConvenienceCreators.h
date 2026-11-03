@@ -37,7 +37,7 @@ SOFTWARE.
 #include <optional>
 #include <string>
 
-@class OOColor;
+class OOColor;
 
 // The creators are static members of cxx::OOMaterial (materialWithName(), in OOMaterial.h), defined
 // in OOMaterialConvenienceCreators.mm since bead oo-9fwb (proposed ADR-0056 amendment oo-o89 item

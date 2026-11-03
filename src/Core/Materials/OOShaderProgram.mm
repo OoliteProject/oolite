@@ -58,9 +58,14 @@ std::string StringOrNull(const std::optional<std::string>& string)
 BOOL GetShaderSource(const std::optional<std::string>& fileName, const std::string& shaderType, std::optional<std::string>* outResult);
 std::string GetGLSLInfoLog(GLhandleARB shaderObject);
 
-} // namespace
+// The game view's matrix manager, taken from the C++ view. Null when there is no universe or view.
+OOOpenGLMatrixManager* GameViewMatrixManager()
+{
+    cxx::MyOpenGLView* view = oo::ToCxx([UNIVERSE gameView]);
+    return (view != nullptr) ? view->getOpenGLMatrixManager() : nullptr;
+}
 
-namespace cxx {
+} // namespace
 
 /*	Cache key -> program, not retained: a program removes itself in its destructor. Was an
         Objective-C mutable dictionary of boxed values (bead oo-3rb.10); keys are the cache keys' UTF-8.
@@ -69,33 +74,31 @@ namespace cxx {
 */
 namespace {
 
-    std::unordered_map<std::string, OOShaderProgram*>* sShaderCache = NULL;
+std::unordered_map<std::string, OOShaderProgram*>* sShaderCache = NULL;
 
-    OOShaderProgram* CachedShaderProgram(const std::optional<std::string>& cacheKey)
-    {
-        if (!cacheKey.has_value() || sShaderCache == NULL)
-            return nullptr;
-        auto it = sShaderCache->find(*cacheKey);
-        return (it != sShaderCache->end()) ? it->second : nullptr;
-    }
+OOShaderProgram* CachedShaderProgram(const std::optional<std::string>& cacheKey)
+{
+    if (!cacheKey.has_value() || sShaderCache == NULL)
+        return nullptr;
+    auto it = sShaderCache->find(*cacheKey);
+    return (it != sShaderCache->end()) ? it->second : nullptr;
+}
 
-    void CacheShaderProgram(const std::string& cacheKey, OOShaderProgram* program)
-    {
-        if (sShaderCache == NULL)
-            sShaderCache = new std::unordered_map<std::string, OOShaderProgram*>;
-        (*sShaderCache)[cacheKey] = program;
-    }
+void CacheShaderProgram(const std::string& cacheKey, OOShaderProgram* program)
+{
+    if (sShaderCache == NULL)
+        sShaderCache = new std::unordered_map<std::string, OOShaderProgram*>;
+    (*sShaderCache)[cacheKey] = program;
+}
 
-    /*	The program in use, retained (sActiveProgram). It holds the Objective-C object (the facade),
-            which owns the C++ program and is what sActiveProgram retained, so a program in use keeps its
-            facade while the facade exists (proposed ADR-0056, amendment oo-f9zg item 2). Never destroyed,
-            as the static pointer was not (amendment oo-smy item 3).
-    */
-    oo::ObjCRef<::OOShaderProgram*>& ActiveProgram()
-    {
-        static auto* active = new oo::ObjCRef<::OOShaderProgram*>;
-        return *active;
-    }
+/*	The program in use, retained (sActiveProgram). Never destroyed, as the static pointer was not
+        (proposed ADR-0056, amendment oo-smy item 3).
+*/
+oo::Ref<OOShaderProgram>& ActiveProgram()
+{
+    static auto* active = new oo::Ref<OOShaderProgram>;
+    return *active;
+}
 
 } // namespace
 
@@ -204,7 +207,7 @@ OOShaderProgram::~OOShaderProgram()
 
 #ifndef NDEBUG
     // Cannot happen while being in use retains the program; kept as the old imbalance check.
-    if (EXPECT_NOT(ActiveProgram() != nullptr && oo::ToCxx(ActiveProgram().get()) == this)) {
+    if (EXPECT_NOT(ActiveProgram() != nullptr && ActiveProgram().get() == this)) {
         OO_LOG("shader.dealloc.imbalance", "{}", "***** OOShaderProgram deallocated while active, indicating a retain/release imbalance. Expect imminent crash.");
         // applyNone(), but not released: it is being destroyed.
         (void)ActiveProgram().leakRef();
@@ -225,12 +228,8 @@ void OOShaderProgram::apply()
 {
     OO_ENTER_OPENGL();
 
-    if (oo::ToCxx(ActiveProgram().get()) != this) {
-        // The pool drains oo::ToObjC's autorelease here, so the program in use carries only the
-        // slot's retain, as [program retain] did (amendment oo-f9zg item 2).
-        @autoreleasepool {
-            ActiveProgram() = oo::ObjCRef<::OOShaderProgram*>(oo::ToObjC(this));
-        }
+    if (ActiveProgram().get() != this) {
+        ActiveProgram() = oo::Ref<OOShaderProgram>(this);
         OOGL(glUseProgramObjectARB(_program));
         bindStandardMatrixUniforms();
     }
@@ -250,8 +249,6 @@ GLhandleARB OOShaderProgram::program()
 {
     return _program;
 }
-
-} // namespace cxx
 
 namespace {
 
@@ -319,8 +316,6 @@ BOOL ValidateShaderObject(GLhandleARB object, const std::optional<std::string>& 
 }
 
 } // namespace
-
-namespace cxx {
 
 bool OOShaderProgram::initWithVertexShaderSource(const std::optional<std::string>& vertexSource,
     const std::optional<std::string>& fragmentSource,
@@ -398,9 +393,9 @@ bool OOShaderProgram::initWithVertexShaderSource(const std::optional<std::string
         OOGL(glDeleteObjectARB(fragmentShader));
 
     if (OK) {
-        // The matrix manager is C++: reached from the game view's facade (null-guarded, as a
-        // message to nil answered a null list).
-        OOOpenGLMatrixManager* matrixManager = oo::ToCxx([[UNIVERSE gameView] getOpenGLMatrixManager]);
+        // The matrix manager is C++: taken from the C++ game view (null-guarded, as a message to
+        // nil answered a null list).
+        OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
         standardMatrixUniformLocations = (matrixManager != nullptr) ? matrixManager->standardMatrixUniformLocations(_program) : oo::PList();
     } else {
         if (_program != NULL_SHADER) {
@@ -427,7 +422,7 @@ void OOShaderProgram::bindAttributes(const oo::PList& attributeBindings)
 void OOShaderProgram::bindStandardMatrixUniforms()
 {
     if (standardMatrixUniformLocations.isArray()) {
-        OOOpenGLMatrixManager* matrixManager = oo::ToCxx([[UNIVERSE gameView] getOpenGLMatrixManager]);
+        OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
 
         OO_ENTER_OPENGL();
 
@@ -450,8 +445,6 @@ void OOShaderProgram::bindStandardMatrixUniforms()
     }
     return;
 }
-
-} // namespace cxx
 
 namespace {
 

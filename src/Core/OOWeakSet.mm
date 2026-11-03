@@ -29,8 +29,6 @@ std::vector<oo::ObjCRef<id>> LiveObjects(const std::vector<oo::ObjCRef<OOWeakRef
 
 } // namespace
 
-namespace cxx {
-
 OOWeakSet::OOWeakSet(NSUInteger capacity)
 {
     _objects.reserve(capacity);
@@ -54,7 +52,7 @@ OOWeakSet::~OOWeakSet()
 std::optional<std::string> OOWeakSet::description()
 {
     // DescriptionOf([self class]) and the facade's address (amendments oo-3lj8 item 4, oo-bhb9 item 6).
-    std::string result = oo::str::format("<%s %s>{", "OOWeakSet", oo::str::pointerDescription(oo::ToObjC(this)).c_str());
+    std::string result = oo::str::format("<%s %s>{", "OOWeakSet", oo::str::pointerDescription(this).c_str());
     bool first = true;
     for (const oo::ObjCRef<id>& object : LiveObjects(_objects)) {
         if (!first)
@@ -173,5 +171,3 @@ void OOWeakSet::compact()
 {
     std::erase_if(_objects, [](const auto& weakRef) { return oo::ToCxx(weakRef.get())->weakRefUnderlyingObject() == nil; });
 }
-
-} // namespace cxx

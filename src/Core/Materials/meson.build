@@ -18,7 +18,6 @@ oolite_sources += files(
     'OOPlanetTextureGenerator.mm',
     'OOShaderMaterial.mm',
     'OOShaderProgram.mm',
-    'OOShaderProgram+ObjCBridge.mm',
     'OOShaderUniform.mm',
     'OOShaderUniformMethodType.mm',
     'OOSingleTextureMaterial.mm',

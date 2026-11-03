@@ -23,6 +23,7 @@
 */
 
 #import "OOFlasherEntity.h"
+#import "PlayerEntity.h"	// PLAYER is C++ (bead oo-9ht.177)
 #import "EntityOOJavaScriptExtensions.h"
 #import "OOJSEntity.h"
 #import "OOJSFlasher.h"
@@ -39,20 +40,29 @@
 uint32_t gDebugFlags = 0;
 #endif
 
-@class PlayerEntity;
+class PlayerEntity;
 extern PlayerEntity *gOOPlayer;
 extern Universe *gSharedUniverse;
 
 
-@interface TestPlayer: Entity
-@end
+class TestPlayer : public PlayerEntity	// C++ since bead oo-9ht.177 deleted the Objective-C player
+{
+public:
+	HPVector viewpointPosition() override	{ return kZeroHPVector; }
+};
 
-
-@implementation TestPlayer
-
-- (HPVector) viewpointPosition	{ return kZeroHPVector; }
-
-@end
+// NewTestPlayer<TestPlayer>() (bead oo-9ht.177): a C++ player under the ship's facade, as
+// PlayerEntity::sharedPlayer() makes the game's, retained (+1) as +alloc's object was.
+template <class T>
+T *NewTestPlayer()
+{
+	oo::Ref<T> player = oo::makeRef<T>();
+	@autoreleasepool
+	{
+		[oo::NewEntityFacade(player) retain];
+	}
+	return player.get();
+}
 
 
 // UNIVERSE: never initialised.
@@ -78,9 +88,9 @@ void SetUp()
 		universe->_cxxUniverse = oo::makeRef<cxx::Universe>(universe);	// what -initWithGameView: makes first (ADR-0056 amendment oo-riqmz)
 	}
 	gSharedUniverse = universe;
-	static TestPlayer *player = nil;
-	if (player == nil)  player = [[TestPlayer alloc] init];
-	gOOPlayer = (PlayerEntity *)player;
+	static TestPlayer *player = nullptr;
+	if (player == nullptr)  player = NewTestPlayer<TestPlayer>();
+	gOOPlayer = player;
 }
 
 
@@ -140,7 +150,7 @@ OO_TEST(defaults)
 		SetUp();
 		OOFlasherEntity *flasher = Flasher(Dict({}));
 		OO_CHECK(flasher != nullptr);
-		OO_CHECK([oo::ToObjC(flasher) isKindOfClass:[OOLightParticleEntity class]]);
+		OO_CHECK(dynamic_cast<OOLightParticleEntity *>(oo::ToCxx(oo::ToObjC(flasher))) != nullptr);
 		OO_CHECK(flasher->diameter() == 1.0f);
 		OO_CHECK(flasher->frequency() == 2.0f && flasher->phase() == 0.0f && flasher->fraction() == 0.5f);
 		OO_CHECK(flasher->isActive());
@@ -171,7 +181,7 @@ OO_TEST(dictionary)
 		OO_CHECK(!flasher->isActive());
 		OO_CHECK(RGBIs(flasher, 0, 0, 0) && ColorComponents(flasher)[3] == 1.0f);	// the first colour
 
-		oo::Ref<cxx::OOColor> color = flasher->color();
+		oo::Ref<OOColor> color = flasher->color();
 		float r = -1, g = -1, b = -1, a = -1;
 		color->getRed(&r, &g, &b, &a);
 		OO_CHECK(r == 0 && g == 0 && b == 0 && a == 1);
@@ -209,7 +219,7 @@ OO_TEST(accessors)
 		OO_CHECK(flasher->phase() == 0.5f);
 		flasher->setFraction(0.125f);
 		OO_CHECK(flasher->fraction() == 0.125f);
-		flasher->setColor(cxx::OOColor::colorWithRed(0.5f, 0.25f, 0.125f, 0.75f).get(), 0.375f);
+		flasher->setColor(OOColor::colorWithRed(0.5f, 0.25f, 0.125f, 0.75f).get(), 0.375f);
 		float r = -1, g = -1, b = -1, a = -1;
 		flasher->color()->getRed(&r, &g, &b, &a);
 		OO_CHECK(r == 0.5f && g == 0.25f && b == 0.125f && a == 0.375f);
@@ -256,7 +266,7 @@ OO_TEST(frequencyZeroIsOpaque)
 	{
 		SetUp();
 		OOFlasherEntity *flasher = Flasher(WhiteBlack(0, 0.5));
-		flasher->setColor(cxx::OOColor::whiteColor().get(), 0.25f);
+		flasher->setColor(OOColor::whiteColor().get(), 0.25f);
 		flasher->update(0.3);
 		OO_CHECK(ColorComponents(flasher)[3] == 1.0f);
 		OO_CHECK(RGBIs(flasher, 1, 1, 1));
@@ -308,7 +318,9 @@ OO_TEST(isFlasher)
 		// The category -isFlasher went with the facade: callers ask the C++ part.
 		Entity *plain = [[[Entity alloc] init] autorelease];
 		OO_CHECK(dynamic_cast<OOFlasherEntity *>(oo::ToCxx(plain)) == nullptr);
-		OOLightParticleEntity *particle = [[[OOLightParticleEntity alloc] initWithDiameter:1.0f] autorelease];
+		const oo::Ref<OOLightParticleEntity> lightParticle = oo::makeRef<OOLightParticleEntity>();	// C++ since bead oo-9ht.76
+		Entity *particle = oo::NewEntityFacade(lightParticle);
+		lightParticle->initWithDiameter(1.0f);
 		OO_CHECK(dynamic_cast<OOFlasherEntity *>(oo::ToCxx(particle)) == nullptr);
 		OOFlasherEntity *flasher = Flasher(Dict({}));
 		OO_CHECK(flasher->isFlasher() && dynamic_cast<OOFlasherEntity *>(oo::ToCxx(oo::ToObjC(flasher))) == flasher);
@@ -324,7 +336,6 @@ OO_TEST(facade)
 		// The object is the nearest facade left, whose C++ part is the
 		// flasher: a C++ entity (amendment oo-0mxi), not an Objective-C entity's adapter.
 		Entity *object = oo::NewEntityFacade(OOFlasherEntity::flasherWithDictionary(WhiteBlack(1, 0.5)));
-		OO_CHECK([object class] == [OOLightParticleEntity class]);
 		OO_CHECK(dynamic_cast<OOFlasherEntity *>(oo::ToCxx(object)) != nullptr);
 		OO_CHECK(oo::AsObjCEntity(oo::ToCxx(object)) == nullptr);
 		OO_CHECK(oo::ToObjC(oo::ToCxx(object)) == object);

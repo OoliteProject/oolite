@@ -51,7 +51,7 @@ namespace {
 
 // The plume texture's graphics reset client, which the facade class was until the facade's
 // deletion: registered once, with the texture, and never destroyed.
-class PlumeTextureResetClient : public cxx::OOGraphicsResetClient {
+class PlumeTextureResetClient : public OOGraphicsResetClient {
 public:
     void resetGraphicsState() override { OOExhaustPlumeEntity::resetGraphicsState(); }
 };
@@ -74,7 +74,7 @@ bool OOExhaustPlumeEntity::initForShip(::ShipEntity* ship, const std::vector<std
 
     // [super init] could not fail: the constructor ran Entity's -init body.
     {
-        setOwner(oo::ToCxx(ship));
+        setOwner(ship);
         oo::PList::Array tokenList(tokens.begin(), tokens.end());
         const oo::PList definition(std::move(tokenList)); // at<float>: the conversion -oo_floatAtIndex: made
         HPVector pos = { definition.at<float>(0) * scaleFactor, definition.at<float>(1) * scaleFactor, definition.at<float>(2) * scaleFactor };
@@ -115,9 +115,9 @@ void OOExhaustPlumeEntity::update(OOTimeDelta /*delta_t*/)
     // Profiling: this function and subfunctions are expensive - CIM
 
     // don't draw if there's no ship, or if we're just jumping out of witchspace/docked at a station!
-    ::ShipEntity* ship = owner();
+    ::ShipEntity* ship = oo::ToShip(owner());
     // also don't draw if the ship isn't visible
-    if (EXPECT_NOT(ship == nil || ![ship isVisible] || ([ship isPlayer] && [ship suppressFlightNotifications])))
+    if (EXPECT_NOT(ship == nil || !(ship != nullptr ? ship->isVisible() : false) || ((ship != nullptr ? ship->getIsPlayer() : false) && (ship != nullptr ? ship->suppressFlightNotifications() : false))))
         return;
 
     OOTimeAbsolute now = [UNIVERSE getTime];
@@ -131,20 +131,21 @@ void OOExhaustPlumeEntity::update(OOTimeDelta /*delta_t*/)
     GLfloat length;
     HPVector vertex;
     GLfloat ex_emissive[4];
-    [[ship exhaustEmissiveColor] getRed:&ex_emissive[0] green:&ex_emissive[1] blue:&ex_emissive[2] alpha:&ex_emissive[3]];
+    if (::OOColor* emissive = (ship != nullptr ? ship->exhaustEmissiveColor() : (OOColor*)nullptr))
+        emissive->getRed(&ex_emissive[0], &ex_emissive[1], &ex_emissive[2], &ex_emissive[3]); // a nil colour left them as they were
     const GLfloat s1[8] = { 0.0, M_SQRT1_2, 1.0, M_SQRT1_2, 0.0, -M_SQRT1_2, -1.0, -M_SQRT1_2 };
     const GLfloat c1[8] = { 1.0, M_SQRT1_2, 0.0, -M_SQRT1_2, -1.0, -M_SQRT1_2, 0.0, M_SQRT1_2 };
 
-    Quaternion shipQrotation = [ship normalOrientation];
+    Quaternion shipQrotation = (ship != nullptr ? ship->normalOrientation() : Quaternion { });
 
     Frame zero = {
         .timeframe = [UNIVERSE getTime],
         .orientation = shipQrotation,
-        .k = [ship forwardVector]
+        .k = (ship != nullptr ? ship->forwardVector() : Vector { })
     };
-    int dam = [ship damage];
+    int dam = (ship != nullptr ? ship->damage() : int { });
 
-    GLfloat speed = [ship speedFactor];
+    GLfloat speed = (ship != nullptr ? ship->speedFactor() : 0.0f);
     // don't draw if not moving.
     if (EXPECT_NOT(speed <= 0.001f))
         return;
@@ -167,15 +168,15 @@ void OOExhaustPlumeEntity::update(OOTimeDelta /*delta_t*/)
     if ((int)(ranrot_rand() % 25) < dam - 75)
         flare_factor = 0.0;
 
-    HPVector currentPos = ship->_cxxEntity->position;
-    Vector vfwd = [ship forwardVector];
-    GLfloat spd = 0.5f * [ship flightSpeed];
+    HPVector currentPos = ship->position;
+    Vector vfwd = (ship != nullptr ? ship->forwardVector() : Vector { });
+    GLfloat spd = 0.5f * (ship != nullptr ? ship->getFlightSpeed() : 0.0f);
     vfwd = vector_multiply_scalar(vfwd, spd);
-    Vector master_i = [ship rightVector];
+    Vector master_i = (ship != nullptr ? ship->rightVector() : Vector { });
     Vector vi, vj, vk;
     vi = master_i;
-    vj = [ship upVector];
-    vk = [ship forwardVector];
+    vj = (ship != nullptr ? ship->upVector() : Vector { });
+    vk = (ship != nullptr ? ship->forwardVector() : Vector { });
     zero.position = make_HPvector(currentPos.x + vi.x * position.x + vj.x * position.y + vk.x * position.z,
         currentPos.y + vi.y * position.x + vj.y * position.y + vk.y * position.z,
         currentPos.z + vi.z * position.x + vj.z * position.y + vk.z * position.z);
@@ -370,8 +371,8 @@ void OOExhaustPlumeEntity::drawSubEntityImmediate(bool /*immediate*/, bool trans
     if (!translucent)
         return;
 
-    ::ShipEntity* ship = owner();
-    if ([ship speedFactor] <= 0.001f)
+    ::ShipEntity* ship = oo::ToShip(owner());
+    if ((ship != nullptr ? ship->speedFactor() : 0.0f) <= 0.001f)
         return; // don't draw if not moving according to 'update' calculation
 
     OO_ENTER_OPENGL();
@@ -380,7 +381,7 @@ void OOExhaustPlumeEntity::drawSubEntityImmediate(bool /*immediate*/, bool trans
     OOGLPopModelView();
     OOGLPushModelView();
     //	GLTranslateOOVector(vector_flip([self cameraRelativePosition]));
-    HPVector cam = [PLAYER viewpointPosition];
+    HPVector cam = (PLAYER != nullptr ? PLAYER->viewpointPosition() : HPVector { });
     for (unsigned n = 0; n < 34 * 3; n++) {
         switch (n % 3) {
         case 0: // x coordinates
@@ -550,15 +551,15 @@ void OOExhaustPlumeEntity::drawSubEntityImmediate(bool /*immediate*/, bool trans
 
 void OOExhaustPlumeEntity::saveToLastFrame()
 {
-    ::ShipEntity* ship = owner();
+    ::ShipEntity* ship = oo::ToShip(owner());
 
     // Absolute position of self
     // normally this would use the transformation matrix, but that
     // introduces inaccuracies
     // so just use the rotation matrix, then translate using HPVectors
-    HPVector framePos = OOHPVectorMultiplyMatrix(getPosition(), [ship drawRotationMatrix]);
-    framePos = HPvector_add(framePos, [ship position]);
-    Frame frame = { [UNIVERSE getTime], framePos, [ship normalOrientation], [ship upVector] };
+    HPVector framePos = OOHPVectorMultiplyMatrix(getPosition(), (ship != nullptr ? ship->drawRotationMatrix() : OOMatrix { }));
+    framePos = HPvector_add(framePos, (ship != nullptr ? ship->getPosition() : HPVector { }));
+    Frame frame = { [UNIVERSE getTime], framePos, (ship != nullptr ? ship->normalOrientation() : Quaternion { }), (ship != nullptr ? ship->upVector() : Vector { }) };
 
     _track[_nextFrame] = frame;
     _nextFrame = (_nextFrame + 1) % kExhaustFrameCount;
@@ -661,7 +662,7 @@ void OOExhaustPlumeEntity::setUpTexture()
                                                   options:kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear | kOOTextureAlphaMask | kOOTextureRepeatT | kOOTextureRepeatS
                                                anisotropy:kOOTextureDefaultAnisotropy / 2.0
                                                   lodBias:0.0] retain];
-        cxx::OOGraphicsResetManager::sharedManager()->registerCxxClient(new PlumeTextureResetClient);
+        OOGraphicsResetManager::sharedManager()->registerCxxClient(new PlumeTextureResetClient);
     }
 }
 

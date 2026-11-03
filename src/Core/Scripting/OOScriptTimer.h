@@ -12,12 +12,9 @@ timer will remain if the player dies and respawns; non-persistent timers will
 be removed.
 
 C++20 since bead oo-kdyh (proposed ADR-0056, the OOColor house style), converted with its one
-subclass, OOJSTimer (OOJSTimer.h). The class is cxx::OOScriptTimer while
-OOScriptTimer+ObjCBridge.h, imported at the end of this header, keeps the Objective-C
-OOScriptTimer that PlayerEntity messages (+updateTimers, +noteGameReset) and that the timer
-queue holds: OOPriorityQueue (bead oo-3lj8) keeps Objective-C elements ordered by a selector, so
-a scheduled timer is queued as its facade, which keeps it alive while it is scheduled.
-
+subclass, OOJSTimer (OOJSTimer.h). Global since the Objective-C facade was deleted:
+the timer queue holds the C++ timers (OOPriorityQueueOf), the player calls updateTimers() and
+noteGameReset(), and a timer is its own plist payload (oo::PListForeign), as its facade was.
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -44,15 +41,14 @@ MA 02110-1301, USA.
 
 #import "OOFoundation.h"
 #import "OOTypes.h"
+#include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
 
 #include <optional>
 #include <string>
 
-namespace cxx {
-
-class OOScriptTimer : public oo::RefCounted {
+class OOScriptTimer : public oo::PListForeign {
 public:
     // [[OOScriptTimer alloc] initWithNextTime:interval:]: null where the initialiser answered nil
     // (a next time in the past, or negative, with no interval).
@@ -64,6 +60,20 @@ public:
     ~OOScriptTimer() override;
 
     virtual std::optional<std::string> descriptionComponents() const;
+
+    // oo::PListForeign: the name the deleted facade's description showed, "OOScriptTimer", or
+    // "OOJSTimer" for a JS timer, and that description, "<name 0x...>{components}"
+    // (the address now the timer's).
+    std::string className() const override { return "OOScriptTimer"; }
+    std::string description() const override;
+
+    // The description with the given components (none: "<name 0x...>"), for a caller that must not
+    // ask a subclass for its own (OOJSTimer's finalizer warning).
+    std::string descriptionWithComponents(const std::optional<std::string>& components) const;
+
+    // The JS class name of a timer with JS glue (OOJSPrivateObject.h), which the deleted OOJSTimer
+    // facade answered; nullopt for any other timer.
+    virtual std::optional<std::string> oo_jsClassName() { return std::nullopt; }
 
     OOTimeAbsolute nextTime();
     bool setNextTime(OOTimeAbsolute nextTime); // Only works when timer is not scheduled.
@@ -99,11 +109,5 @@ private:
     bool _isScheduled = { };
     bool _hasBeenRun = { }; // Needed for one-shot timers.
 };
-
-} // namespace cxx
-
-// Transitional: the Objective-C OOScriptTimer, for callers not yet converted and for the timer
-// queue. Deleted, with namespace cxx above, by the bridge's deletion bead.
-#import "OOScriptTimer+ObjCBridge.h"
 
 #endif // OOSCRIPTTIMER_H

@@ -8,8 +8,10 @@
 	every registered client once; nil is never registered, a client can be registered twice but
 	is told once, unregistered clients are not told, a client unregistered by an earlier client
 	during the reset is skipped, and a client that raises is logged and does not stop the rest.
-	Clients are not retained. The GL context is a hidden window's (oo_gl_test_context.hpp). The
-	clients still reach the manager through its facade; the last test pins the facade's contract.
+	Clients are not retained. The GL context is a hidden window's (oo_gl_test_context.hpp). Bead
+	oo-9ht.23 deleted the manager's facade and the OOGraphicsResetClient protocol: the test's
+	Objective-C client is a C++ client with the same answers, and the facade's contract case went
+	with the facade (standing approval oo-9n5p9).
 	Run: bash tools/check-core-tests.sh
 */
 
@@ -74,37 +76,36 @@ const char *const cxx_kOOLogException = "exception";
 @end
 
 
-// A client: counts its resets; may unregister another client, or raise, when told.
-@interface OOTestResetClient: OOObject <OOGraphicsResetClient>
+// A client: counts its resets; may unregister another client, or raise, when told. Reference
+// counted, so the test can see the manager does not retain it (an Objective-C client until bead
+// oo-9ht.23).
+struct OOTestResetClient : oo::RefCounted, OOGraphicsResetClient
 {
-@public
-	int					tag;
-	unsigned			resets;
-	OOTestResetClient	*victim;
-	BOOL				raises;
-}
-@end
+	int					tag = 0;
+	unsigned			resets = 0;
+	OOTestResetClient	*victim = nullptr;
+	bool				raises = false;
 
-@implementation OOTestResetClient
-
-- (void) resetGraphicsState
-{
-	resets++;
-	sOrder.push_back(tag);
-	if (victim != nil)  [[OOGraphicsResetManager sharedManager] unregisterClient:victim];
-	if (raises)  [OOException raise:"OOTestException" format:"client %d raised", tag];
-}
-
-@end
+	void resetGraphicsState() override
+	{
+		resets++;
+		sOrder.push_back(tag);
+		if (victim != nullptr)  OOGraphicsResetManager::sharedManager()->unregisterCxxClient(victim);
+		if (raises)  [OOException raise:"OOTestException" format:"client %d raised", tag];
+	}
+};
 
 
 namespace {
 
+// Kept until the test's process ends, as the autoreleased clients outlived each case's use.
+std::vector<oo::Ref<OOTestResetClient>> sClients;
+
 OOTestResetClient *Client(int tag)
 {
-	OOTestResetClient *client = [[[OOTestResetClient alloc] init] autorelease];
-	client->tag = tag;
-	return client;
+	sClients.push_back(oo::makeRef<OOTestResetClient>());
+	sClients.back()->tag = tag;
+	return sClients.back().get();
 }
 
 }	// namespace
@@ -117,22 +118,22 @@ OO_TEST(resetTellsEachClientOnce)
 	OO_CHECK(OOTestGLContext());
 	@autoreleasepool
 	{
-		cxx::OOGraphicsResetManager *manager = cxx::OOGraphicsResetManager::sharedManager();
+		OOGraphicsResetManager *manager = OOGraphicsResetManager::sharedManager();
 		OO_CHECK(manager != nullptr);
-		OO_CHECK(cxx::OOGraphicsResetManager::sharedManager() == manager);
+		OO_CHECK(OOGraphicsResetManager::sharedManager() == manager);
 
 		(void)cxx::OOOpenGLExtensionManager::sharedManager();
 		const unsigned pathsBefore = sPathsCalls;
 
 		OOTestResetClient *a = Client(1), *b = Client(2), *c = Client(3);
-		manager->registerClient(a);
-		manager->registerClient(b);
-		manager->registerClient(b);	// a set: told once
-		manager->registerClient(c);
-		manager->registerClient(nil);
-		manager->unregisterClient(c);
-		manager->unregisterClient(c);	// not registered: nothing
-		manager->unregisterClient(nil);
+		manager->registerCxxClient(a);
+		manager->registerCxxClient(b);
+		manager->registerCxxClient(b);	// a set: told once
+		manager->registerCxxClient(c);
+		manager->registerCxxClient(nullptr);
+		manager->unregisterCxxClient(c);
+		manager->unregisterCxxClient(c);	// not registered: nothing
+		manager->unregisterCxxClient(nullptr);
 
 		sOrder.clear();
 		manager->resetGraphicsState();
@@ -141,8 +142,8 @@ OO_TEST(resetTellsEachClientOnce)
 		OO_CHECK(a->resets == 1 && b->resets == 1 && c->resets == 0);
 		OO_CHECK(sOrder.size() == 3 && sOrder[0] == 0);	// textures first, then the clients
 
-		manager->unregisterClient(a);
-		manager->unregisterClient(b);
+		manager->unregisterCxxClient(a);
+		manager->unregisterCxxClient(b);
 		manager->resetGraphicsState();
 		OO_CHECK(sRebinds == 2);
 		OO_CHECK(a->resets == 1 && b->resets == 1);
@@ -155,30 +156,30 @@ OO_TEST(clientsMayUnregisterAndRaise)
 	OO_CHECK(OOTestGLContext());
 	@autoreleasepool
 	{
-		cxx::OOGraphicsResetManager *manager = cxx::OOGraphicsResetManager::sharedManager();
+		OOGraphicsResetManager *manager = OOGraphicsResetManager::sharedManager();
 
 		// Two clients that each unregister the other: whichever is told first is the only one told.
 		OOTestResetClient *x = Client(10), *y = Client(11);
 		x->victim = y;
 		y->victim = x;
-		manager->registerClient(x);
-		manager->registerClient(y);
+		manager->registerCxxClient(x);
+		manager->registerCxxClient(y);
 		manager->resetGraphicsState();
 		OO_CHECK(x->resets + y->resets == 1);
-		manager->unregisterClient(x);
-		manager->unregisterClient(y);
+		manager->unregisterCxxClient(x);
+		manager->unregisterCxxClient(y);
 
 		// A client that raises is logged and ignored; the others are still told.
 		OOTestResetClient *thrower = Client(20), *p = Client(21), *q = Client(22);
-		thrower->raises = YES;
-		manager->registerClient(p);
-		manager->registerClient(thrower);
-		manager->registerClient(q);
+		thrower->raises = true;
+		manager->registerCxxClient(p);
+		manager->registerCxxClient(thrower);
+		manager->registerCxxClient(q);
 		manager->resetGraphicsState();
 		OO_CHECK(thrower->resets == 1 && p->resets == 1 && q->resets == 1);
-		manager->unregisterClient(thrower);
-		manager->unregisterClient(p);
-		manager->unregisterClient(q);
+		manager->unregisterCxxClient(thrower);
+		manager->unregisterCxxClient(p);
+		manager->unregisterCxxClient(q);
 	}
 }
 
@@ -188,22 +189,21 @@ OO_TEST(clientsAreNotRetained)
 	OO_CHECK(OOTestGLContext());
 	@autoreleasepool
 	{
-		cxx::OOGraphicsResetManager *manager = cxx::OOGraphicsResetManager::sharedManager();
-		OOTestResetClient *client = [[OOTestResetClient alloc] init];
-		const NSUInteger before = [client retainCount];
-		manager->registerClient(client);
-		OO_CHECK([client retainCount] == before);
-		manager->unregisterClient(client);
-		[client release];
+		OOGraphicsResetManager *manager = OOGraphicsResetManager::sharedManager();
+		oo::Ref<OOTestResetClient> client = oo::makeRef<OOTestResetClient>();
+		const std::uint32_t before = client->retainCount();
+		manager->registerCxxClient(client.get());
+		OO_CHECK(client->retainCount() == before);
+		manager->unregisterCxxClient(client.get());
 	}
 }
 
 
 // A converted client (bead oo-4jjl, amendment oo-jpd8 item 3): told once per reset, after the
-// textures, like an Objective-C one; null is never registered; unregistered, it is not told.
+// textures, like the other client; null is never registered; unregistered, it is not told.
 namespace {
 
-struct TestCxxClient : cxx::OOGraphicsResetClient
+struct TestCxxClient : OOGraphicsResetClient
 {
 	unsigned resets = 0;
 	void resetGraphicsState() override  { resets++; sOrder.push_back(100); }
@@ -217,14 +217,14 @@ OO_TEST(cxxClients)
 	OO_CHECK(OOTestGLContext());
 	@autoreleasepool
 	{
-		cxx::OOGraphicsResetManager *manager = cxx::OOGraphicsResetManager::sharedManager();
+		OOGraphicsResetManager *manager = OOGraphicsResetManager::sharedManager();
 		TestCxxClient c1, c2;
 		OOTestResetClient *objc = Client(40);
 		manager->registerCxxClient(&c1);
 		manager->registerCxxClient(&c1);	// a set: told once
 		manager->registerCxxClient(&c2);
 		manager->registerCxxClient(nullptr);
-		manager->registerClient(objc);
+		manager->registerCxxClient(objc);
 		manager->unregisterCxxClient(&c2);
 		manager->unregisterCxxClient(nullptr);
 
@@ -236,43 +236,10 @@ OO_TEST(cxxClients)
 		OO_CHECK(sOrder.size() == 3 && sOrder[0] == 0);	// textures first
 
 		manager->unregisterCxxClient(&c1);
-		manager->unregisterClient(objc);
+		manager->unregisterCxxClient(objc);
 		manager->resetGraphicsState();
 		OO_CHECK(c1.resets == 1 && objc->resets == 1);
 	}
-}
-
-
-// After the conversion: one facade for the process, forwarding to the C++ manager.
-OO_TEST(facadeContract)
-{
-	OO_CHECK(OOTestGLContext());
-	cxx::OOGraphicsResetManager *manager = cxx::OOGraphicsResetManager::sharedManager();
-	@autoreleasepool
-	{
-		OOGraphicsResetManager *facade = [OOGraphicsResetManager sharedManager];
-		OO_CHECK(facade != nil && oo::ToCxx(facade) == manager);
-		OO_CHECK(oo::ToObjC(manager) == facade);
-
-		OOTestResetClient *client = Client(30);
-		[facade registerClient:client];
-		manager->resetGraphicsState();
-		OO_CHECK(client->resets == 1);
-		[facade resetGraphicsState];
-		OO_CHECK(client->resets == 2);
-		manager->unregisterClient(client);
-		[facade resetGraphicsState];
-		OO_CHECK(client->resets == 2);
-	}
-	@autoreleasepool
-	{
-		OO_CHECK(oo::ToCxx([OOGraphicsResetManager sharedManager]) == manager);
-		OO_CHECK(oo::ToObjC(manager) == [OOGraphicsResetManager sharedManager]);
-	}
-
-	OOGraphicsResetManager *none = nil;
-	OO_CHECK(oo::ToCxx(none) == nullptr);
-	OO_CHECK(oo::ToObjC(static_cast<cxx::OOGraphicsResetManager *>(nullptr)) == nil);
 }
 
 

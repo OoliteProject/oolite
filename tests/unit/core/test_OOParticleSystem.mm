@@ -24,6 +24,7 @@
 */
 
 #import "OOParticleSystem.h"
+#import "PlayerEntity.h"	// PLAYER is C++
 #import "OOExplosionCloudEntity.h"
 #import "OOTexture.h"
 #import "OODescription.h"
@@ -43,20 +44,29 @@
 uint32_t gDebugFlags = 0;
 #endif
 
-@class PlayerEntity;
+class PlayerEntity;
 extern PlayerEntity *gOOPlayer;
 extern Universe *gSharedUniverse;
 
 
-@interface TestPlayer: Entity
-@end
+class TestPlayer : public PlayerEntity	// C++ since bead oo-9ht.177 deleted the Objective-C player
+{
+public:
+	HPVector viewpointPosition() override	{ return kZeroHPVector; }
+};
 
-
-@implementation TestPlayer
-
-- (HPVector) viewpointPosition	{ return kZeroHPVector; }
-
-@end
+// NewTestPlayer<TestPlayer>(): a C++ player under the ship's facade, as
+// PlayerEntity::sharedPlayer() makes the game's, retained (+1) as +alloc's object was.
+template <class T>
+T *NewTestPlayer()
+{
+	oo::Ref<T> player = oo::makeRef<T>();
+	@autoreleasepool
+	{
+		[oo::NewEntityFacade(player) retain];
+	}
+	return player.get();
+}
 
 
 // UNIVERSE: never initialised; records what is removed.
@@ -119,9 +129,9 @@ void SetUp()
 	}
 	sUniverse->_removed = nil;
 	gSharedUniverse = sUniverse;
-	static TestPlayer *player = nil;
-	if (player == nil)  player = [[TestPlayer alloc] init];
-	gOOPlayer = (PlayerEntity *)player;
+	static TestPlayer *player = nullptr;
+	if (player == nullptr)  player = NewTestPlayer<TestPlayer>();
+	gOOPlayer = player;
 	sTextureName.reset();
 	sTextureFound = true;
 	ranrot_srand(12345);	// the game seeds its RNG at start-up; unseeded, OORandomUnitVector() never ends

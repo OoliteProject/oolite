@@ -2,12 +2,9 @@
 
 OOJSPopulatorDefinition.h (QuickJS-ng)
 
-C++20 since bead oo-1h0h (proposed ADR-0056, the OOColor house style). Its superclass,
-OOWeakRefObject, is still Objective-C (the weak-reference support that OOWeakReference+ObjCBridge
-keeps), so the class is cxx::OOJSPopulatorDefinition holding only its own ivars and methods, and
-OOJSPopulatorDefinition+ObjCBridge.h, imported at the end of this header, keeps the Objective-C
-OOJSPopulatorDefinition : OOWeakRefObject that OOJSSystem makes and Universe keeps and messages
-(ADR-0056 amendment oo-o89). The bridge's deletion bead waits for OOWeakRefObject's retirement.
+C++20 since bead oo-1h0h (proposed ADR-0056, the OOColor house style). An oo::RefCounted in the
+global namespace: OOJSSystem makes it with oo::makeRef and Universe keeps it as a PList::Object
+node (OOJSPopulatorDefinitionToPList / OOJSPopulatorDefinitionIn below).
 
 
 Oolite
@@ -37,20 +34,16 @@ MA 02110-1301, USA.
 #import "OOMaths.h"
 #include <quickjs.h>
 
+#include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"
-#include "oofnd/objc/OOObjCRef.h"
 
-@class OOJSScript; // imported by the .mm, so that a test can stand in for it (ADR-0056 amendment oo-fg7i item 5)
-
-namespace cxx {
+class OOJSScript; // imported by the .mm, so that a test can stand in for it
 
 /*	The definition owns references to its callback and callbackThis, which are
         released on destruction and when the JavaScript engine is reset.
 */
 class OOJSPopulatorDefinition : public oo::RefCounted {
 public:
-    // The old -init after [super init]. Made only by the facade (amendment oo-o89 item 2), until
-    // OOWeakRefObject is retired.
     OOJSPopulatorDefinition();
     ~OOJSPopulatorDefinition() override;
 
@@ -67,13 +60,12 @@ private:
 
     JSValue _callback = JS_UNDEFINED; // Owned.
     JSValue _callbackThis = JS_UNDEFINED; // Owned.
-    oo::ObjCRef<::OOJSScript*> _owningScript; // a weak reference (-weakRetain)
+    oo::WeakRef<OOJSScript> _owningScript; // a weak reference (was -weakRetain)
 };
 
-} // namespace cxx
-
-// Transitional: the Objective-C OOJSPopulatorDefinition, for callers not yet converted. Deleted,
-// with namespace cxx above, by the bridge's deletion bead.
-#import "OOJSPopulatorDefinition+ObjCBridge.h"
+// A PList::Object node holding the definition (strongly), as the settings' callbackObj.
+oo::PList OOJSPopulatorDefinitionToPList(oo::Ref<OOJSPopulatorDefinition> definition);
+// The definition inside such a node; nullptr for any other node.
+OOJSPopulatorDefinition* OOJSPopulatorDefinitionIn(const oo::PList& plist);
 
 #endif // OOJSPOPULATORDEFINITION_H

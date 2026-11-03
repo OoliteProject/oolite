@@ -32,12 +32,10 @@ MA 02110-1301, USA.
 
 struct OOLaserShotEntityTestAccess;
 
-namespace cxx {
-
-class OOLaserShotEntity : public Entity {
+class OOLaserShotEntity : public cxx::Entity {
 public:
-    // +laserFromShip:direction:offset:: a new shot, initialised. The facade's class method hands it
-    // to Objective-C (oo::NewEntityFacade).
+    // A new shot, initialised. A caller that hands it to Objective-C gives it a facade
+    // (oo::NewEntityFacade).
     static oo::Ref<OOLaserShotEntity> laserFromShip(::ShipEntity* ship, OOWeaponFacing direction, Vector offset);
 
     std::optional<std::string> descriptionComponents() const override;
@@ -57,7 +55,7 @@ public:
     static void setUpTexture();
     static ::OOTexture* innerTexture();
     static ::OOTexture* outerTexture();
-    // The graphics reset client is the facade class, which forwards here.
+    // The graphics reset client is a file-local C++ one (OOLaserShotEntity.mm).
     static void resetGraphicsState();
 
 private:
@@ -73,9 +71,3 @@ private:
     Vector _offset = { };
     Quaternion _relOrientation = { };
 };
-
-} // namespace cxx
-
-// Transitional: the Objective-C OOLaserShotEntity, for the ships that fire and the player that keeps
-// its last shots. Deleted, with namespace cxx above, by the bridge's deletion bead.
-#import "OOLaserShotEntity+ObjCBridge.h"

@@ -39,7 +39,7 @@ MA 02110-1301, USA.
         became free functions, and its methods and interface moved to a bridge file of the binding
         (amendment oo-ykoy), then onto the OOFlasherEntity facade (bead oo-9ht.49, amendment oo-6ia4
         item 3), and with that facade's deletion into the C++ class's overrides of the root's JS
-        members. OOColor, which is C++ since bead oo-11m, is reached as cxx::OOColor through
+        members. OOColor, which is C++ since bead oo-11m, is reached as OOColor through
         oo::ToCxx/oo::ToObjC (amendment oo-ppc, item 4). The flasher is the C++ OOFlasherEntity, found
         through its entity's C++ part. Messages to classes that are still Objective-C (ShipEntity,
         OOVisualEffectEntity, Entity) stay as they are, which is why the file is still .mm until Phase 4.
@@ -57,7 +57,7 @@ static JSValue FlasherRemove(OOJS_NATIVE_ARGS);
 namespace {
 
     // A colour's components as its -normalizedArray gave them to JavaScript: floats, null for no colour.
-    oo::PList NormalizedColorComponents(cxx::OOColor* color)
+    oo::PList NormalizedColorComponents(OOColor* color)
     {
         if (color == nullptr)
             return oo::PList();
@@ -208,7 +208,7 @@ static JSValue FlasherSetProperty(OOJS_SETTER_ARGS)
     OOFlasherEntity* entity = nullptr;
     double fValue;
     int bValue;
-    oo::Ref<cxx::OOColor> colorForScript;
+    oo::Ref<OOColor> colorForScript;
 
     if (!JSFlasherGetFlasherEntity(context, thisObj, &entity))
         return OOJSNativeFailure(context);
@@ -224,7 +224,7 @@ static JSValue FlasherSetProperty(OOJS_SETTER_ARGS)
         break;
 
     case kFlasher_color:
-        colorForScript = cxx::OOColor::colorWithDescription(cxx_OOJSPListFromJSValue(context, value));
+        colorForScript = OOColor::colorWithDescription(cxx_OOJSPListFromJSValue(context, value));
         if (colorForScript != nullptr || JS_IsNull(value)) {
             entity->setColor(colorForScript.get());
             return JS_UNDEFINED;
@@ -296,9 +296,11 @@ static JSValue FlasherRemove(OOJS_NATIVE_ARGS)
 
     Entity* parent = [thisObject owner];
     if ([parent isShip]) {
-        [(ShipEntity*)parent removeFlasher:thisEnt];
+        if (oo::ToShip(parent) != nullptr)
+            oo::ToShip(parent)->removeFlasher(thisEnt);
     } else {
-        [(OOVisualEffectEntity*)parent removeSubEntity:(Entity<OOSubEntity>*)thisObject];
+        if (OOVisualEffectEntity* effect = oo::ToEffect(parent))
+            effect->removeSubEntity((Entity<OOSubEntity>*)thisObject);
     }
 
     OOJS_RETURN_VOID;

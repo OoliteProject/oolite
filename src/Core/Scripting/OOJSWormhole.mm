@@ -102,17 +102,15 @@ static bool JSWormholeGetWormholeEntity(JSContext* context, JSValueConst wormhol
 
     if (outEntity == NULL)
         return false;
-    *outEntity = nil;
+    *outEntity = nullptr;
 
     result = OOJSEntityGetEntity(context, wormholeObj, &entity);
     if (!result)
         return false;
 
-    if (![entity isKindOfClass:[WormholeEntity class]])
-        return false;
-
-    *outEntity = (WormholeEntity*)entity;
-    return true;
+    // The wormhole is C++ behind the root's facade since bead oo-9ht.112 (-isKindOfClass: before).
+    *outEntity = dynamic_cast<WormholeEntity*>(oo::ToCxx(entity));
+    return *outEntity != nullptr;
 
     OOJS_PROFILE_EXIT
 }
@@ -145,16 +143,16 @@ static JSValue WormholeGetProperty(OOJS_GETTER_ARGS)
 
     switch (magic) {
     case kWormhole_arrivalTime:
-        return JS_NewNumber(context, [entity arrivalTime]);
+        return JS_NewNumber(context, (entity != nullptr ? entity->arrivalTime() : 0.0));
 
     case kWormhole_destination:
-        return JS_NewNumber(context, [entity destination]);
+        return JS_NewNumber(context, (entity != nullptr ? entity->getDestination() : 0));
 
     case kWormhole_expiryTime:
-        return JS_NewNumber(context, [entity expiryTime]);
+        return JS_NewNumber(context, (entity != nullptr ? entity->expiryTime() : 0.0));
 
     case kWormhole_origin:
-        return JS_NewNumber(context, [entity origin]);
+        return JS_NewNumber(context, (entity != nullptr ? entity->getOrigin() : 0));
 
     default:
         OOJSReportBadPropertySelector(context, thisObj, magic, sWormholeProperties, OOJS_COUNT(sWormholeProperties));

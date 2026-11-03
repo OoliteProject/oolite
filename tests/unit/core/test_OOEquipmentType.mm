@@ -1,5 +1,5 @@
 /*	test_OOEquipmentType.mm
-	Unit tests for cxx::OOEquipmentType (src/Core/OOEquipmentType.h) and its Objective-C facade:
+	Unit tests for OOEquipmentType (src/Core/OOEquipmentType.h) and its Objective-C facade:
 	bead oo-fg7i (Phase 3, proposed ADR-0056).
 
 	An equipment type is read from an equipment.plist entry, [tech level, price, name, key,
@@ -14,9 +14,10 @@
 	equipment data below, the cache manager, script loader and player answer from fields and record
 	what they are asked, and the standards and legacy-condition functions are test replacements.
 	OOColor is the game's own. The expectations were written against the Objective-C class and run
-	on it first; that API is now the facade (OOEquipmentType+ObjCBridge.h), so they run through it,
-	and the last tests pin the C++ API and the facade's contract, including that a registered type's
-	facade outlives the autorelease pool, as ships rely on. Run: bash tools/check-core-tests.sh
+	on it first; since its facade was deleted (bead oo-9ht.28) they ask the C++ class, and the last
+	tests pin the C++ API and that a registered type outlives the autorelease pool, as ships rely
+	on (the facade-contract cases went with the facade, standing approval oo-9n5p9).
+	Run: bash tools/check-core-tests.sh
 */
 
 #import "OOEquipmentType.h"
@@ -131,42 +132,57 @@ Universe *gSharedUniverse = nil;
 @end
 
 
-// Only good.js loads.
-@interface OOScript: OOObject
-+ (id) cxx_jsScriptFromFileNamed:(const std::string &)fileName properties:(const oo::PList &)properties;
-@end
+#import "OOScript.h"
 
-@implementation OOScript
-+ (id) cxx_jsScriptFromFileNamed:(const std::string &)fileName properties:(const oo::PList &)properties
+
+// OOScript's members that OOEquipmentType.mm calls (the Objective-C OOScript stand-in until bead
+// oo-9ht.133 deleted the facade), and the rest of its virtual members, for the vtable.
+std::optional<std::string> OOScript::descriptionComponents()	{ return std::nullopt; }
+std::optional<std::string> OOScript::name()					{ return std::nullopt; }
+std::optional<std::string> OOScript::scriptDescription()		{ return std::nullopt; }
+std::optional<std::string> OOScript::version()				{ return std::nullopt; }
+bool OOScript::requiresTickle()								{ return false; }
+void OOScript::runWithTarget(::Entity *)						{}
+bool OOScript::callMethod(JSAtom, JSContext *, JSValueConst *, int, JSValue *)	{ return false; }
+std::string OOScript::className() const						{ return "OOScript"; }
+std::string OOScript::description() const						{ return "<OOScript>"; }
+JSValue OOScript::jsValueInContext(JSContext *)	{ std::abort(); }	// never reached (no engine is linked)
+void OOScript::clearJSSelf(JSValueConst)					{}
+void OOScriptAutorelease(oo::Ref<OOScript>)					{}
+
+// Only good.js loads.
+oo::Ref<OOScript> OOScript::jsScriptFromFileNamed(const std::string &fileName, const oo::PList &)
 {
 	gLog.push_back("script " + fileName);
-	return (fileName == "good.js") ? [[[OOScript alloc] init] autorelease] : nil;
+	return (fileName == "good.js") ? oo::makeRef<OOScript>() : nullptr;
 }
-@end
 
 
 // Keys come back as given; "taken" is in use by "compass"; mission_TL_FOR_EQ_SHIELD_BOOSTER is 7.
-@interface PlayerEntity: OOObject
-- (oo::PList) cxx_processKeyCode:(const oo::PList &)key_def;
-- (std::optional<std::string>) validateKey:(const std::string &)key checkKeys:(const oo::PList &)check_keys;
-- (oo::PList) cxx_missionVariableForKey:(const std::string &)key;
-@end
+// PLAYER: C++ since bead oo-9ht.177 deleted the Objective-C player this stood in for; the members
+// the code under test calls, declared as PlayerEntity.h declares them (the test imports no game
+// header that defines the class), with the same answers.
+class PlayerEntity
+{
+public:
+	oo::PList processKeyCode(const oo::PList &key_def);
+	std::optional<std::string> validateKey(const std::string &key, const oo::PList &check_keys);
+	oo::PList missionVariableForKey(const std::string &key);
+};
 
-@implementation PlayerEntity
-- (oo::PList) cxx_processKeyCode:(const oo::PList &)key_def	{ return key_def; }
-- (std::optional<std::string>) validateKey:(const std::string &)key checkKeys:(const oo::PList &)check_keys
+oo::PList PlayerEntity::processKeyCode(const oo::PList &key_def)	{ return key_def; }
+std::optional<std::string> PlayerEntity::validateKey(const std::string &key, const oo::PList &check_keys)
 {
 	gLog.push_back("validate " + key);
 	const oo::PList *first = check_keys.at(0);
 	return (first != nullptr && first->get<std::string>("key") == "taken") ? std::optional<std::string>("compass") : std::nullopt;
 }
-- (oo::PList) cxx_missionVariableForKey:(const std::string &)key
+oo::PList PlayerEntity::missionVariableForKey(const std::string &key)
 {
 	return (key == "mission_TL_FOR_EQ_SHIELD_BOOSTER") ? oo::PList("7") : oo::PList();
 }
-@end
 
-PlayerEntity *gOOPlayer = nil;
+PlayerEntity *gOOPlayer = nullptr;
 
 
 void cxx_OOStandardsDeprecated(const std::string &message)
@@ -191,7 +207,7 @@ namespace {
 void Reset()
 {
 	if (gSharedUniverse == nil)  gSharedUniverse = [[Universe alloc] init];
-	if (gOOPlayer == nil)  gOOPlayer = [[PlayerEntity alloc] init];
+	if (gOOPlayer == nullptr)  gOOPlayer = new PlayerEntity;	// never deleted
 	gLog.clear();
 	gEnforceStandards = NO;
 }
@@ -210,7 +226,7 @@ std::string Colour(OOColor *color)
 {
 	if (color == nil)  return "nil";
 	char buffer[64];
-	std::snprintf(buffer, sizeof buffer, "(%g %g %g %g)", [color redComponent], [color greenComponent], [color blueComponent], [color alphaComponent]);
+	std::snprintf(buffer, sizeof buffer, "(%g %g %g %g)", color->redComponent(), color->greenComponent(), color->blueComponent(), color->alphaComponent());
 	return buffer;
 }
 
@@ -222,22 +238,22 @@ std::string Describe(OOEquipmentType *t)
 	char buffer[1024];
 	std::snprintf(buffer, sizeof buffer,
 		"%s/%s \"%s\" \"%s\" tl%llu/%llu cr%llu all%d empty%d mounted%d clean%d notclean%d berth%d full%d nonfull%d primary%d store%d portable%d multiple%d dmg%g canDmg%d vis%d hide%d player%d npc%d cargo%u def%d off%d install%zu repair%zu turret%d mining%d range%g energy%g damage%g recharge%g temp%g threat%g",
-		[t cxx_identifier].value_or("-").c_str(), [t cxx_damagedIdentifier].value_or("-").c_str(), [t cxx_name].value_or("-").c_str(), [t cxx_descriptiveText].value_or("-").c_str(),
-		(unsigned long long)[t techLevel], (unsigned long long)[t effectiveTechLevel], (unsigned long long)[t price], [t isAvailableToAll], [t requiresEmptyPylon], [t requiresMountedPylon],
-		[t requiresCleanLegalRecord], [t requiresNonCleanLegalRecord], [t requiresFreePassengerBerth], [t requiresFullFuel], [t requiresNonFullFuel],
-		[t isPrimaryWeapon], [t isMissileOrMine], [t isPortableBetweenShips], [t canCarryMultiple], [t damageProbability], [t canBeDamaged],
-		[t isVisible], [t hideValues], [t isAvailableToPlayer], [t isAvailableToNPCs], [t requiredCargoSpace], [t fastAffinityDefensive], [t fastAffinityOffensive],
-		(size_t)[t installTime], (size_t)[t repairTime], [t isTurretLaser], [t isMiningLaser], [t weaponRange], [t weaponEnergyUse], [t weaponDamage],
-		[t weaponRechargeRate], [t weaponShotTemperature], [t weaponThreatAssessment]);
+		t->identifier().value_or("-").c_str(), t->damagedIdentifier().value_or("-").c_str(), t->name().value_or("-").c_str(), t->descriptiveText().value_or("-").c_str(),
+		(unsigned long long)t->techLevel(), (unsigned long long)t->effectiveTechLevel(), (unsigned long long)t->price(), t->isAvailableToAll(), t->requiresEmptyPylon(), t->requiresMountedPylon(),
+		t->requiresCleanLegalRecord(), t->requiresNonCleanLegalRecord(), t->requiresFreePassengerBerth(), t->requiresFullFuel(), t->requiresNonFullFuel(),
+		t->isPrimaryWeapon(), t->isMissileOrMine(), t->isPortableBetweenShips(), t->canCarryMultiple(), t->damageProbability(), t->canBeDamaged(),
+		t->isVisible(), t->hideValues(), t->isAvailableToPlayer(), t->isAvailableToNPCs(), t->requiredCargoSpace(), t->fastAffinityDefensive(), t->fastAffinityOffensive(),
+		(size_t)t->installTime(), (size_t)t->repairTime(), t->isTurretLaser(), t->isMiningLaser(), t->weaponRange(), t->weaponEnergyUse(), t->weaponDamage(),
+		t->weaponRechargeRate(), t->weaponShotTemperature(), t->weaponThreatAssessment());
 	std::string provides;
-	for (const std::string &p : [t cxx_providesForScripting])  provides += p + " ";
-	return std::string(buffer) + " requires " + Keys([t cxx_requiresEquipment]) + " any " + Keys([t cxx_requiresAnyEquipment]) + " incompatible " + Keys([t cxx_incompatibleEquipment])
-		+ " provides " + provides + "conditions " + std::to_string([t cxx_conditions].count()) + (([t cxx_conditions].isNull()) ? "(null)" : "")
-		+ " condition " + [t cxx_conditionScript].value_or("-") + " script " + [t cxx_scriptName].value_or("-") + " info " + std::to_string([t scriptInfo].count())
-		+ " activate " + std::to_string([t cxx_defaultActivateKey].count()) + " mode " + std::to_string([t cxx_defaultModeKey].count())
-		+ " display " + Colour([t displayColor]) + " weapon " + Colour([t weaponColor]) + " weaponInfo " + std::to_string([t cxx_weaponInfo].count())
-		+ " fx " + [t cxx_fxShotMissName].value_or("-") + " " + [t cxx_fxShotHitName].value_or("-") + " " + [t cxx_fxShieldHitName].value_or("-") + " "
-		+ [t cxx_fxUnshieldedHitName].value_or("-") + " " + [t cxx_fxWeaponLaunchedName].value_or("-");
+	for (const std::string &p : t->providesForScripting())  provides += p + " ";
+	return std::string(buffer) + " requires " + Keys(t->requiresEquipment()) + " any " + Keys(t->requiresAnyEquipment()) + " incompatible " + Keys(t->incompatibleEquipment())
+		+ " provides " + provides + "conditions " + std::to_string(t->conditions().count()) + ((t->conditions().isNull()) ? "(null)" : "")
+		+ " condition " + t->conditionScript().value_or("-") + " script " + t->scriptName().value_or("-") + " info " + std::to_string(t->scriptInfo().count())
+		+ " activate " + std::to_string(t->defaultActivateKey().count()) + " mode " + std::to_string(t->defaultModeKey().count())
+		+ " display " + Colour(t->displayColor().get()) + " weapon " + Colour((t->weaponColor()).get()) + " weaponInfo " + std::to_string(t->weaponInfo().count())
+		+ " fx " + t->fxShotMissName().value_or("-") + " " + t->fxShotHitName().value_or("-") + " " + t->fxShieldHitName().value_or("-") + " "
+		+ t->fxUnshieldedHitName().value_or("-") + " " + t->fxWeaponLaunchedName().value_or("-");
 }
 
 
@@ -271,10 +287,10 @@ std::string Log()
 }
 
 
-std::string Identifiers(const std::vector<oo::ObjCRef<OOEquipmentType *>> &types)
+std::string Identifiers(const std::vector<oo::Ref<OOEquipmentType>> &types)
 {
 	std::string result;
-	for (const auto &t : types)  result += [t.get() cxx_identifier].value_or("-") + " ";
+	for (const auto &t : types)  result += t->identifier().value_or("-") + " ";
 	return result;
 }
 
@@ -315,17 +331,17 @@ OO_TEST(loading)
 	@autoreleasepool
 	{
 		Reset();
-		[OOEquipmentType loadEquipment];
+		OOEquipmentType::loadEquipment();
 		OO_CHECK(expect(Log()));
-		OO_CHECK(expect(Identifiers([OOEquipmentType cxx_allEquipmentTypes])));
-		OO_CHECK(expect(Identifiers([OOEquipmentType cxx_allEquipmentTypesOutfitting])));
+		OO_CHECK(expect(Identifiers(OOEquipmentType::allEquipmentTypes())));
+		OO_CHECK(expect(Identifiers(OOEquipmentType::allEquipmentTypesOutfitting())));
 		for (const char *key : { "EQ_FUEL", "EQ_MISSILE", "EQ_PASSENGER_BERTH_REMOVAL", "EQ_QC_MINE", "EQ_WEAPON_PULSE_LASER", "EQ_SHIELD_BOOSTER", "EQ_SCOOPER", "EQ_BROKEN", "EQ_EMPTY_NAME", "EQ_NO_NAME", "EQ_OUTFIT" })
 		{
 			gLog.clear();
-			OO_CHECK(expect(Describe([OOEquipmentType cxx_equipmentTypeWithIdentifier:key])));
+			OO_CHECK(expect(Describe(OOEquipmentType::equipmentTypeWithIdentifier(key).get())));
 			OO_CHECK(expect(Log()));
 		}
-		OO_CHECK(expect([[OOEquipmentType cxx_equipmentTypeWithIdentifier:"EQ_SHIELD_BOOSTER"] cxx_descriptionComponents].value_or("-")));
+		OO_CHECK(expect(OOEquipmentType::equipmentTypeWithIdentifier("EQ_SHIELD_BOOSTER").get()->descriptionComponents().value_or("-")));
 	}
 }
 
@@ -345,50 +361,49 @@ OO_TEST(registries)
 	@autoreleasepool
 	{
 		Reset();
-		[OOEquipmentType loadEquipment];
-		fuel = [OOEquipmentType cxx_equipmentTypeWithIdentifier:"EQ_FUEL"];	// not retained, as ShipEntity keeps weapon types
+		OOEquipmentType::loadEquipment();
+		fuel = OOEquipmentType::equipmentTypeWithIdentifier("EQ_FUEL").get();	// not retained, as ShipEntity keeps weapon types
 	}
 	@autoreleasepool
 	{
 		// The registry keeps its types: the same object, pool after pool, and from every list.
-		OO_CHECK(fuel != nil && [OOEquipmentType cxx_equipmentTypeWithIdentifier:"EQ_FUEL"] == fuel);
-		OO_CHECK([OOEquipmentType cxx_allEquipmentTypes].front().get() == fuel);
-		OO_CHECK([fuel cxx_identifier] == std::optional<std::string>("EQ_FUEL"));
-		OO_CHECK([[fuel copy] autorelease] == fuel);	// immutable: copy is retain
-		OO_CHECK([OOEquipmentType cxx_allEquipmentTypesOutfitting].front().get() != fuel);	// its own objects
+		OO_CHECK(fuel != nil && OOEquipmentType::equipmentTypeWithIdentifier("EQ_FUEL").get() == fuel);
+		OO_CHECK(OOEquipmentType::allEquipmentTypes().front().get() == fuel);
+		OO_CHECK(fuel->identifier() == std::optional<std::string>("EQ_FUEL"));
+		OO_CHECK(OOEquipmentType::allEquipmentTypesOutfitting().front().get() != fuel);	// its own objects
 
 		// Added types go to both lists and the index.
-		[OOEquipmentType cxx_addEquipmentWithInfo:Item(3, 30, "Extra", "EQ_EXTRA_MISSILE", "Added")];
-		[OOEquipmentType cxx_addEquipmentWithInfo:oo::PList("not an entry")];
-		OO_CHECK(expect(Identifiers([OOEquipmentType cxx_allEquipmentTypes])));
-		OO_CHECK(expect(Identifiers([OOEquipmentType cxx_allEquipmentTypesOutfitting])));
-		OO_CHECK(expect(Describe([OOEquipmentType cxx_equipmentTypeWithIdentifier:"EQ_EXTRA_MISSILE"])));
+		OOEquipmentType::addEquipmentWithInfo(Item(3, 30, "Extra", "EQ_EXTRA_MISSILE", "Added"));
+		OOEquipmentType::addEquipmentWithInfo(oo::PList("not an entry"));
+		OO_CHECK(expect(Identifiers(OOEquipmentType::allEquipmentTypes())));
+		OO_CHECK(expect(Identifiers(OOEquipmentType::allEquipmentTypesOutfitting())));
+		OO_CHECK(expect(Describe(OOEquipmentType::equipmentTypeWithIdentifier("EQ_EXTRA_MISSILE").get())));
 
 		// The missile registry.
-		OO_CHECK(![OOEquipmentType cxx_getMissileRegistryRoleForShip:"viper"].has_value());
-		[OOEquipmentType cxx_setMissileRegistryRole:"EQ_MISSILE" forShip:"viper"];
-		[OOEquipmentType cxx_setMissileRegistryRole:"EQ_MINE" forShip:""];
-		OO_CHECK([OOEquipmentType cxx_getMissileRegistryRoleForShip:"viper"] == std::optional<std::string>("EQ_MISSILE"));
-		OO_CHECK(![OOEquipmentType cxx_getMissileRegistryRoleForShip:""].has_value());
+		OO_CHECK(!OOEquipmentType::getMissileRegistryRoleForShip("viper").has_value());
+		OOEquipmentType::setMissileRegistryRole("EQ_MISSILE", "viper");
+		OOEquipmentType::setMissileRegistryRole("EQ_MINE", "");
+		OO_CHECK(OOEquipmentType::getMissileRegistryRoleForShip("viper") == std::optional<std::string>("EQ_MISSILE"));
+		OO_CHECK(!OOEquipmentType::getMissileRegistryRoleForShip("").has_value());
 
 		// The display colour can be replaced.
-		OOEquipmentType *laser = [OOEquipmentType cxx_equipmentTypeWithIdentifier:"EQ_WEAPON_PULSE_LASER"];
-		[laser setDisplayColor:[OOColor blueColor]];
-		OO_CHECK(expect(Colour([laser displayColor])));
-		[laser setDisplayColor:nil];
-		OO_CHECK(expect(Colour([laser displayColor])));
+		OOEquipmentType *laser = OOEquipmentType::equipmentTypeWithIdentifier("EQ_WEAPON_PULSE_LASER").get();
+		laser->setDisplayColor(OOColor::blueColor().get());
+		OO_CHECK(expect(Colour(laser->displayColor().get())));
+		laser->setDisplayColor(nullptr);
+		OO_CHECK(expect(Colour(laser->displayColor().get())));
 	}
 	@autoreleasepool
 	{
 		// Strict standards: legacy conditions are dropped and TL99 stays 99.
 		Reset();
 		gEnforceStandards = YES;
-		[OOEquipmentType loadEquipment];
+		OOEquipmentType::loadEquipment();
 		OO_CHECK(expect(Log()));
-		OOEquipmentType *booster = [OOEquipmentType cxx_equipmentTypeWithIdentifier:"EQ_SHIELD_BOOSTER"];
-		OO_CHECK([booster cxx_conditions].isNull() && [booster effectiveTechLevel] == 99);
-		OO_CHECK([OOEquipmentType cxx_equipmentTypeWithIdentifier:"EQ_EXTRA_MISSILE"] == nil);	// a reload starts again
-		OO_CHECK([[OOEquipmentType cxx_equipmentTypeWithIdentifier:"EQ_FUEL"] cxx_identifier] == std::optional<std::string>("EQ_FUEL"));
+		OOEquipmentType *booster = OOEquipmentType::equipmentTypeWithIdentifier("EQ_SHIELD_BOOSTER").get();
+		OO_CHECK(booster->conditions().isNull() && booster->effectiveTechLevel() == 99);
+		OO_CHECK(OOEquipmentType::equipmentTypeWithIdentifier("EQ_EXTRA_MISSILE").get() == nil);	// a reload starts again
+		OO_CHECK(OOEquipmentType::equipmentTypeWithIdentifier("EQ_FUEL").get()->identifier() == std::optional<std::string>("EQ_FUEL"));
 	}
 }
 
@@ -398,70 +413,87 @@ OO_TEST(cxxClass)
 	@autoreleasepool
 	{
 		Reset();
-		cxx::OOEquipmentType::loadEquipment();
-		const std::vector<oo::Ref<cxx::OOEquipmentType>> all = cxx::OOEquipmentType::allEquipmentTypes();
-		OO_CHECK(all.size() == 9 && cxx::OOEquipmentType::allEquipmentTypesOutfitting().size() == 2);
-		oo::Ref<cxx::OOEquipmentType> laser = cxx::OOEquipmentType::equipmentTypeWithIdentifier("EQ_WEAPON_PULSE_LASER");
+		OOEquipmentType::loadEquipment();
+		const std::vector<oo::Ref<OOEquipmentType>> all = OOEquipmentType::allEquipmentTypes();
+		OO_CHECK(all.size() == 9 && OOEquipmentType::allEquipmentTypesOutfitting().size() == 2);
+		oo::Ref<OOEquipmentType> laser = OOEquipmentType::equipmentTypeWithIdentifier("EQ_WEAPON_PULSE_LASER");
 		OO_CHECK(laser != nullptr && laser == all[4]);
-		OO_CHECK(cxx::OOEquipmentType::equipmentTypeWithIdentifier("EQ_NO_NAME") == nullptr);
+		OO_CHECK(OOEquipmentType::equipmentTypeWithIdentifier("EQ_NO_NAME") == nullptr);
 		OO_CHECK(laser->identifier() == std::optional<std::string>("EQ_WEAPON_PULSE_LASER") && laser->isPrimaryWeapon() && laser->isTurretLaser());
 		OO_CHECK(laser->weaponRange() == 15000.0f && laser->weaponDamage() == 10.0f && laser->fxShotHitName() == std::optional<std::string>("[zap]"));
 		OO_CHECK(laser->displayColor() != nullptr && laser->displayColor()->greenComponent() == 1.0f);
 		OO_CHECK(laser->weaponColor()->redComponent() == 1.0f);
-		laser->setDisplayColor(cxx::OOColor::blueColor().get());
+		laser->setDisplayColor(OOColor::blueColor().get());
 		OO_CHECK(laser->displayColor()->blueComponent() == 1.0f);
 		OO_CHECK(laser->descriptionComponents() == std::optional<std::string>("EQ_WEAPON_PULSE_LASER \"Pulse laser\""));
 
-		oo::Ref<cxx::OOEquipmentType> booster = cxx::OOEquipmentType::equipmentTypeWithIdentifier("EQ_SHIELD_BOOSTER");
+		oo::Ref<OOEquipmentType> booster = OOEquipmentType::equipmentTypeWithIdentifier("EQ_SHIELD_BOOSTER");
 		OO_CHECK(booster->techLevel() == 99 && booster->effectiveTechLevel() == 7);
 		OO_CHECK(booster->requiresEquipment() == std::optional<std::vector<std::string>>({ "EQ_A", "EQ_B" }));
 		OO_CHECK(booster->provides("boost") && !booster->provides("speed") && booster->repairTime() == 300);
 
-		cxx::OOEquipmentType::addEquipmentWithInfo(Item(3, 30, "Extra", "EQ_EXTRA_MINE", "Added"));
-		OO_CHECK(cxx::OOEquipmentType::equipmentTypeWithIdentifier("EQ_EXTRA_MINE")->fxWeaponLaunchedName() == std::optional<std::string>("[mine-launched]"));
-		cxx::OOEquipmentType::setMissileRegistryRole("EQ_EXTRA_MINE", "cobra");
-		OO_CHECK(cxx::OOEquipmentType::getMissileRegistryRoleForShip("cobra") == std::optional<std::string>("EQ_EXTRA_MINE"));
+		OOEquipmentType::addEquipmentWithInfo(Item(3, 30, "Extra", "EQ_EXTRA_MINE", "Added"));
+		OO_CHECK(OOEquipmentType::equipmentTypeWithIdentifier("EQ_EXTRA_MINE")->fxWeaponLaunchedName() == std::optional<std::string>("[mine-launched]"));
+		OOEquipmentType::setMissileRegistryRole("EQ_EXTRA_MINE", "cobra");
+		OO_CHECK(OOEquipmentType::getMissileRegistryRoleForShip("cobra") == std::optional<std::string>("EQ_EXTRA_MINE"));
 	}
 }
 
 
-OO_TEST(facadeNilStaysNil)
+OO_TEST(objectNode)
 {
-	OOEquipmentType *none = nil;
-	OO_CHECK(oo::ToCxx(none) == nullptr);
-	OO_CHECK(oo::ToObjC(static_cast<cxx::OOEquipmentType *>(nullptr)) == nil);
-	OO_CHECK(![none cxx_identifier].has_value() && [none price] == 0 && [none displayColor] == nil);
+	// A type is its own PList Object node payload (bead oo-9ht.28), as its facade was the node's
+	// object: the node gives the same type back, and describes it as "%@" printed the facade.
+	@autoreleasepool
+	{
+		Reset();
+		OOEquipmentType::loadEquipment();
+		OOEquipmentType *fuel = OOEquipmentType::equipmentTypeWithIdentifier("EQ_FUEL").get();
+		const oo::PList node = OOEquipmentTypeObjectNode(fuel);
+		OO_CHECK(OOEquipmentTypeInObjectNode(node) == fuel);
+		OO_CHECK(OOEquipmentTypeObjectNode(nullptr).isNull() && OOEquipmentTypeInObjectNode(oo::PList("EQ_FUEL")) == nullptr);
+		OO_CHECK(fuel->className() == "OOEquipmentType");
+		const std::string text = fuel->description();
+		OO_CHECK(text.rfind("<OOEquipmentType 0x", 0) == 0 && text.find(">{EQ_FUEL \"Fuel\"}") != std::string::npos);
+		const oo::PList nodes = OOEquipmentTypeObjectNodes({ oo::Ref<OOEquipmentType>(fuel), oo::Ref<OOEquipmentType>(), oo::Ref<OOEquipmentType>(fuel) });
+		OO_CHECK(nodes.count() == 2 && OOEquipmentTypeInObjectNode((*nodes.getIf<oo::PList::Array>())[1]) == fuel);
+	}
 }
 
 
 OO_TEST(facadeIdentity)
 {
 	OOEquipmentType *fuel = nil;
-	OOColor *blue = nil;
+	oo::Ref<OOColor> blue;	// the C++ colour since bead oo-9ht.1
 	@autoreleasepool
 	{
 		Reset();
-		[OOEquipmentType loadEquipment];
-		fuel = [OOEquipmentType cxx_equipmentTypeWithIdentifier:"EQ_FUEL"];
-		OO_CHECK(oo::ToObjC(oo::ToCxx(fuel)) == fuel);
-		OO_CHECK(oo::ToCxx(fuel) == cxx::OOEquipmentType::equipmentTypeWithIdentifier("EQ_FUEL").get());
+		OOEquipmentType::loadEquipment();
+		fuel = OOEquipmentType::equipmentTypeWithIdentifier("EQ_FUEL").get();
 
-		// The display colour crosses as the colour's own facade.
-		blue = [[OOColor blueColor] retain];
-		[fuel setDisplayColor:blue];
-		OO_CHECK([fuel displayColor] == blue);
+		// The display colour comes back as the same colour.
+		blue = OOColor::blueColor();
+		fuel->setDisplayColor(blue.get());
+		OO_CHECK(fuel->displayColor().get() == blue);
 	}
 	@autoreleasepool
 	{
-		// A registered type's facade outlives the pool (ships keep them unretained), and a C++
-		// registration made behind the facade's back still crosses to one facade.
-		OO_CHECK([OOEquipmentType cxx_equipmentTypeWithIdentifier:"EQ_FUEL"] == fuel && [fuel displayColor] == blue);
-		cxx::OOEquipmentType::addEquipmentWithInfo(Item(3, 30, "Quiet", "EQ_QUIET", "Added in C++"));
-		OOEquipmentType *quiet = [OOEquipmentType cxx_equipmentTypeWithIdentifier:"EQ_QUIET"];
-		OO_CHECK(quiet != nil && quiet == [OOEquipmentType cxx_equipmentTypeWithIdentifier:"EQ_QUIET"]);
-		[blue release];
+		// A registered type outlives the pool (ships keep them unretained), and a type registered
+		// later is the same object each time it is looked up.
+		OO_CHECK(OOEquipmentType::equipmentTypeWithIdentifier("EQ_FUEL").get() == fuel && fuel->displayColor().get() == blue);
+		OOEquipmentType::addEquipmentWithInfo(Item(3, 30, "Quiet", "EQ_QUIET", "Added in C++"));
+		OOEquipmentType *quiet = OOEquipmentType::equipmentTypeWithIdentifier("EQ_QUIET").get();
+		OO_CHECK(quiet != nil && quiet == OOEquipmentType::equipmentTypeWithIdentifier("EQ_QUIET").get());
+		blue = nullptr;
 	}
 }
+
+
+// The JS glue of OOEquipmentType (OOJSPrivateObject), defined in OOJSEquipmentInfo.mm, which
+// this test does not link (bead oo-6symp.3): the vtable names these.
+JSValue OOEquipmentType::jsValueInContext(JSContext *)  { return JS_UNDEFINED; }
+void OOEquipmentType::clearJSSelf(JSValueConst)  {}
+std::optional<std::string> OOEquipmentType::jsDescription()  { return std::nullopt; }
 
 
 OO_TEST_MAIN()

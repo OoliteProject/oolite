@@ -1,7 +1,8 @@
 /*	test_OOJSEquipmentInfo.mm
-	Unit tests for the EquipmentInfo JS binding (src/Core/Scripting/OOJSEquipmentInfo.h/.mm) and its
-	OOEquipmentType category (OOJSEquipmentInfo+ObjCBridge.mm): bead oo-supk, converted the way bead
-	oo-ppc converted OOJSVector (proposed ADR-0056 amendments oo-ppc and oo-6ia4).
+	Unit tests for the EquipmentInfo JS binding (src/Core/Scripting/OOJSEquipmentInfo.h/.mm) and the
+	JS glue of OOEquipmentType: bead oo-supk, converted the way bead oo-ppc converted OOJSVector
+	(proposed ADR-0056 amendments oo-ppc and oo-6ia4); the type's façade was deleted, so a type
+	reaches the engine as a PList Object node holding the C++ type.
 
 	As test_OOJSShipGroup.mm does (amendment oo-6ia4, item 7), it runs the JS class in a real
 	QuickJS-ng context, links the game's own objects for the binding, its bridge, the engine's
@@ -31,12 +32,12 @@
 #import "OOObjCPList.h"
 
 
-// The category on the façade, which the engine sends by selector.
-@interface OOEquipmentType (OOJavaScriptExtensions)
+// What the engine sends an Objective-C object by selector for its JS value (the equipment type's
+// façade answered it until it was deleted; the engine stand-in below still sends it).
+@interface OOObject (OOJSTestGlue)
 - (JSValue) oo_jsValueInContext:(JSContext *)context;
-- (std::optional<std::string>) cxx_oo_jsClassName;
-- (void) oo_clearJSSelf:(JSValueConst)selfVal;
 @end
+
 
 
 #import "OOJSEquipmentInfo.h"
@@ -140,17 +141,28 @@ Universe *gSharedUniverse = nil;
 @end
 
 
-@interface OOScript: OOObject
-+ (id) cxx_jsScriptFromFileNamed:(const std::string &)fileName properties:(const oo::PList &)properties;
-@end
+#import "OOScript.h"
 
-@implementation OOScript
-+ (id) cxx_jsScriptFromFileNamed:(const std::string &)fileName properties:(const oo::PList &)properties
+
+// OOScript's members that OOEquipmentType.mm calls (the Objective-C OOScript stand-in until its
+// facade was deleted), and the rest of its virtual members, for the vtable.
+std::optional<std::string> OOScript::descriptionComponents()	{ return std::nullopt; }
+std::optional<std::string> OOScript::name()					{ return std::nullopt; }
+std::optional<std::string> OOScript::scriptDescription()		{ return std::nullopt; }
+std::optional<std::string> OOScript::version()				{ return std::nullopt; }
+bool OOScript::requiresTickle()								{ return false; }
+void OOScript::runWithTarget(::Entity *)						{}
+bool OOScript::callMethod(JSAtom, JSContext *, JSValueConst *, int, JSValue *)	{ return false; }
+std::string OOScript::className() const						{ return "OOScript"; }
+std::string OOScript::description() const						{ return "<OOScript>"; }
+JSValue OOScript::jsValueInContext(JSContext *)				{ return JS_UNDEFINED; }
+void OOScript::clearJSSelf(JSValueConst)						{}
+void OOScriptAutorelease(oo::Ref<OOScript>)					{}
+oo::Ref<OOScript> OOScript::jsScriptFromFileNamed(const std::string &fileName, const oo::PList &properties)
 {
 	(void)properties;
-	return (fileName == "good.js") ? [[[OOScript alloc] init] autorelease] : nil;
+	return (fileName == "good.js") ? oo::makeRef<OOScript>() : nullptr;
 }
-@end
 
 
 /*	The player: its fuel and charge rate, renovation costs, the price scripts adjust, and its
@@ -158,56 +170,66 @@ Universe *gSharedUniverse = nil;
 	"EQ_MISSILE" while _throwCxx is set throws a C++ exception, so the test sees what an exception
 	under a native becomes.
 */
-@interface PlayerEntity: OOObject
+// PLAYER: C++ since the Objective-C player this stood in for was deleted: the members the code
+// under test calls, declared as the game headers declare them (the test imports none that defines
+// the classes), with the stand-in's answers. The ship is C++ too.
+namespace cxx {
+class Entity
 {
-@public
-	OOFuelQuantity _fuel;
-	float _fuelChargeRate;
-	double _renovationCosts;
+public:
+
+};
+}	// namespace cxx
+
+class ShipEntity : public cxx::Entity
+{
+public:
+	OOFuelQuantity getFuel();
+};
+
+class PlayerEntity : public ShipEntity
+{
+public:
+	void setScriptTarget(::ShipEntity *ship);
+	GLfloat fuelChargeRate();
+	double renovationCosts();
+	OOCreditsQuantity adjustPriceByScriptForEqKey(const std::string &eqKey, OOCreditsQuantity price);
+	oo::PList processKeyCode(const oo::PList &key_def);
+	std::optional<std::string> validateKey(const std::string &key, const oo::PList &check_keys);
+	oo::PList missionVariableForKey(const std::string &key);
+	void setMissionVariable(const oo::PList &value, const std::string &key);
+
+	OOFuelQuantity _fuel = {};
+	float _fuelChargeRate = {};
+	double _renovationCosts = {};
 	oo::PList::Dict _missionVariables;
-	BOOL _throwCxx;
-}
-- (void) setScriptTarget:(id)target;
-- (OOFuelQuantity) fuel;
-- (float) fuelChargeRate;
-- (double) renovationCosts;
-- (OOCreditsQuantity) cxx_adjustPriceByScriptForEqKey:(const std::string &)eqKey withCurrent:(OOCreditsQuantity)price;
-- (oo::PList) cxx_processKeyCode:(const oo::PList &)key_def;
-- (std::optional<std::string>) validateKey:(const std::string &)key checkKeys:(const oo::PList &)check_keys;
-- (oo::PList) cxx_missionVariableForKey:(const std::string &)key;
-- (void) cxx_setMissionVariable:(const oo::PList &)value forKey:(const std::string &)key;
-@end
+	BOOL _throwCxx = {};
+};
 
-@implementation PlayerEntity
-- (void) setScriptTarget:(id)target  { (void)target; }
-- (OOFuelQuantity) fuel  { return _fuel; }
-- (float) fuelChargeRate  { return _fuelChargeRate; }
-- (double) renovationCosts  { return _renovationCosts; }
-
-- (OOCreditsQuantity) cxx_adjustPriceByScriptForEqKey:(const std::string &)eqKey withCurrent:(OOCreditsQuantity)price
+void PlayerEntity::setScriptTarget(::ShipEntity *target)  { (void)target; }
+OOFuelQuantity ShipEntity::getFuel()  { return static_cast<PlayerEntity *>(this)->_fuel; }
+GLfloat PlayerEntity::fuelChargeRate()  { return _fuelChargeRate; }
+double PlayerEntity::renovationCosts()  { return _renovationCosts; }
+OOCreditsQuantity PlayerEntity::adjustPriceByScriptForEqKey(const std::string &eqKey, OOCreditsQuantity price)
 {
 	if (eqKey == "EQ_SCOOPER")  [OOException raise:OOInvalidArgumentException format:"price %s", "boom"];
 	if (eqKey == "EQ_MISSILE" && _throwCxx)  throw std::runtime_error("cxx boom");
 	return price * 2;
 }
-
-- (oo::PList) cxx_processKeyCode:(const oo::PList &)key_def  { return key_def; }
-- (std::optional<std::string>) validateKey:(const std::string &)key checkKeys:(const oo::PList &)check_keys  { (void)key; (void)check_keys; return std::nullopt; }
-
-- (oo::PList) cxx_missionVariableForKey:(const std::string &)key
+oo::PList PlayerEntity::processKeyCode(const oo::PList &key_def)  { return key_def; }
+std::optional<std::string> PlayerEntity::validateKey(const std::string &key, const oo::PList &check_keys)  { (void)key; (void)check_keys; return std::nullopt; }
+oo::PList PlayerEntity::missionVariableForKey(const std::string &key)
 {
 	auto it = _missionVariables.find(key);
 	return it != _missionVariables.end() ? it->second : oo::PList();
 }
-
-- (void) cxx_setMissionVariable:(const oo::PList &)value forKey:(const std::string &)key
+void PlayerEntity::setMissionVariable(const oo::PList &value, const std::string &key)
 {
 	if (value.isNull())  _missionVariables.erase(key);
 	else  _missionVariables[key] = value;
 }
-@end
 
-PlayerEntity *gOOPlayer = nil;
+PlayerEntity *gOOPlayer = nullptr;
 
 
 void cxx_OOStandardsDeprecated(const std::string &message)
@@ -357,7 +379,7 @@ oo::PList cxx_OOJSPListFromJSValue(JSContext *context, JSValueConst value)
 		return oo::PList(std::move(array));
 	}
 	const char *jsClass = OOJSClassName(JS_GetClassID(value));
-	if (jsClass != nullptr && std::strcmp(jsClass, "EquipmentInfo") == 0)  return oo::PListObject((id)JS_GetOpaque(value, JS_GetClassID(value)));
+	if (jsClass != nullptr && std::strcmp(jsClass, "EquipmentInfo") == 0)  return OOEquipmentTypeObjectNode(static_cast<OOEquipmentType *>(static_cast<oo::RefCounted *>(JS_GetOpaque(value, JS_GetClassID(value)))));
 	return oo::PList(std::string("[object]"));
 }
 
@@ -371,6 +393,10 @@ JSValue OOJSValueFromPList(JSContext *context, const oo::PList &plist)
 	if (const std::string *str = plist.getIf<std::string>())  return JS_NewStringLen(context, str->data(), str->size());
 	if (const bool *boolean = plist.getIf<bool>())  return JS_NewBool(context, *boolean);
 	if (plist.isNumber())  return JS_NewNumber(context, plist.doubleValue());
+	if (const oo::PList::Object *node = plist.getIf<oo::PList::Object>())	// a C++ object that is its own JS glue, as the engine asks it
+	{
+		if (OOJSPrivateObject *glue = dynamic_cast<OOJSPrivateObject *>(node->get()))  return OOJSValueFromCxxObject(context, glue);
+	}
 	if (id object = oo::ObjectIn(plist))  return OOJSValueFromNativeObject(context, object);
 	if (const oo::PList::Array *array = plist.getIf<oo::PList::Array>())
 	{
@@ -449,6 +475,11 @@ JSValue OOJSValueFromNativeObject(JSContext *context, id object)
 }
 
 
+// The JS class check of the engine's C++ getter (OOJSPrivateObject.cpp, linked; its slot holds the
+// C++ equipment type) is the class registry's (OOJSClasses.mm, linked): no subclass of
+// EquipmentInfo is registered.
+
+
 JSValue OOJSObjectWrapperToString(JSContext *context, JSValueConst, int, JSValueConst *)
 {
 	return JS_NewString(context, "[EquipmentInfo]");
@@ -464,19 +495,11 @@ JSValue OOJSUnconstructableConstruct(JSContext *context, JSValueConst, int, JSVa
 
 int sFinalized = 0;
 
-// The shared finalizer, counted; as the engine's, it clears the object's JS self and releases the
-// object its slot retains.
-void OOJSObjectWrapperFinalize(JSRuntime *, JSValueConst thisObj)
+// The shared finalizer, counted. EquipmentInfo's slot holds the C++ type, which the engine's C++
+// finalizer (OOJSPrivateObject.cpp, linked) releases.
+void OOJSObjectWrapperFinalize(JSRuntime *, JSValueConst)
 {
 	sFinalized++;
-	JSClassID classID;
-	id object = (id)JS_GetAnyOpaque(thisObj, &classID);
-	if (object != nil)
-	{
-		[[object weakRefUnderlyingObject] oo_clearJSSelf:thisObj];
-		[object release];
-		JS_SetOpaque(thisObj, NULL);
-	}
 }
 
 
@@ -512,19 +535,19 @@ namespace {
 JSRuntime *sRuntime;
 JSContext *sContext;
 JSValue sGlobal = JS_UNDEFINED;
-PlayerEntity *sPlayer = nil;
+PlayerEntity *sPlayer = nullptr;
 
 
 void SetUpContext()
 {
 	if (sContext != nullptr)  return;
 	gSharedUniverse = [[Universe alloc] init];	// kept for the life of the test
-	sPlayer = [[PlayerEntity alloc] init];
+	sPlayer = new PlayerEntity;
 	sPlayer->_fuel = 30;
 	sPlayer->_fuelChargeRate = 1.5f;
 	sPlayer->_renovationCosts = 1234.5;
 	gOOPlayer = sPlayer;
-	[OOEquipmentType loadEquipment];
+	OOEquipmentType::loadEquipment();
 
 	sRuntime = JS_NewRuntime();
 	JS_SetMemoryLimit(sRuntime, 8u * 1024u * 1024u);
@@ -553,9 +576,9 @@ std::string Eval(const char *src)
 
 
 // What a JS object's private slot holds.
-id SlotOf(JSValueConst object)
+oo::RefCounted *SlotOf(JSValueConst object)
 {
-	return (id)JS_GetOpaque(object, JS_GetClassID(object));
+	return static_cast<oo::RefCounted *>(JS_GetOpaque(object, JS_GetClassID(object)));
 }
 
 
@@ -580,7 +603,7 @@ OO_TEST(registration)
 	OO_CHECK_EVAL("typeof EquipmentInfo", "function");
 	OO_CHECK_EVAL("new EquipmentInfo()", "threw: unconstructable");
 	OO_CHECK_EVAL("EquipmentInfo.infoForKey('EQ_FUEL') instanceof EquipmentInfo", "true");
-	OO_CHECK_EVAL("String(EquipmentInfo.infoForKey('EQ_FUEL'))", "[EquipmentInfo]");
+	OO_CHECK_EVAL("String(EquipmentInfo.infoForKey('EQ_FUEL'))", "[EquipmentInfo EQ_FUEL \"Fuel\"]");
 	OO_CHECK_EVAL("Object.keys(EquipmentInfo.prototype).length", "38");
 }
 
@@ -588,24 +611,24 @@ OO_TEST(registration)
 OO_TEST(categoryAnswersTheEngine)
 {
 	SetUpContext();
-	OOEquipmentType *fuel = [OOEquipmentType cxx_equipmentTypeWithIdentifier:"EQ_FUEL"];
-	OO_CHECK([fuel cxx_oo_jsClassName] == std::optional<std::string>("EquipmentInfo"));
+	OOEquipmentType *fuel = OOEquipmentType::equipmentTypeWithIdentifier("EQ_FUEL").get();
+	OO_CHECK(OOJSEquipmentInfoJSClassName() == std::optional<std::string>("EquipmentInfo"));
 	// One JS object per type, made on first use, with the type (retained) in its private slot.
-	JSValue first = [fuel oo_jsValueInContext:sContext];
-	JSValue second = [fuel oo_jsValueInContext:sContext];
+	JSValue first = fuel->jsValueInContext(sContext);
+	JSValue second = fuel->jsValueInContext(sContext);
 	OO_CHECK(JS_IsObject(first) && JS_VALUE_GET_PTR(first) == JS_VALUE_GET_PTR(second));
-	OO_CHECK(SlotOf(first) == fuel);
+	OO_CHECK(SlotOf(first) == static_cast<oo::RefCounted *>(fuel));
 	const char *infoForFuel = "EquipmentInfo.infoForKey('EQ_FUEL')";
 	JSValue fromScript = JS_Eval(sContext, infoForFuel, std::strlen(infoForFuel), "test.js", JS_EVAL_TYPE_GLOBAL);
 	OO_CHECK(JS_IsObject(fromScript) && JS_VALUE_GET_PTR(fromScript) == JS_VALUE_GET_PTR(first));
 	// Clearing another object leaves it; clearing its own makes a new one next time.
-	[fuel oo_clearJSSelf:sGlobal];
-	JSValue again = [fuel oo_jsValueInContext:sContext];
+	fuel->clearJSSelf(sGlobal);
+	JSValue again = fuel->jsValueInContext(sContext);
 	OO_CHECK(JS_VALUE_GET_PTR(again) == JS_VALUE_GET_PTR(first));
-	[fuel oo_clearJSSelf:first];
-	JSValue third = [fuel oo_jsValueInContext:sContext];
+	fuel->clearJSSelf(first);
+	JSValue third = fuel->jsValueInContext(sContext);
 	OO_CHECK(JS_IsObject(third) && JS_VALUE_GET_PTR(third) != JS_VALUE_GET_PTR(first));
-	OO_CHECK(SlotOf(third) == fuel);
+	OO_CHECK(SlotOf(third) == static_cast<oo::RefCounted *>(fuel));
 	JS_FreeValue(sContext, third);
 	JS_FreeValue(sContext, again);
 	JS_FreeValue(sContext, fromScript);
@@ -713,8 +736,8 @@ OO_TEST(staticMembers)
 OO_TEST(cFunctions)
 {
 	SetUpContext();
-	OOEquipmentType *missile = [OOEquipmentType cxx_equipmentTypeWithIdentifier:"EQ_MISSILE"];
-	JSValue missileValue = [missile oo_jsValueInContext:sContext];
+	OOEquipmentType *missile = OOEquipmentType::equipmentTypeWithIdentifier("EQ_MISSILE").get();
+	JSValue missileValue = missile->jsValueInContext(sContext);
 	JSValue key = JS_NewString(sContext, "EQ_MISSILE");
 	JSValue damagedKey = JS_NewString(sContext, "EQ_MISSILE_DAMAGED");
 	JSValue unknownKey = JS_NewString(sContext, "EQ_SOMETHING");

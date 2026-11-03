@@ -10,10 +10,8 @@ expired.
 
 All sounds are specified by customsounds.plist key.
 
-C++20 since bead oo-d2y9 (proposed ADR-0056, the Audio module: amendment oo-2en). The class is
-cxx::OOSoundSourcePool while OOSoundSourcePool+ObjCBridge.h, imported at the end of this header,
-keeps the Objective-C OOSoundSourcePool that the player's sound category makes and messages; the
-bridge's deletion bead moves it out of namespace cxx.
+C++20 since bead oo-d2y9 (proposed ADR-0056, the Audio module: amendment oo-2en). Its Objective-C
+facade was deleted by bead oo-9ht.89, and the class left namespace cxx.
 
 
 Copyright (C) 2008-2013 Jens Ayton
@@ -51,8 +49,6 @@ SOFTWARE.
 
 struct OOSoundSourcePoolElement; // OOSoundSourcePool.mm
 
-namespace cxx {
-
 class OOSoundSourcePool : public oo::RefCounted {
 public:
     /*	Was +poolWithCount:minRepeatTime:, alloc and -initWithCount:minRepeatTime:, which answered
@@ -87,11 +83,5 @@ private:
     OOTimeAbsolute _nextRepeat = { };
     std::optional<std::string> _lastKey; // nullopt until a repeat-limited sound plays (proposed ADR-0043)
 };
-
-} // namespace cxx
-
-// Transitional: the Objective-C OOSoundSourcePool, for the player's sound category.
-// Deleted, with namespace cxx above, by the bridge's deletion bead.
-#import "OOSoundSourcePool+ObjCBridge.h"
 
 #endif // OOSOUNDSOURCEPOOL_H

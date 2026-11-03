@@ -10,7 +10,8 @@
 	natives read (PLAYER) and the universe are stand-ins of other names (FakePlayer, FakeUniverse,
 	amendment oo-ppc item 6) that answer only the selectors the binding sends and record what they
 	are told; the player's HUD is a real one (made from an empty hud.plist, in a hidden GL context),
-	and the message GUI's colours are real colours. The expectations were written against the
+	and the message GUI's colours are real colours (the GUI stand-in is a C++ subclass since bead
+	oo-9ht.143 deleted the GUI's facade). The expectations were written against the
 	Objective-C file and run on it first; they pin the JS-visible behaviour of the property getter
 	(every property), the passenger, parcel and contract methods with their argument checks
 	(ValidateContracts()), and the PlayerEntity category the engine sends (the class name, and the
@@ -28,6 +29,7 @@
 #import "OOColor.h"
 #import "ResourceManager.h"
 #import "EntityOOJavaScriptExtensions.h"
+#import "StationEntity.h"
 #include "oofnd/FileSystem.hpp"
 #include "oofnd/Notification.hpp"
 #include "oofnd/String.hpp"
@@ -69,30 +71,28 @@ uint32_t gDebugFlags = 0;
 @end
 
 
-@interface FakeGui: OOObject
+// The GUI is C++ (its facade was deleted): the stand-in overrides the members the facade
+// stand-in answered, with the same answers.
+class FakeGui : public GuiDisplayGen
 {
-@public
-	OOColor *_textColor, *_textCommsColor;
-}
-@end
+public:
+	FakeGui() : GuiDisplayGen(NSMakeSize(480, 160), 1, 9, 19, 20, std::nullopt) {}
 
+	oo::Ref<OOColor> _textColor, _textCommsColor;
 
-@implementation FakeGui
-
-- (OOColor *) textColor  { return _textColor; }
-- (OOColor *) textCommsColor  { return _textCommsColor; }
-- (void) setTextColor:(OOColor *)color  { [_textColor release]; _textColor = [color retain]; }
-- (void) setTextCommsColor:(OOColor *)color  { [_textCommsColor release]; _textCommsColor = [color retain]; }
-- (std::optional<std::string>) cxx_reflowTextForMFD:(const std::optional<std::string> &)input  { return "[reflowed " + input.value_or("(nil)") + "]"; }
-
-@end
+	OOColor *getTextColor() override  { return _textColor.get(); }
+	OOColor *getTextCommsColor() override  { return _textCommsColor.get(); }
+	void setTextColor(OOColor *color) override  { _textColor = oo::Ref<OOColor>(color); }
+	void setTextCommsColor(OOColor *color) override  { _textCommsColor = oo::Ref<OOColor>(color); }
+	std::optional<std::string> reflowTextForMFD(const std::optional<std::string> &input) override  { return "[reflowed " + input.value_or("(nil)") + "]"; }
+};
 
 
 @interface FakeUniverse: OOObject
 {
 @public
 	OOViewID _viewDirection;
-	FakeGui *_gui;
+	oo::Ref<FakeGui> _gui;
 	std::string _lastCommander;
 	std::vector<std::string> _messages;
 }
@@ -102,7 +102,7 @@ uint32_t gDebugFlags = 0;
 @implementation FakeUniverse
 
 - (OOViewID) viewDirection  { return _viewDirection; }
-- (GuiDisplayGen *) messageGUI  { return (GuiDisplayGen *)_gui; }
+- (GuiDisplayGen *) messageGUI  { return _gui.get(); }
 
 - (OOCreditsQuantity) cxx_tradeInValueForCommanderDictionary:(const oo::PList &)cmdrDict
 {
@@ -111,209 +111,213 @@ uint32_t gDebugFlags = 0;
 }
 
 - (std::optional<std::string>) cxx_descriptionForKey:(const std::string &)key  { return std::nullopt; }
-- (GuiDisplayGen *) gui  { return (GuiDisplayGen *)_gui; }
+- (GuiDisplayGen *) gui  { return _gui.get(); }
 - (void) cxx_addMessage:(const std::optional<std::string> &)text forCount:(OOTimeDelta)count  { _messages.push_back(oo::str::format("%s %g", text.value_or("(nil)").c_str(), count)); }
 
 @end
 
 
-@interface FakePlayer: OOObject
+class FakePlayer : public PlayerEntity	// C++ (the Objective-C player was deleted)
 {
-@public
-	HeadUpDisplay *_hud;
-	Entity *_dockedStation, *_compassTarget;
-	BOOL _docked;
+public:
+	oo::Ref<HeadUpDisplay> _hud;	// C++ since bead oo-mwd58
+	::Entity *_dockedStation = {}, *_compassTarget = {};
+	BOOL _docked = {};
 	std::optional<std::string> _specialCargo, _fastA, _fastB;
 	std::string _primed;
 	std::vector<std::optional<std::string>> _mfds;
-	NSUInteger _passengers, _capacity, _parcels;
-	double _clockTime;
-	BOOL _contractsAccept;
+	NSUInteger _passengers = {}, _capacity = {}, _parcels = {};
+	double _clockTime = {};
+	BOOL _contractsAccept = {};
 	std::vector<std::string> _log;
-	Entity *_other;
-	std::vector<Entity *> _compassCycle;
+	::Entity *_other = {};
+	std::vector<::Entity *> _compassCycle;
 	std::set<std::string> _equipment;
-	OOEntityStatus _status;
-	BOOL _hyperspaceMotor;
-}
-@end
+	BOOL _hyperspaceMotor = {};
 
-
-@implementation FakePlayer
-
-- (void) setScriptTarget:(ShipEntity *)ship  { }
-- (NSUInteger) activeMissile  { return 2; }
-- (float) fuelLeakRate  { return 0.5f; }
-- (BOOL) isDocked  { return _docked; }
-- (StationEntity *) dockedStation  { return (StationEntity *)_dockedStation; }
-- (std::optional<std::string>) cxx_specialCargo  { return _specialCargo; }
-- (HeadUpDisplay *) hud  { return _hud; }
-- (OOGalacticHyperspaceBehaviour) galacticHyperspaceBehaviour  { return GALACTIC_HYPERSPACE_BEHAVIOUR_FIXED_COORDINATES; }
-- (NSPoint) galacticHyperspaceFixedCoords  { return NSMakePoint(64, 128); }
-- (std::optional<std::string>) cxx_fastEquipmentA  { return _fastA; }
-- (std::optional<std::string>) cxx_fastEquipmentB  { return _fastB; }
-- (std::string) cxx_currentPrimedEquipment  { return _primed; }
-- (GLfloat) forwardShieldLevel  { return 10; }
-- (GLfloat) aftShieldLevel  { return 20; }
-- (float) maxForwardShieldLevel  { return 128; }
-- (float) maxAftShieldLevel  { return 256; }
-- (float) forwardShieldRechargeRate  { return 1.5f; }
-- (float) aftShieldRechargeRate  { return 2.5f; }
-- (std::vector<std::optional<std::string>>) cxx_multiFunctionDisplayList  { return _mfds; }
-- (BOOL) dialIdentEngaged  { return YES; }
-- (OOLongRangeChartMode) longRangeChartMode  { return OOLRC_MODE_ECONOMY; }
-- (NSPoint) galaxy_coordinates  { return NSMakePoint(20, 40); }
-- (NSPoint) cursor_coordinates  { return NSMakePoint(30, 60); }
-- (OOSystemID) targetSystemID  { return 7; }
-- (OOSystemID) nextHopTargetSystemID  { return 8; }
-- (OOSystemID) infoSystemID  { return 9; }
-- (OOSystemID) previousSystemID  { return 6; }
-- (OORouteType) ANAMode  { return OPTIMIZED_BY_TIME; }
-- (BOOL) scoopOverride  { return YES; }
-- (BOOL) injectorsEngaged  { return NO; }
-- (BOOL) massLockable  { return YES; }
-- (BOOL) hyperspeedEngaged  { return NO; }
-- (Entity *) compassTarget  { return _compassTarget; }
-- (OOCompassMode) compassMode  { return COMPASS_MODE_PLANET; }
-- (BOOL) weaponsOnline  { return YES; }
-- (Vector) viewpointOffsetAft  { return make_vector(0, 0, -1); }
-- (Vector) viewpointOffsetForward  { return make_vector(0, 0, 1); }
-- (Vector) viewpointOffsetPort  { return make_vector(-1, 0, 0); }
-- (Vector) viewpointOffsetStarboard  { return make_vector(1, 0, 0); }
-- (OOWeaponFacing) currentWeaponFacing  { return WEAPON_FACING_FORWARD; }
-- (OOEquipmentType *) weaponTypeForFacing:(OOWeaponFacing)facing strict:(BOOL)strict  { _log.push_back(oo::str::format("weaponTypeForFacing %d %d", static_cast<int>(facing), strict ? 1 : 0)); return nil; }
-- (oo::PList) cxx_commanderDataDictionary  { return oo::PList(std::string("commander")); }
-- (int) tradeInFactor  { return 95; }
-- (double) renovationCosts  { return 1500; }
-- (double) renovationFactor  { return 1.25; }
-- (GLfloat) flightPitch  { return 0.25f; }
-- (GLfloat) flightRoll  { return -0.5f; }
-- (GLfloat) flightYaw  { return 0.125f; }
-- (NSUInteger) passengerCount  { return _passengers; }
-- (NSUInteger) passengerCapacity  { return _capacity; }
-- (NSUInteger) parcelCount  { return _parcels; }
-- (double) clockTime  { return _clockTime; }
-- (void) setFuelLeakRate:(float)value  { _log.push_back(oo::str::format("setFuelLeakRate %g", value)); }
-- (void) setMassLockable:(BOOL)newValue  { _log.push_back(oo::str::format("setMassLockable %d", newValue ? 1 : 0)); }
-- (void) setLongRangeChartMode:(OOLongRangeChartMode)mode  { _log.push_back(oo::str::format("setLongRangeChartMode %d", static_cast<int>(mode))); }
-- (void) cxx_doScriptEvent:(OOJSPropID)message withPListArguments:(const std::vector<oo::PList> &)arguments
-{
-	std::string event = "event(";
-	for (std::size_t i = 0; i < arguments.size(); i++)  event += (i != 0 ? ", " : "") + oo::DescriptionOf(arguments[i]);
-	_log.push_back(event + ")");
-}
-- (void) setCompassMode:(OOCompassMode)value  { _log.push_back(oo::str::format("setCompassMode %d", static_cast<int>(value))); }
-- (void) validateCompassTarget  { _log.push_back("validateCompassTarget"); }
-- (void) setNextCompassMode
-{
-	_log.push_back("setNextCompassMode");
-	if (!_compassCycle.empty())
+	void setScriptTarget(::ShipEntity * ship) override	{  }
+	NSUInteger getActiveMissile() override	{ return 2; }
+	float fuelLeakRate() override	{ return 0.5f; }
+	bool isDocked() override	{ return _docked; }
+	// The station is C++: the stand-in entity's C++ part, which only crosses back to
+	// its Objective-C object (oo::ToObjC) in the code the test runs, as the stub universe's planet does.
+	::StationEntity * dockedStation() override	{ return static_cast<::StationEntity *>(oo::ToCxx(_dockedStation)); }
+	std::optional<std::string> getSpecialCargo() override	{ return _specialCargo; }
+	::HeadUpDisplay * getHud() override	{ return _hud.get(); }
+	OOGalacticHyperspaceBehaviour getGalacticHyperspaceBehaviour() override	{ return GALACTIC_HYPERSPACE_BEHAVIOUR_FIXED_COORDINATES; }
+	NSPoint getGalacticHyperspaceFixedCoords() override	{ return NSMakePoint(64, 128); }
+	std::optional<std::string> fastEquipmentA() override	{ return _fastA; }
+	std::optional<std::string> fastEquipmentB() override	{ return _fastB; }
+	std::string currentPrimedEquipment() override	{ return _primed; }
+	GLfloat forwardShieldLevel() override	{ return 10; }
+	GLfloat aftShieldLevel() override	{ return 20; }
+	float maxForwardShieldLevel() override	{ return 128; }
+	float maxAftShieldLevel() override	{ return 256; }
+	float forwardShieldRechargeRate() override	{ return 1.5f; }
+	float aftShieldRechargeRate() override	{ return 2.5f; }
+	std::vector<std::optional<std::string>> multiFunctionDisplayList() override	{ return _mfds; }
+	bool dialIdentEngaged() override	{ return YES; }
+	OOLongRangeChartMode getLongRangeChartMode() override	{ return OOLRC_MODE_ECONOMY; }
+	NSPoint getGalaxy_coordinates() override	{ return NSMakePoint(20, 40); }
+	NSPoint getCursor_coordinates() override	{ return NSMakePoint(30, 60); }
+	OOSystemID targetSystemID() override	{ return 7; }
+	OOSystemID nextHopTargetSystemID() override	{ return 8; }
+	OOSystemID infoSystemID() override	{ return 9; }
+	OOSystemID previousSystemID() override	{ return 6; }
+	OORouteType ANAMode() override	{ return OPTIMIZED_BY_TIME; }
+	bool getScoopOverride() override	{ return YES; }
+	bool injectorsEngaged() override	{ return NO; }
+	bool getMassLockable() override	{ return YES; }
+	bool hyperspeedEngaged() override	{ return NO; }
+	::Entity * getCompassTarget() override	{ return _compassTarget; }
+	OOCompassMode getCompassMode() override	{ return COMPASS_MODE_PLANET; }
+	bool weaponsOnline() override	{ return YES; }
+	Vector viewpointOffsetAft() override	{ return make_vector(0, 0, -1); }
+	Vector viewpointOffsetForward() override	{ return make_vector(0, 0, 1); }
+	Vector viewpointOffsetPort() override	{ return make_vector(-1, 0, 0); }
+	Vector viewpointOffsetStarboard() override	{ return make_vector(1, 0, 0); }
+	OOWeaponFacing getCurrentWeaponFacing() override	{ return WEAPON_FACING_FORWARD; }
+	::OOEquipmentType * weaponTypeForFacing(OOWeaponFacing facing, bool strict) override	{ _log.push_back(oo::str::format("weaponTypeForFacing %d %d", static_cast<int>(facing), strict ? 1 : 0)); return nil; }
+	oo::PList commanderDataDictionary() override	{ return oo::PList(std::string("commander")); }
+	int tradeInFactor() override	{ return 95; }
+	double renovationCosts() override	{ return 1500; }
+	double renovationFactor() override	{ return 1.25; }
+	GLfloat getFlightPitch() override	{ return 0.25f; }
+	GLfloat getFlightRoll() override	{ return -0.5f; }
+	GLfloat getFlightYaw() override	{ return 0.125f; }
+	NSUInteger passengerCount() override	{ return _passengers; }
+	NSUInteger passengerCapacity() override	{ return _capacity; }
+	NSUInteger parcelCount() override	{ return _parcels; }
+	double clockTime() override	{ return _clockTime; }
+	void setFuelLeakRate(float value) override	{ _log.push_back(oo::str::format("setFuelLeakRate %g", value)); }
+	void setMassLockable(bool newValue) override	{ _log.push_back(oo::str::format("setMassLockable %d", newValue ? 1 : 0)); }
+	void setLongRangeChartMode(OOLongRangeChartMode mode) override	{ _log.push_back(oo::str::format("setLongRangeChartMode %d", static_cast<int>(mode))); }
+	using PlayerEntity::doScriptEvent;
+	void doScriptEvent(OOJSPropID message, const std::vector<oo::PList> & arguments) override
 	{
-		_compassTarget = _compassCycle.front();
-		_compassCycle.erase(_compassCycle.begin());
+		std::string event = "event(";
+		for (std::size_t i = 0; i < arguments.size(); i++)  event += (i != 0 ? ", " : "") + oo::DescriptionOf(arguments[i]);
+		_log.push_back(event + ")");
 	}
-}
-- (BOOL) cxx_hasEquipmentItemProviding:(const std::string &)equipmentType  { return _equipment.count(equipmentType) != 0; }
-- (void) setGalacticHyperspaceBehaviour:(OOGalacticHyperspaceBehaviour)behaviour  { _log.push_back(oo::str::format("setGalacticHyperspaceBehaviour %d", static_cast<int>(behaviour))); }
-- (void) setGalacticHyperspaceFixedCoords:(NSPoint)point  { _log.push_back(oo::str::format("setGalacticHyperspaceFixedCoords %g %g", point.x, point.y)); }
-- (void) cxx_setFastEquipmentA:(const std::optional<std::string> &)eqKey  { _log.push_back("setFastEquipmentA " + eqKey.value_or("(nil)")); }
-- (void) cxx_setFastEquipmentB:(const std::optional<std::string> &)eqKey  { _log.push_back("setFastEquipmentB " + eqKey.value_or("(nil)")); }
-- (BOOL) cxx_setPrimedEquipment:(const std::string &)eqKey showMessage:(BOOL)showMsg
-{
-	_log.push_back(oo::str::format("setPrimedEquipment %s %d", eqKey.c_str(), showMsg ? 1 : 0));
-	return eqKey != "EQ_NONE_SUCH";
-}
-- (void) decrease_flight_pitch:(double)delta  { _log.push_back(oo::str::format("decrease_flight_pitch %g", delta)); }
-- (void) decrease_flight_roll:(double)delta  { _log.push_back(oo::str::format("decrease_flight_roll %g", delta)); }
-- (void) decrease_flight_yaw:(double)delta  { _log.push_back(oo::str::format("decrease_flight_yaw %g", delta)); }
-- (void) setForwardShieldLevel:(GLfloat)level  { _log.push_back(oo::str::format("setForwardShieldLevel %g", level)); }
-- (void) setAftShieldLevel:(GLfloat)level  { _log.push_back(oo::str::format("setAftShieldLevel %g", level)); }
-- (void) setMaxForwardShieldLevel:(float)newValue  { _log.push_back(oo::str::format("setMaxForwardShieldLevel %g", newValue)); }
-- (void) setMaxAftShieldLevel:(float)newValue  { _log.push_back(oo::str::format("setMaxAftShieldLevel %g", newValue)); }
-- (void) setForwardShieldRechargeRate:(float)newValue  { _log.push_back(oo::str::format("setForwardShieldRechargeRate %g", newValue)); }
-- (void) setAftShieldRechargeRate:(float)newValue  { _log.push_back(oo::str::format("setAftShieldRechargeRate %g", newValue)); }
-- (void) setScoopOverride:(BOOL)newValue  { _log.push_back(oo::str::format("setScoopOverride %d", newValue ? 1 : 0)); }
-- (BOOL) cxx_switchHudTo:(const std::string &)hudFileName
-{
-	_log.push_back("switchHudTo " + hudFileName);
-	return YES;
-}
-- (void) resetHud  { _log.push_back("resetHud"); }
-- (void) adjustTradeInFactorBy:(int)value  { _log.push_back(oo::str::format("adjustTradeInFactorBy %d", value)); }
-- (BOOL) cxx_setWeaponMount:(OOWeaponFacing)facing toWeapon:(const std::string &)eqKey inContext:(const std::optional<std::string> &)context
-{
-	_log.push_back(oo::str::format("setWeaponMount %d %s %s", static_cast<int>(facing), eqKey.c_str(), context.value_or("(nil)").c_str()));
-	return YES;
-}
-- (OOEntityStatus) status  { return _status; }
-- (void) setStatus:(OOEntityStatus)stat  { _log.push_back(oo::str::format("setStatus %d", static_cast<int>(stat))); _status = stat; }
-- (void) setTargetSystemID:(OOSystemID)sid  { _log.push_back(oo::str::format("setTargetSystemID %d", sid)); }
-- (void) setInfoSystemID:(OOSystemID)sid moveChart:(BOOL)moveChart  { _log.push_back(oo::str::format("setInfoSystemID %d %d", sid, moveChart ? 1 : 0)); }
-- (void) launchFromStation  { _log.push_back("launchFromStation"); }
-- (void) removeAllCargo  { _log.push_back("removeAllCargo"); }
-- (void) useSpecialCargo:(const std::string &)descriptionString  { _log.push_back("useSpecialCargo " + descriptionString); }
-- (BOOL) engageAutopilotToStation:(StationEntity *)stationForDocking  { _log.push_back("engageAutopilotToStation"); return YES; }
-- (void) disengageAutopilot  { _log.push_back("disengageAutopilot"); }
-- (void) requestDockingClearance:(StationEntity *)stationForDocking  { _log.push_back("requestDockingClearance"); }
-- (void) cancelDockingRequest:(StationEntity *)stationForDocking  { _log.push_back("cancelDockingRequest"); }
-- (BOOL) cxx_assignToActivePylon:(const std::string &)identifierKey  { _log.push_back("assignToActivePylon " + identifierKey); return YES; }
-- (void) cxx_setCustomViewDataFromDictionary:(const oo::PList &)viewDict withScaling:(BOOL)withScaling  { _log.push_back(oo::str::format("setCustomViewData %s %d", oo::DescriptionOf(viewDict).c_str(), withScaling ? 1 : 0)); }
-- (void) noteSwitchToView:(OOViewID)toView fromView:(OOViewID)fromView  { _log.push_back(oo::str::format("noteSwitchToView %d %d", static_cast<int>(toView), static_cast<int>(fromView))); }
-- (void) resetCustomView  { _log.push_back("resetCustomView"); }
-- (void) resetScannerZoom  { _log.push_back("resetScannerZoom"); }
-- (BOOL) takeInternalDamage  { _log.push_back("takeInternalDamage"); return YES; }
-- (BOOL) hasHyperspaceMotor  { return _hyperspaceMotor; }
-- (BOOL) witchJumpChecklist:(BOOL)isGalacticJump  { _log.push_back(oo::str::format("witchJumpChecklist %d", isGalacticJump ? 1 : 0)); return YES; }
-- (void) beginWitchspaceCountdown:(int)spin_time  { _log.push_back(oo::str::format("beginWitchspaceCountdown %d", spin_time)); }
-- (void) cancelWitchspaceCountdown  { _log.push_back("cancelWitchspaceCountdown"); }
-- (void) setJumpType:(BOOL)isGalacticJump  { _log.push_back(oo::str::format("setJumpType %d", isGalacticJump ? 1 : 0)); }
-- (void) setWitchspaceCountdown:(int)spin_time  { _log.push_back(oo::str::format("setWitchspaceCountdown %d", spin_time)); }
-- (void) playGalacticHyperspace  { _log.push_back("playGalacticHyperspace"); }
-- (BOOL) cxx_setMultiFunctionDisplay:(NSUInteger)index toKey:(const std::optional<std::string> &)key
-{
-	_log.push_back(oo::str::format("setMultiFunctionDisplay %u %s", static_cast<unsigned>(index), key.value_or("(nil)").c_str()));
-	return index < 3;
-}
-- (void) cxx_setMultiFunctionText:(const std::optional<std::string> &)text forKey:(const std::optional<std::string> &)key  { _log.push_back("setMultiFunctionText " + key.value_or("(nil)") + " " + text.value_or("(nil)")); }
-- (void) cxx_setDialCustom:(const oo::PList &)value forKey:(const std::string &)dialKey  { _log.push_back("setDialCustom " + dialKey + " " + oo::DescriptionOf(value)); }
+	void setCompassMode(OOCompassMode value) override	{ _log.push_back(oo::str::format("setCompassMode %d", static_cast<int>(value))); }
+	void validateCompassTarget() override	{ _log.push_back("validateCompassTarget"); }
+	void setNextCompassMode() override
+	{
+		_log.push_back("setNextCompassMode");
+		if (!_compassCycle.empty())
+		{
+			_compassTarget = _compassCycle.front();
+			_compassCycle.erase(_compassCycle.begin());
+		}
+	}
+	bool hasEquipmentItemProviding(const std::string & equipmentType) override	{ return _equipment.count(equipmentType) != 0; }
+	void setGalacticHyperspaceBehaviour(OOGalacticHyperspaceBehaviour behaviour) override	{ _log.push_back(oo::str::format("setGalacticHyperspaceBehaviour %d", static_cast<int>(behaviour))); }
+	void setGalacticHyperspaceFixedCoords(NSPoint point) override	{ _log.push_back(oo::str::format("setGalacticHyperspaceFixedCoords %g %g", point.x, point.y)); }
+	void setFastEquipmentA(const std::optional<std::string> & eqKey) override	{ _log.push_back("setFastEquipmentA " + eqKey.value_or("(nil)")); }
+	void setFastEquipmentB(const std::optional<std::string> & eqKey) override	{ _log.push_back("setFastEquipmentB " + eqKey.value_or("(nil)")); }
+	bool setPrimedEquipment(const std::string & eqKey, bool showMsg) override
+	{
+		_log.push_back(oo::str::format("setPrimedEquipment %s %d", eqKey.c_str(), showMsg ? 1 : 0));
+		return eqKey != "EQ_NONE_SUCH";
+	}
+	void decrease_flight_pitch(double delta) override	{ _log.push_back(oo::str::format("decrease_flight_pitch %g", delta)); }
+	void decrease_flight_roll(double delta) override	{ _log.push_back(oo::str::format("decrease_flight_roll %g", delta)); }
+	void decrease_flight_yaw(double delta) override	{ _log.push_back(oo::str::format("decrease_flight_yaw %g", delta)); }
+	void setForwardShieldLevel(GLfloat level) override	{ _log.push_back(oo::str::format("setForwardShieldLevel %g", level)); }
+	void setAftShieldLevel(GLfloat level) override	{ _log.push_back(oo::str::format("setAftShieldLevel %g", level)); }
+	void setMaxForwardShieldLevel(float newValue) override	{ _log.push_back(oo::str::format("setMaxForwardShieldLevel %g", newValue)); }
+	void setMaxAftShieldLevel(float newValue) override	{ _log.push_back(oo::str::format("setMaxAftShieldLevel %g", newValue)); }
+	void setForwardShieldRechargeRate(float newValue) override	{ _log.push_back(oo::str::format("setForwardShieldRechargeRate %g", newValue)); }
+	void setAftShieldRechargeRate(float newValue) override	{ _log.push_back(oo::str::format("setAftShieldRechargeRate %g", newValue)); }
+	void setScoopOverride(bool newValue) override	{ _log.push_back(oo::str::format("setScoopOverride %d", newValue ? 1 : 0)); }
+	bool switchHudTo(const std::string & hudFileName) override
+	{
+		_log.push_back("switchHudTo " + hudFileName);
+		return YES;
+	}
+	void resetHud() override	{ _log.push_back("resetHud"); }
+	void adjustTradeInFactorBy(int value) override	{ _log.push_back(oo::str::format("adjustTradeInFactorBy %d", value)); }
+	bool setWeaponMount(OOWeaponFacing facing, const std::string & eqKey, const std::optional<std::string> & context) override
+	{
+		_log.push_back(oo::str::format("setWeaponMount %d %s %s", static_cast<int>(facing), eqKey.c_str(), context.value_or("(nil)").c_str()));
+		return YES;
+	}
+	void setStatus(OOEntityStatus stat) override	{ _log.push_back(oo::str::format("setStatus %d", static_cast<int>(stat))); cxx::Entity::setStatus(stat); }	// the root's status, which status() answers
+	void setTargetSystemID(OOSystemID sid) override	{ _log.push_back(oo::str::format("setTargetSystemID %d", sid)); }
+	void setInfoSystemID(OOSystemID sid, bool moveChart) override	{ _log.push_back(oo::str::format("setInfoSystemID %d %d", sid, moveChart ? 1 : 0)); }
+	void launchFromStation() override	{ _log.push_back("launchFromStation"); }
+	void removeAllCargo() override	{ _log.push_back("removeAllCargo"); }
+	void useSpecialCargo(const std::string & descriptionString) override	{ _log.push_back("useSpecialCargo " + descriptionString); }
+	bool engageAutopilotToStation(::StationEntity * stationForDocking) override	{ _log.push_back("engageAutopilotToStation"); return YES; }
+	void disengageAutopilot() override	{ _log.push_back("disengageAutopilot"); }
+	void requestDockingClearance(::StationEntity * stationForDocking) override	{ _log.push_back("requestDockingClearance"); }
+	void cancelDockingRequest(::StationEntity * stationForDocking) override	{ _log.push_back("cancelDockingRequest"); }
+	bool assignToActivePylon(const std::string & identifierKey) override	{ _log.push_back("assignToActivePylon " + identifierKey); return YES; }
+	void setCustomViewDataFromDictionary(const oo::PList & viewDict, bool withScaling) override	{ _log.push_back(oo::str::format("setCustomViewData %s %d", oo::DescriptionOf(viewDict).c_str(), withScaling ? 1 : 0)); }
+	void noteSwitchToView(OOViewID toView, OOViewID fromView) override	{ _log.push_back(oo::str::format("noteSwitchToView %d %d", static_cast<int>(toView), static_cast<int>(fromView))); }
+	void resetCustomView() override	{ _log.push_back("resetCustomView"); }
+	void resetScannerZoom() override	{ _log.push_back("resetScannerZoom"); }
+	bool takeInternalDamage() override	{ _log.push_back("takeInternalDamage"); return YES; }
+	bool hasHyperspaceMotor() override	{ return _hyperspaceMotor; }
+	bool witchJumpChecklist(bool isGalacticJump) override	{ _log.push_back(oo::str::format("witchJumpChecklist %d", isGalacticJump ? 1 : 0)); return YES; }
+	void beginWitchspaceCountdown(int spin_time) override	{ _log.push_back(oo::str::format("beginWitchspaceCountdown %d", spin_time)); }
+	void cancelWitchspaceCountdown() override	{ _log.push_back("cancelWitchspaceCountdown"); }
+	void setJumpType(bool isGalacticJump) override	{ _log.push_back(oo::str::format("setJumpType %d", isGalacticJump ? 1 : 0)); }
+	void setWitchspaceCountdown(int spin_time) override	{ _log.push_back(oo::str::format("setWitchspaceCountdown %d", spin_time)); }
+	void playGalacticHyperspace() override	{ _log.push_back("playGalacticHyperspace"); }
+	bool setMultiFunctionDisplay(NSUInteger index, const std::optional<std::string> & key) override
+	{
+		_log.push_back(oo::str::format("setMultiFunctionDisplay %u %s", static_cast<unsigned>(index), key.value_or("(nil)").c_str()));
+		return index < 3;
+	}
+	void setMultiFunctionText(const std::optional<std::string> & text, const std::optional<std::string> & key) override	{ _log.push_back("setMultiFunctionText " + key.value_or("(nil)") + " " + text.value_or("(nil)")); }
+	void setDialCustom(const oo::PList & value, const std::string & dialKey) override	{ _log.push_back("setDialCustom " + dialKey + " " + oo::DescriptionOf(value)); }
+	bool addPassenger(const std::string & Name, unsigned start, unsigned destination, double eta, double fee, double advance, unsigned risk) override
+	{
+		_log.push_back(oo::str::format("addPassenger %s %u %u %g %g %g %u", Name.c_str(), start, destination, eta, fee, advance, risk));
+		return _contractsAccept;
+	}
+	bool removePassenger(const std::string & Name) override
+	{
+		_log.push_back("removePassenger " + Name);
+		return _contractsAccept;
+	}
+	bool addParcel(const std::string & Name, unsigned start, unsigned destination, double eta, double fee, double premium, unsigned risk) override
+	{
+		_log.push_back(oo::str::format("addParcel %s %u %u %g %g %g %u", Name.c_str(), start, destination, eta, fee, premium, risk));
+		return _contractsAccept;
+	}
+	bool removeParcel(const std::string & Name) override
+	{
+		_log.push_back("removeParcel " + Name);
+		return _contractsAccept;
+	}
+	bool awardContract(unsigned qty, const std::string & commodity, unsigned start, unsigned destination, double eta, double fee, double premium) override
+	{
+		_log.push_back(oo::str::format("awardContract %u %s %u %u %g %g %g", qty, commodity.c_str(), start, destination, eta, fee, premium));
+		return _contractsAccept;
+	}
+	bool removeContract(const std::string & commodity, unsigned destination) override
+	{
+		_log.push_back(oo::str::format("removeContract %s %u", commodity.c_str(), destination));
+		return _contractsAccept;
+	}
+};
 
-- (BOOL) cxx_addPassenger:(const std::string &)Name start:(unsigned)start destination:(unsigned)destination eta:(double)eta fee:(double)fee advance:(double)advance risk:(unsigned)risk
+// [[TestPlayer alloc] init]: a C++ player under the ship's facade, as
+// PlayerEntity::sharedPlayer() makes the game's, retained (+1) as +alloc's object was.
+template <class T>
+T *NewTestPlayer()
 {
-	_log.push_back(oo::str::format("addPassenger %s %u %u %g %g %g %u", Name.c_str(), start, destination, eta, fee, advance, risk));
-	return _contractsAccept;
+	oo::Ref<T> player = oo::makeRef<T>();
+	@autoreleasepool
+	{
+		[oo::NewEntityFacade(player) retain];
+	}
+	return player.get();
 }
 
-- (BOOL) cxx_removePassenger:(const std::string &)Name
-{
-	_log.push_back("removePassenger " + Name);
-	return _contractsAccept;
-}
 
-- (BOOL) cxx_addParcel:(const std::string &)Name start:(unsigned)start destination:(unsigned)destination eta:(double)eta fee:(double)fee premium:(double)premium risk:(unsigned)risk
-{
-	_log.push_back(oo::str::format("addParcel %s %u %u %g %g %g %u", Name.c_str(), start, destination, eta, fee, premium, risk));
-	return _contractsAccept;
-}
-
-- (BOOL) cxx_removeParcel:(const std::string &)Name
-{
-	_log.push_back("removeParcel " + Name);
-	return _contractsAccept;
-}
-
-- (BOOL) cxx_awardContract:(unsigned)qty commodity:(const std::string &)commodity start:(unsigned)start destination:(unsigned)destination eta:(double)eta fee:(double)fee premium:(double)premium
-{
-	_log.push_back(oo::str::format("awardContract %u %s %u %u %g %g %g", qty, commodity.c_str(), start, destination, eta, fee, premium));
-	return _contractsAccept;
-}
-
-- (BOOL) cxx_removeContract:(const std::string &)commodity destination:(unsigned)destination
-{
-	_log.push_back(oo::str::format("removeContract %s %u", commodity.c_str(), destination));
-	return _contractsAccept;
-}
-
-@end
 
 
 namespace {
@@ -322,8 +326,8 @@ namespace stdfs = std::filesystem;
 
 stdfs::path sRoot;
 FakeUniverse *sUniverse = nil;
-FakePlayer *sPlayer = nil;
-PlayerEntity *sRealPlayer = nil;
+FakePlayer *sPlayer = nullptr;
+PlayerEntity *sRealPlayer = nullptr;
 
 
 // The scratch home and game folder, the engine, and the stand-ins; made once.
@@ -346,13 +350,14 @@ void SetUp()
 
 	sUniverse = [[FakeUniverse alloc] init];
 	sUniverse->_viewDirection = VIEW_AFT;
-	sUniverse->_gui = [[FakeGui alloc] init];
-	sUniverse->_gui->_textColor = [[OOColor colorWithRed:1.0f green:0.5f blue:0.25f alpha:1.0f] retain];
-	sUniverse->_gui->_textCommsColor = [[OOColor colorWithRed:0.0f green:1.0f blue:0.0f alpha:0.5f] retain];
+	sUniverse->_gui = oo::makeRef<FakeGui>();
+	sUniverse->_gui->_textColor = OOColor::colorWithRed(1.0f, 0.5f, 0.25f, 1.0f);
+	sUniverse->_gui->_textCommsColor = OOColor::colorWithRed(0.0f, 1.0f, 0.0f, 0.5f);
 	gSharedUniverse = (Universe *)sUniverse;
 
-	sPlayer = [[FakePlayer alloc] init];
-	sPlayer->_hud = [[HeadUpDisplay alloc] cxx_initWithDictionary:oo::PList(oo::PList::Dict{}) inFile:std::string("test-hud.plist")];
+	sPlayer = NewTestPlayer<FakePlayer>();
+	sPlayer->_hud = oo::makeRef<HeadUpDisplay>();
+	sPlayer->_hud->initWithDictionary(oo::PList(oo::PList::Dict{}), std::string("test-hud.plist"));
 	sPlayer->_dockedStation = [[TestEntity alloc] init];
 	sPlayer->_other = [[TestEntity alloc] init];
 	[sPlayer->_dockedStation setPosition:make_HPvector(5, 0, 0)];
@@ -364,8 +369,8 @@ void SetUp()
 	sPlayer->_capacity = 2;
 	sPlayer->_clockTime = 1000;
 	sPlayer->_contractsAccept = YES;
-	sPlayer->_status = STATUS_DOCKED;
-	gOOPlayer = (PlayerEntity *)sPlayer;
+	sPlayer->cxx::Entity::setStatus(STATUS_DOCKED);
+	gOOPlayer = sPlayer;
 }
 
 
@@ -428,7 +433,7 @@ std::string LogShown(std::vector<std::string> &log, const std::string &expected)
 OO_TEST(registration)
 {
 	SetUp();
-	OO_CHECK(sRealPlayer != nil);
+	OO_CHECK(sRealPlayer != nullptr);
 	OO_CHECK_EVAL("typeof player.ship", "object");
 	OO_CHECK(OOJSClassName(JSPlayerShipClassID()) != nullptr && std::strcmp(OOJSClassName(JSPlayerShipClassID()), "PlayerShip") == 0);
 	JSContext *context = OOJSAcquireContext();
@@ -519,8 +524,8 @@ OO_TEST(getterHUD)
 	OO_CHECK_EVAL("player.ship.hudHidden", "false");
 
 	// A player with no HUD: what messages to nil answered.
-	HeadUpDisplay *hud = sPlayer->_hud;
-	sPlayer->_hud = nil;
+	oo::Ref<HeadUpDisplay> hud = sPlayer->_hud;
+	sPlayer->_hud = nullptr;
 	OO_CHECK_EVAL("player.ship.reticleColorTarget", "null");
 	OO_CHECK_EVAL("player.ship.reticleTargetSensitive", "false");
 	OO_CHECK_EVAL("player.ship.multiFunctionDisplays", "0");
@@ -674,8 +679,8 @@ OO_TEST(setterHUD)
 	OO_CHECK_EVAL("(function () { player.ship.messageGuiTextColor = 'notAColor'; })()", "threw: Cannot set property messageGuiTextColor of instance of PlayerShip to invalid value \"notAColor\".");
 
 	// No HUD: nothing to set.
-	HeadUpDisplay *hud = sPlayer->_hud;
-	sPlayer->_hud = nil;
+	oo::Ref<HeadUpDisplay> hud = sPlayer->_hud;
+	sPlayer->_hud = nullptr;
 	OO_CHECK_EVAL("(function () { player.ship.hudHidden = true; return player.ship.hudHidden; })()", "false");
 	// A reticle colour answers what the HUD answered, NO: false with no exception, which ends the script.
 	OO_CHECK_EVAL("(function () { player.ship.reticleColorTarget = 'redColor'; })()", "<evaluation failed>");
@@ -688,15 +693,15 @@ OO_TEST(setterTargetSystem)
 {
 	SetUp();
 	Log(sPlayer->_log);
-	sPlayer->_status = STATUS_DOCKED;
+	sPlayer->cxx::Entity::setStatus(STATUS_DOCKED);
 	OO_CHECK_EVAL("(function () { player.ship.targetSystem = 33; })()", "undefined");
 	OO_CHECK_LOG(sPlayer->_log, "setTargetSystemID 33");
-	sPlayer->_status = STATUS_IN_FLIGHT;
+	sPlayer->cxx::Entity::setStatus(STATUS_IN_FLIGHT);
 	OO_CHECK(Eval("(function () { player.ship.targetSystem = 33; })()").rfind("threw: ", 0) == 0);
-	sPlayer->_status = STATUS_ENTERING_WITCHSPACE;
+	sPlayer->cxx::Entity::setStatus(STATUS_ENTERING_WITCHSPACE);
 	OO_CHECK(Eval("(function () { player.ship.targetSystem = 33; })()").rfind("threw: ", 0) == 0);
 	OO_CHECK_LOG(sPlayer->_log, "");
-	sPlayer->_status = STATUS_DOCKED;
+	sPlayer->cxx::Entity::setStatus(STATUS_DOCKED);
 }
 
 
@@ -758,19 +763,19 @@ OO_TEST(hyperspaceCountdowns)
 	OO_CHECK_EVAL("player.ship.beginHyperspaceCountdown()", "false");
 	OO_CHECK_EVAL("player.ship.cancelHyperspaceCountdown()", "false");
 	sPlayer->_hyperspaceMotor = YES;
-	sPlayer->_status = STATUS_IN_FLIGHT;
+	sPlayer->cxx::Entity::setStatus(STATUS_IN_FLIGHT);
 	OO_CHECK_EVAL("player.ship.beginHyperspaceCountdown(10)", "true");
 	OO_CHECK_EVAL("player.ship.beginHyperspaceCountdown()", "true");
 	OO_CHECK_LOG(sPlayer->_log, "witchJumpChecklist 0; beginWitchspaceCountdown 10; witchJumpChecklist 0; beginWitchspaceCountdown 0");
 	OO_CHECK(Eval("player.ship.beginHyperspaceCountdown(4)").rfind("threw: ", 0) == 0);
 	OO_CHECK(Eval("player.ship.beginHyperspaceCountdown(61)").rfind("threw: ", 0) == 0);
 	OO_CHECK_EVAL("player.ship.cancelHyperspaceCountdown()", "false");	// not counting down
-	sPlayer->_status = STATUS_WITCHSPACE_COUNTDOWN;
+	sPlayer->cxx::Entity::setStatus(STATUS_WITCHSPACE_COUNTDOWN);
 	OO_CHECK_EVAL("player.ship.cancelHyperspaceCountdown()", "true");
 	OO_CHECK_LOG(sPlayer->_log, "cancelWitchspaceCountdown; setJumpType 0");
 
 	// Galactic: needs the drive, in flight.
-	sPlayer->_status = STATUS_IN_FLIGHT;
+	sPlayer->cxx::Entity::setStatus(STATUS_IN_FLIGHT);
 	OO_CHECK_EVAL("player.ship.beginGalacticHyperspaceCountdown()", "false");
 	sPlayer->_equipment.insert("EQ_GAL_DRIVE");
 	Log(sUniverse->_messages);
@@ -779,7 +784,7 @@ OO_TEST(hyperspaceCountdowns)
 	OO_CHECK_LOG(sUniverse->_messages, "witch-galactic-in-f-seconds 1");
 	OO_CHECK(Eval("player.ship.beginGalacticHyperspaceCountdown(3)").rfind("threw: ", 0) == 0);
 	sPlayer->_equipment.clear();
-	sPlayer->_status = STATUS_DOCKED;
+	sPlayer->cxx::Entity::setStatus(STATUS_DOCKED);
 }
 
 
@@ -810,13 +815,13 @@ OO_TEST(mfdsAndDials)
 
 	// The HUD's selectors.
 	OO_CHECK_EVAL("player.ship.hideHUDSelector('drawCompass:')", "undefined");
-	OO_CHECK([sPlayer->_hud hasHidden:std::string("drawCompass:")]);
+	OO_CHECK(sPlayer->_hud->hasHidden(std::string("drawCompass:")));
 	OO_CHECK_EVAL("player.ship.showHUDSelector('drawCompass:')", "undefined");
-	OO_CHECK(![sPlayer->_hud hasHidden:std::string("drawCompass:")]);
+	OO_CHECK(!sPlayer->_hud->hasHidden(std::string("drawCompass:")));
 	OO_CHECK(Eval("player.ship.hideHUDSelector()").rfind("threw: ", 0) == 0);
 	OO_CHECK(Eval("player.ship.showHUDSelector()").rfind("threw: ", 0) == 0);
-	HeadUpDisplay *hud = sPlayer->_hud;
-	sPlayer->_hud = nil;
+	oo::Ref<HeadUpDisplay> hud = sPlayer->_hud;
+	sPlayer->_hud = nullptr;
 	OO_CHECK_EVAL("player.ship.hideHUDSelector('drawCompass:')", "undefined");	// no HUD: nothing
 	sPlayer->_hud = hud;
 	OO_CHECK_LOG(sPlayer->_log, "");
@@ -830,15 +835,16 @@ static bool SameObject(JSValueConst a, JSValueConst b)
 }
 
 
-// The category on PlayerEntity that the engine sends: the class name, and the JS object.
+// What the engine asks of the player (the category on the Objective-C PlayerEntity until that was
+// deleted; now the ship's facade, which asks the C++ player): the class name, and the JS object.
 OO_TEST(playerCategory)
 {
 	SetUp();
-	OO_CHECK_EQ([sRealPlayer cxx_oo_jsClassName].value_or("<none>"), "PlayerShip");
+	OO_CHECK_EQ([oo::ToObjC(sRealPlayer) cxx_oo_jsClassName].value_or("<none>"), "PlayerShip");
 	JSContext *context = OOJSAcquireContext();
 	JSValue shipObject = JSPlayerShipObject();
-	OO_CHECK(SameObject(sRealPlayer->_cxxEntity->_jsSelf, shipObject));
-	JSValue value = [sRealPlayer oo_jsValueInContext:context];
+	OO_CHECK(SameObject(sRealPlayer->_jsSelf, shipObject));
+	JSValue value = [oo::ToObjC(sRealPlayer) oo_jsValueInContext:context];
 	OO_CHECK(JS_IsObject(value) && SameObject(value, shipObject));
 	JS_FreeValue(context, value);
 	JS_FreeValue(context, shipObject);
@@ -846,11 +852,11 @@ OO_TEST(playerCategory)
 
 	// The engine's reset drops the player's JS object.
 	oo::NotificationCenter::defaultCenter().post(kOOJavaScriptEngineWillResetNotificationName, [OOJavaScriptEngine sharedEngine]);
-	OO_CHECK(JS_IsUndefined(sRealPlayer->_cxxEntity->_jsSelf));
+	OO_CHECK(JS_IsUndefined(sRealPlayer->_jsSelf));
 	context = OOJSAcquireContext();
 	shipObject = JSPlayerShipObject();
-	[sRealPlayer setJSSelf:shipObject context:context];	// as InitOOJSPlayerShip() did
-	OO_CHECK(SameObject(sRealPlayer->_cxxEntity->_jsSelf, shipObject));
+	OOJSPlayerShipSetJSSelf(sRealPlayer, shipObject, context);	// as InitOOJSPlayerShip() did
+	OO_CHECK(SameObject(sRealPlayer->_jsSelf, shipObject));
 	JS_FreeValue(context, shipObject);
 	OOJSRelinquishContext(context);
 }

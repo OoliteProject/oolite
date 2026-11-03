@@ -4,8 +4,8 @@ OOJavaScriptEngine+ObjCBridge.mm
 
 TRANSITIONAL (proposed ADR-0056, beads oo-10qz, oo-903c, oo-elta and oo-k4nu): the Objective-C OOJavaScriptEngine
 facade (see OOJavaScriptEngine+ObjCBridge.h). Every method forwards to its C++ member in one line.
-Then the OONull and OOJSValue facades, the categories on OOObject and OONativeVector that forward to the free
-functions holding their bodies (amendment oo-ppc item 3), and the one-line bridges of OOJavaScriptEngine.mm's free functions (amendment oo-9ht.139).
+Then the OONull and OOJSValue facades, the category on OOObject that forwards to the free
+functions holding its bodies (amendment oo-ppc item 3; OONativeVector's went with its facade), and the one-line bridges of OOJavaScriptEngine.mm's free functions (amendment oo-9ht.139).
 Deleted with OOJavaScriptEngine+ObjCBridge.h.
 
 JavaScript support for Oolite
@@ -31,7 +31,6 @@ MA 02110-1301, USA.
 #import "EntityOOJavaScriptExtensions.h"
 #import "OOJavaScriptEngine.h"
 #import "OOPlanetEntity.h"
-#import "OOScript.h"
 #import "OOVector.h"
 #import "OOWeakReference.h"
 
@@ -344,23 +343,9 @@ cxx::OONull* oo::ToCxx(OONull* null)
 
 @end
 
-@implementation OONativeVector (OOJavaScriptConversion)
-
-- (JSValue)oo_jsValueInContext:(JSContext*)context
-{
-    return OONativeVectorJSValueInContext(oo::ToCxx(self), context);
-}
-
-@end
-
 id OOJavaScriptEngineWeakRefUnderlyingObject(id object)
 {
     return [object weakRefUnderlyingObject];
-}
-
-std::optional<std::string> OOJavaScriptEngineDisplayName(id script)
-{
-    return [script displayName];
 }
 
 Class OOJavaScriptEngineClass(id object)

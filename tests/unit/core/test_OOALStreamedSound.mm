@@ -11,18 +11,18 @@
 	OOALSound.mm also names, are this file's stubs (amendment oo-z1s4 item 4). These expectations
 	were written against the Objective-C API and ran on the unconverted class first; they ran
 	through the facade, which was its forwarding test, until bead oo-9ht.84 deleted the facade: they
-	now ask the C++ class (alloc/init as initWithDecoder(), the class checks as dynamic_cast, the
-	description and the buffer helper through the root's facade) with every expectation kept
-	(standing approval oo-9n5p9). After them come the C++ API (OOALStreamedSound, a subclass of
-	cxx::OOSound) and the crossing that replaced the facade's contract: a streamed sound's facade
-	is the root's. Run: bash tools/check-core-tests.sh test_OOALStreamedSound
+	now ask the C++ class (alloc/init as initWithDecoder(), the class checks as dynamic_cast) with
+	every expectation kept (standing approval oo-9n5p9); since beads oo-9ht.68 and oo-9ht.82 deleted
+	the root's and the decoder's facades the description is the root's description(), the buffer
+	helper calls the C++ sound and the decoder and the cluster are C++. After them comes the C++ API
+	(OOALStreamedSound, a subclass of OOSound).
+	Run: bash tools/check-core-tests.sh test_OOALStreamedSound
 */
 
 #import "OOALStreamedSound.h"
 #import "OOALBufferedSound.h"
 #import "OOALSoundDecoder.h"
 #import "OOALSoundMixer.h"
-#import "OODescription.h"
 
 #include "oo_test.hpp"
 
@@ -52,7 +52,7 @@ void OOSoundMixer::shutdown()  {}
 
 // OOALSound.mm makes a buffered sound for up to 1 MB of decoded data; never here. A C++ stand-in
 // since bead oo-9ht.83 deleted the Objective-C facade this file stubbed.
-oo::Ref<OOALBufferedSound> OOALBufferedSound::initWithDecoder(::OOALSoundDecoder *inDecoder)	{ (void)inDecoder; return nullptr; }
+oo::Ref<OOALBufferedSound> OOALBufferedSound::initWithDecoder(OOALSoundDecoder *inDecoder)	{ (void)inDecoder; return nullptr; }
 OOALBufferedSound::~OOALBufferedSound()  {}
 std::optional<std::string> OOALBufferedSound::name()  { return _name; }
 ALuint OOALBufferedSound::soundBuffer()  { return 0; }
@@ -95,7 +95,7 @@ void SetUp()
 	stdfs::create_directories(sRoot);
 	OO_CHECK(::_putenv_s("HOMEPATH", sRoot.string().c_str()) == 0);
 	stdfs::current_path(sRoot);
-	OO_CHECK([OOSound setUp]);
+	OO_CHECK(OOSound::setUp());
 }
 
 
@@ -110,7 +110,7 @@ ALint BufferInt(ALuint buffer, ALenum what)
 // The next buffer's size; the buffer is deleted.
 ALint NextBufferSize(OOSound *sound)
 {
-	ALuint buffer = [sound soundBuffer];
+	ALuint buffer = sound->soundBuffer();
 	const ALint size = BufferInt(buffer, AL_SIZE);
 	alDeleteBuffers(1, &buffer);
 	return size;
@@ -127,18 +127,17 @@ constexpr ALint kBoopBytes = 7682;
 OO_TEST(madeFromADecoder)
 {
 	SetUp();
-	@autoreleasepool
 	{
-		OOALSoundDecoder *decoder = [OOALSoundDecoder codecWithPath:BoopPath()];
-		OO_CHECK(decoder != nil);
-		const oo::Ref<OOALStreamedSound> sound = OOALStreamedSound::initWithDecoder(decoder);
+		const oo::Ref<OOALSoundDecoder> decoder = OOALSoundDecoder::codecWithPath(BoopPath());
+		OO_CHECK(decoder != nullptr);
+		const oo::Ref<OOALStreamedSound> sound = OOALStreamedSound::initWithDecoder(decoder.get());
 		OO_CHECK(sound != nullptr);
-		OO_CHECK(dynamic_cast<OOALStreamedSound *>(sound.get()) != nullptr && dynamic_cast<cxx::OOSound *>(sound.get()) != nullptr);
+		OO_CHECK(dynamic_cast<OOALStreamedSound *>(sound.get()) != nullptr && dynamic_cast<OOSound *>(sound.get()) != nullptr);
 		OO_CHECK(sound->name() == std::optional<std::string>("boop.ogg"));
 		OO_CHECK(sound->soundIncomplete());	// nothing streamed yet
-		OO_CHECK(oo::DescriptionOf(oo::ToObjC(sound.get())).starts_with("<OOALStreamedSound 0x"));
+		OO_CHECK(sound->description().starts_with("<OOALStreamedSound 0x"));
 
-		OO_CHECK(!OOALStreamedSound::initWithDecoder(nil));
+		OO_CHECK(!OOALStreamedSound::initWithDecoder(nullptr));
 	}
 }
 
@@ -147,9 +146,8 @@ OO_TEST(madeFromADecoder)
 OO_TEST(aShortSoundIsOneChunk)
 {
 	SetUp();
-	@autoreleasepool
 	{
-		const oo::Ref<OOALStreamedSound> sound = OOALStreamedSound::initWithDecoder([OOALSoundDecoder codecWithPath:BoopPath()]);
+		const oo::Ref<OOALStreamedSound> sound = OOALStreamedSound::initWithDecoder(OOALSoundDecoder::codecWithPath(BoopPath()).get());
 		ALuint buffer = sound->soundBuffer();
 		OO_CHECK(buffer != 0 && alIsBuffer(buffer));
 		OO_CHECK(BufferInt(buffer, AL_SIZE) == kBoopBytes);
@@ -158,11 +156,11 @@ OO_TEST(aShortSoundIsOneChunk)
 		alDeleteBuffers(1, &buffer);
 		OO_CHECK(!sound->soundIncomplete());
 
-		OO_CHECK(NextBufferSize(oo::ToObjC(sound.get())) == 0);	// past the end: an empty buffer
+		OO_CHECK(NextBufferSize(sound.get()) == 0);	// past the end: an empty buffer
 
 		sound->rewind();
 		OO_CHECK(sound->soundIncomplete());
-		OO_CHECK(NextBufferSize(oo::ToObjC(sound.get())) == kBoopBytes);
+		OO_CHECK(NextBufferSize(sound.get()) == kBoopBytes);
 		OO_CHECK(!sound->soundIncomplete());
 	}
 }
@@ -172,22 +170,21 @@ OO_TEST(aShortSoundIsOneChunk)
 OO_TEST(theClusterStreamsTheMusic)
 {
 	SetUp();
-	@autoreleasepool
 	{
-		OOSound *sound = [[[OOSound alloc] cxx_initWithContentsOfFile:ThemePath()] autorelease];
-		OO_CHECK(dynamic_cast<OOALStreamedSound *>(oo::ToCxx(sound)) != nullptr);
-		OO_CHECK([sound cxx_name] == std::optional<std::string>("OoliteTheme.ogg"));
+		const oo::Ref<OOSound> sound = OOSound::initWithContentsOfFile(ThemePath());
+		OO_CHECK(dynamic_cast<OOALStreamedSound *>(sound.get()) != nullptr);
+		OO_CHECK(sound->name() == std::optional<std::string>("OoliteTheme.ogg"));
 
-		ALuint buffer = [sound soundBuffer];
+		ALuint buffer = sound->soundBuffer();
 		OO_CHECK(BufferInt(buffer, AL_SIZE) == static_cast<ALint>(OOAL_STREAM_CHUNK_SIZE));
 		OO_CHECK(BufferInt(buffer, AL_CHANNELS) == 2);
 		alDeleteBuffers(1, &buffer);
-		OO_CHECK([sound soundIncomplete]);
-		OO_CHECK(NextBufferSize(sound) == static_cast<ALint>(OOAL_STREAM_CHUNK_SIZE));
+		OO_CHECK(sound->soundIncomplete());
+		OO_CHECK(NextBufferSize(sound.get()) == static_cast<ALint>(OOAL_STREAM_CHUNK_SIZE));
 
-		[sound rewind];
-		OO_CHECK([sound soundIncomplete]);
-		OO_CHECK(NextBufferSize(sound) == static_cast<ALint>(OOAL_STREAM_CHUNK_SIZE));
+		sound->rewind();
+		OO_CHECK(sound->soundIncomplete());
+		OO_CHECK(NextBufferSize(sound.get()) == static_cast<ALint>(OOAL_STREAM_CHUNK_SIZE));
 	}
 }
 
@@ -196,10 +193,9 @@ OO_TEST(theClusterStreamsTheMusic)
 OO_TEST(cxxApi)
 {
 	SetUp();
-	@autoreleasepool
 	{
-		OO_CHECK(!OOALStreamedSound::initWithDecoder(nil));
-		const oo::Ref<OOALStreamedSound> sound = OOALStreamedSound::initWithDecoder([OOALSoundDecoder codecWithPath:BoopPath()]);
+		OO_CHECK(!OOALStreamedSound::initWithDecoder(nullptr));
+		const oo::Ref<OOALStreamedSound> sound = OOALStreamedSound::initWithDecoder(OOALSoundDecoder::codecWithPath(BoopPath()).get());
 		OO_CHECK(sound && sound->name() == std::optional<std::string>("boop.ogg"));
 		OO_CHECK(sound->soundIncomplete());
 		ALuint buffer = sound->soundBuffer();
@@ -209,32 +205,6 @@ OO_TEST(cxxApi)
 		sound->rewind();
 		OO_CHECK(sound->soundIncomplete());
 	}
-}
-
-
-// The crossing (bead oo-9ht.84 deleted the facade): a streamed sound's facade is the root's, an
-// OOSound, one per sound, and the cluster's answer is the C++ sound's peer.
-OO_TEST(streamedSoundCrossesAsTheRootFacade)
-{
-	SetUp();
-	@autoreleasepool
-	{
-		const oo::Ref<OOALStreamedSound> sound = OOALStreamedSound::initWithDecoder([OOALSoundDecoder codecWithPath:BoopPath()]);
-		OOSound *facade = oo::ToObjC(sound.get());
-		OO_CHECK([facade isMemberOfClass:[OOSound class]]);
-		OO_CHECK(facade == oo::ToObjC(sound.get()));
-		OO_CHECK(oo::ToCxx(facade) == sound.get());
-		[facade rewind];
-		OO_CHECK([facade soundIncomplete] && sound->soundIncomplete());
-		OO_CHECK(oo::DescriptionOf(facade).starts_with("<OOALStreamedSound 0x"));
-
-		OOSound *made = [[[OOSound alloc] cxx_initWithContentsOfFile:ThemePath()] autorelease];
-		OO_CHECK([made isMemberOfClass:[OOSound class]]);
-		cxx::OOSound *part = oo::ToCxx(made);
-		OO_CHECK(dynamic_cast<OOALStreamedSound *>(part) != nullptr);
-		OO_CHECK(oo::ToObjC(part) == made);
-	}
-	OO_CHECK(oo::ToObjC(static_cast<OOALStreamedSound *>(nullptr)) == nil);
 }
 
 

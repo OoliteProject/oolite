@@ -2,11 +2,10 @@
 
 OOEquipmentType.h
 
-C++20 since bead oo-fg7i (Phase 3, proposed ADR-0056). The class is cxx::OOEquipmentType while
-OOEquipmentType+ObjCBridge.h, imported at the end of this header, keeps the Objective-C
-OOEquipmentType its unconverted callers message (ships, the player, the JS bindings); the bridge's
-deletion bead moves it out of namespace cxx. The registries of types are the class's; the facade
-keeps each registered type's Objective-C object alive while it is registered.
+C++20 since bead oo-fg7i (Phase 3, proposed ADR-0056); it has no Objective-C facade. The
+registries of types are the class's and keep each registered type alive while it is registered;
+ships keep weapon and missile types unretained (OOWeaponType, null: no weapon). A type is its own
+PList::Object payload (oo::PListForeign) and its own JS glue (OOJSPrivateObject).
 
 Class representing a type of ship equipment. Exposed to JavaScript as
 EquipmentInfo.
@@ -54,11 +53,10 @@ SOFTWARE.
 #include <string>
 #include <vector>
 
+#include "Scripting/OOJSPrivateObject.h"
 #include "oofnd/PList.hpp"
 
-namespace cxx {
-
-class OOEquipmentType : public oo::RefCounted {
+class OOEquipmentType : public oo::PListForeign, public ::OOJSPrivateObject {
 public:
     static void loadEquipment(); // Load equipment data; called on loading and when changing to/from strict mode.
     static void addEquipmentWithInfo(const oo::PList& itemInfo); // Used to generate equipment from missile_role entries.
@@ -150,6 +148,16 @@ public:
     // What "%@" prints between the braces of <OOEquipmentType 0x...>{...} (OODescription.h).
     std::optional<std::string> descriptionComponents() const;
 
+    // The JS glue (OOJSPrivateObject), defined in OOJSEquipmentInfo.mm: the EquipmentInfo object,
+    // made on first use; forgetting it when it is finalized; "[EquipmentInfo <components>]".
+    JSValue jsValueInContext(JSContext* context) override; // owned
+    void clearJSSelf(JSValueConst selfVal) override;
+    std::optional<std::string> jsDescription() override;
+
+    // oo::PListForeign: what the facade answered (its class, and "%@" as <OOEquipmentType 0x...>{...}).
+    std::string className() const override;
+    std::string description() const override;
+
 private:
     OOEquipmentType() = default;
 
@@ -197,12 +205,39 @@ private:
     oo::PList _weaponInfo; // a dictionary (empty by default)
     std::optional<std::string> _script;
     std::optional<std::string> _condition_script;
+    // The EquipmentInfo object (OOJSEquipmentInfo.mm), a weak reference: the JS object retains the
+    // type, and clearJSSelf() forgets it when it is finalized. Not an object until created (test
+    // with JS_IsObject()).
+    JSValue _jsSelf = JS_UNDEFINED;
 };
 
-} // namespace cxx
+/*	A type carried through plist data as a PList::Object node: the type is the node's foreign
+        object (what oo::PListObject() and oo::ObjectIn() did for the facade).
+*/
+inline oo::PList OOEquipmentTypeObjectNode(OOEquipmentType* type) // null type -> null PList
+{
+    if (type == nullptr)
+        return oo::PList();
+    return oo::PList(oo::PList::Object(oo::Ref<oo::PListForeign>(type)));
+}
 
-// Transitional: the Objective-C OOEquipmentType, for callers not yet converted. Deleted, with
-// namespace cxx above, by the bridge's deletion bead.
-#import "OOEquipmentType+ObjCBridge.h"
+inline OOEquipmentType* OOEquipmentTypeInObjectNode(const oo::PList& plist) // null for any other node
+{
+    const oo::PList::Object* node = plist.getIf<oo::PList::Object>();
+    return (node != nullptr) ? dynamic_cast<OOEquipmentType*>(node->get()) : nullptr;
+}
+
+// An array of Object nodes, one per non-null type, in order (what oo::PListFromObjects() made of
+// the facades).
+inline oo::PList OOEquipmentTypeObjectNodes(const std::vector<oo::Ref<OOEquipmentType>>& types)
+{
+    oo::PList::Array result;
+    result.reserve(types.size());
+    for (const oo::Ref<OOEquipmentType>& type : types) {
+        if (type != nullptr)
+            result.push_back(OOEquipmentTypeObjectNode(type.get()));
+    }
+    return oo::PList(std::move(result));
+}
 
 #endif // OOEQUIPMENTTYPE_H

@@ -40,9 +40,9 @@ oo::PList ValueFor(const oo::PList& configuration, const char* key)
     return value != nullptr ? *value : oo::PList();
 }
 
-OOColor* ColorFor(const oo::PList& configuration, const char* key)
+oo::Ref<OOColor> ColorFor(const oo::PList& configuration, const char* key)
 {
-    return [OOColor cxx_colorWithDescription:ValueFor(configuration, key)];
+    return OOColor::colorWithDescription(ValueFor(configuration, key));
 }
 
 // cxx_OOTextureSpecFromObject() applied to the value for key, as
@@ -71,71 +71,71 @@ int RawSpecularExponentValue(const oo::PList& configuration)
 
 } // namespace
 
-OOColor* cxx_OOMaterialDiffuseColor(const oo::PList& configuration)
+oo::Ref<OOColor> cxx_OOMaterialDiffuseColor(const oo::PList& configuration)
 {
-    OOColor* result = ColorFor(configuration, cxx_kOOMaterialDiffuseColorName);
+    oo::Ref<OOColor> result = ColorFor(configuration, cxx_kOOMaterialDiffuseColorName);
     if (result == nil)
         result = ColorFor(configuration, cxx_kOOMaterialDiffuseColorLegacyName);
 
-    if ([result isWhite])
-        result = nil;
+    if (result != nullptr && result->isWhite())
+        result = nullptr; // -isWhite of nil was NO
     return result;
 }
 
-OOColor* cxx_OOMaterialAmbientColor(const oo::PList& configuration)
+oo::Ref<OOColor> cxx_OOMaterialAmbientColor(const oo::PList& configuration)
 {
-    OOColor* result = ColorFor(configuration, cxx_kOOMaterialAmbientColorName);
+    oo::Ref<OOColor> result = ColorFor(configuration, cxx_kOOMaterialAmbientColorName);
     if (result == nil)
         result = ColorFor(configuration, cxx_kOOMaterialAmbientColorLegacyName);
     return result;
 }
 
-OOColor* cxx_OOMaterialSpecularColor(const oo::PList& configuration)
+oo::Ref<OOColor> cxx_OOMaterialSpecularColor(const oo::PList& configuration)
 {
-    OOColor* result = ColorFor(configuration, cxx_kOOMaterialSpecularColorName);
+    oo::Ref<OOColor> result = ColorFor(configuration, cxx_kOOMaterialSpecularColorName);
     if (result == nil)
         result = ColorFor(configuration, cxx_kOOMaterialSpecularColorLegacyName);
     if (result == nil) {
-        result = [OOColor colorWithWhite:0.2f alpha:1.0f];
+        result = OOColor::colorWithWhite(0.2f, 1.0f);
     }
     return result;
 }
 
-OOColor* cxx_OOMaterialSpecularModulateColor(const oo::PList& configuration)
+oo::Ref<OOColor> cxx_OOMaterialSpecularModulateColor(const oo::PList& configuration)
 {
-    OOColor* result = ColorFor(configuration, cxx_kOOMaterialSpecularModulateColorName);
+    oo::Ref<OOColor> result = ColorFor(configuration, cxx_kOOMaterialSpecularModulateColorName);
     if (result == nil)
-        result = [OOColor whiteColor];
+        result = OOColor::whiteColor();
 
     return result;
 }
 
-OOColor* cxx_OOMaterialEmissionColor(const oo::PList& configuration)
+oo::Ref<OOColor> cxx_OOMaterialEmissionColor(const oo::PList& configuration)
 {
-    OOColor* result = ColorFor(configuration, cxx_kOOMaterialEmissionColorName);
+    oo::Ref<OOColor> result = ColorFor(configuration, cxx_kOOMaterialEmissionColorName);
     if (result == nil)
         result = ColorFor(configuration, cxx_kOOMaterialEmissionColorLegacyName);
 
-    if ([result isBlack])
-        result = nil;
+    if (result != nullptr && result->isBlack())
+        result = nullptr; // -isBlack of nil was NO
     return result;
 }
 
-OOColor* cxx_OOMaterialEmissionModulateColor(const oo::PList& configuration)
+oo::Ref<OOColor> cxx_OOMaterialEmissionModulateColor(const oo::PList& configuration)
 {
-    OOColor* result = ColorFor(configuration, cxx_kOOMaterialEmissionModulateColorName);
+    oo::Ref<OOColor> result = ColorFor(configuration, cxx_kOOMaterialEmissionModulateColorName);
 
-    if ([result isWhite])
-        result = nil;
+    if (result != nullptr && result->isWhite())
+        result = nullptr; // -isWhite of nil was NO
     return result;
 }
 
-OOColor* cxx_OOMaterialIlluminationModulateColor(const oo::PList& configuration)
+oo::Ref<OOColor> cxx_OOMaterialIlluminationModulateColor(const oo::PList& configuration)
 {
-    OOColor* result = ColorFor(configuration, cxx_kOOMaterialIlluminationModulateColorName);
+    oo::Ref<OOColor> result = ColorFor(configuration, cxx_kOOMaterialIlluminationModulateColorName);
 
-    if ([result isWhite])
-        result = nil;
+    if (result != nullptr && result->isWhite())
+        result = nullptr; // -isWhite of nil was NO
     return result;
 }
 

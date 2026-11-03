@@ -54,10 +54,8 @@ typedef enum {
 #define OO_SYSTEM_CACHE_LENGTH OO_SYSTEMS_AVAILABLE
 
 /*	C++20 since bead oo-0sr1 (proposed ADR-0056). OOSystemDescriptionEntry is used only by the
-        manager, so it has no facade and is global. OOSystemDescriptionManager+ObjCBridge.h, imported at
-        the end of this header, keeps the Objective-C OOSystemDescriptionManager as a facade over
-        cxx::OOSystemDescriptionManager for the callers that are not converted yet; the bridge's
-        deletion bead moves the class out of namespace cxx.
+        manager. The manager's Objective-C facade was deleted by bead oo-9ht.32 (batch E); the universe
+        holds it as oo::Ref.
 */
 class OOSystemDescriptionEntry : public oo::RefCounted {
 public:
@@ -73,8 +71,6 @@ private:
 
     oo::PList layers[OO_SYSTEM_LAYERS] = { }; // each a Dict: property -> value
 };
-
-namespace cxx {
 
 /**
  * Note: forSystem: inGalaxy: returns from the (fast) propertyCache
@@ -146,9 +142,3 @@ private:
     std::vector<OOSystemID> neighbourCache[OO_SYSTEM_CACHE_LENGTH] = { }; // system numbers
     oo::PList scriptedChanges = { }; // a Dict: joined override key -> value
 };
-
-} // namespace cxx
-
-// The Objective-C facade for code not converted yet. Deleted, with namespace cxx above, by the
-// bridge's deletion bead.
-#import "OOSystemDescriptionManager+ObjCBridge.h"

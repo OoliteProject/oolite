@@ -142,8 +142,6 @@ static void APIENTRY ErrorCallback(GLenum error, void* polygonData);
 // this is needed to maintain compatibility with GCC 14+
 typedef GLvoid (*TessFuncPtr)();
 
-namespace cxx {
-
 // Null where -initWithDataArray:outlineWidth:name: released itself and answered nil.
 oo::Ref<OOPolygonSprite> OOPolygonSprite::initWithDataArray(const oo::PList& dataArray, GLfloat outlineWidth, const std::string& name)
 {
@@ -164,8 +162,8 @@ oo::Ref<OOPolygonSprite> OOPolygonSprite::initWithDataArray(const oo::PList& dat
             return nullptr;
         }
 
-        // (The Objective-C facade registers with OOGraphicsResetManager, which takes only an id:
-        // ADR-0056 amendment oo-4111.)
+        // -initWithDataArray:... registered the sprite (its facade did until bead oo-9ht.30).
+        OOGraphicsResetManager::sharedManager()->registerCxxClient(sprite.get());
     }
 
     return sprite;
@@ -173,6 +171,7 @@ oo::Ref<OOPolygonSprite> OOPolygonSprite::initWithDataArray(const oo::PList& dat
 
 OOPolygonSprite::~OOPolygonSprite()
 {
+    OOGraphicsResetManager::sharedManager()->unregisterCxxClient(this);
     free(_solidData);
     free(_outlineData);
 }
@@ -183,6 +182,17 @@ std::optional<std::string> OOPolygonSprite::descriptionComponents() const
     return _name;
 }
 #endif
+
+std::string OOPolygonSprite::description() const
+{
+    std::string result = oo::str::format("<OOPolygonSprite %s>", oo::str::pointerDescription(this).c_str());
+#ifndef NDEBUG
+    const std::optional<std::string> components = descriptionComponents();
+    if (components.has_value())
+        result += "{" + *components + "}";
+#endif
+    return result;
+}
 
 void OOPolygonSprite::drawWithData(GLfloat* data, size_t count, GLuint* vbo)
 {
@@ -222,7 +232,7 @@ void OOPolygonSprite::drawWithData(GLfloat* data, size_t count, GLuint* vbo)
 #endif
 
     OOVerifyOpenGLState();
-    cxx_OOCheckOpenGLErrors([&]() -> std::string { return "OOPolygonSprite after rendering " + oo::DescriptionOf(oo::ToObjC(this)); });
+    cxx_OOCheckOpenGLErrors([&]() -> std::string { return "OOPolygonSprite after rendering " + description(); });
 }
 
 void OOPolygonSprite::drawFilled()
@@ -399,8 +409,6 @@ END:
     objc_autoreleasePoolPop(pool);
     return polygonData.OK;
 }
-
-} // namespace cxx
 
 namespace {
 
