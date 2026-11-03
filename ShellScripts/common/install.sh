@@ -66,6 +66,10 @@ run_script() {
             fi
         fi
     fi
+    if ! cp -rfu "$progdir/*.pdf" "$fulldatadir"; then
+        echo "❌ Failed to copy pdfs to '$fulldatadir'!" >&2
+        return 1
+    fi
     local resources_src="$progdir/Resources/."
     local resources_dst="$fulldatadir/Resources"
     if ! cp -rfu "$resources_src" "$resources_dst"; then

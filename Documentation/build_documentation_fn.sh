@@ -22,7 +22,7 @@ build_documentation() {
     source ./build_doxygen_fn.sh
 
     cd ..
-    if [[ "$(uname -s)" != "Darwin" ]]; then
+    if [[ "$(uname -s)" != "Darwin" || -n "$FLATPAK_DEST" ]]; then
         if [[ ! -d ".venv" ]]; then
             echo "❌ Virtual environment folder (.venv) not found!" >&2
             return 1

@@ -97,17 +97,11 @@ run_script() {
     cp -rfu Resources/. "$resourcesdir"
     rm -f "$resourcesdir/AIReference.html" "$resourcesdir/*.icns"
 
-    if ! build_documentation "YES" "NO"; then
-        popd
-        return 1
-    fi
-    cp build/documentation/docs/assets/pdfs/* "$progdir"
-
     # Strip binary if requested
     if [[ "$strip_bin" == "yes" ]]; then
         if [[ "$host_os" == "windows" ]]; then
             # Windows: Standard GNU strip is safest for PE/COFF
-            strip "$progpath"
+            strip "$progpath.exe"
         elif [[ "$host_os" == "darwin" ]]; then
             # macOS: keep symbols in a dSYM bundle next to the app
             dsymutil "$progpath" -o "$progdir.dSYM"
@@ -165,6 +159,12 @@ run_script() {
             awk '{print $3}' | \
             xargs -I {} cp -Lrfu {} "$progdir/"
     fi
+
+    if ! build_documentation "YES" "NO"; then
+        popd
+        return 1
+    fi
+    cp -fu build/documentation/docs/assets/pdfs/* "$progdir"
 
     echo "✅ Oolite post-build completed successfully"
     touch "$appdir/$stamp_file"

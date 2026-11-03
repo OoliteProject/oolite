@@ -13,7 +13,7 @@ build_mds() {
         return 1
     fi
 
-    if [[ "$(uname -s)" != "Darwin" ]]; then
+    if [[ "$(uname -s)" != "Darwin" || -n "$FLATPAK_DEST" ]]; then
         if ! "$python_cmd" -m weasyprint --version >/dev/null 2>&1; then
             echo "❌ WeasyPrint or Pango libraries not found in environment!" >&2
             if command -v deactivate >/dev/null 2>&1; then

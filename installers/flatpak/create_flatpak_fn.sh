@@ -17,6 +17,7 @@ create_flatpak() {
     cd "$flatpak_dir"
 
     cp ../../installers/flatpak/space.oolite.Oolite.* ./
+    cp ../../installers/flatpak/python-weasyprint.* ./
     mkdir -p shared-modules/glu
     if ! curl -o shared-modules/glu/glu-9.json -L https://github.com/flathub/shared-modules/raw/refs/heads/master/glu/glu-9.json; then
         echo "❌ Flatpak download of glu shared module failed!" >&2

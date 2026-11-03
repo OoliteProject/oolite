@@ -103,6 +103,7 @@ you prefer):
 
 ```bash
 sudo ShellScripts/Linux/install_packages_root.sh
+ShellScripts/Linux/install_weasyprint.sh
 ```
 
 Next run the following to build the GNUstep libraries needed by Oolite:
