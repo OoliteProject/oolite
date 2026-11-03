@@ -56,9 +56,9 @@ bool OOMultiTextureMaterial::initWithName(const std::optional<std::string>& name
     const oo::PList emissionSpec = cxx_OOMaterialEmissionMapSpecifier(config);
     const oo::PList illuminationSpec = cxx_OOMaterialIlluminationMapSpecifier(config);
     const oo::PList emissionAndIlluminationSpec = cxx_OOMaterialEmissionAndIlluminationMapSpecifier(config);
-    ::OOColor* diffuseColor = cxx_OOMaterialDiffuseColor(config);
-    ::OOColor* emissionColor = nil;
-    ::OOColor* illuminationColor = cxx_OOMaterialIlluminationModulateColor(config);
+    oo::Ref<OOColor> diffuseColor = cxx_OOMaterialDiffuseColor(config);
+    oo::Ref<OOColor> emissionColor;
+    oo::Ref<OOColor> illuminationColor = cxx_OOMaterialIlluminationModulateColor(config);
 
     // A copy of the configuration (an empty one for nil, as +dictionaryWithDictionary: gave).
     oo::PList mutableConfiguration = config.isDict() ? config : oo::PList(oo::PList::Dict { });
@@ -92,18 +92,18 @@ bool OOMultiTextureMaterial::initWithName(const std::optional<std::string>& name
             if (!emissionAndIlluminationSpec.isNull()) {
                 generator = OOCombinedEmissionMapGenerator::generatorWithEmissionAndIlluminationMapSpec(emissionAndIlluminationSpec,
                     _diffuseMap.get(),
-                    oo::ToCxx(diffuseColor),
-                    oo::ToCxx(emissionColor),
-                    oo::ToCxx(illuminationColor),
+                    diffuseColor.get(),
+                    emissionColor.get(),
+                    illuminationColor.get(),
                     emissionAndIlluminationSpec);
             } else {
                 const oo::PList optionsSpec = !emissionSpec.isNull() ? emissionSpec : illuminationSpec;
                 generator = OOCombinedEmissionMapGenerator::generatorWithEmissionMapSpec(emissionSpec,
-                    oo::ToCxx(emissionColor),
+                    emissionColor.get(),
                     _diffuseMap.get(),
-                    oo::ToCxx(diffuseColor),
+                    diffuseColor.get(),
                     illuminationSpec,
-                    oo::ToCxx(illuminationColor),
+                    illuminationColor.get(),
                     optionsSpec);
             }
 

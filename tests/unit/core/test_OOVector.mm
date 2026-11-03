@@ -1,13 +1,15 @@
 /*	test_OOVector.mm
-	Unit tests for cxx::OONativeVector (src/Core/OOVector.h), the box that stores a Vector in an
-	Objective-C collection, and its Objective-C facade (OOVector+ObjCBridge.h): bead oo-86ek
-	(Phase 3, house style of proposed ADR-0056). The rest of OOVector.mm is plain C (ADR-0012) and
-	stays verbatim; the free functions the box shares a file with are pinned here too.
+	Unit tests for OONativeVector (src/Core/OOVector.h), the box that stores a Vector in a property
+	list: bead oo-86ek (Phase 3, house style of proposed ADR-0056). Bead oo-9ht.5 deleted its
+	Objective-C facade: the box is a PList::Object node's foreign object itself, the cases below
+	ask the C++ box with every expectation kept, and the facade's own cases (nil stays nil, one
+	facade per box, a message to a nil box) retired under the standing approval oo-9n5p9. The rest
+	of OOVector.mm is plain C (ADR-0012) and stays verbatim; the free functions the box shares a
+	file with are pinned here too.
 
 	The expectations were written against the Objective-C API and run on the unconverted class
 	first: the box hands back the vector it was made with, is an OONativeVector, and survives an
-	Object node (as OOJSShip.mm and OOPListGameTypes.mm use it). The later tests pin the C++ class
-	and the facade's contract: the same answers, nil stays nil, one facade per C++ object.
+	Object node (as OOJSShip.mm and OOPListGameTypes.mm use it).
 	Run: bash tools/check-core-tests.sh
 */
 
@@ -32,13 +34,13 @@ OO_TEST(boxHoldsItsVector)
 	@autoreleasepool
 	{
 		Vector v = make_vector(1.5f, -2.0f, 3.25f);
-		OONativeVector *box = [[[OONativeVector alloc] initWithVector:v] autorelease];
-		OO_CHECK(box != nil);
-		OO_CHECK([box isKindOfClass:[OONativeVector class]]);
-		OO_CHECK(Same([box getVector], v));
+		oo::Ref<OONativeVector> box = oo::makeRef<OONativeVector>(v);
+		OO_CHECK(box != nullptr);
+		OO_CHECK(box->className() == "OONativeVector");
+		OO_CHECK(Same(box->getVector(), v));
 
-		OONativeVector *zero = [[[OONativeVector alloc] initWithVector:kZeroVector] autorelease];
-		OO_CHECK(Same([zero getVector], kZeroVector));
+		oo::Ref<OONativeVector> zero = oo::makeRef<OONativeVector>(kZeroVector);
+		OO_CHECK(Same(zero->getVector(), kZeroVector));
 		OO_CHECK(zero != box);
 	}
 }
@@ -49,20 +51,14 @@ OO_TEST(boxSurvivesAnObjectNode)
 	@autoreleasepool
 	{
 		Vector v = make_vector(4.0f, 5.0f, 6.0f);
-		OONativeVector *box = [[[OONativeVector alloc] initWithVector:v] autorelease];
-		oo::PList node = oo::PListObject(box);
-		id object = oo::ObjectIn(node);
-		OO_CHECK(object == box);
-		OO_CHECK([object isKindOfClass:[OONativeVector class]]);
-		OO_CHECK(Same([object getVector], v));
+		oo::Ref<OONativeVector> box = oo::makeRef<OONativeVector>(v);
+		oo::PList node = oo::PList(oo::PList::Object(box));
+		const oo::PList::Object *object = node.getIf<oo::PList::Object>();
+		OO_CHECK(object != nullptr && object->get() == box.get());
+		OONativeVector *held = dynamic_cast<OONativeVector *>(object->get());
+		OO_CHECK(held != nullptr);
+		OO_CHECK(Same(held->getVector(), v));
 	}
-}
-
-
-OO_TEST(nilBoxAnswersZero)
-{
-	OONativeVector *none = nil;
-	OO_CHECK(Same([none getVector], kZeroVector));
 }
 
 
@@ -84,38 +80,8 @@ OO_TEST(freeFunctions)
 OO_TEST(cxxBox)
 {
 	Vector v = make_vector(-1.0f, 0.25f, 8.0f);
-	oo::Ref<cxx::OONativeVector> box = oo::makeRef<cxx::OONativeVector>(v);
+	oo::Ref<OONativeVector> box = oo::makeRef<OONativeVector>(v);
 	OO_CHECK(Same(box->getVector(), v));
-}
-
-
-OO_TEST(facadeNilStaysNil)
-{
-	OONativeVector *none = nil;
-	OO_CHECK(oo::ToCxx(none) == nullptr);
-	OO_CHECK(oo::ToObjC(static_cast<cxx::OONativeVector *>(nullptr)) == nil);
-}
-
-
-OO_TEST(facadeIdentity)
-{
-	@autoreleasepool
-	{
-		// A box made by alloc/init is its C++ box's facade, and crosses back to itself.
-		Vector v = make_vector(7.0f, 8.0f, 9.0f);
-		OONativeVector *box = [[[OONativeVector alloc] initWithVector:v] autorelease];
-		cxx::OONativeVector *cxxBox = oo::ToCxx(box);
-		OO_CHECK(cxxBox != nullptr && Same(cxxBox->getVector(), v));
-		OO_CHECK(oo::ToObjC(cxxBox) == box);
-
-		// A C++ box crosses to one facade, and back to itself.
-		oo::Ref<cxx::OONativeVector> made = oo::makeRef<cxx::OONativeVector>(v);
-		OONativeVector *facade = oo::ToObjC(made);
-		OO_CHECK(facade != nil && facade == oo::ToObjC(made.get()));
-		OO_CHECK(oo::ToCxx(facade) == made.get());
-		OO_CHECK([facade isKindOfClass:[OONativeVector class]] && Same([facade getVector], v));
-		OO_CHECK(facade != box);	// two boxes, two facades
-	}
 }
 
 

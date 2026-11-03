@@ -70,7 +70,7 @@ public:
                     emission	colour description
                     shininess	integer
 
-            "Colour description" refers to anything cxx::OOColor::colorWithDescription()
+            "Colour description" refers to anything OOColor::colorWithDescription()
             will accept.
     */
     void initWithName(const std::optional<std::string>& name, const oo::PList& configuration); // a null configuration is an empty one. Shared by the material classes.
@@ -82,15 +82,15 @@ public:
     std::vector<oo::ObjCRef<::OOTexture*>> allTextures() override;
 #endif
 
-    oo::Ref<cxx::OOColor> diffuseColor();
-    void setDiffuseColor(cxx::OOColor* color);
-    void setAmbientAndDiffuseColor(cxx::OOColor* color);
-    oo::Ref<cxx::OOColor> specularColor();
-    void setSpecularColor(cxx::OOColor* color);
-    oo::Ref<cxx::OOColor> ambientColor();
-    void setAmbientColor(cxx::OOColor* color);
-    oo::Ref<cxx::OOColor> emmisionColor();
-    void setEmissionColor(cxx::OOColor* color);
+    oo::Ref<OOColor> diffuseColor();
+    void setDiffuseColor(OOColor* color);
+    void setAmbientAndDiffuseColor(OOColor* color);
+    oo::Ref<OOColor> specularColor();
+    void setSpecularColor(OOColor* color);
+    oo::Ref<OOColor> ambientColor();
+    void setAmbientColor(OOColor* color);
+    oo::Ref<OOColor> emmisionColor();
+    void setEmissionColor(OOColor* color);
 
     void getDiffuseComponents(GLfloat outComponents[4]);
     void setDiffuseComponents(const GLfloat components[4]);

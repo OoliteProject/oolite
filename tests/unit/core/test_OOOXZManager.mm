@@ -17,10 +17,10 @@
 	size; the managed OXZs read from disk and matched against the list; a manifest download from
 	start to finish (the list replaced, the cache rewritten, the temporary file removed, the
 	managed list rebuilt), and the requests it then refuses. The expectations were written
-	against the Objective-C API and run on the unconverted class first; the public API still runs
-	through the facade, which is its forwarding test, and the private units through their C++
-	members (proposed ADR-0056 amendment oo-bwjb item 5). The facade's contract follows: one facade
-	for the singleton, identity both ways, nil and null, and the forwarded private units.
+	against the Objective-C API and run on the unconverted class first. Bead oo-9ht.131 deleted the
+	Objective-C facade: every case asks the C++ singleton with every expectation kept, and the
+	facade's contract cases (one facade for the singleton, identity both ways, nil and null, the
+	forwarded private units) retired under the standing approval oo-9n5p9.
 	Run: bash tools/check-core-tests.sh test_OOOXZManager
 */
 
@@ -172,8 +172,8 @@ std::string Titles(const oo::PList &list)
 }
 
 
-// The manager's private API (the units of slice 1 the facade does not declare): its C++ members.
-cxx::OOOXZManager *Manager()								{ return cxx::OOOXZManager::sharedManager(); }
+// The manager's private API (the units of slice 1 the facade did not declare): its C++ members.
+OOOXZManager *Manager()								{ return OOOXZManager::sharedManager(); }
 std::optional<std::string> ManifestPath()					{ return Manager()->manifestPath(); }
 std::optional<std::string> DownloadPath()					{ return Manager()->downloadPath(); }
 std::optional<std::string> ExtractionBase(const std::string &identifier, const std::string &version)	{ return Manager()->extractionBasePathForIdentifier(identifier, version); }
@@ -196,16 +196,16 @@ OO_TEST(sharedManagerLoadsTheCachedListSorted)
 	SetUp();
 	@autoreleasepool
 	{
-		OOOXZManager *manager = [OOOXZManager sharedManager];
-		OO_CHECK(manager != nil);
-		OO_CHECK([OOOXZManager sharedManager] == manager);
+		OOOXZManager *manager = OOOXZManager::sharedManager();
+		OO_CHECK(manager != nullptr);
+		OO_CHECK(OOOXZManager::sharedManager() == manager);
 		// category, then title, then version descending
-		OO_CHECK_TEXT(Titles([manager manifests]), "Mission 0.1, Alpha 2.0, Alpha 1.5, Zeta 1.0");
-		OO_CHECK(![manager isRestarting]);
+		OO_CHECK_TEXT(Titles(manager->manifests()), "Mission 0.1, Alpha 2.0, Alpha 1.5, Zeta 1.0");
+		OO_CHECK(!manager->isRestarting());
 		// Nothing to cancel, and no download to deliver.
-		OO_CHECK(![manager cancelUpdate]);
-		[manager processDownloadEvents];
-		OO_CHECK_TEXT(Titles([manager manifests]), "Mission 0.1, Alpha 2.0, Alpha 1.5, Zeta 1.0");
+		OO_CHECK(!manager->cancelUpdate());
+		manager->processDownloadEvents();
+		OO_CHECK_TEXT(Titles(manager->manifests()), "Mission 0.1, Alpha 2.0, Alpha 1.5, Zeta 1.0");
 	}
 }
 
@@ -215,10 +215,10 @@ OO_TEST(paths)
 	SetUp();
 	@autoreleasepool
 	{
-		OOOXZManager *manager = [OOOXZManager sharedManager];
-		OO_CHECK_EQ([manager installPath].value_or("(none)"), Generic(sRoot / "Managed"));
-		OO_CHECK_EQ([manager extractAddOnsPath].value_or("(none)"), Generic(sRoot / "Extract"));
-		const std::vector<std::string> additional = [manager additionalAddOnsPaths];
+		OOOXZManager *manager = OOOXZManager::sharedManager();
+		OO_CHECK_EQ(manager->installPath().value_or("(none)"), Generic(sRoot / "Managed"));
+		OO_CHECK_EQ(manager->extractAddOnsPath().value_or("(none)"), Generic(sRoot / "Extract"));
+		const std::vector<std::string> additional = manager->additionalAddOnsPaths();
 		OO_CHECK_EQ(additional.size(), 3u);
 		if (additional.size() == 3)
 		{
@@ -310,7 +310,7 @@ OO_TEST(managedOXZs)
 		WriteText(sRoot / "Managed" / "local.oxp" / "manifest.plist", "{ identifier = \"oolite.oxp.test.local\"; title = Local; version = \"3\"; category = Ambience; }");
 		WriteText(sRoot / "Managed" / "stray.txt", "not a manifest");
 
-		const oo::PList managed = [[OOOXZManager sharedManager] managedOXZs];
+		const oo::PList managed = OOOXZManager::sharedManager()->managedOXZs();
 		OO_CHECK_TEXT(Titles(managed), "Local 3, Alpha 1.0");
 		const oo::PList::Array *array = managed.getIf<oo::PList::Array>();
 		OO_CHECK(array != nullptr && array->size() == 2);
@@ -328,7 +328,7 @@ OO_TEST(managedOXZs)
 
 		// Kept until the list changes.
 		WriteText(sRoot / "Managed" / "late.oxp" / "manifest.plist", "{ identifier = \"oolite.oxp.test.late\"; title = Late; version = \"1\"; category = Ambience; }");
-		OO_CHECK_TEXT(Titles([[OOOXZManager sharedManager] managedOXZs]), "Local 3, Alpha 1.0");
+		OO_CHECK_TEXT(Titles(OOOXZManager::sharedManager()->managedOXZs()), "Local 3, Alpha 1.0");
 
 		// The installable states (slice 2) decide these, from the managed OXZs.
 		OO_CHECK_TEXT(Filtered("u"), "Alpha 2.0, Alpha 1.5");
@@ -343,7 +343,7 @@ OO_TEST(manifestDownload)
 	SetUp();
 	@autoreleasepool
 	{
-		OOOXZManager *manager = [OOOXZManager sharedManager];
+		OOOXZManager *manager = OOOXZManager::sharedManager();
 
 		// The new index, served from a file: URL named by the oxz-index-url default (in memory
 		// only: nothing synchronizes the defaults).
@@ -356,24 +356,24 @@ OO_TEST(manifestDownload)
 		OO_CHECK_EQ(DataURL().value_or("(none)"), url);
 
 		const std::string cacheDirectory = cxx::OOCacheManager::sharedCache()->cacheDirectoryPathCreatingIfNecessary(true).value_or("(none)");
-		OO_CHECK([manager updateManifests]);
+		OO_CHECK(manager->updateManifests());
 		OO_CHECK_EQ(DownloadPath().value_or("(none)"), oo::str::appendingPathComponent(cacheDirectory, "Oolite-download.plist"));
 		// A second request while one is under way is refused.
-		OO_CHECK(![manager updateManifests]);
+		OO_CHECK(!manager->updateManifests());
 
 		const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(20);
-		while (Titles([manager manifests]) != "Alpha 3.0, Beta 1.0" && std::chrono::steady_clock::now() < deadline)
+		while (Titles(manager->manifests()) != "Alpha 3.0, Beta 1.0" && std::chrono::steady_clock::now() < deadline)
 		{
-			[manager processDownloadEvents];
+			manager->processDownloadEvents();
 			std::this_thread::sleep_for(std::chrono::milliseconds(10));
 		}
-		OO_CHECK_TEXT(Titles([manager manifests]), "Alpha 3.0, Beta 1.0");
+		OO_CHECK_TEXT(Titles(manager->manifests()), "Alpha 3.0, Beta 1.0");
 
 		// The cache holds the new list, the temporary file is gone, and the managed list is rebuilt.
 		const oo::PList cached = cxx_OOPropertyListFromFile(oo::str::appendingPathComponent(cacheDirectory, "Oolite-manifests.plist"));
 		OO_CHECK_TEXT(Titles(cached), "Alpha 3.0, Beta 1.0");
 		OO_CHECK(!stdfs::exists(stdfs::path(oo::str::appendingPathComponent(cacheDirectory, "Oolite-download.plist"))));
-		const oo::PList managed = [manager managedOXZs];
+		const oo::PList managed = manager->managedOXZs();
 		OO_CHECK_TEXT(Titles(managed), "Late 1, Local 3, Alpha 1.0");
 		const oo::PList::Array *array = managed.getIf<oo::PList::Array>();
 		if (array != nullptr && array->size() == 3)
@@ -383,49 +383,9 @@ OO_TEST(manifestDownload)
 		}
 
 		// The download is complete: no new one starts, and there is nothing to cancel.
-		OO_CHECK(![manager updateManifests]);
-		OO_CHECK(![manager cancelUpdate]);
+		OO_CHECK(!manager->updateManifests());
+		OO_CHECK(!manager->cancelUpdate());
 		OO_CHECK_EQ(DownloadPath().value_or("(none)"), oo::str::appendingPathComponent(cacheDirectory, "Oolite-download.oxz"));
-	}
-}
-
-
-OO_TEST(facadeContract)
-{
-	SetUp();
-	@autoreleasepool
-	{
-		OOOXZManager *facade = [OOOXZManager sharedManager];
-		cxx::OOOXZManager *manager = cxx::OOOXZManager::sharedManager();
-		OO_CHECK(manager != nullptr);
-		OO_CHECK(oo::ToCxx(facade) == manager);
-		OO_CHECK(oo::ToObjC(manager) == facade);
-		OO_CHECK([OOOXZManager sharedManager] == facade);
-		OO_CHECK(oo::ToCxx(static_cast<OOOXZManager *>(nil)) == nullptr);
-		OO_CHECK(oo::ToObjC(static_cast<cxx::OOOXZManager *>(nullptr)) == nil);
-
-		// The same answers from either side.
-		OO_CHECK(Titles([facade manifests]) == Titles(manager->manifests()));
-		OO_CHECK(Titles([facade managedOXZs]) == Titles(manager->managedOXZs()));
-		OO_CHECK([facade installPath] == manager->installPath());
-		OO_CHECK([facade extractAddOnsPath] == manager->extractAddOnsPath());
-		OO_CHECK([facade additionalAddOnsPaths] == manager->additionalAddOnsPaths());
-
-		// The slice 1 units that slices 2 to 4 send, forwarded.
-		OO_CHECK([facade downloadPath] == manager->downloadPath());
-		OO_CHECK([facade humanSize:2048] == std::optional<std::string>("2 kB"));
-		OO_CHECK([facade validateFilter:"k:x"]);
-		OO_CHECK(![facade validateFilter:"k:"]);
-		OO_CHECK([facade ensureInstallPath]);
-		OO_CHECK([facade extractionBasePathForIdentifier:"a" andVersion:"1"] == manager->extractionBasePathForIdentifier("a", "1"));
-		[facade setFilter:"C:MISS"];
-		OO_CHECK_EQ(manager->_currentFilter, "c:miss");
-		OO_CHECK_TEXT(Titles([facade applyCurrentFilter:[facade manifests]]), "");
-		[facade setFilteredList:[facade manifests]];
-		OO_CHECK(manager->_filteredList == manager->_oxzList);
-		[facade setProgressStatus:"halfway"];
-		OO_CHECK_EQ(manager->_progressStatus, "halfway");
-		[facade setFilter:"*"];
 	}
 }
 
@@ -476,13 +436,13 @@ void WriteZip(const stdfs::path &path, const std::vector<std::pair<std::string, 
 const char *kGammaManifest = "{ identifier = \"oolite.oxp.test.gamma\"; title = Gamma; version = \"1.0\"; category = Ships; }";
 
 
-std::string ColorName(cxx::OOColor *c)
+std::string ColorName(OOColor *c)
 {
 	if (c == nullptr)  return "nil";
-	const std::pair<const char *, oo::Ref<cxx::OOColor>> named[] = {
-		{ "yellow", cxx::OOColor::yellowColor() }, { "cyan", cxx::OOColor::cyanColor() }, { "orange", cxx::OOColor::orangeColor() },
-		{ "brown", cxx::OOColor::brownColor() }, { "white", cxx::OOColor::whiteColor() }, { "red", cxx::OOColor::redColor() },
-		{ "gray", cxx::OOColor::grayColor() }, { "blue", cxx::OOColor::blueColor() } };
+	const std::pair<const char *, oo::Ref<OOColor>> named[] = {
+		{ "yellow", OOColor::yellowColor() }, { "cyan", OOColor::cyanColor() }, { "orange", OOColor::orangeColor() },
+		{ "brown", OOColor::brownColor() }, { "white", OOColor::whiteColor() }, { "red", OOColor::redColor() },
+		{ "gray", OOColor::grayColor() }, { "blue", OOColor::blueColor() } };
 	for (const auto &[name, n] : named)
 	{
 		if (n->redComponent() == c->redComponent() && n->greenComponent() == c->greenComponent() && n->blueComponent() == c->blueComponent())  return name;
@@ -491,7 +451,7 @@ std::string ColorName(cxx::OOColor *c)
 }
 
 
-// The slice 2 units: their C++ members (isRestarting through the facade, which forwards it).
+// The slice 2 units: their C++ members.
 oo::PList InstalledManifest(const std::string &identifier)		{ return Manager()->installedManifestForIdentifier(identifier); }
 std::string InstallStatus(const oo::PList &manifest)			{ return Manager()->installStatusForManifest(manifest).value_or("(none)"); }
 std::string Color(const oo::PList &manifest)					{ return ColorName(Manager()->colorForManifest(manifest).get()); }
@@ -499,7 +459,7 @@ bool InstallOXZ(NSUInteger item)								{ return Manager()->installOXZ(item); }
 bool UpdateAllOXZ()												{ return Manager()->updateAllOXZ(); }
 bool RemoveOXZ(NSUInteger item)									{ return Manager()->removeOXZ(item); }
 std::string ExtractOXZ(NSUInteger item)							{ return Manager()->extractOXZ(item); }
-bool IsRestarting()												{ return [[OOOXZManager sharedManager] isRestarting]; }
+bool IsRestarting()												{ return OOOXZManager::sharedManager()->isRestarting(); }
 
 
 // Deliver the download's events until it is no longer under way (at most 20 s).
@@ -623,25 +583,6 @@ OO_TEST(restartAndUpdateAll)
 }
 
 
-OO_TEST(facadeContractSliceTwo)
-{
-	SetUp();
-	@autoreleasepool
-	{
-		// The slice 2 units that slices 3 and 4 send, forwarded.
-		OOOXZManager *facade = [OOOXZManager sharedManager];
-		const oo::PList alpha = *Manager()->manifests().at(0);
-		OO_CHECK_TEXT(ColorName(oo::ToCxx([facade colorForManifest:alpha])), Color(alpha));
-		OO_CHECK_TEXT([facade installStatusForManifest:alpha].value_or("(none)"), InstallStatus(alpha));
-		OO_CHECK(![facade installOXZ:99]);
-		OO_CHECK(![facade removeOXZ:99]);
-		OO_CHECK_TEXT([facade extractOXZ:99], "oolite-oxzmanager-extract-log-no-original");
-		OO_CHECK(![facade updateAllOXZ]);	// the failed download is not cleared
-		OO_CHECK(![facade isRestarting]);
-	}
-}
-
-
 // Slices 3 and 4 (beads oo-q7r3, oo-qbgo): the GUI pages. A stand-in UNIVERSE (amendment oo-8kx7
 // item 7, as an object put in gSharedUniverse for these cases only, since the test links the real
 // Universe) answers -gui with a recording screen; the manager's sends to it are the page.
@@ -661,44 +602,45 @@ enum
 };
 
 
-@interface TestGui: OOObject
+// The GUI is C++ since bead oo-9ht.143 deleted its facade: the recording screen overrides the
+// members it answered (proposed ADR-0056 amendment oo-9ht.1), recording the same lines.
+class TestGui : public GuiDisplayGen
 {
-@public
-	std::vector<std::string>	log;
-	OOGUIRow					selected;
-}
-@end
+public:
+	TestGui() : GuiDisplayGen(NSMakeSize(480, 480), GUI_DEFAULT_COLUMNS, GUI_DEFAULT_ROWS, 16, 40, std::nullopt) {}
 
-@implementation TestGui
-- (void) clearAndKeepBackground:(BOOL)keepBackground	{ log.push_back(keepBackground ? "clear keep" : "clear"); }
-- (void) cxx_setTitle:(const std::optional<std::string> &)str	{ log.push_back("title " + str.value_or("(nil)")); }
-- (void) cxx_setText:(const std::optional<std::string> &)str forRow:(OOGUIRow)row align:(OOGUIAlignment)alignment
-{
-	log.push_back("text " + std::to_string(row) + " " + std::to_string(static_cast<int>(alignment)) + " " + str.value_or("(nil)"));
-}
-- (void) cxx_setText:(const std::string &)str forRow:(OOGUIRow)row	{ log.push_back("text " + std::to_string(row) + " " + str); }
-- (OOGUIRow) cxx_addLongText:(const std::optional<std::string> &)str startingAtRow:(OOGUIRow)row align:(OOGUIAlignment)alignment
-{
-	log.push_back("long " + std::to_string(row) + " " + std::to_string(static_cast<int>(alignment)) + " " + str.value_or("(nil)"));
-	return row + 1;
-}
-- (void) cxx_setKey:(const std::string &)str forRow:(OOGUIRow)row	{ log.push_back("key " + std::to_string(row) + " " + str); }
-- (void) cxx_setArray:(const std::vector<std::string> &)arr forRow:(OOGUIRow)row
-{
-	std::string line = "array " + std::to_string(row);
-	for (const std::string &column : arr)  line += " |" + column;
-	log.push_back(line);
-}
-- (void) setColor:(OOColor *)color forRow:(OOGUIRow)row
-{
-	cxx::OOColor *c = oo::ToCxx(color);
-	log.push_back("color " + std::to_string(row) + " " + (c != nullptr ? std::to_string(static_cast<int>(c->redComponent() * 100)) + "," + std::to_string(static_cast<int>(c->greenComponent() * 100)) + "," + std::to_string(static_cast<int>(c->blueComponent() * 100)) : std::string("nil")));
-}
-- (OOGUIRow) selectedRow	{ return selected; }
-- (BOOL) setSelectedRow:(OOGUIRow)row	{ log.push_back("select " + std::to_string(row)); selected = row; return YES; }
-- (void) setSelectableRange:(NSRange)range	{ log.push_back("range " + std::to_string(range.location) + "+" + std::to_string(range.length)); }
-- (void) setTabStops:(OOGUITabSettings)stops	{ log.push_back("tabs " + std::to_string(stops[1]) + "," + std::to_string(stops[2])); }
-@end
+	std::vector<std::string>	log;
+	OOGUIRow					selected = 0;
+
+	void clearAndKeepBackground(bool keepBackground) override	{ log.push_back(keepBackground ? "clear keep" : "clear"); }
+	void setTitle(const std::optional<std::string> &str) override	{ log.push_back("title " + str.value_or("(nil)")); }
+	void setText(const std::optional<std::string> &str, OOGUIRow row, OOGUIAlignment alignment) override
+	{
+		log.push_back("text " + std::to_string(row) + " " + std::to_string(static_cast<int>(alignment)) + " " + str.value_or("(nil)"));
+	}
+	void setText(const std::string &str, OOGUIRow row) override	{ log.push_back("text " + std::to_string(row) + " " + str); }
+	OOGUIRow addLongText(const std::optional<std::string> &str, OOGUIRow row, OOGUIAlignment alignment) override
+	{
+		log.push_back("long " + std::to_string(row) + " " + std::to_string(static_cast<int>(alignment)) + " " + str.value_or("(nil)"));
+		return row + 1;
+	}
+	void setKey(const std::string &str, OOGUIRow row) override	{ log.push_back("key " + std::to_string(row) + " " + str); }
+	void setArray(const std::vector<std::string> &arr, OOGUIRow row) override
+	{
+		std::string line = "array " + std::to_string(row);
+		for (const std::string &column : arr)  line += " |" + column;
+		log.push_back(line);
+	}
+	void setColor(OOColor *color, OOGUIRow row) override
+	{
+		OOColor *c = color;
+		log.push_back("color " + std::to_string(row) + " " + (c != nullptr ? std::to_string(static_cast<int>(c->redComponent() * 100)) + "," + std::to_string(static_cast<int>(c->greenComponent() * 100)) + "," + std::to_string(static_cast<int>(c->blueComponent() * 100)) : std::string("nil")));
+	}
+	OOGUIRow getSelectedRow() override	{ return selected; }
+	bool setSelectedRow(OOGUIRow row) override	{ log.push_back("select " + std::to_string(row)); selected = row; return true; }
+	void setSelectableRange(NSRange range) override	{ log.push_back("range " + std::to_string(range.location) + "+" + std::to_string(range.length)); }
+	void setTabStops(OOGUITabSettings stops) override	{ log.push_back("tabs " + std::to_string(stops[1]) + "," + std::to_string(stops[2])); }
+};
 
 
 @interface TestGameView: OOObject
@@ -718,7 +660,7 @@ enum
 @interface TestUniverse: OOObject
 {
 @public
-	TestGui			*gui;
+	oo::Ref<TestGui>	gui;
 	TestGameView	*gameView;
 	oo::PList		descriptions;
 }
@@ -729,14 +671,14 @@ enum
 {
 	if ((self = [super init]))
 	{
-		gui = [[TestGui alloc] init];
+		gui = oo::makeRef<TestGui>();
 		gameView = [[TestGameView alloc] init];
 		descriptions = oo::PList(oo::PList::Dict());
 	}
 	return self;
 }
-- (void) dealloc	{ [gui release]; [gameView release]; [super dealloc]; }
-- (id) gui	{ return gui; }
+- (void) dealloc	{ [gameView release]; [super dealloc]; }
+- (GuiDisplayGen *) gui	{ return gui.get(); }
 - (id) gameView	{ return gameView; }
 - (std::optional<std::string>) cxx_descriptionForKey:(const std::string &)key	{ (void)key; return std::nullopt; }
 - (const oo::PList *) cxx_descriptions	{ return &descriptions; }
@@ -798,8 +740,7 @@ OO_TEST(guiPages)
 	@autoreleasepool
 	{
 		StandInUniverse standIn;
-		OOOXZManager *facade = [OOOXZManager sharedManager];
-		cxx::OOOXZManager *m = Manager();
+		OOOXZManager *m = Manager();
 		m->_changesMade = false;
 		m->_offset = 0;
 		m->_item = 0;
@@ -807,7 +748,7 @@ OO_TEST(guiPages)
 		standIn.universe->gui->selected = 0;
 
 		m->_interfaceState = OXZ_STATE_NODATA;
-		[facade gui];
+		m->gui();
 		OO_CHECK_PAGE("nodata", standIn.Page(),
 			"clear keep\n"
 			"title oolite-oxzmanager-title\n"
@@ -822,7 +763,7 @@ OO_TEST(guiPages)
 			"select 26\n");
 
 		m->_interfaceState = OXZ_STATE_SETFILTER;
-		[facade gui];
+		m->gui();
 		OO_CHECK_PAGE("setfilter", standIn.Page(),
 			"clear keep\n"
 			"title oolite-oxzmanager-title\n"
@@ -831,14 +772,14 @@ OO_TEST(guiPages)
 			"long 1 0 oolite-oxzmanager-filterhelp\n");
 
 		m->_interfaceState = OXZ_STATE_RESTARTING;
-		[facade gui];
+		m->gui();
 		OO_CHECK_PAGE("restarting", standIn.Page(),
 			"clear keep\n"
 			"title oolite-oxzmanager-title\n"
 			"long 1 0 oolite-oxzmanager-restart\n");
 
 		m->_interfaceState = OXZ_STATE_MAIN;
-		[facade gui];
+		m->gui();
 		OO_CHECK_PAGE("main", standIn.Page(),
 			"clear keep\n"
 			"title oolite-oxzmanager-title\n"
@@ -864,7 +805,7 @@ OO_TEST(guiPages)
 		m->_downloadProgress = 2048;
 		m->_downloadExpected = 4096;
 		m->setProgressStatus("progress");
-		[facade gui];
+		m->gui();
 		OO_CHECK_PAGE("updating", standIn.Page(),
 			"clear keep\n"
 			"title oolite-oxzmanager-title\n"
@@ -879,7 +820,7 @@ OO_TEST(guiPages)
 			"select 26\n");
 
 		m->_interfaceState = OXZ_STATE_DEPENDENCIES;
-		[facade gui];
+		m->gui();
 		OO_CHECK_PAGE("dependencies", standIn.Page(),
 			"clear keep\n"
 			"title oolite-oxzmanager-title\n"
@@ -898,7 +839,7 @@ OO_TEST(guiPages)
 			"select 23\n");
 
 		m->_interfaceState = OXZ_STATE_REMOVING;
-		[facade gui];
+		m->gui();
 		OO_CHECK_PAGE("removing", standIn.Page(),
 			"clear keep\n"
 			"title oolite-oxzmanager-title\n"
@@ -913,7 +854,7 @@ OO_TEST(guiPages)
 		m->_interfaceState = OXZ_STATE_TASKDONE;
 		m->_downloadStatus = OXZ_DOWNLOAD_COMPLETE;
 		m->_changesMade = true;
-		[facade gui];
+		m->gui();
 		OO_CHECK_PAGE("taskdone", standIn.Page(),
 			"clear keep\n"
 			"title oolite-oxzmanager-title\n"
@@ -927,7 +868,7 @@ OO_TEST(guiPages)
 			"select 26\n");
 
 		m->_interfaceState = OXZ_STATE_EXTRACTDONE;
-		[facade gui];
+		m->gui();
 		OO_CHECK_PAGE("extractdone", standIn.Page(),
 			"clear keep\n"
 			"title oolite-oxzmanager-title\n"
@@ -942,7 +883,7 @@ OO_TEST(guiPages)
 		m->setFilteredList(m->managedOXZs());
 		m->_item = 2;
 		m->_interfaceState = OXZ_STATE_EXTRACT;
-		[facade gui];
+		m->gui();
 		OO_CHECK_PAGE("extract", standIn.Page(),
 			"clear keep\n"
 			"title oolite-oxzmanager-title\n"
@@ -964,7 +905,7 @@ OO_TEST(guiPages)
 		m->_downloadStatus = OXZ_DOWNLOAD_NONE;
 		standIn.universe->gui->selected = OXZ_GUI_ROW_LISTSTART;
 		m->_interfaceState = OXZ_STATE_PICK_INSTALL;
-		[facade gui];
+		m->gui();
 		OO_CHECK_PAGE("pick install", standIn.Page(),
 			"clear keep\n"
 			"title oolite-oxzmanager-title\n"
@@ -1039,7 +980,7 @@ OO_TEST(guiPages)
 			"select 22\n");
 
 		m->_interfaceState = OXZ_STATE_PICK_INSTALLED;
-		[facade gui];
+		m->gui();
 		OO_CHECK_PAGE("pick installed", standIn.Page(),
 			"clear keep\n"
 			"title oolite-oxzmanager-title\n"
@@ -1112,7 +1053,7 @@ OO_TEST(guiPages)
 			"select 22\n");
 
 		m->_interfaceState = OXZ_STATE_PICK_REMOVE;
-		[facade gui];
+		m->gui();
 		OO_CHECK_PAGE("pick remove", standIn.Page(),
 			"clear keep\n"
 			"title oolite-oxzmanager-title\n"
@@ -1182,7 +1123,7 @@ OO_TEST(guiPages)
 
 		m->_interfaceState = OXZ_STATE_UPDATING;
 		m->_downloadStatus = OXZ_DOWNLOAD_ERROR;
-		[facade gui];
+		m->gui();
 		OO_CHECK_PAGE("updating error", standIn.Page(),
 			"clear keep\n"
 			"title oolite-oxzmanager-title\n"
@@ -1209,36 +1150,35 @@ OO_TEST(guiInput)
 	@autoreleasepool
 	{
 		StandInUniverse standIn;
-		OOOXZManager *facade = [OOOXZManager sharedManager];
-		cxx::OOOXZManager *m = Manager();
-		TestGui *gui = standIn.universe->gui;
+		OOOXZManager *m = Manager();
+		TestGui *gui = standIn.universe->gui.get();
 
 		// The filter: the key, typed text, its prompt.
 		m->_interfaceState = OXZ_STATE_NODATA;
-		[facade processFilterKey];
+		m->processFilterKey();
 		OO_CHECK(m->_interfaceState == OXZ_STATE_NODATA);
-		OO_CHECK(![facade isAcceptingTextInput]);
+		OO_CHECK(!m->isAcceptingTextInput());
 		m->_interfaceState = OXZ_STATE_MAIN;
 		m->_interfaceShowingOXZDetail = true;
-		[facade processFilterKey];
+		m->processFilterKey();
 		OO_CHECK(m->_interfaceState == OXZ_STATE_SETFILTER);
 		OO_CHECK(!m->_interfaceShowingOXZDetail);
 		OO_CHECK_EQ(standIn.universe->gameView->resets, 1);
-		OO_CHECK([facade isAcceptingTextInput]);
-		OO_CHECK([facade isAcceptingGUIInput]);
+		OO_CHECK(m->isAcceptingTextInput());
+		OO_CHECK(m->isAcceptingGUIInput());
 		standIn.Page();
-		[facade refreshTextInput:"k:x"];
+		m->refreshTextInput("k:x");
 		OO_CHECK_PAGE("prompt valid", standIn.Page(),
 			"text 27 0 oolite-oxzmanager-text-prompt-@\n"
 			"color 27 0,100,100\n");
-		[facade refreshTextInput:"k:"];
+		m->refreshTextInput("k:");
 		OO_CHECK_PAGE("prompt invalid", standIn.Page(),
 			"text 27 0 oolite-oxzmanager-text-prompt-@\n"
 			"color 27 100,50,0\n");
-		[facade processTextInput:"k:"];
+		m->processTextInput("k:");
 		OO_CHECK(m->_interfaceState == OXZ_STATE_SETFILTER);
 		OO_CHECK_PAGE("text invalid", standIn.Page(), "");
-		[facade processTextInput:"C:Ships"];
+		m->processTextInput("C:Ships");
 		OO_CHECK(m->_interfaceState == OXZ_STATE_PICK_INSTALL);
 		OO_CHECK_TEXT(m->_currentFilter, "c:ships");
 		OO_CHECK_PAGE("text valid", standIn.Page(),
@@ -1311,16 +1251,16 @@ OO_TEST(guiInput)
 			"key 27 _EXIT\n"
 			"range 1+28\n"
 			"select 22\n");
-		[facade processTextInput:""];
+		m->processTextInput("");
 		OO_CHECK_TEXT(m->_currentFilter, "c:ships");
 		m->setFilter("*");
 		standIn.Page();
 
 		// The info page of the selected entry, and back.
 		gui->selected = OXZ_GUI_ROW_LISTSTART + 1;
-		[facade processShowInfoKey];
+		m->processShowInfoKey();
 		OO_CHECK(m->_interfaceShowingOXZDetail);
-		OO_CHECK(![facade isAcceptingGUIInput]);
+		OO_CHECK(!m->isAcceptingGUIInput());
 		OO_CHECK_EQ(m->_item, 1u);
 		OO_CHECK_TEXT(standIn.universe->gameView->clipboard, "");
 		OO_CHECK_PAGE("info", standIn.Page(),
@@ -1334,7 +1274,7 @@ OO_TEST(guiInput)
 			"text 25 0 oolite-oxzmanager-infopage-infourl-@\n"
 			"text 27 2 oolite-oxzmanager-infopage-return\n"
 			"color 27 0,100,0\n");
-		[facade processShowInfoKey];
+		m->processShowInfoKey();
 		OO_CHECK(!m->_interfaceShowingOXZDetail);
 		OO_CHECK_PAGE("info closed", standIn.Page(),
 			"clear keep\n"
@@ -1462,21 +1402,21 @@ OO_TEST(guiInput)
 			"key 4 oolite.oxp.test.gamma\n"
 			"color 4 100,100,0\n");
 		gui->selected = 0;
-		[facade processShowInfoKey];
+		m->processShowInfoKey();
 		OO_CHECK(!m->_interfaceShowingOXZDetail);
 
 		// Extracting is offered from the installed list only.
 		gui->selected = OXZ_GUI_ROW_LISTSTART;
-		[facade processExtractKey];
+		m->processExtractKey();
 		OO_CHECK(m->_interfaceState == OXZ_STATE_PICK_INSTALL);
 		m->_interfaceState = OXZ_STATE_PICK_INSTALLED;
-		[facade gui];
+		m->gui();
 		standIn.Page();
 		OO_CHECK_EQ(gui->selected, OXZ_GUI_ROW_INSTALL);	// the page selected its first control
-		[facade processExtractKey];
+		m->processExtractKey();
 		OO_CHECK(m->_interfaceState == OXZ_STATE_PICK_INSTALLED);
 		gui->selected = OXZ_GUI_ROW_LISTSTART;
-		[facade processExtractKey];
+		m->processExtractKey();
 		OO_CHECK(m->_interfaceState == OXZ_STATE_EXTRACT);
 		OO_CHECK_EQ(m->_item, 0u);
 		OO_CHECK_PAGE("extract key", standIn.Page(),
@@ -1497,7 +1437,7 @@ OO_TEST(guiInput)
 
 		// Selections.
 		gui->selected = OXZ_GUI_ROW_CANCEL;
-		[facade processSelection];
+		m->processSelection();
 		OO_CHECK(m->_interfaceState == OXZ_STATE_MAIN);
 		OO_CHECK_PAGE("extract cancelled", standIn.Page(),
 			"clear keep\n"
@@ -1518,62 +1458,36 @@ OO_TEST(guiInput)
 			"range 22+7\n"
 			"select 22\n");
 		gui->selected = OXZ_GUI_ROW_INSTALLED;
-		[facade processSelection];
+		m->processSelection();
 		OO_CHECK(m->_interfaceState == OXZ_STATE_PICK_INSTALLED);
 		standIn.Page();
 		gui->selected = OXZ_GUI_ROW_REMOVE;
-		[facade processSelection];
+		m->processSelection();
 		OO_CHECK(m->_interfaceState == OXZ_STATE_PICK_REMOVE);
 		standIn.Page();
 		m->_interfaceState = OXZ_STATE_REMOVING;
 		gui->selected = OXZ_GUI_ROW_UPDATE;
-		[facade processSelection];
+		m->processSelection();
 		OO_CHECK(m->_interfaceState == OXZ_STATE_PICK_REMOVE);
 		standIn.Page();
 		gui->selected = OXZ_GUI_ROW_INSTALL;
-		[facade processSelection];
+		m->processSelection();
 		OO_CHECK(m->_interfaceState == OXZ_STATE_PICK_INSTALL);
 		standIn.Page();
 		m->_changesMade = false;
 		gui->selected = OXZ_GUI_ROW_EXIT;
-		[facade processSelection];
+		m->processSelection();
 		OO_CHECK(m->_interfaceState == OXZ_STATE_MAIN);
 		OO_CHECK_PAGE("exit", standIn.Page(), "");
 		m->_changesMade = true;
-		[facade processSelection];
+		m->processSelection();
 		OO_CHECK(m->_interfaceState == OXZ_STATE_RESTARTING);
 		OO_CHECK_PAGE("exit to restart", standIn.Page(),
 			"clear keep\n"
 			"title oolite-oxzmanager-title\n"
 			"long 1 0 oolite-oxzmanager-restart\n");
-		OO_CHECK([facade isRestarting]);
+		OO_CHECK(m->isRestarting());
 		OO_CHECK(m->_interfaceState == OXZ_STATE_MAIN);
-	}
-}
-
-
-OO_TEST(facadeContractSliceThree)
-{
-	SetUp();
-	@autoreleasepool
-	{
-		// The slice 3 units: the facade forwards to the C++ members, which draw the same page.
-		StandInUniverse standIn;
-		OOOXZManager *facade = [OOOXZManager sharedManager];
-		cxx::OOOXZManager *m = Manager();
-		m->_interfaceState = OXZ_STATE_SETFILTER;
-		OO_CHECK([facade isAcceptingTextInput] == m->isAcceptingTextInput());
-		OO_CHECK([facade isAcceptingGUIInput] == m->isAcceptingGUIInput());
-		[facade gui];
-		const std::string fromFacade = standIn.Page();
-		m->gui();
-		OO_CHECK_TEXT(standIn.Page(), fromFacade);
-		m->refreshTextInput("t:x");
-		OO_CHECK(!standIn.Page().empty());
-		m->processTextInput("t:x");
-		OO_CHECK(m->_interfaceState == OXZ_STATE_PICK_INSTALL);
-		m->setFilter("*");
-		m->_interfaceState = OXZ_STATE_MAIN;
 	}
 }
 
@@ -1599,9 +1513,8 @@ OO_TEST(optionPages)
 	@autoreleasepool
 	{
 		StandInUniverse standIn;
-		OOOXZManager *facade = [OOOXZManager sharedManager];
-		cxx::OOOXZManager *m = Manager();
-		TestGui *gui = standIn.universe->gui;
+		OOOXZManager *m = Manager();
+		TestGui *gui = standIn.universe->gui.get();
 		const oo::PList savedList = m->manifests();
 
 		// Thirteen entries: two pages of ten.
@@ -1627,7 +1540,7 @@ OO_TEST(optionPages)
 
 		// Paging through the install list.
 		gui->selected = OXZ_GUI_ROW_LISTSTART + 1;
-		[facade processOptionsNext];
+		m->processOptionsNext();
 		OO_CHECK_EQ(m->_offset, 10u);
 		OO_CHECK_PAGE("install page 2", standIn.Page(),
 			"tabs 100,320\n"
@@ -1683,10 +1596,10 @@ OO_TEST(optionPages)
 			"array 4 |Misc |Item 12 |oolite-oxzmanager-version-none |1\n"
 			"key 4 oolite.oxp.test.item12\n"
 			"color 4 100,100,0\n");
-		[facade processOptionsNext];
+		m->processOptionsNext();
 		OO_CHECK_EQ(m->_offset, 10u);
 		standIn.Page();
-		[facade processOptionsPrev];
+		m->processOptionsPrev();
 		OO_CHECK_EQ(m->_offset, 0u);
 		OO_CHECK_PAGE("install page 1", standIn.Page(),
 			"tabs 100,320\n"
@@ -1763,27 +1676,27 @@ OO_TEST(optionPages)
 			"array 11 |Misc |Item 09 |oolite-oxzmanager-version-none |1\n"
 			"key 11 oolite.oxp.test.item9\n"
 			"color 11 100,100,0\n");
-		[facade processOptionsPrev];
+		m->processOptionsPrev();
 		OO_CHECK_EQ(m->_offset, 0u);
 		standIn.Page();
 		gui->selected = 12;		// the "more" row
-		[facade showOptionsNext];
+		m->showOptionsNext();
 		OO_CHECK_EQ(m->_offset, 10u);
 		standIn.Page();
 		gui->selected = 1;		// the "back" row
-		[facade showOptionsPrev];
+		m->showOptionsPrev();
 		OO_CHECK_EQ(m->_offset, 0u);
 		standIn.Page();
 		gui->selected = OXZ_GUI_ROW_LISTSTART;
-		[facade showOptionsNext];	// not on the "more" row
+		m->showOptionsNext();	// not on the "more" row
 		OO_CHECK_EQ(m->_offset, 0u);
 		OO_CHECK_PAGE("show next elsewhere", standIn.Page(), "");
-		OO_CHECK_EQ([facade showInstallOptions], 1);
+		OO_CHECK_EQ(m->showInstallOptions(), 1);
 		standIn.Page();
 
 		// The remove list: the managed OXZs, then nothing.
 		m->_interfaceState = OXZ_STATE_PICK_REMOVE;
-		[facade showOptionsUpdate];
+		m->showOptionsUpdate();
 		OO_CHECK_TEXT(Titles(m->_filteredList), "Late 1, Local 3, Alpha 1.0");
 		OO_CHECK_TEXT(OptionTitles(RemoveOptions()), "Late 1, Local 3, Alpha 1.0");
 		OO_CHECK_PAGE("remove page", standIn.Page(),
@@ -1837,7 +1750,7 @@ OO_TEST(optionPages)
 			"color 4 100,100,100\n");
 		m->setFilteredList(oo::PList(oo::PList::Array()));
 		OO_CHECK(RemoveOptions().empty());
-		OO_CHECK_EQ([facade showRemoveOptions], 1);
+		OO_CHECK_EQ(m->showRemoveOptions(), 1);
 		OO_CHECK_PAGE("nothing removable", standIn.Page(),
 			"long 1 0 oolite-oxzmanager-nothing-removable\n");
 
@@ -1859,8 +1772,8 @@ OO_TEST(copyUrlKey)
 	@autoreleasepool
 	{
 		StandInUniverse standIn;
-		cxx::OOOXZManager *m = Manager();
-		TestGui *gui = standIn.universe->gui;
+		OOOXZManager *m = Manager();
+		TestGui *gui = standIn.universe->gui.get();
 		std::string &clipboard = standIn.universe->gameView->clipboard;
 
 		oo::PList::Dict withURL = *Manifest("oolite.oxp.test.url", "Url", "1.0", "Ships", nullptr, nullptr, {}, -1, nullptr).getIf<oo::PList::Dict>();

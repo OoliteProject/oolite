@@ -254,7 +254,7 @@ void OOMeshToOctreeConverter::addTriangle(Triangle tri)
     }
 }
 
-oo::Ref<cxx::Octree> OOMeshToOctreeConverter::findOctreeToDepth(NSUInteger depth)
+oo::Ref<Octree> OOMeshToOctreeConverter::findOctreeToDepth(NSUInteger depth)
 {
     oo::Ref<OOOctreeBuilder> builder = oo::makeRef<OOOctreeBuilder>();
     OOScalar halfWidth = 0.5f + MaxDimensionFromOrigin(&_data); // pad out from geometry by a half meter

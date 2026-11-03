@@ -35,7 +35,7 @@ MA 02110-1301, USA.
 
 static const char* const kStageName = "Testing textures and images";
 
-std::string OOTextureVerifierStage::nameForReverseDependencyForVerifier(cxx::OOOXPVerifier*)
+std::string OOTextureVerifierStage::nameForReverseDependencyForVerifier(OOOXPVerifier*)
 {
     return kStageName;
 }

@@ -7,7 +7,7 @@
 	(OOJSClasses.mm), its exception translator (OOJSEngineNativeWrappers.mm) and the constant
 	strings (OOConstToJSString.cpp). It stands in for the player (PlayerEntity records
 	what the binding tells it), the universe and its GUI, a demo ship, the running script and the
-	script engine (OOJSScript and OOJavaScriptEngine, which call the mission screen's callback),
+	script engine (OOScript and OOJavaScriptEngine, which call the mission screen's callback),
 	the music controller (amendment oo-jy98 item 3: a converted class the binding only calls, an
 	Objective-C stand-in before the conversion and C++ member stand-ins after it, which is the one
 	part of this file the conversion ported), the string
@@ -41,13 +41,13 @@
 typedef NSInteger OOGUIRow;	// as GuiDisplayGen.h declares it
 
 
-@interface ShipEntity: OOObject
+// The demo ship's object (the root's; the Objective-C ship's until bead oo-9ht.144 deleted it), which
+// oo::ToObjC answers for the demo ship.
+@interface Entity: OOObject
 {
 @public
-	uint16_t _personality;
 	JSValue _jsSelf;	// owned; zero-filled (not an object) until made
 }
-- (void) setEntityPersonalityInt:(uint16_t)value;
 - (JSValue) oo_jsValueInContext:(JSContext *)context;	// owned by the caller
 @end
 
@@ -56,68 +56,84 @@ typedef NSInteger OOGUIRow;	// as GuiDisplayGen.h declares it
 	-cxx_missionScreenID raises, and while _throwCxx is set it throws a C++ exception, so the test
 	sees what an exception under a native becomes.
 */
-@interface PlayerEntity: ShipEntity
+// PLAYER: C++ since bead oo-9ht.177 deleted the Objective-C player this stood in for: the members
+// the code under test calls, declared as the game headers declare them (the test imports none
+// that defines the classes), with the stand-in's answers.
+namespace cxx {
+class Entity
 {
-@public
+public:
+	OOEntityStatus status();
+};
+
+}	// namespace cxx
+
+// The ship: C++ since bead oo-9ht.144 (the demo ship is a plain one).
+class ShipEntity : public cxx::Entity
+{
+public:
+	void setEntityPersonalityInt(uint16_t value);
+
+	uint16_t _personality = {};
+};
+
+class PlayerEntity : public ShipEntity
+{
+public:
+	void setScriptTarget(::ShipEntity *ship);
+	oo::PList getMissionDestinations();
+	std::optional<std::string> missionScreenID();
+	OOGUIScreenID missionExitScreen();
+	void setMissionExitScreen(OOGUIScreenID screen);
+	void addMissionDestinationMarker(const oo::PList &marker);
+	oo::PList defaultMarker(OOSystemID system);
+	bool removeMissionDestinationMarker(const oo::PList &marker);
+	void addLiteralMissionText(const std::string &text);
+	void setMissionDescription(const std::string &textKey, const std::optional<std::string> &key);
+	void setMissionInstructions(const std::string &text, const std::optional<std::string> &key);
+	void setMissionInstructionsList(const oo::PList &list, const std::optional<std::string> &key);
+	void clearMissionDescriptionForMission(const std::string &key);
+	void setMissionTitle(const std::optional<std::string> &value);
+	void setMissionOverlayDescriptor(const oo::PList &descriptor);
+	void setMissionBackgroundDescriptor(const oo::PList &descriptor);
+	void setMissionBackgroundSpecial(const std::string &special);
+	void setCustomChartZoom(OOScalar zoom);
+	void setCustomChartCentre(NSPoint coords);
+	NSPoint getGalaxy_coordinates();
+	void setMissionScreenID(const std::optional<std::string> &msid);
+	void clearMissionScreenID();
+	void clearExtraMissionKeys();
+	void setExtraMissionKeys(const oo::PList &keys);
+	void setMissionChoiceByTextEntry(bool enable);
+	void setGuiToMissionScreenWithCallback(bool callback);
+	void allowMissionInterrupt();
+	void addMissionText(const std::string &textKey);
+	void setMissionChoices(const std::string &choicesKey);
+	void setMissionChoicesDictionary(const oo::PList &choicesDict);
+	void setMissionMusic(const std::string &value);
+	void setGuiToIntroFirstGo(bool justCobra);
+	oo::PList missionChoice_string();
+	oo::PList missionKeyPress_string();
+	void setMissionChoice(const std::optional<std::string> &newChoice, const std::optional<std::string> &keyPress, bool withEvent);
+
 	std::vector<std::string> _calls;
-	OOEntityStatus _status;
+	OOEntityStatus _status = {};
 	oo::PList::Dict _destinations;
 	std::optional<std::string> _screenID;
-	OOGUIScreenID _exitScreen;
+	OOGUIScreenID _exitScreen = {};
 	oo::PList _choice;
 	oo::PList _keyPress;
-	BOOL _removeFails;
-	BOOL _raise;
-	BOOL _throwCxx;
-}
-- (void) setScriptTarget:(ShipEntity *)ship;
-- (OOEntityStatus) status;
-- (oo::PList) cxx_getMissionDestinations;
-- (std::optional<std::string>) cxx_missionScreenID;
-- (OOGUIScreenID) missionExitScreen;
-- (void) setMissionExitScreen:(OOGUIScreenID)screen;
-- (void) cxx_addMissionDestinationMarker:(const oo::PList &)marker;
-- (oo::PList) cxx_defaultMarker:(OOSystemID)system;
-- (BOOL) cxx_removeMissionDestinationMarker:(const oo::PList &)marker;
-- (void) addLiteralMissionText:(const std::string &)text;
-- (void) setMissionDescription:(const std::string &)textKey forMission:(const std::optional<std::string> &)key;
-- (void) cxx_setMissionInstructions:(const std::string &)text forMission:(const std::optional<std::string> &)key;
-- (void) cxx_setMissionInstructionsList:(const oo::PList &)list forMission:(const std::optional<std::string> &)key;
-- (void) clearMissionDescriptionForMission:(const std::string &)key;
-- (void) cxx_setMissionTitle:(const std::optional<std::string> &)value;
-- (void) cxx_setMissionOverlayDescriptor:(const oo::PList &)descriptor;
-- (void) cxx_setMissionBackgroundDescriptor:(const oo::PList &)descriptor;
-- (void) cxx_setMissionBackgroundSpecial:(const std::string &)special;
-- (void) setCustomChartZoom:(OOScalar)zoom;
-- (void) setCustomChartCentre:(NSPoint)coords;
-- (NSPoint) galaxy_coordinates;
-- (void) cxx_setMissionScreenID:(const std::optional<std::string> &)msid;
-- (void) clearMissionScreenID;
-- (void) clearExtraMissionKeys;
-- (void) cxx_setExtraMissionKeys:(const oo::PList &)keys;
-- (void) setMissionChoiceByTextEntry:(BOOL)enable;
-- (void) setGuiToMissionScreenWithCallback:(BOOL)callback;
-- (void) allowMissionInterrupt;
-- (void) addMissionText:(const std::string &)textKey;
-- (void) setMissionChoices:(const std::string &)choicesKey;
-- (void) cxx_setMissionChoicesDictionary:(const oo::PList &)choicesDict;
-- (void) setMissionMusic:(const std::string &)value;
-- (void) setGuiToIntroFirstGo:(BOOL)justCobra;
-- (oo::PList) missionChoice_string;
-- (oo::PList) missionKeyPress_string;
-- (void) cxx_setMissionChoice:(const std::optional<std::string> &)newChoice keyPress:(const std::optional<std::string> &)keyPress withEvent:(BOOL)withEvent;
-@end
+	BOOL _removeFails = {};
+	BOOL _raise = {};
+	BOOL _throwCxx = {};
+};
 
 
-@interface GuiDisplayGen: OOObject
-{
-@public
-	std::vector<std::string> _calls;
-}
-- (oo::PList) cxx_textureDescriptorFromJSValue:(JSValue)value inContext:(JSContext *)context callerDescription:(const std::optional<std::string> &)callerDescription;
-- (OOGUIRow) cxx_rowForKey:(const std::optional<std::string> &)key;
-- (BOOL) setSelectedRow:(OOGUIRow)row;
-@end
+// The GUI is C++ since bead oo-9ht.143 deleted its facade: the members the binding calls are defined
+// below (a C++ stand-in with the facade stand-in's answers), recording into sGuiCalls.
+#import "GuiDisplayGen.h"
+#import "OOTextureSprite.h"	// the stand-in's destructor destroys the GUI's sprite members
+#import "OOColor.h"	// and its row colours
 
 
 @interface Universe: OOObject
@@ -134,17 +150,6 @@ typedef NSInteger OOGUIRow;	// as GuiDisplayGen.h declares it
 @end
 
 
-@interface OOJSScript: OOObject
-{
-@public
-	std::optional<std::string> _name;
-}
-+ (OOJSScript *) currentlyRunningScript;
-+ (void) pushScript:(OOJSScript *)script;
-+ (void) popScript:(OOJSScript *)script;
-- (std::optional<std::string>) cxx_name;
-- (id) weakRefUnderlyingObject;
-@end
 
 
 /*	The engine calls the mission screen's callback. While _raise is set it raises instead, as a
@@ -181,12 +186,14 @@ typedef NSInteger OOGUIRow;	// as GuiDisplayGen.h declares it
 #include <vector>
 
 
+class OOJSScript;
+
 namespace {
 
 std::vector<std::string> sMusic;			// what the music controller was told
 std::vector<std::string> sScriptStack;		// pushScript:/popScript:, as "+name"/"-name"
 std::vector<std::string> sLog;
-OOJSScript *sRunningScript = nil;
+OOJSScript *sRunningScript = nullptr;
 JSContext *sContext = nullptr;
 
 
@@ -243,9 +250,7 @@ void CaptureLog(std::string_view line)
 }	// namespace
 
 
-@implementation ShipEntity
-
-- (void) setEntityPersonalityInt:(uint16_t)value  { _personality = value; }
+@implementation Entity
 
 - (JSValue) oo_jsValueInContext:(JSContext *)context
 {
@@ -260,77 +265,108 @@ void CaptureLog(std::string_view line)
 @end
 
 
-@implementation PlayerEntity
-
-- (void) setScriptTarget:(ShipEntity *)ship  { (void)ship; }
-- (OOEntityStatus) status  { return _status; }
-- (oo::PList) cxx_getMissionDestinations  { return oo::PList(_destinations); }
-
-- (std::optional<std::string>) cxx_missionScreenID
+void PlayerEntity::setScriptTarget(::ShipEntity *ship)  { (void)ship; }
+void ShipEntity::setEntityPersonalityInt(uint16_t value)  { _personality = value; }
+OOEntityStatus cxx::Entity::status()  { return static_cast<PlayerEntity *>(this)->_status; }
+oo::PList PlayerEntity::getMissionDestinations()  { return oo::PList(_destinations); }
+std::optional<std::string> PlayerEntity::missionScreenID()
 {
 	if (_raise)  [OOException raise:OOInvalidArgumentException format:"screen %s", "boom"];
 	if (_throwCxx)  throw std::runtime_error("cxx boom");
 	return _screenID;
 }
-
-- (OOGUIScreenID) missionExitScreen  { return _exitScreen; }
-- (void) setMissionExitScreen:(OOGUIScreenID)screen  { _exitScreen = screen; _calls.push_back(oo::str::format("exitScreen(%d)", static_cast<int>(screen))); }
-
-- (void) cxx_addMissionDestinationMarker:(const oo::PList &)marker
+OOGUIScreenID PlayerEntity::missionExitScreen()  { return _exitScreen; }
+void PlayerEntity::setMissionExitScreen(OOGUIScreenID screen)
+{
+	_exitScreen = screen; _calls.push_back(oo::str::format("exitScreen(%d)", static_cast<int>(screen)));
+}
+void PlayerEntity::addMissionDestinationMarker(const oo::PList &marker)
 {
 	_calls.push_back("addMarker(" + Describe(marker) + ")");
 	_destinations[oo::str::format("%d", marker.get<int>("system", -1))] = marker;
 }
-
-- (oo::PList) cxx_defaultMarker:(OOSystemID)system  { return Dict({ { "system", oo::PList(static_cast<int>(system)) }, { "name", oo::PList("default") } }); }
-
-- (BOOL) cxx_removeMissionDestinationMarker:(const oo::PList &)marker
+oo::PList PlayerEntity::defaultMarker(OOSystemID system)
+{
+	return Dict({ { "system", oo::PList(static_cast<int>(system)) }, { "name", oo::PList("default") } });
+}
+bool PlayerEntity::removeMissionDestinationMarker(const oo::PList &marker)
 {
 	_calls.push_back("removeMarker(" + Describe(marker) + ")");
 	_destinations.erase(oo::str::format("%d", marker.get<int>("system", -1)));
 	return !_removeFails;
 }
-
-- (void) addLiteralMissionText:(const std::string &)text  { _calls.push_back("literalText('" + text + "')"); }
-- (void) setMissionDescription:(const std::string &)textKey forMission:(const std::optional<std::string> &)key  { _calls.push_back("description('" + textKey + "', " + Optional(key) + ")"); }
-- (void) cxx_setMissionInstructions:(const std::string &)text forMission:(const std::optional<std::string> &)key  { _calls.push_back("instructions('" + text + "', " + Optional(key) + ")"); }
-- (void) cxx_setMissionInstructionsList:(const oo::PList &)list forMission:(const std::optional<std::string> &)key  { _calls.push_back("instructionsList(" + Describe(list) + ", " + Optional(key) + ")"); }
-- (void) clearMissionDescriptionForMission:(const std::string &)key  { _calls.push_back("clearDescription('" + key + "')"); }
-- (void) cxx_setMissionTitle:(const std::optional<std::string> &)value  { _calls.push_back("title(" + Optional(value) + ")"); }
-- (void) cxx_setMissionOverlayDescriptor:(const oo::PList &)descriptor  { _calls.push_back("overlay(" + Describe(descriptor) + ")"); }
-- (void) cxx_setMissionBackgroundDescriptor:(const oo::PList &)descriptor  { _calls.push_back("background(" + Describe(descriptor) + ")"); }
-- (void) cxx_setMissionBackgroundSpecial:(const std::string &)special  { _calls.push_back("backgroundSpecial('" + special + "')"); }
-- (void) setCustomChartZoom:(OOScalar)zoom  { _calls.push_back(oo::str::format("chartZoom(%g)", static_cast<double>(zoom))); }
-- (void) setCustomChartCentre:(NSPoint)coords  { _calls.push_back(oo::str::format("chartCentre(%g, %g)", static_cast<double>(coords.x), static_cast<double>(coords.y))); }
-- (NSPoint) galaxy_coordinates  { return NSMakePoint(10, 20); }
-- (void) cxx_setMissionScreenID:(const std::optional<std::string> &)msid  { _calls.push_back("screenID(" + Optional(msid) + ")"); }
-- (void) clearMissionScreenID  { _calls.push_back("clearScreenID"); }
-- (void) clearExtraMissionKeys  { _calls.push_back("clearExtraKeys"); }
-- (void) cxx_setExtraMissionKeys:(const oo::PList &)keys  { _calls.push_back("extraKeys(" + Describe(keys) + ")"); }
-- (void) setMissionChoiceByTextEntry:(BOOL)enable  { _calls.push_back(enable ? "textEntry(YES)" : "textEntry(NO)"); }
-- (void) setGuiToMissionScreenWithCallback:(BOOL)callback  { _calls.push_back(callback ? "missionScreen(YES)" : "missionScreen(NO)"); }
-- (void) allowMissionInterrupt  { _calls.push_back("allowInterrupt"); }
-- (void) addMissionText:(const std::string &)textKey  { _calls.push_back("text('" + textKey + "')"); }
-- (void) setMissionChoices:(const std::string &)choicesKey  { _calls.push_back("choices('" + choicesKey + "')"); }
-- (void) cxx_setMissionChoicesDictionary:(const oo::PList &)choicesDict  { _calls.push_back("choicesDict(" + Describe(choicesDict) + ")"); }
-- (void) setMissionMusic:(const std::string &)value  { _calls.push_back("missionMusic('" + value + "')"); }
-- (void) setGuiToIntroFirstGo:(BOOL)justCobra  { _calls.push_back(justCobra ? "introFirstGo(YES)" : "introFirstGo(NO)"); }
-- (oo::PList) missionChoice_string  { return _choice; }
-- (oo::PList) missionKeyPress_string  { return _keyPress; }
-
-- (void) cxx_setMissionChoice:(const std::optional<std::string> &)newChoice keyPress:(const std::optional<std::string> &)keyPress withEvent:(BOOL)withEvent
+void PlayerEntity::addLiteralMissionText(const std::string &text)  { _calls.push_back("literalText('" + text + "')"); }
+void PlayerEntity::setMissionDescription(const std::string &textKey, const std::optional<std::string> &key)
+{
+	_calls.push_back("description('" + textKey + "', " + Optional(key) + ")");
+}
+void PlayerEntity::setMissionInstructions(const std::string &text, const std::optional<std::string> &key)
+{
+	_calls.push_back("instructions('" + text + "', " + Optional(key) + ")");
+}
+void PlayerEntity::setMissionInstructionsList(const oo::PList &list, const std::optional<std::string> &key)
+{
+	_calls.push_back("instructionsList(" + Describe(list) + ", " + Optional(key) + ")");
+}
+void PlayerEntity::clearMissionDescriptionForMission(const std::string &key)  { _calls.push_back("clearDescription('" + key + "')"); }
+void PlayerEntity::setMissionTitle(const std::optional<std::string> &value)  { _calls.push_back("title(" + Optional(value) + ")"); }
+void PlayerEntity::setMissionOverlayDescriptor(const oo::PList &descriptor)  { _calls.push_back("overlay(" + Describe(descriptor) + ")"); }
+void PlayerEntity::setMissionBackgroundDescriptor(const oo::PList &descriptor)
+{
+	_calls.push_back("background(" + Describe(descriptor) + ")");
+}
+void PlayerEntity::setMissionBackgroundSpecial(const std::string &special)  { _calls.push_back("backgroundSpecial('" + special + "')"); }
+void PlayerEntity::setCustomChartZoom(OOScalar zoom)
+{
+	_calls.push_back(oo::str::format("chartZoom(%g)", static_cast<double>(zoom)));
+}
+void PlayerEntity::setCustomChartCentre(NSPoint coords)
+{
+	_calls.push_back(oo::str::format("chartCentre(%g, %g)", static_cast<double>(coords.x), static_cast<double>(coords.y)));
+}
+NSPoint PlayerEntity::getGalaxy_coordinates()  { return NSMakePoint(10, 20); }
+void PlayerEntity::setMissionScreenID(const std::optional<std::string> &msid)  { _calls.push_back("screenID(" + Optional(msid) + ")"); }
+void PlayerEntity::clearMissionScreenID()  { _calls.push_back("clearScreenID"); }
+void PlayerEntity::clearExtraMissionKeys()  { _calls.push_back("clearExtraKeys"); }
+void PlayerEntity::setExtraMissionKeys(const oo::PList &keys)  { _calls.push_back("extraKeys(" + Describe(keys) + ")"); }
+void PlayerEntity::setMissionChoiceByTextEntry(bool enable)
+{
+	_calls.push_back(enable ? "textEntry(YES)" : "textEntry(NO)");
+}
+void PlayerEntity::setGuiToMissionScreenWithCallback(bool callback)
+{
+	_calls.push_back(callback ? "missionScreen(YES)" : "missionScreen(NO)");
+}
+void PlayerEntity::allowMissionInterrupt()  { _calls.push_back("allowInterrupt"); }
+void PlayerEntity::addMissionText(const std::string &textKey)  { _calls.push_back("text('" + textKey + "')"); }
+void PlayerEntity::setMissionChoices(const std::string &choicesKey)  { _calls.push_back("choices('" + choicesKey + "')"); }
+void PlayerEntity::setMissionChoicesDictionary(const oo::PList &choicesDict)
+{
+	_calls.push_back("choicesDict(" + Describe(choicesDict) + ")");
+}
+void PlayerEntity::setMissionMusic(const std::string &value)  { _calls.push_back("missionMusic('" + value + "')"); }
+void PlayerEntity::setGuiToIntroFirstGo(bool justCobra)
+{
+	_calls.push_back(justCobra ? "introFirstGo(YES)" : "introFirstGo(NO)");
+}
+oo::PList PlayerEntity::missionChoice_string()  { return _choice; }
+oo::PList PlayerEntity::missionKeyPress_string()  { return _keyPress; }
+void PlayerEntity::setMissionChoice(const std::optional<std::string> &newChoice, const std::optional<std::string> &keyPress, bool withEvent)
 {
 	_calls.push_back("choice(" + Optional(newChoice) + ", " + Optional(keyPress) + (withEvent ? ", YES)" : ", NO)"));
 }
 
-@end
 
+namespace {
+std::vector<std::string> sGuiCalls;	// the facade stand-in's _calls
+}
 
-@implementation GuiDisplayGen
+GuiDisplayGen::GuiDisplayGen() {}
+GuiDisplayGen::~GuiDisplayGen() {}
 
-- (oo::PList) cxx_textureDescriptorFromJSValue:(JSValue)value inContext:(JSContext *)context callerDescription:(const std::optional<std::string> &)callerDescription
+oo::PList GuiDisplayGen::textureDescriptorFromJSValue(JSValue value, JSContext *context, const std::optional<std::string> &callerDescription)
 {
-	_calls.push_back("texture(" + Optional(callerDescription) + ")");
+	sGuiCalls.push_back("texture(" + Optional(callerDescription) + ")");
 	if (JS_IsNull(value) || JS_IsUndefined(value))  return oo::PList();
 	const char *chars = JS_ToCString(context, value);
 	std::string name = chars != nullptr ? chars : "";
@@ -338,19 +374,41 @@ void CaptureLog(std::string_view line)
 	return Dict({ { "name", oo::PList(name) } });
 }
 
-- (OOGUIRow) cxx_rowForKey:(const std::optional<std::string> &)key
+OOGUIRow GuiDisplayGen::rowForKey(const std::optional<std::string> &key)
 {
-	_calls.push_back("rowForKey(" + Optional(key) + ")");
+	sGuiCalls.push_back("rowForKey(" + Optional(key) + ")");
 	return key == std::optional<std::string>("2_NO") ? 7 : -1;
 }
 
-- (BOOL) setSelectedRow:(OOGUIRow)row
+bool GuiDisplayGen::setSelectedRow(OOGUIRow row)
 {
-	_calls.push_back(oo::str::format("selectRow(%ld)", static_cast<long>(row)));
-	return YES;
+	sGuiCalls.push_back(oo::str::format("selectRow(%ld)", static_cast<long>(row)));
+	return true;
 }
 
-@end
+// The GUI's virtual members the binding does not call (its vtable needs them): never run.
+void GuiDisplayGen::setTitle(const std::optional<std::string> &)  { std::abort(); }
+OOColor *GuiDisplayGen::getTextColor()  { std::abort(); }
+void GuiDisplayGen::setTextColor(OOColor *)  { std::abort(); }
+OOColor *GuiDisplayGen::getTextCommsColor()  { std::abort(); }
+void GuiDisplayGen::setTextCommsColor(OOColor *)  { std::abort(); }
+void GuiDisplayGen::setColor(OOColor *, OOGUIRow)  { std::abort(); }
+OOGUIRow GuiDisplayGen::getSelectedRow()  { std::abort(); }
+void GuiDisplayGen::setSelectableRange(NSRange)  { std::abort(); }
+void GuiDisplayGen::setTabStops(OOGUITabSettings)  { std::abort(); }
+void GuiDisplayGen::clearAndKeepBackground(bool)  { std::abort(); }
+void GuiDisplayGen::setKey(const std::string &, OOGUIRow)  { std::abort(); }
+void GuiDisplayGen::setText(const std::string &, OOGUIRow)  { std::abort(); }
+void GuiDisplayGen::setText(const std::optional<std::string> &, OOGUIRow, OOGUIAlignment)  { std::abort(); }
+std::optional<std::string> GuiDisplayGen::reflowTextForMFD(const std::optional<std::string> &)  { std::abort(); }
+OOGUIRow GuiDisplayGen::addLongText(const std::optional<std::string> &, OOGUIRow, OOGUIAlignment)  { std::abort(); }
+void GuiDisplayGen::setArray(const std::vector<std::string> &, OOGUIRow)  { std::abort(); }
+
+
+// The demo ship's object, which oo::ToObjC answers (only the demo ship crosses).
+::Entity *sDemoShipObject = nil;
+namespace oo { ::Entity *ToObjC(cxx::Entity *entity); }
+::Entity *oo::ToObjC(cxx::Entity *entity)  { return entity != nullptr ? sDemoShipObject : nil; }
 
 
 @implementation Universe
@@ -368,15 +426,40 @@ void CaptureLog(std::string_view line)
 @end
 
 
-@implementation OOJSScript
+#import "OOScript.h"
 
-+ (OOJSScript *) currentlyRunningScript  { return sRunningScript; }
-+ (void) pushScript:(OOJSScript *)script  { sScriptStack.push_back("+" + (script != nil ? script->_name.value_or("?") : std::string("nil"))); }
-+ (void) popScript:(OOJSScript *)script  { sScriptStack.push_back("-" + (script != nil ? script->_name.value_or("?") : std::string("nil"))); }
-- (std::optional<std::string>) cxx_name  { return _name; }
-- (id) weakRefUnderlyingObject  { return self; }
 
-@end
+// OOJSScript (OOJSScript.h), which the code under test calls. Since bead oo-9ht.133 deleted the
+// OOScript root's facade (a script's object since bead oo-9ht.137) a script is the C++ object, so
+// the stand-in is a C++ subclass of OOScript declaring the members that code calls.
+class OOJSScript : public OOScript
+{
+public:
+	static OOJSScript *currentlyRunningScript();
+	static void pushScript(OOJSScript *script);
+	static void popScript(OOJSScript *script);
+
+	std::optional<std::string> name() override  { return _name; }
+
+	std::optional<std::string> _name;
+};
+
+// OOScript's virtual members (OOScript.mm reaches the whole game), for the test's scripts' vtable.
+std::optional<std::string> OOScript::descriptionComponents()	{ return std::nullopt; }
+std::optional<std::string> OOScript::name()					{ return std::nullopt; }
+std::optional<std::string> OOScript::scriptDescription()		{ return std::nullopt; }
+std::optional<std::string> OOScript::version()				{ return std::nullopt; }
+bool OOScript::requiresTickle()								{ return false; }
+void OOScript::runWithTarget(::Entity *)						{}
+bool OOScript::callMethod(JSAtom, JSContext *, JSValueConst *, int, JSValue *)	{ return false; }
+std::string OOScript::className() const						{ return "OOScript"; }
+std::string OOScript::description() const						{ return "<OOScript>"; }
+JSValue OOScript::jsValueInContext(JSContext *)				{ return JS_UNDEFINED; }
+void OOScript::clearJSSelf(JSValueConst)						{}
+
+OOJSScript *OOJSScript::currentlyRunningScript()  { return sRunningScript; }
+void OOJSScript::pushScript(OOJSScript *script)  { sScriptStack.push_back("+" + (script != nullptr ? script->_name.value_or("?") : std::string("nil"))); }
+void OOJSScript::popScript(OOJSScript *script)  { sScriptStack.push_back("-" + (script != nullptr ? script->_name.value_or("?") : std::string("nil"))); }
 
 
 namespace {
@@ -406,19 +489,19 @@ OOJavaScriptEngine *sEngine = nil;
 @end
 
 
-cxx::OOMusicController::OOMusicController()
+OOMusicController::OOMusicController()
 {
 }
 
 
-cxx::OOMusicController *cxx::OOMusicController::sharedController()
+OOMusicController *OOMusicController::sharedController()
 {
-	static cxx::OOMusicController *shared = new cxx::OOMusicController();	// never released, as the game's
+	static OOMusicController *shared = new OOMusicController();	// never released, as the game's
 	return shared;
 }
 
 
-void cxx::OOMusicController::setMissionMusic(const std::optional<std::string> &missionMusicName)
+void OOMusicController::setMissionMusic(const std::optional<std::string> &missionMusicName)
 {
 	sMusic.push_back(Optional(missionMusicName));
 }
@@ -611,7 +694,7 @@ namespace {
 JSValue sScriptObject = JS_UNDEFINED;	// held for the life of the test
 }
 
-PlayerEntity *gOOPlayer = nil;
+PlayerEntity *gOOPlayer = nullptr;
 Universe *gSharedUniverse = nil;
 JSContext *gOOJSMainThreadContext = nullptr;
 // The engine's reset notification, which the binding observes (never posted).
@@ -672,11 +755,11 @@ bool JSValueToVector(JSContext *context, JSValueConst value, Vector *outVector)
 }
 
 
-// What the engine makes of a native object (owned by the caller): the running script's JS object
-// here.
-JSValue OOJSValueFromNativeObject(JSContext *context, id object)
+// What the engine makes of a native object: null here (the running script is a C++ object:
+// OOJSValueFromCxxObject, OOJSPrivateObject.cpp).
+JSValue OOJSValueFromNativeObject(JSContext *, id object)
 {
-	if (object != nil && object == sRunningScript)  return JS_DupValue(context, sScriptObject);
+	(void)object;
 	return JS_NULL;
 }
 
@@ -719,13 +802,21 @@ void OOJSUnreachable(const char *function, const char *, unsigned)
 #endif
 
 
+// (a C++ function, outside the C block above): the running script's JS object, owned by the caller.
+JSValue OOJSValueFromCxxObject(JSContext *context, OOJSPrivateObject *object)
+{
+	if (object != nullptr && object == static_cast<OOJSPrivateObject *>(sRunningScript))  return JS_DupValue(context, sScriptObject);
+	return JS_NULL;
+}
+
+
 // MARK: The context -------------------------------------------------------------------------------
 
 namespace {
 
 JSRuntime *sRuntime;
 JSValue sGlobal = JS_UNDEFINED;	// held for the life of the test
-PlayerEntity *sPlayer = nil;
+PlayerEntity *sPlayer = nullptr;
 Universe *sUniverse = nil;
 
 
@@ -743,16 +834,17 @@ void SetUpContext()
 	OOConstToJSStringInit(sContext);
 
 	// Kept for the life of the test.
-	sPlayer = [[PlayerEntity alloc] init];
+	sPlayer = new PlayerEntity;
 	sPlayer->_status = STATUS_DOCKED;
 	sPlayer->_exitScreen = GUI_SCREEN_STATUS;
 	gOOPlayer = sPlayer;
 	sUniverse = [[Universe alloc] init];
-	sUniverse->_gui = [[GuiDisplayGen alloc] init];
-	sUniverse->_demoShip = [[ShipEntity alloc] init];
+	sUniverse->_gui = oo::makeRef<GuiDisplayGen>().leakRef();	// kept for the life of the test
+	sUniverse->_demoShip = new ShipEntity;
+	sDemoShipObject = [[Entity alloc] init];
 	gSharedUniverse = sUniverse;
 	sEngine = [[OOJavaScriptEngine alloc] init];
-	sRunningScript = [[OOJSScript alloc] init];
+	sRunningScript = oo::makeRef<OOJSScript>().leakRef();
 	sRunningScript->_name = "oolite-test-mission";
 	sScriptObject = JS_NewObject(sContext);
 	JS_SetPropertyStr(sContext, sGlobal, "theScript", JS_DupValue(sContext, sScriptObject));
@@ -887,7 +979,7 @@ OO_TEST(messageAndInstructions)
 
 	// No running script and no key: the player is told with no key (and logs it).
 	OOJSScript *running = sRunningScript;
-	sRunningScript = nil;
+	sRunningScript = nullptr;
 	OO_CHECK_EVAL("mission.setInstructions(null)", "undefined");
 	OO_CHECK_CALLS(sPlayer->_calls, "instructions('', nullopt)");
 	sRunningScript = running;
@@ -899,7 +991,7 @@ OO_TEST(runScreen)
 	SetUpContext();
 	sPlayer->_calls.clear();
 	sUniverse->_calls.clear();
-	sUniverse->_gui->_calls.clear();
+	sGuiCalls.clear();
 	sMusic.clear();
 	sLimiterPauses = 0;
 
@@ -911,7 +1003,7 @@ OO_TEST(runScreen)
 				   "exitScreen(13); screenID('job'); clearExtraKeys; extraKeys({k:[{key:'k'}]}); textEntry(NO); missionScreen(YES); allowInterrupt; "
 				   "literalText('Hello'); choicesDict({1_YES:'Yes',2_NO:'No'}); overlay(null); background(null); title(nullopt); missionMusic('')");
 	OO_CHECK_CALLS(sUniverse->_calls, "removeDemoShips");
-	OO_CHECK_CALLS(sUniverse->_gui->_calls, "texture('mission.runScreen()'); texture('mission.runScreen()'); rowForKey('2_NO'); selectRow(7)");
+	OO_CHECK_CALLS(sGuiCalls, "texture('mission.runScreen()'); texture('mission.runScreen()'); rowForKey('2_NO'); selectRow(7)");
 	OO_CHECK(sMusic == (std::vector<std::string>{ "'tune.ogg'" }));
 	OO_CHECK_EQ(sLimiterPauses, 0);
 	OO_CHECK_EVAL("'displayModel' in mission", "false");
@@ -938,7 +1030,7 @@ OO_TEST(runScreenOtherSettings)
 	SetUpContext();
 	sPlayer->_calls.clear();
 	sUniverse->_calls.clear();
-	sUniverse->_gui->_calls.clear();
+	sGuiCalls.clear();
 	sMusic.clear();
 
 	// No callback, a title key, a model, text entry, a choices key and a message key; a third

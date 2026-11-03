@@ -108,7 +108,7 @@ static JSValue ClockGetProperty(OOJS_GETTER_ARGS)
     PlayerEntity* player = OOPlayerForScripting();
     double clockTime;
 
-    clockTime = [player clockTime];
+    clockTime = (player != nullptr ? player->PlayerEntity::clockTime() : 0.0); // qualified: the final overrider, so the binding test stands in for it
 
     /*	INT_TO_JSVAL() truncated its (double) argument to an integer; JS_NewInt32()
             does the same through the implicit conversion.
@@ -140,17 +140,17 @@ static JSValue ClockGetProperty(OOJS_GETTER_ARGS)
         return JS_NewInt32(context, floor(clockTime / 86400.0));
 
     case kClock_clockString:
-        return OOJSValueFromPList(context, oo::PList([player cxx_dial_clock]));
+        return OOJSValueFromPList(context, oo::PList((player != nullptr ? player->dial_clock() : std::string())));
 
     case kClock_isAdjusting:
-        return OOJSValueFromBOOL([player clockAdjusting]);
+        return OOJSValueFromBOOL((player != nullptr ? player->clockAdjusting() : false));
 
     case kClock_adjustedSeconds:
-        return JS_NewNumber(context, [player clockTimeAdjusted]);
+        return JS_NewNumber(context, (player != nullptr ? player->PlayerEntity::clockTimeAdjusted() : 0.0)); // qualified: the final overrider, so the binding test stands in for it
 
     case kClock_legacy_scriptTimer:
         cxx_OOStandardsDeprecated("The legacy_scriptTimer property is deprecated");
-        return JS_NewNumber(context, [player scriptTimer]);
+        return JS_NewNumber(context, (player != nullptr ? player->scriptTimer() : OOTimeDelta { }));
 
     default:
         OOJSReportBadPropertySelector(context, thisObj, magic, sClockProperties, OOJS_COUNT(sClockProperties));
@@ -167,7 +167,8 @@ static JSValue JSClockToString(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    OOJS_RETURN_PLIST(oo::PList([OOPlayerForScripting() cxx_dial_clock]));
+    PlayerEntity* player = OOPlayerForScripting();
+    OOJS_RETURN_PLIST(oo::PList(player != nullptr ? player->dial_clock() : std::string()));
 
     OOJS_NATIVE_EXIT
 }
@@ -216,7 +217,8 @@ static JSValue ClockAddSeconds(OOJS_NATIVE_ARGS)
         OOJS_RETURN_BOOL(false);
     }
 
-    [OOPlayerForScripting() addToAdjustTime:time];
+    if (PlayerEntity* player = OOPlayerForScripting())
+        player->addToAdjustTime(time);
 
     OOJS_RETURN_BOOL(true);
 

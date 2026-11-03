@@ -55,7 +55,7 @@ struct OOCrosshairsTestAccess
 
 namespace {
 
-std::vector<float> Build(const oo::PList &points, float scale, cxx::OOColor *color, float alpha)
+std::vector<float> Build(const oo::PList &points, float scale, OOColor *color, float alpha)
 {
 	return OOCrosshairsTestAccess::Buffer(oo::makeRef<OOCrosshairs>(points, scale, color, alpha).get());
 }
@@ -92,7 +92,7 @@ OO_TEST(greenWithoutAColour)
 
 OO_TEST(colourAndAlpha)
 {
-	oo::Ref<cxx::OOColor> color = cxx::OOColor::colorWithRed(0.25f, 0.5f, 0.75f, 0.5f);
+	oo::Ref<OOColor> color = OOColor::colorWithRed(0.25f, 0.5f, 0.75f, 0.5f);
 	oo::PList points(oo::PList::Array{ Segment(1.0, -1.0, 0.0, 0.5, 1.0, 0.0), Segment(0.0, 0.0, -2.0, 1.0, 0.0, 2.0) });
 
 	// Point alpha * colour alpha, clamped, then * overall alpha.
@@ -128,7 +128,7 @@ OO_TEST(nothingIsBuilt)
 	oo::PList points(oo::PList::Array{ Segment(1.0, 1.0, 2.0, 0.5, 3.0, 4.0) });
 	OO_CHECK(Build(points, 1.0f, nullptr, 0.0f).empty());		// no overall alpha
 	OO_CHECK(Build(points, 1.0f, nullptr, -1.0f).empty());
-	OO_CHECK(Build(points, 1.0f, cxx::OOColor::clearColor().get(), 1.0f).empty());	// a transparent colour
+	OO_CHECK(Build(points, 1.0f, OOColor::clearColor().get(), 1.0f).empty());	// a transparent colour
 	OO_CHECK(Build(oo::PList(oo::PList::Array{}), 1.0f, nullptr, 1.0f).empty());	// no points
 	OO_CHECK(Build(oo::PList(), 1.0f, nullptr, 1.0f).empty());				// not an array
 }

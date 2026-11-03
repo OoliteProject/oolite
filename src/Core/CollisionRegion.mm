@@ -40,8 +40,6 @@ MA 02110-1301, USA.
 
 #include "oofnd/String.hpp"
 
-namespace cxx {
-
 // basic alloc/ dealloc routines
 //
 static int crid_counter = 1;
@@ -221,7 +219,7 @@ bool CollisionRegion::checkEntity(::Entity* ent)
     }
 
     addEntity(ent);
-    [ent setCollisionRegion:oo::ToObjC(this)];
+    ent->_cxxEntity->setCollisionRegion(this);
     return YES;
 }
 
@@ -255,7 +253,7 @@ void CollisionRegion::findCollisions()
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
     if (gDebugFlags & DEBUG_COLLISIONS) {
-        OO_LOG("collisionRegion.debug", "DEBUG in collision region {} testing {} out of {} entities", oo::DescriptionOf(oo::ToObjC(this)), n_entities_to_test, n_entities);
+        OO_LOG("collisionRegion.debug", "DEBUG in collision region {} testing {} out of {} entities", oo::str::format("<CollisionRegion %s>{%s}", oo::str::pointerDescription(this).c_str(), descriptionComponents().value_or("").c_str()), n_entities_to_test, n_entities);
     }
 #endif
 
@@ -272,7 +270,8 @@ void CollisionRegion::findCollisions()
             e1->_cxxEntity->hasCollided = NO;
         }
         if (e1->_cxxEntity->isShip) {
-            [(::ShipEntity*)e1 setProximityAlert:nil];
+            if (oo::ToShip(e1) != nullptr)
+                oo::ToShip(e1)->setProximityAlert(nullptr);
         }
         e1->_cxxEntity->collider = nil;
     }
@@ -291,8 +290,7 @@ void CollisionRegion::findCollisions()
         e2 = e1->_cxxEntity->collision_chain;
         while (e2 != nil) {
             checks_this_tick++;
-            if (e1->_cxxEntity->isShip && e2->_cxxEntity->isShip &&
-                [(::ShipEntity*)e1 collisionExceptedFor:(::ShipEntity*)e2]) {
+            if (e1->_cxxEntity->isShip && e2->_cxxEntity->isShip && (oo::ToShip(e1) != nullptr ? oo::ToShip(e1)->collisionExceptedFor(oo::ToShip(e2)) : false)) {
                 // nothing happens
             } else {
 
@@ -311,17 +309,21 @@ void CollisionRegion::findCollisions()
 
                     if (e1->_cxxEntity->isShip && e2->_cxxEntity->isShip) {
                         if ((dist2 < PROXIMITY_WARN_DISTANCE2 * r2 * r2) || (dist2 < PROXIMITY_WARN_DISTANCE2 * r1 * r1)) {
-                            [(::ShipEntity*)e1 setProximityAlert:(::ShipEntity*)e2];
-                            [(::ShipEntity*)e2 setProximityAlert:(::ShipEntity*)e1];
+                            if (oo::ToShip(e1) != nullptr)
+                                oo::ToShip(e1)->setProximityAlert(oo::ToShip(e2));
+                            if (oo::ToShip(e2) != nullptr)
+                                oo::ToShip(e2)->setProximityAlert(oo::ToShip(e1));
                         }
 
                         if (dist2 >= min_dist2) {
                             if (e1->_cxxEntity->isStation) {
-                                ::StationEntity* se1 = (::StationEntity*)e1;
-                                [se1 shipIsInDockingCorridor:(::ShipEntity*)e2];
+                                ::StationEntity* se1 = oo::ToStation(e1);
+                                if (se1 != nullptr)
+                                    se1->shipIsInDockingCorridor(oo::ToShip(e2));
                             } else if (e2->_cxxEntity->isStation) {
-                                ::StationEntity* se2 = (::StationEntity*)e2;
-                                [se2 shipIsInDockingCorridor:(::ShipEntity*)e1];
+                                ::StationEntity* se2 = oo::ToStation(e2);
+                                if (se2 != nullptr)
+                                    se2->shipIsInDockingCorridor(oo::ToShip(e1));
                             }
                         }
                     }
@@ -329,15 +331,15 @@ void CollisionRegion::findCollisions()
                         BOOL collision = NO;
 
                         if (e1->_cxxEntity->isStation) {
-                            ::StationEntity* se1 = (::StationEntity*)e1;
-                            if ([se1 shipIsInDockingCorridor:(::ShipEntity*)e2]) {
+                            ::StationEntity* se1 = oo::ToStation(e1);
+                            if ((se1 != nullptr ? se1->shipIsInDockingCorridor(oo::ToShip(e2)) : false)) {
                                 collision = NO;
                             } else {
                                 collision = [e1 checkCloseCollisionWith:e2];
                             }
                         } else if (e2->_cxxEntity->isStation) {
-                            ::StationEntity* se2 = (::StationEntity*)e2;
-                            if ([se2 shipIsInDockingCorridor:(::ShipEntity*)e1]) {
+                            ::StationEntity* se2 = oo::ToStation(e2);
+                            if ((se2 != nullptr ? se2->shipIsInDockingCorridor(oo::ToShip(e1)) : false)) {
                                 collision = NO;
                             } else {
                                 collision = [e2 checkCloseCollisionWith:e1];
@@ -381,8 +383,6 @@ void CollisionRegion::findCollisions()
 #endif
 }
 
-} // namespace cxx
-
 // an outValue of 1 means it's just being occluded.
 static BOOL entityByEntityOcclusionToValue(::Entity* e1, ::Entity* e2, OOSunEntity* the_sun, float* outValue)
 {
@@ -415,8 +415,8 @@ BOOL shadowAtPointOcclusionToValue(HPVector e1pos, GLfloat e1rad, ::Entity* e2, 
     //		return NO;	// things already /in/ shade can't shade things more.
     //
     // check projected sizes of discs
-    GLfloat d2_sun = HPdistance2(e1pos, the_sun->_cxxEntity->position);
-    GLfloat d2_e2sun = HPdistance2(e2->_cxxEntity->position, the_sun->_cxxEntity->position);
+    GLfloat d2_sun = HPdistance2(e1pos, the_sun->position);
+    GLfloat d2_e2sun = HPdistance2(e2->_cxxEntity->position, the_sun->position);
     GLfloat d2_e2 = HPdistance2(e1pos, e2->_cxxEntity->position);
 
     if (d2_e2sun > d2_sun) {
@@ -426,7 +426,7 @@ BOOL shadowAtPointOcclusionToValue(HPVector e1pos, GLfloat e1rad, ::Entity* e2, 
             // exception: if within the collision radius of the other
             // object, might still be shadowed by it.
             GLfloat bbx = 0.0f, bby = 0.0f, bbz = 0.0f;
-            BoundingBox bb = [(::ShipEntity*)e2 totalBoundingBox];
+            BoundingBox bb = (oo::ToShip(e2) != nullptr ? oo::ToShip(e2)->getTotalBoundingBox() : BoundingBox { });
             bounding_box_get_dimensions(bb, &bbx, &bby, &bbz);
             float minbb = bbx;
             if (bby < minbb) {
@@ -460,7 +460,7 @@ BOOL shadowAtPointOcclusionToValue(HPVector e1pos, GLfloat e1rad, ::Entity* e2, 
         return NO;
     }
 
-    GLfloat cr_sun = the_sun->_cxxEntity->collision_radius;
+    GLfloat cr_sun = the_sun->collision_radius;
 
     GLfloat cr2_sun_scaled = cr_sun * cr_sun * d2_e2 / d2_sun;
     if (cr_e2 * cr_e2 < cr2_sun_scaled) {
@@ -482,7 +482,7 @@ BOOL shadowAtPointOcclusionToValue(HPVector e1pos, GLfloat e1rad, ::Entity* e2, 
         theta_diff = asin(cr_e2 / d2_e) - asin(cr_sun / sqrt(d2_sun));
     }
 
-    HPVector p_sun = the_sun->_cxxEntity->position;
+    HPVector p_sun = the_sun->position;
     HPVector p_e2 = e2->_cxxEntity->position;
     HPVector p_e1 = e1pos;
     Vector v_sun = HPVectorToVector(HPvector_subtract(p_sun, p_e1));
@@ -508,8 +508,6 @@ static inline BOOL testEntityOccludedByEntity(::Entity* e1, ::Entity* e2, OOSunE
     float tmp; // we're not interested in the amount of occlusion just now.
     return entityByEntityOcclusionToValue(e1, e2, the_sun, &tmp);
 }
-
-namespace cxx {
 
 void CollisionRegion::findShadowedEntities()
 {
@@ -583,7 +581,7 @@ void CollisionRegion::findShadowedEntities()
             e1->_cxxEntity->shadingEntityID = NO_TARGET;
             //
             // check demo mode here..
-            if ([e1 isPlayer] && ([(::PlayerEntity*)e1 showDemoShips])) {
+            if ([e1 isPlayer] && (static_cast<PlayerEntity*>(oo::ToCxx(e1))->getShowDemoShips())) {
                 continue; // don't check shading in demo mode
             }
 
@@ -608,7 +606,7 @@ void CollisionRegion::findShadowedEntities()
                     break;
                 }
                 if ([e1 isPlayer]) {
-                    [(::PlayerEntity*)e1 setOcclusionLevel:occlusionNumber];
+                    static_cast<PlayerEntity*>(oo::ToCxx(e1))->setOcclusionLevel(occlusionNumber);
                 }
             }
             if (!e1->_cxxEntity->isSunlit) {
@@ -642,5 +640,3 @@ std::optional<std::string> CollisionRegion::debugOut()
     }
     return result;
 }
-
-} // namespace cxx

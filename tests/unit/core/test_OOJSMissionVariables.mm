@@ -30,18 +30,22 @@
 	"mission_cxxboom" throws a C++ exception, so the test sees what an exception under a native
 	becomes.
 */
-@interface PlayerEntity: OOObject
+// PLAYER: C++ since bead oo-9ht.177 deleted the Objective-C player this stood in for: the members
+// the code under test calls, declared as the game headers declare them (the test imports none
+// that defines the classes), with the stand-in's answers.
+class ShipEntity;	// C++ since bead oo-9ht.144
+class PlayerEntity
 {
-@public
+public:
+	oo::PList missionVariables();
+	oo::PList missionVariableForKey(const std::string &key);
+	void setMissionVariable(const oo::PList &value, const std::string &key);
+	void setScriptTarget(::ShipEntity *ship);
+
 	oo::PList::Dict _missionVariables;
-	int _sets;
-	int _scriptTargetSets;
-}
-- (oo::PList) cxx_missionVariables;
-- (oo::PList) cxx_missionVariableForKey:(const std::string &)key;
-- (void) cxx_setMissionVariable:(const oo::PList &)value forKey:(const std::string &)key;
-- (void) setScriptTarget:(id)target;
-@end
+	int _sets = {};
+	int _scriptTargetSets = {};
+};
 
 
 #import "OOJSMissionVariables.h"
@@ -57,35 +61,25 @@
 #include <vector>
 
 
-@implementation PlayerEntity
-
-- (oo::PList) cxx_missionVariables
-{
-	return oo::PList(_missionVariables);
-}
-
-- (oo::PList) cxx_missionVariableForKey:(const std::string &)key
+oo::PList PlayerEntity::missionVariables()  { return oo::PList(_missionVariables); }
+oo::PList PlayerEntity::missionVariableForKey(const std::string &key)
 {
 	if (key == "mission_boom")  [OOException raise:OOInvalidArgumentException format:"variable %s", "boom"];
 	if (key == "mission_cxxboom")  throw std::runtime_error("cxx boom");
 	auto it = _missionVariables.find(key);
 	return it != _missionVariables.end() ? it->second : oo::PList();
 }
-
-- (void) cxx_setMissionVariable:(const oo::PList &)value forKey:(const std::string &)key
+void PlayerEntity::setMissionVariable(const oo::PList &value, const std::string &key)
 {
 	_sets++;
 	if (value.isNull())  _missionVariables.erase(key);
 	else  _missionVariables[key] = value;
 }
-
-- (void) setScriptTarget:(id)target
+void PlayerEntity::setScriptTarget(::ShipEntity *target)
 {
 	(void)target;
 	_scriptTargetSets++;
 }
-
-@end
 
 
 // MARK: What the rest of the engine provides ------------------------------------------------------
@@ -168,16 +162,16 @@ JSValue OOJSValueFromPList(JSContext *context, const oo::PList &plist)
 
 
 namespace {
-PlayerEntity *sPlayer = nil;
+PlayerEntity *sPlayer = nullptr;
 std::map<JSClassID, int> sConverters;
 }
 
-PlayerEntity *gOOPlayer = nil;
+PlayerEntity *gOOPlayer = nullptr;
 
 
 PlayerEntity *OOPlayerForScripting(void)
 {
-	[sPlayer setScriptTarget:sPlayer];
+	sPlayer->setScriptTarget(nil);	// in the game the player's Objective-C object; the stand-in only counts
 	return sPlayer;
 }
 
@@ -217,7 +211,7 @@ void SetUpContext()
 	sContext = JS_NewContext(JS_NewRuntime());
 	gOOJSMainThreadContext = sContext;	// the class registration's runtime
 
-	sPlayer = [[PlayerEntity alloc] init];	// kept for the life of the test
+	sPlayer = new PlayerEntity;	// kept for the life of the test
 	gOOPlayer = sPlayer;
 	JSValue global = JS_GetGlobalObject(sContext);
 	InitOOJSMissionVariables(sContext, global);

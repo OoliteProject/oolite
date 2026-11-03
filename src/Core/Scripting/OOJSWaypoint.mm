@@ -43,7 +43,7 @@ MA 02110-1301, USA.
 
 static JSClassID sWaypointClassID;
 
-static bool JSWaypointGetWaypointEntity(JSContext* context, JSValueConst waypointObj, OOWaypointEntity** outEntity);
+static bool JSWaypointGetWaypointEntity(JSContext* context, JSValueConst waypointObj, OOWaypointEntity** outEntity, OOBeaconEntityObject** outObject);
 
 static JSValue WaypointGetProperty(OOJS_GETTER_ARGS);
 static JSValue WaypointSetProperty(OOJS_SETTER_ARGS);
@@ -90,33 +90,37 @@ JSClassID JSWaypointClassID(void)
     return sWaypointClassID;
 }
 
-static bool JSWaypointGetWaypointEntity(JSContext* context, JSValueConst waypointObj, OOWaypointEntity** outEntity)
+static bool JSWaypointGetWaypointEntity(JSContext* context, JSValueConst waypointObj, OOWaypointEntity** outEntity, OOBeaconEntityObject** outObject)
 {
     OOJS_PROFILE_ENTER
 
     bool result;
     Entity* entity = nil;
 
-    if (outEntity == NULL)
+    if (outEntity == NULL || outObject == NULL)
         return false;
-    *outEntity = nil;
+    *outEntity = nullptr;
+    *outObject = nil;
 
     result = OOJSEntityGetEntity(context, waypointObj, &entity);
     if (!result)
         return false;
 
-    if (![entity isKindOfClass:[OOWaypointEntity class]])
+    // The object is the root's facade: a waypoint is its C++ part (a nil or other entity is not, as
+    // -isKindOfClass: answered). The object answers the beacon selectors.
+    OOWaypointEntity* waypoint = dynamic_cast<OOWaypointEntity*>(oo::ToCxx(entity));
+    if (waypoint == nullptr)
         return false;
 
-    *outEntity = (OOWaypointEntity*)entity;
+    *outEntity = waypoint;
+    *outObject = (OOBeaconEntityObject*)entity;
     return true;
 
     OOJS_PROFILE_EXIT
 }
 
-// The bodies of OOWaypointEntity (OOJavaScriptExtensions), whose methods are on the
-// OOWaypointEntity facade, in OOWaypointEntity+ObjCBridge.mm (bead oo-9ht.50), until that facade
-// goes (oo-9ht.108; proposed ADR-0056 amendments oo-ppc, oo-ykoy and oo-6ia4).
+// The bodies of OOWaypointEntity (OOJavaScriptExtensions), which the C++ class's overrides of the
+// root's JS members call (the facade that forwarded to them is deleted).
 std::optional<std::string> OOJSWaypointJSClassName(void)
 {
     return std::string("Waypoint");
@@ -131,12 +135,13 @@ static JSValue WaypointGetProperty(OOJS_GETTER_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    OOWaypointEntity* entity = nil;
+    OOWaypointEntity* waypoint = nullptr;
+    OOBeaconEntityObject* entity = nil;
     oo::PList result; // null: nil
     std::optional<std::string> text;
     Quaternion q = kIdentityQuaternion;
 
-    if (!JSWaypointGetWaypointEntity(context, thisObj, &entity))
+    if (!JSWaypointGetWaypointEntity(context, thisObj, &waypoint, &entity))
         return OOJSNativeFailure(context);
     if (entity == nil) {
         return JS_UNDEFINED;
@@ -157,13 +162,13 @@ static JSValue WaypointGetProperty(OOJS_GETTER_ARGS)
 
     case kWaypoint_orientation:
         q = [entity orientation];
-        if (![entity oriented]) {
+        if (!waypoint->getOriented()) {
             q = kZeroQuaternion;
         }
         OOJS_RETURN_QUATERNION(q);
 
     case kWaypoint_size:
-        return JS_NewNumber(context, [entity size]);
+        return JS_NewNumber(context, waypoint->size());
 
     default:
         OOJSReportBadPropertySelector(context, thisObj, magic, sWaypointProperties, OOJS_COUNT(sWaypointProperties));
@@ -179,12 +184,13 @@ static JSValue WaypointSetProperty(OOJS_SETTER_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    OOWaypointEntity* entity = nil;
+    OOWaypointEntity* waypoint = nullptr;
+    OOBeaconEntityObject* entity = nil;
     double fValue;
     std::optional<std::string> sValue;
     Quaternion qValue;
 
-    if (!JSWaypointGetWaypointEntity(context, thisObj, &entity))
+    if (!JSWaypointGetWaypointEntity(context, thisObj, &waypoint, &entity))
         return OOJSNativeFailure(context);
     if (entity == nil)
         return JS_UNDEFINED;
@@ -195,8 +201,10 @@ static JSValue WaypointSetProperty(OOJS_SETTER_ARGS)
         if (!sValue.has_value() || sValue->empty()) {
             if ([entity isBeacon]) {
                 [UNIVERSE clearBeacon:entity];
-                if ([PLAYER nextBeacon] == entity) {
-                    [PLAYER setCompassMode:COMPASS_MODE_PLANET];
+                if ((PLAYER != nullptr ? (::Entity<OOBeaconEntity>*)PLAYER->PlayerEntity::nextBeacon() : (::Entity<OOBeaconEntity>*)nullptr) == entity) // qualified: the final overrider, so the binding test stands in for it
+                {
+                    if (PLAYER != nullptr)
+                        PLAYER->PlayerEntity::setCompassMode(COMPASS_MODE_PLANET); // qualified: the final overrider, so the binding test stands in for it
                 }
             }
         } else {
@@ -229,7 +237,7 @@ static JSValue WaypointSetProperty(OOJS_SETTER_ARGS)
     case kWaypoint_size:
         if (JS_ToFloat64(context, &fValue, value) == 0) {
             if (fValue > 0.0) {
-                [entity setSize:fValue];
+                waypoint->setSize(fValue);
                 return JS_UNDEFINED;
             }
         }

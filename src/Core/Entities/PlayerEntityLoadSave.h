@@ -28,9 +28,15 @@ MA 02110-1301, USA.
 
 */
 
+#import "PlayerEntity.h"
+
+/*	The category PlayerEntity (LoadSave) is members of PlayerEntity, declared in PlayerEntity.h and
+        defined in PlayerEntityLoadSave.mm. Its Objective-C interface, for the callers that remained,
+        was the category of the same name in PlayerEntity+ObjCBridge.h (deleted), which PlayerEntity.h
+        imported. This header stays for the files that import it.
+*/
 #import "GuiDisplayGen.h"
 #import "MyOpenGLView.h"
-#import "PlayerEntity.h"
 #import "Universe.h"
 
 #define EXITROW 1
@@ -46,26 +52,6 @@ MA 02110-1301, USA.
 #define SAVE_OVERWRITE_WARN_ROW 5
 #define SAVE_OVERWRITE_YES_ROW 8
 #define SAVE_OVERWRITE_NO_ROW 9
-
-@interface PlayerEntity (LoadSave)
-
-- (BOOL)loadPlayer;
-- (void)savePlayer;
-- (void)quicksavePlayer;
-- (void)autosavePlayer;
-
-- (void)setGuiToScenarioScreen:(int)page;
-- (void)addScenarioModel:(const std::string&)shipKey;
-- (void)showScenarioDetails;
-- (BOOL)startScenario;
-// Interface for PlayerEntityControls
-- (std::optional<std::string>)commanderSelector; // the saved game chosen, nullopt when none
-- (void)saveCommanderInputHandler;
-- (void)overwriteCommanderInputHandler;
-
-- (BOOL)loadPlayerFromFile:(const std::string&)fileToOpen asNew:(BOOL)asNew;
-
-@end
 
 OOCreditsQuantity OODeciCreditsFromDouble(double doubleDeciCredits);
 

@@ -191,7 +191,7 @@ OOTexture* OOProbabilisticTextureManager::selectTexture()
     float selection;
     unsigned i;
     int hold = -1;
-    int galID = (int)[PLAYER currentGalaxyID];
+    int galID = (int)(PLAYER != nullptr ? PLAYER->PlayerEntity::currentGalaxyID() : 0); // qualified: the final overrider (bead oo-9ht.177), so the binding test stands in for it
 
     selection = randfWithSeed(&_seed);
 

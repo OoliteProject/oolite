@@ -124,8 +124,6 @@ bool ContainsString(const oo::PList& array, const std::string& string)
 
 } // namespace
 
-namespace cxx {
-
 std::optional<std::string> OOCommodities::legacyCommodityType(NSUInteger i)
 {
     switch (i) {
@@ -224,7 +222,7 @@ oo::PList OOCommodities::createDefinitionFrom(const oo::PList& good, OOCreditsQu
     }
 
     Set(definition, kOOCommodityKey, oo::PList(key));
-    if (station != nil && ![station marketMonitored]) {
+    if (station != nil && !(station != nullptr ? station->getMarketMonitored() : false)) {
         // clear legal status indicators if the market is not monitored
         SetUnsigned(definition, kOOCommodityLegalityExport, 0);
         SetUnsigned(definition, kOOCommodityLegalityImport, 0);
@@ -234,7 +232,7 @@ oo::PList OOCommodities::createDefinitionFrom(const oo::PList& good, OOCreditsQu
     if (!goodScriptName.has_value()) {
         return definition;
     }
-    ::OOScript* goodScript = [PLAYER cxx_commodityScriptNamed:goodScriptName]; // (has a value: checked above)
+    ::OOScript* goodScript = (PLAYER != nullptr ? PLAYER->commodityScriptNamed(goodScriptName) : (OOScript*)nullptr); // (has a value: checked above)
     if (goodScript == nil) {
         return definition;
     }
@@ -249,7 +247,7 @@ oo::PList OOCommodities::modifyGood(const oo::PList& good, ::OOScript* script, :
     // accepted result comes back through oo::PListFrom (an exact round trip, Amendment 2 item 11).
     OOJSVal args[] = {
         OOJSValueFromPList(context, good),
-        OOJSValueFromNativeObject(context, station),
+        OOJSValueFromNativeObject(context, oo::ToObjC(station)),
         OOJSValueFromDouble(context, system)
     };
     BOOL OK = YES;
@@ -257,18 +255,10 @@ oo::PList OOCommodities::modifyGood(const oo::PList& good, ::OOScript* script, :
 
     if (localMode) {
         errorType = "local";
-        OK = [script callMethod:OOJSID("updateLocalCommodityDefinition")
-                      inContext:context
-                  withArguments:args
-                          count:3
-                         result:&rval];
+        OK = (script != nullptr ? script->callMethod(OOJSID("updateLocalCommodityDefinition"), context, args, 3, &rval) : false);
     } else {
         errorType = "general";
-        OK = [script callMethod:OOJSID("updateGeneralCommodityDefinition")
-                      inContext:context
-                  withArguments:args
-                          count:3
-                         result:&rval];
+        OK = (script != nullptr ? script->callMethod(OOJSID("updateGeneralCommodityDefinition"), context, args, 3, &rval) : false);
     }
     OOJSFreeValue(context, args[0]);
     OOJSFreeValue(context, args[1]);
@@ -301,7 +291,7 @@ oo::PList OOCommodities::modifyGood(const oo::PList& good, ::OOScript* script, :
 
 oo::Ref<OOCommodityMarket> OOCommodities::generateMarketForSystemWithEconomy(OOEconomyID economy, const std::optional<std::string>& scriptName)
 {
-    ::OOScript* script = [PLAYER cxx_commodityScriptNamed:scriptName];
+    ::OOScript* script = (PLAYER != nullptr ? PLAYER->commodityScriptNamed(scriptName) : (OOScript*)nullptr);
 
     oo::Ref<OOCommodityMarket> market = oo::makeRef<OOCommodityMarket>();
 
@@ -327,16 +317,16 @@ oo::Ref<OOCommodityMarket> OOCommodities::generateMarketForSystemWithEconomy(OOE
 
 oo::Ref<OOCommodityMarket> OOCommodities::generateMarketForStation(::StationEntity* station)
 {
-    const oo::PList marketDefinition = [station cxx_marketDefinition];
-    ::OOScript* marketScript = [PLAYER cxx_commodityScriptNamed:[station cxx_marketScriptName]];
+    const oo::PList marketDefinition = (station != nullptr ? station->getMarketDefinition() : oo::PList());
+    ::OOScript* marketScript = (PLAYER != nullptr ? PLAYER->commodityScriptNamed((station != nullptr ? station->getMarketScriptName() : std::optional<std::string>())) : (OOScript*)nullptr);
     if (!marketDefinition && marketScript == nil) {
         oo::Ref<OOCommodityMarket> market = generateBlankMarket();
         return market;
     }
 
     oo::Ref<OOCommodityMarket> market = oo::makeRef<OOCommodityMarket>();
-    OOCargoQuantity capacity = [station marketCapacity];
-    OOCommodityMarket* mainMarket = oo::ToCxx([UNIVERSE commodityMarket]); // (the Objective-C facade Universe holds)
+    OOCargoQuantity capacity = (station != nullptr ? station->getMarketCapacity() : 0);
+    OOCommodityMarket* mainMarket = [UNIVERSE commodityMarket];
 
     for (const auto& [commodity, info] : _commodityLists) // key order (bead oo-3rb.154)
     {
@@ -479,7 +469,7 @@ OOCreditsQuantity OOCommodities::samplePriceForCommodity(const std::string& comm
 
     good = createDefinitionFrom(good, p, 0, commodity, nullptr, system);
     if (scriptName.has_value()) {
-        ::OOScript* script = [PLAYER cxx_commodityScriptNamed:scriptName]; // (has a value: checked above)
+        ::OOScript* script = (PLAYER != nullptr ? PLAYER->commodityScriptNamed(scriptName) : (OOScript*)nullptr); // (has a value: checked above)
         if (script != nil) {
             good = modifyGood(good, script, nullptr, system, true);
         }
@@ -595,5 +585,3 @@ oo::PList OOCommodities::updateInfoFor(const oo::PList& good, const oo::PList& r
 
     return tmp;
 }
-
-} // namespace cxx

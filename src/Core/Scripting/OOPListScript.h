@@ -11,8 +11,8 @@ PlayerEntity.
 
 C++20 since bead oo-q9q4 (proposed ADR-0056, the OOColor house style). Bead oo-9ht.57 deleted its
 Objective-C facade once OOScript was C++ (oo-604l; ADR-0056 amendments oo-o89 item 3 and "deleting
-a facade"): the class is global and derives from cxx::OOScript, overriding its members, and
-Objective-C sees a plist script as the root's facade, an OOScript.
+a facade"): the class is global and derives from OOScript, overriding its members. The root's facade
+went with bead oo-9ht.133: a plist script is held as oo::Ref<OOScript>.
 
 
 Oolite
@@ -43,22 +43,21 @@ MA 02110-1301, USA.
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
-#include "oofnd/objc/OOObjCRef.h"
 
 #include <optional>
 #include <string>
 #include <vector>
 
-@class OOScript, Entity;
+@class Entity;
 
-class OOPListScript : public cxx::OOScript {
+class OOPListScript : public OOScript {
 public:
     // The old -initWithName:scriptArray:metadata: after [super init].
     OOPListScript(const std::string& name, const oo::PList& script, const oo::PList* metadata);
 
-    // The scripts of a legacy script file, each the root's facade of a new OOPListScript, as the
-    // Objective-C scripts were; nullopt when the file is not a dictionary.
-    static std::optional<std::vector<oo::ObjCRef<::OOScript*>>> scriptsInPListFile(const std::string& filePath);
+    // The scripts of a legacy script file, each a new OOPListScript; nullopt when the file is not a
+    // dictionary.
+    static std::optional<std::vector<oo::Ref<OOScript>>> scriptsInPListFile(const std::string& filePath);
 
     // OOScript overrides.
     std::optional<std::string> name() override;
@@ -68,8 +67,8 @@ public:
     void runWithTarget(::Entity* target) override;
 
 private:
-    static std::vector<oo::ObjCRef<::OOScript*>> scriptsFromDictionaryOfScripts(const oo::PList& dictionary, const std::string& filePath);
-    static std::vector<oo::ObjCRef<::OOScript*>> loadCachedScripts(const oo::PList& cachedScripts);
+    static std::vector<oo::Ref<OOScript>> scriptsFromDictionaryOfScripts(const oo::PList& dictionary, const std::string& filePath);
+    static std::vector<oo::Ref<OOScript>> loadCachedScripts(const oo::PList& cachedScripts);
 
     oo::PList _script; // the sanitized script actions (an array)
     oo::PList _metadata; // a dictionary: name, and the file's !metadata! if it had one

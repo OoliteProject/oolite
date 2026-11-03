@@ -7,9 +7,12 @@
 #include <optional>
 #include <string>
 #endif
-@interface OOHarnessSystemManager : NSObject
-- (Random_Seed) getRandomSeedForCurrentSystem;
-@end
+// The system manager is C++ since bead oo-9ht.32 deleted its facade: the bridge calls its member.
+class OOHarnessSystemManager
+{
+public:
+	Random_Seed getRandomSeedForCurrentSystem();
+};
 @interface Universe : NSObject
 - (NSDictionary *) descriptions;
 - (NSString *) getSystemName:(OOSystemID)sys;

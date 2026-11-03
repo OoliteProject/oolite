@@ -31,8 +31,6 @@ MA 02110-1301, USA.
 #include "oofnd/StdLib.hpp"
 #include "oofnd/objc/OOObjCRef.h"
 
-@class OOShipGroup;
-
 /*	Foundation sweep (proposed ADR-0043, bead oo-0s1h): a saved ship is an oo::PList (a Dict; null
         for no ship, as nil was), and the save/restore context, which was a mutable dictionary keyed by
         group pointers, is this struct. Both selectors are unique.
@@ -40,13 +38,13 @@ MA 02110-1301, USA.
 struct OOShipSaveContext {
     std::map<OOShipGroup*, unsigned> groupIDs; // not retained, as the pointer-box keys were not
     unsigned nextGroupID = 0;
-    std::vector<oo::ObjCRef<OOShipGroup*>> groups; // keeps the groups alive while they have IDs
-    std::map<NSUInteger, oo::ObjCRef<OOShipGroup*>> groupsByID;
+    std::vector<oo::Ref<OOShipGroup>> groups; // keeps the groups alive while they have IDs
+    std::map<NSUInteger, oo::Ref<OOShipGroup>> groupsByID;
 };
 
 /*	Bead oo-kw44 (ADR-0056 amendments oo-o89 item 4 and oo-42dr): the category ShipEntity
-        (LoadRestore) is members of cxx::ShipEntity, declared in ShipEntity.h and defined in
-        ShipEntityLoadRestore.mm. Its Objective-C interface, for the callers that remain, is the category
-        of the same name in ShipEntity+ObjCBridge.h, which ShipEntity.h imports. This header stays for
-        the files that import it, and for OOShipSaveContext.
+        (LoadRestore) is members of ShipEntity, declared in ShipEntity.h and defined in
+        ShipEntityLoadRestore.mm. Its Objective-C interface was the category of the same name in
+        ShipEntity+ObjCBridge.h until bead oo-9ht.144 deleted the facade. This header stays for the files
+        that import it, and for OOShipSaveContext.
 */

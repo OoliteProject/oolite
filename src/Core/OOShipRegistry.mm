@@ -497,11 +497,11 @@ void OOShipRegistry::loadDemoShips()
         } else {
             const std::optional<std::string> conditions = StringForKey(&key, kOODemoShipConditions);
             if (conditions.has_value()) {
-                if ([PLAYER status] == STATUS_START_GAME) {
+                if ((PLAYER != nullptr ? PLAYER->status() : OOEntityStatus { }) == STATUS_START_GAME) {
                     // conditions always false here
                     removeEntry(key);
                 } else {
-                    ::OOJSScript* condScript = [UNIVERSE cxx_getConditionScript:*conditions];
+                    ::OOScript* condScript = [UNIVERSE cxx_getConditionScript:*conditions];
                     if (condScript != nil) // should always be non-nil, but just in case
                     {
                         JSContext* context = OOJSAcquireContext();
@@ -510,11 +510,7 @@ void OOShipRegistry::loadDemoShips()
                         OOJSVal result = OOJSUndefinedValue();
                         OOJSVal args[] = { OOJSValueFromPList(context, oo::PList(*shipKey)) };
 
-                        OK = [condScript callMethod:OOJSID("allowShowLibraryShip")
-                                          inContext:context
-                                      withArguments:args
-                                              count:sizeof args / sizeof *args
-                                             result:&result];
+                        OK = (condScript != nullptr ? condScript->callMethod(OOJSID("allowShowLibraryShip"), context, args, sizeof args / sizeof *args, &result) : false);
 
                         if (OK)
                             allow_use = OOJSValueToBOOL(context, result);

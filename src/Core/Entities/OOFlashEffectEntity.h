@@ -27,17 +27,19 @@ MA 02110-1301, USA.
 
 #import "OOLightParticleEntity.h"
 
-namespace cxx {
-
+/*	C++ only since bead oo-9ht.106 deleted its Objective-C facade (ADR-0056 amendments oo-9ht.107,
+        oo-9ht.23 and oo-9ht.106): the ship and the universe call the factories and hand the flash to
+        Objective-C with oo::NewEntityFacade, whose object is the root Entity's facade.
+*/
 class OOFlashEffectEntity : public OOLightParticleEntity {
 public:
     // +explosionFlashFromEntity: and +laserFlashWithPosition:velocity:color:: a new flash,
-    // initialised. The facade's class methods hand it to Objective-C (oo::NewEntityFacade).
+    // initialised. Callers hand it to Objective-C with oo::NewEntityFacade.
     static oo::Ref<OOFlashEffectEntity> explosionFlashFromEntity(::Entity* entity);
     static oo::Ref<OOFlashEffectEntity> laserFlashWithPosition(HPVector position, Vector vel, OOColor* color);
 
     static void setUpTexture();
-    // The graphics reset client is the facade class, which forwards here.
+    // Called by the texture's file-local graphics reset client.
     static void resetGraphicsState();
 
     void update(OOTimeDelta delta_t) override;
@@ -54,9 +56,3 @@ private:
     float _growthRate = { };
     float _alpha = { };
 };
-
-} // namespace cxx
-
-// Transitional: the Objective-C OOFlashEffectEntity, for the ship and the universe, which message
-// the class. Deleted, with namespace cxx above, by the bridge's deletion bead.
-#import "OOFlashEffectEntity+ObjCBridge.h"

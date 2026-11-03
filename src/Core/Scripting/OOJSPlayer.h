@@ -29,7 +29,7 @@ MA 02110-1301, USA.
 #import "OOFoundation.h"
 #include <quickjs.h>
 
-@class PlayerEntity;
+class PlayerEntity;
 
 void InitOOJSPlayer(JSContext* context, JSValueConst global);
 

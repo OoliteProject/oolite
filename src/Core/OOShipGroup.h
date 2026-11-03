@@ -3,11 +3,9 @@ OOShipGroup.h
 
 A weak-referencing, mutable set of ships. Not thread safe.
 
-C++20 since bead oo-bwrq (proposed ADR-0056). The class is cxx::OOShipGroup while
-OOShipGroup+ObjCBridge.h, imported at the end of this header, keeps the Objective-C OOShipGroup
-its unconverted callers message (ShipEntity, StationEntity, Universe, the JavaScript ShipGroup
-binding, which keeps its category on the facade); the bridge's deletion bead moves it out of
-namespace cxx.
+C++20 since bead oo-bwrq. Its Objective-C facade was deleted by bead
+oo-9ht.19 (batch F, ADR-0056 amendment oo-9ht.19): a group is its own PList::Object payload
+(oo::PListForeign) and its own JS glue (OOJSPrivateObject); ships hold it as oo::Ref.
 
 
 Oolite
@@ -38,19 +36,19 @@ MA 02110-1301, USA.
 
 #include <quickjs.h>
 
+#include "OOJSPrivateObject.h"
+#include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
 #include "oofnd/objc/OOObjCRef.h"
 
-@class ShipEntity;
-@class OOShipGroup; // the Objective-C facade (OOShipGroup+ObjCBridge.h), for OOShipGroupCursor's transitional constructor
+class ShipEntity; // C++ since bead oo-9ht.144
+@class Entity; // the members' objects (a ship's object is the drawable's facade since bead oo-9ht.144)
 
 class OOShipGroupCursor;
 class OOShipGroupMembers; // OOShipGroup.mm's range-for over the members
 
-namespace cxx {
-
-class OOShipGroup : public oo::RefCounted {
+class OOShipGroup : public oo::PListForeign, public ::OOJSPrivateObject {
 public:
     // Null if the member array cannot be allocated (-cxx_initWithName: returned nil).
     static oo::Ref<OOShipGroup> groupWithName(const std::optional<std::string>& name);
@@ -65,8 +63,8 @@ public:
     void setLeader(::ShipEntity* leader);
 
     // The members at the time this is called, even if the group is mutated later.
-    std::vector<oo::ObjCRef<::ShipEntity*>> memberArray(); // arbitrary order
-    std::vector<oo::ObjCRef<::ShipEntity*>> memberArrayExcludingLeader(); // arbitrary order
+    std::vector<oo::ObjCRef<::Entity*>> memberArray(); // arbitrary order
+    std::vector<oo::ObjCRef<::Entity*>> memberArrayExcludingLeader(); // arbitrary order
 
     bool containsShip(::ShipEntity* ship);
     bool addShip(::ShipEntity* ship);
@@ -78,11 +76,18 @@ public:
     // What "%@" prints between the braces of <OOShipGroup 0x...>{...} (OODescription.h).
     std::optional<std::string> descriptionComponents() const;
 
-private:
-    // The ivars hold the Objective-C facade, ::OOWeakReference; inside namespace cxx the bare name
-    // is cxx::OOWeakReference since bead oo-3kqi (ADR-0056 amendment oo-rmd7 item 3).
-    using OOWeakReference = ::OOWeakReference;
+    // The JS glue (OOJSPrivateObject), defined in OOJSShipGroup.mm: the ShipGroup object, made on
+    // first use; forgetting it when it is finalized; "[OOShipGroup <components>]" (proposed ADR-0056
+    // amendment oo-6symp).
+    JSValue jsValueInContext(JSContext* context) override; // owned
+    void clearJSSelf(JSValueConst selfVal) override;
+    std::optional<std::string> jsDescription() override;
 
+    // oo::PListForeign: what the facade answered (its class, and "%@" as <OOShipGroup 0x...>{...}).
+    std::string className() const override;
+    std::string description() const override;
+
+private:
     // The cursor and the range-for read the ivars, as they did from inside the Objective-C class.
     friend class ::OOShipGroupCursor;
     friend class ::OOShipGroupMembers;
@@ -100,11 +105,8 @@ private:
     OOWeakReference** _members = { };
     OOWeakReference* _leader = { };
     std::optional<std::string> _name = { };
-    // _jsSelf stays in the Objective-C facade: it is the facade's JavaScript wrapper, which the
-    // category in OOJSShipGroup.mm makes and clears.
+    JSValue _jsSelf = JS_UNDEFINED; // The JS ShipGroup object proxy for this group; not an object until created (test with JS_IsObject()).
 };
-
-} // namespace cxx
 
 /*	OOShipGroupCursor: steps through a group's live members in its internal order (the former
         OOShipGroupEnumerator, bead oo-5l4w). It raises if the group is mutated while it is in use,
@@ -113,9 +115,6 @@ private:
 */
 class OOShipGroupCursor {
 public:
-    explicit OOShipGroupCursor(cxx::OOShipGroup* group);
-    // Transitional: the Objective-C facade's group (defined in OOShipGroup+ObjCBridge.mm; deleted
-    // with it).
     explicit OOShipGroupCursor(OOShipGroup* group);
 
     ::ShipEntity* next(); // nil at the end
@@ -123,13 +122,26 @@ public:
     void setPerformCleanup(BOOL flag) { _considerCleanup = flag; }
 
     // Public so ShipGroupIterate() can peek at both these and OOShipGroup's ivars. Naughty!
-    oo::Ref<cxx::OOShipGroup> _group;
+    oo::Ref<OOShipGroup> _group;
     NSUInteger _index = 0, _updateCount = 0;
     BOOL _considerCleanup = YES, _cleanupNeeded = NO;
 };
 
-// Transitional: the Objective-C OOShipGroup, for callers not yet converted. Deleted, with
-// namespace cxx above, by the bridge's deletion bead.
-#import "OOShipGroup+ObjCBridge.h"
+/*	A group carried through plist data as a PList::Object node:
+        the group is the node's foreign object (bead oo-9ht.19; what oo::PListObject() and
+        oo::ObjectIn() did for the facade).
+*/
+inline oo::PList OOShipGroupObjectNode(OOShipGroup* group) // null group -> null PList
+{
+    if (group == nullptr)
+        return oo::PList();
+    return oo::PList(oo::PList::Object(oo::Ref<oo::PListForeign>(group)));
+}
+
+inline OOShipGroup* OOShipGroupInObjectNode(const oo::PList& plist) // null for any other node
+{
+    const oo::PList::Object* node = plist.getIf<oo::PList::Object>();
+    return (node != nullptr) ? dynamic_cast<OOShipGroup*>(node->get()) : nullptr;
+}
 
 #endif // OOSHIPGROUP_H

@@ -33,7 +33,7 @@ SOFTWARE.
 #import "Universe.h"
 #include "oofnd/PListGet.hpp"
 
-OOCrosshairs::OOCrosshairs(const oo::PList& points, GLfloat scale, cxx::OOColor* color, GLfloat alpha)
+OOCrosshairs::OOCrosshairs(const oo::PList& points, GLfloat scale, OOColor* color, GLfloat alpha)
 {
     if (alpha > 0.0f && (color == nullptr || color->alphaComponent() != 0.0f)) {
         setUpDataWithPoints(points, scale, color, alpha);
@@ -76,7 +76,7 @@ void OOCrosshairs::render()
     }
 }
 
-void OOCrosshairs::setUpDataWithPoints(const oo::PList& points, GLfloat scale, cxx::OOColor* color, GLfloat alpha)
+void OOCrosshairs::setUpDataWithPoints(const oo::PList& points, GLfloat scale, OOColor* color, GLfloat alpha)
 {
     NSUInteger i;
     float colorComps[4] = { 0.0f, 1.0f, 0.0f, 1.0f };

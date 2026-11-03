@@ -96,30 +96,23 @@ std::vector<std::string> gScriptPaths;		// +scriptWithPath:properties:, in order
 @end
 
 
-@interface OOScript: OOObject
-@end
+#import "OOScript.h"
 
 
-@implementation OOScript
-@end
+// OOJSScript (OOJSScript.h), which the code under test calls. Since bead oo-9ht.133 deleted the
+// OOScript root's facade (a script's object since bead oo-9ht.137) a script is the C++ object, so
+// the stand-in is a C++ subclass of OOScript declaring the members that code calls.
+class OOJSScript : public OOScript
+{
+public:
+	static oo::Ref<OOJSScript> scriptWithPath(const std::optional<std::string> &path, const oo::PList &properties);
+};
 
-
-@interface OOJSScript: OOScript
-
-+ (id) scriptWithPath:(const std::optional<std::string> &)path properties:(const oo::PList &)properties;
-
-@end
-
-
-@implementation OOJSScript
-
-+ (id) scriptWithPath:(const std::optional<std::string> &)path properties:(const oo::PList &)properties
+oo::Ref<OOJSScript> OOJSScript::scriptWithPath(const std::optional<std::string> &path, const oo::PList &properties)
 {
 	gScriptPaths.push_back(path.value_or("(nil)") + (properties.isNull() ? "" : " with properties"));
-	return nil;
+	return nullptr;
 }
-
-@end
 
 
 namespace {
@@ -167,7 +160,7 @@ void WriteFile(const std::filesystem::path &path, const char *contents)
 
 
 // The scanner, registered with the verifier and run over its OXP, as the verifier runs it first.
-void RunScanner(cxx::OOOXPVerifier *verifier)
+void RunScanner(OOOXPVerifier *verifier)
 {
 	OOFileScannerVerifierStage::nameForDependencyForVerifier(verifier);
 	verifier->stageWithName(OOFileScannerVerifierStage::kName)->run();	// was -fileScannerStage (bead oo-9ht.7); the C++ stage since oo-9ht.4
@@ -181,12 +174,12 @@ const std::filesystem::path kBase = std::filesystem::current_path() / "test_OOCh
 
 
 // An OXP with the given files (relative paths), and its verifier with the scanner run over it.
-cxx::OOOXPVerifier *MakeVerifier(std::initializer_list<const char *> files)
+OOOXPVerifier *MakeVerifier(std::initializer_list<const char *> files)
 {
 	std::filesystem::remove_all(kBase);
 	std::filesystem::create_directories(kBase);
 	for (const char *file : files)  WriteFile(kBase / file, "// script");
-	cxx::OOOXPVerifier *verifier = OOOXPVerifierTestAccess::Make(kBase.generic_string(), kConfiguration);
+	OOOXPVerifier *verifier = OOOXPVerifierTestAccess::Make(kBase.generic_string(), kConfiguration);
 	RunScanner(verifier);
 	gShowErrorLocations = 0;
 	gScriptPaths.clear();
@@ -261,7 +254,7 @@ OO_TEST(facade)
 {
 	@autoreleasepool
 	{
-		cxx::OOOXPVerifier *verifier = MakeVerifier({ "Config/script.js" });
+		OOOXPVerifier *verifier = MakeVerifier({ "Config/script.js" });
 		const oo::Ref<OOCheckJSSyntaxVerifierStage> stage = oo::makeRef<OOCheckJSSyntaxVerifierStage>();
 		OO_CHECK(stage->description().starts_with("<OOCheckJSSyntaxVerifierStage 0x"));
 

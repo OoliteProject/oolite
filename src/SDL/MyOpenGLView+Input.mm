@@ -126,7 +126,7 @@ void cxx::MyOpenGLView::clearKey(int theKey)
 void cxx::MyOpenGLView::resetMouse()
 {
     setVirtualJoystick(0.0, 0.0);
-    if ([[::PlayerEntity sharedPlayer] isMouseControlOn]) {
+    if (::PlayerEntity::sharedPlayer()->isMouseControlOn()) {
         // viewSize is in pixels; SDL mouse coordinates are in points (they differ on high-DPI displays)
         float pixelDensity = SDL_GetWindowPixelDensity(window);
         if (pixelDensity <= 0.0f)

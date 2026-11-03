@@ -5,7 +5,7 @@
 	OOPListScript is a legacy (property-list) world script: +scriptsInPListFile: reads a file of
 	named script arrays, sanitizes each, caches the sanitized scripts in OOCacheManager, and makes
 	one script per array, answering the name, the metadata's description and version, and running
-	its actions on the player. Its superclass OOScript is still Objective-C, and its file reaches
+	its actions on the player. Its superclass OOScript was still Objective-C, and its file reaches
 	the cache manager, the legacy-script sanitizer and the player, so the test links every game
 	object but main's (tests/unit/core/meson.build entry ['*'], ADR-0056 amendment oo-44gg) and
 	defines gDebugFlags. The user's directories point at a scratch folder (amendment oo-rmd7 item
@@ -23,7 +23,10 @@
 	ask (the OOScript selectors are the root's) with every expectation kept; +scriptsInPListFile:
 	is the C++ member, and -isKindOfClass:[OOPListScript class] a dynamic_cast of the C++ script.
 	The facade's own case (facade) was retired with it (ADR-0049, standing approval oo-9n5p9), and
-	plistScriptCrossesAsTheRootFacade pins the crossing now.
+	plistScriptCrossesAsTheRootFacade pinned the crossing. Bead oo-9ht.133 deleted the root's facade
+	(ADR-0056 amendment oo-9ht.133, the same approval): the scripts are held as oo::Ref<OOScript>, the
+	cases ask the C++ class what they asked through the root's selectors, with every expectation kept,
+	and plistScriptIsItsOwnObject replaces the root-facade crossing case.
 	Run: bash tools/check-core-tests.sh
 */
 
@@ -89,10 +92,10 @@ oo::PList Dict(std::vector<std::pair<std::string, oo::PList>> entries)
 }
 
 
-std::vector<std::string> Names(const std::vector<oo::ObjCRef<OOScript *>> &scripts)
+std::vector<std::string> Names(const std::vector<oo::Ref<OOScript>> &scripts)
 {
 	std::vector<std::string> names;
-	for (const auto &script : scripts)  names.push_back([script.get() cxx_name].value_or("<none>"));
+	for (const auto &script : scripts)  names.push_back(script->name().value_or("<none>"));
 	return names;
 }
 
@@ -118,22 +121,22 @@ OO_TEST(cachedScripts)
 		if (!scripts.has_value())  return;
 		OO_CHECK_EQ(scripts->size(), 4u);
 		OO_CHECK((Names(*scripts) == std::vector<std::string>{ "alpha", "badScript", "notADict", "zeta" }));	// key order
-		for (const auto &script : *scripts)  OO_CHECK(dynamic_cast<OOPListScript *>(oo::ToCxx(script.get())) != nullptr);
+		for (const auto &script : *scripts)  OO_CHECK(dynamic_cast<OOPListScript *>(script.get()) != nullptr);
 
 		OOScript *alpha = (*scripts)[0].get();
 		OOScript *zeta = (*scripts)[3].get();
-		OO_CHECK(![alpha scriptDescription].has_value());
-		OO_CHECK(![alpha cxx_version].has_value());
-		OO_CHECK_EQ([alpha displayName].value_or("<none>"), "alpha");
-		OO_CHECK_EQ([zeta scriptDescription].value_or("<none>"), "A test script");
-		OO_CHECK_EQ([zeta cxx_version].value_or("<none>"), "1.2");
-		OO_CHECK_EQ([zeta displayName].value_or("<none>"), "zeta 1.2");
-		OO_CHECK([zeta requiresTickle]);
-		OO_CHECK(oo::DescriptionOf(zeta).find("OOPListScript") != std::string::npos);
+		OO_CHECK(!alpha->scriptDescription().has_value());
+		OO_CHECK(!alpha->version().has_value());
+		OO_CHECK_EQ(alpha->displayName().value_or("<none>"), "alpha");
+		OO_CHECK_EQ(zeta->scriptDescription().value_or("<none>"), "A test script");
+		OO_CHECK_EQ(zeta->version().value_or("<none>"), "1.2");
+		OO_CHECK_EQ(zeta->displayName().value_or("<none>"), "zeta 1.2");
+		OO_CHECK(zeta->requiresTickle());
+		OO_CHECK(zeta->description().find("OOPListScript") != std::string::npos);
 
 		// A run whose target is not a ship logs and does nothing (it never reaches the player).
 		Entity *notAShip = [[[Entity alloc] init] autorelease];
-		[zeta runWithTarget:notAShip];
+		zeta->runWithTarget(notAShip);
 	}
 }
 
@@ -151,16 +154,16 @@ OO_TEST(metadataTypes)
 		OO_CHECK(scripts.has_value() && scripts->size() == 1);
 		if (!scripts.has_value() || scripts->size() != 1)  return;
 		OOScript *odd = (*scripts)[0].get();
-		OO_CHECK(![odd scriptDescription].has_value());
-		OO_CHECK(![odd cxx_version].has_value());
-		OO_CHECK_EQ([odd displayName].value_or("<none>"), "odd");
-		OO_CHECK_EQ([odd cxx_name].value_or("<none>"), "odd");	// the name is the key, whatever the metadata says
+		OO_CHECK(!odd->scriptDescription().has_value());
+		OO_CHECK(!odd->version().has_value());
+		OO_CHECK_EQ(odd->displayName().value_or("<none>"), "odd");
+		OO_CHECK_EQ(odd->name().value_or("<none>"), "odd");	// the name is the key, whatever the metadata says
 
 		// The metadata's own name does not win over the key.
 		[[OOCacheManager sharedCache] cxx_setPList:Dict({ { "key", Dict({ { "script", oo::PList(oo::PList::Array{}) }, { "!metadata!", Dict({ { "name", Str("other") } }) } }) } })
 											forKey:"named.plist" inCache:kCacheName];
 		const auto named = OOPListScript::scriptsInPListFile("named.plist");
-		OO_CHECK(named.has_value() && named->size() == 1 && [(*named)[0].get() cxx_name].value_or("<none>") == "key");
+		OO_CHECK(named.has_value() && named->size() == 1 && (*named)[0]->name().value_or("<none>") == "key");
 	}
 }
 
@@ -192,8 +195,9 @@ OO_TEST(files)
 }
 
 
-// Objective-C sees a plist script as the root's facade of the C++ script (bead oo-9ht.57).
-OO_TEST(plistScriptCrossesAsTheRootFacade)
+// A plist script is its own object, held as oo::Ref<OOScript> (bead oo-9ht.133 deleted the root's
+// facade, as which Objective-C saw it since bead oo-9ht.57).
+OO_TEST(plistScriptIsItsOwnObject)
 {
 	SetUp();
 	@autoreleasepool
@@ -203,14 +207,14 @@ OO_TEST(plistScriptCrossesAsTheRootFacade)
 		const auto scripts = OOPListScript::scriptsInPListFile("facade.plist");
 		OO_CHECK(scripts.has_value() && scripts->size() == 1);
 		if (!scripts.has_value() || scripts->size() != 1)  return;
-		OOScript *facade = (*scripts)[0].get();
-		OOPListScript *script = dynamic_cast<OOPListScript *>(oo::ToCxx(facade));
-		OO_CHECK(script != nullptr && [facade class] == [OOScript class]);
-		OO_CHECK(oo::ToObjC(static_cast<cxx::OOScript *>(script)) == facade);
+		OOPListScript *script = dynamic_cast<OOPListScript *>((*scripts)[0].get());
+		OO_CHECK(script != nullptr);
+		if (script == nullptr)  return;
 		OO_CHECK_EQ(script->name().value_or("<none>"), "one");
 		OO_CHECK_EQ(script->version().value_or("<none>"), "3");
 		OO_CHECK(script->requiresTickle());
-		OO_CHECK(oo::DescriptionOf(facade).starts_with("<OOPListScript 0x"));
+		OO_CHECK(script->description().starts_with("<OOPListScript 0x"));
+		OO_CHECK(OOScriptInObjectNode(OOScriptObjectNode(script)) == script);	// it travels in plist data as itself
 	}
 }
 

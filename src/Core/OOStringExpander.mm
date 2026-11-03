@@ -744,7 +744,7 @@ OOMaybeUnits ExpandStringKeySpecial(OOStringExpansionContext* context, const std
         OOCAssert(OOStringExpanderPlayerRespondsToSelector(selector), "Special string expansion selector %s for [%s] is not implemented.", OOSelectorName(selector), key.c_str());
 
         // Called by name (ADR-0055 item 5): a string result, as a PList.
-        const oo::PList result = OOCallByName(PLAYER, selector);
+        const oo::PList result = OOCallByName(oo::ToObjC(PLAYER), selector);
         if (!result.isNull()) {
             const std::string* string = result.getIf<std::string>();
             OOCAssert(string != nullptr, "Special string expansion [%s] expanded to %s, but expected a string.", key.c_str(), oo::DescriptionOf(result).c_str());
@@ -906,7 +906,7 @@ OOMaybeUnits ExpandLegacyScriptSelectorKey(OOStringExpansionContext* context, co
     if (selector != NULL) {
         // Called by name (ADR-0055 item 5): "%@" of the result, as [[result description]] gave it
         // (nil stays nil).
-        const oo::PList result = OOCallByName(PLAYER, selector);
+        const oo::PList result = OOCallByName(oo::ToObjC(PLAYER), selector);
         return UnitsFromOptional(!result.isNull() ? std::optional<std::string>(oo::DescriptionOf(result)) : std::nullopt);
     } else {
         return std::nullopt;

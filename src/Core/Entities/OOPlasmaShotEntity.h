@@ -28,25 +28,25 @@ MA 02110-1301, USA.
 
 #import "OOLightParticleEntity.h"
 
-/*	A converted leaf (amendment oo-bj8 item 12): global, over cxx::OOLightParticleEntity, with no
+/*	A converted leaf (amendment oo-bj8 item 12): global, over OOLightParticleEntity, with no
         facade of its own. ShipEntity makes one with shotWithPosition() and hands it to Objective-C
         with oo::NewEntityFacade, whose object is an OOLightParticleEntity.
 */
-class OOPlasmaShotEntity : public cxx::OOLightParticleEntity {
+class OOPlasmaShotEntity : public OOLightParticleEntity {
 public:
     // [[OOPlasmaShotEntity alloc] initWithPosition:...]: a new shot, initialised.
     static oo::Ref<OOPlasmaShotEntity> shotWithPosition(HPVector position,
         Vector velocity,
         float energy,
         OOTimeDelta duration,
-        cxx::OOColor* color);
+        OOColor* color);
 
     // -initWithPosition:...'s body, run once right after construction (amendment oo-vl43 item 2).
     void initWithPosition(HPVector position,
         Vector velocity,
         float energy,
         OOTimeDelta duration,
-        cxx::OOColor* color);
+        OOColor* color);
 
     bool canCollide() override;
     bool checkCloseCollisionWith(cxx::Entity* other) override;

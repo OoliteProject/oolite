@@ -75,9 +75,63 @@ uint32_t gDebugFlags = 0;
 #endif
 uint32_t gLiveEntityCount = 0;
 
-@class Universe, PlayerEntity;
+// WormholeEntity.mm's (the wormhole is C++ since bead oo-9ht.112, so the monitor's dump asks it
+// through this function, where it sent -shipsInTransit): the test dumps no entity.
+@class Entity;
+oo::PList WormholeEntityShipsInTransit(Entity *)  { return oo::PList(); }
+
+@class Universe;
 Universe *gSharedUniverse = nil;
-PlayerEntity *gOOPlayer = nil;
+
+// The ship is C++ since bead oo-9ht.144 deleted the Objective-C ship: what the monitor's entity dump
+// links against (a ship's object, the root's, holds its C++ part, which oo::ToCxx reads), declared
+// as Entity.h and ShipEntity.h declare them (the test imports neither). The test dumps no entity,
+// so none is reached.
+namespace cxx {
+class Entity : public oo::RefCounted
+{
+public:
+	virtual ~Entity();
+};
+}	// namespace cxx
+
+@interface Entity: OOObject
+{
+@public
+	oo::Ref<cxx::Entity> _cxxEntity;
+}
+@end
+
+@implementation Entity
+@end
+
+class ShipEntity : public cxx::Entity
+{
+public:
+	std::vector<oo::ObjCRef<::Entity *>> subEntityEnumerator();
+};
+
+cxx::Entity::~Entity() = default;
+std::vector<oo::ObjCRef<::Entity *>> ShipEntity::subEntityEnumerator()  { std::abort(); }
+namespace oo { ::Entity *ToObjC(cxx::Entity *entity); }
+::Entity *oo::ToObjC(cxx::Entity *)  { std::abort(); }
+
+// PLAYER: C++ since bead oo-9ht.177 deleted the Objective-C player; the members the monitor calls
+// on it (declared as PlayerEntity.h declares them; the test imports no game header that defines
+// the class). The test has no player, so none is reached.
+class PlayerEntity
+{
+public:
+	NSUInteger dialMaxMissiles();
+	::ShipEntity *missileForPylon(NSUInteger value);
+	std::vector<oo::ObjCRef<::Entity *>> getScannedWormholes();
+};
+
+NSUInteger PlayerEntity::dialMaxMissiles()  { std::abort(); }
+::ShipEntity *PlayerEntity::missileForPylon(NSUInteger value)  { std::abort(); }
+std::vector<oo::ObjCRef<::Entity *>> PlayerEntity::getScannedWormholes()  { std::abort(); }
+
+PlayerEntity *gOOPlayer = nullptr;
 
 JSContext *gOOJSMainThreadContext = nullptr;
 
@@ -183,51 +237,54 @@ problemOfSeverity:(const std::string &)severity
 @end
 
 
+
+
+#import "OOScript.h"
+
+
+// OOJSScript (OOJSScript.h), which the code under test calls. Since bead oo-9ht.133 deleted the
+// OOScript root's facade (a script's object since bead oo-9ht.137) a script is the C++ object, so
+// the stand-in is a C++ subclass of OOScript declaring the members that code calls.
 // The console script: made from its path with the console as a property; runs commands.
-@interface OOJSScript: OOWeakRefObject
-+ (id) scriptWithPath:(const std::optional<std::string> &)path properties:(const oo::PList &)properties;
-+ (OOJSScript *) currentlyRunningScript;
-- (BOOL) callMethod:(JSAtom)methodID
-		  inContext:(JSContext *)context
-	  withArguments:(JSValueConst *)argv count:(int)argc
-			 result:(JSValue *)outResult;
-- (std::optional<std::string>) displayName;
-@end
+class OOJSScript : public OOScript
+{
+public:
+	static oo::Ref<OOJSScript> scriptWithPath(const std::optional<std::string> &path, const oo::PList &properties);
+	static OOJSScript *currentlyRunningScript();
 
-@implementation OOJSScript
+	bool callMethod(JSAtom methodID, JSContext *context, JSValueConst *argv, int argc, JSValue *outResult) override
+	{
+		(void)methodID; (void)context; (void)argv; (void)outResult;
+		if (argc == 1)  sConsoleCommands++;
+		return true;
+	}
+};
 
-+ (id) scriptWithPath:(const std::optional<std::string> &)path properties:(const oo::PList &)properties
+// OOScript's virtual members (OOScript.mm reaches the whole game), for the test's scripts' vtable.
+std::optional<std::string> OOScript::descriptionComponents()	{ return std::nullopt; }
+std::optional<std::string> OOScript::name()					{ return std::nullopt; }
+std::optional<std::string> OOScript::scriptDescription()		{ return std::nullopt; }
+std::optional<std::string> OOScript::version()				{ return std::nullopt; }
+bool OOScript::requiresTickle()								{ return false; }
+void OOScript::runWithTarget(::Entity *)						{}
+bool OOScript::callMethod(JSAtom, JSContext *, JSValueConst *, int, JSValue *)	{ return false; }
+std::string OOScript::className() const						{ return "OOScript"; }
+std::string OOScript::description() const						{ return "<OOScript>"; }
+JSValue OOScript::jsValueInContext(JSContext *)				{ return JS_UNDEFINED; }
+void OOScript::clearJSSelf(JSValueConst)						{}
+std::optional<std::string> OOScript::displayName()			{ return "test script"; }
+
+oo::Ref<OOJSScript> OOJSScript::scriptWithPath(const std::optional<std::string> &path, const oo::PList &properties)
 {
 	(void)path;
 	sConsoleScriptsMade++;
 	sConsoleScriptProperties = properties;
-	return [[[OOJSScript alloc] init] autorelease];
+	return oo::makeRef<OOJSScript>();
 }
-
-
-+ (OOJSScript *) currentlyRunningScript
+OOJSScript *OOJSScript::currentlyRunningScript()
 {
-	return nil;
+	return nullptr;
 }
-
-
-- (BOOL) callMethod:(JSAtom)methodID
-		  inContext:(JSContext *)context
-	  withArguments:(JSValueConst *)argv count:(int)argc
-			 result:(JSValue *)outResult
-{
-	(void)methodID; (void)context; (void)argv; (void)outResult;
-	if (argc == 1)  sConsoleCommands++;
-	return YES;
-}
-
-
-- (std::optional<std::string>) displayName
-{
-	return "test script";
-}
-
-@end
 
 
 // A held JS value (OOJavaScriptEngine.h): the special-functions object's wrapper. There is no
@@ -311,11 +368,17 @@ std::optional<oo::Data> OODataFromOXZFile(const std::string &path)
 @end
 
 
-@interface OOEntityWithDrawable: OOObject
-@end
+// An entity with a drawable: C++ since bead oo-9ht.40 deleted its Objective-C facade, the member
+// the monitor's entity dump calls (declared as OOEntityWithDrawable.h declares it). The test dumps
+// no entity, so none is reached.
+class OODrawable;
+class OOEntityWithDrawable : public cxx::Entity
+{
+public:
+	OODrawable *getDrawable();
+};
 
-@implementation OOEntityWithDrawable
-@end
+OODrawable *OOEntityWithDrawable::getDrawable()  { std::abort(); }
 
 
 // MARK: The debugger -------------------------------------------------------------------------------

@@ -33,7 +33,8 @@ MA 02110-1301, USA.
 
 #import "Entity.h"
 
-@class ShipEntity, OOWeakReference;
+@class OOWeakReference;
+class ShipEntity; // C++ since bead oo-9ht.144
 
 class OOECMBlastEntity : public cxx::Entity {
 public:

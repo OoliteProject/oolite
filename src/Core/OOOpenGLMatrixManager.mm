@@ -68,8 +68,6 @@ NSUInteger OOOpenGLMatrixStack::stackCount()
     return stack.size();
 }
 
-namespace cxx {
-
 void OOOpenGLMatrixManager::updateModelView()
 {
     valid[OOLITE_GL_MATRIX_MODELVIEW_PROJECTION] = NO;
@@ -386,23 +384,21 @@ oo::PList OOOpenGLMatrixManager::standardMatrixUniformLocations(GLhandleARB prog
     return oo::PList(std::move(locationSet));
 }
 
-} // namespace cxx
-
 namespace {
 
-// The game view's manager: [[UNIVERSE gameView] getOpenGLMatrixManager], crossed to C++. Null when
-// there is no universe or view, and each OOGL function below then does what its messages to nil
-// did: nothing, or a zero matrix.
-cxx::OOOpenGLMatrixManager* GameViewMatrixManager()
+// The game view's manager, taken from the C++ view. Null when there is no universe or view, and
+// each OOGL function below then does what its messages to nil did: nothing, or a zero matrix.
+OOOpenGLMatrixManager* GameViewMatrixManager()
 {
-    return oo::ToCxx([[UNIVERSE gameView] getOpenGLMatrixManager]);
+    cxx::MyOpenGLView* view = oo::ToCxx([UNIVERSE gameView]);
+    return (view != nullptr) ? view->getOpenGLMatrixManager() : nullptr;
 }
 
 } // namespace
 
 void OOGLPushModelView()
 {
-    cxx::OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
+    OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
     if (matrixManager != nullptr)
         matrixManager->pushModelView();
     if (matrixManager != nullptr)
@@ -411,7 +407,7 @@ void OOGLPushModelView()
 
 OOMatrix OOGLPopModelView()
 {
-    cxx::OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
+    OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
     OOMatrix matrix = matrixManager != nullptr ? matrixManager->popModelView() : kZeroMatrix;
     if (matrixManager != nullptr)
         matrixManager->syncModelView();
@@ -420,14 +416,14 @@ OOMatrix OOGLPopModelView()
 
 OOMatrix OOGLGetModelView()
 {
-    cxx::OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
+    OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
     OOMatrix matrix = matrixManager != nullptr ? matrixManager->getModelView() : kZeroMatrix;
     return matrix;
 }
 
 void OOGLResetModelView()
 {
-    cxx::OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
+    OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
     if (matrixManager != nullptr)
         matrixManager->resetModelView();
     if (matrixManager != nullptr)
@@ -436,7 +432,7 @@ void OOGLResetModelView()
 
 void OOGLLoadModelView(OOMatrix matrix)
 {
-    cxx::OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
+    OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
     if (matrixManager != nullptr)
         matrixManager->loadModelView(matrix);
     if (matrixManager != nullptr)
@@ -445,7 +441,7 @@ void OOGLLoadModelView(OOMatrix matrix)
 
 void OOGLMultModelView(OOMatrix matrix)
 {
-    cxx::OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
+    OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
     if (matrixManager != nullptr)
         matrixManager->multModelView(matrix);
     if (matrixManager != nullptr)
@@ -454,7 +450,7 @@ void OOGLMultModelView(OOMatrix matrix)
 
 void OOGLTranslateModelView(Vector vector)
 {
-    cxx::OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
+    OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
     if (matrixManager != nullptr)
         matrixManager->translateModelView(vector);
     if (matrixManager != nullptr)
@@ -463,7 +459,7 @@ void OOGLTranslateModelView(Vector vector)
 
 void OOGLRotateModelView(GLfloat angle, Vector axis)
 {
-    cxx::OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
+    OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
     if (matrixManager != nullptr)
         matrixManager->rotateModelView(angle, axis);
     if (matrixManager != nullptr)
@@ -472,7 +468,7 @@ void OOGLRotateModelView(GLfloat angle, Vector axis)
 
 void OOGLScaleModelView(Vector scale)
 {
-    cxx::OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
+    OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
     if (matrixManager != nullptr)
         matrixManager->scaleModelView(scale);
     if (matrixManager != nullptr)
@@ -481,7 +477,7 @@ void OOGLScaleModelView(Vector scale)
 
 void OOGLLookAt(Vector eye, Vector center, Vector up)
 {
-    cxx::OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
+    OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
     if (matrixManager != nullptr)
         matrixManager->lookAtWithEye(eye, center, up);
     if (matrixManager != nullptr)
@@ -490,7 +486,7 @@ void OOGLLookAt(Vector eye, Vector center, Vector up)
 
 void OOGLResetProjection()
 {
-    cxx::OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
+    OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
     if (matrixManager != nullptr)
         matrixManager->resetProjection();
     if (matrixManager != nullptr)
@@ -499,7 +495,7 @@ void OOGLResetProjection()
 
 void OOGLPushProjection()
 {
-    cxx::OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
+    OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
     if (matrixManager != nullptr)
         matrixManager->pushProjection();
     if (matrixManager != nullptr)
@@ -508,7 +504,7 @@ void OOGLPushProjection()
 
 OOMatrix OOGLPopProjection()
 {
-    cxx::OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
+    OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
     OOMatrix matrix = matrixManager != nullptr ? matrixManager->popProjection() : kZeroMatrix;
     if (matrixManager != nullptr)
         matrixManager->syncProjection();
@@ -517,14 +513,14 @@ OOMatrix OOGLPopProjection()
 
 OOMatrix OOGLGetProjection()
 {
-    cxx::OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
+    OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
     OOMatrix matrix = matrixManager != nullptr ? matrixManager->getProjection() : kZeroMatrix;
     return matrix;
 }
 
 void OOGLLoadProjection(OOMatrix matrix)
 {
-    cxx::OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
+    OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
     if (matrixManager != nullptr)
         matrixManager->loadProjection(matrix);
     if (matrixManager != nullptr)
@@ -533,7 +529,7 @@ void OOGLLoadProjection(OOMatrix matrix)
 
 void OOGLMultProjection(OOMatrix matrix)
 {
-    cxx::OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
+    OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
     if (matrixManager != nullptr)
         matrixManager->multProjection(matrix);
     if (matrixManager != nullptr)
@@ -542,7 +538,7 @@ void OOGLMultProjection(OOMatrix matrix)
 
 void OOGLTranslateProjection(Vector vector)
 {
-    cxx::OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
+    OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
     if (matrixManager != nullptr)
         matrixManager->translateProjection(vector);
     if (matrixManager != nullptr)
@@ -551,7 +547,7 @@ void OOGLTranslateProjection(Vector vector)
 
 void OOGLRotateProjection(GLfloat angle, Vector axis)
 {
-    cxx::OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
+    OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
     if (matrixManager != nullptr)
         matrixManager->rotateProjection(angle, axis);
     if (matrixManager != nullptr)
@@ -560,7 +556,7 @@ void OOGLRotateProjection(GLfloat angle, Vector axis)
 
 void OOGLScaleProjection(Vector scale)
 {
-    cxx::OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
+    OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
     if (matrixManager != nullptr)
         matrixManager->scaleProjection(scale);
     if (matrixManager != nullptr)
@@ -569,7 +565,7 @@ void OOGLScaleProjection(Vector scale)
 
 void OOGLFrustum(double frleft, double frright, double frbottom, double frtop, double frnear, double frfar)
 {
-    cxx::OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
+    OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
     if (matrixManager != nullptr)
         matrixManager->frustumLeft(frleft, frright, frbottom, frtop, frnear, frfar);
     if (matrixManager != nullptr)
@@ -578,7 +574,7 @@ void OOGLFrustum(double frleft, double frright, double frbottom, double frtop, d
 
 void OOGLOrtho(double orleft, double orright, double orbottom, double ortop, double ornear, double orfar)
 {
-    cxx::OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
+    OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
     if (matrixManager != nullptr)
         matrixManager->orthoLeft(orleft, orright, orbottom, ortop, ornear, orfar);
     if (matrixManager != nullptr)
@@ -587,7 +583,7 @@ void OOGLOrtho(double orleft, double orright, double orbottom, double ortop, dou
 
 void OOGLPerspective(double fovy, double aspect, double zNear, double zFar)
 {
-    cxx::OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
+    OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
     if (matrixManager != nullptr)
         matrixManager->perspectiveFovy(fovy, aspect, zNear, zFar);
     if (matrixManager != nullptr)
@@ -596,6 +592,6 @@ void OOGLPerspective(double fovy, double aspect, double zNear, double zFar)
 
 OOMatrix OOGLGetModelViewProjection()
 {
-    cxx::OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
+    OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
     return matrixManager != nullptr ? matrixManager->getMatrix(OOLITE_GL_MATRIX_MODELVIEW_PROJECTION) : kZeroMatrix;
 }

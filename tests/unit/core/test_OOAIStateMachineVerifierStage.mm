@@ -121,7 +121,7 @@ std::string MakeOXP()
 }
 
 
-cxx::OOOXPVerifier *MakeVerifier(const std::string &path)
+OOOXPVerifier *MakeVerifier(const std::string &path)
 {
 	return OOOXPVerifierTestAccess::Make(path, kConfiguration);
 }
@@ -157,7 +157,7 @@ int LogLinesContaining(std::string_view text)
 
 
 // The scanner, registered with the verifier and run over its OXP, as the verifier runs it first.
-void RunScanner(cxx::OOOXPVerifier *verifier)
+void RunScanner(OOOXPVerifier *verifier)
 {
 	OOFileScannerVerifierStage::nameForDependencyForVerifier(verifier);
 	verifier->stageWithName(OOFileScannerVerifierStage::kName)->run();	// was -fileScannerStage (bead oo-9ht.7); the C++ stage since oo-9ht.4
@@ -173,7 +173,7 @@ OO_TEST(nameAndNeighbours)
 {
 	@autoreleasepool
 	{
-		cxx::OOOXPVerifier *verifier = MakeVerifier("");
+		OOOXPVerifier *verifier = MakeVerifier("");
 		OO_CHECK(OOAIStateMachineVerifierStage::nameForReverseDependencyForVerifier(verifier) == "Validating AIs");
 
 		const oo::Ref<OOAIStateMachineVerifierStage> stage = oo::makeRef<OOAIStateMachineVerifierStage>();
@@ -191,7 +191,7 @@ OO_TEST(shipsNameAIs)
 	@autoreleasepool
 	{
 		const std::string base = MakeOXP();
-		cxx::OOOXPVerifier *verifier = MakeVerifier(base);
+		OOOXPVerifier *verifier = MakeVerifier(base);
 		RunScanner(verifier);
 		const oo::Ref<OOAIStateMachineVerifierStage> stage = oo::makeRef<OOAIStateMachineVerifierStage>();
 		stage->setVerifier(verifier);
@@ -221,7 +221,7 @@ OO_TEST(runChecksEachAIAgainstTheWhitelist)
 	@autoreleasepool
 	{
 		const std::string base = MakeOXP();
-		cxx::OOOXPVerifier *verifier = MakeVerifier(base);
+		OOOXPVerifier *verifier = MakeVerifier(base);
 		RunScanner(verifier);
 		const oo::Ref<OOAIStateMachineVerifierStage> stage = oo::makeRef<OOAIStateMachineVerifierStage>();
 		stage->setVerifier(verifier);
@@ -284,7 +284,7 @@ OO_TEST(facade)
 	@autoreleasepool
 	{
 		const std::string base = MakeOXP();
-		cxx::OOOXPVerifier *verifier = MakeVerifier(base);
+		OOOXPVerifier *verifier = MakeVerifier(base);
 		RunScanner(verifier);
 		const oo::Ref<OOAIStateMachineVerifierStage> stage = oo::makeRef<OOAIStateMachineVerifierStage>();
 

@@ -300,17 +300,23 @@ void OOJSUnreachable(const char *function, const char *, unsigned)
 @end
 
 
-@interface OOJSScript: OOObject
-+ (OOJSScript *) currentlyRunningScript;
-+ (void) pushScript:(OOJSScript *)script;
-+ (void) popScript:(OOJSScript *)script;
-@end
+#import "OOScript.h"
 
-@implementation OOJSScript
-+ (OOJSScript *) currentlyRunningScript  { return nil; }
-+ (void) pushScript:(OOJSScript *)script  { (void)script; sScriptDepth++; sScriptPushes++; }
-+ (void) popScript:(OOJSScript *)script  { (void)script; sScriptDepth--; }
-@end
+
+// OOJSScript (OOJSScript.h), which the code under test calls. Since the OOScript root's facade (a
+// script's object once the OOJSScript facade went) is deleted, a script is the C++ object, so
+// the stand-in is a C++ subclass of OOScript declaring the members that code calls.
+class OOJSScript : public OOScript
+{
+public:
+	static OOJSScript *currentlyRunningScript();
+	static void pushScript(const oo::WeakRef<OOJSScript> &script);
+	static void popScript(OOJSScript *script);
+};
+
+OOJSScript *OOJSScript::currentlyRunningScript()  { return nullptr; }
+void OOJSScript::pushScript(const oo::WeakRef<OOJSScript> &script)  { (void)script; sScriptDepth++; sScriptPushes++; }
+void OOJSScript::popScript(OOJSScript *script)  { (void)script; sScriptDepth--; }
 
 
 // The universe's clock, which the test sets.
@@ -392,7 +398,7 @@ void Update(double now)
 	sNow = now;
 	@autoreleasepool
 	{
-		[OOScriptTimer updateTimers];
+		OOScriptTimer::updateTimers();
 	}
 }
 
@@ -483,7 +489,7 @@ OO_TEST(toString)
 	OO_CHECK_EQ(Eval("Timer.prototype.toString.call({})"), "[object]");
 	// Stop the running ones above, so that later tests do not fire them.
 	Update(100.0);
-	[OOScriptTimer noteGameReset];
+	OOScriptTimer::noteGameReset();
 }
 
 

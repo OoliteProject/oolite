@@ -32,8 +32,6 @@ This code is hereby placed in the public domain.
 #include "oofnd/StdLib.hpp"
 #include "oofnd/objc/OOObjCRef.h"
 
-namespace cxx {
-
 /*	The members are Objective-C objects conforming to OOWeakReferenceSupport (id). The set holds
         their weak references' facades, which are the references (ADR-0056 amendment oo-3kqi).
 */
@@ -71,11 +69,5 @@ private:
 
     std::vector<oo::ObjCRef<::OOWeakReference*>> _objects = { }; // each once (identity), in insertion order; ::OOWeakReference is the facade
 };
-
-} // namespace cxx
-
-// Transitional: the Objective-C OOWeakSet, for callers not yet converted. Deleted, with namespace
-// cxx above, by the bridge's deletion bead.
-#import "OOWeakSet+ObjCBridge.h"
 
 #endif // OOWEAKSET_H

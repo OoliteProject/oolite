@@ -6,7 +6,8 @@
 	context, and links the game's own objects for the binding, the engine's class registration
 	(OOJSClasses.mm), its exception translator (OOJSEngineNativeWrappers.mm) and the random numbers
 	it draws (legacy_random.c). It stands in for the player and a station (PlayerEntity and
-	ShipEntity answer only the selectors the binding sends, and record what they are told), the
+	ShipEntity answer only the selectors the binding sends, and record what they are told; the ship
+	is C++, its stations' objects the root's), the
 	universe (messages, speech, nearby systems), the display strings, the script event names and
 	the engine functions the binding links against, with the engine headers' signatures
 	(OOJSEngineCore.h, upstream #768's QuickJS-ng API; script event names are atoms). The
@@ -60,9 +61,14 @@ enum
 };
 
 
-@interface ShipEntity: OOObject
+namespace cxx { class Entity; }
+
+// A ship's object: the root's, which holds the C++ part (oo::ToCxx reads it); a station's and the
+// player's were the Objective-C ship's until that was deleted.
+@interface Entity: OOObject
 {
 @public
+	oo::Ref<cxx::Entity> _cxxEntity;
 	BOOL _isStation;
 	OOEntityStatus _status;
 }
@@ -74,75 +80,94 @@ enum
 /*	The player. While _raise is set, -score raises, and while _throwCxx is set it throws a C++
 	exception, so the test sees what an exception under a native becomes.
 */
-@interface PlayerEntity: ShipEntity
+// PLAYER: C++ (the Objective-C player this stood in for was deleted): the members
+// the code under test calls, declared as the game headers declare them (the test imports none
+// that defines the classes), with the stand-in's answers.
+namespace cxx {
+class Entity : public oo::RefCounted
 {
-@public
+public:
+	virtual ~Entity();
+	OOEntityStatus status();
+};
+}	// namespace cxx
+
+// The ship: C++ (a station's part is a plain one).
+class ShipEntity : public cxx::Entity
+{
+public:
+	void doScriptEvent(JSAtom message, const std::vector<oo::PList> &arguments);
+	void doScriptEvent(JSAtom message, id argument);
+	void setEntityPersonalityInt(uint16_t value);
+};
+
+class PlayerEntity : public ShipEntity
+{
+public:
+	void setScriptTargetToSelf();
+	std::optional<std::string> commanderName();
+	void setCommanderName(const std::optional<std::string> &value);
+	unsigned score();
+	void setScore(unsigned value);
+	double creditBalance();
+	void setCreditBalance(double value);
+	int getLegalStatus();
+	void setBounty(OOCreditsQuantity amount, OOLegalStatusReason reason);
+	OOAlertCondition getAlertCondition();
+	int getAlertFlags();
+	double escapePodRescueTime();
+	void setEscapePodRescueTime(double seconds);
+	NSUInteger getTrumbleCount();
+	int contractReputation();
+	int passengerReputation();
+	int parcelReputation();
+	void increaseContractReputation(unsigned amount);
+	void decreaseContractReputation(unsigned amount);
+	void increasePassengerReputation(unsigned amount);
+	void decreasePassengerReputation(unsigned amount);
+	void increaseParcelReputation(unsigned amount);
+	void decreaseParcelReputation(unsigned amount);
+	OODockingClearanceStatus getDockingClearanceStatus();
+	std::vector<std::string> getRoleWeights();
+	bool endScenario(const std::string &key);
+	void addMessageToReport(const std::string &report);
+	OOSpeechSettings getIsSpeechOn();
+	bool replaceShipWithNamedShip(const std::string &shipKey);
+	void setDockTarget(::ShipEntity *entity);
+	void addToAdjustTime(double seconds);
+	void setTargetSystemID(OOSystemID sid);
+	void addRoleToPlayer(const std::string &role);
+	void addRoleToPlayer(const std::string &role, NSUInteger slot);
+
 	std::optional<std::string> _commanderName;
-	unsigned _score;
-	double _credits;
-	int _legalStatus;
-	OOLegalStatusReason _bountyReason;
-	OOAlertCondition _alertCondition;
-	int _alertFlags;
-	double _escapePodRescueTime;
-	NSUInteger _trumbleCount;
-	int _contractReputation, _passengerReputation, _parcelReputation;
-	OODockingClearanceStatus _dockingClearanceStatus;
+	unsigned _score = {};
+	double _credits = {};
+	int _legalStatus = {};
+	OOLegalStatusReason _bountyReason = {};
+	OOAlertCondition _alertCondition = {};
+	int _alertFlags = {};
+	double _escapePodRescueTime = {};
+	NSUInteger _trumbleCount = {};
+	int _contractReputation = {}, _passengerReputation = {}, _parcelReputation = {};
+	OODockingClearanceStatus _dockingClearanceStatus = {};
 	std::vector<std::string> _roleWeights;
 	std::vector<std::string> _events;
 	std::vector<std::string> _report;
 	std::string _endedScenario;
-	OOSpeechSettings _speech;
+	OOSpeechSettings _speech = {};
 	std::string _replacedWith;
-	uint16_t _personality;
-	ShipEntity *_dockTarget;
-	BOOL _dockTargetSet;
-	double _adjustTime;
-	OOSystemID _targetSystem;
+	uint16_t _personality = {};
+	OOEntityStatus _status = {};
+	::ShipEntity *_dockTarget = {};
+	BOOL _dockTargetSet = {};
+	double _adjustTime = {};
+	OOSystemID _targetSystem = {};
 	std::string _lastRole;
-	NSUInteger _lastRoleSlot;
-	int _scriptTargetSets;
-	BOOL _raise;
-	BOOL _throwCxx;
-}
-- (void) setScriptTarget:(ShipEntity *)ship;
-- (std::optional<std::string>) cxx_commanderName;
-- (void) cxx_setCommanderName:(const std::optional<std::string> &)value;
-- (unsigned) score;
-- (void) setScore:(unsigned)value;
-- (double) creditBalance;
-- (void) setCreditBalance:(double)value;
-- (int) legalStatus;
-- (void) setBounty:(OOCreditsQuantity)amount withReason:(OOLegalStatusReason)reason;
-- (OOAlertCondition) alertCondition;
-- (int) alertFlags;
-- (double) escapePodRescueTime;
-- (void) setEscapePodRescueTime:(double)seconds;
-- (NSUInteger) trumbleCount;
-- (int) contractReputation;
-- (int) passengerReputation;
-- (int) parcelReputation;
-- (void) increaseContractReputation:(unsigned)amount;
-- (void) decreaseContractReputation:(unsigned)amount;
-- (void) increasePassengerReputation:(unsigned)amount;
-- (void) decreasePassengerReputation:(unsigned)amount;
-- (void) increaseParcelReputation:(unsigned)amount;
-- (void) decreaseParcelReputation:(unsigned)amount;
-- (OODockingClearanceStatus) getDockingClearanceStatus;
-- (std::vector<std::string>) cxx_roleWeights;
-- (void) cxx_doScriptEvent:(JSAtom)message withPListArguments:(const std::vector<oo::PList> &)arguments;
-- (void) doScriptEvent:(JSAtom)message withArgument:(id)argument;
-- (BOOL) cxx_endScenario:(const std::string &)key;
-- (void) cxx_addMessageToReport:(const std::string &)report;
-- (OOSpeechSettings) isSpeechOn;
-- (BOOL) cxx_replaceShipWithNamedShip:(const std::string &)shipName;
-- (void) setEntityPersonalityInt:(uint16_t)value;
-- (void) setDockTarget:(ShipEntity *)entity;
-- (void) addToAdjustTime:(double)seconds;
-- (void) setTargetSystemID:(OOSystemID)sid;
-- (void) cxx_addRoleToPlayer:(const std::string &)role;
-- (void) cxx_addRoleToPlayer:(const std::string &)role inSlot:(NSUInteger)slot;
-@end
+	NSUInteger _lastRoleSlot = {};
+	int _scriptTargetSets = {};
+	BOOL _raise = {};
+	BOOL _throwCxx = {};
+};
 
 
 @interface Universe: OOObject
@@ -213,7 +238,7 @@ oo::PList Dict(std::initializer_list<std::pair<const char *, oo::PList>> entries
 }	// namespace
 
 
-@implementation ShipEntity
+@implementation Entity
 
 - (BOOL) isStation  { return _isStation; }
 - (OOEntityStatus) status  { return _status; }
@@ -221,76 +246,89 @@ oo::PList Dict(std::initializer_list<std::pair<const char *, oo::PList>> entries
 @end
 
 
-@implementation PlayerEntity
+// The player's Objective-C object (in the game the ship's facade over the C++ player), which
+// oo::ToObjC answers: a ship whose class is named PlayerEntity, as the game's player object was
+// before its Objective-C class was deleted, so the events name it as they did.
+::Entity *sPlayerObject = nil;
 
-- (void) setScriptTarget:(ShipEntity *)ship  { if (ship == self)  _scriptTargetSets++; }
-- (std::optional<std::string>) cxx_commanderName  { return _commanderName; }
-- (void) cxx_setCommanderName:(const std::optional<std::string> &)value  { _commanderName = value; }
+::Entity *NewPlayerObject()
+{
+	Class playerClass = objc_getClass("PlayerEntity");
+	if (playerClass == Nil)
+	{
+		playerClass = objc_allocateClassPair([Entity class], "PlayerEntity", 0);
+		objc_registerClassPair(playerClass);
+	}
+	return [[playerClass alloc] init];
+}
 
-- (unsigned) score
+namespace oo {
+::Entity *ToObjC(cxx::Entity *entity)  { return entity != nullptr ? sPlayerObject : nil; }	// only the player crosses
+}
+
+cxx::Entity::~Entity() = default;
+OOEntityStatus cxx::Entity::status()  { return static_cast<PlayerEntity *>(this)->_status; }
+void PlayerEntity::setScriptTargetToSelf()  { _scriptTargetSets++; }
+std::optional<std::string> PlayerEntity::commanderName()  { return _commanderName; }
+void PlayerEntity::setCommanderName(const std::optional<std::string> &value)  { _commanderName = value; }
+unsigned PlayerEntity::score()
 {
 	if (_raise)  [OOException raise:OOInvalidArgumentException format:"score %s", "boom"];
 	if (_throwCxx)  throw std::runtime_error("cxx boom");
 	return _score;
 }
-
-- (void) setScore:(unsigned)value  { _score = value; }
-- (double) creditBalance  { return _credits; }
-- (void) setCreditBalance:(double)value  { _credits = value; }
-- (int) legalStatus  { return _legalStatus; }
-- (void) setBounty:(OOCreditsQuantity)amount withReason:(OOLegalStatusReason)reason  { _legalStatus = static_cast<int>(amount); _bountyReason = reason; }
-- (OOAlertCondition) alertCondition  { return _alertCondition; }
-- (int) alertFlags  { return _alertFlags; }
-- (double) escapePodRescueTime  { return _escapePodRescueTime; }
-- (void) setEscapePodRescueTime:(double)seconds  { _escapePodRescueTime = seconds; }
-- (NSUInteger) trumbleCount  { return _trumbleCount; }
-- (int) contractReputation  { return _contractReputation; }
-- (int) passengerReputation  { return _passengerReputation; }
-- (int) parcelReputation  { return _parcelReputation; }
-- (void) increaseContractReputation:(unsigned)amount  { _contractReputation += static_cast<int>(amount); }
-- (void) decreaseContractReputation:(unsigned)amount  { _contractReputation -= static_cast<int>(amount); }
-- (void) increasePassengerReputation:(unsigned)amount  { _passengerReputation += static_cast<int>(amount); }
-- (void) decreasePassengerReputation:(unsigned)amount  { _passengerReputation -= static_cast<int>(amount); }
-- (void) increaseParcelReputation:(unsigned)amount  { _parcelReputation += static_cast<int>(amount); }
-- (void) decreaseParcelReputation:(unsigned)amount  { _parcelReputation -= static_cast<int>(amount); }
-- (OODockingClearanceStatus) getDockingClearanceStatus  { return _dockingClearanceStatus; }
-- (std::vector<std::string>) cxx_roleWeights  { return _roleWeights; }
-
-- (void) cxx_doScriptEvent:(JSAtom)message withPListArguments:(const std::vector<oo::PList> &)arguments
+void PlayerEntity::setScore(unsigned value)  { _score = value; }
+double PlayerEntity::creditBalance()  { return _credits; }
+void PlayerEntity::setCreditBalance(double value)  { _credits = value; }
+int PlayerEntity::getLegalStatus()  { return _legalStatus; }
+void PlayerEntity::setBounty(OOCreditsQuantity amount, OOLegalStatusReason reason)
+{
+	_legalStatus = static_cast<int>(amount); _bountyReason = reason;
+}
+OOAlertCondition PlayerEntity::getAlertCondition()  { return _alertCondition; }
+int PlayerEntity::getAlertFlags()  { return _alertFlags; }
+double PlayerEntity::escapePodRescueTime()  { return _escapePodRescueTime; }
+void PlayerEntity::setEscapePodRescueTime(double seconds)  { _escapePodRescueTime = seconds; }
+NSUInteger PlayerEntity::getTrumbleCount()  { return _trumbleCount; }
+int PlayerEntity::contractReputation()  { return _contractReputation; }
+int PlayerEntity::passengerReputation()  { return _passengerReputation; }
+int PlayerEntity::parcelReputation()  { return _parcelReputation; }
+void PlayerEntity::increaseContractReputation(unsigned amount)  { _contractReputation += static_cast<int>(amount); }
+void PlayerEntity::decreaseContractReputation(unsigned amount)  { _contractReputation -= static_cast<int>(amount); }
+void PlayerEntity::increasePassengerReputation(unsigned amount)  { _passengerReputation += static_cast<int>(amount); }
+void PlayerEntity::decreasePassengerReputation(unsigned amount)  { _passengerReputation -= static_cast<int>(amount); }
+void PlayerEntity::increaseParcelReputation(unsigned amount)  { _parcelReputation += static_cast<int>(amount); }
+void PlayerEntity::decreaseParcelReputation(unsigned amount)  { _parcelReputation -= static_cast<int>(amount); }
+OODockingClearanceStatus PlayerEntity::getDockingClearanceStatus()  { return _dockingClearanceStatus; }
+std::vector<std::string> PlayerEntity::getRoleWeights()  { return _roleWeights; }
+void ShipEntity::doScriptEvent(JSAtom message, const std::vector<oo::PList> &arguments)
 {
 	std::string event = EventName(message) + "(";
 	for (std::size_t i = 0; i < arguments.size(); i++)  event += (i != 0 ? ", " : "") + Describe(arguments[i]);
-	_events.push_back(event + ")");
+	static_cast<PlayerEntity *>(this)->_events.push_back(event + ")");
 }
-
-- (void) doScriptEvent:(JSAtom)message withArgument:(id)argument
+void ShipEntity::doScriptEvent(JSAtom message, id argument)
 {
-	_events.push_back(EventName(message) + "(" + Describe(oo::PListObject(argument)) + ")");
+	static_cast<PlayerEntity *>(this)->_events.push_back(EventName(message) + "(" + Describe(oo::PListObject(argument)) + ")");
 }
-
-- (BOOL) cxx_endScenario:(const std::string &)key
+bool PlayerEntity::endScenario(const std::string &key)
 {
 	_endedScenario = key;
 	return key == "oolite-tutorial";
 }
-
-- (void) cxx_addMessageToReport:(const std::string &)report  { _report.push_back(report); }
-- (OOSpeechSettings) isSpeechOn  { return _speech; }
-
-- (BOOL) cxx_replaceShipWithNamedShip:(const std::string &)shipName
+void PlayerEntity::addMessageToReport(const std::string &report)  { _report.push_back(report); }
+OOSpeechSettings PlayerEntity::getIsSpeechOn()  { return _speech; }
+bool PlayerEntity::replaceShipWithNamedShip(const std::string &shipName)
 {
 	_replacedWith = shipName;
 	return shipName != "no-such-ship";
 }
-
-- (void) setEntityPersonalityInt:(uint16_t)value  { _personality = value; }
-- (void) setDockTarget:(ShipEntity *)entity  { _dockTarget = entity; _dockTargetSet = YES; }
-- (void) addToAdjustTime:(double)seconds  { _adjustTime += seconds; }
-- (void) setTargetSystemID:(OOSystemID)sid  { _targetSystem = sid; }
-- (void) cxx_addRoleToPlayer:(const std::string &)role  { _lastRole = role; _lastRoleSlot = 999; }
-- (void) cxx_addRoleToPlayer:(const std::string &)role inSlot:(NSUInteger)slot  { _lastRole = role; _lastRoleSlot = slot; }
-
-@end
+void ShipEntity::setEntityPersonalityInt(uint16_t value)  { static_cast<PlayerEntity *>(this)->_personality = value; }
+void PlayerEntity::setDockTarget(::ShipEntity *entity)  { _dockTarget = entity; _dockTargetSet = YES; }
+void PlayerEntity::addToAdjustTime(double seconds)  { _adjustTime += seconds; }
+void PlayerEntity::setTargetSystemID(OOSystemID sid)  { _targetSystem = sid; }
+void PlayerEntity::addRoleToPlayer(const std::string &role)  { _lastRole = role; _lastRoleSlot = 999; }
+void PlayerEntity::addRoleToPlayer(const std::string &role, NSUInteger slot)  { _lastRole = role; _lastRoleSlot = slot; }
 
 
 @implementation Universe
@@ -431,7 +469,7 @@ namespace {
 std::map<JSClassID, int> sConverters;
 }
 
-PlayerEntity *gOOPlayer = nil;
+PlayerEntity *gOOPlayer = nullptr;
 Universe *gSharedUniverse = nil;
 Entity *gOOJSPlayerIfStale = nil;
 
@@ -525,10 +563,11 @@ namespace {
 JSRuntime *sRuntime;
 JSContext *sContext;
 JSValue sGlobal = JS_UNDEFINED;	// held for the life of the test
-PlayerEntity *sPlayer = nil;
+PlayerEntity *sPlayer = nullptr;
 Universe *sUniverse = nil;
-ShipEntity *sStation = nil;
-ShipEntity *sNonStation = nil;
+::Entity *sStation = nil;	// a station's object and a ship's that is not one (C++ ships)
+::Entity *sNonStation = nil;
+ShipEntity *sStationShip = nullptr;
 
 
 void Define(const char *name, JSClassID jsClassID, id object)
@@ -552,8 +591,9 @@ void SetUpContext()
 	// Kept for the life of the test.
 	sUniverse = [[Universe alloc] init];
 	gSharedUniverse = sUniverse;
-	sPlayer = [[PlayerEntity alloc] init];
+	sPlayer = new PlayerEntity;
 	gOOPlayer = sPlayer;
+	sPlayerObject = NewPlayerObject();
 	sPlayer->_commanderName = "Jameson";
 	sPlayer->_score = 5;
 	sPlayer->_credits = 100.5;
@@ -569,9 +609,12 @@ void SetUpContext()
 	sPlayer->_roleWeights = { "trader", "pirate", "trader" };
 	sPlayer->_status = STATUS_DOCKED;
 	sPlayer->_targetSystem = -1;
-	sStation = [[ShipEntity alloc] init];
+	sStation = [[Entity alloc] init];
+	sStation->_cxxEntity = oo::makeRef<ShipEntity>();
+	sStationShip = static_cast<ShipEntity *>(sStation->_cxxEntity.get());
 	sStation->_isStation = YES;
-	sNonStation = [[ShipEntity alloc] init];
+	sNonStation = [[Entity alloc] init];
+	sNonStation->_cxxEntity = oo::makeRef<ShipEntity>();
 
 	InitOOJSPlayer(sContext, sGlobal);
 	Define("station", sFakeStationClassID, sStation);
@@ -804,14 +847,14 @@ OO_TEST(escapePodDestination)
 	SetUpContext();
 	// Only while the escape pod is in flight (the player is stale).
 	OO_CHECK_EVAL("player.setEscapePodDestination(null)", "threw: Player.setEscapePodDestination() only works while the escape pod is in flight.");
-	gOOJSPlayerIfStale = (Entity *)sPlayer;
+	gOOJSPlayerIfStale = sPlayerObject;
 
 	sPlayer->_dockTargetSet = NO;
 	OO_CHECK_EVAL("(player.setEscapePodDestination(station), 'called')", "called");
-	OO_CHECK(sPlayer->_dockTargetSet && sPlayer->_dockTarget == sStation);
+	OO_CHECK(sPlayer->_dockTargetSet && sPlayer->_dockTarget == sStationShip);
 	OO_CHECK_EVAL("(player.setEscapePodDestination(null), 'called')", "called");
 	OO_CHECK(sPlayer->_dockTarget == nil);
-	sPlayer->_dockTarget = sStation;
+	sPlayer->_dockTarget = sStationShip;
 	OO_CHECK_EVAL("(player.setEscapePodDestination(false), 'called')", "called");
 	OO_CHECK(sPlayer->_dockTarget == nil);
 
@@ -822,7 +865,7 @@ OO_TEST(escapePodDestination)
 	OO_CHECK_EVAL("player.setEscapePodDestination(null, 1)", "threw: bad arguments: Player.setEscapePodDestination(2) - / a valid station, null, or 'NEARBY_SYSTEM'");
 
 	// A nearby system: none in range leaves the target and the time alone.
-	sPlayer->_dockTarget = sStation;
+	sPlayer->_dockTarget = sStationShip;
 	sPlayer->_adjustTime = 0;
 	sUniverse->_destinations = oo::PList(oo::PList::Array{});
 	OO_CHECK_EVAL("(player.setEscapePodDestination('NEARBY_SYSTEM'), 'called')", "called");

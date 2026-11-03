@@ -42,14 +42,24 @@ std::string VectorDescription(Vector vector)
     return oo::str::format("(%g, %g, %g)", vector.x, vector.y, vector.z);
 }
 
-cxx::OONativeVector::OONativeVector(Vector vect)
+OONativeVector::OONativeVector(Vector vect)
 {
     v = vect;
 }
 
-Vector cxx::OONativeVector::getVector()
+Vector OONativeVector::getVector()
 {
     return v;
+}
+
+std::string OONativeVector::className() const
+{
+    return "OONativeVector";
+}
+
+std::string OONativeVector::description() const
+{
+    return oo::str::format("<OONativeVector %s>", oo::str::pointerDescription(this).c_str());
 }
 
 #endif

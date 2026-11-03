@@ -9,7 +9,8 @@ oo-o89). The AI is cxx::AI. Its superclass, OOWeakRefObject, is still Objective-
 their AI and weak references to it through that object), so the Objective-C AI in
 AI+ObjCBridge.h (imported at the end of this header) stays the object its callers hold. It makes
 and owns the C++ object in its -init, and oo::ToObjC answers that one facade, never a new one.
-The AI sends its owner (a ShipEntity, still Objective-C) its actions by name, as before.
+The AI sends its owner's object its actions by name, as before; the owner is the C++ ShipEntity
+since bead oo-9ht.144, whose object the AI holds by weak reference.
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -42,7 +43,7 @@ MA 02110-1301, USA.
 
 #define AI_THINK_INTERVAL 0.125
 
-@class ShipEntity;
+class ShipEntity; // C++ since bead oo-9ht.144
 class OOPreservedAIStateMachine; // private to AI.mm; no facade, so global (amendment oo-fn2f item 4)
 
 namespace cxx {
@@ -131,7 +132,7 @@ private:
     oo::PList cleanHandlers(const oo::PList& handlers, const std::string& stateKey, const std::string& smName);
     oo::PList cleanActions(const oo::PList& actions, const std::string& handlerKey, const std::string& stateKey, const std::string& smName);
 
-    oo::ObjCRef<id> _owner = { }; // OOWeakReference to the ShipEntity this is the AI for
+    oo::ObjCRef<id> _owner = { }; // OOWeakReference to the object of the ShipEntity this is the AI for
     std::optional<std::string> ownerDesc = { }; // describes the object this is the AI for; nullopt until it has an owner
 
     oo::PList stateMachine = { }; // the loaded, whitelisted state machine; null: none (nil)

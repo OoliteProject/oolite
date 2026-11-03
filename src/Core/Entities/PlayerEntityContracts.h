@@ -24,8 +24,14 @@ MA 02110-1301, USA.
 
 */
 
-#import "GuiDisplayGen.h"
 #import "PlayerEntity.h"
+
+/*	The category PlayerEntity (Contracts) is members of
+        PlayerEntity, declared in PlayerEntity.h and defined in PlayerEntityContracts.mm. Its Objective-C interface,
+        for the callers that remained, was the category of the same name in PlayerEntity+ObjCBridge.h (deleted),
+        which PlayerEntity.h imports. This header stays for the files that import it.
+*/
+#import "GuiDisplayGen.h"
 #import "PlayerEntityLegacyScriptEngine.h"
 #include <string_view>
 
@@ -60,64 +66,3 @@ inline constexpr std::string_view CONTRACT_KEY_RISK = "risk";
 #define GUI_ROW_NO_SHIPS 10
 
 #define MAX_ROWS_SHIPS_FOR_SALE 12
-
-@interface PlayerEntity (Contracts)
-
-- (std::optional<std::string>)cxx_processEscapePods; // removes pods from cargo bay and treats categories of characters carried (never nullopt)
-- (std::optional<std::string>)cxx_checkPassengerContracts; // returns messages from any passengers whose status have changed (nullopt: none)
-
-- (oo::PList)reputation; // a Dict of signed integers; null on nil
-
-- (int)passengerReputation;
-- (void)increasePassengerReputation:(unsigned)amount;
-- (void)decreasePassengerReputation:(unsigned)amount;
-
-- (int)parcelReputation;
-- (void)increaseParcelReputation:(unsigned)amount;
-- (void)decreaseParcelReputation:(unsigned)amount;
-
-- (int)contractReputation;
-- (void)increaseContractReputation:(unsigned)amount;
-- (void)decreaseContractReputation:(unsigned)amount;
-- (OOCargoQuantity)cxx_contractedVolumeForGood:(const std::string&)good;
-
-- (void)erodeReputation;
-- (void)normaliseReputation;
-
-- (void)cxx_addMessageToReport:(const std::string&)report;
-
-// - (void) setGuiToContractsScreen;
-//- (BOOL) pickFromGuiContractsScreen;
-//- (void) highlightSystemFromGuiContractsScreen;
-
-- (BOOL)cxx_addPassenger:(const std::string&)Name start:(unsigned)start destination:(unsigned)destination eta:(double)eta fee:(double)fee advance:(double)advance risk:(unsigned)risk; // for js scripting
-- (BOOL)cxx_removePassenger:(const std::string&)Name; // for js scripting
-- (BOOL)cxx_addParcel:(const std::string&)Name start:(unsigned)start destination:(unsigned)destination eta:(double)eta fee:(double)fee premium:(double)premium risk:(unsigned)risk; // for js scripting
-- (BOOL)cxx_removeParcel:(const std::string&)Name; // for js scripting
-- (BOOL)cxx_awardContract:(unsigned)qty commodity:(const std::string&)commodity start:(unsigned)start destination:(unsigned)destination eta:(double)eta fee:(double)fee premium:(double)premium; // for js scripting.
-- (BOOL)cxx_removeContract:(const std::string&)commodity destination:(unsigned)destination; // for js scripting
-
-// The manifest lines ("oolite-manifest-person-travelling" / "-item-delivery" expanded per entry).
-- (std::vector<std::string>)cxx_passengerList;
-- (std::vector<std::string>)cxx_parcelList;
-- (std::vector<std::string>)cxx_contractList;
-- (void)setGuiToManifestScreen;
-- (void)setManifestScreenRow:(const oo::PList&)object inColor:(OOColor*)color forRow:(OOGUIRow)row ofRows:(OOGUIRow)max_rows andOffset:(OOGUIRow)offset inMultipage:(BOOL)multi;
-
-- (void)setGuiToDockingReportScreen;
-
-// ---------------------------------------------------------------------- //
-
-- (void)setGuiToShipyardScreen:(NSUInteger)skip;
-
-- (void)cxx_showShipyardModel:(const std::string&)shipKey shipData:(const oo::PList&)shipDict personality:(uint16_t)personality;
-- (void)showShipyardInfoForSelection;
-- (NSInteger)missingSubEntitiesAdjustment;
-- (void)showTradeInInformationFooter;
-
-- (OOCreditsQuantity)cxx_priceForShipKey:(const std::string&)key;
-- (BOOL)buySelectedShip;
-- (BOOL)cxx_replaceShipWithNamedShip:(const std::string&)shipName;
-- (void)newShipCommonSetup:(const std::string&)shipKey yardInfo:(const oo::PList&)ship_info baseInfo:(const oo::PList&)ship_base_dict;
-
-@end

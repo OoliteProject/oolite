@@ -108,7 +108,7 @@ void OOFileScannerVerifierStage::run()
 }
 
 // The verifier holds the C++ stages (it held their facades until bead oo-9ht.4).
-std::optional<std::string> OOFileScannerVerifierStage::nameForDependencyForVerifier(cxx::OOOXPVerifier* verifier)
+std::optional<std::string> OOFileScannerVerifierStage::nameForDependencyForVerifier(OOOXPVerifier* verifier)
 {
     OOOXPVerifierStage* stage = verifier->stageWithName(kFileScannerStageName);
     if (stage == nullptr) {
@@ -609,7 +609,7 @@ void OOListUnusedFilesStage::run()
 }
 
 // The verifier holds the C++ stages (it held their facades until bead oo-9ht.4).
-std::string OOListUnusedFilesStage::nameForReverseDependencyForVerifier(cxx::OOOXPVerifier* verifier)
+std::string OOListUnusedFilesStage::nameForReverseDependencyForVerifier(OOOXPVerifier* verifier)
 {
     OOOXPVerifierStage* stage = verifier->stageWithName(kUnusedListerStageName);
     if (stage == nullptr) {

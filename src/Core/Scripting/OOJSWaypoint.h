@@ -29,17 +29,16 @@ MA 02110-1301, USA.
 #import "OOFoundation.h"
 #include <quickjs.h>
 
-@class OOWaypointEntity;
+#include <optional>
+#include <string>
 
 void InitOOJSWaypoint(JSContext* context, JSValueConst global);
 
 JSClassID JSWaypointClassID(void);
 
-/*	The bodies of OOWaypointEntity (OOJavaScriptExtensions), which the engine reaches by selector.
-        Its methods are one-line forwarders to these on the OOWaypointEntity facade, in
-        OOWaypointEntity+ObjCBridge.mm (bead oo-9ht.50), until that facade goes (oo-9ht.108; proposed
-        ADR-0056 amendments oo-ppc, oo-ykoy and oo-6ia4). Its -oo_jsClassID answers
-        JSWaypointClassID().
+/*	The bodies of OOWaypointEntity (OOJavaScriptExtensions), which the engine reaches through the
+        root's JS members: the C++ class's overrides call these (the OOWaypointEntity facade forwarded
+        to them before). Its JS class is JSWaypointClassID().
 */
 std::optional<std::string> OOJSWaypointJSClassName(void);
 bool OOJSWaypointIsVisibleToScripts(void);

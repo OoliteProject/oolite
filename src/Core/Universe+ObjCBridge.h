@@ -60,7 +60,8 @@ MA 02110-1301, USA.
 
 ///////////////////////////////////////
 
-// speech routines: the Mac arms, still the @implementation's (the others are slice 24's)
+// speech routines: the Mac arms, Objective-C in the facade's primary @implementation in
+// Universe+ObjCBridge.mm (Mac-only, not adapted in Phase 3; the others are slice 24's)
 #if OOLITE_MAC_COCOA_UI
 - (void)cxx_startSpeakingString:(const std::string&)text;
 - (void)stopSpeaking;
@@ -144,7 +145,7 @@ MA 02110-1301, USA.
 - (BOOL)cxx_spawnShip:(const std::string&)shipdesc; // the legacy spawnShip: action's ship key
 - (void)cxx_witchspaceShipWithPrimaryRole:(const std::string&)role;
 - (ShipEntity*)cxx_spawnShipWithRole:(const std::string&)desc near:(Entity*)entity;
-- (OOVisualEffectEntity*)cxx_addVisualEffectAt:(HPVector)pos withKey:(const std::string&)key;
+- (Entity*)cxx_addVisualEffectAt:(HPVector)pos withKey:(const std::string&)key;
 
 @end
 
@@ -155,8 +156,8 @@ MA 02110-1301, USA.
 
 - (ShipEntity*)addShipAt:(HPVector)pos withRole:(const std::string&)role withinRadius:(GLfloat)radius;
 // Empty where the old methods returned nil (no ship added).
-- (std::vector<oo::ObjCRef<ShipEntity*>>)cxx_addShipsAt:(HPVector)pos withRole:(const std::string&)role quantity:(unsigned)count withinRadius:(GLfloat)radius asGroup:(BOOL)isGroup;
-- (std::vector<oo::ObjCRef<ShipEntity*>>)cxx_addShipsToRoute:(const std::string&)route withRole:(const std::string&)role quantity:(unsigned)count routeFraction:(double)routeFraction asGroup:(BOOL)isGroup;
+- (std::vector<oo::ObjCRef<::Entity*>>)cxx_addShipsAt:(HPVector)pos withRole:(const std::string&)role quantity:(unsigned)count withinRadius:(GLfloat)radius asGroup:(BOOL)isGroup;
+- (std::vector<oo::ObjCRef<::Entity*>>)cxx_addShipsToRoute:(const std::string&)route withRole:(const std::string&)role quantity:(unsigned)count routeFraction:(double)routeFraction asGroup:(BOOL)isGroup;
 - (BOOL)cxx_roleIsPirateVictim:(const std::string&)role;
 - (BOOL)cxx_role:(const std::string&)role isInCategory:(const std::string&)category;
 - (void)forceWitchspaceEntries;
@@ -188,8 +189,8 @@ MA 02110-1301, USA.
 - (StationEntity*)stationFriendlyTo:(ShipEntity*)ship;
 - (OOPlanetEntity*)planet;
 - (OOSunEntity*)sun;
-- (std::vector<oo::ObjCRef<OOPlanetEntity*>>)cxx_planets; // Note: does not include sun.
-- (std::vector<oo::ObjCRef<StationEntity*>>)cxx_stations; // includes main station; in the order added
+- (std::vector<oo::ObjCRef<Entity*>>)cxx_planets; // Note: does not include sun.
+- (std::vector<oo::ObjCRef<::Entity*>>)cxx_stations; // includes main station; in the order added
 
 @end
 
@@ -198,7 +199,7 @@ MA 02110-1301, USA.
 // Universe.mm, stays complete).
 @interface Universe (OOSlice9)
 
-- (std::vector<oo::ObjCRef<WormholeEntity*>>)cxx_wormholes;
+- (std::vector<oo::ObjCRef<::Entity*>>)cxx_wormholes;
 // Turn main station into just another station, for blowUpStation.
 - (void)unMagicMainStation;
 - (void)resetBeacons;
@@ -208,7 +209,7 @@ MA 02110-1301, USA.
 - (void)setLastBeacon:(Entity<OOBeaconEntity>*)beacon;
 - (void)setNextBeacon:(Entity<OOBeaconEntity>*)beaconShip;
 - (void)clearBeacon:(Entity<OOBeaconEntity>*)beaconShip;
-- (std::map<std::string, oo::ObjCRef<OOWaypointEntity*>, std::less<>>)cxx_currentWaypoints;
+- (std::map<std::string, oo::ObjCRef<Entity*>, std::less<>>)cxx_currentWaypoints; // the waypoints' objects (the root's facade since bead oo-9ht.108)
 - (void)cxx_defineWaypoint:(const oo::PList&)definition forKey:(const std::string&)key; // a null definition removes
 - (GLfloat*)skyClearColor;
 // Note: the alpha value is also air resistance!
@@ -217,15 +218,15 @@ MA 02110-1301, USA.
 - (BOOL)breakPatternHide;
 - (BOOL)canInstantiateShip:(const std::string&)shipKey;
 - (std::optional<std::string>)cxx_randomShipKeyForRoleRespectingConditions:(const std::string&)role; // nullopt: none
-- (ShipEntity*)cxx_newShipWithRole:(const std::string&)role OO_RETURNS_RETAINED; // Selects ship using role weights, applies auto_ai, respects conditions
-- (OOVisualEffectEntity*)cxx_newVisualEffectWithName:(const std::string&)effectKey OO_RETURNS_RETAINED;
-- (ShipEntity*)cxx_newSubentityWithName:(const std::string&)shipKey andScaleFactor:(float)scale OO_RETURNS_RETAINED; // Does not apply auto_ai or respect conditions
-- (ShipEntity*)cxx_newShipWithName:(const std::string&)shipKey usePlayerProxy:(BOOL)usePlayerProxy OO_RETURNS_RETAINED; // If usePlayerProxy, non-carriers are instantiated as ProxyPlayerEntity.
-- (ShipEntity*)cxx_newShipWithName:(const std::string&)shipKey usePlayerProxy:(BOOL)usePlayerProxy isSubentity:(BOOL)isSubentity OO_RETURNS_RETAINED;
-- (ShipEntity*)cxx_newShipWithName:(const std::string&)shipKey usePlayerProxy:(BOOL)usePlayerProxy isSubentity:(BOOL)isSubentity andScaleFactor:(float)scale OO_RETURNS_RETAINED;
-- (DockEntity*)cxx_newDockWithName:(const std::string&)shipKey andScaleFactor:(float)scale OO_RETURNS_RETAINED; // Does not apply auto_ai or respect conditions
-- (ShipEntity*)cxx_newShipWithName:(const std::string&)shipKey OO_RETURNS_RETAINED; // Does not apply auto_ai or respect conditions
-- (Class)cxx_shipClassForShipDictionary:(const oo::PList&)dict; // Nil for a null PList
+- (ShipEntity*)cxx_newShipWithRole:(const std::string&)role; // its object +1 (a C++ ship since bead oo-9ht.144). Selects ship using role weights, applies auto_ai, respects conditions
+- (Entity*)cxx_newVisualEffectWithName:(const std::string&)effectKey OO_RETURNS_RETAINED;
+- (ShipEntity*)cxx_newSubentityWithName:(const std::string&)shipKey andScaleFactor:(float)scale; // its object +1 (a C++ ship since bead oo-9ht.144). Does not apply auto_ai or respect conditions
+- (ShipEntity*)cxx_newShipWithName:(const std::string&)shipKey usePlayerProxy:(BOOL)usePlayerProxy; // its object +1 (a C++ ship since bead oo-9ht.144). If usePlayerProxy, non-carriers are instantiated as ProxyPlayerEntity (made in C++ since bead oo-9ht.183).
+- (ShipEntity*)cxx_newShipWithName:(const std::string&)shipKey usePlayerProxy:(BOOL)usePlayerProxy isSubentity:(BOOL)isSubentity; // its object +1 (a C++ ship since bead oo-9ht.144)
+- (ShipEntity*)cxx_newShipWithName:(const std::string&)shipKey usePlayerProxy:(BOOL)usePlayerProxy isSubentity:(BOOL)isSubentity andScaleFactor:(float)scale; // its object +1 (a C++ ship since bead oo-9ht.144)
+- (ShipEntity*)cxx_newDockWithName:(const std::string&)shipKey andScaleFactor:(float)scale; // its object +1 (a C++ ship since bead oo-9ht.144). The dock. Does not apply auto_ai or respect conditions
+- (ShipEntity*)cxx_newShipWithName:(const std::string&)shipKey; // its object +1 (a C++ ship since bead oo-9ht.144). Does not apply auto_ai or respect conditions
+- (BOOL)cxx_isStationShipDictionary:(const oo::PList&)dict; // the dictionary's ship is a station (-cxx_shipClassForShipDictionary: picked StationEntity until bead oo-9ht.175); NO for a null PList
 - (std::optional<std::string>)defaultAIForRole:(const std::string&)role; // autoAImap.plist lookup
 - (OOCargoQuantity)cxx_maxCargoForShip:(const std::string&)desc;
 
@@ -240,8 +241,9 @@ MA 02110-1301, USA.
 - (OOCommodities*)commodities;
 - (ShipEntity*)reifyCargoPod:(ShipEntity*)cargoObj;
 - (ShipEntity*)cargoPodFromTemplate:(ShipEntity*)cargoObj;
-- (std::vector<oo::ObjCRef<ShipEntity*>>)cxx_getContainersOfGoods:(OOCargoQuantity)how_many scarce:(BOOL)scarce legal:(BOOL)legal;
-- (std::vector<oo::ObjCRef<ShipEntity*>>)cxx_getContainersOfCommodity:(const std::string&)commodity_name how_much:(OOCargoQuantity)how_many;
+- (std::vector<oo::ObjCRef<::Entity*>>)cxx_getContainersOfGoods:(OOCargoQuantity)how_many scarce:(BOOL)scarce legal:(BOOL)legal;
+- (std::vector<oo::ObjCRef<::Entity*>>)cxx_getContainersOfCommodity:(const std::string&)commodity_name /* unnamed second part */
+                                                                   :(OOCargoQuantity)how_many;
 - (void)fillCargopodWithRandomCargo:(ShipEntity*)cargopod;
 - (std::string)getRandomCommodity; // a commodity key
 - (OOCargoQuantity)cxx_getRandomAmountOfCommodity:(const std::string&)co_type;
@@ -652,8 +654,20 @@ MA 02110-1301, USA.
 - (void)prunePreloadingPlanetMaterials;
 - (void)loadConditionScripts;
 - (void)addConditionScripts:(const std::vector<std::string>&)scripts;
-- (OOJSScript*)cxx_getConditionScript:(const std::string&)scriptname;
+- (OOScript*)cxx_getConditionScript:(const std::string&)scriptname;
 
+@end
+
+/*	Carries -cxx_addDelayedMessage:forCount:afterDelay:'s dictionary through
+        OOScheduleDeferredCall(), which retains it until the call fires, as it did the dictionary
+        (the AI deferred-call trampoline's holder is the exemplar, AI+ObjCBridge.h). Its class is
+        Objective-C because the deferred call retains it; cxx::Universe::addDelayedMessage fills and
+        reads it (bead oo-pas).
+*/
+@interface OOUniverseDelayedMessage : OOObject {
+@public
+    oo::PList message;
+}
 @end
 
 namespace oo {

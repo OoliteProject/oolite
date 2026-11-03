@@ -25,6 +25,7 @@ MA 02110-1301, USA.
 #import "OOWaypointEntity.h"
 #import "Entity.h"
 #import "HeadUpDisplay.h"
+#import "OOJSWaypoint.h"
 #import "OOMacroOpenGL.h"
 #import "OOOpenGL.h"
 #import "OOPListGameTypes.h"
@@ -41,8 +42,6 @@ MA 02110-1301, USA.
 #define OOWAYPOINT_KEY_SIZE "size"
 #define OOWAYPOINT_KEY_CODE "beaconCode"
 #define OOWAYPOINT_KEY_LABEL "beaconLabel"
-
-namespace cxx {
 
 oo::Ref<OOWaypointEntity> OOWaypointEntity::waypointWithDictionary(const oo::PList& info)
 {
@@ -114,14 +113,14 @@ void OOWaypointEntity::drawImmediate(bool /*immediate*/, bool translucent)
         return;
     }
 
-    if (![PLAYER cxx_hasEquipmentItemProviding:"EQ_ADVANCED_COMPASS"]) {
+    if (!(PLAYER != nullptr ? PLAYER->hasEquipmentItemProviding("EQ_ADVANCED_COMPASS") : false)) {
         return;
     }
 
     int8_t i, j, k;
 
     GLfloat a = 0.75;
-    if ([PLAYER compassTarget] != oo::ToObjC(this)) {
+    if ((PLAYER != nullptr ? PLAYER->getCompassTarget() : (::Entity*)nullptr) != oo::ToObjC(this)) {
         a *= 0.25;
     }
     if (cam_zero_distance > _size * _size) {
@@ -226,25 +225,24 @@ bool OOWaypointEntity::isBeacon()
     return beaconCode().has_value();
 }
 
-id<OOHUDBeaconIcon> OOWaypointEntity::beaconDrawable()
+OOHUDBeaconIcon* OOWaypointEntity::beaconDrawable()
 {
-    if (_beaconDrawable.get() == nil) {
+    if (_beaconDrawable == nullptr) {
         const std::u16string beaconCode = oo::utf8ToUtf16(_beaconCode.value_or(std::string()));
         NSUInteger length = beaconCode.size(); // -length: UTF-16 units
 
         if (length > 1) {
             const oo::PList* iconEntry = [UNIVERSE cxx_descriptions]->find(*_beaconCode);
             const oo::PList iconData = (iconEntry != nullptr) ? *iconEntry : oo::PList();
-            // The sprite is converted: its facade is the icon (amendment oo-cc8a item 2), nil where it answered nil.
             if (iconData.isArray())
-                _beaconDrawable = oo::ObjCRef<id<OOHUDBeaconIcon>>(oo::ToObjC(OOPolygonSprite::initWithDataArray(iconData, 0.5, *_beaconCode)));
+                _beaconDrawable = OOPolygonSprite::initWithDataArray(iconData, 0.5, *_beaconCode); // null where it answered nil
         }
 
-        if (_beaconDrawable.get() == nil) {
+        if (_beaconDrawable == nullptr) {
             if (length > 0)
-                _beaconDrawable = oo::adoptObjC<id<OOHUDBeaconIcon>>([[::OOHUDBeaconCodeIcon alloc] initWithText:oo::utf16ToUtf8(beaconCode.substr(0, 1))]); // -substringToIndex:1
+                _beaconDrawable = oo::makeRef<OOHUDBeaconCodeIcon>(oo::utf16ToUtf8(beaconCode.substr(0, 1))); // -substringToIndex:1
             else
-                _beaconDrawable = oo::adoptObjC<id<OOHUDBeaconIcon>>([[::OOHUDBeaconCodeIcon alloc] initWithText:std::string()]);
+                _beaconDrawable = oo::makeRef<OOHUDBeaconCodeIcon>(std::string());
         }
     }
 
@@ -282,4 +280,7 @@ bool OOWaypointEntity::isJammingScanning()
     return NO;
 }
 
-} // namespace cxx
+// The binding's category, which the facade forwarded.
+JSClassID OOWaypointEntity::jsClassID() { return ::JSWaypointClassID(); }
+std::optional<std::string> OOWaypointEntity::jsClassName() { return ::OOJSWaypointJSClassName(); }
+bool OOWaypointEntity::isVisibleToScripts() { return ::OOJSWaypointIsVisibleToScripts(); }

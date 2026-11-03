@@ -24,6 +24,7 @@
 */
 
 #import "ResourceManager.h"
+#import "OOALMusic.h"
 #import "OODescription.h"
 #import "OOSystemDescriptionManager.h"
 
@@ -458,7 +459,7 @@ OO_TEST(singleFileLookups)
 
 		// No such sound or music file: nil.
 		OO_CHECK([ResourceManager cxx_ooSoundNamed:"oo-test-missing.ogg" inFolder:std::string("Sounds")] == nil);
-		OO_CHECK([ResourceManager cxx_ooMusicNamed:"oo-test-missing.ogg" inFolder:std::string("Music")] == nil);
+		OO_CHECK(!cxx::ResourceManager::ooMusicNamed("oo-test-missing.ogg", std::string("Music")));
 
 		// No shader-uniform-bindings.plist and no material-defaults.plist in the scratch data.
 		OO_CHECK([ResourceManager cxx_shaderBindingTypesDictionary].isNull());
@@ -475,8 +476,8 @@ OO_TEST(scriptsAndSystemsAndDiagnostics)
 		OO_CHECK([ResourceManager cxx_loadScripts].empty());
 
 		// No planetinfo.plist: a manager with nothing set, made anew on each call.
-		OOSystemDescriptionManager *manager = [ResourceManager systemDescriptionManager];
-		OO_CHECK(manager != nil);
+		oo::Ref<OOSystemDescriptionManager> manager = [ResourceManager systemDescriptionManager];
+		OO_CHECK(manager != nullptr);
 		OO_CHECK(manager != [ResourceManager systemDescriptionManager]);
 
 		// Diagnostics go under the log folder, which is under the scratch home.
@@ -504,9 +505,9 @@ OO_TEST(cxxSlice4API)
 		OO_CHECK(cxx::ResourceManager::loadScripts().empty());
 		OO_CHECK(cxx::ResourceManager::systemDescriptionManager().get() != nullptr);
 		OO_CHECK(cxx::ResourceManager::diagnosticFileLocation() == [ResourceManager cxx_diagnosticFileLocation]);
-		// The facade answers the new manager's facade.
-		OOSystemDescriptionManager *manager = [ResourceManager systemDescriptionManager];
-		OO_CHECK(manager != nil && oo::ToCxx(manager) != nullptr);
+		// The facade answers a new C++ manager (bead oo-9ht.32 deleted the manager's facade).
+		oo::Ref<OOSystemDescriptionManager> manager = [ResourceManager systemDescriptionManager];
+		OO_CHECK(manager != nullptr);
 	}
 }
 

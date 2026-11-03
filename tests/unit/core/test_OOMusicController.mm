@@ -9,8 +9,9 @@
 	folder's (HOMEPATH). The resource manager and the music are this file's stubs, which record
 	what they are asked (the real ones would bring the sound system into the link; amendment oo-z1s4
 	item 4): "missing.ogg" has no music. These expectations were written against the Objective-C API
-	and ran on the unconverted class first; they now run through the facade, which is its forwarding
-	test. After them come the C++ API (cxx::OOMusicController) and the facade's contract.
+	and ran on the unconverted class first; since bead oo-9ht.90 deleted the facade they ask the C++
+	class with every expectation kept, and the facade's contract case retired under the standing
+	approval oo-9n5p9. After them comes the C++ API case.
 	Run: bash tools/check-core-tests.sh test_OOMusicController
 */
 
@@ -42,22 +43,22 @@ struct MusicState
 	BOOL			_playing = NO;
 	float			_gain = 0.0f;
 };
-static std::map<const cxx::OOMusic *, MusicState> gMusics;
+static std::map<const OOMusic *, MusicState> gMusics;
 
 
 // The sound root, which the music derives from: a stand-in, as OOALSound.mm would bring the sound
 // system into the link (bead oo-ra76k).
-cxx::OOSound::OOSound() = default;
-std::optional<std::string> cxx::OOSound::name()  { return std::nullopt; }
-ALuint cxx::OOSound::soundBuffer()  { return 0; }
-bool cxx::OOSound::soundIncomplete()  { return false; }
-void cxx::OOSound::rewind() {}
-std::optional<std::string> cxx::OOSound::descriptionComponents() const  { return std::nullopt; }
+OOSound::OOSound() = default;
+std::optional<std::string> OOSound::name()  { return std::nullopt; }
+ALuint OOSound::soundBuffer()  { return 0; }
+bool OOSound::soundIncomplete()  { return false; }
+void OOSound::rewind() {}
+std::optional<std::string> OOSound::descriptionComponents() const  { return std::nullopt; }
 
 
-// The music: this file's C++ stand-in for cxx::OOMusic (OOALMusic.mm is not linked; bead oo-ra76k),
+// The music: this file's C++ stand-in for OOMusic (OOALMusic.mm is not linked; bead oo-ra76k),
 // answering what the Objective-C stand-in answered.
-oo::Ref<cxx::OOMusic> cxx::OOMusic::initWithContentsOfFile(const std::optional<std::string> &inPath)
+oo::Ref<OOMusic> OOMusic::initWithContentsOfFile(const std::optional<std::string> &inPath)
 {
 	oo::Ref<OOMusic> self = oo::adopt(new OOMusic);
 	gLiveMusics++;
@@ -66,32 +67,32 @@ oo::Ref<cxx::OOMusic> cxx::OOMusic::initWithContentsOfFile(const std::optional<s
 }
 
 
-cxx::OOMusic::~OOMusic()
+OOMusic::~OOMusic()
 {
 	gMusics.erase(this);
 	gLiveMusics--;
 }
 
 
-std::optional<std::string> cxx::OOMusic::name()
+std::optional<std::string> OOMusic::name()
 {
 	return gMusics[this]._name;
 }
 
 
-void cxx::OOMusic::setMusicGain(float gain)
+void OOMusic::setMusicGain(float gain)
 {
 	gMusics[this]._gain = gain;
 }
 
 
-float cxx::OOMusic::musicGain()
+float OOMusic::musicGain()
 {
 	return gMusics[this]._gain;
 }
 
 
-void cxx::OOMusic::playLooped(bool loop)
+void OOMusic::playLooped(bool loop)
 {
 	MusicState &state = gMusics[this];
 	gLog.push_back("play " + state._name + (loop ? " looped" : ""));
@@ -99,7 +100,7 @@ void cxx::OOMusic::playLooped(bool loop)
 }
 
 
-void cxx::OOMusic::stop()
+void OOMusic::stop()
 {
 	MusicState &state = gMusics[this];
 	gLog.push_back("stop " + state._name);
@@ -107,23 +108,23 @@ void cxx::OOMusic::stop()
 }
 
 
-bool cxx::OOMusic::isPlaying()
+bool OOMusic::isPlaying()
 {
 	return gMusics[this]._playing;
 }
 
 
-::OOSoundSource *cxx::OOMusic::musicSoundSource()
+::OOSoundSource *OOMusic::musicSoundSource()
 {
 	return reinterpret_cast<::OOSoundSource *>(this);	// an object the controller hands on unopened
 }
 
 
 // The resource manager: each name is a new music (as a cache miss is), from the "Music" folder.
-oo::Ref<cxx::OOMusic> cxx::ResourceManager::ooMusicNamed(const std::string &fileName, const std::optional<std::string> &folderName)
+oo::Ref<OOMusic> cxx::ResourceManager::ooMusicNamed(const std::string &fileName, const std::optional<std::string> &folderName)
 {
 	if (fileName == "missing.ogg" || folderName != std::optional<std::string>("Music"))  return nullptr;
-	return cxx::OOMusic::initWithContentsOfFile(fileName);	// the stand-in names the music by its path
+	return OOMusic::initWithContentsOfFile(fileName);	// the stand-in names the music by its path
 }
 
 
@@ -159,7 +160,7 @@ std::optional<std::string> ModeDefault()
 
 MusicState *Current(OOMusicController *controller)
 {
-	return &gMusics.at(reinterpret_cast<const cxx::OOMusic *>([controller soundSource]));
+	return &gMusics.at(reinterpret_cast<const OOMusic *>(controller->soundSource()));
 }
 
 }	// namespace
@@ -170,15 +171,15 @@ OO_TEST(theSharedControllerReadsItsMode)
 {
 	SetUp();
 	oo::Defaults::standard().setObject("music mode", oo::PList(std::string("off")));
-	OOMusicController *controller = [OOMusicController sharedController];
-	OO_CHECK(controller != nil && [OOMusicController sharedController] == controller);
-	OO_CHECK([controller mode] == kOOMusicOff);
-	OO_CHECK(![controller isPlaying] && ![controller playingMusic].has_value() && [controller soundSource] == nil);
+	OOMusicController *controller = OOMusicController::sharedController();
+	OO_CHECK(controller != nullptr && OOMusicController::sharedController() == controller);
+	OO_CHECK(controller->mode() == kOOMusicOff);
+	OO_CHECK(!controller->isPlaying() && !controller->playingMusic().has_value() && controller->soundSource() == nil);
 
 	// Off: nothing plays.
-	[controller playThemeMusic];
-	[controller playMusicNamed:"x.ogg" loop:NO];
-	OO_CHECK(TakeLog().empty() && ![controller isPlaying]);
+	controller->playThemeMusic();
+	controller->playMusicNamed("x.ogg", NO);
+	OO_CHECK(TakeLog().empty() && !controller->isPlaying());
 }
 
 
@@ -186,19 +187,19 @@ OO_TEST(theSharedControllerReadsItsMode)
 OO_TEST(modeChangesAreKept)
 {
 	SetUp();
-	OOMusicController *controller = [OOMusicController sharedController];
+	OOMusicController *controller = OOMusicController::sharedController();
 	@autoreleasepool
 	{
-		[controller setMode:kOOMusicOn];
-		OO_CHECK([controller mode] == kOOMusicOn && ModeDefault() == std::optional<std::string>("on"));
+		controller->setMode(kOOMusicOn);
+		OO_CHECK(controller->mode() == kOOMusicOn && ModeDefault() == std::optional<std::string>("on"));
 		OO_CHECK((TakeLog() == std::vector<std::string>{ "play OoliteTheme.ogg looped" }));
-		[controller setMode:kOOMusicITunes];	// not on this platform: refused
-		OO_CHECK([controller mode] == kOOMusicOn && ModeDefault() == std::optional<std::string>("on"));
-		[controller setMode:kOOMusicOff];
-		OO_CHECK([controller mode] == kOOMusicOff && ModeDefault() == std::optional<std::string>("off"));
+		controller->setMode(kOOMusicITunes);	// not on this platform: refused
+		OO_CHECK(controller->mode() == kOOMusicOn && ModeDefault() == std::optional<std::string>("on"));
+		controller->setMode(kOOMusicOff);
+		OO_CHECK(controller->mode() == kOOMusicOff && ModeDefault() == std::optional<std::string>("off"));
 		OO_CHECK((TakeLog() == std::vector<std::string>{ "stop OoliteTheme.ogg" }));
-		[controller setMode:kOOMusicOn];	// the stop forgot the theme: nothing plays
-		OO_CHECK(TakeLog().empty() && ![controller isPlaying]);
+		controller->setMode(kOOMusicOn);	// the stop forgot the theme: nothing plays
+		OO_CHECK(TakeLog().empty() && !controller->isPlaying());
 	}
 	OO_CHECK(gLiveMusics == 0);
 }
@@ -207,29 +208,29 @@ OO_TEST(modeChangesAreKept)
 OO_TEST(playsMusicByName)
 {
 	SetUp();
-	OOMusicController *controller = [OOMusicController sharedController];
+	OOMusicController *controller = OOMusicController::sharedController();
 	@autoreleasepool
 	{
-		[controller playMusicNamed:"a.ogg" loop:YES gain:2.0f];
+		controller->playMusicNamed("a.ogg", YES, 2.0f);
 		OO_CHECK((TakeLog() == std::vector<std::string>{ "play a.ogg looped" }));
-		OO_CHECK([controller isPlaying] && [controller playingMusic] == std::optional<std::string>("a.ogg"));
+		OO_CHECK(controller->isPlaying() && controller->playingMusic() == std::optional<std::string>("a.ogg"));
 		OO_CHECK(Current(controller)->_gain == 1.0f);	// clamped
 
-		[controller playMusicNamed:"a.ogg" loop:NO];	// already playing it: nothing
+		controller->playMusicNamed("a.ogg", NO);	// already playing it: nothing
 		OO_CHECK(TakeLog().empty());
 
-		[controller playMusicNamed:"missing.ogg" loop:NO];	// none: the current one goes on
-		OO_CHECK(TakeLog().empty() && [controller playingMusic] == std::optional<std::string>("a.ogg"));
+		controller->playMusicNamed("missing.ogg", NO);	// none: the current one goes on
+		OO_CHECK(TakeLog().empty() && controller->playingMusic() == std::optional<std::string>("a.ogg"));
 
-		[controller playMusicNamed:"b.ogg" loop:NO];
+		controller->playMusicNamed("b.ogg", NO);
 		OO_CHECK((TakeLog() == std::vector<std::string>{ "stop a.ogg", "play b.ogg" }));
 		OO_CHECK(Current(controller)->_gain == OO_DEFAULT_SOUNDSOURCE_GAIN);
 
-		[controller stopMusicNamed:"a.ogg"];	// not the one playing
+		controller->stopMusicNamed("a.ogg");	// not the one playing
 		OO_CHECK(TakeLog().empty());
-		[controller stopMusicNamed:"b.ogg"];
+		controller->stopMusicNamed("b.ogg");
 		OO_CHECK((TakeLog() == std::vector<std::string>{ "stop b.ogg" }));
-		OO_CHECK(![controller isPlaying] && [controller soundSource] == nil);
+		OO_CHECK(!controller->isPlaying() && controller->soundSource() == nil);
 	}
 	OO_CHECK(gLiveMusics == 0);
 }
@@ -238,68 +239,67 @@ OO_TEST(playsMusicByName)
 OO_TEST(specialMusic)
 {
 	SetUp();
-	OOMusicController *controller = [OOMusicController sharedController];
+	OOMusicController *controller = OOMusicController::sharedController();
 	@autoreleasepool
 	{
-		[controller playThemeMusic];
+		controller->playThemeMusic();
 		OO_CHECK((TakeLog() == std::vector<std::string>{ "play OoliteTheme.ogg looped" }));
-		[controller stopDockingMusic];	// not docking music: nothing
-		[controller stopMissionMusic];
+		controller->stopDockingMusic();	// not docking music: nothing
+		controller->stopMissionMusic();
 		OO_CHECK(TakeLog().empty());
-		[controller stopThemeMusic];	// the theme gives way to the docked music
+		controller->stopThemeMusic();	// the theme gives way to the docked music
 		OO_CHECK((TakeLog() == std::vector<std::string>{ "stop OoliteTheme.ogg", "play OoliteDocked.ogg" }));
 
-		[controller playDockingMusic];
+		controller->playDockingMusic();
 		OO_CHECK((TakeLog() == std::vector<std::string>{ "stop OoliteDocked.ogg", "play BlueDanube.ogg looped" }));
-		[controller toggleDockingMusic];	// playing the docking music: stops it
+		controller->toggleDockingMusic();	// playing the docking music: stops it
 		OO_CHECK((TakeLog() == std::vector<std::string>{ "stop BlueDanube.ogg" }));
-		[controller toggleDockingMusic];	// nothing playing: starts it
+		controller->toggleDockingMusic();	// nothing playing: starts it
 		OO_CHECK((TakeLog() == std::vector<std::string>{ "play BlueDanube.ogg looped" }));
-		[controller stopDockingMusic];
+		controller->stopDockingMusic();
 		OO_CHECK((TakeLog() == std::vector<std::string>{ "stop BlueDanube.ogg" }));
 
 		// The mission music: the theme until it is set; none when it is cleared.
-		[controller playMissionMusic];
+		controller->playMissionMusic();
 		OO_CHECK((TakeLog() == std::vector<std::string>{ "play OoliteTheme.ogg" }));
-		[controller cxx_setMissionMusic:std::string("mission.ogg")];
-		[controller playMissionMusic];
+		controller->setMissionMusic(std::string("mission.ogg"));
+		controller->playMissionMusic();
 		OO_CHECK((TakeLog() == std::vector<std::string>{ "stop OoliteTheme.ogg", "play mission.ogg" }));
-		[controller stopMissionMusic];
+		controller->stopMissionMusic();
 		OO_CHECK((TakeLog() == std::vector<std::string>{ "stop mission.ogg" }));
-		[controller cxx_setMissionMusic:std::nullopt];
-		[controller playMissionMusic];
+		controller->setMissionMusic(std::nullopt);
+		controller->playMissionMusic();
 		OO_CHECK(TakeLog().empty());
 
 		// A change of mode stops the music, and on again starts the special one.
-		[controller playDockedMusic];
+		controller->playDockedMusic();
 		TakeLog();
-		[controller setMode:kOOMusicOff];
+		controller->setMode(kOOMusicOff);
 		OO_CHECK((TakeLog() == std::vector<std::string>{ "stop OoliteDocked.ogg" }));
-		[controller toggleDockingMusic];	// only when on
+		controller->toggleDockingMusic();	// only when on
 		OO_CHECK(TakeLog().empty());
-		[controller playDockedMusic];	// off: remembered, not played
+		controller->playDockedMusic();	// off: remembered, not played
 		OO_CHECK(TakeLog().empty());
-		[controller setMode:kOOMusicOn];
+		controller->setMode(kOOMusicOn);
 		OO_CHECK((TakeLog() == std::vector<std::string>{ "play OoliteDocked.ogg" }));
 
-		[controller justStop];
+		controller->justStop();
 		OO_CHECK((TakeLog() == std::vector<std::string>{ "stop OoliteDocked.ogg" }));
-		[controller setMode:kOOMusicOff];
-		[controller setMode:kOOMusicOn];	// nothing special any more: just stops
-		[controller stop];
+		controller->setMode(kOOMusicOff);
+		controller->setMode(kOOMusicOn);	// nothing special any more: just stops
+		controller->stop();
 		OO_CHECK(TakeLog().empty());
 	}
 	OO_CHECK(gLiveMusics == 0);
 }
 
 
-// The C++ API: the one controller, the same state as the facade's.
+// The C++ API: the one controller.
 OO_TEST(cxxApi)
 {
 	SetUp();
-	cxx::OOMusicController *controller = cxx::OOMusicController::sharedController();
-	OO_CHECK(controller != nullptr && controller == cxx::OOMusicController::sharedController());
-	OO_CHECK(oo::ToCxx([OOMusicController sharedController]) == controller);
+	OOMusicController *controller = OOMusicController::sharedController();
+	OO_CHECK(controller != nullptr && controller == OOMusicController::sharedController());
 	@autoreleasepool
 	{
 		OO_CHECK(controller->mode() == kOOMusicOn);
@@ -307,31 +307,14 @@ OO_TEST(cxxApi)
 		controller->playMissionMusic();
 		OO_CHECK((TakeLog() == std::vector<std::string>{ "play c.ogg" }));
 		OO_CHECK(controller->isPlaying() && controller->playingMusic() == std::optional<std::string>("c.ogg"));
-		OO_CHECK([[OOMusicController sharedController] isPlaying]);
+		OO_CHECK(OOMusicController::sharedController()->isPlaying());
 		controller->playMusicNamed("d.ogg", true, 0.5f);
 		OO_CHECK((TakeLog() == std::vector<std::string>{ "stop c.ogg", "play d.ogg looped" }));
-		OO_CHECK(Current([OOMusicController sharedController])->_gain == 0.5f);
+		OO_CHECK(Current(OOMusicController::sharedController())->_gain == 0.5f);
 		controller->stop();
 		OO_CHECK((TakeLog() == std::vector<std::string>{ "stop d.ogg" }) && !controller->isPlaying());
 	}
 	OO_CHECK(gLiveMusics == 0);
-}
-
-
-// The facade's contract: one facade for the life of the process.
-OO_TEST(facade)
-{
-	SetUp();
-	OOMusicController *facade = nil;
-	@autoreleasepool
-	{
-		facade = [OOMusicController sharedController];
-	}
-	OO_CHECK(facade == [OOMusicController sharedController]);
-	OO_CHECK(oo::ToObjC(cxx::OOMusicController::sharedController()) == facade);
-	OOMusicController *none = nil;
-	OO_CHECK(oo::ToCxx(none) == nullptr);
-	OO_CHECK(oo::ToObjC(static_cast<cxx::OOMusicController *>(nullptr)) == nil);
 }
 
 

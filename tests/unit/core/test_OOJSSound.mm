@@ -1,18 +1,22 @@
 /*	test_OOJSSound.mm
-	Unit tests for the Sound JS binding (src/Core/Scripting/OOJSSound.h/.mm) and its OOSound
-	category (OOJSSound+ObjCBridge.mm): bead oo-crq2, converted the way bead oo-ppc converted
-	OOJSVector (proposed ADR-0056 amendments oo-ppc and oo-ykoy).
+	Unit tests for the Sound JS binding (src/Core/Scripting/OOJSSound.h/.mm) and the bodies of its
+	OOSound category (the Scripting bridge file until it went with the sound's facade): bead
+	oo-crq2, converted the way bead oo-ppc converted OOJSVector (proposed ADR-0056 amendments
+	oo-ppc and oo-ykoy).
 
 	As test_OOJSWormhole.mm does (amendment oo-ykoy, item 4), it runs the JS class in a real
-	QuickJS-ng context, links the game's own objects for the binding, its bridge, the engine's
-	class registry (OOJSClasses.mm) and its exception translator (OOJSEngineNativeWrappers.mm),
-	and stands in for the classes the binding messages (OOSound,
-	ResourceManager, OOMusicController, OOSoundSource and the player answer only the selectors the
-	binding sends) and for the engine functions it links against, with the engine headers' linkage.
-	The expectations were written against the Objective-C file and run on it first; they pin the
-	JS-visible behaviour (name, toString(), the four static methods and their errors,
-	SoundFromJSValue() for a Sound and for a name, a native's exception) and what the category
-	answers the engine. Run: tests/run.sh unit
+	QuickJS-ng context, links the game's own objects for the binding, the engine's class registry
+	(OOJSClasses.mm), its C++ private-slot glue (OOJSPrivateObject.cpp) and its exception
+	translator (OOJSEngineNativeWrappers.mm), and stands in for the classes the binding calls (the
+	sound, the custom-sound look-up, ResourceManager, OOMusicController, the SoundSource binding
+	and the player answer only what the binding asks) and for the engine functions it links
+	against, with the engine headers' linkage. The expectations were written against the
+	Objective-C file and run on it first; they pin the JS-visible behaviour (name, toString(), the
+	four static methods and their errors, SoundFromJSValue() for a Sound and for a name, a native's
+	exception) and what the category answered the engine. Since the sound's facade was deleted the
+	sound is a C++ stand-in, the category's answers are the functions that held its bodies, and a
+	Sound object's slot holds the binding's holder of the sound, which SoundFromJSValue() answers.
+	Run: tests/run.sh unit
 */
 
 #import "OOFoundation.h"
@@ -27,7 +31,7 @@
 
 // MARK: The classes, as far as the binding sees them ----------------------------------------------
 
-@class PlayerEntity;
+class PlayerEntity;
 
 // The player's status, as Entity.h defines it.
 #undef ENTRY
@@ -38,56 +42,84 @@ typedef enum OOEntityStatus
 } OOEntityStatus;
 #undef ENTRY
 
-/*	A sound named "raise" raises from -cxx_name, one named "throw" throws a C++ exception, so the
-	test sees what an exception under a native becomes.
+/*	The sound: a C++ stand-in since its facade was deleted (the root's members its vtable names;
+	OOALSound.mm is not linked). A sound named "raise" raises from name(), one named "throw" throws
+	a C++ exception, so the test sees what an exception under a native becomes.
 */
-@interface OOSound: OOObject
-{
-@public
-	std::optional<std::string> _name;
-}
-+ (id) cxx_soundWithCustomSoundKey:(const std::string &)key;
-- (std::optional<std::string>) cxx_name;
-@end
+#import "OOALSound.h"
+#include <stdexcept>
 
-@interface OOSoundSource: OOObject
-@end
+OOSound::OOSound()  {}
+ALuint OOSound::soundBuffer()  { return 0; }
+bool OOSound::soundIncomplete()  { return false; }
+void OOSound::rewind()  {}
+std::optional<std::string> OOSound::descriptionComponents() const  { return std::nullopt; }
+std::optional<std::string> OOSound::name()  { return std::nullopt; }
+
+class TestSound final : public OOSound
+{
+public:
+	std::optional<std::string> name() override
+	{
+		if (_name == "raise")  [OOException raise:OOInvalidArgumentException format:"name %s", "boom"];
+		if (_name == "throw")  throw std::runtime_error("cxx boom");
+		return _name;
+	}
+
+	std::optional<std::string> _name;
+};
+
+class OOSoundSource;	// only handed on (OOSoundSource.h)
 
 @interface ResourceManager: OOObject
 + (OOSound *) cxx_ooSoundNamed:(const std::string &)fileName inFolder:(const std::optional<std::string> &)folderName;
 @end
 
-@interface OOMusicController: OOObject
+/*	The music controller is C++ (its Objective-C facade was deleted): the members the binding
+	calls, declared as OOMusicController.h declares them (that header would bring the real
+	OOSoundSource into this file) and defined below over this file's record of what was asked.
+*/
+#include "oofnd/Ref.hpp"
+class OOMusicController : public oo::RefCounted
 {
-@public
+public:
+	static OOMusicController *sharedController();
+	void playMusicNamed(const std::string &name, bool loop, float gain);
+	void stop();
+	::OOSoundSource *soundSource();
+	std::optional<std::string> playingMusic();
+};
+
+// What the controller was asked.
+struct MusicRecord
+{
 	std::optional<std::string> _playing;
-	BOOL _loop;
-	float _gain;
-	int _stops;
-}
-+ (OOMusicController *) sharedController;
-- (void) playMusicNamed:(const std::string &)name loop:(BOOL)loop gain:(float)gain;
-- (void) stop;
-- (OOSoundSource *) soundSource;
-- (std::optional<std::string>) playingMusic;
-@end
+	BOOL _loop = NO;
+	float _gain = 0.0f;
+	int _stops = 0;
+};
 
-@interface FakePlayer: OOObject
+/*	PLAYER: C++ since the Objective-C player this stood in for was deleted. The binding asks it its
+	status, the root entity's member (declared as Entity.h declares it; the test imports no game
+	header that defines the classes), answered from the test's value.
+*/
+namespace cxx {
+class Entity
 {
-@public
-	OOEntityStatus _status;
-}
-- (OOEntityStatus) status;
-@end
+public:
+	OOEntityStatus status();
+};
+}	// namespace cxx
 
-@interface OOSound (OOJavaScriptExtentions)
-- (JSValue) oo_jsValueInContext:(JSContext *)context;
-- (std::optional<std::string>) cxx_oo_jsDescription;
-- (std::optional<std::string>) cxx_oo_jsClassName;
-@end
+class FakePlayer : public cxx::Entity
+{
+public:
+	OOEntityStatus _status = {};
+};
 
 
 #import "OOJSSound.h"
+#import "OOJSSoundSource.h"
 
 #include "oo_test.hpp"
 
@@ -101,73 +133,70 @@ typedef enum OOEntityStatus
 
 
 namespace {
-std::vector<OOSound *> sLoaded;
-OOMusicController *sMusic = nil;
-OOSoundSource *sMusicSource = nil;
+std::vector<oo::Ref<OOSound>> sLoaded;	// the sounds made, kept as the resource manager's cache keeps them
+MusicRecord *sMusic = nullptr;
+char sMusicSourceObject;	// the music's source: an object the binding hands on unopened
+OOSoundSource *sMusicSource = reinterpret_cast<OOSoundSource *>(&sMusicSourceObject);
+
+
+OOSound *MakeSound(const std::optional<std::string> &name)
+{
+	const oo::Ref<TestSound> sound = oo::makeRef<TestSound>();
+	sound->_name = name;
+	sLoaded.push_back(sound);
+	return sound.get();
+}
 } // namespace
 
 
-@implementation OOSound
-
-+ (id) cxx_soundWithCustomSoundKey:(const std::string &)key
+// Was +[OOSound cxx_soundWithCustomSoundKey:] (the category went with the facade).
+OOSound *OOSoundWithCustomSoundKey(const std::string &key)
 {
-	OOSound *sound = [[[OOSound alloc] init] autorelease];
-	sound->_name = "custom:" + key;
-	sLoaded.push_back([sound retain]);
-	return sound;
+	return MakeSound("custom:" + key);
 }
-
-
-- (std::optional<std::string>) cxx_name
-{
-	if (_name == "raise")  [OOException raise:OOInvalidArgumentException format:"name %s", "boom"];
-	if (_name == "throw")  throw std::runtime_error("cxx boom");
-	return _name;
-}
-
-@end
-
-
-@implementation OOSoundSource
-@end
 
 
 @implementation ResourceManager
 
 + (OOSound *) cxx_ooSoundNamed:(const std::string &)fileName inFolder:(const std::optional<std::string> &)folderName
 {
-	if (fileName == "missing.ogg")  return nil;
-	OOSound *sound = [[[OOSound alloc] init] autorelease];
-	sound->_name = (fileName == "raise" || fileName == "throw") ? fileName : folderName.value_or("") + "/" + fileName;
-	sLoaded.push_back([sound retain]);
-	return sound;
+	if (fileName == "missing.ogg")  return nullptr;
+	return MakeSound((fileName == "raise" || fileName == "throw") ? fileName : folderName.value_or("") + "/" + fileName);
 }
 
 @end
 
 
-@implementation OOMusicController
-
-+ (OOMusicController *) sharedController  { return sMusic; }
-- (OOSoundSource *) soundSource  { return sMusicSource; }
-- (std::optional<std::string>) playingMusic  { return _playing; }
-- (void) stop  { _playing = std::nullopt; _stops++; }
-
-- (void) playMusicNamed:(const std::string &)name loop:(BOOL)loop gain:(float)gain
+// The SoundSource binding's JS value for a source (owned by the caller): a string naming the
+// class, as the engine's stand-in answered for any object but a sound (OOJSSoundSource.mm is not
+// linked).
+JSValue OOJSSoundSourceJSValueInContext(OOSoundSource *source, JSContext *context)
 {
-	_playing = name;
-	_loop = loop;
-	_gain = gain;
+	if (source == nullptr)  return JS_NULL;
+	const std::string name = "native OOSoundSource";
+	return JS_NewStringLen(context, name.data(), name.size());
 }
 
-@end
+
+OOMusicController *OOMusicController::sharedController()
+{
+	static OOMusicController *shared = new OOMusicController();	// never released, as the game's
+	return shared;
+}
+
+::OOSoundSource *OOMusicController::soundSource()  { return sMusicSource; }
+std::optional<std::string> OOMusicController::playingMusic()  { return sMusic->_playing; }
+void OOMusicController::stop()  { sMusic->_playing = std::nullopt; sMusic->_stops++; }
+
+void OOMusicController::playMusicNamed(const std::string &name, bool loop, float gain)
+{
+	sMusic->_playing = name;
+	sMusic->_loop = loop;
+	sMusic->_gain = gain;
+}
 
 
-@implementation FakePlayer
-
-- (OOEntityStatus) status  { return _status; }
-
-@end
+OOEntityStatus cxx::Entity::status()  { return static_cast<FakePlayer *>(this)->_status; }
 
 
 // MARK: What the rest of the engine provides ------------------------------------------------------
@@ -262,7 +291,7 @@ namespace {
 std::map<JSClassID, int> sConverters;
 } // namespace
 
-PlayerEntity *gOOPlayer = nil;
+PlayerEntity *gOOPlayer = nullptr;
 
 
 void OOJSReportBadPropertySelector(JSContext *context, JSValueConst, int, const JSCFunctionListEntry *, size_t)
@@ -277,53 +306,10 @@ void OOJSRegisterObjectConverter(JSClassID classID, OOJSClassConverterCallback)
 }
 
 
-// The engine's object getter: the JS class must be the required one (the class registry's
-// OOJSIsSubclass(), OOJSClasses.mm), and the private slot holds the object itself.
-BOOL OOJSObjectGetterImplPRIVATE(JSContext *context, JSValueConst object, JSClassID requiredClassID, Class requiredObjCClass, const char *, id *outObject)
+// The shared toString(), which OOJSCxxObjectWrapperToString() hands a `this` of another class.
+JSValue OOJSObjectWrapperToString(JSContext *context, JSValueConst, int, JSValueConst *)
 {
-	if (!OOJSIsSubclass(JS_GetClassID(object), requiredClassID))
-	{
-		cxx_OOJSReportError(context, "Native method expected %s, got %s.", OOJSClassName(requiredClassID), cxx_OOStringFromJSValue(context, object).value_or("(null)").c_str());
-		return NO;
-	}
-	JSClassID ignored;
-	*outObject = (id)JS_GetAnyOpaque(object, &ignored);
-	if (*outObject != nil && ![*outObject isKindOfClass:requiredObjCClass])
-	{
-		*outObject = nil;
-		return NO;
-	}
-	return YES;
-}
-
-
-// An object's JS value, as the engine gives it (owned by the caller): its category's
-// -oo_jsValueInContext: for a sound, a string naming the class for anything else here.
-JSValue OOJSValueFromNativeObject(JSContext *context, id object)
-{
-	if (object == nil)  return JS_NULL;
-	if ([object isKindOfClass:[OOSound class]])  return [(OOSound *)object oo_jsValueInContext:context];
-	std::string name = std::string("native ") + class_getName([object class]);
-	return JS_NewStringLen(context, name.data(), name.size());
-}
-
-
-id OOJSNativeObjectOfClassFromJSValue(JSContext *, JSValueConst value, Class requiredClass)
-{
-	if (!JS_IsObject(value))  return nil;
-	JSClassID ignored;
-	id object = (id)JS_GetAnyOpaque(value, &ignored);
-	return [object isKindOfClass:requiredClass] ? object : nil;
-}
-
-
-JSValue OOJSObjectWrapperToString(JSContext *context, JSValueConst thisObj, int, JSValueConst *)
-{
-	JSClassID ignored;
-	id object = (id)JS_GetAnyOpaque(thisObj, &ignored);
-	std::optional<std::string> description;
-	if ([object isKindOfClass:[OOSound class]])  description = [(OOSound *)object cxx_oo_jsDescription];
-	std::string text = description.value_or("[object]");
+	const std::string text = "[object]";
 	return JS_NewStringLen(context, text.data(), text.size());
 }
 
@@ -332,12 +318,6 @@ JSValue OOJSUnconstructableConstruct(JSContext *context, JSValueConst, int, JSVa
 {
 	cxx_OOJSReportError(context, "unconstructable");
 	return JS_EXCEPTION;
-}
-
-
-// The test's sounds live for the whole test; nothing is released when their objects go.
-void OOJSObjectWrapperFinalize(JSRuntime *, JSValueConst)
-{
 }
 
 
@@ -352,12 +332,6 @@ void OOJSPauseTimeLimiter(void)  { sLimiterPauses++; }
 void OOJSResumeTimeLimiter(void)  { sLimiterPauses--; }
 
 
-oo::PList OOJSBasicPrivateObjectConverter(JSContext *, JSValueConst)
-{
-	return oo::PList();
-}
-
-
 // MARK: The context -------------------------------------------------------------------------------
 
 namespace {
@@ -365,7 +339,7 @@ namespace {
 JSRuntime *sRuntime;
 JSContext *sContext;
 JSValue sGlobal = JS_UNDEFINED;	// owned for the life of the test
-FakePlayer *sPlayer = nil;
+FakePlayer *sPlayer = nullptr;
 
 
 void SetUpContext()
@@ -378,11 +352,10 @@ void SetUpContext()
 	sGlobal = JS_GetGlobalObject(sContext);
 	InitOOJSSound(sContext, sGlobal);
 
-	sPlayer = [[FakePlayer alloc] init];	// kept for the life of the test
+	sPlayer = new FakePlayer;	// kept for the life of the test
 	sPlayer->_status = STATUS_IN_FLIGHT;
-	gOOPlayer = (PlayerEntity *)sPlayer;
-	sMusic = [[OOMusicController alloc] init];
-	sMusicSource = [[OOSoundSource alloc] init];
+	gOOPlayer = reinterpret_cast<PlayerEntity *>(sPlayer);	// the root part comes first in PlayerEntity: the binding's PLAYER->status() reaches it
+	sMusic = new MusicRecord();
 }
 
 
@@ -415,7 +388,7 @@ std::string EvalShown(const char *src, const char *expected)
 
 std::optional<std::string> NameOf(OOSound *sound)
 {
-	return sound != nil ? sound->_name : std::optional<std::string>("<nil>");
+	return sound != nullptr ? static_cast<TestSound *>(sound)->_name : std::optional<std::string>("<nil>");
 }
 
 }	// namespace
@@ -429,20 +402,20 @@ OO_TEST(registration)
 	OO_CHECK_EVAL("typeof Sound", "function");
 	OO_CHECK_EVAL("new Sound()", "threw: unconstructable");
 	OO_CHECK_EQ(sConverters.size(), 1u);
-	OOSound *sound = [[[OOSound alloc] init] autorelease];
+	const oo::Ref<TestSound> sound = oo::makeRef<TestSound>();
 	sound->_name = "a.ogg";
-	OO_CHECK([sound cxx_oo_jsClassName] == std::optional<std::string>("Sound"));
-	OO_CHECK([sound cxx_oo_jsDescription] == std::optional<std::string>("[Sound \"a.ogg\"]"));
+	OO_CHECK(OOJSSoundJSClassName() == std::optional<std::string>("Sound"));
+	OO_CHECK(OOJSSoundJSDescription(sound.get()) == std::optional<std::string>("[Sound \"a.ogg\"]"));
 	sound->_name = std::nullopt;
-	OO_CHECK([sound cxx_oo_jsDescription] == std::optional<std::string>("[Sound \"(null)\"]"));
+	OO_CHECK(OOJSSoundJSDescription(sound.get()) == std::optional<std::string>("[Sound \"(null)\"]"));
 	// -oo_jsValueInContext: makes a new Sound object each time, holding the sound retained.
-	NSUInteger before = [sound retainCount];
-	JSValue a = [sound oo_jsValueInContext:sContext];
-	JSValue b = [sound oo_jsValueInContext:sContext];
+	const std::uint32_t before = sound->retainCount();
+	JSValue a = OOJSSoundJSValueInContext(sound.get(), sContext);
+	JSValue b = OOJSSoundJSValueInContext(sound.get(), sContext);
 	OO_CHECK(JS_IsObject(a) && JS_IsObject(b) && JS_VALUE_GET_PTR(a) != JS_VALUE_GET_PTR(b));
-	JSClassID ignored;
-	OO_CHECK(JS_GetAnyOpaque(a, &ignored) == sound);
-	OO_CHECK_EQ([sound retainCount], before + 2);
+	OO_CHECK(SoundFromJSValue(sContext, a) == sound.get());	// the slot's holder holds the sound
+	sLimiterPauses = 0;
+	OO_CHECK_EQ(sound->retainCount(), before + 2);
 	JS_FreeValue(sContext, a);
 	JS_FreeValue(sContext, b);
 }
@@ -490,15 +463,15 @@ OO_TEST(soundFromJSValue)
 	OO_CHECK(NameOf(SoundFromJSValue(sContext, name)) == std::optional<std::string>("Sounds/ping.ogg"));
 	OO_CHECK_EQ(sLimiterPauses, 0);	// a named sound pauses the time limiter and resumes it (upstream #768 balances the pause)
 	sLimiterPauses = 0;
-	OOSound *sound = [[[OOSound alloc] init] autorelease];
+	const oo::Ref<TestSound> sound = oo::makeRef<TestSound>();
 	sound->_name = "object.ogg";
-	JSValue object = [sound oo_jsValueInContext:sContext];
-	OO_CHECK(SoundFromJSValue(sContext, object) == sound);
+	JSValue object = OOJSSoundJSValueInContext(sound.get(), sContext);
+	OO_CHECK(SoundFromJSValue(sContext, object) == sound.get());
 	JS_FreeValue(sContext, object);
 	sLimiterPauses = 0;
 	// At the start screen a name is not looked up: a string is not a Sound object.
 	sPlayer->_status = STATUS_START_GAME;
-	OO_CHECK(SoundFromJSValue(sContext, name) == nil);
+	OO_CHECK(SoundFromJSValue(sContext, name) == nullptr);
 	JS_FreeValue(sContext, name);
 	sPlayer->_status = STATUS_IN_FLIGHT;
 	sLimiterPauses = 0;

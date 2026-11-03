@@ -40,9 +40,9 @@ MA 02110-1301, USA.
         OOJS_NATIVE_ENTER/EXIT and OOJS_PROFILE_ENTER/EXIT are C++ try/catch and scope guards
         (OOJSEngineNativeWrappers.h); BOOL/YES/NO are bool/true/false. OOManifest, a helper class that
         nothing made, is gone (see where it stood). OOCommodities and OOCommodityMarket, which are C++
-        since beads oo-fqyw and oo-ih7y, are reached as cxx:: classes through oo::ToCxx (amendment
-        oo-ppc, item 4), null-guarded where a message to nil answered. Messages to classes that are
-        still Objective-C (PlayerEntity, Universe) stay as they are, which is why the file is still .mm
+        since beads oo-fqyw and oo-ih7y, are reached directly (amendment oo-ppc, item 4), as is the
+        player, null-guarded where a message to nil answered. Messages to classes that are
+        still Objective-C (Universe) stay as they are, which is why the file is still .mm
         until Phase 4.
 */
 
@@ -149,7 +149,7 @@ static JSValue ManifestGetProperty(OOJS_GETTER_ARGS)
 
     switch (magic) {
     case kManifest_list:
-        result = [entity cargoListForScripting];
+        result = (entity != nullptr ? entity->PlayerEntity::cargoListForScripting() : oo::PList()); // qualified: the final overrider, so the binding test stands in for it
         break;
 
     default:
@@ -172,11 +172,11 @@ static int ManifestGetOwnProperty(JSContext* context, JSPropertyDescriptor* desc
          * compatible-ish with 1.80 and earlier except that
          * alienItems and similar aliases don't work */
         std::optional<std::string> key = NameForPropertyID(context, propID);
-        cxx::OOCommodities* commodities = oo::ToCxx([UNIVERSE commodities]); // null: no good is defined, as a message to nil
+        OOCommodities* commodities = [UNIVERSE commodities]; // null: no good is defined, as a message to nil
         if (key.has_value() && commodities != nullptr && commodities->goodDefined(*key)) {
             if (desc != NULL) {
                 desc->flags = JS_PROP_C_W_E;
-                desc->value = JS_NewInt32(context, [entity cxx_cargoQuantityForType:*key]);
+                desc->value = JS_NewInt32(context, (entity != nullptr ? entity->cargoQuantityForType(*key) : 0));
                 desc->getter = JS_UNDEFINED;
                 desc->setter = JS_UNDEFINED;
             }
@@ -196,10 +196,11 @@ static bool ManifestSetProperty(JSContext* context, JSValueConst thisObj, const 
     PlayerEntity* entity = OOPlayerForScripting();
     int32_t iValue;
 
-    cxx::OOCommodityMarket* market = oo::ToCxx([UNIVERSE commodityMarket]);
+    OOCommodityMarket* market = [UNIVERSE commodityMarket];
     OOMassUnit unit = (market != nullptr) ? market->massUnitForGood(key) : UNITS_TONS; // UNITS_TONS (0): what a message to nil answered
     // we can always change gold, platinum & gem-stones quantities, even with special cargo
-    if (unit == UNITS_TONS && [entity cxx_specialCargo].has_value()) {
+    if (unit == UNITS_TONS && (entity != nullptr ? entity->PlayerEntity::getSpecialCargo() : std::optional<std::string>()).has_value()) // qualified: the final overrider, so the binding test stands in for it
+    {
         cxx_OOJSReportWarning(context, "PlayerShip.manifest['foo'] - cannot modify cargo tonnage when Special Cargo is in use.");
         return true;
     }
@@ -207,7 +208,8 @@ static bool ManifestSetProperty(JSContext* context, JSValueConst thisObj, const 
     if (OOJSValueToInt32(context, value, &iValue)) {
         if (iValue < 0)
             iValue = 0;
-        [entity cxx_setCargoQuantityForType:key amount:iValue];
+        if (entity != nullptr)
+            entity->setCargoQuantityForType(key, iValue);
     } else {
         // OOJSReportBadPropertyValue() takes a tinyid; this is the same message for a named property.
         if (JS_HasException(context))
@@ -257,7 +259,7 @@ static int ManifestSetPropertyExotic(JSContext* context, JSValueConst object, JS
                 get hook overrode it; for other names, it was what later reads
                 returned.
         */
-        cxx::OOCommodities* commodities = oo::ToCxx([UNIVERSE commodities]); // null: no good is defined, as a message to nil
+        OOCommodities* commodities = [UNIVERSE commodities]; // null: no good is defined, as a message to nil
         if (commodities == nullptr || !commodities->goodDefined(*key)) {
             return JS_DefinePropertyValue(context, receiver, propID, JS_DupValue(context, value), JS_PROP_C_W_E);
         }
@@ -297,7 +299,7 @@ static JSValue ManifestComment(OOJS_NATIVE_ARGS)
         return JS_EXCEPTION;
     }
 
-    cxx::OOCommodityMarket* market = oo::ToCxx([PLAYER shipCommodityData]); // null: no comment, as a message to nil
+    OOCommodityMarket* market = (PLAYER != nullptr ? PLAYER->getShipCommodityData() : (OOCommodityMarket*)nullptr); // null: no comment, as a message to nil
     if (market != nullptr)
         information = market->commentForGood(*good);
 
@@ -323,7 +325,7 @@ static JSValue ManifestSetComment(OOJS_NATIVE_ARGS)
         return JS_EXCEPTION;
     }
 
-    cxx::OOCommodityMarket* market = oo::ToCxx([PLAYER shipCommodityData]); // null: false, as a message to nil
+    OOCommodityMarket* market = (PLAYER != nullptr ? PLAYER->getShipCommodityData() : (OOCommodityMarket*)nullptr); // null: false, as a message to nil
     OK = market != nullptr && market->setComment(*information, *good);
 
     OOJS_RETURN_BOOL(OK);
@@ -346,7 +348,7 @@ static JSValue ManifestShortComment(OOJS_NATIVE_ARGS)
         return JS_EXCEPTION;
     }
 
-    cxx::OOCommodityMarket* market = oo::ToCxx([PLAYER shipCommodityData]); // null: no comment, as a message to nil
+    OOCommodityMarket* market = (PLAYER != nullptr ? PLAYER->getShipCommodityData() : (OOCommodityMarket*)nullptr); // null: no comment, as a message to nil
     if (market != nullptr)
         information = market->shortCommentForGood(*good);
 
@@ -372,7 +374,7 @@ static JSValue ManifestSetShortComment(OOJS_NATIVE_ARGS)
         return JS_EXCEPTION;
     }
 
-    cxx::OOCommodityMarket* market = oo::ToCxx([PLAYER shipCommodityData]); // null: false, as a message to nil
+    OOCommodityMarket* market = (PLAYER != nullptr ? PLAYER->getShipCommodityData() : (OOCommodityMarket*)nullptr); // null: false, as a message to nil
     OK = market != nullptr && market->setShortComment(*information, *good);
 
     OOJS_RETURN_BOOL(OK);

@@ -54,17 +54,17 @@ public:
             answered nil (amendment oo-novu).
     */
     static oo::Ref<OOCombinedEmissionMapGenerator> generatorWithEmissionMapSpec(const oo::PList& emissionMapSpec,
-        cxx::OOColor* emissionColor,
+        OOColor* emissionColor,
         ::OOTexture* diffuseMap,
-        cxx::OOColor* diffuseColor,
+        OOColor* diffuseColor,
         const oo::PList& illuminationMapSpec,
-        cxx::OOColor* illuminationColor,
+        OOColor* illuminationColor,
         const oo::PList& spec);
     static oo::Ref<OOCombinedEmissionMapGenerator> generatorWithEmissionAndIlluminationMapSpec(const oo::PList& emissionAndIlluminationMapSpec,
         ::OOTexture* diffuseMap,
-        cxx::OOColor* diffuseColor,
-        cxx::OOColor* emissionColor,
-        cxx::OOColor* illuminationColor,
+        OOColor* diffuseColor,
+        OOColor* emissionColor,
+        OOColor* illuminationColor,
         const oo::PList& spec);
 
 #ifndef NDEBUG
@@ -80,11 +80,11 @@ public:
 
 private:
     bool initWithEmissionMapSpec(const oo::PList& emissionMapSpec,
-        cxx::OOColor* emissionColor,
+        OOColor* emissionColor,
         ::OOTexture* diffuseMap,
-        cxx::OOColor* diffuseColor,
+        OOColor* diffuseColor,
         const oo::PList& illuminationMapSpec,
-        cxx::OOColor* illuminationColor,
+        OOColor* illuminationColor,
         bool isCombinedMap,
         const oo::PList& spec);
 
@@ -99,8 +99,8 @@ private:
     OOPixMap _emissionPx = { };
     OOPixMap _diffusePx = { };
     OOPixMap _illuminationPx = { };
-    oo::Ref<cxx::OOColor> _emissionColor;
-    oo::Ref<cxx::OOColor> _illuminationColor;
+    oo::Ref<OOColor> _emissionColor;
+    oo::Ref<OOColor> _illuminationColor;
     bool _isCombinedMap = false;
 
     uint32_t _textureOptions = 0;

@@ -2,12 +2,8 @@
 
 OOJSGuiScreenKeyDefinition.h (QuickJS-ng)
 
-C++20 since bead oo-xg7g (proposed ADR-0056, the OOColor house style). Its superclass,
-OOWeakRefObject, is still Objective-C (the weak-reference support that OOWeakReference+ObjCBridge
-keeps), so the class is cxx::OOJSGuiScreenKeyDefinition holding only its own ivars and methods, and
-OOJSGuiScreenKeyDefinition+ObjCBridge.h, imported at the end of this header, keeps the Objective-C
-OOJSGuiScreenKeyDefinition : OOWeakRefObject that the JS player object makes and PlayerEntity keeps and messages
-(ADR-0056 amendment oo-o89). The bridge's deletion bead waits for OOWeakRefObject's retirement.
+C++20 since bead oo-xg7g (proposed ADR-0056, the OOColor house style). It has no Objective-C
+facade: the JS global object makes it and the player keeps it as oo::Ref.
 
 
 Oolite
@@ -40,21 +36,17 @@ MA 02110-1301, USA.
 #include "oofnd/StdLib.hpp"
 
 #include "oofnd/Ref.hpp"
-#include "oofnd/objc/OOObjCRef.h"
 #include <optional>
 #include <string>
 
-@class OOJSScript; // imported by the .mm, so that a test can stand in for it (ADR-0056 amendment oo-fg7i item 5)
-
-namespace cxx {
+class OOJSScript; // imported by the .mm, so that a test can stand in for it
 
 /*	The definition owns references to its callback and callbackThis, which are
         released on destruction and when the JavaScript engine is reset.
 */
 class OOJSGuiScreenKeyDefinition : public oo::RefCounted {
 public:
-    // The old -init after [super init]. Made only by the facade (amendment oo-o89 item 2), until
-    // OOWeakRefObject is retired.
+    // The old -init after [super init] (oo::makeRef).
     OOJSGuiScreenKeyDefinition();
     ~OOJSGuiScreenKeyDefinition() override;
 
@@ -77,16 +69,10 @@ private:
 
     JSValue _callback = JS_UNDEFINED; // Owned.
     JSValue _callbackThis = JS_UNDEFINED; // Owned.
-    oo::ObjCRef<::OOJSScript*> _owningScript; // a weak reference (-weakRetain)
+    oo::WeakRef<OOJSScript> _owningScript; // a weak reference (was -weakRetain)
 
     std::optional<std::string> _name; // nullopt until set (was nil)
     oo::PList _registerKeys; // key name -> key definitions; null until set (was nil)
 };
-
-} // namespace cxx
-
-// Transitional: the Objective-C OOJSGuiScreenKeyDefinition, for callers not yet converted. Deleted,
-// with namespace cxx above, by the bridge's deletion bead.
-#import "OOJSGuiScreenKeyDefinition+ObjCBridge.h"
 
 #endif // OOJSGUISCREENKEYDEFINITION_H

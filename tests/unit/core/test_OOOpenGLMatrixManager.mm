@@ -6,15 +6,16 @@
 	first: the stack, the model-view and projection arithmetic (including where translate writes,
 	which differs between the two), the degenerate-argument guards of frustum/ortho/perspective,
 	the derived matrices and their cache, what sync loads into OpenGL, the uniform locations of a
-	real shader program, and the OOGL* functions, which reach the manager through
-	[[UNIVERSE gameView] getOpenGLMatrixManager] (this file's Universe and view stubs). The GL
-	context is a hidden window's (oo_gl_test_context.hpp); the extension manager, which loads the
-	shader entry points, runs with its collaborators stubbed as in test_OOOpenGLExtensionManager.
-	The last test pins the facade's contract once the class is C++.
+	real shader program, and the OOGL* functions, which reach the manager through the C++ game
+	view's getOpenGLMatrixManager() (this file's Universe and view stubs). The GL context is a
+	hidden window's (oo_gl_test_context.hpp); the extension manager, which loads the shader entry
+	points, runs with its collaborators stubbed as in test_OOOpenGLExtensionManager. The facade's
+	contract test went with the facade (bead oo-9ht.18).
 	Run: bash tools/check-core-tests.sh
 */
 
 #import "OOOpenGLMatrixManager.h"
+#import "MyOpenGLView.h"
 #import "OORegExpMatcher.h"
 #import "OOOpenGLExtensionManager.h"
 
@@ -52,22 +53,27 @@ OOShaderSetting cxx_OOShaderSettingFromString(const std::string &string)
 }
 
 
-// UNIVERSE is gSharedUniverse; its -gameView answers the view whose -getOpenGLMatrixManager the
-// OOGL* functions use.
+// UNIVERSE is gSharedUniverse; its -gameView answers an OOTestView, which stands for the game
+// view's facade. The view is C++ (MyOpenGLView): the facade crosses to sView, whose manager the
+// OOGL* functions use. The C++ view's members they reach are stubbed here.
 @class Universe;
 Universe *gSharedUniverse = nil;
 
 @interface OOTestView: OOObject
-{
-@public
-	OOOpenGLMatrixManager *manager;
-}
-- (OOOpenGLMatrixManager *) getOpenGLMatrixManager;
 @end
 
 @implementation OOTestView
-- (OOOpenGLMatrixManager *) getOpenGLMatrixManager  { return manager; }
 @end
+
+namespace {
+
+oo::Ref<cxx::MyOpenGLView> sView;
+
+}	// namespace
+
+cxx::MyOpenGLView::~MyOpenGLView()  {}
+OOOpenGLMatrixManager *cxx::MyOpenGLView::getOpenGLMatrixManager()  { return matrixManager.get(); }
+cxx::MyOpenGLView *oo::ToCxx(MyOpenGLView *view)  { return (view != nil) ? sView.get() : nullptr; }
 
 @interface OOTestUniverse: OOObject
 {
@@ -144,7 +150,7 @@ OO_TEST(modelView)
 {
 	@autoreleasepool
 	{
-		oo::Ref<cxx::OOOpenGLMatrixManager> m = oo::makeRef<cxx::OOOpenGLMatrixManager>();
+		oo::Ref<OOOpenGLMatrixManager> m = oo::makeRef<OOOpenGLMatrixManager>();
 		OO_CHECK(Same(m->getModelView(), kIdentityMatrix));
 		OO_CHECK(Same(m->getProjection(), kIdentityMatrix));
 		OO_CHECK(m->countModelView() == 0);
@@ -188,7 +194,7 @@ OO_TEST(projection)
 {
 	@autoreleasepool
 	{
-		oo::Ref<cxx::OOOpenGLMatrixManager> m = oo::makeRef<cxx::OOOpenGLMatrixManager>();
+		oo::Ref<OOOpenGLMatrixManager> m = oo::makeRef<OOOpenGLMatrixManager>();
 
 		m->loadProjection(kSample);
 		OO_CHECK(Same(m->getProjection(), kSample));
@@ -244,7 +250,7 @@ OO_TEST(derivedMatrices)
 {
 	@autoreleasepool
 	{
-		oo::Ref<cxx::OOOpenGLMatrixManager> m = oo::makeRef<cxx::OOOpenGLMatrixManager>();
+		oo::Ref<OOOpenGLMatrixManager> m = oo::makeRef<OOOpenGLMatrixManager>();
 		for (int i = 0; i < OOLITE_GL_MATRIX_END; i++)  OO_CHECK(Same(m->getMatrix(i), kIdentityMatrix));
 		OO_CHECK(Same(m->getMatrix(-1), kIdentityMatrix));
 		OO_CHECK(Same(m->getMatrix(OOLITE_GL_MATRIX_END), kIdentityMatrix));
@@ -298,7 +304,7 @@ OO_TEST(syncLoadsOpenGL)
 	OO_CHECK(OOTestGLContext());
 	@autoreleasepool
 	{
-		oo::Ref<cxx::OOOpenGLMatrixManager> m = oo::makeRef<cxx::OOOpenGLMatrixManager>();
+		oo::Ref<OOOpenGLMatrixManager> m = oo::makeRef<OOOpenGLMatrixManager>();
 		m->loadModelView(kSample);
 		m->loadProjection(OOMatrixForScale(2, 3, 4));
 
@@ -325,7 +331,7 @@ OO_TEST(standardUniformLocations)
 	OO_CHECK(cxx::OOOpenGLExtensionManager::sharedManager()->shadersSupported());	// loads the ARB entry points
 	@autoreleasepool
 	{
-		oo::Ref<cxx::OOOpenGLMatrixManager> m = oo::makeRef<cxx::OOOpenGLMatrixManager>();
+		oo::Ref<OOOpenGLMatrixManager> m = oo::makeRef<OOOpenGLMatrixManager>();
 
 		const char *vertex =
 			"uniform mat4 ooliteModelViewProjection;\n"
@@ -378,11 +384,12 @@ OO_TEST(openGLFunctionsUseTheGameViewsManager)
 	OO_CHECK(OOTestGLContext());
 	@autoreleasepool
 	{
-		OOOpenGLMatrixManager *facade = [[[OOOpenGLMatrixManager alloc] init] autorelease];
-		cxx::OOOpenGLMatrixManager *m = oo::ToCxx(facade);
+		oo::Ref<OOOpenGLMatrixManager> manager = oo::makeRef<OOOpenGLMatrixManager>();
+		OOOpenGLMatrixManager *m = manager.get();
+		sView = oo::makeRef<cxx::MyOpenGLView>();
+		sView->matrixManager = manager;
 		OOTestView *view = [[[OOTestView alloc] init] autorelease];
 		OOTestUniverse *universe = [[[OOTestUniverse alloc] init] autorelease];
-		view->manager = facade;
 		universe->view = view;
 		gSharedUniverse = (Universe *)universe;
 
@@ -431,46 +438,6 @@ OO_TEST(openGLFunctionsUseTheGameViewsManager)
 		OO_CHECK(Same(OOGLGetModelViewProjection(), kZeroMatrix));
 		OO_CHECK(glGetError() == GL_NO_ERROR);
 	}
-}
-
-
-// After the conversion: the facade answers as the C++ class does, and identity survives the crossing.
-OO_TEST(facadeContract)
-{
-	oo::Ref<cxx::OOOpenGLMatrixManager> kept;
-	@autoreleasepool
-	{
-		OOOpenGLMatrixManager *facade = [[OOOpenGLMatrixManager alloc] init];
-		cxx::OOOpenGLMatrixManager *m = oo::ToCxx(facade);
-		OO_CHECK(m != nullptr);
-		OO_CHECK(oo::ToObjC(m) == facade);
-
-		[facade loadModelView:kSample];
-		OO_CHECK(Same(m->getModelView(), kSample));
-		[facade pushModelView];
-		OO_CHECK([facade countModelView] == 1 && m->countModelView() == 1);
-		[facade frustumLeft:-1 right:1 bottom:-2 top:2 near:1 far:3];
-		OO_CHECK(Same([facade getProjection], m->getProjection()));
-		OO_CHECK(Same([facade getMatrix:OOLITE_GL_MATRIX_MODELVIEW_PROJECTION], m->getMatrix(OOLITE_GL_MATRIX_MODELVIEW_PROJECTION)));
-		m->resetModelView();
-		OO_CHECK(Same([facade popModelView], kSample));
-
-		kept = oo::Ref<cxx::OOOpenGLMatrixManager>(m);
-		[facade release];
-	}
-	@autoreleasepool
-	{
-		// Its facade gone, the C++ manager gets a new one, which reads the same state.
-		OOOpenGLMatrixManager *again = oo::ToObjC(kept);
-		OO_CHECK(again != nil && oo::ToCxx(again) == kept.get());
-		OO_CHECK(oo::ToObjC(kept) == again);
-		OO_CHECK(Same([again getModelView], kSample));
-	}
-
-	OOOpenGLMatrixManager *none = nil;
-	OO_CHECK(oo::ToCxx(none) == nullptr);
-	OO_CHECK(oo::ToObjC(static_cast<cxx::OOOpenGLMatrixManager *>(nullptr)) == nil);
-	OO_CHECK([none countModelView] == 0);
 }
 
 

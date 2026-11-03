@@ -4,10 +4,8 @@ OOCommodities.h
 
 Commodity price and quantity manager
 
-C++20 since bead oo-fqyw (Phase 3, proposed ADR-0056). The class is cxx::OOCommodities while
-OOCommodities+ObjCBridge.h, imported at the end of this header, keeps the Objective-C OOCommodities
-its unconverted callers message; the bridge's deletion bead moves it out of namespace cxx. The
-markets it makes are C++ (cxx::OOCommodityMarket); the facade hands them out as their facades.
+C++20 since bead oo-fqyw (Phase 3, proposed ADR-0056); it has no Objective-C facade. The universe
+holds it as oo::Ref, and the markets it makes are C++ (oo::Ref<OOCommodityMarket>).
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -49,12 +47,9 @@ static inline OOMassUnit OOMassUnitFromNumber(unsigned n)
     return (n <= UNITS_GRAMS) ? (OOMassUnit)n : UNITS_UNKNOWN;
 }
 
-@class StationEntity, OOScript;
-namespace cxx {
+class StationEntity;
+class OOScript;
 class OOCommodityMarket;
-}
-
-namespace cxx {
 
 class OOCommodities : public oo::RefCounted {
 public:
@@ -91,11 +86,5 @@ private:
 
     std::map<std::string, oo::PList, std::less<>> _commodityLists; // trade-goods.plist: commodity key -> its info (a Dict)
 };
-
-} // namespace cxx
-
-// Transitional: the Objective-C OOCommodities, for callers not yet converted. Deleted, with
-// namespace cxx above, by the bridge's deletion bead.
-#import "OOCommodities+ObjCBridge.h"
 
 #endif // OOCOMMODITIES_H

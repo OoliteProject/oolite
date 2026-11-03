@@ -4,10 +4,9 @@ OOCharacter.h
 
 Represents an NPC person (as opposed to an NPC ship).
 
-C++20 since bead oo-8kx7 (Phase 3, proposed ADR-0056). The class is cxx::OOCharacter while
-OOCharacter+ObjCBridge.h, imported at the end of this header, keeps the Objective-C OOCharacter its
-unconverted callers message (ships' crews, JS); the bridge's deletion bead moves it out of
-namespace cxx.
+C++20 since bead oo-8kx7 (Phase 3, proposed ADR-0056); it has no Objective-C facade: ships'
+crews and the character pool hold oo::Ref<OOCharacter>, and a character is its own PList::Object
+payload (oo::PListForeign) for its script's "character".
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -41,11 +40,9 @@ MA 02110-1301, USA.
 #include "oofnd/StdLib.hpp"
 #include "oofnd/objc/OOObjCRef.h"
 
-@class OOJSScript;
+#include "OOScript.h" // oo::Ref<OOScript> members and results
 
-namespace cxx {
-
-class OOCharacter : public oo::RefCounted {
+class OOCharacter : public oo::PListForeign {
 public:
     OOCharacter() = default; // [[OOCharacter alloc] init]: every field zero
     OOCharacter(const std::string& role, OOSystemID s);
@@ -75,7 +72,7 @@ public:
 
     oo::PList legacyScript(); // an array of script actions; null: none
     void setLegacyScript(const oo::PList& scriptActions);
-    ::OOJSScript* script();
+    ::OOScript* script();
     void setCharacterScript(const std::string& scriptName);
     void doScriptEvent(OOJSPropID message);
 
@@ -83,8 +80,12 @@ public:
 
     // What "%@" prints between the braces of <OOCharacter 0x...>{...} (OODescription.h).
     std::optional<std::string> descriptionComponents() const;
-    // The JavaScript class of the character's Objective-C object (-oo_jsClassName).
+    // The JavaScript class the character's Objective-C object answered (-oo_jsClassName).
     std::optional<std::string> oo_jsClassName();
+
+    // oo::PListForeign: what the facade answered (its class, and "%@" as <OOCharacter 0x...>{...}).
+    std::string className() const override;
+    std::string description() const override;
 
 private:
     OOCharacter(Random_Seed characterSeed, OOSystemID systemSeed); // -initWithGenSeed:andOriginalSystem:
@@ -101,13 +102,7 @@ private:
     int _legalStatus = { };
     OOCreditsQuantity _insuranceCredits = { };
     oo::PList _scriptActions; // an array; null: none
-    oo::ObjCRef<::OOJSScript*> _script;
+    oo::Ref<OOScript> _script;
 };
-
-} // namespace cxx
-
-// Transitional: the Objective-C OOCharacter, for callers not yet converted. Deleted, with namespace
-// cxx above, by the bridge's deletion bead.
-#import "OOCharacter+ObjCBridge.h"
 
 #endif // OOCHARACTER_H

@@ -4,11 +4,9 @@ OOOpenGLMatrixManager.h
 
 Manages OpenGL Model, View, etc. matrices.
 
-C++20 since bead oo-vt0o (proposed ADR-0056). The manager is cxx::OOOpenGLMatrixManager while
-OOOpenGLMatrixManager+ObjCBridge.h, imported at the end of this header, keeps the Objective-C
-OOOpenGLMatrixManager its unconverted callers (MyOpenGLView, OOShaderProgram) message; the bridge's
-deletion bead moves it out of namespace cxx. OOOpenGLMatrixStack had no caller outside this file,
-so it has no facade and is global.
+C++20 since bead oo-vt0o (proposed ADR-0056). The Objective-C facade was deleted by bead
+oo-9ht.18, which moved the manager out of namespace cxx. OOOpenGLMatrixStack had no caller outside
+this file, so it never had a facade.
 
 Oolite
 Copyright (C) 2004-2014 Giles C Williams and contributors
@@ -67,8 +65,6 @@ private:
     std::vector<OOMatrix> stack = { }; // was a Foundation mutable array of boxed values (bead oo-3rb.10)
 };
 
-namespace cxx {
-
 class OOOpenGLMatrixManager : public oo::RefCounted {
 public:
     OOOpenGLMatrixManager();
@@ -112,8 +108,6 @@ private:
     oo::Ref<OOOpenGLMatrixStack> projectionStack = { };
 };
 
-} // namespace cxx
-
 void OOGLPushModelView(void);
 OOMatrix OOGLPopModelView(void);
 OOMatrix OOGLGetModelView(void);
@@ -139,9 +133,5 @@ void OOGLOrtho(double left, double right, double bottom, double top, double near
 void OOGLPerspective(double fovy, double aspect, double zNear, double zFar);
 
 OOMatrix OOGLGetModelViewProjection(void);
-
-// Transitional: the Objective-C OOOpenGLMatrixManager, for callers not yet converted. Deleted,
-// with namespace cxx above, by the bridge's deletion bead.
-#import "OOOpenGLMatrixManager+ObjCBridge.h"
 
 #endif // OOOPENGLMATRIXMANAGER_H

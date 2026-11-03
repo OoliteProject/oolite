@@ -31,7 +31,10 @@ MA 02110-1301, USA.
 #include <optional>
 #include <string>
 
-@class OOSound;
+#include "OOJSPrivateObject.h"
+#include "oofnd/Ref.hpp"
+
+class OOSound; // C++: it has no Objective-C facade
 
 void InitOOJSSound(JSContext* context, JSValueConst global);
 
@@ -42,11 +45,32 @@ void InitOOJSSound(JSContext* context, JSValueConst global);
  */
 OOSound* SoundFromJSValue(JSContext* context, JSValueConst value);
 
-/*	The bodies of OOSound (OOJavaScriptExtentions), which the engine reaches by selector. Its
-        methods are one-line forwarders to these in OOJSSound+ObjCBridge.mm until OOSound converts
-        (proposed ADR-0056 amendments oo-ppc and oo-ykoy). OOJSSoundJSValueInContext returns a new
-        Sound object owned by the caller (JS null for none).
+/*	The bodies of OOSound (OOJavaScriptExtentions), which the engine reached by selector while the
+        sound had an Objective-C facade: a new Sound object for the sound (owned by the caller; JS
+        null for none), its toString() text and its JS class name. The binding and the SoundSource
+        binding call them.
 */
 JSValue OOJSSoundJSValueInContext(OOSound* sound, JSContext* context);
 std::optional<std::string> OOJSSoundJSDescription(OOSound* sound);
 std::optional<std::string> OOJSSoundJSClassName(void);
+
+/*	What a Sound object's private slot holds (it held the sound's facade, retained).
+        -oo_jsValueInContext: made a new Sound object each time, so each object has its own holder,
+        which retains the sound; the slot retains the holder (OOJSSetCxxPrivate) and the finalizer
+        releases it (OOJSCxxObjectWrapperFinalize). Its toString() is the sound's. Defined in
+        OOJSSound.mm; only the binding makes one.
+*/
+class OOJSSoundHolder final : public oo::RefCounted, public OOJSPrivateObject {
+public:
+    explicit OOJSSoundHolder(OOSound* inSound);
+    ~OOJSSoundHolder() override;
+
+    OOSound* sound() const;
+
+    JSValue jsValueInContext(JSContext* context) override; // owned
+    void clearJSSelf(JSValueConst selfVal) override;
+    std::optional<std::string> jsDescription() override;
+
+private:
+    oo::Ref<OOSound> _sound;
+};

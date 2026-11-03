@@ -41,8 +41,12 @@
 // reference whose objects would link the game. The paths the test runs never reach the aborting
 // ones: no ship has a condition script, a subentity, a vector or quaternion string, and nothing
 // flushes the cache.
-@class PlayerEntity, Universe;
-PlayerEntity *gOOPlayer = nil;
+@class Universe;
+class PlayerEntity;
+PlayerEntity *gOOPlayer = nullptr;
+#include "OOEntityEnums.h"
+namespace cxx { class Entity { public: OOEntityStatus status(); }; }	// as Entity.h declares it (PLAYER is C++ since bead oo-9ht.177)
+OOEntityStatus cxx::Entity::status()  { std::abort(); }
 Universe *gSharedUniverse = nil;
 JSContext *gOOJSMainThreadContext = nullptr;
 JSAtom OOJSInternAtomPRIVATE(const char *)  { std::abort(); }

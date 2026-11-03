@@ -35,10 +35,10 @@ MA 02110-1301, USA.
 #include "oofnd/objc/OOObjCRef.h"
 #include <string_view>
 
-@class OOSound, OOSystemDescriptionManager, OOScript;
-namespace cxx {
+#include "OOScript.h" // oo::Ref<OOScript> members and results (bead oo-9ht.133)
+class OOSystemDescriptionManager; // OOSystemDescriptionManager.h (C++ since bead oo-0sr1; global since oo-9ht.32)
+class OOSound; // C++ since bead oo-9ht.68 deleted its facade
 class OOMusic;
-}
 
 typedef enum {
     MERGE_NONE, // Just use the last file in search order.
@@ -61,8 +61,6 @@ inline constexpr std::string_view SCENARIO_OXP_DEFINITION_BYTAG = "tag:";
 inline constexpr std::string_view SCENARIO_OXP_DEFINITION_NOPLIST = "exc:";
 
 namespace cxx {
-
-class OOSystemDescriptionManager; // OOSystemDescriptionManager.h (C++ since bead oo-0sr1)
 
 /*	Class methods over file-scope state: the class is never made, and every member is static
         (ADR-0056 item 3; amendment oo-jfno item 1). All four slices of
@@ -95,18 +93,18 @@ public:
     // Clear ResourceManager-internal caches (not those handled by OOCacheManager)
     static void clearCaches();
 
-    static oo::Ref<cxx::OOSystemDescriptionManager> systemDescriptionManager(); // a new manager (C++ since bead oo-0sr1)
+    static oo::Ref<::OOSystemDescriptionManager> systemDescriptionManager(); // a new manager (C++ since bead oo-0sr1)
     static oo::PList shaderBindingTypesDictionary();
     // nullopt when not found (was nil); folderName nullopt where nil was passed.
     static std::optional<std::string> pathForFileNamed(const std::string& fileName, const std::optional<std::string>& folderName);
     static std::optional<std::string> pathForFileNamed(const std::string& fileName, const std::optional<std::string>& folderName, bool useCache);
     static oo::Ref<OOMusic> ooMusicNamed(const std::string& fileName, const std::optional<std::string>& folderName); // a new music each call (not cached); null when none
-    static ::OOSound* ooSoundNamed(const std::string& fileName, const std::optional<std::string>& folderName); // autoreleased
+    static ::OOSound* ooSoundNamed(const std::string& fileName, const std::optional<std::string>& folderName); // borrowed: the cache keeps it (was autoreleased)
     // nullopt when no file was found (was nil); folderName nullopt where nil was passed.
     static std::optional<std::string> stringFromFilesNamed(const std::string& fileName, const std::optional<std::string>& folderName);
     static std::optional<std::string> stringFromFilesNamed(const std::string& fileName, const std::optional<std::string>& folderName, bool useCache);
     // World scripts by name, in the order each name was first loaded.
-    static std::vector<std::pair<std::string, oo::ObjCRef<::OOScript*>>> loadScripts();
+    static std::vector<std::pair<std::string, oo::Ref<OOScript>>> loadScripts();
     /*	writeDiagnosticData()
             writeDiagnosticString()
             writeDiagnosticPList()
@@ -150,7 +148,7 @@ private:
     static void preloadFileListFromOXZ(const std::string& path, const std::vector<std::string>& folders);
     static void preloadFileListFromFolder(const std::string& path, const std::vector<std::string>& folders);
     static void preloadFilePathFor(const std::string& fileName, const std::string& subFolder, const std::string& path);
-    static id retrieveFileNamed(const std::string& fileName, const std::optional<std::string>& folderName, std::map<std::string, oo::ObjCRef<id>, std::less<>>* ioCache, std::optional<std::string> key, Class klass, bool useCache); // klass: the facade class OOSound; autoreleased
+    static ::OOSound* retrieveFileNamed(const std::string& fileName, const std::optional<std::string>& folderName, std::map<std::string, oo::Ref<::OOSound>, std::less<>>* ioCache, std::optional<std::string> key, bool useCache); // the class was always OOSound (C++ since bead oo-9ht.68); borrowed: the cache keeps it
     static bool directoryExists(const std::string& inPath, bool inCreate);
     static bool checkCacheUpToDateForPaths(const std::vector<std::string>& searchPaths);
     static void mergeRoleCategories(const oo::PList& catData, oo::PList& categories);

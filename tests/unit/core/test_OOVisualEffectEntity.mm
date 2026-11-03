@@ -15,11 +15,14 @@
 	the radii they scale; its flasher and standard subentities (made from the definition, owned,
 	listed, counted, scaled with it, removed and cleared); its orientation vectors; and the break
 	pattern flag. The façade contract (a C++ entity behind the OOVisualEffectEntity façade, the C++
-	members, slice 2 on the façade) came with the conversion.
+	members, slice 2 on the façade) came with the conversion; since bead oo-9ht.165 deleted the
+	façade, an effect is the global C++ class, made with oo::NewVisualEffectObject() under
+	OOEntityWithDrawable's facade, and the cases call its members (ADR-0056 amendment oo-9ht.165).
 	Run: bash tools/check-core-tests.sh test_OOVisualEffectEntity
 */
 
 #import "OOVisualEffectEntity.h"
+#import "PlayerEntity.h"	// PLAYER is C++ (bead oo-9ht.177)
 #import "OOFlasherEntity.h"
 #import "OOJavaScriptEngine.h"
 #import "Universe.h"
@@ -45,20 +48,29 @@
 uint32_t gDebugFlags = 0;
 #endif
 
-@class PlayerEntity;
+class PlayerEntity;
 extern PlayerEntity *gOOPlayer;
 extern Universe *gSharedUniverse;
 
 
-@interface TestPlayer: Entity
-@end
+class TestPlayer : public PlayerEntity	// C++ since bead oo-9ht.177 deleted the Objective-C player
+{
+public:
+	HPVector viewpointPosition() override	{ return kZeroHPVector; }
+};
 
-
-@implementation TestPlayer
-
-- (HPVector) viewpointPosition	{ return kZeroHPVector; }
-
-@end
+// NewTestPlayer<TestPlayer>() (bead oo-9ht.177): a C++ player under the ship's facade, as
+// PlayerEntity::sharedPlayer() makes the game's, retained (+1) as +alloc's object was.
+template <class T>
+T *NewTestPlayer()
+{
+	oo::Ref<T> player = oo::makeRef<T>();
+	@autoreleasepool
+	{
+		[oo::NewEntityFacade(player) retain];
+	}
+	return player.get();
+}
 
 
 // UNIVERSE: never initialised; makes the standard subentities, an effect with no definition, by
@@ -71,10 +83,10 @@ extern Universe *gSharedUniverse;
 
 - (OOTimeAbsolute) getTime	{ return 0; }
 
-- (OOVisualEffectEntity *) cxx_newVisualEffectWithName:(const std::string &)effectKey
+- (Entity *) cxx_newVisualEffectWithName:(const std::string &)effectKey
 {
 	if (effectKey == "missing")  return nil;
-	return [[OOVisualEffectEntity alloc] cxx_initWithKey:effectKey definition:oo::PList()];
+	return oo::NewVisualEffectObject(effectKey, oo::PList());	// the effect's object since bead oo-9ht.165
 }
 
 @end
@@ -107,15 +119,15 @@ void SetUp()
 		universe->_cxxUniverse = oo::makeRef<cxx::Universe>(universe);	// what -initWithGameView: makes first (ADR-0056 amendment oo-riqmz; bead oo-9ht.174)
 	}
 	gSharedUniverse = universe;
-	static TestPlayer *player = nil;
+	static TestPlayer *player = nullptr;
 	if (player == nil)
 	{
 		@autoreleasepool	// what the stand-in player's -init autoreleases is freed while the engine is alive (bead oo-9ht.174)
 		{
-			player = [[TestPlayer alloc] init];
+			player = NewTestPlayer<TestPlayer>();
 		}
 	}
-	gOOPlayer = (PlayerEntity *)player;
+	gOOPlayer = player;
 }
 
 
@@ -144,13 +156,15 @@ oo::PList Flasher(double x)
 }
 
 
+// An effect, as the universe makes it (oo::NewVisualEffectObject(), [[OOVisualEffectEntity alloc]
+// cxx_initWithKey:definition:] until bead oo-9ht.165): the C++ effect, its object autoreleased.
 OOVisualEffectEntity *Effect(const std::string &key, const oo::PList &definition)
 {
-	return [[[OOVisualEffectEntity alloc] cxx_initWithKey:key definition:definition] autorelease];
+	return oo::ToEffect([oo::NewVisualEffectObject(key, definition) autorelease]);
 }
 
 
-GLfloat NoDrawDistance(Entity *e)	{ return e->_cxxEntity->no_draw_distance; }
+GLfloat NoDrawDistance(cxx::Entity *e)	{ return e->no_draw_distance; }
 
 }	// namespace
 
@@ -162,34 +176,34 @@ OO_TEST(defaults)
 	{
 		OOVisualEffectEntity *effect = Effect("test-effect", Dict({}));
 		OO_CHECK(effect != nil);
-		OO_CHECK([effect isEffect]);
-		OO_CHECK([effect isVisualEffect]);
-		OO_CHECK(![effect canCollide]);
-		OO_CHECK([effect effectKey] == std::optional<std::string>("test-effect"));
-		OO_CHECK([effect mesh] == nil);
-		OO_CHECK([effect scanClass] == CLASS_VISUAL_EFFECT);
-		OO_CHECK([effect status] == STATUS_EFFECT);
-		OO_CHECK(![effect isBreakPattern]);
-		OO_CHECK([effect effectInfoDictionary] == Dict({}));
+		OO_CHECK(effect->isEffect());
+		OO_CHECK(effect->getIsVisualEffect());
+		OO_CHECK(!effect->canCollide());
+		OO_CHECK(effect->effectKey() == std::optional<std::string>("test-effect"));
+		OO_CHECK(effect->mesh() == nullptr);	// the C++ mesh since bead oo-9ht.132
+		OO_CHECK(effect->getScanClass() == CLASS_VISUAL_EFFECT);
+		OO_CHECK(effect->status() == STATUS_EFFECT);
+		OO_CHECK(!effect->isBreakPattern());
+		OO_CHECK(effect->effectInfoDictionary() == Dict({}));
 
-		OO_CHECK([effect scaleX] == 1.0f && [effect scaleY] == 1.0f && [effect scaleZ] == 1.0f);
-		OO_CHECK([effect scaleMax] == 1.0f);
-		OO_CHECK([effect collisionRadius] == 0.0f);
-		OO_CHECK([effect frustumRadius] == 0.0f);
+		OO_CHECK(effect->scaleX() == 1.0f && effect->scaleY() == 1.0f && effect->scaleZ() == 1.0f);
+		OO_CHECK(effect->scaleMax() == 1.0f);
+		OO_CHECK(effect->collisionRadius() == 0.0f);
+		OO_CHECK(effect->frustumRadius() == 0.0f);
 		OO_CHECK(NoDrawDistance(effect) == 0.0f);
 
-		OO_CHECK_EQ([effect subEntityCount], 0u);
-		OO_CHECK([effect subEntities].empty());
-		OO_CHECK([effect subEntityEnumerator].empty());
-		OO_CHECK(![effect visualEffectSubEntityEnumerator].has_value());
-		OO_CHECK([effect effectSubEntityEnumerator].empty());
-		OO_CHECK([effect flasherEnumerator].empty());
+		OO_CHECK_EQ(effect->subEntityCount(), 0u);
+		OO_CHECK(effect->subEntities().empty());
+		OO_CHECK(effect->subEntityEnumerator().empty());
+		OO_CHECK(!effect->visualEffectSubEntityEnumerator().has_value());
+		OO_CHECK(effect->effectSubEntityEnumerator().empty());
+		OO_CHECK(effect->flasherEnumerator().empty());
 
 		// A null definition is an empty one; -init has the empty key.
-		OOVisualEffectEntity *plain = [[[OOVisualEffectEntity alloc] init] autorelease];
+		OOVisualEffectEntity *plain = Effect(std::string{}, oo::PList());	// what -init made
 		OO_CHECK(plain != nil);
-		OO_CHECK([plain effectKey] == std::optional<std::string>(""));
-		OO_CHECK([plain effectInfoDictionary] == Dict({}));
+		OO_CHECK(plain->effectKey() == std::optional<std::string>(""));
+		OO_CHECK(plain->effectInfoDictionary() == Dict({}));
 	}
 }
 
@@ -200,11 +214,11 @@ OO_TEST(breakPatternFlag)
 	@autoreleasepool
 	{
 		OOVisualEffectEntity *effect = Effect("bp", Dict({ { "is_break_pattern", oo::PList(true) } }));
-		OO_CHECK([effect isBreakPattern]);
-		[effect setIsBreakPattern:NO];
-		OO_CHECK(![effect isBreakPattern]);
-		[effect setIsBreakPattern:YES];
-		OO_CHECK([effect isBreakPattern]);
+		OO_CHECK(effect->isBreakPattern());
+		effect->setIsBreakPattern(NO);
+		OO_CHECK(!effect->isBreakPattern());
+		effect->setIsBreakPattern(YES);
+		OO_CHECK(effect->isBreakPattern());
 	}
 }
 
@@ -215,42 +229,42 @@ OO_TEST(flasherSubentities)
 	@autoreleasepool
 	{
 		OOVisualEffectEntity *effect = Effect("lights", Dict({ { "subentities", oo::PList(oo::PList::Array{ Flasher(10), oo::PList(std::string("not a dictionary")) }) } }));
-		OO_CHECK_EQ([effect subEntityCount], 1u);	// the string made no subentity
-		std::vector<oo::ObjCRef<Entity *>> flashers = [effect flasherEnumerator];	// the flashers' objects
+		OO_CHECK_EQ(effect->subEntityCount(), 1u);	// the string made no subentity
+		std::vector<oo::ObjCRef<Entity *>> flashers = effect->flasherEnumerator();	// the flashers' objects
 		OO_CHECK_EQ(flashers.size(), 1u);
-		OO_CHECK([effect effectSubEntityEnumerator].empty());
-		OO_CHECK([effect visualEffectSubEntityEnumerator].has_value() && [effect visualEffectSubEntityEnumerator]->empty());
+		OO_CHECK(effect->effectSubEntityEnumerator().empty());
+		OO_CHECK(effect->visualEffectSubEntityEnumerator().has_value() && effect->visualEffectSubEntityEnumerator()->empty());
 		if (flashers.size() != 1)  return;
 
 		Entity<OOSubEntity> *flasher = (Entity<OOSubEntity> *)flashers[0].get();
-		OO_CHECK([effect subEntities].size() == 1 && [effect subEntities][0].get() == flasher);
-		OO_CHECK([flasher owner] == effect);
+		OO_CHECK(effect->subEntities().size() == 1 && effect->subEntities()[0].get() == flasher);
+		OO_CHECK([flasher owner] == oo::ToObjC(effect));
 		OO_CHECK([flasher isSubEntity]);
-		OO_CHECK([effect hasSubEntity:flasher]);
+		OO_CHECK(effect->hasSubEntity(flasher));
 		OO_CHECK(Near([flasher position].x, 10.0));
 
 		// The profile radius reaches the flasher's far side: 10 + 2.
-		OO_CHECK(Near([effect frustumRadius], 12.0));
+		OO_CHECK(Near(effect->frustumRadius(), 12.0));
 		OO_CHECK(Near(NoDrawDistance(effect), 12.0 * 12.0 * NO_DRAW_DISTANCE_FACTOR * NO_DRAW_DISTANCE_FACTOR * 2.0));
 
 		// Scaling one axis moves the flasher along it and resizes it by the cube root.
 		const GLfloat flasherRadius = [flasher collisionRadius];
-		[effect setScaleX:2.0f];
-		OO_CHECK([effect scaleX] == 2.0f);
-		OO_CHECK([effect scaleMax] == 2.0f);
+		effect->setScaleX(2.0f);
+		OO_CHECK(effect->scaleX() == 2.0f);
+		OO_CHECK(effect->scaleMax() == 2.0f);
 		OO_CHECK(Near([flasher position].x, 20.0));
 		OO_CHECK(Near([flasher collisionRadius], flasherRadius * std::pow(2.0, 1.0 / 3.0)));
-		OO_CHECK(Near([effect frustumRadius], 24.0));
-		[effect setScaleY:3.0f];
-		OO_CHECK([effect scaleMax] == 3.0f);
-		[effect setScaleZ:0.5f];
-		OO_CHECK([effect scaleZ] == 0.5f);
-		OO_CHECK([effect scaleMax] == 3.0f);
+		OO_CHECK(Near(effect->frustumRadius(), 24.0));
+		effect->setScaleY(3.0f);
+		OO_CHECK(effect->scaleMax() == 3.0f);
+		effect->setScaleZ(0.5f);
+		OO_CHECK(effect->scaleZ() == 0.5f);
+		OO_CHECK(effect->scaleMax() == 3.0f);
 
-		[effect removeSubEntity:flasher];
-		OO_CHECK_EQ([effect subEntityCount], 0u);
+		effect->removeSubEntity(flasher);
+		OO_CHECK_EQ(effect->subEntityCount(), 0u);
 		OO_CHECK([flasher owner] == nil);
-		OO_CHECK(![effect hasSubEntity:flasher]);
+		OO_CHECK(!effect->hasSubEntity(flasher));
 	}
 }
 
@@ -267,46 +281,49 @@ OO_TEST(standardSubentities)
 		subs.push_back(Flasher(-3));
 		// Made, and the snapshot taken, in a pool of their own: what is left after it drains is what
 		// owns the child (pending autoreleases are not ownership).
-		OOVisualEffectEntity *effect = nil;
-		std::vector<oo::ObjCRef<OOVisualEffectEntity *>> effects;
+		OOVisualEffectEntity *effect = nullptr;
+		std::vector<oo::ObjCRef<Entity *>> effects;	// the subentities' objects (bead oo-9ht.165)
+		::Entity *effectObject = nil;
 		@autoreleasepool
 		{
-			effect = [[OOVisualEffectEntity alloc] cxx_initWithKey:"parent" definition:Dict({ { "subentities", oo::PList(std::move(subs)) } })];
-			effects = [effect effectSubEntityEnumerator];
+			effectObject = oo::NewVisualEffectObject("parent", Dict({ { "subentities", oo::PList(std::move(subs)) } }));
+			effect = oo::ToEffect(effectObject);
+			effects = effect->effectSubEntityEnumerator();
 		}
-		[effect autorelease];
+		[effectObject autorelease];
 
-		OO_CHECK_EQ([effect subEntityCount], 2u);
+		OO_CHECK_EQ(effect->subEntityCount(), 2u);
 		OO_CHECK_EQ(effects.size(), 1u);
-		OO_CHECK([effect visualEffectSubEntityEnumerator].has_value() && [effect visualEffectSubEntityEnumerator]->size() == 1);
-		OO_CHECK_EQ([effect flasherEnumerator].size(), 1u);
+		OO_CHECK(effect->visualEffectSubEntityEnumerator().has_value() && effect->visualEffectSubEntityEnumerator()->size() == 1);
+		OO_CHECK_EQ(effect->flasherEnumerator().size(), 1u);
 		if (effects.size() != 1)  return;
 
-		OOVisualEffectEntity *child = effects[0].get();
-		OO_CHECK([child effectKey] == std::optional<std::string>("child"));
-		OO_CHECK(Near([child position].y, 5.0));
-		OO_CHECK([child owner] == effect);
-		OO_CHECK([child isSubEntity]);
-		OO_CHECK([child retainCount] == 2);	// the parent's list and the enumerator's snapshot (effects)
-		OO_CHECK([effect isShipWithSubEntityShip:child]);
-		OO_CHECK((id)[child parentEntity] == effect);
-		OO_CHECK(![child isShipWithSubEntityShip:effect]);
+		Entity *childObject = effects[0].get();	// the child's object (bead oo-9ht.165)
+		OOVisualEffectEntity *child = oo::ToEffect(childObject);
+		OO_CHECK(child->effectKey() == std::optional<std::string>("child"));
+		OO_CHECK(Near(child->getPosition().y, 5.0));
+		OO_CHECK(child->owner() == oo::ToObjC(effect));
+		OO_CHECK(child->getIsSubEntity());
+		OO_CHECK([childObject retainCount] == 2);	// the parent's list and the enumerator's snapshot (effects)
+		OO_CHECK(effect->isShipWithSubEntityShip(oo::ToObjC(child)));
+		OO_CHECK((id)child->parentEntity() == oo::ToObjC(effect));
+		OO_CHECK(!child->isShipWithSubEntityShip(oo::ToObjC(effect)));
 
 		// Rescaling the whole effect moves and rescales its subentities.
-		[effect rescaleBy:2.0f];
-		OO_CHECK(Near([child position].y, 10.0));
-		OO_CHECK_EQ([effect subEntityCount], 2u);
+		effect->rescaleBy(2.0f);
+		OO_CHECK(Near(child->getPosition().y, 10.0));
+		OO_CHECK_EQ(effect->subEntityCount(), 2u);
 
 		// A scale of one axis is passed on to a visual-effect subentity.
-		[effect setScaleY:4.0f];
-		OO_CHECK([child scaleY] == 4.0f);
-		OO_CHECK(Near([child position].y, 40.0));
+		effect->setScaleY(4.0f);
+		OO_CHECK(child->scaleY() == 4.0f);
+		OO_CHECK(Near(child->getPosition().y, 40.0));
 
-		[effect clearSubEntities];
-		OO_CHECK_EQ([effect subEntityCount], 0u);
-		OO_CHECK([effect subEntities].empty());
-		OO_CHECK(![effect visualEffectSubEntityEnumerator].has_value());
-		OO_CHECK([effect frustumRadius] == 0.0f);
+		effect->clearSubEntities();
+		OO_CHECK_EQ(effect->subEntityCount(), 0u);
+		OO_CHECK(effect->subEntities().empty());
+		OO_CHECK(!effect->visualEffectSubEntityEnumerator().has_value());
+		OO_CHECK(effect->frustumRadius() == 0.0f);
 	}
 }
 
@@ -320,13 +337,13 @@ OO_TEST(orientationVectors)
 		Quaternion q = kIdentityQuaternion;
 		quaternion_rotate_about_y(&q, 0.5);
 		quaternion_rotate_about_x(&q, 0.25);
-		[effect setOrientation:q];
-		const Quaternion o = [effect orientation];
+		effect->setOrientation(q);
+		const Quaternion o = effect->getOrientation();
 		const Vector f = vector_forward_from_quaternion(o), u = vector_up_from_quaternion(o), r = vector_right_from_quaternion(o);
-		OO_CHECK(Near([effect forwardVector].x, f.x) && Near([effect forwardVector].y, f.y) && Near([effect forwardVector].z, f.z));
-		OO_CHECK(Near([effect upVector].x, u.x) && Near([effect upVector].y, u.y) && Near([effect upVector].z, u.z));
-		OO_CHECK(Near([effect rightVector].x, r.x) && Near([effect rightVector].y, r.y) && Near([effect rightVector].z, r.z));
-		OO_CHECK(!Near([effect forwardVector].z, 1.0));
+		OO_CHECK(Near(effect->forwardVector().x, f.x) && Near(effect->forwardVector().y, f.y) && Near(effect->forwardVector().z, f.z));
+		OO_CHECK(Near(effect->upVector().x, u.x) && Near(effect->upVector().y, u.y) && Near(effect->upVector().z, u.z));
+		OO_CHECK(Near(effect->rightVector().x, r.x) && Near(effect->rightVector().y, r.y) && Near(effect->rightVector().z, r.z));
+		OO_CHECK(!Near(effect->forwardVector().z, 1.0));
 	}
 }
 
@@ -338,31 +355,31 @@ OO_TEST(scannerColours)
 	@autoreleasepool
 	{
 		OOVisualEffectEntity *plain = Effect("plain", Dict({}));
-		OO_CHECK([plain scannerDisplayColor1] == nil);
-		OO_CHECK([plain scannerDisplayColor2] == nil);
-		OO_CHECK([plain scannerDisplayColorForShip:YES scannerDisplayColor1:nil scannerDisplayColor2:nil][3] == 0.0f);	// transparent black
+		OO_CHECK(plain->scannerDisplayColor1() == nil);
+		OO_CHECK(plain->scannerDisplayColor2() == nil);
+		OO_CHECK(plain->scannerDisplayColorForShip(YES, nullptr, nullptr)[3] == 0.0f);	// transparent black
 
 		OOVisualEffectEntity *effect = Effect("coloured", Dict({ { "scanner_display_color1", oo::PList(std::string("redColor")) }, { "scanner_display_color2", oo::PList(std::string("blueColor")) } }));
-		OOColor *c1 = [effect scannerDisplayColor1];
-		OOColor *c2 = [effect scannerDisplayColor2];
+		OOColor *c1 = effect->scannerDisplayColor1();
+		OOColor *c2 = effect->scannerDisplayColor2();
 		OO_CHECK(c1 != nil && c2 != nil);
 		float r, g, b, a;
-		[c1 getRed:&r green:&g blue:&b alpha:&a];
+		c1->getRed(&r, &g, &b, &a);
 		OO_CHECK(r == 1.0f && g == 0.0f && b == 0.0f && a == 1.0f);
 
-		GLfloat *flashOn = [effect scannerDisplayColorForShip:YES scannerDisplayColor1:c1 scannerDisplayColor2:c2];
+		GLfloat *flashOn = effect->scannerDisplayColorForShip(YES, c1, c2);
 		OO_CHECK(flashOn[0] == 1.0f && flashOn[2] == 0.0f);
-		GLfloat *flashOff = [effect scannerDisplayColorForShip:NO scannerDisplayColor1:c1 scannerDisplayColor2:c2];
+		GLfloat *flashOff = effect->scannerDisplayColorForShip(NO, c1, c2);
 		OO_CHECK(flashOff[0] == 0.0f && flashOff[2] == 1.0f);
-		OO_CHECK([effect scannerDisplayColorForShip:NO scannerDisplayColor1:c1 scannerDisplayColor2:nil][0] == 1.0f);
-		OO_CHECK([effect scannerDisplayColorForShip:YES scannerDisplayColor1:nil scannerDisplayColor2:c2][2] == 1.0f);
+		OO_CHECK(effect->scannerDisplayColorForShip(NO, c1, nullptr)[0] == 1.0f);
+		OO_CHECK(effect->scannerDisplayColorForShip(YES, nullptr, c2)[2] == 1.0f);
 
 		// A new colour replaces it; nil takes the definition's again.
-		[effect setScannerDisplayColor1:[OOColor greenColor]];
-		[[effect scannerDisplayColor1] getRed:&r green:&g blue:&b alpha:&a];
+		effect->setScannerDisplayColor1(OOColor::greenColor().get());
+		effect->scannerDisplayColor1()->getRed(&r, &g, &b, &a);
 		OO_CHECK(r == 0.0f && g == 1.0f && b == 0.0f);
-		[effect setScannerDisplayColor1:nil];
-		[[effect scannerDisplayColor1] getRed:&r green:&g blue:&b alpha:&a];
+		effect->setScannerDisplayColor1(nullptr);
+		effect->scannerDisplayColor1()->getRed(&r, &g, &b, &a);
 		OO_CHECK(r == 1.0f && g == 0.0f && b == 0.0f);
 	}
 }
@@ -375,10 +392,10 @@ OO_TEST(scriptAndScriptInfo)
 	{
 		// No scripts in the scratch folder: neither the named script nor the default one is found.
 		OOVisualEffectEntity *effect = Effect("scripted", Dict({ { "script", oo::PList(std::string("no-such-script.js")) }, { "script_info", Dict({ { "k", oo::PList(std::string("v")) } }) } }));
-		OO_CHECK([effect script] == nil);
-		OO_CHECK([effect scriptInfo] == Dict({ { "k", oo::PList(std::string("v")) } }));
-		OO_CHECK([Effect("bare", Dict({})) scriptInfo] == Dict({}));
-		[effect doScriptEvent:OOJSID("anEvent")];	// no script: nothing happens
+		OO_CHECK(effect->script() == nil);
+		OO_CHECK(effect->scriptInfo() == Dict({ { "k", oo::PList(std::string("v")) } }));
+		OO_CHECK(Effect("bare", Dict({}))->scriptInfo() == Dict({}));
+		effect->doScriptEvent(OOJSID("anEvent"));	// no script: nothing happens
 	}
 }
 
@@ -389,24 +406,25 @@ OO_TEST(beacons)
 	@autoreleasepool
 	{
 		OOVisualEffectEntity *effect = Effect("unlit", Dict({}));
-		OO_CHECK(![effect isBeacon]);
-		OO_CHECK(![effect beaconCode].has_value());
-		OO_CHECK(![effect beaconLabel].has_value());
-		OO_CHECK(![effect isJammingScanning]);
-		OO_CHECK([effect prevBeacon] == nil && [effect nextBeacon] == nil);
+		OO_CHECK(!effect->isBeacon());
+		OO_CHECK(!effect->beaconCode().has_value());
+		OO_CHECK(!effect->beaconLabel().has_value());
+		OO_CHECK(!effect->isJammingScanning());
+		OO_CHECK(effect->prevBeacon() == nil && effect->nextBeacon() == nil);
 
 		OOVisualEffectEntity *other = Effect("other", Dict({}));
-		[effect setPrevBeacon:other];
-		[effect setNextBeacon:other];
-		OO_CHECK([effect prevBeacon] == other && [effect nextBeacon] == other);
-		[effect setNextBeacon:nil];
-		OO_CHECK([effect nextBeacon] == nil);
-		[effect setPrevBeacon:nil];
+		OOVisualEffectBeaconEntity *otherObject = (OOVisualEffectBeaconEntity *)oo::ToObjC(other);	// the beacon list holds objects
+		effect->setPrevBeacon(otherObject);
+		effect->setNextBeacon(otherObject);
+		OO_CHECK(effect->prevBeacon() == otherObject && effect->nextBeacon() == otherObject);
+		effect->setNextBeacon(nullptr);
+		OO_CHECK(effect->nextBeacon() == nil);
+		effect->setPrevBeacon(nullptr);
 
 		// An empty code is none.
-		[effect setBeaconCode:std::optional<std::string>("")];
-		OO_CHECK(![effect beaconCode].has_value());
-		OO_CHECK([effect compareBeaconCodeWith:other] == OOOrderedSame);
+		effect->setBeaconCode(std::optional<std::string>(""));
+		OO_CHECK(!effect->beaconCode().has_value());
+		OO_CHECK(effect->compareBeaconCodeWith(otherObject) == OOOrderedSame);
 	}
 }
 
@@ -417,22 +435,22 @@ OO_TEST(shaderUniforms)
 	@autoreleasepool
 	{
 		OOVisualEffectEntity *effect = Effect("shaded", Dict({}));
-		OO_CHECK(Near([effect hullHeatLevel], 60.0 / 256.0));
-		[effect setHullHeatLevel:2.0f];
-		OO_CHECK([effect hullHeatLevel] == 1.0f);	// clamped
-		[effect setHullHeatLevel:-1.0f];
-		OO_CHECK([effect hullHeatLevel] == 0.0f);
-		OO_CHECK([effect shaderFloat1] == 0.0f && [effect shaderFloat2] == 0.0f);
-		OO_CHECK([effect shaderInt1] == 0 && [effect shaderInt2] == 0);
-		[effect setShaderFloat1:1.5f];
-		[effect setShaderFloat2:2.5f];
-		[effect setShaderInt1:3];
-		[effect setShaderInt2:4];
-		[effect setShaderVector1:make_vector(1, 2, 3)];
-		[effect setShaderVector2:make_vector(4, 5, 6)];
-		OO_CHECK([effect shaderFloat1] == 1.5f && [effect shaderFloat2] == 2.5f);
-		OO_CHECK([effect shaderInt1] == 3 && [effect shaderInt2] == 4);
-		OO_CHECK([effect shaderVector1].y == 2.0f && [effect shaderVector2].z == 6.0f);
+		OO_CHECK(Near(effect->hullHeatLevel(), 60.0 / 256.0));
+		effect->setHullHeatLevel(2.0f);
+		OO_CHECK(effect->hullHeatLevel() == 1.0f);	// clamped
+		effect->setHullHeatLevel(-1.0f);
+		OO_CHECK(effect->hullHeatLevel() == 0.0f);
+		OO_CHECK(effect->shaderFloat1() == 0.0f && effect->shaderFloat2() == 0.0f);
+		OO_CHECK(effect->shaderInt1() == 0 && effect->shaderInt2() == 0);
+		effect->setShaderFloat1(1.5f);
+		effect->setShaderFloat2(2.5f);
+		effect->setShaderInt1(3);
+		effect->setShaderInt2(4);
+		effect->setShaderVector1(make_vector(1, 2, 3));
+		effect->setShaderVector2(make_vector(4, 5, 6));
+		OO_CHECK(effect->shaderFloat1() == 1.5f && effect->shaderFloat2() == 2.5f);
+		OO_CHECK(effect->shaderInt1() == 3 && effect->shaderInt2() == 4);
+		OO_CHECK(effect->shaderVector1().y == 2.0f && effect->shaderVector2().z == 6.0f);
 	}
 }
 
@@ -446,28 +464,27 @@ OO_TEST(facadeContract)
 	@autoreleasepool
 	{
 		OOVisualEffectEntity *effect = Effect("facade", Dict({ { "subentities", oo::PList(oo::PList::Array{ Flasher(1) }) } }));
-		cxx::OOVisualEffectEntity *cxxEffect = oo::ToCxx(effect);
+		OOVisualEffectEntity *cxxEffect = effect;	// the C++ class since bead oo-9ht.165
 		OO_CHECK(cxxEffect != nullptr);
-		OO_CHECK(oo::ToObjC(cxxEffect) == effect);
-		OO_CHECK([effect isMemberOfClass:[OOVisualEffectEntity class]]);
-		OO_CHECK(oo::ToCxx(static_cast<OOVisualEffectEntity *>(nil)) == nullptr);
-		OO_CHECK(oo::ToObjC(static_cast<cxx::OOVisualEffectEntity *>(nullptr)) == nil);
+		OO_CHECK(oo::ToEffect(oo::ToObjC(cxxEffect)) == effect);
+		OO_CHECK(oo::ToEffect(static_cast<Entity *>(nil)) == nullptr);
+		OO_CHECK(oo::ToObjC(static_cast<OOVisualEffectEntity *>(nullptr)) == nil);
 
-		OO_CHECK(cxxEffect->effectKey() == [effect effectKey]);
-		OO_CHECK(cxxEffect->subEntityCount() == [effect subEntityCount]);
+		OO_CHECK(cxxEffect->effectKey() == effect->effectKey());
+		OO_CHECK(cxxEffect->subEntityCount() == effect->subEntityCount());
 		OO_CHECK(cxxEffect->getIsVisualEffect() && cxxEffect->isEffect() && !cxxEffect->canCollide());
-		OO_CHECK(Near(cxxEffect->frustumRadius(), [effect frustumRadius]));
+		OO_CHECK(Near(cxxEffect->frustumRadius(), effect->frustumRadius()));
 		cxxEffect->setScaleZ(5.0f);
-		OO_CHECK([effect scaleZ] == 5.0f);
-		OO_CHECK([effect scaleMax] == 5.0f);
+		OO_CHECK(effect->scaleZ() == 5.0f);
+		OO_CHECK(effect->scaleMax() == 5.0f);
 
 		// The flasher's owner is the façade the C++ member handed it.
 		std::vector<oo::ObjCRef<Entity *>> flashers = cxxEffect->flasherEnumerator();
-		OO_CHECK(flashers.size() == 1 && [flashers[0].get() owner] == effect);
+		OO_CHECK(flashers.size() == 1 && [flashers[0].get() owner] == oo::ToObjC(effect));
 
 		// Slice 2, on the façade, reads the state the class keeps.
-		OO_CHECK(Near([effect hullHeatLevel], 60.0 / 256.0));
-		[effect setShaderFloat1:0.5f];
+		OO_CHECK(Near(effect->hullHeatLevel(), 60.0 / 256.0));
+		effect->setShaderFloat1(0.5f);
 		OO_CHECK(cxxEffect->_shaderFloat1 == 0.5f);
 	}
 }
@@ -480,14 +497,14 @@ OO_TEST(slice2Members)
 	@autoreleasepool
 	{
 		OOVisualEffectEntity *effect = Effect("members", Dict({ { "scanner_display_color1", oo::PList(std::string("redColor")) } }));
-		cxx::OOVisualEffectEntity *cxxEffect = oo::ToCxx(effect);
-		OO_CHECK(oo::ToObjC(cxxEffect->scannerDisplayColor1()) == [effect scannerDisplayColor1]);
+		OOVisualEffectEntity *cxxEffect = effect;	// the C++ class since bead oo-9ht.165
+		OO_CHECK(cxxEffect->scannerDisplayColor1() == effect->scannerDisplayColor1());
 		OO_CHECK(cxxEffect->scannerDisplayColor2() == nullptr);
 		cxxEffect->setShaderInt2(7);
-		OO_CHECK([effect shaderInt2] == 7);
+		OO_CHECK(effect->shaderInt2() == 7);
 		cxxEffect->setHullHeatLevel(0.25f);
-		OO_CHECK([effect hullHeatLevel] == 0.25f);
-		OO_CHECK(cxxEffect->script() == [effect script]);
+		OO_CHECK(effect->hullHeatLevel() == 0.25f);
+		OO_CHECK(cxxEffect->script() == effect->script());
 		OO_CHECK(!cxxEffect->isBeacon() && !cxxEffect->isJammingScanning());
 		OO_CHECK(cxxEffect->scannerDisplayColorForShip(true, cxxEffect->scannerDisplayColor1(), nullptr)[0] == 1.0f);
 	}
@@ -509,8 +526,8 @@ static void RegisterJSClasses(void (*initClass)(JSContext *, JSValueConst))
 }
 
 
-// The binding's category, which the facade carries: what the engine asks a OOVisualEffectEntity
-// for by selector is what OOJSVisualEffect.mm answers.
+// The binding's category, which the facade carried and the C++ class's overrides answer now: what
+// the engine asks an effect's object for by selector is what OOJSVisualEffect.mm answers.
 OO_TEST(jsExtensions)
 {
 	SetUp();
@@ -518,11 +535,12 @@ OO_TEST(jsExtensions)
 	{
 		OOVisualEffectEntity *effect = Effect("js-effect", Dict({}));
 		RegisterJSClasses(InitOOJSVisualEffect);
-		const JSClassID jsClass = [effect oo_jsClassID];
+		Entity *object = oo::ToObjC(effect);	// the engine asks the object (the root's category)
+		const JSClassID jsClass = [object oo_jsClassID];
 		const JSClassID expectedClass = JSVisualEffectClassID();
 		OO_CHECK(jsClass != 0 && jsClass == expectedClass);
-		OO_CHECK([effect cxx_oo_jsClassName] == std::optional<std::string>("VisualEffect"));
-		OO_CHECK([effect isVisibleToScripts] == YES);
+		OO_CHECK([object cxx_oo_jsClassName] == std::optional<std::string>("VisualEffect"));
+		OO_CHECK([object isVisibleToScripts] == YES);
 	}
 }
 

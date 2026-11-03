@@ -38,7 +38,8 @@ MA 02110-1301, USA.
 
 Random_Seed OOStringExpanderUniverseRandomSeedForCurrentSystem(void)
 {
-    return [[UNIVERSE systemManager] getRandomSeedForCurrentSystem];
+    auto* manager = [UNIVERSE systemManager]; // null: a zero seed, as a message to nil (auto: the expander harness stubs the class)
+    return (manager != nullptr) ? manager->getRandomSeedForCurrentSystem() : Random_Seed { };
 }
 
 const oo::PList* OOStringExpanderUniverseDescriptions(void)
@@ -58,22 +59,22 @@ std::optional<std::string> OOStringExpanderUniverseGetSystemNameForGalaxy(OOSyst
 
 OOSystemID OOStringExpanderPlayerSystemID(void)
 {
-    return [PLAYER systemID];
+    return (PLAYER != nullptr ? PLAYER->systemID() : 0);
 }
 
 bool OOStringExpanderPlayerRespondsToSelector(SEL selector)
 {
-    return [PLAYER respondsToSelector:selector];
+    return [oo::ToObjC(PLAYER) respondsToSelector:selector]; // the root's facade answers the player's selectors (beads oo-9ht.177, oo-9ht.144)
 }
 
 std::optional<std::string> OOStringExpanderPlayerKeyBindingDescription2(const std::string& binding)
 {
-    return [PLAYER cxx_keyBindingDescription2:binding];
+    return (PLAYER != nullptr ? PLAYER->keyBindingDescription2(binding) : std::optional<std::string>());
 }
 
 oo::PList OOStringExpanderPlayerMissionVariableForKey(const std::string& key)
 {
-    return [PLAYER cxx_missionVariableForKey:key];
+    return (PLAYER != nullptr ? PLAYER->missionVariableForKey(key) : oo::PList());
 }
 
 oo::PList OOStringExpanderResourceManagerWhitelistDictionary(void)

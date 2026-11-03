@@ -11,13 +11,15 @@
 	diameter setters, -drawSubEntityImmediate:translucent: (the owner's camera distance, the cut-off,
 	and the draw it sends to self), and that the texture a subclass answers is the one the debug
 	texture list reports. The colour components, a @protected ivar, are read through the one helper
-	below. The tests after those pin the intermediate class's crossing (amendment oo-0otc): an
-	Objective-C subclass's C++ part is over cxx::OOLightParticleEntity and its -texture override is
-	reached from C++; a C++ subclass's facade is an OOLightParticleEntity.
+	below. Since bead oo-9ht.76 deleted the class's Objective-C facade (ADR-0056 amendment
+	oo-9ht.106) a particle is made in C++ and handed to Objective-C with oo::NewEntityFacade, whose
+	object is the root Entity's facade: the test subclass is a C++ subclass with the same answers,
+	the class's own selectors are member calls and the root's are still sent to the object.
 	Run: bash tools/check-core-tests.sh
 */
 
 #import "OOLightParticleEntity.h"
+#import "PlayerEntity.h"	// PLAYER is C++
 #import "OOColor.h"
 #import "OODescription.h"
 #import "Universe.h"
@@ -32,20 +34,29 @@
 uint32_t gDebugFlags = 0;
 #endif
 
-@class PlayerEntity;
+class PlayerEntity;
 extern PlayerEntity *gOOPlayer;
 extern Universe *gSharedUniverse;
 
 
-@interface TestPlayer: Entity
-@end
+class TestPlayer : public PlayerEntity	// C++ since bead oo-9ht.177 deleted the Objective-C player
+{
+public:
+	HPVector viewpointPosition() override	{ return kZeroHPVector; }
+};
 
-
-@implementation TestPlayer
-
-- (HPVector) viewpointPosition	{ return kZeroHPVector; }
-
-@end
+// NewTestPlayer<TestPlayer>(): a C++ player under the ship's facade, as
+// PlayerEntity::sharedPlayer() makes the game's, retained (+1) as +alloc's object was.
+template <class T>
+T *NewTestPlayer()
+{
+	oo::Ref<T> player = oo::makeRef<T>();
+	@autoreleasepool
+	{
+		[oo::NewEntityFacade(player) retain];
+	}
+	return player.get();
+}
 
 
 // UNIVERSE: never initialised; answers the time the test sets.
@@ -60,30 +71,24 @@ extern Universe *gSharedUniverse;
 @end
 
 
-// An unconverted subclass, as OOFlashEffectEntity is: counts its draws and answers its own texture.
-@interface TestParticle: OOLightParticleEntity
+// A subclass, as OOFlashEffectEntity is: counts its draws and answers its own texture. (An
+// Objective-C subclass until bead oo-9ht.76; global, so its description names it as before.)
+class TestParticle : public OOLightParticleEntity
 {
-@public
-	int			_draws;
-	OOTexture	*_texture;
-}
-@end
+public:
+	int			_draws = 0;
+	OOTexture	*_texture = nil;
 
+	void drawImmediate(bool /*immediate*/, bool /*translucent*/) override
+	{
+		_draws++;
+	}
 
-@implementation TestParticle
-
-- (void) drawImmediate:(bool)immediate translucent:(bool)translucent
-{
-	_draws++;
-}
-
-
-- (OOTexture *) texture
-{
-	return _texture;
-}
-
-@end
+	::OOTexture *texture() override
+	{
+		return _texture;
+	}
+};
 
 
 // An owner whose camera distance the test sets.
@@ -99,7 +104,7 @@ namespace {
 
 // --- Ivars the game reads directly, and nothing else ------------------------------------------------
 
-const GLfloat *ColorComponents(OOLightParticleEntity *e)	{ return oo::ToCxx(e)->_colorComponents; }
+const GLfloat *ColorComponents(OOLightParticleEntity *e)	{ return e->_colorComponents; }
 GLfloat NoDrawDistance(Entity *e)							{ return e->_cxxEntity->no_draw_distance; }
 GLfloat CamZeroDistance(Entity *e)							{ return e->_cxxEntity->cam_zero_distance; }
 void SetCamZeroDistance(Entity *e, GLfloat value)			{ e->_cxxEntity->cam_zero_distance = value; }
@@ -116,9 +121,9 @@ void SetUp()
 		universe->_cxxUniverse = oo::makeRef<cxx::Universe>(universe);	// what -initWithGameView: makes first (ADR-0056 amendment oo-riqmz)
 	}
 	gSharedUniverse = universe;
-	static TestPlayer *player = nil;
-	if (player == nil)  player = [[TestPlayer alloc] init];
-	gOOPlayer = (PlayerEntity *)player;
+	static TestPlayer *player = nullptr;
+	if (player == nullptr)  player = NewTestPlayer<TestPlayer>();
+	gOOPlayer = player;
 }
 
 
@@ -126,6 +131,21 @@ bool ComponentsAre(OOLightParticleEntity *e, GLfloat r, GLfloat g, GLfloat b, GL
 {
 	const GLfloat *c = ColorComponents(e);
 	return c[0] == r && c[1] == g && c[2] == b && c[3] == a;
+}
+
+
+/*	[[[T alloc] initWithDiameter:d] autorelease] until bead oo-9ht.76: a new C++ particle, its
+	object (the root's facade, autoreleased) made first and the initialiser's body run after, the
+	facade's order. The object holds the particle; the test sends it the root's selectors.
+*/
+template <class T>
+T *NewParticle(float diameter, Entity **outObject = nullptr)
+{
+	const oo::Ref<T> particle = oo::makeRef<T>();
+	Entity *object = oo::NewEntityFacade(particle);
+	particle->initWithDiameter(diameter);
+	if (outObject != nullptr)  *outObject = object;
+	return particle.get();
 }
 
 }	// namespace
@@ -136,22 +156,24 @@ OO_TEST(initWithDiameter)
 	@autoreleasepool
 	{
 		SetUp();
-		OOLightParticleEntity *particle = [[[OOLightParticleEntity alloc] initWithDiameter:8.0f] autorelease];
-		OO_CHECK(particle != nil && [particle class] == [OOLightParticleEntity class]);
-		OO_CHECK([particle diameter] == 8.0f);
-		OO_CHECK([particle scanClass] == CLASS_NO_DRAW && [particle status] == STATUS_EFFECT);
-		OO_CHECK([particle isEffect] && ![particle canCollide]);
+		Entity *object = nil;
+		OOLightParticleEntity *particle = NewParticle<OOLightParticleEntity>(8.0f, &object);
+		OO_CHECK(particle != nullptr && typeid(*particle) == typeid(OOLightParticleEntity));
+		OO_CHECK(particle->diameter() == 8.0f);
+		OO_CHECK([object scanClass] == CLASS_NO_DRAW && [object status] == STATUS_EFFECT);
+		OO_CHECK([object isEffect] && ![object canCollide]);
 		OO_CHECK(ComponentsAre(particle, 1.0f, 1.0f, 1.0f, 1.0f));
 
 		// The draw distance grows with the diameter; reduced detail (a minimum detail level) scales it by 12.
 		GLfloat expected = pow(8.0f / 2.0, M_SQRT2) * NO_DRAW_DISTANCE_FACTOR * NO_DRAW_DISTANCE_FACTOR;
 		expected *= 12.0;
 		OO_CHECK([UNIVERSE reducedDetail]);
-		OO_CHECK(NoDrawDistance(particle) == expected);
+		OO_CHECK(NoDrawDistance(object) == expected);
 
-		// An Objective-C subclass initialises the same way.
-		TestParticle *sub = [[[TestParticle alloc] initWithDiameter:2.0f] autorelease];
-		OO_CHECK([sub diameter] == 2.0f && [sub status] == STATUS_EFFECT && [sub isEffect]);
+		// A subclass initialises the same way.
+		Entity *subObject = nil;
+		TestParticle *sub = NewParticle<TestParticle>(2.0f, &subObject);
+		OO_CHECK(sub->diameter() == 2.0f && [subObject status] == STATUS_EFFECT && [subObject isEffect]);
 	}
 }
 
@@ -161,20 +183,20 @@ OO_TEST(colorAndDiameter)
 	@autoreleasepool
 	{
 		SetUp();
-		OOLightParticleEntity *particle = [[[OOLightParticleEntity alloc] initWithDiameter:1.0f] autorelease];
-		[particle setColor:[OOColor colorWithRed:0.25f green:0.5f blue:0.75f alpha:0.5f]];
+		OOLightParticleEntity *particle = NewParticle<OOLightParticleEntity>(1.0f);
+		particle->setColor(OOColor::colorWithRed(0.25f, 0.5f, 0.75f, 0.5f).get());
 		OO_CHECK(ComponentsAre(particle, 0.25f, 0.5f, 0.75f, 0.5f));
-		[particle setColor:[OOColor colorWithRed:1.0f green:0.0f blue:0.5f alpha:1.0f] alpha:0.125f];
+		particle->setColor(OOColor::colorWithRed(1.0f, 0.0f, 0.5f, 1.0f).get(), 0.125f);
 		OO_CHECK(ComponentsAre(particle, 1.0f, 0.0f, 0.5f, 0.125f));
 
 		// nil changes nothing (a message to nil did nothing), except the alpha it is given.
-		[particle setColor:nil];
+		particle->setColor(nullptr);
 		OO_CHECK(ComponentsAre(particle, 1.0f, 0.0f, 0.5f, 0.125f));
-		[particle setColor:nil alpha:0.25f];
+		particle->setColor(nullptr, 0.25f);
 		OO_CHECK(ComponentsAre(particle, 1.0f, 0.0f, 0.5f, 0.25f));
 
-		[particle setDiameter:3.0f];
-		OO_CHECK([particle diameter] == 3.0f);
+		particle->setDiameter(3.0f);
+		OO_CHECK(particle->diameter() == 3.0f);
 	}
 }
 
@@ -184,27 +206,29 @@ OO_TEST(drawSubEntity)
 	@autoreleasepool
 	{
 		SetUp();
-		TestParticle *particle = [[[TestParticle alloc] initWithDiameter:1.0f] autorelease];
+		Entity *object = nil;
+		TestParticle *particle = NewParticle<TestParticle>(1.0f, &object);
 		TestOwner *owner = [[[TestOwner alloc] init] autorelease];
-		[particle setOwner:owner];
+		[object setOwner:owner];
 
 		// Opaque pass: nothing.
 		SetCamZeroDistance(owner, 5.0f);
-		[particle drawSubEntityImmediate:false translucent:false];
-		OO_CHECK(CamZeroDistance(particle) == 0.0f && particle->_draws == 0);
+		particle->drawSubEntityImmediate(false, false);
+		OO_CHECK(CamZeroDistance(object) == 0.0f && particle->_draws == 0);
 
 		// Beyond the draw distance: the owner's distance is taken, and nothing is drawn.
-		SetCamZeroDistance(owner, NoDrawDistance(particle) * 2.0f);
-		[particle drawSubEntityImmediate:false translucent:true];
-		OO_CHECK(CamZeroDistance(particle) == NoDrawDistance(particle) * 2.0f && particle->_draws == 0);
+		SetCamZeroDistance(owner, NoDrawDistance(object) * 2.0f);
+		particle->drawSubEntityImmediate(false, true);
+		OO_CHECK(CamZeroDistance(object) == NoDrawDistance(object) * 2.0f && particle->_draws == 0);
 
 		// Near: drawn through -drawImmediate:translucent:, which the subclass overrides.
 		SetCamZeroDistance(owner, 5.0f);
-		[particle drawSubEntityImmediate:false translucent:true];
-		OO_CHECK(CamZeroDistance(particle) == 5.0f && particle->_draws == 1);
+		particle->drawSubEntityImmediate(false, true);
+		OO_CHECK(CamZeroDistance(object) == 5.0f && particle->_draws == 1);
 
 		// The base's own draw does nothing in the opaque pass, or beyond the draw distance.
-		OOLightParticleEntity *plain = [[[OOLightParticleEntity alloc] initWithDiameter:1.0f] autorelease];
+		Entity *plain = nil;
+		(void)NewParticle<OOLightParticleEntity>(1.0f, &plain);
 		[plain drawImmediate:false translucent:false];
 		SetCamZeroDistance(plain, NoDrawDistance(plain));
 		[plain drawImmediate:false translucent:true];
@@ -218,10 +242,11 @@ OO_TEST(texturesListTheSubclassTexture)
 	@autoreleasepool
 	{
 		SetUp();
-		TestParticle *particle = [[[TestParticle alloc] initWithDiameter:1.0f] autorelease];
+		Entity *object = nil;
+		TestParticle *particle = NewParticle<TestParticle>(1.0f, &object);
 		OOTexture *texture = (OOTexture *)[[[OOObject alloc] init] autorelease];	// only retained and compared
 		particle->_texture = texture;
-		const std::vector<oo::ObjCRef<OOTexture *>> textures = [particle cxx_allTextures];
+		const std::vector<oo::ObjCRef<OOTexture *>> textures = [object cxx_allTextures];
 		OO_CHECK(textures.size() == 1 && textures[0].get() == texture);
 	}
 }
@@ -233,40 +258,20 @@ OO_TEST(description)
 	@autoreleasepool
 	{
 		SetUp();
-		TestParticle *particle = [[[TestParticle alloc] initWithDiameter:1.0f] autorelease];
-		OO_CHECK(oo::DescriptionOf(particle).starts_with("<TestParticle 0x"));
-		OO_CHECK(oo::DescriptionOf(particle).ends_with("scanClass: CLASS_NO_DRAW status: STATUS_EFFECT}"));
+		Entity *object = nil;
+		(void)NewParticle<TestParticle>(1.0f, &object);
+		OO_CHECK(oo::DescriptionOf(object).starts_with("<TestParticle 0x"));
+		OO_CHECK(oo::DescriptionOf(object).ends_with("scanClass: CLASS_NO_DRAW status: STATUS_EFFECT}"));
 	}
 }
 
 
-// --- The crossing (after the conversion) ---------------------------------------------------------
+// --- A converted subclass -----
 
 // A converted subclass, as OOSparkEntity is.
-class TestCxxParticle : public cxx::OOLightParticleEntity
+class TestCxxParticle : public OOLightParticleEntity
 {
 };
-
-
-OO_TEST(objCSubclassPartIsTheIntermediateClass)
-{
-	@autoreleasepool
-	{
-		SetUp();
-		TestParticle *particle = [[[TestParticle alloc] initWithDiameter:4.0f] autorelease];
-		OOTexture *texture = (OOTexture *)[[[OOObject alloc] init] autorelease];
-		particle->_texture = texture;
-
-		cxx::OOLightParticleEntity *part = oo::ToCxx(particle);
-		OO_CHECK(part != nullptr && dynamic_cast<cxx::OOLightParticleEntity *>(oo::ToCxx(static_cast<Entity *>(particle))) == part);
-		OO_CHECK(oo::ToObjC(part) == particle && part->diameter() == 4.0f);
-
-		// From C++, the Objective-C overrides run.
-		OO_CHECK(part->texture() == texture);
-		part->drawImmediate(false, true);
-		OO_CHECK(particle->_draws == 1);
-	}
-}
 
 
 OO_TEST(cxxSubclassFacade)
@@ -277,12 +282,10 @@ OO_TEST(cxxSubclassFacade)
 		const oo::Ref<TestCxxParticle> particle = oo::makeRef<TestCxxParticle>();
 		particle->initWithDiameter(6.0f);
 		Entity *facade = oo::NewEntityFacade(particle);
-		OO_CHECK(facade != nil && [facade class] == [OOLightParticleEntity class]);
-		OOLightParticleEntity *light = (OOLightParticleEntity *)facade;
-		OO_CHECK(oo::ToCxx(light) == particle.get() && oo::ToObjC(particle.get()) == light);
-		OO_CHECK([light diameter] == 6.0f && [facade isEffect] && ![facade canCollide] && [facade status] == STATUS_EFFECT);
-		[light setColor:[OOColor colorWithRed:0.5f green:0.25f blue:0.0f alpha:1.0f] alpha:0.5f];
-		OO_CHECK(ComponentsAre(light, 0.5f, 0.25f, 0.0f, 0.5f));
+		OO_CHECK(facade != nil);
+		OO_CHECK(particle->diameter() == 6.0f && [facade isEffect] && ![facade canCollide] && [facade status] == STATUS_EFFECT);
+		particle->setColor(OOColor::colorWithRed(0.5f, 0.25f, 0.0f, 1.0f).get(), 0.5f);
+		OO_CHECK(ComponentsAre(particle.get(), 0.5f, 0.25f, 0.0f, 0.5f));
 		OO_CHECK(oo::DescriptionOf(facade).starts_with("<TestCxxParticle 0x"));
 	}
 }

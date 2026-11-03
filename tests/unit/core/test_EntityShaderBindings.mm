@@ -11,11 +11,16 @@
 	-unsignedIntValue of nil did. The test links the whole game but main (['*']) for Entity. The
 	expectations were written against the Objective-C category and run on it first; the
 	conversion (amendment oo-9fwb: members of cxx::Entity, the category's forwarders in
-	EntityShaderBindings+ObjCBridge.mm) changed no line here.
+	EntityShaderBindings+ObjCBridge.mm) changed no line here. Since the uniforms bind the members
+	through the entities' member table (bead oo-9ht.158) and the forwarders went (bead oo-9ht.127),
+	the test asks the binding a uniform makes for each name on an entity's object, and pins the
+	uniform type the row gives, which is the one the method's return type encoding gave
+	('f' a float, 'I' an unsigned int); every expected value is kept.
 	Run: bash tools/check-core-tests.sh
 */
 
 #import "Entity.h"
+#import "PlayerEntity.h"	// PLAYER is C++ (bead oo-9ht.177)
 
 #include "oo_test.hpp"
 #include "oofnd/PList.hpp"
@@ -29,64 +34,61 @@
 uint32_t gDebugFlags = 0;
 #endif
 
-@class PlayerEntity;
+class PlayerEntity;
 extern PlayerEntity *gOOPlayer;
 
 
-// The category under test, as the uniforms reach it: by selector.
-@interface Entity (ShaderBindingsUnderTest)
-
-- (GLfloat) clock;
-- (unsigned) pseudoFixedD100;
-- (unsigned) pseudoFixedD256;
-- (unsigned) systemGovernment;
-- (unsigned) systemEconomy;
-- (unsigned) systemTechLevel;
-- (unsigned) systemPopulation;
-- (unsigned) systemProductivity;
-
-@end
+// The values under test, as the uniforms reach them: the binding for a name (bead oo-9ht.158).
+#import "OOShaderUniformMethodType.h"
 
 
-// PLAYER: answers what the category asks for, with the test's values.
-@interface TestPlayer: Entity
+// PLAYER: answers what the category asks for, with the test's values (C++ since bead oo-9ht.177
+// deleted the Objective-C player).
+class TestPlayer : public PlayerEntity
 {
-@public
-	double		_clockTime;
-	unsigned	_random100;
-	unsigned	_random256;
+public:
+	double		_clockTime = 0;
+	unsigned	_random100 = 0;
+	unsigned	_random256 = 0;
 	oo::PList	_government;
 	oo::PList	_economy;
 	oo::PList	_techLevel;
 	oo::PList	_population;
 	oo::PList	_productivity;
+
+	double clockTime() override						{ return _clockTime; }
+	unsigned systemPseudoRandom100() override		{ return _random100; }
+	unsigned systemPseudoRandom256() override		{ return _random256; }
+	oo::PList systemGovernment_number() override	{ return _government; }
+	oo::PList systemEconomy_number() override		{ return _economy; }
+	oo::PList systemTechLevel_number() override		{ return _techLevel; }
+	oo::PList systemPopulation_number() override	{ return _population; }
+	oo::PList systemProductivity_number() override	{ return _productivity; }
+};
+
+// [[TestPlayer alloc] init] (bead oo-9ht.177): a C++ player under the ship's facade, as
+// PlayerEntity::sharedPlayer() makes the game's, retained (+1) as +alloc's object was.
+template <class T>
+T *NewTestPlayer()
+{
+	oo::Ref<T> player = oo::makeRef<T>();
+	@autoreleasepool
+	{
+		[oo::NewEntityFacade(player) retain];
+	}
+	return player.get();
 }
-@end
-
-
-@implementation TestPlayer
-
-- (double) clockTime						{ return _clockTime; }
-- (unsigned) systemPseudoRandom100			{ return _random100; }
-- (unsigned) systemPseudoRandom256			{ return _random256; }
-- (oo::PList) systemGovernment_number		{ return _government; }
-- (oo::PList) systemEconomy_number			{ return _economy; }
-- (oo::PList) systemTechLevel_number		{ return _techLevel; }
-- (oo::PList) systemPopulation_number		{ return _population; }
-- (oo::PList) systemProductivity_number		{ return _productivity; }
-
-@end
 
 
 namespace {
 
-TestPlayer *sPlayer = nil;
+TestPlayer *sPlayer = nullptr;
 
 
 void SetUp()
 {
-	if (sPlayer == nil)  sPlayer = [[TestPlayer alloc] init];	// never released
-	gOOPlayer = (PlayerEntity *)sPlayer;
+	if (sPlayer == nullptr)  sPlayer = NewTestPlayer<TestPlayer>();	// never released
+	gOOPlayer = sPlayer;
 	sPlayer->_clockTime = 0;
 	sPlayer->_random100 = 0;
 	sPlayer->_random256 = 0;
@@ -104,13 +106,29 @@ Entity *AnEntity()
 }
 
 
-// The return type the runtime records for an instance method of Entity (what the uniform reads).
-char ReturnType(const char *selector)
+// The binding a uniform bound to the name on the entity's object makes (the member table).
+OOShaderMemberBinding Binding(Entity *entity, const char *name)
 {
-	Method method = class_getInstanceMethod([Entity class], sel_registerName(selector));
-	if (method == NULL)  return '\0';
-	const char *types = method_getTypeEncoding(method);
-	return types != NULL ? types[0] : '\0';
+	OOShaderMemberBinding binding = {};
+	if (!OOShaderMemberBindingFor(entity, sel_registerName(name), &binding))  binding = {};
+	return binding;
+}
+
+// What a uniform bound to the name reads: an integer or a float.
+long long BoundInt(Entity *entity, const char *name)
+{
+	OOShaderBindingValue value = {};
+	const OOShaderMemberBinding binding = Binding(entity, name);
+	if (binding.get != nullptr)  binding.get(entity, value);
+	return value.i;
+}
+
+double BoundFloat(Entity *entity, const char *name)
+{
+	OOShaderBindingValue value = {};
+	const OOShaderMemberBinding binding = Binding(entity, name);
+	if (binding.get != nullptr)  binding.get(entity, value);
+	return value.f;
 }
 
 }	// namespace
@@ -123,10 +141,10 @@ OO_TEST(clockTime)
 		SetUp();
 		Entity *entity = AnEntity();
 		sPlayer->_clockTime = 1234.5;
-		OO_CHECK([entity clock] == 1234.5f);
+		OO_CHECK(BoundFloat(entity, "clock") == 1234.5f);
 		// A double clock time is narrowed to a float.
 		sPlayer->_clockTime = 180054321.75;
-		OO_CHECK([entity clock] == (GLfloat)180054321.75);
+		OO_CHECK(BoundFloat(entity, "clock") == (GLfloat)180054321.75);
 	}
 }
 
@@ -139,8 +157,8 @@ OO_TEST(flavourNumbers)
 		Entity *entity = AnEntity();
 		sPlayer->_random100 = 42;
 		sPlayer->_random256 = 200;
-		OO_CHECK([entity pseudoFixedD100] == 42);
-		OO_CHECK([entity pseudoFixedD256] == 200);
+		OO_CHECK(BoundInt(entity, "pseudoFixedD100") == 42);
+		OO_CHECK(BoundInt(entity, "pseudoFixedD256") == 200);
 	}
 }
 
@@ -156,11 +174,11 @@ OO_TEST(systemAttributes)
 		sPlayer->_techLevel = oo::PList(11);
 		sPlayer->_population = oo::PList(47);
 		sPlayer->_productivity = oo::PList(21680);
-		OO_CHECK([entity systemGovernment] == 3);
-		OO_CHECK([entity systemEconomy] == 5);
-		OO_CHECK([entity systemTechLevel] == 11);
-		OO_CHECK([entity systemPopulation] == 47);
-		OO_CHECK([entity systemProductivity] == 21680);
+		OO_CHECK(BoundInt(entity, "systemGovernment") == 3);
+		OO_CHECK(BoundInt(entity, "systemEconomy") == 5);
+		OO_CHECK(BoundInt(entity, "systemTechLevel") == 11);
+		OO_CHECK(BoundInt(entity, "systemPopulation") == 47);
+		OO_CHECK(BoundInt(entity, "systemProductivity") == 21680);
 	}
 }
 
@@ -174,11 +192,11 @@ OO_TEST(attributeNotANumberIsZero)
 		// No value (nil), and a value that is not a number: 0, as -unsignedIntValue of nil.
 		sPlayer->_government = oo::PList();
 		sPlayer->_economy = oo::PList("rich");
-		OO_CHECK([entity systemGovernment] == 0);
-		OO_CHECK([entity systemEconomy] == 0);
-		OO_CHECK([entity systemTechLevel] == 0);
-		OO_CHECK([entity systemPopulation] == 0);
-		OO_CHECK([entity systemProductivity] == 0);
+		OO_CHECK(BoundInt(entity, "systemGovernment") == 0);
+		OO_CHECK(BoundInt(entity, "systemEconomy") == 0);
+		OO_CHECK(BoundInt(entity, "systemTechLevel") == 0);
+		OO_CHECK(BoundInt(entity, "systemPopulation") == 0);
+		OO_CHECK(BoundInt(entity, "systemProductivity") == 0);
 	}
 }
 
@@ -187,16 +205,17 @@ OO_TEST(uniformTypes)
 {
 	@autoreleasepool
 	{
-		// The uniform's type is the method's return type: a float for the clock, unsigned ints
-		// for the rest.
-		OO_CHECK(ReturnType("clock") == 'f');
-		OO_CHECK(ReturnType("pseudoFixedD100") == 'I');
-		OO_CHECK(ReturnType("pseudoFixedD256") == 'I');
-		OO_CHECK(ReturnType("systemGovernment") == 'I');
-		OO_CHECK(ReturnType("systemEconomy") == 'I');
-		OO_CHECK(ReturnType("systemTechLevel") == 'I');
-		OO_CHECK(ReturnType("systemPopulation") == 'I');
-		OO_CHECK(ReturnType("systemProductivity") == 'I');
+		// The uniform's type is the method's return type: a float for the clock ('f'), unsigned
+		// ints ('I') for the rest.
+		Entity *entity = AnEntity();
+		OO_CHECK(Binding(entity, "clock").type == kOOShaderUniformTypeFloat);
+		OO_CHECK(Binding(entity, "pseudoFixedD100").type == kOOShaderUniformTypeUnsignedInt);
+		OO_CHECK(Binding(entity, "pseudoFixedD256").type == kOOShaderUniformTypeUnsignedInt);
+		OO_CHECK(Binding(entity, "systemGovernment").type == kOOShaderUniformTypeUnsignedInt);
+		OO_CHECK(Binding(entity, "systemEconomy").type == kOOShaderUniformTypeUnsignedInt);
+		OO_CHECK(Binding(entity, "systemTechLevel").type == kOOShaderUniformTypeUnsignedInt);
+		OO_CHECK(Binding(entity, "systemPopulation").type == kOOShaderUniformTypeUnsignedInt);
+		OO_CHECK(Binding(entity, "systemProductivity").type == kOOShaderUniformTypeUnsignedInt);
 	}
 }
 
@@ -208,7 +227,7 @@ OO_TEST(subclassesAnswerToo)
 		SetUp();
 		// A subclass of Entity (here the test's player) answers the category's selectors.
 		sPlayer->_random100 = 7;
-		OO_CHECK([(Entity *)sPlayer pseudoFixedD100] == 7);
+		OO_CHECK(BoundInt(oo::ToObjC(sPlayer), "pseudoFixedD100") == 7);	// the player's object (C++ player since bead oo-9ht.177)
 	}
 }
 

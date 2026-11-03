@@ -39,38 +39,30 @@ uint32_t gDebugFlags = 0;
 #endif
 
 
-// A ship that answers what the category asks a ship, and records the targets it was told.
-@interface TestShip: ShipEntity
+// A ship that answers what the functions ask a ship, and records the targets it was told. A C++
+// subclass since bead oo-9ht.144 deleted the Objective-C ship this subclassed: its subentities, owner
+// and being a subentity are the ship's own state, set by the test; its primary target and the
+// targets it is told are its overrides (removeTarget() is virtual for it, a test seam: amendment
+// oo-9ht.107 item 6).
+class TestShip : public ShipEntity
 {
-@public
-	BOOL							_testIsSubEntity;
-	id								_testOwner;
-	id								_testPrimaryTarget;
-	std::vector<oo::ObjCRef<ShipEntity *>>	_testSubEntities;
+public:
+	id								_testPrimaryTarget = nil;
 	std::vector<std::string>		_told;		// "add <name>" / "remove <name>"
-	const char						*_name;
-}
-@end
+	const char						*_name = "";
 
+	id primaryTarget() override	{ return _testPrimaryTarget; }
 
-@implementation TestShip
+	void addTarget(::Entity *targetEntity) override
+	{
+		_told.push_back(std::string("add ") + (targetEntity != nil ? static_cast<TestShip *>(oo::ToShip(targetEntity))->_name : "nil"));
+	}
 
-- (BOOL) isSubEntity									{ return _testIsSubEntity; }
-- (id) owner											{ return _testOwner; }
-- (id) primaryTarget									{ return _testPrimaryTarget; }
-- (std::vector<oo::ObjCRef<ShipEntity *>>) cxx_shipSubEntities	{ return _testSubEntities; }
-
-- (void) addTarget:(Entity *)targetEntity
-{
-	_told.push_back(std::string("add ") + (targetEntity != nil ? ((TestShip *)targetEntity)->_name : "nil"));
-}
-
-- (void) removeTarget:(Entity *)targetEntity
-{
-	_told.push_back(std::string("remove ") + (targetEntity != nil ? ((TestShip *)targetEntity)->_name : "nil"));
-}
-
-@end
+	void removeTarget(::Entity *targetEntity) override
+	{
+		_told.push_back(std::string("remove ") + (targetEntity != nil ? static_cast<TestShip *>(oo::ToShip(targetEntity))->_name : "nil"));
+	}
+};
 
 
 // An entity that scripts can see but that keeps Entity's JS class.
@@ -115,14 +107,27 @@ bool SameObject(JSValueConst a, JSValueConst b)
 }
 
 
-// A ship made the way the test can (never initialised, never released), with C++ ivars built.
+// A ship made the way the test can: the C++ ship under its object (oo::NewEntityFacade, retained and
+// never released), never set up from a definition, a ship (it answers -isShip, as the Objective-C
+// class did, so shipSubEntities() keeps it).
 TestShip *Ship(const char *name)
 {
-	TestShip *ship = (TestShip *)class_createInstance([TestShip class], 0);
-	new (&ship->_testSubEntities) std::vector<oo::ObjCRef<ShipEntity *>>();
-	new (&ship->_told) std::vector<std::string>();
+	oo::Ref<TestShip> ship = oo::makeRef<TestShip>();
+	@autoreleasepool
+	{
+		[oo::NewEntityFacade(ship) retain];
+	}
+	ship->isShip = YES;
 	ship->_name = name;
-	return ship;
+	return ship.get();
+}
+
+
+// A subentity's owner, and that it is one (the Objective-C ship answered -owner and -isSubEntity).
+void SetSubEntityOf(TestShip *ship, Entity *owner)
+{
+	ship->isSubEntity = YES;
+	ship->cxx::Entity::setOwner(oo::ToCxx(owner));
 }
 
 
@@ -207,11 +212,11 @@ OO_TEST(shipIsVisible)
 	@autoreleasepool
 	{
 		TestShip *ship = Ship("ship");
-		OO_CHECK([ship isVisibleToScripts]);
-		OO_CHECK([ship cxx_oo_jsClassName] == std::optional<std::string>("Ship"));
+		OO_CHECK([oo::ToObjC(ship) isVisibleToScripts]);
+		OO_CHECK([oo::ToObjC(ship) cxx_oo_jsClassName] == std::optional<std::string>("Ship"));
 
 		SetUpContext();
-		OO_CHECK([ship oo_jsClassID] == JSShipClassID());
+		OO_CHECK([oo::ToObjC(ship) oo_jsClassID] == JSShipClassID());
 	}
 }
 
@@ -221,15 +226,15 @@ OO_TEST(subEntitiesForScript)
 	@autoreleasepool
 	{
 		TestShip *ship = Ship("ship");
-		OO_CHECK([ship subEntitiesForScript].empty());
+		OO_CHECK(ShipEntityJSSubEntitiesForScript(ship).empty());	// -subEntitiesForScript until bead oo-9ht.144
 
 		TestShip *turret = Ship("turret");
 		TestShip *hull = Ship("hull");
-		ship->_testSubEntities = { oo::ObjCRef<ShipEntity *>(turret), oo::ObjCRef<ShipEntity *>(hull) };
-		std::vector<oo::ObjCRef<Entity *>> subs = [ship subEntitiesForScript];
+		ship->subEntities = { oo::ObjCRef<::Entity *>(oo::ToObjC(turret)), oo::ObjCRef<::Entity *>(oo::ToObjC(hull)) };
+		std::vector<oo::ObjCRef<Entity *>> subs = ShipEntityJSSubEntitiesForScript(ship);
 		OO_CHECK(subs.size() == 2);
-		OO_CHECK(subs.size() == 2 && subs[0].get() == turret && subs[1].get() == hull);
-		ship->_testSubEntities.clear();
+		OO_CHECK(subs.size() == 2 && subs[0].get() == oo::ToObjC(turret) && subs[1].get() == oo::ToObjC(hull));
+		ship->subEntities.clear();
 	}
 }
 
@@ -240,7 +245,7 @@ OO_TEST(setTarget)
 	{
 		TestShip *ship = Ship("ship");
 		TestShip *other = Ship("other");
-		[ship setTargetForScript:other];
+		ShipEntityJSSetTargetForScript(ship, other);	// -setTargetForScript: until bead oo-9ht.144
 		OO_CHECK(Told(ship) == "add other");
 	}
 }
@@ -252,13 +257,13 @@ OO_TEST(setTargetNilRemovesPrimaryTarget)
 	{
 		TestShip *ship = Ship("ship");
 		TestShip *current = Ship("current");
-		ship->_testPrimaryTarget = current;
-		[ship setTargetForScript:nil];
+		ship->_testPrimaryTarget = oo::ToObjC(current);
+		ShipEntityJSSetTargetForScript(ship, nullptr);	// -setTargetForScript: until bead oo-9ht.144
 		OO_CHECK(Told(ship) == "remove current");
 
 		// No primary target: remove nil.
 		TestShip *idle = Ship("idle");
-		[idle setTargetForScript:nil];
+		ShipEntityJSSetTargetForScript(idle, nullptr);	// -setTargetForScript: until bead oo-9ht.144
 		OO_CHECK(Told(idle) == "remove nil");
 	}
 }
@@ -273,17 +278,14 @@ OO_TEST(setTargetClimbsToRootShips)
 		TestShip *root = Ship("root");
 		TestShip *middle = Ship("middle");
 		TestShip *turret = Ship("turret");
-		middle->_testIsSubEntity = YES;
-		middle->_testOwner = root;
-		turret->_testIsSubEntity = YES;
-		turret->_testOwner = middle;
+		SetSubEntityOf(middle, oo::ToObjC(root));
+		SetSubEntityOf(turret, oo::ToObjC(middle));
 
 		TestShip *enemy = Ship("enemy");
 		TestShip *enemyTurret = Ship("enemyTurret");
-		enemyTurret->_testIsSubEntity = YES;
-		enemyTurret->_testOwner = enemy;
+		SetSubEntityOf(enemyTurret, oo::ToObjC(enemy));
 
-		[turret setTargetForScript:enemyTurret];
+		ShipEntityJSSetTargetForScript(turret, enemyTurret);	// -setTargetForScript: until bead oo-9ht.144
 		OO_CHECK(Told(root) == "add enemy");
 		OO_CHECK(Told(turret).empty() && Told(middle).empty());
 	}
@@ -296,11 +298,10 @@ OO_TEST(setTargetStopsAtSelfOwnedOrOwnerless)
 	{
 		// A subentity that owns itself, or has no owner, is where the climb stops.
 		TestShip *loop = Ship("loop");
-		loop->_testIsSubEntity = YES;
-		loop->_testOwner = loop;
+		SetSubEntityOf(loop, oo::ToObjC(loop));
 		TestShip *orphan = Ship("orphan");
-		orphan->_testIsSubEntity = YES;
-		[loop setTargetForScript:orphan];
+		orphan->isSubEntity = YES;
+		ShipEntityJSSetTargetForScript(loop, orphan);	// -setTargetForScript: until bead oo-9ht.144
 		OO_CHECK(Told(loop) == "add orphan");
 	}
 }
@@ -313,10 +314,9 @@ OO_TEST(setTargetOnANonShipRootDoesNothing)
 		// A subentity whose owner is not a ship: nothing is told.
 		Entity *notAShip = [[[Entity alloc] init] autorelease];
 		TestShip *sub = Ship("sub");
-		sub->_testIsSubEntity = YES;
-		sub->_testOwner = notAShip;
+		SetSubEntityOf(sub, notAShip);
 		TestShip *target = Ship("target");
-		[sub setTargetForScript:target];
+		ShipEntityJSSetTargetForScript(sub, target);	// -setTargetForScript: until bead oo-9ht.144
 		OO_CHECK(Told(sub).empty() && Told(target).empty());
 	}
 }

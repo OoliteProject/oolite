@@ -460,17 +460,27 @@ bool JSValueToEntity(JSContext *context, JSValueConst value, Entity **outEntity)
 }
 
 
-@interface OOJSScript: OOObject
-@end
+#import "OOScript.h"
 
-@implementation OOJSScript
 
-+ (std::vector<oo::ObjCRef<OOJSScript *>>) scriptStack
+// OOJSScript (OOJSScript.h), which the code under test calls. Since bead oo-9ht.133 deleted the
+// OOScript root's facade (a script's object since bead oo-9ht.137) a script is the C++ object, so
+// the stand-in is a C++ subclass of OOScript declaring the members that code calls.
+class OOJSScript : public OOScript
+{
+public:
+	static std::vector<oo::Ref<OOJSScript>> scriptStack();
+	static OOJSScript *currentlyRunningScript();
+};
+
+// The time limiter linked here names the running script when a script overruns, which no case does
+// (the class method was never sent; as a C++ static it must be defined).
+OOJSScript *OOJSScript::currentlyRunningScript()  { std::abort(); }
+
+std::vector<oo::Ref<OOJSScript>> OOJSScript::scriptStack()
 {
 	return {};
 }
-
-@end
 
 
 // MARK: The context -------------------------------------------------------------------------------
@@ -705,7 +715,7 @@ OO_TEST(profiling)
 	OO_CHECK_EVAL("console.trace(function () { return 7; }, {})", "7");
 	OO_CHECK_EVAL("console.trace(function () { return typeof this; })", "object");
 	OO_CHECK_EVAL("typeof console.profile(function () {})", "string");
-	OO_CHECK_EVAL("console.getProfile(function () {})", "undefined");
+	OO_CHECK_EVAL("console.getProfile(function () {})", "null");	// the profile's property list, which this file's OOJSValueFromPList stand-in gives as null for a dictionary
 	OO_CHECK_EVAL("console.profile(42)", "threw: bad arguments: Console.profile (1): ; expected function");
 }
 

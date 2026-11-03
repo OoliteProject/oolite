@@ -59,8 +59,8 @@ oo::PList PlanetInfo(float cloudAlpha, bool perlin3d)
 	return oo::PList(oo::PList::Dict{
 		{ "cloud_alpha", oo::PList(cloudAlpha) },
 		{ "cloud_fraction", oo::PList(0.5) },
-		{ "cloud_color", oo::PListObject([OOColor colorWithRed:1.0f green:0.5f blue:0.25f alpha:1.0f]) },
-		{ "polar_cloud_color", oo::PListObject([OOColor whiteColor]) },
+		{ "cloud_color", OOColorObjectNode(OOColor::colorWithRed(1.0f, 0.5f, 0.25f, 1.0f).get()) },
+		{ "polar_cloud_color", OOColorObjectNode(OOColor::whiteColor().get()) },
 		{ "perlin_3d", oo::PList(perlin3d) },
 	});
 }

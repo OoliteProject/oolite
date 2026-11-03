@@ -6,11 +6,9 @@ Class responsible for converting a sound to a PCM buffer for playback. This
 class is an implementation detail. Do not use it directly; use OOSound to
 load sounds.
 
-C++20 since bead oo-y0gz (proposed ADR-0056, the Audio module: amendment oo-2en). The class is
-cxx::OOALSoundDecoder while OOALSoundDecoder+ObjCBridge.h, imported at the end of this header,
-keeps the Objective-C OOALSoundDecoder that the sounds message; the bridge's deletion bead moves it
-out of namespace cxx. The Vorbis codec, the class cluster's one concrete decoder, is private to
-OOALSoundDecoder.mm.
+C++20 since bead oo-y0gz (proposed ADR-0056, the Audio module: amendment oo-2en). Bead oo-9ht.82
+deleted its Objective-C facade and moved it to the global namespace: the sounds call it directly.
+The Vorbis codec, the class cluster's one concrete decoder, is private to OOALSoundDecoder.mm.
 
 
 OOALSound - OpenAL sound implementation for Oolite.
@@ -48,8 +46,6 @@ SOFTWARE.
 
 #define OOAL_STREAM_CHUNK_SIZE (sizeof(char) * 409600)
 
-namespace cxx {
-
 class OOALSoundDecoder : public oo::RefCounted {
 public:
     /*	Was -cxx_initWithPath:, a class cluster's initialiser: it answered, in place of the
@@ -81,11 +77,5 @@ public:
     // OOObject answered; the codec prints its name and comments.
     virtual std::optional<std::string> descriptionComponents() const;
 };
-
-} // namespace cxx
-
-// Transitional: the Objective-C OOALSoundDecoder, for the sounds not yet converted.
-// Deleted, with namespace cxx above, by the bridge's deletion bead.
-#import "OOALSoundDecoder+ObjCBridge.h"
 
 #endif // OOALSOUNDDECODER_H

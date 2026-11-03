@@ -11,7 +11,6 @@ oolite_sources += files(
     'OOFileScannerVerifierStage.mm',
     'OOModelVerifierStage.mm',
     'OOOXPVerifier.mm',
-    'OOOXPVerifier+ObjCBridge.mm',
     'OOOXPVerifierStage.mm',
     'OOPListSchemaVerifier.mm',
     'OOTextureVerifierStage.mm',

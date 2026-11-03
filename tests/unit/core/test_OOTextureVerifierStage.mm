@@ -199,7 +199,7 @@ void WriteFile(const std::filesystem::path &path, const char *contents)
 
 
 // The scanner, registered with the verifier and run over its OXP, as the verifier runs it first.
-void RunScanner(cxx::OOOXPVerifier *verifier)
+void RunScanner(OOOXPVerifier *verifier)
 {
 	OOFileScannerVerifierStage::nameForDependencyForVerifier(verifier);
 	verifier->stageWithName(OOFileScannerVerifierStage::kName)->run();	// was -fileScannerStage (bead oo-9ht.7); the C++ stage since oo-9ht.4
@@ -214,12 +214,12 @@ const std::vector<std::string> kTextureUserDependents = { "Checking for unused f
 
 
 // An OXP with the given files (path, contents), and its verifier with the scanner run over it.
-cxx::OOOXPVerifier *MakeVerifier(std::initializer_list<std::pair<const char *, const char *>> files)
+OOOXPVerifier *MakeVerifier(std::initializer_list<std::pair<const char *, const char *>> files)
 {
 	std::filesystem::remove_all(kBase);
 	std::filesystem::create_directories(kBase);
 	for (const auto &[name, contents] : files)  WriteFile(kBase / name, contents);
-	cxx::OOOXPVerifier *verifier = OOOXPVerifierTestAccess::Make(kBase.generic_string(), kConfiguration);
+	OOOXPVerifier *verifier = OOOXPVerifierTestAccess::Make(kBase.generic_string(), kConfiguration);
 	RunScanner(verifier);
 	StartLog();
 	return verifier;
@@ -232,7 +232,7 @@ OO_TEST(nameAndNeighbours)
 {
 	@autoreleasepool
 	{
-		cxx::OOOXPVerifier *verifier = MakeVerifier({});
+		OOOXPVerifier *verifier = MakeVerifier({});
 		OO_CHECK(OOTextureVerifierStage::nameForReverseDependencyForVerifier(verifier) == "Testing textures and images");
 
 		const oo::Ref<OOTextureVerifierStage> stage = oo::makeRef<OOTextureVerifierStage>();
@@ -324,7 +324,7 @@ OO_TEST(textureHandlingStage)
 {
 	@autoreleasepool
 	{
-		cxx::OOOXPVerifier *verifier = MakeVerifier({});
+		OOOXPVerifier *verifier = MakeVerifier({});
 		const oo::Ref<TestTextureUser> user = oo::makeRef<TestTextureUser>();
 		user->setVerifier(verifier);
 		OO_CHECK(user->name() == std::optional<std::string>("Using textures"));
@@ -356,7 +356,7 @@ OO_TEST(cxxTextureUserBehindTheFacade)
 {
 	@autoreleasepool
 	{
-		cxx::OOOXPVerifier *verifier = MakeVerifier({});
+		OOOXPVerifier *verifier = MakeVerifier({});
 		const oo::Ref<TestCxxTextureUser> user = oo::makeRef<TestCxxTextureUser>();
 		user->setVerifier(verifier);
 		OO_CHECK(user->dependents() == kTextureUserDependents);
@@ -375,7 +375,7 @@ OO_TEST(textureStageFacade)
 {
 	@autoreleasepool
 	{
-		cxx::OOOXPVerifier *verifier = MakeVerifier({ { "Images/a.png", "8x8" } });
+		OOOXPVerifier *verifier = MakeVerifier({ { "Images/a.png", "8x8" } });
 		const oo::Ref<OOTextureVerifierStage> stage = oo::makeRef<OOTextureVerifierStage>();
 		OO_CHECK(stage->description().starts_with("<OOTextureVerifierStage 0x"));
 

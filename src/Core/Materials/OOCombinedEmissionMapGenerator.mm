@@ -53,12 +53,12 @@ oo::PList SpecWithExtraShrink(const oo::PList& spec)
     return copy;
 }
 
-oo::Ref<cxx::OOColor> ModulateColor(cxx::OOColor* a, cxx::OOColor* b)
+oo::Ref<OOColor> ModulateColor(OOColor* a, OOColor* b)
 {
     if (a == nullptr)
-        return oo::Ref<cxx::OOColor>(b);
+        return oo::Ref<OOColor>(b);
     if (b == nullptr)
-        return oo::Ref<cxx::OOColor>(a);
+        return oo::Ref<OOColor>(a);
 
     OORGBAComponents ac, bc;
     ac = a->rgbaComponents();
@@ -69,7 +69,7 @@ oo::Ref<cxx::OOColor> ModulateColor(cxx::OOColor* a, cxx::OOColor* b)
     ac.b *= bc.b;
     ac.a *= bc.a;
 
-    return cxx::OOColor::colorWithRGBAComponents(ac);
+    return OOColor::colorWithRGBAComponents(ac);
 }
 
 void ScaleToMatch(OOPixMap* pmA, OOPixMap* pmB)
@@ -90,11 +90,11 @@ void ScaleToMatch(OOPixMap* pmA, OOPixMap* pmB)
 } // namespace
 
 oo::Ref<OOCombinedEmissionMapGenerator> OOCombinedEmissionMapGenerator::generatorWithEmissionMapSpec(const oo::PList& emissionMapSpec,
-    cxx::OOColor* emissionColor,
+    OOColor* emissionColor,
     ::OOTexture* diffuseMap,
-    cxx::OOColor* diffuseColor,
+    OOColor* diffuseColor,
     const oo::PList& illuminationMapSpec,
-    cxx::OOColor* illuminationColor,
+    OOColor* illuminationColor,
     const oo::PList& spec)
 {
     oo::Ref<OOCombinedEmissionMapGenerator> result = oo::makeRef<OOCombinedEmissionMapGenerator>();
@@ -112,9 +112,9 @@ oo::Ref<OOCombinedEmissionMapGenerator> OOCombinedEmissionMapGenerator::generato
 
 oo::Ref<OOCombinedEmissionMapGenerator> OOCombinedEmissionMapGenerator::generatorWithEmissionAndIlluminationMapSpec(const oo::PList& emissionAndIlluminationMapSpec,
     ::OOTexture* diffuseMap,
-    cxx::OOColor* diffuseColor,
-    cxx::OOColor* emissionColor,
-    cxx::OOColor* illuminationColor,
+    OOColor* diffuseColor,
+    OOColor* emissionColor,
+    OOColor* illuminationColor,
     const oo::PList& spec)
 {
     oo::Ref<OOCombinedEmissionMapGenerator> result = oo::makeRef<OOCombinedEmissionMapGenerator>();
@@ -132,11 +132,11 @@ oo::Ref<OOCombinedEmissionMapGenerator> OOCombinedEmissionMapGenerator::generato
 
 // Was the private designated initialiser; false where it answered nil.
 bool OOCombinedEmissionMapGenerator::initWithEmissionMapSpec(const oo::PList& emissionMapSpec,
-    cxx::OOColor* emissionColor,
+    OOColor* emissionColor,
     ::OOTexture* diffuseMap,
-    cxx::OOColor* diffuseColor,
+    OOColor* diffuseColor,
     const oo::PList& illuminationMapSpec,
-    cxx::OOColor* illuminationColor,
+    OOColor* illuminationColor,
     bool isCombinedMap,
     const oo::PList& spec)
 {
@@ -158,7 +158,7 @@ bool OOCombinedEmissionMapGenerator::initWithEmissionMapSpec(const oo::PList& em
                 Since illuminationColor and diffuseColor aren't used otherwise,
                 we may as well combine them up front.
         */
-        const oo::Ref<cxx::OOColor> modulatedIlluminationColor = ModulateColor(diffuseColor, illuminationColor);
+        const oo::Ref<OOColor> modulatedIlluminationColor = ModulateColor(diffuseColor, illuminationColor);
         illuminationColor = modulatedIlluminationColor.get();
 
         if (emissionColor != nullptr && emissionColor->isWhite())
@@ -174,8 +174,8 @@ bool OOCombinedEmissionMapGenerator::initWithEmissionMapSpec(const oo::PList& em
 
         _diffuseMap = oo::ObjCRef<::OOTexture*>(diffuseMap);
 
-        _emissionColor = oo::Ref<cxx::OOColor>(emissionColor);
-        _illuminationColor = oo::Ref<cxx::OOColor>(illuminationColor);
+        _emissionColor = oo::Ref<OOColor>(emissionColor);
+        _illuminationColor = oo::Ref<OOColor>(illuminationColor);
         _isCombinedMap = isCombinedMap;
 
         _textureOptions = options;

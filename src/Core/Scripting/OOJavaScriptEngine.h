@@ -147,11 +147,10 @@ std::optional<std::string> OOObjectJSDescription(id object);
 std::optional<std::string> OOObjectJSDescriptionWithClassName(id object, const std::optional<std::string>& className);
 void OOObjectClearJSSelf(JSValueConst selfVal);
 
-// OONativeVector (OOJavaScriptConversion)'s -oo_jsValueInContext:, owned by the caller.
-namespace cxx {
+// A vector box's JS value (OOJSValueFromPList, for an Object node that holds one), owned by the
+// caller.
 class OONativeVector;
-}
-JSValue OONativeVectorJSValueInContext(cxx::OONativeVector* vector, JSContext* context);
+JSValue OONativeVectorJSValueInContext(OONativeVector* vector, JSContext* context);
 
 namespace cxx {
 

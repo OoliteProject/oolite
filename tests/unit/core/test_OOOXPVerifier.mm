@@ -1,6 +1,6 @@
 /*	test_OOOXPVerifier.mm
-	Unit tests for cxx::OOOXPVerifier (src/Core/OXPVerifier/OOOXPVerifier.h) and its Objective-C
-	facade (OOOXPVerifier+ObjCBridge.h): bead oo-tsa4, the last class of the OXPVerifier hierarchy
+	Unit tests for OOOXPVerifier (src/Core/OXPVerifier/OOOXPVerifier.h) and its Objective-C
+	facade (deleted by bead oo-9ht.130, which moved the class out of namespace cxx): bead oo-tsa4, the last class of the OXPVerifier hierarchy
 	exemplar (proposed ADR-0056 and its amendments oo-cwz, oo-up4b, oo-94qk).
 
 	The verifier reaches the resource manager, the cache manager, the game controller and the log
@@ -27,7 +27,7 @@
 	C++ stages with -registerStage: and -cxx_stageWithName: (ADR-0049, standing approval oo-9n5p9;
 	no case or expectation changed).
 	Bead oo-qg71f moved the callers off the verifier's Objective-C facade: the test runs the
-	verification through the static cxx::OOOXPVerifier::runVerificationIfRequested(), as
+	verification through the static OOOXPVerifier::runVerificationIfRequested(), as
 	GameController does, and the stages call the C++ verifier they keep (verifier()) where they
 	sent the facade's selectors (ADR-0049, standing approval oo-9n5p9; no case or expectation
 	changed). Run: bash tools/check-core-tests.sh test_OOOXPVerifier
@@ -62,7 +62,7 @@ struct OOOXPVerifierTestAccess
 {
 	static void SetStageMaker(oo::Ref<OOOXPVerifierStage> (*maker)(const std::string &name))
 	{
-		cxx::OOOXPVerifier::sTestStageMaker = maker;
+		OOOXPVerifier::sTestStageMaker = maker;
 	}
 };
 
@@ -144,7 +144,7 @@ bool RunWithArguments(std::vector<std::string> arguments)
 	for (const std::string &argument : arguments)  argv.push_back(argument.c_str());
 	oo::process::setArguments(static_cast<int>(argv.size()), argv.data());
 	gEvents.clear();
-	return cxx::OOOXPVerifier::runVerificationIfRequested();
+	return OOOXPVerifier::runVerificationIfRequested();
 }
 
 }	// namespace
@@ -189,7 +189,7 @@ TEST_STAGE(OOTestStageA, "A")
 void run() override
 {
 	OOTestStage::run();
-	cxx::OOOXPVerifier *verifier = this->verifier();
+	OOOXPVerifier *verifier = this->verifier();
 	gView.seen = (verifier != nil);
 	gView.path = verifier->oxpPath();
 	gView.displayName = verifier->oxpDisplayName();

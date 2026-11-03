@@ -29,7 +29,7 @@ MA 02110-1301, USA.
 #import "ShipEntity.h"
 #include <quickjs.h>
 
-@class ShipEntity;
+class ShipEntity; // C++
 
 void InitOOJSShip(JSContext* context, JSValueConst global);
 

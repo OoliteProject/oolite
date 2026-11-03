@@ -2,12 +2,8 @@
 
 OOJSInterfaceDefinition.h (QuickJS-ng)
 
-C++20 since bead oo-8fpc (proposed ADR-0056, the OOColor house style). Its superclass,
-OOWeakRefObject, is still Objective-C (the weak-reference support that OOWeakReference+ObjCBridge
-keeps), so the class is cxx::OOJSInterfaceDefinition holding only its own ivars and methods, and
-OOJSInterfaceDefinition+ObjCBridge.h, imported at the end of this header, keeps the Objective-C
-OOJSInterfaceDefinition : OOWeakRefObject that PlayerEntity makes, StationEntity keeps and both message
-(ADR-0056 amendment oo-o89). The bridge's deletion bead waits for OOWeakRefObject's retirement.
+C++20 since bead oo-8fpc (proposed ADR-0056, the OOColor house style). It has no Objective-C
+facade: the station keeps its definitions as oo::Ref, and the player reads them as C++.
 
 
 Oolite
@@ -39,21 +35,17 @@ MA 02110-1301, USA.
 #include "oofnd/StdLib.hpp"
 
 #include "oofnd/Ref.hpp"
-#include "oofnd/objc/OOObjCRef.h"
 #include <optional>
 #include <string>
 
-@class OOJSScript; // imported by the .mm, so that a test can stand in for it (ADR-0056 amendment oo-fg7i item 5)
-
-namespace cxx {
+class OOJSScript; // imported by the .mm, so that a test can stand in for it
 
 /*	The definition owns references to its callback and callbackThis, which are
         released on destruction and when the JavaScript engine is reset.
 */
 class OOJSInterfaceDefinition : public oo::RefCounted {
 public:
-    // The old -init after [super init]. Made only by the facade (amendment oo-o89 item 2), until
-    // OOWeakRefObject is retired.
+    // The old -init after [super init] (oo::makeRef).
     OOJSInterfaceDefinition();
     ~OOJSInterfaceDefinition() override;
 
@@ -78,17 +70,11 @@ private:
 
     JSValue _callback = JS_UNDEFINED; // Owned.
     JSValue _callbackThis = JS_UNDEFINED; // Owned.
-    oo::ObjCRef<::OOJSScript*> _owningScript; // a weak reference (-weakRetain)
+    oo::WeakRef<OOJSScript> _owningScript; // a weak reference (was -weakRetain)
 
     std::optional<std::string> _title; // nullopt until set (was nil)
     std::optional<std::string> _summary;
     std::optional<std::string> _category;
 };
-
-} // namespace cxx
-
-// Transitional: the Objective-C OOJSInterfaceDefinition, for callers not yet converted. Deleted,
-// with namespace cxx above, by the bridge's deletion bead.
-#import "OOJSInterfaceDefinition+ObjCBridge.h"
 
 #endif // OOJSINTERFACEDEFINITION_H

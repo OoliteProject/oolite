@@ -5,11 +5,11 @@ OOJSTimer.h
 JavaScript timer class.
 
 C++20 since bead oo-kdyh (proposed ADR-0056; amendment oo-ppc for the binding), converted with
-its superclass OOScriptTimer. cxx::OOJSTimer has no caller outside OOJSTimer.mm, and a Timer's
-private slot holds it (OOJSPrivateObject.h), but Objective-C code still sends its facade the JS
-glue selectors (-oo_jsValueInContext:, -cxx_oo_jsClassName) and the timer queue holds the facade,
-so it keeps an Objective-C facade, OOJSTimer+ObjCBridge.h, imported at the end of this header:
-the facade of the root's peer table, of this class, with no ivars (ADR-0056 amendment oo-up4b item 3).
+its superclass OOScriptTimer. OOJSTimer has no caller outside OOJSTimer.mm, and a Timer's private
+slot holds it (OOJSPrivateObject.h). Its own facade was deleted: the timer queue and Objective-C
+code hold the root's OOScriptTimer facade, which answers the JS glue selectors
+(-oo_jsValueInContext:, -cxx_oo_jsClassName) for it and describes it as "<OOJSTimer 0x...>"
+(className()).
 
 
 Oolite
@@ -40,9 +40,7 @@ MA 02110-1301, USA.
 #include "oofnd/objc/OOObjCRef.h"
 #include <quickjs.h>
 
-@class OOJSScript;
-
-namespace cxx {
+class OOJSScript;
 
 // A Timer JS object's private slot holds the timer.
 class OOJSTimer : public OOScriptTimer, public ::OOJSPrivateObject {
@@ -55,7 +53,8 @@ public:
     ~OOJSTimer() override;
 
     std::optional<std::string> descriptionComponents() const override;
-    std::optional<std::string> oo_jsClassName();
+    std::string className() const override { return "OOJSTimer"; }
+    std::optional<std::string> oo_jsClassName() override;
 
     void timerFired() override;
 
@@ -87,7 +86,7 @@ private:
     JSValue _function = JS_UNDEFINED; // Owned; released on engine reset.
     JSValue _jsThis = JS_UNDEFINED; // The object that is 'this' in the function call. Owned; may be JS_NULL.
 
-    oo::ObjCRef<::OOJSScript*> _owningScript; // a weak reference (-weakRetain)
+    oo::WeakRef<OOJSScript> _owningScript; // a weak reference (was -weakRetain)
     // The function's name, read once: the finalizer's description must not run JS code. nullopt
     // for an anonymous function.
     std::optional<std::string> _functionName;
@@ -97,12 +96,6 @@ private:
     bool _firing = false; // In the callback, during which the timer is still scheduled.
 };
 
-} // namespace cxx
-
 void InitOOJSTimer(JSContext* context, JSValueConst global);
-
-// Transitional: the Objective-C OOJSTimer facade. Deleted, with namespace cxx above, by the
-// bridge's deletion bead.
-#import "OOJSTimer+ObjCBridge.h"
 
 #endif // OOJSTIMER_H

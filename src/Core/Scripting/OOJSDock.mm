@@ -36,10 +36,9 @@ MA 02110-1301, USA.
         ADR-0056 amendment oo-ppc). The JS class was already C++ on the scripting layer (QuickJS-ng);
         OOJS_NATIVE_ENTER/EXIT and OOJS_PROFILE_ENTER/EXIT are C++ try/catch and scope guards
         (OOJSEngineNativeWrappers.h); BOOL/YES/NO are bool/true/false. The category on DockEntity
-        became a free function (its -oo_jsClassID answers JSDockClassID()), and its methods moved
-        to OOJSDock+ObjCBridge.mm (amendment oo-ykoy). Messages to classes that are still
-        Objective-C (DockEntity, ShipEntity, Entity) stay as they are, which is why the file is
-        still .mm until Phase 4.
+        became a free function (the dock's JS class is JSDockClassID(), DockEntity::jsClassID()),
+        and its methods moved to DockEntity. Messages to classes that are still Objective-C
+        (Entity) stay as they are, which is why the file is still .mm until Phase 4.
 */
 
 static JSClassID sDockClassID;
@@ -118,10 +117,13 @@ static bool JSDockGetDockEntity(JSContext* context, JSValueConst dockObj, DockEn
     if (!result)
         return false;
 
-    if (![entity isKindOfClass:[DockEntity class]])
+    // A dock's object is a ship's: its C++ part says it is a dock,
+    // where -isKindOfClass:[DockEntity class] did.
+    DockEntity* dock = oo::ToDock(entity);
+    if (dock == nullptr)
         return false;
 
-    *outEntity = (DockEntity*)entity;
+    *outEntity = dock;
     return true;
 
     OOJS_PROFILE_EXIT
@@ -142,17 +144,16 @@ static bool JSDockGetShipEntity(JSContext* context, JSValueConst shipObj, ShipEn
     if (!result)
         return false;
 
-    if (![entity isKindOfClass:[ShipEntity class]])
+    if (!(oo::ToShip(entity) != nullptr))
         return false;
 
-    *outEntity = (ShipEntity*)entity;
+    *outEntity = oo::ToShip(entity);
     return true;
 
     OOJS_PROFILE_EXIT
 }
 
-// The bodies of DockEntity (OOJavaScriptExtensions), whose methods are in OOJSDock+ObjCBridge.mm
-// until DockEntity converts (proposed ADR-0056 amendments oo-ppc and oo-ykoy).
+// The bodies of DockEntity's class questions, which DockEntity's overrides call.
 std::optional<std::string> OOJSDockJSClassName(void)
 {
     return std::string("Dock");
@@ -172,19 +173,19 @@ static JSValue DockGetProperty(OOJS_GETTER_ARGS)
 
     switch (magic) {
     case kDock_allowsDocking:
-        return OOJSValueFromBOOL([entity allowsDocking]);
+        return OOJSValueFromBOOL((entity != nullptr ? entity->allowsDocking() : false));
 
     case kDock_disallowedDockingCollides:
-        return OOJSValueFromBOOL([entity disallowedDockingCollides]);
+        return OOJSValueFromBOOL((entity != nullptr ? entity->disallowedDockingCollides() : false));
 
     case kDock_allowsLaunching:
-        return OOJSValueFromBOOL([entity allowsLaunching]);
+        return OOJSValueFromBOOL((entity != nullptr ? entity->allowsLaunching() : false));
 
     case kDock_dockingQueueLength:
-        return JS_NewNumber(context, [entity countOfShipsInDockingQueue]);
+        return JS_NewNumber(context, (entity != nullptr ? entity->countOfShipsInDockingQueue() : 0));
 
     case kDock_launchingQueueLength:
-        return JS_NewNumber(context, [entity countOfShipsInLaunchQueue]);
+        return JS_NewNumber(context, (entity != nullptr ? entity->countOfShipsInLaunchQueue() : 0));
 
     default:
         OOJSReportBadPropertySelector(context, thisObj, magic, sDockProperties, OOJS_COUNT(sDockProperties));
@@ -210,21 +211,24 @@ static JSValue DockSetProperty(OOJS_SETTER_ARGS)
     switch (magic) {
     case kDock_allowsDocking:
         if ((bValue = JS_ToBool(context, value)) >= 0) {
-            [entity setAllowsDocking:bValue];
+            if (entity != nullptr)
+                entity->setAllowsDocking(bValue);
             return JS_UNDEFINED;
         }
         break;
 
     case kDock_allowsLaunching:
         if ((bValue = JS_ToBool(context, value)) >= 0) {
-            [entity setAllowsLaunching:bValue];
+            if (entity != nullptr)
+                entity->setAllowsLaunching(bValue);
             return JS_UNDEFINED;
         }
         break;
 
     case kDock_disallowedDockingCollides:
         if ((bValue = JS_ToBool(context, value)) >= 0) {
-            [entity setDisallowedDockingCollides:bValue];
+            if (entity != nullptr)
+                entity->setDisallowedDockingCollides(bValue);
             return JS_UNDEFINED;
         }
         break;
@@ -265,7 +269,7 @@ static JSValue DockIsQueued(OOJS_NATIVE_ARGS)
             return JS_EXCEPTION;
     }
     if (ship != nil) {
-        result = [dock shipIsInDockingQueue:ship];
+        result = (dock != nullptr ? dock->shipIsInDockingQueue(ship) : false);
     }
 
     OOJS_RETURN_BOOL(result);

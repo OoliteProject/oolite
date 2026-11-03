@@ -229,8 +229,6 @@ cxx::OONull* ToCxx(OONull* null);
 */
 // -weakRefUnderlyingObject (OOWeakReferenceSupport): the object itself for a non-weakref, nil for nil.
 id OOJavaScriptEngineWeakRefUnderlyingObject(id object);
-// -displayName of a script (OOScript); nullopt for nil.
-std::optional<std::string> OOJavaScriptEngineDisplayName(id script);
 // The JS glue of any object (OOObject (OOJavaScript)), as the object's class answers it; the value
 // is owned by the caller.
 JSValue OOJavaScriptEngineJSValueInContext(id object, JSContext* context);

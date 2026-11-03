@@ -3,10 +3,12 @@
 Universe+ObjCBridge.mm
 
 TRANSITIONAL (proposed ADR-0056, amendment oo-riqmz): the Objective-C Universe facade (see
-Universe+ObjCBridge.h). Its initialiser and -dealloc are here, in a category while the class's
-@implementation is still Universe.mm, because they need the Objective-C object as self; their
-bodies are cxx::Universe's initWithGameView() and dealloc(), in Universe.mm. The other methods are
-still in Universe.mm until their slices move them. Deleted with Universe+ObjCBridge.h.
+Universe+ObjCBridge.h). Its initialiser and -dealloc are here because they need the Objective-C
+object as self; their bodies are cxx::Universe's initWithGameView() and dealloc(), in Universe.mm.
+Every other method is a forwarder to a cxx::Universe member, in the category of its slice. The
+class's primary @implementation is here too (bead oo-pas, as oo-k8a did for ShipEntity): empty but
+for the Mac speech arms, which stay Objective-C (Mac-only, not adapted in Phase 3). The delayed
+message holder the deferred call retains is here as well. Deleted with Universe+ObjCBridge.h.
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -33,6 +35,37 @@ MA 02110-1301, USA.
 #include "oofnd/objc/OOException.h"
 
 extern Universe* gSharedUniverse;
+
+@implementation Universe
+
+// speech routines (the Mac arms; the others are slice 24's forwarders)
+#if OOLITE_MAC_OS_X
+
+- (void)cxx_startSpeakingString:(const std::string&)text
+{
+    [_cxxUniverse->speechSynthesizer startSpeakingString:oo::NSStringFrom(oo::str::format("[[volm %.3f]]%s", 0.3333333f * OOSound::masterVolume(), text.c_str()))];
+}
+
+- (void)stopSpeaking
+{
+    if ([_cxxUniverse->speechSynthesizer respondsToSelector:@selector(stopSpeakingAtBoundary:)]) {
+        [_cxxUniverse->speechSynthesizer stopSpeakingAtBoundary:NSSpeechWordBoundary];
+    } else {
+        [_cxxUniverse->speechSynthesizer stopSpeaking];
+    }
+}
+
+- (BOOL)isSpeaking
+{
+    return [_cxxUniverse->speechSynthesizer isSpeaking];
+}
+
+#endif
+
+@end
+
+@implementation OOUniverseDelayedMessage
+@end
 
 @implementation Universe (OOObjCBridge)
 
@@ -158,7 +191,7 @@ extern Universe* gSharedUniverse;
 {
     _cxxUniverse->debugDumpEntities();
 }
-- (std::vector<oo::ObjCRef<Entity*>>)cxx_entityList
+- (std::vector<oo::ObjCRef<::Entity*>>)cxx_entityList
 {
     return _cxxUniverse->entityList();
 }
@@ -327,7 +360,7 @@ extern Universe* gSharedUniverse;
 {
     return _cxxUniverse->spawnShipWithRole(desc, entity);
 }
-- (OOVisualEffectEntity*)cxx_addVisualEffectAt:(HPVector)pos withKey:(const std::string&)key
+- (Entity*)cxx_addVisualEffectAt:(HPVector)pos withKey:(const std::string&)key
 {
     return _cxxUniverse->addVisualEffectAt(pos, key);
 }
@@ -340,11 +373,11 @@ extern Universe* gSharedUniverse;
 {
     return _cxxUniverse->addShipAt(pos, role, radius);
 }
-- (std::vector<oo::ObjCRef<ShipEntity*>>)cxx_addShipsAt:(HPVector)pos withRole:(const std::string&)role quantity:(unsigned)count withinRadius:(GLfloat)radius asGroup:(BOOL)isGroup
+- (std::vector<oo::ObjCRef<::Entity*>>)cxx_addShipsAt:(HPVector)pos withRole:(const std::string&)role quantity:(unsigned)count withinRadius:(GLfloat)radius asGroup:(BOOL)isGroup
 {
     return _cxxUniverse->addShipsAt(pos, role, count, radius, isGroup);
 }
-- (std::vector<oo::ObjCRef<ShipEntity*>>)cxx_addShipsToRoute:(const std::string&)route withRole:(const std::string&)role quantity:(unsigned)count routeFraction:(double)routeFraction asGroup:(BOOL)isGroup
+- (std::vector<oo::ObjCRef<::Entity*>>)cxx_addShipsToRoute:(const std::string&)route withRole:(const std::string&)role quantity:(unsigned)count routeFraction:(double)routeFraction asGroup:(BOOL)isGroup
 {
     return _cxxUniverse->addShipsToRoute(route, role, count, routeFraction, isGroup);
 }
@@ -445,11 +478,11 @@ extern Universe* gSharedUniverse;
 {
     return _cxxUniverse->sun();
 }
-- (std::vector<oo::ObjCRef<OOPlanetEntity*>>)cxx_planets
+- (std::vector<oo::ObjCRef<::Entity*>>)cxx_planets
 {
     return _cxxUniverse->planets();
 }
-- (std::vector<oo::ObjCRef<StationEntity*>>)cxx_stations
+- (std::vector<oo::ObjCRef<::Entity*>>)cxx_stations
 {
     return _cxxUniverse->stations();
 }
@@ -458,7 +491,7 @@ extern Universe* gSharedUniverse;
 
 @implementation Universe (OOSlice9)
 
-- (std::vector<oo::ObjCRef<WormholeEntity*>>)cxx_wormholes
+- (std::vector<oo::ObjCRef<::Entity*>>)cxx_wormholes
 {
     return _cxxUniverse->wormholes();
 }
@@ -494,7 +527,7 @@ extern Universe* gSharedUniverse;
 {
     _cxxUniverse->clearBeacon(beaconShip);
 }
-- (std::map<std::string, oo::ObjCRef<OOWaypointEntity*>, std::less<>>)cxx_currentWaypoints
+- (std::map<std::string, oo::ObjCRef<::Entity*>, std::less<>>)cxx_currentWaypoints
 {
     return _cxxUniverse->currentWaypoints();
 }
@@ -530,7 +563,7 @@ extern Universe* gSharedUniverse;
 {
     return _cxxUniverse->newShipWithRole(role);
 }
-- (OOVisualEffectEntity*)cxx_newVisualEffectWithName:(const std::string&)effectKey
+- (Entity*)cxx_newVisualEffectWithName:(const std::string&)effectKey
 {
     return _cxxUniverse->newVisualEffectWithName(effectKey);
 }
@@ -550,7 +583,7 @@ extern Universe* gSharedUniverse;
 {
     return _cxxUniverse->newShipWithName(shipKey, usePlayerProxy, isSubentity, scale);
 }
-- (DockEntity*)cxx_newDockWithName:(const std::string&)shipDataKey andScaleFactor:(float)scale
+- (ShipEntity*)cxx_newDockWithName:(const std::string&)shipDataKey andScaleFactor:(float)scale
 {
     return _cxxUniverse->newDockWithName(shipDataKey, scale);
 }
@@ -558,9 +591,9 @@ extern Universe* gSharedUniverse;
 {
     return _cxxUniverse->newShipWithName(shipKey);
 }
-- (Class)cxx_shipClassForShipDictionary:(const oo::PList&)dict
+- (BOOL)cxx_isStationShipDictionary:(const oo::PList&)dict
 {
-    return _cxxUniverse->shipClassForShipDictionary(dict);
+    return _cxxUniverse->isStationShipDictionary(dict);
 }
 - (std::optional<std::string>)defaultAIForRole:(const std::string&)role
 {
@@ -591,11 +624,11 @@ extern Universe* gSharedUniverse;
 {
     return _cxxUniverse->cargoPodFromTemplate(cargoObj);
 }
-- (std::vector<oo::ObjCRef<ShipEntity*>>)cxx_getContainersOfGoods:(OOCargoQuantity)how_many scarce:(BOOL)scarce legal:(BOOL)legal
+- (std::vector<oo::ObjCRef<::Entity*>>)cxx_getContainersOfGoods:(OOCargoQuantity)how_many scarce:(BOOL)scarce legal:(BOOL)legal
 {
     return _cxxUniverse->getContainersOfGoods(how_many, scarce, legal);
 }
-- (std::vector<oo::ObjCRef<ShipEntity*>>)cxx_getContainersOfCommodity:(const std::string&)commodity_name how_much:(OOCargoQuantity)how_much
+- (std::vector<oo::ObjCRef<::Entity*>>)cxx_getContainersOfCommodity:(const std::string&)commodity_name /* unnamed second part */ :(OOCargoQuantity)how_much
 {
     return _cxxUniverse->getContainersOfCommodity(commodity_name, how_much);
 }
@@ -776,7 +809,7 @@ extern Universe* gSharedUniverse;
 {
     return _cxxUniverse->firstEntityTargetedByPlayerPrecisely();
 }
-- (std::vector<oo::ObjCRef<Entity*>>)cxx_entitiesWithinRange:(double)range ofEntity:(Entity*)entity
+- (std::vector<oo::ObjCRef<::Entity*>>)cxx_entitiesWithinRange:(double)range ofEntity:(Entity*)entity
 {
     return _cxxUniverse->entitiesWithinRange(range, entity);
 }
@@ -808,7 +841,7 @@ extern Universe* gSharedUniverse;
 {
     return _cxxUniverse->countShipsMatchingPredicate(predicate, parameter, range, entity);
 }
-- (std::vector<oo::ObjCRef<Entity*>>)cxx_findEntitiesMatchingPredicate:(EntityFilterPredicate)predicate parameter:(void*)parameter inRange:(double)range ofEntity:(Entity*)e1
+- (std::vector<oo::ObjCRef<::Entity*>>)cxx_findEntitiesMatchingPredicate:(EntityFilterPredicate)predicate parameter:(void*)parameter inRange:(double)range ofEntity:(Entity*)e1
 {
     return _cxxUniverse->findEntitiesMatchingPredicate(predicate, parameter, range, e1);
 }
@@ -816,11 +849,11 @@ extern Universe* gSharedUniverse;
 {
     return _cxxUniverse->findOneEntityMatchingPredicate(predicate, parameter);
 }
-- (std::vector<oo::ObjCRef<Entity*>>)cxx_findShipsMatchingPredicate:(EntityFilterPredicate)predicate parameter:(void*)parameter inRange:(double)range ofEntity:(Entity*)entity
+- (std::vector<oo::ObjCRef<::Entity*>>)cxx_findShipsMatchingPredicate:(EntityFilterPredicate)predicate parameter:(void*)parameter inRange:(double)range ofEntity:(Entity*)entity
 {
     return _cxxUniverse->findShipsMatchingPredicate(predicate, parameter, range, entity);
 }
-- (std::vector<oo::ObjCRef<Entity*>>)cxx_findVisualEffectsMatchingPredicate:(EntityFilterPredicate)predicate parameter:(void*)parameter inRange:(double)range ofEntity:(Entity*)entity
+- (std::vector<oo::ObjCRef<::Entity*>>)cxx_findVisualEffectsMatchingPredicate:(EntityFilterPredicate)predicate parameter:(void*)parameter inRange:(double)range ofEntity:(Entity*)entity
 {
     return _cxxUniverse->findVisualEffectsMatchingPredicate(predicate, parameter, range, entity);
 }
@@ -1527,53 +1560,9 @@ extern Universe* gSharedUniverse;
 {
     _cxxUniverse->addConditionScripts(scripts);
 }
-- (OOJSScript*)cxx_getConditionScript:(const std::string&)scriptname
+- (OOScript*)cxx_getConditionScript:(const std::string&)scriptname
 {
     return _cxxUniverse->getConditionScript(scriptname);
-}
-
-@end
-
-// The custom-sound categories (slice 26 of docs/phases/3-slices/Universe.md): their bodies are
-// OOSoundWithCustomSoundKey() and OOSoundSourcePlayCustomSoundWithKey() in Universe.mm; the
-// initialisers keep their retains and releases here.
-@implementation OOSound (OOCustomSounds)
-
-+ (id)cxx_soundWithCustomSoundKey:(const std::string&)key
-{
-    return OOSoundWithCustomSoundKey(key);
-}
-
-- (id)initWithCustomSoundKey:(const std::string&)key
-{
-    [self release];
-    return [OOSoundWithCustomSoundKey(key) retain];
-}
-
-@end
-
-@implementation OOSoundSource (OOCustomSounds)
-
-+ (id)sourceWithCustomSoundKey:(const std::string&)key
-{
-    return [[[self alloc] initWithCustomSoundKey:key] autorelease];
-}
-
-- (id)initWithCustomSoundKey:(const std::string&)key
-{
-    OOSound* theSound = OOSoundWithCustomSoundKey(key);
-    if (theSound != nil) {
-        self = [self initWithSound:theSound];
-    } else {
-        [self release];
-        self = nil;
-    }
-    return self;
-}
-
-- (void)cxx_playCustomSoundWithKey:(const std::string&)key
-{
-    OOSoundSourcePlayCustomSoundWithKey(self, key);
 }
 
 @end

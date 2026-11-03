@@ -56,31 +56,40 @@ MA 02110-1301, USA.
 static OOTexture* sShotTexture = nil;
 static OOTexture* sShotTexture2 = nil;
 
-namespace cxx {
+namespace {
+
+// The shot textures' graphics reset client, which the facade class was until bead oo-9ht.78
+//: registered once, with the textures, and never destroyed.
+class ShotTextureResetClient : public OOGraphicsResetClient {
+public:
+    void resetGraphicsState() override { OOLaserShotEntity::resetGraphicsState(); }
+};
+
+} // namespace
 
 void OOLaserShotEntity::initLaserFromShip(::ShipEntity* srcEntity, OOWeaponFacing direction, Vector offset)
 {
     // [super init] could not fail: the constructor ran Entity's -init body.
 
-    ::ShipEntity* ship = [srcEntity rootShipEntity];
-    Vector middle = OOBoundingBoxCenter([srcEntity boundingBox]);
+    ::ShipEntity* ship = oo::ToShip((srcEntity != nullptr ? srcEntity->rootShipEntity() : (::Entity*)nil));
+    Vector middle = OOBoundingBoxCenter((srcEntity != nullptr ? srcEntity->getBoundingBox() : BoundingBox { }));
 
-    OOCParameterAssert([srcEntity isShip] && [ship isShip]);
+    OOCParameterAssert((srcEntity != nullptr ? srcEntity->getIsShip() : false) && (ship != nullptr ? ship->getIsShip() : false));
 
     setStatus(STATUS_EFFECT);
 
     if (ship == srcEntity) {
         // main laser offset
-        setPosition(HPvector_add([ship position], vectorToHPVector(OOVectorMultiplyMatrix(offset, [ship drawRotationMatrix]))));
+        setPosition(HPvector_add((ship != nullptr ? ship->getPosition() : HPVector { }), vectorToHPVector(OOVectorMultiplyMatrix(offset, (ship != nullptr ? ship->drawRotationMatrix() : OOMatrix { })))));
     } else {
         // subentity laser
-        setPosition([srcEntity absolutePositionForSubentityOffset:vectorToHPVector(middle)]);
+        setPosition((srcEntity != nullptr ? srcEntity->absolutePositionForSubentityOffset(vectorToHPVector(middle)) : HPVector { }));
     }
 
     Quaternion q = kIdentityQuaternion;
     Vector q_up = vector_up_from_quaternion(q);
-    Quaternion q0 = [ship normalOrientation];
-    velocity = vector_multiply_scalar(vector_forward_from_quaternion(q0), [ship flightSpeed]);
+    Quaternion q0 = (ship != nullptr ? ship->normalOrientation() : Quaternion { });
+    velocity = vector_multiply_scalar(vector_forward_from_quaternion(q0), (ship != nullptr ? ship->getFlightSpeed() : 0.0f));
 
     switch (direction) {
     case WEAPON_FACING_NONE:
@@ -101,8 +110,8 @@ void OOLaserShotEntity::initLaserFromShip(::ShipEntity* srcEntity, OOWeaponFacin
     }
 
     setOrientation(quaternion_multiply(q, q0));
-    setOwner(oo::ToCxx(ship));
-    setRange([srcEntity weaponRange]);
+    setOwner(ship);
+    setRange((srcEntity != nullptr ? srcEntity->getWeaponRange() : 0.0f));
     _lifetime = kLaserDuration;
 
     _color[0] = kLaserRed / 3.0;
@@ -126,7 +135,7 @@ oo::Ref<OOLaserShotEntity> OOLaserShotEntity::laserFromShip(::ShipEntity* ship, 
 std::optional<std::string> OOLaserShotEntity::descriptionComponents() const
 {
     // The getter read this ivar.
-    return oo::str::format("ttl: %.3fs - %s orientation %s", _lifetime, Entity::descriptionComponents().value_or("(null)").c_str(), QuaternionDescription(orientation).c_str());
+    return oo::str::format("ttl: %.3fs - %s orientation %s", _lifetime, cxx::Entity::descriptionComponents().value_or("(null)").c_str(), QuaternionDescription(orientation).c_str());
 }
 
 void OOLaserShotEntity::setColor(OOColor* color)
@@ -146,18 +155,18 @@ void OOLaserShotEntity::setRange(GLfloat range)
 
 void OOLaserShotEntity::update(OOTimeDelta delta_t)
 {
-    Entity::update(delta_t);
+    cxx::Entity::update(delta_t);
     _lifetime -= delta_t;
-    ::ShipEntity* ship = owner();
+    ::ShipEntity* ship = oo::ToShip(owner());
 
-    if ([ship isPlayer]) {
+    if ((ship != nullptr ? ship->getIsPlayer() : false)) {
         /*
                 Reposition this shot accurately. This overrides integration over
                 velocity in -[Entity update:], which is considered sufficient for
                 NPC ships.
         */
-        setPosition(HPvector_add([ship position], vectorToHPVector(OOVectorMultiplyMatrix(_offset, [ship drawRotationMatrix]))));
-        setOrientation(quaternion_multiply(_relOrientation, [ship normalOrientation]));
+        setPosition(HPvector_add((ship != nullptr ? ship->getPosition() : HPVector { }), vectorToHPVector(OOVectorMultiplyMatrix(_offset, (ship != nullptr ? ship->drawRotationMatrix() : OOMatrix { })))));
+        setOrientation(quaternion_multiply(_relOrientation, (ship != nullptr ? ship->normalOrientation() : Quaternion { })));
     }
 
     if (_lifetime < 0) {
@@ -279,7 +288,7 @@ void OOLaserShotEntity::setUpTexture()
                                                  options:kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear | kOOTextureAlphaMask | kOOTextureRepeatT
                                               anisotropy:kOOTextureDefaultAnisotropy / 2.0
                                                  lodBias:0.0] retain];
-        OOGraphicsResetManager::sharedManager()->registerClient([::OOLaserShotEntity class]); // the facade class answers +resetGraphicsState
+        OOGraphicsResetManager::sharedManager()->registerCxxClient(new ShotTextureResetClient);
 
         sShotTexture2 = [[::OOTexture cxx_textureWithName:"oolite-laser-blur2.png"
                                                  inFolder:"Textures"
@@ -310,5 +319,3 @@ void OOLaserShotEntity::resetGraphicsState()
     [sShotTexture2 release];
     sShotTexture2 = nil;
 }
-
-} // namespace cxx

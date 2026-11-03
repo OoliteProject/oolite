@@ -335,7 +335,7 @@ static BOOL sAllMet = NO;
 //
 namespace {
 
-std::map<std::string, oo::ObjCRef<id>, std::less<>> sSoundCache;
+std::map<std::string, oo::Ref<::OOSound>, std::less<>> sSoundCache;
 std::map<std::string, std::string, std::less<>> sStringCache;
 
 } // namespace
@@ -1770,10 +1770,10 @@ void cxx::ResourceManager::mergeRoleCategories(const oo::PList& catData, oo::PLi
     }
 }
 
-oo::Ref<cxx::OOSystemDescriptionManager> cxx::ResourceManager::systemDescriptionManager()
+oo::Ref<OOSystemDescriptionManager> cxx::ResourceManager::systemDescriptionManager()
 {
     OO_LOG("resourceManager.planetinfo.load", "{}", "Initialising manager");
-    oo::Ref<cxx::OOSystemDescriptionManager> manager = oo::makeRef<cxx::OOSystemDescriptionManager>();
+    oo::Ref<OOSystemDescriptionManager> manager = oo::makeRef<OOSystemDescriptionManager>();
 
     // OODictionaryFromFile (OOPListParsing) and OOSystemDescriptionManager are unmigrated callees:
     // the planetinfo dictionaries arrive through oo::PListFrom and leave through oo::ObjectFromPList.
@@ -1901,14 +1901,13 @@ std::optional<std::string> cxx::ResourceManager::pathForFileNamed(const std::str
 
 /* use extreme caution in calling with usePathCache:NO - this can be
  * an extremely expensive operation */
-id cxx::ResourceManager::retrieveFileNamed(const std::string& fileName,
+::OOSound* cxx::ResourceManager::retrieveFileNamed(const std::string& fileName,
     const std::optional<std::string>& folderName,
-    std::map<std::string, oo::ObjCRef<id>, std::less<>>* ioCache,
+    std::map<std::string, oo::Ref<::OOSound>, std::less<>>* ioCache,
     std::optional<std::string> key,
-    Class klass,
     bool useCache)
 {
-    id result = nil;
+    oo::Ref<::OOSound> result;
 
     if (ioCache) {
         if (!key.has_value())
@@ -1919,29 +1918,33 @@ id cxx::ResourceManager::retrieveFileNamed(const std::string& fileName,
             return cached->second.get();
     }
 
+    // [[[OOSound alloc] cxx_initWithContentsOfFile:path] autorelease], the facade's class cluster
+    // until bead oo-9ht.68: the C++ factory. With no cache the caller is the only user, as the
+    // autoreleased sound lived until the pool drained: oo::autorelease keeps that.
     const std::optional<std::string> path = pathForFileNamed(fileName, folderName, useCache);
     if (path.has_value())
-        result = [[[klass alloc] cxx_initWithContentsOfFile:path] autorelease]; // klass: OOSound
+        result = ::OOSound::initWithContentsOfFile(path);
 
-    if (result != nil && ioCache != NULL) {
-        (*ioCache)[*key] = oo::ObjCRef<id>(result);
+    if (result != nullptr && ioCache != NULL) {
+        (*ioCache)[*key] = result;
+        return result.get();
     }
 
-    return result;
+    return oo::autorelease(result.leakRef());
 }
 
-oo::Ref<cxx::OOMusic> cxx::ResourceManager::ooMusicNamed(const std::string& fileName, const std::optional<std::string>& folderName)
+oo::Ref<OOMusic> cxx::ResourceManager::ooMusicNamed(const std::string& fileName, const std::optional<std::string>& folderName)
 {
     // Don't cache music objects; minimizing latency isn't really important.
     const std::optional<std::string> path = pathForFileNamed(fileName, folderName, YES);
     if (!path.has_value())
         return nullptr;
-    return cxx::OOMusic::initWithContentsOfFile(path);
+    return OOMusic::initWithContentsOfFile(path);
 }
 
 ::OOSound* cxx::ResourceManager::ooSoundNamed(const std::string& fileName, const std::optional<std::string>& folderName)
 {
-    return retrieveFileNamed(fileName, folderName, &sSoundCache, oo::str::format("OOSound:%s:%s", folderName.has_value() ? folderName->c_str() : "(null)", fileName.c_str()), [::OOSound class], YES);
+    return retrieveFileNamed(fileName, folderName, &sSoundCache, oo::str::format("OOSound:%s:%s", folderName.has_value() ? folderName->c_str() : "(null)", fileName.c_str()), YES);
 }
 
 std::optional<std::string> cxx::ResourceManager::stringFromFilesNamed(const std::string& fileName, const std::optional<std::string>& folderName)
@@ -1978,10 +1981,10 @@ std::optional<std::string> cxx::ResourceManager::stringFromFilesNamed(const std:
     return result;
 }
 
-std::vector<std::pair<std::string, oo::ObjCRef<::OOScript*>>> cxx::ResourceManager::loadScripts()
+std::vector<std::pair<std::string, oo::Ref<OOScript>>> cxx::ResourceManager::loadScripts()
 {
     // name -> script, in the order each name was first loaded (a later script of the same name replaces the earlier one in place)
-    std::vector<std::pair<std::string, oo::ObjCRef<::OOScript*>>> loadedScripts;
+    std::vector<std::pair<std::string, oo::Ref<OOScript>>> loadedScripts;
 
     OO_LOG("script.load.world.begin", "{}", "Loading world scripts...");
 
@@ -1992,12 +1995,12 @@ std::vector<std::pair<std::string, oo::ObjCRef<::OOScript*>>> cxx::ResourceManag
         if (!corePlist("world-scripts.plist", path)) {
             @autoreleasepool {
                 @try {
-                    std::optional<std::vector<oo::ObjCRef<::OOScript*>>> results = [::OOScript cxx_worldScriptsAtPath:oo::str::appendingPathComponent(path, "Config")];
+                    std::optional<std::vector<oo::Ref<OOScript>>> results = OOScript::worldScriptsAtPath(oo::str::appendingPathComponent(path, "Config"));
                     if (!results.has_value())
-                        results = [::OOScript cxx_worldScriptsAtPath:path];
+                        results = OOScript::worldScriptsAtPath(path);
                     if (results.has_value()) {
-                        for (const oo::ObjCRef<::OOScript*>& script : *results) {
-                            const std::optional<std::string> name = [script.get() cxx_name];
+                        for (const oo::Ref<OOScript>& script : *results) {
+                            const std::optional<std::string> name = (script != nullptr) ? script->name() : std::nullopt;
                             if (name.has_value()) {
                                 auto existing = std::find_if(loadedScripts.begin(), loadedScripts.end(), [&](const auto& entry) { return entry.first == *name; });
                                 if (existing != loadedScripts.end())
@@ -2005,7 +2008,7 @@ std::vector<std::pair<std::string, oo::ObjCRef<::OOScript*>>> cxx::ResourceManag
                                 else
                                     loadedScripts.emplace_back(*name, script);
                             } else
-                                OO_LOG("script.load.unnamed", "Discarding anonymous script {}", oo::DescriptionOf(script.get()));
+                                OO_LOG("script.load.unnamed", "Discarding anonymous script {}", (script != nullptr) ? script->description() : std::string("(null)"));
                         }
                     }
                 }
@@ -2024,7 +2027,7 @@ std::vector<std::pair<std::string, oo::ObjCRef<::OOScript*>>> cxx::ResourceManag
             displayNames.reserve(count);
 
             for (const auto& [name, script] : loadedScripts) {
-                displayNames.push_back([script.get() displayName].value_or(""));
+                displayNames.push_back(((script != nullptr) ? script->displayName() : std::nullopt).value_or(""));
             }
 
             std::stable_sort(displayNames.begin(), displayNames.end(), [](const std::string& a, const std::string& b) { return oo::str::caseInsensitiveCompare(a, b) < 0; });

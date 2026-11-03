@@ -148,7 +148,7 @@ void OOParticleSystem::drawImmediate(bool /*immediate*/, bool translucent)
     OOGL(glBlendFunc(GL_SRC_ALPHA, GL_ONE));
     [texture() apply];
 
-    HPVector viewPosition = [PLAYER viewpointPosition];
+    HPVector viewPosition = (PLAYER != nullptr ? PLAYER->viewpointPosition() : HPVector { });
     HPVector selfPosition = getPosition();
 
     unsigned i, count = _count;
@@ -229,14 +229,14 @@ bool OOParticleSystem::isEffect()
 
 OOTexture* OOParticleSystem::texture()
 {
-    return [OOLightParticleEntity defaultParticleTexture];
+    return ::OOLightParticleEntity::defaultParticleTexture();
 }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
 std::vector<oo::ObjCRef<OOTexture*>> OOParticleSystem::allTextures()
 {
     std::vector<oo::ObjCRef<OOTexture*>> result;
-    result.emplace_back([OOLightParticleEntity defaultParticleTexture]);
+    result.emplace_back(::OOLightParticleEntity::defaultParticleTexture());
     return result;
 }
 #endif
@@ -253,7 +253,7 @@ void OOSmallFragmentBurstEntity::initFragmentBurstFrom(HPVector fragPosition, Ve
 
     // Select base colour
     // yellow/orange (0.12) through yellow (0.1667) to yellow/slightly green (0.20)
-    oo::Ref<cxx::OOColor> hsvColor = cxx::OOColor::colorWithHue(0.12f + 0.08f * randf(), 1.0f, 1.0f, 1.0f);
+    oo::Ref<OOColor> hsvColor = OOColor::colorWithHue(0.12f + 0.08f * randf(), 1.0f, 1.0f, 1.0f);
     GLfloat baseColor[4];
     hsvColor->getRed(&baseColor[0], &baseColor[1], &baseColor[2], &baseColor[3]);
 

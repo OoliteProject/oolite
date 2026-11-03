@@ -32,7 +32,7 @@ oo::Ref<OOSparkEntity> OOSparkEntity::sparkWithPosition(HPVector pos,
     Vector vel,
     OOTimeDelta duration,
     float size,
-    cxx::OOColor* color)
+    OOColor* color)
 {
     const oo::Ref<OOSparkEntity> spark = oo::makeRef<OOSparkEntity>();
     spark->initWithPosition(pos, vel, duration, size, color);
@@ -43,7 +43,7 @@ void OOSparkEntity::initWithPosition(HPVector pos,
     Vector vel,
     OOTimeDelta duration,
     float size,
-    cxx::OOColor* color)
+    OOColor* color)
 {
     OOLightParticleEntity::initWithDiameter(size);
     // [super initWithDiameter:] could not fail.

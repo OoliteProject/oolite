@@ -25,11 +25,11 @@ MA 02110-1301, USA.
 
 #import "OOLightParticleEntity.h"
 
-/*	A converted leaf (amendment oo-bj8 item 12): global, over cxx::OOLightParticleEntity, with no
+/*	A converted leaf (amendment oo-bj8 item 12): global, over OOLightParticleEntity, with no
         facade of its own. Unconverted code makes one with burstWithPosition() and hands it to
         Objective-C with oo::NewEntityFacade, whose object is an OOLightParticleEntity.
 */
-class OOPlasmaBurstEntity : public cxx::OOLightParticleEntity {
+class OOPlasmaBurstEntity : public OOLightParticleEntity {
 public:
     // [[OOPlasmaBurstEntity alloc] initWithPosition:]: a new burst, initialised.
     static oo::Ref<OOPlasmaBurstEntity> burstWithPosition(HPVector position);

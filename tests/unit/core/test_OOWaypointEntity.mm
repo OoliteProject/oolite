@@ -13,13 +13,18 @@
 	label setters (an empty string is none; a code gives a blank label its text) and the case-
 	insensitive comparison; its beacon icon is kept until the code changes; and its neighbours in
 	the beacon list are weak references. The draw distance is read through the one helper below.
-	The waypoints are made by the class method the universe sends, which the conversion kept on the
-	facade: the last test pins that their object is a C++ entity whose Objective-C object is the
-	OOWaypointEntity facade.
+	The waypoints are made as the universe makes them: by the C++ factory, handed to Objective-C
+	with oo::NewEntityFacade, whose object is the root Entity's facade since bead oo-9ht.108
+	deleted the class's facade (ADR-0056 amendment oo-9ht.106). The object still answers the
+	beacon selectors (the root's category Entity (OOWaypointBeacon)), so the beacon checks send
+	them as before; the class's own selectors are member calls; the last tests pin that the object
+	is a C++ entity's, that only a waypoint's object (or a facade that implements them) answers the
+	beacon selectors, and the JS answers.
 	Run: bash tools/check-core-tests.sh
 */
 
 #import "OOWaypointEntity.h"
+#import "PlayerEntity.h"	// PLAYER is C++ (bead oo-9ht.177)
 #import "EntityOOJavaScriptExtensions.h"
 #import "OOJSEntity.h"
 #import "OOJSWaypoint.h"
@@ -35,20 +40,29 @@
 uint32_t gDebugFlags = 0;
 #endif
 
-@class PlayerEntity;
+class PlayerEntity;
 extern PlayerEntity *gOOPlayer;
 extern Universe *gSharedUniverse;
 
 
-@interface TestPlayer: Entity
-@end
+class TestPlayer : public PlayerEntity	// C++ since bead oo-9ht.177 deleted the Objective-C player
+{
+public:
+	HPVector viewpointPosition() override	{ return kZeroHPVector; }
+};
 
-
-@implementation TestPlayer
-
-- (HPVector) viewpointPosition	{ return kZeroHPVector; }
-
-@end
+// NewTestPlayer<TestPlayer>() (bead oo-9ht.177): a C++ player under the ship's facade, as
+// PlayerEntity::sharedPlayer() makes the game's, retained (+1) as +alloc's object was.
+template <class T>
+T *NewTestPlayer()
+{
+	oo::Ref<T> player = oo::makeRef<T>();
+	@autoreleasepool
+	{
+		[oo::NewEntityFacade(player) retain];
+	}
+	return player.get();
+}
 
 
 // UNIVERSE: never initialised.
@@ -74,9 +88,9 @@ void SetUp()
 		universe->_cxxUniverse = oo::makeRef<cxx::Universe>(universe);	// what -initWithGameView: makes first (ADR-0056 amendment oo-riqmz)
 	}
 	gSharedUniverse = universe;
-	static TestPlayer *player = nil;
-	if (player == nil)  player = [[TestPlayer alloc] init];
-	gOOPlayer = (PlayerEntity *)player;
+	static TestPlayer *player = nullptr;
+	if (player == nullptr)  player = NewTestPlayer<TestPlayer>();
+	gOOPlayer = player;
 }
 
 
@@ -105,9 +119,18 @@ bool QuatIs(Quaternion q, float w, float x, float y, float z)
 }
 
 
-OOWaypointEntity *Waypoint(const std::string &code)
+// +waypointWithDictionary: until bead oo-9ht.108: the waypoint's object, as the universe makes it.
+OOBeaconEntityObject *WaypointObject(const oo::PList &info)
 {
-	return [OOWaypointEntity waypointWithDictionary:Dict({ { "beaconCode", oo::PList(code) } })];
+	return (OOBeaconEntityObject *)oo::NewEntityFacade(OOWaypointEntity::waypointWithDictionary(info));
+}
+
+OOWaypointEntity *Part(Entity *object)	{ return dynamic_cast<OOWaypointEntity *>(oo::ToCxx(object)); }
+
+
+OOBeaconEntityObject *Waypoint(const std::string &code)
+{
+	return WaypointObject(Dict({ { "beaconCode", oo::PList(code) } }));
 }
 
 }	// namespace
@@ -118,11 +141,11 @@ OO_TEST(defaults)
 	@autoreleasepool
 	{
 		SetUp();
-		OOWaypointEntity *wp = [OOWaypointEntity waypointWithDictionary:Dict({ { "unused", oo::PList(1) } })];
-		OO_CHECK(wp != nil && [wp isKindOfClass:[OOWaypointEntity class]]);
+		OOBeaconEntityObject *wp = WaypointObject(Dict({ { "unused", oo::PList(1) } }));
+		OO_CHECK(wp != nil && Part(wp) != nullptr);
 		OO_CHECK(HPvector_equal([wp position], kZeroHPVector));
-		OO_CHECK(QuatIs([wp orientation], 1, 0, 0, 0) && [wp oriented]);
-		OO_CHECK([wp size] == 1000.0);
+		OO_CHECK(QuatIs([wp orientation], 1, 0, 0, 0) && Part(wp)->getOriented());
+		OO_CHECK(Part(wp)->size() == 1000.0);
 		OO_CHECK(NoDrawDistance(wp) == (GLfloat)(1000.0 * 1000.0 * NO_DRAW_DISTANCE_FACTOR * NO_DRAW_DISTANCE_FACTOR * 2));
 		OO_CHECK([wp beaconCode] == std::optional<std::string>("W"));
 		OO_CHECK([wp beaconLabel] == std::optional<std::string>("Waypoint"));
@@ -138,16 +161,16 @@ OO_TEST(dictionary)
 	@autoreleasepool
 	{
 		SetUp();
-		OOWaypointEntity *wp = [OOWaypointEntity waypointWithDictionary:Dict({
+		OOBeaconEntityObject *wp = WaypointObject(Dict({
 			{ "position", Vec(1, 2, 3) },
 			{ "orientation", oo::PList(oo::PList::Array{ oo::PList(0.0), oo::PList(1.0), oo::PList(0.0), oo::PList(0.0) }) },
 			{ "size", oo::PList(50.0) },
 			{ "beaconCode", oo::PList("AB") },
 			{ "beaconLabel", oo::PList("Somewhere") },
-		})];
+		}));
 		OO_CHECK(HPvector_equal([wp position], make_HPvector(1, 2, 3)));
-		OO_CHECK(QuatIs([wp orientation], 0, 1, 0, 0) && [wp oriented]);
-		OO_CHECK([wp size] == 50.0);
+		OO_CHECK(QuatIs([wp orientation], 0, 1, 0, 0) && Part(wp)->getOriented());
+		OO_CHECK(Part(wp)->size() == 50.0);
 		OO_CHECK([wp beaconCode] == std::optional<std::string>("AB"));
 		OO_CHECK([wp beaconLabel] == std::optional<std::string>("Somewhere"));
 	}
@@ -160,9 +183,9 @@ OO_TEST(emptyDictionary)
 	{
 		SetUp();
 		// A nil dictionary read zero-filled values and nil strings: the zero orientation is unoriented.
-		OOWaypointEntity *wp = [OOWaypointEntity waypointWithDictionary:oo::PList()];
+		OOBeaconEntityObject *wp = WaypointObject(oo::PList());
 		OO_CHECK(HPvector_equal([wp position], kZeroHPVector));
-		OO_CHECK(QuatIs([wp orientation], 1, 0, 0, 0) && ![wp oriented]);
+		OO_CHECK(QuatIs([wp orientation], 1, 0, 0, 0) && !Part(wp)->getOriented());
 		OO_CHECK(![wp beaconCode].has_value() && ![wp beaconLabel].has_value() && ![wp isBeacon]);
 	}
 }
@@ -173,12 +196,12 @@ OO_TEST(orientation)
 	@autoreleasepool
 	{
 		SetUp();
-		OOWaypointEntity *wp = Waypoint("W");
+		OOBeaconEntityObject *wp = Waypoint("W");
 		[wp setOrientation:kZeroQuaternion];
-		OO_CHECK(![wp oriented] && QuatIs([wp orientation], 1, 0, 0, 0));
+		OO_CHECK(!Part(wp)->getOriented() && QuatIs([wp orientation], 1, 0, 0, 0));
 		Quaternion q = { 0, 0, 1, 0 };
 		[wp setOrientation:q];
-		OO_CHECK([wp oriented] && QuatIs([wp orientation], 0, 0, 1, 0));
+		OO_CHECK(Part(wp)->getOriented() && QuatIs([wp orientation], 0, 0, 1, 0));
 	}
 }
 
@@ -188,13 +211,13 @@ OO_TEST(size)
 	@autoreleasepool
 	{
 		SetUp();
-		OOWaypointEntity *wp = Waypoint("W");
-		[wp setSize:10.0];
-		OO_CHECK([wp size] == 10.0);
+		OOBeaconEntityObject *wp = Waypoint("W");
+		Part(wp)->setSize(10.0);
+		OO_CHECK(Part(wp)->size() == 10.0);
 		OO_CHECK(NoDrawDistance(wp) == (GLfloat)(10.0 * 10.0 * NO_DRAW_DISTANCE_FACTOR * NO_DRAW_DISTANCE_FACTOR * 2));
-		[wp setSize:0.0];
-		[wp setSize:-5.0];
-		OO_CHECK([wp size] == 10.0);
+		Part(wp)->setSize(0.0);
+		Part(wp)->setSize(-5.0);
+		OO_CHECK(Part(wp)->size() == 10.0);
 	}
 }
 
@@ -204,7 +227,7 @@ OO_TEST(beaconStrings)
 	@autoreleasepool
 	{
 		SetUp();
-		OOWaypointEntity *wp = [OOWaypointEntity waypointWithDictionary:Dict({ { "beaconCode", oo::PList("X") }, { "beaconLabel", oo::PList("Label") } })];
+		OOBeaconEntityObject *wp = WaypointObject(Dict({ { "beaconCode", oo::PList("X") }, { "beaconLabel", oo::PList("Label") } }));
 		[wp setBeaconCode:std::string("")];
 		OO_CHECK(![wp beaconCode].has_value() && ![wp isBeacon]);
 		OO_CHECK([wp beaconLabel] == std::optional<std::string>("Label"));
@@ -224,9 +247,9 @@ OO_TEST(compareBeaconCodes)
 	@autoreleasepool
 	{
 		SetUp();
-		OO_CHECK([Waypoint("a") compareBeaconCodeWith:Waypoint("B")] == OOOrderedAscending);
-		OO_CHECK([Waypoint("b") compareBeaconCodeWith:Waypoint("A")] == OOOrderedDescending);
-		OO_CHECK([Waypoint("abc") compareBeaconCodeWith:Waypoint("ABC")] == OOOrderedSame);
+		OO_CHECK(Part(Waypoint("a"))->compareBeaconCodeWith(Waypoint("B")) == OOOrderedAscending);
+		OO_CHECK(Part(Waypoint("b"))->compareBeaconCodeWith(Waypoint("A")) == OOOrderedDescending);
+		OO_CHECK(Part(Waypoint("abc"))->compareBeaconCodeWith(Waypoint("ABC")) == OOOrderedSame);
 	}
 }
 
@@ -236,13 +259,13 @@ OO_TEST(beaconDrawable)
 	@autoreleasepool
 	{
 		SetUp();
-		OOWaypointEntity *wp = Waypoint("W");
-		id<OOHUDBeaconIcon> icon = [wp beaconDrawable];
-		OO_CHECK(icon != nil && [wp beaconDrawable] == icon);
-		[(id)icon retain];
+		OOBeaconEntityObject *wp = Waypoint("W");
+		// A C++ OOHUDBeaconIcon since bead oo-7ae4p (the protocol type before), held as the
+		// test retained it.
+		oo::Ref<OOHUDBeaconIcon> icon(static_cast<OOHUDBeaconIcon *>([wp beaconDrawable]));
+		OO_CHECK(icon != nullptr && [wp beaconDrawable] == icon.get());
 		[wp setBeaconCode:std::string("V")];
-		OO_CHECK([wp beaconDrawable] != nil && [wp beaconDrawable] != icon);
-		[(id)icon release];
+		OO_CHECK([wp beaconDrawable] != nullptr && [wp beaconDrawable] != icon.get());
 	}
 }
 
@@ -252,9 +275,9 @@ OO_TEST(neighbours)
 	@autoreleasepool
 	{
 		SetUp();
-		OOWaypointEntity *wp = Waypoint("W");
+		OOBeaconEntityObject *wp = Waypoint("W");
 		OO_CHECK([wp prevBeacon] == nil && [wp nextBeacon] == nil);
-		OOWaypointEntity *other = nil;
+		OOBeaconEntityObject *other = nil;
 		@autoreleasepool
 		{
 			other = [Waypoint("V") retain];
@@ -273,10 +296,9 @@ OO_TEST(facade)
 	@autoreleasepool
 	{
 		SetUp();
-		OOWaypointEntity *wp = Waypoint("W");
-		OO_CHECK([wp class] == [OOWaypointEntity class]);
+		Entity *wp = Waypoint("W");	// the root's facade (the protocol type would pick a subclass's crossing)
 		// A C++ entity (amendment oo-0mxi), not an Objective-C entity's adapter.
-		OO_CHECK(dynamic_cast<cxx::OOWaypointEntity *>(oo::ToCxx(wp)) != nullptr);
+		OO_CHECK(dynamic_cast<OOWaypointEntity *>(oo::ToCxx(wp)) != nullptr);
 		OO_CHECK(oo::AsObjCEntity(oo::ToCxx(wp)) == nullptr);
 		OO_CHECK(oo::ToObjC(oo::ToCxx(wp)) == wp);
 	}
@@ -297,14 +319,31 @@ static void RegisterJSClasses(void (*initClass)(JSContext *, JSValueConst))
 }
 
 
-// The binding's category, which the facade carries since bead oo-9ht.50: what the engine asks a
-// OOWaypointEntity for by selector is what OOJSWaypoint.mm answers.
+// The beacon selectors on the root's facade: answered for a waypoint's part, and not for another
+// entity's, whose object did not answer them before.
+OO_TEST(beaconSelectorsForAWaypointOnly)
+{
+	@autoreleasepool
+	{
+		SetUp();
+		OOBeaconEntityObject *wp = Waypoint("W");
+		OO_CHECK([wp respondsToSelector:@selector(beaconCode)] && [wp respondsToSelector:@selector(setNextBeacon:)]);
+		Entity *plain = [[[Entity alloc] init] autorelease];
+		OO_CHECK(![plain respondsToSelector:@selector(beaconCode)] && ![plain respondsToSelector:@selector(isBeacon)]);
+		OO_CHECK(![(OOBeaconEntityObject *)plain isBeacon] && ![(OOBeaconEntityObject *)plain beaconCode].has_value());
+		OO_CHECK([(OOBeaconEntityObject *)plain nextBeacon] == nil);
+	}
+}
+
+
+// The binding's category, which the facade carried and the C++ class's overrides answer now: what
+// the engine asks a waypoint's object for by selector is what OOJSWaypoint.mm answers.
 OO_TEST(jsExtensions)
 {
 	@autoreleasepool
 	{
 		SetUp();
-		OOWaypointEntity *wp = Waypoint("W");
+		OOBeaconEntityObject *wp = Waypoint("W");
 		RegisterJSClasses(InitOOJSWaypoint);
 		const JSClassID jsClass = [wp oo_jsClassID];
 		const JSClassID expectedClass = JSWaypointClassID();

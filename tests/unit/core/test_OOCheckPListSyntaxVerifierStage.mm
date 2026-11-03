@@ -114,7 +114,7 @@ void WriteFile(const std::filesystem::path &path, const char *contents)
 
 
 // The scanner, registered with the verifier and run over its OXP, as the verifier runs it first.
-void RunScanner(cxx::OOOXPVerifier *verifier)
+void RunScanner(OOOXPVerifier *verifier)
 {
 	OOFileScannerVerifierStage::nameForDependencyForVerifier(verifier);
 	verifier->stageWithName(OOFileScannerVerifierStage::kName)->run();	// was -fileScannerStage (bead oo-9ht.7); the C++ stage since oo-9ht.4
@@ -128,12 +128,12 @@ const std::filesystem::path kBase = std::filesystem::current_path() / "test_OOCh
 
 
 // An OXP with the given Config files (name, contents), and its verifier with the scanner run over it.
-cxx::OOOXPVerifier *MakeVerifier(std::initializer_list<std::pair<const char *, const char *>> files)
+OOOXPVerifier *MakeVerifier(std::initializer_list<std::pair<const char *, const char *>> files)
 {
 	std::filesystem::remove_all(kBase);
 	std::filesystem::create_directories(kBase);
 	for (const auto &[name, contents] : files)  WriteFile(kBase / "Config" / name, contents);
-	cxx::OOOXPVerifier *verifier = OOOXPVerifierTestAccess::Make(kBase.generic_string(), kConfiguration);
+	OOOXPVerifier *verifier = OOOXPVerifierTestAccess::Make(kBase.generic_string(), kConfiguration);
 	RunScanner(verifier);
 	StartLog();
 	return verifier;
@@ -210,7 +210,7 @@ OO_TEST(facade)
 {
 	@autoreleasepool
 	{
-		cxx::OOOXPVerifier *verifier = MakeVerifier({});
+		OOOXPVerifier *verifier = MakeVerifier({});
 		const oo::Ref<OOCheckPListSyntaxVerifierStage> stage = oo::makeRef<OOCheckPListSyntaxVerifierStage>();
 		OO_CHECK(stage->description().starts_with("<OOCheckPListSyntaxVerifierStage 0x"));
 

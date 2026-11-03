@@ -25,6 +25,7 @@
 #import "OOShaderMaterial.h"
 #import "OOOpenGLExtensionManager.h"
 #import "OODescription.h"
+#import "MyOpenGLView.h"
 
 #include "oo_gl_test_context.hpp"
 #include "oo_test.hpp"
@@ -185,12 +186,12 @@ GLfloat cxx::OOTextureGenerator::anisotropy()  { return 0; }
 GLfloat cxx::OOTextureGenerator::lodBias()  { return 0; }
 std::optional<std::string> cxx::OOTextureGenerator::cacheKey()  { return std::nullopt; }
 bool cxx::OOTextureGenerator::enqueue()  { return false; }
-oo::Ref<OOCombinedEmissionMapGenerator> OOCombinedEmissionMapGenerator::generatorWithEmissionMapSpec(const oo::PList &emissionMapSpec, cxx::OOColor *, OOTexture *, cxx::OOColor *, const oo::PList &illuminationMapSpec, cxx::OOColor *, const oo::PList &)
+oo::Ref<OOCombinedEmissionMapGenerator> OOCombinedEmissionMapGenerator::generatorWithEmissionMapSpec(const oo::PList &emissionMapSpec, OOColor *, OOTexture *, OOColor *, const oo::PList &illuminationMapSpec, OOColor *, const oo::PList &)
 {
 	if (emissionMapSpec.isNull() && illuminationMapSpec.isNull())  return {};
 	return oo::makeRef<OOCombinedEmissionMapGenerator>();
 }
-oo::Ref<OOCombinedEmissionMapGenerator> OOCombinedEmissionMapGenerator::generatorWithEmissionAndIlluminationMapSpec(const oo::PList &, OOTexture *, cxx::OOColor *, cxx::OOColor *, cxx::OOColor *, const oo::PList &)
+oo::Ref<OOCombinedEmissionMapGenerator> OOCombinedEmissionMapGenerator::generatorWithEmissionAndIlluminationMapSpec(const oo::PList &, OOTexture *, OOColor *, OOColor *, OOColor *, const oo::PList &)
 {
 	return oo::makeRef<OOCombinedEmissionMapGenerator>();
 }
@@ -222,6 +223,11 @@ oo::PList cxx_OOTextureSpecFromObject(const oo::PList &object, const std::option
 // The universe: the three settings the creators and the materials ask about.
 @class Universe;
 Universe *gSharedUniverse = nil;
+
+// The game view is C++ (MyOpenGLView). There is none here: its crossing answers none, and its
+// manager accessor, which the shader program's matrix uniforms would use, is never reached.
+cxx::MyOpenGLView *oo::ToCxx(MyOpenGLView *)  { return nullptr; }
+OOOpenGLMatrixManager *cxx::MyOpenGLView::getOpenGLMatrixManager()  { return matrixManager.get(); }
 
 @interface TestUniverse: OOObject
 {

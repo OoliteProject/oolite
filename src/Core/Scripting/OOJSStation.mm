@@ -47,14 +47,14 @@ MA 02110-1301, USA.
         ADR-0056 amendment oo-ppc). The JS class was already C++ on the scripting layer (QuickJS-ng);
         OOJS_NATIVE_ENTER/EXIT and OOJS_PROFILE_ENTER/EXIT are C++ try/catch and scope guards
         (OOJSEngineNativeWrappers.h); BOOL/YES/NO are bool/true/false. The category on StationEntity
-        became a free function (its -oo_jsClassID answers JSStationClassID()), and its methods moved
-        to OOJSStation+ObjCBridge.mm (amendment oo-ykoy). OOCommodities, OOCommodityMarket,
-        OOEquipmentType and OOJSInterfaceDefinition, which are C++ since beads oo-fqyw, oo-ih7y,
-        oo-fg7i and oo-8fpc, are reached as cxx:: classes through oo::ToCxx (amendment oo-ppc, item
-        4), null-guarded where a message to nil answered; an interface definition is still made as
-        its façade, which the station keeps (amendment oo-q9q4 item 1). Messages to classes that are
-        still Objective-C (StationEntity, ShipEntity, PlayerEntity, Universe, GameController,
-        OOShipRegistry) stay as they are, which is why the file is still .mm until Phase 4.
+        became a free function (the station's JS class is JSStationClassID(),
+        StationEntity::jsClassID()), and its methods became StationEntity members. OOCommodities,
+        OOCommodityMarket and OOEquipmentType are C++ and called directly, null-guarded where a
+        message to nil answered; an interface definition is C++ (its façade was deleted), and the
+        station keeps it as oo::Ref. The station is C++ (its façade was deleted): its members are
+        called (its object, a ship's, is the JS object's; the ship is C++). Messages to classes that
+        are still Objective-C (Universe, GameController, OOShipRegistry) stay as they are, which is
+        why the file is still .mm until Phase 4.
 */
 
 static JSClassID sStationClassID;
@@ -196,10 +196,13 @@ static bool JSStationGetStationEntity(JSContext* context, JSValueConst stationOb
     if (!result)
         return false;
 
-    if (![entity isKindOfClass:[StationEntity class]])
+    // A station's object is a ship's: its C++ part says it is a station,
+    // where -isKindOfClass:[StationEntity class] did.
+    StationEntity* station = oo::ToStation(entity);
+    if (station == nullptr)
         return false;
 
-    *outEntity = (StationEntity*)entity;
+    *outEntity = station;
     return true;
 
     OOJS_PROFILE_EXIT
@@ -220,10 +223,10 @@ static bool JSStationGetShipEntity(JSContext* context, JSValueConst shipObj, Shi
     if (!result)
         return false;
 
-    if (![entity isKindOfClass:[ShipEntity class]])
+    if (!(oo::ToShip(entity) != nullptr))
         return false;
 
-    *outEntity = (ShipEntity*)entity;
+    *outEntity = oo::ToShip(entity);
     return true;
 
     OOJS_PROFILE_EXIT
@@ -243,9 +246,7 @@ static bool JSStationGetShipEntity(JSContext* context, JSValueConst shipObj, Shi
         }                                                               \
     } while (0)
 
-// The bodies of StationEntity (OOJavaScriptExtensions), whose methods are in
-// OOJSStation+ObjCBridge.mm until StationEntity converts (proposed ADR-0056 amendments oo-ppc and
-// oo-ykoy).
+// The bodies of StationEntity (OOJavaScriptExtensions), which StationEntity's jsClassName calls.
 std::optional<std::string> OOJSStationJSClassName(void)
 {
     return std::string("Station");
@@ -268,67 +269,69 @@ static JSValue StationGetProperty(OOJS_GETTER_ARGS)
         return OOJSValueFromBOOL(entity == [UNIVERSE station]);
 
     case kStation_hasNPCTraffic:
-        return OOJSValueFromBOOL([entity hasNPCTraffic]);
+        return OOJSValueFromBOOL((entity != nullptr ? entity->getHasNPCTraffic() : false));
 
     case kStation_hasShipyard:
-        return OOJSValueFromBOOL([entity hasShipyard]);
+        return OOJSValueFromBOOL((entity != nullptr ? entity->hasShipyard() : false));
 
     case kStation_alertCondition:
-        return JS_NewInt32(context, [entity alertLevel]);
+        return JS_NewInt32(context, entity != nullptr ? static_cast<std::int32_t>(entity->getAlertLevel()) : 0); // 0: a message to nil's answer
 
     case kStation_allegiance: {
-        const std::optional<std::string> allegiance = [entity cxx_allegiance];
+        const std::optional<std::string> allegiance = (entity != nullptr ? entity->getAllegiance() : std::optional<std::string>());
         return OOJSValueFromPList(context, allegiance.has_value() ? oo::PList(*allegiance) : oo::PList()); // null for none
     }
 
     case kStation_requiresDockingClearance:
-        return OOJSValueFromBOOL([entity requiresDockingClearance]);
+        return OOJSValueFromBOOL((entity != nullptr ? entity->getRequiresDockingClearance() : false));
 
     case kStation_roll:
         // same as in ship definition, but this time read/write below
-        return JS_NewNumber(context, [entity flightRoll]);
+        return JS_NewNumber(context, (entity != nullptr ? entity->ShipEntity::getFlightRoll() : 0.0f)); // qualified: the final overrider, so the binding test stands in for it
 
     case kStation_allowsFastDocking:
-        return OOJSValueFromBOOL([entity allowsFastDocking]);
+        return OOJSValueFromBOOL((entity != nullptr ? entity->getAllowsFastDocking() : false));
 
     case kStation_allowsAutoDocking:
-        return OOJSValueFromBOOL([entity allowsAutoDocking]);
+        return OOJSValueFromBOOL((entity != nullptr ? entity->getAllowsAutoDocking() : false));
 
     case kStation_dockedContractors:
-        return JS_NewInt32(context, [entity countOfDockedContractors]);
+        return JS_NewInt32(context, (entity != nullptr ? entity->countOfDockedContractors() : unsigned {}));
 
     case kStation_dockedPolice:
-        return JS_NewInt32(context, [entity countOfDockedPolice]);
+        return JS_NewInt32(context, (entity != nullptr ? entity->countOfDockedPolice() : unsigned {}));
 
     case kStation_dockedDefenders:
-        return JS_NewInt32(context, [entity countOfDockedDefenders]);
+        return JS_NewInt32(context, (entity != nullptr ? entity->countOfDockedDefenders() : unsigned {}));
 
     case kStation_equivalentTechLevel:
-        return JS_NewInt32(context, (int32_t)[entity equivalentTechLevel]);
+        return JS_NewInt32(context, (int32_t)(entity != nullptr ? entity->getEquivalentTechLevel() : 0));
 
     case kStation_equipmentPriceFactor:
-        return JS_NewNumber(context, [entity equipmentPriceFactor]);
+        return JS_NewNumber(context, (entity != nullptr ? entity->getEquipmentPriceFactor() : 0.0f));
 
     case kStation_suppressArrivalReports:
-        return OOJSValueFromBOOL([entity suppressArrivalReports]);
+        return OOJSValueFromBOOL((entity != nullptr ? entity->suppressArrivalReports() : false));
 
     case kStation_breakPattern:
-        return OOJSValueFromBOOL([entity hasBreakPattern]);
+        return OOJSValueFromBOOL((entity != nullptr ? entity->getHasBreakPattern() : false));
 
     case kStation_shipyard: {
-        if (![entity hasShipyard]) {
+        if (!(entity != nullptr ? entity->hasShipyard() : false)) {
             // return null if station has no shipyard
             return OOJSValueFromNativeObject(context, nil);
         } else {
-            if ([entity cxx_localShipyard] == nullptr)
-                [entity generateShipyard];
-            std::vector<oo::PList>* shipyard = [entity cxx_localShipyard];
+            if ((entity != nullptr ? entity->getLocalShipyard() : (std::vector<oo::PList>*)nullptr) == nullptr) {
+                if (entity != nullptr)
+                    entity->generateShipyard();
+            }
+            std::vector<oo::PList>* shipyard = (entity != nullptr ? entity->getLocalShipyard() : (std::vector<oo::PList>*)nullptr);
             return OOJSValueFromPList(context, shipyard != nullptr ? oo::PList(*shipyard) : oo::PList());
         }
     }
 
     case kStation_market: {
-        return OOJSValueFromPList(context, [entity cxx_localMarketForScripting]);
+        return OOJSValueFromPList(context, (entity != nullptr ? entity->localMarketForScripting() : oo::PList()));
     }
 
     default:
@@ -357,14 +360,16 @@ static JSValue StationSetProperty(OOJS_SETTER_ARGS)
     switch (magic) {
     case kStation_hasNPCTraffic:
         if ((bValue = JS_ToBool(context, value)) >= 0) {
-            [entity setHasNPCTraffic:bValue];
+            if (entity != nullptr)
+                entity->setHasNPCTraffic(bValue);
             return JS_UNDEFINED;
         }
         break;
 
     case kStation_alertCondition:
         if (OOJSValueToInt32(context, value, &iValue)) {
-            [entity setAlertLevel:(OOStationAlertLevel)iValue signallingScript:false]; // Performs range checking
+            if (entity != nullptr)
+                entity->setAlertLevel((OOStationAlertLevel)iValue, false); // Performs range checking
             return JS_UNDEFINED;
         }
         break;
@@ -372,14 +377,16 @@ static JSValue StationSetProperty(OOJS_SETTER_ARGS)
     case kStation_allegiance:
         sValue = cxx_OOStringFromJSValue(context, value);
         if (sValue.has_value()) {
-            [entity cxx_setAllegiance:sValue];
+            if (entity != nullptr)
+                entity->setAllegiance(sValue);
             return JS_UNDEFINED;
         }
         break;
 
     case kStation_requiresDockingClearance:
         if ((bValue = JS_ToBool(context, value)) >= 0) {
-            [entity setRequiresDockingClearance:bValue];
+            if (entity != nullptr)
+                entity->setRequiresDockingClearance(bValue);
             return JS_UNDEFINED;
         }
         break;
@@ -394,35 +401,40 @@ static JSValue StationSetProperty(OOJS_SETTER_ARGS)
                 fValue = -M_PI;
             else if (fValue > M_PI)
                 fValue = M_PI;
-            [entity setRawRoll:fValue];
+            if (entity != nullptr)
+                entity->setRawRoll(fValue);
             return JS_UNDEFINED;
         }
         break;
 
     case kStation_allowsFastDocking:
         if ((bValue = JS_ToBool(context, value)) >= 0) {
-            [entity setAllowsFastDocking:bValue];
+            if (entity != nullptr)
+                entity->setAllowsFastDocking(bValue);
             return JS_UNDEFINED;
         }
         break;
 
     case kStation_allowsAutoDocking:
         if ((bValue = JS_ToBool(context, value)) >= 0) {
-            [entity setAllowsAutoDocking:bValue];
+            if (entity != nullptr)
+                entity->setAllowsAutoDocking(bValue);
             return JS_UNDEFINED;
         }
         break;
 
     case kStation_suppressArrivalReports:
         if ((bValue = JS_ToBool(context, value)) >= 0) {
-            [entity setSuppressArrivalReports:bValue];
+            if (entity != nullptr)
+                entity->setSuppressArrivalReports(bValue);
             return JS_UNDEFINED;
         }
         break;
 
     case kStation_breakPattern:
         if ((bValue = JS_ToBool(context, value)) >= 0) {
-            [entity setHasBreakPattern:bValue];
+            if (entity != nullptr)
+                entity->setHasBreakPattern(bValue);
             return JS_UNDEFINED;
         }
         break;
@@ -449,7 +461,8 @@ static JSValue StationAbortAllDockings(OOJS_NATIVE_ARGS)
     // SpiderMonkey tolerated returning normally with an error pending; QuickJS does not.
     if (JS_HasException(context))
         return JS_EXCEPTION;
-    [station abortAllDockings];
+    if (station != nullptr)
+        station->abortAllDockings();
 
     OOJS_RETURN_VOID;
 
@@ -476,7 +489,8 @@ static JSValue StationAbortDockingForShip(OOJS_NATIVE_ARGS)
     if (JS_HasException(context))
         return JS_EXCEPTION;
     if (ship != nil) {
-        [station abortDockingForShip:ship];
+        if (station != nullptr)
+            station->abortDockingForShip(ship);
     }
 
     OOJS_RETURN_VOID;
@@ -507,7 +521,7 @@ static JSValue StationCanDockShip(OOJS_NATIVE_ARGS)
     GET_THIS_STATION(station);
 
     OOJS_BEGIN_FULL_NATIVE(context)
-    result = [station fitsInDock:shipToCheck andLogNoFit:false];
+    result = (station != nullptr ? station->fitsInDock(shipToCheck, false) : false);
     OOJS_END_FULL_NATIVE
 
     OOJS_RETURN_BOOL(result);
@@ -531,16 +545,20 @@ static JSValue StationDockPlayer(OOJS_NATIVE_ARGS)
         [gameController setGamePaused:false];
     }
 
-    if (EXPECT(![player isDocked])) {
+    if (EXPECT(!(player != nullptr ? player->PlayerEntity::isDocked() : false))) // qualified: the final overrider, so the binding test stands in for it
+    {
         StationEntity* stationForDockingPlayer = nil;
         JSStationGetStationEntity(context, OOJS_THIS, &stationForDockingPlayer);
         // SpiderMonkey tolerated returning normally with an error pending; QuickJS does not.
         if (JS_HasException(context))
             return JS_EXCEPTION;
-        [player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_GRANTED];
-        [player safeAllMissiles];
+        if (player != nullptr)
+            player->setDockingClearanceStatus(DOCKING_CLEARANCE_STATUS_GRANTED);
+        if (player != nullptr)
+            player->PlayerEntity::safeAllMissiles(); // qualified: the final overrider, so the binding test stands in for it
         [UNIVERSE setViewDirection:VIEW_FORWARD];
-        [player enterDock:stationForDockingPlayer];
+        if (player != nullptr)
+            player->PlayerEntity::enterDock(stationForDockingPlayer); // qualified: the final overrider, so the binding test stands in for it
     }
     OOJS_RETURN_VOID;
 
@@ -555,8 +573,10 @@ static JSValue StationIncreaseAlertLevel(OOJS_NATIVE_ARGS)
     GET_THIS_STATION(station);
 
     OOJS_BEGIN_FULL_NATIVE(context)
-    if ([station alertCondition] < 3) {
-        [station increaseAlertLevel];
+    if ((station != nullptr ? station->ShipEntity::alertCondition() : OOAlertCondition { }) < 3) // qualified: the final overrider, so the binding test stands in for it
+    {
+        if (station != nullptr)
+            station->increaseAlertLevel();
     }
     OOJS_END_FULL_NATIVE
     OOJS_RETURN_VOID;
@@ -571,8 +591,10 @@ static JSValue StationDecreaseAlertLevel(OOJS_NATIVE_ARGS)
     GET_THIS_STATION(station);
 
     OOJS_BEGIN_FULL_NATIVE(context)
-    if ([station alertCondition] > 1) {
-        [station decreaseAlertLevel];
+    if ((station != nullptr ? station->ShipEntity::alertCondition() : OOAlertCondition { }) > 1) // qualified: the final overrider, so the binding test stands in for it
+    {
+        if (station != nullptr)
+            station->decreaseAlertLevel();
     }
     OOJS_END_FULL_NATIVE
     OOJS_RETURN_VOID;
@@ -602,12 +624,14 @@ static JSValue StationLaunchShipWithRole(OOJS_NATIVE_ARGS)
         abortAllDockings = JS_ToBool(context, OOJS_ARGV[1]) > 0;
 
     OOJS_BEGIN_FULL_NATIVE(context)
-    result = oo::ObjectIn([station launchIndependentShip:*shipRole]);
-    if (abortAllDockings)
-        [station abortAllDockings];
+    result = oo::ToShip(oo::ObjectIn((station != nullptr ? station->launchIndependentShip(*shipRole) : oo::PList())));
+    if (abortAllDockings) {
+        if (station != nullptr)
+            station->abortAllDockings();
+    }
     OOJS_END_FULL_NATIVE
 
-    OOJS_RETURN_OBJECT(result);
+    OOJS_RETURN_OBJECT(oo::ToObjC(result));
     OOJS_NATIVE_EXIT
 }
 
@@ -620,9 +644,9 @@ static JSValue StationLaunchDefenseShip(OOJS_NATIVE_ARGS)
 
     ShipEntity* launched = nil;
     OOJS_BEGIN_FULL_NATIVE(context)
-    launched = [station launchDefenseShip];
+    launched = (station != nullptr ? station->launchDefenseShip() : (::ShipEntity*)nil);
     OOJS_END_FULL_NATIVE
-    OOJS_RETURN_OBJECT(launched);
+    OOJS_RETURN_OBJECT(oo::ToObjC(launched));
 
     OOJS_NATIVE_EXIT
 }
@@ -636,9 +660,9 @@ static JSValue StationLaunchEscort(OOJS_NATIVE_ARGS)
 
     ShipEntity* launched = nil;
     OOJS_BEGIN_FULL_NATIVE(context)
-    launched = [station launchEscort];
+    launched = (station != nullptr ? station->launchEscort() : (::ShipEntity*)nil);
     OOJS_END_FULL_NATIVE
-    OOJS_RETURN_OBJECT(launched);
+    OOJS_RETURN_OBJECT(oo::ToObjC(launched));
 
     OOJS_NATIVE_EXIT
 }
@@ -652,9 +676,9 @@ static JSValue StationLaunchScavenger(OOJS_NATIVE_ARGS)
 
     ShipEntity* launched = nil;
     OOJS_BEGIN_FULL_NATIVE(context)
-    launched = [station launchScavenger];
+    launched = (station != nullptr ? station->launchScavenger() : (::ShipEntity*)nil);
     OOJS_END_FULL_NATIVE
-    OOJS_RETURN_OBJECT(launched);
+    OOJS_RETURN_OBJECT(oo::ToObjC(launched));
 
     OOJS_NATIVE_EXIT
 }
@@ -668,9 +692,9 @@ static JSValue StationLaunchMiner(OOJS_NATIVE_ARGS)
 
     ShipEntity* launched = nil;
     OOJS_BEGIN_FULL_NATIVE(context)
-    launched = [station launchMiner];
+    launched = (station != nullptr ? station->launchMiner() : (::ShipEntity*)nil);
     OOJS_END_FULL_NATIVE
-    OOJS_RETURN_OBJECT(launched);
+    OOJS_RETURN_OBJECT(oo::ToObjC(launched));
     OOJS_NATIVE_EXIT
 }
 
@@ -683,9 +707,9 @@ static JSValue StationLaunchPirateShip(OOJS_NATIVE_ARGS)
 
     ShipEntity* launched = nil;
     OOJS_BEGIN_FULL_NATIVE(context)
-    launched = [station launchPirateShip];
+    launched = (station != nullptr ? station->launchPirateShip() : (::ShipEntity*)nil);
     OOJS_END_FULL_NATIVE
-    OOJS_RETURN_OBJECT(launched);
+    OOJS_RETURN_OBJECT(oo::ToObjC(launched));
 
     OOJS_NATIVE_EXIT
 }
@@ -699,9 +723,9 @@ static JSValue StationLaunchShuttle(OOJS_NATIVE_ARGS)
 
     ShipEntity* launched = nil;
     OOJS_BEGIN_FULL_NATIVE(context)
-    launched = [station launchShuttle];
+    launched = (station != nullptr ? station->launchShuttle() : (::ShipEntity*)nil);
     OOJS_END_FULL_NATIVE
-    OOJS_RETURN_OBJECT(launched);
+    OOJS_RETURN_OBJECT(oo::ToObjC(launched));
     OOJS_NATIVE_EXIT
 }
 
@@ -714,9 +738,9 @@ static JSValue StationLaunchPatrol(OOJS_NATIVE_ARGS)
 
     ShipEntity* launched = nil;
     OOJS_BEGIN_FULL_NATIVE(context)
-    launched = [station launchPatrol];
+    launched = (station != nullptr ? station->launchPatrol() : (::ShipEntity*)nil);
     OOJS_END_FULL_NATIVE
-    OOJS_RETURN_OBJECT(launched);
+    OOJS_RETURN_OBJECT(oo::ToObjC(launched));
     OOJS_NATIVE_EXIT
 }
 
@@ -727,9 +751,9 @@ static JSValue StationLaunchPolice(OOJS_NATIVE_ARGS)
     StationEntity* station = nil;
     GET_THIS_STATION(station);
 
-    std::vector<oo::ObjCRef<ShipEntity*>> launched;
+    std::vector<oo::ObjCRef<::Entity*>> launched;
     OOJS_BEGIN_FULL_NATIVE(context)
-    launched = oo::ObjCRefsIn<ShipEntity*>([station launchPolice]);
+    launched = oo::ObjCRefsIn<::Entity*>((station != nullptr ? station->launchPolice() : oo::PList()));
     OOJS_END_FULL_NATIVE
     OOJS_RETURN_PLIST(oo::PListFromObjects(launched));
     OOJS_NATIVE_EXIT
@@ -760,7 +784,8 @@ static JSValue StationSetInterface(OOJS_NATIVE_ARGS)
     std::optional<std::string> key = cxx_OOStringFromJSValue(context, OOJS_ARGV[0]);
 
     if (argc < 2 || JS_IsNull(OOJS_ARGV[1])) {
-        [station cxx_setInterfaceDefinition:nil forKey:key.value_or("")];
+        if (station != nullptr)
+            station->setInterfaceDefinition(nullptr, key.value_or(""));
         OOJS_RETURN_VOID;
     }
 
@@ -772,8 +797,8 @@ static JSValue StationSetInterface(OOJS_NATIVE_ARGS)
     std::optional<std::string> title;
     std::optional<std::string> summary;
     std::optional<std::string> category;
-    OOJSInterfaceDefinition* definition = nil;
-    cxx::OOJSInterfaceDefinition* cxxDefinition = nullptr;
+    oo::Ref<OOJSInterfaceDefinition> definition;
+    OOJSInterfaceDefinition* cxxDefinition = nullptr;
 
     // SpiderMonkey's JS_ValueToObject() boxed primitives. (It gave no object for undefined, which then could not work; treat it as invalid.)
     if (!JS_IsUndefined(OOJS_ARGV[1])) {
@@ -840,10 +865,9 @@ static JSValue StationSetInterface(OOJS_NATIVE_ARGS)
         goto fail;
     }
 
-    // The definition is still made as its façade (its superclass, OOWeakRefObject, is Objective-C:
-    // amendment oo-q9q4 item 1), which the station keeps; its members are reached as C++.
-    definition = [[OOJSInterfaceDefinition alloc] init];
-    cxxDefinition = oo::ToCxx(definition);
+    // C++ (its façade was deleted); the station keeps it (oo::Ref).
+    definition = oo::makeRef<OOJSInterfaceDefinition>();
+    cxxDefinition = definition.get();
     cxxDefinition->setTitle(title);
     cxxDefinition->setCategory(*category);
     cxxDefinition->setSummary(*summary);
@@ -868,9 +892,8 @@ static JSValue StationSetInterface(OOJS_NATIVE_ARGS)
     JS_FreeValue(context, value);
     JS_FreeValue(context, params);
 
-    [station cxx_setInterfaceDefinition:definition forKey:key.value_or("")];
-
-    [definition release];
+    if (station != nullptr)
+        station->setInterfaceDefinition(definition.get(), key.value_or(""));
 
     OOJS_RETURN_VOID;
 
@@ -897,7 +920,7 @@ static JSValue StationSetMarketPrice(OOJS_NATIVE_ARGS)
     }
 
     std::optional<std::string> commodity = cxx_OOStringFromJSValue(context, OOJS_ARGV[0]);
-    cxx::OOCommodities* commodities = oo::ToCxx([UNIVERSE commodities]); // null: no good is defined, as a message to nil
+    OOCommodities* commodities = [UNIVERSE commodities]; // null: no good is defined, as a message to nil
     if (EXPECT_NOT(commodities == nullptr || !commodities->goodDefined(commodity.value_or("")))) {
         cxx_OOJSReportBadArguments(context, "Station", "setMarketPrice", MIN(argc, 2), OOJS_ARGV, std::nullopt, "Unrecognised commodity type");
         return OOJSNativeFailure(context);
@@ -910,10 +933,13 @@ static JSValue StationSetMarketPrice(OOJS_NATIVE_ARGS)
         return OOJSNativeFailure(context);
     }
 
-    [station cxx_setPrice:(NSUInteger)price forCommodity:commodity.value_or("")];
+    if (station != nullptr)
+        station->setPrice((NSUInteger)price, commodity.value_or(""));
 
-    if (station == [PLAYER dockedStation] && [PLAYER guiScreen] == GUI_SCREEN_MARKET) {
-        [PLAYER setGuiToMarketScreen]; // refresh screen
+    if (station == (PLAYER != nullptr ? PLAYER->PlayerEntity::dockedStation() : (StationEntity*)nullptr) && (PLAYER != nullptr ? PLAYER->guiScreen() : OOGUIScreenID { }) == GUI_SCREEN_MARKET) // qualified: the final overrider, so the binding test stands in for it
+    {
+        if (PLAYER != nullptr)
+            PLAYER->setGuiToMarketScreen(); // refresh screen
     }
 
     OOJS_RETURN_BOOL(true);
@@ -934,7 +960,7 @@ static JSValue StationSetMarketQuantity(OOJS_NATIVE_ARGS)
     }
 
     const std::string commodity = cxx_OOStringFromJSValue(context, OOJS_ARGV[0]).value_or("");
-    cxx::OOCommodities* commodities = oo::ToCxx([UNIVERSE commodities]); // null: no good is defined, as a message to nil
+    OOCommodities* commodities = [UNIVERSE commodities]; // null: no good is defined, as a message to nil
     if (EXPECT_NOT(commodities == nullptr || !commodities->goodDefined(commodity))) {
         cxx_OOJSReportBadArguments(context, "Station", "setMarketQuantity", MIN(argc, 2), OOJS_ARGV, std::nullopt, "Unrecognised commodity type");
         return OOJSNativeFailure(context);
@@ -942,16 +968,19 @@ static JSValue StationSetMarketQuantity(OOJS_NATIVE_ARGS)
 
     int32_t quantity;
     bool gotQuantity = OOJSValueToInt32(context, OOJS_ARGV[1], &quantity);
-    cxx::OOCommodityMarket* market = oo::ToCxx([station localMarket]); // null: no capacity, as a message to nil
+    OOCommodityMarket* market = (station != nullptr ? station->getLocalMarket() : (OOCommodityMarket*)nullptr); // null: no capacity, as a message to nil
     if (EXPECT_NOT(!gotQuantity || quantity < 0 || (OOCargoQuantity)quantity > ((market != nullptr) ? market->capacityForGood(commodity) : 0))) {
         cxx_OOJSReportBadArguments(context, "Station", "setMarketQuantity", MIN(argc, 2), OOJS_ARGV, std::nullopt, "Quantity must be between 0 and the station market capacity");
         return OOJSNativeFailure(context);
     }
 
-    [station cxx_setQuantity:(OOCargoQuantity)quantity forCommodity:commodity];
+    if (station != nullptr)
+        station->setQuantity((OOCargoQuantity)quantity, commodity);
 
-    if (station == [PLAYER dockedStation] && [PLAYER guiScreen] == GUI_SCREEN_MARKET) {
-        [PLAYER setGuiToMarketScreen]; // refresh screen
+    if (station == (PLAYER != nullptr ? PLAYER->PlayerEntity::dockedStation() : (StationEntity*)nullptr) && (PLAYER != nullptr ? PLAYER->guiScreen() : OOGUIScreenID { }) == GUI_SCREEN_MARKET) // qualified: the final overrider, so the binding test stands in for it
+    {
+        if (PLAYER != nullptr)
+            PLAYER->setGuiToMarketScreen(); // refresh screen
     }
 
     OOJS_RETURN_BOOL(true);
@@ -996,7 +1025,7 @@ static std::string ValueForKey(const std::optional<std::string>& value, std::str
 // weapon, as a message to nil answered.
 static GLfloat WeaponThreatAssessment(OOWeaponType weapon)
 {
-    cxx::OOEquipmentType* type = oo::ToCxx(weapon);
+    OOEquipmentType* type = weapon;
     return (type != nullptr) ? type->weaponThreatAssessment() : 0;
 }
 
@@ -1018,14 +1047,16 @@ static JSValue StationAddShipToShipyard(OOJS_NATIVE_ARGS)
     }
 
     // make sure the station has a shipyard
-    if (![station hasShipyard]) {
+    if (!(station != nullptr ? station->hasShipyard() : false)) {
         cxx_OOJSReportWarningForCaller(context, "Station", "removeShipFromShipyard", "Station does not have shipyard.");
         return OOJSNativeFailure(context);
     }
     // make sure the shipyard has been generated
-    if (![station cxx_localShipyard])
-        [station generateShipyard];
-    std::vector<oo::PList>* shipyard = [station cxx_localShipyard];
+    if (!(station != nullptr ? station->getLocalShipyard() : (std::vector<oo::PList>*)nullptr)) {
+        if (station != nullptr)
+            station->generateShipyard();
+    }
+    std::vector<oo::PList>* shipyard = (station != nullptr ? station->getLocalShipyard() : (std::vector<oo::PList>*)nullptr);
 
     if (JS_IsNull(OOJS_ARGV[0]))
         OOJS_RETURN_VOID; // OK, do nothing for null ship.
@@ -1154,8 +1185,10 @@ static JSValue StationAddShipToShipyard(OOJS_NATIVE_ARGS)
         shipyard->push_back(oo::PList(std::move(result)));
 
     // refresh the screen if the shipyard is currently being displayed
-    if (station == [PLAYER dockedStation] && [PLAYER guiScreen] == GUI_SCREEN_SHIPYARD) {
-        [PLAYER setGuiToShipyardScreen:0];
+    if (station == (PLAYER != nullptr ? PLAYER->PlayerEntity::dockedStation() : (StationEntity*)nullptr) && (PLAYER != nullptr ? PLAYER->guiScreen() : OOGUIScreenID { }) == GUI_SCREEN_SHIPYARD) // qualified: the final overrider, so the binding test stands in for it
+    {
+        if (PLAYER != nullptr)
+            PLAYER->setGuiToShipyardScreen(0);
     }
 
     OOJS_RETURN_BOOL(true);
@@ -1171,14 +1204,16 @@ static JSValue StationRemoveShipFromShipyard(OOJS_NATIVE_ARGS)
     GET_THIS_STATION(station);
 
     // make sure the station has a shipyard
-    if (![station hasShipyard]) {
+    if (!(station != nullptr ? station->hasShipyard() : false)) {
         cxx_OOJSReportWarningForCaller(context, "Station", "removeShipFromShipyard", "Station does not have shipyard.");
         return OOJSNativeFailure(context);
     }
     // make sure the shipyard has been generated
-    if (![station cxx_localShipyard])
-        [station generateShipyard];
-    std::vector<oo::PList>* shipyard = [station cxx_localShipyard];
+    if (!(station != nullptr ? station->getLocalShipyard() : (std::vector<oo::PList>*)nullptr)) {
+        if (station != nullptr)
+            station->generateShipyard();
+    }
+    std::vector<oo::PList>* shipyard = (station != nullptr ? station->getLocalShipyard() : (std::vector<oo::PList>*)nullptr);
 
     int32_t shipIndex = -1;
     bool gotIndex = true;
@@ -1192,8 +1227,10 @@ static JSValue StationRemoveShipFromShipyard(OOJS_NATIVE_ARGS)
     shipyard->erase(shipyard->begin() + shipIndex);
 
     // refresh the screen if the shipyard is currently being displayed
-    if (station == [PLAYER dockedStation] && [PLAYER guiScreen] == GUI_SCREEN_SHIPYARD) {
-        [PLAYER setGuiToShipyardScreen:0];
+    if (station == (PLAYER != nullptr ? PLAYER->PlayerEntity::dockedStation() : (StationEntity*)nullptr) && (PLAYER != nullptr ? PLAYER->guiScreen() : OOGUIScreenID { }) == GUI_SCREEN_SHIPYARD) // qualified: the final overrider, so the binding test stands in for it
+    {
+        if (PLAYER != nullptr)
+            PLAYER->setGuiToShipyardScreen(0);
     }
 
     OOJS_RETURN_BOOL(true);

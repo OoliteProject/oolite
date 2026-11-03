@@ -5,9 +5,9 @@ EntityShaderBindings.m
 Extra methods exposed for shader bindings.
 
 C++20 since bead oo-aeev (proposed ADR-0056, amendment oo-9fwb): the category Entity
-(ShaderBindings) is members of cxx::Entity (Entity.h), defined here. The shader uniforms find the
-methods by selector on the entity's Objective-C object, so the category's forwarders stay in
-EntityShaderBindings+ObjCBridge.mm until the uniforms bind C++ members.
+(ShaderBindings) is members of cxx::Entity (Entity.h), defined here. The shader uniforms bind them
+through the entities' member table; the category's forwarders
+(EntityShaderBindings+ObjCBridge.mm) went with bead oo-9ht.127.
 
 
 Oolite
@@ -45,44 +45,44 @@ namespace cxx {
 // Clock time.
 GLfloat Entity::clock()
 {
-    return [PLAYER clockTime];
+    return (PLAYER != nullptr ? PLAYER->clockTime() : 0.0);
 }
 
 // System "flavour" numbers.
 unsigned Entity::pseudoFixedD100()
 {
-    return [PLAYER systemPseudoRandom100];
+    return (PLAYER != nullptr ? PLAYER->systemPseudoRandom100() : unsigned { });
 }
 
 unsigned Entity::pseudoFixedD256()
 {
-    return [PLAYER systemPseudoRandom256];
+    return (PLAYER != nullptr ? PLAYER->systemPseudoRandom256() : unsigned { });
 }
 
 // System attributes.
 unsigned Entity::systemGovernment()
 {
-    return UnsignedIntValueOf([PLAYER systemGovernment_number]);
+    return UnsignedIntValueOf((PLAYER != nullptr ? PLAYER->systemGovernment_number() : oo::PList()));
 }
 
 unsigned Entity::systemEconomy()
 {
-    return UnsignedIntValueOf([PLAYER systemEconomy_number]);
+    return UnsignedIntValueOf((PLAYER != nullptr ? PLAYER->systemEconomy_number() : oo::PList()));
 }
 
 unsigned Entity::systemTechLevel()
 {
-    return UnsignedIntValueOf([PLAYER systemTechLevel_number]);
+    return UnsignedIntValueOf((PLAYER != nullptr ? PLAYER->systemTechLevel_number() : oo::PList()));
 }
 
 unsigned Entity::systemPopulation()
 {
-    return UnsignedIntValueOf([PLAYER systemPopulation_number]);
+    return UnsignedIntValueOf((PLAYER != nullptr ? PLAYER->systemPopulation_number() : oo::PList()));
 }
 
 unsigned Entity::systemProductivity()
 {
-    return UnsignedIntValueOf([PLAYER systemProductivity_number]);
+    return UnsignedIntValueOf((PLAYER != nullptr ? PLAYER->systemProductivity_number() : oo::PList()));
 }
 
 } // namespace cxx

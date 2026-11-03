@@ -147,7 +147,7 @@ std::string MakeOXP()
 }
 
 
-cxx::OOOXPVerifier *MakeVerifier(const std::string &path)
+OOOXPVerifier *MakeVerifier(const std::string &path)
 {
 	return OOOXPVerifierTestAccess::Make(path, kConfiguration);
 }
@@ -158,7 +158,7 @@ const std::vector<std::string> kUnusedName = { "Checking for unused files" };
 
 
 // The registered scanner, as the stages find it (the verifier's -fileScannerStage until bead oo-9ht.7).
-OOFileScannerVerifierStage *ScannerOf(cxx::OOOXPVerifier *verifier)
+OOFileScannerVerifierStage *ScannerOf(OOOXPVerifier *verifier)
 {
 	return dynamic_cast<OOFileScannerVerifierStage *>(verifier->stageWithName(OOFileScannerVerifierStage::kName));
 }
@@ -170,7 +170,7 @@ OO_TEST(fileHandlingStageNamesAndRegistersItsNeighbours)
 {
 	@autoreleasepool
 	{
-		cxx::OOOXPVerifier *verifier = MakeVerifier("");
+		OOOXPVerifier *verifier = MakeVerifier("");
 		const oo::Ref<TestFileStage> stage = oo::makeRef<TestFileStage>();
 		stage->setVerifier(verifier);
 		const int before = OOOXPVerifierTestAccess::Registrations();
@@ -210,7 +210,7 @@ OO_TEST(scannerFindsFiles)
 	@autoreleasepool
 	{
 		const std::string base = MakeOXP();
-		cxx::OOOXPVerifier *verifier = MakeVerifier(base);
+		OOOXPVerifier *verifier = MakeVerifier(base);
 		OO_CHECK(OOFileScannerVerifierStage::nameForDependencyForVerifier(verifier) == std::optional<std::string>("Scanning files"));
 		OOFileScannerVerifierStage *scanner = ScannerOf(verifier);
 		OO_CHECK(scanner != nullptr && scanner->verifier() == verifier);
@@ -264,7 +264,7 @@ OO_TEST(cxxFileStageBehindTheFacade)
 {
 	@autoreleasepool
 	{
-		cxx::OOOXPVerifier *verifier = MakeVerifier("");
+		OOOXPVerifier *verifier = MakeVerifier("");
 		const oo::Ref<TestCxxFileStage> stage = oo::makeRef<TestCxxFileStage>();
 		stage->setVerifier(verifier);
 		OO_CHECK(stage->dependencies() == kScannerName);
@@ -287,7 +287,7 @@ OO_TEST(scannerFacade)
 	@autoreleasepool
 	{
 		const std::string base = MakeOXP();
-		cxx::OOOXPVerifier *verifier = MakeVerifier(base);
+		OOOXPVerifier *verifier = MakeVerifier(base);
 		OOFileScannerVerifierStage::nameForDependencyForVerifier(verifier);
 		OOFileScannerVerifierStage *cxxScanner = ScannerOf(verifier);
 		OO_CHECK(cxxScanner != nullptr);

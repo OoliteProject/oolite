@@ -157,7 +157,8 @@ void OODebugMonitor::performJSConsoleCommand(const std::string& command)
     JSContext* context = OOJSAcquireContext();
     OOJSVal commandVal = OOJSValueFromPList(context, oo::PList(command));
     OOJSStartTimeLimiterWithTimeLimit(kOOJSLongTimeLimit);
-    [_script.get() callMethod:OOJSID("consolePerformJSCommand") inContext:context withArguments:&commandVal count:1 result:NULL];
+    if (_script != nullptr)
+        _script->callMethod(OOJSID("consolePerformJSCommand"), context, &commandVal, 1, NULL);
     OOJSStopTimeLimiter();
     OOJSFreeValue(context, commandVal);
     OOJSRelinquishContext(context);
@@ -361,9 +362,11 @@ void OODebugMonitor::dumpEntity(id entity, EntityDumpState* state, bool parentVi
 
     size_t entitySize = [entity oo_objectSize];
     size_t drawableSize = 0;
-    if ([entity isKindOfClass:[::OOEntityWithDrawable class]]) {
-        ::OODrawable* drawable = [entity drawable];
-        drawableSize = [drawable totalSize];
+    // -isKindOfClass:[OOEntityWithDrawable class] and -drawable until that facade was deleted
+    OOEntityWithDrawable* withDrawable = [entity isKindOfClass:[::Entity class]] ? dynamic_cast<OOEntityWithDrawable*>(oo::ToCxx((::Entity*)entity)) : nullptr;
+    if (withDrawable != nullptr) {
+        OODrawable* drawable = withDrawable->getDrawable();
+        drawableSize = (drawable != nullptr) ? drawable->totalSize() : 0;
     }
 
     bool visible = parentVisible && [entity isVisible];
@@ -390,14 +393,15 @@ void OODebugMonitor::dumpEntity(id entity, EntityDumpState* state, bool parentVi
 
     oo::log::indent();
     if ([entity isShip]) {
-        for (const auto& subRef : [(::ShipEntity*)entity subEntityEnumerator]) {
+        for (const auto& subRef : (oo::ToShip(entity) != nullptr ? oo::ToShip(entity)->subEntityEnumerator() : std::vector<oo::ObjCRef<::Entity*>>())) {
             dumpEntity(subRef.get(), state, visible);
         }
 
-        if ([entity isPlayer]) {
-            NSUInteger i, count = [entity dialMaxMissiles];
+        if ([entity isPlayer] && PLAYER != nullptr) {
+            PlayerEntity* player = PLAYER; // the entity that answers -isPlayer
+            NSUInteger i, count = player->dialMaxMissiles();
             for (i = 0; i < count; i++) {
-                id subentity = [entity missileForPylon:i];
+                id subentity = oo::ToObjC(player->missileForPylon(i));
                 if (subentity != nil)
                     dumpEntity(subentity, state, false);
             }
@@ -407,12 +411,12 @@ void OODebugMonitor::dumpEntity(id entity, EntityDumpState* state, bool parentVi
         // FIXME: dump atmosphere texture.
     }
     if ([entity isWormhole]) {
-        const oo::PList shipsInTransit = [entity shipsInTransit];
+        const oo::PList shipsInTransit = WormholeEntityShipsInTransit(entity); // -shipsInTransit
         if (const oo::PList::Array* shipInfos = shipsInTransit.getIf<oo::PList::Array>()) {
             for (const oo::PList& shipInfo : *shipInfos) {
                 const oo::PList* shipNode = shipInfo.find("ship");
-                ::ShipEntity* ship = (shipNode != nullptr) ? oo::ObjectIn(*shipNode) : nil;
-                dumpEntity(ship, state, false);
+                ::ShipEntity* ship = oo::ToShip((shipNode != nullptr) ? oo::ObjectIn(*shipNode) : nil);
+                dumpEntity(oo::ToObjC(ship), state, false);
             }
         }
     }
@@ -443,7 +447,7 @@ void OODebugMonitor::dumpMemoryStatistics()
     for (const auto& entity : [UNIVERSE cxx_entityList]) {
         dumpEntity(entity.get(), &entityDumpState, true);
     }
-    for (const oo::ObjCRef<::WormholeEntity*>& entityRef : [PLAYER cxx_scannedWormholes]) {
+    for (const oo::ObjCRef<::Entity*>& entityRef : (PLAYER != nullptr ? PLAYER->getScannedWormholes() : std::vector<oo::ObjCRef<::Entity*>>())) {
         dumpEntity(entityRef.get(), &entityDumpState, true);
     }
 
@@ -638,7 +642,7 @@ void OODebugMonitor::setUpDebugConsoleScript()
         JS_FreeValue(context, special);
         if (specialWrapper != nil)
             jsProps["special"] = oo::PListObject(specialWrapper);
-        _script = oo::ObjCRef<::OOJSScript*>([::OOJSScript scriptWithPath:path properties:oo::PList(std::move(jsProps))]);
+        _script = OOJSScript::scriptWithPath(path, oo::PList(std::move(jsProps)));
     }
 
     // If no script, just make console visible globally as debugConsole.
@@ -716,17 +720,17 @@ oo::PList OODebugMonitor::normalizeConfigDictionary(const oo::PList& dictionary)
 
 oo::PList OODebugMonitor::normalizeConfigValue(const oo::PList& value, const std::string& key)
 {
-    ::OOColor* color = nil;
+    oo::Ref<OOColor> color;
     BOOL boolValue;
 
     if (value) {
         if (oo::str::hasSuffix(key, "-color") || oo::str::hasSuffix(key, "-colour")) {
             // OOColor reads the same object; the normalized array holds +numberWithFloat: values.
-            color = [::OOColor cxx_colorWithDescription:value];
+            color = OOColor::colorWithDescription(value);
             if (color == nil)
                 return oo::PList();
             oo::PList::Array components;
-            for (float component : [color cxx_normalizedArray])
+            for (float component : color->normalizedArray())
                 components.push_back(oo::PList::singleReal(component));
             return oo::PList(std::move(components));
         } else if (oo::str::hasPrefix(key, "show-console")) {
@@ -776,9 +780,8 @@ void OODebugMonitor::jsEngine(::OOJavaScriptEngine* /*engine*/,
     // error, since one script can call another's methods.
 
     // avoid windows DEP exceptions!
-    ::OOJSScript* thisScript = [[::OOJSScript currentlyRunningScript] weakRetain];
-    scriptLine = [[thisScript weakRefUnderlyingObject] displayName];
-    [thisScript release];
+    OOJSScript* thisScript = OOJSScript::currentlyRunningScript();
+    scriptLine = (thisScript != nullptr) ? thisScript->displayName() : std::nullopt;
 
     if (scriptLine.has_value()) {
         formattedMessage += "\n    Active script: " + *scriptLine;

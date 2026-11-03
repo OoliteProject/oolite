@@ -114,10 +114,10 @@ std::optional<std::string> ShipEntityJSClassName(void)
     return std::string("Ship");
 }
 
-std::vector<oo::ObjCRef<Entity*>> ShipEntityJSSubEntitiesForScript(ShipEntity* ship)
+std::vector<oo::ObjCRef<::Entity*>> ShipEntityJSSubEntitiesForScript(ShipEntity* ship)
 {
-    std::vector<oo::ObjCRef<Entity*>> result;
-    for (const auto& sub : [ship cxx_shipSubEntities]) {
+    std::vector<oo::ObjCRef<::Entity*>> result;
+    for (const auto& sub : (ship != nullptr ? ship->shipSubEntities() : std::vector<oo::ObjCRef<::Entity*>>())) {
         result.emplace_back(sub.get());
     }
     return result;
@@ -128,20 +128,23 @@ void ShipEntityJSSetTargetForScript(ShipEntity* ship, ShipEntity* target)
     ShipEntity* me = ship;
 
     // Ensure coherence by not fiddling with subentities.
-    while ([me isSubEntity]) {
-        if (me == [me owner] || [me owner] == nil)
+    while ((me != nullptr ? me->getIsSubEntity() : false)) {
+        if (oo::ToObjC(me) == (me != nullptr ? me->owner() : id { }) || (me != nullptr ? me->owner() : id { }) == nil)
             break;
-        me = (ShipEntity*)[me owner];
+        me = oo::ToShip((me != nullptr ? me->owner() : id { }));
     }
-    while ([target isSubEntity]) {
-        if (target == [target owner] || [target owner] == nil)
+    while ((target != nullptr ? target->getIsSubEntity() : false)) {
+        if (oo::ToObjC(target) == (target != nullptr ? target->owner() : id { }) || (target != nullptr ? target->owner() : id { }) == nil)
             break;
-        target = (ShipEntity*)[target owner];
+        target = oo::ToShip((target != nullptr ? target->owner() : id { }));
     }
-    if (![me isKindOfClass:[ShipEntity class]])
+    if (!(oo::ToShip(oo::ToObjC(me)) != nullptr))
         return;
     if (target != nil) {
-        [me addTarget:target];
-    } else
-        [me removeTarget:[me primaryTarget]];
+        if (me != nullptr)
+            me->addTarget(oo::ToObjC(target));
+    } else {
+        if (me != nullptr)
+            me->removeTarget((me != nullptr ? me->primaryTarget() : id { }));
+    }
 }

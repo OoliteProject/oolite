@@ -136,15 +136,13 @@ NSString *OOHarnessCredits(OOCreditsQuantity tenths, BOOL decimal)
 - (NSString *) oo_stringForKey:(id)key { id o = [self objectForKey:key]; return [o isKindOfClass:[NSString class]] ? o : nil; }
 @end
 
-@implementation OOHarnessSystemManager
-- (Random_Seed) getRandomSeedForCurrentSystem { Random_Seed s = {1, 2, 3, 4, 5, 6}; return s; }
-@end
+Random_Seed OOHarnessSystemManager::getRandomSeedForCurrentSystem() { Random_Seed s = {1, 2, 3, 4, 5, 6}; return s; }
 
 @implementation Universe
 - (NSDictionary *) descriptions { return sDescriptions; }
 - (NSString *) getSystemName:(OOSystemID)sys { return [NSString stringWithFormat:@"Sys%d", (int)sys]; }
 - (NSString *) getSystemName:(OOSystemID)sys forGalaxy:(OOGalaxyID)gal { return [NSString stringWithFormat:@"G%dSys%d", (int)gal, (int)sys]; }
-- (OOHarnessSystemManager *) systemManager { return [[[OOHarnessSystemManager alloc] init] autorelease]; }
+- (OOHarnessSystemManager *) systemManager { static OOHarnessSystemManager manager; return &manager; }
 // The C++ forms (bead oo-qqz6): the same data, converted once / per call.
 - (const oo::PList *) cxx_descriptions
 {

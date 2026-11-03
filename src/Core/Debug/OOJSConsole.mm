@@ -34,10 +34,10 @@ SOFTWARE.
 
 #include <algorithm>
 
+#import "Entity.h" // an entity's -inspect
 #import "OOConstToString.h"
 #import "OODebugFlags.h"
 #import "OOJSCall.h"
-#import "OOJSConsole+ObjCBridge.h" // an entity's -inspect
 #import "OOJSEngineTimeManagement.h"
 #import "OOJSEntity.h"
 #import "OOJSScript.h"
@@ -49,6 +49,16 @@ SOFTWARE.
 #import "ResourceManager.h"
 
 #include "oofnd/String.hpp"
+
+// The Mac debug OXP's inspector adds -inspect to entities (a category on Entity); inspectEntity()
+// sends it to an entity that answers it. OOJSConsole+ObjCBridge.mm held the send until that bridge
+// was deleted: it is a message while the entity's object is the root's facade.
+@interface Entity (OODebugInspector)
+
+// Method added by inspector in Debug OXP under OS X only.
+- (void)inspect;
+
+@end
 
 /*	Differences from the SpiderMonkey version:
         - pedanticMode is remembered but has no effect: SpiderMonkey's
@@ -93,7 +103,7 @@ static JSValue ConsoleGetProfile(OOJS_NATIVE_ARGS);
 static JSValue ConsoleTrace(OOJS_NATIVE_ARGS);
 
 namespace {
-bool PerformProfiling(JSContext* context, const char* nominalFunction, int argc, JSValueConst* argv, JSValue* outRval, bool trace, OOTimeProfile** outProfile);
+bool PerformProfiling(JSContext* context, const char* nominalFunction, int argc, JSValueConst* argv, JSValue* outRval, bool trace, oo::Ref<OOTimeProfile>* outProfile);
 } // namespace
 #endif
 
@@ -651,7 +661,11 @@ static JSValue ConsoleScriptStack(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    OOJS_RETURN_PLIST(oo::PListFromObjects([OOJSScript scriptStack]));
+    // The scripts' nodes (a script that has gone, which a timer or definition pushed weakly, is null).
+    oo::PList::Array stack;
+    for (const oo::Ref<OOJSScript>& script : OOJSScript::scriptStack())
+        stack.push_back(OOScriptObjectNode(script.get()));
+    OOJS_RETURN_PLIST(oo::PList(std::move(stack)));
 
     OOJS_NATIVE_EXIT
 }
@@ -665,7 +679,8 @@ static JSValue ConsoleInspectEntity(OOJS_NATIVE_ARGS)
 
     if (argc > 0 && JSValueToEntity(context, OOJS_ARGV[0], &entity)) {
         OOJS_BEGIN_FULL_NATIVE(context)
-        OOJSConsoleInspect(entity); // -inspect, if the entity has it
+        if ([entity respondsToSelector:@selector(inspect)])
+            [entity inspect]; // -inspect, if the entity has it (nothing for nil)
         OOJS_END_FULL_NATIVE
     }
 
@@ -928,10 +943,10 @@ static JSValue ConsoleProfile(OOJS_NATIVE_ARGS)
 
     JSValue result = JS_UNDEFINED;
     @autoreleasepool {
-        OOTimeProfile* profile = nil;
+        oo::Ref<OOTimeProfile> profile;
 
         if (PerformProfiling(context, "profile", argc, OOJS_ARGV, NULL, false, &profile)) {
-            result = OOJSValueFromPList(context, profile != nil ? oo::PList(oo::DescriptionOf(profile)) : oo::PList());
+            result = OOJSValueFromPList(context, profile ? oo::PList(profile->description().value_or("(null)")) : oo::PList());
         } else {
             result = OOJSNativeFailure(context);
         }
@@ -954,10 +969,10 @@ static JSValue ConsoleGetProfile(OOJS_NATIVE_ARGS)
 
     JSValue result = JS_UNDEFINED;
     @autoreleasepool {
-        OOTimeProfile* profile = nil;
+        oo::Ref<OOTimeProfile> profile;
 
         if (PerformProfiling(context, "getProfile", argc, OOJS_ARGV, NULL, false, &profile)) {
-            result = OOJSValueFromNativeObject(context, profile);
+            result = profile ? profile->oo_jsValueInContext(context) : JS_NULL;
         } else {
             result = OOJSNativeFailure(context);
         }
@@ -999,7 +1014,7 @@ static JSValue ConsoleTrace(OOJS_NATIVE_ARGS)
 */
 namespace {
 
-bool PerformProfiling(JSContext* context, const char* nominalFunction, int argc, JSValueConst* argv, JSValue* outRval, bool trace, OOTimeProfile** outProfile)
+bool PerformProfiling(JSContext* context, const char* nominalFunction, int argc, JSValueConst* argv, JSValue* outRval, bool trace, oo::Ref<OOTimeProfile>* outProfile)
 {
     // Get function.
     if (argc < 1 || !OOJSValueIsFunction(context, argv[0])) {
@@ -1032,9 +1047,9 @@ bool PerformProfiling(JSContext* context, const char* nominalFunction, int argc,
     JSValue rval = JS_Call(context, function, thisObj, 0, NULL);
 
     // Get results.
-    OOTimeProfile* profile = OOJSEndProfiling();
+    oo::Ref<OOTimeProfile> profile = OOJSEndProfiling();
     if (outProfile != NULL)
-        *outProfile = profile;
+        *outProfile = std::move(profile);
 
     // Restore original timer state.
     OOJSSetTimeLimiterLimit(originalLimit);

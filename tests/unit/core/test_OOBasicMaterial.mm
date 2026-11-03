@@ -111,7 +111,7 @@ Components Specular(OOBasicMaterial *m)	{ Components c = {}; m->getSpecularCompo
 Components Emission(OOBasicMaterial *m)	{ Components c = {}; m->getEmissionComponents(c.v); return c; }
 
 
-bool SameColor(const oo::Ref<cxx::OOColor> &color, std::initializer_list<GLfloat> b)
+bool SameColor(const oo::Ref<OOColor> &color, std::initializer_list<GLfloat> b)
 {
 	if (color == nullptr)  return false;
 	const GLfloat v[4] = { color->redComponent(), color->greenComponent(), color->blueComponent(), color->alphaComponent() };
@@ -264,21 +264,21 @@ OO_TEST(accessors)
 		OO_CHECK(SameColor(m->diffuseColor(), { 0.1f, 0.2f, 0.3f, 0.4f }));
 		m->setDiffuseColor(nullptr);	// null: unchanged
 		OO_CHECK(Same(Diffuse(m).v, { 0.1f, 0.2f, 0.3f, 0.4f }));
-		m->setDiffuseColor(cxx::OOColor::redColor().get());
+		m->setDiffuseColor(OOColor::redColor().get());
 		OO_CHECK(Same(Diffuse(m).v, { 1, 0, 0, 1 }));
 
-		m->setAmbientAndDiffuseColor(cxx::OOColor::greenColor().get());
+		m->setAmbientAndDiffuseColor(OOColor::greenColor().get());
 		OO_CHECK(Same(Diffuse(m).v, { 0, 1, 0, 1 }) && Same(Ambient(m).v, { 0, 1, 0, 1 }));
-		m->setAmbientColor(cxx::OOColor::blueColor().get());
+		m->setAmbientColor(OOColor::blueColor().get());
 		OO_CHECK(SameColor(m->ambientColor(), { 0, 0, 1, 1 }));
 		m->setAmbientColor(nullptr);
 		OO_CHECK(Same(Ambient(m).v, { 0, 0, 1, 1 }));
 
-		m->setSpecularColor(cxx::OOColor::yellowColor().get());
+		m->setSpecularColor(OOColor::yellowColor().get());
 		OO_CHECK(SameColor(m->specularColor(), { 1, 1, 0, 1 }));
 		m->setSpecularColor(nullptr);
 		OO_CHECK(Same(Specular(m).v, { 1, 1, 0, 1 }));
-		m->setEmissionColor(cxx::OOColor::magentaColor().get());
+		m->setEmissionColor(OOColor::magentaColor().get());
 		OO_CHECK(SameColor(m->emmisionColor(), { 1, 0, 1, 1 }));
 		m->setEmissionColor(nullptr);
 		OO_CHECK(Same(Emission(m).v, { 1, 0, 1, 1 }));
@@ -421,7 +421,7 @@ OO_TEST(cxxAPI)
 		OO_CHECK(Same(c, { 0, 0, 0, 1 }));
 		m->setShininess(200);
 		OO_CHECK(m->shininess() == 128);
-		m->setAmbientAndDiffuseColor(cxx::OOColor::redColor().get());
+		m->setAmbientAndDiffuseColor(OOColor::redColor().get());
 		m->setDiffuseColor(nullptr);
 		OO_CHECK(m->diffuseColor()->redComponent() == 1 && m->ambientColor()->greenComponent() == 0);
 		OO_CHECK(m->descriptionComponents() == std::optional<std::string>("\"Cxx\""));

@@ -39,14 +39,12 @@ SOFTWARE.
 
 #include <algorithm>
 
-namespace cxx {
 namespace {
-    std::vector<oo::Ref<OOEquipmentType>> sEquipmentTypes;
-    std::vector<oo::Ref<OOEquipmentType>> sEquipmentTypesOutfitting;
-    std::map<std::string, oo::Ref<OOEquipmentType>, std::less<>> sEquipmentTypesByIdentifier;
-    std::map<std::string, std::string, std::less<>> sMissilesRegistry; // ship key -> missile role
+std::vector<oo::Ref<OOEquipmentType>> sEquipmentTypes;
+std::vector<oo::Ref<OOEquipmentType>> sEquipmentTypesOutfitting;
+std::map<std::string, oo::Ref<OOEquipmentType>, std::less<>> sEquipmentTypesByIdentifier;
+std::map<std::string, std::string, std::less<>> sMissilesRegistry; // ship key -> missile role
 }
-} // namespace cxx
 
 namespace {
 
@@ -102,8 +100,6 @@ std::optional<std::vector<std::string>> EquipmentKeysFrom(const oo::PList& extra
     return keys;
 }
 }
-
-namespace cxx {
 
 void OOEquipmentType::loadEquipment()
 {
@@ -314,8 +310,13 @@ bool OOEquipmentType::initWithInfo(const oo::PList& info)
                 _scriptInfo = *scriptInfo;
 
             _script = StringFor(extraInfo, "script");
-            if (_script.has_value() && ![::OOScript cxx_jsScriptFromFileNamed:*_script properties:oo::PList()])
-                _script.reset();
+            if (_script.has_value()) {
+                // (the loaded script, which nothing keeps, lived until the pool drained)
+                oo::Ref<OOScript> loaded = OOScript::jsScriptFromFileNamed(*_script, oo::PList());
+                if (loaded == nullptr)
+                    _script.reset();
+                OOScriptAutorelease(std::move(loaded));
+            }
             if (_script.has_value()) {
                 _fastAffinityA = !!extraInfo.get<bool>("fast_affinity_defensive");
                 _fastAffinityB = !!extraInfo.get<bool>("fast_affinity_offensive");
@@ -335,8 +336,8 @@ bool OOEquipmentType::initWithInfo(const oo::PList& info)
 
                     if (keydef != nullptr) {
                         // do processing for key
-                        defaultKey = [PLAYER cxx_processKeyCode:*keydef];
-                        const std::optional<std::string> checking = [PLAYER validateKey:(activate ? "activate_" : "mode_") + _identifier checkKeys:defaultKey];
+                        defaultKey = (PLAYER != nullptr ? PLAYER->processKeyCode(*keydef) : oo::PList());
+                        const std::optional<std::string> checking = (PLAYER != nullptr ? PLAYER->validateKey((activate ? "activate_" : "mode_") + _identifier, defaultKey) : std::optional<std::string>());
 
                         if (checking.has_value()) {
                             if (activate) {
@@ -358,6 +359,20 @@ bool OOEquipmentType::initWithInfo(const oo::PList& info)
 std::optional<std::string> OOEquipmentType::descriptionComponents() const
 {
     return oo::str::format("%s \"%s\"", _identifier.c_str(), _name.c_str());
+}
+
+std::string OOEquipmentType::className() const
+{
+    return "OOEquipmentType";
+}
+
+std::string OOEquipmentType::description() const
+{
+    std::string result = oo::str::format("<OOEquipmentType %s>", oo::str::pointerDescription(this).c_str());
+    const std::optional<std::string> components = descriptionComponents();
+    if (components.has_value())
+        result += "{" + *components + "}";
+    return result;
 }
 
 std::optional<std::string> OOEquipmentType::identifier()
@@ -680,12 +695,10 @@ OOTechLevelID OOEquipmentType::effectiveTechLevel()
     if (tl == kOOVariableTechLevel) {
         cxx_OOStandardsDeprecated(oo::str::format("TL99 is deprecated for %s", _identifier.c_str()));
         if (!OOEnforceStandards()) {
-            const oo::PList missionValue = [PLAYER cxx_missionVariableForKey:"mission_TL_FOR_" + _identifier]; // OOUIntegerFromObject: OOUnsignedLongLongFromObject on this 64-bit build
+            const oo::PList missionValue = (PLAYER != nullptr ? PLAYER->missionVariableForKey("mission_TL_FOR_" + _identifier) : oo::PList()); // OOUIntegerFromObject: OOUnsignedLongLongFromObject on this 64-bit build
             tl = static_cast<NSInteger>(oo::plist_get::unsignedLongLongFrom(!missionValue.isNull() ? &missionValue : nullptr, tl));
         }
     }
 
     return tl;
 }
-
-} // namespace cxx

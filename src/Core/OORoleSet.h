@@ -6,10 +6,8 @@ Manage a set of roles for a ship (or ship type), including probabilities.
 
 A role set is an immutable object.
 
-C++20 since bead oo-bhb9 (proposed ADR-0056, the OOColor house style). The class is
-cxx::OORoleSet while OORoleSet+ObjCBridge.h, imported at the end of this header, keeps the
-Objective-C OORoleSet its unconverted callers message; the bridge's deletion bead moves it out of
-namespace cxx.
+C++20 since bead oo-bhb9 (proposed ADR-0056, the OOColor house style). Its Objective-C facade was
+deleted by bead oo-9ht.6: ships hold an oo::Ref<OORoleSet>.
 
 
 Copyright (C) 2007-2013 Jens Ayton
@@ -47,8 +45,6 @@ SOFTWARE.
         nil role set yields std::nullopt / an empty vector). -hasRole: is flipped with ShipEntity (bead oo-3rb.280) to const std::string &.
         -intersectsSet: is gone (bead oo-qps.53): its last sender, HasRoleInSetPredicate, tests -hasRole: per role.
 */
-namespace cxx {
-
 class OORoleSet : public oo::RefCounted {
 public:
     // The Objective-C initialisers' factories: null where -init returned nil (no roles).
@@ -94,13 +90,7 @@ private:
     float _totalProb = { };
 };
 
-} // namespace cxx
-
 // Returns a map whose keys are roles and whose values are weights; empty for no roles.
 std::map<std::string, float> OOParseRolesFromString(std::string_view string);
-
-// Transitional: the Objective-C OORoleSet, for callers not yet converted. Deleted, with namespace
-// cxx above, by the bridge's deletion bead.
-#import "OORoleSet+ObjCBridge.h"
 
 #endif // OOROLESET_H

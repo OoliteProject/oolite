@@ -64,19 +64,19 @@ OOSoundChannel::~OOSoundChannel()
 void OOSoundChannel::update()
 {
     // Check if we've reached the end of a sound.
-    if (_sound.get() != nil) {
+    if (_sound != nullptr) {
         ALint check;
         OOAL(alGetSourcei(_source, AL_SOURCE_STATE, &check));
         if (check == AL_STOPPED) {
             hasStopped();
-        } else if (oo::ToCxx(_sound.get())->soundIncomplete()) // streaming and not finished loading
+        } else if (_sound->soundIncomplete()) // streaming and not finished loading
         {
-            OO_LOG("sound.buffer", "Incomplete, trying next for {}", oo::ToCxx(_sound.get())->name().value_or("(null)"));
+            OO_LOG("sound.buffer", "Incomplete, trying next for {}", _sound->name().value_or("(null)"));
             getNextSoundBuffer();
         } else if (_loop) {
-            OO_LOG("sound.buffer", "Looping, trying restart for {}", oo::ToCxx(_sound.get())->name().value_or("(null)"));
+            OO_LOG("sound.buffer", "Looping, trying restart for {}", _sound->name().value_or("(null)"));
             // sound is complete, but needs to be looped, so start it again
-            oo::ToCxx(_sound.get())->rewind();
+            _sound->rewind();
             getNextSoundBuffer();
         }
     }
@@ -133,19 +133,19 @@ void OOSoundChannel::setGain(float gain)
     OOAL(alSourcef(_source, AL_GAIN, gain));
 }
 
-bool OOSoundChannel::playSound(::OOSound* sound, bool loop)
+bool OOSoundChannel::playSound(OOSound* sound, bool loop)
 {
-    if (sound == nil)
+    if (sound == nullptr)
         return false;
 
-    if (_sound.get() != nil)
+    if (_sound != nullptr)
         stop();
 
     _loop = loop;
     _bigSound = false;
-    oo::ToCxx(sound)->rewind();
+    sound->rewind();
     if (enqueueBuffer(sound)) {
-        _sound = oo::ObjCRef<::OOSound*>(sound);
+        _sound = oo::Ref<OOSound>(sound);
         return true;
     } else {
         return false;
@@ -154,7 +154,7 @@ bool OOSoundChannel::playSound(::OOSound* sound, bool loop)
 
 void OOSoundChannel::stop()
 {
-    if (_sound.get() != nil) {
+    if (_sound != nullptr) {
         OOAL(alSourceStop(_source));
         OOAL(alSourcei(_source, AL_BUFFER, AL_NONE));
         hasStopped();
@@ -178,18 +178,17 @@ void OOSoundChannel::hasStopped()
     }
     _bigSound = false;
 
-    oo::ObjCRef<::OOSound*> sound = std::move(_sound); // [sound release] at the end of the scope
+    oo::Ref<OOSound> sound = std::move(_sound); // [sound release] at the end of the scope
 
     if (nullptr != _delegate) {
         _delegate->channel(this, sound.get());
     }
 }
 
-bool OOSoundChannel::enqueueBuffer(::OOSound* sound)
+bool OOSoundChannel::enqueueBuffer(OOSound* sound)
 {
     // get sound data (a message to nil answered 0)
-    cxx::OOSound* cxxSound = oo::ToCxx(sound);
-    _buffer = cxxSound != nullptr ? cxxSound->soundBuffer() : 0;
+    _buffer = sound != nullptr ? sound->soundBuffer() : 0;
     // bind sound data to buffer
     OOAL(alSourceQueueBuffers(_source, 1, &_buffer));
     ALuint error;
@@ -210,7 +209,7 @@ bool OOSoundChannel::enqueueBuffer(::OOSound* sound)
     return true;
 }
 
-::OOSound* OOSoundChannel::sound()
+OOSound* OOSoundChannel::sound()
 {
     return _sound.get();
 }

@@ -5,10 +5,8 @@ OODrawable.h
 Abstract base class for objects which can draw themselves.
 
 C++20 since bead oo-smy, with OOMaterial the Materials module exemplar (proposed ADR-0056,
-amendment oo-smy). The class is cxx::OODrawable while OODrawable+ObjCBridge.h, imported at the end
-of this header, keeps the Objective-C OODrawable that its callers message and its unconverted
-subclasses (OOMesh, OOPlanetDrawable, OOSkyDrawable) derive from; the bridge's deletion bead moves
-it out of namespace cxx.
+amendment oo-smy). Global, its Objective-C facade deleted: every drawable (OOMesh,
+OOPlanetDrawable, OOSkyDrawable) and every holder is C++.
 
 
 Copyright (C) 2007-2013 Jens Ayton
@@ -49,8 +47,6 @@ SOFTWARE.
 
 @class OOTexture;
 
-namespace cxx {
-
 class OODrawable : public oo::RefCounted {
 public:
     virtual void renderOpaqueParts();
@@ -72,16 +68,24 @@ public:
     // OOObject answered; OOMesh and OOSkyDrawable override it.
     virtual std::optional<std::string> descriptionComponents() const;
 
+    // What "%@" printed for the drawable's facade: "<Class 0x...>{components}",
+    // the C++ class's name and the drawable's own address.
+    std::string description() const;
+
 #ifdef OO_DEBUG_MONITOR_ENABLED
     virtual std::vector<oo::ObjCRef<::OOTexture*>> allTextures();
     virtual size_t totalSize(); // Size including dynamic data, not counting textures.
+
+    // The object's own size, which totalSize() starts from (the facade's instance size
+    // before): sizeof the dynamic type, each subclass answering its own.
+    virtual size_t objectSize() const { return sizeof *this; }
 #endif
 };
 
-} // namespace cxx
-
-// Transitional: the Objective-C OODrawable, for callers and subclasses not yet converted.
-// Deleted, with namespace cxx above, by the bridge's deletion bead.
-#import "OODrawable+ObjCBridge.h"
+/*	[drawable autorelease], which the deleted facade answered: keeps the drawable
+        until the current autorelease pool drains, so a drawable an entity replaces lives exactly as
+        long as its autoreleased object did. Nothing for null.
+*/
+void OODrawableAutorelease(oo::Ref<OODrawable> drawable);
 
 #endif // OODRAWABLE_H

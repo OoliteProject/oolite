@@ -23,8 +23,10 @@ MA 02110-1301, USA.
 */
 
 #import "OOSunEntity.h"
+#import "OOJSSun.h"
 #import "OOMacroOpenGL.h"
 #import "OOOpenGLExtensionManager.h"
+#import "OOPlanetEntity.h"
 
 #import "AI.h"
 #import "MyOpenGLView.h"
@@ -42,8 +44,6 @@ MA 02110-1301, USA.
 #include "oofnd/PListGet.hpp"
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"
-
-namespace cxx {
 
 bool OOSunEntity::setSunColor(OOColor* sun_colorIn)
 {
@@ -229,7 +229,7 @@ void OOSunEntity::update(OOTimeDelta delta_t)
 
     ::PlayerEntity* player = PLAYER;
     assert(player != nil);
-    rotMatrix = OOMatrixForBillboard(position, [player viewpointPosition]);
+    rotMatrix = OOMatrixForBillboard(position, (player != nullptr ? player->viewpointPosition() : HPVector { }));
 
     if (throw_sparks && _novaExpansionRate > 0.0f) // going NOVA!
     {
@@ -315,7 +315,7 @@ void OOSunEntity::drawImmediate(bool /*immediate*/, bool translucent)
 
 void OOSunEntity::updateCameraRelativePosition()
 {
-    HPVector cr_temp = HPvector_subtract(absolutePositionForSubentity(), [PLAYER viewpointPosition]);
+    HPVector cr_temp = HPvector_subtract(absolutePositionForSubentity(), (PLAYER != nullptr ? PLAYER->viewpointPosition() : HPVector { }));
     /* Special calculation as suns viewed over ~1E9 - and the bigger
      * ones are still just about visible at this range - get floating
      * point errors messing up the display */
@@ -543,19 +543,19 @@ void OOSunEntity::drawDirectVisionSunGlare()
 
     OOSetOpenGLState(OPENGL_STATE_OVERLAY);
 
-    GLfloat sunGlareAngularSize = atan(radius() / HPdistance([PLAYER viewpointPosition], getPosition())) * SUN_GLARE_MULT_FACTOR + (SUN_GLARE_ADD_FACTOR);
+    GLfloat sunGlareAngularSize = atan(radius() / HPdistance((PLAYER != nullptr ? PLAYER->viewpointPosition() : HPVector { }), getPosition())) * SUN_GLARE_MULT_FACTOR + (SUN_GLARE_ADD_FACTOR);
 
-    GLfloat directVisionSunGlare = [PLAYER lookingAtSunWithThresholdAngleCos:cosf(sunGlareAngularSize)];
+    GLfloat directVisionSunGlare = (PLAYER != nullptr ? PLAYER->lookingAtSunWithThresholdAngleCos(cosf(sunGlareAngularSize)) : 0.0f);
     if (directVisionSunGlare) {
-        NSSize siz = [[UNIVERSE gui] size];
+        NSSize siz = [UNIVERSE gui]->size();
         ::MyOpenGLView* gameView = [UNIVERSE gameView];
         GLfloat aspectRatio = ([gameView viewSize].width / [gameView viewSize].height);
         GLfloat z = [gameView display_z] / (aspectRatio > 4.0f / 3.0f ? aspectRatio : 1.0f / aspectRatio);
-        GLfloat atmosphericReductionFactor = 1.0f - [PLAYER insideAtmosphereFraction];
+        GLfloat atmosphericReductionFactor = 1.0f - (PLAYER != nullptr ? PLAYER->insideAtmosphereFraction() : 0.0f);
         // 182: square of ratio of radius to sun-witchpoint distance
         // in default Lave
-        GLfloat distanceReductionFactor = OOClamp_0_1_f((radius() * radius() * 182.0) / HPdistance2([PLAYER position], getPosition()));
-        GLfloat sunGlareFilterMultiplierLocal = [PLAYER sunGlareFilter];
+        GLfloat distanceReductionFactor = OOClamp_0_1_f((radius() * radius() * 182.0) / HPdistance2((PLAYER != nullptr ? PLAYER->getPosition() : HPVector { }), getPosition()));
+        GLfloat sunGlareFilterMultiplierLocal = (PLAYER != nullptr ? PLAYER->getSunGlareFilter() : 0.0f);
         GLfloat directVisionSunGlareColor[4] = { discColor[0], discColor[1], discColor[2], directVisionSunGlare * atmosphericReductionFactor * distanceReductionFactor * (1.0f - sunGlareFilterMultiplierLocal) * 0.0085f };
 
         OOGL(glColor4fv(directVisionSunGlareColor));
@@ -587,7 +587,7 @@ void OOSunEntity::drawStarGlare()
         float alphaMult = _sunCoronaAlphaFactor * alpha;
         alpha *= alphaMult;
         GLfloat glareColor[4] = { discColor[0], discColor[1], discColor[2], alpha };
-        NSSize siz = [[UNIVERSE gui] size];
+        NSSize siz = [UNIVERSE gui]->size();
         ::MyOpenGLView* gameView = [UNIVERSE gameView];
         GLfloat aspectRatio = ([gameView viewSize].width / [gameView viewSize].height);
         GLfloat z = [gameView display_z] / (aspectRatio > 4.0f / 3.0f ? aspectRatio : 1.0f / aspectRatio);
@@ -726,4 +726,42 @@ void OOSunEntity::setName(const std::optional<std::string>& name)
     _name = name;
 }
 
-} // namespace cxx
+// The binding's bodies (OOJSSun.mm), which the facade forwarded to.
+JSClassID OOSunEntity::jsClassID()
+{
+    return ::JSSunClassID();
+}
+
+std::optional<std::string> OOSunEntity::jsClassName()
+{
+    return ::OOJSSunJSClassName();
+}
+
+bool OOSunEntity::isVisibleToScripts()
+{
+    return ::OOJSSunIsVisibleToScripts();
+}
+
+// OOStellarBody.h: the sun and the planet asked directly, any
+// other body by selector.
+double OOStellarBodyRadius(::Entity* body)
+{
+    if (body == nil)
+        return 0.0;
+    if (OOSunEntity* sun = dynamic_cast<OOSunEntity*>(oo::ToCxx(body)))
+        return sun->radius();
+    if (OOPlanetEntity* planet = dynamic_cast<OOPlanetEntity*>(oo::ToCxx(body)))
+        return planet->radius();
+    return [(::Entity<OOStellarBody>*)body radius];
+}
+
+OOStellarBodyType OOStellarBodyPlanetType(::Entity* body)
+{
+    if (body == nil)
+        return (OOStellarBodyType)0;
+    if (OOSunEntity* sun = dynamic_cast<OOSunEntity*>(oo::ToCxx(body)))
+        return sun->planetType();
+    if (OOPlanetEntity* planet = dynamic_cast<OOPlanetEntity*>(oo::ToCxx(body)))
+        return planet->planetType();
+    return [(::Entity<OOStellarBody>*)body planetType];
+}

@@ -30,14 +30,13 @@ SOFTWARE.
 
 namespace {
 
-cxx::OOMusic* sPlayingMusic = nullptr;
+OOMusic* sPlayingMusic = nullptr;
+
+// The music's one source, made on first play and never released (bead oo-9ht.88 deleted its
+// Objective-C facade). A message to it while there was none did nothing, so each use checks.
+OOSoundSource* sMusicSource = nullptr;
 
 } // namespace
-static OOSoundSource* sMusicSource = nil;
-
-namespace cxx {
-
-// +allocWithZone: (an OOMusic whatever the receiver) stays with the facade, whose class it is.
 
 OOMusic::~OOMusic()
 {
@@ -60,56 +59,55 @@ oo::Ref<OOMusic> OOMusic::initWithContentsOfFile(const std::optional<std::string
 
 std::optional<std::string> OOMusic::name()
 {
-    cxx::OOSound* wrapped = oo::ToCxx(sound.get());
-    return wrapped != nullptr ? wrapped->name() : std::nullopt;
+    return sound != nullptr ? sound->name() : std::nullopt;
 }
 
 void OOMusic::setMusicGain(float newValue)
 {
-    if (nil != sMusicSource) {
-        [sMusicSource setGain:newValue];
+    if (nullptr != sMusicSource) {
+        sMusicSource->setGain(newValue);
     }
 }
 
 float OOMusic::musicGain()
 {
-    if (nil == sMusicSource)
+    if (nullptr == sMusicSource)
         return 0.0f;
-    return [sMusicSource gain];
+    return sMusicSource->gain();
 }
 
 void OOMusic::playLooped(bool inLoop)
 {
     if (sPlayingMusic != this) {
-        if (nil == sMusicSource) {
-            sMusicSource = [[::OOSoundSource alloc] init];
+        if (nullptr == sMusicSource) {
+            sMusicSource = oo::makeRef<OOSoundSource>().leakRef();
         }
-        [sMusicSource stop];
-        [sMusicSource setLoop:inLoop];
-        [sMusicSource setSound:sound.get()];
-        [sMusicSource play];
+        sMusicSource->stop();
+        sMusicSource->setLoop(inLoop);
+        sMusicSource->setSound(sound.get());
+        sMusicSource->play();
 
         sPlayingMusic = this;
     }
 }
 
-::OOSoundSource* OOMusic::musicSoundSource()
+OOSoundSource* OOMusic::musicSoundSource()
 {
     return sMusicSource;
 }
 
 bool OOMusic::isPlaying()
 {
-    return sPlayingMusic == this && [sMusicSource isPlaying];
+    return sPlayingMusic == this && sMusicSource != nullptr && sMusicSource->isPlaying();
 }
 
 void OOMusic::stop()
 {
     if (sPlayingMusic == this) {
         sPlayingMusic = nullptr;
-        [sMusicSource stop];
-        [sMusicSource setSound:nil];
+        if (sMusicSource != nullptr) {
+            sMusicSource->stop();
+            sMusicSource->setSound(nullptr);
+        }
     }
 }
-
-} // namespace cxx

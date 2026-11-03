@@ -6,7 +6,7 @@
 	The entity reads Universe and its ship, so the test links the whole game but main (['*']) and
 	uses a Universe that was never initialised, subclassed to answer the time the test sets, a
 	plain entity as PLAYER, and as the ship an entity that answers the ShipEntity selectors the
-	plume sends. The RNG is seeded, as the game seeds it, so the plume's random fluctuations repeat.
+	plume sends (a C++ ship stand-in since bead oo-9ht.144). The RNG is seeded, as the game seeds it, so the plume's random fluctuations repeat.
 	The expectations were written against the Objective-C API and run on the unconverted class
 	first: a plume is made for its ship from six tokens (position and scale, scaled by the ship's
 	scale but for the scale's z, which outside 0.5..2 is 1), and from none is nil; its scale
@@ -24,6 +24,7 @@
 */
 
 #import "OOExhaustPlumeEntity.h"
+#import "PlayerEntity.h"	// PLAYER is C++ (bead oo-9ht.177)
 #import "EntityOOJavaScriptExtensions.h"
 #import "OOJSEntity.h"
 #import "OOJSExhaustPlume.h"
@@ -43,20 +44,29 @@
 uint32_t gDebugFlags = 0;
 #endif
 
-@class PlayerEntity;
+class PlayerEntity;
 extern PlayerEntity *gOOPlayer;
 extern Universe *gSharedUniverse;
 
 
-@interface TestPlayer: Entity
-@end
+class TestPlayer : public PlayerEntity	// C++ since bead oo-9ht.177 deleted the Objective-C player
+{
+public:
+	HPVector viewpointPosition() override	{ return kZeroHPVector; }
+};
 
-
-@implementation TestPlayer
-
-- (HPVector) viewpointPosition	{ return kZeroHPVector; }
-
-@end
+// NewTestPlayer<TestPlayer>() (bead oo-9ht.177): a C++ player under the ship's facade, as
+// PlayerEntity::sharedPlayer() makes the game's, retained (+1) as +alloc's object was.
+template <class T>
+T *NewTestPlayer()
+{
+	oo::Ref<T> player = oo::makeRef<T>();
+	@autoreleasepool
+	{
+		[oo::NewEntityFacade(player) retain];
+	}
+	return player.get();
+}
 
 
 // UNIVERSE: never initialised; answers the test's time.
@@ -75,29 +85,23 @@ extern Universe *gSharedUniverse;
 @end
 
 
-// The plume's ship: answers what the plume asks a ShipEntity.
-@interface TestShip: Entity
+/*	The plume's ship: answers what the plume asks a ShipEntity. C++ since bead oo-9ht.144 deleted the
+	Objective-C ship: the plume calls the ship's members, so the stand-in is a C++ ship (never set
+	up) that overrides the one virtual member it answered (isVisible()) and whose fields give the
+	same answers from the others (not suppressing notifications, the emissive colour, the three
+	vectors, no damage, the speed factor and the flight speed a hundred times it).
+*/
+class TestShip : public ::ShipEntity
 {
-@public
-	BOOL		_visible;
-	GLfloat		_speedFactor;
-}
-@end
+public:
+	bool isVisible() override	{ return _visible; }
+	void setSpeedFactor(GLfloat value)	{ maxFlightSpeed = 100.0f; flightSpeed = 100.0f * value; }
+
+	bool _visible = true;
+};
 
 
-@implementation TestShip
-
-- (BOOL) isVisible							{ return _visible; }
-- (BOOL) suppressFlightNotifications		{ return NO; }
-- (OOColor *) exhaustEmissiveColor			{ return [OOColor colorWithRed:0.7f green:0.9f blue:1.0f alpha:0.9f]; }
-- (Vector) forwardVector					{ return make_vector(0, 0, 1); }
-- (Vector) rightVector						{ return make_vector(1, 0, 0); }
-- (Vector) upVector							{ return make_vector(0, 1, 0); }
-- (int) damage								{ return 0; }
-- (GLfloat) speedFactor						{ return _speedFactor; }
-- (GLfloat) flightSpeed						{ return 100.0f * _speedFactor; }
-
-@end
+extern JSContext *gOOJSMainThreadContext;	// the engine's (OOJavaScriptEngine.mm)
 
 
 namespace {
@@ -127,9 +131,13 @@ void SetUp(OOTimeAbsolute time)
 	}
 	sUniverse->_time = time;
 	gSharedUniverse = sUniverse;
-	static TestPlayer *player = nil;
-	if (player == nil)  player = [[TestPlayer alloc] init];
-	gOOPlayer = (PlayerEntity *)player;
+	static TestPlayer *player = nullptr;
+	if (player == nullptr)  player = NewTestPlayer<TestPlayer>();
+	gOOPlayer = player;
+	// The ship's -dealloc sends its (absent) scripts entityDestroyed in a request on the main
+	// thread's context, so there is one, with nothing in it (the ship stand-in is C++ since bead
+	// oo-9ht.144, as test_StationEntity's ships are).
+	if (gOOJSMainThreadContext == nullptr)  gOOJSMainThreadContext = JS_NewContext(JS_NewRuntime());
 	ranrot_srand(12345);
 }
 
@@ -153,20 +161,32 @@ bool VectorIs(Vector v, float x, float y, float z)
 }
 
 
-TestShip *Ship()
+// A ship's object (autoreleased, as the Objective-C stand-in was), holding the stand-in ship.
+Entity *Ship()
 {
-	TestShip *ship = [[[TestShip alloc] init] autorelease];
-	ship->_visible = YES;
-	ship->_speedFactor = 1.0f;
-	return ship;
+	oo::Ref<TestShip> ship = oo::makeRef<TestShip>();
+	Entity *object = oo::NewEntityFacade(ship);
+	ship->isShip = YES;	// a ship (its subentity plume asks it, as a set-up ship answers)
+	ship->_visible = true;
+	ship->setSpeedFactor(1.0f);
+	ship->suppressAegisMessages = false;
+	ship->exhaust_emissive_color = OOColor::colorWithRed(0.7f, 0.9f, 1.0f, 0.9f);
+	ship->v_forward = make_vector(0, 0, 1);
+	ship->v_right = make_vector(1, 0, 0);
+	ship->v_up = make_vector(0, 1, 0);
+	ship->energy = ship->maxEnergy = 100.0f;	// no damage
+	return object;
 }
+
+
+TestShip *Part(Entity *ship)	{ return static_cast<TestShip *>(oo::ToShip(ship)); }
 
 
 // A plume, made as the ship makes one: its Objective-C object is autoreleased in the test's pool and
 // holds it; null for no tokens.
 OOExhaustPlumeEntity *Plume(Entity *ship, std::vector<std::string> tokens, float scale)
 {
-	return static_cast<OOExhaustPlumeEntity *>(oo::ToCxx(oo::NewEntityFacade(OOExhaustPlumeEntity::exhaustForShip((ShipEntity *)ship, tokens, scale))));
+	return static_cast<OOExhaustPlumeEntity *>(oo::ToCxx(oo::NewEntityFacade(OOExhaustPlumeEntity::exhaustForShip(oo::ToShip(ship), tokens, scale))));
 }
 
 }	// namespace
@@ -229,10 +249,10 @@ OO_TEST(updateWithoutVisibleShip)
 	@autoreleasepool
 	{
 		SetUp(1.0);
-		TestShip *ship = Ship();
+		Entity *ship = Ship();
 		OOExhaustPlumeEntity *plume = Plume(ship, { "0", "0", "-10", "2", "2", "1" }, 1.0f);
 		SetCollisionRadius(plume, 42.0f);
-		ship->_visible = NO;
+		Part(ship)->_visible = false;
 		plume->update(0.1);
 		OO_CHECK(plume->findCollisionRadius() == 42.0);
 
@@ -248,10 +268,10 @@ OO_TEST(updateBelowMinimalSpeed)
 	@autoreleasepool
 	{
 		SetUp(1.0);
-		TestShip *ship = Ship();
+		Entity *ship = Ship();
 		OOExhaustPlumeEntity *plume = Plume(ship, { "0", "0", "-10", "2", "2", "1" }, 1.0f);
 		SetCollisionRadius(plume, 42.0f);
-		ship->_speedFactor = 0.0005f;
+		Part(ship)->setSpeedFactor(0.0005f);
 		plume->update(0.1);
 		OO_CHECK(plume->findCollisionRadius() == 0.0);
 	}
@@ -263,7 +283,7 @@ OO_TEST(updateMeasures)
 	@autoreleasepool
 	{
 		SetUp(1.0);
-		TestShip *ship = Ship();
+		Entity *ship = Ship();
 		OOExhaustPlumeEntity *plume = Plume(ship, { "0", "0", "-10", "2", "2", "1" }, 1.0f);
 		plume->resetPlume();
 		plume->update(0.1);
@@ -296,7 +316,7 @@ OO_TEST(facade)
 		SetUp(0.0);
 		// The object is the root's facade, the nearest left, whose C++ part is the plume: a C++
 		// entity (amendment oo-0mxi), not an Objective-C entity's adapter.
-		Entity *object = oo::NewEntityFacade(OOExhaustPlumeEntity::exhaustForShip((ShipEntity *)Ship(), { "0", "0", "0", "1", "1", "1" }, 1.0f));
+		Entity *object = oo::NewEntityFacade(OOExhaustPlumeEntity::exhaustForShip(oo::ToShip(Ship()), { "0", "0", "0", "1", "1", "1" }, 1.0f));
 		OO_CHECK([object class] == [Entity class]);
 		OO_CHECK(dynamic_cast<OOExhaustPlumeEntity *>(oo::ToCxx(object)) != nullptr);
 		OO_CHECK(oo::AsObjCEntity(oo::ToCxx(object)) == nullptr);

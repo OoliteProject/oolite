@@ -364,11 +364,6 @@ cxx::MyOpenGLView* oo::ToCxx(MyOpenGLView* view)
     return cxx::MyOpenGLView::pollShiftKey();
 }
 
-- (OOOpenGLMatrixManager*)getOpenGLMatrixManager
-{
-    return oo::ToObjC(_cxxView->getOpenGLMatrixManager()); // C++ since bead oo-vt0o: its facade
-}
-
 // Slice 3 (bead oo-299r).
 - (BOOL)cxx_snapShot:(const std::optional<std::string>&)filename
 {

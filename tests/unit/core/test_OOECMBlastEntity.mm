@@ -5,8 +5,9 @@
 
 	The entity reads Universe, so the test links the whole game but main (['*']) and uses a Universe
 	that was never initialised, subclassed to record -removeEntity: and the range searches the
-	pulses make (it finds no ship, so no script event is sent). The firing ship is a plain entity
-	(the blast messages it only as one: -position, -status, -weakRetain). The expectations were
+	pulses make (it finds no ship, so no script event is sent). The firing ship was a plain entity
+	(the blast messaged it only as one: -position, -status, -weakRetain); since bead oo-9ht.144 the
+	blast calls the C++ ship's members, so it is a C++ ship under its object, never set up. The expectations were
 	written against the Objective-C API and run on the unconverted class first (but for "no blast
 	from nil", which crashed there in the Entity facade's -dealloc of an entity whose -init never
 	ran, bead oo-s6ic6): no blast from nil; a blast is a no-draw effect at the ship's position; four
@@ -20,6 +21,7 @@
 
 #import "OOECMBlastEntity.h"
 #import "Universe.h"
+#import "ShipEntity.h"	// the ship is C++
 
 #include "oo_test.hpp"
 
@@ -31,7 +33,7 @@
 uint32_t gDebugFlags = 0;
 #endif
 
-@class PlayerEntity;
+class PlayerEntity;
 extern PlayerEntity *gOOPlayer;
 extern Universe *gSharedUniverse;
 
@@ -69,6 +71,9 @@ extern Universe *gSharedUniverse;
 @end
 
 
+extern JSContext *gOOJSMainThreadContext;	// the engine's (OOJavaScriptEngine.mm)
+
+
 namespace {
 
 TestUniverse *sUniverse = nil;
@@ -87,12 +92,18 @@ void SetUp()
 	sUniverse->_removed = nil;
 	sUniverse->_searchedFrom = nil;
 	gSharedUniverse = sUniverse;
+	// The ship's -dealloc sends its (absent) scripts entityDestroyed in a request on the main
+	// thread's context, so there is one, with nothing in it (the ship stand-in is C++ since bead
+	// oo-9ht.144, as test_StationEntity's ships are).
+	if (gOOJSMainThreadContext == nullptr)  gOOJSMainThreadContext = JS_NewContext(JS_NewRuntime());
 }
 
 
+// A ship: C++ since bead oo-9ht.144 (the blast calls its members), under its object
+// (oo::NewEntityFacade, autoreleased as the plain entity was), never set up.
 Entity *Ship()
 {
-	Entity *ship = [[[Entity alloc] init] autorelease];
+	Entity *ship = oo::NewEntityFacade(oo::makeRef<::ShipEntity>());
 	[ship setPosition:make_HPvector(10, 20, 30)];
 	[ship setStatus:STATUS_IN_FLIGHT];
 	return ship;
@@ -101,7 +112,7 @@ Entity *Ship()
 
 // --- How the test makes a blast (ported by the conversion), and nothing else ---------------------
 
-Entity *Blast(Entity *ship)	{ return oo::NewEntityFacade(OOECMBlastEntity::initFromShip((ShipEntity *)ship)); }
+Entity *Blast(Entity *ship)	{ return oo::NewEntityFacade(OOECMBlastEntity::initFromShip(oo::ToShip(ship))); }
 
 
 // What -[Entity isECMBlast] answered, from the C++ member (bead oo-9ht.75 deleted the category).
@@ -182,7 +193,7 @@ OO_TEST(deadShipEndsIt)
 	@autoreleasepool
 	{
 		SetUp();
-		Entity *ship = [[Entity alloc] init];
+		Entity *ship = [oo::NewEntityFacade(oo::makeRef<::ShipEntity>()) retain];	// a ship
 		blast = [Blast(ship) retain];
 		[ship release];		// the blast holds it weakly
 	}

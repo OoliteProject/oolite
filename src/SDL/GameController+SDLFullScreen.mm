@@ -52,104 +52,104 @@ const oo::PList* FindDisplayMode(const oo::PList::Array& modes, unsigned int d_w
 }
 }
 
-@implementation GameController (FullScreen)
+// The former FullScreen category of GameController (bead oo-qinv): members of cxx::GameController,
+// defined here (ADR-0056 amendment oo-o89 item 4). The façade forwards its selectors to them
+// (GameController+ObjCBridge.mm).
 
-- (void)setUpDisplayModes
+void cxx::GameController::setUpDisplayModes()
 {
     // The screen's mode dictionaries, in its order (Foundation sweep, proposed ADR-0043).
-    const std::vector<oo::PList> modes = [_cxxController->_gameView getScreenSizeArray];
+    const std::vector<oo::PList> modes = [_gameView getScreenSizeArray];
     unsigned int modeWidth, modeHeight;
 
-    _cxxController->displayModes.clear();
+    displayModes.clear();
     for (const oo::PList& mode : modes) {
         modeWidth = mode.get<int>(std::string(kOODisplayWidth));
         modeHeight = mode.get<int>(std::string(kOODisplayHeight));
 
         if (modeWidth < DISPLAY_MIN_WIDTH || modeWidth > DISPLAY_MAX_WIDTH || modeHeight < DISPLAY_MIN_HEIGHT || modeHeight > DISPLAY_MAX_HEIGHT)
             continue;
-        _cxxController->displayModes.push_back(mode);
+        displayModes.push_back(mode);
     }
 
-    const oo::PList currentMode = [_cxxController->_gameView currentScreenMode];
+    const oo::PList currentMode = [_gameView currentScreenMode];
     if (currentMode) {
-        _cxxController->width = currentMode.get<int>(std::string(kOODisplayWidth));
-        _cxxController->height = currentMode.get<int>(std::string(kOODisplayHeight));
-        _cxxController->refresh = currentMode.get<int>(std::string(kOODisplayRefreshRate));
+        width = currentMode.get<int>(std::string(kOODisplayWidth));
+        height = currentMode.get<int>(std::string(kOODisplayHeight));
+        refresh = currentMode.get<int>(std::string(kOODisplayRefreshRate));
     } else {
-        NSSize fsmSize = [_cxxController->_gameView currentScreenSize];
-        _cxxController->width = fsmSize.width;
-        _cxxController->height = fsmSize.height;
+        NSSize fsmSize = [_gameView currentScreenSize];
+        width = fsmSize.width;
+        height = fsmSize.height;
     }
 }
 
-- (void)setFullScreenMode:(BOOL)fsm
+void cxx::GameController::setFullScreenMode(bool fsm)
 {
-    _cxxController->fullscreen = fsm;
+    fullscreen = fsm;
 }
 
-- (void)exitFullScreenMode
+void cxx::GameController::exitFullScreenMode()
 {
     oo::Defaults::standard().setBool("fullscreen", false);
-    _cxxController->stayInFullScreenMode = NO;
+    stayInFullScreenMode = false;
 }
 
-- (BOOL)inFullScreenMode
+bool cxx::GameController::inFullScreenMode()
 {
-    return [_cxxController->_gameView inFullScreenMode];
+    return [_gameView inFullScreenMode];
 }
 
-- (BOOL)setDisplayWidth:(unsigned int)d_width Height:(unsigned int)d_height Refresh:(unsigned int)d_refresh
+bool cxx::GameController::setDisplayWidth(unsigned int d_width, unsigned int d_height, unsigned int d_refresh)
 {
-    const oo::PList* d_mode = FindDisplayMode(_cxxController->displayModes, d_width, d_height, d_refresh);
+    const oo::PList* d_mode = FindDisplayMode(displayModes, d_width, d_height, d_refresh);
     if (d_mode != nullptr) {
-        _cxxController->width = d_width;
-        _cxxController->height = d_height;
-        _cxxController->refresh = d_refresh;
-        _cxxController->fullscreenDisplayMode = *d_mode;
+        width = d_width;
+        height = d_height;
+        refresh = d_refresh;
+        fullscreenDisplayMode = *d_mode;
 
         oo::Defaults& userDefaults = oo::Defaults::standard();
 
-        userDefaults.setInteger("display_width", _cxxController->width);
-        userDefaults.setInteger("display_height", _cxxController->height);
-        userDefaults.setInteger("display_refresh", _cxxController->refresh);
+        userDefaults.setInteger("display_width", width);
+        userDefaults.setInteger("display_height", height);
+        userDefaults.setInteger("display_refresh", refresh);
 
         // Manual synchronization is required for SDL And doesn't hurt much for OS X.
         userDefaults.synchronize();
 
-        return YES;
+        return true;
     }
-    return NO;
+    return false;
 }
 
-- (oo::PList)findDisplayModeForWidth:(unsigned int)d_width Height:(unsigned int)d_height Refresh:(unsigned int)d_refresh
+oo::PList cxx::GameController::findDisplayModeForWidth(unsigned int d_width, unsigned int d_height, unsigned int d_refresh)
 {
-    const oo::PList* mode = FindDisplayMode(_cxxController->displayModes, d_width, d_height, d_refresh);
+    const oo::PList* mode = FindDisplayMode(displayModes, d_width, d_height, d_refresh);
     return (mode != nullptr) ? *mode : oo::PList(); // a mode dictionary; null: none
 }
 
-- (oo::PList)displayModes
+oo::PList cxx::GameController::getDisplayModes()
 {
-    return oo::PList(_cxxController->displayModes); // an array of mode dictionaries
+    return oo::PList(displayModes); // an array of mode dictionaries
 }
 
-- (NSUInteger)indexOfCurrentDisplayMode
+NSUInteger cxx::GameController::indexOfCurrentDisplayMode()
 {
-    const oo::PList* mode = FindDisplayMode(_cxxController->displayModes, _cxxController->width, _cxxController->height, _cxxController->refresh);
+    const oo::PList* mode = FindDisplayMode(displayModes, width, height, refresh);
     if (mode == nullptr)
         return NSNotFound;
     else
-        return (NSUInteger)(mode - _cxxController->displayModes.data()); // the first match, as -indexOfObject: found
+        return (NSUInteger)(mode - displayModes.data()); // the first match, as -indexOfObject: found
 
     return NSNotFound;
 }
 
-- (void)pauseFullScreenModeToPerform:(SEL)selector onTarget:(id)target
+void cxx::GameController::pauseFullScreenModeToPerform(SEL selector, id target)
 {
-    _cxxController->pauseSelector = selector;
-    _cxxController->pauseTarget = target;
-    _cxxController->stayInFullScreenMode = NO;
+    pauseSelector = selector;
+    pauseTarget = target;
+    stayInFullScreenMode = false;
 }
-
-@end
 
 #endif

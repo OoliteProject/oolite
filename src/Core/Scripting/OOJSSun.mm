@@ -74,7 +74,21 @@ static const JSCFunctionListEntry sSunMethods[] = {
     JS_CFUNC_DEF("goNova", 1, SunGoNova),
 };
 
-DEFINE_JS_OBJECT_GETTER(JSSunGetSunEntity, sSunClassID, OOSunEntity)
+namespace {
+DEFINE_JS_OBJECT_GETTER(JSSunGetSunObject, sSunClassID, Entity)
+
+// The sun is C++ behind the root's facade: the getter checks the JS class (a Sun object's private
+// slot holds the sun's Objective-C object, so -isKindOfClass: of the facade class always held) and
+// answers the C++ sun; null for a stale entity, as nil before.
+bool JSSunGetSunEntity(JSContext* context, JSValueConst inObject, OOSunEntity** outObject)
+{
+    Entity* object = nil;
+    if (!JSSunGetSunObject(context, inObject, &object))
+        return false;
+    *outObject = (object != nil) ? dynamic_cast<OOSunEntity*>(oo::ToCxx(object)) : nullptr;
+    return true;
+}
+}
 
 void InitOOJSSun(JSContext* context, JSValueConst global)
 {
@@ -119,18 +133,18 @@ static JSValue SunGetProperty(OOJS_GETTER_ARGS)
 
     switch (magic) {
     case kSun_radius:
-        return JS_NewNumber(context, [sun radius]);
+        return JS_NewNumber(context, (sun != nullptr ? sun->radius() : 0.0));
 
     case kSun_name: {
-        const std::optional<std::string> name = [sun cxx_name];
+        const std::optional<std::string> name = (sun != nullptr ? sun->name() : std::optional<std::string>());
         return OOJSValueFromPList(context, name.has_value() ? oo::PList(*name) : oo::PList());
     }
 
     case kSun_hasGoneNova:
-        return OOJSValueFromBOOL([sun goneNova]);
+        return OOJSValueFromBOOL((sun != nullptr ? sun->goneNova() : false));
 
     case kSun_isGoingNova:
-        return OOJSValueFromBOOL([sun willGoNova] && ![sun goneNova]);
+        return OOJSValueFromBOOL((sun != nullptr ? sun->willGoNova() : false) && !(sun != nullptr ? sun->goneNova() : false));
 
     default:
         OOJSReportBadPropertySelector(context, thisObj, magic, sSunProperties, OOJS_COUNT(sSunProperties));
@@ -155,7 +169,8 @@ static JSValue SunGoNova(OOJS_NATIVE_ARGS)
     if (argc > 0 && EXPECT_NOT(JS_ToFloat64(context, &delay, OOJS_ARGV[0]) != 0))
         return OOJSNativeFailure(context);
 
-    [sun setGoingNova:true inTime:delay];
+    if (sun != nullptr)
+        sun->setGoingNova(true, delay);
     OOJS_RETURN_VOID;
 
     OOJS_NATIVE_EXIT
@@ -171,8 +186,9 @@ static JSValue SunCancelNova(OOJS_NATIVE_ARGS)
     if (EXPECT_NOT(!JSSunGetSunEntity(context, OOJS_THIS, &sun)))
         return OOJSNativeFailure(context);
 
-    if ([sun willGoNova] && ![sun goneNova]) {
-        [sun setGoingNova:false inTime:0];
+    if ((sun != nullptr ? sun->willGoNova() : false) && !(sun != nullptr ? sun->goneNova() : false)) {
+        if (sun != nullptr)
+            sun->setGoingNova(false, 0);
     }
     OOJS_RETURN_VOID;
 

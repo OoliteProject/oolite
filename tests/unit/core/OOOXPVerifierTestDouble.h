@@ -8,7 +8,7 @@
 	It was pasted into each stage test; this is that code, moved, with the same methods and the
 	same behaviour. Since bead oo-9ht.4 deleted the stage facade it keeps, and answers, the C++
 	stages themselves (it kept their facades), as the verifier does. Since bead oo-qg71f the
-	stages keep and call the C++ verifier, so the double defines cxx::OOOXPVerifier's members
+	stages keep and call the C++ verifier, so the double defines OOOXPVerifier's members
 	the stages call (it was an @implementation of the Objective-C facade class, with its own
 	ivars): its state is the class's own members, its answers are unchanged, and a test makes one
 	with OOOXPVerifierTestAccess::Make and counts registrations with ::Registrations.
@@ -41,10 +41,10 @@ static int gRegistrations = 0;
 struct OOOXPVerifierTestAccess
 {
 	// The verifier of the OXP at path, configured by the verifyOXP.plist text configuration.
-	static cxx::OOOXPVerifier *Make(const std::string &path, const char *configuration)
+	static OOOXPVerifier *Make(const std::string &path, const char *configuration)
 	{
-		static auto *kept = new std::vector<oo::Ref<cxx::OOOXPVerifier>>;
-		const oo::Ref<cxx::OOOXPVerifier> verifier = oo::adopt(new cxx::OOOXPVerifier());
+		static auto *kept = new std::vector<oo::Ref<OOOXPVerifier>>;
+		const oo::Ref<OOOXPVerifier> verifier = oo::adopt(new OOOXPVerifier());
 		verifier->_basePath = path;
 		verifier->_verifierPList = *oo::parsePropertyListData(configuration);
 		verifier->_openForRegistration = true;
@@ -61,7 +61,7 @@ struct OOOXPVerifierTestAccess
 	linked. Each body is the one the double's Objective-C method had (the ivars it read are the
 	class's own members now); nothing else of the class is defined, so nothing else may be called.
 */
-void cxx::OOOXPVerifier::registerStage(::OOOXPVerifierStage *stage)
+void OOOXPVerifier::registerStage(::OOOXPVerifierStage *stage)
 {
 	_stagesByName[*stage->name()] = oo::Ref<::OOOXPVerifierStage>(stage);
 	stage->setVerifier(this);
@@ -69,39 +69,39 @@ void cxx::OOOXPVerifier::registerStage(::OOOXPVerifierStage *stage)
 }
 
 
-std::optional<std::string> cxx::OOOXPVerifier::oxpPath()			{ return _basePath; }
-std::optional<std::string> cxx::OOOXPVerifier::oxpDisplayName()		{ return "Test.oxp"; }
+std::optional<std::string> OOOXPVerifier::oxpPath()			{ return _basePath; }
+std::optional<std::string> OOOXPVerifier::oxpDisplayName()		{ return "Test.oxp"; }
 
 
-::OOOXPVerifierStage *cxx::OOOXPVerifier::stageWithName(const std::string &name)
+::OOOXPVerifierStage *OOOXPVerifier::stageWithName(const std::string &name)
 {
 	const auto found = _stagesByName.find(name);
 	return found != _stagesByName.end() ? found->second.get() : nullptr;
 }
 
 
-oo::PList cxx::OOOXPVerifier::configurationValueForKey(const std::string &key)
+oo::PList OOOXPVerifier::configurationValueForKey(const std::string &key)
 {
 	const oo::PList *value = _verifierPList.find(key);
 	return value != nullptr ? *value : oo::PList();
 }
 
 
-oo::PList cxx::OOOXPVerifier::configurationArrayForKey(const std::string &key)
+oo::PList OOOXPVerifier::configurationArrayForKey(const std::string &key)
 {
 	const oo::PList *array = _verifierPList.get<oo::PList::Array>(key);
 	return array != nullptr ? *array : oo::PList();
 }
 
 
-oo::PList cxx::OOOXPVerifier::configurationDictionaryForKey(const std::string &key)
+oo::PList OOOXPVerifier::configurationDictionaryForKey(const std::string &key)
 {
 	const oo::PList *dictionary = _verifierPList.get<oo::PList::Dict>(key);
 	return dictionary != nullptr ? *dictionary : oo::PList();
 }
 
 
-std::optional<std::string> cxx::OOOXPVerifier::configurationStringForKey(const std::string &key)
+std::optional<std::string> OOOXPVerifier::configurationStringForKey(const std::string &key)
 {
 	const oo::PList *value = _verifierPList.find(key);
 	if (value == nullptr || !(value->isString() || value->isNumber()))  return std::nullopt;
@@ -109,7 +109,7 @@ std::optional<std::string> cxx::OOOXPVerifier::configurationStringForKey(const s
 }
 
 
-std::optional<std::vector<std::string>> cxx::OOOXPVerifier::configurationSetForKey(const std::string &key)
+std::optional<std::vector<std::string>> OOOXPVerifier::configurationSetForKey(const std::string &key)
 {
 	const oo::PList *array = _verifierPList.get<oo::PList::Array>(key);
 	if (array == nullptr)  return std::nullopt;

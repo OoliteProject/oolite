@@ -33,17 +33,15 @@ MA 02110-1301, USA.
 #include <optional>
 #include <string>
 
-@class OOPlanetEntity;
+class OOPlanetEntity;
 
 void InitOOJSPlanet(JSContext* context, JSValueConst global);
 
 JSClassID JSPlanetClassID(void);
 
-/*	The bodies of OOPlanetEntity (OOJavaScriptExtensions), which the engine reaches by selector. Its
-        methods are one-line forwarders to these on the OOPlanetEntity facade, in
-        OOPlanetEntity+ObjCBridge.mm (bead oo-9ht.92), until that facade goes (oo-9ht.129; proposed
-        ADR-0056 amendments oo-ppc, oo-ykoy and oo-6ia4). Its -oo_jsClassID answers
-        JSPlanetClassID().
+/*	The bodies of OOPlanetEntity (OOJavaScriptExtensions), which the engine reaches through the root
+        Entity's virtual members: the C++ planet's overrides call these (the OOPlanetEntity facade
+        forwarded to them before). Its JS class is JSPlanetClassID().
 */
 bool OOJSPlanetIsVisibleToScripts(OOPlanetEntity* planet);
 std::optional<std::string> OOJSPlanetJSClassName(OOPlanetEntity* planet);

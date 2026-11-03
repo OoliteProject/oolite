@@ -5,9 +5,9 @@ OOColor.h
 An RGBA colour in device colour space.
 
 C++20 since bead oo-11m, the Phase 3 house-style exemplar (proposed ADR-0056;
-docs/phases/3-cpp-conversion.md, "Converting a class"). The class is cxx::OOColor while
-OOColor+ObjCBridge.h, imported at the end of this header, keeps the Objective-C OOColor its
-unconverted callers message; the bridge's deletion bead moves it out of namespace cxx.
+docs/phases/3-cpp-conversion.md, "Converting a class"). Its Objective-C facade was deleted
+by bead oo-9ht.1, which moved the class out of namespace cxx.
+A colour is its own PList::Object node payload (oo::PListForeign), as OONativeVector is.
 
 
 Oolite
@@ -47,9 +47,7 @@ typedef struct
     float h, s, b, a;
 } OOHSBAComponents;
 
-namespace cxx {
-
-class OOColor : public oo::RefCounted {
+class OOColor : public oo::PListForeign {
 public:
     static oo::Ref<OOColor> colorWithHue(float hue, float saturation, float brightness, float alpha); // Note: hue in 0..1
     static oo::Ref<OOColor> colorWithRed(float red, float green, float blue, float alpha);
@@ -63,7 +61,8 @@ public:
             - an array of components (their descriptions, joined with spaces, as a string);
             - a dictionary of hue/saturation/brightness (or value)/alpha (or opacity) keys, hue
               in 0..360, or of red/green/blue/alpha (or opacity) keys;
-            - an Object node (OOObjCPList.h) holding an OOColor, which is returned as is.
+            - an Object node holding an OOColor (the colour is the node's foreign object), which
+              is returned as is.
             Anything else, or a null PList, gives null.
     */
     static oo::Ref<OOColor> colorWithDescription(const oo::PList& description);
@@ -143,6 +142,10 @@ public:
     // What "%@" prints between the braces of <OOColor 0x...>{...} (OODescription.h).
     std::optional<std::string> descriptionComponents() const;
 
+    // oo::PListForeign: what the facade answered (its class, and "%@" as <OOColor 0x...>{...}).
+    std::string className() const override;
+    std::string description() const override;
+
 private:
     // Set methods are internal, because OOColor is immutable (as seen from outside).
     void setRed(float r, float g, float b, float a);
@@ -151,13 +154,24 @@ private:
     float rgba[4] = { };
 };
 
-} // namespace cxx
+/*	A colour carried through plist data as a PList::Object node (proposed ADR-0043 Amendment 2):
+        the colour is the node's foreign object (bead oo-9ht.1; what oo::PListObject() and
+        oo::ObjectIn() did for the facade).
+*/
+inline oo::PList OOColorObjectNode(OOColor* color) // null colour -> null PList
+{
+    if (color == nullptr)
+        return oo::PList();
+    return oo::PList(oo::PList::Object(oo::Ref<oo::PListForeign>(color)));
+}
+
+inline OOColor* OOColorInObjectNode(const oo::PList& plist) // null for any other node
+{
+    const oo::PList::Object* node = plist.getIf<oo::PList::Object>();
+    return (node != nullptr) ? dynamic_cast<OOColor*>(node->get()) : nullptr;
+}
 
 std::string OORGBAComponentsDescription(OORGBAComponents components);
 std::string OOHSBAComponentsDescription(OOHSBAComponents components);
-
-// Transitional: the Objective-C OOColor, for callers not yet converted. Deleted, with namespace
-// cxx above, by the bridge's deletion bead.
-#import "OOColor+ObjCBridge.h"
 
 #endif // OOCOLOR_H

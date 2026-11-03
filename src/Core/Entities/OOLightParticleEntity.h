@@ -29,9 +29,11 @@ MA 02110-1301, USA.
 
 @class OOTexture;
 
-namespace cxx {
-
-class OOLightParticleEntity : public Entity {
+/*	C++ only since bead oo-9ht.76 deleted its Objective-C facade (ADR-0056 amendments oo-9ht.107,
+        oo-9ht.23 and oo-9ht.106): a particle is made in C++ and handed to Objective-C with
+        oo::NewEntityFacade, whose object is the root Entity's facade.
+*/
+class OOLightParticleEntity : public cxx::Entity {
 public:
     // -initWithDiameter:'s body, run once right after construction (amendment oo-vl43 item 2): it
     // calls members a subclass overrides. A converted subclass's initialiser calls it first.
@@ -52,7 +54,7 @@ public:
 
     static void setUpTexture();
     static ::OOTexture* defaultParticleTexture();
-    // The graphics reset client is the facade class, which forwards here.
+    // Called by the texture's file-local graphics reset client.
     static void resetGraphicsState();
 
     virtual void drawSubEntityImmediate(bool immediate, bool translucent);
@@ -65,13 +67,7 @@ public:
     std::vector<oo::ObjCRef<::OOTexture*>> allTextures() override;
 #endif
 
-    // @protected in Objective-C: public while Objective-C subclasses read them.
+    // @protected in Objective-C: public, as the tests read them.
     GLfloat _colorComponents[4] = { };
     float _diameter = { };
 };
-
-} // namespace cxx
-
-// Transitional: the Objective-C OOLightParticleEntity, for the subclasses not yet converted and the
-// callers that message it. Deleted, with namespace cxx above, by the bridge's deletion bead.
-#import "OOLightParticleEntity+ObjCBridge.h"

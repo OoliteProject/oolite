@@ -50,7 +50,7 @@ void OOLogGenericSubclassResponsibilityForFunction(const char *inFunction)
 */
 struct OOOXPVerifierTestAccess
 {
-	static oo::Ref<cxx::OOOXPVerifier> Make()	{ return oo::adopt(new cxx::OOOXPVerifier()); }
+	static oo::Ref<OOOXPVerifier> Make()	{ return oo::adopt(new OOOXPVerifier()); }
 };
 
 
@@ -162,8 +162,8 @@ OO_TEST(verifierIsNotRetained)
 {
 	@autoreleasepool
 	{
-		const oo::Ref<cxx::OOOXPVerifier> object = OOOXPVerifierTestAccess::Make();
-		cxx::OOOXPVerifier *verifier = object.get();
+		const oo::Ref<OOOXPVerifier> object = OOOXPVerifierTestAccess::Make();
+		OOOXPVerifier *verifier = object.get();
 		const oo::Ref<TestObjCStage> stage = MakeStage("Stage");
 		const unsigned before = object->retainCount();
 		stage->setVerifier(verifier);

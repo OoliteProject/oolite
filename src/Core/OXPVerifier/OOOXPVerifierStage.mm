@@ -85,7 +85,7 @@ std::string OOOXPVerifierStage::className() const
 
 // The C++ verifier, borrowed (bead oo-qg71f; it was the Objective-C verifier, retained and
 // autoreleased): the verifier keeps its stages and outlives them while they run.
-cxx::OOOXPVerifier* OOOXPVerifierStage::verifier()
+OOOXPVerifier* OOOXPVerifierStage::verifier()
 {
     return _verifier;
 }
@@ -123,7 +123,7 @@ void OOOXPVerifierStage::run()
 
 // Internal (was the OOInternal category).
 
-void OOOXPVerifierStage::setVerifier(cxx::OOOXPVerifier* verifier)
+void OOOXPVerifierStage::setVerifier(OOOXPVerifier* verifier)
 {
     _verifier = verifier; // Not retained.
 }

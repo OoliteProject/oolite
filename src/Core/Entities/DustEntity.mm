@@ -54,7 +54,44 @@ enum {
 };
 #endif
 
-namespace cxx {
+#if OO_SHADERS
+/*	What the dust shader's uniforms are bound to, by selector (-warpVector, -offsetPlayerPosition),
+        until the shader binding takes a C++ target: the DustEntity's own, private Objective-C object
+        (the DustEntity facade, now deleted, was bound before). It does not retain
+        the dust; the dust clears it in its destructor.
+*/
+@interface OODustShaderBinding : OOWeakRefObject {
+@public
+    DustEntity* _dust;
+}
+
+- (Vector)warpVector;
+- (Vector)offsetPlayerPosition;
+
+@end
+
+@implementation OODustShaderBinding
+
+- (Vector)warpVector
+{
+    return _dust != nullptr ? _dust->warpVector() : kZeroVector;
+}
+- (Vector)offsetPlayerPosition
+{
+    return _dust != nullptr ? _dust->offsetPlayerPosition() : kZeroVector;
+}
+
+@end
+#endif
+
+DustEntity::~DustEntity()
+{
+#if OO_SHADERS
+    if (shaderBinding.get() != nil)
+        ((OODustShaderBinding*)shaderBinding.get())->_dust = nullptr;
+#endif
+    OOGraphicsResetManager::sharedManager()->unregisterCxxClient(this);
+}
 
 void DustEntity::init()
 {
@@ -90,7 +127,7 @@ void DustEntity::init()
     dust_color = OOColor::colorWithRed(0.5, 1.0, 1.0, 1.0);
     setStatus(STATUS_ACTIVE);
 
-    hasPointSprites = OOOpenGLExtensionManager::sharedManager()->haveExtension("GL_ARB_point_sprite");
+    hasPointSprites = cxx::OOOpenGLExtensionManager::sharedManager()->haveExtension("GL_ARB_point_sprite");
 
     if (hasPointSprites) {
         texture = oo::ObjCRef<::OOTexture*>([::OOTexture cxx_textureWithName:"oolite-particle-dust.png"
@@ -102,11 +139,11 @@ void DustEntity::init()
 
     collision_radius = DUST_SCALE; // for draw pass calculations
 
-    OOGraphicsResetManager::sharedManager()->registerClient(oo::ToObjC(this)); // the facade answers -resetGraphicsState
+    OOGraphicsResetManager::sharedManager()->registerCxxClient(this);
 }
 
-// -dealloc is the facade's: it unregisters the facade from the graphics reset manager. The members
-// release the colour, texture, shader and uniforms when the facade releases its C++ part.
+// The destructor unregisters this from the graphics reset manager. The members release the colour,
+// texture, shader and uniforms.
 
 void DustEntity::setDustColor(OOColor* color)
 {
@@ -128,7 +165,7 @@ bool DustEntity::canCollide()
 
 void DustEntity::updateCameraRelativePosition()
 {
-    HPVector c_pos = [PLAYER viewpointPosition];
+    HPVector c_pos = (PLAYER != nullptr ? PLAYER->viewpointPosition() : HPVector { });
     cameraRelativePosition = make_vector((OOScalar)-fmod(c_pos.x, DUST_SCALE), (OOScalar)-fmod(c_pos.y, DUST_SCALE), (OOScalar)-fmod(c_pos.z, DUST_SCALE));
 }
 
@@ -171,7 +208,12 @@ void DustEntity::update(OOTimeDelta /*delta_t*/)
 OOShaderProgram* DustEntity::getShader()
 {
     if (shader == nullptr) {
-        ::DustEntity* self = oo::ToObjC(this); // what the uniforms are bound to
+        if (shaderBinding.get() == nil) {
+            OODustShaderBinding* binding = [[OODustShaderBinding alloc] init];
+            binding->_dust = this;
+            shaderBinding = oo::adoptObjC<id>(binding); // what the uniforms are bound to
+        }
+        id self = shaderBinding.get();
         std::string prefix = oo::str::format(
             "#define OODUST_SCALE_MAX    (float(%g))\n"
             "#define OODUST_SCALE_FACTOR (float(%g))\n"
@@ -191,12 +233,12 @@ OOShaderProgram* DustEntity::getShader()
 
         uniforms.clear();
         oo::Ref<OOShaderUniform> uWarp = OOShaderUniform::initWithName("uWarp",
-            oo::ToObjC(shader),
+            shader.get(),
             self,
             OOSelectorFromName("warpVector"),
             0);
         oo::Ref<OOShaderUniform> uOffsetPlayerPosition = OOShaderUniform::initWithName("uOffsetPlayerPosition",
-            oo::ToObjC(shader),
+            shader.get(),
             self,
             OOSelectorFromName("offsetPlayerPosition"),
             0);
@@ -211,7 +253,7 @@ OOShaderProgram* DustEntity::getShader()
 Vector DustEntity::offsetPlayerPosition()
 {
     // used as shader uniform, so needs to be low precision
-    HPVector c_pos = [PLAYER viewpointPosition];
+    HPVector c_pos = (PLAYER != nullptr ? PLAYER->viewpointPosition() : HPVector { });
     Vector offset = make_vector((OOScalar)fmod(c_pos.x, DUST_SCALE), (OOScalar)fmod(c_pos.y, DUST_SCALE), (OOScalar)fmod(c_pos.z, DUST_SCALE));
     return vector_subtract(offset, make_vector(DUST_SCALE * 0.5f, DUST_SCALE * 0.5f, DUST_SCALE * 0.5f));
 }
@@ -220,7 +262,7 @@ void DustEntity::checkShaderMode()
 {
     shaderMode = kShaderModeOff;
     if ([UNIVERSE detailLevel] >= DETAIL_LEVEL_SHADERS) {
-        if (OOOpenGLExtensionManager::sharedManager()->useDustShader()) {
+        if (cxx::OOOpenGLExtensionManager::sharedManager()->useDustShader()) {
             shaderMode = kShaderModeOn;
         }
     }
@@ -229,7 +271,7 @@ void DustEntity::checkShaderMode()
 
 Vector DustEntity::warpVector()
 {
-    return vector_multiply_scalar([PLAYER velocity], 1.0f / HYPERSPEED_FACTOR);
+    return vector_multiply_scalar((PLAYER != nullptr ? PLAYER->getVelocity() : Vector { }), 1.0f / HYPERSPEED_FACTOR);
 }
 
 void DustEntity::drawImmediate(bool /*immediate*/, bool translucent)
@@ -254,7 +296,7 @@ void DustEntity::drawImmediate(bool /*immediate*/, bool translucent)
     GLfloat* fogcolor = [UNIVERSE skyClearColor];
     float idealDustSize = [[UNIVERSE gameView] viewSize].width / 800.0f;
 
-    BOOL warp_stars = [player atHyperspeed];
+    BOOL warp_stars = (player != nullptr ? player->atHyperspeed() : false);
     float dustIntensity;
 
     OO_ENTER_OPENGL();
@@ -285,7 +327,7 @@ void DustEntity::drawImmediate(bool /*immediate*/, bool translucent)
     if (dustIntensity > 0.0) {
 
         float* color = NULL;
-        if (player->_cxxEntity->isSunlit)
+        if (player->isSunlit)
             color = color_fv;
         else
             color = UNIVERSE->_cxxUniverse->stars_ambient;
@@ -404,5 +446,3 @@ std::optional<std::string> DustEntity::descriptionForObjDump()
     return descriptionForObjDumpBasic();
 }
 #endif
-
-} // namespace cxx

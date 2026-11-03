@@ -77,13 +77,15 @@ public:
 - (id) owner;
 @end
 
-@interface ShipEntity: Entity
+// A ship: C++ since bead oo-9ht.144 deleted the Objective-C ship this stood in for, the C++ part of
+// its object, with the one member the binding calls (declared as ShipEntity.h declares it).
+class ShipEntity : public cxx::Entity
 {
-@public
-	OOExhaustPlumeEntity *_removed;
-}
-- (void) removeExhaust:(OOExhaustPlumeEntity *)exhaust;
-@end
+public:
+	void removeExhaust(OOExhaustPlumeEntity *exhaust);
+
+	OOExhaustPlumeEntity *_removed = nullptr;
+};
 
 @interface Entity (OOJavaScriptExtensions)
 - (JSClassID) oo_jsClassID;
@@ -116,11 +118,7 @@ bool OOJSExhaustPlumeIsVisibleToScripts(void);
 @end
 
 
-@implementation ShipEntity
-
-- (void) removeExhaust:(OOExhaustPlumeEntity *)exhaust  { _removed = exhaust; }
-
-@end
+void ShipEntity::removeExhaust(OOExhaustPlumeEntity *exhaust)  { _removed = exhaust; }
 
 
 // The root's JS category, as the game's asks the C++ part (EntityOOJavaScriptExtensions+ObjCBridge.mm):
@@ -352,7 +350,8 @@ JSContext *sContext = nullptr;
 JSValue sGlobal = JS_UNDEFINED;	// held for the life of the test
 Entity *sPlume = nil;						// the plume's object
 OOExhaustPlumeEntity *sPlumePart = nullptr;	// its C++ part
-ShipEntity *sShip = nil;
+Entity *sShip = nil;	// a ship's object and its C++ part (the Objective-C ship until bead oo-9ht.144)
+ShipEntity *sShipPart = nullptr;
 
 
 // A JS object of the class, with the class's prototype and the entity in the private slot; owned
@@ -395,7 +394,9 @@ void SetUpContext()
 	OOJSInitClass(sContext, sGlobal, sFakeEntityClassID, JS_UNDEFINED, OOJSUnconstructableConstruct, 0, nullptr, 0, nullptr, 0, nullptr, 0);
 	InitOOJSExhaustPlume(sContext, sGlobal);
 
-	sShip = [[ShipEntity alloc] init];	// kept for the life of the test
+	sShip = [[Entity alloc] init];	// kept for the life of the test
+	sShip->_cxxEntity = oo::makeRef<ShipEntity>();
+	sShipPart = static_cast<ShipEntity *>(sShip->_cxxEntity.get());
 	sPlume = [[Entity alloc] init];
 	const oo::Ref<OOExhaustPlumeEntity> part = oo::makeRef<OOExhaustPlumeEntity>();
 	sPlume->_cxxEntity = part;
@@ -471,14 +472,14 @@ OO_TEST(properties)
 OO_TEST(remove)
 {
 	SetUpContext();
-	sShip->_removed = nullptr;
+	sShipPart->_removed = nullptr;
 	OO_CHECK_EVAL("plume.remove()", "undefined");
-	OO_CHECK(sShip->_removed == sPlumePart);
+	OO_CHECK(sShipPart->_removed == sPlumePart);
 	// The prototype has no entity: the binding's getter fails without reporting an error, which
 	// ends the script uncatchably, and nothing is removed.
-	sShip->_removed = nullptr;
+	sShipPart->_removed = nullptr;
 	OO_CHECK_EVAL("ExhaustPlume.prototype.remove()", "<evaluation failed>");
-	OO_CHECK(sShip->_removed == nullptr);
+	OO_CHECK(sShipPart->_removed == nullptr);
 }
 
 

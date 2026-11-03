@@ -33,7 +33,12 @@ SOFTWARE.
 #import "OOMaths.h"
 #import "OOOpenALController.h"
 #include "oofnd/Defaults.hpp"
+#include "oofnd/String.hpp"
+
+#include <cstdlib>
+#include <cxxabi.h>
 #include <string_view>
+#include <typeinfo>
 
 static constexpr std::string_view KEY_VOLUME_CONTROL = "volume_control";
 
@@ -45,8 +50,6 @@ bool sIsSetUp = false;
 bool sIsSoundOK = false;
 
 } // namespace
-
-namespace cxx {
 
 bool OOSound::setUp()
 {
@@ -95,11 +98,11 @@ OOSound::OOSound()
         setUp();
 }
 
-/*	The receiver that -cxx_initWithContentsOfFile: released (or, when sound was not OK, leaked)
-        is the facade's (OOALSound+ObjCBridge.mm); this is the rest of the body, which answers the
-        concrete sound it makes.
+/*	The body of -cxx_initWithContentsOfFile: after the receiver's release (the facade's, until bead
+        oo-9ht.68): the concrete sound it makes. The decoder is released at the end of the scope, as
+        [decoder release] did.
 */
-oo::ObjCRef<::OOSound*> OOSound::initWithContentsOfFile(const std::optional<std::string>& path)
+oo::Ref<OOSound> OOSound::initWithContentsOfFile(const std::optional<std::string>& path)
 {
     if (!sIsSoundOK)
         return nullptr;
@@ -107,25 +110,19 @@ oo::ObjCRef<::OOSound*> OOSound::initWithContentsOfFile(const std::optional<std:
     if (!sIsSetUp && !setUp())
         return nullptr;
 
-    ::OOALSoundDecoder* decoder;
-    ::OOSound* self;
+    oo::Ref<OOSound> self;
 
-    decoder = [[::OOALSoundDecoder alloc] cxx_initWithPath:path];
-    if (nil == decoder)
+    const oo::Ref<OOALSoundDecoder> decoder = OOALSoundDecoder::initWithPath(path);
+    if (nullptr == decoder)
         return nullptr;
 
-    if ([decoder sizeAsBuffer] <= kMaxBufferedSoundSize) {
-        // C++ since oo-9ht.83: the new sound's facade is the root's, made as its subclass facade made it.
-        const oo::Ref<OOALBufferedSound> sound = OOALBufferedSound::initWithDecoder(decoder);
-        self = sound ? [[::OOSound alloc] initWithNewCxxSound:sound] : nil;
+    if (decoder->sizeAsBuffer() <= kMaxBufferedSoundSize) {
+        self = OOALBufferedSound::initWithDecoder(decoder.get());
     } else {
-        // C++ since oo-9ht.84: as the buffered sound above.
-        const oo::Ref<OOALStreamedSound> sound = OOALStreamedSound::initWithDecoder(decoder);
-        self = sound ? [[::OOSound alloc] initWithNewCxxSound:sound] : nil;
+        self = OOALStreamedSound::initWithDecoder(decoder.get());
     }
-    [decoder release];
 
-    if (nil != self) {
+    if (nullptr != self) {
 #ifndef NDEBUG
         OO_LOG(kOOLogSoundLoadingSuccess, "Loaded sound {}", path.value_or("(null)"));
 #endif
@@ -133,7 +130,7 @@ oo::ObjCRef<::OOSound*> OOSound::initWithContentsOfFile(const std::optional<std:
         OO_LOG(kOOLogSoundLoadingError, "Failed to load sound \"{}\"", path.value_or("(null)"));
     }
 
-    return oo::ObjCRef<::OOSound*>::adopt(self);
+    return self;
 }
 
 std::optional<std::string> OOSound::name()
@@ -175,4 +172,20 @@ std::optional<std::string> OOSound::descriptionComponents() const
     return std::nullopt;
 }
 
-} // namespace cxx
+// The facade's -cxx_description (bead oo-9ht.68 deleted it): the C++ class's name, without a
+// namespace, its address and its components.
+std::string OOSound::description() const
+{
+    int status = 0;
+    char* demangled = abi::__cxa_demangle(typeid(*this).name(), nullptr, nullptr, &status);
+    std::string name = (status == 0 && demangled != nullptr) ? demangled : typeid(*this).name();
+    std::free(demangled);
+    const std::size_t colons = name.rfind("::");
+    if (colons != std::string::npos)
+        name.erase(0, colons + 2);
+
+    std::string result = oo::str::format("<%s %s>", name.c_str(), oo::str::pointerDescription(this).c_str());
+    if (const std::optional<std::string> components = descriptionComponents())
+        result += "{" + *components + "}";
+    return result;
+}

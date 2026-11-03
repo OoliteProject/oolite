@@ -1,5 +1,5 @@
 /*	test_OOTrumble.mm
-	Unit tests for cxx::OOTrumble (src/Core/OOTrumble.h) and its Objective-C facade: bead oo-862e (Phase 3, proposed ADR-0056).
+	Unit tests for OOTrumble (src/Core/OOTrumble.h): bead oo-862e (Phase 3, proposed ADR-0056); the Objective-C facade went with bead oo-9ht.17.
 
 	A trumble is set up from a two-character digram (its colours, pattern, maximum size, and the
 	RNG seed for its position, motion and animation timings), and then lives by updateTrumble:, which
@@ -10,14 +10,18 @@
 
 	The game around it is replaced (ADR-0056 amendments oo-zffj, oo-8kx7): UNIVERSE, the player, the
 	cargo pods, the commodity market, textures and sounds are fakes below that answer from fields and
-	record what they are asked; drawTrumble: is GL and its matrix calls are aborting link stubs. The
+	record what they are asked (the sound and the sound source are C++ stand-ins since beads
+	oo-9ht.68 and oo-9ht.88 deleted the facades they stood in for); drawTrumble: is GL and its
+	matrix calls are aborting link stubs. The
 	RNG is the game's own (legacy_random.c). The expectations were written against the Objective-C
 	class and run on it first, reading its private state through the runtime; they now run through
-	the facade (OOTrumble+ObjCBridge.h) and read that state through the class's test friend. The
-	last tests pin the C++ API and the facade's contract. Run: bash tools/check-core-tests.sh
+	the C++ API and read that state through the class's test friend. Run: bash tools/check-core-tests.sh
 */
 
 #import "OOTrumble.h"
+#import "OOSoundSource.h"
+#import "OOALSound.h"
+#import "OOCommodityMarket.h"
 
 #include "oo_test.hpp"
 
@@ -28,6 +32,7 @@
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -54,115 +59,136 @@ static std::vector<std::string> gLog;	// what the trumble asked of the game, in 
 @end
 
 
-@interface OOSound: OOObject
+// A sound is its key: the root's members its vtable names (OOALSound.mm is not linked), and the
+// custom-sound look-up the trumbles call (Universe.h), which keeps each sound as the resource
+// manager's cache does.
+OOSound::OOSound()  {}
+std::optional<std::string> OOSound::name()  { return std::nullopt; }
+ALuint OOSound::soundBuffer()  { return 0; }
+bool OOSound::soundIncomplete()  { return false; }
+void OOSound::rewind()  {}
+std::optional<std::string> OOSound::descriptionComponents() const  { return std::nullopt; }
+
+class TestSound final : public OOSound
 {
-@public
+public:
+	explicit TestSound(const std::string &aKey) : key(aKey)  {}
+
 	std::string key;
-}
-- (id) initWithCustomSoundKey:(const std::string &)key;
-@end
+};
 
-@implementation OOSound
-- (id) initWithCustomSoundKey:(const std::string &)aKey
+::OOSound *OOSoundWithCustomSoundKey(const std::string &key);
+
+::OOSound *OOSoundWithCustomSoundKey(const std::string &aKey)
 {
-	if ((self = [super init]))  key = aKey;
+	static std::vector<oo::Ref<OOSound>> sKept;
 	gLog.push_back("sound " + aKey);
-	return self;
+	sKept.push_back(oo::makeRef<TestSound>(aKey));
+	return sKept.back().get();
 }
-@end
 
 
+// The one sound source the trumbles make: the members they call (and the ones its vtable names).
 static BOOL gSoundSourcePlaying = NO;
+static OOSound *gSourceSound = nullptr;
 
-@interface OOSoundSource: OOObject
+OOSoundSource::OOSoundSource()  {}
+OOSoundSource::~OOSoundSource()  {}
+void OOSoundSource::channel(OOSoundChannel *, OOSound *)  {}
+bool OOSoundSource::isPlaying()					{ return gSoundSourcePlaying; }
+OOSound *OOSoundSource::sound()					{ return gSourceSound; }
+void OOSoundSource::setPosition(Vector v)		{ (void)v; }
+void OOSoundSource::playOOSound(OOSound *s)		{ gSourceSound = s; gLog.push_back("play " + static_cast<TestSound *>(s)->key); }
+
+
+// The cargo pods: C++ ships since bead oo-9ht.144 deleted the Objective-C ship this stood in for,
+// held as their objects, the root's (which holds the C++ part, oo::ToCxx reads it, and which
+// oo::ToObjC answers for it), declared as Entity.h and ShipEntity.h declare them (the test imports
+// neither) with the stand-in's answers.
+namespace cxx {
+class Entity : public oo::RefCounted
 {
-	OOSound *_sound;
-}
-- (BOOL) isPlaying;
-- (OOSound *) sound;
-- (void) setPosition:(Vector)inPosition;
-- (void) playOOSound:(OOSound *)inSound;
-@end
+public:
+	virtual ~Entity();
+};
+}	// namespace cxx
 
-@implementation OOSoundSource
-- (BOOL) isPlaying					{ return gSoundSourcePlaying; }
-- (OOSound *) sound					{ return _sound; }
-- (void) setPosition:(Vector)v		{ }
-- (void) playOOSound:(OOSound *)s	{ _sound = s; gLog.push_back("play " + s->key); }
-@end
-
-
-@interface ShipEntity: OOObject
+@interface Entity: OOObject
 {
 @public
-	std::string commodity;
+	oo::Ref<cxx::Entity> _cxxEntity;
 }
-- (std::optional<std::string>) cxx_commodityType;
 @end
 
-@implementation ShipEntity
-- (std::optional<std::string>) cxx_commodityType  { return commodity; }
+@implementation Entity
 @end
 
+cxx::Entity::~Entity() = default;
 
-// The market: food is loved (1), furs liked (0.5), anything else refused.
-@interface Market: OOObject
-- (float) cxx_trumbleOpinionForGood:(const std::string &)good;
-@end
 
-@implementation Market
-- (float) cxx_trumbleOpinionForGood:(const std::string &)good
+// The market: food is loved (1), furs liked (0.5), anything else refused. The C++ market's one
+// member OOTrumble.mm calls (bead oo-9ht.21 deleted the facade an Objective-C Market stood in for).
+float OOCommodityMarket::trumbleOpinionForGood(const std::string &good)
 {
 	return (good == "food") ? 1.0f : (good == "furs") ? 0.5f : 0.0f;
 }
-@end
 
 
-@interface PlayerEntity: OOObject
+// PLAYER: C++ since bead oo-9ht.177 deleted the Objective-C player this stood in for: the members
+// the code under test calls, declared as the game headers declare them (the test imports none
+// that defines the classes), with the stand-in's answers.
+class ShipEntity : public cxx::Entity
 {
-@public
-	GLfloat pitch, roll, heat;
-	float appetite;
-	std::vector<oo::ObjCRef<ShipEntity *>> cargo;
-	std::vector<OOTrumble *> added, removed;
-}
-- (GLfloat) dialRoll;
-- (GLfloat) dialPitch;
-- (GLfloat) hullHeatLevel;
-- (std::vector<oo::ObjCRef<ShipEntity *>> *) cxx_cargo;
-- (float) trumbleAppetiteAccumulator;
-- (void) setTrumbleAppetiteAccumulator:(float)value;
-- (void) addTrumble:(OOTrumble *)papaTrumble;
-- (void) removeTrumble:(OOTrumble *)deadTrumble;
-@end
+public:
+	GLfloat hullHeatLevel();
+	std::vector<oo::ObjCRef<::Entity *>> *getCargo();
+	std::optional<std::string> commodityType();
 
-@implementation PlayerEntity
-- (GLfloat) dialRoll					{ return roll; }
-- (GLfloat) dialPitch					{ return pitch; }
-- (GLfloat) hullHeatLevel				{ return heat; }
-- (std::vector<oo::ObjCRef<ShipEntity *>> *) cxx_cargo	{ return &cargo; }
-- (float) trumbleAppetiteAccumulator	{ return appetite; }
-- (void) setTrumbleAppetiteAccumulator:(float)value	{ appetite = value; }
-- (void) addTrumble:(OOTrumble *)t		{ added.push_back(t); }
-- (void) removeTrumble:(OOTrumble *)t	{ removed.push_back(t); }
-@end
+	std::string commodity;	// a cargo pod's
+};
+
+class PlayerEntity : public ShipEntity
+{
+public:
+	GLfloat dialRoll();
+	GLfloat dialPitch();
+	float trumbleAppetiteAccumulator();
+	void setTrumbleAppetiteAccumulator(float value);
+	void addTrumble(OOTrumble *papaTrumble);
+	void removeTrumble(OOTrumble *deadTrumble);
+
+	GLfloat pitch = {}, roll = {}, heat = {};
+	float appetite = {};
+	std::vector<oo::ObjCRef<::Entity *>> cargo;
+	std::vector<OOTrumble *> added, removed;
+};
+
+GLfloat PlayerEntity::dialRoll()  { return roll; }
+GLfloat PlayerEntity::dialPitch()  { return pitch; }
+GLfloat ShipEntity::hullHeatLevel()  { return static_cast<PlayerEntity *>(this)->heat; }
+std::vector<oo::ObjCRef<::Entity *>> *ShipEntity::getCargo()  { return &static_cast<PlayerEntity *>(this)->cargo; }
+std::optional<std::string> ShipEntity::commodityType()  { return commodity; }
+float PlayerEntity::trumbleAppetiteAccumulator()  { return appetite; }
+void PlayerEntity::setTrumbleAppetiteAccumulator(float value)  { appetite = value; }
+void PlayerEntity::addTrumble(OOTrumble *t)  { added.push_back(t); }
+void PlayerEntity::removeTrumble(OOTrumble *t)  { removed.push_back(t); }
 
 
 @interface Universe: OOObject
 {
 @public
 	OOViewID view;
-	Market *market;
+	oo::Ref<OOCommodityMarket> market;
 }
 - (OOViewID) viewDirection;
-- (Market *) commodityMarket;
+- (OOCommodityMarket *) commodityMarket;
 - (std::optional<std::string>) cxx_displayNameForCommodity:(const std::string &)co_type;
 - (void) cxx_addMessage:(const std::optional<std::string> &)text forCount:(OOTimeDelta)count;
 @end
 
 @implementation Universe
 - (OOViewID) viewDirection	{ return view; }
-- (Market *) commodityMarket	{ return market; }
+- (OOCommodityMarket *) commodityMarket	{ return market.get(); }
 - (std::optional<std::string>) cxx_displayNameForCommodity:(const std::string &)co_type	{ return "Display " + co_type; }
 - (void) cxx_addMessage:(const std::optional<std::string> &)text forCount:(OOTimeDelta)count
 {
@@ -215,13 +241,13 @@ struct OOTrumbleTestAccess
 {
 	static std::string State(OOTrumble *t)
 	{
-		const cxx::OOTrumble &c = *oo::ToCxx(t);
+		const OOTrumble &c = *t;
 		char buffer[1024];
-		uint16_t *digram = [t digram];
+		uint16_t *digram = t->getDigram();
 		std::snprintf(buffer, sizeof buffer,
 			"digram %u %u size %.5g/%.5g growth %.5g hunger %.5g discomfort %.5g rot %.5g vel %.5g pos (%.5g %.5g) mov (%.5g %.5g) anim %d next %d time %.5g dur %.5g eyes %d mouth %d eye %.5g mouth %.5g spawn %d",
-			digram[0], digram[1], [t size], c.max_size, c.growth_rate, [t hunger], [t discomfort],
-			[t rotation], c.rotational_velocity, [t position].x, [t position].y, [t movement].x, [t movement].y,
+			digram[0], digram[1], t->getSize(), c.max_size, c.growth_rate, t->getHunger(), t->getDiscomfort(),
+			t->getRotation(), c.rotational_velocity, t->getPosition().x, t->getPosition().y, t->getMovement().x, t->getMovement().y,
 			(int)c.animation, (int)c.nextAnimation,
 			c.animationTime, c.animationDuration,
 			(int)c.eyeFrame, (int)c.mouthFrame,
@@ -234,9 +260,24 @@ struct OOTrumbleTestAccess
 
 namespace {
 
+// A cargo pod: a C++ ship under its object (autoreleased, as [[[ShipEntity alloc] init] autorelease]
+// was), carrying the good.
+std::map<cxx::Entity *, ::Entity *> sObjects;	// what oo::ToObjC answers
+
+::Entity *NewPod(const char *good)
+{
+	oo::Ref<ShipEntity> ship = oo::makeRef<ShipEntity>();
+	ship->commodity = good;
+	::Entity *pod = [[[::Entity alloc] init] autorelease];
+	pod->_cxxEntity = ship;
+	sObjects[ship.get()] = pod;
+	return pod;
+}
+
+
 PlayerEntity *Player()
 {
-	static PlayerEntity *player = [[PlayerEntity alloc] init];
+	static PlayerEntity *player = new PlayerEntity;
 	return player;
 }
 
@@ -246,7 +287,7 @@ void Reset()
 	if (gSharedUniverse == nil)
 	{
 		gSharedUniverse = [[Universe alloc] init];
-		gSharedUniverse->market = [[Market alloc] init];
+		gSharedUniverse->market = oo::makeRef<OOCommodityMarket>();
 	}
 	gSharedUniverse->view = VIEW_FORWARD;
 	PlayerEntity *p = Player();
@@ -262,9 +303,9 @@ void Reset()
 
 
 // Everything a trumble is, in one line.
-std::string State(OOTrumble *t)
+std::string State(const oo::Ref<OOTrumble> &t)
 {
-	return OOTrumbleTestAccess::State(t);
+	return OOTrumbleTestAccess::State(t.get());
 }
 
 // The savegame dictionary, one key=value per entry.
@@ -285,15 +326,15 @@ std::string Dictionary(const oo::PList &dict)
 }
 
 
-OOTrumble *Trumble(const char *digram)
+oo::Ref<OOTrumble> Trumble(const char *digram)
 {
-	return [[[OOTrumble alloc] initForPlayer:Player() digram:digram] autorelease];
+	return oo::makeRef<OOTrumble>(Player(), digram);
 }
 
 
-void Run(OOTrumble *t, int ticks, double dt = 0.1)
+void Run(const oo::Ref<OOTrumble> &t, int ticks, double dt = 0.1)
 {
-	for (int i = 0; i < ticks; i++)  [t updateTrumble:dt];
+	for (int i = 0; i < ticks; i++)  t->updateTrumble(dt);
 }
 
 
@@ -348,16 +389,16 @@ OO_TEST(setUp)
 	@autoreleasepool
 	{
 		Reset();
-		OOTrumble *t = [[[OOTrumble alloc] initForPlayer:Player()] autorelease];
+		oo::Ref<OOTrumble> t = oo::makeRef<OOTrumble>(Player());
 		OO_CHECK(expect(State(t)));
 		OO_CHECK(expect(Log()));
 		for (const char *digram : { "Zq", "@G", "8", "" })
 		{
 			Reset();
-			OO_CHECK(expect(State([[[OOTrumble alloc] initForPlayer:Player() digram:digram] autorelease])));
+			OO_CHECK(expect(State(oo::makeRef<OOTrumble>(Player(), digram))));
 			OO_CHECK(expect(Log()));
 		}
-		OO_CHECK(expect(State([[[OOTrumble alloc] init] autorelease])));
+		OO_CHECK(expect(State(oo::makeRef<OOTrumble>())));
 	}
 }
 
@@ -373,27 +414,27 @@ OO_TEST(spawningAndActions)
 	@autoreleasepool
 	{
 		Reset();
-		OOTrumble *parent = Trumble("Zq");
-		OOTrumble *child = Trumble("a1");
-		[child spawnFrom:parent];
+		oo::Ref<OOTrumble> parent = Trumble("Zq");
+		oo::Ref<OOTrumble> child = Trumble("a1");
+		child->spawnFrom(parent.get());
 		OO_CHECK(expect(State(child)));
-		OOTrumble *orphan = Trumble("a1");
-		[orphan spawnFrom:nil];
+		oo::Ref<OOTrumble> orphan = Trumble("a1");
+		orphan->spawnFrom(nullptr);
 		OO_CHECK(expect(State(orphan)));
 
 		Reset();
-		OOTrumble *t = Trumble("a1");
+		oo::Ref<OOTrumble> t = Trumble("a1");
 		std::string actions;
-		[t actionIdle];		actions += State(t).substr(State(t).find("next")) + " / ";
-		[t actionBlink];	actions += State(t).substr(State(t).find("next")) + " / ";
-		[t actionSnarl];	actions += State(t).substr(State(t).find("next")) + " / ";
-		[t actionProot];	actions += State(t).substr(State(t).find("next")) + " / ";
-		[t actionShudder];	actions += State(t).substr(State(t).find("next")) + " / ";
-		[t actionStoned];	actions += State(t).substr(State(t).find("next")) + " / ";
-		[t actionPop];		actions += State(t).substr(State(t).find("next")) + " / ";
-		[t actionSleep];	actions += State(t).substr(State(t).find("next")) + " / ";
-		[t actionSpawn];	actions += State(t).substr(State(t).find("next")) + " / ";
-		[t randomizeMotionX];	[t randomizeMotionY];	[t calcGrowthRate];
+		t->actionIdle();		actions += State(t).substr(State(t).find("next")) + " / ";
+		t->actionBlink();	actions += State(t).substr(State(t).find("next")) + " / ";
+		t->actionSnarl();	actions += State(t).substr(State(t).find("next")) + " / ";
+		t->actionProot();	actions += State(t).substr(State(t).find("next")) + " / ";
+		t->actionShudder();	actions += State(t).substr(State(t).find("next")) + " / ";
+		t->actionStoned();	actions += State(t).substr(State(t).find("next")) + " / ";
+		t->actionPop();		actions += State(t).substr(State(t).find("next")) + " / ";
+		t->actionSleep();	actions += State(t).substr(State(t).find("next")) + " / ";
+		t->actionSpawn();	actions += State(t).substr(State(t).find("next")) + " / ";
+		t->randomizeMotionX();	t->randomizeMotionY();	t->calcGrowthRate();
 		actions += State(t);
 		OO_CHECK(expect(actions));
 	}
@@ -425,7 +466,7 @@ OO_TEST(living)
 			gSharedUniverse->view = view;
 			PlayerEntity *p = Player();
 			p->pitch = 0.5f;	p->roll = -0.25f;	p->heat = 0.5f;
-			OOTrumble *t = Trumble("Zq");
+			oo::Ref<OOTrumble> t = Trumble("Zq");
 			Run(t, 50);
 			OO_CHECK(expect(State(t)));
 			Run(t, 400);
@@ -447,14 +488,14 @@ OO_TEST(savegame)
 	@autoreleasepool
 	{
 		Reset();
-		OOTrumble *t = Trumble("Zq");
+		oo::Ref<OOTrumble> t = Trumble("Zq");
 		Run(t, 30);
-		oo::PList dict = [t dictionary];
+		oo::PList dict = t->dictionary();
 		OO_CHECK(expect(Dictionary(dict)));
-		OOTrumble *copy = Trumble("a1");
-		[copy setFromDictionary:dict];
+		oo::Ref<OOTrumble> copy = Trumble("a1");
+		copy->setFromDictionary(dict);
 		OO_CHECK(expect(State(copy)));
-		OO_CHECK(expect(Dictionary([copy dictionary])));
+		OO_CHECK(expect(Dictionary(copy->dictionary())));
 	}
 }
 
@@ -477,18 +518,16 @@ OO_TEST(feedingPopAndSpawn)
 		PlayerEntity *p = Player();
 		for (const char *good : { "gems", "furs", "food" })
 		{
-			ShipEntity *pod = [[[ShipEntity alloc] init] autorelease];
-			pod->commodity = good;
-			p->cargo.push_back(oo::ObjCRef<ShipEntity *>(pod));
+			p->cargo.push_back(oo::ObjCRef<::Entity *>(NewPod(good)));
 		}
-		ShipEntity *food = p->cargo[2].get();
+		::Entity *food = p->cargo[2].get();
 		p->appetite = 9.5f;
-		OOTrumble *t = Trumble("Zq");
-		oo::PList::Dict state = *[t dictionary].getIf<oo::PList::Dict>();
+		oo::Ref<OOTrumble> t = Trumble("Zq");
+		oo::PList::Dict state = *t->dictionary().getIf<oo::PList::Dict>();
 		state["hunger"] = oo::PList(0.9);
 		state["size"] = oo::PList(1.1);
 		state["discomfort"] = oo::PList(0.1);
-		[t setFromDictionary:oo::PList(state)];
+		t->setFromDictionary(oo::PList(state));
 		Run(t, 1);
 		OO_CHECK(expect(State(t)));
 		OO_CHECK(expect(Log()));
@@ -497,19 +536,19 @@ OO_TEST(feedingPopAndSpawn)
 		int ticks = 0;
 		while (p->added.empty() && ticks < 5000)  { Run(t, 1); ticks++; }
 		OO_CHECK(ticks == 119);
-		OO_CHECK(p->added.size() == 1 && p->added[0] == t);
+		OO_CHECK(p->added.size() == 1 && p->added[0] == t.get());
 		OO_CHECK(expect(State(t)));
 
 		// Too uncomfortable: pops, and asks to be removed.
 		Reset();
 		t = Trumble("@G");
-		state = *[t dictionary].getIf<oo::PList::Dict>();
+		state = *t->dictionary().getIf<oo::PList::Dict>();
 		state["discomfort"] = oo::PList(1.0);
-		[t setFromDictionary:oo::PList(state)];
+		t->setFromDictionary(oo::PList(state));
 		ticks = 0;
 		while (p->removed.empty() && ticks < 5000)  { Run(t, 1); ticks++; }
 		OO_CHECK(ticks == 40);
-		OO_CHECK(p->removed.size() == 1 && p->removed[0] == t);
+		OO_CHECK(p->removed.size() == 1 && p->removed[0] == t.get());
 		OO_CHECK(expect(State(t)));
 		OO_CHECK(expect(Log()));
 	}
@@ -518,61 +557,35 @@ OO_TEST(feedingPopAndSpawn)
 
 OO_TEST(cxxClass)
 {
-	// The same trumble as the Objective-C API's, and its growth.
+	// The C++ API: a trumble and its growth.
 	Reset();
-	oo::Ref<cxx::OOTrumble> t = oo::makeRef<cxx::OOTrumble>(Player(), "Zq");
+	oo::Ref<OOTrumble> t = oo::makeRef<OOTrumble>(Player(), "Zq");
 	OO_CHECK(t->getDigram()[0] == 'Z' && t->getDigram()[1] == 'q');
 	OO_CHECK(std::fabs(t->getSize() - 0.91782f) < 1e-5f && t->getHunger() == 0.0f && t->getDiscomfort() == 0.0f);
 	OO_CHECK(t->getPosition().x == 14 && t->getPosition().y == -126);
 	OO_CHECK(std::fabs(t->getRotation() - -7.2588f) < 1e-4f);
 	OO_CHECK(std::fabs(t->getMovement().y - 16.861f) < 1e-3f);
 	Reset();
-	OOTrumble *same = Trumble("Zq");
-	OO_CHECK(State(same) == State(oo::ToObjC(t)));
+	OO_CHECK(State(Trumble("Zq")) == State(t));
 
-	oo::Ref<cxx::OOTrumble> child = oo::makeRef<cxx::OOTrumble>(Player());
+	oo::Ref<OOTrumble> child = oo::makeRef<OOTrumble>(Player());
 	child->spawnFrom(t.get());
 	OO_CHECK(child->getSize() == 0.5f && child->getHunger() == 0.25f);
 	child->spawnFrom(nullptr);
 	OO_CHECK(child->getSize() == 0.5f);
 
-	oo::Ref<cxx::OOTrumble> blank = oo::makeRef<cxx::OOTrumble>();
+	oo::Ref<OOTrumble> blank = oo::makeRef<OOTrumble>();
 	OO_CHECK(blank->getSize() == 0.0f && blank->getDigram()[0] == 0);
 	OO_CHECK(blank->dictionary().count() == 9);
 }
 
 
-OO_TEST(facadeNilStaysNil)
+// The pods' objects (Entity+ObjCBridge.mm's, which the test does not link).
+namespace oo { ::Entity *ToObjC(cxx::Entity *entity); }
+::Entity *oo::ToObjC(cxx::Entity *entity)
 {
-	OOTrumble *none = nil;
-	OO_CHECK(oo::ToCxx(none) == nullptr);
-	OO_CHECK(oo::ToObjC(static_cast<cxx::OOTrumble *>(nullptr)) == nil);
-	OO_CHECK([none size] == 0.0f);
-	OO_CHECK([none dictionary].isNull());
-}
-
-
-OO_TEST(facadeIdentity)
-{
-	@autoreleasepool
-	{
-		Reset();
-		OOTrumble *t = Trumble("a1");
-		OO_CHECK(oo::ToObjC(oo::ToCxx(t)) == t);
-		OOTrumble *plain = [[[OOTrumble alloc] init] autorelease];
-		OO_CHECK(oo::ToObjC(oo::ToCxx(plain)) == plain);
-		OOTrumble *defaultDigram = [[[OOTrumble alloc] initForPlayer:Player()] autorelease];
-		OO_CHECK(oo::ToObjC(oo::ToCxx(defaultDigram)) == defaultDigram);
-
-		// A C++ trumble crosses to one facade, and back to itself.
-		oo::Ref<cxx::OOTrumble> cxxTrumble = oo::makeRef<cxx::OOTrumble>(Player(), "Zq");
-		OOTrumble *facade = oo::ToObjC(cxxTrumble);
-		OO_CHECK(facade != nil && facade == oo::ToObjC(cxxTrumble.get()));
-		OO_CHECK(oo::ToCxx(facade) == cxxTrumble.get());
-
-		// What the trumble hands the player is the player's own object (see feedingPopAndSpawn).
-		OO_CHECK(Trumble("a1") != Trumble("a1"));
-	}
+	auto found = sObjects.find(entity);
+	return found != sObjects.end() ? found->second : nil;
 }
 
 

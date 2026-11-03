@@ -37,7 +37,8 @@ MA 02110-1301, USA.
 #define WORMHOLE_SHRINK_RATE 4000.0
 #define WORMHOLE_LEADER_SPEED_FACTOR 0.25
 
-@class ShipEntity, Universe;
+@class Universe;
+class ShipEntity; // C++
 
 typedef enum {
     WH_SCANINFO_NONE = 0,
@@ -50,21 +51,24 @@ typedef enum {
 
 // A ship in transit (the old entry dictionary's "ship", "time" and "shipBeacon").
 struct OOWormholeTransit {
-    oo::ObjCRef<::ShipEntity*> ship;
+    oo::ObjCRef<::Entity*> ship;
     double time; // arrival relative to the wormhole's arrival_time
     std::optional<std::string> beacon; // the ship's beacon code when it entered, if any
 };
 
-namespace cxx {
-
-class WormholeEntity : public Entity {
+/*	C++ only (its Objective-C facade is deleted): the player and the ships make it with oo::makeRef<WormholeEntity>() and an
+        initialiser, hand it to Objective-C with oo::NewEntityFacade (its object is the root Entity's
+        facade), and find it again with dynamic_cast. The universe's and the player's lists keep the
+        objects as oo::ObjCRef<::Entity *>.
+*/
+class WormholeEntity : public cxx::Entity {
 public:
     // The private -init's body (after [super init]: the constructor ran Entity's). The initialisers
     // below run it first, as they sent [self init].
     void init();
 
-    /*	-initWithDict: and -initWormholeTo:fromShip:'s bodies. The facade runs them once it holds
-            this object (amendment oo-0mxi item 2), because the player and the ships allocate wormholes.
+    /*	-initWithDict: and -initWormholeTo:fromShip:'s bodies, run on a new wormhole (after init(), as
+            the facade ran them once it held this object).
     */
     void initWithDict(const oo::PList& dict);
     void initWormholeTo(OOSystemID s, ::ShipEntity* ship);
@@ -111,6 +115,11 @@ public:
     void drawImmediate(bool immediate, bool translucent) override;
     void dumpSelfState() override;
 
+    // The binding's bodies (OOJSWormhole.mm), which the facade forwarded to.
+    JSClassID jsClassID() override;
+    std::optional<std::string> jsClassName() override;
+    bool isVisibleToScripts() override;
+
 private:
     const char* scanInfoString();
 
@@ -140,9 +149,6 @@ private:
     bool containsPlayer = { };
 };
 
-} // namespace cxx
-
-// Transitional: the Objective-C WormholeEntity, for the player, the ships, the universe, the HUD and
-// the scripting bindings, which make it and message it. Deleted, with namespace cxx above, by the
-// bridge's deletion bead.
-#import "WormholeEntity+ObjCBridge.h"
+// -[WormholeEntity shipsInTransit] of a wormhole's Objective-C object (the root's
+// facade), for the debug monitor's dump; a null PList for nil or another entity.
+oo::PList WormholeEntityShipsInTransit(::Entity* entity);

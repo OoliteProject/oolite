@@ -24,20 +24,18 @@ MA 02110-1301, USA.
 
 */
 
+#import "PlayerEntity.h"
+
+/*	The category PlayerEntity (StickProfile) is members of
+        PlayerEntity, declared in PlayerEntity.h and defined in PlayerEntityStickProfile.mm. Its Objective-C interface,
+        for the callers that remained, was the category of the same name in PlayerEntity+ObjCBridge.h (deleted),
+        which PlayerEntity.h imports. This header stays for the files that import it.
+*/
 #import "GuiDisplayGen.h"
 #import "MyOpenGLView.h"
 #import "OOJoystickProfile.h"
-#import "PlayerEntity.h"
 #import "Universe.h"
 #include "oofnd/Ref.hpp"
-
-@interface PlayerEntity (StickProfile)
-
-- (void)setGuiToStickProfileScreen:(GuiDisplayGen*)gui;
-- (void)stickProfileInputHandler:(GuiDisplayGen*)gui view:(MyOpenGLView*)gameView;
-- (void)stickProfileGraphAxisProfile:(GLfloat)alpha screenAt:(Vector)screenAt screenSize:(NSSize)screenSize;
-
-@end
 
 namespace cxx {
 class OOJoystickManager;

@@ -36,8 +36,6 @@ SOFTWARE.
 
 #include "oofnd/String.hpp"
 
-namespace cxx {
-
 oo::Ref<OORoleSet> OORoleSet::roleSetWithString(const std::string& roleString)
 {
     oo::Ref<OORoleSet> result = oo::makeRef<OORoleSet>();
@@ -180,7 +178,7 @@ std::optional<std::string> OORoleSet::anyRole()
     }
     if (!role.has_value()) {
         role = _rolesAndProbabilities.begin()->first;
-        OO_LOG("roleSet.anyRole.failed", "Could not get a weighted-random role from role set {}, returning unweighted selection {}. TotalProb: {:g}, selected: {:g}, prob at end: {:f}", oo::DescriptionOf(oo::ToObjC(this)), role.value_or("(null)"), _totalProb, selected, prob);
+        OO_LOG("roleSet.anyRole.failed", "Could not get a weighted-random role from role set {}, returning unweighted selection {}. TotalProb: {:g}, selected: {:g}, prob at end: {:f}", oo::str::format("<OORoleSet %s>{%s}", oo::str::pointerDescription(this).c_str(), descriptionComponents().value_or("").c_str()), role.value_or("(null)"), _totalProb, selected, prob);
     }
     return role;
 }
@@ -251,8 +249,6 @@ bool OORoleSet::initWithRolesAndProbabilities(const std::map<std::string, float>
 
     return true;
 }
-
-} // namespace cxx
 
 std::map<std::string, float> OOParseRolesFromString(std::string_view string)
 {

@@ -93,9 +93,6 @@ MA 02110-1301, USA.
 
 - (void)warnAboutHostiles;
 
-- (CollisionRegion*)collisionRegion;
-- (void)setCollisionRegion:(CollisionRegion*)region;
-
 - (void)setUniversalID:(OOUniversalID)uid;
 - (OOUniversalID)universalID;
 
@@ -105,8 +102,8 @@ MA 02110-1301, USA.
 
 - (void)setOwner:(Entity*)ent;
 - (id)owner;
-- (ShipEntity*)parentEntity; // owner if self is subentity of owner, otherwise nil.
-- (ShipEntity*)rootShipEntity; // like parentEntity, but recursive.
+- (Entity*)parentEntity; // owner if self is subentity of owner, otherwise nil.
+- (Entity*)rootShipEntity; // like parentEntity, but recursive.
 
 - (void)setPosition:(HPVector)posn;
 - (void)setPositionX:(OOHPScalar)x y:(OOHPScalar)y z:(OOHPScalar)z;
@@ -206,9 +203,23 @@ MA 02110-1301, USA.
 
 @end
 
-@protocol OOHUDBeaconIcon;
+class OOHUDBeaconIcon; // OOPolygonSprite.h
 
 // Methods that must be supported by entities with beacons, regardless of type.
+// Methods that must be supported by subentities, regardless of type (moved here from the deleted
+// OOEntityWithDrawable+ObjCBridge.h). Every adopter is C++ and answers them through
+// cxx::OOSubEntityInterface; the protocol stays a type qualifier (Entity<OOSubEntity> *) until the
+// root's facade goes.
+@protocol OOSubEntity
+
+- (void)rescaleBy:(GLfloat)factor;
+- (void)rescaleBy:(GLfloat)factor writeToCache:(BOOL)writeToCache;
+
+// Separate drawing path for subentities of ships.
+- (void)drawSubEntityImmediate:(bool)immediate translucent:(bool)translucent;
+
+@end
+
 @protocol OOBeaconEntity
 
 - (OOComparisonResult)compareBeaconCodeWith:(Entity<OOBeaconEntity>*)other;
@@ -217,7 +228,7 @@ MA 02110-1301, USA.
 - (std::optional<std::string>)beaconLabel; // flipped with its family (bead oo-3rb.260)
 - (void)setBeaconLabel:(const std::optional<std::string>&)blabel; // flipped with its family (bead oo-3rb.260)
 - (BOOL)isBeacon;
-- (id<OOHUDBeaconIcon>)beaconDrawable;
+- (OOHUDBeaconIcon*)beaconDrawable;
 - (Entity<OOBeaconEntity>*)prevBeacon;
 - (Entity<OOBeaconEntity>*)nextBeacon;
 - (void)setPrevBeacon:(Entity<OOBeaconEntity>*)beaconShip;
@@ -240,6 +251,16 @@ MA 02110-1301, USA.
 
 @end
 
+// Declared by ShipEntity+ObjCBridge.h until its deletion.
+@interface Entity (SubEntityRelationship)
+
+/*	For the common case of testing whether foo is a ship, bar is a ship, bar
+        is a subentity of foo and this relationship is represented sanely.
+*/
+- (BOOL)isShipWithSubEntityShip:(Entity*)other;
+
+@end
+
 /*	The informal protocols a shader binding target implements, categories of the Objective-C root
         that the entities implement (Entity's facade, ShipEntity). They are not the material's: they
         stay Objective-C until the entities convert (ADR-0056 amendment of bead oo-3kqi, item 5), moved
@@ -257,6 +278,25 @@ MA 02110-1301, USA.
 @interface OOObject (OOShaderMaterialTargetOptional)
 
 - (uint32_t)randomSeedForShaders;
+
+@end
+
+/*	The category Entity (OOJavaScriptExtensions): the engine wraps an entity's
+        object by -oo_jsValueInContext: and the bindings ask it these, so the category moved, unchanged,
+        from EntityOOJavaScriptExtensions+ObjCBridge.h/.mm to the root's facade, which answers each by
+        asking the C++ part (its virtual members, which a subclass overrides) or the function that holds
+        the body (EntityOOJavaScriptExtensions.h). It goes with the root's facade.
+*/
+@interface Entity (OOJavaScriptExtensions)
+
+- (BOOL)isVisibleToScripts;
+
+- (std::optional<std::string>)cxx_oo_jsClassName;
+
+// Internal:
+// The JS class of the entity's wrapper object; subclasses override this.
+- (JSClassID)oo_jsClassID;
+- (void)deleteJSSelf;
 
 @end
 
@@ -283,7 +323,7 @@ std::string EntityClassName(cxx::Entity* entity);
 
 /*	The C++ part of an Objective-C entity, in two halves. ObjCEntity<Base> derives from Base, the
         C++ class of the Objective-C class's nearest converted superclass (cxx::Entity, or
-        cxx::OOEntityWithDrawable: amendment oo-up4b item 1), and each of its virtual members messages
+        OOEntityWithDrawable: amendment oo-up4b item 1), and each of its virtual members messages
         the Objective-C object, so the subclass's override runs, as it did when the base class was
         Objective-C. ObjCEntityLink is its non-template half: the object, and a super...() member per
         virtual member that is Base's own, which is what [super ...] (or a subclass that does not

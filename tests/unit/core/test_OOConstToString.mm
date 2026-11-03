@@ -23,6 +23,7 @@
 
 #include "oo_test.hpp"
 
+#include <cstdlib>
 #include <string>
 #include <vector>
 
@@ -72,7 +73,7 @@ oo::PList Good(std::initializer_list<std::pair<const char *, oo::PList>> entries
 @interface Universe: OOObject
 {
 @public
-	OOCommodityMarket	*market;
+	oo::Ref<OOCommodityMarket>	market;
 }
 - (oo::PList) cxx_equipmentData;
 - (oo::PList) cxx_equipmentDataOutfitting;
@@ -90,7 +91,7 @@ oo::PList Good(std::initializer_list<std::pair<const char *, oo::PList>> entries
 	return &descriptions;
 }
 - (std::optional<std::string>) cxx_descriptionForKey:(const std::string &)key	{ return std::nullopt; }
-- (OOCommodityMarket *) commodityMarket		{ return market; }
+- (OOCommodityMarket *) commodityMarket		{ return market.get(); }
 @end
 
 Universe *gSharedUniverse = nil;
@@ -133,28 +134,42 @@ Random_Seed OOStringExpanderDefaultRandomSeed(void)
 @end
 
 
-@interface OOScript: OOObject
-+ (id) cxx_jsScriptFromFileNamed:(const std::string &)fileName properties:(const oo::PList &)properties;
-@end
-
-@implementation OOScript
-+ (id) cxx_jsScriptFromFileNamed:(const std::string &)fileName properties:(const oo::PList &)properties	{ return nil; }
-@end
+#import "OOScript.h"
 
 
-@interface PlayerEntity: OOObject
-- (oo::PList) cxx_processKeyCode:(const oo::PList &)key_def;
-- (std::optional<std::string>) validateKey:(const std::string &)key checkKeys:(const oo::PList &)check_keys;
-- (oo::PList) cxx_missionVariableForKey:(const std::string &)key;
-@end
+// OOScript's members that OOEquipmentType.mm calls (the Objective-C OOScript stand-in until bead
+// oo-9ht.133 deleted the facade), and the rest of its virtual members, for the vtable.
+std::optional<std::string> OOScript::descriptionComponents()	{ return std::nullopt; }
+std::optional<std::string> OOScript::name()					{ return std::nullopt; }
+std::optional<std::string> OOScript::scriptDescription()		{ return std::nullopt; }
+std::optional<std::string> OOScript::version()				{ return std::nullopt; }
+bool OOScript::requiresTickle()								{ return false; }
+void OOScript::runWithTarget(::Entity *)						{}
+bool OOScript::callMethod(JSAtom, JSContext *, JSValueConst *, int, JSValue *)	{ return false; }
+std::string OOScript::className() const						{ return "OOScript"; }
+std::string OOScript::description() const						{ return "<OOScript>"; }
+JSValue OOScript::jsValueInContext(JSContext *)	{ std::abort(); }	// never reached (no engine is linked)
+void OOScript::clearJSSelf(JSValueConst)					{}
+void OOScriptAutorelease(oo::Ref<OOScript>)					{}
+oo::Ref<OOScript> OOScript::jsScriptFromFileNamed(const std::string &, const oo::PList &)	{ return nullptr; }
 
-@implementation PlayerEntity
-- (oo::PList) cxx_processKeyCode:(const oo::PList &)key_def	{ return key_def; }
-- (std::optional<std::string>) validateKey:(const std::string &)key checkKeys:(const oo::PList &)check_keys	{ return std::nullopt; }
-- (oo::PList) cxx_missionVariableForKey:(const std::string &)key	{ return oo::PList(); }
-@end
 
-PlayerEntity *gOOPlayer = nil;
+// PLAYER: C++ since bead oo-9ht.177 deleted the Objective-C player this stood in for; the members
+// the code under test calls, declared as PlayerEntity.h declares them (the test imports no game
+// header that defines the class), with the same answers.
+class PlayerEntity
+{
+public:
+	oo::PList processKeyCode(const oo::PList &key_def);
+	std::optional<std::string> validateKey(const std::string &key, const oo::PList &check_keys);
+	oo::PList missionVariableForKey(const std::string &key);
+};
+
+oo::PList PlayerEntity::processKeyCode(const oo::PList &key_def)	{ return key_def; }
+std::optional<std::string> PlayerEntity::validateKey(const std::string &key, const oo::PList &check_keys)	{ return std::nullopt; }
+oo::PList PlayerEntity::missionVariableForKey(const std::string &key)	{ return oo::PList(); }
+
+PlayerEntity *gOOPlayer = nullptr;
 
 
 void cxx_OOStandardsDeprecated(const std::string &message)	{}
@@ -169,14 +184,14 @@ namespace {
 void LoadEquipment()
 {
 	if (gSharedUniverse == nil)  gSharedUniverse = [[Universe alloc] init];
-	if (gOOPlayer == nil)  gOOPlayer = [[PlayerEntity alloc] init];
-	[OOEquipmentType loadEquipment];
+	if (gOOPlayer == nullptr)  gOOPlayer = new PlayerEntity;	// never deleted
+	OOEquipmentType::loadEquipment();
 }
 
 
 std::string IdentifierOf(OOWeaponType weapon)
 {
-	return weapon != nil ? [weapon cxx_identifier].value_or("-") : "nil";
+	return weapon != nil ? weapon->identifier().value_or("-") : "nil";
 }
 
 }	// namespace
@@ -189,7 +204,7 @@ OO_TEST(weaponTypeIdentifiers)
 	@autoreleasepool
 	{
 		LoadEquipment();
-		OOWeaponType pulse = [OOEquipmentType cxx_equipmentTypeWithIdentifier:"EQ_WEAPON_PULSE_LASER"];
+		OOWeaponType pulse = OOEquipmentType::equipmentTypeWithIdentifier("EQ_WEAPON_PULSE_LASER").get();
 		OO_CHECK(pulse != nil);
 
 		OO_CHECK(cxx_OOStringFromWeaponType(pulse) == std::optional<std::string>("EQ_WEAPON_PULSE_LASER"));
@@ -207,21 +222,21 @@ OO_TEST(sloppyLookUp)
 	@autoreleasepool
 	{
 		LoadEquipment();
-		OOWeaponType pulse = [OOEquipmentType cxx_equipmentTypeWithIdentifier:"EQ_WEAPON_PULSE_LASER"];
-		OOWeaponType none = [OOEquipmentType cxx_equipmentTypeWithIdentifier:"EQ_WEAPON_NONE"];
+		OOWeaponType pulse = OOEquipmentType::equipmentTypeWithIdentifier("EQ_WEAPON_PULSE_LASER").get();
+		OOWeaponType none = OOEquipmentType::equipmentTypeWithIdentifier("EQ_WEAPON_NONE").get();
 		OO_CHECK(pulse != nil && none != nil && pulse != none);
 
 		// The identifier itself, then with "EQ_" put in front, then EQ_WEAPON_NONE.
 		OO_CHECK(cxx_OOWeaponTypeFromEquipmentIdentifierSloppy("EQ_WEAPON_PULSE_LASER") == pulse);
 		OO_CHECK(cxx_OOWeaponTypeFromEquipmentIdentifierSloppy("WEAPON_PULSE_LASER") == pulse);
-		OO_CHECK(cxx_OOWeaponTypeFromEquipmentIdentifierSloppy("LASER_WITHOUT_PREFIX") == [OOEquipmentType cxx_equipmentTypeWithIdentifier:"LASER_WITHOUT_PREFIX"]);
-		OO_CHECK(cxx_OOWeaponTypeFromEquipmentIdentifierSloppy("EQ_FUEL") == [OOEquipmentType cxx_equipmentTypeWithIdentifier:"EQ_FUEL"]);
+		OO_CHECK(cxx_OOWeaponTypeFromEquipmentIdentifierSloppy("LASER_WITHOUT_PREFIX") == OOEquipmentType::equipmentTypeWithIdentifier("LASER_WITHOUT_PREFIX").get());
+		OO_CHECK(cxx_OOWeaponTypeFromEquipmentIdentifierSloppy("EQ_FUEL") == OOEquipmentType::equipmentTypeWithIdentifier("EQ_FUEL").get());
 		OO_CHECK(cxx_OOWeaponTypeFromEquipmentIdentifierSloppy("PULSE_LASER") == none);
 		OO_CHECK(cxx_OOWeaponTypeFromEquipmentIdentifierSloppy("EQ_NO_SUCH_THING") == none);
 		OO_CHECK(cxx_OOWeaponTypeFromEquipmentIdentifierSloppy("") == none);
 
 		// The other spellings are the same look-up.
-		OO_CHECK(cxx_OOWeaponTypeFromEquipmentIdentifierStrict("WEAPON_BEAM_LASER") == [OOEquipmentType cxx_equipmentTypeWithIdentifier:"EQ_WEAPON_BEAM_LASER"]);
+		OO_CHECK(cxx_OOWeaponTypeFromEquipmentIdentifierStrict("WEAPON_BEAM_LASER") == OOEquipmentType::equipmentTypeWithIdentifier("EQ_WEAPON_BEAM_LASER").get());
 		OO_CHECK(cxx_OOWeaponTypeFromString("WEAPON_PULSE_LASER") == pulse);
 		OO_CHECK(cxx_OOWeaponTypeFromString("nonsense") == none);
 
@@ -229,7 +244,7 @@ OO_TEST(sloppyLookUp)
 		OO_CHECK(cxx_OOWeaponTypeFromEquipmentIdentifierLegacy("2") == pulse);
 		OO_CHECK(IdentifierOf(cxx_OOWeaponTypeFromEquipmentIdentifierLegacy("3")) == "EQ_WEAPON_BEAM_LASER");
 		OO_CHECK(cxx_OOWeaponTypeFromEquipmentIdentifierLegacy("4") == none);	// no mining laser here
-		OO_CHECK(cxx_OOWeaponTypeFromEquipmentIdentifierLegacy("EQ_FUEL") == [OOEquipmentType cxx_equipmentTypeWithIdentifier:"EQ_FUEL"]);
+		OO_CHECK(cxx_OOWeaponTypeFromEquipmentIdentifierLegacy("EQ_FUEL") == OOEquipmentType::equipmentTypeWithIdentifier("EQ_FUEL").get());
 	}
 }
 
@@ -243,14 +258,14 @@ OO_TEST(massUnitOfACommodity)
 		LoadEquipment();
 
 		// No market: a message to nil answered 0, UNITS_TONS.
-		gSharedUniverse->market = nil;
+		gSharedUniverse->market = nullptr;
 		OO_CHECK(cxx_DisplayStringForMassUnitForCommodity("gold") == std::optional<std::string>("t"));
 
-		OOCommodityMarket *market = [[[OOCommodityMarket alloc] init] autorelease];
-		[market cxx_setGood:"gold" withInfo:Good({ { "name", oo::PList("Gold") }, { "quantity_unit", oo::PList(1) } })];
-		[market cxx_setGood:"gems" withInfo:Good({ { "name", oo::PList("Gem-stones") }, { "quantity_unit", oo::PList(2) } })];
-		[market cxx_setGood:"food" withInfo:Good({ { "name", oo::PList("Food") }, { "quantity_unit", oo::PList(0) } })];
-		[market cxx_setGood:"alloys" withInfo:Good({ { "name", oo::PList("Alloys") }, { "quantity_unit", oo::PList(7) } })];
+		oo::Ref<OOCommodityMarket> market = oo::makeRef<OOCommodityMarket>();
+		market->setGood("gold", Good({ { "name", oo::PList("Gold") }, { "quantity_unit", oo::PList(1) } }));
+		market->setGood("gems", Good({ { "name", oo::PList("Gem-stones") }, { "quantity_unit", oo::PList(2) } }));
+		market->setGood("food", Good({ { "name", oo::PList("Food") }, { "quantity_unit", oo::PList(0) } }));
+		market->setGood("alloys", Good({ { "name", oo::PList("Alloys") }, { "quantity_unit", oo::PList(7) } }));
 		gSharedUniverse->market = market;
 
 		OO_CHECK(cxx_DisplayStringForMassUnitForCommodity("gold") == std::optional<std::string>("kg"));
@@ -259,9 +274,16 @@ OO_TEST(massUnitOfACommodity)
 		OO_CHECK(cxx_DisplayStringForMassUnitForCommodity("unobtainium") == std::optional<std::string>("t"));
 		OO_CHECK(cxx_DisplayStringForMassUnitForCommodity("alloys") == cxx_DisplayStringForMassUnit(UNITS_UNKNOWN));
 
-		gSharedUniverse->market = nil;
+		gSharedUniverse->market = nullptr;
 	}
 }
+
+
+// The JS glue of OOEquipmentType (OOJSPrivateObject), defined in OOJSEquipmentInfo.mm, which
+// this test does not link (bead oo-6symp.3): the vtable names these.
+JSValue OOEquipmentType::jsValueInContext(JSContext *)  { return JS_UNDEFINED; }
+void OOEquipmentType::clearJSSelf(JSValueConst)  {}
+std::optional<std::string> OOEquipmentType::jsDescription()  { return std::nullopt; }
 
 
 OO_TEST_MAIN()

@@ -37,8 +37,6 @@ static void InitTrumbleSounds(void);
 static void PlayTrumbleIdle(void);
 static void PlayTrumbleSqueal(void);
 
-namespace cxx {
-
 OOTrumble::OOTrumble()
 {
     int i;
@@ -472,7 +470,7 @@ void OOTrumble::drawTrumble(double z)
 void OOTrumble::updateTrumble(double delta_t)
 {
     // player movement
-    NSPoint p_mov = NSMakePoint(TRUMBLE_MAX_ROTATIONAL_VELOCITY * [player dialPitch], TRUMBLE_MAX_ROTATIONAL_VELOCITY * [player dialRoll]);
+    NSPoint p_mov = NSMakePoint(TRUMBLE_MAX_ROTATIONAL_VELOCITY * (player != nullptr ? player->dialPitch() : 0.0f), TRUMBLE_MAX_ROTATIONAL_VELOCITY * (player != nullptr ? player->dialRoll() : 0.0f));
     switch ([UNIVERSE viewDirection]) {
         GLfloat t;
     case VIEW_AFT:
@@ -544,7 +542,7 @@ void OOTrumble::updateTrumble(double delta_t)
 
     // feelings
     //
-    GLfloat temp = [player hullHeatLevel];
+    GLfloat temp = (player != nullptr ? player->hullHeatLevel() : 0.0f);
     discomfort += delta_t * hunger * 0.02 * (1.0 - hunger);
     if (temp > 0.33)
         discomfort += delta_t * (temp - 0.33) * (temp - 0.33) * 0.05;
@@ -558,12 +556,12 @@ void OOTrumble::updateTrumble(double delta_t)
         // consult menu...
         ::ShipEntity* selectedCargopod = nil;
         float mostYummy = 0.0;
-        std::vector<oo::ObjCRef<::ShipEntity*>>* cargopods = [player cxx_cargo]; // the cargo pods (live: eaten ones are removed)
+        std::vector<oo::ObjCRef<::Entity*>>* cargopods = (player != nullptr ? player->getCargo() : (std::vector<oo::ObjCRef<::Entity*>>*)nullptr); // the cargo pods (live: eaten ones are removed)
         NSUInteger i, n_pods = cargopods != nullptr ? cargopods->size() : 0;
         for (i = 0; i < n_pods; i++) {
-            ::ShipEntity* cargopod = (*cargopods)[i].get();
-            const std::string cargo_type = [cargopod cxx_commodityType].value_or(""); // nil arrived as ""
-            float yumminess = (1.0 + randf()) * [[UNIVERSE commodityMarket] cxx_trumbleOpinionForGood:cargo_type];
+            ::ShipEntity* cargopod = oo::ToShip((*cargopods)[i].get());
+            const std::string cargo_type = (cargopod != nullptr ? cargopod->commodityType() : std::optional<std::string>()).value_or(""); // nil arrived as ""
+            float yumminess = (1.0 + randf()) * ([UNIVERSE commodityMarket] != nullptr ? [UNIVERSE commodityMarket]->trumbleOpinionForGood(cargo_type) : 0.0f);
             if (yumminess > mostYummy) {
                 selectedCargopod = cargopod;
                 mostYummy = yumminess;
@@ -571,7 +569,7 @@ void OOTrumble::updateTrumble(double delta_t)
         }
         if (selectedCargopod) {
             // feed
-            float trumbleAppetiteAccumulator = [player trumbleAppetiteAccumulator];
+            float trumbleAppetiteAccumulator = (player != nullptr ? player->trumbleAppetiteAccumulator() : 0.0f);
 
             trumbleAppetiteAccumulator += hunger;
             hunger = 0.0;
@@ -581,11 +579,11 @@ void OOTrumble::updateTrumble(double delta_t)
             if (trumbleAppetiteAccumulator > 10.0) {
                 // eaten all of this cargo!
                 const std::string ms = oo::str::formatRuntime(OO_DESC("trumbles-eat-@"),
-                    { [UNIVERSE cxx_displayNameForCommodity:[selectedCargopod cxx_commodityType].value_or("")].value_or("(null)") });
+                    { [UNIVERSE cxx_displayNameForCommodity:(selectedCargopod != nullptr ? selectedCargopod->commodityType() : std::optional<std::string>()).value_or("")].value_or("(null)") });
 
                 [UNIVERSE cxx_addMessage:ms forCount:4.5];
                 if (cargopods != nullptr)
-                    std::erase(*cargopods, selectedCargopod);
+                    std::erase(*cargopods, oo::ToObjC(selectedCargopod));
                 trumbleAppetiteAccumulator -= 10.0;
 
                 // consider breeding - must be full grown and happy
@@ -593,7 +591,8 @@ void OOTrumble::updateTrumble(double delta_t)
                     readyToSpawn = YES;
                 }
 
-                [player setTrumbleAppetiteAccumulator:trumbleAppetiteAccumulator];
+                if (player != nullptr)
+                    player->setTrumbleAppetiteAccumulator(trumbleAppetiteAccumulator);
             }
         }
     }
@@ -826,7 +825,8 @@ void OOTrumble::updatePop(double delta_t)
     animationTime += delta_t;
     if (animationTime > animationDuration) {
         // kaputnik!
-        [player removeTrumble:oo::ToObjC(this)];
+        if (player != nullptr)
+            player->removeTrumble(this);
     }
 }
 
@@ -882,7 +882,8 @@ void OOTrumble::updateSpawn(double delta_t)
         eyeFrame = TRUMBLE_EYES_OPEN;
         mouthFrame = TRUMBLE_MOUTH_NORMAL;
         randomizeMotionX();
-        [player addTrumble:oo::ToObjC(this)];
+        if (player != nullptr)
+            player->addTrumble(this);
     }
 }
 
@@ -915,37 +916,43 @@ void OOTrumble::setFromDictionary(const oo::PList& dict)
     movement = cxx_PointFromString(dict.get<std::string>("movement"));
 }
 
-} // namespace cxx
-
+// The source and the sounds are C++ (their facades are deleted).
+// Each static holds one retain for the process, as alloc/init (and -initWithCustomSoundKey:, which
+// answered the cached sound retained) gave it; the source is made the first time, so it is there
+// whenever the sounds are played.
 static OOSoundSource* sTrumbleSoundSource;
 static OOSound* sTrumbleIdleSound;
 static OOSound* sTrumbleSqealSound;
 
 static void InitTrumbleSounds(void)
 {
-    if (sTrumbleSoundSource == nil) {
-        sTrumbleSoundSource = [[OOSoundSource alloc] init];
-        sTrumbleIdleSound = [[OOSound alloc] initWithCustomSoundKey:"[trumble-idle]"];
-        sTrumbleSqealSound = [[OOSound alloc] initWithCustomSoundKey:"[trumble-squeal]"];
+    if (sTrumbleSoundSource == nullptr) {
+        sTrumbleSoundSource = oo::makeRef<OOSoundSource>().leakRef();
+        sTrumbleIdleSound = oo::retain(OOSoundWithCustomSoundKey("[trumble-idle]"));
+        sTrumbleSqealSound = oo::retain(OOSoundWithCustomSoundKey("[trumble-squeal]"));
     }
 }
 
 static void PlayTrumbleIdle(void)
 {
+    if (sTrumbleSoundSource == nullptr)
+        return; // a message to nil did nothing
     // Only play idle sound if no trumble is making noise.
-    if (![sTrumbleSoundSource isPlaying]) {
+    if (!sTrumbleSoundSource->isPlaying()) {
         // trumble sound from random direction - where's it gone now?
-        [sTrumbleSoundSource setPosition:OORandomUnitVector()];
-        [sTrumbleSoundSource playOOSound:sTrumbleIdleSound];
+        sTrumbleSoundSource->setPosition(OORandomUnitVector());
+        sTrumbleSoundSource->playOOSound(sTrumbleIdleSound);
     }
 }
 
 static void PlayTrumbleSqueal(void)
 {
+    if (sTrumbleSoundSource == nullptr)
+        return; // a message to nil did nothing
     // Play squeal sound if no trumble is currently squealing, but trumping idle sound.
-    if (![sTrumbleSoundSource isPlaying] || [sTrumbleSoundSource sound] == sTrumbleIdleSound) {
+    if (!sTrumbleSoundSource->isPlaying() || sTrumbleSoundSource->sound() == sTrumbleIdleSound) {
         // trumble sound from random direction - where's it gone now?
-        [sTrumbleSoundSource setPosition:OORandomUnitVector()];
-        [sTrumbleSoundSource playOOSound:sTrumbleSqealSound];
+        sTrumbleSoundSource->setPosition(OORandomUnitVector());
+        sTrumbleSoundSource->playOOSound(sTrumbleSqealSound);
     }
 }

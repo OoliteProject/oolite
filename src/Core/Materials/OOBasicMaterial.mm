@@ -69,7 +69,7 @@ void OOBasicMaterial::initWithName(const std::optional<std::string>& name)
 
 void OOBasicMaterial::initWithName(const std::optional<std::string>& name, const oo::PList& configuration)
 {
-    id colorDesc = nil;
+    oo::Ref<OOColor> colorDesc;
     int specularExponent;
 
     initWithName(name);
@@ -79,28 +79,28 @@ void OOBasicMaterial::initWithName(const std::optional<std::string>& name, const
     // exactly (proposed ADR-0043 Amendment 2).
     const oo::PList config = !configuration.isNull() ? configuration : oo::PList(oo::PList::Dict { });
 
-    // The specifier answers an Objective-C colour; cxx::OOColor::colorWithDescription() of its Object node
-    // is what +[OOColor cxx_colorWithDescription:] answered.
+    // The specifier answers the colour; OOColor::colorWithDescription() of its Object node, which
+    // +[OOColor cxx_colorWithDescription:] answered, was the colour itself (bead oo-9ht.1).
     colorDesc = cxx_OOMaterialDiffuseColor(config);
-    if (colorDesc != nil)
-        setDiffuseColor(cxx::OOColor::colorWithDescription(oo::PListObject(colorDesc)).get());
+    if (colorDesc != nullptr)
+        setDiffuseColor(colorDesc.get());
 
     colorDesc = cxx_OOMaterialAmbientColor(config);
-    if (colorDesc != nil)
-        setAmbientColor(cxx::OOColor::colorWithDescription(oo::PListObject(colorDesc)).get());
+    if (colorDesc != nullptr)
+        setAmbientColor(colorDesc.get());
     else
         setAmbientColor(diffuseColor().get());
 
     colorDesc = cxx_OOMaterialEmissionColor(config);
-    if (colorDesc != nil)
-        setEmissionColor(cxx::OOColor::colorWithDescription(oo::PListObject(colorDesc)).get());
+    if (colorDesc != nullptr)
+        setEmissionColor(colorDesc.get());
 
     specularExponent = cxx_OOMaterialSpecularExponent(config);
     if (specularExponent != 0 && permitSpecular()) {
         colorDesc = cxx_OOMaterialSpecularColor(config);
         setShininess(specularExponent);
-        if (colorDesc != nil)
-            setSpecularColor(cxx::OOColor::colorWithDescription(oo::PListObject(colorDesc)).get());
+        if (colorDesc != nullptr)
+            setSpecularColor(colorDesc.get());
     }
 }
 
@@ -134,15 +134,15 @@ void OOBasicMaterial::unapplyWithNext(OOMaterial* next)
     }
 }
 
-oo::Ref<cxx::OOColor> OOBasicMaterial::diffuseColor()
+oo::Ref<OOColor> OOBasicMaterial::diffuseColor()
 {
-    return cxx::OOColor::colorWithRed(diffuse[0],
+    return OOColor::colorWithRed(diffuse[0],
         diffuse[1],
         diffuse[2],
         diffuse[3]);
 }
 
-void OOBasicMaterial::setDiffuseColor(cxx::OOColor* color)
+void OOBasicMaterial::setDiffuseColor(OOColor* color)
 {
     if (color != nullptr) {
         setDiffuseRed(color->redComponent(),
@@ -152,21 +152,21 @@ void OOBasicMaterial::setDiffuseColor(cxx::OOColor* color)
     }
 }
 
-void OOBasicMaterial::setAmbientAndDiffuseColor(cxx::OOColor* color)
+void OOBasicMaterial::setAmbientAndDiffuseColor(OOColor* color)
 {
     setAmbientColor(color);
     setDiffuseColor(color);
 }
 
-oo::Ref<cxx::OOColor> OOBasicMaterial::specularColor()
+oo::Ref<OOColor> OOBasicMaterial::specularColor()
 {
-    return cxx::OOColor::colorWithRed(specular[0],
+    return OOColor::colorWithRed(specular[0],
         specular[1],
         specular[2],
         specular[3]);
 }
 
-void OOBasicMaterial::setSpecularColor(cxx::OOColor* color)
+void OOBasicMaterial::setSpecularColor(OOColor* color)
 {
     if (color != nullptr) {
         setSpecularRed(color->redComponent(),
@@ -176,15 +176,15 @@ void OOBasicMaterial::setSpecularColor(cxx::OOColor* color)
     }
 }
 
-oo::Ref<cxx::OOColor> OOBasicMaterial::ambientColor()
+oo::Ref<OOColor> OOBasicMaterial::ambientColor()
 {
-    return cxx::OOColor::colorWithRed(ambient[0],
+    return OOColor::colorWithRed(ambient[0],
         ambient[1],
         ambient[2],
         ambient[3]);
 }
 
-void OOBasicMaterial::setAmbientColor(cxx::OOColor* color)
+void OOBasicMaterial::setAmbientColor(OOColor* color)
 {
     if (color != nullptr) {
         setAmbientRed(color->redComponent(),
@@ -194,15 +194,15 @@ void OOBasicMaterial::setAmbientColor(cxx::OOColor* color)
     }
 }
 
-oo::Ref<cxx::OOColor> OOBasicMaterial::emmisionColor()
+oo::Ref<OOColor> OOBasicMaterial::emmisionColor()
 {
-    return cxx::OOColor::colorWithRed(emission[0],
+    return OOColor::colorWithRed(emission[0],
         emission[1],
         emission[2],
         emission[3]);
 }
 
-void OOBasicMaterial::setEmissionColor(cxx::OOColor* color)
+void OOBasicMaterial::setEmissionColor(OOColor* color)
 {
     if (color != nullptr) {
         setEmissionRed(color->redComponent(),

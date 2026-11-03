@@ -206,8 +206,9 @@ static JSValue ExhaustPlumeRemove(OOJS_NATIVE_ARGS)
     Entity* thisObject = nil; // its facade
     GET_THIS_EXHAUSTPLUME(thisEnt, thisObject);
 
-    ShipEntity* parent = [thisObject owner];
-    [parent removeExhaust:thisEnt];
+    ShipEntity* parent = oo::ToShip([thisObject owner]);
+    if (parent != nullptr)
+        parent->removeExhaust(thisEnt);
 
     OOJS_RETURN_VOID;
 

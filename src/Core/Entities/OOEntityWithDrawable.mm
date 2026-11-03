@@ -28,23 +28,21 @@ MA 02110-1301, USA.
 #import "ShipEntity.h"
 #import "Universe.h"
 
-namespace cxx {
-
 // -dealloc released the drawable; the member does, when the Objective-C object releases its C++
 // part at the end of its -dealloc.
 
-::OODrawable* OOEntityWithDrawable::getDrawable()
+OODrawable* OOEntityWithDrawable::getDrawable()
 {
     return drawable.get();
 }
 
-void OOEntityWithDrawable::setDrawable(::OODrawable* inDrawable)
+void OOEntityWithDrawable::setDrawable(OODrawable* inDrawable)
 {
     if (inDrawable != drawable.get()) {
-        [[drawable.get() retain] autorelease]; // [drawable autorelease]: the old one lives until the pool drains
-        drawable = oo::ObjCRef<::OODrawable*>(inDrawable);
+        OODrawableAutorelease(std::move(drawable)); // [drawable autorelease]: the old one lives until the pool drains
+        drawable = oo::Ref<OODrawable>(inDrawable);
         // Messages to a nil drawable did nothing and answered 0.
-        cxx::OODrawable* cxxDrawable = oo::ToCxx(drawable.get());
+        OODrawable* cxxDrawable = drawable.get();
         if (cxxDrawable != nullptr)
             cxxDrawable->setBindingTarget(oo::ToObjC(this));
 
@@ -56,7 +54,7 @@ void OOEntityWithDrawable::setDrawable(::OODrawable* inDrawable)
 
 double OOEntityWithDrawable::findCollisionRadius()
 {
-    cxx::OODrawable* cxxDrawable = oo::ToCxx(drawable.get());
+    OODrawable* cxxDrawable = drawable.get();
     return cxxDrawable != nullptr ? cxxDrawable->collisionRadius() : 0.0f;
 }
 
@@ -72,7 +70,7 @@ void OOEntityWithDrawable::drawImmediate(bool /*immediate*/, bool translucent)
         if (!getIsSubEntity()) {
             GLfloat clipradius = collision_radius;
             if (getIsShip()) {
-                clipradius = frustumRadius(); // [(ShipEntity *)self frustumRadius]
+                clipradius = frustumRadius(); // [oo::ToShip(self) frustumRadius]
             } else if (getIsVisualEffect()) {
                 clipradius = frustumRadius(); // [(OOVisualEffectEntity *)self frustumRadius]
             }
@@ -100,7 +98,7 @@ void OOEntityWithDrawable::drawImmediate(bool /*immediate*/, bool translucent)
     if ([UNIVERSE wireframeGraphics])
         OOGLWireframeModeOn();
 
-    cxx::OODrawable* cxxDrawable = oo::ToCxx(drawable.get());
+    OODrawable* cxxDrawable = drawable.get();
     if (cxxDrawable != nullptr) {
         if (translucent)
             cxxDrawable->renderTranslucentParts();
@@ -115,9 +113,7 @@ void OOEntityWithDrawable::drawImmediate(bool /*immediate*/, bool translucent)
 #ifdef OO_DEBUG_MONITOR_ENABLED
 std::vector<oo::ObjCRef<::OOTexture*>> OOEntityWithDrawable::allTextures()
 {
-    cxx::OODrawable* cxxDrawable = oo::ToCxx(getDrawable());
+    OODrawable* cxxDrawable = getDrawable();
     return cxxDrawable != nullptr ? cxxDrawable->allTextures() : std::vector<oo::ObjCRef<::OOTexture*>>();
 }
 #endif
-
-} // namespace cxx
