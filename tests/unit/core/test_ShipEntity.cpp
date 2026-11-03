@@ -23,6 +23,7 @@
 #include "OOColor.h"
 #include "OORoleSet.h"
 #include "OOCharacter.h"
+#include "OOFlasherEntity.h"
 #include "AI.h"
 #include "PlayerEntity.h"
 #include "ShipEntityScriptMethods.h"

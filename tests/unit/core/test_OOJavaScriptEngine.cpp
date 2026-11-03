@@ -267,6 +267,48 @@ const JSClassDef sTestWrapperClass =
 	.finalizer = OOJSObjectWrapperFinalize,
 };
 
+
+// Vault: a value held only natively, served by the class's get_property hook and cleared by its
+// delete_property hook (missionVariables loaded from a save). SpiderMonkey ran delProperty on
+// `delete` whether or not the object had an own property of that name, so a delete never preceded
+// by a JS assignment must still reach the hook.
+bool sVaultHasA = true;
+int sVaultDels = 0;
+
+
+bool AtomIs(JSAtom atom, const char *name)
+{
+	return cxx_OOStringFromJSID(atom).value_or("") == name;
+}
+
+
+JSValue VaultGet(JSContext *context, JSValueConst, JSAtom atom, JSValueConst)
+{
+	if (sVaultHasA && AtomIs(atom, "a"))  return JS_NewInt32(context, 11);
+	return JS_UNDEFINED;
+}
+
+
+int VaultDelete(JSContext *, JSValueConst, JSAtom atom)
+{
+	++sVaultDels;
+	if (AtomIs(atom, "a"))  sVaultHasA = false;
+	return 1;
+}
+
+
+JSClassExoticMethods sVaultExoticMethods =
+{
+	.delete_property = VaultDelete,
+	.get_property = VaultGet,
+};
+JSClassID sVaultClassID = 0;
+const JSClassDef sVaultClass =
+{
+	.class_name = "Vault",
+	.exotic = &sVaultExoticMethods,
+};
+
 }	// namespace
 
 
@@ -712,6 +754,25 @@ OO_TEST(cxxObjectWrapper)
 	OO_CHECK(sCxxNativeDeallocs == deallocs);	// the test's own reference
 	native = nullptr;
 	OO_CHECK(sCxxNativeDeallocs == deallocs + 1);
+}
+
+
+// `delete` of a property the object does not have still reaches the class's delete hook, which
+// clears the value it serves natively (moved from the facade backend's own test).
+OO_TEST(deleteReachesTheClassHookWithNoOwnProperty)
+{
+	SetUp();
+	{
+		JSContext *context = OOJSAcquireContext();
+		OOJSRegisterClass(&sVaultClassID, &sVaultClass);
+		Owned global(JS_GetGlobalObject(context));
+		OO_CHECK(JS_SetPropertyStr(context, global, "vault", JS_NewObjectClass(context, static_cast<int>(sVaultClassID))) >= 0);
+		Owned result = Eval(context, "[vault.a, delete vault.a, vault.a === undefined].join('|')");
+		OO_CHECK_EQ(cxx_OOStringFromJSValue(context, result).value_or("<none>"), "11|true|true");
+		OO_CHECK(sVaultDels == 1 && !sVaultHasA);
+		OO_CHECK_EQ(cxx_OOStringFromJSValue(context, Eval(context, "delete globalThis.vault")).value_or("<none>"), "true");
+		OOJSRelinquishContext(context);
+	}
 }
 
 

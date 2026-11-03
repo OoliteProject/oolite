@@ -1,2 +1,3 @@
-pytest
+# pytest-bdd 9.0 needs FixtureManager._arg2fixturedefs, which pytest 9.1 removed. Shared by the gui venv.
+pytest<9.1
 pytest-bdd
