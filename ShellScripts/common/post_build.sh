@@ -20,7 +20,6 @@ run_script() {
 
     source "generate_manifest_fn.sh"
     cd ../..
-
     source Documentation/build_documentation_fn.sh
 
     if ! build_documentation "YES" "NO"; then

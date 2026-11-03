@@ -22,18 +22,20 @@ build_documentation() {
     source ./build_doxygen_fn.sh
 
     cd ..
-    if [[ ! -d ".venv" ]]; then
-        echo "❌ Virtual environment folder (.venv) not found!" >&2
-        return 1
-    else
-        # Try to activate based on OS structure
-        if [[ -f ".venv/Scripts/activate" ]]; then
-            source ".venv/Scripts/activate"
-        elif [[ -f ".venv/bin/activate" ]]; then
-            source ".venv/bin/activate"
-        else
-            echo "❌ Activation script not found in .venv!" >&2
+    if [[ "$(uname -s)" != "Darwin" ]]; then
+        if [[ ! -d ".venv" ]]; then
+            echo "❌ Virtual environment folder (.venv) not found!" >&2
             return 1
+        else
+            # Try to activate based on OS structure
+            if [[ -f ".venv/Scripts/activate" ]]; then
+                source ".venv/Scripts/activate"
+            elif [[ -f ".venv/bin/activate" ]]; then
+                source ".venv/bin/activate"
+            else
+                echo "❌ Activation script not found in .venv!" >&2
+                return 1
+            fi
         fi
     fi
     rm -rf build/documentation
