@@ -6,8 +6,8 @@ Informal protocol and utility function for making efficient deep copies of
 immutable collections.
 
 It is implemented in such a way that all objects can be deep copied. Objects
-that implement the NSCopying protocol are automatically copied, while others
-are retained. The following special cases exist:
+that implement the copying protocol (Foundation's, or OOCopying for classes
+rooted on OOObject) are automatically copied, while others are retained. The following special cases exist:
   * NSStrings and NSValues (including NSNumbers) are uniqued - that is, the
     resulting collection will only include one (immutable) copy of any string
     or number.
@@ -59,6 +59,12 @@ id OODeepCopy(id object) OO_RETURNS_RETAINED;
 #endif
 
 @interface NSObject (OODeepCopy)
+
+- (id)ooDeepCopyWithSharedObjects:(NSMutableSet*)objects OO_RETURNS_RETAINED;
+
+@end
+
+@interface OOObject (OODeepCopy)
 
 - (id)ooDeepCopyWithSharedObjects:(NSMutableSet*)objects OO_RETURNS_RETAINED;
 

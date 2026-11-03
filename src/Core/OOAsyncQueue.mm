@@ -42,6 +42,11 @@ SOFTWARE.
 #endif
 #endif
 
+/*	The queue's state, as the Foundation condition lock's condition value was (bead oo-3rb.7).
+        _lock guards it; whoever changes it broadcasts _conditionChanged before unlocking, as
+        -unlockWithCondition: did, and a waiter for a value loops on the broadcast, as
+        -lockWhenCondition: did. A plain unlock leaves the value and wakes nobody, as -unlock did.
+*/
 enum {
     kConditionNoData = 1,
     kConditionQueuedData,
@@ -82,12 +87,7 @@ OOINLINE void FreeElement(OOAsyncQueueElement* element)
 {
     self = [super init];
     if (self != nil) {
-        _lock = [[NSConditionLock alloc] initWithCondition:kConditionNoData];
-        [_lock setName:@"OOAsyncQueue lock"];
-        if (_lock == nil) {
-            [self release];
-            self = nil;
-        }
+        _condition = kConditionNoData;
     }
 
     return self;
@@ -97,7 +97,7 @@ OOINLINE void FreeElement(OOAsyncQueueElement* element)
 {
     OOAsyncQueueElement* element = NULL;
 
-    [_lock lock];
+    _lock.lock();
 
     if (_elemCount != 0) {
         OOLogWARN(@"asyncQueue.nonEmpty", @"%@ deallocated while non-empty, flushing.", self);
@@ -111,8 +111,9 @@ OOINLINE void FreeElement(OOAsyncQueueElement* element)
         free(element);
     }
 
-    [_lock unlockWithCondition:kConditionDead];
-    [_lock release];
+    _condition = kConditionDead;
+    _conditionChanged.notify_all();
+    _lock.unlock();
 
     [super dealloc];
 }
@@ -131,7 +132,7 @@ OOINLINE void FreeElement(OOAsyncQueueElement* element)
     if (EXPECT_NOT(object == nil))
         return NO;
 
-    [_lock lock];
+    _lock.lock();
 
     // Get an element.
     if (_pool != NULL) {
@@ -167,13 +168,18 @@ OOINLINE void FreeElement(OOAsyncQueueElement* element)
     success = YES;
 
 FAIL:
-    [_lock unlockWithCondition:kConditionQueuedData];
+    _condition = kConditionQueuedData;
+    _conditionChanged.notify_all();
+    _lock.unlock();
     return success;
 }
 
 - (id)dequeue
 {
-    [_lock lockWhenCondition:kConditionQueuedData];
+    std::unique_lock<std::mutex> lock(_lock);
+    while (_condition != kConditionQueuedData)
+        _conditionChanged.wait(lock);
+    lock.release(); // Held until -doDequeAndUnlockWithAcquiredLock, as before.
     return [self doDequeAndUnlockWithAcquiredLock];
 }
 
@@ -185,15 +191,19 @@ FAIL:
      * more blocking, but no thread should be hanging on to _lock for very
      * long, so hopefully it won't be noticeable.
      */
-    [_lock lock];
-    if ([_lock condition] != kConditionQueuedData) {
-        [_lock unlock];
+    _lock.lock();
+    if (_condition != kConditionQueuedData) {
+        _lock.unlock();
         return nil;
     }
 #else
     // Mac and Linux can do it properly
-    if (![_lock tryLockWhenCondition:kConditionQueuedData])
+    if (!_lock.try_lock())
         return nil;
+    if (_condition != kConditionQueuedData) {
+        _lock.unlock();
+        return nil;
+    }
 #endif
     return [self doDequeAndUnlockWithAcquiredLock];
 }
@@ -210,11 +220,13 @@ FAIL:
 
 - (void)emptyQueue
 {
-    [_lock lock];
+    _lock.lock();
     [self doEmptyQueueWithAcquiredLock];
 
     assert(_head == NULL && _tail == NULL && _elemCount == 0);
-    [_lock unlockWithCondition:kConditionNoData];
+    _condition = kConditionNoData;
+    _conditionChanged.notify_all();
+    _lock.unlock();
 }
 
 @end
@@ -271,7 +283,9 @@ FAIL:
     assert((_head == NULL && _tail == NULL && _elemCount == 0) || (_head != NULL && _tail != NULL && _elemCount != 0));
 
     // Unlock with appropriate state.
-    [_lock unlockWithCondition:(_head == NULL) ? kConditionNoData : kConditionQueuedData];
+    _condition = (_head == NULL) ? kConditionNoData : kConditionQueuedData;
+    _conditionChanged.notify_all();
+    _lock.unlock();
 
     return result;
 }

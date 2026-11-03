@@ -310,6 +310,21 @@ enum {
 
 @end
 
+/*	The same for classes rooted on the Foundation-free OOObject (proposed ADR-0029), so a class
+        rerooted from NSObject describes itself exactly as before.
+*/
+#import "OOObjectGNUstepBridge.h"
+#import "oofnd/objc/OOObject.h"
+
+@interface OOObject (OODescriptionComponents)
+
+- (NSString*)description;
+- (NSString*)descriptionComponents;
+- (NSString*)shortDescription;
+- (NSString*)shortDescriptionComponents;
+
+@end
+
 #if OOLITE_MAC_OS_X
 #define OOLITE_RELEASE_PLIST_ERROR_STRINGS 1
 #else
@@ -373,8 +388,14 @@ typedef NSComparisonResult OOComparisonResult;
    without updating that script. */
 #if OO_DEBUG
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 id OOShuffledKeys(id dictionary);
 id OOShuffledObjects(id collection);
+#ifdef __cplusplus
+}
+#endif
 
 #define foreach(VAR, COLLECTION) for (VAR in OOShuffledObjects(COLLECTION))
 #define foreachkey(VAR, DICT) for (VAR in OOShuffledKeys(DICT))
@@ -404,7 +425,7 @@ id OOShuffledObjects(id collection);
         instance of that class.
 
         For example, given:
-                @interface Foo: NSObject
+                @interface Foo: OOObject
                 + (instancetype) fooWithProperty:(id)property;
                 @end
 

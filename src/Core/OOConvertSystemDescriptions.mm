@@ -30,8 +30,8 @@ SOFTWARE.
 
 #if OO_LOCALIZATION_TOOLS
 
-#import "OOCollectionExtractors.h"
 #import "OOConvertSystemDescriptions.h"
+#import "OOPListView.h"
 #import "OldSchoolPropertyListWriting.h"
 #import "ResourceManager.h"
 
@@ -99,7 +99,7 @@ void ExportSystemDescriptions(BOOL asXML)
     NSData* data = nil;
     NSString* error = nil;
 
-    sysDescArray = [[UNIVERSE descriptions] oo_arrayForKey:@"system_description"];
+    sysDescArray = oo::PListView([UNIVERSE descriptions]).get<NSArray*>(@"system_description");
 
     keyMap = [ResourceManager dictionaryFromFilesNamed:@"sysdesc_key_table.plist"
                                               inFolder:@"Config"
@@ -135,7 +135,6 @@ void ExportSystemDescriptions(BOOL asXML)
 NSArray* OOConvertSystemDescriptionsToArrayFormat(NSDictionary* descriptionsInDictionaryFormat, NSDictionary* indicesToKeys)
 {
     NSMutableDictionary* result = nil;
-    NSAutoreleasePool* pool = nil;
     NSString* key = nil;
     NSArray* entry = nil;
     NSMutableDictionary* keysToIndices = nil;
@@ -145,55 +144,51 @@ NSArray* OOConvertSystemDescriptionsToArrayFormat(NSDictionary* descriptionsInDi
     NSUInteger i, count;
     NSMutableArray* realResult = nil;
 
-    pool = [[NSAutoreleasePool alloc] init];
+    @autoreleasepool {
+        // Use a dictionary as a sparse array.
+        result = [NSMutableDictionary dictionaryWithCapacity:[descriptionsInDictionaryFormat count]];
 
-    // Use a dictionary as a sparse array.
-    result = [NSMutableDictionary dictionaryWithCapacity:[descriptionsInDictionaryFormat count]];
+        keysToIndices = InitKeyToIndexDict(indicesToKeys, &usedIndices);
 
-    keysToIndices = InitKeyToIndexDict(indicesToKeys, &usedIndices);
+        foreachkey(key, descriptionsInDictionaryFormat)
+        {
+            entry = ConvertKeysToIndices([descriptionsInDictionaryFormat objectForKey:key], keysToIndices, usedIndices, &slotCache);
+            index = KeyToIndex(key, keysToIndices, usedIndices, &slotCache);
 
-    foreachkey(key, descriptionsInDictionaryFormat)
-    {
-        entry = ConvertKeysToIndices([descriptionsInDictionaryFormat objectForKey:key], keysToIndices, usedIndices, &slotCache);
-        index = KeyToIndex(key, keysToIndices, usedIndices, &slotCache);
+            [result setObject:entry forKey:index];
+        }
 
-        [result setObject:entry forKey:index];
+        count = HighestIndex(result);
+        realResult = [NSMutableArray arrayWithCapacity:count];
+        for (i = 0; i < count; i++) {
+            entry = [result objectForKey:[NSNumber numberWithUnsignedInteger:i]];
+            if (entry == nil)
+                entry = [NSArray array];
+            [realResult addObject:entry];
+        }
+
+        [realResult retain];
     }
-
-    count = HighestIndex(result);
-    realResult = [NSMutableArray arrayWithCapacity:count];
-    for (i = 0; i < count; i++) {
-        entry = [result objectForKey:[NSNumber numberWithUnsignedInteger:i]];
-        if (entry == nil)
-            entry = [NSArray array];
-        [realResult addObject:entry];
-    }
-
-    [realResult retain];
-    [pool release];
     return [realResult autorelease];
 }
 
 NSDictionary* OOConvertSystemDescriptionsToDictionaryFormat(NSArray* descriptionsInArrayFormat, NSDictionary* indicesToKeys)
 {
     NSMutableDictionary* result = nil;
-    NSAutoreleasePool* pool = nil;
     NSArray* entry = nil;
     NSString* key = nil;
     NSUInteger i = 0;
 
     result = [NSMutableDictionary dictionaryWithCapacity:[descriptionsInArrayFormat count]];
-    pool = [[NSAutoreleasePool alloc] init];
+    @autoreleasepool {
+        foreach (entry, descriptionsInArrayFormat) {
+            entry = ConvertIndicesToKeys(entry, indicesToKeys);
+            key = IndexToKey(i, indicesToKeys, YES);
+            ++i;
 
-    foreach (entry, descriptionsInArrayFormat) {
-        entry = ConvertIndicesToKeys(entry, indicesToKeys);
-        key = IndexToKey(i, indicesToKeys, YES);
-        ++i;
-
-        [result setObject:entry forKey:key];
+            [result setObject:entry forKey:key];
+        }
     }
-
-    [pool release];
     return result;
 }
 

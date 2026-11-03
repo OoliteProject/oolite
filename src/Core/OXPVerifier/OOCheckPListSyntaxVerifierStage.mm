@@ -24,7 +24,7 @@ MA 02110-1301, USA.
 */
 
 #import "OOCheckPListSyntaxVerifierStage.h"
-#import "OOCollectionExtractors.h"
+#import "OOPListView.h"
 
 #if OO_OXP_VERIFIER_ENABLED
 
@@ -50,9 +50,9 @@ static NSString* const kStageName = @"Checking plist well-formedness";
 
     fileScanner = [[self verifier] fileScannerStage];
 
-    NSArray* plists = [[[self verifier] configurationDictionaryForKey:@"knownFiles"] oo_arrayForKey:@"Config"];
-    NSArray* arrayPlists = [[[self verifier] configurationDictionaryForKey:@"knownFiles"] oo_arrayForKey:@"ConfigArrays"];
-    NSArray* dictionaryPlists = [[[self verifier] configurationDictionaryForKey:@"knownFiles"] oo_arrayForKey:@"ConfigDictionaries"];
+    NSArray* plists = oo::PListView([[self verifier] configurationDictionaryForKey:@"knownFiles"]).get<NSArray*>(@"Config");
+    NSArray* arrayPlists = oo::PListView([[self verifier] configurationDictionaryForKey:@"knownFiles"]).get<NSArray*>(@"ConfigArrays");
+    NSArray* dictionaryPlists = oo::PListView([[self verifier] configurationDictionaryForKey:@"knownFiles"]).get<NSArray*>(@"ConfigDictionaries");
 
     NSString* plistName = nil;
     foreach (plistName, plists) {

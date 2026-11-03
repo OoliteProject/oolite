@@ -39,10 +39,10 @@
 #import "StationEntity.h"
 #import "WormholeEntity.h"
 
-#import "OOCollectionExtractors.h"
 #import "OOConstToJSString.h"
 #import "OOConstToString.h"
 #import "OOEntityFilterPredicate.h"
+#import "OOPListView.h"
 #import "OOStringExpander.h"
 #import "OOStringParsing.h"
 #import "ResourceManager.h"
@@ -538,9 +538,9 @@
 - (void)recallDockingInstructions
 {
     if (dockingInstructions != nil) {
-        _destination = [dockingInstructions oo_hpvectorForKey:@"destination"];
-        desired_speed = fmin([dockingInstructions oo_floatForKey:@"speed"], maxFlightSpeed);
-        desired_range = [dockingInstructions oo_floatForKey:@"range"];
+        _destination = oo::PListView(dockingInstructions).get<HPVector>(@"destination");
+        desired_speed = fmin(oo::PListView(dockingInstructions).get<float>(@"speed"), maxFlightSpeed);
+        desired_range = oo::PListView(dockingInstructions).get<float>(@"range");
         if ([dockingInstructions objectForKey:@"station"]) {
             StationEntity* targetStation = [[dockingInstructions objectForKey:@"station"] weakRefUnderlyingObject];
             if (targetStation != nil) {
@@ -550,7 +550,7 @@
                 [self removeTarget:[self primaryTarget]];
             }
         }
-        docking_match_rotation = [dockingInstructions oo_boolForKey:@"match_rotation"];
+        docking_match_rotation = oo::PListView(dockingInstructions).get<BOOL>(@"match_rotation"); // NOLINT(bugprone-signed-char-misuse): BOOL bitfield assign, pre-existing; behaviour unchanged by this retarget.
     }
 }
 
@@ -771,8 +771,8 @@
         return;
     }
 
-    start = [tokens oo_doubleAtIndex:0];
-    end = [tokens oo_doubleAtIndex:1];
+    start = oo::PListView(tokens).at<double>(0);
+    end = oo::PListView(tokens).at<double>(1);
 
     [shipAI setNextThinkTime:[UNIVERSE getTime] + (start + (end - start) * randf())];
 }
@@ -2437,12 +2437,12 @@
             i = ranrot_rand() % n_dests;
         }
 
-        targetSystem = [[sDests oo_dictionaryAtIndex:i] oo_intForKey:@"sysID"];
+        targetSystem = oo::PListView(oo::PListView(sDests).at<NSDictionary*>(i)).get<int>(@"sysID");
     } else {
         targetSystem = systemID;
 
         for (i = 0; i < n_dests; i++) {
-            if (systemID == [[sDests oo_dictionaryAtIndex:i] oo_intForKey:@"sysID"])
+            if (systemID == oo::PListView(oo::PListView(sDests).at<NSDictionary*>(i)).get<int>(@"sysID"))
                 break;
         }
 
@@ -2451,7 +2451,7 @@
             return NO;
         }
     }
-    float dist = [[sDests oo_dictionaryAtIndex:i] oo_floatForKey:@"distance"];
+    float dist = oo::PListView(oo::PListView(sDests).at<NSDictionary*>(i)).get<float>(@"distance");
     if (dist > [self maxHyperspaceDistance] || dist > fuel / 10.0f) {
         OOLogWARN(@"script.debug", @"DEBUG: %@ Jumping %f which is further than allowed.  I have %d fuel", self, dist, fuel);
     }

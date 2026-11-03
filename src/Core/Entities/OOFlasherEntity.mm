@@ -25,8 +25,8 @@ MA 02110-1301, USA.
 
 #import "OOFlasherEntity.h"
 #import "NSDictionaryOOExtensions.h"
-#import "OOCollectionExtractors.h"
 #import "OOColor.h"
+#import "OOPListView.h"
 #import "PlayerEntity.h"
 #import "Universe.h"
 
@@ -46,17 +46,17 @@ MA 02110-1301, USA.
 
 - (id)initWithDictionary:(NSDictionary*)dictionary
 {
-    float size = [dictionary oo_floatForKey:@"size" defaultValue:1.0f];
+    float size = oo::PListView(dictionary).get<float>(@"size", 1.0f);
 
     if ((self = [super initWithDiameter:size])) {
-        _frequency = [dictionary oo_floatForKey:@"frequency" defaultValue:1.0f] * 2.0f;
-        _phase = [dictionary oo_floatForKey:@"phase" defaultValue:0.0f];
-        _brightfraction = [dictionary oo_floatForKey:@"bright_fraction" defaultValue:0.5f];
+        _frequency = oo::PListView(dictionary).get<float>(@"frequency", 1.0f) * 2.0f;
+        _phase = oo::PListView(dictionary).get<float>(@"phase", 0.0f);
+        _brightfraction = oo::PListView(dictionary).get<float>(@"bright_fraction", 0.5f);
 
-        [self setUpColors:[dictionary oo_arrayForKey:@"colors"]];
+        [self setUpColors:oo::PListView(dictionary).get<NSArray*>(@"colors")];
         [self getCurrentColorComponents];
 
-        [self setActive:[dictionary oo_boolForKey:@"initially_on" defaultValue:YES]];
+        [self setActive:oo::PListView(dictionary).get<BOOL>(@"initially_on", YES)];
     }
     return self;
 }

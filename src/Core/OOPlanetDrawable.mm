@@ -98,7 +98,7 @@
     [super dealloc];
 }
 
-- (id)copyWithZone:(NSZone*)zone
+- (id)copyWithZone:(OOZone*)zone
 {
     OOPlanetDrawable* copy = [[[self class] allocWithZone:zone] init];
     [copy setMaterial:[self material]];

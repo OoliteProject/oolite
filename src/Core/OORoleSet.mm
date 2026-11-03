@@ -27,71 +27,65 @@ SOFTWARE.
 
 #import "OORoleSet.h"
 
-#import "OOCollectionExtractors.h"
+#import "OOFoundationBridge.h"
 #import "OOLogging.h"
-#import "OOStringParsing.h"
+#import "OOMaths.h" // randf()
+
+#include "oofnd/String.hpp"
 
 @interface OORoleSet (OOPrivate)
 
-- (id)initWithRolesAndProbabilities:(NSDictionary*)dict;
+// nullptr is a nil dictionary: the initializer fails, as it did.
+- (id)initWithRolesAndProbabilities:(const std::map<std::string, float>*)dict;
 
 @end
 
 @implementation OORoleSet
 
-+ (instancetype)roleSetWithString:(NSString*)roleString
++ (instancetype)roleSetWithString:(const std::string&)roleString
 {
     return [[[self alloc] initWithRoleString:roleString] autorelease];
 }
 
-+ (instancetype)roleSetWithRole:(NSString*)role probability:(float)probability
++ (instancetype)roleSetWithRole:(const std::string&)role probability:(float)probability
 {
     return [[[self alloc] initWithRole:role probability:probability] autorelease];
 }
 
-- (id)initWithRoleString:(NSString*)roleString
+- (id)initWithRoleString:(const std::string&)roleString
 {
-    NSDictionary* dict = nil;
-
-    dict = OOParseRolesFromString(roleString);
-    return [self initWithRolesAndProbabilities:dict];
+    const std::map<std::string, float> dict = OOParseRolesFromString(roleString);
+    return [self initWithRolesAndProbabilities:dict.empty() ? nullptr : &dict];
 }
 
-- (id)initWithRole:(NSString*)role probability:(float)probability
+- (id)initWithRole:(const std::string&)role probability:(float)probability
 {
-    NSDictionary* dict = nil;
+    std::map<std::string, float> dict;
 
-    if (role != nil && 0 <= probability) {
-        dict = [NSDictionary dictionaryWithObject:[NSNumber numberWithFloat:probability] forKey:role];
+    if (!role.empty() && 0 <= probability) {
+        dict.emplace(role, probability);
     }
-    return [self initWithRolesAndProbabilities:dict];
+    return [self initWithRolesAndProbabilities:dict.empty() ? nullptr : &dict];
 }
 
-- (void)dealloc
+// OOObject's -description wraps this as "<OORoleSet 0x...>{roleString}", which is what this
+// class's own -description printed.
+- (id)descriptionComponents
 {
-    [_roleString autorelease];
-    [_rolesAndProbabilities autorelease];
-    [_roles autorelease];
-
-    [super dealloc];
-}
-
-- (NSString*)description
-{
-    return [NSString stringWithFormat:@"<%@ %p>{%@}", [self class], self, [self roleString]];
+    return oo::NSStringOrNil([self roleString]);
 }
 
 - (BOOL)isEqual:(id)other
 {
     if ([other isKindOfClass:[OORoleSet class]]) {
-        return [_rolesAndProbabilities isEqual:[other rolesAndProbabilities]];
+        return _rolesAndProbabilities == ((OORoleSet*)other)->_rolesAndProbabilities;
     } else
         return NO;
 }
 
 - (NSUInteger)hash
 {
-    return [_rolesAndProbabilities hash];
+    return _rolesAndProbabilities.size(); // as before: a Foundation dictionary hashes to its count
 }
 
 - (id)copyWithZone:(OOZone*)zone
@@ -100,148 +94,147 @@ SOFTWARE.
     return [self retain];
 }
 
-- (NSString*)roleString
+- (std::optional<std::string>)roleString
 {
-    NSArray* roles = nil;
-    NSString* role = nil;
-    float probability;
-    NSMutableString* result = nil;
-    BOOL first = YES;
-
-    if (_roleString == nil) {
+    if (!_roleString.has_value()) {
         // Construct role string. We always do this so that it's in a normalized form.
-        result = [NSMutableString string];
-        roles = [self sortedRoles];
-        foreach (role, roles) {
+        std::string result;
+        bool first = true;
+        for (const std::string& role : [self sortedRoles]) {
             if (!first)
-                [result appendString:@" "];
+                result += " ";
             else
-                first = NO;
+                first = false;
 
-            [result appendString:role];
+            result += role;
 
-            probability = [self probabilityForRole:role];
+            const float probability = [self probabilityForRole:role];
             if (probability != 1.0f) {
-                [result appendFormat:@"(%g)", probability];
+                result += oo::str::format("(%g)", probability);
             }
         }
 
-        _roleString = [result copy];
+        _roleString = std::move(result);
     }
 
     return _roleString;
 }
 
-- (BOOL)hasRole:(NSString*)role
+- (BOOL)hasRole:(id)role
 {
-    return role != nil && [_rolesAndProbabilities objectForKey:role] != nil;
+    return role != nil && _rolesAndProbabilities.contains(oo::StdString(role));
 }
 
-- (float)probabilityForRole:(NSString*)role
+- (float)probabilityForRole:(const std::string&)role
 {
-    return [_rolesAndProbabilities oo_floatForKey:role defaultValue:0.0f];
+    const auto it = _rolesAndProbabilities.find(role);
+    return it != _rolesAndProbabilities.end() ? it->second : 0.0f;
 }
 
 - (BOOL)intersectsSet:(id)set
 {
+    std::vector<std::string> other;
     if ([set isKindOfClass:[OORoleSet class]])
-        set = [set roles];
-    else if (![set isKindOfClass:[NSSet class]])
+        other = [(OORoleSet*)set roles];
+    else if (oo::IsNSSet(set))
+        other = oo::StringsFrom(set);
+    else
         return NO;
 
-    return [[self roles] intersectsSet:set];
-}
-
-- (NSSet*)roles
-{
-    if (_roles == nil) {
-        _roles = [[NSSet alloc] initWithArray:[_rolesAndProbabilities allKeys]];
+    for (const std::string& role : other) {
+        if (_rolesAndProbabilities.contains(role))
+            return YES;
     }
-    return _roles;
+    return NO;
 }
 
-- (NSArray*)sortedRoles
+- (std::vector<std::string>)roles
 {
-    return [[_rolesAndProbabilities allKeys] sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)];
+    std::vector<std::string> result;
+    result.reserve(_rolesAndProbabilities.size());
+    for (const auto& entry : _rolesAndProbabilities)
+        result.push_back(entry.first);
+    return result;
 }
 
-- (NSDictionary*)rolesAndProbabilities
+- (std::vector<std::string>)sortedRoles
+{
+    std::vector<std::string> result = [self roles];
+    std::stable_sort(result.begin(), result.end(), [](const std::string& a, const std::string& b) {
+        return oo::str::caseInsensitiveCompare(a, b) < 0;
+    });
+    return result;
+}
+
+- (std::optional<std::map<std::string, float>>)rolesAndProbabilities
 {
     return _rolesAndProbabilities;
 }
 
-- (NSString*)anyRole
+- (std::optional<std::string>)anyRole
 {
-    NSString* role = nil;
+    std::optional<std::string> role;
     float prob, selected;
 
     selected = randf() * _totalProb;
     prob = 0.0f;
 
-    if ([_rolesAndProbabilities count] == 0)
-        return nil;
+    if (_rolesAndProbabilities.empty())
+        return std::nullopt;
 
-    foreachkey(role, _rolesAndProbabilities)
-    {
-        prob += [_rolesAndProbabilities oo_floatForKey:role];
-        if (selected <= prob)
+    for (const auto& [name, probability] : _rolesAndProbabilities) {
+        prob += probability;
+        if (selected <= prob) {
+            role = name;
             break;
+        }
     }
-    if (role == nil) {
-        role = [[self roles] anyObject];
-        OOLog(@"roleSet.anyRole.failed", @"Could not get a weighted-random role from role set %@, returning unweighted selection %@. TotalProb: %g, selected: %g, prob at end: %f", self, role, _totalProb, selected, prob);
+    if (!role.has_value()) {
+        role = _rolesAndProbabilities.begin()->first;
+        OOLog(@"roleSet.anyRole.failed", @"Could not get a weighted-random role from role set %@, returning unweighted selection %@. TotalProb: %g, selected: %g, prob at end: %f", self, oo::NSStringOrNil(role), _totalProb, selected, prob);
     }
     return role;
 }
 
-- (id)roleSetWithAddedRoleIfNotSet:(NSString*)role probability:(float)probability
+- (id)roleSetWithAddedRoleIfNotSet:(const std::string&)role probability:(float)probability
 {
-    NSMutableDictionary* dict = nil;
-
-    if (role == nil || probability < 0 || ([self hasRole:role] && [self probabilityForRole:role] == probability)) {
+    if (role.empty() || probability < 0 || (_rolesAndProbabilities.contains(role) && [self probabilityForRole:role] == probability)) {
         return [[self copy] autorelease];
     }
 
-    dict = [[_rolesAndProbabilities mutableCopy] autorelease];
-    [dict setObject:[NSNumber numberWithFloat:probability] forKey:role];
-    return [[[[self class] alloc] initWithRolesAndProbabilities:dict] autorelease];
+    std::map<std::string, float> dict = _rolesAndProbabilities;
+    dict[role] = probability;
+    return [[[[self class] alloc] initWithRolesAndProbabilities:&dict] autorelease];
 }
 
-- (id)roleSetWithAddedRole:(NSString*)role probability:(float)probability
+- (id)roleSetWithAddedRole:(const std::string&)role probability:(float)probability
 {
-    NSMutableDictionary* dict = nil;
-
-    if (role == nil || probability < 0 || [self hasRole:role]) {
+    if (role.empty() || probability < 0 || _rolesAndProbabilities.contains(role)) {
         return [[self copy] autorelease];
     }
 
-    dict = [[_rolesAndProbabilities mutableCopy] autorelease];
-    [dict setObject:[NSNumber numberWithFloat:probability] forKey:role];
-    return [[[[self class] alloc] initWithRolesAndProbabilities:dict] autorelease];
+    std::map<std::string, float> dict = _rolesAndProbabilities;
+    dict[role] = probability;
+    return [[[[self class] alloc] initWithRolesAndProbabilities:&dict] autorelease];
 }
 
-- (id)roleSetWithRemovedRole:(NSString*)role
+- (id)roleSetWithRemovedRole:(const std::string&)role
 {
-    NSMutableDictionary* dict = nil;
-
-    if (![self hasRole:role])
+    if (!_rolesAndProbabilities.contains(role))
         return [[self copy] autorelease];
 
-    dict = [[_rolesAndProbabilities mutableCopy] autorelease];
-    [dict removeObjectForKey:role];
-    return [[[[self class] alloc] initWithRolesAndProbabilities:dict] autorelease];
+    std::map<std::string, float> dict = _rolesAndProbabilities;
+    dict.erase(role);
+    return [[[[self class] alloc] initWithRolesAndProbabilities:&dict] autorelease];
 }
 
 @end
 
 @implementation OORoleSet (OOPrivate)
 
-- (id)initWithRolesAndProbabilities:(NSDictionary*)dict
+- (id)initWithRolesAndProbabilities:(const std::map<std::string, float>*)dict
 {
-    NSString* role = nil;
-    float prob;
-
-    if (dict == nil) {
+    if (dict == nullptr) {
         [self release];
         return nil;
     }
@@ -250,27 +243,26 @@ SOFTWARE.
     if (self == nil)
         return nil;
 
-    // Note: _roles and _roleString are derived on the fly as needed.
+    // Note: _roleString is derived on the fly as needed.
     // MKW 20090815 - if we are re-initialising this OORoleSet object, we need
     //                to ensure that _roles and _roleString are cleared.
     // Why would we be re-initing? That's never valid. -- Ahruman 2010-02-06
-    assert(_roles == nil && _roleString == nil);
+    assert(!_roleString.has_value());
 
-    NSMutableDictionary* tDict = [[dict mutableCopy] autorelease];
-    float thargProb = [dict oo_floatForKey:@"thargon" defaultValue:0.0f];
+    std::map<std::string, float> tDict = *dict;
+    const auto thargon = dict->find("thargon");
+    const float thargProb = thargon != dict->end() ? thargon->second : 0.0f;
 
-    if (thargProb > 0.0f && [dict objectForKey:@"EQ_THARGON"] == nil) {
-        [tDict setObject:[NSNumber numberWithFloat:thargProb] forKey:@"EQ_THARGON"];
-        [tDict removeObjectForKey:@"thargon"];
+    if (thargProb > 0.0f && !dict->contains("EQ_THARGON")) {
+        tDict["EQ_THARGON"] = thargProb;
+        tDict.erase("thargon");
     }
 
-    _rolesAndProbabilities = [tDict copy];
+    _rolesAndProbabilities = std::move(tDict);
 
-    foreachkey(role, dict)
-    {
-        prob = [dict oo_floatForKey:role defaultValue:-1];
+    for (const auto& [role, prob] : *dict) {
         if (prob < 0) {
-            OOLog(@"roleSet.badValue", @"Attempt to create a role set with negative or non-numerical probability for role %@.", role);
+            OOLog(@"roleSet.badValue", @"Attempt to create a role set with negative or non-numerical probability for role %@.", oo::NSStringFrom(role));
             [self release];
             return nil;
         }
@@ -283,49 +275,31 @@ SOFTWARE.
 
 @end
 
-NSDictionary* OOParseRolesFromString(NSString* string)
+std::map<std::string, float> OOParseRolesFromString(std::string_view string)
 {
-    NSMutableDictionary* result = nil;
-    NSArray* tokens = nil;
-    NSUInteger i, count;
-    NSString* role = nil;
-    float probability;
-    NSScanner* scanner = nil;
+    std::map<std::string, float> result;
 
-    // Split string at spaces, sanity checks, set-up.
-    if (string == nil)
-        return nil;
-
-    tokens = ScanTokensFromString(string);
-    count = [tokens count];
-    if (count == 0)
-        return nil;
-
-    result = [NSMutableDictionary dictionaryWithCapacity:count];
-
-    // Scan tokens, looking for probabilities.
-    for (i = 0; i != count; ++i) {
-        role = [tokens objectAtIndex:i];
-
-        probability = 1.0f;
-        if ([role rangeOfString:@"("].location != NSNotFound) {
-            scanner = [[NSScanner alloc] initWithString:role];
-            [scanner scanUpToString:@"(" intoString:&role];
-            [scanner scanString:@"(" intoString:NULL];
-            if (![scanner scanFloat:&probability])
-                probability = 1.0f;
-            // Ignore rest of string
-
-            [scanner release];
+    // Split string at spaces; scan tokens, looking for probabilities.
+    for (const std::string& token : oo::str::tokens(string)) {
+        std::string role = token;
+        float probability = 1.0f;
+        const std::size_t open = token.find('(');
+        if (open != std::string::npos) {
+            // -[NSScanner scanUpToString:@"("] (which leaves role alone when "(" comes first),
+            // scanString:@"(", then scanFloat: (-scanDouble:, narrowed). Ignore rest of string.
+            if (open != 0)
+                role = token.substr(0, open);
+            double scanned = 0.0;
+            if (oo::plist_get::scanDouble(oo::utf8ToUtf16(std::string_view(token).substr(open + 1)), &scanned)) {
+                probability = static_cast<float>(scanned);
+            }
         }
 
         // shipKey roles start with [ so other roles can't
-        if (0 <= probability && ![role hasPrefix:@"["]) {
-            [result setObject:[NSNumber numberWithFloat:probability] forKey:role];
+        if (0 <= probability && !oo::str::hasPrefix(role, "[")) {
+            result[role] = probability;
         }
     }
 
-    if ([result count] == 0)
-        result = nil;
     return result;
 }

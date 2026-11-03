@@ -36,7 +36,6 @@ OOJSSystem.m (QuickJS-ng)
 #import "Universe.h"
 
 #import "EntityOOJavaScriptExtensions.h"
-#import "OOCollectionExtractors.h"
 #import "OOConstToJSString.h"
 #import "OOConstToString.h"
 #import "OODebugStandards.h"
@@ -44,6 +43,7 @@ OOJSSystem.m (QuickJS-ng)
 #import "OOFilteringEnumerator.h"
 #import "OOJSPopulatorDefinition.h"
 #import "OOJSScript.h"
+#import "OOPListView.h"
 
 static JSClassID sSystemClassID;
 
@@ -329,31 +329,31 @@ static JSValue SystemGetProperty(OOJS_GETTER_ARGS)
                 break;
 
             case kSystem_government:
-                return JS_NewInt32(context, [systemData oo_intForKey:KEY_GOVERNMENT]);
+                return JS_NewInt32(context, oo::PListView(systemData).get<int>(KEY_GOVERNMENT));
 
             case kSystem_governmentDescription:
-                result = OODisplayStringFromGovernmentID([systemData oo_intForKey:KEY_GOVERNMENT]);
+                result = OODisplayStringFromGovernmentID(oo::PListView(systemData).get<int>(KEY_GOVERNMENT));
                 if (result == nil)
                     result = DESC(@"not-applicable");
                 break;
 
             case kSystem_economy:
-                return JS_NewInt32(context, [systemData oo_intForKey:KEY_ECONOMY]);
+                return JS_NewInt32(context, oo::PListView(systemData).get<int>(KEY_ECONOMY));
 
             case kSystem_economyDescription:
-                result = OODisplayStringFromEconomyID([systemData oo_intForKey:KEY_ECONOMY]);
+                result = OODisplayStringFromEconomyID(oo::PListView(systemData).get<int>(KEY_ECONOMY));
                 if (result == nil)
                     result = DESC(@"not-applicable");
                 break;
 
             case kSystem_techLevel:
-                return JS_NewInt32(context, [systemData oo_intForKey:KEY_TECHLEVEL]);
+                return JS_NewInt32(context, oo::PListView(systemData).get<int>(KEY_TECHLEVEL));
 
             case kSystem_population:
-                return JS_NewInt32(context, [systemData oo_intForKey:KEY_POPULATION]);
+                return JS_NewInt32(context, oo::PListView(systemData).get<int>(KEY_POPULATION));
 
             case kSystem_productivity:
-                return JS_NewInt32(context, [systemData oo_intForKey:KEY_PRODUCTIVITY]);
+                return JS_NewInt32(context, oo::PListView(systemData).get<int>(KEY_PRODUCTIVITY));
 
             default:
                 OOJSReportBadPropertySelector(context, thisObj, magic, sSystemProperties, OOJS_COUNT(sSystemProperties));

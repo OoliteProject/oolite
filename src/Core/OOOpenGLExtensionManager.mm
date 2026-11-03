@@ -31,8 +31,8 @@ SOFTWARE.
 #include "oofnd/Process.hpp"
 #include <stdlib.h>
 
-#import "OOCollectionExtractors.h"
 #import "OOConstToString.h"
+#import "OOPListView.h"
 #import "OORegExpMatcher.h"
 #import "ResourceManager.h"
 
@@ -188,11 +188,6 @@ static NSArray* ArrayOfExtensions(NSString* extensionString)
 {
     self = [super init];
     if (self != nil) {
-#if OOOPENGLEXTMGR_LOCK_SET_ACCESS
-        lock = [[NSLock alloc] init];
-        [lock setName:@"OOOpenGLExtensionManager extension set lock"];
-#endif
-
         [self reset];
     }
 
@@ -261,14 +256,14 @@ static NSArray* ArrayOfExtensions(NSString* extensionString)
     [self checkShadersSupported];
 
     if (shadersAvailable) {
-        defaultShaderSetting = OOShaderSettingFromString([gpuConfig oo_stringForKey:@"default_shader_level"
-                                                                       defaultValue:@"SHADERS_FULL"]);
-        maximumShaderSetting = OOShaderSettingFromString([gpuConfig oo_stringForKey:@"maximum_shader_level"
-                                                                       defaultValue:@"SHADERS_FULL"]);
+        defaultShaderSetting = OOShaderSettingFromString(oo::PListView(gpuConfig).get<NSString*>(@"default_shader_level",
+            @"SHADERS_FULL"));
+        maximumShaderSetting = OOShaderSettingFromString(oo::PListView(gpuConfig).get<NSString*>(@"maximum_shader_level",
+            @"SHADERS_FULL"));
         if (maximumShaderSetting <= SHADERS_OFF) {
             shadersAvailable = NO;
             maximumShaderSetting = SHADERS_NOT_SUPPORTED;
-            OOLog(kOOLogOpenGLShaderSupport, @"Shaders will not be used (disallowed for GPU type \"%@\").", [gpuConfig oo_stringForKey:@"name" defaultValue:renderer]);
+            OOLog(kOOLogOpenGLShaderSupport, @"Shaders will not be used (disallowed for GPU type \"%@\").", oo::PListView(gpuConfig).get<NSString*>(@"name", renderer));
         }
         if (maximumShaderSetting < defaultShaderSetting) {
             defaultShaderSetting = maximumShaderSetting;
@@ -282,7 +277,7 @@ static NSArray* ArrayOfExtensions(NSString* extensionString)
         maximumShaderSetting = SHADERS_NOT_SUPPORTED;
     }
 
-    GLint texImageUnitOverride = [gpuConfig oo_intForKey:@"texture_image_units" defaultValue:textureImageUnitCount];
+    GLint texImageUnitOverride = oo::PListView(gpuConfig).get<int>(@"texture_image_units", textureImageUnitCount);
     if (texImageUnitOverride < textureImageUnitCount)
         textureImageUnitCount = MAX(texImageUnitOverride, 0);
 #endif
@@ -295,14 +290,14 @@ static NSArray* ArrayOfExtensions(NSString* extensionString)
 #endif
 #if OO_MULTITEXTURE
     [self checkTextureCombinersSupported];
-    GLint texUnitOverride = [gpuConfig oo_intForKey:@"texture_units" defaultValue:textureUnitCount];
+    GLint texUnitOverride = oo::PListView(gpuConfig).get<int>(@"texture_units", textureUnitCount);
     if (texUnitOverride < textureUnitCount)
         textureUnitCount = MAX(texUnitOverride, 0);
 #endif
 
-    usePointSmoothing = [gpuConfig oo_boolForKey:@"smooth_points" defaultValue:YES];
-    useLineSmoothing = [gpuConfig oo_boolForKey:@"smooth_lines" defaultValue:YES];
-    useDustShader = [gpuConfig oo_boolForKey:@"use_dust_shader" defaultValue:YES];
+    usePointSmoothing = oo::PListView(gpuConfig).get<BOOL>(@"smooth_points", YES);
+    useLineSmoothing = oo::PListView(gpuConfig).get<BOOL>(@"smooth_lines", YES);
+    useDustShader = oo::PListView(gpuConfig).get<BOOL>(@"use_dust_shader", YES);
 }
 
 - (void)dealloc
@@ -310,9 +305,6 @@ static NSArray* ArrayOfExtensions(NSString* extensionString)
     if (sSingleton == self)
         sSingleton = nil;
 
-#if OOOPENGLEXTMGR_LOCK_SET_ACCESS
-    [lock release];
-#endif
     DESTROY(extensions);
     DESTROY(vendor);
     DESTROY(renderer);
@@ -332,13 +324,13 @@ static NSArray* ArrayOfExtensions(NSString* extensionString)
 {
 // NSSet is documented as thread-safe under OS X, but I'm not sure about GNUstep. -- Ahruman
 #if OOOPENGLEXTMGR_LOCK_SET_ACCESS
-    [lock lock];
+    lock.lock();
 #endif
 
     BOOL result = [extensions containsObject:extension];
 
 #if OOOPENGLEXTMGR_LOCK_SET_ACCESS
-    [lock unlock];
+    lock.unlock();
 #endif
 
     return result;
@@ -712,10 +704,10 @@ NSComparisonResult CompareGPUSettingsByPriority(id a, id b, void* context)
     NSString* keyA = a;
     NSString* keyB = b;
     NSDictionary* configurations = (NSDictionary*)context;
-    NSDictionary* dictA = [configurations oo_dictionaryForKey:keyA];
-    NSDictionary* dictB = [configurations oo_dictionaryForKey:keyB];
-    double precedenceA = [dictA oo_doubleForKey:@"precedence" defaultValue:1];
-    double precedenceB = [dictB oo_doubleForKey:@"precedence" defaultValue:1];
+    NSDictionary* dictA = oo::PListView(configurations).get<NSDictionary*>(keyA);
+    NSDictionary* dictB = oo::PListView(configurations).get<NSDictionary*>(keyB);
+    double precedenceA = oo::PListView(dictA).get<double>(@"precedence", 1);
+    double precedenceB = oo::PListView(dictB).get<double>(@"precedence", 1);
 
     if (precedenceA > precedenceB)
         return NSOrderedAscending;
@@ -737,26 +729,26 @@ NSComparisonResult CompareGPUSettingsByPriority(id a, id b, void* context)
     NSDictionary* config = nil;
 
     foreach (key, keys) {
-        config = [configurations oo_dictionaryForKey:key];
+        config = oo::PListView(configurations).get<NSDictionary*>(key);
         if (EXPECT_NOT(config == nil))
             continue;
 
-        NSDictionary* match = [config oo_dictionaryForKey:@"match"];
+        NSDictionary* match = oo::PListView(config).get<NSDictionary*>(@"match");
         NSString* expr = nil;
 
         expr = [match objectForKey:@"vendor"];
         if (!CheckRegExps(vendor, expr))
             continue;
 
-        expr = [match oo_stringForKey:@"renderer"];
+        expr = oo::PListView(match).get<NSString*>(@"renderer");
         if (!CheckRegExps(renderer, expr))
             continue;
 
-        expr = [match oo_stringForKey:@"version"];
+        expr = oo::PListView(match).get<NSString*>(@"version");
         if (!CheckRegExps(versionStr, expr))
             continue;
 
-        expr = [match oo_stringForKey:@"extensions"];
+        expr = oo::PListView(match).get<NSString*>(@"extensions");
         if (!CheckRegExps(extensionsStr, expr))
             continue;
 
@@ -778,7 +770,7 @@ NSComparisonResult CompareGPUSettingsByPriority(id a, id b, void* context)
         // NOTE: assumes single-threaded first access.
 */
 
-+ (id)allocWithZone:(NSZone*)inZone
++ (id)allocWithZone:(OOZone*)inZone
 {
     if (sSingleton == nil) {
         sSingleton = [super allocWithZone:inZone];
@@ -787,7 +779,7 @@ NSComparisonResult CompareGPUSettingsByPriority(id a, id b, void* context)
     return nil;
 }
 
-- (id)copyWithZone:(NSZone*)inZone
+- (id)copyWithZone:(OOZone*)inZone
 {
     return self;
 }

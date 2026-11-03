@@ -34,10 +34,11 @@ SOFTWARE.
 #import "OOScript.h"
 #import "OOTypes.h"
 #import "Universe.h"
+#import "oofnd/objc/OOObject.h"
 
 #include <quickjs.h>
 
-@interface OOEquipmentType : NSObject <NSCopying> {
+@interface OOEquipmentType : OOObject <OOCopying> {
 @private
     OOTechLevelID _techLevel;
     OOCreditsQuantity _price;

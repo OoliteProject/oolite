@@ -23,6 +23,7 @@ MA 02110-1301, USA.
 */
 
 #include "OOMaths.h"
+#include "oofnd/String.hpp"
 
 const Quaternion kIdentityQuaternion = { 1.0f, 0.0f, 0.0f, 0.0f };
 const Quaternion kZeroQuaternion = { 0.0f, 0.0f, 0.0f, 0.0f };
@@ -358,7 +359,7 @@ void quaternion_rotate_about_axis(Quaternion* quat, Vector axis, OOScalar angle)
 }
 
 #if __OBJC__
-NSString* QuaternionDescription(Quaternion quaternion)
+std::string QuaternionDescription(Quaternion quaternion)
 {
     float x, y, z;
     char xs, ys, zs;
@@ -371,7 +372,7 @@ NSString* QuaternionDescription(Quaternion quaternion)
     ys = (quaternion.y >= 0.0f) ? '+' : '-';
     zs = (quaternion.z >= 0.0f) ? '+' : '-';
 
-    return [NSString stringWithFormat:@"(%g %c %gi %c %gj %c %gk)", quaternion.w, xs, x, ys, y, zs, z];
+    return oo::str::format("(%g %c %gi %c %gj %c %gk)", quaternion.w, xs, x, ys, y, zs, z);
 }
 #endif
 

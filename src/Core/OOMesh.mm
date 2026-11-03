@@ -41,7 +41,6 @@ MA 02110-1301, USA.
 #import "Entity.h" // for NO_DRAW_DISTANCE_FACTOR.
 #import "NSObjectOOExtensions.h"
 #import "OOBasicMaterial.h"
-#import "OOCollectionExtractors.h"
 #import "OODebugFlags.h"
 #import "OODebugGLDrawing.h"
 #import "OOGraphicsResetManager.h"
@@ -49,11 +48,14 @@ MA 02110-1301, USA.
 #import "OOMaterialConvenienceCreators.h"
 #import "OOMeshToOctreeConverter.h"
 #import "OOOpenGLExtensionManager.h"
+#import "OOPListView.h"
 #import "OOProfilingStopwatch.h"
 #import "OOShaderMaterial.h"
 #import "Octree.h"
 #import "ResourceManager.h"
 #import "Universe.h"
+#import <objc/objc-arc.h>
+#import <objc/runtime.h>
 
 #import "OODebugStandards.h"
 #import "OOJavaScriptEngine.h"
@@ -123,7 +125,7 @@ static void VFRAddFace(VertexFaceRef* vfr, NSUInteger index);
 static NSUInteger VFRGetCount(VertexFaceRef* vfr);
 static NSUInteger VFRGetFaceAtIndex(VertexFaceRef* vfr, NSUInteger index);
 
-@interface OOMesh (Private) <NSMutableCopying, OOGraphicsResetClient>
+@interface OOMesh (Private) <OOMutableCopying, OOGraphicsResetClient>
 
 - (id)initWithName:(NSString*)name
                cacheKey:(NSString*)cacheKey
@@ -267,7 +269,7 @@ static BOOL IsPerVertexNormalMode(OOMeshNormalMode mode)
     static OOBasicMaterial* placeholderMaterial = nil;
 
     if (placeholderMaterial == nil) {
-        placeholderMaterial = [[OOBasicMaterial alloc] initWithName:@"/placeholder/" configuration:[[ResourceManager materialDefaults] oo_dictionaryForKey:@"no-textures-material"]];
+        placeholderMaterial = [[OOBasicMaterial alloc] initWithName:@"/placeholder/" configuration:oo::PListView([ResourceManager materialDefaults]).get<NSDictionary*>(@"no-textures-material")];
     }
 
     return placeholderMaterial;
@@ -344,7 +346,7 @@ static NSString* NormalModeDescription(OOMeshNormalMode mode)
     return [NSString stringWithFormat:@"\"%@\", %zu vertices, %zu faces, radius: %g m normals: %@", [self modelName], [self vertexCount], [self faceCount], [self collisionRadius], NormalModeDescription((OOMeshNormalMode)_normalMode)];
 }
 
-- (id)copyWithZone:(NSZone*)zone
+- (id)copyWithZone:(OOZone*)zone
 {
     if (zone == [self zone])
         return [self retain]; // OK because we're immutable seen from the outside
@@ -635,26 +637,24 @@ static NSString* NormalModeDescription(OOMeshNormalMode mode)
     if (octree == nil) {
         octree = [[OOCacheManager octreeForModel:baseFileOctreeCacheRef] retain];
         if (octree == nil) {
-            NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+            @autoreleasepool {
+                OOMeshToOctreeConverter* converter = [OOMeshToOctreeConverter converterWithCapacity:faceCount];
+                OOMeshFaceCount i;
+                for (i = 0; i < faceCount; i++) {
+                    // Somewhat surprisingly, this method doesn't even show up in profiles. -- Ahruman 2012-09-22
+                    Triangle tri;
+                    tri.v[0] = _vertices[_faces[i].vertex[0]];
+                    tri.v[1] = _vertices[_faces[i].vertex[1]];
+                    tri.v[2] = _vertices[_faces[i].vertex[2]];
+                    [converter addTriangle:tri];
+                }
 
-            OOMeshToOctreeConverter* converter = [OOMeshToOctreeConverter converterWithCapacity:faceCount];
-            OOMeshFaceCount i;
-            for (i = 0; i < faceCount; i++) {
-                // Somewhat surprisingly, this method doesn't even show up in profiles. -- Ahruman 2012-09-22
-                Triangle tri;
-                tri.v[0] = _vertices[_faces[i].vertex[0]];
-                tri.v[1] = _vertices[_faces[i].vertex[1]];
-                tri.v[2] = _vertices[_faces[i].vertex[2]];
-                [converter addTriangle:tri];
+                octree = [converter findOctreeToDepth:[self octreeDepth]];
+                [octree retain];
+                if (EXPECT(_cacheWriteable)) {
+                    [OOCacheManager setOctree:octree forModel:baseFileOctreeCacheRef];
+                }
             }
-
-            octree = [converter findOctreeToDepth:[self octreeDepth]];
-            [octree retain];
-            if (EXPECT(_cacheWriteable)) {
-                [OOCacheManager setOctree:octree forModel:baseFileOctreeCacheRef];
-            }
-
-            [pool release];
         } else {
             OOLog(@"mesh.load.octreeCached", @"Retrieved octree \"%@\" from cache.", baseFileOctreeCacheRef);
         }
@@ -832,60 +832,64 @@ static NSString* NormalModeDescription(OOMeshNormalMode mode)
     if (self == nil)
         return nil;
 
-    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-    _normalMode = smooth ? kNormalModeSmooth : kNormalModePerFace;
-    _cacheWriteable = cacheWriteable;
+    @autoreleasepool {
+        _normalMode = smooth ? kNormalModeSmooth : kNormalModePerFace;
+        _cacheWriteable = cacheWriteable;
 
 #if OOMESH_PROFILE
-    _stopwatch = [[OOProfilingStopwatch alloc] init];
+        _stopwatch = [[OOProfilingStopwatch alloc] init];
 #endif
 
-    if ([self loadData:name scaleFactor:scale]) {
-        [self calculateBoundingVolumes];
-        PROFILE(@"finished calculateBoundingVolumes (again\?\?)");
+        if ([self loadData:name scaleFactor:scale]) {
+            [self calculateBoundingVolumes];
+            PROFILE(@"finished calculateBoundingVolumes (again\?\?)");
 
-        baseFile = [name copy];
-        baseFileOctreeCacheRef = [[NSString stringWithFormat:@"%@-%.3f", baseFile, scale] copy];
+            baseFile = [name copy];
+            baseFileOctreeCacheRef = [[NSString stringWithFormat:@"%@-%.3f", baseFile, scale] copy];
 
-        /*	New in r3033: save the material-defining parameters here so we
-                can rebind the materials at any time.
-                -- Ahruman 2010-02-17
-        */
-        _materialDict = [materialDict copy];
-        _shadersDict = [shadersDict copy];
-        _cacheKey = [cacheKey copy];
-        _shaderMacros = [macros copy];
-        _shaderBindingTarget = [target weakRetain];
+            /*	New in r3033: save the material-defining parameters here so we
+                    can rebind the materials at any time.
+                    -- Ahruman 2010-02-17
+            */
+            _materialDict = [materialDict copy];
+            _shadersDict = [shadersDict copy];
+            _cacheKey = [cacheKey copy];
+            _shaderMacros = [macros copy];
+            _shaderBindingTarget = [target weakRetain];
 
-        [self rebindMaterials];
-        PROFILE(@"finished material setup");
+            [self rebindMaterials];
+            PROFILE(@"finished material setup");
 
-        [[OOGraphicsResetManager sharedManager] registerClient:self];
-    } else {
-        [self release];
-        self = nil;
-    }
+            [[OOGraphicsResetManager sharedManager] registerClient:self];
+        } else {
+            [self release];
+            self = nil;
+        }
 #if OOMESH_PROFILE
-    DESTROY(_stopwatch);
+        DESTROY(_stopwatch);
 #endif
 #if OO_MULTITEXTURE
-    if (EXPECT(self != nil)) {
-        _textureUnitCount = NSNotFound;
-    }
+        if (EXPECT(self != nil)) {
+            _textureUnitCount = NSNotFound;
+        }
 #endif
-
-    [pool release];
+    }
     return self;
 
     OOJS_PROFILE_EXIT
 }
 
-- (id)mutableCopyWithZone:(NSZone*)zone
+- (id)mutableCopyWithZone:(OOZone*)zone
 {
     OOMesh* result = nil;
     OOMeshMaterialCount i;
 
-    result = (OOMesh*)NSCopyObject(self, 0, zone);
+    // NSCopyObject(self, 0, zone) without Foundation (ADR-0029 reroot): a new instance of the same
+    // class with the ivars copied bitwise, as NSCopyObject does. Zones are unused, as on GNUstep.
+    Class cls = object_getClass(self);
+    result = (OOMesh*)class_createInstance(cls, 0);
+    if (result != nil)
+        memcpy((void*)result, (const void*)self, class_getInstanceSize(cls));
 
     if (result != nil) {
         [result->baseFile retain];
@@ -1006,18 +1010,18 @@ static NSString* NormalModeDescription(OOMeshNormalMode mode)
     if (dict == nil || ![dict isKindOfClass:[NSDictionary class]])
         return NO;
 
-    vertexCount = [dict oo_unsignedIntForKey:@"vertex count"];
-    faceCount = [dict oo_unsignedIntForKey:@"face count"];
+    vertexCount = oo::PListView(dict).get<unsigned int>(@"vertex count");
+    faceCount = oo::PListView(dict).get<unsigned int>(@"face count");
 
     if (vertexCount == 0 || faceCount == 0)
         return NO;
 
     // Read data elements from dictionary.
-    vertData = [dict oo_dataForKey:@"vertex data"];
-    faceData = [dict oo_dataForKey:@"face data"];
+    vertData = oo::PListView(dict).get<NSData*>(@"vertex data");
+    faceData = oo::PListView(dict).get<NSData*>(@"face data");
 
-    mtlKeys = [dict oo_arrayForKey:@"material keys"];
-    _normalMode = [dict oo_unsignedCharForKey:@"normal mode"];
+    mtlKeys = oo::PListView(dict).get<NSArray*>(@"material keys");
+    _normalMode = oo::PListView(dict).get<unsigned char>(@"normal mode");
     BOOL includeNormals = IsPerVertexNormalMode((OOMeshNormalMode)_normalMode);
 
     // Ensure we have all the required data elements.
@@ -1027,8 +1031,8 @@ static NSString* NormalModeDescription(OOMeshNormalMode mode)
     }
 
     if (includeNormals) {
-        normData = [dict oo_dataForKey:@"normal data"];
-        tanData = [dict oo_dataForKey:@"tangent data"];
+        normData = oo::PListView(dict).get<NSData*>(@"normal data");
+        tanData = oo::PListView(dict).get<NSData*>(@"tangent data");
         if (normData == nil || tanData == nil) {
             OOLog(@"mesh.load.error.badCacheData", @"Ignoring bad normal/tangent cache data for mesh \"%@\".", fileName);
             return NO;
@@ -1065,7 +1069,7 @@ static NSString* NormalModeDescription(OOMeshNormalMode mode)
     // Copy material keys.
     materialCount = [mtlKeys count];
     for (i = 0; i != materialCount; ++i) {
-        key = [mtlKeys oo_stringAtIndex:i];
+        key = oo::PListView(mtlKeys).at<NSString*>(i);
         if (key != nil)
             materialKeys[i] = [key copy];
         else {
@@ -1121,7 +1125,7 @@ static NSString* NormalModeDescription(OOMeshNormalMode mode)
         texFileName2Idx = [NSMutableDictionary dictionary];
 
         {
-            NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+            void* pool = objc_autoreleasePoolPush();
             NSString* data = [ResourceManager stringFromFilesNamed:filename inFolder:@"Models" cache:NO];
             if (data == nil) {
                 // Model not found
@@ -1154,7 +1158,7 @@ static NSString* NormalModeDescription(OOMeshNormalMode mode)
             scanner = [NSScanner scannerWithString:data];
 
             [scanner retain];
-            [pool release];
+            objc_autoreleasePoolPop(pool);
             [scanner autorelease];
         }
 
@@ -2074,7 +2078,7 @@ static NSUInteger VFRGetFaceAtIndex(VertexFaceRef* vfr, NSUInteger index)
     if (index < vfr->internCount)
         return vfr->internFaces[index];
     else
-        return [vfr->extra oo_unsignedIntegerAtIndex:index - vfr->internCount];
+        return oo::PListView(vfr->extra).at<NSUInteger>(index - vfr->internCount);
 }
 
 @end

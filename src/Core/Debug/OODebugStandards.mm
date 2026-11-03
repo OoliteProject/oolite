@@ -29,8 +29,8 @@ SOFTWARE.
 
 #import "OODebugStandards.h"
 #import "GameController.h"
-#import "OOCollectionExtractors.h"
 #import "OOLogging.h"
+#import "OOPListView.h"
 
 #ifndef OO_DEBUG_MONITOR_ENABLED
 // in release mode, stubs
@@ -72,8 +72,7 @@ void OOStandardsSetup()
         return;
     }
     NSUserDefaults* prefs = [NSUserDefaults standardUserDefaults];
-    int s = [prefs oo_intForKey:@"enforce-oxp-standards"
-                   defaultValue:STANDARDS_ENFORCEMENT_DEFAULT];
+    int s = oo::PListView(prefs).get<int>(@"enforce-oxp-standards", STANDARDS_ENFORCEMENT_DEFAULT);
     if (s < STANDARDS_ENFORCEMENT_OFF) {
         s = STANDARDS_ENFORCEMENT_OFF;
     } else if (s > STANDARDS_ENFORCEMENT_QUIT) {

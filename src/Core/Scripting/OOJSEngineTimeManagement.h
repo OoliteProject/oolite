@@ -92,7 +92,7 @@ BOOL OOJSIsProfiling(void);
 
 void OOJSExcludeTimeFromLimiter(OOTimeDelta time);
 
-@interface OOTimeProfile : NSObject {
+@interface OOTimeProfile : OOObject {
 @private
     double _totalTime;
     double _nativeTime;
@@ -113,7 +113,7 @@ void OOJSExcludeTimeFromLimiter(OOTimeDelta time);
 
 @end
 
-@interface OOTimeProfileEntry : NSObject {
+@interface OOTimeProfileEntry : OOObject {
 @private
     NSString* _function;
     unsigned long _hitCount;

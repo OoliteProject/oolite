@@ -28,6 +28,7 @@ MA 02110-1301, USA.
 #import "OOJSEntity.h"
 #endif
 #import "OOJavaScriptEngine.h"
+#import "OOStringBridge.h"
 
 static JSClassID sQuaternionClassID;
 
@@ -463,7 +464,7 @@ static JSValue QuaternionToString(OOJS_NATIVE_ARGS)
     if (EXPECT_NOT(!GetThisQuaternion(context, OOJS_THIS, &thisq, @"toString")))
         return JS_EXCEPTION;
 
-    OOJS_RETURN_OBJECT(QuaternionDescription(thisq));
+    OOJS_RETURN_OBJECT(oo::NSStringFrom(QuaternionDescription(thisq)));
 
     OOJS_NATIVE_EXIT
 }

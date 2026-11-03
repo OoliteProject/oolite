@@ -39,6 +39,7 @@ MA 02110-1301, USA.
 #import "NSObjectOOExtensions.h"
 #import "NSScannerOOExtensions.h"
 #import "OODebugFlags.h"
+#import "OOStringBridge.h"
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
 uint32_t gLiveEntityCount = 0;
@@ -931,7 +932,7 @@ static NSString* const kOOLogEntityVerificationError = @"entity.linkedList.verif
     OOLog(@"dumpState.entity", @"Scan class: %@", OOStringFromScanClass(scanClass));
     OOLog(@"dumpState.entity", @"Status: %@", OOStringFromEntityStatus([self status]));
     OOLog(@"dumpState.entity", @"Position: %@", HPVectorDescription(position));
-    OOLog(@"dumpState.entity", @"Orientation: %@", QuaternionDescription(orientation));
+    OOLog(@"dumpState.entity", @"Orientation: %@", oo::NSStringFrom(QuaternionDescription(orientation)));
     OOLog(@"dumpState.entity", @"Distance travelled: %g", distanceTravelled);
     OOLog(@"dumpState.entity", @"Energy: %g of %g", energy, maxEnergy);
     OOLog(@"dumpState.entity", @"Mass: %g", mass);

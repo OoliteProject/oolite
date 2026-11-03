@@ -68,7 +68,7 @@ enum {
 /*	Class containing a set of quads with the same texture. This form is
         optimized for rendering.
 */
-@interface OOSkyQuadSet : NSObject {
+@interface OOSkyQuadSet : OOObject {
 @private
     OOTexture* _texture;
     unsigned _count;
@@ -507,7 +507,7 @@ static OOColor* DebugColor(Vector orientation)
     GLfloat r, g, b, x;
     size_t posSize, tcSize, colSize;
     unsigned count = 0;
-    // -integerForKey: gives 0 wherever oo_integerForKey:defaultValue:0 fell back to the default.
+    // -integerForKey: gives 0 wherever get<NSInteger>(key, 0) fell back to the default.
     int skyColorCorrection = (int)oo::Defaults::standard().integerForKey("sky-color-correction");
 
 // Hejl / Burgess-Dawson filmic tone mapping

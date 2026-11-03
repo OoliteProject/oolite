@@ -267,7 +267,7 @@ static BOOL SetMissionVariable(JSContext* context, JSAtom propID, JSValueConst v
 
         NSString* objValue = OOStringFromJSValue(context, value);
 
-        if ([objValue isKindOfClass:[NSNull class]])
+        if ([objValue isKindOfClass:[OONull class]])
             objValue = nil;
         [player setMissionVariable:objValue forKey:key];
     }

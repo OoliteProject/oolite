@@ -32,6 +32,7 @@ SOFTWARE.
 */
 
 #import "OOFoundation.h"
+#import "oofnd/objc/OOObject.h"
 
 @class OOJSFunction, OOJSValue;
 
@@ -41,7 +42,7 @@ enum {
     kOORegExpMultiLine = 0x04
 };
 
-@interface OORegExpMatcher : NSObject {
+@interface OORegExpMatcher : OOObject {
 @private
     OOJSFunction* _tester;
     NSString* _cachedRegExpString;

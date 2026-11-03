@@ -24,10 +24,10 @@ MA 02110-1301, USA.
 
 #import "OOCacheManager.h"
 #import "NSFileManagerOOExtensions.h"
-#import "OOCollectionExtractors.h"
 #import "OODeepCopy.h"
 #import "OOJavaScriptEngine.h"
 #import "OOPListParsing.h"
+#import "OOPListView.h"
 
 #define WRITE_ASYNC 1
 #define PROFILE_WRITES 0
@@ -97,7 +97,7 @@ static OOCacheManager* sSingleton = nil;
 @end
 
 #if WRITE_ASYNC
-@interface OOAsyncCacheWriter : NSObject <OOAsyncWorkTask> {
+@interface OOAsyncCacheWriter : OOObject <OOAsyncWorkTask> {
 @private
     NSDictionary* _cacheContents;
 }
@@ -524,7 +524,7 @@ static OOCacheManager* sSingleton = nil;
 
     foreachkey(key, inDict)
     {
-        value = [inDict oo_dictionaryForKey:key];
+        value = oo::PListView(inDict).get<NSDictionary*>(key);
         if (value != nil) {
             cache = [NSMutableDictionary dictionaryWithDictionary:value];
             if (cache != nil) {
@@ -591,7 +591,7 @@ static OOCacheManager* sSingleton = nil;
         NOTE: assumes single-threaded access.
 */
 
-+ (id)allocWithZone:(NSZone*)inZone
++ (id)allocWithZone:(OOZone*)inZone
 {
     if (sSingleton == nil) {
         sSingleton = [super allocWithZone:inZone];
@@ -600,7 +600,7 @@ static OOCacheManager* sSingleton = nil;
     return nil;
 }
 
-- (id)copyWithZone:(NSZone*)inZone
+- (id)copyWithZone:(OOZone*)inZone
 {
     return self;
 }

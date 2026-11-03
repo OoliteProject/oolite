@@ -24,8 +24,8 @@ MA 02110-1301, USA.
 
 #import "PlayerEntityStickMapper.h"
 #import "HeadUpDisplay.h"
-#import "OOCollectionExtractors.h"
 #import "OOJoystickManager.h"
+#import "OOPListView.h"
 #import "OOTexture.h"
 #import "PlayerEntityControls.h"
 #import "PlayerEntityStickProfile.h"
@@ -211,8 +211,8 @@ MA 02110-1301, USA.
     // What moved?
     int function;
     NSDictionary* entry = [stickFunctions objectAtIndex:selFunctionIdx];
-    if ([hwDict oo_boolForKey:STICK_ISAXIS]) {
-        function = [entry oo_intForKey:KEY_AXISFN];
+    if (oo::PListView(hwDict).get<BOOL>(STICK_ISAXIS)) {
+        function = oo::PListView(entry).get<int>(KEY_AXISFN);
         if (function == AXIS_THRUST) {
             [stickHandler unsetButtonFunction:BUTTON_INCTHRUST];
             [stickHandler unsetButtonFunction:BUTTON_DECTHRUST];
@@ -232,7 +232,7 @@ MA 02110-1301, USA.
             [stickHandler unsetButtonFunction:BUTTON_VIEWAFT];
         }
     } else {
-        function = [entry oo_intForKey:KEY_BUTTONFN];
+        function = oo::PListView(entry).get<int>(KEY_BUTTONFN);
         if (function == BUTTON_INCTHRUST || function == BUTTON_DECTHRUST) {
             [stickHandler unsetAxisFunction:AXIS_THRUST];
         }
@@ -291,14 +291,12 @@ MA 02110-1301, USA.
         if (i != idx) {
             NSMutableDictionary* custEquip = [[customEquipActivation objectAtIndex:i] mutableCopy];
             NSDictionary* bf = [[customEquipActivation objectAtIndex:i] objectForKey:CUSTOMEQUIP_BUTTONACTIVATE];
-            if ([bf oo_integerForKey:STICK_NUMBER] == [stickFn oo_integerForKey:STICK_NUMBER] &&
-                [bf oo_integerForKey:STICK_AXBUT] == [stickFn oo_integerForKey:STICK_AXBUT] &&
+            if (oo::PListView(bf).get<NSInteger>(STICK_NUMBER) == oo::PListView(stickFn).get<NSInteger>(STICK_NUMBER) && oo::PListView(bf).get<NSInteger>(STICK_AXBUT) == oo::PListView(stickFn).get<NSInteger>(STICK_AXBUT) &&
                 [custEquip objectForKey:CUSTOMEQUIP_BUTTONACTIVATE]) {
                 [custEquip removeObjectForKey:CUSTOMEQUIP_BUTTONACTIVATE];
             }
             bf = [[customEquipActivation objectAtIndex:i] objectForKey:CUSTOMEQUIP_BUTTONMODE];
-            if ([bf oo_integerForKey:STICK_NUMBER] == [stickFn oo_integerForKey:STICK_NUMBER] &&
-                [bf oo_integerForKey:STICK_AXBUT] == [stickFn oo_integerForKey:STICK_AXBUT] &&
+            if (oo::PListView(bf).get<NSInteger>(STICK_NUMBER) == oo::PListView(stickFn).get<NSInteger>(STICK_NUMBER) && oo::PListView(bf).get<NSInteger>(STICK_AXBUT) == oo::PListView(stickFn).get<NSInteger>(STICK_AXBUT) &&
                 [custEquip objectForKey:CUSTOMEQUIP_BUTTONMODE]) {
                 [custEquip removeObjectForKey:CUSTOMEQUIP_BUTTONMODE];
             }
@@ -416,9 +414,9 @@ MA 02110-1301, USA.
             } else {
                 NSString* allowedThings;
                 NSString* assignment;
-                NSString* axFuncKey = [entry oo_stringForKey:KEY_AXISFN];
-                NSString* butFuncKey = [entry oo_stringForKey:KEY_BUTTONFN];
-                int allowable = [entry oo_intForKey:KEY_ALLOWABLE];
+                NSString* axFuncKey = oo::PListView(entry).get<NSString*>(KEY_AXISFN);
+                NSString* butFuncKey = oo::PListView(entry).get<NSString*>(KEY_BUTTONFN);
+                int allowable = oo::PListView(entry).get<int>(KEY_ALLOWABLE);
                 switch (allowable) {
                 case HW_AXIS:
                     allowedThings = DESC(@"stickmapper-allowed-axis");

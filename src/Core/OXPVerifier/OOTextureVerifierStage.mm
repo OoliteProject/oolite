@@ -76,12 +76,11 @@ static NSString* const kStageName = @"Testing textures and images";
 {
     NSArray* nameEnum = nil;
     NSString* name = nil;
-    NSAutoreleasePool* pool = nil;
 
     foreach (name, _usedTextures) {
-        pool = [[NSAutoreleasePool alloc] init];
-        [self checkTextureNamed:name inFolder:@"Textures"];
-        [pool release];
+        @autoreleasepool {
+            [self checkTextureNamed:name inFolder:@"Textures"];
+        }
     }
     [_usedTextures release];
     _usedTextures = nil;

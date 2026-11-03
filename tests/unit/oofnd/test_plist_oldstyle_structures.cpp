@@ -155,6 +155,29 @@ OO_TEST(undecodableExtensionsAreNilWithoutAnError)
 	OO_CHECK(oo::parseOldStylePList("{ a = (<[AAE=A]>); }").has_value());
 }
 
+OO_TEST(dateFieldsNSCalendarDateRejects)
+{
+	// Found by the GNUstep differential fuzzer (bead oo-g2k): -initWithString:calendarFormat:
+	// is nil for a day or month of 0 ("Day of month is zero"), so the whole plist is nil.
+	OO_CHECK_EQ(parsed("{ key = <*D2001-01-00 00:00:00 +0000>; }"), "nil");
+	OO_CHECK_EQ(parsed("{ key = <*D2001-00-01 00:00:00 +0000>; }"), "nil");
+	OO_CHECK_EQ(parsed("{ key = <*D2001-01- 00:00:00 +0000>; }"), "nil");   // " 0": the day is 0
+	OO_CHECK_EQ(parsed("{ key = <*D2001-0-01 00:00:00 +0000>; }"), "nil");
+	OO_CHECK_EQ(parsed("(<*D2001-13-01 00:00:00 +0000>)"), "[T31536000.000]");   // 13 rolls over
+}
+
+OO_TEST(dateZoneBeyondEighteenHoursIsUtc_ADR0027)
+{
+	// +timeZoneForSecondsFromGMT: is nil beyond 18 hours and the date falls back to the local
+	// zone; oofnd reads it as UTC (ADR-0027 item 7), as the GNUstep oracle pinned to UTC does.
+	OO_CHECK_EQ(parsed("{ key = <*D2001-01-01 00:00:00 +1800>; }"), "{\"key\"=T-64800.000;}");
+	OO_CHECK_EQ(parsed("{ key = <*D2001-01-01 00:00:00 +1801>; }"), "{\"key\"=T0.000;}");
+	OO_CHECK_EQ(parsed("{ key = <*D2001-01-01 00:00:00 -1801>; }"), "{\"key\"=T0.000;}");
+	OO_CHECK_EQ(parsed("{ key = <*D2001-01-01 00:00:00 +0960>; }"), "{\"key\"=T-36000.000;}");
+	OO_CHECK_EQ(parsed("{ key = <*D2001-01-01 00:00:00 +19>; }"), "{\"key\"=T0.000;}");
+	OO_CHECK_EQ(parsed("{ key = <*D2001-01-01 00:00:005060708090a0b0c0d0e0f>; }"), "{\"key\"=T0.000;}");
+}
+
 OO_TEST(nestingAndComments)
 {
 	OO_CHECK_EQ(parsed("{a=(1,{b=<01>;c=({},());});d=\"x\";}"),

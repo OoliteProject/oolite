@@ -24,9 +24,9 @@ MA 02110-1301, USA.
 
 #import "OOPListScript.h"
 #import "OOCacheManager.h"
-#import "OOCollectionExtractors.h"
 #import "OOLegacyScriptWhitelist.h"
 #import "OOPListParsing.h"
+#import "OOPListView.h"
 #import "PlayerEntityLegacyScriptEngine.h"
 
 static NSString* const kMDKeyName = @"name";
@@ -157,9 +157,9 @@ static NSString* const kCacheName = @"sanitized legacy scripts";
 
     foreachkey(key, cachedScripts)
     {
-        NSDictionary* cacheValue = [cachedScripts oo_dictionaryForKey:key];
-        NSArray* scriptArray = [cacheValue oo_arrayForKey:kKeyScript];
-        NSDictionary* metadata = [cacheValue oo_dictionaryForKey:kKeyMetadata];
+        NSDictionary* cacheValue = oo::PListView(cachedScripts).get<NSDictionary*>(key);
+        NSArray* scriptArray = oo::PListView(cacheValue).get<NSArray*>(kKeyScript);
+        NSDictionary* metadata = oo::PListView(cacheValue).get<NSDictionary*>(kKeyMetadata);
         OOPListScript* script = [[self alloc] initWithName:key scriptArray:scriptArray metadata:metadata];
         if (script != nil) {
             [result addObject:script];

@@ -27,6 +27,7 @@ MA 02110-1301, USA.
 
 #import "OOFoundation.h"
 #import "OOOpenGL.h"
+#import "oofnd/objc/OOObject.h"
 
 typedef struct
 {
@@ -38,7 +39,7 @@ typedef struct
     float h, s, b, a;
 } OOHSBAComponents;
 
-@interface OOColor : NSObject <NSCopying> {
+@interface OOColor : OOObject <OOCopying> {
 @private
     float rgba[4];
 }

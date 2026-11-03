@@ -30,6 +30,7 @@ MA 02110-1301, USA.
 #import "OOConstToString.h"
 #import "OOEntityFilterPredicate.h"
 #import "OOEquipmentType.h"
+#import "OOFoundationBridge.h"
 #import "OOJSEntity.h"
 #import "OOJSEquipmentInfo.h"
 #import "OOJSPlayer.h"
@@ -613,13 +614,21 @@ static JSValue ShipGetProperty(OOJS_GETTER_ARGS)
         result = [entity scanDescriptionForScripting];
         break;
 
-    case kShip_roles:
-        result = [[entity roleSet] sortedRoles];
-        break;
+    case kShip_roles: {
+        OORoleSet* roleSet = [entity roleSet];
+        result = roleSet != nil ? oo::NSArrayFromStrings([roleSet sortedRoles]) : nil;
+    } break;
 
-    case kShip_roleWeights:
-        result = [[entity roleSet] rolesAndProbabilities];
-        break;
+    case kShip_roleWeights: {
+        NSMutableDictionary* weights = nil;
+        if (const auto roleWeights = [[entity roleSet] rolesAndProbabilities]) {
+            weights = [NSMutableDictionary dictionaryWithCapacity:roleWeights->size()];
+            for (const auto& [role, weight] : *roleWeights) {
+                [weights setObject:[NSNumber numberWithFloat:weight] forKey:oo::NSStringFrom(role)];
+            }
+        }
+        result = weights;
+    } break;
 
     case kShip_primaryRole:
         result = [entity primaryRole];

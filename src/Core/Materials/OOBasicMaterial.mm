@@ -27,6 +27,7 @@ SOFTWARE.
 
 #import "OOBasicMaterial.h"
 #import "OOCollectionExtractors.h"
+#import "OOFoundationBridge.h"
 #import "OOFunctionAttributes.h"
 #import "OOMaterialSpecifier.h"
 #import "OOTexture.h"
@@ -38,13 +39,13 @@ static OOBasicMaterial* sDefaultMaterial = nil;
 
 @implementation OOBasicMaterial
 
-- (id)initWithName:(NSString*)name
+- (id)initWithName:(id)name
 {
     self = [super init];
     if (EXPECT_NOT(self == nil))
         return nil;
 
-    materialName = [name copy];
+    materialName = oo::OptionalString(name);
 
     [self setDiffuseRed:1.0f green:1.0f blue:1.0f alpha:1.0f];
     [self setAmbientRed:1.0f green:1.0f blue:1.0f alpha:1.0f];
@@ -54,7 +55,7 @@ static OOBasicMaterial* sDefaultMaterial = nil;
     return self;
 }
 
-- (id)initWithName:(NSString*)name configuration:(NSDictionary*)configuration
+- (id)initWithName:(id)name configuration:(id)configuration
 {
     id colorDesc = nil;
     int specularExponent;
@@ -63,8 +64,9 @@ static OOBasicMaterial* sDefaultMaterial = nil;
     if (EXPECT_NOT(self == nil))
         return nil;
 
+    // An empty dictionary, not nil: the specifier defaults (a specular exponent of 10) apply.
     if (configuration == nil)
-        configuration = [NSDictionary dictionary];
+        configuration = oo::ObjectFromPList(oo::PList(oo::PList::Dict { }));
 
     colorDesc = [configuration oo_diffuseColor];
     if (colorDesc != nil)
@@ -94,14 +96,13 @@ static OOBasicMaterial* sDefaultMaterial = nil;
 - (void)dealloc
 {
     [super willDealloc];
-    [materialName release];
 
     [super dealloc];
 }
 
-- (NSString*)name
+- (id)name // shared selector (proposed ADR-0043)
 {
-    return materialName;
+    return oo::NSStringOrNil(materialName);
 }
 
 - (BOOL)doApply
@@ -305,9 +306,9 @@ static OOBasicMaterial* sDefaultMaterial = nil;
 }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-- (NSSet*)allTextures
+- (id)allTextures
 {
-    return [NSSet set];
+    return oo::NSSetFromObjects(std::vector<id>()); // an empty set; shared selector (proposed ADR-0043)
 }
 #endif
 

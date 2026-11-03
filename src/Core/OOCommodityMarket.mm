@@ -23,8 +23,8 @@ MA 02110-1301, USA.
 */
 
 #import "OOCommodityMarket.h"
-#import "OOCollectionExtractors.h"
 #import "OOCommodities.h"
+#import "OOPListView.h"
 #import "OOStringExpander.h"
 
 static NSComparisonResult goodsSorter(id a, id b, void* context);
@@ -79,7 +79,7 @@ static NSComparisonResult goodsSorter(id a, id b, void* context);
 
 - (BOOL)setPrice:(OOCreditsQuantity)price forGood:(OOCommodityType)good
 {
-    NSMutableDictionary* definition = [_commodityList oo_mutableDictionaryForKey:good];
+    NSMutableDictionary* definition = oo::PListView(_commodityList).get<NSMutableDictionary*>(good);
     if (definition == nil) {
         return NO;
     }
@@ -89,7 +89,7 @@ static NSComparisonResult goodsSorter(id a, id b, void* context);
 
 - (BOOL)setQuantity:(OOCargoQuantity)quantity forGood:(OOCommodityType)good
 {
-    NSMutableDictionary* definition = [_commodityList oo_mutableDictionaryForKey:good];
+    NSMutableDictionary* definition = oo::PListView(_commodityList).get<NSMutableDictionary*>(good);
     if (definition == nil || quantity > [self capacityForGood:good]) {
         return NO;
     }
@@ -127,7 +127,7 @@ static NSComparisonResult goodsSorter(id a, id b, void* context);
 
 - (BOOL)setComment:(NSString*)comment forGood:(OOCommodityType)good
 {
-    NSMutableDictionary* definition = [_commodityList oo_mutableDictionaryForKey:good];
+    NSMutableDictionary* definition = oo::PListView(_commodityList).get<NSMutableDictionary*>(good);
     if (definition == nil) {
         return NO;
     }
@@ -137,7 +137,7 @@ static NSComparisonResult goodsSorter(id a, id b, void* context);
 
 - (BOOL)setShortComment:(NSString*)comment forGood:(OOCommodityType)good
 {
-    NSMutableDictionary* definition = [_commodityList oo_mutableDictionaryForKey:good];
+    NSMutableDictionary* definition = oo::PListView(_commodityList).get<NSMutableDictionary*>(good);
     if (definition == nil) {
         return NO;
     }
@@ -147,99 +147,99 @@ static NSComparisonResult goodsSorter(id a, id b, void* context);
 
 - (NSString*)nameForGood:(OOCommodityType)good
 {
-    NSDictionary* definition = [_commodityList oo_dictionaryForKey:good];
+    NSDictionary* definition = oo::PListView(_commodityList).get<NSDictionary*>(good);
     if (definition == nil) {
         return OOExpand(@"[oolite-unknown-commodity-name]");
     }
-    return OOExpand([definition oo_stringForKey:kOOCommodityName defaultValue:@"[oolite-unknown-commodity-name]"]);
+    return OOExpand(oo::PListView(definition).get<NSString*>(kOOCommodityName, @"[oolite-unknown-commodity-name]"));
 }
 
 - (NSString*)commentForGood:(OOCommodityType)good
 {
-    NSDictionary* definition = [_commodityList oo_dictionaryForKey:good];
+    NSDictionary* definition = oo::PListView(_commodityList).get<NSDictionary*>(good);
     if (definition == nil) {
         return OOExpand(@"[oolite-unknown-commodity-name]");
     }
-    return OOExpand([definition oo_stringForKey:kOOCommodityComment defaultValue:@"[oolite-commodity-no-comment]"]);
+    return OOExpand(oo::PListView(definition).get<NSString*>(kOOCommodityComment, @"[oolite-commodity-no-comment]"));
 }
 
 - (NSString*)shortCommentForGood:(OOCommodityType)good
 {
-    NSDictionary* definition = [_commodityList oo_dictionaryForKey:good];
+    NSDictionary* definition = oo::PListView(_commodityList).get<NSDictionary*>(good);
     if (definition == nil) {
         return OOExpand(@"[oolite-unknown-commodity-name]");
     }
-    return OOExpand([definition oo_stringForKey:kOOCommodityShortComment defaultValue:@"[oolite-commodity-no-short-comment]"]);
+    return OOExpand(oo::PListView(definition).get<NSString*>(kOOCommodityShortComment, @"[oolite-commodity-no-short-comment]"));
 }
 
 - (OOCreditsQuantity)priceForGood:(OOCommodityType)good
 {
-    NSDictionary* definition = [_commodityList oo_dictionaryForKey:good];
+    NSDictionary* definition = oo::PListView(_commodityList).get<NSDictionary*>(good);
     if (definition == nil) {
         return 0;
     }
-    return [definition oo_unsignedIntegerForKey:kOOCommodityPriceCurrent];
+    return oo::PListView(definition).get<NSUInteger>(kOOCommodityPriceCurrent);
 }
 
 - (OOCargoQuantity)quantityForGood:(OOCommodityType)good
 {
-    NSDictionary* definition = [_commodityList oo_dictionaryForKey:good];
+    NSDictionary* definition = oo::PListView(_commodityList).get<NSDictionary*>(good);
     if (definition == nil) {
         return 0;
     }
-    return [definition oo_unsignedIntForKey:kOOCommodityQuantityCurrent];
+    return oo::PListView(definition).get<unsigned int>(kOOCommodityQuantityCurrent);
 }
 
 - (OOMassUnit)massUnitForGood:(OOCommodityType)good
 {
-    NSDictionary* definition = [_commodityList oo_dictionaryForKey:good];
+    NSDictionary* definition = oo::PListView(_commodityList).get<NSDictionary*>(good);
     if (definition == nil) {
         return UNITS_TONS;
     }
-    return (OOMassUnit)[definition oo_unsignedIntForKey:kOOCommodityContainer];
+    return OOMassUnitFromNumber(oo::PListView(definition).get<unsigned int>(kOOCommodityContainer));
 }
 
 - (NSUInteger)exportLegalityForGood:(OOCommodityType)good
 {
-    NSDictionary* definition = [_commodityList oo_dictionaryForKey:good];
+    NSDictionary* definition = oo::PListView(_commodityList).get<NSDictionary*>(good);
     if (definition == nil) {
         return 0;
     }
-    return [definition oo_unsignedIntegerForKey:kOOCommodityLegalityExport];
+    return oo::PListView(definition).get<NSUInteger>(kOOCommodityLegalityExport);
 }
 
 - (NSUInteger)importLegalityForGood:(OOCommodityType)good
 {
-    NSDictionary* definition = [_commodityList oo_dictionaryForKey:good];
+    NSDictionary* definition = oo::PListView(_commodityList).get<NSDictionary*>(good);
     if (definition == nil) {
         return 0;
     }
-    return [definition oo_unsignedIntegerForKey:kOOCommodityLegalityImport];
+    return oo::PListView(definition).get<NSUInteger>(kOOCommodityLegalityImport);
 }
 
 - (OOCargoQuantity)capacityForGood:(OOCommodityType)good
 {
-    NSDictionary* definition = [_commodityList oo_dictionaryForKey:good];
+    NSDictionary* definition = oo::PListView(_commodityList).get<NSDictionary*>(good);
     if (definition == nil) {
         return 0;
     }
     // should only be undefined for main system markets, not secondary stations
     // meaningless for player ship, though
-    return [definition oo_unsignedIntForKey:kOOCommodityCapacity defaultValue:MAIN_SYSTEM_MARKET_LIMIT];
+    return oo::PListView(definition).get<unsigned int>(kOOCommodityCapacity, MAIN_SYSTEM_MARKET_LIMIT);
 }
 
 - (float)trumbleOpinionForGood:(OOCommodityType)good
 {
-    NSDictionary* definition = [_commodityList oo_dictionaryForKey:good];
+    NSDictionary* definition = oo::PListView(_commodityList).get<NSDictionary*>(good);
     if (definition == nil) {
         return 0;
     }
-    return [definition oo_floatForKey:kOOCommodityTrumbleOpinion];
+    return oo::PListView(definition).get<float>(kOOCommodityTrumbleOpinion);
 }
 
 - (NSDictionary*)definitionForGood:(OOCommodityType)good
 {
-    return [[[_commodityList oo_dictionaryForKey:good] copy] autorelease];
+    return [[oo::PListView(_commodityList).get<NSDictionary*>(good) copy] autorelease];
 }
 
 - (NSArray*)savePlayerAmounts
@@ -265,8 +265,8 @@ static NSComparisonResult goodsSorter(id a, id b, void* context);
     NSArray* loaded = nil;
     foreach (loaded, amounts) {
         loadedOK = NO;
-        good = [loaded oo_stringAtIndex:0];
-        q = [loaded oo_unsignedIntAtIndex:1];
+        good = oo::PListView(loaded).at<NSString*>(0);
+        q = oo::PListView(loaded).at<unsigned int>(1);
         // old save games might have more in the array, but we don't care
         if (![self setQuantity:q forGood:good]) {
             // then it's an array from a 1.80-or-earlier save game and
@@ -309,9 +309,9 @@ static NSComparisonResult goodsSorter(id a, id b, void* context);
     NSArray* loaded = nil;
     foreach (loaded, amounts) {
         loadedOK = NO;
-        good = [loaded oo_stringAtIndex:0];
-        q = [loaded oo_unsignedIntAtIndex:1];
-        p = [loaded oo_unsignedIntegerAtIndex:2];
+        good = oo::PListView(loaded).at<NSString*>(0);
+        q = oo::PListView(loaded).at<unsigned int>(1);
+        p = oo::PListView(loaded).at<NSUInteger>(2);
         // old save games might have more in the array, but we don't care
         if (![self setQuantity:q forGood:good]) {
             // then it's an array from a 1.80-or-earlier save game and
@@ -341,8 +341,8 @@ static NSComparisonResult goodsSorter(id a, id b, void* context);
 static NSComparisonResult goodsSorter(id a, id b, void* context)
 {
     NSDictionary* commodityList = (NSDictionary*)context;
-    int v1 = [[commodityList oo_dictionaryForKey:(NSString*)a] oo_intForKey:kOOCommoditySortOrder];
-    int v2 = [[commodityList oo_dictionaryForKey:(NSString*)b] oo_intForKey:kOOCommoditySortOrder];
+    int v1 = oo::PListView(oo::PListView(commodityList).get<NSDictionary*>((NSString*)a)).get<int>(kOOCommoditySortOrder);
+    int v2 = oo::PListView(oo::PListView(commodityList).get<NSDictionary*>((NSString*)b)).get<int>(kOOCommoditySortOrder);
 
     if (v1 < v2) {
         return NSOrderedAscending;

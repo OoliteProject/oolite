@@ -122,7 +122,7 @@ static OOSoundMixer* sSingleton = nil;
         NOTE: assumes single-threaded access.
 */
 
-+ (id)allocWithZone:(NSZone*)inZone
++ (id)allocWithZone:(OOZone*)inZone
 {
     if (sSingleton == nil) {
         sSingleton = [super allocWithZone:inZone];
@@ -131,7 +131,7 @@ static OOSoundMixer* sSingleton = nil;
     return nil;
 }
 
-- (id)copyWithZone:(NSZone*)inZone
+- (id)copyWithZone:(OOZone*)inZone
 {
     return self;
 }

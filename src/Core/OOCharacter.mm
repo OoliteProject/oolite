@@ -24,8 +24,8 @@ MA 02110-1301, USA.
 
 #import "OOCharacter.h"
 
-#import "OOCollectionExtractors.h"
 #import "OOJSScript.h"
+#import "OOPListView.h"
 #import "OOStringExpander.h"
 #import "OOStringParsing.h"
 #import "Universe.h"
@@ -139,7 +139,7 @@ MA 02110-1301, USA.
     else
         speciesString = [UNIVERSE getSystemInhabitants:[self planetIDOfOrigin] plural:NO];
 
-    if (![[UNIVERSE descriptions] oo_boolForKey:@"lowercase_ignore"]) {
+    if (!oo::PListView([UNIVERSE descriptions]).get<BOOL>(@"lowercase_ignore")) {
         speciesString = [speciesString lowercaseString];
     }
 
@@ -157,8 +157,8 @@ MA 02110-1301, USA.
 
     // determine the planet of origin
     NSDictionary* originInfo = [UNIVERSE generateSystemData:[self planetIDOfOrigin]];
-    NSString* planet = [originInfo oo_stringForKey:KEY_NAME];
-    OOGovernmentID government = [originInfo oo_intForKey:KEY_GOVERNMENT]; // 0 .. 7 (0 anarchic .. 7 most stable)
+    NSString* planet = oo::PListView(originInfo).get<NSString*>(KEY_NAME);
+    OOGovernmentID government = oo::PListView(originInfo).get<int>(KEY_GOVERNMENT); // 0 .. 7 (0 anarchic .. 7 most stable)
     int criminalTendency = government ^ 0x07;
 
     // determine the character's species
@@ -417,7 +417,7 @@ MA 02110-1301, USA.
     }
 
     if ([dict objectForKey:@"random_seed"]) {
-        seed = RandomSeedFromString([dict oo_stringForKey:@"random_seed"]); // returns kNilRandomSeed on failure
+        seed = RandomSeedFromString(oo::PListView(dict).get<NSString*>(@"random_seed")); // returns kNilRandomSeed on failure
     } else {
         seed.a = (ranrot_rand() & 0xff);
         seed.b = (ranrot_rand() & 0xff);
@@ -429,22 +429,22 @@ MA 02110-1301, USA.
     [self setGenSeed:seed];
     [self basicSetUp];
 
-    if ([dict oo_stringForKey:@"role"])
-        [self castInRole:[dict oo_stringForKey:@"role"]];
-    if ([dict oo_stringForKey:@"name"])
-        [self setName:[dict oo_stringForKey:@"name"]];
-    if ([dict oo_stringForKey:@"short_description"])
-        [self setShortDescription:[dict oo_stringForKey:@"short_description"]];
+    if (oo::PListView(dict).get<NSString*>(@"role"))
+        [self castInRole:oo::PListView(dict).get<NSString*>(@"role")];
+    if (oo::PListView(dict).get<NSString*>(@"name"))
+        [self setName:oo::PListView(dict).get<NSString*>(@"name")];
+    if (oo::PListView(dict).get<NSString*>(@"short_description"))
+        [self setShortDescription:oo::PListView(dict).get<NSString*>(@"short_description")];
     if ([dict objectForKey:@"legal_status"])
-        [self setLegalStatus:[dict oo_intForKey:@"legal_status"]];
+        [self setLegalStatus:oo::PListView(dict).get<int>(@"legal_status")];
     if ([dict objectForKey:@"bounty"])
-        [self setLegalStatus:[dict oo_intForKey:@"bounty"]];
+        [self setLegalStatus:oo::PListView(dict).get<int>(@"bounty")];
     if ([dict objectForKey:@"insurance"])
-        [self setInsuranceCredits:[dict oo_unsignedLongLongForKey:@"insurance"]];
-    if ([dict oo_stringForKey:@"script"])
-        [self setCharacterScript:[dict oo_stringForKey:@"script"]];
-    if ([dict oo_arrayForKey:@"script_actions"])
-        [self setLegacyScript:[dict oo_arrayForKey:@"script_actions"]];
+        [self setInsuranceCredits:oo::PListView(dict).get<unsigned long long>(@"insurance")];
+    if (oo::PListView(dict).get<NSString*>(@"script"))
+        [self setCharacterScript:oo::PListView(dict).get<NSString*>(@"script")];
+    if (oo::PListView(dict).get<NSArray*>(@"script_actions"))
+        [self setLegacyScript:oo::PListView(dict).get<NSArray*>(@"script_actions")];
 }
 
 @end

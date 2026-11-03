@@ -75,7 +75,7 @@ OOShaderUniformType OOShaderUniformTypeFromMethod(Method method)
     return result;
 }
 
-@interface OOShaderUniformTypeMethodSignatureTemplateClass : NSObject
+@interface OOShaderUniformTypeMethodSignatureTemplateClass : OOObject
 
 - (float)floatMethod;
 - (double)doubleMethod;
@@ -131,7 +131,7 @@ static const char* CopyTemplateForSelector(SEL selector)
     return (method != NULL) ? method_copyReturnType(method) : NULL;
 }
 
-@implementation OOShaderUniformTypeMethodSignatureTemplateClass : NSObject
+@implementation OOShaderUniformTypeMethodSignatureTemplateClass : OOObject
 
 - (signed char)signedCharMethod
 {

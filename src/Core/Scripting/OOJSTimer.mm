@@ -27,6 +27,8 @@ MA 02110-1301, USA.
 #import "OOJavaScriptEngine.h"
 #import "Universe.h"
 
+#include "oofnd/Notification.hpp"
+
 // Minimum allowable interval for repeating timers.
 #define kMinInterval 0.25
 
@@ -110,10 +112,9 @@ static JSClassID sTimerClassID;
 
         _owningScript = [[OOJSScript currentlyRunningScript] weakRetain];
 
-        [[NSNotificationCenter defaultCenter] addObserver:self
-                                                 selector:@selector(deleteJSPointers)
-                                                     name:kOOJavaScriptEngineWillResetNotification
-                                                   object:[OOJavaScriptEngine sharedEngine]];
+        oo::NotificationCenter::defaultCenter().addObserver(self, kOOJavaScriptEngineWillResetNotificationName,
+            [OOJavaScriptEngine sharedEngine],
+            [self](const oo::Notification&) { [self deleteJSPointers]; });
     }
 
     return self;
@@ -141,9 +142,8 @@ static JSClassID sTimerClassID;
         _function = JS_UNDEFINED;
         _jsThis = JS_UNDEFINED;
 
-        [[NSNotificationCenter defaultCenter] removeObserver:self
-                                                        name:kOOJavaScriptEngineWillResetNotification
-                                                      object:[OOJavaScriptEngine sharedEngine]];
+        oo::NotificationCenter::defaultCenter().removeObserver(self, kOOJavaScriptEngineWillResetNotificationName,
+            [OOJavaScriptEngine sharedEngine]);
 
         JSContext* context = OOJSAcquireContext();
         JS_FreeValue(context, function);

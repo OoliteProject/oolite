@@ -33,7 +33,6 @@ MA 02110-1301, USA.
 #import "Entity.h"
 #import "EntityOOJavaScriptExtensions.h"
 #import "NSStringOOExtensions.h"
-#import "OOCollectionExtractors.h"
 #if OO_CACHE_JS_SCRIPTS
 #import "OOCacheManager.h"
 #endif
@@ -43,6 +42,7 @@ MA 02110-1301, USA.
 #import "OOLogging.h"
 #import "OOManifestProperties.h"
 #import "OOPListParsing.h"
+#import "OOPListView.h"
 
 typedef struct RunningStack RunningStack;
 struct RunningStack {
@@ -559,19 +559,19 @@ static const JSCFunctionListEntry sScriptMethods[] = {
     NSMutableDictionary* properties = [NSMutableDictionary dictionaryWithCapacity:3];
     /* __oolite.tmp.* is allocated for OXPs without manifests. Its
      * values are meaningless and shouldn't be used here */
-    if (manifest != nil && ![[manifest oo_stringForKey:kOOManifestIdentifier] hasPrefix:@"__oolite.tmp."]) {
+    if (manifest != nil && ![oo::PListView(manifest).get<NSString*>(kOOManifestIdentifier) hasPrefix:@"__oolite.tmp."]) {
         if ([manifest objectForKey:kOOManifestVersion] != nil) {
-            [properties setObject:[manifest oo_stringForKey:kOOManifestVersion] forKey:@"version"];
+            [properties setObject:oo::PListView(manifest).get<NSString*>(kOOManifestVersion) forKey:@"version"];
         }
         if ([manifest objectForKey:kOOManifestIdentifier] != nil) {
             // used for system info
-            [properties setObject:[manifest oo_stringForKey:kOOManifestIdentifier] forKey:kLocalManifestProperty];
+            [properties setObject:oo::PListView(manifest).get<NSString*>(kOOManifestIdentifier) forKey:kLocalManifestProperty];
         }
         if ([manifest objectForKey:kOOManifestAuthor] != nil) {
-            [properties setObject:[manifest oo_stringForKey:kOOManifestAuthor] forKey:@"author"];
+            [properties setObject:oo::PListView(manifest).get<NSString*>(kOOManifestAuthor) forKey:@"author"];
         }
         if ([manifest objectForKey:kOOManifestLicense] != nil) {
-            [properties setObject:[manifest oo_stringForKey:kOOManifestLicense] forKey:@"license"];
+            [properties setObject:oo::PListView(manifest).get<NSString*>(kOOManifestLicense) forKey:@"license"];
         }
     }
     return properties;
@@ -759,9 +759,9 @@ static JSValue CachedCompiledScript(JSContext* context, NSString* path, NSData* 
 
     NSData* bytecode = [entry objectForKey:kCompiledScriptKeyBytecode];
     if (![bytecode isKindOfClass:[NSData class]]
-        || [entry oo_unsignedIntForKey:kCompiledScriptKeyFormat] != kCompiledScriptFormat
-        || ![[entry oo_stringForKey:kCompiledScriptKeyEngine] isEqualToString:[NSString stringWithUTF8String:JS_GetVersion()]]
-        || ![[entry oo_stringForKey:kCompiledScriptKeyHash] isEqualToString:SourceHash(source)]) {
+        || oo::PListView(entry).get<unsigned int>(kCompiledScriptKeyFormat) != kCompiledScriptFormat
+        || ![oo::PListView(entry).get<NSString*>(kCompiledScriptKeyEngine) isEqualToString:[NSString stringWithUTF8String:JS_GetVersion()]]
+        || ![oo::PListView(entry).get<NSString*>(kCompiledScriptKeyHash) isEqualToString:SourceHash(source)]) {
         OOLog(@"script.javaScript.cache.stale", @"Compiled script cache entry for %@ is out of date.", path);
         return JS_UNDEFINED;
     }

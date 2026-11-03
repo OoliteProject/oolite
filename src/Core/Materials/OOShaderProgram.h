@@ -31,11 +31,12 @@ SOFTWARE.
 
 #import "OOOpenGL.h"
 #import "OOOpenGLExtensionManager.h"
+#import "oofnd/objc/OOObject.h"
 #import <Foundation/Foundation.h>
 
 #if OO_SHADERS
 
-@interface OOShaderProgram : NSObject {
+@interface OOShaderProgram : OOObject {
 @private
     GLhandleARB program;
     NSString* key;

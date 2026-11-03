@@ -27,9 +27,10 @@ MA 02110-1301, USA.
 #import "Universe.h"
 
 #import "AI.h"
-#import "OOCollectionExtractors.h"
 #import "OOConstToString.h"
 #import "OOEquipmentType.h"
+#import "OOFoundationBridge.h"
+#import "OOPListView.h"
 #import "OORoleSet.h"
 #import "OOShipGroup.h"
 #import "OOShipRegistry.h"
@@ -82,7 +83,7 @@ static OOShipGroup* GroupForGroupID(NSUInteger groupID, NSMutableDictionary* con
 
     NSMutableDictionary* updatedShipInfo = [NSMutableDictionary dictionaryWithDictionary:shipinfoDictionary];
 
-    [updatedShipInfo setObject:[[self roleSet] roleString] forKey:KEY_ROLES];
+    [updatedShipInfo setObject:oo::NSStringOrNil([[self roleSet] roleString]) forKey:KEY_ROLES];
     [updatedShipInfo oo_setUnsignedInteger:fuel forKey:KEY_FUEL];
     [updatedShipInfo oo_setUnsignedLongLong:bounty forKey:KEY_BOUNTY];
     [updatedShipInfo setObject:OOStringFromWeaponType(forward_weapon_type) forKey:KEY_FORWARD_WEAPON];
@@ -171,17 +172,17 @@ static OOShipGroup* GroupForGroupID(NSUInteger groupID, NSMutableDictionary* con
 
     ShipEntity* ship = nil;
 
-    NSString* shipKey = [dict oo_stringForKey:KEY_SHIP_KEY];
+    NSString* shipKey = oo::PListView(dict).get<NSString*>(KEY_SHIP_KEY);
     NSDictionary* shipData = [[OOShipRegistry sharedRegistry] shipInfoForKey:shipKey];
 
     if (shipData != nil) {
         NSMutableDictionary* mergedData = [NSMutableDictionary dictionaryWithDictionary:shipData];
 
         StripIgnoredKeys(mergedData);
-        NSArray* deletes = [dict oo_arrayForKey:KEY_SHIPDATA_DELETES];
+        NSArray* deletes = oo::PListView(dict).get<NSArray*>(KEY_SHIPDATA_DELETES);
         if (deletes != nil)
             [mergedData removeObjectsForKeys:deletes];
-        [mergedData addEntriesFromDictionary:[dict oo_dictionaryForKey:KEY_SHIPDATA_OVERRIDES]];
+        [mergedData addEntriesFromDictionary:oo::PListView(dict).get<NSDictionary*>(KEY_SHIPDATA_OVERRIDES)];
         [mergedData oo_setBool:NO forKey:@"auto_ai"];
         [mergedData oo_setUnsignedInteger:0 forKey:@"escorts"];
 
@@ -189,13 +190,13 @@ static OOShipGroup* GroupForGroupID(NSUInteger groupID, NSMutableDictionary* con
         ship = [[[shipClass alloc] initWithKey:shipKey definition:mergedData] autorelease];
 
         // FIXME: restore AI.
-        [ship setAITo:[dict oo_stringForKey:KEY_AI defaultValue:@"nullAI.plist"]];
+        [ship setAITo:oo::PListView(dict).get<NSString*>(KEY_AI, @"nullAI.plist")];
 
-        [ship setPrimaryRole:[dict oo_stringForKey:KEY_PRIMARY_ROLE]];
+        [ship setPrimaryRole:oo::PListView(dict).get<NSString*>(KEY_PRIMARY_ROLE)];
 
     } else {
         // Unknown ship; fall back on role if desired and possible.
-        NSString* shipPrimaryRole = [dict oo_stringForKey:KEY_PRIMARY_ROLE];
+        NSString* shipPrimaryRole = oo::PListView(dict).get<NSString*>(KEY_PRIMARY_ROLE);
         if (!fallback || shipPrimaryRole == nil)
             return nil;
 
@@ -205,31 +206,31 @@ static OOShipGroup* GroupForGroupID(NSUInteger groupID, NSMutableDictionary* con
     }
 
     // The following stuff is deliberately set up the same way even if using role fallback.
-    [ship setPosition:[dict oo_hpvectorForKey:KEY_POSITION]];
-    [ship setNormalOrientation:[dict oo_quaternionForKey:KEY_ORIENTATION]];
+    [ship setPosition:oo::PListView(dict).get<HPVector>(KEY_POSITION)];
+    [ship setNormalOrientation:oo::PListView(dict).get<Quaternion>(KEY_ORIENTATION)];
 
-    float energyLevel = [dict oo_floatForKey:KEY_ENERGY_LEVEL defaultValue:1.0f];
+    float energyLevel = oo::PListView(dict).get<float>(KEY_ENERGY_LEVEL, 1.0f);
     [ship setEnergy:energyLevel * [ship maxEnergy]];
 
     [ship removeAllEquipment];
     NSString* eqKey = nil;
-    foreach (eqKey, [dict oo_arrayForKey:KEY_EQUIPMENT]) {
+    foreach (eqKey, oo::PListView(dict).get<NSArray*>(KEY_EQUIPMENT)) {
         [ship addEquipmentItem:eqKey withValidation:NO inContext:@"loading"];
     }
 
     [ship removeMissiles];
-    foreach (eqKey, [dict oo_arrayForKey:KEY_MISSILES]) {
+    foreach (eqKey, oo::PListView(dict).get<NSArray*>(KEY_MISSILES)) {
         [ship addEquipmentItem:eqKey withValidation:NO inContext:@"loading"];
     }
 
     // Groups.
-    NSUInteger groupID = [dict oo_integerForKey:KEY_GROUP_ID defaultValue:NSNotFound];
+    NSUInteger groupID = oo::PListView(dict).get<NSInteger>(KEY_GROUP_ID, NSNotFound);
     if (groupID != NSNotFound) {
         OOShipGroup* group = GroupForGroupID(groupID, context);
         [ship setGroup:group]; // Handles adding to group
-        if ([dict oo_boolForKey:KEY_IS_GROUP_LEADER])
+        if (oo::PListView(dict).get<BOOL>(KEY_IS_GROUP_LEADER))
             [group setLeader:ship];
-        NSString* groupName = [dict oo_stringForKey:KEY_GROUP_NAME];
+        NSString* groupName = oo::PListView(dict).get<NSString*>(KEY_GROUP_NAME);
         if (groupName != nil)
             [group setName:groupName];
         if ([ship hasPrimaryRole:@"escort"] && ship != [group leader]) {
@@ -237,7 +238,7 @@ static OOShipGroup* GroupForGroupID(NSUInteger groupID, NSMutableDictionary* con
         }
     }
 
-    groupID = [dict oo_integerForKey:KEY_ESCORT_GROUP_ID defaultValue:NSNotFound];
+    groupID = oo::PListView(dict).get<NSInteger>(KEY_ESCORT_GROUP_ID, NSNotFound);
     if (groupID != NSNotFound) {
         OOShipGroup* group = GroupForGroupID(groupID, context);
         [group setLeader:ship];
@@ -314,7 +315,7 @@ static NSUInteger GroupIDForGroup(OOShipGroup* group, NSMutableDictionary* conte
     unsigned groupID;
     if (groupIDObj == nil) {
         // Assign a new group ID.
-        groupID = [context oo_unsignedIntForKey:@"nextGroupID"];
+        groupID = oo::PListView(context).get<unsigned int>(@"nextGroupID");
         groupIDObj = [NSNumber numberWithUnsignedInt:groupID];
         [context oo_setUnsignedInteger:groupID + 1 forKey:@"nextGroupID"];
         [groupIDs setObject:groupIDObj forKey:key];

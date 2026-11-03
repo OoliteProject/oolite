@@ -27,10 +27,10 @@ MA 02110-1301, USA.
 #import "PlayerEntity.h"
 
 #import "MyOpenGLView.h"
-#import "OOCollectionExtractors.h"
 #import "OOColor.h"
 #import "OOMaterial.h"
 #import "OOMaths.h"
+#import "OOPListView.h"
 #import "OOStringParsing.h"
 #import "Universe.h"
 
@@ -75,13 +75,13 @@ MA 02110-1301, USA.
     }
 
     // Load distribution values
-    clusterChance = [systemInfo oo_floatForKey:@"sky_blur_cluster_chance" defaultValue:SKY_clusterChance];
-    alpha = [systemInfo oo_floatForKey:@"sky_blur_alpha" defaultValue:SKY_alpha];
-    scale = [systemInfo oo_floatForKey:@"sky_blur_scale" defaultValue:SKY_scale];
+    clusterChance = oo::PListView(systemInfo).get<float>(@"sky_blur_cluster_chance", SKY_clusterChance);
+    alpha = oo::PListView(systemInfo).get<float>(@"sky_blur_alpha", SKY_alpha);
+    scale = oo::PListView(systemInfo).get<float>(@"sky_blur_scale", SKY_scale);
 
     // Load star count
-    starCount = [systemInfo oo_floatForKey:@"sky_n_stars" defaultValue:-1];
-    starCountMultiplier = [systemInfo oo_floatForKey:@"star_count_multiplier" defaultValue:1.0f];
+    starCount = oo::PListView(systemInfo).get<float>(@"sky_n_stars", -1);
+    starCountMultiplier = oo::PListView(systemInfo).get<float>(@"star_count_multiplier", 1.0f);
     if (starCountMultiplier < 0.0f)
         starCountMultiplier *= -1.0f;
     if (0 <= starCount) {
@@ -93,8 +93,8 @@ MA 02110-1301, USA.
     }
 
     // ...and nebula count. (Note: simplifying this would change the appearance of stars/blobs.)
-    nebulaCount = [systemInfo oo_floatForKey:@"sky_n_blurs" defaultValue:-1];
-    nebulaCountMultiplier = [systemInfo oo_floatForKey:@"nebula_count_multiplier" defaultValue:1.0f];
+    nebulaCount = oo::PListView(systemInfo).get<float>(@"sky_n_blurs", -1);
+    nebulaCountMultiplier = oo::PListView(systemInfo).get<float>(@"nebula_count_multiplier", 1.0f);
     if (nebulaCountMultiplier < 0.0f)
         nebulaCountMultiplier *= -1.0f;
     if (0 <= nebulaCount) {
@@ -236,17 +236,17 @@ MA 02110-1301, USA.
 
     assert(ioColor1 != NULL && ioColor2 != NULL);
 
-    string = [dictionary oo_stringForKey:@"sky_rgb_colors"];
+    string = oo::PListView(dictionary).get<NSString*>(@"sky_rgb_colors");
     if (string != nil) {
         tokens = ScanTokensFromString(string);
 
         if ([tokens count] == 6) {
-            float r1 = OOClamp_0_1_f([tokens oo_floatAtIndex:0]);
-            float g1 = OOClamp_0_1_f([tokens oo_floatAtIndex:1]);
-            float b1 = OOClamp_0_1_f([tokens oo_floatAtIndex:2]);
-            float r2 = OOClamp_0_1_f([tokens oo_floatAtIndex:3]);
-            float g2 = OOClamp_0_1_f([tokens oo_floatAtIndex:4]);
-            float b2 = OOClamp_0_1_f([tokens oo_floatAtIndex:5]);
+            float r1 = OOClamp_0_1_f(oo::PListView(tokens).at<float>(0));
+            float g1 = OOClamp_0_1_f(oo::PListView(tokens).at<float>(1));
+            float b1 = OOClamp_0_1_f(oo::PListView(tokens).at<float>(2));
+            float r2 = OOClamp_0_1_f(oo::PListView(tokens).at<float>(3));
+            float g2 = OOClamp_0_1_f(oo::PListView(tokens).at<float>(4));
+            float b2 = OOClamp_0_1_f(oo::PListView(tokens).at<float>(5));
             *ioColor1 = [OOColor colorWithRed:r1 green:g1 blue:b1 alpha:1.0];
             *ioColor2 = [OOColor colorWithRed:r2 green:g2 blue:b2 alpha:1.0];
         } else {

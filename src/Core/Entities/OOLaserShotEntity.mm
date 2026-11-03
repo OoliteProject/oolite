@@ -32,6 +32,7 @@ MA 02110-1301, USA.
 #import "OOTexture.h"
 
 #import "MyOpenGLView.h"
+#import "OOStringBridge.h"
 
 #define kLaserDuration (0.09) // seconds
 
@@ -128,7 +129,7 @@ static OOTexture* sShotTexture2 = nil;
 
 - (NSString*)descriptionComponents
 {
-    return [NSString stringWithFormat:@"ttl: %.3fs - %@ orientation %@", _lifetime, [super descriptionComponents], QuaternionDescription([self orientation])];
+    return [NSString stringWithFormat:@"ttl: %.3fs - %@ orientation %@", _lifetime, [super descriptionComponents], oo::NSStringFrom(QuaternionDescription([self orientation]))];
 }
 
 - (void)setColor:(OOColor*)color

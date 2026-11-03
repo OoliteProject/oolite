@@ -235,7 +235,13 @@ void GLDrawQuadStrip(OOGLVector* points, int n);
 #if OO_CHECK_GL_HEAVY
 
 #if OO_GL_STATE_VERIFICATION
+#ifdef __cplusplus
+extern "C" {
+#endif
 void OOGLNoteCurrentFunction(const char* func, unsigned line);
+#ifdef __cplusplus
+}
+#endif
 #else
 #define OOGLNoteCurrentFunction(FUNC, line) \
     do {                                    \

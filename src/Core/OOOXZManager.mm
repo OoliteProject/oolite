@@ -25,21 +25,24 @@ MA 02110-1301, USA.
 */
 
 #import "OOOXZManager.h"
+#import "GameController.h"
 #import "GuiDisplayGen.h"
 #import "MyOpenGLView.h"
 #import "NSDataOOExtensions.h"
 #import "NSFileManagerOOExtensions.h"
-#import "NSStringOOExtensions.h"
 #import "OOCacheManager.h"
-#import "OOCollectionExtractors.h"
 #import "OOColor.h"
 #import "OOPListParsing.h"
+#import "OOPListView.h"
+#import "OOStringBridge.h"
 #import "OOStringExpander.h"
 #import "OOStringParsing.h"
 #import "PlayerEntity.h"
 #import "PlayerEntitySound.h"
 #import "ResourceManager.h"
 #import "Universe.h"
+#import <objc/objc-arc.h>
+#import <objc/runtime.h>
 
 #import "unzip.h"
 
@@ -400,18 +403,23 @@ static OOOXZManager* sSingleton = nil;
 
     NSMutableArray* filteredList = [NSMutableArray arrayWithCapacity:[list count]];
     NSDictionary* manifest = nil;
-    NSInvocation* invocation = [NSInvocation invocationWithMethodSignature:[[self class] instanceMethodSignatureForSelector:filterSelector]];
-    [invocation setSelector:filterSelector];
-    [invocation setTarget:self];
-    if (parameter != nil) {
-        [invocation setArgument:&parameter atIndex:3];
-    }
+    /*	A typed call through the filter's IMP (bead oo-3rb.53; was a Foundation invocation object). The
+            one-argument filters take the manifest; the rest take the manifest and the
+            parameter, which is nil for them only if it was never set, as the invocation's
+            unset argument was.
+    */
+    typedef BOOL (*OneArgumentFilter)(id, SEL, NSDictionary*);
+    typedef BOOL (*TwoArgumentFilter)(id, SEL, NSDictionary*, NSString*);
+    IMP filterIMP = [self methodForSelector:filterSelector];
+    BOOL twoArguments = !(sel_isEqual(filterSelector, @selector(applyFilterByNoFilter:)) || sel_isEqual(filterSelector, @selector(applyFilterByUpdateRequired:)) || sel_isEqual(filterSelector, @selector(applyFilterByInstallable:)));
 
     foreach (manifest, list) {
-        [invocation setArgument:&manifest atIndex:2];
-        [invocation invoke];
         BOOL filterAccepted = NO;
-        [invocation getReturnValue:&filterAccepted];
+        if (twoArguments) {
+            filterAccepted = ((TwoArgumentFilter)filterIMP)(self, filterSelector, manifest, parameter);
+        } else {
+            filterAccepted = ((OneArgumentFilter)filterIMP)(self, filterSelector, manifest);
+        }
         if (filterAccepted) {
             [filteredList addObject:manifest];
         }
@@ -443,15 +451,15 @@ static OOOXZManager* sSingleton = nil;
     NSArray* parameters = [NSArray arrayWithObjects:kOOManifestTitle, kOOManifestDescription, kOOManifestCategory, nil];
 
     // trim any eventual leading whitespace from input string
-    keyword = [keyword stringByTrimmingLeadingWhitespaceAndNewlineCharacters];
+    keyword = oo::StringMap(keyword, oo::str::trimLeadingWhitespaceAndNewlines);
 
     foreach (parameter, parameters) {
-        if ([[manifest oo_stringForKey:parameter] rangeOfString:keyword options:NSCaseInsensitiveSearch].location != NSNotFound) {
+        if ([oo::PListView(manifest).get<NSString*>(parameter) rangeOfString:keyword options:NSCaseInsensitiveSearch].location != NSNotFound) {
             return YES;
         }
     }
     // tags are slightly different
-    parameters = [manifest oo_arrayForKey:kOOManifestTags];
+    parameters = oo::PListView(manifest).get<NSArray*>(kOOManifestTags);
     foreach (parameter, parameters) {
         if ([parameter rangeOfString:keyword options:NSCaseInsensitiveSearch].location != NSNotFound) {
             return YES;
@@ -464,9 +472,9 @@ static OOOXZManager* sSingleton = nil;
 - (BOOL)applyFilterByAuthor:(NSDictionary*)manifest author:(NSString*)author
 {
     // trim any eventual leading whitespace from input string
-    author = [author stringByTrimmingLeadingWhitespaceAndNewlineCharacters];
+    author = oo::StringMap(author, oo::str::trimLeadingWhitespaceAndNewlines);
 
-    NSString* mAuth = [manifest oo_stringForKey:kOOManifestAuthor];
+    NSString* mAuth = oo::PListView(manifest).get<NSString*>(kOOManifestAuthor);
     return ([mAuth rangeOfString:author options:NSCaseInsensitiveSearch].location != NSNotFound);
 }
 
@@ -476,7 +484,7 @@ static OOOXZManager* sSingleton = nil;
     if (i < 1) {
         return NO;
     } else {
-        NSUInteger updated = [manifest oo_unsignedIntegerForKey:kOOManifestUploadDate];
+        NSUInteger updated = oo::PListView(manifest).get<NSUInteger>(kOOManifestUploadDate);
         NSUInteger now = (NSUInteger)[[NSDate date] timeIntervalSince1970];
         return (updated + (86400 * i) > now);
     }
@@ -485,10 +493,10 @@ static OOOXZManager* sSingleton = nil;
 - (BOOL)applyFilterByTag:(NSDictionary*)manifest tag:(NSString*)tag
 {
     NSString* parameter = nil;
-    NSArray* parameters = [manifest oo_arrayForKey:kOOManifestTags];
+    NSArray* parameters = oo::PListView(manifest).get<NSArray*>(kOOManifestTags);
 
     // trim any eventual leading whitespace from input string
-    tag = [tag stringByTrimmingLeadingWhitespaceAndNewlineCharacters];
+    tag = oo::StringMap(tag, oo::str::trimLeadingWhitespaceAndNewlines);
 
     foreach (parameter, parameters) {
         if ([parameter rangeOfString:tag options:NSCaseInsensitiveSearch].location != NSNotFound) {
@@ -502,9 +510,9 @@ static OOOXZManager* sSingleton = nil;
 - (BOOL)applyFilterByCategory:(NSDictionary*)manifest category:(NSString*)category
 {
     // trim any eventual leading whitespace from input string
-    category = [category stringByTrimmingLeadingWhitespaceAndNewlineCharacters];
+    category = oo::StringMap(category, oo::str::trimLeadingWhitespaceAndNewlines);
 
-    NSString* mCategory = [manifest oo_stringForKey:kOOManifestCategory];
+    NSString* mCategory = oo::PListView(manifest).get<NSString*>(kOOManifestCategory);
     return ([mCategory rangeOfString:category options:NSCaseInsensitiveSearch].location != NSNotFound);
 }
 
@@ -571,7 +579,7 @@ static OOOXZManager* sSingleton = nil;
             NSDictionary* expectedManifest = nil;
             expectedManifest = [_filteredList objectAtIndex:_item];
 
-            label = [expectedManifest oo_stringForKey:kOOManifestTitle defaultValue:DESC(@"oolite-oxzmanager-download-label-oxz")];
+            label = oo::PListView(expectedManifest).get<NSString*>(kOOManifestTitle, DESC(@"oolite-oxzmanager-download-label-oxz"));
         }
 
         [self setCurrentDownload:download withLabel:label]; // retains it
@@ -636,10 +644,10 @@ static OOOXZManager* sSingleton = nil;
                  * that is plausibly installable */
                 BOOL foundInstallable = NO;
                 foreach (stored, _oxzList) {
-                    if ([[stored oo_stringForKey:kOOManifestIdentifier] isEqualToString:[manifest oo_stringForKey:kOOManifestIdentifier]]) {
+                    if ([oo::PListView(stored).get<NSString*>(kOOManifestIdentifier) isEqualToString:oo::PListView(manifest).get<NSString*>(kOOManifestIdentifier)]) {
                         if (foundInstallable == NO) {
-                            [adjManifest setObject:[stored oo_stringForKey:kOOManifestVersion] forKey:kOOManifestAvailableVersion];
-                            [adjManifest setObject:[stored oo_stringForKey:kOOManifestDownloadURL] forKey:kOOManifestDownloadURL];
+                            [adjManifest setObject:oo::PListView(stored).get<NSString*>(kOOManifestVersion) forKey:kOOManifestAvailableVersion];
+                            [adjManifest setObject:oo::PListView(stored).get<NSString*>(kOOManifestDownloadURL) forKey:kOOManifestDownloadURL];
                             if ([ResourceManager checkVersionCompatibility:manifest forOXP:nil]) {
                                 foundInstallable = YES;
                             }
@@ -700,7 +708,7 @@ static OOOXZManager* sSingleton = nil;
     NSDictionary* expectedManifest = nil;
     expectedManifest = [_filteredList objectAtIndex:_item];
 
-    if (expectedManifest == nil || (![[downloadedManifest oo_stringForKey:kOOManifestIdentifier] isEqualToString:[expectedManifest oo_stringForKey:kOOManifestIdentifier]]) || (![[downloadedManifest oo_stringForKey:kOOManifestVersion] isEqualToString:[expectedManifest oo_stringForKey:kOOManifestAvailableVersion defaultValue:[expectedManifest oo_stringForKey:kOOManifestVersion]]])) {
+    if (expectedManifest == nil || (![oo::PListView(downloadedManifest).get<NSString*>(kOOManifestIdentifier) isEqualToString:oo::PListView(expectedManifest).get<NSString*>(kOOManifestIdentifier)]) || (![oo::PListView(downloadedManifest).get<NSString*>(kOOManifestVersion) isEqualToString:oo::PListView(expectedManifest).get<NSString*>(kOOManifestAvailableVersion, oo::PListView(expectedManifest).get<NSString*>(kOOManifestVersion))])) {
         _downloadStatus = OXZ_DOWNLOAD_ERROR;
         OOLog(kOOOXZErrorLog, @"%@", @"Downloaded OXZ does not have the same identifer and version as expected. This might be due to your manifests list being out of date - try updating it.");
         _interfaceState = OXZ_STATE_TASKDONE;
@@ -709,7 +717,7 @@ static OOOXZManager* sSingleton = nil;
     }
     // this appears to be the OXZ we expected
     // filename is going to be identifier.oxz
-    NSString* filename = [[downloadedManifest oo_stringForKey:kOOManifestIdentifier] stringByAppendingString:@".oxz"];
+    NSString* filename = [oo::PListView(downloadedManifest).get<NSString*>(kOOManifestIdentifier) stringByAppendingString:@".oxz"];
 
     if (![self ensureInstallPath]) {
         _downloadStatus = OXZ_DOWNLOAD_ERROR;
@@ -748,10 +756,10 @@ static OOOXZManager* sSingleton = nil;
      * ...if the item in _dependencyStack is not findable (e.g. wrong
      * ...version) then stop here.
      */
-    NSArray* requiredOXPs = [downloadedManifest oo_arrayForKey:kOOManifestRequiresOXPs defaultValue:nil];
+    NSArray* requiredOXPs = oo::PListView(downloadedManifest).get<NSArray*>(kOOManifestRequiresOXPs, nil);
     if (requiredOXPs == nil) {
         // just in case the requirements are only specified in the online copy
-        requiredOXPs = [expectedManifest oo_arrayForKey:kOOManifestRequiresOXPs defaultValue:nil];
+        requiredOXPs = oo::PListView(expectedManifest).get<NSArray*>(kOOManifestRequiresOXPs, nil);
     }
     NSDictionary* requirement = nil;
     NSMutableString* progress = [NSMutableString stringWithCapacity:2048];
@@ -761,14 +769,14 @@ static OOOXZManager* sSingleton = nil;
         // will remove as iterate, so create a temp copy to iterate over
         NSSet* tempStack = [NSSet setWithSet:_dependencyStack];
         foreach (requirement, tempStack) {
-            OOLog(kOOOXZDebugLog, @"Dependency stack: checking %@", [requirement oo_stringForKey:kOOManifestRelationIdentifier]);
+            OOLog(kOOOXZDebugLog, @"Dependency stack: checking %@", oo::PListView(requirement).get<NSString*>(kOOManifestRelationIdentifier));
             if (![ResourceManager manifest:downloadedManifest HasUnmetDependency:requirement logErrors:NO]
                 && requiredOXPs != nil && [requiredOXPs containsObject:requirement]) {
                 // it was unmet, but now it's met
-                [progress appendFormat:DESC(@"oolite-oxzmanager-progress-now-has-@"), [requirement oo_stringForKey:kOOManifestRelationDescription defaultValue:[requirement oo_stringForKey:kOOManifestRelationIdentifier]]];
+                [progress appendFormat:DESC(@"oolite-oxzmanager-progress-now-has-@"), oo::PListView(requirement).get<NSString*>(kOOManifestRelationDescription, oo::PListView(requirement).get<NSString*>(kOOManifestRelationIdentifier))];
                 [_dependencyStack removeObject:requirement];
                 OOLog(kOOOXZDebugLog, @"%@", @"Dependency stack: requirement met");
-            } else if ([[requirement oo_stringForKey:kOOManifestRelationIdentifier] isEqualToString:[downloadedManifest oo_stringForKey:kOOManifestIdentifier]]) {
+            } else if ([oo::PListView(requirement).get<NSString*>(kOOManifestRelationIdentifier) isEqualToString:oo::PListView(downloadedManifest).get<NSString*>(kOOManifestIdentifier)]) {
                 // remove the requirement for the just downloaded OXP
                 [_dependencyStack removeObject:requirement];
             }
@@ -777,9 +785,9 @@ static OOOXZManager* sSingleton = nil;
     if (requiredOXPs != nil) {
         foreach (requirement, requiredOXPs) {
             if ([ResourceManager manifest:downloadedManifest HasUnmetDependency:requirement logErrors:NO]) {
-                OOLog(kOOOXZDebugLog, @"Dependency stack: adding %@", [requirement oo_stringForKey:kOOManifestRelationIdentifier]);
+                OOLog(kOOOXZDebugLog, @"Dependency stack: adding %@", oo::PListView(requirement).get<NSString*>(kOOManifestRelationIdentifier));
                 [_dependencyStack addObject:requirement];
-                [progress appendFormat:DESC(@"oolite-oxzmanager-progress-requires-@"), [requirement oo_stringForKey:kOOManifestRelationDescription defaultValue:[requirement oo_stringForKey:kOOManifestRelationIdentifier]]];
+                [progress appendFormat:DESC(@"oolite-oxzmanager-progress-requires-@"), oo::PListView(requirement).get<NSString*>(kOOManifestRelationDescription, oo::PListView(requirement).get<NSString*>(kOOManifestRelationIdentifier))];
             }
         }
     }
@@ -795,16 +803,16 @@ static OOOXZManager* sSingleton = nil;
         do {
             undownloadedRequirement = YES;
             requirement = [_dependencyStack anyObject];
-            OOLog(kOOOXZDebugLog, @"Dependency stack: next is %@", [requirement oo_stringForKey:kOOManifestRelationIdentifier]);
+            OOLog(kOOOXZDebugLog, @"Dependency stack: next is %@", oo::PListView(requirement).get<NSString*>(kOOManifestRelationIdentifier));
 
             if (!_downloadAllDependencies) {
                 [progress appendString:DESC(@"oolite-oxzmanager-progress-get-required")];
             }
-            needsIdentifier = [requirement oo_stringForKey:kOOManifestRelationIdentifier];
+            needsIdentifier = oo::PListView(requirement).get<NSString*>(kOOManifestRelationIdentifier);
 
             foreach (availableDownload, _oxzList) {
-                if ([[availableDownload oo_stringForKey:kOOManifestIdentifier] isEqualToString:needsIdentifier]) {
-                    if ([ResourceManager matchVersions:requirement withVersion:[availableDownload oo_stringForKey:kOOManifestVersion]]) {
+                if ([oo::PListView(availableDownload).get<NSString*>(kOOManifestIdentifier) isEqualToString:needsIdentifier]) {
+                    if ([ResourceManager matchVersions:requirement withVersion:oo::PListView(availableDownload).get<NSString*>(kOOManifestVersion)]) {
                         OOLog(kOOOXZDebugLog, @"%@", @"Dependency stack: found download for next item");
                         foundDownload = YES;
                         index = [_oxzList indexOfObject:availableDownload];
@@ -815,7 +823,7 @@ static OOOXZManager* sSingleton = nil;
 
             if (foundDownload) {
                 if ([self installableState:[_oxzList objectAtIndex:index]] == OXZ_UNINSTALLABLE_ALREADY) {
-                    OOLog(kOOOXZDebugLog, @"Dependency stack: %@ is downloaded but not yet loadable, removing from list.", [requirement oo_stringForKey:kOOManifestRelationIdentifier]);
+                    OOLog(kOOOXZDebugLog, @"Dependency stack: %@ is downloaded but not yet loadable, removing from list.", oo::PListView(requirement).get<NSString*>(kOOManifestRelationIdentifier));
                     // then this has already been downloaded, but
                     // can't be configured yet presumably because
                     // another dependency is still to be loaded
@@ -842,7 +850,7 @@ static OOOXZManager* sSingleton = nil;
                 if (![self installOXZ:index]) {
                     // if a required dependency is somehow uninstallable
                     // e.g. required+maximum version don't match this Oolite
-                    [progress appendFormat:DESC(@"oolite-oxzmanager-progress-required-@-not-found"), [requirement oo_stringForKey:kOOManifestRelationDescription defaultValue:[requirement oo_stringForKey:kOOManifestRelationIdentifier]]];
+                    [progress appendFormat:DESC(@"oolite-oxzmanager-progress-required-@-not-found"), oo::PListView(requirement).get<NSString*>(kOOManifestRelationDescription, oo::PListView(requirement).get<NSString*>(kOOManifestRelationIdentifier))];
                     [self setProgressStatus:progress];
                     OOLog(kOOOXZErrorLog, @"OXZ dependency %@ could not be found for automatic download.", needsIdentifier);
                     _downloadStatus = OXZ_DOWNLOAD_ERROR;
@@ -861,7 +869,7 @@ static OOOXZManager* sSingleton = nil;
         }
         // this is probably always the case, see above
         else if ([_dependencyStack count] > 0) {
-            [progress appendFormat:DESC(@"oolite-oxzmanager-progress-required-@-not-found"), [requirement oo_stringForKey:kOOManifestRelationDescription defaultValue:[requirement oo_stringForKey:kOOManifestRelationIdentifier]]];
+            [progress appendFormat:DESC(@"oolite-oxzmanager-progress-required-@-not-found"), oo::PListView(requirement).get<NSString*>(kOOManifestRelationDescription, oo::PListView(requirement).get<NSString*>(kOOManifestRelationIdentifier))];
             [self setProgressStatus:progress];
             OOLog(kOOOXZErrorLog, @"OXZ dependency %@ could not be found for automatic download.", needsIdentifier);
             _downloadStatus = OXZ_DOWNLOAD_ERROR;
@@ -885,7 +893,7 @@ static OOOXZManager* sSingleton = nil;
     NSArray* installed = [self managedOXZs];
     NSDictionary* manifest = nil;
     foreach (manifest, installed) {
-        if ([[manifest oo_stringForKey:kOOManifestIdentifier] isEqualToString:identifier]) {
+        if ([oo::PListView(manifest).get<NSString*>(kOOManifestIdentifier) isEqualToString:identifier]) {
             return manifest;
         }
     }
@@ -894,8 +902,8 @@ static OOOXZManager* sSingleton = nil;
 
 - (OXZInstallableState)installableState:(NSDictionary*)manifest
 {
-    NSString* title = [manifest oo_stringForKey:kOOManifestTitle defaultValue:nil];
-    NSString* identifier = [manifest oo_stringForKey:kOOManifestIdentifier defaultValue:nil];
+    NSString* title = oo::PListView(manifest).get<NSString*>(kOOManifestTitle, nil);
+    NSString* identifier = oo::PListView(manifest).get<NSString*>(kOOManifestIdentifier, nil);
     /* Check Oolite version */
     if (![ResourceManager checkVersionCompatibility:manifest forOXP:title]) {
         return OXZ_UNINSTALLABLE_VERSION;
@@ -908,17 +916,17 @@ static OOOXZManager* sSingleton = nil;
     }
 
     if (installed != nil) {
-        if (![[installed oo_stringForKey:kOOManifestFilePath] hasPrefix:[self installPath]]) {
+        if (![oo::PListView(installed).get<NSString*>(kOOManifestFilePath) hasPrefix:[self installPath]]) {
             // installed manually
             return OXZ_UNINSTALLABLE_MANUAL;
         }
-        if ([[installed oo_stringForKey:kOOManifestVersion] isEqualToString:[manifest oo_stringForKey:kOOManifestAvailableVersion defaultValue:[manifest oo_stringForKey:kOOManifestVersion]]]
-            && [[NSFileManager defaultManager] fileExistsAtPath:[installed oo_stringForKey:kOOManifestFilePath]]) {
+        if ([oo::PListView(installed).get<NSString*>(kOOManifestVersion) isEqualToString:oo::PListView(manifest).get<NSString*>(kOOManifestAvailableVersion, oo::PListView(manifest).get<NSString*>(kOOManifestVersion))]
+            && [[NSFileManager defaultManager] fileExistsAtPath:oo::PListView(installed).get<NSString*>(kOOManifestFilePath)]) {
             // installed this exact version already, and haven't
             // uninstalled it since entering the manager, and it's
             // still available
             return OXZ_UNINSTALLABLE_ALREADY;
-        } else if ([installed oo_stringForKey:kOOManifestAvailableVersion defaultValue:nil] == nil) {
+        } else if (oo::PListView(installed).get<NSString*>(kOOManifestAvailableVersion, nil) == nil) {
             // installed, but no remote copy is indexed any more
             return OXZ_UNINSTALLABLE_NOREMOTE;
         }
@@ -928,11 +936,11 @@ static OOOXZManager* sSingleton = nil;
         return OXZ_INSTALLABLE_CONFLICTS;
     }
     if (installed != nil) {
-        NSString* availableVersion = [manifest oo_stringForKey:kOOManifestAvailableVersion];
+        NSString* availableVersion = oo::PListView(manifest).get<NSString*>(kOOManifestAvailableVersion);
         if (availableVersion == nil) {
-            availableVersion = [manifest oo_stringForKey:kOOManifestVersion];
+            availableVersion = oo::PListView(manifest).get<NSString*>(kOOManifestVersion);
         }
-        NSString* installedVersion = [installed oo_stringForKey:kOOManifestVersion];
+        NSString* installedVersion = oo::PListView(installed).get<NSString*>(kOOManifestVersion);
         OOLog(@"version.debug", @"%@ mv:%@ mav:%@", identifier, installedVersion, availableVersion);
         if (CompareVersions(ComponentsFromVersionString(installedVersion), ComponentsFromVersionString(availableVersion)) == NSOrderedDescending) {
             // the installed copy is more recent than the server copy
@@ -1114,10 +1122,10 @@ static OOOXZManager* sSingleton = nil;
         startRow = OXZ_GUI_ROW_UPDATE;
         break;
     case OXZ_STATE_EXTRACT: {
-        NSDictionary* manifest = [_filteredList oo_dictionaryAtIndex:_item];
-        NSString* title = [manifest oo_stringForKey:kOOManifestTitle];
-        NSString* version = [manifest oo_stringForKey:kOOManifestVersion];
-        NSString* identifier = [manifest oo_stringForKey:kOOManifestIdentifier];
+        NSDictionary* manifest = oo::PListView(_filteredList).at<NSDictionary*>(_item);
+        NSString* title = oo::PListView(manifest).get<NSString*>(kOOManifestTitle);
+        NSString* version = oo::PListView(manifest).get<NSString*>(kOOManifestVersion);
+        NSString* identifier = oo::PListView(manifest).get<NSString*>(kOOManifestIdentifier);
         [gui setTitle:DESC(@"oolite-oxzmanager-title-extract")];
         [gui setText:[NSString stringWithFormat:DESC(@"oolite-oxzmanager-infopage-title-@-version-@"),
                          title,
@@ -1364,7 +1372,7 @@ static OOOXZManager* sSingleton = nil;
 
             _item = _offset + selection - OXZ_GUI_ROW_LISTSTART;
 
-            NSDictionary* manifest = [_filteredList oo_dictionaryAtIndex:_item];
+            NSDictionary* manifest = oo::PListView(_filteredList).at<NSDictionary*>(_item);
             _interfaceShowingOXZDetail = YES;
 
             [gui clearAndKeepBackground:YES];
@@ -1372,34 +1380,34 @@ static OOOXZManager* sSingleton = nil;
 
             // title, version
             [gui setText:[NSString stringWithFormat:DESC(@"oolite-oxzmanager-infopage-title-@-version-@"),
-                             [manifest oo_stringForKey:kOOManifestTitle],
-                             [manifest oo_stringForKey:kOOManifestVersion]]
+                             oo::PListView(manifest).get<NSString*>(kOOManifestTitle),
+                             oo::PListView(manifest).get<NSString*>(kOOManifestVersion)]
                   forRow:0
                    align:GUI_ALIGN_LEFT];
 
             // author
             [gui setText:[NSString stringWithFormat:DESC(@"oolite-oxzmanager-infopage-author-@"),
-                             [manifest oo_stringForKey:kOOManifestAuthor]]
+                             oo::PListView(manifest).get<NSString*>(kOOManifestAuthor)]
                   forRow:1
                    align:GUI_ALIGN_LEFT];
 
             // license
             [gui addLongText:[NSString stringWithFormat:DESC(@"oolite-oxzmanager-infopage-license-@"),
-                                 [manifest oo_stringForKey:kOOManifestLicense]]
+                                 oo::PListView(manifest).get<NSString*>(kOOManifestLicense)]
                 startingAtRow:2
                         align:GUI_ALIGN_LEFT];
             // tags
 
-            [gui addLongText:[NSString stringWithFormat:DESC(@"oolite-oxzmanager-infopage-tags-@"), [[manifest oo_arrayForKey:kOOManifestTags] componentsJoinedByString:@", "]]
+            [gui addLongText:[NSString stringWithFormat:DESC(@"oolite-oxzmanager-infopage-tags-@"), [oo::PListView(manifest).get<NSArray*>(kOOManifestTags) componentsJoinedByString:@", "]]
                 startingAtRow:4
                         align:GUI_ALIGN_LEFT];
             // description
-            [gui addLongText:[NSString stringWithFormat:DESC(@"oolite-oxzmanager-infopage-description-@"), [manifest oo_stringForKey:kOOManifestDescription]]
+            [gui addLongText:[NSString stringWithFormat:DESC(@"oolite-oxzmanager-infopage-description-@"), oo::PListView(manifest).get<NSString*>(kOOManifestDescription)]
                 startingAtRow:7
                         align:GUI_ALIGN_LEFT];
 
             // infoURL
-            NSString* infoURLString = [manifest oo_stringForKey:kOOManifestInformationURL];
+            NSString* infoURLString = oo::PListView(manifest).get<NSString*>(kOOManifestInformationURL);
             [gui setText:[NSString stringWithFormat:DESC(@"oolite-oxzmanager-infopage-infourl-@"),
                              infoURLString]
                   forRow:25
@@ -1502,11 +1510,11 @@ static OOOXZManager* sSingleton = nil;
         }
     }
     NSDictionary* first = [_dependencyStack anyObject];
-    NSString* identifier = [first oo_stringForKey:kOOManifestRelationIdentifier];
+    NSString* identifier = oo::PListView(first).get<NSString*>(kOOManifestRelationIdentifier);
     NSUInteger item = NSUIntegerMax;
     NSDictionary* availableDownload = nil;
     foreach (availableDownload, _oxzList) {
-        if ([[availableDownload oo_stringForKey:kOOManifestIdentifier] isEqualToString:identifier]) {
+        if ([oo::PListView(availableDownload).get<NSString*>(kOOManifestIdentifier) isEqualToString:identifier]) {
             item = [_oxzList indexOfObject:availableDownload];
             break;
         }
@@ -1588,8 +1596,8 @@ static OOOXZManager* sSingleton = nil;
     BOOL oxzLineSelected = NO;
 
     foreach (manifest, options) {
-        NSDictionary* installed = [ResourceManager manifestForIdentifier:[manifest oo_stringForKey:kOOManifestIdentifier]];
-        NSString* localPath = [[[self installPath] stringByAppendingPathComponent:[manifest oo_stringForKey:kOOManifestIdentifier]] stringByAppendingPathExtension:@"oxz"];
+        NSDictionary* installed = [ResourceManager manifestForIdentifier:oo::PListView(manifest).get<NSString*>(kOOManifestIdentifier)];
+        NSString* localPath = [[[self installPath] stringByAppendingPathComponent:oo::PListView(manifest).get<NSString*>(kOOManifestIdentifier)] stringByAppendingPathExtension:@"oxz"];
         if (installed == nil) {
             // check that there's not one just been downloaded
             installed = OODictionaryFromFile([localPath stringByAppendingPathComponent:@"manifest.plist"]);
@@ -1600,7 +1608,7 @@ static OOOXZManager* sSingleton = nil;
                 installed = OODictionaryFromFile([localPath stringByAppendingPathComponent:@"manifest.plist"]);
             } else {
                 // check if this was a managed OXZ which has been deleted
-                if ([[installed oo_stringForKey:kOOManifestFilePath] hasPrefix:[self installPath]]) {
+                if ([oo::PListView(installed).get<NSString*>(kOOManifestFilePath) hasPrefix:[self installPath]]) {
                     installed = nil;
                 }
             }
@@ -1608,23 +1616,20 @@ static OOOXZManager* sSingleton = nil;
 
         NSString* installedVersion = DESC(@"oolite-oxzmanager-version-none");
         if (installed != nil) {
-            installedVersion = [installed oo_stringForKey:kOOManifestVersion defaultValue:DESC(@"oolite-oxzmanager-version-none")];
+            installedVersion = oo::PListView(installed).get<NSString*>(kOOManifestVersion, DESC(@"oolite-oxzmanager-version-none"));
         }
 
         /* If the filter is in use, the available_version key will
          * contain the version which can be downloaded. */
         [gui setArray:[NSArray arrayWithObjects:
-                              [manifest oo_stringForKey:kOOManifestCategory
-                                           defaultValue:DESC(@"oolite-oxzmanager-missing-field")],
-                          [manifest oo_stringForKey:kOOManifestTitle
-                                       defaultValue:DESC(@"oolite-oxzmanager-missing-field")],
+                              oo::PListView(manifest).get<NSString*>(kOOManifestCategory, DESC(@"oolite-oxzmanager-missing-field")),
+                          oo::PListView(manifest).get<NSString*>(kOOManifestTitle, DESC(@"oolite-oxzmanager-missing-field")),
                           installedVersion,
-                          [manifest oo_stringForKey:kOOManifestAvailableVersion
-                                       defaultValue:[manifest oo_stringForKey:kOOManifestVersion defaultValue:DESC(@"oolite-oxzmanager-version-none")]],
+                          oo::PListView(manifest).get<NSString*>(kOOManifestAvailableVersion, oo::PListView(manifest).get<NSString*>(kOOManifestVersion, DESC(@"oolite-oxzmanager-version-none"))),
                           nil]
                forRow:row];
 
-        [gui setKey:[manifest oo_stringForKey:kOOManifestIdentifier] forRow:row];
+        [gui setKey:oo::PListView(manifest).get<NSString*>(kOOManifestIdentifier) forRow:row];
         /* yellow for installable, orange for dependency issues, grey and unselectable for version issues, white and unselectable for already installed (manually or otherwise) at the current version, red and unselectable for already installed manually at a different version. */
         [gui setColor:[self colorForManifest:manifest] forRow:row];
 
@@ -1634,22 +1639,22 @@ static OOOXZManager* sSingleton = nil;
             [gui setText:[self installStatusForManifest:manifest] forRow:OXZ_GUI_ROW_LISTSTATUS];
             [gui setColor:[OOColor greenColor] forRow:OXZ_GUI_ROW_LISTSTATUS];
 
-            [gui addLongText:[[[manifest oo_stringForKey:kOOManifestDescription] componentsSeparatedByString:@"\n"] oo_stringAtIndex:0] startingAtRow:OXZ_GUI_ROW_LISTDESC align:GUI_ALIGN_LEFT];
+            [gui addLongText:oo::PListView([oo::PListView(manifest).get<NSString*>(kOOManifestDescription) componentsSeparatedByString:@"\n"]).at<NSString*>(0) startingAtRow:OXZ_GUI_ROW_LISTDESC align:GUI_ALIGN_LEFT];
 
-            NSString* infoUrl = [manifest oo_stringForKey:kOOManifestInformationURL];
+            NSString* infoUrl = oo::PListView(manifest).get<NSString*>(kOOManifestInformationURL);
             if (infoUrl != nil) {
                 [gui setArray:[NSArray arrayWithObjects:DESC(@"oolite-oxzmanager-infoline-url"), infoUrl, nil] forRow:OXZ_GUI_ROW_LISTINFO1];
             }
-            NSUInteger size = [manifest oo_unsignedIntForKey:kOOManifestFileSize defaultValue:0];
+            NSUInteger size = oo::PListView(manifest).get<unsigned int>(kOOManifestFileSize, 0);
             NSString* updatedDesc = nil;
 
-            NSUInteger timestamp = [manifest oo_unsignedIntegerForKey:kOOManifestUploadDate defaultValue:0];
+            NSUInteger timestamp = oo::PListView(manifest).get<NSUInteger>(kOOManifestUploadDate, 0);
             if (timestamp > 0) {
                 // list of installable OXZs
                 NSDate* updated = [NSDate dateWithTimeIntervalSince1970:timestamp];
 
                 // keep only the first part of the date string description, which should be in YYYY-MM-DD format
-                updatedDesc = [[[updated description] componentsSeparatedByString:@" "] oo_stringAtIndex:0];
+                updatedDesc = oo::PListView([[updated description] componentsSeparatedByString:@" "]).at<NSString*>(0);
 
                 [gui setArray:[NSArray arrayWithObjects:DESC(@"oolite-oxzmanager-infoline-size"), [self humanSize:size], DESC(@"oolite-oxzmanager-infoline-date"), updatedDesc, nil] forRow:OXZ_GUI_ROW_LISTINFO2];
             } else if (size > 0) {
@@ -1681,7 +1686,7 @@ static OOOXZManager* sSingleton = nil;
         OOLog(kOOOXZDebugLog, @"Unable to remove item %zu as only %zu in list", item, [remList count]);
         return NO;
     }
-    NSString* filename = [[remList objectAtIndex:item] oo_stringForKey:kOOManifestFilePath];
+    NSString* filename = oo::PListView([remList objectAtIndex:item]).get<NSString*>(kOOManifestFilePath);
     if (filename == nil) {
         OOLog(kOOOXZDebugLog, @"Unable to remove item %zu as filename not found", item);
         return NO;
@@ -1779,15 +1784,12 @@ static OOOXZManager* sSingleton = nil;
     foreach (manifest, options) {
 
         [gui setArray:[NSArray arrayWithObjects:
-                              [manifest oo_stringForKey:kOOManifestCategory
-                                           defaultValue:DESC(@"oolite-oxzmanager-missing-field")],
-                          [manifest oo_stringForKey:kOOManifestTitle
-                                       defaultValue:DESC(@"oolite-oxzmanager-missing-field")],
-                          [manifest oo_stringForKey:kOOManifestVersion
-                                       defaultValue:DESC(@"oolite-oxzmanager-missing-field")],
+                              oo::PListView(manifest).get<NSString*>(kOOManifestCategory, DESC(@"oolite-oxzmanager-missing-field")),
+                          oo::PListView(manifest).get<NSString*>(kOOManifestTitle, DESC(@"oolite-oxzmanager-missing-field")),
+                          oo::PListView(manifest).get<NSString*>(kOOManifestVersion, DESC(@"oolite-oxzmanager-missing-field")),
                           nil]
                forRow:row];
-        NSString* identifier = [manifest oo_stringForKey:kOOManifestIdentifier];
+        NSString* identifier = oo::PListView(manifest).get<NSString*>(kOOManifestIdentifier);
         [gui setKey:identifier forRow:row];
 
         [gui setColor:[self colorForManifest:manifest] forRow:row];
@@ -1796,7 +1798,7 @@ static OOOXZManager* sSingleton = nil;
             [gui setText:[self installStatusForManifest:manifest] forRow:OXZ_GUI_ROW_LISTSTATUS];
             [gui setColor:[OOColor greenColor] forRow:OXZ_GUI_ROW_LISTSTATUS];
 
-            [gui addLongText:[[[manifest oo_stringForKey:kOOManifestDescription] componentsSeparatedByString:@"\n"] oo_stringAtIndex:0] startingAtRow:OXZ_GUI_ROW_LISTDESC align:GUI_ALIGN_LEFT];
+            [gui addLongText:oo::PListView([oo::PListView(manifest).get<NSString*>(kOOManifestDescription) componentsSeparatedByString:@"\n"]).at<NSString*>(0) startingAtRow:OXZ_GUI_ROW_LISTDESC align:GUI_ALIGN_LEFT];
 
             oxzSelected = YES;
         }
@@ -1869,16 +1871,16 @@ static OOOXZManager* sSingleton = nil;
 {
     NSFileManager* fmgr = [NSFileManager defaultManager];
     NSMutableString* extractionLog = [[NSMutableString alloc] init];
-    NSDictionary* manifest = [_filteredList oo_dictionaryAtIndex:item];
-    NSString* version = [manifest oo_stringForKey:kOOManifestVersion];
-    NSString* identifier = [manifest oo_stringForKey:kOOManifestIdentifier];
+    NSDictionary* manifest = oo::PListView(_filteredList).at<NSDictionary*>(item);
+    NSString* version = oo::PListView(manifest).get<NSString*>(kOOManifestVersion);
+    NSString* identifier = oo::PListView(manifest).get<NSString*>(kOOManifestIdentifier);
     NSString* path = [self extractionBasePathForIdentifier:identifier andVersion:version];
 
     // OXZ errors should really never happen unless someone is messing
     // directly with the managed folder while Oolite is running, but
     // it's possible.
 
-    NSString* oxzfile = [manifest oo_stringForKey:kOOManifestFilePath];
+    NSString* oxzfile = oo::PListView(manifest).get<NSString*>(kOOManifestFilePath);
     if (![fmgr fileExistsAtPath:oxzfile]) {
         OOLog(kOOOXZErrorLog, @"OXZ %@ could not be found", oxzfile);
         [extractionLog appendString:DESC(@"oolite-oxzmanager-extract-log-no-original")];
@@ -1941,26 +1943,26 @@ static OOOXZManager* sSingleton = nil;
                 // This is less efficient in memory use than just
                 // streaming out of the ZIP file onto disk
                 // but it makes error handling easier
-                NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+                void* pool = objc_autoreleasePoolPush();
                 NSData* tmp = [NSData oo_dataWithOXZFile:[oxzfile stringByAppendingPathComponent:componentName]];
                 if (tmp == nil) {
                     OOLog(kOOOXZErrorLog, @"Sub file %@ could not be extracted from the OXZ", componentName);
                     [extractionLog appendString:DESC(@"oolite-oxzmanager-extract-log-sub-failed")];
                     error = YES;
-                    [pool release];
+                    objc_autoreleasePoolPop(pool);
                     break;
                 } else {
                     if (![tmp writeToFile:[path stringByAppendingPathComponent:componentName] atomically:YES]) {
                         OOLog(kOOOXZErrorLog, @"Sub file %@ could not be created", componentName);
                         [extractionLog appendString:DESC(@"oolite-oxzmanager-extract-log-sub-failed")];
                         error = YES;
-                        [pool release];
+                        objc_autoreleasePoolPop(pool);
                         break;
                     } else {
                         ++counter;
                     }
                 }
-                [pool release];
+                objc_autoreleasePoolPop(pool);
             }
         } while (unzGoToNextFile(uf) == UNZ_OK);
     }
@@ -2012,8 +2014,12 @@ static OOOXZManager* sSingleton = nil;
      * (>20Mb) OXZ files.
      *
      * CIM 6 July 2014
+     *
+     * The game tick is no longer a run-loop timer, so GameController fires
+     * it (and the run loop's own due timers) here, as the run loop did.
+     * Proposed ADR-0033.
      */
-    [[NSRunLoop currentRunLoop] limitDateForMode:NSDefaultRunLoopMode];
+    [[GameController sharedController] fireDueTimers];
 #endif
 }
 
@@ -2053,11 +2059,11 @@ static OOOXZManager* sSingleton = nil;
 /* Sort by category, then title, then version - and that should be unique */
 NSComparisonResult oxzSort(id m1, id m2, void* context)
 {
-    NSComparisonResult result = [[m1 oo_stringForKey:kOOManifestCategory defaultValue:@"zz"] localizedCompare:[m2 oo_stringForKey:kOOManifestCategory defaultValue:@"zz"]];
+    NSComparisonResult result = [oo::PListView(m1).get<NSString*>(kOOManifestCategory, @"zz") localizedCompare:oo::PListView(m2).get<NSString*>(kOOManifestCategory, @"zz")];
     if (result == NSOrderedSame) {
-        result = [[m1 oo_stringForKey:kOOManifestTitle defaultValue:@"zz"] localizedCompare:[m2 oo_stringForKey:kOOManifestTitle defaultValue:@"zz"]];
+        result = [oo::PListView(m1).get<NSString*>(kOOManifestTitle, @"zz") localizedCompare:oo::PListView(m2).get<NSString*>(kOOManifestTitle, @"zz")];
         if (result == NSOrderedSame) {
-            result = [[m2 oo_stringForKey:kOOManifestVersion defaultValue:@"0"] localizedCompare:[m1 oo_stringForKey:kOOManifestVersion defaultValue:@"0"]];
+            result = [oo::PListView(m2).get<NSString*>(kOOManifestVersion, @"0") localizedCompare:oo::PListView(m1).get<NSString*>(kOOManifestVersion, @"0")];
         }
     }
     return result;

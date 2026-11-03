@@ -30,11 +30,11 @@ MA 02110-1301, USA.
 #import "NSScannerOOExtensions.h"
 #import "NSStringOOExtensions.h"
 #import "OOCacheManager.h"
-#import "OOCollectionExtractors.h"
 #import "OODebugStandards.h"
 #import "OOLogOutputHandler.h"
 #import "OOOXZManager.h"
 #import "OOPListParsing.h"
+#import "OOPListView.h"
 #import "OOSound.h"
 #import "OOStringParsing.h"
 #import "OOSystemDescriptionManager.h"
@@ -135,7 +135,7 @@ static NSMutableDictionary* sStringCache;
     result = [NSMutableArray arrayWithCapacity:count];
     for (i = 0; i != count; ++i) {
         error = [sErrors objectAtIndex:i];
-        errStr = [UNIVERSE descriptionForKey:[error oo_stringAtIndex:0]];
+        errStr = [UNIVERSE descriptionForKey:oo::PListView(error).at<NSString*>(0)];
         if (errStr != nil) {
             errStr = [NSString stringWithFormat:errStr, [error objectAtIndex:1], [error objectAtIndex:2]];
             [result addObject:errStr];
@@ -368,7 +368,7 @@ static NSMutableDictionary* sStringCache;
             NSString* zipEntry = [NSString stringWithUTF8String:componentName];
             NSArray* pathBits = [zipEntry pathComponents];
             if ([pathBits count] >= 2) {
-                NSString* folder = [pathBits oo_stringAtIndex:0];
+                NSString* folder = oo::PListView(pathBits).at<NSString*>(0);
                 if ([folders containsObject:folder]) {
                     NSRange bitRange;
                     bitRange.location = 1;
@@ -531,7 +531,7 @@ static NSMutableDictionary* sStringCache;
     if ([OXPMessageArray count] > 0) {
         unsigned i;
         for (i = 0; i < [OXPMessageArray count]; i++) {
-            NSString* oxpMessage = [OXPMessageArray oo_stringAtIndex:i];
+            NSString* oxpMessage = oo::PListView(OXPMessageArray).at<NSString*>(i);
             if (oxpMessage) {
                 OOLog(@"oxp.message", @"%@: %@", path, oxpMessage);
             }
@@ -594,10 +594,10 @@ static NSMutableDictionary* sStringCache;
     }
 
     BOOL OK = YES;
-    NSString* identifier = [manifest oo_stringForKey:kOOManifestIdentifier defaultValue:nil];
-    NSString* version = [manifest oo_stringForKey:kOOManifestVersion defaultValue:nil];
-    NSString* required = [manifest oo_stringForKey:kOOManifestRequiredOoliteVersion defaultValue:nil];
-    NSString* title = [manifest oo_stringForKey:kOOManifestTitle defaultValue:nil];
+    NSString* identifier = oo::PListView(manifest).get<NSString*>(kOOManifestIdentifier, nil);
+    NSString* version = oo::PListView(manifest).get<NSString*>(kOOManifestVersion, nil);
+    NSString* required = oo::PListView(manifest).get<NSString*>(kOOManifestRequiredOoliteVersion, nil);
+    NSString* title = oo::PListView(manifest).get<NSString*>(kOOManifestTitle, nil);
 
     if (identifier == nil) {
         OOLog(@"oxp.noManifest", @"OXZ %@ manifest.plist has no '%@' field.", path, kOOManifestIdentifier);
@@ -633,8 +633,8 @@ static NSMutableDictionary* sStringCache;
 
     NSDictionary* duplicate = [sOXPManifests objectForKey:identifier];
     if (duplicate != nil) {
-        OOLog(@"oxp.duplicate", @"OXP %@ has the same identifier (%@) as %@ which has already been loaded.", path, identifier, [duplicate oo_stringForKey:kOOManifestFilePath]);
-        [self addErrorWithKey:@"oxp-manifest-duplicate" param1:path param2:[duplicate oo_stringForKey:kOOManifestFilePath]];
+        OOLog(@"oxp.duplicate", @"OXP %@ has the same identifier (%@) as %@ which has already been loaded.", path, identifier, oo::PListView(duplicate).get<NSString*>(kOOManifestFilePath));
+        [self addErrorWithKey:@"oxp-manifest-duplicate" param1:path param2:oo::PListView(duplicate).get<NSString*>(kOOManifestFilePath)];
         return NO;
     }
     NSMutableDictionary* mData = [NSMutableDictionary dictionaryWithDictionary:manifest];
@@ -646,8 +646,8 @@ static NSMutableDictionary* sStringCache;
 
 + (BOOL)checkVersionCompatibility:(NSDictionary*)manifest forOXP:(NSString*)title
 {
-    NSString* required = [manifest oo_stringForKey:kOOManifestRequiredOoliteVersion defaultValue:nil];
-    NSString* maxRequired = [manifest oo_stringForKey:kOOManifestMaximumOoliteVersion defaultValue:nil];
+    NSString* required = oo::PListView(manifest).get<NSString*>(kOOManifestRequiredOoliteVersion, nil);
+    NSString* maxRequired = oo::PListView(manifest).get<NSString*>(kOOManifestMaximumOoliteVersion, nil);
     // ignore empty max version string rather than treating as "version 0"
     if (maxRequired == nil || [maxRequired length] == 0) {
         return [self areRequirementsFulfilled:[NSDictionary dictionaryWithObjectsAndKeys:required, @"version", nil] forOXP:title andFile:@"manifest.plist"];
@@ -675,7 +675,7 @@ static NSMutableDictionary* sStringCache;
 
     // Check "version" (minimum version)
     if (OK) {
-        // Not oo_stringForKey:, because we need to be able to complain about non-strings.
+        // Not get<NSString *>, because we need to be able to complain about non-strings.
         requiredVersion = [requirements objectForKey:@"version"];
         if (requiredVersion != nil) {
             ++conditionsHandled;
@@ -692,7 +692,7 @@ static NSMutableDictionary* sStringCache;
 
     // Check "max_version" (minimum max_version)
     if (OK) {
-        // Not oo_stringForKey:, because we need to be able to complain about non-strings.
+        // Not get<NSString *>, because we need to be able to complain about non-strings.
         maxVersion = [requirements objectForKey:@"max_version"];
         if (maxVersion != nil) {
             ++conditionsHandled;
@@ -723,20 +723,20 @@ static NSMutableDictionary* sStringCache;
     NSString* conflictID = nil;
     NSArray* conflicts = nil;
 
-    conflicts = [manifest oo_arrayForKey:kOOManifestConflictOXPs defaultValue:nil];
+    conflicts = oo::PListView(manifest).get<NSArray*>(kOOManifestConflictOXPs, nil);
     // if it has a non-empty conflict_oxps list
     if (conflicts != nil && [conflicts count] > 0) {
         // iterate over that list
         foreach (conflicting, conflicts) {
-            conflictID = [conflicting oo_stringForKey:kOOManifestRelationIdentifier];
+            conflictID = oo::PListView(conflicting).get<NSString*>(kOOManifestRelationIdentifier);
             conflictManifest = [sOXPManifests objectForKey:conflictID];
             // if the other OXP is in the list
             if (conflictManifest != nil) {
                 // then check versions
-                if ([self matchVersions:conflicting withVersion:[conflictManifest oo_stringForKey:kOOManifestVersion]]) {
+                if ([self matchVersions:conflicting withVersion:oo::PListView(conflictManifest).get<NSString*>(kOOManifestVersion)]) {
                     if (logErrors) {
-                        [self addErrorWithKey:@"oxp-conflict" param1:[manifest oo_stringForKey:kOOManifestTitle] param2:[conflictManifest oo_stringForKey:kOOManifestTitle]];
-                        OOLog(@"oxp.conflict", @"OXP %@ conflicts with %@ and was removed from the loading list", [[manifest oo_stringForKey:kOOManifestFilePath] lastPathComponent], [[conflictManifest oo_stringForKey:kOOManifestFilePath] lastPathComponent]);
+                        [self addErrorWithKey:@"oxp-conflict" param1:oo::PListView(manifest).get<NSString*>(kOOManifestTitle) param2:oo::PListView(conflictManifest).get<NSString*>(kOOManifestTitle)];
+                        OOLog(@"oxp.conflict", @"OXP %@ conflicts with %@ and was removed from the loading list", [oo::PListView(manifest).get<NSString*>(kOOManifestFilePath) lastPathComponent], [oo::PListView(conflictManifest).get<NSString*>(kOOManifestFilePath) lastPathComponent]);
                     }
                     return YES;
                 }
@@ -759,7 +759,7 @@ static NSMutableDictionary* sStringCache;
         if (manifest != nil) {
             if ([self manifestHasConflicts:manifest logErrors:YES]) {
                 // then we have a conflict, so remove this path
-                [searchPaths removeObject:[manifest oo_stringForKey:kOOManifestFilePath]];
+                [searchPaths removeObject:oo::PListView(manifest).get<NSString*>(kOOManifestFilePath)];
                 [sOXPManifests removeObjectForKey:identifier];
             }
         }
@@ -771,7 +771,7 @@ static NSMutableDictionary* sStringCache;
     NSDictionary* required = nil;
     NSArray* requireds = nil;
 
-    requireds = [manifest oo_arrayForKey:kOOManifestRequiresOXPs defaultValue:nil];
+    requireds = oo::PListView(manifest).get<NSArray*>(kOOManifestRequiresOXPs, nil);
     // if it has a non-empty required_oxps list
     if (requireds != nil && [requireds count] > 0) {
         // iterate over that list
@@ -786,24 +786,24 @@ static NSMutableDictionary* sStringCache;
 
 + (BOOL)manifest:(NSDictionary*)manifest HasUnmetDependency:(NSDictionary*)required logErrors:(BOOL)logErrors
 {
-    NSString* requiredID = [required oo_stringForKey:kOOManifestRelationIdentifier];
+    NSString* requiredID = oo::PListView(required).get<NSString*>(kOOManifestRelationIdentifier);
     NSMutableDictionary* requiredManifest = [sOXPManifests objectForKey:requiredID];
     // if the other OXP is in the list
     BOOL requirementsMet = NO;
     if (requiredManifest != nil) {
         // then check versions
-        if ([self matchVersions:required withVersion:[requiredManifest oo_stringForKey:kOOManifestVersion]]) {
+        if ([self matchVersions:required withVersion:oo::PListView(requiredManifest).get<NSString*>(kOOManifestVersion)]) {
             requirementsMet = YES;
             /* Mark the requiredManifest as a dependency of the
              * requiring manifest */
-            NSSet* reqby = [requiredManifest oo_setForKey:kOOManifestRequiredBy defaultValue:[NSSet set]];
+            NSSet* reqby = oo::PListView(requiredManifest).get<NSSet*>(kOOManifestRequiredBy, [NSSet set]);
             NSUInteger reqbycount = [reqby count];
             /* then add this manifest to its required set. This is
              * done without checking if it's already there, because
              * the list of nested requirements may have changed. */
-            reqby = [reqby setByAddingObject:[manifest oo_stringForKey:kOOManifestIdentifier]];
+            reqby = [reqby setByAddingObject:oo::PListView(manifest).get<NSString*>(kOOManifestIdentifier)];
             // *and* anything that requires this OXP to be installed
-            reqby = [reqby setByAddingObjectsFromSet:[manifest oo_setForKey:kOOManifestRequiredBy]];
+            reqby = [reqby setByAddingObjectsFromSet:oo::PListView(manifest).get<NSSet*>(kOOManifestRequiredBy)];
             if (reqbycount < [reqby count]) {
                 /* Then the set has increased in size. To handle
                  * potential cases with nested dependencies, need to
@@ -817,8 +817,8 @@ static NSMutableDictionary* sStringCache;
     }
     if (!requirementsMet) {
         if (logErrors) {
-            [self addErrorWithKey:@"oxp-required" param1:[manifest oo_stringForKey:kOOManifestTitle] param2:[required oo_stringForKey:kOOManifestRelationDescription defaultValue:[required oo_stringForKey:kOOManifestRelationIdentifier]]];
-            OOLog(@"oxp.requirementMissing", @"OXP %@ had unmet requirements and was removed from the loading list", [[manifest oo_stringForKey:kOOManifestFilePath] lastPathComponent]);
+            [self addErrorWithKey:@"oxp-required" param1:oo::PListView(manifest).get<NSString*>(kOOManifestTitle) param2:oo::PListView(required).get<NSString*>(kOOManifestRelationDescription, oo::PListView(required).get<NSString*>(kOOManifestRelationIdentifier))];
+            OOLog(@"oxp.requirementMissing", @"OXP %@ had unmet requirements and was removed from the loading list", [oo::PListView(manifest).get<NSString*>(kOOManifestFilePath) lastPathComponent]);
         }
         return YES;
     }
@@ -840,7 +840,7 @@ static NSMutableDictionary* sStringCache;
         if (manifest != nil) {
             if ([self manifestHasMissingDependencies:manifest logErrors:YES]) {
                 // then we have a missing requirement, so remove this path
-                [searchPaths removeObject:[manifest oo_stringForKey:kOOManifestFilePath]];
+                [searchPaths removeObject:oo::PListView(manifest).get<NSString*>(kOOManifestFilePath)];
                 [sOXPManifests removeObjectForKey:identifier];
                 sAllMet = NO;
             }
@@ -852,8 +852,8 @@ static NSMutableDictionary* sStringCache;
 
 + (BOOL)matchVersions:(NSDictionary*)rangeDict withVersion:(NSString*)version
 {
-    NSString* minimum = [rangeDict oo_stringForKey:kOOManifestRelationVersion defaultValue:nil];
-    NSString* maximum = [rangeDict oo_stringForKey:kOOManifestRelationMaxVersion defaultValue:nil];
+    NSString* minimum = oo::PListView(rangeDict).get<NSString*>(kOOManifestRelationVersion, nil);
+    NSString* maximum = oo::PListView(rangeDict).get<NSString*>(kOOManifestRelationMaxVersion, nil);
     NSArray* isVersionComponents = ComponentsFromVersionString(version);
     NSArray* reqVersionComponents = nil;
     if (minimum != nil) {
@@ -885,8 +885,8 @@ static NSMutableDictionary* sStringCache;
     foreach (identifier, identifiers) {
         manifest = [sOXPManifests objectForKey:identifier];
         if (manifest != nil) {
-            if ([[manifest oo_arrayForKey:kOOManifestTags] containsObject:kOOManifestTagScenarioOnly]) {
-                [searchPaths removeObject:[manifest oo_stringForKey:kOOManifestFilePath]];
+            if ([oo::PListView(manifest).get<NSArray*>(kOOManifestTags) containsObject:kOOManifestTagScenarioOnly]) {
+                [searchPaths removeObject:oo::PListView(manifest).get<NSString*>(kOOManifestFilePath)];
                 [sOXPManifests removeObjectForKey:identifier];
             }
         }
@@ -906,7 +906,7 @@ static NSMutableDictionary* sStringCache;
         if (manifest != nil) {
             if (![ResourceManager manifestAllowedByScenario:manifest]) {
                 // then we don't need this one
-                [searchPaths removeObject:[manifest oo_stringForKey:kOOManifestFilePath]];
+                [searchPaths removeObject:oo::PListView(manifest).get<NSString*>(kOOManifestFilePath)];
                 [sOXPManifests removeObjectForKey:identifier];
             }
         }
@@ -927,7 +927,7 @@ static NSMutableDictionary* sStringCache;
         return NO;
     }
 #endif
-    if ([[manifest oo_stringForKey:kOOManifestIdentifier] isEqualToString:@"org.oolite.oolite"]) {
+    if ([oo::PListView(manifest).get<NSString*>(kOOManifestIdentifier) isEqualToString:@"org.oolite.oolite"]) {
         // the core data is always allowed!
         return YES;
     }
@@ -946,13 +946,13 @@ static NSMutableDictionary* sStringCache;
 
 + (BOOL)manifestAllowedByScenario:(NSDictionary*)manifest withIdentifier:(NSString*)identifier
 {
-    if ([[manifest oo_stringForKey:kOOManifestIdentifier] isEqualToString:identifier]) {
+    if ([oo::PListView(manifest).get<NSString*>(kOOManifestIdentifier) isEqualToString:identifier]) {
         // manifest has the identifier - easy
         return YES;
     }
     // manifest is also allowed if a manifest with that identifier
     // requires it to be installed
-    if ([[manifest oo_setForKey:kOOManifestRequiredBy] containsObject:identifier]) {
+    if ([oo::PListView(manifest).get<NSSet*>(kOOManifestRequiredBy) containsObject:identifier]) {
         return YES;
     }
     // otherwise, no
@@ -961,19 +961,19 @@ static NSMutableDictionary* sStringCache;
 
 + (BOOL)manifestAllowedByScenario:(NSDictionary*)manifest withTag:(NSString*)tag
 {
-    if ([[manifest oo_arrayForKey:kOOManifestTags] containsObject:tag]) {
+    if ([oo::PListView(manifest).get<NSArray*>(kOOManifestTags) containsObject:tag]) {
         // manifest has the tag - easy
         return YES;
     }
     // manifest is also allowed if a manifest with that tag
     // requires it to be installed
-    NSSet* reqby = [manifest oo_setForKey:kOOManifestRequiredBy];
+    NSSet* reqby = oo::PListView(manifest).get<NSSet*>(kOOManifestRequiredBy);
     if (reqby != nil) {
         NSString* identifier = nil;
         foreach (identifier, reqby) {
-            NSDictionary* reqManifest = [sOXPManifests oo_dictionaryForKey:identifier defaultValue:nil];
+            NSDictionary* reqManifest = oo::PListView(sOXPManifests).get<NSDictionary*>(identifier, nil);
             // need to check for nil as this one may already have been ruled out
-            if (reqManifest != nil && [[reqManifest oo_arrayForKey:kOOManifestTags] containsObject:tag]) {
+            if (reqManifest != nil && [oo::PListView(reqManifest).get<NSArray*>(kOOManifestTags) containsObject:tag]) {
                 return YES;
             }
         }
@@ -1306,13 +1306,13 @@ static NSMutableDictionary* sStringCache;
 
     for (i = 0; i < [refArray count]; i++) {
         for (j = 0; j < [arrayToProcess count] - 1; j++) {
-            NSUInteger count = [[arrayToProcess oo_arrayAtIndex:j] count];
+            NSUInteger count = [oo::PListView(arrayToProcess).at<NSArray*>(j) count];
             if (count == 0)
                 continue;
 
             for (k = 0; k < count; k++) {
-                id processValue = [[[arrayToProcess oo_arrayAtIndex:j] oo_arrayAtIndex:k] oo_objectAtIndex:lookupIndex defaultValue:nil];
-                id refValue = [[refArray oo_arrayAtIndex:i] oo_objectAtIndex:lookupIndex defaultValue:nil];
+                id processValue = oo::PListView(oo::PListView(oo::PListView(arrayToProcess).at<NSArray*>(j)).at<NSArray*>(k)).at<id>(lookupIndex, nil);
+                id refValue = oo::PListView(oo::PListView(refArray).at<NSArray*>(i)).at<id>(lookupIndex, nil);
 
                 if ([processValue isEqual:refValue]) {
                     [[arrayToProcess objectAtIndex:j] replaceObjectAtIndex:k withObject:[refArray objectAtIndex:i]];
@@ -1347,7 +1347,7 @@ static NSMutableDictionary* sStringCache;
         // loop through our data array to find a match
         for (i = 0; i < [arrayToProcess count]; i++) {
             NSMutableArray* equipArray = [[[arrayToProcess objectAtIndex:i] mutableCopy] autorelease];
-            id refValue = [equipArray oo_objectAtIndex:EQUIPMENT_KEY_INDEX defaultValue:nil];
+            id refValue = oo::PListView(equipArray).at<id>(EQUIPMENT_KEY_INDEX, nil);
             // does the overridden equipment item exist in the equipment array? if so, get working
             if ([equipKey isEqual:refValue]) {
                 NSEnumerator* infoKeyEnum = nil;
@@ -1371,11 +1371,11 @@ static NSMutableDictionary* sStringCache;
                         NSMutableDictionary* extra = nil;
                         // for everything else
                         // do we actually have an extras dictionary?
-                        if (![equipArray oo_dictionaryAtIndex:EQUIPMENT_EXTRA_INFO_INDEX]) {
+                        if (!oo::PListView(equipArray).at<NSDictionary*>(EQUIPMENT_EXTRA_INFO_INDEX)) {
                             // if not, create a blank one we can add to
                             extra = [NSMutableDictionary dictionary];
                         } else {
-                            extra = [[equipArray oo_dictionaryAtIndex:EQUIPMENT_EXTRA_INFO_INDEX] mutableCopy];
+                            extra = [oo::PListView(equipArray).at<NSDictionary*>(EQUIPMENT_EXTRA_INFO_INDEX) mutableCopy];
                         }
                         // special case for weapon_info && script_info, which are child dictionaries
                         if ([infoKey isEqualToString:@"weapon_info"] || [infoKey isEqualToString:@"script_info"]) {
@@ -1384,13 +1384,13 @@ static NSMutableDictionary* sStringCache;
                             NSMutableDictionary* subInfo = nil;
                             NSDictionary* subOverrides = nil;
                             // do we actually have a weapon_info/script_info dictionary?
-                            if (![extra oo_dictionaryForKey:infoKey]) {
+                            if (!oo::PListView(extra).get<NSDictionary*>(infoKey)) {
                                 // if not, create a blank dictionary we can add to
                                 subInfo = [NSMutableDictionary dictionary];
                             } else {
-                                subInfo = [[extra oo_dictionaryForKey:infoKey] mutableCopy];
+                                subInfo = [oo::PListView(extra).get<NSDictionary*>(infoKey) mutableCopy];
                             }
-                            subOverrides = [overridesEntry oo_dictionaryForKey:infoKey];
+                            subOverrides = oo::PListView(overridesEntry).get<NSDictionary*>(infoKey);
                             // cycle through all the sub keys found in the overrides file for this equipment key item
                             for (subEnum = [subOverrides keyEnumerator]; (subKey = [subEnum nextObject]);) {
                                 [subInfo setObject:[subOverrides objectForKey:subKey] forKey:subKey];
@@ -1419,13 +1419,13 @@ static NSMutableDictionary* sStringCache;
     // Any change to refArray will directly modify arrayToProcess.
     for (i = 0; i < [refArray count]; i++) {
         for (j = 0; j < [arrayToProcess count] - 1; j++) {
-            NSUInteger count = [[arrayToProcess oo_arrayAtIndex:j] count];
+            NSUInteger count = [oo::PListView(arrayToProcess).at<NSArray*>(j) count];
             if (count == 0)
                 continue;
 
             for (k = 0; k < count; k++) {
-                id processValue = [[arrayToProcess oo_arrayAtIndex:j] oo_objectAtIndex:k defaultValue:nil];
-                id refValue = [refArray oo_objectAtIndex:i defaultValue:nil];
+                id processValue = oo::PListView(oo::PListView(arrayToProcess).at<NSArray*>(j)).at<id>(k, nil);
+                id refValue = oo::PListView(refArray).at<id>(i, nil);
                 NSString* key1 = nil;
                 NSString* key2 = nil;
 
@@ -1465,19 +1465,17 @@ static NSMutableDictionary* sStringCache;
 
 + (NSDictionary*)whitelistDictionary
 {
-    static id whitelistDictionary = nil;
+    static NSDictionary* whitelistDictionary = nil;
+    static BOOL loaded = NO; // a missing whitelist is remembered as nil, not retried
 
-    if (whitelistDictionary == nil) {
+    if (!loaded) {
         NSString* path = [[[ResourceManager builtInPath] stringByAppendingPathComponent:@"Config"] stringByAppendingPathComponent:@"whitelist.plist"];
         whitelistDictionary = [NSDictionary dictionaryWithContentsOfFile:path];
-        if (whitelistDictionary == nil)
-            whitelistDictionary = [NSNull null];
+        loaded = YES;
 
         [whitelistDictionary retain];
     }
 
-    if (whitelistDictionary == [NSNull null])
-        return nil;
     return whitelistDictionary;
 }
 
@@ -1598,7 +1596,7 @@ static NSString* LogClassKeyRoot(NSString* key)
             contents = [NSMutableSet setWithCapacity:16];
             [categories setObject:contents forKey:key];
         }
-        catDataEntry = [catData oo_arrayForKey:key];
+        catDataEntry = oo::PListView(catData).get<NSArray*>(key);
         OOLog(@"shipData.load.roleCategories", @"Adding %ld entries for category %@", (unsigned long)[catDataEntry count], key);
         [contents addObjectsFromArray:catDataEntry];
     }
@@ -1624,7 +1622,7 @@ static NSString* LogClassKeyRoot(NSString* key)
         if (categories != nil) {
             foreachkey(systemKey, categories)
             {
-                NSDictionary* values = [categories oo_dictionaryForKey:systemKey defaultValue:nil];
+                NSDictionary* values = oo::PListView(categories).get<NSDictionary*>(systemKey, nil);
                 if (values != nil) {
                     if ([systemKey isEqualToString:PLANETINFO_UNIVERSAL_KEY]) {
                         [manager setUniversalProperties:values];
@@ -1648,37 +1646,35 @@ static NSString* LogClassKeyRoot(NSString* key)
     static id shaderBindingTypesDictionary = nil;
 
     if (shaderBindingTypesDictionary == nil) {
-        NSAutoreleasePool* pool = [NSAutoreleasePool new];
+        @autoreleasepool {
+            NSString* path = [[[ResourceManager builtInPath] stringByAppendingPathComponent:@"Config"] stringByAppendingPathComponent:@"shader-uniform-bindings.plist"];
+            NSMutableDictionary* dict = [NSMutableDictionary dictionaryWithContentsOfFile:path];
+            NSArray* keys = [dict allKeys];
 
-        NSString* path = [[[ResourceManager builtInPath] stringByAppendingPathComponent:@"Config"] stringByAppendingPathComponent:@"shader-uniform-bindings.plist"];
-        NSMutableDictionary* dict = [NSMutableDictionary dictionaryWithContentsOfFile:path];
-        NSArray* keys = [dict allKeys];
+            // Resolve all $inherit keys.
+            unsigned changeCount = 0;
+            do {
+                changeCount = 0;
+                NSString* key = nil;
+                foreach (key, keys) {
+                    NSDictionary* value = oo::PListView(dict).get<NSDictionary*>(key);
+                    NSString* inheritKey = oo::PListView(value).get<NSString*>(@"$inherit");
+                    if (inheritKey != nil) {
+                        changeCount++;
+                        NSMutableDictionary* mutableValue = [[value mutableCopy] autorelease];
+                        [mutableValue removeObjectForKey:@"$inherit"];
+                        NSDictionary* inherited = oo::PListView(dict).get<NSDictionary*>(inheritKey);
+                        if (inherited != nil) {
+                            [mutableValue addEntriesFromDictionary:inherited];
+                        }
 
-        // Resolve all $inherit keys.
-        unsigned changeCount = 0;
-        do {
-            changeCount = 0;
-            NSString* key = nil;
-            foreach (key, keys) {
-                NSDictionary* value = [dict oo_dictionaryForKey:key];
-                NSString* inheritKey = [value oo_stringForKey:@"$inherit"];
-                if (inheritKey != nil) {
-                    changeCount++;
-                    NSMutableDictionary* mutableValue = [[value mutableCopy] autorelease];
-                    [mutableValue removeObjectForKey:@"$inherit"];
-                    NSDictionary* inherited = [dict oo_dictionaryForKey:inheritKey];
-                    if (inherited != nil) {
-                        [mutableValue addEntriesFromDictionary:inherited];
+                        [dict setObject:[[mutableValue copy] autorelease] forKey:key];
                     }
-
-                    [dict setObject:[[mutableValue copy] autorelease] forKey:key];
                 }
-            }
-        } while (changeCount != 0);
+            } while (changeCount != 0);
 
-        shaderBindingTypesDictionary = [dict copy];
-
-        [pool release];
+            shaderBindingTypesDictionary = [dict copy];
+        }
     }
 
     return shaderBindingTypesDictionary;
@@ -1836,7 +1832,6 @@ static NSString* LogClassKeyRoot(NSString* key)
     NSString* path = nil;
     OOScript* script = nil;
     NSString* name = nil;
-    NSAutoreleasePool* pool = nil;
 
     OOLog(@"script.load.world.begin", @"%@", @"Loading world scripts...");
 
@@ -1847,28 +1842,26 @@ static NSString* LogClassKeyRoot(NSString* key)
         // though as those core files don't and won't exist this is not
         // a problem.
         if (![ResourceManager corePlist:@"world-scripts.plist" excludedAt:path]) {
-            pool = [[NSAutoreleasePool alloc] init];
-
-            @try {
-                results = [OOScript worldScriptsAtPath:[path stringByAppendingPathComponent:@"Config"]];
-                if (results == nil)
-                    results = [OOScript worldScriptsAtPath:path];
-                if (results != nil) {
-                    foreach (script, results) {
-                        name = [script name];
-                        if (name != nil)
-                            [loadedScripts setObject:script forKey:name];
-                        else
-                            OOLog(@"script.load.unnamed", @"Discarding anonymous script %@", script);
+            @autoreleasepool {
+                @try {
+                    results = [OOScript worldScriptsAtPath:[path stringByAppendingPathComponent:@"Config"]];
+                    if (results == nil)
+                        results = [OOScript worldScriptsAtPath:path];
+                    if (results != nil) {
+                        foreach (script, results) {
+                            name = [script name];
+                            if (name != nil)
+                                [loadedScripts setObject:script forKey:name];
+                            else
+                                OOLog(@"script.load.unnamed", @"Discarding anonymous script %@", script);
+                        }
                     }
                 }
+                @catch (NSException* exception) {
+                    OOLog(@"script.load.exception", @"***** %s encountered exception %@ (%@) while trying to load script from %@ -- ignoring this location.", __PRETTY_FUNCTION__, [exception name], [exception reason], path);
+                    // Ignore exception and keep loading other scripts.
+                }
             }
-            @catch (NSException* exception) {
-                OOLog(@"script.load.exception", @"***** %s encountered exception %@ (%@) while trying to load script from %@ -- ignoring this location.", __PRETTY_FUNCTION__, [exception name], [exception reason], path);
-                // Ignore exception and keep loading other scripts.
-            }
-
-            [pool release];
         }
     }
 

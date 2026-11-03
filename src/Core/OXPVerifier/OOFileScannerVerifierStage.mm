@@ -48,7 +48,7 @@ SOFTWARE.
 
 #if OO_OXP_VERIFIER_ENABLED
 
-#import "OOCollectionExtractors.h"
+#import "OOPListView.h"
 #import "ResourceManager.h"
 
 static NSString* const kFileScannerStageName = @"Scanning files";
@@ -99,20 +99,19 @@ static BOOL CheckNameConflict(NSString* lcName, NSDictionary* directoryCases, NS
 
 - (void)run
 {
-    NSAutoreleasePool* pool = nil;
 
     _usedFiles = [[NSMutableSet alloc] init];
     _caseWarnings = [[NSMutableSet alloc] init];
     _badPLists = [[NSMutableSet alloc] init];
 
-    pool = [[NSAutoreleasePool alloc] init];
-    [self scanForFiles];
-    [pool release];
+    @autoreleasepool {
+        [self scanForFiles];
+    }
 
-    pool = [[NSAutoreleasePool alloc] init];
-    [self checkRootFolders];
-    [self checkKnownFiles];
-    [pool release];
+    @autoreleasepool {
+        [self checkRootFolders];
+        [self checkKnownFiles];
+    }
 }
 
 + (NSString*)nameForDependencyForVerifier:(OOOXPVerifier*)verifier
@@ -153,7 +152,7 @@ static BOOL CheckNameConflict(NSString* lcName, NSDictionary* directoryCases, NS
 
     if (folder != nil) {
         lcDirName = [folder lowercaseString];
-        realFileName = [[_directoryListings oo_dictionaryForKey:lcDirName] objectForKey:lcName];
+        realFileName = [oo::PListView(_directoryListings).get<NSDictionary*>(lcDirName) objectForKey:lcName];
 
         if (realFileName != nil) {
             realDirName = [_directoryCases objectForKey:lcDirName];
@@ -162,7 +161,7 @@ static BOOL CheckNameConflict(NSString* lcName, NSDictionary* directoryCases, NS
     }
 
     if (path == nil) {
-        realFileName = [[_directoryListings oo_dictionaryForKey:@""] objectForKey:lcName];
+        realFileName = [oo::PListView(_directoryListings).get<NSDictionary*>(@"") objectForKey:lcName];
 
         if (realFileName != nil) {
             path = realFileName;
@@ -232,50 +231,48 @@ static BOOL CheckNameConflict(NSString* lcName, NSDictionary* directoryCases, NS
     NSArray* errorLines = nil;
     NSString *displayName = nil,
              *errorKey = nil;
-    NSAutoreleasePool* pool = nil;
 
     data = [self dataForFile:file inFolder:folder referencedFrom:context checkBuiltIn:checkBuiltIn];
     if (data == nil)
         return nil;
 
-    pool = [[NSAutoreleasePool alloc] init];
-
-    plist = [NSPropertyListSerialization propertyListFromData:data
-                                             mutabilityOption:NSPropertyListImmutable
-                                                       format:&format
-                                             errorDescription:&errorString];
+    @autoreleasepool {
+        plist = [NSPropertyListSerialization propertyListFromData:data
+                                                 mutabilityOption:NSPropertyListImmutable
+                                                           format:&format
+                                                 errorDescription:&errorString];
 
 #if OOLITE_RELEASE_PLIST_ERROR_STRINGS
-    [errorString autorelease];
+        [errorString autorelease];
 #endif
 
-    if (plist != nil) {
-        // PList is readable; check that it's in an official Oolite format.
-        [self checkPListFormat:format file:file folder:folder];
-    } else {
-        /*	Couldn't parse plist; report problem.
-                This is complicated somewhat by the need to present a possibly
-                multi-line error description while maintaining our indentation.
-        */
-        displayName = [self displayNameForFile:file andFolder:folder];
-        errorKey = [displayName lowercaseString];
-        if (![_badPLists containsObject:errorKey]) {
-            [_badPLists addObject:errorKey];
-            OOLog(@"verifyOXP.plist.parseError", @"Could not interpret property list %@.", displayName);
-            OOLogIndent();
-            errorLines = [errorString componentsSeparatedByString:@"\n"];
-            foreach (errorString, errorLines) {
-                while ([errorString hasPrefix:@"\t"]) {
-                    errorString = [@"    " stringByAppendingString:[errorString substringFromIndex:1]];
+        if (plist != nil) {
+            // PList is readable; check that it's in an official Oolite format.
+            [self checkPListFormat:format file:file folder:folder];
+        } else {
+            /*	Couldn't parse plist; report problem.
+                    This is complicated somewhat by the need to present a possibly
+                    multi-line error description while maintaining our indentation.
+            */
+            displayName = [self displayNameForFile:file andFolder:folder];
+            errorKey = [displayName lowercaseString];
+            if (![_badPLists containsObject:errorKey]) {
+                [_badPLists addObject:errorKey];
+                OOLog(@"verifyOXP.plist.parseError", @"Could not interpret property list %@.", displayName);
+                OOLogIndent();
+                errorLines = [errorString componentsSeparatedByString:@"\n"];
+                foreach (errorString, errorLines) {
+                    while ([errorString hasPrefix:@"\t"]) {
+                        errorString = [@"    " stringByAppendingString:[errorString substringFromIndex:1]];
+                    }
+                    OOLog(@"verifyOXP.plist.parseError", @"%@", errorString);
                 }
-                OOLog(@"verifyOXP.plist.parseError", @"%@", errorString);
+                OOLogOutdent();
             }
-            OOLogOutdent();
         }
-    }
 
-    [plist retain];
-    [pool release];
+        [plist retain];
+    }
 
     return [plist autorelease];
 }
@@ -413,10 +410,10 @@ static BOOL CheckNameConflict(NSString* lcName, NSDictionary* directoryCases, NS
         */
 
         lcName = [name lowercaseString];
-        realFileName = [[_directoryListings oo_dictionaryForKey:@"config"] objectForKey:lcName];
+        realFileName = [oo::PListView(_directoryListings).get<NSDictionary*>(@"config") objectForKey:lcName];
         inConfigDir = realFileName != nil;
         if (!inConfigDir)
-            realFileName = [[_directoryListings oo_dictionaryForKey:@""] objectForKey:lcName];
+            realFileName = [oo::PListView(_directoryListings).get<NSDictionary*>(@"") objectForKey:lcName];
         if (realFileName == nil)
             continue;
 
@@ -453,11 +450,11 @@ static BOOL CheckNameConflict(NSString* lcName, NSDictionary* directoryCases, NS
             */
 
             lcName = [name lowercaseString];
-            realFileName = [[_directoryListings oo_dictionaryForKey:lcDirectory] objectForKey:lcName];
+            realFileName = [oo::PListView(_directoryListings).get<NSDictionary*>(lcDirectory) objectForKey:lcName];
             inDirectory = (realFileName != nil);
             if (!inDirectory) {
                 // Allow for files in root directory of OXP
-                realFileName = [[_directoryListings oo_dictionaryForKey:@""] objectForKey:lcName];
+                realFileName = [oo::PListView(_directoryListings).get<NSDictionary*>(@"") objectForKey:lcName];
             }
             if (realFileName == nil)
                 continue;
@@ -484,7 +481,7 @@ static BOOL CheckNameConflict(NSString* lcName, NSDictionary* directoryCases, NS
     result = [NSMutableDictionary dictionaryWithCapacity:count];
 
     for (i = 0; i != count; ++i) {
-        canonical = [array oo_stringAtIndex:i];
+        canonical = oo::PListView(array).at<NSString*>(i);
         if (canonical != nil) {
             lowercase = [canonical lowercaseString];
             [result setObject:canonical forKey:lowercase];
@@ -593,8 +590,8 @@ static BOOL CheckNameConflict(NSString* lcName, NSDictionary* directoryCases, NS
              *extension = nil;
 
     dict = [[self verifier] configurationDictionaryForKey:@"readMeNames"];
-    stems = [dict oo_arrayForKey:@"stems"];
-    extensions = [dict oo_arrayForKey:@"extensions"];
+    stems = oo::PListView(dict).get<NSArray*>(@"stems");
+    extensions = oo::PListView(dict).get<NSArray*>(@"extensions");
     stemCount = [stems count];
     extCount = [extensions count];
     if (stemCount * extCount == 0)
@@ -603,10 +600,10 @@ static BOOL CheckNameConflict(NSString* lcName, NSDictionary* directoryCases, NS
     // Construct all stem+extension permutations
     result = [NSMutableSet setWithCapacity:stemCount * extCount];
     for (i = 0; i != stemCount; ++i) {
-        stem = [[stems oo_stringAtIndex:i] lowercaseString];
+        stem = [oo::PListView(stems).at<NSString*>(i) lowercaseString];
         if (stem != nil) {
             for (j = 0; j != extCount; ++j) {
-                extension = [[extensions oo_stringAtIndex:j] lowercaseString];
+                extension = [oo::PListView(extensions).at<NSString*>(j) lowercaseString];
                 if (extension != nil) {
                     [result addObject:[stem stringByAppendingString:extension]];
                 }

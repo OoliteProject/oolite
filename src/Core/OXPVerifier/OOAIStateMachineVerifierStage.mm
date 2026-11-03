@@ -24,8 +24,8 @@ MA 02110-1301, USA.
 */
 
 #import "OOAIStateMachineVerifierStage.h"
-#import "OOCollectionExtractors.h"
 #import "OOPListParsing.h"
+#import "OOPListView.h"
 
 #if OO_OXP_VERIFIER_ENABLED
 
@@ -67,9 +67,9 @@ static NSString* const kStageName = @"Validating AIs";
 
     // Build whitelist. Note that we merge in aliases since the distinction doesn't matter when just validating.
     whitelist = [[NSMutableSet alloc] init];
-    [whitelist addObjectsFromArray:[[ResourceManager whitelistDictionary] oo_arrayForKey:@"ai_methods"]];
-    [whitelist addObjectsFromArray:[[ResourceManager whitelistDictionary] oo_arrayForKey:@"ai_and_action_methods"]];
-    [whitelist addObjectsFromArray:[[[ResourceManager whitelistDictionary] oo_dictionaryForKey:@"ai_method_aliases"] allKeys]];
+    [whitelist addObjectsFromArray:oo::PListView([ResourceManager whitelistDictionary]).get<NSArray*>(@"ai_methods")];
+    [whitelist addObjectsFromArray:oo::PListView([ResourceManager whitelistDictionary]).get<NSArray*>(@"ai_and_action_methods")];
+    [whitelist addObjectsFromArray:[oo::PListView([ResourceManager whitelistDictionary]).get<NSDictionary*>(@"ai_method_aliases") allKeys]];
     _whitelist = [whitelist copy];
     [whitelist release];
 

@@ -115,6 +115,7 @@ __attribute__((objc_root_class))
 - (id)performSelector:(SEL)selector withObject:(id)object;
 - (id)performSelector:(SEL)selector withObject:(id)object1 withObject:(id)object2;
 
+- (OOZone*)zone; // always nil: the zone -copy and -mutableCopy pass
 - (id)copy;
 - (id)mutableCopy;
 

@@ -103,7 +103,7 @@ static JSValue ShipGroupGetProperty(OOJS_GETTER_ARGS)
     case kShipGroup_name:
         result = [group name];
         if (result == nil)
-            result = [NSNull null];
+            result = [OONull null];
         break;
 
     case kShipGroup_count:

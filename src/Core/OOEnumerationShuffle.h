@@ -93,8 +93,14 @@ uint32_t OOEnumerationShuffleSeed(void);
         Only NSDictionary and NSSet are reordered. Anything else - notably NSArray, whose order
         is part of its contract - is returned untouched even when the shuffle is on.
 */
+#ifdef __cplusplus
+extern "C" {
+#endif
 id OOShuffledKeys(id dictionary);
 id OOShuffledObjects(id collection);
+#ifdef __cplusplus
+}
+#endif
 
 /*	OOEnumerationShuffleReport()
         One line for the log at startup, or nil when disabled.

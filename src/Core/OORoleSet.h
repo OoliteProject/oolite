@@ -32,39 +32,46 @@ SOFTWARE.
 #import "OOFoundation.h"
 #import "oofnd/objc/OOObject.h"
 
+#include "oofnd/StdLib.hpp"
+
+/*	Foundation sweep (proposed ADR-0043, bead oo-hi38): roles are UTF-8 std::strings. An empty
+        role means "no role", as nil did. Results that could be nil are std::optional (a message to a
+        nil role set yields std::nullopt / an empty vector). -hasRole: and -intersectsSet: are shared
+        selectors (ShipEntity; Foundation sets), so they keep Objective-C object parameters until their family
+        bead.
+*/
 @interface OORoleSet : OOObject <OOCopying> {
 @private
-    NSString* _roleString;
-    NSDictionary* _rolesAndProbabilities;
-    NSSet* _roles;
+    std::map<std::string, float> _rolesAndProbabilities;
+    std::optional<std::string> _roleString; // normalised form, built on first use
     float _totalProb;
 }
 
-+ (instancetype)roleSetWithString:(NSString*)roleString;
-+ (instancetype)roleSetWithRole:(NSString*)role probability:(float)probability;
++ (instancetype)roleSetWithString:(const std::string&)roleString;
++ (instancetype)roleSetWithRole:(const std::string&)role probability:(float)probability;
 
-- (id)initWithRoleString:(NSString*)roleString;
-- (id)initWithRole:(NSString*)role probability:(float)probability;
+- (id)initWithRoleString:(const std::string&)roleString;
+- (id)initWithRole:(const std::string&)role probability:(float)probability;
 
-- (NSString*)roleString;
+- (std::optional<std::string>)roleString;
 
-- (BOOL)hasRole:(NSString*)role;
-- (float)probabilityForRole:(NSString*)role;
-- (BOOL)intersectsSet:(id)set; // set may be an OORoleSet or an NSSet.
+- (BOOL)hasRole:(id)role; // role: an Objective-C string. Shared selector (proposed ADR-0043).
+- (float)probabilityForRole:(const std::string&)role;
+- (BOOL)intersectsSet:(id)set; // an OORoleSet or an Objective-C set of strings. Shared selector (proposed ADR-0043).
 
-- (NSSet*)roles;
-- (NSArray*)sortedRoles;
-- (NSDictionary*)rolesAndProbabilities;
+- (std::vector<std::string>)roles; // in byte order of the role
+- (std::vector<std::string>)sortedRoles; // case-insensitive order, as roleString lists them
+- (std::optional<std::map<std::string, float>>)rolesAndProbabilities;
 
 // Returns a random role, taking probabilities into account.
-- (NSString*)anyRole;
+- (std::optional<std::string>)anyRole;
 
 // Creating modified copies of role sets:
-- (id)roleSetWithAddedRole:(NSString*)role probability:(float)probability;
-- (id)roleSetWithAddedRoleIfNotSet:(NSString*)role probability:(float)probability; // Unlike the above, does not change probability if role exists.
-- (id)roleSetWithRemovedRole:(NSString*)role;
+- (id)roleSetWithAddedRole:(const std::string&)role probability:(float)probability;
+- (id)roleSetWithAddedRoleIfNotSet:(const std::string&)role probability:(float)probability; // Unlike the above, does not change probability if role exists.
+- (id)roleSetWithRemovedRole:(const std::string&)role;
 
 @end
 
-// Returns a dictionary whose keys are roles and whose values are weights.
-NSDictionary* OOParseRolesFromString(NSString* string);
+// Returns a map whose keys are roles and whose values are weights; empty for no roles.
+std::map<std::string, float> OOParseRolesFromString(std::string_view string);

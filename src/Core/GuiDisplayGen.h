@@ -28,6 +28,7 @@ MA 02110-1301, USA.
 #import "OOFoundation.h"
 #import "OOMaths.h"
 #import "OOTypes.h"
+#import "oofnd/objc/OOObject.h"
 #include <quickjs.h>
 
 #define GUI_DEFAULT_COLUMNS 6
@@ -157,7 +158,7 @@ typedef NSInteger OOGUIRow; // -1 for none
 typedef NSInteger OOGUITabStop; // negative value = right align text
 typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 
-@interface GuiDisplayGen : NSObject {
+@interface GuiDisplayGen : OOObject {
 @private
     NSSize size_in_pixels;
     unsigned n_columns;
