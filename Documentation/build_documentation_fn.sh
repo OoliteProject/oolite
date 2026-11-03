@@ -25,6 +25,7 @@ build_documentation() {
     if [[ "$(uname -s)" != "Darwin" && -z "${FLATPAK_BUILDER_BUILDDIR:-}" ]]; then
         if [[ ! -d ".venv" ]]; then
             echo "❌ Virtual environment folder (.venv) not found!" >&2
+            popd
             return 1
         else
             # Try to activate based on OS structure
@@ -34,6 +35,7 @@ build_documentation() {
                 source ".venv/bin/activate"
             else
                 echo "❌ Activation script not found in .venv!" >&2
+                popd
                 return 1
             fi
         fi

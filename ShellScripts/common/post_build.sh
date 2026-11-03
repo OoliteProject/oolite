@@ -164,7 +164,15 @@ run_script() {
         popd
         return 1
     fi
-    cp -fu build/documentation/docs/assets/pdfs/* "$progdir"
+    local docdir="$progdir"
+    if [[ "$host_os" == "darwin" ]]; then
+        # Files in the bundle root break its signature, so the PDFs go next to the app instead
+        # and create_dmg_fn.sh puts them in a Documentation folder on the disk image
+        rm -f "$progdir"/*.pdf
+        docdir="$(dirname "$progdir")/Documentation"
+        mkdir -p "$docdir"
+    fi
+    cp -fu build/documentation/docs/assets/pdfs/* "$docdir"
 
     echo "✅ Oolite post-build completed successfully"
     touch "$appdir/$stamp_file"

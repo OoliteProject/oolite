@@ -1,4 +1,4 @@
- #!/bin/bash
+#!/bin/bash
 # Installs the Homebrew packages needed to build Oolite on macOS (Apple Silicon).
 # Requires Xcode or the Xcode command line tools, and Homebrew (https://brew.sh).
 
