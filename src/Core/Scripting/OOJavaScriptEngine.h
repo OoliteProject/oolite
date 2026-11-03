@@ -611,14 +611,14 @@ void OOJSDumpStack(JSContext* context);
 
         Constructor callback for pseudo-classes which can't be constructed.
 */
-JSValue OOJSUnconstructableConstruct(JSContext* context, JSValueConst this, int argc, JSValueConst* argv);
+JSValue OOJSUnconstructableConstruct(JSContext* context, JSValueConst thisObj, int argc, JSValueConst* argv);
 
 /*	OOJSObjectWrapperFinalize
 
         Finalizer for JS classes whose private storage is a retained object
         reference (generally an OOWeakReference, but doesn't have to be).
 */
-void OOJSObjectWrapperFinalize(JSRuntime* runtime, JSValueConst this);
+void OOJSObjectWrapperFinalize(JSRuntime* runtime, JSValueConst thisObj);
 
 /*	OOJSObjectWrapperToString
 
@@ -627,7 +627,7 @@ void OOJSObjectWrapperFinalize(JSRuntime* runtime, JSValueConst this);
 
         Calls -oo_jsDescription and, if that fails, -description.
 */
-JSValue OOJSObjectWrapperToString(JSContext* context, JSValueConst this, int argc, JSValueConst* argv);
+JSValue OOJSObjectWrapperToString(JSContext* context, JSValueConst thisObj, int argc, JSValueConst* argv);
 
 /*	Native function and property callback conveniences.
 
@@ -641,8 +641,8 @@ JSValue OOJSObjectWrapperToString(JSContext* context, JSValueConst this, int arg
         value and returns JS_UNDEFINED on success.
 */
 #define OOJS_NATIVE_ARGS JSContext *context, JSValueConst oojsThis, int argc, JSValueConst *oojsArgv
-#define OOJS_GETTER_ARGS JSContext *context, JSValueConst this, int magic
-#define OOJS_SETTER_ARGS JSContext *context, JSValueConst this, JSValueConst value, int magic
+#define OOJS_GETTER_ARGS JSContext *context, JSValueConst thisObj, int magic
+#define OOJS_SETTER_ARGS JSContext *context, JSValueConst thisObj, JSValueConst value, int magic
 #define OOJS_THIS oojsThis
 #define OOJS_ARGV oojsArgv
 

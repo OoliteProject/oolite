@@ -61,7 +61,12 @@ typedef enum OOEntityStatus {
 
 #ifndef OO_SCANCLASS_TYPE
 #define OO_SCANCLASS_TYPE
+#ifndef __cplusplus
+/* ISO C++ forbids a forward reference to an unscoped enum with no fixed underlying
+   type. The full definition is three lines below in this same file, so C++
+   translation units never need the forward tag at all. */
 typedef enum OOScanClass OOScanClass;
+#endif
 #endif
 
 enum OOScanClass {
@@ -321,8 +326,16 @@ enum {
     kOOScanClassDefault = CLASS_NOT_SET
 };
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 NSString* OOStringFromEntityStatus(OOEntityStatus status) CONST_FUNC;
 OOEntityStatus OOEntityStatusFromString(NSString* string) PURE_FUNC;
 
 NSString* OOStringFromScanClass(OOScanClass scanClass) CONST_FUNC;
 OOScanClass OOScanClassFromString(NSString* string) PURE_FUNC;
+
+#ifdef __cplusplus
+}
+#endif

@@ -914,10 +914,10 @@ typedef enum {
 - (float)forwardShieldRechargeRate;
 - (float)aftShieldRechargeRate;
 
-- (void)setMaxForwardShieldLevel:(float)new;
-- (void)setMaxAftShieldLevel:(float)new;
-- (void)setForwardShieldRechargeRate:(float)new;
-- (void)setAftShieldRechargeRate:(float)new;
+- (void)setMaxForwardShieldLevel:(float)newValue;
+- (void)setMaxAftShieldLevel:(float)newValue;
+- (void)setForwardShieldRechargeRate:(float)newValue;
+- (void)setAftShieldRechargeRate:(float)newValue;
 
 // return keyconfig.plist settings for scripting
 - (NSDictionary*)keyConfig;
@@ -1296,9 +1296,15 @@ OOINLINE PlayerEntity* OOGetPlayer(void)
 #define GRAMS_PER_POD (KILOGRAMS_PER_POD * 1000)
 #define MAX_GRAMS_IN_SAFE ((GRAMS_PER_POD / 2) - 1)
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 NSString* OODisplayRatingStringFromKillCount(unsigned kills);
 NSString* KillCountToRatingAndKillString(unsigned kills);
 NSString* OODisplayStringFromLegalStatus(int legalStatus);
+#ifdef __cplusplus
+}
+#endif
 
 NSString* OOStringFromGUIScreenID(OOGUIScreenID screen) CONST_FUNC;
 OOGUIScreenID OOGUIScreenIDFromString(NSString* string) PURE_FUNC;

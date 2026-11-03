@@ -94,7 +94,7 @@ SOFTWARE.
 - (void)clearJSConsole;
 - (void)showJSConsole;
 
-- (id)configurationValueForKey:(NSString*)key class:(Class)class defaultValue:(id)value;
+- (id)configurationValueForKey:(NSString*)key class:(Class)klass defaultValue:(id)value;
 - (long long)configurationIntValueForKey:(NSString*)key defaultValue:(long long)value;
 
 - (NSArray*)configurationKeys;
