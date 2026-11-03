@@ -97,12 +97,6 @@ run_script() {
     cp -rfu Resources/. "$resourcesdir"
     rm -f "$resourcesdir/AIReference.html" "$resourcesdir/*.icns"
 
-    if ! build_documentation "YES" "NO"; then
-        popd
-        return 1
-    fi
-    cp -fu build/documentation/docs/assets/pdfs/* "$resourcesdir"
-
     # Strip binary if requested
     if [[ "$strip_bin" == "yes" ]]; then
         if [[ "$host_os" == "windows" ]]; then
@@ -165,6 +159,12 @@ run_script() {
             awk '{print $3}' | \
             xargs -I {} cp -Lrfu {} "$progdir/"
     fi
+
+    if ! build_documentation "YES" "NO"; then
+        popd
+        return 1
+    fi
+    cp -fu build/documentation/docs/assets/pdfs/* "$progdir"
 
     echo "✅ Oolite post-build completed successfully"
     touch "$appdir/$stamp_file"
