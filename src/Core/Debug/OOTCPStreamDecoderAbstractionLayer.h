@@ -85,6 +85,10 @@ OOALStringRef OOALGetConstantString(const char* string); // Should only be used 
 
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void OOALRelease(OOALObjectRef object);
 OOALStringRef OOTypeDescription(OOALObjectRef object);
 
@@ -104,6 +108,9 @@ OOALAutoreleasePoolRef OOALCreateAutoreleasePool(void);
 #define OOALDestroyAutoreleasePool(pool) OOALRelease(pool)
 
 OOALObjectRef OOALPropertyListFromData(OOALMutableDataRef data, OOALStringRef* errStr);
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* OOTCPSTREAM_USE_COREFOUNDATION */
 #endif /* INCLUDED_OOTCPStreamDecoderAbstractionLayer_h */

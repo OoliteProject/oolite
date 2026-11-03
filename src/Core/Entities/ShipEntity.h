@@ -600,7 +600,7 @@ typedef enum {
 - (BOOL)addEquipmentItem:(NSString*)equipmentKey withValidation:(BOOL)validateAddition inContext:(NSString*)context;
 - (BOOL)hasHyperspaceMotor;
 - (float)hyperspaceSpinTime;
-- (void)setHyperspaceSpinTime:(float)new;
+- (void)setHyperspaceSpinTime:(float)newValue;
 
 - (NSEnumerator*)equipmentEnumerator;
 - (NSUInteger)equipmentCount;
@@ -653,17 +653,17 @@ typedef enum {
 - (double)maxHyperspaceDistance;
 - (float)afterburnerFactor;
 - (float)afterburnerRate;
-- (void)setAfterburnerFactor:(GLfloat)new;
-- (void)setAfterburnerRate:(GLfloat)new;
+- (void)setAfterburnerFactor:(GLfloat)newValue;
+- (void)setAfterburnerRate:(GLfloat)newValue;
 - (float)maxThrust;
 - (float)thrust;
 
-- (void)setMaxThrust:(GLfloat)new;
-- (void)setMaxFlightPitch:(GLfloat)new;
-- (void)setMaxFlightSpeed:(GLfloat)new;
-- (void)setMaxFlightRoll:(GLfloat)new;
-- (void)setMaxFlightYaw:(GLfloat)new;
-- (void)setEnergyRechargeRate:(GLfloat)new;
+- (void)setMaxThrust:(GLfloat)newValue;
+- (void)setMaxFlightPitch:(GLfloat)newValue;
+- (void)setMaxFlightSpeed:(GLfloat)newValue;
+- (void)setMaxFlightRoll:(GLfloat)newValue;
+- (void)setMaxFlightYaw:(GLfloat)newValue;
+- (void)setEnergyRechargeRate:(GLfloat)newValue;
 
 - (void)processBehaviour:(OOTimeDelta)delta_t;
 // Behaviours
@@ -891,7 +891,7 @@ typedef enum {
 - (OOCargoQuantity)commodityAmount;
 
 - (OOCargoQuantity)maxAvailableCargoSpace;
-- (void)setMaxAvailableCargoSpace:(OOCargoQuantity)new;
+- (void)setMaxAvailableCargoSpace:(OOCargoQuantity)newValue;
 - (OOCargoQuantity)availableCargoSpace;
 - (OOCargoQuantity)cargoQuantityOnBoard;
 - (OOCargoType)cargoType;
@@ -1294,14 +1294,26 @@ NSString* OOStringFromBehaviour(OOBehaviour behaviour) CONST_FUNC;
 
 // Weapon strings prefixed with EQ_, used in shipyard.plist.
 NSString* OOEquipmentIdentifierFromWeaponType(OOWeaponType weapon) CONST_FUNC;
+#ifdef __cplusplus
+extern "C" {
+#endif
 OOWeaponType OOWeaponTypeFromEquipmentIdentifierSloppy(NSString* string) PURE_FUNC; // Uses suffix match for backwards compatibility.
+#ifdef __cplusplus
+}
+#endif
 OOWeaponType OOWeaponTypeFromEquipmentIdentifierStrict(NSString* string) PURE_FUNC;
 OOWeaponType OOWeaponTypeFromEquipmentIdentifierLegacy(NSString* string);
 
 NSString* OOStringFromWeaponType(OOWeaponType weapon) CONST_FUNC;
 OOWeaponType OOWeaponTypeFromString(NSString* string) PURE_FUNC;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 BOOL isWeaponNone(OOWeaponType weapon);
+#ifdef __cplusplus
+}
+#endif
 
 NSString* OODisplayStringFromAlertCondition(OOAlertCondition alertCondition);
 

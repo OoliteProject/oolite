@@ -37,5 +37,5 @@ typedef JSValue OOJSVal;
         Macro to create a property ID. The string is interned the first time the
         macro is hit, then cached; the atom lives as long as the runtime.
 */
-#define OOJSID(str) ({ static JSAtom idCache = JS_ATOM_NULL; if (EXPECT_NOT(idCache == JS_ATOM_NULL)) idCache = OOJSInternAtomPRIVATE(""str); idCache; })
+#define OOJSID(str) ({ static JSAtom idCache = JS_ATOM_NULL; if (EXPECT_NOT(idCache == JS_ATOM_NULL)) idCache = OOJSInternAtomPRIVATE("" str); idCache; })
 JSAtom OOJSInternAtomPRIVATE(const char* name);
