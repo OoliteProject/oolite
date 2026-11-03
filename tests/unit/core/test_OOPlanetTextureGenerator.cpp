@@ -19,11 +19,11 @@
 	Run: bash tools/check-core-tests.sh test_OOPlanetTextureGenerator
 */
 
-#import "OOPlanetTextureGenerator.h"
-#import "OOConcreteTexture.h"
-#import "OOColor.h"
-#import "OODescription.h"
-#import "OOObjCPList.h"
+#include "OOPlanetTextureGenerator.h"
+#include "OOConcreteTexture.h"
+#include "OOColor.h"
+#include "OODescription.h"
+#include "OOObjCPList.h"
 
 #include "oo_test.hpp"
 #include "oo_gl_test_context.hpp"

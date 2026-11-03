@@ -43,6 +43,7 @@ MA 02110-1301, USA.
 #include "OOObjCPList.h"
 #include "oofnd/Log.hpp"
 #include "oofnd/String.hpp"
+#include <cstring>
 #include <map>
 
 OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)

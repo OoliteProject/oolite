@@ -16,8 +16,8 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "OOJSEngineTimeManagement.h"
-#import "OODescription.h"
+#include "OOJSEngineTimeManagement.h"
+#include "OODescription.h"
 #include "oofnd/PList.hpp"
 
 #include "oo_test.hpp"

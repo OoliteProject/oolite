@@ -30,11 +30,11 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "OOShaderUniform.h"
-#import "OOShaderUniformMethodType.h"
-#import "OORegExpMatcher.h"
-#import "OOColor.h"
-#import "OODescription.h"
+#include "OOShaderUniform.h"
+#include "OOShaderUniformMethodType.h"
+#include "OORegExpMatcher.h"
+#include "OOColor.h"
+#include "OODescription.h"
 
 #include "oo_gl_test_context.hpp"
 #include "oo_test.hpp"
@@ -53,7 +53,7 @@ void OOLogOutdent(void)  {}
 
 
 // The extension manager's collaborators, as test_OOOpenGLExtensionManager stubs them.
-#import "ResourceManager.h"
+#include "ResourceManager.h"
 
 // ResourceManager is C++ since bead oo-9ht.150 deleted its Objective-C facade: C++ definitions of the
 // statics the code under test calls, with the Objective-C stand-in's answers.

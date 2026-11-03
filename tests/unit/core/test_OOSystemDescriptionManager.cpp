@@ -20,7 +20,7 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "OOSystemDescriptionManager.h"
+#include "OOSystemDescriptionManager.h"
 
 #include "oo_test.hpp"
 
@@ -64,7 +64,7 @@ PlayerEntity *gOOPlayer = nullptr;
 
 
 // ResourceManager: one installed OXP, org.test.installed.
-#import "ResourceManager.h"
+#include "ResourceManager.h"
 
 // ResourceManager is C++ since its Objective-C facade was deleted: C++ definitions of the
 // statics the code under test calls, with the Objective-C stand-in's answers.

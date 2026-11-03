@@ -13,7 +13,7 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "OODrawable.h"
+#include "OODrawable.h"
 
 #include "oo_test.hpp"
 

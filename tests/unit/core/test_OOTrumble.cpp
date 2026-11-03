@@ -18,10 +18,10 @@
 	the C++ API and read that state through the class's test friend. Run: bash tools/check-core-tests.sh
 */
 
-#import "OOTrumble.h"
-#import "OOSoundSource.h"
-#import "OOALSound.h"
-#import "OOCommodityMarket.h"
+#include "OOTrumble.h"
+#include "OOSoundSource.h"
+#include "OOALSound.h"
+#include "OOCommodityMarket.h"
 
 #include "oo_test.hpp"
 
@@ -35,9 +35,9 @@
 #include <string>
 #include <vector>
 
-#import "OOTypes.h"
-#import "OOMaths.h"
-#import "OOTexture.h"
+#include "OOTypes.h"
+#include "OOMaths.h"
+#include "OOTexture.h"
 #include "oofnd/String.hpp"
 
 
@@ -190,7 +190,7 @@ void PlayerEntity::addTrumble(OOTrumble *t)  { added.push_back(t); }
 void PlayerEntity::removeTrumble(OOTrumble *t)  { removed.push_back(t); }
 
 
-#import "UniverseStandIn.h"
+#include "UniverseStandIn.h"
 
 // The universe as the code under test sees it: a stand-in for the C++ class (bead oo-ql9rn deleted
 // the Objective-C facade the test's Objective-C stand-in stood in for), with the header's names and signatures.

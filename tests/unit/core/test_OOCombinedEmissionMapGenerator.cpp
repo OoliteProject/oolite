@@ -20,12 +20,12 @@
 	Run: bash tools/check-core-tests.sh test_OOCombinedEmissionMapGenerator
 */
 
-#import "OOCombinedEmissionMapGenerator.h"
-#import "OOConcreteTexture.h"
-#import "OOColor.h"
-#import "OODescription.h"
-#import "OOTextureInternal.h"
-#import "ResourceManager.h"
+#include "OOCombinedEmissionMapGenerator.h"
+#include "OOConcreteTexture.h"
+#include "OOColor.h"
+#include "OODescription.h"
+#include "OOTextureInternal.h"
+#include "ResourceManager.h"
 
 #include "oo_test.hpp"
 #include "oo_gl_test_context.hpp"
@@ -235,8 +235,9 @@ OO_TEST(cacheKeys)
 		OO_CHECK(NewGenerator(oo::PList("e.png"), red.get(), nil, nil, oo::PList(), nil, oo::PList("e.png"))->cacheKey()
 				 == std::optional<std::string>("emission map;emission:{" + KeyOf("e.png") + "}*" + redRGBA + ";"));
 		// A white colour is no colour; the diffuse map is only used with illumination.
-		OO_CHECK(NewGenerator(oo::PList("e.png"), OOColor::whiteColor().get(), DiffuseMap(), nil, oo::PList(), nil, oo::PList("e.png"))->cacheKey()
-				 == std::optional<std::string>("emission map;emission:{" + KeyOf("e.png") + "};"));
+		// The generator before the expected key, the order Clang evaluates the two sides of == (bead oo-1q4).
+		const std::optional<std::string> whiteKey = NewGenerator(oo::PList("e.png"), OOColor::whiteColor().get(), DiffuseMap(), nil, oo::PList(), nil, oo::PList("e.png"))->cacheKey();
+		OO_CHECK(whiteKey == std::optional<std::string>("emission map;emission:{" + KeyOf("e.png") + "};"));
 
 		OOTexture *diffuse = DiffuseMap();
 		const std::string diffuseKey = diffuse->cacheKey().value_or("");

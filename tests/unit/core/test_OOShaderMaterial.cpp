@@ -30,15 +30,15 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "OOShaderMaterial.h"
-#import "OOShaderUniform.h"
-#import "OOShaderUniformMethodType.h"	// the binding target's hooks (bead oo-9ht.39.6)
-#import "OORegExpMatcher.h"
-#import "OOOpenGLExtensionManager.h"
-#import "OODescription.h"
-#import "OOTexture.h"
-#import "OOObjCPList.h"
-#import "legacy_random.h"
+#include "OOShaderMaterial.h"
+#include "OOShaderUniform.h"
+#include "OOShaderUniformMethodType.h"	// the binding target's hooks (bead oo-9ht.39.6)
+#include "OORegExpMatcher.h"
+#include "OOOpenGLExtensionManager.h"
+#include "OODescription.h"
+#include "OOTexture.h"
+#include "OOObjCPList.h"
+#include "legacy_random.h"
 
 #include "oo_gl_test_context.hpp"
 #include "oo_test.hpp"
@@ -83,7 +83,7 @@ std::string Text(const std::optional<std::string> &string)
 static std::map<std::string, std::string> gShaderFiles;
 static std::vector<std::string> gShaderFileRequests;
 
-#import "ResourceManager.h"
+#include "ResourceManager.h"
 
 // ResourceManager is C++ since bead oo-9ht.150 deleted its Objective-C facade: C++ definitions of the
 // statics the code under test calls, with the Objective-C stand-in's answers.

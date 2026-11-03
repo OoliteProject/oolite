@@ -14,7 +14,7 @@
 	Run: tests/run.sh unit
 */
 
-#import "OOFoundation.h"
+#include "OOFoundation.h"
 #include "oofnd/objc/OOException.h"
 #include "oofnd/PList.hpp"
 #include "oofnd/String.hpp"
@@ -84,7 +84,7 @@ public:
 	::ShipEntity *_queued = nullptr;
 };
 
-#import "OOJSDock.h"
+#include "OOJSDock.h"
 #include "OOJSEngineCore.h"
 
 #include "oo_test.hpp"

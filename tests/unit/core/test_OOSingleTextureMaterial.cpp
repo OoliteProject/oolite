@@ -21,9 +21,9 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "OOSingleTextureMaterial.h"
-#import "OODescription.h"
-#import "OOTexture.h"
+#include "OOSingleTextureMaterial.h"
+#include "OODescription.h"
+#include "OOTexture.h"
 #include "oofnd/String.hpp"
 
 #include "oo_gl_test_context.hpp"

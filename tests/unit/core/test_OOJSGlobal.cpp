@@ -19,21 +19,21 @@
 	disk, is not run. Run: bash tools/check-core-tests.sh
 */
 
-#import "OOFoundation.h"
-#import "oofnd/objc/OOObject.h"
-#import "OOColor.h"
-#import "GuiDisplayGen.h"
-#import "OOTextureSprite.h"	// the GUI stand-in's destructor destroys its sprite members
-#import "OOJSGuiScreenKeyDefinition.h"
-#import "OOStringExpander.h"
+#include "OOFoundation.h"
+#include "oofnd/objc/OOObject.h"
+#include "OOColor.h"
+#include "GuiDisplayGen.h"
+#include "OOTextureSprite.h"	// the GUI stand-in's destructor destroys its sprite members
+#include "OOJSGuiScreenKeyDefinition.h"
+#include "OOStringExpander.h"
 #include "OOTypes.h"
 #include "OOEntityEnums.h"
 #include <quickjs.h>
 #include "oofnd/objc/OOException.h"
 #include "oofnd/PList.hpp"
 #include "oofnd/String.hpp"
-#import "OODescription.h"
-#import "OOConstToJSString.h"
+#include "OODescription.h"
+#include "OOConstToJSString.h"
 #include "oofnd/Log.hpp"
 
 
@@ -67,7 +67,7 @@ public:
 /*	The universe: time acceleration, mission text (whose lookup raises while _raise is set),
 	inhabitants, the view, the GUI, screen textures by key, the game view, pause and quit.
 */
-#import "UniverseStandIn.h"
+#include "UniverseStandIn.h"
 
 // The universe as the code under test sees it: a stand-in for the C++ class (its Objective-C facade,
 // which the test's Objective-C stand-in stood in for, was deleted), with the header's names and signatures.
@@ -115,13 +115,13 @@ public:
 	bool snapShot(const std::optional<std::string> &filename);
 };
 
-#import "ResourceManager.h"
+#include "ResourceManager.h"
 
 // The engine, which OOJSGuiScreenKeyDefinition.mm (linked here) calls for its reset-notification
 // observer and its JS calls, is declared below (a C++ class since its facade was deleted).
 
 #include "OOJSEngineCore.h"
-#import "OOJSGlobal.h"
+#include "OOJSGlobal.h"
 
 #include "oo_test.hpp"
 
@@ -151,7 +151,8 @@ OOGalaxyID PlayerEntity::currentGalaxyID()  { return _galaxy; }
 OOGUIScreenID PlayerEntity::guiScreen()  { return _screen; }
 std::optional<std::string> PlayerEntity::keyBindingDescription2(const std::string &binding)
 {
-	if (binding == "none")  return std::nullopt; return "key for " + binding;
+	if (binding == "none")  return std::nullopt;
+	return "key for " + binding;
 }
 void PlayerEntity::clearExtraGuiScreenKeys(OOGUIScreenID gui, const std::string &key)
 {
@@ -294,7 +295,7 @@ void OOJavaScriptEngine::sendMonitorLogMessage(const std::optional<std::string> 
 }
 
 
-#import "OOScript.h"
+#include "OOScript.h"
 
 
 // OOJSScript (OOJSScript.h), which the code under test calls. Since the OOScript root's facade (a

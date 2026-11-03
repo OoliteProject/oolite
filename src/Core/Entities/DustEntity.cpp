@@ -42,6 +42,7 @@ MA 02110-1301, USA.
 #include "PlayerEntity.h"
 
 #include "oofnd/String.hpp"
+#include <cstring>
 
 #define FAR_PLANE (DUST_SCALE * 0.50f)
 #define NEAR_PLANE (DUST_SCALE * 0.25f)

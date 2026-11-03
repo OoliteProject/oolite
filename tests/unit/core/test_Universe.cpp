@@ -19,8 +19,8 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "Universe.h"
-#import "PlayerEntity.h"
+#include "Universe.h"
+#include "PlayerEntity.h"
 #include "oofnd/objc/OOException.h"	// slice 24: -handleOoliteException:
 
 extern PlayerEntity *gOOPlayer;	// the slice 2-13 cases run before slice 14's stand-in player is installed

@@ -3500,7 +3500,8 @@ void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat /*z1*
                 // unless we want a separate line Destination: XXX ?
             case WH_SCANINFO_ARRIVAL_TIME: {
                 // a format read at run time (ADR-0043 item 19)
-                std::string wormholeETA = oo::str::formatRuntime(OO_DESC("wormhole-ETA-@"), { cxx_ClockToString(HeadUpDisplayWormholeEstimatedArrivalTime(static_cast<WormholeEntity*>(target)), NO) });
+                const std::string etaFormat = OO_DESC("wormhole-ETA-@"); // the format first, as Clang evaluates the arguments: a description that is an array draws (ADR-0063 item 5)
+                std::string wormholeETA = oo::str::formatRuntime(etaFormat, { cxx_ClockToString(HeadUpDisplayWormholeEstimatedArrivalTime(static_cast<WormholeEntity*>(target)), NO) });
                 cxx_OODrawString(wormholeETA, rs0, 0.5 * rs2 - 3 * line_height, 0, textsize);
             }
             case WH_SCANINFO_COLLAPSE_TIME: {

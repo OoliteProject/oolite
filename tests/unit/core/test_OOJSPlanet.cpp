@@ -18,8 +18,8 @@
 	category answers the engine. Run: tests/run.sh unit
 */
 
-#import "OOFoundation.h"
-#import "OOColor.h"
+#include "OOFoundation.h"
+#include "OOColor.h"
 #include "OOMaths.h"
 #include "OOStellarBody.h"
 #include "OOJSEngineCore.h"
@@ -115,7 +115,7 @@ public:
 
 // The universe, as far as the binding asks it anything: its main planet (the C++ planet since bead
 // oo-9ht.129).
-#import "UniverseStandIn.h"
+#include "UniverseStandIn.h"
 
 // The universe as the code under test sees it: a stand-in for the C++ class (the Objective-C
 // facade the test's FakeUniverse stood in for is deleted), with the header's names and signatures.
@@ -136,7 +136,7 @@ public:
 	::OOPlanetEntity *planet() override	{ return _planet; }
 };
 
-#import "OOJSPlanet.h"
+#include "OOJSPlanet.h"
 
 #include "oo_test.hpp"
 

@@ -22,10 +22,10 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "OOProbabilisticTextureManager.h"
-#import "OODescription.h"
-#import "OOTypes.h"
-#import "OOTexture.h"
+#include "OOProbabilisticTextureManager.h"
+#include "OODescription.h"
+#include "OOTypes.h"
+#include "OOTexture.h"
 #include "oofnd/String.hpp"
 
 #include "oo_test.hpp"
@@ -41,7 +41,7 @@ static oo::PList gConfig;
 static std::vector<std::string> gLog;
 
 
-#import "ResourceManager.h"
+#include "ResourceManager.h"
 
 // ResourceManager is C++ since its Objective-C facade was deleted: C++ definitions of the
 // statics the code under test calls, with the Objective-C stand-in's answers.

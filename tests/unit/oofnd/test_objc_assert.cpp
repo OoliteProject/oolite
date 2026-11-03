@@ -67,11 +67,19 @@ OO_TEST(functionAssertionUsesPrettyFunction)
 	Outcome o = Run([] { CFail(4); });
 	OO_CHECK(o.raised);
 	OO_CHECK_EQ(o.name, std::string("NSInternalInconsistencyException"));
+#if defined(__GNUC__) && !defined(__clang__)
+	OO_CHECK_EQ(o.reason, At(sLine) + "void {anonymous}::CFail(int).  y is 4");
+#else
 	OO_CHECK_EQ(o.reason, At(sLine) + "void (anonymous namespace)::CFail(int).  y is 4");
+#endif
 
 	Outcome p = Run([] { CParam(nullptr); });
 	OO_CHECK(p.raised);
+#if defined(__GNUC__) && !defined(__clang__)
+	OO_CHECK_EQ(p.reason, At(sLine) + "void {anonymous}::CParam(void*).  Invalid parameter not satisfying: p != NULL");
+#else
 	OO_CHECK_EQ(p.reason, At(sLine) + "void (anonymous namespace)::CParam(void *).  Invalid parameter not satisfying: p != NULL");
+#endif
 }
 
 OO_TEST(trueConditionsDoNotRaise)

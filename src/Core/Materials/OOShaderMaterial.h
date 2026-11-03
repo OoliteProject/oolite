@@ -185,7 +185,7 @@ private:
     void addTexturesFromArray(const std::vector<oo::Ref<OOTexture>>& textureObjects, GLuint max);
 
     oo::Ref<OOShaderProgram> shaderProgram = { };
-    std::map<std::string, oo::Ref<OOShaderUniform>, std::less<>> uniforms = { }; // by uniform name (C++ since bead oo-9ht.55 deleted OOShaderUniform's facade)
+    std::map<std::string, oo::Ref<OOShaderUniform>, std::less<>> uniforms; // no `= {}` (GCC, incomplete T; bead oo-1q4); by uniform name (C++ since bead oo-9ht.55 deleted OOShaderUniform's facade)
 
     uint32_t texCount = { };
     OOTexture** textures = { };

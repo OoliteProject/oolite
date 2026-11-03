@@ -17,9 +17,9 @@
 	comment methods and their errors, and a native's exception. Run: bash tools/check-core-tests.sh
 */
 
-#import "OOCommodities.h"
-#import "OOCommodityMarket.h"
-#import "OOStringExpander.h"
+#include "OOCommodities.h"
+#include "OOCommodityMarket.h"
+#include "OOStringExpander.h"
 #include <quickjs.h>
 #include "oofnd/objc/OOException.h"
 #include "oofnd/PList.hpp"
@@ -71,7 +71,7 @@ public:
 ::OOCommodityMarket *Universe::getCommodityMarket()	{ return _market.get(); }
 OOSystemID Universe::currentSystemID()	{ return 7; }
 
-#import "ResourceManager.h"
+#include "ResourceManager.h"
 
 // A station: C++ since bead oo-9ht.175 deleted the Objective-C station this stood in for; the
 // members the commodities call, declared as StationEntity.h declares them (the test imports no
@@ -86,7 +86,7 @@ public:
 };
 
 
-#import "OOJSManifest.h"
+#include "OOJSManifest.h"
 #include "OOJSEngineCore.h"
 
 #include "oo_test.hpp"

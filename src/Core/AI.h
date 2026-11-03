@@ -146,7 +146,7 @@ private:
     std::optional<std::string> currentState = { }; // nullopt: no state (nil)
     std::set<std::string> pendingMessages = { }; // in byte order (a Foundation set before)
 
-    std::vector<oo::Ref<OOPreservedAIStateMachine>> aiStack = { };
+    std::vector<oo::Ref<OOPreservedAIStateMachine>> aiStack; // no `= {}`: GCC instantiates ~Ref<T> at a default member initializer, and T is incomplete here (bead oo-1q4)
 
     OOTimeAbsolute nextThinkTime = { };
     OOTimeDelta thinkTimeInterval = { };

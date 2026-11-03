@@ -28,6 +28,7 @@ MA 02110-1301, USA.
 
 #include "oofnd/Process.hpp"
 #include "oofnd/String.hpp"
+#include <cstring>
 
 #if OOLITE_MAC_OS_X
 #include <sys/sysctl.h>
@@ -108,15 +109,11 @@ NSUInteger OOCPUCount(void)
 }
 
 #if (OOLITE_WINDOWS || OOLITE_LINUX)
-#if OOLITE_LINUX
-#define OO_GNU_INLINE __attribute__((gnu_inline))
-#else
-#define OO_GNU_INLINE
-#endif
 /*
 Taken straight out of the x64 gcc's __cpuid because our 32-bit compiler does not define it
 */
-inline OO_GNU_INLINE void OOCPUID(int CPUInfo[4], int InfoType)
+// gnu_inline was the C (GNU89) spelling of "emit one definition"; C++ inline already means that.
+inline void OOCPUID(int CPUInfo[4], int InfoType)
 {
     __asm__ __volatile__(
 /* Fixes building on 32-bit systems where %EBX is used for the GOT pointer */

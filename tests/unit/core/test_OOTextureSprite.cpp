@@ -17,10 +17,10 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "OOTextureSprite.h"
-#import "OORegExpMatcher.h"
-#import "OOOpenGLExtensionManager.h"
-#import "OOTexture.h"
+#include "OOTextureSprite.h"
+#include "OORegExpMatcher.h"
+#include "OOOpenGLExtensionManager.h"
+#include "OOTexture.h"
 #include "oofnd/String.hpp"
 
 #include "oo_test.hpp"
@@ -35,7 +35,7 @@
 
 // --- Stubs --------------------------------------------------------------------------------------
 
-#import "ResourceManager.h"
+#include "ResourceManager.h"
 
 // ResourceManager is C++ since bead oo-9ht.150 deleted its Objective-C facade: C++ definitions of the
 // statics the code under test calls, with the Objective-C stand-in's answers.

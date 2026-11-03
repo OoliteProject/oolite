@@ -22,11 +22,11 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "OOFlashEffectEntity.h"
-#import "PlayerEntity.h"	// PLAYER is C++
-#import "OOColor.h"
-#import "OOTexture.h"
-#import "Universe.h"
+#include "OOFlashEffectEntity.h"
+#include "PlayerEntity.h"	// PLAYER is C++
+#include "OOColor.h"
+#include "OOTexture.h"
+#include "Universe.h"
 
 #include "oo_test.hpp"
 

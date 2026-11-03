@@ -17,11 +17,11 @@
 	with OOColor alone. Run: bash tools/check-core-tests.sh
 */
 
-#import "OOCrosshairs.h"
-#import "OOColor.h"
-#import "OOOpenGL.h"
-#import "OOOpenGLMatrixManager.h"
-#import "MyOpenGLView.h"
+#include "OOCrosshairs.h"
+#include "OOColor.h"
+#include "OOOpenGL.h"
+#include "OOOpenGLMatrixManager.h"
+#include "MyOpenGLView.h"
 
 #include "oo_test.hpp"
 

@@ -8,7 +8,7 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "Octree.h"
+#include "Octree.h"
 
 #include "oo_test.hpp"
 

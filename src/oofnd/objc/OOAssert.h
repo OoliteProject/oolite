@@ -41,6 +41,7 @@
 #if defined(__cplusplus) && !defined(OO_PLAIN_CPP_UNIT) // was __OBJC__
 #include "oofnd/objc/OOException.h"
 #endif
+#include "oofnd/PrintfFormat.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -48,7 +49,7 @@ extern "C" {
 
 // Log and raise; never return. Called by the macros below, not directly.
 void OOAssertFailedInFunction(const char* function, const char* file, long line, const char* format, ...)
-    __attribute__((format(printf, 4, 5), noreturn));
+    OO_PRINTF_FORMAT(4, 5) __attribute__((noreturn));
 
 #ifdef __cplusplus
 }

@@ -24,13 +24,13 @@
 	Run: bash tools/check-core-tests.sh test_OOOXZManager
 */
 
-#import "OOOXZManager.h"
-#import "OOCacheManager.h"
-#import "ResourceManager.h"
-#import "OOManifestProperties.h"
-#import "OOXMLExtensions.h"
-#import "OOPListParsing.h"
-#import "OOColor.h"
+#include "OOOXZManager.h"
+#include "OOCacheManager.h"
+#include "ResourceManager.h"
+#include "OOManifestProperties.h"
+#include "OOXMLExtensions.h"
+#include "OOPListParsing.h"
+#include "OOColor.h"
 
 #include "oofnd/Date.hpp"
 #include "oofnd/Defaults.hpp"
@@ -39,7 +39,7 @@
 #include "oofnd/ResourcePaths.hpp"
 #include "oofnd/String.hpp"
 #include "oo_test.hpp"
-#import "PlayerEntity.h"	// the stand-in PLAYER
+#include "PlayerEntity.h"	// the stand-in PLAYER
 extern PlayerEntity *gOOPlayer;
 
 #include <chrono>
@@ -604,8 +604,8 @@ OO_TEST(restartAndUpdateAll)
 // Slices 3 and 4 (beads oo-q7r3, oo-qbgo): the GUI pages. A stand-in UNIVERSE (amendment oo-8kx7
 // item 7, as an object put in gSharedUniverse for these cases only, since the test links the real
 // Universe) answers -gui with a recording screen; the manager's sends to it are the page.
-#import "Universe.h"	// the real class: the test links the whole game
-#import "MyOpenGLView.h"	// the game view is C++
+#include "Universe.h"	// the real class: the test links the whole game
+#include "MyOpenGLView.h"	// the game view is C++
 extern Universe *gSharedUniverse;
 
 // The page's rows (OOOXZManager.mm's private OXZ_GUI_ROW_* values).

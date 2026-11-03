@@ -23,12 +23,12 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "OOTextureVerifierStage.h"
-#import "OOOXPVerifierStage.h"
-#import "OODescription.h"
-#import "OOPixMap.h"
-#import "OOTexture.h"
-#import "OOTextureLoader.h"
+#include "OOTextureVerifierStage.h"
+#include "OOOXPVerifierStage.h"
+#include "OODescription.h"
+#include "OOPixMap.h"
+#include "OOTexture.h"
+#include "OOTextureLoader.h"
 
 #include "oofnd/Log.hpp"
 #include "oofnd/PListParsing.hpp"
@@ -55,7 +55,7 @@ void OOLogGenericSubclassResponsibilityForFunction(const char *inFunction)
 #include "OOOXPVerifierTestDouble.h"
 
 
-#import "ResourceManager.h"
+#include "ResourceManager.h"
 
 
 // ResourceManager is C++ since bead oo-9ht.150 deleted its Objective-C facade: C++ definitions of the

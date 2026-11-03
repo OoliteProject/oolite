@@ -13,7 +13,11 @@
 # build-dir-free acceptance that compiles the same files directly.
 
 oofnd_inc = include_directories('..')
-oofnd_override_options = ['cpp_std=c++20', 'warning_level=2', 'werror=true']
+# werror under Clang only (ADR-0063 item 4, decided 2026-10-21): GCC's flow-sensitive diagnostics
+# fire inside libstdc++ inlines on correct test code (test_plist.cpp, test_ref.cpp). Under GCC the
+# warnings still print; nothing is suppressed.
+oofnd_override_options = ['cpp_std=c++20', 'warning_level=2',
+    'werror=' + (meson.get_compiler('cpp').get_id() == 'gcc' ? 'false' : 'true')]
 # ICU: oo::str::localizedCompare (String.hpp) collates with it, as GNUstep's -localizedCompare:
 # does (bead oo-r4d6). GNUstep-base already links the same ICU, so the game gains no new DLL.
 # icu-uc is named too: String.hpp calls it directly (uloc_getDefault, unorm2_*), and icu-i18n.pc

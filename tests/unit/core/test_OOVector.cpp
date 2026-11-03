@@ -13,8 +13,8 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "OOMaths.h"
-#import "OOObjCPList.h"
+#include "OOMaths.h"
+#include "OOObjCPList.h"
 
 #include "oo_test.hpp"
 

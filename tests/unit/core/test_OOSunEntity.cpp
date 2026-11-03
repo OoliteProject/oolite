@@ -21,14 +21,14 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "OOSunEntity.h"
-#import "PlayerEntity.h"	// PLAYER is C++ (bead oo-9ht.177)
-#import "EntityOOJavaScriptExtensions.h"
-#import "OOJSEntity.h"
-#import "OOJSSun.h"
-#import "OOColor.h"
-#import "OODescription.h"
-#import "Universe.h"
+#include "OOSunEntity.h"
+#include "PlayerEntity.h"	// PLAYER is C++ (bead oo-9ht.177)
+#include "EntityOOJavaScriptExtensions.h"
+#include "OOJSEntity.h"
+#include "OOJSSun.h"
+#include "OOColor.h"
+#include "OODescription.h"
+#include "Universe.h"
 
 #include "oo_test.hpp"
 #include "oofnd/PListGet.hpp"

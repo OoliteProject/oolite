@@ -15,7 +15,7 @@
 	the errors, and a native's exception. Run: bash tools/check-core-tests.sh
 */
 
-#import "oofnd/objc/OOObject.h"
+#include "oofnd/objc/OOObject.h"
 #include <quickjs.h>
 #include "oofnd/objc/OOException.h"
 #include "oofnd/objc/OOFoundationTypes.h"	// BOOL (from <objc/runtime.h> until bead oo-dbz.4)
@@ -74,7 +74,7 @@ public:
 /*	The universe. While _raise is set, -cxx_gameSettings raises, and while _throwCxx is set it
 	throws a C++ exception, so the test sees what an exception under a native becomes.
 */
-#import "UniverseStandIn.h"
+#include "UniverseStandIn.h"
 
 // The universe as the code under test sees it: a stand-in for the C++ class (its Objective-C facade,
 // which the test's Objective-C stand-in stood in for, was deleted), with the header's names and signatures.
@@ -104,11 +104,11 @@ public:
 };
 
 
-#import "ResourceManager.h"
+#include "ResourceManager.h"
 
 
 #include "OOJSEngineCore.h"
-#import "OOJSOolite.h"
+#include "OOJSOolite.h"
 
 #include "oo_test.hpp"
 

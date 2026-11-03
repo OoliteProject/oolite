@@ -15,9 +15,9 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "OOGraphicsResetManager.h"
-#import "OORegExpMatcher.h"
-#import "OOOpenGLExtensionManager.h"
+#include "OOGraphicsResetManager.h"
+#include "OORegExpMatcher.h"
+#include "OOOpenGLExtensionManager.h"
 #include "oofnd/objc/OOException.h"
 
 #include "oo_test.hpp"
@@ -35,8 +35,8 @@ static unsigned sRebinds = 0;
 static std::vector<int> sOrder;	// client tags, in the order they were told, texture rebinds as 0
 
 
-#import "ResourceManager.h"
-#import "OOTexture.h"
+#include "ResourceManager.h"
+#include "OOTexture.h"
 
 // ResourceManager is C++ since bead oo-9ht.150 deleted its Objective-C facade: C++ definitions of the
 // statics the code under test calls, with the Objective-C stand-in's answers.

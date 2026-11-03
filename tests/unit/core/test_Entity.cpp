@@ -21,11 +21,11 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "Entity.h"
-#import "OODescription.h"
-#import "OODebugFlags.h"
-#import "Universe.h"
-#import "PlayerEntity.h"	// PLAYER is C++ (bead oo-9ht.177)
+#include "Entity.h"
+#include "OODescription.h"
+#include "OODebugFlags.h"
+#include "Universe.h"
+#include "PlayerEntity.h"	// PLAYER is C++ (bead oo-9ht.177)
 
 #include "oofnd/Log.hpp"
 #include "oo_test.hpp"
@@ -34,6 +34,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 
@@ -168,8 +169,15 @@ template <class T>
 T &UniverseIvar(const char *name)
 {
 	Universe *part = sUniverse;
-	if (std::strcmp(name, "_sessionID") == 0)  return reinterpret_cast<T &>(part->_sessionID);
-	if (std::strcmp(name, "universal_time") == 0)  return reinterpret_cast<T &>(part->universal_time);
+	// Each name answers only the ivar's own type (GCC -Wstrict-aliasing on the other cast; bead oo-1q4).
+	if constexpr (std::is_same_v<T, decltype(part->_sessionID)>)
+	{
+		if (std::strcmp(name, "_sessionID") == 0)  return part->_sessionID;
+	}
+	if constexpr (std::is_same_v<T, decltype(part->universal_time)>)
+	{
+		if (std::strcmp(name, "universal_time") == 0)  return part->universal_time;
+	}
 	std::abort();
 }
 

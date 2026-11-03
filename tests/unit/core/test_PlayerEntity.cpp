@@ -24,21 +24,21 @@
 	Run: bash tools/check-core-tests.sh test_PlayerEntity
 */
 
-#import "PlayerEntity.h"
-#import "WormholeEntity.h"
-#import "MyOpenGLView.h"
-#import "OOConstToString.h"
-#import "OODescription.h"
-#import "Universe.h"
-#import "PlayerEntityContracts.h"
-#import "PlayerEntityControls.h"
-#import "PlayerEntityKeyMapper.h"
-#import "PlayerEntityLegacyScriptEngine.h"
-#import "PlayerEntityLoadSave.h"
-#import "PlayerEntitySound.h"
-#import "PlayerEntityStickMapper.h"
-#import "OOJoystickManager.h"
-#import "OOCallByName.h"	// oo::EntityRespondsToName / oo::CallEntityByName (bead oo-9ht.39.7.3)
+#include "PlayerEntity.h"
+#include "WormholeEntity.h"
+#include "MyOpenGLView.h"
+#include "OOConstToString.h"
+#include "OODescription.h"
+#include "Universe.h"
+#include "PlayerEntityContracts.h"
+#include "PlayerEntityControls.h"
+#include "PlayerEntityKeyMapper.h"
+#include "PlayerEntityLegacyScriptEngine.h"
+#include "PlayerEntityLoadSave.h"
+#include "PlayerEntitySound.h"
+#include "PlayerEntityStickMapper.h"
+#include "OOJoystickManager.h"
+#include "OOCallByName.h"	// oo::EntityRespondsToName / oo::CallEntityByName (bead oo-9ht.39.7.3)
 
 #include "oo_test.hpp"
 #include "oofnd/Defaults.hpp"

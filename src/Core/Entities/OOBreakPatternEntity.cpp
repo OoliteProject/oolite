@@ -29,6 +29,7 @@ MA 02110-1301, USA.
 #include "OOColor.h"
 #include "OOMacroOpenGL.h"
 #include "Universe.h"
+#include <cstring>
 
 void OOBreakPatternEntity::initWithPolygonSides(NSUInteger sides, float startAngleDegrees, float aspectRatio)
 {

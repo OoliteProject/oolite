@@ -23,10 +23,10 @@
 	Run: bash tools/check-core-tests.sh test_OOJSScript
 */
 
-#import "OOJSScript.h"
-#import "OOJavaScriptEngine.h"
-#import "OOJSPropID.h"
-#import "OODescription.h"
+#include "OOJSScript.h"
+#include "OOJavaScriptEngine.h"
+#include "OOJSPropID.h"
+#include "OODescription.h"
 #include "oofnd/FileSystem.hpp"
 #include "oofnd/Notification.hpp"
 #include "oo_test.hpp"

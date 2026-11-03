@@ -23,12 +23,12 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "OOWaypointEntity.h"
-#import "PlayerEntity.h"	// PLAYER is C++ (bead oo-9ht.177)
-#import "EntityOOJavaScriptExtensions.h"
-#import "OOJSEntity.h"
-#import "OOJSWaypoint.h"
-#import "Universe.h"
+#include "OOWaypointEntity.h"
+#include "PlayerEntity.h"	// PLAYER is C++ (bead oo-9ht.177)
+#include "EntityOOJavaScriptExtensions.h"
+#include "OOJSEntity.h"
+#include "OOJSWaypoint.h"
+#include "Universe.h"
 
 #include "oo_test.hpp"
 

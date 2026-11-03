@@ -23,7 +23,7 @@
 	category answers the engine. Run: tests/run.sh unit
 */
 
-#import "OOFoundation.h"
+#include "OOFoundation.h"
 #include "OOMaths.h"
 #include <quickjs.h>
 #include "oofnd/objc/OOException.h"

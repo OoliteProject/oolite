@@ -24,11 +24,11 @@
 	Run: bash tools/check-core-tests.sh test_OODebugTCPConsoleClient
 */
 
-#import "OODebugTCPConsoleClient.h"
-#import "OODebugMonitor.h"
+#include "OODebugTCPConsoleClient.h"
+#include "OODebugMonitor.h"
 // The protocol's names as UTF-8 literals, as the client reads them.
 #define OOALSTR(x) "" x
-#import "OODebugTCPConsoleProtocol.h"
+#include "OODebugTCPConsoleProtocol.h"
 
 #include "oofnd/PListParsing.hpp"
 #include "oofnd/PListWriting.hpp"

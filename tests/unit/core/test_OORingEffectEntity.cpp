@@ -15,10 +15,10 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "OORingEffectEntity.h"
-#import "PlayerEntity.h"	// PLAYER is C++ (bead oo-9ht.177)
-#import "OODescription.h"
-#import "Universe.h"
+#include "OORingEffectEntity.h"
+#include "PlayerEntity.h"	// PLAYER is C++ (bead oo-9ht.177)
+#include "OODescription.h"
+#include "Universe.h"
 
 #include "oo_test.hpp"
 

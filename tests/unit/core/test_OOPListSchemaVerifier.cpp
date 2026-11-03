@@ -25,9 +25,9 @@
 	Run: bash tools/check-core-tests.sh test_OOPListSchemaVerifier
 */
 
-#import "OOPListSchemaVerifier.h"
-#import "OODescription.h"
-#import "OOStringParsing.h"
+#include "OOPListSchemaVerifier.h"
+#include "OODescription.h"
+#include "OOStringParsing.h"
 
 #include "oofnd/PListParsing.hpp"
 #include "oofnd/objc/OOException.h"

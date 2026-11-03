@@ -16,18 +16,18 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "OOMaterialConvenienceCreators.h"
-#import "OORegExpMatcher.h"
-#import "OOBasicMaterial.h"
-#import "OOSingleTextureMaterial.h"
-#import "OOMultiTextureMaterial.h"
-#import "OOCombinedEmissionMapGenerator.h"
-#import "OOShaderMaterial.h"
-#import "OOOpenGLExtensionManager.h"
-#import "OODescription.h"
-#import "OOTexture.h"
+#include "OOMaterialConvenienceCreators.h"
+#include "OORegExpMatcher.h"
+#include "OOBasicMaterial.h"
+#include "OOSingleTextureMaterial.h"
+#include "OOMultiTextureMaterial.h"
+#include "OOCombinedEmissionMapGenerator.h"
+#include "OOShaderMaterial.h"
+#include "OOOpenGLExtensionManager.h"
+#include "OODescription.h"
+#include "OOTexture.h"
 #include "oofnd/String.hpp"
-#import "MyOpenGLView.h"
+#include "MyOpenGLView.h"
 
 #include "oo_gl_test_context.hpp"
 #include "oo_test.hpp"
@@ -66,7 +66,7 @@ BOOL OOUniformBindingPermitted(const std::string &/*propertyName*/, Entity * /*b
 // The resource manager: the extension manager's two class methods, and shader files from a table.
 static std::map<std::string, std::string> gShaderFiles;
 
-#import "ResourceManager.h"
+#include "ResourceManager.h"
 
 // ResourceManager is C++ since bead oo-9ht.150 deleted its Objective-C facade: C++ definitions of the
 // statics the code under test calls, with the Objective-C stand-in's answers.
@@ -97,7 +97,7 @@ OOShaderSetting cxx_OOShaderSettingFromString(const std::string &string)
 static std::map<std::string, oo::PList> gCache;
 static std::vector<std::string> gCacheWrites;
 
-#import "OOCacheManager.h"
+#include "OOCacheManager.h"
 
 // The cache manager is C++ since bead oo-9ht.31 deleted its facade: a C++ stand-in with the Objective-C
 // stand-in's answers.
@@ -234,7 +234,7 @@ Universe *gSharedUniverse = nil;
 // reached.
 OOOpenGLMatrixManager *MyOpenGLView::getOpenGLMatrixManager()  { return matrixManager.get(); }
 
-#import "UniverseStandIn.h"
+#include "UniverseStandIn.h"
 
 // The universe as the code under test sees it: a stand-in for the C++ class (bead oo-ql9rn deleted
 // the Objective-C facade the test's TestUniverse stood in for), with the header's names and signatures.

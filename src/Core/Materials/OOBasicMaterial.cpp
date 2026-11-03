@@ -32,6 +32,7 @@ SOFTWARE.
 #include "OOTexture.h"
 #include "Universe.h"
 
+#include <cstring>
 #include <typeinfo>
 
 #define FACE GL_FRONT_AND_BACK

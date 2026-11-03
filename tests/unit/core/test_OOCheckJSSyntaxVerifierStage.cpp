@@ -16,9 +16,9 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "OOCheckJSSyntaxVerifierStage.h"
-#import "OOOXPVerifierStage.h"
-#import "OODescription.h"
+#include "OOCheckJSSyntaxVerifierStage.h"
+#include "OOOXPVerifierStage.h"
+#include "OODescription.h"
 
 #include "oofnd/PListParsing.hpp"
 #include "oo_test.hpp"
@@ -43,7 +43,7 @@ void OOLogGenericSubclassResponsibilityForFunction(const char *inFunction)
 #include "OOOXPVerifierTestDouble.h"
 
 
-#import "ResourceManager.h"
+#include "ResourceManager.h"
 
 
 // ResourceManager is C++ since its Objective-C facade was deleted: C++ definitions of the
@@ -89,7 +89,7 @@ void OOJavaScriptEngine::setShowErrorLocations(bool value)
 }
 
 
-#import "OOScript.h"
+#include "OOScript.h"
 
 
 // OOJSScript (OOJSScript.h), which the code under test calls. Since bead oo-9ht.133 deleted the

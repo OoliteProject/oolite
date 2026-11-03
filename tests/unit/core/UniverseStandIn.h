@@ -8,7 +8,7 @@
 #ifndef UNIVERSE_STAND_IN_H
 #define UNIVERSE_STAND_IN_H
 
-#import "UniverseVirtualMembers.h"
+#include "UniverseVirtualMembers.h"
 #include "oofnd/Ref.hpp"
 
 #define OO_UNIVERSE_STAND_IN_VIRTUAL_MEMBERS	OO_UNIVERSE_VIRTUAL_MEMBERS({}, { return {}; })

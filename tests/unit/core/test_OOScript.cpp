@@ -23,11 +23,11 @@
 	Run: bash tools/check-core-tests.sh test_OOScript
 */
 
-#import "OOScript.h"
-#import "OOPListScript.h"
-#import "OOCacheManager.h"
-#import "Entity.h"
-#import "OODescription.h"
+#include "OOScript.h"
+#include "OOPListScript.h"
+#include "OOCacheManager.h"
+#include "Entity.h"
+#include "OODescription.h"
 #include "oofnd/FileSystem.hpp"
 #include "oofnd/String.hpp"
 #include "oo_test.hpp"

@@ -17,11 +17,11 @@
 	Run: bash tools/check-core-tests.sh test_OOStandaloneAtmosphereGenerator
 */
 
-#import "OOStandaloneAtmosphereGenerator.h"
-#import "OOConcreteTexture.h"
-#import "OOColor.h"
-#import "OODescription.h"
-#import "OOObjCPList.h"
+#include "OOStandaloneAtmosphereGenerator.h"
+#include "OOConcreteTexture.h"
+#include "OOColor.h"
+#include "OODescription.h"
+#include "OOObjCPList.h"
 
 #include "oo_test.hpp"
 #include "oo_gl_test_context.hpp"

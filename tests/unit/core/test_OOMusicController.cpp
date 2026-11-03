@@ -15,8 +15,8 @@
 	Run: bash tools/check-core-tests.sh test_OOMusicController
 */
 
-#import "OOMusicController.h"
-#import "ResourceManager.h"
+#include "OOMusicController.h"
+#include "ResourceManager.h"
 
 #include "oofnd/Defaults.hpp"
 #include "oo_test.hpp"

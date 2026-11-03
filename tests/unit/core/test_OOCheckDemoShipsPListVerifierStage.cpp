@@ -15,9 +15,9 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "OOCheckDemoShipsPListVerifierStage.h"
-#import "OOOXPVerifierStage.h"
-#import "OODescription.h"
+#include "OOCheckDemoShipsPListVerifierStage.h"
+#include "OOOXPVerifierStage.h"
+#include "OODescription.h"
 
 #include "oofnd/Log.hpp"
 #include "oofnd/PListParsing.hpp"
@@ -43,7 +43,7 @@ void OOLogGenericSubclassResponsibilityForFunction(const char *inFunction)
 #include "OOOXPVerifierTestDouble.h"
 
 
-#import "ResourceManager.h"
+#include "ResourceManager.h"
 
 
 // ResourceManager is C++ since its Objective-C facade was deleted: C++ definitions of the

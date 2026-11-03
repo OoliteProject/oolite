@@ -14,7 +14,7 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "OOSDLJoystickManager.h"
+#include "OOSDLJoystickManager.h"
 
 #include "oo_test.hpp"
 

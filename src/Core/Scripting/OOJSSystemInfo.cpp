@@ -30,6 +30,7 @@ MA 02110-1301, USA.
 #include "OOJSVector.h"
 #include "OOJavaScriptEngine.h"
 #include "OOSystemDescriptionManager.h"
+#include "OOTypes.h" // OOCreditsQuantity (ADR-0063 item 5 samplePrice)
 #include "PlayerEntityScriptMethods.h"
 #include "Universe.h"
 
@@ -977,7 +978,9 @@ static JSValue SystemInfoSamplePrice(OOJS_NATIVE_ARGS)
         return OOJSNativeFailure(context);
     }
 
-    OOCreditsQuantity price = commodities->samplePriceForCommodity(commodity.value_or(""), PropertyIntValue(ValueForKey(thisInfo, std::string("economy"))), ManifestString(ValueForKey(thisInfo, std::string("commodity_script"))), SystemOf(thisInfo));
+    int economy = PropertyIntValue(ValueForKey(thisInfo, std::string("economy"))); // one system-data read per local, in the order Clang evaluates the arguments: a description that is an array draws (ADR-0063 item 5)
+    std::optional<std::string> commodityScript = ManifestString(ValueForKey(thisInfo, std::string("commodity_script")));
+    OOCreditsQuantity price = commodities->samplePriceForCommodity(commodity.value_or(""), economy, commodityScript, SystemOf(thisInfo));
 
     return JS_NewNumber(context, price);
 

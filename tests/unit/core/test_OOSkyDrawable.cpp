@@ -17,10 +17,10 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "OOSkyDrawable.h"
-#import "OOColor.h"
-#import "OOGraphicsResetManager.h"
-#import "Universe.h"
+#include "OOSkyDrawable.h"
+#include "OOColor.h"
+#include "OOGraphicsResetManager.h"
+#include "Universe.h"
 
 #include "oo_test.hpp"
 #include "oo_gl_test_context.hpp"

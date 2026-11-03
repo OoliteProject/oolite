@@ -12,7 +12,7 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "OOEncodingConverter.h"
+#include "OOEncodingConverter.h"
 
 #include "oo_test.hpp"
 

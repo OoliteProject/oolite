@@ -1667,9 +1667,11 @@ void StationEntity::update(OOTimeDelta delta_t)
             ::DockEntity* dock = selectDockForDocking();
             last_launch_time = unitime + DOCKING_CLEARANCE_WINDOW;
             if (hasMultipleDocks()) {
-                sendExpandedMessage(oo::str::formatRuntime(OO_DESC("station-docking-clearance-granted-in-@-until-@"), { (dock != nullptr ? dock->getDisplayName() : std::optional<std::string>()).value_or("(null)"), cxx_ClockToString((player != nullptr ? player->clockTime() : 0.0) + DOCKING_CLEARANCE_WINDOW, NO) }), player);
+                const std::string grantedFormat = OO_DESC("station-docking-clearance-granted-in-@-until-@"); // the format first, as Clang evaluates the arguments: a description that is an array draws (ADR-0063 item 5)
+                sendExpandedMessage(oo::str::formatRuntime(grantedFormat, { (dock != nullptr ? dock->getDisplayName() : std::optional<std::string>()).value_or("(null)"), cxx_ClockToString((player != nullptr ? player->clockTime() : 0.0) + DOCKING_CLEARANCE_WINDOW, NO) }), player);
             } else {
-                sendExpandedMessage(oo::str::formatRuntime(OO_DESC("station-docking-clearance-granted-until-@"), { cxx_ClockToString((player != nullptr ? player->clockTime() : 0.0) + DOCKING_CLEARANCE_WINDOW, NO) }), player);
+                const std::string grantedFormat = OO_DESC("station-docking-clearance-granted-until-@"); // the format first, as Clang evaluates the arguments: a description that is an array draws (ADR-0063 item 5)
+                sendExpandedMessage(oo::str::formatRuntime(grantedFormat, { cxx_ClockToString((player != nullptr ? player->clockTime() : 0.0) + DOCKING_CLEARANCE_WINDOW, NO) }), player);
             }
             player_reserved_dock = dock;
             if (player != nullptr)
@@ -2168,7 +2170,8 @@ std::optional<std::string> StationEntity::acceptDockingClearanceRequestFrom(::Sh
         case DOCKING_CLEARANCE_STATUS_TIMING_OUT:
             if (!no_docking_while_launching) {
                 last_launch_time = timeNow + DOCKING_CLEARANCE_WINDOW;
-                sendExpandedMessage(oo::str::formatRuntime(OO_DESC("station-docking-clearance-extended-until-@"), { cxx_ClockToString((player != nullptr ? player->clockTime() : 0.0) + DOCKING_CLEARANCE_WINDOW, NO) }), other);
+                const std::string extendedFormat = OO_DESC("station-docking-clearance-extended-until-@"); // the format first, as Clang evaluates the arguments: a description that is an array draws (ADR-0063 item 5)
+                sendExpandedMessage(oo::str::formatRuntime(extendedFormat, { cxx_ClockToString((player != nullptr ? player->clockTime() : 0.0) + DOCKING_CLEARANCE_WINDOW, NO) }), other);
                 if (player != nullptr)
                     player->setDockingClearanceStatus(DOCKING_CLEARANCE_STATUS_GRANTED);
                 result = "DOCKING_CLEARANCE_EXTENDED";
@@ -2305,9 +2308,11 @@ std::optional<std::string> StationEntity::acceptDockingClearanceRequestFrom(::Sh
         }
 
         if (hasMultipleDocks() && (other != nullptr ? other->getIsPlayer() : false)) {
-            sendExpandedMessage(oo::str::formatRuntime(OO_DESC("station-docking-clearance-granted-in-@-until-@"), { (player_reserved_dock != nullptr ? player_reserved_dock->getDisplayName() : std::optional<std::string>()).value_or("(null)"), cxx_ClockToString((player != nullptr ? player->clockTime() : 0.0) + DOCKING_CLEARANCE_WINDOW, NO) }), other);
+            const std::string grantedFormat = OO_DESC("station-docking-clearance-granted-in-@-until-@"); // the format first, as Clang evaluates the arguments: a description that is an array draws (ADR-0063 item 5)
+            sendExpandedMessage(oo::str::formatRuntime(grantedFormat, { (player_reserved_dock != nullptr ? player_reserved_dock->getDisplayName() : std::optional<std::string>()).value_or("(null)"), cxx_ClockToString((player != nullptr ? player->clockTime() : 0.0) + DOCKING_CLEARANCE_WINDOW, NO) }), other);
         } else {
-            sendExpandedMessage(oo::str::formatRuntime(OO_DESC("station-docking-clearance-granted-until-@"), { cxx_ClockToString((player != nullptr ? player->clockTime() : 0.0) + DOCKING_CLEARANCE_WINDOW, NO) }), other);
+            const std::string grantedFormat = OO_DESC("station-docking-clearance-granted-until-@"); // the format first, as Clang evaluates the arguments: a description that is an array draws (ADR-0063 item 5)
+            sendExpandedMessage(oo::str::formatRuntime(grantedFormat, { cxx_ClockToString((player != nullptr ? player->clockTime() : 0.0) + DOCKING_CLEARANCE_WINDOW, NO) }), other);
         }
 
         result = "DOCKING_CLEARANCE_GRANTED";

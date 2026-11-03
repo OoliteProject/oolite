@@ -13,9 +13,9 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "OOBasicMaterial.h"
-#import "OODescription.h"
-#import "OOTexture.h"
+#include "OOBasicMaterial.h"
+#include "OODescription.h"
+#include "OOTexture.h"
 
 #include "oo_gl_test_context.hpp"
 #include "oo_test.hpp"
@@ -60,7 +60,7 @@ PFNGLCLIENTACTIVETEXTUREARBPROC glClientActiveTextureARB = nullptr;
 class Universe;
 Universe *gSharedUniverse = nil;
 
-#import "UniverseStandIn.h"
+#include "UniverseStandIn.h"
 
 // The universe as the code under test sees it: a stand-in for the C++ class (the
 // deleted Objective-C facade the test's TestUniverse stood in for), with the header's names and signatures.

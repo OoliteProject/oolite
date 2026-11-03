@@ -12,9 +12,9 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "OOCache.h"
-#import "OODescription.h"
-#import "OOObjCPList.h"
+#include "OOCache.h"
+#include "OODescription.h"
+#include "OOObjCPList.h"
 
 #include "oo_test.hpp"
 

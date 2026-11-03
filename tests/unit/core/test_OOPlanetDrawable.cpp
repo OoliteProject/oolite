@@ -16,11 +16,11 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "OOPlanetDrawable.h"
-#import "OOPlanetData.h"
-#import "OOBasicMaterial.h"
-#import "Universe.h"
-#import "MyOpenGLView.h"	// the game view is C++
+#include "OOPlanetDrawable.h"
+#include "OOPlanetData.h"
+#include "OOBasicMaterial.h"
+#include "Universe.h"
+#include "MyOpenGLView.h"	// the game view is C++
 
 #include "oo_test.hpp"
 

@@ -25,10 +25,10 @@
 	Run: bash tools/check-core-tests.sh test_MyOpenGLView
 */
 
-#import "MyOpenGLView.h"
-#import "GameController.h"
-#import "OOOpenGLMatrixManager.h"
-#import "OOFullScreenController.h"
+#include "MyOpenGLView.h"
+#include "GameController.h"
+#include "OOOpenGLMatrixManager.h"
+#include "OOFullScreenController.h"
 
 #include "oofnd/Defaults.hpp"
 #include "oofnd/PList.hpp"

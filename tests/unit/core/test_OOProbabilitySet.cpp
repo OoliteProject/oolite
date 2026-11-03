@@ -14,11 +14,11 @@
 	the C++ classes'. Run: bash tools/check-core-tests.sh
 */
 
-#import "OOProbabilitySet.h"
-#import "OODescription.h"
-#import "OOObjCPList.h"
+#include "OOProbabilitySet.h"
+#include "OODescription.h"
+#include "OOObjCPList.h"
 #include "oofnd/objc/OOException.h"
-#import "legacy_random.h"
+#include "legacy_random.h"
 
 #include "oo_test.hpp"
 

@@ -12,10 +12,10 @@
 	unconverted file and run on it first. Run: bash tools/check-core-tests.sh test_OOTextureScaling
 */
 
-#import "OOTextureScaling.h"
-#import "OOLogging.h"
-#import "Universe.h"
-#import "MyOpenGLView.h"
+#include "OOTextureScaling.h"
+#include "OOLogging.h"
+#include "Universe.h"
+#include "MyOpenGLView.h"
 #include "oofnd/objc/OOException.h"
 
 #include "oo_test.hpp"

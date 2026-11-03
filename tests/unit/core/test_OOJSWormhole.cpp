@@ -80,7 +80,7 @@ public:
 	oo::Ref<Entity> _cxxEntity;	// the wormhole's C++ part (oo::ToCxx reads it)
 };
 
-#import "OOJSWormhole.h"
+#include "OOJSWormhole.h"
 #include "OOJSEngineCore.h"
 
 #include "oo_test.hpp"

@@ -97,7 +97,7 @@ private:
     unsigned _starCount = { };
     unsigned _nebulaCount = { };
 
-    std::vector<oo::Ref<OOSkyQuadSet>> _quadSets = { }; // one per texture (Foundation sweep, proposed ADR-0043)
+    std::vector<oo::Ref<OOSkyQuadSet>> _quadSets; // no `= {}` (GCC, incomplete T; bead oo-1q4);	// one per texture (Foundation sweep, proposed ADR-0043)
 
     GLint _displayListName = { };
 };

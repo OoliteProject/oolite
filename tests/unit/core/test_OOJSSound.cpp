@@ -19,8 +19,8 @@
 	Run: tests/run.sh unit
 */
 
-#import "OOFoundation.h"
-#import "oofnd/objc/OOObject.h"
+#include "OOFoundation.h"
+#include "oofnd/objc/OOObject.h"
 #include "OOTypes.h"
 #include "OOJSEngineCore.h"
 #include "oofnd/objc/OOException.h"
@@ -45,7 +45,7 @@ typedef enum OOEntityStatus
 	OOALSound.mm is not linked). A sound named "raise" raises from name(), one named "throw" throws
 	a C++ exception, so the test sees what an exception under a native becomes.
 */
-#import "OOALSound.h"
+#include "OOALSound.h"
 #include <stdexcept>
 
 OOSound::OOSound()  {}
@@ -70,7 +70,7 @@ public:
 
 class OOSoundSource;	// only handed on (OOSoundSource.h)
 
-#import "ResourceManager.h"
+#include "ResourceManager.h"
 
 /*	The music controller is C++ (its Objective-C facade was deleted): the members the binding
 	calls, declared as OOMusicController.h declares them (that header would bring the real
@@ -113,8 +113,8 @@ public:
 };
 
 
-#import "OOJSSound.h"
-#import "OOJSSoundSource.h"
+#include "OOJSSound.h"
+#include "OOJSSoundSource.h"
 
 #include "oo_test.hpp"
 

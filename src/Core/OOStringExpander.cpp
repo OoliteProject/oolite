@@ -39,6 +39,7 @@ MA 02110-1301, USA.
 #include <string>
 #include <string_view>
 
+#include "oofnd/PrintfFormat.h"
 #include "oofnd/StdLib.hpp"
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"
@@ -196,7 +197,7 @@ OOMaybeUnits ApplyOneOperator(const OOMaybeUnits& string, const OOUnits& op, con
 
         Errors that are not syntax or invalid keys are reported with OO_LOG_ERR().
 */
-void SyntaxIssue(OOStringExpansionContext* context, const char* function, const char* fileName, NSUInteger line, const char* logMessageClass, const char* prefix, const char* format, ...) __attribute__((format(printf, 7, 8)));
+void SyntaxIssue(OOStringExpansionContext* context, const char* function, const char* fileName, NSUInteger line, const char* logMessageClass, const char* prefix, const char* format, ...) OO_PRINTF_FORMAT(7, 8);
 void ReportJavaScriptWarning(JSContext* jsc, const char* format, ...) __attribute__((format(printf, 2, 3)));
 } // namespace
 

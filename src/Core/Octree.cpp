@@ -31,6 +31,7 @@ MA 02110-1301, USA.
 #include "OOOpenGL.h"
 #include "oofnd/objc/OOAssert.h"
 #include "oofnd/objc/OOException.h"
+#include <cstring>
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
 #define OctreeDebugLog(format, ...)                         \

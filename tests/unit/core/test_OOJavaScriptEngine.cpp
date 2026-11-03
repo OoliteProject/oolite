@@ -17,14 +17,14 @@
 	Run: bash tools/check-core-tests.sh test_OOJavaScriptEngine
 */
 
-#import "OOJavaScriptEngine.h"
-#import "OOJSScript.h"
-#import "OOJSPropID.h"
-#import "OODescription.h"
-#import "Entity.h"
-#import "EntityOOJavaScriptExtensions.h"
-#import "OOVector.h"
-#import "OOObjCPList.h"
+#include "OOJavaScriptEngine.h"
+#include "OOJSScript.h"
+#include "OOJSPropID.h"
+#include "OODescription.h"
+#include "Entity.h"
+#include "EntityOOJavaScriptExtensions.h"
+#include "OOVector.h"
+#include "OOObjCPList.h"
 #include "oofnd/objc/OOException.h"
 #include "OOJSPrivateObject.h"
 #include "oofnd/FileSystem.hpp"

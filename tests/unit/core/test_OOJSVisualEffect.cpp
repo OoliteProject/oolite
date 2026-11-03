@@ -25,8 +25,8 @@
 	the player). Run: tests/run.sh unit
 */
 
-#import "OOFoundation.h"
-#import "OOColor.h"
+#include "OOFoundation.h"
+#include "OOColor.h"
 #include "OOMaths.h"
 #include "OOTypes.h"
 #include <quickjs.h>
@@ -34,9 +34,9 @@
 #include "OOEntityHold.h"	// the sub-entity lists
 #include "oofnd/PList.hpp"
 #include "oofnd/String.hpp"
-#import "OOObjCPList.h"
+#include "OOObjCPList.h"
 #include "EntityPListForeign.h"	// an entity's node
-#import "OOScript.h"
+#include "OOScript.h"
 
 
 // MARK: The classes, as far as the binding sees them ----------------------------------------------
@@ -100,7 +100,7 @@ public:
 	oo::PList _shaders;
 };
 
-#import "ResourceManager.h"
+#include "ResourceManager.h"
 
 /*	An effect whose hull heat level is 99 raises from hullHeatLevel(), one whose level is 98 throws
 	a C++ exception, so the test sees what an exception under a native becomes. C++ since bead
@@ -187,7 +187,7 @@ public:
 };
 
 // The universe's beacon list and the player's compass: what the binding tells them.
-#import "UniverseStandIn.h"
+#include "UniverseStandIn.h"
 
 // The universe as the code under test sees it: a stand-in for the C++ class (the Objective-C facade
 // FakeGame stood in for is deleted). It answers virtual members, so it has the game's

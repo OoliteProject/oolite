@@ -22,12 +22,12 @@
 	Run: bash tools/check-core-tests.sh test_GameController
 */
 
-#import "GameController.h"
-#import "PlayerEntity.h"	// PLAYER is C++ (bead oo-9ht.177)
-#import "OOJavaScriptEngine.h"
-#import "OOJSPropID.h"
-#import "OOFullScreenController.h"
-#import "MyOpenGLView.h"
+#include "GameController.h"
+#include "PlayerEntity.h"	// PLAYER is C++ (bead oo-9ht.177)
+#include "OOJavaScriptEngine.h"
+#include "OOJSPropID.h"
+#include "OOFullScreenController.h"
+#include "MyOpenGLView.h"
 
 #include "oofnd/Defaults.hpp"
 #include "oofnd/objc/OOException.h"

@@ -14,8 +14,8 @@
 	Run: bash tools/check-core-tests.sh test_OOALSoundDecoder
 */
 
-#import "OOALSoundDecoder.h"
-#import "OOLogging.h"
+#include "OOALSoundDecoder.h"
+#include "OOLogging.h"
 
 #include "oofnd/Log.hpp"
 #include "oo_test.hpp"

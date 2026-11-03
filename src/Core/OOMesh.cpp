@@ -58,6 +58,7 @@ MA 02110-1301, USA.
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"
 #include "oofnd/objc/OOException.h"
+#include <cstring>
 
 // If set, collision octree depth varies depending on the size of the mesh.
 #define ADAPTIVE_OCTREE_DEPTH 1
@@ -1103,7 +1104,7 @@ bool OOMesh::loadData(const std::string& filename, float scale)
         // get vertex data
         if (scanner->scanString("VERTEX")) {
             for (j = 0; j < vertexCount; j++) {
-                float x, y, z;
+                float x = 0, y = 0, z = 0; // read only after every scan succeeded (GCC -Wmaybe-uninitialized; bead oo-1q4)
                 if (!failFlag) {
                     if (!scanner->scanFloat(&x))
                         failFlag = YES;
@@ -1127,7 +1128,7 @@ bool OOMesh::loadData(const std::string& filename, float scale)
         if (scanner->scanString("FACES")) {
             for (j = 0; j < faceCount; j++) {
                 int r, g, b;
-                float nx, ny, nz;
+                float nx = 0, ny = 0, nz = 0; // read only after every scan succeeded (GCC -Wmaybe-uninitialized; bead oo-1q4)
                 int n_v;
                 if (!failFlag) {
                     // colors
@@ -1290,7 +1291,7 @@ bool OOMesh::loadData(const std::string& filename, float scale)
             }
 
             for (j = 0; j < vertexCount; j++) {
-                float x, y, z;
+                float x = 0, y = 0, z = 0; // read only after every scan succeeded (GCC -Wmaybe-uninitialized; bead oo-1q4)
                 if (!failFlag) {
                     if (!scanner->scanFloat(&x))
                         failFlag = YES;

@@ -19,7 +19,7 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "OOJSPopulatorDefinition.h"
+#include "OOJSPopulatorDefinition.h"
 #include "oofnd/Notification.hpp"
 #include "oofnd/String.hpp"
 
@@ -102,7 +102,7 @@ OOJSScript *sRunningScript = nullptr;
 } // namespace
 
 
-#import "OOScript.h"
+#include "OOScript.h"
 
 
 // OOJSScript (OOJSScript.h), which the code under test calls. A script is the C++ object (the

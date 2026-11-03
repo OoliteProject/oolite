@@ -18,11 +18,11 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "OOLightParticleEntity.h"
-#import "PlayerEntity.h"	// PLAYER is C++
-#import "OOColor.h"
-#import "OODescription.h"
-#import "Universe.h"
+#include "OOLightParticleEntity.h"
+#include "PlayerEntity.h"	// PLAYER is C++
+#include "OOColor.h"
+#include "OODescription.h"
+#include "Universe.h"
 
 #include "oo_test.hpp"
 

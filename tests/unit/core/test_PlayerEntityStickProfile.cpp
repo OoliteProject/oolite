@@ -22,10 +22,10 @@
 	Run: bash tools/check-core-tests.sh test_PlayerEntityStickProfile
 */
 
-#import "PlayerEntityStickProfile.h"
-#import "PlayerEntity.h"	// PLAYER is C++ (bead oo-9ht.177)
-#import "OOJoystickManager.h"
-#import "GuiDisplayGen.h"
+#include "PlayerEntityStickProfile.h"
+#include "PlayerEntity.h"	// PLAYER is C++ (bead oo-9ht.177)
+#include "OOJoystickManager.h"
+#include "GuiDisplayGen.h"
 
 #include "oofnd/Defaults.hpp"
 #include "oofnd/String.hpp"

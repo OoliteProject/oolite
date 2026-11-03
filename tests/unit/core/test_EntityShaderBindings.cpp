@@ -24,8 +24,8 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "Entity.h"
-#import "PlayerEntity.h"	// PLAYER is C++ (bead oo-9ht.177)
+#include "Entity.h"
+#include "PlayerEntity.h"	// PLAYER is C++ (bead oo-9ht.177)
 
 #include "oo_test.hpp"
 #include "oofnd/PList.hpp"
@@ -45,8 +45,8 @@ extern PlayerEntity *gOOPlayer;
 
 
 // The values under test, as the uniforms reach them: the binding for a name (bead oo-9ht.158).
-#import "OOShaderUniformMethodType.h"
-#import "OOEntityCalledByName.h"	// the by-name table's names (bead oo-9ht.39.7.3)
+#include "OOShaderUniformMethodType.h"
+#include "OOEntityCalledByName.h"	// the by-name table's names (bead oo-9ht.39.7.3)
 
 
 // PLAYER: answers what the category asks for, with the test's values (C++ since bead oo-9ht.177

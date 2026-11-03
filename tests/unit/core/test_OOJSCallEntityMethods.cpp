@@ -18,9 +18,9 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "OOJSCallEntityMethods.h"
-#import "OOEntityCalledByName.h"
-#import "OOShaderUniformMethodType.h"
+#include "OOJSCallEntityMethods.h"
+#include "OOEntityCalledByName.h"
+#include "OOShaderUniformMethodType.h"
 
 #include "oo_test.hpp"
 

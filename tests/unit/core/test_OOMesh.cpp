@@ -32,13 +32,13 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "OOMesh.h"
-#import "OOCacheManager.h"
-#import "OOGraphicsResetManager.h"
-#import "OOBasicMaterial.h"
-#import "Octree.h"
-#import "Entity.h"
-#import "OODescription.h"
+#include "OOMesh.h"
+#include "OOCacheManager.h"
+#include "OOGraphicsResetManager.h"
+#include "OOBasicMaterial.h"
+#include "Octree.h"
+#include "Entity.h"
+#include "OODescription.h"
 #include "oofnd/FileSystem.hpp"
 #include "oo_test.hpp"
 #include "oo_gl_test_context.hpp"

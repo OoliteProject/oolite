@@ -1278,7 +1278,8 @@ void OOOXZManager::gui()
     case OXZ_STATE_PICK_REMOVE:
         if (_interfaceState != OXZ_STATE_MAIN) {
             if (gui != nullptr) {
-                gui->setText(DescFormat(OO_DESC("oolite-oxzmanager-currentfilter-is-@-@"), { cxx_OOExpand("[oolite_key_oxzmanager_setfilter]").value_or("(null)"), _currentFilter }), OXZ_GUI_ROW_LISTFILTER, GUI_ALIGN_LEFT);
+                const std::string filterFormat = OO_DESC("oolite-oxzmanager-currentfilter-is-@-@"); // the format first, as Clang evaluates the arguments: a description that is an array draws (ADR-0063 item 5)
+                gui->setText(DescFormat(filterFormat, { cxx_OOExpand("[oolite_key_oxzmanager_setfilter]").value_or("(null)"), _currentFilter }), OXZ_GUI_ROW_LISTFILTER, GUI_ALIGN_LEFT);
                 gui->setColor(OOColor::greenColor().get(), OXZ_GUI_ROW_LISTFILTER);
             }
         }
@@ -1307,8 +1308,10 @@ void OOOXZManager::gui()
             if (gui != nullptr)
                 gui->addLongText(cxx_OOExpandKey("oolite-oxzmanager-progress-error"), OXZ_GUI_ROW_PROGRESS, GUI_ALIGN_LEFT);
         } else {
-            if (gui != nullptr)
-                gui->addLongText(DescFormat(OO_DESC("oolite-oxzmanager-progress-@-is-@-of-@"), { _currentDownloadName, Arg(humanSize(_downloadProgress)), Arg(humanSize(_downloadExpected)) }), OXZ_GUI_ROW_PROGRESS, GUI_ALIGN_LEFT);
+            if (gui != nullptr) {
+                const std::string progressFormat = OO_DESC("oolite-oxzmanager-progress-@-is-@-of-@"); // the format first, as Clang evaluates the arguments: a description that is an array draws (ADR-0063 item 5)
+                gui->addLongText(DescFormat(progressFormat, { _currentDownloadName, Arg(humanSize(_downloadProgress)), Arg(humanSize(_downloadExpected)) }), OXZ_GUI_ROW_PROGRESS, GUI_ALIGN_LEFT);
+            }
         }
         if (gui != nullptr) {
             gui->addLongText(_progressStatus, OXZ_GUI_ROW_PROGRESS + 2, GUI_ALIGN_LEFT);

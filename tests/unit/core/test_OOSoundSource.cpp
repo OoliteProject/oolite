@@ -21,8 +21,8 @@
 	Run: bash tools/check-core-tests.sh test_OOSoundSource
 */
 
-#import "OOSoundSource.h"
-#import "OOALSoundMixer.h"
+#include "OOSoundSource.h"
+#include "OOALSoundMixer.h"
 
 #include "oo_test.hpp"
 #include "oofnd/String.hpp"

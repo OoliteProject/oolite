@@ -17,10 +17,10 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "oofnd/objc/OOObject.h"
-#import "OOTypes.h"
+#include "oofnd/objc/OOObject.h"
+#include "OOTypes.h"
 #include "OOJSEngineCore.h"	// the engine API this stage declares, and OOJSValue (not OOJavaScriptEngine.h: the test defines OOJSValue's members)
-#import "OOJSEngineNativeWrappers.h"
+#include "OOJSEngineNativeWrappers.h"
 #include "oofnd/String.hpp"
 
 #include "oo_test.hpp"

@@ -25,12 +25,12 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "SkyEntity.h"
-#import "PlayerEntity.h"	// PLAYER is C++ (bead oo-9ht.177)
-#import "OOSkyDrawable.h"
-#import "OOColor.h"
-#import "Universe.h"
-#import "MyOpenGLView.h"
+#include "SkyEntity.h"
+#include "PlayerEntity.h"	// PLAYER is C++ (bead oo-9ht.177)
+#include "OOSkyDrawable.h"
+#include "OOColor.h"
+#include "Universe.h"
+#include "MyOpenGLView.h"
 
 #include "oo_test.hpp"
 

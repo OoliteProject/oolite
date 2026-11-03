@@ -16,7 +16,7 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "OOCacheManager.h"
+#include "OOCacheManager.h"
 
 #include "oofnd/FileSystem.hpp"
 #include "oo_test.hpp"

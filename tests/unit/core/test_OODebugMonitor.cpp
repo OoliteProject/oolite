@@ -22,11 +22,11 @@
 	every expectation kept but the facade's contract checks. Run: bash tools/check-core-tests.sh
 */
 
-#import "OODebugMonitor.h"
-#import "OOColor.h"
-#import "OOObjCPList.h"
-#import "OODescription.h"
-#import "OOEntityHold.h"	// the universe's entity list holds C++ entities
+#include "OODebugMonitor.h"
+#include "OOColor.h"
+#include "OOObjCPList.h"
+#include "OODescription.h"
+#include "OOEntityHold.h"	// the universe's entity list holds C++ entities
 
 #include "oofnd/Defaults.hpp"
 #include "oofnd/FileSystem.hpp"
@@ -153,7 +153,7 @@ const char * const kOOJavaScriptEngineWillResetNotificationName = "org.aegidian.
 const char * const kOOJavaScriptEngineDidResetNotificationName = "org.aegidian.oolite OOJavaScriptEngine did reset";
 
 
-#import "ResourceManager.h"
+#include "ResourceManager.h"
 
 // ResourceManager is C++ since its Objective-C facade was deleted: C++ definitions of the
 // statics the code under test calls, with the Objective-C stand-in's answers.
@@ -230,8 +230,8 @@ std::string OONull::description() const	{ return "<null>"; }
 
 
 
-#import "OOScript.h"
-#import "OOTexture.h"
+#include "OOScript.h"
+#include "OOTexture.h"
 
 
 // OOJSScript (OOJSScript.h), which the code under test calls. Since bead oo-9ht.133 deleted the
@@ -279,7 +279,7 @@ OOJSScript *OOJSScript::currentlyRunningScript()
 }
 
 
-#import "OOJSEngineCore.h"	// OOJSValue complete: GCC instantiates ~Ref<OOJSValue> where a Ref is returned
+#include "OOJSEngineCore.h"	// OOJSValue complete: GCC instantiates ~Ref<OOJSValue> where a Ref is returned
 
 // The special-functions object (OOJSSpecialFunctions.h): none, as the stand-in gave (nil).
 JSValue JSSpecialFunctionsObjectWrapper(JSContext *context)

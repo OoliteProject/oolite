@@ -20,8 +20,8 @@
 	Run: tests/run.sh unit
 */
 
-#import "OOFoundation.h"
-#import "oofnd/objc/OOObject.h"
+#include "OOFoundation.h"
+#include "oofnd/objc/OOObject.h"
 #include "OOMaths.h"
 #include "OOJSEngineCore.h"
 #include "oofnd/objc/OOException.h"
@@ -31,9 +31,9 @@
 
 // MARK: The classes, as far as the binding sees them ----------------------------------------------
 
-#import "OOSoundSource.h"
-#import "OOJSPrivateObject.h"
-#import "OOJSSoundSource.h"
+#include "OOSoundSource.h"
+#include "OOJSPrivateObject.h"
+#include "OOJSSoundSource.h"
 
 #include "oo_test.hpp"
 

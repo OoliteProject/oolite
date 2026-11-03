@@ -21,7 +21,7 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "OOFoundation.h"
+#include "OOFoundation.h"
 #include "OOMaths.h"
 #include "OOTypes.h"
 #include "OOEntityEnums.h"
@@ -30,8 +30,8 @@
 #include "oofnd/Log.hpp"
 #include "oofnd/PList.hpp"
 #include "oofnd/String.hpp"
-#import "OOConstToJSString.h"
-#import "OOStringExpander.h"
+#include "OOConstToJSString.h"
+#include "OOStringExpander.h"
 
 
 // MARK: The classes, as far as the binding sees them ----------------------------------------------
@@ -132,12 +132,12 @@ public:
 
 // The GUI is C++ since bead oo-9ht.143 deleted its facade: the members the binding calls are defined
 // below (a C++ stand-in with the facade stand-in's answers), recording into sGuiCalls.
-#import "GuiDisplayGen.h"
-#import "OOTextureSprite.h"	// the stand-in's destructor destroys the GUI's sprite members
-#import "OOColor.h"	// and its row colours
+#include "GuiDisplayGen.h"
+#include "OOTextureSprite.h"	// the stand-in's destructor destroys the GUI's sprite members
+#include "OOColor.h"	// and its row colours
 
 
-#import "UniverseStandIn.h"
+#include "UniverseStandIn.h"
 
 // The universe as the code under test sees it: a stand-in for the C++ class (its Objective-C facade,
 // deleted, was what the test's Objective-C stand-in stood in for), with the header's names and signatures.
@@ -181,11 +181,11 @@ public:
 
 // The music controller, a converted class the binding only calls (amendment oo-jy98 item 3): the
 // members the binding calls are defined below.
-#import "OOMusicController.h"
+#include "OOMusicController.h"
 
 
 #include "OOJSEngineCore.h"
-#import "OOJSMission.h"
+#include "OOJSMission.h"
 
 #include "oo_test.hpp"
 
@@ -433,7 +433,7 @@ void Universe::removeDemoShips()	{ _calls.push_back("removeDemoShips"); }
 }
 
 
-#import "OOScript.h"
+#include "OOScript.h"
 
 
 // OOJSScript (OOJSScript.h), which the code under test calls. Since bead oo-9ht.133 deleted the

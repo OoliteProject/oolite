@@ -21,17 +21,17 @@
 	Run: bash tools/check-core-tests.sh test_OOVisualEffectEntity
 */
 
-#import "OOVisualEffectEntity.h"
-#import "PlayerEntity.h"	// PLAYER is C++ (bead oo-9ht.177)
-#import "OOFlasherEntity.h"
-#import "OOJavaScriptEngine.h"
-#import "Universe.h"
-#import "ShipEntity.h"
-#import "OOColor.h"
-#import "OOJSPropID.h"
-#import "EntityOOJavaScriptExtensions.h"
-#import "OOJSEntity.h"
-#import "OOJSVisualEffect.h"
+#include "OOVisualEffectEntity.h"
+#include "PlayerEntity.h"	// PLAYER is C++ (bead oo-9ht.177)
+#include "OOFlasherEntity.h"
+#include "OOJavaScriptEngine.h"
+#include "Universe.h"
+#include "ShipEntity.h"
+#include "OOColor.h"
+#include "OOJSPropID.h"
+#include "EntityOOJavaScriptExtensions.h"
+#include "OOJSEntity.h"
+#include "OOJSVisualEffect.h"
 
 #include "oofnd/FileSystem.hpp"
 #include "oo_test.hpp"

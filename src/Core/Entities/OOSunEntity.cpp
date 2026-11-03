@@ -44,6 +44,7 @@ MA 02110-1301, USA.
 #include "oofnd/PListGet.hpp"
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"
+#include <cstring>
 
 bool OOSunEntity::setSunColor(OOColor* sun_colorIn)
 {

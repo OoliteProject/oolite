@@ -9,7 +9,7 @@
 #ifndef ENTITY_STAND_IN_H
 #define ENTITY_STAND_IN_H
 
-#import "EntityVirtualMembers.h"
+#include "EntityVirtualMembers.h"
 #include "OOJSPrivateObject.h"
 #include "oofnd/Ref.hpp"
 

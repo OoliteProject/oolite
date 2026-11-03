@@ -20,17 +20,17 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "ShipEntity.h"
-#import "OOShipGroup.h"
-#import "OODescription.h"
-#import "Universe.h"
-#import "OOColor.h"
-#import "OORoleSet.h"
-#import "OOCharacter.h"
-#import "AI.h"
-#import "PlayerEntity.h"
-#import "ShipEntityScriptMethods.h"
-#import "ShipEntityLoadRestore.h"
+#include "ShipEntity.h"
+#include "OOShipGroup.h"
+#include "OODescription.h"
+#include "Universe.h"
+#include "OOColor.h"
+#include "OORoleSet.h"
+#include "OOCharacter.h"
+#include "AI.h"
+#include "PlayerEntity.h"
+#include "ShipEntityScriptMethods.h"
+#include "ShipEntityLoadRestore.h"
 
 #include "oo_test.hpp"
 
@@ -2951,7 +2951,7 @@ OO_TEST(slice33FindBoundingBoxRelativeTo)
 // alert condition, shader helpers (bead oo-nkyn3). Written against the Objective-C API and run on
 // the unconverted slice first.
 
-#import "OOJSPropID.h"
+#include "OOJSPropID.h"
 
 
 

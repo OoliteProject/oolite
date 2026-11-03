@@ -23,6 +23,7 @@ MA 02110-1301, USA.
 */
 
 #include "OOMaths.h"
+#include "legacy_random.h" // randf (ADR-0063 item 5 draws on lines of their own)
 #include "oofnd/String.hpp"
 
 const Vector kZeroVector = { 0.0f, 0.0f, 0.0f };
@@ -77,7 +78,10 @@ Vector OORandomUnitVector(void)
     float m;
 
     do {
-        v = make_vector(randf() - 0.5f, randf() - 0.5f, randf() - 0.5f);
+        float x = randf() - 0.5f; // one draw per local, in the order Clang evaluates the arguments (ADR-0063 item 5)
+        float y = randf() - 0.5f;
+        float z = randf() - 0.5f;
+        v = make_vector(x, y, z);
         m = magnitude2(v);
     } while (m > 0.25f || m == 0.0f); // We're confining to a sphere of radius 0.5 using the sqared magnitude; 0.5 squared is 0.25.
 
@@ -90,7 +94,10 @@ Vector OOVectorRandomSpatial(OOScalar maxLength)
     float m;
 
     do {
-        v = make_vector(randf() - 0.5f, randf() - 0.5f, randf() - 0.5f);
+        float x = randf() - 0.5f; // one draw per local, in the order Clang evaluates the arguments (ADR-0063 item 5)
+        float y = randf() - 0.5f;
+        float z = randf() - 0.5f;
+        v = make_vector(x, y, z);
         m = magnitude2(v);
     } while (m > 0.25f); // We're confining to a sphere of radius 0.5 using the sqared magnitude; 0.5 squared is 0.25.
 
@@ -99,7 +106,9 @@ Vector OOVectorRandomSpatial(OOScalar maxLength)
 
 Vector OOVectorRandomRadial(OOScalar maxLength)
 {
-    return vector_multiply_scalar(OORandomUnitVector(), randf() * maxLength);
+    Vector direction = OORandomUnitVector(); // one draw per local, in the order Clang evaluates the arguments (ADR-0063 item 5)
+    OOScalar length = randf() * maxLength;
+    return vector_multiply_scalar(direction, length);
 }
 
 Vector OORandomPositionInBoundingBox(BoundingBox bb)
