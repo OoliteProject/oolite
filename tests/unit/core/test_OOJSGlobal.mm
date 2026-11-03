@@ -1,6 +1,6 @@
 /*	test_OOJSGlobal.mm
 	Unit tests for the JS global object (src/Core/Scripting/OOJSGlobal.h/.mm) and the engine
-	category it declared (OOJSGlobal+ObjCBridge.mm after the conversion): bead oo-3dj2, converted
+	monitor send it makes (bead oo-9ht.98 removed the Objective-C category it declared): bead oo-3dj2, converted
 	the way bead oo-ppc converted OOJSVector (proposed ADR-0056 amendments oo-ppc and oo-6ia4).
 
 	As the binding tests of amendment oo-ppc item 6 do, it sets up the global object of a real
@@ -112,14 +112,10 @@
 + (oo::PList) cxx_dictionaryFromFilesNamed:(const std::string &)fileName inFolder:(const std::optional<std::string> &)folderName andMerge:(BOOL)mergeFiles;
 @end
 
-// The engine: what its monitor was sent, and the JS calls the key definitions make.
+// The Objective-C engine, which OOJSGuiScreenKeyDefinition.mm (linked here) still messages for its
+// reset-notification observer and its JS calls; nothing more of it is needed.
 @interface OOJavaScriptEngine: OOObject
-{
-@public
-	std::vector<std::string> _monitorMessages;
-}
 + (OOJavaScriptEngine *) sharedEngine;
-- (void) sendMonitorLogMessage:(const std::optional<std::string> &)message withMessageClass:(const std::optional<std::string> &)messageClass inContext:(JSContext *)context;
 @end
 
 @interface OOJSScript: OOWeakRefObject
@@ -260,6 +256,21 @@ GuiDisplayGen *sGui = nil;
 @end
 
 
+/*	The engine, as far as log() sees it: the C++ engine's monitor member, declared with the
+	engine header's signature but not its class (OOJavaScriptEngine.h pulls in the game's
+	classes), the way the other stand-ins here are declared. What the monitor was sent is kept.
+*/
+namespace cxx {
+class OOJavaScriptEngine
+{
+public:
+	static OOJavaScriptEngine *sharedEngine();
+	void sendMonitorLogMessage(const std::optional<std::string> &message, const std::optional<std::string> &messageClass, JSContext *context);
+};
+}
+
+static std::vector<std::string> sMonitorMessages;
+
 @implementation OOJavaScriptEngine
 
 + (OOJavaScriptEngine *) sharedEngine
@@ -268,13 +279,19 @@ GuiDisplayGen *sGui = nil;
 	return engine;
 }
 
-- (void) sendMonitorLogMessage:(const std::optional<std::string> &)message withMessageClass:(const std::optional<std::string> &)messageClass inContext:(JSContext *)context
+@end
+
+cxx::OOJavaScriptEngine *cxx::OOJavaScriptEngine::sharedEngine()
 {
-	(void)context;
-	_monitorMessages.push_back(messageClass.value_or("(no class)") + ": " + message.value_or("(null)"));
+	static cxx::OOJavaScriptEngine *engine = new cxx::OOJavaScriptEngine;
+	return engine;
 }
 
-@end
+void cxx::OOJavaScriptEngine::sendMonitorLogMessage(const std::optional<std::string> &message, const std::optional<std::string> &messageClass, JSContext *context)
+{
+	(void)context;
+	sMonitorMessages.push_back(messageClass.value_or("(no class)") + ": " + message.value_or("(null)"));
+}
 
 
 @implementation OOJSScript
@@ -642,19 +659,18 @@ OO_TEST(properties)
 OO_TEST(log)
 {
 	SetUpContext();
-	OOJavaScriptEngine *engine = [OOJavaScriptEngine sharedEngine];
-	engine->_monitorMessages.clear();
+	sMonitorMessages.clear();
 	OO_CHECK_EVAL("log()", "undefined");
-	OO_CHECK(engine->_monitorMessages.empty());
+	OO_CHECK(sMonitorMessages.empty());
 	OO_CHECK_EVAL("log('hello')", "undefined");
 	OO_CHECK_EVAL("log(null)", "undefined");
 	OO_CHECK_EVAL("log('script.debug.message', 'a', 2, null)", "undefined");
-	OO_CHECK_EQ(engine->_monitorMessages.size(), 3u);
-	if (engine->_monitorMessages.size() == 3)
+	OO_CHECK_EQ(sMonitorMessages.size(), 3u);
+	if (sMonitorMessages.size() == 3)
 	{
-		OO_CHECK_EQ(engine->_monitorMessages[0], std::string("(no class): hello"));
-		OO_CHECK_EQ(engine->_monitorMessages[1], std::string("(no class): (null)"));
-		OO_CHECK_EQ(engine->_monitorMessages[2], std::string("(no class): a, 2, null"));
+		OO_CHECK_EQ(sMonitorMessages[0], std::string("(no class): hello"));
+		OO_CHECK_EQ(sMonitorMessages[1], std::string("(no class): (null)"));
+		OO_CHECK_EQ(sMonitorMessages[2], std::string("(no class): a, 2, null"));
 	}
 }
 

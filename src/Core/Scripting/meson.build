@@ -26,7 +26,6 @@ oolite_sources += files(
     'OOJSFunction.mm',
     'OOJSFunction+ObjCBridge.mm',
     'OOJSGlobal.mm',
-    'OOJSGlobal+ObjCBridge.mm',
     'OOJSGuiScreenKeyDefinition.mm',
     'OOJSGuiScreenKeyDefinition+ObjCBridge.mm',
     'OOJSInterfaceDefinition.mm',

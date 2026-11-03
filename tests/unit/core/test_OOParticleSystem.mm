@@ -112,6 +112,7 @@ void SetUp()
 	if (sUniverse == nil)
 	{
 		sUniverse = (TestUniverse *)class_createInstance([TestUniverse class], 0);	// never released
+		sUniverse->_cxxUniverse = oo::makeRef<cxx::Universe>(sUniverse);	// what -initWithGameView: makes first (ADR-0056 amendment oo-riqmz)
 		sTexture = [[OOWeakRefObject alloc] init];	// never released
 		Method loader = class_getClassMethod([OOTexture class], @selector(cxx_textureWithName:inFolder:options:anisotropy:lodBias:));
 		method_setImplementation(loader, (IMP)LoadTexture);

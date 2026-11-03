@@ -1295,8 +1295,8 @@ void cxx::HeadUpDisplay::drawScanner(const oo::PList& info)
     int flash = ((int)([UNIVERSE getTime] * 4)) & 1;
 
     // use a non-mutable copy so this can't be changed under us.
-    int ent_count = UNIVERSE->n_entities;
-    ::Entity** uni_entities = UNIVERSE->sortedEntities; // grab the public sorted list
+    int ent_count = UNIVERSE->_cxxUniverse->n_entities;
+    ::Entity** uni_entities = UNIVERSE->_cxxUniverse->sortedEntities; // grab the public sorted list
     std::vector<::Entity*> my_entities(ent_count);
     ::Entity* scannedEntity = nil;
 

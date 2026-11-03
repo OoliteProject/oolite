@@ -47,21 +47,14 @@ MA 02110-1301, USA.
         C++20 since bead oo-3dj2, converted the way bead oo-ppc converted OOJSVector.mm (proposed
         ADR-0056 amendment oo-ppc). The natives were already C++ on QuickJS-ng;
         OOJS_NATIVE_ENTER/EXIT and OOJS_PROFILE_ENTER/EXIT are C++ try/catch and scope guards
-        (OOJSEngineNativeWrappers.h); BOOL/YES/NO are bool/true/false. The category interface
-        OOJavaScriptEngine (OOMonitorSupportInternal), which this file declared to type its one send of
-        -sendMonitorLogMessage:withMessageClass:inContext:, moved with that send to
-        OOJSGlobal+ObjCBridge.mm as OOJSGlobalSendMonitorLogMessage() (amendments oo-9ht.66 and oo-6ia4
-        item 6). OOColor and OOJSGuiScreenKeyDefinition, which are C++ since beads oo-11m and oo-xg7g,
+        (OOJSEngineNativeWrappers.h); BOOL/YES/NO are bool/true/false. log() calls the C++ engine's
+        monitor member directly (bead oo-9ht.98; amendments oo-9ht.66 and oo-6ia4 item 6). OOColor and OOJSGuiScreenKeyDefinition, which are C++ since beads oo-11m and oo-xg7g,
         are reached as cxx:: classes through oo::ToCxx/oo::ToObjC (amendment oo-ppc, item 4); the key
         definition is still made as its façade, which the player keeps (amendment oo-q9q4 item 1).
         Messages to classes that are still Objective-C (PlayerEntity, Universe, GuiDisplayGen,
         MyOpenGLView, ResourceManager) stay as they are, which is why the file is still .mm until Phase
         4.
 */
-
-// OOJavaScriptEngine (OOMonitorSupportInternal), declared here to type the one send of
-// -sendMonitorLogMessage:withMessageClass:inContext:, is in OOJSGlobal+ObjCBridge.mm with that send,
-// as OOJSGlobalSendMonitorLogMessage() (proposed ADR-0056 amendments oo-9ht.66 and oo-6ia4 item 6).
 
 static const char* const kOOLogDebugMessage = "script.debug.message";
 
@@ -250,7 +243,7 @@ static JSValue GlobalLog(OOJS_NATIVE_ARGS)
     OO_LOG(messageClass, "{}", message.value_or("(null)"));
 
 #if OOJSENGINE_MONITOR_SUPPORT
-    OOJSGlobalSendMonitorLogMessage(message, std::nullopt, context);
+    cxx::OOJavaScriptEngine::sharedEngine()->sendMonitorLogMessage(message, std::nullopt, context);
 #endif
     OOJS_END_FULL_NATIVE
 

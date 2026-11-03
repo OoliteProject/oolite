@@ -317,10 +317,10 @@ void CollisionRegion::findCollisions()
 
                         if (dist2 >= min_dist2) {
                             if (e1->_cxxEntity->isStation) {
-                                StationEntity* se1 = (StationEntity*)e1;
+                                ::StationEntity* se1 = (::StationEntity*)e1;
                                 [se1 shipIsInDockingCorridor:(::ShipEntity*)e2];
                             } else if (e2->_cxxEntity->isStation) {
-                                StationEntity* se2 = (StationEntity*)e2;
+                                ::StationEntity* se2 = (::StationEntity*)e2;
                                 [se2 shipIsInDockingCorridor:(::ShipEntity*)e1];
                             }
                         }
@@ -329,14 +329,14 @@ void CollisionRegion::findCollisions()
                         BOOL collision = NO;
 
                         if (e1->_cxxEntity->isStation) {
-                            StationEntity* se1 = (StationEntity*)e1;
+                            ::StationEntity* se1 = (::StationEntity*)e1;
                             if ([se1 shipIsInDockingCorridor:(::ShipEntity*)e2]) {
                                 collision = NO;
                             } else {
                                 collision = [e1 checkCloseCollisionWith:e2];
                             }
                         } else if (e2->_cxxEntity->isStation) {
-                            StationEntity* se2 = (StationEntity*)e2;
+                            ::StationEntity* se2 = (::StationEntity*)e2;
                             if ([se2 shipIsInDockingCorridor:(::ShipEntity*)e1]) {
                                 collision = NO;
                             } else {
@@ -531,8 +531,8 @@ void CollisionRegion::findShadowedEntities()
         return; // sun is required
     }
 
-    unsigned ent_count = UNIVERSE->n_entities;
-    ::Entity** uni_entities = UNIVERSE->sortedEntities; // grab the public sorted list
+    unsigned ent_count = UNIVERSE->_cxxUniverse->n_entities;
+    ::Entity** uni_entities = UNIVERSE->_cxxUniverse->sortedEntities; // grab the public sorted list
     std::vector<::Entity*> planets(ent_count);
     unsigned n_planets = 0;
     std::vector<::Entity*> ships(ent_count);

@@ -109,6 +109,7 @@ void SetUp()
 	if (sUniverse == nil)
 	{
 		sUniverse = (TestUniverse *)class_createInstance([TestUniverse class], 0);	// never released
+		sUniverse->_cxxUniverse = oo::makeRef<cxx::Universe>(sUniverse);	// what -initWithGameView: makes first (ADR-0056 amendment oo-riqmz)
 		new (&sUniverse->_systemData) oo::PList();
 		sPlayer = [[TestPlayer alloc] init];
 		Method load = class_getClassMethod([OOTexture class], sel_registerName("cxx_textureWithConfiguration:"));

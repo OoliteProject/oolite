@@ -52,9 +52,9 @@ std::string OOShipLibraryCategoryPlural(const std::string& category)
     return ExpandCategoryKey("oolite-ship-library-category-plural-[category]", category);
 }
 
-std::string OOShipLibrarySpeed(ShipEntity* demo_ship)
+std::string OOShipLibrarySpeed(cxx::ShipEntity* demo_ship)
 {
-    GLfloat param = [demo_ship maxFlightSpeed];
+    GLfloat param = (demo_ship ? demo_ship->maxFlightSpeed : 0);
     std::string result;
     if (param <= 1) {
         result = OO_DESC("oolite-ship-library-speed-stationary");
@@ -72,9 +72,9 @@ std::string OOShipLibrarySpeed(ShipEntity* demo_ship)
     return result;
 }
 
-std::string OOShipLibraryTurnRate(ShipEntity* demo_ship)
+std::string OOShipLibraryTurnRate(cxx::ShipEntity* demo_ship)
 {
-    GLfloat param = [demo_ship maxFlightRoll] + (2 * [demo_ship maxFlightPitch]);
+    GLfloat param = (demo_ship ? demo_ship->maxFlightRoll() + (2 * demo_ship->maxFlightPitch()) : 0);
     std::string result;
     if (param <= 2) {
         result = OO_DESC("oolite-ship-library-turn-veryslow");
@@ -90,9 +90,9 @@ std::string OOShipLibraryTurnRate(ShipEntity* demo_ship)
     return result;
 }
 
-std::string OOShipLibraryCargo(ShipEntity* demo_ship)
+std::string OOShipLibraryCargo(cxx::ShipEntity* demo_ship)
 {
-    OOCargoQuantity param = [demo_ship maxAvailableCargoSpace];
+    OOCargoQuantity param = (demo_ship ? demo_ship->maxAvailableCargoSpace() : 0);
     std::string result;
     if (param == 0) {
         result = OO_DESC("oolite-ship-library-cargo-none");
@@ -102,9 +102,9 @@ std::string OOShipLibraryCargo(ShipEntity* demo_ship)
     return result;
 }
 
-std::string OOShipLibraryGenerator(ShipEntity* demo_ship)
+std::string OOShipLibraryGenerator(cxx::ShipEntity* demo_ship)
 {
-    float rate = [demo_ship energyRechargeRate];
+    float rate = (demo_ship ? demo_ship->energyRechargeRate() : 0);
     std::string result;
     if (rate < 2.5) {
         result = OO_DESC("oolite-ship-library-generator-weak");
@@ -116,10 +116,10 @@ std::string OOShipLibraryGenerator(ShipEntity* demo_ship)
     return result;
 }
 
-std::string OOShipLibraryShields(ShipEntity* demo_ship)
+std::string OOShipLibraryShields(cxx::ShipEntity* demo_ship)
 {
     // when NPCs have actual shields, add those on as well
-    float shields = [demo_ship maxEnergy];
+    float shields = (demo_ship ? demo_ship->maxEnergy : 0);
     std::string result;
     if (shields < 128) {
         result = OO_DESC("oolite-ship-library-shields-veryweak");
@@ -135,29 +135,29 @@ std::string OOShipLibraryShields(ShipEntity* demo_ship)
     return result;
 }
 
-std::string OOShipLibraryWitchspace(ShipEntity* demo_ship)
+std::string OOShipLibraryWitchspace(cxx::ShipEntity* demo_ship)
 {
-    if ([demo_ship hasHyperspaceMotor]) {
+    if ((demo_ship && demo_ship->hasHyperspaceMotor())) {
         return OO_DESC("oolite-ship-library-witchspace-yes");
     } else {
         return OO_DESC("oolite-ship-library-witchspace-no");
     }
 }
 
-std::string OOShipLibraryWeapons(ShipEntity* demo_ship)
+std::string OOShipLibraryWeapons(cxx::ShipEntity* demo_ship)
 {
-    OOWeaponFacingSet facings = [demo_ship weaponFacings];
+    OOWeaponFacingSet facings = demo_ship ? demo_ship->weaponFacings() : OOWeaponFacingSet(0);
     NSUInteger fixed = (facings & 1) + (facings & 2) / 2 + (facings & 4) / 4 + (facings & 8) / 8;
-    NSUInteger pylons = [demo_ship missileCapacity];
+    NSUInteger pylons = (demo_ship ? demo_ship->missileCapacity() : 0);
     if (fixed == 0 && pylons == 0) {
         return OO_DESC("oolite-ship-library-weapons-none");
     }
     return oo::str::format(OO_DESC("oolite-ship-library-weapons-u-u").c_str(), fixed, pylons);
 }
 
-std::string OOShipLibraryTurrets(ShipEntity* demo_ship)
+std::string OOShipLibraryTurrets(cxx::ShipEntity* demo_ship)
 {
-    NSUInteger turretCount = [demo_ship turretCount];
+    NSUInteger turretCount = (demo_ship ? demo_ship->turretCount() : 0);
     if (turretCount > 0) {
         return oo::str::format(OO_DESC("oolite-ship-library-turrets-u").c_str(), turretCount);
     } else {
@@ -165,8 +165,10 @@ std::string OOShipLibraryTurrets(ShipEntity* demo_ship)
     }
 }
 
-std::string OOShipLibrarySize(ShipEntity* demo_ship)
+std::string OOShipLibrarySize(cxx::ShipEntity* demo_ship)
 {
-    BoundingBox bb = [demo_ship totalBoundingBox];
+    BoundingBox bb = { };
+    if (demo_ship)
+        bb = demo_ship->totalBoundingBox;
     return oo::str::format(OO_DESC("oolite-ship-library-size-u-u-u").c_str(), (unsigned)(bb.max.x - bb.min.x), (unsigned)(bb.max.y - bb.min.y), (unsigned)(bb.max.z - bb.min.z));
 }

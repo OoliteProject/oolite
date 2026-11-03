@@ -14,7 +14,7 @@ oolite_sources += files(
     'OONullTexture.mm',
     'OOPNGTextureLoader.mm',
     'OOPixMap.mm',
-    'OOPixMapChannelOperations.mm',
+    'OOPixMapChannelOperations.cpp',
     'OOPixMapTextureLoader.mm',
     'OOPlanetTextureGenerator.mm',
     'OOShaderMaterial.mm',

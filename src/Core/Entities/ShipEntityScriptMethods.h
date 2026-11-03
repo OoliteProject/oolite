@@ -27,15 +27,9 @@ MA 02110-1301, USA.
 
 #import "ShipEntity.h"
 
-#include "oofnd/StdLib.hpp"
-#include "oofnd/objc/OOObjCRef.h"
-
-@interface ShipEntity (ScriptMethods)
-
-// Foundation sweep (proposed ADR-0043, bead oo-tm7d): std::nullopt ejects nothing, as nil did.
-- (ShipEntity*)ejectShipOfType:(const std::optional<std::string>&)shipKey; // Note: ship type, not role.
-- (ShipEntity*)ejectShipOfRole:(const std::optional<std::string>&)role;
-
-- (std::vector<oo::ObjCRef<ShipEntity*>>)spawnShipsWithRole:(const std::string&)role count:(NSUInteger)count;
-
-@end
+/*	Bead oo-42dr (ADR-0056 amendments oo-o89 item 4 and oo-9fwb): the category ShipEntity
+        (ScriptMethods) is members of cxx::ShipEntity, declared in ShipEntity.h and defined in
+        ShipEntityScriptMethods.mm. Its Objective-C interface, for the callers that remain, is the
+        category of the same name in ShipEntity+ObjCBridge.h, which ShipEntity.h imports. This header
+        stays for the files that import it.
+*/

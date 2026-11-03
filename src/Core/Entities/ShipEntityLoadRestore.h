@@ -44,21 +44,9 @@ struct OOShipSaveContext {
     std::map<NSUInteger, oo::ObjCRef<OOShipGroup*>> groupsByID;
 };
 
-@interface ShipEntity (LoadRestore)
-
-/*	Produces a property list representation of a specific ship. Intended for
-        use with wormholes, but should probably generalize quite well.
-
-        The optional "context" (nullptr for none) is used to synchronise certain
-        state when saving multiple ships - currently, groups. It is not a property
-        list and does not need to be saved alongside the ships.
+/*	Bead oo-kw44 (ADR-0056 amendments oo-o89 item 4 and oo-42dr): the category ShipEntity
+        (LoadRestore) is members of cxx::ShipEntity, declared in ShipEntity.h and defined in
+        ShipEntityLoadRestore.mm. Its Objective-C interface, for the callers that remain, is the category
+        of the same name in ShipEntity+ObjCBridge.h, which ShipEntity.h imports. This header stays for
+        the files that import it, and for OOShipSaveContext.
 */
-- (oo::PList)savedShipDictionaryWithContext:(OOShipSaveContext*)context;
-
-/*	Restore a ship from a property list representation generated with
-        -savedShipDictionary. If the ship can't be restored and fallback is YES,
-        an attempt will be made to generate a new ship with the same primary role.
-*/
-+ (id)shipRestoredFromDictionary:(const oo::PList&)dictionary useFallback:(BOOL)fallback context:(OOShipSaveContext*)context;
-
-@end

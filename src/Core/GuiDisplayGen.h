@@ -33,6 +33,7 @@ MA 02110-1301, USA.
 #include <quickjs.h>
 
 #include "oofnd/PList.hpp"
+#include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
 #include "oofnd/objc/OOObjCRef.h"
 #include <string_view>
@@ -160,228 +161,249 @@ inline constexpr const char* cxx_kGuiDockingContinueColor = "docking_continue_co
 
 @class OOSound, OOColor, OOTexture, OOTextureSprite, HeadUpDisplay;
 
+namespace cxx {
+class OOTextureSprite;
+} // C++ since bead oo-9ht (OOTextureSprite.h)
+
 typedef NSInteger OOGUIRow; // -1 for none
 typedef NSInteger OOGUITabStop; // negative value = right align text
 typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 
-@interface GuiDisplayGen : OOObject {
-@private
-    NSSize size_in_pixels;
-    unsigned n_columns;
-    unsigned n_rows;
-    int pixel_row_center;
-    unsigned pixel_row_height;
-    int pixel_row_start;
-    NSSize pixel_text_size;
+namespace cxx {
 
-    BOOL showAdvancedNavArray;
+class GuiDisplayGen : public oo::RefCounted {
+public:
+    GuiDisplayGen(); // -init
+    /*	Foundation sweep (proposed ADR-0043, chunk 1 of oo-ol63: bead oo-3rb.92): titles, row texts and
+            row keys are UTF-8 std::strings, std::optional where the old code accepted or returned nil.
+    */
+    GuiDisplayGen(NSSize gui_size,
+        int gui_cols,
+        int gui_rows,
+        int gui_row_height,
+        int gui_row_start,
+        const std::optional<std::string>& gui_title); // -cxx_initWithPixelSize:columns:rows:rowHeight:rowStart:title:
+    ~GuiDisplayGen() override;
 
-    NSSize pixel_title_size;
+    void resizeWithPixelSize(NSSize gui_size,
+        int gui_cols,
+        int gui_rows,
+        int gui_row_height,
+        int gui_row_start,
+        const std::optional<std::string>& gui_title);
+    void resizeTo(NSSize gui_size,
+        int csize,
+        const std::optional<std::string>& gui_title);
+    NSSize size();
+    unsigned columns();
+    unsigned rows();
+    unsigned rowHeight();
+    int rowStart();
 
-    OOColor* backgroundColor;
-    OOColor* textColor;
-    OOColor* textCommsColor;
+    std::optional<std::string> getTitle(); // nullopt: no title (bead oo-3rb.290)
+    void setTitle(const std::optional<std::string>& str); // empty string means no title (bead oo-3rb.290)
 
-    OOTextureSprite* backgroundSprite;
-    OOTextureSprite* foregroundSprite;
-    OOGUIBackgroundSpecial backgroundSpecial;
+    void setDrawPosition(Vector vector);
+    Vector getDrawPosition();
+
+    oo::PList userSettings(); // gui-settings.plist, with any colours set by setGuiColorSettingFromKey()
+
+    void fadeOutFromTime(OOTimeAbsolute now_time, OOTimeDelta duration);
+    void stopFadeOuts();
+
+    GLfloat alpha();
+    void setAlpha(GLfloat an_alpha);
+    void setMaxAlpha(GLfloat an_alpha);
+
+    void setBackgroundColor(::OOColor* color);
+
+    ::OOColor* getTextColor();
+    void setTextColor(::OOColor* color);
+    ::OOColor* getTextCommsColor();
+    void setTextCommsColor(::OOColor* color);
+    ::OOColor* colorFromSetting(const std::optional<std::string>& setting, ::OOColor* def); // autoreleased
+    void setGLColorFromSetting(const std::optional<std::string>& setting, ::OOColor* def, GLfloat alpha);
+    void setGuiColorSettingFromKey(const std::string& key, ::OOColor* col);
+
+    void setCharacterSize(NSSize character_size);
+
+    void setShowAdvancedNavArray(bool inFlag);
+
+    void setColor(::OOColor* color, OOGUIRow row);
+
+    oo::PList objectForRow(OOGUIRow row); // a string, or an array of column strings; null out of range
+    std::optional<std::string> keyForRow(OOGUIRow row);
+    OOGUIRow rowForKey(const std::optional<std::string>& key);
+    OOGUIRow getSelectedRow();
+    bool setSelectedRow(OOGUIRow row);
+    bool setNextRow(int direction);
+    bool setFirstSelectableRow();
+    bool setLastSelectableRow();
+    void setNoSelectedRow();
+    std::optional<std::string> selectedRowText();
+    std::optional<std::string> selectedRowKey();
+    void reportSelectedRow(int row);
+
+    void setShowTextCursor(bool yesno);
+    void setCurrentRow(OOGUIRow value);
+
+    NSRange getSelectableRange();
+    void setSelectableRange(NSRange range);
+
+    void setTabStops(OOGUITabSettings stops);
+    void overrideTabs(OOGUITabSettings stops, const std::string& setting, NSUInteger len);
+
+    void clear();
+    void clearAndKeepBackground(bool keepBackground);
+
+    void setKey(const std::string& str, OOGUIRow row);
+    void setText(const std::string& str, OOGUIRow row);
+    void setText(const std::optional<std::string>& str, OOGUIRow row, OOGUIAlignment alignment); // nullopt: no change
+
+    // Chunk 2 (oo-3rb.93): a nil text or key is std::nullopt (nothing printed / no key set, as before);
+    // text_array, when not nullptr, receives each line printed.
+    std::optional<std::string> reflowTextForMFD(const std::optional<std::string>& input);
+    OOGUIRow addLongText(const std::optional<std::string>& str,
+        OOGUIRow row,
+        OOGUIAlignment alignment);
+    void printLongText(const std::optional<std::string>& str,
+        OOGUIAlignment alignment,
+        ::OOColor* text_color,
+        float text_fade,
+        const std::optional<std::string>& text_key,
+        std::vector<std::string>* text_array);
+    void printLineNoScroll(const std::optional<std::string>& str,
+        OOGUIAlignment alignment,
+        ::OOColor* text_color,
+        float text_fade,
+        const std::optional<std::string>& text_key,
+        std::vector<std::string>* text_array);
+
+    void setArray(const std::vector<std::string>& arr, OOGUIRow row); // one string per column
+
+    // items: an array of row texts (a string, or an array of column strings); item_keys: null or an
+    // array of the same length.
+    void insertItemsFromArray(const oo::PList& items,
+        const oo::PList& item_keys,
+        OOGUIRow row,
+        ::OOColor* text_color);
+
+    void scrollUp(int how_much);
+
+    /* allows the use of special dynamic backgrounds */
+    void setBackgroundTextureSpecial(OOGUIBackgroundSpecial spec, bool withBackground);
+
+    /*
+            A background/foreground texture descriptor is a dictionary with a string
+            property keyed "name" and optional number properties keyed "width" and
+            "height". Chunk 4 (oo-3rb.94..95): descriptors are oo::PList (null = nil).
+    */
+
+    bool setBackgroundTextureDescriptor(const oo::PList& descriptor);
+    bool setForegroundTextureDescriptor(const oo::PList& descriptor);
+    bool setBackgroundTextureKey(const std::optional<std::string>& key);
+    bool setForegroundTextureKey(const std::optional<std::string>& key);
+
+    bool preloadGUITexture(const oo::PList& descriptor);
+
+    /*
+            Interpret a JavaScript value as a texture descriptor for
+            set{Background|Foreground}TextureDescriptor(). Also starts
+            preloading the texture. Null: no such texture.
+
+            callerDescription is a string describing the context in which this was
+            called, generally a method name (like "mission.runScreen()") for warning
+            generation.
+
+            Requires a request on context.
+    */
+    oo::PList textureDescriptorFromJSValue(JSValue value, JSContext* context, const std::optional<std::string>& callerDescription);
+
+    void clearBackground();
+
+    void leaveLastLine();
+    oo::PList getLastLines(); // text, colour, fade time (x 2); null with no rows
+
+    // The row under a virtual-joystick (pointer) position: the row -drawGUI:drawCursor:YES returns for
+    // that position, without rendering. A click uses it so that it activates the row under the pointer
+    // NOW, not the row of the last render (bead oo-3rb.348).
+    int rowAtVirtualJoystickPosition(NSPoint vjpos);
+    void setStatusPage(NSInteger pageNum);
+    NSUInteger getStatusPage();
+    void drawEquipmentList(const oo::PList& eqptList, GLfloat z);
+
+    int drawGUI(GLfloat alpha, bool drawCursor);
+    void drawGUIBackground();
+    void refreshStarChart();
+    void setStarChartTitle();
+
+    OOSystemID targetNextFoundSystem(int direction);
+
+    // Public for the facade's slice-3 forwarder, which test_GuiDisplayGen pins (bead oo-iro0g);
+    // private again with the facade's deletion.
+    void drawSystemMarkers(const oo::PList& markers, GLfloat x, GLfloat y, GLfloat z, GLfloat alpha, GLfloat scale);
+
+private:
+    NSSize size_in_pixels = { };
+    unsigned n_columns = { };
+    unsigned n_rows = { };
+    int pixel_row_center = { };
+    unsigned pixel_row_height = { };
+    int pixel_row_start = { };
+    NSSize pixel_text_size = { };
+
+    bool showAdvancedNavArray = { };
+
+    NSSize pixel_title_size = { };
+
+    oo::ObjCRef<::OOColor*> backgroundColor;
+    oo::ObjCRef<::OOColor*> textColor;
+    oo::ObjCRef<::OOColor*> textCommsColor;
+
+    oo::Ref<cxx::OOTextureSprite> backgroundSprite;
+    oo::Ref<cxx::OOTextureSprite> foregroundSprite;
+    OOGUIBackgroundSpecial backgroundSpecial = { };
 
     std::optional<std::string> title; // none: no title bar
 
     std::vector<oo::PList> rowText; // each a string, or an array of column strings (chunk 5a, oo-3rb.165)
     std::vector<std::string> rowKey;
-    std::vector<oo::ObjCRef<OOColor*>> rowColor;
+    std::vector<oo::ObjCRef<::OOColor*>> rowColor;
 
-    Vector drawPosition;
+    Vector drawPosition = { };
 
-    NSPoint rowPosition[GUI_MAX_ROWS];
-    OOGUIAlignment rowAlignment[GUI_MAX_ROWS];
-    float rowFadeTime[GUI_MAX_ROWS];
+    NSPoint rowPosition[GUI_MAX_ROWS] = { };
+    OOGUIAlignment rowAlignment[GUI_MAX_ROWS] = { };
+    float rowFadeTime[GUI_MAX_ROWS] = { };
 
-    OOGUITabSettings tabStops;
+    OOGUITabSettings tabStops = { };
 
     oo::PList guiUserSettings; // a mixed configuration: plist values and OOColors (Amendment 2)
 
-    NSRange rowRange;
+    NSRange rowRange = { };
 
-    OOGUIRow selectedRow;
-    NSRange selectableRange;
+    OOGUIRow selectedRow = { };
+    NSRange selectableRange = { };
 
-    BOOL showTextCursor;
-    OOGUIRow currentRow;
+    bool showTextCursor = { };
+    OOGUIRow currentRow = { };
 
-    GLfloat max_alpha; // main alpha setting
-    GLfloat fade_alpha; // for fade-in / fade-out
-    GLfloat fade_sign; //	-1.0 to 1.0
-    NSUInteger statusPage; // status  screen: paging equipped items
-    OOSystemID foundSystem;
-}
+    GLfloat max_alpha = { }; // main alpha setting
+    GLfloat fade_alpha = { }; // for fade-in / fade-out
+    GLfloat fade_sign = { }; //	-1.0 to 1.0
+    NSUInteger statusPage = { }; // status  screen: paging equipped items
+    OOSystemID foundSystem = { };
 
-- (id)init;
-/*	Foundation sweep (proposed ADR-0043, chunk 1 of oo-ol63: bead oo-3rb.92): titles, row texts and
-        row keys are UTF-8 std::strings, std::optional where the old code accepted or returned nil.
-*/
-- (id)cxx_initWithPixelSize:(NSSize)gui_size
-                    columns:(int)gui_cols
-                       rows:(int)gui_rows
-                  rowHeight:(int)gui_row_height
-                   rowStart:(int)gui_row_start
-                      title:(const std::optional<std::string>&)gui_title OO_RETURNS_RETAINED;
+    void drawGLDisplay(GLfloat x, GLfloat y, GLfloat z, GLfloat alpha);
+    void drawCrossHairsWithSize(GLfloat size, GLfloat x, GLfloat y, GLfloat z);
+    void drawStarChart(GLfloat x, GLfloat y, GLfloat z, GLfloat alpha, bool compact);
+    void drawSystemMarker(const oo::PList& marker, GLfloat x, GLfloat y, GLfloat z, GLfloat alpha, GLfloat scale);
+    void drawAdvancedNavArrayAtX(float x, float y, float z, float alpha, const oo::PList& routeInfo, OORouteType optimizeBy, OOScalar zoom);
+};
 
-- (void)cxx_resizeWithPixelSize:(NSSize)gui_size
-                        columns:(int)gui_cols
-                           rows:(int)gui_rows
-                      rowHeight:(int)gui_row_height
-                       rowStart:(int)gui_row_start
-                          title:(const std::optional<std::string>&)gui_title;
-- (void)cxx_resizeTo:(NSSize)gui_size
-     characterHeight:(int)csize
-               title:(const std::optional<std::string>&)gui_title;
-- (NSSize)size;
-- (unsigned)columns;
-- (unsigned)rows;
-- (unsigned)rowHeight;
-- (int)rowStart;
+} // namespace cxx
 
-- (std::optional<std::string>)cxx_title; // nullopt: no title (bead oo-3rb.290)
-- (void)cxx_setTitle:(const std::optional<std::string>&)str; // empty string means no title (bead oo-3rb.290)
-
-- (void)dealloc;
-
-- (void)setDrawPosition:(Vector)vector;
-- (Vector)drawPosition;
-
-- (oo::PList)cxx_userSettings; // gui-settings.plist, with any colours set by -cxx_setGuiColorSettingFromKey:color:
-
-- (void)fadeOutFromTime:(OOTimeAbsolute)now_time overDuration:(OOTimeDelta)duration;
-- (void)stopFadeOuts;
-
-- (GLfloat)alpha;
-- (void)setAlpha:(GLfloat)an_alpha;
-- (void)setMaxAlpha:(GLfloat)an_alpha;
-
-- (void)setBackgroundColor:(OOColor*)color;
-
-- (OOColor*)textColor;
-- (void)setTextColor:(OOColor*)color;
-- (OOColor*)textCommsColor;
-- (void)setTextCommsColor:(OOColor*)color;
-- (OOColor*)cxx_colorFromSetting:(const std::optional<std::string>&)setting defaultValue:(OOColor*)def;
-- (void)cxx_setGLColorFromSetting:(const std::optional<std::string>&)setting defaultValue:(OOColor*)def alpha:(GLfloat)alpha;
-- (void)cxx_setGuiColorSettingFromKey:(const std::string&)key color:(OOColor*)col;
-
-- (void)setCharacterSize:(NSSize)character_size;
-
-- (void)setShowAdvancedNavArray:(BOOL)inFlag;
-
-- (void)setColor:(OOColor*)color forRow:(OOGUIRow)row;
-
-- (oo::PList)objectForRow:(OOGUIRow)row; // a string, or an array of column strings; null out of range
-- (std::optional<std::string>)cxx_keyForRow:(OOGUIRow)row;
-- (OOGUIRow)cxx_rowForKey:(const std::optional<std::string>&)key;
-- (OOGUIRow)selectedRow;
-- (BOOL)setSelectedRow:(OOGUIRow)row;
-- (BOOL)setNextRow:(int)direction;
-- (BOOL)setFirstSelectableRow;
-- (BOOL)setLastSelectableRow;
-- (void)setNoSelectedRow;
-- (std::optional<std::string>)cxx_selectedRowText;
-- (std::optional<std::string>)cxx_selectedRowKey;
-- (void)reportSelectedRow:(int)row;
-
-- (void)setShowTextCursor:(BOOL)yesno;
-- (void)setCurrentRow:(OOGUIRow)value;
-
-- (NSRange)selectableRange;
-- (void)setSelectableRange:(NSRange)range;
-
-- (void)setTabStops:(OOGUITabSettings)stops;
-- (void)cxx_overrideTabs:(OOGUITabSettings)stops from:(const std::string&)setting length:(NSUInteger)len;
-
-- (void)clear;
-- (void)clearAndKeepBackground:(BOOL)keepBackground;
-
-- (void)cxx_setKey:(const std::string&)str forRow:(OOGUIRow)row;
-- (void)cxx_setText:(const std::string&)str forRow:(OOGUIRow)row;
-- (void)cxx_setText:(const std::optional<std::string>&)str forRow:(OOGUIRow)row align:(OOGUIAlignment)alignment; // nullopt: no change
-// Chunk 2 (oo-3rb.93): a nil text or key is std::nullopt (nothing printed / no key set, as before);
-// text_array, when not nullptr, receives each line printed.
-- (std::optional<std::string>)cxx_reflowTextForMFD:(const std::optional<std::string>&)input;
-- (OOGUIRow)cxx_addLongText:(const std::optional<std::string>&)str
-              startingAtRow:(OOGUIRow)row
-                      align:(OOGUIAlignment)alignment;
-- (void)cxx_printLongText:(const std::optional<std::string>&)str
-                    align:(OOGUIAlignment)alignment
-                    color:(OOColor*)text_color
-                 fadeTime:(float)text_fade
-                      key:(const std::optional<std::string>&)text_key
-               addToArray:(std::vector<std::string>*)text_array;
-- (void)cxx_printLineNoScroll:(const std::optional<std::string>&)str
-                        align:(OOGUIAlignment)alignment
-                        color:(OOColor*)text_color
-                     fadeTime:(float)text_fade
-                          key:(const std::optional<std::string>&)text_key
-                   addToArray:(std::vector<std::string>*)text_array;
-
-- (void)cxx_setArray:(const std::vector<std::string>&)arr forRow:(OOGUIRow)row; // one string per column
-
-// items: an array of row texts (a string, or an array of column strings); item_keys: null or an
-// array of the same length.
-- (void)cxx_insertItemsFromArray:(const oo::PList&)items
-                        withKeys:(const oo::PList&)item_keys
-                         intoRow:(OOGUIRow)row
-                           color:(OOColor*)text_color;
-
-/////////////////////////////////////////////////////
-
-- (void)scrollUp:(int)how_much;
-
-/* allows the use of special dynamic backgrounds */
-- (void)setBackgroundTextureSpecial:(OOGUIBackgroundSpecial)spec withBackground:(BOOL)withBackground;
-
-/*
-        A background/foreground texture descriptor is a dictionary with a string
-        property keyed "name" and optional number properties keyed "width" and
-        "height". Chunk 4 (oo-3rb.94..95): descriptors are oo::PList (null = nil).
-*/
-
-- (BOOL)cxx_setBackgroundTextureDescriptor:(const oo::PList&)descriptor;
-- (BOOL)cxx_setForegroundTextureDescriptor:(const oo::PList&)descriptor;
-- (BOOL)cxx_setBackgroundTextureKey:(const std::optional<std::string>&)key;
-- (BOOL)cxx_setForegroundTextureKey:(const std::optional<std::string>&)key;
-
-- (BOOL)cxx_preloadGUITexture:(const oo::PList&)descriptor;
-
-/*
-        Interpret a JavaScript value as a texture descriptor for
-        -[GUIDisplayGen cxx_set{Background|Foreground}TextureDescriptor:]. Also starts
-        preloading the texture. Null: no such texture.
-
-        callerDescription is a string describing the context in which this was
-        called, generally a method name (like "mission.runScreen()") for warning
-        generation.
-
-        Requires a request on context.
-*/
-- (oo::PList)cxx_textureDescriptorFromJSValue:(JSValue)value inContext:(JSContext*)context callerDescription:(const std::optional<std::string>&)callerDescription;
-
-- (void)clearBackground;
-
-- (void)leaveLastLine;
-- (oo::PList)cxx_getLastLines; // text, colour, fade time (x 2); null with no rows
-
-- (int)drawGUI:(GLfloat)alpha drawCursor:(BOOL)drawCursor;
-// The row under a virtual-joystick (pointer) position: the row -drawGUI:drawCursor:YES returns for
-// that position, without rendering. A click uses it so that it activates the row under the pointer
-// NOW, not the row of the last render (bead oo-3rb.348).
-- (int)rowAtVirtualJoystickPosition:(NSPoint)vjpos;
-- (void)drawGUIBackground;
-- (void)setStatusPage:(NSInteger)pageNum;
-- (NSUInteger)statusPage;
-- (void)refreshStarChart;
-- (void)setStarChartTitle;
-- (void)cxx_drawEquipmentList:(const oo::PList&)eqptList z:(GLfloat)z;
-
-- (OOSystemID)targetNextFoundSystem:(int)direction;
-
-@end
+// Transitional: the Objective-C GuiDisplayGen, for the universe, the player, the HUD, the scripting
+// bindings and the methods of this file's slices 2-4, which are not yet converted. Deleted, with
+// namespace cxx above, by the bridge's deletion bead.
+#import "GuiDisplayGen+ObjCBridge.h"

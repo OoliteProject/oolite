@@ -130,7 +130,11 @@ TestUniverse *sUniverse = nil;
 
 void SetUp(OOTimeAbsolute time)
 {
-	if (sUniverse == nil)  sUniverse = (TestUniverse *)class_createInstance([TestUniverse class], 0);	// never released
+	if (sUniverse == nil)
+	{
+		sUniverse = (TestUniverse *)class_createInstance([TestUniverse class], 0);	// never released
+		sUniverse->_cxxUniverse = oo::makeRef<cxx::Universe>(sUniverse);	// what -initWithGameView: makes first (ADR-0056 amendment oo-riqmz)
+	}
 	sUniverse->_time = time;
 	sUniverse->_removed = nil;
 	[sUniverse->_added release];
